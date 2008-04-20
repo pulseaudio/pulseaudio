@@ -29,8 +29,8 @@
 
 #include <pulse/sample.h>
 #include <pulse/mainloop-api.h>
-
 #include <pulse/channelmap.h>
+#include <pulse/proplist.h>
 
 typedef struct pa_alsa_fdlist pa_alsa_fdlist;
 
@@ -88,5 +88,6 @@ void pa_alsa_dump_status(snd_pcm_t *pcm);
 void pa_alsa_redirect_errors_inc(void);
 void pa_alsa_redirect_errors_dec(void);
 
+void pa_alsa_init_proplist(pa_proplist *p, snd_pcm_info_t *pcm_info);
 
 #endif

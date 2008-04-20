@@ -973,3 +973,76 @@ void pa_alsa_redirect_errors_dec(void) {
     if (r == 1)
         snd_lib_error_set_handler(NULL);
 }
+
+
+void pa_alsa_init_proplist(pa_proplist *p, snd_pcm_info_t *pcm_info) {
+
+    static const char * const alsa_class_table[SND_PCM_CLASS_LAST+1] = {
+        [SND_PCM_CLASS_GENERIC] = "generic",
+        [SND_PCM_CLASS_MULTI] = "multi",
+        [SND_PCM_CLASS_MODEM] = "modem",
+        [SND_PCM_CLASS_DIGITIZER] = "digitizer"
+    };
+    static const char * const class_table[SND_PCM_CLASS_LAST+1] = {
+        [SND_PCM_CLASS_GENERIC] = "sound",
+        [SND_PCM_CLASS_MULTI] = NULL,
+        [SND_PCM_CLASS_MODEM] = "modem",
+        [SND_PCM_CLASS_DIGITIZER] = NULL
+    };
+    static const char * const alsa_subclass_table[SND_PCM_SUBCLASS_LAST+1] = {
+        [SND_PCM_SUBCLASS_GENERIC_MIX] = "generic-mix",
+        [SND_PCM_SUBCLASS_MULTI_MIX] = "multi-mix"
+    };
+
+    snd_pcm_class_t class;
+    snd_pcm_subclass_t subclass;
+    const char *n, *id, *sdn;
+    char *cn = NULL, *lcn = NULL;
+    int card;
+
+    pa_assert(p);
+    pa_assert(pcm_info);
+
+    pa_proplist_sets(p, PA_PROP_DEVICE_API, "alsa");
+
+    class = snd_pcm_info_get_class(pcm_info);
+    if (class <= SND_PCM_CLASS_LAST) {
+        if (class_table[class])
+            pa_proplist_sets(p, PA_PROP_DEVICE_CLASS, class_table[class]);
+        if (alsa_class_table[class])
+            pa_proplist_sets(p, "alsa.class", alsa_class_table[class]);
+    }
+    subclass = snd_pcm_info_get_subclass(pcm_info);
+    if (subclass <= SND_PCM_SUBCLASS_LAST)
+        if (alsa_subclass_table[subclass])
+            pa_proplist_sets(p, "alsa.subclass", alsa_subclass_table[subclass]);
+
+    if ((n = snd_pcm_info_get_name(pcm_info)))
+        pa_proplist_sets(p, "alsa.name", n);
+
+    if ((id = snd_pcm_info_get_id(pcm_info)))
+        pa_proplist_sets(p, "alsa.id", id);
+
+    pa_proplist_setf(p, "alsa.subdevice", "%u", snd_pcm_info_get_subdevice(pcm_info));
+    if ((sdn = snd_pcm_info_get_subdevice_name(pcm_info)))
+        pa_proplist_sets(p, "alsa.subdevice_name", sdn);
+
+    pa_proplist_setf(p, "alsa.device", "%u", snd_pcm_info_get_device(pcm_info));
+
+    if ((card = snd_pcm_info_get_card(pcm_info)) >= 0) {
+        pa_proplist_setf(p, "card", "%i", card);
+
+        if (snd_card_get_name(card, &cn) >= 0)
+            pa_proplist_sets(p, "alsa.card_name", cn);
+
+        if (snd_card_get_longname(card, &lcn) >= 0)
+            pa_proplist_sets(p, "alsa.long_card_name", lcn);
+    }
+
+    if (cn && n)
+        pa_proplist_setf(p, PA_PROP_DEVICE_DESCRIPTION, "%s - %s", cn, n);
+    else if (cn)
+        pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, cn);
+    else if (n)
+        pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, n);
+}

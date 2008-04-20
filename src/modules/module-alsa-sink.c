@@ -93,7 +93,7 @@ static const char* const valid_modargs[] = {
 
 #define DEFAULT_DEVICE "default"
 #define DEFAULT_TSCHED_BUFFER_USEC (10*PA_USEC_PER_SEC)           /* 10s */
-#define DEFAULT_TSCHED_WATERMARK_USEC (200*PA_USEC_PER_MSEC)       /* 20ms */
+#define DEFAULT_TSCHED_WATERMARK_USEC (10*PA_USEC_PER_MSEC)       /* 20ms */
 
 struct userdata {
     pa_core *core;
@@ -1050,12 +1050,6 @@ int pa__init(pa_module*m) {
     pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, mixer_reset = TRUE;
     pa_usec_t usec;
     pa_sink_new_data data;
-    static const char * const class_table[SND_PCM_CLASS_LAST+1] = {
-        [SND_PCM_CLASS_GENERIC] = "sound",
-        [SND_PCM_CLASS_MULTI] = NULL,
-        [SND_PCM_CLASS_MODEM] = "modem",
-        [SND_PCM_CLASS_DIGITIZER] = NULL
-    };
 
     snd_pcm_info_alloca(&pcm_info);
 
@@ -1242,15 +1236,10 @@ int pa__init(pa_module*m) {
     pa_sink_new_data_set_sample_spec(&data, &ss);
     pa_sink_new_data_set_channel_map(&data, &map);
 
+    pa_alsa_init_proplist(data.proplist, pcm_info);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_name);
-    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "alsa");
-    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, snd_pcm_info_get_name(pcm_info));
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (period_frames * frame_size * nfrags));
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%lu", (unsigned long) (period_frames * frame_size));
-
-    if (class_table[snd_pcm_info_get_class(pcm_info)])
-        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_CLASS, class_table[snd_pcm_info_get_class(pcm_info)]);
-
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_ACCESS_MODE, u->use_tsched ? "mmap+timer" : (u->use_mmap ? "mmap" : "serial"));
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
