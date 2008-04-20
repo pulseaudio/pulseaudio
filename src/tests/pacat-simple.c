@@ -31,7 +31,7 @@
 
 #include <pulse/simple.h>
 #include <pulse/error.h>
-#include <pulsecore/gccmacro.h>
+#include <pulse/gccmacro.h>
 
 #define BUFSIZE 1024
 

@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include <pulse/volume.h>
-#include <pulsecore/gccmacro.h>
+#include <pulse/gccmacro.h>
 
 int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
     pa_volume_t v;
