@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
     pa_rtpoll_item_set_before_callback(w, worker);
 
     pa_rtpoll_install(p);
-    pa_rtpoll_set_timer_periodic(p, 10000000); /* 10 s */
+    pa_rtpoll_set_timer_relative(p, 10000000); /* 10 s */
 
     pa_rtpoll_run(p, 1);
 
