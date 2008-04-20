@@ -192,7 +192,7 @@ void pa_proplist_clear(pa_proplist *p);
 
 /** Allocate a new property list and copy over every single entry from
  * the specific list. \since 0.9.11 */
-pa_proplist* pa_proplist_copy(pa_proplist *template);
+pa_proplist* pa_proplist_copy(pa_proplist *t);
 
 PA_C_DECL_END
 
