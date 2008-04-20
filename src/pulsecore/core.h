@@ -35,6 +35,7 @@
 #include <pulsecore/llist.h>
 #include <pulsecore/hook-list.h>
 #include <pulsecore/asyncmsgq.h>
+#include <pulsecore/sample-util.h>
 
 typedef struct pa_core pa_core;
 
@@ -112,6 +113,7 @@ struct pa_core {
     pa_subscription_event *subscription_event_last;
 
     pa_mempool *mempool;
+    pa_silence_cache silence_cache;
 
     int exit_idle_time, module_idle_time, scache_idle_time;
 
