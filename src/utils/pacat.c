@@ -212,6 +212,18 @@ static void stream_suspended_callback(pa_stream *s, void *userdata) {
     }
 }
 
+static void stream_underflow_callback(pa_stream *s, void *userdata) {
+    assert(s);
+
+    fprintf(stderr, "Underrun.\n");
+}
+
+static void stream_overflow_callback(pa_stream *s, void *userdata) {
+    assert(s);
+
+    fprintf(stderr, "Overrun.\n");
+}
+
 static void stream_moved_callback(pa_stream *s, void *userdata) {
     assert(s);
 
@@ -249,6 +261,8 @@ static void context_state_callback(pa_context *c, void *userdata) {
             pa_stream_set_read_callback(stream, stream_read_callback, NULL);
             pa_stream_set_suspended_callback(stream, stream_suspended_callback, NULL);
             pa_stream_set_moved_callback(stream, stream_moved_callback, NULL);
+            pa_stream_set_underflow_callback(stream, stream_underflow_callback, NULL);
+            pa_stream_set_overflow_callback(stream, stream_overflow_callback, NULL);
 
             if (latency > 0) {
                 memset(&buffer_attr, 0, sizeof(buffer_attr));
@@ -416,14 +430,14 @@ static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig,
 
 /* Show the current latency */
 static void stream_update_timing_callback(pa_stream *s, int success, void *userdata) {
-    pa_usec_t latency, usec;
+    pa_usec_t l, usec;
     int negative = 0;
 
     assert(s);
 
     if (!success ||
         pa_stream_get_time(s, &usec) < 0 ||
-        pa_stream_get_latency(s, &latency, &negative) < 0) {
+        pa_stream_get_latency(s, &l, &negative) < 0) {
         fprintf(stderr, "Failed to get latency: %s\n", pa_strerror(pa_context_errno(context)));
         quit(1);
         return;
@@ -431,7 +445,7 @@ static void stream_update_timing_callback(pa_stream *s, int success, void *userd
 
     fprintf(stderr, "Time: %0.3f sec; Latency: %0.0f usec.  \r",
             (float) usec / 1000000,
-            (float) latency * (negative?-1:1));
+            (float) l * (negative?-1:1));
 }
 
 /* Someone requested that the latency is shown */
