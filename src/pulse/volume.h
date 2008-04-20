@@ -166,10 +166,10 @@ pa_volume_t pa_sw_volume_from_linear(double v) PA_GCC_CONST;
 double pa_sw_volume_to_linear(pa_volume_t v) PA_GCC_CONST;
 
 #ifdef INFINITY
-#define PA_DECIBEL_MININFTY (-INFINITY)
+#define PA_DECIBEL_MININFTY ((double) -INFINITY)
 #else
 /** This value is used as minus infinity when using pa_volume_{to,from}_dB(). */
-#define PA_DECIBEL_MININFTY (-200)
+#define PA_DECIBEL_MININFTY ((double) -200)
 #endif
 
 PA_C_DECL_END
