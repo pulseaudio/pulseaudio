@@ -28,25 +28,26 @@
 #include <pulse/proplist.h>
 #include <pulse/xmalloc.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/core-util.h>
 
 int main(int argc, char*argv[]) {
     pa_proplist *a, *b;
     char *s, *t;
 
     a = pa_proplist_new();
-    pa_assert_se(pa_proplist_puts(a, PA_PROP_MEDIA_TITLE, "Brandenburgische Konzerte") == 0);
-    pa_assert_se(pa_proplist_puts(a, PA_PROP_MEDIA_ARTIST, "Johann Sebastian Bach") == 0);
+    pa_assert_se(pa_proplist_sets(a, PA_PROP_MEDIA_TITLE, "Brandenburgische Konzerte") == 0);
+    pa_assert_se(pa_proplist_sets(a, PA_PROP_MEDIA_ARTIST, "Johann Sebastian Bach") == 0);
 
     b = pa_proplist_new();
-    pa_assert_se(pa_proplist_puts(b, PA_PROP_MEDIA_TITLE, "Goldbergvariationen") == 0);
-    pa_assert_se(pa_proplist_put(b, PA_PROP_MEDIA_ICON, "\0\1\2\3\4\5\6\7", 8) == 0);
+    pa_assert_se(pa_proplist_sets(b, PA_PROP_MEDIA_TITLE, "Goldbergvariationen") == 0);
+    pa_assert_se(pa_proplist_set(b, PA_PROP_MEDIA_ICON, "\0\1\2\3\4\5\6\7", 8) == 0);
 
-    pa_proplist_merge(a, b);
+    pa_proplist_update(a, PA_UPDATE_MERGE, b);
 
     pa_assert_se(!pa_proplist_gets(a, PA_PROP_MEDIA_ICON));
 
     printf("%s\n", pa_strnull(pa_proplist_gets(a, PA_PROP_MEDIA_TITLE)));
-    pa_assert_se(pa_proplist_remove(b, PA_PROP_MEDIA_TITLE) == 0);
+    pa_assert_se(pa_proplist_unset(b, PA_PROP_MEDIA_TITLE) == 0);
 
     s = pa_proplist_to_string(a);
     t = pa_proplist_to_string(b);
