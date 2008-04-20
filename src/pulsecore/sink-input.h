@@ -103,11 +103,11 @@ struct pa_sink_input {
      * before peek() if it is called at all. Only called if the sink
      * input driver ever plans to call
      * pa_sink_input_request_rewind(). Called from IO context. */
-    void (*rewind) (pa_sink_input *i, size_t nbytes);     /* may NOT be NULL */
+    void (*process_rewind) (pa_sink_input *i, size_t nbytes);     /* may NOT be NULL */
 
     /* Called whenever the maximum rewindable size of the sink
      * changes. Called from RT context. */
-    void (*set_max_rewind) (pa_sink_input *i, size_t nbytes); /* may be NULL */
+    void (*update_max_rewind) (pa_sink_input *i, size_t nbytes); /* may be NULL */
 
     /* If non-NULL this function is called when the input is first
      * connected to a sink or when the rtpoll/asyncmsgq fields
@@ -267,7 +267,7 @@ pa_bool_t pa_sink_input_safe_to_remove(pa_sink_input *i);
 int pa_sink_input_peek(pa_sink_input *i, size_t length, pa_memchunk *chunk, pa_cvolume *volume);
 void pa_sink_input_drop(pa_sink_input *i, size_t length);
 void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in the sink's sample spec */);
-void pa_sink_input_set_max_rewind(pa_sink_input *i, size_t nbytes  /* in the sink's sample spec */);
+void pa_sink_input_update_max_rewind(pa_sink_input *i, size_t nbytes  /* in the sink's sample spec */);
 
 int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
 

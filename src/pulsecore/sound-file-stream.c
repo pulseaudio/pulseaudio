@@ -198,7 +198,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
     return -1;
 }
 
-static void sink_input_rewind_cb(pa_sink_input *i, size_t nbytes) {
+static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     file_stream *u;
 
     pa_sink_input_assert_ref(i);
@@ -212,7 +212,7 @@ static void sink_input_rewind_cb(pa_sink_input *i, size_t nbytes) {
     pa_memblockq_rewind(u->memblockq, nbytes);
 }
 
-static void sink_input_set_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
+static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     file_stream *u;
 
     pa_sink_input_assert_ref(i);
@@ -331,8 +331,8 @@ int pa_play_file(
         goto fail;
 
     u->sink_input->pop = sink_input_pop_cb;
-    u->sink_input->rewind = sink_input_rewind_cb;
-    u->sink_input->set_max_rewind = sink_input_set_max_rewind_cb;
+    u->sink_input->process_rewind = sink_input_process_rewind_cb;
+    u->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;
     u->sink_input->kill = sink_input_kill_cb;
     u->sink_input->userdata = u;
 

@@ -582,7 +582,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
             pa_hashmap_put(s->thread_info.outputs, PA_UINT32_TO_PTR(o->index), pa_source_output_ref(o));
 
-            pa_source_output_set_max_rewind(o, s->thread_info.max_rewind);
+            pa_source_output_update_max_rewind(o, s->thread_info.max_rewind);
 
             pa_assert(!o->thread_info.attached);
             o->thread_info.attached = TRUE;
@@ -769,7 +769,7 @@ void pa_source_set_max_rewind(pa_source *s, size_t max_rewind) {
     s->thread_info.max_rewind = max_rewind;
 
     while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
-        pa_source_output_set_max_rewind(o, s->thread_info.max_rewind);
+        pa_source_output_update_max_rewind(o, s->thread_info.max_rewind);
 }
 
 void pa_source_invalidate_requested_latency(pa_source *s) {

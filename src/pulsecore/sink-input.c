@@ -98,8 +98,8 @@ static void reset_callbacks(pa_sink_input *i) {
     pa_assert(i);
 
     i->pop = NULL;
-    i->rewind = NULL;
-    i->set_max_rewind = NULL;
+    i->process_rewind = NULL;
+    i->update_max_rewind = NULL;
     i->attach = NULL;
     i->detach = NULL;
     i->suspend = NULL;
@@ -394,7 +394,7 @@ void pa_sink_input_put(pa_sink_input *i) {
 
     pa_assert(i->state == PA_SINK_INPUT_INIT);
     pa_assert(i->pop);
-    pa_assert(i->rewind);
+    pa_assert(i->process_rewind);
 
     i->thread_info.volume = i->volume;
     i->thread_info.muted = i->muted;
@@ -651,8 +651,8 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
                 pa_log_debug("Have to rewind %lu bytes on implementor.", (unsigned long) amount);
 
                 /* Tell the implementor */
-                if (i->rewind)
-                    i->rewind(i, amount);
+                if (i->process_rewind)
+                    i->process_rewind(i, amount);
             }
 
             /* And reset the resampler */
@@ -668,15 +668,15 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
 }
 
 /* Called from thread context */
-void pa_sink_input_set_max_rewind(pa_sink_input *i, size_t nbytes  /* in the sink's sample spec */) {
+void pa_sink_input_update_max_rewind(pa_sink_input *i, size_t nbytes  /* in the sink's sample spec */) {
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_LINKED(i->thread_info.state));
     pa_assert(pa_frame_aligned(nbytes, &i->sink->sample_spec));
 
     pa_memblockq_set_maxrewind(i->thread_info.render_memblockq, nbytes);
 
-    if (i->set_max_rewind)
-        i->set_max_rewind(i, i->thread_info.resampler ? pa_resampler_request(i->thread_info.resampler, nbytes) : nbytes);
+    if (i->update_max_rewind)
+        i->update_max_rewind(i, i->thread_info.resampler ? pa_resampler_request(i->thread_info.resampler, nbytes) : nbytes);
 }
 
 pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec) {

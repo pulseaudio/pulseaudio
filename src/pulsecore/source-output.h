@@ -84,11 +84,11 @@ struct pa_source_output {
 
     /* Only relevant for monitor sources right now: called when the
      * recorded stream is rewound. */
-    void (*rewind)(pa_source_output *o, size_t nbytes);
+    void (*process_rewind)(pa_source_output *o, size_t nbytes);
 
     /* Called whenever the maximum rewindable size of the source
      * changes. Called from RT context. */
-    void (*set_max_rewind) (pa_source_output *o, size_t nbytes); /* may be NULL */
+    void (*update_max_rewind) (pa_source_output *o, size_t nbytes); /* may be NULL */
 
     /* If non-NULL this function is called when the output is first
      * connected to a source. Called from IO thread context */
@@ -209,7 +209,7 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest);
 
 void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk);
 void pa_source_output_process_rewind(pa_source_output *o, size_t nbytes);
-void pa_source_output_set_max_rewind(pa_source_output *o, size_t nbytes);
+void pa_source_output_update_max_rewind(pa_source_output *o, size_t nbytes);
 
 int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
 

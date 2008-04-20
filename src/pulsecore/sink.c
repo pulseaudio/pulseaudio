@@ -981,7 +981,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 i->thread_info.sync_next->thread_info.sync_prev = i;
             }
 
-            pa_sink_input_set_max_rewind(i, s->thread_info.max_rewind);
+            pa_sink_input_update_max_rewind(i, s->thread_info.max_rewind);
 
             pa_assert(!i->thread_info.attached);
             i->thread_info.attached = TRUE;
@@ -1111,7 +1111,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 pa_hashmap_put(s->thread_info.inputs, PA_UINT32_TO_PTR(info->ghost_sink_input->index), pa_sink_input_ref(info->ghost_sink_input));
                 info->ghost_sink_input->thread_info.sync_prev = info->ghost_sink_input->thread_info.sync_next = NULL;
 
-                pa_sink_input_set_max_rewind(info->ghost_sink_input, s->thread_info.max_rewind);
+                pa_sink_input_update_max_rewind(info->ghost_sink_input, s->thread_info.max_rewind);
 
                 pa_assert(!info->ghost_sink_input->thread_info.attached);
                 info->ghost_sink_input->thread_info.attached = TRUE;
@@ -1314,7 +1314,7 @@ void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind) {
     s->thread_info.max_rewind = max_rewind;
 
     while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)))
-        pa_sink_input_set_max_rewind(i, s->thread_info.max_rewind);
+        pa_sink_input_update_max_rewind(i, s->thread_info.max_rewind);
 
     if (s->monitor_source)
         pa_source_set_max_rewind(s->monitor_source, s->thread_info.max_rewind);

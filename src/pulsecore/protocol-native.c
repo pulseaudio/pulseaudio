@@ -209,8 +209,8 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
 static void sink_input_kill_cb(pa_sink_input *i);
 static void sink_input_suspend_cb(pa_sink_input *i, pa_bool_t suspend);
 static void sink_input_moved_cb(pa_sink_input *i);
-static void sink_input_rewind_cb(pa_sink_input *i, size_t nbytes);
-static void sink_input_set_max_rewind_cb(pa_sink_input *i, size_t nbytes);
+static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes);
+static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes);
 
 
 static void send_memblock(connection *c);
@@ -760,8 +760,8 @@ static playback_stream* playback_stream_new(
 
     s->sink_input->parent.process_msg = sink_input_process_msg;
     s->sink_input->pop = sink_input_pop_cb;
-    s->sink_input->rewind = sink_input_rewind_cb;
-    s->sink_input->set_max_rewind = sink_input_set_max_rewind_cb;
+    s->sink_input->process_rewind = sink_input_process_rewind_cb;
+    s->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;
     s->sink_input->kill = sink_input_kill_cb;
     s->sink_input->moved = sink_input_moved_cb;
     s->sink_input->suspend = sink_input_suspend_cb;
@@ -1228,7 +1228,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     return 0;
 }
 
-static void sink_input_rewind_cb(pa_sink_input *i, size_t nbytes) {
+static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     playback_stream *s;
 
     pa_sink_input_assert_ref(i);
@@ -1242,7 +1242,7 @@ static void sink_input_rewind_cb(pa_sink_input *i, size_t nbytes) {
     pa_memblockq_rewind(s->memblockq, nbytes);
 }
 
-static void sink_input_set_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
+static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     playback_stream *s;
 
     pa_sink_input_assert_ref(i);

@@ -80,8 +80,8 @@ static void reset_callbacks(pa_source_output *o) {
     pa_assert(o);
 
     o->push = NULL;
-    o->rewind = NULL;
-    o->set_max_rewind = NULL;
+    o->process_rewind = NULL;
+    o->update_max_rewind = NULL;
     o->attach = NULL;
     o->detach = NULL;
     o->suspend = NULL;
@@ -376,7 +376,7 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
         pa_memblockq_seek(o->thread_info.delay_memblockq, chunk->length, PA_SEEK_RELATIVE);
     }
 
-    limit = o->rewind ? 0 : o->source->thread_info.max_rewind;
+    limit = o->process_rewind ? 0 : o->source->thread_info.max_rewind;
 
     /* Implement the delay queue */
     while ((length = pa_memblockq_get_length(o->thread_info.delay_memblockq)) > limit) {
@@ -418,7 +418,7 @@ void pa_source_output_process_rewind(pa_source_output *o, size_t nbytes /* in si
     if (nbytes <= 0)
         return;
 
-    if (o->rewind) {
+    if (o->process_rewind) {
         pa_assert(pa_memblockq_get_length(o->thread_info.delay_memblockq) == 0);
 
         if (o->thread_info.resampler)
@@ -427,7 +427,7 @@ void pa_source_output_process_rewind(pa_source_output *o, size_t nbytes /* in si
         pa_log_debug("Have to rewind %lu bytes on implementor.", (unsigned long) nbytes);
 
         if (nbytes > 0)
-            o->rewind(o, nbytes);
+            o->process_rewind(o, nbytes);
 
         if (o->thread_info.resampler)
             pa_resampler_reset(o->thread_info.resampler);
@@ -437,13 +437,13 @@ void pa_source_output_process_rewind(pa_source_output *o, size_t nbytes /* in si
 }
 
 /* Called from thread context */
-void pa_source_output_set_max_rewind(pa_source_output *o, size_t nbytes  /* in the source's sample spec */) {
+void pa_source_output_update_max_rewind(pa_source_output *o, size_t nbytes  /* in the source's sample spec */) {
     pa_source_output_assert_ref(o);
     pa_assert(PA_SOURCE_OUTPUT_LINKED(o->thread_info.state));
     pa_assert(pa_frame_aligned(nbytes, &o->source->sample_spec));
 
-    if (o->set_max_rewind)
-        o->set_max_rewind(o, o->thread_info.resampler ? pa_resampler_result(o->thread_info.resampler, nbytes) : nbytes);
+    if (o->update_max_rewind)
+        o->update_max_rewind(o, o->thread_info.resampler ? pa_resampler_result(o->thread_info.resampler, nbytes) : nbytes);
 }
 
 pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t usec) {
