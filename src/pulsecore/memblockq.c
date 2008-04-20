@@ -55,7 +55,7 @@ struct pa_memblockq {
     size_t maxlength, tlength, base, prebuf, minreq, maxrewind;
     int64_t read_index, write_index;
     pa_bool_t in_prebuf;
-    pa_memblock *silence;
+    pa_memchunk silence;
     pa_mcalign *mcalign;
     int64_t missing;
     size_t requested;
@@ -69,7 +69,7 @@ pa_memblockq* pa_memblockq_new(
         size_t prebuf,
         size_t minreq,
         size_t maxrewind,
-        pa_memblock *silence) {
+        pa_memchunk *silence) {
 
     pa_memblockq* bq;
 
@@ -98,7 +98,12 @@ pa_memblockq* pa_memblockq_new(
     pa_log_debug("memblockq sanitized: maxlength=%lu, tlength=%lu, base=%lu, prebuf=%lu, minreq=%lu maxrewind=%lu",
                  (unsigned long) bq->maxlength, (unsigned long) bq->tlength, (unsigned long) bq->base, (unsigned long) bq->prebuf, (unsigned long) bq->minreq, (unsigned long) bq->maxrewind);
 
-    bq->silence = silence ? pa_memblock_ref(silence) : NULL;
+    if (silence) {
+        bq->silence = *silence;
+        pa_memblock_ref(bq->silence.memblock);
+    } else
+        pa_memchunk_reset(&bq->silence);
+
     bq->mcalign = pa_mcalign_new(bq->base);
 
     return bq;
@@ -109,8 +114,8 @@ void pa_memblockq_free(pa_memblockq* bq) {
 
     pa_memblockq_flush(bq);
 
-    if (bq->silence)
-        pa_memblock_unref(bq->silence);
+    if (bq->silence.memblock)
+        pa_memblock_unref(bq->silence.memblock);
 
     if (bq->mcalign)
         pa_mcalign_free(bq->mcalign);
@@ -420,7 +425,7 @@ finish:
     return 0;
 }
 
-static pa_bool_t memblockq_check_prebuf(pa_memblockq *bq) {
+pa_bool_t pa_memblockq_prebuf_active(pa_memblockq *bq) {
     pa_assert(bq);
 
     if (bq->in_prebuf) {
@@ -447,7 +452,7 @@ int pa_memblockq_peek(pa_memblockq* bq, pa_memchunk *chunk) {
     pa_assert(chunk);
 
     /* We need to pre-buffer */
-    if (memblockq_check_prebuf(bq))
+    if (pa_memblockq_prebuf_active(bq))
         return -1;
 
     fix_current_read(bq);
@@ -466,13 +471,12 @@ int pa_memblockq_peek(pa_memblockq* bq, pa_memchunk *chunk) {
             length = 0;
 
         /* We need to return silence, since no data is yet available */
-        if (bq->silence) {
-            size_t l;
+        if (bq->silence.memblock) {
+            *chunk = bq->silence;
+            pa_memblock_ref(chunk->memblock);
 
-            chunk->memblock = pa_memblock_ref(bq->silence);
-
-            l = pa_memblock_get_length(chunk->memblock);
-            chunk->length = (length <= 0 || length > l) ? l : length;
+            if (length > 0 && length < chunk->length)
+                chunk->length = length;
 
         } else {
 
@@ -511,7 +515,7 @@ void pa_memblockq_drop(pa_memblockq *bq, size_t length) {
     while (length > 0) {
 
         /* Do not drop any data when we are in prebuffering mode */
-        if (memblockq_check_prebuf(bq))
+        if (pa_memblockq_prebuf_active(bq))
             break;
 
         fix_current_read(bq);
@@ -546,10 +550,20 @@ void pa_memblockq_drop(pa_memblockq *bq, size_t length) {
     bq->missing += delta;
 }
 
+void pa_memblockq_rewind(pa_memblockq *bq, size_t length) {
+    pa_assert(bq);
+    pa_assert(length % bq->base == 0);
+
+    /* This is kind of the inverse of pa_memblockq_drop() */
+
+    bq->read_index -= length;
+    bq->missing -= length;
+}
+
 pa_bool_t pa_memblockq_is_readable(pa_memblockq *bq) {
     pa_assert(bq);
 
-    if (memblockq_check_prebuf(bq))
+    if (pa_memblockq_prebuf_active(bq))
         return FALSE;
 
     if (pa_memblockq_get_length(bq) <= 0)
@@ -621,10 +635,7 @@ void pa_memblockq_flush(pa_memblockq *bq) {
     int64_t old, delta;
     pa_assert(bq);
 
-    while (bq->blocks)
-        drop_block(bq, bq->blocks);
-
-    pa_assert(bq->n_blocks == 0);
+    pa_memblockq_silence(bq);
 
     old = bq->write_index;
     bq->write_index = bq->read_index;
@@ -757,18 +768,17 @@ void pa_memblockq_set_tlength(pa_memblockq *bq, size_t tlength) {
     size_t old_tlength;
     pa_assert(bq);
 
-    old_tlength = bq->tlength;
-
     if (tlength <= 0)
         tlength = bq->maxlength;
 
+    old_tlength = bq->tlength;
     bq->tlength = ((tlength+bq->base-1)/bq->base)*bq->base;
 
     if (bq->tlength > bq->maxlength)
         bq->tlength = bq->maxlength;
 
-    if (bq->minreq > bq->tlength - bq->prebuf)
-        pa_memblockq_set_minreq(bq, bq->tlength - bq->prebuf);
+    if (bq->minreq > bq->tlength)
+        pa_memblockq_set_minreq(bq, bq->tlength);
 
     bq->missing += (int64_t) bq->tlength - (int64_t) old_tlength;
 }
@@ -776,8 +786,10 @@ void pa_memblockq_set_tlength(pa_memblockq *bq, size_t tlength) {
 void pa_memblockq_set_prebuf(pa_memblockq *bq, size_t prebuf) {
     pa_assert(bq);
 
-    bq->prebuf = (prebuf == (size_t) -1) ? bq->tlength : prebuf;
-    bq->prebuf = ((bq->prebuf+bq->base-1)/bq->base)*bq->base;
+    if (prebuf == (size_t) -1)
+        prebuf = bq->tlength;
+
+    bq->prebuf = ((prebuf+bq->base-1)/bq->base)*bq->base;
 
     if (prebuf > 0 && bq->prebuf < bq->base)
         bq->prebuf = bq->base;
@@ -788,8 +800,8 @@ void pa_memblockq_set_prebuf(pa_memblockq *bq, size_t prebuf) {
     if (bq->prebuf <= 0 || pa_memblockq_get_length(bq) >= bq->prebuf)
         bq->in_prebuf = FALSE;
 
-    if (bq->minreq > bq->tlength - bq->prebuf)
-        pa_memblockq_set_minreq(bq, bq->tlength - bq->prebuf);
+    if (bq->minreq > bq->prebuf)
+        pa_memblockq_set_minreq(bq, bq->prebuf);
 }
 
 void pa_memblockq_set_minreq(pa_memblockq *bq, size_t minreq) {
@@ -797,8 +809,11 @@ void pa_memblockq_set_minreq(pa_memblockq *bq, size_t minreq) {
 
     bq->minreq = (minreq/bq->base)*bq->base;
 
-    if (bq->minreq > bq->tlength - bq->prebuf)
-        bq->minreq = bq->tlength - bq->prebuf;
+    if (bq->minreq > bq->tlength)
+        bq->minreq = bq->tlength;
+
+    if (bq->minreq > bq->prebuf)
+        bq->minreq = bq->prebuf;
 
     if (bq->minreq < bq->base)
         bq->minreq = bq->base;
@@ -808,14 +823,6 @@ void pa_memblockq_set_maxrewind(pa_memblockq *bq, size_t maxrewind) {
     pa_assert(bq);
 
     bq->maxrewind = (maxrewind/bq->base)*bq->base;
-}
-
-void pa_memblockq_rewind(pa_memblockq *bq, size_t length) {
-    pa_assert(bq);
-    pa_assert(length % bq->base == 0);
-
-    bq->read_index -= length;
-    bq->missing -= length;
 }
 
 int pa_memblockq_splice(pa_memblockq *bq, pa_memblockq *source) {
@@ -859,17 +866,30 @@ void pa_memblockq_willneed(pa_memblockq *bq) {
         pa_memchunk_will_need(&q->chunk);
 }
 
-void pa_memblockq_set_silence(pa_memblockq *bq, pa_memblock *silence) {
+void pa_memblockq_set_silence(pa_memblockq *bq, pa_memchunk *silence) {
     pa_assert(bq);
 
-    if (bq->silence)
-        pa_memblock_unref(bq->silence);
+    if (bq->silence.memblock)
+        pa_memblock_unref(bq->silence.memblock);
 
-    bq->silence = silence ? pa_memblock_ref(silence) : NULL;
+    if (silence) {
+        bq->silence = *silence;
+        pa_memblock_ref(bq->silence.memblock);
+    } else
+        pa_memchunk_reset(&bq->silence);
 }
 
 pa_bool_t pa_memblockq_is_empty(pa_memblockq *bq) {
     pa_assert(bq);
 
     return !bq->blocks;
+}
+
+void pa_memblockq_silence(pa_memblockq *bq) {
+    pa_assert(bq);
+
+    while (bq->blocks)
+        drop_block(bq, bq->blocks);
+
+    pa_assert(bq->n_blocks == 0);
 }

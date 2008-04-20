@@ -61,16 +61,18 @@ int main(int argc, char *argv[]) {
     pa_mempool *p;
     pa_memblockq *bq;
     pa_memchunk chunk1, chunk2, chunk3, chunk4;
-    pa_memblock *silence;
+    pa_memchunk silence;
 
     pa_log_set_maximal_level(PA_LOG_DEBUG);
 
     p = pa_mempool_new(0);
 
-    silence = pa_memblock_new_fixed(p, (char*)  "__", 2, 1);
-    assert(silence);
+    silence.memblock = pa_memblock_new_fixed(p, (char*)  "__", 2, 1);
+    assert(silence.memblock);
+    silence.index = 0;
+    silence.length = pa_memblock_get_length(silence.memblock);
 
-    bq = pa_memblockq_new(0, 40, 10, 2, 4, 4, 40, silence);
+    bq = pa_memblockq_new(0, 40, 10, 2, 4, 4, 40, &silence);
     assert(bq);
 
     chunk1.memblock = pa_memblock_new_fixed(p, (char*) "11", 2, 1);
@@ -152,7 +154,7 @@ int main(int argc, char *argv[]) {
     dump(bq);
 
     pa_memblockq_free(bq);
-    pa_memblock_unref(silence);
+    pa_memblock_unref(silence.memblock);
     pa_memblock_unref(chunk1.memblock);
     pa_memblock_unref(chunk2.memblock);
     pa_memblock_unref(chunk3.memblock);

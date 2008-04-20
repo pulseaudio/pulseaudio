@@ -91,6 +91,8 @@ struct pa_source {
     pa_asyncmsgq *asyncmsgq;
     pa_rtpoll *rtpoll;
 
+    pa_memchunk silence;
+
     pa_usec_t min_latency; /* we won't go below this latency setting */
     pa_usec_t max_latency; /* An upper limit for the latencies */
 
@@ -112,6 +114,10 @@ struct pa_source {
 
         pa_bool_t requested_latency_valid;
         size_t requested_latency;
+
+        /* Then number of bytes this source will be rewound for at
+         * max */
+        size_t max_rewind;
     } thread_info;
 
     void *userdata;
@@ -130,7 +136,6 @@ typedef enum pa_source_message {
     PA_SOURCE_MESSAGE_GET_LATENCY,
     PA_SOURCE_MESSAGE_GET_REQUESTED_LATENCY,
     PA_SOURCE_MESSAGE_SET_STATE,
-    PA_SOURCE_MESSAGE_PING,
     PA_SOURCE_MESSAGE_ATTACH,
     PA_SOURCE_MESSAGE_DETACH,
     PA_SOURCE_MESSAGE_MAX
@@ -189,8 +194,6 @@ int pa_source_update_status(pa_source*s);
 int pa_source_suspend(pa_source *s, pa_bool_t suspend);
 int pa_source_suspend_all(pa_core *c, pa_bool_t suspend);
 
-void pa_source_ping(pa_source *s);
-
 void pa_source_set_volume(pa_source *source, const pa_cvolume *volume);
 const pa_cvolume *pa_source_get_volume(pa_source *source);
 void pa_source_set_mute(pa_source *source, pa_bool_t mute);
@@ -203,6 +206,7 @@ unsigned pa_source_used_by(pa_source *s); /* Number of connected streams that ar
 /* To be called exclusively by the source driver, from IO context */
 
 void pa_source_post(pa_source*s, const pa_memchunk *b);
+void pa_source_process_rewind(pa_source *s, size_t nbytes);
 
 int pa_source_process_msg(pa_msgobject *o, int code, void *userdata, int64_t, pa_memchunk *chunk);
 
@@ -210,6 +214,8 @@ void pa_source_attach_within_thread(pa_source *s);
 void pa_source_detach_within_thread(pa_source *s);
 
 pa_usec_t pa_source_get_requested_latency_within_thread(pa_source *s);
+
+void pa_source_set_max_rewind(pa_source *s, size_t max_rewind);
 
 /* To be called exclusively by source output drivers, from IO context */
 

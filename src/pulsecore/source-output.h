@@ -82,6 +82,14 @@ struct pa_source_output {
      * context. */
     void (*push)(pa_source_output *o, const pa_memchunk *chunk);
 
+    /* Only relevant for monitor sources right now: called when the
+     * recorded stream is rewound. */
+    void (*rewind)(pa_source_output *o, size_t nbytes);
+
+    /* Called whenever the maximum rewindable size of the source
+     * changes. Called from RT context. */
+    void (*set_max_rewind) (pa_source_output *o, size_t nbytes); /* may be NULL */
+
     /* If non-NULL this function is called when the output is first
      * connected to a source. Called from IO thread context */
     void (*attach) (pa_source_output *o);           /* may be NULL */
@@ -116,6 +124,10 @@ struct pa_source_output {
         pa_sample_spec sample_spec;
 
         pa_resampler* resampler;              /* may be NULL */
+
+        /* We maintain a delay memblockq here for source outputs that
+         * don't implement rewind() */
+        pa_memblockq *delay_memblockq;
 
         /* The requested latency for the source */
         pa_usec_t requested_source_latency;
@@ -196,6 +208,8 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest);
 /* To be used exclusively by the source driver thread */
 
 void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk);
+void pa_source_output_process_rewind(pa_source_output *o, size_t nbytes);
+void pa_source_output_set_max_rewind(pa_source_output *o, size_t nbytes);
 
 int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
 

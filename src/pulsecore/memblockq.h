@@ -64,7 +64,7 @@ typedef struct pa_memblockq pa_memblockq;
 
    - maxrewind: how many bytes of history to keep in the queue
 
-   - silence:   return this memblock when reading unitialized data
+   - silence:   return this memchunk when reading unitialized data
 */
 pa_memblockq* pa_memblockq_new(
         int64_t idx,
@@ -74,7 +74,7 @@ pa_memblockq* pa_memblockq_new(
         size_t prebuf,
         size_t minreq,
         size_t maxrewind,
-        pa_memblock *silence);
+        pa_memchunk *silence);
 
 void pa_memblockq_free(pa_memblockq*bq);
 
@@ -152,7 +152,7 @@ void pa_memblockq_set_tlength(pa_memblockq *memblockq, size_t tlength); /* might
 void pa_memblockq_set_prebuf(pa_memblockq *memblockq, size_t prebuf); /* might modify minreq, too */
 void pa_memblockq_set_minreq(pa_memblockq *memblockq, size_t minreq);
 void pa_memblockq_set_maxrewind(pa_memblockq *memblockq, size_t rewind); /* Set the maximum history size */
-void pa_memblockq_set_silence(pa_memblockq *memblockq, pa_memblock *silence);
+void pa_memblockq_set_silence(pa_memblockq *memblockq, pa_memchunk *silence);
 
 /* Call pa_memchunk_willneed() for every chunk in the queue from the current read pointer to the end */
 void pa_memblockq_willneed(pa_memblockq *bq);
@@ -161,5 +161,10 @@ void pa_memblockq_willneed(pa_memblockq *bq);
  * neither left nor right of the read pointer, and hence no buffered
  * data for the future nor data in the backlog. */
 pa_bool_t pa_memblockq_is_empty(pa_memblockq *bq);
+
+void pa_memblockq_silence(pa_memblockq *bq);
+
+/* Check whether we currently are in prebuf state */
+pa_bool_t pa_memblockq_prebuf_active(pa_memblockq *bq);
 
 #endif

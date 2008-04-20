@@ -71,7 +71,26 @@ PA_MODULE_USAGE(
         "mmap=<enable memory mapping?> "
         "tsched=<enable system timer based scheduling mode?> "
         "tsched_buffer_size=<buffer size when using timer based scheduling> "
-        "tsched_buffer_watermark=<upper fill watermark>");
+        "tsched_buffer_watermark=<upper fill watermark> "
+        "mixer_reset=<reset hw volume and mute settings to sane defaults when falling back to software?>");
+
+static const char* const valid_modargs[] = {
+    "source_name",
+    "device",
+    "device_id",
+    "format",
+    "rate",
+    "channels",
+    "channel_map",
+    "fragments",
+    "fragment_size",
+    "mmap",
+    "tsched",
+    "tsched_buffer_size",
+    "tsched_buffer_watermark",
+    "mixer_reset",
+    NULL
+};
 
 #define DEFAULT_DEVICE "default"
 #define DEFAULT_TSCHED_BUFFER_USEC (2*PA_USEC_PER_SEC)
@@ -108,23 +127,6 @@ struct userdata {
 
     pa_smoother *smoother;
     int64_t frame_index;
-};
-
-static const char* const valid_modargs[] = {
-    "source_name",
-    "device",
-    "device_id",
-    "format",
-    "rate",
-    "channels",
-    "channel_map",
-    "fragments",
-    "fragment_size",
-    "mmap",
-    "tsched",
-    "tsched_buffer_size",
-    "tsched_buffer_watermark",
-    NULL
 };
 
 static int mmap_read(struct userdata *u) {
@@ -876,7 +878,7 @@ int pa__init(pa_module*m) {
     const char *name;
     char *name_buf = NULL;
     pa_bool_t namereg_fail;
-    pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d;
+    pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, mixer_reset = TRUE;
     pa_source_new_data data;
     static const char * const class_table[SND_PCM_CLASS_LAST+1] = {
         [SND_PCM_CLASS_GENERIC] = "sound",
@@ -936,6 +938,11 @@ int pa__init(pa_module*m) {
     if (use_tsched && !pa_rtclock_hrtimer()) {
         pa_log("Disabling timer-based scheduling because high-resolution timers are not available from the kernel.");
         use_tsched = FALSE;
+    }
+
+    if (pa_modargs_get_value_boolean(ma, "mixer_reset", &mixer_reset) < 0) {
+        pa_log("Failed to parse mixer_reset argument.");
+        goto fail;
     }
 
     u = pa_xnew0(struct userdata, 1);
@@ -1163,10 +1170,12 @@ int pa__init(pa_module*m) {
                     u->source->flags |= PA_SOURCE_HW_VOLUME_CTRL | (u->hw_dB_supported ? PA_SOURCE_DECIBEL_VOLUME : 0);
                     pa_log_info("Using hardware volume control. %s dB scale.", u->hw_dB_supported ? "Using" : "Not using");
 
-                } else {
+                } else if (mixer_reset) {
                     pa_log_info("Using software volume control. Trying to reset sound card to 0 dB.");
                     pa_alsa_0dB_capture(u->mixer_elem);
-                }
+                } else
+                    pa_log_info("Using software volume control. Leaving hw mixer controls untouched.");
+
             }
 
 

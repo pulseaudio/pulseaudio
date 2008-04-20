@@ -255,17 +255,13 @@ void pa_memblockq_sink_input_set_queue(pa_sink_input *i, pa_memblockq *q) {
         pa_memblockq_free(u->memblockq);
 
     if ((u->memblockq = q)) {
-        pa_memblock *silence;
+        pa_memchunk silence;
 
         pa_memblockq_set_prebuf(q, 0);
 
-        silence = pa_silence_memblock_new(
-                i->sink->core->mempool,
-                &i->sample_spec,
-                i->thread_info.resampler ? pa_resampler_max_block_size(i->thread_info.resampler) : 0);
-
-        pa_memblockq_set_silence(q, silence);
-        pa_memblock_unref(silence);
+        pa_sink_input_get_silence(i, &silence);
+        pa_memblockq_set_silence(q, &silence);
+        pa_memblock_unref(silence.memblock);
 
         pa_memblockq_willneed(q);
     }

@@ -105,6 +105,19 @@ void pa_sink_new_data_done(pa_sink_new_data *data) {
     pa_proplist_free(data->proplist);
 }
 
+static void reset_callbacks(pa_sink *s) {
+    pa_assert(s);
+
+    s->set_state = NULL;
+    s->get_volume = NULL;
+    s->set_volume = NULL;
+    s->get_mute = NULL;
+    s->set_mute = NULL;
+    s->get_latency = NULL;
+    s->request_rewind = NULL;
+    s->update_requested_latency = NULL;
+}
+
 pa_sink* pa_sink_new(
         pa_core *core,
         pa_sink_new_data *data,
@@ -182,19 +195,18 @@ pa_sink* pa_sink_new(
     s->muted = data->muted;
     s->refresh_volume = s->refresh_mute = FALSE;
 
-    s->get_latency = NULL;
-    s->set_volume = NULL;
-    s->get_volume = NULL;
-    s->set_mute = NULL;
-    s->get_mute = NULL;
-    s->set_state = NULL;
-    s->request_rewind = NULL;
-    s->update_requested_latency = NULL;
+    reset_callbacks(s);
     s->userdata = NULL;
 
     s->asyncmsgq = NULL;
     s->rtpoll = NULL;
-    s->silence = pa_silence_memblock_new(core->mempool, &s->sample_spec, 0);
+
+    pa_silence_memchunk_get(
+            &core->silence_cache,
+            core->mempool,
+            &s->silence,
+            &s->sample_spec,
+            0);
 
     s->min_latency = DEFAULT_MIN_LATENCY;
     s->max_latency = s->min_latency;
@@ -239,6 +251,7 @@ pa_sink* pa_sink_new(
     }
 
     s->monitor_source->monitor_of = s;
+    pa_source_set_max_rewind(s->monitor_source, s->thread_info.max_rewind);
 
     return s;
 }
@@ -336,14 +349,7 @@ void pa_sink_unlink(pa_sink* s) {
     else
         s->state = PA_SINK_UNLINKED;
 
-    s->get_latency = NULL;
-    s->get_volume = NULL;
-    s->set_volume = NULL;
-    s->set_mute = NULL;
-    s->get_mute = NULL;
-    s->set_state = NULL;
-    s->request_rewind = NULL;
-    s->update_requested_latency = NULL;
+    reset_callbacks(s);
 
     if (s->monitor_source)
         pa_source_unlink(s->monitor_source);
@@ -378,8 +384,8 @@ static void sink_free(pa_object *o) {
 
     pa_hashmap_free(s->thread_info.inputs, NULL, NULL);
 
-    if (s->silence)
-        pa_memblock_unref(s->silence);
+    if (s->silence.memblock)
+        pa_memblock_unref(s->silence.memblock);
 
     pa_xfree(s->name);
     pa_xfree(s->driver);
@@ -429,37 +435,31 @@ int pa_sink_suspend(pa_sink *s, pa_bool_t suspend) {
         return sink_set_state(s, pa_sink_used_by(s) ? PA_SINK_RUNNING : PA_SINK_IDLE);
 }
 
-void pa_sink_ping(pa_sink *s) {
-    pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->state));
-
-    pa_asyncmsgq_post(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_PING, NULL, 0, NULL, NULL);
-}
-
-void pa_sink_process_rewind(pa_sink *s) {
+void pa_sink_process_rewind(pa_sink *s, size_t nbytes) {
     pa_sink_input *i;
     void *state = NULL;
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_LINKED(s->state));
 
-    if (s->thread_info.rewind_nbytes <= 0)
+    if (nbytes <= 0)
         return;
 
     pa_log_debug("Processing rewind...");
 
     while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL))) {
         pa_sink_input_assert_ref(i);
-
-        pa_sink_input_rewind(i, s->thread_info.rewind_nbytes);
+        pa_sink_input_process_rewind(i, nbytes);
     }
 
-    s->thread_info.rewind_nbytes = 0;
+    if (s->monitor_source && PA_SOURCE_OPENED(pa_source_get_state(s->monitor_source)))
+        pa_source_process_rewind(s->monitor_source, nbytes);
 }
 
-static unsigned fill_mix_info(pa_sink *s, size_t length, pa_mix_info *info, unsigned maxinfo) {
+static unsigned fill_mix_info(pa_sink *s, size_t *length, pa_mix_info *info, unsigned maxinfo) {
     pa_sink_input *i;
     unsigned n = 0;
     void *state = NULL;
+    size_t mixlength = *length;
 
     pa_sink_assert_ref(s);
     pa_assert(info);
@@ -467,8 +467,11 @@ static unsigned fill_mix_info(pa_sink *s, size_t length, pa_mix_info *info, unsi
     while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)) && maxinfo > 0) {
         pa_sink_input_assert_ref(i);
 
-        if (pa_sink_input_peek(i, length, &info->chunk, &info->volume) < 0)
+        if (pa_sink_input_peek(i, *length, &info->chunk, &info->volume) < 0)
             continue;
+
+        if (mixlength == 0 || info->chunk.length < mixlength)
+            mixlength = info->chunk.length;
 
         if (pa_memblock_is_silence(info->chunk.memblock)) {
             pa_memblock_unref(info->chunk.memblock);
@@ -484,6 +487,9 @@ static unsigned fill_mix_info(pa_sink *s, size_t length, pa_mix_info *info, unsi
         n++;
         maxinfo--;
     }
+
+    if (mixlength > 0)
+        *length = mixlength;
 
     return n;
 }
@@ -569,13 +575,15 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
 
     pa_assert(length > 0);
 
-    n = s->thread_info.state == PA_SINK_RUNNING ? fill_mix_info(s, length, info, MAX_MIX_CHANNELS) : 0;
+    n = s->thread_info.state == PA_SINK_RUNNING ? fill_mix_info(s, &length, info, MAX_MIX_CHANNELS) : 0;
 
     if (n == 0) {
 
-        result->memblock = pa_memblock_ref(s->silence);
-        result->length = PA_MIN(pa_memblock_get_length(s->silence), length);
-        result->index = 0;
+        *result = s->silence;
+        pa_memblock_ref(result->memblock);
+
+        if (result->length > length)
+            result->length = length;
 
     } else if (n == 1) {
         pa_cvolume volume;
@@ -589,6 +597,7 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
         pa_sw_cvolume_multiply(&volume, &s->thread_info.soft_volume, &info[0].volume);
 
         if (s->thread_info.soft_muted || !pa_cvolume_is_norm(&volume)) {
+            pa_log("adjusting volume ");
             pa_memchunk_make_writable(result, 0);
             if (s->thread_info.soft_muted || pa_cvolume_is_muted(&volume))
                 pa_silence_memchunk(result, &s->sample_spec);
@@ -600,7 +609,11 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
         result->memblock = pa_memblock_new(s->core->mempool, length);
 
         ptr = pa_memblock_acquire(result->memblock);
-        result->length = pa_mix(info, n, ptr, length, &s->sample_spec, &s->thread_info.soft_volume, s->thread_info.soft_muted);
+        result->length = pa_mix(info, n,
+                                ptr, length,
+                                &s->sample_spec,
+                                &s->thread_info.soft_volume,
+                                s->thread_info.soft_muted);
         pa_memblock_release(result->memblock);
 
         result->index = 0;
@@ -618,6 +631,7 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
 void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
     pa_mix_info info[MAX_MIX_CHANNELS];
     unsigned n;
+    size_t length, block_size_max;
 
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_OPENED(s->thread_info.state));
@@ -630,34 +644,44 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
 
     s->thread_info.rewind_nbytes = 0;
 
-    n = s->thread_info.state == PA_SINK_RUNNING ? fill_mix_info(s, target->length, info, MAX_MIX_CHANNELS) : 0;
+    length = target->length;
+    block_size_max = pa_mempool_block_size_max(s->core->mempool);
+    if (length > block_size_max)
+        length = pa_frame_align(block_size_max, &s->sample_spec);
 
-    if (n == 0)
+    n = s->thread_info.state == PA_SINK_RUNNING ? fill_mix_info(s, &length, info, MAX_MIX_CHANNELS) : 0;
+
+    if (n == 0) {
+        if (target->length > length)
+            target->length = length;
+
         pa_silence_memchunk(target, &s->sample_spec);
-    else if (n == 1) {
-        if (target->length > info[0].chunk.length)
-            target->length = info[0].chunk.length;
+    } else if (n == 1) {
+        pa_cvolume volume;
 
-        if (s->thread_info.soft_muted)
+        if (target->length > length)
+            target->length = length;
+
+        pa_sw_cvolume_multiply(&volume, &s->thread_info.soft_volume, &info[0].volume);
+
+        if (s->thread_info.soft_muted || pa_cvolume_is_muted(&volume))
             pa_silence_memchunk(target, &s->sample_spec);
         else {
-            void *src, *ptr;
-            pa_cvolume volume;
+            pa_memchunk vchunk;
 
-            ptr = pa_memblock_acquire(target->memblock);
-            src = pa_memblock_acquire(info[0].chunk.memblock);
+            vchunk = info[0].chunk;
+            pa_memblock_ref(vchunk.memblock);
 
-            memcpy((uint8_t*) ptr + target->index,
-                   (uint8_t*) src + info[0].chunk.index,
-                   target->length);
+            if (vchunk.length > target->length)
+                vchunk.length = target->length;
 
-            pa_memblock_release(target->memblock);
-            pa_memblock_release(info[0].chunk.memblock);
+            if (!pa_cvolume_is_norm(&volume)) {
+                pa_memchunk_make_writable(&vchunk, 0);
+                pa_volume_memchunk(&vchunk, &s->sample_spec, &volume);
+            }
 
-            pa_sw_cvolume_multiply(&volume, &s->thread_info.soft_volume, &info[0].volume);
-
-            if (!pa_cvolume_is_norm(&volume))
-                pa_volume_memchunk(target, &s->sample_spec, &volume);
+            pa_memchunk_memcpy(target, &vchunk);
+            pa_memblock_unref(vchunk.memblock);
         }
 
     } else {
@@ -666,8 +690,7 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
         ptr = pa_memblock_acquire(target->memblock);
 
         target->length = pa_mix(info, n,
-                                (uint8_t*) ptr + target->index,
-                                target->length,
+                                (uint8_t*) ptr + target->index, length,
                                 &s->sample_spec,
                                 &s->thread_info.soft_volume,
                                 s->thread_info.soft_muted);
@@ -923,12 +946,11 @@ unsigned pa_sink_used_by(pa_sink *s) {
 
     ret = pa_idxset_size(s->inputs);
     pa_assert(ret >= s->n_corked);
-    ret -= s->n_corked;
 
     /* Streams connected to our monitor source do not matter for
      * pa_sink_used_by()!.*/
 
-    return ret;
+    return ret - s->n_corked;
 }
 
 int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk) {
@@ -973,7 +995,9 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
             pa_sink_invalidate_requested_latency(s);
 
+            /* Make sure we're not rewound when the hw buffer is remixed and request a remix*/
             i->thread_info.ignore_rewind = TRUE;
+            i->thread_info.since_underrun = 0;
             pa_sink_request_rewind(s, 0);
 
             return 0;
@@ -1122,9 +1146,6 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
         case PA_SINK_MESSAGE_GET_MUTE:
             *((pa_bool_t*) userdata) = s->thread_info.soft_muted;
-            return 0;
-
-        case PA_SINK_MESSAGE_PING:
             return 0;
 
         case PA_SINK_MESSAGE_SET_STATE:
@@ -1286,7 +1307,6 @@ void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind) {
     void *state = NULL;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->thread_info.state));
 
     if (max_rewind == s->thread_info.max_rewind)
         return;
@@ -1295,6 +1315,9 @@ void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind) {
 
     while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)))
         pa_sink_input_set_max_rewind(i, s->thread_info.max_rewind);
+
+    if (s->monitor_source)
+        pa_source_set_max_rewind(s->monitor_source, s->thread_info.max_rewind);
 }
 
 void pa_sink_invalidate_requested_latency(pa_sink *s) {

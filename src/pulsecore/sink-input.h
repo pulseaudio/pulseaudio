@@ -97,16 +97,16 @@ struct pa_sink_input {
      * only. If less data is available, it's fine to return a smaller
      * block. If more data is already ready, it is better to return
      * the full block. */
-    int (*pop) (pa_sink_input *i, size_t request_nbytes, pa_memchunk *chunk);
+    int (*pop) (pa_sink_input *i, size_t request_nbytes, pa_memchunk *chunk); /* may NOT be NULL */
 
     /* Rewind the queue by the specified number of bytes. Called just
      * before peek() if it is called at all. Only called if the sink
      * input driver ever plans to call
-     * pa_sink_input_request_rewrite(). Called from IO context. */
-    void (*rewind) (pa_sink_input *i, size_t nbytes);     /* may be NULL */
+     * pa_sink_input_request_rewind(). Called from IO context. */
+    void (*rewind) (pa_sink_input *i, size_t nbytes);     /* may NOT be NULL */
 
     /* Called whenever the maximum rewindable size of the sink
-     * changes. Called from UI context. */
+     * changes. Called from RT context. */
     void (*set_max_rewind) (pa_sink_input *i, size_t nbytes); /* may be NULL */
 
     /* If non-NULL this function is called when the input is first
@@ -150,7 +150,9 @@ struct pa_sink_input {
 
         /* We maintain a history of resampled audio data here. */
         pa_memblockq *render_memblockq;
+
         size_t rewrite_nbytes;
+        int64_t since_underrun;
         pa_bool_t ignore_rewind;
 
         pa_sink_input *sync_prev, *sync_next;
@@ -229,14 +231,13 @@ void pa_sink_input_set_name(pa_sink_input *i, const char *name);
 pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec);
 
 /* Request that the specified number of bytes already written out to
-the hw device is rewritten, if possible. If this function is used you
-need to supply the ->rewind() function pointer. Please note that this
-is only a kind request. The sink driver may not be able to fulfill it
+the hw device is rewritten, if possible.  Please note that this is
+only a kind request. The sink driver may not be able to fulfill it
 fully -- or at all. If the request for a rewrite was successful, the
 sink driver will call ->rewind() and pass the number of bytes that
 could be rewound in the HW device. This functionality is required for
 implementing the "zero latency" write-through functionality. */
-void pa_sink_input_request_rewrite(pa_sink_input *i, size_t nbytes);
+void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes, pa_bool_t ignore_rewind);
 
 /* Callable by everyone from main thread*/
 
@@ -265,7 +266,7 @@ pa_bool_t pa_sink_input_safe_to_remove(pa_sink_input *i);
 
 int pa_sink_input_peek(pa_sink_input *i, size_t length, pa_memchunk *chunk, pa_cvolume *volume);
 void pa_sink_input_drop(pa_sink_input *i, size_t length);
-void pa_sink_input_rewind(pa_sink_input *i, size_t nbytes /* in the sink's sample spec */);
+void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in the sink's sample spec */);
 void pa_sink_input_set_max_rewind(pa_sink_input *i, size_t nbytes  /* in the sink's sample spec */);
 
 int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
@@ -277,5 +278,6 @@ typedef struct pa_sink_input_move_info {
     size_t buffer_bytes;
 } pa_sink_input_move_info;
 
+pa_memchunk* pa_sink_input_get_silence(pa_sink_input *i, pa_memchunk *ret);
 
 #endif

@@ -313,7 +313,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     char *c;
     pa_sink *sink;
     int fd = -1;
-    pa_memblock *silence;
+    pa_memchunk silence;
     pa_sink_input_new_data data;
     struct timeval now;
 
@@ -371,10 +371,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     s->sink_input->attach = sink_input_attach;
     s->sink_input->detach = sink_input_detach;
 
-    silence = pa_silence_memblock_new(
-            s->userdata->module->core->mempool,
-            &s->sink_input->sample_spec,
-            pa_frame_align(pa_bytes_per_second(&s->sink_input->sample_spec)/128, &s->sink_input->sample_spec));
+    pa_sink_input_get_silence(s->sink_input, &silence);
 
     s->memblockq = pa_memblockq_new(
             0,
@@ -384,9 +381,9 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
             pa_bytes_per_second(&s->sink_input->sample_spec)/10+1,
             0,
             0,
-            silence);
+            &silence);
 
-    pa_memblock_unref(silence);
+    pa_memblock_unref(silence.memblock);
 
     pa_rtp_context_init_recv(&s->rtp_context, fd, pa_frame_size(&s->sdp_info.sample_spec));
 

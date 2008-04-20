@@ -252,7 +252,8 @@ static void thread_func(void *userdata) {
 
             /* Just rewind if necessary, since we are in NULL mode, we
              * don't have to pass this on */
-            pa_sink_process_rewind(u->sink);
+            pa_sink_process_rewind(u->sink, u->sink->thread_info.rewind_nbytes);
+            u->sink->thread_info.rewind_nbytes = 0;
 
             pa_rtclock_get(&now);
 

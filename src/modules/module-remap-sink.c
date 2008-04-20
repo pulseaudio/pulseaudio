@@ -112,7 +112,7 @@ static void sink_request_rewind(pa_sink *s) {
     pa_sink_assert_ref(s);
     pa_assert_se(u = s->userdata);
 
-    pa_sink_input_request_rewrite(u->sink_input, s->thread_info.rewind_nbytes);
+    pa_sink_input_request_rewind(u->sink_input, s->thread_info.rewind_nbytes, FALSE);
 }
 
 /* Called from I/O thread context */
@@ -166,8 +166,7 @@ static void sink_input_rewind_cb(pa_sink_input *i, size_t nbytes) {
     pa_assert_se(u = i->userdata);
     pa_assert(nbytes > 0);
 
-    u->sink->thread_info.rewind_nbytes = nbytes;
-    pa_sink_process_rewind(u->sink);
+    pa_sink_process_rewind(u->sink, nbytes);
 }
 
 /* Called from I/O thread context */
