@@ -90,4 +90,6 @@ void pa_alsa_redirect_errors_dec(void);
 
 void pa_alsa_init_proplist(pa_proplist *p, snd_pcm_info_t *pcm_info);
 
+int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents);
+
 #endif

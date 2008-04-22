@@ -974,7 +974,6 @@ void pa_alsa_redirect_errors_dec(void) {
         snd_lib_error_set_handler(NULL);
 }
 
-
 void pa_alsa_init_proplist(pa_proplist *p, snd_pcm_info_t *pcm_info) {
 
     static const char * const alsa_class_table[SND_PCM_CLASS_LAST+1] = {
@@ -1030,7 +1029,7 @@ void pa_alsa_init_proplist(pa_proplist *p, snd_pcm_info_t *pcm_info) {
     pa_proplist_setf(p, "alsa.device", "%u", snd_pcm_info_get_device(pcm_info));
 
     if ((card = snd_pcm_info_get_card(pcm_info)) >= 0) {
-        pa_proplist_setf(p, "card", "%i", card);
+        pa_proplist_setf(p, "alsa.card", "%i", card);
 
         if (snd_card_get_name(card, &cn) >= 0)
             pa_proplist_sets(p, "alsa.card_name", cn);
@@ -1045,4 +1044,52 @@ void pa_alsa_init_proplist(pa_proplist *p, snd_pcm_info_t *pcm_info) {
         pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, cn);
     else if (n)
         pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, n);
+}
+
+int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents) {
+    snd_pcm_state_t state;
+    int err;
+
+    pa_assert(pcm);
+
+    if (revents & POLLERR)
+        pa_log_warn("Got POLLERR from ALSA");
+    if (revents & POLLNVAL)
+        pa_log_warn("Got POLLNVAL from ALSA");
+    if (revents & POLLHUP)
+        pa_log_warn("Got POLLHUP from ALSA");
+
+    state = snd_pcm_state(pcm);
+    pa_log_warn("PCM state is %s", snd_pcm_state_name(state));
+
+    /* Try to recover from this error */
+
+    switch (state) {
+
+        case SND_PCM_STATE_XRUN:
+            if ((err = snd_pcm_recover(pcm, -EPIPE, 1)) != 0) {
+                pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP and XRUN: %s", snd_strerror(err));
+                return -1;
+            }
+            break;
+
+        case SND_PCM_STATE_SUSPENDED:
+            if ((err = snd_pcm_recover(pcm, -ESTRPIPE, 1)) != 0) {
+                pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP and SUSPENDED: %s", snd_strerror(err));
+                return -1;
+            }
+            break;
+
+        default:
+
+            snd_pcm_drop(pcm);
+
+            if ((err = snd_pcm_prepare(pcm)) < 0) {
+                pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP with snd_pcm_prepare(): %s", snd_strerror(err));
+                return -1;
+            }
+            break;
+    }
+
+    return 0;
 }
