@@ -1298,6 +1298,9 @@ pa_usec_t pa_sink_get_requested_latency(pa_sink *s) {
     if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_REQUESTED_LATENCY, &usec, 0, NULL) < 0)
         return 0;
 
+    if (usec == (pa_usec_t) -1)
+        usec = s->max_latency;
+
     return usec;
 }
 
