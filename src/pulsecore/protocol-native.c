@@ -785,6 +785,10 @@ static playback_stream* playback_stream_new(
     tlength_usec = pa_bytes_to_usec(*tlength, &sink_input->sample_spec);
     minreq_usec = pa_bytes_to_usec(*minreq, &sink_input->sample_spec);
 
+    pa_log_info("Requested tlength=%0.2f ms, minreq=%0.2f ms",
+                (double) tlength_usec / PA_USEC_PER_MSEC,
+                (double) minreq_usec / PA_USEC_PER_MSEC);
+
     if (adjust_latency) {
 
         /* So, the user asked us to adjust the latency of the stream
@@ -877,6 +881,12 @@ static playback_stream* playback_stream_new(
     s->drain_request = FALSE;
 
     pa_idxset_put(c->output_streams, s, &s->index);
+
+    pa_log_info("Final latency %0.2f ms = %0.2f ms + 2*%0.2f ms + %0.2f ms",
+                ((double) pa_bytes_to_usec(*tlength, &sink_input->sample_spec) + (double) s->sink_latency) / PA_USEC_PER_MSEC,
+                (double) pa_bytes_to_usec(*tlength-*minreq*2, &sink_input->sample_spec) / PA_USEC_PER_MSEC,
+                (double) pa_bytes_to_usec(*minreq, &sink_input->sample_spec) / PA_USEC_PER_MSEC,
+                (double) s->sink_latency / PA_USEC_PER_MSEC);
 
     pa_sink_input_put(s->sink_input);
     return s;
@@ -1047,8 +1057,6 @@ static void handle_seek(playback_stream *s, int64_t indexw) {
 
             if (u >= s->underrun)
                 u = s->underrun;
-
-            pa_log("yeah! ready to rock");
 
             /* We just ended an underrun, let's ask the sink
              * to rewrite */
