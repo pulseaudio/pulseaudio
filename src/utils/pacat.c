@@ -71,7 +71,7 @@ static int channel_map_set = 0;
 
 static pa_stream_flags_t flags = 0;
 
-static size_t latency = 0;
+static size_t latency = 0, process_time=0;
 
 /* A shortcut for terminating the application */
 static void quit(int ret) {
@@ -267,6 +267,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
             if (latency > 0) {
                 memset(&buffer_attr, 0, sizeof(buffer_attr));
                 buffer_attr.tlength = latency;
+                buffer_attr.minreq = process_time;
                 flags |= PA_STREAM_ADJUST_LATENCY;
             }
 
@@ -502,6 +503,7 @@ static void help(const char *argv0) {
            "      --no-remix                        Don't upmix or downmix channels.\n"
            "      --no-remap                        Map channels by index instead of name.\n"
            "      --latency=BYTES                   Request the specified latency in bytes.\n"
+           "      --process-time=BYTES              Request the specified process time per request in bytes.\n"
            ,
            argv0);
 }
@@ -519,7 +521,8 @@ enum {
     ARG_FIX_CHANNELS,
     ARG_NO_REMAP,
     ARG_NO_REMIX,
-    ARG_LATENCY
+    ARG_LATENCY,
+    ARG_PROCESS_TIME
 };
 
 int main(int argc, char *argv[]) {
@@ -529,27 +532,28 @@ int main(int argc, char *argv[]) {
     pa_time_event *time_event = NULL;
 
     static const struct option long_options[] = {
-        {"record",      0, NULL, 'r'},
-        {"playback",    0, NULL, 'p'},
-        {"device",      1, NULL, 'd'},
-        {"server",      1, NULL, 's'},
-        {"client-name", 1, NULL, 'n'},
-        {"stream-name", 1, NULL, ARG_STREAM_NAME},
-        {"version",     0, NULL, ARG_VERSION},
-        {"help",        0, NULL, 'h'},
-        {"verbose",     0, NULL, 'v'},
-        {"volume",      1, NULL, ARG_VOLUME},
-        {"rate",        1, NULL, ARG_SAMPLERATE},
-        {"format",      1, NULL, ARG_SAMPLEFORMAT},
-        {"channels",    1, NULL, ARG_CHANNELS},
-        {"channel-map", 1, NULL, ARG_CHANNELMAP},
-        {"fix-format",  0, NULL, ARG_FIX_FORMAT},
-        {"fix-rate",    0, NULL, ARG_FIX_RATE},
-        {"fix-channels",0, NULL, ARG_FIX_CHANNELS},
-        {"no-remap",    0, NULL, ARG_NO_REMAP},
-        {"no-remix",    0, NULL, ARG_NO_REMIX},
-        {"latency",     0, NULL, ARG_LATENCY},
-        {NULL,          0, NULL, 0}
+        {"record",       0, NULL, 'r'},
+        {"playback",     0, NULL, 'p'},
+        {"device",       1, NULL, 'd'},
+        {"server",       1, NULL, 's'},
+        {"client-name",  1, NULL, 'n'},
+        {"stream-name",  1, NULL, ARG_STREAM_NAME},
+        {"version",      0, NULL, ARG_VERSION},
+        {"help",         0, NULL, 'h'},
+        {"verbose",      0, NULL, 'v'},
+        {"volume",       1, NULL, ARG_VOLUME},
+        {"rate",         1, NULL, ARG_SAMPLERATE},
+        {"format",       1, NULL, ARG_SAMPLEFORMAT},
+        {"channels",     1, NULL, ARG_CHANNELS},
+        {"channel-map",  1, NULL, ARG_CHANNELMAP},
+        {"fix-format",   0, NULL, ARG_FIX_FORMAT},
+        {"fix-rate",     0, NULL, ARG_FIX_RATE},
+        {"fix-channels", 0, NULL, ARG_FIX_CHANNELS},
+        {"no-remap",     0, NULL, ARG_NO_REMAP},
+        {"no-remix",     0, NULL, ARG_NO_REMIX},
+        {"latency",      1, NULL, ARG_LATENCY},
+        {"process-time", 1, NULL, ARG_PROCESS_TIME},
+        {NULL,           0, NULL, 0}
     };
 
     if (!(bn = strrchr(argv[0], '/')))
@@ -656,7 +660,14 @@ int main(int argc, char *argv[]) {
 
             case ARG_LATENCY:
                 if (((latency = atoi(optarg))) <= 0) {
-                    fprintf(stderr, "Invallid latency specification '%s'\n", optarg);
+                    fprintf(stderr, "Invalid latency specification '%s'\n", optarg);
+                    goto quit;
+                }
+                break;
+
+            case ARG_PROCESS_TIME:
+                if (((process_time = atoi(optarg))) <= 0) {
+                    fprintf(stderr, "Invalid process time specification '%s'\n", optarg);
                     goto quit;
                 }
                 break;
