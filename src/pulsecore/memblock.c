@@ -59,7 +59,7 @@ struct pa_memblock {
     pa_mempool *pool;
 
     pa_memblock_type_t type;
-    pa_bool_t read_only, is_silence;
+    pa_bool_t read_only:1, is_silence:1;
 
     pa_atomic_ptr_t data;
     size_t length;
@@ -226,8 +226,7 @@ static pa_memblock *memblock_new_appended(pa_mempool *p, size_t length) {
     PA_REFCNT_INIT(b);
     b->pool = p;
     b->type = PA_MEMBLOCK_APPENDED;
-    b->read_only = FALSE;
-    b->is_silence = FALSE;
+    b->read_only = b->is_silence = FALSE;
     pa_atomic_ptr_store(&b->data, (uint8_t*) b + PA_ALIGN(sizeof(pa_memblock)));
     b->length = length;
     pa_atomic_store(&b->n_acquired, 0);
@@ -331,8 +330,7 @@ pa_memblock *pa_memblock_new_pool(pa_mempool *p, size_t length) {
 
     PA_REFCNT_INIT(b);
     b->pool = p;
-    b->read_only = FALSE;
-    b->is_silence = FALSE;
+    b->read_only = b->is_silence = FALSE;
     b->length = length;
     pa_atomic_store(&b->n_acquired, 0);
     pa_atomic_store(&b->please_signal, 0);
@@ -598,7 +596,7 @@ static void memblock_make_local(pa_memblock *b) {
             pa_atomic_ptr_store(&b->data, new_data);
 
             b->type = PA_MEMBLOCK_POOL_EXTERNAL;
-            b->read_only = 0;
+            b->read_only = FALSE;
 
             goto finish;
         }
@@ -609,7 +607,7 @@ static void memblock_make_local(pa_memblock *b) {
     pa_atomic_ptr_store(&b->data, pa_xmemdup(pa_atomic_ptr_load(&b->data), b->length));
 
     b->type = PA_MEMBLOCK_USER;
-    b->read_only = 0;
+    b->read_only = FALSE;
 
 finish:
     pa_atomic_inc(&b->pool->stat.n_allocated_by_type[b->type]);
@@ -905,7 +903,8 @@ pa_memblock* pa_memimport_get(pa_memimport *i, uint32_t block_id, uint32_t shm_i
     PA_REFCNT_INIT(b);
     b->pool = i->pool;
     b->type = PA_MEMBLOCK_IMPORTED;
-    b->read_only = 1;
+    b->read_only = TRUE;
+    b->is_silence = FALSE;
     pa_atomic_ptr_store(&b->data, (uint8_t*) seg->memory.ptr + offset);
     b->length = size;
     pa_atomic_store(&b->n_acquired, 0);
