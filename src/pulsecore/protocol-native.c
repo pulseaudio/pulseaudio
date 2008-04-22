@@ -793,9 +793,21 @@ static playback_stream* playback_stream_new(
          * half the latency will be spent on the hw buffer, the other
          * half of it in the async buffer queue we maintain for each
          * client. In between we'll have a safety space of size
-         * minreq.*/
+         * 2*minreq. Why the 2*minreq? When the hw buffer is completey
+         * empty and needs to be filled, then our buffer must have
+         * enough data to fulfill this request immediatly and thus
+         * have at least the same tlength as the size of the hw
+         * buffer. It additionally needs space for 2 times minreq
+         * because if the buffer ran empty and a partial fillup
+         * happens immediately on the next iteration we need to be
+         * able to fulfill it and give the application also minreq
+         * time to fill it up again for the next request Makes 2 times
+         * minreq in plus.. */
 
-        sink_usec = (tlength_usec-minreq_usec)/2;
+        if (tlength_usec > minreq_usec*2)
+            sink_usec = (tlength_usec - minreq_usec*2)/2;
+        else
+            sink_usec = 0;
 
     } else {
 
@@ -803,7 +815,10 @@ static playback_stream* playback_stream_new(
          * still need to make sure that the parameters from the user
          * do make sense. */
 
-        sink_usec = tlength_usec - minreq_usec;
+        if (tlength_usec > minreq_usec*2)
+            sink_usec = (tlength_usec - minreq_usec*2);
+        else
+            sink_usec = 0;
     }
 
     s->sink_latency = pa_sink_input_set_requested_latency(sink_input, sink_usec);
@@ -817,19 +832,19 @@ static playback_stream* playback_stream_new(
             tlength_usec -= s->sink_latency;
     }
 
-    if (tlength_usec < s->sink_latency + minreq_usec)
-        tlength_usec = s->sink_latency + minreq_usec;
+    if (tlength_usec < s->sink_latency + 2*minreq_usec)
+        tlength_usec = s->sink_latency + 2*minreq_usec;
 
     *tlength = pa_usec_to_bytes(tlength_usec, &sink_input->sample_spec);
     *minreq = pa_usec_to_bytes(minreq_usec, &sink_input->sample_spec);
 
     if (*minreq <= 0) {
-        *minreq = frame_size;
-        *tlength += frame_size;
+        *minreq += frame_size;
+        *tlength += frame_size*2;
     }
 
     if (*tlength <= *minreq)
-        *tlength = *minreq + frame_size;
+        *tlength =  *minreq*2 + frame_size;
 
     if (*prebuf <= 0)
         *prebuf = *tlength;
