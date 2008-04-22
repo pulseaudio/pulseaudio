@@ -198,7 +198,7 @@ pa_source_output* pa_source_output_new(
     o->thread_info.attached = FALSE;
     o->thread_info.sample_spec = o->sample_spec;
     o->thread_info.resampler = resampler;
-    o->thread_info.requested_source_latency = 0;
+    o->thread_info.requested_source_latency = (pa_usec_t) -1;
 
     o->thread_info.delay_memblockq = pa_memblockq_new(
             0,
@@ -449,7 +449,7 @@ void pa_source_output_update_max_rewind(pa_source_output *o, size_t nbytes  /* i
 pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t usec) {
     pa_source_output_assert_ref(o);
 
-    if (usec > 0) {
+    if (usec != (pa_usec_t) -1) {
 
         if (o->source->max_latency > 0 && usec > o->source->max_latency)
             usec = o->source->max_latency;

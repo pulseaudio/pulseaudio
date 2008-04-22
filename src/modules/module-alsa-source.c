@@ -415,7 +415,7 @@ static pa_usec_t hw_sleep_time(struct userdata *u) {
 
     usec = pa_source_get_requested_latency_within_thread(u->source);
 
-    if (usec <= 0)
+    if (usec == (pa_usec_t) -1)
         usec = pa_bytes_to_usec(u->hwbuf_size, &u->source->sample_spec);
 
     pa_log_debug("hw buffer time: %u ms", (unsigned) (usec / PA_USEC_PER_MSEC));
@@ -850,6 +850,9 @@ static void thread_func(void *userdata) {
 
                 snd_pcm_start(u->pcm_handle);
             }
+
+            if (revents)
+                pa_log_debug("Wakeup from ALSA! (%i)", revents);
         }
     }
 

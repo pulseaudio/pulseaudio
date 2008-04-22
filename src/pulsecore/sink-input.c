@@ -247,7 +247,7 @@ pa_sink_input* pa_sink_input_new(
     i->thread_info.resampler = resampler;
     i->thread_info.volume = i->volume;
     i->thread_info.muted = i->muted;
-    i->thread_info.requested_sink_latency = 0;
+    i->thread_info.requested_sink_latency = (pa_usec_t) -1;
     i->thread_info.rewrite_nbytes = 0;
     i->thread_info.since_underrun = 0;
     i->thread_info.ignore_rewind = FALSE;
@@ -534,8 +534,6 @@ int pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, pa
             if (do_volume_adj_here && !volume_is_norm) {
                 pa_memchunk_make_writable(&wchunk, 0);
 
-                pa_log_debug("adjusting volume!");
-
                 if (i->thread_info.muted)
                     pa_silence_memchunk(&wchunk, &i->thread_info.sample_spec);
                 else
@@ -682,7 +680,7 @@ void pa_sink_input_update_max_rewind(pa_sink_input *i, size_t nbytes  /* in the 
 pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec) {
     pa_sink_input_assert_ref(i);
 
-    if (usec > 0) {
+    if (usec != (pa_usec_t) -1) {
 
         if (i->sink->max_latency > 0 && usec > i->sink->max_latency)
             usec = i->sink->max_latency;

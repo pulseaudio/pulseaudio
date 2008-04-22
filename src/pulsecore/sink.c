@@ -217,7 +217,7 @@ pa_sink* pa_sink_new(
     s->thread_info.state = s->state;
     s->thread_info.rewind_nbytes = 0;
     s->thread_info.max_rewind = 0;
-    s->thread_info.requested_latency_valid = TRUE;
+    s->thread_info.requested_latency_valid = FALSE;
     s->thread_info.requested_latency = 0;
 
     pa_assert_se(pa_idxset_put(core->sinks, s, &s->index) >= 0);
@@ -236,7 +236,7 @@ pa_sink* pa_sink_new(
     source_data.module = data->module;
 
     dn = pa_proplist_gets(s->proplist, PA_PROP_DEVICE_DESCRIPTION);
-    pa_proplist_setf(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Monitor Source of %s", dn ? dn : s->name);
+    pa_proplist_setf(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Monitor of %s", dn ? dn : s->name);
     pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_CLASS, "monitor");
 
     s->monitor_source = pa_source_new(core, &source_data, 0);
@@ -1257,7 +1257,7 @@ void pa_sink_request_rewind(pa_sink*s, size_t nbytes) {
 }
 
 pa_usec_t pa_sink_get_requested_latency_within_thread(pa_sink *s) {
-    pa_usec_t result = 0;
+    pa_usec_t result = (pa_usec_t) -1;
     pa_sink_input *i;
     void *state = NULL;
 
@@ -1268,11 +1268,11 @@ pa_usec_t pa_sink_get_requested_latency_within_thread(pa_sink *s) {
 
     while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)))
 
-        if (i->thread_info.requested_sink_latency > 0 &&
-            (!result || result > i->thread_info.requested_sink_latency))
+        if (i->thread_info.requested_sink_latency != (pa_usec_t) -1 &&
+            (result == (pa_usec_t) -1 || result > i->thread_info.requested_sink_latency))
             result = i->thread_info.requested_sink_latency;
 
-    if (result > 0) {
+    if (result != (pa_usec_t) -1) {
         if (s->max_latency > 0 && result > s->max_latency)
             result = s->max_latency;
 

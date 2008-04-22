@@ -204,7 +204,7 @@ pa_source* pa_source_new(
     s->thread_info.soft_muted = s->muted;
     s->thread_info.state = s->state;
     s->thread_info.max_rewind = 0;
-    s->thread_info.requested_latency_valid = TRUE;
+    s->thread_info.requested_latency_valid = FALSE;
     s->thread_info.requested_latency = 0;
 
     pa_assert_se(pa_idxset_put(core->sources, s, &s->index) >= 0);
@@ -713,7 +713,7 @@ void pa_source_attach_within_thread(pa_source *s) {
 }
 
 pa_usec_t pa_source_get_requested_latency_within_thread(pa_source *s) {
-    pa_usec_t result = 0;
+    pa_usec_t result = (pa_usec_t) -1;
     pa_source_output *o;
     void *state = NULL;
 
@@ -724,11 +724,11 @@ pa_usec_t pa_source_get_requested_latency_within_thread(pa_source *s) {
 
     while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
 
-        if (o->thread_info.requested_source_latency > 0 &&
-            (!result || result > o->thread_info.requested_source_latency))
+        if (o->thread_info.requested_source_latency != (pa_usec_t) -1 &&
+            (result == (pa_usec_t) -1 || result > o->thread_info.requested_source_latency))
             result = o->thread_info.requested_source_latency;
 
-    if (result > 0) {
+    if (result != (pa_usec_t) -1) {
         if (s->max_latency > 0 && result > s->max_latency)
             result = s->max_latency;
 

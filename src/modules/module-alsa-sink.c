@@ -93,7 +93,7 @@ static const char* const valid_modargs[] = {
 
 #define DEFAULT_DEVICE "default"
 #define DEFAULT_TSCHED_BUFFER_USEC (10*PA_USEC_PER_SEC)           /* 10s */
-#define DEFAULT_TSCHED_WATERMARK_USEC (10*PA_USEC_PER_MSEC)       /* 20ms */
+#define DEFAULT_TSCHED_WATERMARK_USEC (20*PA_USEC_PER_MSEC)       /* 20ms */
 
 struct userdata {
     pa_core *core;
@@ -476,7 +476,7 @@ static pa_usec_t hw_sleep_time(struct userdata *u) {
 
     usec = pa_sink_get_requested_latency_within_thread(u->sink);
 
-    if (usec <= 0)
+    if (usec == (pa_usec_t) -1)
         usec = pa_bytes_to_usec(u->hwbuf_size, &u->sink->sample_spec);
 
 /*     pa_log_debug("hw buffer time: %u ms", (unsigned) (usec / PA_USEC_PER_MSEC)); */
@@ -487,6 +487,11 @@ static pa_usec_t hw_sleep_time(struct userdata *u) {
         usec -= wm;
     else
         usec /= 2;
+
+    if (u->first) {
+        pa_log_debug("Decreasing wakeup time for the first iteration by half.");
+        usec /= 2;
+    }
 
 /*     pa_log_debug("after watermark: %u ms", (unsigned) (usec / PA_USEC_PER_MSEC)); */
 
@@ -503,10 +508,10 @@ static int update_sw_params(struct userdata *u) {
     u->hwbuf_unused_frames = 0;
 
     if (u->use_tsched)
-        if ((latency = pa_sink_get_requested_latency_within_thread(u->sink)) > 0) {
+        if ((latency = pa_sink_get_requested_latency_within_thread(u->sink)) != (pa_usec_t) -1) {
             size_t b;
 
-            pa_log("latency set to %llu", (unsigned long long) latency);
+            pa_log_debug("latency set to %llu", (unsigned long long) latency);
 
             b = pa_usec_to_bytes(latency, &u->sink->sample_spec);
 
@@ -520,7 +525,7 @@ static int update_sw_params(struct userdata *u) {
                 ((u->hwbuf_size - b) / u->frame_size) : 0;
         }
 
-    pa_log("hwbuf_unused_frames=%lu", (unsigned long) u->hwbuf_unused_frames);
+    pa_log_debug("hwbuf_unused_frames=%lu", (unsigned long) u->hwbuf_unused_frames);
 
     /* We need at last one frame in the used part of the buffer */
     u->avail_min_frames = u->hwbuf_unused_frames + 1;
@@ -533,7 +538,7 @@ static int update_sw_params(struct userdata *u) {
         u->avail_min_frames += (pa_usec_to_bytes(usec, &u->sink->sample_spec) / u->frame_size);
     }
 
-    pa_log("setting avail_min=%lu", (unsigned long) u->avail_min_frames);
+    pa_log_debug("setting avail_min=%lu", (unsigned long) u->avail_min_frames);
 
     if ((err = pa_alsa_set_sw_params(u->pcm_handle, u->avail_min_frames)) < 0) {
         pa_log("Failed to set software parameters: %s", snd_strerror(err));
@@ -918,7 +923,6 @@ static void thread_func(void *userdata) {
                 if (u->first) {
                     pa_log_info("Starting playback.");
                     snd_pcm_start(u->pcm_handle);
-                    u->first = FALSE;
 
                     pa_smoother_resume(u->smoother, pa_rtclock_usec());
                 }
@@ -945,6 +949,8 @@ static void thread_func(void *userdata) {
                 /* We don't trust the conversion, so we wake up whatever comes first */
                 pa_rtpoll_set_timer_relative(u->rtpoll, PA_MIN(usec, cusec));
             }
+
+            u->first = FALSE;
 
         } else if (u->use_tsched)
 
@@ -1018,7 +1024,7 @@ static void thread_func(void *userdata) {
             }
 
             if (revents)
-                pa_log_info("Wakeup from ALSA! (%i)", revents);
+                pa_log_debug("Wakeup from ALSA! (%i)", revents);
         }
     }
 
