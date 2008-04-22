@@ -71,6 +71,7 @@ struct pa_rtpoll {
     int rtsig;
     sigset_t sigset_unblocked;
     timer_t timer;
+    pa_bool_t timer_armed;
 #ifdef __linux__
     pa_bool_t dont_use_ppoll;
 #endif
@@ -130,6 +131,7 @@ pa_rtpoll *pa_rtpoll_new(void) {
     p->rtsig = -1;
     sigemptyset(&p->sigset_unblocked);
     p->timer = (timer_t) -1;
+    p->timer_armed = FALSE;
 
 #endif
 
@@ -465,14 +467,16 @@ static void update_timer(pa_rtpoll *p) {
             struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
             sigset_t ss;
 
-            /* First disarm timer */
-            memset(&its, 0, sizeof(its));
-            pa_assert_se(timer_settime(p->timer, TIMER_ABSTIME, &its, NULL) == 0);
+            if (p->timer_armed) {
+                /* First disarm timer */
+                memset(&its, 0, sizeof(its));
+                pa_assert_se(timer_settime(p->timer, TIMER_ABSTIME, &its, NULL) == 0);
 
-            /* Remove a signal that might be waiting in the signal q */
-            pa_assert_se(sigemptyset(&ss) == 0);
-            pa_assert_se(sigaddset(&ss, p->rtsig) == 0);
-            sigtimedwait(&ss, NULL, &ts);
+                /* Remove a signal that might be waiting in the signal q */
+                pa_assert_se(sigemptyset(&ss) == 0);
+                pa_assert_se(sigaddset(&ss, p->rtsig) == 0);
+                sigtimedwait(&ss, NULL, &ts);
+            }
 
             /* And install the new timer */
             if (p->timer_enabled) {
@@ -487,6 +491,8 @@ static void update_timer(pa_rtpoll *p) {
                     its.it_value.tv_nsec = 1;
                 pa_assert_se(timer_settime(p->timer, TIMER_ABSTIME, &its, NULL) == 0);
             }
+
+            p->timer_armed = p->timer_enabled;
         }
 
 #ifdef __linux__
