@@ -93,8 +93,8 @@ static const char* const valid_modargs[] = {
 };
 
 #define DEFAULT_DEVICE "default"
-#define DEFAULT_TSCHED_BUFFER_USEC (2*PA_USEC_PER_SEC)
-#define DEFAULT_TSCHED_WATERMARK_USEC (10*PA_USEC_PER_MSEC)
+#define DEFAULT_TSCHED_BUFFER_USEC (5*PA_USEC_PER_SEC)
+#define DEFAULT_TSCHED_WATERMARK_USEC (20*PA_USEC_PER_MSEC)
 
 struct userdata {
     pa_core *core;
@@ -749,14 +749,13 @@ static void thread_func(void *userdata) {
         if (PA_SOURCE_OPENED(u->source->thread_info.state)) {
             int work_done = 0;
 
-            if (u->use_mmap) {
-                if ((work_done = mmap_read(u)) < 0)
-                    goto fail;
+            if (u->use_mmap)
+                work_done = mmap_read(u);
+            else
+                work_done = unix_read(u);
 
-            } else {
-                if ((work_done = unix_read(u) < 0))
-                    goto fail;
-            }
+            if (work_done < 0)
+                goto fail;
 
             if (work_done)
                 update_smoother(u);
@@ -807,46 +806,9 @@ static void thread_func(void *userdata) {
             }
 
             if (revents & (POLLERR|POLLNVAL|POLLHUP)) {
-                snd_pcm_state_t state;
 
-                if (revents & POLLERR)
-                    pa_log_warn("Got POLLERR from ALSA");
-                if (revents & POLLNVAL)
-                    pa_log_warn("Got POLLNVAL from ALSA");
-                if (revents & POLLHUP)
-                    pa_log_warn("Got POLLHUP from ALSA");
-
-                state = snd_pcm_state(u->pcm_handle);
-                pa_log_warn("PCM state is %s", snd_pcm_state_name(state));
-
-                /* Try to recover from this error */
-
-                switch (state) {
-
-                    case SND_PCM_STATE_XRUN:
-                        if ((err = snd_pcm_recover(u->pcm_handle, -EPIPE, 1)) != 0) {
-                            pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP and XRUN: %s", snd_strerror(err));
-                            goto fail;
-                        }
-                        break;
-
-                    case SND_PCM_STATE_SUSPENDED:
-                        if ((err = snd_pcm_recover(u->pcm_handle, -ESTRPIPE, 1)) != 0) {
-                            pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP and SUSPENDED: %s", snd_strerror(err));
-                            goto fail;
-                        }
-                        break;
-
-                    default:
-
-                        snd_pcm_drop(u->pcm_handle);
-
-                        if ((err = snd_pcm_prepare(u->pcm_handle)) < 0) {
-                            pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP with snd_pcm_prepare(): %s", snd_strerror(err));
-                            goto fail;
-                        }
-                        break;
-                }
+                if (pa_alsa_recover_from_poll(u->pcm_handle, revents))
+                    goto fail;
 
                 snd_pcm_start(u->pcm_handle);
             }

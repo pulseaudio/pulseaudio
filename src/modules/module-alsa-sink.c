@@ -92,7 +92,7 @@ static const char* const valid_modargs[] = {
 };
 
 #define DEFAULT_DEVICE "default"
-#define DEFAULT_TSCHED_BUFFER_USEC (10*PA_USEC_PER_SEC)           /* 10s */
+#define DEFAULT_TSCHED_BUFFER_USEC (5*PA_USEC_PER_SEC)           /* 5s */
 #define DEFAULT_TSCHED_WATERMARK_USEC (20*PA_USEC_PER_MSEC)       /* 20ms */
 
 struct userdata {
@@ -133,6 +133,16 @@ struct userdata {
     snd_pcm_sframes_t hwbuf_unused_frames;
     snd_pcm_sframes_t avail_min_frames;
 };
+
+static void fix_tsched_watermark(struct userdata *u) {
+    size_t max_use;
+    pa_assert(u);
+
+    max_use = u->hwbuf_size - u->hwbuf_unused_frames * u->frame_size;
+
+    if (u->tsched_watermark >= max_use/2)
+        u->tsched_watermark = max_use/2;
+}
 
 static int mmap_write(struct userdata *u) {
     int work_done = 0;
@@ -189,12 +199,10 @@ static int mmap_write(struct userdata *u) {
         pa_log_debug("%0.2f ms left to play", (double) pa_bytes_to_usec(left_to_play, &u->sink->sample_spec) / PA_USEC_PER_MSEC);
 
         if (left_to_play <= 0 && !u->first) {
-            u->tsched_watermark *=2;
-
-            if (u->tsched_watermark >= u->hwbuf_size)
-                u->tsched_watermark = u->hwbuf_size-u->frame_size;
-
-            pa_log_notice("Underrun! Increasing wakeup watermark to %0.2f", (double) pa_bytes_to_usec(u->tsched_watermark, &u->sink->sample_spec) / PA_USEC_PER_MSEC);
+            u->tsched_watermark *= 2;
+            fix_tsched_watermark(u);
+            pa_log_notice("Underrun! Increasing wakeup watermark to %0.2f ms",
+                          (double) pa_bytes_to_usec(u->tsched_watermark, &u->sink->sample_spec) / PA_USEC_PER_MSEC);
         }
 
         frames = n = n - u->hwbuf_unused_frames;
@@ -407,13 +415,17 @@ static void update_smoother(struct userdata *u) {
 static pa_usec_t sink_get_latency(struct userdata *u) {
     pa_usec_t r = 0;
     int64_t delay;
+    pa_usec_t now1, now2;
 
     pa_assert(u);
 
-    delay = u->frame_index - pa_smoother_get(u->smoother, pa_rtclock_usec());
+    now1 = pa_rtclock_usec();
+    now2 = pa_smoother_get(u->smoother, now1);
+
+    delay = (int64_t) pa_bytes_to_usec(u->frame_index * u->frame_size, &u->sink->sample_spec) - now2;
 
     if (delay > 0)
-        r = pa_bytes_to_usec(delay * u->frame_size, &u->sink->sample_spec);
+        r = (pa_usec_t) delay;
 
     if (u->memchunk.memblock)
         r += pa_bytes_to_usec(u->memchunk.length, &u->sink->sample_spec);
@@ -523,6 +535,8 @@ static int update_sw_params(struct userdata *u) {
             u->hwbuf_unused_frames =
                 PA_LIKELY(b < u->hwbuf_size) ?
                 ((u->hwbuf_size - b) / u->frame_size) : 0;
+
+            fix_tsched_watermark(u);
         }
 
     pa_log_debug("hwbuf_unused_frames=%lu", (unsigned long) u->hwbuf_unused_frames);
@@ -815,10 +829,64 @@ static int sink_set_mute_cb(pa_sink *s) {
 
 static void sink_update_requested_latency_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
-
     pa_assert(u);
 
     update_sw_params(u);
+}
+
+static int process_rewind(struct userdata *u) {
+    snd_pcm_sframes_t unused;
+    size_t rewind_nbytes, unused_nbytes, limit_nbytes;
+    pa_assert(u);
+
+    rewind_nbytes = u->sink->thread_info.rewind_nbytes;
+    u->sink->thread_info.rewind_nbytes = 0;
+
+    pa_assert(rewind_nbytes > 0);
+    pa_log_debug("Requested to rewind %lu bytes.", (unsigned long) rewind_nbytes);
+
+    snd_pcm_hwsync(u->pcm_handle);
+    if ((unused = snd_pcm_avail_update(u->pcm_handle)) < 0) {
+        pa_log("snd_pcm_avail_update() failed: %s", snd_strerror(unused));
+        return -1;
+    }
+
+    unused_nbytes = u->tsched_watermark + (size_t) unused * u->frame_size;
+
+    if (u->hwbuf_size > unused_nbytes)
+        limit_nbytes = u->hwbuf_size - unused_nbytes;
+    else
+        limit_nbytes = 0;
+
+    if (rewind_nbytes > limit_nbytes)
+        rewind_nbytes = limit_nbytes;
+
+    if (rewind_nbytes > 0) {
+        snd_pcm_sframes_t in_frames, out_frames;
+
+        pa_log_debug("Limited to %lu bytes.", (unsigned long) rewind_nbytes);
+
+        in_frames = (snd_pcm_sframes_t) rewind_nbytes / u->frame_size;
+        pa_log_debug("before: %lu", (unsigned long) in_frames);
+        if ((out_frames = snd_pcm_rewind(u->pcm_handle, in_frames)) < 0) {
+            pa_log("snd_pcm_rewind() failed: %s", snd_strerror(out_frames));
+            return -1;
+        }
+        pa_log_debug("after: %lu", (unsigned long) out_frames);
+
+        rewind_nbytes = out_frames * u->frame_size;
+
+        if (rewind_nbytes <= 0)
+            pa_log_info("Tried rewind, but was apparently not possible.");
+        else {
+            u->frame_index -= out_frames;
+            pa_log_debug("Rewound %lu bytes.", (unsigned long) rewind_nbytes);
+            pa_sink_process_rewind(u->sink, rewind_nbytes);
+        }
+    } else
+        pa_log_debug("Mhmm, actually there is nothing to rewind.");
+
+    return 0;
 }
 
 static void thread_func(void *userdata) {
@@ -843,78 +911,17 @@ static void thread_func(void *userdata) {
         if (PA_SINK_OPENED(u->sink->thread_info.state)) {
             int work_done = 0;
 
-            if (u->sink->thread_info.rewind_nbytes > 0) {
-                snd_pcm_sframes_t unused;
-                size_t rewind_nbytes, unused_nbytes, limit_nbytes;
-
-                rewind_nbytes = u->sink->thread_info.rewind_nbytes;
-                u->sink->thread_info.rewind_nbytes = 0;
-
-                pa_log_debug("Requested to rewind %lu bytes.", (unsigned long) rewind_nbytes);
-
-                snd_pcm_hwsync(u->pcm_handle);
-                if ((unused = snd_pcm_avail_update(u->pcm_handle)) < 0) {
-                    pa_log("snd_pcm_avail_update() failed: %s", snd_strerror(unused));
+            if (u->sink->thread_info.rewind_nbytes > 0)
+                if (process_rewind(u) < 0)
                     goto fail;
-                }
 
-                unused_nbytes = u->tsched_watermark + (size_t) unused * u->frame_size;
+            if (u->use_mmap)
+                work_done = mmap_write(u);
+            else
+                work_done = unix_write(u);
 
-                if (u->hwbuf_size > unused_nbytes)
-                    limit_nbytes = u->hwbuf_size - unused_nbytes;
-                else
-                    limit_nbytes = 0;
-
-                if (rewind_nbytes > limit_nbytes)
-                    rewind_nbytes = limit_nbytes;
-
-                if (rewind_nbytes > 0) {
-                    snd_pcm_sframes_t in_frames, out_frames;
-
-                    pa_log_debug("Limited to %lu bytes.", (unsigned long) rewind_nbytes);
-
-                    in_frames = (snd_pcm_sframes_t) rewind_nbytes / u->frame_size;
-                    pa_log_debug("before: %lu", (unsigned long) in_frames);
-                    if ((out_frames = snd_pcm_rewind(u->pcm_handle, in_frames)) < 0) {
-                        pa_log("snd_pcm_rewind() failed: %s", snd_strerror(out_frames));
-                        goto fail;
-                    }
-                    pa_log_debug("after: %lu", (unsigned long) out_frames);
-
-                    if (out_frames > in_frames) {
-                        snd_pcm_sframes_t sfix;
-                        pa_log("FUCK, device rewound %lu frames more than we wanted. What a mess!", (unsigned long) (out_frames-in_frames));
-
-                        if ((sfix = snd_pcm_forward(u->pcm_handle, out_frames-in_frames)) < 0) {
-                            pa_log("snd_pcm_forward() failed: %s", snd_strerror(sfix));
-                            goto fail;
-                        }
-
-                        pa_log("Could fix by %lu", (unsigned long) sfix);
-                        out_frames -= sfix;
-                    }
-
-                    rewind_nbytes = out_frames * u->frame_size;
-
-                    if (rewind_nbytes <= 0)
-                        pa_log_info("Tried rewind, but was apparently not possible.");
-                    else {
-                        u->frame_index -= out_frames;
-                        pa_log_debug("Rewound %lu bytes.", (unsigned long) rewind_nbytes);
-                        pa_sink_process_rewind(u->sink, rewind_nbytes);
-                    }
-                } else
-                    pa_log_debug("Mhmm, actually there is nothing to rewind.");
-
-            }
-
-            if (u->use_mmap) {
-                if ((work_done = mmap_write(u)) < 0)
-                    goto fail;
-            } else {
-                if ((work_done = unix_write(u)) < 0)
-                    goto fail;
-            }
+            if (work_done < 0)
+                goto fail;
 
 /*             pa_log_debug("work_done = %i", work_done); */
 
@@ -979,46 +986,8 @@ static void thread_func(void *userdata) {
             }
 
             if (revents & (POLLERR|POLLNVAL|POLLHUP)) {
-                snd_pcm_state_t state;
-
-                if (revents & POLLERR)
-                    pa_log_warn("Got POLLERR from ALSA");
-                if (revents & POLLNVAL)
-                    pa_log_warn("Got POLLNVAL from ALSA");
-                if (revents & POLLHUP)
-                    pa_log_warn("Got POLLHUP from ALSA");
-
-                state = snd_pcm_state(u->pcm_handle);
-                pa_log_warn("PCM state is %s", snd_pcm_state_name(state));
-
-                /* Try to recover from this error */
-
-                switch (state) {
-
-                    case SND_PCM_STATE_XRUN:
-                        if ((err = snd_pcm_recover(u->pcm_handle, -EPIPE, 1)) != 0) {
-                            pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP and XRUN: %s", snd_strerror(err));
-                            goto fail;
-                        }
-                        break;
-
-                    case SND_PCM_STATE_SUSPENDED:
-                        if ((err = snd_pcm_recover(u->pcm_handle, -ESTRPIPE, 1)) != 0) {
-                            pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP and SUSPENDED: %s", snd_strerror(err));
-                            goto fail;
-                        }
-                        break;
-
-                    default:
-
-                        snd_pcm_drop(u->pcm_handle);
-
-                        if ((err = snd_pcm_prepare(u->pcm_handle)) < 0) {
-                            pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP with snd_pcm_prepare(): %s", snd_strerror(err));
-                            goto fail;
-                        }
-                        break;
-                }
+                if (pa_alsa_recover_from_poll(u->pcm_handle, revents) < 0)
+                    goto fail;
 
                 u->first = TRUE;
             }
