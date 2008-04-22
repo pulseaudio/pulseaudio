@@ -29,6 +29,7 @@
 
 #include <pulse/volume.h>
 #include <pulse/xmalloc.h>
+#include <pulse/timeval.h>
 
 #include <pulsecore/module.h>
 #include <pulsecore/client.h>
@@ -88,7 +89,7 @@ char *pa_client_list_to_string(pa_core *c) {
                 client->driver);
 
         if (client->module)
-            pa_strbuf_printf(s, "\towner module: <%u>\n", client->module->index);
+            pa_strbuf_printf(s, "\towner module: %u\n", client->module->index);
 
         t = pa_proplist_to_string(client->proplist);
         pa_strbuf_printf(s, "\tproperties:\n%s", t);
@@ -125,15 +126,15 @@ char *pa_sink_list_to_string(pa_core *c) {
             "\tdriver: <%s>\n"
             "\tflags: %s%s%s%s%s%s\n"
             "\tstate: %s\n"
-            "\tvolume: <%s>\n"
-            "\tmute: <%i>\n"
-            "\tlatency: <%0.0f usec>\n"
-            "\tconfigured latency: <%0.0f usec> from range <%0.0f usec> .. <%0.0f usec>\n"
-            "\tmonitor source: <%u>\n"
-            "\tsample spec: <%s>\n"
-            "\tchannel map: <%s>\n"
-            "\tused by: <%u>\n"
-            "\tlinked by: <%u>\n",
+            "\tvolume: %s\n"
+            "\tmuted: %s\n"
+            "\tcurrent latency: %0.2f ms\n"
+            "\tconfigured latency: %0.2f ms; range is %0.2f .. %0.2f ms\n"
+            "\tmonitor source: %u\n"
+            "\tsample spec: %s\n"
+            "\tchannel map: %s\n"
+            "\tused by: %u\n"
+            "\tlinked by: %u\n",
             c->default_sink_name && !strcmp(sink->name, c->default_sink_name) ? '*' : ' ',
             sink->index,
             sink->name,
@@ -146,9 +147,9 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->flags & PA_SINK_LATENCY ? "LATENCY " : "",
             state_table[pa_sink_get_state(sink)],
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink)),
-            !!pa_sink_get_mute(sink),
-            (double) pa_sink_get_latency(sink),
-            (double) pa_sink_get_requested_latency(sink), (double) sink->min_latency, (double) sink->max_latency,
+            pa_yes_no(pa_sink_get_mute(sink)),
+            (double) pa_sink_get_latency(sink) / PA_USEC_PER_MSEC,
+            (double) pa_sink_get_requested_latency(sink) / PA_USEC_PER_MSEC, (double) sink->min_latency / PA_USEC_PER_MSEC, (double) sink->max_latency / PA_USEC_PER_MSEC,
             sink->monitor_source ? sink->monitor_source->index : PA_INVALID_INDEX,
             pa_sample_spec_snprint(ss, sizeof(ss), &sink->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &sink->channel_map),
@@ -156,7 +157,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             pa_sink_linked_by(sink));
 
         if (sink->module)
-            pa_strbuf_printf(s, "\tmodule: <%u>\n", sink->module->index);
+            pa_strbuf_printf(s, "\tmodule: %u\n", sink->module->index);
 
         t = pa_proplist_to_string(sink->proplist);
         pa_strbuf_printf(s, "\tproperties:\n%s", t);
@@ -193,14 +194,14 @@ char *pa_source_list_to_string(pa_core *c) {
             "\tdriver: <%s>\n"
             "\tflags: %s%s%s%s%s%s\n"
             "\tstate: %s\n"
-            "\tvolume: <%s>\n"
-            "\tmute: <%u>\n"
-            "\tlatency: <%0.0f usec>\n"
-            "\tconfigured latency: <%0.0f usec> from range <%0.0f usec> .. <%0.0f usec>\n"
-            "\tsample spec: <%s>\n"
-            "\tchannel map: <%s>\n"
-            "\tused by: <%u>\n"
-            "\tlinked by: <%u>\n",
+            "\tvolume: %s\n"
+            "\tmuted: %s\n"
+            "\tcurrent latency: %0.2f ms\n"
+            "\tconfigured latency: %0.2f ms; range is %0.2f .. %0.2f ms\n"
+            "\tsample spec: %s\n"
+            "\tchannel map: %s\n"
+            "\tused by: %u\n"
+            "\tlinked by: %u\n",
             c->default_source_name && !strcmp(source->name, c->default_source_name) ? '*' : ' ',
             source->index,
             source->name,
@@ -213,18 +214,18 @@ char *pa_source_list_to_string(pa_core *c) {
             source->flags & PA_SOURCE_LATENCY ? "LATENCY " : "",
             state_table[pa_source_get_state(source)],
             pa_cvolume_snprint(cv, sizeof(cv), pa_source_get_volume(source)),
-            !!pa_source_get_mute(source),
-            (double) pa_source_get_latency(source),
-            (double) pa_source_get_requested_latency(source), (double) source->min_latency, (double) source->max_latency,
+            pa_yes_no(pa_source_get_mute(source)),
+            (double) pa_source_get_latency(source) / PA_USEC_PER_MSEC,
+            (double) pa_source_get_requested_latency(source) / PA_USEC_PER_MSEC, (double) source->min_latency / PA_USEC_PER_MSEC, (double) source->max_latency / PA_USEC_PER_MSEC,
             pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &source->channel_map),
             pa_source_used_by(source),
             pa_source_linked_by(source));
 
         if (source->monitor_of)
-            pa_strbuf_printf(s, "\tmonitor_of: <%u>\n", source->monitor_of->index);
+            pa_strbuf_printf(s, "\tmonitor_of: %u\n", source->monitor_of->index);
         if (source->module)
-            pa_strbuf_printf(s, "\tmodule: <%u>\n", source->module->index);
+            pa_strbuf_printf(s, "\tmodule: %u\n", source->module->index);
 
         t = pa_proplist_to_string(source->proplist);
         pa_strbuf_printf(s, "\tproperties:\n%s", t);
@@ -262,10 +263,10 @@ char *pa_source_output_list_to_string(pa_core *c) {
             "\tdriver: <%s>\n"
             "\tflags: %s%s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
-            "\tsource: <%u> '%s'\n"
-            "\tlatency: <%0.0f usec>\n"
-            "\tsample spec: <%s>\n"
-            "\tchannel map: <%s>\n"
+            "\tsource: %u <%s>\n"
+            "\tlatency: %0.2f ms\n"
+            "\tsample spec: %s\n"
+            "\tchannel map: %s\n"
             "\tresample method: %s\n",
             o->index,
             o->driver,
@@ -279,14 +280,14 @@ char *pa_source_output_list_to_string(pa_core *c) {
             o->flags & PA_SOURCE_OUTPUT_FIX_CHANNELS ? "FIX_CHANNELS " : "",
             state_table[pa_source_output_get_state(o)],
             o->source->index, o->source->name,
-            (double) pa_source_output_get_latency(o),
+            (double) pa_source_output_get_latency(o) / PA_USEC_PER_MSEC,
             pa_sample_spec_snprint(ss, sizeof(ss), &o->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &o->channel_map),
             pa_resample_method_to_string(pa_source_output_get_resample_method(o)));
         if (o->module)
-            pa_strbuf_printf(s, "\towner module: <%u>\n", o->module->index);
+            pa_strbuf_printf(s, "\towner module: %u\n", o->module->index);
         if (o->client)
-            pa_strbuf_printf(s, "\tclient: <%u> '%s'\n", o->client->index, pa_strnull(pa_proplist_gets(o->client->proplist, PA_PROP_APPLICATION_NAME)));
+            pa_strbuf_printf(s, "\tclient: %u <%s>\n", o->client->index, pa_strnull(pa_proplist_gets(o->client->proplist, PA_PROP_APPLICATION_NAME)));
 
         t = pa_proplist_to_string(o->proplist);
         pa_strbuf_printf(s, "\tproperties:\n%s", t);
@@ -324,12 +325,12 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             "\tdriver: <%s>\n"
             "\tflags: %s%s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
-            "\tsink: <%u> '%s'\n"
-            "\tvolume: <%s>\n"
-            "\tmute: <%i>\n"
-            "\tlatency: <%0.0f usec>\n"
-            "\tsample spec: <%s>\n"
-            "\tchannel map: <%s>\n"
+            "\tsink: %u <%s>\n"
+            "\tvolume: %s\n"
+            "\tmuted: %s\n"
+            "\tlatency: %0.2f ms\n"
+            "\tsample spec: %s\n"
+            "\tchannel map: %s\n"
             "\tresample method: %s\n",
             i->index,
             i->driver,
@@ -344,16 +345,16 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             state_table[pa_sink_input_get_state(i)],
             i->sink->index, i->sink->name,
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_input_get_volume(i)),
-            !!pa_sink_input_get_mute(i),
-            (double) pa_sink_input_get_latency(i),
+            pa_yes_no(pa_sink_input_get_mute(i)),
+            (double) pa_sink_input_get_latency(i) / PA_USEC_PER_MSEC,
             pa_sample_spec_snprint(ss, sizeof(ss), &i->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
             pa_resample_method_to_string(pa_sink_input_get_resample_method(i)));
 
         if (i->module)
-            pa_strbuf_printf(s, "\tmodule: <%u>\n", i->module->index);
+            pa_strbuf_printf(s, "\tmodule: %u\n", i->module->index);
         if (i->client)
-            pa_strbuf_printf(s, "\tclient: <%u> '%s'\n", i->client->index, pa_strnull(pa_proplist_gets(i->client->proplist, PA_PROP_APPLICATION_NAME)));
+            pa_strbuf_printf(s, "\tclient: %u <%s>\n", i->client->index, pa_strnull(pa_proplist_gets(i->client->proplist, PA_PROP_APPLICATION_NAME)));
 
         t = pa_proplist_to_string(i->proplist);
         pa_strbuf_printf(s, "\tproperties:\n%s", t);
@@ -388,14 +389,14 @@ char *pa_scache_list_to_string(pa_core *c) {
             pa_strbuf_printf(
                 s,
                 "    name: <%s>\n"
-                "\tindex: <%u>\n"
-                "\tsample spec: <%s>\n"
-                "\tchannel map: <%s>\n"
-                "\tlength: <%lu>\n"
-                "\tduration: <%0.1fs>\n"
-                "\tvolume: <%s>\n"
+                "\tindex: %u\n"
+                "\tsample spec: %s\n"
+                "\tchannel map: %s\n"
+                "\tlength: %lu\n"
+                "\tduration: %0.1f s\n"
+                "\tvolume: %s\n"
                 "\tlazy: %s\n"
-                "\tfilename: %s\n",
+                "\tfilename: <%s>\n",
                 e->name,
                 e->index,
                 ss,
@@ -429,7 +430,12 @@ char *pa_autoload_list_to_string(pa_core *c) {
 
         while ((e = pa_hashmap_iterate(c->autoload_hashmap, &state, NULL))) {
             pa_strbuf_printf(
-                s, "    name: <%s>\n\ttype: <%s>\n\tindex: <%u>\n\tmodule_name: <%s>\n\targuments: <%s>\n",
+                s,
+                "    name: <%s>\n"
+                "\ttype: %s\n"
+                "\tindex: %u\n"
+                "\tmodule_name: <%s>\n"
+                "\targuments: <%s>\n",
                 e->name,
                 e->type == PA_NAMEREG_SOURCE ? "source" : "sink",
                 e->index,
