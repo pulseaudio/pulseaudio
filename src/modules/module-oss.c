@@ -1234,9 +1234,8 @@ int pa__init(pa_module*m) {
     u->in_nfrags = u->out_nfrags = u->nfrags = nfrags;
     u->out_fragment_size = u->in_fragment_size = u->frag_size = frag_size;
     u->use_mmap = use_mmap;
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
-    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
     u->rtpoll_item = NULL;
     build_pollfd(u);
 

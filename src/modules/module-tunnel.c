@@ -1329,9 +1329,8 @@ int pa__init(pa_module*m) {
     u->auth_cookie_in_property = FALSE;
     u->time_event = NULL;
 
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
-    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
     if (load_key(u, pa_modargs_get_value(ma, "cookie", NULL)) < 0)
         goto fail;

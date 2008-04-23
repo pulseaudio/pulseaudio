@@ -143,8 +143,6 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *data, int64_t
     return pa_sink_input_process_msg(o, code, data, offset, chunk);
 }
 
-static void sink_input_rewind_cb(pa_sink_input *i, size_t nbytes);
-
 /* Called from I/O thread context */
 static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk) {
     struct userdata *u;
@@ -159,7 +157,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 }
 
 /* Called from I/O thread context */
-static void sink_input_rewind_cb(pa_sink_input *i, size_t nbytes) {
+static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     struct userdata *u;
 
     pa_sink_input_assert_ref(i);
@@ -170,7 +168,7 @@ static void sink_input_rewind_cb(pa_sink_input *i, size_t nbytes) {
 }
 
 /* Called from I/O thread context */
-static void sink_input_set_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
+static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     struct userdata *u;
 
     pa_sink_input_assert_ref(i);
@@ -321,8 +319,8 @@ int pa__init(pa_module*m) {
 
     u->sink_input->parent.process_msg = sink_input_process_msg;
     u->sink_input->pop = sink_input_pop_cb;
-    u->sink_input->rewind = sink_input_rewind_cb;
-    u->sink_input->set_max_rewind = sink_input_set_max_rewind_cb;
+    u->sink_input->process_rewind = sink_input_process_rewind_cb;
+    u->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;
     u->sink_input->kill = sink_input_kill_cb;
     u->sink_input->attach = sink_input_attach_cb;
     u->sink_input->detach = sink_input_detach_cb;

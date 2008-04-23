@@ -384,7 +384,7 @@ static void sink_input_attach_cb(pa_sink_input *i) {
 
     /* Set up the queue from the sink thread to us */
     pa_assert(!o->inq_rtpoll_item);
-    o->inq_rtpoll_item = pa_rtpoll_item_new_asyncmsgq(
+    o->inq_rtpoll_item = pa_rtpoll_item_new_asyncmsgq_read(
             i->sink->rtpoll,
             PA_RTPOLL_LATE,  /* This one is not that important, since we check for data in _peek() anyway. */
             o->inq);
@@ -584,7 +584,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
             /* Create pa_asyncmsgq to the sink thread */
 
-            op->outq_rtpoll_item = pa_rtpoll_item_new_asyncmsgq(
+            op->outq_rtpoll_item = pa_rtpoll_item_new_asyncmsgq_read(
                     u->rtpoll,
                     PA_RTPOLL_EARLY-1,  /* This item is very important */
                     op->outq);
@@ -786,7 +786,7 @@ static struct output *output_new(struct userdata *u, pa_sink *sink) {
         /* If the sink is not yet started, we need to do the activation ourselves */
         PA_LLIST_PREPEND(struct output, u->thread_info.active_outputs, o);
 
-        o->outq_rtpoll_item = pa_rtpoll_item_new_asyncmsgq(
+        o->outq_rtpoll_item = pa_rtpoll_item_new_asyncmsgq_read(
                 u->rtpoll,
                 PA_RTPOLL_EARLY-1,  /* This item is very important */
                 o->outq);
@@ -945,8 +945,8 @@ int pa__init(pa_module*m) {
     u->master = NULL;
     u->time_event = NULL;
     u->adjust_time = DEFAULT_ADJUST_TIME;
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
     u->thread = NULL;
     u->resample_method = resample_method;
     u->outputs = pa_idxset_new(NULL, NULL);
@@ -955,7 +955,6 @@ int pa__init(pa_module*m) {
     PA_LLIST_HEAD_INIT(struct output, u->thread_info.active_outputs);
     pa_atomic_store(&u->thread_info.running, FALSE);
     u->thread_info.in_null_mode = FALSE;
-    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
 
     if (pa_modargs_get_value_u32(ma, "adjust_time", &u->adjust_time) < 0) {
         pa_log("Failed to parse adjust_time value");

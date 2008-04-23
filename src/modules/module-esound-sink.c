@@ -538,9 +538,8 @@ int pa__init(pa_module*m) {
     pa_memchunk_reset(&u->memchunk);
     u->offset = 0;
 
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
-    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
     u->rtpoll_item = NULL;
 
     u->format =
