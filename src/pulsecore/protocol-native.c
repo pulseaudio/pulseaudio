@@ -470,11 +470,65 @@ static int record_stream_process_msg(pa_msgobject *o, int code, void*userdata, i
     return 0;
 }
 
+static void fix_record_buffer_attr_pre(record_stream *s, pa_bool_t adjust_latency, uint32_t *maxlength, uint32_t *fragsize) {
+    pa_assert(s);
+    pa_assert(maxlength);
+    pa_assert(fragsize);
+
+    if (*maxlength <= 0 || *maxlength > MAX_MEMBLOCKQ_LENGTH)
+        *maxlength = MAX_MEMBLOCKQ_LENGTH;
+
+    if (*fragsize <= 0)
+        *fragsize = pa_usec_to_bytes(DEFAULT_FRAGSIZE_MSEC*PA_USEC_PER_MSEC, &s->source_output->sample_spec);
+
+    if (adjust_latency) {
+        pa_usec_t fragsize_usec;
+
+        /* So, the user asked us to adjust the latency according to
+         * the what the source can provide. Half the latency will be
+         * spent on the hw buffer, half of it in the async buffer
+         * queue we maintain for each client. */
+
+        fragsize_usec = pa_bytes_to_usec(*fragsize, &s->source_output->sample_spec);
+
+        s->source_latency = pa_source_output_set_requested_latency(s->source_output, fragsize_usec/2);
+
+        if (fragsize_usec >= s->source_latency*2)
+            fragsize_usec -= s->source_latency;
+        else
+            fragsize_usec = s->source_latency;
+
+        *fragsize = pa_usec_to_bytes(fragsize_usec, &s->source_output->sample_spec);
+    }
+}
+
+static void fix_record_buffer_attr_post(record_stream *s, uint32_t *maxlength, uint32_t *fragsize) {
+    size_t base;
+
+    pa_assert(s);
+    pa_assert(maxlength);
+    pa_assert(fragsize);
+
+    *maxlength = pa_memblockq_get_maxlength(s->memblockq);
+
+    base = pa_frame_size(&s->source_output->sample_spec);
+
+    s->fragment_size = (*fragsize/base)*base;
+    if (s->fragment_size <= 0)
+        s->fragment_size = base;
+
+    if (s->fragment_size > *maxlength)
+        s->fragment_size = *maxlength;
+
+    *fragsize = s->fragment_size;
+}
+
 static record_stream* record_stream_new(
         connection *c,
         pa_source *source,
         pa_sample_spec *ss,
         pa_channel_map *map,
+        pa_bool_t peak_detect,
         uint32_t *maxlength,
         uint32_t *fragsize,
         pa_source_output_flags_t flags,
@@ -501,6 +555,8 @@ static record_stream* record_stream_new(
     data.source = source;
     pa_source_output_new_data_set_sample_spec(&data, ss);
     pa_source_output_new_data_set_channel_map(&data, map);
+    if (peak_detect)
+        data.resample_method = PA_RESAMPLER_PEAKS;
 
     source_output = pa_source_output_new(c->protocol->core, &data, flags);
 
@@ -522,30 +578,7 @@ static record_stream* record_stream_new(
     s->source_output->suspend = source_output_suspend_cb;
     s->source_output->userdata = s;
 
-    if (*maxlength <= 0 || *maxlength > MAX_MEMBLOCKQ_LENGTH)
-        *maxlength = MAX_MEMBLOCKQ_LENGTH;
-    if (*fragsize <= 0)
-        *fragsize = pa_usec_to_bytes(DEFAULT_FRAGSIZE_MSEC*PA_USEC_PER_MSEC, &source_output->sample_spec);
-
-    if (adjust_latency) {
-        pa_usec_t fragsize_usec;
-
-        /* So, the user asked us to adjust the latency according to
-         * the what the source can provide. Half the latency will be
-         * spent on the hw buffer, half of it in the async buffer
-         * queue we maintain for each client. */
-
-        fragsize_usec = pa_bytes_to_usec(*fragsize, &source_output->sample_spec);
-
-        s->source_latency = pa_source_output_set_requested_latency(source_output, fragsize_usec/2);
-
-        if (fragsize_usec >= s->source_latency*2)
-            fragsize_usec -= s->source_latency;
-        else
-            fragsize_usec = s->source_latency;
-
-        *fragsize = pa_usec_to_bytes(fragsize_usec, &source_output->sample_spec);
-    }
+    fix_record_buffer_attr_pre(s, adjust_latency, maxlength, fragsize);
 
     s->memblockq = pa_memblockq_new(
             0,
@@ -557,16 +590,7 @@ static record_stream* record_stream_new(
             0,
             NULL);
 
-    *maxlength = pa_memblockq_get_maxlength(s->memblockq);
-
-    s->fragment_size = (*fragsize/base)*base;
-    if (s->fragment_size <= 0)
-        s->fragment_size = base;
-
-    if (s->fragment_size > *maxlength)
-        s->fragment_size = *maxlength;
-
-    *fragsize = s->fragment_size;
+    fix_record_buffer_attr_post(s, maxlength, fragsize);
 
     *ss = s->source_output->sample_spec;
     *map = s->source_output->channel_map;
@@ -674,6 +698,114 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
     return 0;
 }
 
+static void fix_playback_buffer_attr_pre(playback_stream *s, pa_bool_t adjust_latency, uint32_t *maxlength, uint32_t *tlength, uint32_t* prebuf, uint32_t* minreq) {
+    size_t frame_size;
+    pa_usec_t tlength_usec, minreq_usec, sink_usec;
+
+    pa_assert(s);
+    pa_assert(maxlength);
+    pa_assert(tlength);
+    pa_assert(prebuf);
+    pa_assert(minreq);
+
+    if (*maxlength <= 0 || *maxlength > MAX_MEMBLOCKQ_LENGTH)
+        *maxlength = MAX_MEMBLOCKQ_LENGTH;
+    if (*tlength <= 0)
+        *tlength = pa_usec_to_bytes(DEFAULT_TLENGTH_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
+    if (*minreq <= 0)
+        *minreq = pa_usec_to_bytes(DEFAULT_PROCESS_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
+
+    frame_size = pa_frame_size(&s->sink_input->sample_spec);
+    if (*minreq <= 0)
+        *minreq = frame_size;
+    if (*tlength < *minreq+frame_size)
+        *tlength = *minreq+frame_size;
+
+    tlength_usec = pa_bytes_to_usec(*tlength, &s->sink_input->sample_spec);
+    minreq_usec = pa_bytes_to_usec(*minreq, &s->sink_input->sample_spec);
+
+    pa_log_info("Requested tlength=%0.2f ms, minreq=%0.2f ms",
+                (double) tlength_usec / PA_USEC_PER_MSEC,
+                (double) minreq_usec / PA_USEC_PER_MSEC);
+
+    if (adjust_latency) {
+
+        /* So, the user asked us to adjust the latency of the stream
+         * buffer according to the what the sink can provide. The
+         * tlength passed in shall be the overall latency. Roughly
+         * half the latency will be spent on the hw buffer, the other
+         * half of it in the async buffer queue we maintain for each
+         * client. In between we'll have a safety space of size
+         * 2*minreq. Why the 2*minreq? When the hw buffer is completey
+         * empty and needs to be filled, then our buffer must have
+         * enough data to fulfill this request immediatly and thus
+         * have at least the same tlength as the size of the hw
+         * buffer. It additionally needs space for 2 times minreq
+         * because if the buffer ran empty and a partial fillup
+         * happens immediately on the next iteration we need to be
+         * able to fulfill it and give the application also minreq
+         * time to fill it up again for the next request Makes 2 times
+         * minreq in plus.. */
+
+        if (tlength_usec > minreq_usec*2)
+            sink_usec = (tlength_usec - minreq_usec*2)/2;
+        else
+            sink_usec = 0;
+
+    } else {
+
+        /* Ok, the user didn't ask us to adjust the latency, but we
+         * still need to make sure that the parameters from the user
+         * do make sense. */
+
+        if (tlength_usec > minreq_usec*2)
+            sink_usec = (tlength_usec - minreq_usec*2);
+        else
+            sink_usec = 0;
+    }
+
+    s->sink_latency = pa_sink_input_set_requested_latency(s->sink_input, sink_usec);
+
+    if (adjust_latency) {
+        /* Ok, we didn't necessarily get what we were asking for, so
+         * let's subtract from what we asked for for the remaining
+         * buffer space */
+
+        if (tlength_usec >= s->sink_latency)
+            tlength_usec -= s->sink_latency;
+    }
+
+    if (tlength_usec < s->sink_latency + 2*minreq_usec)
+        tlength_usec = s->sink_latency + 2*minreq_usec;
+
+    *tlength = pa_usec_to_bytes(tlength_usec, &s->sink_input->sample_spec);
+    *minreq = pa_usec_to_bytes(minreq_usec, &s->sink_input->sample_spec);
+
+    if (*minreq <= 0) {
+        *minreq += frame_size;
+        *tlength += frame_size*2;
+    }
+
+    if (*tlength <= *minreq)
+        *tlength =  *minreq*2 + frame_size;
+
+    if (*prebuf <= 0)
+        *prebuf = *tlength;
+}
+
+static void fix_playback_buffer_attr_post(playback_stream *s, uint32_t *maxlength, uint32_t *tlength, uint32_t* prebuf, uint32_t* minreq) {
+    pa_assert(s);
+    pa_assert(maxlength);
+    pa_assert(tlength);
+    pa_assert(prebuf);
+    pa_assert(minreq);
+
+    *maxlength = (uint32_t) pa_memblockq_get_maxlength(s->memblockq);
+    *tlength = (uint32_t) pa_memblockq_get_tlength(s->memblockq);
+    *prebuf = (uint32_t) pa_memblockq_get_prebuf(s->memblockq);
+    *minreq = (uint32_t) pa_memblockq_get_minreq(s->memblockq);
+}
+
 static playback_stream* playback_stream_new(
         connection *c,
         pa_sink *sink,
@@ -697,8 +829,6 @@ static playback_stream* playback_stream_new(
     uint32_t idx;
     int64_t start_index;
     pa_sink_input_new_data data;
-    pa_usec_t tlength_usec, minreq_usec, sink_usec;
-    size_t frame_size;
 
     pa_assert(c);
     pa_assert(ss);
@@ -769,90 +899,7 @@ static playback_stream* playback_stream_new(
 
     start_index = ssync ? pa_memblockq_get_read_index(ssync->memblockq) : 0;
 
-    if (*maxlength <= 0 || *maxlength > MAX_MEMBLOCKQ_LENGTH)
-        *maxlength = MAX_MEMBLOCKQ_LENGTH;
-    if (*tlength <= 0)
-        *tlength = pa_usec_to_bytes(DEFAULT_TLENGTH_MSEC*PA_USEC_PER_MSEC, &sink_input->sample_spec);
-    if (*minreq <= 0)
-        *minreq = pa_usec_to_bytes(DEFAULT_PROCESS_MSEC*PA_USEC_PER_MSEC, &sink_input->sample_spec);
-
-    frame_size = pa_frame_size(&sink_input->sample_spec);
-    if (*minreq <= 0)
-        *minreq = frame_size;
-    if (*tlength < *minreq+frame_size)
-        *tlength = *minreq+frame_size;
-
-    tlength_usec = pa_bytes_to_usec(*tlength, &sink_input->sample_spec);
-    minreq_usec = pa_bytes_to_usec(*minreq, &sink_input->sample_spec);
-
-    pa_log_info("Requested tlength=%0.2f ms, minreq=%0.2f ms",
-                (double) tlength_usec / PA_USEC_PER_MSEC,
-                (double) minreq_usec / PA_USEC_PER_MSEC);
-
-    if (adjust_latency) {
-
-        /* So, the user asked us to adjust the latency of the stream
-         * buffer according to the what the sink can provide. The
-         * tlength passed in shall be the overall latency. Roughly
-         * half the latency will be spent on the hw buffer, the other
-         * half of it in the async buffer queue we maintain for each
-         * client. In between we'll have a safety space of size
-         * 2*minreq. Why the 2*minreq? When the hw buffer is completey
-         * empty and needs to be filled, then our buffer must have
-         * enough data to fulfill this request immediatly and thus
-         * have at least the same tlength as the size of the hw
-         * buffer. It additionally needs space for 2 times minreq
-         * because if the buffer ran empty and a partial fillup
-         * happens immediately on the next iteration we need to be
-         * able to fulfill it and give the application also minreq
-         * time to fill it up again for the next request Makes 2 times
-         * minreq in plus.. */
-
-        if (tlength_usec > minreq_usec*2)
-            sink_usec = (tlength_usec - minreq_usec*2)/2;
-        else
-            sink_usec = 0;
-
-    } else {
-
-        /* Ok, the user didn't ask us to adjust the latency, but we
-         * still need to make sure that the parameters from the user
-         * do make sense. */
-
-        if (tlength_usec > minreq_usec*2)
-            sink_usec = (tlength_usec - minreq_usec*2);
-        else
-            sink_usec = 0;
-    }
-
-    s->sink_latency = pa_sink_input_set_requested_latency(sink_input, sink_usec);
-
-    if (adjust_latency) {
-        /* Ok, we didn't necessarily get what we were asking for, so
-         * let's subtract from what we asked for for the remaining
-         * buffer space */
-
-        if (tlength_usec >= s->sink_latency)
-            tlength_usec -= s->sink_latency;
-    }
-
-    if (tlength_usec < s->sink_latency + 2*minreq_usec)
-        tlength_usec = s->sink_latency + 2*minreq_usec;
-
-    *tlength = pa_usec_to_bytes(tlength_usec, &sink_input->sample_spec);
-    *minreq = pa_usec_to_bytes(minreq_usec, &sink_input->sample_spec);
-
-    if (*minreq <= 0) {
-        *minreq += frame_size;
-        *tlength += frame_size*2;
-    }
-
-    if (*tlength <= *minreq)
-        *tlength =  *minreq*2 + frame_size;
-
-    if (*prebuf <= 0)
-        *prebuf = *tlength;
-
+    fix_playback_buffer_attr_pre(s, adjust_latency, maxlength, tlength, prebuf, minreq);
     pa_sink_input_get_silence(sink_input, &silence);
 
     s->memblockq = pa_memblockq_new(
@@ -866,17 +913,14 @@ static playback_stream* playback_stream_new(
             &silence);
 
     pa_memblock_unref(silence.memblock);
+    fix_playback_buffer_attr_post(s, maxlength, tlength, prebuf, minreq);
 
-    *maxlength = (uint32_t) pa_memblockq_get_maxlength(s->memblockq);
-    *tlength = (uint32_t) pa_memblockq_get_tlength(s->memblockq);
-    *prebuf = (uint32_t) pa_memblockq_get_prebuf(s->memblockq);
-    *minreq = (uint32_t) pa_memblockq_get_minreq(s->memblockq);
     *missing = (uint32_t) pa_memblockq_pop_missing(s->memblockq);
 
     *ss = s->sink_input->sample_spec;
     *map = s->sink_input->channel_map;
 
-    s->minreq = pa_memblockq_get_minreq(s->memblockq);
+    s->minreq = *minreq;
     pa_atomic_store(&s->missing, 0);
     s->drain_request = FALSE;
 
@@ -1671,7 +1715,8 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
         fix_channels = FALSE,
         no_move = FALSE,
         variable_rate = FALSE,
-        adjust_latency = FALSE;
+        adjust_latency = FALSE,
+        peak_detect = FALSE;
     pa_source_output_flags_t flags = 0;
     pa_proplist *p;
 
@@ -1720,7 +1765,8 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
 
     if (c->version >= 13) {
 
-        if (pa_tagstruct_get_boolean(t, &adjust_latency) < 0 ||
+        if (pa_tagstruct_get_boolean(t, &peak_detect) < 0 ||
+            pa_tagstruct_get_boolean(t, &adjust_latency) < 0 ||
             pa_tagstruct_get_proplist(t, p) < 0) {
             protocol_error(c);
             pa_proplist_free(p);
@@ -1761,7 +1807,7 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
         (no_move ?  PA_SOURCE_OUTPUT_DONT_MOVE : 0) |
         (variable_rate ?  PA_SOURCE_OUTPUT_VARIABLE_RATE : 0);
 
-    s = record_stream_new(c, source, &ss, &map, &maxlength, &fragment_size, flags, p, adjust_latency);
+    s = record_stream_new(c, source, &ss, &map, peak_detect, &maxlength, &fragment_size, flags, p, adjust_latency);
     pa_proplist_free(p);
 
     CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_INVALID);
@@ -2940,6 +2986,7 @@ static void command_set_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, u
 
     if (command == PA_COMMAND_SET_PLAYBACK_STREAM_BUFFER_ATTR) {
         playback_stream *s;
+        pa_bool_t adjust_latency = FALSE;
 
         s = pa_idxset_get_by_index(c->output_streams, idx);
         CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
@@ -2952,34 +2999,28 @@ static void command_set_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, u
                     PA_TAG_U32, &prebuf,
                     PA_TAG_U32, &minreq,
                     PA_TAG_INVALID) < 0 ||
+            (c->version >= 13 && pa_tagstruct_get_boolean(t, &adjust_latency) < 0) ||
             !pa_tagstruct_eof(t)) {
             protocol_error(c);
             return;
         }
 
-        if (maxlength <= 0 || maxlength > MAX_MEMBLOCKQ_LENGTH)
-            maxlength = MAX_MEMBLOCKQ_LENGTH;
-        if (tlength <= 0)
-            tlength = pa_usec_to_bytes(DEFAULT_TLENGTH_MSEC*1000, &s->sink_input->sample_spec);
-        if (minreq <= 0)
-            minreq = (tlength*9)/10;
-        if (prebuf <= 0)
-            prebuf = tlength;
-
+        fix_playback_buffer_attr_pre(s, adjust_latency, &maxlength, &tlength, &prebuf, &minreq);
         pa_memblockq_set_maxlength(s->memblockq, maxlength);
         pa_memblockq_set_tlength(s->memblockq, tlength);
         pa_memblockq_set_prebuf(s->memblockq, prebuf);
         pa_memblockq_set_minreq(s->memblockq, minreq);
+        fix_playback_buffer_attr_post(s, &maxlength, &tlength, &prebuf, &minreq);
 
         reply = reply_new(tag);
-        pa_tagstruct_putu32(reply, (uint32_t) pa_memblockq_get_maxlength(s->memblockq));
-        pa_tagstruct_putu32(reply, (uint32_t) pa_memblockq_get_tlength(s->memblockq));
-        pa_tagstruct_putu32(reply, (uint32_t) pa_memblockq_get_prebuf(s->memblockq));
-        pa_tagstruct_putu32(reply, (uint32_t) pa_memblockq_get_minreq(s->memblockq));
+        pa_tagstruct_putu32(reply, maxlength);
+        pa_tagstruct_putu32(reply, tlength);
+        pa_tagstruct_putu32(reply, prebuf);
+        pa_tagstruct_putu32(reply, minreq);
 
     } else {
         record_stream *s;
-        size_t base;
+        pa_bool_t adjust_latency = FALSE;
         pa_assert(command == PA_COMMAND_SET_RECORD_STREAM_BUFFER_ATTR);
 
         s = pa_idxset_get_by_index(c->record_streams, idx);
@@ -2990,29 +3031,19 @@ static void command_set_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, u
                     PA_TAG_U32, &maxlength,
                     PA_TAG_U32, &fragsize,
                     PA_TAG_INVALID) < 0 ||
+            (c->version >= 13 && pa_tagstruct_get_boolean(t, &adjust_latency) < 0) ||
             !pa_tagstruct_eof(t)) {
             protocol_error(c);
             return;
         }
 
-        if (maxlength <= 0 || maxlength > MAX_MEMBLOCKQ_LENGTH)
-            maxlength = MAX_MEMBLOCKQ_LENGTH;
-        if (fragsize <= 0)
-            fragsize = pa_usec_to_bytes(DEFAULT_FRAGSIZE_MSEC*1000, &s->source_output->sample_spec);
-
+        fix_record_buffer_attr_pre(s, adjust_latency, &maxlength, &fragsize);
         pa_memblockq_set_maxlength(s->memblockq, maxlength);
-
-        base = pa_frame_size(&s->source_output->sample_spec);
-        s->fragment_size = (fragsize/base)*base;
-        if (s->fragment_size <= 0)
-            s->fragment_size = base;
-
-        if (s->fragment_size > pa_memblockq_get_maxlength(s->memblockq))
-            s->fragment_size = pa_memblockq_get_maxlength(s->memblockq);
+        fix_record_buffer_attr_post(s, &maxlength, &fragsize);
 
         reply = reply_new(tag);
-        pa_tagstruct_putu32(reply, (uint32_t) pa_memblockq_get_maxlength(s->memblockq));
-        pa_tagstruct_putu32(reply, s->fragment_size);
+        pa_tagstruct_putu32(reply, maxlength);
+        pa_tagstruct_putu32(reply, fragsize);
     }
 
     pa_pstream_send_tagstruct(c->pstream, reply);
