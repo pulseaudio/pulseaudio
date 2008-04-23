@@ -116,7 +116,6 @@ struct pa_stream {
     uint32_t stream_index;
     pa_stream_direction_t direction;
     pa_stream_state_t state;
-    pa_bool_t buffer_attr_not_ready, timing_info_not_ready;
 
     uint32_t requested_bytes;
 

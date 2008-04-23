@@ -68,8 +68,6 @@ pa_stream *pa_stream_new_with_proplist(pa_context *c, const char *name, const pa
     s->context = c;
     s->mainloop = c->mainloop;
 
-    s->buffer_attr_not_ready = s->timing_info_not_ready = FALSE;
-
     s->read_callback = NULL;
     s->read_userdata = NULL;
     s->write_callback = NULL;
@@ -527,9 +525,6 @@ static void create_stream_complete(pa_stream *s) {
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
     pa_assert(s->state == PA_STREAM_CREATING);
 
-    if (s->buffer_attr_not_ready || s->timing_info_not_ready)
-        return;
-
     pa_stream_set_state(s, PA_STREAM_READY);
 
     if (s->requested_bytes > 0 && s->write_callback)
@@ -562,7 +557,7 @@ static void automatic_buffer_attr(pa_stream *s, pa_buffer_attr *attr, const pa_s
         attr->tlength = pa_bytes_per_second(ss)*2; /* 2s of buffering */
 
     if (!attr->minreq <= 0)
-        attr->minreq = (9*attr->tlength)/10; /* Ask for more data when there are only 200ms left in the playback buffer */
+        attr->minreq = (2*attr->tlength)/10; /* Ask for more data when there are only 200ms left in the playback buffer */
 
     if (!attr->prebuf)
         attr->prebuf = attr->tlength; /* Start to play only when the playback is fully filled up once */
@@ -644,25 +639,6 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
         s->device_name = pa_xstrdup(dn);
         s->suspended = suspended;
 
-        if (!s->manual_buffer_attr && pa_bytes_per_second(&ss) != pa_bytes_per_second(&s->sample_spec)) {
-            pa_buffer_attr attr;
-            pa_operation *o;
-
-            memset(&attr, 0, sizeof(attr));
-            automatic_buffer_attr(s, &attr, &ss);
-
-            /* If we need to update the buffer metrics, we wait for
-             * the the OK for that call before we go to
-             * PA_STREAM_READY */
-
-            s->state = PA_STREAM_READY;
-            pa_assert_se(o = pa_stream_set_buffer_attr(s, &attr, NULL, NULL));
-            pa_operation_unref(o);
-            s->state = PA_STREAM_CREATING;
-
-            s->buffer_attr_not_ready = TRUE;
-        }
-
         s->channel_map = cm;
         s->sample_spec = ss;
     }
@@ -702,19 +678,6 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
 
     s->channel_valid = 1;
     pa_dynarray_put((s->direction == PA_STREAM_RECORD) ? s->context->record_streams : s->context->playback_streams, s->channel, s);
-
-    if (s->direction != PA_STREAM_UPLOAD && s->flags & PA_STREAM_AUTO_TIMING_UPDATE) {
-
-        /* If automatic timing updates are active, we wait for the
-         * first timing update before going to PA_STREAM_READY
-         * state */
-
-        s->state = PA_STREAM_READY;
-        request_auto_timing_update(s, 1);
-        s->state = PA_STREAM_CREATING;
-
-        s->timing_info_not_ready = TRUE;
-    }
 
     create_stream_complete(s);
 
@@ -1210,12 +1173,6 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
             if (o->stream->write_index_corrections[n].tag <= tag)
                 o->stream->write_index_corrections[n].valid = 0;
         }
-    }
-
-    /* First, let's complete the initialization, if necessary. */
-    if (o->stream->state == PA_STREAM_CREATING) {
-        o->stream->timing_info_not_ready = FALSE;
-        create_stream_complete(o->stream);
     }
 
     if (o->stream->latency_update_callback)
@@ -1777,11 +1734,6 @@ static void stream_set_buffer_attr_callback(pa_pdispatch *pd, uint32_t command, 
         o->stream->manual_buffer_attr = TRUE;
     }
 
-    if (o->stream->state == PA_STREAM_CREATING) {
-        o->stream->buffer_attr_not_ready = FALSE;
-        create_stream_complete(o->stream);
-    }
-
     if (o->callback) {
         pa_stream_success_cb_t cb = (pa_stream_success_cb_t) o->callback;
         cb(o->stream, success, o->userdata);
@@ -1825,6 +1777,9 @@ pa_operation* pa_stream_set_buffer_attr(pa_stream *s, const pa_buffer_attr *attr
                 PA_TAG_INVALID);
     else
         pa_tagstruct_putu32(t, attr->fragsize);
+
+    if (s->context->version >= 13)
+        pa_tagstruct_put_boolean(t, !!(s->flags & PA_STREAM_ADJUST_LATENCY));
 
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, stream_set_buffer_attr_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
