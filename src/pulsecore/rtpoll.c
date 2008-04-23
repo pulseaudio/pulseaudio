@@ -661,23 +661,23 @@ pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_rtpoll_priority_t prio
     return i;
 }
 
-static int asyncmsgq_before(pa_rtpoll_item *i) {
+static int asyncmsgq_read_before(pa_rtpoll_item *i) {
     pa_assert(i);
 
-    if (pa_asyncmsgq_before_poll(i->userdata) < 0)
+    if (pa_asyncmsgq_read_before_poll(i->userdata) < 0)
         return 1; /* 1 means immediate restart of the loop */
 
     return 0;
 }
 
-static void asyncmsgq_after(pa_rtpoll_item *i) {
+static void asyncmsgq_read_after(pa_rtpoll_item *i) {
     pa_assert(i);
 
     pa_assert((i->pollfd[0].revents & ~POLLIN) == 0);
-    pa_asyncmsgq_after_poll(i->userdata);
+    pa_asyncmsgq_read_after_poll(i->userdata);
 }
 
-static int asyncmsgq_work(pa_rtpoll_item *i) {
+static int asyncmsgq_read_work(pa_rtpoll_item *i) {
     pa_msgobject *object;
     int code;
     void *data;
@@ -703,7 +703,7 @@ static int asyncmsgq_work(pa_rtpoll_item *i) {
     return 0;
 }
 
-pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_asyncmsgq *q) {
+pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq_read(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_asyncmsgq *q) {
     pa_rtpoll_item *i;
     struct pollfd *pollfd;
 
@@ -713,12 +713,47 @@ pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq(pa_rtpoll *p, pa_rtpoll_priority_t 
     i = pa_rtpoll_item_new(p, prio, 1);
 
     pollfd = pa_rtpoll_item_get_pollfd(i, NULL);
-    pollfd->fd = pa_asyncmsgq_get_fd(q);
+    pollfd->fd = pa_asyncmsgq_read_fd(q);
     pollfd->events = POLLIN;
 
-    i->before_cb = asyncmsgq_before;
-    i->after_cb = asyncmsgq_after;
-    i->work_cb = asyncmsgq_work;
+    i->before_cb = asyncmsgq_read_before;
+    i->after_cb = asyncmsgq_read_after;
+    i->work_cb = asyncmsgq_read_work;
+    i->userdata = q;
+
+    return i;
+}
+
+static int asyncmsgq_write_before(pa_rtpoll_item *i) {
+    pa_assert(i);
+
+    pa_asyncmsgq_write_before_poll(i->userdata);
+    return 0;
+}
+
+static void asyncmsgq_write_after(pa_rtpoll_item *i) {
+    pa_assert(i);
+
+    pa_assert((i->pollfd[0].revents & ~POLLIN) == 0);
+    pa_asyncmsgq_write_after_poll(i->userdata);
+}
+
+pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq_write(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_asyncmsgq *q) {
+    pa_rtpoll_item *i;
+    struct pollfd *pollfd;
+
+    pa_assert(p);
+    pa_assert(q);
+
+    i = pa_rtpoll_item_new(p, prio, 1);
+
+    pollfd = pa_rtpoll_item_get_pollfd(i, NULL);
+    pollfd->fd = pa_asyncmsgq_write_fd(q);
+    pollfd->events = POLLIN;
+
+    i->before_cb = asyncmsgq_write_before;
+    i->after_cb = asyncmsgq_write_after;
+    i->work_cb = NULL;
     i->userdata = q;
 
     return i;
