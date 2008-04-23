@@ -94,6 +94,8 @@ static const char* const valid_modargs[] = {
 #define DEFAULT_DEVICE "default"
 #define DEFAULT_TSCHED_BUFFER_USEC (5*PA_USEC_PER_SEC)           /* 5s */
 #define DEFAULT_TSCHED_WATERMARK_USEC (20*PA_USEC_PER_MSEC)       /* 20ms */
+#define TSCHED_MIN_SLEEP_USEC (3*PA_USEC_PER_MSEC)        /* 3ms */
+#define TSCHED_MIN_WAKEUP_USEC (3*PA_USEC_PER_MSEC)        /* 3ms */
 
 struct userdata {
     pa_core *core;
@@ -121,7 +123,7 @@ struct userdata {
 
     pa_bool_t use_mmap, use_tsched;
 
-    pa_bool_t first;
+    pa_bool_t first, after_rewind;
 
     pa_rtpoll_item *alsa_rtpoll_item;
 
@@ -135,12 +137,29 @@ struct userdata {
 
 static void fix_tsched_watermark(struct userdata *u) {
     size_t max_use;
+    size_t min_sleep, min_wakeup;
     pa_assert(u);
 
     max_use = u->hwbuf_size - u->hwbuf_unused_frames * u->frame_size;
 
-    if (u->tsched_watermark >= max_use-u->frame_size)
-        u->tsched_watermark = max_use-u->frame_size;
+    min_sleep = pa_usec_to_bytes(TSCHED_MIN_SLEEP_USEC, &u->sink->sample_spec);
+    min_wakeup = pa_usec_to_bytes(TSCHED_MIN_WAKEUP_USEC, &u->sink->sample_spec);
+
+    if (min_sleep > max_use/2)
+        min_sleep = pa_frame_align(max_use/2, &u->sink->sample_spec);
+    if (min_sleep < u->frame_size)
+        min_sleep = u->frame_size;
+
+    if (min_wakeup > max_use/2)
+        min_wakeup = pa_frame_align(max_use/2, &u->sink->sample_spec);
+    if (min_wakeup < u->frame_size)
+        min_wakeup = u->frame_size;
+
+    if (u->tsched_watermark > max_use-min_sleep)
+        u->tsched_watermark = max_use-min_sleep;
+
+    if (u->tsched_watermark < min_wakeup)
+        u->tsched_watermark = min_wakeup;
 }
 
 static int try_recover(struct userdata *u, const char *call, int err) {
@@ -170,7 +189,7 @@ static int try_recover(struct userdata *u, const char *call, int err) {
 static void check_left_to_play(struct userdata *u, snd_pcm_sframes_t n) {
     size_t left_to_play;
 
-    if (u->first)
+    if (u->first || u->after_rewind)
         return;
 
     if (n*u->frame_size < u->hwbuf_size)
@@ -198,6 +217,7 @@ static void check_left_to_play(struct userdata *u, snd_pcm_sframes_t n) {
 
 static int mmap_write(struct userdata *u) {
     int work_done = 0;
+    pa_bool_t checked_left_to_play = FALSE;
 
     pa_assert(u);
     pa_sink_assert_ref(u->sink);
@@ -225,7 +245,10 @@ static int mmap_write(struct userdata *u) {
             return r;
         }
 
-        check_left_to_play(u, n);
+        if (!checked_left_to_play) {
+            check_left_to_play(u, n);
+            checked_left_to_play = TRUE;
+        }
 
         /* We only use part of the buffer that matches our
          * dynamically requested latency */
@@ -294,6 +317,7 @@ static int mmap_write(struct userdata *u) {
 
 static int unix_write(struct userdata *u) {
     int work_done = 0;
+    pa_bool_t checked_left_to_play = FALSE;
 
     pa_assert(u);
     pa_sink_assert_ref(u->sink);
@@ -315,7 +339,10 @@ static int unix_write(struct userdata *u) {
             return r;
         }
 
-        check_left_to_play(u, n);
+        if (!checked_left_to_play) {
+            check_left_to_play(u, n);
+            checked_left_to_play = TRUE;
+        }
 
         if (PA_UNLIKELY(n <= u->hwbuf_unused_frames))
             return work_done;
@@ -862,6 +889,8 @@ static int process_rewind(struct userdata *u) {
             u->frame_index -= out_frames;
             pa_log_debug("Rewound %lu bytes.", (unsigned long) rewind_nbytes);
             pa_sink_process_rewind(u->sink, rewind_nbytes);
+
+            u->after_rewind = TRUE;
         }
     } else
         pa_log_debug("Mhmm, actually there is nothing to rewind.");
@@ -938,6 +967,7 @@ static void thread_func(void *userdata) {
             }
 
             u->first = FALSE;
+            u->after_rewind = FALSE;
 
         } else if (u->use_tsched)
 
@@ -1071,6 +1101,7 @@ int pa__init(pa_module*m) {
     u->use_mmap = use_mmap;
     u->use_tsched = use_tsched;
     u->first = TRUE;
+    u->after_rewind = FALSE;
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
     u->alsa_rtpoll_item = NULL;

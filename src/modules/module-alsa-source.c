@@ -95,6 +95,8 @@ static const char* const valid_modargs[] = {
 #define DEFAULT_DEVICE "default"
 #define DEFAULT_TSCHED_BUFFER_USEC (5*PA_USEC_PER_SEC)
 #define DEFAULT_TSCHED_WATERMARK_USEC (20*PA_USEC_PER_MSEC)
+#define TSCHED_MIN_SLEEP_USEC (3*PA_USEC_PER_MSEC)        /* 3ms */
+#define TSCHED_MIN_WAKEUP_USEC (3*PA_USEC_PER_MSEC)        /* 3ms */
 
 struct userdata {
     pa_core *core;
@@ -133,12 +135,29 @@ struct userdata {
 
 static void fix_tsched_watermark(struct userdata *u) {
     size_t max_use;
+    size_t min_sleep, min_wakeup;
     pa_assert(u);
 
     max_use = u->hwbuf_size - u->hwbuf_unused_frames * u->frame_size;
 
-    if (u->tsched_watermark >= max_use-u->frame_size)
-        u->tsched_watermark = max_use-u->frame_size;
+    min_sleep = pa_usec_to_bytes(TSCHED_MIN_SLEEP_USEC, &u->source->sample_spec);
+    min_wakeup = pa_usec_to_bytes(TSCHED_MIN_WAKEUP_USEC, &u->source->sample_spec);
+
+    if (min_sleep > max_use/2)
+        min_sleep = pa_frame_align(max_use/2, &u->source->sample_spec);
+    if (min_sleep < u->frame_size)
+        min_sleep = u->frame_size;
+
+    if (min_wakeup > max_use/2)
+        min_wakeup = pa_frame_align(max_use/2, &u->source->sample_spec);
+    if (min_wakeup < u->frame_size)
+        min_wakeup = u->frame_size;
+
+    if (u->tsched_watermark > max_use-min_sleep)
+        u->tsched_watermark = max_use-min_sleep;
+
+    if (u->tsched_watermark < min_wakeup)
+        u->tsched_watermark = min_wakeup;
 }
 
 static int try_recover(struct userdata *u, const char *call, int err) {
@@ -193,6 +212,7 @@ static void check_left_to_record(struct userdata *u, snd_pcm_sframes_t n) {
 
 static int mmap_read(struct userdata *u) {
     int work_done = 0;
+    pa_bool_t checked_left_to_record = FALSE;
 
     pa_assert(u);
     pa_source_assert_ref(u->source);
@@ -217,7 +237,10 @@ static int mmap_read(struct userdata *u) {
             return r;
         }
 
-        check_left_to_record(u, n);
+        if (checked_left_to_record) {
+            check_left_to_record(u, n);
+            checked_left_to_record = TRUE;
+        }
 
         if (PA_UNLIKELY(n <= 0))
             return work_done;
@@ -280,6 +303,7 @@ static int mmap_read(struct userdata *u) {
 
 static int unix_read(struct userdata *u) {
     int work_done = 0;
+    pa_bool_t checked_left_to_record = FALSE;
 
     pa_assert(u);
     pa_source_assert_ref(u->source);
@@ -302,7 +326,10 @@ static int unix_read(struct userdata *u) {
             return r;
         }
 
-        check_left_to_record(u, n);
+        if (checked_left_to_record) {
+            check_left_to_record(u, n);
+            checked_left_to_record = TRUE;
+        }
 
         if (PA_UNLIKELY(n <= 0))
             return work_done;
