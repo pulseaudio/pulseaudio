@@ -359,7 +359,7 @@ pa_usec_t pa_source_output_get_latency(pa_source_output *o) {
 /* Called from thread context */
 void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
     size_t length;
-    size_t limit;
+    size_t limit, mbs = 0;
 
     pa_source_output_assert_ref(o);
     pa_assert(PA_SOURCE_OUTPUT_LINKED(o->thread_info.state));
@@ -396,6 +396,12 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
         else {
             pa_memchunk rchunk;
 
+            if (mbs == 0)
+                mbs = pa_resampler_max_block_size(o->thread_info.resampler);
+
+            if (qchunk.length > mbs)
+                qchunk.length = mbs;
+
             pa_resampler_run(o->thread_info.resampler, &qchunk, &rchunk);
 
             if (rchunk.length > 0)
@@ -405,6 +411,7 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
         }
 
         pa_memblock_unref(qchunk.memblock);
+        pa_memblockq_drop(o->thread_info.delay_memblockq, qchunk.length);
     }
 }
 
