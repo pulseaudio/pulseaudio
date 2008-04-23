@@ -32,6 +32,8 @@
 #include <pulse/channelmap.h>
 #include <pulse/proplist.h>
 
+#include <pulsecore/rtpoll.h>
+
 typedef struct pa_alsa_fdlist pa_alsa_fdlist;
 
 struct pa_alsa_fdlist *pa_alsa_fdlist_new(void);
@@ -91,5 +93,7 @@ void pa_alsa_redirect_errors_dec(void);
 void pa_alsa_init_proplist(pa_proplist *p, snd_pcm_info_t *pcm_info);
 
 int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents);
+
+pa_rtpoll_item* pa_alsa_build_pollfd(snd_pcm_t *pcm, pa_rtpoll *rtpoll);
 
 #endif
