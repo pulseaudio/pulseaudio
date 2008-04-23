@@ -112,7 +112,7 @@ struct pa_sink {
         pa_bool_t soft_muted;
 
         pa_bool_t requested_latency_valid;
-        size_t requested_latency;
+        pa_usec_t requested_latency;
 
         /* The number of bytes we need keep around to be able to satisfy
          * every DMA buffer rewrite */
