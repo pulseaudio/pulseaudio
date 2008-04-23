@@ -1442,7 +1442,6 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
 
         pa_assert(o_index * fz < pa_memblock_get_length(output->memblock));
 
-
         if (r->work_format == PA_SAMPLE_S16NE) {
             unsigned i, c;
             int16_t *s = (int16_t*) ((uint8_t*) src + fz * j);
