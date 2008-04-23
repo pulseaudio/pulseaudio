@@ -256,7 +256,8 @@ noinst_PROGRAMS = \
 		remix-test \
 		envelope-test \
 		proplist-test \
-		rtstutter
+		rtstutter \
+		stripnul
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -435,6 +436,11 @@ rtstutter_SOURCES = tests/rtstutter.c
 rtstutter_LDADD = $(AM_LDADD) libpulsecore.la
 rtstutter_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
 rtstutter_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
+
+stripnul_SOURCES = tests/stripnul.c
+stripnul_LDADD = $(AM_LDADD) libpulsecore.la
+stripnul_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+stripnul_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
 
 ###################################
 #         Client library          #
