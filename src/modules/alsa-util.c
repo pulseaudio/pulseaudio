@@ -1093,3 +1093,27 @@ int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents) {
 
     return 0;
 }
+
+pa_rtpoll_item* pa_alsa_build_pollfd(snd_pcm_t *pcm, pa_rtpoll *rtpoll) {
+    int n, err;
+    struct pollfd *pollfd;
+    pa_rtpoll_item *item;
+
+    pa_assert(pcm);
+
+    if ((n = snd_pcm_poll_descriptors_count(pcm)) < 0) {
+        pa_log("snd_pcm_poll_descriptors_count() failed: %s", snd_strerror(n));
+        return NULL;
+    }
+
+    item = pa_rtpoll_item_new(rtpoll, PA_RTPOLL_NEVER, n);
+    pollfd = pa_rtpoll_item_get_pollfd(item, NULL);
+
+    if ((err = snd_pcm_poll_descriptors(pcm, pollfd, n)) < 0) {
+        pa_log("snd_pcm_poll_descriptors() failed: %s", snd_strerror(err));
+        pa_rtpoll_item_free(item);
+        return NULL;
+    }
+
+    return item;
+}
