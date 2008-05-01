@@ -131,8 +131,7 @@ pulseaudio_SOURCES = \
 		daemon/daemon-conf.c daemon/daemon-conf.h \
 		daemon/dumpmodules.c daemon/dumpmodules.h \
 		daemon/ltdl-bind-now.c daemon/ltdl-bind-now.h \
-		daemon/main.c \
-		pulsecore/gccmacro.h
+		daemon/main.c
 
 pulseaudio_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS) $(CAP_CFLAGS) $(LIBOIL_CFLAGS) $(DBUS_CFLAGS)
 pulseaudio_CPPFLAGS = $(AM_CPPFLAGS)
@@ -470,7 +469,8 @@ pulseinclude_HEADERS = \
 		pulse/version.h \
 		pulse/volume.h \
 		pulse/xmalloc.h \
-		pulse/proplist.h
+		pulse/proplist.h \
+		pulse/gccmacro.h
 
 if HAVE_AVAHI
 pulseinclude_HEADERS += \
@@ -529,7 +529,6 @@ libpulse_la_SOURCES += \
 		pulsecore/conf-parser.c pulsecore/conf-parser.h \
 		pulsecore/core-util.c pulsecore/core-util.h \
 		pulsecore/dynarray.c pulsecore/dynarray.h \
-		pulsecore/gccmacro.h \
 		pulsecore/hashmap.c pulsecore/hashmap.h \
 		pulsecore/idxset.c pulsecore/idxset.h \
 		pulsecore/inet_ntop.c pulsecore/inet_ntop.h \
@@ -562,6 +561,8 @@ libpulse_la_SOURCES += \
 		pulsecore/object.c pulsecore/object.h \
 		pulsecore/msgobject.c pulsecore/msgobject.h \
 		pulsecore/once.c pulsecore/once.h \
+		pulsecore/rtclock.c pulsecore/rtclock.h \
+		pulsecore/time-smoother.c pulsecore/time-smoother.h \
 		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32
@@ -661,7 +662,6 @@ noinst_HEADERS = \
 		pulsecore/cli-text.h \
 		pulsecore/client.h \
 		pulsecore/core.h \
-		pulsecore/core-def.h \
 		pulsecore/core-scache.h \
 		pulsecore/core-subscribe.h \
 		pulsecore/conf-parser.h \
