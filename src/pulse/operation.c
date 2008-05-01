@@ -77,6 +77,23 @@ void pa_operation_unref(pa_operation *o) {
     }
 }
 
+static void operation_unlink(pa_operation *o) {
+    pa_assert(o);
+
+    if (o->context) {
+        pa_assert(PA_REFCNT_VALUE(o) >= 2);
+
+        PA_LLIST_REMOVE(pa_operation, o->context->operations, o);
+        pa_operation_unref(o);
+
+        o->context = NULL;
+    }
+
+    o->stream = NULL;
+    o->callback = NULL;
+    o->userdata = NULL;
+}
+
 static void operation_set_state(pa_operation *o, pa_operation_state_t st) {
     pa_assert(o);
     pa_assert(PA_REFCNT_VALUE(o) >= 1);
@@ -88,20 +105,8 @@ static void operation_set_state(pa_operation *o, pa_operation_state_t st) {
 
     o->state = st;
 
-    if ((o->state == PA_OPERATION_DONE) || (o->state == PA_OPERATION_CANCELED)) {
-
-        if (o->context) {
-            pa_assert(PA_REFCNT_VALUE(o) >= 2);
-
-            PA_LLIST_REMOVE(pa_operation, o->context->operations, o);
-            pa_operation_unref(o);
-        }
-
-        o->context = NULL;
-        o->stream = NULL;
-        o->callback = NULL;
-        o->userdata = NULL;
-    }
+    if ((o->state == PA_OPERATION_DONE) || (o->state == PA_OPERATION_CANCELED))
+        operation_unlink(o);
 
     pa_operation_unref(o);
 }
