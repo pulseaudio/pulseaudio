@@ -1004,7 +1004,13 @@ libsocket_util_la_SOURCES = \
 libsocket_util_la_LDFLAGS = -avoid-version
 libsocket_util_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) libpulsecore.la
 
-librtp_la_SOURCES = modules/rtp/rtp.c modules/rtp/rtp.h modules/rtp/sdp.c modules/rtp/sdp.h modules/rtp/sap.c modules/rtp/sap.h
+librtp_la_SOURCES = \
+		modules/rtp/rtp.c modules/rtp/rtp.h \
+		modules/rtp/sdp.c modules/rtp/sdp.h \
+		modules/rtp/sap.c modules/rtp/sap.h \
+		modules/rtp/rtsp.c modules/rtp/rtsp.h \
+		modules/rtp/headerlist.c modules/rtp/headerlist.h \
+		modules/rtp/base64.c modules/rtp/base64.h
 librtp_la_LDFLAGS = -avoid-version
 librtp_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
@@ -1053,6 +1059,7 @@ modlibexec_LTLIBRARIES += \
 		module-remap-sink.la \
 		module-ladspa-sink.la \
 		module-esound-sink.la \
+		module-raop-sink.la \
 		module-tunnel-sink.la \
 		module-tunnel-source.la \
 		module-position-event-sounds.la
@@ -1199,6 +1206,7 @@ SYMDEF_FILES = \
 		modules/module-esound-compat-spawnfd-symdef.h \
 		modules/module-esound-compat-spawnpid-symdef.h \
 		modules/module-match-symdef.h \
+		modules/module-raop-sink-symdef.h \
 		modules/module-tunnel-sink-symdef.h \
 		modules/module-tunnel-source-symdef.h \
 		modules/module-null-sink-symdef.h \
@@ -1366,6 +1374,10 @@ module_ladspa_sink_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) libpulsecore.la
 module_match_la_SOURCES = modules/module-match.c
 module_match_la_LDFLAGS = -module -avoid-version
 module_match_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+
+module_raop_sink_la_SOURCES = modules/module-raop-sink.c
+module_raop_sink_la_LDFLAGS = -module -avoid-version
+module_raop_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libiochannel.la librtp.la
 
 module_tunnel_sink_la_SOURCES = modules/module-tunnel.c
 module_tunnel_sink_la_CFLAGS = -DTUNNEL_SINK=1 $(AM_CFLAGS)
