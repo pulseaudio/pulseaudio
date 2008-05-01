@@ -46,7 +46,10 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
 
     pa_assert(c);
 
-    if (!dname && (!(dname = getenv("DISPLAY")) || *dname == '\0'))
+    if (!dname && !(dname = getenv("DISPLAY")))
+        goto finish;
+
+    if (*dname == 0)
         goto finish;
 
     if (!(d = XOpenDisplay(dname))) {
@@ -80,7 +83,7 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
         pa_assert(sizeof(cookie) == sizeof(c->cookie));
         memcpy(c->cookie, cookie, sizeof(cookie));
 
-        c->cookie_valid = 1;
+        c->cookie_valid = TRUE;
 
         pa_xfree(c->cookie_file);
         c->cookie_file = NULL;
