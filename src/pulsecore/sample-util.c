@@ -1013,12 +1013,8 @@ void pa_sample_clamp(pa_sample_format_t format, void *dst, size_t dstr, const vo
     d = dst;
 
     if (format == PA_SAMPLE_FLOAT32NE) {
-        for (; n > 0; n--) {
-            *d = PA_CLAMP_UNLIKELY(*s, -1.0, 1.0);
-
-            s = (const float*) ((const uint8_t*) s + sstr);
-            d = (float*) ((uint8_t*) d + dstr);
-        }
+        const static float minus_one = -1.0, plus_one = 1.0;
+        oil_clip_f32(dst, dstr, src, sstr, n, &minus_one, &plus_one);
     } else
         for (; n > 0; n--) {
             float f;
