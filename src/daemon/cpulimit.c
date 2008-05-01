@@ -82,7 +82,7 @@ static pa_io_event *io_event = NULL;
 static struct sigaction sigaction_prev;
 
 /* Nonzero after pa_cpu_limit_init() */
-static int installed = 0;
+static pa_bool_t installed = FALSE;
 
 /* The current state of operation */
 static enum  {
@@ -210,7 +210,7 @@ int pa_cpu_limit_init(pa_mainloop_api *m) {
         return -1;
     }
 
-    installed = 1;
+    installed = TRUE;
 
     reset_cpu_time(CPUTIME_INTERVAL_SOFT);
 
@@ -231,7 +231,7 @@ void pa_cpu_limit_done(void) {
 
     if (installed) {
         pa_assert_se(sigaction(SIGXCPU, &sigaction_prev, NULL) >= 0);
-        installed = 0;
+        installed = FALSE;
     }
 }
 
