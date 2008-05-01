@@ -59,7 +59,9 @@ struct pa_memblock {
     pa_mempool *pool;
 
     pa_memblock_type_t type;
-    pa_bool_t read_only:1, is_silence:1;
+
+    pa_bool_t read_only:1;
+    pa_bool_t is_silence:1;
 
     pa_atomic_ptr_t data;
     size_t length;
