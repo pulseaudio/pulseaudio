@@ -55,6 +55,8 @@ typedef struct file_stream {
     SNDFILE *sndfile;
     sf_count_t (*readf_function)(SNDFILE *sndfile, void *ptr, sf_count_t frames);
 
+    /* We need this memblockq here to easily fulfill rewind requests
+     * (even beyond the file start!) */
     pa_memblockq *memblockq;
 } file_stream;
 
@@ -66,6 +68,7 @@ PA_DECLARE_CLASS(file_stream);
 #define FILE_STREAM(o) (file_stream_cast(o))
 static PA_DEFINE_CHECK_TYPE(file_stream, pa_msgobject);
 
+/* Called from main context */
 static void file_stream_unlink(file_stream *u) {
     pa_assert(u);
 
@@ -80,6 +83,7 @@ static void file_stream_unlink(file_stream *u) {
     file_stream_unref(u);
 }
 
+/* Called from main context */
 static void file_stream_free(pa_object *o) {
     file_stream *u = FILE_STREAM(o);
     pa_assert(u);
@@ -93,6 +97,7 @@ static void file_stream_free(pa_object *o) {
     pa_xfree(u);
 }
 
+/* Called from main context */
 static int file_stream_process_msg(pa_msgobject *o, int code, void*userdata, int64_t offset, pa_memchunk *chunk) {
     file_stream *u = FILE_STREAM(o);
     file_stream_assert_ref(u);
@@ -106,6 +111,7 @@ static int file_stream_process_msg(pa_msgobject *o, int code, void*userdata, int
     return 0;
 }
 
+/* Called from main context */
 static void sink_input_kill_cb(pa_sink_input *i) {
     file_stream *u;
 
@@ -116,6 +122,22 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     file_stream_unlink(u);
 }
 
+/* Called from IO thread context */
+static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t state) {
+    file_stream *u;
+
+    pa_sink_input_assert_ref(i);
+    u = FILE_STREAM(i->userdata);
+    file_stream_assert_ref(u);
+
+    /* If we are added for the first time, ask for a rewinding so that
+     * we are heard right-away. */
+    if (PA_SINK_INPUT_IS_LINKED(state) &&
+        i->thread_info.state == PA_SINK_INPUT_INIT)
+        pa_sink_input_request_rewind(i, 0, FALSE, TRUE);
+}
+
+/* Called from IO thread context */
 static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
     file_stream *u;
 
@@ -131,6 +153,9 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
 
     for (;;) {
         pa_memchunk tchunk;
+        size_t fs;
+        void *p;
+        sf_count_t n;
 
         if (pa_memblockq_peek(u->memblockq, chunk) >= 0) {
             pa_memblockq_drop(u->memblockq, chunk->length);
@@ -143,42 +168,27 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
         tchunk.memblock = pa_memblock_new(i->sink->core->mempool, length);
         tchunk.index = 0;
 
+        p = pa_memblock_acquire(tchunk.memblock);
+
         if (u->readf_function) {
-            sf_count_t n;
-            void *p;
-            size_t fs = pa_frame_size(&i->sample_spec);
-
-            p = pa_memblock_acquire(tchunk.memblock);
+            fs = pa_frame_size(&i->sample_spec);
             n = u->readf_function(u->sndfile, p, length/fs);
-            pa_memblock_release(tchunk.memblock);
-
-            if (n <= 0)
-                n = 0;
-
-            tchunk.length = n * fs;
-
         } else {
-            sf_count_t n;
-            void *p;
-
-            p = pa_memblock_acquire(tchunk.memblock);
+            fs = 1;
             n = sf_read_raw(u->sndfile, p, length);
-            pa_memblock_release(tchunk.memblock);
-
-            if (n <= 0)
-                n = 0;
-
-            tchunk.length = n;
         }
 
-        if (tchunk.length <= 0) {
+        pa_memblock_release(tchunk.memblock);
 
+        if (n <= 0) {
             pa_memblock_unref(tchunk.memblock);
 
             sf_close(u->sndfile);
             u->sndfile = NULL;
             break;
         }
+
+        tchunk.length = n * fs;
 
         pa_memblockq_push(u->memblockq, &tchunk);
         pa_memblock_unref(tchunk.memblock);
@@ -196,7 +206,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
     }
 
     return -1;
-}
+ }
 
 static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     file_stream *u;
@@ -334,6 +344,7 @@ int pa_play_file(
     u->sink_input->process_rewind = sink_input_process_rewind_cb;
     u->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;
     u->sink_input->kill = sink_input_kill_cb;
+    u->sink_input->state_change = sink_input_state_change_cb;
     u->sink_input->userdata = u;
 
     pa_sink_input_get_silence(u->sink_input, &silence);

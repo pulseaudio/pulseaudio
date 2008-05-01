@@ -339,6 +339,10 @@ const char *pa_stream_get_device_name(pa_stream *s);
  * server is older than 0.9.8. \since 0.9.8 */
 int pa_stream_is_suspended(pa_stream *s);
 
+/** Return 1 if the this stream has been corked. This will return 0 if
+ * not, and negative on error. \since 0.9.11 */
+int pa_stream_is_corked(pa_stream *s);
+
 /** Connect the stream to a sink */
 int pa_stream_connect_playback(
         pa_stream *s                  /**< The stream to connect to a sink */,
@@ -368,7 +372,7 @@ int pa_stream_disconnect(pa_stream *s);
 int pa_stream_write(
         pa_stream *p             /**< The stream to use */,
         const void *data         /**< The data to write */,
-        size_t bytes             /**< The length of the data to write in bytes*/,
+        size_t nbytes            /**< The length of the data to write in bytes*/,
         pa_free_cb_t free_cb     /**< A cleanup routine for the data or NULL to request an internal copy */,
         int64_t offset,          /**< Offset for seeking, must be 0 for upload streams */
         pa_seek_mode_t seek      /**< Seek mode, must be PA_SEEK_RELATIVE for upload streams */);
@@ -381,7 +385,7 @@ int pa_stream_write(
 int pa_stream_peek(
         pa_stream *p                 /**< The stream to use */,
         const void **data            /**< Pointer to pointer that will point to data */,
-        size_t *bytes                /**< The length of the data read in bytes */);
+        size_t *nbytes               /**< The length of the data read in bytes */);
 
 /** Remove the current fragment on record streams. It is invalid to do this without first
  * calling pa_stream_peek(). */
@@ -418,6 +422,13 @@ void pa_stream_set_overflow_callback(pa_stream *p, pa_stream_notify_cb_t cb, voi
 
 /** Set the callback function that is called when a buffer underflow happens. (Only for playback streams) */
 void pa_stream_set_underflow_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
+
+/** Set the callback function that is called when a the server starts
+ * playback after an underrun or on initial startup. This only informs
+ * that audio is flowing again, it is no indication that audio startet
+ * to reach the speakers already. (Only for playback streams). \since
+ * 0.9.11 */
+void pa_stream_set_started_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
 
 /** Set the callback function that is called whenever a latency
  * information update happens. Useful on PA_STREAM_AUTO_TIMING_UPDATE

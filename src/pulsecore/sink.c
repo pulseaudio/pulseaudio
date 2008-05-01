@@ -265,8 +265,8 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
         return 0;
 
     suspend_change =
-        (s->state == PA_SINK_SUSPENDED && PA_SINK_OPENED(state)) ||
-        (PA_SINK_OPENED(s->state) && state == PA_SINK_SUSPENDED);
+        (s->state == PA_SINK_SUSPENDED && PA_SINK_IS_OPENED(state)) ||
+        (PA_SINK_IS_OPENED(s->state) && state == PA_SINK_SUSPENDED);
 
     if (s->set_state)
         if ((ret = s->set_state(s, state)) < 0)
@@ -328,7 +328,7 @@ void pa_sink_unlink(pa_sink* s) {
      * may be called multiple times on the same sink without bad
      * effects. */
 
-    linked = PA_SINK_LINKED(s->state);
+    linked = PA_SINK_IS_LINKED(s->state);
 
     if (linked)
         pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_UNLINK], s);
@@ -366,7 +366,7 @@ static void sink_free(pa_object *o) {
     pa_assert(s);
     pa_assert(pa_sink_refcnt(s) == 0);
 
-    if (PA_SINK_LINKED(s->state))
+    if (PA_SINK_IS_LINKED(s->state))
         pa_sink_unlink(s);
 
     pa_log_info("Freeing sink %u \"%s\"", s->index, s->name);
@@ -397,7 +397,6 @@ static void sink_free(pa_object *o) {
 
 void pa_sink_set_asyncmsgq(pa_sink *s, pa_asyncmsgq *q) {
     pa_sink_assert_ref(s);
-    pa_assert(q);
 
     s->asyncmsgq = q;
 
@@ -407,7 +406,6 @@ void pa_sink_set_asyncmsgq(pa_sink *s, pa_asyncmsgq *q) {
 
 void pa_sink_set_rtpoll(pa_sink *s, pa_rtpoll *p) {
     pa_sink_assert_ref(s);
-    pa_assert(p);
 
     s->rtpoll = p;
     if (s->monitor_source)
@@ -416,7 +414,7 @@ void pa_sink_set_rtpoll(pa_sink *s, pa_rtpoll *p) {
 
 int pa_sink_update_status(pa_sink*s) {
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->state));
+    pa_assert(PA_SINK_IS_LINKED(s->state));
 
     if (s->state == PA_SINK_SUSPENDED)
         return 0;
@@ -426,7 +424,7 @@ int pa_sink_update_status(pa_sink*s) {
 
 int pa_sink_suspend(pa_sink *s, pa_bool_t suspend) {
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->state));
+    pa_assert(PA_SINK_IS_LINKED(s->state));
 
     if (suspend)
         return sink_set_state(s, PA_SINK_SUSPENDED);
@@ -438,7 +436,10 @@ void pa_sink_process_rewind(pa_sink *s, size_t nbytes) {
     pa_sink_input *i;
     void *state = NULL;
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->state));
+    pa_assert(PA_SINK_IS_LINKED(s->state));
+
+    /* Make sure the sink code already reset the counter! */
+    pa_assert(s->thread_info.rewind_nbytes <= 0);
 
     if (nbytes <= 0)
         return;
@@ -450,8 +451,9 @@ void pa_sink_process_rewind(pa_sink *s, size_t nbytes) {
         pa_sink_input_process_rewind(i, nbytes);
     }
 
-    if (s->monitor_source && PA_SOURCE_OPENED(pa_source_get_state(s->monitor_source)))
+    if (s->monitor_source && PA_SOURCE_IS_OPENED(pa_source_get_state(s->monitor_source)))
         pa_source_process_rewind(s->monitor_source, nbytes);
+
 }
 
 static unsigned fill_mix_info(pa_sink *s, size_t *length, pa_mix_info *info, unsigned maxinfo) {
@@ -557,7 +559,7 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
     size_t block_size_max;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_OPENED(s->thread_info.state));
+    pa_assert(PA_SINK_IS_OPENED(s->thread_info.state));
     pa_assert(pa_frame_aligned(length, &s->sample_spec));
     pa_assert(result);
 
@@ -621,7 +623,7 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
     if (s->thread_info.state == PA_SINK_RUNNING)
         inputs_drop(s, info, n, result->length);
 
-    if (s->monitor_source && PA_SOURCE_OPENED(pa_source_get_state(s->monitor_source)))
+    if (s->monitor_source && PA_SOURCE_IS_OPENED(pa_source_get_state(s->monitor_source)))
         pa_source_post(s->monitor_source, result);
 
     pa_sink_unref(s);
@@ -633,7 +635,7 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
     size_t length, block_size_max;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_OPENED(s->thread_info.state));
+    pa_assert(PA_SINK_IS_OPENED(s->thread_info.state));
     pa_assert(target);
     pa_assert(target->memblock);
     pa_assert(target->length > 0);
@@ -700,7 +702,7 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
     if (s->thread_info.state == PA_SINK_RUNNING)
         inputs_drop(s, info, n, target->length);
 
-    if (s->monitor_source && PA_SOURCE_OPENED(pa_source_get_state(s->monitor_source)))
+    if (s->monitor_source && PA_SOURCE_IS_OPENED(pa_source_get_state(s->monitor_source)))
         pa_source_post(s->monitor_source, target);
 
     pa_sink_unref(s);
@@ -711,7 +713,7 @@ void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target) {
     size_t l, d;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_OPENED(s->thread_info.state));
+    pa_assert(PA_SINK_IS_OPENED(s->thread_info.state));
     pa_assert(target);
     pa_assert(target->memblock);
     pa_assert(target->length > 0);
@@ -739,7 +741,7 @@ void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target) {
 
 void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_OPENED(s->thread_info.state));
+    pa_assert(PA_SINK_IS_OPENED(s->thread_info.state));
     pa_assert(length > 0);
     pa_assert(pa_frame_aligned(length, &s->sample_spec));
     pa_assert(result);
@@ -755,50 +757,15 @@ void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
     pa_sink_render_into_full(s, result);
 }
 
-void pa_sink_skip(pa_sink *s, size_t length) {
-    pa_sink_input *i;
-    void *state = NULL;
-
-    pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_OPENED(s->thread_info.state));
-    pa_assert(length > 0);
-    pa_assert(pa_frame_aligned(length, &s->sample_spec));
-
-    s->thread_info.rewind_nbytes = 0;
-
-    if (pa_source_used_by(s->monitor_source)) {
-        pa_memchunk chunk;
-
-        /* If something is connected to our monitor source, we have to
-         * pass valid data to it */
-
-        while (length > 0) {
-            pa_sink_render(s, length, &chunk);
-            pa_memblock_unref(chunk.memblock);
-
-            pa_assert(chunk.length <= length);
-            length -= chunk.length;
-        }
-
-    } else {
-        /* Ok, noone cares about the rendered data, so let's not even render it */
-
-        while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL))) {
-            pa_sink_input_assert_ref(i);
-            pa_sink_input_drop(i, length);
-        }
-    }
-}
-
 pa_usec_t pa_sink_get_latency(pa_sink *s) {
     pa_usec_t usec = 0;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->state));
+    pa_assert(PA_SINK_IS_LINKED(s->state));
 
     /* The returned value is supposed to be in the time domain of the sound card! */
 
-    if (!PA_SINK_OPENED(s->state))
+    if (!PA_SINK_IS_OPENED(s->state))
         return 0;
 
     if (s->get_latency)
@@ -814,7 +781,7 @@ void pa_sink_set_volume(pa_sink *s, const pa_cvolume *volume) {
     int changed;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->state));
+    pa_assert(PA_SINK_IS_LINKED(s->state));
     pa_assert(volume);
 
     changed = !pa_cvolume_equal(volume, &s->volume);
@@ -834,7 +801,7 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *s) {
     struct pa_cvolume old_volume;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->state));
+    pa_assert(PA_SINK_IS_LINKED(s->state));
 
     old_volume = s->volume;
 
@@ -854,7 +821,7 @@ void pa_sink_set_mute(pa_sink *s, pa_bool_t mute) {
     int changed;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->state));
+    pa_assert(PA_SINK_IS_LINKED(s->state));
 
     changed = s->muted != mute;
     s->muted = mute;
@@ -873,7 +840,7 @@ pa_bool_t pa_sink_get_mute(pa_sink *s) {
     pa_bool_t old_muted;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->state));
+    pa_assert(PA_SINK_IS_LINKED(s->state));
 
     old_muted = s->muted;
 
@@ -914,7 +881,7 @@ void pa_sink_set_description(pa_sink *s, const char *description) {
         pa_xfree(n);
     }
 
-    if (PA_SINK_LINKED(s->state)) {
+    if (PA_SINK_IS_LINKED(s->state)) {
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
         pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_PROPLIST_CHANGED], s);
     }
@@ -924,7 +891,7 @@ unsigned pa_sink_linked_by(pa_sink *s) {
     unsigned ret;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->state));
+    pa_assert(PA_SINK_IS_LINKED(s->state));
 
     ret = pa_idxset_size(s->inputs);
 
@@ -941,7 +908,7 @@ unsigned pa_sink_used_by(pa_sink *s) {
     unsigned ret;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->state));
+    pa_assert(PA_SINK_IS_LINKED(s->state));
 
     ret = pa_idxset_size(s->inputs);
     pa_assert(ret >= s->n_corked);
@@ -980,24 +947,26 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 i->thread_info.sync_next->thread_info.sync_prev = i;
             }
 
-            pa_sink_input_update_max_rewind(i, s->thread_info.max_rewind);
-
             pa_assert(!i->thread_info.attached);
             i->thread_info.attached = TRUE;
 
             if (i->attach)
                 i->attach(i);
 
-            /* If you change anything here, make sure to change the
-             * ghost sink input handling a few lines down at
-             * PA_SINK_MESSAGE_REMOVE_INPUT_AND_BUFFER, too. */
+            pa_sink_input_set_state_within_thread(i, i->state);
+
+            pa_sink_input_update_max_rewind(i, s->thread_info.max_rewind);
 
             pa_sink_invalidate_requested_latency(s);
 
-            /* Make sure we're not rewound when the hw buffer is remixed and request a remix*/
-            i->thread_info.ignore_rewind = TRUE;
-            i->thread_info.since_underrun = 0;
-            pa_sink_request_rewind(s, 0);
+            /* We don't rewind here automatically. This is left to the
+             * sink input implementor because some sink inputs need a
+             * slow start, i.e. need some time to buffer client
+             * samples before beginning streaming. */
+
+            /* If you change anything here, make sure to change the
+             * ghost sink input handling a few lines down at
+             * PA_SINK_MESSAGE_REMOVE_INPUT_AND_BUFFER, too. */
 
             return 0;
         }
@@ -1008,6 +977,8 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             /* If you change anything here, make sure to change the
              * sink input handling a few lines down at
              * PA_SINK_MESSAGE_REMOVE_INPUT_AND_BUFFER, too. */
+
+            pa_sink_input_set_state_within_thread(i, i->state);
 
             if (i->detach)
                 i->detach(i);
@@ -1036,7 +1007,6 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 pa_sink_input_unref(i);
 
             pa_sink_invalidate_requested_latency(s);
-
             pa_sink_request_rewind(s, 0);
 
             return 0;
@@ -1117,11 +1087,9 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
                 if (info->ghost_sink_input->attach)
                     info->ghost_sink_input->attach(info->ghost_sink_input);
-
             }
 
             pa_sink_invalidate_requested_latency(s);
-
             pa_sink_request_rewind(s, 0);
 
             return 0;
@@ -1196,14 +1164,14 @@ int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend) {
 
 void pa_sink_detach(pa_sink *s) {
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->state));
+    pa_assert(PA_SINK_IS_LINKED(s->state));
 
     pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_DETACH, NULL, 0, NULL);
 }
 
 void pa_sink_attach(pa_sink *s) {
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->state));
+    pa_assert(PA_SINK_IS_LINKED(s->state));
 
     pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_ATTACH, NULL, 0, NULL);
 }
@@ -1213,7 +1181,7 @@ void pa_sink_detach_within_thread(pa_sink *s) {
     void *state = NULL;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->thread_info.state));
+    pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
 
     while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)))
         if (i->detach)
@@ -1228,7 +1196,7 @@ void pa_sink_attach_within_thread(pa_sink *s) {
     void *state = NULL;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->thread_info.state));
+    pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
 
     while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)))
         if (i->attach)
@@ -1240,7 +1208,7 @@ void pa_sink_attach_within_thread(pa_sink *s) {
 
 void pa_sink_request_rewind(pa_sink*s, size_t nbytes) {
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->thread_info.state));
+    pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
 
     if (nbytes <= 0)
         nbytes = s->thread_info.max_rewind;
@@ -1290,9 +1258,9 @@ pa_usec_t pa_sink_get_requested_latency(pa_sink *s) {
     pa_usec_t usec = 0;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->state));
+    pa_assert(PA_SINK_IS_LINKED(s->state));
 
-    if (!PA_SINK_OPENED(s->state))
+    if (!PA_SINK_IS_OPENED(s->state))
         return 0;
 
     if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_REQUESTED_LATENCY, &usec, 0, NULL) < 0)
@@ -1325,7 +1293,7 @@ void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind) {
 void pa_sink_invalidate_requested_latency(pa_sink *s) {
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->thread_info.state));
+    pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
 
     if (!s->thread_info.requested_latency_valid)
         return;

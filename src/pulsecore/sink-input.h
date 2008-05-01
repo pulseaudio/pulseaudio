@@ -46,7 +46,7 @@ typedef enum pa_sink_input_state {
     PA_SINK_INPUT_UNLINKED      /*< The stream is dead */
 } pa_sink_input_state_t;
 
-static inline pa_bool_t PA_SINK_INPUT_LINKED(pa_sink_input_state_t x) {
+static inline pa_bool_t PA_SINK_INPUT_IS_LINKED(pa_sink_input_state_t x) {
     return x == PA_SINK_INPUT_DRAINED || x == PA_SINK_INPUT_RUNNING || x == PA_SINK_INPUT_CORKED;
 }
 
@@ -106,7 +106,7 @@ struct pa_sink_input {
     void (*process_rewind) (pa_sink_input *i, size_t nbytes);     /* may NOT be NULL */
 
     /* Called whenever the maximum rewindable size of the sink
-     * changes. Called from RT context. */
+     * changes. Called from IO context. */
     void (*update_max_rewind) (pa_sink_input *i, size_t nbytes); /* may be NULL */
 
     /* If non-NULL this function is called when the input is first
@@ -138,6 +138,10 @@ struct pa_sink_input {
     instead. */
     pa_usec_t (*get_latency) (pa_sink_input *i); /* may be NULL */
 
+    /* If non_NULL this function is called from thread context if the
+     * state changes. The old state is found in thread_info.state.  */
+    void (*state_change) (pa_sink_input *i, pa_sink_input_state_t state); /* may be NULL */
+
     struct {
         pa_sink_input_state_t state;
         pa_atomic_t drained, render_memblockq_is_empty;
@@ -152,7 +156,7 @@ struct pa_sink_input {
         pa_memblockq *render_memblockq;
 
         size_t rewrite_nbytes;
-        int64_t since_underrun;
+        uint64_t underrun_for, playing_for;
         pa_bool_t ignore_rewind;
 
         pa_sink_input *sync_prev, *sync_next;
@@ -237,7 +241,7 @@ fully -- or at all. If the request for a rewrite was successful, the
 sink driver will call ->rewind() and pass the number of bytes that
 could be rewound in the HW device. This functionality is required for
 implementing the "zero latency" write-through functionality. */
-void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes, pa_bool_t ignore_rewind);
+void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes, pa_bool_t ignore_rewind, pa_bool_t not_here);
 
 /* Callable by everyone from main thread*/
 
@@ -257,7 +261,7 @@ int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate);
 
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i);
 
-int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately);
+int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, pa_bool_t immediately);
 
 pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i);
 
@@ -269,7 +273,11 @@ void pa_sink_input_drop(pa_sink_input *i, size_t length);
 void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in the sink's sample spec */);
 void pa_sink_input_update_max_rewind(pa_sink_input *i, size_t nbytes  /* in the sink's sample spec */);
 
+void pa_sink_input_set_state_within_thread(pa_sink_input *i, pa_sink_input_state_t state);
+
 int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
+
+pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa_usec_t usec);
 
 typedef struct pa_sink_input_move_info {
     pa_sink_input *sink_input;

@@ -161,10 +161,10 @@ static void trigger(struct userdata *u, pa_bool_t quick) {
 
      pa_log_debug("trigger");
 
-    if (u->source && PA_SOURCE_OPENED(u->source->thread_info.state))
+    if (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state))
         enable_bits |= PCM_ENABLE_INPUT;
 
-    if (u->sink && PA_SINK_OPENED(u->sink->thread_info.state))
+    if (u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state))
         enable_bits |= PCM_ENABLE_OUTPUT;
 
     pa_log_debug("trigger: %i", enable_bits);
@@ -202,7 +202,7 @@ static void trigger(struct userdata *u, pa_bool_t quick) {
              * register the fd as ready.
              */
 
-            if (u->source && PA_SOURCE_OPENED(u->source->thread_info.state)) {
+            if (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
                 uint8_t *buf = pa_xnew(uint8_t, u->in_fragment_size);
                 pa_read(u->fd, buf, u->in_fragment_size, NULL);
                 pa_xfree(buf);
@@ -641,7 +641,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
 
                 case PA_SINK_SUSPENDED:
-                    pa_assert(PA_SINK_OPENED(u->sink->thread_info.state));
+                    pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
 
                     if (!u->source || u->source_suspended) {
                         if (suspend(u) < 0)
@@ -658,7 +658,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
                     if (u->sink->thread_info.state == PA_SINK_INIT) {
                         do_trigger = TRUE;
-                        quick = u->source && PA_SOURCE_OPENED(u->source->thread_info.state);
+                        quick = u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state);
                     }
 
                     if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
@@ -721,7 +721,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
             switch ((pa_source_state_t) PA_PTR_TO_UINT(data)) {
                 case PA_SOURCE_SUSPENDED:
-                    pa_assert(PA_SOURCE_OPENED(u->source->thread_info.state));
+                    pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
 
                     if (!u->sink || u->sink_suspended) {
                         if (suspend(u) < 0)
@@ -738,7 +738,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
                     if (u->source->thread_info.state == PA_SOURCE_INIT) {
                         do_trigger = TRUE;
-                        quick = u->sink && PA_SINK_OPENED(u->sink->thread_info.state);
+                        quick = u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state);
                     }
 
                     if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
@@ -877,7 +877,7 @@ static void thread_func(void *userdata) {
 
         /* Render some data and write it to the dsp */
 
-        if (u->sink && PA_SINK_OPENED(u->sink->thread_info.state) && ((revents & POLLOUT) || u->use_mmap || u->use_getospace)) {
+        if (u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state) && ((revents & POLLOUT) || u->use_mmap || u->use_getospace)) {
 
             if (u->use_mmap) {
 
@@ -985,7 +985,7 @@ static void thread_func(void *userdata) {
 
         /* Try to read some data and pass it on to the source driver. */
 
-        if (u->source && PA_SOURCE_OPENED(u->source->thread_info.state) && ((revents & POLLIN) || u->use_mmap || u->use_getispace)) {
+        if (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state) && ((revents & POLLIN) || u->use_mmap || u->use_getispace)) {
 
             if (u->use_mmap) {
 
@@ -1095,8 +1095,8 @@ static void thread_func(void *userdata) {
 
             pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
             pollfd->events =
-                ((u->source && PA_SOURCE_OPENED(u->source->thread_info.state)) ? POLLIN : 0) |
-                ((u->sink && PA_SINK_OPENED(u->sink->thread_info.state)) ? POLLOUT : 0);
+                ((u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state)) ? POLLIN : 0) |
+                ((u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state)) ? POLLOUT : 0);
         }
 
         /* Hmm, nothing to do. Let's sleep */

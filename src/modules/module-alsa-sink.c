@@ -665,7 +665,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
 
                 case PA_SINK_SUSPENDED:
-                    pa_assert(PA_SINK_OPENED(u->sink->thread_info.state));
+                    pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
 
                     if (suspend(u) < 0)
                         return -1;
@@ -836,9 +836,20 @@ static int sink_set_mute_cb(pa_sink *s) {
 
 static void sink_update_requested_latency_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
+    snd_pcm_sframes_t before;
     pa_assert(u);
 
+    before = u->hwbuf_unused_frames;
     update_sw_params(u);
+
+    /* Let's check whether we now use only a smaller part of the
+    buffer then before. If so, we need to make sure that subsequent
+    rewinds are relative to the new maxium fill level and not to the
+    current fill level. Thus, let's do a full rewind once, to clear
+    things up. */
+
+    if (u->hwbuf_unused_frames > before)
+        pa_sink_request_rewind(s, 0);
 }
 
 static int process_rewind(struct userdata *u) {
@@ -846,6 +857,7 @@ static int process_rewind(struct userdata *u) {
     size_t rewind_nbytes, unused_nbytes, limit_nbytes;
     pa_assert(u);
 
+    /* Figure out how much we shall rewind and reset the counter */
     rewind_nbytes = u->sink->thread_info.rewind_nbytes;
     u->sink->thread_info.rewind_nbytes = 0;
 
@@ -917,7 +929,7 @@ static void thread_func(void *userdata) {
 /*         pa_log_debug("loop"); */
 
         /* Render some data and write it to the dsp */
-        if (PA_SINK_OPENED(u->sink->thread_info.state)) {
+        if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
             int work_done = 0;
 
             if (u->sink->thread_info.rewind_nbytes > 0)
@@ -982,7 +994,7 @@ static void thread_func(void *userdata) {
             goto finish;
 
         /* Tell ALSA about this and process its response */
-        if (PA_SINK_OPENED(u->sink->thread_info.state)) {
+        if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
             struct pollfd *pollfd;
             unsigned short revents = 0;
             int err;

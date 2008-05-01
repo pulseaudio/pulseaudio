@@ -48,6 +48,15 @@ typedef enum pa_context_state {
     PA_CONTEXT_TERMINATED      /**< The connection was terminated cleanly */
 } pa_context_state_t;
 
+/** Return non-zero if the passed state is one of the connected states */
+static inline int PA_CONTEXT_IS_GOOD(pa_context_state_t x) {
+    return
+        x == PA_CONTEXT_CONNECTING ||
+        x == PA_CONTEXT_AUTHORIZING ||
+        x == PA_CONTEXT_SETTING_NAME ||
+        x == PA_CONTEXT_READY;
+}
+
 /** The state of a stream */
 typedef enum pa_stream_state {
     PA_STREAM_UNCONNECTED, /**< The stream is not yet connected to any sink or source */
@@ -56,6 +65,13 @@ typedef enum pa_stream_state {
     PA_STREAM_FAILED,       /**< An error occured that made the stream invalid */
     PA_STREAM_TERMINATED    /**< The stream has been terminated cleanly */
 } pa_stream_state_t;
+
+/** Return non-zero if the passed state is one of the connected states */
+static inline int PA_STREAM_IS_GOOD(pa_stream_state_t x) {
+    return
+        x == PA_STREAM_CREATING ||
+        x == PA_STREAM_READY;
+}
 
 /** The state of an operation */
 typedef enum pa_operation_state {
@@ -296,6 +312,7 @@ enum {
     PA_ERR_VERSION,                /**< Incompatible protocol version */
     PA_ERR_TOOLARGE,               /**< Data too large */
     PA_ERR_NOTSUPPORTED,           /**< Operation not supported \since 0.9.5 */
+    PA_ERR_UNKNOWN,                /**< The error code was unknown to the client */
     PA_ERR_MAX                     /**< Not really an error but the first invalid error code */
 };
 
@@ -368,7 +385,15 @@ typedef struct pa_timing_info {
     pa_usec_t source_usec;    /**< Time in usecs a sample takes from being recorded to being delivered to the application. Only for record streams. */
     pa_usec_t transport_usec; /**< Estimated time in usecs a sample takes to be transferred to/from the daemon. For both playback and record streams. */
 
-    int playing;              /**< Non-zero when the stream is currently playing. Only for playback streams. */
+    int playing;              /**< Non-zero when the stream is
+                               * currently not underrun and data is
+                               * being passed on to the device. Only
+                               * for playback streams. This field does
+                               * not say whether the data is actually
+                               * already being played. To determine
+                               * this check whether since_underrun
+                               * (converted to usec) is larger than
+                               * sink_usec.*/
 
     int write_index_corrupt;  /**< Non-zero if write_index is not
                                * up-to-date because a local write
@@ -403,6 +428,14 @@ typedef struct pa_timing_info {
                                 * the sink. \since 0.9.11 */
     pa_usec_t configured_source_usec; /**< The static configured latency for
                                 * the source. \since 0.9.11 */
+
+    int64_t since_underrun;    /**< Bytes that were handed to the sink
+                                  since the last underrun happened, or
+                                  since playback started again after
+                                  the last underrun. playing will tell
+                                  you which case it is. \since
+                                  0.9.11 */
+
 } pa_timing_info;
 
 /** A structure for the spawn api. This may be used to integrate auto

@@ -255,7 +255,7 @@ pa_protocol_http* pa_protocol_http_new(pa_core *core, pa_socket_server *server, 
     p = pa_xnew(pa_protocol_http, 1);
     p->module = m;
     p->core = core;
-    p->server = server;
+    p->server = pa_socket_server_ref(server);
     p->connections = pa_idxset_new(NULL, NULL);
 
     pa_socket_server_set_callback(p->server, on_connection, p);

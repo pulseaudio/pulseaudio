@@ -42,7 +42,7 @@ typedef enum pa_source_output_state {
     PA_SOURCE_OUTPUT_UNLINKED
 } pa_source_output_state_t;
 
-static inline pa_bool_t PA_SOURCE_OUTPUT_LINKED(pa_source_output_state_t x) {
+static inline pa_bool_t PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_state_t x) {
     return x == PA_SOURCE_OUTPUT_RUNNING || x == PA_SOURCE_OUTPUT_CORKED;
 }
 
@@ -83,11 +83,11 @@ struct pa_source_output {
     void (*push)(pa_source_output *o, const pa_memchunk *chunk);
 
     /* Only relevant for monitor sources right now: called when the
-     * recorded stream is rewound. */
+     * recorded stream is rewound. Called from IO context*/
     void (*process_rewind)(pa_source_output *o, size_t nbytes);
 
     /* Called whenever the maximum rewindable size of the source
-     * changes. Called from RT context. */
+     * changes. Called from IO thread context. */
     void (*update_max_rewind) (pa_source_output *o, size_t nbytes); /* may be NULL */
 
     /* If non-NULL this function is called when the output is first
@@ -115,6 +115,10 @@ struct pa_source_output {
     PA_SOURCE_OUTPUT_MESSAGE_GET_LATENCY message is sent to the IO
     thread instead. */
     pa_usec_t (*get_latency) (pa_source_output *o); /* may be NULL */
+
+    /* If non_NULL this function is called from thread context if the
+     * state changes. The old state is found in thread_info.state.  */
+    void (*state_change) (pa_source_output *o, pa_source_output_state_t state); /* may be NULL */
 
     struct {
         pa_source_output_state_t state;
@@ -212,5 +216,9 @@ void pa_source_output_process_rewind(pa_source_output *o, size_t nbytes);
 void pa_source_output_update_max_rewind(pa_source_output *o, size_t nbytes);
 
 int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
+
+void pa_source_output_set_state_within_thread(pa_source_output *o, pa_source_output_state_t state);
+
+pa_usec_t pa_source_output_set_requested_latency_within_thread(pa_source_output *o, pa_usec_t usec);
 
 #endif

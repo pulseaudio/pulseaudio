@@ -81,10 +81,14 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         case PA_SINK_MESSAGE_GET_LATENCY: {
             pa_usec_t usec = 0;
 
+            /* Get the latency of the master sink */
             if (PA_MSGOBJECT(u->master)->process_msg(PA_MSGOBJECT(u->master), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
                 usec = 0;
 
-            *((pa_usec_t*) data) = usec/* + pa_bytes_to_usec(u->memchunk.length, &u->sink->sample_spec)*/;
+            /* Add the latency internal to our sink input on top */
+            usec += pa_bytes_to_usec(pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq), &u->master->sample_spec);
+
+            *((pa_usec_t*) data) = usec;
             return 0;
         }
     }
@@ -99,7 +103,10 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
     pa_sink_assert_ref(s);
     pa_assert_se(u = s->userdata);
 
-    if (PA_SINK_LINKED(state) && u->sink_input && PA_SINK_INPUT_LINKED(pa_sink_input_get_state(u->sink_input)))
+    if (PA_SINK_IS_LINKED(state) &&
+        u->sink_input &&
+        PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(u->sink_input)))
+
         pa_sink_input_cork(u->sink_input, state == PA_SINK_SUSPENDED);
 
     return 0;
@@ -112,7 +119,7 @@ static void sink_request_rewind(pa_sink *s) {
     pa_sink_assert_ref(s);
     pa_assert_se(u = s->userdata);
 
-    pa_sink_input_request_rewind(u->sink_input, s->thread_info.rewind_nbytes, FALSE);
+    pa_sink_input_request_rewind(u->sink_input, s->thread_info.rewind_nbytes, FALSE, FALSE);
 }
 
 /* Called from I/O thread context */
@@ -123,24 +130,9 @@ static void sink_update_requested_latency(pa_sink *s) {
     pa_assert_se(u = s->userdata);
 
     /* Just hand this one over to the master sink */
-    u->sink_input->thread_info.requested_sink_latency = pa_sink_get_requested_latency_within_thread(s);
-    pa_sink_invalidate_requested_latency(u->master);
-}
-
-/* Called from I/O thread context */
-static int sink_input_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
-    struct userdata *u = PA_SINK_INPUT(o)->userdata;
-
-    switch (code) {
-        case PA_SINK_INPUT_MESSAGE_GET_LATENCY:
-            *((pa_usec_t*) data) = 0; /*pa_bytes_to_usec(u->memchunk.length, &u->sink_input->sample_spec);*/
-
-            /* Fall through, the default handler will add in the extra
-             * latency added by the resampler */
-            break;
-    }
-
-    return pa_sink_input_process_msg(o, code, data, offset, chunk);
+    pa_sink_input_set_requested_latency_within_thread(
+            u->sink_input,
+            pa_sink_get_requested_latency_within_thread(s));
 }
 
 /* Called from I/O thread context */
@@ -152,7 +144,6 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     pa_assert_se(u = i->userdata);
 
     pa_sink_render(u->sink, nbytes, chunk);
-
     return 0;
 }
 
@@ -185,6 +176,9 @@ static void sink_input_detach_cb(pa_sink_input *i) {
     pa_assert_se(u = i->userdata);
 
     pa_sink_detach_within_thread(u->sink);
+
+    pa_sink_set_asyncmsgq(u->sink, NULL);
+    pa_sink_set_rtpoll(u->sink, NULL);
 }
 
 /* Called from I/O thread context */
@@ -317,7 +311,6 @@ int pa__init(pa_module*m) {
     if (!u->sink_input)
         goto fail;
 
-    u->sink_input->parent.process_msg = sink_input_process_msg;
     u->sink_input->pop = sink_input_pop_cb;
     u->sink_input->process_rewind = sink_input_process_rewind_cb;
     u->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;

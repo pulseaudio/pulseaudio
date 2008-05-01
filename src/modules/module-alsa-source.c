@@ -621,7 +621,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             switch ((pa_source_state_t) PA_PTR_TO_UINT(data)) {
 
                 case PA_SOURCE_SUSPENDED:
-                    pa_assert(PA_SOURCE_OPENED(u->source->thread_info.state));
+                    pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
 
                     if (suspend(u) < 0)
                         return -1;
@@ -819,7 +819,7 @@ static void thread_func(void *userdata) {
         pa_log_debug("loop");
 
         /* Read some data and pass it to the sources */
-        if (PA_SOURCE_OPENED(u->source->thread_info.state)) {
+        if (PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
             int work_done = 0;
 
             if (u->use_mmap)
@@ -867,7 +867,7 @@ static void thread_func(void *userdata) {
             goto finish;
 
         /* Tell ALSA about this and process its response */
-        if (PA_SOURCE_OPENED(u->source->thread_info.state)) {
+        if (PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
             struct pollfd *pollfd;
             unsigned short revents = 0;
             int err;

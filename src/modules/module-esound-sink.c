@@ -143,7 +143,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
 
                 case PA_SINK_SUSPENDED:
-                    pa_assert(PA_SINK_OPENED(u->sink->thread_info.state));
+                    pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
 
                     pa_smoother_pause(u->smoother, pa_rtclock_usec());
                     break;
@@ -211,7 +211,7 @@ static void thread_func(void *userdata) {
             pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
 
             /* Render some data and write it to the fifo */
-            if (PA_SINK_OPENED(u->sink->thread_info.state) && pollfd->revents) {
+            if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && pollfd->revents) {
                 pa_usec_t usec;
                 int64_t n;
 
@@ -294,7 +294,7 @@ static void thread_func(void *userdata) {
             }
 
             /* Hmm, nothing to do. Let's sleep */
-            pollfd->events = PA_SINK_OPENED(u->sink->thread_info.state)  ? POLLOUT : 0;
+            pollfd->events = PA_SINK_IS_OPENED(u->sink->thread_info.state)  ? POLLOUT : 0;
         }
 
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)

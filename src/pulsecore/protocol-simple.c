@@ -587,7 +587,7 @@ pa_protocol_simple* pa_protocol_simple_new(pa_core *core, pa_socket_server *serv
     p = pa_xnew0(pa_protocol_simple, 1);
     p->module = m;
     p->core = core;
-    p->server = server;
+    p->server = pa_socket_server_ref(server);
     p->connections = pa_idxset_new(NULL, NULL);
 
     p->sample_spec = core->default_sample_spec;

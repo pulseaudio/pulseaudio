@@ -82,12 +82,14 @@ static int load_rules(struct userdata *u, const char *filename) {
 
     pa_assert(u);
 
-    f = filename ?
-        fopen(fn = pa_xstrdup(filename), "r") :
-        pa_open_config_file(DEFAULT_MATCH_TABLE_FILE, DEFAULT_MATCH_TABLE_FILE_USER, NULL, &fn, "r");
+    if (filename)
+        f = fopen(fn = pa_xstrdup(filename), "r");
+    else
+        f = pa_open_config_file(DEFAULT_MATCH_TABLE_FILE, DEFAULT_MATCH_TABLE_FILE_USER, NULL, &fn);
 
     if (!f) {
-        pa_log("failed to open file '%s': %s", fn, pa_cstrerror(errno));
+        pa_xfree(fn);
+        pa_log("Failed to open file config file: %s", pa_cstrerror(errno));
         goto finish;
     }
 

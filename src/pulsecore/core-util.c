@@ -41,6 +41,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <dirent.h>
 
 #ifdef HAVE_STRTOF_L
 #include <locale.h>
@@ -101,12 +102,6 @@
 /* Not all platforms have this */
 #ifndef MSG_NOSIGNAL
 #define MSG_NOSIGNAL 0
-#endif
-
-#ifndef OS_IS_WIN32
-#define PA_USER_RUNTIME_PATH_PREFIX "/tmp/pulse-"
-#else
-#define PA_USER_RUNTIME_PATH_PREFIX "%TEMP%\\pulse-"
 #endif
 
 #ifdef OS_IS_WIN32
@@ -221,7 +216,7 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
         goto fail;
     }
 #else
-    pa_log_warn("secure directory creation not supported on Win32.");
+    pa_log_warn("Secure directory creation not supported on Win32.");
 #endif
 
     return 0;
@@ -557,6 +552,82 @@ int pa_make_realtime(int rtprio) {
 #endif
 }
 
+/* This is merely used for giving the user a hint. This is not correct
+ * for anything security related */
+pa_bool_t pa_can_realtime(void) {
+
+    if (geteuid() == 0)
+        return TRUE;
+
+#if defined(HAVE_SYS_RESOURCE_H) && defined(RLIMIT_RTPRIO)
+    {
+        struct rlimit rl;
+
+        if (getrlimit(RLIMIT_RTPRIO, &rl) >= 0)
+            if (rl.rlim_cur > 0 || rl.rlim_cur == RLIM_INFINITY)
+                return TRUE;
+    }
+#endif
+
+#if defined(HAVE_SYS_CAPABILITY_H) && defined(CAP_SYS_NICE)
+    {
+        cap_t cap;
+
+        if ((cap = cap_get_proc())) {
+            cap_flag_value_t flag = CAP_CLEAR;
+
+            if (cap_get_flag(cap, CAP_SYS_NICE, CAP_EFFECTIVE, &flag) >= 0)
+                if (flag == CAP_SET) {
+                    cap_free(cap);
+                    return TRUE;
+                }
+
+            cap_free(cap);
+        }
+    }
+#endif
+
+    return FALSE;
+}
+
+/* This is merely used for giving the user a hint. This is not correct
+ * for anything security related */
+pa_bool_t pa_can_high_priority(void) {
+
+    if (geteuid() == 0)
+        return TRUE;
+
+#if defined(HAVE_SYS_RESOURCE_H) && defined(RLIMIT_RTPRIO)
+    {
+        struct rlimit rl;
+
+        if (getrlimit(RLIMIT_NICE, &rl) >= 0)
+            if (rl.rlim_cur >= 21 || rl.rlim_cur == RLIM_INFINITY)
+                return TRUE;
+    }
+#endif
+
+#if defined(HAVE_SYS_CAPABILITY_H) && defined(CAP_SYS_NICE)
+    {
+        cap_t cap;
+
+        if ((cap = cap_get_proc())) {
+            cap_flag_value_t flag = CAP_CLEAR;
+
+            if (cap_get_flag(cap, CAP_SYS_NICE, CAP_EFFECTIVE, &flag) >= 0)
+                if (flag == CAP_SET) {
+                    cap_free(cap);
+                    return TRUE;
+                }
+
+            cap_free(cap);
+        }
+    }
+#endif
+
+    return FALSE;
+}
+
 /* Raise the priority of the current process as much as possible that
  * is <= the specified nice level..*/
 int pa_raise_priority(int nice_level) {
@@ -612,6 +683,7 @@ void pa_reset_priority(void) {
 
 /* Try to parse a boolean string value.*/
 int pa_parse_boolean(const char *v) {
+    pa_assert(v);
 
     if (!strcmp(v, "1") || v[0] == 'y' || v[0] == 'Y' || v[0] == 't' || v[0] == 'T' || !strcasecmp(v, "on"))
         return 1;
@@ -1093,11 +1165,11 @@ int pa_unlock_lockfile(const char *fn, int fd) {
     return r;
 }
 
-char *pa_get_state_dir(void) {
+char *pa_get_runtime_dir(void) {
     const char *e;
     char *d;
 
-    if ((e = getenv("PULSE_STATE_PATH")))
+    if ((e = getenv("PULSE_RUNTIME_PATH")))
         d = pa_xstrdup(e);
     else {
         char h[PATH_MAX];
@@ -1107,19 +1179,15 @@ char *pa_get_state_dir(void) {
             return NULL;
         }
 
-        d = pa_sprintf_malloc("%s/.pulse", h);
+        d = pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse", h);
     }
 
-    mkdir(d, 0755);
+    if (pa_make_secure_dir(d, 0700, (pid_t) -1, (pid_t) -1) < 0)  {
+        pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
+        return NULL;
+    }
 
-    if (access(d, W_OK) == 0)
-        return d;
-
-    pa_log_error("Failed to set up state directory %s", d);
-
-    pa_xfree(d);
-
-    return NULL;
+    return d;
 }
 
 /* Try to open a configuration file. If "env" is specified, open the
@@ -1128,10 +1196,95 @@ char *pa_get_state_dir(void) {
  * file system. If "result" is non-NULL, a pointer to a newly
  * allocated buffer containing the used configuration file is
  * stored there.*/
-FILE *pa_open_config_file(const char *global, const char *local, const char *env, char **result, const char *mode) {
+FILE *pa_open_config_file(const char *global, const char *local, const char *env, char **result) {
     const char *fn;
-    char h[PATH_MAX];
+#ifdef OS_IS_WIN32
+    char buf[PATH_MAX];
 
+    if (!getenv(PULSE_ROOTENV))
+        pa_set_root(NULL);
+#endif
+
+    if (env && (fn = getenv(env))) {
+        FILE *f;
+
+#ifdef OS_IS_WIN32
+        if (!ExpandEnvironmentStrings(fn, buf, PATH_MAX))
+            return NULL;
+        fn = buf;
+#endif
+
+        if ((f = fopen(fn, "r"))) {
+            if (result)
+                *result = pa_xstrdup(fn);
+
+            return f;
+        }
+
+        pa_log_warn("Failed to open configuration file '%s': %s", fn, pa_cstrerror(errno));
+        return NULL;
+    }
+
+    if (local) {
+        const char *e;
+        char *lfn;
+        char h[PATH_MAX];
+        FILE *f;
+
+        if ((e = getenv("PULSE_CONFIG_PATH")))
+            fn = lfn = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", e, local);
+        else if (pa_get_home_dir(h, sizeof(h)))
+            fn = lfn = pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse" PA_PATH_SEP "%s", h, local);
+
+#ifdef OS_IS_WIN32
+        if (!ExpandEnvironmentStrings(lfn, buf, PATH_MAX)) {
+            pa_xfree(lfn);
+            return NULL;
+        }
+        fn = buf;
+#endif
+
+        if ((f = fopen(fn, "r"))) {
+            if (result)
+                *result = pa_xstrdup(fn);
+
+            pa_xfree(lfn);
+            return f;
+        }
+
+        if (errno != ENOENT) {
+            pa_log_warn("Failed to open configuration file '%s': %s", fn, pa_cstrerror(errno));
+            pa_xfree(lfn);
+            return NULL;
+        }
+
+        pa_xfree(lfn);
+    }
+
+    if (global) {
+        FILE *f;
+
+#ifdef OS_IS_WIN32
+        if (!ExpandEnvironmentStrings(global, buf, PATH_MAX))
+            return NULL;
+        global = buf;
+#endif
+
+        if ((f = fopen(global, "r"))) {
+
+            if (result)
+                *result = pa_xstrdup(global);
+
+            return f;
+        }
+    } else
+        errno = ENOENT;
+
+    return NULL;
+}
+
+char *pa_find_config_file(const char *global, const char *local, const char *env) {
+    const char *fn;
 #ifdef OS_IS_WIN32
     char buf[PATH_MAX];
 
@@ -1146,69 +1299,59 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
         fn = buf;
 #endif
 
-        if (result)
-            *result = pa_xstrdup(fn);
+        if (access(fn, R_OK) == 0)
+            return pa_xstrdup(fn);
 
-        return fopen(fn, mode);
+        pa_log_warn("Failed to access configuration file '%s': %s", fn, pa_cstrerror(errno));
+        return NULL;
     }
 
     if (local) {
         const char *e;
-        char *lfn = NULL;
+        char *lfn;
+        char h[PATH_MAX];
 
         if ((e = getenv("PULSE_CONFIG_PATH")))
-            fn = lfn = pa_sprintf_malloc("%s/%s", e, local);
-        else if (pa_get_home_dir(h, sizeof(h))) {
-            char *d;
-
-            d = pa_sprintf_malloc("%s/.pulse", h);
-            mkdir(d, 0755);
-            pa_xfree(d);
-
-            fn = lfn = pa_sprintf_malloc("%s/.pulse/%s", h, local);
-        }
-
-        if (lfn) {
-            FILE *f;
+            fn = lfn = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", e, local);
+        else if (pa_get_home_dir(h, sizeof(h)))
+            fn = lfn = pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse" PA_PATH_SEP "%s", h, local);
 
 #ifdef OS_IS_WIN32
-            if (!ExpandEnvironmentStrings(lfn, buf, PATH_MAX))
-                return NULL;
-            fn = buf;
-#endif
-
-            f = fopen(fn, mode);
-            if (f != NULL) {
-                if (result)
-                    *result = pa_xstrdup(fn);
-                pa_xfree(lfn);
-                return f;
-            }
-
-            if (errno != ENOENT)
-                pa_log_warn("Failed to open configuration file '%s': %s", lfn, pa_cstrerror(errno));
-
+        if (!ExpandEnvironmentStrings(lfn, buf, PATH_MAX)) {
             pa_xfree(lfn);
+            return NULL;
         }
-    }
-
-    if (!global) {
-        if (result)
-            *result = NULL;
-        errno = ENOENT;
-        return NULL;
-    }
-
-#ifdef OS_IS_WIN32
-    if (!ExpandEnvironmentStrings(global, buf, PATH_MAX))
-        return NULL;
-    global = buf;
+        fn = buf;
 #endif
 
-    if (result)
-        *result = pa_xstrdup(global);
+        if (access(fn, R_OK) == 0) {
+            char *r = pa_xstrdup(fn);
+            pa_xfree(lfn);
+            return r;
+        }
 
-    return fopen(global, mode);
+        if (errno != ENOENT) {
+            pa_log_warn("Failed to access configuration file '%s': %s", fn, pa_cstrerror(errno));
+            pa_xfree(lfn);
+            return NULL;
+        }
+
+        pa_xfree(lfn);
+    }
+
+    if (global) {
+#ifdef OS_IS_WIN32
+        if (!ExpandEnvironmentStrings(global, buf, PATH_MAX))
+            return NULL;
+        global = buf;
+#endif
+
+        if (access(fn, R_OK) == 0)
+            return pa_xstrdup(global);
+    } else
+        errno = ENOENT;
+
+    return NULL;
 }
 
 /* Format the specified data as a hexademical string */
@@ -1299,45 +1442,51 @@ int pa_endswith(const char *s, const char *sfx) {
     return l1 >= l2 && strcmp(s+l1-l2, sfx) == 0;
 }
 
-/* if fn is null return the PulseAudio run time path in s (/tmp/pulse)
- * if fn is non-null and starts with / return fn in s
- * otherwise append fn to the run time path and return it in s */
-char *pa_runtime_path(const char *fn, char *s, size_t l) {
-    const char *e;
+pa_bool_t pa_is_path_absolute(const char *fn) {
+    pa_assert(fn);
 
 #ifndef OS_IS_WIN32
-    if (fn && *fn == '/')
+    return *fn == '/';
 #else
-    if (fn && strlen(fn) >= 3 && isalpha(fn[0]) && fn[1] == ':' && fn[2] == '\\')
+    return strlen(fn) >= 3 && isalpha(fn[0]) && fn[1] == ':' && fn[2] == '\\';
 #endif
-        return pa_strlcpy(s, fn, l);
+}
 
-    if ((e = getenv("PULSE_RUNTIME_PATH"))) {
+char *pa_make_path_absolute(const char *p) {
+    char *r;
+    char *cwd;
 
-        if (fn)
-            pa_snprintf(s, l, "%s%c%s", e, PA_PATH_SEP_CHAR, fn);
-        else
-            pa_snprintf(s, l, "%s", e);
+    pa_assert(p);
 
-    } else {
-        char u[256];
+    if (pa_is_path_absolute(p))
+        return pa_xstrdup(p);
 
-        if (fn)
-            pa_snprintf(s, l, "%s%s%c%s", PA_USER_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)), PA_PATH_SEP_CHAR, fn);
-        else
-            pa_snprintf(s, l, "%s%s", PA_USER_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)));
-    }
+    if (!(cwd = pa_getcwd()))
+        return pa_xstrdup(p);
 
+    r = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", cwd, p);
+    pa_xfree(cwd);
+    return r;
+}
 
-#ifdef OS_IS_WIN32
-    {
-        char buf[l];
-        strcpy(buf, s);
-        ExpandEnvironmentStrings(buf, s, l);
-    }
-#endif
+/* if fn is null return the PulseAudio run time path in s (~/.pulse)
+ * if fn is non-null and starts with / return fn
+ * otherwise append fn to the run time path and return it */
+char *pa_runtime_path(const char *fn) {
+    char *rtp;
 
-    return s;
+    if (pa_is_path_absolute(fn))
+        return pa_xstrdup(fn);
+
+    rtp = pa_get_runtime_dir();
+
+    if (fn) {
+        char *r;
+        r = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", rtp, fn);
+        pa_xfree(rtp);
+        return r;
+    } else
+        return rtp;
 }
 
 /* Convert the string s to a signed integer in *ret_i */
@@ -1484,23 +1633,6 @@ char *pa_getcwd(void) {
     }
 }
 
-char *pa_make_path_absolute(const char *p) {
-    char *r;
-    char *cwd;
-
-    pa_assert(p);
-
-    if (p[0] == '/')
-        return pa_xstrdup(p);
-
-    if (!(cwd = pa_getcwd()))
-        return pa_xstrdup(p);
-
-    r = pa_sprintf_malloc("%s/%s", cwd, p);
-    pa_xfree(cwd);
-    return r;
-}
-
 void *pa_will_need(const void *p, size_t l) {
 #ifdef RLIMIT_MEMLOCK
     struct rlimit rlim;
@@ -1605,4 +1737,250 @@ char *pa_readlink(const char *p) {
         pa_xfree(c);
         l *= 2;
     }
+}
+
+int pa_close_all(int except_fd, ...) {
+    va_list ap;
+    int n = 0, i, r;
+    int *p;
+
+    va_start(ap, except_fd);
+
+    if (except_fd >= 0)
+        for (n = 1; va_arg(ap, int) >= 0; n++)
+            ;
+
+    va_end(ap);
+
+    p = pa_xnew(int, n+1);
+
+    va_start(ap, except_fd);
+
+    i = 0;
+    if (except_fd >= 0) {
+        p[i++] = except_fd;
+
+        while ((p[i++] = va_arg(ap, int)) >= 0)
+            ;
+    }
+    p[i] = -1;
+
+    va_end(ap);
+
+    r = pa_close_allv(p);
+    free(p);
+
+    return r;
+}
+
+int pa_close_allv(const int except_fds[]) {
+    struct rlimit rl;
+    int fd;
+    int saved_errno;
+
+#ifdef __linux__
+
+    DIR *d;
+
+    if ((d = opendir("/proc/self/fd"))) {
+
+        struct dirent *de;
+
+        while ((de = readdir(d))) {
+            long l;
+            char *e = NULL;
+            int i;
+
+            if (de->d_name[0] == '.')
+                continue;
+
+            errno = 0;
+            l = strtol(de->d_name, &e, 10);
+            if (errno != 0 || !e || *e) {
+                closedir(d);
+                errno = EINVAL;
+                return -1;
+            }
+
+            fd = (int) l;
+
+            if ((long) fd != l) {
+                closedir(d);
+                errno = EINVAL;
+                return -1;
+            }
+
+            if (fd <= 3)
+                continue;
+
+            if (fd == dirfd(d))
+                continue;
+
+            for (i = 0; except_fds[i] >= 0; i++)
+                if (except_fds[i] == fd)
+                    continue;
+
+            if (close(fd) < 0) {
+                saved_errno = errno;
+                closedir(d);
+                errno = saved_errno;
+
+                return -1;
+            }
+        }
+
+        closedir(d);
+        return 0;
+    }
+
+#endif
+
+    if (getrlimit(RLIMIT_NOFILE, &rl) < 0)
+        return -1;
+
+    for (fd = 0; fd < (int) rl.rlim_max; fd++) {
+        int i;
+
+        if (fd <= 3)
+            continue;
+
+        for (i = 0; except_fds[i] >= 0; i++)
+            if (except_fds[i] == fd)
+                continue;
+
+        if (close(fd) < 0 && errno != EBADF)
+            return -1;
+    }
+
+    return 0;
+}
+
+int pa_unblock_sigs(int except, ...) {
+    va_list ap;
+    int n = 0, i, r;
+    int *p;
+
+    va_start(ap, except);
+
+    if (except >= 1)
+        for (n = 1; va_arg(ap, int) >= 0; n++)
+            ;
+
+    va_end(ap);
+
+    p = pa_xnew(int, n+1);
+
+    va_start(ap, except);
+
+    i = 0;
+    if (except >= 1) {
+        p[i++] = except;
+
+        while ((p[i++] = va_arg(ap, int)) >= 0)
+            ;
+    }
+    p[i] = -1;
+
+    va_end(ap);
+
+    r = pa_unblock_sigsv(p);
+    pa_xfree(p);
+
+    return r;
+}
+
+int pa_unblock_sigsv(const int except[]) {
+    int i;
+    sigset_t ss;
+
+    if (sigemptyset(&ss) < 0)
+        return -1;
+
+    for (i = 0; except[i] > 0; i++)
+        if (sigaddset(&ss, except[i]) < 0)
+            return -1;
+
+    return sigprocmask(SIG_SETMASK, &ss, NULL);
+}
+
+int pa_reset_sigs(int except, ...) {
+    va_list ap;
+    int n = 0, i, r;
+    int *p;
+
+    va_start(ap, except);
+
+    if (except >= 1)
+        for (n = 1; va_arg(ap, int) >= 0; n++)
+            ;
+
+    va_end(ap);
+
+    p = pa_xnew(int, n+1);
+
+    va_start(ap, except);
+
+    i = 0;
+    if (except >= 1) {
+        p[i++] = except;
+
+        while ((p[i++] = va_arg(ap, int)) >= 0)
+            ;
+    }
+    p[i] = -1;
+
+    va_end(ap);
+
+    r = pa_reset_sigsv(p);
+    pa_xfree(p);
+
+    return r;
+}
+
+int pa_reset_sigsv(const int except[]) {
+    int sig;
+
+    for (sig = 1; sig < _NSIG; sig++) {
+        int reset = 1;
+
+        switch (sig) {
+            case SIGKILL:
+            case SIGSTOP:
+                reset = 0;
+                break;
+
+            default: {
+                int i;
+
+                for (i = 0; except[i] > 0; i++) {
+                    if (sig == except[i]) {
+                        reset = 0;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (reset) {
+            struct sigaction sa;
+
+            memset(&sa, 0, sizeof(sa));
+            sa.sa_handler = SIG_DFL;
+
+            /* On Linux the first two RT signals are reserved by
+             * glibc, and sigaction() will return EINVAL for them. */
+            if ((sigaction(sig, &sa, NULL) < 0))
+                if (errno != EINVAL)
+                    return -1;
+        }
+    }
+
+    return 0;
+}
+
+void pa_set_env(const char *key, const char *value) {
+    pa_assert(key);
+    pa_assert(value);
+
+    putenv(pa_sprintf_malloc("%s=%s", key, value));
 }

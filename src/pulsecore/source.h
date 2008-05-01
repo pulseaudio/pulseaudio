@@ -33,7 +33,6 @@ typedef struct pa_source pa_source;
 #include <pulse/channelmap.h>
 #include <pulse/volume.h>
 
-#include <pulsecore/core-def.h>
 #include <pulsecore/core.h>
 #include <pulsecore/idxset.h>
 #include <pulsecore/memblock.h>
@@ -54,11 +53,11 @@ typedef enum pa_source_state {
     PA_SOURCE_UNLINKED
 } pa_source_state_t;
 
-static inline pa_bool_t PA_SOURCE_OPENED(pa_source_state_t x) {
+static inline pa_bool_t PA_SOURCE_IS_OPENED(pa_source_state_t x) {
     return x == PA_SOURCE_RUNNING || x == PA_SOURCE_IDLE;
 }
 
-static inline pa_bool_t PA_SOURCE_LINKED(pa_source_state_t x) {
+static inline pa_bool_t PA_SOURCE_IS_LINKED(pa_source_state_t x) {
     return x == PA_SOURCE_RUNNING || x == PA_SOURCE_IDLE || x == PA_SOURCE_SUSPENDED;
 }
 

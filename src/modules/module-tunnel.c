@@ -303,7 +303,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
             /* First, change the state, because otherwide pa_sink_render() would fail */
             if ((r = pa_sink_process_msg(o, code, data, offset, chunk)) >= 0)
-                if (PA_SINK_OPENED((pa_sink_state_t) PA_PTR_TO_UINT(data)))
+                if (PA_SINK_IS_OPENED((pa_sink_state_t) PA_PTR_TO_UINT(data)))
                     send_data(u);
 
             return r;
@@ -314,7 +314,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             pa_assert(offset > 0);
             u->requested_bytes += (size_t) offset;
 
-            if (PA_SINK_OPENED(u->sink->thread_info.state))
+            if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
                 send_data(u);
 
             return 0;
@@ -343,7 +343,7 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
     switch ((pa_sink_state_t) state) {
 
         case PA_SINK_SUSPENDED:
-            pa_assert(PA_SINK_OPENED(s->state));
+            pa_assert(PA_SINK_IS_OPENED(s->state));
             stream_cork(u, TRUE);
             break;
 
@@ -369,7 +369,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
     switch (code) {
         case SOURCE_MESSAGE_POST:
 
-            if (PA_SOURCE_OPENED(u->source->thread_info.state))
+            if (PA_SOURCE_IS_OPENED(u->source->thread_info.state))
                 pa_source_post(u->source, chunk);
             return 0;
     }
@@ -385,7 +385,7 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
     switch ((pa_source_state_t) state) {
 
         case PA_SOURCE_SUSPENDED:
-            pa_assert(PA_SOURCE_OPENED(s->state));
+            pa_assert(PA_SOURCE_IS_OPENED(s->state));
             stream_cork(u, TRUE);
             break;
 
@@ -1066,7 +1066,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     pa_tagstruct_putu32(reply, PA_INVALID_INDEX);
     pa_tagstruct_puts(reply, u->sink_name);
     pa_tagstruct_putu32(reply, u->maxlength);
-    pa_tagstruct_put_boolean(reply, !PA_SINK_OPENED(pa_sink_get_state(u->sink)));
+    pa_tagstruct_put_boolean(reply, !PA_SINK_IS_OPENED(pa_sink_get_state(u->sink)));
     pa_tagstruct_putu32(reply, u->tlength);
     pa_tagstruct_putu32(reply, u->prebuf);
     pa_tagstruct_putu32(reply, u->minreq);
@@ -1082,7 +1082,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     pa_tagstruct_putu32(reply, PA_INVALID_INDEX);
     pa_tagstruct_puts(reply, u->source_name);
     pa_tagstruct_putu32(reply, u->maxlength);
-    pa_tagstruct_put_boolean(reply, !PA_SOURCE_OPENED(pa_source_get_state(u->source)));
+    pa_tagstruct_put_boolean(reply, !PA_SOURCE_IS_OPENED(pa_source_get_state(u->source)));
     pa_tagstruct_putu32(reply, u->fragsize);
 #endif
 

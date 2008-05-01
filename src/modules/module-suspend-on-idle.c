@@ -317,7 +317,7 @@ static pa_hook_result_t device_state_changed_hook_cb(pa_core *c, pa_object *o, s
 
         if (pa_sink_used_by(s) <= 0) {
 
-            if (PA_SINK_OPENED(state))
+            if (PA_SINK_IS_OPENED(state))
                 restart(d);
 
         }
@@ -328,7 +328,7 @@ static pa_hook_result_t device_state_changed_hook_cb(pa_core *c, pa_object *o, s
 
         if (pa_source_used_by(s) <= 0) {
 
-            if (PA_SOURCE_OPENED(state))
+            if (PA_SOURCE_IS_OPENED(state))
                 restart(d);
         }
     }

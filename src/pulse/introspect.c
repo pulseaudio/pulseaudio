@@ -52,7 +52,7 @@ static void context_stat_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNU
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t) < 0)
+        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
             goto finish;
 
         p = NULL;
@@ -95,7 +95,7 @@ static void context_get_server_info_callback(pa_pdispatch *pd, uint32_t command,
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t) < 0)
+        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
             goto finish;
 
         p = NULL;
@@ -140,7 +140,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t) < 0)
+        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
             goto finish;
 
         eol = -1;
@@ -261,7 +261,7 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t) < 0)
+        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
             goto finish;
 
         eol = -1;
@@ -382,7 +382,7 @@ static void context_get_client_info_callback(pa_pdispatch *pd, uint32_t command,
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t) < 0)
+        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
             goto finish;
 
         eol = -1;
@@ -464,7 +464,7 @@ static void context_get_module_info_callback(pa_pdispatch *pd, uint32_t command,
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t) < 0)
+        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
             goto finish;
 
         eol = -1;
@@ -543,7 +543,7 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t) < 0)
+        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
             goto finish;
 
         eol = -1;
@@ -637,7 +637,7 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t) < 0)
+        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
             goto finish;
 
         eol = -1;
@@ -967,7 +967,7 @@ static void context_get_sample_info_callback(pa_pdispatch *pd, uint32_t command,
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t) < 0)
+        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
             goto finish;
 
         eol = -1;
@@ -1111,7 +1111,7 @@ static void context_index_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UN
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t) < 0)
+        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
             goto finish;
 
         idx = PA_INVALID_INDEX;
@@ -1172,7 +1172,7 @@ static void context_get_autoload_info_callback(pa_pdispatch *pd, uint32_t comman
         goto finish;
 
     if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t) < 0)
+        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
             goto finish;
 
         eol = -1;

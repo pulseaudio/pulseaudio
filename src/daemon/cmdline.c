@@ -293,8 +293,7 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
                 break;
 
             case 'n':
-                pa_xfree(conf->default_script_file);
-                conf->default_script_file = NULL;
+                conf->load_default_script_file = FALSE;
                 break;
 
             case ARG_LOG_TARGET:

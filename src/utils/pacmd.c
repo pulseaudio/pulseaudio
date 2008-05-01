@@ -36,6 +36,7 @@
 
 #include <pulse/error.h>
 #include <pulse/util.h>
+#include <pulse/xmalloc.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
@@ -49,6 +50,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
     char ibuf[256], obuf[256];
     size_t ibuf_index, ibuf_length, obuf_index, obuf_length;
     fd_set ifds, ofds;
+    char *cli;
 
     if (pa_pid_file_check_running(&pid, "pulseaudio") < 0) {
         pa_log("no PulseAudio daemon running");
@@ -62,7 +64,10 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
 
     memset(&sa, 0, sizeof(sa));
     sa.sun_family = AF_UNIX;
-    pa_runtime_path("cli", sa.sun_path, sizeof(sa.sun_path));
+
+    cli = pa_runtime_path("cli");
+    pa_strlcpy(sa.sun_path, cli, sizeof(sa.sun_path));
+    pa_xfree(cli);
 
     for (i = 0; i < 5; i++) {
         int r;

@@ -162,13 +162,13 @@ static void adjust_rates(struct userdata *u) {
     if (!u->master)
         return;
 
-    if (!PA_SINK_OPENED(pa_sink_get_state(u->sink)))
+    if (!PA_SINK_IS_OPENED(pa_sink_get_state(u->sink)))
         return;
 
     for (o = pa_idxset_first(u->outputs, &idx); o; o = pa_idxset_next(u->outputs, &idx)) {
         pa_usec_t sink_latency;
 
-        if (!o->sink_input || !PA_SINK_OPENED(pa_sink_get_state(o->sink)))
+        if (!o->sink_input || !PA_SINK_IS_OPENED(pa_sink_get_state(o->sink)))
             continue;
 
         sink_latency = pa_sink_get_latency(o->sink);
@@ -194,7 +194,7 @@ static void adjust_rates(struct userdata *u) {
     for (o = pa_idxset_first(u->outputs, &idx); o; o = pa_idxset_next(u->outputs, &idx)) {
         uint32_t r = base_rate;
 
-        if (!o->sink_input || !PA_SINK_OPENED(pa_sink_get_state(o->sink)))
+        if (!o->sink_input || !PA_SINK_IS_OPENED(pa_sink_get_state(o->sink)))
             continue;
 
         if (o->total_latency < target_latency)
@@ -258,7 +258,10 @@ static void thread_func(void *userdata) {
             pa_rtclock_get(&now);
 
             if (!u->thread_info.in_null_mode || pa_timeval_cmp(&u->thread_info.timestamp, &now) <= 0) {
-                pa_sink_skip(u->sink, u->block_size);
+                pa_memchunk chunk;
+
+                pa_sink_render_full(u->sink, u->block_size, &chunk);
+                pa_memblock_unref(chunk.memblock);
 
                 if (!u->thread_info.in_null_mode)
                     u->thread_info.timestamp = now;
@@ -432,7 +435,7 @@ static int sink_input_process_msg(pa_msgobject *obj, int code, void *data, int64
 
         case SINK_INPUT_MESSAGE_POST:
 
-            if (PA_SINK_OPENED(o->sink_input->sink->thread_info.state))
+            if (PA_SINK_IS_OPENED(o->sink_input->sink->thread_info.state))
                 pa_memblockq_push_align(o->memblockq, chunk);
             else
                 pa_memblockq_flush(o->memblockq);
@@ -471,7 +474,7 @@ static void enable_output(struct output *o) {
 
         pa_sink_input_put(o->sink_input);
 
-        if (o->userdata->sink && PA_SINK_LINKED(pa_sink_get_state(o->userdata->sink)))
+        if (o->userdata->sink && PA_SINK_IS_LINKED(pa_sink_get_state(o->userdata->sink)))
             pa_asyncmsgq_send(o->userdata->sink->asyncmsgq, PA_MSGOBJECT(o->userdata->sink), SINK_MESSAGE_ADD_OUTPUT, o, 0, NULL);
     }
 }
@@ -504,7 +507,7 @@ static void unsuspend(struct userdata *u) {
 
         pa_sink_suspend(o->sink, FALSE);
 
-        if (PA_SINK_OPENED(pa_sink_get_state(o->sink)))
+        if (PA_SINK_IS_OPENED(pa_sink_get_state(o->sink)))
             enable_output(o);
     }
 
@@ -525,7 +528,7 @@ static int sink_set_state(pa_sink *sink, pa_sink_state_t state) {
 
     switch (state) {
         case PA_SINK_SUSPENDED:
-            pa_assert(PA_SINK_OPENED(pa_sink_get_state(u->sink)));
+            pa_assert(PA_SINK_IS_OPENED(pa_sink_get_state(u->sink)));
 
             suspend(u);
             break;
@@ -697,7 +700,7 @@ static void pick_master(struct userdata *u, struct output *except) {
     if (u->master &&
         u->master != except &&
         u->master->sink_input &&
-        PA_SINK_OPENED(pa_sink_get_state(u->master->sink))) {
+        PA_SINK_IS_OPENED(pa_sink_get_state(u->master->sink))) {
         update_master(u, u->master);
         return;
     }
@@ -705,7 +708,7 @@ static void pick_master(struct userdata *u, struct output *except) {
     for (o = pa_idxset_first(u->outputs, &idx); o; o = pa_idxset_next(u->outputs, &idx))
         if (o != except &&
             o->sink_input &&
-            PA_SINK_OPENED(pa_sink_get_state(o->sink))) {
+            PA_SINK_IS_OPENED(pa_sink_get_state(o->sink))) {
             update_master(u, o);
             return;
         }
@@ -780,7 +783,7 @@ static struct output *output_new(struct userdata *u, pa_sink *sink) {
 
     pa_assert_se(pa_idxset_put(u->outputs, o, NULL) == 0);
 
-    if (u->sink && PA_SINK_LINKED(pa_sink_get_state(u->sink)))
+    if (u->sink && PA_SINK_IS_LINKED(pa_sink_get_state(u->sink)))
         pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_ADD_OUTPUT, o, 0, NULL);
     else {
         /* If the sink is not yet started, we need to do the activation ourselves */
@@ -792,10 +795,10 @@ static struct output *output_new(struct userdata *u, pa_sink *sink) {
                 o->outq);
     }
 
-    if (PA_SINK_OPENED(pa_sink_get_state(u->sink)) || pa_sink_get_state(u->sink) == PA_SINK_INIT) {
+    if (PA_SINK_IS_OPENED(pa_sink_get_state(u->sink)) || pa_sink_get_state(u->sink) == PA_SINK_INIT) {
         pa_sink_suspend(sink, FALSE);
 
-        if (PA_SINK_OPENED(pa_sink_get_state(sink)))
+        if (PA_SINK_IS_OPENED(pa_sink_get_state(sink)))
             if (output_create_sink_input(o) < 0)
                 goto fail;
     }
@@ -898,7 +901,7 @@ static pa_hook_result_t sink_state_changed_hook_cb(pa_core *c, pa_sink *s, struc
 
     state = pa_sink_get_state(s);
 
-    if (PA_SINK_OPENED(state) && PA_SINK_OPENED(pa_sink_get_state(u->sink)) && !o->sink_input) {
+    if (PA_SINK_IS_OPENED(state) && PA_SINK_IS_OPENED(pa_sink_get_state(u->sink)) && !o->sink_input) {
         enable_output(o);
         pick_master(u, NULL);
     }

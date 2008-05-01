@@ -33,7 +33,6 @@ typedef struct pa_sink pa_sink;
 #include <pulse/channelmap.h>
 #include <pulse/volume.h>
 
-#include <pulsecore/core-def.h>
 #include <pulsecore/core.h>
 #include <pulsecore/idxset.h>
 #include <pulsecore/source.h>
@@ -52,11 +51,11 @@ typedef enum pa_sink_state {
     PA_SINK_UNLINKED
 } pa_sink_state_t;
 
-static inline pa_bool_t PA_SINK_OPENED(pa_sink_state_t x) {
+static inline pa_bool_t PA_SINK_IS_OPENED(pa_sink_state_t x) {
     return x == PA_SINK_RUNNING || x == PA_SINK_IDLE;
 }
 
-static inline pa_bool_t PA_SINK_LINKED(pa_sink_state_t x) {
+static inline pa_bool_t PA_SINK_IS_LINKED(pa_sink_state_t x) {
     return x == PA_SINK_RUNNING || x == PA_SINK_IDLE || x == PA_SINK_SUSPENDED;
 }
 
@@ -94,13 +93,42 @@ struct pa_sink {
     pa_usec_t min_latency; /* we won't go below this latency */
     pa_usec_t max_latency; /* An upper limit for the latencies */
 
+    /* Called when the main loop requests a state change. Called from
+     * main loop context. If returns -1 the state change will be
+     * inhibited */
     int (*set_state)(pa_sink *s, pa_sink_state_t state); /* may be NULL */
-    int (*get_volume)(pa_sink *s);             /* dito */
+
+    /* Callled when the volume is queried. Called from main loop
+     * context. If this is NULL a PA_SINK_MESSAGE_GET_VOLUME message
+     * will be sent to the IO thread instead. */
+    int (*get_volume)(pa_sink *s);             /* may be null */
+
+    /* Called when the volume shall be changed. Called from main loop
+     * context. If this is NULL a PA_SINK_MESSAGE_SET_VOLUME message
+     * will be sent to the IO thread instead. */
     int (*set_volume)(pa_sink *s);             /* dito */
+
+    /* Called when the mute setting is queried. Called from main loop
+     * context. If this is NULL a PA_SINK_MESSAGE_GET_MUTE message
+     * will be sent to the IO thread instead. */
     int (*get_mute)(pa_sink *s);               /* dito */
+
+    /* Called when the mute setting shall be changed. Called from main
+     * loop context. If this is NULL a PA_SINK_MESSAGE_SET_MUTE
+     * message will be sent to the IO thread instead. */
     int (*set_mute)(pa_sink *s);               /* dito */
-    pa_usec_t (*get_latency)(pa_sink *s);      /* dito */
+
+    /* Called when the latency is queried. Called from main loop
+    context. If this is NULL a PA_SINK_MESSAGE_GET_LATENCY message
+    will be sent to the IO thread instead. */
+    pa_usec_t (*get_latency)(pa_sink *s); /* dito */
+
+    /* Called when a rewind request is issued. Called from IO thread
+     * context. */
     void (*request_rewind)(pa_sink *s);        /* dito */
+
+    /* Called when a the requested latency is changed. Called from IO
+     * thread context. */
     void (*update_requested_latency)(pa_sink *s); /* dito */
 
     /* Contains copies of the above data so that the real-time worker
@@ -213,7 +241,6 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result);
 void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result);
 void pa_sink_render_into(pa_sink*s, pa_memchunk *target);
 void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target);
-void pa_sink_skip(pa_sink *s, size_t length);
 
 void pa_sink_process_rewind(pa_sink *s, size_t nbytes);
 

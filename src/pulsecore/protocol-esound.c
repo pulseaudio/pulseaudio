@@ -1433,7 +1433,7 @@ pa_protocol_esound* pa_protocol_esound_new(pa_core*core, pa_socket_server *serve
     p->core = core;
     p->module = m;
     p->public = public;
-    p->server = server;
+    p->server = pa_socket_server_ref(server);
     pa_socket_server_set_callback(p->server, on_connection, p);
     p->connections = pa_idxset_new(NULL, NULL);
 

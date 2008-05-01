@@ -105,7 +105,6 @@ typedef struct playback_stream {
     pa_bool_t drain_request;
     uint32_t drain_tag;
     uint32_t syncid;
-    uint64_t underrun; /* length of underrun */
 
     pa_atomic_t missing;
     size_t minreq;
@@ -193,7 +192,8 @@ enum {
     PLAYBACK_STREAM_MESSAGE_REQUEST_DATA,      /* data requested from sink input from the main loop */
     PLAYBACK_STREAM_MESSAGE_UNDERFLOW,
     PLAYBACK_STREAM_MESSAGE_OVERFLOW,
-    PLAYBACK_STREAM_MESSAGE_DRAIN_ACK
+    PLAYBACK_STREAM_MESSAGE_DRAIN_ACK,
+    PLAYBACK_STREAM_MESSAGE_STARTED
 };
 
 enum {
@@ -689,10 +689,24 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
             break;
         }
 
+        case PLAYBACK_STREAM_MESSAGE_STARTED:
+
+            if (s->connection->version >= 13) {
+                pa_tagstruct *t;
+
+                /* Notify the user we're overflowed*/
+                t = pa_tagstruct_new(NULL, 0);
+                pa_tagstruct_putu32(t, PA_COMMAND_STARTED);
+                pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
+                pa_tagstruct_putu32(t, s->index);
+                pa_pstream_send_tagstruct(s->connection->pstream, t);
+            }
+
+            break;
+
         case PLAYBACK_STREAM_MESSAGE_DRAIN_ACK:
             pa_pstream_send_simple_ack(s->connection->pstream, PA_PTR_TO_UINT(userdata));
             break;
-
     }
 
     return 0;
@@ -886,7 +900,6 @@ static playback_stream* playback_stream_new(
     s->connection = c;
     s->syncid = syncid;
     s->sink_input = sink_input;
-    s->underrun = (uint64_t) -1;
 
     s->sink_input->parent.process_msg = sink_input_process_msg;
     s->sink_input->pop = sink_input_pop_cb;
@@ -1091,7 +1104,7 @@ static void handle_seek(playback_stream *s, int64_t indexw) {
 
 /*     pa_log("handle_seek: %llu -- %i", (unsigned long long) s->underrun, pa_memblockq_is_readable(s->memblockq)); */
 
-    if (s->underrun != 0) {
+    if (s->sink_input->thread_info.underrun_for > 0) {
 
 /*         pa_log("%lu vs. %lu", (unsigned long) pa_memblockq_get_length(s->memblockq), (unsigned long) pa_memblockq_get_prebuf(s->memblockq)); */
 
@@ -1099,13 +1112,13 @@ static void handle_seek(playback_stream *s, int64_t indexw) {
 
             size_t u = pa_memblockq_get_length(s->memblockq);
 
-            if (u >= s->underrun)
-                u = s->underrun;
+            if (u >= s->sink_input->thread_info.underrun_for)
+                u = s->sink_input->thread_info.underrun_for;
 
             /* We just ended an underrun, let's ask the sink
              * to rewrite */
-            s->sink_input->thread_info.ignore_rewind = TRUE;
-            pa_sink_input_request_rewind(s->sink_input, u, TRUE);
+
+            pa_sink_input_request_rewind(s->sink_input, u, TRUE, TRUE);
         }
 
     } else {
@@ -1117,7 +1130,7 @@ static void handle_seek(playback_stream *s, int64_t indexw) {
             /* OK, the sink already asked for this data, so
              * let's have it usk us again */
 
-            pa_sink_input_request_rewind(s->sink_input, indexr - indexw, FALSE);
+            pa_sink_input_request_rewind(s->sink_input, indexr - indexw, FALSE, FALSE);
     }
 
     request_bytes(s);
@@ -1272,11 +1285,8 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
         if (s->drain_request && pa_sink_input_safe_to_remove(i)) {
             s->drain_request = FALSE;
             pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_DRAIN_ACK, PA_UINT_TO_PTR(s->drain_tag), 0, NULL, NULL);
-        } else if (s->underrun == 0)
+        } else if (i->thread_info.playing_for > 0)
             pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_UNDERFLOW, NULL, 0, NULL, NULL);
-
-        if (s->underrun != (size_t) -1)
-            s->underrun += nbytes;
 
 /*         pa_log("added %llu bytes, total is %llu", (unsigned long long) nbytes, (unsigned long long) s->underrun); */
 
@@ -1287,7 +1297,8 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 
 /*     pa_log("NOTUNDERRUN"); */
 
-    s->underrun = 0;
+    if (i->thread_info.underrun_for > 0)
+        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_STARTED, NULL, 0, NULL, NULL);
 
     pa_memblockq_drop(s->memblockq, chunk->length);
     request_bytes(s);
@@ -1303,7 +1314,7 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     playback_stream_assert_ref(s);
 
     /* If we are in an underrun, then we don't rewind */
-    if (s->underrun != 0)
+    if (i->thread_info.underrun_for > 0)
         return;
 
     pa_memblockq_rewind(s->memblockq, nbytes);
@@ -2120,11 +2131,17 @@ static void command_get_playback_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     pa_tagstruct_put_usec(reply, latency);
 
     pa_tagstruct_put_usec(reply, 0);
-    pa_tagstruct_put_boolean(reply, pa_sink_input_get_state(s->sink_input) == PA_SINK_INPUT_RUNNING);
+    pa_tagstruct_put_boolean(reply, s->sink_input->thread_info.playing_for > 0);
     pa_tagstruct_put_timeval(reply, &tv);
     pa_tagstruct_put_timeval(reply, pa_gettimeofday(&now));
     pa_tagstruct_puts64(reply, s->write_index);
     pa_tagstruct_puts64(reply, s->read_index);
+
+    if (c->version >= 13) {
+        pa_tagstruct_putu64(reply, s->sink_input->thread_info.underrun_for);
+        pa_tagstruct_putu64(reply, s->sink_input->thread_info.playing_for);
+    }
+
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
@@ -2152,7 +2169,7 @@ static void command_get_record_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UN
     reply = reply_new(tag);
     pa_tagstruct_put_usec(reply, s->source_output->source->monitor_of ? pa_sink_get_latency(s->source_output->source->monitor_of) : 0);
     pa_tagstruct_put_usec(reply, pa_source_get_latency(s->source_output->source));
-    pa_tagstruct_put_boolean(reply, FALSE);
+    pa_tagstruct_put_boolean(reply, pa_source_get_state(s->source_output->source) == PA_SOURCE_RUNNING);
     pa_tagstruct_put_timeval(reply, &tv);
     pa_tagstruct_put_timeval(reply, pa_gettimeofday(&now));
     pa_tagstruct_puts64(reply, pa_memblockq_get_write_index(s->memblockq));
@@ -3937,7 +3954,7 @@ static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_mo
 
 #ifdef HAVE_CREDS
     {
-        pa_bool_t a = 1;
+        pa_bool_t a = TRUE;
         if (pa_modargs_get_value_boolean(ma, "auth-group-enabled", &a) < 0) {
             pa_log("auth-group-enabled= expects a boolean argument.");
             return NULL;
@@ -3982,7 +3999,7 @@ pa_protocol_native* pa_protocol_native_new(pa_core *core, pa_socket_server *serv
     if (!(p = protocol_new_internal(core, m, ma)))
         return NULL;
 
-    p->server = server;
+    p->server = pa_socket_server_ref(server);
     pa_socket_server_set_callback(p->server, on_connection, p);
 
     if (pa_socket_server_get_address(p->server, t, sizeof(t))) {

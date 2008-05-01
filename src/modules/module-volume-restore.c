@@ -134,16 +134,12 @@ static int load_rules(struct userdata *u) {
     char buf_name[256], buf_volume[256], buf_sink[256], buf_source[256];
     char *ln = buf_name;
 
-    f = u->table_file ?
-        fopen(u->table_file, "r") :
-        pa_open_config_file(NULL, DEFAULT_VOLUME_TABLE_FILE, NULL, &u->table_file, "r");
-
-    if (!f) {
+    if (!(f = fopen(u->table_file, "r"))) {
         if (errno == ENOENT) {
-            pa_log_info("starting with empty ruleset.");
+            pa_log_info("Starting with empty ruleset.");
             ret = 0;
         } else
-            pa_log("failed to open file '%s': %s", u->table_file, pa_cstrerror(errno));
+            pa_log("Failed to open file '%s': %s", u->table_file, pa_cstrerror(errno));
 
         goto finish;
     }
@@ -236,11 +232,7 @@ static int save_rules(struct userdata *u) {
 
     pa_log_info("Saving rules...");
 
-    f = u->table_file ?
-        fopen(u->table_file, "w") :
-        pa_open_config_file(NULL, DEFAULT_VOLUME_TABLE_FILE, NULL, &u->table_file, "w");
-
-    if (!f) {
+    if (!(f = fopen(u->table_file, "w"))) {
         pa_log("Failed to open file '%s': %s", u->table_file, pa_cstrerror(errno));
         goto finish;
     }
@@ -496,7 +488,7 @@ int pa__init(pa_module*m) {
     u = pa_xnew(struct userdata, 1);
     u->core = m->core;
     u->hashmap = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    u->table_file = pa_xstrdup(pa_modargs_get_value(ma, "table", NULL));
+    u->table_file = pa_runtime_path(pa_modargs_get_value(ma, "table", DEFAULT_VOLUME_TABLE_FILE));
     u->modified = FALSE;
     u->subscription = NULL;
     u->sink_input_new_hook_slot = u->sink_input_fixate_hook_slot = u->source_output_new_hook_slot = NULL;
