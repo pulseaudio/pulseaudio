@@ -247,7 +247,7 @@ static void scan_for_lines(pa_ioline *l, size_t skip) {
             l->rbuf_index = 0;
 
         if (l->callback)
-            l->callback(l, p, l->userdata);
+            l->callback(l, pa_strip_nl(p), l->userdata);
 
         skip = 0;
     }
