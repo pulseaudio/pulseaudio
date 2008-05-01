@@ -1000,3 +1000,34 @@ pa_memchunk* pa_silence_memchunk_get(pa_silence_cache *cache, pa_mempool *pool, 
 
     return ret;
 }
+
+void pa_sample_clamp(pa_sample_format_t format, void *dst, size_t dstr, const void *src, size_t sstr, unsigned n) {
+
+    const float *s;
+    float *d;
+
+    if (format != PA_SAMPLE_FLOAT32BE && format != PA_SAMPLE_FLOAT32LE)
+        return;
+
+    s = src;
+    d = dst;
+
+    if (format == PA_SAMPLE_FLOAT32NE) {
+        for (; n > 0; n--) {
+            *d = PA_CLAMP_UNLIKELY(*s, -1.0, 1.0);
+
+            s = (const float*) ((const uint8_t*) s + sstr);
+            d = (float*) ((uint8_t*) d + dstr);
+        }
+    } else
+        for (; n > 0; n--) {
+            float f;
+
+            f = PA_FLOAT32_SWAP(*s);
+            f = PA_CLAMP_UNLIKELY(f, -1.0, 1.0);
+            *d = PA_FLOAT32_SWAP(f);
+
+            s = (const float*) ((const uint8_t*) s + sstr);
+            d = (float*) ((uint8_t*) d + dstr);
+        }
+}
