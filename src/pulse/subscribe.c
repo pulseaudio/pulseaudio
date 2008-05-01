@@ -88,6 +88,9 @@ void pa_context_set_subscribe_callback(pa_context *c, pa_context_subscribe_cb_t 
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    if (c->state == PA_CONTEXT_TERMINATED || c->state == PA_CONTEXT_FAILED)
+        return;
+
     c->subscribe_callback = cb;
     c->subscribe_userdata = userdata;
 }
