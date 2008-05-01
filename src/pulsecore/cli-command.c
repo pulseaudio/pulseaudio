@@ -594,7 +594,7 @@ static int pa_cli_command_sink_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf,
         return -1;
     }
 
-    if (pa_atoi(m, &mute) < 0) {
+    if ((mute = pa_parse_boolean(m)) < 0) {
         pa_strbuf_puts(buf, "Failed to parse mute switch.\n");
         return -1;
     }
@@ -628,7 +628,7 @@ static int pa_cli_command_source_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
         return -1;
     }
 
-    if (pa_atoi(m, &mute) < 0) {
+    if ((mute = pa_parse_boolean(m)) < 0) {
         pa_strbuf_puts(buf, "Failed to parse mute switch.\n");
         return -1;
     }
@@ -664,11 +664,11 @@ static int pa_cli_command_sink_input_mute(pa_core *c, pa_tokenizer *t, pa_strbuf
     }
 
     if (!(v = pa_tokenizer_get(t, 2))) {
-        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x10000 is normal volume)\n");
+        pa_strbuf_puts(buf, "You need to specify a mute switch setting (0/1).\n");
         return -1;
     }
 
-    if (pa_atoi(v, &mute) < 0) {
+    if ((mute = pa_parse_boolean(v)) < 0) {
         pa_strbuf_puts(buf, "Failed to parse mute switch.\n");
         return -1;
     }
@@ -1125,7 +1125,7 @@ static int pa_cli_command_suspend_sink(pa_core *c, pa_tokenizer *t, pa_strbuf *b
         return -1;
     }
 
-    if (pa_atoi(m, &suspend) < 0) {
+    if ((suspend = pa_parse_boolean(m)) < 0) {
         pa_strbuf_puts(buf, "Failed to parse suspend switch.\n");
         return -1;
     }
@@ -1159,7 +1159,7 @@ static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf 
         return -1;
     }
 
-    if (pa_atoi(m, &suspend) < 0) {
+    if ((suspend = pa_parse_boolean(m)) < 0) {
         pa_strbuf_puts(buf, "Failed to parse suspend switch.\n");
         return -1;
     }
@@ -1188,7 +1188,7 @@ static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, p
         return -1;
     }
 
-    if (pa_atoi(m, &suspend) < 0) {
+    if ((suspend = pa_parse_boolean(m)) < 0) {
         pa_strbuf_puts(buf, "Failed to parse suspend switch.\n");
         return -1;
     }
@@ -1252,7 +1252,8 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
         }
 
         pa_strbuf_printf(buf, "set-sink-volume %s 0x%03x\n", sink->name, pa_cvolume_avg(pa_sink_get_volume(sink)));
-        pa_strbuf_printf(buf, "set-sink-mute %s %d\n", sink->name, pa_sink_get_mute(sink));
+        pa_strbuf_printf(buf, "set-sink-mute %s %s\n", sink->name, pa_yes_no(pa_sink_get_mute(sink)));
+        pa_strbuf_printf(buf, "suspend-sink %s %s\n", sink->name, pa_yes_no(pa_sink_get_state(sink) == PA_SINK_SUSPENDED));
     }
 
     for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx)) {
@@ -1265,7 +1266,8 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
         }
 
         pa_strbuf_printf(buf, "set-source-volume %s 0x%03x\n", source->name, pa_cvolume_avg(pa_source_get_volume(source)));
-        pa_strbuf_printf(buf, "set-source-mute %s %d\n", source->name, pa_source_get_mute(source));
+        pa_strbuf_printf(buf, "set-source-mute %s %s\n", source->name, pa_yes_no(pa_source_get_mute(source)));
+        pa_strbuf_printf(buf, "suspend-source %s %s\n", source->name, pa_yes_no(pa_source_get_state(source) == PA_SOURCE_SUSPENDED));
     }
 
 
@@ -1440,15 +1442,44 @@ int pa_cli_command_execute_line(pa_core *c, const char *s, pa_strbuf *buf, pa_bo
     return pa_cli_command_execute_line_stateful(c, s, buf, fail, NULL);
 }
 
-int pa_cli_command_execute_file(pa_core *c, const char *fn, pa_strbuf *buf, pa_bool_t *fail) {
+int pa_cli_command_execute_file_stream(pa_core *c, FILE *f, pa_strbuf *buf, pa_bool_t *fail) {
     char line[1024];
-    FILE *f = NULL;
     int ifstate = IFSTATE_NONE;
     int ret = -1;
+    pa_bool_t _fail = TRUE;
+
+    pa_assert(c);
+    pa_assert(f);
+    pa_assert(buf);
+
+    if (!fail)
+        fail = &_fail;
+
+    while (fgets(line, sizeof(line), f)) {
+        pa_strip_nl(line);
+
+        if (pa_cli_command_execute_line_stateful(c, line, buf, fail, &ifstate) < 0 && *fail)
+            goto fail;
+    }
+
+    ret = 0;
+
+fail:
+
+    return ret;
+}
+
+int pa_cli_command_execute_file(pa_core *c, const char *fn, pa_strbuf *buf, pa_bool_t *fail) {
+    FILE *f = NULL;
+    int ret = -1;
+    pa_bool_t _fail = TRUE;
 
     pa_assert(c);
     pa_assert(fn);
     pa_assert(buf);
+
+    if (!fail)
+        fail = &_fail;
 
     if (!(f = fopen(fn, "r"))) {
         pa_strbuf_printf(buf, "open('%s') failed: %s\n", fn, pa_cstrerror(errno));
@@ -1457,13 +1488,7 @@ int pa_cli_command_execute_file(pa_core *c, const char *fn, pa_strbuf *buf, pa_b
         goto fail;
     }
 
-    while (fgets(line, sizeof(line), f)) {
-        char *e = line + strcspn(line, linebreak);
-        *e = 0;
-
-        if (pa_cli_command_execute_line_stateful(c, line, buf, fail, &ifstate) < 0 && *fail)
-            goto fail;
-    }
+    ret = pa_cli_command_execute_file_stream(c, f, buf, fail);
 
     ret = 0;
 
@@ -1477,10 +1502,14 @@ fail:
 int pa_cli_command_execute(pa_core *c, const char *s, pa_strbuf *buf, pa_bool_t *fail) {
     const char *p;
     int ifstate = IFSTATE_NONE;
+    pa_bool_t _fail = TRUE;
 
     pa_assert(c);
     pa_assert(s);
     pa_assert(buf);
+
+    if (!fail)
+        fail = &_fail;
 
     p = s;
     while (*p) {
