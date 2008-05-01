@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 
 #ifdef HAVE_SYSLOG_H
 #include <syslog.h>
@@ -109,6 +110,7 @@ void pa_log_levelv_meta(
 
     const char *e;
     char *text, *t, *n, *location;
+    int saved_errno = errno;
 
     pa_assert(level < PA_LOG_LEVEL_MAX);
     pa_assert(format);
@@ -116,8 +118,10 @@ void pa_log_levelv_meta(
     if ((e = getenv(ENV_LOGLEVEL)))
         maximal_level = atoi(e);
 
-    if (level > maximal_level)
+    if (level > maximal_level) {
+        errno = saved_errno;
         return;
+    }
 
     text = pa_vsprintf_malloc(format, ap);
 
@@ -206,6 +210,8 @@ void pa_log_levelv_meta(
 
     pa_xfree(text);
     pa_xfree(location);
+
+    errno = saved_errno;
 }
 
 void pa_log_level_meta(
