@@ -34,7 +34,7 @@
 
 #include "time-smoother.h"
 
-#define HISTORY_MAX 50
+#define HISTORY_MAX 64
 
 /*
  * Implementation of a time smoothing algorithm to synchronize remote
@@ -61,7 +61,6 @@
 
 struct pa_smoother {
     pa_usec_t adjust_time, history_time;
-    pa_bool_t monotonic;
 
     pa_usec_t time_offset;
 
@@ -82,7 +81,9 @@ struct pa_smoother {
     double a, b, c;
     pa_bool_t abc_valid;
 
-    pa_bool_t paused;
+    pa_bool_t monotonic:1;
+    pa_bool_t paused:1;
+
     pa_usec_t pause_time;
 };
 
@@ -122,39 +123,58 @@ void pa_smoother_free(pa_smoother* s) {
     pa_xfree(s);
 }
 
+#define REDUCE(x)                               \
+    do {                                        \
+        x = (x) % HISTORY_MAX;                  \
+    } while(FALSE)
+
+#define REDUCE_INC(x)                           \
+    do {                                        \
+        x = ((x)+1) % HISTORY_MAX;              \
+    } while(FALSE)
+
+
 static void drop_old(pa_smoother *s, pa_usec_t x) {
-    unsigned j;
 
-    /* First drop items from history which are too old, but make sure
-     * to always keep two entries in the history */
+    /* Drop items from history which are too old, but make sure to
+     * always keep two entries in the history */
 
-    for (j = s->n_history; j > 2; j--) {
+    while (s->n_history > 2) {
 
-        if (s->history_x[s->history_idx] + s->history_time >= x) {
+        if (s->history_x[s->history_idx] + s->history_time >= x)
             /* This item is still valid, and thus all following ones
              * are too, so let's quit this loop */
             break;
-        }
 
         /* Item is too old, let's drop it */
-        s->history_idx ++;
-        while (s->history_idx >= HISTORY_MAX)
-            s->history_idx -= HISTORY_MAX;
+        REDUCE_INC(s->history_idx);
 
         s->n_history --;
     }
 }
 
 static void add_to_history(pa_smoother *s, pa_usec_t x, pa_usec_t y) {
-    unsigned j;
+    unsigned j, i;
     pa_assert(s);
 
+    /* First try to update an existing history entry */
+    i = s->history_idx;
+    for (j = s->n_history; j > 0; j--) {
+
+        if (s->history_x[i] == x) {
+            s->history_y[i] = y;
+            return;
+        }
+
+        REDUCE_INC(i);
+    }
+
+    /* Drop old entries */
     drop_old(s, x);
 
     /* Calculate position for new entry */
     j = s->history_idx + s->n_history;
-    while (j >= HISTORY_MAX)
-        j -= HISTORY_MAX;
+    REDUCE(j);
 
     /* Fill in entry */
     s->history_x[j] = x;
@@ -166,6 +186,7 @@ static void add_to_history(pa_smoother *s, pa_usec_t x, pa_usec_t y) {
     /* And make sure we don't store more entries than fit in */
     if (s->n_history >= HISTORY_MAX) {
         s->history_idx += s->n_history - HISTORY_MAX;
+        REDUCE(s->history_idx);
         s->n_history = HISTORY_MAX;
     }
 }
@@ -185,9 +206,7 @@ static double avg_gradient(pa_smoother *s, pa_usec_t x) {
         ay += s->history_y[i];
         c++;
 
-        i++;
-        while (i >= HISTORY_MAX)
-            i -= HISTORY_MAX;
+        REDUCE_INC(i);
     }
 
     /* Too few measurements, assume gradient of 1 */
@@ -210,14 +229,12 @@ static double avg_gradient(pa_smoother *s, pa_usec_t x) {
         k += dx*dy;
         t += dx*dx;
 
-        i++;
-        while (i >= HISTORY_MAX)
-            i -= HISTORY_MAX;
+        REDUCE_INC(i);
     }
 
     r = (double) k / t;
 
-    return s->monotonic && r < 0 ? 0 : r;
+    return (s->monotonic && r < 0) ? 0 : r;
 }
 
 static void estimate(pa_smoother *s, pa_usec_t x, pa_usec_t *y, double *deriv) {
@@ -305,14 +322,12 @@ void pa_smoother_put(pa_smoother *s, pa_usec_t x, pa_usec_t y) {
     double nde;
 
     pa_assert(s);
-    pa_assert(x >= s->time_offset);
 
     /* Fix up x value */
     if (s->paused)
         x = s->pause_time;
 
-    pa_assert(x >= s->time_offset);
-    x -= s->time_offset;
+    x = PA_LIKELY(x >= s->time_offset) ? x - s->time_offset : 0;
 
     pa_assert(x >= s->ex);
 
@@ -340,15 +355,12 @@ pa_usec_t pa_smoother_get(pa_smoother *s, pa_usec_t x) {
     pa_usec_t y;
 
     pa_assert(s);
-    pa_assert(x >= s->time_offset);
 
     /* Fix up x value */
     if (s->paused)
         x = s->pause_time;
 
-    pa_assert(x >= s->time_offset);
-    x -= s->time_offset;
-
+    x = PA_LIKELY(x >= s->time_offset) ? x - s->time_offset : 0;
     pa_assert(x >= s->ex);
 
     estimate(s, x, &y, NULL);
@@ -397,14 +409,12 @@ pa_usec_t pa_smoother_translate(pa_smoother *s, pa_usec_t x, pa_usec_t y_delay) 
     double nde;
 
     pa_assert(s);
-    pa_assert(x >= s->time_offset);
 
     /* Fix up x value */
     if (s->paused)
         x = s->pause_time;
 
-    pa_assert(x >= s->time_offset);
-    x -= s->time_offset;
+    x = PA_LIKELY(x >= s->time_offset) ? x - s->time_offset : 0;
 
     pa_assert(x >= s->ex);
 
