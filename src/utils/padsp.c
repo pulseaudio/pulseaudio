@@ -302,7 +302,6 @@ static int padsp_disabled(void) {
     if (!sym_resolved) {
         sym = (int*) dlsym(RTLD_DEFAULT, "__padsp_disabled__");
         sym_resolved = 1;
-
     }
     pthread_mutex_unlock(&func_mutex);
 
@@ -316,7 +315,7 @@ static int dsp_cloak_enable(void) {
     if (padsp_disabled() & 1)
         return 0;
 
-    if (getenv("PADSP_NO_DSP"))
+    if (getenv("PADSP_NO_DSP") || getenv("PULSE_INTERNAL"))
         return 0;
 
     return 1;
@@ -326,7 +325,7 @@ static int sndstat_cloak_enable(void) {
     if (padsp_disabled() & 2)
         return 0;
 
-    if (getenv("PADSP_NO_SNDSTAT"))
+    if (getenv("PADSP_NO_SNDSTAT") || getenv("PULSE_INTERNAL"))
         return 0;
 
     return 1;
@@ -336,7 +335,7 @@ static int mixer_cloak_enable(void) {
     if (padsp_disabled() & 4)
         return 0;
 
-    if (getenv("PADSP_NO_MIXER"))
+    if (getenv("PADSP_NO_MIXER") || getenv("PULSE_INTERNAL"))
         return 0;
 
     return 1;
