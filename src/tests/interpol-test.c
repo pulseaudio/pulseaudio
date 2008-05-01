@@ -42,10 +42,9 @@ static pa_context *context = NULL;
 static pa_stream *stream = NULL;
 static pa_mainloop_api *mainloop_api = NULL;
 
-static void stream_write_cb(pa_stream *p, size_t length, void *userdata) {
-
+static void stream_write_cb(pa_stream *p, size_t nbytes, void *userdata) {
     /* Just some silence */
-    pa_stream_write(p, pa_xmalloc0(length), length, pa_xfree, 0, PA_SEEK_RELATIVE);
+    pa_stream_write(p, pa_xmalloc0(nbytes), nbytes, pa_xfree, 0, PA_SEEK_RELATIVE);
 }
 
 /* This is called whenever the context status changes */
@@ -63,7 +62,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
             static const pa_sample_spec ss = {
                 .format = PA_SAMPLE_S16LE,
                 .rate = 44100,
-                .channels = 1
+                .channels = 2
             };
 
             fprintf(stderr, "Connection established.\n");
@@ -112,9 +111,10 @@ int main(int argc, char *argv[]) {
     pa_threaded_mainloop_start(m);
 
     for (k = 0; k < 5000; k++) {
-        int success = 0, changed = 0;
+        pa_bool_t success = FALSE, changed = FALSE;
         pa_usec_t t, rtc;
         struct timeval now, tv;
+        pa_bool_t playing = FALSE;
 
         pa_threaded_mainloop_lock(m);
 
@@ -122,22 +122,26 @@ int main(int argc, char *argv[]) {
             const pa_timing_info *info;
 
             if (pa_stream_get_time(stream, &t) >= 0)
-                success = 1;
+                success = TRUE;
 
-            if ((info = pa_stream_get_timing_info(stream)))
-                if (last_info.tv_usec != info->timestamp.tv_usec || last_info.tv_sec != info->timestamp.tv_sec) {
-                    changed = 1;
+            if ((info = pa_stream_get_timing_info(stream))) {
+                if (memcmp(&last_info, &info->timestamp, sizeof(struct timeval))) {
+                    changed = TRUE;
                     last_info = info->timestamp;
                 }
+                if (info->playing)
+                    playing = TRUE;
+            }
         }
 
         pa_threaded_mainloop_unlock(m);
 
-        if (success) {
-            pa_gettimeofday(&now);
+        pa_gettimeofday(&now);
 
+        if (success) {
             rtc = pa_timeval_diff(&now, &start);
-            printf("%i\t%llu\t%llu\t%llu\t%llu\t%u\n", k, (unsigned long long) rtc, (unsigned long long) t, (unsigned long long) (rtc-old_rtc), (unsigned long long) (t-old_t), changed);
+            printf("%i\t%llu\t%llu\t%llu\t%llu\t%u\t%u\n", k, (unsigned long long) rtc, (unsigned long long) t, (unsigned long long) (rtc-old_rtc), (unsigned long long) (t-old_t), changed, playing);
+            fflush(stdout);
             old_t = t;
             old_rtc = rtc;
         }
