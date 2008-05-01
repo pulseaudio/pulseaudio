@@ -502,11 +502,10 @@ static void update_timer(pa_rtpoll *p) {
 #endif
 }
 
-void pa_rtpoll_set_timer_absolute(pa_rtpoll *p, const struct timeval *ts) {
+void pa_rtpoll_set_timer_absolute(pa_rtpoll *p, pa_usec_t usec) {
     pa_assert(p);
-    pa_assert(ts);
 
-    p->next_elapse = *ts;
+    pa_timeval_store(&p->next_elapse, usec);
     p->timer_enabled = TRUE;
 
     update_timer(p);
