@@ -272,8 +272,9 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
         if ((ret = s->set_state(s, state)) < 0)
             return -1;
 
-    if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL) < 0)
-        return -1;
+    if (s->asyncmsgq)
+        if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL) < 0)
+            return -1;
 
     s->state = state;
 
