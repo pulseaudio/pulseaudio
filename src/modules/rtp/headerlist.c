@@ -92,22 +92,20 @@ int pa_headerlist_puts(pa_headerlist *p, const char *key, const char *value) {
 int pa_headerlist_putsappend(pa_headerlist *p, const char *key, const char *value) {
     struct header *hdr;
     pa_bool_t add = FALSE;
-    pa_strbuf *buf;
 
     pa_assert(p);
     pa_assert(key);
 
-    buf = pa_strbuf_new();
     if (!(hdr = pa_hashmap_get(MAKE_HASHMAP(p), key))) {
         hdr = pa_xnew(struct header, 1);
         hdr->key = pa_xstrdup(key);
+        hdr->value = pa_xstrdup(value);
         add = TRUE;
     } else {
-        pa_strbuf_puts(buf, hdr->value);
+        void *newval = (void*)pa_sprintf_malloc("%s%s", (char*)hdr->value, value);
         pa_xfree(hdr->value);
+        hdr->value = newval;
     }
-    pa_strbuf_puts(buf, value);
-    hdr->value = pa_strbuf_tostring_free(buf);
     hdr->nbytes = strlen(hdr->value)+1;
 
     if (add)
