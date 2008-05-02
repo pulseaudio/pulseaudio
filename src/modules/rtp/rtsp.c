@@ -75,12 +75,12 @@ static int pa_read_line(int fd, char *line, int maxlen, int timeout)
         if (-1 == rval) {
             if (EAGAIN == errno)
                 return 0;
-            //ERRMSG("%s:read error: %s\n", __func__, strerror(errno));
+            /*ERRMSG("%s:read error: %s\n", __func__, strerror(errno));*/
             return -1;
         }
 
         if (0 == rval) {
-            //INFMSG("%s:disconnected on the other end\n", __func__);
+            /*INFMSG("%s:disconnected on the other end\n", __func__);*/
             return -1;
         }
 
@@ -131,7 +131,7 @@ static int pa_rtsp_exec(pa_rtsp_context* c, const char* cmd,
     if (c->session)
         pa_strbuf_printf(buf, "Session: %s\r\n", c->session);
 
-    // Add the headers
+    /* Add the headers */
     if (headers) {
         hdrs = pa_headerlist_to_string(headers);
         pa_strbuf_puts(buf, hdrs);
@@ -157,18 +157,18 @@ static int pa_rtsp_exec(pa_rtsp_context* c, const char* cmd,
         pa_strbuf_puts(buf, content);
     }
 
-    // Our packet is created... now we can send it :)
+    /* Our packet is created... now we can send it :) */
     hdrs = pa_strbuf_tostring_free(buf);
     l = pa_write(c->fd, hdrs, strlen(hdrs), NULL);
     pa_xfree(hdrs);
 
-    // Do we expect a response?
+    /* Do we expect a response? */
     if (!expect_response)
         return 1;
 
     timeout = 5000;
     if (pa_read_line(c->fd, response, sizeof(response), timeout) <= 0) {
-        //ERRMSG("%s: request failed\n",__func__);
+        /*ERRMSG("%s: request failed\n",__func__);*/
         return 0;
     }
 
@@ -179,69 +179,70 @@ static int pa_rtsp_exec(pa_rtsp_context* c, const char* cmd,
     token = pa_split(response, delimiters, &token_state);
     if (!token || strcmp(token, "200")) {
         pa_xfree(token);
-        //ERRMSG("%s: request failed, error %s\n",__func__,token);
+        /*ERRMSG("%s: request failed, error %s\n",__func__,token);*/
         return 0;
     }
     pa_xfree(token);
 
-    // We want to return the headers?
+    /* We want to return the headers? */
     if (!response_headers)
     {
-        // We have no storage, so just clear out the response.
+        /* We have no storage, so just clear out the response. */
         while (pa_read_line(c->fd, response, sizeof(response), timeout) > 0) {
-            // Reduce timeout for future requests
+            /* Reduce timeout for future requests */
             timeout = 1000;
         }
         return 1;
     }
 
+    /* TODO: Move header reading into the headerlist. */
     header = NULL;
     buf = pa_strbuf_new();
     while (pa_read_line(c->fd, response, sizeof(response), timeout) > 0) {
-        // Reduce timeout for future requests
+        /* Reduce timeout for future requests */
         timeout = 1000;
 
-        // If the first character is a space, it's a continuation header
+        /* If the first character is a space, it's a continuation header */
         if (header && ' ' == response[0]) {
-            // Add this line to the buffer (sans the space.
+            /* Add this line to the buffer (sans the space. */
             pa_strbuf_puts(buf, &(response[1]));
             continue;
         }
 
         if (header) {
-            // This is not a continuation header so let's dump the full header/value into our proplist
+            /* This is not a continuation header so let's dump the full
+               header/value into our proplist */
             pa_headerlist_puts(*response_headers, header, pa_strbuf_tostring_free(buf));
             pa_xfree(header);
-            //header = NULL;
             buf = pa_strbuf_new();
         }
 
         delimpos = strstr(response, ":");
         if (!delimpos) {
-            //ERRMSG("%s: Request failed, bad header\n",__func__);
+            /*ERRMSG("%s: Request failed, bad header\n",__func__);*/
             return 0;
         }
 
         if (strlen(delimpos) > 1) {
-            // Cut our line off so we can copy the header name out
+            /* Cut our line off so we can copy the header name out */
             *delimpos++ = '\0';
 
-            // Trim the front of any spaces
+            /* Trim the front of any spaces */
             while (' ' == *delimpos)
                 ++delimpos;
 
             pa_strbuf_puts(buf, delimpos);
         } else {
-            // Cut our line off so we can copy the header name out
+            /* Cut our line off so we can copy the header name out */
             *delimpos = '\0';
         }
 
-        // Save the header name
+        /* Save the header name */
         header = pa_xstrdup(response);
     }
-    // We will have a header left from our looping itteration, so add it in :)
+    /* We will have a header left from our looping itteration, so add it in :) */
     if (header) {
-        // This is not a continuation header so let's dump it into our proplist
+        /* This is not a continuation header so let's dump it into our proplist */
         pa_headerlist_puts(*response_headers, header, pa_strbuf_tostring(buf));
     }
     pa_strbuf_free(buf);
@@ -266,7 +267,7 @@ pa_rtsp_context* pa_rtsp_context_new(const char* useragent) {
 }
 
 
-void pa_rtsp_context_destroy(pa_rtsp_context* c) {
+void pa_rtsp_context_free(pa_rtsp_context* c) {
     if (c) {
         pa_xfree(c->url);
         pa_xfree(c->session);
@@ -308,7 +309,7 @@ int pa_rtsp_connect(pa_rtsp_context *c, const char* hostname, uint16_t port, con
         return 0;
     }
 
-    // Q: is FD_CLOEXEC reqd?
+    /* Q: is FD_CLOEXEC reqd? */
     pa_make_fd_cloexec(c->fd);
     pa_make_tcp_socket_low_delay(c->fd);
 
@@ -395,7 +396,7 @@ int pa_rtsp_setup(pa_rtsp_context* c, pa_headerlist** response_headers) {
         return 0;
     }
 
-    // Now parse out the server port component of the response.
+    /* Now parse out the server port component of the response. */
     c->port = 0;
     delimiters[0] = ';';
     delimiters[1] = '\0';
@@ -411,7 +412,7 @@ int pa_rtsp_setup(pa_rtsp_context* c, pa_headerlist** response_headers) {
         pa_xfree(token);
     }
     if (0 == c->port) {
-        // Error no server_port in response
+        /* Error no server_port in response */
         pa_headerlist_free(rheaders);
         return 0;
     }
@@ -427,7 +428,7 @@ int pa_rtsp_record(pa_rtsp_context* c) {
 
     pa_assert(c);
     if (!c->session) {
-        // No seesion in progres
+        /* No seesion in progres */
         return 0;
     }
 

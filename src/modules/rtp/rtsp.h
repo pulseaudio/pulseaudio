@@ -48,7 +48,7 @@ typedef struct pa_rtsp_context {
 } pa_rtsp_context;
 
 pa_rtsp_context* pa_rtsp_context_new(const char* useragent);
-void pa_rtsp_context_destroy(pa_rtsp_context* c);
+void pa_rtsp_context_free(pa_rtsp_context* c);
 
 int pa_rtsp_connect(pa_rtsp_context* c, const char* hostname, uint16_t port, const char* sid);
 void pa_rtsp_disconnect(pa_rtsp_context* c);
