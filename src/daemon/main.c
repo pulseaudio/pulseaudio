@@ -469,7 +469,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     if (conf->high_priority && !pa_can_high_priority())
-        pa_log_warn("High-priority scheduling enabled in configuration but now allowed by policy.");
+        pa_log_warn("High-priority scheduling enabled in configuration but not allowed by policy.");
 
     if (conf->high_priority && conf->cmd == PA_CMD_DAEMON)
         pa_raise_priority(conf->nice_level);
@@ -511,7 +511,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (conf->realtime_scheduling && !pa_can_realtime())
-        pa_log_warn("Real-time scheduling enabled in configuration but now allowed by policy.");
+        pa_log_warn("Real-time scheduling enabled in configuration but not allowed by policy.");
 
     LTDL_SET_PRELOADED_SYMBOLS();
     pa_ltdl_init();
