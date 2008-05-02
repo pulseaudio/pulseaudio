@@ -428,6 +428,15 @@ finish:
 pa_bool_t pa_memblockq_prebuf_active(pa_memblockq *bq) {
     pa_assert(bq);
 
+    if (bq->in_prebuf)
+        return pa_memblockq_get_length(bq) < bq->prebuf;
+    else
+        return bq->prebuf > 0 && bq->read_index >= bq->write_index;
+}
+
+static pa_bool_t update_prebuf(pa_memblockq *bq) {
+    pa_assert(bq);
+
     if (bq->in_prebuf) {
 
         if (pa_memblockq_get_length(bq) < bq->prebuf)
@@ -452,7 +461,7 @@ int pa_memblockq_peek(pa_memblockq* bq, pa_memchunk *chunk) {
     pa_assert(chunk);
 
     /* We need to pre-buffer */
-    if (pa_memblockq_prebuf_active(bq))
+    if (update_prebuf(bq))
         return -1;
 
     fix_current_read(bq);
@@ -515,7 +524,7 @@ void pa_memblockq_drop(pa_memblockq *bq, size_t length) {
     while (length > 0) {
 
         /* Do not drop any data when we are in prebuffering mode */
-        if (pa_memblockq_prebuf_active(bq))
+        if (update_prebuf(bq))
             break;
 
         fix_current_read(bq);
