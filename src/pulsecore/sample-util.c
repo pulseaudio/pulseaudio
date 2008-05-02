@@ -1002,20 +1002,19 @@ pa_memchunk* pa_silence_memchunk_get(pa_silence_cache *cache, pa_mempool *pool, 
 }
 
 void pa_sample_clamp(pa_sample_format_t format, void *dst, size_t dstr, const void *src, size_t sstr, unsigned n) {
-
     const float *s;
     float *d;
 
-    if (format != PA_SAMPLE_FLOAT32BE && format != PA_SAMPLE_FLOAT32LE)
-        return;
-
-    s = src;
-    d = dst;
+    s = src; d = dst;
 
     if (format == PA_SAMPLE_FLOAT32NE) {
-        const static float minus_one = -1.0, plus_one = 1.0;
-        oil_clip_f32(dst, dstr, src, sstr, n, &minus_one, &plus_one);
-    } else
+
+        float minus_one = -1.0, plus_one = 1.0;
+        oil_clip_f32(d, dstr, s, sstr, n, &minus_one, &plus_one);
+
+    } else {
+        pa_assert(format == PA_SAMPLE_FLOAT32RE);
+
         for (; n > 0; n--) {
             float f;
 
@@ -1026,4 +1025,5 @@ void pa_sample_clamp(pa_sample_format_t format, void *dst, size_t dstr, const vo
             s = (const float*) ((const uint8_t*) s + sstr);
             d = (float*) ((uint8_t*) d + dstr);
         }
+    }
 }
