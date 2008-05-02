@@ -1149,7 +1149,7 @@ void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sam
 
         /* Make sure to not overwrite over underruns */
         if (!ignore_underruns)
-            if ((int64_t) nbytes > i->thread_info.playing_for)
+            if (nbytes > i->thread_info.playing_for)
                 nbytes = (size_t) i->thread_info.playing_for;
 
         i->thread_info.rewrite_nbytes = nbytes;
