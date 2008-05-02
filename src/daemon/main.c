@@ -493,7 +493,7 @@ int main(int argc, char *argv[]) {
                 else {
                     rl.rlim_max = rl.rlim_cur = 9;
 
-                    if (setrlimit(RLIMIT_RTPRIO, &rl) < 0) {
+                    if (setrlimit(RLIMIT_RTPRIO, &rl) >= 0) {
                         pa_log_info("Successfully increased RLIMIT_RTPRIO");
                         drop = TRUE;
                     } else
