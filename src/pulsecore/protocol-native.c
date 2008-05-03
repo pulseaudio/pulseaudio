@@ -1102,7 +1102,7 @@ static void send_record_stream_killed(record_stream *r) {
 static void handle_seek(playback_stream *s, int64_t indexw) {
     playback_stream_assert_ref(s);
 
-/*     pa_log("handle_seek: %llu -- %i", (unsigned long long) s->underrun, pa_memblockq_is_readable(s->memblockq)); */
+/*     pa_log("handle_seek: %llu -- %i", (unsigned long long) s->sink_input->thread_info.underrun_for, pa_memblockq_is_readable(s->memblockq)); */
 
     if (s->sink_input->thread_info.underrun_for > 0) {
 
@@ -1110,15 +1110,13 @@ static void handle_seek(playback_stream *s, int64_t indexw) {
 
         if (pa_memblockq_is_readable(s->memblockq)) {
 
-            size_t u = pa_memblockq_get_length(s->memblockq);
-
-            if (u >= s->sink_input->thread_info.underrun_for)
-                u = s->sink_input->thread_info.underrun_for;
-
             /* We just ended an underrun, let's ask the sink
-             * to rewrite */
+             * for a complete rewind rewrite */
 
-            pa_sink_input_request_rewind(s->sink_input, u, TRUE, TRUE);
+            pa_log_debug("Requesting rewind due to end of underrun.");
+            pa_sink_input_request_rewind(s->sink_input,
+                                         s->sink_input->thread_info.underrun_for == (size_t) -1 ? 0 : s->sink_input->thread_info.underrun_for,
+                                         TRUE, TRUE);
         }
 
     } else {
@@ -1126,11 +1124,13 @@ static void handle_seek(playback_stream *s, int64_t indexw) {
 
         indexr = pa_memblockq_get_read_index(s->memblockq);
 
-        if (indexw < indexr)
+        if (indexw < indexr) {
             /* OK, the sink already asked for this data, so
              * let's have it usk us again */
 
+            pa_log_debug("Requesting rewind due to rewrite.");
             pa_sink_input_request_rewind(s->sink_input, indexr - indexw, FALSE, FALSE);
+        }
     }
 
     request_bytes(s);
@@ -1162,9 +1162,9 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 
             pa_assert(chunk);
 
-/*             pa_log("sink input post: %lu", (unsigned long) chunk->length); */
-
             windex = pa_memblockq_get_write_index(s->memblockq);
+
+/*             pa_log("sink input post: %lu %lli", (unsigned long) chunk->length, (long long) windex); */
 
             if (pa_memblockq_push_align(s->memblockq, chunk) < 0) {
                 pa_log_warn("Failed to push data into queue");
@@ -1173,6 +1173,8 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
             }
 
             handle_seek(s, windex);
+
+/*             pa_log("sink input post2: %lu", (unsigned long) pa_memblockq_get_length(s->memblockq)); */
 
             return 0;
         }
@@ -1280,7 +1282,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 
     if (pa_memblockq_peek(s->memblockq, chunk) < 0) {
 
-/*         pa_log("UNDERRUN"); */
+/*         pa_log("UNDERRUN: %lu", pa_memblockq_get_length(s->memblockq)); */
 
         if (s->drain_request && pa_sink_input_safe_to_remove(i)) {
             s->drain_request = FALSE;
@@ -1288,7 +1290,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
         } else if (i->thread_info.playing_for > 0)
             pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_UNDERFLOW, NULL, 0, NULL, NULL);
 
-/*         pa_log("added %llu bytes, total is %llu", (unsigned long long) nbytes, (unsigned long long) s->underrun); */
+/*         pa_log("adding %llu bytes, total is %llu", (unsigned long long) nbytes, (unsigned long long) i->thread_info.underrun_for); */
 
         request_bytes(s);
 
