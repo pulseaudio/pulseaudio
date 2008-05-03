@@ -848,8 +848,10 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
     current fill level. Thus, let's do a full rewind once, to clear
     things up. */
 
-    if (u->hwbuf_unused_frames > before)
+    if (u->hwbuf_unused_frames > before) {
+        pa_log_debug("Requesting rewind due to latency change.");
         pa_sink_request_rewind(s, 0);
+    }
 }
 
 static int process_rewind(struct userdata *u) {
@@ -1310,6 +1312,8 @@ int pa__init(pa_module*m) {
                     suitable = FALSE;
 
                 } else if (snd_mixer_selem_get_playback_dB_range(u->mixer_elem, &u->hw_dB_min, &u->hw_dB_max) >= 0) {
+
+                    /* u->hw_dB_max = 0; u->hw_dB_min = -3000; Use this to make valgrind shut up */
 
                     pa_log_info("Volume ranges from %0.2f dB to %0.2f dB.", u->hw_dB_min/100.0, u->hw_dB_max/100.0);
 
