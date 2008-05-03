@@ -349,7 +349,8 @@ void pa_sink_input_unlink(pa_sink_input *i) {
     i->state = PA_SINK_INPUT_UNLINKED;
 
     if (linked)
-        pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_REMOVE_INPUT, i, 0, NULL);
+        if (i->sink->asyncmsgq)
+            pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_REMOVE_INPUT, i, 0, NULL);
 
     reset_callbacks(i);
 
@@ -639,7 +640,7 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
                 max_rewrite = pa_resampler_request(i->thread_info.resampler, max_rewrite);
 
             /* Calculate how much of the rewinded data should actually be rewritten */
-            amount = PA_MIN(max_rewrite, i->thread_info.rewrite_nbytes);
+            amount = PA_MIN(i->thread_info.rewrite_nbytes, max_rewrite);
 
             /* Convert back to to sink domain */
             r = i->thread_info.resampler ? pa_resampler_result(i->thread_info.resampler, amount) : amount;
@@ -648,17 +649,17 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
                 /* Ok, now update the write pointer */
                 pa_memblockq_seek(i->thread_info.render_memblockq, -r, PA_SEEK_RELATIVE);
 
-            if (amount) {
+            if (amount > 0) {
                 pa_log_debug("Have to rewind %lu bytes on implementor.", (unsigned long) amount);
 
                 /* Tell the implementor */
                 if (i->process_rewind)
                     i->process_rewind(i, amount);
-            }
 
-            /* And reset the resampler */
-            if (i->thread_info.resampler)
-                pa_resampler_reset(i->thread_info.resampler);
+                /* And reset the resampler */
+                if (i->thread_info.resampler)
+                    pa_resampler_reset(i->thread_info.resampler);
+            }
         }
 
         i->thread_info.rewrite_nbytes = 0;
