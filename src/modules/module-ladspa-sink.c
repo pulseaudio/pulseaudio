@@ -3,7 +3,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
+  Copyright 2004-2008 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -264,10 +264,11 @@ static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    pa_memblockq_set_maxrewind(u->memblockq, nbytes);
+    if (!u->sink)
+        return;
 
-    if (u->sink)
-        pa_sink_set_max_rewind(u->sink, nbytes);
+    pa_memblockq_set_maxrewind(u->memblockq, nbytes);
+    pa_sink_set_max_rewind(u->sink, nbytes);
 }
 
 /* Called from I/O thread context */
@@ -277,11 +278,12 @@ static void sink_input_detach_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (u->sink) {
-        pa_sink_detach_within_thread(u->sink);
-        pa_sink_set_asyncmsgq(u->sink, NULL);
-        pa_sink_set_rtpoll(u->sink, NULL);
-    }
+    if (!u->sink)
+        return;
+
+    pa_sink_detach_within_thread(u->sink);
+    pa_sink_set_asyncmsgq(u->sink, NULL);
+    pa_sink_set_rtpoll(u->sink, NULL);
 }
 
 /* Called from I/O thread context */
@@ -291,14 +293,15 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (u->sink) {
-        pa_sink_set_asyncmsgq(u->sink, i->sink->asyncmsgq);
-        pa_sink_set_rtpoll(u->sink, i->sink->rtpoll);
-        pa_sink_attach_within_thread(u->sink);
+    if (!u->sink)
+        return;
 
-        u->sink->max_latency = u->master->max_latency;
-        u->sink->min_latency = u->master->min_latency;
-    }
+    pa_sink_set_asyncmsgq(u->sink, i->sink->asyncmsgq);
+    pa_sink_set_rtpoll(u->sink, i->sink->rtpoll);
+    pa_sink_attach_within_thread(u->sink);
+
+    u->sink->max_latency = u->master->max_latency;
+    u->sink->min_latency = u->master->min_latency;
 }
 
 /* Called from main context */
@@ -663,6 +666,7 @@ int pa__init(pa_module*m) {
     z = pa_proplist_gets(master->proplist, PA_PROP_DEVICE_DESCRIPTION);
     pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "LADSPA Plugin %s on %s", label, z ? z : master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, master->name);
+    pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
     pa_proplist_sets(sink_data.proplist, "device.ladspa.module", plugin);
     pa_proplist_sets(sink_data.proplist, "device.ladspa.label", d->Label);
     pa_proplist_sets(sink_data.proplist, "device.ladspa.name", d->Name);
@@ -693,7 +697,7 @@ int pa__init(pa_module*m) {
     sink_input_data.module = m;
     sink_input_data.sink = u->master;
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "LADSPA Stream");
-    pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "routing");
+    pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "filter");
     pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
 
@@ -741,14 +745,14 @@ void pa__done(pa_module*m) {
     if (!(u = m->userdata))
         return;
 
-    if (u->sink_input) {
-        pa_sink_input_unlink(u->sink_input);
-        pa_sink_input_unref(u->sink_input);
-    }
-
     if (u->sink) {
         pa_sink_unlink(u->sink);
         pa_sink_unref(u->sink);
+    }
+
+    if (u->sink_input) {
+        pa_sink_input_unlink(u->sink_input);
+        pa_sink_input_unref(u->sink_input);
     }
 
     for (c = 0; c < u->channels; c++)
