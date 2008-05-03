@@ -273,12 +273,12 @@ void pa_source_output_unlink(pa_source_output*o) {
     if (pa_idxset_remove_by_data(o->source->outputs, o, NULL))
         pa_source_output_unref(o);
 
-    if (linked) {
-        pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL);
-        source_output_set_state(o, PA_SOURCE_OUTPUT_UNLINKED);
-        pa_source_update_status(o->source);
-    } else
-        o->state = PA_SOURCE_OUTPUT_UNLINKED;
+    update_n_corked(o, PA_SOURCE_OUTPUT_UNLINKED);
+    o->state = PA_SOURCE_OUTPUT_UNLINKED;
+
+    if (linked)
+        if (o->source->asyncmsgq)
+            pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL);
 
     reset_callbacks(o);
 
