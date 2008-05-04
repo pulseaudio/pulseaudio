@@ -55,12 +55,17 @@
  * if CR comes then following LF is expected
  * returned string in line is always null terminated, maxlen-1 is maximum string length
  */
-static int pa_read_line(int fd, char *line, int maxlen, int timeout)
+static int pa_read_line(pa_iochannel* io, char *line, int maxlen, int timeout)
 {
     int i, rval;
     int count;
+    int fd;
     char ch;
     struct pollfd pfds;
+
+    pa_assert(io);
+    fd = pa_iochannel_get_recv_fd(io);
+
     count = 0;
     *line = 0;
     pfds.events = POLLIN;
@@ -159,7 +164,7 @@ static int pa_rtsp_exec(pa_rtsp_context* c, const char* cmd,
 
     /* Our packet is created... now we can send it :) */
     hdrs = pa_strbuf_tostring_free(buf);
-    l = pa_write(c->fd, hdrs, strlen(hdrs), NULL);
+    l = pa_iochannel_write(c->io, hdrs, strlen(hdrs));
     pa_xfree(hdrs);
 
     /* Do we expect a response? */
@@ -167,7 +172,7 @@ static int pa_rtsp_exec(pa_rtsp_context* c, const char* cmd,
         return 1;
 
     timeout = 5000;
-    if (pa_read_line(c->fd, response, sizeof(response), timeout) <= 0) {
+    if (pa_read_line(c->io, response, sizeof(response), timeout) <= 0) {
         /*ERRMSG("%s: request failed\n",__func__);*/
         return 0;
     }
@@ -188,7 +193,7 @@ static int pa_rtsp_exec(pa_rtsp_context* c, const char* cmd,
     if (!response_headers)
     {
         /* We have no storage, so just clear out the response. */
-        while (pa_read_line(c->fd, response, sizeof(response), timeout) > 0) {
+        while (pa_read_line(c->io, response, sizeof(response), timeout) > 0) {
             /* Reduce timeout for future requests */
             timeout = 1000;
         }
@@ -198,7 +203,7 @@ static int pa_rtsp_exec(pa_rtsp_context* c, const char* cmd,
     /* TODO: Move header reading into the headerlist. */
     header = NULL;
     buf = pa_strbuf_new();
-    while (pa_read_line(c->fd, response, sizeof(response), timeout) > 0) {
+    while (pa_read_line(c->io, response, sizeof(response), timeout) > 0) {
         /* Reduce timeout for future requests */
         timeout = 1000;
 
@@ -255,7 +260,6 @@ pa_rtsp_context* pa_rtsp_context_new(const char* useragent) {
     pa_rtsp_context *c;
 
     c = pa_xnew0(pa_rtsp_context, 1);
-    c->fd = -1;
     c->headers = pa_headerlist_new();
 
     if (useragent)
@@ -269,7 +273,11 @@ pa_rtsp_context* pa_rtsp_context_new(const char* useragent) {
 
 void pa_rtsp_context_free(pa_rtsp_context* c) {
     if (c) {
+        if (c->sc)
+            pa_socket_client_unref(c->sc);
+
         pa_xfree(c->url);
+        pa_xfree(c->localip);
         pa_xfree(c->session);
         pa_xfree(c->transport);
         pa_headerlist_free(c->headers);
@@ -278,63 +286,57 @@ void pa_rtsp_context_free(pa_rtsp_context* c) {
 }
 
 
-int pa_rtsp_connect(pa_rtsp_context *c, const char* hostname, uint16_t port, const char* sid) {
-    struct sockaddr_in sa;
-    struct sockaddr_in name;
-    socklen_t namelen = sizeof(name);
-    struct hostent *host = NULL;
-    int r;
 
+static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata) {
+    pa_rtsp_context *c = userdata;
+    union {
+        struct sockaddr sa;
+        struct sockaddr_in in;
+        struct sockaddr_in6 in6;
+    } sa;
+    socklen_t sa_len = sizeof(sa);
+
+    pa_assert(sc);
     pa_assert(c);
+    pa_assert(c->sc == sc);
+
+    pa_socket_client_unref(c->sc);
+    c->sc = NULL;
+
+    if (!io) {
+        pa_log("Connection failed: %s", pa_cstrerror(errno));
+        return;
+    }
+    pa_assert(!c->io);
+    c->io = io;
+
+    /* Get the local IP address for use externally */
+    if (0 == getsockname(pa_iochannel_get_recv_fd(io), &sa.sa, &sa_len)) {
+        char buf[INET6_ADDRSTRLEN];
+        const char *res = NULL;
+
+        if (AF_INET == sa.sa.sa_family) {
+            res = inet_ntop(sa.sa.sa_family, &sa.in.sin_addr, buf, sizeof(buf));
+        } else if (AF_INET6 == sa.sa.sa_family) {
+            res = inet_ntop(AF_INET6, &sa.in6.sin6_addr, buf, sizeof(buf));
+        }
+        if (res)
+          c->localip = pa_xstrdup(res);
+    }
+}
+
+int pa_rtsp_connect(pa_rtsp_context *c, pa_mainloop_api *mainloop, const char* hostname, uint16_t port) {
+    pa_assert(c);
+    pa_assert(mainloop);
     pa_assert(hostname);
     pa_assert(port > 0);
-    pa_assert(sid);
 
-    memset(&sa, 0, sizeof(sa));
-    sa.sin_family = AF_INET;
-    sa.sin_port = htons(port);
-
-    host = gethostbyname(hostname);
-    if (!host) {
-        unsigned int addr = inet_addr(hostname);
-        if (addr != INADDR_NONE)
-            host = gethostbyaddr((char*)&addr, 4, AF_INET);
-        if (!host)
-            return 0;
-    }
-    memcpy(&sa.sin_addr, host->h_addr, sizeof(struct in_addr));
-
-    if ((c->fd = socket(sa.sin_family, SOCK_STREAM, 0)) < 0) {
-        pa_log("socket(): %s", pa_cstrerror(errno));
+    if (!(c->sc = pa_socket_client_new_string(mainloop, hostname, port))) {
+        pa_log("failed to connect to server '%s:%d'", hostname, port);
         return 0;
     }
 
-    /* Q: is FD_CLOEXEC reqd? */
-    pa_make_fd_cloexec(c->fd);
-    pa_make_tcp_socket_low_delay(c->fd);
-
-    if ((r = connect(c->fd, &sa, sizeof(struct sockaddr_in))) < 0) {
-#ifdef OS_IS_WIN32
-        if (WSAGetLastError() != EWOULDBLOCK) {
-            pa_log_debug("connect(): %d", WSAGetLastError());
-#else
-        if (errno != EINPROGRESS) {
-            pa_log_debug("connect(): %s (%d)", pa_cstrerror(errno), errno);
-#endif
-            pa_close(c->fd);
-            c->fd = -1;
-            return 0;
-        }
-    }
-
-    if (0 != getsockname(c->fd, (struct sockaddr*)&name, &namelen)) {
-        pa_close(c->fd);
-        c->fd = -1;
-        return 0;
-    }
-    memcpy(&c->local_addr, &name.sin_addr, sizeof(struct in_addr));
-    c->url = pa_sprintf_malloc("rtsp://%s/%s", inet_ntoa(name.sin_addr), sid);
-
+    pa_socket_client_set_callback(c->sc, on_connection, c);
     return 1;
 }
 
@@ -342,21 +344,24 @@ int pa_rtsp_connect(pa_rtsp_context *c, const char* hostname, uint16_t port, con
 void pa_rtsp_disconnect(pa_rtsp_context *c) {
     pa_assert(c);
 
-    if (c->fd < 0)
-      return;
-    pa_close(c->fd);
-    c->fd = -1;
+    if (c->io)
+        pa_iochannel_free(c->io);
+    c->io = NULL;
 }
 
 
 const char* pa_rtsp_localip(pa_rtsp_context* c) {
     pa_assert(c);
 
-    if (c->fd < 0)
-        return NULL;
-    return inet_ntoa(c->local_addr);
+    return c->localip;
 }
 
+
+void pa_rtsp_set_url(pa_rtsp_context* c, const char* url) {
+    pa_assert(c);
+
+    c->url = pa_xstrdup(url);
+}
 
 int pa_rtsp_announce(pa_rtsp_context *c, const char* sdp) {
     pa_assert(c);

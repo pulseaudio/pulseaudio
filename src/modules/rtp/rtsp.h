@@ -32,28 +32,31 @@
 #include <pulsecore/memblockq.h>
 #include <pulsecore/memchunk.h>
 #include <pulsecore/socket-client.h>
+#include <pulse/mainloop-api.h>
 
 #include "headerlist.h"
 
 typedef struct pa_rtsp_context {
-    int fd;
+    pa_socket_client *sc;
+    pa_iochannel *io;
     const char* useragent;
     pa_headerlist* headers;
+    char* localip;
     char* url;
     uint32_t port;
     uint32_t cseq;
     char* session;
     char* transport;
-    struct in_addr local_addr;
 } pa_rtsp_context;
 
 pa_rtsp_context* pa_rtsp_context_new(const char* useragent);
 void pa_rtsp_context_free(pa_rtsp_context* c);
 
-int pa_rtsp_connect(pa_rtsp_context* c, const char* hostname, uint16_t port, const char* sid);
+int pa_rtsp_connect(pa_rtsp_context* c, pa_mainloop_api *mainloop, const char* hostname, uint16_t port);
 void pa_rtsp_disconnect(pa_rtsp_context* c);
 
 const char* pa_rtsp_localip(pa_rtsp_context* c);
+void pa_rtsp_set_url(pa_rtsp_context* c, const char* url);
 int pa_rtsp_announce(pa_rtsp_context* c, const char* sdp);
 
 int pa_rtsp_setup(pa_rtsp_context* c, pa_headerlist** response_headers);
