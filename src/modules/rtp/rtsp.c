@@ -129,7 +129,7 @@ static int pa_rtsp_exec(pa_rtsp_context* c, const char* cmd,
     pa_assert(c->url);
 
     if (!cmd)
-        return 0;
+        return -1;
 
     buf = pa_strbuf_new();
     pa_strbuf_printf(buf, "%s %s RTSP/1.0\r\nCSeq: %d\r\n", cmd, c->url, ++c->cseq);
@@ -169,12 +169,12 @@ static int pa_rtsp_exec(pa_rtsp_context* c, const char* cmd,
 
     /* Do we expect a response? */
     if (!expect_response)
-        return 1;
+        return 0;
 
     timeout = 5000;
     if (pa_read_line(c->io, response, sizeof(response), timeout) <= 0) {
         /*ERRMSG("%s: request failed\n",__func__);*/
-        return 0;
+        return -1;
     }
 
     delimiters[0] = ' ';
@@ -185,7 +185,7 @@ static int pa_rtsp_exec(pa_rtsp_context* c, const char* cmd,
     if (!token || strcmp(token, "200")) {
         pa_xfree(token);
         /*ERRMSG("%s: request failed, error %s\n",__func__,token);*/
-        return 0;
+        return -1;
     }
     pa_xfree(token);
 
@@ -197,7 +197,7 @@ static int pa_rtsp_exec(pa_rtsp_context* c, const char* cmd,
             /* Reduce timeout for future requests */
             timeout = 1000;
         }
-        return 1;
+        return 0;
     }
 
     /* TODO: Move header reading into the headerlist. */
@@ -225,7 +225,7 @@ static int pa_rtsp_exec(pa_rtsp_context* c, const char* cmd,
         delimpos = strstr(response, ":");
         if (!delimpos) {
             /*ERRMSG("%s: Request failed, bad header\n",__func__);*/
-            return 0;
+            return -1;
         }
 
         if (strlen(delimpos) > 1) {
@@ -252,7 +252,7 @@ static int pa_rtsp_exec(pa_rtsp_context* c, const char* cmd,
     }
     pa_strbuf_free(buf);
 
-    return 1;
+    return 0;
 }
 
 
@@ -333,11 +333,11 @@ int pa_rtsp_connect(pa_rtsp_context *c, pa_mainloop_api *mainloop, const char* h
 
     if (!(c->sc = pa_socket_client_new_string(mainloop, hostname, port))) {
         pa_log("failed to connect to server '%s:%d'", hostname, port);
-        return 0;
+        return -1;
     }
 
     pa_socket_client_set_callback(c->sc, on_connection, c);
-    return 1;
+    return 0;
 }
 
 
@@ -366,7 +366,7 @@ void pa_rtsp_set_url(pa_rtsp_context* c, const char* url) {
 int pa_rtsp_announce(pa_rtsp_context *c, const char* sdp) {
     pa_assert(c);
     if (!sdp)
-        return 0;
+        return -1;
 
     return pa_rtsp_exec(c, "ANNOUNCE", "application/sdp", sdp, 1, NULL, NULL);
 }
@@ -386,10 +386,10 @@ int pa_rtsp_setup(pa_rtsp_context* c, pa_headerlist** response_headers) {
     rheaders = pa_headerlist_new();
     pa_headerlist_puts(headers, "Transport", "RTP/AVP/TCP;unicast;interleaved=0-1;mode=record");
 
-    if (!pa_rtsp_exec(c, "SETUP", NULL, NULL, 1, headers, &rheaders)) {
+    if (pa_rtsp_exec(c, "SETUP", NULL, NULL, 1, headers, &rheaders)) {
         pa_headerlist_free(headers);
         pa_headerlist_free(rheaders);
-        return 0;
+        return -1;
     }
     pa_headerlist_free(headers);
 
@@ -398,7 +398,7 @@ int pa_rtsp_setup(pa_rtsp_context* c, pa_headerlist** response_headers) {
 
     if (!c->session || !c->transport) {
         pa_headerlist_free(rheaders);
-        return 0;
+        return -1;
     }
 
     /* Now parse out the server port component of the response. */
@@ -419,11 +419,11 @@ int pa_rtsp_setup(pa_rtsp_context* c, pa_headerlist** response_headers) {
     if (0 == c->port) {
         /* Error no server_port in response */
         pa_headerlist_free(rheaders);
-        return 0;
+        return -1;
     }
 
     *response_headers = rheaders;
-    return 1;
+    return 0;
 }
 
 
@@ -434,7 +434,7 @@ int pa_rtsp_record(pa_rtsp_context* c) {
     pa_assert(c);
     if (!c->session) {
         /* No seesion in progres */
-        return 0;
+        return -1;
     }
 
     headers = pa_headerlist_new();
@@ -457,7 +457,7 @@ int pa_rtsp_teardown(pa_rtsp_context *c) {
 int pa_rtsp_setparameter(pa_rtsp_context *c, const char* param) {
     pa_assert(c);
     if (!param)
-        return 0;
+        return -1;
 
     return pa_rtsp_exec(c, "SET_PARAMETER", "text/parameters", param, 1, NULL, NULL);
 }
