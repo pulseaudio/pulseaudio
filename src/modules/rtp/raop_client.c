@@ -92,6 +92,58 @@ struct pa_raop_client {
     void* userdata;
 };
 
+/**
+ * Function to write bits into a buffer.
+ * @param buffer Handle to the buffer. It will be incremented if new data requires it.
+ * @param bit_pos A pointer to a position buffer to keep track the current write location (0 for MSB, 7 for LSB)
+ * @param size A pointer to the byte size currently written. This allows the calling function to do simple buffer overflow checks
+ * @param data The data to write
+ * @param data_bit_len The number of bits from data to write
+ */
+static inline void bit_writer(uint8_t **buffer, uint8_t *bit_pos, int *size, uint8_t data, uint8_t data_bit_len) {
+    int bits_left, bit_overflow;
+    uint8_t bit_data;
+
+    if (!data_bit_len)
+        return;
+
+    /* If bit pos is zero, we will definatly use at least one bit from the current byte so size increments. */
+    if (!*bit_pos)
+        *size = 1;
+
+    /* Calc the number of bits left in the current byte of buffer */
+    bits_left = 7 - *bit_pos  + 1;
+    /* Calc the overflow of bits in relation to how much space we have left... */
+    bit_overflow = bits_left - data_bit_len;
+    if (bit_overflow >= 0) {
+        /* We can fit the new data in our current byte */
+        /* As we write from MSB->LSB we need to left shift by the overflow amount */
+        bit_data = data << bit_overflow;
+        if (*bit_pos)
+            **buffer |= bit_data;
+        else
+            **buffer = bit_data;
+        /* If our data fits exactly into the current byte, we need to increment our pointer */
+        if (0 == bit_overflow) {
+            /* Do not increment size as it will be incremeneted on next call as bit_pos is zero */
+            *buffer += 1;
+            *bit_pos = 0;
+        } else {
+            *bit_pos += data_bit_len;
+        }
+    } else {
+        /* bit_overflow is negative, there for we will need a new byte from our buffer */
+        /* Firstly fill up what's left in the current byte */
+        bit_data = data >> -bit_overflow;
+        **buffer |= bit_data;
+        /* Increment our buffer pointer and size counter*/
+        *buffer += 1;
+        *size += 1;
+        **buffer = data << (8 + bit_overflow);
+        *bit_pos = -bit_overflow;
+    }
+}
+
 static int rsa_encrypt(uint8_t *text, int len, uint8_t *res) {
     char n[] =
         "59dE8qLieItsH1WgjrcFRKj6eUWqi+bGLOX1HL3U3GhC/j0Qg90u3sG/1CUtwC"
