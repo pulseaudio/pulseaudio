@@ -33,6 +33,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <pulse/xmalloc.h>
+
 #include "base64.h"
 
 static char base64_chars[] =
@@ -54,9 +56,7 @@ int pa_base64_encode(const void *data, int size, char **str)
     int c;
     const unsigned char *q;
 
-    p = s = (char *) malloc(size * 4 / 3 + 4);
-    if (p == NULL)
-        return -1;
+    p = s = pa_xnew(char, size * 4 / 3 + 4);
     q = (const unsigned char *) data;
     i = 0;
     for (i = 0; i < size;) {
