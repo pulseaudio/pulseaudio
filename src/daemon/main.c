@@ -465,6 +465,13 @@ int main(int argc, char *argv[]) {
     }
 
 #ifdef HAVE_SYS_RESOURCE_H
+    /* Reset resource limits. If we are run as root (for system mode)
+     * this might end up increasing the limits, which is intended
+     * behaviour. For all other cases, i.e. started as normal user, or
+     * SUID root at this point we should have no CAP_SYS_RESOURCE and
+     * increasing the limits thus should fail. Which is, too, intended
+     * behaviour */
+
     set_all_rlimits(conf);
 #endif
 
