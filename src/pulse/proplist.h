@@ -38,7 +38,7 @@ PA_C_DECL_BEGIN
  *    media.filename
  *    media.icon
  *    media.icon_name
- *    media.role                    video, music, game, event, phone, production, routing, abstract
+ *    media.role                    video, music, game, event, phone, production, filter, abstract
  *    event.id                      button-click, session-login
  *    event.x11.display
  *    event.x11.xid
@@ -60,7 +60,7 @@ PA_C_DECL_BEGIN
  *    device.bus_path
  *    device.serial
  *    device.vendor_product_id
- *    device.class                   sound, modem, monitor
+ *    device.class                   sound, modem, monitor, filter
  *    device.form_factor             laptop-speakers, external-speakers, telephone, tv-capture, webcam-capture, microphone-capture, headset
  *    device.connector               isa, pci, usb, firewire, bluetooth
  *    device.access_mode             mmap, mmap_rewrite, serial
