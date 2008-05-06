@@ -36,11 +36,6 @@
 #include <limits.h>
 #include <sys/ioctl.h>
 #include <poll.h>
-#include <openssl/err.h>
-#include <openssl/rand.h>
-#include <openssl/aes.h>
-#include <openssl/rsa.h>
-#include <openssl/engine.h>
 
 #include <pulse/xmalloc.h>
 
@@ -58,8 +53,7 @@
 #include "rtp.h"
 #include "sdp.h"
 #include "sap.h"
-#include "rtsp.h"
-#include "base64.h"
+#include "raop_client.h"
 
 
 #include "module-raop-sink-symdef.h"
@@ -88,7 +82,6 @@ PA_MODULE_USAGE(
         "channel_map=<channel map>");
 
 #define DEFAULT_SINK_NAME "airtunes"
-#define AES_CHUNKSIZE 16
 
 struct userdata {
     pa_core *core;
@@ -101,13 +94,7 @@ struct userdata {
 
     char *server_name;
 
-    // Encryption Related bits
-    AES_KEY aes;
-    uint8_t aes_iv[AES_CHUNKSIZE]; // initialization vector for aes-cbc
-    uint8_t aes_nv[AES_CHUNKSIZE]; // next vector for aes-cbc
-    uint8_t aes_key[AES_CHUNKSIZE]; // key for aes-cbc
-
-    pa_rtsp_context *rtsp;
+    pa_raop_client *raop;
     //pa_socket_client *client;
     pa_memchunk memchunk;
 
@@ -123,51 +110,6 @@ static const char* const valid_modargs[] = {
     "channel_map",
     NULL
 };
-
-static int rsa_encrypt(uint8_t *text, int len, uint8_t *res) {
-    char n[] =
-        "59dE8qLieItsH1WgjrcFRKj6eUWqi+bGLOX1HL3U3GhC/j0Qg90u3sG/1CUtwC"
-        "5vOYvfDmFI6oSFXi5ELabWJmT2dKHzBJKa3k9ok+8t9ucRqMd6DZHJ2YCCLlDR"
-        "KSKv6kDqnw4UwPdpOMXziC/AMj3Z/lUVX1G7WSHCAWKf1zNS1eLvqr+boEjXuB"
-        "OitnZ/bDzPHrTOZz0Dew0uowxf/+sG+NCK3eQJVxqcaJ/vEHKIVd2M+5qL71yJ"
-        "Q+87X6oV3eaYvt3zWZYD6z5vYTcrtij2VZ9Zmni/UAaHqn9JdsBWLUEpVviYnh"
-        "imNVvYFZeCXg/IdTQ+x4IRdiXNv5hEew==";
-    char e[] = "AQAB";
-    uint8_t modules[256];
-    uint8_t exponent[8];
-    int size;
-    RSA *rsa;
-
-    rsa = RSA_new();
-    size = pa_base64_decode(n, modules);
-    rsa->n = BN_bin2bn(modules, size, NULL);
-    size = pa_base64_decode(e, exponent);
-    rsa->e = BN_bin2bn(exponent, size, NULL);
-
-    size = RSA_public_encrypt(len, text, res, rsa, RSA_PKCS1_OAEP_PADDING);
-    RSA_free(rsa);
-    return size;
-}
-
-static int aes_encrypt(struct userdata *u, uint8_t *data, int size)
-{
-    uint8_t *buf;
-    int i=0, j;
-
-    pa_assert(u);
-
-    memcpy(u->aes_nv, u->aes_iv, AES_CHUNKSIZE);
-    while (i+AES_CHUNKSIZE <= size) {
-        buf = data + i;
-        for (j=0; j<AES_CHUNKSIZE; ++j)
-            buf[j] ^= u->aes_nv[j];
-
-        AES_encrypt(buf, buf, &u->aes);
-        memcpy(u->aes_nv, buf, AES_CHUNKSIZE);
-        i += AES_CHUNKSIZE;
-    }
-    return i;
-}
 
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
@@ -306,13 +248,6 @@ int pa__init(pa_module*m) {
     u->core = m->core;
     u->module = m;
     m->userdata = u;
-
-    // Initialise the AES encryption system
-    pa_random_seed();
-    pa_random(u->aes_iv, sizeof(u->aes_iv));
-    pa_random(u->aes_key, sizeof(u->aes_key));
-    memcpy(u->aes_nv, u->aes_iv, sizeof(u->aes_nv));
-    AES_set_encrypt_key(u->aes_key, 128, &u->aes);
 
     pa_memchunk_reset(&u->memchunk);
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
