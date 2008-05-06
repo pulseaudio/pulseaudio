@@ -73,10 +73,10 @@
 
 
 struct pa_raop_client {
-    pa_rtsp_context *rtsp;
-    pa_socket_client *sc;
+    pa_mainloop_api *mainloop;
     const char *host;
     char *sid;
+    pa_rtsp_context *rtsp;
 
     uint8_t jack_type;
     uint8_t jack_status;
@@ -87,9 +87,13 @@ struct pa_raop_client {
     uint8_t aes_nv[AES_CHUNKSIZE]; /* next vector for aes-cbc */
     uint8_t aes_key[AES_CHUNKSIZE]; /* key for aes-cbc */
 
+    pa_socket_client *sc;
     pa_iochannel *io;
     pa_iochannel_cb_t callback;
     void* userdata;
+
+    uint8_t *buffer;
+    /*pa_memchunk memchunk;*/
 };
 
 /**
@@ -219,6 +223,25 @@ static int remove_char_from_string(char *str, char rc)
   return num;
 }
 
+static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata) {
+    pa_raop_client *c = userdata;
+
+    pa_assert(sc);
+    pa_assert(c);
+    pa_assert(c->sc == sc);
+
+    pa_socket_client_unref(c->sc);
+    c->sc = NULL;
+
+    if (!io) {
+        pa_log("Connection failed: %s", pa_cstrerror(errno));
+        return;
+    }
+    pa_assert(!c->io);
+    c->io = io;
+    pa_iochannel_set_callback(c->io, c->callback, c->userdata);
+}
+
 static void rtsp_cb(pa_rtsp_context *rtsp, pa_rtsp_state state, pa_headerlist* headers, void *userdata)
 {
     pa_raop_client* c = userdata;
@@ -235,6 +258,7 @@ static void rtsp_cb(pa_rtsp_context *rtsp, pa_rtsp_state state, pa_headerlist* h
             const char *ip;
             char *url;
 
+            pa_log_debug("RAOP: CONNECTED");
             ip = pa_rtsp_localip(c->rtsp);
             /* First of all set the url properly */
             url = pa_sprintf_malloc("rtsp://%s/%s", ip, c->sid);
@@ -273,12 +297,14 @@ static void rtsp_cb(pa_rtsp_context *rtsp, pa_rtsp_state state, pa_headerlist* h
         }
 
         case STATE_ANNOUNCE:
+            pa_log_debug("RAOP: ANNOUNCED");
             pa_rtsp_remove_header(c->rtsp, "Apple-Challenge");
             pa_rtsp_setup(c->rtsp);
             break;
 
         case STATE_SETUP: {
             char *aj = pa_xstrdup(pa_headerlist_gets(headers, "Audio-Jack-Status"));
+            pa_log_debug("RAOP: SETUP");
             if (aj) {
                 char *token, *pc;
                 char delimiters[] = ";";
@@ -299,17 +325,24 @@ static void rtsp_cb(pa_rtsp_context *rtsp, pa_rtsp_state state, pa_headerlist* h
                     pa_xfree(token);
                 }
                 pa_xfree(aj);
-                pa_rtsp_record(c->rtsp);
             } else {
-                pa_log("Audio Jack Status missing");
+                pa_log_warn("Audio Jack Status missing");
             }
+            pa_rtsp_record(c->rtsp);
             break;
         }
 
-        case STATE_RECORD:
-            /* Connect to the actual stream ;) */
-            /* if(raopcl_stream_connect(raopcld)) goto erexit; */
+        case STATE_RECORD: {
+            uint32_t port = pa_rtsp_serverport(c->rtsp);
+            pa_log_debug("RAOP: RECORDED");
+
+            if (!(c->sc = pa_socket_client_new_string(c->mainloop, c->host, port))) {
+                pa_log("failed to connect to server '%s:%d'", c->host, port);
+                return;
+            }
+            pa_socket_client_set_callback(c->sc, on_connection, c);
             break;
+        }
 
         case STATE_TEARDOWN:
         case STATE_SET_PARAMETER:
@@ -330,6 +363,7 @@ int pa_raop_client_connect(pa_raop_client* c, pa_mainloop_api *mainloop, const c
     pa_assert(c);
     pa_assert(host);
 
+    c->mainloop = mainloop;
     c->host = host;
     c->rtsp = pa_rtsp_context_new("iTunes/4.6 (Macintosh; U; PPC Mac OS X 10.3)");
 
@@ -356,5 +390,40 @@ void pa_raop_client_disconnect(pa_raop_client* c)
 
 void pa_raop_client_send_sample(pa_raop_client* c, const uint8_t* buffer, unsigned int count)
 {
+    ssize_t l;
+    uint16_t len;
+    static uint8_t header[] = {
+        0x24, 0x00, 0x00, 0x00,
+        0xF0, 0xFF, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00,
+    };
+    const int header_size = sizeof(header);
 
+    pa_assert(c);
+    pa_assert(buffer);
+    pa_assert(count > 0);
+
+    c->buffer = pa_xrealloc(c->buffer, (count + header_size + 16));
+    memcpy(c->buffer, header, header_size);
+    len = count + header_size - 4;
+
+    /* store the lenght (endian swapped: make this better) */
+    *(c->buffer + 2) = len >> 8;
+    *(c->buffer + 3) = len & 0xff;
+
+    memcpy((c->buffer+header_size), buffer, count);
+    aes_encrypt(c, (c->buffer + header_size), count);
+    len = header_size + count;
+
+    /* TODO: move this into a memchunk/memblock and write only in callback */
+    l = pa_iochannel_write(c->io, c->buffer, len);
+}
+
+void pa_raop_client_set_callback(pa_raop_client* c, pa_iochannel_cb_t callback, void *userdata)
+{
+    pa_assert(c);
+
+    c->callback = callback;
+    c->userdata = userdata;
 }

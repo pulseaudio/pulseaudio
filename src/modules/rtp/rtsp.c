@@ -172,6 +172,8 @@ static int pa_rtsp_exec(pa_rtsp_context* c, const char* cmd,
 
     /* Our packet is created... now we can send it :) */
     hdrs = pa_strbuf_tostring_free(buf);
+    pa_log_debug("Submitting request:");
+    pa_log_debug(hdrs);
     l = pa_iochannel_write(c->io, hdrs, strlen(hdrs));
     pa_xfree(hdrs);
 
@@ -220,15 +222,22 @@ static void io_callback(PA_GCC_UNUSED pa_iochannel *io, void *userdata) {
     char delimiters[] = " ";
     pa_rtsp_context *c = userdata;
     pa_assert(c);
+    pa_assert(c->io == io);
+
+    if (!pa_iochannel_is_readable(c->io)) {
+        if (STATE_SETUP == c->state || STATE_ANNOUNCE == c->state) return;
+        goto do_callback;
+    }
 
     /* TODO: convert this to a pa_ioline based reader */
-    if (STATE_CONNECT == c->state) {
+    if (STATE_SETUP == c->state || STATE_ANNOUNCE == c->state) {
         response_headers = pa_headerlist_new();
     }
     timeout = 5000;
     /* read in any response headers */
     if (pa_read_line(c->io, response, sizeof(response), timeout) > 0) {
         const char* token_state = NULL;
+        pa_log_debug("Response Line: %s", response);
 
         timeout = 1000;
         pa_xfree(pa_split(response, delimiters, &token_state));
@@ -244,12 +253,15 @@ static void io_callback(PA_GCC_UNUSED pa_iochannel *io, void *userdata) {
         /* We want to return the headers? */
         if (!response_headers) {
             /* We have no storage, so just clear out the response. */
-            while (pa_read_line(c->io, response, sizeof(response), timeout) > 0);
+            while (pa_read_line(c->io, response, sizeof(response), timeout) > 0){
+                pa_log_debug("Response Line: %s", response);
+            }
         } else {
             /* TODO: Move header reading into the headerlist. */
             header = NULL;
             buf = pa_strbuf_new();
             while (pa_read_line(c->io, response, sizeof(response), timeout) > 0) {
+                pa_log_debug("Response Line: %s", response);
                 /* If the first character is a space, it's a continuation header */
                 if (header && ' ' == response[0]) {
                     /* Add this line to the buffer (sans the space. */
@@ -297,8 +309,8 @@ static void io_callback(PA_GCC_UNUSED pa_iochannel *io, void *userdata) {
         }
     }
 
-    /* Deal with a CONNECT response */
-    if (STATE_CONNECT == c->state) {
+    /* Deal with a SETUP response */
+    if (STATE_SETUP == c->state) {
         const char* token_state = NULL;
         const char* pc = NULL;
         c->session = pa_xstrdup(pa_headerlist_gets(response_headers, "Session"));
@@ -330,6 +342,7 @@ static void io_callback(PA_GCC_UNUSED pa_iochannel *io, void *userdata) {
     }
 
     /* Call our callback */
+do_callback:
     if (c->callback)
         c->callback(c, c->state, response_headers, c->userdata);
 
@@ -387,6 +400,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
         if (res)
             c->localip = pa_xstrdup(res);
     }
+    pa_log_debug("Established RTSP connection from local ip %s", c->localip);
 }
 
 int pa_rtsp_connect(pa_rtsp_context *c, pa_mainloop_api *mainloop, const char* hostname, uint16_t port) {
