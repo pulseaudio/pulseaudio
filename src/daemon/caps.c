@@ -85,31 +85,21 @@ void pa_drop_root(void) {
 #if defined(HAVE_SYS_CAPABILITY_H) && defined(HAVE_SYS_PRCTL_H)
 
 /* Limit permitted capabilities set to CAPSYS_NICE */
-int pa_limit_caps(void) {
-    int r = -1;
+void pa_limit_caps(void) {
     cap_t caps;
     cap_value_t nice_cap = CAP_SYS_NICE;
 
     pa_assert_se(caps = cap_init());
+    pa_assert_se(cap_clear(caps) == 0);
+    pa_assert_se(cap_set_flag(caps, CAP_EFFECTIVE, 1, &nice_cap, CAP_SET) == 0);
+    pa_assert_se(cap_set_flag(caps, CAP_PERMITTED, 1, &nice_cap, CAP_SET) == 0);
+    pa_assert_se(cap_set_proc(caps) == 0);
 
-    cap_clear(caps);
-    cap_set_flag(caps, CAP_EFFECTIVE, 1, &nice_cap, CAP_SET);
-    cap_set_flag(caps, CAP_PERMITTED, 1, &nice_cap, CAP_SET);
-
-    if (cap_set_proc(caps) < 0)
-        goto fail;
-
-    if (prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) < 0)
-        goto fail;
+    pa_assert_se(prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) == 0);
 
     pa_log_info("Dropped capabilities successfully.");
 
-    r = 1;
-
-fail:
-    cap_free(caps);
-
-    return r;
+    pa_assert_se(cap_free(caps) == 0);
 }
 
 /* Drop all capabilities, effectively becoming a normal user */
@@ -119,9 +109,9 @@ void pa_drop_caps(void) {
     pa_assert_se(prctl(PR_SET_KEEPCAPS, 0, 0, 0, 0) == 0);
 
     pa_assert_se(caps = cap_init());
-    cap_clear(caps);
+    pa_assert_se(cap_clear(caps) == 0);
     pa_assert_se(cap_set_proc(caps) == 0);
-    cap_free(caps);
+    pa_assert_se(cap_free(caps) == 0);
 }
 
 #else
