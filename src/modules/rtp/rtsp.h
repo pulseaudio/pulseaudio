@@ -36,30 +36,35 @@
 
 #include "headerlist.h"
 
-typedef struct pa_rtsp_context {
-    pa_socket_client *sc;
-    pa_iochannel *io;
-    const char* useragent;
-    pa_headerlist* headers;
-    char* localip;
-    char* url;
-    uint32_t port;
-    uint32_t cseq;
-    char* session;
-    char* transport;
-} pa_rtsp_context;
+typedef struct pa_rtsp_context pa_rtsp_context;
+typedef enum {
+  STATE_CONNECT,
+  STATE_ANNOUNCE,
+  STATE_SETUP,
+  STATE_RECORD,
+  STATE_TEARDOWN,
+  STATE_SET_PARAMETER,
+  STATE_FLUSH
+} pa_rtsp_state;
+typedef void (*pa_rtsp_cb_t)(pa_rtsp_context *c, pa_rtsp_state state, pa_headerlist* hl, void *userdata);
 
 pa_rtsp_context* pa_rtsp_context_new(const char* useragent);
 void pa_rtsp_context_free(pa_rtsp_context* c);
 
 int pa_rtsp_connect(pa_rtsp_context* c, pa_mainloop_api *mainloop, const char* hostname, uint16_t port);
+void pa_rtsp_set_callback(pa_rtsp_context *c, pa_rtsp_cb_t callback, void *userdata);
+
 void pa_rtsp_disconnect(pa_rtsp_context* c);
 
 const char* pa_rtsp_localip(pa_rtsp_context* c);
+uint32_t pa_rtsp_serverport(pa_rtsp_context* c);
 void pa_rtsp_set_url(pa_rtsp_context* c, const char* url);
+void pa_rtsp_add_header(pa_rtsp_context *c, const char* key, const char* value);
+void pa_rtsp_remove_header(pa_rtsp_context *c, const char* key);
+
 int pa_rtsp_announce(pa_rtsp_context* c, const char* sdp);
 
-int pa_rtsp_setup(pa_rtsp_context* c, pa_headerlist** response_headers);
+int pa_rtsp_setup(pa_rtsp_context* c);
 int pa_rtsp_record(pa_rtsp_context* c);
 int pa_rtsp_teardown(pa_rtsp_context* c);
 
