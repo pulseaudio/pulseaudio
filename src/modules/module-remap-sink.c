@@ -143,7 +143,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     pa_assert(chunk);
     pa_assert_se(u = i->userdata);
 
-    if (!u->sink)
+    if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
         return -1;
 
     pa_sink_render(u->sink, nbytes, chunk);
@@ -158,7 +158,7 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     pa_assert_se(u = i->userdata);
     pa_assert(nbytes > 0);
 
-    if (!u->sink)
+    if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
         return;
 
     if (u->sink->thread_info.rewind_nbytes > 0) {
@@ -179,7 +179,7 @@ static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (!u->sink)
+    if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
         return;
 
     pa_sink_set_max_rewind(u->sink, nbytes);
@@ -192,7 +192,7 @@ static void sink_input_detach_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (!u->sink)
+    if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
         return;
 
     pa_sink_detach_within_thread(u->sink);
@@ -207,7 +207,7 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (!u->sink)
+    if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
         return;
 
     pa_sink_set_asyncmsgq(u->sink, i->sink->asyncmsgq);
@@ -226,10 +226,10 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_assert_se(u = i->userdata);
 
     pa_sink_unlink(u->sink);
+    pa_sink_input_unlink(u->sink_input);
+
     pa_sink_unref(u->sink);
     u->sink = NULL;
-
-    pa_sink_input_unlink(u->sink_input);
     pa_sink_input_unref(u->sink_input);
     u->sink_input = NULL;
 
