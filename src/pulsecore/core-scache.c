@@ -3,7 +3,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
+  Copyright 2004-2008 Lennart Poettering
   Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
@@ -228,6 +228,7 @@ int pa_scache_add_file(pa_core *c, const char *name, const char *filename, uint3
     pa_proplist_sets(p, PA_PROP_MEDIA_FILENAME, filename);
     r = pa_scache_add_item(c, name, &ss, &map, &chunk, p, idx);
     pa_memblock_unref(chunk.memblock);
+    pa_proplist_free(p);
 
     return r;
 }
