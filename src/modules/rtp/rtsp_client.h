@@ -1,5 +1,5 @@
-#ifndef foortsphfoo
-#define foortsphfoo
+#ifndef foortspclienthfoo
+#define foortspclienthfoo
 
 /* $Id$ */
 
@@ -36,7 +36,7 @@
 
 #include "headerlist.h"
 
-typedef struct pa_rtsp_context pa_rtsp_context;
+typedef struct pa_rtsp_client pa_rtsp_client;
 typedef enum {
   STATE_CONNECT,
   STATE_ANNOUNCE,
@@ -46,29 +46,29 @@ typedef enum {
   STATE_SET_PARAMETER,
   STATE_FLUSH
 } pa_rtsp_state;
-typedef void (*pa_rtsp_cb_t)(pa_rtsp_context *c, pa_rtsp_state state, pa_headerlist* hl, void *userdata);
+typedef void (*pa_rtsp_cb_t)(pa_rtsp_client *c, pa_rtsp_state state, pa_headerlist* hl, void *userdata);
 
-pa_rtsp_context* pa_rtsp_context_new(const char* useragent);
-void pa_rtsp_context_free(pa_rtsp_context* c);
+pa_rtsp_client* pa_rtsp_client_new(const char* useragent);
+void pa_rtsp_client_free(pa_rtsp_client* c);
 
-int pa_rtsp_connect(pa_rtsp_context* c, pa_mainloop_api *mainloop, const char* hostname, uint16_t port);
-void pa_rtsp_set_callback(pa_rtsp_context *c, pa_rtsp_cb_t callback, void *userdata);
+int pa_rtsp_connect(pa_rtsp_client* c, pa_mainloop_api *mainloop, const char* hostname, uint16_t port);
+void pa_rtsp_set_callback(pa_rtsp_client *c, pa_rtsp_cb_t callback, void *userdata);
 
-void pa_rtsp_disconnect(pa_rtsp_context* c);
+void pa_rtsp_disconnect(pa_rtsp_client* c);
 
-const char* pa_rtsp_localip(pa_rtsp_context* c);
-uint32_t pa_rtsp_serverport(pa_rtsp_context* c);
-void pa_rtsp_set_url(pa_rtsp_context* c, const char* url);
-void pa_rtsp_add_header(pa_rtsp_context *c, const char* key, const char* value);
-void pa_rtsp_remove_header(pa_rtsp_context *c, const char* key);
+const char* pa_rtsp_localip(pa_rtsp_client* c);
+uint32_t pa_rtsp_serverport(pa_rtsp_client* c);
+void pa_rtsp_set_url(pa_rtsp_client* c, const char* url);
+void pa_rtsp_add_header(pa_rtsp_client *c, const char* key, const char* value);
+void pa_rtsp_remove_header(pa_rtsp_client *c, const char* key);
 
-int pa_rtsp_announce(pa_rtsp_context* c, const char* sdp);
+int pa_rtsp_announce(pa_rtsp_client* c, const char* sdp);
 
-int pa_rtsp_setup(pa_rtsp_context* c);
-int pa_rtsp_record(pa_rtsp_context* c);
-int pa_rtsp_teardown(pa_rtsp_context* c);
+int pa_rtsp_setup(pa_rtsp_client* c);
+int pa_rtsp_record(pa_rtsp_client* c);
+int pa_rtsp_teardown(pa_rtsp_client* c);
 
-int pa_rtsp_setparameter(pa_rtsp_context* c, const char* param);
-int pa_rtsp_flush(pa_rtsp_context* c);
+int pa_rtsp_setparameter(pa_rtsp_client* c, const char* param);
+int pa_rtsp_flush(pa_rtsp_client* c);
 
 #endif

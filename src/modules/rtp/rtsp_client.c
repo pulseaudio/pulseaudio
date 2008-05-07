@@ -48,9 +48,9 @@
 #include <pulsecore/poll.h>
 #include <pulsecore/ioline.h>
 
-#include "rtsp.h"
+#include "rtsp_client.h"
 
-struct pa_rtsp_context {
+struct pa_rtsp_client {
     pa_socket_client *sc;
     pa_iochannel *io;
     pa_ioline *ioline;
@@ -76,7 +76,7 @@ struct pa_rtsp_context {
     char *transport;
 };
 
-static int pa_rtsp_exec(pa_rtsp_context* c, const char* cmd,
+static int pa_rtsp_exec(pa_rtsp_client* c, const char* cmd,
                         const char* content_type, const char* content,
                         int expect_response,
                         pa_headerlist* headers) {
@@ -132,10 +132,10 @@ static int pa_rtsp_exec(pa_rtsp_context* c, const char* cmd,
 }
 
 
-pa_rtsp_context* pa_rtsp_context_new(const char* useragent) {
-    pa_rtsp_context *c;
+pa_rtsp_client* pa_rtsp_client_new(const char* useragent) {
+    pa_rtsp_client *c;
 
-    c = pa_xnew0(pa_rtsp_context, 1);
+    c = pa_xnew0(pa_rtsp_client, 1);
     c->headers = pa_headerlist_new();
 
     if (useragent)
@@ -147,7 +147,7 @@ pa_rtsp_context* pa_rtsp_context_new(const char* useragent) {
 }
 
 
-void pa_rtsp_context_free(pa_rtsp_context* c) {
+void pa_rtsp_client_free(pa_rtsp_client* c) {
     if (c) {
         if (c->sc)
             pa_socket_client_unref(c->sc);
@@ -167,7 +167,7 @@ void pa_rtsp_context_free(pa_rtsp_context* c) {
 }
 
 
-static void headers_read(pa_rtsp_context *c) {
+static void headers_read(pa_rtsp_client *c) {
     char* token;
     char delimiters[] = ";";
 
@@ -221,7 +221,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     char *delimpos;
     char *s2, *s2p;
 
-    pa_rtsp_context *c = userdata;
+    pa_rtsp_client *c = userdata;
     pa_assert(line);
     pa_assert(c);
     pa_assert(s);
@@ -313,7 +313,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
 
 
 static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata) {
-    pa_rtsp_context *c = userdata;
+    pa_rtsp_client *c = userdata;
     union {
         struct sockaddr sa;
         struct sockaddr_in in;
@@ -359,7 +359,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
         c->callback(c, c->state, NULL, c->userdata);
 }
 
-int pa_rtsp_connect(pa_rtsp_context *c, pa_mainloop_api *mainloop, const char* hostname, uint16_t port) {
+int pa_rtsp_connect(pa_rtsp_client *c, pa_mainloop_api *mainloop, const char* hostname, uint16_t port) {
     pa_assert(c);
     pa_assert(mainloop);
     pa_assert(hostname);
@@ -375,14 +375,14 @@ int pa_rtsp_connect(pa_rtsp_context *c, pa_mainloop_api *mainloop, const char* h
     return 0;
 }
 
-void pa_rtsp_set_callback(pa_rtsp_context *c, pa_rtsp_cb_t callback, void *userdata) {
+void pa_rtsp_set_callback(pa_rtsp_client *c, pa_rtsp_cb_t callback, void *userdata) {
     pa_assert(c);
 
     c->callback = callback;
     c->userdata = userdata;
 }
 
-void pa_rtsp_disconnect(pa_rtsp_context *c) {
+void pa_rtsp_disconnect(pa_rtsp_client *c) {
     pa_assert(c);
 
     if (c->io)
@@ -391,25 +391,25 @@ void pa_rtsp_disconnect(pa_rtsp_context *c) {
 }
 
 
-const char* pa_rtsp_localip(pa_rtsp_context* c) {
+const char* pa_rtsp_localip(pa_rtsp_client* c) {
     pa_assert(c);
 
     return c->localip;
 }
 
-uint32_t pa_rtsp_serverport(pa_rtsp_context* c) {
+uint32_t pa_rtsp_serverport(pa_rtsp_client* c) {
     pa_assert(c);
 
     return c->port;
 }
 
-void pa_rtsp_set_url(pa_rtsp_context* c, const char* url) {
+void pa_rtsp_set_url(pa_rtsp_client* c, const char* url) {
     pa_assert(c);
 
     c->url = pa_xstrdup(url);
 }
 
-void pa_rtsp_add_header(pa_rtsp_context *c, const char* key, const char* value)
+void pa_rtsp_add_header(pa_rtsp_client *c, const char* key, const char* value)
 {
     pa_assert(c);
     pa_assert(key);
@@ -418,7 +418,7 @@ void pa_rtsp_add_header(pa_rtsp_context *c, const char* key, const char* value)
     pa_headerlist_puts(c->headers, key, value);
 }
 
-void pa_rtsp_remove_header(pa_rtsp_context *c, const char* key)
+void pa_rtsp_remove_header(pa_rtsp_client *c, const char* key)
 {
     pa_assert(c);
     pa_assert(key);
@@ -426,7 +426,7 @@ void pa_rtsp_remove_header(pa_rtsp_context *c, const char* key)
     pa_headerlist_remove(c->headers, key);
 }
 
-int pa_rtsp_announce(pa_rtsp_context *c, const char* sdp) {
+int pa_rtsp_announce(pa_rtsp_client *c, const char* sdp) {
     pa_assert(c);
     if (!sdp)
         return -1;
@@ -436,7 +436,7 @@ int pa_rtsp_announce(pa_rtsp_context *c, const char* sdp) {
 }
 
 
-int pa_rtsp_setup(pa_rtsp_context* c) {
+int pa_rtsp_setup(pa_rtsp_client* c) {
     pa_headerlist* headers;
     int rv;
 
@@ -452,7 +452,7 @@ int pa_rtsp_setup(pa_rtsp_context* c) {
 }
 
 
-int pa_rtsp_record(pa_rtsp_context* c) {
+int pa_rtsp_record(pa_rtsp_client* c) {
     pa_headerlist* headers;
     int rv;
 
@@ -473,7 +473,7 @@ int pa_rtsp_record(pa_rtsp_context* c) {
 }
 
 
-int pa_rtsp_teardown(pa_rtsp_context *c) {
+int pa_rtsp_teardown(pa_rtsp_client *c) {
     pa_assert(c);
 
     c->state = STATE_TEARDOWN;
@@ -481,7 +481,7 @@ int pa_rtsp_teardown(pa_rtsp_context *c) {
 }
 
 
-int pa_rtsp_setparameter(pa_rtsp_context *c, const char* param) {
+int pa_rtsp_setparameter(pa_rtsp_client *c, const char* param) {
     pa_assert(c);
     if (!param)
         return -1;
@@ -491,7 +491,7 @@ int pa_rtsp_setparameter(pa_rtsp_context *c, const char* param) {
 }
 
 
-int pa_rtsp_flush(pa_rtsp_context *c) {
+int pa_rtsp_flush(pa_rtsp_client *c) {
     pa_headerlist* headers;
     int rv;
 

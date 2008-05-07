@@ -56,7 +56,7 @@
 #include <pulsecore/poll.h>
 
 #include "raop_client.h"
-#include "rtsp.h"
+#include "rtsp_client.h"
 #include "base64.h"
 
 #define AES_CHUNKSIZE 16
@@ -76,7 +76,7 @@ struct pa_raop_client {
     pa_mainloop_api *mainloop;
     const char *host;
     char *sid;
-    pa_rtsp_context *rtsp;
+    pa_rtsp_client *rtsp;
 
     uint8_t jack_type;
     uint8_t jack_status;
@@ -273,7 +273,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
     pa_iochannel_set_callback(c->io, io_callback, c);
 }
 
-static void rtsp_cb(pa_rtsp_context *rtsp, pa_rtsp_state state, pa_headerlist* headers, void *userdata)
+static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* headers, void *userdata)
 {
     pa_raop_client* c = userdata;
     pa_assert(c);
@@ -396,7 +396,7 @@ int pa_raop_client_connect(pa_raop_client* c, pa_mainloop_api *mainloop, const c
 
     c->mainloop = mainloop;
     c->host = host;
-    c->rtsp = pa_rtsp_context_new("iTunes/4.6 (Macintosh; U; PPC Mac OS X 10.3)");
+    c->rtsp = pa_rtsp_client_new("iTunes/4.6 (Macintosh; U; PPC Mac OS X 10.3)");
 
     /* Initialise the AES encryption system */
     pa_random_seed();

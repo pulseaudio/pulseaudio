@@ -1008,7 +1008,7 @@ librtp_la_SOURCES = \
 		modules/rtp/rtp.c modules/rtp/rtp.h \
 		modules/rtp/sdp.c modules/rtp/sdp.h \
 		modules/rtp/sap.c modules/rtp/sap.h \
-		modules/rtp/rtsp.c modules/rtp/rtsp.h \
+		modules/rtp/rtsp_client.c modules/rtp/rtsp_client.h \
 		modules/rtp/raop_client.c modules/rtp/raop_client.h \
 		modules/rtp/headerlist.c modules/rtp/headerlist.h \
 		modules/rtp/base64.c modules/rtp/base64.h
