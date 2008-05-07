@@ -1263,7 +1263,8 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
             goto finish;
         }
 
-        if (o->context->version >= 13)
+        if (o->context->version >= 13 &&
+            o->stream->direction == PA_STREAM_PLAYBACK)
             if (pa_tagstruct_getu64(t, &underrun_for) < 0 ||
                 pa_tagstruct_getu64(t, &playing_for) < 0) {
 
