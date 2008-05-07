@@ -156,8 +156,8 @@ struct pa_sink_input {
         pa_memblockq *render_memblockq;
 
         size_t rewrite_nbytes;
+        pa_bool_t rewrite_flush;
         uint64_t underrun_for, playing_for;
-        pa_bool_t ignore_rewind;
 
         pa_sink_input *sync_prev, *sync_next;
 
@@ -241,7 +241,7 @@ fully -- or at all. If the request for a rewrite was successful, the
 sink driver will call ->rewind() and pass the number of bytes that
 could be rewound in the HW device. This functionality is required for
 implementing the "zero latency" write-through functionality. */
-void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes, pa_bool_t ignore_rewind, pa_bool_t not_here);
+void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes, pa_bool_t rewrite, pa_bool_t flush);
 
 /* Callable by everyone from main thread*/
 

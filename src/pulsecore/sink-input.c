@@ -250,6 +250,7 @@ pa_sink_input* pa_sink_input_new(
     i->thread_info.muted = i->muted;
     i->thread_info.requested_sink_latency = (pa_usec_t) -1;
     i->thread_info.rewrite_nbytes = 0;
+    i->thread_info.rewrite_flush = FALSE;
     i->thread_info.underrun_for = (uint64_t) -1;
     i->thread_info.playing_for = 0;
 
@@ -602,8 +603,7 @@ void pa_sink_input_drop(pa_sink_input *i, size_t nbytes /* in sink sample spec *
     didn't do this for us, we do it here. However, since the sink
     apparently doesn't support rewinding, we pass 0 here. This still
     allows rewinding through the render buffer. */
-    if (i->thread_info.rewrite_nbytes > 0)
-        pa_sink_input_process_rewind(i, 0);
+    pa_sink_input_process_rewind(i, 0);
 
     pa_memblockq_drop(i->thread_info.render_memblockq, nbytes);
 
@@ -619,54 +619,59 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
 
 /*     pa_log_debug("rewind(%lu, %lu)", (unsigned long) nbytes, (unsigned long) i->thread_info.rewrite_nbytes); */
 
-    if (i->thread_info.underrun_for > 0) {
-        /* We don't rewind when we are underrun */
-        i->thread_info.rewrite_nbytes = 0;
-        return;
+    if (nbytes > 0) {
+        pa_log_debug("Have to rewind %lu bytes on render memblockq.", (unsigned long) nbytes);
+        pa_memblockq_rewind(i->thread_info.render_memblockq, nbytes);
     }
 
-    if (nbytes > 0)
-        pa_log_debug("Have to rewind %lu bytes on render memblockq.", (unsigned long) nbytes);
+    if (i->thread_info.rewrite_nbytes == (size_t) -1) {
 
-    if (i->thread_info.rewrite_nbytes > 0) {
-        size_t max_rewrite;
+        /* We were asked to drop all buffered data, and rerequest new
+         * data from implementor the next time push() is called */
+
+        pa_memblockq_flush(i->thread_info.render_memblockq);
+
+    } else if (i->thread_info.rewrite_nbytes > 0) {
+        size_t max_rewrite, amount;
 
         /* Calculate how much make sense to rewrite at most */
-        if ((max_rewrite = nbytes + pa_memblockq_get_length(i->thread_info.render_memblockq)) > 0) {
-            size_t amount, r;
+        max_rewrite = nbytes + pa_memblockq_get_length(i->thread_info.render_memblockq);
 
-            /* Transform into local domain */
-            if (i->thread_info.resampler)
-                max_rewrite = pa_resampler_request(i->thread_info.resampler, max_rewrite);
+        /* Transform into local domain */
+        if (i->thread_info.resampler)
+            max_rewrite = pa_resampler_request(i->thread_info.resampler, max_rewrite);
 
-            /* Calculate how much of the rewinded data should actually be rewritten */
-            amount = PA_MIN(i->thread_info.rewrite_nbytes, max_rewrite);
+        /* Calculate how much of the rewinded data should actually be rewritten */
+        amount = PA_MIN(i->thread_info.rewrite_nbytes, max_rewrite);
 
-            /* Convert back to to sink domain */
-            r = i->thread_info.resampler ? pa_resampler_result(i->thread_info.resampler, amount) : amount;
+        if (amount > 0) {
+            pa_log_debug("Have to rewind %lu bytes on implementor.", (unsigned long) amount);
 
-            if (r > 0)
-                /* Ok, now update the write pointer */
-                pa_memblockq_seek(i->thread_info.render_memblockq, -r, PA_SEEK_RELATIVE);
+            /* Tell the implementor */
+            if (i->process_rewind)
+                i->process_rewind(i, amount);
 
-            if (amount > 0) {
-                pa_log_debug("Have to rewind %lu bytes on implementor.", (unsigned long) amount);
+            if (i->thread_info.rewrite_flush)
+                pa_memblockq_silence(i->thread_info.render_memblockq);
+            else {
 
-                /* Tell the implementor */
-                if (i->process_rewind)
-                    i->process_rewind(i, amount);
-
-                /* And reset the resampler */
+                /* Convert back to to sink domain */
                 if (i->thread_info.resampler)
-                    pa_resampler_reset(i->thread_info.resampler);
-            }
-        }
+                    amount = pa_resampler_result(i->thread_info.resampler, amount);
 
-        i->thread_info.rewrite_nbytes = 0;
+                if (amount > 0)
+                    /* Ok, now update the write pointer */
+                    pa_memblockq_seek(i->thread_info.render_memblockq, - ((int64_t) amount), PA_SEEK_RELATIVE);
+            }
+
+            /* And reset the resampler */
+            if (i->thread_info.resampler)
+                pa_resampler_reset(i->thread_info.resampler);
+        }
     }
 
-    if (nbytes > 0)
-        pa_memblockq_rewind(i->thread_info.render_memblockq, nbytes);
+    i->thread_info.rewrite_nbytes = 0;
+    i->thread_info.rewrite_flush = FALSE;
 }
 
 /* Called from thread context */
@@ -1016,19 +1021,15 @@ void pa_sink_input_set_state_within_thread(pa_sink_input *i, pa_sink_input_state
 
     if (state == PA_SINK_INPUT_CORKED && i->thread_info.state != PA_SINK_INPUT_CORKED) {
 
-        /* OK, we're corked, so let's make sure we have total silence
-         * from now on on this stream */
-        pa_memblockq_silence(i->thread_info.render_memblockq);
-
         /* This will tell the implementing sink input driver to rewind
          * so that the unplayed already mixed data is not lost */
-        pa_sink_input_request_rewind(i, 0, FALSE, FALSE);
+        pa_sink_input_request_rewind(i, 0, TRUE, TRUE);
 
     } else if (i->thread_info.state == PA_SINK_INPUT_CORKED && state != PA_SINK_INPUT_CORKED) {
 
         /* OK, we're being uncorked. Make sure we're not rewound when
          * the hw buffer is remixed and request a remix. */
-        pa_sink_input_request_rewind(i, 0, TRUE, TRUE);
+        pa_sink_input_request_rewind(i, 0, FALSE, TRUE);
     }
 
     if (i->state_change)
@@ -1047,12 +1048,12 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t
     switch (code) {
         case PA_SINK_INPUT_MESSAGE_SET_VOLUME:
             i->thread_info.volume = *((pa_cvolume*) userdata);
-            pa_sink_input_request_rewind(i, 0, FALSE, FALSE);
+            pa_sink_input_request_rewind(i, 0, TRUE, FALSE);
             return 0;
 
         case PA_SINK_INPUT_MESSAGE_SET_MUTE:
             i->thread_info.muted = PA_PTR_TO_UINT(userdata);
-            pa_sink_input_request_rewind(i, 0, FALSE, FALSE);
+            pa_sink_input_request_rewind(i, 0, TRUE, FALSE);
             return 0;
 
         case PA_SINK_INPUT_MESSAGE_GET_LATENCY: {
@@ -1111,59 +1112,60 @@ pa_bool_t pa_sink_input_safe_to_remove(pa_sink_input *i) {
     return TRUE;
 }
 
-void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sample spec */, pa_bool_t ignore_underruns, pa_bool_t not_here) {
+void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sample spec */, pa_bool_t rewrite, pa_bool_t flush) {
     size_t lbq;
 
+    /* If 'rewrite' is TRUE the sink is rewound as far as requested
+     * and possible and the exact value of this is passed back the
+     * implementor via process_rewind(). If 'flush' is also TRUE all
+     * already rendered data is also dropped.
+     *
+     * If 'rewrite' is FALSE the sink is rewound as far as requested
+     * and possible and the already rendered data is dropped so that
+     * in the next iteration we read new data from the
+     * implementor. This implies 'flush' is TRUE. */
+
     pa_sink_input_assert_ref(i);
+    pa_assert(i->thread_info.rewrite_nbytes == 0);
 
     /* We don't take rewind requests while we are corked */
     if (i->state == PA_SINK_INPUT_CORKED)
         return;
 
+    pa_assert(rewrite || flush);
+
     /* Calculate how much we can rewind locally without having to
      * touch the sink */
-    if (not_here)
-        lbq = 0;
-    else
+    if (rewrite)
         lbq = pa_memblockq_get_length(i->thread_info.render_memblockq);
+    else
+        lbq = 0;
 
     /* Check if rewinding for the maximum is requested, and if so, fix up */
     if (nbytes <= 0) {
 
-        /* Calulate maximum number of bytes that could be rewound in theory */
+        /* Calculate maximum number of bytes that could be rewound in theory */
         nbytes = i->sink->thread_info.max_rewind + lbq;
 
         /* Transform from sink domain */
-        nbytes =
-            i->thread_info.resampler ?
-            pa_resampler_request(i->thread_info.resampler, nbytes) :
-            nbytes;
+        if (i->thread_info.resampler)
+            nbytes = pa_resampler_request(i->thread_info.resampler, nbytes);
     }
 
-    if (not_here) {
-        i->thread_info.playing_for = 0;
-        i->thread_info.underrun_for = (uint64_t) -1;
-    } else {
-        /* Increase the number of bytes to rewrite, never decrease */
-        if (nbytes < i->thread_info.rewrite_nbytes)
-            nbytes = i->thread_info.rewrite_nbytes;
-
+    if (rewrite) {
         /* Make sure to not overwrite over underruns */
-        if (!ignore_underruns)
-            if (nbytes > i->thread_info.playing_for)
-                nbytes = (size_t) i->thread_info.playing_for;
+        if (nbytes > i->thread_info.playing_for)
+            nbytes = (size_t) i->thread_info.playing_for;
 
         i->thread_info.rewrite_nbytes = nbytes;
-    }
+    } else
+        i->thread_info.rewrite_nbytes = (size_t) -1;
+
+    i->thread_info.rewrite_flush = flush && i->thread_info.rewrite_nbytes != 0;
 
     /* Transform to sink domain */
-    nbytes =
-        i->thread_info.resampler ?
-        pa_resampler_result(i->thread_info.resampler, nbytes) :
-        nbytes;
-
-    if (nbytes <= 0)
-        return;
+    if (i->thread_info.resampler)
+        nbytes = pa_resampler_result(i->thread_info.resampler, nbytes);
 
     if (nbytes > lbq)
         pa_sink_request_rewind(i->sink, nbytes - lbq);
