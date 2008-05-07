@@ -258,7 +258,7 @@ static int mmap_write(struct userdata *u) {
 
         frames = n = n - u->hwbuf_unused_frames;
 
-        pa_log_debug("%lu frames to write", (unsigned long) frames);
+/*        pa_log_debug("%lu frames to write", (unsigned long) frames);*/
 
         if (PA_UNLIKELY((err = snd_pcm_mmap_begin(u->pcm_handle, &areas, &offset, &frames)) < 0)) {
 
@@ -308,7 +308,7 @@ static int mmap_write(struct userdata *u) {
 
         u->frame_index += frames;
 
-        pa_log_debug("wrote %lu frames", (unsigned long) frames);
+/*         pa_log_debug("wrote %lu frames", (unsigned long) frames); */
 
         if (PA_LIKELY(frames >= (snd_pcm_uframes_t) n))
             return work_done;
@@ -349,7 +349,7 @@ static int unix_write(struct userdata *u) {
 
         n -= u->hwbuf_unused_frames;
 
-        pa_log_debug("%lu frames to write", (unsigned long) frames);
+/*         pa_log_debug("%lu frames to write", (unsigned long) frames); */
 
         if (u->memchunk.length <= 0)
             pa_sink_render(u->sink, n * u->frame_size, &u->memchunk);
@@ -389,7 +389,7 @@ static int unix_write(struct userdata *u) {
 
         u->frame_index += frames;
 
-        pa_log_debug("wrote %lu frames", (unsigned long) frames);
+/*         pa_log_debug("wrote %lu frames", (unsigned long) frames); */
 
         if (PA_LIKELY(frames >= n))
             return work_done;
