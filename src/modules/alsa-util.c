@@ -1060,6 +1060,9 @@ void pa_alsa_init_proplist(pa_proplist *p, snd_pcm_info_t *pcm_info) {
         pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, cn);
     else if (n)
         pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, n);
+
+    free(lcn);
+    free(cn);
 }
 
 int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents) {
