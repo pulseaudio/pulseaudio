@@ -40,7 +40,7 @@
 #include "asyncq.h"
 #include "fdsem.h"
 
-#define ASYNCQ_SIZE 128
+#define ASYNCQ_SIZE 256
 
 /* For debugging purposes we can define _Y to put and extra thread
  * yield between each operation. */
@@ -73,10 +73,6 @@ PA_STATIC_FLIST_DECLARE(localq, 0, pa_xfree);
 
 #define PA_ASYNCQ_CELLS(x) ((pa_atomic_ptr_t*) ((uint8_t*) (x) + PA_ALIGN(sizeof(struct pa_asyncq))))
 
-static int is_power_of_two(unsigned size) {
-    return !(size & (size - 1));
-}
-
 static int reduce(pa_asyncq *l, int value) {
     return value & (unsigned) (l->size - 1);
 }
@@ -87,7 +83,7 @@ pa_asyncq *pa_asyncq_new(unsigned size) {
     if (!size)
         size = ASYNCQ_SIZE;
 
-    pa_assert(is_power_of_two(size));
+    pa_assert(pa_is_power_of_two(size));
 
     l = pa_xmalloc0(PA_ALIGN(sizeof(pa_asyncq)) + (sizeof(pa_atomic_ptr_t) * size));
 
