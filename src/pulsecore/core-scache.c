@@ -141,10 +141,20 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
     pa_channel_map_init(&e->channel_map);
     pa_cvolume_reset(&e->volume, PA_CHANNELS_MAX);
 
+    pa_proplist_sets(e->proplist, PA_PROP_MEDIA_ROLE, "event");
+
     return e;
 }
 
-int pa_scache_add_item(pa_core *c, const char *name, const pa_sample_spec *ss, const pa_channel_map *map, const pa_memchunk *chunk, pa_proplist *p, uint32_t *idx) {
+int pa_scache_add_item(
+        pa_core *c,
+        const char *name,
+        const pa_sample_spec *ss,
+        const pa_channel_map *map,
+        const pa_memchunk *chunk,
+        pa_proplist *p,
+        uint32_t *idx) {
+
     pa_scache_entry *e;
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX];
     pa_channel_map tmap;
@@ -198,6 +208,7 @@ int pa_scache_add_file(pa_core *c, const char *name, const char *filename, uint3
     pa_channel_map map;
     pa_memchunk chunk;
     int r;
+    pa_proplist *p;
 
 #ifdef OS_IS_WIN32
     char buf[MAX_PATH];
@@ -213,7 +224,9 @@ int pa_scache_add_file(pa_core *c, const char *name, const char *filename, uint3
     if (pa_sound_file_load(c->mempool, filename, &ss, &map, &chunk) < 0)
         return -1;
 
-    r = pa_scache_add_item(c, name, &ss, &map, &chunk, NULL, idx);
+    p = pa_proplist_new();
+    pa_proplist_sets(p, PA_PROP_MEDIA_FILENAME, filename);
+    r = pa_scache_add_item(c, name, &ss, &map, &chunk, p, idx);
     pa_memblock_unref(chunk.memblock);
 
     return r;
@@ -238,6 +251,8 @@ int pa_scache_add_file_lazy(pa_core *c, const char *name, const char *filename, 
 
     e->lazy = TRUE;
     e->filename = pa_xstrdup(filename);
+
+    pa_proplist_sets(e->proplist, PA_PROP_MEDIA_FILENAME, filename);
 
     if (!c->scache_auto_unload_event) {
         struct timeval ntv;
@@ -292,7 +307,6 @@ void pa_scache_free(pa_core *c) {
 
 int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t volume, pa_proplist *p, uint32_t *sink_input_idx) {
     pa_scache_entry *e;
-    char *t;
     pa_cvolume r;
     pa_proplist *merged;
 
@@ -323,12 +337,12 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
 
     merged = pa_proplist_new();
 
-    t = pa_sprintf_malloc("sample:%s", name);
-    pa_proplist_sets(merged, PA_PROP_MEDIA_NAME, t);
-    pa_xfree(t);
+    pa_proplist_setf(merged, PA_PROP_MEDIA_NAME, "Sample %s", name);
 
     pa_proplist_update(merged, PA_UPDATE_REPLACE, e->proplist);
-    pa_proplist_update(merged, PA_UPDATE_REPLACE, p);
+
+    if (p)
+        pa_proplist_update(merged, PA_UPDATE_REPLACE, p);
 
     if (pa_play_memchunk(sink, &e->sample_spec, &e->channel_map, &e->memchunk, &r, merged, sink_input_idx) < 0) {
         pa_proplist_free(merged);
