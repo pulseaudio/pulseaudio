@@ -3,7 +3,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
+  Copyright 2004-2008 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -54,7 +54,7 @@ int pa_play_memchunk(
     pa_assert(ss);
     pa_assert(chunk);
 
-    q = pa_memblockq_new(0, chunk->length, 0, pa_frame_size(ss), 0, 0, 0, NULL);
+    q = pa_memblockq_new(0, chunk->length, 0, pa_frame_size(ss), 1, 1, 0, NULL);
     pa_assert_se(pa_memblockq_push(q, chunk) >= 0);
 
     if ((r = pa_play_memblockq(sink, ss, map, q, volume, p, sink_input_index)) < 0) {

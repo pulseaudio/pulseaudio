@@ -3,7 +3,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2006 Lennart Poettering
+  Copyright 2006-2008 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -99,6 +99,21 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     memblockq_stream_unlink(u);
 }
 
+/* Called from IO thread context */
+static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t state) {
+    memblockq_stream *u;
+
+    pa_sink_input_assert_ref(i);
+    u = MEMBLOCKQ_STREAM(i->userdata);
+    memblockq_stream_assert_ref(u);
+
+    /* If we are added for the first time, ask for a rewinding so that
+     * we are heard right-away. */
+    if (PA_SINK_INPUT_IS_LINKED(state) &&
+        i->thread_info.state == PA_SINK_INPUT_INIT)
+        pa_sink_input_request_rewind(i, 0, FALSE, TRUE);
+}
+
 static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk) {
     memblockq_stream *u;
 
@@ -116,6 +131,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 
             pa_memblockq_free(u->memblockq);
             u->memblockq = NULL;
+
             pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u), MEMBLOCKQ_STREAM_MESSAGE_UNLINK, NULL, 0, NULL, NULL);
         }
 
@@ -141,7 +157,7 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     pa_memblockq_rewind(u->memblockq, nbytes);
 }
 
-static void sink_input_update_max_rewind(pa_sink_input *i, size_t nbytes) {
+static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     memblockq_stream *u;
 
     pa_sink_input_assert_ref(i);
@@ -194,8 +210,9 @@ pa_sink_input* pa_memblockq_sink_input_new(
 
     u->sink_input->pop = sink_input_pop_cb;
     u->sink_input->process_rewind = sink_input_process_rewind_cb;
-    u->sink_input->update_max_rewind = sink_input_update_max_rewind;
+    u->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;
     u->sink_input->kill = sink_input_kill_cb;
+    u->sink_input->state_change = sink_input_state_change_cb;
     u->sink_input->userdata = u;
 
     if (q)
@@ -255,14 +272,8 @@ void pa_memblockq_sink_input_set_queue(pa_sink_input *i, pa_memblockq *q) {
         pa_memblockq_free(u->memblockq);
 
     if ((u->memblockq = q)) {
-        pa_memchunk silence;
-
         pa_memblockq_set_prebuf(q, 0);
-
-        pa_sink_input_get_silence(i, &silence);
-        pa_memblockq_set_silence(q, &silence);
-        pa_memblock_unref(silence.memblock);
-
+        pa_memblockq_set_silence(q, NULL);
         pa_memblockq_willneed(q);
     }
 }
