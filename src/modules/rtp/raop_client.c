@@ -93,6 +93,8 @@ struct pa_raop_client {
     void* userdata;
 
     uint8_t *buffer;
+    uint8_t *buffer_index;
+    uint16_t buffer_count;
     /*pa_memchunk memchunk;*/
 };
 
@@ -205,22 +207,51 @@ void pa_raop_client_free(pa_raop_client* c)
     pa_xfree(c);
 }
 
-static int remove_char_from_string(char *str, char rc)
+static inline void rtrimchar(char *str, char rc)
 {
-  int i=0, j=0, len;
-  int num = 0;
-  len = strlen(str);
-  while (i<len) {
-      if (str[i] == rc) {
-          for (j=i; j<len; j++)
-              str[j] = str[j+1];
-          len--;
-          num++;
-      } else {
-          i++;
-      }
-  }
-  return num;
+    char *sp = str + strlen(str) - 1;
+    while (sp >= str && *sp == rc) {
+        *sp = '\0';
+        sp -= 1;
+    }
+}
+
+static int pa_raop_client_process(pa_raop_client* c)
+{
+    ssize_t l;
+
+    pa_assert(c);
+
+    if (!c->buffer_index || !c->buffer_count)
+        return 1;
+
+    if (!pa_iochannel_is_writable(c->io))
+        return 0;
+    l = pa_iochannel_write(c->io, c->buffer_index, c->buffer_count);
+    /*pa_log_debug("Wrote %d bytes (from buffer)", (int)l);*/
+    if (l == c->buffer_count) {
+        c->buffer_index = NULL;
+        c->buffer_count = 0;
+        return 1;
+    }
+    c->buffer_index += l;
+    c->buffer_count -= l;
+    /*pa_log_debug("Sill have %d bytes (in buffer)", c->buffer_count);*/
+
+    return 0;
+}
+
+static void io_callback(PA_GCC_UNUSED pa_iochannel *io, void *userdata)
+{
+    pa_raop_client *c = userdata;
+
+    pa_assert(c);
+    pa_assert(c->io == io);
+    pa_assert(c->callback);
+
+    if (pa_raop_client_process(c)) {
+        c->callback(c->io, c->userdata);
+    }
 }
 
 static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata) {
@@ -239,7 +270,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
     }
     pa_assert(!c->io);
     c->io = io;
-    pa_iochannel_set_callback(c->io, c->callback, c->userdata);
+    pa_iochannel_set_callback(c->io, io_callback, c);
 }
 
 static void rtsp_cb(pa_rtsp_context *rtsp, pa_rtsp_state state, pa_headerlist* headers, void *userdata)
@@ -268,13 +299,13 @@ static void rtsp_cb(pa_rtsp_context *rtsp, pa_rtsp_state state, pa_headerlist* h
             /* Now encrypt our aes_public key to send to the device */
             i = rsa_encrypt(c->aes_key, AES_CHUNKSIZE, rsakey);
             pa_base64_encode(rsakey, i, &key);
-            remove_char_from_string(key, '=');
+            rtrimchar(key, '=');
             pa_base64_encode(c->aes_iv, AES_CHUNKSIZE, &iv);
-            remove_char_from_string(iv, '=');
+            rtrimchar(iv, '=');
 
             pa_random(&rand_data, sizeof(rand_data));
             pa_base64_encode(&rand_data, AES_CHUNKSIZE, &sac);
-            remove_char_from_string(sac, '=');
+            rtrimchar(sac, '=');
             pa_rtsp_add_header(c->rtsp, "Apple-Challenge", sac);
             sdp = pa_sprintf_malloc(
                 "v=0\r\n"
@@ -388,7 +419,7 @@ void pa_raop_client_disconnect(pa_raop_client* c)
 
 }
 
-void pa_raop_client_send_sample(pa_raop_client* c, const uint8_t* buffer, unsigned int count)
+void pa_raop_client_send_sample(pa_raop_client* c, const uint8_t* buffer, uint16_t count)
 {
     ssize_t l;
     uint16_t len;
@@ -406,7 +437,7 @@ void pa_raop_client_send_sample(pa_raop_client* c, const uint8_t* buffer, unsign
 
     c->buffer = pa_xrealloc(c->buffer, (count + header_size + 16));
     memcpy(c->buffer, header, header_size);
-    len = count + header_size - 4;
+    len = header_size + count - 4;
 
     /* store the lenght (endian swapped: make this better) */
     *(c->buffer + 2) = len >> 8;
@@ -417,8 +448,17 @@ void pa_raop_client_send_sample(pa_raop_client* c, const uint8_t* buffer, unsign
     len = header_size + count;
 
     /* TODO: move this into a memchunk/memblock and write only in callback */
+    /*pa_log_debug("Channel status: %d", pa_iochannel_is_writable(c->io));
+    pa_log_debug("Writing %d bytes", len);*/
     l = pa_iochannel_write(c->io, c->buffer, len);
+    /*pa_log_debug("Wrote %d bytes", (int)l);*/
+    if (l != len) {
+        c->buffer_index = c->buffer + l;
+        c->buffer_count = len - l;
+    }
+    /*pa_log_debug("Sill have %d bytes (in buffer)", c->buffer_count);*/
 }
+
 
 void pa_raop_client_set_callback(pa_raop_client* c, pa_iochannel_cb_t callback, void *userdata)
 {

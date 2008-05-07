@@ -36,7 +36,7 @@ int pa_raop_client_connect(pa_raop_client* c, pa_mainloop_api *mainloop, const c
 
 void pa_raop_client_disconnect(pa_raop_client* c);
 
-void pa_raop_client_send_sample(pa_raop_client* c, const uint8_t* buffer, unsigned int count);
+void pa_raop_client_send_sample(pa_raop_client* c, const uint8_t* buffer, uint16_t count);
 
 void pa_raop_client_set_callback(pa_raop_client* c, pa_iochannel_cb_t callback, void *userdata);
 
