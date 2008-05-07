@@ -1116,7 +1116,7 @@ static void handle_seek(playback_stream *s, int64_t indexw) {
             pa_log_debug("Requesting rewind due to end of underrun.");
             pa_sink_input_request_rewind(s->sink_input,
                                          s->sink_input->thread_info.underrun_for == (size_t) -1 ? 0 : s->sink_input->thread_info.underrun_for,
-                                         TRUE, TRUE);
+                                         FALSE, TRUE);
         }
 
     } else {
@@ -1129,7 +1129,7 @@ static void handle_seek(playback_stream *s, int64_t indexw) {
              * let's have it usk us again */
 
             pa_log_debug("Requesting rewind due to rewrite.");
-            pa_sink_input_request_rewind(s->sink_input, indexr - indexw, FALSE, FALSE);
+            pa_sink_input_request_rewind(s->sink_input, indexr - indexw, TRUE, FALSE);
         }
     }
 

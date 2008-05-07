@@ -3,7 +3,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
+  Copyright 2004-2008 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -245,7 +245,6 @@ int pa_play_file(
     pa_sample_spec ss;
     pa_sink_input_new_data data;
     int fd;
-    pa_memchunk silence;
 
     pa_assert(sink);
     pa_assert(fname);
@@ -347,9 +346,7 @@ int pa_play_file(
     u->sink_input->state_change = sink_input_state_change_cb;
     u->sink_input->userdata = u;
 
-    pa_sink_input_get_silence(u->sink_input, &silence);
-    u->memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, pa_frame_size(&u->sink_input->sample_spec), 1, 1, 0, &silence);
-    pa_memblock_unref(silence.memblock);
+    u->memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, pa_frame_size(&ss), 1, 1, 0, NULL);
 
     pa_sink_input_put(u->sink_input);
 
