@@ -3,7 +3,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2006 Lennart Poettering
+  Copyright 2006-2008 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -42,7 +42,7 @@
 
 #define ASYNCQ_SIZE 256
 
-/* For debugging purposes we can define _Y to put and extra thread
+/* For debugging purposes we can define _Y to put an extra thread
  * yield between each operation. */
 
 /* #define PROFILE */
