@@ -577,29 +577,29 @@ static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, PA_GCC_UNUSED 
 }
 
 #ifdef TUNNEL_SINK
-static pa_usec_t sink_get_latency(pa_sink *s) {
-    pa_usec_t t, c;
-    struct userdata *u = s->userdata;
+/* static pa_usec_t sink_get_latency(pa_sink *s) { */
+/*     pa_usec_t t, c; */
+/*     struct userdata *u = s->userdata; */
 
-    pa_sink_assert_ref(s);
+/*     pa_sink_assert_ref(s); */
 
-    c = pa_bytes_to_usec(u->counter, &s->sample_spec);
-    t = pa_smoother_get(u->smoother, pa_rtclock_usec());
+/*     c = pa_bytes_to_usec(u->counter, &s->sample_spec); */
+/*     t = pa_smoother_get(u->smoother, pa_rtclock_usec()); */
 
-    return c > t ? c - t : 0;
-}
+/*     return c > t ? c - t : 0; */
+/* } */
 #else
-static pa_usec_t source_get_latency(pa_source *s) {
-    pa_usec_t t, c;
-    struct userdata *u = s->userdata;
+/* static pa_usec_t source_get_latency(pa_source *s) { */
+/*     pa_usec_t t, c; */
+/*     struct userdata *u = s->userdata; */
 
-    pa_source_assert_ref(s);
+/*     pa_source_assert_ref(s); */
 
-    c = pa_bytes_to_usec(u->counter, &s->sample_spec);
-    t = pa_smoother_get(u->smoother, pa_rtclock_usec());
+/*     c = pa_bytes_to_usec(u->counter, &s->sample_spec); */
+/*     t = pa_smoother_get(u->smoother, pa_rtclock_usec()); */
 
-    return t > c ? t - c : 0;
-}
+/*     return t > c ? t - c : 0; */
+/* } */
 #endif
 
 static void update_description(struct userdata *u) {
@@ -1323,7 +1323,7 @@ int pa__init(pa_module*m) {
     u->source_name = pa_xstrdup(pa_modargs_get_value(ma, "source", NULL));;
     u->source = NULL;
 #endif
-    u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE);
+    u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE, 10);
     u->ctag = 1;
     u->device_index = u->channel = PA_INVALID_INDEX;
     u->auth_cookie_in_property = FALSE;
@@ -1377,7 +1377,7 @@ int pa__init(pa_module*m) {
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->userdata = u;
     u->sink->set_state = sink_set_state;
-    u->sink->get_latency = sink_get_latency;
+/*     u->sink->get_latency = sink_get_latency; */
     u->sink->get_volume = sink_get_volume;
     u->sink->get_mute = sink_get_mute;
     u->sink->set_volume = sink_set_volume;
@@ -1412,7 +1412,7 @@ int pa__init(pa_module*m) {
     u->source->parent.process_msg = source_process_msg;
     u->source->userdata = u;
     u->source->set_state = source_set_state;
-    u->source->get_latency = source_get_latency;
+/*     u->source->get_latency = source_get_latency; */
 
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_rtpoll(u->source, u->rtpoll);

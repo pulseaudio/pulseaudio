@@ -144,7 +144,7 @@ struct pa_sink_input {
 
     struct {
         pa_sink_input_state_t state;
-        pa_atomic_t drained, render_memblockq_is_empty;
+        pa_atomic_t drained;
 
         pa_bool_t attached; /* True only between ->attach() and ->detach() calls */
 
@@ -181,6 +181,7 @@ enum {
     PA_SINK_INPUT_MESSAGE_SET_RATE,
     PA_SINK_INPUT_MESSAGE_SET_STATE,
     PA_SINK_INPUT_MESSAGE_SET_REQUESTED_LATENCY,
+    PA_SINK_INPUT_MESSAGE_GET_REQUESTED_LATENCY,
     PA_SINK_INPUT_MESSAGE_MAX
 };
 
@@ -243,6 +244,10 @@ could be rewound in the HW device. This functionality is required for
 implementing the "zero latency" write-through functionality. */
 void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes, pa_bool_t rewrite, pa_bool_t flush);
 
+void pa_sink_input_cork(pa_sink_input *i, pa_bool_t b);
+
+int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate);
+
 /* Callable by everyone from main thread*/
 
 /* External code may request disconnection with this function */
@@ -255,17 +260,14 @@ const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i);
 void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute);
 int pa_sink_input_get_mute(pa_sink_input *i);
 
-void pa_sink_input_cork(pa_sink_input *i, pa_bool_t b);
-
-int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate);
-
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i);
 
-int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, pa_bool_t immediately);
+int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest);
 
 pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i);
 
-pa_bool_t pa_sink_input_safe_to_remove(pa_sink_input *i);
+pa_usec_t pa_sink_input_get_requested_latency(pa_sink_input *i);
+
 /* To be used exclusively by the sink driver IO thread */
 
 int pa_sink_input_peek(pa_sink_input *i, size_t length, pa_memchunk *chunk, pa_cvolume *volume);
@@ -279,12 +281,7 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t
 
 pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa_usec_t usec);
 
-typedef struct pa_sink_input_move_info {
-    pa_sink_input *sink_input;
-    pa_sink_input *ghost_sink_input;
-    pa_memblockq *buffer;
-    size_t buffer_bytes;
-} pa_sink_input_move_info;
+pa_bool_t pa_sink_input_safe_to_remove(pa_sink_input *i);
 
 pa_memchunk* pa_sink_input_get_silence(pa_sink_input *i, pa_memchunk *ret);
 

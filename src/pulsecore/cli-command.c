@@ -1055,7 +1055,7 @@ static int pa_cli_command_move_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf
         return -1;
     }
 
-    if (pa_sink_input_move_to(si, sink, 0) < 0) {
+    if (pa_sink_input_move_to(si, sink) < 0) {
         pa_strbuf_puts(buf, "Moved failed.\n");
         return -1;
     }

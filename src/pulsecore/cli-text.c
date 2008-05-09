@@ -253,7 +253,13 @@ char *pa_source_output_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u source outputs(s) available.\n", pa_idxset_size(c->source_outputs));
 
     for (o = pa_idxset_first(c->source_outputs, &idx); o; o = pa_idxset_next(c->source_outputs, &idx)) {
-        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t;
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t, clt[28];
+        pa_usec_t cl;
+
+        if ((cl = pa_source_output_get_requested_latency(o)) == (pa_usec_t) -1)
+            pa_snprintf(clt, sizeof(clt), "n/a");
+        else
+            pa_snprintf(clt, sizeof(clt), "%0.2f ms", (double) cl / PA_USEC_PER_MSEC);
 
         pa_assert(o->source);
 
@@ -264,7 +270,8 @@ char *pa_source_output_list_to_string(pa_core *c) {
             "\tflags: %s%s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
             "\tsource: %u <%s>\n"
-            "\tlatency: %0.2f ms\n"
+            "\tcurrent latency: %0.2f ms\n"
+            "\trequested latency: %s\n"
             "\tsample spec: %s\n"
             "\tchannel map: %s\n"
             "\tresample method: %s\n",
@@ -281,6 +288,7 @@ char *pa_source_output_list_to_string(pa_core *c) {
             state_table[pa_source_output_get_state(o)],
             o->source->index, o->source->name,
             (double) pa_source_output_get_latency(o) / PA_USEC_PER_MSEC,
+            clt,
             pa_sample_spec_snprint(ss, sizeof(ss), &o->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &o->channel_map),
             pa_resample_method_to_string(pa_source_output_get_resample_method(o)));
@@ -315,7 +323,13 @@ char *pa_sink_input_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u sink input(s) available.\n", pa_idxset_size(c->sink_inputs));
 
     for (i = pa_idxset_first(c->sink_inputs, &idx); i; i = pa_idxset_next(c->sink_inputs, &idx)) {
-        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t;
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t, clt[28];
+        pa_usec_t cl;
+
+        if ((cl = pa_sink_input_get_requested_latency(i)) == (pa_usec_t) -1)
+            pa_snprintf(clt, sizeof(clt), "n/a");
+        else
+            pa_snprintf(clt, sizeof(clt), "%0.2f ms", (double) cl / PA_USEC_PER_MSEC);
 
         pa_assert(i->sink);
 
@@ -328,7 +342,8 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             "\tsink: %u <%s>\n"
             "\tvolume: %s\n"
             "\tmuted: %s\n"
-            "\tlatency: %0.2f ms\n"
+            "\tcurrent latency: %0.2f ms\n"
+            "\trequested latency: %s\n"
             "\tsample spec: %s\n"
             "\tchannel map: %s\n"
             "\tresample method: %s\n",
@@ -347,6 +362,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_input_get_volume(i)),
             pa_yes_no(pa_sink_input_get_mute(i)),
             (double) pa_sink_input_get_latency(i) / PA_USEC_PER_MSEC,
+            clt,
             pa_sample_spec_snprint(ss, sizeof(ss), &i->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
             pa_resample_method_to_string(pa_sink_input_get_resample_method(i)));

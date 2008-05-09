@@ -131,6 +131,7 @@ struct userdata {
 
     pa_smoother *smoother;
     int64_t frame_index;
+    uint64_t since_start;
 
     snd_pcm_sframes_t hwbuf_unused_frames;
 };
@@ -162,6 +163,32 @@ static void fix_tsched_watermark(struct userdata *u) {
         u->tsched_watermark = min_wakeup;
 }
 
+static void hw_sleep_time(struct userdata *u, pa_usec_t *sleep_usec, pa_usec_t*process_usec) {
+    pa_usec_t usec, wm;
+
+    pa_assert(sleep_usec);
+    pa_assert(process_usec);
+
+    pa_assert(u);
+
+    usec = pa_sink_get_requested_latency_within_thread(u->sink);
+
+    if (usec == (pa_usec_t) -1)
+        usec = pa_bytes_to_usec(u->hwbuf_size, &u->sink->sample_spec);
+
+/*     pa_log_debug("hw buffer time: %u ms", (unsigned) (usec / PA_USEC_PER_MSEC)); */
+
+    wm = pa_bytes_to_usec(u->tsched_watermark, &u->sink->sample_spec);
+
+    if (usec >= wm) {
+        *sleep_usec = usec - wm;
+        *process_usec = wm;
+    } else
+        *process_usec = *sleep_usec = usec / 2;
+
+/*     pa_log_debug("after watermark: %u ms", (unsigned) (*sleep_usec / PA_USEC_PER_MSEC)); */
+}
+
 static int try_recover(struct userdata *u, const char *call, int err) {
     pa_assert(u);
     pa_assert(call);
@@ -169,16 +196,14 @@ static int try_recover(struct userdata *u, const char *call, int err) {
 
     pa_log_debug("%s: %s", call, snd_strerror(err));
 
-    if (err == -EAGAIN) {
-        pa_log_debug("%s: EAGAIN", call);
-        return 1;
-    }
+    pa_assert(err != -EAGAIN);
 
     if (err == -EPIPE)
         pa_log_debug("%s: Buffer underrun!", call);
 
     if ((err = snd_pcm_recover(u->pcm_handle, err, 1)) == 0) {
         u->first = TRUE;
+        u->since_start = 0;
         return 0;
     }
 
@@ -186,20 +211,17 @@ static int try_recover(struct userdata *u, const char *call, int err) {
     return -1;
 }
 
-static void check_left_to_play(struct userdata *u, snd_pcm_sframes_t n) {
+static size_t check_left_to_play(struct userdata *u, snd_pcm_sframes_t n) {
     size_t left_to_play;
-
-    if (u->first || u->after_rewind)
-        return;
 
     if (n*u->frame_size < u->hwbuf_size)
         left_to_play = u->hwbuf_size - (n*u->frame_size);
     else
         left_to_play = 0;
 
-    if (left_to_play > 0)
-        pa_log_debug("%0.2f ms left to play", (double) pa_bytes_to_usec(left_to_play, &u->sink->sample_spec) / PA_USEC_PER_MSEC);
-    else {
+    if (left_to_play > 0) {
+/*         pa_log_debug("%0.2f ms left to play", (double) pa_bytes_to_usec(left_to_play, &u->sink->sample_spec) / PA_USEC_PER_MSEC); */
+    } else if (!u->first && !u->after_rewind) {
         pa_log_info("Underrun!");
 
         if (u->use_tsched) {
@@ -213,22 +235,24 @@ static void check_left_to_play(struct userdata *u, snd_pcm_sframes_t n) {
                               (double) pa_bytes_to_usec(u->tsched_watermark, &u->sink->sample_spec) / PA_USEC_PER_MSEC);
         }
     }
+
+    return left_to_play;
 }
 
-static int mmap_write(struct userdata *u) {
+static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec) {
     int work_done = 0;
-    pa_bool_t checked_left_to_play = FALSE;
+    pa_usec_t max_sleep_usec, process_usec;
+    size_t left_to_play;
 
     pa_assert(u);
     pa_sink_assert_ref(u->sink);
 
+    if (u->use_tsched)
+        hw_sleep_time(u, &max_sleep_usec, &process_usec);
+
     for (;;) {
-        pa_memchunk chunk;
-        void *p;
         snd_pcm_sframes_t n;
-        int err, r;
-        const snd_pcm_channel_area_t *areas;
-        snd_pcm_uframes_t offset, frames;
+        int r;
 
         snd_pcm_hwsync(u->pcm_handle);
 
@@ -239,92 +263,110 @@ static int mmap_write(struct userdata *u) {
 
             if ((r = try_recover(u, "snd_pcm_avail_update", n)) == 0)
                 continue;
-            else if (r > 0)
-                return work_done;
 
             return r;
         }
 
-        if (!checked_left_to_play) {
-            check_left_to_play(u, n);
-            checked_left_to_play = TRUE;
-        }
+        left_to_play = check_left_to_play(u, n);
 
-        /* We only use part of the buffer that matches our
-         * dynamically requested latency */
+        if (u->use_tsched)
+
+            /* We won't fill up the playback buffer before at least
+            * half the sleep time is over because otherwise we might
+            * ask for more data from the clients then they expect. We
+            * need to guarantee that clients only have to keep around
+            * a single hw buffer length. */
+
+            if (pa_bytes_to_usec(left_to_play, &u->sink->sample_spec) > max_sleep_usec/2)
+                break;
 
         if (PA_UNLIKELY(n <= u->hwbuf_unused_frames))
-            return work_done;
+            break;
 
-        frames = n = n - u->hwbuf_unused_frames;
+        n -= u->hwbuf_unused_frames;
 
-/*        pa_log_debug("%lu frames to write", (unsigned long) frames);*/
+/*         pa_log_debug("Filling up"); */
 
-        if (PA_UNLIKELY((err = snd_pcm_mmap_begin(u->pcm_handle, &areas, &offset, &frames)) < 0)) {
+        for (;;) {
+            pa_memchunk chunk;
+            void *p;
+            int err;
+            const snd_pcm_channel_area_t *areas;
+            snd_pcm_uframes_t offset, frames = (snd_pcm_uframes_t) n;
 
-            if ((r = try_recover(u, "snd_pcm_mmap_begin", err)) == 0)
-                continue;
-            else if (r > 0)
-                return work_done;
+/*             pa_log_debug("%lu frames to write", (unsigned long) frames); */
 
-            return r;
+            if (PA_UNLIKELY((err = snd_pcm_mmap_begin(u->pcm_handle, &areas, &offset, &frames)) < 0)) {
+
+                if ((r = try_recover(u, "snd_pcm_mmap_begin", err)) == 0)
+                    continue;
+
+                return r;
+            }
+
+            /* Make sure that if these memblocks need to be copied they will fit into one slot */
+            if (frames > pa_mempool_block_size_max(u->sink->core->mempool)/u->frame_size)
+                frames = pa_mempool_block_size_max(u->sink->core->mempool)/u->frame_size;
+
+            /* Check these are multiples of 8 bit */
+            pa_assert((areas[0].first & 7) == 0);
+            pa_assert((areas[0].step & 7)== 0);
+
+            /* We assume a single interleaved memory buffer */
+            pa_assert((areas[0].first >> 3) == 0);
+            pa_assert((areas[0].step >> 3) == u->frame_size);
+
+            p = (uint8_t*) areas[0].addr + (offset * u->frame_size);
+
+            chunk.memblock = pa_memblock_new_fixed(u->core->mempool, p, frames * u->frame_size, TRUE);
+            chunk.length = pa_memblock_get_length(chunk.memblock);
+            chunk.index = 0;
+
+            pa_sink_render_into_full(u->sink, &chunk);
+
+            /* FIXME: Maybe we can do something to keep this memory block
+             * a little bit longer around? */
+            pa_memblock_unref_fixed(chunk.memblock);
+
+            if (PA_UNLIKELY((err = snd_pcm_mmap_commit(u->pcm_handle, offset, frames)) < 0)) {
+
+                if ((r = try_recover(u, "snd_pcm_mmap_commit", err)) == 0)
+                    continue;
+
+                return r;
+            }
+
+            work_done = 1;
+
+            u->frame_index += frames;
+            u->since_start += frames * u->frame_size;
+
+/*             pa_log_debug("wrote %lu frames", (unsigned long) frames); */
+
+            if (frames >= (snd_pcm_uframes_t) n)
+                break;
+
+            n -= frames;
         }
-
-        /* Make sure that if these memblocks need to be copied they will fit into one slot */
-        if (frames > pa_mempool_block_size_max(u->sink->core->mempool)/u->frame_size)
-            frames = pa_mempool_block_size_max(u->sink->core->mempool)/u->frame_size;
-
-        /* Check these are multiples of 8 bit */
-        pa_assert((areas[0].first & 7) == 0);
-        pa_assert((areas[0].step & 7)== 0);
-
-        /* We assume a single interleaved memory buffer */
-        pa_assert((areas[0].first >> 3) == 0);
-        pa_assert((areas[0].step >> 3) == u->frame_size);
-
-        p = (uint8_t*) areas[0].addr + (offset * u->frame_size);
-
-        chunk.memblock = pa_memblock_new_fixed(u->core->mempool, p, frames * u->frame_size, TRUE);
-        chunk.length = pa_memblock_get_length(chunk.memblock);
-        chunk.index = 0;
-
-        pa_sink_render_into_full(u->sink, &chunk);
-
-        /* FIXME: Maybe we can do something to keep this memory block
-         * a little bit longer around? */
-        pa_memblock_unref_fixed(chunk.memblock);
-
-        if (PA_UNLIKELY((err = snd_pcm_mmap_commit(u->pcm_handle, offset, frames)) < 0)) {
-
-            if ((r = try_recover(u, "snd_pcm_mmap_commit", err)) == 0)
-                continue;
-            else if (r > 0)
-                return work_done;
-
-            return r;
-        }
-
-        work_done = 1;
-
-        u->frame_index += frames;
-
-/*         pa_log_debug("wrote %lu frames", (unsigned long) frames); */
-
-        if (PA_LIKELY(frames >= (snd_pcm_uframes_t) n))
-            return work_done;
     }
+
+    *sleep_usec = pa_bytes_to_usec(left_to_play, &u->sink->sample_spec) - process_usec;
+    return work_done;
 }
 
-static int unix_write(struct userdata *u) {
+static int unix_write(struct userdata *u, pa_usec_t *sleep_usec) {
     int work_done = 0;
-    pa_bool_t checked_left_to_play = FALSE;
+    pa_usec_t max_sleep_usec, process_usec;
+    size_t left_to_play;
 
     pa_assert(u);
     pa_sink_assert_ref(u->sink);
 
+    if (u->use_tsched)
+        hw_sleep_time(u, &max_sleep_usec, &process_usec);
+
     for (;;) {
-        void *p;
-        snd_pcm_sframes_t n, frames;
+        snd_pcm_sframes_t n;
         int r;
 
         snd_pcm_hwsync(u->pcm_handle);
@@ -333,67 +375,82 @@ static int unix_write(struct userdata *u) {
 
             if ((r = try_recover(u, "snd_pcm_avail_update", n)) == 0)
                 continue;
-            else if (r > 0)
-                return work_done;
 
             return r;
         }
 
-        if (!checked_left_to_play) {
-            check_left_to_play(u, n);
-            checked_left_to_play = TRUE;
-        }
+        left_to_play = check_left_to_play(u, n);
+
+        if (u->use_tsched)
+
+            /* We won't fill up the playback buffer before at least
+            * half the sleep time is over because otherwise we might
+            * ask for more data from the clients then they expect. We
+            * need to guarantee that clients only have to keep around
+            * a single hw buffer length. */
+
+            if (pa_bytes_to_usec(left_to_play, &u->sink->sample_spec) > max_sleep_usec/2)
+                break;
 
         if (PA_UNLIKELY(n <= u->hwbuf_unused_frames))
-            return work_done;
+            break;
 
         n -= u->hwbuf_unused_frames;
 
+        for (;;) {
+            snd_pcm_sframes_t frames;
+            void *p;
+
 /*         pa_log_debug("%lu frames to write", (unsigned long) frames); */
 
-        if (u->memchunk.length <= 0)
-            pa_sink_render(u->sink, n * u->frame_size, &u->memchunk);
+            if (u->memchunk.length <= 0)
+                pa_sink_render(u->sink, n * u->frame_size, &u->memchunk);
 
-        pa_assert(u->memchunk.length > 0);
+            pa_assert(u->memchunk.length > 0);
 
-        frames = u->memchunk.length / u->frame_size;
+            frames = u->memchunk.length / u->frame_size;
 
-        if (frames > n)
-            frames = n;
+            if (frames > n)
+                frames = n;
 
-        p = pa_memblock_acquire(u->memchunk.memblock);
-        frames = snd_pcm_writei(u->pcm_handle, (const uint8_t*) p + u->memchunk.index, frames);
-        pa_memblock_release(u->memchunk.memblock);
+            p = pa_memblock_acquire(u->memchunk.memblock);
+            frames = snd_pcm_writei(u->pcm_handle, (const uint8_t*) p + u->memchunk.index, frames);
+            pa_memblock_release(u->memchunk.memblock);
 
-        pa_assert(frames != 0);
+            pa_assert(frames != 0);
 
-        if (PA_UNLIKELY(frames < 0)) {
+            if (PA_UNLIKELY(frames < 0)) {
 
-            if ((r = try_recover(u, "snd_pcm_writei", n)) == 0)
-                continue;
-            else if (r > 0)
-                return work_done;
+                if ((r = try_recover(u, "snd_pcm_writei", n)) == 0)
+                    continue;
 
-            return r;
-        }
+                return r;
+            }
 
-        u->memchunk.index += frames * u->frame_size;
-        u->memchunk.length -= frames * u->frame_size;
+            u->memchunk.index += frames * u->frame_size;
+            u->memchunk.length -= frames * u->frame_size;
 
-        if (u->memchunk.length <= 0) {
-            pa_memblock_unref(u->memchunk.memblock);
-            pa_memchunk_reset(&u->memchunk);
-        }
+            if (u->memchunk.length <= 0) {
+                pa_memblock_unref(u->memchunk.memblock);
+                pa_memchunk_reset(&u->memchunk);
+            }
 
-        work_done = 1;
+            work_done = 1;
 
-        u->frame_index += frames;
+            u->frame_index += frames;
+            u->since_start += frames * u->frame_size;
 
 /*         pa_log_debug("wrote %lu frames", (unsigned long) frames); */
 
-        if (PA_LIKELY(frames >= n))
-            return work_done;
+            if (frames >= n)
+                break;
+
+            n -= frames;
+        }
     }
+
+    *sleep_usec = pa_bytes_to_usec(left_to_play, &u->sink->sample_spec) - process_usec;
+    return work_done;
 }
 
 static void update_smoother(struct userdata *u) {
@@ -494,35 +551,6 @@ static int suspend(struct userdata *u) {
     return 0;
 }
 
-static pa_usec_t hw_sleep_time(struct userdata *u) {
-    pa_usec_t usec, wm;
-
-    pa_assert(u);
-
-    usec = pa_sink_get_requested_latency_within_thread(u->sink);
-
-    if (usec == (pa_usec_t) -1)
-        usec = pa_bytes_to_usec(u->hwbuf_size, &u->sink->sample_spec);
-
-    pa_log_debug("hw buffer time: %u ms", (unsigned) (usec / PA_USEC_PER_MSEC));
-
-    wm = pa_bytes_to_usec(u->tsched_watermark, &u->sink->sample_spec);
-
-    if (usec >= wm)
-        usec -= wm;
-    else
-        usec /= 2;
-
-    if (u->first) {
-        pa_log_debug("Decreasing wakeup time for the first iteration by half.");
-        usec /= 2;
-    }
-
-    pa_log_debug("after watermark: %u ms", (unsigned) (usec / PA_USEC_PER_MSEC));
-
-    return usec;
-}
-
 static int update_sw_params(struct userdata *u) {
     snd_pcm_uframes_t avail_min;
     int err;
@@ -561,10 +589,10 @@ static int update_sw_params(struct userdata *u) {
     avail_min = u->hwbuf_unused_frames + 1;
 
     if (u->use_tsched) {
-        pa_usec_t usec;
+        pa_usec_t sleep_usec, process_usec;
 
-        usec = hw_sleep_time(u);
-        avail_min += pa_usec_to_bytes(usec, &u->sink->sample_spec);
+        hw_sleep_time(u, &sleep_usec, &process_usec);
+        avail_min += pa_usec_to_bytes(sleep_usec, &u->sink->sample_spec);
     }
 
     pa_log_debug("setting avail_min=%lu", (unsigned long) avail_min);
@@ -630,6 +658,7 @@ static int unsuspend(struct userdata *u) {
     /* FIXME: We need to reload the volume somehow */
 
     u->first = TRUE;
+    u->since_start = 0;
 
     pa_log_info("Resumed successfully...");
 
@@ -932,16 +961,17 @@ static void thread_func(void *userdata) {
 
         /* Render some data and write it to the dsp */
         if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
-            int work_done = 0;
+            int work_done;
+            pa_usec_t sleep_usec;
 
             if (u->sink->thread_info.rewind_nbytes > 0)
                 if (process_rewind(u) < 0)
                     goto fail;
 
             if (u->use_mmap)
-                work_done = mmap_write(u);
+                work_done = mmap_write(u, &sleep_usec);
             else
-                work_done = unix_write(u);
+                work_done = unix_write(u, &sleep_usec);
 
             if (work_done < 0)
                 goto fail;
@@ -961,23 +991,34 @@ static void thread_func(void *userdata) {
             }
 
             if (u->use_tsched) {
-                pa_usec_t usec, cusec;
+                pa_usec_t cusec;
+
+                if (u->since_start <= u->hwbuf_size) {
+
+                    /* USB devices on ALSA seem to hit a buffer
+                     * underrun during the first iterations much
+                     * quicker then we calculate here, probably due to
+                     * the transport latency. To accomodate for that
+                     * we artificially decrease the sleep time until
+                     * we have filled the buffer at least once
+                     * completely.*/
+
+                    pa_log_debug("Cutting sleep time for the initial iterations by half.");
+                    sleep_usec /= 2;
+                }
 
                 /* OK, the playback buffer is now full, let's
                  * calculate when to wake up next */
-
-                usec = hw_sleep_time(u);
-
-/*                 pa_log_debug("Waking up in %0.2fms (sound card clock).", (double) usec / PA_USEC_PER_MSEC); */
+/*                 pa_log_debug("Waking up in %0.2fms (sound card clock).", (double) sleep_usec / PA_USEC_PER_MSEC); */
 
                 /* Convert from the sound card time domain to the
                  * system time domain */
-                cusec = pa_smoother_translate(u->smoother, pa_rtclock_usec(), usec);
+                cusec = pa_smoother_translate(u->smoother, pa_rtclock_usec(), sleep_usec);
 
 /*                 pa_log_debug("Waking up in %0.2fms (system clock).", (double) cusec / PA_USEC_PER_MSEC); */
 
                 /* We don't trust the conversion, so we wake up whatever comes first */
-                pa_rtpoll_set_timer_relative(u->rtpoll, PA_MIN(usec, cusec));
+                pa_rtpoll_set_timer_relative(u->rtpoll, PA_MIN(sleep_usec, cusec));
             }
 
             u->first = FALSE;
@@ -1014,6 +1055,7 @@ static void thread_func(void *userdata) {
                     goto fail;
 
                 u->first = TRUE;
+                u->since_start = 0;
             }
 
             if (revents)
@@ -1115,12 +1157,13 @@ int pa__init(pa_module*m) {
     u->use_mmap = use_mmap;
     u->use_tsched = use_tsched;
     u->first = TRUE;
+    u->since_start = 0;
     u->after_rewind = FALSE;
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
     u->alsa_rtpoll_item = NULL;
 
-    u->smoother = pa_smoother_new(DEFAULT_TSCHED_BUFFER_USEC*2, DEFAULT_TSCHED_BUFFER_USEC*2, TRUE);
+    u->smoother = pa_smoother_new(DEFAULT_TSCHED_BUFFER_USEC*2, DEFAULT_TSCHED_BUFFER_USEC*2, TRUE, 5);
     usec = pa_rtclock_usec();
     pa_smoother_set_time_offset(u->smoother, usec);
     pa_smoother_pause(u->smoother, usec);

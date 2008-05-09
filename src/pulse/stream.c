@@ -42,10 +42,11 @@
 
 #include "internal.h"
 
-#define LATENCY_IPOL_INTERVAL_USEC (500*PA_USEC_PER_MSEC)
+#define LATENCY_IPOL_INTERVAL_USEC (333*PA_USEC_PER_MSEC)
 
 #define SMOOTHER_ADJUST_TIME (1000*PA_USEC_PER_MSEC)
 #define SMOOTHER_HISTORY_TIME (5000*PA_USEC_PER_MSEC)
+#define SMOOTHER_MIN_HISTORY (4)
 
 pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *ss, const pa_channel_map *map) {
     return pa_stream_new_with_proplist(c, name, ss, map, NULL);
@@ -344,6 +345,7 @@ void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED u
     pa_bool_t suspended;
     uint32_t di;
     pa_usec_t usec;
+    uint32_t maxlength = 0, fragsize = 0, minreq = 0, tlength = 0, prebuf = 0;
 
     pa_assert(pd);
     pa_assert(command == PA_COMMAND_PLAYBACK_STREAM_MOVED || command == PA_COMMAND_RECORD_STREAM_MOVED);
@@ -367,14 +369,28 @@ void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED u
     }
 
     if (c->version >= 13) {
-        if (pa_tagstruct_get_usec(t, &usec) < 0) {
-            pa_context_fail(s->context, PA_ERR_PROTOCOL);
-            goto finish;
+
+        if (s->direction == PA_STREAM_RECORD) {
+            if (pa_tagstruct_getu32(t, &maxlength) < 0 ||
+                pa_tagstruct_getu32(t, &fragsize) < 0 ||
+                pa_tagstruct_get_usec(t, &usec) < 0) {
+                pa_context_fail(c, PA_ERR_PROTOCOL);
+                goto finish;
+            }
+        } else {
+            if (pa_tagstruct_getu32(t, &maxlength) < 0 ||
+                pa_tagstruct_getu32(t, &tlength) < 0 ||
+                pa_tagstruct_getu32(t, &prebuf) < 0 ||
+                pa_tagstruct_getu32(t, &minreq) < 0 ||
+                pa_tagstruct_get_usec(t, &usec) < 0) {
+                pa_context_fail(c, PA_ERR_PROTOCOL);
+                goto finish;
+            }
         }
     }
 
     if (!pa_tagstruct_eof(t)) {
-        pa_context_fail(s->context, PA_ERR_PROTOCOL);
+        pa_context_fail(c, PA_ERR_PROTOCOL);
         goto finish;
     }
 
@@ -394,6 +410,12 @@ void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED u
             s->timing_info.configured_source_usec = usec;
         else
             s->timing_info.configured_sink_usec = usec;
+
+        s->buffer_attr.maxlength = maxlength;
+        s->buffer_attr.fragsize = fragsize;
+        s->buffer_attr.tlength = tlength;
+        s->buffer_attr.prebuf = prebuf;
+        s->buffer_attr.minreq = minreq;
     }
 
     pa_xfree(s->device_name);
@@ -861,7 +883,7 @@ static int create_stream(
         if (s->smoother)
             pa_smoother_free(s->smoother);
 
-        s->smoother = pa_smoother_new(SMOOTHER_ADJUST_TIME, SMOOTHER_HISTORY_TIME, !(flags & PA_STREAM_NOT_MONOTONOUS));
+        s->smoother = pa_smoother_new(SMOOTHER_ADJUST_TIME, SMOOTHER_HISTORY_TIME, !(flags & PA_STREAM_NOT_MONOTONOUS), SMOOTHER_MIN_HISTORY);
 
         x = pa_rtclock_usec();
         pa_smoother_set_time_offset(s->smoother, x);

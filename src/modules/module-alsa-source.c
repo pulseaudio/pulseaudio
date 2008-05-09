@@ -988,7 +988,7 @@ int pa__init(pa_module*m) {
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
     u->alsa_rtpoll_item = NULL;
 
-    u->smoother = pa_smoother_new(DEFAULT_TSCHED_WATERMARK_USEC, DEFAULT_TSCHED_WATERMARK_USEC, TRUE);
+    u->smoother = pa_smoother_new(DEFAULT_TSCHED_WATERMARK_USEC, DEFAULT_TSCHED_WATERMARK_USEC, TRUE, 5);
     pa_smoother_set_time_offset(u->smoother, pa_rtclock_usec());
 
     snd_config_update_free_global();

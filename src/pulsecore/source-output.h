@@ -148,6 +148,7 @@ enum {
     PA_SOURCE_OUTPUT_MESSAGE_SET_RATE,
     PA_SOURCE_OUTPUT_MESSAGE_SET_STATE,
     PA_SOURCE_OUTPUT_MESSAGE_SET_REQUESTED_LATENCY,
+    PA_SOURCE_OUTPUT_MESSAGE_GET_REQUESTED_LATENCY,
     PA_SOURCE_OUTPUT_MESSAGE_MAX
 };
 
@@ -168,15 +169,15 @@ typedef struct pa_source_output_new_data {
     pa_resample_method_t resample_method;
 } pa_source_output_new_data;
 
-typedef struct pa_source_output_move_hook_data {
-    pa_source_output *source_output;
-    pa_source *destination;
-} pa_source_output_move_hook_data;
-
 pa_source_output_new_data* pa_source_output_new_data_init(pa_source_output_new_data *data);
 void pa_source_output_new_data_set_sample_spec(pa_source_output_new_data *data, const pa_sample_spec *spec);
 void pa_source_output_new_data_set_channel_map(pa_source_output_new_data *data, const pa_channel_map *map);
 void pa_source_output_new_data_done(pa_source_output_new_data *data);
+
+typedef struct pa_source_output_move_hook_data {
+    pa_source_output *source_output;
+    pa_source *destination;
+} pa_source_output_move_hook_data;
 
 /* To be called by the implementing module only */
 
@@ -192,6 +193,10 @@ void pa_source_output_set_name(pa_source_output *i, const char *name);
 
 pa_usec_t pa_source_output_set_requested_latency(pa_source_output *i, pa_usec_t usec);
 
+void pa_source_output_cork(pa_source_output *i, pa_bool_t b);
+
+int pa_source_output_set_rate(pa_source_output *o, uint32_t rate);
+
 /* Callable by everyone */
 
 /* External code may request disconnection with this funcion */
@@ -199,15 +204,13 @@ void pa_source_output_kill(pa_source_output*o);
 
 pa_usec_t pa_source_output_get_latency(pa_source_output *i);
 
-void pa_source_output_cork(pa_source_output *i, pa_bool_t b);
-
-int pa_source_output_set_rate(pa_source_output *o, uint32_t rate);
-
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o);
 
 int pa_source_output_move_to(pa_source_output *o, pa_source *dest);
 
 #define pa_source_output_get_state(o) ((o)->state)
+
+pa_usec_t pa_source_output_get_requested_latency(pa_source_output *o);
 
 /* To be used exclusively by the source driver thread */
 
@@ -215,9 +218,9 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk);
 void pa_source_output_process_rewind(pa_source_output *o, size_t nbytes);
 void pa_source_output_update_max_rewind(pa_source_output *o, size_t nbytes);
 
-int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
-
 void pa_source_output_set_state_within_thread(pa_source_output *o, pa_source_output_state_t state);
+
+int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
 
 pa_usec_t pa_source_output_set_requested_latency_within_thread(pa_source_output *o, pa_usec_t usec);
 

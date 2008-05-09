@@ -113,7 +113,6 @@ static void reset_callbacks(pa_sink *s) {
     s->set_volume = NULL;
     s->get_mute = NULL;
     s->set_mute = NULL;
-    s->get_latency = NULL;
     s->request_rewind = NULL;
     s->update_requested_latency = NULL;
 }
@@ -769,9 +768,6 @@ pa_usec_t pa_sink_get_latency(pa_sink *s) {
     if (!PA_SINK_IS_OPENED(s->state))
         return 0;
 
-    if (s->get_latency)
-        return s->get_latency(s);
-
     if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
         return 0;
 
@@ -930,6 +926,10 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
         case PA_SINK_MESSAGE_ADD_INPUT: {
             pa_sink_input *i = PA_SINK_INPUT(userdata);
 
+            /* If you change anything here, make sure to change the
+             * sink input handling a few lines down at
+             * PA_SINK_MESSAGE_FINISH_MOVE, too. */
+
             pa_hashmap_put(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index), pa_sink_input_ref(i));
 
             /* Since the caller sleeps in pa_sink_input_put(), we can
@@ -965,10 +965,6 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
              * slow start, i.e. need some time to buffer client
              * samples before beginning streaming. */
 
-            /* If you change anything here, make sure to change the
-             * ghost sink input handling a few lines down at
-             * PA_SINK_MESSAGE_REMOVE_INPUT_AND_BUFFER, too. */
-
             return 0;
         }
 
@@ -977,7 +973,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
             /* If you change anything here, make sure to change the
              * sink input handling a few lines down at
-             * PA_SINK_MESSAGE_REMOVE_INPUT_AND_BUFFER, too. */
+             * PA_SINK_MESSAGE_PREPAPRE_MOVE, too. */
 
             pa_sink_input_set_state_within_thread(i, i->state);
 
@@ -1013,85 +1009,88 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             return 0;
         }
 
-        case PA_SINK_MESSAGE_REMOVE_INPUT_AND_BUFFER: {
-            pa_sink_input_move_info *info = userdata;
-            int volume_is_norm;
+        case PA_SINK_MESSAGE_START_MOVE: {
+            pa_sink_input *i = PA_SINK_INPUT(userdata);
 
             /* We don't support moving synchronized streams. */
-            pa_assert(!info->sink_input->sync_prev);
-            pa_assert(!info->sink_input->sync_next);
-            pa_assert(!info->sink_input->thread_info.sync_next);
-            pa_assert(!info->sink_input->thread_info.sync_prev);
+            pa_assert(!i->sync_prev);
+            pa_assert(!i->sync_next);
+            pa_assert(!i->thread_info.sync_next);
+            pa_assert(!i->thread_info.sync_prev);
 
-            if (info->sink_input->detach)
-                info->sink_input->detach(info->sink_input);
+            if (i->thread_info.state != PA_SINK_INPUT_CORKED) {
+                pa_usec_t usec = 0;
+                size_t sink_nbytes, total_nbytes;
 
-            pa_assert(info->sink_input->thread_info.attached);
-            info->sink_input->thread_info.attached = FALSE;
-            pa_sink_invalidate_requested_latency(info->sink_input->sink);
+                /* Get the latency of the sink */
+                if (PA_MSGOBJECT(s)->process_msg(PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
+                    usec = 0;
 
-            if (info->ghost_sink_input) {
-                pa_assert(info->buffer_bytes > 0);
-                pa_assert(info->buffer);
+                sink_nbytes = pa_usec_to_bytes(usec, &s->sample_spec);
+                total_nbytes = sink_nbytes + pa_memblockq_get_length(i->thread_info.render_memblockq);
 
-                volume_is_norm = pa_cvolume_is_norm(&info->sink_input->thread_info.volume);
-
-                pa_log_debug("Buffering %lu bytes ...", (unsigned long) info->buffer_bytes);
-
-                while (info->buffer_bytes > 0) {
-                    pa_memchunk memchunk;
-                    pa_cvolume volume;
-                    size_t n;
-
-                    if (pa_sink_input_peek(info->sink_input, info->buffer_bytes, &memchunk, &volume) < 0)
-                        break;
-
-                    n = memchunk.length > info->buffer_bytes ? info->buffer_bytes : memchunk.length;
-                    pa_sink_input_drop(info->sink_input, n);
-                    memchunk.length = n;
-
-                    if (!volume_is_norm) {
-                        pa_memchunk_make_writable(&memchunk, 0);
-                        pa_volume_memchunk(&memchunk, &s->sample_spec, &volume);
-                    }
-
-                    if (pa_memblockq_push(info->buffer, &memchunk) < 0) {
-                        pa_memblock_unref(memchunk.memblock);
-                        break;
-                    }
-
-                    pa_memblock_unref(memchunk.memblock);
-                    info->buffer_bytes -= n;
+                if (total_nbytes > 0) {
+                    i->thread_info.rewrite_nbytes = i->thread_info.resampler ? pa_resampler_request(i->thread_info.resampler, total_nbytes) : total_nbytes;
+                    i->thread_info.rewrite_flush = TRUE;
+                    pa_sink_input_process_rewind(i, sink_nbytes);
                 }
-
-                /* Add the remaining already resampled chunks to the buffer */
-                pa_memblockq_splice(info->buffer, info->sink_input->thread_info.render_memblockq);
-
-                pa_memblockq_sink_input_set_queue(info->ghost_sink_input, info->buffer);
-
-                pa_log_debug("Buffered %lu bytes ...", (unsigned long) pa_memblockq_get_length(info->buffer));
             }
+
+            if (i->detach)
+                i->detach(i);
+
+            pa_assert(i->thread_info.attached);
+            i->thread_info.attached = FALSE;
 
             /* Let's remove the sink input ...*/
-            if (pa_hashmap_remove(s->thread_info.inputs, PA_UINT32_TO_PTR(info->sink_input->index)))
-                pa_sink_input_unref(info->sink_input);
-
-            /* .. and add the ghost sink input instead */
-            if (info->ghost_sink_input) {
-                pa_hashmap_put(s->thread_info.inputs, PA_UINT32_TO_PTR(info->ghost_sink_input->index), pa_sink_input_ref(info->ghost_sink_input));
-                info->ghost_sink_input->thread_info.sync_prev = info->ghost_sink_input->thread_info.sync_next = NULL;
-
-                pa_sink_input_update_max_rewind(info->ghost_sink_input, s->thread_info.max_rewind);
-
-                pa_assert(!info->ghost_sink_input->thread_info.attached);
-                info->ghost_sink_input->thread_info.attached = TRUE;
-
-                if (info->ghost_sink_input->attach)
-                    info->ghost_sink_input->attach(info->ghost_sink_input);
-            }
+            if (pa_hashmap_remove(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index)))
+                pa_sink_input_unref(i);
 
             pa_sink_invalidate_requested_latency(s);
+
+            pa_log_debug("Requesting rewind due to started move");
             pa_sink_request_rewind(s, 0);
+
+            return 0;
+        }
+
+        case PA_SINK_MESSAGE_FINISH_MOVE: {
+            pa_sink_input *i = PA_SINK_INPUT(userdata);
+
+            /* We don't support moving synchronized streams. */
+            pa_assert(!i->sync_prev);
+            pa_assert(!i->sync_next);
+            pa_assert(!i->thread_info.sync_next);
+            pa_assert(!i->thread_info.sync_prev);
+
+            pa_hashmap_put(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index), pa_sink_input_ref(i));
+
+            pa_assert(!i->thread_info.attached);
+            i->thread_info.attached = TRUE;
+
+            if (i->attach)
+                i->attach(i);
+
+            pa_sink_input_update_max_rewind(i, s->thread_info.max_rewind);
+
+            pa_sink_input_set_requested_latency_within_thread(i, i->thread_info.requested_sink_latency);
+
+            if (i->thread_info.state != PA_SINK_INPUT_CORKED) {
+                pa_usec_t usec = 0;
+                size_t nbytes;
+
+                /* Get the latency of the sink */
+                if (PA_MSGOBJECT(s)->process_msg(PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
+                    usec = 0;
+
+                nbytes = pa_usec_to_bytes(usec, &s->sample_spec);
+
+                if (nbytes > 0)
+                    pa_sink_input_drop(i, nbytes);
+
+                pa_log_debug("Requesting rewind due to finished move");
+                pa_sink_request_rewind(s, nbytes);
+            }
 
             return 0;
         }

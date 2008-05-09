@@ -100,7 +100,6 @@ struct pa_source {
     int (*get_volume)(pa_source *s);         /* dito */
     int (*set_mute)(pa_source *s);           /* dito */
     int (*get_mute)(pa_source *s);           /* dito */
-    pa_usec_t (*get_latency)(pa_source *s);  /* dito */
     void (*update_requested_latency)(pa_source *s); /* dito */
 
     /* Contains copies of the above data so that the real-time worker

@@ -118,11 +118,6 @@ struct pa_sink {
      * message will be sent to the IO thread instead. */
     int (*set_mute)(pa_sink *s);               /* dito */
 
-    /* Called when the latency is queried. Called from main loop
-    context. If this is NULL a PA_SINK_MESSAGE_GET_LATENCY message
-    will be sent to the IO thread instead. */
-    pa_usec_t (*get_latency)(pa_sink *s); /* dito */
-
     /* Called when a rewind request is issued. Called from IO thread
      * context. */
     void (*request_rewind)(pa_sink *s);        /* dito */
@@ -166,7 +161,8 @@ typedef enum pa_sink_message {
     PA_SINK_MESSAGE_GET_LATENCY,
     PA_SINK_MESSAGE_GET_REQUESTED_LATENCY,
     PA_SINK_MESSAGE_SET_STATE,
-    PA_SINK_MESSAGE_REMOVE_INPUT_AND_BUFFER,
+    PA_SINK_MESSAGE_START_MOVE,
+    PA_SINK_MESSAGE_FINISH_MOVE,
     PA_SINK_MESSAGE_ATTACH,
     PA_SINK_MESSAGE_DETACH,
     PA_SINK_MESSAGE_MAX

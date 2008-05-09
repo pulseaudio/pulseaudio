@@ -294,6 +294,7 @@ void pa_source_output_unlink(pa_source_output*o) {
 static void source_output_free(pa_object* mo) {
     pa_source_output *o = PA_SOURCE_OUTPUT(mo);
 
+    pa_assert(o);
     pa_assert(pa_source_output_refcnt(o) == 0);
 
     if (PA_SOURCE_OUTPUT_IS_LINKED(o->state))
@@ -326,7 +327,7 @@ void pa_source_output_put(pa_source_output *o) {
     state = o->flags & PA_SOURCE_OUTPUT_START_CORKED ? PA_SOURCE_OUTPUT_CORKED : PA_SOURCE_OUTPUT_RUNNING;
 
     update_n_corked(o, state);
-    o->thread_info.state = o->state = state;
+    o->state = state;
 
     pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, o, 0, NULL);
 
@@ -470,6 +471,7 @@ static pa_usec_t fixup_latency(pa_source *s, pa_usec_t usec) {
 }
 
 pa_usec_t pa_source_output_set_requested_latency_within_thread(pa_source_output *o, pa_usec_t usec) {
+    pa_source_output_assert_ref(o);
 
     usec = fixup_latency(o->source, usec);
 
@@ -492,6 +494,21 @@ pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t 
         o->thread_info.requested_source_latency = usec;
         o->source->thread_info.requested_latency_valid = FALSE;
     }
+
+    return usec;
+}
+
+pa_usec_t pa_source_output_get_requested_latency(pa_source_output *o) {
+    pa_usec_t usec = 0;
+
+    pa_source_output_assert_ref(o);
+
+    if (PA_SOURCE_OUTPUT_IS_LINKED(o->state))
+        pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_GET_REQUESTED_LATENCY, &usec, 0, NULL);
+    else
+        /* If this sink input is not realized yet, we have to touch
+         * the thread info data directly */
+        usec = o->thread_info.requested_source_latency;
 
     return usec;
 }
@@ -523,10 +540,10 @@ void pa_source_output_set_name(pa_source_output *o, const char *name) {
     const char *old;
     pa_source_output_assert_ref(o);
 
-    old = pa_proplist_gets(o->proplist, PA_PROP_MEDIA_NAME);
-
-    if (!old && !name)
+    if (!name && !pa_proplist_contains(o->proplist, PA_PROP_MEDIA_NAME))
         return;
+
+    old = pa_proplist_gets(o->proplist, PA_PROP_MEDIA_NAME);
 
     if (old && name && !strcmp(old, name))
         return;
@@ -550,7 +567,7 @@ pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o) {
 
 int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
     pa_source *origin;
-    pa_resampler *new_resampler = NULL;
+    pa_resampler *new_resampler;
     pa_source_output_move_hook_data hook_data;
 
     pa_source_output_assert_ref(o);
@@ -594,7 +611,8 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
             pa_log_warn("Unsupported resampling operation.");
             return -1;
         }
-    }
+    } else
+        new_resampler = NULL;
 
     hook_data.source_output = o;
     hook_data.destination = dest;
@@ -640,6 +658,9 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
 void pa_source_output_set_state_within_thread(pa_source_output *o, pa_source_output_state_t state) {
     pa_source_output_assert_ref(o);
 
+    if (state == o->thread_info.state)
+        return;
+
     if (o->state_change)
         o->state_change(o, state);
 
@@ -659,7 +680,6 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
             pa_usec_t *r = userdata;
 
             *r += pa_bytes_to_usec(pa_memblockq_get_length(o->thread_info.delay_memblockq), &o->source->sample_spec);
-
             return 0;
         }
 
@@ -678,6 +698,13 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
 
             pa_source_output_set_requested_latency_within_thread(o, (pa_usec_t) offset);
             return 0;
+
+        case PA_SINK_INPUT_MESSAGE_GET_REQUESTED_LATENCY: {
+            pa_usec_t *r = userdata;
+
+            *r = o->thread_info.requested_source_latency;
+            return 0;
+        }
     }
 
     return -1;

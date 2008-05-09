@@ -618,35 +618,35 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 }
 
 /* Called from main context */
-static pa_usec_t sink_get_latency_cb(pa_sink *s) {
-    struct userdata *u;
+/* static pa_usec_t sink_get_latency_cb(pa_sink *s) { */
+/*     struct userdata *u; */
 
-    pa_sink_assert_ref(s);
-    pa_assert_se(u = s->userdata);
+/*     pa_sink_assert_ref(s); */
+/*     pa_assert_se(u = s->userdata); */
 
-    if (u->master) {
-        /* If we have a master sink, we just return the latency of it
-         * and add our own buffering on top */
+/*     if (u->master) { */
+/*         /\* If we have a master sink, we just return the latency of it */
+/*          * and add our own buffering on top *\/ */
 
-        if (!u->master->sink_input)
-            return 0;
+/*         if (!u->master->sink_input) */
+/*             return 0; */
 
-        return
-            pa_sink_input_get_latency(u->master->sink_input) +
-            pa_sink_get_latency(u->master->sink);
+/*         return */
+/*             pa_sink_input_get_latency(u->master->sink_input) + */
+/*             pa_sink_get_latency(u->master->sink); */
 
-    } else {
-        pa_usec_t usec = 0;
+/*     } else { */
+/*         pa_usec_t usec = 0; */
 
-        /* We have no master, hence let's ask our own thread which
-         * implements the NULL sink */
+/*         /\* We have no master, hence let's ask our own thread which */
+/*          * implements the NULL sink *\/ */
 
-        if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
-            return 0;
+/*         if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0) */
+/*             return 0; */
 
-        return usec;
-    }
-}
+/*         return usec; */
+/*     } */
+/* } */
 
 static void update_description(struct userdata *u) {
     int first = 1;
@@ -1025,7 +1025,7 @@ int pa__init(pa_module*m) {
     }
 
     u->sink->parent.process_msg = sink_process_msg;
-    u->sink->get_latency = sink_get_latency_cb;
+/*     u->sink->get_latency = sink_get_latency_cb; */
     u->sink->set_state = sink_set_state;
     u->sink->userdata = u;
 

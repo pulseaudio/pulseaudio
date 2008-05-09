@@ -107,7 +107,6 @@ static void reset_callbacks(pa_source *s) {
     s->set_volume = NULL;
     s->get_mute = NULL;
     s->set_mute = NULL;
-    s->get_latency = NULL;
     s->update_requested_latency = NULL;
 }
 
@@ -439,9 +438,6 @@ pa_usec_t pa_source_get_latency(pa_source *s) {
 
     if (!PA_SOURCE_IS_OPENED(s->state))
         return 0;
-
-    if (s->get_latency)
-        return s->get_latency(s);
 
     if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
         return 0;

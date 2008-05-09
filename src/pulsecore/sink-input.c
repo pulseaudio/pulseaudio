@@ -243,7 +243,6 @@ pa_sink_input* pa_sink_input_new(
     i->thread_info.state = i->state;
     i->thread_info.attached = FALSE;
     pa_atomic_store(&i->thread_info.drained, 1);
-    pa_atomic_store(&i->thread_info.render_memblockq_is_empty, 0);
     i->thread_info.sample_spec = i->sample_spec;
     i->thread_info.resampler = resampler;
     i->thread_info.volume = i->volume;
@@ -410,10 +409,6 @@ void pa_sink_input_put(pa_sink_input *i) {
 
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
     pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], i);
-
-    /* Please note that if you change something here, you have to
-       change something in pa_sink_input_move() with the ghost stream
-       registration too. */
 }
 
 void pa_sink_input_kill(pa_sink_input*i) {
@@ -511,10 +506,10 @@ int pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, pa
              * data, so let's just hand out silence */
             pa_atomic_store(&i->thread_info.drained, 1);
 
-            pa_memblockq_seek(i->thread_info.render_memblockq, slength, PA_SEEK_RELATIVE_ON_READ);
+            pa_memblockq_seek(i->thread_info.render_memblockq, slength, PA_SEEK_RELATIVE);
             i->thread_info.playing_for = 0;
             if (i->thread_info.underrun_for != (uint64_t) -1)
-                i->thread_info.underrun_for += slength;
+                i->thread_info.underrun_for += ilength;
             break;
         }
 
@@ -551,6 +546,8 @@ int pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, pa
                 pa_memchunk rchunk;
                 pa_resampler_run(i->thread_info.resampler, &wchunk, &rchunk);
 
+/*                 pa_log_debug("pushing %lu", (unsigned long) rchunk.length); */
+
                 if (rchunk.memblock) {
                     pa_memblockq_push_align(i->thread_info.render_memblockq, &rchunk);
                     pa_memblock_unref(rchunk.memblock);
@@ -571,6 +568,8 @@ int pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, pa
     pa_assert(chunk->length > 0);
     pa_assert(chunk->memblock);
 
+/*     pa_log_debug("peeking %lu", (unsigned long) chunk->length); */
+
     if (chunk->length > block_size_max_sink)
         chunk->length = block_size_max_sink;
 
@@ -586,8 +585,6 @@ int pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, pa
     else
         *volume = i->thread_info.volume;
 
-    pa_atomic_store(&i->thread_info.render_memblockq_is_empty, pa_memblockq_is_empty(i->thread_info.render_memblockq));
-
     return 0;
 }
 
@@ -599,6 +596,8 @@ void pa_sink_input_drop(pa_sink_input *i, size_t nbytes /* in sink sample spec *
     pa_assert(pa_frame_aligned(nbytes, &i->sink->sample_spec));
     pa_assert(nbytes > 0);
 
+/*     pa_log_debug("dropping %lu", (unsigned long) nbytes); */
+
     /* If there's still some rewrite request the handle, but the sink
     didn't do this for us, we do it here. However, since the sink
     apparently doesn't support rewinding, we pass 0 here. This still
@@ -606,18 +605,19 @@ void pa_sink_input_drop(pa_sink_input *i, size_t nbytes /* in sink sample spec *
     pa_sink_input_process_rewind(i, 0);
 
     pa_memblockq_drop(i->thread_info.render_memblockq, nbytes);
-
-    pa_atomic_store(&i->thread_info.render_memblockq_is_empty, pa_memblockq_is_empty(i->thread_info.render_memblockq));
 }
 
 /* Called from thread context */
 void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sample spec */) {
+    size_t lbq;
     pa_sink_input_assert_ref(i);
 
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->thread_info.state));
     pa_assert(pa_frame_aligned(nbytes, &i->sink->sample_spec));
 
 /*     pa_log_debug("rewind(%lu, %lu)", (unsigned long) nbytes, (unsigned long) i->thread_info.rewrite_nbytes); */
+
+    lbq = pa_memblockq_get_length(i->thread_info.render_memblockq);
 
     if (nbytes > 0) {
         pa_log_debug("Have to rewind %lu bytes on render memblockq.", (unsigned long) nbytes);
@@ -635,7 +635,7 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
         size_t max_rewrite, amount;
 
         /* Calculate how much make sense to rewrite at most */
-        max_rewrite = nbytes + pa_memblockq_get_length(i->thread_info.render_memblockq);
+        max_rewrite = nbytes + lbq;
 
         /* Transform into local domain */
         if (i->thread_info.resampler)
@@ -651,18 +651,16 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
             if (i->process_rewind)
                 i->process_rewind(i, amount);
 
+            /* Convert back to to sink domain */
+            if (i->thread_info.resampler)
+                amount = pa_resampler_result(i->thread_info.resampler, amount);
+
+            if (amount > 0)
+                /* Ok, now update the write pointer */
+                pa_memblockq_seek(i->thread_info.render_memblockq, - ((int64_t) amount), PA_SEEK_RELATIVE);
+
             if (i->thread_info.rewrite_flush)
                 pa_memblockq_silence(i->thread_info.render_memblockq);
-            else {
-
-                /* Convert back to to sink domain */
-                if (i->thread_info.resampler)
-                    amount = pa_resampler_result(i->thread_info.resampler, amount);
-
-                if (amount > 0)
-                    /* Ok, now update the write pointer */
-                    pa_memblockq_seek(i->thread_info.render_memblockq, - ((int64_t) amount), PA_SEEK_RELATIVE);
-            }
 
             /* And reset the resampler */
             if (i->thread_info.resampler)
@@ -702,6 +700,7 @@ static pa_usec_t fixup_latency(pa_sink *s, pa_usec_t usec) {
 }
 
 pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa_usec_t usec) {
+    pa_sink_input_assert_ref(i);
 
     usec = fixup_latency(i->sink, usec);
 
@@ -724,6 +723,21 @@ pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec) 
         i->thread_info.requested_sink_latency = usec;
         i->sink->thread_info.requested_latency_valid = FALSE;
     }
+
+    return usec;
+}
+
+pa_usec_t pa_sink_input_get_requested_latency(pa_sink_input *i) {
+    pa_usec_t usec = 0;
+
+    pa_sink_input_assert_ref(i);
+
+    if (PA_SINK_INPUT_IS_LINKED(i->state))
+        pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_GET_REQUESTED_LATENCY, &usec, 0, NULL);
+    else
+        /* If this sink input is not realized yet, we have to touch
+         * the thread info data directly */
+        usec = i->thread_info.requested_sink_latency;
 
     return usec;
 }
@@ -821,11 +835,9 @@ pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i) {
     return i->resample_method;
 }
 
-int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, pa_bool_t immediately) {
+int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest) {
     pa_resampler *new_resampler;
     pa_sink *origin;
-    pa_usec_t silence_usec = 0;
-    pa_sink_input_move_info info;
     pa_sink_input_move_hook_data hook_data;
 
     pa_sink_input_assert_ref(i);
@@ -881,80 +893,7 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, pa_bool_t immediately
     hook_data.destination = dest;
     pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE], &hook_data);
 
-    memset(&info, 0, sizeof(info));
-    info.sink_input = i;
-
-    if (!immediately) {
-        pa_usec_t old_latency, new_latency;
-
-        /* Let's do a little bit of Voodoo for compensating latency
-         * differences. We assume that the accuracy for our
-         * estimations is still good enough, even though we do these
-         * operations non-atomic. */
-
-        old_latency = pa_sink_get_latency(origin);
-        new_latency = pa_sink_get_latency(dest);
-
-        /* The already resampled data should go to the old sink */
-
-        if (old_latency >= new_latency) {
-
-            /* The latency of the old sink is larger than the latency
-             * of the new sink. Therefore to compensate for the
-             * difference we to play silence on the new one for a
-             * while */
-
-            silence_usec = old_latency - new_latency;
-
-        } else {
-
-            /* The latency of new sink is larger than the latency of
-             * the old sink. Therefore we have to precompute a little
-             * and make sure that this is still played on the old
-             * sink, until we can play the first sample on the new
-             * sink.*/
-
-            info.buffer_bytes = pa_usec_to_bytes(new_latency - old_latency, &origin->sample_spec);
-        }
-
-        /* Okey, let's move it */
-
-        if (info.buffer_bytes > 0) {
-            pa_proplist *p;
-
-            p = pa_proplist_new();
-            pa_proplist_sets(p, PA_PROP_MEDIA_NAME, "Ghost For Moved Stream");
-            pa_proplist_sets(p, PA_PROP_MEDIA_ROLE, "routing");
-
-            info.ghost_sink_input = pa_memblockq_sink_input_new(
-                    origin,
-                    &origin->sample_spec,
-                    &origin->channel_map,
-                    NULL,
-                    NULL,
-                    p);
-
-            pa_proplist_free(p);
-
-            if (info.ghost_sink_input) {
-                info.ghost_sink_input->thread_info.state = info.ghost_sink_input->state = PA_SINK_INPUT_RUNNING;
-                info.ghost_sink_input->thread_info.volume = info.ghost_sink_input->volume;
-                info.ghost_sink_input->thread_info.muted = info.ghost_sink_input->muted;
-
-                info.buffer = pa_memblockq_new(0, MOVE_BUFFER_LENGTH, 0, pa_frame_size(&origin->sample_spec), 0, 0, 0, NULL);
-            }
-        }
-    }
-
-    pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_REMOVE_INPUT_AND_BUFFER, &info, 0, NULL);
-
-    if (info.ghost_sink_input) {
-        /* Basically, do what pa_sink_input_put() does ...*/
-
-        pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, info.ghost_sink_input->index);
-        pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], info.ghost_sink_input);
-        pa_sink_input_unref(info.ghost_sink_input);
-    }
+    pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_START_MOVE, i, 0, NULL);
 
     pa_idxset_remove_by_data(origin->inputs, i, NULL);
     pa_idxset_put(dest->inputs, i, NULL);
@@ -965,39 +904,30 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, pa_bool_t immediately
         dest->n_corked++;
     }
 
-    /* Replace resampler */
+    /* Replace resampler and render queue */
     if (new_resampler != i->thread_info.resampler) {
-        pa_memchunk silence;
 
         if (i->thread_info.resampler)
             pa_resampler_free(i->thread_info.resampler);
         i->thread_info.resampler = new_resampler;
 
-        /* if the resampler changed, the silence memblock is
-         * probably invalid now, too */
+        pa_memblockq_free(i->thread_info.render_memblockq);
 
-        pa_silence_memchunk_get(
-                &i->sink->core->silence_cache,
-                i->sink->core->mempool,
-                &silence,
-                &dest->sample_spec,
-                0);
-
-        pa_memblockq_set_silence(i->thread_info.render_memblockq, &silence);
-        pa_memblock_unref(silence.memblock);
-
+        i->thread_info.render_memblockq = pa_memblockq_new(
+                0,
+                MEMBLOCKQ_MAXLENGTH,
+                0,
+                pa_frame_size(&i->sink->sample_spec),
+                0,
+                1,
+                0,
+                &i->sink->silence);
     }
-
-    pa_memblockq_flush(i->thread_info.render_memblockq);
-
-    /* Calculate the new sleeping time */
-    if (!immediately)
-        pa_memblockq_seek(i->thread_info.render_memblockq, pa_usec_to_bytes(silence_usec, &dest->sample_spec), PA_SEEK_RELATIVE);
-
-    pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_ADD_INPUT, i, 0, NULL);
 
     pa_sink_update_status(origin);
     pa_sink_update_status(dest);
+
+    pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_FINISH_MOVE, i, 0, NULL);
 
     if (i->moved)
         i->moved(i);
@@ -1014,6 +944,9 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, pa_bool_t immediately
 
 void pa_sink_input_set_state_within_thread(pa_sink_input *i, pa_sink_input_state_t state) {
     pa_sink_input_assert_ref(i);
+
+    if (state == i->thread_info.state)
+        return;
 
     if ((state == PA_SINK_INPUT_DRAINED || state == PA_SINK_INPUT_RUNNING) &&
         !(i->thread_info.state == PA_SINK_INPUT_DRAINED || i->thread_info.state != PA_SINK_INPUT_RUNNING))
@@ -1060,7 +993,6 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t
             pa_usec_t *r = userdata;
 
             *r += pa_bytes_to_usec(pa_memblockq_get_length(i->thread_info.render_memblockq), &i->sink->sample_spec);
-
             return 0;
         }
 
@@ -1089,6 +1021,13 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t
 
             pa_sink_input_set_requested_latency_within_thread(i, (pa_usec_t) offset);
             return 0;
+
+        case PA_SINK_INPUT_MESSAGE_GET_REQUESTED_LATENCY: {
+            pa_usec_t *r = userdata;
+
+            *r = i->thread_info.requested_sink_latency;
+            return 0;
+        }
     }
 
     return -1;
@@ -1103,11 +1042,12 @@ pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i) {
     return i->state;
 }
 
+/* Called from IO context */
 pa_bool_t pa_sink_input_safe_to_remove(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
 
-    if (i->state == PA_SINK_INPUT_RUNNING || i->state == PA_SINK_INPUT_DRAINED || i->state == PA_SINK_INPUT_CORKED)
-        return pa_atomic_load(&i->thread_info.render_memblockq_is_empty);
+    if (PA_SINK_INPUT_IS_LINKED(i->thread_info.state))
+        return pa_memblockq_is_empty(i->thread_info.render_memblockq);
 
     return TRUE;
 }
@@ -1129,7 +1069,7 @@ void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sam
     pa_assert(i->thread_info.rewrite_nbytes == 0);
 
     /* We don't take rewind requests while we are corked */
-    if (i->state == PA_SINK_INPUT_CORKED)
+    if (i->thread_info.state == PA_SINK_INPUT_CORKED)
         return;
 
     pa_assert(rewrite || flush);
