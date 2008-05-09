@@ -29,7 +29,7 @@
 
 typedef struct pa_smoother pa_smoother;
 
-pa_smoother* pa_smoother_new(pa_usec_t x_adjust_time, pa_usec_t x_history_time, pa_bool_t monotonic);
+pa_smoother* pa_smoother_new(pa_usec_t x_adjust_time, pa_usec_t x_history_time, pa_bool_t monotonic, unsigned min_history);
 void pa_smoother_free(pa_smoother* s);
 
 /* Adds a new value to our dataset. x = local/system time, y = remote time */
