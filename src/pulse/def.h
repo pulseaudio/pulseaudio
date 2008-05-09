@@ -238,6 +238,10 @@ typedef enum pa_stream_flags {
                                       * accordingly. \since 0.9.11 */
 } pa_stream_flags_t;
 
+
+/** English is an evil language \since 0.9.11 */
+#define PA_STREAM_NOT_MONOTONIC PA_STREAM_NOT_MONOTONOUS
+
 /** Playback and record buffer metrics */
 typedef struct pa_buffer_attr {
     uint32_t maxlength;      /**< Maximum length of the
