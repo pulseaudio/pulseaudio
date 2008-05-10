@@ -88,8 +88,8 @@ struct pa_raop_client {
     uint8_t aes_key[AES_CHUNKSIZE]; /* key for aes-cbc */
 
     pa_socket_client *sc;
-    pa_iochannel *io;
-    pa_iochannel_cb_t callback;
+    int fd;
+    pa_raop_client_cb_t callback;
     void* userdata;
 
     uint8_t *buffer;
@@ -115,7 +115,7 @@ static inline void bit_writer(uint8_t **buffer, uint8_t *bit_pos, int *size, uin
 
     /* If bit pos is zero, we will definatly use at least one bit from the current byte so size increments. */
     if (!*bit_pos)
-        *size = 1;
+        *size += 1;
 
     /* Calc the number of bits left in the current byte of buffer */
     bits_left = 7 - *bit_pos  + 1;
@@ -195,18 +195,6 @@ static int aes_encrypt(pa_raop_client* c, uint8_t *data, int size)
     return i;
 }
 
-pa_raop_client* pa_raop_client_new(void)
-{
-    pa_raop_client* c = pa_xnew0(pa_raop_client, 1);
-    return c;
-}
-
-void pa_raop_client_free(pa_raop_client* c)
-{
-    pa_assert(c);
-    pa_xfree(c);
-}
-
 static inline void rtrimchar(char *str, char rc)
 {
     char *sp = str + strlen(str) - 1;
@@ -216,50 +204,14 @@ static inline void rtrimchar(char *str, char rc)
     }
 }
 
-static int pa_raop_client_process(pa_raop_client* c)
-{
-    ssize_t l;
-
-    pa_assert(c);
-
-    if (!c->buffer_index || !c->buffer_count)
-        return 1;
-
-    if (!pa_iochannel_is_writable(c->io))
-        return 0;
-    l = pa_iochannel_write(c->io, c->buffer_index, c->buffer_count);
-    /*pa_log_debug("Wrote %d bytes (from buffer)", (int)l);*/
-    if (l == c->buffer_count) {
-        c->buffer_index = NULL;
-        c->buffer_count = 0;
-        return 1;
-    }
-    c->buffer_index += l;
-    c->buffer_count -= l;
-    /*pa_log_debug("Sill have %d bytes (in buffer)", c->buffer_count);*/
-
-    return 0;
-}
-
-static void io_callback(PA_GCC_UNUSED pa_iochannel *io, void *userdata)
-{
-    pa_raop_client *c = userdata;
-
-    pa_assert(c);
-    pa_assert(c->io == io);
-    pa_assert(c->callback);
-
-    if (pa_raop_client_process(c)) {
-        c->callback(c->io, c->userdata);
-    }
-}
-
 static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata) {
     pa_raop_client *c = userdata;
 
     pa_assert(sc);
     pa_assert(c);
     pa_assert(c->sc == sc);
+    pa_assert(c->fd < 0);
+    pa_assert(c->callback);
 
     pa_socket_client_unref(c->sc);
     c->sc = NULL;
@@ -268,9 +220,16 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
         pa_log("Connection failed: %s", pa_cstrerror(errno));
         return;
     }
-    pa_assert(!c->io);
-    c->io = io;
-    pa_iochannel_set_callback(c->io, io_callback, c);
+
+    c->fd = pa_iochannel_get_send_fd(io);
+
+    pa_iochannel_set_noclose(io, TRUE);
+    pa_iochannel_free(io);
+
+    pa_make_tcp_socket_low_delay(c->fd);
+
+    pa_log_debug("Connection established");
+    c->callback(c->fd, c->userdata);
 }
 
 static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* headers, void *userdata)
@@ -382,7 +341,7 @@ static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* he
     }
 }
 
-int pa_raop_client_connect(pa_raop_client* c, pa_mainloop_api *mainloop, const char* host)
+pa_raop_client* pa_raop_client_new(pa_mainloop_api *mainloop, const char* host)
 {
     char *sci;
     struct {
@@ -390,11 +349,12 @@ int pa_raop_client_connect(pa_raop_client* c, pa_mainloop_api *mainloop, const c
         uint32_t b;
         uint32_t c;
     } rand_data;
+    pa_raop_client* c = pa_xnew0(pa_raop_client, 1);
 
-    pa_assert(c);
     pa_assert(host);
 
     c->mainloop = mainloop;
+    c->fd = -1;
     c->host = host;
     c->rtsp = pa_rtsp_client_new("iTunes/4.6 (Macintosh; U; PPC Mac OS X 10.3)");
 
@@ -411,18 +371,41 @@ int pa_raop_client_connect(pa_raop_client* c, pa_mainloop_api *mainloop, const c
     sci = pa_sprintf_malloc("%08x%08x",rand_data.b, rand_data.c);
     pa_rtsp_add_header(c->rtsp, "Client-Instance", sci);
     pa_rtsp_set_callback(c->rtsp, rtsp_cb, c);
-    return pa_rtsp_connect(c->rtsp, mainloop, host, 5000);
+    if (pa_rtsp_connect(c->rtsp, mainloop, host, 5000)) {
+        pa_rtsp_client_free(c->rtsp);
+        pa_xfree(c->aes_iv);
+        pa_xfree(c->aes_nv);
+        pa_xfree(c->aes_key);
+        return NULL;
+    }
+    return c;
 }
 
-void pa_raop_client_disconnect(pa_raop_client* c)
-{
 
+void pa_raop_client_free(pa_raop_client* c)
+{
+    pa_assert(c);
+
+    pa_rtsp_client_free(c->rtsp);
+    pa_xfree(c->aes_iv);
+    pa_xfree(c->aes_nv);
+    pa_xfree(c->aes_key);
+    pa_xfree(c);
 }
 
-void pa_raop_client_send_sample(pa_raop_client* c, const uint8_t* buffer, uint16_t count)
+
+static void noop(PA_GCC_UNUSED void* p) {}
+
+pa_memchunk pa_raop_client_encode_sample(pa_raop_client* c, pa_mempool* mempool, pa_memchunk* raw)
 {
-    ssize_t l;
-    uint16_t len;
+    uint16_t len, bufmax;
+    uint8_t *bp, bpos;
+    uint8_t *ibp, *maxibp;
+    int size;
+    uint8_t *p;
+    uint16_t bsize;
+    pa_memchunk rv;
+    size_t length;
     static uint8_t header[] = {
         0x24, 0x00, 0x00, 0x00,
         0xF0, 0xFF, 0x00, 0x00,
@@ -432,35 +415,66 @@ void pa_raop_client_send_sample(pa_raop_client* c, const uint8_t* buffer, uint16
     const int header_size = sizeof(header);
 
     pa_assert(c);
-    pa_assert(buffer);
-    pa_assert(count > 0);
+    pa_assert(c->fd > 0);
+    pa_assert(raw);
+    pa_assert(raw->memblock);
+    pa_assert(raw->length > 0);
 
-    c->buffer = pa_xrealloc(c->buffer, (count + header_size + 16));
+    /* We have to send 4 byte chunks */
+    bsize = (int)(raw->length / 4);
+    length = bsize * 4;
+
+    /* Leave 16 bytes extra to allow for the ALAC header which is about 55 bits */
+    bufmax = length + header_size + 16;
+    c->buffer = pa_xrealloc(c->buffer, bufmax);
     memcpy(c->buffer, header, header_size);
-    len = header_size + count - 4;
+    pa_memchunk_reset(&rv);
+    rv.memblock = pa_memblock_new_user(mempool, c->buffer, (header_size + length), noop, 1);
+
+    /* Now write the actual samples */
+    bp = c->buffer + header_size;
+    size = bpos = 0;
+    bit_writer(&bp,&bpos,&size,1,3); // channel=1, stereo
+    bit_writer(&bp,&bpos,&size,0,4); // unknown
+    bit_writer(&bp,&bpos,&size,0,8); // unknown
+    bit_writer(&bp,&bpos,&size,0,4); // unknown
+    bit_writer(&bp,&bpos,&size,1,1); // hassize
+    bit_writer(&bp,&bpos,&size,0,2); // unused
+    bit_writer(&bp,&bpos,&size,1,1); // is-not-compressed
+
+    /* size of data, integer, big endian */
+    bit_writer(&bp,&bpos,&size,(bsize>>24)&0xff,8);
+    bit_writer(&bp,&bpos,&size,(bsize>>16)&0xff,8);
+    bit_writer(&bp,&bpos,&size,(bsize>>8)&0xff,8);
+    bit_writer(&bp,&bpos,&size,(bsize)&0xff,8);
+
+    ibp = p = pa_memblock_acquire(raw->memblock);
+    maxibp = p + raw->length - 4;
+    while (ibp <= maxibp) {
+        /* Byte swap stereo data */
+        bit_writer(&bp,&bpos,&size,*(ibp+1),8);
+        bit_writer(&bp,&bpos,&size,*(ibp+0),8);
+        bit_writer(&bp,&bpos,&size,*(ibp+3),8);
+        bit_writer(&bp,&bpos,&size,*(ibp+2),8);
+        ibp += 4;
+        raw->index += 4;
+        raw->length -= 4;
+    }
+    pa_memblock_release(raw->memblock);
+    rv.length = header_size + size;
 
     /* store the lenght (endian swapped: make this better) */
+    len = size + header_size - 4;
     *(c->buffer + 2) = len >> 8;
     *(c->buffer + 3) = len & 0xff;
 
-    memcpy((c->buffer+header_size), buffer, count);
-    aes_encrypt(c, (c->buffer + header_size), count);
-    len = header_size + count;
-
-    /* TODO: move this into a memchunk/memblock and write only in callback */
-    /*pa_log_debug("Channel status: %d", pa_iochannel_is_writable(c->io));
-    pa_log_debug("Writing %d bytes", len);*/
-    l = pa_iochannel_write(c->io, c->buffer, len);
-    /*pa_log_debug("Wrote %d bytes", (int)l);*/
-    if (l != len) {
-        c->buffer_index = c->buffer + l;
-        c->buffer_count = len - l;
-    }
-    /*pa_log_debug("Sill have %d bytes (in buffer)", c->buffer_count);*/
+    /* encrypt our data */
+    aes_encrypt(c, (c->buffer + header_size), size);
+    return rv;
 }
 
 
-void pa_raop_client_set_callback(pa_raop_client* c, pa_iochannel_cb_t callback, void *userdata)
+void pa_raop_client_set_callback(pa_raop_client* c, pa_raop_client_cb_t callback, void *userdata)
 {
     pa_assert(c);
 
