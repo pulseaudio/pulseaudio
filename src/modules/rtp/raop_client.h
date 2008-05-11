@@ -26,14 +26,14 @@
 
 #include <pulse/mainloop-api.h>
 #include <pulsecore/iochannel.h>
-#include <pulsecore/memchunk.h>
+#include <pulsecore/core.h>
 
 typedef struct pa_raop_client pa_raop_client;
 
-pa_raop_client* pa_raop_client_new(pa_mainloop_api *mainloop, const char* host);
+pa_raop_client* pa_raop_client_new(pa_core *core, const char* host);
 void pa_raop_client_free(pa_raop_client* c);
 
-pa_memchunk pa_raop_client_encode_sample(pa_raop_client* c, pa_mempool* mempool, pa_memchunk* raw);
+pa_memchunk pa_raop_client_encode_sample(pa_raop_client* c, pa_memchunk* raw);
 
 typedef void (*pa_raop_client_cb_t)(int fd, void *userdata);
 void pa_raop_client_set_callback(pa_raop_client* c, pa_raop_client_cb_t callback, void *userdata);

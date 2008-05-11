@@ -73,7 +73,7 @@
 
 
 struct pa_raop_client {
-    pa_mainloop_api *mainloop;
+    pa_core *core;
     char *host;
     char *sid;
     pa_rtsp_client *rtsp;
@@ -155,14 +155,14 @@ static inline void bit_writer(uint8_t **buffer, uint8_t *bit_pos, int *size, uin
 }
 
 static int rsa_encrypt(uint8_t *text, int len, uint8_t *res) {
-    char n[] =
+    const char n[] =
         "59dE8qLieItsH1WgjrcFRKj6eUWqi+bGLOX1HL3U3GhC/j0Qg90u3sG/1CUtwC"
         "5vOYvfDmFI6oSFXi5ELabWJmT2dKHzBJKa3k9ok+8t9ucRqMd6DZHJ2YCCLlDR"
         "KSKv6kDqnw4UwPdpOMXziC/AMj3Z/lUVX1G7WSHCAWKf1zNS1eLvqr+boEjXuB"
         "OitnZ/bDzPHrTOZz0Dew0uowxf/+sG+NCK3eQJVxqcaJ/vEHKIVd2M+5qL71yJ"
         "Q+87X6oV3eaYvt3zWZYD6z5vYTcrtij2VZ9Zmni/UAaHqn9JdsBWLUEpVviYnh"
         "imNVvYFZeCXg/IdTQ+x4IRdiXNv5hEew==";
-    char e[] = "AQAB";
+    const char e[] = "AQAB";
     uint8_t modules[256];
     uint8_t exponent[8];
     int size;
@@ -330,7 +330,7 @@ static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* he
             uint32_t port = pa_rtsp_serverport(c->rtsp);
             pa_log_debug("RAOP: RECORDED");
 
-            if (!(c->sc = pa_socket_client_new_string(c->mainloop, c->host, port))) {
+            if (!(c->sc = pa_socket_client_new_string(c->core->mainloop, c->host, port))) {
                 pa_log("failed to connect to server '%s:%d'", c->host, port);
                 return;
             }
@@ -358,7 +358,7 @@ static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* he
     }
 }
 
-pa_raop_client* pa_raop_client_new(pa_mainloop_api *mainloop, const char* host)
+pa_raop_client* pa_raop_client_new(pa_core *core, const char* host)
 {
     char *sci;
     struct {
@@ -368,16 +368,16 @@ pa_raop_client* pa_raop_client_new(pa_mainloop_api *mainloop, const char* host)
     } rand_data;
     pa_raop_client* c = pa_xnew0(pa_raop_client, 1);
 
+    pa_assert(core);
     pa_assert(host);
 
-    c->mainloop = mainloop;
+    c->core = core;
     c->fd = -1;
     c->host = pa_xstrdup(host);
     pa_memchunk_reset(&c->memchunk);
     c->rtsp = pa_rtsp_client_new("iTunes/4.6 (Macintosh; U; PPC Mac OS X 10.3)");
 
     /* Initialise the AES encryption system */
-    pa_random_seed();
     pa_random(c->aes_iv, sizeof(c->aes_iv));
     pa_random(c->aes_key, sizeof(c->aes_key));
     memcpy(c->aes_nv, c->aes_iv, sizeof(c->aes_nv));
@@ -389,7 +389,7 @@ pa_raop_client* pa_raop_client_new(pa_mainloop_api *mainloop, const char* host)
     sci = pa_sprintf_malloc("%08x%08x",rand_data.b, rand_data.c);
     pa_rtsp_add_header(c->rtsp, "Client-Instance", sci);
     pa_rtsp_set_callback(c->rtsp, rtsp_cb, c);
-    if (pa_rtsp_connect(c->rtsp, mainloop, host, 5000)) {
+    if (pa_rtsp_connect(c->rtsp, c->core->mainloop, host, 5000)) {
         pa_rtsp_client_free(c->rtsp);
         pa_xfree(c->aes_iv);
         pa_xfree(c->aes_nv);
@@ -418,14 +418,14 @@ void pa_raop_client_free(pa_raop_client* c)
 
 static void noop(PA_GCC_UNUSED void* p) {}
 
-pa_memchunk pa_raop_client_encode_sample(pa_raop_client* c, pa_mempool* mempool, pa_memchunk* raw)
+pa_memchunk pa_raop_client_encode_sample(pa_raop_client* c, pa_memchunk* raw)
 {
     uint16_t len, bufmax;
     uint8_t *bp, bpos;
     uint8_t *ibp, *maxibp;
     int size;
     uint8_t *b, *p;
-    uint16_t bsize;
+    uint32_t bsize;
     size_t length;
     static uint8_t header[] = {
         0x24, 0x00, 0x00, 0x00,
@@ -433,7 +433,7 @@ pa_memchunk pa_raop_client_encode_sample(pa_raop_client* c, pa_mempool* mempool,
         0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00,
     };
-    const int header_size = sizeof(header);
+    int header_size = sizeof(header);
 
     pa_assert(c);
     pa_assert(c->fd > 0);
@@ -453,7 +453,7 @@ pa_memchunk pa_raop_client_encode_sample(pa_raop_client* c, pa_mempool* mempool,
 
         c->buffer = pa_xrealloc(c->buffer, bufmax);
         c->buffer_length = bufmax;
-        c->memchunk.memblock = pa_memblock_new_user(mempool, c->buffer, bufmax, noop, 0);
+        c->memchunk.memblock = pa_memblock_new_user(c->core->mempool, c->buffer, bufmax, noop, 0);
     }
     c->memchunk.index = 0;
     c->memchunk.length = 0;

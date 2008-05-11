@@ -226,7 +226,7 @@ static void thread_func(void *userdata) {
                         /* Encode it */
                         size_t rl = u->raw_memchunk.length;
                         u->encoding_overhead += u->next_encoding_overhead;
-                        u->encoded_memchunk = pa_raop_client_encode_sample(u->raop, u->core->mempool, &u->raw_memchunk);
+                        u->encoded_memchunk = pa_raop_client_encode_sample(u->raop, &u->raw_memchunk);
                         u->next_encoding_overhead = (u->encoded_memchunk.length - (rl - u->raw_memchunk.length));
                         u->encoding_ratio = u->encoded_memchunk.length / (rl - u->raw_memchunk.length);
                     }
@@ -422,7 +422,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (!(u->raop = pa_raop_client_new(u->core->mainloop, p))) {
+    if (!(u->raop = pa_raop_client_new(u->core, p))) {
         pa_log("Failed to connect to server.");
         goto fail;
     }
