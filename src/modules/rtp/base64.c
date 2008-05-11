@@ -37,16 +37,16 @@
 
 #include "base64.h"
 
-static char base64_chars[] =
+static const char base64_chars[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 static int pos(char c)
 {
-    char *p;
-    for (p = base64_chars; *p; p++)
-        if (*p == c)
-            return p - base64_chars;
-    return -1;
+    if (c >= 'A' && c <= 'Z') return c - 'A' + 0;
+    if (c >= 'a' && c <= 'z') return c - 'a' + 26;
+    if (c >= '0' && c <= '9') return c - '0' + 52;
+    if (c == '+') return 62;
+    if (c == '/') return 63;
 }
 
 int pa_base64_encode(const void *data, int size, char **str)

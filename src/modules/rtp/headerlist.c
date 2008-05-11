@@ -102,7 +102,7 @@ int pa_headerlist_putsappend(pa_headerlist *p, const char *key, const char *valu
         hdr->value = pa_xstrdup(value);
         add = TRUE;
     } else {
-        void *newval = (void*)pa_sprintf_malloc("%s%s", (char*)hdr->value, value);
+        void *newval = pa_sprintf_malloc("%s%s", (char*)hdr->value, value);
         pa_xfree(hdr->value);
         hdr->value = newval;
     }

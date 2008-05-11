@@ -461,13 +461,13 @@ int pa_raop_client_encode_sample(pa_raop_client* c, pa_memchunk* raw, pa_memchun
     /* Now write the actual samples */
     bp = b + header_size;
     size = bpos = 0;
-    bit_writer(&bp,&bpos,&size,1,3); // channel=1, stereo
-    bit_writer(&bp,&bpos,&size,0,4); // unknown
-    bit_writer(&bp,&bpos,&size,0,8); // unknown
-    bit_writer(&bp,&bpos,&size,0,4); // unknown
-    bit_writer(&bp,&bpos,&size,1,1); // hassize
-    bit_writer(&bp,&bpos,&size,0,2); // unused
-    bit_writer(&bp,&bpos,&size,1,1); // is-not-compressed
+    bit_writer(&bp,&bpos,&size,1,3); /* channel=1, stereo */
+    bit_writer(&bp,&bpos,&size,0,4); /* unknown */
+    bit_writer(&bp,&bpos,&size,0,8); /* unknown */
+    bit_writer(&bp,&bpos,&size,0,4); /* unknown */
+    bit_writer(&bp,&bpos,&size,1,1); /* hassize */
+    bit_writer(&bp,&bpos,&size,0,2); /* unused */
+    bit_writer(&bp,&bpos,&size,1,1); /* is-not-compressed */
 
     /* size of data, integer, big endian */
     bit_writer(&bp,&bpos,&size,(bsize>>24)&0xff,8);
