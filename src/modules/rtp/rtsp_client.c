@@ -70,13 +70,13 @@ struct pa_rtsp_client {
 
     char *localip;
     char *url;
-    uint32_t port;
+    uint16_t port;
     uint32_t cseq;
     char *session;
     char *transport;
 };
 
-static int pa_rtsp_exec(pa_rtsp_client* c, const char* cmd,
+static int rtsp_exec(pa_rtsp_client* c, const char* cmd,
                         const char* content_type, const char* content,
                         int expect_response,
                         pa_headerlist* headers) {
@@ -193,7 +193,7 @@ static void headers_read(pa_rtsp_client *c) {
         while ((token = pa_split(c->transport, delimiters, &token_state))) {
             if ((pc = strstr(token, "="))) {
                 if (0 == strncmp(token, "server_port", 11)) {
-                    pa_atou(pc+1, &c->port);
+                    pa_atou(pc+1, (uint32_t*)(&c->port));
                     pa_xfree(token);
                     break;
                 }
@@ -227,9 +227,6 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     pa_assert(c->callback);
 
     if (!s) {
-        pa_ioline_unref(c->ioline);
-        c->ioline = NULL;
-        pa_rtsp_disconnect(c);
         c->callback(c, STATE_DISCONNECTED, NULL, c->userdata);
         return;
     }
@@ -442,7 +439,7 @@ int pa_rtsp_announce(pa_rtsp_client *c, const char* sdp) {
         return -1;
 
     c->state = STATE_ANNOUNCE;
-    return pa_rtsp_exec(c, "ANNOUNCE", "application/sdp", sdp, 1, NULL);
+    return rtsp_exec(c, "ANNOUNCE", "application/sdp", sdp, 1, NULL);
 }
 
 
@@ -456,7 +453,7 @@ int pa_rtsp_setup(pa_rtsp_client* c) {
     pa_headerlist_puts(headers, "Transport", "RTP/AVP/TCP;unicast;interleaved=0-1;mode=record");
 
     c->state = STATE_SETUP;
-    rv = pa_rtsp_exec(c, "SETUP", NULL, NULL, 1, headers);
+    rv = rtsp_exec(c, "SETUP", NULL, NULL, 1, headers);
     pa_headerlist_free(headers);
     return rv;
 }
@@ -477,7 +474,7 @@ int pa_rtsp_record(pa_rtsp_client* c) {
     pa_headerlist_puts(headers, "RTP-Info", "seq=0;rtptime=0");
 
     c->state = STATE_RECORD;
-    rv = pa_rtsp_exec(c, "RECORD", NULL, NULL, 1, headers);
+    rv = rtsp_exec(c, "RECORD", NULL, NULL, 1, headers);
     pa_headerlist_free(headers);
     return rv;
 }
@@ -487,7 +484,7 @@ int pa_rtsp_teardown(pa_rtsp_client *c) {
     pa_assert(c);
 
     c->state = STATE_TEARDOWN;
-    return pa_rtsp_exec(c, "TEARDOWN", NULL, NULL, 0, NULL);
+    return rtsp_exec(c, "TEARDOWN", NULL, NULL, 0, NULL);
 }
 
 
@@ -497,7 +494,7 @@ int pa_rtsp_setparameter(pa_rtsp_client *c, const char* param) {
         return -1;
 
     c->state = STATE_SET_PARAMETER;
-    return pa_rtsp_exec(c, "SET_PARAMETER", "text/parameters", param, 1, NULL);
+    return rtsp_exec(c, "SET_PARAMETER", "text/parameters", param, 1, NULL);
 }
 
 
@@ -511,7 +508,7 @@ int pa_rtsp_flush(pa_rtsp_client *c) {
     pa_headerlist_puts(headers, "RTP-Info", "seq=0;rtptime=0");
 
     c->state = STATE_FLUSH;
-    rv = pa_rtsp_exec(c, "FLUSH", NULL, NULL, 1, headers);
+    rv = rtsp_exec(c, "FLUSH", NULL, NULL, 1, headers);
     pa_headerlist_free(headers);
     return rv;
 }
