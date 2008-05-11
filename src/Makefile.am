@@ -1013,7 +1013,7 @@ librtp_la_SOURCES = \
 		modules/rtp/headerlist.c modules/rtp/headerlist.h \
 		modules/rtp/base64.c modules/rtp/base64.h
 librtp_la_LDFLAGS = -avoid-version
-librtp_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+librtp_la_LIBADD = $(AM_LIBADD) libsocket-util.la libiochannel.la libsocket-client.la libioline.la libpulsecore.la -lssl
 
 # X11
 
