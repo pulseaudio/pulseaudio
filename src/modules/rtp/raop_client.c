@@ -74,7 +74,7 @@
 
 struct pa_raop_client {
     pa_mainloop_api *mainloop;
-    const char *host;
+    char *host;
     char *sid;
     pa_rtsp_client *rtsp;
 
@@ -93,9 +93,10 @@ struct pa_raop_client {
     void* userdata;
 
     uint8_t *buffer;
+    uint32_t buffer_length;
     uint8_t *buffer_index;
     uint16_t buffer_count;
-    /*pa_memchunk memchunk;*/
+    pa_memchunk memchunk;
 };
 
 /**
@@ -356,6 +357,7 @@ pa_raop_client* pa_raop_client_new(pa_mainloop_api *mainloop, const char* host)
     c->mainloop = mainloop;
     c->fd = -1;
     c->host = pa_xstrdup(host);
+    pa_memchunk_reset(&c->memchunk);
     c->rtsp = pa_rtsp_client_new("iTunes/4.6 (Macintosh; U; PPC Mac OS X 10.3)");
 
     /* Initialise the AES encryption system */
@@ -386,6 +388,9 @@ void pa_raop_client_free(pa_raop_client* c)
 {
     pa_assert(c);
 
+    if (c->memchunk.memblock)
+        pa_memblock_unref(c->memchunk.memblock);
+    pa_xfree(c->buffer);
     pa_rtsp_client_free(c->rtsp);
     pa_xfree(c->aes_iv);
     pa_xfree(c->aes_nv);
@@ -403,9 +408,8 @@ pa_memchunk pa_raop_client_encode_sample(pa_raop_client* c, pa_mempool* mempool,
     uint8_t *bp, bpos;
     uint8_t *ibp, *maxibp;
     int size;
-    uint8_t *p;
+    uint8_t *b, *p;
     uint16_t bsize;
-    pa_memchunk rv;
     size_t length;
     static uint8_t header[] = {
         0x24, 0x00, 0x00, 0x00,
@@ -427,13 +431,22 @@ pa_memchunk pa_raop_client_encode_sample(pa_raop_client* c, pa_mempool* mempool,
 
     /* Leave 16 bytes extra to allow for the ALAC header which is about 55 bits */
     bufmax = length + header_size + 16;
-    c->buffer = pa_xrealloc(c->buffer, bufmax);
-    memcpy(c->buffer, header, header_size);
-    pa_memchunk_reset(&rv);
-    rv.memblock = pa_memblock_new_user(mempool, c->buffer, (header_size + length), noop, 1);
+    if (bufmax > c->buffer_length) {
+        if (c->memchunk.memblock)
+            pa_memblock_unref(c->memchunk.memblock);
+
+        c->buffer = pa_xrealloc(c->buffer, bufmax);
+        c->buffer_length = bufmax;
+        pa_log_debug("Creating new memblock");
+        c->memchunk.memblock = pa_memblock_new_user(mempool, c->buffer, bufmax, noop, 0);
+    }
+    c->memchunk.index = 0;
+    c->memchunk.length = 0;
+    b = pa_memblock_acquire(c->memchunk.memblock);
+    memcpy(b, header, header_size);
 
     /* Now write the actual samples */
-    bp = c->buffer + header_size;
+    bp = b + header_size;
     size = bpos = 0;
     bit_writer(&bp,&bpos,&size,1,3); // channel=1, stereo
     bit_writer(&bp,&bpos,&size,0,4); // unknown
@@ -462,16 +475,20 @@ pa_memchunk pa_raop_client_encode_sample(pa_raop_client* c, pa_mempool* mempool,
         raw->length -= 4;
     }
     pa_memblock_release(raw->memblock);
-    rv.length = header_size + size;
+    c->memchunk.length = header_size + size;
 
     /* store the lenght (endian swapped: make this better) */
     len = size + header_size - 4;
-    *(c->buffer + 2) = len >> 8;
-    *(c->buffer + 3) = len & 0xff;
+    *(b + 2) = len >> 8;
+    *(b + 3) = len & 0xff;
 
     /* encrypt our data */
-    aes_encrypt(c, (c->buffer + header_size), size);
-    return rv;
+    aes_encrypt(c, (b + header_size), size);
+
+    /* We're done with the chunk */
+    pa_memblock_release(c->memchunk.memblock);
+
+    return c->memchunk;
 }
 
 

@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: module-esound-sink.c 2043 2007-11-09 18:25:40Z lennart $ */
 
 /***
   This file is part of PulseAudio.
@@ -109,6 +109,7 @@ struct userdata {
 
     int64_t offset;
     int64_t encoding_overhead;
+    int32_t next_encoding_overhead;
     double encoding_ratio;
 
     pa_raop_client *raop;
@@ -224,10 +225,9 @@ static void thread_func(void *userdata) {
                     if (u->encoded_memchunk.length <= 0) {
                         /* Encode it */
                         size_t rl = u->raw_memchunk.length;
-                        if (u->encoded_memchunk.memblock)
-                            pa_memblock_unref(u->encoded_memchunk.memblock);
+                        u->encoding_overhead += u->next_encoding_overhead;
                         u->encoded_memchunk = pa_raop_client_encode_sample(u->raop, u->core->mempool, &u->raw_memchunk);
-                        u->encoding_overhead += (u->encoded_memchunk.length - (rl - u->raw_memchunk.length));
+                        u->next_encoding_overhead = (u->encoded_memchunk.length - (rl - u->raw_memchunk.length));
                         u->encoding_ratio = u->encoded_memchunk.length / (rl - u->raw_memchunk.length);
                     }
                     pa_assert(u->encoded_memchunk.length > 0);
@@ -258,11 +258,6 @@ static void thread_func(void *userdata) {
 
                         u->encoded_memchunk.index += l;
                         u->encoded_memchunk.length -= l;
-
-                        if (u->encoded_memchunk.length <= 0) {
-                            pa_memblock_unref(u->encoded_memchunk.memblock);
-                            pa_memchunk_reset(&u->encoded_memchunk);
-                        }
 
                         pollfd->revents = 0;
 
@@ -381,6 +376,7 @@ int pa__init(pa_module*m) {
     pa_memchunk_reset(&u->encoded_memchunk);
     u->offset = 0;
     u->encoding_overhead = 0;
+    u->next_encoding_overhead = 0;
     u->encoding_ratio = 1.0;
 
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
@@ -476,9 +472,6 @@ void pa__done(pa_module*m) {
 
     if (u->raw_memchunk.memblock)
         pa_memblock_unref(u->raw_memchunk.memblock);
-
-    if (u->encoded_memchunk.memblock)
-        pa_memblock_unref(u->encoded_memchunk.memblock);
 
     if (u->raop)
         pa_raop_client_free(u->raop);
