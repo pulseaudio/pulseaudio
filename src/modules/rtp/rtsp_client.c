@@ -224,7 +224,14 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     pa_rtsp_client *c = userdata;
     pa_assert(line);
     pa_assert(c);
-    pa_assert(s);
+
+    if (!s) {
+        pa_log_warn("Connection closed");
+        pa_ioline_unref(c->ioline);
+        c->ioline = NULL;
+        pa_rtsp_disconnect(c);
+        return;
+    }
 
     s2 = pa_xstrdup(s);
     /* Trim trailing carriage returns */
