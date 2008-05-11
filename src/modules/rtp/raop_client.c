@@ -355,7 +355,7 @@ pa_raop_client* pa_raop_client_new(pa_mainloop_api *mainloop, const char* host)
 
     c->mainloop = mainloop;
     c->fd = -1;
-    c->host = host;
+    c->host = pa_xstrdup(host);
     c->rtsp = pa_rtsp_client_new("iTunes/4.6 (Macintosh; U; PPC Mac OS X 10.3)");
 
     /* Initialise the AES encryption system */
@@ -390,6 +390,7 @@ void pa_raop_client_free(pa_raop_client* c)
     pa_xfree(c->aes_iv);
     pa_xfree(c->aes_nv);
     pa_xfree(c->aes_key);
+    pa_xfree(c->host);
     pa_xfree(c);
 }
 
