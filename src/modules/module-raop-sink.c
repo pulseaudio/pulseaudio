@@ -226,7 +226,7 @@ static void thread_func(void *userdata) {
                         /* Encode it */
                         size_t rl = u->raw_memchunk.length;
                         u->encoding_overhead += u->next_encoding_overhead;
-                        u->encoded_memchunk = pa_raop_client_encode_sample(u->raop, &u->raw_memchunk);
+                        pa_raop_client_encode_sample(u->raop, &u->raw_memchunk, &u->encoded_memchunk);
                         u->next_encoding_overhead = (u->encoded_memchunk.length - (rl - u->raw_memchunk.length));
                         u->encoding_ratio = u->encoded_memchunk.length / (rl - u->raw_memchunk.length);
                     }
@@ -481,6 +481,9 @@ void pa__done(pa_module*m) {
 
     if (u->raw_memchunk.memblock)
         pa_memblock_unref(u->raw_memchunk.memblock);
+
+    if (u->encoded_memchunk.memblock)
+        pa_memblock_unref(u->encoded_memchunk.memblock);
 
     if (u->raop)
         pa_raop_client_free(u->raop);
