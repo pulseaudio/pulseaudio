@@ -217,6 +217,10 @@ static void thread_func(void *userdata) {
                     void *p;
 
                     if (u->raw_memchunk.length <= 0) {
+                        if (u->raw_memchunk.memblock)
+                            pa_memblock_unref(u->raw_memchunk.memblock);
+                        pa_memchunk_reset(&u->raw_memchunk);
+
                         /* Grab unencoded data */
                         pa_sink_render(u->sink, u->block_size, &u->raw_memchunk);
                     }
