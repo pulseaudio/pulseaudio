@@ -44,7 +44,8 @@ typedef enum {
   STATE_RECORD,
   STATE_TEARDOWN,
   STATE_SET_PARAMETER,
-  STATE_FLUSH
+  STATE_FLUSH,
+  STATE_DISCONNECTED
 } pa_rtsp_state;
 typedef void (*pa_rtsp_cb_t)(pa_rtsp_client *c, pa_rtsp_state state, pa_headerlist* hl, void *userdata);
 

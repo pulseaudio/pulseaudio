@@ -38,4 +38,7 @@ pa_memchunk pa_raop_client_encode_sample(pa_raop_client* c, pa_mempool* mempool,
 typedef void (*pa_raop_client_cb_t)(int fd, void *userdata);
 void pa_raop_client_set_callback(pa_raop_client* c, pa_raop_client_cb_t callback, void *userdata);
 
+typedef void (*pa_raop_client_closed_cb_t)(void *userdata);
+void pa_raop_client_set_closed_callback(pa_raop_client* c, pa_raop_client_closed_cb_t callback, void *userdata);
+
 #endif

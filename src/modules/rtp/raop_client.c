@@ -89,8 +89,11 @@ struct pa_raop_client {
 
     pa_socket_client *sc;
     int fd;
+
     pa_raop_client_cb_t callback;
     void* userdata;
+    pa_raop_client_closed_cb_t closed_callback;
+    void* closed_userdata;
 
     uint8_t *buffer;
     uint32_t buffer_length;
@@ -339,6 +342,19 @@ static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* he
         case STATE_SET_PARAMETER:
         case STATE_FLUSH:
             break;
+        case STATE_DISCONNECTED:
+            pa_assert(c->closed_callback);
+            pa_log_debug("RTSP channel closed");
+            if (c->fd > 0) {
+                pa_close(c->fd);
+                c->fd = -1;
+            }
+            if (c->sc) {
+                pa_socket_client_unref(c->sc);
+                c->sc = NULL;
+            }
+            c->closed_callback(c->closed_userdata);
+            break;
     }
 }
 
@@ -437,7 +453,6 @@ pa_memchunk pa_raop_client_encode_sample(pa_raop_client* c, pa_mempool* mempool,
 
         c->buffer = pa_xrealloc(c->buffer, bufmax);
         c->buffer_length = bufmax;
-        pa_log_debug("Creating new memblock");
         c->memchunk.memblock = pa_memblock_new_user(mempool, c->buffer, bufmax, noop, 0);
     }
     c->memchunk.index = 0;
@@ -498,4 +513,12 @@ void pa_raop_client_set_callback(pa_raop_client* c, pa_raop_client_cb_t callback
 
     c->callback = callback;
     c->userdata = userdata;
+}
+
+void pa_raop_client_set_closed_callback(pa_raop_client* c, pa_raop_client_closed_cb_t callback, void *userdata)
+{
+    pa_assert(c);
+
+    c->closed_callback = callback;
+    c->closed_userdata = userdata;
 }

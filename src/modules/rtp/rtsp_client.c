@@ -173,6 +173,7 @@ static void headers_read(pa_rtsp_client *c) {
 
     pa_assert(c);
     pa_assert(c->response_headers);
+    pa_assert(c->callback);
 
     /* Deal with a SETUP response */
     if (STATE_SETUP == c->state) {
@@ -209,8 +210,7 @@ static void headers_read(pa_rtsp_client *c) {
     }
 
     /* Call our callback */
-    if (c->callback)
-        c->callback(c, c->state, c->response_headers, c->userdata);
+    c->callback(c, c->state, c->response_headers, c->userdata);
 
     pa_headerlist_free(c->response_headers);
     c->response_headers = NULL;
@@ -224,12 +224,13 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     pa_rtsp_client *c = userdata;
     pa_assert(line);
     pa_assert(c);
+    pa_assert(c->callback);
 
     if (!s) {
-        pa_log_warn("Connection closed");
         pa_ioline_unref(c->ioline);
         c->ioline = NULL;
         pa_rtsp_disconnect(c);
+        c->callback(c, STATE_DISCONNECTED, NULL, c->userdata);
         return;
     }
 
