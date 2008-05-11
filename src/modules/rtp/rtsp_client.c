@@ -352,12 +352,14 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
         const char *res = NULL;
 
         if (AF_INET == sa.sa.sa_family) {
-            res = inet_ntop(sa.sa.sa_family, &sa.in.sin_addr, buf, sizeof(buf));
+            if ((res = inet_ntop(sa.sa.sa_family, &sa.in.sin_addr, buf, sizeof(buf)))) {
+                c->localip = pa_xstrdup(res);
+            }
         } else if (AF_INET6 == sa.sa.sa_family) {
-            res = inet_ntop(AF_INET6, &sa.in6.sin6_addr, buf, sizeof(buf));
+            if ((res = inet_ntop(AF_INET6, &sa.in6.sin6_addr, buf, sizeof(buf)))) {
+                c->localip = pa_sprintf_malloc("[%s]", res);
+            }
         }
-        if (res)
-            c->localip = pa_xstrdup(res);
     }
     pa_log_debug("Established RTSP connection from local ip %s", c->localip);
 
