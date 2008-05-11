@@ -151,6 +151,10 @@ void pa_rtsp_client_free(pa_rtsp_client* c) {
     if (c) {
         if (c->sc)
             pa_socket_client_unref(c->sc);
+        if (c->ioline)
+            pa_ioline_close(c->ioline);
+        else if (c->io)
+            pa_iochannel_free(c->io);
 
         pa_xfree(c->url);
         pa_xfree(c->localip);
@@ -227,6 +231,10 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     pa_assert(c->callback);
 
     if (!s) {
+        /* Keep the ioline/iochannel open as they will be freed automatically */
+        c->ioline = NULL;
+        c->io = NULL;
+        pa_rtsp_client_free(c);
         c->callback(c, STATE_DISCONNECTED, NULL, c->userdata);
         return;
     }

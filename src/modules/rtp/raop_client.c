@@ -344,6 +344,7 @@ static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* he
         case STATE_DISCONNECTED:
             pa_assert(c->closed_callback);
             pa_log_debug("RTSP channel closed");
+            c->rtsp = NULL;
             if (c->fd > 0) {
                 pa_close(c->fd);
                 c->fd = -1;
@@ -400,7 +401,8 @@ void pa_raop_client_free(pa_raop_client* c)
     pa_assert(c);
 
     pa_xfree(c->buffer);
-    pa_rtsp_client_free(c->rtsp);
+    if (c->rtsp)
+        pa_rtsp_client_free(c->rtsp);
     pa_xfree(c->host);
     pa_xfree(c);
 }
