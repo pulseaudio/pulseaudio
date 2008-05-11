@@ -340,6 +340,14 @@ static void on_connection(PA_GCC_UNUSED int fd, void*userdata) {
     pa_asyncmsgq_post(u->thread_mq.inq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_PASS_SOCKET, NULL, 0, NULL, NULL);
 }
 
+static void on_close(void*userdata) {
+    struct userdata *u = userdata;
+    pa_assert(u);
+
+    pa_log_debug("Control connection closed.");
+    pa_module_unload_request(u->module);
+}
+
 int pa__init(pa_module*m) {
     struct userdata *u = NULL;
     const char *p;
@@ -420,6 +428,7 @@ int pa__init(pa_module*m) {
     }
 
     pa_raop_client_set_callback(u->raop, on_connection, u);
+    pa_raop_client_set_closed_callback(u->raop, on_close, u);
     pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Airtunes sink '%s'", p));
     pa_xfree(t);
 
