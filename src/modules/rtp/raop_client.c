@@ -389,9 +389,6 @@ pa_raop_client* pa_raop_client_new(pa_core *core, const char* host)
     pa_rtsp_set_callback(c->rtsp, rtsp_cb, c);
     if (pa_rtsp_connect(c->rtsp, c->core->mainloop, host, 5000)) {
         pa_rtsp_client_free(c->rtsp);
-        pa_xfree(c->aes_iv);
-        pa_xfree(c->aes_nv);
-        pa_xfree(c->aes_key);
         return NULL;
     }
     return c;
@@ -404,9 +401,6 @@ void pa_raop_client_free(pa_raop_client* c)
 
     pa_xfree(c->buffer);
     pa_rtsp_client_free(c->rtsp);
-    pa_xfree(c->aes_iv);
-    pa_xfree(c->aes_nv);
-    pa_xfree(c->aes_key);
     pa_xfree(c->host);
     pa_xfree(c);
 }
