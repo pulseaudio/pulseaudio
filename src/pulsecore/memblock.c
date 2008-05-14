@@ -204,7 +204,9 @@ pa_memblock *pa_memblock_new(pa_mempool *p, size_t length) {
     pa_memblock *b;
 
     pa_assert(p);
-    pa_assert(length > 0);
+
+    if (length <= 0)
+        length = pa_mempool_block_size_max(p);
 
     if (!(b = pa_memblock_new_pool(p, length)))
         b = memblock_new_appended(p, length);
