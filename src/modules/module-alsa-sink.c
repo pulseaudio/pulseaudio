@@ -1058,7 +1058,7 @@ static void thread_func(void *userdata) {
                 u->since_start = 0;
             }
 
-            if (revents)
+            if (revents && u->use_tsched)
                 pa_log_debug("Wakeup from ALSA! (%i)", revents);
         }
     }
