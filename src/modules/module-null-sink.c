@@ -160,6 +160,8 @@ static void process_render(struct userdata *u, pa_usec_t now) {
     size_t nbytes;
     size_t ate = 0;
 
+    pa_assert(u);
+
     /* This is the configured latency. Sink inputs connected to us
     might not have a single frame more than this value queued. Hence:
     at maximum read this many bytes from the sink inputs. */
