@@ -1038,10 +1038,8 @@ static void request_bytes(playback_stream *s) {
     previous_missing = pa_atomic_add(&s->missing, m);
 
     if (pa_memblockq_prebuf_active(s->memblockq) ||
-        (previous_missing < s->minreq && previous_missing+m >= s->minreq)) {
-        pa_assert(pa_thread_mq_get());
+        (previous_missing < s->minreq && previous_missing+m >= s->minreq))
         pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
-    }
 }
 
 static void send_memblock(connection *c) {
@@ -3921,6 +3919,7 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     pa_iochannel_socket_peer_to_string(io, pname, sizeof(pname));
     pa_snprintf(cname, sizeof(cname), "Native client (%s)", pname);
     c->client = pa_client_new(p->core, __FILE__, cname);
+    pa_proplist_sets(c->client, "native-protocol.peer", pname);
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
     c->client->module = p->module;
