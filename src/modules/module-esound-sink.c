@@ -294,7 +294,7 @@ static void thread_func(void *userdata) {
             }
 
             /* Hmm, nothing to do. Let's sleep */
-            pollfd->events = PA_SINK_IS_OPENED(u->sink->thread_info.state)  ? POLLOUT : 0;
+            pollfd->events = PA_SINK_IS_OPENED(u->sink->thread_info.state) ? POLLOUT : 0;
         }
 
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
@@ -502,10 +502,8 @@ static void on_connection(PA_GCC_UNUSED pa_socket_client *c, pa_iochannel*io, vo
 
 int pa__init(pa_module*m) {
     struct userdata *u = NULL;
-    const char *p;
     pa_sample_spec ss;
     pa_modargs *ma = NULL;
-    char *t;
     const char *espeaker;
     uint32_t key;
     pa_sink_new_data data;
@@ -554,11 +552,18 @@ int pa__init(pa_module*m) {
     u->state = STATE_AUTH;
     u->latency = 0;
 
+    if (!(espeaker = getenv("ESPEAKER")))
+        espeaker = ESD_UNIX_SOCKET_NAME;
+
+    espeaker = pa_modargs_get_value(ma, "server", espeaker);
+
     pa_sink_new_data_init(&data);
     data.driver = __FILE__;
     data.module = m;
     pa_sink_new_data_set_name(&data, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME));
     pa_sink_new_data_set_sample_spec(&data, &ss);
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, espeaker);
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Esound sink '%s'", espeaker);
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY|PA_SINK_NETWORK);
     pa_sink_new_data_done(&data);
@@ -574,16 +579,10 @@ int pa__init(pa_module*m) {
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
 
-    if (!(espeaker = getenv("ESPEAKER")))
-        espeaker = ESD_UNIX_SOCKET_NAME;
-
-    if (!(u->client = pa_socket_client_new_string(u->core->mainloop, p = pa_modargs_get_value(ma, "server", espeaker), ESD_DEFAULT_PORT))) {
+    if (!(u->client = pa_socket_client_new_string(u->core->mainloop, espeaker, ESD_DEFAULT_PORT))) {
         pa_log("Failed to connect to server.");
         goto fail;
     }
-
-    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Esound sink '%s'", p));
-    pa_xfree(t);
 
     pa_socket_client_set_callback(u->client, on_connection, u);
 
