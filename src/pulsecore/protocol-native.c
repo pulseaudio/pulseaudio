@@ -3919,7 +3919,7 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     pa_iochannel_socket_peer_to_string(io, pname, sizeof(pname));
     pa_snprintf(cname, sizeof(cname), "Native client (%s)", pname);
     c->client = pa_client_new(p->core, __FILE__, cname);
-    pa_proplist_sets(c->client, "native-protocol.peer", pname);
+    pa_proplist_sets(c->client->proplist, "native-protocol.peer", pname);
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
     c->client->module = p->module;
