@@ -1146,6 +1146,8 @@ int pa__init(pa_module*m) {
     char hwdesc[64];
     const char *name;
     pa_bool_t namereg_fail;
+    pa_sink_new_data sink_new_data;
+    pa_source_new_data source_new_data;
 
     pa_assert(m);
 
@@ -1226,8 +1228,8 @@ int pa__init(pa_module*m) {
     m->userdata = u;
     u->fd = fd;
     u->mixer_fd = -1;
-    u->use_getospace = u->use_getispace = 1;
-    u->use_getodelay = 1;
+    u->use_getospace = u->use_getispace = TRUE;
+    u->use_getodelay = TRUE;
     u->mode = mode;
     u->frame_size = pa_frame_size(&ss);
     u->device_name = pa_xstrdup(dev);
@@ -1243,27 +1245,26 @@ int pa__init(pa_module*m) {
         pa_log_info("Input -- %u fragments of size %u.", info.fragstotal, info.fragsize);
         u->in_fragment_size = info.fragsize;
         u->in_nfrags = info.fragstotal;
-        u->use_getispace = 1;
+        u->use_getispace = TRUE;
     }
 
     if (ioctl(fd, SNDCTL_DSP_GETOSPACE, &info) >= 0) {
         pa_log_info("Output -- %u fragments of size %u.", info.fragstotal, info.fragsize);
         u->out_fragment_size = info.fragsize;
         u->out_nfrags = info.fragstotal;
-        u->use_getospace = 1;
+        u->use_getospace = TRUE;
     }
 
     u->in_hwbuf_size = u->in_nfrags * u->in_fragment_size;
     u->out_hwbuf_size = u->out_nfrags * u->out_fragment_size;
 
     if (mode != O_WRONLY) {
-        pa_source_new_data data;
         char *name_buf = NULL;
 
         if (use_mmap) {
             if ((u->in_mmap = mmap(NULL, u->in_hwbuf_size, PROT_READ, MAP_SHARED, fd, 0)) == MAP_FAILED) {
                 pa_log_warn("mmap(PROT_READ) failed, reverting to non-mmap mode: %s", pa_cstrerror(errno));
-                use_mmap = u->use_mmap = 0;
+                use_mmap = u->use_mmap = FALSE;
                 u->in_mmap = NULL;
             } else
                 pa_log_debug("Successfully mmap()ed input buffer.");
@@ -1276,20 +1277,22 @@ int pa__init(pa_module*m) {
             namereg_fail = FALSE;
         }
 
-        pa_source_new_data_init(&data);
-        data.driver = __FILE__;
-        data.module = m;
-        pa_source_new_data_set_name(&data, name);
-        data.namereg_fail = namereg_fail;
-        pa_source_new_data_set_sample_spec(&data, &ss);
-        pa_source_new_data_set_channel_map(&data, &map);
-        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, dev);
-        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "oss");
-        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, hwdesc[0] ? hwdesc : dev);
-        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_ACCESS_MODE, use_mmap ? "mmap" : "serial");
+        pa_source_new_data_init(&source_new_data);
+        source_new_data.driver = __FILE__;
+        source_new_data.module = m;
+        pa_source_new_data_set_name(&source_new_data, name);
+        source_new_data.namereg_fail = namereg_fail;
+        pa_source_new_data_set_sample_spec(&source_new_data, &ss);
+        pa_source_new_data_set_channel_map(&source_new_data, &map);
+        pa_proplist_sets(source_new_data.proplist, PA_PROP_DEVICE_STRING, dev);
+        pa_proplist_sets(source_new_data.proplist, PA_PROP_DEVICE_API, "oss");
+        pa_proplist_sets(source_new_data.proplist, PA_PROP_DEVICE_DESCRIPTION, hwdesc[0] ? hwdesc : dev);
+        pa_proplist_sets(source_new_data.proplist, PA_PROP_DEVICE_ACCESS_MODE, use_mmap ? "mmap" : "serial");
+        pa_proplist_setf(source_new_data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (u->in_hwbuf_size));
+        pa_proplist_setf(source_new_data.proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%lu", (unsigned long) (u->in_fragment_size));
 
-        u->source = pa_source_new(m->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
-        pa_source_new_data_done(&data);
+        u->source = pa_source_new(m->core, &source_new_data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
+        pa_source_new_data_done(&source_new_data);
         pa_xfree(name_buf);
 
         if (!u->source) {
@@ -1309,7 +1312,6 @@ int pa__init(pa_module*m) {
     }
 
     if (mode != O_RDONLY) {
-        pa_sink_new_data data;
         char *name_buf = NULL;
 
         if (use_mmap) {
@@ -1320,7 +1322,7 @@ int pa__init(pa_module*m) {
                     goto go_on;
                 } else {
                     pa_log_warn("mmap(PROT_WRITE) failed, reverting to non-mmap mode: %s", pa_cstrerror(errno));
-                    u->use_mmap = (use_mmap = FALSE);
+                    u->use_mmap = use_mmap = FALSE;
                     u->out_mmap = NULL;
                 }
             } else {
@@ -1330,26 +1332,28 @@ int pa__init(pa_module*m) {
         }
 
         if ((name = pa_modargs_get_value(ma, "sink_name", NULL)))
-            namereg_fail = 1;
+            namereg_fail = TRUE;
         else {
             name = name_buf = pa_sprintf_malloc("oss_output.%s", pa_path_get_filename(dev));
-            namereg_fail = 0;
+            namereg_fail = FALSE;
         }
 
-        pa_sink_new_data_init(&data);
-        data.driver = __FILE__;
-        data.module = m;
-        pa_sink_new_data_set_name(&data, name);
-        data.namereg_fail = namereg_fail;
-        pa_sink_new_data_set_sample_spec(&data, &ss);
-        pa_sink_new_data_set_channel_map(&data, &map);
-        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, dev);
-        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "oss");
-        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, hwdesc[0] ? hwdesc : dev);
-        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_ACCESS_MODE, use_mmap ? "mmap" : "serial");
+        pa_sink_new_data_init(&sink_new_data);
+        sink_new_data.driver = __FILE__;
+        sink_new_data.module = m;
+        pa_sink_new_data_set_name(&sink_new_data, name);
+        sink_new_data.namereg_fail = namereg_fail;
+        pa_sink_new_data_set_sample_spec(&sink_new_data, &ss);
+        pa_sink_new_data_set_channel_map(&sink_new_data, &map);
+        pa_proplist_sets(sink_new_data.proplist, PA_PROP_DEVICE_STRING, dev);
+        pa_proplist_sets(sink_new_data.proplist, PA_PROP_DEVICE_API, "oss");
+        pa_proplist_sets(sink_new_data.proplist, PA_PROP_DEVICE_DESCRIPTION, hwdesc[0] ? hwdesc : dev);
+        pa_proplist_sets(sink_new_data.proplist, PA_PROP_DEVICE_ACCESS_MODE, use_mmap ? "mmap" : "serial");
+        pa_proplist_setf(sink_new_data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (u->out_hwbuf_size));
+        pa_proplist_setf(sink_new_data.proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%lu", (unsigned long) (u->out_fragment_size));
 
-        u->sink = pa_sink_new(m->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
-        pa_sink_new_data_done(&data);
+        u->sink = pa_sink_new(m->core, &sink_new_data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
+        pa_sink_new_data_done(&sink_new_data);
         pa_xfree(name_buf);
 
         if (!u->sink) {
@@ -1369,7 +1373,7 @@ int pa__init(pa_module*m) {
     }
 
     if ((u->mixer_fd = pa_oss_open_mixer_for_device(u->device_name)) >= 0) {
-        int do_close = 1;
+        pa_bool_t do_close = TRUE;
         u->mixer_devmask = 0;
 
         if (ioctl(fd, SOUND_MIXER_READ_DEVMASK, &u->mixer_devmask) < 0)
@@ -1381,7 +1385,7 @@ int pa__init(pa_module*m) {
                 u->sink->flags |= PA_SINK_HW_VOLUME_CTRL;
                 u->sink->get_volume = sink_get_volume;
                 u->sink->set_volume = sink_set_volume;
-                do_close = 0;
+                do_close = FALSE;
             }
 
             if (u->source && (u->mixer_devmask & (SOUND_MASK_RECLEV|SOUND_MASK_IGAIN))) {
@@ -1389,7 +1393,7 @@ int pa__init(pa_module*m) {
                 u->source->flags |= PA_SOURCE_HW_VOLUME_CTRL;
                 u->source->get_volume = source_get_volume;
                 u->source->set_volume = source_set_volume;
-                do_close = 0;
+                do_close = FALSE;
             }
         }
 
@@ -1411,10 +1415,25 @@ go_on:
     }
 
     /* Read mixer settings */
-    if (u->sink && u->sink->get_volume)
-        sink_get_volume(u->sink);
-    if (u->source && u->source->get_volume)
-        source_get_volume(u->source);
+    if (u->sink) {
+        if (sink_new_data.volume_is_set) {
+            if (u->sink->set_volume)
+                u->sink->set_volume(u->sink);
+        } else {
+            if (u->sink->get_volume)
+                u->sink->get_volume(u->sink);
+        }
+    }
+
+    if (u->source) {
+        if (source_new_data.volume_is_set) {
+            if (u->source->set_volume)
+                u->source->set_volume(u->source);
+        } else {
+            if (u->source->get_volume)
+                u->source->get_volume(u->source);
+        }
+    }
 
     if (u->sink)
         pa_sink_put(u->sink);
