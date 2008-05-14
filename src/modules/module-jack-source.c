@@ -253,7 +253,6 @@ int pa__init(pa_module*m) {
     pa_bool_t do_connect = TRUE;
     unsigned i;
     const char **ports = NULL, **p;
-    char *t;
     pa_source_new_data data;
 
     pa_assert(m);
@@ -335,8 +334,7 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "jack");
     if (server_name)
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, server_name);
-    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, t = pa_sprintf_malloc("Jack source (%s)", jack_get_client_name(u->client)));
-    pa_xfree(t);
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Jack source (%s)", jack_get_client_name(u->client));
     pa_proplist_sets(data.proplist, "jack.client_name", jack_get_client_name(u->client));
 
     u->source = pa_source_new(m->core, &data, PA_SOURCE_LATENCY);

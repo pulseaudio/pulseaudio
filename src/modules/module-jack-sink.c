@@ -53,7 +53,7 @@
 
 /* General overview:
  *
- * Because JACK has a very unflexible event loop management, which
+ * Because JACK has a very unflexible event loop management which
  * doesn't allow us to add our own event sources to the event thread
  * we cannot use the JACK real-time thread for dispatching our PA
  * work. Instead, we run an additional RT thread which does most of
@@ -276,7 +276,6 @@ int pa__init(pa_module*m) {
     pa_bool_t do_connect = TRUE;
     unsigned i;
     const char **ports = NULL, **p;
-    char *t;
     pa_sink_new_data data;
 
     pa_assert(m);
@@ -364,8 +363,7 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "jack");
     if (server_name)
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, server_name);
-    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, t = pa_sprintf_malloc("Jack sink (%s)", jack_get_client_name(u->client)));
-    pa_xfree(t);
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Jack sink (%s)", jack_get_client_name(u->client));
     pa_proplist_sets(data.proplist, "jack.client_name", jack_get_client_name(u->client));
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY);
