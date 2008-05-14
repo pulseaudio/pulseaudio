@@ -160,6 +160,7 @@ static void thread_func(void *userdata) {
             goto finish;
 
         pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+
         if (pollfd->revents & ~POLLIN) {
             pa_log("FIFO shutdown.");
             goto fail;
@@ -182,7 +183,6 @@ int pa__init(pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma;
-    char *t;
     struct pollfd *pollfd;
     pa_source_new_data data;
 
@@ -207,7 +207,7 @@ int pa__init(pa_module*m) {
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
-    u->filename = pa_xstrdup(pa_modargs_get_value(ma, "file", DEFAULT_FILE_NAME));
+    u->filename = pa_runtime_path(pa_modargs_get_value(ma, "file", DEFAULT_FILE_NAME));
 
     mkfifo(u->filename, 0666);
     if ((u->fd = open(u->filename, O_RDWR|O_NOCTTY)) < 0) {
@@ -233,8 +233,7 @@ int pa__init(pa_module*m) {
     data.module = m;
     pa_source_new_data_set_name(&data, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME));
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->filename);
-    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, t = pa_sprintf_malloc("Unix FIFO source %s", u->filename));
-    pa_xfree(t);
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Unix FIFO source %s", u->filename);
     pa_source_new_data_set_sample_spec(&data, &ss);
     pa_source_new_data_set_channel_map(&data, &map);
 

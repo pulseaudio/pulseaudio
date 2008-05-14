@@ -230,7 +230,6 @@ int pa__init(pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma;
-    char *t;
     struct pollfd *pollfd;
     pa_sink_new_data data;
 
