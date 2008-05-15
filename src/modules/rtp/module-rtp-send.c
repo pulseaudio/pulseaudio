@@ -289,6 +289,9 @@ int pa__init(pa_module*m) {
 
     pa_source_output_new_data_init(&data);
     pa_proplist_sets(data.proplist, PA_PROP_MEDIA_NAME, "RTP Monitor Stream");
+    pa_proplist_sets(data.proplist, "rtp.destination", dest);
+    pa_proplist_setf(data.proplist, "rtp.mtu", "%lu", (unsigned long) mtu);
+    pa_proplist_setf(data.proplist, "rtp.port", "%lu", (unsigned long) port);
     data.driver = __FILE__;
     data.module = m;
     data.source = s;
