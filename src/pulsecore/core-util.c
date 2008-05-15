@@ -1592,12 +1592,28 @@ int pa_snprintf(char *str, size_t size, const char *format, ...) {
     pa_assert(format);
 
     va_start(ap, format);
-    ret = vsnprintf(str, size, format, ap);
+    ret = pa_vsnprintf(str, size, format, ap);
     va_end(ap);
+
+    return ret;
+}
+
+/* Same as vsnprintf, but guarantees NUL-termination on every platform */
+int pa_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
+    int ret;
+
+    pa_assert(str);
+    pa_assert(size > 0);
+    pa_assert(format);
+
+    ret = vsnprintf(str, size, format, ap);
 
     str[size-1] = 0;
 
-    return ret;
+    if (ret < 0)
+        ret = strlen(str);
+
+    return PA_MIN((int) size-1, ret);
 }
 
 /* Truncate the specified string, but guarantee that the string

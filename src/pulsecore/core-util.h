@@ -128,6 +128,7 @@ int pa_atou(const char *s, uint32_t *ret_u);
 int pa_atof(const char *s, float *ret_f);
 
 int pa_snprintf(char *str, size_t size, const char *format, ...);
+int pa_vsnprintf(char *str, size_t size, const char *format, va_list ap);
 
 char *pa_truncate_utf8(char *c, size_t l);
 
