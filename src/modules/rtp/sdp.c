@@ -117,7 +117,7 @@ static pa_sample_spec *parse_sdp_sample_spec(pa_sample_spec *ss, char *c) {
 
 pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *i, int is_goodbye) {
     uint16_t port = 0;
-    int ss_valid = 0;
+    pa_bool_t ss_valid = FALSE;
 
     pa_assert(t);
     pa_assert(i);
@@ -202,7 +202,7 @@ pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *i, int is_goodbye) {
                     i->payload = (uint8_t) _payload;
 
                     if (pa_rtp_sample_spec_from_payload(i->payload, &i->sample_spec))
-                        ss_valid = 1;
+                        ss_valid = TRUE;
                 }
             }
         } else if (pa_startswith(t, "a=rtpmap:")) {
@@ -222,7 +222,7 @@ pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *i, int is_goodbye) {
                         c[strcspn(c, "\n")] = 0;
 
                         if (parse_sdp_sample_spec(&i->sample_spec, c))
-                            ss_valid = 1;
+                            ss_valid = TRUE;
                     }
                 }
             }
