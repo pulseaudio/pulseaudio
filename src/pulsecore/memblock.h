@@ -119,7 +119,7 @@ pa_mempool * pa_memblock_get_pool(pa_memblock *b);
 pa_memblock *pa_memblock_will_need(pa_memblock *b);
 
 /* The memory block manager */
-pa_mempool* pa_mempool_new(int shared);
+pa_mempool* pa_mempool_new(pa_bool_t shared);
 void pa_mempool_free(pa_mempool *p);
 const pa_mempool_stat* pa_mempool_get_stat(pa_mempool *p);
 void pa_mempool_vacuum(pa_mempool *p);
