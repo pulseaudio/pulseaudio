@@ -153,13 +153,14 @@ static void thread_func(void *userdata) {
         /* Hmm, nothing to do. Let's sleep */
         pollfd->events = u->source->thread_info.state == PA_SOURCE_RUNNING ? POLLIN : 0;
 
-        if ((ret = pa_rtpoll_run(u->rtpoll, 1)) < 0)
+        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
             goto fail;
 
         if (ret == 0)
             goto finish;
 
         pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+
         if (pollfd->revents & ~POLLIN) {
             pa_log("FIFO shutdown.");
             goto fail;
@@ -182,8 +183,8 @@ int pa__init(pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma;
-    char *t;
     struct pollfd *pollfd;
+    pa_source_new_data data;
 
     pa_assert(m);
 
@@ -203,11 +204,10 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     pa_memchunk_reset(&u->memchunk);
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
-    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
-    u->filename = pa_xstrdup(pa_modargs_get_value(ma, "file", DEFAULT_FILE_NAME));
+    u->filename = pa_runtime_path(pa_modargs_get_value(ma, "file", DEFAULT_FILE_NAME));
 
     mkfifo(u->filename, 0666);
     if ((u->fd = open(u->filename, O_RDWR|O_NOCTTY)) < 0) {
@@ -228,19 +228,27 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (!(u->source = pa_source_new(m->core, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &map))) {
+    pa_source_new_data_init(&data);
+    data.driver = __FILE__;
+    data.module = m;
+    pa_source_new_data_set_name(&data, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME));
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->filename);
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Unix FIFO source %s", u->filename);
+    pa_source_new_data_set_sample_spec(&data, &ss);
+    pa_source_new_data_set_channel_map(&data, &map);
+
+    u->source = pa_source_new(m->core, &data, 0);
+    pa_source_new_data_done(&data);
+
+    if (!u->source) {
         pa_log("Failed to create source.");
         goto fail;
     }
 
     u->source->userdata = u;
-    u->source->flags = 0;
 
-    pa_source_set_module(u->source, m);
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_rtpoll(u->source, u->rtpoll);
-    pa_source_set_description(u->source, t = pa_sprintf_malloc("Unix FIFO source '%s'", u->filename));
-    pa_xfree(t);
 
     u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
     pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);

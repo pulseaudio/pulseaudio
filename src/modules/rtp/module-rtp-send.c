@@ -288,14 +288,20 @@ int pa__init(pa_module*m) {
     pa_make_fd_cloexec(sap_fd);
 
     pa_source_output_new_data_init(&data);
-    data.name = "RTP Monitor Stream";
+    pa_proplist_sets(data.proplist, PA_PROP_MEDIA_NAME, "RTP Monitor Stream");
+    pa_proplist_sets(data.proplist, "rtp.destination", dest);
+    pa_proplist_setf(data.proplist, "rtp.mtu", "%lu", (unsigned long) mtu);
+    pa_proplist_setf(data.proplist, "rtp.port", "%lu", (unsigned long) port);
     data.driver = __FILE__;
     data.module = m;
     data.source = s;
     pa_source_output_new_data_set_sample_spec(&data, &ss);
     pa_source_output_new_data_set_channel_map(&data, &cm);
 
-    if (!(o = pa_source_output_new(m->core, &data, 0))) {
+    o = pa_source_output_new(m->core, &data, 0);
+    pa_source_output_new_data_done(&data);
+
+    if (!o) {
         pa_log("failed to create source output.");
         goto fail;
     }
@@ -317,6 +323,7 @@ int pa__init(pa_module*m) {
             MEMBLOCKQ_MAXLENGTH,
             pa_frame_size(&ss),
             1,
+            0,
             0,
             NULL);
 

@@ -26,6 +26,7 @@
 
 #include <pulse/mainloop-api.h>
 #include <pulsecore/asyncmsgq.h>
+#include <pulsecore/rtpoll.h>
 
 /* Two way communication between a thread and a mainloop. Before the
  * thread is started a pa_pthread_mq should be initialized and than
@@ -34,10 +35,10 @@
 typedef struct pa_thread_mq {
     pa_mainloop_api *mainloop;
     pa_asyncmsgq *inq, *outq;
-    pa_io_event *io_event;
+    pa_io_event *read_event, *write_event;
 } pa_thread_mq;
 
-void pa_thread_mq_init(pa_thread_mq *q, pa_mainloop_api *mainloop);
+void pa_thread_mq_init(pa_thread_mq *q, pa_mainloop_api *mainloop, pa_rtpoll *rtpoll);
 void pa_thread_mq_done(pa_thread_mq *q);
 
 /* Install the specified pa_thread_mq object for the current thread */

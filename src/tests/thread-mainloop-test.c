@@ -30,8 +30,8 @@
 #include <pulse/timeval.h>
 #include <pulse/util.h>
 #include <pulse/thread-mainloop.h>
+#include <pulse/gccmacro.h>
 
-#include <pulsecore/gccmacro.h>
 #include <pulsecore/macro.h>
 
 static void tcb(pa_mainloop_api*a, pa_time_event *e, const struct timeval *tv, void *userdata) {

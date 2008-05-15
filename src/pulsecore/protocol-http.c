@@ -168,7 +168,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
 #define PRINTF_FIELD(a,b) pa_ioline_printf(c->line, "<tr><td><b>%s</b></td><td>%s</td></tr>\n",(a),(b))
 
                 PRINTF_FIELD("User Name:", pa_get_user_name(txt, sizeof(txt)));
-                PRINTF_FIELD("Fully Qualified Domain Name:", pa_get_fqdn(txt, sizeof(txt)));
+                PRINTF_FIELD("Host name:", pa_get_host_name(txt, sizeof(txt)));
                 PRINTF_FIELD("Default Sample Specification:", pa_sample_spec_snprint(txt, sizeof(txt), &c->protocol->core->default_sample_spec));
                 PRINTF_FIELD("Default Sink:", pa_namereg_get_default_sink_name(c->protocol->core));
                 PRINTF_FIELD("Default Source:", pa_namereg_get_default_source_name(c->protocol->core));
@@ -255,7 +255,7 @@ pa_protocol_http* pa_protocol_http_new(pa_core *core, pa_socket_server *server, 
     p = pa_xnew(pa_protocol_http, 1);
     p->module = m;
     p->core = core;
-    p->server = server;
+    p->server = pa_socket_server_ref(server);
     p->connections = pa_idxset_new(NULL, NULL);
 
     pa_socket_server_set_callback(p->server, on_connection, p);

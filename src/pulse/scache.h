@@ -79,14 +79,25 @@
 
 PA_C_DECL_BEGIN
 
+/** Callback prototype for pa_context_play_sample_with_proplist(). The
+ * idx value is the index of the sink input object, or
+ * PA_INVALID_INDEX on failure. \since 0.9.11 */
+typedef void (*pa_context_play_sample_cb_t)(pa_context *c, uint32_t idx, void *userdata);
+
 /** Make this stream a sample upload stream */
 int pa_stream_connect_upload(pa_stream *s, size_t length);
 
-/** Finish the sample upload, the stream name will become the sample name. You cancel a samp
- * le upload by issuing pa_stream_disconnect() */
+/** Finish the sample upload, the stream name will become the sample
+ * name. You cancel a sample upload by issuing
+ * pa_stream_disconnect() */
 int pa_stream_finish_upload(pa_stream *s);
 
-/** Play a sample from the sample cache to the specified device. If the latter is NULL use the default sink. Returns an operation object */
+/** Remove a sample from the sample cache. Returns an operation object which may be used to cancel the operation while it is running */
+pa_operation* pa_context_remove_sample(pa_context *c, const char *name, pa_context_success_cb_t cb, void *userdata);
+
+/** Play a sample from the sample cache to the specified device. If
+ * the latter is NULL use the default sink. Returns an operation
+ * object */
 pa_operation* pa_context_play_sample(
         pa_context *c               /**< Context */,
         const char *name            /**< Name of the sample to play */,
@@ -95,8 +106,18 @@ pa_operation* pa_context_play_sample(
         pa_context_success_cb_t cb  /**< Call this function after successfully starting playback, or NULL */,
         void *userdata              /**< Userdata to pass to the callback */);
 
-/** Remove a sample from the sample cache. Returns an operation object which may be used to cancel the operation while it is running */
-pa_operation* pa_context_remove_sample(pa_context *c, const char *name, pa_context_success_cb_t, void *userdata);
+/** Play a sample from the sample cache to the specified device,
+ * allowing specification of a property list for the playback
+ * stream. If the latter is NULL use the default sink. Returns an
+ * operation object. \since 0.9.11 */
+pa_operation* pa_context_play_sample_with_proplist(
+        pa_context *c                   /**< Context */,
+        const char *name                /**< Name of the sample to play */,
+        const char *dev                 /**< Sink to play this sample on */,
+        pa_volume_t volume              /**< Volume to play this sample with */ ,
+        pa_proplist *proplist           /**< Property list for this sound. The property list of the cached entry will be merged into this property list */,
+        pa_context_play_sample_cb_t cb  /**< Call this function after successfully starting playback, or NULL */,
+        void *userdata                  /**< Userdata to pass to the callback */);
 
 PA_C_DECL_END
 

@@ -253,7 +253,7 @@ int pa__init(pa_module*m) {
     pa_bool_t do_connect = TRUE;
     unsigned i;
     const char **ports = NULL, **p;
-    char *t;
+    pa_source_new_data data;
 
     pa_assert(m);
 
@@ -278,12 +278,11 @@ int pa__init(pa_module*m) {
     m->userdata = u;
     u->saved_frame_time_valid = FALSE;
 
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
-    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
     u->jack_msgq = pa_asyncmsgq_new(0);
-    u->rtpoll_item = pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY-1, u->jack_msgq);
+    u->rtpoll_item = pa_rtpoll_item_new_asyncmsgq_read(u->rtpoll, PA_RTPOLL_EARLY-1, u->jack_msgq);
 
     if (!(u->client = jack_client_open(client_name, server_name ? JackServerName : JackNullOption, &status, server_name))) {
         pa_log("jack_client_open() failed.");
@@ -326,20 +325,31 @@ int pa__init(pa_module*m) {
         }
     }
 
-    if (!(u->source = pa_source_new(m->core, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &map))) {
-        pa_log("failed to create source.");
+    pa_source_new_data_init(&data);
+    data.driver = __FILE__;
+    data.module = m;
+    pa_source_new_data_set_name(&data, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME));
+    pa_source_new_data_set_sample_spec(&data, &ss);
+    pa_source_new_data_set_channel_map(&data, &map);
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "jack");
+    if (server_name)
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, server_name);
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Jack source (%s)", jack_get_client_name(u->client));
+    pa_proplist_sets(data.proplist, "jack.client_name", jack_get_client_name(u->client));
+
+    u->source = pa_source_new(m->core, &data, PA_SOURCE_LATENCY);
+    pa_source_new_data_done(&data);
+
+    if (!u->source) {
+        pa_log("Failed to create source.");
         goto fail;
     }
 
     u->source->parent.process_msg = source_process_msg;
     u->source->userdata = u;
-    u->source->flags = PA_SOURCE_LATENCY;
 
-    pa_source_set_module(u->source, m);
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_rtpoll(u->source, u->rtpoll);
-    pa_source_set_description(u->source, t = pa_sprintf_malloc("Jack source (%s)", jack_get_client_name(u->client)));
-    pa_xfree(t);
 
     jack_set_process_callback(u->client, jack_process, u);
     jack_on_shutdown(u->client, jack_shutdown, u);

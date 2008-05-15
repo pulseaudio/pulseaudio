@@ -30,6 +30,7 @@
 #include <pulse/mainloop-api.h>
 #include <pulse/cdecl.h>
 #include <pulse/operation.h>
+#include <pulse/proplist.h>
 
 /** \page async Asynchronous API
  *
@@ -166,8 +167,14 @@ typedef void (*pa_context_notify_cb_t)(pa_context *c, void *userdata);
 typedef void (*pa_context_success_cb_t) (pa_context *c, int success, void *userdata);
 
 /** Instantiate a new connection context with an abstract mainloop API
- * and an application name */
+ * and an application name. It is recommended to use pa_context_new_with_proplist()
+ * instead and specify some initial properties.*/
 pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name);
+
+/** Instantiate a new connection context with an abstract mainloop API
+ * and an application name, and specify the the initial client property
+ * list. \since 0.9.11 */
+pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *name, pa_proplist *proplist);
 
 /** Decrease the reference counter of the context by one */
 void pa_context_unref(pa_context *c);
@@ -207,26 +214,41 @@ pa_operation* pa_context_drain(pa_context *c, pa_context_notify_cb_t cb, void *u
  * returning a success notification */
 pa_operation* pa_context_exit_daemon(pa_context *c, pa_context_success_cb_t cb, void *userdata);
 
-/** Set the name of the default sink. \since 0.4 */
+/** Set the name of the default sink. */
 pa_operation* pa_context_set_default_sink(pa_context *c, const char *name, pa_context_success_cb_t cb, void *userdata);
 
-/** Set the name of the default source. \since 0.4 */
+/** Set the name of the default source. */
 pa_operation* pa_context_set_default_source(pa_context *c, const char *name, pa_context_success_cb_t cb, void *userdata);
 
-/** Returns 1 when the connection is to a local daemon. Returns negative when no connection has been made yet. \since 0.5 */
+/** Returns 1 when the connection is to a local daemon. Returns negative when no connection has been made yet. */
 int pa_context_is_local(pa_context *c);
 
-/** Set a different application name for context on the server. \since 0.5 */
+/** Set a different application name for context on the server. */
 pa_operation* pa_context_set_name(pa_context *c, const char *name, pa_context_success_cb_t cb, void *userdata);
 
-/** Return the server name this context is connected to. \since 0.7 */
+/** Return the server name this context is connected to. */
 const char* pa_context_get_server(pa_context *c);
 
-/** Return the protocol version of the library. \since 0.8 */
+/** Return the protocol version of the library. */
 uint32_t pa_context_get_protocol_version(pa_context *c);
 
-/** Return the protocol version of the connected server. \since 0.8 */
+/** Return the protocol version of the connected server. */
 uint32_t pa_context_get_server_protocol_version(pa_context *c);
+
+/* Update the property list of the client, adding new entries. Please
+ * note that it is highly recommended to set as much properties
+ * initially via pa_context_new_with_proplist() as possible instead a
+ * posteriori with this function, since that information may then be
+ * used to route streams of the client to the right device. \since 0.9.11 */
+pa_operation *pa_context_proplist_update(pa_context *c, pa_update_mode_t mode, pa_proplist *p, pa_context_success_cb_t cb, void *userdata);
+
+/* Update the property list of the client, remove entries. \since 0.9.11 */
+pa_operation *pa_context_proplist_remove(pa_context *c, const char *const keys[], pa_context_success_cb_t cb, void *userdata);
+
+/** Return the client index this context is
+ * identified in the server with. This is useful for usage with the
+ * introspection functions, such as pa_context_get_client_info(). \since 0.9.11 */
+uint32_t pa_context_get_index(pa_context *s);
 
 PA_C_DECL_END
 

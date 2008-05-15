@@ -381,7 +381,7 @@ static void envelope_merge(pa_envelope *e, int v) {
                 break;
 
             if (e->points[v].n_points >= e->points[v].n_allocated) {
-                e->points[v].n_allocated = MAX(e->points[v].n_points*2, PA_ENVELOPE_POINTS_MAX);
+                e->points[v].n_allocated = PA_MAX(e->points[v].n_points*2, PA_ENVELOPE_POINTS_MAX);
 
                 e->points[v].x = pa_xrealloc(e->points[v].x, sizeof(size_t) * e->points[v].n_allocated);
                 e->points[v].y.i = pa_xrealloc(e->points[v].y.i, sizeof(int32_t) * e->points[v].n_allocated);

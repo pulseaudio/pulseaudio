@@ -47,25 +47,25 @@ int main(int argc, char*argv[]) {
 
     srand(0);
 
-    for (m = 0, u = 0; u < PA_ELEMENTSOF(msec)-2; u+= 2) {
+    for (m = 0, u = 0; u < PA_ELEMENTSOF(msec); u+= 2) {
 
-        msec[u] = m+1;
-        msec[u+1] = m + rand() % 2000 - 1000;
+        msec[u] = m+1 + (rand() % 100) - 50;
+        msec[u+1] = m + (rand() % 2000) - 1000;
 
         m += rand() % 100;
+
+        if (msec[u] < 0)
+            msec[u] = 0;
 
         if (msec[u+1] < 0)
             msec[u+1] = 0;
     }
 
-    msec[PA_ELEMENTSOF(msec)-2] = 0;
-    msec[PA_ELEMENTSOF(msec)-1] = 0;
-
-    s = pa_smoother_new(1000*PA_USEC_PER_MSEC, 2000*PA_USEC_PER_MSEC, TRUE);
+    s = pa_smoother_new(700*PA_USEC_PER_MSEC, 2000*PA_USEC_PER_MSEC, TRUE, 6);
 
     for (x = 0, u = 0; x < PA_USEC_PER_SEC * 10; x += PA_USEC_PER_MSEC) {
 
-        while (msec[u] > 0 && (pa_usec_t) msec[u]*PA_USEC_PER_MSEC < x) {
+        while (u < PA_ELEMENTSOF(msec) && (pa_usec_t) msec[u]*PA_USEC_PER_MSEC < x) {
             pa_smoother_put(s, msec[u]*PA_USEC_PER_MSEC, msec[u+1]*PA_USEC_PER_MSEC);
             printf("%i\t\t%i\n", msec[u],  msec[u+1]);
             u += 2;

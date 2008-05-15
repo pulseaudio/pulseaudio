@@ -33,8 +33,8 @@ int pa_oss_auto_format(int fd, pa_sample_spec *ss);
 
 int pa_oss_set_fragments(int fd, int frags, int frag_size);
 
-int pa_oss_set_volume(int fd, long mixer, const pa_sample_spec *ss, const pa_cvolume *volume);
-int pa_oss_get_volume(int fd, int mixer, const pa_sample_spec *ss, pa_cvolume *volume);
+int pa_oss_set_volume(int fd, unsigned long mixer, const pa_sample_spec *ss, const pa_cvolume *volume);
+int pa_oss_get_volume(int fd, unsigned long mixer, const pa_sample_spec *ss, pa_cvolume *volume);
 
 int pa_oss_get_hw_description(const char *dev, char *name, size_t l);
 

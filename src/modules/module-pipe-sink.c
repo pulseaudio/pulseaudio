@@ -62,7 +62,7 @@ PA_MODULE_USAGE(
         "rate=<sample rate>"
         "channel_map=<channel map>");
 
-#define DEFAULT_FILE_NAME "/tmp/music.output"
+#define DEFAULT_FILE_NAME "fifo_output"
 #define DEFAULT_SINK_NAME "fifo_output"
 
 struct userdata {
@@ -80,6 +80,8 @@ struct userdata {
     pa_memchunk memchunk;
 
     pa_rtpoll_item *rtpoll_item;
+
+    int write_type;
 };
 
 static const char* const valid_modargs[] = {
@@ -109,16 +111,64 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             n += u->memchunk.length;
 
             *((pa_usec_t*) data) = pa_bytes_to_usec(n, &u->sink->sample_spec);
-            break;
+            return 0;
         }
     }
 
     return pa_sink_process_msg(o, code, data, offset, chunk);
 }
 
+static void process_rewind(struct userdata *u) {
+    pa_assert(u);
+
+    pa_log_debug("Rewind requested but not supported by pipe sink. Ignoring.");
+    u->sink->thread_info.rewind_nbytes = 0;
+}
+
+static int process_render(struct userdata *u) {
+    pa_assert(u);
+
+    if (u->memchunk.length <= 0)
+        pa_sink_render(u->sink, PIPE_BUF, &u->memchunk);
+
+    pa_assert(u->memchunk.length > 0);
+
+    for (;;) {
+        ssize_t l;
+        void *p;
+
+        p = pa_memblock_acquire(u->memchunk.memblock);
+        l = pa_write(u->fd, (uint8_t*) p + u->memchunk.index, u->memchunk.length, &u->write_type);
+        pa_memblock_release(u->memchunk.memblock);
+
+        pa_assert(l != 0);
+
+        if (l < 0) {
+
+            if (errno == EINTR)
+                continue;
+            else if (errno != EAGAIN) {
+                pa_log("Failed to write data to FIFO: %s", pa_cstrerror(errno));
+                return -1;
+            }
+
+        } else {
+
+            u->memchunk.index += l;
+            u->memchunk.length -= l;
+
+            if (u->memchunk.length <= 0) {
+                pa_memblock_unref(u->memchunk.memblock);
+                pa_memchunk_reset(&u->memchunk);
+            }
+        }
+
+        return 0;
+    }
+}
+
 static void thread_func(void *userdata) {
     struct userdata *u = userdata;
-    int write_type = 0;
 
     pa_assert(u);
 
@@ -134,39 +184,14 @@ static void thread_func(void *userdata) {
         pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
 
         /* Render some data and write it to the fifo */
-        if (u->sink->thread_info.state == PA_SINK_RUNNING && pollfd->revents) {
-            ssize_t l;
-            void *p;
+        if (u->sink->thread_info.state == PA_SINK_RUNNING) {
 
-            if (u->memchunk.length <= 0)
-                pa_sink_render(u->sink, PIPE_BUF, &u->memchunk);
+            if (u->sink->thread_info.rewind_nbytes > 0)
+                process_rewind(u);
 
-            pa_assert(u->memchunk.length > 0);
-
-            p = pa_memblock_acquire(u->memchunk.memblock);
-            l = pa_write(u->fd, (uint8_t*) p + u->memchunk.index, u->memchunk.length, &write_type);
-            pa_memblock_release(u->memchunk.memblock);
-
-            pa_assert(l != 0);
-
-            if (l < 0) {
-
-                if (errno == EINTR)
-                    continue;
-                else if (errno != EAGAIN) {
-                    pa_log("Failed to write data to FIFO: %s", pa_cstrerror(errno));
+            if (pollfd->revents) {
+                if (process_render(u) < 0)
                     goto fail;
-                }
-
-            } else {
-
-                u->memchunk.index += l;
-                u->memchunk.length -= l;
-
-                if (u->memchunk.length <= 0) {
-                    pa_memblock_unref(u->memchunk.memblock);
-                    pa_memchunk_reset(&u->memchunk);
-                }
 
                 pollfd->revents = 0;
             }
@@ -205,8 +230,8 @@ int pa__init(pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma;
-    char *t;
     struct pollfd *pollfd;
+    pa_sink_new_data data;
 
     pa_assert(m);
 
@@ -226,11 +251,11 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     pa_memchunk_reset(&u->memchunk);
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
-    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
+    u->write_type = 0;
 
-    u->filename = pa_xstrdup(pa_modargs_get_value(ma, "file", DEFAULT_FILE_NAME));
+    u->filename = pa_runtime_path(pa_modargs_get_value(ma, "file", DEFAULT_FILE_NAME));
 
     mkfifo(u->filename, 0666);
     if ((u->fd = open(u->filename, O_RDWR|O_NOCTTY)) < 0) {
@@ -251,20 +276,28 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (!(u->sink = pa_sink_new(m->core, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
+    pa_sink_new_data_init(&data);
+    data.driver = __FILE__;
+    data.module = m;
+    pa_sink_new_data_set_name(&data, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME));
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->filename);
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Unix FIFO sink %s", u->filename);
+    pa_sink_new_data_set_sample_spec(&data, &ss);
+    pa_sink_new_data_set_channel_map(&data, &map);
+
+    u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY);
+    pa_sink_new_data_done(&data);
+
+    if (!u->sink) {
         pa_log("Failed to create sink.");
         goto fail;
     }
 
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->userdata = u;
-    u->sink->flags = PA_SINK_LATENCY;
 
-    pa_sink_set_module(u->sink, m);
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
-    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Unix FIFO sink '%s'", u->filename));
-    pa_xfree(t);
 
     u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
     pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);

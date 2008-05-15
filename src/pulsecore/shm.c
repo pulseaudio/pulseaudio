@@ -42,6 +42,7 @@
 #endif
 
 #include <pulse/xmalloc.h>
+#include <pulse/gccmacro.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
@@ -56,7 +57,7 @@
 #define MADV_REMOVE 9
 #endif
 
-#define MAX_SHM_SIZE (PA_ALIGN(1024*1024*20))
+#define MAX_SHM_SIZE (PA_ALIGN(1024*1024*64))
 
 #ifdef __linux__
 /* On Linux we know that the shared memory blocks are files in
@@ -69,14 +70,15 @@
 
 #define SHM_MARKER ((int) 0xbeefcafe)
 
-/* We now put this SHM marker at the end of each segment. It's optional to not require a reboot when upgrading, though */
-struct shm_marker {
+/* We now put this SHM marker at the end of each segment. It's
+ * optional, to not require a reboot when upgrading, though */
+struct shm_marker PA_GCC_PACKED {
     pa_atomic_t marker; /* 0xbeefcafe */
     pa_atomic_t pid;
-    void *_reserverd1;
-    void *_reserverd2;
-    void *_reserverd3;
-    void *_reserverd4;
+    uint64_t *_reserverd1;
+    uint64_t *_reserverd2;
+    uint64_t *_reserverd3;
+    uint64_t *_reserverd4;
 };
 
 static char *segment_name(char *fn, size_t l, unsigned id) {
@@ -84,13 +86,13 @@ static char *segment_name(char *fn, size_t l, unsigned id) {
     return fn;
 }
 
-int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
+int pa_shm_create_rw(pa_shm *m, size_t size, pa_bool_t shared, mode_t mode) {
     char fn[32];
     int fd = -1;
 
     pa_assert(m);
     pa_assert(size > 0);
-    pa_assert(size < MAX_SHM_SIZE);
+    pa_assert(size <= MAX_SHM_SIZE);
     pa_assert(mode >= 0600);
 
     /* Each time we create a new SHM area, let's first drop all stale
@@ -122,7 +124,7 @@ int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
         m->ptr = pa_xmalloc(m->size);
 #endif
 
-        m->do_unlink = 0;
+        m->do_unlink = FALSE;
 
     } else {
 #ifdef HAVE_SHM_OPEN
@@ -155,7 +157,7 @@ int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
         pa_atomic_store(&marker->marker, SHM_MARKER);
 
         pa_assert_se(close(fd) == 0);
-        m->do_unlink = 1;
+        m->do_unlink = TRUE;
 #else
         return -1;
 #endif
@@ -282,7 +284,9 @@ int pa_shm_attach_ro(pa_shm *m, unsigned id) {
         goto fail;
     }
 
-    if (st.st_size <= 0 || st.st_size > MAX_SHM_SIZE+PA_ALIGN(sizeof(struct shm_marker)) || PA_ALIGN(st.st_size) != st.st_size) {
+    if (st.st_size <= 0 ||
+        st.st_size > (off_t) (MAX_SHM_SIZE+PA_ALIGN(sizeof(struct shm_marker))) ||
+        PA_ALIGN((size_t) st.st_size) != (size_t) st.st_size) {
         pa_log("Invalid shared memory segment size");
         goto fail;
     }
@@ -371,7 +375,7 @@ int pa_shm_cleanup(void) {
         /* Ok, the owner of this shms segment is dead, so, let's remove the segment */
         segment_name(fn, sizeof(fn), id);
 
-        if (shm_unlink(fn) < 0 && errno != EACCES)
+        if (shm_unlink(fn) < 0 && errno != EACCES && errno != ENOENT)
             pa_log_warn("Failed to remove SHM segment %s: %s\n", fn, pa_cstrerror(errno));
     }
 

@@ -29,9 +29,9 @@
 #include <assert.h>
 
 #include <pulse/timeval.h>
+#include <pulse/gccmacro.h>
 
 #include <pulsecore/core-util.h>
-#include <pulsecore/gccmacro.h>
 
 #ifdef GLIB_MAIN_LOOP
 

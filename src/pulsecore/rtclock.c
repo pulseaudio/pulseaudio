@@ -96,3 +96,24 @@ pa_usec_t pa_rtclock_usec(void) {
 
     return pa_timeval_load(pa_rtclock_get(&tv));
 }
+
+struct timeval* pa_rtclock_from_wallclock(struct timeval *tv) {
+
+#ifdef HAVE_CLOCK_GETTIME
+    struct timeval wc_now, rt_now;
+
+    pa_gettimeofday(&wc_now);
+    pa_rtclock_get(&rt_now);
+
+    pa_assert(tv);
+
+    if (pa_timeval_cmp(&wc_now, tv) < 0)
+        pa_timeval_add(&rt_now, pa_timeval_diff(tv, &wc_now));
+    else
+        pa_timeval_sub(&rt_now, pa_timeval_diff(&wc_now, tv));
+
+    *tv = rt_now;
+#endif
+
+    return tv;
+}

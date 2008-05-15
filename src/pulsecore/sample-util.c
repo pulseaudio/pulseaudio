@@ -42,29 +42,6 @@
 
 #define PA_SILENCE_MAX (PA_PAGE_SIZE*16)
 
-pa_memblock *pa_silence_memblock_new(pa_mempool *pool, const pa_sample_spec *spec, size_t length) {
-    size_t fs;
-    pa_assert(pool);
-    pa_assert(spec);
-
-    if (length <= 0)
-        length = pa_bytes_per_second(spec)/20; /* 50 ms */
-
-    if (length > PA_SILENCE_MAX)
-        length = PA_SILENCE_MAX;
-
-    fs = pa_frame_size(spec);
-
-    length = (length+fs-1)/fs;
-
-    if (length <= 0)
-        length = 1;
-
-    length *= fs;
-
-    return pa_silence_memblock(pa_memblock_new(pool, length), spec);
-}
-
 pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec) {
     void *data;
 
@@ -74,10 +51,11 @@ pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec) {
     data = pa_memblock_acquire(b);
     pa_silence_memory(data, pa_memblock_get_length(b), spec);
     pa_memblock_release(b);
+
     return b;
 }
 
-void pa_silence_memchunk(pa_memchunk *c, const pa_sample_spec *spec) {
+pa_memchunk* pa_silence_memchunk(pa_memchunk *c, const pa_sample_spec *spec) {
     void *data;
 
     pa_assert(c);
@@ -87,37 +65,38 @@ void pa_silence_memchunk(pa_memchunk *c, const pa_sample_spec *spec) {
     data = pa_memblock_acquire(c->memblock);
     pa_silence_memory((uint8_t*) data+c->index, c->length, spec);
     pa_memblock_release(c->memblock);
+
+    return c;
 }
 
-void pa_silence_memory(void *p, size_t length, const pa_sample_spec *spec) {
-    uint8_t c = 0;
-    pa_assert(p);
-    pa_assert(length > 0);
-    pa_assert(spec);
-
-    switch (spec->format) {
+static uint8_t silence_byte(pa_sample_format_t format) {
+    switch (format) {
         case PA_SAMPLE_U8:
-            c = 0x80;
-            break;
+            return 0x80;
         case PA_SAMPLE_S16LE:
         case PA_SAMPLE_S16BE:
         case PA_SAMPLE_S32LE:
         case PA_SAMPLE_S32BE:
-        case PA_SAMPLE_FLOAT32:
-        case PA_SAMPLE_FLOAT32RE:
-            c = 0;
-            break;
+        case PA_SAMPLE_FLOAT32LE:
+        case PA_SAMPLE_FLOAT32BE:
+            return 0;
         case PA_SAMPLE_ALAW:
-            c = 0xd5;
-            break;
+            return 0xd5;
         case PA_SAMPLE_ULAW:
-            c = 0xff;
-            break;
+            return 0xff;
         default:
             pa_assert_not_reached();
     }
+    return 0;
+}
 
-    memset(p, c, length);
+void* pa_silence_memory(void *p, size_t length, const pa_sample_spec *spec) {
+    pa_assert(p);
+    pa_assert(length > 0);
+    pa_assert(spec);
+
+    memset(p, silence_byte(spec->format), length);
+    return p;
 }
 
 static void calc_linear_integer_stream_volumes(pa_mix_info streams[], unsigned nstreams, const pa_sample_spec *spec) {
@@ -631,6 +610,9 @@ void pa_volume_memchunk(
     pa_assert(c->length % pa_frame_size(spec) == 0);
     pa_assert(volume);
 
+    if (pa_memblock_is_silence(c->memblock))
+        return;
+
     if (pa_cvolume_channels_equal_to(volume, PA_VOLUME_NORM))
         return;
 
@@ -928,6 +910,120 @@ void pa_deinterleave(const void *src, void *dst[], unsigned channels, size_t ss,
             oil_memcpy(d, s, ss);
             s = (uint8_t*) s + fs;
             d = (uint8_t*) d + ss;
+        }
+    }
+}
+
+static pa_memblock *silence_memblock_new(pa_mempool *pool, uint8_t c) {
+    pa_memblock *b;
+    size_t length;
+    void *data;
+
+    pa_assert(pool);
+
+    length = PA_MIN(pa_mempool_block_size_max(pool), PA_SILENCE_MAX);
+
+    b = pa_memblock_new(pool, length);
+
+    data = pa_memblock_acquire(b);
+    memset(data, c, length);
+    pa_memblock_release(b);
+
+    pa_memblock_set_is_silence(b, TRUE);
+
+    return b;
+}
+
+void pa_silence_cache_init(pa_silence_cache *cache) {
+    pa_assert(cache);
+
+    memset(cache, 0, sizeof(pa_silence_cache));
+}
+
+void pa_silence_cache_done(pa_silence_cache *cache) {
+    pa_sample_format_t f;
+    pa_assert(cache);
+
+    for (f = 0; f < PA_SAMPLE_MAX; f++)
+        if (cache->blocks[f])
+            pa_memblock_unref(cache->blocks[f]);
+
+    memset(cache, 0, sizeof(pa_silence_cache));
+}
+
+pa_memchunk* pa_silence_memchunk_get(pa_silence_cache *cache, pa_mempool *pool, pa_memchunk* ret, const pa_sample_spec *spec, size_t length) {
+    pa_memblock *b;
+    size_t l;
+
+    pa_assert(cache);
+    pa_assert(pa_sample_spec_valid(spec));
+
+    if (!(b = cache->blocks[spec->format]))
+
+        switch (spec->format) {
+            case PA_SAMPLE_U8:
+                cache->blocks[PA_SAMPLE_U8] = b = silence_memblock_new(pool, 0x80);
+                break;
+            case PA_SAMPLE_S16LE:
+            case PA_SAMPLE_S16BE:
+            case PA_SAMPLE_S32LE:
+            case PA_SAMPLE_S32BE:
+            case PA_SAMPLE_FLOAT32LE:
+            case PA_SAMPLE_FLOAT32BE:
+                cache->blocks[PA_SAMPLE_S16LE] = b = silence_memblock_new(pool, 0);
+                cache->blocks[PA_SAMPLE_S16BE] = pa_memblock_ref(b);
+                cache->blocks[PA_SAMPLE_S32LE] = pa_memblock_ref(b);
+                cache->blocks[PA_SAMPLE_S32BE] = pa_memblock_ref(b);
+                cache->blocks[PA_SAMPLE_FLOAT32LE] = pa_memblock_ref(b);
+                cache->blocks[PA_SAMPLE_FLOAT32BE] = pa_memblock_ref(b);
+                break;
+            case PA_SAMPLE_ALAW:
+                cache->blocks[PA_SAMPLE_ALAW] = b = silence_memblock_new(pool, 0xd5);
+                break;
+            case PA_SAMPLE_ULAW:
+                cache->blocks[PA_SAMPLE_ULAW] = b = silence_memblock_new(pool, 0xff);
+                break;
+            default:
+                pa_assert_not_reached();
+    }
+
+    pa_assert(b);
+
+    ret->memblock = pa_memblock_ref(b);
+
+    l = pa_memblock_get_length(b);
+    if (length > l || length == 0)
+        length = l;
+
+    ret->length = pa_frame_align(length, spec);
+    ret->index = 0;
+
+    return ret;
+}
+
+void pa_sample_clamp(pa_sample_format_t format, void *dst, size_t dstr, const void *src, size_t sstr, unsigned n) {
+    const float *s;
+    float *d;
+
+    s = src; d = dst;
+
+    if (format == PA_SAMPLE_FLOAT32NE) {
+
+        float minus_one = -1.0, plus_one = 1.0;
+        oil_clip_f32(d, dstr, s, sstr, n, &minus_one, &plus_one);
+
+    } else {
+        pa_assert(format == PA_SAMPLE_FLOAT32RE);
+
+        for (; n > 0; n--) {
+            float f;
+
+            f = PA_FLOAT32_SWAP(*s);
+            f = PA_CLAMP_UNLIKELY(f, -1.0, 1.0);
+            *d = PA_FLOAT32_SWAP(f);
+
+            s = (const float*) ((const uint8_t*) s + sstr);
+            d = (float*) ((uint8_t*) d + dstr);
         }
     }
 }

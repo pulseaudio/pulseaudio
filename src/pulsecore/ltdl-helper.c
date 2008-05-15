@@ -42,11 +42,13 @@ pa_void_func_t pa_load_sym(lt_dlhandle handle, const char *module, const char *s
     pa_void_func_t f;
 
     pa_assert(handle);
-    pa_assert(module);
     pa_assert(symbol);
 
-    if ((f = ((pa_void_func_t) (long) lt_dlsym(handle, symbol))))
+    if ((f = ((pa_void_func_t) (size_t) lt_dlsym(handle, symbol))))
         return f;
+
+    if (!module)
+        return NULL;
 
     /* As the .la files might have been cleansed from the system, we should
      * try with the ltdl prefix as well. */
@@ -57,7 +59,7 @@ pa_void_func_t pa_load_sym(lt_dlhandle handle, const char *module, const char *s
         if (!isalnum(*c))
             *c = '_';
 
-    f = (pa_void_func_t) (long) lt_dlsym(handle, sn);
+    f = (pa_void_func_t) (size_t) lt_dlsym(handle, sn);
     pa_xfree(sn);
 
     return f;

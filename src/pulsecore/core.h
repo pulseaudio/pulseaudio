@@ -35,6 +35,7 @@
 #include <pulsecore/llist.h>
 #include <pulsecore/hook-list.h>
 #include <pulsecore/asyncmsgq.h>
+#include <pulsecore/sample-util.h>
 
 typedef struct pa_core pa_core;
 
@@ -43,16 +44,20 @@ typedef struct pa_core pa_core;
 #include <pulsecore/msgobject.h>
 
 typedef enum pa_core_hook {
-    PA_CORE_HOOK_SINK_NEW_POST,
+    PA_CORE_HOOK_SINK_NEW,
+    PA_CORE_HOOK_SINK_FIXATE,
+    PA_CORE_HOOK_SINK_PUT,
     PA_CORE_HOOK_SINK_UNLINK,
     PA_CORE_HOOK_SINK_UNLINK_POST,
     PA_CORE_HOOK_SINK_STATE_CHANGED,
-    PA_CORE_HOOK_SINK_DESCRIPTION_CHANGED,
-    PA_CORE_HOOK_SOURCE_NEW_POST,
+    PA_CORE_HOOK_SINK_PROPLIST_CHANGED,
+    PA_CORE_HOOK_SOURCE_NEW,
+    PA_CORE_HOOK_SOURCE_FIXATE,
+    PA_CORE_HOOK_SOURCE_PUT,
     PA_CORE_HOOK_SOURCE_UNLINK,
     PA_CORE_HOOK_SOURCE_UNLINK_POST,
     PA_CORE_HOOK_SOURCE_STATE_CHANGED,
-    PA_CORE_HOOK_SOURCE_DESCRIPTION_CHANGED,
+    PA_CORE_HOOK_SOURCE_PROPLIST_CHANGED,
     PA_CORE_HOOK_SINK_INPUT_NEW,
     PA_CORE_HOOK_SINK_INPUT_FIXATE,
     PA_CORE_HOOK_SINK_INPUT_PUT,
@@ -60,8 +65,8 @@ typedef enum pa_core_hook {
     PA_CORE_HOOK_SINK_INPUT_UNLINK_POST,
     PA_CORE_HOOK_SINK_INPUT_MOVE,
     PA_CORE_HOOK_SINK_INPUT_MOVE_POST,
-    PA_CORE_HOOK_SINK_INPUT_NAME_CHANGED,
     PA_CORE_HOOK_SINK_INPUT_STATE_CHANGED,
+    PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED,
     PA_CORE_HOOK_SOURCE_OUTPUT_NEW,
     PA_CORE_HOOK_SOURCE_OUTPUT_FIXATE,
     PA_CORE_HOOK_SOURCE_OUTPUT_PUT,
@@ -69,8 +74,8 @@ typedef enum pa_core_hook {
     PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK_POST,
     PA_CORE_HOOK_SOURCE_OUTPUT_MOVE,
     PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_POST,
-    PA_CORE_HOOK_SOURCE_OUTPUT_NAME_CHANGED,
     PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED,
+    PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED,
     PA_CORE_HOOK_MAX
 } pa_core_hook_t;
 
@@ -108,6 +113,7 @@ struct pa_core {
     pa_subscription_event *subscription_event_last;
 
     pa_mempool *mempool;
+    pa_silence_cache silence_cache;
 
     int exit_idle_time, module_idle_time, scache_idle_time;
 

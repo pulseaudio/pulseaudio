@@ -215,15 +215,6 @@ int pa__init(pa_module*m) {
 #else
     pa_socket_server *s;
     int r;
-    char tmp[PATH_MAX];
-
-#if defined(USE_PROTOCOL_ESOUND)
-#if defined(USE_PER_USER_ESOUND_SOCKET)
-    char esdsocketpath[PATH_MAX];
-#else
-    const char esdsocketpath[] = "/tmp/.esd/socket";
-#endif
-#endif
 #endif
 
     pa_assert(m);
@@ -255,26 +246,27 @@ int pa__init(pa_module*m) {
         goto fail;
 
     if (s_ipv4)
-        if (!(u->protocol_ipv4 = protocol_new(m->core, s_ipv4, m, ma)))
-            pa_socket_server_unref(s_ipv4);
-
+        u->protocol_ipv4 = protocol_new(m->core, s_ipv4, m, ma);
     if (s_ipv6)
-        if (!(u->protocol_ipv6 = protocol_new(m->core, s_ipv6, m, ma)))
-            pa_socket_server_unref(s_ipv6);
+        u->protocol_ipv6 = protocol_new(m->core, s_ipv6, m, ma);
 
     if (!u->protocol_ipv4 && !u->protocol_ipv6)
         goto fail;
+
+    if (s_ipv6)
+        pa_socket_server_unref(s_ipv6);
+    if (s_ipv6)
+        pa_socket_server_unref(s_ipv4);
 
 #else
 
 #if defined(USE_PROTOCOL_ESOUND)
 
 #if defined(USE_PER_USER_ESOUND_SOCKET)
-    snprintf(esdsocketpath, sizeof(esdsocketpath), "/tmp/.esd-%lu/socket", (unsigned long) getuid());
+    u->socket_path = pa_sprintf_malloc("/tmp/.esd-%lu/socket", (unsigned long) getuid());
+#else
+    u->socket_path = pa_xstrdup("/tmp/.esd/socket");
 #endif
-
-    pa_runtime_path(pa_modargs_get_value(ma, "socket", esdsocketpath), tmp, sizeof(tmp));
-    u->socket_path = pa_xstrdup(tmp);
 
     /* This socket doesn't reside in our own runtime dir but in
      * /tmp/.esd/, hence we have to create the dir first */
@@ -285,23 +277,25 @@ int pa__init(pa_module*m) {
     }
 
 #else
-    pa_runtime_path(pa_modargs_get_value(ma, "socket", UNIX_SOCKET), tmp, sizeof(tmp));
-    u->socket_path = pa_xstrdup(tmp);
-#endif
-
-    if ((r = pa_unix_socket_remove_stale(tmp)) < 0) {
-        pa_log("Failed to remove stale UNIX socket '%s': %s", tmp, pa_cstrerror(errno));
+    if (!(u->socket_path = pa_runtime_path(pa_modargs_get_value(ma, "socket", UNIX_SOCKET)))) {
+        pa_log("Failed to generate socket path.");
         goto fail;
     }
+#endif
 
-    if (r)
-        pa_log("Removed stale UNIX socket '%s'.", tmp);
+    if ((r = pa_unix_socket_remove_stale(u->socket_path)) < 0) {
+        pa_log("Failed to remove stale UNIX socket '%s': %s", u->socket_path, pa_cstrerror(errno));
+        goto fail;
+    } else if (r > 0)
+        pa_log_info("Removed stale UNIX socket '%s'.", u->socket_path);
 
-    if (!(s = pa_socket_server_new_unix(m->core->mainloop, tmp)))
+    if (!(s = pa_socket_server_new_unix(m->core->mainloop, u->socket_path)))
         goto fail;
 
     if (!(u->protocol_unix = protocol_new(m->core, s, m, ma)))
         goto fail;
+
+    pa_socket_server_unref(s);
 
 #endif
 
@@ -325,23 +319,21 @@ fail:
 #else
         if (u->protocol_unix)
             protocol_free(u->protocol_unix);
-
-        if (u->socket_path)
-            pa_xfree(u->socket_path);
+        pa_xfree(u->socket_path);
 #endif
 
         pa_xfree(u);
-    } else {
-#if defined(USE_TCP_SOCKETS)
-        if (s_ipv4)
-            pa_socket_server_unref(s_ipv4);
-        if (s_ipv6)
-            pa_socket_server_unref(s_ipv6);
-#else
-        if (s)
-            pa_socket_server_unref(s);
-#endif
     }
+
+#if defined(USE_TCP_SOCKETS)
+    if (s_ipv4)
+        pa_socket_server_unref(s_ipv4);
+    if (s_ipv6)
+        pa_socket_server_unref(s_ipv6);
+#else
+    if (s)
+        pa_socket_server_unref(s);
+#endif
 
     goto finish;
 }
@@ -362,7 +354,7 @@ void pa__done(pa_module*m) {
     if (u->protocol_unix)
         protocol_free(u->protocol_unix);
 
-#if defined(USE_PROTOCOL_ESOUND)
+#if defined(USE_PROTOCOL_ESOUND) && !defined(USE_PER_USER_ESOUND_SOCKET)
     if (u->socket_path) {
         char *p = pa_parent_dir(u->socket_path);
         rmdir(p);

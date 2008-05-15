@@ -161,10 +161,10 @@ static void trigger(struct userdata *u, pa_bool_t quick) {
 
      pa_log_debug("trigger");
 
-    if (u->source && PA_SOURCE_OPENED(u->source->thread_info.state))
+    if (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state))
         enable_bits |= PCM_ENABLE_INPUT;
 
-    if (u->sink && PA_SINK_OPENED(u->sink->thread_info.state))
+    if (u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state))
         enable_bits |= PCM_ENABLE_OUTPUT;
 
     pa_log_debug("trigger: %i", enable_bits);
@@ -202,7 +202,7 @@ static void trigger(struct userdata *u, pa_bool_t quick) {
              * register the fd as ready.
              */
 
-            if (u->source && PA_SOURCE_OPENED(u->source->thread_info.state)) {
+            if (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
                 uint8_t *buf = pa_xnew(uint8_t, u->in_fragment_size);
                 pa_read(u->fd, buf, u->in_fragment_size, NULL);
                 pa_xfree(buf);
@@ -641,7 +641,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
 
                 case PA_SINK_SUSPENDED:
-                    pa_assert(PA_SINK_OPENED(u->sink->thread_info.state));
+                    pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
 
                     if (!u->source || u->source_suspended) {
                         if (suspend(u) < 0)
@@ -658,7 +658,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
                     if (u->sink->thread_info.state == PA_SINK_INIT) {
                         do_trigger = TRUE;
-                        quick = u->source && PA_SOURCE_OPENED(u->source->thread_info.state);
+                        quick = u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state);
                     }
 
                     if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
@@ -721,7 +721,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
             switch ((pa_source_state_t) PA_PTR_TO_UINT(data)) {
                 case PA_SOURCE_SUSPENDED:
-                    pa_assert(PA_SOURCE_OPENED(u->source->thread_info.state));
+                    pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
 
                     if (!u->sink || u->sink_suspended) {
                         if (suspend(u) < 0)
@@ -738,7 +738,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
                     if (u->source->thread_info.state == PA_SOURCE_INIT) {
                         do_trigger = TRUE;
-                        quick = u->sink && PA_SINK_OPENED(u->sink->thread_info.state);
+                        quick = u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state);
                     }
 
                     if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
@@ -877,7 +877,7 @@ static void thread_func(void *userdata) {
 
         /* Render some data and write it to the dsp */
 
-        if (u->sink && PA_SINK_OPENED(u->sink->thread_info.state) && ((revents & POLLOUT) || u->use_mmap || u->use_getospace)) {
+        if (u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state) && ((revents & POLLOUT) || u->use_mmap || u->use_getospace)) {
 
             if (u->use_mmap) {
 
@@ -985,7 +985,7 @@ static void thread_func(void *userdata) {
 
         /* Try to read some data and pass it on to the source driver. */
 
-        if (u->source && PA_SOURCE_OPENED(u->source->thread_info.state) && ((revents & POLLIN) || u->use_mmap || u->use_getispace)) {
+        if (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state) && ((revents & POLLIN) || u->use_mmap || u->use_getispace)) {
 
             if (u->use_mmap) {
 
@@ -1095,8 +1095,8 @@ static void thread_func(void *userdata) {
 
             pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
             pollfd->events =
-                ((u->source && PA_SOURCE_OPENED(u->source->thread_info.state)) ? POLLIN : 0) |
-                ((u->sink && PA_SINK_OPENED(u->sink->thread_info.state)) ? POLLOUT : 0);
+                ((u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state)) ? POLLIN : 0) |
+                ((u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state)) ? POLLOUT : 0);
         }
 
         /* Hmm, nothing to do. Let's sleep */
@@ -1143,9 +1143,11 @@ int pa__init(pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;
-    char hwdesc[64], *t;
+    char hwdesc[64];
     const char *name;
-    int namereg_fail;
+    pa_bool_t namereg_fail;
+    pa_sink_new_data sink_new_data;
+    pa_source_new_data source_new_data;
 
     pa_assert(m);
 
@@ -1226,17 +1228,16 @@ int pa__init(pa_module*m) {
     m->userdata = u;
     u->fd = fd;
     u->mixer_fd = -1;
-    u->use_getospace = u->use_getispace = 1;
-    u->use_getodelay = 1;
+    u->use_getospace = u->use_getispace = TRUE;
+    u->use_getodelay = TRUE;
     u->mode = mode;
     u->frame_size = pa_frame_size(&ss);
     u->device_name = pa_xstrdup(dev);
     u->in_nfrags = u->out_nfrags = u->nfrags = nfrags;
     u->out_fragment_size = u->in_fragment_size = u->frag_size = frag_size;
     u->use_mmap = use_mmap;
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
-    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
     u->rtpoll_item = NULL;
     build_pollfd(u);
 
@@ -1244,14 +1245,14 @@ int pa__init(pa_module*m) {
         pa_log_info("Input -- %u fragments of size %u.", info.fragstotal, info.fragsize);
         u->in_fragment_size = info.fragsize;
         u->in_nfrags = info.fragstotal;
-        u->use_getispace = 1;
+        u->use_getispace = TRUE;
     }
 
     if (ioctl(fd, SNDCTL_DSP_GETOSPACE, &info) >= 0) {
         pa_log_info("Output -- %u fragments of size %u.", info.fragstotal, info.fragsize);
         u->out_fragment_size = info.fragsize;
         u->out_nfrags = info.fragstotal;
-        u->use_getospace = 1;
+        u->use_getospace = TRUE;
     }
 
     u->in_hwbuf_size = u->in_nfrags * u->in_fragment_size;
@@ -1263,21 +1264,37 @@ int pa__init(pa_module*m) {
         if (use_mmap) {
             if ((u->in_mmap = mmap(NULL, u->in_hwbuf_size, PROT_READ, MAP_SHARED, fd, 0)) == MAP_FAILED) {
                 pa_log_warn("mmap(PROT_READ) failed, reverting to non-mmap mode: %s", pa_cstrerror(errno));
-                use_mmap = u->use_mmap = 0;
+                use_mmap = u->use_mmap = FALSE;
                 u->in_mmap = NULL;
             } else
                 pa_log_debug("Successfully mmap()ed input buffer.");
         }
 
         if ((name = pa_modargs_get_value(ma, "source_name", NULL)))
-            namereg_fail = 1;
+            namereg_fail = TRUE;
         else {
             name = name_buf = pa_sprintf_malloc("oss_input.%s", pa_path_get_filename(dev));
-            namereg_fail = 0;
+            namereg_fail = FALSE;
         }
 
-        u->source = pa_source_new(m->core, __FILE__, name, namereg_fail, &ss, &map);
+        pa_source_new_data_init(&source_new_data);
+        source_new_data.driver = __FILE__;
+        source_new_data.module = m;
+        pa_source_new_data_set_name(&source_new_data, name);
+        source_new_data.namereg_fail = namereg_fail;
+        pa_source_new_data_set_sample_spec(&source_new_data, &ss);
+        pa_source_new_data_set_channel_map(&source_new_data, &map);
+        pa_proplist_sets(source_new_data.proplist, PA_PROP_DEVICE_STRING, dev);
+        pa_proplist_sets(source_new_data.proplist, PA_PROP_DEVICE_API, "oss");
+        pa_proplist_sets(source_new_data.proplist, PA_PROP_DEVICE_DESCRIPTION, hwdesc[0] ? hwdesc : dev);
+        pa_proplist_sets(source_new_data.proplist, PA_PROP_DEVICE_ACCESS_MODE, use_mmap ? "mmap" : "serial");
+        pa_proplist_setf(source_new_data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (u->in_hwbuf_size));
+        pa_proplist_setf(source_new_data.proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%lu", (unsigned long) (u->in_fragment_size));
+
+        u->source = pa_source_new(m->core, &source_new_data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
+        pa_source_new_data_done(&source_new_data);
         pa_xfree(name_buf);
+
         if (!u->source) {
             pa_log("Failed to create source object");
             goto fail;
@@ -1286,18 +1303,8 @@ int pa__init(pa_module*m) {
         u->source->parent.process_msg = source_process_msg;
         u->source->userdata = u;
 
-        pa_source_set_module(u->source, m);
         pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
         pa_source_set_rtpoll(u->source, u->rtpoll);
-        pa_source_set_description(u->source, t = pa_sprintf_malloc(
-                                          "OSS PCM on %s%s%s%s%s",
-                                          dev,
-                                          hwdesc[0] ? " (" : "",
-                                          hwdesc[0] ? hwdesc : "",
-                                          hwdesc[0] ? ")" : "",
-                                          use_mmap ? " via DMA" : ""));
-        pa_xfree(t);
-        u->source->flags = PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY;
         u->source->refresh_volume = TRUE;
 
         if (use_mmap)
@@ -1315,7 +1322,7 @@ int pa__init(pa_module*m) {
                     goto go_on;
                 } else {
                     pa_log_warn("mmap(PROT_WRITE) failed, reverting to non-mmap mode: %s", pa_cstrerror(errno));
-                    u->use_mmap = (use_mmap = FALSE);
+                    u->use_mmap = use_mmap = FALSE;
                     u->out_mmap = NULL;
                 }
             } else {
@@ -1325,14 +1332,30 @@ int pa__init(pa_module*m) {
         }
 
         if ((name = pa_modargs_get_value(ma, "sink_name", NULL)))
-            namereg_fail = 1;
+            namereg_fail = TRUE;
         else {
             name = name_buf = pa_sprintf_malloc("oss_output.%s", pa_path_get_filename(dev));
-            namereg_fail = 0;
+            namereg_fail = FALSE;
         }
 
-        u->sink = pa_sink_new(m->core, __FILE__, name, namereg_fail, &ss, &map);
+        pa_sink_new_data_init(&sink_new_data);
+        sink_new_data.driver = __FILE__;
+        sink_new_data.module = m;
+        pa_sink_new_data_set_name(&sink_new_data, name);
+        sink_new_data.namereg_fail = namereg_fail;
+        pa_sink_new_data_set_sample_spec(&sink_new_data, &ss);
+        pa_sink_new_data_set_channel_map(&sink_new_data, &map);
+        pa_proplist_sets(sink_new_data.proplist, PA_PROP_DEVICE_STRING, dev);
+        pa_proplist_sets(sink_new_data.proplist, PA_PROP_DEVICE_API, "oss");
+        pa_proplist_sets(sink_new_data.proplist, PA_PROP_DEVICE_DESCRIPTION, hwdesc[0] ? hwdesc : dev);
+        pa_proplist_sets(sink_new_data.proplist, PA_PROP_DEVICE_ACCESS_MODE, use_mmap ? "mmap" : "serial");
+        pa_proplist_setf(sink_new_data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (u->out_hwbuf_size));
+        pa_proplist_setf(sink_new_data.proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%lu", (unsigned long) (u->out_fragment_size));
+
+        u->sink = pa_sink_new(m->core, &sink_new_data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
+        pa_sink_new_data_done(&sink_new_data);
         pa_xfree(name_buf);
+
         if (!u->sink) {
             pa_log("Failed to create sink object");
             goto fail;
@@ -1341,18 +1364,8 @@ int pa__init(pa_module*m) {
         u->sink->parent.process_msg = sink_process_msg;
         u->sink->userdata = u;
 
-        pa_sink_set_module(u->sink, m);
         pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
         pa_sink_set_rtpoll(u->sink, u->rtpoll);
-        pa_sink_set_description(u->sink, t = pa_sprintf_malloc(
-                                        "OSS PCM on %s%s%s%s%s",
-                                        dev,
-                                        hwdesc[0] ? " (" : "",
-                                        hwdesc[0] ? hwdesc : "",
-                                        hwdesc[0] ? ")" : "",
-                                        use_mmap ? " via DMA" : ""));
-        pa_xfree(t);
-        u->sink->flags = PA_SINK_HARDWARE|PA_SINK_LATENCY;
         u->sink->refresh_volume = TRUE;
 
         if (use_mmap)
@@ -1360,7 +1373,7 @@ int pa__init(pa_module*m) {
     }
 
     if ((u->mixer_fd = pa_oss_open_mixer_for_device(u->device_name)) >= 0) {
-        int do_close = 1;
+        pa_bool_t do_close = TRUE;
         u->mixer_devmask = 0;
 
         if (ioctl(fd, SOUND_MIXER_READ_DEVMASK, &u->mixer_devmask) < 0)
@@ -1372,7 +1385,7 @@ int pa__init(pa_module*m) {
                 u->sink->flags |= PA_SINK_HW_VOLUME_CTRL;
                 u->sink->get_volume = sink_get_volume;
                 u->sink->set_volume = sink_set_volume;
-                do_close = 0;
+                do_close = FALSE;
             }
 
             if (u->source && (u->mixer_devmask & (SOUND_MASK_RECLEV|SOUND_MASK_IGAIN))) {
@@ -1380,7 +1393,7 @@ int pa__init(pa_module*m) {
                 u->source->flags |= PA_SOURCE_HW_VOLUME_CTRL;
                 u->source->get_volume = source_get_volume;
                 u->source->set_volume = source_set_volume;
-                do_close = 0;
+                do_close = FALSE;
             }
         }
 
@@ -1402,10 +1415,25 @@ go_on:
     }
 
     /* Read mixer settings */
-    if (u->sink && u->sink->get_volume)
-        sink_get_volume(u->sink);
-    if (u->source && u->source->get_volume)
-        source_get_volume(u->source);
+    if (u->sink) {
+        if (sink_new_data.volume_is_set) {
+            if (u->sink->set_volume)
+                u->sink->set_volume(u->sink);
+        } else {
+            if (u->sink->get_volume)
+                u->sink->get_volume(u->sink);
+        }
+    }
+
+    if (u->source) {
+        if (source_new_data.volume_is_set) {
+            if (u->source->set_volume)
+                u->source->set_volume(u->source);
+        } else {
+            if (u->source->get_volume)
+                u->source->get_volume(u->source);
+        }
+    }
 
     if (u->sink)
         pa_sink_put(u->sink);

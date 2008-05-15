@@ -25,9 +25,9 @@
 ***/
 
 #include <pulse/def.h>
+#include <pulse/gccmacro.h>
 
 #include <pulsecore/once.h>
-#include <pulsecore/gccmacro.h>
 
 /* A multiple-reader multipler-write lock-free free list implementation */
 

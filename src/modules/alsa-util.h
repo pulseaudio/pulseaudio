@@ -29,8 +29,10 @@
 
 #include <pulse/sample.h>
 #include <pulse/mainloop-api.h>
-
 #include <pulse/channelmap.h>
+#include <pulse/proplist.h>
+
+#include <pulsecore/rtpoll.h>
 
 typedef struct pa_alsa_fdlist pa_alsa_fdlist;
 
@@ -43,10 +45,12 @@ int pa_alsa_set_hw_params(
         pa_sample_spec *ss,
         uint32_t *periods,
         snd_pcm_uframes_t *period_size,
+        snd_pcm_uframes_t tsched_size,
         pa_bool_t *use_mmap,
+        pa_bool_t *use_tsched,
         pa_bool_t require_exact_channel_number);
 
-int pa_alsa_set_sw_params(snd_pcm_t *pcm);
+int pa_alsa_set_sw_params(snd_pcm_t *pcm, snd_pcm_uframes_t avail_min);
 
 int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev);
 snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const char *fallback);
@@ -59,7 +63,9 @@ snd_pcm_t *pa_alsa_open_by_device_id(
         int mode,
         uint32_t *nfrags,
         snd_pcm_uframes_t *period_size,
-        pa_bool_t *use_mmap);
+        snd_pcm_uframes_t tsched_size,
+        pa_bool_t *use_mmap,
+        pa_bool_t *use_tsched);
 
 snd_pcm_t *pa_alsa_open_by_device_string(
         const char *device,
@@ -69,8 +75,25 @@ snd_pcm_t *pa_alsa_open_by_device_string(
         int mode,
         uint32_t *nfrags,
         snd_pcm_uframes_t *period_size,
-        pa_bool_t *use_mmap);
+        snd_pcm_uframes_t tsched_size,
+        pa_bool_t *use_mmap,
+        pa_bool_t *use_tsched);
 
 int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel_map, snd_mixer_selem_channel_id_t mixer_map[], pa_bool_t playback);
+
+void pa_alsa_0dB_playback(snd_mixer_elem_t *elem);
+void pa_alsa_0dB_capture(snd_mixer_elem_t *elem);
+
+void pa_alsa_dump(snd_pcm_t *pcm);
+void pa_alsa_dump_status(snd_pcm_t *pcm);
+
+void pa_alsa_redirect_errors_inc(void);
+void pa_alsa_redirect_errors_dec(void);
+
+void pa_alsa_init_proplist(pa_proplist *p, snd_pcm_info_t *pcm_info);
+
+int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents);
+
+pa_rtpoll_item* pa_alsa_build_pollfd(snd_pcm_t *pcm, pa_rtpoll *rtpoll);
 
 #endif

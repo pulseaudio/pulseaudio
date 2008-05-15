@@ -136,7 +136,7 @@ void pa_asyncmsgq_post(pa_asyncmsgq *a, pa_msgobject *object, int code, const vo
 
     /* This mutex makes the queue multiple-writer safe. This lock is only used on the writing side */
     pa_mutex_lock(a->mutex);
-    pa_assert_se(pa_asyncq_push(a->asyncq, i, 1) == 0);
+    pa_asyncq_post(a->asyncq, i);
     pa_mutex_unlock(a->mutex);
 }
 
@@ -163,7 +163,7 @@ int pa_asyncmsgq_send(pa_asyncmsgq *a, pa_msgobject *object, int code, const voi
 
     /* Thus mutex makes the queue multiple-writer safe. This lock is only used on the writing side */
     pa_mutex_lock(a->mutex);
-    pa_assert_se(pa_asyncq_push(a->asyncq, &i, 1) == 0);
+    pa_assert_se(pa_asyncq_push(a->asyncq, &i, TRUE) == 0);
     pa_mutex_unlock(a->mutex);
 
     pa_semaphore_wait(i.semaphore);
@@ -174,7 +174,7 @@ int pa_asyncmsgq_send(pa_asyncmsgq *a, pa_msgobject *object, int code, const voi
     return i.ret;
 }
 
-int pa_asyncmsgq_get(pa_asyncmsgq *a, pa_msgobject **object, int *code, void **userdata, int64_t *offset, pa_memchunk *chunk, int wait) {
+int pa_asyncmsgq_get(pa_asyncmsgq *a, pa_msgobject **object, int *code, void **userdata, int64_t *offset, pa_memchunk *chunk, pa_bool_t wait) {
     pa_assert(PA_REFCNT_VALUE(a) > 0);
     pa_assert(!a->current);
 
@@ -276,22 +276,40 @@ int pa_asyncmsgq_process_one(pa_asyncmsgq *a) {
     return 1;
 }
 
-int pa_asyncmsgq_get_fd(pa_asyncmsgq *a) {
+int pa_asyncmsgq_read_fd(pa_asyncmsgq *a) {
     pa_assert(PA_REFCNT_VALUE(a) > 0);
 
-    return pa_asyncq_get_fd(a->asyncq);
+    return pa_asyncq_read_fd(a->asyncq);
 }
 
-int pa_asyncmsgq_before_poll(pa_asyncmsgq *a) {
+int pa_asyncmsgq_read_before_poll(pa_asyncmsgq *a) {
     pa_assert(PA_REFCNT_VALUE(a) > 0);
 
-    return pa_asyncq_before_poll(a->asyncq);
+    return pa_asyncq_read_before_poll(a->asyncq);
 }
 
-void pa_asyncmsgq_after_poll(pa_asyncmsgq *a) {
+void pa_asyncmsgq_read_after_poll(pa_asyncmsgq *a) {
     pa_assert(PA_REFCNT_VALUE(a) > 0);
 
-    pa_asyncq_after_poll(a->asyncq);
+    pa_asyncq_read_after_poll(a->asyncq);
+}
+
+int pa_asyncmsgq_write_fd(pa_asyncmsgq *a) {
+    pa_assert(PA_REFCNT_VALUE(a) > 0);
+
+    return pa_asyncq_write_fd(a->asyncq);
+}
+
+void pa_asyncmsgq_write_before_poll(pa_asyncmsgq *a) {
+    pa_assert(PA_REFCNT_VALUE(a) > 0);
+
+    pa_asyncq_write_before_poll(a->asyncq);
+}
+
+void pa_asyncmsgq_write_after_poll(pa_asyncmsgq *a) {
+    pa_assert(PA_REFCNT_VALUE(a) > 0);
+
+    pa_asyncq_write_after_poll(a->asyncq);
 }
 
 int pa_asyncmsgq_dispatch(pa_msgobject *object, int code, void *userdata, int64_t offset, pa_memchunk *memchunk) {

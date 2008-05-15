@@ -59,50 +59,63 @@ static const char* const valid_modargs[] = {
     NULL,
 };
 
-static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
+static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk) {
     struct userdata *u;
 
-    pa_assert(i);
-    u = i->userdata;
-    pa_assert(u);
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
     pa_assert(chunk);
 
     chunk->memblock = pa_memblock_ref(u->memblock);
-    chunk->index = u->peek_index;
     chunk->length = pa_memblock_get_length(u->memblock) - u->peek_index;
+    chunk->index = u->peek_index;
+
+    u->peek_index = 0;
 
     return 0;
 }
 
-static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
-    struct userdata *u;
+static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     size_t l;
+    struct userdata *u;
 
-    pa_assert(i);
-    u = i->userdata;
-    pa_assert(u);
-    pa_assert(length > 0);
-
-    u->peek_index += length;
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
 
     l = pa_memblock_get_length(u->memblock);
+    nbytes %= l;
 
-    while (u->peek_index >= l)
-        u->peek_index -= l;
+    if (u->peek_index >= nbytes)
+        u->peek_index -= nbytes;
+    else
+        u->peek_index = l + u->peek_index - nbytes;
 }
 
 static void sink_input_kill_cb(pa_sink_input *i) {
     struct userdata *u;
 
-    pa_assert(i);
-    u = i->userdata;
-    pa_assert(u);
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
 
     pa_sink_input_unlink(u->sink_input);
     pa_sink_input_unref(u->sink_input);
     u->sink_input = NULL;
 
     pa_module_unload_request(u->module);
+}
+
+/* Called from IO thread context */
+static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t state) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    /* If we are added for the first time, ask for a rewinding so that
+     * we are heard right-away. */
+    if (PA_SINK_INPUT_IS_LINKED(state) &&
+        i->thread_info.state == PA_SINK_INPUT_INIT)
+        pa_sink_input_request_rewind(i, 0, FALSE, TRUE);
 }
 
 static void calc_sine(float *f, size_t l, float freq) {
@@ -120,7 +133,6 @@ int pa__init(pa_module*m) {
     pa_sink *sink;
     pa_sample_spec ss;
     uint32_t frequency;
-    char t[256];
     void *p;
     pa_sink_input_new_data data;
 
@@ -156,21 +168,25 @@ int pa__init(pa_module*m) {
     calc_sine(p, pa_memblock_get_length(u->memblock), frequency);
     pa_memblock_release(u->memblock);
 
-    pa_snprintf(t, sizeof(t), "Sine Generator at %u Hz", frequency);
-
     pa_sink_input_new_data_init(&data);
     data.sink = sink;
     data.driver = __FILE__;
-    data.name = t;
+    pa_proplist_setf(data.proplist, PA_PROP_MEDIA_NAME, "%u Hz Sine", frequency);
+    pa_proplist_sets(data.proplist, PA_PROP_MEDIA_ROLE, "abstract");
+    pa_proplist_setf(data.proplist, "sine.hz", "%u", frequency);
     pa_sink_input_new_data_set_sample_spec(&data, &ss);
     data.module = m;
 
-    if (!(u->sink_input = pa_sink_input_new(m->core, &data, 0)))
+    u->sink_input = pa_sink_input_new(m->core, &data, 0);
+    pa_sink_input_new_data_done(&data);
+
+    if (!u->sink_input)
         goto fail;
 
-    u->sink_input->peek = sink_input_peek_cb;
-    u->sink_input->drop = sink_input_drop_cb;
+    u->sink_input->pop = sink_input_pop_cb;
+    u->sink_input->process_rewind = sink_input_process_rewind_cb;
     u->sink_input->kill = sink_input_kill_cb;
+    u->sink_input->state_change = sink_input_state_change_cb;
     u->sink_input->userdata = u;
 
     pa_sink_input_put(u->sink_input);

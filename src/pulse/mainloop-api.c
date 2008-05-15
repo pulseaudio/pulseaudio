@@ -28,8 +28,8 @@
 #include <stdlib.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/gccmacro.h>
 
-#include <pulsecore/gccmacro.h>
 #include <pulsecore/macro.h>
 
 #include "mainloop-api.h"
@@ -75,4 +75,3 @@ void pa_mainloop_api_once(pa_mainloop_api* m, void (*callback)(pa_mainloop_api *
     pa_assert_se(e = m->defer_new(m, once_callback, i));
     m->defer_set_destroy(e, free_callback);
 }
-

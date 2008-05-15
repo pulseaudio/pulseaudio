@@ -26,7 +26,7 @@ AC_PREREQ(2.60)
 
 m4_define(PA_MAJOR, [0])
 m4_define(PA_MINOR, [9])
-m4_define(PA_MICRO, [10])
+m4_define(PA_MICRO, [11])
 
 AC_INIT([pulseaudio], PA_MAJOR.PA_MINOR.PA_MICRO,[mzchyfrnhqvb (at) 0pointer (dot) net])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
@@ -37,7 +37,7 @@ AC_SUBST(PA_MAJORMINOR, "PA_MAJOR.PA_MINOR")
 AC_SUBST(PACKAGE_URL, [http://pulseaudio.org/])
 
 AC_SUBST(PA_API_VERSION, 11)
-AC_SUBST(PA_PROTOCOL_VERSION, 12)
+AC_SUBST(PA_PROTOCOL_VERSION, 13)
 
 # The stable ABI for client applications, for the version info x:y:z
 # always will hold y=z
@@ -339,6 +339,7 @@ AC_CHECK_TYPES(ssize_t, , [AC_DEFINE([ssize_t], [signed long],
 AC_TYPE_OFF_T
 AC_TYPE_SIGNAL
 AC_TYPE_UID_T
+AC_CHECK_DECLS(environ)
 
 AC_CHECK_DEFINE([SIGXCPU], [signal.h], [
 HAVE_SIGXCPU=1
@@ -375,6 +376,9 @@ AC_SEARCH_LIBS([connect], [socket])
 # This magic is needed so we do not needlessly add static libs to the win32
 # build, disabling its ability to make dlls.
 AC_CHECK_FUNCS([getopt_long], [], [AC_CHECK_LIB([iberty], [getopt_long])])
+
+AC_CHECK_LIB(gdbm, gdbm_open)
+AC_CHECK_HEADERS(gdbm.h)
 
 #### Check for functions ####
 
@@ -591,7 +595,7 @@ AC_ARG_ENABLE([alsa],
         [alsa=auto])
 
 if test "x${alsa}" != xno ; then
-    PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.0 ],
+    PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.16 ],
         [
             HAVE_ALSA=1
             AC_DEFINE([HAVE_ALSA], 1, [Have ALSA?])

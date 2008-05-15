@@ -251,7 +251,7 @@ int pa_oss_set_fragments(int fd, int nfrags, int frag_size) {
     return 0;
 }
 
-int pa_oss_get_volume(int fd, int mixer, const pa_sample_spec *ss, pa_cvolume *volume) {
+int pa_oss_get_volume(int fd, unsigned long mixer, const pa_sample_spec *ss, pa_cvolume *volume) {
     char cv[PA_CVOLUME_SNPRINT_MAX];
     unsigned vol;
 
@@ -273,7 +273,7 @@ int pa_oss_get_volume(int fd, int mixer, const pa_sample_spec *ss, pa_cvolume *v
     return 0;
 }
 
-int pa_oss_set_volume(int fd, long mixer, const pa_sample_spec *ss, const pa_cvolume *volume) {
+int pa_oss_set_volume(int fd, unsigned long mixer, const pa_sample_spec *ss, const pa_cvolume *volume) {
     char cv[PA_CVOLUME_SNPRINT_MAX];
     unsigned vol;
     pa_volume_t l, r;

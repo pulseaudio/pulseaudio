@@ -3,7 +3,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
+  Copyright 2004-2008 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -41,17 +41,23 @@
 #include <pulsecore/log.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/sample-util.h>
 
 #include "sound-file-stream.h"
+
+#define MEMBLOCKQ_MAXLENGTH (16*1024*1024)
 
 typedef struct file_stream {
     pa_msgobject parent;
     pa_core *core;
-    SNDFILE *sndfile;
     pa_sink_input *sink_input;
-    pa_memchunk memchunk;
+
+    SNDFILE *sndfile;
     sf_count_t (*readf_function)(SNDFILE *sndfile, void *ptr, sf_count_t frames);
-    size_t drop;
+
+    /* We need this memblockq here to easily fulfill rewind requests
+     * (even beyond the file start!) */
+    pa_memblockq *memblockq;
 } file_stream;
 
 enum {
@@ -62,6 +68,7 @@ PA_DECLARE_CLASS(file_stream);
 #define FILE_STREAM(o) (file_stream_cast(o))
 static PA_DEFINE_CHECK_TYPE(file_stream, pa_msgobject);
 
+/* Called from main context */
 static void file_stream_unlink(file_stream *u) {
     pa_assert(u);
 
@@ -69,7 +76,6 @@ static void file_stream_unlink(file_stream *u) {
         return;
 
     pa_sink_input_unlink(u->sink_input);
-
     pa_sink_input_unref(u->sink_input);
     u->sink_input = NULL;
 
@@ -77,14 +83,13 @@ static void file_stream_unlink(file_stream *u) {
     file_stream_unref(u);
 }
 
+/* Called from main context */
 static void file_stream_free(pa_object *o) {
     file_stream *u = FILE_STREAM(o);
     pa_assert(u);
 
-    file_stream_unlink(u);
-
-    if (u->memchunk.memblock)
-        pa_memblock_unref(u->memchunk.memblock);
+    if (u->memblockq)
+        pa_memblockq_free(u->memblockq);
 
     if (u->sndfile)
         sf_close(u->sndfile);
@@ -92,6 +97,7 @@ static void file_stream_free(pa_object *o) {
     pa_xfree(u);
 }
 
+/* Called from main context */
 static int file_stream_process_msg(pa_msgobject *o, int code, void*userdata, int64_t offset, pa_memchunk *chunk) {
     file_stream *u = FILE_STREAM(o);
     file_stream_assert_ref(u);
@@ -105,117 +111,128 @@ static int file_stream_process_msg(pa_msgobject *o, int code, void*userdata, int
     return 0;
 }
 
+/* Called from main context */
 static void sink_input_kill_cb(pa_sink_input *i) {
-    pa_sink_input_assert_ref(i);
-
-    file_stream_unlink(FILE_STREAM(i->userdata));
-}
-
-static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
     file_stream *u;
 
-    pa_assert(i);
+    pa_sink_input_assert_ref(i);
+    u = FILE_STREAM(i->userdata);
+    file_stream_assert_ref(u);
+
+    file_stream_unlink(u);
+}
+
+/* Called from IO thread context */
+static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t state) {
+    file_stream *u;
+
+    pa_sink_input_assert_ref(i);
+    u = FILE_STREAM(i->userdata);
+    file_stream_assert_ref(u);
+
+    /* If we are added for the first time, ask for a rewinding so that
+     * we are heard right-away. */
+    if (PA_SINK_INPUT_IS_LINKED(state) &&
+        i->thread_info.state == PA_SINK_INPUT_INIT)
+        pa_sink_input_request_rewind(i, 0, FALSE, TRUE);
+}
+
+/* Called from IO thread context */
+static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
+    file_stream *u;
+
+    pa_sink_input_assert_ref(i);
     pa_assert(chunk);
     u = FILE_STREAM(i->userdata);
     file_stream_assert_ref(u);
 
-    if (!u->sndfile)
+    if (!u->memblockq)
         return -1;
 
+    pa_log_debug("pop: %lu", (unsigned long) length);
+
     for (;;) {
+        pa_memchunk tchunk;
+        size_t fs;
+        void *p;
+        sf_count_t n;
 
-        if (!u->memchunk.memblock) {
-
-            u->memchunk.memblock = pa_memblock_new(i->sink->core->mempool, length);
-            u->memchunk.index = 0;
-
-            if (u->readf_function) {
-                sf_count_t n;
-                void *p;
-                size_t fs = pa_frame_size(&i->sample_spec);
-
-                p = pa_memblock_acquire(u->memchunk.memblock);
-                n = u->readf_function(u->sndfile, p, length/fs);
-                pa_memblock_release(u->memchunk.memblock);
-
-                if (n <= 0)
-                    n = 0;
-
-                u->memchunk.length = n * fs;
-            } else {
-                sf_count_t n;
-                void *p;
-
-                p = pa_memblock_acquire(u->memchunk.memblock);
-                n = sf_read_raw(u->sndfile, p, length);
-                pa_memblock_release(u->memchunk.memblock);
-
-                if (n <= 0)
-                    n = 0;
-
-                u->memchunk.length = n;
-            }
-
-            if (u->memchunk.length <= 0) {
-
-                pa_memblock_unref(u->memchunk.memblock);
-                pa_memchunk_reset(&u->memchunk);
-
-                pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u), FILE_STREAM_MESSAGE_UNLINK, NULL, 0, NULL, NULL);
-
-                sf_close(u->sndfile);
-                u->sndfile = NULL;
-
-                return -1;
-            }
+        if (pa_memblockq_peek(u->memblockq, chunk) >= 0) {
+            pa_memblockq_drop(u->memblockq, chunk->length);
+            return 0;
         }
 
-        pa_assert(u->memchunk.memblock);
-        pa_assert(u->memchunk.length > 0);
+        if (!u->sndfile)
+            break;
 
-        if (u->drop < u->memchunk.length) {
-            u->memchunk.index += u->drop;
-            u->memchunk.length -= u->drop;
-            u->drop = 0;
+        tchunk.memblock = pa_memblock_new(i->sink->core->mempool, length);
+        tchunk.index = 0;
+
+        p = pa_memblock_acquire(tchunk.memblock);
+
+        if (u->readf_function) {
+            fs = pa_frame_size(&i->sample_spec);
+            n = u->readf_function(u->sndfile, p, length/fs);
+        } else {
+            fs = 1;
+            n = sf_read_raw(u->sndfile, p, length);
+        }
+
+        pa_memblock_release(tchunk.memblock);
+
+        if (n <= 0) {
+            pa_memblock_unref(tchunk.memblock);
+
+            sf_close(u->sndfile);
+            u->sndfile = NULL;
             break;
         }
 
-        u->drop -= u->memchunk.length;
-        pa_memblock_unref(u->memchunk.memblock);
-        pa_memchunk_reset(&u->memchunk);
+        tchunk.length = n * fs;
+
+        pa_memblockq_push(u->memblockq, &tchunk);
+        pa_memblock_unref(tchunk.memblock);
     }
 
-    *chunk = u->memchunk;
-    pa_memblock_ref(chunk->memblock);
+    pa_log_debug("peek fail");
 
-    pa_assert(chunk->length > 0);
-    pa_assert(u->drop <= 0);
+    if (pa_sink_input_safe_to_remove(i)) {
+        pa_log_debug("completed to play");
 
-    return 0;
-}
+        pa_memblockq_free(u->memblockq);
+        u->memblockq = NULL;
 
-static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
+        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u), FILE_STREAM_MESSAGE_UNLINK, NULL, 0, NULL, NULL);
+    }
+
+    return -1;
+ }
+
+static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     file_stream *u;
 
-    pa_assert(i);
-    pa_assert(length > 0);
+    pa_sink_input_assert_ref(i);
+    pa_assert(nbytes > 0);
     u = FILE_STREAM(i->userdata);
     file_stream_assert_ref(u);
 
-    if (u->memchunk.memblock) {
+    if (!u->memblockq)
+        return;
 
-        if (length < u->memchunk.length) {
-            u->memchunk.index += length;
-            u->memchunk.length -= length;
-            return;
-        }
+    pa_memblockq_rewind(u->memblockq, nbytes);
+}
 
-        length -= u->memchunk.length;
-        pa_memblock_unref(u->memchunk.memblock);
-        pa_memchunk_reset(&u->memchunk);
-    }
+static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
+    file_stream *u;
 
-    u->drop += length;
+    pa_sink_input_assert_ref(i);
+    u = FILE_STREAM(i->userdata);
+    file_stream_assert_ref(u);
+
+    if (!u->memblockq)
+        return;
+
+    pa_memblockq_set_maxrewind(u->memblockq, nbytes);
 }
 
 int pa_play_file(
@@ -237,10 +254,9 @@ int pa_play_file(
     u->parent.process_msg = file_stream_process_msg;
     u->core = sink->core;
     u->sink_input = NULL;
-    pa_memchunk_reset(&u->memchunk);
     u->sndfile = NULL;
     u->readf_function = NULL;
-    u->drop = 0;
+    u->memblockq = NULL;
 
     memset(&sfinfo, 0, sizeof(sfinfo));
 
@@ -312,17 +328,25 @@ int pa_play_file(
     pa_sink_input_new_data_init(&data);
     data.sink = sink;
     data.driver = __FILE__;
-    data.name = fname;
     pa_sink_input_new_data_set_sample_spec(&data, &ss);
     pa_sink_input_new_data_set_volume(&data, volume);
+    pa_proplist_sets(data.proplist, PA_PROP_MEDIA_NAME, fname);
+    pa_proplist_sets(data.proplist, PA_PROP_MEDIA_FILENAME, fname);
 
-    if (!(u->sink_input = pa_sink_input_new(sink->core, &data, 0)))
+    u->sink_input = pa_sink_input_new(sink->core, &data, 0);
+    pa_sink_input_new_data_done(&data);
+
+    if (!u->sink_input)
         goto fail;
 
-    u->sink_input->peek = sink_input_peek_cb;
-    u->sink_input->drop = sink_input_drop_cb;
+    u->sink_input->pop = sink_input_pop_cb;
+    u->sink_input->process_rewind = sink_input_process_rewind_cb;
+    u->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;
     u->sink_input->kill = sink_input_kill_cb;
+    u->sink_input->state_change = sink_input_state_change_cb;
     u->sink_input->userdata = u;
+
+    u->memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, pa_frame_size(&ss), 1, 1, 0, NULL);
 
     pa_sink_input_put(u->sink_input);
 

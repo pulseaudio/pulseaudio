@@ -143,7 +143,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
 
                 case PA_SINK_SUSPENDED:
-                    pa_assert(PA_SINK_OPENED(u->sink->thread_info.state));
+                    pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
 
                     pa_smoother_pause(u->smoother, pa_rtclock_usec());
                     break;
@@ -211,7 +211,7 @@ static void thread_func(void *userdata) {
             pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
 
             /* Render some data and write it to the fifo */
-            if (PA_SINK_OPENED(u->sink->thread_info.state) && pollfd->revents) {
+            if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && pollfd->revents) {
                 pa_usec_t usec;
                 int64_t n;
 
@@ -294,7 +294,7 @@ static void thread_func(void *userdata) {
             }
 
             /* Hmm, nothing to do. Let's sleep */
-            pollfd->events = PA_SINK_OPENED(u->sink->thread_info.state)  ? POLLOUT : 0;
+            pollfd->events = PA_SINK_IS_OPENED(u->sink->thread_info.state) ? POLLOUT : 0;
         }
 
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
@@ -502,12 +502,11 @@ static void on_connection(PA_GCC_UNUSED pa_socket_client *c, pa_iochannel*io, vo
 
 int pa__init(pa_module*m) {
     struct userdata *u = NULL;
-    const char *p;
     pa_sample_spec ss;
     pa_modargs *ma = NULL;
-    char *t;
     const char *espeaker;
     uint32_t key;
+    pa_sink_new_data data;
 
     pa_assert(m);
 
@@ -533,13 +532,12 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     u->fd = -1;
-    u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE);
+    u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE, 10);
     pa_memchunk_reset(&u->memchunk);
     u->offset = 0;
 
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
-    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
     u->rtpoll_item = NULL;
 
     u->format =
@@ -554,29 +552,37 @@ int pa__init(pa_module*m) {
     u->state = STATE_AUTH;
     u->latency = 0;
 
-    if (!(u->sink = pa_sink_new(m->core, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL))) {
+    if (!(espeaker = getenv("ESPEAKER")))
+        espeaker = ESD_UNIX_SOCKET_NAME;
+
+    espeaker = pa_modargs_get_value(ma, "server", espeaker);
+
+    pa_sink_new_data_init(&data);
+    data.driver = __FILE__;
+    data.module = m;
+    pa_sink_new_data_set_name(&data, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME));
+    pa_sink_new_data_set_sample_spec(&data, &ss);
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, espeaker);
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Esound sink '%s'", espeaker);
+
+    u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY|PA_SINK_NETWORK);
+    pa_sink_new_data_done(&data);
+
+    if (!u->sink) {
         pa_log("Failed to create sink.");
         goto fail;
     }
 
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->userdata = u;
-    u->sink->flags = PA_SINK_LATENCY|PA_SINK_NETWORK;
 
-    pa_sink_set_module(u->sink, m);
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
 
-    if (!(espeaker = getenv("ESPEAKER")))
-        espeaker = ESD_UNIX_SOCKET_NAME;
-
-    if (!(u->client = pa_socket_client_new_string(u->core->mainloop, p = pa_modargs_get_value(ma, "server", espeaker), ESD_DEFAULT_PORT))) {
+    if (!(u->client = pa_socket_client_new_string(u->core->mainloop, espeaker, ESD_DEFAULT_PORT))) {
         pa_log("Failed to connect to server.");
         goto fail;
     }
-
-    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Esound sink '%s'", p));
-    pa_xfree(t);
 
     pa_socket_client_set_callback(u->client, on_connection, u);
 

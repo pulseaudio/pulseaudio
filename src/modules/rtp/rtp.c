@@ -55,6 +55,8 @@ pa_rtp_context* pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint32_t ssr
     c->payload = payload & 127;
     c->frame_size = frame_size;
 
+    pa_memchunk_reset(&c->memchunk);
+
     return c;
 }
 
@@ -152,6 +154,8 @@ pa_rtp_context* pa_rtp_context_init_recv(pa_rtp_context *c, int fd, size_t frame
 
     c->fd = fd;
     c->frame_size = frame_size;
+
+    pa_memchunk_reset(&c->memchunk);
     return c;
 }
 
@@ -173,12 +177,28 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
         goto fail;
     }
 
-    if (!size)
+    if (size <= 0)
         return 0;
 
-    chunk->memblock = pa_memblock_new(pool, size);
+    if (c->memchunk.length < (unsigned) size) {
+        size_t l;
 
-    iov.iov_base = pa_memblock_acquire(chunk->memblock);
+        if (c->memchunk.memblock)
+            pa_memblock_unref(c->memchunk.memblock);
+
+        l = PA_MAX((size_t) size, pa_mempool_block_size_max(pool));
+
+        c->memchunk.memblock = pa_memblock_new(pool, l);
+        c->memchunk.index = 0;
+        c->memchunk.length = pa_memblock_get_length(c->memchunk.memblock);
+    }
+
+    pa_assert(c->memchunk.length >= (size_t) size);
+
+    chunk->memblock = pa_memblock_ref(c->memchunk.memblock);
+    chunk->index = c->memchunk.index;
+
+    iov.iov_base = (uint8_t*) pa_memblock_acquire(chunk->memblock) + chunk->index;
     iov.iov_len = size;
 
     m.msg_name = NULL;
@@ -236,12 +256,20 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
         goto fail;
     }
 
-    chunk->index = 12 + cc*4;
-    chunk->length = size - chunk->index;
+    chunk->index += 12 + cc*4;
+    chunk->length = size - 12 + cc*4;
 
     if (chunk->length % c->frame_size != 0) {
         pa_log_warn("Bad RTP packet size.");
         goto fail;
+    }
+
+    c->memchunk.index = chunk->index + chunk->length;
+    c->memchunk.length = pa_memblock_get_length(c->memchunk.memblock) - c->memchunk.index;
+
+    if (c->memchunk.length <= 0) {
+        pa_memblock_unref(c->memchunk.memblock);
+        pa_memchunk_reset(&c->memchunk);
     }
 
     return 0;
@@ -329,7 +357,10 @@ int pa_rtp_sample_spec_valid(const pa_sample_spec *ss) {
 void pa_rtp_context_destroy(pa_rtp_context *c) {
     pa_assert(c);
 
-    pa_close(c->fd);
+    pa_assert_se(pa_close(c->fd) == 0);
+
+    if (c->memchunk.memblock)
+        pa_memblock_unref(c->memchunk.memblock);
 }
 
 const char* pa_rtp_format_to_string(pa_sample_format_t f) {
@@ -361,4 +392,3 @@ pa_sample_format_t pa_rtp_string_to_format(const char *s) {
     else
         return PA_SAMPLE_INVALID;
 }
-

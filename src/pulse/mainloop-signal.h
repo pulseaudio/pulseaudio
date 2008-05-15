@@ -6,7 +6,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
+  Copyright 2004-2008 Lennart Poettering
   Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
@@ -39,23 +39,27 @@ PA_C_DECL_BEGIN
  * signals. However, you may hook signal support into an abstract main loop via the routines defined herein.
  */
 
+/** An opaque UNIX signal event source object */
+typedef struct pa_signal_event pa_signal_event;
+
+typedef void (*pa_signal_cb_t) (pa_mainloop_api *api, pa_signal_event*e, int sig, void *userdata);
+
+typedef void (*pa_signal_destroy_cb_t) (pa_mainloop_api *api, pa_signal_event*e, void *userdata);
+
 /** Initialize the UNIX signal subsystem and bind it to the specified main loop */
 int pa_signal_init(pa_mainloop_api *api);
 
 /** Cleanup the signal subsystem */
 void pa_signal_done(void);
 
-/** An opaque UNIX signal event source object */
-typedef struct pa_signal_event pa_signal_event;
-
 /** Create a new UNIX signal event source object */
-pa_signal_event* pa_signal_new(int sig, void (*callback) (pa_mainloop_api *api, pa_signal_event*e, int sig, void *userdata), void *userdata);
+pa_signal_event* pa_signal_new(int sig, pa_signal_cb_t callback, void *userdata);
 
 /** Free a UNIX signal event source object */
 void pa_signal_free(pa_signal_event *e);
 
 /** Set a function that is called when the signal event source is destroyed. Use this to free the userdata argument if required */
-void pa_signal_set_destroy(pa_signal_event *e, void (*callback) (pa_mainloop_api *api, pa_signal_event*e, void *userdata));
+void pa_signal_set_destroy(pa_signal_event *e, pa_signal_destroy_cb_t callback);
 
 PA_C_DECL_END
 

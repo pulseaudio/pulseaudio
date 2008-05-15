@@ -31,9 +31,10 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include <pulse/gccmacro.h>
+
 #include <pulsecore/core-util.h>
 #include <pulsecore/mcalign.h>
-#include <pulsecore/gccmacro.h>
 
 /* A simple program for testing pa_mcalign */
 

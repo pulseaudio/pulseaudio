@@ -56,20 +56,26 @@ typedef struct pa_asyncmsgq pa_asyncmsgq;
 
 pa_asyncmsgq* pa_asyncmsgq_new(unsigned size);
 pa_asyncmsgq* pa_asyncmsgq_ref(pa_asyncmsgq *q);
+
 void pa_asyncmsgq_unref(pa_asyncmsgq* q);
 
 void pa_asyncmsgq_post(pa_asyncmsgq *q, pa_msgobject *object, int code, const void *userdata, int64_t offset, const pa_memchunk *memchunk, pa_free_cb_t userdata_free_cb);
 int pa_asyncmsgq_send(pa_asyncmsgq *q, pa_msgobject *object, int code, const void *userdata, int64_t offset, const pa_memchunk *memchunk);
 
-int pa_asyncmsgq_get(pa_asyncmsgq *q, pa_msgobject **object, int *code, void **userdata, int64_t *offset, pa_memchunk *memchunk, int wait);
+int pa_asyncmsgq_get(pa_asyncmsgq *q, pa_msgobject **object, int *code, void **userdata, int64_t *offset, pa_memchunk *memchunk, pa_bool_t wait);
 int pa_asyncmsgq_dispatch(pa_msgobject *object, int code, void *userdata, int64_t offset, pa_memchunk *memchunk);
 void pa_asyncmsgq_done(pa_asyncmsgq *q, int ret);
 int pa_asyncmsgq_wait_for(pa_asyncmsgq *a, int code);
 int pa_asyncmsgq_process_one(pa_asyncmsgq *a);
 
-/* Just for the reading side */
-int pa_asyncmsgq_get_fd(pa_asyncmsgq *q);
-int pa_asyncmsgq_before_poll(pa_asyncmsgq *a);
-void pa_asyncmsgq_after_poll(pa_asyncmsgq *a);
+/* For the reading side */
+int pa_asyncmsgq_read_fd(pa_asyncmsgq *q);
+int pa_asyncmsgq_read_before_poll(pa_asyncmsgq *a);
+void pa_asyncmsgq_read_after_poll(pa_asyncmsgq *a);
+
+/* For the write side */
+int pa_asyncmsgq_write_fd(pa_asyncmsgq *q);
+void pa_asyncmsgq_write_before_poll(pa_asyncmsgq *a);
+void pa_asyncmsgq_write_after_poll(pa_asyncmsgq *a);
 
 #endif

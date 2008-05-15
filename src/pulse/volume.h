@@ -26,7 +26,9 @@
 ***/
 
 #include <inttypes.h>
+
 #include <pulse/cdecl.h>
+#include <pulse/gccmacro.h>
 #include <pulse/sample.h>
 
 /** \page volume Volume Control
@@ -101,10 +103,10 @@ PA_C_DECL_BEGIN
 typedef uint32_t pa_volume_t;
 
 /** Normal volume (100%) */
-#define PA_VOLUME_NORM (0x10000)
+#define PA_VOLUME_NORM ((pa_volume_t) 0x10000)
 
 /** Muted volume (0%) */
-#define PA_VOLUME_MUTED (0)
+#define PA_VOLUME_MUTED ((pa_volume_t) 0)
 
 /** A structure encapsulating a per-channel volume */
 typedef struct pa_cvolume {
@@ -149,25 +151,25 @@ int pa_cvolume_channels_equal_to(const pa_cvolume *a, pa_volume_t v) PA_GCC_PURE
 pa_volume_t pa_sw_volume_multiply(pa_volume_t a, pa_volume_t b) PA_GCC_CONST;
 
 /** Multiply to per-channel volumes and return the result in *dest. This is only valid for software volumes! */
-pa_cvolume *pa_sw_cvolume_multiply(pa_cvolume *dest, const pa_cvolume *a, const pa_cvolume *b) PA_GCC_PURE;
+pa_cvolume *pa_sw_cvolume_multiply(pa_cvolume *dest, const pa_cvolume *a, const pa_cvolume *b);
 
-/** Convert a decibel value to a volume. This is only valid for software volumes! \since 0.4 */
+/** Convert a decibel value to a volume. This is only valid for software volumes! */
 pa_volume_t pa_sw_volume_from_dB(double f) PA_GCC_CONST;
 
-/** Convert a volume to a decibel value. This is only valid for software volumes! \since 0.4 */
+/** Convert a volume to a decibel value. This is only valid for software volumes! */
 double pa_sw_volume_to_dB(pa_volume_t v) PA_GCC_CONST;
 
-/** Convert a linear factor to a volume. This is only valid for software volumes! \since 0.8 */
+/** Convert a linear factor to a volume. This is only valid for software volumes! */
 pa_volume_t pa_sw_volume_from_linear(double v) PA_GCC_CONST;
 
-/** Convert a volume to a linear factor. This is only valid for software volumes! \since 0.8 */
+/** Convert a volume to a linear factor. This is only valid for software volumes! */
 double pa_sw_volume_to_linear(pa_volume_t v) PA_GCC_CONST;
 
 #ifdef INFINITY
-#define PA_DECIBEL_MININFTY (-INFINITY)
+#define PA_DECIBEL_MININFTY ((double) -INFINITY)
 #else
-/** This value is used as minus infinity when using pa_volume_{to,from}_dB(). \since 0.4 */
-#define PA_DECIBEL_MININFTY (-200)
+/** This value is used as minus infinity when using pa_volume_{to,from}_dB(). */
+#define PA_DECIBEL_MININFTY ((double) -200)
 #endif
 
 PA_C_DECL_END

@@ -82,12 +82,14 @@ static int load_rules(struct userdata *u, const char *filename) {
 
     pa_assert(u);
 
-    f = filename ?
-        fopen(fn = pa_xstrdup(filename), "r") :
-        pa_open_config_file(DEFAULT_MATCH_TABLE_FILE, DEFAULT_MATCH_TABLE_FILE_USER, NULL, &fn, "r");
+    if (filename)
+        f = fopen(fn = pa_xstrdup(filename), "r");
+    else
+        f = pa_open_config_file(DEFAULT_MATCH_TABLE_FILE, DEFAULT_MATCH_TABLE_FILE_USER, NULL, &fn);
 
     if (!f) {
-        pa_log("failed to open file '%s': %s", fn, pa_cstrerror(errno));
+        pa_xfree(fn);
+        pa_log("Failed to open file config file: %s", pa_cstrerror(errno));
         goto finish;
     }
 
@@ -166,6 +168,7 @@ static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, v
     struct userdata *u =  userdata;
     pa_sink_input *si;
     struct rule *r;
+    const char *n;
 
     pa_assert(c);
     pa_assert(u);
@@ -176,13 +179,13 @@ static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, v
     if (!(si = pa_idxset_get_by_index(c->sink_inputs, idx)))
         return;
 
-    if (!si->name)
+    if (!(n = pa_proplist_gets(si->proplist, PA_PROP_MEDIA_NAME)))
         return;
 
     for (r = u->rules; r; r = r->next) {
-        if (!regexec(&r->regex, si->name, 0, NULL, 0)) {
+        if (!regexec(&r->regex, n, 0, NULL, 0)) {
             pa_cvolume cv;
-            pa_log_debug("changing volume of sink input '%s' to 0x%03x", si->name, r->volume);
+            pa_log_debug("changing volume of sink input '%s' to 0x%03x", n, r->volume);
             pa_cvolume_set(&cv, si->sample_spec.channels, r->volume);
             pa_sink_input_set_volume(si, &cv);
         }

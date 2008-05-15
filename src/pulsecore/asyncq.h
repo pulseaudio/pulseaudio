@@ -26,6 +26,7 @@
 
 #include <sys/types.h>
 #include <pulse/def.h>
+#include <pulsecore/macro.h>
 
 /* A simple, asynchronous, lock-free (if requested also wait-free)
  * queue. Not multiple-reader/multiple-writer safe. If that is
@@ -46,11 +47,21 @@ typedef struct pa_asyncq pa_asyncq;
 pa_asyncq* pa_asyncq_new(unsigned size);
 void pa_asyncq_free(pa_asyncq* q, pa_free_cb_t free_cb);
 
-void* pa_asyncq_pop(pa_asyncq *q, int wait);
-int pa_asyncq_push(pa_asyncq *q, void *p, int wait);
+void* pa_asyncq_pop(pa_asyncq *q, pa_bool_t wait);
+int pa_asyncq_push(pa_asyncq *q, void *p, pa_bool_t wait);
 
-int pa_asyncq_get_fd(pa_asyncq *q);
-int pa_asyncq_before_poll(pa_asyncq *a);
-void pa_asyncq_after_poll(pa_asyncq *a);
+/* Similar to pa_asyncq_push(), but if the queue is full, postpone it
+ * locally and delay until pa_asyncq_before_poll_post() */
+void pa_asyncq_post(pa_asyncq*l, void *p);
+
+/* For the reading side */
+int pa_asyncq_read_fd(pa_asyncq *q);
+int pa_asyncq_read_before_poll(pa_asyncq *a);
+void pa_asyncq_read_after_poll(pa_asyncq *a);
+
+/* For the writing side */
+int pa_asyncq_write_fd(pa_asyncq *q);
+void pa_asyncq_write_before_poll(pa_asyncq *a);
+void pa_asyncq_write_after_poll(pa_asyncq *a);
 
 #endif

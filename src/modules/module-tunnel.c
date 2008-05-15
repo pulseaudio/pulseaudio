@@ -303,7 +303,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
             /* First, change the state, because otherwide pa_sink_render() would fail */
             if ((r = pa_sink_process_msg(o, code, data, offset, chunk)) >= 0)
-                if (PA_SINK_OPENED((pa_sink_state_t) PA_PTR_TO_UINT(data)))
+                if (PA_SINK_IS_OPENED((pa_sink_state_t) PA_PTR_TO_UINT(data)))
                     send_data(u);
 
             return r;
@@ -314,7 +314,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             pa_assert(offset > 0);
             u->requested_bytes += (size_t) offset;
 
-            if (PA_SINK_OPENED(u->sink->thread_info.state))
+            if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
                 send_data(u);
 
             return 0;
@@ -343,7 +343,7 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
     switch ((pa_sink_state_t) state) {
 
         case PA_SINK_SUSPENDED:
-            pa_assert(PA_SINK_OPENED(s->state));
+            pa_assert(PA_SINK_IS_OPENED(s->state));
             stream_cork(u, TRUE);
             break;
 
@@ -369,7 +369,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
     switch (code) {
         case SOURCE_MESSAGE_POST:
 
-            if (PA_SOURCE_OPENED(u->source->thread_info.state))
+            if (PA_SOURCE_IS_OPENED(u->source->thread_info.state))
                 pa_source_post(u->source, chunk);
             return 0;
     }
@@ -385,7 +385,7 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
     switch ((pa_source_state_t) state) {
 
         case PA_SOURCE_SUSPENDED:
-            pa_assert(PA_SOURCE_OPENED(s->state));
+            pa_assert(PA_SOURCE_IS_OPENED(s->state));
             stream_cork(u, TRUE);
             break;
 
@@ -577,29 +577,29 @@ static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, PA_GCC_UNUSED 
 }
 
 #ifdef TUNNEL_SINK
-static pa_usec_t sink_get_latency(pa_sink *s) {
-    pa_usec_t t, c;
-    struct userdata *u = s->userdata;
+/* static pa_usec_t sink_get_latency(pa_sink *s) { */
+/*     pa_usec_t t, c; */
+/*     struct userdata *u = s->userdata; */
 
-    pa_sink_assert_ref(s);
+/*     pa_sink_assert_ref(s); */
 
-    c = pa_bytes_to_usec(u->counter, &s->sample_spec);
-    t = pa_smoother_get(u->smoother, pa_rtclock_usec());
+/*     c = pa_bytes_to_usec(u->counter, &s->sample_spec); */
+/*     t = pa_smoother_get(u->smoother, pa_rtclock_usec()); */
 
-    return c > t ? c - t : 0;
-}
+/*     return c > t ? c - t : 0; */
+/* } */
 #else
-static pa_usec_t source_get_latency(pa_source *s) {
-    pa_usec_t t, c;
-    struct userdata *u = s->userdata;
+/* static pa_usec_t source_get_latency(pa_source *s) { */
+/*     pa_usec_t t, c; */
+/*     struct userdata *u = s->userdata; */
 
-    pa_source_assert_ref(s);
+/*     pa_source_assert_ref(s); */
 
-    c = pa_bytes_to_usec(u->counter, &s->sample_spec);
-    t = pa_smoother_get(u->smoother, pa_rtclock_usec());
+/*     c = pa_bytes_to_usec(u->counter, &s->sample_spec); */
+/*     t = pa_smoother_get(u->smoother, pa_rtclock_usec()); */
 
-    return t > c ? t - c : 0;
-}
+/*     return t > c ? t - c : 0; */
+/* } */
 #endif
 
 static void update_description(struct userdata *u) {
@@ -1066,7 +1066,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     pa_tagstruct_putu32(reply, PA_INVALID_INDEX);
     pa_tagstruct_puts(reply, u->sink_name);
     pa_tagstruct_putu32(reply, u->maxlength);
-    pa_tagstruct_put_boolean(reply, !PA_SINK_OPENED(pa_sink_get_state(u->sink)));
+    pa_tagstruct_put_boolean(reply, !PA_SINK_IS_OPENED(pa_sink_get_state(u->sink)));
     pa_tagstruct_putu32(reply, u->tlength);
     pa_tagstruct_putu32(reply, u->prebuf);
     pa_tagstruct_putu32(reply, u->minreq);
@@ -1082,7 +1082,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     pa_tagstruct_putu32(reply, PA_INVALID_INDEX);
     pa_tagstruct_puts(reply, u->source_name);
     pa_tagstruct_putu32(reply, u->maxlength);
-    pa_tagstruct_put_boolean(reply, !PA_SOURCE_OPENED(pa_source_get_state(u->source)));
+    pa_tagstruct_put_boolean(reply, !PA_SOURCE_IS_OPENED(pa_source_get_state(u->source)));
     pa_tagstruct_putu32(reply, u->fragsize);
 #endif
 
@@ -1294,6 +1294,11 @@ int pa__init(pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     char *t, *dn = NULL;
+#ifdef TUNNEL_SINK
+    pa_sink_new_data data;
+#else
+    pa_source_new_data data;
+#endif
 
     pa_assert(m);
 
@@ -1318,15 +1323,14 @@ int pa__init(pa_module*m) {
     u->source_name = pa_xstrdup(pa_modargs_get_value(ma, "source", NULL));;
     u->source = NULL;
 #endif
-    u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE);
+    u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE, 10);
     u->ctag = 1;
     u->device_index = u->channel = PA_INVALID_INDEX;
     u->auth_cookie_in_property = FALSE;
     u->time_event = NULL;
 
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
-    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
     if (load_key(u, pa_modargs_get_value(ma, "cookie", NULL)) < 0)
         goto fail;
@@ -1354,7 +1358,18 @@ int pa__init(pa_module*m) {
     if (!(dn = pa_xstrdup(pa_modargs_get_value(ma, "sink_name", NULL))))
         dn = pa_sprintf_malloc("tunnel.%s", u->server_name);
 
-    if (!(u->sink = pa_sink_new(m->core, __FILE__, dn, 1, &ss, &map))) {
+    pa_sink_new_data_init(&data);
+    data.driver = __FILE__;
+    data.module = m;
+    data.namereg_fail = TRUE;
+    pa_sink_new_data_set_name(&data, dn);
+    pa_sink_new_data_set_sample_spec(&data, &ss);
+    pa_sink_new_data_set_channel_map(&data, &map);
+
+    u->sink = pa_sink_new(m->core, &data, PA_SINK_NETWORK|PA_SINK_LATENCY|PA_SINK_HW_VOLUME_CTRL);
+    pa_sink_new_data_done(&data);
+
+    if (!u->sink) {
         pa_log("Failed to create sink.");
         goto fail;
     }
@@ -1362,14 +1377,12 @@ int pa__init(pa_module*m) {
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->userdata = u;
     u->sink->set_state = sink_set_state;
-    u->sink->get_latency = sink_get_latency;
+/*     u->sink->get_latency = sink_get_latency; */
     u->sink->get_volume = sink_get_volume;
     u->sink->get_mute = sink_get_mute;
     u->sink->set_volume = sink_set_volume;
     u->sink->set_mute = sink_set_mute;
-    u->sink->flags = PA_SINK_NETWORK|PA_SINK_LATENCY|PA_SINK_HW_VOLUME_CTRL;
 
-    pa_sink_set_module(u->sink, m);
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
     pa_sink_set_description(u->sink, t = pa_sprintf_malloc("%s%s%s", u->sink_name ? u->sink_name : "", u->sink_name ? " on " : "", u->server_name));
@@ -1380,7 +1393,18 @@ int pa__init(pa_module*m) {
     if (!(dn = pa_xstrdup(pa_modargs_get_value(ma, "source_name", NULL))))
         dn = pa_sprintf_malloc("tunnel.%s", u->server_name);
 
-    if (!(u->source = pa_source_new(m->core, __FILE__, dn, 1, &ss, &map))) {
+    pa_source_new_data_init(&data);
+    data.driver = __FILE__;
+    data.module = m;
+    data.namereg_fail = TRUE;
+    pa_source_new_data_set_name(&data, dn);
+    pa_source_new_data_set_sample_spec(&data, &ss);
+    pa_source_new_data_set_channel_map(&data, &map);
+
+    u->source = pa_source_new(m->core, &data, PA_SOURCE_NETWORK|PA_SOURCE_LATENCY);
+    pa_source_new_data_done(&data);
+
+    if (!u->source) {
         pa_log("Failed to create source.");
         goto fail;
     }
@@ -1388,10 +1412,8 @@ int pa__init(pa_module*m) {
     u->source->parent.process_msg = source_process_msg;
     u->source->userdata = u;
     u->source->set_state = source_set_state;
-    u->source->get_latency = source_get_latency;
-    u->source->flags = PA_SOURCE_NETWORK|PA_SOURCE_LATENCY;
+/*     u->source->get_latency = source_get_latency; */
 
-    pa_source_set_module(u->source, m);
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_rtpoll(u->source, u->rtpoll);
     pa_source_set_description(u->source, t = pa_sprintf_malloc("%s%s%s", u->source_name ? u->source_name : "", u->source_name ? " on " : "", u->server_name));

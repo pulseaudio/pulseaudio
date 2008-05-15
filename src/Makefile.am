@@ -131,8 +131,7 @@ pulseaudio_SOURCES = \
 		daemon/daemon-conf.c daemon/daemon-conf.h \
 		daemon/dumpmodules.c daemon/dumpmodules.h \
 		daemon/ltdl-bind-now.c daemon/ltdl-bind-now.h \
-		daemon/main.c \
-		pulsecore/gccmacro.h
+		daemon/main.c
 
 pulseaudio_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS) $(CAP_CFLAGS) $(LIBOIL_CFLAGS) $(DBUS_CFLAGS)
 pulseaudio_CPPFLAGS = $(AM_CPPFLAGS)
@@ -226,7 +225,7 @@ pabrowse_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 #         Test programs           #
 ###################################
 
-check_PROGRAMS = \
+noinst_PROGRAMS = \
 		mainloop-test \
 		mcalign-test \
 		pacat-simple \
@@ -255,16 +254,18 @@ check_PROGRAMS = \
 		mix-test \
 		remix-test \
 		envelope-test \
-		proplist-test
+		proplist-test \
+		rtstutter \
+		stripnul
 
 if HAVE_SIGXCPU
-check_PROGRAMS += \
+noinst_PROGRAMS += \
 		cpulimit-test \
 		cpulimit-test2
 endif
 
 if HAVE_GLIB20
-check_PROGRAMS += \
+noinst_PROGRAMS += \
 		mainloop-test-glib
 endif
 
@@ -426,9 +427,19 @@ envelope_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
 envelope_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
 
 proplist_test_SOURCES = tests/proplist-test.c
-proplist_test_LDADD = $(AM_LDADD) libpulse.la
+proplist_test_LDADD = $(AM_LDADD) libpulsecore.la
 proplist_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
 proplist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
+
+rtstutter_SOURCES = tests/rtstutter.c
+rtstutter_LDADD = $(AM_LDADD) libpulsecore.la
+rtstutter_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+rtstutter_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
+
+stripnul_SOURCES = tests/stripnul.c
+stripnul_LDADD = $(AM_LDADD) libpulsecore.la
+stripnul_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+stripnul_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
 
 ###################################
 #         Client library          #
@@ -458,7 +469,8 @@ pulseinclude_HEADERS = \
 		pulse/version.h \
 		pulse/volume.h \
 		pulse/xmalloc.h \
-		pulse/proplist.h
+		pulse/proplist.h \
+		pulse/gccmacro.h
 
 if HAVE_AVAHI
 pulseinclude_HEADERS += \
@@ -517,7 +529,6 @@ libpulse_la_SOURCES += \
 		pulsecore/conf-parser.c pulsecore/conf-parser.h \
 		pulsecore/core-util.c pulsecore/core-util.h \
 		pulsecore/dynarray.c pulsecore/dynarray.h \
-		pulsecore/gccmacro.h \
 		pulsecore/hashmap.c pulsecore/hashmap.h \
 		pulsecore/idxset.c pulsecore/idxset.h \
 		pulsecore/inet_ntop.c pulsecore/inet_ntop.h \
@@ -550,6 +561,8 @@ libpulse_la_SOURCES += \
 		pulsecore/object.c pulsecore/object.h \
 		pulsecore/msgobject.c pulsecore/msgobject.h \
 		pulsecore/once.c pulsecore/once.h \
+		pulsecore/rtclock.c pulsecore/rtclock.h \
+		pulsecore/time-smoother.c pulsecore/time-smoother.h \
 		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32
@@ -649,7 +662,6 @@ noinst_HEADERS = \
 		pulsecore/cli-text.h \
 		pulsecore/client.h \
 		pulsecore/core.h \
-		pulsecore/core-def.h \
 		pulsecore/core-scache.h \
 		pulsecore/core-subscribe.h \
 		pulsecore/conf-parser.h \
@@ -708,7 +720,8 @@ libpulsecore_la_SOURCES = \
 		pulse/utf8.c pulse/utf8.h \
 		pulse/util.c pulse/util.h \
 		pulse/volume.c pulse/volume.h \
-		pulse/xmalloc.c pulse/xmalloc.h
+		pulse/xmalloc.c pulse/xmalloc.h \
+		pulse/proplist.c pulse/proplist.h
 
 # Pure core stuff (some are shared in libpulse though).
 libpulsecore_la_SOURCES += \
@@ -998,6 +1011,7 @@ modlibexec_LTLIBRARIES += \
 		module-null-sink.la \
 		module-detect.la \
 		module-volume-restore.la \
+		module-device-restore.la \
 		module-default-device-restore.la \
 		module-rescue-streams.la \
 		module-suspend-on-idle.la \
@@ -1168,6 +1182,7 @@ SYMDEF_FILES = \
 		modules/module-jack-sink-symdef.h \
 		modules/module-jack-source-symdef.h \
 		modules/module-volume-restore-symdef.h \
+		modules/module-device-restore-symdef.h \
 		modules/module-default-device-restore-symdef.h \
 		modules/module-rescue-streams-symdef.h \
 		modules/module-suspend-on-idle-symdef.h \
@@ -1296,7 +1311,7 @@ module_remap_sink_la_LDFLAGS = -module -avoid-version
 module_remap_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
 module_ladspa_sink_la_SOURCES = modules/module-ladspa-sink.c modules/ladspa.h
-module_ladspa_sink_la_CFLAGS = -DLADSPA_PATH=\"$(libdir)/ladspa:/usr/local/lib/ladspa:/usr/lib/ladspa\" $(AM_CFLAGS)
+module_ladspa_sink_la_CFLAGS = -DLADSPA_PATH=\"$(libdir)/ladspa:/usr/local/lib/ladspa:/usr/lib/ladspa:/usr/local/lib64/ladspa:/usr/lib64/ladspa\" $(AM_CFLAGS)
 module_ladspa_sink_la_LDFLAGS = -module -avoid-version
 module_ladspa_sink_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) libpulsecore.la
 
@@ -1407,6 +1422,12 @@ module_volume_restore_la_SOURCES = modules/module-volume-restore.c
 module_volume_restore_la_LDFLAGS = -module -avoid-version
 module_volume_restore_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 module_volume_restore_la_CFLAGS = $(AM_CFLAGS)
+
+# Device volume restore module
+module_device_restore_la_SOURCES = modules/module-device-restore.c
+module_device_restore_la_LDFLAGS = -module -avoid-version
+module_device_restore_la_LIBADD = $(AM_LIBADD) libpulsecore.la -lgdbm
+module_device_restore_la_CFLAGS = $(AM_CFLAGS)
 
 # Default sink/source restore module
 module_default_device_restore_la_SOURCES = modules/module-default-device-restore.c

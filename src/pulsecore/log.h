@@ -27,7 +27,7 @@
 
 #include <stdarg.h>
 #include <stdlib.h>
-#include <pulsecore/gccmacro.h>
+#include <pulse/gccmacro.h>
 
 /* A simple logging subsystem */
 

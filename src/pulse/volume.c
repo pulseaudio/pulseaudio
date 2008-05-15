@@ -80,10 +80,10 @@ pa_volume_t pa_sw_volume_multiply(pa_volume_t a, pa_volume_t b) {
     return pa_sw_volume_from_linear(pa_sw_volume_to_linear(a)* pa_sw_volume_to_linear(b));
 }
 
-#define USER_DECIBEL_RANGE 30
+#define USER_DECIBEL_RANGE 60
 
 pa_volume_t pa_sw_volume_from_dB(double dB) {
-    if (dB <= -USER_DECIBEL_RANGE)
+    if (isinf(dB) < 0 || dB <= -USER_DECIBEL_RANGE)
         return PA_VOLUME_MUTED;
 
     return (pa_volume_t) ((dB/USER_DECIBEL_RANGE+1)*PA_VOLUME_NORM);

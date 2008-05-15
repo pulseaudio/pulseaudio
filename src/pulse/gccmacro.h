@@ -77,13 +77,21 @@
 #endif
 #endif
 
-#ifndef PA_LIKELY
+#ifndef PA_GCC_DEPRECATED
 #ifdef __GNUC__
-#define PA_LIKELY(x) (__builtin_expect(!!(x),1))
-#define PA_UNLIKELY(x) (__builtin_expect((x),0))
+#define PA_GCC_DEPRECATED __attribute__ ((deprecated))
 #else
-#define PA_LIKELY(x) (x)
-#define PA_UNLIKELY(x) (x)
+/** This function is deprecated **/
+#define PA_GCC_DEPRECATED
+#endif
+#endif
+
+#ifndef PA_GCC_PACKED
+#ifdef __GNUCC__
+#define PA_GCC_PACKED __attribute__ ((packed))
+#else
+/** Structure shall be packed in memory **/
+#define PA_GCC_PACKED
 #endif
 #endif
 

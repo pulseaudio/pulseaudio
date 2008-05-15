@@ -26,6 +26,7 @@
 ***/
 
 #include <pulse/cdecl.h>
+#include <pulse/gccmacro.h>
 #include <pulse/sample.h>
 
 /** \file
@@ -37,6 +38,8 @@ PA_C_DECL_BEGIN
 #define PA_USEC_PER_SEC 1000000
 #define PA_NSEC_PER_SEC 1000000000
 #define PA_USEC_PER_MSEC 1000
+#define PA_NSEC_PER_MSEC 1000000
+#define PA_NSEC_PER_USEC 1000
 
 struct timeval;
 
@@ -54,7 +57,10 @@ int pa_timeval_cmp(const struct timeval *a, const struct timeval *b) PA_GCC_PURE
 pa_usec_t pa_timeval_age(const struct timeval *tv);
 
 /** Add the specified time inmicroseconds to the specified timeval structure */
-struct timeval* pa_timeval_add(struct timeval *tv, pa_usec_t v) PA_GCC_PURE;
+struct timeval* pa_timeval_add(struct timeval *tv, pa_usec_t v);
+
+/** Subtract the specified time inmicroseconds to the specified timeval structure. \since 0.9.11 */
+struct timeval* pa_timeval_sub(struct timeval *tv, pa_usec_t v);
 
 /** Store the specified uec value in the timeval struct. \since 0.9.7 */
 struct timeval* pa_timeval_store(struct timeval *tv, pa_usec_t v);

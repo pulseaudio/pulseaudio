@@ -125,6 +125,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     c->subscription_event_last = NULL;
 
     c->mempool = pool;
+    pa_silence_cache_init(&c->silence_cache);
 
     c->quit_event = NULL;
 
@@ -188,6 +189,7 @@ static void core_free(pa_object *o) {
     pa_xfree(c->default_source_name);
     pa_xfree(c->default_sink_name);
 
+    pa_silence_cache_done(&c->silence_cache);
     pa_mempool_free(c->mempool);
 
     pa_property_cleanup(c);

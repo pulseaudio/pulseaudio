@@ -26,15 +26,17 @@
 
 #include <sys/types.h>
 
+#include <pulsecore/macro.h>
+
 typedef struct pa_shm {
     unsigned id;
     void *ptr;
     size_t size;
-    int do_unlink;
-    int shared;
+    pa_bool_t do_unlink:1;
+    pa_bool_t shared:1;
 } pa_shm;
 
-int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode);
+int pa_shm_create_rw(pa_shm *m, size_t size, pa_bool_t shared, mode_t mode);
 int pa_shm_attach_ro(pa_shm *m, unsigned id);
 
 void pa_shm_punch(pa_shm *m, size_t offset, size_t size);

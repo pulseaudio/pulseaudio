@@ -3,7 +3,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
+  Copyright 2004-2008 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -64,6 +64,7 @@ PA_MODULE_USAGE(
         "description=<description for the sink>");
 
 #define DEFAULT_SINK_NAME "null"
+#define MAX_LATENCY_USEC (PA_USEC_PER_SEC * 2)
 
 struct userdata {
     pa_core *core;
@@ -76,7 +77,8 @@ struct userdata {
 
     size_t block_size;
 
-    struct timeval timestamp;
+    pa_usec_t block_usec;
+    pa_usec_t timestamp;
 };
 
 static const char* const valid_modargs[] = {
@@ -96,24 +98,93 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         case PA_SINK_MESSAGE_SET_STATE:
 
             if (PA_PTR_TO_UINT(data) == PA_SINK_RUNNING)
-                pa_rtclock_get(&u->timestamp);
+                u->timestamp = pa_rtclock_usec();
 
             break;
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
-            struct timeval now;
+            pa_usec_t now;
 
-            pa_rtclock_get(&now);
+            now = pa_rtclock_usec();
+            *((pa_usec_t*) data) = u->timestamp > now ? u->timestamp - now : 0;
 
-            if (pa_timeval_cmp(&u->timestamp, &now) > 0)
-                *((pa_usec_t*) data) = 0;
-            else
-                *((pa_usec_t*) data) = pa_timeval_diff(&u->timestamp, &now);
-            break;
+            return 0;
         }
     }
 
     return pa_sink_process_msg(o, code, data, offset, chunk);
+}
+
+static void sink_update_requested_latency_cb(pa_sink *s) {
+    struct userdata *u;
+
+    pa_sink_assert_ref(s);
+    u = s->userdata;
+    pa_assert(u);
+
+    u->block_usec = pa_sink_get_requested_latency_within_thread(s);
+}
+
+static void process_rewind(struct userdata *u, pa_usec_t now) {
+    size_t rewind_nbytes, in_buffer;
+    pa_usec_t delay;
+
+    pa_assert(u);
+
+    /* Figure out how much we shall rewind and reset the counter */
+    rewind_nbytes = u->sink->thread_info.rewind_nbytes;
+    u->sink->thread_info.rewind_nbytes = 0;
+
+    pa_assert(rewind_nbytes > 0);
+    pa_log_debug("Requested to rewind %lu bytes.", (unsigned long) rewind_nbytes);
+
+    if (u->timestamp <= now)
+        return;
+
+    delay = u->timestamp - now;
+    in_buffer = pa_usec_to_bytes(delay, &u->sink->sample_spec);
+
+    if (in_buffer <= 0)
+        return;
+
+    if (rewind_nbytes > in_buffer)
+        rewind_nbytes = in_buffer;
+
+    pa_sink_process_rewind(u->sink, rewind_nbytes);
+    u->timestamp -= pa_bytes_to_usec(rewind_nbytes, &u->sink->sample_spec);
+
+    pa_log_debug("Rewound %lu bytes.", (unsigned long) rewind_nbytes);
+}
+
+static void process_render(struct userdata *u, pa_usec_t now) {
+    size_t nbytes;
+    size_t ate = 0;
+
+    pa_assert(u);
+
+    /* This is the configured latency. Sink inputs connected to us
+    might not have a single frame more than this value queued. Hence:
+    at maximum read this many bytes from the sink inputs. */
+
+    nbytes = pa_usec_to_bytes(u->block_usec, &u->sink->sample_spec);
+
+    /* Fill the buffer up the the latency size */
+    while (u->timestamp < now + u->block_usec) {
+        pa_memchunk chunk;
+
+        pa_sink_render(u->sink, nbytes, &chunk);
+        pa_memblock_unref(chunk.memblock);
+
+        pa_log_debug("Ate %lu bytes.", (unsigned long) chunk.length);
+        u->timestamp += pa_bytes_to_usec(chunk.length, &u->sink->sample_spec);
+
+        ate += chunk.length;
+
+        if (ate >= nbytes)
+            break;
+    }
+
+    pa_log_debug("Ate in sum %lu bytes (of %lu)", (unsigned long) ate, (unsigned long) nbytes);
 }
 
 static void thread_func(void *userdata) {
@@ -126,28 +197,29 @@ static void thread_func(void *userdata) {
     pa_thread_mq_install(&u->thread_mq);
     pa_rtpoll_install(u->rtpoll);
 
-    pa_rtclock_get(&u->timestamp);
+    u->timestamp = pa_rtclock_usec();
 
     for (;;) {
         int ret;
 
         /* Render some data and drop it immediately */
         if (u->sink->thread_info.state == PA_SINK_RUNNING) {
-            struct timeval now;
+            pa_usec_t now;
 
-            pa_rtclock_get(&now);
+            now = pa_rtclock_usec();
 
-            if (pa_timeval_cmp(&u->timestamp, &now) <= 0) {
-                pa_sink_skip(u->sink, u->block_size);
-                pa_timeval_add(&u->timestamp, pa_bytes_to_usec(u->block_size, &u->sink->sample_spec));
-            }
+            if (u->sink->thread_info.rewind_nbytes > 0)
+                process_rewind(u, now);
 
-            pa_rtpoll_set_timer_absolute(u->rtpoll, &u->timestamp);
+            if (u->timestamp <= now)
+                process_render(u, now);
+
+            pa_rtpoll_set_timer_absolute(u->rtpoll, u->timestamp);
         } else
             pa_rtpoll_set_timer_disabled(u->rtpoll);
 
         /* Hmm, nothing to do. Let's sleep */
-        if ((ret = pa_rtpoll_run(u->rtpoll, 1)) < 0)
+        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
             goto fail;
 
         if (ret == 0)
@@ -169,6 +241,7 @@ int pa__init(pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;
+    pa_sink_new_data data;
 
     pa_assert(m);
 
@@ -187,27 +260,35 @@ int pa__init(pa_module*m) {
     u->core = m->core;
     u->module = m;
     m->userdata = u;
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
-    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
-    if (!(u->sink = pa_sink_new(m->core, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
-        pa_log("Failed to create sink.");
+    pa_sink_new_data_init(&data);
+    data.driver = __FILE__;
+    data.module = m;
+    pa_sink_new_data_set_name(&data, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME));
+    pa_sink_new_data_set_sample_spec(&data, &ss);
+    pa_sink_new_data_set_channel_map(&data, &map);
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, pa_modargs_get_value(ma, "description", "Null Output"));
+
+    u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY);
+    pa_sink_new_data_done(&data);
+
+    if (!u->sink) {
+        pa_log("Failed to create sink object.");
         goto fail;
     }
 
     u->sink->parent.process_msg = sink_process_msg;
+    u->sink->update_requested_latency = sink_update_requested_latency_cb;
     u->sink->userdata = u;
-    u->sink->flags = PA_SINK_LATENCY;
 
-    pa_sink_set_module(u->sink, m);
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
-    pa_sink_set_description(u->sink, pa_modargs_get_value(ma, "description", "NULL sink"));
 
-    u->block_size = pa_bytes_per_second(&ss) / 20; /* 50 ms */
-    if (u->block_size <= 0)
-        u->block_size = pa_frame_size(&ss);
+    u->block_usec = u->sink->max_latency = MAX_LATENCY_USEC;
+
+    u->sink->thread_info.max_rewind = pa_usec_to_bytes(u->block_usec, &u->sink->sample_spec);
 
     if (!(u->thread = pa_thread_new(thread_func, u))) {
         pa_log("Failed to create thread.");

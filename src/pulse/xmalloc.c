@@ -29,9 +29,10 @@
 #include <signal.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 
+#include <pulse/gccmacro.h>
 #include <pulsecore/core-util.h>
-#include <pulsecore/gccmacro.h>
 #include <pulsecore/macro.h>
 
 #include "xmalloc.h"
@@ -123,8 +124,12 @@ char *pa_xstrndup(const char *s, size_t l) {
 }
 
 void pa_xfree(void *p) {
+    int saved_errno;
+
     if (!p)
         return;
 
+    saved_errno = errno;
     free(p);
+    errno = saved_errno;
 }

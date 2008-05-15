@@ -90,6 +90,7 @@ static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
 static int pa_cli_command_info(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_load(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_unload(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_describe(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
@@ -136,6 +137,7 @@ static const struct command commands[] = {
     { "list",                    pa_cli_command_info,               NULL,                           1 },
     { "load-module",             pa_cli_command_load,               "Load a module (args: name, arguments)", 3},
     { "unload-module",           pa_cli_command_unload,             "Unload a module (args: index)", 2},
+    { "describe-module",         pa_cli_command_describe,           "Describe a module (arg: name)", 2},
     { "set-sink-volume",         pa_cli_command_sink_volume,        "Set the volume of a sink (args: index|name, volume)", 3},
     { "set-sink-input-volume",   pa_cli_command_sink_input_volume,  "Set the volume of a sink input (args: index, volume)", 3},
     { "set-source-volume",       pa_cli_command_source_volume,      "Set the volume of a source (args: index|name, volume)", 3},
@@ -155,10 +157,10 @@ static const struct command commands[] = {
     { "load-sample-dir-lazy",    pa_cli_command_scache_load_dir,    "Lazily load all files in a directory into the sample cache (args: pathname)", 2},
     { "play-file",               pa_cli_command_play_file,          "Play a sound file (args: filename, sink|index)", 3},
     { "list-autoload",           pa_cli_command_autoload_list,      "List autoload entries", 1},
-    { "add-autoload-sink",       pa_cli_command_autoload_add,       "Add autoload entry for a sink (args: sink, module name, arguments)", 4},
-    { "add-autoload-source",     pa_cli_command_autoload_add,       "Add autoload entry for a source (args: source, module name, arguments)", 4},
-    { "remove-autoload-sink",    pa_cli_command_autoload_remove,    "Remove autoload entry for a sink (args: name)", 2},
-    { "remove-autoload-source",  pa_cli_command_autoload_remove,    "Remove autoload entry for a source (args: name)", 2},
+    { "add-autoload-sink",       pa_cli_command_autoload_add,       NULL /*"Add autoload entry for a sink (args: sink, module name, arguments)"*/, 4},
+    { "add-autoload-source",     pa_cli_command_autoload_add,       NULL /*"Add autoload entry for a source (args: source, module name, arguments)"*/, 4},
+    { "remove-autoload-sink",    pa_cli_command_autoload_remove,    NULL /*"Remove autoload entry for a sink (args: name)"*/, 2},
+    { "remove-autoload-source",  pa_cli_command_autoload_remove,    NULL /*"Remove autoload entry for a source (args: name)"*/, 2},
     { "dump",                    pa_cli_command_dump,               "Dump daemon configuration", 1},
     { "list-props",              pa_cli_command_list_props,         NULL, 1},
     { "move-sink-input",         pa_cli_command_move_sink_input,    "Move sink input to another sink (args: index, sink)", 3},
@@ -367,7 +369,7 @@ static int pa_cli_command_info(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     pa_cli_command_sink_inputs(c, t, buf, fail);
     pa_cli_command_source_outputs(c, t, buf, fail);
     pa_cli_command_scache_list(c, t, buf, fail);
-    pa_cli_command_autoload_list(c, t, buf, fail);
+/*     pa_cli_command_autoload_list(c, t, buf, fail); */
     return 0;
 }
 
@@ -419,6 +421,45 @@ static int pa_cli_command_unload(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa
     return 0;
 }
 
+static int pa_cli_command_describe(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+    const char *name;
+    pa_modinfo *i;
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+    if (!(name = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify the module name.\n");
+        return -1;
+    }
+
+    if ((i = pa_modinfo_get_by_name(name))) {
+
+        pa_strbuf_printf(buf, "Name: %s\n", name);
+
+        if (!i->description && !i->version && !i->author && !i->usage)
+            pa_strbuf_printf(buf, "No module information available\n");
+        else {
+            if (i->version)
+                pa_strbuf_printf(buf, "Version: %s\n", i->version);
+            if (i->description)
+                pa_strbuf_printf(buf, "Description: %s\n", i->description);
+            if (i->author)
+                pa_strbuf_printf(buf, "Author: %s\n", i->author);
+            if (i->usage)
+                pa_strbuf_printf(buf, "Usage: %s\n", i->usage);
+            pa_strbuf_printf(buf, "Load Once: %s\n", pa_yes_no(i->load_once));
+        }
+
+        pa_modinfo_free(i);
+    } else
+        pa_strbuf_puts(buf, "Failed to open module.\n");
+
+    return 0;
+}
+
 static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
     const char *n, *v;
     pa_sink *sink;
@@ -436,7 +477,7 @@ static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
     }
 
     if (!(v = pa_tokenizer_get(t, 2))) {
-        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x100 is normal volume)\n");
+        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x10000 is normal volume)\n");
         return -1;
     }
 
@@ -478,7 +519,7 @@ static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strb
     }
 
     if (!(v = pa_tokenizer_get(t, 2))) {
-        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x100 is normal volume)\n");
+        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x10000 is normal volume)\n");
         return -1;
     }
 
@@ -514,7 +555,7 @@ static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *
     }
 
     if (!(v = pa_tokenizer_get(t, 2))) {
-        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x100 is normal volume)\n");
+        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x10000 is normal volume)\n");
         return -1;
     }
 
@@ -553,7 +594,7 @@ static int pa_cli_command_sink_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf,
         return -1;
     }
 
-    if (pa_atoi(m, &mute) < 0) {
+    if ((mute = pa_parse_boolean(m)) < 0) {
         pa_strbuf_puts(buf, "Failed to parse mute switch.\n");
         return -1;
     }
@@ -587,7 +628,7 @@ static int pa_cli_command_source_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
         return -1;
     }
 
-    if (pa_atoi(m, &mute) < 0) {
+    if ((mute = pa_parse_boolean(m)) < 0) {
         pa_strbuf_puts(buf, "Failed to parse mute switch.\n");
         return -1;
     }
@@ -623,11 +664,11 @@ static int pa_cli_command_sink_input_mute(pa_core *c, pa_tokenizer *t, pa_strbuf
     }
 
     if (!(v = pa_tokenizer_get(t, 2))) {
-        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x100 is normal volume)\n");
+        pa_strbuf_puts(buf, "You need to specify a mute switch setting (0/1).\n");
         return -1;
     }
 
-    if (pa_atoi(v, &mute) < 0) {
+    if ((mute = pa_parse_boolean(v)) < 0) {
         pa_strbuf_puts(buf, "Failed to parse mute switch.\n");
         return -1;
     }
@@ -780,6 +821,7 @@ static int pa_cli_command_scache_list(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
 static int pa_cli_command_scache_play(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
     const char *n, *sink_name;
     pa_sink *sink;
+    uint32_t idx;
 
     pa_core_assert_ref(c);
     pa_assert(t);
@@ -796,10 +838,12 @@ static int pa_cli_command_scache_play(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
         return -1;
     }
 
-    if (pa_scache_play_item(c, n, sink, PA_VOLUME_NORM) < 0) {
+    if (pa_scache_play_item(c, n, sink, PA_VOLUME_NORM, NULL, &idx) < 0) {
         pa_strbuf_puts(buf, "Failed to play sample.\n");
         return -1;
     }
+
+    pa_strbuf_printf(buf, "Playing on sink input #%i\n", idx);
 
     return 0;
 }
@@ -902,6 +946,8 @@ static int pa_cli_command_autoload_add(pa_core *c, pa_tokenizer *t, pa_strbuf *b
     pa_assert(buf);
     pa_assert(fail);
 
+    pa_log_warn("Autoload will no longer be implemented by future versions of the PulseAudio server.");
+
     if (!(a = pa_tokenizer_get(t, 1)) || !(b = pa_tokenizer_get(t, 2))) {
         pa_strbuf_puts(buf, "You need to specify a device name, a filename or a module name and optionally module arguments\n");
         return -1;
@@ -919,6 +965,8 @@ static int pa_cli_command_autoload_remove(pa_core *c, pa_tokenizer *t, pa_strbuf
     pa_assert(t);
     pa_assert(buf);
     pa_assert(fail);
+
+    pa_log_warn("Autoload will no longer be implemented by future versions of the PulseAudio server.");
 
     if (!(name = pa_tokenizer_get(t, 1))) {
         pa_strbuf_puts(buf, "You need to specify a device name\n");
@@ -940,6 +988,8 @@ static int pa_cli_command_autoload_list(pa_core *c, pa_tokenizer *t, pa_strbuf *
     pa_assert(t);
     pa_assert(buf);
     pa_assert(fail);
+
+    pa_log_warn("Autoload will no longer be implemented by future versions of the PulseAudio server.");
 
     pa_assert_se(s = pa_autoload_list_to_string(c));
     pa_strbuf_puts(buf, s);
@@ -1005,7 +1055,7 @@ static int pa_cli_command_move_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf
         return -1;
     }
 
-    if (pa_sink_input_move_to(si, sink, 0) < 0) {
+    if (pa_sink_input_move_to(si, sink) < 0) {
         pa_strbuf_puts(buf, "Moved failed.\n");
         return -1;
     }
@@ -1075,7 +1125,7 @@ static int pa_cli_command_suspend_sink(pa_core *c, pa_tokenizer *t, pa_strbuf *b
         return -1;
     }
 
-    if (pa_atoi(m, &suspend) < 0) {
+    if ((suspend = pa_parse_boolean(m)) < 0) {
         pa_strbuf_puts(buf, "Failed to parse suspend switch.\n");
         return -1;
     }
@@ -1109,7 +1159,7 @@ static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf 
         return -1;
     }
 
-    if (pa_atoi(m, &suspend) < 0) {
+    if ((suspend = pa_parse_boolean(m)) < 0) {
         pa_strbuf_puts(buf, "Failed to parse suspend switch.\n");
         return -1;
     }
@@ -1138,7 +1188,7 @@ static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, p
         return -1;
     }
 
-    if (pa_atoi(m, &suspend) < 0) {
+    if ((suspend = pa_parse_boolean(m)) < 0) {
         pa_strbuf_puts(buf, "Failed to parse suspend switch.\n");
         return -1;
     }
@@ -1202,7 +1252,8 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
         }
 
         pa_strbuf_printf(buf, "set-sink-volume %s 0x%03x\n", sink->name, pa_cvolume_avg(pa_sink_get_volume(sink)));
-        pa_strbuf_printf(buf, "set-sink-mute %s %d\n", sink->name, pa_sink_get_mute(sink));
+        pa_strbuf_printf(buf, "set-sink-mute %s %s\n", sink->name, pa_yes_no(pa_sink_get_mute(sink)));
+        pa_strbuf_printf(buf, "suspend-sink %s %s\n", sink->name, pa_yes_no(pa_sink_get_state(sink) == PA_SINK_SUSPENDED));
     }
 
     for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx)) {
@@ -1215,7 +1266,8 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
         }
 
         pa_strbuf_printf(buf, "set-source-volume %s 0x%03x\n", source->name, pa_cvolume_avg(pa_source_get_volume(source)));
-        pa_strbuf_printf(buf, "set-source-mute %s %d\n", source->name, pa_source_get_mute(source));
+        pa_strbuf_printf(buf, "set-source-mute %s %s\n", source->name, pa_yes_no(pa_source_get_mute(source)));
+        pa_strbuf_printf(buf, "suspend-source %s %s\n", source->name, pa_yes_no(pa_source_get_state(source) == PA_SOURCE_SUSPENDED));
     }
 
 
@@ -1390,15 +1442,44 @@ int pa_cli_command_execute_line(pa_core *c, const char *s, pa_strbuf *buf, pa_bo
     return pa_cli_command_execute_line_stateful(c, s, buf, fail, NULL);
 }
 
-int pa_cli_command_execute_file(pa_core *c, const char *fn, pa_strbuf *buf, pa_bool_t *fail) {
+int pa_cli_command_execute_file_stream(pa_core *c, FILE *f, pa_strbuf *buf, pa_bool_t *fail) {
     char line[1024];
-    FILE *f = NULL;
     int ifstate = IFSTATE_NONE;
     int ret = -1;
+    pa_bool_t _fail = TRUE;
+
+    pa_assert(c);
+    pa_assert(f);
+    pa_assert(buf);
+
+    if (!fail)
+        fail = &_fail;
+
+    while (fgets(line, sizeof(line), f)) {
+        pa_strip_nl(line);
+
+        if (pa_cli_command_execute_line_stateful(c, line, buf, fail, &ifstate) < 0 && *fail)
+            goto fail;
+    }
+
+    ret = 0;
+
+fail:
+
+    return ret;
+}
+
+int pa_cli_command_execute_file(pa_core *c, const char *fn, pa_strbuf *buf, pa_bool_t *fail) {
+    FILE *f = NULL;
+    int ret = -1;
+    pa_bool_t _fail = TRUE;
 
     pa_assert(c);
     pa_assert(fn);
     pa_assert(buf);
+
+    if (!fail)
+        fail = &_fail;
 
     if (!(f = fopen(fn, "r"))) {
         pa_strbuf_printf(buf, "open('%s') failed: %s\n", fn, pa_cstrerror(errno));
@@ -1407,13 +1488,7 @@ int pa_cli_command_execute_file(pa_core *c, const char *fn, pa_strbuf *buf, pa_b
         goto fail;
     }
 
-    while (fgets(line, sizeof(line), f)) {
-        char *e = line + strcspn(line, linebreak);
-        *e = 0;
-
-        if (pa_cli_command_execute_line_stateful(c, line, buf, fail, &ifstate) < 0 && *fail)
-            goto fail;
-    }
+    ret = pa_cli_command_execute_file_stream(c, f, buf, fail);
 
     ret = 0;
 
@@ -1427,10 +1502,14 @@ fail:
 int pa_cli_command_execute(pa_core *c, const char *s, pa_strbuf *buf, pa_bool_t *fail) {
     const char *p;
     int ifstate = IFSTATE_NONE;
+    pa_bool_t _fail = TRUE;
 
     pa_assert(c);
     pa_assert(s);
     pa_assert(buf);
+
+    if (!fail)
+        fail = &_fail;
 
     p = s;
     while (*p) {

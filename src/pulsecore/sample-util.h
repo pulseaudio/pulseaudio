@@ -30,10 +30,18 @@
 #include <pulsecore/memblock.h>
 #include <pulsecore/memchunk.h>
 
-pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec);
-pa_memblock *pa_silence_memblock_new(pa_mempool *pool, const pa_sample_spec *spec, size_t length);
-void pa_silence_memchunk(pa_memchunk *c, const pa_sample_spec *spec);
-void pa_silence_memory(void *p, size_t length, const pa_sample_spec *spec);
+typedef struct pa_silence_cache {
+    pa_memblock* blocks[PA_SAMPLE_MAX];
+} pa_silence_cache;
+
+void pa_silence_cache_init(pa_silence_cache *cache);
+void pa_silence_cache_done(pa_silence_cache *cache);
+
+void *pa_silence_memory(void *p, size_t length, const pa_sample_spec *spec);
+pa_memchunk* pa_silence_memchunk(pa_memchunk *c, const pa_sample_spec *spec);
+pa_memblock* pa_silence_memblock(pa_memblock *b, const pa_sample_spec *spec);
+
+pa_memchunk* pa_silence_memchunk_get(pa_silence_cache *cache, pa_mempool *pool, pa_memchunk* ret, const pa_sample_spec *spec, size_t length);
 
 typedef struct pa_mix_info {
     pa_memchunk chunk;
@@ -69,5 +77,7 @@ int pa_frame_aligned(size_t l, const pa_sample_spec *ss) PA_GCC_PURE;
 
 void pa_interleave(const void *src[], unsigned channels, void *dst, size_t ss, unsigned n);
 void pa_deinterleave(const void *src, void *dst[], unsigned channels, size_t ss, unsigned n);
+
+void pa_sample_clamp(pa_sample_format_t format, void *dst, size_t dstr, const void *src, size_t sstr, unsigned n);
 
 #endif

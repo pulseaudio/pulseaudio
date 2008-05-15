@@ -33,6 +33,7 @@
 #include <sched.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/timeval.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
@@ -45,6 +46,8 @@
 
 #define DEFAULT_SCRIPT_FILE PA_DEFAULT_CONFIG_DIR PA_PATH_SEP "default.pa"
 #define DEFAULT_SCRIPT_FILE_USER PA_PATH_SEP "default.pa"
+#define DEFAULT_SYSTEM_SCRIPT_FILE PA_DEFAULT_CONFIG_DIR PA_PATH_SEP "system.pa"
+
 #define DEFAULT_CONFIG_FILE PA_DEFAULT_CONFIG_DIR PA_PATH_SEP "daemon.conf"
 #define DEFAULT_CONFIG_FILE_USER PA_PATH_SEP "daemon.conf"
 
@@ -67,6 +70,7 @@ static const pa_daemon_conf default_conf = {
     .auto_log_target = 1,
     .script_commands = NULL,
     .dl_search_path = NULL,
+    .load_default_script_file = TRUE,
     .default_script_file = NULL,
     .log_target = PA_LOG_SYSLOG,
     .log_level = PA_LOG_NOTICE,
@@ -81,33 +85,42 @@ static const pa_daemon_conf default_conf = {
     .default_fragment_size_msec = 25,
     .default_sample_spec = { .format = PA_SAMPLE_S16NE, .rate = 44100, .channels = 2 }
 #ifdef HAVE_SYS_RESOURCE_H
-    , .rlimit_as = { .value = 0, .is_set = FALSE },
-    .rlimit_core = { .value = 0, .is_set = FALSE },
+   ,.rlimit_fsize = { .value = 0, .is_set = FALSE },
     .rlimit_data = { .value = 0, .is_set = FALSE },
-    .rlimit_fsize = { .value = 0, .is_set = FALSE },
-    .rlimit_nofile = { .value = 256, .is_set = TRUE },
-    .rlimit_stack = { .value = 0, .is_set = FALSE }
+    .rlimit_stack = { .value = 0, .is_set = FALSE },
+    .rlimit_core = { .value = 0, .is_set = FALSE },
+    .rlimit_rss = { .value = 0, .is_set = FALSE }
 #ifdef RLIMIT_NPROC
-    , .rlimit_nproc = { .value = 0, .is_set = FALSE }
+   ,.rlimit_nproc = { .value = 0, .is_set = FALSE }
 #endif
+   ,.rlimit_nofile = { .value = 256, .is_set = TRUE }
 #ifdef RLIMIT_MEMLOCK
-    , .rlimit_memlock = { .value = 0, .is_set = FALSE }
+   ,.rlimit_memlock = { .value = 0, .is_set = FALSE }
+#endif
+   ,.rlimit_as = { .value = 0, .is_set = FALSE }
+#ifdef RLIMIT_LOCKS
+   ,.rlimit_locks = { .value = 0, .is_set = FALSE }
+#endif
+#ifdef RLIMIT_SIGPENDING
+   ,.rlimit_sigpending = { .value = 0, .is_set = FALSE }
+#endif
+#ifdef RLIMIT_MSGQUEUE
+   ,.rlimit_msgqueue = { .value = 0, .is_set = FALSE }
 #endif
 #ifdef RLIMIT_NICE
-    , .rlimit_nice = { .value = 31, .is_set = TRUE }     /* nice level of -11 */
+   ,.rlimit_nice = { .value = 31, .is_set = TRUE }     /* nice level of -11 */
 #endif
 #ifdef RLIMIT_RTPRIO
-    , .rlimit_rtprio = { .value = 9, .is_set = TRUE }      /* One below JACK's default for the server */
+   ,.rlimit_rtprio = { .value = 9, .is_set = TRUE }    /* One below JACK's default for the server */
+#endif
+#ifdef RLIMIT_RTTIME
+   ,.rlimit_rttime = { .value = PA_USEC_PER_SEC, .is_set = TRUE }
 #endif
 #endif
 };
 
 pa_daemon_conf* pa_daemon_conf_new(void) {
-    FILE *f;
     pa_daemon_conf *c = pa_xnewdup(pa_daemon_conf, &default_conf, 1);
-
-    if ((f = pa_open_config_file(DEFAULT_SCRIPT_FILE, DEFAULT_SCRIPT_FILE_USER, ENV_SCRIPT_FILE, &c->default_script_file, "r")))
-        fclose(f);
 
     c->dl_search_path = pa_xstrdup(PA_DLSEARCHPATH);
     return c;
@@ -412,24 +425,38 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "default-fragment-size-msec", parse_fragment_size_msec, NULL },
         { "nice-level",                 parse_nice_level,         NULL },
         { "disable-remixing",           pa_config_parse_bool,     NULL },
+        { "load-default-script-file",   pa_config_parse_bool,     NULL },
 #ifdef HAVE_SYS_RESOURCE_H
-        { "rlimit-as",                  parse_rlimit,             NULL },
-        { "rlimit-core",                parse_rlimit,             NULL },
-        { "rlimit-data",                parse_rlimit,             NULL },
         { "rlimit-fsize",               parse_rlimit,             NULL },
-        { "rlimit-nofile",              parse_rlimit,             NULL },
+        { "rlimit-data",                parse_rlimit,             NULL },
         { "rlimit-stack",               parse_rlimit,             NULL },
+        { "rlimit-core",                parse_rlimit,             NULL },
+        { "rlimit-rss",                 parse_rlimit,             NULL },
+        { "rlimit-nofile",              parse_rlimit,             NULL },
+        { "rlimit-as",                  parse_rlimit,             NULL },
 #ifdef RLIMIT_NPROC
         { "rlimit-nproc",               parse_rlimit,             NULL },
 #endif
 #ifdef RLIMIT_MEMLOCK
         { "rlimit-memlock",             parse_rlimit,             NULL },
 #endif
+#ifdef RLIMIT_LOCKS
+        { "rlimit-locks",               parse_rlimit,             NULL },
+#endif
+#ifdef RLIMIT_SIGPENDING
+        { "rlimit-sigpending",          parse_rlimit,             NULL },
+#endif
+#ifdef RLIMIT_MSGQUEUE
+        { "rlimit-msgqueue",            parse_rlimit,             NULL },
+#endif
 #ifdef RLIMIT_NICE
         { "rlimit-nice",                parse_rlimit,             NULL },
 #endif
 #ifdef RLIMIT_RTPRIO
         { "rlimit-rtprio",              parse_rlimit,             NULL },
+#endif
+#ifdef RLIMIT_RTTIME
+        { "rlimit-rttime",              parse_rlimit,             NULL },
 #endif
 #endif
         { NULL,                         NULL,                     NULL },
@@ -461,33 +488,66 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     table[23].data = c;
     table[24].data = c;
     table[25].data = &c->disable_remixing;
+    table[26].data = &c->load_default_script_file;
 #ifdef HAVE_SYS_RESOURCE_H
-    table[26].data = &c->rlimit_as;
-    table[27].data = &c->rlimit_core;
+    table[27].data = &c->rlimit_fsize;
     table[28].data = &c->rlimit_data;
-    table[29].data = &c->rlimit_fsize;
-    table[30].data = &c->rlimit_nofile;
-    table[31].data = &c->rlimit_stack;
+    table[29].data = &c->rlimit_stack;
+    table[30].data = &c->rlimit_as;
+    table[31].data = &c->rlimit_core;
+    table[32].data = &c->rlimit_nofile;
+    table[33].data = &c->rlimit_as;
 #ifdef RLIMIT_NPROC
-    table[32].data = &c->rlimit_nproc;
+    table[34].data = &c->rlimit_nproc;
 #endif
+
 #ifdef RLIMIT_MEMLOCK
 #ifndef RLIMIT_NPROC
 #error "Houston, we have a numbering problem!"
 #endif
-    table[33].data = &c->rlimit_memlock;
+    table[35].data = &c->rlimit_memlock;
 #endif
-#ifdef RLIMIT_NICE
+
+#ifdef RLIMIT_LOCKS
 #ifndef RLIMIT_MEMLOCK
 #error "Houston, we have a numbering problem!"
 #endif
-    table[34].data = &c->rlimit_nice;
+    table[36].data = &c->rlimit_locks;
 #endif
+
+#ifdef RLIMIT_SIGPENDING
+#ifndef RLIMIT_LOCKS
+#error "Houston, we have a numbering problem!"
+#endif
+    table[37].data = &c->rlimit_sigpending;
+#endif
+
+#ifdef RLIMIT_MSGQUEUE
+#ifndef RLIMIT_SIGPENDING
+#error "Houston, we have a numbering problem!"
+#endif
+    table[38].data = &c->rlimit_msgqueue;
+#endif
+
+#ifdef RLIMIT_NICE
+#ifndef RLIMIT_MSGQUEUE
+#error "Houston, we have a numbering problem!"
+#endif
+    table[39].data = &c->rlimit_nice;
+#endif
+
 #ifdef RLIMIT_RTPRIO
 #ifndef RLIMIT_NICE
 #error "Houston, we have a numbering problem!"
 #endif
-    table[35].data = &c->rlimit_rtprio;
+    table[40].data = &c->rlimit_rtprio;
+#endif
+
+#ifdef RLIMIT_RTTIME
+#ifndef RLIMIT_RTTIME
+#error "Houston, we have a numbering problem!"
+#endif
+    table[41].data = &c->rlimit_rttime;
 #endif
 #endif
 
@@ -496,10 +556,10 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
 
     f = filename ?
         fopen(c->config_file = pa_xstrdup(filename), "r") :
-        pa_open_config_file(DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_USER, ENV_CONFIG_FILE, &c->config_file, "r");
+        pa_open_config_file(DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_USER, ENV_CONFIG_FILE, &c->config_file);
 
     if (!f && errno != ENOENT) {
-        pa_log_warn("Failed to open configuration file '%s': %s", c->config_file, pa_cstrerror(errno));
+        pa_log_warn("Failed to open configuration file: %s", pa_cstrerror(errno));
         goto finish;
     }
 
@@ -514,6 +574,7 @@ finish:
 
 int pa_daemon_conf_env(pa_daemon_conf *c) {
     char *e;
+    pa_assert(c);
 
     if ((e = getenv(ENV_DL_SEARCH_PATH))) {
         pa_xfree(c->dl_search_path);
@@ -526,6 +587,35 @@ int pa_daemon_conf_env(pa_daemon_conf *c) {
 
     return 0;
 }
+
+const char *pa_daemon_conf_get_default_script_file(pa_daemon_conf *c) {
+    pa_assert(c);
+
+    if (!c->default_script_file) {
+        if (c->system_instance)
+            c->default_script_file = pa_find_config_file(DEFAULT_SYSTEM_SCRIPT_FILE, NULL, ENV_SCRIPT_FILE);
+        else
+            c->default_script_file = pa_find_config_file(DEFAULT_SCRIPT_FILE, DEFAULT_SCRIPT_FILE_USER, ENV_SCRIPT_FILE);
+    }
+
+    return c->default_script_file;
+}
+
+FILE *pa_daemon_conf_open_default_script_file(pa_daemon_conf *c) {
+    FILE *f;
+    pa_assert(c);
+
+    if (!c->default_script_file) {
+        if (c->system_instance)
+            f = pa_open_config_file(DEFAULT_SYSTEM_SCRIPT_FILE, NULL, ENV_SCRIPT_FILE, &c->default_script_file);
+        else
+            f = pa_open_config_file(DEFAULT_SCRIPT_FILE, DEFAULT_SCRIPT_FILE_USER, ENV_SCRIPT_FILE, &c->default_script_file);
+    } else
+        f = fopen(c->default_script_file, "r");
+
+    return f;
+}
+
 
 static const char* const log_level_to_string[] = {
     [PA_LOG_DEBUG] = "debug",
@@ -561,8 +651,9 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "exit-idle-time = %i\n", c->exit_idle_time);
     pa_strbuf_printf(s, "module-idle-time = %i\n", c->module_idle_time);
     pa_strbuf_printf(s, "scache-idle-time = %i\n", c->scache_idle_time);
-    pa_strbuf_printf(s, "dl-search-path = %s\n", c->dl_search_path ? c->dl_search_path : "");
-    pa_strbuf_printf(s, "default-script-file = %s\n", c->default_script_file);
+    pa_strbuf_printf(s, "dl-search-path = %s\n", pa_strempty(c->dl_search_path));
+    pa_strbuf_printf(s, "default-script-file = %s\n", pa_strempty(pa_daemon_conf_get_default_script_file(c)));
+    pa_strbuf_printf(s, "load-default-script-file = %s\n", pa_yes_no(c->load_default_script_file));
     pa_strbuf_printf(s, "log-target = %s\n", c->auto_log_target ? "auto" : (c->log_target == PA_LOG_SYSLOG ? "syslog" : "stderr"));
     pa_strbuf_printf(s, "log-level = %s\n", log_level_to_string[c->log_level]);
     pa_strbuf_printf(s, "resample-method = %s\n", pa_resample_method_to_string(c->resample_method));
@@ -573,23 +664,36 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "default-fragments = %u\n", c->default_n_fragments);
     pa_strbuf_printf(s, "default-fragment-size-msec = %u\n", c->default_fragment_size_msec);
 #ifdef HAVE_SYS_RESOURCE_H
-    pa_strbuf_printf(s, "rlimit-as = %li\n", c->rlimit_as.is_set ? (long int) c->rlimit_as.value : -1);
-    pa_strbuf_printf(s, "rlimit-core = %li\n", c->rlimit_core.is_set ? (long int) c->rlimit_core.value : -1);
-    pa_strbuf_printf(s, "rlimit-data = %li\n", c->rlimit_data.is_set ? (long int) c->rlimit_data.value : -1);
     pa_strbuf_printf(s, "rlimit-fsize = %li\n", c->rlimit_fsize.is_set ? (long int) c->rlimit_fsize.value : -1);
-    pa_strbuf_printf(s, "rlimit-nofile = %li\n", c->rlimit_nofile.is_set ? (long int) c->rlimit_nofile.value : -1);
+    pa_strbuf_printf(s, "rlimit-data = %li\n", c->rlimit_data.is_set ? (long int) c->rlimit_data.value : -1);
     pa_strbuf_printf(s, "rlimit-stack = %li\n", c->rlimit_stack.is_set ? (long int) c->rlimit_stack.value : -1);
+    pa_strbuf_printf(s, "rlimit-core = %li\n", c->rlimit_core.is_set ? (long int) c->rlimit_core.value : -1);
+    pa_strbuf_printf(s, "rlimit-as = %li\n", c->rlimit_as.is_set ? (long int) c->rlimit_as.value : -1);
+    pa_strbuf_printf(s, "rlimit-rss = %li\n", c->rlimit_rss.is_set ? (long int) c->rlimit_rss.value : -1);
 #ifdef RLIMIT_NPROC
     pa_strbuf_printf(s, "rlimit-nproc = %li\n", c->rlimit_nproc.is_set ? (long int) c->rlimit_nproc.value : -1);
 #endif
+    pa_strbuf_printf(s, "rlimit-nofile = %li\n", c->rlimit_nofile.is_set ? (long int) c->rlimit_nofile.value : -1);
 #ifdef RLIMIT_MEMLOCK
     pa_strbuf_printf(s, "rlimit-memlock = %li\n", c->rlimit_memlock.is_set ? (long int) c->rlimit_memlock.value : -1);
 #endif
+#ifdef RLIMIT_LOCKS
+    pa_strbuf_printf(s, "rlimit-locks = %li\n", c->rlimit_locks.is_set ? (long int) c->rlimit_locks.value : -1);
+#endif
+#ifdef RLIMIT_SIGPENDING
+    pa_strbuf_printf(s, "rlimit-sigpending = %li\n", c->rlimit_sigpending.is_set ? (long int) c->rlimit_sigpending.value : -1);
+#endif
+#ifdef RLIMIT_MSGQUEUE
+    pa_strbuf_printf(s, "rlimit-msgqueue = %li\n", c->rlimit_msgqueue.is_set ? (long int) c->rlimit_msgqueue.value : -1);
+#endif
 #ifdef RLIMIT_NICE
-    pa_strbuf_printf(s, "rlimit-nice = %li\n", c->rlimit_memlock.is_set ? (long int) c->rlimit_nice.value : -1);
+    pa_strbuf_printf(s, "rlimit-nice = %li\n", c->rlimit_nice.is_set ? (long int) c->rlimit_nice.value : -1);
 #endif
 #ifdef RLIMIT_RTPRIO
-    pa_strbuf_printf(s, "rlimit-rtprio = %li\n", c->rlimit_memlock.is_set ? (long int) c->rlimit_rtprio.value : -1);
+    pa_strbuf_printf(s, "rlimit-rtprio = %li\n", c->rlimit_rtprio.is_set ? (long int) c->rlimit_rtprio.value : -1);
+#endif
+#ifdef RLIMIT_RTTIME
+    pa_strbuf_printf(s, "rlimit-rttime = %li\n", c->rlimit_rttime.is_set ? (long int) c->rlimit_rttime.value : -1);
 #endif
 #endif
 

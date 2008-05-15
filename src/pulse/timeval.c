@@ -148,6 +148,24 @@ struct timeval* pa_timeval_add(struct timeval *tv, pa_usec_t v) {
     return tv;
 }
 
+struct timeval* pa_timeval_sub(struct timeval *tv, pa_usec_t v) {
+    unsigned long secs;
+    pa_assert(tv);
+
+    secs = (unsigned long) (v/PA_USEC_PER_SEC);
+    tv->tv_sec -= secs;
+    v -= ((pa_usec_t) secs) * PA_USEC_PER_SEC;
+
+    if (tv->tv_usec >= (suseconds_t) v)
+        tv->tv_usec -= (suseconds_t) v;
+    else {
+        tv->tv_sec --;
+        tv->tv_usec = tv->tv_usec + PA_USEC_PER_SEC - v;
+    }
+
+    return tv;
+}
+
 struct timeval* pa_timeval_store(struct timeval *tv, pa_usec_t v) {
     pa_assert(tv);
 

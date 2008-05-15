@@ -30,10 +30,26 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include <pulsecore/gccmacro.h>
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif
+
+#include <pulse/gccmacro.h>
 #include <pulsecore/macro.h>
 
 struct timeval;
+
+/* These resource limits are pretty new on Linux, let's define them
+ * here manually, in case the kernel is newer than the glibc */
+#if !defined(RLIMIT_NICE) && defined(__linux__)
+#define RLIMIT_NICE 13
+#endif
+#if !defined(RLIMIT_RTPRIO) && defined(__linux__)
+#define RLIMIT_RTPRIO 14
+#endif
+#if !defined(RLIMIT_RTTIME) && defined(__linux__)
+#define RLIMIT_RTTIME 15
+#endif
 
 void pa_make_fd_nonblock(int fd);
 void pa_make_fd_cloexec(int fd);
@@ -61,10 +77,21 @@ int pa_make_realtime(int rtprio);
 int pa_raise_priority(int nice_level);
 void pa_reset_priority(void);
 
+pa_bool_t pa_can_realtime(void);
+pa_bool_t pa_can_high_priority(void);
+
 int pa_parse_boolean(const char *s) PA_GCC_PURE;
 
 static inline const char *pa_yes_no(pa_bool_t b) {
     return b ? "yes" : "no";
+}
+
+static inline const char *pa_strnull(const char *x) {
+    return x ? x : "(null)";
+}
+
+static inline const char *pa_strempty(const char *x) {
+    return x ? x : "";
 }
 
 char *pa_split(const char *c, const char*delimiters, const char **state);
@@ -84,26 +111,30 @@ int pa_lock_fd(int fd, int b);
 int pa_lock_lockfile(const char *fn);
 int pa_unlock_lockfile(const char *fn, int fd);
 
-FILE *pa_open_config_file(const char *global, const char *local, const char *env, char **result, const char *mode);
-
 char *pa_hexstr(const uint8_t* d, size_t dlength, char *s, size_t slength);
 size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength);
 
 int pa_startswith(const char *s, const char *pfx) PA_GCC_PURE;
 int pa_endswith(const char *s, const char *sfx) PA_GCC_PURE;
 
-char *pa_runtime_path(const char *fn, char *s, size_t l);
+FILE *pa_open_config_file(const char *global, const char *local, const char *env, char **result);
+char* pa_find_config_file(const char *global, const char *local, const char *env);
+
+char *pa_get_runtime_dir(void);
+char *pa_runtime_path(const char *fn);
 
 int pa_atoi(const char *s, int32_t *ret_i);
 int pa_atou(const char *s, uint32_t *ret_u);
 int pa_atof(const char *s, float *ret_f);
 
 int pa_snprintf(char *str, size_t size, const char *format, ...);
+int pa_vsnprintf(char *str, size_t size, const char *format, va_list ap);
 
 char *pa_truncate_utf8(char *c, size_t l);
 
 char *pa_getcwd(void);
 char *pa_make_path_absolute(const char *p);
+pa_bool_t pa_is_path_absolute(const char *p);
 
 void *pa_will_need(const void *p, size_t l);
 
@@ -125,8 +156,28 @@ static inline unsigned pa_make_power_of_two(unsigned n) {
     return n + 1;
 }
 
+static inline unsigned pa_ulog2(unsigned n) {
+    unsigned r = 0;
+
+    while (n) {
+        r++;
+        n = n >> 1;
+    }
+
+    return r;
+}
+
 void pa_close_pipe(int fds[2]);
 
 char *pa_readlink(const char *p);
+
+int pa_close_all(int except_fd, ...);
+int pa_close_allv(const int except_fds[]);
+int pa_unblock_sigs(int except, ...);
+int pa_unblock_sigsv(const int except[]);
+int pa_reset_sigs(int except, ...);
+int pa_reset_sigsv(const int except[]);
+
+void pa_set_env(const char *key, const char *value);
 
 #endif

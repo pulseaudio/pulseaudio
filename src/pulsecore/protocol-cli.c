@@ -82,7 +82,7 @@ pa_protocol_cli* pa_protocol_cli_new(pa_core *core, pa_socket_server *server, pa
     p = pa_xnew(pa_protocol_cli, 1);
     p->module = m;
     p->core = core;
-    p->server = server;
+    p->server = pa_socket_server_ref(server);
     p->connections = pa_idxset_new(NULL, NULL);
 
     pa_socket_server_set_callback(p->server, on_connection, p);

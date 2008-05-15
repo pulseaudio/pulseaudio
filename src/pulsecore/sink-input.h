@@ -46,7 +46,7 @@ typedef enum pa_sink_input_state {
     PA_SINK_INPUT_UNLINKED      /*< The stream is dead */
 } pa_sink_input_state_t;
 
-static inline pa_bool_t PA_SINK_INPUT_LINKED(pa_sink_input_state_t x) {
+static inline pa_bool_t PA_SINK_INPUT_IS_LINKED(pa_sink_input_state_t x) {
     return x == PA_SINK_INPUT_DRAINED || x == PA_SINK_INPUT_RUNNING || x == PA_SINK_INPUT_CORKED;
 }
 
@@ -73,7 +73,8 @@ struct pa_sink_input {
     pa_sink_input_state_t state;
     pa_sink_input_flags_t flags;
 
-    char *name, *driver;                /* may be NULL */
+    pa_proplist *proplist;
+    char *driver;                       /* may be NULL */
     pa_module *module;                  /* may be NULL */
     pa_client *client;                  /* may be NULL */
 
@@ -87,17 +88,26 @@ struct pa_sink_input {
     pa_cvolume volume;
     pa_bool_t muted;
 
-    /* Returns the chunk of audio data (but doesn't drop it
-     * yet!). Returns -1 on failure. Called from IO thread context. If
-     * data needs to be generated from scratch then please in the
-     * specified length. This is an optimization only. If less data is
-     * available, it's fine to return a smaller block. If more data is
-     * already ready, it is better to return the full block.*/
-    int (*peek) (pa_sink_input *i, size_t length, pa_memchunk *chunk);
+    pa_resample_method_t resample_method;
 
-    /* Drops the specified number of bytes, usually called right after
-     * peek(), but not necessarily. Called from IO thread context. */
-    void (*drop) (pa_sink_input *i, size_t length);
+    /* Returns the chunk of audio data and drops it from the
+     * queue. Returns -1 on failure. Called from IO thread context. If
+     * data needs to be generated from scratch then please in the
+     * specified length request_nbytes. This is an optimization
+     * only. If less data is available, it's fine to return a smaller
+     * block. If more data is already ready, it is better to return
+     * the full block. */
+    int (*pop) (pa_sink_input *i, size_t request_nbytes, pa_memchunk *chunk); /* may NOT be NULL */
+
+    /* Rewind the queue by the specified number of bytes. Called just
+     * before peek() if it is called at all. Only called if the sink
+     * input driver ever plans to call
+     * pa_sink_input_request_rewind(). Called from IO context. */
+    void (*process_rewind) (pa_sink_input *i, size_t nbytes);     /* may NOT be NULL */
+
+    /* Called whenever the maximum rewindable size of the sink
+     * changes. Called from IO context. */
+    void (*update_max_rewind) (pa_sink_input *i, size_t nbytes); /* may be NULL */
 
     /* If non-NULL this function is called when the input is first
      * connected to a sink or when the rtpoll/asyncmsgq fields
@@ -128,7 +138,9 @@ struct pa_sink_input {
     instead. */
     pa_usec_t (*get_latency) (pa_sink_input *i); /* may be NULL */
 
-    pa_resample_method_t resample_method;
+    /* If non_NULL this function is called from thread context if the
+     * state changes. The old state is found in thread_info.state.  */
+    void (*state_change) (pa_sink_input *i, pa_sink_input_state_t state); /* may be NULL */
 
     struct {
         pa_sink_input_state_t state;
@@ -138,19 +150,22 @@ struct pa_sink_input {
 
         pa_sample_spec sample_spec;
 
-        pa_memchunk resampled_chunk;
         pa_resampler *resampler;                     /* may be NULL */
 
-        /* Some silence to play before the actual data. This is used to
-         * compensate for latency differences when moving a sink input
-         * "hot" between sinks. */
-        size_t move_silence;
-        pa_memblock *silence_memblock;               /* may be NULL */
+        /* We maintain a history of resampled audio data here. */
+        pa_memblockq *render_memblockq;
+
+        size_t rewrite_nbytes;
+        pa_bool_t rewrite_flush;
+        uint64_t underrun_for, playing_for;
 
         pa_sink_input *sync_prev, *sync_next;
 
         pa_cvolume volume;
         pa_bool_t muted;
+
+        /* The requested latency for the sink */
+        pa_usec_t requested_sink_latency;
     } thread_info;
 
     void *userdata;
@@ -165,11 +180,15 @@ enum {
     PA_SINK_INPUT_MESSAGE_GET_LATENCY,
     PA_SINK_INPUT_MESSAGE_SET_RATE,
     PA_SINK_INPUT_MESSAGE_SET_STATE,
+    PA_SINK_INPUT_MESSAGE_SET_REQUESTED_LATENCY,
+    PA_SINK_INPUT_MESSAGE_GET_REQUESTED_LATENCY,
     PA_SINK_INPUT_MESSAGE_MAX
 };
 
 typedef struct pa_sink_input_new_data {
-    const char *name, *driver;
+    pa_proplist *proplist;
+
+    const char *driver;
     pa_module *module;
     pa_client *client;
 
@@ -190,16 +209,17 @@ typedef struct pa_sink_input_new_data {
     pa_sink_input *sync_base;
 } pa_sink_input_new_data;
 
-typedef struct pa_sink_input_move_hook_data {
-    pa_sink_input *sink_input;
-    pa_sink *destination;
-} pa_sink_input_move_hook_data;
-
 pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data);
 void pa_sink_input_new_data_set_sample_spec(pa_sink_input_new_data *data, const pa_sample_spec *spec);
 void pa_sink_input_new_data_set_channel_map(pa_sink_input_new_data *data, const pa_channel_map *map);
 void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cvolume *volume);
 void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mute);
+void pa_sink_input_new_data_done(pa_sink_input_new_data *data);
+
+typedef struct pa_sink_input_move_hook_data {
+    pa_sink_input *sink_input;
+    pa_sink *destination;
+} pa_sink_input_move_hook_data;
 
 /* To be called by the implementing module only */
 
@@ -213,7 +233,22 @@ void pa_sink_input_unlink(pa_sink_input* i);
 
 void pa_sink_input_set_name(pa_sink_input *i, const char *name);
 
-/* Callable by everyone */
+pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec);
+
+/* Request that the specified number of bytes already written out to
+the hw device is rewritten, if possible.  Please note that this is
+only a kind request. The sink driver may not be able to fulfill it
+fully -- or at all. If the request for a rewrite was successful, the
+sink driver will call ->rewind() and pass the number of bytes that
+could be rewound in the HW device. This functionality is required for
+implementing the "zero latency" write-through functionality. */
+void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes, pa_bool_t rewrite, pa_bool_t flush);
+
+void pa_sink_input_cork(pa_sink_input *i, pa_bool_t b);
+
+int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate);
+
+/* Callable by everyone from main thread*/
 
 /* External code may request disconnection with this function */
 void pa_sink_input_kill(pa_sink_input*i);
@@ -225,27 +260,29 @@ const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i);
 void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute);
 int pa_sink_input_get_mute(pa_sink_input *i);
 
-void pa_sink_input_cork(pa_sink_input *i, pa_bool_t b);
-
-int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate);
-
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i);
 
-int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately);
+int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest);
 
 pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i);
 
-/* To be used exclusively by the sink driver thread */
+pa_usec_t pa_sink_input_get_requested_latency(pa_sink_input *i);
+
+/* To be used exclusively by the sink driver IO thread */
 
 int pa_sink_input_peek(pa_sink_input *i, size_t length, pa_memchunk *chunk, pa_cvolume *volume);
 void pa_sink_input_drop(pa_sink_input *i, size_t length);
+void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in the sink's sample spec */);
+void pa_sink_input_update_max_rewind(pa_sink_input *i, size_t nbytes  /* in the sink's sample spec */);
+
+void pa_sink_input_set_state_within_thread(pa_sink_input *i, pa_sink_input_state_t state);
+
 int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
 
-typedef struct pa_sink_input_move_info {
-    pa_sink_input *sink_input;
-    pa_sink_input *ghost_sink_input;
-    pa_memblockq *buffer;
-    size_t buffer_bytes;
-} pa_sink_input_move_info;
+pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa_usec_t usec);
+
+pa_bool_t pa_sink_input_safe_to_remove(pa_sink_input *i);
+
+pa_memchunk* pa_sink_input_get_silence(pa_sink_input *i, pa_memchunk *ret);
 
 #endif

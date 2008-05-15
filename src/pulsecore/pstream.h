@@ -35,6 +35,7 @@
 #include <pulsecore/iochannel.h>
 #include <pulsecore/memchunk.h>
 #include <pulsecore/creds.h>
+#include <pulsecore/macro.h>
 
 typedef struct pa_pstream pa_pstream;
 
@@ -44,8 +45,11 @@ typedef void (*pa_pstream_notify_cb_t)(pa_pstream *p, void *userdata);
 typedef void (*pa_pstream_block_id_cb_t)(pa_pstream *p, uint32_t block_id, void *userdata);
 
 pa_pstream* pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *p);
-void pa_pstream_unref(pa_pstream*p);
+
 pa_pstream* pa_pstream_ref(pa_pstream*p);
+void pa_pstream_unref(pa_pstream*p);
+
+void pa_pstream_unlink(pa_pstream *p);
 
 void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const pa_creds *creds);
 void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk);
@@ -59,10 +63,9 @@ void pa_pstream_set_die_callback(pa_pstream *p, pa_pstream_notify_cb_t cb, void 
 void pa_pstream_set_release_callback(pa_pstream *p, pa_pstream_block_id_cb_t cb, void *userdata);
 void pa_pstream_set_revoke_callback(pa_pstream *p, pa_pstream_block_id_cb_t cb, void *userdata);
 
-int pa_pstream_is_pending(pa_pstream *p);
+pa_bool_t pa_pstream_is_pending(pa_pstream *p);
 
-void pa_pstream_use_shm(pa_pstream *p, int enable);
-
-void pa_pstream_unlink(pa_pstream *p);
+void pa_pstream_enable_shm(pa_pstream *p, pa_bool_t enable);
+pa_bool_t pa_pstream_get_shm(pa_pstream *p);
 
 #endif

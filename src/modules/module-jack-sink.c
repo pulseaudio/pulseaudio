@@ -53,7 +53,7 @@
 
 /* General overview:
  *
- * Because JACK has a very unflexible event loop management, which
+ * Because JACK has a very unflexible event loop management which
  * doesn't allow us to add our own event sources to the event thread
  * we cannot use the JACK real-time thread for dispatching our PA
  * work. Instead, we run an additional RT thread which does most of
@@ -276,7 +276,7 @@ int pa__init(pa_module*m) {
     pa_bool_t do_connect = TRUE;
     unsigned i;
     const char **ports = NULL, **p;
-    char *t;
+    pa_sink_new_data data;
 
     pa_assert(m);
 
@@ -300,9 +300,8 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     u->saved_frame_time_valid = FALSE;
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
-    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
     /* The queue linking the JACK thread and our RT thread */
     u->jack_msgq = pa_asyncmsgq_new(0);
@@ -312,7 +311,7 @@ int pa__init(pa_module*m) {
      * all other drivers make: supplying the audio device with data is
      * the top priority -- and as long as that is possible we don't do
      * anything else */
-    u->rtpoll_item = pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY-1, u->jack_msgq);
+    u->rtpoll_item = pa_rtpoll_item_new_asyncmsgq_read(u->rtpoll, PA_RTPOLL_EARLY-1, u->jack_msgq);
 
     if (!(u->client = jack_client_open(client_name, server_name ? JackServerName : JackNullOption, &status, server_name))) {
         pa_log("jack_client_open() failed.");
@@ -355,20 +354,31 @@ int pa__init(pa_module*m) {
         }
     }
 
-    if (!(u->sink = pa_sink_new(m->core, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
-        pa_log("failed to create sink.");
+    pa_sink_new_data_init(&data);
+    data.driver = __FILE__;
+    data.module = m;
+    pa_sink_new_data_set_name(&data, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME));
+    pa_sink_new_data_set_sample_spec(&data, &ss);
+    pa_sink_new_data_set_channel_map(&data, &map);
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "jack");
+    if (server_name)
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, server_name);
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Jack sink (%s)", jack_get_client_name(u->client));
+    pa_proplist_sets(data.proplist, "jack.client_name", jack_get_client_name(u->client));
+
+    u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY);
+    pa_sink_new_data_done(&data);
+
+    if (!u->sink) {
+        pa_log("Failed to create sink.");
         goto fail;
     }
 
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->userdata = u;
-    u->sink->flags = PA_SINK_LATENCY;
 
-    pa_sink_set_module(u->sink, m);
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
-    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Jack sink (%s)", jack_get_client_name(u->client)));
-    pa_xfree(t);
 
     jack_set_process_callback(u->client, jack_process, u);
     jack_on_shutdown(u->client, jack_shutdown, u);

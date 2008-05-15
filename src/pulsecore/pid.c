@@ -144,16 +144,16 @@ fail:
 int pa_pid_file_create(void) {
     int fd = -1;
     int ret = -1;
-    char fn[PATH_MAX];
     char t[20];
     pid_t pid;
     size_t l;
+    char *fn;
 
 #ifdef OS_IS_WIN32
     HANDLE process;
 #endif
 
-    pa_runtime_path("pid", fn, sizeof(fn));
+    fn = pa_runtime_path("pid");
 
     if ((fd = open_pid_file(fn, O_CREAT|O_RDWR)) < 0)
         goto fail;
@@ -200,17 +200,19 @@ fail:
         }
     }
 
+    pa_xfree(fn);
+
     return ret;
 }
 
 /* Remove the PID file, if it is ours */
 int pa_pid_file_remove(void) {
     int fd = -1;
-    char fn[PATH_MAX];
+    char *fn;
     int ret = -1;
     pid_t pid;
 
-    pa_runtime_path("pid", fn, sizeof(fn));
+    fn = pa_runtime_path("pid");
 
     if ((fd = open_pid_file(fn, O_RDWR)) < 0) {
         pa_log_warn("Failed to open PID file '%s': %s", fn, pa_cstrerror(errno));
@@ -254,6 +256,8 @@ fail:
         }
     }
 
+    pa_xfree(fn);
+
     return ret;
 }
 
@@ -272,7 +276,7 @@ int pa_pid_file_check_running(pid_t *pid, const char *binary_name) {
  * process. */
 int pa_pid_file_kill(int sig, pid_t *pid, const char *binary_name) {
     int fd = -1;
-    char fn[PATH_MAX];
+    char *fn;
     int ret = -1;
     pid_t _pid;
 #ifdef __linux__
@@ -281,7 +285,7 @@ int pa_pid_file_kill(int sig, pid_t *pid, const char *binary_name) {
     if (!pid)
         pid = &_pid;
 
-    pa_runtime_path("pid", fn, sizeof(fn));
+    fn = pa_runtime_path("pid");
 
     if ((fd = open_pid_file(fn, O_RDONLY)) < 0)
         goto fail;
@@ -296,7 +300,7 @@ int pa_pid_file_kill(int sig, pid_t *pid, const char *binary_name) {
         if ((e = pa_readlink(fn))) {
             char *f = pa_path_get_filename(e);
             if (strcmp(f, binary_name)
-#if defined(__OPTIMIZE__)
+#if !defined(__OPTIMIZE__)
                 /* libtool likes to rename our binary names ... */
                 && !(pa_startswith(f, "lt-") && strcmp(f+3, binary_name) == 0)
 #endif
@@ -318,6 +322,8 @@ fail:
 #ifdef __linux__
     pa_xfree(e);
 #endif
+
+    pa_xfree(fn);
 
     return ret;
 

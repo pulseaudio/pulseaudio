@@ -44,6 +44,8 @@
 #error Invalid PulseAudio API version
 #endif
 
+#define CLEAR_LINE "\x1B[K"
+
 static enum { RECORD, PLAYBACK } mode = PLAYBACK;
 
 static pa_context *context = NULL;
@@ -70,6 +72,8 @@ static pa_channel_map channel_map;
 static int channel_map_set = 0;
 
 static pa_stream_flags_t flags = 0;
+
+static size_t latency = 0, process_time=0;
 
 /* A shortcut for terminating the application */
 static void quit(int ret) {
@@ -204,17 +208,38 @@ static void stream_suspended_callback(pa_stream *s, void *userdata) {
 
     if (verbose) {
         if (pa_stream_is_suspended(s))
-            fprintf(stderr, "Stream device suspended.\n");
+            fprintf(stderr, "Stream device suspended." CLEAR_LINE " \n");
         else
-            fprintf(stderr, "Stream device resumed.\n");
+            fprintf(stderr, "Stream device resumed." CLEAR_LINE " \n");
     }
+}
+
+static void stream_underflow_callback(pa_stream *s, void *userdata) {
+    assert(s);
+
+    if (verbose)
+        fprintf(stderr, "Stream underrun." CLEAR_LINE " \n");
+}
+
+static void stream_overflow_callback(pa_stream *s, void *userdata) {
+    assert(s);
+
+    if (verbose)
+        fprintf(stderr, "Stream overrun." CLEAR_LINE " \n");
+}
+
+static void stream_started_callback(pa_stream *s, void *userdata) {
+    assert(s);
+
+    if (verbose)
+        fprintf(stderr, "Stream started." CLEAR_LINE " \n");
 }
 
 static void stream_moved_callback(pa_stream *s, void *userdata) {
     assert(s);
 
     if (verbose)
-        fprintf(stderr, "Stream moved to device %s (%u, %ssuspended).\n", pa_stream_get_device_name(s), pa_stream_get_device_index(s), pa_stream_is_suspended(s) ? "" : "not ");
+        fprintf(stderr, "Stream moved to device %s (%u, %ssuspended)." CLEAR_LINE " \n", pa_stream_get_device_name(s), pa_stream_get_device_index(s), pa_stream_is_suspended(s) ? "" : "not ");
 }
 
 /* This is called whenever the context status changes */
@@ -229,12 +254,13 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
         case PA_CONTEXT_READY: {
             int r;
+            pa_buffer_attr buffer_attr;
 
             assert(c);
             assert(!stream);
 
             if (verbose)
-                fprintf(stderr, "Connection established.\n");
+                fprintf(stderr, "Connection established." CLEAR_LINE " \n");
 
             if (!(stream = pa_stream_new(c, stream_name, &sample_spec, channel_map_set ? &channel_map : NULL))) {
                 fprintf(stderr, "pa_stream_new() failed: %s\n", pa_strerror(pa_context_errno(c)));
@@ -246,16 +272,26 @@ static void context_state_callback(pa_context *c, void *userdata) {
             pa_stream_set_read_callback(stream, stream_read_callback, NULL);
             pa_stream_set_suspended_callback(stream, stream_suspended_callback, NULL);
             pa_stream_set_moved_callback(stream, stream_moved_callback, NULL);
+            pa_stream_set_underflow_callback(stream, stream_underflow_callback, NULL);
+            pa_stream_set_overflow_callback(stream, stream_overflow_callback, NULL);
+            pa_stream_set_started_callback(stream, stream_started_callback, NULL);
+
+            if (latency > 0) {
+                memset(&buffer_attr, 0, sizeof(buffer_attr));
+                buffer_attr.tlength = latency;
+                buffer_attr.minreq = process_time;
+                flags |= PA_STREAM_ADJUST_LATENCY;
+            }
 
             if (mode == PLAYBACK) {
                 pa_cvolume cv;
-                if ((r = pa_stream_connect_playback(stream, device, NULL, flags, pa_cvolume_set(&cv, sample_spec.channels, volume), NULL)) < 0) {
+                if ((r = pa_stream_connect_playback(stream, device, latency > 0 ? &buffer_attr : NULL, flags, pa_cvolume_set(&cv, sample_spec.channels, volume), NULL)) < 0) {
                     fprintf(stderr, "pa_stream_connect_playback() failed: %s\n", pa_strerror(pa_context_errno(c)));
                     goto fail;
                 }
 
             } else {
-                if ((r = pa_stream_connect_record(stream, device, NULL, flags)) < 0) {
+                if ((r = pa_stream_connect_record(stream, device, latency > 0 ? &buffer_attr : NULL, flags)) < 0) {
                     fprintf(stderr, "pa_stream_connect_record() failed: %s\n", pa_strerror(pa_context_errno(c)));
                     goto fail;
                 }
@@ -407,14 +443,14 @@ static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig,
 
 /* Show the current latency */
 static void stream_update_timing_callback(pa_stream *s, int success, void *userdata) {
-    pa_usec_t latency, usec;
+    pa_usec_t l, usec;
     int negative = 0;
 
     assert(s);
 
     if (!success ||
         pa_stream_get_time(s, &usec) < 0 ||
-        pa_stream_get_latency(s, &latency, &negative) < 0) {
+        pa_stream_get_latency(s, &l, &negative) < 0) {
         fprintf(stderr, "Failed to get latency: %s\n", pa_strerror(pa_context_errno(context)));
         quit(1);
         return;
@@ -422,7 +458,7 @@ static void stream_update_timing_callback(pa_stream *s, int success, void *userd
 
     fprintf(stderr, "Time: %0.3f sec; Latency: %0.0f usec.  \r",
             (float) usec / 1000000,
-            (float) latency * (negative?-1:1));
+            (float) l * (negative?-1:1));
 }
 
 /* Someone requested that the latency is shown */
@@ -478,6 +514,8 @@ static void help(const char *argv0) {
            "                                        from the sink the stream is being connected to.\n"
            "      --no-remix                        Don't upmix or downmix channels.\n"
            "      --no-remap                        Map channels by index instead of name.\n"
+           "      --latency=BYTES                   Request the specified latency in bytes.\n"
+           "      --process-time=BYTES              Request the specified process time per request in bytes.\n"
            ,
            argv0);
 }
@@ -494,7 +532,9 @@ enum {
     ARG_FIX_RATE,
     ARG_FIX_CHANNELS,
     ARG_NO_REMAP,
-    ARG_NO_REMIX
+    ARG_NO_REMIX,
+    ARG_LATENCY,
+    ARG_PROCESS_TIME
 };
 
 int main(int argc, char *argv[]) {
@@ -504,26 +544,28 @@ int main(int argc, char *argv[]) {
     pa_time_event *time_event = NULL;
 
     static const struct option long_options[] = {
-        {"record",      0, NULL, 'r'},
-        {"playback",    0, NULL, 'p'},
-        {"device",      1, NULL, 'd'},
-        {"server",      1, NULL, 's'},
-        {"client-name", 1, NULL, 'n'},
-        {"stream-name", 1, NULL, ARG_STREAM_NAME},
-        {"version",     0, NULL, ARG_VERSION},
-        {"help",        0, NULL, 'h'},
-        {"verbose",     0, NULL, 'v'},
-        {"volume",      1, NULL, ARG_VOLUME},
-        {"rate",        1, NULL, ARG_SAMPLERATE},
-        {"format",      1, NULL, ARG_SAMPLEFORMAT},
-        {"channels",    1, NULL, ARG_CHANNELS},
-        {"channel-map", 1, NULL, ARG_CHANNELMAP},
-        {"fix-format",  0, NULL, ARG_FIX_FORMAT},
-        {"fix-rate",    0, NULL, ARG_FIX_RATE},
-        {"fix-channels",0, NULL, ARG_FIX_CHANNELS},
-        {"no-remap",    0, NULL, ARG_NO_REMAP},
-        {"no-remix",    0, NULL, ARG_NO_REMIX},
-        {NULL,          0, NULL, 0}
+        {"record",       0, NULL, 'r'},
+        {"playback",     0, NULL, 'p'},
+        {"device",       1, NULL, 'd'},
+        {"server",       1, NULL, 's'},
+        {"client-name",  1, NULL, 'n'},
+        {"stream-name",  1, NULL, ARG_STREAM_NAME},
+        {"version",      0, NULL, ARG_VERSION},
+        {"help",         0, NULL, 'h'},
+        {"verbose",      0, NULL, 'v'},
+        {"volume",       1, NULL, ARG_VOLUME},
+        {"rate",         1, NULL, ARG_SAMPLERATE},
+        {"format",       1, NULL, ARG_SAMPLEFORMAT},
+        {"channels",     1, NULL, ARG_CHANNELS},
+        {"channel-map",  1, NULL, ARG_CHANNELMAP},
+        {"fix-format",   0, NULL, ARG_FIX_FORMAT},
+        {"fix-rate",     0, NULL, ARG_FIX_RATE},
+        {"fix-channels", 0, NULL, ARG_FIX_CHANNELS},
+        {"no-remap",     0, NULL, ARG_NO_REMAP},
+        {"no-remix",     0, NULL, ARG_NO_REMIX},
+        {"latency",      1, NULL, ARG_LATENCY},
+        {"process-time", 1, NULL, ARG_PROCESS_TIME},
+        {NULL,           0, NULL, 0}
     };
 
     if (!(bn = strrchr(argv[0], '/')))
@@ -601,7 +643,7 @@ int main(int argc, char *argv[]) {
 
             case ARG_CHANNELMAP:
                 if (!pa_channel_map_parse(&channel_map, optarg)) {
-                    fprintf(stderr, "Invalid channel map\n");
+                    fprintf(stderr, "Invalid channel map '%s'\n", optarg);
                     goto quit;
                 }
 
@@ -626,6 +668,20 @@ int main(int argc, char *argv[]) {
 
             case ARG_NO_REMAP:
                 flags |= PA_STREAM_NO_REMAP_CHANNELS;
+                break;
+
+            case ARG_LATENCY:
+                if (((latency = atoi(optarg))) <= 0) {
+                    fprintf(stderr, "Invalid latency specification '%s'\n", optarg);
+                    goto quit;
+                }
+                break;
+
+            case ARG_PROCESS_TIME:
+                if (((process_time = atoi(optarg))) <= 0) {
+                    fprintf(stderr, "Invalid process time specification '%s'\n", optarg);
+                    goto quit;
+                }
                 break;
 
             default:

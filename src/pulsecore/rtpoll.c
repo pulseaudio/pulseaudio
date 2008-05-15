@@ -63,7 +63,6 @@ struct pa_rtpoll {
 
     pa_bool_t timer_enabled;
     struct timeval next_elapse;
-    pa_usec_t period;
 
     pa_bool_t scan_for_dead;
     pa_bool_t running, installed, rebuild_needed, quit;
@@ -72,6 +71,7 @@ struct pa_rtpoll {
     int rtsig;
     sigset_t sigset_unblocked;
     timer_t timer;
+    pa_bool_t timer_armed;
 #ifdef __linux__
     pa_bool_t dont_use_ppoll;
 #endif
@@ -99,7 +99,7 @@ struct pa_rtpoll_item {
 
 PA_STATIC_FLIST_DECLARE(items, 0, pa_xfree);
 
-static void signal_handler_noop(int s) { }
+static void signal_handler_noop(int s) { /* write(2, "signal\n", 7); */ }
 
 pa_rtpoll *pa_rtpoll_new(void) {
     pa_rtpoll *p;
@@ -131,6 +131,7 @@ pa_rtpoll *pa_rtpoll_new(void) {
     p->rtsig = -1;
     sigemptyset(&p->sigset_unblocked);
     p->timer = (timer_t) -1;
+    p->timer_armed = FALSE;
 
 #endif
 
@@ -139,7 +140,6 @@ pa_rtpoll *pa_rtpoll_new(void) {
     p->pollfd2 = pa_xnew(struct pollfd, p->n_pollfd_alloc);
     p->n_pollfd_used = 0;
 
-    p->period = 0;
     memset(&p->next_elapse, 0, sizeof(p->next_elapse));
     p->timer_enabled = FALSE;
 
@@ -368,15 +368,13 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
     if (p->rebuild_needed)
         rtpoll_rebuild(p);
 
+    memset(&timeout, 0, sizeof(timeout));
+
     /* Calculate timeout */
-    if (!wait || p->quit) {
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 0;
-    } else if (p->timer_enabled) {
+    if (wait && !p->quit && p->timer_enabled) {
         struct timeval now;
         pa_rtclock_get(&now);
 
-        memset(&timeout, 0, sizeof(timeout));
         if (pa_timeval_cmp(&p->next_elapse, &now) > 0)
             pa_timeval_add(&timeout, pa_timeval_diff(&p->next_elapse, &now));
     }
@@ -391,14 +389,14 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
         struct timespec ts;
         ts.tv_sec = timeout.tv_sec;
         ts.tv_nsec = timeout.tv_usec * 1000;
-        r = ppoll(p->pollfd, p->n_pollfd_used, p->timer_enabled ? &ts : NULL, p->rtsig < 0 ? NULL : &p->sigset_unblocked);
+        r = ppoll(p->pollfd, p->n_pollfd_used, (!wait || p->quit || p->timer_enabled) ? &ts : NULL, p->rtsig < 0 ? NULL : &p->sigset_unblocked);
     }
 #ifdef __linux__
     else
 #endif
 
 #endif
-        r = poll(p->pollfd, p->n_pollfd_used, p->timer_enabled ? (timeout.tv_sec*1000) + (timeout.tv_usec / 1000) : -1);
+        r = poll(p->pollfd, p->n_pollfd_used, (!wait || p->quit || p->timer_enabled) ? (timeout.tv_sec*1000) + (timeout.tv_usec / 1000) : -1);
 
     if (r < 0) {
         if (errno == EAGAIN || errno == EINTR)
@@ -407,21 +405,6 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
             pa_log_error("poll(): %s", pa_cstrerror(errno));
 
         reset_all_revents(p);
-    }
-
-    if (p->timer_enabled) {
-        if (p->period > 0) {
-            struct timeval now;
-            pa_rtclock_get(&now);
-
-            pa_timeval_add(&p->next_elapse, p->period);
-
-            /* Guarantee that the next timeout will happen in the future */
-            if (pa_timeval_cmp(&p->next_elapse, &now) < 0)
-                pa_timeval_add(&p->next_elapse, (pa_timeval_diff(&now, &p->next_elapse) / p->period + 1) * p->period);
-
-        } else
-            p->timer_enabled = FALSE;
     }
 
     /* Let's tell everyone that we left the sleep */
@@ -481,26 +464,35 @@ static void update_timer(pa_rtpoll *p) {
 
         if (p->timer != (timer_t) -1) {
             struct itimerspec its;
-            memset(&its, 0, sizeof(its));
+            struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
+            sigset_t ss;
 
+            if (p->timer_armed) {
+                /* First disarm timer */
+                memset(&its, 0, sizeof(its));
+                pa_assert_se(timer_settime(p->timer, TIMER_ABSTIME, &its, NULL) == 0);
+
+                /* Remove a signal that might be waiting in the signal q */
+                pa_assert_se(sigemptyset(&ss) == 0);
+                pa_assert_se(sigaddset(&ss, p->rtsig) == 0);
+                sigtimedwait(&ss, NULL, &ts);
+            }
+
+            /* And install the new timer */
             if (p->timer_enabled) {
+                memset(&its, 0, sizeof(its));
+
                 its.it_value.tv_sec = p->next_elapse.tv_sec;
                 its.it_value.tv_nsec = p->next_elapse.tv_usec*1000;
 
                 /* Make sure that 0,0 is not understood as
                  * "disarming" */
-                if (its.it_value.tv_sec == 0)
+                if (its.it_value.tv_sec == 0 && its.it_value.tv_nsec == 0)
                     its.it_value.tv_nsec = 1;
-
-                if (p->period > 0) {
-                    struct timeval tv;
-                    pa_timeval_store(&tv, p->period);
-                    its.it_interval.tv_sec = tv.tv_sec;
-                    its.it_interval.tv_nsec = tv.tv_usec*1000;
-                }
+                pa_assert_se(timer_settime(p->timer, TIMER_ABSTIME, &its, NULL) == 0);
             }
 
-            pa_assert_se(timer_settime(p->timer, TIMER_ABSTIME, &its, NULL) == 0);
+            p->timer_armed = p->timer_enabled;
         }
 
 #ifdef __linux__
@@ -510,23 +502,10 @@ static void update_timer(pa_rtpoll *p) {
 #endif
 }
 
-void pa_rtpoll_set_timer_absolute(pa_rtpoll *p, const struct timeval *ts) {
-    pa_assert(p);
-    pa_assert(ts);
-
-    p->next_elapse = *ts;
-    p->period = 0;
-    p->timer_enabled = TRUE;
-
-    update_timer(p);
-}
-
-void pa_rtpoll_set_timer_periodic(pa_rtpoll *p, pa_usec_t usec) {
+void pa_rtpoll_set_timer_absolute(pa_rtpoll *p, pa_usec_t usec) {
     pa_assert(p);
 
-    p->period = usec;
-    pa_rtclock_get(&p->next_elapse);
-    pa_timeval_add(&p->next_elapse, usec);
+    pa_timeval_store(&p->next_elapse, usec);
     p->timer_enabled = TRUE;
 
     update_timer(p);
@@ -535,7 +514,6 @@ void pa_rtpoll_set_timer_periodic(pa_rtpoll *p, pa_usec_t usec) {
 void pa_rtpoll_set_timer_relative(pa_rtpoll *p, pa_usec_t usec) {
     pa_assert(p);
 
-    p->period = 0;
     pa_rtclock_get(&p->next_elapse);
     pa_timeval_add(&p->next_elapse, usec);
     p->timer_enabled = TRUE;
@@ -546,7 +524,6 @@ void pa_rtpoll_set_timer_relative(pa_rtpoll *p, pa_usec_t usec) {
 void pa_rtpoll_set_timer_disabled(pa_rtpoll *p) {
     pa_assert(p);
 
-    p->period = 0;
     memset(&p->next_elapse, 0, sizeof(p->next_elapse));
     p->timer_enabled = FALSE;
 
@@ -683,23 +660,23 @@ pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_rtpoll_priority_t prio
     return i;
 }
 
-static int asyncmsgq_before(pa_rtpoll_item *i) {
+static int asyncmsgq_read_before(pa_rtpoll_item *i) {
     pa_assert(i);
 
-    if (pa_asyncmsgq_before_poll(i->userdata) < 0)
+    if (pa_asyncmsgq_read_before_poll(i->userdata) < 0)
         return 1; /* 1 means immediate restart of the loop */
 
     return 0;
 }
 
-static void asyncmsgq_after(pa_rtpoll_item *i) {
+static void asyncmsgq_read_after(pa_rtpoll_item *i) {
     pa_assert(i);
 
     pa_assert((i->pollfd[0].revents & ~POLLIN) == 0);
-    pa_asyncmsgq_after_poll(i->userdata);
+    pa_asyncmsgq_read_after_poll(i->userdata);
 }
 
-static int asyncmsgq_work(pa_rtpoll_item *i) {
+static int asyncmsgq_read_work(pa_rtpoll_item *i) {
     pa_msgobject *object;
     int code;
     void *data;
@@ -725,7 +702,7 @@ static int asyncmsgq_work(pa_rtpoll_item *i) {
     return 0;
 }
 
-pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_asyncmsgq *q) {
+pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq_read(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_asyncmsgq *q) {
     pa_rtpoll_item *i;
     struct pollfd *pollfd;
 
@@ -735,12 +712,47 @@ pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq(pa_rtpoll *p, pa_rtpoll_priority_t 
     i = pa_rtpoll_item_new(p, prio, 1);
 
     pollfd = pa_rtpoll_item_get_pollfd(i, NULL);
-    pollfd->fd = pa_asyncmsgq_get_fd(q);
+    pollfd->fd = pa_asyncmsgq_read_fd(q);
     pollfd->events = POLLIN;
 
-    i->before_cb = asyncmsgq_before;
-    i->after_cb = asyncmsgq_after;
-    i->work_cb = asyncmsgq_work;
+    i->before_cb = asyncmsgq_read_before;
+    i->after_cb = asyncmsgq_read_after;
+    i->work_cb = asyncmsgq_read_work;
+    i->userdata = q;
+
+    return i;
+}
+
+static int asyncmsgq_write_before(pa_rtpoll_item *i) {
+    pa_assert(i);
+
+    pa_asyncmsgq_write_before_poll(i->userdata);
+    return 0;
+}
+
+static void asyncmsgq_write_after(pa_rtpoll_item *i) {
+    pa_assert(i);
+
+    pa_assert((i->pollfd[0].revents & ~POLLIN) == 0);
+    pa_asyncmsgq_write_after_poll(i->userdata);
+}
+
+pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq_write(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_asyncmsgq *q) {
+    pa_rtpoll_item *i;
+    struct pollfd *pollfd;
+
+    pa_assert(p);
+    pa_assert(q);
+
+    i = pa_rtpoll_item_new(p, prio, 1);
+
+    pollfd = pa_rtpoll_item_get_pollfd(i, NULL);
+    pollfd->fd = pa_asyncmsgq_write_fd(q);
+    pollfd->events = POLLIN;
+
+    i->before_cb = asyncmsgq_write_before;
+    i->after_cb = asyncmsgq_write_after;
+    i->work_cb = NULL;
     i->userdata = q;
 
     return i;
