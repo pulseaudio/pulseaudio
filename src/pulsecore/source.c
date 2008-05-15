@@ -577,8 +577,6 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
             pa_hashmap_put(s->thread_info.outputs, PA_UINT32_TO_PTR(o->index), pa_source_output_ref(o));
 
-            pa_source_output_update_max_rewind(o, s->thread_info.max_rewind);
-
             pa_assert(!o->thread_info.attached);
             o->thread_info.attached = TRUE;
 
@@ -587,7 +585,12 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
             pa_source_output_set_state_within_thread(o, o->state);
 
-            pa_source_invalidate_requested_latency(s);
+            pa_source_output_update_max_rewind(o, s->thread_info.max_rewind);
+
+            /* We don't just invalidate the requested latency here,
+             * because if we are in a move we might need to fix up the
+             * requested latency. */
+            pa_source_output_set_requested_latency_within_thread(o, o->thread_info.requested_source_latency);
 
             return 0;
         }
