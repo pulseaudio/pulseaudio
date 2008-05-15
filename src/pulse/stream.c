@@ -370,7 +370,7 @@ void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED u
 
     if (c->version >= 13) {
 
-        if (s->direction == PA_STREAM_RECORD) {
+        if (command == PA_COMMAND_RECORD_STREAM_MOVED) {
             if (pa_tagstruct_getu32(t, &maxlength) < 0 ||
                 pa_tagstruct_getu32(t, &fragsize) < 0 ||
                 pa_tagstruct_get_usec(t, &usec) < 0) {
