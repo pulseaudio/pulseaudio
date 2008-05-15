@@ -155,6 +155,17 @@ static inline unsigned pa_make_power_of_two(unsigned n) {
     return n + 1;
 }
 
+static inline unsigned pa_ulog2(unsigned n) {
+    unsigned r = 0;
+
+    while (n) {
+        r++;
+        n = n >> 1;
+    }
+
+    return r;
+}
+
 void pa_close_pipe(int fds[2]);
 
 char *pa_readlink(const char *p);
