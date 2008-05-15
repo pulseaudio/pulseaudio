@@ -3,7 +3,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
+  Copyright 2004-2008 Lennart Poettering
   Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
@@ -92,10 +92,10 @@ static const char* const valid_modargs[] = {
 };
 
 #define DEFAULT_DEVICE "default"
-#define DEFAULT_TSCHED_BUFFER_USEC (5*PA_USEC_PER_SEC)           /* 5s */
+#define DEFAULT_TSCHED_BUFFER_USEC (2*PA_USEC_PER_SEC)            /* 2s */
 #define DEFAULT_TSCHED_WATERMARK_USEC (20*PA_USEC_PER_MSEC)       /* 20ms */
-#define TSCHED_MIN_SLEEP_USEC (3*PA_USEC_PER_MSEC)        /* 3ms */
-#define TSCHED_MIN_WAKEUP_USEC (3*PA_USEC_PER_MSEC)        /* 3ms */
+#define TSCHED_MIN_SLEEP_USEC (3*PA_USEC_PER_MSEC)                /* 3ms */
+#define TSCHED_MIN_WAKEUP_USEC (3*PA_USEC_PER_MSEC)               /* 3ms */
 
 struct userdata {
     pa_core *core;
