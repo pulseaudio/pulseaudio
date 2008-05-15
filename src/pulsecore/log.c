@@ -109,8 +109,12 @@ void pa_log_levelv_meta(
         va_list ap) {
 
     const char *e;
-    char *text, *t, *n, *location;
+    char *t, *n;
     int saved_errno = errno;
+
+    /* We don't use dynamic memory allocation here to minimize the hit
+     * in RT threads */
+    char text[1024], location[128];
 
     pa_assert(level < PA_LOG_LEVEL_MAX);
     pa_assert(format);
@@ -123,14 +127,14 @@ void pa_log_levelv_meta(
         return;
     }
 
-    text = pa_vsprintf_malloc(format, ap);
+    pa_vsnprintf(text, sizeof(text), format, ap);
 
     if (getenv(ENV_LOGMETA) && file && line > 0 && func)
-        location = pa_sprintf_malloc("[%s:%i %s()] ", file, line, func);
+        pa_snprintf(location, sizeof(location), "[%s:%i %s()] ", file, line, func);
     else if (file)
-        location = pa_sprintf_malloc("%s: ", pa_path_get_filename(file));
+        pa_snprintf(location, sizeof(location), "%s: ", pa_path_get_filename(file));
     else
-        location = pa_xstrdup("");
+        location[0] = 0;
 
     if (!pa_utf8_valid(text))
         pa_log_level(level, __FILE__": invalid UTF-8 string following below:");
@@ -162,6 +166,8 @@ void pa_log_levelv_meta(
                 }
 #endif
 
+                /* We shouldn't be using dynamic allocation here to
+                 * minimize the hit in RT threads */
                 local_t = pa_utf8_to_locale(t);
                 if (!local_t)
                     fprintf(stderr, "%c: %s%s%s%s\n", level_to_char[level], location, prefix, t, suffix);
@@ -193,11 +199,10 @@ void pa_log_levelv_meta(
 #endif
 
             case PA_LOG_USER: {
-                char *x;
+                char x[1024];
 
-                x = pa_sprintf_malloc("%s%s", location, t);
+                pa_snprintf(x, sizeof(x), "%s%s", location, t);
                 user_log_func(level, x);
-                pa_xfree(x);
 
                 break;
             }
@@ -207,9 +212,6 @@ void pa_log_levelv_meta(
                 break;
         }
     }
-
-    pa_xfree(text);
-    pa_xfree(location);
 
     errno = saved_errno;
 }
