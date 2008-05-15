@@ -635,12 +635,24 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
         if (o->thread_info.resampler)
             pa_resampler_free(o->thread_info.resampler);
         o->thread_info.resampler = new_resampler;
-    }
 
-    pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, o, 0, NULL);
+        pa_memblockq_free(o->thread_info.delay_memblockq);
+
+        o->thread_info.delay_memblockq = pa_memblockq_new(
+                0,
+                MEMBLOCKQ_MAXLENGTH,
+                0,
+                pa_frame_size(&o->source->sample_spec),
+                0,
+                1,
+                0,
+                &o->source->silence);
+    }
 
     pa_source_update_status(origin);
     pa_source_update_status(dest);
+
+    pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, o, 0, NULL);
 
     if (o->moved)
         o->moved(o);
