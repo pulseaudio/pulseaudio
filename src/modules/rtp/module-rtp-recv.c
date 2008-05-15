@@ -51,6 +51,7 @@
 #include <pulsecore/atomic.h>
 #include <pulsecore/rtclock.h>
 #include <pulsecore/atomic.h>
+#include <pulsecore/time-smoother.h>
 
 #include "module-rtp-recv-symdef.h"
 
@@ -69,9 +70,11 @@ PA_MODULE_USAGE(
 
 #define SAP_PORT 9875
 #define DEFAULT_SAP_ADDRESS "224.0.0.56"
-#define MEMBLOCKQ_MAXLENGTH (1024*170)
+#define MEMBLOCKQ_MAXLENGTH (1024*1024*40)
 #define MAX_SESSIONS 16
 #define DEATH_TIMEOUT 20
+#define RATE_UPDATE_INTERVAL (5*PA_USEC_PER_SEC)
+#define LATENCY_USEC (500*PA_USEC_PER_MSEC)
 
 static const char* const valid_modargs[] = {
     "sink",
@@ -97,6 +100,12 @@ struct session {
     pa_rtpoll_item *rtpoll_item;
 
     pa_atomic_t timestamp;
+
+    pa_smoother *smoother;
+    pa_usec_t intended_latency;
+    pa_usec_t sink_latency;
+
+    pa_usec_t last_rate_update;
 };
 
 struct userdata {
@@ -133,7 +142,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *data, int64_t
 }
 
 /* Called from I/O thread context */
-static int sink_input_pop(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
+static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
     struct session *s;
     pa_sink_input_assert_ref(i);
     pa_assert_se(s = i->userdata);
@@ -144,6 +153,26 @@ static int sink_input_pop(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
     pa_memblockq_drop(s->memblockq, chunk->length);
 
     return 0;
+}
+
+/* Called from I/O thread context */
+static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
+    struct session *s;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(s = i->userdata);
+
+    pa_memblockq_rewind(s->memblockq, nbytes);
+}
+
+/* Called from thread context */
+static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
+    struct session *s;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(s = i->userdata);
+
+    pa_memblockq_set_maxrewind(s->memblockq, nbytes);
 }
 
 /* Called from main context */
@@ -211,19 +240,81 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
 
     pa_memblockq_seek(s->memblockq, delta * s->rtp_context.frame_size, PA_SEEK_RELATIVE);
 
+    pa_rtclock_get(&now);
+
+    pa_smoother_put(s->smoother, pa_timeval_load(&now), pa_bytes_to_usec(pa_memblockq_get_write_index(s->memblockq), &s->sink_input->sample_spec));
+
     if (pa_memblockq_push(s->memblockq, &chunk) < 0) {
-        /* queue overflow, let's flush it and try again */
-        pa_memblockq_flush(s->memblockq);
-        pa_memblockq_push(s->memblockq, &chunk);
+        pa_log_warn("Queue overrun");
+        pa_memblockq_seek(s->memblockq, chunk.length, PA_SEEK_RELATIVE);
     }
+
+    pa_log("blocks in q: %u", pa_memblockq_get_nblocks(s->memblockq));
+
+    pa_memblock_unref(chunk.memblock);
 
     /* The next timestamp we expect */
     s->offset = s->rtp_context.timestamp + (chunk.length / s->rtp_context.frame_size);
 
-    pa_memblock_unref(chunk.memblock);
-
-    pa_rtclock_get(&now);
     pa_atomic_store(&s->timestamp, now.tv_sec);
+
+    if (s->last_rate_update + RATE_UPDATE_INTERVAL < pa_timeval_load(&now)) {
+        pa_usec_t wi, ri, render_delay, sink_delay = 0, latency, fix;
+        unsigned fix_samples;
+
+        pa_log("Updating sample rate");
+
+        wi = pa_smoother_get(s->smoother, pa_timeval_load(&now));
+        ri = pa_bytes_to_usec(pa_memblockq_get_read_index(s->memblockq), &s->sink_input->sample_spec);
+
+        if (PA_MSGOBJECT(s->sink_input->sink)->process_msg(PA_MSGOBJECT(s->sink_input->sink), PA_SINK_MESSAGE_GET_LATENCY, &sink_delay, 0, NULL) < 0)
+            sink_delay = 0;
+
+        render_delay = pa_bytes_to_usec(pa_memblockq_get_length(s->sink_input->thread_info.render_memblockq), &s->sink_input->sink->sample_spec);
+
+        if (ri > render_delay+sink_delay)
+            ri -= render_delay+sink_delay;
+        else
+            ri = 0;
+
+        if (wi < ri)
+            latency = 0;
+        else
+            latency = wi - ri;
+
+        pa_log_debug("Write index deviates by %0.2f ms, expected %0.2f ms", (double) latency/PA_USEC_PER_MSEC, (double)  s->intended_latency/PA_USEC_PER_MSEC);
+
+        /* Calculate deviation */
+        if (latency < s->intended_latency)
+            fix = s->intended_latency - latency;
+        else
+            fix = latency - s->intended_latency;
+
+        /* How many samples is this per second? */
+        fix_samples = fix * s->sink_input->thread_info.sample_spec.rate / RATE_UPDATE_INTERVAL;
+
+        /* Check if deviation is in bounds */
+        if (fix_samples > s->sink_input->sample_spec.rate*.20)
+            pa_log_debug("Hmmm, rate fix is too large (%lu Hz), not applying.", (unsigned long) fix_samples);
+
+        /* Fix up rate */
+        if (latency < s->intended_latency)
+            s->sink_input->sample_spec.rate -= fix_samples;
+        else
+            s->sink_input->sample_spec.rate += fix_samples;
+
+        pa_resampler_set_input_rate(s->sink_input->thread_info.resampler, s->sink_input->sample_spec.rate);
+
+        pa_log_debug("Updated sampling rate to %lu Hz.", (unsigned long) s->sink_input->sample_spec.rate);
+
+        s->last_rate_update = pa_timeval_load(&now);
+    }
+
+    if (pa_memblockq_is_readable(s->memblockq) &&
+        s->sink_input->thread_info.underrun_for > 0) {
+        pa_log_debug("Requesting rewind due to end of underrun");
+        pa_sink_input_request_rewind(s->sink_input, 0, FALSE, TRUE);
+    }
 
     return 1;
 }
@@ -310,7 +401,6 @@ fail:
 
 static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_info) {
     struct session *s = NULL;
-    char *c;
     pa_sink *sink;
     int fd = -1;
     pa_memchunk silence;
@@ -325,33 +415,41 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
         goto fail;
     }
 
-    if (!(sink = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK, 1))) {
+    if (!(sink = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK, TRUE))) {
         pa_log("Sink does not exist.");
         goto fail;
     }
+
+    pa_rtclock_get(&now);
 
     s = pa_xnew0(struct session, 1);
     s->userdata = u;
     s->first_packet = FALSE;
     s->sdp_info = *sdp_info;
     s->rtpoll_item = NULL;
-
-    pa_rtclock_get(&now);
+    s->intended_latency = LATENCY_USEC;
+    s->smoother = pa_smoother_new(PA_USEC_PER_SEC*5, PA_USEC_PER_SEC*2, TRUE, 10);
+    pa_smoother_set_time_offset(s->smoother, pa_timeval_load(&now));
+    s->last_rate_update = pa_timeval_load(&now);
     pa_atomic_store(&s->timestamp, now.tv_sec);
 
     if ((fd = mcast_socket((const struct sockaddr*) &sdp_info->sa, sdp_info->salen)) < 0)
         goto fail;
 
-    c = pa_sprintf_malloc("RTP Stream%s%s%s",
-                          sdp_info->session_name ? " (" : "",
-                          sdp_info->session_name ? sdp_info->session_name : "",
-                          sdp_info->session_name ? ")" : "");
-
     pa_sink_input_new_data_init(&data);
     data.sink = sink;
     data.driver = __FILE__;
-    pa_proplist_sets(data.proplist, PA_PROP_MEDIA_NAME, c);
-    pa_xfree(c);
+    pa_proplist_sets(data.proplist, PA_PROP_MEDIA_ROLE, "stream");
+    pa_proplist_setf(data.proplist, PA_PROP_MEDIA_NAME,
+                     "RTP Stream%s%s%s",
+                     sdp_info->session_name ? " (" : "",
+                     sdp_info->session_name ? sdp_info->session_name : "",
+                     sdp_info->session_name ? ")" : "");
+
+    if (sdp_info->session_name)
+        pa_proplist_sets(data.proplist, "rtp.session", sdp_info->session_name);
+    pa_proplist_sets(data.proplist, "rtp.origin", sdp_info->origin);
+    pa_proplist_setf(data.proplist, "rtp.payload", "%u", (unsigned) sdp_info->payload);
     data.module = u->module;
     pa_sink_input_new_data_set_sample_spec(&data, &sdp_info->sample_spec);
 
@@ -366,19 +464,26 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     s->sink_input->userdata = s;
 
     s->sink_input->parent.process_msg = sink_input_process_msg;
-    s->sink_input->pop = sink_input_pop;
+    s->sink_input->pop = sink_input_pop_cb;
+    s->sink_input->process_rewind = sink_input_process_rewind_cb;
+    s->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;
     s->sink_input->kill = sink_input_kill;
     s->sink_input->attach = sink_input_attach;
     s->sink_input->detach = sink_input_detach;
 
     pa_sink_input_get_silence(s->sink_input, &silence);
 
+    s->sink_latency = pa_sink_input_set_requested_latency(s->sink_input, s->intended_latency/2);
+
+    if (s->intended_latency < s->sink_latency*2)
+        s->intended_latency = s->sink_latency*2;
+
     s->memblockq = pa_memblockq_new(
             0,
             MEMBLOCKQ_MAXLENGTH,
             MEMBLOCKQ_MAXLENGTH,
             pa_frame_size(&s->sink_input->sample_spec),
-            pa_bytes_per_second(&s->sink_input->sample_spec)/10+1,
+            pa_usec_to_bytes(s->intended_latency - s->sink_latency, &s->sink_input->sample_spec),
             0,
             0,
             &silence);
@@ -423,12 +528,14 @@ static void session_free(struct session *s) {
     pa_sdp_info_destroy(&s->sdp_info);
     pa_rtp_context_destroy(&s->rtp_context);
 
+    pa_smoother_free(s->smoother);
+
     pa_xfree(s);
 }
 
 static void sap_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event_flags_t flags, void *userdata) {
     struct userdata *u = userdata;
-    int goodbye;
+    pa_bool_t goodbye = FALSE;
     pa_sdp_info info;
     struct session *s;
 
