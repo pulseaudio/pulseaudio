@@ -84,6 +84,7 @@ New opcodes for notifications:
 New fields for PA_COMMAND_CREATE_PLAYBACK_STREAM, PA_COMMAND_CREATE_RECORD_STREAM request at the end:
 
  peak_detect (bool)
+ adjust_latency  (bool)
 
 Replace field "name" for PA_COMMAND_CREATE_PLAYBACK_STREAM, PA_COMMAND_CREATE_RECORD_STREAM at the end:
 
@@ -124,3 +125,12 @@ New field for PA_COMMAND_CREATE_PLAYBACK_STREAM at the end:
 
 Buffer attributes for PA_COMMAND_CREATE_PLAYBACK_STREAM and
 PA_COMMAND_CREATE_RECORD_STREAM may now be 0 for default values.
+
+New filed for PA_COMMAND_SET_PLAYBACK_STREAM_BUFFER_ATTR,
+PA_COMMAND_SET_RECORD_STREAM_BUFFER_ATTR at the end:
+
+  adjust_latency (bool)
+
+new message:
+
+  PA_COMMAND_STARTED
