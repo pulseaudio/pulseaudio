@@ -44,6 +44,8 @@
 #error Invalid PulseAudio API version
 #endif
 
+#define CLEAR_LINE "\x1B[K"
+
 static enum { RECORD, PLAYBACK } mode = PLAYBACK;
 
 static pa_context *context = NULL;
@@ -206,29 +208,38 @@ static void stream_suspended_callback(pa_stream *s, void *userdata) {
 
     if (verbose) {
         if (pa_stream_is_suspended(s))
-            fprintf(stderr, "Stream device suspended.\n");
+            fprintf(stderr, "Stream device suspended." CLEAR_LINE " \n");
         else
-            fprintf(stderr, "Stream device resumed.\n");
+            fprintf(stderr, "Stream device resumed." CLEAR_LINE " \n");
     }
 }
 
 static void stream_underflow_callback(pa_stream *s, void *userdata) {
     assert(s);
 
-    fprintf(stderr, "Underrun.\n");
+    if (verbose)
+        fprintf(stderr, "Stream underrun." CLEAR_LINE " \n");
 }
 
 static void stream_overflow_callback(pa_stream *s, void *userdata) {
     assert(s);
 
-    fprintf(stderr, "Overrun.\n");
+    if (verbose)
+        fprintf(stderr, "Stream overrun." CLEAR_LINE " \n");
+}
+
+static void stream_started_callback(pa_stream *s, void *userdata) {
+    assert(s);
+
+    if (verbose)
+        fprintf(stderr, "Stream started." CLEAR_LINE " \n");
 }
 
 static void stream_moved_callback(pa_stream *s, void *userdata) {
     assert(s);
 
     if (verbose)
-        fprintf(stderr, "Stream moved to device %s (%u, %ssuspended).\n", pa_stream_get_device_name(s), pa_stream_get_device_index(s), pa_stream_is_suspended(s) ? "" : "not ");
+        fprintf(stderr, "Stream moved to device %s (%u, %ssuspended)." CLEAR_LINE " \n", pa_stream_get_device_name(s), pa_stream_get_device_index(s), pa_stream_is_suspended(s) ? "" : "not ");
 }
 
 /* This is called whenever the context status changes */
@@ -249,7 +260,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
             assert(!stream);
 
             if (verbose)
-                fprintf(stderr, "Connection established.\n");
+                fprintf(stderr, "Connection established." CLEAR_LINE " \n");
 
             if (!(stream = pa_stream_new(c, stream_name, &sample_spec, channel_map_set ? &channel_map : NULL))) {
                 fprintf(stderr, "pa_stream_new() failed: %s\n", pa_strerror(pa_context_errno(c)));
@@ -263,6 +274,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
             pa_stream_set_moved_callback(stream, stream_moved_callback, NULL);
             pa_stream_set_underflow_callback(stream, stream_underflow_callback, NULL);
             pa_stream_set_overflow_callback(stream, stream_overflow_callback, NULL);
+            pa_stream_set_started_callback(stream, stream_started_callback, NULL);
 
             if (latency > 0) {
                 memset(&buffer_attr, 0, sizeof(buffer_attr));
