@@ -868,6 +868,9 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
     snd_pcm_sframes_t before;
     pa_assert(u);
 
+    if (!u->pcm_handle)
+        return;
+
     before = u->hwbuf_unused_frames;
     update_sw_params(u);
 
@@ -1003,7 +1006,7 @@ static void thread_func(void *userdata) {
                      * we have filled the buffer at least once
                      * completely.*/
 
-                    pa_log_debug("Cutting sleep time for the initial iterations by half.");
+                    /*pa_log_debug("Cutting sleep time for the initial iterations by half.");*/
                     sleep_usec /= 2;
                 }
 
