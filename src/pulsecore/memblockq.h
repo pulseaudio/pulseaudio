@@ -167,4 +167,6 @@ void pa_memblockq_silence(pa_memblockq *bq);
 /* Check whether we currently are in prebuf state */
 pa_bool_t pa_memblockq_prebuf_active(pa_memblockq *bq);
 
+unsigned pa_memblockq_get_nblocks(pa_memblockq *bq);
+
 #endif

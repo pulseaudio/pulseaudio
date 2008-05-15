@@ -902,3 +902,9 @@ void pa_memblockq_silence(pa_memblockq *bq) {
 
     pa_assert(bq->n_blocks == 0);
 }
+
+unsigned pa_memblockq_get_nblocks(pa_memblockq *bq) {
+    pa_assert(bq);
+
+    return bq->n_blocks;
+}
