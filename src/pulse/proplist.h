@@ -38,7 +38,7 @@ PA_C_DECL_BEGIN
  *    media.filename
  *    media.icon
  *    media.icon_name
- *    media.role                    video, music, game, event, phone, production, filter, abstract
+ *    media.role                    video, music, game, event, phone, production, filter, abstract, stream
  *    event.id                      button-click, session-login
  *    event.x11.display
  *    event.x11.xid
