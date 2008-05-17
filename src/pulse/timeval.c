@@ -140,7 +140,7 @@ struct timeval* pa_timeval_add(struct timeval *tv, pa_usec_t v) {
     tv->tv_usec += (suseconds_t) v;
 
     /* Normalize */
-    while (tv->tv_usec >= PA_USEC_PER_SEC) {
+    while ((unsigned) tv->tv_usec >= PA_USEC_PER_SEC) {
         tv->tv_sec++;
         tv->tv_usec -= PA_USEC_PER_SEC;
     }
