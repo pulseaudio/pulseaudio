@@ -1457,10 +1457,10 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
                         r->peaks.max_i[c] = n;
                 }
 
-            for (c = 0; c < r->o_ss.channels; c++, d++)
+            for (c = 0; c < r->o_ss.channels; c++, d++) {
                  *d = r->peaks.max_i[c];
-
-            memset(r->peaks.max_i, 0, sizeof(r->peaks.max_i));
+                 r->peaks.max_i[c] = 0;
+            }
         } else {
             unsigned i, c;
             float *s = (float*) ((uint8_t*) src + fz * j);
@@ -1476,11 +1476,13 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
                         r->peaks.max_f[c] = n;
                 }
 
-            for (c = 0; c < r->o_ss.channels; c++, d++)
+            for (c = 0; c < r->o_ss.channels; c++, d++) {
                 *d = r->peaks.max_f[c];
-
-            memset(r->peaks.max_f, 0, sizeof(r->peaks.max_f));
+                r->peaks.max_f[c] = 0;
+            }
         }
+
+        start = j+1;
     }
 
     pa_memblock_release(input->memblock);
