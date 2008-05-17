@@ -75,7 +75,7 @@ static void* work(void *p) {
         end.tv_sec += nsec / PA_NSEC_PER_SEC;
         end.tv_nsec += nsec % PA_NSEC_PER_SEC;
 
-        while (end.tv_nsec > PA_NSEC_PER_SEC) {
+        while ((pa_usec_t) end.tv_nsec > PA_NSEC_PER_SEC) {
             end.tv_sec++;
             end.tv_nsec -= PA_NSEC_PER_SEC;
         }
