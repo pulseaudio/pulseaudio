@@ -262,7 +262,7 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec) {
         left_to_record = check_left_to_record(u, n);
 
         if (u->use_tsched)
-            if (pa_bytes_to_usec(left_to_record, &u->source->sample_spec) > max_sleep_usec/2)
+            if (pa_bytes_to_usec(left_to_record, &u->source->sample_spec) > process_usec+max_sleep_usec/2)
                 break;
 
         if (PA_UNLIKELY(n <= 0))
@@ -359,7 +359,7 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec) {
         left_to_record = check_left_to_record(u, n);
 
         if (u->use_tsched)
-            if (pa_bytes_to_usec(left_to_record, &u->source->sample_spec) > max_sleep_usec/2)
+            if (pa_bytes_to_usec(left_to_record, &u->source->sample_spec) > process_usec+max_sleep_usec/2)
                 break;
 
         if (PA_UNLIKELY(n <= 0))
@@ -1152,9 +1152,9 @@ int pa__init(pa_module*m) {
     if (use_tsched)
         fix_tsched_watermark(u);
 
-    u->source->max_latency = pa_bytes_to_usec(u->hwbuf_size, &ss);
-    if (!use_tsched)
-        u->source->min_latency = u->source->max_latency;
+    pa_source_set_latency_range(u->source,
+                                !use_tsched ? pa_bytes_to_usec(u->hwbuf_size, &ss) : (pa_usec_t) -1,
+                                pa_bytes_to_usec(u->hwbuf_size, &ss));
 
     pa_log_info("Using %u fragments of size %lu bytes, buffer time is %0.2fms",
                 nfrags, (long unsigned) u->fragment_size,
