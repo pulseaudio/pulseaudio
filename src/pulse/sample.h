@@ -115,10 +115,10 @@ PA_C_DECL_BEGIN
 #endif
 
 /** Maximum number of allowed channels */
-#define PA_CHANNELS_MAX 32
+#define PA_CHANNELS_MAX 32U
 
 /** Maximum allowed sample rate */
-#define PA_RATE_MAX (48000*4)
+#define PA_RATE_MAX (48000U*4U)
 
 /** Sample format */
 typedef enum pa_sample_format {
