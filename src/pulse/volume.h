@@ -103,10 +103,10 @@ PA_C_DECL_BEGIN
 typedef uint32_t pa_volume_t;
 
 /** Normal volume (100%) */
-#define PA_VOLUME_NORM ((pa_volume_t) 0x10000)
+#define PA_VOLUME_NORM ((pa_volume_t) 0x10000U)
 
 /** Muted volume (0%) */
-#define PA_VOLUME_MUTED ((pa_volume_t) 0)
+#define PA_VOLUME_MUTED ((pa_volume_t) 0U)
 
 /** A structure encapsulating a per-channel volume */
 typedef struct pa_cvolume {
@@ -169,7 +169,7 @@ double pa_sw_volume_to_linear(pa_volume_t v) PA_GCC_CONST;
 #define PA_DECIBEL_MININFTY ((double) -INFINITY)
 #else
 /** This value is used as minus infinity when using pa_volume_{to,from}_dB(). */
-#define PA_DECIBEL_MININFTY ((double) -200)
+#define PA_DECIBEL_MININFTY ((double) -200.0)
 #endif
 
 PA_C_DECL_END
