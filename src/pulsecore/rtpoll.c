@@ -514,6 +514,9 @@ void pa_rtpoll_set_timer_absolute(pa_rtpoll *p, pa_usec_t usec) {
 void pa_rtpoll_set_timer_relative(pa_rtpoll *p, pa_usec_t usec) {
     pa_assert(p);
 
+    /* Scheduling a timeout for more than an hour is very very suspicious */
+    pa_assert(usec <= PA_USEC_PER_SEC*60ULL*60ULL);
+
     pa_rtclock_get(&p->next_elapse);
     pa_timeval_add(&p->next_elapse, usec);
     p->timer_enabled = TRUE;
