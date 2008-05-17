@@ -485,7 +485,7 @@ static void fix_record_buffer_attr_pre(record_stream *s, pa_bool_t adjust_latenc
         pa_usec_t fragsize_usec;
 
         /* So, the user asked us to adjust the latency according to
-         * the what the source can provide. Half the latency will be
+         * what the source can provide. Half the latency will be
          * spent on the hw buffer, half of it in the async buffer
          * queue we maintain for each client. */
 
@@ -596,6 +596,11 @@ static record_stream* record_stream_new(
     *map = s->source_output->channel_map;
 
     pa_idxset_put(c->record_streams, s, &s->index);
+
+    pa_log_info("Final latency %0.2f ms = %0.2f ms + %0.2f ms",
+                ((double) pa_bytes_to_usec(s->fragment_size, &source_output->sample_spec) + (double) s->source_latency) / PA_USEC_PER_MSEC,
+                (double) pa_bytes_to_usec(s->fragment_size, &source_output->sample_spec) / PA_USEC_PER_MSEC,
+                (double) s->source_latency / PA_USEC_PER_MSEC);
 
     pa_source_output_put(s->source_output);
     return s;
