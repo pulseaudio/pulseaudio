@@ -277,7 +277,7 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec) {
             * need to guarantee that clients only have to keep around
             * a single hw buffer length. */
 
-            if (pa_bytes_to_usec(left_to_play, &u->sink->sample_spec) > max_sleep_usec/2)
+            if (pa_bytes_to_usec(left_to_play, &u->sink->sample_spec) > process_usec+max_sleep_usec/2)
                 break;
 
         if (PA_UNLIKELY(n <= u->hwbuf_unused_frames))
@@ -389,7 +389,7 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec) {
             * need to guarantee that clients only have to keep around
             * a single hw buffer length. */
 
-            if (pa_bytes_to_usec(left_to_play, &u->sink->sample_spec) > max_sleep_usec/2)
+            if (pa_bytes_to_usec(left_to_play, &u->sink->sample_spec) > process_usec+max_sleep_usec/2)
                 break;
 
         if (PA_UNLIKELY(n <= u->hwbuf_unused_frames))
@@ -1318,9 +1318,10 @@ int pa__init(pa_module*m) {
         fix_tsched_watermark(u);
 
     u->sink->thread_info.max_rewind = use_tsched ? u->hwbuf_size : 0;
-    u->sink->max_latency = pa_bytes_to_usec(u->hwbuf_size, &ss);
-    if (!use_tsched)
-        u->sink->min_latency = u->sink->max_latency;
+
+    pa_sink_set_latency_range(u->sink,
+                              !use_tsched ? pa_bytes_to_usec(u->hwbuf_size, &ss) : (pa_usec_t) -1,
+                              pa_bytes_to_usec(u->hwbuf_size, &ss));
 
     pa_log_info("Using %u fragments of size %lu bytes, buffer time is %0.2fms",
                 nfrags, (long unsigned) u->fragment_size,
