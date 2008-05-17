@@ -409,7 +409,8 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
             if (rchunk.length > 0)
                 o->push(o, &rchunk);
 
-            pa_memblock_unref(rchunk.memblock);
+            if (rchunk.memblock)
+                pa_memblock_unref(rchunk.memblock);
         }
 
         pa_memblock_unref(qchunk.memblock);
