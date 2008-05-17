@@ -117,7 +117,7 @@ void pa_drop_caps(void) {
 #else
 
 /* NOOPs in case capabilities are not available. */
-int pa_limit_caps(void) {
+void pa_limit_caps(void) {
     return 0;
 }
 
