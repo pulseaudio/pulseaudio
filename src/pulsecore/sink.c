@@ -248,6 +248,9 @@ pa_sink* pa_sink_new(
         return NULL;
     }
 
+    s->monitor_source->min_latency = s->min_latency;
+    s->monitor_source->max_latency = s->max_latency;
+
     s->monitor_source->monitor_of = s;
     pa_source_set_max_rewind(s->monitor_source, s->thread_info.max_rewind);
 
@@ -1228,6 +1231,7 @@ pa_usec_t pa_sink_get_requested_latency_within_thread(pa_sink *s) {
     pa_usec_t result = (pa_usec_t) -1;
     pa_sink_input *i;
     void *state = NULL;
+    pa_usec_t monitor_latency;
 
     pa_sink_assert_ref(s);
 
@@ -1239,6 +1243,12 @@ pa_usec_t pa_sink_get_requested_latency_within_thread(pa_sink *s) {
         if (i->thread_info.requested_sink_latency != (pa_usec_t) -1 &&
             (result == (pa_usec_t) -1 || result > i->thread_info.requested_sink_latency))
             result = i->thread_info.requested_sink_latency;
+
+    monitor_latency = pa_source_get_requested_latency_within_thread(s->monitor_source);
+
+    if (monitor_latency != (pa_usec_t) -1 &&
+        (result == (pa_usec_t) -1 || result > monitor_latency))
+        result = monitor_latency;
 
     if (result != (pa_usec_t) -1) {
         if (s->max_latency > 0 && result > s->max_latency)
@@ -1299,4 +1309,28 @@ void pa_sink_invalidate_requested_latency(pa_sink *s) {
 
     if (s->update_requested_latency)
         s->update_requested_latency(s);
+}
+
+void pa_sink_set_latency_range(pa_sink *s, pa_usec_t min_latency, pa_usec_t max_latency) {
+    pa_sink_assert_ref(s);
+
+    /* min_latency == 0:           no limit
+     * min_latency == (size_t) -1: default limit
+     * min_latency anything else:  specified limit
+     *
+     * Similar for max_latency */
+
+    if (min_latency == (pa_usec_t) -1)
+        min_latency = DEFAULT_MIN_LATENCY;
+
+    if (max_latency == (pa_usec_t) -1)
+        max_latency = min_latency;
+
+    pa_assert(!min_latency || !max_latency ||
+              min_latency <= max_latency);
+
+    s->min_latency = min_latency;
+    s->max_latency = max_latency;
+
+    pa_source_set_latency_range(s->monitor_source, min_latency, max_latency);
 }
