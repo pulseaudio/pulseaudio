@@ -111,7 +111,7 @@ struct pa_source {
         pa_bool_t soft_muted;
 
         pa_bool_t requested_latency_valid;
-        size_t requested_latency;
+        pa_usec_t requested_latency;
 
         /* Then number of bytes this source will be rewound for at
          * max */
@@ -179,6 +179,8 @@ void pa_source_unlink(pa_source *s);
 void pa_source_set_description(pa_source *s, const char *description);
 void pa_source_set_asyncmsgq(pa_source *s, pa_asyncmsgq *q);
 void pa_source_set_rtpoll(pa_source *s, pa_rtpoll *p);
+
+void pa_source_set_latency_range(pa_source *s, pa_usec_t min_latency, pa_usec_t max_latency);
 
 void pa_source_detach(pa_source *s);
 void pa_source_attach(pa_source *s);

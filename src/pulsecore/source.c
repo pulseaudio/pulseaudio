@@ -786,4 +786,23 @@ void pa_source_invalidate_requested_latency(pa_source *s) {
 
     if (s->update_requested_latency)
         s->update_requested_latency(s);
+
+    if (s->monitor_of)
+        pa_sink_invalidate_requested_latency(s->monitor_of);
+}
+
+void pa_source_set_latency_range(pa_source *s, pa_usec_t min_latency, pa_usec_t max_latency) {
+    pa_source_assert_ref(s);
+
+    if (min_latency == (pa_usec_t) -1)
+        min_latency = DEFAULT_MIN_LATENCY;
+
+    if (max_latency == (pa_usec_t) -1)
+        max_latency = min_latency;
+
+    pa_assert(!min_latency || !max_latency ||
+              min_latency <= max_latency);
+
+    s->min_latency = min_latency;
+    s->max_latency = max_latency;
 }
