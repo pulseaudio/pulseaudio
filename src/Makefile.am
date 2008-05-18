@@ -231,6 +231,7 @@ noinst_PROGRAMS = \
 		pacat-simple \
 		parec-simple \
 		strlist-test \
+		close-test \
 		voltest \
 		memblockq-test \
 		sync-playback \
@@ -355,6 +356,11 @@ strlist_test_SOURCES = tests/strlist-test.c
 strlist_test_CFLAGS = $(AM_CFLAGS)
 strlist_test_LDADD = $(AM_LDADD) $(WINSOCK_LIBS) libpulsecore.la libstrlist.la
 strlist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+close_test_SOURCES = tests/close-test.c
+close_test_CFLAGS = $(AM_CFLAGS)
+close_test_LDADD = $(AM_LDADD) $(WINSOCK_LIBS) libpulsecore.la libstrlist.la
+close_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 voltest_SOURCES = tests/voltest.c
 voltest_CFLAGS = $(AM_CFLAGS)
