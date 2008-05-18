@@ -1774,10 +1774,11 @@ int pa_close_all(int except_fd, ...) {
 
     i = 0;
     if (except_fd >= 0) {
+        int fd;
         p[i++] = except_fd;
 
-        while ((p[i++] = va_arg(ap, int)) >= 0)
-            ;
+        while ((fd = va_arg(ap, int)) >= 0)
+            p[i++] = fd;
     }
     p[i] = -1;
 
@@ -1803,6 +1804,7 @@ int pa_close_allv(const int except_fds[]) {
         struct dirent *de;
 
         while ((de = readdir(d))) {
+            pa_bool_t found;
             long l;
             char *e = NULL;
             int i;
@@ -1826,17 +1828,23 @@ int pa_close_allv(const int except_fds[]) {
                 return -1;
             }
 
-            if (fd <= 3)
+            if (fd < 3)
                 continue;
 
             if (fd == dirfd(d))
                 continue;
 
+            found = FALSE;
             for (i = 0; except_fds[i] >= 0; i++)
-                if (except_fds[i] == fd)
-                    continue;
+                if (except_fds[i] == fd) {
+                    found = TRUE;
+                    break;
+                }
 
-            if (close(fd) < 0) {
+            if (found)
+                continue;
+
+            if (pa_close(fd) < 0) {
                 saved_errno = errno;
                 closedir(d);
                 errno = saved_errno;
@@ -1890,10 +1898,11 @@ int pa_unblock_sigs(int except, ...) {
 
     i = 0;
     if (except >= 1) {
+        int sig;
         p[i++] = except;
 
-        while ((p[i++] = va_arg(ap, int)) >= 0)
-            ;
+        while ((sig = va_arg(ap, int)) >= 0)
+            p[i++] = sig;
     }
     p[i] = -1;
 
@@ -1957,12 +1966,12 @@ int pa_reset_sigsv(const int except[]) {
     int sig;
 
     for (sig = 1; sig < _NSIG; sig++) {
-        int reset = 1;
+        pa_bool_t reset = TRUE;
 
         switch (sig) {
             case SIGKILL:
             case SIGSTOP:
-                reset = 0;
+                reset = FALSE;
                 break;
 
             default: {
@@ -1970,7 +1979,7 @@ int pa_reset_sigsv(const int except[]) {
 
                 for (i = 0; except[i] > 0; i++) {
                     if (sig == except[i]) {
-                        reset = 0;
+                        reset = FALSE;
                         break;
                     }
                 }
