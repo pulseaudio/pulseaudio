@@ -3890,7 +3890,6 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     connection *c;
     char cname[256], pname[128];
 
-    pa_assert(s);
     pa_assert(io);
     pa_assert(p);
 
