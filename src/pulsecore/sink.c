@@ -1303,7 +1303,6 @@ void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind) {
 void pa_sink_invalidate_requested_latency(pa_sink *s) {
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
 
     s->thread_info.requested_latency_valid = FALSE;
 

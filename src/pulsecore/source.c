@@ -780,7 +780,6 @@ void pa_source_set_max_rewind(pa_source *s, size_t max_rewind) {
 void pa_source_invalidate_requested_latency(pa_source *s) {
 
     pa_source_assert_ref(s);
-    pa_assert(PA_SOURCE_IS_LINKED(s->thread_info.state));
 
     s->thread_info.requested_latency_valid = FALSE;
 
