@@ -621,6 +621,7 @@ static int context_connect_spawn(pa_context *c) {
     /* Parent */
 
     pa_assert_se(pa_close(fds[1]) == 0);
+    fds[1] = -1;
 
     r = waitpid(pid, &status, 0);
 
