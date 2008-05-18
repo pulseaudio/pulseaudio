@@ -158,7 +158,7 @@ static void subscribe_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t id
 int pa__init(pa_module *m) {
     struct userdata *u;
 
-    pa_assert(u);
+    pa_assert(m);
 
     u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
