@@ -263,7 +263,7 @@ static pa_hook_result_t source_fixate_hook_callback(pa_core *c, pa_source_new_da
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
-    char *fname, *runtime_dir;
+    char *fname, *fn;
     char hn[256];
     pa_sink *sink;
     pa_source *source;
@@ -290,11 +290,12 @@ int pa__init(pa_module*m) {
     if (!pa_get_host_name(hn, sizeof(hn)))
         goto fail;
 
-    if (!(runtime_dir = pa_get_runtime_dir()))
-        goto fail;
+    fn = pa_sprintf_malloc("device-volumes.%s.gdbm", hn);
+    fname = pa_state_path(fn);
+    pa_xfree(fn);
 
-    fname = pa_sprintf_malloc("%s/device-volumes.%s.gdbm", runtime_dir, hn);
-    pa_xfree(runtime_dir);
+    if (!fname)
+        goto fail;
 
     if (!(u->gdbm_file = gdbm_open(fname, 0, GDBM_WRCREAT, 0600, NULL))) {
         pa_log("Failed to open volume database '%s': %s", fname, gdbm_strerror(gdbm_errno));
