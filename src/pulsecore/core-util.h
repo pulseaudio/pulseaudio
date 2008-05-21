@@ -114,14 +114,16 @@ int pa_unlock_lockfile(const char *fn, int fd);
 char *pa_hexstr(const uint8_t* d, size_t dlength, char *s, size_t slength);
 size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength);
 
-int pa_startswith(const char *s, const char *pfx) PA_GCC_PURE;
-int pa_endswith(const char *s, const char *sfx) PA_GCC_PURE;
+pa_bool_t pa_startswith(const char *s, const char *pfx) PA_GCC_PURE;
+pa_bool_t pa_endswith(const char *s, const char *sfx) PA_GCC_PURE;
 
 FILE *pa_open_config_file(const char *global, const char *local, const char *env, char **result);
 char* pa_find_config_file(const char *global, const char *local, const char *env);
 
 char *pa_get_runtime_dir(void);
+char *pa_get_state_dir(void);
 char *pa_runtime_path(const char *fn);
+char *pa_state_path(const char *fn);
 
 int pa_atoi(const char *s, int32_t *ret_i);
 int pa_atou(const char *s, uint32_t *ret_u);
@@ -179,5 +181,9 @@ int pa_reset_sigs(int except, ...);
 int pa_reset_sigsv(const int except[]);
 
 void pa_set_env(const char *key, const char *value);
+
+pa_bool_t pa_in_system_mode(void);
+
+#define pa_streq(a,b) (!strcmp((a),(b)))
 
 #endif

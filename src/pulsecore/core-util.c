@@ -1144,12 +1144,13 @@ fail:
 /* Unlock a temporary lcok file */
 int pa_unlock_lockfile(const char *fn, int fd) {
     int r = 0;
-    pa_assert(fn);
     pa_assert(fd >= 0);
 
-    if (unlink(fn) < 0) {
-        pa_log_warn("Unable to remove lock file '%s': %s", fn, pa_cstrerror(errno));
-        r = -1;
+    if (fn) {
+        if (unlink(fn) < 0) {
+            pa_log_warn("Unable to remove lock file '%s': %s", fn, pa_cstrerror(errno));
+            r = -1;
+        }
     }
 
     if (pa_lock_fd(fd, 0) < 0) {
@@ -1165,14 +1166,15 @@ int pa_unlock_lockfile(const char *fn, int fd) {
     return r;
 }
 
-char *pa_get_runtime_dir(void) {
+static char *get_dir(mode_t m, const char *env_name) {
     const char *e;
     char *d;
 
-    if ((e = getenv("PULSE_RUNTIME_PATH")))
+    if ((e = getenv(env_name)))
         d = pa_xstrdup(e);
     else {
         char h[PATH_MAX];
+        struct stat st;
 
         if (!pa_get_home_dir(h, sizeof(h))) {
             pa_log_error("Failed to get home directory.");
@@ -1180,14 +1182,34 @@ char *pa_get_runtime_dir(void) {
         }
 
         d = pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse", h);
+
+        if (stat(d, &st) < 0) {
+            pa_log_error("Failed to state home directory %s: %s", d, pa_cstrerror(errno));
+            pa_xfree(d);
+            return NULL;
+        }
+
+        if (st.st_uid != getuid()) {
+            pa_log_error("Home directory %s not ours.", d);
+            pa_xfree(d);
+            return NULL;
+        }
     }
 
-    if (pa_make_secure_dir(d, 0700, (pid_t) -1, (pid_t) -1) < 0)  {
+    if (pa_make_secure_dir(d, m, (pid_t) -1, (pid_t) -1) < 0)  {
         pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
         return NULL;
     }
 
     return d;
+}
+
+char *pa_get_runtime_dir(void) {
+    return get_dir(pa_in_system_mode() ? 0755 : 0700, "PULSE_RUNTIME_PATH");
+}
+
+char *pa_get_state_dir(void) {
+    return get_dir(0700, "PULSE_STATE_PATH");
 }
 
 /* Try to open a configuration file. If "env" is specified, open the
@@ -1418,7 +1440,7 @@ size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength) {
 }
 
 /* Returns nonzero when *s starts with *pfx */
-int pa_startswith(const char *s, const char *pfx) {
+pa_bool_t pa_startswith(const char *s, const char *pfx) {
     size_t l;
 
     pa_assert(s);
@@ -1430,7 +1452,7 @@ int pa_startswith(const char *s, const char *pfx) {
 }
 
 /* Returns nonzero when *s ends with *sfx */
-int pa_endswith(const char *s, const char *sfx) {
+pa_bool_t pa_endswith(const char *s, const char *sfx) {
     size_t l1, l2;
 
     pa_assert(s);
@@ -1472,13 +1494,16 @@ char *pa_make_path_absolute(const char *p) {
 /* if fn is null return the PulseAudio run time path in s (~/.pulse)
  * if fn is non-null and starts with / return fn
  * otherwise append fn to the run time path and return it */
-char *pa_runtime_path(const char *fn) {
+static char *get_path(const char *fn, pa_bool_t rt) {
     char *rtp;
 
     if (pa_is_path_absolute(fn))
         return pa_xstrdup(fn);
 
-    rtp = pa_get_runtime_dir();
+    rtp = rt ? pa_get_runtime_dir() : pa_get_state_dir();
+
+    if (!rtp)
+        return NULL;
 
     if (fn) {
         char *r;
@@ -1487,6 +1512,14 @@ char *pa_runtime_path(const char *fn) {
         return r;
     } else
         return rtp;
+}
+
+char *pa_runtime_path(const char *fn) {
+    return get_path(fn, 1);
+}
+
+char *pa_state_path(const char *fn) {
+    return get_path(fn, 0);
 }
 
 /* Convert the string s to a signed integer in *ret_i */
@@ -2008,4 +2041,13 @@ void pa_set_env(const char *key, const char *value) {
     pa_assert(value);
 
     putenv(pa_sprintf_malloc("%s=%s", key, value));
+}
+
+pa_bool_t pa_in_system_mode(void) {
+    const char *e;
+
+    if (!(e = getenv("PULSE_SYSTEM")))
+        return FALSE;
+
+    return !!atoi(e);
 }
