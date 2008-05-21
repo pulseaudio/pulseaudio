@@ -163,10 +163,10 @@ int pa__init(pa_module *m) {
     u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
 
-    if (!(u->sink_filename = pa_runtime_path(DEFAULT_SINK_FILE)))
+    if (!(u->sink_filename = pa_state_path(DEFAULT_SINK_FILE)))
         goto fail;
 
-    if (!(u->source_filename = pa_runtime_path(DEFAULT_SOURCE_FILE)))
+    if (!(u->source_filename = pa_state_path(DEFAULT_SOURCE_FILE)))
         goto fail;
 
     load(u);
