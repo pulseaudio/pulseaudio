@@ -103,7 +103,9 @@ static void unlock_autospawn_lock_file(pa_context *c) {
     if (c->autospawn_lock_fd >= 0) {
         char *lf;
 
-        lf = pa_runtime_path(AUTOSPAWN_LOCK);
+        if (!(lf = pa_runtime_path(AUTOSPAWN_LOCK)))
+            pa_log_warn("Cannot unlock autospawn because runtime path is no more.");
+
         pa_unlock_lockfile(lf, c->autospawn_lock_fd);
         pa_xfree(lf);
 
@@ -819,8 +821,10 @@ int pa_context_connect(
         }
 
         /* The per-user instance */
-        c->server_list = pa_strlist_prepend(c->server_list, ufn = pa_runtime_path(PA_NATIVE_DEFAULT_UNIX_SOCKET));
-        pa_xfree(ufn);
+        if ((ufn = pa_runtime_path(PA_NATIVE_DEFAULT_UNIX_SOCKET))) {
+            c->server_list = pa_strlist_prepend(c->server_list, ufn);
+            pa_xfree(ufn);
+        }
 
         /* Wrap the connection attempts in a single transaction for sane autospawn locking */
         if (!(flags & PA_CONTEXT_NOAUTOSPAWN) && c->conf->autospawn) {
