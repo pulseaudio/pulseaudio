@@ -295,7 +295,7 @@ static int parse_sample_rate(const char *filename, unsigned line, const char *lv
     pa_assert(rvalue);
     pa_assert(data);
 
-    if (pa_atoi(rvalue, &r) < 0 || r > PA_RATE_MAX || r <= 0) {
+    if (pa_atoi(rvalue, &r) < 0 || r > (int32_t) PA_RATE_MAX || r <= 0) {
         pa_log("[%s:%u] Invalid sample rate '%s'.", filename, line, rvalue);
         return -1;
     }
@@ -313,7 +313,7 @@ static int parse_sample_channels(const char *filename, unsigned line, const char
     pa_assert(rvalue);
     pa_assert(data);
 
-    if (pa_atoi(rvalue, &n) < 0 || n > PA_CHANNELS_MAX || n <= 0) {
+    if (pa_atoi(rvalue, &n) < 0 || n > (int32_t) PA_CHANNELS_MAX || n <= 0) {
         pa_log("[%s:%u] Invalid sample channels '%s'.", filename, line, rvalue);
         return -1;
     }
