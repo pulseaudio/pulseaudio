@@ -65,7 +65,9 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
     memset(&sa, 0, sizeof(sa));
     sa.sun_family = AF_UNIX;
 
-    cli = pa_runtime_path("cli");
+    if (!(cli = pa_runtime_path("cli")))
+        goto fail;
+
     pa_strlcpy(sa.sun_path, cli, sizeof(sa.sun_path));
     pa_xfree(cli);
 
