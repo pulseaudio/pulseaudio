@@ -1096,6 +1096,10 @@ fi
 #### PulseAudio system runtime dir ####
 PA_SYSTEM_RUNTIME_PATH="${localstatedir}/run/pulse"
 AC_SUBST(PA_SYSTEM_RUNTIME_PATH)
+PA_SYSTEM_CONFIG_PATH="${localstatedir}/lib/pulse"
+AC_SUBST(PA_SYSTEM_CONFIG_PATH)
+PA_SYSTEM_STATE_PATH="${localstatedir}/lib/pulse"
+AC_SUBST(PA_SYSTEM_STATE_PATH)
 
 ###################################
 #            Output               #
@@ -1236,6 +1240,8 @@ echo "
     sysconfdir:                    ${sysconfdir}
     localstatedir:                 ${localstatedir}
     System Runtime Path:           ${PA_SYSTEM_RUNTIME_PATH}
+    System State Path:             ${PA_SYSTEM_STATE_PATH}
+    System Config Path:            ${PA_SYSTEM_CONFIG_PATH}
     Compiler:                      ${CC}
     CFLAGS:                        ${CFLAGS}
     Have X11:                      ${ENABLE_X11}
