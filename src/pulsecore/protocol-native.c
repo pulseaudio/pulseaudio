@@ -4009,7 +4009,7 @@ static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_mo
             pa_log("auth-group-enabled= expects a boolean argument.");
             return NULL;
         }
-        p->auth_group = a ? pa_xstrdup(pa_modargs_get_value(ma, "auth-group", c->is_system_instance ? PA_ACCESS_GROUP : NULL)) : NULL;
+        p->auth_group = a ? pa_xstrdup(pa_modargs_get_value(ma, "auth-group", pa_in_system_mode() ? PA_ACCESS_GROUP : NULL)) : NULL;
 
         if (p->auth_group)
             pa_log_info("Allowing access to group '%s'.", p->auth_group);

@@ -123,7 +123,6 @@ struct pa_core {
 
     pa_bool_t disallow_module_loading, running_as_daemon;
     pa_resample_method_t resample_method;
-    pa_bool_t is_system_instance;
     pa_bool_t realtime_scheduling;
     int realtime_priority;
     pa_bool_t disable_remixing;

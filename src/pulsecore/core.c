@@ -135,7 +135,6 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
 
     c->resample_method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 3;
 
-    c->is_system_instance = FALSE;
     c->disallow_module_loading = FALSE;
     c->realtime_scheduling = FALSE;
     c->realtime_priority = 5;

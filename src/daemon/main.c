@@ -202,6 +202,13 @@ static int change_user(void) {
         return -1;
     }
 
+    if (pa_make_secure_dir(PA_SYSTEM_STATE_PATH, 0700, pw->pw_uid, gr->gr_gid) < 0) {
+        pa_log("Failed to create '%s': %s", PA_SYSTEM_STATE_PATH, pa_cstrerror(errno));
+        return -1;
+    }
+
+    /* We don't create the config dir here, because we don't need to write to it */
+
     if (initgroups(PA_SYSTEM_USER, gr->gr_gid) != 0) {
         pa_log("Failed to change group list: %s", pa_cstrerror(errno));
         return -1;
@@ -246,7 +253,8 @@ static int change_user(void) {
 
     /* Relevant for pa_runtime_path() */
     pa_set_env("PULSE_RUNTIME_PATH", PA_SYSTEM_RUNTIME_PATH);
-    pa_set_env("PULSE_CONFIG_PATH", PA_SYSTEM_RUNTIME_PATH);
+    pa_set_env("PULSE_CONFIG_PATH", PA_SYSTEM_CONFIG_PATH);
+    pa_set_env("PULSE_STATE_PATH", PA_SYSTEM_STATE_PATH);
 
     pa_log_info("Successfully dropped root privileges.");
 
@@ -705,13 +713,22 @@ int main(int argc, char *argv[]) {
         if (change_user() < 0)
             goto finish;
 
+    pa_set_env("PULSE_SYSTEM", conf->system_instance ? "1" : "0");
+
     pa_log_info("This is PulseAudio " PACKAGE_VERSION);
     pa_log_info("Page size is %lu bytes", (unsigned long) PA_PAGE_SIZE);
-    pa_log_info("Using runtime directory %s.", s = pa_get_runtime_dir());
+    if (!(s = pa_get_runtime_dir()))
+        goto finish;
+    pa_log_info("Using runtime directory %s.", s);
+    pa_xfree(s);
+    if (!(s = pa_get_state_dir()))
+        pa_log_info("Using state directory %s.", s);
     pa_xfree(s);
 
+    pa_log_info("Running in system mode: %s", pa_yes_no(pa_in_system_mode()));
+
     if (conf->use_pid_file) {
-        if (pa_pid_file_create() < 0) {
+        if (pa_pid_file_create("pulseaudio") < 0) {
             pa_log("pa_pid_file_create() failed.");
             goto finish;
         }
@@ -740,7 +757,6 @@ int main(int argc, char *argv[]) {
         goto finish;
     }
 
-    c->is_system_instance = !!conf->system_instance;
     c->default_sample_spec = conf->default_sample_spec;
     c->default_n_fragments = conf->default_n_fragments;
     c->default_fragment_size_msec = conf->default_fragment_size_msec;
