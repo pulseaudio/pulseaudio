@@ -216,17 +216,19 @@ static void thread_func(void *userdata) {
                     ssize_t l;
                     void *p;
 
-                    if (u->raw_memchunk.length <= 0) {
-                        if (u->raw_memchunk.memblock)
-                            pa_memblock_unref(u->raw_memchunk.memblock);
-                        pa_memchunk_reset(&u->raw_memchunk);
-
-                        /* Grab unencoded data */
-                        pa_sink_render(u->sink, u->block_size, &u->raw_memchunk);
-                    }
-                    pa_assert(u->raw_memchunk.length > 0);
-
                     if (u->encoded_memchunk.length <= 0) {
+                        if (u->raw_memchunk.length <= 0) {
+                            if (u->raw_memchunk.memblock)
+                                pa_memblock_unref(u->raw_memchunk.memblock);
+                            pa_memchunk_reset(&u->raw_memchunk);
+
+                            /* Grab unencoded data */
+                            pa_sink_render(u->sink, u->block_size, &u->raw_memchunk);
+                            p = pa_memblock_acquire(u->raw_memchunk.memblock);
+                            pa_memblock_release(u->raw_memchunk.memblock);
+                        }
+                        pa_assert(u->raw_memchunk.length > 0);
+
                         /* Encode it */
                         size_t rl = u->raw_memchunk.length;
                         u->encoding_overhead += u->next_encoding_overhead;
