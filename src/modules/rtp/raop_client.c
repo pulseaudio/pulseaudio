@@ -94,12 +94,6 @@ struct pa_raop_client {
     void* userdata;
     pa_raop_client_closed_cb_t closed_callback;
     void* closed_userdata;
-
-    uint8_t *buffer;
-    pa_memblock *memblock;
-    size_t buffer_length;
-    uint8_t *buffer_index;
-    uint16_t buffer_count;
 };
 
 /**
@@ -402,7 +396,6 @@ void pa_raop_client_free(pa_raop_client* c)
 {
     pa_assert(c);
 
-    pa_xfree(c->buffer);
     if (c->rtsp)
         pa_rtsp_client_free(c->rtsp);
     pa_xfree(c->host);
@@ -443,15 +436,8 @@ int pa_raop_client_encode_sample(pa_raop_client* c, pa_memchunk* raw, pa_memchun
 
     /* Leave 16 bytes extra to allow for the ALAC header which is about 55 bits */
     bufmax = length + header_size + 16;
-    if (bufmax > c->buffer_length) {
-        c->buffer = pa_xrealloc(c->buffer, bufmax);
-        c->buffer_length = bufmax;
-        if (c->memblock)
-            pa_memblock_unref(c->memblock);
-        c->memblock = pa_memblock_new_user(c->core->mempool, c->buffer, bufmax, noop, 0);
-    }
     pa_memchunk_reset(encoded);
-    encoded->memblock = c->memblock;
+    encoded->memblock = pa_memblock_new(c->core->mempool, bufmax);
     b = pa_memblock_acquire(encoded->memblock);
     memcpy(b, header, header_size);
 

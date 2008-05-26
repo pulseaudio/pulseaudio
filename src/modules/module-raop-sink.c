@@ -178,7 +178,8 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
             pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
             pollfd->fd = u->fd;
-            pollfd->events = pollfd->revents = 0;
+            pollfd->events = POLLOUT;
+            pollfd->revents = 0;
 
             return 0;
         }
@@ -190,6 +191,9 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 static void thread_func(void *userdata) {
     struct userdata *u = userdata;
     int write_type = 0;
+    pa_memchunk silence;
+    uint32_t silence_overhead;
+    double silence_ratio;
 
     pa_assert(u);
 
@@ -200,6 +204,9 @@ static void thread_func(void *userdata) {
 
     pa_smoother_set_time_offset(u->smoother, pa_rtclock_usec());
 
+    /* Create a chunk of memory that is our encoded silence sample. */
+    pa_memchunk_reset(&silence);
+
     for (;;) {
         int ret;
 
@@ -208,33 +215,61 @@ static void thread_func(void *userdata) {
             pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
 
             /* Render some data and write it to the fifo */
-            if (PA_SINK_OPENED(u->sink->thread_info.state) && pollfd->revents) {
+            if (pollfd->revents) {
                 pa_usec_t usec;
                 int64_t n;
+                void *p;
+
+                if (!silence.memblock) {
+                    pa_memchunk silence_tmp;
+
+                    pa_memchunk_reset(&silence_tmp);
+                    silence_tmp.memblock = pa_memblock_new(u->core->mempool, 4096);
+                    silence_tmp.length = 4096;
+                    p = pa_memblock_acquire(silence_tmp.memblock);
+                      memset(p, 0, 4096);
+                    pa_memblock_release(silence_tmp.memblock);
+                    pa_raop_client_encode_sample(u->raop, &silence_tmp, &silence);
+                    pa_assert(0 == silence_tmp.length);
+                    silence_overhead = silence_tmp.length - 4096;
+                    silence_ratio = silence_tmp.length / 4096;
+                    pa_memblock_unref(silence_tmp.memblock);
+                }
 
                 for (;;) {
                     ssize_t l;
-                    void *p;
 
                     if (u->encoded_memchunk.length <= 0) {
-                        if (u->raw_memchunk.length <= 0) {
-                            if (u->raw_memchunk.memblock)
-                                pa_memblock_unref(u->raw_memchunk.memblock);
-                            pa_memchunk_reset(&u->raw_memchunk);
+                        if (u->encoded_memchunk.memblock)
+                            pa_memblock_unref(u->encoded_memchunk.memblock);
+                        if (PA_SINK_OPENED(u->sink->thread_info.state)) {
+                            size_t rl;
 
-                            /* Grab unencoded data */
-                            pa_sink_render(u->sink, u->block_size, &u->raw_memchunk);
-                            p = pa_memblock_acquire(u->raw_memchunk.memblock);
-                            pa_memblock_release(u->raw_memchunk.memblock);
+                            /* We render real data */
+                            if (u->raw_memchunk.length <= 0) {
+                                if (u->raw_memchunk.memblock)
+                                    pa_memblock_unref(u->raw_memchunk.memblock);
+                                pa_memchunk_reset(&u->raw_memchunk);
+
+                                /* Grab unencoded data */
+                                pa_sink_render(u->sink, u->block_size, &u->raw_memchunk);
+                            }
+                            pa_assert(u->raw_memchunk.length > 0);
+
+                            /* Encode it */
+                            rl = u->raw_memchunk.length;
+                            u->encoding_overhead += u->next_encoding_overhead;
+                            pa_raop_client_encode_sample(u->raop, &u->raw_memchunk, &u->encoded_memchunk);
+                            u->next_encoding_overhead = (u->encoded_memchunk.length - (rl - u->raw_memchunk.length));
+                            u->encoding_ratio = u->encoded_memchunk.length / (rl - u->raw_memchunk.length);
+                        } else {
+                            /* We render some silence into our memchunk */
+                            u->encoding_overhead += u->next_encoding_overhead;
+                            memcpy(&u->encoded_memchunk, &silence, sizeof(pa_memchunk));
+                            pa_memblock_ref(silence.memblock);
+                            u->next_encoding_overhead = silence_overhead;
+                            u->encoding_ratio = silence_ratio;
                         }
-                        pa_assert(u->raw_memchunk.length > 0);
-
-                        /* Encode it */
-                        size_t rl = u->raw_memchunk.length;
-                        u->encoding_overhead += u->next_encoding_overhead;
-                        pa_raop_client_encode_sample(u->raop, &u->raw_memchunk, &u->encoded_memchunk);
-                        u->next_encoding_overhead = (u->encoded_memchunk.length - (rl - u->raw_memchunk.length));
-                        u->encoding_ratio = u->encoded_memchunk.length / (rl - u->raw_memchunk.length);
                     }
                     pa_assert(u->encoded_memchunk.length > 0);
 
@@ -303,7 +338,7 @@ static void thread_func(void *userdata) {
             }
 
             /* Hmm, nothing to do. Let's sleep */
-            pollfd->events = PA_SINK_OPENED(u->sink->thread_info.state)  ? POLLOUT : 0;
+            /* pollfd->events = PA_SINK_OPENED(u->sink->thread_info.state)  ? POLLOUT : 0; */
         }
 
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
@@ -331,6 +366,8 @@ fail:
     pa_asyncmsgq_wait_for(u->thread_mq.inq, PA_MESSAGE_SHUTDOWN);
 
 finish:
+    if (silence.memblock)
+        pa_memblock_unref(silence.memblock);
     pa_log_debug("Thread shutting down");
 }
 
