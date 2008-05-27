@@ -31,6 +31,7 @@
 
 #include <pulsecore/pstream-util.h>
 #include <pulsecore/macro.h>
+#include <pulse/utf8.h>
 
 #include "internal.h"
 
@@ -39,12 +40,18 @@
 int pa_stream_connect_upload(pa_stream *s, size_t length) {
     pa_tagstruct *t;
     uint32_t tag;
+    const char *name;
 
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_UNCONNECTED, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, length > 0, PA_ERR_INVALID);
+
+    if (!(name = pa_proplist_gets(s->proplist, PA_PROP_EVENT_ID)))
+        name = pa_proplist_gets(s->proplist, PA_PROP_MEDIA_NAME);
+
+    PA_CHECK_VALIDITY(s->context, name && *name && pa_utf8_valid(name), PA_ERR_INVALID);
 
     pa_stream_ref(s);
 
@@ -53,9 +60,7 @@ int pa_stream_connect_upload(pa_stream *s, size_t length) {
 
     t = pa_tagstruct_command(s->context, PA_COMMAND_CREATE_UPLOAD_STREAM, &tag);
 
-    if (s->context->version < 13)
-        pa_tagstruct_puts(t, pa_proplist_gets(s->proplist, PA_PROP_MEDIA_NAME));
-
+    pa_tagstruct_puts(t, name);
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);
     pa_tagstruct_put_channel_map(t, &s->channel_map);
     pa_tagstruct_putu32(t, length);
