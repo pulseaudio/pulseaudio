@@ -1303,6 +1303,8 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 
 /*     pa_log("NOTUNDERRUN %lu", (unsigned long) chunk->length); */
 
+    chunk->length = PA_MIN(nbytes, chunk->length);
+
     if (i->thread_info.underrun_for > 0)
         pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_STARTED, NULL, 0, NULL, NULL);
 
@@ -2234,7 +2236,7 @@ static void command_create_upload_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     connection_assert_ref(c);
     pa_assert(t);
 
-    if ((c->version < 13 && pa_tagstruct_gets(t, &name) < 0) ||
+    if (pa_tagstruct_gets(t, &name) < 0 ||
         pa_tagstruct_get_sample_spec(t, &ss) < 0 ||
         pa_tagstruct_get_channel_map(t, &map) < 0 ||
         pa_tagstruct_getu32(t, &length) < 0) {
@@ -2249,9 +2251,6 @@ static void command_create_upload_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     CHECK_VALIDITY(c->pstream, (length % pa_frame_size(&ss)) == 0 && length > 0, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, length <= PA_SCACHE_ENTRY_SIZE_MAX, tag, PA_ERR_TOOLARGE);
 
-    if (c->version < 13)
-        CHECK_VALIDITY(c->pstream, name && *name && pa_utf8_valid(name), tag, PA_ERR_INVALID);
-
     p = pa_proplist_new();
 
     if (c->version >= 13 && pa_tagstruct_get_proplist(t, p) < 0) {
@@ -2262,6 +2261,11 @@ static void command_create_upload_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
 
     if (c->version < 13)
         pa_proplist_sets(p, PA_PROP_MEDIA_NAME, name);
+    else if (!name)
+        if (!(name = pa_proplist_gets(p, PA_PROP_EVENT_ID)))
+            name = pa_proplist_gets(p, PA_PROP_MEDIA_NAME);
+
+    CHECK_VALIDITY(c->pstream, name && *name && pa_utf8_valid(name), tag, PA_ERR_INVALID);
 
     s = upload_stream_new(c, &ss, &map, name, length, p);
     pa_proplist_free(p);
