@@ -1042,7 +1042,7 @@ static int do_read(connection *c) {
         }
 
         if (!c->playback.current_memblock) {
-            pa_assert_se(c->playback.current_memblock = pa_memblock_new(c->protocol->core->mempool, 0));
+            pa_assert_se(c->playback.current_memblock = pa_memblock_new(c->protocol->core->mempool, (size_t) -1));
             c->playback.memblock_index = 0;
 
             space = pa_memblock_get_length(c->playback.current_memblock);
@@ -1274,6 +1274,8 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
         return -1;
     } else {
         size_t m;
+
+        chunk->length = PA_MIN(length, chunk->length);
 
         c->playback.underrun = FALSE;
 
