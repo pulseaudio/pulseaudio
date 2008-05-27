@@ -185,6 +185,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
         pa_memblock_unref(nchunk.memblock);
     }
 
+    tchunk.length = PA_MIN(nbytes, tchunk.length);
     pa_assert(tchunk.length > 0);
 
     fs = pa_frame_size(&i->sample_spec);

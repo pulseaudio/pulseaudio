@@ -35,6 +35,7 @@
 #include <sndfile.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/util.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/sink-input.h>
@@ -149,8 +150,6 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
     if (!u->memblockq)
         return -1;
 
-    pa_log_debug("pop: %lu", (unsigned long) length);
-
     for (;;) {
         pa_memchunk tchunk;
         size_t fs;
@@ -158,6 +157,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
         sf_count_t n;
 
         if (pa_memblockq_peek(u->memblockq, chunk) >= 0) {
+            chunk->length = PA_MIN(chunk->length, length);
             pa_memblockq_drop(u->memblockq, chunk->length);
             return 0;
         }
@@ -194,11 +194,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
         pa_memblock_unref(tchunk.memblock);
     }
 
-    pa_log_debug("peek fail");
-
     if (pa_sink_input_safe_to_remove(i)) {
-        pa_log_debug("completed to play");
-
         pa_memblockq_free(u->memblockq);
         u->memblockq = NULL;
 
@@ -215,6 +211,8 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     pa_assert(nbytes > 0);
     u = FILE_STREAM(i->userdata);
     file_stream_assert_ref(u);
+
+    pa_log("backwards %lu", (unsigned long) nbytes);
 
     if (!u->memblockq)
         return;
@@ -330,7 +328,7 @@ int pa_play_file(
     data.driver = __FILE__;
     pa_sink_input_new_data_set_sample_spec(&data, &ss);
     pa_sink_input_new_data_set_volume(&data, volume);
-    pa_proplist_sets(data.proplist, PA_PROP_MEDIA_NAME, fname);
+    pa_proplist_sets(data.proplist, PA_PROP_MEDIA_NAME, pa_path_get_filename(fname));
     pa_proplist_sets(data.proplist, PA_PROP_MEDIA_FILENAME, fname);
 
     u->sink_input = pa_sink_input_new(sink->core, &data, 0);

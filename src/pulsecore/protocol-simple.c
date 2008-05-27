@@ -374,6 +374,8 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
     } else {
         size_t m;
 
+        chunk->length = PA_MIN(length, chunk->length);
+
         c->playback.underrun = FALSE;
 
         pa_memblockq_drop(c->input_memblockq, chunk->length);
