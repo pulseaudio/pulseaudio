@@ -752,11 +752,15 @@ static char *get_legacy_runtime_dir(void) {
 
     p = pa_sprintf_malloc("/tmp/pulse-%s", u);
 
-    if (stat(p, &st) < 0)
+    if (stat(p, &st) < 0) {
+        pa_xfree(p);
         return NULL;
+    }
 
-    if (st.st_uid != getuid())
+    if (st.st_uid != getuid()) {
+        pa_xfree(p);
         return NULL;
+    }
 
     return p;
 }
