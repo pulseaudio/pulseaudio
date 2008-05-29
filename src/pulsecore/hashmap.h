@@ -51,9 +51,10 @@ unsigned pa_hashmap_size(pa_hashmap *h);
 
 /* May be used to iterate through the hashmap. Initially the opaque
    pointer *state has to be set to NULL. The hashmap may not be
-   modified during iteration. The key of the entry is returned in
-   *key, if key is non-NULL. After the last entry in the hashmap NULL
-   is returned. */
+   modified during iteration -- except for deleting the current entry
+   via pa_hashmap_remove(). The key of the entry is returned in *key,
+   if key is non-NULL. After the last entry in the hashmap NULL is
+   returned. */
 void *pa_hashmap_iterate(pa_hashmap *h, void **state, const void**key);
 
 void *pa_hashmap_steal_first(pa_hashmap *h);

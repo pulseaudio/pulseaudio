@@ -191,24 +191,36 @@ unsigned pa_hashmap_size(pa_hashmap *h) {
 }
 
 void *pa_hashmap_iterate(pa_hashmap *h, void **state, const void **key) {
+    struct hashmap_entry *e;
+
     pa_assert(h);
     pa_assert(state);
 
-    if (!*state)
-        *state = h->first_entry;
-    else
-        *state = ((struct hashmap_entry*) *state)->next;
+    if (*state == (void*) -1)
+        goto at_end;
 
-    if (!*state) {
-        if (key)
-            *key = NULL;
-        return NULL;
-    }
+    if ((!*state && !h->first_entry))
+        goto at_end;
+
+    e = *state ? *state : h->first_entry;
+
+    if (e->next)
+        *state = e->next;
+    else
+        *state = (void*) -1;
 
     if (key)
-        *key = ((struct hashmap_entry*) *state)->key;
+        *key = e->key;
 
-    return ((struct hashmap_entry*) *state)->value;
+    return e->value;
+
+at_end:
+    *state = (void *) -1;
+
+    if (key)
+        *key = NULL;
+
+    return NULL;
 }
 
 void* pa_hashmap_steal_first(pa_hashmap *h) {
