@@ -40,16 +40,21 @@ PA_C_DECL_BEGIN
  *    media.icon_name
  *    media.role                    video, music, game, event, phone, production, filter, abstract, stream
  *    event.id                      button-click, session-login
- *    event.x11.display
- *    event.x11.xid
- *    event.x11.x_pointer
- *    event.x11.y_pointer
- *    event.x11.button
+ *    event.mouse.x_pointer
+ *    event.mouse.y_pointer
+ *    event.mouse.button
+ *    window.name
+ *    window.id
+ *    window.icon
+ *    window.icon_name
+ *    window.x11.display
+ *    window.x11.xid
  *    application.name              "Rhythmbox Media Player"
  *    application.id                "org.gnome.rhythmbox"
  *    application.version
  *    application.icon
  *    application.icon_name
+ *    application.language
  *    application.process.id
  *    application.process.binary
  *    application.process.user
@@ -67,7 +72,6 @@ PA_C_DECL_BEGIN
  *    device.master_device
  *    device.buffer_size
  */
-
 #define PA_PROP_MEDIA_NAME                     "media.name"
 #define PA_PROP_MEDIA_TITLE                    "media.title"
 #define PA_PROP_MEDIA_ARTIST                   "media.artist"
@@ -77,11 +81,15 @@ PA_C_DECL_BEGIN
 #define PA_PROP_MEDIA_ICON_NAME                "media.icon_name"
 #define PA_PROP_MEDIA_ROLE                     "media.role"
 #define PA_PROP_EVENT_ID                       "event.id"
-#define PA_PROP_EVENT_X11_DISPLAY              "event.x11.display"
-#define PA_PROP_EVENT_X11_XID                  "event.x11.xid"
 #define PA_PROP_EVENT_MOUSE_X                  "event.mouse.x"
 #define PA_PROP_EVENT_MOUSE_Y                  "event.mouse.y"
 #define PA_PROP_EVENT_MOUSE_BUTTON             "event.mouse.button"
+#define PA_PROP_WINDOW_NAME                    "window.name"
+#define PA_PROP_WINDOW_ID                      "window.id"
+#define PA_PROP_WINDOW_ICON                    "window.icon"
+#define PA_PROP_WINDOW_ICON_NAME               "window.icon_name"
+#define PA_PROP_WINDOW_X11_DISPLAY             "window.x11.display"
+#define PA_PROP_WINDOW_X11_XID                 "window.x11.xid"
 #define PA_PROP_APPLICATION_NAME               "application.name"
 #define PA_PROP_APPLICATION_ID                 "application.id"
 #define PA_PROP_APPLICATION_VERSION            "application.version"
@@ -174,9 +182,10 @@ int pa_proplist_unset_many(pa_proplist *p, const char * const keys[]);
  * to this variable should then be passed to pa_proplist_iterate()
  * which should be called in a loop until it returns NULL which
  * signifies EOL. The property list should not be modified during
- * iteration through the list. On each invication this function will
- * return the key string for the next entry. The keys in the property
- * list do not have any particular order. \since 0.9.11 */
+ * iteration through the list -- except for deleting the current
+ * looked at entry. On each invication this function will return the
+ * key string for the next entry. The keys in the property list do not
+ * have any particular order. \since 0.9.11 */
 const char *pa_proplist_iterate(pa_proplist *p, void **state);
 
 /** Format the property list nicely as a human readable string. Call pa_xfree() on the result. \since
