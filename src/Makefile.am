@@ -640,7 +640,7 @@ endif
 
 libpulsedsp_la_SOURCES = utils/padsp.c
 libpulsedsp_la_CFLAGS = $(AM_CFLAGS)
-libpulsedsp_la_LIBADD = $(AM_LIBADD) libpulse.la
+libpulsedsp_la_LIBADD = $(AM_LIBADD) libpulse.la libpulsecore.la
 libpulsedsp_la_LDFLAGS = -avoid-version
 
 ###################################
@@ -924,7 +924,7 @@ libpstream_la_LIBADD = $(AM_LIBADD) libpulsecore.la libpacket.la libiochannel.la
 
 libpstream_util_la_SOURCES = pulsecore/pstream-util.c pulsecore/pstream-util.h
 libpstream_util_la_LDFLAGS = -avoid-version
-libpstream_util_la_LIBADD = $(AM_LIBADD) libpacket.la libpstream.la libtagstruct.la
+libpstream_util_la_LIBADD = $(AM_LIBADD) libpacket.la libpstream.la libtagstruct.la libpulsecore.la
 
 libpdispatch_la_SOURCES = pulsecore/pdispatch.c pulsecore/pdispatch.h
 libpdispatch_la_LDFLAGS = -avoid-version
