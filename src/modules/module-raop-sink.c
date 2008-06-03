@@ -317,13 +317,13 @@ static void thread_func(void *userdata) {
                  * fully filled up. This is the best time to estimate
                  * the playback position of the server */
 
-                n = u->offset;
+                n = u->offset - u->encoding_overhead;
 
 #ifdef SIOCOUTQ
                 {
                     int l;
                     if (ioctl(u->fd, SIOCOUTQ, &l) >= 0 && l > 0)
-                        n -= l;
+                        n -= (l / u->encoding_ratio);
                 }
 #endif
 
