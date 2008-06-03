@@ -380,9 +380,9 @@ static inline int pa_atomic_dec(pa_atomic_t *a) {
 
 /* Returns non-zero when the operation was successful. */
 static inline int pa_atomic_cmpxchg(pa_atomic_t *a, int old_i, int new_i) {
-    int failed = 1;
+    pa_bool_t failed;
     do {
-      failed = __kernel_cmpxchg(old_i, new_i, &a->value);
+      failed = !!__kernel_cmpxchg(old_i, new_i, &a->value);
     } while(failed && a->value == old_i);
     return !failed;
 }
@@ -404,10 +404,10 @@ static inline void pa_atomic_ptr_store(pa_atomic_ptr_t *a, void *p) {
 }
 
 static inline int pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
-    int failed = 1;
+    pa_bool_t failed;
     do {
-        failed = __kernel_cmpxchg_u((unsigned long) old_p, (unsigned long) new_p, &a->value);
-    } while(failed && a->value == old_p);
+        failed = !!__kernel_cmpxchg_u((unsigned long) old_p, (unsigned long) new_p, &a->value);
+    } while(failed && a->value == (unsigned long) old_p);
     return !failed;
 }
 
