@@ -178,10 +178,10 @@ int pa_client_conf_env(pa_client_conf *c) {
 int pa_client_conf_load_cookie(pa_client_conf* c) {
     pa_assert(c);
 
-    c->cookie_valid = FALSE;
-
     if (!c->cookie_file)
         return -1;
+
+    c->cookie_valid = FALSE;
 
     if (pa_authkey_load_auto(c->cookie_file, c->cookie, sizeof(c->cookie)) < 0)
         return -1;
