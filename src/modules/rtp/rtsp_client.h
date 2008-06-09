@@ -66,10 +66,10 @@ void pa_rtsp_remove_header(pa_rtsp_client *c, const char* key);
 int pa_rtsp_announce(pa_rtsp_client* c, const char* sdp);
 
 int pa_rtsp_setup(pa_rtsp_client* c);
-int pa_rtsp_record(pa_rtsp_client* c);
+int pa_rtsp_record(pa_rtsp_client* c, uint16_t* seq, uint32_t* rtptime);
 int pa_rtsp_teardown(pa_rtsp_client* c);
 
 int pa_rtsp_setparameter(pa_rtsp_client* c, const char* param);
-int pa_rtsp_flush(pa_rtsp_client* c);
+int pa_rtsp_flush(pa_rtsp_client* c, uint16_t seq, uint32_t rtptime);
 
 #endif

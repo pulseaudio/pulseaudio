@@ -90,6 +90,9 @@ struct pa_raop_client {
     pa_socket_client *sc;
     int fd;
 
+    uint16_t seq;
+    uint32_t rtptime;
+
     pa_raop_client_cb_t callback;
     void* userdata;
     pa_raop_client_closed_cb_t closed_callback;
@@ -317,7 +320,7 @@ static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* he
             } else {
                 pa_log_warn("Audio Jack Status missing");
             }
-            pa_rtsp_record(c->rtsp);
+            pa_rtsp_record(c->rtsp, &c->seq, &c->rtptime);
             break;
         }
 
@@ -402,8 +405,6 @@ void pa_raop_client_free(pa_raop_client* c)
     pa_xfree(c);
 }
 
-
-static void noop(PA_GCC_UNUSED void* p) {}
 
 int pa_raop_client_encode_sample(pa_raop_client* c, pa_memchunk* raw, pa_memchunk* encoded)
 {

@@ -47,6 +47,8 @@
 #include <pulsecore/strbuf.h>
 #include <pulsecore/poll.h>
 #include <pulsecore/ioline.h>
+#include <pulsecore/time-smoother.h>
+#include <pulsecore/rtclock.h>
 
 #include "rtsp_client.h"
 
@@ -467,9 +469,10 @@ int pa_rtsp_setup(pa_rtsp_client* c) {
 }
 
 
-int pa_rtsp_record(pa_rtsp_client* c) {
+int pa_rtsp_record(pa_rtsp_client* c, uint16_t* seq, uint32_t* rtptime) {
     pa_headerlist* headers;
     int rv;
+    char *info;
 
     pa_assert(c);
     if (!c->session) {
@@ -477,9 +480,14 @@ int pa_rtsp_record(pa_rtsp_client* c) {
         return -1;
     }
 
+    /* Todo: Generate these values randomly as per spec */
+    *seq = *rtptime = 0;
+
     headers = pa_headerlist_new();
     pa_headerlist_puts(headers, "Range", "npt=0-");
-    pa_headerlist_puts(headers, "RTP-Info", "seq=0;rtptime=0");
+    info = pa_sprintf_malloc("seq=%u;rtptime=%u", *seq, *rtptime);
+    pa_headerlist_puts(headers, "RTP-Info", info);
+    pa_xfree(info);
 
     c->state = STATE_RECORD;
     rv = rtsp_exec(c, "RECORD", NULL, NULL, 1, headers);
@@ -506,14 +514,17 @@ int pa_rtsp_setparameter(pa_rtsp_client *c, const char* param) {
 }
 
 
-int pa_rtsp_flush(pa_rtsp_client *c) {
+int pa_rtsp_flush(pa_rtsp_client *c, uint16_t seq, uint32_t rtptime) {
     pa_headerlist* headers;
     int rv;
+    char *info;
 
     pa_assert(c);
 
     headers = pa_headerlist_new();
-    pa_headerlist_puts(headers, "RTP-Info", "seq=0;rtptime=0");
+    info = pa_sprintf_malloc("seq=%u;rtptime=%u", seq, rtptime);
+    pa_headerlist_puts(headers, "RTP-Info", info);
+    pa_xfree(info);
 
     c->state = STATE_FLUSH;
     rv = rtsp_exec(c, "FLUSH", NULL, NULL, 1, headers);
