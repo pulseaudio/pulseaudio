@@ -47,8 +47,6 @@
 #include <pulsecore/strbuf.h>
 #include <pulsecore/poll.h>
 #include <pulsecore/ioline.h>
-#include <pulsecore/time-smoother.h>
-#include <pulsecore/rtclock.h>
 
 #include "rtsp_client.h"
 
