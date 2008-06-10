@@ -336,22 +336,30 @@ static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* he
             break;
         }
 
+        case STATE_FLUSH:
+            pa_log_debug("RAOP: FLUSHED");
+            break;
+
         case STATE_TEARDOWN:
         case STATE_SET_PARAMETER:
-        case STATE_FLUSH:
             break;
         case STATE_DISCONNECTED:
             pa_assert(c->closed_callback);
-            pa_log_debug("RTSP channel closed");
+            pa_assert(c->rtsp);
+
+            pa_log_debug("RTSP control channel closed");
+            pa_rtsp_client_free(c->rtsp);
             c->rtsp = NULL;
             if (c->fd > 0) {
-                pa_close(c->fd);
+                /* We do not close the fd, we leave it to the closed callback to do that */
                 c->fd = -1;
             }
             if (c->sc) {
                 pa_socket_client_unref(c->sc);
                 c->sc = NULL;
             }
+            pa_xfree(c->sid);
+            c->sid = NULL;
             c->closed_callback(c->closed_userdata);
             break;
     }
@@ -359,12 +367,6 @@ static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* he
 
 pa_raop_client* pa_raop_client_new(pa_core *core, const char* host)
 {
-    char *sci;
-    struct {
-        uint32_t a;
-        uint32_t b;
-        uint32_t c;
-    } rand_data;
     pa_raop_client* c = pa_xnew0(pa_raop_client, 1);
 
     pa_assert(core);
@@ -373,22 +375,9 @@ pa_raop_client* pa_raop_client_new(pa_core *core, const char* host)
     c->core = core;
     c->fd = -1;
     c->host = pa_xstrdup(host);
-    c->rtsp = pa_rtsp_client_new("iTunes/4.6 (Macintosh; U; PPC Mac OS X 10.3)");
 
-    /* Initialise the AES encryption system */
-    pa_random(c->aes_iv, sizeof(c->aes_iv));
-    pa_random(c->aes_key, sizeof(c->aes_key));
-    memcpy(c->aes_nv, c->aes_iv, sizeof(c->aes_nv));
-    AES_set_encrypt_key(c->aes_key, 128, &c->aes);
-
-    /* Generate random instance id */
-    pa_random(&rand_data, sizeof(rand_data));
-    c->sid = pa_sprintf_malloc("%u", rand_data.a);
-    sci = pa_sprintf_malloc("%08x%08x",rand_data.b, rand_data.c);
-    pa_rtsp_add_header(c->rtsp, "Client-Instance", sci);
-    pa_rtsp_set_callback(c->rtsp, rtsp_cb, c);
-    if (pa_rtsp_connect(c->rtsp, c->core->mainloop, host, 5000)) {
-        pa_rtsp_client_free(c->rtsp);
+    if (pa_raop_connect(c)) {
+        pa_raop_client_free(c);
         return NULL;
     }
     return c;
@@ -403,6 +392,50 @@ void pa_raop_client_free(pa_raop_client* c)
         pa_rtsp_client_free(c->rtsp);
     pa_xfree(c->host);
     pa_xfree(c);
+}
+
+
+int pa_raop_connect(pa_raop_client* c)
+{
+    char *sci;
+    struct {
+        uint32_t a;
+        uint32_t b;
+        uint32_t c;
+    } rand_data;
+
+    pa_assert(c);
+
+    if (c->rtsp) {
+        pa_log_debug("Connection already in progress");
+        return 0;
+    }
+
+    c->rtsp = pa_rtsp_client_new(c->core->mainloop, c->host, 5000, "iTunes/4.6 (Macintosh; U; PPC Mac OS X 10.3)");
+
+    /* Initialise the AES encryption system */
+    pa_random(c->aes_iv, sizeof(c->aes_iv));
+    pa_random(c->aes_key, sizeof(c->aes_key));
+    memcpy(c->aes_nv, c->aes_iv, sizeof(c->aes_nv));
+    AES_set_encrypt_key(c->aes_key, 128, &c->aes);
+
+    /* Generate random instance id */
+    pa_random(&rand_data, sizeof(rand_data));
+    c->sid = pa_sprintf_malloc("%u", rand_data.a);
+    sci = pa_sprintf_malloc("%08x%08x",rand_data.b, rand_data.c);
+    pa_rtsp_add_header(c->rtsp, "Client-Instance", sci);
+    pa_xfree(sci);
+    pa_rtsp_set_callback(c->rtsp, rtsp_cb, c);
+    return pa_rtsp_connect(c->rtsp);
+}
+
+
+int pa_raop_flush(pa_raop_client* c)
+{
+    pa_assert(c);
+
+    pa_rtsp_flush(c->rtsp, c->seq, c->rtptime);
+    return 0;
 }
 
 
