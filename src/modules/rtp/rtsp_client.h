@@ -42,17 +42,17 @@ typedef enum {
   STATE_ANNOUNCE,
   STATE_SETUP,
   STATE_RECORD,
+  STATE_FLUSH,
   STATE_TEARDOWN,
   STATE_SET_PARAMETER,
-  STATE_FLUSH,
   STATE_DISCONNECTED
 } pa_rtsp_state;
 typedef void (*pa_rtsp_cb_t)(pa_rtsp_client *c, pa_rtsp_state state, pa_headerlist* hl, void *userdata);
 
-pa_rtsp_client* pa_rtsp_client_new(const char* useragent);
+pa_rtsp_client* pa_rtsp_client_new(pa_mainloop_api *mainloop, const char* hostname, uint16_t port, const char* useragent);
 void pa_rtsp_client_free(pa_rtsp_client* c);
 
-int pa_rtsp_connect(pa_rtsp_client* c, pa_mainloop_api *mainloop, const char* hostname, uint16_t port);
+int pa_rtsp_connect(pa_rtsp_client* c);
 void pa_rtsp_set_callback(pa_rtsp_client *c, pa_rtsp_cb_t callback, void *userdata);
 
 void pa_rtsp_disconnect(pa_rtsp_client* c);

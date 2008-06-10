@@ -51,6 +51,10 @@
 #include "rtsp_client.h"
 
 struct pa_rtsp_client {
+    pa_mainloop_api *mainloop;
+    char *hostname;
+    uint16_t port;
+
     pa_socket_client *sc;
     pa_iochannel *io;
     pa_ioline *ioline;
@@ -70,72 +74,23 @@ struct pa_rtsp_client {
 
     char *localip;
     char *url;
-    uint16_t port;
+    uint16_t rtp_port;
     uint32_t cseq;
     char *session;
     char *transport;
 };
 
-static int rtsp_exec(pa_rtsp_client* c, const char* cmd,
-                        const char* content_type, const char* content,
-                        int expect_response,
-                        pa_headerlist* headers) {
-    pa_strbuf* buf;
-    char* hdrs;
-    ssize_t l;
-
-    pa_assert(c);
-    pa_assert(c->url);
-
-    if (!cmd)
-        return -1;
-
-    buf = pa_strbuf_new();
-    pa_strbuf_printf(buf, "%s %s RTSP/1.0\r\nCSeq: %d\r\n", cmd, c->url, ++c->cseq);
-    if (c->session)
-        pa_strbuf_printf(buf, "Session: %s\r\n", c->session);
-
-    /* Add the headers */
-    if (headers) {
-        hdrs = pa_headerlist_to_string(headers);
-        pa_strbuf_puts(buf, hdrs);
-        pa_xfree(hdrs);
-    }
-
-    if (content_type && content) {
-        pa_strbuf_printf(buf, "Content-Type: %s\r\nContent-Length: %d\r\n",
-          content_type, (int)strlen(content));
-    }
-
-    pa_strbuf_printf(buf, "User-Agent: %s\r\n", c->useragent);
-
-    if (c->headers) {
-        hdrs = pa_headerlist_to_string(c->headers);
-        pa_strbuf_puts(buf, hdrs);
-        pa_xfree(hdrs);
-    }
-
-    pa_strbuf_puts(buf, "\r\n");
-
-    if (content_type && content) {
-        pa_strbuf_puts(buf, content);
-    }
-
-    /* Our packet is created... now we can send it :) */
-    hdrs = pa_strbuf_tostring_free(buf);
-    /*pa_log_debug("Submitting request:");
-    pa_log_debug(hdrs);*/
-    l = pa_iochannel_write(c->io, hdrs, strlen(hdrs));
-    pa_xfree(hdrs);
-
-    return 0;
-}
-
-
-pa_rtsp_client* pa_rtsp_client_new(const char* useragent) {
+pa_rtsp_client* pa_rtsp_client_new(pa_mainloop_api *mainloop, const char* hostname, uint16_t port, const char* useragent) {
     pa_rtsp_client *c;
 
+    pa_assert(mainloop);
+    pa_assert(hostname);
+    pa_assert(port > 0);
+
     c = pa_xnew0(pa_rtsp_client, 1);
+    c->mainloop = mainloop;
+    c->hostname = pa_xstrdup(hostname);
+    c->port = port;
     c->headers = pa_headerlist_new();
 
     if (useragent)
@@ -156,6 +111,7 @@ void pa_rtsp_client_free(pa_rtsp_client* c) {
         else if (c->io)
             pa_iochannel_free(c->io);
 
+        pa_xfree(c->hostname);
         pa_xfree(c->url);
         pa_xfree(c->localip);
         pa_xfree(c->session);
@@ -197,14 +153,14 @@ static void headers_read(pa_rtsp_client *c) {
         while ((token = pa_split(c->transport, delimiters, &token_state))) {
             if ((pc = strstr(token, "="))) {
                 if (0 == strncmp(token, "server_port", 11)) {
-                    pa_atou(pc+1, (uint32_t*)(&c->port));
+                    pa_atou(pc+1, (uint32_t*)(&c->rtp_port));
                     pa_xfree(token);
                     break;
                 }
             }
             pa_xfree(token);
         }
-        if (0 == c->port) {
+        if (0 == c->rtp_port) {
             /* Error no server_port in response */
             pa_headerlist_free(c->response_headers);
             c->response_headers = NULL;
@@ -234,7 +190,6 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
         /* Keep the ioline/iochannel open as they will be freed automatically */
         c->ioline = NULL;
         c->io = NULL;
-        pa_rtsp_client_free(c);
         c->callback(c, STATE_DISCONNECTED, NULL, c->userdata);
         return;
     }
@@ -336,8 +291,8 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
 
     pa_assert(sc);
     pa_assert(c);
+    pa_assert(STATE_CONNECT == c->state);
     pa_assert(c->sc == sc);
-
     pa_socket_client_unref(c->sc);
     c->sc = NULL;
 
@@ -368,24 +323,24 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
     }
     pa_log_debug("Established RTSP connection from local ip %s", c->localip);
 
-    c->waiting = 1;
-    c->state = STATE_CONNECT;
     if (c->callback)
         c->callback(c, c->state, NULL, c->userdata);
 }
 
-int pa_rtsp_connect(pa_rtsp_client *c, pa_mainloop_api *mainloop, const char* hostname, uint16_t port) {
+int pa_rtsp_connect(pa_rtsp_client *c) {
     pa_assert(c);
-    pa_assert(mainloop);
-    pa_assert(hostname);
-    pa_assert(port > 0);
+    pa_assert(!c->sc);
 
-    if (!(c->sc = pa_socket_client_new_string(mainloop, hostname, port))) {
-        pa_log("failed to connect to server '%s:%d'", hostname, port);
+    pa_xfree(c->session);
+    c->session = NULL;
+
+    if (!(c->sc = pa_socket_client_new_string(c->mainloop, c->hostname, c->port))) {
+        pa_log("failed to connect to server '%s:%d'", c->hostname, c->port);
         return -1;
     }
 
     pa_socket_client_set_callback(c->sc, on_connection, c);
+    c->waiting = 1;
     c->state = STATE_CONNECT;
     return 0;
 }
@@ -415,7 +370,7 @@ const char* pa_rtsp_localip(pa_rtsp_client* c) {
 uint32_t pa_rtsp_serverport(pa_rtsp_client* c) {
     pa_assert(c);
 
-    return c->port;
+    return c->rtp_port;
 }
 
 void pa_rtsp_set_url(pa_rtsp_client* c, const char* url) {
@@ -440,6 +395,64 @@ void pa_rtsp_remove_header(pa_rtsp_client *c, const char* key)
 
     pa_headerlist_remove(c->headers, key);
 }
+
+static int rtsp_exec(pa_rtsp_client* c, const char* cmd,
+                        const char* content_type, const char* content,
+                        int expect_response,
+                        pa_headerlist* headers) {
+    pa_strbuf* buf;
+    char* hdrs;
+    ssize_t l;
+
+    pa_assert(c);
+    pa_assert(c->url);
+
+    if (!cmd)
+        return -1;
+
+    pa_log_debug("Sending command: %s", cmd);
+
+    buf = pa_strbuf_new();
+    pa_strbuf_printf(buf, "%s %s RTSP/1.0\r\nCSeq: %d\r\n", cmd, c->url, ++c->cseq);
+    if (c->session)
+        pa_strbuf_printf(buf, "Session: %s\r\n", c->session);
+
+    /* Add the headers */
+    if (headers) {
+        hdrs = pa_headerlist_to_string(headers);
+        pa_strbuf_puts(buf, hdrs);
+        pa_xfree(hdrs);
+    }
+
+    if (content_type && content) {
+        pa_strbuf_printf(buf, "Content-Type: %s\r\nContent-Length: %d\r\n",
+          content_type, (int)strlen(content));
+    }
+
+    pa_strbuf_printf(buf, "User-Agent: %s\r\n", c->useragent);
+
+    if (c->headers) {
+        hdrs = pa_headerlist_to_string(c->headers);
+        pa_strbuf_puts(buf, hdrs);
+        pa_xfree(hdrs);
+    }
+
+    pa_strbuf_puts(buf, "\r\n");
+
+    if (content_type && content) {
+        pa_strbuf_puts(buf, content);
+    }
+
+    /* Our packet is created... now we can send it :) */
+    hdrs = pa_strbuf_tostring_free(buf);
+    /*pa_log_debug("Submitting request:");
+    pa_log_debug(hdrs);*/
+    l = pa_iochannel_write(c->io, hdrs, strlen(hdrs));
+    pa_xfree(hdrs);
+
+    return 0;
+}
+
 
 int pa_rtsp_announce(pa_rtsp_client *c, const char* sdp) {
     pa_assert(c);
