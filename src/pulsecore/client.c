@@ -66,18 +66,21 @@ pa_client *pa_client_new(pa_core *core, const char *driver, const char *name) {
 }
 
 void pa_client_free(pa_client *c) {
+    pa_core *core;
+
     pa_assert(c);
     pa_assert(c->core);
 
+    core = c->core;
     pa_idxset_remove_by_data(c->core->clients, c, NULL);
-
-    pa_core_check_quit(c->core);
 
     pa_log_info("Freed %u \"%s\"", c->index, pa_strnull(pa_proplist_gets(c->proplist, PA_PROP_APPLICATION_NAME)));
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_REMOVE, c->index);
     pa_proplist_free(c->proplist);
     pa_xfree(c->driver);
     pa_xfree(c);
+
+    pa_core_check_quit(c->core);
 }
 
 void pa_client_kill(pa_client *c) {
