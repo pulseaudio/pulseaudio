@@ -73,7 +73,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
-        "server=<address> cookie=<filename>  "
+        "server=<address>  "
         "format=<sample format> "
         "channels=<number of channels> "
         "rate=<sample rate>");
