@@ -96,6 +96,8 @@
 #include "ltdl-bind-now.h"
 #include "polkit.h"
 
+#define AUTOSPAWN_LOCK "autospawn.lock"
+
 #ifdef HAVE_LIBWRAP
 /* Only one instance of these variables */
 int allow_severity = LOG_INFO;
@@ -344,6 +346,8 @@ int main(int argc, char *argv[]) {
     pa_time_event *win32_timer;
     struct timeval win32_tv;
 #endif
+    char *lf = NULL;
+    int autospawn_lock_fd = -1;
 
 #if defined(__linux__) && defined(__OPTIMIZE__)
     /*
@@ -486,13 +490,13 @@ int main(int argc, char *argv[]) {
     if (conf->high_priority && !pa_can_high_priority())
         pa_log_warn("High-priority scheduling enabled in configuration but not allowed by policy.");
 
-    if (conf->high_priority && conf->cmd == PA_CMD_DAEMON)
+    if (conf->high_priority && (conf->cmd == PA_CMD_DAEMON || conf->cmd == PA_CMD_START))
         pa_raise_priority(conf->nice_level);
 
     if (suid_root) {
         pa_bool_t drop;
 
-        drop = conf->cmd != PA_CMD_DAEMON || !conf->realtime_scheduling;
+        drop = (conf->cmd != PA_CMD_DAEMON && conf->cmd != PA_CMD_START) || !conf->realtime_scheduling;
 
 #ifdef RLIMIT_RTPRIO
         if (!drop) {
@@ -608,7 +612,7 @@ int main(int argc, char *argv[]) {
             goto finish;
 
         default:
-            pa_assert(conf->cmd == PA_CMD_DAEMON);
+            pa_assert(conf->cmd == PA_CMD_DAEMON || conf->cmd == PA_CMD_START);
     }
 
     if (real_root && !conf->system_instance)
@@ -616,6 +620,15 @@ int main(int argc, char *argv[]) {
     else if (!real_root && conf->system_instance) {
         pa_log("Root priviliges required.");
         goto finish;
+    }
+
+    if (conf->cmd == PA_CMD_START) {
+        /* If we shall start PA only when it is not running yet, we
+         * first take the autospawn lock to make things
+         * synchronous. */
+
+        lf = pa_runtime_path(AUTOSPAWN_LOCK);
+        autospawn_lock_fd = pa_lock_lockfile(lf);
     }
 
     if (conf->daemonize) {
@@ -659,6 +672,14 @@ int main(int argc, char *argv[]) {
                 pa_log_info("Daemon startup successful.");
 
             goto finish;
+        }
+
+        if (autospawn_lock_fd >= 0) {
+            /* The lock file is unlocked from the parent, so we need
+             * to close it in the child */
+
+            pa_close(autospawn_lock_fd);
+            autospawn_lock_fd = -1;
         }
 
         pa_assert_se(pa_close(daemon_pipe[0]) == 0);
@@ -728,7 +749,20 @@ int main(int argc, char *argv[]) {
     pa_log_info("Running in system mode: %s", pa_yes_no(pa_in_system_mode()));
 
     if (conf->use_pid_file) {
-        if (pa_pid_file_create("pulseaudio") < 0) {
+        int z;
+
+        if ((z = pa_pid_file_create("pulseaudio")) != 0) {
+
+            if (conf->cmd == PA_CMD_START && z > 0) {
+                /* If we are already running and with are run in
+                 * --start mode, then let's return this as success. */
+
+                pa_log_info("z=%i rock!", z);
+
+                retval = 0;
+                goto finish;
+            }
+
             pa_log("pa_pid_file_create() failed.");
             goto finish;
         }
@@ -826,11 +860,12 @@ int main(int argc, char *argv[]) {
         goto finish;
     }
 
-
 #ifdef HAVE_FORK
-    if (conf->daemonize) {
+    if (daemon_pipe[1] >= 0) {
         int ok = 0;
         pa_loop_write(daemon_pipe[1], &ok, sizeof(ok), NULL);
+        pa_close(daemon_pipe[1]);
+        daemon_pipe[1] = -1;
     }
 #endif
 
@@ -843,6 +878,12 @@ int main(int argc, char *argv[]) {
     pa_log_info("Daemon shutdown initiated.");
 
 finish:
+
+    if (autospawn_lock_fd >= 0)
+        pa_unlock_lockfile(lf, autospawn_lock_fd);
+
+    if (lf)
+        pa_xfree(lf);
 
 #ifdef OS_IS_WIN32
     if (win32_timer)
@@ -860,6 +901,9 @@ finish:
     pa_signal_done();
 
 #ifdef HAVE_FORK
+    if (daemon_pipe[1] >= 0)
+        pa_loop_write(daemon_pipe[1], &retval, sizeof(retval), NULL);
+
     pa_close_pipe(daemon_pipe);
 #endif
 

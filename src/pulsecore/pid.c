@@ -220,6 +220,7 @@ int pa_pid_file_create(const char *procname) {
 
             if (ours) {
                 pa_log("Daemon already running.");
+                ret = 1;
                 goto fail;
             }
         }

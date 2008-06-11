@@ -66,7 +66,8 @@ enum {
     ARG_DISABLE_SHM,
     ARG_DUMP_RESAMPLE_METHODS,
     ARG_SYSTEM,
-    ARG_CLEANUP_SHM
+    ARG_CLEANUP_SHM,
+    ARG_START
 };
 
 /* Tabel for getopt_long() */
@@ -91,6 +92,7 @@ static const struct option long_options[] = {
     {"dl-search-path",              1, 0, ARG_DL_SEARCH_PATH},
     {"resample-method",             1, 0, ARG_RESAMPLE_METHOD},
     {"kill",                        0, 0, ARG_KILL},
+    {"start",                       0, 0, ARG_START},
     {"use-pid-file",                2, 0, ARG_USE_PID_FILE},
     {"check",                       0, 0, ARG_CHECK},
     {"system",                      2, 0, ARG_SYSTEM},
@@ -119,6 +121,7 @@ void pa_cmdline_help(const char *argv0) {
            "      --dump-modules                    Dump list of available modules\n"
            "      --dump-resample-methods           Dump available resample methods\n"
            "      --cleanup-shm                     Cleanup stale shared memory segments\n"
+           "      --start                           Start the daemon if it is not running\n"
            "  -k  --kill                            Kill a running daemon\n"
            "      --check                           Check for a running daemon\n\n"
 
@@ -205,6 +208,11 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
             case 'k':
             case ARG_KILL:
                 conf->cmd = PA_CMD_KILL;
+                break;
+
+            case ARG_START:
+                conf->cmd = PA_CMD_START;
+                conf->daemonize = TRUE;
                 break;
 
             case ARG_CHECK:

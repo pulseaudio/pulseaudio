@@ -37,6 +37,7 @@
 /* The actual command to execute */
 typedef enum pa_daemon_conf_cmd {
     PA_CMD_DAEMON,  /* the default */
+    PA_CMD_START,
     PA_CMD_HELP,
     PA_CMD_VERSION,
     PA_CMD_DUMP_CONF,

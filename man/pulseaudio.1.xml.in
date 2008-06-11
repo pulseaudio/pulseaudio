@@ -33,6 +33,7 @@ USA.
     <cmd>pulseaudio <opt>--dump-modules</opt></cmd>
     <cmd>pulseaudio <opt>--dump-resample-methods</opt></cmd>
     <cmd>pulseaudio <opt>--cleanup-shm</opt></cmd>
+    <cmd>pulseaudio <opt>--start</opt></cmd>
     <cmd>pulseaudio <opt>--kill</opt></cmd>
     <cmd>pulseaudio <opt>--check</opt></cmd>
   </synopsis>
@@ -88,6 +89,16 @@ USA.
       on systems with POSIX shared memory segments implemented via a
       virtual file system mounted to <file>/dev/shm</file>
       (e.g. Linux).</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>--start</opt></p>
+
+      <optdesc><p>Start PulseAudio if it is not running yet. This is
+      different from starting PulseAudio without <opt>--start</opt>
+      which would fail if PA is already running. PulseAudio is
+      guaranteed to be fully initialized when this call
+      returns. Implies <opt>--daemon</p>.</optdesc>
     </option>
 
     <option>
