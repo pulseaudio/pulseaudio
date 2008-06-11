@@ -1574,13 +1574,13 @@ static void c_locale_destroy(void) {
 }
 #endif
 
-int pa_atof(const char *s, float *ret_f) {
+int pa_atod(const char *s, double *ret_d) {
     char *x = NULL;
-    float f;
+    double f;
     int r = 0;
 
     pa_assert(s);
-    pa_assert(ret_f);
+    pa_assert(ret_d);
 
     /* This should be locale independent */
 
@@ -1595,22 +1595,18 @@ int pa_atof(const char *s, float *ret_f) {
 
     if (c_locale) {
         errno = 0;
-        f = strtof_l(s, &x, c_locale);
+        f = strtod_l(s, &x, c_locale);
     } else
 #endif
     {
         errno = 0;
-#ifdef HAVE_STRTOF
-        f = strtof(s, &x);
-#else
         f = strtod(s, &x);
-#endif
     }
 
     if (!x || *x || errno != 0)
         r =  -1;
     else
-        *ret_f = f;
+        *ret_d = f;
 
     return r;
 }

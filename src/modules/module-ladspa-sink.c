@@ -511,7 +511,7 @@ int pa__init(pa_module*m) {
         p = 0;
 
         while ((k = pa_split(cdata, ",", &state)) && p < n_control) {
-            float f;
+            double f;
 
             if (*k == 0) {
                 use_default[p++] = TRUE;
@@ -519,7 +519,7 @@ int pa__init(pa_module*m) {
                 continue;
             }
 
-            if (pa_atof(k, &f) < 0) {
+            if (pa_atod(k, &f) < 0) {
                 pa_log("Failed to parse control value '%s'", k);
                 pa_xfree(k);
                 goto fail;
