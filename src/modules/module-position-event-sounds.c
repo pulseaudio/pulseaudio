@@ -137,7 +137,7 @@ int pa__init(pa_module*m) {
 
     m->userdata = u = pa_xnew(struct userdata, 1);
     u->core = m->core;
-    u->sink_input_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], (pa_hook_cb_t) sink_input_fixate_hook_callback, u);
+    u->sink_input_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], PA_HOOK_EARLY, (pa_hook_cb_t) sink_input_fixate_hook_callback, u);
 
     pa_modargs_free(ma);
 

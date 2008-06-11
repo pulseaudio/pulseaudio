@@ -33,17 +33,13 @@ void pa_hook_init(pa_hook *hook, void *data) {
     pa_assert(hook);
 
     PA_LLIST_HEAD_INIT(pa_hook_slot, hook->slots);
-    hook->last = NULL;
-    hook->n_dead = hook->firing = 0;
+    hook->n_dead = hook->n_firing = 0;
     hook->data = data;
 }
 
 static void slot_free(pa_hook *hook, pa_hook_slot *slot) {
     pa_assert(hook);
     pa_assert(slot);
-
-    if (hook->last == slot)
-        hook->last = slot->prev;
 
     PA_LLIST_REMOVE(pa_hook_slot, hook->slots, slot);
 
@@ -52,7 +48,7 @@ static void slot_free(pa_hook *hook, pa_hook_slot *slot) {
 
 void pa_hook_free(pa_hook *hook) {
     pa_assert(hook);
-    pa_assert(!hook->firing);
+    pa_assert(hook->n_firing == 0);
 
     while (hook->slots)
         slot_free(hook, hook->slots);
@@ -60,19 +56,26 @@ void pa_hook_free(pa_hook *hook) {
     pa_hook_init(hook, NULL);
 }
 
-pa_hook_slot* pa_hook_connect(pa_hook *hook, pa_hook_cb_t cb, void *data) {
-    pa_hook_slot *slot;
+pa_hook_slot* pa_hook_connect(pa_hook *hook, pa_hook_priority_t prio, pa_hook_cb_t cb, void *data) {
+    pa_hook_slot *slot, *where, *prev;
 
     pa_assert(cb);
 
     slot = pa_xnew(pa_hook_slot, 1);
     slot->hook = hook;
-    slot->dead = 0;
+    slot->dead = FALSE;
     slot->callback = cb;
     slot->data = data;
+    slot->priority = prio;
 
-    PA_LLIST_INSERT_AFTER(pa_hook_slot, hook->slots, hook->last, slot);
-    hook->last = slot;
+    prev = NULL;
+    for (where = hook->slots; where; where = where->next) {
+        if (prio < where->priority)
+            break;
+        prev = where;
+    }
+
+    PA_LLIST_INSERT_AFTER(pa_hook_slot, hook->slots, prev, slot);
 
     return slot;
 }
@@ -81,8 +84,8 @@ void pa_hook_slot_free(pa_hook_slot *slot) {
     pa_assert(slot);
     pa_assert(!slot->dead);
 
-    if (slot->hook->firing > 0) {
-        slot->dead = 1;
+    if (slot->hook->n_firing > 0) {
+        slot->dead = TRUE;
         slot->hook->n_dead++;
     } else
         slot_free(slot->hook, slot);
@@ -94,7 +97,7 @@ pa_hook_result_t pa_hook_fire(pa_hook *hook, void *data) {
 
     pa_assert(hook);
 
-    hook->firing ++;
+    hook->n_firing ++;
 
     for (slot = hook->slots; slot; slot = slot->next) {
         if (slot->dead)
@@ -104,7 +107,8 @@ pa_hook_result_t pa_hook_fire(pa_hook *hook, void *data) {
             break;
     }
 
-    hook->firing --;
+    hook->n_firing --;
+    pa_assert(hook->n_firing >= 0);
 
     for (slot = hook->slots; hook->n_dead > 0 && slot; slot = next) {
         next = slot->next;
@@ -115,6 +119,7 @@ pa_hook_result_t pa_hook_fire(pa_hook *hook, void *data) {
         }
     }
 
+    pa_assert(hook->n_dead == 0);
+
     return result;
 }
-

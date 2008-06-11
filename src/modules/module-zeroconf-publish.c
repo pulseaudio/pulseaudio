@@ -578,12 +578,12 @@ int pa__init(pa_module*m) {
 
     u->services = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
-    u->sink_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], (pa_hook_cb_t) device_new_or_changed_cb, u);
-    u->sink_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PROPLIST_CHANGED], (pa_hook_cb_t) device_new_or_changed_cb, u);
-    u->sink_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], (pa_hook_cb_t) device_unlink_cb, u);
-    u->source_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], (pa_hook_cb_t) device_new_or_changed_cb, u);
-    u->source_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PROPLIST_CHANGED], (pa_hook_cb_t) device_new_or_changed_cb, u);
-    u->source_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], (pa_hook_cb_t) device_unlink_cb, u);
+    u->sink_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE, (pa_hook_cb_t) device_new_or_changed_cb, u);
+    u->sink_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PROPLIST_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) device_new_or_changed_cb, u);
+    u->sink_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) device_unlink_cb, u);
+    u->source_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE, (pa_hook_cb_t) device_new_or_changed_cb, u);
+    u->source_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PROPLIST_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) device_new_or_changed_cb, u);
+    u->source_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) device_unlink_cb, u);
 
     u->main_entry_group = NULL;
 

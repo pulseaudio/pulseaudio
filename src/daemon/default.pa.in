@@ -74,11 +74,14 @@ load-module module-default-device-restore
 ### connected to dies, similar for sources
 load-module module-rescue-streams
 
+### Make sure we always have a sink around, even if it is a null sink.
+load-module module-always-sink
+
 ### Automatically suspend sinks/sources that become idle for too long
 load-module module-suspend-on-idle
 
 ### Load X11 bell module
-#load-module module-x11-bell sample=x11-bell
+#load-module module-x11-bell sample=bell-windowing-system
 
 ### Register ourselves in the X11 session manager
 # Deactivated by default, to avoid deadlock when PA is started as esd from gnome-session

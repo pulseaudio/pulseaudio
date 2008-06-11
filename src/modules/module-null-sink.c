@@ -59,8 +59,8 @@ PA_MODULE_USAGE(
         "format=<sample format> "
         "channels=<number of channels> "
         "rate=<sample rate> "
-        "sink_name=<name of sink>"
-        "channel_map=<channel map>"
+        "sink_name=<name of sink> "
+        "channel_map=<channel map> "
         "description=<description for the sink>");
 
 #define DEFAULT_SINK_NAME "null"
