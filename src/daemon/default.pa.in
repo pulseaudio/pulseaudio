@@ -83,7 +83,14 @@ load-module module-suspend-on-idle
 ### Register ourselves in the X11 session manager
 # Deactivated by default, to avoid deadlock when PA is started as esd from gnome-session
 # Instead we load this via /etc/xdg/autostart/ and "pactl load-module" now
-# load-module module-x11-xsmp
+#load-module module-x11-xsmp
+
+### If autoexit on idle is enabled we want to make sure we only quit
+### when no local session needs us anymore.
+load-module module-console-kit
+
+### Enable positioned event sounds
+load-module module-position-event-sounds
 
 ### Load additional modules from GConf settings. This can be configured with the paprefs tool.
 ### Please keep in mind that the modules configured by paprefs might conflict with manually
