@@ -816,7 +816,7 @@ int pa_context_connect(
         /* The system wide instance */
         c->server_list = pa_strlist_prepend(c->server_list, PA_SYSTEM_RUNTIME_PATH PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET);
 
-        /* The old per-user instance path. This is supported only to easy upgrades */
+        /* The old per-user instance path. This is supported only to ease upgrades */
         if ((legacy_dir = get_legacy_runtime_dir())) {
             char *p = pa_sprintf_malloc("%s" PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET, legacy_dir);
             c->server_list = pa_strlist_prepend(c->server_list, p);
