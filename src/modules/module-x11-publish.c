@@ -54,7 +54,7 @@
 #include "module-x11-publish-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");
-PA_MODULE_DESCRIPTION("X11 Credential Publisher");
+PA_MODULE_DESCRIPTION("X11 credential publisher");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE("display=<X11 display>");
@@ -69,16 +69,39 @@ static const char* const valid_modargs[] = {
 
 struct userdata {
     pa_core *core;
-    pa_x11_wrapper *x11_wrapper;
+    pa_module *module;
+
     char *id;
     uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
-    int auth_cookie_in_property;
+    pa_bool_t auth_cookie_in_property;
+
+    pa_x11_wrapper *x11_wrapper;
+    pa_x11_client *x11_client;
 };
+
+static void x11_kill_cb(pa_x11_wrapper *w, void *userdata) {
+    struct userdata *u = userdata;
+
+    pa_assert(w);
+    pa_assert(u);
+    pa_assert(u->x11_wrapper == w);
+
+    if (u->x11_client)
+        pa_x11_client_free(u->x11_client);
+
+    if (u->x11_wrapper)
+        pa_x11_wrapper_unref(u->x11_wrapper);
+
+    u->x11_client = NULL;
+    u->x11_wrapper = NULL;
+
+    pa_module_unload_request(u->module);
+}
 
 static int load_key(struct userdata *u, const char*fn) {
     pa_assert(u);
 
-    u->auth_cookie_in_property = 0;
+    u->auth_cookie_in_property = FALSE;
 
     if (!fn && pa_authkey_prop_get(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0) {
         pa_log_debug("using already loaded auth cookie.");
@@ -96,7 +119,7 @@ static int load_key(struct userdata *u, const char*fn) {
     pa_log_debug("Loading cookie from disk.");
 
     if (pa_authkey_prop_put(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0)
-        u->auth_cookie_in_property = 1;
+        u->auth_cookie_in_property = TRUE;
 
     return 0;
 }
@@ -117,10 +140,13 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    m->userdata = u = pa_xmalloc(sizeof(struct userdata));
+    m->userdata = u = pa_xnew(struct userdata, 1);
     u->core = m->core;
+    u->module = m;
     u->id = NULL;
-    u->auth_cookie_in_property = 0;
+    u->auth_cookie_in_property = FALSE;
+    u->x11_client = NULL;
+    u->x11_wrapper = NULL;
 
     if (load_key(u, pa_modargs_get_value(ma, "cookie", NULL)) < 0)
         goto fail;
@@ -152,7 +178,10 @@ int pa__init(pa_module*m) {
 
     pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_COOKIE", pa_hexstr(u->auth_cookie, sizeof(u->auth_cookie), hx, sizeof(hx)));
 
+    u->x11_client = pa_x11_client_new(u->x11_wrapper, NULL, x11_kill_cb, u);
+
     pa_modargs_free(ma);
+
     return 0;
 
 fail:
@@ -160,6 +189,7 @@ fail:
         pa_modargs_free(ma);
 
     pa__done(m);
+
     return -1;
 }
 
@@ -170,6 +200,9 @@ void pa__done(pa_module*m) {
 
     if (!(u = m->userdata))
         return;
+
+    if (u->x11_client)
+        pa_x11_client_free(u->x11_client);
 
     if (u->x11_wrapper) {
         char t[256];
@@ -185,10 +218,9 @@ void pa__done(pa_module*m) {
             pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_COOKIE");
             XSync(pa_x11_wrapper_get_display(u->x11_wrapper), False);
         }
-    }
 
-    if (u->x11_wrapper)
         pa_x11_wrapper_unref(u->x11_wrapper);
+    }
 
     if (u->auth_cookie_in_property)
         pa_authkey_prop_unref(m->core, PA_NATIVE_COOKIE_PROPERTY_NAME);

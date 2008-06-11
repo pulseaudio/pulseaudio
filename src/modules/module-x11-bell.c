@@ -45,20 +45,10 @@
 #include "module-x11-bell-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");
-PA_MODULE_DESCRIPTION("X11 Bell interceptor");
+PA_MODULE_DESCRIPTION("X11 bell interceptor");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE("sink=<sink to connect to> sample=<sample name> display=<X11 display>");
-
-struct userdata {
-    pa_core *core;
-    int xkb_event_base;
-    char *sink_name;
-    char *scache_item;
-
-    pa_x11_wrapper *x11_wrapper;
-    pa_x11_client *x11_client;
-};
 
 static const char* const valid_modargs[] = {
     "sink",
@@ -67,7 +57,20 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-static int x11_event_callback(pa_x11_wrapper *w, XEvent *e, void *userdata) {
+struct userdata {
+    pa_core *core;
+    pa_module *module;
+
+    int xkb_event_base;
+
+    char *sink_name;
+    char *scache_item;
+
+    pa_x11_wrapper *x11_wrapper;
+    pa_x11_client *x11_client;
+};
+
+static int x11_event_cb(pa_x11_wrapper *w, XEvent *e, void *userdata) {
     XkbBellNotifyEvent *bne;
     struct userdata *u = userdata;
 
@@ -89,6 +92,25 @@ static int x11_event_callback(pa_x11_wrapper *w, XEvent *e, void *userdata) {
     return 1;
 }
 
+static void x11_kill_cb(pa_x11_wrapper *w, void *userdata) {
+    struct userdata *u = userdata;
+
+    pa_assert(w);
+    pa_assert(u);
+    pa_assert(u->x11_wrapper == w);
+
+    if (u->x11_client)
+        pa_x11_client_free(u->x11_client);
+
+    if (u->x11_wrapper)
+        pa_x11_wrapper_unref(u->x11_wrapper);
+
+    u->x11_client = NULL;
+    u->x11_wrapper = NULL;
+
+    pa_module_unload_request(u->module);
+}
+
 int pa__init(pa_module*m) {
 
     struct userdata *u = NULL;
@@ -105,7 +127,8 @@ int pa__init(pa_module*m) {
 
     m->userdata = u = pa_xnew(struct userdata, 1);
     u->core = m->core;
-    u->scache_item = pa_xstrdup(pa_modargs_get_value(ma, "sample", "x11-bell"));
+    u->module = m;
+    u->scache_item = pa_xstrdup(pa_modargs_get_value(ma, "sample", "bell-window-system"));
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
     u->x11_client = NULL;
 
@@ -133,7 +156,7 @@ int pa__init(pa_module*m) {
     XkbSetAutoResetControls(pa_x11_wrapper_get_display(u->x11_wrapper), XkbAudibleBellMask, &auto_ctrls, &auto_values);
     XkbChangeEnabledControls(pa_x11_wrapper_get_display(u->x11_wrapper), XkbUseCoreKbd, XkbAudibleBellMask, 0);
 
-    u->x11_client = pa_x11_client_new(u->x11_wrapper, x11_event_callback, u);
+    u->x11_client = pa_x11_client_new(u->x11_wrapper, x11_event_cb, x11_kill_cb, u);
 
     pa_modargs_free(ma);
 
@@ -153,10 +176,8 @@ void pa__done(pa_module*m) {
 
     pa_assert(m);
 
-    if (!m->userdata)
+    if (!(u = m->userdata))
         return;
-
-    u = m->userdata;
 
     pa_xfree(u->scache_item);
     pa_xfree(u->sink_name);

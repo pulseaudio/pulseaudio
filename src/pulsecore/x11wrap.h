@@ -30,6 +30,11 @@
 
 typedef struct pa_x11_wrapper pa_x11_wrapper;
 
+typedef struct pa_x11_client pa_x11_client;
+
+typedef int (*pa_x11_event_cb_t)(pa_x11_wrapper *w, XEvent *e, void *userdata);
+typedef void (*pa_x11_kill_cb_t)(pa_x11_wrapper *w, void *userdata);
+
 /* Return the X11 wrapper for this core. In case no wrapper was
     existant before, allocate a new one */
 pa_x11_wrapper* pa_x11_wrapper_get(pa_core *c, const char *name);
@@ -43,10 +48,11 @@ void pa_x11_wrapper_unref(pa_x11_wrapper* w);
 /* Return the X11 display object for this connection */
 Display *pa_x11_wrapper_get_display(pa_x11_wrapper *w);
 
-typedef struct pa_x11_client pa_x11_client;
+/* Kill the connection to the X11 display */
+void pa_x11_wrapper_kill(pa_x11_wrapper *w);
 
 /* Register an X11 client, that is called for each X11 event */
-pa_x11_client* pa_x11_client_new(pa_x11_wrapper *w, int (*cb)(pa_x11_wrapper *w, XEvent *e, void *userdata), void *userdata);
+pa_x11_client* pa_x11_client_new(pa_x11_wrapper *w, pa_x11_event_cb_t event_cb, pa_x11_kill_cb_t kill_cb, void *userdata);
 
 /* Free an X11 client object */
 void pa_x11_client_free(pa_x11_client *c);

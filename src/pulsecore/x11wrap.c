@@ -63,7 +63,8 @@ struct pa_x11_wrapper {
 struct pa_x11_client {
     PA_LLIST_FIELDS(pa_x11_client);
     pa_x11_wrapper *wrapper;
-    int (*callback)(pa_x11_wrapper *w, XEvent *e, void *userdata);
+    pa_x11_event_cb_t event_cb;
+    pa_x11_kill_cb_t kill_cb;
     void *userdata;
 };
 
@@ -72,17 +73,23 @@ static void work(pa_x11_wrapper *w) {
     pa_assert(w);
     pa_assert(PA_REFCNT_VALUE(w) >= 1);
 
+    pa_x11_wrapper_ref(w);
+
     while (XPending(w->display)) {
-        pa_x11_client *c;
+        pa_x11_client *c, *n;
         XEvent e;
         XNextEvent(w->display, &e);
 
-        for (c = w->clients; c; c = c->next) {
-            pa_assert(c->callback);
-            if (c->callback(w, &e, c->userdata) != 0)
-                break;
+        for (c = w->clients; c; c = n) {
+            n = c->next;
+
+            if (c->event_cb)
+                if (c->event_cb(w, &e, c->userdata) != 0)
+                    break;
         }
     }
+
+    pa_x11_wrapper_unref(w);
 }
 
 /* IO notification event for the X11 display connection */
@@ -251,7 +258,24 @@ Display *pa_x11_wrapper_get_display(pa_x11_wrapper *w) {
     return w->display;
 }
 
-pa_x11_client* pa_x11_client_new(pa_x11_wrapper *w, int (*cb)(pa_x11_wrapper *w, XEvent *e, void *userdata), void *userdata) {
+void pa_x11_wrapper_kill(pa_x11_wrapper *w) {
+    pa_x11_client *c, *n;
+
+    pa_assert(w);
+
+    pa_x11_wrapper_ref(w);
+
+    for (c = w->clients; c; c = n) {
+        n = c->next;
+
+        if (c->kill_cb)
+            c->kill_cb(w, c->userdata);
+    }
+
+    pa_x11_wrapper_unref(w);
+}
+
+pa_x11_client* pa_x11_client_new(pa_x11_wrapper *w, pa_x11_event_cb_t event_cb, pa_x11_kill_cb_t kill_cb, void *userdata) {
     pa_x11_client *c;
 
     pa_assert(w);
@@ -259,7 +283,8 @@ pa_x11_client* pa_x11_client_new(pa_x11_wrapper *w, int (*cb)(pa_x11_wrapper *w,
 
     c = pa_xnew(pa_x11_client, 1);
     c->wrapper = w;
-    c->callback = cb;
+    c->event_cb = event_cb;
+    c->kill_cb = kill_cb;
     c->userdata = userdata;
 
     PA_LLIST_PREPEND(pa_x11_client, w->clients, c);
