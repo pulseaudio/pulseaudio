@@ -1138,6 +1138,12 @@ modlibexec_LTLIBRARIES += \
 		module-hal-detect.la
 endif
 
+if HAVE_DBUS
+modlibexec_LTLIBRARIES += \
+		libdbus-util.la \
+		module-console-kit.la
+endif
+
 if HAVE_BLUEZ
 modlibexec_LTLIBRARIES += \
 		module-bt-proximity.la
@@ -1199,7 +1205,8 @@ SYMDEF_FILES = \
 		modules/module-hal-detect-symdef.h \
 		modules/module-bt-proximity-symdef.h \
 		modules/gconf/module-gconf-symdef.h \
-		modules/module-position-event-sounds-symdef.h
+		modules/module-position-event-sounds-symdef.h \
+		modules/module-console-kit-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
@@ -1487,7 +1494,7 @@ module_jack_source_la_LDFLAGS = -module -avoid-version
 module_jack_source_la_LIBADD = $(AM_LIBADD) libpulsecore.la $(JACK_LIBS)
 module_jack_source_la_CFLAGS = $(AM_CFLAGS) $(JACK_CFLAGS)
 
-# HAL
+# HAL/D-Bus
 libdbus_util_la_SOURCES = modules/dbus-util.c modules/dbus-util.h
 libdbus_util_la_LDFLAGS = -avoid-version
 libdbus_util_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la
@@ -1497,6 +1504,11 @@ module_hal_detect_la_SOURCES = modules/module-hal-detect.c
 module_hal_detect_la_LDFLAGS = -module -avoid-version
 module_hal_detect_la_LIBADD = $(AM_LIBADD) $(HAL_LIBS) libpulsecore.la libdbus-util.la
 module_hal_detect_la_CFLAGS = $(AM_CFLAGS) $(HAL_CFLAGS)
+
+module_console_kit_la_SOURCES = modules/module-console-kit.c
+module_console_kit_la_LDFLAGS = -module -avoid-version
+module_console_kit_la_LIBADD = $(AM_LIBADD) $(HAL_LIBS) libpulsecore.la libdbus-util.la
+module_console_kit_la_CFLAGS = $(AM_CFLAGS) $(HAL_CFLAGS)
 
 # GConf support
 module_gconf_la_SOURCES = modules/gconf/module-gconf.c
