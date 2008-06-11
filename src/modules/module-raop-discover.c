@@ -3,6 +3,7 @@
 /***
   This file is part of PulseAudio.
 
+  Copyright 2004-2006 Lennart Poettering
   Copyright 2008 Colin Guthrie
 
   PulseAudio is free software; you can redistribute it and/or modify
