@@ -209,11 +209,16 @@ static void quit_callback(pa_mainloop_api*m, pa_time_event *e, PA_GCC_UNUSED con
 void pa_core_check_quit(pa_core *c) {
     pa_assert(c);
 
-    if (!c->quit_event && c->exit_idle_time >= 0 && pa_idxset_size(c->clients) == 0) {
+    if (!c->quit_event &&
+        c->exit_idle_time >= 0 &&
+        pa_idxset_size(c->clients) == 0) {
+
         struct timeval tv;
         pa_gettimeofday(&tv);
         tv.tv_sec+= c->exit_idle_time;
+
         c->quit_event = c->mainloop->time_new(c->mainloop, &tv, quit_callback, c);
+
     } else if (c->quit_event && pa_idxset_size(c->clients) > 0) {
         c->mainloop->time_free(c->quit_event);
         c->quit_event = NULL;
