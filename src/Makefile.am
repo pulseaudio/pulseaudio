@@ -1033,7 +1033,9 @@ modlibexec_LTLIBRARIES += \
 		module-ladspa-sink.la \
 		module-esound-sink.la \
 		module-tunnel-sink.la \
-		module-tunnel-source.la
+		module-tunnel-source.la \
+		module-position-event-sounds.la
+
 
 # See comment at librtp.la above
 if !OS_IS_WIN32
@@ -1196,7 +1198,8 @@ SYMDEF_FILES = \
 		modules/module-suspend-on-idle-symdef.h \
 		modules/module-hal-detect-symdef.h \
 		modules/module-bt-proximity-symdef.h \
-		modules/gconf/module-gconf-symdef.h
+		modules/gconf/module-gconf-symdef.h \
+		modules/module-position-event-sounds-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
@@ -1430,6 +1433,12 @@ module_volume_restore_la_SOURCES = modules/module-volume-restore.c
 module_volume_restore_la_LDFLAGS = -module -avoid-version
 module_volume_restore_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 module_volume_restore_la_CFLAGS = $(AM_CFLAGS)
+
+# Position event sounds in space
+module_position_event_sounds_la_SOURCES = modules/module-position-event-sounds.c
+module_position_event_sounds_la_LDFLAGS = -module -avoid-version
+module_position_event_sounds_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+module_position_event_sounds_CFLAGS = $(AM_CFLAGS)
 
 # Device volume restore module
 module_device_restore_la_SOURCES = modules/module-device-restore.c
