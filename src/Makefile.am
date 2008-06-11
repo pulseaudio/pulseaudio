@@ -1127,7 +1127,8 @@ endif
 if HAVE_AVAHI
 modlibexec_LTLIBRARIES += \
 		module-zeroconf-publish.la \
-		module-zeroconf-discover.la
+		module-zeroconf-discover.la \
+		module-raop-discover.la
 endif
 
 if HAVE_LIRC
@@ -1207,7 +1208,6 @@ SYMDEF_FILES = \
 		modules/module-esound-compat-spawnfd-symdef.h \
 		modules/module-esound-compat-spawnpid-symdef.h \
 		modules/module-match-symdef.h \
-		modules/module-raop-sink-symdef.h \
 		modules/module-tunnel-sink-symdef.h \
 		modules/module-tunnel-source-symdef.h \
 		modules/module-null-sink-symdef.h \
@@ -1242,6 +1242,8 @@ SYMDEF_FILES = \
 		modules/bluetooth/module-bluetooth-proximity-symdef.h \
 		modules/bluetooth/module-bluetooth-discover-symdef.h \
 		modules/bluetooth/module-bluetooth-device-symdef.h \
+		modules/module-raop-sink-symdef.h \
+		modules/module-raop-discover-symdef.h \
 		modules/gconf/module-gconf-symdef.h \
 		modules/module-position-event-sounds-symdef.h \
 		modules/module-console-kit-symdef.h
@@ -1375,10 +1377,6 @@ module_ladspa_sink_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) libpulsecore.la
 module_match_la_SOURCES = modules/module-match.c
 module_match_la_LDFLAGS = -module -avoid-version
 module_match_la_LIBADD = $(AM_LIBADD) libpulsecore.la
-
-module_raop_sink_la_SOURCES = modules/module-raop-sink.c
-module_raop_sink_la_LDFLAGS = -module -avoid-version
-module_raop_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libiochannel.la librtp.la
 
 module_tunnel_sink_la_SOURCES = modules/module-tunnel.c
 module_tunnel_sink_la_CFLAGS = -DTUNNEL_SINK=1 $(AM_CFLAGS)
@@ -1607,6 +1605,17 @@ module_bluetooth_device_la_SOURCES = modules/bluetooth/module-bluetooth-device.c
 module_bluetooth_device_la_LDFLAGS = -module -avoid-version
 module_bluetooth_device_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la libdbus-util.la libbluetooth-ipc.la libbluetooth-sbc.la libsocket-util.la
 module_bluetooth_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
+
+# Apple Airtunes/RAOP
+module_raop_sink_la_SOURCES = modules/module-raop-sink.c
+module_raop_sink_la_LDFLAGS = -module -avoid-version
+module_raop_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libiochannel.la librtp.la
+
+module_raop_discover_la_SOURCES = modules/module-raop-discover.c
+module_raop_discover_la_LDFLAGS = -module -avoid-version
+module_raop_discover_la_LIBADD = $(AM_LIBADD) $(AVAHI_LIBS) libavahi-wrap.la libpulsecore.la
+module_raop_discover_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
+
 
 ###################################
 #        Some minor stuff         #
