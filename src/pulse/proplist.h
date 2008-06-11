@@ -40,14 +40,18 @@ PA_C_DECL_BEGIN
  *    media.icon_name
  *    media.role                    video, music, game, event, phone, production, filter, abstract, stream
  *    event.id                      button-click, session-login
- *    event.mouse.x_pointer
- *    event.mouse.y_pointer
+ *    event.mouse.x
+ *    event.mouse.y
+ *    event.mouse.hpos
+ *    event.mouse.vpos
  *    event.mouse.button
  *    window.name
  *    window.id
  *    window.icon
  *    window.icon_name
  *    window.x11.display
+ *    window.x11.screen
+ *    window.x11.monitor
  *    window.x11.xid
  *    application.name              "Rhythmbox Media Player"
  *    application.id                "org.gnome.rhythmbox"
@@ -70,7 +74,8 @@ PA_C_DECL_BEGIN
  *    device.connector               isa, pci, usb, firewire, bluetooth
  *    device.access_mode             mmap, mmap_rewrite, serial
  *    device.master_device
- *    device.buffer_size
+ *    device.bufferin.buffer_size
+ *    device.bufferin.fragment_size
  */
 #define PA_PROP_MEDIA_NAME                     "media.name"
 #define PA_PROP_MEDIA_TITLE                    "media.title"
@@ -83,12 +88,16 @@ PA_C_DECL_BEGIN
 #define PA_PROP_EVENT_ID                       "event.id"
 #define PA_PROP_EVENT_MOUSE_X                  "event.mouse.x"
 #define PA_PROP_EVENT_MOUSE_Y                  "event.mouse.y"
+#define PA_PROP_EVENT_MOUSE_HPOS               "event.mouse.hpos"
+#define PA_PROP_EVENT_MOUSE_VPOS               "event.mouse.vpos"
 #define PA_PROP_EVENT_MOUSE_BUTTON             "event.mouse.button"
 #define PA_PROP_WINDOW_NAME                    "window.name"
 #define PA_PROP_WINDOW_ID                      "window.id"
 #define PA_PROP_WINDOW_ICON                    "window.icon"
 #define PA_PROP_WINDOW_ICON_NAME               "window.icon_name"
 #define PA_PROP_WINDOW_X11_DISPLAY             "window.x11.display"
+#define PA_PROP_WINDOW_X11_SCREEN              "window.x11.screen"
+#define PA_PROP_WINDOW_X11_MONITOR             "window.x11.monitor"
 #define PA_PROP_WINDOW_X11_XID                 "window.x11.xid"
 #define PA_PROP_APPLICATION_NAME               "application.name"
 #define PA_PROP_APPLICATION_ID                 "application.id"
