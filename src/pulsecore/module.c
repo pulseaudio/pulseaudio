@@ -120,7 +120,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     if (!c->modules)
         c->modules = pa_idxset_new(NULL, NULL);
 
-    if (!c->module_auto_unload_event) {
+    if (m->auto_unload && !c->module_auto_unload_event) {
         struct timeval ntv;
         pa_gettimeofday(&ntv);
         pa_timeval_add(&ntv, UNLOAD_POLL_TIME*1000000);
