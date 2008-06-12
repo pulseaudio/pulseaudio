@@ -47,8 +47,6 @@
 #include <pulsecore/core-scache.h>
 #include <pulsecore/modargs.h>
 
-#include <hal/libhal.h>
-
 #include "dbus-util.h"
 #include "module-console-kit-symdef.h"
 
