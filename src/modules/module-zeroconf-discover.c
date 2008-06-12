@@ -237,7 +237,7 @@ static void resolver_cb(
                                  t, dname,
                                  pa_channel_map_snprint(cmt, sizeof(cmt), &cm));
 
-        pa_log_debug("Loading module-tunnel-%s with arguments '%s'", module_name, args);
+        pa_log_debug("Loading %s with arguments '%s'", module_name, args);
 
         if ((m = pa_module_load(u->core, module_name, args))) {
             tnl->module_index = m->index;
