@@ -53,6 +53,12 @@ static int add_key_value(pa_hashmap *map, char *key, char *value, const char* co
     pa_assert(key);
     pa_assert(value);
 
+    if (pa_hashmap_get(map, key)) {
+        pa_xfree(key);
+        pa_xfree(value);
+        return -1;
+    }
+
     if (valid_keys) {
         const char*const* v;
         for (v = valid_keys; *v; v++)
@@ -80,7 +86,15 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
     map = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
     if (args) {
-        enum { WHITESPACE, KEY, VALUE_START, VALUE_SIMPLE, VALUE_DOUBLE_QUOTES, VALUE_TICKS } state;
+        enum {
+            WHITESPACE,
+            KEY,
+            VALUE_START,
+            VALUE_SIMPLE,
+            VALUE_DOUBLE_QUOTES,
+            VALUE_TICKS
+        } state;
+
         const char *p, *key, *value;
         size_t key_len = 0, value_len = 0;
 
@@ -100,6 +114,8 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
                 case KEY:
                     if (*p == '=')
                         state = VALUE_START;
+                    else if (isspace(*p))
+                        goto fail;
                     else
                         key_len++;
                     break;
