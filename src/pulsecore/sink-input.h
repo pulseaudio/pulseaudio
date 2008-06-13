@@ -80,6 +80,11 @@ struct pa_sink_input {
 
     pa_sink *sink;
 
+    /* A sink input may be connected to multiple source outputs
+     * directly, so that they don't get mixed data of the entire
+     * source. */
+    pa_idxset *direct_outputs;
+
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
 
@@ -166,6 +171,8 @@ struct pa_sink_input {
 
         /* The requested latency for the sink */
         pa_usec_t requested_sink_latency;
+
+        pa_hashmap *direct_outputs;
     } thread_info;
 
     void *userdata;

@@ -106,6 +106,8 @@ struct pa_stream {
     pa_context *context;
     pa_mainloop_api *mainloop;
 
+    uint32_t direct_on_input;
+
     pa_stream_direction_t direction;
     pa_stream_state_t state;
     pa_stream_flags_t flags;

@@ -42,6 +42,7 @@ typedef struct pa_source pa_source;
 #include <pulsecore/asyncmsgq.h>
 #include <pulsecore/msgobject.h>
 #include <pulsecore/rtpoll.h>
+#include <pulsecore/source-output.h>
 
 #define PA_MAX_OUTPUTS_PER_SOURCE 32
 
@@ -205,7 +206,8 @@ unsigned pa_source_used_by(pa_source *s); /* Number of connected streams that ar
 
 /* To be called exclusively by the source driver, from IO context */
 
-void pa_source_post(pa_source*s, const pa_memchunk *b);
+void pa_source_post(pa_source*s, const pa_memchunk *chunk);
+void pa_source_post_direct(pa_source*s, pa_source_output *o, const pa_memchunk *chunk);
 void pa_source_process_rewind(pa_source *s, size_t nbytes);
 
 int pa_source_process_msg(pa_msgobject *o, int code, void *userdata, int64_t, pa_memchunk *chunk);

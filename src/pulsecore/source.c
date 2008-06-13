@@ -417,7 +417,9 @@ void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
 
         while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL))) {
             pa_source_output_assert_ref(o);
-            pa_source_output_push(o, &vchunk);
+
+            if (!o->thread_info.direct_on_input)
+                pa_source_output_push(o, &vchunk);
         }
 
         pa_memblock_unref(vchunk.memblock);
@@ -425,9 +427,39 @@ void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
 
         while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL))) {
             pa_source_output_assert_ref(o);
-            pa_source_output_push(o, chunk);
+
+            if (!o->thread_info.direct_on_input)
+                pa_source_output_push(o, chunk);
         }
     }
+}
+
+void pa_source_post_direct(pa_source*s, pa_source_output *o, const pa_memchunk *chunk) {
+    pa_source_assert_ref(s);
+    pa_assert(PA_SOURCE_IS_OPENED(s->thread_info.state));
+    pa_source_output_assert_ref(o);
+    pa_assert(o->thread_info.direct_on_input);
+    pa_assert(chunk);
+
+    if (s->thread_info.state != PA_SOURCE_RUNNING)
+        return;
+
+    if (s->thread_info.soft_muted || !pa_cvolume_is_norm(&s->thread_info.soft_volume)) {
+        pa_memchunk vchunk = *chunk;
+
+        pa_memblock_ref(vchunk.memblock);
+        pa_memchunk_make_writable(&vchunk, 0);
+
+        if (s->thread_info.soft_muted || pa_cvolume_is_muted(&s->thread_info.soft_volume))
+            pa_silence_memchunk(&vchunk, &s->sample_spec);
+        else
+            pa_volume_memchunk(&vchunk, &s->sample_spec, &s->thread_info.soft_volume);
+
+        pa_source_output_push(o, &vchunk);
+
+        pa_memblock_unref(vchunk.memblock);
+    } else
+        pa_source_output_push(o, chunk);
 }
 
 pa_usec_t pa_source_get_latency(pa_source *s) {
@@ -577,6 +609,11 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
             pa_hashmap_put(s->thread_info.outputs, PA_UINT32_TO_PTR(o->index), pa_source_output_ref(o));
 
+            if (o->direct_on_input) {
+                o->thread_info.direct_on_input = o->direct_on_input;
+                pa_hashmap_put(o->thread_info.direct_on_input->thread_info.direct_outputs, PA_UINT32_TO_PTR(o->index), o);
+            }
+
             pa_assert(!o->thread_info.attached);
             o->thread_info.attached = TRUE;
 
@@ -605,6 +642,11 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
             pa_assert(o->thread_info.attached);
             o->thread_info.attached = FALSE;
+
+            if (o->thread_info.direct_on_input) {
+                pa_hashmap_remove(o->thread_info.direct_on_input->thread_info.direct_outputs, PA_UINT32_TO_PTR(o->index));
+                o->thread_info.direct_on_input = NULL;
+            }
 
             if (pa_hashmap_remove(s->thread_info.outputs, PA_UINT32_TO_PTR(o->index)))
                 pa_source_output_unref(o);

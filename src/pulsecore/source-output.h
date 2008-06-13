@@ -73,6 +73,9 @@ struct pa_source_output {
 
     pa_source *source;
 
+    /* A source output can monitor just a single input of a sink, in which case we find it here */
+    pa_sink_input *direct_on_input;       /* may be NULL */
+
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
 
@@ -135,6 +138,8 @@ struct pa_source_output {
 
         /* The requested latency for the source */
         pa_usec_t requested_source_latency;
+
+        pa_sink_input *direct_on_input;       /* may be NULL */
     } thread_info;
 
     void *userdata;
@@ -154,6 +159,7 @@ enum {
 
 typedef struct pa_source_output_new_data {
     pa_proplist *proplist;
+    pa_sink_input *direct_on_input;
 
     const char *driver;
     pa_module *module;

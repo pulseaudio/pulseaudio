@@ -114,6 +114,8 @@ pa_source_output* pa_source_output_new(
     pa_return_null_if_fail(data->source);
     pa_return_null_if_fail(pa_source_get_state(data->source) != PA_SOURCE_UNLINKED);
 
+    pa_return_null_if_fail(!data->direct_on_input || data->direct_on_input->sink == data->source->monitor_of);
+
     if (!data->sample_spec_is_set)
         data->sample_spec = data->source->sample_spec;
 
@@ -192,6 +194,8 @@ pa_source_output* pa_source_output_new(
     o->sample_spec = data->sample_spec;
     o->channel_map = data->channel_map;
 
+    o->direct_on_input = data->direct_on_input;
+
     reset_callbacks(o);
     o->userdata = NULL;
 
@@ -200,6 +204,7 @@ pa_source_output* pa_source_output_new(
     o->thread_info.sample_spec = o->sample_spec;
     o->thread_info.resampler = resampler;
     o->thread_info.requested_source_latency = (pa_usec_t) -1;
+    o->thread_info.direct_on_input = o->direct_on_input;
 
     o->thread_info.delay_memblockq = pa_memblockq_new(
             0,
@@ -213,6 +218,9 @@ pa_source_output* pa_source_output_new(
 
     pa_assert_se(pa_idxset_put(core->source_outputs, o, &o->index) == 0);
     pa_assert_se(pa_idxset_put(o->source->outputs, pa_source_output_ref(o), NULL) == 0);
+
+    if (o->direct_on_input)
+        pa_assert_se(pa_idxset_put(o->direct_on_input->direct_outputs, o, NULL) == 0);
 
     pa_log_info("Created output %u \"%s\" on %s with sample spec %s and channel map %s",
                 o->index,
@@ -269,6 +277,8 @@ void pa_source_output_unlink(pa_source_output*o) {
     if (linked)
         pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], o);
 
+    if (o->direct_on_input)
+        pa_idxset_remove_by_data(o->direct_on_input->direct_outputs, o, NULL);
     pa_idxset_remove_by_data(o->source->core->source_outputs, o, NULL);
     if (pa_idxset_remove_by_data(o->source->outputs, o, NULL))
         pa_source_output_unref(o);
@@ -368,10 +378,10 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
     pa_assert(chunk);
     pa_assert(pa_frame_aligned(chunk->length, &o->source->sample_spec));
 
-    if (!o->push || o->state == PA_SOURCE_OUTPUT_CORKED)
+    if (!o->push || o->thread_info.state == PA_SOURCE_OUTPUT_CORKED)
         return;
 
-    pa_assert(o->state == PA_SOURCE_OUTPUT_RUNNING);
+    pa_assert(o->thread_info.state == PA_SOURCE_OUTPUT_RUNNING);
 
     if (pa_memblockq_push(o->thread_info.delay_memblockq, chunk) < 0) {
         pa_log_debug("Delay queue overflow!");
@@ -422,7 +432,7 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
 void pa_source_output_process_rewind(pa_source_output *o, size_t nbytes /* in sink sample spec */) {
     pa_source_output_assert_ref(o);
 
-    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
+    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->thread_info.state));
     pa_assert(pa_frame_aligned(nbytes, &o->source->sample_spec));
 
     if (nbytes <= 0)
@@ -581,6 +591,9 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
         return 0;
 
     if (o->flags & PA_SOURCE_OUTPUT_DONT_MOVE)
+        return -1;
+
+    if (o->direct_on_input)
         return -1;
 
     if (pa_idxset_size(dest->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {

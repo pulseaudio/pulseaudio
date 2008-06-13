@@ -80,7 +80,7 @@ void pa_client_free(pa_client *c) {
     pa_xfree(c->driver);
     pa_xfree(c);
 
-    pa_core_check_quit(c->core);
+    pa_core_check_quit(core);
 }
 
 void pa_client_kill(pa_client *c) {

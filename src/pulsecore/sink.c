@@ -498,23 +498,24 @@ static unsigned fill_mix_info(pa_sink *s, size_t *length, pa_mix_info *info, uns
     return n;
 }
 
-static void inputs_drop(pa_sink *s, pa_mix_info *info, unsigned n, size_t length) {
+static void inputs_drop(pa_sink *s, pa_mix_info *info, unsigned n, pa_memchunk *result) {
     pa_sink_input *i;
     void *state = NULL;
     unsigned p = 0;
     unsigned n_unreffed = 0;
 
     pa_sink_assert_ref(s);
+    pa_assert(result);
+    pa_assert(result->memblock);
+    pa_assert(result->length > 0);
 
     /* We optimize for the case where the order of the inputs has not changed */
 
     while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL))) {
         unsigned j;
-        pa_mix_info* m;
+        pa_mix_info* m = NULL;
 
         pa_sink_input_assert_ref(i);
-
-        m = NULL;
 
         /* Let's try to find the matching entry info the pa_mix_info array */
         for (j = 0; j < n; j ++) {
@@ -530,14 +531,47 @@ static void inputs_drop(pa_sink *s, pa_mix_info *info, unsigned n, size_t length
         }
 
         /* Drop read data */
-        pa_sink_input_drop(i, length);
+        pa_sink_input_drop(i, result->length);
+
+        if (s->monitor_source && PA_SOURCE_IS_OPENED(pa_source_get_state(s->monitor_source))) {
+
+            if (pa_hashmap_size(i->thread_info.direct_outputs) > 0) {
+                void *ostate = NULL;
+                pa_source_output *o;
+                pa_memchunk c;
+
+                if (m && m->chunk.memblock) {
+                    c = m->chunk;
+                    pa_memblock_ref(c.memblock);
+                    pa_assert(result->length <= c.length);
+                    c.length = result->length;
+
+                    pa_memchunk_make_writable(&c, 0);
+                    pa_volume_memchunk(&c, &s->sample_spec, &m->volume);
+                } else {
+                    c = s->silence;
+                    pa_memblock_ref(c.memblock);
+                    pa_assert(result->length <= c.length);
+                    c.length = result->length;
+                }
+
+                while ((o = pa_hashmap_iterate(i->thread_info.direct_outputs, &ostate, NULL))) {
+                    pa_source_output_assert_ref(o);
+                    pa_assert(o->direct_on_input == i);
+                    pa_source_post_direct(s->monitor_source, o, &c);
+                }
+
+                pa_memblock_unref(c.memblock);
+            }
+        }
 
         if (m) {
-            pa_sink_input_unref(m->userdata);
-            m->userdata = NULL;
             if (m->chunk.memblock)
                 pa_memblock_unref(m->chunk.memblock);
-            pa_memchunk_reset(&m->chunk);
+                pa_memchunk_reset(&m->chunk);
+
+            pa_sink_input_unref(m->userdata);
+            m->userdata = NULL;
 
             n_unreffed += 1;
         }
@@ -554,6 +588,9 @@ static void inputs_drop(pa_sink *s, pa_mix_info *info, unsigned n, size_t length
                 pa_memblock_unref(info->chunk.memblock);
         }
     }
+
+    if (s->monitor_source && PA_SOURCE_IS_OPENED(pa_source_get_state(s->monitor_source)))
+        pa_source_post(s->monitor_source, result);
 }
 
 void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
@@ -624,10 +661,7 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
     }
 
     if (s->thread_info.state == PA_SINK_RUNNING)
-        inputs_drop(s, info, n, result->length);
-
-    if (s->monitor_source && PA_SOURCE_IS_OPENED(pa_source_get_state(s->monitor_source)))
-        pa_source_post(s->monitor_source, result);
+        inputs_drop(s, info, n, result);
 
     pa_sink_unref(s);
 }
@@ -653,6 +687,8 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
     if (length > block_size_max)
         length = pa_frame_align(block_size_max, &s->sample_spec);
 
+    pa_assert(length > 0);
+
     n = s->thread_info.state == PA_SINK_RUNNING ? fill_mix_info(s, &length, info, MAX_MIX_CHANNELS) : 0;
 
     if (n == 0) {
@@ -676,8 +712,8 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
             vchunk = info[0].chunk;
             pa_memblock_ref(vchunk.memblock);
 
-            if (vchunk.length > target->length)
-                vchunk.length = target->length;
+            if (vchunk.length > length)
+                vchunk.length = length;
 
             if (!pa_cvolume_is_norm(&volume)) {
                 pa_memchunk_make_writable(&vchunk, 0);
@@ -703,10 +739,7 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
     }
 
     if (s->thread_info.state == PA_SINK_RUNNING)
-        inputs_drop(s, info, n, target->length);
-
-    if (s->monitor_source && PA_SOURCE_IS_OPENED(pa_source_get_state(s->monitor_source)))
-        pa_source_post(s->monitor_source, target);
+        inputs_drop(s, info, n, target);
 
     pa_sink_unref(s);
 }

@@ -107,6 +107,8 @@ pa_stream *pa_stream_new_with_proplist(
     s->sample_spec = *ss;
     s->channel_map = *map;
 
+    s->direct_on_input = PA_INVALID_INDEX;
+
     s->proplist = p ? pa_proplist_copy(p) : pa_proplist_new();
     if (name)
         pa_proplist_sets(s->proplist, PA_PROP_MEDIA_NAME, name);
@@ -838,6 +840,7 @@ static int create_stream(
     pa_assert(direction == PA_STREAM_PLAYBACK || direction == PA_STREAM_RECORD);
 
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_UNCONNECTED, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY(s->context, s->direct_on_input == PA_INVALID_INDEX || direction == PA_STREAM_RECORD, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, !(flags & ~(PA_STREAM_START_CORKED|
                                               PA_STREAM_INTERPOLATE_TIMING|
                                               PA_STREAM_NOT_MONOTONOUS|
@@ -954,6 +957,9 @@ static int create_stream(
                 PA_TAG_BOOLEAN, flags & PA_STREAM_ADJUST_LATENCY,
                 PA_TAG_PROPLIST, s->proplist,
                 PA_TAG_INVALID);
+
+        if (s->direction == PA_STREAM_RECORD)
+            pa_tagstruct_putu32(t, s->direct_on_input);
     }
 
     pa_pstream_send_tagstruct(s->context->pstream, t);
@@ -2226,4 +2232,27 @@ pa_operation *pa_stream_proplist_remove(pa_stream *s, const char *const keys[], 
      * don't export that field */
 
     return o;
+}
+
+int pa_stream_set_monitor_stream(pa_stream *s, uint32_t sink_input_idx) {
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+
+    PA_CHECK_VALIDITY(s->context, sink_input_idx != PA_INVALID_INDEX, PA_ERR_INVALID);
+    PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_UNCONNECTED, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY(s->context, s->context->version >= 13, PA_ERR_NOTSUPPORTED);
+
+    s->direct_on_input = sink_input_idx;
+
+    return 0;
+}
+
+uint32_t pa_stream_get_monitor_stream(pa_stream *s) {
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_ANY(s->context, s->direct_on_input != PA_INVALID_INDEX, PA_ERR_BADSTATE, PA_INVALID_INDEX);
+    PA_CHECK_VALIDITY_RETURN_ANY(s->context, s->context->version >= 13, PA_ERR_NOTSUPPORTED, PA_INVALID_INDEX);
+
+    return s->direct_on_input;
 }

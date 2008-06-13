@@ -296,6 +296,8 @@ char *pa_source_output_list_to_string(pa_core *c) {
             pa_strbuf_printf(s, "\towner module: %u\n", o->module->index);
         if (o->client)
             pa_strbuf_printf(s, "\tclient: %u <%s>\n", o->client->index, pa_strnull(pa_proplist_gets(o->client->proplist, PA_PROP_APPLICATION_NAME)));
+        if (o->direct_on_input)
+            pa_strbuf_printf(s, "\tdirect on input: %u\n", o->direct_on_input->index);
 
         t = pa_proplist_to_string(o->proplist);
         pa_strbuf_printf(s, "\tproperties:\n%s", t);

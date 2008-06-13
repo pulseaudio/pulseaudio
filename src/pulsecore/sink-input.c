@@ -220,6 +220,8 @@ pa_sink_input* pa_sink_input_new(
     i->sink = data->sink;
     i->client = data->client;
 
+    i->direct_outputs = pa_idxset_new(NULL, NULL);
+
     i->resample_method = data->resample_method;
     i->sample_spec = data->sample_spec;
     i->channel_map = data->channel_map;
@@ -252,6 +254,7 @@ pa_sink_input* pa_sink_input_new(
     i->thread_info.rewrite_flush = FALSE;
     i->thread_info.underrun_for = (uint64_t) -1;
     i->thread_info.playing_for = 0;
+    i->thread_info.direct_outputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
     i->thread_info.render_memblockq = pa_memblockq_new(
             0,
@@ -322,6 +325,7 @@ static int sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) {
 
 void pa_sink_input_unlink(pa_sink_input *i) {
     pa_bool_t linked;
+    pa_source_output *o, *p =  NULL;
     pa_assert(i);
 
     /* See pa_sink_unlink() for a couple of comments how this function
@@ -344,6 +348,12 @@ void pa_sink_input_unlink(pa_sink_input *i) {
     pa_idxset_remove_by_data(i->sink->core->sink_inputs, i, NULL);
     if (pa_idxset_remove_by_data(i->sink->inputs, i, NULL))
         pa_sink_input_unref(i);
+
+    while ((o = pa_idxset_first(i->direct_outputs, NULL))) {
+        pa_assert(o != p);
+        pa_source_output_kill(o);
+        p = o;
+    }
 
     update_n_corked(i, PA_SINK_INPUT_UNLINKED);
     i->state = PA_SINK_INPUT_UNLINKED;
@@ -384,6 +394,12 @@ static void sink_input_free(pa_object *o) {
 
     if (i->proplist)
         pa_proplist_free(i->proplist);
+
+    if (i->direct_outputs)
+        pa_idxset_free(i->direct_outputs, NULL, NULL);
+
+    if (i->thread_info.direct_outputs)
+        pa_hashmap_free(i->thread_info.direct_outputs, NULL, NULL);
 
     pa_xfree(i->driver);
     pa_xfree(i);
@@ -839,6 +855,7 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest) {
     pa_resampler *new_resampler;
     pa_sink *origin;
     pa_sink_input_move_hook_data hook_data;
+    pa_source_output *o, *p = NULL;
 
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
@@ -860,6 +877,13 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest) {
     if (pa_idxset_size(dest->inputs) >= PA_MAX_INPUTS_PER_SINK) {
         pa_log_warn("Failed to move sink input: too many inputs per sink.");
         return -1;
+    }
+
+    /* Kill directly connected outputs */
+    while ((o = pa_idxset_first(i->direct_outputs, NULL))) {
+        pa_assert(o != p);
+        pa_source_output_kill(o);
+        p = o;
     }
 
     if (i->thread_info.resampler &&

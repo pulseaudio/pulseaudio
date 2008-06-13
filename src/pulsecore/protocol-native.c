@@ -499,7 +499,8 @@ static void fix_record_buffer_attr_pre(record_stream *s, pa_bool_t adjust_latenc
             fragsize_usec = s->source_latency;
 
         *fragsize = pa_usec_to_bytes(fragsize_usec, &s->source_output->sample_spec);
-    }
+    } else
+        s->source_latency = 0;
 }
 
 static void fix_record_buffer_attr_post(record_stream *s, uint32_t *maxlength, uint32_t *fragsize) {
@@ -533,7 +534,8 @@ static record_stream* record_stream_new(
         uint32_t *fragsize,
         pa_source_output_flags_t flags,
         pa_proplist *p,
-        pa_bool_t adjust_latency) {
+        pa_bool_t adjust_latency,
+        pa_sink_input *direct_on_input) {
 
     record_stream *s;
     pa_source_output *source_output;
@@ -553,6 +555,7 @@ static record_stream* record_stream_new(
     data.module = c->protocol->module;
     data.client = c->client;
     data.source = source;
+    data.direct_on_input = direct_on_input;
     pa_source_output_new_data_set_sample_spec(&data, ss);
     pa_source_output_new_data_set_channel_map(&data, map);
     if (peak_detect)
@@ -1757,7 +1760,7 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     record_stream *s;
     uint32_t maxlength, fragment_size;
     uint32_t source_index;
-    const char *name, *source_name;
+    const char *name = NULL, *source_name;
     pa_sample_spec ss;
     pa_channel_map map;
     pa_tagstruct *reply;
@@ -1775,6 +1778,8 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
         peak_detect = FALSE;
     pa_source_output_flags_t flags = 0;
     pa_proplist *p;
+    uint32_t direct_on_input_idx = PA_INVALID_INDEX;
+    pa_sink_input *direct_on_input = NULL;
 
     connection_assert_ref(c);
     pa_assert(t);
@@ -1823,7 +1828,8 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
 
         if (pa_tagstruct_get_boolean(t, &peak_detect) < 0 ||
             pa_tagstruct_get_boolean(t, &adjust_latency) < 0 ||
-            pa_tagstruct_get_proplist(t, p) < 0) {
+            pa_tagstruct_get_proplist(t, p) < 0 ||
+            pa_tagstruct_getu32(t, &direct_on_input_idx) < 0) {
             protocol_error(c);
             pa_proplist_free(p);
             return;
@@ -1853,6 +1859,15 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
         }
     }
 
+    if (direct_on_input_idx != PA_INVALID_INDEX) {
+
+        if (!(direct_on_input = pa_idxset_get_by_index(c->protocol->core->sink_inputs, direct_on_input_idx))) {
+            pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
+            pa_proplist_free(p);
+            return;
+        }
+    }
+
     flags =
         (corked ?  PA_SOURCE_OUTPUT_START_CORKED : 0) |
         (no_remap ?  PA_SOURCE_OUTPUT_NO_REMAP : 0) |
@@ -1863,7 +1878,7 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
         (no_move ?  PA_SOURCE_OUTPUT_DONT_MOVE : 0) |
         (variable_rate ?  PA_SOURCE_OUTPUT_VARIABLE_RATE : 0);
 
-    s = record_stream_new(c, source, &ss, &map, peak_detect, &maxlength, &fragment_size, flags, p, adjust_latency);
+    s = record_stream_new(c, source, &ss, &map, peak_detect, &maxlength, &fragment_size, flags, p, adjust_latency, direct_on_input);
     pa_proplist_free(p);
 
     CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_INVALID);

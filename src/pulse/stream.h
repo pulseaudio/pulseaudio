@@ -527,14 +527,14 @@ const pa_buffer_attr* pa_stream_get_buffer_attr(pa_stream *s);
  * server is at least PulseAudio 0.9.8. \since 0.9.8 */
 pa_operation *pa_stream_set_buffer_attr(pa_stream *s, const pa_buffer_attr *attr, pa_stream_success_cb_t cb, void *userdata);
 
-/* Change the stream sampling rate during playback. You need to pass
+/** Change the stream sampling rate during playback. You need to pass
  * PA_STREAM_VARIABLE_RATE in the flags parameter of
  * pa_stream_connect() if you plan to use this function. Only valid
  * after the stream has been connected successfully and if the server
  * is at least PulseAudio 0.9.8. \since 0.9.8 */
 pa_operation *pa_stream_update_sample_rate(pa_stream *s, uint32_t rate, pa_stream_success_cb_t cb, void *userdata);
 
-/* Update the property list of the sink input/source output of this
+/** Update the property list of the sink input/source output of this
  * stream, adding new entries. Please note that it is highly
  * recommended to set as much properties initially via
  * pa_stream_new_with_proplist() as possible instead a posteriori with
@@ -542,9 +542,19 @@ pa_operation *pa_stream_update_sample_rate(pa_stream *s, uint32_t rate, pa_strea
  * this stream to the right device. \since 0.9.11 */
 pa_operation *pa_stream_proplist_update(pa_stream *s, pa_update_mode_t mode, pa_proplist *p, pa_stream_success_cb_t cb, void *userdata);
 
-/* Update the property list of the sink input/source output of this
+/** Update the property list of the sink input/source output of this
  * stream, remove entries. \since 0.9.11 */
 pa_operation *pa_stream_proplist_remove(pa_stream *s, const char *const keys[], pa_stream_success_cb_t cb, void *userdata);
+
+/** For record streams connected to a monitor source: monitor only a
+ * very specific sink input of the sink. Thus function needs to be
+ * called before pa_stream_connect_record() is called. \since
+ * 0.9.11 */
+int pa_stream_set_monitor_stream(pa_stream *s, uint32_t sink_input_idx);
+
+/** Return what has been set with pa_stream_set_monitor_stream()
+ * ebfore. \since 0.9.11 */
+uint32_t pa_stream_get_monitor_stream(pa_stream *s);
 
 PA_C_DECL_END
 
