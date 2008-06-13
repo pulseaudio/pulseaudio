@@ -49,17 +49,20 @@ pa_memchunk* pa_memchunk_make_writable(pa_memchunk *c, size_t min) {
         pa_memblock_get_length(c->memblock) >= c->index+min)
         return c;
 
-    l = c->length;
-    if (l < min)
-        l = min;
+    l = PA_MAX(c->length, min);
 
     n = pa_memblock_new(pa_memblock_get_pool(c->memblock), l);
-    tdata = pa_memblock_acquire(n);
+
     sdata = pa_memblock_acquire(c->memblock);
+    tdata = pa_memblock_acquire(n);
+
     memcpy(tdata, (uint8_t*) sdata + c->index, c->length);
-    pa_memblock_release(n);
+
     pa_memblock_release(c->memblock);
+    pa_memblock_release(n);
+
     pa_memblock_unref(c->memblock);
+
     c->memblock = n;
     c->index = 0;
 
