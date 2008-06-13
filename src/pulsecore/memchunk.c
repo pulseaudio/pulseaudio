@@ -69,8 +69,7 @@ pa_memchunk* pa_memchunk_make_writable(pa_memchunk *c, size_t min) {
 pa_memchunk* pa_memchunk_reset(pa_memchunk *c) {
     pa_assert(c);
 
-    c->memblock = NULL;
-    c->length = c->index = 0;
+    memset(c, 0, sizeof(*c));
 
     return c;
 }
