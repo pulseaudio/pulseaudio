@@ -2566,12 +2566,15 @@ static void scache_fill_tagstruct(connection *c, pa_tagstruct *t, pa_scache_entr
     pa_assert(t);
     pa_assert(e);
 
-    fixup_sample_spec(c, &fixed_ss, &e->sample_spec);
+    if (e->memchunk.memblock)
+        fixup_sample_spec(c, &fixed_ss, &e->sample_spec);
+    else
+        memset(&fixed_ss, 0, sizeof(fixed_ss));
 
     pa_tagstruct_putu32(t, e->index);
     pa_tagstruct_puts(t, e->name);
     pa_tagstruct_put_cvolume(t, &e->volume);
-    pa_tagstruct_put_usec(t, pa_bytes_to_usec(e->memchunk.length, &e->sample_spec));
+    pa_tagstruct_put_usec(t, e->memchunk.memblock ? pa_bytes_to_usec(e->memchunk.length, &e->sample_spec) : NULL);
     pa_tagstruct_put_sample_spec(t, &fixed_ss);
     pa_tagstruct_put_channel_map(t, &e->channel_map);
     pa_tagstruct_putu32(t, e->memchunk.length);
