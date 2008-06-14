@@ -63,7 +63,7 @@
 
 #include "core-scache.h"
 
-#define UNLOAD_POLL_TIME 5
+#define UNLOAD_POLL_TIME 60
 
 static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
     pa_core *c = userdata;
@@ -131,8 +131,7 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
     }
 
     e->last_used_time = 0;
-    e->memchunk.memblock = NULL;
-    e->memchunk.index = e->memchunk.length = 0;
+    pa_memchunk_reset(&e->memchunk);
     e->filename = NULL;
     e->lazy = FALSE;
     e->last_used_time = 0;
@@ -277,8 +276,7 @@ int pa_scache_remove_item(pa_core *c, const char *name) {
     if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 0)))
         return -1;
 
-    if (pa_idxset_remove_by_data(c->scache, e, NULL) != e)
-        pa_assert(0);
+    pa_assert_se(pa_idxset_remove_by_data(c->scache, e, NULL) == e);
 
     pa_log_debug("Removed sample \"%s\"", name);
 
