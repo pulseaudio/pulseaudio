@@ -106,7 +106,8 @@ static void context_get_server_info_callback(pa_pdispatch *pd, uint32_t command,
                pa_tagstruct_get_sample_spec(t, &i.sample_spec) < 0 ||
                pa_tagstruct_gets(t, &i.default_sink_name) < 0 ||
                pa_tagstruct_gets(t, &i.default_source_name) < 0 ||
-               pa_tagstruct_getu32(t, &i.cookie) < 0) {
+               pa_tagstruct_getu32(t, &i.cookie) < 0 ||
+               !pa_tagstruct_eof(t)) {
 
         pa_context_fail(o->context, PA_ERR_PROTOCOL);
         goto finish;
