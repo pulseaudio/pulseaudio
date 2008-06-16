@@ -47,7 +47,9 @@ pa_socket_server* pa_socket_server_new_ipv6_string(pa_mainloop_api *m, const cha
 void pa_socket_server_unref(pa_socket_server*s);
 pa_socket_server* pa_socket_server_ref(pa_socket_server *s);
 
-void pa_socket_server_set_callback(pa_socket_server*s, void (*on_connection)(pa_socket_server*s, pa_iochannel *io, void *userdata), void *userdata);
+typedef void (*pa_socket_server_on_connection_cb_t)(pa_socket_server*s, pa_iochannel *io, void *userdata);
+
+void pa_socket_server_set_callback(pa_socket_server*s, pa_socket_server_on_connection_cb_t connection_cb, void *userdata);
 
 char *pa_socket_server_get_address(pa_socket_server *s, char *c, size_t l);
 

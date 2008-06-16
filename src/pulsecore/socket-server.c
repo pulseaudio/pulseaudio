@@ -83,7 +83,7 @@ struct pa_socket_server {
     char *filename;
     char *tcpwrap_service;
 
-    void (*on_connection)(pa_socket_server*s, pa_iochannel *io, void *userdata);
+    pa_socket_server_on_connection_cb_t on_connection;
     void *userdata;
 
     pa_io_event *io_event;
@@ -91,7 +91,7 @@ struct pa_socket_server {
     enum { SOCKET_SERVER_GENERIC, SOCKET_SERVER_IPV4, SOCKET_SERVER_UNIX, SOCKET_SERVER_IPV6 } type;
 };
 
-static void callback(pa_mainloop_api *mainloop, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags_t f, void *userdata) {
+static void callback(pa_mainloop_api *mainloop, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata) {
     pa_socket_server *s = userdata;
     pa_iochannel *io;
     int nfd;
@@ -195,9 +195,9 @@ pa_socket_server* pa_socket_server_new_unix(pa_mainloop_api *m, const char *file
 
     pa_make_fd_cloexec(fd);
 
+    memset(&sa, 0, sizeof(sa));
     sa.sun_family = AF_UNIX;
-    strncpy(sa.sun_path, filename, sizeof(sa.sun_path)-1);
-    sa.sun_path[sizeof(sa.sun_path) - 1] = 0;
+    pa_strlcpy(sa.sun_path, filename, sizeof(sa.sun_path));
 
     pa_make_socket_low_delay(fd);
 
@@ -295,7 +295,7 @@ pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t ad
     pa_socket_server *ss;
     int fd = -1;
     struct sockaddr_in6 sa;
-    int on = 1;
+    int on;
 
     pa_assert(m);
     pa_assert(port > 0);
@@ -308,11 +308,13 @@ pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t ad
     pa_make_fd_cloexec(fd);
 
 #ifdef IPV6_V6ONLY
+    on = 1;
     if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0)
         pa_log("setsockopt(IPPROTO_IPV6, IPV6_V6ONLY): %s", pa_cstrerror(errno));
 #endif
 
 #ifdef SO_REUSEADDR
+    on = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
         pa_log("setsockopt(SOL_SOCKET, SO_REUSEADDR, 1): %s", pa_cstrerror(errno));
 #endif
@@ -426,7 +428,7 @@ void pa_socket_server_unref(pa_socket_server *s) {
         socket_server_free(s);
 }
 
-void pa_socket_server_set_callback(pa_socket_server*s, void (*on_connection)(pa_socket_server*s, pa_iochannel *io, void *userdata), void *userdata) {
+void pa_socket_server_set_callback(pa_socket_server*s, pa_socket_server_on_connection_cb_t on_connection, void *userdata) {
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
@@ -507,7 +509,6 @@ char *pa_socket_server_get_address(pa_socket_server *s, char *c, size_t l) {
                 }
 
                 pa_snprintf(c, l, "tcp:[%s]:%u", ip, (unsigned) ntohs(sa.sin_port));
-
             }
 
             return c;
