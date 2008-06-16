@@ -169,4 +169,6 @@ pa_bool_t pa_memblockq_prebuf_active(pa_memblockq *bq);
 
 unsigned pa_memblockq_get_nblocks(pa_memblockq *bq);
 
+size_t pa_memblockq_get_base(pa_memblockq *bq);
+
 #endif

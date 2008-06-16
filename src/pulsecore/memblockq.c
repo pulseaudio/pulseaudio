@@ -908,3 +908,9 @@ unsigned pa_memblockq_get_nblocks(pa_memblockq *bq) {
 
     return bq->n_blocks;
 }
+
+size_t pa_memblockq_get_base(pa_memblockq *bq) {
+    pa_assert(bq);
+
+    return bq->base;
+}
