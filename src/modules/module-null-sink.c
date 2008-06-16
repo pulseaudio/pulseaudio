@@ -286,7 +286,8 @@ int pa__init(pa_module*m) {
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
 
-    u->block_usec = u->sink->max_latency = MAX_LATENCY_USEC;
+    pa_sink_set_latency_range(u->sink, (pa_usec_t) -1, MAX_LATENCY_USEC);
+    u->block_usec = u->sink->max_latency;
 
     u->sink->thread_info.max_rewind = pa_usec_to_bytes(u->block_usec, &u->sink->sample_spec);
 
