@@ -61,6 +61,7 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/socket-util.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/socket-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/parseaddr.h>
 #include <pulsecore/macro.h>
@@ -270,22 +271,7 @@ static int sockaddr_prepare(pa_socket_client *c, const struct sockaddr *sa, size
     pa_assert(sa);
     pa_assert(salen);
 
-    switch (sa->sa_family) {
-        case AF_UNIX:
-            c->local = TRUE;
-            break;
-
-        case AF_INET:
-            c->local = ((const struct sockaddr_in*) sa)->sin_addr.s_addr == INADDR_LOOPBACK;
-            break;
-
-        case AF_INET6:
-            c->local = memcmp(&((const struct sockaddr_in6*) sa)->sin6_addr, &in6addr_loopback, sizeof(struct in6_addr)) == 0;
-            break;
-
-        default:
-            c->local = FALSE;
-    }
+    c->local = pa_socket_address_is_local(sa);
 
     if ((c->fd = socket(sa->sa_family, SOCK_STREAM, 0)) < 0) {
         pa_log("socket(): %s", pa_cstrerror(errno));
