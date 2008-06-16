@@ -261,7 +261,7 @@ pa_operation* pa_context_set_sink_mute_by_index(pa_context *c, uint32_t idx, int
 pa_operation* pa_context_set_sink_mute_by_name(pa_context *c, const char *name, int mute, pa_context_success_cb_t cb, void *userdata);
 
 /** Suspend/Resume a sink. \since 0.9.7 */
-pa_operation* pa_context_suspend_sink_by_name(pa_context *c, char *sink_name, int suspend, pa_context_success_cb_t cb, void* userdata);
+pa_operation* pa_context_suspend_sink_by_name(pa_context *c, const char *sink_name, int suspend, pa_context_success_cb_t cb, void* userdata);
 
 /** Suspend/Resume a sink. If idx is PA_INVALID_INDEX all sinks will be suspended. \since 0.9.7 */
 pa_operation* pa_context_suspend_sink_by_index(pa_context *c, uint32_t idx, int suspend,  pa_context_success_cb_t cb, void* userdata);
@@ -433,7 +433,7 @@ pa_operation* pa_context_get_sink_input_info(pa_context *c, uint32_t idx, pa_sin
 pa_operation* pa_context_get_sink_input_info_list(pa_context *c, pa_sink_input_info_cb_t cb, void *userdata);
 
 /** Move the specified sink input to a different sink. \since 0.9.5 */
-pa_operation* pa_context_move_sink_input_by_name(pa_context *c, uint32_t idx, char *sink_name, pa_context_success_cb_t cb, void* userdata);
+pa_operation* pa_context_move_sink_input_by_name(pa_context *c, uint32_t idx, const char *sink_name, pa_context_success_cb_t cb, void* userdata);
 
 /** Move the specified sink input to a different sink. \since 0.9.5 */
 pa_operation* pa_context_move_sink_input_by_index(pa_context *c, uint32_t idx, uint32_t sink_idx, pa_context_success_cb_t cb, void* userdata);
@@ -479,13 +479,13 @@ pa_operation* pa_context_get_source_output_info(pa_context *c, uint32_t idx, pa_
 pa_operation* pa_context_get_source_output_info_list(pa_context *c, pa_source_output_info_cb_t cb, void *userdata);
 
 /** Move the specified source output to a different source. \since 0.9.5 */
-pa_operation* pa_context_move_source_output_by_name(pa_context *c, uint32_t idx, char *source_name, pa_context_success_cb_t cb, void* userdata);
+pa_operation* pa_context_move_source_output_by_name(pa_context *c, uint32_t idx, const char *source_name, pa_context_success_cb_t cb, void* userdata);
 
 /** Move the specified source output to a different source. \since 0.9.5 */
 pa_operation* pa_context_move_source_output_by_index(pa_context *c, uint32_t idx, uint32_t source_idx, pa_context_success_cb_t cb, void* userdata);
 
 /** Suspend/Resume a source. \since 0.9.7 */
-pa_operation* pa_context_suspend_source_by_name(pa_context *c, char *source_name, int suspend, pa_context_success_cb_t cb, void* userdata);
+pa_operation* pa_context_suspend_source_by_name(pa_context *c, const char *source_name, int suspend, pa_context_success_cb_t cb, void* userdata);
 
 /** Suspend/Resume a source. If idx is PA_INVALID_INDEX all sources will be suspended. \since 0.9.7 */
 pa_operation* pa_context_suspend_source_by_index(pa_context *c, uint32_t idx, int suspend, pa_context_success_cb_t cb, void* userdata);
