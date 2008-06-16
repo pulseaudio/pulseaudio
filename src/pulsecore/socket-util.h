@@ -26,6 +26,9 @@
 ***/
 
 #include <sys/types.h>
+#include <sys/socket.h>
+
+#include <pulsecore/macro.h>
 
 void pa_socket_peer_to_string(int fd, char *c, size_t l);
 
@@ -38,5 +41,8 @@ int pa_socket_set_rcvbuf(int fd, size_t l);
 
 int pa_unix_socket_is_stale(const char *fn);
 int pa_unix_socket_remove_stale(const char *fn);
+
+pa_bool_t pa_socket_address_is_local(const struct sockaddr *sa);
+pa_bool_t pa_socket_is_local(int fd);
 
 #endif

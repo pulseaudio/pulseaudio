@@ -129,8 +129,8 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
                 return;
 #endif
             }
-
         }
+
 #ifndef OS_IS_WIN32
         pa_snprintf(c, l, "Unknown network client");
         return;
@@ -284,3 +284,40 @@ int pa_unix_socket_remove_stale(const char *fn) {
 }
 
 #endif /* HAVE_SYS_UN_H */
+
+
+pa_bool_t pa_socket_address_is_local(const struct sockaddr *sa) {
+    pa_assert(sa);
+
+    switch (sa->sa_family) {
+        case AF_UNIX:
+            return TRUE;
+
+        case AF_INET:
+            return ((const struct sockaddr_in*) sa)->sin_addr.s_addr == INADDR_LOOPBACK;
+
+        case AF_INET6:
+            return memcmp(&((const struct sockaddr_in6*) sa)->sin6_addr, &in6addr_loopback, sizeof(struct in6_addr)) == 0;
+
+        default:
+            return FALSE;
+    }
+}
+
+pa_bool_t pa_socket_is_local(int fd) {
+
+    union {
+        struct sockaddr sa;
+        struct sockaddr_in in;
+        struct sockaddr_in6 in6;
+#ifdef HAVE_SYS_UN_H
+        struct sockaddr_un un;
+#endif
+    } sa;
+    socklen_t sa_len = sizeof(sa);
+
+    if (getpeername(fd, &sa.sa, &sa_len) < 0)
+        return FALSE;
+
+    return pa_socket_address_is_local(&sa.sa);
+}
