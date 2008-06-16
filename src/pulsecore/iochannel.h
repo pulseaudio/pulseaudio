@@ -85,6 +85,8 @@ void pa_iochannel_socket_peer_to_string(pa_iochannel*io, char*s, size_t l);
 int pa_iochannel_socket_set_rcvbuf(pa_iochannel*io, size_t l);
 int pa_iochannel_socket_set_sndbuf(pa_iochannel*io, size_t l);
 
+pa_bool_t pa_iochannel_socket_is_local(pa_iochannel *io);
+
 pa_mainloop_api* pa_iochannel_get_mainloop_api(pa_iochannel *io);
 
 int pa_iochannel_get_recv_fd(pa_iochannel *io);
