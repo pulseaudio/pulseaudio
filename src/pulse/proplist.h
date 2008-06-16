@@ -24,6 +24,8 @@
   USA.
 ***/
 
+#include <sys/types.h>
+
 #include <pulse/cdecl.h>
 #include <pulse/gccmacro.h>
 
