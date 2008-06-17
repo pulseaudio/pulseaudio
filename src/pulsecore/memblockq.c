@@ -786,6 +786,9 @@ void pa_memblockq_set_tlength(pa_memblockq *bq, size_t tlength) {
     if (bq->tlength > bq->maxlength)
         bq->tlength = bq->maxlength;
 
+    if (bq->prebuf > bq->tlength)
+        pa_memblockq_set_prebuf(bq, bq->tlength);
+
     if (bq->minreq > bq->tlength)
         pa_memblockq_set_minreq(bq, bq->tlength);
 
@@ -803,8 +806,8 @@ void pa_memblockq_set_prebuf(pa_memblockq *bq, size_t prebuf) {
     if (prebuf > 0 && bq->prebuf < bq->base)
         bq->prebuf = bq->base;
 
-    if (bq->prebuf > bq->maxlength)
-        bq->prebuf = bq->maxlength;
+    if (bq->prebuf > bq->tlength)
+        bq->prebuf = bq->tlength;
 
     if (bq->prebuf <= 0 || pa_memblockq_get_length(bq) >= bq->prebuf)
         bq->in_prebuf = FALSE;
