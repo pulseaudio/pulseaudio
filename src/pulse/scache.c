@@ -29,9 +29,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <pulse/utf8.h>
+
 #include <pulsecore/pstream-util.h>
 #include <pulsecore/macro.h>
-#include <pulse/utf8.h>
+#include <pulsecore/proplist-util.h>
 
 #include "internal.h"
 
