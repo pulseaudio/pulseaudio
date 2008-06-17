@@ -477,6 +477,8 @@ void pa_command_stream_suspended(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUS
 
         if (s->suspended || s->corked)
             pa_smoother_pause(s->smoother, x);
+        else
+            pa_smoother_resume(s->smoother, x);
     }
 
     request_auto_timing_update(s, TRUE);
@@ -627,7 +629,7 @@ static void invalidate_indexes(pa_stream *s, pa_bool_t r, pa_bool_t w) {
         s->write_index_not_before = s->context->ctag;
 
         if (s->timing_info_valid)
-            s->timing_info.write_index_corrupt = 1;
+            s->timing_info.write_index_corrupt = TRUE;
 
 /*         pa_log("write_index invalidated"); */
     }
@@ -636,7 +638,7 @@ static void invalidate_indexes(pa_stream *s, pa_bool_t r, pa_bool_t w) {
         s->read_index_not_before = s->context->ctag;
 
         if (s->timing_info_valid)
-            s->timing_info.read_index_corrupt = 1;
+            s->timing_info.read_index_corrupt = TRUE;
 
 /*         pa_log("read_index invalidated"); */
     }
