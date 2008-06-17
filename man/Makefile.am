@@ -125,43 +125,43 @@ CLEANFILES += \
 	$(man_MANS)
 
 pulseaudio.1: pulseaudio.1.xml Makefile
-	xmltoman $< > $@
+	xmltoman $< > $@ || rm -f $@
 
 esdcompat.1: esdcompat.1.xml Makefile
-	xmltoman $< > $@
+	xmltoman $< > $@ || rm -f $@
 
 pax11publish.1: pax11publish.1.xml Makefile
-	xmltoman $< > $@
+	xmltoman $< > $@ || rm -f $@
 
 paplay.1: paplay.1.xml Makefile
-	xmltoman $< > $@
+	xmltoman $< > $@ || rm -f $@
 
 pacat.1: pacat.1.xml Makefile
-	xmltoman $< > $@
+	xmltoman $< > $@ || rm -f $@
 
 pacmd.1: pacmd.1.xml Makefile
-	xmltoman $< > $@
+	xmltoman $< > $@ || rm -f $@
 
 pactl.1: pactl.1.xml Makefile
-	xmltoman $< > $@
+	xmltoman $< > $@ || rm -f $@
 
 pasuspender.1: pasuspender.1.xml Makefile
-	xmltoman $< > $@
+	xmltoman $< > $@ || rm -f $@
 
 padsp.1: padsp.1.xml Makefile
-	xmltoman $< > $@
+	xmltoman $< > $@ || rm -f $@
 
 pabrowse.1: pabrowse.1.xml Makefile
-	xmltoman $< > $@
+	xmltoman $< > $@ || rm -f $@
 
 pulse-daemon.conf.5: pulse-daemon.conf.5.xml Makefile
-	xmltoman $< > $@
+	xmltoman $< > $@ || rm -f $@
 
 pulse-client.conf.5: pulse-client.conf.5.xml Makefile
-	xmltoman $< > $@
+	xmltoman $< > $@ || rm -f $@
 
 default.pa.5: default.pa.5.xml Makefile
-	xmltoman $< > $@
+	xmltoman $< > $@ || rm -f $@
 
 xmllint: $(noinst_DATA)
 	for f in $(noinst_DATA) ; do \
