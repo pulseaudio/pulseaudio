@@ -132,7 +132,8 @@ typedef struct upload_stream {
 struct connection {
     pa_msgobject parent;
 
-    pa_bool_t authorized;
+    pa_bool_t authorized:1;
+    pa_bool_t is_local:1;
     uint32_t version;
     pa_protocol_native *protocol;
     pa_client *client;
@@ -1936,7 +1937,7 @@ static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
     connection *c = CONNECTION(userdata);
     const void*cookie;
     pa_tagstruct *reply;
-    char tmp[16];
+    pa_bool_t shm_on_remote, do_shm;
 
     connection_assert_ref(c);
     pa_assert(t);
@@ -1954,8 +1955,17 @@ static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
         return;
     }
 
-    pa_snprintf(tmp, sizeof(tmp), "%u", c->version);
-    pa_proplist_sets(c->client->proplist, "native-protocol.version", tmp);
+    /* Starting with protocol version 13 the MSB of the version tag
+       reflects if shm is available for this connection or
+       not. */
+    if (c->version >= 13) {
+        shm_on_remote = !!(c->version & 0x80000000U);
+        c->version &= 0x7FFFFFFFU;
+    }
+
+    pa_log_debug("Protocol version: remote %u, local %u", c->version, PA_PROTOCOL_VERSION);
+
+    pa_proplist_setf(c->client->proplist, "native-protocol.version", "%u", c->version);
 
     if (!c->authorized) {
         pa_bool_t success = FALSE;
@@ -1986,16 +1996,7 @@ static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
             pa_log_info("Got credentials: uid=%lu gid=%lu success=%i",
                         (unsigned long) creds->uid,
                         (unsigned long) creds->gid,
-                        success);
-
-            if (c->version >= 10 &&
-                pa_mempool_is_shared(c->protocol->core->mempool) &&
-                creds->uid == getuid()) {
-
-                pa_pstream_enable_shm(c->pstream, TRUE);
-                pa_log_info("Enabled SHM for new connection");
-            }
-
+                        (int) success);
         }
 #endif
 
@@ -2015,8 +2016,32 @@ static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
         }
     }
 
+    /* Enable shared memory support if possible */
+    do_shm =
+        pa_mempool_is_shared(c->protocol->core->mempool) &&
+        c->is_local;
+
+    pa_log_debug("SHM possible: %s", pa_yes_no(do_shm));
+
+    if (do_shm)
+        if (c->version < 10 || (c->version >= 13 && !shm_on_remote))
+            do_shm = FALSE;
+
+    if (do_shm) {
+        /* Only enable SHM if both sides are owned by the same
+         * user. This is a security measure because otherwise data
+         * private to the user might leak. */
+
+        const pa_creds *creds;
+        if (!(creds = pa_pdispatch_creds(pd)) || getuid() != creds->uid)
+            do_shm = FALSE;
+    }
+
+    pa_log_debug("Negotiated SHM: %s", pa_yes_no(do_shm));
+    pa_pstream_enable_shm(c->pstream, do_shm);
+
     reply = reply_new(tag);
-    pa_tagstruct_putu32(reply, PA_PROTOCOL_VERSION);
+    pa_tagstruct_putu32(reply, PA_PROTOCOL_VERSION | (do_shm ? 0x80000000 : 0));
 
 #ifdef HAVE_CREDS
 {
@@ -2574,7 +2599,7 @@ static void scache_fill_tagstruct(connection *c, pa_tagstruct *t, pa_scache_entr
     pa_tagstruct_putu32(t, e->index);
     pa_tagstruct_puts(t, e->name);
     pa_tagstruct_put_cvolume(t, &e->volume);
-    pa_tagstruct_put_usec(t, e->memchunk.memblock ? pa_bytes_to_usec(e->memchunk.length, &e->sample_spec) : NULL);
+    pa_tagstruct_put_usec(t, e->memchunk.memblock ? pa_bytes_to_usec(e->memchunk.length, &e->sample_spec) : 0);
     pa_tagstruct_put_sample_spec(t, &fixed_ss);
     pa_tagstruct_put_channel_map(t, &e->channel_map);
     pa_tagstruct_putu32(t, e->memchunk.length);
@@ -3940,6 +3965,7 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     } else
         c->auth_timeout_event = NULL;
 
+    c->is_local = pa_iochannel_socket_is_local(io);
     c->version = 8;
     c->protocol = p;
     pa_iochannel_socket_peer_to_string(io, pname, sizeof(pname));
@@ -3972,7 +3998,6 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
 #ifdef HAVE_CREDS
     if (pa_iochannel_creds_supported(io))
         pa_iochannel_creds_enable(io);
-
 #endif
 }
 
