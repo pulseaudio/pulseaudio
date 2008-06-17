@@ -571,6 +571,7 @@ libpulse_la_SOURCES += \
 		pulsecore/once.c pulsecore/once.h \
 		pulsecore/rtclock.c pulsecore/rtclock.h \
 		pulsecore/time-smoother.c pulsecore/time-smoother.h \
+		pulsecore/proplist-util.c pulsecore/proplist-util.h \
 		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32
@@ -798,6 +799,7 @@ libpulsecore_la_SOURCES += \
 		pulsecore/time-smoother.c pulsecore/time-smoother.h \
 		pulsecore/start-child.c pulsecore/start-child.h \
 		pulsecore/envelope.c pulsecore/envelope.h \
+		pulsecore/proplist-util.c pulsecore/proplist-util.h \
 		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32
