@@ -70,6 +70,7 @@
 #include <pulsecore/socket-util.h>
 #include <pulsecore/creds.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/proplist-util.h>
 
 #include "internal.h"
 
@@ -169,6 +170,7 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     c->autospawn_lock_fd = -1;
     memset(&c->spawn_api, 0, sizeof(c->spawn_api));
     c->do_autospawn = FALSE;
+    c->do_shm = FALSE;
 
 #ifndef MSG_NOSIGNAL
 #ifdef SIGPIPE
@@ -424,6 +426,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     switch(c->state) {
         case PA_CONTEXT_AUTHORIZING: {
             pa_tagstruct *reply;
+            pa_bool_t shm_on_remote;
 
             if (pa_tagstruct_getu32(t, &c->version) < 0 ||
                 !pa_tagstruct_eof(t)) {
@@ -437,10 +440,22 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
                 goto finish;
             }
 
+            /* Starting with protocol version 13 the MSB of the version
+               tag reflects if shm is available for this connection or
+               not. */
+            if (c->version >= 13) {
+                shm_on_remote = !!(c->version & 0x80000000U);
+                c->version &= 0x7FFFFFFFU;
+            }
+
+            pa_log_debug("Protocol version: remote %u, local %u", c->version, PA_PROTOCOL_VERSION);
+
             /* Enable shared memory support if possible */
-            if (c->version >= 10 &&
-                pa_mempool_is_shared(c->mempool) &&
-                c->is_local) {
+            if (c->do_shm)
+                if (c->version < 10 || (c->version >= 13 && !shm_on_remote))
+                    c->do_shm = FALSE;
+
+            if (c->do_shm) {
 
                 /* Only enable SHM if both sides are owned by the same
                  * user. This is a security measure because otherwise
@@ -448,11 +463,13 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
 
 #ifdef HAVE_CREDS
                 const pa_creds *creds;
-                if ((creds = pa_pdispatch_creds(pd)))
-                    if (getuid() == creds->uid)
-                        pa_pstream_enable_shm(c->pstream, TRUE);
+                if (!(creds = pa_pdispatch_creds(pd)) || getuid() != creds->uid)
+                    c->do_shm = FALSE;
 #endif
             }
+
+            pa_log_debug("Negotiated SHM: %s", pa_yes_no(c->do_shm));
+            pa_pstream_enable_shm(c->pstream, c->do_shm);
 
             reply = pa_tagstruct_command(c, PA_COMMAND_SET_CLIENT_NAME, &tag);
 
@@ -512,7 +529,16 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
         pa_log_info("No cookie loaded. Attempting to connect without.");
 
     t = pa_tagstruct_command(c, PA_COMMAND_AUTH, &tag);
-    pa_tagstruct_putu32(t, PA_PROTOCOL_VERSION);
+
+    c->do_shm =
+        pa_mempool_is_shared(c->mempool) &&
+        c->is_local;
+
+    pa_log_debug("SHM possible: %s", pa_yes_no(c->do_shm));
+
+    /* Starting with protocol version 13 we use the MSB of the version
+     * tag for informing the other side if we could do SHM or not */
+    pa_tagstruct_putu32(t, PA_PROTOCOL_VERSION | (c->do_shm ? 0x80000000U : 0));
     pa_tagstruct_put_arbitrary(t, c->conf->cookie, sizeof(c->conf->cookie));
 
 #ifdef HAVE_CREDS
@@ -1201,86 +1227,4 @@ pa_operation *pa_context_proplist_remove(pa_context *c, const char *const keys[]
      * don't export that field */
 
     return o;
-}
-
-void pa_init_proplist(pa_proplist *p) {
-    int a, b;
-#ifndef HAVE_DECL_ENVIRON
-    extern char **environ;
-#endif
-    char **e;
-
-    pa_assert(p);
-
-    for (e = environ; *e; e++) {
-
-        if (pa_startswith(*e, "PULSE_PROP_")) {
-            size_t kl = strcspn(*e+11, "=");
-            char *k;
-
-            if ((*e)[11+kl] != '=')
-                continue;
-
-            if (!pa_utf8_valid(*e+11+kl+1))
-                continue;
-
-            k = pa_xstrndup(*e+11, kl);
-
-            if (pa_proplist_contains(p, k)) {
-                pa_xfree(k);
-                continue;
-            }
-
-            pa_proplist_sets(p, k, *e+11+kl+1);
-            pa_xfree(k);
-        }
-    }
-
-    if (!pa_proplist_contains(p, PA_PROP_APPLICATION_PROCESS_ID)) {
-        char t[32];
-        pa_snprintf(t, sizeof(t), "%lu", (unsigned long) getpid());
-        pa_proplist_sets(p, PA_PROP_APPLICATION_PROCESS_ID, t);
-    }
-
-    if (!pa_proplist_contains(p, PA_PROP_APPLICATION_PROCESS_USER)) {
-        char t[64];
-        if (pa_get_user_name(t, sizeof(t))) {
-            char *c = pa_utf8_filter(t);
-            pa_proplist_sets(p, PA_PROP_APPLICATION_PROCESS_USER, c);
-            pa_xfree(c);
-        }
-    }
-
-    if (!pa_proplist_contains(p, PA_PROP_APPLICATION_PROCESS_HOST)) {
-        char t[64];
-        if (pa_get_host_name(t, sizeof(t))) {
-            char *c = pa_utf8_filter(t);
-            pa_proplist_sets(p, PA_PROP_APPLICATION_PROCESS_HOST, c);
-            pa_xfree(c);
-        }
-    }
-
-    a = pa_proplist_contains(p, PA_PROP_APPLICATION_PROCESS_BINARY);
-    b = pa_proplist_contains(p, PA_PROP_APPLICATION_NAME);
-
-    if (!a || !b) {
-        char t[PATH_MAX];
-        if (pa_get_binary_name(t, sizeof(t))) {
-            char *c = pa_utf8_filter(t);
-
-            if (!a)
-                pa_proplist_sets(p, PA_PROP_APPLICATION_PROCESS_BINARY, c);
-            if (!b)
-                pa_proplist_sets(p, PA_PROP_APPLICATION_NAME, c);
-
-            pa_xfree(c);
-        }
-    }
-
-    if (!pa_proplist_contains(p, PA_PROP_APPLICATION_LANGUAGE)) {
-        const char *l;
-
-        if ((l = setlocale(LC_MESSAGES, NULL)))
-            pa_proplist_sets(p, PA_PROP_APPLICATION_LANGUAGE, l);
-    }
 }
