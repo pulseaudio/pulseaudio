@@ -812,7 +812,7 @@ static void fix_playback_buffer_attr_pre(playback_stream *s, pa_bool_t adjust_la
     if (*tlength <= *minreq)
         *tlength =  *minreq*2 + frame_size;
 
-    if (*prebuf <= 0)
+    if (*prebuf <= 0 || *prebuf > *tlength)
         *prebuf = *tlength;
 }
 
@@ -1290,7 +1290,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 
     if (pa_memblockq_peek(s->memblockq, chunk) < 0) {
 
-/*         pa_log("UNDERRUN: %lu", pa_memblockq_get_length(s->memblockq)); */
+/*         pa_log("UNDERRUN: %lu", (unsigned long) pa_memblockq_get_length(s->memblockq)); */
 
         if (s->drain_request && pa_sink_input_safe_to_remove(i)) {
             s->drain_request = FALSE;
