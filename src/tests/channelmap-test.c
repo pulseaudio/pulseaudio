@@ -20,12 +20,15 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
 
     fprintf(stderr, "map: <%s>\n", pa_channel_map_snprint(cm, sizeof(cm), &map));
 
+    pa_channel_map_init_extend(&map, 14, PA_CHANNEL_MAP_ALSA);
+
+    fprintf(stderr, "map: <%s>\n", pa_channel_map_snprint(cm, sizeof(cm), &map));
+
     pa_channel_map_parse(&map2, cm);
 
     assert(pa_channel_map_equal(&map, &map2));
 
     pa_channel_map_parse(&map2, "left,test");
-
 
     return 0;
 }

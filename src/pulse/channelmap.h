@@ -166,9 +166,17 @@ pa_channel_map* pa_channel_map_init_mono(pa_channel_map *m);
 /** Initialize the specified channel map for stereophonic audio and return a pointer to it */
 pa_channel_map* pa_channel_map_init_stereo(pa_channel_map *m);
 
-/** Initialize the specified channel map for the specified number
- * of channels using default labels and return a pointer to it. */
+/** Initialize the specified channel map for the specified number of
+ * channels using default labels and return a pointer to it. This call
+ * will fail (return NULL) if there is no default channel map known for this
+ * specific number of channels and mapping. */
 pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels, pa_channel_map_def_t def);
+
+/** Similar to pa_channel_map_init_auto() but instead of failing if no
+ * default mapping is known with the specified parameters it will
+ * synthesize a mapping based on a known mapping with fewer channels
+ * and fill up the rest with AUX0...AUX31 channels  \since 0.9.11 */
+pa_channel_map* pa_channel_map_init_extend(pa_channel_map *m, unsigned channels, pa_channel_map_def_t def);
 
 /** Return a text label for the specified channel position */
 const char* pa_channel_position_to_string(pa_channel_position_t pos) PA_GCC_PURE;

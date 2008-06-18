@@ -394,6 +394,34 @@ pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels, p
     }
 }
 
+pa_channel_map* pa_channel_map_init_extend(pa_channel_map *m, unsigned channels, pa_channel_map_def_t def) {
+    unsigned c;
+
+    pa_assert(m);
+    pa_assert(channels > 0);
+    pa_assert(channels <= PA_CHANNELS_MAX);
+
+    pa_channel_map_init(m);
+
+    for (c = channels; c > 0; c--) {
+
+        if (pa_channel_map_init_auto(m, c, def)) {
+            unsigned i = 0;
+
+            for (; c < channels; c++) {
+
+                m->map[c] = PA_CHANNEL_POSITION_AUX0 + i;
+                i++;
+            }
+
+            m->channels = channels;
+
+            return m;
+        }
+    }
+
+    return NULL;
+}
 
 const char* pa_channel_position_to_string(pa_channel_position_t pos) {
 

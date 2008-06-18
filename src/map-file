@@ -12,6 +12,7 @@ pa_bytes_to_usec;
 pa_channel_map_equal;
 pa_channel_map_init;
 pa_channel_map_init_auto;
+pa_channel_map_init_extend;
 pa_channel_map_init_mono;
 pa_channel_map_init_stereo;
 pa_channel_map_parse;
