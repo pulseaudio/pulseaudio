@@ -1,5 +1,4 @@
 #!/bin/bash
-# $Id$
 
 # This file is part of PulseAudio.
 #

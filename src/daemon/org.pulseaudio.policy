@@ -3,8 +3,6 @@
  "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
  "http://www.freedesktop.org/standards/PolicyKit/1.0/policyconfig.dtd">
 
-<!-- $Id$ -->
-
 <!--
 This file is part of PulseAudio.
 

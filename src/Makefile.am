@@ -1,5 +1,3 @@
-# $Id$
-#
 # This file is part of PulseAudio.
 #
 # Copyright 2004-2006 Lennart Poettering

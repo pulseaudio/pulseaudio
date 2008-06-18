@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-15"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://www.w3.org/1999/xhtml">
 
-<!-- 
+<!--
   This file is part of PulseAudio.
 
   PulseAudio is free software; you can redistribute it and/or modify it under
@@ -16,24 +16,22 @@
 
   You should have received a copy of the GNU General Public License
   along with PulseAudio; if not, write to the Free Software Foundation,
-  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA. 
+  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 -->
-
-<!-- $Id$ -->
 
 <xsl:output method="xml" version="1.0" encoding="iso-8859-15" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" indent="yes"/>
 
 <xsl:template match="/manpage">
-  
+
     <html>
 
     <head>
       <title><xsl:value-of select="@name"/>(<xsl:value-of select="@section"/>)</title>
       <style type="text/css">
-        body { color: black; background-color: white; } 
-        a:link, a:visited { color: #900000; }       
-        h1 { text-transform:uppercase; font-size: 18pt; } 
-        p { margin-left:1cm; margin-right:1cm; } 
+        body { color: black; background-color: white; }
+        a:link, a:visited { color: #900000; }
+        h1 { text-transform:uppercase; font-size: 18pt; }
+        p { margin-left:1cm; margin-right:1cm; }
         .cmd { font-family:monospace; }
         .file { font-family:monospace; }
         .arg { text-transform:uppercase; font-family:monospace; font-style: italic; }

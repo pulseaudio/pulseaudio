@@ -1,6 +1,5 @@
 #!/usr/bin/python
-# $Id$
-#
+
 # This file is part of PulseAudio.
 #
 # PulseAudio is free software; you can redistribute it and/or modify

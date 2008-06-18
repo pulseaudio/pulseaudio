@@ -1,8 +1,6 @@
 # -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-# $Id$
-
 # This file is part of PulseAudio.
 #
 # Copyright 2004-2008 Lennart Poettering
