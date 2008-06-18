@@ -1,8 +1,6 @@
 #ifndef fooendianmacroshfoo
 #define fooendianmacroshfoo
 
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 

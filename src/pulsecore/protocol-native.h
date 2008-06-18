@@ -1,8 +1,6 @@
 #ifndef fooprotocolnativehfoo
 #define fooprotocolnativehfoo
 
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 

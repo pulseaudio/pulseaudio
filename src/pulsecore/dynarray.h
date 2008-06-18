@@ -1,8 +1,6 @@
 #ifndef foodynarrayhfoo
 #define foodynarrayhfoo
 
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 

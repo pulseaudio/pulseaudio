@@ -1,8 +1,6 @@
 #ifndef foothreadmainloophfoo
 #define foothreadmainloophfoo
 
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 

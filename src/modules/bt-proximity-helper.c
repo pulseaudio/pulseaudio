@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * Small SUID helper that allows us to ping a BT device. Borrows
  * heavily from bluez-utils' l2ping, which is licensed as GPL2+

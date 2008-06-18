@@ -1,8 +1,6 @@
 #ifndef fooclitexthfoo
 #define fooclitexthfoo
 
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 

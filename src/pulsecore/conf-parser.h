@@ -1,8 +1,6 @@
 #ifndef fooconfparserhfoo
 #define fooconfparserhfoo
 
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 

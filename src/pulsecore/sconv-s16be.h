@@ -1,8 +1,6 @@
 #ifndef foosconv_s16befoo
 #define foosconv_s16befoo
 
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 

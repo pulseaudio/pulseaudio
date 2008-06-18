@@ -1,8 +1,6 @@
 #ifndef fooglibmainloophfoo
 #define fooglibmainloophfoo
 
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 

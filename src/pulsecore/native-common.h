@@ -1,8 +1,6 @@
 #ifndef foonativecommonhfoo
 #define foonativecommonhfoo
 
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 

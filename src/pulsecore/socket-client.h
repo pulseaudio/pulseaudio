@@ -1,8 +1,6 @@
 #ifndef foosocketclienthfoo
 #define foosocketclienthfoo
 
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 

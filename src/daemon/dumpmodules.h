@@ -1,8 +1,6 @@
 #ifndef foodumpmoduleshfoo
 #define foodumpmoduleshfoo
 
-/* $Id*/
-
 /***
   This file is part of PulseAudio.
 

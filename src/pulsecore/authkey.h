@@ -1,8 +1,6 @@
 #ifndef fooauthkeyhfoo
 #define fooauthkeyhfoo
 
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 

@@ -1,8 +1,6 @@
 #ifndef foodaemonconfhfoo
 #define foodaemonconfhfoo
 
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 

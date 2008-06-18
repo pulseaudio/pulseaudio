@@ -1,8 +1,6 @@
 #ifndef foocoresubscribehfoo
 #define foocoresubscribehfoo
 
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 

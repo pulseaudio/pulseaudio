@@ -1,8 +1,6 @@
 #ifndef footagstructhfoo
 #define footagstructhfoo
 
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 

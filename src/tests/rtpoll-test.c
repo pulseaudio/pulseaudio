@@ -1,5 +1,3 @@
-/* $Id: thread-test.c 1621 2007-08-10 22:00:22Z lennart $ */
-
 /***
   This file is part of PulseAudio.
 

@@ -1,8 +1,6 @@
 #ifndef foodefhfoo
 #define foodefhfoo
 
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 

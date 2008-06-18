@@ -1,8 +1,6 @@
 #ifndef footokenizerhfoo
 #define footokenizerhfoo
 
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 
