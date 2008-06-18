@@ -668,26 +668,8 @@ snd_pcm_t *pa_alsa_open_by_device_string(
 
         *dev = d;
 
-        if (ss->channels != map->channels) {
-            if (!pa_channel_map_init_auto(map, ss->channels, PA_CHANNEL_MAP_ALSA)) {
-                unsigned c;
-                pa_channel_position_t pos;
-
-                pa_log_warn("Device has an unknown channel mapping. This is a limitation of ALSA. Synthesizing channel map.");
-
-                for (c = ss->channels; c > 0; c--)
-                    if (pa_channel_map_init_auto(map, c, PA_CHANNEL_MAP_ALSA))
-                        break;
-
-                pa_assert(c > 0);
-
-                pos = PA_CHANNEL_POSITION_AUX0;
-                for (; c < map->channels; c ++)
-                    map->map[c] = pos++;
-
-                map->channels = ss->channels;
-            }
-        }
+        if (ss->channels != map->channels)
+            pa_channel_map_init_extend(map, ss->channels, PA_CHANNEL_MAP_ALSA);
 
         return pcm_handle;
     }

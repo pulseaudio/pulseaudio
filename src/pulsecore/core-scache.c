@@ -162,8 +162,7 @@ int pa_scache_add_item(
     pa_assert(!map || (pa_channel_map_valid(map) && ss && ss->channels == map->channels));
 
     if (ss && !map)
-        if (!(map = pa_channel_map_init_auto(&tmap, ss->channels, PA_CHANNEL_MAP_DEFAULT)))
-            return -1;
+        pa_channel_map_init_extend(&tmap, ss->channels, PA_CHANNEL_MAP_DEFAULT);
 
     if (chunk && chunk->length > PA_SCACHE_ENTRY_SIZE_MAX)
         return -1;

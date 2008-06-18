@@ -117,10 +117,7 @@ int pa_sound_file_load(
     }
 
     if (map)
-        if (!pa_channel_map_init_auto(map, ss->channels, PA_CHANNEL_MAP_DEFAULT)) {
-            pa_log("Unsupported channel map in file %s", fname);
-            goto finish;
-        }
+        pa_channel_map_init_extend(map, ss->channels, PA_CHANNEL_MAP_DEFAULT);
 
     if ((l = pa_frame_size(ss) * sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
         pa_log("File too large");
