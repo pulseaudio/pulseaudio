@@ -69,7 +69,7 @@ PA_C_DECL_BEGIN
  *    device.bus_path
  *    device.serial
  *    device.vendor_product_id
- *    device.class                   sound, modem, monitor, filter
+ *    device.class                   sound, modem, monitor, filter, abstract
  *    device.form_factor             laptop-speakers, external-speakers, telephone, tv-capture, webcam-capture, microphone-capture, headset
  *    device.connector               isa, pci, usb, firewire, bluetooth
  *    device.access_mode             mmap, mmap_rewrite, serial
