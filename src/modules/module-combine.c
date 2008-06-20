@@ -490,6 +490,20 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     output_free(o);
 }
 
+/* Called from IO thread context */
+static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t state) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    /* If we are added for the first time, ask for a rewinding so that
+     * we are heard right-away. */
+    if (PA_SINK_INPUT_IS_LINKED(state) &&
+        i->thread_info.state == PA_SINK_INPUT_INIT)
+        pa_sink_input_request_rewind(i, 0, FALSE, TRUE);
+}
+
 /* Called from thread context */
 static int sink_input_process_msg(pa_msgobject *obj, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct output *o = PA_SINK_INPUT(obj)->userdata;
@@ -791,6 +805,7 @@ static int output_create_sink_input(struct output *o) {
     o->sink_input->parent.process_msg = sink_input_process_msg;
     o->sink_input->pop = sink_input_pop_cb;
     o->sink_input->process_rewind = sink_input_process_rewind_cb;
+    o->sink_input->state_change = sink_input_state_change_cb;
     o->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;
     o->sink_input->update_max_request = sink_input_update_max_request_cb;
     o->sink_input->attach = sink_input_attach_cb;
