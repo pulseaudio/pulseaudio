@@ -44,4 +44,6 @@ void pa_smoother_set_time_offset(pa_smoother *s, pa_usec_t x_offset);
 void pa_smoother_pause(pa_smoother *s, pa_usec_t x);
 void pa_smoother_resume(pa_smoother *s, pa_usec_t x);
 
+void pa_smoother_reset(pa_smoother *s);
+
 #endif

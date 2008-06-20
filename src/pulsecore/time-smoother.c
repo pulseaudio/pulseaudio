@@ -449,3 +449,11 @@ pa_usec_t pa_smoother_translate(pa_smoother *s, pa_usec_t x, pa_usec_t y_delay) 
 
     return (pa_usec_t) ((double) y_delay / nde);
 }
+
+void pa_smoother_reset(pa_smoother *s) {
+    pa_assert(s);
+
+    s->n_history = 0;
+    s->abc_valid = FALSE;
+
+}
