@@ -97,6 +97,7 @@ void pa_source_new_data_done(pa_source_new_data *data) {
     pa_proplist_free(data->proplist);
 }
 
+/* Called from main context */
 static void reset_callbacks(pa_source *s) {
     pa_assert(s);
 
@@ -108,6 +109,7 @@ static void reset_callbacks(pa_source *s) {
     s->update_requested_latency = NULL;
 }
 
+/* Called from main context */
 pa_source* pa_source_new(
         pa_core *core,
         pa_source_new_data *data,
@@ -118,6 +120,8 @@ pa_source* pa_source_new(
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
     pa_assert(core);
+    pa_assert(data);
+    pa_assert(data->name);
 
     s = pa_msgobject_new(pa_source);
 
@@ -125,6 +129,8 @@ pa_source* pa_source_new(
         pa_xfree(s);
         return NULL;
     }
+
+    pa_source_new_data_set_name(data, name);
 
     if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_NEW], data) < 0) {
         pa_xfree(s);
@@ -193,16 +199,15 @@ pa_source* pa_source_new(
             &s->sample_spec,
             0);
 
-    s->min_latency = DEFAULT_MIN_LATENCY;
-    s->max_latency = s->min_latency;
-
     s->thread_info.outputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
-    s->thread_info.soft_volume = s->volume;
-    s->thread_info.soft_muted = s->muted;
+    pa_cvolume_reset(&s->thread_info.soft_volume, s->sample_spec.channels);
+    s->thread_info.soft_muted = FALSE;
     s->thread_info.state = s->state;
     s->thread_info.max_rewind = 0;
     s->thread_info.requested_latency_valid = FALSE;
     s->thread_info.requested_latency = 0;
+    s->thread_info.min_latency = DEFAULT_MIN_LATENCY;
+    s->thread_info.max_latency = 0;
 
     pa_assert_se(pa_idxset_put(core->sources, s, &s->index) >= 0);
 
@@ -215,6 +220,7 @@ pa_source* pa_source_new(
     return s;
 }
 
+/* Called from main context */
 static int source_set_state(pa_source *s, pa_source_state_t state) {
     int ret;
     pa_bool_t suspend_change;
@@ -233,8 +239,7 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
             return -1;
 
     if (s->asyncmsgq)
-        if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL) < 0)
-            return -1;
+        pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL) == 0);
 
     s->state = state;
 
@@ -255,17 +260,24 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
     return 0;
 }
 
+/* Called from main context */
 void pa_source_put(pa_source *s) {
     pa_source_assert_ref(s);
 
     pa_assert(s->state == PA_SINK_INIT);
+
+    /* The following fields must be initialized properly when calling _put() */
     pa_assert(s->asyncmsgq);
     pa_assert(s->rtpoll);
+    pa_assert(!s->thread_info.min_latency || !s->thread_info.max_latency ||
+              s->thread_info.min_latency <= s->thread_info.max_latency);
 
-    pa_assert(!s->min_latency || !s->max_latency || s->min_latency <= s->max_latency);
-
-    if (!(s->flags & PA_SOURCE_HW_VOLUME_CTRL))
+    if (!(s->flags & PA_SOURCE_HW_VOLUME_CTRL)) {
         s->flags |= PA_SOURCE_DECIBEL_VOLUME;
+
+        s->thread_info.soft_volume = s->volume;
+        s->thread_info.soft_muted = s->muted;
+    }
 
     pa_assert_se(source_set_state(s, PA_SOURCE_IDLE) == 0);
 
@@ -273,6 +285,7 @@ void pa_source_put(pa_source *s) {
     pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_PUT], s);
 }
 
+/* Called from main context */
 void pa_source_unlink(pa_source *s) {
     pa_bool_t linked;
     pa_source_output *o, *j = NULL;
@@ -310,6 +323,7 @@ void pa_source_unlink(pa_source *s) {
     }
 }
 
+/* Called from main context */
 static void source_free(pa_object *o) {
     pa_source_output *so;
     pa_source *s = PA_SOURCE(o);
@@ -341,18 +355,21 @@ static void source_free(pa_object *o) {
     pa_xfree(s);
 }
 
+/* Called from main context */
 void pa_source_set_asyncmsgq(pa_source *s, pa_asyncmsgq *q) {
     pa_source_assert_ref(s);
 
     s->asyncmsgq = q;
 }
 
+/* Called from main context */
 void pa_source_set_rtpoll(pa_source *s, pa_rtpoll *p) {
     pa_source_assert_ref(s);
 
     s->rtpoll = p;
 }
 
+/* Called from main context */
 int pa_source_update_status(pa_source*s) {
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
@@ -363,6 +380,7 @@ int pa_source_update_status(pa_source*s) {
     return source_set_state(s, pa_source_used_by(s) ? PA_SOURCE_RUNNING : PA_SOURCE_IDLE);
 }
 
+/* Called from main context */
 int pa_source_suspend(pa_source *s, pa_bool_t suspend) {
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
@@ -373,6 +391,7 @@ int pa_source_suspend(pa_source *s, pa_bool_t suspend) {
         return source_set_state(s, pa_source_used_by(s) ? PA_SOURCE_RUNNING : PA_SOURCE_IDLE);
 }
 
+/* Called from IO thread context */
 void pa_source_process_rewind(pa_source *s, size_t nbytes) {
     pa_source_output *o;
     void *state = NULL;
@@ -391,6 +410,7 @@ void pa_source_process_rewind(pa_source *s, size_t nbytes) {
     }
 }
 
+/* Called from IO thread context */
 void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
     pa_source_output *o;
     void *state = NULL;
@@ -432,6 +452,7 @@ void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
     }
 }
 
+/* Called from IO thread context */
 void pa_source_post_direct(pa_source*s, pa_source_output *o, const pa_memchunk *chunk) {
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_OPENED(s->thread_info.state));
@@ -460,6 +481,7 @@ void pa_source_post_direct(pa_source*s, pa_source_output *o, const pa_memchunk *
         pa_source_output_push(o, chunk);
 }
 
+/* Called from main thread */
 pa_usec_t pa_source_get_latency(pa_source *s) {
     pa_usec_t usec;
 
@@ -469,14 +491,14 @@ pa_usec_t pa_source_get_latency(pa_source *s) {
     if (!PA_SOURCE_IS_OPENED(s->state))
         return 0;
 
-    if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
-        return 0;
+    pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_LATENCY, &usec, 0, NULL) == 0);
 
     return usec;
 }
 
+/* Called from main thread */
 void pa_source_set_volume(pa_source *s, const pa_cvolume *volume) {
-    int changed;
+    pa_bool_t changed;
 
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
@@ -489,34 +511,36 @@ void pa_source_set_volume(pa_source *s, const pa_cvolume *volume) {
         s->set_volume = NULL;
 
     if (!s->set_volume)
-        pa_asyncmsgq_post(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_VOLUME, pa_xnewdup(struct pa_cvolume, volume, 1), 0, NULL, pa_xfree);
+        pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_VOLUME, volume, 0, NULL);
 
     if (changed)
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
+/* Called from main thread */
 const pa_cvolume *pa_source_get_volume(pa_source *s) {
-    pa_cvolume old_volume;
-
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
 
-    old_volume = s->volume;
+    if (s->refresh_volume) {
+        pa_cvolume old_volume = s->volume;
 
-    if (s->get_volume && s->get_volume(s) < 0)
-        s->get_volume = NULL;
+        if (s->get_volume && s->get_volume(s) < 0)
+            s->get_volume = NULL;
 
-    if (!s->get_volume && s->refresh_volume)
-        pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_VOLUME, &s->volume, 0, NULL);
+        if (!s->get_volume)
+            pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_VOLUME, &s->volume, 0, NULL);
 
-    if (!pa_cvolume_equal(&old_volume, &s->volume))
-        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+        if (!pa_cvolume_equal(&old_volume, &s->volume))
+            pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    }
 
     return &s->volume;
 }
 
+/* Called from main thread */
 void pa_source_set_mute(pa_source *s, pa_bool_t mute) {
-    int changed;
+    pa_bool_t changed;
 
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
@@ -534,26 +558,29 @@ void pa_source_set_mute(pa_source *s, pa_bool_t mute) {
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
+/* Called from main thread */
 pa_bool_t pa_source_get_mute(pa_source *s) {
-    pa_bool_t old_muted;
 
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
 
-    old_muted = s->muted;
+    if (s->refresh_muted) {
+        pa_bool_t old_muted = s->muted;
 
-    if (s->get_mute && s->get_mute(s) < 0)
-        s->get_mute = NULL;
+        if (s->get_mute && s->get_mute(s) < 0)
+            s->get_mute = NULL;
 
-    if (!s->get_mute && s->refresh_muted)
-        pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_MUTE, &s->muted, 0, NULL);
+        if (!s->get_mute)
+            pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_MUTE, &s->muted, 0, NULL);
 
-    if (old_muted != s->muted)
-        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+        if (old_muted != s->muted)
+            pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    }
 
     return s->muted;
 }
 
+/* Called from main thread */
 void pa_source_set_description(pa_source *s, const char *description) {
     const char *old;
     pa_source_assert_ref(s);
@@ -577,6 +604,7 @@ void pa_source_set_description(pa_source *s, const char *description) {
     }
 }
 
+/* Called from main thread */
 unsigned pa_source_linked_by(pa_source *s) {
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
@@ -584,6 +612,7 @@ unsigned pa_source_linked_by(pa_source *s) {
     return pa_idxset_size(s->outputs);
 }
 
+/* Called from main thread */
 unsigned pa_source_used_by(pa_source *s) {
     unsigned ret;
 
@@ -596,12 +625,13 @@ unsigned pa_source_used_by(pa_source *s) {
     return ret - s->n_corked;
 }
 
+/* Called from IO thread, except when it is not */
 int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_t offset, pa_memchunk *chunk) {
     pa_source *s = PA_SOURCE(object);
     pa_source_assert_ref(s);
-    pa_assert(s->thread_info.state != PA_SOURCE_UNLINKED);
 
     switch ((pa_source_message_t) code) {
+
         case PA_SOURCE_MESSAGE_ADD_OUTPUT: {
             pa_source_output *o = PA_SOURCE_OUTPUT(userdata);
 
@@ -676,9 +706,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
         case PA_SOURCE_MESSAGE_DETACH:
 
-            /* We're detaching all our output streams so that the
-             * asyncmsgq and rtpoll fields can be changed without
-             * problems */
+            /* Detach all streams */
             pa_source_detach_within_thread(s);
             return 0;
 
@@ -692,10 +720,45 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
             pa_usec_t *usec = userdata;
             *usec = pa_source_get_requested_latency_within_thread(s);
+
+            if (*usec == (pa_usec_t) -1)
+                *usec = s->thread_info.max_latency;
+
             return 0;
         }
 
+        case PA_SOURCE_MESSAGE_SET_LATENCY_RANGE: {
+            pa_usec_t *r = userdata;
+
+            pa_source_update_latency_range(s, r[0], r[1]);
+
+            return 0;
+        }
+
+        case PA_SOURCE_MESSAGE_GET_LATENCY_RANGE: {
+            pa_usec_t *r = userdata;
+
+            r[0] = s->thread_info.min_latency;
+            r[1] = s->thread_info.max_latency;
+
+            return 0;
+        }
+
+        case PA_SOURCE_MESSAGE_GET_MAX_REWIND:
+
+            *((size_t*) userdata) = s->thread_info.max_rewind;
+            return 0;
+
         case PA_SOURCE_MESSAGE_GET_LATENCY:
+
+            if (s->monitor_of) {
+                *((pa_usec_t*) userdata) = 0;
+                return 0;
+            }
+
+            /* Implementors need to overwrite this implementation! */
+            return -1;
+
         case PA_SOURCE_MESSAGE_MAX:
             ;
     }
@@ -703,6 +766,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
     return -1;
 }
 
+/* Called from main thread */
 int pa_source_suspend_all(pa_core *c, pa_bool_t suspend) {
     uint32_t idx;
     pa_source *source;
@@ -716,20 +780,23 @@ int pa_source_suspend_all(pa_core *c, pa_bool_t suspend) {
     return ret;
 }
 
+/* Called from main thread */
 void pa_source_detach(pa_source *s) {
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
 
-    pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_DETACH, NULL, 0, NULL);
+    pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_DETACH, NULL, 0, NULL) == 0);
 }
 
+/* Called from main thread */
 void pa_source_attach(pa_source *s) {
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
 
-    pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_ATTACH, NULL, 0, NULL);
+    pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_ATTACH, NULL, 0, NULL) == 0);
 }
 
+/* Called from IO thread */
 void pa_source_detach_within_thread(pa_source *s) {
     pa_source_output *o;
     void *state = NULL;
@@ -742,6 +809,7 @@ void pa_source_detach_within_thread(pa_source *s) {
             o->detach(o);
 }
 
+/* Called from IO thread */
 void pa_source_attach_within_thread(pa_source *s) {
     pa_source_output *o;
     void *state = NULL;
@@ -754,6 +822,7 @@ void pa_source_attach_within_thread(pa_source *s) {
             o->attach(o);
 }
 
+/* Called from IO thread */
 pa_usec_t pa_source_get_requested_latency_within_thread(pa_source *s) {
     pa_usec_t result = (pa_usec_t) -1;
     pa_source_output *o;
@@ -771,11 +840,11 @@ pa_usec_t pa_source_get_requested_latency_within_thread(pa_source *s) {
             result = o->thread_info.requested_source_latency;
 
     if (result != (pa_usec_t) -1) {
-        if (s->max_latency > 0 && result > s->max_latency)
-            result = s->max_latency;
+        if (s->thread_info.max_latency > 0 && result > s->thread_info.max_latency)
+            result = s->thread_info.max_latency;
 
-        if (s->min_latency > 0 && result < s->min_latency)
-            result = s->min_latency;
+        if (s->thread_info.min_latency > 0 && result < s->thread_info.min_latency)
+            result = s->thread_info.min_latency;
     }
 
     s->thread_info.requested_latency = result;
@@ -784,6 +853,7 @@ pa_usec_t pa_source_get_requested_latency_within_thread(pa_source *s) {
     return result;
 }
 
+/* Called from main thread */
 pa_usec_t pa_source_get_requested_latency(pa_source *s) {
     pa_usec_t usec;
 
@@ -793,15 +863,12 @@ pa_usec_t pa_source_get_requested_latency(pa_source *s) {
     if (!PA_SOURCE_IS_OPENED(s->state))
         return 0;
 
-    if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_REQUESTED_LATENCY, &usec, 0, NULL) < 0)
-        return 0;
-
-    if (usec == (pa_usec_t) -1)
-        usec = s->max_latency;
+    pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_REQUESTED_LATENCY, &usec, 0, NULL) == 0);
 
     return usec;
 }
 
+/* Called from IO thread */
 void pa_source_set_max_rewind(pa_source *s, size_t max_rewind) {
     pa_source_output *o;
     void *state = NULL;
@@ -813,11 +880,15 @@ void pa_source_set_max_rewind(pa_source *s, size_t max_rewind) {
 
     s->thread_info.max_rewind = max_rewind;
 
-    while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
-        pa_source_output_update_max_rewind(o, s->thread_info.max_rewind);
+    if (PA_SOURCE_IS_LINKED(s->thread_info.state)) {
+        while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
+            pa_source_output_update_max_rewind(o, s->thread_info.max_rewind);
+    }
 }
 
 void pa_source_invalidate_requested_latency(pa_source *s) {
+    pa_source_output *o;
+    void *state = NULL;
 
     pa_source_assert_ref(s);
 
@@ -826,12 +897,21 @@ void pa_source_invalidate_requested_latency(pa_source *s) {
     if (s->update_requested_latency)
         s->update_requested_latency(s);
 
+    while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
+        o->update_source_requested_latency(o);
+
     if (s->monitor_of)
         pa_sink_invalidate_requested_latency(s->monitor_of);
 }
 
 void pa_source_set_latency_range(pa_source *s, pa_usec_t min_latency, pa_usec_t max_latency) {
     pa_source_assert_ref(s);
+
+    /* min_latency == 0:           no limit
+     * min_latency == (size_t) -1: default limit
+     * min_latency anything else:  specified limit
+     *
+     * Similar for max_latency */
 
     if (min_latency == (pa_usec_t) -1)
         min_latency = DEFAULT_MIN_LATENCY;
@@ -842,6 +922,64 @@ void pa_source_set_latency_range(pa_source *s, pa_usec_t min_latency, pa_usec_t 
     pa_assert(!min_latency || !max_latency ||
               min_latency <= max_latency);
 
-    s->min_latency = min_latency;
-    s->max_latency = max_latency;
+    if (PA_SINK_IS_LINKED(s->state)) {
+        pa_usec_t r[2];
+
+        r[0] = min_latency;
+        r[1] = max_latency;
+
+        pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_LATENCY_RANGE, r, 0, NULL) == 0);
+    } else {
+        s->thread_info.min_latency = min_latency;
+        s->thread_info.max_latency = max_latency;
+
+        s->thread_info.requested_latency_valid = FALSE;
+    }
+}
+
+void pa_source_get_latency_range(pa_source *s, pa_usec_t *min_latency, pa_usec_t *max_latency) {
+   pa_source_assert_ref(s);
+   pa_assert(min_latency);
+   pa_assert(max_latency);
+
+   if (PA_SOURCE_IS_LINKED(s->state)) {
+       pa_usec_t r[2] = { 0, 0 };
+
+       pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_LATENCY_RANGE, r, 0, NULL) == 0);
+
+       *min_latency = r[0];
+       *max_latency = r[1];
+   } else {
+       *min_latency = s->thread_info.min_latency;
+       *max_latency = s->thread_info.max_latency;
+   }
+}
+
+/* Called from IO thread */
+void pa_source_update_latency_range(pa_source *s, pa_usec_t min_latency, pa_usec_t max_latency) {
+    pa_source_output *o;
+    void *state = NULL;
+
+    pa_source_assert_ref(s);
+
+    s->thread_info.min_latency = min_latency;
+    s->thread_info.max_latency = max_latency;
+
+    while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
+        if (o->update_source_latency_range)
+            o->update_source_latency_range(o);
+
+    pa_source_invalidate_requested_latency(s);
+}
+
+size_t pa_source_get_max_rewind(pa_source *s) {
+    size_t r;
+    pa_source_assert_ref(s);
+
+    if (!PA_SOURCE_IS_LINKED(s->state))
+        return s->thread_info.max_rewind;
+
+    pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_MAX_REWIND, &r, 0, NULL) == 0);
+
+    return r;
 }

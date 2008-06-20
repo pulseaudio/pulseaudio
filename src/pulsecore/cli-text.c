@@ -116,6 +116,9 @@ char *pa_sink_list_to_string(pa_core *c) {
 
     for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx)) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t;
+        pa_usec_t min_latency, max_latency;
+
+        pa_sink_get_latency_range(sink, &min_latency, &max_latency);
 
         pa_strbuf_printf(
             s,
@@ -128,6 +131,8 @@ char *pa_sink_list_to_string(pa_core *c) {
             "\tmuted: %s\n"
             "\tcurrent latency: %0.2f ms\n"
             "\tconfigured latency: %0.2f ms; range is %0.2f .. %0.2f ms\n"
+            "\tmax request: %lu KiB\n"
+            "\tmax rewind: %lu KiB\n"
             "\tmonitor source: %u\n"
             "\tsample spec: %s\n"
             "\tchannel map: %s\n"
@@ -147,7 +152,9 @@ char *pa_sink_list_to_string(pa_core *c) {
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink)),
             pa_yes_no(pa_sink_get_mute(sink)),
             (double) pa_sink_get_latency(sink) / PA_USEC_PER_MSEC,
-            (double) pa_sink_get_requested_latency(sink) / PA_USEC_PER_MSEC, (double) sink->min_latency / PA_USEC_PER_MSEC, (double) sink->max_latency / PA_USEC_PER_MSEC,
+            (double) pa_sink_get_requested_latency(sink) / PA_USEC_PER_MSEC, (double) min_latency / PA_USEC_PER_MSEC, (double) max_latency / PA_USEC_PER_MSEC,
+            (unsigned long) pa_sink_get_max_request(sink) / 1024,
+            (unsigned long) pa_sink_get_max_rewind(sink) / 1024,
             sink->monitor_source ? sink->monitor_source->index : PA_INVALID_INDEX,
             pa_sample_spec_snprint(ss, sizeof(ss), &sink->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &sink->channel_map),
@@ -184,6 +191,9 @@ char *pa_source_list_to_string(pa_core *c) {
 
     for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx)) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], *t;
+        pa_usec_t min_latency, max_latency;
+
+        pa_source_get_latency_range(source, &min_latency, &max_latency);
 
         pa_strbuf_printf(
             s,
@@ -196,6 +206,7 @@ char *pa_source_list_to_string(pa_core *c) {
             "\tmuted: %s\n"
             "\tcurrent latency: %0.2f ms\n"
             "\tconfigured latency: %0.2f ms; range is %0.2f .. %0.2f ms\n"
+            "\tmax rewind: %lu KiB\n"
             "\tsample spec: %s\n"
             "\tchannel map: %s\n"
             "\tused by: %u\n"
@@ -214,7 +225,8 @@ char *pa_source_list_to_string(pa_core *c) {
             pa_cvolume_snprint(cv, sizeof(cv), pa_source_get_volume(source)),
             pa_yes_no(pa_source_get_mute(source)),
             (double) pa_source_get_latency(source) / PA_USEC_PER_MSEC,
-            (double) pa_source_get_requested_latency(source) / PA_USEC_PER_MSEC, (double) source->min_latency / PA_USEC_PER_MSEC, (double) source->max_latency / PA_USEC_PER_MSEC,
+            (double) pa_source_get_requested_latency(source) / PA_USEC_PER_MSEC, (double) min_latency / PA_USEC_PER_MSEC, (double) max_latency / PA_USEC_PER_MSEC,
+            (unsigned long) pa_source_get_max_rewind(source) / 1024,
             pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &source->channel_map),
             pa_source_used_by(source),
@@ -285,7 +297,7 @@ char *pa_source_output_list_to_string(pa_core *c) {
             o->flags & PA_SOURCE_OUTPUT_FIX_CHANNELS ? "FIX_CHANNELS " : "",
             state_table[pa_source_output_get_state(o)],
             o->source->index, o->source->name,
-            (double) pa_source_output_get_latency(o) / PA_USEC_PER_MSEC,
+            (double) pa_source_output_get_latency(o, NULL) / PA_USEC_PER_MSEC,
             clt,
             pa_sample_spec_snprint(ss, sizeof(ss), &o->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &o->channel_map),
@@ -361,7 +373,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             i->sink->index, i->sink->name,
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_input_get_volume(i)),
             pa_yes_no(pa_sink_input_get_mute(i)),
-            (double) pa_sink_input_get_latency(i) / PA_USEC_PER_MSEC,
+            (double) pa_sink_input_get_latency(i, NULL) / PA_USEC_PER_MSEC,
             clt,
             pa_sample_spec_snprint(ss, sizeof(ss), &i->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),

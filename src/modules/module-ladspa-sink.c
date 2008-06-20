@@ -260,11 +260,37 @@ static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
+    if (!u->sink)
         return;
 
     pa_memblockq_set_maxrewind(u->memblockq, nbytes);
     pa_sink_set_max_rewind(u->sink, nbytes);
+}
+
+/* Called from I/O thread context */
+static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    if (!u->sink)
+        return;
+
+    pa_sink_set_max_request(u->sink, nbytes);
+}
+
+/* Called from I/O thread context */
+static void sink_input_update_sink_latency_range_cb(pa_sink_input *i) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    if (!u->sink)
+        return;
+
+    pa_sink_update_latency_range(u->sink, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
 }
 
 /* Called from I/O thread context */
@@ -274,7 +300,7 @@ static void sink_input_detach_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
+    if (!u->sink)
         return;
 
     pa_sink_detach_within_thread(u->sink);
@@ -289,14 +315,14 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
+    if (!u->sink)
         return;
 
     pa_sink_set_asyncmsgq(u->sink, i->sink->asyncmsgq);
     pa_sink_set_rtpoll(u->sink, i->sink->rtpoll);
     pa_sink_attach_within_thread(u->sink);
 
-    pa_sink_set_latency_range(u->sink, u->master->min_latency, u->master->max_latency);
+    pa_sink_set_latency_range(u->sink, u->master->thread_info.min_latency, u->master->thread_info.max_latency);
 }
 
 /* Called from main context */
@@ -705,6 +731,8 @@ int pa__init(pa_module*m) {
     u->sink_input->pop = sink_input_pop_cb;
     u->sink_input->process_rewind = sink_input_process_rewind_cb;
     u->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;
+    u->sink_input->update_max_request = sink_input_update_max_request_cb;
+    u->sink_input->update_sink_latency_range = sink_input_update_sink_latency_range_cb;
     u->sink_input->kill = sink_input_kill_cb;
     u->sink_input->attach = sink_input_attach_cb;
     u->sink_input->detach = sink_input_detach_cb;

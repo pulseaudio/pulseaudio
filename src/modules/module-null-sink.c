@@ -155,34 +155,32 @@ static void process_rewind(struct userdata *u, pa_usec_t now) {
 }
 
 static void process_render(struct userdata *u, pa_usec_t now) {
-    size_t nbytes;
     size_t ate = 0;
 
     pa_assert(u);
 
     /* This is the configured latency. Sink inputs connected to us
-    might not have a single frame more than this value queued. Hence:
-    at maximum read this many bytes from the sink inputs. */
-
-    nbytes = pa_usec_to_bytes(u->block_usec, &u->sink->sample_spec);
+    might not have a single frame more than the maxrequest value
+    queed. Hence: at maximum read this many bytes from the sink
+    inputs. */
 
     /* Fill the buffer up the the latency size */
     while (u->timestamp < now + u->block_usec) {
         pa_memchunk chunk;
 
-        pa_sink_render(u->sink, nbytes, &chunk);
+        pa_sink_render(u->sink, u->sink->thread_info.max_request, &chunk);
         pa_memblock_unref(chunk.memblock);
 
-        pa_log_debug("Ate %lu bytes.", (unsigned long) chunk.length);
+/*         pa_log_debug("Ate %lu bytes.", (unsigned long) chunk.length); */
         u->timestamp += pa_bytes_to_usec(chunk.length, &u->sink->sample_spec);
 
         ate += chunk.length;
 
-        if (ate >= nbytes)
+        if (ate >= u->sink->thread_info.max_request)
             break;
     }
 
-    pa_log_debug("Ate in sum %lu bytes (of %lu)", (unsigned long) ate, (unsigned long) nbytes);
+/*     pa_log_debug("Ate in sum %lu bytes (of %lu)", (unsigned long) ate, (unsigned long) nbytes); */
 }
 
 static void thread_func(void *userdata) {
@@ -201,7 +199,7 @@ static void thread_func(void *userdata) {
         int ret;
 
         /* Render some data and drop it immediately */
-        if (u->sink->thread_info.state == PA_SINK_RUNNING) {
+        if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
             pa_usec_t now;
 
             now = pa_rtclock_usec();
@@ -254,10 +252,9 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u = pa_xnew0(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
-    m->userdata = u;
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
@@ -268,6 +265,7 @@ int pa__init(pa_module*m) {
     pa_sink_new_data_set_sample_spec(&data, &ss);
     pa_sink_new_data_set_channel_map(&data, &map);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, pa_modargs_get_value(ma, "description", "Null Output"));
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_CLASS, "abstract");
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY);
     pa_sink_new_data_done(&data);
@@ -285,9 +283,11 @@ int pa__init(pa_module*m) {
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
 
     pa_sink_set_latency_range(u->sink, (pa_usec_t) -1, MAX_LATENCY_USEC);
-    u->block_usec = u->sink->max_latency;
+    u->block_usec = u->sink->thread_info.max_latency;
 
-    u->sink->thread_info.max_rewind = pa_usec_to_bytes(u->block_usec, &u->sink->sample_spec);
+    u->sink->thread_info.max_rewind =
+        u->sink->thread_info.max_request =
+        pa_usec_to_bytes(u->block_usec, &u->sink->sample_spec);
 
     if (!(u->thread = pa_thread_new(thread_func, u))) {
         pa_log("Failed to create thread.");

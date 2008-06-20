@@ -2535,6 +2535,7 @@ static void module_fill_tagstruct(pa_tagstruct *t, pa_module *module) {
 
 static void sink_input_fill_tagstruct(connection *c, pa_tagstruct *t, pa_sink_input *s) {
     pa_sample_spec fixed_ss;
+    pa_usec_t sink_latency;
 
     pa_assert(t);
     pa_sink_input_assert_ref(s);
@@ -2549,8 +2550,8 @@ static void sink_input_fill_tagstruct(connection *c, pa_tagstruct *t, pa_sink_in
     pa_tagstruct_put_sample_spec(t, &fixed_ss);
     pa_tagstruct_put_channel_map(t, &s->channel_map);
     pa_tagstruct_put_cvolume(t, &s->volume);
-    pa_tagstruct_put_usec(t, pa_sink_input_get_latency(s));
-    pa_tagstruct_put_usec(t, pa_sink_get_latency(s->sink));
+    pa_tagstruct_put_usec(t, pa_sink_input_get_latency(s, &sink_latency));
+    pa_tagstruct_put_usec(t, sink_latency);
     pa_tagstruct_puts(t, pa_resample_method_to_string(pa_sink_input_get_resample_method(s)));
     pa_tagstruct_puts(t, s->driver);
     if (c->version >= 11)
@@ -2561,6 +2562,7 @@ static void sink_input_fill_tagstruct(connection *c, pa_tagstruct *t, pa_sink_in
 
 static void source_output_fill_tagstruct(connection *c, pa_tagstruct *t, pa_source_output *s) {
     pa_sample_spec fixed_ss;
+    pa_usec_t source_latency;
 
     pa_assert(t);
     pa_source_output_assert_ref(s);
@@ -2574,8 +2576,8 @@ static void source_output_fill_tagstruct(connection *c, pa_tagstruct *t, pa_sour
     pa_tagstruct_putu32(t, s->source->index);
     pa_tagstruct_put_sample_spec(t, &fixed_ss);
     pa_tagstruct_put_channel_map(t, &s->channel_map);
-    pa_tagstruct_put_usec(t, pa_source_output_get_latency(s));
-    pa_tagstruct_put_usec(t, pa_source_get_latency(s->source));
+    pa_tagstruct_put_usec(t, pa_source_output_get_latency(s, &source_latency));
+    pa_tagstruct_put_usec(t, source_latency);
     pa_tagstruct_puts(t, pa_resample_method_to_string(pa_source_output_get_resample_method(s)));
     pa_tagstruct_puts(t, s->driver);
 

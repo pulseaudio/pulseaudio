@@ -1699,8 +1699,8 @@ int pa__init(pa_module*m) {
     }
 
     m->userdata = u = pa_xnew0(struct userdata, 1);
-    u->module = m;
     u->core = m->core;
+    u->module = m;
     u->client = NULL;
     u->pdispatch = NULL;
     u->pstream = NULL;
@@ -1779,7 +1779,7 @@ int pa__init(pa_module*m) {
     u->sink->set_volume = sink_set_volume;
     u->sink->set_mute = sink_set_mute;
 
-    u->sink->refresh_volume = u->sink->refresh_mute = FALSE;
+    u->sink->refresh_volume = u->sink->refresh_muted = FALSE;
 
     pa_sink_set_latency_range(u->sink, MIN_NETWORK_LATENCY_USEC, 0);
 
@@ -1812,8 +1812,8 @@ int pa__init(pa_module*m) {
     }
 
     u->source->parent.process_msg = source_process_msg;
-    u->source->userdata = u;
     u->source->set_state = source_set_state;
+    u->source->userdata = u;
 
     pa_source_set_latency_range(u->source, MIN_NETWORK_LATENCY_USEC, 0);
 

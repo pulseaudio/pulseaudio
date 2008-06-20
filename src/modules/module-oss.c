@@ -1366,6 +1366,8 @@ int pa__init(pa_module*m) {
         pa_sink_set_rtpoll(u->sink, u->rtpoll);
         u->sink->refresh_volume = TRUE;
 
+        u->sink->thread_info.max_request = u->out_hwbuf_size;
+
         if (use_mmap)
             u->out_mmap_memblocks = pa_xnew0(pa_memblock*, u->out_nfrags);
     }

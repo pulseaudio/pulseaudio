@@ -64,8 +64,9 @@ struct pa_source_output {
     pa_source_output_state_t state;
     pa_source_output_flags_t flags;
 
-    pa_proplist *proplist;
     char *driver;                         /* may be NULL */
+    pa_proplist *proplist;
+
     pa_module *module;                    /* may be NULL */
     pa_client *client;                    /* may be NULL */
 
@@ -81,15 +82,23 @@ struct pa_source_output {
 
     /* Pushes a new memchunk into the output. Called from IO thread
      * context. */
-    void (*push)(pa_source_output *o, const pa_memchunk *chunk);
+    void (*push)(pa_source_output *o, const pa_memchunk *chunk); /* may NOT be NULL */
 
     /* Only relevant for monitor sources right now: called when the
-     * recorded stream is rewound. Called from IO context*/
-    void (*process_rewind)(pa_source_output *o, size_t nbytes);
+     * recorded stream is rewound. Called from IO context */
+    void (*process_rewind)(pa_source_output *o, size_t nbytes); /* may be NULL */
 
     /* Called whenever the maximum rewindable size of the source
      * changes. Called from IO thread context. */
     void (*update_max_rewind) (pa_source_output *o, size_t nbytes); /* may be NULL */
+
+    /* Called whenever the configured latency of the source
+     * changes. Called from IO context. */
+    void (*update_source_requested_latency) (pa_source_output *o); /* may be NULL */
+
+    /* Called whenver the latency range of the source changes. Called
+     * from IO context. */
+    void (*update_source_latency_range) (pa_source_output *o); /* may be NULL */
 
     /* If non-NULL this function is called when the output is first
      * connected to a source. Called from IO thread context */
@@ -109,12 +118,12 @@ struct pa_source_output {
 
     /* Supposed to unlink and destroy this stream. Called from main
      * context. */
-    void (*kill)(pa_source_output* o);              /* may be NULL */
+    void (*kill)(pa_source_output* o);              /* may NOT be NULL */
 
     /* Return the current latency (i.e. length of bufferd audio) of
-    this stream. Called from main context. If NULL a
-    PA_SOURCE_OUTPUT_MESSAGE_GET_LATENCY message is sent to the IO
-    thread instead. */
+    this stream. Called from main context. This is added to what the
+    PA_SOURCE_OUTPUT_MESSAGE_GET_LATENCY message sent to the IO thread
+    returns */
     pa_usec_t (*get_latency) (pa_source_output *o); /* may be NULL */
 
     /* If non_NULL this function is called from thread context if the
@@ -206,7 +215,7 @@ int pa_source_output_set_rate(pa_source_output *o, uint32_t rate);
 /* External code may request disconnection with this funcion */
 void pa_source_output_kill(pa_source_output*o);
 
-pa_usec_t pa_source_output_get_latency(pa_source_output *i);
+pa_usec_t pa_source_output_get_latency(pa_source_output *i, pa_usec_t *source_latency);
 
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o);
 

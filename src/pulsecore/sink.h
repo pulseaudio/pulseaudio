@@ -80,16 +80,14 @@ struct pa_sink {
 
     pa_cvolume volume;
     pa_bool_t muted;
-    pa_bool_t refresh_volume;
-    pa_bool_t refresh_mute;
+
+    pa_bool_t refresh_volume:1;
+    pa_bool_t refresh_muted:1;
 
     pa_asyncmsgq *asyncmsgq;
     pa_rtpoll *rtpoll;
 
     pa_memchunk silence;
-
-    pa_usec_t min_latency; /* we won't go below this latency */
-    pa_usec_t max_latency; /* An upper limit for the latencies */
 
     /* Called when the main loop requests a state change. Called from
      * main loop context. If returns -1 the state change will be
@@ -98,8 +96,9 @@ struct pa_sink {
 
     /* Callled when the volume is queried. Called from main loop
      * context. If this is NULL a PA_SINK_MESSAGE_GET_VOLUME message
-     * will be sent to the IO thread instead. */
-    int (*get_volume)(pa_sink *s);             /* may be null */
+     * will be sent to the IO thread instead. If refresh_volume is
+     * FALSE neither this function is called nor a message is sent. */
+    int (*get_volume)(pa_sink *s);             /* may be NULL */
 
     /* Called when the volume shall be changed. Called from main loop
      * context. If this is NULL a PA_SINK_MESSAGE_SET_VOLUME message
@@ -108,7 +107,8 @@ struct pa_sink {
 
     /* Called when the mute setting is queried. Called from main loop
      * context. If this is NULL a PA_SINK_MESSAGE_GET_MUTE message
-     * will be sent to the IO thread instead. */
+     * will be sent to the IO thread instead. If refresh_mute is
+     * FALSE neither this function is called nor a message is sent.*/
     int (*get_mute)(pa_sink *s);               /* dito */
 
     /* Called when the mute setting shall be changed. Called from main
@@ -130,17 +130,24 @@ struct pa_sink {
         pa_sink_state_t state;
         pa_hashmap *inputs;
         pa_cvolume soft_volume;
-        pa_bool_t soft_muted;
+        pa_bool_t soft_muted:1;
 
-        pa_bool_t requested_latency_valid;
+        pa_bool_t requested_latency_valid:1;
         pa_usec_t requested_latency;
 
-        /* The number of bytes we need keep around to be able to satisfy
-         * every DMA buffer rewrite */
+        /* The number of bytes streams need to keep around as history to
+         * be able to satisfy every DMA buffer rewrite */
         size_t max_rewind;
+
+        /* The number of bytes streams need to keep around to satisfy
+         * every DMA write request */
+        size_t max_request;
 
         /* Maximum of what clients requested to rewind in this cycle */
         size_t rewind_nbytes;
+
+        pa_usec_t min_latency; /* we won't go below this latency */
+        pa_usec_t max_latency; /* An upper limit for the latencies */
     } thread_info;
 
     void *userdata;
@@ -163,6 +170,10 @@ typedef enum pa_sink_message {
     PA_SINK_MESSAGE_FINISH_MOVE,
     PA_SINK_MESSAGE_ATTACH,
     PA_SINK_MESSAGE_DETACH,
+    PA_SINK_MESSAGE_SET_LATENCY_RANGE,
+    PA_SINK_MESSAGE_GET_LATENCY_RANGE,
+    PA_SINK_MESSAGE_GET_MAX_REWIND,
+    PA_SINK_MESSAGE_GET_MAX_REQUEST,
     PA_SINK_MESSAGE_MAX
 } pa_sink_message_t;
 
@@ -217,6 +228,10 @@ void pa_sink_attach(pa_sink *s);
 /* The returned value is supposed to be in the time domain of the sound card! */
 pa_usec_t pa_sink_get_latency(pa_sink *s);
 pa_usec_t pa_sink_get_requested_latency(pa_sink *s);
+void pa_sink_get_latency_range(pa_sink *s, pa_usec_t *min_latency, pa_usec_t *max_latency);
+
+size_t pa_sink_get_max_rewind(pa_sink *s);
+size_t pa_sink_get_max_request(pa_sink *s);
 
 int pa_sink_update_status(pa_sink*s);
 int pa_sink_suspend(pa_sink *s, pa_bool_t suspend);
@@ -248,6 +263,9 @@ void pa_sink_detach_within_thread(pa_sink *s);
 pa_usec_t pa_sink_get_requested_latency_within_thread(pa_sink *s);
 
 void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind);
+void pa_sink_set_max_request(pa_sink *s, size_t max_request);
+
+void pa_sink_update_latency_range(pa_sink *s, pa_usec_t min_latency, pa_usec_t max_latency);
 
 /* To be called exclusively by sink input drivers, from IO context */
 

@@ -71,8 +71,9 @@ struct pa_sink_input {
     pa_sink_input_state_t state;
     pa_sink_input_flags_t flags;
 
-    pa_proplist *proplist;
     char *driver;                       /* may be NULL */
+    pa_proplist *proplist;
+
     pa_module *module;                  /* may be NULL */
     pa_client *client;                  /* may be NULL */
 
@@ -112,6 +113,18 @@ struct pa_sink_input {
      * changes. Called from IO context. */
     void (*update_max_rewind) (pa_sink_input *i, size_t nbytes); /* may be NULL */
 
+    /* Called whenever the maxiumum request size of the sink
+     * changes. Called from IO context. */
+    void (*update_max_request) (pa_sink_input *i, size_t nbytes); /* may be NULL */
+
+    /* Called whenever the configured latency of the sink
+     * changes. Called from IO context. */
+    void (*update_sink_requested_latency) (pa_sink_input *i); /* may be NULL */
+
+    /* Called whenver the latency range of the sink changes. Called
+     * from IO context. */
+    void (*update_sink_latency_range) (pa_sink_input *i); /* may be NULL */
+
     /* If non-NULL this function is called when the input is first
      * connected to a sink or when the rtpoll/asyncmsgq fields
      * change. You usually don't need to implement this function
@@ -133,12 +146,12 @@ struct pa_sink_input {
 
     /* Supposed to unlink and destroy this stream. Called from main
      * context. */
-    void (*kill) (pa_sink_input *i);             /* may be NULL */
+    void (*kill) (pa_sink_input *i);             /* may NOT be NULL */
 
     /* Return the current latency (i.e. length of bufferd audio) of
-    this stream. Called from main context. If NULL a
-    PA_SINK_INPUT_MESSAGE_GET_LATENCY message is sent to the IO thread
-    instead. */
+    this stream. Called from main context. This is added to what the
+    PA_SINK_INPUT_MESSAGE_GET_LATENCY message sent to the IO thread
+    returns */
     pa_usec_t (*get_latency) (pa_sink_input *i); /* may be NULL */
 
     /* If non_NULL this function is called from thread context if the
@@ -258,12 +271,12 @@ int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate);
 /* External code may request disconnection with this function */
 void pa_sink_input_kill(pa_sink_input*i);
 
-pa_usec_t pa_sink_input_get_latency(pa_sink_input *i);
+pa_usec_t pa_sink_input_get_latency(pa_sink_input *i, pa_usec_t *sink_latency);
 
 void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume);
 const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i);
 void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute);
-int pa_sink_input_get_mute(pa_sink_input *i);
+pa_bool_t pa_sink_input_get_mute(pa_sink_input *i);
 
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i);
 
@@ -279,6 +292,7 @@ int pa_sink_input_peek(pa_sink_input *i, size_t length, pa_memchunk *chunk, pa_c
 void pa_sink_input_drop(pa_sink_input *i, size_t length);
 void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in the sink's sample spec */);
 void pa_sink_input_update_max_rewind(pa_sink_input *i, size_t nbytes  /* in the sink's sample spec */);
+void pa_sink_input_update_max_request(pa_sink_input *i, size_t nbytes  /* in the sink's sample spec */);
 
 void pa_sink_input_set_state_within_thread(pa_sink_input *i, pa_sink_input_state_t state);
 

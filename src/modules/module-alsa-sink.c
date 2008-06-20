@@ -600,6 +600,8 @@ static int update_sw_params(struct userdata *u) {
         return err;
     }
 
+    pa_sink_set_max_request(u->sink, u->hwbuf_size - u->hwbuf_unused_frames * u->frame_size);
+
     return 0;
 }
 
@@ -1316,6 +1318,7 @@ int pa__init(pa_module*m) {
         fix_tsched_watermark(u);
 
     u->sink->thread_info.max_rewind = use_tsched ? u->hwbuf_size : 0;
+    u->sink->thread_info.max_request = u->hwbuf_size;
 
     pa_sink_set_latency_range(u->sink,
                               !use_tsched ? pa_bytes_to_usec(u->hwbuf_size, &ss) : (pa_usec_t) -1,
