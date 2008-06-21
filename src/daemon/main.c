@@ -374,7 +374,7 @@ int main(int argc, char *argv[]) {
     suid_root = FALSE;
 #endif
 
-    if (suid_root) {
+    if (!real_root) {
         /* Drop all capabilities except CAP_SYS_NICE  */
         pa_limit_caps();
 
@@ -426,20 +426,26 @@ int main(int argc, char *argv[]) {
     pa_log_set_maximal_level(conf->log_level);
     pa_log_set_target(conf->auto_log_target ? PA_LOG_STDERR : conf->log_target, NULL);
 
-    if (suid_root) {
-        pa_bool_t allow_realtime, allow_high_priority;
+    pa_log_debug("Started as real root: %s, suid root: %s", pa_yes_no(real_root), pa_yes_no(suid_root));
 
-        /* Ok, we're suid root, so let's better not enable high prio
-         * or RT by default */
+    if (!real_root && pa_have_caps()) {
+        pa_bool_t allow_high_priority = FALSE, allow_realtime = FALSE;
 
-        allow_high_priority = allow_realtime = FALSE;
+        /* Let's better not enable high prio or RT by default */
 
-        if (conf->high_priority || conf->realtime_scheduling)
+        if (conf->high_priority && !allow_high_priority) {
             if (pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) > 0) {
-                pa_log_info("We're in the group '"PA_REALTIME_GROUP"', allowing real-time and high-priority scheduling.");
-                allow_realtime = conf->realtime_scheduling;
-                allow_high_priority = conf->high_priority;
+                pa_log_info("We're in the group '"PA_REALTIME_GROUP"', allowing high-priority scheduling.");
+                allow_high_priority = TRUE;
             }
+        }
+
+        if (conf->realtime_scheduling && !allow_realtime) {
+            if (pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) > 0) {
+                pa_log_info("We're in the group '"PA_REALTIME_GROUP"', allowing real-time scheduling.");
+                allow_realtime = TRUE;
+            }
+        }
 
 #ifdef HAVE_POLKIT
         if (conf->high_priority && !allow_high_priority) {
@@ -465,7 +471,6 @@ int main(int argc, char *argv[]) {
              * let's give it up early */
 
             pa_drop_caps();
-            suid_root = FALSE;
 
             if (conf->high_priority || conf->realtime_scheduling)
                 pa_log_notice("Called SUID root and real-time/high-priority scheduling was requested in the configuration. However, we lack the necessary priviliges:\n"
@@ -491,7 +496,7 @@ int main(int argc, char *argv[]) {
     if (conf->high_priority && (conf->cmd == PA_CMD_DAEMON || conf->cmd == PA_CMD_START))
         pa_raise_priority(conf->nice_level);
 
-    if (suid_root) {
+    if (pa_have_caps()) {
         pa_bool_t drop;
 
         drop = (conf->cmd != PA_CMD_DAEMON && conf->cmd != PA_CMD_START) || !conf->realtime_scheduling;
@@ -529,6 +534,8 @@ int main(int argc, char *argv[]) {
 
     if (conf->realtime_scheduling && !pa_can_realtime())
         pa_log_warn("Real-time scheduling enabled in configuration but not allowed by policy.");
+
+    pa_log_debug("Can realtime: %s, can high-priority: %s", pa_yes_no(pa_can_realtime()), pa_yes_no(pa_can_high_priority()));
 
     LTDL_SET_PRELOADED_SYMBOLS();
     pa_ltdl_init();

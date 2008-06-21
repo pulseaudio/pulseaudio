@@ -91,13 +91,18 @@ void pa_limit_caps(void) {
     pa_assert_se(cap_clear(caps) == 0);
     pa_assert_se(cap_set_flag(caps, CAP_EFFECTIVE, 1, &nice_cap, CAP_SET) == 0);
     pa_assert_se(cap_set_flag(caps, CAP_PERMITTED, 1, &nice_cap, CAP_SET) == 0);
-    pa_assert_se(cap_set_proc(caps) == 0);
 
-    pa_assert_se(prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) == 0);
-
-    pa_log_info("Dropped capabilities successfully.");
+    if (cap_set_proc(caps) < 0)
+        /* Hmm, so we couldn't limit our caps, which probably means we
+         * hadn't any in the first place, so let's just make sure of
+         * that */
+        pa_drop_caps();
+    else
+        pa_log_info("Limited capabilities successfully to CAP_SYS_NICE.");
 
     pa_assert_se(cap_free(caps) == 0);
+
+    pa_assert_se(prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) == 0);
 }
 
 /* Drop all capabilities, effectively becoming a normal user */
@@ -110,17 +115,33 @@ void pa_drop_caps(void) {
     pa_assert_se(cap_clear(caps) == 0);
     pa_assert_se(cap_set_proc(caps) == 0);
     pa_assert_se(cap_free(caps) == 0);
+
+    pa_assert_se(!pa_have_caps());
+}
+
+pa_bool_t pa_have_caps(void) {
+    cap_t caps;
+    cap_flag_value_t flag = CAP_CLEAR;
+
+    pa_assert_se(caps = cap_get_proc());
+    pa_assert_se(cap_get_flag(caps, CAP_SYS_NICE, CAP_EFFECTIVE, &flag) >= 0);
+    pa_assert_se(cap_free(caps) == 0);
+
+    return flag == CAP_SET;
 }
 
 #else
 
 /* NOOPs in case capabilities are not available. */
 void pa_limit_caps(void) {
-    return 0;
 }
 
 void pa_drop_caps(void) {
     pa_drop_root();
+}
+
+pa_bool_t pa_have_caps(void) {
+    return FALSE;
 }
 
 #endif
