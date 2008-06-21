@@ -1179,19 +1179,17 @@ static char *get_dir(mode_t m, const char *env_name) {
             return NULL;
         }
 
-        d = pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse", h);
-
-        if (stat(d, &st) < 0) {
-            pa_log_error("Failed to state home directory %s: %s", d, pa_cstrerror(errno));
-            pa_xfree(d);
+        if (stat(h, &st) < 0) {
+            pa_log_error("Failed to stat home directory %s: %s", h, pa_cstrerror(errno));
             return NULL;
         }
 
         if (st.st_uid != getuid()) {
             pa_log_error("Home directory %s not ours.", d);
-            pa_xfree(d);
             return NULL;
         }
+
+        d = pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse", h);
     }
 
     if (pa_make_secure_dir(d, m, (pid_t) -1, (pid_t) -1) < 0)  {
