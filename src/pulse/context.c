@@ -858,7 +858,11 @@ int pa_context_connect(
         if (!(flags & PA_CONTEXT_NOAUTOSPAWN) && c->conf->autospawn) {
             char *lf;
 
-            lf = pa_runtime_path(AUTOSPAWN_LOCK);
+            if (!(lf = pa_runtime_path(AUTOSPAWN_LOCK))) {
+                pa_context_fail(c, PA_ERR_ACCESS);
+                goto finish;
+            }
+
             pa_assert(c->autospawn_lock_fd <= 0);
             c->autospawn_lock_fd = pa_lock_lockfile(lf);
             pa_xfree(lf);
