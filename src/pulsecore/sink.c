@@ -1038,10 +1038,10 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
              * sink input handling a few lines down at
              * PA_SINK_MESSAGE_PREPAPRE_MOVE, too. */
 
-            pa_sink_input_set_state_within_thread(i, i->state);
-
             if (i->detach)
                 i->detach(i);
+
+            pa_sink_input_set_state_within_thread(i, i->state);
 
             pa_assert(i->thread_info.attached);
             i->thread_info.attached = FALSE;
