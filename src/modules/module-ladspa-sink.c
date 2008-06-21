@@ -322,7 +322,7 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     pa_sink_set_rtpoll(u->sink, i->sink->rtpoll);
     pa_sink_attach_within_thread(u->sink);
 
-    pa_sink_set_latency_range(u->sink, u->master->thread_info.min_latency, u->master->thread_info.max_latency);
+    pa_sink_update_latency_range(u->sink, u->master->thread_info.min_latency, u->master->thread_info.max_latency);
 }
 
 /* Called from main context */
