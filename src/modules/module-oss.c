@@ -508,6 +508,9 @@ static int suspend(struct userdata *u) {
     return 0;
 }
 
+static int sink_get_volume(pa_sink *s);
+static int source_get_volume(pa_source *s);
+
 static int unsuspend(struct userdata *u) {
     int m;
     pa_sample_spec ss, *ss_original;
@@ -598,9 +601,9 @@ static int unsuspend(struct userdata *u) {
     build_pollfd(u);
 
     if (u->sink)
-        pa_sink_get_volume(u->sink);
+        sink_get_volume(u->sink);
     if (u->source)
-        pa_source_get_volume(u->source);
+        source_get_volume(u->source);
 
     pa_log_info("Resumed successfully...");
 
