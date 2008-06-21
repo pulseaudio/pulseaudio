@@ -305,7 +305,6 @@ void pa_sink_put(pa_sink* s) {
     /* The following fields must be initialized properly when calling _put() */
     pa_assert(s->asyncmsgq);
     pa_assert(s->rtpoll);
-    pa_assert(s->thread_info.max_request > 0);
     pa_assert(!s->thread_info.min_latency || !s->thread_info.max_latency ||
               s->thread_info.min_latency <= s->thread_info.max_latency);
 
