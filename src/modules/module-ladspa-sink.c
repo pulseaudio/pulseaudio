@@ -260,7 +260,7 @@ static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (!u->sink)
+    if (!u->sink || !PA_SINK_IS_LINKED(u->sink->thread_info.state))
         return;
 
     pa_memblockq_set_maxrewind(u->memblockq, nbytes);
@@ -274,7 +274,7 @@ static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (!u->sink)
+    if (!u->sink || !PA_SINK_IS_LINKED(u->sink->thread_info.state))
         return;
 
     pa_sink_set_max_request(u->sink, nbytes);
@@ -287,7 +287,7 @@ static void sink_input_update_sink_latency_range_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (!u->sink)
+    if (!u->sink || !PA_SINK_IS_LINKED(u->sink->thread_info.state))
         return;
 
     pa_sink_update_latency_range(u->sink, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
@@ -300,7 +300,7 @@ static void sink_input_detach_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (!u->sink)
+    if (!u->sink || !PA_SINK_IS_LINKED(u->sink->thread_info.state))
         return;
 
     pa_sink_detach_within_thread(u->sink);
@@ -315,7 +315,7 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (!u->sink)
+    if (!u->sink || !PA_SINK_IS_LINKED(u->sink->thread_info.state))
         return;
 
     pa_sink_set_asyncmsgq(u->sink, i->sink->asyncmsgq);
