@@ -898,7 +898,8 @@ void pa_source_invalidate_requested_latency(pa_source *s) {
         s->update_requested_latency(s);
 
     while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
-        o->update_source_requested_latency(o);
+        if (o->update_source_requested_latency)
+            o->update_source_requested_latency(o);
 
     if (s->monitor_of)
         pa_sink_invalidate_requested_latency(s->monitor_of);
