@@ -392,7 +392,7 @@ int pa_stream_drop(pa_stream *p);
 /** Return the number of bytes that may be written using pa_stream_write() */
 size_t pa_stream_writable_size(pa_stream *p);
 
-/** Return the number of bytes that may be read using pa_stream_read()*/
+/** Return the number of bytes that may be read using pa_stream_peek()*/
 size_t pa_stream_readable_size(pa_stream *p);
 
 /** Drain a playback stream. Use this for notification when the buffer is empty */
