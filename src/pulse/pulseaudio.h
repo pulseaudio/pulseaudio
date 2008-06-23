@@ -43,6 +43,7 @@
 #include <pulse/mainloop-signal.h>
 #include <pulse/util.h>
 #include <pulse/timeval.h>
+#include <pulse/proplist.h>
 
 /** \file
  * Include all libpulse header files at once. The following
@@ -50,7 +51,7 @@
  * \ref context.h, \ref stream.h, \ref introspect.h, \ref subscribe.h,
  * \ref scache.h, \ref version.h, \ref error.h, \ref channelmap.h,
  * \ref operation.h,\ref volume.h, \ref xmalloc.h, \ref utf8.h, \ref
- * thread-mainloop.h, \ref mainloop.h, \ref util.h, \ref timeval.h and
+ * thread-mainloop.h, \ref mainloop.h, \ref util.h, \ref proplist.h, \ref timeval.h and
  * \ref mainloop-signal.h at once */
 
 /** \mainpage
