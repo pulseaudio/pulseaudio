@@ -1009,32 +1009,6 @@ AC_ARG_ENABLE(manpages,
   *) AC_MSG_ERROR([bad value ${enableval} for --disable-manpages]) ;;
 esac],[manpages=yes])
 
-if test x$manpages = xyes ; then
-    #
-    # XMLTOMAN manpage generation
-    #
-    AC_ARG_ENABLE(xmltoman,
-    AS_HELP_STRING([--disable-xmltoman],[Enable rebuilding of man pages with xmltoman]),
-    [case "${enableval}" in
-      yes) xmltoman=yes ;;
-      no)  xmltoman=no ;;
-      *) AC_MSG_ERROR([bad value ${enableval} for --disable-xmltoman]) ;;
-    esac],[xmltoman=yes])
-
-    if test x$xmltoman = xyes ; then
-        AC_CHECK_PROG(have_xmltoman, xmltoman, yes, no)
-    fi
-
-    if test x$have_xmltoman = xno -o x$xmltoman = xno; then
-        if ! test -e man/pulseaudio.1 ; then
-            AC_MSG_ERROR([*** xmltoman was not found or was disabled, it is required to build the manpages as they have not been pre-built, install xmltoman, pass --disable-manpages or dont pass --disable-xmltoman])
-            exit 1
-        fi
-        AC_MSG_WARN([*** Not rebuilding man pages as xmltoman is not found ***])
-        xmltoman=no
-    fi
-fi
-AM_CONDITIONAL([USE_XMLTOMAN], [test "x$xmltoman" = xyes])
 AM_CONDITIONAL([BUILD_MANPAGES], [test "x$manpages" = xyes])
 
 #### PulseAudio system group & user  #####
