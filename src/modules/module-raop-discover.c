@@ -154,7 +154,7 @@ static void resolver_cb(
     if (event != AVAHI_RESOLVER_FOUND)
         pa_log("Resolving of '%s' failed: %s", name, avahi_strerror(avahi_client_errno(u->client)));
     else {
-        char *device = NULL, *dname, *args;
+        char *device = NULL, *dname, *vname, *args;
         char at[AVAHI_ADDRESS_STR_MAX];
         AvahiStringList *l;
         pa_module *m;
@@ -178,23 +178,24 @@ static void resolver_cb(
         else
             dname = pa_sprintf_malloc("airtunes.%s", host_name);
 
-        if (!pa_namereg_is_valid_name(dname)) {
-            pa_log("Cannot construct valid device name from credentials of service '%s'.", dname);
+        if (!(vname = pa_namereg_make_valid_name(dname))) {
+            pa_log("Cannot construct valid device name from '%s'.", dname);
             avahi_free(device);
             pa_xfree(dname);
             goto finish;
         }
+        pa_xfree(dname);
 
         /*
          TODO: allow this syntax of server name in things....
         args = pa_sprintf_malloc("server=[%s]:%u "
                                  "sink_name=%s",
                                  avahi_address_snprint(at, sizeof(at), a), port,
-                                 dname);*/
+                                 vname);*/
         args = pa_sprintf_malloc("server=%s "
                                  "sink_name=%s",
                                  avahi_address_snprint(at, sizeof(at), a),
-                                 dname);
+                                 vname);
 
         pa_log_debug("Loading module-raop-sink with arguments '%s'", args);
 
@@ -204,7 +205,7 @@ static void resolver_cb(
             tnl = NULL;
         }
 
-        pa_xfree(dname);
+        pa_xfree(vname);
         pa_xfree(args);
         avahi_free(device);
     }
