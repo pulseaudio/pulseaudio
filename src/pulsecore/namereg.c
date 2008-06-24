@@ -70,7 +70,7 @@ pa_bool_t pa_namereg_is_valid_name(const char *name) {
     return TRUE;
 }
 
-static char* cleanup_name(const char *name) {
+const char* pa_namereg_make_valid_name(const char *name) {
     const char *a;
     char *b, *n;
 
@@ -114,7 +114,7 @@ const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t 
         if (fail)
             return NULL;
 
-        if (!(name = n = cleanup_name(name)))
+        if (!(name = n = pa_namereg_make_valid_name(name)))
             return NULL;
     }
 

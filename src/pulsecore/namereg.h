@@ -44,5 +44,6 @@ const char *pa_namereg_get_default_sink_name(pa_core *c);
 const char *pa_namereg_get_default_source_name(pa_core *c);
 
 pa_bool_t pa_namereg_is_valid_name(const char *name);
+const char* pa_namereg_make_valid_name(const char *name);
 
 #endif
