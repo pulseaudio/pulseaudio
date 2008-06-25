@@ -119,6 +119,11 @@ pa_stream *pa_stream_new_with_proplist(
     s->requested_bytes = 0;
     memset(&s->buffer_attr, 0, sizeof(s->buffer_attr));
 
+    /* We initialize der target length here, so that if the user
+     * passes no explicit buffering metrics the default is similar to
+     * what older PA versions provided. */
+    s->buffer_attr.tlength = pa_usec_to_bytes(250*PA_USEC_PER_MSEC, ss); /* 250ms of buffering */
+
     s->device_index = PA_INVALID_INDEX;
     s->device_name = NULL;
     s->suspended = FALSE;
@@ -685,16 +690,19 @@ static void automatic_buffer_attr(pa_stream *s, pa_buffer_attr *attr, const pa_s
         return;
 
     /* Version older than 0.9.10 didn't do server side buffer_attr
-     * selection, hence we have to fake it on the client side */
+     * selection, hence we have to fake it on the client side. */
+
+    /* We choose fairly conservative values here, to not confuse
+     * old clients with extremely large playback buffers */
 
     if (!attr->maxlength <= 0)
         attr->maxlength = 4*1024*1024; /* 4MB is the maximum queue length PulseAudio <= 0.9.9 supported. */
 
     if (!attr->tlength <= 0)
-        attr->tlength = pa_bytes_per_second(ss)*2; /* 2s of buffering */
+        attr->tlength = pa_usec_to_bytes(250*PA_USEC_PER_MSEC, ss); /* 250ms of buffering */
 
     if (!attr->minreq <= 0)
-        attr->minreq = (2*attr->tlength)/10; /* Ask for more data when there are only 200ms left in the playback buffer */
+        attr->minreq = (attr->tlength)/5; /* Ask for more data when there are only 200ms left in the playback buffer */
 
     if (!attr->prebuf)
         attr->prebuf = attr->tlength; /* Start to play only when the playback is fully filled up once */
