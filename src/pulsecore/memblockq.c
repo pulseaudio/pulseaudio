@@ -110,7 +110,7 @@ pa_memblockq* pa_memblockq_new(
 void pa_memblockq_free(pa_memblockq* bq) {
     pa_assert(bq);
 
-    pa_memblockq_flush(bq);
+    pa_memblockq_silence(bq);
 
     if (bq->silence.memblock)
         pa_memblock_unref(bq->silence.memblock);
