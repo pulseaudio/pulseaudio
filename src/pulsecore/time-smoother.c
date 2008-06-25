@@ -421,7 +421,8 @@ void pa_smoother_resume(pa_smoother *s, pa_usec_t x) {
     if (!s->paused)
         return;
 
-    pa_assert(x >= s->pause_time);
+    if (x < s->pause_time)
+        x = s->pause_time;
 
 /*     pa_log_debug("resume(%llu)", (unsigned long long) x); */
 
@@ -458,5 +459,4 @@ void pa_smoother_reset(pa_smoother *s) {
 
     s->n_history = 0;
     s->abc_valid = FALSE;
-
 }
