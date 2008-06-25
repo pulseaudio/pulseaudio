@@ -160,11 +160,13 @@ void pa_memblockq_willneed(pa_memblockq *bq);
  * data for the future nor data in the backlog. */
 pa_bool_t pa_memblockq_is_empty(pa_memblockq *bq);
 
+/* Drop everything in the queue, but don't modify the indexes */
 void pa_memblockq_silence(pa_memblockq *bq);
 
 /* Check whether we currently are in prebuf state */
 pa_bool_t pa_memblockq_prebuf_active(pa_memblockq *bq);
 
+/* Return how many items are currently stored in the queue */
 unsigned pa_memblockq_get_nblocks(pa_memblockq *bq);
 
 size_t pa_memblockq_get_base(pa_memblockq *bq);
