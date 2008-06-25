@@ -120,7 +120,7 @@ typedef enum pa_stream_flags {
                                        * of sense to combine this
                                        * option with
                                        * PA_STREAM_AUTO_TIMING_UPDATE. */
-    PA_STREAM_NOT_MONOTONOUS = 4,    /**< Don't force the time to
+    PA_STREAM_NOT_MONOTONIC = 4,    /**< Don't force the time to
                                       * increase monotonically. If
                                       * this option is enabled,
                                       * pa_stream_get_time() will not
@@ -135,7 +135,12 @@ typedef enum pa_stream_flags {
                                       * caused the time to to jump
                                       * ahead can be corrected
                                       * quickly, without the need to
-                                      * wait. */
+                                      * wait. (Please note that this
+                                      * flag was named
+                                      * PA_STREAM_NOT_MONOTONOUS in
+                                      * releases prior to 0.9.11. The
+                                      * old name is still defined too,
+                                      * for compatibility reasons. */
     PA_STREAM_AUTO_TIMING_UPDATE = 8, /**< If set timing update requests
                                        * are issued periodically
                                        * automatically. Combined with
@@ -237,8 +242,8 @@ typedef enum pa_stream_flags {
 } pa_stream_flags_t;
 
 
-/** English is an evil language \since 0.9.11 */
-#define PA_STREAM_NOT_MONOTONIC PA_STREAM_NOT_MONOTONOUS
+/** English is an evil language */
+#define PA_STREAM_NOT_MONOTONOUS PA_STREAM_NOT_MONOTONIC
 
 /** Playback and record buffer metrics */
 typedef struct pa_buffer_attr {
