@@ -70,7 +70,7 @@ pa_bool_t pa_namereg_is_valid_name(const char *name) {
     return TRUE;
 }
 
-const char* pa_namereg_make_valid_name(const char *name) {
+char* pa_namereg_make_valid_name(const char *name) {
     const char *a;
     char *b, *n;
 
@@ -109,7 +109,7 @@ const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t 
         return NULL;
 
     if ((type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE) &&
-        !pa_namereg_is_valid_name(name) ) {
+        !pa_namereg_is_valid_name(name)) {
 
         if (fail)
             return NULL;
