@@ -1196,7 +1196,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 
             switch  (code) {
                 case SINK_INPUT_MESSAGE_FLUSH:
-                    func = pa_memblockq_flush;
+                    func = pa_memblockq_flush_write;
                     break;
 
                 case SINK_INPUT_MESSAGE_PREBUF_FORCE:
@@ -3072,7 +3072,7 @@ static void command_flush_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_U
     s = pa_idxset_get_by_index(c->record_streams, idx);
     CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
 
-    pa_memblockq_flush(s->memblockq);
+    pa_memblockq_flush_read(s->memblockq);
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
 

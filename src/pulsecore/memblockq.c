@@ -638,7 +638,7 @@ void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek) {
     bq->missing -= delta;
 }
 
-void pa_memblockq_flush(pa_memblockq *bq) {
+void pa_memblockq_flush_write(pa_memblockq *bq) {
     int64_t old, delta;
     pa_assert(bq);
 
@@ -660,6 +660,21 @@ void pa_memblockq_flush(pa_memblockq *bq) {
     }
 
     bq->missing -= delta;
+}
+
+void pa_memblockq_flush_read(pa_memblockq *bq) {
+    int64_t old, delta;
+    pa_assert(bq);
+
+    pa_memblockq_silence(bq);
+
+    old = bq->read_index;
+    bq->read_index = bq->write_index;
+
+    pa_memblockq_prebuf_force(bq);
+
+    delta = bq->read_index - old;
+    bq->missing += delta;
 }
 
 size_t pa_memblockq_get_tlength(pa_memblockq *bq) {

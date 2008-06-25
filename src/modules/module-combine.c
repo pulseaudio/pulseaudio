@@ -525,7 +525,7 @@ static int sink_input_process_msg(pa_msgobject *obj, int code, void *data, int64
             if (PA_SINK_IS_OPENED(o->sink_input->sink->thread_info.state))
                 pa_memblockq_push_align(o->memblockq, chunk);
             else
-                pa_memblockq_flush(o->memblockq);
+                pa_memblockq_flush_write(o->memblockq);
 
             return 0;
     }
@@ -555,7 +555,7 @@ static void enable_output(struct output *o) {
 
     if (output_create_sink_input(o) >= 0) {
 
-        pa_memblockq_flush(o->memblockq);
+        pa_memblockq_flush_write(o->memblockq);
 
         pa_sink_input_put(o->sink_input);
 
