@@ -892,7 +892,7 @@ static int create_stream(
         if (s->smoother)
             pa_smoother_free(s->smoother);
 
-        s->smoother = pa_smoother_new(SMOOTHER_ADJUST_TIME, SMOOTHER_HISTORY_TIME, !(flags & PA_STREAM_NOT_MONOTONOUS), SMOOTHER_MIN_HISTORY);
+        s->smoother = pa_smoother_new(SMOOTHER_ADJUST_TIME, SMOOTHER_HISTORY_TIME, !(flags & PA_STREAM_NOT_MONOTONIC), SMOOTHER_MIN_HISTORY);
 
         x = pa_rtclock_usec();
         pa_smoother_set_time_offset(s->smoother, x);
