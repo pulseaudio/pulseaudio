@@ -880,6 +880,7 @@ static int create_stream(
 
     s->direction = direction;
     s->flags = flags;
+    s->corked = !!(flags & PA_STREAM_START_CORKED);
 
     if (sync_stream)
         s->syncid = sync_stream->syncid;
@@ -919,7 +920,7 @@ static int create_stream(
             PA_TAG_U32, PA_INVALID_INDEX,
             PA_TAG_STRING, dev,
             PA_TAG_U32, s->buffer_attr.maxlength,
-            PA_TAG_BOOLEAN, !!(flags & PA_STREAM_START_CORKED),
+            PA_TAG_BOOLEAN, s->corked,
             PA_TAG_INVALID);
 
     if (s->direction == PA_STREAM_PLAYBACK) {
