@@ -604,15 +604,12 @@ void pa_command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, PA_GCC
 
     request_auto_timing_update(s, TRUE);
 
-    if (s->state == PA_STREAM_READY) {
-
-        if (command == PA_COMMAND_OVERFLOW) {
-            if (s->overflow_callback)
-                s->overflow_callback(s, s->overflow_userdata);
-        } else if (command == PA_COMMAND_UNDERFLOW) {
-            if (s->underflow_callback)
-                s->underflow_callback(s, s->underflow_userdata);
-        }
+    if (command == PA_COMMAND_OVERFLOW) {
+        if (s->overflow_callback)
+            s->overflow_callback(s, s->overflow_userdata);
+    } else if (command == PA_COMMAND_UNDERFLOW) {
+        if (s->underflow_callback)
+            s->underflow_callback(s, s->underflow_userdata);
     }
 
  finish:
