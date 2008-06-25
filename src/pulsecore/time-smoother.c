@@ -373,12 +373,15 @@ pa_usec_t pa_smoother_get(pa_smoother *s, pa_usec_t x) {
 
     x = PA_LIKELY(x >= s->time_offset) ? x - s->time_offset : 0;
 
+    if (s->monotonic)
+        if (x <= s->last_x)
+            x = s->last_x;
+
     estimate(s, x, &y, NULL);
 
     if (s->monotonic) {
 
         /* Make sure the querier doesn't jump forth and back. */
-        pa_assert(x >= s->last_x);
         s->last_x = x;
 
         if (y < s->last_y)
