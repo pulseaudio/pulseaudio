@@ -217,16 +217,16 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 /* Called from I/O thread context */
 static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     struct userdata *u;
+    size_t amount = 0;
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
-    pa_assert(nbytes > 0);
 
     if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
         return;
 
     if (u->sink->thread_info.rewind_nbytes > 0) {
-        size_t max_rewrite, amount;
+        size_t max_rewrite;
 
         max_rewrite = nbytes + pa_memblockq_get_length(u->memblockq);
         amount = PA_MIN(u->sink->thread_info.rewind_nbytes, max_rewrite);
@@ -236,7 +236,6 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
             unsigned c;
 
             pa_memblockq_seek(u->memblockq, - (int64_t) amount, PA_SEEK_RELATIVE);
-            pa_sink_process_rewind(u->sink, amount);
 
             pa_log_debug("Resetting plugin");
 
@@ -250,6 +249,7 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
         }
     }
 
+    pa_sink_process_rewind(u->sink, amount);
     pa_memblockq_rewind(u->memblockq, nbytes);
 }
 

@@ -152,24 +152,21 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 
 /* Called from I/O thread context */
 static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
+    size_t amount = 0;
     struct userdata *u;
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
-    pa_assert(nbytes > 0);
 
     if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
         return;
 
     if (u->sink->thread_info.rewind_nbytes > 0) {
-        size_t amount;
-
         amount = PA_MIN(u->sink->thread_info.rewind_nbytes, nbytes);
         u->sink->thread_info.rewind_nbytes = 0;
-
-        if (amount > 0)
-            pa_sink_process_rewind(u->sink, amount);
     }
+
+    pa_sink_process_rewind(u->sink, amount);
 }
 
 /* Called from I/O thread context */
