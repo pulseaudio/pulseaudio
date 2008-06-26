@@ -1292,13 +1292,9 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
 
     i = &o->stream->timing_info;
 
-/*     pa_log("pre corrupt w:%u r:%u\n", !o->stream->timing_info_valid || i->write_index_corrupt,!o->stream->timing_info_valid || i->read_index_corrupt); */
-
     o->stream->timing_info_valid = FALSE;
-    i->write_index_corrupt = FALSE;
-    i->read_index_corrupt = FALSE;
-
-/*     pa_log("timing update %u\n", tag); */
+    i->write_index_corrupt = TRUE;
+    i->read_index_corrupt = TRUE;
 
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
@@ -1332,8 +1328,10 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
             pa_context_fail(o->context, PA_ERR_PROTOCOL);
             goto finish;
         }
-
         o->stream->timing_info_valid = TRUE;
+        i->write_index_corrupt = FALSE;
+        i->read_index_corrupt = FALSE;
+
         i->playing = (int) playing;
         i->since_underrun = playing ? playing_for : underrun_for;
 
