@@ -1054,8 +1054,8 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
              * we can safely access data outside of thread_info even
              * though it is mutable */
 
-            pa_assert(!i->thread_info.sync_prev);
-            pa_assert(!i->thread_info.sync_next);
+            pa_assert(!i->sync_prev);
+            pa_assert(!i->sync_next);
 
             if (i->thread_info.sync_prev) {
                 i->thread_info.sync_prev->thread_info.sync_next = i->thread_info.sync_prev->sync_next;
