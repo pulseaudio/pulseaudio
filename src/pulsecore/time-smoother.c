@@ -295,24 +295,29 @@ static void estimate(pa_smoother *s, pa_usec_t x, pa_usec_t *y, double *deriv) {
             *deriv = s->dp;
 
     } else {
+        double tx, ty;
 
         /* Ok, we're not yet on track, thus let's interpolate, and
          * make sure that the first derivative is smooth */
 
         calc_abc(s);
 
+        tx = (double) x;
+
         /* Move to origin */
-        x -= s->ex;
+        tx -= (double) s->ex;
 
         /* Horner scheme */
-        *y = (pa_usec_t) ((double) x * (s->c + (double) x * (s->b + (double) x * s->a)));
+        ty = (tx * (s->c + tx * (s->b + tx * s->a)));
 
         /* Move back from origin */
-        *y += s->ey;
+        ty += (double) s->ey;
+
+        *y = ty >= 0 ? (pa_usec_t) ty : 0;
 
         /* Horner scheme */
         if (deriv)
-            *deriv = s->c + ((double) x * (s->b*2 + (double) x * s->a*3));
+            *deriv = s->c + (tx * (s->b*2 + tx * s->a*3));
     }
 
     /* Guarantee monotonicity */
