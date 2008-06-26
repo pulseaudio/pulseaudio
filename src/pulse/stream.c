@@ -1422,8 +1422,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
 
             u = x = pa_rtclock_usec() - i->transport_usec;
 
-            if (o->stream->direction == PA_STREAM_PLAYBACK &&
-                o->context->version >= 13) {
+            if (o->stream->direction == PA_STREAM_PLAYBACK && o->context->version >= 13) {
                 pa_usec_t su;
 
                 /* If we weren't playing then it will take some time
@@ -1720,8 +1719,9 @@ pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, voi
 
     check_smoother_status(s, FALSE, FALSE, FALSE);
 
-    if (s->direction == PA_STREAM_PLAYBACK)
-        invalidate_indexes(s, TRUE, FALSE);
+    /* This might cause the indexes to hang/start again, hence
+     * let's request a timing update */
+    request_auto_timing_update(s, TRUE);
 
     return o;
 }
@@ -1755,32 +1755,25 @@ pa_operation* pa_stream_flush(pa_stream *s, pa_stream_success_cb_t cb, void *use
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
 
-    if ((o = stream_send_simple_command(s, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_FLUSH_PLAYBACK_STREAM : PA_COMMAND_FLUSH_RECORD_STREAM, cb, userdata))) {
+    if (!(o = stream_send_simple_command(s, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_FLUSH_PLAYBACK_STREAM : PA_COMMAND_FLUSH_RECORD_STREAM, cb, userdata)))
+        return NULL;
 
-        if (s->direction == PA_STREAM_PLAYBACK) {
-            if (s->write_index_corrections[s->current_write_index_correction].valid)
-                s->write_index_corrections[s->current_write_index_correction].corrupt = TRUE;
+    if (s->direction == PA_STREAM_PLAYBACK) {
 
-            if (s->timing_info_valid)
-                s->timing_info.write_index_corrupt = TRUE;
+        if (s->write_index_corrections[s->current_write_index_correction].valid)
+            s->write_index_corrections[s->current_write_index_correction].corrupt = TRUE;
 
-            if (s->buffer_attr.prebuf > 0)
-                invalidate_indexes(s, TRUE, FALSE);
-            else
-                request_auto_timing_update(s, TRUE);
+        if (s->buffer_attr.prebuf > 0)
+            check_smoother_status(s, FALSE, FALSE, TRUE);
 
-            if (s->smoother && s->buffer_attr.prebuf > 0) {
-                pa_usec_t x = pa_rtclock_usec();
+        /* This will change the write index, but leave the
+         * read index untouched. */
+        invalidate_indexes(s, FALSE, TRUE);
 
-                if (s->timing_info_valid)
-                    x += s->timing_info.transport_usec;
-
-                pa_smoother_pause(s->smoother, x);
-            }
-
-        } else
-            invalidate_indexes(s, FALSE, TRUE);
-    }
+    } else
+        /* For record streams this has no influence on the write
+         * index, but the read index might jump. */
+        invalidate_indexes(s, TRUE, FALSE);
 
     return o;
 }
@@ -1795,8 +1788,12 @@ pa_operation* pa_stream_prebuf(pa_stream *s, pa_stream_success_cb_t cb, void *us
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->buffer_attr.prebuf > 0, PA_ERR_BADSTATE);
 
-    if ((o = stream_send_simple_command(s, PA_COMMAND_PREBUF_PLAYBACK_STREAM, cb, userdata)))
-        invalidate_indexes(s, TRUE, FALSE);
+    if (!(o = stream_send_simple_command(s, PA_COMMAND_PREBUF_PLAYBACK_STREAM, cb, userdata)))
+        return NULL;
+
+    /* This might cause the read index to hang again, hence
+     * let's request a timing update */
+    request_auto_timing_update(s, TRUE);
 
     return o;
 }
@@ -1811,8 +1808,12 @@ pa_operation* pa_stream_trigger(pa_stream *s, pa_stream_success_cb_t cb, void *u
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->buffer_attr.prebuf > 0, PA_ERR_BADSTATE);
 
-    if ((o = stream_send_simple_command(s, PA_COMMAND_TRIGGER_PLAYBACK_STREAM, cb, userdata)))
-        invalidate_indexes(s, TRUE, FALSE);
+    if (!(o = stream_send_simple_command(s, PA_COMMAND_TRIGGER_PLAYBACK_STREAM, cb, userdata)))
+        return NULL;
+
+    /* This might cause the read index to start moving again, hence
+     * let's request a timing update */
+    request_auto_timing_update(s, TRUE);
 
     return o;
 }
@@ -2061,6 +2062,10 @@ pa_operation* pa_stream_set_buffer_attr(pa_stream *s, const pa_buffer_attr *attr
 
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, stream_set_buffer_attr_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
+
+    /* This might cause changes in the read/write indexex, hence let's
+     * request a timing update */
+    request_auto_timing_update(s, TRUE);
 
     return o;
 }
