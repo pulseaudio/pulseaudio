@@ -100,7 +100,8 @@ typedef struct playback_stream {
 
     pa_sink_input *sink_input;
     pa_memblockq *memblockq;
-    pa_bool_t drain_request;
+    pa_bool_t is_underrun:1;
+    pa_bool_t drain_request:1;
     uint32_t drain_tag;
     uint32_t syncid;
 
@@ -920,6 +921,9 @@ static playback_stream* playback_stream_new(
     s->connection = c;
     s->syncid = syncid;
     s->sink_input = sink_input;
+    s->is_underrun = TRUE;
+    s->drain_request = FALSE;
+    pa_atomic_store(&s->missing, 0);
 
     s->sink_input->parent.process_msg = sink_input_process_msg;
     s->sink_input->pop = sink_input_pop_cb;
@@ -952,9 +956,6 @@ static playback_stream* playback_stream_new(
 
     *ss = s->sink_input->sample_spec;
     *map = s->sink_input->channel_map;
-
-    pa_atomic_store(&s->missing, 0);
-    s->drain_request = FALSE;
 
     pa_idxset_put(c->output_streams, s, &s->index);
 
@@ -1297,24 +1298,28 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     playback_stream_assert_ref(s);
     pa_assert(chunk);
 
-    if (pa_memblockq_peek(s->memblockq, chunk) < 0) {
+/*     pa_log("%s, pop(): %lu", pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME), (unsigned long) pa_memblockq_get_length(s->memblockq)); */
 
-/*         pa_log("UNDERRUN: %lu", (unsigned long) pa_memblockq_get_length(s->memblockq)); */
+    if (pa_memblockq_is_readable(s->memblockq))
+        s->is_underrun = FALSE;
+    else {
+/*         pa_log("%s, UNDERRUN: %lu", pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME), (unsigned long) pa_memblockq_get_length(s->memblockq)); */
 
         if (s->drain_request && pa_sink_input_safe_to_remove(i)) {
             s->drain_request = FALSE;
             pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_DRAIN_ACK, PA_UINT_TO_PTR(s->drain_tag), 0, NULL, NULL);
-        } else if (i->thread_info.playing_for > 0)
+        } else if (!s->is_underrun)
             pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_UNDERFLOW, NULL, 0, NULL, NULL);
 
-/*         pa_log("adding %llu bytes", (unsigned long long) nbytes); */
+        s->is_underrun = TRUE;
 
         request_bytes(s);
-
-        return -1;
     }
 
-/*     pa_log("NOTUNDERRUN %lu", (unsigned long) chunk->length); */
+    /* This call will not fail with prebuf=0, hence we check for
+       underrun explicitly above */
+    if (pa_memblockq_peek(s->memblockq, chunk) < 0)
+        return -1;
 
     chunk->length = PA_MIN(nbytes, chunk->length);
 
