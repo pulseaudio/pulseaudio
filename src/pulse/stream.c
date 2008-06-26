@@ -1092,6 +1092,8 @@ int pa_stream_write(
     else
         s->requested_bytes = 0;
 
+    /* FIXME!!! ^^^ will break when offset is != 0 and mode is not RELATIVE*/
+
     if (s->direction == PA_STREAM_PLAYBACK) {
 
         /* Update latency request correction */
