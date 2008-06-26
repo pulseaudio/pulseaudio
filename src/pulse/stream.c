@@ -1371,8 +1371,8 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
             int n, j;
             uint32_t ctag = tag;
 
-            /* Go through the saved correction values and add up the total correction.*/
-
+            /* Go through the saved correction values and add up the
+             * total correction.*/
             for (n = 0, j = o->stream->current_write_index_correction+1;
                  n < PA_MAX_WRITE_INDEX_CORRECTIONS;
                  n++, j = (j + 1) % PA_MAX_WRITE_INDEX_CORRECTIONS) {
@@ -1388,7 +1388,6 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
                 /* Now fix the write index */
                 if (o->stream->write_index_corrections[j].corrupt) {
                     /* A corrupting seek was made */
-                    i->write_index = 0;
                     i->write_index_corrupt = TRUE;
                 } else if (o->stream->write_index_corrections[j].absolute) {
                     /* An absolute seek was made */
@@ -1399,21 +1398,8 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
                     i->write_index += o->stream->write_index_corrections[j].value;
                 }
             }
-        }
 
-        if (o->stream->direction == PA_STREAM_RECORD) {
-            /* Read index correction */
-
-            if (!i->read_index_corrupt)
-                i->read_index -= pa_memblockq_get_length(o->stream->record_memblockq);
-        }
-
-/*     pa_log("post corrupt w:%u r:%u\n", i->write_index_corrupt || !o->stream->timing_info_valid, i->read_index_corrupt || !o->stream->timing_info_valid); */
-
-        /* Clear old correction entries */
-        if (o->stream->direction == PA_STREAM_PLAYBACK) {
-            int n;
-
+            /* Clear old correction entries */
             for (n = 0; n < PA_MAX_WRITE_INDEX_CORRECTIONS; n++) {
                 if (!o->stream->write_index_corrections[n].valid)
                     continue;
@@ -1421,6 +1407,13 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
                 if (o->stream->write_index_corrections[n].tag <= tag)
                     o->stream->write_index_corrections[n].valid = FALSE;
             }
+        }
+
+        if (o->stream->direction == PA_STREAM_RECORD) {
+            /* Read index correction */
+
+            if (!i->read_index_corrupt)
+                i->read_index -= pa_memblockq_get_length(o->stream->record_memblockq);
         }
 
         /* Update smoother */
