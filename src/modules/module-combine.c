@@ -410,7 +410,6 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     struct output *o;
 
     pa_sink_input_assert_ref(i);
-    pa_assert(nbytes > 0);
     pa_assert_se(o = i->userdata);
 
     pa_memblockq_rewind(o->memblockq, nbytes);

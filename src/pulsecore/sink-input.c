@@ -491,12 +491,6 @@ int pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, pa
               i->thread_info.state == PA_SINK_INPUT_CORKED ||
               i->thread_info.state == PA_SINK_INPUT_DRAINED);
 
-    /* If there's still some rewrite request the handle, but the sink
-    didn't do this for us, we do it here. However, since the sink
-    apparently doesn't support rewinding, we pass 0 here. This still
-    allows rewinding through the render buffer. */
-    pa_sink_input_process_rewind(i, 0);
-
     block_size_max_sink_input = i->thread_info.resampler ?
         pa_resampler_max_block_size(i->thread_info.resampler) :
         pa_frame_align(pa_mempool_block_size_max(i->sink->core->mempool), &i->sample_spec);
@@ -633,18 +627,13 @@ void pa_sink_input_drop(pa_sink_input *i, size_t nbytes /* in sink sample spec *
 
 /*     pa_log_debug("dropping %lu", (unsigned long) nbytes); */
 
-    /* If there's still some rewrite request the handle, but the sink
-    didn't do this for us, we do it here. However, since the sink
-    apparently doesn't support rewinding, we pass 0 here. This still
-    allows rewinding through the render buffer. */
-    pa_sink_input_process_rewind(i, 0);
-
     pa_memblockq_drop(i->thread_info.render_memblockq, nbytes);
 }
 
 /* Called from thread context */
 void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sample spec */) {
     size_t lbq;
+    pa_bool_t called;
     pa_sink_input_assert_ref(i);
 
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->thread_info.state));
@@ -685,6 +674,7 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
             /* Tell the implementor */
             if (i->process_rewind)
                 i->process_rewind(i, amount);
+            called = TRUE;
 
             /* Convert back to to sink domain */
             if (i->thread_info.resampler)
@@ -702,6 +692,10 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
                 pa_resampler_reset(i->thread_info.resampler);
         }
     }
+
+    if (!called)
+        if (i->process_rewind)
+            i->process_rewind(i, 0);
 
     i->thread_info.rewrite_nbytes = 0;
     i->thread_info.rewrite_flush = FALSE;
@@ -1143,6 +1137,8 @@ void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sam
     pa_sink_input_assert_ref(i);
     pa_assert(i->thread_info.rewrite_nbytes == 0);
 
+/*     pa_log_debug("request rewrite %lu", (unsigned long) nbytes); */
+
     /* We don't take rewind requests while we are corked */
     if (i->thread_info.state == PA_SINK_INPUT_CORKED)
         return;
@@ -1184,6 +1180,9 @@ void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sam
 
     if (nbytes > lbq)
         pa_sink_request_rewind(i->sink, nbytes - lbq);
+    else
+        /* This call will make sure process_rewind() is called later */
+        pa_sink_request_rewind(i->sink, 0);
 }
 
 /* Called from main context */

@@ -212,6 +212,7 @@ pa_sink* pa_sink_new(
     s->thread_info.soft_muted = FALSE;
     s->thread_info.state = s->state;
     s->thread_info.rewind_nbytes = 0;
+    s->thread_info.rewind_requested = FALSE;
     s->thread_info.max_rewind = 0;
     s->thread_info.max_request = 0;
     s->thread_info.requested_latency_valid = FALSE;
@@ -454,21 +455,20 @@ void pa_sink_process_rewind(pa_sink *s, size_t nbytes) {
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
 
-    /* Make sure the sink code already reset the counter! */
-    pa_assert(s->thread_info.rewind_nbytes <= 0);
+    s->thread_info.rewind_nbytes = 0;
+    s->thread_info.rewind_requested = FALSE;
 
-    if (nbytes <= 0)
-        return;
-
-    pa_log_debug("Processing rewind...");
+    if (nbytes > 0)
+        pa_log_debug("Processing rewind...");
 
     while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL))) {
         pa_sink_input_assert_ref(i);
         pa_sink_input_process_rewind(i, nbytes);
     }
 
-    if (s->monitor_source && PA_SOURCE_IS_OPENED(s->monitor_source->thread_info.state))
-        pa_source_process_rewind(s->monitor_source, nbytes);
+    if (nbytes > 0)
+        if (s->monitor_source && PA_SOURCE_IS_OPENED(s->monitor_source->thread_info.state))
+            pa_source_process_rewind(s->monitor_source, nbytes);
 }
 
 /* Called from IO thread context */
@@ -620,7 +620,8 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
 
     pa_sink_ref(s);
 
-    s->thread_info.rewind_nbytes = 0;
+    pa_assert(!s->thread_info.rewind_requested);
+    pa_assert(s->thread_info.rewind_nbytes == 0);
 
     if (length <= 0)
         length = pa_frame_align(MIX_BUFFER_LENGTH, &s->sample_spec);
@@ -696,7 +697,8 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
 
     pa_sink_ref(s);
 
-    s->thread_info.rewind_nbytes = 0;
+    pa_assert(!s->thread_info.rewind_requested);
+    pa_assert(s->thread_info.rewind_nbytes == 0);
 
     length = target->length;
     block_size_max = pa_mempool_block_size_max(s->core->mempool);
@@ -774,7 +776,8 @@ void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target) {
 
     pa_sink_ref(s);
 
-    s->thread_info.rewind_nbytes = 0;
+    pa_assert(!s->thread_info.rewind_requested);
+    pa_assert(s->thread_info.rewind_nbytes == 0);
 
     l = target->length;
     d = 0;
@@ -800,7 +803,8 @@ void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
     pa_assert(pa_frame_aligned(length, &s->sample_spec));
     pa_assert(result);
 
-    s->thread_info.rewind_nbytes = 0;
+    pa_assert(!s->thread_info.rewind_requested);
+    pa_assert(s->thread_info.rewind_nbytes == 0);
 
     /*** This needs optimization ***/
 
@@ -1067,7 +1071,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 pa_sink_input_unref(i);
 
             pa_sink_invalidate_requested_latency(s);
-            pa_sink_request_rewind(s, 0);
+            pa_sink_request_rewind(s, (size_t) -1);
 
             return 0;
         }
@@ -1112,7 +1116,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             pa_sink_invalidate_requested_latency(s);
 
             pa_log_debug("Requesting rewind due to started move");
-            pa_sink_request_rewind(s, 0);
+            pa_sink_request_rewind(s, (size_t) -1);
 
             return 0;
         }
@@ -1162,13 +1166,13 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
         case PA_SINK_MESSAGE_SET_VOLUME:
             s->thread_info.soft_volume = *((pa_cvolume*) userdata);
 
-            pa_sink_request_rewind(s, 0);
+            pa_sink_request_rewind(s, (size_t) -1);
             return 0;
 
         case PA_SINK_MESSAGE_SET_MUTE:
             s->thread_info.soft_muted = PA_PTR_TO_UINT(userdata);
 
-            pa_sink_request_rewind(s, 0);
+            pa_sink_request_rewind(s, (size_t) -1);
             return 0;
 
         case PA_SINK_MESSAGE_GET_VOLUME:
@@ -1309,15 +1313,17 @@ void pa_sink_request_rewind(pa_sink*s, size_t nbytes) {
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
 
-    if (nbytes <= 0)
+    if (nbytes == (size_t) -1)
         nbytes = s->thread_info.max_rewind;
 
     nbytes = PA_MIN(nbytes, s->thread_info.max_rewind);
 
-    if (nbytes <= s->thread_info.rewind_nbytes)
+    if (s->thread_info.rewind_requested &&
+        nbytes <= s->thread_info.rewind_nbytes)
         return;
 
     s->thread_info.rewind_nbytes = nbytes;
+    s->thread_info.rewind_requested = TRUE;
 
     if (s->request_rewind)
         s->request_rewind(s);

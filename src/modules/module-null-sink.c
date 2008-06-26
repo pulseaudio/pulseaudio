@@ -204,8 +204,12 @@ static void thread_func(void *userdata) {
 
             now = pa_rtclock_usec();
 
-            if (u->sink->thread_info.rewind_nbytes > 0)
-                process_rewind(u, now);
+            if (u->sink->thread_info.rewind_requested) {
+                if (u->sink->thread_info.rewind_nbytes > 0)
+                    process_rewind(u, now);
+                else
+                    pa_sink_process_rewind(u->sink, 0);
+            }
 
             if (u->timestamp <= now)
                 process_render(u, now);

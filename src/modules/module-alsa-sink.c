@@ -882,7 +882,7 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
 
     if (u->hwbuf_unused_frames > before) {
         pa_log_debug("Requesting rewind due to latency change.");
-        pa_sink_request_rewind(s, 0);
+        pa_sink_request_rewind(s, (size_t) -1);
     }
 }
 
@@ -967,9 +967,12 @@ static void thread_func(void *userdata) {
             int work_done;
             pa_usec_t sleep_usec;
 
-            if (u->sink->thread_info.rewind_nbytes > 0)
-                if (process_rewind(u) < 0)
-                    goto fail;
+            if (u->sink->thread_info.rewind_requested) {
+                if (u->sink->thread_info.rewind_nbytes <= 0)
+                    pa_sink_process_rewind(u->sink, 0);
+                else if (process_rewind(u) < 0)
+                        goto fail;
+            }
 
             if (u->use_mmap)
                 work_done = mmap_write(u, &sleep_usec);

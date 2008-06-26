@@ -184,8 +184,12 @@ static void thread_func(void *userdata) {
         /* Render some data and write it to the fifo */
         if (u->sink->thread_info.state == PA_SINK_RUNNING) {
 
-            if (u->sink->thread_info.rewind_nbytes > 0)
-                process_rewind(u);
+            if (u->sink->thread_info.rewind_requested) {
+                if (u->sink->thread_info.rewind_nbytes > 0)
+                    process_rewind(u);
+                else
+                    pa_sink_process_rewind(u->sink, 0);
+            }
 
             if (pollfd->revents) {
                 if (process_render(u) < 0)

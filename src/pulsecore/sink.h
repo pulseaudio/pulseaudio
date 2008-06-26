@@ -145,6 +145,7 @@ struct pa_sink {
 
         /* Maximum of what clients requested to rewind in this cycle */
         size_t rewind_nbytes;
+        pa_bool_t rewind_requested;
 
         pa_usec_t min_latency; /* we won't go below this latency */
         pa_usec_t max_latency; /* An upper limit for the latencies */
