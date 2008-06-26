@@ -122,7 +122,12 @@ pa_stream *pa_stream_new_with_proplist(
     /* We initialize der target length here, so that if the user
      * passes no explicit buffering metrics the default is similar to
      * what older PA versions provided. */
+
+    s->buffer_attr.maxlength = (uint32_t) -1;
     s->buffer_attr.tlength = pa_usec_to_bytes(250*PA_USEC_PER_MSEC, ss); /* 250ms of buffering */
+    s->buffer_attr.minreq = (uint32_t) -1;
+    s->buffer_attr.prebuf = (uint32_t) -1;
+    s->buffer_attr.fragsize = (uint32_t) -1;
 
     s->device_index = PA_INVALID_INDEX;
     s->device_name = NULL;
@@ -713,20 +718,20 @@ static void automatic_buffer_attr(pa_stream *s, pa_buffer_attr *attr, const pa_s
     /* We choose fairly conservative values here, to not confuse
      * old clients with extremely large playback buffers */
 
-    if (!attr->maxlength <= 0)
+    if (attr->maxlength == (uint32_t) -1)
         attr->maxlength = 4*1024*1024; /* 4MB is the maximum queue length PulseAudio <= 0.9.9 supported. */
 
-    if (!attr->tlength <= 0)
+    if (attr->tlength == (uint32_t) -1)
         attr->tlength = pa_usec_to_bytes(250*PA_USEC_PER_MSEC, ss); /* 250ms of buffering */
 
-    if (!attr->minreq <= 0)
+    if (attr->minreq == (uint32_t) -1)
         attr->minreq = (attr->tlength)/5; /* Ask for more data when there are only 200ms left in the playback buffer */
 
-    if (!attr->prebuf)
+    if (attr->prebuf == (uint32_t) -1)
         attr->prebuf = attr->tlength; /* Start to play only when the playback is fully filled up once */
 
-    if (!attr->fragsize)
-        attr->fragsize  = attr->tlength; /* Pass data to the app only when the buffer is filled up once */
+    if (attr->fragsize == (uint32_t) -1)
+        attr->fragsize = attr->tlength; /* Pass data to the app only when the buffer is filled up once */
 }
 
 void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {

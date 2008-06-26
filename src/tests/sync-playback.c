@@ -54,9 +54,10 @@ static const pa_sample_spec sample_spec = {
 
 static const pa_buffer_attr buffer_attr = {
     .maxlength = SAMPLE_HZ*sizeof(float)*NSTREAMS, /* exactly space for the entire play time */
-    .tlength = 0,
+    .tlength = (uint32_t) -1,
     .prebuf = 0, /* Setting prebuf to 0 guarantees us the the streams will run synchronously, no matter what */
-    .minreq = 0
+    .minreq = (uint32_t) -1,
+    .fragsize = 0
 };
 
 static void nop_free_cb(void *p) {}

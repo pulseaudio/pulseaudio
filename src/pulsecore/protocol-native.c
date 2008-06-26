@@ -474,11 +474,15 @@ static void fix_record_buffer_attr_pre(record_stream *s, pa_bool_t adjust_latenc
     pa_assert(maxlength);
     pa_assert(fragsize);
 
-    if (*maxlength <= 0 || *maxlength > MAX_MEMBLOCKQ_LENGTH)
+    if (*maxlength == (uint32_t) -1 || *maxlength > MAX_MEMBLOCKQ_LENGTH)
         *maxlength = MAX_MEMBLOCKQ_LENGTH;
+    if (*maxlength <= 0)
+        *maxlength = pa_frame_size(&s->source_output->sample_spec);
 
-    if (*fragsize <= 0)
+    if (*fragsize == (uint32_t) -1)
         *fragsize = pa_usec_to_bytes(DEFAULT_FRAGSIZE_MSEC*PA_USEC_PER_MSEC, &s->source_output->sample_spec);
+    if (*fragsize <= 0)
+        *fragsize = pa_frame_size(&s->source_output->sample_spec);
 
     if (adjust_latency) {
         pa_usec_t fragsize_usec;
@@ -729,16 +733,23 @@ static void fix_playback_buffer_attr_pre(playback_stream *s, pa_bool_t adjust_la
     pa_assert(prebuf);
     pa_assert(minreq);
 
-    if (*maxlength <= 0 || *maxlength > MAX_MEMBLOCKQ_LENGTH)
-        *maxlength = MAX_MEMBLOCKQ_LENGTH;
-    if (*tlength <= 0)
-        *tlength = pa_usec_to_bytes(DEFAULT_TLENGTH_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
-    if (*minreq <= 0)
-        *minreq = pa_usec_to_bytes(DEFAULT_PROCESS_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
-
     frame_size = pa_frame_size(&s->sink_input->sample_spec);
+
+    if (*maxlength == (uint32_t) -1 || *maxlength > MAX_MEMBLOCKQ_LENGTH)
+        *maxlength = MAX_MEMBLOCKQ_LENGTH;
+    if (*maxlength <= 0)
+        *maxlength = frame_size;
+
+    if (*tlength == (uint32_t) -1)
+        *tlength = pa_usec_to_bytes(DEFAULT_TLENGTH_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
+    if (*tlength <= 0)
+        *tlength = frame_size;
+
+    if (*minreq == (uint32_t) -1)
+        *minreq = pa_usec_to_bytes(DEFAULT_PROCESS_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
     if (*minreq <= 0)
         *minreq = frame_size;
+
     if (*tlength < *minreq+frame_size)
         *tlength = *minreq+frame_size;
 
@@ -810,7 +821,7 @@ static void fix_playback_buffer_attr_pre(playback_stream *s, pa_bool_t adjust_la
     if (*tlength <= *minreq)
         *tlength =  *minreq*2 + frame_size;
 
-    if (*prebuf <= 0 || *prebuf > *tlength)
+    if (*prebuf == (uint32_t) -1 || *prebuf > *tlength)
         *prebuf = *tlength;
 }
 
