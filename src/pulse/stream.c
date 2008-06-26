@@ -342,6 +342,41 @@ finish:
     pa_context_unref(c);
 }
 
+static void check_smoother_status(pa_stream *s, pa_bool_t aposteriori, pa_bool_t force_start, pa_bool_t force_stop) {
+    pa_usec_t x;
+
+    pa_assert(s);
+    pa_assert(!force_start || !force_stop);
+
+    if (!s->smoother)
+        return;
+
+    x = pa_rtclock_usec();
+
+    if (s->timing_info_valid) {
+        if (aposteriori)
+            x -= s->timing_info.transport_usec;
+        else
+            x += s->timing_info.transport_usec;
+
+        if (s->direction == PA_STREAM_PLAYBACK)
+            /* it takes a while until the pause/resume is actually
+             * audible */
+            x += s->timing_info.sink_usec;
+        else
+            /* Data froma  while back will be dropped */
+            x -= s->timing_info.source_usec;
+    }
+
+    if (s->suspended || s->corked || force_stop)
+        pa_smoother_pause(s->smoother, x);
+    else if (force_start || s->buffer_attr.prebuf == 0)
+        pa_smoother_resume(s->smoother, x);
+
+    /* Please note that we have no idea if playback actually started
+     * if prebuf is non-zero! */
+}
+
 void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_context *c = userdata;
     pa_stream *s;
@@ -429,6 +464,7 @@ void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED u
 
     s->suspended = suspended;
 
+    check_smoother_status(s, TRUE, FALSE, FALSE);
     request_auto_timing_update(s, TRUE);
 
     if (s->moved_callback)
@@ -472,18 +508,7 @@ void pa_command_stream_suspended(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUS
 
     s->suspended = suspended;
 
-    if (s->smoother) {
-        pa_usec_t x = pa_rtclock_usec();
-
-        if (s->timing_info_valid)
-            x -= s->timing_info.transport_usec;
-
-        if (s->suspended || s->corked)
-            pa_smoother_pause(s->smoother, x);
-        else
-            pa_smoother_resume(s->smoother, x);
-    }
-
+    check_smoother_status(s, TRUE, FALSE, FALSE);
     request_auto_timing_update(s, TRUE);
 
     if (s->suspended_callback)
@@ -523,6 +548,7 @@ void pa_command_stream_started(pa_pdispatch *pd, uint32_t command, uint32_t tag,
     if (s->state != PA_STREAM_READY)
         goto finish;
 
+    check_smoother_status(s, TRUE, TRUE, FALSE);
     request_auto_timing_update(s, TRUE);
 
     if (s->started_callback)
@@ -592,15 +618,8 @@ void pa_command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, PA_GCC
     if (s->state != PA_STREAM_READY)
         goto finish;
 
-    if (s->smoother)
-        if (s->direction == PA_STREAM_PLAYBACK && s->buffer_attr.prebuf > 0) {
-            pa_usec_t x = pa_rtclock_usec();
-
-            if (s->timing_info_valid)
-                x -= s->timing_info.transport_usec;
-
-            pa_smoother_pause(s->smoother, x);
-        }
+    if (s->buffer_attr.prebuf > 0)
+        check_smoother_status(s, TRUE, FALSE, TRUE);
 
     request_auto_timing_update(s, TRUE);
 
@@ -676,6 +695,8 @@ static void create_stream_complete(pa_stream *s) {
 
         request_auto_timing_update(s, TRUE);
     }
+
+    check_smoother_status(s, TRUE, FALSE, FALSE);
 }
 
 static void automatic_buffer_attr(pa_stream *s, pa_buffer_attr *attr, const pa_sample_spec *ss) {
@@ -1704,15 +1725,7 @@ pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, voi
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
-    if (s->smoother) {
-        pa_usec_t x = pa_rtclock_usec();
-
-        if (s->timing_info_valid)
-            x += s->timing_info.transport_usec;
-
-        if (s->suspended || s->corked)
-            pa_smoother_pause(s->smoother, x);
-    }
+    check_smoother_status(s, FALSE, FALSE, FALSE);
 
     if (s->direction == PA_STREAM_PLAYBACK)
         invalidate_indexes(s, TRUE, FALSE);
