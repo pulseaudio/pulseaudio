@@ -1004,6 +1004,7 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest) {
 
 /* Called from IO thread context */
 void pa_sink_input_set_state_within_thread(pa_sink_input *i, pa_sink_input_state_t state) {
+    pa_bool_t corking, uncorking;
     pa_sink_input_assert_ref(i);
 
     if (state == i->thread_info.state)
@@ -1013,23 +1014,30 @@ void pa_sink_input_set_state_within_thread(pa_sink_input *i, pa_sink_input_state
         !(i->thread_info.state == PA_SINK_INPUT_DRAINED || i->thread_info.state != PA_SINK_INPUT_RUNNING))
         pa_atomic_store(&i->thread_info.drained, 1);
 
-    if (state == PA_SINK_INPUT_CORKED && i->thread_info.state != PA_SINK_INPUT_CORKED) {
-
-        /* This will tell the implementing sink input driver to rewind
-         * so that the unplayed already mixed data is not lost */
-        pa_sink_input_request_rewind(i, 0, TRUE, TRUE);
-
-    } else if (i->thread_info.state == PA_SINK_INPUT_CORKED && state != PA_SINK_INPUT_CORKED) {
-
-        /* OK, we're being uncorked. Make sure we're not rewound when
-         * the hw buffer is remixed and request a remix. */
-        pa_sink_input_request_rewind(i, 0, FALSE, TRUE);
-    }
+    corking = state == PA_SINK_INPUT_CORKED && i->thread_info.state == PA_SINK_INPUT_RUNNING;
+    uncorking = i->thread_info.state == PA_SINK_INPUT_CORKED && state == PA_SINK_INPUT_RUNNING;
 
     if (i->state_change)
         i->state_change(i, state);
 
     i->thread_info.state = state;
+
+    if (corking) {
+
+        pa_log_debug("Requesting rewind due to corking");
+
+        /* This will tell the implementing sink input driver to rewind
+         * so that the unplayed already mixed data is not lost */
+        pa_sink_input_request_rewind(i, 0, TRUE, TRUE);
+
+    } else if (uncorking) {
+
+        pa_log_debug("Requesting rewind due to uncorking");
+
+        /* OK, we're being uncorked. Make sure we're not rewound when
+         * the hw buffer is remixed and request a remix. */
+        pa_sink_input_request_rewind(i, 0, FALSE, TRUE);
+    }
 }
 
 /* Called from thread context, except when it is not. */
