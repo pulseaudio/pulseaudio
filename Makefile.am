@@ -50,13 +50,13 @@ untabify:
 	find \( -name '*.c' -o -name '*.h' \) -exec perl -i -pe 's/\t/        /g;' \{\} \;
 
 fedora-snapshot: dist
-	cp $(distdir).tar.gz $$HOME/cvs.fedora/pulseaudio/devel/$(distdir).svn`date +%Y%m%d`.tar.gz
+	cp $(distdir).tar.gz $$HOME/cvs.fedora/pulseaudio/devel/$(distdir).git`date +%Y%m%d`.tar.gz
 
 dist-hook:
-	if test -d .svn ; then \
-		svn update ; \
+	if test -d .git ; then \
+		git pull ; \
 		chmod u+w ${distdir}/ChangeLog || true ; \
-		svn2cl -o ${distdir}/ChangeLog ; \
+		git-changelog.perl > ${distdir}/ChangeLog ; \
 	fi
 
 .PHONY: homepage distcleancheck doxygen
