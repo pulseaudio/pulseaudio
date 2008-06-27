@@ -118,7 +118,7 @@ USA.
       <p><opt>--system</opt><arg>[=BOOL]</arg></p>
 
       <optdesc><p>Run as system-wide instance instead of
-      per-user. Please not that this disables certain features of
+      per-user. Please note that this disables certain features of
       PulseAudio and is generally not recommended unless the system
       knows no local users (e.g. is a thin client). This feature needs
       special configuration and a dedicated UNIX user set up. It is
