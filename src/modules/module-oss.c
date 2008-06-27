@@ -876,6 +876,10 @@ static void thread_func(void *userdata) {
 
 /*        pa_log("loop");    */
 
+        if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
+            if (u->sink->thread_info.rewind_requested)
+                pa_sink_process_rewind(u->sink, 0);
+
         /* Render some data and write it to the dsp */
 
         if (u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state) && ((revents & POLLOUT) || u->use_mmap || u->use_getospace)) {
