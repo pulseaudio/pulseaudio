@@ -1,7 +1,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2006 Lennart Poettering
+  Copyright 2006-2008 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -38,14 +38,8 @@
  * from the flist although it isn't empty, and fail to push into the
  * flist, although it isn't full.
  *
- * We keep a fixed size array of entries, each item is either marked
- * UNUSED, USED or BUSY and contains a user data pointer. When pushing
- * into the queue we look for an UNUSED cell and mark it BUSY with a
- * CAS operation. If successful we use it and mark it USED, otherwise
- * we go on and look for the next UNUSED cell. The algorithm for
- * popping an item from the queue is practically inverse: look for a
- * USED cell and and mark it BUSY with a CAS operation, after reading
- * from it mark it UNUSED again.
+ * We keep a fixed size array of entries, each item is an atomic
+ * pointer.
  *
  * To accelerate finding of used/unused cells we maintain a read and a
  * write index which is used like a ring buffer. After each push we
@@ -72,7 +66,7 @@
  * Please note that this algorithm is home grown.*/
 
 #define FLIST_SIZE 128
-#define N_EXTRA_SCAN 2
+#define N_EXTRA_SCAN 3
 
 /* For debugging purposes we can define _Y to put and extra thread
  * yield between each operation. */
@@ -83,17 +77,6 @@
 #define _Y do { } while(0)
 #endif
 
-enum {
-    STATE_UNUSED,
-    STATE_USED,
-    STATE_BUSY
-};
-
-struct cell {
-    pa_atomic_t state;
-    void *data;
-};
-
 struct pa_flist {
     unsigned size;
     pa_atomic_t length;
@@ -101,7 +84,7 @@ struct pa_flist {
     pa_atomic_t write_idx;
 };
 
-#define PA_FLIST_CELLS(x) ((struct cell*) ((uint8_t*) (x) + PA_ALIGN(sizeof(struct pa_flist))))
+#define PA_FLIST_CELLS(x) ((pa_atomic_ptr_t*) ((uint8_t*) (x) + PA_ALIGN(sizeof(struct pa_flist))))
 
 pa_flist *pa_flist_new(unsigned size) {
     pa_flist *l;
@@ -111,7 +94,7 @@ pa_flist *pa_flist_new(unsigned size) {
 
     pa_assert(pa_is_power_of_two(size));
 
-    l = pa_xmalloc0(PA_ALIGN(sizeof(pa_flist)) + (sizeof(struct cell) * size));
+    l = pa_xmalloc0(PA_ALIGN(sizeof(pa_flist)) + (sizeof(pa_atomic_ptr_t) * size));
 
     l->size = size;
 
@@ -122,28 +105,24 @@ pa_flist *pa_flist_new(unsigned size) {
     return l;
 }
 
-static int reduce(pa_flist *l, int value) {
-    return value & (unsigned) (l->size - 1);
+static unsigned reduce(pa_flist *l, unsigned value) {
+    return value & (l->size - 1);
 }
 
 void pa_flist_free(pa_flist *l, pa_free_cb_t free_cb) {
     pa_assert(l);
 
     if (free_cb) {
-        struct cell *cells;
-        int len, idx;
+        pa_atomic_ptr_t*cells;
+        unsigned idx;
 
         cells = PA_FLIST_CELLS(l);
 
-        idx = reduce(l, pa_atomic_load(&l->read_idx));
-        len = pa_atomic_load(&l->length);
+        for (idx = 0; idx < l->size; idx ++) {
+            void *p;
 
-        for (; len > 0; len--) {
-
-            if (pa_atomic_load(&cells[idx].state) == STATE_USED)
-                free_cb(cells[idx].data);
-
-            idx = reduce(l, idx + 1);
+            if ((p = pa_atomic_ptr_load(&cells[idx])))
+                free_cb(p);
         }
     }
 
@@ -151,30 +130,31 @@ void pa_flist_free(pa_flist *l, pa_free_cb_t free_cb) {
 }
 
 int pa_flist_push(pa_flist*l, void *p) {
-    int idx, len, n;
-    struct cell *cells;
+    unsigned idx, n, len;
+    pa_atomic_ptr_t*cells;
 
     pa_assert(l);
     pa_assert(p);
 
     cells = PA_FLIST_CELLS(l);
 
-    n = len = (int) l->size - pa_atomic_load(&l->length) + N_EXTRA_SCAN;
+    n = len = l->size + N_EXTRA_SCAN - (unsigned) pa_atomic_load(&l->length);
+
     _Y;
-    idx = reduce(l, pa_atomic_load(&l->write_idx));
+    idx = reduce(l, (unsigned) pa_atomic_load(&l->write_idx));
 
     for (; n > 0 ; n--) {
+
         _Y;
 
-        if (pa_atomic_cmpxchg(&cells[idx].state, STATE_UNUSED, STATE_BUSY)) {
+        if (pa_atomic_ptr_cmpxchg(&cells[idx], NULL, p)) {
+
             _Y;
             pa_atomic_inc(&l->write_idx);
-            _Y;
-            cells[idx].data = p;
-            _Y;
-            pa_atomic_store(&cells[idx].state, STATE_USED);
+
             _Y;
             pa_atomic_inc(&l->length);
+
             return 0;
         }
 
@@ -191,31 +171,36 @@ int pa_flist_push(pa_flist*l, void *p) {
 }
 
 void* pa_flist_pop(pa_flist*l) {
-    int idx, len, n;
-    struct cell *cells;
+    unsigned idx, len, n;
+    pa_atomic_ptr_t *cells;
 
     pa_assert(l);
 
     cells = PA_FLIST_CELLS(l);
 
-    n = len = pa_atomic_load(&l->length) + N_EXTRA_SCAN;
+    n = len = (unsigned) pa_atomic_load(&l->length) + N_EXTRA_SCAN;
+
     _Y;
-    idx = reduce(l, pa_atomic_load(&l->read_idx));
+    idx = reduce(l, (unsigned) pa_atomic_load(&l->read_idx));
 
     for (; n > 0 ; n--) {
-        _Y;
+        void *p;
 
-        if (pa_atomic_cmpxchg(&cells[idx].state, STATE_USED, STATE_BUSY)) {
-            void *p;
+        _Y;
+        p = pa_atomic_ptr_load(&cells[idx]);
+
+        if (p) {
+
+            _Y;
+            if (!pa_atomic_ptr_cmpxchg(&cells[idx], p, NULL))
+                continue;
+
             _Y;
             pa_atomic_inc(&l->read_idx);
-            _Y;
-            p = cells[idx].data;
-            _Y;
-            pa_atomic_store(&cells[idx].state, STATE_UNUSED);
-            _Y;
 
+            _Y;
             pa_atomic_dec(&l->length);
+
             return p;
         }
 
