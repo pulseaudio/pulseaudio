@@ -194,25 +194,19 @@ void pa_module_unload_by_index(pa_core *c, uint32_t idx) {
     pa_module_free(m);
 }
 
-static void free_callback(void *p, PA_GCC_UNUSED void *userdata) {
-    pa_module *m = p;
-    pa_assert(m);
-    pa_module_free(m);
-}
-
 void pa_module_unload_all(pa_core *c) {
-    pa_module *m;
 
     pa_assert(c);
 
-    if (!c->modules)
-        return;
+    if (c->modules) {
+        pa_module *m;
 
-    while ((m = pa_idxset_first(c->modules, NULL)))
-        pa_module_unload(c, m);
+        while ((m = pa_idxset_steal_first(c->modules, NULL)))
+            pa_module_free(m);
 
-    pa_idxset_free(c->modules, free_callback, NULL);
-    c->modules = NULL;
+        pa_idxset_free(c->modules, NULL, NULL);
+        c->modules = NULL;
+    }
 
     if (c->module_auto_unload_event) {
         c->mainloop->time_free(c->module_auto_unload_event);
@@ -225,55 +219,47 @@ void pa_module_unload_all(pa_core *c) {
     }
 }
 
-static int unused_callback(void *p, PA_GCC_UNUSED uint32_t idx, int *del, void *userdata) {
-    pa_module *m = p;
-    time_t *now = userdata;
-
-    pa_assert(m);
-    pa_assert(del);
-    pa_assert(now);
-
-    if (m->n_used == 0 && m->auto_unload && m->last_used_time+m->core->module_idle_time <= *now) {
-        pa_module_free(m);
-        *del = 1;
-    }
-
-    return 0;
-}
-
 void pa_module_unload_unused(pa_core *c) {
+    void *state = NULL;
     time_t now;
+    pa_module *m;
+
     pa_assert(c);
 
     if (!c->modules)
         return;
 
     time(&now);
-    pa_idxset_foreach(c->modules, unused_callback, &now);
-}
 
-static int unload_callback(void *p, PA_GCC_UNUSED uint32_t idx, int *del, PA_GCC_UNUSED void *userdata) {
-    pa_module *m = p;
-    pa_assert(m);
+    while ((m = pa_idxset_iterate(c->modules, &state, NULL))) {
 
-    if (m->unload_requested) {
-        pa_module_free(m);
-        *del = 1;
+        if (m->n_used > 0)
+            continue;
+
+        if (!m->auto_unload)
+            continue;
+
+        if (m->last_used_time + m->core->module_idle_time > now)
+            continue;
+
+        pa_module_unload(c, m);
     }
-
-    return 0;
 }
 
 static void defer_cb(pa_mainloop_api*api, pa_defer_event *e, void *userdata) {
-    pa_core *core = PA_CORE(userdata);
+    void *state = NULL;
+    pa_core *c = PA_CORE(userdata);
+    pa_module *m;
 
-    pa_core_assert_ref(core);
+    pa_core_assert_ref(c);
     api->defer_enable(e, 0);
 
-    if (!core->modules)
+    if (!c->modules)
         return;
 
-    pa_idxset_foreach(core->modules, unload_callback, NULL);
+    while ((m = pa_idxset_iterate(c->modules, &state, NULL)))
+        if (m->unload_requested)
+            pa_module_unload(c, m);
 }
 
 void pa_module_unload_request(pa_module *m) {

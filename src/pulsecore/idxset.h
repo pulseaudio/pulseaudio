@@ -1,10 +1,10 @@
-#ifndef fooidxsethfoo
-#define fooidxsethfoo
+#ifndef foopulsecoreidxsethfoo
+#define foopulsecoreidxsethfoo
 
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
+  Copyright 2004-2008 Lennart Poettering
   Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
@@ -25,9 +25,12 @@
 
 #include <inttypes.h>
 
+#include <pulsecore/macro.h>
+
 /* A combination of a set and a dynamic array. Entries are indexable
- * both through a numeric automatically generated index and the entry's
- * data pointer. As usual, memory management is the user's job. */
+ * both through an automatically generated numeric index and the
+ * entry's data pointer. As usual, memory management is the user's
+ * job. */
 
 /* A special index value denoting the invalid index. */
 #define PA_IDXSET_INVALID ((uint32_t) -1)
@@ -54,7 +57,7 @@ typedef struct pa_idxset pa_idxset;
 pa_idxset* pa_idxset_new(pa_hash_func_t hash_func, pa_compare_func_t compare_func);
 
 /* Free the idxset. When the idxset is not empty the specified function is called for every entry contained */
-void pa_idxset_free(pa_idxset *s, void (*free_func) (void *p, void *userdata), void *userdata);
+void pa_idxset_free(pa_idxset *s, pa_free2_cb_t free_cb, void *userdata);
 
 /* Store a new item in the idxset. The index of the item is returned in *idx */
 int pa_idxset_put(pa_idxset*s, void *p, uint32_t *idx);
@@ -79,6 +82,12 @@ void* pa_idxset_remove_by_data(pa_idxset*s, const void *p, uint32_t *idx);
    returned before the an entry is returned the second time.*/
 void* pa_idxset_rrobin(pa_idxset *s, uint32_t *idx);
 
+/* Iterate through the idxset. At first iteration state should be NULL */
+void *pa_idxset_iterate(pa_idxset *s, void **state, uint32_t *idx);
+
+/* Return the oldest entry in the idxset and remove it. If idx is not NULL fill in its index in *idx */
+void* pa_idxset_steal_first(pa_idxset *s, uint32_t *idx);
+
 /* Return the oldest entry in the idxset. Fill in its index in *idx. */
 void* pa_idxset_first(pa_idxset *s, uint32_t *idx);
 
@@ -88,14 +97,10 @@ void* pa_idxset_first(pa_idxset *s, uint32_t *idx);
  * iterate through the set.*/
 void *pa_idxset_next(pa_idxset *s, uint32_t *idx);
 
-/* Call a function for every item in the set. If the callback function
-   returns -1, the loop is terminated. If *del is set to non-zero that
-   specific item is removed. It is not safe to call any other
-   functions on the idxset while pa_idxset_foreach is executed. */
-int pa_idxset_foreach(pa_idxset*s, int (*func)(void *p, uint32_t idx, int *del, void*userdata), void *userdata);
-
+/* Return the current number of entries in the idxset */
 unsigned pa_idxset_size(pa_idxset*s);
 
-int pa_idxset_isempty(pa_idxset *s);
+/* Return TRUE of the idxset is empty */
+pa_bool_t pa_idxset_isempty(pa_idxset *s);
 
 #endif
