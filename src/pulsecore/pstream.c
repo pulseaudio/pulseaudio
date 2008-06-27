@@ -942,7 +942,7 @@ pa_bool_t pa_pstream_is_pending(pa_pstream *p) {
     if (p->dead)
         b = FALSE;
     else
-        b = p->write.current || !pa_queue_is_empty(p->send_queue);
+        b = p->write.current || !pa_queue_isempty(p->send_queue);
 
     return b;
 }

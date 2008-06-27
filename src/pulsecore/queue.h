@@ -35,6 +35,6 @@ void pa_queue_free(pa_queue* q, void (*destroy)(void *p, void *userdata), void *
 void pa_queue_push(pa_queue *q, void *p);
 void* pa_queue_pop(pa_queue *q);
 
-int pa_queue_is_empty(pa_queue *q);
+int pa_queue_isempty(pa_queue *q);
 
 #endif

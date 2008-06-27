@@ -116,7 +116,7 @@ void* pa_queue_pop(pa_queue *q) {
     return p;
 }
 
-int pa_queue_is_empty(pa_queue *q) {
+int pa_queue_isempty(pa_queue *q) {
     pa_assert(q);
 
     return q->length == 0;
