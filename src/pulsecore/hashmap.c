@@ -1,7 +1,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
+  Copyright 2004-2008 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -27,7 +27,6 @@
 #include <string.h>
 
 #include <pulse/xmalloc.h>
-
 #include <pulsecore/idxset.h>
 #include <pulsecore/log.h>
 #include <pulsecore/flist.h>
@@ -35,36 +34,38 @@
 
 #include "hashmap.h"
 
-#define BUCKETS 127
+#define NBUCKETS 127
 
 struct hashmap_entry {
-    struct hashmap_entry *next, *previous, *bucket_next, *bucket_previous;
-    unsigned hash;
     const void *key;
     void *value;
+
+    struct hashmap_entry *bucket_next, *bucket_previous;
+    struct hashmap_entry *iterate_next, *iterate_previous;
 };
 
 struct pa_hashmap {
-    unsigned size;
-    struct hashmap_entry **data;
-    struct hashmap_entry *first_entry;
-
-    unsigned n_entries;
     pa_hash_func_t hash_func;
     pa_compare_func_t compare_func;
+
+    struct hashmap_entry *iterate_list_head, *iterate_list_tail;
+    unsigned n_entries;
 };
+
+#define BY_HASH(h) ((struct hashmap_entry**) ((uint8_t*) (h) + PA_ALIGN(sizeof(pa_hashmap))))
 
 PA_STATIC_FLIST_DECLARE(entries, 0, pa_xfree);
 
 pa_hashmap *pa_hashmap_new(pa_hash_func_t hash_func, pa_compare_func_t compare_func) {
     pa_hashmap *h;
 
-    h = pa_xnew(pa_hashmap, 1);
-    h->data = pa_xnew0(struct hashmap_entry*, h->size = BUCKETS);
-    h->first_entry = NULL;
-    h->n_entries = 0;
+    h = pa_xmalloc0(PA_ALIGN(sizeof(pa_hashmap)) + NBUCKETS*sizeof(struct hashmap_entry*));
+
     h->hash_func = hash_func ? hash_func : pa_idxset_trivial_hash_func;
     h->compare_func = compare_func ? compare_func : pa_idxset_trivial_compare_func;
+
+    h->n_entries = 0;
+    h->iterate_list_head = h->iterate_list_tail = NULL;
 
     return h;
 }
@@ -73,47 +74,56 @@ static void remove_entry(pa_hashmap *h, struct hashmap_entry *e) {
     pa_assert(h);
     pa_assert(e);
 
-    if (e->next)
-        e->next->previous = e->previous;
-    if (e->previous)
-        e->previous->next = e->next;
+    /* Remove from iteration list */
+    if (e->iterate_next)
+        e->iterate_next->iterate_previous = e->iterate_previous;
     else
-        h->first_entry = e->next;
+        h->iterate_list_tail = e->iterate_previous;
 
+    if (e->iterate_previous)
+        e->iterate_previous->iterate_next = e->iterate_next;
+    else
+        h->iterate_list_head = e->iterate_next;
+
+    /* Remove from hash table bucket list */
     if (e->bucket_next)
         e->bucket_next->bucket_previous = e->bucket_previous;
+
     if (e->bucket_previous)
         e->bucket_previous->bucket_next = e->bucket_next;
     else {
-        pa_assert(e->hash < h->size);
-        h->data[e->hash] = e->bucket_next;
+        unsigned hash = h->hash_func(e->key) % NBUCKETS;
+        BY_HASH(h)[hash] = e->bucket_next;
     }
 
     if (pa_flist_push(PA_STATIC_FLIST_GET(entries), e) < 0)
         pa_xfree(e);
 
+    pa_assert(h->n_entries >= 1);
     h->n_entries--;
 }
 
-void pa_hashmap_free(pa_hashmap*h, void (*free_func)(void *p, void *userdata), void *userdata) {
+void pa_hashmap_free(pa_hashmap*h, pa_free2_cb_t free_cb, void *userdata) {
     pa_assert(h);
 
-    while (h->first_entry) {
-        if (free_func)
-            free_func(h->first_entry->value, userdata);
-        remove_entry(h, h->first_entry);
+    while (h->iterate_list_head) {
+        void *data;
+        data = h->iterate_list_head->value;
+        remove_entry(h, h->iterate_list_head);
+
+        if (free_cb)
+            free_cb(data, userdata);
     }
 
-    pa_xfree(h->data);
     pa_xfree(h);
 }
 
-static struct hashmap_entry *get(pa_hashmap *h, unsigned hash, const void *key) {
+static struct hashmap_entry *hash_scan(pa_hashmap *h, unsigned hash, const void *key) {
     struct hashmap_entry *e;
     pa_assert(h);
-    pa_assert(hash < h->size);
+    pa_assert(hash < NBUCKETS);
 
-    for (e = h->data[hash]; e; e = e->bucket_next)
+    for (e = BY_HASH(h)[hash]; e; e = e->bucket_next)
         if (h->compare_func(e->key, key) == 0)
             return e;
 
@@ -123,33 +133,42 @@ static struct hashmap_entry *get(pa_hashmap *h, unsigned hash, const void *key) 
 int pa_hashmap_put(pa_hashmap *h, const void *key, void *value) {
     struct hashmap_entry *e;
     unsigned hash;
+
     pa_assert(h);
 
-    hash = h->hash_func(key) % h->size;
+    hash = h->hash_func(key) % NBUCKETS;
 
-    if ((e = get(h, hash, key)))
+    if ((e = hash_scan(h, hash, key)))
         return -1;
 
     if (!(e = pa_flist_pop(PA_STATIC_FLIST_GET(entries))))
         e = pa_xnew(struct hashmap_entry, 1);
 
-    e->hash = hash;
     e->key = key;
     e->value = value;
 
-    e->previous = NULL;
-    e->next = h->first_entry;
-    if (h->first_entry)
-        h->first_entry->previous = e;
-    h->first_entry = e;
-
+    /* Insert into hash table */
+    e->bucket_next = BY_HASH(h)[hash];
     e->bucket_previous = NULL;
-    e->bucket_next = h->data[hash];
-    if (h->data[hash])
-        h->data[hash]->bucket_previous = e;
-    h->data[hash] = e;
+    if (BY_HASH(h)[hash])
+        BY_HASH(h)[hash]->bucket_previous = e;
+    BY_HASH(h)[hash] = e;
 
-    h->n_entries ++;
+    /* Insert into iteration list */
+    e->iterate_previous = h->iterate_list_tail;
+    e->iterate_next = NULL;
+    if (h->iterate_list_tail) {
+        pa_assert(h->iterate_list_head);
+        h->iterate_list_tail->iterate_next = e;
+    } else {
+        pa_assert(!h->iterate_list_head);
+        h->iterate_list_head = e;
+    }
+    h->iterate_list_tail = e;
+
+    h->n_entries++;
+    pa_assert(h->n_entries >= 1);
+
     return 0;
 }
 
@@ -159,9 +178,9 @@ void* pa_hashmap_get(pa_hashmap *h, const void *key) {
 
     pa_assert(h);
 
-    hash = h->hash_func(key) % h->size;
+    hash = h->hash_func(key) % NBUCKETS;
 
-    if (!(e = get(h, hash, key)))
+    if (!(e = hash_scan(h, hash, key)))
         return NULL;
 
     return e->value;
@@ -174,18 +193,15 @@ void* pa_hashmap_remove(pa_hashmap *h, const void *key) {
 
     pa_assert(h);
 
-    hash = h->hash_func(key) % h->size;
+    hash = h->hash_func(key) % NBUCKETS;
 
-    if (!(e = get(h, hash, key)))
+    if (!(e = hash_scan(h, hash, key)))
         return NULL;
 
     data = e->value;
     remove_entry(h, e);
-    return data;
-}
 
-unsigned pa_hashmap_size(pa_hashmap *h) {
-    return h->n_entries;
+    return data;
 }
 
 void *pa_hashmap_iterate(pa_hashmap *h, void **state, const void **key) {
@@ -197,13 +213,13 @@ void *pa_hashmap_iterate(pa_hashmap *h, void **state, const void **key) {
     if (*state == (void*) -1)
         goto at_end;
 
-    if ((!*state && !h->first_entry))
+    if (!*state && !h->iterate_list_head)
         goto at_end;
 
-    e = *state ? *state : h->first_entry;
+    e = *state ? *state : h->iterate_list_head;
 
-    if (e->next)
-        *state = e->next;
+    if (e->iterate_next)
+        *state = e->iterate_next;
     else
         *state = (void*) -1;
 
@@ -221,24 +237,37 @@ at_end:
     return NULL;
 }
 
+void* pa_hashmap_first(pa_hashmap *h) {
+    pa_assert(h);
+
+    if (!h->iterate_list_head)
+        return NULL;
+
+    return h->iterate_list_head->value;
+}
+
 void* pa_hashmap_steal_first(pa_hashmap *h) {
     void *data;
 
     pa_assert(h);
 
-    if (!h->first_entry)
+    if (!h->iterate_list_head)
         return NULL;
 
-    data = h->first_entry->value;
-    remove_entry(h, h->first_entry);
+    data = h->iterate_list_head->value;
+    remove_entry(h, h->iterate_list_head);
+
     return data;
 }
 
-void *pa_hashmap_get_first(pa_hashmap *h) {
+unsigned pa_hashmap_size(pa_hashmap *h) {
     pa_assert(h);
 
-    if (!h->first_entry)
-        return NULL;
+    return h->n_entries;
+}
 
-    return h->first_entry->value;
+pa_bool_t pa_hashmap_isempty(pa_hashmap *h) {
+    pa_assert(h);
+
+    return h->n_entries == 0;
 }

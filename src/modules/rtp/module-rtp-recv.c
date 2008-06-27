@@ -690,7 +690,7 @@ void pa__done(pa_module*m) {
     pa_sap_context_destroy(&u->sap_context);
 
     if (u->by_origin) {
-        while ((s = pa_hashmap_get_first(u->by_origin)))
+        while ((s = pa_hashmap_first(u->by_origin)))
             session_free(s);
 
         pa_hashmap_free(u->by_origin, NULL, NULL);

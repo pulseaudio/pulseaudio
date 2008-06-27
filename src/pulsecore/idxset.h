@@ -32,6 +32,9 @@
 /* A special index value denoting the invalid index. */
 #define PA_IDXSET_INVALID ((uint32_t) -1)
 
+/* Similar to pa_free_cb_t, but takes a userdata argument */
+typedef void (*pa_free2_cb_t)(void *p, void *userdata);
+
 /* Generic implementations for hash and comparison functions. Just
  * compares the pointer or calculates the hash value directly from the
  * pointer value. */

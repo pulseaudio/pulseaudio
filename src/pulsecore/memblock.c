@@ -845,7 +845,7 @@ void pa_memimport_free(pa_memimport *i) {
 
     pa_mutex_lock(i->mutex);
 
-    while ((b = pa_hashmap_get_first(i->blocks)))
+    while ((b = pa_hashmap_first(i->blocks)))
         memblock_replace_import(b);
 
     pa_assert(pa_hashmap_size(i->segments) == 0);

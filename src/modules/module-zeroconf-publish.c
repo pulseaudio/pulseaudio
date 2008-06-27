@@ -615,7 +615,7 @@ void pa__done(pa_module*m) {
     if (u->services) {
         struct service *s;
 
-        while ((s = pa_hashmap_get_first(u->services)))
+        while ((s = pa_hashmap_first(u->services)))
             service_free(s);
 
         pa_hashmap_free(u->services, NULL, NULL);
