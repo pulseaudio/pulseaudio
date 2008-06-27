@@ -1,7 +1,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
+  Copyright 2004-2008 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -52,13 +52,13 @@ pa_queue* pa_queue_new(void) {
     return q;
 }
 
-void pa_queue_free(pa_queue* q, void (*destroy)(void *p, void *userdata), void *userdata) {
+void pa_queue_free(pa_queue* q, pa_free2_cb_t free_func, void *userdata) {
     void *data;
     pa_assert(q);
 
     while ((data = pa_queue_pop(q)))
-        if (destroy)
-            destroy(data, userdata);
+        if (free_func)
+            free_func(data, userdata);
 
     pa_assert(!q->front);
     pa_assert(!q->back);
@@ -94,6 +94,7 @@ void pa_queue_push(pa_queue *q, void *p) {
 void* pa_queue_pop(pa_queue *q) {
     void *p;
     struct queue_entry *e;
+
     pa_assert(q);
 
     if (!(e = q->front))
