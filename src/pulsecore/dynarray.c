@@ -31,8 +31,8 @@
 
 #include "dynarray.h"
 
-/* If the array becomes to small, increase its size by 100 entries */
-#define INCREASE_BY 100
+/* If the array becomes to small, increase its size by 25 entries */
+#define INCREASE_BY 25
 
 struct pa_dynarray {
     void **data;
