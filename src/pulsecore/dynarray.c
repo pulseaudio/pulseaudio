@@ -1,7 +1,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
+  Copyright 2004-2008 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -41,21 +41,23 @@ struct pa_dynarray {
 
 pa_dynarray* pa_dynarray_new(void) {
     pa_dynarray *a;
+
     a = pa_xnew(pa_dynarray, 1);
     a->data = NULL;
     a->n_entries = 0;
     a->n_allocated = 0;
+
     return a;
 }
 
-void pa_dynarray_free(pa_dynarray* a, void (*func)(void *p, void *userdata), void *userdata) {
+void pa_dynarray_free(pa_dynarray* a, pa_free2_cb_t free_func, void *userdata) {
     unsigned i;
     pa_assert(a);
 
-    if (func)
+    if (free_func)
         for (i = 0; i < a->n_entries; i++)
             if (a->data[i])
-                func(a->data[i], userdata);
+                free_func(a->data[i], userdata);
 
     pa_xfree(a->data);
     pa_xfree(a);
@@ -89,6 +91,7 @@ unsigned pa_dynarray_append(pa_dynarray*a, void *p) {
 
     i = a->n_entries;
     pa_dynarray_put(a, i, p);
+
     return i;
 }
 

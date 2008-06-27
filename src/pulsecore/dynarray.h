@@ -1,10 +1,10 @@
-#ifndef foodynarrayhfoo
-#define foodynarrayhfoo
+#ifndef foopulsecoredynarrayhfoo
+#define foopulsecoredynarrayhfoo
 
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
+  Copyright 2004-2008 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -22,6 +22,8 @@
   USA.
 ***/
 
+#include <pulsecore/idxset.h>
+
 typedef struct pa_dynarray pa_dynarray;
 
 /* Implementation of a simple dynamically sized array. The array
@@ -32,7 +34,7 @@ pa_dynarray* pa_dynarray_new(void);
 
 /* Free the array calling the specified function for every entry in
  * the array. The function may be NULL. */
-void pa_dynarray_free(pa_dynarray* a, void (*func)(void *p, void *userdata), void *userdata);
+void pa_dynarray_free(pa_dynarray* a, pa_free2_cb_t free_func, void *userdata);
 
 /* Store p at position i in the array */
 void pa_dynarray_put(pa_dynarray*a, unsigned i, void *p);
