@@ -411,6 +411,8 @@ AC_CHECK_FUNCS([lstat])
 
 AC_CHECK_FUNCS([setresuid setresgid setreuid setregid seteuid setegid ppoll strsignal sig2str strtof_l])
 
+AC_FUNC_ALLOCA
+
 AC_MSG_CHECKING([for PTHREAD_PRIO_INHERIT])
 AC_LANG_CONFTEST([AC_LANG_SOURCE([[
 #include <pthread.h>
