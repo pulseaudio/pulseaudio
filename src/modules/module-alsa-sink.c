@@ -895,6 +895,9 @@ static int process_rewind(struct userdata *u) {
     rewind_nbytes = u->sink->thread_info.rewind_nbytes;
     u->sink->thread_info.rewind_nbytes = 0;
 
+    if (rewind_nbytes <= 0)
+        goto finish;
+
     pa_assert(rewind_nbytes > 0);
     pa_log_debug("Requested to rewind %lu bytes.", (unsigned long) rewind_nbytes);
 
@@ -937,11 +940,17 @@ static int process_rewind(struct userdata *u) {
             pa_sink_process_rewind(u->sink, rewind_nbytes);
 
             u->after_rewind = TRUE;
+            return 0;
         }
     } else
         pa_log_debug("Mhmm, actually there is nothing to rewind.");
 
+finish:
+
+    pa_sink_process_rewind(u->sink, 0);
+
     return 0;
+
 }
 
 static void thread_func(void *userdata) {
@@ -967,12 +976,9 @@ static void thread_func(void *userdata) {
             int work_done;
             pa_usec_t sleep_usec;
 
-            if (u->sink->thread_info.rewind_requested) {
-                if (u->sink->thread_info.rewind_nbytes <= 0)
-                    pa_sink_process_rewind(u->sink, 0);
-                else if (process_rewind(u) < 0)
+            if (u->sink->thread_info.rewind_requested)
+                if (process_rewind(u) < 0)
                         goto fail;
-            }
 
             if (u->use_mmap)
                 work_done = mmap_write(u, &sleep_usec);
