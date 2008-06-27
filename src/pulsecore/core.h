@@ -119,11 +119,13 @@ struct pa_core {
 
     pa_time_event *scache_auto_unload_event;
 
-    pa_bool_t disallow_module_loading, running_as_daemon;
+    pa_bool_t disallow_module_loading:1;
+    pa_bool_t running_as_daemon:1;
+    pa_bool_t realtime_scheduling:1;
+    pa_bool_t disable_remixing:1;
+
     pa_resample_method_t resample_method;
-    pa_bool_t realtime_scheduling;
     int realtime_priority;
-    pa_bool_t disable_remixing;
 
     /* hooks */
     pa_hook hooks[PA_CORE_HOOK_MAX];
