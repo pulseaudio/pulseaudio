@@ -211,7 +211,7 @@ static void sink_input_suspend_cb(pa_sink_input *i, pa_bool_t suspend);
 static void sink_input_moved_cb(pa_sink_input *i);
 static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes);
 static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes);
-
+static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes);
 
 static void send_memblock(connection *c);
 static void request_bytes(struct playback_stream*s);
@@ -808,6 +808,8 @@ static void fix_playback_buffer_attr_pre(playback_stream *s, pa_bool_t adjust_la
             tlength_usec -= s->sink_latency;
     }
 
+    /* FIXME: This is actually larger than necessary, since not all of
+     * the sink latency is actually rewritable. */
     if (tlength_usec < s->sink_latency + 2*minreq_usec)
         tlength_usec = s->sink_latency + 2*minreq_usec;
 
@@ -929,6 +931,7 @@ static playback_stream* playback_stream_new(
     s->sink_input->pop = sink_input_pop_cb;
     s->sink_input->process_rewind = sink_input_process_rewind_cb;
     s->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;
+    s->sink_input->update_max_request = sink_input_update_max_request_cb;
     s->sink_input->kill = sink_input_kill_cb;
     s->sink_input->moved = sink_input_moved_cb;
     s->sink_input->suspend = sink_input_suspend_cb;
@@ -1354,6 +1357,20 @@ static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     playback_stream_assert_ref(s);
 
     pa_memblockq_set_maxrewind(s->memblockq, nbytes);
+}
+
+static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
+    playback_stream *s;
+    size_t tlength;
+
+    pa_sink_input_assert_ref(i);
+    s = PLAYBACK_STREAM(i->userdata);
+    playback_stream_assert_ref(s);
+
+    tlength = nbytes+2*pa_memblockq_get_minreq(s->memblockq);
+
+    if (pa_memblockq_get_tlength(s->memblockq) < tlength)
+        pa_memblockq_set_tlength(s->memblockq, tlength);
 }
 
 /* Called from main context */
