@@ -1591,6 +1591,7 @@ update-speex:
 	wget -O pulsecore/speex/resample.c http://svn.xiph.org/trunk/speex/libspeex/resample.c
 	wget -O pulsecore/speex/arch.h http://svn.xiph.org/trunk/speex/libspeex/arch.h
 	wget -O pulsecore/speex/fixed_generic.h http://svn.xiph.org/trunk/speex/libspeex/fixed_generic.h
+	wget -O pulsecore/speex/stack_alloc.h http://svn.xiph.org/trunk/speex/libspeex/stack_alloc.h
 
 update-ffmpeg:
 	wget -O pulsecore/ffmpeg/resample2.c http://svn.mplayerhq.hu/ffmpeg/trunk/libavcodec/resample2.c?view=co
