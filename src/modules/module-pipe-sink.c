@@ -116,13 +116,6 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     return pa_sink_process_msg(o, code, data, offset, chunk);
 }
 
-static void process_rewind(struct userdata *u) {
-    pa_assert(u);
-
-    pa_log_debug("Rewind requested but not supported by pipe sink. Ignoring.");
-    u->sink->thread_info.rewind_nbytes = 0;
-}
-
 static int process_render(struct userdata *u) {
     pa_assert(u);
 
@@ -182,14 +175,10 @@ static void thread_func(void *userdata) {
         pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
 
         /* Render some data and write it to the fifo */
-        if (u->sink->thread_info.state == PA_SINK_RUNNING) {
+        if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
 
-            if (u->sink->thread_info.rewind_requested) {
-                if (u->sink->thread_info.rewind_nbytes > 0)
-                    process_rewind(u);
-                else
-                    pa_sink_process_rewind(u->sink, 0);
-            }
+            if (u->sink->thread_info.rewind_requested)
+                pa_sink_process_rewind(u->sink, 0);
 
             if (pollfd->revents) {
                 if (process_render(u) < 0)
