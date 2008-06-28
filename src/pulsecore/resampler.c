@@ -29,6 +29,8 @@
 #include <samplerate.h>
 #endif
 
+#include <speex/speex_resampler.h>
+
 #include <liboil/liboilfuncs.h>
 #include <liboil/liboil.h>
 
@@ -37,8 +39,6 @@
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/strbuf.h>
-
-#include "speexwrap.h"
 
 #include "ffmpeg/avcodec.h"
 
@@ -1245,7 +1245,7 @@ static void speex_resample_float(pa_resampler *r, const pa_memchunk *input, unsi
     in = (float*) ((uint8_t*) pa_memblock_acquire(input->memblock) + input->index);
     out = (float*) ((uint8_t*) pa_memblock_acquire(output->memblock) + output->index);
 
-    pa_assert_se(paspfl_resampler_process_interleaved_float(r->speex.state, in, &inf, out, &outf) == 0);
+    pa_assert_se(speex_resampler_process_interleaved_float(r->speex.state, in, &inf, out, &outf) == 0);
 
     pa_memblock_release(input->memblock);
     pa_memblock_release(output->memblock);
@@ -1266,7 +1266,7 @@ static void speex_resample_int(pa_resampler *r, const pa_memchunk *input, unsign
     in = (int16_t*) ((uint8_t*) pa_memblock_acquire(input->memblock) + input->index);
     out = (int16_t*) ((uint8_t*) pa_memblock_acquire(output->memblock) + output->index);
 
-    pa_assert_se(paspfx_resampler_process_interleaved_int(r->speex.state, in, &inf, out, &outf) == 0);
+    pa_assert_se(speex_resampler_process_interleaved_int(r->speex.state, in, &inf, out, &outf) == 0);
 
     pa_memblock_release(input->memblock);
     pa_memblock_release(output->memblock);
@@ -1278,23 +1278,13 @@ static void speex_resample_int(pa_resampler *r, const pa_memchunk *input, unsign
 static void speex_update_rates(pa_resampler *r) {
     pa_assert(r);
 
-    if (r->method >= PA_RESAMPLER_SPEEX_FIXED_BASE && r->method <= PA_RESAMPLER_SPEEX_FIXED_MAX)
-        pa_assert_se(paspfx_resampler_set_rate(r->speex.state, r->i_ss.rate, r->o_ss.rate) == 0);
-    else {
-        pa_assert(r->method >= PA_RESAMPLER_SPEEX_FLOAT_BASE && r->method <= PA_RESAMPLER_SPEEX_FLOAT_MAX);
-        pa_assert_se(paspfl_resampler_set_rate(r->speex.state, r->i_ss.rate, r->o_ss.rate) == 0);
-    }
+    pa_assert_se(speex_resampler_set_rate(r->speex.state, r->i_ss.rate, r->o_ss.rate) == 0);
 }
 
 static void speex_reset(pa_resampler *r) {
     pa_assert(r);
 
-    if (r->method >= PA_RESAMPLER_SPEEX_FIXED_BASE && r->method <= PA_RESAMPLER_SPEEX_FIXED_MAX)
-        pa_assert_se(paspfx_resampler_reset_mem(r->speex.state) == 0);
-    else  {
-        pa_assert(r->method >= PA_RESAMPLER_SPEEX_FLOAT_BASE && r->method <= PA_RESAMPLER_SPEEX_FLOAT_MAX);
-        pa_assert_se(paspfl_resampler_reset_mem(r->speex.state) == 0);
-    }
+    pa_assert_se(speex_resampler_reset_mem(r->speex.state) == 0);
 }
 
 static void speex_free(pa_resampler *r) {
@@ -1303,12 +1293,7 @@ static void speex_free(pa_resampler *r) {
     if (!r->speex.state)
         return;
 
-    if (r->method >= PA_RESAMPLER_SPEEX_FIXED_BASE && r->method <= PA_RESAMPLER_SPEEX_FIXED_MAX)
-        paspfx_resampler_destroy(r->speex.state);
-    else {
-        pa_assert(r->method >= PA_RESAMPLER_SPEEX_FLOAT_BASE && r->method <= PA_RESAMPLER_SPEEX_FLOAT_MAX);
-        paspfl_resampler_destroy(r->speex.state);
-    }
+    speex_resampler_destroy(r->speex.state);
 }
 
 static int speex_init(pa_resampler *r) {
@@ -1321,25 +1306,21 @@ static int speex_init(pa_resampler *r) {
     r->impl_reset = speex_reset;
 
     if (r->method >= PA_RESAMPLER_SPEEX_FIXED_BASE && r->method <= PA_RESAMPLER_SPEEX_FIXED_MAX) {
+
         q = r->method - PA_RESAMPLER_SPEEX_FIXED_BASE;
-
-        pa_log_info("Choosing speex quality setting %i.", q);
-
-        if (!(r->speex.state = paspfx_resampler_init(r->o_ss.channels, r->i_ss.rate, r->o_ss.rate, q, &err)))
-            return -1;
-
         r->impl_resample = speex_resample_int;
+
     } else {
         pa_assert(r->method >= PA_RESAMPLER_SPEEX_FLOAT_BASE && r->method <= PA_RESAMPLER_SPEEX_FLOAT_MAX);
+
         q = r->method - PA_RESAMPLER_SPEEX_FLOAT_BASE;
-
-        pa_log_info("Choosing speex quality setting %i.", q);
-
-        if (!(r->speex.state = paspfl_resampler_init(r->o_ss.channels, r->i_ss.rate, r->o_ss.rate, q, &err)))
-            return -1;
-
         r->impl_resample = speex_resample_float;
     }
+
+    pa_log_info("Choosing speex quality setting %i.", q);
+
+    if (!(r->speex.state = speex_resampler_init(r->o_ss.channels, r->i_ss.rate, r->o_ss.rate, q, &err)))
+        return -1;
 
     return 0;
 }
