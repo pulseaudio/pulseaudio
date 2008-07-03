@@ -342,6 +342,7 @@ static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* he
 
         case STATE_TEARDOWN:
         case STATE_SET_PARAMETER:
+            pa_log_debug("RAOP: SET_PARAMETER");
             break;
         case STATE_DISCONNECTED:
             pa_assert(c->closed_callback);
@@ -436,6 +437,29 @@ int pa_raop_flush(pa_raop_client* c)
 
     pa_rtsp_flush(c->rtsp, c->seq, c->rtptime);
     return 0;
+}
+
+
+int pa_raop_client_set_volume(pa_raop_client* c, pa_volume_t volume)
+{
+    int rv;
+    double db;
+    char *param;
+
+    pa_assert(c);
+
+    db = pa_sw_volume_to_dB(volume);
+    if (db < VOLUME_MIN)
+        db = VOLUME_MIN;
+    else if (db > VOLUME_MAX)
+        db = VOLUME_MAX;
+
+    param = pa_sprintf_malloc("volume: %0.6f\r\n",  db);
+
+    /* We just hit and hope, cannot wait for the callback */
+    rv = pa_rtsp_setparameter(c->rtsp, param);
+    pa_xfree(param);
+    return rv;
 }
 
 

@@ -36,6 +36,7 @@ void pa_raop_client_free(pa_raop_client* c);
 int pa_raop_connect(pa_raop_client* c);
 int pa_raop_flush(pa_raop_client* c);
 
+int pa_raop_client_set_volume(pa_raop_client* c, pa_volume_t volume);
 int pa_raop_client_encode_sample(pa_raop_client* c, pa_memchunk* raw, pa_memchunk* encoded);
 
 typedef void (*pa_raop_client_cb_t)(int fd, void *userdata);
