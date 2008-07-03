@@ -61,7 +61,7 @@
  *
  * The functions described above are only valid when used with
  * software volumes. Hence it is usually a better idea to treat all
- * volume values as opaque with a range from PA_VOLUME_MUTE (0%) to
+ * volume values as opaque with a range from PA_VOLUME_MUTED (0%) to
  * PA_VOLUME_NORM (100%) and to refrain from any calculations with
  * them.
  *
