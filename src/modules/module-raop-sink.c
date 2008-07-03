@@ -102,6 +102,9 @@ struct userdata {
 
     pa_usec_t latency;
 
+    pa_volume_t volume;
+    pa_bool_t muted;
+
     /*esd_format_t format;*/
     int32_t rate;
 
@@ -138,6 +141,9 @@ static void on_connection(PA_GCC_UNUSED int fd, void*userdata) {
 
     pa_assert(u->fd < 0);
     u->fd = fd;
+
+    /* Set the initial volume */
+    pa_raop_client_set_volume(u->raop, u->volume);
 
     pa_log_debug("Connection authenticated, handing fd to IO thread...");
 
@@ -250,12 +256,68 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     return pa_sink_process_msg(o, code, data, offset, chunk);
 }
 
+static int sink_get_volume_cb(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    int i;
+
+    pa_assert(u);
+
+    for (i = 0; i < s->sample_spec.channels; i++) {
+        s->volume.values[i] = u->volume;
+    }
+
+    return 0;
+}
+
+static int sink_set_volume_cb(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    int rv;
+
+    pa_assert(u);
+
+    /* If we're muted, we fake it */
+    if (u->muted)
+        return 0;
+
+    pa_assert(s->sample_spec.channels > 0);
+
+    /* Avoid pointless volume sets */
+    if (u->volume == s->volume.values[0])
+        return 0;
+
+    rv = pa_raop_client_set_volume(u->raop, s->volume.values[0]);
+    if (0 == rv)
+        u->volume = s->volume.values[0];
+
+    return rv;
+}
+
+static int sink_get_mute_cb(pa_sink *s) {
+    struct userdata *u = s->userdata;
+
+    pa_assert(u);
+
+    s->muted = u->muted;
+    return 0;
+}
+
+static int sink_set_mute_cb(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    int rv;
+
+    pa_assert(u);
+
+    rv = pa_raop_client_set_volume(u->raop, (s->muted ? PA_VOLUME_MUTED : u->volume));
+    u->muted = s->muted;
+    return rv;
+}
+
 static void thread_func(void *userdata) {
     struct userdata *u = userdata;
     int write_type = 0;
     pa_memchunk silence;
-    uint32_t silence_overhead;
-    double silence_ratio;
+    uint32_t silence_overhead = 0;
+    double silence_ratio = 0;
 
     pa_assert(u);
 
@@ -484,6 +546,9 @@ int pa__init(pa_module*m) {
     u->next_encoding_overhead = 0;
     u->encoding_ratio = 1.0;
 
+    u->volume = roundf(0.7 * PA_VOLUME_NORM);
+    u->muted = FALSE;
+
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
     pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
@@ -508,7 +573,11 @@ int pa__init(pa_module*m) {
 
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->userdata = u;
-    u->sink->flags = PA_SINK_LATENCY|PA_SINK_NETWORK;
+    u->sink->get_volume = sink_get_volume_cb;
+    u->sink->set_volume = sink_set_volume_cb;
+    u->sink->get_mute = sink_get_mute_cb;
+    u->sink->set_mute = sink_set_mute_cb;
+    u->sink->flags = PA_SINK_LATENCY|PA_SINK_NETWORK|PA_SINK_HW_VOLUME_CTRL;
 
     pa_sink_set_module(u->sink, m);
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
