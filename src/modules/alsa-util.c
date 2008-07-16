@@ -574,7 +574,8 @@ snd_pcm_t *pa_alsa_open_by_device_id(
                                 SND_PCM_NONBLOCK|
                                 SND_PCM_NO_AUTO_RESAMPLE|
                                 SND_PCM_NO_AUTO_CHANNELS|
-                                SND_PCM_NO_AUTO_FORMAT)) < 0) {
+                                SND_PCM_NO_AUTO_FORMAT |
+                                SND_PCM_NO_SOFTVOL)) < 0) {
             pa_log_info("Couldn't open PCM device %s: %s", d, snd_strerror(err));
             pa_xfree(d);
             continue;
