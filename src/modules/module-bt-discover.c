@@ -1,8 +1,3 @@
-/* TODO LIST
- * listen to signals AdapterAdded, AdapterRemoved, DeviceCreated and DeviceRemoved
- * listen to org.freedesktop.DBus.NameOwnerChanged, to properly handle hcid activity
- */
-
 /***
     This file is part of PulseAudio.
 
@@ -35,25 +30,17 @@
 #include <pulsecore/modargs.h>
 
 #include "dbus-util.h"
-/* TODO: Create symdef file for static linking
- * #include "module-bt-proximity-symdef.h" */
+#include "module-bt-proximity-symdef.h"
 
 PA_MODULE_AUTHOR("Joao Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Detect available bluetooth audio devices and load bluetooth audio drivers");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_USAGE("");
 
-#define AUDIO_DEVICE_INTERFACE  "org.bluez.audio.Device"
-#define GENERIC_AUDIO_UUID      "00001203-0000-1000-8000-00805F9B34FB"
 #define HSP_HS_UUID             "00001108-0000-1000-8000-00805F9B34FB"
-#define HSP_AG_UUID             "00001112-0000-1000-8000-00805F9B34FB"
 #define HFP_HS_UUID             "0000111E-0000-1000-8000-00805F9B34FB"
-#define HFP_AG_UUID             "0000111F-0000-1000-8000-00805F9B34FB"
-#define ADVANCED_AUDIO_UUID     "0000110D-0000-1000-8000-00805F9B34FB"
 #define A2DP_SOURCE_UUID        "0000110A-0000-1000-8000-00805F9B34FB"
 #define A2DP_SINK_UUID          "0000110B-0000-1000-8000-00805F9B34FB"
-#define AVRCP_REMOTE_UUID       "0000110E-0000-1000-8000-00805F9B34FB"
-#define AVRCP_TARGET_UUID       "0000110C-0000-1000-8000-00805F9B34FB"
 
 #define VERBOSE 1
 
@@ -323,8 +310,8 @@ void detect_devices(adapter_t *adapter_list, pa_dbus_connection *conn) {
                         dbus_message_iter_recurse(&variant_i, &uuid_i);
                         while (dbus_message_iter_get_arg_type(&uuid_i) != DBUS_TYPE_INVALID) {
                             dbus_message_iter_get_basic(&uuid_i, &value);
-                            if ( (strcmp(value, HSP_HS_UUID) == 0) || (strcmp(value, HFP_HS_UUID) == 0) ||
-                                (strcmp(value, A2DP_SOURCE_UUID) == 0) || (strcmp(value, A2DP_SINK_UUID) == 0) )
+                            if ( (strcasecmp(value, HSP_HS_UUID) == 0) || (strcasecmp(value, HFP_HS_UUID) == 0) ||
+                                (strcasecmp(value, A2DP_SOURCE_UUID) == 0) || (strcasecmp(value, A2DP_SINK_UUID) == 0) )
                                 is_audio_device = 1;
                             uuid_list_append(device_list_i->uuid_list, value);
                             dbus_message_iter_next(&uuid_i);
