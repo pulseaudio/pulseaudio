@@ -1160,7 +1160,8 @@ endif
 
 if HAVE_BLUEZ
 modlibexec_LTLIBRARIES += \
-		module-bt-proximity.la
+		module-bt-proximity.la \
+		module-bt-discover.la
 
 pulselibexec_PROGRAMS += \
 		bt-proximity-helper
@@ -1220,6 +1221,7 @@ SYMDEF_FILES = \
 		modules/module-suspend-on-idle-symdef.h \
 		modules/module-hal-detect-symdef.h \
 		modules/module-bt-proximity-symdef.h \
+		modules/module-bt-discover-symdef.h \
 		modules/gconf/module-gconf-symdef.h \
 		modules/module-position-event-sounds-symdef.h \
 		modules/module-console-kit-symdef.h
@@ -1559,6 +1561,12 @@ bt_proximity_helper_SOURCES = modules/bt-proximity-helper.c
 bt_proximity_helper_LDADD = $(AM_LDADD) $(BLUEZ_LIBS)
 bt_proximity_helper_CFLAGS = $(AM_CFLAGS) $(BLUEZ_CFLAGS)
 bt_proximity_helper_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+# Bluetooth discover
+module_bt_discover_la_SOURCES = modules/module-bt-discover.c
+module_bt_discover_la_LDFLAGS = -module -avoid-version
+module_bt_discover_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la libdbus-util.la
+module_bt_discover_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 ###################################
 #        Some minor stuff         #
