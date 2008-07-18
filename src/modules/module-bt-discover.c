@@ -30,7 +30,7 @@
 #include <pulsecore/modargs.h>
 
 #include "dbus-util.h"
-#include "module-bt-proximity-symdef.h"
+#include "module-bt-discover-symdef.h"
 
 PA_MODULE_AUTHOR("Joao Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Detect available bluetooth audio devices and load bluetooth audio drivers");
