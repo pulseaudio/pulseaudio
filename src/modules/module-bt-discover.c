@@ -79,19 +79,19 @@ struct userdata {
     adapter_t *adapter_list;
 };
 
-uuid_t *uuid_new(const char *uuid) {
+static uuid_t *uuid_new(const char *uuid) {
     uuid_t *node = pa_xnew0(uuid_t, 1);
     node->uuid = pa_xstrdup(uuid);
     node->next = NULL;
     return node;
 }
 
-void uuid_list_append(uuid_t *node, const char *uuid) {
+static void uuid_list_append(uuid_t *node, const char *uuid) {
     while (node->next != NULL) node = node->next;
     node->next = uuid_new(uuid);
 }
 
-device_t *device_new(const char *device, adapter_t *adapter) {
+static device_t *device_new(const char *device, adapter_t *adapter) {
     device_t *node = pa_xnew0(device_t, 1);
     node->name = NULL;
     node->object_path = pa_xstrdup(device);
@@ -107,12 +107,12 @@ device_t *device_new(const char *device, adapter_t *adapter) {
     return node;
 }
 
-void device_list_append(device_t *node, const char *device, adapter_t *adapter) {
+static void device_list_append(device_t *node, const char *device, adapter_t *adapter) {
     while (node->next != NULL) node = node->next;
     node->next = device_new(device, adapter);
 }
 
-adapter_t *adapter_new(const char *adapter) {
+static adapter_t *adapter_new(const char *adapter) {
     adapter_t *node = pa_xnew0(adapter_t, 1);
     node->object_path = pa_xstrdup(adapter);
     node->mode = NULL;
@@ -122,12 +122,12 @@ adapter_t *adapter_new(const char *adapter) {
     return node;
 }
 
-void adapter_list_append(adapter_t *node, const char *adapter) {
+static void adapter_list_append(adapter_t *node, const char *adapter) {
     while (node->next != NULL) node = node->next;
     node->next = adapter_new(adapter);
 }
 
-void print_devices(device_t *device_list) {
+static void print_devices(device_t *device_list) {
     device_t *device_list_i = device_list;
     while (device_list_i != NULL) {
         uuid_t *uuid_list_i = device_list_i->uuid_list;
@@ -153,7 +153,7 @@ void print_devices(device_t *device_list) {
     }
 }
 
-void print_adapters(adapter_t *adapter_list) {
+static void print_adapters(adapter_t *adapter_list) {
     adapter_t *adapter_list_i = adapter_list;
     while (adapter_list_i != NULL) {
         if (strcmp(adapter_list_i->object_path, "/ADAPTER_HEAD") != 0) {
@@ -166,7 +166,7 @@ void print_adapters(adapter_t *adapter_list) {
     }
 }
 
-DBusMessageIter call_dbus_method(pa_dbus_connection *conn, const char *destination, const char *path, const char *interface,
+static DBusMessageIter call_dbus_method(pa_dbus_connection *conn, const char *destination, const char *path, const char *interface,
         const char *method) {
     DBusMessage *msg;
     DBusPendingCall *pending;
@@ -209,7 +209,7 @@ DBusMessageIter call_dbus_method(pa_dbus_connection *conn, const char *destinati
 
 }
 
-void detect_adapters(adapter_t *adapter_list, pa_dbus_connection *conn) {
+static void detect_adapters(adapter_t *adapter_list, pa_dbus_connection *conn) {
     DBusMessageIter arg_i, element_i, dict_i, variant_i;
     adapter_t *adapter_list_i;
     const char *key, *value;
@@ -250,7 +250,7 @@ void detect_adapters(adapter_t *adapter_list, pa_dbus_connection *conn) {
     }
 }
 
-void detect_devices(adapter_t *adapter_list, pa_dbus_connection *conn) {
+static void detect_devices(adapter_t *adapter_list, pa_dbus_connection *conn) {
     DBusMessageIter arg_i, element_i, dict_i, variant_i;
     adapter_t *adapter_list_i;
     device_t *device_list_i, *device_list_prev_i;
