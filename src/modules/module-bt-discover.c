@@ -42,8 +42,6 @@ PA_MODULE_USAGE("");
 #define A2DP_SOURCE_UUID        "0000110A-0000-1000-8000-00805F9B34FB"
 #define A2DP_SINK_UUID          "0000110B-0000-1000-8000-00805F9B34FB"
 
-#define VERBOSE 1
-
 typedef struct adapter adapter_t;
 typedef struct device device_t;
 typedef struct uuid uuid_t;
@@ -486,7 +484,7 @@ int pa__init(pa_module* m) {
     detect_adapters(u->adapter_list, u->conn);
     detect_devices(u->adapter_list, u->conn);
 
-    if (VERBOSE) print_adapters(u->adapter_list);
+    print_adapters(u->adapter_list);
 
     /* load device modules */
     adapter_list_i = u->adapter_list->next;
