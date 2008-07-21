@@ -35,7 +35,7 @@
  * \section overv_sec Overview
  *
  * The asynchronous API is the native interface to the PulseAudio library.
- * It allows full access to all available functions. This also means that
+ * It allows full access to all available functionality. This however means that
  * it is rather complex and can take some time to fully master.
  *
  * \section mainloop_sec Main Loop Abstraction
@@ -64,8 +64,7 @@
  *                                  implementation where all of PulseAudio's
  *                                  internal handling runs in a separate
  *                                  thread.
- * \li \subpage glib-mainloop - A wrapper around GLIB's main loop. Available
- *                              for both GLIB 1.2 and GLIB 2.x.
+ * \li \subpage glib-mainloop - A wrapper around GLib's main loop.
  *
  * UNIX signals may be hooked to a main loop using the functions from
  * \ref mainloop-signal.h. These rely only on the main loop abstraction

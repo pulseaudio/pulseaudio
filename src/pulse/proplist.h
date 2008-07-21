@@ -36,19 +36,20 @@ PA_C_DECL_BEGIN
  *    media.artist                  "Guns'N'Roses"
  *    media.language                "de_DE"
  *    media.filename
- *    media.icon
- *    media.icon_name
+ *    media.icon                    Binary blob containing PNG icon data
+ *    media.icon_name               Name from XDG icon naming spec
  *    media.role                    video, music, game, event, phone, production, filter, abstract, stream
- *    event.id                      button-click, session-login
+ *    event.id                      Name from XDG sound naming spec
+ *    event.description             "Button blabla clicked" for a11y
  *    event.mouse.x
  *    event.mouse.y
- *    event.mouse.hpos
- *    event.mouse.vpos
- *    event.mouse.button
+ *    event.mouse.hpos              Float formatted as string in range 0..1
+ *    event.mouse.vpos              Float formatted as string in range 0..1
+ *    event.mouse.button            Button number following X11 ordering
  *    window.name
- *    window.id
- *    window.icon
- *    window.icon_name
+ *    window.id                     "org.gnome.rhytmbox.MainWindow"
+ *    window.icon                   Binary blob containing PNG icon data
+ *    window.icon_name              Name from XDG icon naming spec
  *    window.x11.display
  *    window.x11.screen
  *    window.x11.monitor
@@ -56,23 +57,23 @@ PA_C_DECL_BEGIN
  *    application.name              "Rhythmbox Media Player"
  *    application.id                "org.gnome.rhythmbox"
  *    application.version
- *    application.icon
- *    application.icon_name
+ *    application.icon              Binary blob containing PNG icon data
+ *    application.icon_name         Name from XDG icon naming spec
  *    application.language
  *    application.process.id
  *    application.process.binary
  *    application.process.user
  *    application.process.host
  *    device.string
- *    device.api                     oss, alsa, sunaudio
+ *    device.api                    oss, alsa, sunaudio
  *    device.description
  *    device.bus_path
  *    device.serial
  *    device.vendor_product_id
- *    device.class                   sound, modem, monitor, filter, abstract
- *    device.form_factor             laptop-speakers, external-speakers, telephone, tv-capture, webcam-capture, microphone-capture, headset
- *    device.connector               isa, pci, usb, firewire, bluetooth
- *    device.access_mode             mmap, mmap_rewrite, serial
+ *    device.class                  sound, modem, monitor, filter, abstract
+ *    device.form_factor            laptop-speakers, external-speakers, telephone, tv-capture, webcam-capture, microphone-capture, headset
+ *    device.connector              isa, pci, usb, firewire, bluetooth
+ *    device.access_mode            mmap, mmap_rewrite, serial
  *    device.master_device
  *    device.bufferin.buffer_size
  *    device.bufferin.fragment_size
@@ -86,6 +87,7 @@ PA_C_DECL_BEGIN
 #define PA_PROP_MEDIA_ICON_NAME                "media.icon_name"
 #define PA_PROP_MEDIA_ROLE                     "media.role"
 #define PA_PROP_EVENT_ID                       "event.id"
+#define PA_PROP_EVENT_DESCRIPTION              "event.description"
 #define PA_PROP_EVENT_MOUSE_X                  "event.mouse.x"
 #define PA_PROP_EVENT_MOUSE_Y                  "event.mouse.y"
 #define PA_PROP_EVENT_MOUSE_HPOS               "event.mouse.hpos"
