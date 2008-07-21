@@ -348,6 +348,69 @@ void detect_devices(adapter_t *adapter_list, pa_dbus_connection *conn) {
     }
 }
 
+static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *userdata) {
+    DBusMessageIter arg_i;
+    DBusError err;
+    const char *value;
+    struct userdata *u;
+
+    pa_assert(bus);
+    pa_assert(msg);
+    pa_assert(userdata);
+    u = userdata;
+    dbus_error_init(&err);
+
+    pa_log("dbus: interface=%s, path=%s, member=%s\n",
+            dbus_message_get_interface(msg),
+            dbus_message_get_path(msg),
+            dbus_message_get_member(msg));
+
+    if (dbus_message_is_signal(msg, "org.bluez.Manager", "AdapterAdded")) {
+        if (!dbus_message_iter_init(msg, &arg_i))
+            pa_log("dbus: message has no parameters");
+        else if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_OBJECT_PATH)
+            pa_log("dbus: argument is not object path");
+        else {
+            dbus_message_iter_get_basic(&arg_i, &value);
+            pa_log("hcid: adapter %s added", value);
+        }
+    }
+    else if (dbus_message_is_signal(msg, "org.bluez.Manager", "AdapterRemoved")) {
+        if (!dbus_message_iter_init(msg, &arg_i))
+            pa_log("dbus: message has no parameters");
+        else if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_OBJECT_PATH)
+            pa_log("dbus: argument is not object path");
+        else {
+            dbus_message_iter_get_basic(&arg_i, &value);
+            pa_log("hcid: adapter %s removed", value);
+        }
+    }
+    else if (dbus_message_is_signal(msg, "org.bluez.Adapter", "DeviceCreated")) {
+        if (!dbus_message_iter_init(msg, &arg_i))
+            pa_log("dbus: message has no parameters");
+        else if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_OBJECT_PATH)
+            pa_log("dbus: argument is not object path");
+        else {
+            dbus_message_iter_get_basic(&arg_i, &value);
+            pa_log("hcid: device %s created", value);
+        }
+    }
+    else if (dbus_message_is_signal(msg, "org.bluez.Adapter", "DeviceRemoved")) {
+        if (!dbus_message_iter_init(msg, &arg_i))
+            pa_log("dbus: message has no parameters");
+        else if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_OBJECT_PATH)
+            pa_log("dbus: argument is not object path");
+        else {
+            dbus_message_iter_get_basic(&arg_i, &value);
+            pa_log("hcid: device %s removed", value);
+        }
+    }
+
+finish:
+    dbus_error_free(&err);
+    return DBUS_HANDLER_RESULT_HANDLED;
+}
+
 void pa__done(pa_module* m) {
     struct userdata *u;
     adapter_t *adapter_list_i, *adapter_list_next_i;
@@ -418,7 +481,7 @@ int pa__init(pa_module* m) {
         goto fail;
     }
 
-    /* static detection of bluetooth devices */
+    /* static detection of bluetooth audio devices */
     u->adapter_list = adapter_new("/ADAPTER_HEAD");
     detect_adapters(u->adapter_list, u->conn);
     detect_devices(u->adapter_list, u->conn);
@@ -435,6 +498,25 @@ int pa__init(pa_module* m) {
             device_list_i = device_list_i->next;
         }
         adapter_list_i = adapter_list_i->next;
+    }
+
+    /* dynamic detection of bluetooth audio devices */
+    if (!dbus_connection_add_filter(pa_dbus_connection_get(u->conn), filter_cb, u, NULL)) {
+        pa_log_error("Failed to add filter function");
+        goto fail;
+    }
+    dbus_connection_flush(pa_dbus_connection_get(u->conn));
+    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',interface='org.bluez.Manager'", &err);
+    dbus_connection_flush(pa_dbus_connection_get(u->conn));
+    if (dbus_error_is_set(&err)) {
+        pa_log_error("Unable to subscribe to org.bluez.Manager signals: %s: %s", err.name, err.message);
+        goto fail;
+    }
+    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',interface='org.bluez.Adapter'", &err);
+    dbus_connection_flush(pa_dbus_connection_get(u->conn));
+    if (dbus_error_is_set(&err)) {
+        pa_log_error("Unable to subscribe to org.bluez.Adapter signals: %s: %s", err.name, err.message);
+        goto fail;
     }
 
     return 0;
