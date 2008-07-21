@@ -514,7 +514,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
         case PA_SINK_MESSAGE_SET_STATE: {
             int r;
 
-            if ((r = pa_sink_process_msg(o, code, data, offset, chunk)) >= 0)
+            if ((r = pa_source_process_msg(o, code, data, offset, chunk)) >= 0)
                 stream_cork_within_thread(u, u->source->state == PA_SOURCE_SUSPENDED);
 
             return r;
