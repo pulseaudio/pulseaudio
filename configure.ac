@@ -693,7 +693,7 @@ AC_ARG_ENABLE([gconf],
                 *) AC_MSG_ERROR(bad value ${enableval} for --disable-gconf) ;;
             esac
         ],
-        [glib=auto])
+        [gconf=auto])
 
 if test "x${gconf}" != xno ; then
     PKG_CHECK_MODULES(GCONF, [ gconf-2.0 >= 2.4.0 ],
