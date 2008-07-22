@@ -166,49 +166,6 @@ static void print_adapters(adapter_t *adapter_list) {
     }
 }
 
-static DBusMessageIter call_dbus_method(pa_dbus_connection *conn, const char *destination, const char *path, const char *interface,
-        const char *method) {
-    DBusMessage *msg;
-    DBusPendingCall *pending;
-    DBusMessageIter args;
-
-    /* construct the DBusMessage */
-    msg = dbus_message_new_method_call(destination, path, interface, method);
-
-    /* send the message and get a handle for a reply */
-    if (!dbus_connection_send_with_reply(pa_dbus_connection_get(conn), msg, &pending, -1)) { 
-        pa_log("Out Of Memory!"); 
-    }
-    if (pending == NULL) { 
-        pa_log("Pending Call Null"); 
-    }
-    dbus_connection_flush(pa_dbus_connection_get(conn));
-
-    /* free msg */
-    dbus_message_unref(msg);
-
-    /* wait for reply */
-    dbus_pending_call_block(pending);
-
-    /* get the reply */
-    msg = dbus_pending_call_steal_reply(pending);
-    if (msg == NULL) {
-        pa_log("Reply Null");
-    }
-
-    /* free pending */
-    dbus_pending_call_unref(pending);
-
-    /* read the reply */
-    if (!dbus_message_iter_init(msg, &args))
-        pa_log("Reply has no arguments");
-
-    dbus_message_unref(msg);
-
-    return args;
-
-}
-
 static void detect_adapters(struct userdata *u) {
     DBusError e;
     DBusMessage *m = NULL, *r = NULL;
@@ -235,8 +192,8 @@ static void detect_adapters(struct userdata *u) {
         goto fail;
     }
     dbus_message_iter_recurse(&arg_i, &element_i);
-    // TODO: Review error checking
-    // should this be changed to while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) ?
+    /* TODO: Review error checking
+     * should this be changed to while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) ? */
     while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
         if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) {
             dbus_message_iter_get_basic(&element_i, &value);
@@ -320,8 +277,8 @@ static void detect_devices(struct userdata *u) {
             goto fail;
         }
         dbus_message_iter_recurse(&arg_i, &element_i);
-        // TODO: Review error checking
-        // should this be changed to while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) ?
+        /* TODO: Review error checking
+         * should this be changed to while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) ? */
         while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
             if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) {
                 dbus_message_iter_get_basic(&element_i, &value);
