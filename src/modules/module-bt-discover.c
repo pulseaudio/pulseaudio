@@ -442,7 +442,6 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *
         }
     }
 
-finish:
     dbus_error_free(&err);
     return DBUS_HANDLER_RESULT_HANDLED;
 }
@@ -481,10 +480,8 @@ void pa__done(pa_module* m) {
 int pa__init(pa_module* m) {
     pa_modargs *ma = NULL;
     DBusError err;
-    DBusMessageIter arg_i, element_i;
     adapter_t *adapter_list_i;
     device_t *device_list_i;
-    const char *value;
     struct userdata *u;
 
     pa_assert(m);
