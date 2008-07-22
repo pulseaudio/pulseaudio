@@ -28,6 +28,7 @@
 #include <pulse/xmalloc.h>
 #include <pulsecore/module.h>
 #include <pulsecore/modargs.h>
+#include <pulsecore/macro.h>
 
 #include "dbus-util.h"
 #include "module-bt-discover-symdef.h"
@@ -334,13 +335,13 @@ static void detect_devices(struct userdata *u) {
                     }
                     else if (strcmp(key, "UUIDs") == 0) {
                         DBusMessageIter uuid_i;
-                        int is_audio_device = 0;
+                        pa_bool_t is_audio_device = FALSE;
                         dbus_message_iter_recurse(&variant_i, &uuid_i);
                         while (dbus_message_iter_get_arg_type(&uuid_i) != DBUS_TYPE_INVALID) {
                             dbus_message_iter_get_basic(&uuid_i, &value);
                             if ( (strcasecmp(value, HSP_HS_UUID) == 0) || (strcasecmp(value, HFP_HS_UUID) == 0) ||
                                 (strcasecmp(value, A2DP_SOURCE_UUID) == 0) || (strcasecmp(value, A2DP_SINK_UUID) == 0) )
-                                is_audio_device = 1;
+                                is_audio_device = TRUE;
                             uuid_list_append(device_list_i->uuid_list, value);
                             dbus_message_iter_next(&uuid_i);
                         }
