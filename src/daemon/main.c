@@ -496,7 +496,7 @@ int main(int argc, char *argv[]) {
     if (conf->high_priority && (conf->cmd == PA_CMD_DAEMON || conf->cmd == PA_CMD_START))
         pa_raise_priority(conf->nice_level);
 
-    if (pa_have_caps()) {
+    if (!real_root && pa_have_caps()) {
         pa_bool_t drop;
 
         drop = (conf->cmd != PA_CMD_DAEMON && conf->cmd != PA_CMD_START) || !conf->realtime_scheduling;
