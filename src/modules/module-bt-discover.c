@@ -235,6 +235,8 @@ static void detect_adapters(struct userdata *u) {
         goto fail;
     }
     dbus_message_iter_recurse(&arg_i, &element_i);
+    // TODO: Review error checking
+    // should this be changed to while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) ?
     while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
         if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) {
             dbus_message_iter_get_basic(&element_i, &value);
@@ -318,6 +320,8 @@ static void detect_devices(struct userdata *u) {
             goto fail;
         }
         dbus_message_iter_recurse(&arg_i, &element_i);
+        // TODO: Review error checking
+        // should this be changed to while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) ?
         while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
             if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) {
                 dbus_message_iter_get_basic(&element_i, &value);
@@ -523,7 +527,6 @@ int pa__init(pa_module* m) {
     adapter_t *adapter_list_i;
     device_t *device_list_i;
     const char *value;
-    unsigned int hcid_running = 0;
     struct userdata *u;
 
     pa_assert(m);
@@ -536,22 +539,6 @@ int pa__init(pa_module* m) {
     u->conn = pa_dbus_bus_get(m->core, DBUS_BUS_SYSTEM, &err);
     if ( dbus_error_is_set(&err) || (u->conn == NULL) ) {
         pa_log("Failed to get D-Bus connection: %s", err.message);
-        goto fail;
-    }
-
-    /* check if hcid is running */
-    arg_i = call_dbus_method(u->conn, "org.freedesktop.DBus", "/org/freedesktop/DBus" , "org.freedesktop.DBus", "ListNames");
-    dbus_message_iter_recurse(&arg_i, &element_i);
-    while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
-        if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_STRING) {
-            dbus_message_iter_get_basic(&element_i, &value);
-            if (strcmp(value, "org.bluez") == 0)
-                hcid_running = 1;
-        }
-        dbus_message_iter_next(&element_i);
-    }
-    if (!hcid_running) {
-        pa_log("hcid not running");
         goto fail;
     }
 
