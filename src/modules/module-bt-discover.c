@@ -141,9 +141,8 @@ static void print_devices(device_t *device_list) {
             pa_log("        Connected = %d", device_list_i->connected);
             pa_log("        UUIDs = ");
             while (uuid_list_i != NULL) {
-                if (strcmp(uuid_list_i->uuid, "UUID_HEAD") != 0) {
+                if (strcmp(uuid_list_i->uuid, "UUID_HEAD") != 0)
                     pa_log("            %s", uuid_list_i->uuid);
-                }
                 uuid_list_i = uuid_list_i->next;
             }
             pa_log("        Address = %s", device_list_i->address);
@@ -228,12 +227,10 @@ static void detect_adapters(struct userdata *u) {
                 dbus_message_iter_next(&dict_i);
                 dbus_message_iter_recurse(&dict_i, &variant_i);
                 dbus_message_iter_get_basic(&variant_i, &value);
-                if (strcmp(key, "Mode") == 0) {
+                if (strcmp(key, "Mode") == 0)
                     adapter_list_i->mode = pa_xstrdup(value);
-                }
-                else if (strcmp(key, "Address") == 0) {
+                else if (strcmp(key, "Address") == 0)
                     adapter_list_i->address = pa_xstrdup(value);
-                }
             }
             dbus_message_iter_next(&element_i);
         }
