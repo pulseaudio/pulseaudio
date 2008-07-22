@@ -209,26 +209,57 @@ static DBusMessageIter call_dbus_method(pa_dbus_connection *conn, const char *de
 
 }
 
-static void detect_adapters(adapter_t *adapter_list, pa_dbus_connection *conn) {
+static void detect_adapters(struct userdata *u) {
+    DBusError e;
+    DBusMessage *m = NULL, *r = NULL;
     DBusMessageIter arg_i, element_i, dict_i, variant_i;
     adapter_t *adapter_list_i;
     const char *key, *value;
 
+    pa_assert(u);
+    dbus_error_init(&e);
+
     /* get adapters */
-    arg_i = call_dbus_method(conn, "org.bluez", "/", "org.bluez.Manager", "ListAdapters");
+    pa_assert_se(m = dbus_message_new_method_call("org.bluez", "/", "org.bluez.Manager", "ListAdapters"));
+    r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(u->conn), m, -1, &e);
+    if (!r) {
+        pa_log("org.bluez.Manager.ListAdapters failed: %s", e.message);
+        goto fail;
+    }
+    if (!dbus_message_iter_init(r, &arg_i)) {
+        pa_log("org.bluez.Manager.ListAdapters reply has no arguments");
+        goto fail;
+    }
+    if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_ARRAY) {
+        pa_log("org.bluez.Manager.ListAdapters argument is not an array");
+        goto fail;
+    }
     dbus_message_iter_recurse(&arg_i, &element_i);
     while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
         if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) {
             dbus_message_iter_get_basic(&element_i, &value);
-            adapter_list_append(adapter_list, value);
+            adapter_list_append(u->adapter_list, value);
         }
         dbus_message_iter_next(&element_i);
     }
 
     /* get adapter properties */
-    adapter_list_i = adapter_list->next;
+    adapter_list_i = u->adapter_list->next;
     while (adapter_list_i != NULL) {
-        arg_i = call_dbus_method(conn, "org.bluez", adapter_list_i->object_path, "org.bluez.Adapter", "GetProperties");
+        pa_assert_se(m = dbus_message_new_method_call("org.bluez", adapter_list_i->object_path, "org.bluez.Adapter", "GetProperties"));
+        r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(u->conn), m, -1, &e);
+        if (!r) {
+            pa_log("org.bluez.Adapter.GetProperties failed: %s", e.message);
+            goto fail;
+        }
+        if (!dbus_message_iter_init(r, &arg_i)) {
+            pa_log("org.bluez.Adapter.GetProperties reply has no arguments");
+            goto fail;
+        }
+        if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_ARRAY) {
+            pa_log("org.bluez.Adapter.GetProperties argument is not an array");
+            goto fail;
+        }
         dbus_message_iter_recurse(&arg_i, &element_i);
         while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
             if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
@@ -248,19 +279,44 @@ static void detect_adapters(adapter_t *adapter_list, pa_dbus_connection *conn) {
         }
         adapter_list_i = adapter_list_i->next;
     }
+
+fail:
+    if (m)
+        dbus_message_unref(m);
+    if (r)
+        dbus_message_unref(r);
+    dbus_error_free(&e);
 }
 
-static void detect_devices(adapter_t *adapter_list, pa_dbus_connection *conn) {
+static void detect_devices(struct userdata *u) {
+    DBusError e;
+    DBusMessage *m = NULL, *r = NULL;
     DBusMessageIter arg_i, element_i, dict_i, variant_i;
     adapter_t *adapter_list_i;
     device_t *device_list_i, *device_list_prev_i;
     const char *key, *value;
     unsigned int uvalue;
 
+    pa_assert(u);
+    dbus_error_init(&e);
+
     /* get devices of each adapter */
-    adapter_list_i = adapter_list->next;
+    adapter_list_i = u->adapter_list->next;
     while (adapter_list_i != NULL) {
-        arg_i = call_dbus_method(conn, "org.bluez", adapter_list_i->object_path , "org.bluez.Adapter", "ListDevices");
+        pa_assert_se(m = dbus_message_new_method_call("org.bluez", adapter_list_i->object_path, "org.bluez.Adapter", "ListDevices"));
+        r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(u->conn), m, -1, &e);
+        if (!r) {
+            pa_log("org.bluez.Adapter.ListDevices failed: %s", e.message);
+            goto fail;
+        }
+        if (!dbus_message_iter_init(r, &arg_i)) {
+            pa_log("org.bluez.Adapter.ListDevices reply has no arguments");
+            goto fail;
+        }
+        if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_ARRAY) {
+            pa_log("org.bluez.Adapter.ListDevices argument is not an array");
+            goto fail;
+        }
         dbus_message_iter_recurse(&arg_i, &element_i);
         while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
             if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) {
@@ -273,12 +329,25 @@ static void detect_devices(adapter_t *adapter_list, pa_dbus_connection *conn) {
     }
 
     /* get device properties */
-    adapter_list_i = adapter_list->next;
+    adapter_list_i = u->adapter_list->next;
     while (adapter_list_i != NULL) {
         device_list_prev_i = adapter_list_i->device_list;
         device_list_i = adapter_list_i->device_list->next;
         while (device_list_i != NULL) {
-            arg_i = call_dbus_method(conn, "org.bluez", device_list_i->object_path, "org.bluez.Device", "GetProperties");
+            pa_assert_se(m = dbus_message_new_method_call("org.bluez", device_list_i->object_path, "org.bluez.Device", "GetProperties"));
+            r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(u->conn), m, -1, &e);
+            if (!r) {
+                pa_log("org.bluez.Device.GetProperties failed: %s", e.message);
+                goto fail;
+            }
+            if (!dbus_message_iter_init(r, &arg_i)) {
+                pa_log("org.bluez.Device.GetProperties reply has no arguments");
+                goto fail;
+            }
+            if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_ARRAY) {
+                pa_log("org.bluez.Device.GetProperties argument is not an array");
+                goto fail;
+            }
             dbus_message_iter_recurse(&arg_i, &element_i);
             while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
                 if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
@@ -344,6 +413,13 @@ static void detect_devices(adapter_t *adapter_list, pa_dbus_connection *conn) {
         }
         adapter_list_i = adapter_list_i->next;
     }
+
+fail:
+    if (m)
+        dbus_message_unref(m);
+    if (r)
+        dbus_message_unref(r);
+    dbus_error_free(&e);
 }
 
 static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *userdata) {
@@ -481,8 +557,8 @@ int pa__init(pa_module* m) {
 
     /* static detection of bluetooth audio devices */
     u->adapter_list = adapter_new("/ADAPTER_HEAD");
-    detect_adapters(u->adapter_list, u->conn);
-    detect_devices(u->adapter_list, u->conn);
+    detect_adapters(u);
+    detect_devices(u);
 
     print_adapters(u->adapter_list);
 
