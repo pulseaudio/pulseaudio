@@ -32,7 +32,7 @@
 ; realtime-scheduling = no
 ; realtime-priority = 5
 
-; exit-idle-time = -1
+; exit-idle-time = 20
 ; module-idle-time = 20
 ; scache-idle-time = 20
 

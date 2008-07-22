@@ -25,7 +25,7 @@
 
 ; autospawn = yes
 ; daemon-binary = @PA_BINARY@
-; extra-arguments = --log-target=syslog --exit-idle-time=5
+; extra-arguments = --log-target=syslog
 
 ; cookie-file =
 
