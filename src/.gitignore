@@ -54,3 +54,4 @@ thread-mainloop-test
 thread-test
 utf8-test
 voltest
+start-pulseaudio-x11
