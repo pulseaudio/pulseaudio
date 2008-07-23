@@ -94,6 +94,8 @@ static void add_session(struct userdata *u, const char *id) {
 
     /* CK 0.3 this changed from int32 to uint32 */
     if (!dbus_message_get_args(reply, &error, DBUS_TYPE_UINT32, &uid, DBUS_TYPE_INVALID)) {
+        dbus_error_free(&error);
+
         if (!dbus_message_get_args(reply, &error, DBUS_TYPE_INT32, &uid, DBUS_TYPE_INVALID)) {
             pa_log("Failed to parse GetUnixUser() result: %s: %s", error.name, error.message);
             goto fail;
@@ -167,6 +169,8 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
 
         /* CK API changed to match spec in 0.3 */
         if (!dbus_message_get_args(message, &error, DBUS_TYPE_OBJECT_PATH, &path, DBUS_TYPE_INVALID)) {
+            dbus_error_free(&error);
+
             if (!dbus_message_get_args(message, &error, DBUS_TYPE_STRING, &path, DBUS_TYPE_INVALID)) {
                 pa_log_error("Failed to parse SessionAdded message: %s: %s", error.name, error.message);
                 goto finish;
@@ -179,6 +183,8 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
 
         /* CK API changed to match spec in 0.3 */
         if (!dbus_message_get_args(message, &error, DBUS_TYPE_OBJECT_PATH, &path, DBUS_TYPE_INVALID)) {
+            dbus_error_free(&error);
+
             if (!dbus_message_get_args(message, &error, DBUS_TYPE_STRING, &path, DBUS_TYPE_INVALID)) {
                 pa_log_error("Failed to parse SessionRemoved message: %s: %s", error.name, error.message);
                 goto finish;
