@@ -261,22 +261,31 @@ pa_sink* pa_sink_new(
 static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
     int ret;
     pa_bool_t suspend_change;
+    pa_sink_state_t original_state;
 
     pa_assert(s);
 
     if (s->state == state)
         return 0;
 
+    original_state = s->state;
+
     suspend_change =
-        (s->state == PA_SINK_SUSPENDED && PA_SINK_IS_OPENED(state)) ||
-        (PA_SINK_IS_OPENED(s->state) && state == PA_SINK_SUSPENDED);
+        (original_state == PA_SINK_SUSPENDED && PA_SINK_IS_OPENED(state)) ||
+        (PA_SINK_IS_OPENED(original_state) && state == PA_SINK_SUSPENDED);
 
     if (s->set_state)
         if ((ret = s->set_state(s, state)) < 0)
-            return -1;
+            return ret;
 
     if (s->asyncmsgq)
-        pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL) == 0);
+        if ((ret = pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL)) < 0) {
+
+            if (s->set_state)
+                s->set_state(s, original_state);
+
+            return ret;
+        }
 
     s->state = state;
 
