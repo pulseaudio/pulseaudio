@@ -599,7 +599,7 @@ AC_ARG_ENABLE([alsa],
         [alsa=auto])
 
 if test "x${alsa}" != xno ; then
-    PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.16 ],
+    PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.17 ],
         [
             HAVE_ALSA=1
             AC_DEFINE([HAVE_ALSA], 1, [Have ALSA?])
