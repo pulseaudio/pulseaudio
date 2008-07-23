@@ -29,6 +29,7 @@
 #include <pulsecore/module.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/llist.h>
 
 #include "dbus-util.h"
 #include "module-bt-discover-symdef.h"
@@ -43,95 +44,100 @@ PA_MODULE_USAGE("");
 #define A2DP_SOURCE_UUID        "0000110A-0000-1000-8000-00805F9B34FB"
 #define A2DP_SINK_UUID          "0000110B-0000-1000-8000-00805F9B34FB"
 
-typedef struct adapter adapter_t;
-typedef struct device device_t;
-typedef struct uuid uuid_t;
-
 struct uuid {
     char *uuid;
-    uuid_t *next;
+    PA_LLIST_FIELDS(struct uuid);
 };
 
 struct device {
     char *name;
     char *object_path;
     int paired;
-    adapter_t *adapter;
+    struct adapter *adapter;
     char *alias;
     int connected;
-    uuid_t *uuid_list;
+    PA_LLIST_HEAD(struct uuid, uuid_list);
     char *address;
     int class;
     int trusted;
-    device_t *next;
+    PA_LLIST_FIELDS(struct device);
 };
 
 struct adapter {
     char *object_path;
     char *mode;
     char *address;
-    device_t *device_list;
-    adapter_t *next;
+    PA_LLIST_HEAD(struct device, device_list);
+    PA_LLIST_FIELDS(struct adapter);
 };
 
 struct userdata {
     pa_module *module;
     pa_dbus_connection *conn;
-    adapter_t *adapter_list;
+    PA_LLIST_HEAD(struct adapter, adapter_list);
 };
 
-static uuid_t *uuid_new(const char *uuid) {
-    uuid_t *node = pa_xnew0(uuid_t, 1);
+static struct uuid *uuid_new(const char *uuid) {
+    struct uuid *node = pa_xnew(struct uuid, 1);
     node->uuid = pa_xstrdup(uuid);
-    node->next = NULL;
+    PA_LLIST_INIT(struct uuid, node);
     return node;
 }
 
-static void uuid_list_append(uuid_t *node, const char *uuid) {
-    while (node->next != NULL) node = node->next;
-    node->next = uuid_new(uuid);
+static void uuid_free(struct uuid *uuid) {
+    pa_xfree(uuid);
 }
 
-static device_t *device_new(const char *device, adapter_t *adapter) {
-    device_t *node = pa_xnew0(device_t, 1);
+static struct device *device_new(const char *device, struct adapter *adapter) {
+    struct device *node = pa_xnew(struct device, 1);
     node->name = NULL;
     node->object_path = pa_xstrdup(device);
     node->paired = -1;
     node->adapter = adapter;
     node->alias = NULL;
     node->connected = -1;
-    node->uuid_list = uuid_new("UUID_HEAD");
+    PA_LLIST_HEAD_INIT(struct uuid, node->uuid_list);
     node->address = NULL;
     node->class = -1;
     node->trusted = -1;
-    node->next = NULL;
+    PA_LLIST_INIT(struct device, node);
     return node;
 }
 
-static void device_list_append(device_t *node, const char *device, adapter_t *adapter) {
-    while (node->next != NULL) node = node->next;
-    node->next = device_new(device, adapter);
+static void device_free(struct device *device) {
+    struct uuid *uuid_list_i;
+    while (device->uuid_list) {
+        uuid_list_i = device->uuid_list;
+        PA_LLIST_REMOVE(struct uuid, device->uuid_list, uuid_list_i);
+        uuid_free(uuid_list_i);
+    }
+    pa_xfree(device);
 }
 
-static adapter_t *adapter_new(const char *adapter) {
-    adapter_t *node = pa_xnew0(adapter_t, 1);
+static struct adapter *adapter_new(const char *adapter) {
+    struct adapter *node = pa_xnew(struct adapter, 1);
     node->object_path = pa_xstrdup(adapter);
     node->mode = NULL;
     node->address = NULL;
-    node->device_list = device_new("/DEVICE_HEAD", NULL);
-    node->next = NULL;
+    PA_LLIST_HEAD_INIT(struct device, node->device_list);
+    PA_LLIST_INIT(struct adapter, node);
     return node;
 }
 
-static void adapter_list_append(adapter_t *node, const char *adapter) {
-    while (node->next != NULL) node = node->next;
-    node->next = adapter_new(adapter);
+static void adapter_free(struct adapter *adapter) {
+    struct device *device_list_i;
+    while (adapter->device_list) {
+        device_list_i = adapter->device_list;
+        PA_LLIST_REMOVE(struct device, adapter->device_list, device_list_i);
+        device_free(device_list_i);
+    }
+    pa_xfree(adapter);
 }
 
-static void print_devices(device_t *device_list) {
-    device_t *device_list_i = device_list;
+static void print_devices(struct device *device_list) {
+    struct device *device_list_i = device_list;
     while (device_list_i != NULL) {
-        uuid_t *uuid_list_i = device_list_i->uuid_list;
+        struct uuid *uuid_list_i = device_list_i->uuid_list;
         if (strcmp(device_list_i->object_path, "/DEVICE_HEAD") != 0) {
             pa_log("    [ %s ]", device_list_i->object_path);
             pa_log("        Name = %s", device_list_i->name);
@@ -153,8 +159,8 @@ static void print_devices(device_t *device_list) {
     }
 }
 
-static void print_adapters(adapter_t *adapter_list) {
-    adapter_t *adapter_list_i = adapter_list;
+static void print_adapters(struct adapter *adapter_list) {
+    struct adapter *adapter_list_i = adapter_list;
     while (adapter_list_i != NULL) {
         if (strcmp(adapter_list_i->object_path, "/ADAPTER_HEAD") != 0) {
             pa_log("[ %s ]", adapter_list_i->object_path);
@@ -170,7 +176,7 @@ static void detect_adapters(struct userdata *u) {
     DBusError e;
     DBusMessage *m = NULL, *r = NULL;
     DBusMessageIter arg_i, element_i, dict_i, variant_i;
-    adapter_t *adapter_list_i;
+    struct adapter *adapter_list_i;
     const char *key, *value;
 
     pa_assert(u);
@@ -192,18 +198,18 @@ static void detect_adapters(struct userdata *u) {
         goto fail;
     }
     dbus_message_iter_recurse(&arg_i, &element_i);
-    /* TODO: Review error checking
-     * should this be changed to while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) ? */
     while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
         if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) {
+            struct adapter *node;
             dbus_message_iter_get_basic(&element_i, &value);
-            adapter_list_append(u->adapter_list, value);
+            node = adapter_new(value);
+            PA_LLIST_PREPEND(struct adapter, u->adapter_list, node);
         }
         dbus_message_iter_next(&element_i);
     }
 
     /* get adapter properties */
-    adapter_list_i = u->adapter_list->next;
+    adapter_list_i = u->adapter_list;
     while (adapter_list_i != NULL) {
         pa_assert_se(m = dbus_message_new_method_call("org.bluez", adapter_list_i->object_path, "org.bluez.Adapter", "GetProperties"));
         r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(u->conn), m, -1, &e);
@@ -249,8 +255,8 @@ static void detect_devices(struct userdata *u) {
     DBusError e;
     DBusMessage *m = NULL, *r = NULL;
     DBusMessageIter arg_i, element_i, dict_i, variant_i;
-    adapter_t *adapter_list_i;
-    device_t *device_list_i, *device_list_prev_i;
+    struct adapter *adapter_list_i;
+    struct device *device_list_i;
     const char *key, *value;
     unsigned int uvalue;
 
@@ -258,7 +264,7 @@ static void detect_devices(struct userdata *u) {
     dbus_error_init(&e);
 
     /* get devices of each adapter */
-    adapter_list_i = u->adapter_list->next;
+    adapter_list_i = u->adapter_list;
     while (adapter_list_i != NULL) {
         pa_assert_se(m = dbus_message_new_method_call("org.bluez", adapter_list_i->object_path, "org.bluez.Adapter", "ListDevices"));
         r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(u->conn), m, -1, &e);
@@ -275,12 +281,12 @@ static void detect_devices(struct userdata *u) {
             goto fail;
         }
         dbus_message_iter_recurse(&arg_i, &element_i);
-        /* TODO: Review error checking
-         * should this be changed to while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) ? */
         while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
             if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) {
+                struct device *node;
                 dbus_message_iter_get_basic(&element_i, &value);
-                device_list_append(adapter_list_i->device_list, value, adapter_list_i);
+                node = device_new(value, adapter_list_i);
+                PA_LLIST_PREPEND(struct device, adapter_list_i->device_list, node);
             }
             dbus_message_iter_next(&element_i);
         }
@@ -288,10 +294,9 @@ static void detect_devices(struct userdata *u) {
     }
 
     /* get device properties */
-    adapter_list_i = u->adapter_list->next;
+    adapter_list_i = u->adapter_list;
     while (adapter_list_i != NULL) {
-        device_list_prev_i = adapter_list_i->device_list;
-        device_list_i = adapter_list_i->device_list->next;
+        device_list_i = adapter_list_i->device_list;
         while (device_list_i != NULL) {
             pa_assert_se(m = dbus_message_new_method_call("org.bluez", device_list_i->object_path, "org.bluez.Device", "GetProperties"));
             r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(u->conn), m, -1, &e);
@@ -335,16 +340,18 @@ static void detect_devices(struct userdata *u) {
                         pa_bool_t is_audio_device = FALSE;
                         dbus_message_iter_recurse(&variant_i, &uuid_i);
                         while (dbus_message_iter_get_arg_type(&uuid_i) != DBUS_TYPE_INVALID) {
+                            struct uuid *node;
                             dbus_message_iter_get_basic(&uuid_i, &value);
+                            node = uuid_new(value);
+                            PA_LLIST_PREPEND(struct uuid, device_list_i->uuid_list, node);
                             if ( (strcasecmp(value, HSP_HS_UUID) == 0) || (strcasecmp(value, HFP_HS_UUID) == 0) ||
                                 (strcasecmp(value, A2DP_SOURCE_UUID) == 0) || (strcasecmp(value, A2DP_SINK_UUID) == 0) )
                                 is_audio_device = TRUE;
-                            uuid_list_append(device_list_i->uuid_list, value);
                             dbus_message_iter_next(&uuid_i);
                         }
                         if (!is_audio_device) {
-                            /* remove current device */
-                            device_list_prev_i->next = device_list_i->next;
+                            /* remove the current device from the list */
+                            PA_LLIST_REMOVE(struct device, adapter_list_i->device_list, device_list_i);
                             pa_xfree(device_list_i);
                             break;
                         }
@@ -364,11 +371,7 @@ static void detect_devices(struct userdata *u) {
                 }
                 dbus_message_iter_next(&element_i);
             }
-            device_list_prev_i = device_list_prev_i->next;
-            if (device_list_prev_i == NULL)
-                device_list_i = NULL;
-            else
-                device_list_i = device_list_prev_i->next;
+            device_list_i = device_list_i->next;
         }
         adapter_list_i = adapter_list_i->next;
     }
@@ -445,27 +448,17 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *
 
 void pa__done(pa_module* m) {
     struct userdata *u;
-    adapter_t *adapter_list_i, *adapter_list_next_i;
-    device_t *device_list_i, *device_list_next_i;
+    struct adapter *adapter_list_i;
 
     pa_assert(m);
 
     if (!(u = m->userdata))
         return;
 
-    if ((adapter_list_i = u->adapter_list) != NULL) {
-        while ((adapter_list_next_i = adapter_list_i->next) != NULL) {
-            if ((device_list_i = adapter_list_i->device_list) != NULL) {
-                while ((device_list_next_i = device_list_i->next) != NULL) {
-                    pa_xfree(device_list_i);
-                    device_list_i = device_list_next_i;
-                }
-                pa_xfree(device_list_i);
-            }
-            pa_xfree(adapter_list_i);
-            adapter_list_i = adapter_list_next_i;
-        }
-        pa_xfree(adapter_list_i);
+    while (u->adapter_list) {
+        adapter_list_i = u->adapter_list;
+        PA_LLIST_REMOVE(struct adapter, u->adapter_list, adapter_list_i);
+        adapter_free(adapter_list_i);
     }
 
     pa_dbus_connection_unref(u->conn);
@@ -477,15 +470,16 @@ void pa__done(pa_module* m) {
 int pa__init(pa_module* m) {
     pa_modargs *ma = NULL;
     DBusError err;
-    adapter_t *adapter_list_i;
-    device_t *device_list_i;
+    struct adapter *adapter_list_i;
+    struct device *device_list_i;
     struct userdata *u;
 
     pa_assert(m);
-    dbus_error_init(&err);
     pa_log("Loading module-bt-discover");
+    dbus_error_init(&err);
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->module = m;
+    PA_LLIST_HEAD_INIT(struct adapter, u->adapter_list);
 
     /* connect to the bus */
     u->conn = pa_dbus_bus_get(m->core, DBUS_BUS_SYSTEM, &err);
@@ -495,19 +489,18 @@ int pa__init(pa_module* m) {
     }
 
     /* static detection of bluetooth audio devices */
-    u->adapter_list = adapter_new("/ADAPTER_HEAD");
     detect_adapters(u);
     detect_devices(u);
 
     print_adapters(u->adapter_list);
 
     /* load device modules */
-    adapter_list_i = u->adapter_list->next;
+    adapter_list_i = u->adapter_list;
     while (adapter_list_i != NULL) {
-        device_list_i = adapter_list_i->device_list->next;
+        device_list_i = adapter_list_i->device_list;
         while (device_list_i != NULL) {
-            pa_log("Loading module-bt-device for %s", device_list_i->name); /* CHECK: Should it be name or alias? */
-            /* call module */
+            pa_log("Loading module-bt-device for %s", device_list_i->name);
+            /* TODO: call module */
             device_list_i = device_list_i->next;
         }
         adapter_list_i = adapter_list_i->next;
