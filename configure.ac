@@ -376,7 +376,7 @@ AC_SEARCH_LIBS([connect], [socket])
 AC_CHECK_FUNCS([getopt_long], [], [AC_CHECK_LIB([iberty], [getopt_long])])
 
 AC_CHECK_LIB(gdbm, gdbm_open)
-AC_CHECK_HEADERS(gdbm.h)
+AC_CHECK_HEADERS(gdbm.h, [], [AC_MSG_ERROR([gdbm.h not found])])
 
 #### Check for functions ####
 
