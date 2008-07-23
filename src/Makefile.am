@@ -99,9 +99,10 @@ EXTRA_DIST = \
 		daemon/default.pa.win32 \
 		depmod.py \
 		daemon/esdcompat.in \
+		daemon/start-pulseaudio-x11.in \
 		utils/padsp \
 		modules/module-defs.h.m4 \
-		daemon/pulseaudio-module-xsmp.desktop \
+		daemon/pulseaudio.desktop \
 		map-file \
 		daemon/org.pulseaudio.policy
 
@@ -112,7 +113,7 @@ pulseconf_DATA = \
 
 if HAVE_X11
 xdgautostart_DATA = \
-		daemon/pulseaudio-module-xsmp.desktop
+		daemon/pulseaudio.desktop
 endif
 
 BUILT_SOURCES = \
@@ -184,7 +185,7 @@ if HAVE_AVAHI
 bin_PROGRAMS += pabrowse
 endif
 
-bin_SCRIPTS = esdcompat
+bin_SCRIPTS = esdcompat start-pulseaudio-x11
 
 pacat_SOURCES = utils/pacat.c
 pacat_LDADD = $(AM_LDADD) libpulse.la
@@ -1542,13 +1543,18 @@ suid: pulseaudio .libs/lt-pulseaudio
 	chown root $^
 	chmod u+s $^
 
-CLEANFILES = esdcompat client.conf default.pa daemon.conf
+CLEANFILES = esdcompat client.conf default.pa daemon.conf start-pulseaudio-x11
 
 esdcompat: daemon/esdcompat.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
 		-e 's,@PACKAGE_NAME\@,$(PACKAGE_NAME),g' \
 		-e 's,@PA_BINARY\@,$(PA_BINARY),g' < $< > $@
 	chmod +x esdcompat
+
+start-pulseaudio-x11: daemon/start-pulseaudio-x11.in Makefile
+	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
+		-e 's,@PACTL_BINARY\@,$(bindir)/pactl,g' < $< > $@
+	chmod +x start-pulseaudio-x11
 
 client.conf: pulse/client.conf.in Makefile
 	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' < $< > $@
