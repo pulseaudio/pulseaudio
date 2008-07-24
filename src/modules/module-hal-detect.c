@@ -615,6 +615,8 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                 device_added_cb(u->context, udi);
         }
 
+        return DBUS_HANDLER_RESULT_HANDLED;
+
     } else if (dbus_message_is_signal(message, "org.pulseaudio.Server", "DirtyGiveUpMessage")) {
         /* We use this message to avoid a dirty race condition when we
            get an ACLAdded message before the previously owning PA
@@ -661,12 +663,14 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
         } else
             /* Yes, we don't check the UDI for validity, but hopefully HAL will */
             device_added_cb(u->context, udi);
+
+        return DBUS_HANDLER_RESULT_HANDLED;
     }
 
 finish:
     dbus_error_free(&error);
 
-    return DBUS_HANDLER_RESULT_HANDLED;
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
 static void hal_context_free(LibHalContext* hal_context) {

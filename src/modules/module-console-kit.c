@@ -178,6 +178,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
         }
 
         add_session(u, path);
+        return DBUS_HANDLER_RESULT_HANDLED;
 
     } else if (dbus_message_is_signal(message, "org.freedesktop.ConsoleKit.Seat", "SessionRemoved")) {
 
@@ -192,12 +193,13 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
         }
 
         remove_session(u, path);
+        return DBUS_HANDLER_RESULT_HANDLED;
     }
 
 finish:
     dbus_error_free(&error);
 
-    return DBUS_HANDLER_RESULT_HANDLED;
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
 static int get_session_list(struct userdata *u) {
