@@ -468,7 +468,6 @@ void pa__done(pa_module* m) {
 }
 
 int pa__init(pa_module* m) {
-    pa_modargs *ma = NULL;
     DBusError err;
     struct adapter *adapter_list_i;
     struct device *device_list_i;
@@ -511,15 +510,12 @@ int pa__init(pa_module* m) {
         pa_log_error("Failed to add filter function");
         goto fail;
     }
-    dbus_connection_flush(pa_dbus_connection_get(u->conn));
     dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',interface='org.bluez.Manager'", &err);
-    dbus_connection_flush(pa_dbus_connection_get(u->conn));
     if (dbus_error_is_set(&err)) {
         pa_log_error("Unable to subscribe to org.bluez.Manager signals: %s: %s", err.name, err.message);
         goto fail;
     }
     dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',interface='org.bluez.Adapter'", &err);
-    dbus_connection_flush(pa_dbus_connection_get(u->conn));
     if (dbus_error_is_set(&err)) {
         pa_log_error("Unable to subscribe to org.bluez.Adapter signals: %s: %s", err.name, err.message);
         goto fail;
@@ -528,8 +524,6 @@ int pa__init(pa_module* m) {
     return 0;
 
 fail:
-    if (ma)
-        pa_modargs_free(ma);
     dbus_error_free(&err);
     pa__done(m);
     return -1;
