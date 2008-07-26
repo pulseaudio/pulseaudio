@@ -607,7 +607,7 @@ if test "x${alsa}" != xno ; then
         [
             HAVE_ALSA=0
             if test "x$alsa" = xyes ; then
-                AC_MSG_ERROR([*** ALSA support not found])
+                AC_MSG_ERROR([*** Needed alsa >= 1.0.17 support not found])
             fi
         ])
 else
