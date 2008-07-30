@@ -627,6 +627,11 @@ int main(int argc, char *argv[]) {
         goto finish;
     }
 
+    if (conf->cmd == PA_CMD_START && conf->system_instance) {
+        pa_log("--start not supported for system instances.");
+        goto finish;
+    }
+
     if (conf->cmd == PA_CMD_START) {
         /* If we shall start PA only when it is not running yet, we
          * first take the autospawn lock to make things
