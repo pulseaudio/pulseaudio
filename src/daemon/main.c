@@ -762,8 +762,6 @@ int main(int argc, char *argv[]) {
                 /* If we are already running and with are run in
                  * --start mode, then let's return this as success. */
 
-                pa_log_info("z=%i rock!", z);
-
                 retval = 0;
                 goto finish;
             }
