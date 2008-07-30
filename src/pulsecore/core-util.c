@@ -177,7 +177,7 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
 #else
     {
     mode_t u;
-    u = umask(~m);
+    u = umask((~m) & 0777);
     r = mkdir(dir, m);
     umask(u);
     }
