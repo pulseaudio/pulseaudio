@@ -588,7 +588,7 @@ endif
 
 libpulse_la_CFLAGS = $(AM_CFLAGS)
 libpulse_la_LDFLAGS = -version-info $(LIBPULSE_VERSION_INFO) -Wl,-version-script=$(srcdir)/map-file
-libpulse_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) $(LIBICONV)
+libpulse_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) $(LTLIBICONV)
 
 if HAVE_X11
 libpulse_la_CFLAGS += $(X_CFLAGS)
@@ -804,7 +804,7 @@ endif
 
 libpulsecore_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBOIL_CFLAGS)
 libpulsecore_la_LDFLAGS = -version-info $(LIBPULSECORE_VERSION_INFO)
-libpulsecore_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(LIBSPEEX_LIBS) $(WINSOCK_LIBS) $(LIBOIL_LIBS) $(LIBICONV) libffmpeg-resampler.la
+libpulsecore_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(LIBSPEEX_LIBS) $(WINSOCK_LIBS) $(LIBOIL_LIBS) $(LTLIBICONV) libffmpeg-resampler.la
 
 ###################################
 #   Plug-in support libraries     #
