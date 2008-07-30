@@ -16,6 +16,9 @@
 # along with PulseAudio; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
+# This startup script is used only if PulseAudio is started per-user
+# (i.e. not in system mode)
+
 .nofail
 
 ### Load something into the sample cache

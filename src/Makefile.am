@@ -96,6 +96,7 @@ EXTRA_DIST = \
 		pulse/version.h.in \
 		daemon/daemon.conf.in \
 		daemon/default.pa.in \
+		daemon/system.pa.in \
 		daemon/default.pa.win32 \
 		depmod.py \
 		daemon/esdcompat.in \
@@ -108,6 +109,7 @@ EXTRA_DIST = \
 
 pulseconf_DATA = \
 		default.pa \
+		system.pa \
 		daemon.conf \
 		client.conf
 
@@ -1543,7 +1545,7 @@ suid: pulseaudio .libs/lt-pulseaudio
 	chown root $^
 	chmod u+s $^
 
-CLEANFILES = esdcompat client.conf default.pa daemon.conf start-pulseaudio-x11
+CLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11
 
 esdcompat: daemon/esdcompat.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
@@ -1562,8 +1564,14 @@ client.conf: pulse/client.conf.in Makefile
 if OS_IS_WIN32
 default.pa: daemon/default.pa.win32
 	cp $< $@
+system.pa: daemon/default.pa.win32
+	cp $< $@
 else
 default.pa: daemon/default.pa.in Makefile
+	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
+            -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
+	    -e 's,@PA_SOEXT\@,.so,g' < $< > $@
+system.pa: daemon/system.pa.in Makefile
 	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
             -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
 	    -e 's,@PA_SOEXT\@,.so,g' < $< > $@
