@@ -233,12 +233,11 @@ typedef enum pa_stream_flags {
 
     PA_STREAM_START_MUTED = 4096,  /**< Create in muted state. \since 0.9.11 */
 
-
     PA_STREAM_ADJUST_LATENCY = 8192, /**< Try to adjust the latency of
                                       * the sink/source based on the
                                       * requested buffer metrics and
                                       * adjust buffer metrics
-                                      * accordingly. \since 0.9.11 */
+                                      * accordingly. See pa_buffer_attr \since 0.9.11 */
 } pa_stream_flags_t;
 
 
@@ -248,53 +247,86 @@ typedef enum pa_stream_flags {
 /** Playback and record buffer metrics */
 typedef struct pa_buffer_attr {
     uint32_t maxlength;      /**< Maximum length of the
-                              * buffer. Setting this to 0 will
+                              * buffer. Setting this to (uint32_t) -1 will
                               * initialize this to the maximum value
                               * supported by server, which is
                               * recommended. */
     uint32_t tlength;        /**< Playback only: target length of the
                               * buffer. The server tries to assure
                               * that at least tlength bytes are always
-                              * available in the buffer. It is
-                              * recommended to set this to 0, which
-                              * will initialize this to a value that
-                              * is deemed sensible by the
+                              * available in the per-stream
+                              * server-side playback buffer. It is
+                              * recommended to set this to (uint32_t)
+                              * -1, which will initialize this to a
+                              * value that is deemed sensible by the
                               * server. However, this value will
                               * default to something like 2s, i.e. for
                               * applications that have specific
                               * latency requirements this value should
                               * be set to the maximum latency that the
-                              * application can deal with.  */
+                              * application can deal with. When
+                              * PA_STREAM_ADJUST_LATENCY is not set
+                              * this value will influence only the
+                              * per-stream playback buffer size. When
+                              * PA_STREAM_ADJUST_LATENCY is set the
+                              * overall latency of the sink plus the
+                              * playback buffer size is configured to
+                              * this value. Set
+                              * PA_STREAM_ADJUST_LATENCY if you are
+                              * interested in adjusting the overall
+                              * latency. Don't set it if you are
+                              * interested in configuring the
+                              * server-sider per-stream playback
+                              * buffer size. */
     uint32_t prebuf;         /**< Playback only: pre-buffering. The
                               * server does not start with playback
                               * before at least prebug bytes are
                               * available in the buffer. It is
-                              * recommended to set this to 0, which
-                              * will initialize this to the same value
-                              * as tlength, whatever that may be. */
+                              * recommended to set this to (uint32_t)
+                              * -1, which will initialize this to the
+                              * same value as tlength, whatever that
+                              * may be. Initialize to 0 to enable
+                              * manual start/stop control of the
+                              * stream. This means that playback will
+                              * not stop on underrun and playback will
+                              * not start automatically. Instead
+                              * pa_stream_corked() needs to be called
+                              * explicitly. If you set this value to 0
+                              * you should also set
+                              * PA_STREAM_START_CORKED. */
     uint32_t minreq;         /**< Playback only: minimum request. The
                               * server does not request less than
                               * minreq bytes from the client, instead
                               * waits until the buffer is free enough
                               * to request more bytes at once. It is
-                              * recommended to set this to 0, which
-                              * will initialize this to a value that
-                              * is deemed sensible by the server. */
+                              * recommended to set this to (uint32_t)
+                              * -1, which will initialize this to a
+                              * value that is deemed sensible by the
+                              * server. This should be set to a value
+                              * that gives PulseAudio enough time to
+                              * move the data from the per-stream
+                              * playback buffer into the hardware
+                              * playback buffer. */
     uint32_t fragsize;       /**< Recording only: fragment size. The
                               * server sends data in blocks of
                               * fragsize bytes size. Large values
                               * deminish interactivity with other
                               * operations on the connection context
                               * but decrease control overhead. It is
-                              * recommended to set this to 0, which
-                              * will initialize this to a value that
-                              * is deemed sensible by the
+                              * recommended to set this to (uint32_t)
+                              * -1, which will initialize this to a
+                              * value that is deemed sensible by the
                               * server. However, this value will
                               * default to something like 2s, i.e. for
                               * applications that have specific
                               * latency requirements this value should
                               * be set to the maximum latency that the
-                              * application can deal with. */
+                              * application can deal with. If
+                              * PA_STREAM_ADJUST_LATENCY is set the
+                              * overall source latency will be
+                              * adjusted according to this value. If
+                              * it is not set the source latency is
+                              * left unmodified. */
 } pa_buffer_attr;
 
 /** Error values as used by pa_context_errno(). Use pa_strerror() to convert these values to human readable strings */
@@ -431,9 +463,9 @@ typedef struct pa_timing_info {
                                * PA_SEEK_RELATIVE_ON_READ
                                * instead. */
 
-    pa_usec_t configured_sink_usec;   /**< The static configured latency for
+    pa_usec_t configured_sink_usec;   /**< The configured latency for
                                 * the sink. \since 0.9.11 */
-    pa_usec_t configured_source_usec; /**< The static configured latency for
+    pa_usec_t configured_source_usec; /**< The configured latency for
                                 * the source. \since 0.9.11 */
 
     int64_t since_underrun;    /**< Bytes that were handed to the sink

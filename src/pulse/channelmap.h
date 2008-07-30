@@ -47,8 +47,10 @@
  *
  * \li pa_channel_map_init_mono() - Create a channel map with only mono audio.
  * \li pa_channel_map_init_stereo() - Create a standard stereo mapping.
- * \li pa_channel_map_init_auto() - Create a standard channel map for up to
- *                                  six channels.
+ * \li pa_channel_map_init_auto() - Create a standard channel map for a specific number of channels
+ * \li pa_channel_map_init_extend() - Similar to
+ * pa_channel_map_init_auto() but synthesize a channel map if noone
+ * predefined one is known for the specified number of channels.
  *
  * \section conv_sec Convenience Functions
  *

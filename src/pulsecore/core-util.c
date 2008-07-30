@@ -177,7 +177,7 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
 #else
     {
     mode_t u;
-    u = umask(~m);
+    u = umask((~m) & 0777);
     r = mkdir(dir, m);
     umask(u);
     }
@@ -1887,17 +1887,21 @@ int pa_close_allv(const int except_fds[]) {
     if (getrlimit(RLIMIT_NOFILE, &rl) < 0)
         return -1;
 
-    for (fd = 0; fd < (int) rl.rlim_max; fd++) {
+    for (fd = 3; fd < (int) rl.rlim_max; fd++) {
         int i;
+        pa_bool_t found;
 
-        if (fd <= 3)
+        found = FALSE;
+        for (i = 0; except_fds[i] >= 0; i++)
+            if (except_fds[i] == fd) {
+                found = TRUE;
+                break;
+            }
+
+        if (found)
             continue;
 
-        for (i = 0; except_fds[i] >= 0; i++)
-            if (except_fds[i] == fd)
-                continue;
-
-        if (close(fd) < 0 && errno != EBADF)
+        if (pa_close(fd) < 0 && errno != EBADF)
             return -1;
     }
 
@@ -1972,10 +1976,11 @@ int pa_reset_sigs(int except, ...) {
 
     i = 0;
     if (except >= 1) {
+        int sig;
         p[i++] = except;
 
-        while ((p[i++] = va_arg(ap, int)) >= 0)
-            ;
+        while ((sig = va_arg(ap, int)) >= 0)
+            sig = p[i++];
     }
     p[i] = -1;
 

@@ -16,6 +16,9 @@
 # along with PulseAudio; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
+# This startup script is used only if PulseAudio is started per-user
+# (i.e. not in system mode)
+
 .nofail
 
 ### Load something into the sample cache
@@ -80,14 +83,6 @@ load-module module-always-sink
 ### Automatically suspend sinks/sources that become idle for too long
 load-module module-suspend-on-idle
 
-### Load X11 bell module
-#load-module module-x11-bell sample=bell-windowing-system
-
-### Register ourselves in the X11 session manager
-# Deactivated by default, to avoid deadlock when PA is started as esd from gnome-session
-# Instead we load this via /etc/xdg/autostart/ and "pactl load-module" now
-#load-module module-x11-xsmp
-
 ### If autoexit on idle is enabled we want to make sure we only quit
 ### when no local session needs us anymore.
 load-module module-console-kit
@@ -104,12 +99,21 @@ load-module module-gconf
 .fail
 .endif
 
+# X11 modules should not be started from default.pa so that one daemon
+# can be shared by multiple sessions.
+
+### Load X11 bell module
+#load-module module-x11-bell sample=bell-windowing-system
+
+### Register ourselves in the X11 session manager
+#load-module module-x11-xsmp
+
 ### Publish connection data in the X11 root window
-.ifexists module-x11-publish@PA_SOEXT@
-.nofail
-load-module module-x11-publish
-.fail
-.endif
+#.ifexists module-x11-publish@PA_SOEXT@
+#.nofail
+#load-module module-x11-publish
+#.fail
+#.endif
 
 ### Make some devices default
 #set-default-sink output

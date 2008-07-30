@@ -15,6 +15,7 @@ cpulimit-test
 cpulimit-test2
 daemon.conf
 default.pa
+system.pa
 envelope-test
 esdcompat
 flist-test
@@ -54,3 +55,4 @@ thread-mainloop-test
 thread-test
 utf8-test
 voltest
+start-pulseaudio-x11

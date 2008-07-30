@@ -496,7 +496,7 @@ int main(int argc, char *argv[]) {
     if (conf->high_priority && (conf->cmd == PA_CMD_DAEMON || conf->cmd == PA_CMD_START))
         pa_raise_priority(conf->nice_level);
 
-    if (pa_have_caps()) {
+    if (!real_root && pa_have_caps()) {
         pa_bool_t drop;
 
         drop = (conf->cmd != PA_CMD_DAEMON && conf->cmd != PA_CMD_START) || !conf->realtime_scheduling;
@@ -624,6 +624,11 @@ int main(int argc, char *argv[]) {
         pa_log_warn("This program is not intended to be run as root (unless --system is specified).");
     else if (!real_root && conf->system_instance) {
         pa_log("Root priviliges required.");
+        goto finish;
+    }
+
+    if (conf->cmd == PA_CMD_START && conf->system_instance) {
+        pa_log("--start not supported for system instances.");
         goto finish;
     }
 
@@ -761,8 +766,6 @@ int main(int argc, char *argv[]) {
             if (conf->cmd == PA_CMD_START && z > 0) {
                 /* If we are already running and with are run in
                  * --start mode, then let's return this as success. */
-
-                pa_log_info("z=%i rock!", z);
 
                 retval = 0;
                 goto finish;

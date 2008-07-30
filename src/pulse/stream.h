@@ -70,35 +70,85 @@
  *
  * \subsection bufattr_subsec Buffer Attributes
  *
- * Playback and record streams always have a server side buffer as
- * part of the data flow.  The size of this buffer strikes a
- * compromise between low latency and sensitivity for buffer
+ * Playback and record streams always have a server-side buffer as
+ * part of the data flow.  The size of this buffer needs to be chosen
+ * in a compromise between low latency and sensitivity for buffer
  * overflows/underruns.
  *
  * The buffer metrics may be controlled by the application. They are
  * described with a pa_buffer_attr structure which contains a number
  * of fields:
  *
- * \li maxlength - The absolute maximum number of bytes that can be stored in
- *                 the buffer. If this value is exceeded then data will be
- *                 lost.
- * \li tlength - The target length of a playback buffer. The server will only
- *               send requests for more data as long as the buffer has less
- *               than this number of bytes of data.
- * \li prebuf - Number of bytes that need to be in the buffer before
- * playback will commence. Start of playback can be forced using
- * pa_stream_trigger() even though the prebuffer size hasn't been
- * reached. If a buffer underrun occurs, this prebuffering will be
- * again enabled. If the playback shall never stop in case of a buffer
- * underrun, this value should be set to 0. In that case the read
- * index of the output buffer overtakes the write index, and hence the
- * fill level of the buffer is negative.
- * \li minreq - Minimum free number of the bytes in the playback buffer before
- *              the server will request more data.
- * \li fragsize - Maximum number of bytes that the server will push in one
- *                chunk for record streams.
+ * \li maxlength - The absolute maximum number of bytes that can be
+ *                 stored in the buffer. If this value is exceeded
+ *                 then data will be lost. It is recommended to pass
+ *                 (uint32_t) -1 here which will cause the server to
+ *                 fill in the maximum possible value.
  *
- * The server side playback buffers are indexed by a write and a read
+ * \li tlength - The target fill level of the playback buffer. The
+ *               server will only send requests for more data as long
+ *               as the buffer has less than this number of bytes of
+ *               data. If you pass (uint32_t) -1 (which is
+ *               recommended) here the server will choose the longest
+ *               target buffer fill level possible to minimize the
+ *               number of necessary wakeups and maximize drop-out
+ *               safety. This can exceed 2s of buffering. For
+ *               low-latency applications or applications where
+ *               latency matters you should pass a proper value here.
+ *
+ * \li prebuf - Number of bytes that need to be in the buffer before
+ *              playback will commence. Start of playback can be
+ *              forced using pa_stream_trigger() even though the
+ *              prebuffer size hasn't been reached. If a buffer
+ *              underrun occurs, this prebuffering will be again
+ *              enabled. If the playback shall never stop in case of a
+ *              buffer underrun, this value should be set to 0. In
+ *              that case the read index of the output buffer
+ *              overtakes the write index, and hence the fill level of
+ *              the buffer is negative. If you pass (uint32_t) -1 here
+ *              (which is recommended) the server will choose the same
+ *              value as tlength here.
+ *
+ * \li minreq - Minimum free number of the bytes in the playback
+ *              buffer before the server will request more data. It is
+ *              recommended to fill in (uint32_t) -1 here. This value
+ *              influences how much time the sound server has to move
+ *              data from the per-stream server-side playback buffer
+ *              to the hardware playback buffer.
+ *
+ * \li fragsize - Maximum number of bytes that the server will push in
+ *                one chunk for record streams. If you pass (uint32_t)
+ *                -1 (which is recommended) here, the server will
+ *                choose the longest fragment setting possible to
+ *                minimize the number of necessary wakeups and
+ *                maximize drop-out safety. This can exceed 2s of
+ *                buffering. For low-latency applications or
+ *                applications where latency matters you should pass a
+ *                proper value here.
+ *
+ * If PA_STREAM_ADJUST_LATENCY is set, then the tlength/fragsize
+ * parameters will be interpreted slightly differently than described
+ * above when passed to pa_stream_connect_record() and
+ * pa_stream_connect_playback(): the overall latency that is comprised
+ * of both the server side playback buffer length, the hardware
+ * playback buffer length and additional latencies will be adjusted in
+ * a way that it matches tlength resp. fragsize. Set
+ * PA_STREAM_ADJUST_LATENCY if you want to control the overall
+ * playback latency for your stream. Unset it if you want to control
+ * only the latency induced by the server-side, rewritable playback
+ * buffer. The server will try to fulfill the clients latency requests
+ * as good as possible. However if the underlying hardware cannot
+ * change the hardware buffer length or only in a limited range, the
+ * actually resulting latency might be different from what the client
+ * requested. Thus, for synchronization clients always need to check
+ * the actual measured latency via pa_stream_get_latency() or a
+ * similar call, and not make any assumptions. about the latency
+ * available. The function pa_stream_get_buffer_attr() will always
+ * return the actual size of the server-side per-stream buffer in
+ * tlength/fragsize, regardless whether PA_STREAM_ADJUST_LATENCY is
+ * set or not.
+ *
+ * The server-side per-stream playback buffers are indexed by a write and a read
  * index. The application writes to the write index and the sound
  * device reads from the read index. The read index is increased
  * monotonically, while the write index may be freely controlled by
@@ -196,10 +246,10 @@
  * accordingly.
  *
  * The raw timing data in the pa_timing_info structure is usually hard
- * to deal with. Therefore a more simplistic interface is available:
+ * to deal with. Therefore a simpler interface is available:
  * you can call pa_stream_get_time() or pa_stream_get_latency(). The
  * former will return the current playback time of the hardware since
- * the stream has been started. The latter returns the time a sample
+ * the stream has been started. The latter returns the overall time a sample
  * that you write now takes to be played by the hardware. These two
  * functions base their calculations on the same data that is returned
  * by pa_stream_get_timing_info(). Hence the same rules for keeping
@@ -512,9 +562,14 @@ const pa_sample_spec* pa_stream_get_sample_spec(pa_stream *s);
 /** Return a pointer to the stream's channel map. */
 const pa_channel_map* pa_stream_get_channel_map(pa_stream *s);
 
-/** Return the buffer metrics of the stream. Only valid after the
- * stream has been connected successfuly and if the server is at least
- * PulseAudio 0.9. \since 0.9.0 */
+/** Return the per-stream server-side buffer metrics of the
+ * stream. Only valid after the stream has been connected successfuly
+ * and if the server is at least PulseAudio 0.9. This will return the
+ * actual configured buffering metrics, which may differ from what was
+ * requested during pa_stream_connect_record() or
+ * pa_stream_connect_playback(). This call will always return the
+ * actually per-stream server-side buffer metrics, regardless whether
+ * PA_STREAM_ADJUST_LATENCY is set or not. \since 0.9.0 */
 const pa_buffer_attr* pa_stream_get_buffer_attr(pa_stream *s);
 
 /** Change the buffer metrics of the stream during playback. The
@@ -522,7 +577,9 @@ const pa_buffer_attr* pa_stream_get_buffer_attr(pa_stream *s);
  * requested. The selected metrics may be queried with
  * pa_stream_get_buffer_attr() as soon as the callback is called. Only
  * valid after the stream has been connected successfully and if the
- * server is at least PulseAudio 0.9.8. \since 0.9.8 */
+ * server is at least PulseAudio 0.9.8. Please be aware of the
+ * slightly different semantics of the call depending whether
+ * PA_STREAM_ADJUST_LATENCY is set or not. \since 0.9.8 */
 pa_operation *pa_stream_set_buffer_attr(pa_stream *s, const pa_buffer_attr *attr, pa_stream_success_cb_t cb, void *userdata);
 
 /** Change the stream sampling rate during playback. You need to pass

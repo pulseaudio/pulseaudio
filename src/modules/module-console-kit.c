@@ -71,7 +71,7 @@ struct userdata {
 static void add_session(struct userdata *u, const char *id) {
     DBusError error;
     DBusMessage *m = NULL, *reply = NULL;
-    int32_t uid;
+    uint32_t uid;
     struct session *session;
     char *t;
 
@@ -92,10 +92,14 @@ static void add_session(struct userdata *u, const char *id) {
         goto fail;
     }
 
-    /* FIXME: Why is this in int32? and not an uint32? */
-    if (!dbus_message_get_args(reply, &error, DBUS_TYPE_INT32, &uid, DBUS_TYPE_INVALID)) {
-        pa_log("Failed to parse GetUnixUser() result: %s: %s", error.name, error.message);
-        goto fail;
+    /* CK 0.3 this changed from int32 to uint32 */
+    if (!dbus_message_get_args(reply, &error, DBUS_TYPE_UINT32, &uid, DBUS_TYPE_INVALID)) {
+        dbus_error_free(&error);
+
+        if (!dbus_message_get_args(reply, &error, DBUS_TYPE_INT32, &uid, DBUS_TYPE_INVALID)) {
+            pa_log("Failed to parse GetUnixUser() result: %s: %s", error.name, error.message);
+            goto fail;
+        }
     }
 
     /* We only care about our own sessions */
@@ -163,27 +167,39 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
 
     if (dbus_message_is_signal(message, "org.freedesktop.ConsoleKit.Seat", "SessionAdded")) {
 
-        if (!dbus_message_get_args(message, &error, DBUS_TYPE_STRING, &path, DBUS_TYPE_INVALID) || dbus_error_is_set(&error)) {
-            pa_log_error("Failed to parse SessionAdded message: %s: %s", error.name, error.message);
-            goto finish;
+        /* CK API changed to match spec in 0.3 */
+        if (!dbus_message_get_args(message, &error, DBUS_TYPE_OBJECT_PATH, &path, DBUS_TYPE_INVALID)) {
+            dbus_error_free(&error);
+
+            if (!dbus_message_get_args(message, &error, DBUS_TYPE_STRING, &path, DBUS_TYPE_INVALID)) {
+                pa_log_error("Failed to parse SessionAdded message: %s: %s", error.name, error.message);
+                goto finish;
+            }
         }
 
         add_session(u, path);
+        return DBUS_HANDLER_RESULT_HANDLED;
 
     } else if (dbus_message_is_signal(message, "org.freedesktop.ConsoleKit.Seat", "SessionRemoved")) {
 
-        if (!dbus_message_get_args(message, &error, DBUS_TYPE_STRING, &path, DBUS_TYPE_INVALID) || dbus_error_is_set(&error)) {
-            pa_log_error("Failed to parse SessionRemoved message: %s: %s", error.name, error.message);
-            goto finish;
+        /* CK API changed to match spec in 0.3 */
+        if (!dbus_message_get_args(message, &error, DBUS_TYPE_OBJECT_PATH, &path, DBUS_TYPE_INVALID)) {
+            dbus_error_free(&error);
+
+            if (!dbus_message_get_args(message, &error, DBUS_TYPE_STRING, &path, DBUS_TYPE_INVALID)) {
+                pa_log_error("Failed to parse SessionRemoved message: %s: %s", error.name, error.message);
+                goto finish;
+            }
         }
 
         remove_session(u, path);
+        return DBUS_HANDLER_RESULT_HANDLED;
     }
 
 finish:
     dbus_error_free(&error);
 
-    return DBUS_HANDLER_RESULT_HANDLED;
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
 static int get_session_list(struct userdata *u) {
@@ -327,8 +343,17 @@ void pa__done(pa_module *m) {
         pa_hashmap_free(u->sessions, NULL, NULL);
     }
 
-    if (u->connection)
+    if (u->connection) {
+        DBusError error;
+        dbus_error_init(&error);
+
+        dbus_bus_remove_match(pa_dbus_connection_get(u->connection), "type='signal',sender='org.freedesktop.ConsoleKit', interface='org.freedesktop.ConsoleKit.Seat'", &error);
+        dbus_error_free(&error);
+
+        dbus_connection_remove_filter(pa_dbus_connection_get(u->connection), filter_cb, u);
+
         pa_dbus_connection_unref(u->connection);
+    }
 
     pa_xfree(u);
 }

@@ -29,12 +29,12 @@ m4_define(PA_MICRO, [11])
 AC_INIT([pulseaudio], PA_MAJOR.PA_MINOR.PA_MICRO,[mzchyfrnhqvb (at) 0pointer (dot) net])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
 AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE([foreign -Wall])
+AM_INIT_AUTOMAKE([foreign 1.10 -Wall])
 
 AC_SUBST(PA_MAJORMINOR, "PA_MAJOR.PA_MINOR")
 AC_SUBST(PACKAGE_URL, [http://pulseaudio.org/])
 
-AC_SUBST(PA_API_VERSION, 11)
+AC_SUBST(PA_API_VERSION, 12)
 AC_SUBST(PA_PROTOCOL_VERSION, 13)
 
 # The stable ABI for client applications, for the version info x:y:z
@@ -376,7 +376,7 @@ AC_SEARCH_LIBS([connect], [socket])
 AC_CHECK_FUNCS([getopt_long], [], [AC_CHECK_LIB([iberty], [getopt_long])])
 
 AC_CHECK_LIB(gdbm, gdbm_open)
-AC_CHECK_HEADERS(gdbm.h)
+AC_CHECK_HEADERS(gdbm.h, [], [AC_MSG_ERROR([gdbm.h not found])])
 
 #### Check for functions ####
 
@@ -599,7 +599,7 @@ AC_ARG_ENABLE([alsa],
         [alsa=auto])
 
 if test "x${alsa}" != xno ; then
-    PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.16 ],
+    PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.17 ],
         [
             HAVE_ALSA=1
             AC_DEFINE([HAVE_ALSA], 1, [Have ALSA?])
@@ -607,7 +607,7 @@ if test "x${alsa}" != xno ; then
         [
             HAVE_ALSA=0
             if test "x$alsa" = xyes ; then
-                AC_MSG_ERROR([*** ALSA support not found])
+                AC_MSG_ERROR([*** Needed alsa >= 1.0.17 support not found])
             fi
         ])
 else
@@ -693,7 +693,7 @@ AC_ARG_ENABLE([gconf],
                 *) AC_MSG_ERROR(bad value ${enableval} for --disable-gconf) ;;
             esac
         ],
-        [glib=auto])
+        [gconf=auto])
 
 if test "x${gconf}" != xno ; then
     PKG_CHECK_MODULES(GCONF, [ gconf-2.0 >= 2.4.0 ],
