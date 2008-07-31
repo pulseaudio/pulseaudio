@@ -69,7 +69,7 @@ struct device {
     uint32_t index;
     char *udi;
     char *sink_name, *source_name;
-    int acl_race_fix;
+    pa_bool_t acl_race_fix;
 };
 
 struct userdata {
@@ -337,7 +337,7 @@ static struct device* hal_device_add(struct userdata *u, const char *udi) {
         return NULL;
 
     d = pa_xnew(struct device, 1);
-    d->acl_race_fix = 0;
+    d->acl_race_fix = FALSE;
     d->udi = pa_xstrdup(udi);
     d->index = m->index;
     d->sink_name = sink_name;
@@ -568,9 +568,9 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
             udi = dbus_message_get_path(message);
 
             if ((d = pa_hashmap_get(u->devices, udi))) {
-                int send_acl_race_fix_message = 0;
+                pa_bool_t send_acl_race_fix_message = FALSE;
 
-                d->acl_race_fix = 0;
+                d->acl_race_fix = FALSE;
 
                 if (d->sink_name) {
                     pa_sink *sink;
@@ -583,12 +583,12 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                             if (pa_sink_suspend(sink, 0) >= 0)
                                 pa_scache_play_item_by_name(u->core, "pulse-access", d->sink_name, FALSE, PA_VOLUME_NORM, NULL, NULL);
                             else
-                                d->acl_race_fix = 1;
+                                d->acl_race_fix = TRUE;
 
                         } else if (!prev_suspended && suspend) {
                             /* suspend */
                             if (pa_sink_suspend(sink, 1) >= 0)
-                                send_acl_race_fix_message = 1;
+                                send_acl_race_fix_message = TRUE;
                         }
                     }
                 }
@@ -602,12 +602,12 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                         if (prev_suspended && !suspend) {
                             /* resume */
                             if (pa_source_suspend(source, 0) < 0)
-                                d->acl_race_fix = 1;
+                                d->acl_race_fix = TRUE;
 
                         } else if (!prev_suspended && suspend) {
                             /* suspend */
                             if (pa_source_suspend(source, 0) >= 0)
-                                send_acl_race_fix_message = 1;
+                                send_acl_race_fix_message = TRUE;
                         }
                     }
                 }
@@ -639,7 +639,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
         if ((d = pa_hashmap_get(u->devices, udi)) && d->acl_race_fix) {
             pa_log_debug("Got dirty give up message for '%s', trying resume ...", udi);
 
-            d->acl_race_fix = 0;
+            d->acl_race_fix = FALSE;
 
             if (d->sink_name) {
                 pa_sink *sink;
