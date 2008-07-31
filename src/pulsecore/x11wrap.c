@@ -192,7 +192,7 @@ static pa_x11_wrapper* x11_wrapper_new(pa_core *c, const char *name, const char 
 
     XAddConnectionWatch(d, x11_watch, (XPointer) w);
 
-    pa_assert_se(pa_property_set(c, w->property_name, w) >= 0);
+    pa_assert_se(pa_shared_set(c, w->property_name, w) >= 0);
 
     return w;
 }
@@ -200,7 +200,7 @@ static pa_x11_wrapper* x11_wrapper_new(pa_core *c, const char *name, const char 
 static void x11_wrapper_free(pa_x11_wrapper*w) {
     pa_assert(w);
 
-    pa_assert_se(pa_property_remove(w->core, w->property_name) >= 0);
+    pa_assert_se(pa_shared_remove(w->core, w->property_name) >= 0);
 
     pa_assert(!w->clients);
 
@@ -224,7 +224,7 @@ pa_x11_wrapper* pa_x11_wrapper_get(pa_core *c, const char *name) {
     pa_core_assert_ref(c);
 
     pa_snprintf(t, sizeof(t), "x11-wrapper%s%s", name ? "-" : "", name ? name : "");
-    if ((w = pa_property_get(c, t)))
+    if ((w = pa_shared_get(c, t)))
         return pa_x11_wrapper_ref(w);
 
     return x11_wrapper_new(c, name, t);

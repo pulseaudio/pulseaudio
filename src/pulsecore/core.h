@@ -94,7 +94,7 @@ struct pa_core {
     pa_idxset *clients, *sinks, *sources, *sink_inputs, *source_outputs, *modules, *scache, *autoload_idxset;
 
     /* Some hashmaps for all sorts of entities */
-    pa_hashmap *namereg, *autoload_hashmap, *properties;
+    pa_hashmap *namereg, *autoload_hashmap, *shared;
 
     /* The name of the default sink/source */
     char *default_source_name, *default_sink_name;

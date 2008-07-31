@@ -47,7 +47,7 @@ int pa_authkey_prop_get(pa_core *c, const char *name, void *data, size_t len) {
     pa_assert(data);
     pa_assert(len > 0);
 
-    if (!(a = pa_property_get(c, name)))
+    if (!(a = pa_shared_get(c, name)))
         return -1;
 
     pa_assert(a->length == len);
@@ -62,7 +62,7 @@ int pa_authkey_prop_put(pa_core *c, const char *name, const void *data, size_t l
     pa_assert(c);
     pa_assert(name);
 
-    if (pa_property_get(c, name))
+    if (pa_shared_get(c, name))
         return -1;
 
     a = pa_xmalloc(PA_ALIGN(sizeof(struct authkey_data)) + len);
@@ -70,7 +70,7 @@ int pa_authkey_prop_put(pa_core *c, const char *name, const void *data, size_t l
     a->length = len;
     memcpy((uint8_t*) a + PA_ALIGN(sizeof(struct authkey_data)), data, len);
 
-    pa_property_set(c, name, a);
+    pa_shared_set(c, name, a);
 
     return 0;
 }
@@ -81,7 +81,7 @@ void pa_authkey_prop_ref(pa_core *c, const char *name) {
     pa_assert(c);
     pa_assert(name);
 
-    a = pa_property_get(c, name);
+    a = pa_shared_get(c, name);
     pa_assert(a);
     pa_assert(PA_REFCNT_VALUE(a) >= 1);
     PA_REFCNT_INC(a);
@@ -93,14 +93,12 @@ void pa_authkey_prop_unref(pa_core *c, const char *name) {
     pa_assert(c);
     pa_assert(name);
 
-    a = pa_property_get(c, name);
+    a = pa_shared_get(c, name);
     pa_assert(a);
     pa_assert(PA_REFCNT_VALUE(a) >= 1);
 
     if (PA_REFCNT_DEC(a) <= 0) {
-        pa_property_remove(c, name);
+        pa_shared_remove(c, name);
         pa_xfree(a);
     }
 }
-
-

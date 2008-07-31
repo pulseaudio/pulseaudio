@@ -110,7 +110,7 @@ static int pa_cli_command_autoload_list(pa_core *c, pa_tokenizer *t, pa_strbuf *
 static int pa_cli_command_autoload_add(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_autoload_remove(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_list_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_list_shared_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_move_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_move_source_output(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_vacuum(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
@@ -160,7 +160,7 @@ static const struct command commands[] = {
     { "remove-autoload-sink",    pa_cli_command_autoload_remove,    NULL /*"Remove autoload entry for a sink (args: name)"*/, 2},
     { "remove-autoload-source",  pa_cli_command_autoload_remove,    NULL /*"Remove autoload entry for a source (args: name)"*/, 2},
     { "dump",                    pa_cli_command_dump,               "Dump daemon configuration", 1},
-    { "list-props",              pa_cli_command_list_props,         NULL, 1},
+    { "shared",                  pa_cli_command_list_shared_props,  NULL, 1},
     { "move-sink-input",         pa_cli_command_move_sink_input,    "Move sink input to another sink (args: index, sink)", 3},
     { "move-source-output",      pa_cli_command_move_source_output, "Move source output to another source (args: index, source)", 3},
     { "vacuum",                  pa_cli_command_vacuum,             NULL, 1},
@@ -996,13 +996,13 @@ static int pa_cli_command_autoload_list(pa_core *c, pa_tokenizer *t, pa_strbuf *
     return 0;
 }
 
-static int pa_cli_command_list_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+static int pa_cli_command_list_shared_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
     pa_core_assert_ref(c);
     pa_assert(t);
     pa_assert(buf);
     pa_assert(fail);
 
-    pa_property_dump(c, buf);
+    pa_shared_dump(c, buf);
     return 0;
 }
 

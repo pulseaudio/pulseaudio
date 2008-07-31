@@ -1,5 +1,5 @@
-#ifndef foopropshfoo
-#define foopropshfoo
+#ifndef foosharedshfoo
+#define foosharedshfoo
 
 /***
   This file is part of PulseAudio.
@@ -25,34 +25,37 @@
 #include <pulsecore/core.h>
 #include <pulsecore/strbuf.h>
 
-/* The property subsystem is to be used to share data between
+/* The shared property subsystem is to be used to share data between
  * modules. Consider them to be kind of "global" variables for a
  * core. Why not use the hashmap functions directly? The hashmap
  * functions copy neither the key nor value, while this property
  * system copies the key. Users of this system have to think about
  * reference counting themselves. */
 
-/* Return a pointer to the value of the specified property. */
-void* pa_property_get(pa_core *c, const char *name);
+/* Note: please don't confuse this with the proplist framework in
+ * pulse/proplist.[ch]! */
 
-/* Set the property 'name' to 'data'. This function fails in case a
- * property by this name already exists. The property data is not
- * copied or reference counted. This is the caller's job. */
-int pa_property_set(pa_core *c, const char *name, void *data);
+/* Return a pointer to the value of the specified shared property. */
+void* pa_shared_get(pa_core *c, const char *name);
 
-/* Remove the specified property. Return non-zero on failure */
-int pa_property_remove(pa_core *c, const char *name);
+/* Set the shared property 'name' to 'data'. This function fails in
+ * case a property by this name already exists. The property data is
+ * not copied or reference counted. This is the caller's job. */
+int pa_shared_set(pa_core *c, const char *name, void *data);
 
-/* A combination of pa_property_remove() and pa_property_set() */
-int pa_property_replace(pa_core *c, const char *name, void *data);
+/* Remove the specified shared property. Return non-zero on failure */
+int pa_shared_remove(pa_core *c, const char *name);
 
-/* Free all memory used by the property system */
-void pa_property_cleanup(pa_core *c);
+/* A combination of pa_shared_remove() and pa_shared_set() */
+int pa_shared_replace(pa_core *c, const char *name, void *data);
 
-/* Initialize the properties subsystem */
-void pa_property_init(pa_core *c);
+/* Free all memory used by the shared property system */
+void pa_shared_cleanup(pa_core *c);
 
-/* Dump the current set of properties */
-void pa_property_dump(pa_core *c, pa_strbuf *s);
+/* Initialize the shared property system */
+void pa_shared_init(pa_core *c);
+
+/* Dump the current set of shared properties */
+void pa_shared_dump(pa_core *c, pa_strbuf *s);
 
 #endif

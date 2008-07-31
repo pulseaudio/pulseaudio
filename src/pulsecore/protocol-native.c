@@ -4134,9 +4134,9 @@ pa_protocol_native* pa_protocol_native_new(pa_core *core, pa_socket_server *serv
 
     if (pa_socket_server_get_address(p->server, t, sizeof(t))) {
         pa_strlist *l;
-        l = pa_property_get(core, PA_NATIVE_SERVER_PROPERTY_NAME);
+        l = pa_shared_get(core, PA_NATIVE_SERVER_PROPERTY_NAME);
         l = pa_strlist_prepend(l, t);
-        pa_property_replace(core, PA_NATIVE_SERVER_PROPERTY_NAME, l);
+        pa_shared_replace(core, PA_NATIVE_SERVER_PROPERTY_NAME, l);
     }
 
     return p;
@@ -4155,13 +4155,13 @@ void pa_protocol_native_free(pa_protocol_native *p) {
 
         if (pa_socket_server_get_address(p->server, t, sizeof(t))) {
             pa_strlist *l;
-            l = pa_property_get(p->core, PA_NATIVE_SERVER_PROPERTY_NAME);
+            l = pa_shared_get(p->core, PA_NATIVE_SERVER_PROPERTY_NAME);
             l = pa_strlist_remove(l, t);
 
             if (l)
-                pa_property_replace(p->core, PA_NATIVE_SERVER_PROPERTY_NAME, l);
+                pa_shared_replace(p->core, PA_NATIVE_SERVER_PROPERTY_NAME, l);
             else
-                pa_property_remove(p->core, PA_NATIVE_SERVER_PROPERTY_NAME);
+                pa_shared_remove(p->core, PA_NATIVE_SERVER_PROPERTY_NAME);
         }
 
         pa_socket_server_unref(p->server);

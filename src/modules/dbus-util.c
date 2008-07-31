@@ -254,7 +254,7 @@ static pa_dbus_connection* pa_dbus_connection_new(pa_core* c, DBusConnection *co
     pconn->connection = conn;
     pconn->dispatch_event = c->mainloop->defer_new(c->mainloop, dispatch_cb, conn);
 
-    pa_property_set(c, name, pconn);
+    pa_shared_set(c, name, pconn);
 
     return pconn;
 }
@@ -282,7 +282,7 @@ void pa_dbus_connection_unref(pa_dbus_connection *c) {
     }
 
     /* already disconnected, just free */
-    pa_property_remove(c->core, c->property_name);
+    pa_shared_remove(c->core, c->property_name);
     c->core->mainloop->defer_free(c->dispatch_event);
     dbus_connection_unref(c->connection);
     pa_xfree(c);
@@ -309,7 +309,7 @@ pa_dbus_connection* pa_dbus_bus_get(pa_core *c, DBusBusType type, DBusError *err
 
     pa_assert(type == DBUS_BUS_SYSTEM || type == DBUS_BUS_SESSION || type == DBUS_BUS_STARTER);
 
-    if ((pconn = pa_property_get(c, prop_name[type])))
+    if ((pconn = pa_shared_get(c, prop_name[type])))
         return pa_dbus_connection_ref(pconn);
 
     if (!(conn = dbus_bus_get_private(type, error)))

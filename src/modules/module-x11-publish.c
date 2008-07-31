@@ -152,7 +152,7 @@ int pa__init(pa_module*m) {
     if (!(u->x11_wrapper = pa_x11_wrapper_get(m->core, pa_modargs_get_value(ma, "display", NULL))))
         goto fail;
 
-    if (!(l = pa_property_get(m->core, PA_NATIVE_SERVER_PROPERTY_NAME)))
+    if (!(l = pa_shared_get(m->core, PA_NATIVE_SERVER_PROPERTY_NAME)))
         goto fail;
 
     l = pa_strlist_reverse(l);
