@@ -1148,7 +1148,7 @@ int pa__init(pa_module*m) {
     }
 
     if (pa_modargs_get_value_boolean(ma, "tsched", &use_tsched) < 0) {
-        pa_log("Failed to parse timer_scheduling argument.");
+        pa_log("Failed to parse tsched argument.");
         goto fail;
     }
 
