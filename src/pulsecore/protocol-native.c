@@ -52,7 +52,7 @@
 #include <pulsecore/autoload.h>
 #include <pulsecore/authkey-prop.h>
 #include <pulsecore/strlist.h>
-#include <pulsecore/props.h>
+#include <pulsecore/shared.h>
 #include <pulsecore/sample-util.h>
 #include <pulsecore/llist.h>
 #include <pulsecore/creds.h>

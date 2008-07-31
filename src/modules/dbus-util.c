@@ -27,7 +27,7 @@
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 #include <pulsecore/log.h>
-#include <pulsecore/props.h>
+#include <pulsecore/shared.h>
 
 #include "dbus-util.h"
 

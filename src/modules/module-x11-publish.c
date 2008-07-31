@@ -47,7 +47,7 @@
 #include <pulsecore/authkey.h>
 #include <pulsecore/x11prop.h>
 #include <pulsecore/strlist.h>
-#include <pulsecore/props.h>
+#include <pulsecore/shared.h>
 
 #include "module-x11-publish-symdef.h"
 

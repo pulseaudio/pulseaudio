@@ -29,7 +29,7 @@
 
 #include <pulsecore/llist.h>
 #include <pulsecore/log.h>
-#include <pulsecore/props.h>
+#include <pulsecore/shared.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
 

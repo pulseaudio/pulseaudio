@@ -49,7 +49,7 @@
 #include <pulsecore/play-memchunk.h>
 #include <pulsecore/autoload.h>
 #include <pulsecore/sound-file-stream.h>
-#include <pulsecore/props.h>
+#include <pulsecore/shared.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/core-error.h>
 

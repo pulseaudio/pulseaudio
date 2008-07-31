@@ -27,7 +27,7 @@
 
 #include <pulse/xmalloc.h>
 
-#include <pulsecore/props.h>
+#include <pulsecore/shared.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/log.h>
 #include <pulsecore/refcnt.h>

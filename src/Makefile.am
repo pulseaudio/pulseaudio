@@ -686,7 +686,7 @@ noinst_HEADERS = \
 		pulsecore/pid.h \
 		pulsecore/play-memchunk.h \
 		pulsecore/play-memblockq.h \
-		pulsecore/props.h \
+		pulsecore/shared.h \
 		pulsecore/queue.h \
 		pulsecore/random.h \
 		pulsecore/resampler.h \
@@ -758,7 +758,7 @@ libpulsecore_la_SOURCES += \
 		pulsecore/play-memchunk.c pulsecore/play-memchunk.h \
 		pulsecore/play-memblockq.c pulsecore/play-memblockq.h \
 		pulsecore/poll.c pulsecore/poll.h \
-		pulsecore/props.c pulsecore/props.h \
+		pulsecore/shared.c pulsecore/shared.h \
 		pulsecore/queue.c pulsecore/queue.h \
 		pulsecore/random.c pulsecore/random.h \
 		pulsecore/resampler.c pulsecore/resampler.h \

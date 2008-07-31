@@ -27,7 +27,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 
-#include "props.h"
+#include "shared.h"
 
 typedef struct pa_shared {
     char *name;  /* Points to memory allocated by the shared property system */

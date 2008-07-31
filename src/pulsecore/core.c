@@ -39,7 +39,7 @@
 #include <pulsecore/core-scache.h>
 #include <pulsecore/autoload.h>
 #include <pulsecore/core-subscribe.h>
-#include <pulsecore/props.h>
+#include <pulsecore/shared.h>
 #include <pulsecore/random.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
