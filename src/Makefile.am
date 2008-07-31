@@ -1512,8 +1512,8 @@ module_hal_detect_la_CFLAGS = $(AM_CFLAGS) $(HAL_CFLAGS)
 
 module_console_kit_la_SOURCES = modules/module-console-kit.c
 module_console_kit_la_LDFLAGS = -module -avoid-version
-module_console_kit_la_LIBADD = $(AM_LIBADD) $(HAL_LIBS) libpulsecore.la libdbus-util.la
-module_console_kit_la_CFLAGS = $(AM_CFLAGS) $(HAL_CFLAGS)
+module_console_kit_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la libdbus-util.la
+module_console_kit_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 # GConf support
 module_gconf_la_SOURCES = modules/gconf/module-gconf.c
