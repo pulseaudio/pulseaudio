@@ -789,7 +789,9 @@ int pa__init(pa_module*m) {
     u->connection = conn;
     u->devices = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     u->capability = api;
+#ifdef HAVE_ALSA
     u->use_tsched = use_tsched;
+#endif
     m->userdata = u;
 
 #ifdef HAVE_ALSA
