@@ -96,23 +96,26 @@ EXTRA_DIST = \
 		pulse/version.h.in \
 		daemon/daemon.conf.in \
 		daemon/default.pa.in \
+		daemon/system.pa.in \
 		daemon/default.pa.win32 \
 		depmod.py \
 		daemon/esdcompat.in \
+		daemon/start-pulseaudio-x11.in \
 		utils/padsp \
 		modules/module-defs.h.m4 \
-		daemon/pulseaudio-module-xsmp.desktop \
+		daemon/pulseaudio.desktop \
 		map-file \
 		daemon/org.pulseaudio.policy
 
 pulseconf_DATA = \
 		default.pa \
+		system.pa \
 		daemon.conf \
 		client.conf
 
 if HAVE_X11
 xdgautostart_DATA = \
-		daemon/pulseaudio-module-xsmp.desktop
+		daemon/pulseaudio.desktop
 endif
 
 BUILT_SOURCES = \
@@ -184,7 +187,7 @@ if HAVE_AVAHI
 bin_PROGRAMS += pabrowse
 endif
 
-bin_SCRIPTS = esdcompat
+bin_SCRIPTS = esdcompat start-pulseaudio-x11
 
 pacat_SOURCES = utils/pacat.c
 pacat_LDADD = $(AM_LDADD) libpulse.la
@@ -585,7 +588,7 @@ endif
 
 libpulse_la_CFLAGS = $(AM_CFLAGS)
 libpulse_la_LDFLAGS = -version-info $(LIBPULSE_VERSION_INFO) -Wl,-version-script=$(srcdir)/map-file
-libpulse_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) $(LIBICONV)
+libpulse_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) $(LTLIBICONV)
 
 if HAVE_X11
 libpulse_la_CFLAGS += $(X_CFLAGS)
@@ -801,7 +804,7 @@ endif
 
 libpulsecore_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBOIL_CFLAGS)
 libpulsecore_la_LDFLAGS = -version-info $(LIBPULSECORE_VERSION_INFO)
-libpulsecore_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(LIBSPEEX_LIBS) $(WINSOCK_LIBS) $(LIBOIL_LIBS) $(LIBICONV) libffmpeg-resampler.la
+libpulsecore_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(LIBSPEEX_LIBS) $(WINSOCK_LIBS) $(LIBOIL_LIBS) $(LTLIBICONV) libffmpeg-resampler.la
 
 ###################################
 #   Plug-in support libraries     #
@@ -1509,8 +1512,8 @@ module_hal_detect_la_CFLAGS = $(AM_CFLAGS) $(HAL_CFLAGS)
 
 module_console_kit_la_SOURCES = modules/module-console-kit.c
 module_console_kit_la_LDFLAGS = -module -avoid-version
-module_console_kit_la_LIBADD = $(AM_LIBADD) $(HAL_LIBS) libpulsecore.la libdbus-util.la
-module_console_kit_la_CFLAGS = $(AM_CFLAGS) $(HAL_CFLAGS)
+module_console_kit_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la libdbus-util.la
+module_console_kit_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 # GConf support
 module_gconf_la_SOURCES = modules/gconf/module-gconf.c
@@ -1542,7 +1545,7 @@ suid: pulseaudio .libs/lt-pulseaudio
 	chown root $^
 	chmod u+s $^
 
-CLEANFILES = esdcompat client.conf default.pa daemon.conf
+CLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11
 
 esdcompat: daemon/esdcompat.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
@@ -1550,14 +1553,25 @@ esdcompat: daemon/esdcompat.in Makefile
 		-e 's,@PA_BINARY\@,$(PA_BINARY),g' < $< > $@
 	chmod +x esdcompat
 
+start-pulseaudio-x11: daemon/start-pulseaudio-x11.in Makefile
+	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
+		-e 's,@PACTL_BINARY\@,$(bindir)/pactl,g' < $< > $@
+	chmod +x start-pulseaudio-x11
+
 client.conf: pulse/client.conf.in Makefile
 	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' < $< > $@
 
 if OS_IS_WIN32
 default.pa: daemon/default.pa.win32
 	cp $< $@
+system.pa: daemon/default.pa.win32
+	cp $< $@
 else
 default.pa: daemon/default.pa.in Makefile
+	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
+            -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
+	    -e 's,@PA_SOEXT\@,.so,g' < $< > $@
+system.pa: daemon/system.pa.in Makefile
 	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
             -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
 	    -e 's,@PA_SOEXT\@,.so,g' < $< > $@

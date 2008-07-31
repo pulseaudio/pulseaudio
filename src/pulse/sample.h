@@ -52,7 +52,7 @@
  * \li PA_SAMPLE_S32LE - Signed 32 bit integer PCM, little endian.
  * \li PA_SAMPLE_S32BE - Signed 32 bit integer PCM, big endian.
  *
- * The floating point sample formats have the range from -1 to 1.
+ * The floating point sample formats have the range from -1.0 to 1.0.
  *
  * The sample formats that are sensitive to endianness have convenience
  * macros for native endian (NE), and reverse endian (RE).

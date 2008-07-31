@@ -130,8 +130,10 @@
  *
  * \subsection autoload_subsec Autoload Entries
  *
- * Modules can be autoloaded as a result of a client requesting a certain
- * sink or source. This mapping between sink/source names and modules can be
+ * Modules can be autoloaded as a result of a client requesting a
+ * certain sink or source. Please note that autoloading is deprecated
+ * in 0.9.11. and is likely to be removed from the API in a later
+ * version. This mapping between sink/source names and modules can be
  * queried from the server:
  *
  * \li By index - pa_context_get_autoload_info_by_index()
@@ -191,7 +193,9 @@
  *
  * New module autoloading rules can be added, and existing can be removed
  * using pa_context_add_autoload() and pa_context_remove_autoload_by_index()
- * / pa_context_remove_autoload_by_name().
+ * / pa_context_remove_autoload_by_name(). Please note that autoloading is deprecated
+ * in 0.9.11. and is likely to be removed from the API in a later
+ * version.
  *
  * \subsection client_subsec Clients
  *
