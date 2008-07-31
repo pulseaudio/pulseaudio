@@ -19,7 +19,9 @@
     USA.
 ***/
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -510,12 +512,12 @@ int pa__init(pa_module* m) {
         pa_log_error("Failed to add filter function");
         goto fail;
     }
-    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',interface='org.bluez.Manager'", &err);
+    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.Manager'", &err);
     if (dbus_error_is_set(&err)) {
         pa_log_error("Unable to subscribe to org.bluez.Manager signals: %s: %s", err.name, err.message);
         goto fail;
     }
-    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',interface='org.bluez.Adapter'", &err);
+    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.Adapter'", &err);
     if (dbus_error_is_set(&err)) {
         pa_log_error("Unable to subscribe to org.bluez.Adapter signals: %s: %s", err.name, err.message);
         goto fail;
