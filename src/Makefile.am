@@ -1161,7 +1161,9 @@ endif
 if HAVE_BLUEZ
 modlibexec_LTLIBRARIES += \
 		module-bt-proximity.la \
-		module-bt-discover.la
+		module-bt-discover.la \
+		libbt-ipc.la \
+		module-bt-device.la
 
 pulselibexec_PROGRAMS += \
 		bt-proximity-helper
@@ -1222,6 +1224,7 @@ SYMDEF_FILES = \
 		modules/module-hal-detect-symdef.h \
 		modules/module-bt-proximity-symdef.h \
 		modules/module-bt-discover-symdef.h \
+		modules/module-bt-device-symdef.h \
 		modules/gconf/module-gconf-symdef.h \
 		modules/module-position-event-sounds-symdef.h \
 		modules/module-console-kit-symdef.h
@@ -1567,6 +1570,17 @@ module_bt_discover_la_SOURCES = modules/module-bt-discover.c
 module_bt_discover_la_LDFLAGS = -module -avoid-version
 module_bt_discover_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la libdbus-util.la
 module_bt_discover_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
+
+# Bluetooth device
+libbt_ipc_la_SOURCES = modules/bt-ipc.c modules/bt-ipc.h
+libbt_ipc_la_LDFLAGS = -avoid-version
+libbt_ipc_la_LIBADD = $(AM_LIBADD)
+libbt_ipc_la_CFLAGS = $(AM_CFLAGS)
+
+module_bt_device_la_SOURCES = modules/module-bt-device.c
+module_bt_device_la_LDFLAGS = -module -avoid-version
+module_bt_device_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la libdbus-util.la libbt-ipc.la
+module_bt_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 ###################################
 #        Some minor stuff         #
