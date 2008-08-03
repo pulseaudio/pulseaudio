@@ -633,7 +633,7 @@ void pa_sink_input_drop(pa_sink_input *i, size_t nbytes /* in sink sample spec *
 /* Called from thread context */
 void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sample spec */) {
     size_t lbq;
-    pa_bool_t called;
+    pa_bool_t called = FALSE;
     pa_sink_input_assert_ref(i);
 
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->thread_info.state));
