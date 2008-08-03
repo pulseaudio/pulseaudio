@@ -243,8 +243,10 @@ void pa_x11_wrapper_unref(pa_x11_wrapper* w) {
     pa_assert(w);
     pa_assert(PA_REFCNT_VALUE(w) >= 1);
 
-    if (PA_REFCNT_DEC(w) <= 0)
-        x11_wrapper_free(w);
+    if (PA_REFCNT_DEC(w) > 0)
+        return;
+
+    x11_wrapper_free(w);
 }
 
 Display *pa_x11_wrapper_get_display(pa_x11_wrapper *w) {
