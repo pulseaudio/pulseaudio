@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 
@@ -169,7 +167,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
 
                 case PA_SINK_SUSPENDED:
-                    pa_assert(PA_SINK_OPENED(u->sink->thread_info.state));
+                    pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
 
                     pa_smoother_pause(u->smoother, pa_rtclock_usec());
 
@@ -334,12 +332,16 @@ static void thread_func(void *userdata) {
     for (;;) {
         int ret;
 
+        if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
+            if (u->sink->thread_info.rewind_requested)
+                pa_sink_process_rewind(u->sink, 0);
+
         if (u->rtpoll_item) {
             struct pollfd *pollfd;
             pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
 
             /* Render some data and write it to the fifo */
-            if (/*PA_SINK_OPENED(u->sink->thread_info.state) && */pollfd->revents) {
+            if (/*PA_SINK_IS_OPENED(u->sink->thread_info.state) && */pollfd->revents) {
                 pa_usec_t usec;
                 int64_t n;
                 void *p;
@@ -366,7 +368,7 @@ static void thread_func(void *userdata) {
                     if (u->encoded_memchunk.length <= 0) {
                         if (u->encoded_memchunk.memblock)
                             pa_memblock_unref(u->encoded_memchunk.memblock);
-                        if (PA_SINK_OPENED(u->sink->thread_info.state)) {
+                        if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
                             size_t rl;
 
                             /* We render real data */
@@ -466,7 +468,7 @@ static void thread_func(void *userdata) {
             }
 
             /* Hmm, nothing to do. Let's sleep */
-            pollfd->events = POLLOUT; /*PA_SINK_OPENED(u->sink->thread_info.state)  ? POLLOUT : 0;*/
+            pollfd->events = POLLOUT; /*PA_SINK_IS_OPENED(u->sink->thread_info.state)  ? POLLOUT : 0;*/
         }
 
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
@@ -509,10 +511,10 @@ finish:
 
 int pa__init(pa_module*m) {
     struct userdata *u = NULL;
-    const char *p;
     pa_sample_spec ss;
     pa_modargs *ma = NULL;
-    char *t;
+    const char *server;
+    pa_sink_new_data data;
 
     pa_assert(m);
 
@@ -538,7 +540,7 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     u->fd = -1;
-    u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE);
+    u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE, 10);
     pa_memchunk_reset(&u->raw_memchunk);
     pa_memchunk_reset(&u->encoded_memchunk);
     u->offset = 0;
@@ -549,9 +551,8 @@ int pa__init(pa_module*m) {
     u->volume = roundf(0.7 * PA_VOLUME_NORM);
     u->muted = FALSE;
 
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
-    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
     u->rtpoll_item = NULL;
 
     /*u->format =
@@ -566,7 +567,23 @@ int pa__init(pa_module*m) {
     /*u->state = STATE_AUTH;*/
     u->latency = 0;
 
-    if (!(u->sink = pa_sink_new(m->core, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL))) {
+    if (!(server = pa_modargs_get_value(ma, "server", NULL))) {
+        pa_log("No server argument given.");
+        goto fail;
+    }
+
+    pa_sink_new_data_init(&data);
+    data.driver = __FILE__;
+    data.module = m;
+    pa_sink_new_data_set_name(&data, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME));
+    pa_sink_new_data_set_sample_spec(&data, &ss);
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, server);
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Airtunes sink '%s'", server);
+
+    u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY|PA_SINK_NETWORK);
+    pa_sink_new_data_done(&data);
+
+    if (!u->sink) {
         pa_log("Failed to create sink.");
         goto fail;
     }
@@ -579,25 +596,16 @@ int pa__init(pa_module*m) {
     u->sink->set_mute = sink_set_mute_cb;
     u->sink->flags = PA_SINK_LATENCY|PA_SINK_NETWORK|PA_SINK_HW_VOLUME_CTRL;
 
-    pa_sink_set_module(u->sink, m);
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
 
-    if (!(p = pa_modargs_get_value(ma, "server", NULL))) {
-        pa_log("No server argument given.");
-        goto fail;
-    }
-
-    if (!(u->raop = pa_raop_client_new(u->core, p))) {
+    if (!(u->raop = pa_raop_client_new(u->core, server))) {
         pa_log("Failed to connect to server.");
         goto fail;
     }
 
     pa_raop_client_set_callback(u->raop, on_connection, u);
     pa_raop_client_set_closed_callback(u->raop, on_close, u);
-    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Airtunes sink '%s'", p));
-    pa_xfree(t);
-
 
     if (!(u->thread = pa_thread_new(thread_func, u))) {
         pa_log("Failed to create thread.");
