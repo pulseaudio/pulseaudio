@@ -1017,6 +1017,7 @@ modlibexec_LTLIBRARIES += \
 		module-detect.la \
 		module-volume-restore.la \
 		module-device-restore.la \
+		module-stream-restore.la \
 		module-default-device-restore.la \
 		module-always-sink.la \
 		module-rescue-streams.la \
@@ -1197,6 +1198,7 @@ SYMDEF_FILES = \
 		modules/module-jack-source-symdef.h \
 		modules/module-volume-restore-symdef.h \
 		modules/module-device-restore-symdef.h \
+		modules/module-stream-restore-symdef.h \
 		modules/module-default-device-restore-symdef.h \
 		modules/module-always-sink-symdef.h \
 		modules/module-rescue-streams-symdef.h \
@@ -1446,11 +1448,17 @@ module_position_event_sounds_la_LDFLAGS = -module -avoid-version
 module_position_event_sounds_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 module_position_event_sounds_CFLAGS = $(AM_CFLAGS)
 
-# Device volume restore module
+# Device volume/muted restore module
 module_device_restore_la_SOURCES = modules/module-device-restore.c
 module_device_restore_la_LDFLAGS = -module -avoid-version
 module_device_restore_la_LIBADD = $(AM_LIBADD) libpulsecore.la -lgdbm
 module_device_restore_la_CFLAGS = $(AM_CFLAGS)
+
+# Stream volume/muted/device restore module
+module_stream_restore_la_SOURCES = modules/module-stream-restore.c
+module_stream_restore_la_LDFLAGS = -module -avoid-version
+module_stream_restore_la_LIBADD = $(AM_LIBADD) libpulsecore.la -lgdbm
+module_stream_restore_la_CFLAGS = $(AM_CFLAGS)
 
 # Default sink/source restore module
 module_default_device_restore_la_SOURCES = modules/module-default-device-restore.c
