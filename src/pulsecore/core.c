@@ -192,7 +192,7 @@ static void core_free(pa_object *o) {
     pa_shared_cleanup(c);
 
     for (j = 0; j < PA_CORE_HOOK_MAX; j++)
-        pa_hook_free(&c->hooks[j]);
+        pa_hook_done(&c->hooks[j]);
 
     pa_xfree(c);
 }

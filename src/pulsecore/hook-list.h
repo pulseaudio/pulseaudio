@@ -64,7 +64,7 @@ struct pa_hook {
 };
 
 void pa_hook_init(pa_hook *hook, void *data);
-void pa_hook_free(pa_hook *hook);
+void pa_hook_done(pa_hook *hook);
 
 pa_hook_slot* pa_hook_connect(pa_hook *hook, pa_hook_priority_t prio, pa_hook_cb_t cb, void *data);
 void pa_hook_slot_free(pa_hook_slot *slot);
