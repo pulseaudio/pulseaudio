@@ -23,13 +23,17 @@
 ***/
 
 #include <pulsecore/core.h>
-#include <pulsecore/socket-server.h>
 #include <pulsecore/module.h>
 #include <pulsecore/modargs.h>
+#include <pulsecore/iochannel.h>
 
-typedef struct pa_protocol_http pa_protocol_http;
 
-pa_protocol_http* pa_protocol_http_new(pa_core *core, pa_socket_server *server, pa_module *m, pa_modargs *ma);
-void pa_protocol_http_free(pa_protocol_http *n);
+typedef struct pa_http_protocol pa_http_protocol;
+
+pa_http_protocol* pa_http_protocol_get(pa_core *core);
+pa_http_protocol* pa_http_protocol_ref(pa_http_protocol *p);
+void pa_http_protocol_unref(pa_http_protocol *p);
+void pa_http_protocol_connect(pa_http_protocol *p, pa_iochannel *io, pa_module *m);
+void pa_http_protocol_disconnect(pa_http_protocol *p, pa_module *m);
 
 #endif

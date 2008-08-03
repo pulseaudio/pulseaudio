@@ -24,13 +24,35 @@
 ***/
 
 #include <pulsecore/core.h>
-#include <pulsecore/socket-server.h>
+#include <pulsecore/ipacl.h>
+#include <pulsecore/auth-cookie.h>
+#include <pulsecore/iochannel.h>
 #include <pulsecore/module.h>
 #include <pulsecore/modargs.h>
 
-typedef struct pa_protocol_esound pa_protocol_esound;
+typedef struct pa_esound_protocol pa_esound_protocol;
 
-pa_protocol_esound* pa_protocol_esound_new(pa_core*core, pa_socket_server *server, pa_module *m, pa_modargs *ma);
-void pa_protocol_esound_free(pa_protocol_esound *p);
+typedef struct pa_esound_options {
+    PA_REFCNT_DECLARE;
+
+    pa_module *module;
+
+    pa_bool_t auth_anonymous;
+    pa_ip_acl *auth_ip_acl;
+    pa_auth_cookie *auth_cookie;
+
+    char *default_sink, *default_source;
+} pa_esound_options;
+
+pa_esound_protocol* pa_esound_protocol_get(pa_core*core);
+pa_esound_protocol* pa_esound_protocol_ref(pa_esound_protocol *p);
+void pa_esound_protocol_unref(pa_esound_protocol *p);
+void pa_esound_protocol_connect(pa_esound_protocol *p, pa_iochannel *io, pa_esound_options *o);
+void pa_esound_protocol_disconnect(pa_esound_protocol *p, pa_module *m);
+
+pa_esound_options* pa_esound_options_new(void);
+pa_esound_options* pa_esound_options_ref(pa_esound_options *o);
+void pa_esound_options_unref(pa_esound_options *o);
+int pa_esound_options_parse(pa_esound_options *o, pa_core *c, pa_modargs *ma);
 
 #endif

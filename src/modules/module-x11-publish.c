@@ -43,11 +43,11 @@
 #include <pulsecore/x11wrap.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/native-common.h>
-#include <pulsecore/authkey-prop.h>
-#include <pulsecore/authkey.h>
+#include <pulsecore/auth-cookie.h>
 #include <pulsecore/x11prop.h>
 #include <pulsecore/strlist.h>
 #include <pulsecore/shared.h>
+#include <pulsecore/protocol-native.h>
 
 #include "module-x11-publish-symdef.h"
 
@@ -68,14 +68,47 @@ static const char* const valid_modargs[] = {
 struct userdata {
     pa_core *core;
     pa_module *module;
+    pa_native_protocol *protocol;
 
     char *id;
-    uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
-    pa_bool_t auth_cookie_in_property;
+    pa_auth_cookie *auth_cookie;
 
     pa_x11_wrapper *x11_wrapper;
     pa_x11_client *x11_client;
+
+    pa_hook_slot *hook_slot;
 };
+
+static void publish_servers(struct userdata *u, pa_strlist *l) {
+
+    if (l) {
+        char *s;
+
+        l = pa_strlist_reverse(l);
+        s = pa_strlist_tostring(l);
+        l = pa_strlist_reverse(l);
+
+        pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SERVER", s);
+        pa_xfree(s);
+    } else
+        pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SERVER");
+}
+
+static pa_hook_result_t servers_changed_cb(void *hook_data, void *call_data, void *slot_data) {
+    pa_strlist *servers = call_data;
+    struct userdata *u = slot_data;
+    char t[256];
+
+    pa_assert(u);
+
+    if (!pa_x11_get_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_ID", t, sizeof(t)) || strcmp(t, u->id)) {
+        pa_log_warn("PulseAudio information vanished from X11!");
+        return PA_HOOK_OK;
+    }
+
+    publish_servers(u, servers);
+    return PA_HOOK_OK;
+}
 
 static void x11_kill_cb(pa_x11_wrapper *w, void *userdata) {
     struct userdata *u = userdata;
@@ -96,40 +129,12 @@ static void x11_kill_cb(pa_x11_wrapper *w, void *userdata) {
     pa_module_unload_request(u->module);
 }
 
-static int load_key(struct userdata *u, const char*fn) {
-    pa_assert(u);
-
-    u->auth_cookie_in_property = FALSE;
-
-    if (!fn && pa_authkey_prop_get(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0) {
-        pa_log_debug("using already loaded auth cookie.");
-        pa_authkey_prop_ref(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
-        u->auth_cookie_in_property = 1;
-        return 0;
-    }
-
-    if (!fn)
-        fn = PA_NATIVE_COOKIE_FILE;
-
-    if (pa_authkey_load_auto(fn, u->auth_cookie, sizeof(u->auth_cookie)) < 0)
-        return -1;
-
-    pa_log_debug("Loading cookie from disk.");
-
-    if (pa_authkey_prop_put(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0)
-        u->auth_cookie_in_property = TRUE;
-
-    return 0;
-}
-
 int pa__init(pa_module*m) {
     struct userdata *u;
     pa_modargs *ma = NULL;
     char hn[256], un[128];
     char hx[PA_NATIVE_COOKIE_LENGTH*2+1];
     const char *t;
-    char *s;
-    pa_strlist *l;
 
     pa_assert(m);
 
@@ -141,26 +146,19 @@ int pa__init(pa_module*m) {
     m->userdata = u = pa_xnew(struct userdata, 1);
     u->core = m->core;
     u->module = m;
+    u->protocol = pa_native_protocol_get(m->core);
     u->id = NULL;
-    u->auth_cookie_in_property = FALSE;
+    u->auth_cookie = NULL;
     u->x11_client = NULL;
     u->x11_wrapper = NULL;
 
-    if (load_key(u, pa_modargs_get_value(ma, "cookie", NULL)) < 0)
+    u->hook_slot = pa_hook_connect(pa_native_protocol_servers_changed(u->protocol), PA_HOOK_NORMAL, servers_changed_cb, u);
+
+    if (!(u->auth_cookie = pa_auth_cookie_get(m->core, pa_modargs_get_value(ma, "cookie", PA_NATIVE_COOKIE_FILE), PA_NATIVE_COOKIE_LENGTH)))
         goto fail;
 
     if (!(u->x11_wrapper = pa_x11_wrapper_get(m->core, pa_modargs_get_value(ma, "display", NULL))))
         goto fail;
-
-    if (!(l = pa_shared_get(m->core, PA_NATIVE_SERVER_PROPERTY_NAME)))
-        goto fail;
-
-    l = pa_strlist_reverse(l);
-    s = pa_strlist_tostring(l);
-    l = pa_strlist_reverse(l);
-
-    pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SERVER", s);
-    pa_xfree(s);
 
     if (!pa_get_fqdn(hn, sizeof(hn)) || !pa_get_user_name(un, sizeof(un)))
         goto fail;
@@ -168,13 +166,16 @@ int pa__init(pa_module*m) {
     u->id = pa_sprintf_malloc("%s@%s/%u", un, hn, (unsigned) getpid());
     pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_ID", u->id);
 
+    publish_servers(u, pa_native_protocol_servers(u->protocol));
+
     if ((t = pa_modargs_get_value(ma, "source", NULL)))
         pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SOURCE", t);
 
     if ((t = pa_modargs_get_value(ma, "sink", NULL)))
         pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SINK", t);
 
-    pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_COOKIE", pa_hexstr(u->auth_cookie, sizeof(u->auth_cookie), hx, sizeof(hx)));
+    pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_COOKIE",
+                    pa_hexstr(pa_auth_cookie_read(u->auth_cookie, PA_NATIVE_COOKIE_LENGTH), PA_NATIVE_COOKIE_LENGTH, hx, sizeof(hx)));
 
     u->x11_client = pa_x11_client_new(u->x11_wrapper, NULL, x11_kill_cb, u);
 
@@ -220,8 +221,14 @@ void pa__done(pa_module*m) {
         pa_x11_wrapper_unref(u->x11_wrapper);
     }
 
-    if (u->auth_cookie_in_property)
-        pa_authkey_prop_unref(m->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
+    if (u->auth_cookie)
+        pa_auth_cookie_unref(u->auth_cookie);
+
+    if (u->hook_slot)
+        pa_hook_slot_free(u->hook_slot);
+
+    if (u->protocol)
+        pa_native_protocol_unref(u->protocol);
 
     pa_xfree(u->id);
     pa_xfree(u);

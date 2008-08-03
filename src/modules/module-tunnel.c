@@ -45,16 +45,15 @@
 #include <pulsecore/pdispatch.h>
 #include <pulsecore/pstream.h>
 #include <pulsecore/pstream-util.h>
-#include <pulsecore/authkey.h>
 #include <pulsecore/socket-client.h>
 #include <pulsecore/socket-util.h>
-#include <pulsecore/authkey-prop.h>
 #include <pulsecore/time-smoother.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtclock.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/proplist-util.h>
+#include <pulsecore/auth-cookie.h>
 
 #ifdef TUNNEL_SINK
 #include "module-tunnel-sink-symdef.h"
@@ -185,7 +184,7 @@ struct userdata {
     pa_source *source;
 #endif
 
-    uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
+    pa_auth_cookie *auth_cookie;
 
     uint32_t version;
     uint32_t ctag;
@@ -203,8 +202,6 @@ struct userdata {
     uint32_t ignore_latency_before;
 
     pa_time_event *time_event;
-
-    pa_bool_t auth_cookie_in_property;
 
     pa_smoother *smoother;
 
@@ -1588,7 +1585,8 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
     pa_tagstruct_putu32(t, PA_COMMAND_AUTH);
     pa_tagstruct_putu32(t, tag = u->ctag++);
     pa_tagstruct_putu32(t, PA_PROTOCOL_VERSION);
-    pa_tagstruct_put_arbitrary(t, u->auth_cookie, sizeof(u->auth_cookie));
+
+    pa_tagstruct_put_arbitrary(t, pa_auth_cookie_read(u->auth_cookie, PA_NATIVE_COOKIE_LENGTH), PA_NATIVE_COOKIE_LENGTH);
 
 #ifdef HAVE_CREDS
 {
@@ -1658,33 +1656,6 @@ static int sink_set_mute(pa_sink *sink) {
 
 #endif
 
-/* Called from main context */
-static int load_key(struct userdata *u, const char*fn) {
-    pa_assert(u);
-
-    u->auth_cookie_in_property = FALSE;
-
-    if (!fn && pa_authkey_prop_get(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0) {
-        pa_log_debug("Using already loaded auth cookie.");
-        pa_authkey_prop_ref(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
-        u->auth_cookie_in_property = 1;
-        return 0;
-    }
-
-    if (!fn)
-        fn = PA_NATIVE_COOKIE_FILE;
-
-    if (pa_authkey_load_auto(fn, u->auth_cookie, sizeof(u->auth_cookie)) < 0)
-        return -1;
-
-    pa_log_debug("Loading cookie from disk.");
-
-    if (pa_authkey_prop_put(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0)
-        u->auth_cookie_in_property = TRUE;
-
-    return 0;
-}
-
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u = NULL;
@@ -1722,7 +1693,6 @@ int pa__init(pa_module*m) {
     u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE, 10);
     u->ctag = 1;
     u->device_index = u->channel = PA_INVALID_INDEX;
-    u->auth_cookie_in_property = FALSE;
     u->time_event = NULL;
     u->ignore_latency_before = 0;
     u->transport_usec = 0;
@@ -1733,7 +1703,7 @@ int pa__init(pa_module*m) {
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
-    if (load_key(u, pa_modargs_get_value(ma, "cookie", NULL)) < 0)
+    if (!(u->auth_cookie = pa_auth_cookie_get(u->core, pa_modargs_get_value(ma, "cookie", PA_NATIVE_COOKIE_FILE), PA_NATIVE_COOKIE_LENGTH)))
         goto fail;
 
     if (!(u->server_name = pa_xstrdup(pa_modargs_get_value(ma, "server", NULL)))) {
@@ -1911,8 +1881,8 @@ void pa__done(pa_module*m) {
     if (u->client)
         pa_socket_client_unref(u->client);
 
-    if (u->auth_cookie_in_property)
-        pa_authkey_prop_unref(m->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
+    if (u->auth_cookie)
+        pa_auth_cookie_unref(u->auth_cookie);
 
     if (u->smoother)
         pa_smoother_free(u->smoother);

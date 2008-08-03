@@ -74,7 +74,7 @@
 #define DEFAULT_FRAGSIZE_MSEC DEFAULT_TLENGTH_MSEC
 
 typedef struct connection connection;
-struct pa_protocol_native;
+struct pa_native_protocol;
 
 typedef struct record_stream {
     pa_msgobject parent;
@@ -88,9 +88,17 @@ typedef struct record_stream {
     pa_usec_t source_latency;
 } record_stream;
 
+PA_DECLARE_CLASS(record_stream);
+#define RECORD_STREAM(o) (record_stream_cast(o))
+static PA_DEFINE_CHECK_TYPE(record_stream, pa_msgobject);
+
 typedef struct output_stream {
     pa_msgobject parent;
 } output_stream;
+
+PA_DECLARE_CLASS(output_stream);
+#define OUTPUT_STREAM(o) (output_stream_cast(o))
+static PA_DEFINE_CHECK_TYPE(output_stream, pa_msgobject);
 
 typedef struct playback_stream {
     output_stream parent;
@@ -114,6 +122,10 @@ typedef struct playback_stream {
     size_t render_memblockq_length;
 } playback_stream;
 
+PA_DECLARE_CLASS(playback_stream);
+#define PLAYBACK_STREAM(o) (playback_stream_cast(o))
+static PA_DEFINE_CHECK_TYPE(playback_stream, output_stream);
+
 typedef struct upload_stream {
     output_stream parent;
 
@@ -128,13 +140,17 @@ typedef struct upload_stream {
     pa_proplist *proplist;
 } upload_stream;
 
+PA_DECLARE_CLASS(upload_stream);
+#define UPLOAD_STREAM(o) (upload_stream_cast(o))
+static PA_DEFINE_CHECK_TYPE(upload_stream, output_stream);
+
 struct connection {
     pa_msgobject parent;
-
+    pa_native_protocol *protocol;
+    pa_native_options *options;
     pa_bool_t authorized:1;
     pa_bool_t is_local:1;
     uint32_t version;
-    pa_protocol_native *protocol;
     pa_client *client;
     pa_pstream *pstream;
     pa_pdispatch *pdispatch;
@@ -144,38 +160,21 @@ struct connection {
     pa_time_event *auth_timeout_event;
 };
 
-PA_DECLARE_CLASS(record_stream);
-#define RECORD_STREAM(o) (record_stream_cast(o))
-static PA_DEFINE_CHECK_TYPE(record_stream, pa_msgobject);
-
-PA_DECLARE_CLASS(output_stream);
-#define OUTPUT_STREAM(o) (output_stream_cast(o))
-static PA_DEFINE_CHECK_TYPE(output_stream, pa_msgobject);
-
-PA_DECLARE_CLASS(playback_stream);
-#define PLAYBACK_STREAM(o) (playback_stream_cast(o))
-static PA_DEFINE_CHECK_TYPE(playback_stream, output_stream);
-
-PA_DECLARE_CLASS(upload_stream);
-#define UPLOAD_STREAM(o) (upload_stream_cast(o))
-static PA_DEFINE_CHECK_TYPE(upload_stream, output_stream);
-
 PA_DECLARE_CLASS(connection);
 #define CONNECTION(o) (connection_cast(o))
 static PA_DEFINE_CHECK_TYPE(connection, pa_msgobject);
 
-struct pa_protocol_native {
-    pa_module *module;
+struct pa_native_protocol {
+    PA_REFCNT_DECLARE;
+
     pa_core *core;
-    pa_bool_t public;
-    pa_socket_server *server;
     pa_idxset *connections;
-    uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
-    pa_bool_t auth_cookie_in_property;
-#ifdef HAVE_CREDS
-    char *auth_group;
-#endif
-    pa_ip_acl *auth_ip_acl;
+
+    pa_strlist *servers;
+    pa_hook servers_changed;
+
+    /*     pa_hashmap *extensions; */
+
 };
 
 enum {
@@ -556,7 +555,7 @@ static record_stream* record_stream_new(
     pa_proplist_update(data.proplist, PA_UPDATE_REPLACE, p);
     pa_proplist_update(data.proplist, PA_UPDATE_MERGE, c->client->proplist);
     data.driver = __FILE__;
-    data.module = c->protocol->module;
+    data.module = c->options->module;
     data.client = c->client;
     data.source = source;
     data.direct_on_input = direct_on_input;
@@ -901,7 +900,7 @@ static playback_stream* playback_stream_new(
     pa_proplist_update(data.proplist, PA_UPDATE_REPLACE, p);
     pa_proplist_update(data.proplist, PA_UPDATE_MERGE, c->client->proplist);
     data.driver = __FILE__;
-    data.module = c->protocol->module;
+    data.module = c->options->module;
     data.client = c->client;
     data.sink = sink;
     pa_sink_input_new_data_set_sample_spec(&data, ss);
@@ -1001,6 +1000,9 @@ static void connection_unlink(connection *c) {
 
     if (!c->protocol)
         return;
+
+    if (c->options)
+        pa_native_options_unref(c->options);
 
     while ((r = pa_idxset_first(c->record_streams, NULL)))
         record_stream_unlink(r);
@@ -2007,17 +2009,17 @@ static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
         if ((creds = pa_pdispatch_creds(pd))) {
             if (creds->uid == getuid())
                 success = TRUE;
-            else if (c->protocol->auth_group) {
+            else if (c->options->auth_group) {
                 int r;
                 gid_t gid;
 
-                if ((gid = pa_get_gid_of_group(c->protocol->auth_group)) == (gid_t) -1)
-                    pa_log_warn("Failed to get GID of group '%s'", c->protocol->auth_group);
+                if ((gid = pa_get_gid_of_group(c->options->auth_group)) == (gid_t) -1)
+                    pa_log_warn("Failed to get GID of group '%s'", c->options->auth_group);
                 else if (gid == creds->gid)
                     success = TRUE;
 
                 if (!success) {
-                    if ((r = pa_uid_in_group(creds->uid, c->protocol->auth_group)) < 0)
+                    if ((r = pa_uid_in_group(creds->uid, c->options->auth_group)) < 0)
                         pa_log_warn("Failed to check group membership.");
                     else if (r > 0)
                         success = TRUE;
@@ -2031,8 +2033,13 @@ static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
         }
 #endif
 
-        if (!success && memcmp(c->protocol->auth_cookie, cookie, PA_NATIVE_COOKIE_LENGTH) == 0)
-            success = TRUE;
+        if (!success && c->options->auth_cookie) {
+            const uint8_t *ac;
+
+            if ((ac = pa_auth_cookie_read(c->options->auth_cookie, PA_NATIVE_COOKIE_LENGTH)))
+                if (memcmp(ac, cookie, PA_NATIVE_COOKIE_LENGTH) == 0)
+                    success = TRUE;
+        }
 
         if (!success) {
             pa_log_warn("Denied access to client with invalid authorization data.");
@@ -3951,7 +3958,7 @@ static void client_kill_cb(pa_client *c) {
     connection_unlink(CONNECTION(c->userdata));
 }
 
-/*** socket server callbacks ***/
+/*** module entry points ***/
 
 static void auth_timeout(pa_mainloop_api*m, pa_time_event *e, const struct timeval *tv, void *userdata) {
     connection *c = CONNECTION(userdata);
@@ -3965,13 +3972,13 @@ static void auth_timeout(pa_mainloop_api*m, pa_time_event *e, const struct timev
         connection_unlink(c);
 }
 
-static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, void *userdata) {
-    pa_protocol_native *p = userdata;
+void pa_native_protocol_connect(pa_native_protocol *p, pa_iochannel *io, pa_native_options *o) {
     connection *c;
     char cname[256], pname[128];
 
-    pa_assert(io);
     pa_assert(p);
+    pa_assert(io);
+    pa_assert(o);
 
     if (pa_idxset_size(p->connections)+1 > MAX_CONNECTIONS) {
         pa_log_warn("Warning! Too many connections (%u), dropping incoming connection.", MAX_CONNECTIONS);
@@ -3982,10 +3989,19 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     c = pa_msgobject_new(connection);
     c->parent.parent.free = connection_free;
     c->parent.process_msg = connection_process_msg;
+    c->protocol = p;
+    c->options = pa_native_options_ref(o);
+    c->authorized = FALSE;
 
-    c->authorized = p->public;
+    if (o->auth_anonymous) {
+        pa_log_info("Client authenticated anonymously.");
+        c->authorized = TRUE;
+    }
 
-    if (!c->authorized && p->auth_ip_acl && pa_ip_acl_check(p->auth_ip_acl, pa_iochannel_get_recv_fd(io)) > 0) {
+    if (!c->authorized &&
+        o->auth_ip_acl &&
+        pa_ip_acl_check(o->auth_ip_acl, pa_iochannel_get_recv_fd(io)) > 0) {
+
         pa_log_info("Client authenticated by IP ACL.");
         c->authorized = TRUE;
     }
@@ -4000,17 +4016,16 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
 
     c->is_local = pa_iochannel_socket_is_local(io);
     c->version = 8;
-    c->protocol = p;
+
     pa_iochannel_socket_peer_to_string(io, pname, sizeof(pname));
     pa_snprintf(cname, sizeof(cname), "Native client (%s)", pname);
     c->client = pa_client_new(p->core, __FILE__, cname);
     pa_proplist_sets(c->client->proplist, "native-protocol.peer", pname);
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
-    c->client->module = p->module;
+    c->client->module = o->module;
 
     c->pstream = pa_pstream_new(p->core->mainloop, io, p->core->mempool);
-
     pa_pstream_set_recieve_packet_callback(c->pstream, pstream_packet_callback, c);
     pa_pstream_set_recieve_memblock_callback(c->pstream, pstream_memblock_callback, c);
     pa_pstream_set_die_callback(c->pstream, pstream_die_callback, c);
@@ -4034,163 +4049,225 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
 #endif
 }
 
-/*** module entry points ***/
+void pa_native_protocol_disconnect(pa_native_protocol *p, pa_module *m) {
+    connection *c;
+    void *state = NULL;
 
-static int load_key(pa_protocol_native*p, const char*fn) {
     pa_assert(p);
+    pa_assert(m);
 
-    p->auth_cookie_in_property = FALSE;
-
-    if (!fn && pa_authkey_prop_get(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME, p->auth_cookie, sizeof(p->auth_cookie)) >= 0) {
-        pa_log_info("using already loaded auth cookie.");
-        pa_authkey_prop_ref(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
-        p->auth_cookie_in_property = TRUE;
-        return 0;
-    }
-
-    if (!fn)
-        fn = PA_NATIVE_COOKIE_FILE;
-
-    if (pa_authkey_load_auto(fn, p->auth_cookie, sizeof(p->auth_cookie)) < 0)
-        return -1;
-
-    pa_log_info("loading cookie from disk.");
-
-    if (pa_authkey_prop_put(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME, p->auth_cookie, sizeof(p->auth_cookie)) >= 0)
-        p->auth_cookie_in_property = TRUE;
-
-    return 0;
+    while ((c = pa_idxset_iterate(p->connections, &state, NULL)))
+        if (c->options->module == m)
+            connection_unlink(c);
 }
 
-static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_modargs *ma) {
-    pa_protocol_native *p;
-    pa_bool_t public = FALSE;
-    const char *acl;
+static pa_native_protocol* native_protocol_new(pa_core *c) {
+    pa_native_protocol *p;
 
     pa_assert(c);
-    pa_assert(ma);
 
-    if (pa_modargs_get_value_boolean(ma, "auth-anonymous", &public) < 0) {
-        pa_log("auth-anonymous= expects a boolean argument.");
-        return NULL;
-    }
-
-    p = pa_xnew(pa_protocol_native, 1);
+    p = pa_xnew(pa_native_protocol, 1);
+    PA_REFCNT_INIT(p);
     p->core = c;
-    p->module = m;
-    p->public = public;
-    p->server = NULL;
-    p->auth_ip_acl = NULL;
-
-#ifdef HAVE_CREDS
-    {
-        pa_bool_t a = TRUE;
-        if (pa_modargs_get_value_boolean(ma, "auth-group-enabled", &a) < 0) {
-            pa_log("auth-group-enabled= expects a boolean argument.");
-            return NULL;
-        }
-        p->auth_group = a ? pa_xstrdup(pa_modargs_get_value(ma, "auth-group", pa_in_system_mode() ? PA_ACCESS_GROUP : NULL)) : NULL;
-
-        if (p->auth_group)
-            pa_log_info("Allowing access to group '%s'.", p->auth_group);
-    }
-#endif
-
-
-    if ((acl = pa_modargs_get_value(ma, "auth-ip-acl", NULL))) {
-
-        if (!(p->auth_ip_acl = pa_ip_acl_new(acl))) {
-            pa_log("Failed to parse IP ACL '%s'", acl);
-            goto fail;
-        }
-    }
-
-    if (load_key(p, pa_modargs_get_value(ma, "cookie", NULL)) < 0)
-        goto fail;
-
     p->connections = pa_idxset_new(NULL, NULL);
 
-    return p;
+    p->servers = NULL;
+    pa_hook_init(&p->servers_changed, p);
 
-fail:
-#ifdef HAVE_CREDS
-    pa_xfree(p->auth_group);
-#endif
-    if (p->auth_ip_acl)
-        pa_ip_acl_free(p->auth_ip_acl);
-    pa_xfree(p);
-    return NULL;
-}
-
-pa_protocol_native* pa_protocol_native_new(pa_core *core, pa_socket_server *server, pa_module *m, pa_modargs *ma) {
-    char t[256];
-    pa_protocol_native *p;
-
-    if (!(p = protocol_new_internal(core, m, ma)))
-        return NULL;
-
-    p->server = pa_socket_server_ref(server);
-    pa_socket_server_set_callback(p->server, on_connection, p);
-
-    if (pa_socket_server_get_address(p->server, t, sizeof(t))) {
-        pa_strlist *l;
-        l = pa_shared_get(core, PA_NATIVE_SERVER_PROPERTY_NAME);
-        l = pa_strlist_prepend(l, t);
-        pa_shared_replace(core, PA_NATIVE_SERVER_PROPERTY_NAME, l);
-    }
+    pa_assert_se(pa_shared_set(c, "native-protocol", p) >= 0);
 
     return p;
 }
 
-void pa_protocol_native_free(pa_protocol_native *p) {
+pa_native_protocol* pa_native_protocol_get(pa_core *c) {
+    pa_native_protocol *p;
+
+    if ((p = pa_shared_get(c, "native-protocol")))
+        return pa_native_protocol_ref(p);
+
+    return native_protocol_new(c);
+}
+
+pa_native_protocol* pa_native_protocol_ref(pa_native_protocol *p) {
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) >= 1);
+
+    PA_REFCNT_INC(p);
+
+    return p;
+}
+
+void pa_native_protocol_unref(pa_native_protocol *p) {
     connection *c;
     pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) >= 1);
+
+    if (PA_REFCNT_DEC(p) > 0)
+        return;
 
     while ((c = pa_idxset_first(p->connections, NULL)))
         connection_unlink(c);
+
     pa_idxset_free(p->connections, NULL, NULL);
 
-    if (p->server) {
-        char t[256];
+    pa_strlist_free(p->servers);
+    pa_hook_done(&p->servers_changed);
 
-        if (pa_socket_server_get_address(p->server, t, sizeof(t))) {
-            pa_strlist *l;
-            l = pa_shared_get(p->core, PA_NATIVE_SERVER_PROPERTY_NAME);
-            l = pa_strlist_remove(l, t);
+    pa_assert_se(pa_shared_remove(p->core, "native-protocol") >= 0);
 
-            if (l)
-                pa_shared_replace(p->core, PA_NATIVE_SERVER_PROPERTY_NAME, l);
-            else
-                pa_shared_remove(p->core, PA_NATIVE_SERVER_PROPERTY_NAME);
-        }
-
-        pa_socket_server_unref(p->server);
-    }
-
-    if (p->auth_cookie_in_property)
-        pa_authkey_prop_unref(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
-
-    if (p->auth_ip_acl)
-        pa_ip_acl_free(p->auth_ip_acl);
-
-#ifdef HAVE_CREDS
-    pa_xfree(p->auth_group);
-#endif
     pa_xfree(p);
 }
 
-pa_protocol_native* pa_protocol_native_new_iochannel(
-        pa_core*core,
-        pa_iochannel *io,
-        pa_module *m,
-        pa_modargs *ma) {
+void pa_native_protocol_add_server_string(pa_native_protocol *p, const char *name) {
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) >= 1);
+    pa_assert(name);
 
-    pa_protocol_native *p;
+    p->servers = pa_strlist_prepend(p->servers, name);
 
-    if (!(p = protocol_new_internal(core, m, ma)))
-        return NULL;
+    pa_hook_fire(&p->servers_changed, p->servers);
+}
 
-    on_connection(NULL, io, p);
+void pa_native_protocol_remove_server_string(pa_native_protocol *p, const char *name) {
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) >= 1);
+    pa_assert(name);
 
-    return p;
+    p->servers = pa_strlist_remove(p->servers, name);
+
+    pa_hook_fire(&p->servers_changed, p->servers);
+}
+
+pa_hook *pa_native_protocol_servers_changed(pa_native_protocol *p) {
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) >= 1);
+
+    return &p->servers_changed;
+}
+
+pa_strlist *pa_native_protocol_servers(pa_native_protocol *p) {
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) >= 1);
+
+    return p->servers;
+}
+
+/* int pa_native_protocol_install_extension(pa_native_protocol *p, pa_module *m, pa_native_protocol_extension_cb_t cb) { */
+/*     pa_assert(p); */
+/*     pa_assert(PA_REFCNT_VALUE(p) >= 1); */
+/*     pa_assert(m); */
+/*     pa_assert(cb); */
+
+
+/* } */
+
+/* void pa_native_protocol_remove_extension(pa_native_protocol *p, pa_module *m) { */
+/*     pa_assert(p); */
+/*     pa_assert(PA_REFCNT_VALUE(p) >= 1); */
+/*     pa_assert(m); */
+
+/* } */
+
+pa_native_options* pa_native_options_new(void) {
+    pa_native_options *o;
+
+    o = pa_xnew0(pa_native_options, 1);
+    PA_REFCNT_INIT(o);
+
+    return o;
+}
+
+pa_native_options* pa_native_options_ref(pa_native_options *o) {
+    pa_assert(o);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
+
+    PA_REFCNT_INC(o);
+
+    return o;
+}
+
+void pa_native_options_unref(pa_native_options *o) {
+    pa_assert(o);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
+
+    if (PA_REFCNT_DEC(o) > 0)
+        return;
+
+    pa_xfree(o->auth_group);
+
+    if (o->auth_ip_acl)
+        pa_ip_acl_free(o->auth_ip_acl);
+
+    if (o->auth_cookie)
+        pa_auth_cookie_unref(o->auth_cookie);
+
+    pa_xfree(o);
+}
+
+int pa_native_options_parse(pa_native_options *o, pa_core *c, pa_modargs *ma) {
+    pa_bool_t enabled;
+    const char *acl;
+
+    pa_assert(o);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
+    pa_assert(ma);
+
+    if (pa_modargs_get_value_boolean(ma, "auth-anonymous", &o->auth_anonymous) < 0) {
+        pa_log("auth-anonymous= expects a boolean argument.");
+        return -1;
+    }
+
+    enabled = TRUE;
+    if (pa_modargs_get_value_boolean(ma, "auth-group-enabled", &enabled) < 0) {
+        pa_log("auth-group-enabled= expects a boolean argument.");
+        return -1;
+    }
+
+    pa_xfree(o->auth_group);
+    o->auth_group = enabled ? pa_xstrdup(pa_modargs_get_value(ma, "auth-group", pa_in_system_mode() ? PA_ACCESS_GROUP : NULL)) : NULL;
+
+#ifndef HAVE_CREDS
+    if (o->auth_group)
+        pa_log_warn("Authentication group configured, but not available on local system. Ignoring.");
+#endif
+
+    if ((acl = pa_modargs_get_value(ma, "auth-ip-acl", NULL))) {
+        pa_ip_acl *ipa;
+
+        if (!(o->auth_ip_acl = pa_ip_acl_new(acl))) {
+            pa_log("Failed to parse IP ACL '%s'", acl);
+            return -1;
+        }
+
+        if (o->auth_ip_acl)
+            pa_ip_acl_free(o->auth_ip_acl);
+
+        o->auth_ip_acl = ipa;
+    }
+
+    enabled = TRUE;
+    if (pa_modargs_get_value_boolean(ma, "auth-cookie-enabled", &enabled) < 0) {
+        pa_log("auth-cookie-enabled= expects a boolean argument.");
+        return -1;
+    }
+
+    if (o->auth_cookie)
+        pa_auth_cookie_unref(o->auth_cookie);
+
+    if (enabled) {
+        const char *cn;
+
+        /* The new name for this is 'auth-cookie', for compat reasons
+         * we check the old name too */
+        if (!(cn = pa_modargs_get_value(ma, "auth-cookie", NULL)))
+            if (!(cn = pa_modargs_get_value(ma, "cookie", NULL)))
+                cn = PA_NATIVE_COOKIE_FILE;
+
+        if (!(o->auth_cookie = pa_auth_cookie_get(c, cn, PA_NATIVE_COOKIE_LENGTH)))
+            return -1;
+
+    } else
+          o->auth_cookie = NULL;
+
+    return 0;
 }

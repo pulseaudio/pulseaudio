@@ -42,8 +42,6 @@ PA_MODULE_LOAD_ONCE(TRUE);
 
 static const char* const valid_modargs[] = {
     "fd",
-    "public",
-    "cookie",
     NULL,
 };
 
@@ -51,6 +49,7 @@ int pa__init(pa_module*m) {
     pa_iochannel *io;
     pa_modargs *ma;
     int fd, r = -1;
+    pa_native_options *options = NULL;
 
     pa_assert(m);
 
@@ -64,12 +63,17 @@ int pa__init(pa_module*m) {
         goto finish;
     }
 
+    options = pa_native_options_new();
+    options->module = m;
+    options->auth_anonymous = TRUE;
+
     io = pa_iochannel_new(m->core->mainloop, fd, fd);
 
-    if (!(m->userdata = pa_protocol_native_new_iochannel(m->core, io, m, ma))) {
-        pa_iochannel_free(io);
-        goto finish;
-    }
+    m->userdata = pa_native_protocol_get(m->core);
+
+    pa_native_protocol_connect(m->userdata, io, options);
+
+    pa_native_options_unref(options);
 
     r = 0;
 
@@ -77,11 +81,17 @@ finish:
     if (ma)
         pa_modargs_free(ma);
 
+    if (options)
+        pa_native_options_unref(options);
+
     return r;
 }
 
 void pa__done(pa_module*m) {
     pa_assert(m);
 
-    pa_protocol_native_free(m->userdata);
+    if (m->userdata) {
+        pa_native_protocol_disconnect(m->userdata, m);
+        pa_native_protocol_unref(m->userdata);
+    }
 }
