@@ -151,3 +151,9 @@ void pa_cli_set_eof_callback(pa_cli *c, pa_cli_eof_cb_t cb, void *userdata) {
     c->eof_callback = cb;
     c->userdata = userdata;
 }
+
+pa_module *pa_cli_get_module(pa_cli *c) {
+    pa_assert(c);
+
+    return c->client->module;
+}
