@@ -322,8 +322,7 @@ int pa_modargs_get_sample_spec_and_channel_map(pa_modargs *ma, pa_sample_spec *r
     if (pa_modargs_get_sample_spec(ma, &ss) < 0)
         return -1;
 
-    if (!pa_channel_map_init_auto(&map, ss.channels, def))
-        map.channels = 0;
+    pa_channel_map_init_extend(&map, ss.channels, def);
 
     if (pa_modargs_get_channel_map(ma, NULL, &map) < 0)
         return -1;
