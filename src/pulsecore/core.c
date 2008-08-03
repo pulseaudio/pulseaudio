@@ -149,6 +149,8 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     pa_check_signal_is_blocked(SIGPIPE);
 #endif
 
+    pa_core_check_quit(c);
+
     return c;
 }
 
