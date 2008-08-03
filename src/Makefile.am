@@ -968,7 +968,7 @@ libtagstruct_la_LIBADD = $(AM_LIBADD) libpulsecore.la $(WINSOCK_LIBS)
 
 libprotocol_esound_la_SOURCES = pulsecore/protocol-esound.c pulsecore/protocol-esound.h pulsecore/esound.h
 libprotocol_esound_la_LDFLAGS = -avoid-version
-libprotocol_esound_la_LIBADD = $(AM_LIBADD) libsocket-server.la libiochannel.la libauthkey.la libpulsecore.la libipacl.la
+libprotocol_esound_la_LIBADD = $(AM_LIBADD) libsocket-server.la libiochannel.la libauthkey.la libauth-cookie.la libpulsecore.la libipacl.la
 
 libauthkey_la_SOURCES = pulsecore/authkey.c pulsecore/authkey.h
 libauthkey_la_LDFLAGS = -avoid-version
@@ -976,7 +976,7 @@ libauthkey_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
 libauth_cookie_la_SOURCES = pulsecore/auth-cookie.c pulsecore/auth-cookie.h
 libauth_cookie_la_LDFLAGS = -avoid-version
-libauth_cookie_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+libauth_cookie_la_LIBADD = $(AM_LIBADD) libauthkey.la libpulsecore.la
 
 libsocket_util_la_SOURCES = \
 		pulsecore/inet_ntop.c pulsecore/inet_ntop.h \
