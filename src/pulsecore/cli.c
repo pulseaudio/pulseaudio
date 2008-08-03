@@ -52,7 +52,7 @@ struct pa_cli {
     pa_core *core;
     pa_ioline *line;
 
-    void (*eof_callback)(pa_cli *c, void *userdata);
+    pa_cli_eof_cb_t eof_callback;
     void *userdata;
 
     pa_client *client;
@@ -107,12 +107,11 @@ static void client_kill(pa_client *client) {
     pa_assert_se(c = client->userdata);
 
     pa_log_debug("CLI client killed.");
+
     if (c->defer_kill)
         c->kill_requested = TRUE;
-    else {
-        if (c->eof_callback)
-            c->eof_callback(c, c->userdata);
-    }
+    else if (c->eof_callback)
+        c->eof_callback(c, c->userdata);
 }
 
 static void line_callback(pa_ioline *line, const char *s, void *userdata) {
@@ -125,6 +124,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
 
     if (!s) {
         pa_log_debug("CLI got EOF from user.");
+
         if (c->eof_callback)
             c->eof_callback(c, c->userdata);
 
@@ -145,7 +145,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
         pa_ioline_puts(line, PROMPT);
 }
 
-void pa_cli_set_eof_callback(pa_cli *c, void (*cb)(pa_cli*c, void *userdata), void *userdata) {
+void pa_cli_set_eof_callback(pa_cli *c, pa_cli_eof_cb_t cb, void *userdata) {
     pa_assert(c);
 
     c->eof_callback = cb;

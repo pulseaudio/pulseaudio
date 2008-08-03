@@ -28,6 +28,8 @@
 
 typedef struct pa_cli pa_cli;
 
+typedef void (*pa_cli_eof_cb_t)(pa_cli *c, void *userdata);
+
 /* Create a new command line session on the specified io channel owned by the specified module */
 pa_cli* pa_cli_new(pa_core *core, pa_iochannel *io, pa_module *m);
 void pa_cli_free(pa_cli *cli);
