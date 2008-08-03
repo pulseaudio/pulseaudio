@@ -77,6 +77,8 @@ static int random_proper(void *ret_data, size_t length) {
 
         if (ret == 0)
             break;
+
+        device++;
     }
 
     return ret;
