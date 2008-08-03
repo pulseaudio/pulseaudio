@@ -223,7 +223,8 @@ pa_x11_wrapper* pa_x11_wrapper_get(pa_core *c, const char *name) {
 
     pa_core_assert_ref(c);
 
-    pa_snprintf(t, sizeof(t), "x11-wrapper%s%s", name ? "-" : "", name ? name : "");
+    pa_snprintf(t, sizeof(t), "x11-wrapper%s%s", name ? "@" : "", name ? name : "");
+
     if ((w = pa_shared_get(c, t)))
         return pa_x11_wrapper_ref(w);
 
