@@ -1,8 +1,6 @@
 #ifndef fooraopclientfoo
 #define fooraopclientfoo
 
-/* $Id$ */
-
 /***
   This file is part of PulseAudio.
 
