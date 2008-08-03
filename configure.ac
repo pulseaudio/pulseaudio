@@ -1000,6 +1000,41 @@ AC_SUBST(POLKIT_LIBS)
 AC_SUBST(HAVE_POLKIT)
 AM_CONDITIONAL([HAVE_POLKIT], [test "x$HAVE_POLKIT" = x1])
 
+#### OpenSSL support (optional) ####
+
+AC_ARG_ENABLE([openssl],
+    AC_HELP_STRING([--disable-openssl], [Disable OpenSSL support (used for Airtunes/RAOP)]),
+        [
+            case "${enableval}" in
+                yes) openssl=yes ;;
+                no) openssl=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-openssl) ;;
+            esac
+        ],
+        [openssl=auto])
+
+if test "x${openssl}" != xno ; then
+
+    PKG_CHECK_MODULES(OPENSSL, [ openssl > 0.9 ],
+        [
+            HAVE_OPENSSL=1
+            AC_DEFINE([HAVE_OPENSSL], 1, [Have OpenSSL])
+        ],
+        [
+            HAVE_OPENSSL=0
+            if test "x$openssl" = xyes ; then
+                AC_MSG_ERROR([*** OpenSSL support not found])
+            fi
+        ])
+else
+    HAVE_OPENSSL=0
+fi
+
+AC_SUBST(OPENSSL_CFLAGS)
+AC_SUBST(OPENSSL_LIBS)
+AC_SUBST(HAVE_OPENSSL)
+AM_CONDITIONAL([HAVE_OPENSSL], [test "x$HAVE_OPENSSL" = x1])
+
 ### Build and Install man pages ###
 AC_ARG_ENABLE(manpages,
         AS_HELP_STRING([--disable-manpages],[Disable building and installation of man pages]),
@@ -1201,6 +1236,11 @@ if test "x${HAVE_POLKIT}" = "x1" ; then
    ENABLE_POLKIT=yes
 fi
 
+ENABLE_OPENSSL=no
+if test "x${HAVE_OPENSSL}" = "x1" ; then
+   ENABLE_OPENSSL=yes
+fi
+
 ENABLE_PER_USER_ESOUND_SOCKET=no
 if test "x$per_user_esound_socket" = "x1" ; then
    ENABLE_PER_USER_ESOUND_SOCKET=yes
@@ -1232,6 +1272,7 @@ echo "
     Enable TCP Wrappers:           ${ENABLE_TCPWRAP}
     Enable libsamplerate:          ${ENABLE_LIBSAMPLERATE}
     Enable PolicyKit:              ${ENABLE_POLKIT}
+    Enable OpenSSL (for Airtunes): ${ENABLE_OPENSSL}
     System User:                   ${PA_SYSTEM_USER}
     System Group:                  ${PA_SYSTEM_GROUP}
     Realtime Group:                ${PA_REALTIME_GROUP}
