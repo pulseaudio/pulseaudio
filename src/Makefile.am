@@ -686,7 +686,7 @@ noinst_HEADERS = \
 		pulsecore/pid.h \
 		pulsecore/play-memchunk.h \
 		pulsecore/play-memblockq.h \
-		pulsecore/props.h \
+		pulsecore/shared.h \
 		pulsecore/queue.h \
 		pulsecore/random.h \
 		pulsecore/resampler.h \
@@ -758,7 +758,7 @@ libpulsecore_la_SOURCES += \
 		pulsecore/play-memchunk.c pulsecore/play-memchunk.h \
 		pulsecore/play-memblockq.c pulsecore/play-memblockq.h \
 		pulsecore/poll.c pulsecore/poll.h \
-		pulsecore/props.c pulsecore/props.h \
+		pulsecore/shared.c pulsecore/shared.h \
 		pulsecore/queue.c pulsecore/queue.h \
 		pulsecore/random.c pulsecore/random.h \
 		pulsecore/resampler.c pulsecore/resampler.h \
@@ -827,7 +827,7 @@ noinst_HEADERS += \
 		pulsecore/pstream-util.h \
 		pulsecore/pdispatch.h \
 		pulsecore/authkey.h \
-		pulsecore/authkey-prop.h \
+		pulsecore/auth-cookie.h \
 		pulsecore/strlist.h \
 		pulsecore/protocol-simple.h \
 		pulsecore/esound.h \
@@ -857,7 +857,7 @@ modlibexec_LTLIBRARIES = \
 		libpstream-util.la \
 		libpdispatch.la \
 		libauthkey.la \
-		libauthkey-prop.la \
+		libauth-cookie.la \
 		libstrlist.la \
 		libprotocol-simple.la \
 		libprotocol-http.la \
@@ -958,7 +958,7 @@ libprotocol_http_la_LIBADD = $(AM_LIBADD) libsocket-server.la libioline.la libpu
 
 libprotocol_native_la_SOURCES = pulsecore/protocol-native.c pulsecore/protocol-native.h pulsecore/native-common.h
 libprotocol_native_la_LDFLAGS = -avoid-version
-libprotocol_native_la_LIBADD = $(AM_LIBADD) libsocket-server.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libstrlist.la libpulsecore.la libiochannel.la libipacl.la
+libprotocol_native_la_LIBADD = $(AM_LIBADD) libsocket-server.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauth-cookie.la libstrlist.la libpulsecore.la libiochannel.la libipacl.la
 
 libtagstruct_la_SOURCES = pulsecore/tagstruct.c pulsecore/tagstruct.h
 libtagstruct_la_LDFLAGS = -avoid-version
@@ -972,9 +972,9 @@ libauthkey_la_SOURCES = pulsecore/authkey.c pulsecore/authkey.h
 libauthkey_la_LDFLAGS = -avoid-version
 libauthkey_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
-libauthkey_prop_la_SOURCES = pulsecore/authkey-prop.c pulsecore/authkey-prop.h
-libauthkey_prop_la_LDFLAGS = -avoid-version
-libauthkey_prop_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+libauth_cookie_la_SOURCES = pulsecore/auth-cookie.c pulsecore/auth-cookie.h
+libauth_cookie_la_LDFLAGS = -avoid-version
+libauth_cookie_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
 libsocket_util_la_SOURCES = \
 		pulsecore/inet_ntop.c pulsecore/inet_ntop.h \
@@ -1339,11 +1339,11 @@ module_match_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 module_tunnel_sink_la_SOURCES = modules/module-tunnel.c
 module_tunnel_sink_la_CFLAGS = -DTUNNEL_SINK=1 $(AM_CFLAGS)
 module_tunnel_sink_la_LDFLAGS = -module -avoid-version
-module_tunnel_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libsocket-util.la libiochannel.la
+module_tunnel_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauth-cookie.la libsocket-util.la libiochannel.la
 
 module_tunnel_source_la_SOURCES = modules/module-tunnel.c
 module_tunnel_source_la_LDFLAGS = -module -avoid-version
-module_tunnel_source_la_LIBADD = $(AM_LIBADD) libpulsecore.la libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libsocket-util.la libiochannel.la
+module_tunnel_source_la_LIBADD = $(AM_LIBADD) libpulsecore.la libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauth-cookie.la libsocket-util.la libiochannel.la
 
 # X11
 
@@ -1355,7 +1355,7 @@ module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA
 module_x11_publish_la_SOURCES = modules/module-x11-publish.c
 module_x11_publish_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 module_x11_publish_la_LDFLAGS = -module -avoid-version
-module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libx11wrap.la libauthkey.la libauthkey-prop.la libx11prop.la libstrlist.la libpulsecore.la
+module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libx11wrap.la libauthkey.la libauth-cookie.la libx11prop.la libstrlist.la libpulsecore.la
 
 module_x11_xsmp_la_SOURCES = modules/module-x11-xsmp.c
 module_x11_xsmp_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
@@ -1512,8 +1512,8 @@ module_hal_detect_la_CFLAGS = $(AM_CFLAGS) $(HAL_CFLAGS)
 
 module_console_kit_la_SOURCES = modules/module-console-kit.c
 module_console_kit_la_LDFLAGS = -module -avoid-version
-module_console_kit_la_LIBADD = $(AM_LIBADD) $(HAL_LIBS) libpulsecore.la libdbus-util.la
-module_console_kit_la_CFLAGS = $(AM_CFLAGS) $(HAL_CFLAGS)
+module_console_kit_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la libdbus-util.la
+module_console_kit_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 # GConf support
 module_gconf_la_SOURCES = modules/gconf/module-gconf.c

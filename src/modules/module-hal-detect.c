@@ -56,9 +56,11 @@ PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
 #if defined(HAVE_ALSA) && defined(HAVE_OSS)
-PA_MODULE_USAGE("api=<alsa or oss>");
+PA_MODULE_USAGE("api=<alsa or oss> "
+                "tsched=<enable system timer based scheduling mode?>");
 #elif defined(HAVE_ALSA)
-PA_MODULE_USAGE("api=<alsa>");
+PA_MODULE_USAGE("api=<alsa> "
+                "tsched=<enable system timer based scheduling mode?>");
 #elif defined(HAVE_OSS)
 PA_MODULE_USAGE("api=<oss>");
 #endif
@@ -67,7 +69,7 @@ struct device {
     uint32_t index;
     char *udi;
     char *sink_name, *source_name;
-    int acl_race_fix;
+    pa_bool_t acl_race_fix;
 };
 
 struct userdata {
@@ -76,6 +78,9 @@ struct userdata {
     pa_dbus_connection *connection;
     pa_hashmap *devices;
     const char *capability;
+#ifdef HAVE_ALSA
+    pa_bool_t use_tsched;
+#endif
 };
 
 struct timerdata {
@@ -88,6 +93,9 @@ struct timerdata {
 
 static const char* const valid_modargs[] = {
     "api",
+#ifdef HAVE_ALSA
+    "tsched",
+#endif
     NULL
 };
 
@@ -189,12 +197,12 @@ static pa_module* hal_device_load_alsa(struct userdata *u, const char *udi, char
         *sink_name = pa_sprintf_malloc("alsa_output.%s", strip_udi(udi));
 
         module_name = "module-alsa-sink";
-        args = pa_sprintf_malloc("device_id=%u sink_name=%s", card, *sink_name);
+        args = pa_sprintf_malloc("device_id=%u sink_name=%s tsched=%i", card, *sink_name, (int) u->use_tsched);
     } else {
         *source_name = pa_sprintf_malloc("alsa_input.%s", strip_udi(udi));
 
         module_name = "module-alsa-source";
-        args = pa_sprintf_malloc("device_id=%u source_name=%s", card, *source_name);
+        args = pa_sprintf_malloc("device_id=%u source_name=%s tsched=%i", card, *source_name, (int) u->use_tsched);
     }
 
     pa_log_debug("Loading %s with arguments '%s'", module_name, args);
@@ -329,7 +337,7 @@ static struct device* hal_device_add(struct userdata *u, const char *udi) {
         return NULL;
 
     d = pa_xnew(struct device, 1);
-    d->acl_race_fix = 0;
+    d->acl_race_fix = FALSE;
     d->udi = pa_xstrdup(udi);
     d->index = m->index;
     d->sink_name = sink_name;
@@ -560,9 +568,9 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
             udi = dbus_message_get_path(message);
 
             if ((d = pa_hashmap_get(u->devices, udi))) {
-                int send_acl_race_fix_message = 0;
+                pa_bool_t send_acl_race_fix_message = FALSE;
 
-                d->acl_race_fix = 0;
+                d->acl_race_fix = FALSE;
 
                 if (d->sink_name) {
                     pa_sink *sink;
@@ -575,12 +583,12 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                             if (pa_sink_suspend(sink, 0) >= 0)
                                 pa_scache_play_item_by_name(u->core, "pulse-access", d->sink_name, FALSE, PA_VOLUME_NORM, NULL, NULL);
                             else
-                                d->acl_race_fix = 1;
+                                d->acl_race_fix = TRUE;
 
                         } else if (!prev_suspended && suspend) {
                             /* suspend */
                             if (pa_sink_suspend(sink, 1) >= 0)
-                                send_acl_race_fix_message = 1;
+                                send_acl_race_fix_message = TRUE;
                         }
                     }
                 }
@@ -594,12 +602,12 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                         if (prev_suspended && !suspend) {
                             /* resume */
                             if (pa_source_suspend(source, 0) < 0)
-                                d->acl_race_fix = 1;
+                                d->acl_race_fix = TRUE;
 
                         } else if (!prev_suspended && suspend) {
                             /* suspend */
                             if (pa_source_suspend(source, 0) >= 0)
-                                send_acl_race_fix_message = 1;
+                                send_acl_race_fix_message = TRUE;
                         }
                     }
                 }
@@ -631,7 +639,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
         if ((d = pa_hashmap_get(u->devices, udi)) && d->acl_race_fix) {
             pa_log_debug("Got dirty give up message for '%s', trying resume ...", udi);
 
-            d->acl_race_fix = 0;
+            d->acl_race_fix = FALSE;
 
             if (d->sink_name) {
                 pa_sink *sink;
@@ -724,6 +732,7 @@ int pa__init(pa_module*m) {
     int n = 0;
     pa_modargs *ma;
     const char *api;
+    pa_bool_t use_tsched = TRUE;
 
     pa_assert(m);
 
@@ -731,6 +740,11 @@ int pa__init(pa_module*m) {
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
+        goto fail;
+    }
+
+    if (pa_modargs_get_value_boolean(ma, "tsched", &use_tsched) < 0) {
+        pa_log("Failed to parse tsched argument.");
         goto fail;
     }
 
@@ -775,6 +789,9 @@ int pa__init(pa_module*m) {
     u->connection = conn;
     u->devices = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     u->capability = api;
+#ifdef HAVE_ALSA
+    u->use_tsched = use_tsched;
+#endif
     m->userdata = u;
 
 #ifdef HAVE_ALSA

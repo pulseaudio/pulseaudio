@@ -44,7 +44,7 @@ static void slot_free(pa_hook *hook, pa_hook_slot *slot) {
     pa_xfree(slot);
 }
 
-void pa_hook_free(pa_hook *hook) {
+void pa_hook_done(pa_hook *hook) {
     pa_assert(hook);
     pa_assert(hook->n_firing == 0);
 

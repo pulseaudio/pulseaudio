@@ -109,6 +109,14 @@ void pa_limit_caps(void) {
 void pa_drop_caps(void) {
     cap_t caps;
 
+#ifndef __OPTIMIZE__
+    /* Valgrind doesn't not know set_caps, so we bypass it here -- but
+     *  only in development builts.*/
+
+    if (getenv("VALGRIND") && !pa_have_caps())
+        return;
+#endif
+
     pa_assert_se(prctl(PR_SET_KEEPCAPS, 0, 0, 0, 0) == 0);
 
     pa_assert_se(caps = cap_init());
@@ -123,7 +131,12 @@ pa_bool_t pa_have_caps(void) {
     cap_t caps;
     cap_flag_value_t flag = CAP_CLEAR;
 
+#ifdef __OPTIMIZE__
     pa_assert_se(caps = cap_get_proc());
+#else
+    if (!(caps = cap_get_proc()))
+        return FALSE;
+#endif
     pa_assert_se(cap_get_flag(caps, CAP_SYS_NICE, CAP_EFFECTIVE, &flag) >= 0);
     pa_assert_se(cap_free(caps) == 0);
 

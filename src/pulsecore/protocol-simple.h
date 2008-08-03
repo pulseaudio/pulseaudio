@@ -27,9 +27,31 @@
 #include <pulsecore/core.h>
 #include <pulsecore/modargs.h>
 
-typedef struct pa_protocol_simple pa_protocol_simple;
+typedef struct pa_simple_protocol pa_simple_protocol;
 
-pa_protocol_simple* pa_protocol_simple_new(pa_core *core, pa_socket_server *server, pa_module *m, pa_modargs *ma);
-void pa_protocol_simple_free(pa_protocol_simple *n);
+typedef struct pa_simple_options {
+    PA_REFCNT_DECLARE;
+
+    pa_module *module;
+
+    char *default_sink, *default_source;
+
+    pa_sample_spec sample_spec;
+    pa_channel_map channel_map;
+
+    pa_bool_t record:1;
+    pa_bool_t playback:1;
+} pa_simple_options;
+
+pa_simple_protocol* pa_simple_protocol_get(pa_core*core);
+pa_simple_protocol* pa_simple_protocol_ref(pa_simple_protocol *p);
+void pa_simple_protocol_unref(pa_simple_protocol *p);
+void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simple_options *o);
+void pa_simple_protocol_disconnect(pa_simple_protocol *p, pa_module *m);
+
+pa_simple_options* pa_simple_options_new(void);
+pa_simple_options* pa_simple_options_ref(pa_simple_options *o);
+void pa_simple_options_unref(pa_simple_options *o);
+int pa_simple_options_parse(pa_simple_options *o, pa_core *c, pa_modargs *ma);
 
 #endif

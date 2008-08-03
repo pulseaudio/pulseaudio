@@ -39,7 +39,7 @@
 #include <pulsecore/core-scache.h>
 #include <pulsecore/autoload.h>
 #include <pulsecore/core-subscribe.h>
-#include <pulsecore/props.h>
+#include <pulsecore/shared.h>
 #include <pulsecore/random.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
@@ -141,13 +141,15 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     for (j = 0; j < PA_CORE_HOOK_MAX; j++)
         pa_hook_init(&c->hooks[j], c);
 
-    pa_property_init(c);
+    pa_shared_init(c);
 
     pa_random(&c->cookie, sizeof(c->cookie));
 
 #ifdef SIGPIPE
     pa_check_signal_is_blocked(SIGPIPE);
 #endif
+
+    pa_core_check_quit(c);
 
     return c;
 }
@@ -189,10 +191,10 @@ static void core_free(pa_object *o) {
     pa_silence_cache_done(&c->silence_cache);
     pa_mempool_free(c->mempool);
 
-    pa_property_cleanup(c);
+    pa_shared_cleanup(c);
 
     for (j = 0; j < PA_CORE_HOOK_MAX; j++)
-        pa_hook_free(&c->hooks[j]);
+        pa_hook_done(&c->hooks[j]);
 
     pa_xfree(c);
 }

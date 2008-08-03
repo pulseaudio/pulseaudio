@@ -35,6 +35,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/cli-text.h>
+#include <pulsecore/shared.h>
 
 #include "protocol-http.h"
 
@@ -48,16 +49,21 @@
 #define URL_STATUS "/status"
 
 struct connection {
-    pa_protocol_http *protocol;
+    pa_http_protocol *protocol;
     pa_ioline *line;
-    enum { REQUEST_LINE, MIME_HEADER, DATA } state;
+    enum {
+        REQUEST_LINE,
+        MIME_HEADER,
+        DATA
+    } state;
     char *url;
+    pa_module *module;
 };
 
-struct pa_protocol_http {
-    pa_module *module;
+struct pa_http_protocol {
+    PA_REFCNT_DECLARE;
+
     pa_core *core;
-    pa_socket_server*server;
     pa_idxset *connections;
 };
 
@@ -101,14 +107,13 @@ static void http_message(struct connection *c, int code, const char *msg, const 
 }
 
 
-static void connection_free(struct connection *c, int del) {
+static void connection_unlink(struct connection *c) {
     pa_assert(c);
 
     if (c->url)
         pa_xfree(c->url);
 
-    if (del)
-        pa_idxset_remove_by_data(c->protocol->connections, c, NULL);
+    pa_idxset_remove_by_data(c->protocol->connections, c, NULL);
 
     pa_ioline_unref(c->line);
     pa_xfree(c);
@@ -121,7 +126,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
 
     if (!s) {
         /* EOF */
-        connection_free(c, 1);
+        connection_unlink(c);
         return;
     }
 
@@ -220,16 +225,15 @@ fail:
     internal_server_error(c);
 }
 
-static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) {
-    pa_protocol_http *p = userdata;
+void pa_http_protocol_connect(pa_http_protocol *p, pa_iochannel *io, pa_module *m) {
     struct connection *c;
 
-    pa_assert(s);
-    pa_assert(io);
     pa_assert(p);
+    pa_assert(io);
+    pa_assert(m);
 
     if (pa_idxset_size(p->connections)+1 > MAX_CONNECTIONS) {
-        pa_log_warn("Warning! Too many connections (%u), dropping incoming connection.", MAX_CONNECTIONS);
+        pa_log("Warning! Too many connections (%u), dropping incoming connection.", MAX_CONNECTIONS);
         pa_iochannel_free(io);
         return;
     }
@@ -239,37 +243,73 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     c->line = pa_ioline_new(io);
     c->state = REQUEST_LINE;
     c->url = NULL;
+    c->module = m;
 
     pa_ioline_set_callback(c->line, line_callback, c);
+
     pa_idxset_put(p->connections, c, NULL);
 }
 
-pa_protocol_http* pa_protocol_http_new(pa_core *core, pa_socket_server *server, pa_module *m, PA_GCC_UNUSED pa_modargs *ma) {
-    pa_protocol_http* p;
+void pa_http_protocol_disconnect(pa_http_protocol *p, pa_module *m) {
+    struct connection *c;
+    void *state = NULL;
 
-    pa_core_assert_ref(core);
-    pa_assert(server);
+    pa_assert(p);
+    pa_assert(m);
 
-    p = pa_xnew(pa_protocol_http, 1);
-    p->module = m;
-    p->core = core;
-    p->server = pa_socket_server_ref(server);
+    while ((c = pa_idxset_iterate(p->connections, &state, NULL)))
+        if (c->module == m)
+            connection_unlink(c);
+}
+
+static pa_http_protocol* http_protocol_new(pa_core *c) {
+    pa_http_protocol *p;
+
+    pa_assert(c);
+
+    p = pa_xnew(pa_http_protocol, 1);
+    PA_REFCNT_INIT(p);
+    p->core = c;
     p->connections = pa_idxset_new(NULL, NULL);
 
-    pa_socket_server_set_callback(p->server, on_connection, p);
+    pa_assert_se(pa_shared_set(c, "http-protocol", p) >= 0);
 
     return p;
 }
 
-static void free_connection(void *p, PA_GCC_UNUSED void *userdata) {
-    pa_assert(p);
-    connection_free(p, 0);
+pa_http_protocol* pa_http_protocol_get(pa_core *c) {
+    pa_http_protocol *p;
+
+    if ((p = pa_shared_get(c, "http-protocol")))
+        return pa_http_protocol_ref(p);
+
+    return http_protocol_new(c);
 }
 
-void pa_protocol_http_free(pa_protocol_http *p) {
+pa_http_protocol* pa_http_protocol_ref(pa_http_protocol *p) {
     pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) >= 1);
 
-    pa_idxset_free(p->connections, free_connection, NULL);
-    pa_socket_server_unref(p->server);
+    PA_REFCNT_INC(p);
+
+    return p;
+}
+
+void pa_http_protocol_unref(pa_http_protocol *p) {
+    struct connection *c;
+
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) >= 1);
+
+    if (PA_REFCNT_DEC(p) > 0)
+        return;
+
+    while ((c = pa_idxset_first(p->connections, NULL)))
+        connection_unlink(c);
+
+    pa_idxset_free(p->connections, NULL, NULL);
+
+    pa_assert_se(pa_shared_remove(p->core, "http-protocol") >= 0);
+
     pa_xfree(p);
 }

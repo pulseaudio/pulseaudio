@@ -62,19 +62,19 @@
 #endif
 
 #if defined(USE_PROTOCOL_SIMPLE)
-  #include <pulsecore/protocol-simple.h>
-  #define protocol_new pa_protocol_simple_new
-  #define protocol_free pa_protocol_simple_free
-  #define TCPWRAP_SERVICE "pulseaudio-simple"
-  #define IPV4_PORT 4711
-  #define UNIX_SOCKET "simple"
-  #define MODULE_ARGUMENTS "rate", "format", "channels", "sink", "source", "playback", "record",
-  #if defined(USE_TCP_SOCKETS)
-    #include "module-simple-protocol-tcp-symdef.h"
-  #else
-    #include "module-simple-protocol-unix-symdef.h"
-  #endif
-PA_MODULE_DESCRIPTION("Simple protocol "SOCKET_DESCRIPTION);
+#  include <pulsecore/protocol-simple.h>
+#  define TCPWRAP_SERVICE "pulseaudio-simple"
+#  define IPV4_PORT 4711
+#  define UNIX_SOCKET "simple"
+#  define MODULE_ARGUMENTS "rate", "format", "channels", "sink", "source", "playback", "record",
+
+#  if defined(USE_TCP_SOCKETS)
+#    include "module-simple-protocol-tcp-symdef.h"
+#  else
+#    include "module-simple-protocol-unix-symdef.h"
+#  endif
+
+  PA_MODULE_DESCRIPTION("Simple protocol "SOCKET_DESCRIPTION);
   PA_MODULE_USAGE("rate=<sample rate> "
                   "format=<sample format> "
                   "channels=<number of channels> "
@@ -84,96 +84,96 @@ PA_MODULE_DESCRIPTION("Simple protocol "SOCKET_DESCRIPTION);
                   "record=<enable record?> "
                   SOCKET_USAGE);
 #elif defined(USE_PROTOCOL_CLI)
-  #include <pulsecore/protocol-cli.h>
-  #define protocol_new pa_protocol_cli_new
-  #define protocol_free pa_protocol_cli_free
-  #define TCPWRAP_SERVICE "pulseaudio-cli"
-  #define IPV4_PORT 4712
-  #define UNIX_SOCKET "cli"
-  #define MODULE_ARGUMENTS
-  #ifdef USE_TCP_SOCKETS
-    #include "module-cli-protocol-tcp-symdef.h"
-  #else
-    #include "module-cli-protocol-unix-symdef.h"
-  #endif
+#  include <pulsecore/protocol-cli.h>
+#  define TCPWRAP_SERVICE "pulseaudio-cli"
+#  define IPV4_PORT 4712
+#  define UNIX_SOCKET "cli"
+#  define MODULE_ARGUMENTS
+
+#  ifdef USE_TCP_SOCKETS
+#    include "module-cli-protocol-tcp-symdef.h"
+#  else
+#   include "module-cli-protocol-unix-symdef.h"
+#  endif
+
   PA_MODULE_DESCRIPTION("Command line interface protocol "SOCKET_DESCRIPTION);
   PA_MODULE_USAGE(SOCKET_USAGE);
 #elif defined(USE_PROTOCOL_HTTP)
-  #include <pulsecore/protocol-http.h>
-  #define protocol_new pa_protocol_http_new
-  #define protocol_free pa_protocol_http_free
-  #define TCPWRAP_SERVICE "pulseaudio-http"
-  #define IPV4_PORT 4714
-  #define UNIX_SOCKET "http"
-  #define MODULE_ARGUMENTS
-  #ifdef USE_TCP_SOCKETS
-    #include "module-http-protocol-tcp-symdef.h"
-  #else
-    #include "module-http-protocol-unix-symdef.h"
-  #endif
+#  include <pulsecore/protocol-http.h>
+#  define TCPWRAP_SERVICE "pulseaudio-http"
+#  define IPV4_PORT 4714
+#  define UNIX_SOCKET "http"
+#  define MODULE_ARGUMENTS
+
+#  ifdef USE_TCP_SOCKETS
+#    include "module-http-protocol-tcp-symdef.h"
+#  else
+#    include "module-http-protocol-unix-symdef.h"
+#  endif
+
   PA_MODULE_DESCRIPTION("HTTP "SOCKET_DESCRIPTION);
   PA_MODULE_USAGE(SOCKET_USAGE);
 #elif defined(USE_PROTOCOL_NATIVE)
-  #include <pulsecore/protocol-native.h>
-  #define protocol_new pa_protocol_native_new
-  #define protocol_free pa_protocol_native_free
-  #define TCPWRAP_SERVICE "pulseaudio-native"
-  #define IPV4_PORT PA_NATIVE_DEFAULT_PORT
-  #define UNIX_SOCKET PA_NATIVE_DEFAULT_UNIX_SOCKET
-  #define MODULE_ARGUMENTS_COMMON "cookie", "auth-anonymous",
-  #ifdef USE_TCP_SOCKETS
-    #include "module-native-protocol-tcp-symdef.h"
-  #else
-    #include "module-native-protocol-unix-symdef.h"
-  #endif
+#  include <pulsecore/protocol-native.h>
+#  define TCPWRAP_SERVICE "pulseaudio-native"
+#  define IPV4_PORT PA_NATIVE_DEFAULT_PORT
+#  define UNIX_SOCKET PA_NATIVE_DEFAULT_UNIX_SOCKET
+#  define MODULE_ARGUMENTS_COMMON "cookie", "auth-cookie", "auth-cookie-enabled", "auth-anonymous",
 
-  #if defined(HAVE_CREDS) && !defined(USE_TCP_SOCKETS)
-    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-group", "auth-group-enable",
-    #define AUTH_USAGE "auth-group=<system group to allow access> auth-group-enable=<enable auth by UNIX group?> "
-  #elif defined(USE_TCP_SOCKETS)
-    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-ip-acl",
-    #define AUTH_USAGE "auth-ip-acl=<IP address ACL to allow access> "
-  #else
-    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON
-    #define AUTH_USAGE
-  #endif
+#  ifdef USE_TCP_SOCKETS
+#    include "module-native-protocol-tcp-symdef.h"
+#  else
+#    include "module-native-protocol-unix-symdef.h"
+#  endif
+
+#  if defined(HAVE_CREDS) && !defined(USE_TCP_SOCKETS)
+#    define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-group", "auth-group-enable",
+#    define AUTH_USAGE "auth-group=<system group to allow access> auth-group-enable=<enable auth by UNIX group?> "
+#  elif defined(USE_TCP_SOCKETS)
+#    define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-ip-acl",
+#    define AUTH_USAGE "auth-ip-acl=<IP address ACL to allow access> "
+#  else
+#    define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON
+#    define AUTH_USAGE
+#    endif
 
   PA_MODULE_DESCRIPTION("Native protocol "SOCKET_DESCRIPTION);
   PA_MODULE_USAGE("auth-anonymous=<don't check for cookies?> "
-                  "cookie=<path to cookie file> "
+                  "auth-cookie=<path to cookie file> "
+                  "auth-cookie-enabled=<enable cookie authentification? "
                   AUTH_USAGE
                   SOCKET_USAGE);
 #elif defined(USE_PROTOCOL_ESOUND)
-  #include <pulsecore/protocol-esound.h>
-  #include <pulsecore/esound.h>
-  #define protocol_new pa_protocol_esound_new
-  #define protocol_free pa_protocol_esound_free
-  #define TCPWRAP_SERVICE "esound"
-  #define IPV4_PORT ESD_DEFAULT_PORT
-  #define MODULE_ARGUMENTS_COMMON "sink", "source", "auth-anonymous", "cookie",
-  #ifdef USE_TCP_SOCKETS
-    #include "module-esound-protocol-tcp-symdef.h"
-  #else
-    #include "module-esound-protocol-unix-symdef.h"
-  #endif
+#  include <pulsecore/protocol-esound.h>
+#  include <pulsecore/esound.h>
+#  define TCPWRAP_SERVICE "esound"
+#  define IPV4_PORT ESD_DEFAULT_PORT
+#  define MODULE_ARGUMENTS_COMMON "sink", "source", "auth-anonymous", "cookie", "auth-cookie", "auth-cookie-enabled"
 
-  #if defined(USE_TCP_SOCKETS)
-    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-ip-acl",
-    #define AUTH_USAGE "auth-ip-acl=<IP address ACL to allow access> "
-  #else
-    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON
-    #define AUTH_USAGE
-  #endif
+#  ifdef USE_TCP_SOCKETS
+#    include "module-esound-protocol-tcp-symdef.h"
+#  else
+#    include "module-esound-protocol-unix-symdef.h"
+#  endif
+
+#  if defined(USE_TCP_SOCKETS)
+#    define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-ip-acl",
+#    define AUTH_USAGE "auth-ip-acl=<IP address ACL to allow access> "
+#  else
+#    define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON
+#    define AUTH_USAGE
+#  endif
 
   PA_MODULE_DESCRIPTION("ESOUND protocol "SOCKET_DESCRIPTION);
   PA_MODULE_USAGE("sink=<sink to connect to> "
                   "source=<source to connect to> "
                   "auth-anonymous=<don't verify cookies?> "
-                  "cookie=<path to cookie file> "
+                  "auth-cookie=<path to cookie file> "
+                  "auth-cookie-enabled=<enable cookie authentification? "
                   AUTH_USAGE
                   SOCKET_USAGE);
 #else
-  #error "Broken build system"
+#  error "Broken build system"
 #endif
 
 PA_MODULE_LOAD_ONCE(FALSE);
@@ -192,37 +192,103 @@ static const char* const valid_modargs[] = {
 };
 
 struct userdata {
-#if defined(USE_TCP_SOCKETS)
-    void *protocol_ipv4;
-    void *protocol_ipv6;
+    pa_module *module;
+
+#if defined(USE_PROTOCOL_SIMPLE)
+    pa_simple_protocol *simple_protocol;
+    pa_simple_options *simple_options;
+#elif defined(USE_PROTOCOL_CLI)
+    pa_cli_protocol *cli_protocol;
+#elif defined(USE_PROTOCOL_HTTP)
+    pa_http_protocol *http_protocol;
+#elif defined(USE_PROTOCOL_NATIVE)
+    pa_native_protocol *native_protocol;
+    pa_native_options *native_options;
 #else
-    void *protocol_unix;
+    pa_esound_protocol *esound_protocol;
+    pa_esound_options *esound_options;
+#endif
+
+#if defined(USE_TCP_SOCKETS)
+    pa_socket_server *socket_server_ipv4;
+    pa_socket_server *socket_server_ipv6;
+#else
+    pa_socket_server *socket_server_unix;
     char *socket_path;
 #endif
 };
 
+static void socket_server_on_connection_cb(pa_socket_server*s, pa_iochannel *io, void *userdata) {
+    struct userdata *u = userdata;
+
+    pa_assert(s);
+    pa_assert(io);
+    pa_assert(u);
+
+#if defined(USE_PROTOCOL_SIMPLE)
+    pa_simple_protocol_connect(u->simple_protocol, io, u->simple_options);
+#elif defined(USE_PROTOCOL_CLI)
+    pa_cli_protocol_connect(u->cli_protocol, io, u->module);
+#elif defined(USE_PROTOCOL_HTTP)
+    pa_http_protocol_connect(u->http_protocol, io, u->module);
+#elif defined(USE_PROTOCOL_NATIVE)
+    pa_native_protocol_connect(u->native_protocol, io, u->native_options);
+#else
+    pa_esound_protocol_connect(u->esound_protocol, io, u->esound_options);
+#endif
+}
+
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
-    int ret = -1;
     struct userdata *u = NULL;
 
 #if defined(USE_TCP_SOCKETS)
-    pa_socket_server *s_ipv4 = NULL, *s_ipv6 = NULL;
     uint32_t port = IPV4_PORT;
     const char *listen_on;
 #else
-    pa_socket_server *s;
     int r;
+#endif
+
+#if defined(USE_PROTOCOL_NATIVE)
+    char t[256];
 #endif
 
     pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
-        goto finish;
+        goto fail;
     }
 
     u = pa_xnew0(struct userdata, 1);
+    u->module = m;
+
+#if defined(USE_PROTOCOL_SIMPLE)
+    u->simple_protocol = pa_simple_protocol_get(m->core);
+
+    u->simple_options = pa_simple_options_new();
+    if (pa_simple_options_parse(u->simple_options, m->core, ma) < 0)
+        goto fail;
+    u->simple_options->module = m;
+#elif defined(USE_PROTOCOL_CLI)
+    u->cli_protocol = pa_cli_protocol_get(m->core);
+#elif defined(USE_PROTOCOL_HTTP)
+    u->http_protocol = pa_http_protocol_get(m->core);
+#elif defined(USE_PROTOCOL_NATIVE)
+    u->native_protocol = pa_native_protocol_get(m->core);
+
+    u->native_options = pa_native_options_new();
+    if (pa_native_options_parse(u->native_options, m->core, ma) < 0)
+        goto fail;
+    u->native_options->module = m;
+#else
+    u->esound_protocol = pa_esound_protocol_get(m->core);
+
+    u->esound_options = pa_esound_options_new();
+    if (pa_esound_options_parse(u->esound_options, m->core, ma) < 0)
+        goto fail;
+    u->esound_options->module = m;
+#endif
 
 #if defined(USE_TCP_SOCKETS)
     if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port < 1 || port > 0xFFFF) {
@@ -233,38 +299,30 @@ int pa__init(pa_module*m) {
     listen_on = pa_modargs_get_value(ma, "listen", NULL);
 
     if (listen_on) {
-        s_ipv6 = pa_socket_server_new_ipv6_string(m->core->mainloop, listen_on, port, TCPWRAP_SERVICE);
-        s_ipv4 = pa_socket_server_new_ipv4_string(m->core->mainloop, listen_on, port, TCPWRAP_SERVICE);
+        u->socket_server_ipv6 = pa_socket_server_new_ipv6_string(m->core->mainloop, listen_on, port, TCPWRAP_SERVICE);
+        u->socket_server_ipv4 = pa_socket_server_new_ipv4_string(m->core->mainloop, listen_on, port, TCPWRAP_SERVICE);
     } else {
-        s_ipv6 = pa_socket_server_new_ipv6_any(m->core->mainloop, port, TCPWRAP_SERVICE);
-        s_ipv4 = pa_socket_server_new_ipv4_any(m->core->mainloop, port, TCPWRAP_SERVICE);
+        u->socket_server_ipv6 = pa_socket_server_new_ipv6_any(m->core->mainloop, port, TCPWRAP_SERVICE);
+        u->socket_server_ipv4 = pa_socket_server_new_ipv4_any(m->core->mainloop, port, TCPWRAP_SERVICE);
     }
 
-    if (!s_ipv4 && !s_ipv6)
+    if (!u->socket_server_ipv4 && !u->socket_server_ipv6)
         goto fail;
 
-    if (s_ipv4)
-        u->protocol_ipv4 = protocol_new(m->core, s_ipv4, m, ma);
-    if (s_ipv6)
-        u->protocol_ipv6 = protocol_new(m->core, s_ipv6, m, ma);
-
-    if (!u->protocol_ipv4 && !u->protocol_ipv6)
-        goto fail;
-
-    if (s_ipv6)
-        pa_socket_server_unref(s_ipv6);
-    if (s_ipv6)
-        pa_socket_server_unref(s_ipv4);
+    if (u->socket_server_ipv4)
+        pa_socket_server_set_callback(u->socket_server_ipv4, socket_server_on_connection_cb, u);
+    if (u->socket_server_ipv6)
+        pa_socket_server_set_callback(u->socket_server_ipv6, socket_server_on_connection_cb, u);
 
 #else
 
-#if defined(USE_PROTOCOL_ESOUND)
+#  if defined(USE_PROTOCOL_ESOUND)
 
-#if defined(USE_PER_USER_ESOUND_SOCKET)
+#    if defined(USE_PER_USER_ESOUND_SOCKET)
     u->socket_path = pa_sprintf_malloc("/tmp/.esd-%lu/socket", (unsigned long) getuid());
-#else
+#    else
     u->socket_path = pa_xstrdup("/tmp/.esd/socket");
-#endif
+#    endif
 
     /* This socket doesn't reside in our own runtime dir but in
      * /tmp/.esd/, hence we have to create the dir first */
@@ -274,12 +332,12 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-#else
+#  else
     if (!(u->socket_path = pa_runtime_path(pa_modargs_get_value(ma, "socket", UNIX_SOCKET)))) {
         pa_log("Failed to generate socket path.");
         goto fail;
     }
-#endif
+#  endif
 
     if ((r = pa_unix_socket_remove_stale(u->socket_path)) < 0) {
         pa_log("Failed to remove stale UNIX socket '%s': %s", u->socket_path, pa_cstrerror(errno));
@@ -287,53 +345,44 @@ int pa__init(pa_module*m) {
     } else if (r > 0)
         pa_log_info("Removed stale UNIX socket '%s'.", u->socket_path);
 
-    if (!(s = pa_socket_server_new_unix(m->core->mainloop, u->socket_path)))
+    if (!(u->socket_server_unix = pa_socket_server_new_unix(m->core->mainloop, u->socket_path)))
         goto fail;
 
-    if (!(u->protocol_unix = protocol_new(m->core, s, m, ma)))
-        goto fail;
+    pa_socket_server_set_callback(u->socket_server_unix, socket_server_on_connection_cb, u);
 
-    pa_socket_server_unref(s);
+#endif
 
+#if defined(USE_PROTOCOL_NATIVE)
+#  if defined(USE_TCP_SOCKETS)
+    if (u->socket_server_ipv4)
+        if (pa_socket_server_get_address(u->socket_server_ipv4, t, sizeof(t)))
+            pa_native_protocol_add_server_string(u->native_protocol, t);
+
+    if (u->socket_server_ipv6)
+        if (pa_socket_server_get_address(u->socket_server_ipv6, t, sizeof(t)))
+            pa_native_protocol_add_server_string(u->native_protocol, t);
+#  else
+    if (pa_socket_server_get_address(u->socket_server_unix, t, sizeof(t)))
+        pa_native_protocol_add_server_string(u->native_protocol, t);
+
+#  endif
 #endif
 
     m->userdata = u;
 
-    ret = 0;
-
-finish:
     if (ma)
         pa_modargs_free(ma);
 
-    return ret;
+    return 0;
 
 fail:
-    if (u) {
-#if defined(USE_TCP_SOCKETS)
-        if (u->protocol_ipv4)
-            protocol_free(u->protocol_ipv4);
-        if (u->protocol_ipv6)
-            protocol_free(u->protocol_ipv6);
-#else
-        if (u->protocol_unix)
-            protocol_free(u->protocol_unix);
-        pa_xfree(u->socket_path);
-#endif
 
-        pa_xfree(u);
-    }
+    if (ma)
+        pa_modargs_free(ma);
 
-#if defined(USE_TCP_SOCKETS)
-    if (s_ipv4)
-        pa_socket_server_unref(s_ipv4);
-    if (s_ipv6)
-        pa_socket_server_unref(s_ipv6);
-#else
-    if (s)
-        pa_socket_server_unref(s);
-#endif
+    pa__done(m);
 
-    goto finish;
+    return -1;
 }
 
 void pa__done(pa_module*m) {
@@ -343,22 +392,72 @@ void pa__done(pa_module*m) {
 
     u = m->userdata;
 
-#if defined(USE_TCP_SOCKETS)
-    if (u->protocol_ipv4)
-        protocol_free(u->protocol_ipv4);
-    if (u->protocol_ipv6)
-        protocol_free(u->protocol_ipv6);
-#else
-    if (u->protocol_unix)
-        protocol_free(u->protocol_unix);
+#if defined(USE_PROTOCOL_SIMPLE)
+    if (u->simple_protocol) {
+        pa_simple_protocol_disconnect(u->simple_protocol, u->module);
+        pa_simple_protocol_unref(u->simple_protocol);
+    }
+    if (u->simple_options)
+        pa_simple_options_unref(u->simple_options);
+#elif defined(USE_PROTOCOL_CLI)
+    if (u->cli_protocol) {
+        pa_cli_protocol_disconnect(u->cli_protocol, u->module);
+        pa_cli_protocol_unref(u->cli_protocol);
+    }
+#elif defined(USE_PROTOCOL_HTTP)
+    if (u->http_protocol) {
+        pa_http_protocol_disconnect(u->http_protocol, u->module);
+        pa_http_protocol_unref(u->http_protocol);
+    }
+#elif defined(USE_PROTOCOL_NATIVE)
+    if (u->native_protocol) {
 
-#if defined(USE_PROTOCOL_ESOUND) && !defined(USE_PER_USER_ESOUND_SOCKET)
+        char t[256];
+
+#  if defined(USE_TCP_SOCKETS)
+        if (u->socket_server_ipv4)
+            if (pa_socket_server_get_address(u->socket_server_ipv4, t, sizeof(t)))
+                pa_native_protocol_remove_server_string(u->native_protocol, t);
+
+        if (u->socket_server_ipv6)
+            if (pa_socket_server_get_address(u->socket_server_ipv6, t, sizeof(t)))
+                pa_native_protocol_remove_server_string(u->native_protocol, t);
+#  else
+        if (u->socket_server_unix)
+            if (pa_socket_server_get_address(u->socket_server_unix, t, sizeof(t)))
+                pa_native_protocol_remove_server_string(u->native_protocol, t);
+#  endif
+
+        pa_native_protocol_disconnect(u->native_protocol, u->module);
+        pa_native_protocol_unref(u->native_protocol);
+    }
+    if (u->native_options)
+        pa_native_options_unref(u->native_options);
+#else
+    if (u->esound_protocol) {
+        pa_esound_protocol_disconnect(u->esound_protocol, u->module);
+        pa_esound_protocol_unref(u->esound_protocol);
+    }
+    if (u->esound_options)
+        pa_esound_options_unref(u->esound_options);
+#endif
+
+#if defined(USE_TCP_SOCKETS)
+    if (u->socket_server_ipv4)
+        pa_socket_server_unref(u->socket_server_ipv4);
+    if (u->socket_server_ipv6)
+        pa_socket_server_unref(u->socket_server_ipv6);
+#else
+    if (u->socket_server_unix)
+        pa_socket_server_unref(u->socket_server_unix);
+
+# if defined(USE_PROTOCOL_ESOUND) && !defined(USE_PER_USER_ESOUND_SOCKET)
     if (u->socket_path) {
         char *p = pa_parent_dir(u->socket_path);
         rmdir(p);
         pa_xfree(p);
     }
-#endif
+# endif
 
     pa_xfree(u->socket_path);
 #endif

@@ -1,10 +1,10 @@
-#ifndef fooprotocolhttphfoo
-#define fooprotocolhttphfoo
+#ifndef fooauthcookiehfoo
+#define fooauthcookiehfoo
 
 /***
   This file is part of PulseAudio.
 
-  Copyright 2005-2006 Lennart Poettering
+  Copyright 2008 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -23,17 +23,13 @@
 ***/
 
 #include <pulsecore/core.h>
-#include <pulsecore/module.h>
-#include <pulsecore/modargs.h>
-#include <pulsecore/iochannel.h>
 
+typedef struct pa_auth_cookie pa_auth_cookie;
 
-typedef struct pa_http_protocol pa_http_protocol;
+pa_auth_cookie* pa_auth_cookie_get(pa_core *c, const char *cn, size_t size);
+pa_auth_cookie* pa_auth_cookie_ref(pa_auth_cookie *c);
+void pa_auth_cookie_unref(pa_auth_cookie *c);
 
-pa_http_protocol* pa_http_protocol_get(pa_core *core);
-pa_http_protocol* pa_http_protocol_ref(pa_http_protocol *p);
-void pa_http_protocol_unref(pa_http_protocol *p);
-void pa_http_protocol_connect(pa_http_protocol *p, pa_iochannel *io, pa_module *m);
-void pa_http_protocol_disconnect(pa_http_protocol *p, pa_module *m);
+const uint8_t* pa_auth_cookie_read(pa_auth_cookie *, size_t size);
 
 #endif

@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 
     pa_hook_fire(&hook, (void*) "call2");
 
-    pa_hook_free(&hook);
+    pa_hook_done(&hook);
 
     return 0;
 }

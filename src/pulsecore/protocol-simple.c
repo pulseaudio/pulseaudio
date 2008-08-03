@@ -42,6 +42,7 @@
 #include <pulsecore/atomic.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/shared.h>
 
 #include "protocol-simple.h"
 
@@ -50,7 +51,8 @@
 
 typedef struct connection {
     pa_msgobject parent;
-    pa_protocol_simple *protocol;
+    pa_simple_protocol *protocol;
+    pa_simple_options *options;
     pa_iochannel *io;
     pa_sink_input *sink_input;
     pa_source_output *source_output;
@@ -71,20 +73,11 @@ PA_DECLARE_CLASS(connection);
 #define CONNECTION(o) (connection_cast(o))
 static PA_DEFINE_CHECK_TYPE(connection, pa_msgobject);
 
-struct pa_protocol_simple {
-    pa_module *module;
+struct pa_simple_protocol {
+    PA_REFCNT_DECLARE;
+
     pa_core *core;
-    pa_socket_server*server;
     pa_idxset *connections;
-
-    enum {
-        RECORD = 1,
-        PLAYBACK = 2,
-        DUPLEX = 3
-    } mode;
-
-    pa_sample_spec sample_spec;
-    char *source_name, *sink_name;
 };
 
 enum {
@@ -98,7 +91,6 @@ enum {
     CONNECTION_MESSAGE_UNLINK_CONNECTION    /* Please drop a aconnection now */
 };
 
-
 #define PLAYBACK_BUFFER_SECONDS (.5)
 #define PLAYBACK_BUFFER_FRAGMENTS (10)
 #define RECORD_BUFFER_SECONDS (5)
@@ -110,6 +102,11 @@ static void connection_unlink(connection *c) {
 
     if (!c->protocol)
         return;
+
+    if (c->options) {
+        pa_simple_options_unref(c->options);
+        c->options = NULL;
+    }
 
     if (c->sink_input) {
         pa_sink_input_unlink(c->sink_input);
@@ -477,14 +474,13 @@ static void io_callback(pa_iochannel*io, void *userdata) {
 
 /*** socket_server callbacks ***/
 
-static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) {
-    pa_protocol_simple *p = userdata;
+void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simple_options *o) {
     connection *c = NULL;
     char cname[256], pname[128];
 
-    pa_assert(s);
-    pa_assert(io);
     pa_assert(p);
+    pa_assert(io);
+    pa_assert(o);
 
     if (pa_idxset_size(p->connections)+1 > MAX_CONNECTIONS) {
         pa_log("Warning! Too many connections (%u), dropping incoming connection.", MAX_CONNECTIONS);
@@ -500,6 +496,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     c->source_output = NULL;
     c->input_memblockq = c->output_memblockq = NULL;
     c->protocol = p;
+    c->options = pa_simple_options_ref(o);
     c->playback.current_memblock = NULL;
     c->playback.memblock_index = 0;
     c->dead = FALSE;
@@ -510,27 +507,27 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     pa_snprintf(cname, sizeof(cname), "Simple client (%s)", pname);
     pa_assert_se(c->client = pa_client_new(p->core, __FILE__, cname));
     pa_proplist_sets(c->client->proplist, "simple-protocol.peer", pname);
-    c->client->module = p->module;
+    c->client->module = o->module;
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
 
-    if (p->mode & PLAYBACK) {
+    if (o->playback) {
         pa_sink_input_new_data data;
         size_t l;
         pa_sink *sink;
 
-        if (!(sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, TRUE))) {
+        if (!(sink = pa_namereg_get(c->protocol->core, o->default_sink, PA_NAMEREG_SINK, TRUE))) {
             pa_log("Failed to get sink.");
             goto fail;
         }
 
         pa_sink_input_new_data_init(&data);
         data.driver = __FILE__;
-        data.module = p->module;
+        data.module = o->module;
         data.client = c->client;
         data.sink = sink;
         pa_proplist_update(data.proplist, PA_UPDATE_MERGE, c->client->proplist);
-        pa_sink_input_new_data_set_sample_spec(&data, &p->sample_spec);
+        pa_sink_input_new_data_set_sample_spec(&data, &o->sample_spec);
 
         c->sink_input = pa_sink_input_new(p->core, &data, 0);
         pa_sink_input_new_data_done(&data);
@@ -549,12 +546,12 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
 
         pa_sink_input_set_requested_latency(c->sink_input, DEFAULT_SINK_LATENCY);
 
-        l = (size_t) (pa_bytes_per_second(&p->sample_spec)*PLAYBACK_BUFFER_SECONDS);
+        l = (size_t) (pa_bytes_per_second(&o->sample_spec)*PLAYBACK_BUFFER_SECONDS);
         c->input_memblockq = pa_memblockq_new(
                 0,
                 l,
                 l,
-                pa_frame_size(&p->sample_spec),
+                pa_frame_size(&o->sample_spec),
                 (size_t) -1,
                 l/PLAYBACK_BUFFER_FRAGMENTS,
                 0,
@@ -566,23 +563,23 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
         pa_sink_input_put(c->sink_input);
     }
 
-    if (p->mode & RECORD) {
+    if (o->record) {
         pa_source_output_new_data data;
         size_t l;
         pa_source *source;
 
-        if (!(source = pa_namereg_get(c->protocol->core, c->protocol->source_name, PA_NAMEREG_SOURCE, TRUE))) {
+        if (!(source = pa_namereg_get(c->protocol->core, o->default_source, PA_NAMEREG_SOURCE, TRUE))) {
             pa_log("Failed to get source.");
             goto fail;
         }
 
         pa_source_output_new_data_init(&data);
         data.driver = __FILE__;
-        data.module = p->module;
+        data.module = o->module;
         data.client = c->client;
         data.source = source;
         pa_proplist_update(data.proplist, PA_UPDATE_MERGE, c->client->proplist);
-        pa_source_output_new_data_set_sample_spec(&data, &p->sample_spec);
+        pa_source_output_new_data_set_sample_spec(&data, &o->sample_spec);
 
         c->source_output = pa_source_output_new(p->core, &data, 0);
         pa_source_output_new_data_done(&data);
@@ -598,12 +595,12 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
 
         pa_source_output_set_requested_latency(c->source_output, DEFAULT_SOURCE_LATENCY);
 
-        l = (size_t) (pa_bytes_per_second(&p->sample_spec)*RECORD_BUFFER_SECONDS);
+        l = (size_t) (pa_bytes_per_second(&o->sample_spec)*RECORD_BUFFER_SECONDS);
         c->output_memblockq = pa_memblockq_new(
                 0,
                 l,
                 0,
-                pa_frame_size(&p->sample_spec),
+                pa_frame_size(&o->sample_spec),
                 1,
                 0,
                 0,
@@ -623,74 +620,137 @@ fail:
         connection_unlink(c);
 }
 
-pa_protocol_simple* pa_protocol_simple_new(pa_core *core, pa_socket_server *server, pa_module *m, pa_modargs *ma) {
-    pa_protocol_simple* p = NULL;
-    pa_bool_t enable;
+void pa_simple_protocol_disconnect(pa_simple_protocol *p, pa_module *m) {
+    connection *c;
+    void *state = NULL;
 
-    pa_assert(core);
-    pa_assert(server);
+    pa_assert(p);
     pa_assert(m);
-    pa_assert(ma);
 
-    p = pa_xnew0(pa_protocol_simple, 1);
-    p->module = m;
-    p->core = core;
-    p->server = pa_socket_server_ref(server);
-    p->connections = pa_idxset_new(NULL, NULL);
-
-    p->sample_spec = core->default_sample_spec;
-    if (pa_modargs_get_sample_spec(ma, &p->sample_spec) < 0) {
-        pa_log("Failed to parse sample type specification.");
-        goto fail;
-    }
-
-    p->source_name = pa_xstrdup(pa_modargs_get_value(ma, "source", NULL));
-    p->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
-
-    enable = FALSE;
-    if (pa_modargs_get_value_boolean(ma, "record", &enable) < 0) {
-        pa_log("record= expects a numeric argument.");
-        goto fail;
-    }
-    p->mode = enable ? RECORD : 0;
-
-    enable = TRUE;
-    if (pa_modargs_get_value_boolean(ma, "playback", &enable) < 0) {
-        pa_log("playback= expects a numeric argument.");
-        goto fail;
-    }
-    p->mode |= enable ? PLAYBACK : 0;
-
-    if ((p->mode & (RECORD|PLAYBACK)) == 0) {
-        pa_log("neither playback nor recording enabled for protocol.");
-        goto fail;
-    }
-
-    pa_socket_server_set_callback(p->server, on_connection, p);
-
-    return p;
-
-fail:
-    if (p)
-        pa_protocol_simple_free(p);
-
-    return NULL;
+    while ((c = pa_idxset_iterate(p->connections, &state, NULL)))
+        if (c->options->module == m)
+            connection_unlink(c);
 }
 
+static pa_simple_protocol* simple_protocol_new(pa_core *c) {
+    pa_simple_protocol *p;
 
-void pa_protocol_simple_free(pa_protocol_simple *p) {
+    pa_assert(c);
+
+    p = pa_xnew(pa_simple_protocol, 1);
+    PA_REFCNT_INIT(p);
+    p->core = c;
+    p->connections = pa_idxset_new(NULL, NULL);
+
+    pa_assert_se(pa_shared_set(c, "simple-protocol", p) >= 0);
+
+    return p;
+}
+
+pa_simple_protocol* pa_simple_protocol_get(pa_core *c) {
+    pa_simple_protocol *p;
+
+    if ((p = pa_shared_get(c, "simple-protocol")))
+        return pa_simple_protocol_ref(p);
+
+    return simple_protocol_new(c);
+}
+
+pa_simple_protocol* pa_simple_protocol_ref(pa_simple_protocol *p) {
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) >= 1);
+
+    PA_REFCNT_INC(p);
+
+    return p;
+}
+
+void pa_simple_protocol_unref(pa_simple_protocol *p) {
     connection *c;
     pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) >= 1);
 
-    if (p->connections) {
-        while((c = pa_idxset_first(p->connections, NULL)))
-            connection_unlink(c);
+    if (PA_REFCNT_DEC(p) > 0)
+        return;
 
-        pa_idxset_free(p->connections, NULL, NULL);
-    }
+    while ((c = pa_idxset_first(p->connections, NULL)))
+        connection_unlink(c);
 
-    if (p->server)
-        pa_socket_server_unref(p->server);
+    pa_idxset_free(p->connections, NULL, NULL);
+
+    pa_assert_se(pa_shared_remove(p->core, "simple-protocol") >= 0);
 
     pa_xfree(p);
+}
+
+pa_simple_options* pa_simple_options_new(void) {
+    pa_simple_options *o;
+
+    o = pa_xnew0(pa_simple_options, 1);
+    PA_REFCNT_INIT(o);
+
+    return o;
+}
+
+pa_simple_options* pa_simple_options_ref(pa_simple_options *o) {
+    pa_assert(o);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
+
+    PA_REFCNT_INC(o);
+
+    return o;
+}
+
+void pa_simple_options_unref(pa_simple_options *o) {
+    pa_assert(o);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
+
+    if (PA_REFCNT_DEC(o) > 0)
+        return;
+
+    pa_xfree(o->default_sink);
+    pa_xfree(o->default_source);
+
+    pa_xfree(o);
+}
+
+int pa_simple_options_parse(pa_simple_options *o, pa_core *c, pa_modargs *ma) {
+    pa_bool_t enabled;
+
+    pa_assert(o);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
+    pa_assert(ma);
+
+    o->sample_spec = c->default_sample_spec;
+    if (pa_modargs_get_sample_spec_and_channel_map(ma, &o->sample_spec, &o->channel_map, PA_CHANNEL_MAP_DEFAULT) < 0) {
+        pa_log("Failed to parse sample type specification.");
+        return -1;
+    }
+
+    pa_xfree(o->default_source);
+    o->default_source = pa_xstrdup(pa_modargs_get_value(ma, "source", NULL));
+
+    pa_xfree(o->default_sink);
+    o->default_sink = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
+
+    enabled = FALSE;
+    if (pa_modargs_get_value_boolean(ma, "record", &enabled) < 0) {
+        pa_log("record= expects a boolean argument.");
+        return -1;
+    }
+    o->record = enabled;
+
+    enabled = TRUE;
+    if (pa_modargs_get_value_boolean(ma, "playback", &enabled) < 0) {
+        pa_log("playback= expects a boolean argument.");
+        return -1;
+    }
+    o->playback = enabled;
+
+    if (!o->playback && !o->record) {
+        pa_log("neither playback nor recording enabled for protocol.");
+        return -1;
+    }
+
+    return 0;
 }

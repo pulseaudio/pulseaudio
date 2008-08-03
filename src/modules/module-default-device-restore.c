@@ -158,7 +158,7 @@ int pa__init(pa_module *m) {
 
     pa_assert(m);
 
-    u = pa_xnew0(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
 
     if (!(u->sink_filename = pa_state_path(DEFAULT_SINK_FILE)))

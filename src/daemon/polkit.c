@@ -54,6 +54,11 @@ int pa_polkit_check(const char *action_id) {
         goto finish;
     }
 
+    /* There seems to be a bug in some versions of D-Bus that causes
+     * dbus_shutdown() to call exit() when a connection without this
+     * flag disabled was created during runtime.*/
+    dbus_connection_set_exit_on_disconnect(bus, FALSE);
+
     if (!(caller = polkit_caller_new_from_pid(bus, getpid(), &dbus_error))) {
         pa_log_error("Cannot get caller from PID: %s", dbus_error.message);
         goto finish;

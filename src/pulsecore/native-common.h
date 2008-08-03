@@ -137,7 +137,7 @@ enum {
     PA_COMMAND_PLAYBACK_STREAM_MOVED,
     PA_COMMAND_RECORD_STREAM_MOVED,
 
-    /* Supported since protocol v13 (0.9.10) */
+    /* Supported since protocol v13 (0.9.11) */
     PA_COMMAND_UPDATE_RECORD_STREAM_PROPLIST,
     PA_COMMAND_UPDATE_PLAYBACK_STREAM_PROPLIST,
     PA_COMMAND_UPDATE_CLIENT_PROPLIST,
@@ -147,6 +147,9 @@ enum {
 
     /* SERVER->CLIENT */
     PA_COMMAND_STARTED,
+
+    /* Supported since protocol v14 (0.9.12) */
+    PA_COMMAND_EXTENSION,
 
     PA_COMMAND_MAX
 };
@@ -160,7 +163,6 @@ enum {
 #define PA_NATIVE_SERVER_PROPERTY_NAME "protocol-native-server"
 
 #define PA_NATIVE_DEFAULT_UNIX_SOCKET "native"
-
 
 PA_C_DECL_END
 

@@ -24,15 +24,49 @@
 ***/
 
 #include <pulsecore/core.h>
-#include <pulsecore/socket-server.h>
+#include <pulsecore/ipacl.h>
+#include <pulsecore/auth-cookie.h>
+#include <pulsecore/iochannel.h>
 #include <pulsecore/module.h>
 #include <pulsecore/modargs.h>
+#include <pulsecore/strlist.h>
+#include <pulsecore/hook-list.h>
+#include <pulsecore/pstream.h>
+#include <pulsecore/tagstruct.h>
 
-typedef struct pa_protocol_native pa_protocol_native;
+typedef struct pa_native_protocol pa_native_protocol;
 
-pa_protocol_native* pa_protocol_native_new(pa_core*core, pa_socket_server *server, pa_module *m, pa_modargs *ma);
-void pa_protocol_native_free(pa_protocol_native *n);
+typedef struct pa_native_options {
+    PA_REFCNT_DECLARE;
 
-pa_protocol_native* pa_protocol_native_new_iochannel(pa_core*core, pa_iochannel *io, pa_module *m, pa_modargs *ma);
+    pa_module *module;
+
+    pa_bool_t auth_anonymous;
+    char *auth_group;
+    pa_ip_acl *auth_ip_acl;
+    pa_auth_cookie *auth_cookie;
+
+} pa_native_options;
+
+pa_native_protocol* pa_native_protocol_get(pa_core *core);
+pa_native_protocol* pa_native_protocol_ref(pa_native_protocol *p);
+void pa_native_protocol_unref(pa_native_protocol *p);
+void pa_native_protocol_connect(pa_native_protocol *p, pa_iochannel *io, pa_native_options *a);
+void pa_native_protocol_disconnect(pa_native_protocol *p, pa_module *m);
+
+void pa_native_protocol_add_server_string(pa_native_protocol *p, const char *name);
+void pa_native_protocol_remove_server_string(pa_native_protocol *p, const char *name);
+
+pa_hook *pa_native_protocol_servers_changed(pa_native_protocol *p);
+pa_strlist *pa_native_protocol_servers(pa_native_protocol *p);
+
+typedef void (*pa_native_protocol_ext_cb_t)(pa_native_protocol *p, pa_module *m, pa_pstream *ps, uint32_t tag, pa_tagstruct *t);
+int pa_native_protocol_install_ext(pa_native_protocol *p, pa_module *m, pa_native_protocol_ext_cb_t cb);
+void pa_native_protocol_remove_ext(pa_native_protocol *p, pa_module *m);
+
+pa_native_options* pa_native_options_new(void);
+pa_native_options* pa_native_options_ref(pa_native_options *o);
+void pa_native_options_unref(pa_native_options *o);
+int pa_native_options_parse(pa_native_options *o, pa_core *c, pa_modargs *ma);
 
 #endif

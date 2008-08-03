@@ -27,112 +27,112 @@
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 
-#include "props.h"
+#include "shared.h"
 
-typedef struct pa_property {
-    char *name;  /* Points to memory allocated by the property subsystem */
+typedef struct pa_shared {
+    char *name;  /* Points to memory allocated by the shared property system */
     void *data;  /* Points to memory maintained by the caller */
-} pa_property;
+} pa_shared;
 
-/* Allocate a new property object */
-static pa_property* property_new(const char *name, void *data) {
-    pa_property* p;
+/* Allocate a new shared property object */
+static pa_shared* shared_new(const char *name, void *data) {
+    pa_shared* p;
 
     pa_assert(name);
     pa_assert(data);
 
-    p = pa_xnew(pa_property, 1);
+    p = pa_xnew(pa_shared, 1);
     p->name = pa_xstrdup(name);
     p->data = data;
 
     return p;
 }
 
-/* Free a property object */
-static void property_free(pa_property *p) {
+/* Free a shared property object */
+static void shared_free(pa_shared *p) {
     pa_assert(p);
 
     pa_xfree(p->name);
     pa_xfree(p);
 }
 
-void* pa_property_get(pa_core *c, const char *name) {
-    pa_property *p;
+void* pa_shared_get(pa_core *c, const char *name) {
+    pa_shared *p;
 
     pa_assert(c);
     pa_assert(name);
-    pa_assert(c->properties);
+    pa_assert(c->shared);
 
-    if (!(p = pa_hashmap_get(c->properties, name)))
+    if (!(p = pa_hashmap_get(c->shared, name)))
         return NULL;
 
     return p->data;
 }
 
-int pa_property_set(pa_core *c, const char *name, void *data) {
-    pa_property *p;
+int pa_shared_set(pa_core *c, const char *name, void *data) {
+    pa_shared *p;
 
     pa_assert(c);
     pa_assert(name);
     pa_assert(data);
-    pa_assert(c->properties);
+    pa_assert(c->shared);
 
-    if (pa_hashmap_get(c->properties, name))
+    if (pa_hashmap_get(c->shared, name))
         return -1;
 
-    p = property_new(name, data);
-    pa_hashmap_put(c->properties, p->name, p);
+    p = shared_new(name, data);
+    pa_hashmap_put(c->shared, p->name, p);
     return 0;
 }
 
-int pa_property_remove(pa_core *c, const char *name) {
-    pa_property *p;
+int pa_shared_remove(pa_core *c, const char *name) {
+    pa_shared *p;
 
     pa_assert(c);
     pa_assert(name);
-    pa_assert(c->properties);
+    pa_assert(c->shared);
 
-    if (!(p = pa_hashmap_remove(c->properties, name)))
+    if (!(p = pa_hashmap_remove(c->shared, name)))
         return -1;
 
-    property_free(p);
+    shared_free(p);
     return 0;
 }
 
-void pa_property_init(pa_core *c) {
+void pa_shared_init(pa_core *c) {
     pa_assert(c);
 
-    c->properties = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    c->shared = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 }
 
-void pa_property_cleanup(pa_core *c) {
+void pa_shared_cleanup(pa_core *c) {
     pa_assert(c);
 
-    if (!c->properties)
+    if (!c->shared)
         return;
 
-    pa_assert(!pa_hashmap_size(c->properties));
+    pa_assert(pa_hashmap_isempty(c->shared));
 
-    pa_hashmap_free(c->properties, NULL, NULL);
-    c->properties = NULL;
+    pa_hashmap_free(c->shared, NULL, NULL);
+    c->shared = NULL;
 
 }
 
-void pa_property_dump(pa_core *c, pa_strbuf *s) {
+void pa_shared_dump(pa_core *c, pa_strbuf *s) {
     void *state = NULL;
-    pa_property *p;
+    pa_shared *p;
 
     pa_assert(c);
     pa_assert(s);
 
-    while ((p = pa_hashmap_iterate(c->properties, &state, NULL)))
+    while ((p = pa_hashmap_iterate(c->shared, &state, NULL)))
         pa_strbuf_printf(s, "[%s] -> [%p]\n", p->name, p->data);
 }
 
-int pa_property_replace(pa_core *c, const char *name, void *data) {
+int pa_shared_replace(pa_core *c, const char *name, void *data) {
     pa_assert(c);
     pa_assert(name);
 
-    pa_property_remove(c, name);
-    return pa_property_set(c, name, data);
+    pa_shared_remove(c, name);
+    return pa_shared_set(c, name, data);
 }
