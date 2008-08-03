@@ -76,6 +76,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     m = pa_xnew(pa_module, 1);
     m->name = pa_xstrdup(name);
     m->argument = pa_xstrdup(argument);
+    m->load_once = FALSE;
 
     if (!(m->dl = lt_dlopenext(name))) {
         pa_log("Failed to open module \"%s\": %s", name, lt_dlerror());
@@ -84,7 +85,9 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
 
     if ((load_once = (pa_bool_t (*)(void)) pa_load_sym(m->dl, name, PA_SYMBOL_LOAD_ONCE))) {
 
-        if (load_once() && c->modules) {
+        m->load_once = load_once();
+
+        if (m->load_once && c->modules) {
             pa_module *i;
             uint32_t idx;
             /* OK, the module only wants to be loaded once, let's make sure it is */
