@@ -173,7 +173,7 @@ struct pa_native_protocol {
     pa_strlist *servers;
     pa_hook servers_changed;
 
-    /*     pa_hashmap *extensions; */
+    pa_hashmap *extensions;
 
 };
 
@@ -263,6 +263,7 @@ static void command_set_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, u
 static void command_update_stream_sample_rate(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_update_proplist(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_remove_proplist(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+static void command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = NULL,
@@ -353,6 +354,8 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REMOVE_RECORD_STREAM_PROPLIST] = command_remove_proplist,
     [PA_COMMAND_REMOVE_PLAYBACK_STREAM_PROPLIST] = command_remove_proplist,
     [PA_COMMAND_REMOVE_CLIENT_PROPLIST] = command_remove_proplist,
+
+    [PA_COMMAND_EXTENSION] = command_extension
 };
 
 /* structure management */
@@ -3837,6 +3840,43 @@ static void command_suspend(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
 
+static void command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    connection *c = CONNECTION(userdata);
+    uint32_t idx = PA_INVALID_INDEX;
+    const char *name = NULL;
+    pa_module *m;
+    pa_native_protocol_ext_cb_t cb;
+
+    connection_assert_ref(c);
+    pa_assert(t);
+
+    if (pa_tagstruct_getu32(t, &idx) < 0 ||
+        pa_tagstruct_gets(t, &name) < 0) {
+        protocol_error(c);
+        return;
+    }
+
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || !name || !*name || pa_utf8_valid(name), tag, PA_ERR_INVALID);
+
+    if (idx != PA_INVALID_INDEX)
+        m = pa_idxset_get_by_index(c->protocol->core->modules, idx);
+    else {
+        for (m = pa_idxset_first(c->protocol->core->modules, &idx); m; m = pa_idxset_next(c->protocol->core->modules, &idx))
+            if (strcmp(name, m->name) == 0)
+                break;
+    }
+
+    CHECK_VALIDITY(c->pstream, m, tag, PA_ERR_NOEXTENSION);
+    CHECK_VALIDITY(c->pstream, m->load_once || idx != PA_INVALID_INDEX, tag, PA_ERR_INVALID);
+
+    cb = (pa_native_protocol_ext_cb_t) pa_hashmap_get(c->protocol->extensions, m);
+    CHECK_VALIDITY(c->pstream, m, tag, PA_ERR_NOEXTENSION);
+
+    cb(c->protocol, m, c->pstream, tag, t);
+}
+
+
 /*** pstream callbacks ***/
 
 static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_creds *creds, void *userdata) {
@@ -4152,21 +4192,24 @@ pa_strlist *pa_native_protocol_servers(pa_native_protocol *p) {
     return p->servers;
 }
 
-/* int pa_native_protocol_install_extension(pa_native_protocol *p, pa_module *m, pa_native_protocol_extension_cb_t cb) { */
-/*     pa_assert(p); */
-/*     pa_assert(PA_REFCNT_VALUE(p) >= 1); */
-/*     pa_assert(m); */
-/*     pa_assert(cb); */
+int pa_native_protocol_install_ext(pa_native_protocol *p, pa_module *m, pa_native_protocol_ext_cb_t cb) {
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) >= 1);
+    pa_assert(m);
+    pa_assert(cb);
+    pa_assert(!pa_hashmap_get(p->extensions, m));
 
+    pa_assert_se(pa_hashmap_put(p->extensions, m, (void*) cb) == 0);
+    return 0;
+}
 
-/* } */
+void pa_native_protocol_remove_ext(pa_native_protocol *p, pa_module *m) {
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) >= 1);
+    pa_assert(m);
 
-/* void pa_native_protocol_remove_extension(pa_native_protocol *p, pa_module *m) { */
-/*     pa_assert(p); */
-/*     pa_assert(PA_REFCNT_VALUE(p) >= 1); */
-/*     pa_assert(m); */
-
-/* } */
+    pa_assert_se(pa_hashmap_remove(p->extensions, m));
+}
 
 pa_native_options* pa_native_options_new(void) {
     pa_native_options *o;

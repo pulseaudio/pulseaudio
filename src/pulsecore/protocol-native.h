@@ -31,6 +31,8 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/strlist.h>
 #include <pulsecore/hook-list.h>
+#include <pulsecore/pstream.h>
+#include <pulsecore/tagstruct.h>
 
 typedef struct pa_native_protocol pa_native_protocol;
 
@@ -58,9 +60,9 @@ void pa_native_protocol_remove_server_string(pa_native_protocol *p, const char *
 pa_hook *pa_native_protocol_servers_changed(pa_native_protocol *p);
 pa_strlist *pa_native_protocol_servers(pa_native_protocol *p);
 
-/* typedef void (*pa_native_protocol_extension_cb_t)(pa_native_protocol *p, pa_module *m, pa_pstream *p, uint32_t tag, pa_tagstruct *t); */
-/* int pa_native_protocol_install_extension(pa_native_protocol *p, pa_module *m, pa_native_protocol_extension_cb_t cb); */
-/* void pa_native_protocol_remove_extension(pa_native_protocol *p, pa_module *m); */
+typedef void (*pa_native_protocol_ext_cb_t)(pa_native_protocol *p, pa_module *m, pa_pstream *ps, uint32_t tag, pa_tagstruct *t);
+int pa_native_protocol_install_ext(pa_native_protocol *p, pa_module *m, pa_native_protocol_ext_cb_t cb);
+void pa_native_protocol_remove_ext(pa_native_protocol *p, pa_module *m);
 
 pa_native_options* pa_native_options_new(void);
 pa_native_options* pa_native_options_ref(pa_native_options *o);

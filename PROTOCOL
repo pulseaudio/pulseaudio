@@ -79,7 +79,7 @@ New opcodes for notifications:
  PA_COMMAND_PLAYBACK_STREAM_MOVED
  PA_COMMAND_CAPTURE_STREAM_MOVED
 
-### v13, implemented  by >= 0.9.11
+### v13, implemented by >= 0.9.11
 
 New fields for PA_COMMAND_CREATE_PLAYBACK_STREAM, PA_COMMAND_CREATE_RECORD_STREAM request at the end:
 
@@ -134,3 +134,9 @@ PA_COMMAND_SET_RECORD_STREAM_BUFFER_ATTR at the end:
 new message:
 
   PA_COMMAND_STARTED
+
+### v14, implemented by >= 0.9.12
+
+new message:
+
+  PA_COMMAND_EXTENSION
