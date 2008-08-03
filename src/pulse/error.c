@@ -57,7 +57,10 @@ const char*pa_strerror(int error) {
         [PA_ERR_BADSTATE] = "Bad state",
         [PA_ERR_NODATA] = "No data",
         [PA_ERR_VERSION] = "Incompatible protocol version",
-        [PA_ERR_TOOLARGE] = "Too large"
+        [PA_ERR_TOOLARGE] = "Too large",
+        [PA_ERR_NOTSUPPORTED] = "Not supported",
+        [PA_ERR_UNKNOWN] = "Unknown error code",
+        [PA_ERR_NOEXTENSION] = "No such extension"
     };
 
     if (error < 0 || error >= PA_ERR_MAX)

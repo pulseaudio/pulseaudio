@@ -352,6 +352,7 @@ enum {
     PA_ERR_TOOLARGE,               /**< Data too large */
     PA_ERR_NOTSUPPORTED,           /**< Operation not supported \since 0.9.5 */
     PA_ERR_UNKNOWN,                /**< The error code was unknown to the client */
+    PA_ERR_NOEXTENSION,            /**< Extension does not exist. \since 0.9.12 */
     PA_ERR_MAX                     /**< Not really an error but the first invalid error code */
 };
 
