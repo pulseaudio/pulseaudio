@@ -46,6 +46,9 @@
 #include <pulsecore/sink-input.h>
 #include <pulsecore/source-output.h>
 #include <pulsecore/namereg.h>
+#include <pulsecore/protocol-native.h>
+#include <pulsecore/pstream.h>
+#include <pulsecore/pstream-util.h>
 
 #include "module-stream-restore-symdef.h"
 
@@ -70,13 +73,17 @@ struct userdata {
     pa_hook_slot
         *sink_input_new_hook_slot,
         *sink_input_fixate_hook_slot,
-        *source_output_new_hook_slot;
+        *source_output_new_hook_slot,
+        *connection_unlink_hook_slot;
     pa_time_event *save_time_event;
     GDBM_FILE gdbm_file;
 
     pa_bool_t restore_device:1;
     pa_bool_t restore_volume:1;
     pa_bool_t restore_muted:1;
+
+    pa_native_protocol *protocol;
+    pa_idxset *subscribed;
 };
 
 struct entry {
@@ -84,6 +91,16 @@ struct entry {
     pa_channel_map channel_map;
     pa_cvolume volume;
     pa_bool_t muted:1;
+};
+
+
+enum {
+    SUBCOMMAND_TEST,
+    SUBCOMMAND_READ,
+    SUBCOMMAND_WRITE,
+    SUBCOMMAND_DELETE,
+    SUBCOMMAND_SUBSCRIBE,
+    SUBCOMMAND_EVENT
 };
 
 static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *tv, void *userdata) {
@@ -170,6 +187,32 @@ fail:
     return NULL;
 }
 
+static void trigger_save(struct userdata *u) {
+    struct timeval tv;
+    pa_native_connection *c;
+    uint32_t idx;
+
+    for (c = pa_idxset_first(u->subscribed, &idx); c; c = pa_idxset_next(u->subscribed, &idx)) {
+        pa_tagstruct *t;
+
+        t = pa_tagstruct_new(NULL, 0);
+        pa_tagstruct_putu32(t, PA_COMMAND_EXTENSION);
+        pa_tagstruct_putu32(t, 0);
+        pa_tagstruct_putu32(t, u->module->index);
+        pa_tagstruct_puts(t, u->module->name);
+        pa_tagstruct_putu32(t, SUBCOMMAND_EVENT);
+
+        pa_pstream_send_tagstruct(pa_native_connection_get_pstream(c), t);
+    }
+
+    if (u->save_time_event)
+        return;
+
+    pa_gettimeofday(&tv);
+    tv.tv_sec += SAVE_INTERVAL;
+    u->save_time_event = u->core->mainloop->time_new(u->core->mainloop, &tv, save_time_callback, u);
+}
+
 static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     struct userdata *u = userdata;
     struct entry entry, *old;
@@ -184,6 +227,8 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         t != (PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW) &&
         t != (PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE))
         return;
+
+    memset(&entry, 0, sizeof(entry));
 
     if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK_INPUT) {
         pa_sink_input *sink_input;
@@ -241,14 +286,9 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
     gdbm_store(u->gdbm_file, key, data, GDBM_REPLACE);
 
-    if (!u->save_time_event) {
-        struct timeval tv;
-        pa_gettimeofday(&tv);
-        tv.tv_sec += SAVE_INTERVAL;
-        u->save_time_event = u->core->mainloop->time_new(u->core->mainloop, &tv, save_time_callback, u);
-    }
-
     pa_xfree(name);
+
+    trigger_save(u);
 }
 
 static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_new_data *new_data, struct userdata *u) {
@@ -264,7 +304,6 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
         pa_sink *s;
 
         if (u->restore_device &&
-            e->device[0] &&
             (s = pa_namereg_get(c, e->device, PA_NAMEREG_SINK, TRUE))) {
 
             pa_log_info("Restoring device for stream %s.", name);
@@ -321,7 +360,6 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
         pa_source *s;
 
         if (u->restore_device &&
-            e->device[0] &&
             (s = pa_namereg_get(c, e->device, PA_NAMEREG_SOURCE, TRUE))) {
 
             pa_log_info("Restoring device for stream %s.", name);
@@ -333,6 +371,262 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
 
     pa_xfree(name);
 
+    return PA_HOOK_OK;
+}
+
+#define EXT_VERSION 1
+
+static void clear_db(struct userdata *u) {
+    datum key;
+
+    pa_assert(u);
+
+    key = gdbm_firstkey(u->gdbm_file);
+    while (key.dptr) {
+        datum next_key;
+        next_key = gdbm_nextkey(u->gdbm_file, key);
+
+        gdbm_delete(u->gdbm_file, key);
+        pa_xfree(key.dptr);
+
+        key = next_key;
+    }
+
+    gdbm_reorganize(u->gdbm_file);
+}
+
+static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
+    pa_sink_input *si;
+    pa_source_output *so;
+    uint32_t idx;
+
+    pa_assert(u);
+    pa_assert(name);
+    pa_assert(e);
+
+    for (si = pa_idxset_first(u->core->sink_inputs, &idx); si; si = pa_idxset_next(u->core->sink_inputs, &idx)) {
+        char *n;
+        pa_sink *s;
+
+        if (!(n = get_name(si->proplist, "sink_input")))
+            continue;
+
+        if (strcmp(name, n)) {
+            pa_xfree(n);
+            continue;
+        }
+
+        if (u->restore_volume) {
+            pa_log_info("Restoring volume for sink input %s.", name);
+            pa_sink_input_set_volume(si, pa_cvolume_remap(&e->volume, &e->channel_map, &si->channel_map));
+        }
+
+        if (u->restore_muted) {
+            pa_log_info("Restoring mute state for sink input %s.", name);
+            pa_sink_input_set_mute(si, e->muted);
+        }
+
+        if (u->restore_device &&
+            (s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SOURCE, TRUE))) {
+
+            pa_log_info("Restoring device for stream %s.", name);
+            pa_sink_input_move_to(si, s);
+        }
+    }
+
+    for (so = pa_idxset_first(u->core->source_outputs, &idx); so; so = pa_idxset_next(u->core->source_outputs, &idx)) {
+        char *n;
+        pa_source *s;
+
+        if (!(n = get_name(so->proplist, "source-output")))
+            continue;
+
+        if (strcmp(name, n)) {
+            pa_xfree(n);
+            continue;
+        }
+
+        if (u->restore_device &&
+            (s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SOURCE, TRUE))) {
+
+            pa_log_info("Restoring device for stream %s.", name);
+            pa_source_output_move_to(so, s);
+        }
+    }
+}
+
+static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connection *c, uint32_t tag, pa_tagstruct *t) {
+    struct userdata *u;
+    uint32_t command;
+    pa_tagstruct *reply;
+
+    pa_assert(p);
+    pa_assert(m);
+    pa_assert(c);
+    pa_assert(t);
+
+    u = m->userdata;
+
+    if (pa_tagstruct_getu32(t, &command) < 0)
+        goto fail;
+
+    reply = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
+    pa_tagstruct_putu32(reply, tag);
+
+    switch (command) {
+        case SUBCOMMAND_TEST: {
+            if (!pa_tagstruct_eof(t))
+                goto fail;
+
+            pa_tagstruct_putu32(reply, EXT_VERSION);
+            break;
+        }
+
+        case SUBCOMMAND_READ: {
+            datum key;
+
+            if (!pa_tagstruct_eof(t))
+                goto fail;
+
+            key = gdbm_firstkey(u->gdbm_file);
+            while (key.dptr) {
+                datum next_key;
+                struct entry *e;
+                char *name;
+
+                next_key = gdbm_nextkey(u->gdbm_file, key);
+
+                name = pa_xstrndup(key.dptr, key.dsize);
+                pa_xfree(key.dptr);
+
+                if ((e = read_entry(u, name))) {
+                    pa_tagstruct_puts(reply, name);
+                    pa_tagstruct_put_channel_map(reply, &e->channel_map);
+                    pa_tagstruct_put_cvolume(reply, &e->volume);
+                    pa_tagstruct_puts(reply, e->device);
+                    pa_tagstruct_put_boolean(reply, e->muted);
+
+                    pa_xfree(e);
+                }
+
+                pa_xfree(name);
+
+                key = next_key;
+            }
+
+            break;
+        }
+
+        case SUBCOMMAND_WRITE: {
+            uint32_t mode;
+            pa_bool_t apply_immediately;
+
+            if (pa_tagstruct_getu32(t, &mode) < 0 ||
+                pa_tagstruct_get_boolean(t, &apply_immediately) < 0)
+                goto fail;
+
+            if (mode != PA_UPDATE_MERGE &&
+                mode != PA_UPDATE_REPLACE &&
+                mode != PA_UPDATE_SET)
+                goto fail;
+
+            if (mode == PA_UPDATE_SET)
+                clear_db(u);
+
+            while (!pa_tagstruct_eof(t)) {
+                const char *name, *device;
+                pa_bool_t muted;
+                struct entry entry;
+                datum key, data;
+
+                memset(&entry, 0, sizeof(entry));
+
+                if (pa_tagstruct_gets(t, &name) < 0 ||
+                    pa_tagstruct_get_channel_map(t, &entry.channel_map) ||
+                    pa_tagstruct_get_cvolume(t, &entry.volume) < 0 ||
+                    pa_tagstruct_gets(t, &device) < 0 ||
+                    pa_tagstruct_get_boolean(t, &muted) < 0)
+                    goto fail;
+
+                if (entry.channel_map.channels != entry.volume.channels)
+                    goto fail;
+
+                entry.muted = muted;
+                pa_strlcpy(entry.device, device, sizeof(entry.device));
+
+                key.dptr = (void*) name;
+                key.dsize = strlen(name);
+
+                data.dptr = (void*) &entry;
+                data.dsize = sizeof(entry);
+
+                if (gdbm_store(u->gdbm_file, key, data, mode == PA_UPDATE_REPLACE ? GDBM_REPLACE : GDBM_INSERT) == 1)
+                    if (apply_immediately)
+                        apply_entry(u, name, &entry);
+            }
+
+            trigger_save(u);
+
+            break;
+        }
+
+        case SUBCOMMAND_DELETE:
+
+            while (!pa_tagstruct_eof(t)) {
+                const char *name;
+                datum key;
+
+                if (pa_tagstruct_gets(t, &name) < 0)
+                    goto fail;
+
+                key.dptr = (void*) name;
+                key.dsize = strlen(name);
+
+                gdbm_delete(u->gdbm_file, key);
+            }
+
+            trigger_save(u);
+
+            break;
+
+        case SUBCOMMAND_SUBSCRIBE: {
+
+            pa_bool_t enabled;
+
+            if (pa_tagstruct_get_boolean(t, &enabled) < 0 ||
+                !pa_tagstruct_eof(t))
+                goto fail;
+
+            if (enabled)
+                pa_idxset_put(u->subscribed, c, NULL);
+            else
+                pa_idxset_remove_by_data(u->subscribed, c, NULL);
+
+            break;
+        }
+
+        default:
+            goto fail;
+    }
+
+    pa_pstream_send_tagstruct(pa_native_connection_get_pstream(c), reply);
+    return 0;
+
+fail:
+
+    if (reply)
+        pa_tagstruct_free(reply);
+
+    return -1;
+}
+
+static pa_hook_result_t connection_unlink_hook_cb(pa_native_protocol *p, pa_native_connection *c, struct userdata *u) {
+    pa_assert(p);
+    pa_assert(c);
+    pa_assert(u);
+
+    pa_idxset_remove_by_data(u->subscribed, c, NULL);
     return PA_HOOK_OK;
 }
 
@@ -370,6 +664,13 @@ int pa__init(pa_module*m) {
     u->restore_device = restore_device;
     u->restore_volume = restore_volume;
     u->restore_muted = restore_muted;
+    u->gdbm_file = NULL;
+    u->subscribed = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+
+    u->protocol = pa_native_protocol_get(m->core);
+    pa_native_protocol_install_ext(u->protocol, m, extension_cb);
+
+    u->connection_unlink_hook_slot = pa_hook_connect(&pa_native_protocol_hooks(u->protocol)[PA_NATIVE_HOOK_CONNECTION_UNLINK], PA_HOOK_NORMAL, (pa_hook_cb_t) connection_unlink_hook_cb, u);
 
     u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK_INPUT|PA_SUBSCRIPTION_MASK_SOURCE_OUTPUT, subscribe_callback, u);
 
@@ -436,11 +737,22 @@ void pa__done(pa_module*m) {
     if (u->source_output_new_hook_slot)
         pa_hook_slot_free(u->source_output_new_hook_slot);
 
+    if (u->connection_unlink_hook_slot)
+        pa_hook_slot_free(u->connection_unlink_hook_slot);
+
     if (u->save_time_event)
         u->core->mainloop->time_free(u->save_time_event);
 
     if (u->gdbm_file)
         gdbm_close(u->gdbm_file);
+
+    if (u->protocol) {
+        pa_native_protocol_remove_ext(u->protocol, m);
+        pa_native_protocol_unref(u->protocol);
+    }
+
+    if (u->subscribed)
+        pa_idxset_free(u->subscribed, NULL, NULL);
 
     pa_xfree(u);
 }
