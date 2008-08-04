@@ -24,6 +24,8 @@
 
 #include <pulse/context.h>
 
+PA_C_DECL_BEGIN
+
 typedef struct pa_ext_stream_restore_info {
     const char *name;
     pa_channel_map channel_map;
@@ -82,5 +84,7 @@ void pa_ext_stream_restore_set_subscribe_cb(
         pa_context *c,
         pa_ext_stream_restore_subscribe_cb_t cb,
         void *userdata);
+
+PA_C_DECL_END
 
 #endif
