@@ -65,6 +65,7 @@ static const char* const valid_modargs[] = {
 
 struct userdata {
     pa_core *core;
+    pa_module *module;
     pa_subscription *subscription;
     pa_hook_slot
         *sink_input_new_hook_slot,
@@ -79,8 +80,9 @@ struct userdata {
 };
 
 struct entry {
-    pa_cvolume volume;
     char device[PA_NAME_MAX];
+    pa_channel_map channel_map;
+    pa_cvolume volume;
     pa_bool_t muted:1;
 };
 
@@ -146,7 +148,17 @@ static struct entry* read_entry(struct userdata *u, char *name) {
     }
 
     if (!(pa_cvolume_valid(&e->volume))) {
-        pa_log_warn("Invalid volume stored in database for device %s", name);
+        pa_log_warn("Invalid volume stored in database for stream %s", name);
+        goto fail;
+    }
+
+    if (!(pa_channel_map_valid(&e->channel_map))) {
+        pa_log_warn("Invalid channel map stored in database for stream %s", name);
+        goto fail;
+    }
+
+    if (e->volume.channels != e->channel_map.channels) {
+        pa_log_warn("Volume and channel map don't match in database entry for stream %s", name);
         goto fail;
     }
 
@@ -182,6 +194,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (!(name = get_name(sink_input->proplist, "sink-input")))
             return;
 
+        entry.channel_map = sink_input->channel_map;
         entry.volume = *pa_sink_input_get_volume(sink_input);
         entry.muted = pa_sink_input_get_mute(sink_input);
         pa_strlcpy(entry.device, sink_input->sink->name, sizeof(entry.device));
@@ -197,15 +210,16 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (!(name = get_name(source_output->proplist, "source-output")))
             return;
 
-        memset(&entry.volume, 0, sizeof(entry.volume));
-        entry.muted = FALSE;
-
+        /* The following fields are filled in to make the entry valid
+         * according to read_entry(). They are otherwise useless */
+        entry.channel_map = source_output->channel_map;
+        pa_cvolume_reset(&entry.volume, entry.channel_map.channels);
         pa_strlcpy(entry.device, source_output->source->name, sizeof(entry.device));
     }
 
     if ((old = read_entry(u, name))) {
 
-        if (pa_cvolume_equal(&old->volume, &entry.volume) &&
+        if (pa_cvolume_equal(pa_cvolume_remap(&old->volume, &old->channel_map, &entry.channel_map), &entry.volume) &&
             !old->muted == !entry.muted &&
             strcmp(old->device, entry.device) == 0) {
 
@@ -276,11 +290,9 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
 
     if ((e = read_entry(u, name))) {
 
-        if (u->restore_volume &&
-            e->volume.channels == new_data->sample_spec.channels) {
-
+        if (u->restore_volume) {
             pa_log_info("Restoring volume for sink input %s.", name);
-            pa_sink_input_new_data_set_volume(new_data, &e->volume);
+            pa_sink_input_new_data_set_volume(new_data, pa_cvolume_remap(&e->volume, &e->channel_map, &new_data->channel_map));
         }
 
         if (u->restore_muted) {
@@ -353,6 +365,7 @@ int pa__init(pa_module*m) {
 
     m->userdata = u = pa_xnew(struct userdata, 1);
     u->core = m->core;
+    u->module = m;
     u->save_time_event = NULL;
     u->restore_device = restore_device;
     u->restore_volume = restore_volume;
