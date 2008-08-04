@@ -82,6 +82,8 @@
 
 #define AUTOSPAWN_LOCK "autospawn.lock"
 
+void pa_command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+
 static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REQUEST] = pa_command_request,
     [PA_COMMAND_OVERFLOW] = pa_command_overflow_or_underflow,
@@ -93,7 +95,8 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_PLAYBACK_STREAM_SUSPENDED] = pa_command_stream_suspended,
     [PA_COMMAND_RECORD_STREAM_SUSPENDED] = pa_command_stream_suspended,
     [PA_COMMAND_STARTED] = pa_command_stream_started,
-    [PA_COMMAND_SUBSCRIBE_EVENT] = pa_command_subscribe_event
+    [PA_COMMAND_SUBSCRIBE_EVENT] = pa_command_subscribe_event,
+    [PA_COMMAND_EXTENSION] = pa_command_extension
 };
 
 static void unlock_autospawn_lock_file(pa_context *c) {
@@ -126,6 +129,9 @@ static void reset_callbacks(pa_context *c) {
 
     c->subscribe_callback = NULL;
     c->subscribe_userdata = NULL;
+
+    c->ext_stream_restore.callback = NULL;
+    c->ext_stream_restore.userdata = NULL;
 }
 
 pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *name, pa_proplist *p) {
@@ -1229,4 +1235,33 @@ pa_operation *pa_context_proplist_remove(pa_context *c, const char *const keys[]
      * don't export that field */
 
     return o;
+}
+
+void pa_command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_context *c = userdata;
+    uint32_t idx;
+    const char *name;
+
+    pa_assert(pd);
+    pa_assert(command == PA_COMMAND_EXTENSION);
+    pa_assert(t);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    pa_context_ref(c);
+
+    if (pa_tagstruct_getu32(t, &idx) < 0 ||
+        pa_tagstruct_gets(t, &name) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        goto finish;
+    }
+
+    if (!strcmp(name, "module-stream-restore"))
+        pa_ext_stream_restore_command(c, tag, t);
+    else
+        pa_log("Received message for unknown extension '%s'", name);
+
+finish:
+    pa_context_unref(c);
 }

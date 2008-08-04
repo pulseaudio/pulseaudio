@@ -61,7 +61,6 @@ finish:
     pa_context_unref(c);
 }
 
-
 pa_operation* pa_context_subscribe(pa_context *c, pa_subscription_mask_t m, pa_context_success_cb_t cb, void *userdata) {
     pa_operation *o;
     pa_tagstruct *t;

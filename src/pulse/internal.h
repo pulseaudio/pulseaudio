@@ -28,6 +28,7 @@
 #include <pulse/stream.h>
 #include <pulse/operation.h>
 #include <pulse/subscribe.h>
+#include <pulse/ext-stream-restore.h>
 
 #include <pulsecore/socket-client.h>
 #include <pulsecore/pstream.h>
@@ -86,6 +87,12 @@ struct pa_context {
     pa_client_conf *conf;
 
     uint32_t client_index;
+
+    /* Extension specific data */
+    struct {
+        pa_ext_stream_restore_subscribe_cb_t callback;
+        void *userdata;
+    } ext_stream_restore;
 };
 
 #define PA_MAX_WRITE_INDEX_CORRECTIONS 32
@@ -232,5 +239,7 @@ pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *ta
 } while(0)
 
 #define PA_CHECK_VALIDITY_RETURN_NULL(context, expression, error) PA_CHECK_VALIDITY_RETURN_ANY(context, expression, error, NULL)
+
+void pa_ext_stream_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t);
 
 #endif

@@ -479,7 +479,8 @@ pulseinclude_HEADERS = \
 		pulse/volume.h \
 		pulse/xmalloc.h \
 		pulse/proplist.h \
-		pulse/gccmacro.h
+		pulse/gccmacro.h \
+		pulse/ext-stream-restore.h
 
 if HAVE_AVAHI
 pulseinclude_HEADERS += \
@@ -530,7 +531,8 @@ libpulse_la_SOURCES = \
 		pulse/util.c pulse/util.h \
 		pulse/volume.c pulse/volume.h \
 		pulse/xmalloc.c pulse/xmalloc.h \
-		pulse/proplist.c pulse/proplist.h
+		pulse/proplist.c pulse/proplist.h \
+		pulse/ext-stream-restore.c pulse/ext-stream-restore.h
 
 # Internal stuff that is shared with libpulsecore
 libpulse_la_SOURCES += \
