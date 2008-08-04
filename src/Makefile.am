@@ -1611,7 +1611,7 @@ update-ffmpeg:
 update-map-file:
 	( echo "PULSE_0 {" ; \
 	  echo "global:" ; \
-	  ctags -I PA_GCC_PURE,PA_GCC_CONST -f - --c-kinds=p $(pulseinclude_HEADERS) | awk '/^pa_/ { print $$1 ";" }' | sort ; \
+	  ctags -I PA_GCC_PURE,PA_GCC_CONST,PA_GCC_DEPRECATED,PA_GCC_PRINTF_ATTR -f - --c-kinds=p $(pulseinclude_HEADERS) | awk '/^pa_/ { print $$1 ";" }' | sort ; \
 	  echo "local:" ;  \
 	  echo "*;" ; \
 	  echo "};" ) > $(srcdir)/map-file
