@@ -2432,6 +2432,8 @@ static void command_play_sample(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED ui
         return;
     }
 
+    pa_proplist_update(p, PA_UPDATE_MERGE, c->client->proplist);
+
     if (pa_scache_play_item(c->protocol->core, name, sink, volume, p, &idx) < 0) {
         pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
         pa_proplist_free(p);
