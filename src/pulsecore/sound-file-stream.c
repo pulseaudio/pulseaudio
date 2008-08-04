@@ -206,11 +206,8 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     file_stream *u;
 
     pa_sink_input_assert_ref(i);
-    pa_assert(nbytes > 0);
     u = FILE_STREAM(i->userdata);
     file_stream_assert_ref(u);
-
-    pa_log("backwards %lu", (unsigned long) nbytes);
 
     if (!u->memblockq)
         return;
