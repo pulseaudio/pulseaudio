@@ -1,7 +1,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2006 Lennart Poettering
+  Copyright 2006-2008 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -64,6 +64,7 @@ static const char* const valid_modargs[] = {
 
 struct userdata {
     pa_core *core;
+    pa_module *module;
     pa_subscription *subscription;
     pa_hook_slot
         *sink_fixate_hook_slot,
@@ -76,6 +77,7 @@ struct userdata {
 };
 
 struct entry {
+    pa_channel_map channel_map;
     pa_cvolume volume;
     pa_bool_t muted:1;
 };
@@ -123,6 +125,16 @@ static struct entry* read_entry(struct userdata *u, char *name) {
         goto fail;
     }
 
+    if (!(pa_channel_map_valid(&e->channel_map))) {
+        pa_log_warn("Invalid channel map stored in database for device %s", name);
+        goto fail;
+    }
+
+    if (e->volume.channels != e->channel_map.channels) {
+        pa_log_warn("Volume and channel map don't match in database entry for device %s", name);
+        goto fail;
+    }
+
     return e;
 
 fail:
@@ -153,6 +165,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
             return;
 
         name = pa_sprintf_malloc("sink:%s", sink->name);
+        entry.channel_map = sink->channel_map;
         entry.volume = *pa_sink_get_volume(sink);
         entry.muted = pa_sink_get_mute(sink);
 
@@ -165,13 +178,14 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
             return;
 
         name = pa_sprintf_malloc("source:%s", source->name);
+        entry.channel_map = source->channel_map;
         entry.volume = *pa_source_get_volume(source);
         entry.muted = pa_source_get_mute(source);
     }
 
     if ((old = read_entry(u, name))) {
 
-        if (pa_cvolume_equal(&old->volume, &entry.volume) &&
+        if (pa_cvolume_equal(pa_cvolume_remap(&old->volume, &old->channel_map, &entry.channel_map), &entry.volume) &&
             !old->muted == !entry.muted) {
 
             pa_xfree(old);
@@ -212,11 +226,9 @@ static pa_hook_result_t sink_fixate_hook_callback(pa_core *c, pa_sink_new_data *
 
     if ((e = read_entry(u, name))) {
 
-        if (u->restore_volume &&
-            e->volume.channels == new_data->sample_spec.channels) {
-
+        if (u->restore_volume) {
             pa_log_info("Restoring volume for sink %s.", new_data->name);
-            pa_sink_new_data_set_volume(new_data, &e->volume);
+            pa_sink_new_data_set_volume(new_data, pa_cvolume_remap(&e->volume, &e->channel_map, &new_data->channel_map));
         }
 
         if (u->restore_muted) {
@@ -242,11 +254,9 @@ static pa_hook_result_t source_fixate_hook_callback(pa_core *c, pa_source_new_da
 
     if ((e = read_entry(u, name))) {
 
-        if (u->restore_volume &&
-            e->volume.channels == new_data->sample_spec.channels) {
-
+        if (u->restore_volume) {
             pa_log_info("Restoring volume for source %s.", new_data->name);
-            pa_source_new_data_set_volume(new_data, &e->volume);
+            pa_source_new_data_set_volume(new_data, pa_cvolume_remap(&e->volume, &e->channel_map, &new_data->channel_map));
         }
 
         if (u->restore_muted) {
@@ -290,9 +300,11 @@ int pa__init(pa_module*m) {
 
     m->userdata = u = pa_xnew(struct userdata, 1);
     u->core = m->core;
+    u->module = m;
     u->save_time_event = NULL;
     u->restore_volume = restore_volume;
     u->restore_muted = restore_muted;
+    u->gdbm_file = NULL;
 
     u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK|PA_SUBSCRIPTION_MASK_SOURCE, subscribe_callback, u);
 
