@@ -210,11 +210,6 @@
 
 PA_C_DECL_BEGIN
 
-#define PA_PORT_DIGITAL "spdif"
-#define PA_PORT_ANALOG_STEREO "analog-stereo"
-#define PA_PORT_ANALOG_5_1 "analog-5-1"
-#define PA_PORT_ANALOG_4_0 "analog-4-0"
-
 /** @{ \name Sinks */
 
 /** Stores information about sinks. Please note that this structure
