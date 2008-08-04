@@ -752,7 +752,7 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
             return 0;
         }
 
-        case PA_SINK_INPUT_MESSAGE_GET_REQUESTED_LATENCY: {
+        case PA_SOURCE_OUTPUT_MESSAGE_GET_REQUESTED_LATENCY: {
             pa_usec_t *r = userdata;
 
             *r = o->thread_info.requested_source_latency;
