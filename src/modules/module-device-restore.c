@@ -143,6 +143,17 @@ fail:
     return NULL;
 }
 
+static void trigger_save(struct userdata *u) {
+    struct timeval tv;
+
+    if (u->save_time_event)
+        return;
+
+    pa_gettimeofday(&tv);
+    tv.tv_sec += SAVE_INTERVAL;
+    u->save_time_event = u->core->mainloop->time_new(u->core->mainloop, &tv, save_time_callback, u);
+}
+
 static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     struct userdata *u = userdata;
     struct entry entry, *old;
@@ -157,6 +168,8 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         t != (PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_NEW) &&
         t != (PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE))
         return;
+
+    memset(&entry, 0, sizeof(entry));
 
     if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK) {
         pa_sink *sink;
@@ -206,14 +219,9 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
     gdbm_store(u->gdbm_file, key, data, GDBM_REPLACE);
 
-    if (!u->save_time_event) {
-        struct timeval tv;
-        pa_gettimeofday(&tv);
-        tv.tv_sec += SAVE_INTERVAL;
-        u->save_time_event = u->core->mainloop->time_new(u->core->mainloop, &tv, save_time_callback, u);
-    }
-
     pa_xfree(name);
+
+    trigger_save(u);
 }
 
 static pa_hook_result_t sink_fixate_hook_callback(pa_core *c, pa_sink_new_data *new_data, struct userdata *u) {
