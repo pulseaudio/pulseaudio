@@ -188,7 +188,7 @@ pa_operation *pa_ext_stream_restore_write(
         pa_update_mode_t mode,
         const pa_ext_stream_restore_info data[],
         unsigned n,
-        pa_bool_t apply_immediately,
+        int apply_immediately,
         pa_context_success_cb_t cb,
         void *userdata) {
 
