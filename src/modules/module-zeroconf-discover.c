@@ -286,7 +286,7 @@ static void browser_cb(
         struct tunnel *t2;
 
         if ((t2 = pa_hashmap_get(u->tunnels, t))) {
-            pa_module_unload_by_index(u->core, t2->module_index);
+            pa_module_unload_by_index(u->core, t2->module_index, TRUE);
             pa_hashmap_remove(u->tunnels, t2);
             tunnel_free(t2);
         }
@@ -319,7 +319,7 @@ static void client_callback(AvahiClient *c, AvahiClientState state, void *userda
                               browser_cb, u))) {
 
                     pa_log("avahi_service_browser_new() failed: %s", avahi_strerror(avahi_client_errno(c)));
-                    pa_module_unload_request(u->module);
+                    pa_module_unload_request(u->module, TRUE);
                 }
             }
 
@@ -334,7 +334,7 @@ static void client_callback(AvahiClient *c, AvahiClientState state, void *userda
                               browser_cb, u))) {
 
                     pa_log("avahi_service_browser_new() failed: %s", avahi_strerror(avahi_client_errno(c)));
-                    pa_module_unload_request(u->module);
+                    pa_module_unload_request(u->module, TRUE);
                 }
             }
 
@@ -348,7 +348,7 @@ static void client_callback(AvahiClient *c, AvahiClientState state, void *userda
 
                 if (!(u->client = avahi_client_new(u->avahi_poll, AVAHI_CLIENT_NO_FAIL, client_callback, u, &error))) {
                     pa_log("avahi_client_new() failed: %s", avahi_strerror(error));
-                    pa_module_unload_request(u->module);
+                    pa_module_unload_request(u->module, TRUE);
                 }
             }
 
@@ -427,7 +427,7 @@ void pa__done(pa_module*m) {
         struct tunnel *t;
 
         while ((t = pa_hashmap_steal_first(u->tunnels))) {
-            pa_module_unload_by_index(u->core, t->module_index);
+            pa_module_unload_by_index(u->core, t->module_index, TRUE);
             tunnel_free(t);
         }
 

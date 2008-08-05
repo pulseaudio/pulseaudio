@@ -53,7 +53,7 @@ static void eof_and_unload_cb(pa_cli*c, void *userdata) {
     pa_assert(c);
     pa_assert(m);
 
-    pa_module_unload_request(m);
+    pa_module_unload_request(m, TRUE);
 }
 
 static void eof_and_exit_cb(pa_cli*c, void *userdata) {

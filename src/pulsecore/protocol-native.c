@@ -3568,7 +3568,7 @@ static void command_unload_module(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED 
     m = pa_idxset_get_by_index(c->protocol->core->modules, idx);
     CHECK_VALIDITY(c->pstream, m, tag, PA_ERR_NOENTITY);
 
-    pa_module_unload_request(m);
+    pa_module_unload_request(m, FALSE);
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
 

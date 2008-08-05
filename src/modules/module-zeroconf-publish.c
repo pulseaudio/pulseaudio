@@ -539,7 +539,7 @@ static void client_callback(AvahiClient *c, AvahiClientState state, void *userda
 
                 if (!(u->client = avahi_client_new(u->avahi_poll, AVAHI_CLIENT_NO_FAIL, client_callback, u, &error))) {
                     pa_log("avahi_client_new() failed: %s", avahi_strerror(error));
-                    pa_module_unload_request(u->module);
+                    pa_module_unload_request(u->module, TRUE);
                 }
             }
 

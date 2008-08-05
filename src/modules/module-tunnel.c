@@ -231,7 +231,7 @@ static void command_stream_killed(pa_pdispatch *pd,  uint32_t command,  uint32_t
     pa_assert(u->pdispatch == pd);
 
     pa_log_warn("Stream killed");
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
 }
 
 /* Called from main context */
@@ -262,7 +262,7 @@ static void command_suspended(pa_pdispatch *pd,  uint32_t command,  uint32_t tag
         pa_tagstruct_get_boolean(t, &suspended) < 0 ||
         !pa_tagstruct_eof(t)) {
         pa_log("Invalid packet");
-        pa_module_unload_request(u->module);
+        pa_module_unload_request(u->module, TRUE);
         return;
     }
 
@@ -652,7 +652,7 @@ static void command_request(pa_pdispatch *pd, uint32_t command,  uint32_t tag, p
     return;
 
 fail:
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
 }
 
 #endif
@@ -765,7 +765,7 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, uint
 
 fail:
 
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
 }
 
 /* Called from main context */
@@ -902,7 +902,7 @@ static void server_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa
     return;
 
 fail:
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
 }
 
 #ifdef TUNNEL_SINK
@@ -979,7 +979,7 @@ static void sink_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa_t
     return;
 
 fail:
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
     pa_proplist_free(pl);
 }
 
@@ -1066,7 +1066,7 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag
     return;
 
 fail:
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
     pa_proplist_free(pl);
 }
 
@@ -1142,7 +1142,7 @@ static void source_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa
     return;
 
 fail:
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
     pa_proplist_free(pl);
 }
 
@@ -1204,7 +1204,7 @@ static void command_subscribe_event(pa_pdispatch *pd,  uint32_t command,  uint32
     if (pa_tagstruct_getu32(t, &e) < 0 ||
         pa_tagstruct_getu32(t, &idx) < 0) {
         pa_log("Invalid protocol reply");
-        pa_module_unload_request(u->module);
+        pa_module_unload_request(u->module, TRUE);
         return;
     }
 
@@ -1344,7 +1344,7 @@ parse_error:
     pa_log("Invalid reply. (Create stream)");
 
 fail:
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
 
 }
 
@@ -1502,7 +1502,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     return;
 
 fail:
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
 }
 
 /* Called from main context */
@@ -1513,7 +1513,7 @@ static void pstream_die_callback(pa_pstream *p, void *userdata) {
     pa_assert(u);
 
     pa_log_warn("Stream died.");
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
 }
 
 /* Called from main context */
@@ -1526,7 +1526,7 @@ static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_c
 
     if (pa_pdispatch_run(u->pdispatch, packet, creds, u) < 0) {
         pa_log("Invalid packet");
-        pa_module_unload_request(u->module);
+        pa_module_unload_request(u->module, TRUE);
         return;
     }
 }
@@ -1542,7 +1542,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
 
     if (channel != u->channel) {
         pa_log("Recieved memory block on bad channel.");
-        pa_module_unload_request(u->module);
+        pa_module_unload_request(u->module, TRUE);
         return;
     }
 
@@ -1568,7 +1568,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
 
     if (!io) {
         pa_log("Connection failed: %s", pa_cstrerror(errno));
-        pa_module_unload_request(u->module);
+        pa_module_unload_request(u->module, TRUE);
         return;
     }
 

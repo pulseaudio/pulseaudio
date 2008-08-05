@@ -99,7 +99,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_sink_input_unref(u->sink_input);
     u->sink_input = NULL;
 
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
 }
 
 /* Called from IO thread context */

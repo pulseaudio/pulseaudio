@@ -178,7 +178,7 @@ fail:
     u->module->core->mainloop->io_free(u->io);
     u->io = NULL;
 
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
 
     pa_xfree(code);
 }

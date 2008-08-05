@@ -142,7 +142,7 @@ static void unload_one_module(struct userdata *u, struct module_info*m, unsigned
         return;
 
     pa_log_debug("Unloading module #%i", m->items[i].index);
-    pa_module_unload_by_index(u->core, m->items[i].index);
+    pa_module_unload_by_index(u->core, m->items[i].index, TRUE);
     m->items[i].index = PA_INVALID_INDEX;
     pa_xfree(m->items[i].name);
     pa_xfree(m->items[i].args);
@@ -324,7 +324,7 @@ static void io_event_cb(
             u->io_event = NULL;
         }
 
-        pa_module_unload_request(u->module);
+        pa_module_unload_request(u->module, TRUE);
     }
 }
 

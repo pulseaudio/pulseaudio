@@ -479,7 +479,7 @@ static void io_callback(PA_GCC_UNUSED pa_iochannel *io, void*userdata) {
             u->io = NULL;
         }
 
-       pa_module_unload_request(u->module);
+        pa_module_unload_request(u->module, TRUE);
     }
 }
 
@@ -491,7 +491,7 @@ static void on_connection(PA_GCC_UNUSED pa_socket_client *c, pa_iochannel*io, vo
 
     if (!io) {
         pa_log("Connection failed: %s", pa_cstrerror(errno));
-        pa_module_unload_request(u->module);
+        pa_module_unload_request(u->module, TRUE);
         return;
     }
 

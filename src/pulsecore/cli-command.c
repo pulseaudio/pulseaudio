@@ -415,7 +415,7 @@ static int pa_cli_command_unload(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa
         return -1;
     }
 
-    pa_module_unload_request(m);
+    pa_module_unload_request(m, FALSE);
     return 0;
 }
 

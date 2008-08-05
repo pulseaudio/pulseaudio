@@ -159,7 +159,7 @@ fail:
     u->module->core->mainloop->io_free(u->io);
     u->io = NULL;
 
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
 }
 
 #define test_bit(bit, array) (array[bit/8] & (1<<(bit%8)))

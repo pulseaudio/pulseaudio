@@ -489,7 +489,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert(o = i->userdata);
 
-    pa_module_unload_request(o->userdata->module);
+    pa_module_unload_request(o->userdata->module, TRUE);
     output_free(o);
 }
 

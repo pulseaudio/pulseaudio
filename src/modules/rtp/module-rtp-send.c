@@ -139,7 +139,7 @@ static void source_output_kill(pa_source_output* o) {
     pa_source_output_assert_ref(o);
     pa_assert_se(u = o->userdata);
 
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
 
     pa_source_output_unlink(u->source_output);
     pa_source_output_unref(u->source_output);

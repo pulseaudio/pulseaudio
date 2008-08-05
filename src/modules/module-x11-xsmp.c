@@ -77,7 +77,7 @@ static void die_cb(SmcConn connection, SmPointer client_data){
     pa_x11_wrapper_unref(u->x11);
     u->x11 = NULL;
 
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
 }
 
 static void save_complete_cb(SmcConn connection, SmPointer client_data) {

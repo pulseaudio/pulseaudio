@@ -106,7 +106,7 @@ static void x11_kill_cb(pa_x11_wrapper *w, void *userdata) {
     u->x11_client = NULL;
     u->x11_wrapper = NULL;
 
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
 }
 
 int pa__init(pa_module*m) {

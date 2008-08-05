@@ -256,7 +256,7 @@ int pa__init(pa_module*m) {
     pa_log_info("loaded %i modules.", n);
 
     /* We were successful and can unload ourselves now. */
-    pa_module_unload_request(m);
+    pa_module_unload_request(m, TRUE);
 
     pa_modargs_free(ma);
 
