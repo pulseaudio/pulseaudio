@@ -1251,8 +1251,7 @@ void pa_command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_t
     pa_context_ref(c);
 
     if (pa_tagstruct_getu32(t, &idx) < 0 ||
-        pa_tagstruct_gets(t, &name) < 0 ||
-        !pa_tagstruct_eof(t)) {
+        pa_tagstruct_gets(t, &name) < 0) {
         pa_context_fail(c, PA_ERR_PROTOCOL);
         goto finish;
     }
