@@ -85,7 +85,6 @@ pa_operation *pa_ext_stream_restore_test(
 
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
-    pa_assert(cb);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 14, PA_ERR_NOTSUPPORTED);
@@ -166,7 +165,6 @@ pa_operation *pa_ext_stream_restore_read(
 
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
-    pa_assert(cb);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 14, PA_ERR_NOTSUPPORTED);
@@ -200,7 +198,6 @@ pa_operation *pa_ext_stream_restore_write(
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
     pa_assert(mode == PA_UPDATE_MERGE || mode == PA_UPDATE_REPLACE || mode == PA_UPDATE_SET);
     pa_assert(data);
-    pa_assert(cb);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 14, PA_ERR_NOTSUPPORTED);
@@ -243,7 +240,6 @@ pa_operation *pa_ext_stream_restore_delete(
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
     pa_assert(s);
-    pa_assert(cb);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 14, PA_ERR_NOTSUPPORTED);
@@ -276,7 +272,6 @@ pa_operation *pa_ext_stream_restore_subscribe(
 
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
-    pa_assert(cb);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 14, PA_ERR_NOTSUPPORTED);
