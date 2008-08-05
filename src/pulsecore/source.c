@@ -260,7 +260,7 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
 
         for (o = PA_SOURCE_OUTPUT(pa_idxset_first(s->outputs, &idx)); o; o = PA_SOURCE_OUTPUT(pa_idxset_next(s->outputs, &idx)))
             if (o->suspend)
-                o->suspend(o, state == PA_SINK_SUSPENDED);
+                o->suspend(o, state == PA_SOURCE_SUSPENDED);
     }
 
     if (state != PA_SOURCE_UNLINKED) /* if we enter UNLINKED state pa_source_unlink() will fire the apropriate events */
@@ -273,7 +273,7 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
 void pa_source_put(pa_source *s) {
     pa_source_assert_ref(s);
 
-    pa_assert(s->state == PA_SINK_INIT);
+    pa_assert(s->state == PA_SOURCE_INIT);
 
     /* The following fields must be initialized properly when calling _put() */
     pa_assert(s->asyncmsgq);
@@ -932,7 +932,7 @@ void pa_source_set_latency_range(pa_source *s, pa_usec_t min_latency, pa_usec_t 
     pa_assert(!min_latency || !max_latency ||
               min_latency <= max_latency);
 
-    if (PA_SINK_IS_LINKED(s->state)) {
+    if (PA_SOURCE_IS_LINKED(s->state)) {
         pa_usec_t r[2];
 
         r[0] = min_latency;
