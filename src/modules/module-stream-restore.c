@@ -455,6 +455,38 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
     }
 }
 
+#if 0
+static void dump_database(struct userdata *u) {
+    datum key;
+
+    key = gdbm_firstkey(u->gdbm_file);
+    while (key.dptr) {
+        datum next_key;
+        struct entry *e;
+        char *name;
+
+        next_key = gdbm_nextkey(u->gdbm_file, key);
+
+        name = pa_xstrndup(key.dptr, key.dsize);
+        pa_xfree(key.dptr);
+
+        if ((e = read_entry(u, name))) {
+            char t[256];
+            pa_log("name=%s", name);
+            pa_log("device=%s", e->device);
+            pa_log("channel_map=%s", pa_channel_map_snprint(t, sizeof(t), &e->channel_map));
+            pa_log("volume=%s", pa_cvolume_snprint(t, sizeof(t), &e->volume));
+            pa_log("mute=%s", pa_yes_no(e->muted));
+            pa_xfree(e);
+        }
+
+        pa_xfree(name);
+
+        key = next_key;
+    }
+}
+#endif
+
 static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connection *c, uint32_t tag, pa_tagstruct *t) {
     struct userdata *u;
     uint32_t command;
