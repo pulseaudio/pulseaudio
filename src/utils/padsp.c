@@ -2250,7 +2250,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             for (;;) {
                 pa_usec_t usec;
 
-                PLAYBACK_STREAM_CHECK_DEAD_GOTO(i, exit_loop);
+                PLAYBACK_STREAM_CHECK_DEAD_GOTO(i, exit_loop2);
 
                 if (pa_stream_get_time(i->play_stream, &usec) >= 0) {
                     size_t k = pa_usec_to_bytes(usec, &i->sample_spec);
@@ -2271,6 +2271,8 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
 
                 pa_threaded_mainloop_wait(i->mainloop);
             }
+
+        exit_loop2:
 
             pa_threaded_mainloop_unlock(i->mainloop);
 
