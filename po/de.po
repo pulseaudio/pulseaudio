@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-08-06 20:03+0200\n"
-"PO-Revision-Date: 2008-08-06 20:08+0100\n"
+"POT-Creation-Date: 2008-08-06 20:24+0200\n"
+"PO-Revision-Date: 2008-08-06 20:26+0100\n"
 "Last-Translator: Lennart Poettering <lennart@poettering.net>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -81,7 +81,7 @@ msgstr ""
 #: ../src/daemon/main.c:135
 #, c-format
 msgid "Got signal %s."
-msgstr ""
+msgstr "Signal %s empfangen."
 
 #: ../src/daemon/main.c:162
 msgid "Exiting."
@@ -265,11 +265,11 @@ msgstr ""
 
 #: ../src/daemon/main.c:699
 msgid "Daemon startup failed."
-msgstr ""
+msgstr "Start des Dämons fehlgeschlagen."
 
 #: ../src/daemon/main.c:701
 msgid "Daemon startup successful."
-msgstr ""
+msgstr "Start des Dämons erfolgreich."
 
 #: ../src/daemon/main.c:768
 #, c-format
@@ -758,7 +758,7 @@ msgid "Top Rear Center"
 msgstr "Oben Hinten Mitte"
 
 #: ../src/pulse/channelmap.c:160
-msgid "Top Rear left"
+msgid "Top Rear Left"
 msgstr "Oben Hinten Links"
 
 #: ../src/pulse/channelmap.c:161
