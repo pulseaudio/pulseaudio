@@ -50,7 +50,6 @@
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/log.h>
 #include <pulsecore/autoload.h>
-#include <pulsecore/authkey-prop.h>
 #include <pulsecore/strlist.h>
 #include <pulsecore/shared.h>
 #include <pulsecore/sample-util.h>
