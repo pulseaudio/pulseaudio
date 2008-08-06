@@ -157,7 +157,7 @@ const char *const pretty_table[PA_CHANNEL_POSITION_MAX] = {
     [PA_CHANNEL_POSITION_TOP_FRONT_RIGHT] = N_("Top Front Right"),
 
     [PA_CHANNEL_POSITION_TOP_REAR_CENTER] = N_("Top Rear Center"),
-    [PA_CHANNEL_POSITION_TOP_REAR_LEFT] = N_("Top Rear left"),
+    [PA_CHANNEL_POSITION_TOP_REAR_LEFT] = N_("Top Rear Left"),
     [PA_CHANNEL_POSITION_TOP_REAR_RIGHT] = N_("Top Rear Right")
 };
 
