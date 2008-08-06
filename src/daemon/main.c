@@ -635,6 +635,22 @@ int main(int argc, char *argv[]) {
         goto finish;
     }
 
+    if (conf->system_instance && !conf->disallow_exit)
+        pa_log_warn(_("Running in system mode, but --disallow-exit not set!"));
+
+    if (conf->system_instance && !conf->disallow_module_loading)
+        pa_log_warn(_("Running in system mode, but --disallow-module-loading not set!"));
+
+    if (conf->system_instance && !conf->disable_shm) {
+        pa_log_notice(_("Running in system mode, forcibly disabling SHM mode!"));
+        conf->disable_shm = TRUE;
+    }
+
+    if (conf->system_instance && conf->exit_idle_time > 0) {
+        pa_log_notice(_("Running in system mode, forcibly disabling exit idle time!"));
+        conf->exit_idle_time = 0;
+    }
+
     if (conf->cmd == PA_CMD_START) {
         /* If we shall start PA only when it is not running yet, we
          * first take the autospawn lock to make things
