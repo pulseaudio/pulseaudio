@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-08-06 20:24+0200\n"
-"PO-Revision-Date: 2008-08-06 20:26+0100\n"
+"PO-Revision-Date: 2008-08-06 20:34+0100\n"
 "Last-Translator: Lennart Poettering <lennart@poettering.net>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -771,91 +771,91 @@ msgstr ""
 
 #: ../src/pulse/error.c:44
 msgid "Access denied"
-msgstr ""
+msgstr "Zugriff abgelehnt"
 
 #: ../src/pulse/error.c:45
 msgid "Unknown command"
-msgstr ""
+msgstr "Unbekannter Befehl"
 
 #: ../src/pulse/error.c:46
 msgid "Invalid argument"
-msgstr ""
+msgstr "Ungültiges Argument"
 
 #: ../src/pulse/error.c:47
 msgid "Entity exists"
-msgstr ""
+msgstr "Entität existiert bereits"
 
 #: ../src/pulse/error.c:48
 msgid "No such entity"
-msgstr ""
+msgstr "Keine Entität vorhanden"
 
 #: ../src/pulse/error.c:49
 msgid "Connection refused"
-msgstr ""
+msgstr "Verbindung zurückgewiesen"
 
 #: ../src/pulse/error.c:50
 msgid "Protocol error"
-msgstr ""
+msgstr "Protokollfehler"
 
 #: ../src/pulse/error.c:51
 msgid "Timeout"
-msgstr ""
+msgstr "Zeitüberschreitung"
 
 #: ../src/pulse/error.c:52
 msgid "No authorization key"
-msgstr ""
+msgstr "Kein Authorisierungsschlüssel vorhanden"
 
 #: ../src/pulse/error.c:53
 msgid "Internal error"
-msgstr ""
+msgstr "Interner Fehler"
 
 #: ../src/pulse/error.c:54
 msgid "Connection terminated"
-msgstr ""
+msgstr "Verbindung beendet"
 
 #: ../src/pulse/error.c:55
 msgid "Entity killed"
-msgstr ""
+msgstr "Entität terminiert."
 
 #: ../src/pulse/error.c:56
 msgid "Invalid server"
-msgstr ""
+msgstr "Ungültiger Server"
 
 #: ../src/pulse/error.c:57
 msgid "Module initalization failed"
-msgstr ""
+msgstr "Modulinitialisierung fehlgeschlagen"
 
 #: ../src/pulse/error.c:58
 msgid "Bad state"
-msgstr ""
+msgstr "Ungültiger Zustand"
 
 #: ../src/pulse/error.c:59
 msgid "No data"
-msgstr ""
+msgstr "Keine Daten vorhanden"
 
 #: ../src/pulse/error.c:60
 msgid "Incompatible protocol version"
-msgstr ""
+msgstr "Inkompatible Protokollversion"
 
 #: ../src/pulse/error.c:61
 msgid "Too large"
-msgstr ""
+msgstr "Zu groß"
 
 #: ../src/pulse/error.c:62
 msgid "Not supported"
-msgstr ""
+msgstr "Nicht unterstützt"
 
 #: ../src/pulse/error.c:63
 msgid "Unknown error code"
-msgstr ""
+msgstr "Unbekannter Fehlercode"
 
 #: ../src/pulse/error.c:64
 msgid "No such extension"
-msgstr ""
+msgstr "Erweiterung nicht vorhanden"
 
 #: ../src/pulse/sample.c:134
 msgid "Invalid"
-msgstr ""
+msgstr "Ungültig"
 
 #: ../src/pulse/client-conf-x11.c:55
 #: ../src/utils/pax11publish.c:100
