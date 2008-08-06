@@ -63,6 +63,7 @@ static const pa_daemon_conf default_conf = {
     .realtime_scheduling = FALSE,
     .realtime_priority = 5,  /* Half of JACK's default rtprio */
     .disallow_module_loading = FALSE,
+    .disallow_exit = FALSE,
     .exit_idle_time = 20,
     .module_idle_time = 20,
     .scache_idle_time = 20,
@@ -403,6 +404,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "high-priority",              pa_config_parse_bool,     NULL },
         { "realtime-scheduling",        pa_config_parse_bool,     NULL },
         { "disallow-module-loading",    pa_config_parse_bool,     NULL },
+        { "disallow-exit",              pa_config_parse_bool,     NULL },
         { "use-pid-file",               pa_config_parse_bool,     NULL },
         { "system-instance",            pa_config_parse_bool,     NULL },
         { "no-cpu-limit",               pa_config_parse_bool,     NULL },
@@ -466,17 +468,17 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     table[2].data = &c->high_priority;
     table[3].data = &c->realtime_scheduling;
     table[4].data = &c->disallow_module_loading;
-    table[5].data = &c->use_pid_file;
-    table[6].data = &c->system_instance;
-    table[7].data = &c->no_cpu_limit;
-    table[8].data = &c->disable_shm;
-    table[9].data = &c->exit_idle_time;
-    table[10].data = &c->module_idle_time;
-    table[11].data = &c->scache_idle_time;
-    table[12].data = c;
-    table[13].data = &c->dl_search_path;
-    table[14].data = &c->default_script_file;
-    table[15].data = c;
+    table[5].data = &c->disallow_exit;
+    table[6].data = &c->use_pid_file;
+    table[7].data = &c->system_instance;
+    table[8].data = &c->no_cpu_limit;
+    table[9].data = &c->disable_shm;
+    table[10].data = &c->exit_idle_time;
+    table[11].data = &c->module_idle_time;
+    table[12].data = &c->scache_idle_time;
+    table[13].data = c;
+    table[14].data = &c->dl_search_path;
+    table[15].data = &c->default_script_file;
     table[16].data = c;
     table[17].data = c;
     table[18].data = c;
@@ -486,67 +488,68 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     table[22].data = c;
     table[23].data = c;
     table[24].data = c;
-    table[25].data = &c->disable_remixing;
-    table[26].data = &c->load_default_script_file;
+    table[25].data = c;
+    table[26].data = &c->disable_remixing;
+    table[27].data = &c->load_default_script_file;
 #ifdef HAVE_SYS_RESOURCE_H
-    table[27].data = &c->rlimit_fsize;
-    table[28].data = &c->rlimit_data;
-    table[29].data = &c->rlimit_stack;
-    table[30].data = &c->rlimit_as;
-    table[31].data = &c->rlimit_core;
-    table[32].data = &c->rlimit_nofile;
-    table[33].data = &c->rlimit_as;
+    table[28].data = &c->rlimit_fsize;
+    table[29].data = &c->rlimit_data;
+    table[30].data = &c->rlimit_stack;
+    table[31].data = &c->rlimit_as;
+    table[32].data = &c->rlimit_core;
+    table[33].data = &c->rlimit_nofile;
+    table[34].data = &c->rlimit_as;
 #ifdef RLIMIT_NPROC
-    table[34].data = &c->rlimit_nproc;
+    table[35].data = &c->rlimit_nproc;
 #endif
 
 #ifdef RLIMIT_MEMLOCK
 #ifndef RLIMIT_NPROC
 #error "Houston, we have a numbering problem!"
 #endif
-    table[35].data = &c->rlimit_memlock;
+    table[36].data = &c->rlimit_memlock;
 #endif
 
 #ifdef RLIMIT_LOCKS
 #ifndef RLIMIT_MEMLOCK
 #error "Houston, we have a numbering problem!"
 #endif
-    table[36].data = &c->rlimit_locks;
+    table[37].data = &c->rlimit_locks;
 #endif
 
 #ifdef RLIMIT_SIGPENDING
 #ifndef RLIMIT_LOCKS
 #error "Houston, we have a numbering problem!"
 #endif
-    table[37].data = &c->rlimit_sigpending;
+    table[38].data = &c->rlimit_sigpending;
 #endif
 
 #ifdef RLIMIT_MSGQUEUE
 #ifndef RLIMIT_SIGPENDING
 #error "Houston, we have a numbering problem!"
 #endif
-    table[38].data = &c->rlimit_msgqueue;
+    table[39].data = &c->rlimit_msgqueue;
 #endif
 
 #ifdef RLIMIT_NICE
 #ifndef RLIMIT_MSGQUEUE
 #error "Houston, we have a numbering problem!"
 #endif
-    table[39].data = &c->rlimit_nice;
+    table[40].data = &c->rlimit_nice;
 #endif
 
 #ifdef RLIMIT_RTPRIO
 #ifndef RLIMIT_NICE
 #error "Houston, we have a numbering problem!"
 #endif
-    table[40].data = &c->rlimit_rtprio;
+    table[41].data = &c->rlimit_rtprio;
 #endif
 
 #ifdef RLIMIT_RTTIME
 #ifndef RLIMIT_RTTIME
 #error "Houston, we have a numbering problem!"
 #endif
-    table[41].data = &c->rlimit_rttime;
+    table[42].data = &c->rlimit_rttime;
 #endif
 #endif
 
@@ -643,6 +646,7 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "realtime-scheduling = %s\n", pa_yes_no(c->realtime_scheduling));
     pa_strbuf_printf(s, "realtime-priority = %i\n", c->realtime_priority);
     pa_strbuf_printf(s, "disallow-module-loading = %s\n", pa_yes_no(c->disallow_module_loading));
+    pa_strbuf_printf(s, "disallow-exit = %s\n", pa_yes_no(c->disallow_exit));
     pa_strbuf_printf(s, "use-pid-file = %s\n", pa_yes_no(c->use_pid_file));
     pa_strbuf_printf(s, "system-instance = %s\n", pa_yes_no(c->system_instance));
     pa_strbuf_printf(s, "no-cpu-limit = %s\n", pa_yes_no(c->no_cpu_limit));

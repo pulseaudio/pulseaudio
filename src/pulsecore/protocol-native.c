@@ -1955,6 +1955,7 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
 
 static void command_exit(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
+    int ret;
 
     pa_native_connection_assert_ref(c);
     pa_assert(t);
@@ -1965,8 +1966,9 @@ static void command_exit(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    ret = pa_core_exit(c->protocol->core, FALSE, 0);
+    CHECK_VALIDITY(c->pstream, ret >= 0, tag, PA_ERR_ACCESS);
 
-    c->protocol->core->mainloop->quit(c->protocol->core->mainloop, 0);
     pa_pstream_send_simple_ack(c->pstream, tag); /* nonsense */
 }
 

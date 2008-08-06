@@ -813,6 +813,7 @@ int main(int argc, char *argv[]) {
     c->realtime_scheduling = !!conf->realtime_scheduling;
     c->disable_remixing = !!conf->disable_remixing;
     c->running_as_daemon = !!conf->daemonize;
+    c->disallow_exit = conf->disallow_exit;
 
     pa_assert_se(pa_signal_init(pa_mainloop_get_api(mainloop)) == 0);
     pa_signal_new(SIGINT, signal_callback, c);

@@ -188,7 +188,9 @@ static int pa_cli_command_exit(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     pa_assert(buf);
     pa_assert(fail);
 
-    c->mainloop->quit(c->mainloop, 0);
+    if (pa_core_exit(c, FALSE, 0) < 0)
+        pa_strbuf_puts(buf, "Not allowed to terminate daemon.\n");
+
     return 0;
 }
 

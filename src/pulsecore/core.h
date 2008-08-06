@@ -115,11 +115,12 @@ struct pa_core {
 
     int exit_idle_time, module_idle_time, scache_idle_time;
 
-    pa_time_event *quit_event;
+    pa_time_event *exit_event;
 
     pa_time_event *scache_auto_unload_event;
 
     pa_bool_t disallow_module_loading:1;
+    pa_bool_t disallow_exit:1;
     pa_bool_t running_as_daemon:1;
     pa_bool_t realtime_scheduling:1;
     pa_bool_t disable_remixing:1;
@@ -142,6 +143,8 @@ enum {
 pa_core* pa_core_new(pa_mainloop_api *m, int shared);
 
 /* Check whether noone is connected to this core */
-void pa_core_check_quit(pa_core *c);
+void pa_core_check_idle(pa_core *c);
+
+int pa_core_exit(pa_core *c, pa_bool_t force, int retval);
 
 #endif

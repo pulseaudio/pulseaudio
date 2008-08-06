@@ -62,7 +62,7 @@ static void eof_and_exit_cb(pa_cli*c, void *userdata) {
     pa_assert(c);
     pa_assert(m);
 
-    m->core->mainloop->quit(m->core->mainloop, 0);
+    pa_core_exit(m->core, FALSE, 0);
 }
 
 int pa__init(pa_module*m) {

@@ -50,6 +50,7 @@ enum {
     ARG_HIGH_PRIORITY,
     ARG_REALTIME,
     ARG_DISALLOW_MODULE_LOADING,
+    ARG_DISALLOW_EXIT,
     ARG_EXIT_IDLE_TIME,
     ARG_MODULE_IDLE_TIME,
     ARG_SCACHE_IDLE_TIME,
@@ -82,6 +83,7 @@ static const struct option long_options[] = {
     {"high-priority",               2, 0, ARG_HIGH_PRIORITY},
     {"realtime",                    2, 0, ARG_REALTIME},
     {"disallow-module-loading",     2, 0, ARG_DISALLOW_MODULE_LOADING},
+    {"disallow-exit",               2, 0, ARG_DISALLOW_EXIT},
     {"exit-idle-time",              2, 0, ARG_EXIT_IDLE_TIME},
     {"module-idle-time",            2, 0, ARG_MODULE_IDLE_TIME},
     {"scache-idle-time",            2, 0, ARG_SCACHE_IDLE_TIME},
@@ -134,7 +136,9 @@ void pa_cmdline_help(const char *argv0) {
            "      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
            "                                        (only available as root, when SUID or\n"
            "                                        with elevated RLIMIT_RTPRIO)\n"
-           "      --disallow-module-loading[=BOOL]  Disallow module loading after startup\n"
+           "      --disallow-module-loading[=BOOL]  Disallow module user requested module\n"
+           "                                        loading/unloading after startup\n"
+           "      --disallow-exit[=BOOL]            Disallow user requested exit\n"
            "      --exit-idle-time=SECS             Terminate the daemon when idle and this\n"
            "                                        time passed\n"
            "      --module-idle-time=SECS           Unload autoloaded modules when idle and\n"
@@ -282,6 +286,13 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
             case ARG_DISALLOW_MODULE_LOADING:
                 if ((conf->disallow_module_loading = optarg ? pa_parse_boolean(optarg) : TRUE) < 0) {
                     pa_log(_("--disallow-module-loading expects boolean argument"));
+                    goto fail;
+                }
+                break;
+
+            case ARG_DISALLOW_EXIT:
+                if ((conf->disallow_exit = optarg ? pa_parse_boolean(optarg) : TRUE) < 0) {
+                    pa_log(_("--disallow-exit boolean argument"));
                     goto fail;
                 }
                 break;
