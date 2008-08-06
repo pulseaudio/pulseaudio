@@ -10,3 +10,5 @@ pulseaudio.pot
 quot.sed
 remove-potcdate.sin
 ChangeLog
+*.mo
+*.gmo
