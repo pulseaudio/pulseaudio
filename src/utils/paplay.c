@@ -37,10 +37,7 @@
 #include <sndfile.h>
 
 #include <pulse/pulseaudio.h>
-
-#if PA_API_VERSION < 9
-#error Invalid PulseAudio API version
-#endif
+#include <pulse/i18n.h>
 
 static pa_context *context = NULL;
 static pa_stream *stream = NULL;
@@ -75,12 +72,12 @@ static void stream_drain_complete(pa_stream*s, int success, void *userdata) {
     pa_operation *o;
 
     if (!success) {
-        fprintf(stderr, "Failed to drain stream: %s\n", pa_strerror(pa_context_errno(context)));
+        fprintf(stderr, _("Failed to drain stream: %s\n"), pa_strerror(pa_context_errno(context)));
         quit(1);
     }
 
     if (verbose)
-        fprintf(stderr, "Playback stream drained.\n");
+        fprintf(stderr, _("Playback stream drained.\n"));
 
     pa_stream_disconnect(stream);
     pa_stream_unref(stream);
@@ -92,7 +89,7 @@ static void stream_drain_complete(pa_stream*s, int success, void *userdata) {
         pa_operation_unref(o);
 
         if (verbose)
-            fprintf(stderr, "Draining connection to server.\n");
+            fprintf(stderr, _("Draining connection to server.\n"));
     }
 }
 
@@ -139,12 +136,12 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
 
         case PA_STREAM_READY:
             if (verbose)
-                fprintf(stderr, "Stream successfully created\n");
+                fprintf(stderr, _("Stream successfully created\n"));
             break;
 
         case PA_STREAM_FAILED:
         default:
-            fprintf(stderr, "Stream errror: %s\n", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
+            fprintf(stderr, _("Stream errror: %s\n"), pa_strerror(pa_context_errno(pa_stream_get_context(s))));
             quit(1);
     }
 }
@@ -165,7 +162,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
             assert(c && !stream);
 
             if (verbose)
-                fprintf(stderr, "Connection established.\n");
+                fprintf(stderr, _("Connection established.\n"));
 
             stream = pa_stream_new(c, stream_name, &sample_spec, channel_map_set ? &channel_map : NULL);
             assert(stream);
@@ -183,7 +180,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
         case PA_CONTEXT_FAILED:
         default:
-            fprintf(stderr, "Connection failure: %s\n", pa_strerror(pa_context_errno(c)));
+            fprintf(stderr, _("Connection failure: %s\n"), pa_strerror(pa_context_errno(c)));
             quit(1);
     }
 }
@@ -191,14 +188,14 @@ static void context_state_callback(pa_context *c, void *userdata) {
 /* UNIX signal to quit recieved */
 static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
     if (verbose)
-        fprintf(stderr, "Got SIGINT, exiting.\n");
+        fprintf(stderr, _("Got SIGINT, exiting.\n"));
     quit(0);
 
 }
 
 static void help(const char *argv0) {
 
-    printf("%s [options] [FILE]\n\n"
+    printf(_("%s [options] [FILE]\n\n"
            "  -h, --help                            Show this help\n"
            "      --version                         Show version\n\n"
            "  -v, --verbose                         Enable verbose operation\n\n"
@@ -207,7 +204,7 @@ static void help(const char *argv0) {
            "  -n, --client-name=NAME                How to call this client on the server\n"
            "      --stream-name=NAME                How to call this stream on the server\n"
            "      --volume=VOLUME                   Specify the initial (linear) volume in range 0...65536\n"
-           "      --channel-map=CHANNELMAP          Set the channel map to the use\n",
+             "      --channel-map=CHANNELMAP          Set the channel map to the use\n"),
            argv0);
 }
 
@@ -239,6 +236,7 @@ int main(int argc, char *argv[]) {
     };
 
     setlocale(LC_ALL, "");
+    bindtextdomain(GETTEXT_PACKAGE, PULSE_LOCALEDIR);
 
     if (!(bn = strrchr(argv[0], '/')))
         bn = argv[0];
@@ -254,7 +252,8 @@ int main(int argc, char *argv[]) {
                 goto quit;
 
             case ARG_VERSION:
-                printf("paplay "PACKAGE_VERSION"\nCompiled with libpulse %s\nLinked with libpulse %s\n", pa_get_headers_version(), pa_get_library_version());
+                printf(_("paplay %s\nCompiled with libpulse %s\n"
+                        "Linked with libpulse %s\n"), PACKAGE_VERSION, pa_get_headers_version(), pa_get_library_version());
                 ret = 0;
                 goto quit;
 
@@ -290,7 +289,7 @@ int main(int argc, char *argv[]) {
 
             case ARG_CHANNELMAP:
                 if (!pa_channel_map_parse(&channel_map, optarg)) {
-                    fprintf(stderr, "Invalid channel map\n");
+                    fprintf(stderr, _("Invalid channel map\n"));
                     goto quit;
                 }
 
@@ -312,7 +311,7 @@ int main(int argc, char *argv[]) {
         sndfile = sf_open_fd(STDIN_FILENO, SFM_READ, &sfinfo, 0);
 
     if (!sndfile) {
-        fprintf(stderr, "Failed to open file '%s'\n", filename);
+        fprintf(stderr, _("Failed to open file '%s'\n"), filename);
         goto quit;
     }
 
@@ -348,7 +347,7 @@ int main(int argc, char *argv[]) {
     assert(pa_sample_spec_valid(&sample_spec));
 
     if (channel_map_set && channel_map.channels != sample_spec.channels) {
-        fprintf(stderr, "Channel map doesn't match file.\n");
+        fprintf(stderr, _("Channel map doesn't match file.\n"));
         goto quit;
     }
 
@@ -374,12 +373,12 @@ int main(int argc, char *argv[]) {
     if (verbose) {
         char t[PA_SAMPLE_SPEC_SNPRINT_MAX];
         pa_sample_spec_snprint(t, sizeof(t), &sample_spec);
-        fprintf(stderr, "Using sample spec '%s'\n", t);
+        fprintf(stderr, _("Using sample spec '%s'\n"), t);
     }
 
     /* Set up a new main loop */
     if (!(m = pa_mainloop_new())) {
-        fprintf(stderr, "pa_mainloop_new() failed.\n");
+        fprintf(stderr, _("pa_mainloop_new() failed.\n"));
         goto quit;
     }
 
@@ -394,7 +393,7 @@ int main(int argc, char *argv[]) {
 
     /* Create a new connection context */
     if (!(context = pa_context_new(mainloop_api, client_name))) {
-        fprintf(stderr, "pa_context_new() failed.\n");
+        fprintf(stderr, _("pa_context_new() failed.\n"));
         goto quit;
     }
 
@@ -405,7 +404,7 @@ int main(int argc, char *argv[]) {
 
     /* Run the main loop */
     if (pa_mainloop_run(m, &ret) < 0) {
-        fprintf(stderr, "pa_mainloop_run() failed.\n");
+        fprintf(stderr, _("pa_mainloop_run() failed.\n"));
         goto quit;
     }
 

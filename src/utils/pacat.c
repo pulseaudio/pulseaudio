@@ -33,14 +33,12 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <fcntl.h>
+#include <locale.h>
 
+#include <pulse/i18n.h>
 #include <pulse/pulseaudio.h>
 
 #define TIME_EVENT_USEC 50000
-
-#if PA_API_VERSION < 10
-#error Invalid PulseAudio API version
-#endif
 
 #define CLEAR_LINE "\x1B[K"
 
@@ -92,7 +90,7 @@ static void do_stream_write(size_t length) {
         l = buffer_length;
 
     if (pa_stream_write(stream, (uint8_t*) buffer + buffer_index, l, NULL, 0, PA_SEEK_RELATIVE) < 0) {
-        fprintf(stderr, "pa_stream_write() failed: %s\n", pa_strerror(pa_context_errno(context)));
+        fprintf(stderr, _("pa_stream_write() failed: %s\n"), pa_strerror(pa_context_errno(context)));
         quit(1);
         return;
     }
@@ -131,7 +129,7 @@ static void stream_read_callback(pa_stream *s, size_t length, void *userdata) {
         mainloop_api->io_enable(stdio_event, PA_IO_EVENT_OUTPUT);
 
     if (pa_stream_peek(s, &data, &length) < 0) {
-        fprintf(stderr, "pa_stream_peek() failed: %s\n", pa_strerror(pa_context_errno(context)));
+        fprintf(stderr, _("pa_stream_peek() failed: %s\n"), pa_strerror(pa_context_errno(context)));
         quit(1);
         return;
     }
@@ -140,9 +138,9 @@ static void stream_read_callback(pa_stream *s, size_t length, void *userdata) {
     assert(length > 0);
 
     if (buffer) {
-        fprintf(stderr, "Buffer overrun, dropping incoming data\n");
+        fprintf(stderr, _("Buffer overrun, dropping incoming data\n"));
         if (pa_stream_drop(s) < 0) {
-            fprintf(stderr, "pa_stream_drop() failed: %s\n", pa_strerror(pa_context_errno(context)));
+            fprintf(stderr, _("pa_stream_drop() failed: %s\n"), pa_strerror(pa_context_errno(context)));
             quit(1);
         }
         return;
@@ -168,25 +166,25 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
                 const pa_buffer_attr *a;
                 char cmt[PA_CHANNEL_MAP_SNPRINT_MAX], sst[PA_SAMPLE_SPEC_SNPRINT_MAX];
 
-                fprintf(stderr, "Stream successfully created.\n");
+                fprintf(stderr, _("Stream successfully created.\n"));
 
                 if (!(a = pa_stream_get_buffer_attr(s)))
-                    fprintf(stderr, "pa_stream_get_buffer_attr() failed: %s\n", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
+                    fprintf(stderr, _("pa_stream_get_buffer_attr() failed: %s\n"), pa_strerror(pa_context_errno(pa_stream_get_context(s))));
                 else {
 
                     if (mode == PLAYBACK)
-                        fprintf(stderr, "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n", a->maxlength, a->tlength, a->prebuf, a->minreq);
+                        fprintf(stderr, _("Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"), a->maxlength, a->tlength, a->prebuf, a->minreq);
                     else {
                         assert(mode == RECORD);
-                        fprintf(stderr, "Buffer metrics: maxlength=%u, fragsize=%u\n", a->maxlength, a->fragsize);
+                        fprintf(stderr, _("Buffer metrics: maxlength=%u, fragsize=%u\n"), a->maxlength, a->fragsize);
                     }
                 }
 
-                fprintf(stderr, "Using sample spec '%s', channel map '%s'.\n",
+                fprintf(stderr, _("Using sample spec '%s', channel map '%s'.\n"),
                         pa_sample_spec_snprint(sst, sizeof(sst), pa_stream_get_sample_spec(s)),
                         pa_channel_map_snprint(cmt, sizeof(cmt), pa_stream_get_channel_map(s)));
 
-                fprintf(stderr, "Connected to device %s (%u, %ssuspended).\n",
+                fprintf(stderr, _("Connected to device %s (%u, %ssuspended).\n"),
                         pa_stream_get_device_name(s),
                         pa_stream_get_device_index(s),
                         pa_stream_is_suspended(s) ? "" : "not ");
@@ -196,7 +194,7 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
 
         case PA_STREAM_FAILED:
         default:
-            fprintf(stderr, "Stream error: %s\n", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
+            fprintf(stderr, _("Stream error: %s\n"), pa_strerror(pa_context_errno(pa_stream_get_context(s))));
             quit(1);
     }
 }
@@ -206,9 +204,9 @@ static void stream_suspended_callback(pa_stream *s, void *userdata) {
 
     if (verbose) {
         if (pa_stream_is_suspended(s))
-            fprintf(stderr, "Stream device suspended." CLEAR_LINE " \n");
+            fprintf(stderr, _("Stream device suspended.%s \n"), CLEAR_LINE);
         else
-            fprintf(stderr, "Stream device resumed." CLEAR_LINE " \n");
+            fprintf(stderr, _("Stream device resumed.%s \n"), CLEAR_LINE);
     }
 }
 
@@ -216,28 +214,28 @@ static void stream_underflow_callback(pa_stream *s, void *userdata) {
     assert(s);
 
     if (verbose)
-        fprintf(stderr, "Stream underrun." CLEAR_LINE " \n");
+        fprintf(stderr, _("Stream underrun.%s \n"),  CLEAR_LINE);
 }
 
 static void stream_overflow_callback(pa_stream *s, void *userdata) {
     assert(s);
 
     if (verbose)
-        fprintf(stderr, "Stream overrun." CLEAR_LINE " \n");
+        fprintf(stderr, _("Stream overrun.%s \n"), CLEAR_LINE);
 }
 
 static void stream_started_callback(pa_stream *s, void *userdata) {
     assert(s);
 
     if (verbose)
-        fprintf(stderr, "Stream started." CLEAR_LINE " \n");
+        fprintf(stderr, _("Stream started.%s \n"), CLEAR_LINE);
 }
 
 static void stream_moved_callback(pa_stream *s, void *userdata) {
     assert(s);
 
     if (verbose)
-        fprintf(stderr, "Stream moved to device %s (%u, %ssuspended)." CLEAR_LINE " \n", pa_stream_get_device_name(s), pa_stream_get_device_index(s), pa_stream_is_suspended(s) ? "" : "not ");
+        fprintf(stderr, _("Stream moved to device %s (%u, %ssuspended).%s \n"), pa_stream_get_device_name(s), pa_stream_get_device_index(s), pa_stream_is_suspended(s) ? "" : _("not "),  CLEAR_LINE);
 }
 
 /* This is called whenever the context status changes */
@@ -258,10 +256,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
             assert(!stream);
 
             if (verbose)
-                fprintf(stderr, "Connection established." CLEAR_LINE " \n");
+                fprintf(stderr, _("Connection established.%s \n"), CLEAR_LINE);
 
             if (!(stream = pa_stream_new(c, stream_name, &sample_spec, channel_map_set ? &channel_map : NULL))) {
-                fprintf(stderr, "pa_stream_new() failed: %s\n", pa_strerror(pa_context_errno(c)));
+                fprintf(stderr, _("pa_stream_new() failed: %s\n"), pa_strerror(pa_context_errno(c)));
                 goto fail;
             }
 
@@ -286,13 +284,13 @@ static void context_state_callback(pa_context *c, void *userdata) {
             if (mode == PLAYBACK) {
                 pa_cvolume cv;
                 if ((r = pa_stream_connect_playback(stream, device, latency > 0 ? &buffer_attr : NULL, flags, pa_cvolume_set(&cv, sample_spec.channels, volume), NULL)) < 0) {
-                    fprintf(stderr, "pa_stream_connect_playback() failed: %s\n", pa_strerror(pa_context_errno(c)));
+                    fprintf(stderr, _("pa_stream_connect_playback() failed: %s\n"), pa_strerror(pa_context_errno(c)));
                     goto fail;
                 }
 
             } else {
                 if ((r = pa_stream_connect_record(stream, device, latency > 0 ? &buffer_attr : NULL, flags)) < 0) {
-                    fprintf(stderr, "pa_stream_connect_record() failed: %s\n", pa_strerror(pa_context_errno(c)));
+                    fprintf(stderr, _("pa_stream_connect_record() failed: %s\n"), pa_strerror(pa_context_errno(c)));
                     goto fail;
                 }
             }
@@ -306,7 +304,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
         case PA_CONTEXT_FAILED:
         default:
-            fprintf(stderr, "Connection failure: %s\n", pa_strerror(pa_context_errno(c)));
+            fprintf(stderr, _("Connection failure: %s\n"), pa_strerror(pa_context_errno(c)));
             goto fail;
     }
 
@@ -327,12 +325,12 @@ static void stream_drain_complete(pa_stream*s, int success, void *userdata) {
     pa_operation *o;
 
     if (!success) {
-        fprintf(stderr, "Failed to drain stream: %s\n", pa_strerror(pa_context_errno(context)));
+        fprintf(stderr, _("Failed to drain stream: %s\n"), pa_strerror(pa_context_errno(context)));
         quit(1);
     }
 
     if (verbose)
-        fprintf(stderr, "Playback stream drained.\n");
+        fprintf(stderr, _("Playback stream drained.\n"));
 
     pa_stream_disconnect(stream);
     pa_stream_unref(stream);
@@ -342,7 +340,7 @@ static void stream_drain_complete(pa_stream*s, int success, void *userdata) {
         pa_context_disconnect(context);
     else {
         if (verbose)
-            fprintf(stderr, "Draining connection to server.\n");
+            fprintf(stderr, _("Draining connection to server.\n"));
     }
 }
 
@@ -368,13 +366,13 @@ static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_even
     if ((r = read(fd, buffer, l)) <= 0) {
         if (r == 0) {
             if (verbose)
-                fprintf(stderr, "Got EOF.\n");
+                fprintf(stderr, _("Got EOF.\n"));
 
             if (stream) {
                 pa_operation *o;
 
                 if (!(o = pa_stream_drain(stream, stream_drain_complete, NULL))) {
-                    fprintf(stderr, "pa_stream_drain(): %s\n", pa_strerror(pa_context_errno(context)));
+                    fprintf(stderr, _("pa_stream_drain(): %s\n"), pa_strerror(pa_context_errno(context)));
                     quit(1);
                     return;
                 }
@@ -384,7 +382,7 @@ static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_even
                 quit(0);
 
         } else {
-            fprintf(stderr, "read() failed: %s\n", strerror(errno));
+            fprintf(stderr, _("read() failed: %s\n"), strerror(errno));
             quit(1);
         }
 
@@ -416,7 +414,7 @@ static void stdout_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_eve
     assert(buffer_length);
 
     if ((r = write(fd, (uint8_t*) buffer+buffer_index, buffer_length)) <= 0) {
-        fprintf(stderr, "write() failed: %s\n", strerror(errno));
+        fprintf(stderr, _("write() failed: %s\n"), strerror(errno));
         quit(1);
 
         mainloop_api->io_free(stdio_event);
@@ -437,7 +435,7 @@ static void stdout_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_eve
 /* UNIX signal to quit recieved */
 static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
     if (verbose)
-        fprintf(stderr, "Got signal, exiting.\n");
+        fprintf(stderr, _("Got signal, exiting.\n"));
     quit(0);
 }
 
@@ -451,12 +449,12 @@ static void stream_update_timing_callback(pa_stream *s, int success, void *userd
     if (!success ||
         pa_stream_get_time(s, &usec) < 0 ||
         pa_stream_get_latency(s, &l, &negative) < 0) {
-        fprintf(stderr, "Failed to get latency: %s\n", pa_strerror(pa_context_errno(context)));
+        fprintf(stderr, _("Failed to get latency: %s\n"), pa_strerror(pa_context_errno(context)));
         quit(1);
         return;
     }
 
-    fprintf(stderr, "Time: %0.3f sec; Latency: %0.0f usec.  \r",
+    fprintf(stderr, _("Time: %0.3f sec; Latency: %0.0f usec.  \r"),
             (float) usec / 1000000,
             (float) l * (negative?-1:1));
 }
@@ -476,7 +474,7 @@ static void time_event_callback(pa_mainloop_api*m, pa_time_event *e, const struc
     if (stream && pa_stream_get_state(stream) == PA_STREAM_READY) {
         pa_operation *o;
         if (!(o = pa_stream_update_timing_info(stream, stream_update_timing_callback, NULL)))
-            fprintf(stderr, "pa_stream_update_timing_info() failed: %s\n", pa_strerror(pa_context_errno(context)));
+            fprintf(stderr, _("pa_stream_update_timing_info() failed: %s\n"), pa_strerror(pa_context_errno(context)));
         else
             pa_operation_unref(o);
     }
@@ -489,7 +487,7 @@ static void time_event_callback(pa_mainloop_api*m, pa_time_event *e, const struc
 
 static void help(const char *argv0) {
 
-    printf("%s [options]\n\n"
+    printf(_("%s [options]\n\n"
            "  -h, --help                            Show this help\n"
            "      --version                         Show version\n\n"
            "  -r, --record                          Create a connection for recording\n"
@@ -515,7 +513,7 @@ static void help(const char *argv0) {
            "      --no-remix                        Don't upmix or downmix channels.\n"
            "      --no-remap                        Map channels by index instead of name.\n"
            "      --latency=BYTES                   Request the specified latency in bytes.\n"
-           "      --process-time=BYTES              Request the specified process time per request in bytes.\n"
+           "      --process-time=BYTES              Request the specified process time per request in bytes.\n")
            ,
            argv0);
 }
@@ -568,6 +566,9 @@ int main(int argc, char *argv[]) {
         {NULL,           0, NULL, 0}
     };
 
+    setlocale(LC_ALL, "");
+    bindtextdomain(GETTEXT_PACKAGE, PULSE_LOCALEDIR);
+
     if (!(bn = strrchr(argv[0], '/')))
         bn = argv[0];
     else
@@ -587,7 +588,7 @@ int main(int argc, char *argv[]) {
                 goto quit;
 
             case ARG_VERSION:
-                printf("pacat "PACKAGE_VERSION"\nCompiled with libpulse %s\nLinked with libpulse %s\n", pa_get_headers_version(), pa_get_library_version());
+                printf(_("pacat %s\nCompiled with libpulse %s\nLinked with libpulse %s\n"), PACKAGE_VERSION, pa_get_headers_version(), pa_get_library_version());
                 ret = 0;
                 goto quit;
 
@@ -643,7 +644,7 @@ int main(int argc, char *argv[]) {
 
             case ARG_CHANNELMAP:
                 if (!pa_channel_map_parse(&channel_map, optarg)) {
-                    fprintf(stderr, "Invalid channel map '%s'\n", optarg);
+                    fprintf(stderr, _("Invalid channel map '%s'\n"), optarg);
                     goto quit;
                 }
 
@@ -672,14 +673,14 @@ int main(int argc, char *argv[]) {
 
             case ARG_LATENCY:
                 if (((latency = atoi(optarg))) <= 0) {
-                    fprintf(stderr, "Invalid latency specification '%s'\n", optarg);
+                    fprintf(stderr, _("Invalid latency specification '%s'\n"), optarg);
                     goto quit;
                 }
                 break;
 
             case ARG_PROCESS_TIME:
                 if (((process_time = atoi(optarg))) <= 0) {
-                    fprintf(stderr, "Invalid process time specification '%s'\n", optarg);
+                    fprintf(stderr, _("Invalid process time specification '%s'\n"), optarg);
                     goto quit;
                 }
                 break;
@@ -690,19 +691,19 @@ int main(int argc, char *argv[]) {
     }
 
     if (!pa_sample_spec_valid(&sample_spec)) {
-        fprintf(stderr, "Invalid sample specification\n");
+        fprintf(stderr, _("Invalid sample specification\n"));
         goto quit;
     }
 
     if (channel_map_set && channel_map.channels != sample_spec.channels) {
-        fprintf(stderr, "Channel map doesn't match sample specification\n");
+        fprintf(stderr, _("Channel map doesn't match sample specification\n"));
         goto quit;
     }
 
     if (verbose) {
         char t[PA_SAMPLE_SPEC_SNPRINT_MAX];
         pa_sample_spec_snprint(t, sizeof(t), &sample_spec);
-        fprintf(stderr, "Opening a %s stream with sample specification '%s'.\n", mode == RECORD ? "recording" : "playback", t);
+        fprintf(stderr, _("Opening a %s stream with sample specification '%s'.\n"), mode == RECORD ? _("recording") : _("playback"), t);
     }
 
     if (!(optind >= argc)) {
@@ -710,12 +711,12 @@ int main(int argc, char *argv[]) {
             int fd;
 
             if ((fd = open(argv[optind], mode == PLAYBACK ? O_RDONLY : O_WRONLY|O_TRUNC|O_CREAT, 0666)) < 0) {
-                fprintf(stderr, "open(): %s\n", strerror(errno));
+                fprintf(stderr, _("open(): %s\n"), strerror(errno));
                 goto quit;
             }
 
             if (dup2(fd, mode == PLAYBACK ? 0 : 1) < 0) {
-                fprintf(stderr, "dup2(): %s\n", strerror(errno));
+                fprintf(stderr, _("dup2(): %s\n"), strerror(errno));
                 goto quit;
             }
 
@@ -725,7 +726,7 @@ int main(int argc, char *argv[]) {
                 stream_name = pa_xstrdup(argv[optind]);
 
         } else {
-            fprintf(stderr, "Too many arguments.\n");
+            fprintf(stderr, _("Too many arguments.\n"));
             goto quit;
         }
     }
@@ -738,7 +739,7 @@ int main(int argc, char *argv[]) {
 
     /* Set up a new main loop */
     if (!(m = pa_mainloop_new())) {
-        fprintf(stderr, "pa_mainloop_new() failed.\n");
+        fprintf(stderr, _("pa_mainloop_new() failed.\n"));
         goto quit;
     }
 
@@ -759,13 +760,13 @@ int main(int argc, char *argv[]) {
                                              mode == PLAYBACK ? STDIN_FILENO : STDOUT_FILENO,
                                              mode == PLAYBACK ? PA_IO_EVENT_INPUT : PA_IO_EVENT_OUTPUT,
                                              mode == PLAYBACK ? stdin_callback : stdout_callback, NULL))) {
-        fprintf(stderr, "io_new() failed.\n");
+        fprintf(stderr, _("io_new() failed.\n"));
         goto quit;
     }
 
     /* Create a new connection context */
     if (!(context = pa_context_new(mainloop_api, client_name))) {
-        fprintf(stderr, "pa_context_new() failed.\n");
+        fprintf(stderr, _("pa_context_new() failed.\n"));
         goto quit;
     }
 
@@ -781,14 +782,14 @@ int main(int argc, char *argv[]) {
         pa_timeval_add(&tv, TIME_EVENT_USEC);
 
         if (!(time_event = mainloop_api->time_new(mainloop_api, &tv, time_event_callback, NULL))) {
-            fprintf(stderr, "time_new() failed.\n");
+            fprintf(stderr, _("time_new() failed.\n"));
             goto quit;
         }
     }
 
     /* Run the main loop */
     if (pa_mainloop_run(m, &ret) < 0) {
-        fprintf(stderr, "pa_mainloop_run() failed.\n");
+        fprintf(stderr, _("pa_mainloop_run() failed.\n"));
         goto quit;
     }
 

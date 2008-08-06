@@ -53,6 +53,7 @@
 #include <pulse/xmalloc.h>
 #include <pulse/utf8.h>
 #include <pulse/util.h>
+#include <pulse/i18n.h>
 
 #include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
@@ -106,7 +107,7 @@ static void unlock_autospawn_lock_file(pa_context *c) {
         char *lf;
 
         if (!(lf = pa_runtime_path(AUTOSPAWN_LOCK)))
-            pa_log_warn("Cannot unlock autospawn because runtime path is no more.");
+            pa_log_warn(_("Cannot unlock autospawn because runtime path is no more."));
 
         pa_unlock_lockfile(lf, c->autospawn_lock_fd);
         pa_xfree(lf);
@@ -138,6 +139,8 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     pa_context *c;
 
     pa_assert(mainloop);
+
+    pa_init_i18n();
 
     if (!name && !pa_proplist_contains(p, PA_PROP_APPLICATION_NAME))
         return NULL;
@@ -530,7 +533,7 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     c->pdispatch = pa_pdispatch_new(c->mainloop, command_table, PA_COMMAND_MAX);
 
     if (!c->conf->cookie_valid)
-        pa_log_info("No cookie loaded. Attempting to connect without.");
+        pa_log_info(_("No cookie loaded. Attempting to connect without."));
 
     t = pa_tagstruct_command(c, PA_COMMAND_AUTH, &tag);
 
@@ -584,7 +587,7 @@ static int context_connect_spawn(pa_context *c) {
     pa_context_ref(c);
 
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds) < 0) {
-        pa_log_error("socketpair(): %s", pa_cstrerror(errno));
+        pa_log_error(_("socketpair(): %s"), pa_cstrerror(errno));
         pa_context_fail(c, PA_ERR_INTERNAL);
         goto fail;
     }
@@ -598,7 +601,7 @@ static int context_connect_spawn(pa_context *c) {
         c->spawn_api.prefork();
 
     if ((pid = fork()) < 0) {
-        pa_log_error("fork(): %s", pa_cstrerror(errno));
+        pa_log_error(_("fork(): %s"), pa_cstrerror(errno));
         pa_context_fail(c, PA_ERR_INTERNAL);
 
         if (c->spawn_api.postfork)
@@ -661,7 +664,7 @@ static int context_connect_spawn(pa_context *c) {
         c->spawn_api.postfork();
 
     if (r < 0) {
-        pa_log("waitpid(): %s", pa_cstrerror(errno));
+        pa_log(_("waitpid(): %s"), pa_cstrerror(errno));
         pa_context_fail(c, PA_ERR_INTERNAL);
         goto fail;
     } else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
@@ -1259,7 +1262,7 @@ void pa_command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_t
     if (!strcmp(name, "module-stream-restore"))
         pa_ext_stream_restore_command(c, tag, t);
     else
-        pa_log("Received message for unknown extension '%s'", name);
+        pa_log(_("Received message for unknown extension '%s'"), name);
 
 finish:
     pa_context_unref(c);

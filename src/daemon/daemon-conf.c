@@ -32,6 +32,7 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
+#include <pulse/i18n.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
@@ -198,7 +199,7 @@ static int parse_log_target(const char *filename, unsigned line, const char *lva
     pa_assert(data);
 
     if (pa_daemon_conf_set_log_target(c, rvalue) < 0) {
-        pa_log("[%s:%u] Invalid log target '%s'.", filename, line, rvalue);
+        pa_log(_("[%s:%u] Invalid log target '%s'."), filename, line, rvalue);
         return -1;
     }
 
@@ -214,7 +215,7 @@ static int parse_log_level(const char *filename, unsigned line, const char *lval
     pa_assert(data);
 
     if (pa_daemon_conf_set_log_level(c, rvalue) < 0) {
-        pa_log("[%s:%u] Invalid log level '%s'.", filename, line, rvalue);
+        pa_log(_("[%s:%u] Invalid log level '%s'."), filename, line, rvalue);
         return -1;
     }
 
@@ -230,7 +231,7 @@ static int parse_resample_method(const char *filename, unsigned line, const char
     pa_assert(data);
 
     if (pa_daemon_conf_set_resample_method(c, rvalue) < 0) {
-        pa_log("[%s:%u] Invalid resample method '%s'.", filename, line, rvalue);
+        pa_log(_("[%s:%u] Invalid resample method '%s'."), filename, line, rvalue);
         return -1;
     }
 
@@ -253,14 +254,14 @@ static int parse_rlimit(const char *filename, unsigned line, const char *lvalue,
     } else {
         int32_t k;
         if (pa_atoi(rvalue, &k) < 0) {
-            pa_log("[%s:%u] Invalid rlimit '%s'.", filename, line, rvalue);
+            pa_log(_("[%s:%u] Invalid rlimit '%s'."), filename, line, rvalue);
             return -1;
         }
         r->is_set = k >= 0;
         r->value = k >= 0 ? (rlim_t) k : 0;
     }
 #else
-    pa_log_warn("[%s:%u] rlimit not supported on this platform.", filename, line);
+    pa_log_warn(_("[%s:%u] rlimit not supported on this platform."), filename, line);
 #endif
 
     return 0;
@@ -276,7 +277,7 @@ static int parse_sample_format(const char *filename, unsigned line, const char *
     pa_assert(data);
 
     if ((f = pa_parse_sample_format(rvalue)) < 0) {
-        pa_log("[%s:%u] Invalid sample format '%s'.", filename, line, rvalue);
+        pa_log(_("[%s:%u] Invalid sample format '%s'."), filename, line, rvalue);
         return -1;
     }
 
@@ -294,7 +295,7 @@ static int parse_sample_rate(const char *filename, unsigned line, const char *lv
     pa_assert(data);
 
     if (pa_atoi(rvalue, &r) < 0 || r > (int32_t) PA_RATE_MAX || r <= 0) {
-        pa_log("[%s:%u] Invalid sample rate '%s'.", filename, line, rvalue);
+        pa_log(_("[%s:%u] Invalid sample rate '%s'."), filename, line, rvalue);
         return -1;
     }
 
@@ -312,7 +313,7 @@ static int parse_sample_channels(const char *filename, unsigned line, const char
     pa_assert(data);
 
     if (pa_atoi(rvalue, &n) < 0 || n > (int32_t) PA_CHANNELS_MAX || n <= 0) {
-        pa_log("[%s:%u] Invalid sample channels '%s'.", filename, line, rvalue);
+        pa_log(_("[%s:%u] Invalid sample channels '%s'."), filename, line, rvalue);
         return -1;
     }
 
@@ -330,7 +331,7 @@ static int parse_fragments(const char *filename, unsigned line, const char *lval
     pa_assert(data);
 
     if (pa_atoi(rvalue, &n) < 0 || n < 2) {
-        pa_log("[%s:%u] Invalid number of fragments '%s'.", filename, line, rvalue);
+        pa_log(_("[%s:%u] Invalid number of fragments '%s'."), filename, line, rvalue);
         return -1;
     }
 
@@ -348,7 +349,7 @@ static int parse_fragment_size_msec(const char *filename, unsigned line, const c
     pa_assert(data);
 
     if (pa_atoi(rvalue, &n) < 0 || n < 1) {
-        pa_log("[%s:%u] Invalid fragment size '%s'.", filename, line, rvalue);
+        pa_log(_("[%s:%u] Invalid fragment size '%s'."), filename, line, rvalue);
         return -1;
     }
 
@@ -366,7 +367,7 @@ static int parse_nice_level(const char *filename, unsigned line, const char *lva
     pa_assert(data);
 
     if (pa_atoi(rvalue, &level) < 0 || level < -20 || level > 19) {
-        pa_log("[%s:%u] Invalid nice level '%s'.", filename, line, rvalue);
+        pa_log(_("[%s:%u] Invalid nice level '%s'."), filename, line, rvalue);
         return -1;
     }
 
@@ -557,7 +558,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         pa_open_config_file(DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_USER, ENV_CONFIG_FILE, &c->config_file);
 
     if (!f && errno != ENOENT) {
-        pa_log_warn("Failed to open configuration file: %s", pa_cstrerror(errno));
+        pa_log_warn(_("Failed to open configuration file: %s"), pa_cstrerror(errno));
         goto finish;
     }
 
@@ -631,7 +632,7 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     s = pa_strbuf_new();
 
     if (c->config_file)
-        pa_strbuf_printf(s, "### Read from configuration file: %s ###\n", c->config_file);
+        pa_strbuf_printf(s, _("### Read from configuration file: %s ###\n"), c->config_file);
 
     pa_assert(c->log_level <= PA_LOG_LEVEL_MAX);
 

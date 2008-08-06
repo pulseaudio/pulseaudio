@@ -35,6 +35,7 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/mainloop.h>
+#include <pulse/i18n.h>
 
 #include <pulsecore/log.h>
 #include <pulsecore/hashmap.h>
@@ -93,6 +94,8 @@ static void thread(void *userdata) {
 
 pa_threaded_mainloop *pa_threaded_mainloop_new(void) {
     pa_threaded_mainloop *m;
+
+    pa_init_i18n();
 
     m = pa_xnew(pa_threaded_mainloop, 1);
 

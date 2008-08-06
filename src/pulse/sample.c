@@ -28,9 +28,11 @@
 #include <math.h>
 #include <string.h>
 
+#include <pulse/timeval.h>
+#include <pulse/i18n.h>
+
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
-#include <pulse/timeval.h>
 
 #include "sample.h"
 
@@ -126,8 +128,10 @@ char *pa_sample_spec_snprint(char *s, size_t l, const pa_sample_spec *spec) {
     pa_assert(l);
     pa_assert(spec);
 
+    pa_init_i18n();
+
     if (!pa_sample_spec_valid(spec))
-        pa_snprintf(s, l, "Invalid");
+        pa_snprintf(s, l, _("Invalid"));
     else
         pa_snprintf(s, l, "%s %uch %uHz", pa_sample_format_to_string(spec->format), spec->channels, spec->rate);
 

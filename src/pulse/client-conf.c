@@ -30,6 +30,7 @@
 #include <string.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/i18n.h>
 
 #include <pulsecore/macro.h>
 #include <pulsecore/core-error.h>
@@ -113,7 +114,7 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
     if (filename) {
 
         if (!(f = fopen(filename, "r"))) {
-            pa_log("Failed to open configuration file '%s': %s", fn, pa_cstrerror(errno));
+            pa_log(_("Failed to open configuration file '%s': %s"), fn, pa_cstrerror(errno));
             goto finish;
         }
 

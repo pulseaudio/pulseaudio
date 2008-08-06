@@ -44,6 +44,7 @@
 
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
+#include <pulse/i18n.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/llist.h>
@@ -445,6 +446,8 @@ static const pa_mainloop_api vtable = {
 
 pa_mainloop *pa_mainloop_new(void) {
     pa_mainloop *m;
+
+    pa_init_i18n();
 
     m = pa_xnew(pa_mainloop, 1);
 

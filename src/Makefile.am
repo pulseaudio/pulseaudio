@@ -56,6 +56,7 @@ AM_CFLAGS += -DPA_SYSTEM_RUNTIME_PATH=\"$(PA_SYSTEM_RUNTIME_PATH)\"
 AM_CFLAGS += -DPA_SYSTEM_CONFIG_PATH=\"$(PA_SYSTEM_CONFIG_PATH)\"
 AM_CFLAGS += -DPA_SYSTEM_STATE_PATH=\"$(PA_SYSTEM_STATE_PATH)\"
 AM_CFLAGS += -DAO_REQUIRE_CAS
+AM_CFLAGS += -DPULSE_LOCALEDIR=\"$(pulselocaledir)\"
 
 # This cool debug trap works on i386/gcc only
 AM_CFLAGS += '-DDEBUG_TRAP=__asm__("int $$3")'
@@ -532,7 +533,8 @@ libpulse_la_SOURCES = \
 		pulse/volume.c pulse/volume.h \
 		pulse/xmalloc.c pulse/xmalloc.h \
 		pulse/proplist.c pulse/proplist.h \
-		pulse/ext-stream-restore.c pulse/ext-stream-restore.h
+		pulse/ext-stream-restore.c pulse/ext-stream-restore.h \
+		pulse/i18n.c pulse/i18n.h
 
 # Internal stuff that is shared with libpulsecore
 libpulse_la_SOURCES += \
@@ -727,7 +729,8 @@ libpulsecore_la_SOURCES = \
 		pulse/util.c pulse/util.h \
 		pulse/volume.c pulse/volume.h \
 		pulse/xmalloc.c pulse/xmalloc.h \
-		pulse/proplist.c pulse/proplist.h
+		pulse/proplist.c pulse/proplist.h \
+		pulse/i18n.c pulse/i18n.h
 
 # Pure core stuff (some are shared in libpulse though).
 libpulsecore_la_SOURCES += \

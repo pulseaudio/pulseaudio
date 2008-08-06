@@ -440,6 +440,17 @@ AC_CHECK_FUNCS([open64])
 
 AM_ICONV
 
+AM_GNU_GETTEXT([external])
+
+IT_PROG_INTLTOOL([0.35.0])
+GETTEXT_PACKAGE=pulseaudio
+AC_SUBST([GETTEXT_PACKAGE])
+AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[Gettext package])
+AM_GLIB_GNU_GETTEXT
+
+pulselocaledir='${prefix}/${DATADIRNAME}/locale'
+AC_SUBST(pulselocaledir)
+
 ###################################
 #      External libraries         #
 ###################################
@@ -1128,6 +1139,7 @@ libpulse-mainloop-glib.pc
 doxygen/Makefile
 doxygen/doxygen.conf
 src/pulse/version.h
+po/Makefile.in
 ])
 AC_OUTPUT
 

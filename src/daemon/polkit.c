@@ -31,6 +31,8 @@
 #include <dbus/dbus.h>
 #include <polkit-dbus/polkit-dbus.h>
 
+#include <pulse/i18n.h>
+
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 
@@ -50,7 +52,7 @@ int pa_polkit_check(const char *action_id) {
     dbus_error_init(&dbus_error);
 
     if (!(bus = dbus_bus_get(DBUS_BUS_SYSTEM, &dbus_error))) {
-        pa_log_error("Cannot connect to system bus: %s", dbus_error.message);
+        pa_log_error(_("Cannot connect to system bus: %s"), dbus_error.message);
         goto finish;
     }
 
@@ -60,7 +62,7 @@ int pa_polkit_check(const char *action_id) {
     dbus_connection_set_exit_on_disconnect(bus, FALSE);
 
     if (!(caller = polkit_caller_new_from_pid(bus, getpid(), &dbus_error))) {
-        pa_log_error("Cannot get caller from PID: %s", dbus_error.message);
+        pa_log_error(_("Cannot get caller from PID: %s"), dbus_error.message);
         goto finish;
     }
 
@@ -72,12 +74,12 @@ int pa_polkit_check(const char *action_id) {
      * -- an not the EUID or any other user id. */
 
     if (!(polkit_caller_set_uid(caller, getuid()))) {
-        pa_log_error("Cannot set UID on caller object.");
+        pa_log_error(_("Cannot set UID on caller object."));
         goto finish;
     }
 
     if (!(polkit_caller_get_ck_session(caller, &session))) {
-        pa_log_error("Failed to get CK session.");
+        pa_log_error(_("Failed to get CK session."));
         goto finish;
     }
 
@@ -85,27 +87,27 @@ int pa_polkit_check(const char *action_id) {
      * object */
 
     if (!(polkit_session_set_uid(session, getuid()))) {
-        pa_log_error("Cannot set UID on session object.");
+        pa_log_error(_("Cannot set UID on session object."));
         goto finish;
     }
 
     if (!(action = polkit_action_new())) {
-        pa_log_error("Cannot allocate PolKitAction.");
+        pa_log_error(_("Cannot allocate PolKitAction."));
         goto finish;
     }
 
     if (!polkit_action_set_action_id(action, action_id)) {
-        pa_log_error("Cannot set action_id");
+        pa_log_error(_("Cannot set action_id"));
         goto finish;
     }
 
     if (!(context = polkit_context_new())) {
-        pa_log_error("Cannot allocate PolKitContext.");
+        pa_log_error(_("Cannot allocate PolKitContext."));
         goto finish;
     }
 
     if (!polkit_context_init(context, &polkit_error)) {
-        pa_log_error("Cannot initialize PolKitContext: %s", polkit_error_get_error_message(polkit_error));
+        pa_log_error(_("Cannot initialize PolKitContext: %s"), polkit_error_get_error_message(polkit_error));
         goto finish;
     }
 
@@ -114,7 +116,7 @@ int pa_polkit_check(const char *action_id) {
         polkit_result = polkit_context_is_caller_authorized(context, action, caller, TRUE, &polkit_error);
 
         if (polkit_error_is_set(polkit_error)) {
-            pa_log_error("Could not determine whether caller is authorized: %s", polkit_error_get_error_message(polkit_error));
+            pa_log_error(_("Could not determine whether caller is authorized: %s"), polkit_error_get_error_message(polkit_error));
             goto finish;
         }
 
@@ -134,7 +136,7 @@ int pa_polkit_check(const char *action_id) {
             }
 
             if (dbus_error_is_set(&dbus_error)) {
-                pa_log_error("Cannot obtain auth: %s", dbus_error.message);
+                pa_log_error(_("Cannot obtain auth: %s"), dbus_error.message);
                 goto finish;
             }
         }
@@ -143,7 +145,7 @@ int pa_polkit_check(const char *action_id) {
     }
 
     if (polkit_result != POLKIT_RESULT_YES && polkit_result != POLKIT_RESULT_NO)
-        pa_log_warn("PolicyKit responded with '%s'", polkit_result_to_string_representation(polkit_result));
+        pa_log_warn(_("PolicyKit responded with '%s'"), polkit_result_to_string_representation(polkit_result));
 
     ret = polkit_result == POLKIT_RESULT_YES;
 

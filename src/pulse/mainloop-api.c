@@ -27,6 +27,7 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/gccmacro.h>
+#include <pulse/i18n.h>
 
 #include <pulsecore/macro.h>
 
@@ -64,6 +65,8 @@ void pa_mainloop_api_once(pa_mainloop_api* m, void (*callback)(pa_mainloop_api *
 
     pa_assert(m);
     pa_assert(callback);
+
+    pa_init_i18n();
 
     i = pa_xnew(struct once_info, 1);
     i->callback = callback;
