@@ -1185,7 +1185,7 @@ static char *get_dir(mode_t m, const char *env_name) {
         }
 
         if (st.st_uid != getuid()) {
-            pa_log_error("Home directory %s not ours.", d);
+            pa_log_error("Home directory %s not ours.", h);
             return NULL;
         }
 
@@ -1253,6 +1253,8 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
             fn = lfn = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", e, local);
         else if (pa_get_home_dir(h, sizeof(h)))
             fn = lfn = pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse" PA_PATH_SEP "%s", h, local);
+        else
+            return NULL;
 
 #ifdef OS_IS_WIN32
         if (!ExpandEnvironmentStrings(lfn, buf, PATH_MAX)) {
@@ -1311,6 +1313,7 @@ char *pa_find_config_file(const char *global, const char *local, const char *env
 #endif
 
     if (env && (fn = getenv(env))) {
+
 #ifdef OS_IS_WIN32
         if (!ExpandEnvironmentStrings(fn, buf, PATH_MAX))
             return NULL;
@@ -1333,6 +1336,8 @@ char *pa_find_config_file(const char *global, const char *local, const char *env
             fn = lfn = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", e, local);
         else if (pa_get_home_dir(h, sizeof(h)))
             fn = lfn = pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse" PA_PATH_SEP "%s", h, local);
+        else
+            return NULL;
 
 #ifdef OS_IS_WIN32
         if (!ExpandEnvironmentStrings(lfn, buf, PATH_MAX)) {
@@ -1364,7 +1369,7 @@ char *pa_find_config_file(const char *global, const char *local, const char *env
         global = buf;
 #endif
 
-        if (access(fn, R_OK) == 0)
+        if (access(global, R_OK) == 0)
             return pa_xstrdup(global);
     } else
         errno = ENOENT;
