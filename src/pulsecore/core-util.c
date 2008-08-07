@@ -1164,48 +1164,243 @@ int pa_unlock_lockfile(const char *fn, int fd) {
     return r;
 }
 
-static char *get_dir(mode_t m, const char *env_name) {
-    const char *e;
-    char *d;
+static char *get_pulse_home(void) {
+    char h[PATH_MAX];
+    struct stat st;
 
-    if ((e = getenv(env_name)))
-        d = pa_xstrdup(e);
-    else {
-        char h[PATH_MAX];
-        struct stat st;
-
-        if (!pa_get_home_dir(h, sizeof(h))) {
-            pa_log_error("Failed to get home directory.");
-            return NULL;
-        }
-
-        if (stat(h, &st) < 0) {
-            pa_log_error("Failed to stat home directory %s: %s", h, pa_cstrerror(errno));
-            return NULL;
-        }
-
-        if (st.st_uid != getuid()) {
-            pa_log_error("Home directory %s not ours.", h);
-            return NULL;
-        }
-
-        d = pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse", h);
+    if (!pa_get_home_dir(h, sizeof(h))) {
+        pa_log_error("Failed to get home directory.");
+        return NULL;
     }
 
-    if (pa_make_secure_dir(d, m, (pid_t) -1, (pid_t) -1) < 0)  {
+    if (stat(h, &st) < 0) {
+        pa_log_error("Failed to stat home directory %s: %s", h, pa_cstrerror(errno));
+        return NULL;
+    }
+
+    if (st.st_uid != getuid()) {
+        pa_log_error("Home directory %s not ours.", h);
+        return NULL;
+    }
+
+    return pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse", h);
+}
+
+char *pa_get_state_dir(void) {
+    char *d;
+
+    /* The state directory shall contain dynamic data that should be
+     * kept across reboots, and is private to this user */
+
+    if (!(d = pa_xstrdup(getenv("PULSE_STATE_PATH"))))
+        if (!(d = get_pulse_home()))
+            return NULL;
+
+    /* If PULSE_STATE_PATH and PULSE_RUNTIME_PATH point to the same
+     * dir then this will break. */
+
+    if (pa_make_secure_dir(d, 0700, (pid_t) -1, (pid_t) -1) < 0)  {
         pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
+        pa_xfree(d);
         return NULL;
     }
 
     return d;
 }
 
-char *pa_get_runtime_dir(void) {
-    return get_dir(pa_in_system_mode() ? 0755 : 0700, "PULSE_RUNTIME_PATH");
+static char* make_random_dir(mode_t m) {
+    static const char table[] =
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "0123456789";
+
+    char fn[24] = "/tmp/pulse-";
+
+    fn[sizeof(fn)-1] = 0;
+
+    for (;;) {
+        unsigned i;
+        int r;
+        mode_t u;
+        int saved_errno;
+
+        for (i = 11; i < sizeof(fn)-1; i++)
+            fn[i] = table[rand() % (sizeof(table)-1)];
+
+        u = umask((~m) & 0777);
+        r = mkdir(fn, m);
+        saved_errno = errno;
+        umask(u);
+
+        if (r >= 0)
+            return pa_xstrdup(fn);
+
+        errno = saved_errno;
+
+        if (errno != EEXIST) {
+            pa_log_error("Failed to create random directory %s: %s", fn, pa_cstrerror(errno));
+            return NULL;
+        }
+    }
 }
 
-char *pa_get_state_dir(void) {
-    return get_dir(0700, "PULSE_STATE_PATH");
+static int make_random_dir_and_link(mode_t m, const char *k) {
+    char *p;
+
+    if (!(p = make_random_dir(m)))
+        return -1;
+
+    if (symlink(p, k) < 0) {
+        int saved_errno = errno;
+
+        if (errno != EEXIST)
+            pa_log_error("Failed to symlink %s to %s: %s", k, p, pa_cstrerror(errno));
+
+        rmdir(p);
+        pa_xfree(p);
+
+        errno = saved_errno;
+        return -1;
+    }
+
+    return 0;
+}
+
+char *pa_get_runtime_dir(void) {
+    char *d, *k = NULL, *p = NULL, *t = NULL, *mid;
+    struct stat st;
+
+    /* The runtime directory shall contain dynamic data that needs NOT
+     * to be kept accross reboots and is usuallly private to the user,
+     * except in system mode, where it might be accessible by other
+     * users, too. Since we need POSIX locking and UNIX sockets in
+     * this directory, we link it to a random subdir in /tmp, if it
+     * was not explicitly configured. */
+
+    if ((d = getenv("PULSE_RUNTIME_PATH"))) {
+        mode_t m;
+
+        m = pa_in_system_mode() ? 0755 : 0700;
+
+        if (pa_make_secure_dir(d, m, (pid_t) -1, (pid_t) -1) < 0)  {
+            pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
+            goto fail;
+        }
+
+        return pa_xstrdup(d);
+    }
+
+    if (!(d = get_pulse_home()))
+        goto fail;
+
+    if (!(mid = pa_machine_id())) {
+        pa_xfree(d);
+        goto fail;
+    }
+
+    k = pa_sprintf_malloc("%s" PA_PATH_SEP "%s:runtime", d, mid);
+    pa_xfree(d);
+    pa_xfree(mid);
+
+    for (;;) {
+        /* OK, first let's check if the "runtime" symlink is already
+         * existant */
+
+        if (!(p = pa_readlink(k))) {
+
+            if (errno != ENOENT) {
+                pa_log_error("Failed to stat runtime directory %s: %s", k, pa_cstrerror(errno));
+                goto fail;
+            }
+
+            /* Hmm, so the runtime directory didn't exist yet, so let's
+             * create one in /tmp and symlink that to it */
+
+            if (make_random_dir_and_link(0700, k) < 0) {
+
+                /* Mhmm, maybe another process was quicker than us,
+                 * let's check if that was valid */
+                if (errno == EEXIST)
+                    continue;
+
+                goto fail;
+            }
+
+            return k;
+        }
+
+        /* Make sure that this actually makes sense */
+        if (!pa_is_path_absolute(p)) {
+            pa_log_error("Path %s in link %s is not absolute.", p, k);
+            goto fail;
+        }
+
+        /* Hmm, so this symlink is still around, make sure nobody fools
+         * us */
+
+        if (lstat(p, &st) < 0) {
+
+            if (errno != ENOENT) {
+                pa_log_error("Failed to stat runtime directory %s: %s", p, pa_cstrerror(errno));
+                goto fail;
+            }
+
+        } else {
+
+            if (S_ISDIR(st.st_mode) &&
+                (st.st_uid == getuid()) &&
+                ((st.st_mode & 0777) == 0700)) {
+
+                pa_xfree(p);
+                return k;
+            }
+
+            pa_log_info("Hmm, runtime path exists, but points to an invalid directory. Changing runtime directory.");
+        }
+
+        pa_xfree(p);
+        p = NULL;
+
+        /* Hmm, so the link points to some nonexisting or invalid
+         * dir. Let's replace it by a new link. We first create a
+         * temporary link and then rename that to allow concurrent
+         * execution of this function. */
+
+        t = pa_sprintf_malloc("%s.tmp", k);
+
+        if (make_random_dir_and_link(0700, t) < 0) {
+
+            if (errno != EEXIST) {
+                pa_log_error("Failed to symlink %s: %s", t, pa_cstrerror(errno));
+                goto fail;
+            }
+
+            pa_xfree(t);
+            t = NULL;
+
+            /* Hmm, someone lese was quicker then us. Let's give
+             * him some time to finish, and retry. */
+            pa_msleep(10);
+            continue;
+        }
+
+        /* OK, we succeeded in creating the temporary symlink, so
+         * let's rename it */
+        if (rename(t, k) < 0) {
+            pa_log_error("Failed to rename %s to %s: %s", t, k, pa_cstrerror(errno));
+            goto fail;
+        }
+
+        pa_xfree(t);
+        return k;
+    }
+
+fail:
+    pa_xfree(p);
+    pa_xfree(k);
+    pa_xfree(t);
+
+    return NULL;
 }
 
 /* Try to open a configuration file. If "env" is specified, open the
