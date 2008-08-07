@@ -776,7 +776,7 @@ finish:
 }
 
 
-static char *get_legacy_runtime_dir(void) {
+static char *get_old_legacy_runtime_dir(void) {
     char *p, u[128];
     struct stat st;
 
@@ -784,6 +784,28 @@ static char *get_legacy_runtime_dir(void) {
         return NULL;
 
     p = pa_sprintf_malloc("/tmp/pulse-%s", u);
+
+    if (stat(p, &st) < 0) {
+        pa_xfree(p);
+        return NULL;
+    }
+
+    if (st.st_uid != getuid()) {
+        pa_xfree(p);
+        return NULL;
+    }
+
+    return p;
+}
+
+static char *get_very_old_legacy_runtime_dir(void) {
+    char *p, h[128];
+    struct stat st;
+
+    if (!pa_get_home_dir(h, sizeof(h)))
+        return NULL;
+
+    p = pa_sprintf_malloc("%s/.pulse", h);
 
     if (stat(p, &st) < 0) {
         pa_xfree(p);
@@ -849,8 +871,16 @@ int pa_context_connect(
         /* The system wide instance */
         c->server_list = pa_strlist_prepend(c->server_list, PA_SYSTEM_RUNTIME_PATH PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET);
 
-        /* The old per-user instance path. This is supported only to ease upgrades */
-        if ((legacy_dir = get_legacy_runtime_dir())) {
+        /* The very old per-user instance path (< 0.9.11). This is supported only to ease upgrades */
+        if ((legacy_dir = get_very_old_legacy_runtime_dir())) {
+            char *p = pa_sprintf_malloc("%s" PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET, legacy_dir);
+            c->server_list = pa_strlist_prepend(c->server_list, p);
+            pa_xfree(p);
+            pa_xfree(legacy_dir);
+        }
+
+        /* The old per-user instance path (< 0.9.12). This is supported only to ease upgrades */
+        if ((legacy_dir = get_old_legacy_runtime_dir())) {
             char *p = pa_sprintf_malloc("%s" PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET, legacy_dir);
             c->server_list = pa_strlist_prepend(c->server_list, p);
             pa_xfree(p);
