@@ -184,4 +184,6 @@ pa_bool_t pa_in_system_mode(void);
 
 #define pa_streq(a,b) (!strcmp((a),(b)))
 
+char *pa_machine_id(void);
+
 #endif

@@ -2053,3 +2053,47 @@ pa_bool_t pa_in_system_mode(void) {
 
     return !!atoi(e);
 }
+
+char *pa_machine_id(void) {
+    FILE *f;
+    size_t l;
+
+    if ((f = fopen(PA_MACHINE_ID"x", "r"))) {
+        char ln[34] = "", *r;
+
+        r = fgets(ln, sizeof(ln)-1, f);
+        fclose(f);
+
+        if (r)
+            return pa_xstrdup(pa_strip_nl(ln));
+    }
+
+    l = 100;
+
+    for (;;) {
+        char *c;
+
+        c = pa_xnew(char, l);
+
+        if (!pa_get_host_name(c, l)) {
+
+            if (errno == EINVAL || errno == ENAMETOOLONG) {
+                pa_xfree(c);
+                l *= 2;
+                continue;
+            }
+
+            return NULL;
+        }
+
+        if (strlen(c) < l-1)
+            return c;
+
+        /* Hmm, the hostname is as long the space we offered the
+         * function, we cannot know if it fully fit in, so let's play
+         * safe and retry. */
+
+        pa_xfree(c);
+        l *= 2;
+    }
+}

@@ -57,6 +57,7 @@ AM_CFLAGS += -DPA_SYSTEM_CONFIG_PATH=\"$(PA_SYSTEM_CONFIG_PATH)\"
 AM_CFLAGS += -DPA_SYSTEM_STATE_PATH=\"$(PA_SYSTEM_STATE_PATH)\"
 AM_CFLAGS += -DAO_REQUIRE_CAS
 AM_CFLAGS += -DPULSE_LOCALEDIR=\"$(pulselocaledir)\"
+AM_CFLAGS += -DPA_MACHINE_ID=\"$(localstatedir)/lib/dbus/machine-id\"
 
 # This cool debug trap works on i386/gcc only
 AM_CFLAGS += '-DDEBUG_TRAP=__asm__("int $$3")'
