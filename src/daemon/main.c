@@ -767,12 +767,22 @@ int main(int argc, char *argv[]) {
 
     pa_log_info(_("This is PulseAudio %s"), PACKAGE_VERSION);
     pa_log_info(_("Page size is %lu bytes"), (unsigned long) PA_PAGE_SIZE);
+
+    if (!(s = pa_machine_id())) {
+        pa_log(_("Failed to get machine ID"));
+        goto finish;
+    }
+    pa_log_info(_("Machine ID is %s."), s);
+    pa_xfree(s);
+
     if (!(s = pa_get_runtime_dir()))
         goto finish;
     pa_log_info(_("Using runtime directory %s."), s);
     pa_xfree(s);
+
     if (!(s = pa_get_state_dir()))
-        pa_log_info(_("Using state directory %s."), s);
+        goto finish;
+    pa_log_info(_("Using state directory %s."), s);
     pa_xfree(s);
 
     pa_log_info(_("Running in system mode: %s"), pa_yes_no(pa_in_system_mode()));
