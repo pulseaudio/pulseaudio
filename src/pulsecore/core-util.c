@@ -2266,7 +2266,7 @@ char *pa_machine_id(void) {
     FILE *f;
     size_t l;
 
-    if ((f = fopen(PA_MACHINE_ID"x", "r"))) {
+    if ((f = fopen(PA_MACHINE_ID, "r"))) {
         char ln[34] = "", *r;
 
         r = fgets(ln, sizeof(ln)-1, f);
