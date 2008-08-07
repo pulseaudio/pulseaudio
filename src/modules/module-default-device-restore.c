@@ -154,28 +154,16 @@ static void subscribe_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t id
 
 int pa__init(pa_module *m) {
     struct userdata *u;
-    char hn[256], *fn;
 
     pa_assert(m);
 
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
 
-    if (!pa_get_host_name(hn, sizeof(hn)))
+    if (!(u->sink_filename = pa_state_path("default-sink", TRUE)))
         goto fail;
 
-    fn = pa_sprintf_malloc("default-sink.%s", hn);
-    u->sink_filename = pa_state_path(fn);
-    pa_xfree(fn);
-
-    if (!u->sink_filename)
-        goto fail;
-
-    fn = pa_sprintf_malloc("default-source.%s", hn);
-    u->source_filename = pa_state_path(fn);
-    pa_xfree(fn);
-
-    if (!u->source_filename)
+    if (!(u->source_filename = pa_state_path("default-source", TRUE)))
         goto fail;
 
     load(u);

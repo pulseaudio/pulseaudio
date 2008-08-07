@@ -121,7 +121,7 @@ char* pa_find_config_file(const char *global, const char *local, const char *env
 char *pa_get_runtime_dir(void);
 char *pa_get_state_dir(void);
 char *pa_runtime_path(const char *fn);
-char *pa_state_path(const char *fn);
+char *pa_state_path(const char *fn, pa_bool_t prepend_machine_id);
 
 int pa_atoi(const char *s, int32_t *ret_i);
 int pa_atou(const char *s, uint32_t *ret_u);

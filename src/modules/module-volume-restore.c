@@ -493,7 +493,7 @@ int pa__init(pa_module*m) {
 
     m->userdata = u;
 
-    if (!(u->table_file = pa_state_path(pa_modargs_get_value(ma, "table", DEFAULT_VOLUME_TABLE_FILE))))
+    if (!(u->table_file = pa_state_path(pa_modargs_get_value(ma, "table", DEFAULT_VOLUME_TABLE_FILE), TRUE)))
         goto fail;
 
     if (pa_modargs_get_value_boolean(ma, "restore_device", &restore_device) < 0 ||

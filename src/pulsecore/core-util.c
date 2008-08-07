@@ -1690,7 +1690,7 @@ char *pa_make_path_absolute(const char *p) {
 /* if fn is null return the PulseAudio run time path in s (~/.pulse)
  * if fn is non-null and starts with / return fn
  * otherwise append fn to the run time path and return it */
-static char *get_path(const char *fn, pa_bool_t rt) {
+static char *get_path(const char *fn, pa_bool_t prependmid, pa_bool_t rt) {
     char *rtp;
 
     if (pa_is_path_absolute(fn))
@@ -1703,7 +1703,20 @@ static char *get_path(const char *fn, pa_bool_t rt) {
 
     if (fn) {
         char *r;
-        r = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", rtp, fn);
+
+        if (prependmid) {
+            char *mid;
+
+            if (!(mid = pa_machine_id())) {
+                pa_xfree(rtp);
+                return NULL;
+            }
+
+            r = pa_sprintf_malloc("%s" PA_PATH_SEP "%s:%s", rtp, mid, fn);
+            pa_xfree(mid);
+        } else
+            r = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", rtp, fn);
+
         pa_xfree(rtp);
         return r;
     } else
@@ -1711,11 +1724,11 @@ static char *get_path(const char *fn, pa_bool_t rt) {
 }
 
 char *pa_runtime_path(const char *fn) {
-    return get_path(fn, 1);
+    return get_path(fn, FALSE, TRUE);
 }
 
-char *pa_state_path(const char *fn) {
-    return get_path(fn, 0);
+char *pa_state_path(const char *fn, pa_bool_t appendmid) {
+    return get_path(fn, appendmid, FALSE);
 }
 
 /* Convert the string s to a signed integer in *ret_i */

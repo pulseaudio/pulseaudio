@@ -284,7 +284,6 @@ int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
     char *fname, *fn;
-    char hn[256];
     pa_sink *sink;
     pa_source *source;
     uint32_t idx;
@@ -321,11 +320,12 @@ int pa__init(pa_module*m) {
         u->source_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_FIXATE], PA_HOOK_EARLY, (pa_hook_cb_t) source_fixate_hook_callback, u);
     }
 
-    if (!pa_get_host_name(hn, sizeof(hn)))
-        goto fail;
+    /* We include the host identifier in the file name because gdbm
+     * files are CPU dependant, and we don't want things to go wrong
+     * if we are on a multiarch system. */
 
-    fn = pa_sprintf_malloc("device-volumes.%s."CANONICAL_HOST".gdbm", hn);
-    fname = pa_state_path(fn);
+    fn = pa_sprintf_malloc("device-volumes."CANONICAL_HOST".gdbm");
+    fname = pa_state_path(fn, TRUE);
     pa_xfree(fn);
 
     if (!fname)
