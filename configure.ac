@@ -142,17 +142,18 @@ esac
 # If everything else fails use libatomic_ops
 need_libatomic_ops=yes
 
-AC_MSG_CHECKING([whether $CC knows __sync_bool_compare_and_swap()])
-AC_LANG_CONFTEST([int main() { int a = 4; __sync_bool_compare_and_swap(&a, 4, 5); }])
-$CC conftest.c $CFLAGS -o conftest > /dev/null 2> /dev/null
-ret=$?
-rm -f conftest.o conftest
-if test $ret -eq 0 ; then
+AC_CACHE_CHECK([whether $CC knows __sync_bool_compare_and_swap()],
+  pulseaudio_cv_sync_bool_compare_and_swap,
+  [AC_LINK_IFELSE(
+     AC_LANG_PROGRAM([], [[int a = 4; __sync_bool_compare_and_swap(&a, 4, 5);]]),
+     [pulseaudio_cv_sync_bool_compare_and_swap=yes],
+     [pulseaudio_cv_sync_bool_compare_and_swap=no])
+  ])
+
+if test "$pulseaudio_cv_sync_bool_compare_and_swap" = "yes" ; then
     AC_DEFINE([HAVE_ATOMIC_BUILTINS], 1, [Have __sync_bool_compare_and_swap() and friends.])
-    AC_MSG_RESULT([yes])
     need_libatomic_ops=no
 else
-    AC_MSG_RESULT([no])
     # HW specific atomic ops stuff
     AC_MSG_CHECKING([architecture for native atomic operations])
     case $host_cpu in
@@ -168,29 +169,27 @@ else
     		need_libatomic_ops=no
 	    else
 	       AC_MSG_RESULT([no])
-	       AC_MSG_CHECKING([compiler support for arm inline asm atomic operations])
-	       AC_LANG_CONFTEST([[int main()
-	       {
-                   volatile int a=0;
-	           int o=0, n=1, r;
-	           asm volatile ("ldrex	%0, [%1]\n"
-			 	 "subs	%0, %0, %2\n"
-			 	 "strexeq %0, %3, [%1]\n"
-			 	 : "=&r" (r)
-			 	 : "r" (&a), "Ir" (o), "r" (n)
-			 	 : "cc");
-                   return (a==1 ? 0 : -1);
-	       }]])
-	       $CC conftest.c $CFLAGS -o conftest > /dev/null 2>&1
-	       ret=$?
-	       rm -f conftest.o conftest
-	       if test $ret -eq 0 ; then
+	       AC_CACHE_CHECK([compiler support for arm inline asm atomic operations],
+	         pulseaudio_cv_support_arm_atomic_ops,
+		 [AC_COMPILE_IFELSE(
+		    AC_LANG_PROGRAM([],
+		      [[volatile int a=0;
+	                int o=0, n=1, r;
+	                asm volatile ("ldrex	%0, [%1]\n"
+		        	 	 "subs	%0, %0, %2\n"
+		        	 	 "strexeq %0, %3, [%1]\n"
+		        	 	 : "=&r" (r)
+		        	 	 : "r" (&a), "Ir" (o), "r" (n)
+		        	 	 : "cc");
+                        return (a==1 ? 0 : -1);
+		      ]]),
+		    [pulseaudio_cv_support_arm_atomic_ops=yes],
+		    [pulseaudio_cv_support_arm_atomic_ops=no])
+		 ])
+	       AS_IF([test "$pulseaudio_cv_support_arm_atomic_ops" = "yes"], [
 	       	   AC_DEFINE([ATOMIC_ARM_INLINE_ASM], 1, [Have ARMv6 instructions.])
-	    	   AC_MSG_RESULT([yes])
 		   need_libatomic_ops=no
-	       else
-	    	   AC_MSG_RESULT([no])
-               fi
+	         ])
 	   fi
       	;;
         *)
@@ -201,17 +200,17 @@ fi
 
 CC_CHECK_TLS
 
-AC_MSG_CHECKING([whether $CC knows _Bool])
-AC_LANG_CONFTEST([int main() { _Bool b; }])
-$CC conftest.c $CFLAGS -o conftest > /dev/null 2> /dev/null
-ret=$?
-rm -f conftest.o conftest
-if test $ret -eq 0 ; then
+AC_CACHE_CHECK([whether $CC knows _Bool],
+  pulseaudio_cv__Bool,
+  [AC_COMPILE_IFELSE(
+     AC_LANG_PROGRAM([], [[_Bool b;]]),
+     [pulseaudio_cv__Bool=yes],
+     [pulseaudio_cv__Bool=no])
+  ])
+
+AS_IF([test "$pulseaudio_cv__Bool" = "yes"], [
     AC_DEFINE([HAVE_STD_BOOL], 1, [Have _Bool.])
-    AC_MSG_RESULT([yes])
-else
-    AC_MSG_RESULT([no])
-fi
+  ])
 
 #### libtool stuff ####
 
@@ -385,20 +384,27 @@ AC_CHECK_FUNCS([setresuid setresgid setreuid setregid seteuid setegid ppoll strs
 
 AC_FUNC_ALLOCA
 
-AC_MSG_CHECKING([for PTHREAD_PRIO_INHERIT])
-AC_LANG_CONFTEST([AC_LANG_SOURCE([[
-#include <pthread.h>
-int main() { int i = PTHREAD_PRIO_INHERIT; }]])])
-$PTHREAD_CC conftest.c $PTHREAD_CFLAGS $CFLAGS $PTHREAD_LIBS -o conftest > /dev/null 2> /dev/null
-ret=$?
-rm -f conftest.o conftest
+AC_CACHE_CHECK([for PTHREAD_PRIO_INHERIT],
+  pulseaudio_cv_PTHREAD_PRIO_INHERIT,
+  [save_CC=$CC; CC=$PTHREAD_CC
+   save_CFLAGS=$CFLAGS; CFLAGS=$PTHREAD_CFLAGS
+   save_LIBS=$LIBS; LIBS=$PTHREAD_LIBS
+   AC_LINK_IFELSE(
+     AC_LANG_PROGRAM(
+       [[
+         #include <pthread.h>
+       ]],
+       [[int i = PTHREAD_PRIO_INHERIT;]]),
+     [pulseaudio_cv_PTHREAD_PRIO_INHERIT=yes],
+     [pulseaudio_cv_PTHREAD_PRIO_INHERIT=no])
+   CC=$save_CC
+   CFLAGS=$save_CFLAGS
+   LIBS=$save_LIBS
+  ])
 
-if test $ret -eq 0 ; then
+AS_IF([test "$pulseaudio_cv_PTHREAD_PRIO_INHERIT" = "yes"], [
     AC_DEFINE([HAVE_PTHREAD_PRIO_INHERIT], 1, [Have PTHREAD_PRIO_INHERIT.])
-    AC_MSG_RESULT([yes])
-else
-    AC_MSG_RESULT([no])
-fi
+  ])
 
 #### Large File-Support (LFS) ####
 
