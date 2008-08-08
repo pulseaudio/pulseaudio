@@ -41,6 +41,7 @@ struct pa_thread {
     pa_thread_func_t thread_func;
     void *userdata;
     pa_atomic_t running;
+    pa_bool_t joined;
 };
 
 struct pa_tls {
@@ -82,6 +83,7 @@ pa_thread* pa_thread_new(pa_thread_func_t thread_func, void *userdata) {
     t = pa_xnew(pa_thread, 1);
     t->thread_func = thread_func;
     t->userdata = userdata;
+    t->joined = FALSE;
     pa_atomic_store(&t->running, 0);
 
     if (pthread_create(&t->id, NULL, internal_thread_func, t) < 0) {
@@ -115,7 +117,12 @@ void pa_thread_free(pa_thread *t) {
 
 int pa_thread_join(pa_thread *t) {
     pa_assert(t);
+    pa_assert(t->thread_func);
 
+    if (t->joined)
+        return -1;
+
+    t->joined = TRUE;
     return pthread_join(t->id, NULL);
 }
 
@@ -132,6 +139,7 @@ pa_thread* pa_thread_self(void) {
     t->id = pthread_self();
     t->thread_func = NULL;
     t->userdata = NULL;
+    t->joined = TRUE;
     pa_atomic_store(&t->running, 2);
 
     PA_STATIC_TLS_SET(current_thread, t);
@@ -192,4 +200,3 @@ void *pa_tls_set(pa_tls *t, void *userdata) {
     pa_assert_se(pthread_setspecific(t->key, userdata) == 0);
     return r;
 }
-
