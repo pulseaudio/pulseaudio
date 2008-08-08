@@ -17,9 +17,10 @@
 
 pulseconfdir=$(sysconfdir)/pulse
 
-if BUILD_MANPAGES
+CLEANFILES = \
+	$(noinst_DATA)
 
-man_MANS = \
+dist_man_MANS = \
 	pulseaudio.1 \
 	esdcompat.1 \
 	pax11publish.1 \
@@ -49,114 +50,17 @@ noinst_DATA = \
 	pulse-client.conf.5.xml \
 	default.pa.5.xml
 
-CLEANFILES = \
-	$(noinst_DATA)
-
-pulseaudio.1.xml: pulseaudio.1.xml.in Makefile
-	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
-	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
-            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
-
-esdcompat.1.xml: esdcompat.1.xml.in Makefile
-	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
-	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
-            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
-
-pax11publish.1.xml: pax11publish.1.xml.in Makefile
-	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
-	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
-            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
-
-paplay.1.xml: paplay.1.xml.in Makefile
-	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
-	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
-            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
-
-pacat.1.xml: pacat.1.xml.in Makefile
-	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
-	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
-            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
-
-pacmd.1.xml: pacmd.1.xml.in Makefile
-	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
-	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
-            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
-
-pactl.1.xml: pactl.1.xml.in Makefile
-	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
-	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
-            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
-
-pasuspender.1.xml: pasuspender.1.xml.in Makefile
-	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
-	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
-            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
-
-padsp.1.xml: padsp.1.xml.in Makefile
-	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
-	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
-            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
-
-pabrowse.1.xml: pabrowse.1.xml.in Makefile
-	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
-	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
-            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
-
-pulse-daemon.conf.5.xml: pulse-daemon.conf.5.xml.in Makefile
-	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
-	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
-            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
-
-pulse-client.conf.5.xml: pulse-client.conf.5.xml.in Makefile
-	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
-	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
-            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
-
-default.pa.5.xml: default.pa.5.xml.in Makefile
-	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
-	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
-            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
+if BUILD_MANPAGES
 
 CLEANFILES += \
-	$(man_MANS)
+	$(dist_man_MANS)
 
-pulseaudio.1: pulseaudio.1.xml Makefile
-	perl $(srcdir)/xmltoman $< > $@ || rm -f $@
+%.xml: %.xml.in Makefile
+	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
+	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
+            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
 
-esdcompat.1: esdcompat.1.xml Makefile
-	perl $(srcdir)/xmltoman $< > $@ || rm -f $@
-
-pax11publish.1: pax11publish.1.xml Makefile
-	perl $(srcdir)/xmltoman $< > $@ || rm -f $@
-
-paplay.1: paplay.1.xml Makefile
-	perl $(srcdir)/xmltoman $< > $@ || rm -f $@
-
-pacat.1: pacat.1.xml Makefile
-	perl $(srcdir)/xmltoman $< > $@ || rm -f $@
-
-pacmd.1: pacmd.1.xml Makefile
-	perl $(srcdir)/xmltoman $< > $@ || rm -f $@
-
-pactl.1: pactl.1.xml Makefile
-	perl $(srcdir)/xmltoman $< > $@ || rm -f $@
-
-pasuspender.1: pasuspender.1.xml Makefile
-	perl $(srcdir)/xmltoman $< > $@ || rm -f $@
-
-padsp.1: padsp.1.xml Makefile
-	perl $(srcdir)/xmltoman $< > $@ || rm -f $@
-
-pabrowse.1: pabrowse.1.xml Makefile
-	perl $(srcdir)/xmltoman $< > $@ || rm -f $@
-
-pulse-daemon.conf.5: pulse-daemon.conf.5.xml Makefile
-	perl $(srcdir)/xmltoman $< > $@ || rm -f $@
-
-pulse-client.conf.5: pulse-client.conf.5.xml Makefile
-	perl $(srcdir)/xmltoman $< > $@ || rm -f $@
-
-default.pa.5: default.pa.5.xml Makefile
+%: %.xml Makefile
 	perl $(srcdir)/xmltoman $< > $@ || rm -f $@
 
 xmllint: $(noinst_DATA)
@@ -167,7 +71,6 @@ xmllint: $(noinst_DATA)
 endif
 
 EXTRA_DIST = \
-	$(man_MANS) \
 	pulseaudio.1.xml.in \
 	esdcompat.1.xml.in \
 	pax11publish.1.xml.in \
