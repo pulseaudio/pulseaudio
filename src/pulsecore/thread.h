@@ -86,7 +86,7 @@ void *pa_tls_set(pa_tls *t, void *userdata);
     }                                                                   \
     struct __stupid_useless_struct_to_allow_trailing_semicolon
 
-#ifdef HAVE_TLS_BUILTIN
+#ifdef SUPPORT_TLS___THREAD
 /* An optimized version of the above that requires no dynamic
  * allocation if the compiler supports __thread */
 #define PA_STATIC_TLS_DECLARE_NO_FREE(name)                             \

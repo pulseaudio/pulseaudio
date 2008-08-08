@@ -199,17 +199,7 @@ else
     esac
 fi
 
-AC_MSG_CHECKING([whether $CC knows __thread])
-AC_LANG_CONFTEST([static __thread int a = 6; int main() { a = 5; }])
-$CC conftest.c $CFLAGS -o conftest > /dev/null 2> /dev/null
-ret=$?
-rm -f conftest.o conftest
-if test $ret -eq 0 ; then
-    AC_DEFINE([HAVE_TLS_BUILTIN], 1, [Have __thread().])
-    AC_MSG_RESULT([yes])
-else
-    AC_MSG_RESULT([no])
-fi
+CC_CHECK_TLS
 
 AC_MSG_CHECKING([whether $CC knows _Bool])
 AC_LANG_CONFTEST([int main() { _Bool b; }])
