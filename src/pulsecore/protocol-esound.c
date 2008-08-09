@@ -334,7 +334,7 @@ static int format_native2esd(pa_sample_spec *ss) {
 
 /*** esound commands ***/
 
-static int esd_proto_connect(connection *c, PA_GCC_UNUSED esd_proto_t request, const void *data, size_t length) {
+static int esd_proto_connect(connection *c, esd_proto_t request, const void *data, size_t length) {
     uint32_t ekey;
     int ok;
 
@@ -377,7 +377,7 @@ static int esd_proto_connect(connection *c, PA_GCC_UNUSED esd_proto_t request, c
     return 0;
 }
 
-static int esd_proto_stream_play(connection *c, PA_GCC_UNUSED esd_proto_t request, const void *data, size_t length) {
+static int esd_proto_stream_play(connection *c, esd_proto_t request, const void *data, size_t length) {
     char name[ESD_NAME_MAX], *utf8_name;
     int32_t format, rate;
     pa_sample_spec ss;
@@ -561,7 +561,7 @@ static int esd_proto_stream_record(connection *c, esd_proto_t request, const voi
     return 0;
 }
 
-static int esd_proto_get_latency(connection *c, PA_GCC_UNUSED esd_proto_t request, const void *data, size_t length) {
+static int esd_proto_get_latency(connection *c, esd_proto_t request, const void *data, size_t length) {
     pa_sink *sink;
     int32_t latency;
 
@@ -581,7 +581,7 @@ static int esd_proto_get_latency(connection *c, PA_GCC_UNUSED esd_proto_t reques
     return 0;
 }
 
-static int esd_proto_server_info(connection *c, PA_GCC_UNUSED esd_proto_t request, const void *data, size_t length) {
+static int esd_proto_server_info(connection *c, esd_proto_t request, const void *data, size_t length) {
     int32_t rate = 44100, format = ESD_STEREO|ESD_BITS16;
     int32_t response;
     pa_sink *sink;
@@ -736,7 +736,7 @@ static int esd_proto_all_info(connection *c, esd_proto_t request, const void *da
     return 0;
 }
 
-static int esd_proto_stream_pan(connection *c, PA_GCC_UNUSED esd_proto_t request, const void *data, size_t length) {
+static int esd_proto_stream_pan(connection *c, esd_proto_t request, const void *data, size_t length) {
     int32_t ok;
     uint32_t idx, lvolume, rvolume;
     connection *conn;
@@ -772,7 +772,7 @@ static int esd_proto_stream_pan(connection *c, PA_GCC_UNUSED esd_proto_t request
     return 0;
 }
 
-static int esd_proto_sample_cache(connection *c, PA_GCC_UNUSED esd_proto_t request, const void *data, size_t length) {
+static int esd_proto_sample_cache(connection *c, esd_proto_t request, const void *data, size_t length) {
     pa_sample_spec ss;
     int32_t format, rate, sc_length;
     uint32_t idx;
@@ -824,7 +824,7 @@ static int esd_proto_sample_cache(connection *c, PA_GCC_UNUSED esd_proto_t reque
     return 0;
 }
 
-static int esd_proto_sample_get_id(connection *c, PA_GCC_UNUSED esd_proto_t request, const void *data, size_t length) {
+static int esd_proto_sample_get_id(connection *c, esd_proto_t request, const void *data, size_t length) {
     int32_t ok;
     uint32_t idx;
     char name[ESD_NAME_MAX+sizeof(SCACHE_PREFIX)-1];
@@ -881,7 +881,7 @@ static int esd_proto_sample_free_or_play(connection *c, esd_proto_t request, con
     return 0;
 }
 
-static int esd_proto_standby_or_resume(connection *c, PA_GCC_UNUSED esd_proto_t request, PA_GCC_UNUSED const void *data, PA_GCC_UNUSED size_t length) {
+static int esd_proto_standby_or_resume(connection *c, esd_proto_t request, const void *data, size_t length) {
     int32_t ok;
 
     connection_assert_ref(c);

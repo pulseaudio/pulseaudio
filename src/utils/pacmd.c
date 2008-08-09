@@ -42,7 +42,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/pid.h>
 
-int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
+int main(int argc, char*argv[]) {
     pid_t pid ;
     int fd = -1;
     int ret = 1, i;

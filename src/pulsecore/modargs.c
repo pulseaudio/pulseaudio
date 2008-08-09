@@ -183,7 +183,7 @@ fail:
     return NULL;
 }
 
-static void free_func(void *p, PA_GCC_UNUSED void*userdata) {
+static void free_func(void *p, void*userdata) {
     struct entry *e = p;
     pa_assert(e);
 

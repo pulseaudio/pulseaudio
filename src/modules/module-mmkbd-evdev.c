@@ -76,7 +76,7 @@ struct userdata {
     pa_module *module;
 };
 
-static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GCC_UNUSED int fd, pa_io_event_flags_t events, void*userdata) {
+static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event_flags_t events, void*userdata) {
     struct userdata *u = userdata;
 
     pa_assert(io);

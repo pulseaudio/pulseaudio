@@ -34,7 +34,7 @@
 
 #include "tokenizer.h"
 
-static void token_free(void *p, PA_GCC_UNUSED void *userdata) {
+static void token_free(void *p, void *userdata) {
     pa_xfree(p);
 }
 

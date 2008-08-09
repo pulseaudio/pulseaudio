@@ -1027,11 +1027,11 @@ int pa_context_is_pending(pa_context *c) {
 
 static void set_dispatch_callbacks(pa_operation *o);
 
-static void pdispatch_drain_callback(PA_GCC_UNUSED pa_pdispatch*pd, void *userdata) {
+static void pdispatch_drain_callback(pa_pdispatch*pd, void *userdata) {
     set_dispatch_callbacks(userdata);
 }
 
-static void pstream_drain_callback(PA_GCC_UNUSED pa_pstream *s, void *userdata) {
+static void pstream_drain_callback(pa_pstream *s, void *userdata) {
     set_dispatch_callbacks(userdata);
 }
 
@@ -1083,7 +1083,7 @@ pa_operation* pa_context_drain(pa_context *c, pa_context_notify_cb_t cb, void *u
     return o;
 }
 
-void pa_context_simple_ack_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+void pa_context_simple_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     int success = 1;
 
@@ -1235,7 +1235,7 @@ const char* pa_context_get_server(pa_context *c) {
     return c->server;
 }
 
-uint32_t pa_context_get_protocol_version(PA_GCC_UNUSED pa_context *c) {
+uint32_t pa_context_get_protocol_version(pa_context *c) {
     return PA_PROTOCOL_VERSION;
 }
 

@@ -36,7 +36,7 @@
 
 /* A simple program for testing pa_mcalign */
 
-int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
+int main(int argc, char *argv[]) {
     pa_mempool *p;
     pa_mcalign *a;
     pa_memchunk c;

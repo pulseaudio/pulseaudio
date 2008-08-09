@@ -468,7 +468,7 @@ static int do_read(struct userdata *u) {
     return 0;
 }
 
-static void io_callback(PA_GCC_UNUSED pa_iochannel *io, void*userdata) {
+static void io_callback(pa_iochannel *io, void*userdata) {
     struct userdata *u = userdata;
     pa_assert(u);
 
@@ -483,7 +483,7 @@ static void io_callback(PA_GCC_UNUSED pa_iochannel *io, void*userdata) {
     }
 }
 
-static void on_connection(PA_GCC_UNUSED pa_socket_client *c, pa_iochannel*io, void *userdata) {
+static void on_connection(pa_socket_client *c, pa_iochannel*io, void *userdata) {
     struct userdata *u = userdata;
 
     pa_socket_client_unref(u->client);

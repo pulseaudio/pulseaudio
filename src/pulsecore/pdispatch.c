@@ -255,7 +255,7 @@ finish:
     return ret;
 }
 
-static void timeout_callback(pa_mainloop_api*m, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
+static void timeout_callback(pa_mainloop_api*m, pa_time_event*e, const struct timeval *tv, void *userdata) {
     struct reply_info*r = userdata;
 
     pa_assert(r);

@@ -90,7 +90,7 @@ static pa_io_event_flags_t get_watch_flags(DBusWatch *watch) {
 }
 
 /* pa_io_event_cb_t IO event handler */
-static void handle_io_event(PA_GCC_UNUSED pa_mainloop_api *ea, pa_io_event *e, int fd, pa_io_event_flags_t events, void *userdata) {
+static void handle_io_event(pa_mainloop_api *ea, pa_io_event *e, int fd, pa_io_event_flags_t events, void *userdata) {
     unsigned int flags = 0;
     DBusWatch *watch = userdata;
 

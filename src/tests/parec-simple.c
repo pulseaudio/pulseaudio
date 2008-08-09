@@ -53,7 +53,7 @@ static ssize_t loop_write(int fd, const void*data, size_t size) {
     return ret;
 }
 
-int main(PA_GCC_UNUSED int argc, char*argv[]) {
+int main(int argc, char*argv[]) {
     /* The sample type to use */
     static const pa_sample_spec ss = {
         .format = PA_SAMPLE_S16LE,

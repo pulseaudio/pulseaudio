@@ -90,7 +90,7 @@ static void dispatch(pa_mainloop_api*a, int sig) {
         }
 }
 
-static void callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags_t f, PA_GCC_UNUSED void *userdata) {
+static void callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags_t f, void *userdata) {
     ssize_t r;
     int sig;
 

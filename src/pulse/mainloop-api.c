@@ -51,7 +51,7 @@ static void once_callback(pa_mainloop_api *m, pa_defer_event *e, void *userdata)
     m->defer_free(e);
 }
 
-static void free_callback(pa_mainloop_api *m, PA_GCC_UNUSED pa_defer_event *e, void *userdata) {
+static void free_callback(pa_mainloop_api *m, pa_defer_event *e, void *userdata) {
     struct once_info *i = userdata;
 
     pa_assert(m);

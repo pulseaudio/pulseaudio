@@ -40,7 +40,7 @@
 
 #define PREFIX "module-"
 
-static void short_info(const char *name, PA_GCC_UNUSED const char *path, pa_modinfo *i) {
+static void short_info(const char *name, const char *path, pa_modinfo *i) {
     pa_assert(name);
     pa_assert(i);
 

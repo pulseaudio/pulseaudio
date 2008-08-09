@@ -5,7 +5,7 @@
 
 #include <pulsecore/strlist.h>
 
-int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char* argv[]) {
+int main(int argc, char* argv[]) {
     char *t, *u;
     pa_strlist *l = NULL;
 

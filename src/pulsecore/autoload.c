@@ -158,7 +158,7 @@ void pa_autoload_request(pa_core *c, const char *name, pa_namereg_type_t type) {
     e->in_action = 0;
 }
 
-static void free_func(void *p, PA_GCC_UNUSED void *userdata) {
+static void free_func(void *p, void *userdata) {
     pa_autoload_entry *e = p;
     pa_idxset_remove_by_data(e->core->autoload_idxset, e, NULL);
     entry_free(e);

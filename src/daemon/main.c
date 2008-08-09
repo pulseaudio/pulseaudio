@@ -111,7 +111,7 @@ int __padsp_disabled__ = 7;
 
 #ifdef OS_IS_WIN32
 
-static void message_cb(pa_mainloop_api*a, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
+static void message_cb(pa_mainloop_api*a, pa_time_event*e, const struct timeval *tv, void *userdata) {
     MSG msg;
     struct timeval tvnext;
 
@@ -130,7 +130,7 @@ static void message_cb(pa_mainloop_api*a, pa_time_event*e, PA_GCC_UNUSED const s
 
 #endif
 
-static void signal_callback(pa_mainloop_api*m, PA_GCC_UNUSED pa_signal_event *e, int sig, void *userdata) {
+static void signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
     pa_log_info(_("Got signal %s."), pa_sig2str(sig));
 
     switch (sig) {

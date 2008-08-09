@@ -33,7 +33,7 @@
 
 #define BUFSIZE 1024
 
-int main(PA_GCC_UNUSED int argc, char*argv[]) {
+int main(int argc, char*argv[]) {
 
     /* The Sample format to use */
     static const pa_sample_spec ss = {

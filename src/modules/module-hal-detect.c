@@ -108,7 +108,7 @@ static void hal_device_free(struct device* d) {
     pa_xfree(d);
 }
 
-static void hal_device_free_cb(void *d, PA_GCC_UNUSED void *data) {
+static void hal_device_free_cb(void *d, void *data) {
     hal_device_free(d);
 }
 

@@ -48,7 +48,7 @@
 
 #define UNLOAD_POLL_TIME 2
 
-static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
+static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, const struct timeval *tv, void *userdata) {
     pa_core *c = PA_CORE(userdata);
     struct timeval ntv;
 

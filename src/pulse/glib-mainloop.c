@@ -425,7 +425,7 @@ static void glib_defer_set_destroy(pa_defer_event *e, pa_defer_event_destroy_cb_
 
 /* quit() */
 
-static void glib_quit(pa_mainloop_api*a, PA_GCC_UNUSED int retval) {
+static void glib_quit(pa_mainloop_api*a, int retval) {
 
     g_warning("quit() ignored");
 
@@ -536,7 +536,7 @@ static gboolean check_func(GSource *source) {
     return FALSE;
 }
 
-static gboolean dispatch_func(GSource *source, PA_GCC_UNUSED GSourceFunc callback, PA_GCC_UNUSED gpointer userdata) {
+static gboolean dispatch_func(GSource *source, GSourceFunc callback, gpointer userdata) {
     pa_glib_mainloop *g = (pa_glib_mainloop*) source;
     pa_io_event *e;
 

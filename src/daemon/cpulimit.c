@@ -235,7 +235,7 @@ void pa_cpu_limit_done(void) {
 
 #else /* HAVE_SIGXCPU */
 
-int pa_cpu_limit_init(PA_GCC_UNUSED pa_mainloop_api *m) {
+int pa_cpu_limit_init(pa_mainloop_api *m) {
     return 0;
 }
 

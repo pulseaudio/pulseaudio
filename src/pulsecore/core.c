@@ -200,7 +200,7 @@ static void core_free(pa_object *o) {
     pa_xfree(c);
 }
 
-static void exit_callback(pa_mainloop_api*m, pa_time_event *e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
+static void exit_callback(pa_mainloop_api*m, pa_time_event *e, const struct timeval *tv, void *userdata) {
     pa_core *c = userdata;
     pa_assert(c->exit_event == e);
 

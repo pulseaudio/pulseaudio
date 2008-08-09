@@ -3,7 +3,7 @@
 #include <pulse/volume.h>
 #include <pulse/gccmacro.h>
 
-int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
+int main(int argc, char *argv[]) {
     pa_volume_t v;
 
     for (v = PA_VOLUME_MUTED; v <= PA_VOLUME_NORM*2; v += 256) {

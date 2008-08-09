@@ -191,7 +191,7 @@ int pa_daemon_conf_set_resample_method(pa_daemon_conf *c, const char *string) {
     return 0;
 }
 
-static int parse_log_target(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+static int parse_log_target(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     pa_daemon_conf *c = data;
 
     pa_assert(filename);
@@ -207,7 +207,7 @@ static int parse_log_target(const char *filename, unsigned line, const char *lva
     return 0;
 }
 
-static int parse_log_level(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+static int parse_log_level(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     pa_daemon_conf *c = data;
 
     pa_assert(filename);
@@ -223,7 +223,7 @@ static int parse_log_level(const char *filename, unsigned line, const char *lval
     return 0;
 }
 
-static int parse_resample_method(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+static int parse_resample_method(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     pa_daemon_conf *c = data;
 
     pa_assert(filename);
@@ -239,7 +239,7 @@ static int parse_resample_method(const char *filename, unsigned line, const char
     return 0;
 }
 
-static int parse_rlimit(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+static int parse_rlimit(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
 #ifdef HAVE_SYS_RESOURCE_H
     struct pa_rlimit *r = data;
 
@@ -268,7 +268,7 @@ static int parse_rlimit(const char *filename, unsigned line, const char *lvalue,
     return 0;
 }
 
-static int parse_sample_format(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+static int parse_sample_format(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     pa_daemon_conf *c = data;
     pa_sample_format_t f;
 
@@ -286,7 +286,7 @@ static int parse_sample_format(const char *filename, unsigned line, const char *
     return 0;
 }
 
-static int parse_sample_rate(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+static int parse_sample_rate(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     pa_daemon_conf *c = data;
     int32_t r;
 
@@ -304,7 +304,7 @@ static int parse_sample_rate(const char *filename, unsigned line, const char *lv
     return 0;
 }
 
-static int parse_sample_channels(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+static int parse_sample_channels(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     pa_daemon_conf *c = data;
     int32_t n;
 
@@ -322,7 +322,7 @@ static int parse_sample_channels(const char *filename, unsigned line, const char
     return 0;
 }
 
-static int parse_fragments(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+static int parse_fragments(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     pa_daemon_conf *c = data;
     int32_t n;
 
@@ -340,7 +340,7 @@ static int parse_fragments(const char *filename, unsigned line, const char *lval
     return 0;
 }
 
-static int parse_fragment_size_msec(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+static int parse_fragment_size_msec(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     pa_daemon_conf *c = data;
     int32_t n;
 
@@ -358,7 +358,7 @@ static int parse_fragment_size_msec(const char *filename, unsigned line, const c
     return 0;
 }
 
-static int parse_nice_level(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+static int parse_nice_level(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     pa_daemon_conf *c = data;
     int32_t level;
 
@@ -376,7 +376,7 @@ static int parse_nice_level(const char *filename, unsigned line, const char *lva
     return 0;
 }
 
-static int parse_rtprio(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+static int parse_rtprio(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     pa_daemon_conf *c = data;
     int32_t rtprio;
 

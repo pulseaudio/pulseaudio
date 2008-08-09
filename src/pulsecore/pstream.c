@@ -283,7 +283,7 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *poo
     return p;
 }
 
-static void item_free(void *item, PA_GCC_UNUSED void *q) {
+static void item_free(void *item, void *q) {
     struct item_info *i = item;
     pa_assert(i);
 
