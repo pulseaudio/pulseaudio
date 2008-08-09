@@ -95,12 +95,15 @@ char *pa_get_user_name(char *s, size_t l) {
 #elif defined(OS_IS_WIN32) /* HAVE_PWD_H */
         DWORD size = sizeof(buf);
 
-        if (!GetUserName(buf, &size))
+        if (!GetUserName(buf, &size)) {
+            errno = ENOENT;
             return NULL;
+        }
 
         p = buf;
 
 #else /* HAVE_PWD_H */
+
         return NULL;
 #endif /* HAVE_PWD_H */
     }
@@ -138,6 +141,8 @@ char *pa_get_home_dir(char *s, size_t l) {
         return pa_strlcpy(s, e, l);
 
 #ifdef HAVE_PWD_H
+
+    errno = 0;
 #ifdef HAVE_GETPWUID_R
     if (getpwuid_r(getuid(), &pw, buf, sizeof(buf), &r) != 0 || !r) {
 #else
@@ -145,11 +150,16 @@ char *pa_get_home_dir(char *s, size_t l) {
         * that do not support getpwuid_r. */
     if ((r = getpwuid(getuid())) == NULL) {
 #endif
+        if (!errno)
+            errno = ENOENT;
+
         return NULL;
     }
 
     return pa_strlcpy(s, r->pw_dir, l);
 #else /* HAVE_PWD_H */
+
+    errno = ENOENT;
     return NULL;
 #endif
 }
@@ -200,6 +210,7 @@ char *pa_get_binary_name(char *s, size_t l) {
     }
 #endif
 
+    errno = ENOENT;
     return NULL;
 }
 
@@ -249,8 +260,8 @@ int pa_msleep(unsigned long t) {
 #elif defined(HAVE_NANOSLEEP)
     struct timespec ts;
 
-    ts.tv_sec = t/1000;
-    ts.tv_nsec = (t % 1000) * 1000000;
+    ts.tv_sec = t/1000UL;
+    ts.tv_nsec = (t % 1000UL) * 1000000UL;
 
     return nanosleep(&ts, NULL);
 #else
