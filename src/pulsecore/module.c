@@ -190,7 +190,7 @@ void pa_module_unload_by_index(pa_core *c, uint32_t idx, pa_bool_t force) {
     pa_assert(c);
     pa_assert(idx != PA_IDXSET_INVALID);
 
-    if (m->core->disallow_module_loading && !force)
+    if (c->disallow_module_loading && !force)
         return;
 
     if (!(m = pa_idxset_remove_by_index(c->modules, idx)))
