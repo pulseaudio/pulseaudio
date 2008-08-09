@@ -606,7 +606,7 @@ int main(int argc, char *argv[]) {
         case PA_CMD_KILL:
 
             if (pa_pid_file_kill(SIGINT, NULL, "pulseaudio") < 0)
-                pa_log(_("Failed to kill daemon."));
+                pa_log(_("Failed to kill daemon: %s"), pa_cstrerror(errno));
             else
                 retval = 0;
 
