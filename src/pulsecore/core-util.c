@@ -40,6 +40,8 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <dirent.h>
+#include <regex.h>
+#include <langinfo.h>
 
 #ifdef HAVE_STRTOF_L
 #include <locale.h>
@@ -679,15 +681,48 @@ void pa_reset_priority(void) {
 #endif
 }
 
+static int match(const char *expr, const char *v) {
+    int k;
+    regex_t re;
+
+    if (regcomp(&re, expr, REG_NOSUB|REG_EXTENDED) != 0) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    if ((k = regexec(&re, v, 0, NULL, 0)) == 0)
+        return 1;
+    else if (k == REG_NOMATCH)
+        return 0;
+
+    errno = EINVAL;
+    return -1;
+}
+
 /* Try to parse a boolean string value.*/
 int pa_parse_boolean(const char *v) {
+    const char *expr;
+    int r;
     pa_assert(v);
 
+    /* First we check language independant */
     if (!strcmp(v, "1") || v[0] == 'y' || v[0] == 'Y' || v[0] == 't' || v[0] == 'T' || !strcasecmp(v, "on"))
         return 1;
     else if (!strcmp(v, "0") || v[0] == 'n' || v[0] == 'N' || v[0] == 'f' || v[0] == 'F' || !strcasecmp(v, "off"))
         return 0;
 
+    /* And then we check language dependant */
+    if ((expr = nl_langinfo(YESEXPR)))
+        if (expr[0])
+            if ((r = match(expr, v)) > 0)
+                return 1;
+
+    if ((expr = nl_langinfo(NOEXPR)))
+        if (expr[0])
+            if ((r = match(expr, v)) > 0)
+                return 0;
+
+    errno = EINVAL;
     return -1;
 }
 
