@@ -73,6 +73,7 @@ static pid_t read_pid(const char *fn, int fd) {
 
     if (pa_atou(t, &pid) < 0) {
         pa_log_warn("Failed to parse PID file '%s'", fn);
+        errno = EINVAL;
         return (pid_t) -1;
     }
 
@@ -110,7 +111,7 @@ static int open_pid_file(const char *fn, int mode) {
             goto fail;
         }
 
-        /* Does the file still exist in the file system? When ye, w're done, otherwise restart */
+        /* Does the file still exist in the file system? When yes, we're done, otherwise restart */
         if (st.st_nlink >= 1)
             break;
 
@@ -131,8 +132,10 @@ static int open_pid_file(const char *fn, int mode) {
 fail:
 
     if (fd >= 0) {
+        int saved_errno = errno;
         pa_lock_fd(fd, 0);
         pa_close(fd);
+        errno = saved_errno;
     }
 
     return -1;
@@ -154,8 +157,11 @@ static int proc_name_ours(pid_t pid, const char *procname) {
         char stored[64];
 
         if (!(fgets(stored, sizeof(stored), f))) {
+            int saved_errno = feof(f) ? EINVAL : errno;
             pa_log_info("Failed to read from %s: %s", bn, feof(f) ? "EOF" : pa_cstrerror(errno));
             fclose(f);
+
+            errno = saved_errno;
             return -1;
         }
 
@@ -342,8 +348,13 @@ int pa_pid_file_kill(int sig, pid_t *pid, const char *procname) {
     if (!(fn = pa_runtime_path("pid")))
         goto fail;
 
-    if ((fd = open_pid_file(fn, O_RDONLY)) < 0)
+    if ((fd = open_pid_file(fn, O_RDONLY)) < 0) {
+
+        if (errno == ENOENT)
+            errno = ESRCH;
+
         goto fail;
+    }
 
     if ((*pid = read_pid(fn, fd)) == (pid_t) -1)
         goto fail;
@@ -354,8 +365,10 @@ int pa_pid_file_kill(int sig, pid_t *pid, const char *procname) {
         if ((ours = proc_name_ours(*pid, procname)) < 0)
             goto fail;
 
-        if (!ours)
+        if (!ours) {
+            errno = ESRCH;
             goto fail;
+        }
     }
 
     ret = kill(*pid, sig);
@@ -363,8 +376,10 @@ int pa_pid_file_kill(int sig, pid_t *pid, const char *procname) {
 fail:
 
     if (fd >= 0) {
+        int saved_errno = errno;
         pa_lock_fd(fd, 0);
         pa_close(fd);
+        errno = saved_errno;
     }
 
 #ifdef __linux__
