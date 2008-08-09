@@ -439,7 +439,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     switch(c->state) {
         case PA_CONTEXT_AUTHORIZING: {
             pa_tagstruct *reply;
-            pa_bool_t shm_on_remote;
+            pa_bool_t shm_on_remote = FALSE;
 
             if (pa_tagstruct_getu32(t, &c->version) < 0 ||
                 !pa_tagstruct_eof(t)) {

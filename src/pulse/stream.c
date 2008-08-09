@@ -1257,7 +1257,9 @@ static pa_usec_t calc_time(pa_stream *s, pa_bool_t ignore_transport) {
                 usec -= s->timing_info.sink_usec;
         }
 
-    } else if (s->direction == PA_STREAM_RECORD) {
+    } else {
+        pa_assert(s->direction == PA_STREAM_RECORD);
+
         /* The last byte written into the server side queue had
          * this time value associated */
         usec = pa_bytes_to_usec(s->timing_info.write_index < 0 ? 0 : (uint64_t) s->timing_info.write_index, &s->sample_spec);

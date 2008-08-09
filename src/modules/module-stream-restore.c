@@ -490,7 +490,7 @@ static void dump_database(struct userdata *u) {
 static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connection *c, uint32_t tag, pa_tagstruct *t) {
     struct userdata *u;
     uint32_t command;
-    pa_tagstruct *reply;
+    pa_tagstruct *reply = NULL;
 
     pa_assert(p);
     pa_assert(m);
