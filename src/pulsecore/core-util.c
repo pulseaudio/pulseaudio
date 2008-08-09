@@ -693,6 +693,7 @@ void pa_reset_priority(void) {
 static int match(const char *expr, const char *v) {
     int k;
     regex_t re;
+    int r;
 
     if (regcomp(&re, expr, REG_NOSUB|REG_EXTENDED) != 0) {
         errno = EINVAL;
@@ -700,12 +701,18 @@ static int match(const char *expr, const char *v) {
     }
 
     if ((k = regexec(&re, v, 0, NULL, 0)) == 0)
-        return 1;
+        r = 1;
     else if (k == REG_NOMATCH)
-        return 0;
+        r = 0;
+    else
+        r = -1;
 
-    errno = EINVAL;
-    return -1;
+    regfree(&re);
+
+    if (r < 0)
+        errno = EINVAL;
+
+    return r;
 }
 
 /* Try to parse a boolean string value.*/
