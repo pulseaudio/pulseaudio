@@ -113,6 +113,8 @@ int pa_set_root(HANDLE handle) {
 
     strcpy(library_path, PULSE_ROOTENV "=");
 
+    /* FIXME: Needs to set errno */
+
     if (!GetModuleFileName(handle, library_path + sizeof(PULSE_ROOTENV), MAX_PATH))
         return 0;
 
@@ -170,7 +172,7 @@ void pa_make_fd_cloexec(int fd) {
 /** Creates a directory securely */
 int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
     struct stat st;
-    int r;
+    int r, saved_errno;
 
     pa_assert(dir);
 
@@ -222,7 +224,10 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
     return 0;
 
 fail:
+    saved_errno = errno;
     rmdir(dir);
+    errno = saved_errno;
+
     return -1;
 }
 
@@ -232,6 +237,7 @@ char *pa_parent_dir(const char *fn) {
 
     if ((slash = (char*) pa_path_get_filename(dir)) == dir) {
         pa_xfree(dir);
+        errno = ENOENT;
         return NULL;
     }
 
@@ -548,6 +554,8 @@ int pa_make_realtime(int rtprio) {
     pa_log_info("Successfully enabled SCHED_FIFO scheduling for thread, with priority %i.", sp.sched_priority);
     return 0;
 #else
+
+    errno = ENOTSUP;
     return -1;
 #endif
 }
@@ -655,6 +663,7 @@ int pa_raise_priority(int nice_level) {
     if (nice_level < 0) {
         if (!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS)) {
             pa_log_warn("SetPriorityClass() failed: 0x%08X", GetLastError());
+            errno = EPERM;
             return .-1;
         } else
             pa_log_info("Successfully gained high priority class.");
@@ -910,11 +919,18 @@ static int is_group(gid_t gid, const char *name) {
 #else
     n = -1;
 #endif
-    if (n < 0) n = 512;
+    if (n < 0)
+        n = 512;
+
     data = pa_xmalloc(n);
 
+    errno = 0;
     if (getgrgid_r(gid, &group, data, n, &result) < 0 || !result) {
-        pa_log("getgrgid_r(%u): %s", (unsigned)gid, pa_cstrerror(errno));
+        pa_log("getgrgid_r(%u): %s", (unsigned) gid, pa_cstrerror(errno));
+
+        if (!errno)
+            errno = ENOENT;
+
         goto finish;
     }
 
@@ -925,8 +941,14 @@ finish:
 #else
     /* XXX Not thread-safe, but needed on OSes (e.g. FreeBSD 4.X) that do not
      * support getgrgid_r. */
+
+    errno = 0;
     if ((result = getgrgid(gid)) == NULL) {
         pa_log("getgrgid(%u): %s", gid, pa_cstrerror(errno));
+
+        if (!errno)
+            errno = ENOENT;
+
         goto finish;
     }
 
@@ -942,7 +964,7 @@ finish:
 int pa_own_uid_in_group(const char *name, gid_t *gid) {
     GETGROUPS_T *gids, tgid;
     int n = sysconf(_SC_NGROUPS_MAX);
-    int r = -1, i;
+    int r = -1, i, k;
 
     pa_assert(n > 0);
 
@@ -954,14 +976,19 @@ int pa_own_uid_in_group(const char *name, gid_t *gid) {
     }
 
     for (i = 0; i < n; i++) {
-        if (is_group(gids[i], name) > 0) {
+
+        if ((k = is_group(gids[i], name)) < 0)
+            goto finish;
+        else if (k > 0) {
             *gid = gids[i];
             r = 1;
             goto finish;
         }
     }
 
-    if (is_group(tgid = getgid(), name) > 0) {
+    if ((k = is_group(tgid = getgid(), name)) < 0)
+        goto finish;
+    else if (k > 0) {
         *gid = tgid;
         r = 1;
         goto finish;
@@ -989,13 +1016,20 @@ int pa_uid_in_group(uid_t uid, const char *name) {
     p_n = sysconf(_SC_GETPW_R_SIZE_MAX);
     p_buf = pa_xmalloc(p_n);
 
-    if (getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr) != 0 || !gr)
+    errno = 0;
+    if (getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr) != 0 || !gr) {
+
+        if (!errno)
+            errno = ENOENT;
+
         goto finish;
+    }
 
     r = 0;
     for (i = gr->gr_mem; *i; i++) {
         struct passwd pwbuf, *pw;
 
+        errno = 0;
         if (getpwnam_r(*i, &pwbuf, p_buf, (size_t) p_n, &pw) != 0 || !pw)
             continue;
 
@@ -1022,8 +1056,14 @@ gid_t pa_get_gid_of_group(const char *name) {
     g_n = sysconf(_SC_GETGR_R_SIZE_MAX);
     g_buf = pa_xmalloc(g_n);
 
-    if (getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr) != 0 || !gr)
+    errno = 0;
+    if (getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr) != 0 || !gr) {
+
+        if (!errno)
+            errno = ENOENT;
+
         goto finish;
+    }
 
     ret = gr->gr_gid;
 
@@ -1049,19 +1089,23 @@ int pa_check_in_group(gid_t g) {
 #else /* HAVE_GRP_H */
 
 int pa_own_uid_in_group(const char *name, gid_t *gid) {
+    errno = ENOSUP;
     return -1;
 
 }
 
 int pa_uid_in_group(uid_t uid, const char *name) {
+    errno = ENOSUP;
     return -1;
 }
 
 gid_t pa_get_gid_of_group(const char *name) {
+    errno = ENOSUP;
     return (gid_t) -1;
 }
 
 int pa_check_in_group(gid_t g) {
+    errno = ENOSUP;
     return -1;
 }
 
@@ -1102,6 +1146,8 @@ int pa_lock_fd(int fd, int b) {
         return 0;
 
     pa_log("%slock failed: 0x%08X", !b ? "un" : "", GetLastError());
+
+    /* FIXME: Needs to set errno! */
 #endif
 
     return -1;
@@ -1168,8 +1214,11 @@ int pa_lock_lockfile(const char *fn) {
 
 fail:
 
-    if (fd >= 0)
+    if (fd >= 0) {
+        int saved_errno = errno;
         pa_close(fd);
+        errno = saved_errno;
+    }
 
     return -1;
 }
@@ -1215,6 +1264,7 @@ static char *get_pulse_home(void) {
 
     if (st.st_uid != getuid()) {
         pa_log_error("Home directory %s not ours.", h);
+        errno = EACCES;
         return NULL;
     }
 
@@ -1367,6 +1417,7 @@ char *pa_get_runtime_dir(void) {
         /* Make sure that this actually makes sense */
         if (!pa_is_path_absolute(p)) {
             pa_log_error("Path %s in link %s is not absolute.", p, k);
+            errno = ENOENT;
             goto fail;
         }
 
@@ -1458,6 +1509,7 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
 
 #ifdef OS_IS_WIN32
         if (!ExpandEnvironmentStrings(fn, buf, PATH_MAX))
+            /* FIXME: Needs to set errno! */
             return NULL;
         fn = buf;
 #endif
@@ -1488,6 +1540,7 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
 
 #ifdef OS_IS_WIN32
         if (!ExpandEnvironmentStrings(lfn, buf, PATH_MAX)) {
+            /* FIXME: Needs to set errno! */
             pa_xfree(lfn);
             return NULL;
         }
@@ -1516,6 +1569,7 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
 
 #ifdef OS_IS_WIN32
         if (!ExpandEnvironmentStrings(global, buf, PATH_MAX))
+            /* FIXME: Needs to set errno! */
             return NULL;
         global = buf;
 #endif
@@ -1527,9 +1581,9 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
 
             return f;
         }
-    } else
-        errno = ENOENT;
+    }
 
+    errno = ENOENT;
     return NULL;
 }
 
@@ -1546,6 +1600,7 @@ char *pa_find_config_file(const char *global, const char *local, const char *env
 
 #ifdef OS_IS_WIN32
         if (!ExpandEnvironmentStrings(fn, buf, PATH_MAX))
+            /* FIXME: Needs to set errno! */
             return NULL;
         fn = buf;
 #endif
@@ -1571,6 +1626,7 @@ char *pa_find_config_file(const char *global, const char *local, const char *env
 
 #ifdef OS_IS_WIN32
         if (!ExpandEnvironmentStrings(lfn, buf, PATH_MAX)) {
+            /* FIXME: Needs to set errno! */
             pa_xfree(lfn);
             return NULL;
         }
@@ -1595,14 +1651,16 @@ char *pa_find_config_file(const char *global, const char *local, const char *env
     if (global) {
 #ifdef OS_IS_WIN32
         if (!ExpandEnvironmentStrings(global, buf, PATH_MAX))
+            /* FIXME: Needs to set errno! */
             return NULL;
         global = buf;
 #endif
 
         if (access(global, R_OK) == 0)
             return pa_xstrdup(global);
-    } else
-        errno = ENOENT;
+    }
+
+    errno = ENOENT;
 
     return NULL;
 }
@@ -1639,6 +1697,7 @@ static int hexc(char c) {
     if (c >= 'a' && c <= 'f')
         return c - 'a' + 10;
 
+    errno = EINVAL;
     return -1;
 }
 
@@ -1777,11 +1836,16 @@ int pa_atoi(const char *s, int32_t *ret_i) {
     errno = 0;
     l = strtol(s, &x, 0);
 
-    if (!x || *x || errno != 0)
+    if (!x || *x || errno) {
+        if (!errno)
+            errno = EINVAL;
         return -1;
+    }
 
-    if ((int32_t) l != l)
+    if ((int32_t) l != l) {
+        errno = ERANGE;
         return -1;
+    }
 
     *ret_i = (int32_t) l;
 
@@ -1799,11 +1863,16 @@ int pa_atou(const char *s, uint32_t *ret_u) {
     errno = 0;
     l = strtoul(s, &x, 0);
 
-    if (!x || *x || errno != 0)
+    if (!x || *x || errno) {
+        if (!errno)
+            errno = EINVAL;
         return -1;
+    }
 
-    if ((uint32_t) l != l)
+    if ((uint32_t) l != l) {
+        errno = ERANGE;
         return -1;
+    }
 
     *ret_u = (uint32_t) l;
 
@@ -1821,7 +1890,6 @@ static void c_locale_destroy(void) {
 int pa_atod(const char *s, double *ret_d) {
     char *x = NULL;
     double f;
-    int r = 0;
 
     pa_assert(s);
     pa_assert(ret_d);
@@ -1847,12 +1915,15 @@ int pa_atod(const char *s, double *ret_d) {
         f = strtod(s, &x);
     }
 
-    if (!x || *x || errno != 0)
-        r =  -1;
-    else
-        *ret_d = f;
+    if (!x || *x || errno) {
+        if (!errno)
+            errno = EINVAL;
+        return -1;
+    }
 
-    return r;
+    *ret_d = f;
+
+    return 0;
 }
 
 /* Same as snprintf, but guarantees NUL-termination on every platform */
@@ -1956,6 +2027,7 @@ void *pa_will_need(const void *p, size_t l) {
 
     if (rlim.rlim_cur < PA_PAGE_SIZE) {
         pa_log_debug("posix_madvise() failed (or doesn't exist), resource limits don't allow mlock(), can't page in data: %s", pa_cstrerror(r));
+        errno = EPERM;
         return (void*) p;
     }
 
