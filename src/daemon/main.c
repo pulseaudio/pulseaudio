@@ -65,6 +65,7 @@
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 #include <pulse/i18n.h>
+#include <pulse/lock-autospawn.h>
 
 #include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
@@ -94,8 +95,6 @@
 #include "caps.h"
 #include "ltdl-bind-now.h"
 #include "polkit.h"
-
-#define AUTOSPAWN_LOCK "autospawn.lock"
 
 #ifdef HAVE_LIBWRAP
 /* Only one instance of these variables */
@@ -346,7 +345,8 @@ int main(int argc, char *argv[]) {
     struct timeval win32_tv;
 #endif
     char *lf = NULL;
-    int autospawn_lock_fd = -1;
+    int autospawn_fd = -1;
+    pa_bool_t autospawn_locked = FALSE;
 
 #if defined(__linux__) && defined(__OPTIMIZE__)
     /*
@@ -656,8 +656,17 @@ int main(int argc, char *argv[]) {
          * first take the autospawn lock to make things
          * synchronous. */
 
-        lf = pa_runtime_path(AUTOSPAWN_LOCK);
-        autospawn_lock_fd = pa_lock_lockfile(lf);
+        if ((autospawn_fd = pa_autospawn_lock_init()) < 0) {
+            pa_log("Failed to initialize autospawn lock");
+            goto finish;
+        }
+
+        if ((pa_autospawn_lock_acquire(TRUE) < 0)) {
+            pa_log("Failed to acquire autospawn lock");
+            goto finish;
+        }
+
+        autospawn_locked = TRUE;
     }
 
     if (conf->daemonize) {
@@ -703,12 +712,15 @@ int main(int argc, char *argv[]) {
             goto finish;
         }
 
-        if (autospawn_lock_fd >= 0) {
+        if (autospawn_fd >= 0) {
             /* The lock file is unlocked from the parent, so we need
              * to close it in the child */
 
-            pa_close(autospawn_lock_fd);
-            autospawn_lock_fd = -1;
+            pa_autospawn_lock_release();
+            pa_autospawn_lock_done(TRUE);
+
+            autospawn_locked = FALSE;
+            autospawn_fd = -1;
         }
 
         pa_assert_se(pa_close(daemon_pipe[0]) == 0);
@@ -917,8 +929,12 @@ int main(int argc, char *argv[]) {
 
 finish:
 
-    if (autospawn_lock_fd >= 0)
-        pa_unlock_lockfile(lf, autospawn_lock_fd);
+    if (autospawn_fd >= 0) {
+        if (autospawn_locked)
+            pa_autospawn_lock_release();
+
+        pa_autospawn_lock_done(FALSE);
+    }
 
     if (lf)
         pa_xfree(lf);

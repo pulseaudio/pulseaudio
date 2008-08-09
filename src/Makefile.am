@@ -262,7 +262,8 @@ noinst_PROGRAMS = \
 		envelope-test \
 		proplist-test \
 		rtstutter \
-		stripnul
+		stripnul \
+		lock-autospawn-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -452,6 +453,11 @@ stripnul_LDADD = $(AM_LDADD) libpulsecore.la
 stripnul_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
 stripnul_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
 
+lock_autospawn_test_SOURCES = tests/lock-autospawn-test.c
+lock_autospawn_test_LDADD = $(AM_LDADD) libpulsecore.la
+lock_autospawn_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+lock_autospawn_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
+
 ###################################
 #         Client library          #
 ###################################
@@ -535,7 +541,8 @@ libpulse_la_SOURCES = \
 		pulse/xmalloc.c pulse/xmalloc.h \
 		pulse/proplist.c pulse/proplist.h \
 		pulse/ext-stream-restore.c pulse/ext-stream-restore.h \
-		pulse/i18n.c pulse/i18n.h
+		pulse/i18n.c pulse/i18n.h \
+		pulse/lock-autospawn.c pulse/lock-autospawn.h
 
 # Internal stuff that is shared with libpulsecore
 libpulse_la_SOURCES += \
@@ -731,7 +738,8 @@ libpulsecore_la_SOURCES = \
 		pulse/volume.c pulse/volume.h \
 		pulse/xmalloc.c pulse/xmalloc.h \
 		pulse/proplist.c pulse/proplist.h \
-		pulse/i18n.c pulse/i18n.h
+		pulse/i18n.c pulse/i18n.h \
+		pulse/lock-autospawn.c pulse/lock-autospawn.h
 
 # Pure core stuff (some are shared in libpulse though).
 libpulsecore_la_SOURCES += \

@@ -54,6 +54,7 @@
 #include <pulse/utf8.h>
 #include <pulse/util.h>
 #include <pulse/i18n.h>
+#include <pulse/lock-autospawn.h>
 
 #include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
@@ -81,8 +82,6 @@
 
 #include "context.h"
 
-#define AUTOSPAWN_LOCK "autospawn.lock"
-
 void pa_command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
@@ -100,20 +99,23 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_EXTENSION] = pa_command_extension
 };
 
-static void unlock_autospawn_lock_file(pa_context *c) {
+static void unlock_autospawn(pa_context *c) {
     pa_assert(c);
 
-    if (c->autospawn_lock_fd >= 0) {
-        char *lf;
+    if (c->autospawn_fd >= 0) {
 
-        if (!(lf = pa_runtime_path(AUTOSPAWN_LOCK)))
-            pa_log_warn(_("Cannot unlock autospawn because runtime path is no more."));
+        if (c->autospawn_locked)
+            pa_autospawn_lock_release();
 
-        pa_unlock_lockfile(lf, c->autospawn_lock_fd);
-        pa_xfree(lf);
+        if (c->autospawn_event)
+            c->mainloop->io_free(c->autospawn_event);
 
-        c->autospawn_lock_fd = -1;
+        pa_autospawn_lock_done(FALSE);
     }
+
+    c->autospawn_locked = FALSE;
+    c->autospawn_fd = -1;
+    c->autospawn_event = NULL;
 }
 
 static void context_free(pa_context *c);
@@ -174,10 +176,14 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     c->is_local = FALSE;
     c->server_list = NULL;
     c->server = NULL;
-    c->autospawn_lock_fd = -1;
-    memset(&c->spawn_api, 0, sizeof(c->spawn_api));
-    c->do_autospawn = FALSE;
+
     c->do_shm = FALSE;
+
+    c->do_autospawn = FALSE;
+    c->autospawn_fd = -1;
+    c->autospawn_locked = FALSE;
+    c->autospawn_event = NULL;
+    memset(&c->spawn_api, 0, sizeof(c->spawn_api));
 
 #ifndef MSG_NOSIGNAL
 #ifdef SIGPIPE
@@ -246,7 +252,7 @@ static void context_free(pa_context *c) {
 
     context_unlink(c);
 
-    unlock_autospawn_lock_file(c);
+    unlock_autospawn(c);
 
     if (c->record_streams)
         pa_dynarray_free(c->record_streams, NULL, NULL);
@@ -674,7 +680,7 @@ static int context_connect_spawn(pa_context *c) {
 
     c->is_local = TRUE;
 
-    unlock_autospawn_lock_file(c);
+    unlock_autospawn(c);
 
     io = pa_iochannel_new(c->mainloop, fds[0], fds[0]);
     setup_context(c, io);
@@ -686,7 +692,7 @@ static int context_connect_spawn(pa_context *c) {
 fail:
     pa_close_pipe(fds);
 
-    unlock_autospawn_lock_file(c);
+    unlock_autospawn(c);
 
     pa_context_unref(c);
 
@@ -768,13 +774,46 @@ static void on_connection(pa_socket_client *client, pa_iochannel*io, void *userd
         goto finish;
     }
 
-    unlock_autospawn_lock_file(c);
+    unlock_autospawn(c);
     setup_context(c, io);
 
 finish:
     pa_context_unref(c);
 }
 
+static void autospawn_cb(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags_t events, void *userdata) {
+    pa_context *c = userdata;
+    int k;
+
+    pa_assert(a);
+    pa_assert(e);
+    pa_assert(fd >= 0);
+    pa_assert(events = PA_IO_EVENT_INPUT);
+    pa_assert(c);
+    pa_assert(e == c->autospawn_event);
+    pa_assert(fd == c->autospawn_fd);
+
+    pa_context_ref(c);
+
+    /* Check whether we can get the lock right now*/
+    if ((k = pa_autospawn_lock_acquire(FALSE)) < 0) {
+        pa_context_fail(c, PA_ERR_ACCESS);
+        goto finish;
+    }
+
+    if (k > 0) {
+        /* So we got it, rock on! */
+        c->autospawn_locked = TRUE;
+        try_next_connection(c);
+
+        c->mainloop->io_free(c->autospawn_event);
+        c->autospawn_event = NULL;
+    }
+
+finish:
+
+    pa_context_unref(c);
+}
 
 static char *get_old_legacy_runtime_dir(void) {
     char *p, u[128];
@@ -847,6 +886,7 @@ int pa_context_connect(
             pa_context_fail(c, PA_ERR_INVALIDSERVER);
             goto finish;
         }
+
     } else {
         char *d, *ufn;
         static char *legacy_dir;
@@ -895,21 +935,40 @@ int pa_context_connect(
 
         /* Wrap the connection attempts in a single transaction for sane autospawn locking */
         if (!(flags & PA_CONTEXT_NOAUTOSPAWN) && c->conf->autospawn) {
-            char *lf;
+            int k;
 
-            if (!(lf = pa_runtime_path(AUTOSPAWN_LOCK))) {
+            pa_assert(c->autospawn_fd < 0);
+            pa_assert(!c->autospawn_locked);
+
+            /* Start the locking procedure */
+            if ((c->autospawn_fd = pa_autospawn_lock_init()) < 0) {
                 pa_context_fail(c, PA_ERR_ACCESS);
                 goto finish;
             }
-
-            pa_assert(c->autospawn_lock_fd <= 0);
-            c->autospawn_lock_fd = pa_lock_lockfile(lf);
-            pa_xfree(lf);
 
             if (api)
                 c->spawn_api = *api;
 
             c->do_autospawn = TRUE;
+
+            /* Check whether we can get the lock right now*/
+            if ((k = pa_autospawn_lock_acquire(FALSE)) < 0) {
+                pa_context_fail(c, PA_ERR_ACCESS);
+                goto finish;
+            }
+
+            if (k > 0)
+                /* So we got it, rock on! */
+                c->autospawn_locked = TRUE;
+            else {
+                /* Hmm, we didn't get it, so let's wait for it */
+                c->autospawn_event = c->mainloop->io_new(c->mainloop, c->autospawn_fd, PA_IO_EVENT_INPUT, autospawn_cb, c);
+
+                pa_context_set_state(c, PA_CONTEXT_CONNECTING);
+                r = 0;
+                goto finish;
+            }
+
         }
     }
 
