@@ -620,14 +620,15 @@ void pa_volume_memchunk(
     switch (spec->format) {
 
         case PA_SAMPLE_S16NE: {
-            int16_t *d;
-            size_t n;
+            int16_t *d, *e;
             unsigned channel;
             int32_t linear[PA_CHANNELS_MAX];
 
             calc_linear_integer_volume(linear, volume);
 
-            for (channel = 0, d = ptr, n = c->length/sizeof(int16_t); n > 0; d++, n--) {
+            e = (int16_t*) ptr + c->length/sizeof(int16_t);
+
+            for (channel = 0, d = ptr; d < e; d++) {
                 int32_t t;
 
                 t = (int32_t)(*d);
@@ -642,17 +643,18 @@ void pa_volume_memchunk(
         }
 
         case PA_SAMPLE_S16RE: {
-            int16_t *d;
-            size_t n;
+            int16_t *d, *e;
             unsigned channel;
             int32_t linear[PA_CHANNELS_MAX];
 
             calc_linear_integer_volume(linear, volume);
 
-            for (channel = 0, d = ptr, n = c->length/sizeof(int16_t); n > 0; d++, n--) {
+            e = (int16_t*) ptr + c->length/sizeof(int16_t);
+
+            for (channel = 0, d = ptr; d < e; d++) {
                 int32_t t;
 
-                t = (int32_t)(PA_INT16_SWAP(*d));
+                t = (int32_t) PA_INT16_SWAP(*d);
                 t = (t * linear[channel]) / 0x10000;
                 t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
                 *d = PA_INT16_SWAP((int16_t) t);
@@ -665,14 +667,15 @@ void pa_volume_memchunk(
         }
 
         case PA_SAMPLE_S32NE: {
-            int32_t *d;
-            size_t n;
+            int32_t *d, *e;
             unsigned channel;
             int32_t linear[PA_CHANNELS_MAX];
 
             calc_linear_integer_volume(linear, volume);
 
-            for (channel = 0, d = ptr, n = c->length/sizeof(int32_t); n > 0; d++, n--) {
+            e = (int32_t*) ptr + c->length/sizeof(int32_t);
+
+            for (channel = 0, d = ptr; d < e; d++) {
                 int64_t t;
 
                 t = (int64_t)(*d);
@@ -687,17 +690,18 @@ void pa_volume_memchunk(
         }
 
         case PA_SAMPLE_S32RE: {
-            int32_t *d;
-            size_t n;
+            int32_t *d, *e;
             unsigned channel;
             int32_t linear[PA_CHANNELS_MAX];
 
             calc_linear_integer_volume(linear, volume);
 
-            for (channel = 0, d = ptr, n = c->length/sizeof(int32_t); n > 0; d++, n--) {
+            e = (int32_t*) ptr + c->length/sizeof(int32_t);
+
+            for (channel = 0, d = ptr; d < e; d++) {
                 int64_t t;
 
-                t = (int64_t)(PA_INT32_SWAP(*d));
+                t = (int64_t) PA_INT32_SWAP(*d);
                 t = (t * linear[channel]) / 0x10000;
                 t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
                 *d = PA_INT32_SWAP((int32_t) t);
@@ -710,14 +714,15 @@ void pa_volume_memchunk(
         }
 
         case PA_SAMPLE_U8: {
-            uint8_t *d;
-            size_t n;
+            uint8_t *d, *e;
             unsigned channel;
             int32_t linear[PA_CHANNELS_MAX];
 
             calc_linear_integer_volume(linear, volume);
 
-            for (channel = 0, d = ptr, n = c->length; n > 0; d++, n--) {
+            e = (uint8_t*) ptr + c->length;
+
+            for (channel = 0, d = ptr; d < e; d++) {
                 int32_t t;
 
                 t = (int32_t) *d - 0x80;
@@ -732,14 +737,15 @@ void pa_volume_memchunk(
         }
 
         case PA_SAMPLE_ULAW: {
-            uint8_t *d;
-            size_t n;
+            uint8_t *d, *e;
             unsigned channel;
             int32_t linear[PA_CHANNELS_MAX];
 
             calc_linear_integer_volume(linear, volume);
 
-            for (channel = 0, d = ptr, n = c->length; n > 0; d++, n--) {
+            e = (uint8_t*) ptr + c->length;
+
+            for (channel = 0, d = ptr; d < e; d++) {
                 int32_t t;
 
                 t = (int32_t) st_ulaw2linear16(*d);
@@ -754,14 +760,15 @@ void pa_volume_memchunk(
         }
 
         case PA_SAMPLE_ALAW: {
-            uint8_t *d;
-            size_t n;
+            uint8_t *d, *e;
             unsigned channel;
             int32_t linear[PA_CHANNELS_MAX];
 
             calc_linear_integer_volume(linear, volume);
 
-            for (channel = 0, d = ptr, n = c->length; n > 0; d++, n--) {
+            e = (uint8_t*) ptr + c->length;
+
+            for (channel = 0, d = ptr; d < e; d++) {
                 int32_t t;
 
                 t = (int32_t) st_alaw2linear16(*d);
@@ -799,22 +806,20 @@ void pa_volume_memchunk(
         }
 
         case PA_SAMPLE_FLOAT32RE: {
-            uint32_t *d;
-            size_t n;
+            float *d, *e;
             unsigned channel;
             float linear[PA_CHANNELS_MAX];
 
             calc_linear_float_volume(linear, volume);
 
-            for (channel = 0, d = ptr, n = c->length/sizeof(float); n > 0; d++, n--) {
-                float t;
-                uint32_t z;
+            e = (float*) ptr + c->length/sizeof(float);
 
-                z = PA_UINT32_SWAP(*d);
-                t = *(float*) &z;
+            for (channel = 0, d = ptr; d < e; d++) {
+                float t;
+
+                t = PA_FLOAT32_SWAP(*d);
                 t *= linear[channel];
-                z = *(uint32_t*) &t;
-                *d = PA_UINT32_SWAP(z);
+                *d = PA_FLOAT32_SWAP(t);
 
                 if (PA_UNLIKELY(++channel >= spec->channels))
                     channel = 0;
