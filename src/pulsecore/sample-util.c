@@ -160,7 +160,8 @@ size_t pa_mix(
 
     pa_cvolume full_volume;
     unsigned k;
-    size_t d = 0;
+    unsigned z;
+    void *end;
 
     pa_assert(streams);
     pa_assert(data);
@@ -170,8 +171,19 @@ size_t pa_mix(
     if (!volume)
         volume = pa_cvolume_reset(&full_volume, spec->channels);
 
+    if (mute || pa_cvolume_is_muted(volume) || nstreams <= 0) {
+        pa_silence_memory(data, length, spec);
+        return length;
+    }
+
     for (k = 0; k < nstreams; k++)
         streams[k].ptr = (uint8_t*) pa_memblock_acquire(streams[k].chunk.memblock) + streams[k].chunk.index;
+
+    for (z = 0; z < nstreams; z++)
+        if (length > streams[z].chunk.length)
+            length = streams[z].chunk.length;
+
+    end = (uint8_t*) data + length;
 
     switch (spec->format) {
 
@@ -182,21 +194,15 @@ size_t pa_mix(
             calc_linear_integer_stream_volumes(streams, nstreams, spec);
             calc_linear_integer_volume(linear, volume);
 
-            for (d = 0;; d += sizeof(int16_t)) {
+            while (data < end) {
                 int32_t sum = 0;
                 unsigned i;
-
-                if (PA_UNLIKELY(d >= length))
-                    goto finish;
 
                 for (i = 0; i < nstreams; i++) {
                     pa_mix_info *m = streams + i;
                     int32_t v, cv = m->linear[channel].i;
 
-                    if (PA_UNLIKELY(d >= m->chunk.length))
-                        goto finish;
-
-                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(!!mute) || PA_UNLIKELY(linear[channel] <= 0))
+                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(linear[channel] <= 0))
                         v = 0;
                     else {
                         v = *((int16_t*) m->ptr);
@@ -207,8 +213,8 @@ size_t pa_mix(
                     m->ptr = (uint8_t*) m->ptr + sizeof(int16_t);
                 }
 
-                sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
                 sum = (sum * linear[channel]) / 0x10000;
+                sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
                 *((int16_t*) data) = (int16_t) sum;
 
                 data = (uint8_t*) data + sizeof(int16_t);
@@ -227,21 +233,15 @@ size_t pa_mix(
             calc_linear_integer_stream_volumes(streams, nstreams, spec);
             calc_linear_integer_volume(linear, volume);
 
-            for (d = 0;; d += sizeof(int16_t)) {
+            while (data < end) {
                 int32_t sum = 0;
                 unsigned i;
-
-                if (PA_UNLIKELY(d >= length))
-                    goto finish;
 
                 for (i = 0; i < nstreams; i++) {
                     pa_mix_info *m = streams + i;
                     int32_t v, cv = m->linear[channel].i;
 
-                    if (PA_UNLIKELY(d >= m->chunk.length))
-                        goto finish;
-
-                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(!!mute) || PA_UNLIKELY(linear[channel] <= 0))
+                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(linear[channel] <= 0))
                         v = 0;
                     else {
                         v = PA_INT16_SWAP(*((int16_t*) m->ptr));
@@ -252,8 +252,8 @@ size_t pa_mix(
                     m->ptr = (uint8_t*) m->ptr + sizeof(int16_t);
                 }
 
-                sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
                 sum = (sum * linear[channel]) / 0x10000;
+                sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
                 *((int16_t*) data) = PA_INT16_SWAP((int16_t) sum);
 
                 data = (uint8_t*) data + sizeof(int16_t);
@@ -272,22 +272,16 @@ size_t pa_mix(
             calc_linear_integer_stream_volumes(streams, nstreams, spec);
             calc_linear_integer_volume(linear, volume);
 
-            for (d = 0;; d += sizeof(int32_t)) {
+            while (data < end) {
                 int64_t sum = 0;
                 unsigned i;
-
-                if (PA_UNLIKELY(d >= length))
-                    goto finish;
 
                 for (i = 0; i < nstreams; i++) {
                     pa_mix_info *m = streams + i;
                     int64_t v;
                     int32_t cv = m->linear[channel].i;
 
-                    if (PA_UNLIKELY(d >= m->chunk.length))
-                        goto finish;
-
-                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(!!mute) || PA_UNLIKELY(linear[channel] <= 0))
+                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(linear[channel] <= 0))
                         v = 0;
                     else {
                         v = *((int32_t*) m->ptr);
@@ -298,8 +292,8 @@ size_t pa_mix(
                     m->ptr = (uint8_t*) m->ptr + sizeof(int32_t);
                 }
 
-                sum = PA_CLAMP_UNLIKELY(sum, -0x80000000LL, 0x7FFFFFFFLL);
                 sum = (sum * linear[channel]) / 0x10000;
+                sum = PA_CLAMP_UNLIKELY(sum, -0x80000000LL, 0x7FFFFFFFLL);
                 *((int32_t*) data) = (int32_t) sum;
 
                 data = (uint8_t*) data + sizeof(int32_t);
@@ -318,22 +312,16 @@ size_t pa_mix(
             calc_linear_integer_stream_volumes(streams, nstreams, spec);
             calc_linear_integer_volume(linear, volume);
 
-            for (d = 0;; d += sizeof(int32_t)) {
+            while (data < end) {
                 int64_t sum = 0;
                 unsigned i;
-
-                if (PA_UNLIKELY(d >= length))
-                    goto finish;
 
                 for (i = 0; i < nstreams; i++) {
                     pa_mix_info *m = streams + i;
                     int64_t v;
                     int32_t cv = m->linear[channel].i;
 
-                    if (PA_UNLIKELY(d >= m->chunk.length))
-                        goto finish;
-
-                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(!!mute) || PA_UNLIKELY(linear[channel] <= 0))
+                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(linear[channel] <= 0))
                         v = 0;
                     else {
                         v = PA_INT32_SWAP(*((int32_t*) m->ptr));
@@ -344,8 +332,8 @@ size_t pa_mix(
                     m->ptr = (uint8_t*) m->ptr + sizeof(int32_t);
                 }
 
-                sum = PA_CLAMP_UNLIKELY(sum, -0x80000000LL, 0x7FFFFFFFLL);
                 sum = (sum * linear[channel]) / 0x10000;
+                sum = PA_CLAMP_UNLIKELY(sum, -0x80000000LL, 0x7FFFFFFFLL);
                 *((int32_t*) data) = PA_INT32_SWAP((int32_t) sum);
 
                 data = (uint8_t*) data + sizeof(int32_t);
@@ -364,21 +352,15 @@ size_t pa_mix(
             calc_linear_integer_stream_volumes(streams, nstreams, spec);
             calc_linear_integer_volume(linear, volume);
 
-            for (d = 0;; d ++) {
+            while (data < end) {
                 int32_t sum = 0;
                 unsigned i;
-
-                if (PA_UNLIKELY(d >= length))
-                    goto finish;
 
                 for (i = 0; i < nstreams; i++) {
                     pa_mix_info *m = streams + i;
                     int32_t v, cv = m->linear[channel].i;
 
-                    if (PA_UNLIKELY(d >= m->chunk.length))
-                        goto finish;
-
-                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(!!mute) || PA_UNLIKELY(linear[channel] <= 0))
+                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(linear[channel] <= 0))
                         v = 0;
                     else {
                         v = (int32_t) *((uint8_t*) m->ptr) - 0x80;
@@ -409,21 +391,15 @@ size_t pa_mix(
             calc_linear_integer_stream_volumes(streams, nstreams, spec);
             calc_linear_integer_volume(linear, volume);
 
-            for (d = 0;; d ++) {
+            while (data < end) {
                 int32_t sum = 0;
                 unsigned i;
-
-                if (PA_UNLIKELY(d >= length))
-                    goto finish;
 
                 for (i = 0; i < nstreams; i++) {
                     pa_mix_info *m = streams + i;
                     int32_t v, cv = m->linear[channel].i;
 
-                    if (PA_UNLIKELY(d >= m->chunk.length))
-                        goto finish;
-
-                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(!!mute) || PA_UNLIKELY(linear[channel] <= 0))
+                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(linear[channel] <= 0))
                         v = 0;
                     else {
                         v = (int32_t) st_ulaw2linear16(*((uint8_t*) m->ptr));
@@ -434,8 +410,8 @@ size_t pa_mix(
                     m->ptr = (uint8_t*) m->ptr + 1;
                 }
 
-                sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
                 sum = (sum * linear[channel]) / 0x10000;
+                sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
                 *((uint8_t*) data) = (uint8_t) st_14linear2ulaw(sum >> 2);
 
                 data = (uint8_t*) data + 1;
@@ -454,21 +430,15 @@ size_t pa_mix(
             calc_linear_integer_stream_volumes(streams, nstreams, spec);
             calc_linear_integer_volume(linear, volume);
 
-            for (d = 0;; d ++) {
+            while (data < end) {
                 int32_t sum = 0;
                 unsigned i;
-
-                if (PA_UNLIKELY(d >= length))
-                    goto finish;
 
                 for (i = 0; i < nstreams; i++) {
                     pa_mix_info *m = streams + i;
                     int32_t v, cv = m->linear[channel].i;
 
-                    if (PA_UNLIKELY(d >= m->chunk.length))
-                        goto finish;
-
-                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(!!mute) || PA_UNLIKELY(linear[channel] <= 0))
+                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(linear[channel] <= 0))
                         v = 0;
                     else {
                         v = (int32_t) st_alaw2linear16(*((uint8_t*) m->ptr));
@@ -479,8 +449,8 @@ size_t pa_mix(
                     m->ptr = (uint8_t*) m->ptr + 1;
                 }
 
-                sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
                 sum = (sum * linear[channel]) / 0x10000;
+                sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
                 *((uint8_t*) data) = (uint8_t) st_13linear2alaw(sum >> 3);
 
                 data = (uint8_t*) data + 1;
@@ -499,21 +469,15 @@ size_t pa_mix(
             calc_linear_float_stream_volumes(streams, nstreams, spec);
             calc_linear_float_volume(linear, volume);
 
-            for (d = 0;; d += sizeof(float)) {
+            while (data < end) {
                 float sum = 0;
                 unsigned i;
-
-                if (PA_UNLIKELY(d >= length))
-                    goto finish;
 
                 for (i = 0; i < nstreams; i++) {
                     pa_mix_info *m = streams + i;
                     float v, cv = m->linear[channel].f;
 
-                    if (PA_UNLIKELY(d >= m->chunk.length))
-                        goto finish;
-
-                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(!!mute) || PA_UNLIKELY(linear[channel] <= 0))
+                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(linear[channel] <= 0))
                         v = 0;
                     else {
                         v = *((float*) m->ptr);
@@ -543,21 +507,15 @@ size_t pa_mix(
             calc_linear_float_stream_volumes(streams, nstreams, spec);
             calc_linear_float_volume(linear, volume);
 
-            for (d = 0;; d += sizeof(float)) {
+            while (data < end) {
                 float sum = 0;
                 unsigned i;
-
-                if (PA_UNLIKELY(d >= length))
-                    goto finish;
 
                 for (i = 0; i < nstreams; i++) {
                     pa_mix_info *m = streams + i;
                     float v, cv = m->linear[channel].f;
 
-                    if (PA_UNLIKELY(d >= m->chunk.length))
-                        goto finish;
-
-                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(!!mute) || PA_UNLIKELY(linear[channel] <= 0))
+                    if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(linear[channel] <= 0))
                         v = 0;
                     else
                         v = PA_FLOAT32_SWAP(*(float*) m->ptr) *cv;
@@ -579,16 +537,14 @@ size_t pa_mix(
         }
 
         default:
-            pa_log_error("ERROR: Unable to mix audio data of format %s.", pa_sample_format_to_string(spec->format));
+            pa_log_error("Unable to mix audio data of format %s.", pa_sample_format_to_string(spec->format));
             pa_assert_not_reached();
     }
-
-finish:
 
     for (k = 0; k < nstreams; k++)
         pa_memblock_release(streams[k].chunk.memblock);
 
-    return d;
+    return length;
 }
 
 
