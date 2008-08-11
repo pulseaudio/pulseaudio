@@ -234,7 +234,7 @@ static size_t check_left_to_record(struct userdata *u, snd_pcm_sframes_t n) {
 
 static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec) {
     int work_done = 0;
-    pa_usec_t max_sleep_usec, process_usec;
+    pa_usec_t max_sleep_usec = 0, process_usec = 0;
     size_t left_to_record;
 
     pa_assert(u);
@@ -331,7 +331,7 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec) {
 
 static int unix_read(struct userdata *u, pa_usec_t *sleep_usec) {
     int work_done = 0;
-    pa_usec_t max_sleep_usec, process_usec;
+    pa_usec_t max_sleep_usec = 0, process_usec = 0;
     size_t left_to_record;
 
     pa_assert(u);
@@ -837,7 +837,7 @@ static void thread_func(void *userdata) {
         /* Read some data and pass it to the sources */
         if (PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
             int work_done = 0;
-            pa_usec_t sleep_usec;
+            pa_usec_t sleep_usec = 0;
 
             if (u->use_mmap)
                 work_done = mmap_read(u, &sleep_usec);

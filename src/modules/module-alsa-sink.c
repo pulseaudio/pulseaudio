@@ -239,7 +239,7 @@ static size_t check_left_to_play(struct userdata *u, snd_pcm_sframes_t n) {
 
 static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec) {
     int work_done = 0;
-    pa_usec_t max_sleep_usec, process_usec;
+    pa_usec_t max_sleep_usec = 0, process_usec = 0;
     size_t left_to_play;
 
     pa_assert(u);
@@ -354,7 +354,7 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec) {
 
 static int unix_write(struct userdata *u, pa_usec_t *sleep_usec) {
     int work_done = 0;
-    pa_usec_t max_sleep_usec, process_usec;
+    pa_usec_t max_sleep_usec = 0, process_usec = 0;
     size_t left_to_play;
 
     pa_assert(u);
@@ -974,7 +974,7 @@ static void thread_func(void *userdata) {
         /* Render some data and write it to the dsp */
         if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
             int work_done;
-            pa_usec_t sleep_usec;
+            pa_usec_t sleep_usec = 0;
 
             if (u->sink->thread_info.rewind_requested)
                 if (process_rewind(u) < 0)
