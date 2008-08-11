@@ -1574,7 +1574,7 @@ int pa_esound_options_parse(pa_esound_options *o, pa_core *c, pa_modargs *ma) {
     if ((acl = pa_modargs_get_value(ma, "auth-ip-acl", NULL))) {
         pa_ip_acl *ipa;
 
-        if (!(o->auth_ip_acl = pa_ip_acl_new(acl))) {
+        if (!(ipa = pa_ip_acl_new(acl))) {
             pa_log("Failed to parse IP ACL '%s'", acl);
             return -1;
         }
