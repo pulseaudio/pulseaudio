@@ -26,6 +26,7 @@
 #include <string.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/timeval.h>
 #include <pulsecore/module.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/thread.h>
