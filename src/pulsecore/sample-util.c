@@ -559,19 +559,15 @@ size_t pa_mix(
 
                     if (PA_UNLIKELY(cv <= 0) || PA_UNLIKELY(!!mute) || PA_UNLIKELY(linear[channel] <= 0))
                         v = 0;
-                    else {
-                        uint32_t z = *(uint32_t*) m->ptr;
-                        z = PA_UINT32_SWAP(z);
-                        v = *((float*) &z);
-                        v *= cv;
-                    }
+                    else
+                        v = PA_FLOAT32_SWAP(*(float*) m->ptr) *cv;
 
                     sum += v;
                     m->ptr = (uint8_t*) m->ptr + sizeof(float);
                 }
 
                 sum *= linear[channel];
-                *((uint32_t*) data) = PA_UINT32_SWAP(*(uint32_t*) &sum);
+                *((float*) data) = PA_FLOAT32_SWAP(sum);
 
                 data = (uint8_t*) data + sizeof(float);
 
