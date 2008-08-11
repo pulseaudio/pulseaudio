@@ -1163,6 +1163,7 @@ modlibexec_LTLIBRARIES += \
 		module-bt-proximity.la \
 		module-bt-discover.la \
 		libbt-ipc.la \
+		libbt-sbc.la \
 		module-bt-device.la
 
 pulselibexec_PROGRAMS += \
@@ -1572,6 +1573,11 @@ module_bt_discover_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la libdbus
 module_bt_discover_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 # Bluetooth device
+libbt_sbc_la_SOURCES = modules/bt-sbc.c modules/bt-sbc.h modules/bt-sbc_tables.h modules/bt-sbc_math.h
+libbt_sbc_la_LDFLAGS = -avoid-version
+libbt_sbc_la_LIBADD = $(AM_LIBADD)
+libbt_sbc_la_CFLAGS = $(AM_CFLAGS)
+
 libbt_ipc_la_SOURCES = modules/bt-ipc.c modules/bt-ipc.h
 libbt_ipc_la_LDFLAGS = -avoid-version
 libbt_ipc_la_LIBADD = $(AM_LIBADD)
@@ -1579,7 +1585,7 @@ libbt_ipc_la_CFLAGS = $(AM_CFLAGS)
 
 module_bt_device_la_SOURCES = modules/module-bt-device.c
 module_bt_device_la_LDFLAGS = -module -avoid-version
-module_bt_device_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la libdbus-util.la libbt-ipc.la
+module_bt_device_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la libdbus-util.la libbt-ipc.la libbt-sbc.la
 module_bt_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 ###################################
