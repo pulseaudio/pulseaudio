@@ -113,6 +113,10 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
+enum {
+    SINK_MESSAGE_PASS_SOCKET = PA_SINK_MESSAGE_MAX
+};
+
 static int bt_audioservice_send(int sk, const bt_audio_msg_header_t *msg) {
     int e;
     pa_log/*_debug*/("sending %s", bt_audio_strmsg(msg->msg_type));
@@ -545,15 +549,15 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             break;
         }
 
-//        case SINK_MESSAGE_PASS_SOCKET: {
-//            struct pollfd *pollfd;
-//            pa_assert(!u->rtpoll_item);
-//            u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
-//            pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
-//            pollfd->fd = u->fd;
-//            pollfd->events = pollfd->revents = 0;
-//            return 0;
-//        }
+        case SINK_MESSAGE_PASS_SOCKET: {
+            struct pollfd *pollfd;
+            pa_assert(!u->rtpoll_item);
+            u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
+            pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+            pollfd->fd = u->stream_fd;
+            pollfd->events = pollfd->revents = 0;
+            return 0;
+        }
     }
 
     return pa_sink_process_msg(o, code, data, offset, chunk);
@@ -808,6 +812,9 @@ int pa__init(pa_module* m) {
         goto fail;
     }
     pa_sink_put(u->sink);
+
+    /* hand the socket to the rt thread */
+    pa_asyncmsgq_post(u->thread_mq.inq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_PASS_SOCKET, NULL, 0, NULL, NULL);
 
     pa_modargs_free(ma);
     return 0;
