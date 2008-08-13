@@ -728,15 +728,15 @@ int pa__init(pa_module* m) {
         pa_log_error("failed to parse module arguments");
         goto fail;
     }
-    if (!(u->name = pa_modargs_get_value(ma, "name", DEFAULT_SINK_NAME))) {
+    if (!(u->name = pa_xstrdup(pa_modargs_get_value(ma, "name", DEFAULT_SINK_NAME)))) {
         pa_log_error("failed to get device address from module arguments");
         goto fail;
     }
-    if (!(u->addr = pa_modargs_get_value(ma, "addr", NULL))) {
+    if (!(u->addr = pa_xstrdup(pa_modargs_get_value(ma, "addr", NULL)))) {
         pa_log_error("failed to get device address from module arguments");
         goto fail;
     }
-    if (!(u->profile = pa_modargs_get_value(ma, "profile", NULL))) {
+    if (!(u->profile = pa_xstrdup(pa_modargs_get_value(ma, "profile", NULL)))) {
         pa_log_error("failed to get profile from module arguments");
         goto fail;
     }
