@@ -120,7 +120,7 @@ static int bt_audioservice_send(int sk, const bt_audio_msg_header_t *msg) {
         e = 0;
     else {
         e = -errno;
-        pa_log_error("Error sending data to audio service: %s(%d)", strerror(errno), errno);
+        pa_log_error("Error sending data to audio service: %s(%d)", pa_cstrerror(errno), errno);
     }
     return e;
 }
@@ -143,7 +143,7 @@ static int bt_audioservice_recv(int sk, bt_audio_msg_header_t *inmsg) {
     }
     else {
         e = -errno;
-        pa_log_error("Error receiving data from audio service: %s(%d)", strerror(errno), errno);
+        pa_log_error("Error receiving data from audio service: %s(%d)", pa_cstrerror(errno), errno);
     }
 
     return e;
@@ -194,7 +194,7 @@ static int bt_getcaps(struct userdata *u) {
         return e;
     }
     if (rsp_hdr->posix_errno != 0) {
-        pa_log_error("BT_GETCAPABILITIES failed : %s (%d)", strerror(rsp_hdr->posix_errno), rsp_hdr->posix_errno);
+        pa_log_error("BT_GETCAPABILITIES failed : %s (%d)", pa_cstrerror(rsp_hdr->posix_errno), rsp_hdr->posix_errno);
         return -rsp_hdr->posix_errno;
     }
 
@@ -428,7 +428,7 @@ static int bt_setconf(struct userdata *u) {
     }
 
     if (rsp_hdr->posix_errno != 0) {
-        pa_log_error("BT_SETCONFIGURATION failed : %s(%d)", strerror(rsp_hdr->posix_errno), rsp_hdr->posix_errno);
+        pa_log_error("BT_SETCONFIGURATION failed : %s(%d)", pa_cstrerror(rsp_hdr->posix_errno), rsp_hdr->posix_errno);
         return -rsp_hdr->posix_errno;
     }
 
@@ -468,7 +468,7 @@ static int bt_getstreamfd(struct userdata *u) {
     }
 
     if (rsp_hdr->posix_errno != 0) {
-        pa_log_error("BT_START failed : %s(%d)", strerror(rsp_hdr->posix_errno), rsp_hdr->posix_errno);
+        pa_log_error("BT_START failed : %s(%d)", pa_cstrerror(rsp_hdr->posix_errno), rsp_hdr->posix_errno);
         return -rsp_hdr->posix_errno;
     }
 
