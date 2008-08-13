@@ -179,8 +179,8 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         name = pa_sprintf_malloc("sink:%s", sink->name);
         entry.channel_map = sink->channel_map;
-        entry.volume = *pa_sink_get_volume(sink);
-        entry.muted = pa_sink_get_mute(sink);
+        entry.volume = *pa_sink_get_volume(sink, FALSE);
+        entry.muted = pa_sink_get_mute(sink, FALSE);
 
     } else {
         pa_source *source;
@@ -192,8 +192,8 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         name = pa_sprintf_malloc("source:%s", source->name);
         entry.channel_map = source->channel_map;
-        entry.volume = *pa_source_get_volume(source);
-        entry.muted = pa_source_get_mute(source);
+        entry.volume = *pa_source_get_volume(source, FALSE);
+        entry.muted = pa_source_get_mute(source, FALSE);
     }
 
     if ((old = read_entry(u, name))) {
