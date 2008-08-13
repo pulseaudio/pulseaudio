@@ -729,7 +729,7 @@ int pa__init(pa_module* m) {
         goto fail;
     }
     if (!(u->name = pa_xstrdup(pa_modargs_get_value(ma, "name", DEFAULT_SINK_NAME)))) {
-        pa_log_error("failed to get device address from module arguments");
+        pa_log_error("failed to get device name from module arguments");
         goto fail;
     }
     if (!(u->addr = pa_xstrdup(pa_modargs_get_value(ma, "addr", NULL)))) {
@@ -740,16 +740,14 @@ int pa__init(pa_module* m) {
         pa_log_error("failed to get profile from module arguments");
         goto fail;
     }
-    if (!(rate = pa_modargs_get_value(ma, "rate", NULL))) {
+    if (pa_modargs_get_value_u32(ma, "rate", &u->rate) < 0) {
         pa_log_error("failed to get rate from module arguments");
         goto fail;
     }
-    u->rate = atoi(rate);
-    if (!(channels = pa_modargs_get_value(ma, "channels", NULL))) {
-        pa_log_error("failed to get profile from module arguments");
+    if (pa_modargs_get_value_u32(ma, "channels", &u->channels) < 0) {
+        pa_log_error("failed to get channels from module arguments");
         goto fail;
     }
-    u->channels = atoi(channels);
     pa_log("Loading module-bt-device for %s (%s), profile %s", u->name, u->addr, u->profile);
 
     /* connect to the bluez audio service */
