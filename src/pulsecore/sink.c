@@ -856,18 +856,29 @@ void pa_sink_set_volume(pa_sink *s, const pa_cvolume *volume) {
         s->set_volume = NULL;
 
     if (!s->set_volume)
-        pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_VOLUME, volume, 0, NULL);
+        pa_sink_set_soft_volume(s, volume);
 
     if (changed)
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
 /* Called from main thread */
-const pa_cvolume *pa_sink_get_volume(pa_sink *s) {
+void pa_sink_set_soft_volume(pa_sink *s, const pa_cvolume *volume) {
+    pa_sink_assert_ref(s);
+    pa_assert(volume);
+
+    if (PA_SINK_IS_LINKED(s->state))
+        pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_VOLUME, volume, 0, NULL);
+    else
+        s->thread_info.soft_volume = *volume;
+}
+
+/* Called from main thread */
+const pa_cvolume *pa_sink_get_volume(pa_sink *s, pa_bool_t force_refresh) {
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_IS_LINKED(s->state));
 
-    if (s->refresh_volume) {
+    if (s->refresh_volume || force_refresh) {
         struct pa_cvolume old_volume = s->volume;
 
         if (s->get_volume && s->get_volume(s) < 0)
@@ -904,12 +915,12 @@ void pa_sink_set_mute(pa_sink *s, pa_bool_t mute) {
 }
 
 /* Called from main thread */
-pa_bool_t pa_sink_get_mute(pa_sink *s) {
+pa_bool_t pa_sink_get_mute(pa_sink *s, pa_bool_t force_refresh) {
 
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_IS_LINKED(s->state));
 
-    if (s->refresh_muted) {
+    if (s->refresh_muted || force_refresh) {
         pa_bool_t old_muted = s->muted;
 
         if (s->get_mute && s->get_mute(s) < 0)

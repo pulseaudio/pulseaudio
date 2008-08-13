@@ -239,9 +239,10 @@ int pa_sink_suspend(pa_sink *s, pa_bool_t suspend);
 int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend);
 
 void pa_sink_set_volume(pa_sink *sink, const pa_cvolume *volume);
-const pa_cvolume *pa_sink_get_volume(pa_sink *sink);
+void pa_sink_set_soft_volume(pa_sink *s, const pa_cvolume *volume);
+const pa_cvolume *pa_sink_get_volume(pa_sink *sink, pa_bool_t force_refresh);
 void pa_sink_set_mute(pa_sink *sink, pa_bool_t mute);
-pa_bool_t pa_sink_get_mute(pa_sink *sink);
+pa_bool_t pa_sink_get_mute(pa_sink *sink, pa_bool_t force_refres);
 
 unsigned pa_sink_linked_by(pa_sink *s); /* Number of connected streams */
 unsigned pa_sink_used_by(pa_sink *s); /* Number of connected streams which are not corked */

@@ -226,9 +226,10 @@ int pa_source_suspend(pa_source *s, pa_bool_t suspend);
 int pa_source_suspend_all(pa_core *c, pa_bool_t suspend);
 
 void pa_source_set_volume(pa_source *source, const pa_cvolume *volume);
-const pa_cvolume *pa_source_get_volume(pa_source *source);
+void pa_source_set_soft_volume(pa_source *s, const pa_cvolume *volume);
+const pa_cvolume *pa_source_get_volume(pa_source *source, pa_bool_t force_refresh);
 void pa_source_set_mute(pa_source *source, pa_bool_t mute);
-pa_bool_t pa_source_get_mute(pa_source *source);
+pa_bool_t pa_source_get_mute(pa_source *source, pa_bool_t force_refresh);
 
 unsigned pa_source_linked_by(pa_source *s); /* Number of connected streams */
 unsigned pa_source_used_by(pa_source *s); /* Number of connected streams that are not corked */
