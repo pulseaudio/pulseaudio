@@ -74,6 +74,18 @@ pa_volume_t pa_cvolume_avg(const pa_cvolume *a) {
     return (pa_volume_t) sum;
 }
 
+pa_volume_t pa_cvolume_max(const pa_cvolume *a) {
+    pa_volume_t m = 0;
+    int i;
+    pa_assert(a);
+
+    for (i = 0; i < a->channels; i++)
+        if (a->values[i] > m)
+            m = a->values[i];
+
+    return m;
+}
+
 pa_volume_t pa_sw_volume_multiply(pa_volume_t a, pa_volume_t b) {
     return pa_sw_volume_from_linear(pa_sw_volume_to_linear(a)* pa_sw_volume_to_linear(b));
 }

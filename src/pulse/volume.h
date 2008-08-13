@@ -134,6 +134,9 @@ char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c);
 /** Return the average volume of all channels */
 pa_volume_t pa_cvolume_avg(const pa_cvolume *a) PA_GCC_PURE;
 
+/** Return the maximum volume of all channels. \since 0.9.12 */
+pa_volume_t pa_cvolume_max(const pa_cvolume *a) PA_GCC_PURE;
+
 /** Return TRUE when the passed cvolume structure is valid, FALSE otherwise */
 int pa_cvolume_valid(const pa_cvolume *v) PA_GCC_PURE;
 
