@@ -134,6 +134,7 @@ static void unref(pa_bool_t after_fork) {
     pa_mutex_unlock(lock_fd_mutex);
 
     pa_mutex_free(lock_fd_mutex);
+    lock_fd_mutex = NULL;
 
     pa_close(pipe_fd[0]);
     pa_close(pipe_fd[1]);
