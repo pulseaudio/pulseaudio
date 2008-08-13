@@ -1117,3 +1117,27 @@ pa_rtpoll_item* pa_alsa_build_pollfd(snd_pcm_t *pcm, pa_rtpoll *rtpoll) {
 
     return item;
 }
+
+pa_cvolume *pa_alsa_volume_divide(pa_cvolume *r, const pa_cvolume *t) {
+    unsigned i;
+
+    pa_assert(r);
+    pa_assert(t);
+    pa_assert(r->channels == t->channels);
+
+    for (i = 0; i < r->channels; i++) {
+        double a, b, c;
+
+        a = pa_sw_volume_to_linear(r->values[i]); /* the hw volume */
+        b = pa_sw_volume_to_linear(t->values[i]); /* the intended volume */
+
+        if (a <= 0)
+            c = 0;
+        else
+            c = b / a;
+
+        r->values[i] = pa_sw_volume_from_linear(c);
+    }
+
+    return r;
+}
