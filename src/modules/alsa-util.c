@@ -850,56 +850,6 @@ int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel
     return 0;
 }
 
-void pa_alsa_0dB_playback(snd_mixer_elem_t *elem) {
-    long min, max, v;
-
-    pa_assert(elem);
-
-    /* Try to enable 0 dB if possible. If ALSA cannot do dB, then use
-     * raw volume levels and fix them to 75% */
-
-    if (snd_mixer_selem_set_playback_dB_all(elem, 0, -1) >= 0)
-        return;
-
-    if (snd_mixer_selem_set_playback_dB_all(elem, 0, 1) >= 0)
-        return;
-
-    if (snd_mixer_selem_get_playback_volume_range(elem, &min, &max) < 0)
-        return;
-
-    v = min + ((max - min) * 3) / 4; /* 75% */
-
-    if (v <= min)
-        v = max;
-
-    snd_mixer_selem_set_playback_volume_all(elem, v);
-}
-
-void pa_alsa_0dB_capture(snd_mixer_elem_t *elem) {
-    long min, max, v;
-
-    pa_assert(elem);
-
-    /* Try to enable 0 dB if possible. If ALSA cannot do dB, then use
-     * raw volume levels and fix them to 75% */
-
-    if (snd_mixer_selem_set_capture_dB_all(elem, 0, -1) >= 0)
-        return;
-
-    if (snd_mixer_selem_set_capture_dB_all(elem, 0, 1) >= 0)
-        return;
-
-    if (snd_mixer_selem_get_capture_volume_range(elem, &min, &max) < 0)
-        return;
-
-    v = min + ((max - min) * 3) / 4; /* 75% */
-
-    if (v <= min)
-        v = max;
-
-    snd_mixer_selem_set_capture_volume_all(elem, v);
-}
-
 void pa_alsa_dump(snd_pcm_t *pcm) {
     int err;
     snd_output_t *out;

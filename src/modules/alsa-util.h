@@ -80,9 +80,6 @@ snd_pcm_t *pa_alsa_open_by_device_string(
 
 int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel_map, snd_mixer_selem_channel_id_t mixer_map[], pa_bool_t playback);
 
-void pa_alsa_0dB_playback(snd_mixer_elem_t *elem);
-void pa_alsa_0dB_capture(snd_mixer_elem_t *elem);
-
 void pa_alsa_dump(snd_pcm_t *pcm);
 void pa_alsa_dump_status(snd_pcm_t *pcm);
 
