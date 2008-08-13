@@ -808,7 +808,7 @@ int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel
     if (channel_map->channels > 1 &&
         ((playback && snd_mixer_selem_has_playback_volume_joined(elem)) ||
          (!playback && snd_mixer_selem_has_capture_volume_joined(elem)))) {
-        pa_log_info("ALSA device lacks independant volume controls for each channel, falling back to software volume control.");
+        pa_log_info("ALSA device lacks independant volume controls for each channel.");
         return -1;
     }
 
@@ -820,7 +820,7 @@ int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel
         id = alsa_channel_ids[channel_map->map[i]];
 
         if (!is_mono && id == SND_MIXER_SCHN_UNKNOWN) {
-            pa_log_info("Configured channel map contains channel '%s' that is unknown to the ALSA mixer. Falling back to software volume control.", pa_channel_position_to_string(channel_map->map[i]));
+            pa_log_info("Configured channel map contains channel '%s' that is unknown to the ALSA mixer.", pa_channel_position_to_string(channel_map->map[i]));
             return -1;
         }
 
@@ -832,7 +832,7 @@ int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel
         if ((playback && (!snd_mixer_selem_has_playback_channel(elem, id) || (is_mono && !snd_mixer_selem_is_playback_mono(elem)))) ||
             (!playback && (!snd_mixer_selem_has_capture_channel(elem, id) || (is_mono && !snd_mixer_selem_is_capture_mono(elem))))) {
 
-            pa_log_info("ALSA device lacks separate volumes control for channel '%s', falling back to software volume control.", pa_channel_position_to_string(channel_map->map[i]));
+            pa_log_info("ALSA device lacks separate volumes control for channel '%s'", pa_channel_position_to_string(channel_map->map[i]));
             return -1;
         }
 
