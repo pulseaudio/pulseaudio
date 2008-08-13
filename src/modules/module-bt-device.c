@@ -29,6 +29,7 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
+#include <pulse/sample.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/module.h>
 #include <pulsecore/modargs.h>
