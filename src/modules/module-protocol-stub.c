@@ -260,7 +260,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u = pa_xnew0(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->module = m;
 
 #if defined(USE_PROTOCOL_SIMPLE)
@@ -368,8 +368,6 @@ int pa__init(pa_module*m) {
 #  endif
 #endif
 
-    m->userdata = u;
-
     if (ma)
         pa_modargs_free(ma);
 
@@ -390,7 +388,8 @@ void pa__done(pa_module*m) {
 
     pa_assert(m);
 
-    u = m->userdata;
+    if (!(u = m->userdata))
+        return;
 
 #if defined(USE_PROTOCOL_SIMPLE)
     if (u->simple_protocol) {
