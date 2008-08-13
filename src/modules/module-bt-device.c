@@ -479,7 +479,7 @@ static int bt_getstreamfd(struct userdata *u) {
     }
 
     if (u->stream_fd >= 0)
-        close(u->stream_fd);
+        pa_close(u->stream_fd);
 
     u->stream_fd = bt_audio_service_get_data_fd(u->audioservice_fd);
     if (u->stream_fd < 0) {
