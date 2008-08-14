@@ -695,6 +695,7 @@ int pa__init(pa_module* m) {
     const char *rate, *channels;
     pa_modargs *ma;
     pa_sink_new_data data;
+    struct pollfd *pollfd;
     struct userdata *u;
 
     pa_assert(m);
@@ -765,6 +766,10 @@ int pa__init(pa_module* m) {
         pa_log_error("failed to get stream fd (%d)", e);
         goto fail;
     }
+    u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
+    pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+    pollfd->fd = u->stream_fd;
+    pollfd->events = pollfd->revents = 0;
 
     /* configure hw supported sample specs */
     e = bt_hw_constraint(u);
