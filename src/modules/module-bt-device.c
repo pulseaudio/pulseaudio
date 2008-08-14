@@ -435,7 +435,11 @@ static int bt_setconf(struct userdata *u) {
     }
 
     u->transport = setconf_rsp->transport;
-    u->block_size = u->link_mtu = setconf_rsp->link_mtu;
+    u->link_mtu = setconf_rsp->link_mtu;
+    if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP)
+        /* TODO: Check the max possible size */ u->block_size = u->link_mtu / 2;
+    else
+        u->block_size = u->link_mtu;
 
     /* setup SBC encoder now we agree on parameters */
     if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP) {
