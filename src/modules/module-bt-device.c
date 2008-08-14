@@ -87,6 +87,7 @@ struct userdata {
     pa_smoother *smoother;
 
     pa_memchunk memchunk;
+    pa_mempool *mempool;
 
     const char *name;
     const char *addr;
@@ -572,123 +573,115 @@ static void thread_func(void *userdata) {
 
     for (;;) {
         int ret;
+        struct pollfd *pollfd;
 
-        if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
-            if (u->sink->thread_info.rewind_requested)
+        if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
+            if (u->sink->thread_info.rewind_requested) {
+                pa_log("rewind_requested");
                 pa_sink_process_rewind(u->sink, 0);
-
-        if (u->rtpoll_item) {
-            struct pollfd *pollfd;
-            pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
-
-            /* Render some data and write it to the fifo */
-            if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && pollfd->revents) {
-                pa_usec_t usec;
-                int64_t n;
-
-                for (;;) {
-                    ssize_t l;
-                    void *p;
-
-                    if (u->memchunk.length <= 0)
-                        pa_sink_render(u->sink, u->block_size, &u->memchunk);
-
-                    pa_assert(u->memchunk.length > 0);
-
-                    p = pa_memblock_acquire(u->memchunk.memblock);
-                    l = pa_write(u->stream_fd, (uint8_t*) p + u->memchunk.index, u->memchunk.length, &write_type);
-                    pa_memblock_release(u->memchunk.memblock);
-
-                    pa_assert(l != 0);
-
-                    if (l < 0) {
-
-                        if (errno == EINTR)
-                            continue;
-                        else if (errno == EAGAIN) {
-
-                            /* OK, we filled all socket buffers up
-                             * now. */
-                            goto filled_up;
-
-                        } else {
-                            pa_log("Failed to write data to FIFO: %s", pa_cstrerror(errno));
-                            goto fail;
-                        }
-
-                    } else {
-                        u->offset += l;
-
-                        u->memchunk.index += l;
-                        u->memchunk.length -= l;
-
-                        if (u->memchunk.length <= 0) {
-                            pa_memblock_unref(u->memchunk.memblock);
-                            pa_memchunk_reset(&u->memchunk);
-                        }
-
-                        pollfd->revents = 0;
-
-                        if (u->memchunk.length > 0)
-
-                            /* OK, we wrote less that we asked for,
-                             * hence we can assume that the socket
-                             * buffers are full now */
-                            goto filled_up;
-                    }
-                }
-
-            filled_up:
-
-                /* At this spot we know that the socket buffers are
-                 * fully filled up. This is the best time to estimate
-                 * the playback position of the server */
-
-                n = u->offset;
-
-//#ifdef SIOCOUTQ
-//                {
-//                    int l;
-//                    if (ioctl(u->fd, SIOCOUTQ, &l) >= 0 && l > 0)
-//                        n -= l;
-//                }
-//#endif
-
-                usec = pa_bytes_to_usec(n, &u->sink->sample_spec);
-
-                if (usec > u->latency)
-                    usec -= u->latency;
-                else
-                    usec = 0;
-
-                pa_smoother_put(u->smoother, pa_rtclock_usec(), usec);
+                pa_log("rewind_finished");
             }
-
-            /* Hmm, nothing to do. Let's sleep */
-            pollfd->events = PA_SINK_IS_OPENED(u->sink->thread_info.state) ? POLLOUT : 0;
         }
 
-        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
-            goto fail;
+        pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
 
-        if (ret == 0)
-            goto finish;
+        /* Render some data and write it to the fifo */
+        if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && pollfd->revents) {
+            pa_usec_t usec;
+            int64_t n;
+            pa_log("Render some data and write it to the fifo");
 
-        if (u->rtpoll_item) {
-            struct pollfd* pollfd;
+            for (;;) {
+                ssize_t l;
+                void *p;
 
-            pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+                u->memchunk.memblock = pa_memblock_new(u->mempool, u->block_size);
+                pa_log("memblock allocated");
+                u->memchunk.length = pa_memblock_get_length(u->memchunk.memblock);
+                pa_log("memchunk length");
+                pa_sink_render_into_full(u->sink, &u->memchunk);
+                pa_log("rendered");
 
-            if (pollfd->revents & ~POLLOUT) {
-                pa_log("FIFO shutdown.");
-                goto fail;
+                pa_assert(u->memchunk.length > 0);
+
+                p = pa_memblock_acquire(u->memchunk.memblock);
+                pa_log("memblock acquired");
+                l = pa_write(u->stream_fd, (uint8_t*) p, u->memchunk.length, &write_type);
+                pa_log("memblock written");
+                pa_memblock_release(u->memchunk.memblock);
+                pa_log("memblock released");
+
+                pa_assert(l != 0);
+
+                if (l < 0) {
+                    pa_log("l = %d < 0", l);
+                    if (errno == EINTR)
+                        continue;
+                    else if (errno == EAGAIN)
+                        goto filled_up;
+                    else {
+                        pa_log("Failed to write data to FIFO: %s", pa_cstrerror(errno));
+                        goto fail;
+                    }
+                } else {
+                    pa_log("l = %d >= 0", l);
+                    u->offset += l;
+                    pa_memblock_unref(u->memchunk.memblock);
+                    pa_log("memblock unrefered");
+                    pa_memchunk_reset(&u->memchunk);
+                    pa_log("memchunk reseted");
+                    pollfd->revents = 0;
+                }
             }
+
+filled_up:
+
+            pa_log("filled_up");
+            /* At this spot we know that the socket buffers are fully filled up.
+             * This is the best time to estimate the playback position of the server */
+            n = u->offset;
+
+//#ifdef SIOCOUTQ
+//           {
+//               int l;
+//               if (ioctl(u->fd, SIOCOUTQ, &l) >= 0 && l > 0)
+//                   n -= l;
+//           }
+//#endif
+
+            usec = pa_bytes_to_usec(n, &u->sink->sample_spec);
+            if (usec > u->latency)
+                usec -= u->latency;
+            else
+                usec = 0;
+            pa_smoother_put(u->smoother, pa_rtclock_usec(), usec);
+        }
+
+        /* Hmm, nothing to do. Let's sleep */
+        pa_log("let's sleep");
+        pollfd->events = PA_SINK_IS_OPENED(u->sink->thread_info.state) ? POLLOUT : 0;
+
+        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0) {
+            pa_log("ret < 0");
+            goto fail;
+        }
+        pa_log("waking up");
+
+        if (ret == 0) {
+            pa_log("ret == 0");
+            goto finish;
+        }
+
+        pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+        if (pollfd->revents & ~POLLOUT) {
+            pa_log("FIFO shutdown.");
+            goto fail;
         }
     }
 
 fail:
-    /* If this was no regular exit from the loop we have to continue
-     * processing messages until we received PA_MESSAGE_SHUTDOWN */
+    /* If this was no regular exit from the loop we have to continue processing messages until we receive PA_MESSAGE_SHUTDOWN */
+    pa_log("fail");
     pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
     pa_asyncmsgq_wait_for(u->thread_mq.inq, PA_MESSAGE_SHUTDOWN);
 
@@ -714,6 +707,7 @@ int pa__init(pa_module* m) {
     u->offset = 0;
     u->latency = 0;
     u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE, 10);
+    u->mempool = pa_mempool_new(FALSE);
     pa_memchunk_reset(&u->memchunk);
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll);
