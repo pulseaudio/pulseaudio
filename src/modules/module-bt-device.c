@@ -509,6 +509,7 @@ static int bt_getstreamfd(struct userdata *u) {
 //            return 0;
 //        /* FIXME : handle error codes */
 //    }
+    pa_make_fd_nonblock(u->stream_fd);
 
     return 0;
 }
