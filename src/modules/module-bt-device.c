@@ -766,10 +766,6 @@ int pa__init(pa_module* m) {
         pa_log_error("failed to get stream fd (%d)", e);
         goto fail;
     }
-    u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
-    pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
-    pollfd->fd = u->stream_fd;
-    pollfd->events = pollfd->revents = 0;
 
     /* configure hw supported sample specs */
     e = bt_hw_constraint(u);
@@ -786,7 +782,7 @@ int pa__init(pa_module* m) {
     pa_sink_new_data_set_sample_spec(&data, &u->ss);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->name);
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Bluetooth sink '%s' (%s)", u->name, u->addr);
-    u->sink = pa_sink_new(m->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY|PA_SINK_NETWORK);
+    u->sink = pa_sink_new(m->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
     pa_sink_new_data_done(&data);
     if (!u->sink) {
         pa_log_error("failed to create sink");
@@ -796,6 +792,11 @@ int pa__init(pa_module* m) {
     u->sink->parent.process_msg = sink_process_msg;
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
+
+    u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
+    pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+    pollfd->fd = u->stream_fd;
+    pollfd->events = pollfd->revents = 0;
 
     /* start rt thread */
     if (!(u->thread = pa_thread_new(thread_func, u))) {
