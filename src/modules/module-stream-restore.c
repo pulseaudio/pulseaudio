@@ -418,8 +418,9 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
         }
 
         if (u->restore_volume) {
+            pa_cvolume v = e->volume;
             pa_log_info("Restoring volume for sink input %s.", name);
-            pa_sink_input_set_volume(si, pa_cvolume_remap(&e->volume, &e->channel_map, &si->channel_map));
+            pa_sink_input_set_volume(si, pa_cvolume_remap(&v, &e->channel_map, &si->channel_map));
         }
 
         if (u->restore_muted) {
