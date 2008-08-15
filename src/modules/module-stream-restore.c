@@ -554,7 +554,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
 
         case SUBCOMMAND_WRITE: {
             uint32_t mode;
-            pa_bool_t apply_immediately;
+            pa_bool_t apply_immediately = FALSE;
 
             if (pa_tagstruct_getu32(t, &mode) < 0 ||
                 pa_tagstruct_get_boolean(t, &apply_immediately) < 0)
@@ -573,6 +573,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 pa_bool_t muted;
                 struct entry entry;
                 datum key, data;
+                int k;
 
                 memset(&entry, 0, sizeof(entry));
 
@@ -595,7 +596,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 data.dptr = (void*) &entry;
                 data.dsize = sizeof(entry);
 
-                if (gdbm_store(u->gdbm_file, key, data, mode == PA_UPDATE_REPLACE ? GDBM_REPLACE : GDBM_INSERT) == 1)
+                if ((k = gdbm_store(u->gdbm_file, key, data, mode == PA_UPDATE_REPLACE ? GDBM_REPLACE : GDBM_INSERT)) == 0)
                     if (apply_immediately)
                         apply_entry(u, name, &entry);
             }
