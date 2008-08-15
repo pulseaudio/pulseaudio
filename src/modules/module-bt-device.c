@@ -642,13 +642,13 @@ filled_up:
              * This is the best time to estimate the playback position of the server */
             n = u->offset;
 
-//#ifdef SIOCOUTQ
-//           {
-//               int l;
-//               if (ioctl(u->fd, SIOCOUTQ, &l) >= 0 && l > 0)
-//                   n -= l;
-//           }
-//#endif
+#ifdef SIOCOUTQ
+            {
+                int l;
+                if (ioctl(u->fd, SIOCOUTQ, &l) >= 0 && l > 0)
+                    n -= l;
+            }
+#endif
 
             usec = pa_bytes_to_usec(n, &u->sink->sample_spec);
             if (usec > u->latency)
