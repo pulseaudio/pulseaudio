@@ -360,6 +360,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
         pa_source *s;
 
         if (u->restore_device &&
+            !new_data->direct_on_input &&
             (s = pa_namereg_get(c, e->device, PA_NAMEREG_SOURCE, TRUE))) {
 
             pa_log_info("Restoring device for stream %s.", name);
