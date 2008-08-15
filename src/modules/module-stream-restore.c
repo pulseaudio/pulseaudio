@@ -409,7 +409,7 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
         char *n;
         pa_sink *s;
 
-        if (!(n = get_name(si->proplist, "sink_input")))
+        if (!(n = get_name(si->proplist, "sink-input")))
             continue;
 
         if (strcmp(name, n)) {
