@@ -526,6 +526,7 @@ static int bt_hw_constraint(struct userdata *u) {
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
 
+    pa_log/*_debug*/("got message: %d", code);
     switch (code) {
 
         case PA_SINK_MESSAGE_SET_STATE:
@@ -550,7 +551,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             r = pa_smoother_get(u->smoother, pa_rtclock_usec());
             w = pa_bytes_to_usec(u->offset + u->memchunk.length, &u->sink->sample_spec);
             *((pa_usec_t*) data) = w > r ? w - r : 0;
-            break;
+            return 0;
         }
 
     }
