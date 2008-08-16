@@ -410,6 +410,10 @@ static int bt_setconf(struct userdata *u) {
         }
     }
 
+    u->ss.format = PA_SAMPLE_S16LE;
+    u->ss.rate = u->rate;
+    u->ss.channels = u->channels;
+
     memset(setconf_req, 0, BT_AUDIO_IPC_PACKET_SIZE);
     setconf_req->h.msg_type = BT_SETCONFIGURATION_REQ;
     strncpy(setconf_req->device, u->addr, 18);
@@ -512,14 +516,6 @@ static int bt_getstreamfd(struct userdata *u) {
 //    }
     pa_make_fd_nonblock(u->stream_fd);
 
-    return 0;
-}
-
-static int bt_hw_constraint(struct userdata *u) {
-    /*TODO: A2DP */
-    u->ss.format = PA_SAMPLE_S16LE;
-    u->ss.rate = 8000;
-    u->ss.channels = 1;
     return 0;
 }
 
@@ -765,13 +761,6 @@ int pa__init(pa_module* m) {
     e = bt_getstreamfd(u);
     if (e < 0) {
         pa_log_error("failed to get stream fd (%d)", e);
-        goto fail;
-    }
-
-    /* configure hw supported sample specs */
-    e = bt_hw_constraint(u);
-    if (e < 0) {
-        pa_log_error("failed to configure sample spec");
         goto fail;
     }
 
