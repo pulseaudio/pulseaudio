@@ -44,11 +44,15 @@
 #include "module-bt-device-symdef.h"
 #include "bt-ipc.h"
 #include "bt-sbc.h"
+#include "bt-rtp.h"
 
 #define DEFAULT_SINK_NAME "bluetooth_sink"
 #define BUFFER_SIZE 2048
 #define MAX_BITPOOL 64
 #define MIN_BITPOOL 2
+#define SOL_SCO 17
+#define SCO_TXBUFS 0x03
+#define SCO_RXBUFS 0x04
 
 PA_MODULE_AUTHOR("Joao Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Bluetooth audio sink and source");
@@ -244,7 +248,7 @@ static uint8_t default_bitpool(uint8_t freq, uint8_t mode) {
 
 static int bt_a2dp_init(struct userdata *u) {
     sbc_capabilities_t *cap = &u->a2dp.sbc_capabilities;
-    unsigned int max_bitpool, min_bitpool, rate, channels;
+    unsigned int max_bitpool, min_bitpool;
 
     switch (u->rate) {
         case 48000:
@@ -260,14 +264,14 @@ static int bt_a2dp_init(struct userdata *u) {
             cap->frequency = BT_SBC_SAMPLING_FREQ_16000;
             break;
         default:
-            pa_log_error("Rate %d not supported", rate);
+            pa_log_error("Rate %d not supported", u->rate);
             return -1;
     }
 
 //    if (cfg->has_channel_mode)
 //        cap->channel_mode = cfg->channel_mode;
 //    else 
-    if (channels == 2) {
+    if (u->channels == 2) {
         if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_JOINT_STEREO)
             cap->channel_mode = BT_A2DP_CHANNEL_MODE_JOINT_STEREO;
         else if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_STEREO)
@@ -364,7 +368,7 @@ static void bt_a2dp_setup(struct bt_a2dp *a2dp) {
     if (active_capabilities.channel_mode & BT_A2DP_CHANNEL_MODE_JOINT_STEREO)
         a2dp->sbc.mode = SBC_MODE_JOINT_STEREO;
 
-    a2dp->sbc.allocation = active_capabilities.allocation_method == BT_A2DP_ALLOCATION_SNR ? SBC_AM_SNR : SBC_AM_LOUDNESS;
+    a2dp->sbc.allocation = (active_capabilities.allocation_method == BT_A2DP_ALLOCATION_SNR ? SBC_AM_SNR : SBC_AM_LOUDNESS);
 
     switch (active_capabilities.subbands) {
         case BT_A2DP_SUBBANDS_4:
@@ -392,7 +396,7 @@ static void bt_a2dp_setup(struct bt_a2dp *a2dp) {
 
     a2dp->sbc.bitpool = active_capabilities.max_bitpool;
     a2dp->codesize = sbc_get_codesize(&a2dp->sbc);
-//    a2dp->count = sizeof(struct rtp_header) + sizeof(struct rtp_payload);
+    a2dp->count = sizeof(struct rtp_header) + sizeof(struct rtp_payload);
 }
 
 static int bt_setconf(struct userdata *u) {
@@ -457,7 +461,9 @@ static int bt_setconf(struct userdata *u) {
 }
 
 static int bt_getstreamfd(struct userdata *u) {
-    int e/*, opt_name*/;
+    int e;
+//    uint32_t period_count = io->buffer_size / io->period_size;
+//    struct timeval t = { 0, period_count };
     char buf[BT_AUDIO_IPC_PACKET_SIZE];
     struct bt_streamstart_req *start_req = (void*) buf;
     bt_audio_rsp_msg_header_t *rsp_hdr = (void*) buf;
@@ -494,23 +500,20 @@ static int bt_getstreamfd(struct userdata *u) {
 
     u->stream_fd = bt_audio_service_get_data_fd(u->audioservice_fd);
     if (u->stream_fd < 0) {
-        pa_log_error("failed to get data fd");
+        pa_log_error("failed to get data fd: %s (%d)",pa_cstrerror(errno), errno);
         return -errno;
     }
 
 //    if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP) {
-//        opt_name = SO_SNDTIMEO;
-//        if (setsockopt(u->stream_fd, SOL_SOCKET, opt_name, &t, sizeof(t)) < 0) {
-//            pa_log_error("failed to set socket options for A2DP");
+//        if (setsockopt(u->stream_fd, SOL_SOCKET, SO_SNDTIMEO, &t, sizeof(t)) < 0) {
+//            pa_log_error("failed to set socket options for A2DP: %s (%d)",pa_cstrerror(errno), errno);
 //            return -errno;
 //        }
 //    }
 //    else {
-//        opt_name = SCO_TXBUFS;
-//        if (setsockopt(u->stream_fd, SOL_SCO, opt_name, &period_count, sizeof(period_count)) == 0)
+//        if (setsockopt(u->stream_fd, SOL_SCO, SCO_TXBUFS, &period_count, sizeof(period_count)) == 0)
 //            return 0;
-//        opt_name = SO_SNDBUF;
-//        if (setsockopt(u->stream_fd, SOL_SCO, opt_name, &period_count, sizeof(period_count)) == 0)
+//        if (setsockopt(u->stream_fd, SOL_SCO, SO_SNDBUF, &period_count, sizeof(period_count)) == 0)
 //            return 0;
 //        /* FIXME : handle error codes */
 //    }
@@ -703,6 +706,7 @@ int pa__init(pa_module* m) {
     u->transport = -1;
     u->offset = 0;
     u->latency = 0;
+    u->a2dp.sbc_initialized = 0;
     u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE, 10);
     u->mempool = pa_mempool_new(FALSE);
     pa_memchunk_reset(&u->memchunk);
