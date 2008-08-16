@@ -45,7 +45,7 @@
 #include "bt-ipc.h"
 #include "bt-sbc.h"
 
-#define DEFAULT_SINK_NAME "bt_sink"
+#define DEFAULT_SINK_NAME "bluetooth_sink"
 #define BUFFER_SIZE 2048
 #define MAX_BITPOOL 64
 #define MIN_BITPOOL 2
