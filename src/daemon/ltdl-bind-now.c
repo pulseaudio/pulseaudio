@@ -57,8 +57,6 @@
 
 static pa_mutex *libtool_mutex = NULL;
 
-PA_STATIC_TLS_DECLARE_NO_FREE(libtool_tls);
-
 static void libtool_lock(void) {
     pa_mutex_lock(libtool_mutex);
 }
@@ -67,6 +65,10 @@ static void libtool_unlock(void) {
     pa_mutex_unlock(libtool_mutex);
 }
 
+#endif
+
+PA_STATIC_TLS_DECLARE_NO_FREE(libtool_tls);
+
 static void libtool_set_error(const char *error) {
     PA_STATIC_TLS_SET(libtool_tls, (char*) error);
 }
@@ -74,8 +76,6 @@ static void libtool_set_error(const char *error) {
 static const char *libtool_get_error(void) {
     return PA_STATIC_TLS_GET(libtool_tls);
 }
-
-#endif
 
 #ifdef PA_BIND_NOW
 
