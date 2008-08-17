@@ -597,9 +597,9 @@ static void thread_func(void *userdata) {
                 void *p;
 
                 u->memchunk.memblock = pa_memblock_new(u->mempool, u->block_size);
-                pa_log("memblock allocated");
+                pa_log("memblock allocated %d", u->block_size);
                 u->memchunk.length = pa_memblock_get_length(u->memchunk.memblock);
-                pa_log("memchunk length");
+                pa_log("memchunk length %d", u->memchunk.length);
                 pa_sink_render_into_full(u->sink, &u->memchunk);
                 pa_log("rendered");
 
@@ -608,7 +608,7 @@ static void thread_func(void *userdata) {
                 p = pa_memblock_acquire(u->memchunk.memblock);
                 pa_log("memblock acquired");
                 l = pa_write(u->stream_fd, (uint8_t*) p, u->memchunk.length, &write_type);
-                pa_log("memblock written");
+                pa_log("memblock written %d bytes", l);
                 pa_memblock_release(u->memchunk.memblock);
                 pa_log("memblock released");
 
@@ -688,6 +688,186 @@ fail:
 
 finish:
     pa_log_debug("Thread shutting down");
+}
+
+static void a2dp_thread_func(void *userdata) {
+    struct userdata *u = userdata;
+    int write_type = 0;
+
+    pa_assert(u);
+
+    pa_log/*_debug*/("A2DP Thread starting up");
+
+    pa_thread_mq_install(&u->thread_mq);
+    pa_rtpoll_install(u->rtpoll);
+
+    pa_smoother_set_time_offset(u->smoother, pa_rtclock_usec());
+
+    for (;;) {
+        int ret;
+        struct pollfd *pollfd;
+
+        if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
+            if (u->sink->thread_info.rewind_requested) {
+                pa_log("rewind_requested");
+                pa_sink_process_rewind(u->sink, 0);
+                pa_log("rewind_finished");
+            }
+        }
+
+        pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+
+        /* Render some data and write it to the fifo */
+        if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && pollfd->revents) {
+            pa_usec_t usec;
+            int64_t n;
+            pa_log("Render some data and write it to the fifo");
+
+            for (;;) {
+                ssize_t l;
+                void *p;
+                struct bt_a2dp *a2dp = &u->a2dp;
+                int frame_size, encoded, written;
+
+                u->memchunk.memblock = pa_memblock_new(u->mempool, u->block_size);
+                pa_log("memblock allocated %d", u->block_size);
+                u->memchunk.length = pa_memblock_get_length(u->memchunk.memblock);
+                pa_log("memchunk length %d", u->memchunk.length);
+                pa_sink_render_into_full(u->sink, &u->memchunk);
+                pa_log("rendered");
+
+                pa_assert(u->memchunk.length > 0);
+
+                p = pa_memblock_acquire(u->memchunk.memblock);
+                pa_log("memblock acquired");
+
+                frame_size = sbc_get_frame_length(&a2dp->sbc);
+                pa_log("frame_size: %d", frame_size);
+
+                encoded = sbc_encode(&a2dp->sbc, (uint8_t*) p, a2dp->codesize, a2dp->buffer + a2dp->count,
+                        sizeof(a2dp->buffer) - a2dp->count, &written);
+                pa_log("encoded: %d", encoded);
+                pa_log("written: %d", encoded);
+                if (encoded <= 0) {
+                    pa_log_error("SBC encoding error (%d)", encoded);
+                    goto fail;
+                }
+                pa_memblock_release(u->memchunk.memblock);
+                pa_log("memblock released");
+                pa_memblock_unref(u->memchunk.memblock);
+                pa_log("memblock unrefered");
+                pa_memchunk_reset(&u->memchunk);
+                pa_log("memchunk reseted");
+
+                a2dp->count += written;
+                a2dp->frame_count++;
+                a2dp->samples += encoded / frame_size;
+                a2dp->nsamples += encoded / frame_size;
+
+                if (a2dp->count + written >= u->link_mtu) {
+                    struct rtp_header *header = (void *) a2dp->buffer;
+                    struct rtp_payload *payload = (void *) (a2dp->buffer + sizeof(*header));
+
+                    memset(a2dp->buffer, 0, sizeof(*header) + sizeof(*payload));
+
+                    payload->frame_count = a2dp->frame_count;
+                    header->v = 2;
+                    header->pt = 1;
+                    header->sequence_number = htons(a2dp->seq_num);
+                    header->timestamp = htonl(a2dp->nsamples);
+                    header->ssrc = htonl(1);
+
+                    l = pa_write(u->stream_fd, a2dp->buffer, a2dp->count, 0);
+                    pa_log("avdtp_write %d", a2dp->count);
+
+                    if (l > 0) {
+                        /* Reset buffer of data to send */
+                        a2dp->count = sizeof(struct rtp_header) + sizeof(struct rtp_payload);
+                        a2dp->frame_count = 0;
+                        a2dp->samples = 0;
+                        a2dp->seq_num++;
+                    }
+
+                    pa_log("avdtp written %d bytes", l);
+
+                    pa_assert(l != 0);
+
+                    if (l < 0) {
+                        pa_log("l = %d < 0", l);
+                        if (errno == EINTR) {
+                            pa_log("EINTR");
+                            continue;
+                        }
+                        else if (errno == EAGAIN) {
+                            pa_log("EAGAIN");
+                            goto filled_up;
+                        }
+                        else {
+                            pa_log("Failed to write data to FIFO: %s", pa_cstrerror(errno));
+                            goto fail;
+                        }
+                    } else {
+                        pa_log("l = %d >= 0", l);
+                        u->offset += l;
+                        pollfd->revents = 0;
+                        goto filled_up;
+                    }
+                }
+            }
+
+filled_up:
+
+            pa_log("filled_up");
+            /* At this spot we know that the socket buffers are fully filled up.
+             * This is the best time to estimate the playback position of the server */
+            n = u->offset;
+
+#ifdef SIOCOUTQ
+            {
+                int l;
+                if (ioctl(u->fd, SIOCOUTQ, &l) >= 0 && l > 0)
+                    n -= l;
+            }
+#endif
+
+            usec = pa_bytes_to_usec(n, &u->sink->sample_spec);
+            if (usec > u->latency)
+                usec -= u->latency;
+            else
+                usec = 0;
+            pa_smoother_put(u->smoother, pa_rtclock_usec(), usec);
+        }
+
+        /* Hmm, nothing to do. Let's sleep */
+        pa_log("let's sleep");
+        pollfd->events = PA_SINK_IS_OPENED(u->sink->thread_info.state) ? POLLOUT : 0;
+
+        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0) {
+            pa_log("ret < 0");
+            goto fail;
+        }
+        pa_log("waking up");
+
+        if (ret == 0) {
+            pa_log("ret == 0");
+            goto finish;
+        }
+
+        pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+        if (pollfd->revents & ~POLLOUT) {
+            pa_log("FIFO shutdown.");
+            goto fail;
+        }
+    }
+
+fail:
+    /* If this was no regular exit from the loop we have to continue processing messages until we receive PA_MESSAGE_SHUTDOWN */
+    pa_log("fail");
+    pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
+    pa_asyncmsgq_wait_for(u->thread_mq.inq, PA_MESSAGE_SHUTDOWN);
+
+finish:
+    pa_log_debug("A2DP Thread shutting down");
 }
 
 int pa__init(pa_module* m) {
@@ -794,9 +974,17 @@ int pa__init(pa_module* m) {
     pollfd->events = pollfd->revents = 0;
 
     /* start rt thread */
-    if (!(u->thread = pa_thread_new(thread_func, u))) {
-        pa_log_error("failed to create thread");
-        goto fail;
+    if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP) {
+        if (!(u->thread = pa_thread_new(a2dp_thread_func, u))) {
+            pa_log_error("failed to create thread");
+            goto fail;
+        }
+    }
+    else {
+        if (!(u->thread = pa_thread_new(thread_func, u))) {
+            pa_log_error("failed to create thread");
+            goto fail;
+        }
     }
     pa_sink_put(u->sink);
 
