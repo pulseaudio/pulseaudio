@@ -412,9 +412,11 @@ static int bt_setconf(struct userdata *u) {
             pa_log_error("a2dp_init error");
             return e;
         }
+        u->ss.format = PA_SAMPLE_S16LE;
     }
+    else
+        u->ss.format = PA_SAMPLE_U8;
 
-    u->ss.format = PA_SAMPLE_S16LE;
     u->ss.rate = u->rate;
     u->ss.channels = u->channels;
 
