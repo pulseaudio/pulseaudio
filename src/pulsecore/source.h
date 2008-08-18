@@ -168,21 +168,22 @@ typedef enum pa_source_message {
 
 typedef struct pa_source_new_data {
     char *name;
-    pa_bool_t namereg_fail;
     pa_proplist *proplist;
 
     const char *driver;
     pa_module *module;
 
     pa_sample_spec sample_spec;
-    pa_bool_t sample_spec_is_set;
     pa_channel_map channel_map;
-    pa_bool_t channel_map_is_set;
-
     pa_cvolume volume;
-    pa_bool_t volume_is_set;
-    pa_bool_t muted;
-    pa_bool_t muted_is_set;
+    pa_bool_t muted:1;
+
+    pa_bool_t volume_is_set:1;
+    pa_bool_t muted_is_set:1;
+    pa_bool_t sample_spec_is_set:1;
+    pa_bool_t channel_map_is_set:1;
+
+    pa_bool_t namereg_fail:1;
 } pa_source_new_data;
 
 pa_source_new_data* pa_source_new_data_init(pa_source_new_data *data);
