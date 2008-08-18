@@ -102,7 +102,9 @@ static lt_module bind_now_open(lt_user_data d, const char *fname, lt_dladvise ad
     pa_assert(fname);
 
     if (!(m = dlopen(fname, PA_BIND_NOW))) {
+#ifdef HAVE_LT_DLMUTEX_REGISTER
         libtool_set_error(dlerror());
+#endif
         return NULL;
     }
 
@@ -114,7 +116,9 @@ static int bind_now_close(lt_user_data d, lt_module m) {
     pa_assert(m);
 
     if (dlclose(m) != 0){
+#ifdef HAVE_LT_DLMUTEX_REGISTER
         libtool_set_error(dlerror());
+#endif
         return 1;
     }
 
@@ -128,7 +132,9 @@ static lt_ptr bind_now_find_sym(lt_user_data d, lt_module m, const char *symbol)
     pa_assert(symbol);
 
     if (!(ptr = dlsym(m, symbol))) {
+#ifdef HAVE_LT_DLMUTEX_REGISTER
         libtool_set_error(dlerror());
+#endif
         return NULL;
     }
 

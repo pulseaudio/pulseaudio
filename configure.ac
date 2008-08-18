@@ -20,7 +20,7 @@
 # along with PulseAudio; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
-AC_PREREQ(2.60)
+AC_PREREQ(2.62)
 
 m4_define(PA_MAJOR, [0])
 m4_define(PA_MINOR, [9])
@@ -28,6 +28,7 @@ m4_define(PA_MICRO, [12])
 
 AC_INIT([pulseaudio], PA_MAJOR.PA_MINOR.PA_MICRO,[mzchyfrnhqvb (at) 0pointer (dot) net])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign 1.10 -Wall])
 
@@ -85,6 +86,7 @@ AC_PROG_MKDIR_P
 # CC
 
 AC_PROG_CC
+AC_PROG_CC_C99
 AM_PROG_CC_C_O
 AC_PROG_GCC_TRADITIONAL
 AC_GNU_SOURCE
@@ -96,33 +98,12 @@ if test "x$M4" = xno ; then
    AC_MSG_ERROR([m4 missing])
 fi
 
-# GCC flags
+dnl Compiler flags
+DESIRED_FLAGS="-Wall -W -Wextra -pedantic -pipe -Wformat -Wold-style-definition -Wdeclaration-after-statement -Wfloat-equal -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-noreturn -Wshadow -Wendif-labels -Wpointer-arith -Wcast-align -Wwrite-strings -Winline -Wno-unused-parameter -ffast-math"
 
-test_gcc_flag() {
-    AC_LANG_CONFTEST([int main(int argc, char*argv[]) {}])
-    $CC -c conftest.c $CFLAGS -o conftest.o > /dev/null 2> /dev/null
-    ret=$?
-    rm -f conftest.o
-    return $ret
-}
-
-# If using GCC specify some additional parameters
-if test "x$GCC" = "xyes" ; then
-
-    # We use gnu99 instead of c99 because many have interpreted the standard
-    # in a way that int64_t isn't defined on non-64 bit platforms.
-    DESIRED_FLAGS="-std=gnu99 -Wall -W -Wextra -pedantic -pipe -Wformat -Wold-style-definition -Wdeclaration-after-statement -Wfloat-equal -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-noreturn -Wshadow -Wendif-labels -Wpointer-arith -Wcast-align -Wwrite-strings -Winline -Wno-unused-parameter -ffast-math"
-
-    for flag in $DESIRED_FLAGS ; do
-        AC_MSG_CHECKING([whether $CC accepts $flag])
-        if test_gcc_flag $flag ; then
-           CFLAGS="$CFLAGS $flag"
-           AC_MSG_RESULT([yes])
-        else
-           AC_MSG_RESULT([no])
-        fi
-    done
-fi
+for flag in $DESIRED_FLAGS ; do
+  CC_CHECK_CFLAGS([$flag], [CFLAGS="$CFLAGS $flag"])
+done
 
 # Native atomic operation support
 AC_ARG_ENABLE([atomic-arm-linux-helpers],
@@ -161,17 +142,18 @@ esac
 # If everything else fails use libatomic_ops
 need_libatomic_ops=yes
 
-AC_MSG_CHECKING([whether $CC knows __sync_bool_compare_and_swap()])
-AC_LANG_CONFTEST([int main() { int a = 4; __sync_bool_compare_and_swap(&a, 4, 5); }])
-$CC conftest.c $CFLAGS -o conftest > /dev/null 2> /dev/null
-ret=$?
-rm -f conftest.o conftest
-if test $ret -eq 0 ; then
+AC_CACHE_CHECK([whether $CC knows __sync_bool_compare_and_swap()],
+  pulseaudio_cv_sync_bool_compare_and_swap,
+  [AC_LINK_IFELSE(
+     AC_LANG_PROGRAM([], [[int a = 4; __sync_bool_compare_and_swap(&a, 4, 5);]]),
+     [pulseaudio_cv_sync_bool_compare_and_swap=yes],
+     [pulseaudio_cv_sync_bool_compare_and_swap=no])
+  ])
+
+if test "$pulseaudio_cv_sync_bool_compare_and_swap" = "yes" ; then
     AC_DEFINE([HAVE_ATOMIC_BUILTINS], 1, [Have __sync_bool_compare_and_swap() and friends.])
-    AC_MSG_RESULT([yes])
     need_libatomic_ops=no
 else
-    AC_MSG_RESULT([no])
     # HW specific atomic ops stuff
     AC_MSG_CHECKING([architecture for native atomic operations])
     case $host_cpu in
@@ -187,29 +169,27 @@ else
     		need_libatomic_ops=no
 	    else
 	       AC_MSG_RESULT([no])
-	       AC_MSG_CHECKING([compiler support for arm inline asm atomic operations])
-	       AC_LANG_CONFTEST([[int main()
-	       {
-                   volatile int a=0;
-	           int o=0, n=1, r;
-	           asm volatile ("ldrex	%0, [%1]\n"
-			 	 "subs	%0, %0, %2\n"
-			 	 "strexeq %0, %3, [%1]\n"
-			 	 : "=&r" (r)
-			 	 : "r" (&a), "Ir" (o), "r" (n)
-			 	 : "cc");
-                   return (a==1 ? 0 : -1);
-	       }]])
-	       $CC conftest.c $CFLAGS -o conftest > /dev/null 2>&1
-	       ret=$?
-	       rm -f conftest.o conftest
-	       if test $ret -eq 0 ; then
+	       AC_CACHE_CHECK([compiler support for arm inline asm atomic operations],
+	         pulseaudio_cv_support_arm_atomic_ops,
+		 [AC_COMPILE_IFELSE(
+		    AC_LANG_PROGRAM([],
+		      [[volatile int a=0;
+	                int o=0, n=1, r;
+	                asm volatile ("ldrex	%0, [%1]\n"
+		        	 	 "subs	%0, %0, %2\n"
+		        	 	 "strexeq %0, %3, [%1]\n"
+		        	 	 : "=&r" (r)
+		        	 	 : "r" (&a), "Ir" (o), "r" (n)
+		        	 	 : "cc");
+                        return (a==1 ? 0 : -1);
+		      ]]),
+		    [pulseaudio_cv_support_arm_atomic_ops=yes],
+		    [pulseaudio_cv_support_arm_atomic_ops=no])
+		 ])
+	       AS_IF([test "$pulseaudio_cv_support_arm_atomic_ops" = "yes"], [
 	       	   AC_DEFINE([ATOMIC_ARM_INLINE_ASM], 1, [Have ARMv6 instructions.])
-	    	   AC_MSG_RESULT([yes])
 		   need_libatomic_ops=no
-	       else
-	    	   AC_MSG_RESULT([no])
-               fi
+	         ])
 	   fi
       	;;
         *)
@@ -218,29 +198,19 @@ else
     esac
 fi
 
-AC_MSG_CHECKING([whether $CC knows __thread])
-AC_LANG_CONFTEST([static __thread int a = 6; int main() { a = 5; }])
-$CC conftest.c $CFLAGS -o conftest > /dev/null 2> /dev/null
-ret=$?
-rm -f conftest.o conftest
-if test $ret -eq 0 ; then
-    AC_DEFINE([HAVE_TLS_BUILTIN], 1, [Have __thread().])
-    AC_MSG_RESULT([yes])
-else
-    AC_MSG_RESULT([no])
-fi
+CC_CHECK_TLS
 
-AC_MSG_CHECKING([whether $CC knows _Bool])
-AC_LANG_CONFTEST([int main() { _Bool b; }])
-$CC conftest.c $CFLAGS -o conftest > /dev/null 2> /dev/null
-ret=$?
-rm -f conftest.o conftest
-if test $ret -eq 0 ; then
+AC_CACHE_CHECK([whether $CC knows _Bool],
+  pulseaudio_cv__Bool,
+  [AC_COMPILE_IFELSE(
+     AC_LANG_PROGRAM([], [[_Bool b;]]),
+     [pulseaudio_cv__Bool=yes],
+     [pulseaudio_cv__Bool=no])
+  ])
+
+AS_IF([test "$pulseaudio_cv__Bool" = "yes"], [
     AC_DEFINE([HAVE_STD_BOOL], 1, [Have _Bool.])
-    AC_MSG_RESULT([yes])
-else
-    AC_MSG_RESULT([no])
-fi
+  ])
 
 #### libtool stuff ####
 
@@ -414,20 +384,27 @@ AC_CHECK_FUNCS([setresuid setresgid setreuid setregid seteuid setegid ppoll strs
 
 AC_FUNC_ALLOCA
 
-AC_MSG_CHECKING([for PTHREAD_PRIO_INHERIT])
-AC_LANG_CONFTEST([AC_LANG_SOURCE([[
-#include <pthread.h>
-int main() { int i = PTHREAD_PRIO_INHERIT; }]])])
-$PTHREAD_CC conftest.c $PTHREAD_CFLAGS $CFLAGS $PTHREAD_LIBS -o conftest > /dev/null 2> /dev/null
-ret=$?
-rm -f conftest.o conftest
+AC_CACHE_CHECK([for PTHREAD_PRIO_INHERIT],
+  pulseaudio_cv_PTHREAD_PRIO_INHERIT,
+  [save_CC=$CC; CC=$PTHREAD_CC
+   save_CFLAGS=$CFLAGS; CFLAGS=$PTHREAD_CFLAGS
+   save_LIBS=$LIBS; LIBS=$PTHREAD_LIBS
+   AC_LINK_IFELSE(
+     AC_LANG_PROGRAM(
+       [[
+         #include <pthread.h>
+       ]],
+       [[int i = PTHREAD_PRIO_INHERIT;]]),
+     [pulseaudio_cv_PTHREAD_PRIO_INHERIT=yes],
+     [pulseaudio_cv_PTHREAD_PRIO_INHERIT=no])
+   CC=$save_CC
+   CFLAGS=$save_CFLAGS
+   LIBS=$save_LIBS
+  ])
 
-if test $ret -eq 0 ; then
+AS_IF([test "$pulseaudio_cv_PTHREAD_PRIO_INHERIT" = "yes"], [
     AC_DEFINE([HAVE_PTHREAD_PRIO_INHERIT], 1, [Have PTHREAD_PRIO_INHERIT.])
-    AC_MSG_RESULT([yes])
-else
-    AC_MSG_RESULT([no])
-fi
+  ])
 
 #### Large File-Support (LFS) ####
 
@@ -439,8 +416,6 @@ AC_CHECK_FUNCS([open64])
 #### [lib]iconv ####
 
 AM_ICONV
-
-AM_GNU_GETTEXT([external])
 
 IT_PROG_INTLTOOL([0.35.0])
 GETTEXT_PACKAGE=pulseaudio
