@@ -170,7 +170,7 @@ int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     const char *dest;
     uint32_t port = DEFAULT_PORT, mtu;
-    unsigned char ttl = DEFAULT_TTL;
+    uint32_t ttl = DEFAULT_TTL;
     int af, fd = -1, sap_fd = -1;
     pa_source *s;
     pa_sample_spec ss;
@@ -288,9 +288,13 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (ttl != DEFAULT_TTL && setsockopt(fd, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl)) < 0) {
-        pa_log("IP_MULTICAST_TTL failed: %s", pa_cstrerror(errno));
-        goto fail;
+    if (ttl != DEFAULT_TTL) {
+        int _ttl = (int) ttl;
+
+        if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_TTL, &_ttl, sizeof(_ttl)) < 0) {
+            pa_log("IP_MULTICAST_TTL failed: %s", pa_cstrerror(errno));
+            goto fail;
+        }
     }
 
     /* If the socket queue is full, let's drop packets */
