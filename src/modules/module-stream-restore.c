@@ -306,8 +306,11 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
         if (u->restore_device &&
             (s = pa_namereg_get(c, e->device, PA_NAMEREG_SINK, TRUE))) {
 
-            pa_log_info("Restoring device for stream %s.", name);
-            new_data->sink = s;
+            if (!new_data->sink) {
+                pa_log_info("Restoring device for stream %s.", name);
+                new_data->sink = s;
+            } else
+                pa_log_info("Not restore device for stream %s, because already set.", name);
         }
 
         pa_xfree(e);
@@ -330,13 +333,20 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
     if ((e = read_entry(u, name))) {
 
         if (u->restore_volume) {
-            pa_log_info("Restoring volume for sink input %s.", name);
-            pa_sink_input_new_data_set_volume(new_data, pa_cvolume_remap(&e->volume, &e->channel_map, &new_data->channel_map));
+
+            if (!new_data->volume_is_set) {
+                pa_log_info("Restoring volume for sink input %s.", name);
+                pa_sink_input_new_data_set_volume(new_data, pa_cvolume_remap(&e->volume, &e->channel_map, &new_data->channel_map));
+            } else
+                pa_log_debug("Not restoring volume for sink input %s, because already set.", name);
         }
 
         if (u->restore_muted) {
-            pa_log_info("Restoring mute state for sink input %s.", name);
-            pa_sink_input_new_data_set_muted(new_data, e->muted);
+            if (!new_data->muted_is_set) {
+                pa_log_info("Restoring mute state for sink input %s.", name);
+                pa_sink_input_new_data_set_muted(new_data, e->muted);
+            } else
+                pa_log_debug("Not restoring mute state for sink input %s, because already set.", name);
         }
 
         pa_xfree(e);
@@ -363,8 +373,11 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
             !new_data->direct_on_input &&
             (s = pa_namereg_get(c, e->device, PA_NAMEREG_SOURCE, TRUE))) {
 
-            pa_log_info("Restoring device for stream %s.", name);
-            new_data->source = s;
+            if (!new_data->source) {
+                pa_log_info("Restoring device for stream %s.", name);
+                new_data->source = s;
+            } else
+                pa_log_info("Not restroing device for stream %s, because already set", name);
         }
 
         pa_xfree(e);
