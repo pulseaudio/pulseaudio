@@ -883,7 +883,6 @@ static playback_stream* playback_stream_new(
     pa_assert(tlength);
     pa_assert(prebuf);
     pa_assert(minreq);
-    pa_assert(volume);
     pa_assert(missing);
     pa_assert(p);
 
@@ -916,7 +915,8 @@ static playback_stream* playback_stream_new(
     data.sink = sink;
     pa_sink_input_new_data_set_sample_spec(&data, ss);
     pa_sink_input_new_data_set_channel_map(&data, map);
-    pa_sink_input_new_data_set_volume(&data, volume);
+    if (volume)
+        pa_sink_input_new_data_set_volume(&data, volume);
     pa_sink_input_new_data_set_muted(&data, muted);
     data.sync_base = ssync ? ssync->sink_input : NULL;
 
@@ -1596,6 +1596,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
 
     pa_sink_input_flags_t flags = 0;
     pa_proplist *p;
+    pa_bool_t volume_set = TRUE;
 
     pa_native_connection_assert_ref(c);
     pa_assert(t);
@@ -1662,6 +1663,15 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
         }
     }
 
+    if (c->version >= 14) {
+
+        if (pa_tagstruct_get_boolean(t, &volume_set) < 0) {
+            protocol_error(c);
+            pa_proplist_free(p);
+            return;
+        }
+    }
+
     if (!pa_tagstruct_eof(t)) {
         protocol_error(c);
         pa_proplist_free(p);
@@ -1695,7 +1705,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
         (no_move ?  PA_SINK_INPUT_DONT_MOVE : 0) |
         (variable_rate ?  PA_SINK_INPUT_VARIABLE_RATE : 0);
 
-    s = playback_stream_new(c, sink, &ss, &map, &maxlength, &tlength, &prebuf, &minreq, &volume, muted, syncid, &missing, flags, p, adjust_latency);
+    s = playback_stream_new(c, sink, &ss, &map, &maxlength, &tlength, &prebuf, &minreq, volume_set ? &volume : NULL, muted, syncid, &missing, flags, p, adjust_latency);
     pa_proplist_free(p);
 
     CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_INVALID);

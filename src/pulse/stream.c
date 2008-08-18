@@ -865,6 +865,7 @@ static int create_stream(
 
     pa_tagstruct *t;
     uint32_t tag;
+    pa_bool_t volume_set = FALSE;
 
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
@@ -957,6 +958,8 @@ static int create_stream(
                 PA_TAG_U32, s->syncid,
                 PA_TAG_INVALID);
 
+        volume_set = !!volume;
+
         if (!volume)
             volume = pa_cvolume_reset(&cv, s->sample_spec.channels);
 
@@ -992,6 +995,15 @@ static int create_stream(
 
         if (s->direction == PA_STREAM_RECORD)
             pa_tagstruct_putu32(t, s->direct_on_input);
+    }
+
+    if (s->context->version >= 14 &&
+        s->direction == PA_STREAM_PLAYBACK) {
+
+        pa_tagstruct_put(
+                t,
+                PA_TAG_BOOLEAN, volume_set,
+                PA_TAG_INVALID);
     }
 
     pa_pstream_send_tagstruct(s->context->pstream, t);
