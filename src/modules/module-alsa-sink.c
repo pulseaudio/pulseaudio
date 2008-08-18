@@ -28,6 +28,10 @@
 
 #include <asoundlib.h>
 
+#ifdef HAVE_VALGRIND_MEMCHECK_H
+#include <valgrind/memcheck.h>
+#endif
+
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
 #include <pulse/timeval.h>
@@ -766,6 +770,10 @@ static int sink_get_volume_cb(pa_sink *s) {
                 if ((err = snd_mixer_selem_get_playback_dB(u->mixer_elem, u->mixer_map[i], &alsa_vol)) < 0)
                     goto fail;
 
+#ifdef HAVE_VALGRIND_MEMCHECK_H
+                VALGRIND_MAKE_MEM_DEFINED(&alsa_vol, sizeof(alsa_vol));
+#endif
+
                 r.values[i] = pa_sw_volume_from_dB((double) alsa_vol / 100.0);
             } else {
 
@@ -783,6 +791,10 @@ static int sink_get_volume_cb(pa_sink *s) {
 
         if ((err = snd_mixer_selem_get_playback_dB(u->mixer_elem, SND_MIXER_SCHN_MONO, &alsa_vol)) < 0)
             goto fail;
+
+#ifdef HAVE_VALGRIND_MEMCHECK_H
+                VALGRIND_MAKE_MEM_DEFINED(&alsa_vol, sizeof(alsa_vol));
+#endif
 
         pa_cvolume_set(&r, s->sample_spec.channels, pa_sw_volume_from_dB((double) alsa_vol / 100.0));
     }
@@ -1435,6 +1447,11 @@ int pa__init(pa_module*m) {
             if (snd_mixer_selem_get_playback_dB_range(u->mixer_elem, &u->hw_dB_min, &u->hw_dB_max) < 0)
                 pa_log_info("Mixer doesn't support dB information.");
             else {
+#ifdef HAVE_VALGRIND_MEMCHECK_H
+                VALGRIND_MAKE_MEM_DEFINED(&u->hw_dB_min, sizeof(u->hw_dB_min));
+                VALGRIND_MAKE_MEM_DEFINED(&u->hw_dB_max, sizeof(u->hw_dB_max));
+#endif
+
                 pa_log_info("Volume ranges from %0.2f dB to %0.2f dB.", u->hw_dB_min/100.0, u->hw_dB_max/100.0);
                 pa_assert(u->hw_dB_min < u->hw_dB_max);
                 u->hw_dB_supported = TRUE;

@@ -490,6 +490,10 @@ if test "x${with_caps}" != "xno"; then
                     fi])
 fi
 
+#### Valgrind (optional) ####
+
+AC_CHECK_HEADERS([valgrind/memcheck.h])
+
 #### pkg-config ####
 
 # Check for pkg-config manually first, as if its not installed the

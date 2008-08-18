@@ -31,6 +31,10 @@
 #include <signal.h>
 #include <errno.h>
 
+#ifdef HAVE_VALGRIND_MEMCHECK_H
+#include <valgrind/memcheck.h>
+#endif
+
 #include <pulse/xmalloc.h>
 #include <pulse/def.h>
 
@@ -256,6 +260,10 @@ static struct mempool_slot* mempool_allocate_slot(pa_mempool *p) {
             return NULL;
         }
     }
+
+#ifdef HAVE_VALGRIND_MEMCHECK_H
+    VALGRIND_MALLOCLIKE_BLOCK(slot, p->block_size, 0, 0);
+#endif
 
     return slot;
 }
@@ -519,7 +527,7 @@ static void memblock_free(pa_memblock *b) {
         case PA_MEMBLOCK_POOL_EXTERNAL:
         case PA_MEMBLOCK_POOL: {
             struct mempool_slot *slot;
-            int call_free;
+            pa_bool_t call_free;
 
             slot = mempool_slot_by_ptr(b->pool, pa_atomic_ptr_load(&b->data));
             pa_assert(slot);
@@ -531,6 +539,10 @@ static void memblock_free(pa_memblock *b) {
              * the free list fails */
             while (pa_flist_push(b->pool->free_slots, slot) < 0)
                 ;
+
+#ifdef HAVE_VALGRIND_MEMCHECK_H
+            VALGRIND_FREELIKE_BLOCK(slot, b->pool->block_size);
+#endif
 
             if (call_free)
                 if (pa_flist_push(PA_STATIC_FLIST_GET(unused_memblocks), b) < 0)
