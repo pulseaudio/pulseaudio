@@ -26,7 +26,7 @@ m4_define(PA_MAJOR, [0])
 m4_define(PA_MINOR, [9])
 m4_define(PA_MICRO, [12])
 
-AC_INIT([pulseaudio], PA_MAJOR.PA_MINOR.PA_MICRO,[mzchyfrnhqvb (at) 0pointer (dot) net])
+AC_INIT([pulseaudio],[PA_MAJOR.PA_MINOR.PA_MICRO],[mzchyfrnhqvb (at) 0pointer (dot) net])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
@@ -89,7 +89,7 @@ AC_PROG_CC
 AC_PROG_CC_C99
 AM_PROG_CC_C_O
 AC_PROG_GCC_TRADITIONAL
-AC_GNU_SOURCE
+AC_USE_SYSTEM_EXTENSIONS
 
 # M4
 
@@ -107,7 +107,7 @@ done
 
 # Native atomic operation support
 AC_ARG_ENABLE([atomic-arm-linux-helpers],
-    AC_HELP_STRING([--disable-atomic-arm-linux-helpers], [use inline asm or libatomic_ops instead]),
+    AS_HELP_STRING([--disable-atomic-arm-linux-helpers],[use inline asm or libatomic_ops instead]),
         [
             case "${enableval}" in
                 yes) atomic_arm_linux_helpers=yes ;;
@@ -118,7 +118,7 @@ AC_ARG_ENABLE([atomic-arm-linux-helpers],
         [atomic_arm_linux_helpers=auto])
 
 AC_ARG_ENABLE([atomic-arm-memory-barrier],
-    AC_HELP_STRING([--enable-atomic-arm-memory-barrier], [only really needed in SMP arm systems]),
+    AS_HELP_STRING([--enable-atomic-arm-memory-barrier],[only really needed in SMP arm systems]),
         [
             case "${enableval}" in
                 yes) AC_DEFINE_UNQUOTED(ATOMIC_ARM_MEMORY_BARRIER_ENABLED, 1, [Enable memory barriers]) ;;
@@ -452,7 +452,7 @@ CAP_LIBS=''
 
 AC_ARG_WITH(
         [caps],
-        AC_HELP_STRING([--without-caps],[Omit support for POSIX capabilities.]))
+        AS_HELP_STRING([--without-caps],[Omit support for POSIX capabilities.]))
 
 if test "x${with_caps}" != "xno"; then
     AC_SEARCH_LIBS([cap_init], [cap], [], [
@@ -511,7 +511,7 @@ fi
 #### Libsamplerate support (optional) ####
 
 AC_ARG_ENABLE([samplerate],
-    AC_HELP_STRING([--disable-samplerate], [Disable optional libsamplerate support]),
+    AS_HELP_STRING([--disable-samplerate],[Disable optional libsamplerate support]),
         [
             case "${enableval}" in
                 yes) samplerate=yes ;;
@@ -546,7 +546,7 @@ AM_CONDITIONAL([HAVE_LIBSAMPLERATE], [test "x$HAVE_LIBSAMPLERATE" = x1])
 #### OSS support (optional) ####
 
 AC_ARG_ENABLE([oss],
-    AC_HELP_STRING([--disable-oss], [Disable optional OSS support]),
+    AS_HELP_STRING([--disable-oss],[Disable optional OSS support]),
         [
             case "${enableval}" in
                 yes) oss=yes ;;
@@ -579,7 +579,7 @@ AM_CONDITIONAL([HAVE_OSS], [test "x$HAVE_OSS" = x1])
 #### ALSA support (optional) ####
 
 AC_ARG_ENABLE([alsa],
-    AC_HELP_STRING([--disable-alsa], [Disable optional ALSA support]),
+    AS_HELP_STRING([--disable-alsa],[Disable optional ALSA support]),
         [
             case "${enableval}" in
                 yes) alsa=yes ;;
@@ -613,7 +613,7 @@ AM_CONDITIONAL([HAVE_ALSA], [test "x$HAVE_ALSA" = x1])
 #### Solaris audio support (optional) ####
 
 AC_ARG_ENABLE([solaris],
-    AC_HELP_STRING([--disable-solaris], [Disable optional Solaris audio support]),
+    AS_HELP_STRING([--disable-solaris],[Disable optional Solaris audio support]),
         [
             case "${enableval}" in
                 yes) solaris=yes ;;
@@ -645,7 +645,7 @@ AM_CONDITIONAL([HAVE_SOLARIS], [test "x$HAVE_SOLARIS" = x1])
 #### GLib 2 support (optional) ####
 
 AC_ARG_ENABLE([glib2],
-    AC_HELP_STRING([--disable-glib2], [Disable optional GLib 2 support]),
+    AS_HELP_STRING([--disable-glib2],[Disable optional GLib 2 support]),
         [
             case "${enableval}" in
                 yes) glib2=yes ;;
@@ -676,7 +676,7 @@ AM_CONDITIONAL([HAVE_GLIB20], [test "x$HAVE_GLIB20" = x1])
 #### GConf support (optional) ####
 
 AC_ARG_ENABLE([gconf],
-    AC_HELP_STRING([--disable-gconf], [Disable optional GConf support]),
+    AS_HELP_STRING([--disable-gconf],[Disable optional GConf support]),
         [
             case "${enableval}" in
                 yes) gconf=yes ;;
@@ -707,7 +707,7 @@ AM_CONDITIONAL([HAVE_GCONF], [test "x$HAVE_GCONF" = x1])
 #### Avahi support (optional) ####
 
 AC_ARG_ENABLE([avahi],
-    AC_HELP_STRING([--disable-avahi], [Disable optional Avahi support]),
+    AS_HELP_STRING([--disable-avahi],[Disable optional Avahi support]),
         [
             case "${enableval}" in
                 yes) avahi=yes ;;
@@ -744,7 +744,7 @@ AC_SUBST(LIBOIL_LIBS)
 ### JACK (optional) ####
 
 AC_ARG_ENABLE([jack],
-    AC_HELP_STRING([--disable-jack], [Disable optional JACK support]),
+    AS_HELP_STRING([--disable-jack],[Disable optional JACK support]),
         [
             case "${enableval}" in
                 yes) jack=yes ;;
@@ -775,7 +775,7 @@ AM_CONDITIONAL([HAVE_JACK], [test "x$HAVE_JACK" = x1])
 #### Async DNS support (optional) ####
 
 AC_ARG_ENABLE([asyncns],
-    AC_HELP_STRING([--disable-asyncns], [Disable optional Async DNS support]),
+    AS_HELP_STRING([--disable-asyncns],[Disable optional Async DNS support]),
         [
             case "${enableval}" in
                 yes) asyncns=yes ;;
@@ -810,7 +810,7 @@ fi
 #### TCP wrappers (optional) ####
 
 AC_ARG_ENABLE([tcpwrap],
-    AC_HELP_STRING([--disable-tcpwrap], [Disable optional TCP wrappers support]),
+    AS_HELP_STRING([--disable-tcpwrap],[Disable optional TCP wrappers support]),
         [
             case "${enableval}" in
                 yes) tcpwrap=yes ;;
@@ -834,7 +834,7 @@ AC_SUBST(LIBWRAP_LIBS)
 #### LIRC support (optional) ####
 
 AC_ARG_ENABLE([lirc],
-    AC_HELP_STRING([--disable-lirc], [Disable optional LIRC support]),
+    AS_HELP_STRING([--disable-lirc],[Disable optional LIRC support]),
         [
             case "${enableval}" in
                 yes) lirc=yes ;;
@@ -860,7 +860,7 @@ AM_CONDITIONAL([HAVE_LIRC], [test "x$HAVE_LIRC" = x1])
 #### HAL support (optional) ####
 
 AC_ARG_ENABLE([hal],
-    AC_HELP_STRING([--disable-hal], [Disable optional HAL support]),
+    AS_HELP_STRING([--disable-hal],[Disable optional HAL support]),
         [
             case "${enableval}" in
                 yes) hal=yes ;;
@@ -890,7 +890,7 @@ AM_CONDITIONAL([HAVE_HAL], [test "x$HAVE_HAL" = x1])
 #### BlueZ support (optional) ####
 
 AC_ARG_ENABLE([bluez],
-    AC_HELP_STRING([--disable-bluez], [Disable optional BlueZ support]),
+    AS_HELP_STRING([--disable-bluez],[Disable optional BlueZ support]),
         [
             case "${enableval}" in
                 yes) bluez=yes ;;
@@ -920,7 +920,7 @@ AM_CONDITIONAL([HAVE_BLUEZ], [test "x$HAVE_BLUEZ" = x1])
 #### D-Bus support (optional) ####
 
 AC_ARG_ENABLE([dbus],
-    AC_HELP_STRING([--disable-dbus], [Disable optional D-Bus support]),
+    AS_HELP_STRING([--disable-dbus],[Disable optional D-Bus support]),
         [
             case "${enableval}" in
                 yes) dbus=yes ;;
@@ -963,7 +963,7 @@ AM_CONDITIONAL([HAVE_DBUS], [test "x$HAVE_DBUS" = x1])
 #### PolicyKit support (optional) ####
 
 AC_ARG_ENABLE([polkit],
-    AC_HELP_STRING([--disable-polkit], [Disable optional PolicyKit support]),
+    AS_HELP_STRING([--disable-polkit],[Disable optional PolicyKit support]),
         [
             case "${enableval}" in
                 yes) polkit=yes ;;
@@ -1076,13 +1076,13 @@ AC_SUBST(PA_SYSTEM_STATE_PATH)
 
 AC_ARG_ENABLE(
         [static-bins],
-        AC_HELP_STRING([--enable-static-bins],[Statically link executables.]),
+        AS_HELP_STRING([--enable-static-bins],[Statically link executables.]),
         [STATIC_BINS=1], [STATIC_BINS=0])
 AM_CONDITIONAL([STATIC_BINS], [test "x$STATIC_BINS" = "x1"])
 
 AC_ARG_WITH(
         [preopen-mods],
-        AC_HELP_STRING([--with-preopen-mods],[Modules to preopen in daemon (default: all).]),
+        AS_HELP_STRING([--with-preopen-mods],[Modules to preopen in daemon (default: all).]),
         [PREOPEN_MODS=$withval], [PREOPEN_MODS="all"])
 AM_CONDITIONAL([PREOPEN_MODS], [test "x$PREOPEN_MODS" != "xall"])
 if test "x$PREOPEN_MODS" != "xall" ; then
@@ -1096,14 +1096,14 @@ fi
 
 AC_ARG_WITH(
         [module-dir],
-        AC_HELP_STRING([--with-module-dir],[Directory where to install the modules to (defaults to ${libdir}/pulse-${PA_MAJORMINOR}/modules/]),
+        AS_HELP_STRING([--with-module-dir],[Directory where to install the modules to (defaults to ${libdir}/pulse-${PA_MAJORMINOR}/modules/]),
         [modlibexecdir=$withval], [modlibexecdir="${libdir}/pulse-${PA_MAJORMINOR}/modules/"])
 
 AC_SUBST(modlibexecdir)
 
 AC_ARG_ENABLE(
         [force-preopen],
-        AC_HELP_STRING([--enable-force-preopen],[Preopen modules, even when dlopen() is supported.]),
+        AS_HELP_STRING([--enable-force-preopen],[Preopen modules, even when dlopen() is supported.]),
         [FORCE_PREOPEN=1], [FORCE_PREOPEN=0])
 AM_CONDITIONAL([FORCE_PREOPEN], [test "x$FORCE_PREOPEN" = "x1"])
 
