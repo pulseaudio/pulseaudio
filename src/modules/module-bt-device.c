@@ -123,7 +123,7 @@ static const char* const valid_modargs[] = {
 
 static int bt_audioservice_send(int sk, const bt_audio_msg_header_t *msg) {
     int e;
-    pa_log/*_debug*/("sending %s", bt_audio_strmsg(msg->msg_type));
+    pa_log_debug("sending %s", bt_audio_strmsg(msg->msg_type));
     if (send(sk, msg, BT_AUDIO_IPC_PACKET_SIZE, 0) > 0)
         e = 0;
     else {
@@ -137,11 +137,11 @@ static int bt_audioservice_recv(int sk, bt_audio_msg_header_t *inmsg) {
     int e;
     const char *type;
 
-    pa_log/*_debug*/("trying to receive msg from audio service...");
+    pa_log_debug("trying to receive msg from audio service...");
     if (recv(sk, inmsg, BT_AUDIO_IPC_PACKET_SIZE, 0) > 0) {
         type = bt_audio_strmsg(inmsg->msg_type);
         if (type) {
-            pa_log/*_debug*/("Received %s", type);
+            pa_log_debug("Received %s", type);
             e = 0;
         }
         else {
@@ -453,7 +453,7 @@ static int bt_setconf(struct userdata *u) {
     if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP) {
         bt_a2dp_setup(&u->a2dp);
         u->block_size = u->a2dp.codesize;
-        pa_log/*debug*/("\tallocation=%u\n\tsubbands=%u\n\tblocks=%u\n\tbitpool=%u\n",
+        pa_log_info("sbc parameters:\n\tallocation=%u\n\tsubbands=%u\n\tblocks=%u\n\tbitpool=%u\n",
                 u->a2dp.sbc.allocation, u->a2dp.sbc.subbands, u->a2dp.sbc.blocks, u->a2dp.sbc.bitpool);
     }
     else
@@ -465,7 +465,6 @@ static int bt_setconf(struct userdata *u) {
 static int bt_getstreamfd(struct userdata *u) {
     int e;
 //    uint32_t period_count = io->buffer_size / io->period_size;
-//    struct timeval t = { 0, period_count };
     char buf[BT_AUDIO_IPC_PACKET_SIZE];
     struct bt_streamstart_req *start_req = (void*) buf;
     bt_audio_rsp_msg_header_t *rsp_hdr = (void*) buf;
@@ -527,7 +526,7 @@ static int bt_getstreamfd(struct userdata *u) {
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
 
-    pa_log/*_debug*/("got message: %d", code);
+    pa_log_debug("got message: %d", code);
     switch (code) {
 
         case PA_SINK_MESSAGE_SET_STATE:
@@ -560,13 +559,13 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     return pa_sink_process_msg(o, code, data, offset, chunk);
 }
 
-static void thread_func(void *userdata) {
+static void sco_thread_func(void *userdata) {
     struct userdata *u = userdata;
     int write_type = 0;
 
     pa_assert(u);
 
-    pa_log/*_debug*/("Thread starting up");
+    pa_log_debug("SCO thread starting up");
 
     pa_thread_mq_install(&u->thread_mq);
     pa_rtpoll_install(u->rtpoll);
@@ -579,70 +578,61 @@ static void thread_func(void *userdata) {
 
         if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
             if (u->sink->thread_info.rewind_requested) {
-                pa_log("rewind_requested");
                 pa_sink_process_rewind(u->sink, 0);
-                pa_log("rewind_finished");
             }
         }
 
         pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
 
-        /* Render some data and write it to the fifo */
         if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && pollfd->revents) {
             pa_usec_t usec;
             int64_t n;
-            pa_log("Render some data and write it to the fifo");
 
             for (;;) {
+                /* Render some data and write it to the fifo */
                 ssize_t l;
                 void *p;
 
                 u->memchunk.memblock = pa_memblock_new(u->mempool, u->block_size);
-                pa_log("memblock allocated %d", u->block_size);
+                pa_log_debug("memblock asked size %d", u->block_size);
                 u->memchunk.length = pa_memblock_get_length(u->memchunk.memblock);
-                pa_log("memchunk length %d", u->memchunk.length);
+                pa_log_debug("memchunk length %d", u->memchunk.length);
                 pa_sink_render_into_full(u->sink, &u->memchunk);
-                pa_log("rendered");
 
                 pa_assert(u->memchunk.length > 0);
 
                 p = pa_memblock_acquire(u->memchunk.memblock);
-                pa_log("memblock acquired");
+
                 l = pa_write(u->stream_fd, (uint8_t*) p, u->memchunk.length, &write_type);
-                pa_log("memblock written %d bytes", l);
+                pa_log_debug("memblock written to socket: %d bytes", l);
                 pa_memblock_release(u->memchunk.memblock);
-                pa_log("memblock released");
+                pa_memblock_unref(u->memchunk.memblock);
+                pa_memchunk_reset(&u->memchunk);
+                pa_log("memchunk reseted");
 
                 pa_assert(l != 0);
 
                 if (l < 0) {
-                    pa_log("l = %d < 0", l);
-                    if (errno == EINTR)
+                    if (errno == EINTR) {
+                        pa_log_debug("EINTR");
                         continue;
-                    else if (errno == EAGAIN)
+                    }
+                    else if (errno == EAGAIN) {
+                        pa_log_debug("EAGAIN");
                         goto filled_up;
+                    }
                     else {
                         pa_log("Failed to write data to FIFO: %s", pa_cstrerror(errno));
                         goto fail;
                     }
                 } else {
-                    pa_log("l = %d >= 0", l);
                     u->offset += l;
-                    pa_memblock_unref(u->memchunk.memblock);
-                    pa_log("memblock unrefered");
-                    pa_memchunk_reset(&u->memchunk);
-                    pa_log("memchunk reseted");
                     pollfd->revents = 0;
                 }
             }
 
 filled_up:
-
-            pa_log("filled_up");
-            /* At this spot we know that the socket buffers are fully filled up.
-             * This is the best time to estimate the playback position of the server */
             n = u->offset;
-
 #ifdef SIOCOUTQ
             {
                 int l;
@@ -650,7 +640,6 @@ filled_up:
                     n -= l;
             }
 #endif
-
             usec = pa_bytes_to_usec(n, &u->sink->sample_spec);
             if (usec > u->latency)
                 usec -= u->latency;
@@ -660,35 +649,34 @@ filled_up:
         }
 
         /* Hmm, nothing to do. Let's sleep */
-        pa_log("let's sleep");
+        pa_log_debug("SCO thread going to sleep");
         pollfd->events = PA_SINK_IS_OPENED(u->sink->thread_info.state) ? POLLOUT : 0;
-
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0) {
             pa_log("ret < 0");
             goto fail;
         }
-        pa_log("waking up");
+        pa_log_debug("SCO thread waking up");
 
         if (ret == 0) {
-            pa_log("ret == 0");
+            pa_log_warn("ret == 0");
             goto finish;
         }
 
         pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
         if (pollfd->revents & ~POLLOUT) {
-            pa_log("FIFO shutdown.");
+            pa_log_error("FIFO shutdown.");
             goto fail;
         }
     }
 
 fail:
     /* If this was no regular exit from the loop we have to continue processing messages until we receive PA_MESSAGE_SHUTDOWN */
-    pa_log("fail");
+    pa_log_debug("SCO thread failed");
     pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
     pa_asyncmsgq_wait_for(u->thread_mq.inq, PA_MESSAGE_SHUTDOWN);
 
 finish:
-    pa_log_debug("Thread shutting down");
+    pa_log_debug("SCO thread shutting down");
 }
 
 static void a2dp_thread_func(void *userdata) {
@@ -726,26 +714,24 @@ static void a2dp_thread_func(void *userdata) {
 
             do {
                 /* Render some data */
-                void *p;
                 int frame_size, encoded;
+                void *p;
 
                 u->memchunk.memblock = pa_memblock_new(u->mempool, u->block_size);
-                pa_log_debug("memblock asked size%d", u->block_size);
+                pa_log_debug("memblock asked size %d", u->block_size);
                 u->memchunk.length = pa_memblock_get_length(u->memchunk.memblock);
                 pa_log_debug("memchunk length %d", u->memchunk.length);
                 pa_sink_render_into_full(u->sink, &u->memchunk);
-                pa_log_debug("rendered");
 
                 pa_assert(u->memchunk.length > 0);
 
                 p = pa_memblock_acquire(u->memchunk.memblock);
                 frame_size = sbc_get_frame_length(&a2dp->sbc);
-                pa_log_debug("frame_size: %d", frame_size);
+                pa_log_debug("SBC frame_size: %d", frame_size);
 
                 encoded = sbc_encode(&a2dp->sbc, (uint8_t*) p, a2dp->codesize, a2dp->buffer + a2dp->count,
                         sizeof(a2dp->buffer) - a2dp->count, &written);
-                pa_log_debug("encoded: %d", encoded);
-                pa_log_debug("written: %d", written);
+                pa_log_debug("SBC: encoded: %d; written: %d", encoded, written);
                 if (encoded <= 0) {
                     pa_log_error("SBC encoding error (%d)", encoded);
                     goto fail;
@@ -822,7 +808,7 @@ avdtp_write:
         pa_log_debug("A2DP thread going to sleep");
         pollfd->events = PA_SINK_IS_OPENED(u->sink->thread_info.state) ? POLLOUT : 0;
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0) {
-            pa_log("ret < 0");
+            pa_log_error("rtpoll_run < 0");
             goto fail;
         }
         pa_log_debug("A2DP thread waking up");
@@ -898,7 +884,6 @@ int pa__init(pa_module* m) {
         pa_log_error("failed to get channels from module arguments");
         goto fail;
     }
-    pa_log("Loading module-bt-device for %s (%s), profile %s", u->name, u->addr, u->profile);
 
     /* connect to the bluez audio service */
     u->audioservice_fd = bt_audio_service_open();
@@ -906,6 +891,7 @@ int pa__init(pa_module* m) {
         pa_log_error("couldn't connect to bluetooth audio service");
         goto fail;
     }
+    pa_log_debug("connected to the bluetooth audio service");
 
     /* queries device capabilities */
     e = bt_getcaps(u);
@@ -913,6 +899,7 @@ int pa__init(pa_module* m) {
         pa_log_error("failed to get device capabilities");
         goto fail;
     }
+    pa_log_debug("got device capabilities");
 
     /* configures the connection */
     e = bt_setconf(u);
@@ -920,6 +907,7 @@ int pa__init(pa_module* m) {
         pa_log_error("failed to set config");
         goto fail;
     }
+    pa_log_debug("connection to the device configured");
 
     /* gets the device socket */
     e = bt_getstreamfd(u);
@@ -927,6 +915,7 @@ int pa__init(pa_module* m) {
         pa_log_error("failed to get stream fd (%d)", e);
         goto fail;
     }
+    pa_log_debug("got the device socket");
 
     /* create sink */
     pa_sink_new_data_init(&data);
@@ -955,13 +944,13 @@ int pa__init(pa_module* m) {
     /* start rt thread */
     if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP) {
         if (!(u->thread = pa_thread_new(a2dp_thread_func, u))) {
-            pa_log_error("failed to create thread");
+            pa_log_error("failed to create A2DP thread");
             goto fail;
         }
     }
     else {
-        if (!(u->thread = pa_thread_new(thread_func, u))) {
-            pa_log_error("failed to create thread");
+        if (!(u->thread = pa_thread_new(sco_thread_func, u))) {
+            pa_log_error("failed to create SCO thread");
             goto fail;
         }
     }
@@ -978,6 +967,5 @@ fail:
 }
 
 void pa__done(pa_module *m) {
-    pa_log("Unloading module-bt-device");
 }
 
