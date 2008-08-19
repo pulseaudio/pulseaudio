@@ -64,7 +64,7 @@ struct pa_context {
     uint32_t version;
     uint32_t ctag;
     uint32_t csyncid;
-    uint32_t error;
+    int error;
     pa_context_state_t state;
 
     pa_context_notify_cb_t state_callback;

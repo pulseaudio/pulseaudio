@@ -178,7 +178,7 @@ struct userdata {
 #ifdef TUNNEL_SINK
     char *sink_name;
     pa_sink *sink;
-    int32_t requested_bytes;
+    size_t requested_bytes;
 #else
     char *source_name;
     pa_source *source;
@@ -389,7 +389,7 @@ static void send_data(struct userdata *u) {
 
         u->requested_bytes -= memchunk.length;
 
-        u->counter += memchunk.length;
+        u->counter += (int64_t) memchunk.length;
     }
 }
 
@@ -417,7 +417,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         case PA_SINK_MESSAGE_GET_LATENCY: {
             pa_usec_t yl, yr, *usec = data;
 
-            yl = pa_bytes_to_usec(u->counter, &u->sink->sample_spec);
+            yl = pa_bytes_to_usec((uint64_t) u->counter, &u->sink->sample_spec);
             yr = pa_smoother_get(u->smoother, pa_rtclock_usec());
 
             *usec = yl > yr ? yl - yr : 0;
@@ -444,10 +444,10 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         case SINK_MESSAGE_UPDATE_LATENCY: {
             pa_usec_t y;
 
-            y = pa_bytes_to_usec(u->counter, &u->sink->sample_spec);
+            y = pa_bytes_to_usec((uint64_t) u->counter, &u->sink->sample_spec);
 
             if (y > (pa_usec_t) offset || offset < 0)
-                y -= offset;
+                y -= (pa_usec_t) offset;
             else
                 y = 0;
 
@@ -465,7 +465,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
             pa_pstream_send_memblock(u->pstream, u->channel, 0, PA_SEEK_RELATIVE, chunk);
 
-            u->counter_delta += chunk->length;
+            u->counter_delta += (int64_t) chunk->length;
 
             return 0;
     }
@@ -520,7 +520,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
         case PA_SOURCE_MESSAGE_GET_LATENCY: {
             pa_usec_t yr, yl, *usec = data;
 
-            yl = pa_bytes_to_usec(u->counter, &PA_SINK(o)->sample_spec);
+            yl = pa_bytes_to_usec((uint64_t) u->counter, &PA_SINK(o)->sample_spec);
             yr = pa_smoother_get(u->smoother, pa_rtclock_usec());
 
             *usec = yr > yl ? yr - yl : 0;
@@ -532,7 +532,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             if (PA_SOURCE_IS_OPENED(u->source->thread_info.state))
                 pa_source_post(u->source, chunk);
 
-            u->counter += chunk->length;
+            u->counter += (int64_t) chunk->length;
 
             return 0;
 
@@ -544,10 +544,10 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
         case SOURCE_MESSAGE_UPDATE_LATENCY: {
             pa_usec_t y;
 
-            y = pa_bytes_to_usec(u->counter, &u->source->sample_spec);
+            y = pa_bytes_to_usec((uint64_t) u->counter, &u->source->sample_spec);
 
             if (offset >= 0 || y > (pa_usec_t) -offset)
-                y += offset;
+                y += (pa_usec_t) offset;
             else
                 y = 0;
 
@@ -736,9 +736,9 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, uint
 
     /* Add the length of our server-side buffer */
     if (write_index >= read_index)
-        delay += (int64_t) pa_bytes_to_usec(write_index-read_index, ss);
+        delay += (int64_t) pa_bytes_to_usec((uint64_t) (write_index-read_index), ss);
     else
-        delay -= (int64_t) pa_bytes_to_usec(read_index-write_index, ss);
+        delay -= (int64_t) pa_bytes_to_usec((uint64_t) (read_index-write_index), ss);
 
     /* Our measurements are already out of date, hence correct by the     *
      * transport latency */
@@ -750,9 +750,9 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, uint
 
     /* Now correct by what we have have read/written since we requested the update */
 #ifdef TUNNEL_SINK
-    delay += (int64_t) pa_bytes_to_usec(u->counter_delta, ss);
+    delay += (int64_t) pa_bytes_to_usec((uint64_t) u->counter_delta, ss);
 #else
-    delay -= (int64_t) pa_bytes_to_usec(u->counter_delta, ss);
+    delay -= (int64_t) pa_bytes_to_usec((uint64_t) u->counter_delta, ss);
 #endif
 
 #ifdef TUNNEL_SINK
@@ -1425,11 +1425,11 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
         u->maxlength = 4*1024*1024;
 
 #ifdef TUNNEL_SINK
-    u->tlength = pa_usec_to_bytes(PA_USEC_PER_MSEC * DEFAULT_TLENGTH_MSEC, &u->sink->sample_spec);
-    u->minreq = pa_usec_to_bytes(PA_USEC_PER_MSEC * DEFAULT_MINREQ_MSEC, &u->sink->sample_spec);
+    u->tlength = (uint32_t) pa_usec_to_bytes(PA_USEC_PER_MSEC * DEFAULT_TLENGTH_MSEC, &u->sink->sample_spec);
+    u->minreq = (uint32_t) pa_usec_to_bytes(PA_USEC_PER_MSEC * DEFAULT_MINREQ_MSEC, &u->sink->sample_spec);
     u->prebuf = u->tlength;
 #else
-    u->fragsize = pa_usec_to_bytes(PA_USEC_PER_MSEC * DEFAULT_FRAGSIZE_MSEC, &u->source->sample_spec);
+    u->fragsize = (uint32_t) pa_usec_to_bytes(PA_USEC_PER_MSEC * DEFAULT_FRAGSIZE_MSEC, &u->source->sample_spec);
 #endif
 
 #ifdef TUNNEL_SINK
@@ -1548,7 +1548,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
 
     pa_asyncmsgq_send(u->source->asyncmsgq, PA_MSGOBJECT(u->source), SOURCE_MESSAGE_POST, PA_UINT_TO_PTR(seek), offset, chunk);
 
-    u->counter_delta += chunk->length;
+    u->counter_delta += (int64_t) chunk->length;
 }
 
 #endif

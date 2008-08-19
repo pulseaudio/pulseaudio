@@ -109,17 +109,17 @@ static char* utf8_validate(const char *str, char *output) {
             if ((*p & 0xe0) == 0xc0) { /* 110xxxxx two-char seq. */
                 size = 2;
                 min = 128;
-                val = *p & 0x1e;
+                val = (uint32_t) (*p & 0x1e);
                 goto ONE_REMAINING;
             } else if ((*p & 0xf0) == 0xe0) { /* 1110xxxx three-char seq.*/
                 size = 3;
                 min = (1 << 11);
-                val = *p & 0x0f;
+                val = (uint32_t) (*p & 0x0f);
                 goto TWO_REMAINING;
             } else if ((*p & 0xf8) == 0xf0) { /* 11110xxx four-char seq */
                 size = 4;
                 min = (1 << 16);
-                val = *p & 0x07;
+                val = (uint32_t) (*p & 0x07);
             } else {
                 size = 1;
                 goto error;
@@ -149,7 +149,7 @@ ONE_REMAINING:
                 goto error;
 
             if (o) {
-                memcpy(o, last, size);
+                memcpy(o, last, (size_t) size);
                 o += size - 1;
             }
 
@@ -189,7 +189,7 @@ char* pa_utf8_filter (const char *str) {
     char *new_str;
 
     pa_assert(str);
-    new_str = pa_xnew(char, strlen(str) + 1);
+    new_str = pa_xmalloc(strlen(str) + 1);
     return utf8_validate(str, new_str);
 }
 
@@ -212,7 +212,7 @@ static char* iconv_simple(const char *str, const char *to, const char *from) {
         return NULL;
 
     inlen = len = strlen(str) + 1;
-    new_str = pa_xnew(char, len);
+    new_str = pa_xmalloc(len);
 
     for (;;) {
         inbuf = (ICONV_CONST char*) str; /* Brain dead prototype for iconv() */

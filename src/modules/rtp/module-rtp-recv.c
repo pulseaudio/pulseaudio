@@ -238,15 +238,15 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
     else
         delta = j;
 
-    pa_memblockq_seek(s->memblockq, delta * s->rtp_context.frame_size, PA_SEEK_RELATIVE);
+    pa_memblockq_seek(s->memblockq, delta * (int64_t) s->rtp_context.frame_size, PA_SEEK_RELATIVE);
 
     pa_rtclock_get(&now);
 
-    pa_smoother_put(s->smoother, pa_timeval_load(&now), pa_bytes_to_usec(pa_memblockq_get_write_index(s->memblockq), &s->sink_input->sample_spec));
+    pa_smoother_put(s->smoother, pa_timeval_load(&now), pa_bytes_to_usec((uint64_t) pa_memblockq_get_write_index(s->memblockq), &s->sink_input->sample_spec));
 
     if (pa_memblockq_push(s->memblockq, &chunk) < 0) {
         pa_log_warn("Queue overrun");
-        pa_memblockq_seek(s->memblockq, chunk.length, PA_SEEK_RELATIVE);
+        pa_memblockq_seek(s->memblockq, (int64_t) chunk.length, PA_SEEK_RELATIVE);
     }
 
     pa_log("blocks in q: %u", pa_memblockq_get_nblocks(s->memblockq));
@@ -254,9 +254,9 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
     pa_memblock_unref(chunk.memblock);
 
     /* The next timestamp we expect */
-    s->offset = s->rtp_context.timestamp + (chunk.length / s->rtp_context.frame_size);
+    s->offset = s->rtp_context.timestamp + (uint32_t) (chunk.length / s->rtp_context.frame_size);
 
-    pa_atomic_store(&s->timestamp, now.tv_sec);
+    pa_atomic_store(&s->timestamp, (int) now.tv_sec);
 
     if (s->last_rate_update + RATE_UPDATE_INTERVAL < pa_timeval_load(&now)) {
         pa_usec_t wi, ri, render_delay, sink_delay = 0, latency, fix;
@@ -265,7 +265,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
         pa_log("Updating sample rate");
 
         wi = pa_smoother_get(s->smoother, pa_timeval_load(&now));
-        ri = pa_bytes_to_usec(pa_memblockq_get_read_index(s->memblockq), &s->sink_input->sample_spec);
+        ri = pa_bytes_to_usec((uint64_t) pa_memblockq_get_read_index(s->memblockq), &s->sink_input->sample_spec);
 
         if (PA_MSGOBJECT(s->sink_input->sink)->process_msg(PA_MSGOBJECT(s->sink_input->sink), PA_SINK_MESSAGE_GET_LATENCY, &sink_delay, 0, NULL) < 0)
             sink_delay = 0;
@@ -291,7 +291,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
             fix = latency - s->intended_latency;
 
         /* How many samples is this per second? */
-        fix_samples = fix * s->sink_input->thread_info.sample_spec.rate / RATE_UPDATE_INTERVAL;
+        fix_samples = (unsigned) (fix * (pa_usec_t) s->sink_input->thread_info.sample_spec.rate / (pa_usec_t) RATE_UPDATE_INTERVAL);
 
         /* Check if deviation is in bounds */
         if (fix_samples > s->sink_input->sample_spec.rate*.20)
@@ -431,7 +431,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     s->smoother = pa_smoother_new(PA_USEC_PER_SEC*5, PA_USEC_PER_SEC*2, TRUE, 10);
     pa_smoother_set_time_offset(s->smoother, pa_timeval_load(&now));
     s->last_rate_update = pa_timeval_load(&now);
-    pa_atomic_store(&s->timestamp, now.tv_sec);
+    pa_atomic_store(&s->timestamp, (int) now.tv_sec);
 
     if ((fd = mcast_socket((const struct sockaddr*) &sdp_info->sa, sdp_info->salen)) < 0)
         goto fail;
@@ -566,7 +566,7 @@ static void sap_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
         } else {
             struct timeval now;
             pa_rtclock_get(&now);
-            pa_atomic_store(&s->timestamp, now.tv_sec);
+            pa_atomic_store(&s->timestamp, (int) now.tv_sec);
 
             pa_sdp_info_destroy(&info);
         }

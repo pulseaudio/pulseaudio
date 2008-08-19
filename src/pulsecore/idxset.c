@@ -66,7 +66,7 @@ unsigned pa_idxset_string_hash_func(const void *p) {
     const char *c;
 
     for (c = p; *c; c++)
-        hash = 31 * hash + *c;
+        hash = 31 * hash + (unsigned) *c;
 
     return hash;
 }

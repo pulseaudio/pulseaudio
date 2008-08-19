@@ -138,7 +138,7 @@ int pa_shm_create_rw(pa_shm *m, size_t size, pa_bool_t shared, mode_t mode) {
 
         m->size = size + PA_ALIGN(sizeof(struct shm_marker));
 
-        if (ftruncate(fd, m->size) < 0) {
+        if (ftruncate(fd, (off_t) m->size) < 0) {
             pa_log("ftruncate() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
@@ -235,7 +235,7 @@ void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
 
     /* Align this to multiples of the page size */
     ptr = (uint8_t*) m->ptr + offset;
-    o = (uint8_t*) ptr - (uint8_t*) PA_PAGE_ALIGN_PTR(ptr);
+    o = (size_t) ((uint8_t*) ptr - (uint8_t*) PA_PAGE_ALIGN_PTR(ptr));
 
     if (o > 0) {
         ps = PA_PAGE_SIZE;
@@ -289,7 +289,7 @@ int pa_shm_attach_ro(pa_shm *m, unsigned id) {
         goto fail;
     }
 
-    m->size = st.st_size;
+    m->size = (size_t) st.st_size;
 
     if ((m->ptr = mmap(NULL, m->size, PROT_READ, MAP_SHARED, fd, 0)) == MAP_FAILED) {
         pa_log("mmap() failed: %s", pa_cstrerror(errno));

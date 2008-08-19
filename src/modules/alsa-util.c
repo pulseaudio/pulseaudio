@@ -39,7 +39,7 @@
 #include "alsa-util.h"
 
 struct pa_alsa_fdlist {
-    int num_fds;
+    unsigned num_fds;
     struct pollfd *fds;
     /* This is a temporary buffer used to avoid lots of mallocs */
     struct pollfd *work_fds;
@@ -50,7 +50,7 @@ struct pa_alsa_fdlist {
     pa_defer_event *defer;
     pa_io_event **ios;
 
-    int polled;
+    pa_bool_t polled;
 
     void (*cb)(void *userdata);
     void *userdata;
@@ -59,7 +59,8 @@ struct pa_alsa_fdlist {
 static void io_cb(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags_t events, void *userdata) {
 
     struct pa_alsa_fdlist *fdl = userdata;
-    int err, i;
+    int err;
+    unsigned i;
     unsigned short revents;
 
     pa_assert(a);
@@ -71,11 +72,11 @@ static void io_cb(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags_t
     if (fdl->polled)
         return;
 
-    fdl->polled = 1;
+    fdl->polled = TRUE;
 
     memcpy(fdl->work_fds, fdl->fds, sizeof(struct pollfd) * fdl->num_fds);
 
-    for (i = 0;i < fdl->num_fds; i++) {
+    for (i = 0; i < fdl->num_fds; i++) {
         if (e == fdl->ios[i]) {
             if (events & PA_IO_EVENT_INPUT)
                 fdl->work_fds[i].revents |= POLLIN;
@@ -104,7 +105,8 @@ static void io_cb(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags_t
 
 static void defer_cb(pa_mainloop_api*a, pa_defer_event* e, void *userdata) {
     struct pa_alsa_fdlist *fdl = userdata;
-    int num_fds, i, err;
+    unsigned num_fds, i;
+    int err;
     struct pollfd *temp;
 
     pa_assert(a);
@@ -113,8 +115,7 @@ static void defer_cb(pa_mainloop_api*a, pa_defer_event* e, void *userdata) {
 
     a->defer_enable(fdl->defer, 0);
 
-    num_fds = snd_mixer_poll_descriptors_count(fdl->mixer);
-    pa_assert(num_fds > 0);
+    num_fds = (unsigned) snd_mixer_poll_descriptors_count(fdl->mixer);
 
     if (num_fds != fdl->num_fds) {
         if (fdl->fds)
@@ -132,7 +133,7 @@ static void defer_cb(pa_mainloop_api*a, pa_defer_event* e, void *userdata) {
         return;
     }
 
-    fdl->polled = 0;
+    fdl->polled = FALSE;
 
     if (memcmp(fdl->fds, fdl->work_fds, sizeof(struct pollfd) * num_fds) == 0)
         return;
@@ -176,7 +177,7 @@ struct pa_alsa_fdlist *pa_alsa_fdlist_new(void) {
     fdl->m = NULL;
     fdl->defer = NULL;
     fdl->ios = NULL;
-    fdl->polled = 0;
+    fdl->polled = FALSE;
 
     return fdl;
 }
@@ -190,9 +191,9 @@ void pa_alsa_fdlist_free(struct pa_alsa_fdlist *fdl) {
     }
 
     if (fdl->ios) {
-        int i;
+        unsigned i;
         pa_assert(fdl->m);
-        for (i = 0;i < fdl->num_fds;i++)
+        for (i = 0; i < fdl->num_fds; i++)
             fdl->m->io_free(fdl->ios[i]);
         pa_xfree(fdl->ios);
     }
@@ -403,7 +404,7 @@ int pa_alsa_set_hw_params(
     /* If the sample rate deviates too much, we need to resample */
     if (r < ss->rate*.95 || r > ss->rate*1.05)
         ss->rate = r;
-    ss->channels = c;
+    ss->channels = (uint8_t) c;
     ss->format = f;
 
     pa_assert(_periods > 0);
@@ -1056,10 +1057,10 @@ pa_rtpoll_item* pa_alsa_build_pollfd(snd_pcm_t *pcm, pa_rtpoll *rtpoll) {
         return NULL;
     }
 
-    item = pa_rtpoll_item_new(rtpoll, PA_RTPOLL_NEVER, n);
+    item = pa_rtpoll_item_new(rtpoll, PA_RTPOLL_NEVER, (unsigned) n);
     pollfd = pa_rtpoll_item_get_pollfd(item, NULL);
 
-    if ((err = snd_pcm_poll_descriptors(pcm, pollfd, n)) < 0) {
+    if ((err = snd_pcm_poll_descriptors(pcm, pollfd, (unsigned) n)) < 0) {
         pa_log("snd_pcm_poll_descriptors() failed: %s", snd_strerror(err));
         pa_rtpoll_item_free(item);
         return NULL;

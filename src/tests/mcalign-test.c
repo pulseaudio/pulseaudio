@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
 
     pa_memchunk_reset(&c);
 
-    srand(time(NULL));
+    srand((unsigned) time(NULL));
 
     for (;;) {
         ssize_t r;
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 
         l = pa_memblock_get_length(c.memblock) - c.index;
 
-        l = l <= 1 ? l : rand() % (l-1) +1 ;
+        l = l <= 1 ? l : (size_t) rand() % (l-1) +1;
 
         p = pa_memblock_acquire(c.memblock);
 
@@ -74,11 +74,11 @@ int main(int argc, char *argv[]) {
 
         pa_memblock_release(c.memblock);
 
-        c.length = r;
+        c.length = (size_t) r;
         pa_mcalign_push(a, &c);
         fprintf(stderr, "Read %ld bytes\n", (long)r);
 
-        c.index += r;
+        c.index += (size_t) r;
 
         if (c.index >= pa_memblock_get_length(c.memblock)) {
             pa_memblock_unref(c.memblock);

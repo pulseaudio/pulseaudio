@@ -280,7 +280,7 @@ char *pa_proplist_to_string(pa_proplist *p) {
             char *c;
 
             pa_assert_se(pa_proplist_get(p, key, &value, &nbytes) == 0);
-            c = pa_xnew(char, nbytes*2+1);
+            c = pa_xmalloc(nbytes*2+1);
             pa_hexstr((const uint8_t*) value, nbytes, c, nbytes*2+1);
 
             pa_strbuf_printf(buf, "%s = hex:%s\n", key, c);

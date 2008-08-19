@@ -195,11 +195,11 @@ static void cleanup_defer_events(pa_glib_mainloop *g, int force) {
 }
 
 static gushort map_flags_to_glib(pa_io_event_flags_t flags) {
-    return
-        (flags & PA_IO_EVENT_INPUT ? G_IO_IN : 0) |
-        (flags & PA_IO_EVENT_OUTPUT ? G_IO_OUT : 0) |
-        (flags & PA_IO_EVENT_ERROR ? G_IO_ERR : 0) |
-        (flags & PA_IO_EVENT_HANGUP ? G_IO_HUP : 0);
+    return (gushort)
+        ((flags & PA_IO_EVENT_INPUT ? G_IO_IN : 0) |
+         (flags & PA_IO_EVENT_OUTPUT ? G_IO_OUT : 0) |
+         (flags & PA_IO_EVENT_ERROR ? G_IO_ERR : 0) |
+         (flags & PA_IO_EVENT_HANGUP ? G_IO_HUP : 0));
 }
 
 static pa_io_event_flags_t map_flags_from_glib(gushort flags) {

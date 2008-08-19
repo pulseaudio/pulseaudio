@@ -40,7 +40,7 @@ static void _free_rtsig(void *p) {
     pa_rtsig_put(PA_PTR_TO_INT(p));
 }
 
-PA_STATIC_FLIST_DECLARE(rtsig_flist, pa_make_power_of_two(SIGRTMAX-SIGRTMIN+1), NULL);
+PA_STATIC_FLIST_DECLARE(rtsig_flist, pa_make_power_of_two((unsigned) (SIGRTMAX-SIGRTMIN+1)), NULL);
 PA_STATIC_TLS_DECLARE(rtsig_tls, _free_rtsig);
 
 static pa_atomic_t rtsig_current = PA_ATOMIC_INIT(-1);

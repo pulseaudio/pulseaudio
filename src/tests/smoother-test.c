@@ -64,7 +64,7 @@ int main(int argc, char*argv[]) {
     for (x = 0, u = 0; x < PA_USEC_PER_SEC * 10; x += PA_USEC_PER_MSEC) {
 
         while (u < PA_ELEMENTSOF(msec) && (pa_usec_t) msec[u]*PA_USEC_PER_MSEC < x) {
-            pa_smoother_put(s, msec[u]*PA_USEC_PER_MSEC, msec[u+1]*PA_USEC_PER_MSEC);
+            pa_smoother_put(s, (pa_usec_t) msec[u] * PA_USEC_PER_MSEC, (pa_usec_t) msec[u+1] * PA_USEC_PER_MSEC);
             printf("%i\t\t%i\n", msec[u],  msec[u+1]);
             u += 2;
         }

@@ -394,7 +394,7 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
 #endif
 
 #endif
-        r = poll(p->pollfd, p->n_pollfd_used, (!wait || p->quit || p->timer_enabled) ? (timeout.tv_sec*1000) + (timeout.tv_usec / 1000) : -1);
+        r = poll(p->pollfd, p->n_pollfd_used, (!wait || p->quit || p->timer_enabled) ? (int) ((timeout.tv_sec*1000) + (timeout.tv_usec / 1000)) : -1);
 
     if (r < 0) {
         if (errno == EAGAIN || errno == EINTR)

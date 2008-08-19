@@ -40,7 +40,7 @@ const pa_envelope_def ramp_down = {
     .n_points = 2,
     .points_x = { 100*PA_USEC_PER_MSEC, 300*PA_USEC_PER_MSEC },
     .points_y = {
-        .f = { 1.0, 0.2 },
+        .f = { 1.0f, 0.2f },
         .i = { 0x10000, 0x10000/5 }
     }
 };
@@ -49,7 +49,7 @@ const pa_envelope_def ramp_up = {
     .n_points = 2,
     .points_x = { 100*PA_USEC_PER_MSEC, 300*PA_USEC_PER_MSEC },
     .points_y = {
-        .f = { 0.2, 1.0 },
+        .f = { 0.2f, 1.0f },
         .i = { 0x10000/5, 0x10000 }
     }
 };
@@ -58,7 +58,7 @@ const pa_envelope_def ramp_down2 = {
     .n_points = 2,
     .points_x = { 50*PA_USEC_PER_MSEC, 900*PA_USEC_PER_MSEC },
     .points_y = {
-        .f = { 0.8, 0.7 },
+        .f = { 0.8f, 0.7f },
         .i = { 0x10000*4/5, 0x10000*7/10 }
     }
 };
@@ -67,7 +67,7 @@ const pa_envelope_def ramp_up2 = {
     .n_points = 2,
     .points_x = { 50*PA_USEC_PER_MSEC, 900*PA_USEC_PER_MSEC },
     .points_y = {
-        .f = { 0.7, 0.9 },
+        .f = { 0.7f, 0.9f },
         .i = { 0x10000*7/10, 0x10000*9/10 }
     }
 };
@@ -140,7 +140,7 @@ static pa_memblock * generate_block(pa_mempool *pool, const pa_sample_spec *ss) 
     unsigned n_samples;
 
     block = pa_memblock_new(pool, pa_bytes_per_second(ss));
-    n_samples = pa_memblock_get_length(block) / pa_sample_size(ss);
+    n_samples = (unsigned) (pa_memblock_get_length(block) / pa_sample_size(ss));
 
     d = pa_memblock_acquire(block);
 
@@ -171,7 +171,7 @@ static pa_memblock * generate_block(pa_mempool *pool, const pa_sample_spec *ss) 
             float *f;
 
             for (f = d; n_samples > 0; n_samples--, f++)
-                *f = PA_MAYBE_FLOAT32_SWAP(ss->format == PA_SAMPLE_FLOAT32RE, 1.0);
+                *f = PA_MAYBE_FLOAT32_SWAP(ss->format == PA_SAMPLE_FLOAT32RE, 1.0f);
 
             break;
         }

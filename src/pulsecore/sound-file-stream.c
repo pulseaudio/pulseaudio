@@ -170,10 +170,10 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
 
         if (u->readf_function) {
             fs = pa_frame_size(&i->sample_spec);
-            n = u->readf_function(u->sndfile, p, length/fs);
+            n = u->readf_function(u->sndfile, p, (sf_count_t) (length/fs));
         } else {
             fs = 1;
-            n = sf_read_raw(u->sndfile, p, length);
+            n = sf_read_raw(u->sndfile, p, (sf_count_t) length);
         }
 
         pa_memblock_release(tchunk.memblock);
@@ -186,7 +186,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
             break;
         }
 
-        tchunk.length = n * fs;
+        tchunk.length = (size_t) n * fs;
 
         pa_memblockq_push(u->memblockq, &tchunk);
         pa_memblock_unref(tchunk.memblock);
@@ -310,8 +310,8 @@ int pa_play_file(
             break;
     }
 
-    ss.rate = sfinfo.samplerate;
-    ss.channels = sfinfo.channels;
+    ss.rate = (uint32_t) sfinfo.samplerate;
+    ss.channels = (uint8_t) sfinfo.channels;
 
     if (!pa_sample_spec_valid(&ss)) {
         pa_log("Unsupported sample format in file %s", fname);

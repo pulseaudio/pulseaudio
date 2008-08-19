@@ -413,11 +413,11 @@ int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t, pa
         err = PA_ERR_UNKNOWN;
 
     if (fail) {
-        pa_context_fail(c, err);
+        pa_context_fail(c, (int) err);
         return -1;
     }
 
-    pa_context_set_error(c, err);
+    pa_context_set_error(c, (int) err);
 
     return 0;
 }
@@ -788,7 +788,7 @@ static void autospawn_cb(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_
     pa_assert(a);
     pa_assert(e);
     pa_assert(fd >= 0);
-    pa_assert(events = PA_IO_EVENT_INPUT);
+    pa_assert(events == PA_IO_EVENT_INPUT);
     pa_assert(c);
     pa_assert(e == c->autospawn_event);
     pa_assert(fd == c->autospawn_fd);

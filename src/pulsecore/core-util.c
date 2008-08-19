@@ -345,7 +345,7 @@ ssize_t pa_loop_read(int fd, void*data, size_t size, int *type) {
 
         ret += r;
         data = (uint8_t*) data + r;
-        size -= r;
+        size -= (size_t) r;
     }
 
     return ret;
@@ -376,7 +376,7 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size, int *type) {
 
         ret += r;
         data = (const uint8_t*) data + r;
-        size -= r;
+        size -= (size_t) r;
     }
 
     return ret;
@@ -445,7 +445,7 @@ void pa_check_signal_is_blocked(int sig) {
 /* The following function is based on an example from the GNU libc
  * documentation. This function is similar to GNU's asprintf(). */
 char *pa_sprintf_malloc(const char *format, ...) {
-    int  size = 100;
+    size_t  size = 100;
     char *c = NULL;
 
     pa_assert(format);
@@ -462,11 +462,11 @@ char *pa_sprintf_malloc(const char *format, ...) {
 
         c[size-1] = 0;
 
-        if (r > -1 && r < size)
+        if (r > -1 && (size_t) r < size)
             return c;
 
         if (r > -1)    /* glibc 2.1 */
-            size = r+1;
+            size = (size_t) r+1;
         else           /* glibc 2.0 */
             size *= 2;
     }
@@ -475,7 +475,7 @@ char *pa_sprintf_malloc(const char *format, ...) {
 /* Same as the previous function, but use a va_list instead of an
  * ellipsis */
 char *pa_vsprintf_malloc(const char *format, va_list ap) {
-    int  size = 100;
+    size_t  size = 100;
     char *c = NULL;
 
     pa_assert(format);
@@ -492,11 +492,11 @@ char *pa_vsprintf_malloc(const char *format, va_list ap) {
 
         c[size-1] = 0;
 
-        if (r > -1 && r < size)
+        if (r > -1 && (size_t) r < size)
             return c;
 
         if (r > -1)    /* glibc 2.1 */
-            size = r+1;
+            size = (size_t) r+1;
         else           /* glibc 2.0 */
             size *= 2;
     }
@@ -929,10 +929,10 @@ static int is_group(gid_t gid, const char *name) {
     if (n < 0)
         n = 512;
 
-    data = pa_xmalloc(n);
+    data = pa_xmalloc((size_t) n);
 
     errno = 0;
-    if (getgrgid_r(gid, &group, data, n, &result) < 0 || !result) {
+    if (getgrgid_r(gid, &group, data, (size_t) n, &result) < 0 || !result) {
         pa_log("getgrgid_r(%u): %s", (unsigned) gid, pa_cstrerror(errno));
 
         if (!errno)
@@ -970,14 +970,14 @@ finish:
 /* Check the current user is member of the specified group */
 int pa_own_uid_in_group(const char *name, gid_t *gid) {
     GETGROUPS_T *gids, tgid;
-    int n = sysconf(_SC_NGROUPS_MAX);
+    long n = sysconf(_SC_NGROUPS_MAX);
     int r = -1, i, k;
 
     pa_assert(n > 0);
 
-    gids = pa_xmalloc(sizeof(GETGROUPS_T)*n);
+    gids = pa_xmalloc(sizeof(GETGROUPS_T) * (size_t) n);
 
-    if ((n = getgroups(n, gids)) < 0) {
+    if ((n = getgroups((int) n, gids)) < 0) {
         pa_log("getgroups(): %s", pa_cstrerror(errno));
         goto finish;
     }
@@ -1018,10 +1018,10 @@ int pa_uid_in_group(uid_t uid, const char *name) {
     int r = -1;
 
     g_n = sysconf(_SC_GETGR_R_SIZE_MAX);
-    g_buf = pa_xmalloc(g_n);
+    g_buf = pa_xmalloc((size_t) g_n);
 
     p_n = sysconf(_SC_GETPW_R_SIZE_MAX);
-    p_buf = pa_xmalloc(p_n);
+    p_buf = pa_xmalloc((size_t) p_n);
 
     errno = 0;
     if (getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr) != 0 || !gr) {
@@ -1061,7 +1061,7 @@ gid_t pa_get_gid_of_group(const char *name) {
     struct group grbuf, *gr;
 
     g_n = sysconf(_SC_GETGR_R_SIZE_MAX);
-    g_buf = pa_xmalloc(g_n);
+    g_buf = pa_xmalloc((size_t) g_n);
 
     errno = 0;
     if (getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr) != 0 || !gr) {
@@ -1126,7 +1126,7 @@ int pa_lock_fd(int fd, int b) {
 
     /* Try a R/W lock first */
 
-    flock.l_type = b ? F_WRLCK : F_UNLCK;
+    flock.l_type = (short) (b ? F_WRLCK : F_UNLCK);
     flock.l_whence = SEEK_SET;
     flock.l_start = 0;
     flock.l_len = 0;
@@ -1291,7 +1291,7 @@ char *pa_get_state_dir(void) {
     /* If PULSE_STATE_PATH and PULSE_RUNTIME_PATH point to the same
      * dir then this will break. */
 
-    if (pa_make_secure_dir(d, 0700, (pid_t) -1, (pid_t) -1) < 0)  {
+    if (pa_make_secure_dir(d, 0700U, (uid_t) -1, (gid_t) -1) < 0)  {
         pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
         pa_xfree(d);
         return NULL;
@@ -1372,9 +1372,9 @@ char *pa_get_runtime_dir(void) {
     if ((d = getenv("PULSE_RUNTIME_PATH"))) {
         mode_t m;
 
-        m = pa_in_system_mode() ? 0755 : 0700;
+        m = pa_in_system_mode() ? 0755U : 0700U;
 
-        if (pa_make_secure_dir(d, m, (pid_t) -1, (pid_t) -1) < 0)  {
+        if (pa_make_secure_dir(d, m, (uid_t) -1, (gid_t) -1) < 0)  {
             pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
             goto fail;
         }
@@ -1934,8 +1934,8 @@ int pa_atod(const char *s, double *ret_d) {
 }
 
 /* Same as snprintf, but guarantees NUL-termination on every platform */
-int pa_snprintf(char *str, size_t size, const char *format, ...) {
-    int ret;
+size_t pa_snprintf(char *str, size_t size, const char *format, ...) {
+    size_t ret;
     va_list ap;
 
     pa_assert(str);
@@ -1950,7 +1950,7 @@ int pa_snprintf(char *str, size_t size, const char *format, ...) {
 }
 
 /* Same as vsnprintf, but guarantees NUL-termination on every platform */
-int pa_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
+size_t pa_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
     int ret;
 
     pa_assert(str);
@@ -1962,9 +1962,12 @@ int pa_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
     str[size-1] = 0;
 
     if (ret < 0)
-        ret = strlen(str);
+        return strlen(str);
 
-    return PA_MIN((int) size-1, ret);
+    if ((size_t) ret > size-1)
+        return size-1;
+
+    return (size_t) ret;
 }
 
 /* Truncate the specified string, but guarantee that the string
@@ -1988,7 +1991,7 @@ char *pa_getcwd(void) {
     size_t l = 128;
 
     for (;;) {
-        char *p = pa_xnew(char, l);
+        char *p = pa_xmalloc(l);
         if (getcwd(p, l))
             return p;
 
@@ -2013,7 +2016,7 @@ void *pa_will_need(const void *p, size_t l) {
     pa_assert(l > 0);
 
     a = PA_PAGE_ALIGN_PTR(p);
-    size = (const uint8_t*) p + l - (const uint8_t*) a;
+    size = (size_t) ((const uint8_t*) p + l - (const uint8_t*) a);
 
 #ifdef HAVE_POSIX_MADVISE
     if ((r = posix_madvise((void*) a, size, POSIX_MADV_WILLNEED)) == 0) {
@@ -2090,7 +2093,7 @@ char *pa_readlink(const char *p) {
         char *c;
         ssize_t n;
 
-        c = pa_xnew(char, l);
+        c = pa_xmalloc(l);
 
         if ((n = readlink(p, c, l-1)) < 0) {
             pa_xfree(c);
@@ -2109,8 +2112,8 @@ char *pa_readlink(const char *p) {
 
 int pa_close_all(int except_fd, ...) {
     va_list ap;
-    int n = 0, i, r;
-    int *p;
+    unsigned n = 0, i;
+    int r, *p;
 
     va_start(ap, except_fd);
 
@@ -2237,8 +2240,8 @@ int pa_close_allv(const int except_fds[]) {
 
 int pa_unblock_sigs(int except, ...) {
     va_list ap;
-    int n = 0, i, r;
-    int *p;
+    unsigned n = 0, i;
+    int r, *p;
 
     va_start(ap, except);
 
@@ -2286,8 +2289,8 @@ int pa_unblock_sigsv(const int except[]) {
 
 int pa_reset_sigs(int except, ...) {
     va_list ap;
-    int n = 0, i, r;
-    int *p;
+    unsigned n = 0, i;
+    int *p, r;
 
     va_start(ap, except);
 
@@ -2395,7 +2398,7 @@ char *pa_machine_id(void) {
     for (;;) {
         char *c;
 
-        c = pa_xnew(char, l);
+        c = pa_xmalloc(l);
 
         if (!pa_get_host_name(c, l)) {
 

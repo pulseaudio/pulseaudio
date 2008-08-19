@@ -145,7 +145,7 @@ static struct entry* read_entry(struct userdata *u, char *name) {
     pa_assert(name);
 
     key.dptr = name;
-    key.dsize = strlen(name);
+    key.dsize = (int) strlen(name);
 
     data = gdbm_fetch(u->gdbm_file, key);
 
@@ -277,7 +277,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     }
 
     key.dptr = name;
-    key.dsize = strlen(name);
+    key.dsize = (int) strlen(name);
 
     data.dptr = (void*) &entry;
     data.dsize = sizeof(entry);
@@ -544,7 +544,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
 
                 next_key = gdbm_nextkey(u->gdbm_file, key);
 
-                name = pa_xstrndup(key.dptr, key.dsize);
+                name = pa_xstrndup(key.dptr, (size_t) key.dsize);
                 pa_xfree(key.dptr);
 
                 if ((e = read_entry(u, name))) {
@@ -604,7 +604,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 pa_strlcpy(entry.device, device, sizeof(entry.device));
 
                 key.dptr = (void*) name;
-                key.dsize = strlen(name);
+                key.dsize = (int) strlen(name);
 
                 data.dptr = (void*) &entry;
                 data.dsize = sizeof(entry);
@@ -629,7 +629,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                     goto fail;
 
                 key.dptr = (void*) name;
-                key.dsize = strlen(name);
+                key.dsize = (int) strlen(name);
 
                 gdbm_delete(u->gdbm_file, key);
             }

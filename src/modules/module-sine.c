@@ -116,13 +116,13 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
         pa_sink_input_request_rewind(i, 0, FALSE, TRUE);
 }
 
-static void calc_sine(float *f, size_t l, float freq) {
+static void calc_sine(float *f, size_t l, double freq) {
     size_t i;
 
     l /= sizeof(float);
 
     for (i = 0; i < l; i++)
-        f[i] = (float) sin((double) i/l*M_PI*2*freq)/2;
+        f[i] = (float) sin((double) i/(double)l*M_PI*2*freq)/2;
 }
 
 int pa__init(pa_module*m) {
@@ -163,7 +163,7 @@ int pa__init(pa_module*m) {
 
     u->memblock = pa_memblock_new(m->core->mempool, pa_bytes_per_second(&ss));
     p = pa_memblock_acquire(u->memblock);
-    calc_sine(p, pa_memblock_get_length(u->memblock), frequency);
+    calc_sine(p, pa_memblock_get_length(u->memblock), (double) frequency);
     pa_memblock_release(u->memblock);
 
     pa_sink_input_new_data_init(&data);

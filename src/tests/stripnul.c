@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
     uint8_t *zero;
 
     pa_assert_se(argc >= 2);
-    pa_assert_se((granularity = atoi(argv[1])) >= 1);
+    pa_assert_se((granularity = (size_t) atoi(argv[1])) >= 1);
     pa_assert_se((i = (argc >= 3) ? fopen(argv[2], "r") : stdin));
     pa_assert_se((o = (argc >= 4) ? fopen(argv[3], "w") : stdout));
 
@@ -53,11 +53,11 @@ int main(int argc, char *argv[]) {
         if (found)
             pa_assert_se(fwrite(buffer, granularity, k, o) == k);
         else {
-            for (p = buffer; (p-buffer)/granularity < k; p += granularity)
+            for (p = buffer; ((size_t) (p-buffer)/granularity) < k; p += granularity)
                 if (memcmp(p, zero, granularity)) {
                     size_t left;
                     found = TRUE;
-                    left = k - (p-buffer)/granularity;
+                    left = (size_t) (k - (size_t) (p-buffer)/granularity);
                     pa_assert_se(fwrite(p, granularity, left, o) == left);
                     break;
                 }

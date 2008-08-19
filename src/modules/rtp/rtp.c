@@ -50,7 +50,7 @@ pa_rtp_context* pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint32_t ssr
     c->sequence = (uint16_t) (rand()*rand());
     c->timestamp = 0;
     c->ssrc = ssrc ? ssrc : (uint32_t) (rand()*rand());
-    c->payload = payload & 127;
+    c->payload = (uint8_t) (payload & 127U);
     c->frame_size = frame_size;
 
     pa_memchunk_reset(&c->memchunk);
@@ -99,7 +99,8 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
         if (r < 0 || n >= size || iov_idx >= MAX_IOVECS) {
             uint32_t header[3];
             struct msghdr m;
-            int k, i;
+            ssize_t k;
+            int i;
 
             if (n > 0) {
                 header[0] = htonl(((uint32_t) 2 << 30) | ((uint32_t) c->payload << 16) | ((uint32_t) c->sequence));
@@ -112,7 +113,7 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
                 m.msg_name = NULL;
                 m.msg_namelen = 0;
                 m.msg_iov = iov;
-                m.msg_iovlen = iov_idx;
+                m.msg_iovlen = (size_t) iov_idx;
                 m.msg_control = NULL;
                 m.msg_controllen = 0;
                 m.msg_flags = 0;
@@ -128,7 +129,7 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
             } else
                 k = 0;
 
-            c->timestamp += n/c->frame_size;
+            c->timestamp += (unsigned) (n/c->frame_size);
 
             if (k < 0) {
                 if (errno != EAGAIN && errno != EINTR) /* If the queue is full, just ignore it */
@@ -162,7 +163,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     struct msghdr m;
     struct iovec iov;
     uint32_t header;
-    int cc;
+    unsigned cc;
     ssize_t r;
 
     pa_assert(c);
@@ -197,7 +198,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     chunk->index = c->memchunk.index;
 
     iov.iov_base = (uint8_t*) pa_memblock_acquire(chunk->memblock) + chunk->index;
-    iov.iov_len = size;
+    iov.iov_len = (size_t) size;
 
     m.msg_name = NULL;
     m.msg_namelen = 0;
@@ -246,16 +247,16 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     }
 
     cc = (header >> 24) & 0xF;
-    c->payload = (header >> 16) & 127;
-    c->sequence = header & 0xFFFF;
+    c->payload = (uint8_t) ((header >> 16) & 127U);
+    c->sequence = (uint16_t) (header & 0xFFFFU);
 
-    if (12 + cc*4 > size) {
+    if (12 + cc*4 > (unsigned) size) {
         pa_log_warn("RTP packet too short. (CSRC)");
         goto fail;
     }
 
     chunk->index += 12 + cc*4;
-    chunk->length = size - 12 + cc*4;
+    chunk->length = (size_t) size - 12 + cc*4;
 
     if (chunk->length % c->frame_size != 0) {
         pa_log_warn("Bad RTP packet size.");

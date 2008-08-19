@@ -260,8 +260,8 @@ int pa_msleep(unsigned long t) {
 #elif defined(HAVE_NANOSLEEP)
     struct timespec ts;
 
-    ts.tv_sec = t/1000UL;
-    ts.tv_nsec = (t % 1000UL) * 1000000UL;
+    ts.tv_sec = (time_t) (t/1000UL);
+    ts.tv_nsec = (long) ((t % 1000UL) * 1000000UL);
 
     return nanosleep(&ts, NULL);
 #else

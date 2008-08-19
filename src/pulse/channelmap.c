@@ -201,7 +201,7 @@ pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels, p
 
     pa_channel_map_init(m);
 
-    m->channels = channels;
+    m->channels = (uint8_t) channels;
 
     switch (def) {
         case PA_CHANNEL_MAP_AIFF:
@@ -415,7 +415,7 @@ pa_channel_map* pa_channel_map_init_extend(pa_channel_map *m, unsigned channels,
                 i++;
             }
 
-            m->channels = channels;
+            m->channels = (uint8_t) channels;
 
             return m;
         }
@@ -460,7 +460,7 @@ int pa_channel_map_equal(const pa_channel_map *a, const pa_channel_map *b) {
 
 char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map) {
     unsigned channel;
-    int first = 1;
+    pa_bool_t first = TRUE;
     char *e;
 
     pa_assert(s);
@@ -475,7 +475,7 @@ char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map) {
                       pa_channel_position_to_string(map->map[channel]));
 
         e = strchr(e, 0);
-        first = 0;
+        first = FALSE;
     }
 
     return s;

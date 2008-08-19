@@ -187,7 +187,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     pa_assert(tchunk.length > 0);
 
     fs = pa_frame_size(&i->sample_spec);
-    n = PA_MIN(tchunk.length, u->block_size) / fs;
+    n = (unsigned) (PA_MIN(tchunk.length, u->block_size) / fs);
 
     pa_assert(n > 0);
 
@@ -502,9 +502,9 @@ int pa__init(pa_module*m) {
 
     u->block_size = pa_frame_align(pa_mempool_block_size_max(m->core->mempool), &ss);
 
-    u->input = (LADSPA_Data*) pa_xnew(uint8_t, u->block_size);
+    u->input = (LADSPA_Data*) pa_xnew(uint8_t, (unsigned) u->block_size);
     if (LADSPA_IS_INPLACE_BROKEN(d->Properties))
-        u->output = (LADSPA_Data*) pa_xnew(uint8_t, u->block_size);
+        u->output = (LADSPA_Data*) pa_xnew(uint8_t, (unsigned) u->block_size);
     else
         u->output = u->input;
 
@@ -530,8 +530,8 @@ int pa__init(pa_module*m) {
         char *k;
         unsigned long h;
 
-        u->control = pa_xnew(LADSPA_Data, n_control);
-        use_default = pa_xnew(pa_bool_t, n_control);
+        u->control = pa_xnew(LADSPA_Data, (unsigned) n_control);
+        use_default = pa_xnew(pa_bool_t, (unsigned) n_control);
         p = 0;
 
         while ((k = pa_split(cdata, ",", &state)) && p < n_control) {
@@ -552,7 +552,7 @@ int pa__init(pa_module*m) {
             pa_xfree(k);
 
             use_default[p] = FALSE;
-            u->control[p++] = f;
+            u->control[p++] = (LADSPA_Data) f;
         }
 
         /* The previous loop doesn't take the last control value into account
@@ -601,8 +601,8 @@ int pa__init(pa_module*m) {
                 upper = d->PortRangeHints[p].UpperBound;
 
                 if (LADSPA_IS_HINT_SAMPLE_RATE(hint)) {
-                    lower *= ss.rate;
-                    upper *= ss.rate;
+                    lower *= (LADSPA_Data) ss.rate;
+                    upper *= (LADSPA_Data) ss.rate;
                 }
 
                 switch (hint & LADSPA_HINT_DEFAULT_MASK) {
@@ -617,23 +617,23 @@ int pa__init(pa_module*m) {
 
                     case LADSPA_HINT_DEFAULT_LOW:
                         if (LADSPA_IS_HINT_LOGARITHMIC(hint))
-                            u->control[h] = exp(log(lower) * 0.75 + log(upper) * 0.25);
+                            u->control[h] = (LADSPA_Data) exp(log(lower) * 0.75 + log(upper) * 0.25);
                         else
-                            u->control[h] = lower * 0.75 + upper * 0.25;
+                            u->control[h] = (LADSPA_Data) (lower * 0.75 + upper * 0.25);
                         break;
 
                     case LADSPA_HINT_DEFAULT_MIDDLE:
                         if (LADSPA_IS_HINT_LOGARITHMIC(hint))
-                            u->control[h] = exp(log(lower) * 0.5 + log(upper) * 0.5);
+                            u->control[h] = (LADSPA_Data) exp(log(lower) * 0.5 + log(upper) * 0.5);
                         else
-                            u->control[h] = lower * 0.5 + upper * 0.5;
+                            u->control[h] = (LADSPA_Data) (lower * 0.5 + upper * 0.5);
                         break;
 
                     case LADSPA_HINT_DEFAULT_HIGH:
                         if (LADSPA_IS_HINT_LOGARITHMIC(hint))
-                            u->control[h] = exp(log(lower) * 0.25 + log(upper) * 0.75);
+                            u->control[h] = (LADSPA_Data) exp(log(lower) * 0.25 + log(upper) * 0.75);
                         else
-                            u->control[h] = lower * 0.25 + upper * 0.75;
+                            u->control[h] = (LADSPA_Data) (lower * 0.25 + upper * 0.75);
                         break;
 
                     case LADSPA_HINT_DEFAULT_0:

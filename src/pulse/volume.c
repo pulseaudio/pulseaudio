@@ -53,7 +53,7 @@ pa_cvolume* pa_cvolume_set(pa_cvolume *a, unsigned channels, pa_volume_t v) {
     pa_assert(channels > 0);
     pa_assert(channels <= PA_CHANNELS_MAX);
 
-    a->channels = channels;
+    a->channels = (uint8_t) channels;
 
     for (i = 0; i < a->channels; i++)
         a->values[i] = v;
@@ -175,7 +175,7 @@ pa_cvolume *pa_sw_cvolume_multiply(pa_cvolume *dest, const pa_cvolume *a, const 
             i < b->channels ? b->values[i] : PA_VOLUME_NORM);
     }
 
-    dest->channels = i;
+    dest->channels = (uint8_t) i;
 
     return dest;
 }

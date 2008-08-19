@@ -47,7 +47,7 @@ static ssize_t loop_write(int fd, const void*data, size_t size) {
 
         ret += r;
         data = (const uint8_t*) data + r;
-        size -= r;
+        size -= (size_t) r;
     }
 
     return ret;
@@ -79,6 +79,9 @@ int main(int argc, char*argv[]) {
             fprintf(stderr, __FILE__": pa_simple_read() failed: %s\n", pa_strerror(error));
             goto finish;
         }
+
+        if (r == 0)
+            break;
 
         /* And write it to STDOUT */
         if ((r = loop_write(STDOUT_FILENO, buf, sizeof(buf))) <= 0) {

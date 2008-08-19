@@ -76,7 +76,7 @@ int pa_sap_send(pa_sap_context *c, pa_bool_t goodbye) {
     socklen_t salen = sizeof(sa_buf);
     struct iovec iov[4];
     struct msghdr m;
-    int k;
+    ssize_t k;
 
     if (getsockname(c->fd, sa, &salen) < 0) {
         pa_log("getsockname() failed: %s\n", pa_cstrerror(errno));
@@ -94,7 +94,7 @@ int pa_sap_send(pa_sap_context *c, pa_bool_t goodbye) {
     iov[0].iov_len = sizeof(header);
 
     iov[1].iov_base = sa->sa_family == AF_INET ? (void*) &((struct sockaddr_in*) sa)->sin_addr : (void*) &((struct sockaddr_in6*) sa)->sin6_addr;
-    iov[1].iov_len = sa->sa_family == AF_INET ? 4 : 16;
+    iov[1].iov_len = sa->sa_family == AF_INET ? 4U : 16U;
 
     iov[2].iov_base = (char*) MIME_TYPE;
     iov[2].iov_len = sizeof(MIME_TYPE);
@@ -113,7 +113,7 @@ int pa_sap_send(pa_sap_context *c, pa_bool_t goodbye) {
     if ((k = sendmsg(c->fd, &m, MSG_DONTWAIT)) < 0)
         pa_log_warn("sendmsg() failed: %s\n", pa_cstrerror(errno));
 
-    return k;
+    return (int) k;
 }
 
 pa_sap_context* pa_sap_context_init_recv(pa_sap_context *c, int fd) {
@@ -128,10 +128,10 @@ pa_sap_context* pa_sap_context_init_recv(pa_sap_context *c, int fd) {
 int pa_sap_recv(pa_sap_context *c, pa_bool_t *goodbye) {
     struct msghdr m;
     struct iovec iov;
-    int size, k;
+    int size;
     char *buf = NULL, *e;
     uint32_t header;
-    int six, ac;
+    unsigned six, ac, k;
     ssize_t r;
 
     pa_assert(c);
@@ -142,11 +142,11 @@ int pa_sap_recv(pa_sap_context *c, pa_bool_t *goodbye) {
         goto fail;
     }
 
-    buf = pa_xnew(char, size+1);
+    buf = pa_xnew(char, (unsigned) size+1);
     buf[size] = 0;
 
     iov.iov_base = buf;
-    iov.iov_len = size;
+    iov.iov_len = (size_t) size;
 
     m.msg_name = NULL;
     m.msg_namelen = 0;
@@ -184,21 +184,21 @@ int pa_sap_recv(pa_sap_context *c, pa_bool_t *goodbye) {
         goto fail;
     }
 
-    six = (header >> 28) & 1;
-    ac = (header >> 16) & 0xFF;
+    six = (header >> 28) & 1U;
+    ac = (header >> 16) & 0xFFU;
 
-    k = 4 + (six ? 16 : 4) + ac*4;
-    if (size < k) {
+    k = 4 + (six ? 16U : 4U) + ac*4U;
+    if ((unsigned) size < k) {
         pa_log_warn("SAP packet too short (AD).");
         goto fail;
     }
 
     e = buf + k;
-    size -= k;
+    size -= (int) k;
 
     if ((unsigned) size >= sizeof(MIME_TYPE) && !strcmp(e, MIME_TYPE)) {
         e += sizeof(MIME_TYPE);
-        size -= sizeof(MIME_TYPE);
+        size -= (int) sizeof(MIME_TYPE);
     } else if ((unsigned) size < sizeof(PA_SDP_HEADER)-1 || strncmp(e, PA_SDP_HEADER, sizeof(PA_SDP_HEADER)-1)) {
         pa_log_warn("Invalid SDP header.");
         goto fail;
@@ -207,7 +207,7 @@ int pa_sap_recv(pa_sap_context *c, pa_bool_t *goodbye) {
     if (c->sdp_data)
         pa_xfree(c->sdp_data);
 
-    c->sdp_data = pa_xstrndup(e, size);
+    c->sdp_data = pa_xstrndup(e, (unsigned) size);
     pa_xfree(buf);
 
     *goodbye = !!((header >> 26) & 1);

@@ -171,7 +171,8 @@ int pa__init(pa_module*m) {
     const char *dest;
     uint32_t port = DEFAULT_PORT, mtu;
     uint32_t ttl = DEFAULT_TTL;
-    int af, fd = -1, sap_fd = -1;
+    sa_family_t af;
+    int fd = -1, sap_fd = -1;
     pa_source *s;
     pa_sample_spec ss;
     pa_channel_map cm;
@@ -223,14 +224,14 @@ int pa__init(pa_module*m) {
 
     payload = pa_rtp_payload_from_sample_spec(&ss);
 
-    mtu = pa_frame_align(DEFAULT_MTU, &ss);
+    mtu = (uint32_t) pa_frame_align(DEFAULT_MTU, &ss);
 
     if (pa_modargs_get_value_u32(ma, "mtu", &mtu) < 0 || mtu < 1 || mtu % pa_frame_size(&ss) != 0) {
         pa_log("Invalid MTU.");
         goto fail;
     }
 
-    port = DEFAULT_PORT + ((rand() % 512) << 1);
+    port = DEFAULT_PORT + ((uint32_t) (rand() % 512) << 1);
     if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port < 1 || port > 0xFFFF) {
         pa_log("port= expects a numerical argument between 1 and 65535.");
         goto fail;
@@ -248,12 +249,12 @@ int pa__init(pa_module*m) {
 
     if (inet_pton(AF_INET6, dest, &sa6.sin6_addr) > 0) {
         sa6.sin6_family = af = AF_INET6;
-        sa6.sin6_port = htons(port);
+        sa6.sin6_port = htons((uint16_t) port);
         sap_sa6 = sa6;
         sap_sa6.sin6_port = htons(SAP_PORT);
     } else if (inet_pton(AF_INET, dest, &sa4.sin_addr) > 0) {
         sa4.sin_family = af = AF_INET;
-        sa4.sin_port = htons(port);
+        sa4.sin_port = htons((uint16_t) port);
         sap_sa4 = sa4;
         sap_sa4.sin_port = htons(SAP_PORT);
     } else {
@@ -266,7 +267,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (connect(fd, af == AF_INET ? (struct sockaddr*) &sa4 : (struct sockaddr*) &sa6, af == AF_INET ? sizeof(sa4) : sizeof(sa6)) < 0) {
+    if (connect(fd, af == AF_INET ? (struct sockaddr*) &sa4 : (struct sockaddr*) &sa6, (socklen_t) (af == AF_INET ? sizeof(sa4) : sizeof(sa6))) < 0) {
         pa_log("connect() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
@@ -276,7 +277,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (connect(sap_fd, af == AF_INET ? (struct sockaddr*) &sap_sa4 : (struct sockaddr*) &sap_sa6, af == AF_INET ? sizeof(sap_sa4) : sizeof(sap_sa6)) < 0) {
+    if (connect(sap_fd, af == AF_INET ? (struct sockaddr*) &sap_sa4 : (struct sockaddr*) &sap_sa6, (socklen_t) (af == AF_INET ? sizeof(sap_sa4) : sizeof(sap_sa6))) < 0) {
         pa_log("connect() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
@@ -354,7 +355,7 @@ int pa__init(pa_module*m) {
     p = pa_sdp_build(af,
                      af == AF_INET ? (void*) &((struct sockaddr_in*) &sa_dst)->sin_addr : (void*) &((struct sockaddr_in6*) &sa_dst)->sin6_addr,
                      af == AF_INET ? (void*) &sa4.sin_addr : (void*) &sa6.sin6_addr,
-                     n, port, payload, &ss);
+                     n, (uint16_t) port, payload, &ss);
 
     pa_xfree(n);
 

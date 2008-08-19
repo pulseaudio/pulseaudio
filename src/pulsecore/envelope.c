@@ -153,11 +153,11 @@ void pa_envelope_free(pa_envelope *e) {
 }
 
 static int32_t linear_interpolate_int(pa_usec_t x1, int32_t _y1, pa_usec_t x2, int32_t y2, pa_usec_t x3) {
-    return (int32_t) (_y1 + (x3 - x1) * (float) (y2 - _y1) / (float) (x2 - x1));
+    return (int32_t) ((double) _y1 + (double) (x3 - x1) * (double) (y2 - _y1) / (double) (x2 - x1));
 }
 
 static float linear_interpolate_float(pa_usec_t x1, float _y1, pa_usec_t x2, float y2, pa_usec_t x3) {
-    return _y1 + (x3 - x1) * (y2 - _y1) / (x2 - x1);
+    return _y1 + ((float) x3 - (float) x1) * (y2 - _y1) / ((float) x2 - (float) x1);
 }
 
 static int32_t item_get_int(pa_envelope_item *i, pa_usec_t x) {
@@ -573,11 +573,11 @@ static float linear_get_float(pa_envelope *e, int v) {
     if (!e->points[v].cached_valid) {
         e->points[v].cached_dy_dx =
             (e->points[v].y.f[e->points[v].n_current+1] - e->points[v].y.f[e->points[v].n_current]) /
-            (e->points[v].x[e->points[v].n_current+1] - e->points[v].x[e->points[v].n_current]);
+            ((float) e->points[v].x[e->points[v].n_current+1] - (float) e->points[v].x[e->points[v].n_current]);
         e->points[v].cached_valid = TRUE;
     }
 
-    return e->points[v].y.f[e->points[v].n_current] + (e->x - e->points[v].x[e->points[v].n_current]) * e->points[v].cached_dy_dx;
+    return e->points[v].y.f[e->points[v].n_current] + (float) (e->x - e->points[v].x[e->points[v].n_current]) * e->points[v].cached_dy_dx;
 }
 
 void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk) {
@@ -605,7 +605,7 @@ void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk) {
                 uint8_t *t;
 
                 for (t = p; n > 0; n -= fs) {
-                    int16_t factor = linear_get_int(e, v);
+                    int32_t factor = linear_get_int(e, v);
                     unsigned c;
                     e->x += fs;
 
@@ -620,13 +620,13 @@ void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk) {
                 uint8_t *t;
 
                 for (t = p; n > 0; n -= fs) {
-                    int16_t factor = linear_get_int(e, v);
+                    int32_t factor = linear_get_int(e, v);
                     unsigned c;
                     e->x += fs;
 
                     for (c = 0; c < e->sample_spec.channels; c++, t++) {
                         int16_t k = st_ulaw2linear16(*t);
-                        *t = (uint8_t) st_14linear2ulaw(((factor * k) / 0x10000) >> 2);
+                        *t = (uint8_t) st_14linear2ulaw((int16_t) (((factor * k) / 0x10000) >> 2));
                     }
                 }
 
@@ -637,13 +637,13 @@ void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk) {
                 uint8_t *t;
 
                 for (t = p; n > 0; n -= fs) {
-                    int16_t factor = linear_get_int(e, v);
+                    int32_t factor = linear_get_int(e, v);
                     unsigned c;
                     e->x += fs;
 
                     for (c = 0; c < e->sample_spec.channels; c++, t++) {
                         int16_t k = st_alaw2linear16(*t);
-                        *t = (uint8_t) st_13linear2alaw(((factor * k) / 0x10000) >> 3);
+                        *t = (uint8_t) st_13linear2alaw((int16_t) (((factor * k) / 0x10000) >> 3));
                     }
                 }
 
@@ -659,7 +659,7 @@ void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk) {
                     e->x += fs;
 
                     for (c = 0; c < e->sample_spec.channels; c++, t++)
-                        *t = (factor * *t) / 0x10000;
+                        *t = (int16_t) ((factor * *t) / 0x10000);
                 }
 
                 break;
@@ -674,7 +674,7 @@ void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk) {
                     e->x += fs;
 
                     for (c = 0; c < e->sample_spec.channels; c++, t++) {
-                        int16_t r = (factor * PA_INT16_SWAP(*t)) / 0x10000;
+                        int16_t r = (int16_t) ((factor * PA_INT16_SWAP(*t)) / 0x10000);
                         *t = PA_INT16_SWAP(r);
                     }
                 }

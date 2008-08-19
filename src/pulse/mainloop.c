@@ -57,7 +57,7 @@
 
 struct pa_io_event {
     pa_mainloop *mainloop;
-    int dead;
+    pa_bool_t dead:1;
 
     int fd;
     pa_io_event_flags_t events;
@@ -72,9 +72,9 @@ struct pa_io_event {
 
 struct pa_time_event {
     pa_mainloop *mainloop;
-    int dead;
+    pa_bool_t dead:1;
 
-    int enabled;
+    pa_bool_t enabled:1;
     struct timeval timeval;
 
     pa_time_event_cb_t callback;
@@ -86,9 +86,9 @@ struct pa_time_event {
 
 struct pa_defer_event {
     pa_mainloop *mainloop;
-    int dead;
+    pa_bool_t dead:1;
 
-    int enabled;
+    pa_bool_t enabled:1;
 
     pa_defer_event_cb_t callback;
     void *userdata;
@@ -102,22 +102,24 @@ struct pa_mainloop {
     PA_LLIST_HEAD(pa_time_event, time_events);
     PA_LLIST_HEAD(pa_defer_event, defer_events);
 
-    int n_enabled_defer_events, n_enabled_time_events, n_io_events;
-    int io_events_please_scan, time_events_please_scan, defer_events_please_scan;
+    unsigned n_enabled_defer_events, n_enabled_time_events, n_io_events;
+    unsigned io_events_please_scan, time_events_please_scan, defer_events_please_scan;
 
+    pa_bool_t rebuild_pollfds:1;
     struct pollfd *pollfds;
     unsigned max_pollfds, n_pollfds;
-    int rebuild_pollfds;
 
     int prepared_timeout;
     pa_time_event *cached_next_time_event;
 
-    int quit, retval;
     pa_mainloop_api api;
 
+    int retval;
+    pa_bool_t quit:1;
+
+    pa_bool_t wakeup_requested:1;
     int wakeup_pipe[2];
     int wakeup_pipe_type;
-    int wakeup_requested;
 
     enum {
         STATE_PASSIVE,
@@ -133,11 +135,11 @@ struct pa_mainloop {
 };
 
 static short map_flags_to_libc(pa_io_event_flags_t flags) {
-    return
-        (flags & PA_IO_EVENT_INPUT ? POLLIN : 0) |
-        (flags & PA_IO_EVENT_OUTPUT ? POLLOUT : 0) |
-        (flags & PA_IO_EVENT_ERROR ? POLLERR : 0) |
-        (flags & PA_IO_EVENT_HANGUP ? POLLHUP : 0);
+    return (short)
+        ((flags & PA_IO_EVENT_INPUT ? POLLIN : 0) |
+         (flags & PA_IO_EVENT_OUTPUT ? POLLOUT : 0) |
+         (flags & PA_IO_EVENT_ERROR ? POLLERR : 0) |
+         (flags & PA_IO_EVENT_HANGUP ? POLLHUP : 0));
 }
 
 static pa_io_event_flags_t map_flags_from_libc(short flags) {
@@ -169,7 +171,7 @@ static pa_io_event* mainloop_io_new(
 
     e = pa_xnew(pa_io_event, 1);
     e->mainloop = m;
-    e->dead = 0;
+    e->dead = FALSE;
 
     e->fd = fd;
     e->events = events;
@@ -194,13 +196,13 @@ static pa_io_event* mainloop_io_new(
                     SELECT_TYPE_ARG5 &tv) == -1) &&
              (WSAGetLastError() == WSAENOTSOCK)) {
             pa_log_warn("Cannot monitor non-socket file descriptors.");
-            e->dead = 1;
+            e->dead = TRUE;
         }
     }
 #endif
 
     PA_LLIST_PREPEND(pa_io_event, m->io_events, e);
-    m->rebuild_pollfds = 1;
+    m->rebuild_pollfds = TRUE;
     m->n_io_events ++;
 
     pa_mainloop_wakeup(m);
@@ -220,7 +222,7 @@ static void mainloop_io_enable(pa_io_event *e, pa_io_event_flags_t events) {
     if (e->pollfd)
         e->pollfd->events = map_flags_to_libc(events);
     else
-        e->mainloop->rebuild_pollfds = 1;
+        e->mainloop->rebuild_pollfds = TRUE;
 
     pa_mainloop_wakeup(e->mainloop);
 }
@@ -229,11 +231,11 @@ static void mainloop_io_free(pa_io_event *e) {
     pa_assert(e);
     pa_assert(!e->dead);
 
-    e->dead = 1;
+    e->dead = TRUE;
     e->mainloop->io_events_please_scan ++;
 
     e->mainloop->n_io_events --;
-    e->mainloop->rebuild_pollfds = 1;
+    e->mainloop->rebuild_pollfds = TRUE;
 
     pa_mainloop_wakeup(e->mainloop);
 }
@@ -262,9 +264,9 @@ static pa_defer_event* mainloop_defer_new(
 
     e = pa_xnew(pa_defer_event, 1);
     e->mainloop = m;
-    e->dead = 0;
+    e->dead = FALSE;
 
-    e->enabled = 1;
+    e->enabled = TRUE;
     m->n_enabled_defer_events++;
 
     e->callback = callback;
@@ -297,13 +299,13 @@ static void mainloop_defer_free(pa_defer_event *e) {
     pa_assert(e);
     pa_assert(!e->dead);
 
-    e->dead = 1;
+    e->dead = TRUE;
     e->mainloop->defer_events_please_scan ++;
 
     if (e->enabled) {
         pa_assert(e->mainloop->n_enabled_defer_events > 0);
         e->mainloop->n_enabled_defer_events--;
-        e->enabled = 0;
+        e->enabled = FALSE;
     }
 }
 
@@ -333,7 +335,7 @@ static pa_time_event* mainloop_time_new(
 
     e = pa_xnew(pa_time_event, 1);
     e->mainloop = m;
-    e->dead = 0;
+    e->dead = FALSE;
 
     if ((e->enabled = !!tv)) {
         e->timeval = *tv;
@@ -388,13 +390,13 @@ static void mainloop_time_free(pa_time_event *e) {
     pa_assert(e);
     pa_assert(!e->dead);
 
-    e->dead = 1;
+    e->dead = TRUE;
     e->mainloop->time_events_please_scan ++;
 
     if (e->enabled) {
         pa_assert(e->mainloop->n_enabled_time_events > 0);
         e->mainloop->n_enabled_time_events--;
-        e->enabled = 0;
+        e->enabled = FALSE;
     }
 
     if (e->mainloop->cached_next_time_event == e)
@@ -462,7 +464,7 @@ pa_mainloop *pa_mainloop_new(void) {
     pa_make_fd_nonblock(m->wakeup_pipe[1]);
     pa_make_fd_cloexec(m->wakeup_pipe[0]);
     pa_make_fd_cloexec(m->wakeup_pipe[1]);
-    m->wakeup_requested = 0;
+    m->wakeup_requested = FALSE;
 
     PA_LLIST_HEAD_INIT(pa_io_event, m->io_events);
     PA_LLIST_HEAD_INIT(pa_time_event, m->time_events);
@@ -476,9 +478,10 @@ pa_mainloop *pa_mainloop_new(void) {
 
     m->pollfds = NULL;
     m->max_pollfds = m->n_pollfds = 0;
-    m->rebuild_pollfds = 1;
+    m->rebuild_pollfds = TRUE;
 
-    m->quit = m->retval = 0;
+    m->quit = FALSE;
+    m->retval = 0;
 
     m->api = vtable;
     m->api.userdata = m;
@@ -492,7 +495,7 @@ pa_mainloop *pa_mainloop_new(void) {
     return m;
 }
 
-static void cleanup_io_events(pa_mainloop *m, int force) {
+static void cleanup_io_events(pa_mainloop *m, pa_bool_t force) {
     pa_io_event *e;
 
     e = m->io_events;
@@ -515,7 +518,7 @@ static void cleanup_io_events(pa_mainloop *m, int force) {
 
             pa_xfree(e);
 
-            m->rebuild_pollfds = 1;
+            m->rebuild_pollfds = TRUE;
         }
 
         e = n;
@@ -524,7 +527,7 @@ static void cleanup_io_events(pa_mainloop *m, int force) {
     pa_assert(m->io_events_please_scan == 0);
 }
 
-static void cleanup_time_events(pa_mainloop *m, int force) {
+static void cleanup_time_events(pa_mainloop *m, pa_bool_t force) {
     pa_time_event *e;
 
     e = m->time_events;
@@ -545,7 +548,7 @@ static void cleanup_time_events(pa_mainloop *m, int force) {
             if (!e->dead && e->enabled) {
                 pa_assert(m->n_enabled_time_events > 0);
                 m->n_enabled_time_events--;
-                e->enabled = 0;
+                e->enabled = FALSE;
             }
 
             if (e->destroy_callback)
@@ -560,7 +563,7 @@ static void cleanup_time_events(pa_mainloop *m, int force) {
     pa_assert(m->time_events_please_scan == 0);
 }
 
-static void cleanup_defer_events(pa_mainloop *m, int force) {
+static void cleanup_defer_events(pa_mainloop *m, pa_bool_t force) {
     pa_defer_event *e;
 
     e = m->defer_events;
@@ -581,7 +584,7 @@ static void cleanup_defer_events(pa_mainloop *m, int force) {
             if (!e->dead && e->enabled) {
                 pa_assert(m->n_enabled_defer_events > 0);
                 m->n_enabled_defer_events--;
-                e->enabled = 0;
+                e->enabled = FALSE;
             }
 
             if (e->destroy_callback)
@@ -600,9 +603,9 @@ static void cleanup_defer_events(pa_mainloop *m, int force) {
 void pa_mainloop_free(pa_mainloop* m) {
     pa_assert(m);
 
-    cleanup_io_events(m, 1);
-    cleanup_defer_events(m, 1);
-    cleanup_time_events(m, 1);
+    cleanup_io_events(m, TRUE);
+    cleanup_defer_events(m, TRUE);
+    cleanup_time_events(m, TRUE);
 
     pa_xfree(m->pollfds);
 
@@ -615,13 +618,13 @@ static void scan_dead(pa_mainloop *m) {
     pa_assert(m);
 
     if (m->io_events_please_scan)
-        cleanup_io_events(m, 0);
+        cleanup_io_events(m, FALSE);
 
     if (m->time_events_please_scan)
-        cleanup_time_events(m, 0);
+        cleanup_time_events(m, FALSE);
 
     if (m->defer_events_please_scan)
-        cleanup_defer_events(m, 0);
+        cleanup_defer_events(m, FALSE);
 }
 
 static void rebuild_pollfds(pa_mainloop *m) {
@@ -662,7 +665,7 @@ static void rebuild_pollfds(pa_mainloop *m) {
         m->n_pollfds++;
     }
 
-    m->rebuild_pollfds = 0;
+    m->rebuild_pollfds = FALSE;
 }
 
 static int dispatch_pollfds(pa_mainloop *m) {
@@ -948,7 +951,7 @@ int pa_mainloop_run(pa_mainloop *m, int *retval) {
 void pa_mainloop_quit(pa_mainloop *m, int retval) {
     pa_assert(m);
 
-    m->quit = 1;
+    m->quit = TRUE;
     m->retval = retval;
     pa_mainloop_wakeup(m);
 }

@@ -85,7 +85,6 @@ static uint8_t silence_byte(pa_sample_format_t format) {
         default:
             pa_assert_not_reached();
     }
-    return 0;
 }
 
 void* pa_silence_memory(void *p, size_t length, const pa_sample_spec *spec) {
@@ -134,7 +133,7 @@ static void calc_linear_float_stream_volumes(pa_mix_info streams[], unsigned nst
 
         for (channel = 0; channel < spec->channels; channel++) {
             pa_mix_info *m = streams + k;
-            m->linear[channel].f = pa_sw_volume_to_linear(m->volume.values[channel]);
+            m->linear[channel].f = (float) pa_sw_volume_to_linear(m->volume.values[channel]);
         }
     }
 }
@@ -146,7 +145,7 @@ static void calc_linear_float_volume(float linear[], const pa_cvolume *volume) {
     pa_assert(volume);
 
     for (channel = 0; channel < volume->channels; channel++)
-        linear[channel] = pa_sw_volume_to_linear(volume->values[channel]);
+        linear[channel] = (float) pa_sw_volume_to_linear(volume->values[channel]);
 }
 
 size_t pa_mix(
@@ -412,7 +411,7 @@ size_t pa_mix(
 
                 sum = (sum * linear[channel]) / 0x10000;
                 sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
-                *((uint8_t*) data) = (uint8_t) st_14linear2ulaw(sum >> 2);
+                *((uint8_t*) data) = (uint8_t) st_14linear2ulaw((int16_t) sum >> 2);
 
                 data = (uint8_t*) data + 1;
 
@@ -451,7 +450,7 @@ size_t pa_mix(
 
                 sum = (sum * linear[channel]) / 0x10000;
                 sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
-                *((uint8_t*) data) = (uint8_t) st_13linear2alaw(sum >> 3);
+                *((uint8_t*) data) = (uint8_t) st_13linear2alaw((int16_t) sum >> 3);
 
                 data = (uint8_t*) data + 1;
 
@@ -707,7 +706,7 @@ void pa_volume_memchunk(
                 t = (int32_t) st_ulaw2linear16(*d);
                 t = (t * linear[channel]) / 0x10000;
                 t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
-                *d = (uint8_t) st_14linear2ulaw(t >> 2);
+                *d = (uint8_t) st_14linear2ulaw((int16_t) t >> 2);
 
                 if (PA_UNLIKELY(++channel >= spec->channels))
                     channel = 0;
@@ -730,7 +729,7 @@ void pa_volume_memchunk(
                 t = (int32_t) st_alaw2linear16(*d);
                 t = (t * linear[channel]) / 0x10000;
                 t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
-                *d = (uint8_t) st_13linear2alaw(t >> 3);
+                *d = (uint8_t) st_13linear2alaw((int16_t) t >> 3);
 
                 if (PA_UNLIKELY(++channel >= spec->channels))
                     channel = 0;
@@ -745,8 +744,8 @@ void pa_volume_memchunk(
             unsigned channel;
 
             d = ptr;
-            skip = spec->channels * sizeof(float);
-            n = c->length/sizeof(float)/spec->channels;
+            skip = (int) (spec->channels * sizeof(float));
+            n = (unsigned) (c->length/sizeof(float)/spec->channels);
 
             for (channel = 0; channel < spec->channels; channel ++) {
                 float v, *t;
@@ -756,7 +755,7 @@ void pa_volume_memchunk(
 
                 v = (float) pa_sw_volume_to_linear(volume->values[channel]);
                 t = d + channel;
-                oil_scalarmult_f32(t, skip, t, skip, &v, n);
+                oil_scalarmult_f32(t, skip, t, skip, &v, (int) n);
             }
             break;
         }
@@ -834,7 +833,7 @@ void pa_interleave(const void *src[], unsigned channels, void *dst, size_t ss, u
         d = (uint8_t*) dst + c * ss;
 
         for (j = 0; j < n; j ++) {
-            oil_memcpy(d, s, ss);
+            oil_memcpy(d, s, (int) ss);
             s = (uint8_t*) s + ss;
             d = (uint8_t*) d + fs;
         }
@@ -862,7 +861,7 @@ void pa_deinterleave(const void *src, void *dst[], unsigned channels, size_t ss,
         d = dst[c];
 
         for (j = 0; j < n; j ++) {
-            oil_memcpy(d, s, ss);
+            oil_memcpy(d, s, (int) ss);
             s = (uint8_t*) s + fs;
             d = (uint8_t*) d + ss;
         }
@@ -965,7 +964,7 @@ void pa_sample_clamp(pa_sample_format_t format, void *dst, size_t dstr, const vo
     if (format == PA_SAMPLE_FLOAT32NE) {
 
         float minus_one = -1.0, plus_one = 1.0;
-        oil_clip_f32(d, dstr, s, sstr, n, &minus_one, &plus_one);
+        oil_clip_f32(d, (int) dstr, s, (int) sstr, (int) n, &minus_one, &plus_one);
 
     } else {
         pa_assert(format == PA_SAMPLE_FLOAT32RE);
@@ -974,7 +973,7 @@ void pa_sample_clamp(pa_sample_format_t format, void *dst, size_t dstr, const vo
             float f;
 
             f = PA_FLOAT32_SWAP(*s);
-            f = PA_CLAMP_UNLIKELY(f, -1.0, 1.0);
+            f = PA_CLAMP_UNLIKELY(f, -1.0f, 1.0f);
             *d = PA_FLOAT32_SWAP(f);
 
             s = (const float*) ((const uint8_t*) s + sstr);

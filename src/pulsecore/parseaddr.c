@@ -51,20 +51,29 @@ static char *parse_host(const char *s, uint16_t *ret_port) {
         if (!(e = strchr(s+1, ']')))
             return NULL;
 
-        if (e[1] == ':')
-            *ret_port = atoi(e+2);
-        else if (e[1] != 0)
+        if (e[1] == ':') {
+            uint32_t p;
+
+            if (pa_atou(e+2, &p) < 0)
+                return NULL;
+
+            *ret_port = (uint16_t) p;
+        } else if (e[1] != 0)
             return NULL;
 
-        return pa_xstrndup(s+1, e-s-1);
+        return pa_xstrndup(s+1, (size_t) (e-s-1));
     } else {
         char *e;
+        uint32_t p;
 
         if (!(e = strrchr(s, ':')))
             return pa_xstrdup(s);
 
-        *ret_port = atoi(e+1);
-        return pa_xstrndup(s, e-s);
+        if (pa_atou(e+1, &p) < 0)
+            return NULL;
+
+        *ret_port = (uint16_t) p;
+        return pa_xstrndup(s, (size_t) (e-s));
     }
 }
 

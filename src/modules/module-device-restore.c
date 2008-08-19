@@ -106,7 +106,7 @@ static struct entry* read_entry(struct userdata *u, char *name) {
     pa_assert(name);
 
     key.dptr = name;
-    key.dsize = strlen(name);
+    key.dsize = (int) strlen(name);
 
     data = gdbm_fetch(u->gdbm_file, key);
 
@@ -210,7 +210,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     }
 
     key.dptr = name;
-    key.dsize = strlen(name);
+    key.dsize = (int) strlen(name);
 
     data.dptr = (void*) &entry;
     data.dsize = sizeof(entry);

@@ -127,8 +127,8 @@ int pa_atoi(const char *s, int32_t *ret_i);
 int pa_atou(const char *s, uint32_t *ret_u);
 int pa_atod(const char *s, double *ret_d);
 
-int pa_snprintf(char *str, size_t size, const char *format, ...);
-int pa_vsnprintf(char *str, size_t size, const char *format, va_list ap);
+size_t pa_snprintf(char *str, size_t size, const char *format, ...);
+size_t pa_vsnprintf(char *str, size_t size, const char *format, va_list ap);
 
 char *pa_truncate_utf8(char *c, size_t l);
 

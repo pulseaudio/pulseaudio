@@ -141,7 +141,7 @@ static void fix_tsched_watermark(struct userdata *u) {
     size_t min_sleep, min_wakeup;
     pa_assert(u);
 
-    max_use = u->hwbuf_size - u->hwbuf_unused_frames * u->frame_size;
+    max_use = u->hwbuf_size - (size_t) u->hwbuf_unused_frames * u->frame_size;
 
     min_sleep = pa_usec_to_bytes(TSCHED_MIN_SLEEP_USEC, &u->source->sample_spec);
     min_wakeup = pa_usec_to_bytes(TSCHED_MIN_WAKEUP_USEC, &u->source->sample_spec);
@@ -212,8 +212,8 @@ static int try_recover(struct userdata *u, const char *call, int err) {
 static size_t check_left_to_record(struct userdata *u, snd_pcm_sframes_t n) {
     size_t left_to_record;
 
-    if (n*u->frame_size < u->hwbuf_size)
-        left_to_record = u->hwbuf_size - (n*u->frame_size);
+    if ((size_t) n*u->frame_size < u->hwbuf_size)
+        left_to_record = u->hwbuf_size - ((size_t) n*u->frame_size);
     else
         left_to_record = 0;
 
@@ -256,7 +256,7 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec) {
 
         if (PA_UNLIKELY((n = snd_pcm_avail_update(u->pcm_handle)) < 0)) {
 
-            if ((r = try_recover(u, "snd_pcm_avail_update", n)) == 0)
+            if ((r = try_recover(u, "snd_pcm_avail_update", (int) n)) == 0)
                 continue;
 
             return r;
@@ -277,6 +277,7 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec) {
             snd_pcm_uframes_t offset, frames = (snd_pcm_uframes_t) n;
             pa_memchunk chunk;
             void *p;
+            snd_pcm_sframes_t sframes;
 
 /*             pa_log_debug("%lu frames to read", (unsigned long) frames); */
 
@@ -309,9 +310,9 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec) {
             pa_source_post(u->source, &chunk);
             pa_memblock_unref_fixed(chunk.memblock);
 
-            if (PA_UNLIKELY((err = snd_pcm_mmap_commit(u->pcm_handle, offset, frames)) < 0)) {
+            if (PA_UNLIKELY((sframes = snd_pcm_mmap_commit(u->pcm_handle, offset, frames)) < 0)) {
 
-                if ((r = try_recover(u, "snd_pcm_mmap_commit", err)) == 0)
+                if ((r = try_recover(u, "snd_pcm_mmap_commit", (int) sframes)) == 0)
                     continue;
 
                 return r;
@@ -319,14 +320,14 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec) {
 
             work_done = 1;
 
-            u->frame_index += frames;
+            u->frame_index += (int64_t) frames;
 
 /*             pa_log_debug("read %lu frames", (unsigned long) frames); */
 
             if (frames >= (snd_pcm_uframes_t) n)
                 break;
 
-            n -= frames;
+            n -= (snd_pcm_sframes_t) frames;
         }
     }
 
@@ -353,7 +354,7 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec) {
 
         if (PA_UNLIKELY((n = snd_pcm_avail_update(u->pcm_handle)) < 0)) {
 
-            if ((r = try_recover(u, "snd_pcm_avail_update", n)) == 0)
+            if ((r = try_recover(u, "snd_pcm_avail_update", (int) n)) == 0)
                 continue;
 
             return r;
@@ -375,7 +376,7 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec) {
 
             chunk.memblock = pa_memblock_new(u->core->mempool, (size_t) -1);
 
-            frames = pa_memblock_get_length(chunk.memblock) / u->frame_size;
+            frames = (snd_pcm_sframes_t) (pa_memblock_get_length(chunk.memblock) / u->frame_size);
 
             if (frames > n)
                 frames = n;
@@ -383,7 +384,7 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec) {
 /*             pa_log_debug("%lu frames to read", (unsigned long) n); */
 
             p = pa_memblock_acquire(chunk.memblock);
-            frames = snd_pcm_readi(u->pcm_handle, (uint8_t*) p, frames);
+            frames = snd_pcm_readi(u->pcm_handle, (uint8_t*) p, (snd_pcm_uframes_t) frames);
             pa_memblock_release(chunk.memblock);
 
             pa_assert(frames != 0);
@@ -391,14 +392,14 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec) {
             if (PA_UNLIKELY(frames < 0)) {
                 pa_memblock_unref(chunk.memblock);
 
-                if ((r = try_recover(u, "snd_pcm_readi", n)) == 0)
+                if ((r = try_recover(u, "snd_pcm_readi", (int) (frames))) == 0)
                     continue;
 
                 return r;
             }
 
             chunk.index = 0;
-            chunk.length = frames * u->frame_size;
+            chunk.length = (size_t) frames * u->frame_size;
 
             pa_source_post(u->source, &chunk);
             pa_memblock_unref(chunk.memblock);
@@ -442,7 +443,7 @@ static void update_smoother(struct userdata *u) {
     frames = u->frame_index + delay;
 
     now1 = pa_rtclock_usec();
-    now2 = pa_bytes_to_usec(frames * u->frame_size, &u->source->sample_spec);
+    now2 = pa_bytes_to_usec((uint64_t) frames * u->frame_size, &u->source->sample_spec);
 
     pa_smoother_put(u->smoother, now1, now2);
 }
@@ -457,7 +458,7 @@ static pa_usec_t source_get_latency(struct userdata *u) {
     now1 = pa_rtclock_usec();
     now2 = pa_smoother_get(u->smoother, now1);
 
-    delay = (int64_t) now2 - pa_bytes_to_usec(u->frame_index * u->frame_size, &u->source->sample_spec);
+    delay = (int64_t) now2 - (int64_t) pa_bytes_to_usec((uint64_t) u->frame_index * u->frame_size, &u->source->sample_spec);
 
     if (delay > 0)
         r = (pa_usec_t) delay;
@@ -522,9 +523,9 @@ static int update_sw_params(struct userdata *u) {
             if (PA_UNLIKELY(b < u->frame_size))
                 b = u->frame_size;
 
-            u->hwbuf_unused_frames =
-                PA_LIKELY(b < u->hwbuf_size) ?
-                ((u->hwbuf_size - b) / u->frame_size) : 0;
+            u->hwbuf_unused_frames = (snd_pcm_sframes_t)
+                (PA_LIKELY(b < u->hwbuf_size) ?
+                 ((u->hwbuf_size - b) / u->frame_size) : 0);
 
             fix_tsched_watermark(u);
         }
@@ -724,7 +725,7 @@ static int source_get_volume_cb(pa_source *s) {
                 if ((err = snd_mixer_selem_get_capture_volume(u->mixer_elem, u->mixer_map[i], &alsa_vol)) < 0)
                     goto fail;
 
-                r.values[i] = (pa_volume_t) round(((double) (alsa_vol - u->hw_volume_min) * PA_VOLUME_NORM) / (u->hw_volume_max - u->hw_volume_min));
+                r.values[i] = (pa_volume_t) round(((double) (alsa_vol - u->hw_volume_min) * PA_VOLUME_NORM) / (double) (u->hw_volume_max - u->hw_volume_min));
             }
         }
 
@@ -800,7 +801,7 @@ static int source_set_volume_cb(pa_source *s) {
                 r.values[i] = pa_sw_volume_from_dB((double) alsa_vol / 100.0);
             } else {
 
-                alsa_vol = (long) round(((double) vol * (u->hw_volume_max - u->hw_volume_min)) / PA_VOLUME_NORM) + u->hw_volume_min;
+                alsa_vol = (long) round(((double) vol * (double) (u->hw_volume_max - u->hw_volume_min)) / PA_VOLUME_NORM) + u->hw_volume_min;
                 alsa_vol = PA_CLAMP_UNLIKELY(alsa_vol, u->hw_volume_min, u->hw_volume_max);
 
                 if ((err = snd_mixer_selem_set_capture_volume(u->mixer_elem, u->mixer_map[i], alsa_vol)) < 0)
@@ -809,7 +810,7 @@ static int source_set_volume_cb(pa_source *s) {
                 if ((err = snd_mixer_selem_get_capture_volume(u->mixer_elem, u->mixer_map[i], &alsa_vol)) < 0)
                     goto fail;
 
-                r.values[i] = (pa_volume_t) round(((double) (alsa_vol - u->hw_volume_min) * PA_VOLUME_NORM) / (u->hw_volume_max - u->hw_volume_min));
+                r.values[i] = (pa_volume_t) round(((double) (alsa_vol - u->hw_volume_min) * PA_VOLUME_NORM) / (double) (u->hw_volume_max - u->hw_volume_min));
             }
         }
 
@@ -1043,11 +1044,11 @@ int pa__init(pa_module*m) {
     frame_size = pa_frame_size(&ss);
 
     nfrags = m->core->default_n_fragments;
-    frag_size = pa_usec_to_bytes(m->core->default_fragment_size_msec*PA_USEC_PER_MSEC, &ss);
+    frag_size = (uint32_t) pa_usec_to_bytes(m->core->default_fragment_size_msec*PA_USEC_PER_MSEC, &ss);
     if (frag_size <= 0)
-        frag_size = frame_size;
-    tsched_size = pa_usec_to_bytes(DEFAULT_TSCHED_BUFFER_USEC, &ss);
-    tsched_watermark = pa_usec_to_bytes(DEFAULT_TSCHED_WATERMARK_USEC, &ss);
+        frag_size = (uint32_t) frame_size;
+    tsched_size = (uint32_t) pa_usec_to_bytes(DEFAULT_TSCHED_BUFFER_USEC, &ss);
+    tsched_watermark = (uint32_t) pa_usec_to_bytes(DEFAULT_TSCHED_WATERMARK_USEC, &ss);
 
     if (pa_modargs_get_value_u32(ma, "fragments", &nfrags) < 0 ||
         pa_modargs_get_value_u32(ma, "fragment_size", &frag_size) < 0 ||
@@ -1220,7 +1221,7 @@ int pa__init(pa_module*m) {
     pa_source_set_rtpoll(u->source, u->rtpoll);
 
     u->frame_size = frame_size;
-    u->fragment_size = frag_size = period_frames * frame_size;
+    u->fragment_size = frag_size = (uint32_t) (period_frames * frame_size);
     u->nfragments = nfrags;
     u->hwbuf_size = u->fragment_size * nfrags;
     u->hwbuf_unused_frames = 0;
@@ -1272,7 +1273,7 @@ int pa__init(pa_module*m) {
                 VALGRIND_MAKE_MEM_DEFINED(&u->hw_dB_max, sizeof(u->hw_dB_max));
 #endif
 
-                pa_log_info("Volume ranges from %0.2f dB to %0.2f dB.", u->hw_dB_min/100.0, u->hw_dB_max/100.0);
+                pa_log_info("Volume ranges from %0.2f dB to %0.2f dB.", (double) u->hw_dB_min/100.0, (double) u->hw_dB_max/100.0);
                 pa_assert(u->hw_dB_min < u->hw_dB_max);
                 u->hw_dB_supported = TRUE;
             }

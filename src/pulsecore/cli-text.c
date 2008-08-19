@@ -151,8 +151,10 @@ char *pa_sink_list_to_string(pa_core *c) {
             state_table[pa_sink_get_state(sink)],
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink, FALSE)),
             pa_yes_no(pa_sink_get_mute(sink, FALSE)),
-            (double) pa_sink_get_latency(sink) / PA_USEC_PER_MSEC,
-            (double) pa_sink_get_requested_latency(sink) / PA_USEC_PER_MSEC, (double) min_latency / PA_USEC_PER_MSEC, (double) max_latency / PA_USEC_PER_MSEC,
+            (double) pa_sink_get_latency(sink) / (double) PA_USEC_PER_MSEC,
+            (double) pa_sink_get_requested_latency(sink) / (double) PA_USEC_PER_MSEC,
+            (double) min_latency / PA_USEC_PER_MSEC,
+            (double) max_latency / PA_USEC_PER_MSEC,
             (unsigned long) pa_sink_get_max_request(sink) / 1024,
             (unsigned long) pa_sink_get_max_rewind(sink) / 1024,
             sink->monitor_source ? sink->monitor_source->index : PA_INVALID_INDEX,
@@ -225,7 +227,9 @@ char *pa_source_list_to_string(pa_core *c) {
             pa_cvolume_snprint(cv, sizeof(cv), pa_source_get_volume(source, FALSE)),
             pa_yes_no(pa_source_get_mute(source, FALSE)),
             (double) pa_source_get_latency(source) / PA_USEC_PER_MSEC,
-            (double) pa_source_get_requested_latency(source) / PA_USEC_PER_MSEC, (double) min_latency / PA_USEC_PER_MSEC, (double) max_latency / PA_USEC_PER_MSEC,
+            (double) pa_source_get_requested_latency(source) / PA_USEC_PER_MSEC,
+            (double) min_latency / PA_USEC_PER_MSEC,
+            (double) max_latency / PA_USEC_PER_MSEC,
             (unsigned long) pa_source_get_max_rewind(source) / 1024,
             pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &source->channel_map),
@@ -411,7 +415,7 @@ char *pa_scache_list_to_string(pa_core *c) {
             if (e->memchunk.memblock) {
                 pa_sample_spec_snprint(ss, sizeof(ss), &e->sample_spec);
                 pa_channel_map_snprint(cm, sizeof(cm), &e->channel_map);
-                l = (double) e->memchunk.length / pa_bytes_per_second(&e->sample_spec);
+                l = (double) e->memchunk.length / (double) pa_bytes_per_second(&e->sample_spec);
             }
 
             pa_strbuf_printf(

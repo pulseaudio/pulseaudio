@@ -107,14 +107,14 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
     if (readf_function) {
         size_t k = pa_frame_size(&sample_spec);
 
-        if ((bytes = readf_function(sndfile, data, length/k)) > 0)
-            bytes *= k;
+        if ((bytes = readf_function(sndfile, data, (sf_count_t) (length/k))) > 0)
+            bytes *= (sf_count_t) k;
 
     } else
-        bytes = sf_read_raw(sndfile, data, length);
+        bytes = sf_read_raw(sndfile, data, (sf_count_t) length);
 
     if (bytes > 0)
-        pa_stream_write(s, data, bytes, pa_xfree, 0, PA_SEEK_RELATIVE);
+        pa_stream_write(s, data, (size_t) bytes, pa_xfree, 0, PA_SEEK_RELATIVE);
     else
         pa_xfree(data);
 
@@ -283,7 +283,7 @@ int main(int argc, char *argv[]) {
 
             case ARG_VOLUME: {
                 int v = atoi(optarg);
-                volume = v < 0 ? 0 : v;
+                volume = v < 0 ? 0U : (pa_volume_t) v;
                 break;
             }
 
@@ -315,8 +315,8 @@ int main(int argc, char *argv[]) {
         goto quit;
     }
 
-    sample_spec.rate = sfinfo.samplerate;
-    sample_spec.channels = sfinfo.channels;
+    sample_spec.rate = (uint32_t) sfinfo.samplerate;
+    sample_spec.channels = (uint8_t) sfinfo.channels;
 
     readf_function = NULL;
 

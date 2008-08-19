@@ -195,7 +195,7 @@ static void flush(pa_fdsem *f) {
             continue;
         }
 
-    } while (pa_atomic_sub(&f->data->in_pipe, r) > r);
+    } while (pa_atomic_sub(&f->data->in_pipe, (int) r) > (int) r);
 }
 
 void pa_fdsem_post(pa_fdsem *f) {
@@ -265,7 +265,7 @@ void pa_fdsem_wait(pa_fdsem *f) {
             continue;
         }
 
-        pa_atomic_sub(&f->data->in_pipe, r);
+        pa_atomic_sub(&f->data->in_pipe, (int) r);
     }
 
     pa_assert_se(pa_atomic_dec(&f->data->waiting) >= 1);

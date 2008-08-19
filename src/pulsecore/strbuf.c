@@ -77,7 +77,7 @@ char *pa_strbuf_tostring(pa_strbuf *sb) {
 
     pa_assert(sb);
 
-    e = t = pa_xnew(char, sb->length+1);
+    e = t = pa_xmalloc(sb->length+1);
 
     for (c = sb->head; c; c = c->next) {
         pa_assert((size_t) (e-t) <= sb->length);
@@ -150,8 +150,8 @@ void pa_strbuf_putsn(pa_strbuf *sb, const char *t, size_t l) {
 
 /* Append a printf() style formatted string to the string buffer. */
 /* The following is based on an example from the GNU libc documentation */
-int pa_strbuf_printf(pa_strbuf *sb, const char *format, ...) {
-    int size = 100;
+size_t pa_strbuf_printf(pa_strbuf *sb, const char *format, ...) {
+    size_t size = 100;
     struct chunk *c = NULL;
 
     pa_assert(sb);
@@ -168,14 +168,14 @@ int pa_strbuf_printf(pa_strbuf *sb, const char *format, ...) {
         CHUNK_TO_TEXT(c)[size-1] = 0;
         va_end(ap);
 
-        if (r > -1 && r < size) {
-            c->length = r;
+        if (r > -1 && (size_t) r < size) {
+            c->length = (size_t) r;
             append(sb, c);
-            return r;
+            return (size_t) r;
         }
 
         if (r > -1)    /* glibc 2.1 */
-            size = r+1;
+            size = (size_t) r+1;
         else           /* glibc 2.0 */
             size *= 2;
     }

@@ -46,7 +46,7 @@ static void u8_to_float32ne(unsigned n, const uint8_t *a, float *b) {
     pa_assert(a);
     pa_assert(b);
 
-    oil_scaleconv_f32_u8(b, a, n, &add, &factor);
+    oil_scaleconv_f32_u8(b, a, (int) n, &add, &factor);
 }
 
 static void u8_from_float32ne(unsigned n, const float *a, uint8_t *b) {
@@ -55,7 +55,7 @@ static void u8_from_float32ne(unsigned n, const float *a, uint8_t *b) {
     pa_assert(a);
     pa_assert(b);
 
-    oil_scaleconv_u8_f32(b, a, n, &add, &factor);
+    oil_scaleconv_u8_f32(b, a, (int) n, &add, &factor);
 }
 
 static void u8_to_s16ne(unsigned n, const uint8_t *a, int16_t *b) {
@@ -64,9 +64,9 @@ static void u8_to_s16ne(unsigned n, const uint8_t *a, int16_t *b) {
     pa_assert(a);
     pa_assert(b);
 
-    oil_conv_s16_u8(b, 2, a, 1, n);
-    oil_scalaradd_s16(b, 2, b, 2, &add, n);
-    oil_scalarmult_s16(b, 2, b, 2, &factor, n);
+    oil_conv_s16_u8(b, 2, a, 1, (int) n);
+    oil_scalaradd_s16(b, 2, b, 2, &add, (int) n);
+    oil_scalarmult_s16(b, 2, b, 2, &factor, (int) n);
 }
 
 static void u8_from_s16ne(unsigned n, const int16_t *a, uint8_t *b) {
@@ -84,7 +84,7 @@ static void float32ne_to_float32ne(unsigned n, const float *a, float *b) {
     pa_assert(a);
     pa_assert(b);
 
-    oil_memcpy(b, a, sizeof(float) * n);
+    oil_memcpy(b, a, (int) (sizeof(float) * n));
 }
 
 static void float32re_to_float32ne(unsigned n, const float *a, float *b) {
@@ -101,7 +101,7 @@ static void s16ne_to_s16ne(unsigned n, const int16_t *a, int16_t *b) {
     pa_assert(a);
     pa_assert(b);
 
-    oil_memcpy(b, a, sizeof(int16_t) * n);
+    oil_memcpy(b, a, (int) (sizeof(int16_t) * n));
 }
 
 static void s16re_to_s16ne(unsigned n, const int16_t *a, int16_t *b) {
@@ -109,7 +109,7 @@ static void s16re_to_s16ne(unsigned n, const int16_t *a, int16_t *b) {
     pa_assert(b);
 
     for (; n > 0; n--, a++, b++)
-        *b = PA_UINT16_SWAP(*a);
+        *b = PA_INT16_SWAP(*a);
 }
 
 /* ulaw */
@@ -128,7 +128,7 @@ static void ulaw_from_float32ne(unsigned n, const float *a, uint8_t *b) {
 
     for (; n > 0; n--) {
         float v = *(a++);
-        v = PA_CLAMP_UNLIKELY(v, -1, 1);
+        v = PA_CLAMP_UNLIKELY(v, -1.0f, 1.0f);
         v *= 0x1FFF;
         *(b++) = st_14linear2ulaw((int16_t) v);
     }
@@ -166,7 +166,7 @@ static void alaw_from_float32ne(unsigned n, const float *a, uint8_t *b) {
 
     for (; n > 0; n--, a++, b++) {
         float v = *a;
-        v = PA_CLAMP_UNLIKELY(v, -1, 1);
+        v = PA_CLAMP_UNLIKELY(v, -1.0f, 1.0f);
         v *= 0xFFF;
         *b = st_13linear2alaw((int16_t) v);
     }
@@ -177,7 +177,7 @@ static void alaw_to_s16ne(unsigned n, const int8_t *a, int16_t *b) {
     pa_assert(b);
 
     for (; n > 0; n--, a++, b++)
-        *b = st_alaw2linear16(*a);
+        *b = st_alaw2linear16((uint8_t) *a);
 }
 
 static void alaw_from_s16ne(unsigned n, const int16_t *a, uint8_t *b) {

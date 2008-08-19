@@ -24,11 +24,11 @@
 #include <config.h>
 #endif
 
-#if HAVE_DLFCN_H
+#ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
 #endif
 
-#if HAVE_SYS_DL_H
+#ifdef HAVE_SYS_DL_H
 #include <sys/dl.h>
 #endif
 

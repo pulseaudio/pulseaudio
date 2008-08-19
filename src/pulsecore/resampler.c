@@ -373,7 +373,7 @@ size_t pa_resampler_max_block_size(pa_resampler *r) {
 
     /* We deduce the "largest" sample spec we're using during the
      * conversion */
-    ss.channels = PA_MAX(r->i_ss.channels, r->o_ss.channels);
+    ss.channels = (uint8_t) (PA_MAX(r->i_ss.channels, r->o_ss.channels));
 
     /* We silently assume that the format enum is ordered by size */
     ss.format = PA_MAX(r->i_ss.format, r->o_ss.format);
@@ -642,7 +642,7 @@ static void calc_map_table(pa_resampler *r) {
                 if (n > 0)
                     for (ic = 0; ic < r->i_ss.channels; ic++)
                         if (on_left(r->i_cm.map[ic])) {
-                            r->map_table[oc][ic] = 1.0 / n;
+                            r->map_table[oc][ic] = 1.0f / (float) n;
                             ic_connected[ic] = TRUE;
                         }
 
@@ -663,7 +663,7 @@ static void calc_map_table(pa_resampler *r) {
                 if (n > 0)
                     for (ic = 0; ic < r->i_ss.channels; ic++)
                         if (on_right(r->i_cm.map[ic])) {
-                            r->map_table[oc][ic] = 1.0 / n;
+                            r->map_table[oc][ic] = 1.0f / (float) n;
                             ic_connected[ic] = TRUE;
                         }
 
@@ -684,7 +684,7 @@ static void calc_map_table(pa_resampler *r) {
                 if (n > 0) {
                     for (ic = 0; ic < r->i_ss.channels; ic++)
                         if (on_center(r->i_cm.map[ic])) {
-                            r->map_table[oc][ic] = 1.0 / n;
+                            r->map_table[oc][ic] = 1.0f / (float) n;
                             ic_connected[ic] = TRUE;
                         }
                 } else {
@@ -701,7 +701,7 @@ static void calc_map_table(pa_resampler *r) {
                     if (n > 0)
                         for (ic = 0; ic < r->i_ss.channels; ic++)
                             if (on_left(r->i_cm.map[ic]) || on_right(r->i_cm.map[ic])) {
-                                r->map_table[oc][ic] = 1.0 / n;
+                                r->map_table[oc][ic] = 1.0f / (float) n;
                                 ic_connected[ic] = TRUE;
                             }
 
@@ -716,7 +716,7 @@ static void calc_map_table(pa_resampler *r) {
                  * channels for LFE. */
 
                 for (ic = 0; ic < r->i_ss.channels; ic++) {
-                    r->map_table[oc][ic] = 1.0 / r->i_ss.channels;
+                    r->map_table[oc][ic] = 1.0f / (float) r->i_ss.channels;
 
                     /* Please note that a channel connected to LFE
                      * doesn't really count as connected. */
@@ -763,12 +763,12 @@ static void calc_map_table(pa_resampler *r) {
                 for (ic = 0; ic < r->i_ss.channels; ic++) {
 
                     if (ic_connected[ic]) {
-                        r->map_table[oc][ic] *= .9;
+                        r->map_table[oc][ic] *= .9f;
                         continue;
                     }
 
                     if (on_left(r->i_cm.map[ic]))
-                        r->map_table[oc][ic] = .1 / ic_unconnected_left;
+                        r->map_table[oc][ic] = .1f / (float) ic_unconnected_left;
                 }
             }
         }
@@ -788,12 +788,12 @@ static void calc_map_table(pa_resampler *r) {
                 for (ic = 0; ic < r->i_ss.channels; ic++) {
 
                     if (ic_connected[ic]) {
-                        r->map_table[oc][ic] *= .9;
+                        r->map_table[oc][ic] *= .9f;
                         continue;
                     }
 
                     if (on_right(r->i_cm.map[ic]))
-                        r->map_table[oc][ic] = .1 / ic_unconnected_right;
+                        r->map_table[oc][ic] = .1f / (float) ic_unconnected_right;
                 }
             }
         }
@@ -814,12 +814,12 @@ static void calc_map_table(pa_resampler *r) {
                 for (ic = 0; ic < r->i_ss.channels; ic++)  {
 
                     if (ic_connected[ic]) {
-                        r->map_table[oc][ic] *= .9;
+                        r->map_table[oc][ic] *= .9f;
                         continue;
                     }
 
                     if (on_center(r->i_cm.map[ic])) {
-                        r->map_table[oc][ic] = .1 / ic_unconnected_center;
+                        r->map_table[oc][ic] = .1f / (float) ic_unconnected_center;
                         mixed_in = TRUE;
                     }
                 }
@@ -840,12 +840,12 @@ static void calc_map_table(pa_resampler *r) {
                     for (ic = 0; ic < r->i_ss.channels; ic++)  {
 
                         if (ic_connected[ic]) {
-                            r->map_table[oc][ic] *= .75;
+                            r->map_table[oc][ic] *= .75f;
                             continue;
                         }
 
                         if (on_center(r->i_cm.map[ic]))
-                            r->map_table[oc][ic] = .375 / ic_unconnected_center;
+                            r->map_table[oc][ic] = .375f / (float) ic_unconnected_center;
                     }
                 }
             }
@@ -862,7 +862,7 @@ static void calc_map_table(pa_resampler *r) {
                     continue;
 
                 for (oc = 0; oc < r->o_ss.channels; oc++)
-                    r->map_table[oc][ic] = 0.375 / ic_unconnected_lfe;
+                    r->map_table[oc][ic] = 0.375f / (float) ic_unconnected_lfe;
             }
         }
     }
@@ -905,7 +905,7 @@ static pa_memchunk* convert_to_work_format(pa_resampler *r, pa_memchunk *input) 
     if (!r->to_work_format_func || !input->length)
         return input;
 
-    n_samples = (input->length / r->i_fz) * r->i_ss.channels;
+    n_samples = (unsigned) ((input->length / r->i_fz) * r->i_ss.channels);
 
     r->buf1.index = 0;
     r->buf1.length = r->w_sz * n_samples;
@@ -974,7 +974,7 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
     if (!r->map_required || !input->length)
         return input;
 
-    in_n_samples = input->length / r->w_sz;
+    in_n_samples = (unsigned) (input->length / r->w_sz);
     n_frames = in_n_samples / r->i_ss.channels;
     out_n_samples = n_frames * r->o_ss.channels;
 
@@ -994,8 +994,8 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
 
     memset(dst, 0, r->buf2.length);
 
-    o_skip = r->w_sz * r->o_ss.channels;
-    i_skip = r->w_sz * r->i_ss.channels;
+    o_skip = (int) (r->w_sz * r->o_ss.channels);
+    i_skip = (int) (r->w_sz * r->i_ss.channels);
 
     switch (r->work_format) {
         case PA_SAMPLE_FLOAT32NE:
@@ -1013,7 +1013,7 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
                             (float*) dst + oc, o_skip,
                             (float*) dst + oc, o_skip,
                             (float*) src + ic, i_skip,
-                            n_frames,
+                            (int) n_frames,
                             &one, &r->map_table[oc][ic]);
                 }
             }
@@ -1037,7 +1037,7 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
                                 (int16_t*) dst + oc, o_skip,
                                 (int16_t*) dst + oc, o_skip,
                                 (int16_t*) src + ic, i_skip,
-                                n_frames,
+                                (int) n_frames,
                                 &one, &one);
 
                     } else
@@ -1046,7 +1046,7 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
                                 (int16_t*) dst + oc, o_skip,
                                 (int16_t*) dst + oc, o_skip,
                                 (int16_t*) src + ic, i_skip,
-                                n_frames,
+                                (int) n_frames,
                                 1.0, r->map_table[oc][ic]);
                 }
             }
@@ -1077,8 +1077,8 @@ static pa_memchunk *resample(pa_resampler *r, pa_memchunk *input) {
     if (!r->impl_resample || !input->length)
         return input;
 
-    in_n_samples = input->length / r->w_sz;
-    in_n_frames = in_n_samples / r->o_ss.channels;
+    in_n_samples = (unsigned) (input->length / r->w_sz);
+    in_n_frames = (unsigned) (in_n_samples / r->o_ss.channels);
 
     out_n_frames = ((in_n_frames*r->o_ss.rate)/r->i_ss.rate)+EXTRA_FRAMES;
     out_n_samples = out_n_frames * r->o_ss.channels;
@@ -1112,8 +1112,8 @@ static pa_memchunk *convert_from_work_format(pa_resampler *r, pa_memchunk *input
     if (!r->from_work_format_func || !input->length)
         return input;
 
-    n_samples = input->length / r->w_sz;
-    n_frames =  n_samples / r->o_ss.channels;
+    n_samples = (unsigned) (input->length / r->w_sz);
+    n_frames = n_samples / r->o_ss.channels;
 
     r->buf4.index = 0;
     r->buf4.length = r->o_fz * n_frames;
@@ -1192,7 +1192,7 @@ static void libsamplerate_resample(pa_resampler *r, const pa_memchunk *input, un
     pa_memblock_release(input->memblock);
     pa_memblock_release(output->memblock);
 
-    *out_n_frames = data.output_frames_gen;
+    *out_n_frames = (unsigned) data.output_frames_gen;
 }
 
 static void libsamplerate_update_rates(pa_resampler *r) {
@@ -1354,7 +1354,7 @@ static void trivial_resample(pa_resampler *r, const pa_memchunk *input, unsigned
         pa_assert(o_index * fz < pa_memblock_get_length(output->memblock));
 
         oil_memcpy((uint8_t*) dst + fz * o_index,
-                   (uint8_t*) src + fz * j, fz);
+                   (uint8_t*) src + fz * j, (int) fz);
     }
 
     pa_memblock_release(input->memblock);
@@ -1430,7 +1430,7 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
                 for (c = 0; c < r->o_ss.channels; c++, s++) {
                     int16_t n;
 
-                    n = *s < 0 ? -*s : *s;
+                    n = (int16_t) (*s < 0 ? -*s : *s);
 
                     if (n > r->peaks.max_i[c])
                         r->peaks.max_i[c] = n;
@@ -1523,7 +1523,7 @@ static void ffmpeg_resample(pa_resampler *r, const pa_memchunk *input, unsigned 
         p = pa_memblock_acquire(b);
 
         /* Copy the remaining data into it */
-        l = r->ffmpeg.buf[c].length;
+        l = (unsigned) r->ffmpeg.buf[c].length;
         if (r->ffmpeg.buf[c].memblock) {
             t = (int16_t*) ((uint8_t*) pa_memblock_acquire(r->ffmpeg.buf[c].memblock) + r->ffmpeg.buf[c].index);
             memcpy(p, t, l);
@@ -1543,18 +1543,18 @@ static void ffmpeg_resample(pa_resampler *r, const pa_memchunk *input, unsigned 
         pa_memblock_release(input->memblock);
 
         /* Calculate the resulting number of frames */
-        in = in_n_frames + l / sizeof(int16_t);
+        in = (unsigned) in_n_frames + l / (unsigned) sizeof(int16_t);
 
         /* Allocate buffer for the result */
         w = pa_memblock_new(r->mempool, *out_n_frames * sizeof(int16_t));
         q = pa_memblock_acquire(w);
 
         /* Now, resample */
-        used_frames = av_resample(r->ffmpeg.state,
-                                  q, p,
-                                  &consumed_frames,
-                                  in, *out_n_frames,
-                                  c >= (unsigned) r->o_ss.channels-1);
+        used_frames = (unsigned) av_resample(r->ffmpeg.state,
+                                             q, p,
+                                             &consumed_frames,
+                                             (int) in, (int) *out_n_frames,
+                                             c >= (unsigned) (r->o_ss.channels-1));
 
         pa_memblock_release(b);
 
@@ -1562,8 +1562,8 @@ static void ffmpeg_resample(pa_resampler *r, const pa_memchunk *input, unsigned 
         pa_assert(consumed_frames <= (int) in);
         if (consumed_frames < (int) in) {
             r->ffmpeg.buf[c].memblock = b;
-            r->ffmpeg.buf[c].index = consumed_frames * sizeof(int16_t);
-            r->ffmpeg.buf[c].length = (in - consumed_frames) * sizeof(int16_t);
+            r->ffmpeg.buf[c].index = (size_t) consumed_frames * sizeof(int16_t);
+            r->ffmpeg.buf[c].length = (size_t) (in - (unsigned) consumed_frames) * sizeof(int16_t);
         } else
             pa_memblock_unref(b);
 
@@ -1605,7 +1605,7 @@ static int ffmpeg_init(pa_resampler *r) {
      * internally only uses these hardcoded values, so let's use them
      * here for now as well until ffmpeg makes this configurable. */
 
-    if (!(r->ffmpeg.state = av_resample_init(r->o_ss.rate, r->i_ss.rate, 16, 10, 0, 0.8)))
+    if (!(r->ffmpeg.state = av_resample_init((int) r->o_ss.rate, (int) r->i_ss.rate, 16, 10, 0, 0.8)))
         return -1;
 
     r->impl_free = ffmpeg_free;

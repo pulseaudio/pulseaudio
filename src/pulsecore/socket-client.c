@@ -283,7 +283,7 @@ static int sockaddr_prepare(pa_socket_client *c, const struct sockaddr *sa, size
     else
         pa_make_socket_low_delay(c->fd);
 
-    if (do_connect(c, sa, salen) < 0)
+    if (do_connect(c, sa, (socklen_t) salen) < 0)
         return -1;
 
     return 0;

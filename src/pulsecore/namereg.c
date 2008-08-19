@@ -45,7 +45,7 @@ struct namereg_entry {
     void *data;
 };
 
-static int is_valid_char(char c) {
+static pa_bool_t is_valid_char(char c) {
     return
         (c >= 'a' && c <= 'z') ||
         (c >= 'A' && c <= 'Z') ||
@@ -77,10 +77,10 @@ char* pa_namereg_make_valid_name(const char *name) {
     if (*name == 0)
         return NULL;
 
-    n = pa_xnew(char, strlen(name)+1);
+    n = pa_xmalloc(strlen(name)+1);
 
     for (a = name, b = n; *a && (a-name < PA_NAME_MAX); a++, b++)
-        *b = is_valid_char(*a) ? *a : '_';
+        *b = (char) (is_valid_char(*a) ? *a : '_');
 
     *b = 0;
 
@@ -136,7 +136,7 @@ const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t 
             return NULL;
         }
 
-        k = pa_xnew(char, l+4);
+        k = pa_xmalloc(l+4);
 
         for (i = 2; i <= 99; i++) {
             pa_snprintf(k, l+4, "%s.%u", name, i);

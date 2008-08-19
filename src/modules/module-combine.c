@@ -206,9 +206,9 @@ static void adjust_rates(struct userdata *u) {
             continue;
 
         if (o->total_latency < target_latency)
-            r -= (uint32_t) (((((double) target_latency - o->total_latency))/u->adjust_time)*r/PA_USEC_PER_SEC);
+            r -= (uint32_t) ((((double) (target_latency - o->total_latency))/(double)u->adjust_time)*(double)r/PA_USEC_PER_SEC);
         else if (o->total_latency > target_latency)
-            r += (uint32_t) (((((double) o->total_latency - target_latency))/u->adjust_time)*r/PA_USEC_PER_SEC);
+            r += (uint32_t) ((((double) (o->total_latency - target_latency))/(double)u->adjust_time)*(double)r/PA_USEC_PER_SEC);
 
         if (r < (uint32_t) (base_rate*0.9) || r > (uint32_t) (base_rate*1.1)) {
             pa_log_warn("[%s] sample rates too different, not adjusting (%u vs. %u).", pa_proplist_gets(o->sink_input->proplist, PA_PROP_MEDIA_NAME), base_rate, r);
@@ -389,7 +389,7 @@ static void request_memblock(struct output *o, size_t length) {
 
     /* OK, we need to prepare new data, but only if the sink is actually running */
     if (pa_atomic_load(&o->userdata->thread_info.running))
-        pa_asyncmsgq_send(o->outq, PA_MSGOBJECT(o->userdata->sink), SINK_MESSAGE_NEED, o, length, NULL);
+        pa_asyncmsgq_send(o->outq, PA_MSGOBJECT(o->userdata->sink), SINK_MESSAGE_NEED, o, (int64_t) length, NULL);
 }
 
 /* Called from I/O thread context */

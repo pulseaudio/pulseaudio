@@ -555,7 +555,7 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
     d = pa_xmalloc(length);
 
     assert(sample_length >= length);
-    l = length/pa_frame_size(&sample_spec);
+    l = (sf_count_t) (length/pa_frame_size(&sample_spec));
 
     if ((sf_readf_float(sndfile, d, l)) != l) {
         pa_xfree(d);
@@ -791,11 +791,11 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            sample_spec.format =  PA_SAMPLE_FLOAT32;
-            sample_spec.rate = sfinfo.samplerate;
-            sample_spec.channels = sfinfo.channels;
+            sample_spec.format = PA_SAMPLE_FLOAT32;
+            sample_spec.rate = (uint32_t) sfinfo.samplerate;
+            sample_spec.channels = (uint8_t) sfinfo.channels;
 
-            sample_length = sfinfo.frames*pa_frame_size(&sample_spec);
+            sample_length = (size_t)sfinfo.frames*pa_frame_size(&sample_spec);
         } else if (!strcmp(argv[optind], "play-sample")) {
             action = PLAY_SAMPLE;
             if (argc != optind+2 && argc != optind+3) {
@@ -823,7 +823,7 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            sink_input_idx = atoi(argv[optind+1]);
+            sink_input_idx = (uint32_t) atoi(argv[optind+1]);
             sink_name = pa_xstrdup(argv[optind+2]);
         } else if (!strcmp(argv[optind], "move-source-output")) {
             action = MOVE_SOURCE_OUTPUT;
@@ -832,7 +832,7 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            source_output_idx = atoi(argv[optind+1]);
+            source_output_idx = (uint32_t) atoi(argv[optind+1]);
             source_name = pa_xstrdup(argv[optind+2]);
         } else if (!strcmp(argv[optind], "load-module")) {
             int i;
@@ -852,7 +852,7 @@ int main(int argc, char *argv[]) {
                 n += strlen(argv[i])+1;
 
             if (n > 0) {
-                p = module_args = pa_xnew0(char, n);
+                p = module_args = pa_xmalloc(n);
 
                 for (i = optind+2; i < argc; i++)
                     p += sprintf(p, "%s%s", p == module_args ? "" : " ", argv[i]);
@@ -866,7 +866,7 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            module_index = atoi(argv[optind+1]);
+            module_index = (uint32_t) atoi(argv[optind+1]);
 
         } else if (!strcmp(argv[optind], "suspend-sink")) {
             action = SUSPEND_SINK;

@@ -159,7 +159,7 @@ static int do_read(connection *c) {
 
     connection_assert_ref(c);
 
-    if (!c->sink_input || (l = pa_atomic_load(&c->playback.missing)) <= 0)
+    if (!c->sink_input || (l = (size_t) pa_atomic_load(&c->playback.missing)) <= 0)
         return 0;
 
     if (c->playback.current_memblock) {
@@ -197,12 +197,12 @@ static int do_read(connection *c) {
 
     chunk.memblock = c->playback.current_memblock;
     chunk.index = c->playback.memblock_index;
-    chunk.length = r;
+    chunk.length = (size_t) r;
 
-    c->playback.memblock_index += r;
+    c->playback.memblock_index += (size_t) r;
 
     pa_asyncmsgq_post(c->sink_input->sink->asyncmsgq, PA_MSGOBJECT(c->sink_input), SINK_INPUT_MESSAGE_POST_DATA, NULL, 0, &chunk, NULL);
-    pa_atomic_sub(&c->playback.missing, r);
+    pa_atomic_sub(&c->playback.missing, (int) r);
 
     return 0;
 }
@@ -240,7 +240,7 @@ static int do_write(connection *c) {
         return -1;
     }
 
-    pa_memblockq_drop(c->output_memblockq, r);
+    pa_memblockq_drop(c->output_memblockq, (size_t) r);
 
     return 0;
 }
@@ -377,7 +377,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
         m = pa_memblockq_pop_missing(c->input_memblockq);
 
         if (m > 0)
-            if (pa_atomic_add(&c->playback.missing, m) <= 0)
+            if (pa_atomic_add(&c->playback.missing, (int) m) <= 0)
                 pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
 
         return 0;
@@ -546,7 +546,7 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
 
         pa_sink_input_set_requested_latency(c->sink_input, DEFAULT_SINK_LATENCY);
 
-        l = (size_t) (pa_bytes_per_second(&o->sample_spec)*PLAYBACK_BUFFER_SECONDS);
+        l = (size_t) ((double) pa_bytes_per_second(&o->sample_spec)*PLAYBACK_BUFFER_SECONDS);
         c->input_memblockq = pa_memblockq_new(
                 0,
                 l,
@@ -558,7 +558,7 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
                 NULL);
         pa_iochannel_socket_set_rcvbuf(io, l);
 
-        pa_atomic_store(&c->playback.missing, pa_memblockq_missing(c->input_memblockq));
+        pa_atomic_store(&c->playback.missing, (int) pa_memblockq_missing(c->input_memblockq));
 
         pa_sink_input_put(c->sink_input);
     }

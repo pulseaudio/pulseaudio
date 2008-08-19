@@ -477,12 +477,12 @@ static void fix_record_buffer_attr_pre(record_stream *s, pa_bool_t adjust_latenc
     if (*maxlength == (uint32_t) -1 || *maxlength > MAX_MEMBLOCKQ_LENGTH)
         *maxlength = MAX_MEMBLOCKQ_LENGTH;
     if (*maxlength <= 0)
-        *maxlength = pa_frame_size(&s->source_output->sample_spec);
+        *maxlength = (uint32_t) pa_frame_size(&s->source_output->sample_spec);
 
     if (*fragsize == (uint32_t) -1)
-        *fragsize = pa_usec_to_bytes(DEFAULT_FRAGSIZE_MSEC*PA_USEC_PER_MSEC, &s->source_output->sample_spec);
+        *fragsize = (uint32_t) pa_usec_to_bytes(DEFAULT_FRAGSIZE_MSEC*PA_USEC_PER_MSEC, &s->source_output->sample_spec);
     if (*fragsize <= 0)
-        *fragsize = pa_frame_size(&s->source_output->sample_spec);
+        *fragsize = (uint32_t) pa_frame_size(&s->source_output->sample_spec);
 
     if (adjust_latency) {
         pa_usec_t fragsize_usec;
@@ -501,7 +501,7 @@ static void fix_record_buffer_attr_pre(record_stream *s, pa_bool_t adjust_latenc
         else
             fragsize_usec = s->source_latency;
 
-        *fragsize = pa_usec_to_bytes(fragsize_usec, &s->source_output->sample_spec);
+        *fragsize = (uint32_t) pa_usec_to_bytes(fragsize_usec, &s->source_output->sample_spec);
     } else
         s->source_latency = 0;
 }
@@ -513,7 +513,7 @@ static void fix_record_buffer_attr_post(record_stream *s, uint32_t *maxlength, u
     pa_assert(maxlength);
     pa_assert(fragsize);
 
-    *maxlength = pa_memblockq_get_maxlength(s->memblockq);
+    *maxlength = (uint32_t) pa_memblockq_get_maxlength(s->memblockq);
 
     base = pa_frame_size(&s->source_output->sample_spec);
 
@@ -524,7 +524,7 @@ static void fix_record_buffer_attr_post(record_stream *s, uint32_t *maxlength, u
     if (s->fragment_size > *maxlength)
         s->fragment_size = *maxlength;
 
-    *fragsize = s->fragment_size;
+    *fragsize = (uint32_t) s->fragment_size;
 }
 
 static record_stream* record_stream_new(
@@ -666,10 +666,10 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
             uint32_t l = 0;
 
             for (;;) {
-                if ((l = pa_atomic_load(&s->missing)) <= 0)
+                if ((l = (uint32_t) pa_atomic_load(&s->missing)) <= 0)
                     break;
 
-                if (pa_atomic_cmpxchg(&s->missing, l, 0))
+                if (pa_atomic_cmpxchg(&s->missing, (int) l, 0))
                     break;
             }
 
@@ -749,20 +749,20 @@ static void fix_playback_buffer_attr_pre(playback_stream *s, pa_bool_t adjust_la
     if (*maxlength == (uint32_t) -1 || *maxlength > MAX_MEMBLOCKQ_LENGTH)
         *maxlength = MAX_MEMBLOCKQ_LENGTH;
     if (*maxlength <= 0)
-        *maxlength = frame_size;
+        *maxlength = (uint32_t) frame_size;
 
     if (*tlength == (uint32_t) -1)
-        *tlength = pa_usec_to_bytes(DEFAULT_TLENGTH_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
+        *tlength = (uint32_t) pa_usec_to_bytes(DEFAULT_TLENGTH_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
     if (*tlength <= 0)
-        *tlength = frame_size;
+        *tlength = (uint32_t) frame_size;
 
     if (*minreq == (uint32_t) -1)
-        *minreq = pa_usec_to_bytes(DEFAULT_PROCESS_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
+        *minreq = (uint32_t) pa_usec_to_bytes(DEFAULT_PROCESS_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
     if (*minreq <= 0)
-        *minreq = frame_size;
+        *minreq = (uint32_t) frame_size;
 
     if (*tlength < *minreq+frame_size)
-        *tlength = *minreq+frame_size;
+        *tlength = *minreq+(uint32_t) frame_size;
 
     tlength_usec = pa_bytes_to_usec(*tlength, &s->sink_input->sample_spec);
     minreq_usec = pa_bytes_to_usec(*minreq, &s->sink_input->sample_spec);
@@ -823,16 +823,16 @@ static void fix_playback_buffer_attr_pre(playback_stream *s, pa_bool_t adjust_la
     if (tlength_usec < s->sink_latency + 2*minreq_usec)
         tlength_usec = s->sink_latency + 2*minreq_usec;
 
-    *tlength = pa_usec_to_bytes(tlength_usec, &s->sink_input->sample_spec);
-    *minreq = pa_usec_to_bytes(minreq_usec, &s->sink_input->sample_spec);
+    *tlength = (uint32_t) pa_usec_to_bytes(tlength_usec, &s->sink_input->sample_spec);
+    *minreq = (uint32_t) pa_usec_to_bytes(minreq_usec, &s->sink_input->sample_spec);
 
     if (*minreq <= 0) {
-        *minreq += frame_size;
-        *tlength += frame_size*2;
+        *minreq += (uint32_t) frame_size;
+        *tlength += (uint32_t) frame_size*2;
     }
 
     if (*tlength <= *minreq)
-        *tlength =  *minreq*2 + frame_size;
+        *tlength = *minreq*2 + (uint32_t) frame_size;
 
     if (*prebuf == (uint32_t) -1 || *prebuf > *tlength)
         *prebuf = *tlength;
@@ -996,7 +996,7 @@ static void playback_stream_request_bytes(playback_stream *s) {
 
 /*     pa_log("request_bytes(%lu)", (unsigned long) m); */
 
-    previous_missing = pa_atomic_add(&s->missing, m);
+    previous_missing = (size_t) pa_atomic_add(&s->missing, (int) m);
 
     if (pa_memblockq_prebuf_active(s->memblockq) ||
         (previous_missing < s->minreq && previous_missing+m >= s->minreq))
@@ -1156,7 +1156,7 @@ static void handle_seek(playback_stream *s, int64_t indexw) {
              * let's have it usk us again */
 
             pa_log_debug("Requesting rewind due to rewrite.");
-            pa_sink_input_request_rewind(s->sink_input, indexr - indexw, TRUE, FALSE);
+            pa_sink_input_request_rewind(s->sink_input, (size_t) (indexr - indexw), TRUE, FALSE);
         }
     }
 
@@ -1196,7 +1196,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
             if (pa_memblockq_push_align(s->memblockq, chunk) < 0) {
                 pa_log_warn("Failed to push data into queue");
                 pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_OVERFLOW, NULL, 0, NULL, NULL);
-                pa_memblockq_seek(s->memblockq, chunk->length, PA_SEEK_RELATIVE);
+                pa_memblockq_seek(s->memblockq, (int64_t) chunk->length, PA_SEEK_RELATIVE);
             }
 
             handle_seek(s, windex);
@@ -2239,7 +2239,7 @@ static void command_stat(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
     pa_tagstruct_putu32(reply, (uint32_t) pa_atomic_load(&stat->allocated_size));
     pa_tagstruct_putu32(reply, (uint32_t) pa_atomic_load(&stat->n_accumulated));
     pa_tagstruct_putu32(reply, (uint32_t) pa_atomic_load(&stat->accumulated_size));
-    pa_tagstruct_putu32(reply, pa_scache_total_size(c->protocol->core));
+    pa_tagstruct_putu32(reply, (uint32_t) pa_scache_total_size(c->protocol->core));
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
@@ -2593,7 +2593,7 @@ static void module_fill_tagstruct(pa_tagstruct *t, pa_module *module) {
     pa_tagstruct_putu32(t, module->index);
     pa_tagstruct_puts(t, module->name);
     pa_tagstruct_puts(t, module->argument);
-    pa_tagstruct_putu32(t, module->n_used);
+    pa_tagstruct_putu32(t, (uint32_t) module->n_used);
     pa_tagstruct_put_boolean(t, module->auto_unload);
 }
 
@@ -2666,7 +2666,7 @@ static void scache_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_s
     pa_tagstruct_put_usec(t, e->memchunk.memblock ? pa_bytes_to_usec(e->memchunk.length, &e->sample_spec) : 0);
     pa_tagstruct_put_sample_spec(t, &fixed_ss);
     pa_tagstruct_put_channel_map(t, &e->channel_map);
-    pa_tagstruct_putu32(t, e->memchunk.length);
+    pa_tagstruct_putu32(t, (uint32_t) e->memchunk.length);
     pa_tagstruct_put_boolean(t, e->lazy);
     pa_tagstruct_puts(t, e->filename);
 
@@ -3412,7 +3412,7 @@ static void command_remove_proplist(pa_pdispatch *pd, uint32_t command, uint32_t
         if (!z)
             break;
 
-        changed += pa_proplist_unset(p, z) >= 0;
+        changed += (unsigned) (pa_proplist_unset(p, z) >= 0);
         pa_xfree(z);
     }
 
@@ -3669,7 +3669,7 @@ static void autoload_fill_tagstruct(pa_tagstruct *t, const pa_autoload_entry *e)
 
     pa_tagstruct_putu32(t, e->index);
     pa_tagstruct_puts(t, e->name);
-    pa_tagstruct_putu32(t, e->type == PA_NAMEREG_SINK ? 0 : 1);
+    pa_tagstruct_putu32(t, e->type == PA_NAMEREG_SINK ? 0U : 1U);
     pa_tagstruct_puts(t, e->module);
     pa_tagstruct_puts(t, e->argument);
 }

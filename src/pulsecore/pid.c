@@ -182,9 +182,11 @@ static int proc_name_ours(pid_t pid, const char *procname) {
 
         return !!good;
     }
-#endif
+#else
 
     return 1;
+#endif
+
 }
 
 /* Create a new PID file for the current process. */

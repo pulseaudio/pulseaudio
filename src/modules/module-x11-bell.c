@@ -82,7 +82,7 @@ static int x11_event_cb(pa_x11_wrapper *w, XEvent *e, void *userdata) {
 
     bne = (XkbBellNotifyEvent*) e;
 
-    if (pa_scache_play_item_by_name(u->core, u->scache_item, u->sink_name, TRUE, (bne->percent*PA_VOLUME_NORM)/100, NULL, NULL) < 0) {
+    if (pa_scache_play_item_by_name(u->core, u->scache_item, u->sink_name, TRUE, ((pa_volume_t) bne->percent*PA_VOLUME_NORM)/100U, NULL, NULL) < 0) {
         pa_log_info("Ringing bell failed, reverting to X11 device bell.");
         XkbForceDeviceBell(pa_x11_wrapper_get_display(w), bne->device, bne->bell_class, bne->bell_id, bne->percent);
     }

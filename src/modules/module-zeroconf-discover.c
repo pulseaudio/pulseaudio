@@ -173,9 +173,9 @@ static void resolver_cb(
                 device = value;
                 value = NULL;
             } else if (strcmp(key, "rate") == 0)
-                ss.rate = atoi(value);
+                ss.rate = (uint32_t) atoi(value);
             else if (strcmp(key, "channels") == 0)
-                ss.channels = atoi(value);
+                ss.channels = (uint8_t) atoi(value);
             else if (strcmp(key, "format") == 0)
                 ss.format = pa_parse_sample_format(value);
             else if (strcmp(key, "channel_map") == 0) {

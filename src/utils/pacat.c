@@ -274,8 +274,8 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
             if (latency > 0) {
                 memset(&buffer_attr, 0, sizeof(buffer_attr));
-                buffer_attr.tlength = latency;
-                buffer_attr.minreq = process_time;
+                buffer_attr.tlength = (uint32_t) latency;
+                buffer_attr.minreq = (uint32_t) process_time;
                 buffer_attr.maxlength = (uint32_t) -1;
                 buffer_attr.prebuf = (uint32_t) -1;
                 flags |= PA_STREAM_ADJUST_LATENCY;
@@ -391,7 +391,7 @@ static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_even
         return;
     }
 
-    buffer_length = r;
+    buffer_length = (uint32_t) r;
     buffer_index = 0;
 
     if (w)
@@ -422,8 +422,8 @@ static void stdout_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_eve
         return;
     }
 
-    buffer_length -= r;
-    buffer_index += r;
+    buffer_length -= (uint32_t) r;
+    buffer_index += (uint32_t) r;
 
     if (!buffer_length) {
         pa_xfree(buffer);
@@ -456,7 +456,7 @@ static void stream_update_timing_callback(pa_stream *s, int success, void *userd
 
     fprintf(stderr, _("Time: %0.3f sec; Latency: %0.0f usec.  \r"),
             (float) usec / 1000000,
-            (float) l * (negative?-1:1));
+            (float) l * (negative?-1.0f:1.0f));
 }
 
 /* Someone requested that the latency is shown */
@@ -626,12 +626,12 @@ int main(int argc, char *argv[]) {
 
             case ARG_VOLUME: {
                 int v = atoi(optarg);
-                volume = v < 0 ? 0 : v;
+                volume = v < 0 ? 0U : (pa_volume_t) v;
                 break;
             }
 
             case ARG_CHANNELS:
-                sample_spec.channels = atoi(optarg);
+                sample_spec.channels = (uint8_t) atoi(optarg);
                 break;
 
             case ARG_SAMPLEFORMAT:
@@ -639,7 +639,7 @@ int main(int argc, char *argv[]) {
                 break;
 
             case ARG_SAMPLERATE:
-                sample_spec.rate = atoi(optarg);
+                sample_spec.rate = (uint32_t) atoi(optarg);
                 break;
 
             case ARG_CHANNELMAP:
@@ -672,14 +672,14 @@ int main(int argc, char *argv[]) {
                 break;
 
             case ARG_LATENCY:
-                if (((latency = atoi(optarg))) <= 0) {
+                if (((latency = (size_t) atoi(optarg))) <= 0) {
                     fprintf(stderr, _("Invalid latency specification '%s'\n"), optarg);
                     goto quit;
                 }
                 break;
 
             case ARG_PROCESS_TIME:
-                if (((process_time = atoi(optarg))) <= 0) {
+                if (((process_time = (size_t) atoi(optarg))) <= 0) {
                     fprintf(stderr, _("Invalid process time specification '%s'\n"), optarg);
                     goto quit;
                 }

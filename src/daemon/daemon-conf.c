@@ -288,14 +288,14 @@ static int parse_sample_format(const char *filename, unsigned line, const char *
 
 static int parse_sample_rate(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     pa_daemon_conf *c = data;
-    int32_t r;
+    uint32_t r;
 
     pa_assert(filename);
     pa_assert(lvalue);
     pa_assert(rvalue);
     pa_assert(data);
 
-    if (pa_atoi(rvalue, &r) < 0 || r > (int32_t) PA_RATE_MAX || r <= 0) {
+    if (pa_atou(rvalue, &r) < 0 || r > (uint32_t) PA_RATE_MAX || r <= 0) {
         pa_log(_("[%s:%u] Invalid sample rate '%s'."), filename, line, rvalue);
         return -1;
     }

@@ -100,7 +100,7 @@ static void reset_cpu_time(int t) {
     n = ru.ru_utime.tv_sec + ru.ru_stime.tv_sec + t;
     pa_assert_se(getrlimit(RLIMIT_CPU, &rl) >= 0);
 
-    rl.rlim_cur = n;
+    rl.rlim_cur = (rlim_t) n;
     pa_assert_se(setrlimit(RLIMIT_CPU, &rl) >= 0);
 }
 
@@ -130,7 +130,7 @@ static void signal_handler(int sig) {
         write_err(t);
 #endif
 
-        if (CPUTIME_INTERVAL_SOFT >= ((now-last_time)*(double)CPUTIME_PERCENT/100)) {
+        if ((double) CPUTIME_INTERVAL_SOFT >= ((double) (now-last_time)*(double)CPUTIME_PERCENT/100)) {
             static const char c = 'X';
 
             write_err("Soft CPU time limit exhausted, terminating.\n");

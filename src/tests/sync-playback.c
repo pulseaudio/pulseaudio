@@ -89,7 +89,7 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
 
             fprintf(stderr, "Writing data to stream %i.\n", i);
 
-            r = pa_stream_write(s, data, sizeof(data), nop_free_cb, sizeof(data) * i, PA_SEEK_ABSOLUTE);
+            r = pa_stream_write(s, data, sizeof(data), nop_free_cb, (int64_t) sizeof(data) * (int64_t) i, PA_SEEK_ABSOLUTE);
             assert(r == 0);
 
             /* Be notified when this stream is drained */

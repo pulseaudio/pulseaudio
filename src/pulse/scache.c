@@ -47,6 +47,7 @@ int pa_stream_connect_upload(pa_stream *s, size_t length) {
 
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_UNCONNECTED, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, length > 0, PA_ERR_INVALID);
+    PA_CHECK_VALIDITY(s->context, length == (size_t) (uint32_t) length, PA_ERR_INVALID);
 
     if (!(name = pa_proplist_gets(s->proplist, PA_PROP_EVENT_ID)))
         name = pa_proplist_gets(s->proplist, PA_PROP_MEDIA_NAME);
@@ -63,7 +64,7 @@ int pa_stream_connect_upload(pa_stream *s, size_t length) {
     pa_tagstruct_puts(t, name);
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);
     pa_tagstruct_put_channel_map(t, &s->channel_map);
-    pa_tagstruct_putu32(t, length);
+    pa_tagstruct_putu32(t, (uint32_t) length);
 
     if (s->context->version >= 13) {
         pa_init_proplist(s->proplist);

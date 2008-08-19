@@ -103,7 +103,7 @@ static pa_cvolume* parse_volume(const char *s, pa_cvolume *v) {
     if (k <= 0 || k > (long) PA_CHANNELS_MAX)
         return NULL;
 
-    v->channels = (unsigned) k;
+    v->channels = (uint8_t) k;
 
     for (i = 0; i < v->channels; i++) {
         p += strspn(p, WHITESPACE);
