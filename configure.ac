@@ -296,6 +296,7 @@ AC_CHECK_HEADERS([windows.h winsock2.h ws2tcpip.h])
 AC_CHECK_HEADERS([sys/ioctl.h])
 AC_CHECK_HEADERS([byteswap.h])
 AC_CHECK_HEADERS([sys/syscall.h])
+AC_CHECK_HEADERS([sys/eventfd.h])
 
 #### Typdefs, structures, etc. ####
 

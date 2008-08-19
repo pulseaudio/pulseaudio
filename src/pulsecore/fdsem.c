@@ -41,39 +41,15 @@
 #include <pulsecore/pipe.h>
 #endif
 
-#ifdef __linux__
-
-#if !defined(__NR_eventfd) && defined(__i386__)
-#define __NR_eventfd 323
-#endif
-
-#if !defined(__NR_eventfd) && defined(__x86_64__)
-#define __NR_eventfd 284
-#endif
-
-#if !defined(__NR_eventfd) && defined(__arm__)
-#define __NR_eventfd (__NR_SYSCALL_BASE+351)
-#endif
-
-#if !defined(SYS_eventfd) && defined(__NR_eventfd)
-#define SYS_eventfd __NR_eventfd
-#endif
-
-#ifdef SYS_eventfd
-#define HAVE_EVENTFD
-
-static inline long eventfd(unsigned count) {
-    return syscall(SYS_eventfd, count);
-}
-
-#endif
+#ifdef HAVE_SYS_EVENTFD_H
+#include <sys/eventfd.h>
 #endif
 
 #include "fdsem.h"
 
 struct pa_fdsem {
     int fds[2];
-#ifdef HAVE_EVENTFD
+#ifdef HAVE_SYS_EVENTFD_H
     int efd;
 #endif
 
@@ -85,8 +61,8 @@ pa_fdsem *pa_fdsem_new(void) {
 
     f = pa_xmalloc(PA_ALIGN(sizeof(pa_fdsem)) + PA_ALIGN(sizeof(pa_fdsem_data)));
 
-#ifdef HAVE_EVENTFD
-    if ((f->efd = eventfd(0)) >= 0) {
+#ifdef HAVE_SYS_EVENTFD_H
+    if ((f->efd = eventfd(0, 0)) >= 0) {
         pa_make_fd_cloexec(f->efd);
         f->fds[0] = f->fds[1] = -1;
     } else
@@ -116,7 +92,7 @@ pa_fdsem *pa_fdsem_open_shm(pa_fdsem_data *data, int event_fd) {
     pa_assert(data);
     pa_assert(event_fd >= 0);
 
-#ifdef HAVE_EVENTFD
+#ifdef HAVE_SYS_EVENTFD_H
     f = pa_xnew(pa_fdsem, 1);
 
     f->efd = event_fd;
@@ -134,11 +110,11 @@ pa_fdsem *pa_fdsem_new_shm(pa_fdsem_data *data, int* event_fd) {
     pa_assert(data);
     pa_assert(event_fd);
 
-#ifdef HAVE_EVENTFD
+#ifdef HAVE_SYS_EVENTFD_H
 
     f = pa_xnew(pa_fdsem, 1);
 
-    if ((f->efd = eventfd(0)) < 0) {
+    if ((f->efd = eventfd(0, 0)) < 0) {
         pa_xfree(f);
         return NULL;
     }
@@ -159,7 +135,7 @@ pa_fdsem *pa_fdsem_new_shm(pa_fdsem_data *data, int* event_fd) {
 void pa_fdsem_free(pa_fdsem *f) {
     pa_assert(f);
 
-#ifdef HAVE_EVENTFD
+#ifdef HAVE_SYS_EVENTFD_H
     if (f->efd >= 0)
         pa_close(f->efd);
 #endif
@@ -178,7 +154,7 @@ static void flush(pa_fdsem *f) {
     do {
         char x[10];
 
-#ifdef HAVE_EVENTFD
+#ifdef HAVE_SYS_EVENTFD_H
         if (f->efd >= 0) {
             uint64_t u;
 
@@ -211,7 +187,7 @@ void pa_fdsem_post(pa_fdsem *f) {
 
             for (;;) {
 
-#ifdef HAVE_EVENTFD
+#ifdef HAVE_SYS_EVENTFD_H
                 if (f->efd >= 0) {
                     uint64_t u = 1;
 
@@ -247,7 +223,7 @@ void pa_fdsem_wait(pa_fdsem *f) {
         char x[10];
         ssize_t r;
 
-#ifdef HAVE_EVENTFD
+#ifdef HAVE_SYS_EVENTFD_H
         if (f->efd >= 0) {
             uint64_t u;
 
@@ -285,7 +261,7 @@ int pa_fdsem_try(pa_fdsem *f) {
 int pa_fdsem_get(pa_fdsem *f) {
     pa_assert(f);
 
-#ifdef HAVE_EVENTFD
+#ifdef HAVE_SYS_EVENTFD_H
     if (f->efd >= 0)
         return f->efd;
 #endif
