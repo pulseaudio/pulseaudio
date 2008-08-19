@@ -23,6 +23,7 @@
 ***/
 
 #include <pulsecore/macro.h>
+#include <pulse/sample.h>
 
 struct timeval;
 
