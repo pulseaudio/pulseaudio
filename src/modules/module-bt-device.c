@@ -652,13 +652,13 @@ filled_up:
         pa_log_debug("SCO thread going to sleep");
         pollfd->events = PA_SINK_IS_OPENED(u->sink->thread_info.state) ? POLLOUT : 0;
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0) {
-            pa_log("ret < 0");
+            pa_log("rtpoll_run < 0");
             goto fail;
         }
         pa_log_debug("SCO thread waking up");
 
         if (ret == 0) {
-            pa_log_warn("ret == 0");
+            pa_log_debug("rtpoll_run == 0");
             goto finish;
         }
 
@@ -814,7 +814,7 @@ avdtp_write:
         pa_log_debug("A2DP thread waking up");
 
         if (ret == 0) {
-            pa_log_warn("ret == 0");
+            pa_log_debug("rtpoll_run == 0");
             goto finish;
         }
 
@@ -967,5 +967,42 @@ fail:
 }
 
 void pa__done(pa_module *m) {
-}
+    struct userdata *u;
+    pa_assert(m);
 
+    if (!(u = m->userdata))
+        return;
+
+    if (u->sink)
+        pa_sink_unlink(u->sink);
+
+    if (u->thread) {
+        pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
+        pa_thread_free(u->thread);
+    }
+
+    pa_thread_mq_done(&u->thread_mq);
+
+    if (u->sink)
+        pa_sink_unref(u->sink);
+
+    if (u->rtpoll_item)
+        pa_rtpoll_item_free(u->rtpoll_item);
+
+    if (u->rtpoll)
+        pa_rtpoll_free(u->rtpoll);
+
+    if (u->memchunk.memblock)
+        pa_memblock_unref(u->memchunk.memblock);
+
+    if (u->smoother)
+        pa_smoother_free(u->smoother);
+
+    if (u->stream_fd >= 0)
+        pa_close(u->stream_fd);
+
+    if (u->audioservice_fd >= 0)
+        pa_close(u->audioservice_fd);
+
+    pa_xfree(u);
+}
