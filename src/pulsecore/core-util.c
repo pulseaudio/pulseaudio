@@ -2041,7 +2041,7 @@ void *pa_will_need(const void *p, size_t l) {
         return (void*) p;
     }
 
-    bs = PA_PAGE_ALIGN(rlim.rlim_cur);
+    bs = PA_PAGE_ALIGN((size_t) rlim.rlim_cur);
 #else
     bs = PA_PAGE_SIZE*4;
 #endif

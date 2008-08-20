@@ -1178,10 +1178,10 @@ static void libsamplerate_resample(pa_resampler *r, const pa_memchunk *input, un
     memset(&data, 0, sizeof(data));
 
     data.data_in = (float*) ((uint8_t*) pa_memblock_acquire(input->memblock) + input->index);
-    data.input_frames = in_n_frames;
+    data.input_frames = (long int) in_n_frames;
 
     data.data_out = (float*) ((uint8_t*) pa_memblock_acquire(output->memblock) + output->index);
-    data.output_frames = *out_n_frames;
+    data.output_frames = (long int) *out_n_frames;
 
     data.src_ratio = (double) r->o_ss.rate / r->i_ss.rate;
     data.end_of_input = 0;

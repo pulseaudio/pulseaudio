@@ -233,7 +233,7 @@ static void time_callback(pa_mainloop_api*a, pa_time_event* e, const struct time
     adjust_rates(u);
 
     pa_gettimeofday(&n);
-    n.tv_sec += u->adjust_time;
+    n.tv_sec += (time_t) u->adjust_time;
     u->sink->core->mainloop->time_restart(e, &n);
 }
 
@@ -1159,7 +1159,7 @@ int pa__init(pa_module*m) {
     if (u->adjust_time > 0) {
         struct timeval tv;
         pa_gettimeofday(&tv);
-        tv.tv_sec += u->adjust_time;
+        tv.tv_sec += (time_t) u->adjust_time;
         u->time_event = m->core->mainloop->time_new(m->core->mainloop, &tv, time_callback, u);
     }
 

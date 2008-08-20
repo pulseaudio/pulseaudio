@@ -435,9 +435,9 @@ int pa_tagstruct_get_timeval(pa_tagstruct*t, struct timeval *tv) {
         return -1;
 
     memcpy(&tv->tv_sec, t->data+t->rindex+1, 4);
-    tv->tv_sec = ntohl((uint32_t) tv->tv_sec);
+    tv->tv_sec = (time_t) ntohl((uint32_t) tv->tv_sec);
     memcpy(&tv->tv_usec, t->data+t->rindex+5, 4);
-    tv->tv_usec = ntohl((uint32_t) tv->tv_usec);
+    tv->tv_usec = (suseconds_t) ntohl((uint32_t) tv->tv_usec);
     t->rindex += 9;
     return 0;
 }

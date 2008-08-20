@@ -899,7 +899,7 @@ static void thread_func(void *userdata) {
                 ssize_t l;
                 pa_bool_t loop = FALSE, work_done = FALSE;
 
-                l = u->out_fragment_size;
+                l = (ssize_t) u->out_fragment_size;
 
                 if (u->use_getospace) {
                     audio_buf_info info;
@@ -920,14 +920,14 @@ static void thread_func(void *userdata) {
                 /* Round down to multiples of the fragment size,
                  * because OSS needs that (at least some versions
                  * do) */
-                l = (l/u->out_fragment_size) * u->out_fragment_size;
+                l = (l/(ssize_t) u->out_fragment_size) * (ssize_t) u->out_fragment_size;
 
                 /* Hmm, so poll() signalled us that we can read
                  * something, but GETOSPACE told us there was nothing?
                  * Hmm, make the best of it, try to read some data, to
                  * avoid spinning forever. */
                 if (l <= 0 && (revents & POLLOUT)) {
-                    l = u->out_fragment_size;
+                    l = (ssize_t) u->out_fragment_size;
                     loop = FALSE;
                 }
 
@@ -1010,7 +1010,7 @@ static void thread_func(void *userdata) {
                 pa_memchunk memchunk;
                 pa_bool_t loop = FALSE, work_done = FALSE;
 
-                l = u->in_fragment_size;
+                l = (ssize_t) u->in_fragment_size;
 
                 if (u->use_getispace) {
                     audio_buf_info info;
@@ -1024,10 +1024,10 @@ static void thread_func(void *userdata) {
                     }
                 }
 
-                l = (l/u->in_fragment_size) * u->in_fragment_size;
+                l = (l/(ssize_t) u->in_fragment_size) * (ssize_t) u->in_fragment_size;
 
                 if (l <= 0 && (revents & POLLIN)) {
-                    l = u->in_fragment_size;
+                    l = (ssize_t) u->in_fragment_size;
                     loop = FALSE;
                 }
 
