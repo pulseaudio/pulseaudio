@@ -67,7 +67,7 @@ PA_MODULE_USAGE(
 struct bt_a2dp {
     sbc_capabilities_t sbc_capabilities;
     sbc_t sbc;                           /* Codec data */
-    int sbc_initialized;                 /* Keep track if the encoder is initialized */
+    pa_bool_t sbc_initialized;           /* Keep track if the encoder is initialized */
     int codesize;                        /* SBC codesize */
     int samples;                         /* Number of encoded samples */
     uint8_t buffer[BUFFER_SIZE];         /* Codec transfer buffer */
@@ -343,7 +343,7 @@ static void bt_a2dp_setup(struct bt_a2dp *a2dp) {
         sbc_reinit(&a2dp->sbc, 0);
     else
         sbc_init(&a2dp->sbc, 0);
-    a2dp->sbc_initialized = 1;
+    a2dp->sbc_initialized = TRUE;
 
     if (active_capabilities.frequency & BT_SBC_SAMPLING_FREQ_16000)
         a2dp->sbc.frequency = SBC_FREQ_16000;
@@ -852,7 +852,7 @@ int pa__init(pa_module* m) {
     u->transport = -1;
     u->offset = 0;
     u->latency = 0;
-    u->a2dp.sbc_initialized = 0;
+    u->a2dp.sbc_initialized = FALSE;
     u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE, 10);
     u->mempool = pa_mempool_new(FALSE);
     pa_memchunk_reset(&u->memchunk);
