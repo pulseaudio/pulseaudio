@@ -185,8 +185,7 @@ static int bt_getcaps(struct userdata *u) {
         pa_log_error("invalid profile argument: %s", u->profile);
         return -1;
     }
-    getcaps_req->flags = 0;
-    getcaps_req->flags |= BT_FLAG_AUTOCONNECT;
+    getcaps_req->flags = BT_FLAG_AUTOCONNECT;
 
     e = bt_audioservice_send(u->audioservice_fd, &getcaps_req->h);
     if (e < 0) {
