@@ -97,8 +97,6 @@ struct userdata {
     char *name;
     char *addr;
     char *profile;
-    int rate;
-    int channels;
     pa_sample_spec ss;
 
     int audioservice_fd;
@@ -251,7 +249,7 @@ static int bt_a2dp_init(struct userdata *u) {
     sbc_capabilities_t *cap = &u->a2dp.sbc_capabilities;
     unsigned int max_bitpool, min_bitpool;
 
-    switch (u->rate) {
+    switch (u->ss.rate) {
         case 48000:
             cap->frequency = BT_SBC_SAMPLING_FREQ_48000;
             break;
@@ -265,14 +263,14 @@ static int bt_a2dp_init(struct userdata *u) {
             cap->frequency = BT_SBC_SAMPLING_FREQ_16000;
             break;
         default:
-            pa_log_error("Rate %d not supported", u->rate);
+            pa_log_error("Rate %d not supported", u->ss.rate);
             return -1;
     }
 
 //    if (cfg->has_channel_mode)
 //        cap->channel_mode = cfg->channel_mode;
 //    else 
-    if (u->channels == 2) {
+    if (u->ss.channels == 2) {
         if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_JOINT_STEREO)
             cap->channel_mode = BT_A2DP_CHANNEL_MODE_JOINT_STEREO;
         else if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_STEREO)
@@ -417,9 +415,6 @@ static int bt_setconf(struct userdata *u) {
     }
     else
         u->ss.format = PA_SAMPLE_U8;
-
-    u->ss.rate = u->rate;
-    u->ss.channels = u->channels;
 
     memset(setconf_req, 0, BT_AUDIO_IPC_PACKET_SIZE);
     setconf_req->h.msg_type = BT_SETCONFIGURATION_REQ;
@@ -837,7 +832,6 @@ finish:
 
 int pa__init(pa_module* m) {
     int e;
-    const char *rate, *channels;
     pa_modargs *ma;
     pa_sink_new_data data;
     struct pollfd *pollfd;
@@ -876,11 +870,11 @@ int pa__init(pa_module* m) {
         pa_log_error("failed to get profile from module arguments");
         goto fail;
     }
-    if (pa_modargs_get_value_u32(ma, "rate", &u->rate) < 0) {
+    if (pa_modargs_get_value_u32(ma, "rate", &u->ss.rate) < 0) {
         pa_log_error("failed to get rate from module arguments");
         goto fail;
     }
-    if (pa_modargs_get_value_u32(ma, "channels", &u->channels) < 0) {
+    if (pa_modargs_get_value_u32(ma, "channels", &u->ss.channels) < 0) {
         pa_log_error("failed to get channels from module arguments");
         goto fail;
     }
