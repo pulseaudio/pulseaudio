@@ -94,9 +94,9 @@ struct userdata {
     pa_memchunk memchunk;
     pa_mempool *mempool;
 
-    const char *name;
-    const char *addr;
-    const char *profile;
+    char *name;
+    char *addr;
+    char *profile;
     int rate;
     int channels;
     pa_sample_spec ss;
@@ -994,9 +994,19 @@ void pa__done(pa_module *m) {
 
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
+    /* TODO: free mempool */
 
     if (u->smoother)
         pa_smoother_free(u->smoother);
+
+    if (u->name)
+        pa_xfree(u->name);
+
+    if (u->addr)
+        pa_xfree(u->addr);
+
+    if (u->profile)
+        pa_xfree(u->profile);
 
     if (u->stream_fd >= 0)
         pa_close(u->stream_fd);
