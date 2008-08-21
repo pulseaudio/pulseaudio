@@ -323,8 +323,8 @@ static int bt_a2dp_init(struct userdata *u) {
 //    if (cfg->has_bitpool)
 //        min_bitpool = max_bitpool = cfg->bitpool;
 //    else {
-    min_bitpool = MAX(MIN_BITPOOL, cap->min_bitpool);
-    max_bitpool = MIN(default_bitpool(cap->frequency, cap->channel_mode), cap->max_bitpool);
+    min_bitpool = PA_MAX(MIN_BITPOOL, cap->min_bitpool);
+    max_bitpool = PA_MIN(default_bitpool(cap->frequency, cap->channel_mode), cap->max_bitpool);
 //    }
 
     cap->min_bitpool = min_bitpool;
