@@ -673,6 +673,92 @@ finish:
     pa_log_debug("SCO thread shutting down");
 }
 
+static int a2dp_process_render(struct userdata *u) {
+    ssize_t l;
+    int write_type = 0, written;
+    struct bt_a2dp *a2dp = &u->a2dp;
+    struct rtp_header *header = (void *) a2dp->buffer;
+    struct rtp_payload *payload = (void *) (a2dp->buffer + sizeof(*header));
+
+    pa_assert(u);
+
+    do {
+        /* Render some data */
+        int frame_size, encoded;
+        void *p;
+
+        u->memchunk.memblock = pa_memblock_new(u->mempool, u->block_size);
+        pa_log_debug("memblock asked size %d", u->block_size);
+        u->memchunk.length = pa_memblock_get_length(u->memchunk.memblock);
+        pa_log_debug("memchunk length %d", u->memchunk.length);
+        pa_sink_render_into_full(u->sink, &u->memchunk);
+
+        pa_assert(u->memchunk.length > 0);
+
+        p = pa_memblock_acquire(u->memchunk.memblock);
+        frame_size = sbc_get_frame_length(&a2dp->sbc);
+        pa_log_debug("SBC frame_size: %d", frame_size);
+
+        encoded = sbc_encode(&a2dp->sbc, (uint8_t*) p, a2dp->codesize, a2dp->buffer + a2dp->count,
+                sizeof(a2dp->buffer) - a2dp->count, &written);
+        pa_log_debug("SBC: encoded: %d; written: %d", encoded, written);
+        if (encoded <= 0) {
+            pa_log_error("SBC encoding error (%d)", encoded);
+            return -1;
+        }
+        pa_memblock_release(u->memchunk.memblock);
+        pa_memblock_unref(u->memchunk.memblock);
+        pa_memchunk_reset(&u->memchunk);
+        pa_log_debug("memchunk reseted");
+
+        a2dp->count += written;
+        a2dp->frame_count++;
+        a2dp->samples += encoded / frame_size;
+        a2dp->nsamples += encoded / frame_size;
+
+    } while (a2dp->count + written <= u->link_mtu);
+
+    /* write it to the fifo */
+    memset(a2dp->buffer, 0, sizeof(*header) + sizeof(*payload));
+    payload->frame_count = a2dp->frame_count;
+    header->v = 2;
+    header->pt = 1;
+    header->sequence_number = htons(a2dp->seq_num);
+    header->timestamp = htonl(a2dp->nsamples);
+    header->ssrc = htonl(1);
+
+avdtp_write:
+    l = pa_write(u->stream_fd, a2dp->buffer, a2dp->count, write_type);
+    pa_log_debug("avdtp_write: requested %d bytes; written %d bytes", a2dp->count, l);
+
+    pa_assert(l != 0);
+
+    if (l < 0) {
+        if (errno == EINTR) {
+            pa_log_debug("EINTR");
+            goto avdtp_write;
+        }
+        else if (errno == EAGAIN) {
+            pa_log_debug("EAGAIN");
+            goto avdtp_write;
+        }
+        else {
+            pa_log_error("Failed to write data to FIFO: %s", pa_cstrerror(errno));
+            return -1;
+        }
+    }
+
+    u->offset += a2dp->codesize*a2dp->frame_count;
+
+    /* Reset buffer of data to send */
+    a2dp->count = sizeof(struct rtp_header) + sizeof(struct rtp_payload);
+    a2dp->frame_count = 0;
+    a2dp->samples = 0;
+    a2dp->seq_num++;
+
+    return 0;
+}
+
 static void a2dp_thread_func(void *userdata) {
     struct userdata *u = userdata;
 
@@ -688,6 +774,8 @@ static void a2dp_thread_func(void *userdata) {
     for (;;) {
         int ret;
         struct pollfd *pollfd;
+        int64_t n;
+        pa_usec_t usec;
 
         if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
             if (u->sink->thread_info.rewind_requested) {
@@ -698,88 +786,9 @@ static void a2dp_thread_func(void *userdata) {
         pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
 
         if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && pollfd->revents) {
-            pa_usec_t usec;
-            int64_t n;
-            ssize_t l;
-            int write_type = 0, written;
-            struct bt_a2dp *a2dp = &u->a2dp;
-            struct rtp_header *header = (void *) a2dp->buffer;
-            struct rtp_payload *payload = (void *) (a2dp->buffer + sizeof(*header));
-
-            do {
-                /* Render some data */
-                int frame_size, encoded;
-                void *p;
-
-                u->memchunk.memblock = pa_memblock_new(u->mempool, u->block_size);
-                pa_log_debug("memblock asked size %d", u->block_size);
-                u->memchunk.length = pa_memblock_get_length(u->memchunk.memblock);
-                pa_log_debug("memchunk length %d", u->memchunk.length);
-                pa_sink_render_into_full(u->sink, &u->memchunk);
-
-                pa_assert(u->memchunk.length > 0);
-
-                p = pa_memblock_acquire(u->memchunk.memblock);
-                frame_size = sbc_get_frame_length(&a2dp->sbc);
-                pa_log_debug("SBC frame_size: %d", frame_size);
-
-                encoded = sbc_encode(&a2dp->sbc, (uint8_t*) p, a2dp->codesize, a2dp->buffer + a2dp->count,
-                        sizeof(a2dp->buffer) - a2dp->count, &written);
-                pa_log_debug("SBC: encoded: %d; written: %d", encoded, written);
-                if (encoded <= 0) {
-                    pa_log_error("SBC encoding error (%d)", encoded);
-                    goto fail;
-                }
-                pa_memblock_release(u->memchunk.memblock);
-                pa_memblock_unref(u->memchunk.memblock);
-                pa_memchunk_reset(&u->memchunk);
-                pa_log_debug("memchunk reseted");
-
-                a2dp->count += written;
-                a2dp->frame_count++;
-                a2dp->samples += encoded / frame_size;
-                a2dp->nsamples += encoded / frame_size;
-
-            } while (a2dp->count + written <= u->link_mtu);
-
-            /* write it to the fifo */
-            memset(a2dp->buffer, 0, sizeof(*header) + sizeof(*payload));
-            payload->frame_count = a2dp->frame_count;
-            header->v = 2;
-            header->pt = 1;
-            header->sequence_number = htons(a2dp->seq_num);
-            header->timestamp = htonl(a2dp->nsamples);
-            header->ssrc = htonl(1);
-
-avdtp_write:
-            l = pa_write(u->stream_fd, a2dp->buffer, a2dp->count, write_type);
-            pa_log_debug("avdtp_write: requested %d bytes; written %d bytes", a2dp->count, l);
-
-            pa_assert(l != 0);
-
-            if (l < 0) {
-                if (errno == EINTR) {
-                    pa_log_debug("EINTR");
-                    continue;
-                }
-                else if (errno == EAGAIN) {
-                    pa_log_debug("EAGAIN");
-                    goto avdtp_write;
-                }
-                else {
-                    pa_log_error("Failed to write data to FIFO: %s", pa_cstrerror(errno));
-                    goto fail;
-                }
-            }
-
-            u->offset += a2dp->codesize*a2dp->frame_count;
+            if (a2dp_process_render(u) < 0)
+                goto fail;
             pollfd->revents = 0;
-
-            /* Reset buffer of data to send */
-            a2dp->count = sizeof(struct rtp_header) + sizeof(struct rtp_payload);
-            a2dp->frame_count = 0;
-            a2dp->samples = 0;
-            a2dp->seq_num++;
 
             /* feed the time smoother */
             n = u->offset;
