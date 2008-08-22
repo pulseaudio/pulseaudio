@@ -245,7 +245,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 /* Quesiton: is this valid here: or should we do some sort of:
                    return pa_sink_process_msg(PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL);
                    ?? */
-                pa_module_unload_request(u->module);
+                pa_module_unload_request(u->module, TRUE);
             }
             return 0;
         }
