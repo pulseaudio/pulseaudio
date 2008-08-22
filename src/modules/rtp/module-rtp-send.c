@@ -67,10 +67,12 @@ PA_MODULE_USAGE(
         "destination=<destination IP address> "
         "port=<port number> "
         "mtu=<maximum transfer unit> "
-        "loop=<loopback to local host?>"
+        "loop=<loopback to local host?> "
+        "ttl=<ttl value>"
 );
 
 #define DEFAULT_PORT 46000
+#define DEFAULT_TTL 1
 #define SAP_PORT 9875
 #define DEFAULT_DESTINATION "224.0.0.56"
 #define MEMBLOCKQ_MAXLENGTH (1024*170)
@@ -86,6 +88,7 @@ static const char* const valid_modargs[] = {
     "port",
     "mtu" ,
     "loop",
+    "ttl",
     NULL
 };
 
@@ -139,7 +142,7 @@ static void source_output_kill(pa_source_output* o) {
     pa_source_output_assert_ref(o);
     pa_assert_se(u = o->userdata);
 
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
 
     pa_source_output_unlink(u->source_output);
     pa_source_output_unref(u->source_output);
@@ -167,7 +170,9 @@ int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     const char *dest;
     uint32_t port = DEFAULT_PORT, mtu;
-    int af, fd = -1, sap_fd = -1;
+    uint32_t ttl = DEFAULT_TTL;
+    sa_family_t af;
+    int fd = -1, sap_fd = -1;
     pa_source *s;
     pa_sample_spec ss;
     pa_channel_map cm;
@@ -219,14 +224,14 @@ int pa__init(pa_module*m) {
 
     payload = pa_rtp_payload_from_sample_spec(&ss);
 
-    mtu = pa_frame_align(DEFAULT_MTU, &ss);
+    mtu = (uint32_t) pa_frame_align(DEFAULT_MTU, &ss);
 
     if (pa_modargs_get_value_u32(ma, "mtu", &mtu) < 0 || mtu < 1 || mtu % pa_frame_size(&ss) != 0) {
         pa_log("Invalid MTU.");
         goto fail;
     }
 
-    port = DEFAULT_PORT + ((rand() % 512) << 1);
+    port = DEFAULT_PORT + ((uint32_t) (rand() % 512) << 1);
     if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port < 1 || port > 0xFFFF) {
         pa_log("port= expects a numerical argument between 1 and 65535.");
         goto fail;
@@ -235,16 +240,21 @@ int pa__init(pa_module*m) {
     if (port & 1)
         pa_log_warn("Port number not even as suggested in RFC3550!");
 
+    if (pa_modargs_get_value_u32(ma, "ttl", &ttl) < 0 || ttl < 1 || ttl > 0xFF) {
+        pa_log("ttl= expects a numerical argument between 1 and 255.");
+        goto fail;
+    }
+
     dest = pa_modargs_get_value(ma, "destination", DEFAULT_DESTINATION);
 
     if (inet_pton(AF_INET6, dest, &sa6.sin6_addr) > 0) {
         sa6.sin6_family = af = AF_INET6;
-        sa6.sin6_port = htons(port);
+        sa6.sin6_port = htons((uint16_t) port);
         sap_sa6 = sa6;
         sap_sa6.sin6_port = htons(SAP_PORT);
     } else if (inet_pton(AF_INET, dest, &sa4.sin_addr) > 0) {
         sa4.sin_family = af = AF_INET;
-        sa4.sin_port = htons(port);
+        sa4.sin_port = htons((uint16_t) port);
         sap_sa4 = sa4;
         sap_sa4.sin_port = htons(SAP_PORT);
     } else {
@@ -257,7 +267,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (connect(fd, af == AF_INET ? (struct sockaddr*) &sa4 : (struct sockaddr*) &sa6, af == AF_INET ? sizeof(sa4) : sizeof(sa6)) < 0) {
+    if (connect(fd, af == AF_INET ? (struct sockaddr*) &sa4 : (struct sockaddr*) &sa6, (socklen_t) (af == AF_INET ? sizeof(sa4) : sizeof(sa6))) < 0) {
         pa_log("connect() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
@@ -267,7 +277,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (connect(sap_fd, af == AF_INET ? (struct sockaddr*) &sap_sa4 : (struct sockaddr*) &sap_sa6, af == AF_INET ? sizeof(sap_sa4) : sizeof(sap_sa6)) < 0) {
+    if (connect(sap_fd, af == AF_INET ? (struct sockaddr*) &sap_sa4 : (struct sockaddr*) &sap_sa6, (socklen_t) (af == AF_INET ? sizeof(sap_sa4) : sizeof(sap_sa6))) < 0) {
         pa_log("connect() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
@@ -277,6 +287,15 @@ int pa__init(pa_module*m) {
         setsockopt(sap_fd, IPPROTO_IP, IP_MULTICAST_LOOP, &j, sizeof(j)) < 0) {
         pa_log("IP_MULTICAST_LOOP failed: %s", pa_cstrerror(errno));
         goto fail;
+    }
+
+    if (ttl != DEFAULT_TTL) {
+        int _ttl = (int) ttl;
+
+        if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_TTL, &_ttl, sizeof(_ttl)) < 0) {
+            pa_log("IP_MULTICAST_TTL failed: %s", pa_cstrerror(errno));
+            goto fail;
+        }
     }
 
     /* If the socket queue is full, let's drop packets */
@@ -290,6 +309,7 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(data.proplist, "rtp.destination", dest);
     pa_proplist_setf(data.proplist, "rtp.mtu", "%lu", (unsigned long) mtu);
     pa_proplist_setf(data.proplist, "rtp.port", "%lu", (unsigned long) port);
+    pa_proplist_setf(data.proplist, "rtp.ttl", "%lu", (unsigned long) ttl);
     data.driver = __FILE__;
     data.module = m;
     data.source = s;
@@ -335,14 +355,14 @@ int pa__init(pa_module*m) {
     p = pa_sdp_build(af,
                      af == AF_INET ? (void*) &((struct sockaddr_in*) &sa_dst)->sin_addr : (void*) &((struct sockaddr_in6*) &sa_dst)->sin6_addr,
                      af == AF_INET ? (void*) &sa4.sin_addr : (void*) &sa6.sin6_addr,
-                     n, port, payload, &ss);
+                     n, (uint16_t) port, payload, &ss);
 
     pa_xfree(n);
 
     pa_rtp_context_init_send(&u->rtp_context, fd, m->core->cookie, payload, pa_frame_size(&ss));
     pa_sap_context_init_send(&u->sap_context, sap_fd, p);
 
-    pa_log_info("RTP stream initialized with mtu %u on %s:%u, SSRC=0x%08x, payload=%u, initial sequence #%u", mtu, dest, port, u->rtp_context.ssrc, payload, u->rtp_context.sequence);
+    pa_log_info("RTP stream initialized with mtu %u on %s:%u ttl=%u, SSRC=0x%08x, payload=%u, initial sequence #%u", mtu, dest, port, ttl, u->rtp_context.ssrc, payload, u->rtp_context.sequence);
     pa_log_info("SDP-Data:\n%s\nEOF", p);
 
     pa_sap_send(&u->sap_context, 0);

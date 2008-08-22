@@ -204,10 +204,10 @@ int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
 
     if (ss->channels != channels) {
         pa_log_warn("device doesn't support %i channels, using %i channels.", ss->channels, channels);
-        ss->channels = channels;
+        ss->channels = (uint8_t) channels;
     }
 
-    speed = ss->rate;
+    speed = (int) ss->rate;
     if (ioctl(fd, SNDCTL_DSP_SPEED, &speed) < 0) {
         pa_log("SNDCTL_DSP_SPEED: %s", pa_cstrerror(errno));
         return -1;
@@ -219,7 +219,7 @@ int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
 
         /* If the sample rate deviates too much, we need to resample */
         if (speed < ss->rate*.95 || speed > ss->rate*1.05)
-            ss->rate = speed;
+            ss->rate = (uint32_t) speed;
     }
 
     return 0;

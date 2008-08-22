@@ -62,10 +62,10 @@ int pa__init(pa_module*m) {
         goto finish;
     }
 
-    if (kill(pid, SIGUSR1) < 0)
+    if (kill((pid_t) pid, SIGUSR1) < 0)
         pa_log_warn("kill(%u) failed: %s", pid, pa_cstrerror(errno));
 
-    pa_module_unload_request(m);
+    pa_module_unload_request(m, TRUE);
 
     ret = 0;
 

@@ -146,7 +146,6 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     memblockq_stream *u;
 
     pa_sink_input_assert_ref(i);
-    pa_assert(nbytes > 0);
     u = MEMBLOCKQ_STREAM(i->userdata);
     memblockq_stream_assert_ref(u);
 

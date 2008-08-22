@@ -206,9 +206,9 @@ static void adjust_rates(struct userdata *u) {
             continue;
 
         if (o->total_latency < target_latency)
-            r -= (uint32_t) (((((double) target_latency - o->total_latency))/u->adjust_time)*r/PA_USEC_PER_SEC);
+            r -= (uint32_t) ((((double) (target_latency - o->total_latency))/(double)u->adjust_time)*(double)r/PA_USEC_PER_SEC);
         else if (o->total_latency > target_latency)
-            r += (uint32_t) (((((double) o->total_latency - target_latency))/u->adjust_time)*r/PA_USEC_PER_SEC);
+            r += (uint32_t) ((((double) (o->total_latency - target_latency))/(double)u->adjust_time)*(double)r/PA_USEC_PER_SEC);
 
         if (r < (uint32_t) (base_rate*0.9) || r > (uint32_t) (base_rate*1.1)) {
             pa_log_warn("[%s] sample rates too different, not adjusting (%u vs. %u).", pa_proplist_gets(o->sink_input->proplist, PA_PROP_MEDIA_NAME), base_rate, r);
@@ -233,7 +233,7 @@ static void time_callback(pa_mainloop_api*a, pa_time_event* e, const struct time
     adjust_rates(u);
 
     pa_gettimeofday(&n);
-    n.tv_sec += u->adjust_time;
+    n.tv_sec += (time_t) u->adjust_time;
     u->sink->core->mainloop->time_restart(e, &n);
 }
 
@@ -389,7 +389,7 @@ static void request_memblock(struct output *o, size_t length) {
 
     /* OK, we need to prepare new data, but only if the sink is actually running */
     if (pa_atomic_load(&o->userdata->thread_info.running))
-        pa_asyncmsgq_send(o->outq, PA_MSGOBJECT(o->userdata->sink), SINK_MESSAGE_NEED, o, length, NULL);
+        pa_asyncmsgq_send(o->outq, PA_MSGOBJECT(o->userdata->sink), SINK_MESSAGE_NEED, o, (int64_t) length, NULL);
 }
 
 /* Called from I/O thread context */
@@ -489,7 +489,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert(o = i->userdata);
 
-    pa_module_unload_request(o->userdata->module);
+    pa_module_unload_request(o->userdata->module, TRUE);
     output_free(o);
 }
 
@@ -1159,7 +1159,7 @@ int pa__init(pa_module*m) {
     if (u->adjust_time > 0) {
         struct timeval tv;
         pa_gettimeofday(&tv);
-        tv.tv_sec += u->adjust_time;
+        tv.tv_sec += (time_t) u->adjust_time;
         u->time_event = m->core->mainloop->time_new(m->core->mainloop, &tv, time_callback, u);
     }
 

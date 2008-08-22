@@ -24,11 +24,13 @@
 #endif
 
 #include <pulse/error.h>
+#include <pulse/timeval.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/rtclock.h>
 
 #include "cpulimit.h"
 
@@ -67,7 +69,7 @@
 #define CPUTIME_INTERVAL_HARD (5)
 
 /* Time of the last CPU load check */
-static time_t last_time = 0;
+static pa_usec_t last_time = 0;
 
 /* Pipe for communicating with the main loop */
 static int the_pipe[2] = {-1, -1};
@@ -100,7 +102,7 @@ static void reset_cpu_time(int t) {
     n = ru.ru_utime.tv_sec + ru.ru_stime.tv_sec + t;
     pa_assert_se(getrlimit(RLIMIT_CPU, &rl) >= 0);
 
-    rl.rlim_cur = n;
+    rl.rlim_cur = (rlim_t) n;
     pa_assert_se(setrlimit(RLIMIT_CPU, &rl) >= 0);
 }
 
@@ -117,20 +119,21 @@ static void signal_handler(int sig) {
     pa_assert(sig == SIGXCPU);
 
     if (phase == PHASE_IDLE) {
-        time_t now;
+        pa_usec_t now, elapsed;
 
 #ifdef PRINT_CPU_LOAD
         char t[256];
 #endif
 
-        time(&now);
+        now = pa_rtclock_usec();
+        elapsed = now - last_time;
 
 #ifdef PRINT_CPU_LOAD
-        pa_snprintf(t, sizeof(t), "Using %0.1f%% CPU\n", (double)CPUTIME_INTERVAL_SOFT/(now-last_time)*100);
+        pa_snprintf(t, sizeof(t), "Using %0.1f%% CPU\n", ((double) CPUTIME_INTERVAL_SOFT * (double) PA_USEC_PER_SEC) / (double) elapsed * 100.0);
         write_err(t);
 #endif
 
-        if (CPUTIME_INTERVAL_SOFT >= ((now-last_time)*(double)CPUTIME_PERCENT/100)) {
+        if (((double) CPUTIME_INTERVAL_SOFT * (double) PA_USEC_PER_SEC) >= ((double) elapsed * (double) CPUTIME_PERCENT / 100.0)) {
             static const char c = 'X';
 
             write_err("Soft CPU time limit exhausted, terminating.\n");
@@ -179,7 +182,7 @@ int pa_cpu_limit_init(pa_mainloop_api *m) {
     pa_assert(the_pipe[1] == -1);
     pa_assert(!installed);
 
-    time(&last_time);
+    last_time = pa_rtclock_usec();
 
     /* Prepare the main loop pipe */
     if (pipe(the_pipe) < 0) {
@@ -235,7 +238,7 @@ void pa_cpu_limit_done(void) {
 
 #else /* HAVE_SIGXCPU */
 
-int pa_cpu_limit_init(PA_GCC_UNUSED pa_mainloop_api *m) {
+int pa_cpu_limit_init(pa_mainloop_api *m) {
     return 0;
 }
 

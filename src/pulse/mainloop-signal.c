@@ -38,6 +38,7 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/gccmacro.h>
+#include <pulse/i18n.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
@@ -89,7 +90,7 @@ static void dispatch(pa_mainloop_api*a, int sig) {
         }
 }
 
-static void callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags_t f, PA_GCC_UNUSED void *userdata) {
+static void callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags_t f, void *userdata) {
     ssize_t r;
     int sig;
 
@@ -164,6 +165,8 @@ pa_signal_event* pa_signal_new(int sig, pa_signal_cb_t _callback, void *userdata
 
     pa_assert(sig > 0);
     pa_assert(_callback);
+
+    pa_init_i18n();
 
     for (e = signals; e; e = e->next)
         if (e->sig == sig)

@@ -140,3 +140,7 @@ new message:
 new message:
 
   PA_COMMAND_EXTENSION
+
+PA_COMMAND_CREATE_RECORD_STREAM, PA_COMMAND_CREATE_PLAYBACK_STREAM:
+
+  bool volume_set at the end

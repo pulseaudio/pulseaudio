@@ -453,4 +453,3 @@ unlock_and_fail:
     pa_threaded_mainloop_unlock(p->mainloop);
     return (pa_usec_t) -1;
 }
-

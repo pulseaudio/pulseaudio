@@ -56,7 +56,7 @@ static int core_process_msg(pa_msgobject *o, int code, void *userdata, int64_t o
     switch (code) {
 
         case PA_CORE_MESSAGE_UNLOAD_MODULE:
-            pa_module_unload(c, userdata);
+            pa_module_unload(c, userdata, TRUE);
             return 0;
 
         default:
@@ -125,7 +125,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     c->mempool = pool;
     pa_silence_cache_init(&c->silence_cache);
 
-    c->quit_event = NULL;
+    c->exit_event = NULL;
 
     c->exit_idle_time = -1;
     c->module_idle_time = 20;
@@ -134,6 +134,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     c->resample_method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 3;
 
     c->disallow_module_loading = FALSE;
+    c->disallow_exit = FALSE;
     c->realtime_scheduling = FALSE;
     c->realtime_priority = 5;
     c->disable_remixing = FALSE;
@@ -149,7 +150,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     pa_check_signal_is_blocked(SIGPIPE);
 #endif
 
-    pa_core_check_quit(c);
+    pa_core_check_idle(c);
 
     return c;
 }
@@ -182,8 +183,8 @@ static void core_free(pa_object *o) {
     pa_autoload_free(c);
     pa_subscription_free_all(c);
 
-    if (c->quit_event)
-        c->mainloop->time_free(c->quit_event);
+    if (c->exit_event)
+        c->mainloop->time_free(c->exit_event);
 
     pa_xfree(c->default_source_name);
     pa_xfree(c->default_sink_name);
@@ -199,17 +200,17 @@ static void core_free(pa_object *o) {
     pa_xfree(c);
 }
 
-static void quit_callback(pa_mainloop_api*m, pa_time_event *e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
+static void exit_callback(pa_mainloop_api*m, pa_time_event *e, const struct timeval *tv, void *userdata) {
     pa_core *c = userdata;
-    pa_assert(c->quit_event == e);
+    pa_assert(c->exit_event == e);
 
-    m->quit(m, 0);
+    pa_core_exit(c, TRUE, 0);
 }
 
-void pa_core_check_quit(pa_core *c) {
+void pa_core_check_idle(pa_core *c) {
     pa_assert(c);
 
-    if (!c->quit_event &&
+    if (!c->exit_event &&
         c->exit_idle_time >= 0 &&
         pa_idxset_size(c->clients) == 0) {
 
@@ -217,10 +218,20 @@ void pa_core_check_quit(pa_core *c) {
         pa_gettimeofday(&tv);
         tv.tv_sec+= c->exit_idle_time;
 
-        c->quit_event = c->mainloop->time_new(c->mainloop, &tv, quit_callback, c);
+        c->exit_event = c->mainloop->time_new(c->mainloop, &tv, exit_callback, c);
 
-    } else if (c->quit_event && pa_idxset_size(c->clients) > 0) {
-        c->mainloop->time_free(c->quit_event);
-        c->quit_event = NULL;
+    } else if (c->exit_event && pa_idxset_size(c->clients) > 0) {
+        c->mainloop->time_free(c->exit_event);
+        c->exit_event = NULL;
     }
+}
+
+int pa_core_exit(pa_core *c, pa_bool_t force, int retval) {
+    pa_assert(c);
+
+    if (c->disallow_exit && !force)
+        return -1;
+
+    c->mainloop->quit(c->mainloop, retval);
+    return 0;
 }

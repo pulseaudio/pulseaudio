@@ -188,7 +188,9 @@ static int pa_cli_command_exit(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     pa_assert(buf);
     pa_assert(fail);
 
-    c->mainloop->quit(c->mainloop, 0);
+    if (pa_core_exit(c, FALSE, 0) < 0)
+        pa_strbuf_puts(buf, "Not allowed to terminate daemon.\n");
+
     return 0;
 }
 
@@ -316,22 +318,22 @@ static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
 
     pa_strbuf_printf(buf, "Memory blocks currently allocated: %u, size: %s.\n",
                      (unsigned) pa_atomic_load(&stat->n_allocated),
-                     pa_bytes_snprint(s, sizeof(s), (size_t) pa_atomic_load(&stat->allocated_size)));
+                     pa_bytes_snprint(s, sizeof(s), (unsigned) pa_atomic_load(&stat->allocated_size)));
 
     pa_strbuf_printf(buf, "Memory blocks allocated during the whole lifetime: %u, size: %s.\n",
                      (unsigned) pa_atomic_load(&stat->n_accumulated),
-                     pa_bytes_snprint(s, sizeof(s), (size_t) pa_atomic_load(&stat->accumulated_size)));
+                     pa_bytes_snprint(s, sizeof(s), (unsigned) pa_atomic_load(&stat->accumulated_size)));
 
     pa_strbuf_printf(buf, "Memory blocks imported from other processes: %u, size: %s.\n",
                      (unsigned) pa_atomic_load(&stat->n_imported),
-                     pa_bytes_snprint(s, sizeof(s), (size_t) pa_atomic_load(&stat->imported_size)));
+                     pa_bytes_snprint(s, sizeof(s), (unsigned) pa_atomic_load(&stat->imported_size)));
 
     pa_strbuf_printf(buf, "Memory blocks exported to other processes: %u, size: %s.\n",
                      (unsigned) pa_atomic_load(&stat->n_exported),
-                     pa_bytes_snprint(s, sizeof(s), (size_t) pa_atomic_load(&stat->exported_size)));
+                     pa_bytes_snprint(s, sizeof(s), (unsigned) pa_atomic_load(&stat->exported_size)));
 
     pa_strbuf_printf(buf, "Total sample cache size: %s.\n",
-                     pa_bytes_snprint(s, sizeof(s), pa_scache_total_size(c)));
+                     pa_bytes_snprint(s, sizeof(s), (unsigned) pa_scache_total_size(c)));
 
     pa_strbuf_printf(buf, "Default sample spec: %s\n",
                      pa_sample_spec_snprint(s, sizeof(s), &c->default_sample_spec));
@@ -415,7 +417,7 @@ static int pa_cli_command_unload(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa
         return -1;
     }
 
-    pa_module_unload_request(m);
+    pa_module_unload_request(m, FALSE);
     return 0;
 }
 
@@ -1249,8 +1251,8 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
             nl = 1;
         }
 
-        pa_strbuf_printf(buf, "set-sink-volume %s 0x%03x\n", sink->name, pa_cvolume_avg(pa_sink_get_volume(sink)));
-        pa_strbuf_printf(buf, "set-sink-mute %s %s\n", sink->name, pa_yes_no(pa_sink_get_mute(sink)));
+        pa_strbuf_printf(buf, "set-sink-volume %s 0x%03x\n", sink->name, pa_cvolume_avg(pa_sink_get_volume(sink, FALSE)));
+        pa_strbuf_printf(buf, "set-sink-mute %s %s\n", sink->name, pa_yes_no(pa_sink_get_mute(sink, FALSE)));
         pa_strbuf_printf(buf, "suspend-sink %s %s\n", sink->name, pa_yes_no(pa_sink_get_state(sink) == PA_SINK_SUSPENDED));
     }
 
@@ -1263,8 +1265,8 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
             nl = 1;
         }
 
-        pa_strbuf_printf(buf, "set-source-volume %s 0x%03x\n", source->name, pa_cvolume_avg(pa_source_get_volume(source)));
-        pa_strbuf_printf(buf, "set-source-mute %s %s\n", source->name, pa_yes_no(pa_source_get_mute(source)));
+        pa_strbuf_printf(buf, "set-source-volume %s 0x%03x\n", source->name, pa_cvolume_avg(pa_source_get_volume(source, FALSE)));
+        pa_strbuf_printf(buf, "set-source-mute %s %s\n", source->name, pa_yes_no(pa_source_get_mute(source, FALSE)));
         pa_strbuf_printf(buf, "suspend-source %s %s\n", source->name, pa_yes_no(pa_source_get_state(source) == PA_SOURCE_SUSPENDED));
     }
 

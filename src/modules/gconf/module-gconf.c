@@ -96,7 +96,7 @@ static int fill_buf(struct userdata *u) {
     if ((r = pa_read(u->fd, u->buf + u->buf_fill, BUF_MAX - u->buf_fill, &u->fd_type)) <= 0)
         return -1;
 
-    u->buf_fill += r;
+    u->buf_fill += (size_t) r;
     return 0;
 }
 
@@ -123,7 +123,7 @@ static char *read_string(struct userdata *u) {
 
         if ((e = memchr(u->buf, 0, u->buf_fill))) {
             char *ret = pa_xstrdup(u->buf);
-            u->buf_fill -= e - u->buf +1;
+            u->buf_fill -= (size_t) (e - u->buf +1);
             memmove(u->buf, e+1, u->buf_fill);
             return ret;
         }
@@ -142,7 +142,7 @@ static void unload_one_module(struct userdata *u, struct module_info*m, unsigned
         return;
 
     pa_log_debug("Unloading module #%i", m->items[i].index);
-    pa_module_unload_by_index(u->core, m->items[i].index);
+    pa_module_unload_by_index(u->core, m->items[i].index, TRUE);
     m->items[i].index = PA_INVALID_INDEX;
     pa_xfree(m->items[i].name);
     pa_xfree(m->items[i].args);
@@ -164,10 +164,10 @@ static void unload_all_modules(struct userdata *u, struct module_info*m) {
 static void load_module(
         struct userdata *u,
         struct module_info *m,
-        int i,
+        unsigned i,
         const char *name,
         const char *args,
-        int is_new) {
+        pa_bool_t is_new) {
 
     pa_module *mod;
 
@@ -324,7 +324,7 @@ static void io_event_cb(
             u->io_event = NULL;
         }
 
-        pa_module_unload_request(u->module);
+        pa_module_unload_request(u->module, TRUE);
     }
 }
 

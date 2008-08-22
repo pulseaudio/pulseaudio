@@ -90,7 +90,7 @@ static pa_io_event_flags_t get_watch_flags(DBusWatch *watch) {
 }
 
 /* pa_io_event_cb_t IO event handler */
-static void handle_io_event(PA_GCC_UNUSED pa_mainloop_api *ea, pa_io_event *e, int fd, pa_io_event_flags_t events, void *userdata) {
+static void handle_io_event(pa_mainloop_api *ea, pa_io_event *e, int fd, pa_io_event_flags_t events, void *userdata) {
     unsigned int flags = 0;
     DBusWatch *watch = userdata;
 
@@ -126,7 +126,7 @@ static void handle_time_event(pa_mainloop_api *ea, pa_time_event* e, const struc
         dbus_timeout_handle(timeout);
 
         /* restart it for the next scheduled time */
-        pa_timeval_add(&next, dbus_timeout_get_interval(timeout) * 1000);
+        pa_timeval_add(&next, (pa_usec_t) dbus_timeout_get_interval(timeout) * 1000);
         ea->time_restart(e, &next);
     }
 }
@@ -192,7 +192,7 @@ static dbus_bool_t add_timeout(DBusTimeout *timeout, void *data) {
         return FALSE;
 
     pa_gettimeofday(&tv);
-    pa_timeval_add(&tv, dbus_timeout_get_interval(timeout) * 1000);
+    pa_timeval_add(&tv, (pa_usec_t) dbus_timeout_get_interval(timeout) * 1000);
 
     ev = c->mainloop->time_new(c->mainloop, &tv, handle_time_event, timeout);
 
@@ -227,7 +227,7 @@ static void toggle_timeout(DBusTimeout *timeout, void *data) {
         struct timeval tv;
 
         pa_gettimeofday(&tv);
-        pa_timeval_add(&tv, dbus_timeout_get_interval(timeout) * 1000);
+        pa_timeval_add(&tv, (pa_usec_t) dbus_timeout_get_interval(timeout) * 1000);
 
         c->mainloop->time_restart(ev, &tv);
     } else

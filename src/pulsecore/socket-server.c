@@ -199,7 +199,7 @@ pa_socket_server* pa_socket_server_new_unix(pa_mainloop_api *m, const char *file
 
     pa_make_socket_low_delay(fd);
 
-    if (bind(fd, (struct sockaddr*) &sa, SUN_LEN(&sa)) < 0) {
+    if (bind(fd, (struct sockaddr*) &sa, (socklen_t) SUN_LEN(&sa)) < 0) {
         pa_log("bind(): %s", pa_cstrerror(errno));
         goto fail;
     }

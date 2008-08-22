@@ -236,16 +236,16 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-#if HAVE_ALSA
+#ifdef HAVE_ALSA
     if ((n = detect_alsa(m->core, just_one)) <= 0)
 #endif
 #if HAVE_OSS
     if ((n = detect_oss(m->core, just_one)) <= 0)
 #endif
-#if HAVE_SOLARIS
+#ifdef HAVE_SOLARIS
     if ((n = detect_solaris(m->core, just_one)) <= 0)
 #endif
-#if OS_IS_WIN32
+#ifdef OS_IS_WIN32
     if ((n = detect_waveout(m->core, just_one)) <= 0)
 #endif
     {
@@ -256,7 +256,7 @@ int pa__init(pa_module*m) {
     pa_log_info("loaded %i modules.", n);
 
     /* We were successful and can unload ourselves now. */
-    pa_module_unload_request(m);
+    pa_module_unload_request(m, TRUE);
 
     pa_modargs_free(ma);
 

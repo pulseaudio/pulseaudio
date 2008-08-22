@@ -56,6 +56,8 @@ AM_CFLAGS += -DPA_SYSTEM_RUNTIME_PATH=\"$(PA_SYSTEM_RUNTIME_PATH)\"
 AM_CFLAGS += -DPA_SYSTEM_CONFIG_PATH=\"$(PA_SYSTEM_CONFIG_PATH)\"
 AM_CFLAGS += -DPA_SYSTEM_STATE_PATH=\"$(PA_SYSTEM_STATE_PATH)\"
 AM_CFLAGS += -DAO_REQUIRE_CAS
+AM_CFLAGS += -DPULSE_LOCALEDIR=\"$(pulselocaledir)\"
+AM_CFLAGS += -DPA_MACHINE_ID=\"$(localstatedir)/lib/dbus/machine-id\"
 
 # This cool debug trap works on i386/gcc only
 AM_CFLAGS += '-DDEBUG_TRAP=__asm__("int $$3")'
@@ -260,7 +262,8 @@ noinst_PROGRAMS = \
 		envelope-test \
 		proplist-test \
 		rtstutter \
-		stripnul
+		stripnul \
+		lock-autospawn-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -450,6 +453,11 @@ stripnul_LDADD = $(AM_LDADD) libpulsecore.la
 stripnul_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
 stripnul_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
 
+lock_autospawn_test_SOURCES = tests/lock-autospawn-test.c
+lock_autospawn_test_LDADD = $(AM_LDADD) libpulsecore.la
+lock_autospawn_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+lock_autospawn_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
+
 ###################################
 #         Client library          #
 ###################################
@@ -479,7 +487,8 @@ pulseinclude_HEADERS = \
 		pulse/volume.h \
 		pulse/xmalloc.h \
 		pulse/proplist.h \
-		pulse/gccmacro.h
+		pulse/gccmacro.h \
+		pulse/ext-stream-restore.h
 
 if HAVE_AVAHI
 pulseinclude_HEADERS += \
@@ -530,7 +539,10 @@ libpulse_la_SOURCES = \
 		pulse/util.c pulse/util.h \
 		pulse/volume.c pulse/volume.h \
 		pulse/xmalloc.c pulse/xmalloc.h \
-		pulse/proplist.c pulse/proplist.h
+		pulse/proplist.c pulse/proplist.h \
+		pulse/ext-stream-restore.c pulse/ext-stream-restore.h \
+		pulse/i18n.c pulse/i18n.h \
+		pulse/lock-autospawn.c pulse/lock-autospawn.h
 
 # Internal stuff that is shared with libpulsecore
 libpulse_la_SOURCES += \
@@ -725,7 +737,9 @@ libpulsecore_la_SOURCES = \
 		pulse/util.c pulse/util.h \
 		pulse/volume.c pulse/volume.h \
 		pulse/xmalloc.c pulse/xmalloc.h \
-		pulse/proplist.c pulse/proplist.h
+		pulse/proplist.c pulse/proplist.h \
+		pulse/i18n.c pulse/i18n.h \
+		pulse/lock-autospawn.c pulse/lock-autospawn.h
 
 # Pure core stuff (some are shared in libpulse though).
 libpulsecore_la_SOURCES += \
@@ -1609,7 +1623,7 @@ update-ffmpeg:
 update-map-file:
 	( echo "PULSE_0 {" ; \
 	  echo "global:" ; \
-	  ctags -I PA_GCC_PURE,PA_GCC_CONST -f - --c-kinds=p $(pulseinclude_HEADERS) | awk '/^pa_/ { print $$1 ";" }' | sort ; \
+	  ctags -I PA_GCC_PURE,PA_GCC_CONST,PA_GCC_DEPRECATED,PA_GCC_PRINTF_ATTR -f - --c-kinds=p $(pulseinclude_HEADERS) | awk '/^pa_/ { print $$1 ";" }' | sort ; \
 	  echo "local:" ;  \
 	  echo "*;" ; \
 	  echo "};" ) > $(srcdir)/map-file

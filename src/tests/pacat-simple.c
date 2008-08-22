@@ -33,7 +33,7 @@
 
 #define BUFSIZE 1024
 
-int main(PA_GCC_UNUSED int argc, char*argv[]) {
+int main(int argc, char*argv[]) {
 
     /* The Sample format to use */
     static const pa_sample_spec ss = {
@@ -94,7 +94,7 @@ int main(PA_GCC_UNUSED int argc, char*argv[]) {
         }
 
         /* ... and play it */
-        if (pa_simple_write(s, buf, r, &error) < 0) {
+        if (pa_simple_write(s, buf, (size_t) r, &error) < 0) {
             fprintf(stderr, __FILE__": pa_simple_write() failed: %s\n", pa_strerror(error));
             goto finish;
         }

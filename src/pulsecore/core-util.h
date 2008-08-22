@@ -121,14 +121,14 @@ char* pa_find_config_file(const char *global, const char *local, const char *env
 char *pa_get_runtime_dir(void);
 char *pa_get_state_dir(void);
 char *pa_runtime_path(const char *fn);
-char *pa_state_path(const char *fn);
+char *pa_state_path(const char *fn, pa_bool_t prepend_machine_id);
 
 int pa_atoi(const char *s, int32_t *ret_i);
 int pa_atou(const char *s, uint32_t *ret_u);
 int pa_atod(const char *s, double *ret_d);
 
-int pa_snprintf(char *str, size_t size, const char *format, ...);
-int pa_vsnprintf(char *str, size_t size, const char *format, va_list ap);
+size_t pa_snprintf(char *str, size_t size, const char *format, ...);
+size_t pa_vsnprintf(char *str, size_t size, const char *format, va_list ap);
 
 char *pa_truncate_utf8(char *c, size_t l);
 
@@ -183,5 +183,7 @@ void pa_set_env(const char *key, const char *value);
 pa_bool_t pa_in_system_mode(void);
 
 #define pa_streq(a,b) (!strcmp((a),(b)))
+
+char *pa_machine_id(void);
 
 #endif

@@ -180,21 +180,22 @@ typedef enum pa_sink_message {
 
 typedef struct pa_sink_new_data {
     char *name;
-    pa_bool_t namereg_fail;
     pa_proplist *proplist;
 
     const char *driver;
     pa_module *module;
 
     pa_sample_spec sample_spec;
-    pa_bool_t sample_spec_is_set;
     pa_channel_map channel_map;
-    pa_bool_t channel_map_is_set;
-
     pa_cvolume volume;
-    pa_bool_t volume_is_set;
-    pa_bool_t muted;
-    pa_bool_t muted_is_set;
+    pa_bool_t muted :1;
+
+    pa_bool_t sample_spec_is_set:1;
+    pa_bool_t channel_map_is_set:1;
+    pa_bool_t volume_is_set:1;
+    pa_bool_t muted_is_set:1;
+
+    pa_bool_t namereg_fail:1;
 } pa_sink_new_data;
 
 pa_sink_new_data* pa_sink_new_data_init(pa_sink_new_data *data);
@@ -239,9 +240,10 @@ int pa_sink_suspend(pa_sink *s, pa_bool_t suspend);
 int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend);
 
 void pa_sink_set_volume(pa_sink *sink, const pa_cvolume *volume);
-const pa_cvolume *pa_sink_get_volume(pa_sink *sink);
+void pa_sink_set_soft_volume(pa_sink *s, const pa_cvolume *volume);
+const pa_cvolume *pa_sink_get_volume(pa_sink *sink, pa_bool_t force_refresh);
 void pa_sink_set_mute(pa_sink *sink, pa_bool_t mute);
-pa_bool_t pa_sink_get_mute(pa_sink *sink);
+pa_bool_t pa_sink_get_mute(pa_sink *sink, pa_bool_t force_refres);
 
 unsigned pa_sink_linked_by(pa_sink *s); /* Number of connected streams */
 unsigned pa_sink_used_by(pa_sink *s); /* Number of connected streams which are not corked */

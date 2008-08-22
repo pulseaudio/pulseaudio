@@ -166,16 +166,16 @@ static pa_memblock* generate_block(pa_mempool *pool, const pa_sample_spec *ss) {
         case PA_SAMPLE_FLOAT32RE: {
             float *u = d;
 
-            u[0] = 0.0;
-            u[1] = -1.0;
-            u[2] = 1.0;
-            u[3] = 4711;
-            u[4] = 0.222;
-            u[5] = 0.33;
-            u[6] = -.3;
-            u[7] = 99;
-            u[8] = -0.555;
-            u[9] = -.123;
+            u[0] = 0.0f;
+            u[1] = -1.0f;
+            u[2] = 1.0f;
+            u[3] = 4711.0f;
+            u[4] = 0.222f;
+            u[5] = 0.33f;
+            u[6] = -.3f;
+            u[7] = 99.0f;
+            u[8] = -0.555f;
+            u[9] = -.123f;
 
             if (ss->format == PA_SAMPLE_FLOAT32RE)
                 for (i = 0; i < 10; i++)

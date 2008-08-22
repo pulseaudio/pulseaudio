@@ -209,8 +209,8 @@ static double avg_gradient(pa_smoother *s, pa_usec_t x) {
     i = s->history_idx;
     for (j = s->n_history; j > 0; j--) {
 
-        ax += s->history_x[i];
-        ay += s->history_y[i];
+        ax += (int64_t) s->history_x[i];
+        ay += (int64_t) s->history_y[i];
         c++;
 
         REDUCE_INC(i);
@@ -236,7 +236,7 @@ static double avg_gradient(pa_smoother *s, pa_usec_t x) {
         REDUCE_INC(i);
     }
 
-    r = (double) k / t;
+    r = (double) k / (double) t;
 
     return (s->monotonic && r < 0) ? 0 : r;
 }
@@ -268,8 +268,8 @@ static void calc_abc(pa_smoother *s) {
 
     /* Calculate a, b, c for y=ax^3+bx^2+cx */
     s->c = de;
-    s->b = (((double) (3*ky)/kx - dp - 2*de)) / kx;
-    s->a = (dp/kx - 2*s->b - de/kx) / (3*kx);
+    s->b = (((double) (3*ky)/ (double) kx - dp - (double) (2*de))) / (double) kx;
+    s->a = (dp/(double) kx - 2*s->b - de/(double) kx) / (double) (3*kx);
 
     s->abc_valid = TRUE;
 }
@@ -284,7 +284,7 @@ static void estimate(pa_smoother *s, pa_usec_t x, pa_usec_t *y, double *deriv) {
         /* The requested point is right of the point where we wanted
          * to be on track again, thus just linearly estimate */
 
-        t = (int64_t) s->py + (int64_t) (s->dp * (x - s->px));
+        t = (int64_t) s->py + (int64_t) (s->dp * (double) (x - s->px));
 
         if (t < 0)
             t = 0;
@@ -360,7 +360,7 @@ void pa_smoother_put(pa_smoother *s, pa_usec_t x, pa_usec_t y) {
 
     /* And calculate when we want to be on track again */
     s->px = s->ex + s->adjust_time;
-    s->py = s->ry + s->dp *s->adjust_time;
+    s->py = s->ry + (pa_usec_t) (s->dp * (double) s->adjust_time);
 
     s->abc_valid = FALSE;
 

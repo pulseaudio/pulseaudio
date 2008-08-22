@@ -748,7 +748,7 @@ static void fix_metrics(fd_info *i) {
     /* Number of fragments set? */
     if (i->n_fragments < 2) {
         if (i->fragment_size > 0) {
-            i->n_fragments = pa_bytes_per_second(&i->sample_spec) / 2 / i->fragment_size;
+            i->n_fragments = (unsigned) (pa_bytes_per_second(&i->sample_spec) / 2 / i->fragment_size);
             if (i->n_fragments < 2)
                 i->n_fragments = 2;
         } else
@@ -864,7 +864,7 @@ static int fd_info_copy_data(fd_info *i, int force) {
                 return -1;
             }
 
-            if (pa_stream_write(i->play_stream, i->buf, r, free, 0, PA_SEEK_RELATIVE) < 0) {
+            if (pa_stream_write(i->play_stream, i->buf, (size_t) r, free, 0, PA_SEEK_RELATIVE) < 0) {
                 debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_write(): %s\n", pa_strerror(pa_context_errno(i->context)));
                 return -1;
             }
@@ -872,7 +872,7 @@ static int fd_info_copy_data(fd_info *i, int force) {
             i->buf = NULL;
 
             assert(n >= (size_t) r);
-            n -= r;
+            n -= (size_t) r;
         }
 
         if (n >= i->fragment_size)
@@ -916,7 +916,7 @@ static int fd_info_copy_data(fd_info *i, int force) {
             }
 
             assert((size_t)r <= len - i->rec_offset);
-            i->rec_offset += r;
+            i->rec_offset += (size_t) r;
 
             if (i->rec_offset == len) {
                 if (pa_stream_drop(i->rec_stream) < 0) {
@@ -927,7 +927,7 @@ static int fd_info_copy_data(fd_info *i, int force) {
             }
 
             assert(n >= (size_t) r);
-            n -= r;
+            n -= (size_t) r;
         }
 
         if (n >= i->fragment_size)
@@ -998,10 +998,10 @@ static int create_playback_stream(fd_info *i) {
     pa_stream_set_latency_update_callback(i->play_stream, stream_latency_update_cb, i);
 
     memset(&attr, 0, sizeof(attr));
-    attr.maxlength = i->fragment_size * (i->n_fragments+1);
-    attr.tlength = i->fragment_size * i->n_fragments;
-    attr.prebuf = i->fragment_size;
-    attr.minreq = i->fragment_size;
+    attr.maxlength = (uint32_t) (i->fragment_size * (i->n_fragments+1));
+    attr.tlength = (uint32_t) (i->fragment_size * i->n_fragments);
+    attr.prebuf = (uint32_t) i->fragment_size;
+    attr.minreq = (uint32_t) i->fragment_size;
 
     flags = PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE;
     if (i->play_precork) {
@@ -1013,9 +1013,9 @@ static int create_playback_stream(fd_info *i) {
         goto fail;
     }
 
-    n = i->fragment_size;
+    n = (int) i->fragment_size;
     setsockopt(i->app_fd, SOL_SOCKET, SO_SNDBUF, &n, sizeof(n));
-    n = i->fragment_size;
+    n = (int) i->fragment_size;
     setsockopt(i->thread_fd, SOL_SOCKET, SO_RCVBUF, &n, sizeof(n));
 
     return 0;
@@ -1042,8 +1042,8 @@ static int create_record_stream(fd_info *i) {
     pa_stream_set_latency_update_callback(i->rec_stream, stream_latency_update_cb, i);
 
     memset(&attr, 0, sizeof(attr));
-    attr.maxlength = i->fragment_size * (i->n_fragments+1);
-    attr.fragsize = i->fragment_size;
+    attr.maxlength = (uint32_t) (i->fragment_size * (i->n_fragments+1));
+    attr.fragsize = (uint32_t) i->fragment_size;
 
     flags = PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE;
     if (i->rec_precork) {
@@ -1055,9 +1055,9 @@ static int create_record_stream(fd_info *i) {
         goto fail;
     }
 
-    n = i->fragment_size;
+    n = (int) i->fragment_size;
     setsockopt(i->app_fd, SOL_SOCKET, SO_RCVBUF, &n, sizeof(n));
-    n = i->fragment_size;
+    n = (int) i->fragment_size;
     setsockopt(i->thread_fd, SOL_SOCKET, SO_SNDBUF, &n, sizeof(n));
 
     return 0;
@@ -1474,7 +1474,7 @@ int open(const char *filename, int flags, ...) {
     if (flags & O_CREAT) {
         va_start(args, flags);
         if (sizeof(mode_t) < sizeof(int))
-            mode = va_arg(args, int);
+            mode = (mode_t) va_arg(args, int);
         else
             mode = va_arg(args, mode_t);
         va_end(args);
@@ -2250,7 +2250,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             for (;;) {
                 pa_usec_t usec;
 
-                PLAYBACK_STREAM_CHECK_DEAD_GOTO(i, exit_loop);
+                PLAYBACK_STREAM_CHECK_DEAD_GOTO(i, exit_loop2);
 
                 if (pa_stream_get_time(i->play_stream, &usec) >= 0) {
                     size_t k = pa_usec_to_bytes(usec, &i->sample_spec);
@@ -2271,6 +2271,8 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
 
                 pa_threaded_mainloop_wait(i->mainloop);
             }
+
+        exit_loop2:
 
             pa_threaded_mainloop_unlock(i->mainloop);
 

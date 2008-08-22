@@ -154,7 +154,7 @@ void pa_tagstruct_put_arbitrary(pa_tagstruct *t, const void *p, size_t length) {
 
     extend(t, 5+length);
     t->data[t->length] = PA_TAG_ARBITRARY;
-    tmp = htonl(length);
+    tmp = htonl((uint32_t) length);
     memcpy(t->data+t->length+1, &tmp, 4);
     if (length)
         memcpy(t->data+t->length+5, p, length);
@@ -165,7 +165,7 @@ void pa_tagstruct_put_boolean(pa_tagstruct*t, pa_bool_t b) {
     pa_assert(t);
 
     extend(t, 1);
-    t->data[t->length] = b ? PA_TAG_BOOLEAN_TRUE : PA_TAG_BOOLEAN_FALSE;
+    t->data[t->length] = (uint8_t) (b ? PA_TAG_BOOLEAN_TRUE : PA_TAG_BOOLEAN_FALSE);
     t->length += 1;
 }
 
@@ -175,9 +175,9 @@ void pa_tagstruct_put_timeval(pa_tagstruct*t, const struct timeval *tv) {
 
     extend(t, 9);
     t->data[t->length] = PA_TAG_TIMEVAL;
-    tmp = htonl(tv->tv_sec);
+    tmp = htonl((uint32_t) tv->tv_sec);
     memcpy(t->data+t->length+1, &tmp, 4);
-    tmp = htonl(tv->tv_usec);
+    tmp = htonl((uint32_t) tv->tv_usec);
     memcpy(t->data+t->length+5, &tmp, 4);
     t->length += 9;
 }
@@ -228,7 +228,7 @@ void pa_tagstruct_put_channel_map(pa_tagstruct *t, const pa_channel_map *map) {
     unsigned i;
 
     pa_assert(t);
-    extend(t, 2 + map->channels);
+    extend(t, 2 + (size_t) map->channels);
 
     t->data[t->length++] = PA_TAG_CHANNEL_MAP;
     t->data[t->length++] = map->channels;
@@ -435,9 +435,9 @@ int pa_tagstruct_get_timeval(pa_tagstruct*t, struct timeval *tv) {
         return -1;
 
     memcpy(&tv->tv_sec, t->data+t->rindex+1, 4);
-    tv->tv_sec = ntohl(tv->tv_sec);
+    tv->tv_sec = (time_t) ntohl((uint32_t) tv->tv_sec);
     memcpy(&tv->tv_usec, t->data+t->rindex+5, 4);
-    tv->tv_usec = ntohl(tv->tv_usec);
+    tv->tv_usec = (suseconds_t) ntohl((uint32_t) tv->tv_usec);
     t->rindex += 9;
     return 0;
 }
@@ -523,7 +523,7 @@ int pa_tagstruct_get_channel_map(pa_tagstruct *t, pa_channel_map *map) {
     for (i = 0; i < map->channels; i ++)
         map->map[i] = (int8_t) t->data[t->rindex + 2 + i];
 
-    t->rindex += 2 + map->channels;
+    t->rindex += 2 + (size_t) map->channels;
     return 0;
 }
 

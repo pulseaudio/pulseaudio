@@ -27,11 +27,13 @@
 #include <getopt.h>
 #include <string.h>
 #include <assert.h>
+#include <locale.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
 #include <pulse/util.h>
+#include <pulse/i18n.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
@@ -47,17 +49,20 @@ int main(int argc, char *argv[]) {
     Display *d = NULL;
     enum { DUMP, EXPORT, IMPORT, REMOVE } mode = DUMP;
 
+    setlocale(LC_ALL, "");
+    bindtextdomain(GETTEXT_PACKAGE, PULSE_LOCALEDIR);
+
     while ((c = getopt(argc, argv, "deiD:S:O:I:c:hr")) != -1) {
         switch (c) {
             case 'D' :
                 dname = optarg;
                 break;
             case 'h':
-                printf("%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n\n"
+                printf(_("%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n\n"
                        " -d    Show current PulseAudio data attached to X11 display (default)\n"
                        " -e    Export local PulseAudio data to X11 display\n"
                        " -i    Import PulseAudio data from X11 display to local environment variables and cookie file.\n"
-                       " -r    Remove PulseAudio data from X11 display\n",
+                       " -r    Remove PulseAudio data from X11 display\n"),
                        pa_path_get_filename(argv[0]));
                 ret = 0;
                 goto finish;
@@ -86,13 +91,13 @@ int main(int argc, char *argv[]) {
                 server = optarg;
                 break;
             default:
-                fprintf(stderr, "Failed to parse command line.\n");
+                fprintf(stderr, _("Failed to parse command line.\n"));
                 goto finish;
         }
     }
 
     if (!(d = XOpenDisplay(dname))) {
-        pa_log("XOpenDisplay() failed");
+        pa_log(_("XOpenDisplay() failed"));
         goto finish;
     }
 
@@ -100,13 +105,13 @@ int main(int argc, char *argv[]) {
         case DUMP: {
             char t[1024];
             if (pa_x11_get_prop(d, "PULSE_SERVER", t, sizeof(t)))
-                printf("Server: %s\n", t);
+                printf(_("Server: %s\n"), t);
             if (pa_x11_get_prop(d, "PULSE_SOURCE", t, sizeof(t)))
-                printf("Source: %s\n", t);
+                printf(_("Source: %s\n"), t);
             if (pa_x11_get_prop(d, "PULSE_SINK", t, sizeof(t)))
-                printf("Sink: %s\n", t);
+                printf(_("Sink: %s\n"), t);
             if (pa_x11_get_prop(d, "PULSE_COOKIE", t, sizeof(t)))
-                printf("Cookie: %s\n", t);
+                printf(_("Cookie: %s\n"), t);
 
             break;
         }
@@ -124,12 +129,12 @@ int main(int argc, char *argv[]) {
                 uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
                 size_t l;
                 if ((l = pa_parsehex(t, cookie, sizeof(cookie))) != sizeof(cookie)) {
-                    fprintf(stderr, "Failed to parse cookie data\n");
+                    fprintf(stderr, _("Failed to parse cookie data\n"));
                     goto finish;
                 }
 
                 if (pa_authkey_save(cookie_file, cookie, l) < 0) {
-                    fprintf(stderr, "Failed to save cookie data\n");
+                    fprintf(stderr, _("Failed to save cookie data\n"));
                     goto finish;
                 }
             }
@@ -144,12 +149,12 @@ int main(int argc, char *argv[]) {
             assert(conf);
 
             if (pa_client_conf_load(conf, NULL) < 0) {
-                fprintf(stderr, "Failed to load client configuration file.\n");
+                fprintf(stderr, _("Failed to load client configuration file.\n"));
                 goto finish;
             }
 
             if (pa_client_conf_env(conf) < 0) {
-                fprintf(stderr, "Failed to read environment configuration data.\n");
+                fprintf(stderr, _("Failed to read environment configuration data.\n"));
                 goto finish;
             }
 
@@ -166,7 +171,7 @@ int main(int argc, char *argv[]) {
             else {
                 char hn[256];
                 if (!pa_get_fqdn(hn, sizeof(hn))) {
-                    fprintf(stderr, "Failed to get FQDN.\n");
+                    fprintf(stderr, _("Failed to get FQDN.\n"));
                     goto finish;
                 }
 
@@ -186,7 +191,7 @@ int main(int argc, char *argv[]) {
             pa_client_conf_free(conf);
 
             if (pa_authkey_load_auto(cookie_file, cookie, sizeof(cookie)) < 0) {
-                fprintf(stderr, "Failed to load cookie data\n");
+                fprintf(stderr, _("Failed to load cookie data\n"));
                 goto finish;
             }
 
@@ -203,7 +208,7 @@ int main(int argc, char *argv[]) {
             break;
 
         default:
-            fprintf(stderr, "No yet implemented.\n");
+            fprintf(stderr, _("Not yet implemented.\n"));
             goto finish;
     }
 

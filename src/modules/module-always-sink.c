@@ -108,7 +108,7 @@ static pa_hook_result_t put_hook_callback(pa_core *c, pa_sink *sink, void* userd
 
     pa_log_info("A new sink has been discovered. Unloading null-sink.");
 
-    pa_module_unload_request(u->null_module);
+    pa_module_unload_request(u->null_module, TRUE);
     u->null_module = NULL;
 
     return PA_HOOK_OK;
@@ -171,7 +171,7 @@ void pa__done(pa_module*m) {
     if (u->unlink_slot)
         pa_hook_slot_free(u->unlink_slot);
     if (u->null_module)
-        pa_module_unload_request(u->null_module);
+        pa_module_unload_request(u->null_module, TRUE);
 
     pa_xfree(u->sink_name);
     pa_xfree(u);

@@ -27,6 +27,7 @@
 #include <stdio.h>
 
 #include <pulse/timeval.h>
+#include <pulse/util.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/module.h>
@@ -41,8 +42,6 @@ PA_MODULE_DESCRIPTION("Automatically restore the default sink and source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
 
-#define DEFAULT_SINK_FILE "default-sink"
-#define DEFAULT_SOURCE_FILE "default-source"
 #define DEFAULT_SAVE_INTERVAL 5
 
 struct userdata {
@@ -161,10 +160,10 @@ int pa__init(pa_module *m) {
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
 
-    if (!(u->sink_filename = pa_state_path(DEFAULT_SINK_FILE)))
+    if (!(u->sink_filename = pa_state_path("default-sink", TRUE)))
         goto fail;
 
-    if (!(u->source_filename = pa_state_path(DEFAULT_SOURCE_FILE)))
+    if (!(u->source_filename = pa_state_path("default-source", TRUE)))
         goto fail;
 
     load(u);

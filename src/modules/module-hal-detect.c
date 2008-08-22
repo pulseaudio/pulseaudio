@@ -108,7 +108,7 @@ static void hal_device_free(struct device* d) {
     pa_xfree(d);
 }
 
-static void hal_device_free_cb(void *d, PA_GCC_UNUSED void *data) {
+static void hal_device_free_cb(void *d, void *data) {
     hal_device_free(d);
 }
 
@@ -405,7 +405,7 @@ static void device_added_time_cb(pa_mainloop_api *ea, pa_time_event *ev, const s
     dbus_error_init(&error);
 
     if (!pa_hashmap_get(td->u->devices, td->udi)) {
-        int b;
+        dbus_bool_t b;
         struct device *d;
 
         b = libhal_device_exists(td->u->context, td->udi, &error);
@@ -433,7 +433,7 @@ static void device_added_cb(LibHalContext *context, const char *udi) {
     struct timeval tv;
     struct timerdata *t;
     struct userdata *u;
-    int good = 0;
+    pa_bool_t good = FALSE;
 
     pa_assert_se(u = libhal_ctx_get_user_data(context));
 
@@ -511,7 +511,7 @@ static void device_removed_cb(LibHalContext* context, const char *udi) {
     pa_log_debug("Device removed: %s", udi);
 
     if ((d = pa_hashmap_remove(u->devices, udi))) {
-        pa_module_unload_by_index(u->core, d->index);
+        pa_module_unload_by_index(u->core, d->index, TRUE);
         hal_device_free(d);
     }
 }
@@ -749,17 +749,17 @@ int pa__init(pa_module*m) {
     }
 
     if ((api = pa_modargs_get_value(ma, "api", NULL))) {
-        int good = 0;
+        pa_bool_t good = FALSE;
 
 #ifdef HAVE_ALSA
         if (strcmp(api, CAPABILITY_ALSA) == 0) {
-            good = 1;
+            good = TRUE;
             api = CAPABILITY_ALSA;
         }
 #endif
 #ifdef HAVE_OSS
         if (strcmp(api, CAPABILITY_OSS) == 0) {
-            good = 1;
+            good = TRUE;
             api = CAPABILITY_OSS;
         }
 #endif

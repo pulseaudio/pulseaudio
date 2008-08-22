@@ -28,7 +28,12 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
+
+#include <pulse/i18n.h>
+
 #include <pulsecore/macro.h>
+#include <pulsecore/core-error.h>
+#include <pulsecore/log.h>
 
 #ifdef HAVE_SYS_CAPABILITY_H
 #include <sys/capability.h>
@@ -36,10 +41,6 @@
 #ifdef HAVE_SYS_PRCTL_H
 #include <sys/prctl.h>
 #endif
-
-#include <pulsecore/core-error.h>
-
-#include <pulsecore/log.h>
 
 #include "caps.h"
 
@@ -58,7 +59,7 @@ void pa_drop_root(void) {
     if (uid == 0 || geteuid() != 0)
         return;
 
-    pa_log_info("Dropping root priviliges.");
+    pa_log_info(_("Dropping root priviliges."));
 
 #if defined(HAVE_SETRESUID)
     pa_assert_se(setresuid(uid, uid, uid) >= 0);
@@ -98,7 +99,7 @@ void pa_limit_caps(void) {
          * that */
         pa_drop_caps();
     else
-        pa_log_info("Limited capabilities successfully to CAP_SYS_NICE.");
+        pa_log_info(_("Limited capabilities successfully to CAP_SYS_NICE."));
 
     pa_assert_se(cap_free(caps) == 0);
 

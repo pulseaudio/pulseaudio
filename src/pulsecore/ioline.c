@@ -164,7 +164,7 @@ void pa_ioline_puts(pa_ioline *l, const char *c) {
         /* In case the allocated buffer is too small, enlarge it. */
         if (l->wbuf_valid_length + len > l->wbuf_length) {
             size_t n = l->wbuf_valid_length+len;
-            char *new = pa_xnew(char, n);
+            char *new = pa_xnew(char, (unsigned) n);
 
             if (l->wbuf) {
                 memcpy(new, l->wbuf+l->wbuf_index, l->wbuf_valid_length);
@@ -285,7 +285,7 @@ static int do_read(pa_ioline *l) {
                     memmove(l->rbuf, l->rbuf+l->rbuf_index, l->rbuf_valid_length);
             } else {
                 /* Enlarge the buffer */
-                char *new = pa_xnew(char, n);
+                char *new = pa_xnew(char, (unsigned) n);
                 if (l->rbuf_valid_length)
                     memcpy(new, l->rbuf+l->rbuf_index, l->rbuf_valid_length);
                 pa_xfree(l->rbuf);
@@ -315,10 +315,10 @@ static int do_read(pa_ioline *l) {
             return -1;
         }
 
-        l->rbuf_valid_length += r;
+        l->rbuf_valid_length += (size_t) r;
 
         /* Look if a line has been terminated in the newly read data */
-        scan_for_lines(l, l->rbuf_valid_length - r);
+        scan_for_lines(l, l->rbuf_valid_length - (size_t) r);
     }
 
     return 0;
@@ -346,8 +346,8 @@ static int do_write(pa_ioline *l) {
             return -1;
         }
 
-        l->wbuf_index += r;
-        l->wbuf_valid_length -= r;
+        l->wbuf_index += (size_t) r;
+        l->wbuf_valid_length -= (size_t) r;
 
         /* A shortcut for the next time */
         if (l->wbuf_valid_length == 0)

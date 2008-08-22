@@ -27,6 +27,7 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/utf8.h>
+#include <pulse/i18n.h>
 
 #include <pulsecore/hashmap.h>
 #include <pulsecore/strbuf.h>
@@ -63,6 +64,8 @@ static void property_free(struct property *prop) {
 }
 
 pa_proplist* pa_proplist_new(void) {
+    pa_init_i18n();
+
     return MAKE_PROPLIST(pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func));
 }
 
@@ -277,7 +280,7 @@ char *pa_proplist_to_string(pa_proplist *p) {
             char *c;
 
             pa_assert_se(pa_proplist_get(p, key, &value, &nbytes) == 0);
-            c = pa_xnew(char, nbytes*2+1);
+            c = pa_xmalloc(nbytes*2+1);
             pa_hexstr((const uint8_t*) value, nbytes, c, nbytes*2+1);
 
             pa_strbuf_printf(buf, "%s = hex:%s\n", key, c);

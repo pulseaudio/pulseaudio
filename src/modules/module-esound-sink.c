@@ -165,7 +165,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             pa_usec_t w, r;
 
             r = pa_smoother_get(u->smoother, pa_rtclock_usec());
-            w = pa_bytes_to_usec(u->offset + u->memchunk.length, &u->sink->sample_spec);
+            w = pa_bytes_to_usec((uint64_t) u->offset + u->memchunk.length, &u->sink->sample_spec);
 
             *((pa_usec_t*) data) = w > r ? w - r : 0;
             break;
@@ -250,8 +250,8 @@ static void thread_func(void *userdata) {
                     } else {
                         u->offset += l;
 
-                        u->memchunk.index += l;
-                        u->memchunk.length -= l;
+                        u->memchunk.index += (size_t) l;
+                        u->memchunk.length -= (size_t) l;
 
                         if (u->memchunk.length <= 0) {
                             pa_memblock_unref(u->memchunk.memblock);
@@ -285,7 +285,7 @@ static void thread_func(void *userdata) {
                 }
 #endif
 
-                usec = pa_bytes_to_usec(n, &u->sink->sample_spec);
+                usec = pa_bytes_to_usec((uint64_t) n, &u->sink->sample_spec);
 
                 if (usec > u->latency)
                     usec -= u->latency;
@@ -296,7 +296,7 @@ static void thread_func(void *userdata) {
             }
 
             /* Hmm, nothing to do. Let's sleep */
-            pollfd->events = PA_SINK_IS_OPENED(u->sink->thread_info.state) ? POLLOUT : 0;
+            pollfd->events = (short) (PA_SINK_IS_OPENED(u->sink->thread_info.state) ? POLLOUT : 0);
         }
 
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
@@ -342,7 +342,7 @@ static int do_write(struct userdata *u) {
             return -1;
         }
 
-        u->write_index += r;
+        u->write_index += (size_t) r;
         pa_assert(u->write_index <= u->write_length);
 
         if (u->write_index == u->write_length) {
@@ -458,7 +458,7 @@ static int do_read(struct userdata *u) {
             return -1;
         }
 
-        u->read_index += r;
+        u->read_index += (size_t) r;
         pa_assert(u->read_index <= u->read_length);
 
         if (u->read_index == u->read_length)
@@ -468,7 +468,7 @@ static int do_read(struct userdata *u) {
     return 0;
 }
 
-static void io_callback(PA_GCC_UNUSED pa_iochannel *io, void*userdata) {
+static void io_callback(pa_iochannel *io, void*userdata) {
     struct userdata *u = userdata;
     pa_assert(u);
 
@@ -479,11 +479,11 @@ static void io_callback(PA_GCC_UNUSED pa_iochannel *io, void*userdata) {
             u->io = NULL;
         }
 
-       pa_module_unload_request(u->module);
+        pa_module_unload_request(u->module, TRUE);
     }
 }
 
-static void on_connection(PA_GCC_UNUSED pa_socket_client *c, pa_iochannel*io, void *userdata) {
+static void on_connection(pa_socket_client *c, pa_iochannel*io, void *userdata) {
     struct userdata *u = userdata;
 
     pa_socket_client_unref(u->client);
@@ -491,7 +491,7 @@ static void on_connection(PA_GCC_UNUSED pa_socket_client *c, pa_iochannel*io, vo
 
     if (!io) {
         pa_log("Connection failed: %s", pa_cstrerror(errno));
-        pa_module_unload_request(u->module);
+        pa_module_unload_request(u->module, TRUE);
         return;
     }
 
@@ -545,7 +545,7 @@ int pa__init(pa_module*m) {
     u->format =
         (ss.format == PA_SAMPLE_U8 ? ESD_BITS8 : ESD_BITS16) |
         (ss.channels == 2 ? ESD_STEREO : ESD_MONO);
-    u->rate = ss.rate;
+    u->rate = (int32_t) ss.rate;
     u->block_size = pa_usec_to_bytes(PA_USEC_PER_SEC/20, &ss);
 
     u->read_data = u->write_data = NULL;

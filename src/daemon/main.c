@@ -64,6 +64,8 @@
 #include <pulse/mainloop-signal.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
+#include <pulse/i18n.h>
+#include <pulse/lock-autospawn.h>
 
 #include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
@@ -94,8 +96,6 @@
 #include "ltdl-bind-now.h"
 #include "polkit.h"
 
-#define AUTOSPAWN_LOCK "autospawn.lock"
-
 #ifdef HAVE_LIBWRAP
 /* Only one instance of these variables */
 int allow_severity = LOG_INFO;
@@ -111,7 +111,7 @@ int __padsp_disabled__ = 7;
 
 #ifdef OS_IS_WIN32
 
-static void message_cb(pa_mainloop_api*a, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
+static void message_cb(pa_mainloop_api*a, pa_time_event*e, const struct timeval *tv, void *userdata) {
     MSG msg;
     struct timeval tvnext;
 
@@ -130,8 +130,8 @@ static void message_cb(pa_mainloop_api*a, pa_time_event*e, PA_GCC_UNUSED const s
 
 #endif
 
-static void signal_callback(pa_mainloop_api*m, PA_GCC_UNUSED pa_signal_event *e, int sig, void *userdata) {
-    pa_log_info("Got signal %s.", pa_sig2str(sig));
+static void signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
+    pa_log_info(_("Got signal %s."), pa_sig2str(sig));
 
     switch (sig) {
 #ifdef SIGUSR1
@@ -158,7 +158,7 @@ static void signal_callback(pa_mainloop_api*m, PA_GCC_UNUSED pa_signal_event *e,
         case SIGINT:
         case SIGTERM:
         default:
-            pa_log_info("Exiting.");
+            pa_log_info(_("Exiting."));
             m->quit(m, 1);
             break;
     }
@@ -176,41 +176,41 @@ static int change_user(void) {
      * afterwards. */
 
     if (!(pw = getpwnam(PA_SYSTEM_USER))) {
-        pa_log("Failed to find user '%s'.", PA_SYSTEM_USER);
+        pa_log(_("Failed to find user '%s'."), PA_SYSTEM_USER);
         return -1;
     }
 
     if (!(gr = getgrnam(PA_SYSTEM_GROUP))) {
-        pa_log("Failed to find group '%s'.", PA_SYSTEM_GROUP);
+        pa_log(_("Failed to find group '%s'."), PA_SYSTEM_GROUP);
         return -1;
     }
 
-    pa_log_info("Found user '%s' (UID %lu) and group '%s' (GID %lu).",
+    pa_log_info(_("Found user '%s' (UID %lu) and group '%s' (GID %lu)."),
                 PA_SYSTEM_USER, (unsigned long) pw->pw_uid,
                 PA_SYSTEM_GROUP, (unsigned long) gr->gr_gid);
 
     if (pw->pw_gid != gr->gr_gid) {
-        pa_log("GID of user '%s' and of group '%s' don't match.", PA_SYSTEM_USER, PA_SYSTEM_GROUP);
+        pa_log(_("GID of user '%s' and of group '%s' don't match."), PA_SYSTEM_USER, PA_SYSTEM_GROUP);
         return -1;
     }
 
     if (strcmp(pw->pw_dir, PA_SYSTEM_RUNTIME_PATH) != 0)
-        pa_log_warn("Warning: home directory of user '%s' is not '%s', ignoring.", PA_SYSTEM_USER, PA_SYSTEM_RUNTIME_PATH);
+        pa_log_warn(_("Home directory of user '%s' is not '%s', ignoring."), PA_SYSTEM_USER, PA_SYSTEM_RUNTIME_PATH);
 
     if (pa_make_secure_dir(PA_SYSTEM_RUNTIME_PATH, 0755, pw->pw_uid, gr->gr_gid) < 0) {
-        pa_log("Failed to create '%s': %s", PA_SYSTEM_RUNTIME_PATH, pa_cstrerror(errno));
+        pa_log(_("Failed to create '%s': %s"), PA_SYSTEM_RUNTIME_PATH, pa_cstrerror(errno));
         return -1;
     }
 
     if (pa_make_secure_dir(PA_SYSTEM_STATE_PATH, 0700, pw->pw_uid, gr->gr_gid) < 0) {
-        pa_log("Failed to create '%s': %s", PA_SYSTEM_STATE_PATH, pa_cstrerror(errno));
+        pa_log(_("Failed to create '%s': %s"), PA_SYSTEM_STATE_PATH, pa_cstrerror(errno));
         return -1;
     }
 
     /* We don't create the config dir here, because we don't need to write to it */
 
     if (initgroups(PA_SYSTEM_USER, gr->gr_gid) != 0) {
-        pa_log("Failed to change group list: %s", pa_cstrerror(errno));
+        pa_log(_("Failed to change group list: %s"), pa_cstrerror(errno));
         return -1;
     }
 
@@ -226,7 +226,7 @@ static int change_user(void) {
 #endif
 
     if (r < 0) {
-        pa_log("Failed to change GID: %s", pa_cstrerror(errno));
+        pa_log(_("Failed to change GID: %s"), pa_cstrerror(errno));
         return -1;
     }
 
@@ -242,7 +242,7 @@ static int change_user(void) {
 #endif
 
     if (r < 0) {
-        pa_log("Failed to change UID: %s", pa_cstrerror(errno));
+        pa_log(_("Failed to change UID: %s"), pa_cstrerror(errno));
         return -1;
     }
 
@@ -256,7 +256,7 @@ static int change_user(void) {
     pa_set_env("PULSE_CONFIG_PATH", PA_SYSTEM_CONFIG_PATH);
     pa_set_env("PULSE_STATE_PATH", PA_SYSTEM_STATE_PATH);
 
-    pa_log_info("Successfully dropped root privileges.");
+    pa_log_info(_("Successfully dropped root privileges."));
 
     return 0;
 }
@@ -264,7 +264,7 @@ static int change_user(void) {
 #else /* HAVE_PWD_H && HAVE_GRP_H */
 
 static int change_user(void) {
-    pa_log("System wide mode unsupported on this platform.");
+    pa_log(_("System wide mode unsupported on this platform."));
     return -1;
 }
 
@@ -282,7 +282,7 @@ static int set_one_rlimit(const pa_rlimit *r, int resource, const char *name) {
     rl.rlim_cur = rl.rlim_max = r->value;
 
     if (setrlimit(resource, &rl) < 0) {
-        pa_log_info("setrlimit(%s, (%u, %u)) failed: %s", name, (unsigned) r->value, (unsigned) r->value, pa_cstrerror(errno));
+        pa_log_info(_("setrlimit(%s, (%u, %u)) failed: %s"), name, (unsigned) r->value, (unsigned) r->value, pa_cstrerror(errno));
         return -1;
     }
 
@@ -345,7 +345,8 @@ int main(int argc, char *argv[]) {
     struct timeval win32_tv;
 #endif
     char *lf = NULL;
-    int autospawn_lock_fd = -1;
+    int autospawn_fd = -1;
+    pa_bool_t autospawn_locked = FALSE;
 
 #if defined(__linux__) && defined(__OPTIMIZE__)
     /*
@@ -407,6 +408,8 @@ int main(int argc, char *argv[]) {
      * still are normal root. */
 
     setlocale(LC_ALL, "");
+    pa_init_i18n();
+
     pa_log_set_maximal_level(PA_LOG_INFO);
     pa_log_set_ident("pulseaudio");
 
@@ -419,7 +422,7 @@ int main(int argc, char *argv[]) {
         goto finish;
 
     if (pa_cmdline_parse(conf, argc, argv, &d) < 0) {
-        pa_log("Failed to parse command line.");
+        pa_log(_("Failed to parse command line."));
         goto finish;
     }
 
@@ -435,14 +438,14 @@ int main(int argc, char *argv[]) {
 
         if (conf->high_priority && !allow_high_priority) {
             if (pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) > 0) {
-                pa_log_info("We're in the group '"PA_REALTIME_GROUP"', allowing high-priority scheduling.");
+                pa_log_info(_("We're in the group '%s', allowing high-priority scheduling."), PA_REALTIME_GROUP);
                 allow_high_priority = TRUE;
             }
         }
 
         if (conf->realtime_scheduling && !allow_realtime) {
             if (pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) > 0) {
-                pa_log_info("We're in the group '"PA_REALTIME_GROUP"', allowing real-time scheduling.");
+                pa_log_info(_("We're in the group '%s', allowing real-time scheduling."), PA_REALTIME_GROUP);
                 allow_realtime = TRUE;
             }
         }
@@ -450,18 +453,18 @@ int main(int argc, char *argv[]) {
 #ifdef HAVE_POLKIT
         if (conf->high_priority && !allow_high_priority) {
             if (pa_polkit_check("org.pulseaudio.acquire-high-priority") > 0) {
-                pa_log_info("PolicyKit grants us acquire-high-priority privilege.");
+                pa_log_info(_("PolicyKit grants us acquire-high-priority privilege."));
                 allow_high_priority = TRUE;
             } else
-                pa_log_info("PolicyKit refuses acquire-high-priority privilege.");
+                pa_log_info(_("PolicyKit refuses acquire-high-priority privilege."));
         }
 
         if (conf->realtime_scheduling && !allow_realtime) {
             if (pa_polkit_check("org.pulseaudio.acquire-real-time") > 0) {
-                pa_log_info("PolicyKit grants us acquire-real-time privilege.");
+                pa_log_info(_("PolicyKit grants us acquire-real-time privilege."));
                 allow_realtime = TRUE;
             } else
-                pa_log_info("PolicyKit refuses acquire-real-time privilege.");
+                pa_log_info(_("PolicyKit refuses acquire-real-time privilege."));
         }
 #endif
 
@@ -473,9 +476,9 @@ int main(int argc, char *argv[]) {
             pa_drop_caps();
 
             if (conf->high_priority || conf->realtime_scheduling)
-                pa_log_notice("Called SUID root and real-time/high-priority scheduling was requested in the configuration. However, we lack the necessary priviliges:\n"
-                              "We are not in group '"PA_REALTIME_GROUP"' and PolicyKit refuse to grant us priviliges. Dropping SUID again.\n"
-                              "For enabling real-time scheduling please acquire the appropriate PolicyKit priviliges, or become a member of '"PA_REALTIME_GROUP"', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user.");
+                pa_log_notice(_("Called SUID root and real-time/high-priority scheduling was requested in the configuration. However, we lack the necessary priviliges:\n"
+                                "We are not in group '"PA_REALTIME_GROUP"' and PolicyKit refuse to grant us priviliges. Dropping SUID again.\n"
+                                "For enabling real-time scheduling please acquire the appropriate PolicyKit priviliges, or become a member of '"PA_REALTIME_GROUP"', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."));
         }
     }
 
@@ -491,7 +494,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     if (conf->high_priority && !pa_can_high_priority())
-        pa_log_warn("High-priority scheduling enabled in configuration but not allowed by policy.");
+        pa_log_warn(_("High-priority scheduling enabled in configuration but not allowed by policy."));
 
     if (conf->high_priority && (conf->cmd == PA_CMD_DAEMON || conf->cmd == PA_CMD_START))
         pa_raise_priority(conf->nice_level);
@@ -516,24 +519,24 @@ int main(int argc, char *argv[]) {
                     rl.rlim_max = rl.rlim_cur = 9;
 
                     if (setrlimit(RLIMIT_RTPRIO, &rl) >= 0) {
-                        pa_log_info("Successfully increased RLIMIT_RTPRIO");
+                        pa_log_info(_("Successfully increased RLIMIT_RTPRIO"));
                         drop = TRUE;
                     } else
-                        pa_log_warn("RLIMIT_RTPRIO failed: %s", pa_cstrerror(errno));
+                        pa_log_warn(_("RLIMIT_RTPRIO failed: %s"), pa_cstrerror(errno));
                 }
             }
         }
 #endif
 
         if (drop)  {
-            pa_log_info("Giving up CAP_NICE");
+            pa_log_info(_("Giving up CAP_NICE"));
             pa_drop_caps();
             suid_root = FALSE;
         }
     }
 
     if (conf->realtime_scheduling && !pa_can_realtime())
-        pa_log_warn("Real-time scheduling enabled in configuration but not allowed by policy.");
+        pa_log_warn(_("Real-time scheduling enabled in configuration but not allowed by policy."));
 
     pa_log_debug("Can realtime: %s, can high-priority: %s", pa_yes_no(pa_can_realtime()), pa_yes_no(pa_can_high_priority()));
 
@@ -591,9 +594,9 @@ int main(int argc, char *argv[]) {
             pid_t pid;
 
             if (pa_pid_file_check_running(&pid, "pulseaudio") < 0)
-                pa_log_info("Daemon not running");
+                pa_log_info(_("Daemon not running"));
             else {
-                pa_log_info("Daemon running as PID %u", pid);
+                pa_log_info(_("Daemon running as PID %u"), pid);
                 retval = 0;
             }
 
@@ -603,7 +606,7 @@ int main(int argc, char *argv[]) {
         case PA_CMD_KILL:
 
             if (pa_pid_file_kill(SIGINT, NULL, "pulseaudio") < 0)
-                pa_log("Failed to kill daemon.");
+                pa_log(_("Failed to kill daemon: %s"), pa_cstrerror(errno));
             else
                 retval = 0;
 
@@ -621,15 +624,31 @@ int main(int argc, char *argv[]) {
     }
 
     if (real_root && !conf->system_instance)
-        pa_log_warn("This program is not intended to be run as root (unless --system is specified).");
+        pa_log_warn(_("This program is not intended to be run as root (unless --system is specified)."));
     else if (!real_root && conf->system_instance) {
-        pa_log("Root priviliges required.");
+        pa_log(_("Root priviliges required."));
         goto finish;
     }
 
     if (conf->cmd == PA_CMD_START && conf->system_instance) {
-        pa_log("--start not supported for system instances.");
+        pa_log(_("--start not supported for system instances."));
         goto finish;
+    }
+
+    if (conf->system_instance && !conf->disallow_exit)
+        pa_log_warn(_("Running in system mode, but --disallow-exit not set!"));
+
+    if (conf->system_instance && !conf->disallow_module_loading)
+        pa_log_warn(_("Running in system mode, but --disallow-module-loading not set!"));
+
+    if (conf->system_instance && !conf->disable_shm) {
+        pa_log_notice(_("Running in system mode, forcibly disabling SHM mode!"));
+        conf->disable_shm = TRUE;
+    }
+
+    if (conf->system_instance && conf->exit_idle_time > 0) {
+        pa_log_notice(_("Running in system mode, forcibly disabling exit idle time!"));
+        conf->exit_idle_time = 0;
     }
 
     if (conf->cmd == PA_CMD_START) {
@@ -637,8 +656,17 @@ int main(int argc, char *argv[]) {
          * first take the autospawn lock to make things
          * synchronous. */
 
-        lf = pa_runtime_path(AUTOSPAWN_LOCK);
-        autospawn_lock_fd = pa_lock_lockfile(lf);
+        if ((autospawn_fd = pa_autospawn_lock_init()) < 0) {
+            pa_log("Failed to initialize autospawn lock");
+            goto finish;
+        }
+
+        if ((pa_autospawn_lock_acquire(TRUE) < 0)) {
+            pa_log("Failed to acquire autospawn lock");
+            goto finish;
+        }
+
+        autospawn_locked = TRUE;
     }
 
     if (conf->daemonize) {
@@ -646,18 +674,18 @@ int main(int argc, char *argv[]) {
         int tty_fd;
 
         if (pa_stdio_acquire() < 0) {
-            pa_log("Failed to acquire stdio.");
+            pa_log(_("Failed to acquire stdio."));
             goto finish;
         }
 
 #ifdef HAVE_FORK
         if (pipe(daemon_pipe) < 0) {
-            pa_log("pipe failed: %s", pa_cstrerror(errno));
+            pa_log(_("pipe failed: %s"), pa_cstrerror(errno));
             goto finish;
         }
 
         if ((child = fork()) < 0) {
-            pa_log("fork() failed: %s", pa_cstrerror(errno));
+            pa_log(_("fork() failed: %s"), pa_cstrerror(errno));
             goto finish;
         }
 
@@ -671,25 +699,28 @@ int main(int argc, char *argv[]) {
             if ((n = pa_loop_read(daemon_pipe[0], &retval, sizeof(retval), NULL)) != sizeof(retval)) {
 
                 if (n < 0)
-                    pa_log("read() failed: %s", pa_cstrerror(errno));
+                    pa_log(_("read() failed: %s"), pa_cstrerror(errno));
 
                 retval = 1;
             }
 
             if (retval)
-                pa_log("Daemon startup failed.");
+                pa_log(_("Daemon startup failed."));
             else
-                pa_log_info("Daemon startup successful.");
+                pa_log_info(_("Daemon startup successful."));
 
             goto finish;
         }
 
-        if (autospawn_lock_fd >= 0) {
+        if (autospawn_fd >= 0) {
             /* The lock file is unlocked from the parent, so we need
              * to close it in the child */
 
-            pa_close(autospawn_lock_fd);
-            autospawn_lock_fd = -1;
+            pa_autospawn_lock_release();
+            pa_autospawn_lock_done(TRUE);
+
+            autospawn_locked = FALSE;
+            autospawn_fd = -1;
         }
 
         pa_assert_se(pa_close(daemon_pipe[0]) == 0);
@@ -746,17 +777,27 @@ int main(int argc, char *argv[]) {
 
     pa_set_env("PULSE_SYSTEM", conf->system_instance ? "1" : "0");
 
-    pa_log_info("This is PulseAudio " PACKAGE_VERSION);
-    pa_log_info("Page size is %lu bytes", (unsigned long) PA_PAGE_SIZE);
-    if (!(s = pa_get_runtime_dir()))
+    pa_log_info(_("This is PulseAudio %s"), PACKAGE_VERSION);
+    pa_log_info(_("Page size is %lu bytes"), (unsigned long) PA_PAGE_SIZE);
+
+    if (!(s = pa_machine_id())) {
+        pa_log(_("Failed to get machine ID"));
         goto finish;
-    pa_log_info("Using runtime directory %s.", s);
-    pa_xfree(s);
-    if (!(s = pa_get_state_dir()))
-        pa_log_info("Using state directory %s.", s);
+    }
+    pa_log_info(_("Machine ID is %s."), s);
     pa_xfree(s);
 
-    pa_log_info("Running in system mode: %s", pa_yes_no(pa_in_system_mode()));
+    if (!(s = pa_get_runtime_dir()))
+        goto finish;
+    pa_log_info(_("Using runtime directory %s."), s);
+    pa_xfree(s);
+
+    if (!(s = pa_get_state_dir()))
+        goto finish;
+    pa_log_info(_("Using state directory %s."), s);
+    pa_xfree(s);
+
+    pa_log_info(_("Running in system mode: %s"), pa_yes_no(pa_in_system_mode()));
 
     if (conf->use_pid_file) {
         int z;
@@ -771,7 +812,7 @@ int main(int argc, char *argv[]) {
                 goto finish;
             }
 
-            pa_log("pa_pid_file_create() failed.");
+            pa_log(_("pa_pid_file_create() failed."));
             goto finish;
         }
 
@@ -783,9 +824,9 @@ int main(int argc, char *argv[]) {
 #endif
 
     if (pa_rtclock_hrtimer())
-        pa_log_info("Fresh high-resolution timers available! Bon appetit!");
+        pa_log_info(_("Fresh high-resolution timers available! Bon appetit!"));
     else
-        pa_log_info("Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!");
+        pa_log_info(_("Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!"));
 
 #ifdef SIGRTMIN
     /* Valgrind uses SIGRTMAX. To easy debugging we don't use it here */
@@ -795,7 +836,7 @@ int main(int argc, char *argv[]) {
     pa_assert_se(mainloop = pa_mainloop_new());
 
     if (!(c = pa_core_new(pa_mainloop_get_api(mainloop), !conf->disable_shm))) {
-        pa_log("pa_core_new() failed.");
+        pa_log(_("pa_core_new() failed."));
         goto finish;
     }
 
@@ -810,6 +851,7 @@ int main(int argc, char *argv[]) {
     c->realtime_scheduling = !!conf->realtime_scheduling;
     c->disable_remixing = !!conf->disable_remixing;
     c->running_as_daemon = !!conf->daemonize;
+    c->disallow_exit = conf->disallow_exit;
 
     pa_assert_se(pa_signal_init(pa_mainloop_get_api(mainloop)) == 0);
     pa_signal_new(SIGINT, signal_callback, c);
@@ -854,17 +896,17 @@ int main(int argc, char *argv[]) {
     c->disallow_module_loading = !!conf->disallow_module_loading;
 
     if (r < 0 && conf->fail) {
-        pa_log("Failed to initialize daemon.");
+        pa_log(_("Failed to initialize daemon."));
         goto finish;
     }
 
     if (!c->modules || pa_idxset_size(c->modules) == 0) {
-        pa_log("Daemon startup without any loaded modules, refusing to work.");
+        pa_log(_("Daemon startup without any loaded modules, refusing to work."));
         goto finish;
     }
 
     if (c->default_sink_name && !pa_namereg_get(c, c->default_sink_name, PA_NAMEREG_SINK, TRUE) && conf->fail) {
-        pa_log_error("Default sink name (%s) does not exist in name register.", c->default_sink_name);
+        pa_log_error(_("Default sink name (%s) does not exist in name register."), c->default_sink_name);
         goto finish;
     }
 
@@ -877,18 +919,22 @@ int main(int argc, char *argv[]) {
     }
 #endif
 
-    pa_log_info("Daemon startup complete.");
+    pa_log_info(_("Daemon startup complete."));
 
     retval = 0;
     if (pa_mainloop_run(mainloop, &retval) < 0)
         goto finish;
 
-    pa_log_info("Daemon shutdown initiated.");
+    pa_log_info(_("Daemon shutdown initiated."));
 
 finish:
 
-    if (autospawn_lock_fd >= 0)
-        pa_unlock_lockfile(lf, autospawn_lock_fd);
+    if (autospawn_fd >= 0) {
+        if (autospawn_locked)
+            pa_autospawn_lock_release();
+
+        pa_autospawn_lock_done(FALSE);
+    }
 
     if (lf)
         pa_xfree(lf);
@@ -900,7 +946,7 @@ finish:
 
     if (c) {
         pa_core_unref(c);
-        pa_log_info("Daemon terminated.");
+        pa_log_info(_("Daemon terminated."));
     }
 
     if (!conf->no_cpu_limit)

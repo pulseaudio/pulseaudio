@@ -36,6 +36,8 @@
 
 typedef struct pa_native_protocol pa_native_protocol;
 
+typedef struct pa_native_connection pa_native_connection;
+
 typedef struct pa_native_options {
     PA_REFCNT_DECLARE;
 
@@ -48,21 +50,36 @@ typedef struct pa_native_options {
 
 } pa_native_options;
 
+typedef enum pa_native_hook {
+    PA_NATIVE_HOOK_SERVERS_CHANGED,
+    PA_NATIVE_HOOK_CONNECTION_PUT,
+    PA_NATIVE_HOOK_CONNECTION_UNLINK,
+    PA_NATIVE_HOOK_MAX
+} pa_native_hook_t;
+
 pa_native_protocol* pa_native_protocol_get(pa_core *core);
 pa_native_protocol* pa_native_protocol_ref(pa_native_protocol *p);
 void pa_native_protocol_unref(pa_native_protocol *p);
 void pa_native_protocol_connect(pa_native_protocol *p, pa_iochannel *io, pa_native_options *a);
 void pa_native_protocol_disconnect(pa_native_protocol *p, pa_module *m);
 
+pa_hook *pa_native_protocol_hooks(pa_native_protocol *p);
+
 void pa_native_protocol_add_server_string(pa_native_protocol *p, const char *name);
 void pa_native_protocol_remove_server_string(pa_native_protocol *p, const char *name);
-
-pa_hook *pa_native_protocol_servers_changed(pa_native_protocol *p);
 pa_strlist *pa_native_protocol_servers(pa_native_protocol *p);
 
-typedef void (*pa_native_protocol_ext_cb_t)(pa_native_protocol *p, pa_module *m, pa_pstream *ps, uint32_t tag, pa_tagstruct *t);
+typedef int (*pa_native_protocol_ext_cb_t)(
+        pa_native_protocol *p,
+        pa_module *m,
+        pa_native_connection *c,
+        uint32_t tag,
+        pa_tagstruct *t);
+
 int pa_native_protocol_install_ext(pa_native_protocol *p, pa_module *m, pa_native_protocol_ext_cb_t cb);
 void pa_native_protocol_remove_ext(pa_native_protocol *p, pa_module *m);
+
+pa_pstream* pa_native_connection_get_pstream(pa_native_connection *c);
 
 pa_native_options* pa_native_options_new(void);
 pa_native_options* pa_native_options_ref(pa_native_options *o);

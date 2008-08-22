@@ -70,13 +70,13 @@ void pa_sconv_s16le_to_float32ne(unsigned n, const int16_t *a, float *b) {
 
     for (; n > 0; n--) {
         int16_t s = *(a++);
-        *(b++) = ((float) INT16_FROM(s))/0x7FFF;
+        *(b++) = ((float) INT16_FROM(s))/(float) 0x7FFF;
     }
 
 #else
 {
     static const double add = 0, factor = 1.0/0x7FFF;
-    oil_scaleconv_f32_s16(b, a, n, &add, &factor);
+    oil_scaleconv_f32_s16(b, a, (int) n, &add, &factor);
 }
 #endif
 }
@@ -95,7 +95,7 @@ void pa_sconv_s32le_to_float32ne(unsigned n, const int32_t *a, float *b) {
 #else
 {
     static const double add = 0, factor = 1.0/0x7FFFFFFF;
-    oil_scaleconv_f32_s32(b, a, n, &add, &factor);
+    oil_scaleconv_f32_s32(b, a, (int) n, &add, &factor);
 }
 #endif
 }
@@ -110,7 +110,7 @@ void pa_sconv_s16le_from_float32ne(unsigned n, const float *a, int16_t *b) {
         int16_t s;
         float v = *(a++);
 
-        v = PA_CLAMP_UNLIKELY(v, -1, 1);
+        v = PA_CLAMP_UNLIKELY(v, -1.0f, 1.f);
         s = (int16_t) (v * 0x7FFF);
         *(b++) = INT16_TO(s);
     }
@@ -118,7 +118,7 @@ void pa_sconv_s16le_from_float32ne(unsigned n, const float *a, int16_t *b) {
 #else
 {
     static const double add = 0, factor = 0x7FFF;
-    oil_scaleconv_s16_f32(b, a, n, &add, &factor);
+    oil_scaleconv_s16_f32(b, a, (int) n, &add, &factor);
 }
 #endif
 }
@@ -133,7 +133,7 @@ void pa_sconv_s32le_from_float32ne(unsigned n, const float *a, int32_t *b) {
         int32_t s;
         float v = *(a++);
 
-        v = PA_CLAMP_UNLIKELY(v, -1, 1);
+        v = PA_CLAMP_UNLIKELY(v, -1.0f, 1.0f);
         s = (int32_t) ((double) v * (double) 0x7FFFFFFF);
         *(b++) = INT32_TO(s);
     }
@@ -141,7 +141,7 @@ void pa_sconv_s32le_from_float32ne(unsigned n, const float *a, int32_t *b) {
 #else
 {
     static const double add = 0, factor = 0x7FFFFFFF;
-    oil_scaleconv_s32_f32(b, a, n, &add, &factor);
+    oil_scaleconv_s32_f32(b, a, (int) n, &add, &factor);
 }
 #endif
 }
@@ -181,7 +181,7 @@ void pa_sconv_s16le_from_float32re(unsigned n, const float *a, int16_t *b) {
         float v = *(a++);
         uint32_t *j = (uint32_t*) &v;
         *j = PA_UINT32_SWAP(*j);
-        v = PA_CLAMP_UNLIKELY(v, -1, 1);
+        v = PA_CLAMP_UNLIKELY(v, -1.0f, 1.0f);
         s = (int16_t) (v * 0x7FFF);
         *(b++) = INT16_TO(s);
     }
@@ -196,7 +196,7 @@ void pa_sconv_s32le_from_float32re(unsigned n, const float *a, int32_t *b) {
         float v = *(a++);
         uint32_t *j = (uint32_t*) &v;
         *j = PA_UINT32_SWAP(*j);
-        v = PA_CLAMP_UNLIKELY(v, -1, 1);
+        v = PA_CLAMP_UNLIKELY(v, -1.0f, 1.0f);
         s = (int32_t) ((double) v * 0x7FFFFFFF);
         *(b++) = INT32_TO(s);
     }
@@ -219,7 +219,7 @@ void pa_sconv_s32le_to_s16re(unsigned n, const int32_t*a, int16_t *b) {
 
     for (; n > 0; n--) {
         int16_t s = (int16_t) (INT32_FROM(*a) >> 16);
-        *b = PA_UINT32_SWAP(s);
+        *b = PA_INT16_SWAP(s);
         a++;
         b++;
     }
@@ -241,7 +241,7 @@ void pa_sconv_s32le_from_s16re(unsigned n, const int16_t *a, int32_t *b) {
     pa_assert(b);
 
     for (; n > 0; n--) {
-        int32_t s = ((int32_t) PA_UINT16_SWAP(*a)) << 16;
+        int32_t s = ((int32_t) PA_INT16_SWAP(*a)) << 16;
         *b = INT32_TO(s);
         a++;
         b++;

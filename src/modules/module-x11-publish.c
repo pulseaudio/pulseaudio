@@ -126,7 +126,7 @@ static void x11_kill_cb(pa_x11_wrapper *w, void *userdata) {
     u->x11_client = NULL;
     u->x11_wrapper = NULL;
 
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
 }
 
 int pa__init(pa_module*m) {
@@ -152,7 +152,7 @@ int pa__init(pa_module*m) {
     u->x11_client = NULL;
     u->x11_wrapper = NULL;
 
-    u->hook_slot = pa_hook_connect(pa_native_protocol_servers_changed(u->protocol), PA_HOOK_NORMAL, servers_changed_cb, u);
+    u->hook_slot = pa_hook_connect(&pa_native_protocol_hooks(u->protocol)[PA_NATIVE_HOOK_SERVERS_CHANGED], PA_HOOK_NORMAL, servers_changed_cb, u);
 
     if (!(u->auth_cookie = pa_auth_cookie_get(m->core, pa_modargs_get_value(ma, "cookie", PA_NATIVE_COOKIE_FILE), PA_NATIVE_COOKIE_LENGTH)))
         goto fail;

@@ -26,6 +26,7 @@
 #include <asoundlib.h>
 
 #include <pulse/sample.h>
+#include <pulse/volume.h>
 #include <pulse/mainloop-api.h>
 #include <pulse/channelmap.h>
 #include <pulse/proplist.h>
@@ -79,9 +80,6 @@ snd_pcm_t *pa_alsa_open_by_device_string(
 
 int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel_map, snd_mixer_selem_channel_id_t mixer_map[], pa_bool_t playback);
 
-void pa_alsa_0dB_playback(snd_mixer_elem_t *elem);
-void pa_alsa_0dB_capture(snd_mixer_elem_t *elem);
-
 void pa_alsa_dump(snd_pcm_t *pcm);
 void pa_alsa_dump_status(snd_pcm_t *pcm);
 
@@ -93,5 +91,7 @@ void pa_alsa_init_proplist(pa_proplist *p, snd_pcm_info_t *pcm_info);
 int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents);
 
 pa_rtpoll_item* pa_alsa_build_pollfd(snd_pcm_t *pcm, pa_rtpoll *rtpoll);
+
+pa_cvolume *pa_alsa_volume_divide(pa_cvolume *r, const pa_cvolume *t);
 
 #endif

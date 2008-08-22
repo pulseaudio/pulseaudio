@@ -66,7 +66,7 @@ int pa__init(pa_module*m) {
 
     pa_assert_se(pa_close(fd) == 0);
 
-    pa_module_unload_request(m);
+    pa_module_unload_request(m, TRUE);
 
     ret = 0;
 

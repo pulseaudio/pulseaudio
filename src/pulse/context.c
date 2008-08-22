@@ -53,6 +53,8 @@
 #include <pulse/xmalloc.h>
 #include <pulse/utf8.h>
 #include <pulse/util.h>
+#include <pulse/i18n.h>
+#include <pulse/lock-autospawn.h>
 
 #include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
@@ -80,7 +82,7 @@
 
 #include "context.h"
 
-#define AUTOSPAWN_LOCK "autospawn.lock"
+void pa_command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REQUEST] = pa_command_request,
@@ -93,23 +95,27 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_PLAYBACK_STREAM_SUSPENDED] = pa_command_stream_suspended,
     [PA_COMMAND_RECORD_STREAM_SUSPENDED] = pa_command_stream_suspended,
     [PA_COMMAND_STARTED] = pa_command_stream_started,
-    [PA_COMMAND_SUBSCRIBE_EVENT] = pa_command_subscribe_event
+    [PA_COMMAND_SUBSCRIBE_EVENT] = pa_command_subscribe_event,
+    [PA_COMMAND_EXTENSION] = pa_command_extension
 };
 
-static void unlock_autospawn_lock_file(pa_context *c) {
+static void unlock_autospawn(pa_context *c) {
     pa_assert(c);
 
-    if (c->autospawn_lock_fd >= 0) {
-        char *lf;
+    if (c->autospawn_fd >= 0) {
 
-        if (!(lf = pa_runtime_path(AUTOSPAWN_LOCK)))
-            pa_log_warn("Cannot unlock autospawn because runtime path is no more.");
+        if (c->autospawn_locked)
+            pa_autospawn_lock_release();
 
-        pa_unlock_lockfile(lf, c->autospawn_lock_fd);
-        pa_xfree(lf);
+        if (c->autospawn_event)
+            c->mainloop->io_free(c->autospawn_event);
 
-        c->autospawn_lock_fd = -1;
+        pa_autospawn_lock_done(FALSE);
     }
+
+    c->autospawn_locked = FALSE;
+    c->autospawn_fd = -1;
+    c->autospawn_event = NULL;
 }
 
 static void context_free(pa_context *c);
@@ -126,12 +132,17 @@ static void reset_callbacks(pa_context *c) {
 
     c->subscribe_callback = NULL;
     c->subscribe_userdata = NULL;
+
+    c->ext_stream_restore.callback = NULL;
+    c->ext_stream_restore.userdata = NULL;
 }
 
 pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *name, pa_proplist *p) {
     pa_context *c;
 
     pa_assert(mainloop);
+
+    pa_init_i18n();
 
     if (!name && !pa_proplist_contains(p, PA_PROP_APPLICATION_NAME))
         return NULL;
@@ -165,10 +176,14 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     c->is_local = FALSE;
     c->server_list = NULL;
     c->server = NULL;
-    c->autospawn_lock_fd = -1;
-    memset(&c->spawn_api, 0, sizeof(c->spawn_api));
-    c->do_autospawn = FALSE;
+
     c->do_shm = FALSE;
+
+    c->do_autospawn = FALSE;
+    c->autospawn_fd = -1;
+    c->autospawn_locked = FALSE;
+    c->autospawn_event = NULL;
+    memset(&c->spawn_api, 0, sizeof(c->spawn_api));
 
 #ifndef MSG_NOSIGNAL
 #ifdef SIGPIPE
@@ -237,7 +252,7 @@ static void context_free(pa_context *c) {
 
     context_unlink(c);
 
-    unlock_autospawn_lock_file(c);
+    unlock_autospawn(c);
 
     if (c->record_streams)
         pa_dynarray_free(c->record_streams, NULL, NULL);
@@ -398,11 +413,11 @@ int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t, pa
         err = PA_ERR_UNKNOWN;
 
     if (fail) {
-        pa_context_fail(c, err);
+        pa_context_fail(c, (int) err);
         return -1;
     }
 
-    pa_context_set_error(c, err);
+    pa_context_set_error(c, (int) err);
 
     return 0;
 }
@@ -424,7 +439,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     switch(c->state) {
         case PA_CONTEXT_AUTHORIZING: {
             pa_tagstruct *reply;
-            pa_bool_t shm_on_remote;
+            pa_bool_t shm_on_remote = FALSE;
 
             if (pa_tagstruct_getu32(t, &c->version) < 0 ||
                 !pa_tagstruct_eof(t)) {
@@ -524,7 +539,7 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     c->pdispatch = pa_pdispatch_new(c->mainloop, command_table, PA_COMMAND_MAX);
 
     if (!c->conf->cookie_valid)
-        pa_log_info("No cookie loaded. Attempting to connect without.");
+        pa_log_info(_("No cookie loaded. Attempting to connect without."));
 
     t = pa_tagstruct_command(c, PA_COMMAND_AUTH, &tag);
 
@@ -578,7 +593,7 @@ static int context_connect_spawn(pa_context *c) {
     pa_context_ref(c);
 
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds) < 0) {
-        pa_log_error("socketpair(): %s", pa_cstrerror(errno));
+        pa_log_error(_("socketpair(): %s"), pa_cstrerror(errno));
         pa_context_fail(c, PA_ERR_INTERNAL);
         goto fail;
     }
@@ -592,7 +607,7 @@ static int context_connect_spawn(pa_context *c) {
         c->spawn_api.prefork();
 
     if ((pid = fork()) < 0) {
-        pa_log_error("fork(): %s", pa_cstrerror(errno));
+        pa_log_error(_("fork(): %s"), pa_cstrerror(errno));
         pa_context_fail(c, PA_ERR_INTERNAL);
 
         if (c->spawn_api.postfork)
@@ -655,7 +670,7 @@ static int context_connect_spawn(pa_context *c) {
         c->spawn_api.postfork();
 
     if (r < 0) {
-        pa_log("waitpid(): %s", pa_cstrerror(errno));
+        pa_log(_("waitpid(): %s"), pa_cstrerror(errno));
         pa_context_fail(c, PA_ERR_INTERNAL);
         goto fail;
     } else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
@@ -665,7 +680,7 @@ static int context_connect_spawn(pa_context *c) {
 
     c->is_local = TRUE;
 
-    unlock_autospawn_lock_file(c);
+    unlock_autospawn(c);
 
     io = pa_iochannel_new(c->mainloop, fds[0], fds[0]);
     setup_context(c, io);
@@ -677,7 +692,7 @@ static int context_connect_spawn(pa_context *c) {
 fail:
     pa_close_pipe(fds);
 
-    unlock_autospawn_lock_file(c);
+    unlock_autospawn(c);
 
     pa_context_unref(c);
 
@@ -759,15 +774,48 @@ static void on_connection(pa_socket_client *client, pa_iochannel*io, void *userd
         goto finish;
     }
 
-    unlock_autospawn_lock_file(c);
+    unlock_autospawn(c);
     setup_context(c, io);
 
 finish:
     pa_context_unref(c);
 }
 
+static void autospawn_cb(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags_t events, void *userdata) {
+    pa_context *c = userdata;
+    int k;
 
-static char *get_legacy_runtime_dir(void) {
+    pa_assert(a);
+    pa_assert(e);
+    pa_assert(fd >= 0);
+    pa_assert(events == PA_IO_EVENT_INPUT);
+    pa_assert(c);
+    pa_assert(e == c->autospawn_event);
+    pa_assert(fd == c->autospawn_fd);
+
+    pa_context_ref(c);
+
+    /* Check whether we can get the lock right now*/
+    if ((k = pa_autospawn_lock_acquire(FALSE)) < 0) {
+        pa_context_fail(c, PA_ERR_ACCESS);
+        goto finish;
+    }
+
+    if (k > 0) {
+        /* So we got it, rock on! */
+        c->autospawn_locked = TRUE;
+        try_next_connection(c);
+
+        c->mainloop->io_free(c->autospawn_event);
+        c->autospawn_event = NULL;
+    }
+
+finish:
+
+    pa_context_unref(c);
+}
+
+static char *get_old_legacy_runtime_dir(void) {
     char *p, u[128];
     struct stat st;
 
@@ -775,6 +823,28 @@ static char *get_legacy_runtime_dir(void) {
         return NULL;
 
     p = pa_sprintf_malloc("/tmp/pulse-%s", u);
+
+    if (stat(p, &st) < 0) {
+        pa_xfree(p);
+        return NULL;
+    }
+
+    if (st.st_uid != getuid()) {
+        pa_xfree(p);
+        return NULL;
+    }
+
+    return p;
+}
+
+static char *get_very_old_legacy_runtime_dir(void) {
+    char *p, h[128];
+    struct stat st;
+
+    if (!pa_get_home_dir(h, sizeof(h)))
+        return NULL;
+
+    p = pa_sprintf_malloc("%s/.pulse", h);
 
     if (stat(p, &st) < 0) {
         pa_xfree(p);
@@ -816,6 +886,7 @@ int pa_context_connect(
             pa_context_fail(c, PA_ERR_INVALIDSERVER);
             goto finish;
         }
+
     } else {
         char *d, *ufn;
         static char *legacy_dir;
@@ -840,8 +911,16 @@ int pa_context_connect(
         /* The system wide instance */
         c->server_list = pa_strlist_prepend(c->server_list, PA_SYSTEM_RUNTIME_PATH PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET);
 
-        /* The old per-user instance path. This is supported only to ease upgrades */
-        if ((legacy_dir = get_legacy_runtime_dir())) {
+        /* The very old per-user instance path (< 0.9.11). This is supported only to ease upgrades */
+        if ((legacy_dir = get_very_old_legacy_runtime_dir())) {
+            char *p = pa_sprintf_malloc("%s" PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET, legacy_dir);
+            c->server_list = pa_strlist_prepend(c->server_list, p);
+            pa_xfree(p);
+            pa_xfree(legacy_dir);
+        }
+
+        /* The old per-user instance path (< 0.9.12). This is supported only to ease upgrades */
+        if ((legacy_dir = get_old_legacy_runtime_dir())) {
             char *p = pa_sprintf_malloc("%s" PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET, legacy_dir);
             c->server_list = pa_strlist_prepend(c->server_list, p);
             pa_xfree(p);
@@ -856,21 +935,40 @@ int pa_context_connect(
 
         /* Wrap the connection attempts in a single transaction for sane autospawn locking */
         if (!(flags & PA_CONTEXT_NOAUTOSPAWN) && c->conf->autospawn) {
-            char *lf;
+            int k;
 
-            if (!(lf = pa_runtime_path(AUTOSPAWN_LOCK))) {
+            pa_assert(c->autospawn_fd < 0);
+            pa_assert(!c->autospawn_locked);
+
+            /* Start the locking procedure */
+            if ((c->autospawn_fd = pa_autospawn_lock_init()) < 0) {
                 pa_context_fail(c, PA_ERR_ACCESS);
                 goto finish;
             }
-
-            pa_assert(c->autospawn_lock_fd <= 0);
-            c->autospawn_lock_fd = pa_lock_lockfile(lf);
-            pa_xfree(lf);
 
             if (api)
                 c->spawn_api = *api;
 
             c->do_autospawn = TRUE;
+
+            /* Check whether we can get the lock right now*/
+            if ((k = pa_autospawn_lock_acquire(FALSE)) < 0) {
+                pa_context_fail(c, PA_ERR_ACCESS);
+                goto finish;
+            }
+
+            if (k > 0)
+                /* So we got it, rock on! */
+                c->autospawn_locked = TRUE;
+            else {
+                /* Hmm, we didn't get it, so let's wait for it */
+                c->autospawn_event = c->mainloop->io_new(c->mainloop, c->autospawn_fd, PA_IO_EVENT_INPUT, autospawn_cb, c);
+
+                pa_context_set_state(c, PA_CONTEXT_CONNECTING);
+                r = 0;
+                goto finish;
+            }
+
         }
     }
 
@@ -929,11 +1027,11 @@ int pa_context_is_pending(pa_context *c) {
 
 static void set_dispatch_callbacks(pa_operation *o);
 
-static void pdispatch_drain_callback(PA_GCC_UNUSED pa_pdispatch*pd, void *userdata) {
+static void pdispatch_drain_callback(pa_pdispatch*pd, void *userdata) {
     set_dispatch_callbacks(userdata);
 }
 
-static void pstream_drain_callback(PA_GCC_UNUSED pa_pstream *s, void *userdata) {
+static void pstream_drain_callback(pa_pstream *s, void *userdata) {
     set_dispatch_callbacks(userdata);
 }
 
@@ -985,7 +1083,7 @@ pa_operation* pa_context_drain(pa_context *c, pa_context_notify_cb_t cb, void *u
     return o;
 }
 
-void pa_context_simple_ack_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+void pa_context_simple_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     int success = 1;
 
@@ -1137,7 +1235,7 @@ const char* pa_context_get_server(pa_context *c) {
     return c->server;
 }
 
-uint32_t pa_context_get_protocol_version(PA_GCC_UNUSED pa_context *c) {
+uint32_t pa_context_get_protocol_version(pa_context *c) {
     return PA_PROTOCOL_VERSION;
 }
 
@@ -1229,4 +1327,32 @@ pa_operation *pa_context_proplist_remove(pa_context *c, const char *const keys[]
      * don't export that field */
 
     return o;
+}
+
+void pa_command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_context *c = userdata;
+    uint32_t idx;
+    const char *name;
+
+    pa_assert(pd);
+    pa_assert(command == PA_COMMAND_EXTENSION);
+    pa_assert(t);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    pa_context_ref(c);
+
+    if (pa_tagstruct_getu32(t, &idx) < 0 ||
+        pa_tagstruct_gets(t, &name) < 0) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        goto finish;
+    }
+
+    if (!strcmp(name, "module-stream-restore"))
+        pa_ext_stream_restore_command(c, tag, t);
+    else
+        pa_log(_("Received message for unknown extension '%s'"), name);
+
+finish:
+    pa_context_unref(c);
 }

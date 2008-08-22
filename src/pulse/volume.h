@@ -28,6 +28,7 @@
 #include <pulse/cdecl.h>
 #include <pulse/gccmacro.h>
 #include <pulse/sample.h>
+#include <pulse/channelmap.h>
 
 /** \page volume Volume Control
  *
@@ -133,6 +134,9 @@ char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c);
 /** Return the average volume of all channels */
 pa_volume_t pa_cvolume_avg(const pa_cvolume *a) PA_GCC_PURE;
 
+/** Return the maximum volume of all channels. \since 0.9.12 */
+pa_volume_t pa_cvolume_max(const pa_cvolume *a) PA_GCC_PURE;
+
 /** Return TRUE when the passed cvolume structure is valid, FALSE otherwise */
 int pa_cvolume_valid(const pa_cvolume *v) PA_GCC_PURE;
 
@@ -169,6 +173,9 @@ double pa_sw_volume_to_linear(pa_volume_t v) PA_GCC_CONST;
 /** This value is used as minus infinity when using pa_volume_{to,from}_dB(). */
 #define PA_DECIBEL_MININFTY ((double) -200.0)
 #endif
+
+/** Remap a volume from one channel mapping to a different channel mapping. \since 0.9.12 */
+pa_cvolume *pa_cvolume_remap(pa_cvolume *v, pa_channel_map *from, pa_channel_map *to);
 
 PA_C_DECL_END
 

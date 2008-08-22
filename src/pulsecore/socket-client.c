@@ -187,7 +187,7 @@ static void connect_defer_cb(pa_mainloop_api *m, pa_defer_event *e, void *userda
     do_call(c);
 }
 
-static void connect_io_cb(pa_mainloop_api*m, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags_t f, void *userdata) {
+static void connect_io_cb(pa_mainloop_api*m, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata) {
     pa_socket_client *c = userdata;
 
     pa_assert(m);
@@ -283,7 +283,7 @@ static int sockaddr_prepare(pa_socket_client *c, const struct sockaddr *sa, size
     else
         pa_make_socket_low_delay(c->fd);
 
-    if (do_connect(c, sa, salen) < 0)
+    if (do_connect(c, sa, (socklen_t) salen) < 0)
         return -1;
 
     return 0;
@@ -370,7 +370,7 @@ pa_socket_client* pa_socket_client_new_ipv6(pa_mainloop_api *m, uint8_t address[
 
 #ifdef HAVE_LIBASYNCNS
 
-static void asyncns_cb(pa_mainloop_api*m, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags_t f, void *userdata) {
+static void asyncns_cb(pa_mainloop_api*m, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata) {
     pa_socket_client *c = userdata;
     struct addrinfo *res = NULL;
     int ret;

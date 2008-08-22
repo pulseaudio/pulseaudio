@@ -135,9 +135,9 @@ static void thread_func(void *userdata) {
 
             } else {
 
-                u->memchunk.length = l;
+                u->memchunk.length = (size_t) l;
                 pa_source_post(u->source, &u->memchunk);
-                u->memchunk.index += l;
+                u->memchunk.index += (size_t) l;
 
                 if (u->memchunk.index >= pa_memblock_get_length(u->memchunk.memblock)) {
                     pa_memblock_unref(u->memchunk.memblock);
@@ -149,7 +149,7 @@ static void thread_func(void *userdata) {
         }
 
         /* Hmm, nothing to do. Let's sleep */
-        pollfd->events = u->source->thread_info.state == PA_SOURCE_RUNNING ? POLLIN : 0;
+        pollfd->events = (short) (u->source->thread_info.state == PA_SOURCE_RUNNING ? POLLIN : 0);
 
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
             goto fail;

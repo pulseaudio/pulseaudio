@@ -23,12 +23,12 @@ run_versioned() {
     local V
 
     V=$(echo "$2" | sed -e 's,\.,,g')
-    
+
     if [ -e "`which $1$V 2> /dev/null`" ] ; then
-    	P="$1$V" 
+        P="$1$V"
     else
 	if [ -e "`which $1-$2 2> /dev/null`" ] ; then
-	    P="$1-$2" 
+	    P="$1-$2"
 	else
 	    P="$1"
 	fi
@@ -43,21 +43,28 @@ set -ex
 if [ "x$1" = "xam" ] ; then
     run_versioned automake "$VERSION" -a -c --foreign
     ./config.status
-else 
+else
     rm -rf autom4te.cache
     rm -f config.cache
+
+    rm -f Makefile.am~ configure.ac~
+    # Evil, evil, evil, evil hack
+    sed 's/read dummy/\#/' `which gettextize` | sh -s -- --copy --force
+    test -f Makefile.am~ && mv Makefile.am~ Makefile.am
+    test -f configure.ac~ && mv configure.ac~ configure.ac
 
     touch config.rpath
     test "x$LIBTOOLIZE" = "x" && LIBTOOLIZE=libtoolize
 
+    intltoolize --copy --force --automake
     "$LIBTOOLIZE" -c --force --ltdl
-    run_versioned aclocal "$VERSION"
-    run_versioned autoconf 2.59 -Wall
-    run_versioned autoheader 2.59
+    run_versioned aclocal "$VERSION" -I m4
+    run_versioned autoconf 2.62 -Wall
+    run_versioned autoheader 2.62
     run_versioned automake "$VERSION" --copy --foreign --add-missing
 
     if test "x$NOCONFIGURE" = "x"; then
-        CFLAGS="-g -O0" ./configure --sysconfdir=/etc --localstatedir=/var --enable-force-preopen "$@" 
+        CFLAGS="-g -O0" ./configure --sysconfdir=/etc --localstatedir=/var --enable-force-preopen "$@"
         make clean
     fi
 fi

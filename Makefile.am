@@ -15,8 +15,10 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
+ACLOCAL_AMFLAGS = -I m4
+
 EXTRA_DIST = bootstrap.sh LICENSE GPL LGPL doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in README todo
-SUBDIRS=src doxygen man
+SUBDIRS=src doxygen man po
 
 MAINTAINERCLEANFILES =
 noinst_DATA =
@@ -60,3 +62,6 @@ dist-hook:
 	fi
 
 .PHONY: homepage distcleancheck doxygen
+
+DISTCLEANFILES = \
+        po/.intltool-merge-cache

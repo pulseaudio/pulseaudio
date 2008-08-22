@@ -283,7 +283,7 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *poo
     return p;
 }
 
-static void item_free(void *item, PA_GCC_UNUSED void *q) {
+static void item_free(void *item, void *q) {
     struct item_info *i = item;
     pa_assert(i);
 
@@ -488,7 +488,7 @@ static void prepare_next_write_item(pa_pstream *p) {
 
         pa_assert(p->write.current->packet);
         p->write.data = p->write.current->packet->data;
-        p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH] = htonl(p->write.current->packet->length);
+        p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH] = htonl((uint32_t) p->write.current->packet->length);
 
     } else if (p->write.current->type == PA_PSTREAM_ITEM_SHMRELEASE) {
 
@@ -511,7 +511,7 @@ static void prepare_next_write_item(pa_pstream *p) {
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI] = htonl((uint32_t) (((uint64_t) p->write.current->offset) >> 32));
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_LO] = htonl((uint32_t) ((uint64_t) p->write.current->offset));
 
-        flags = p->write.current->seek_mode & PA_FLAG_SEEKMASK;
+        flags = (uint32_t) (p->write.current->seek_mode & PA_FLAG_SEEKMASK);
 
         if (p->use_shm) {
             uint32_t block_id, shm_id;
@@ -542,7 +542,7 @@ static void prepare_next_write_item(pa_pstream *p) {
         }
 
         if (send_payload) {
-            p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH] = htonl(p->write.current->chunk.length);
+            p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH] = htonl((uint32_t) p->write.current->chunk.length);
             p->write.memchunk = p->write.current->chunk;
             pa_memblock_ref(p->write.memchunk.memblock);
             p->write.data = NULL;
@@ -607,7 +607,7 @@ static int do_write(pa_pstream *p) {
     if (release_memblock)
         pa_memblock_release(release_memblock);
 
-    p->write.index += r;
+    p->write.index += (size_t) r;
 
     if (p->write.index >= PA_PSTREAM_DESCRIPTOR_SIZE + ntohl(p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH])) {
         pa_assert(p->write.current);
@@ -675,7 +675,7 @@ static int do_read(pa_pstream *p) {
     if (release_memblock)
         pa_memblock_release(release_memblock);
 
-    p->read.index += r;
+    p->read.index += (size_t) r;
 
     if (p->read.index == PA_PSTREAM_DESCRIPTOR_SIZE) {
         uint32_t flags, length, channel;
@@ -769,7 +769,7 @@ static int do_read(pa_pstream *p) {
         if (p->read.memblock && p->recieve_memblock_callback) {
 
             /* Is this memblock data? Than pass it to the user */
-            l = (p->read.index - r) < PA_PSTREAM_DESCRIPTOR_SIZE ? p->read.index - PA_PSTREAM_DESCRIPTOR_SIZE : (size_t) r;
+            l = (p->read.index - (size_t) r) < PA_PSTREAM_DESCRIPTOR_SIZE ? (size_t) (p->read.index - PA_PSTREAM_DESCRIPTOR_SIZE) : (size_t) r;
 
             if (l > 0) {
                 pa_memchunk chunk;

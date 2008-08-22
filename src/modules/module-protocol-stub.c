@@ -260,7 +260,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u = pa_xnew0(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->module = m;
 
 #if defined(USE_PROTOCOL_SIMPLE)
@@ -299,11 +299,11 @@ int pa__init(pa_module*m) {
     listen_on = pa_modargs_get_value(ma, "listen", NULL);
 
     if (listen_on) {
-        u->socket_server_ipv6 = pa_socket_server_new_ipv6_string(m->core->mainloop, listen_on, port, TCPWRAP_SERVICE);
-        u->socket_server_ipv4 = pa_socket_server_new_ipv4_string(m->core->mainloop, listen_on, port, TCPWRAP_SERVICE);
+        u->socket_server_ipv6 = pa_socket_server_new_ipv6_string(m->core->mainloop, listen_on, (uint16_t) port, TCPWRAP_SERVICE);
+        u->socket_server_ipv4 = pa_socket_server_new_ipv4_string(m->core->mainloop, listen_on, (uint16_t) port, TCPWRAP_SERVICE);
     } else {
-        u->socket_server_ipv6 = pa_socket_server_new_ipv6_any(m->core->mainloop, port, TCPWRAP_SERVICE);
-        u->socket_server_ipv4 = pa_socket_server_new_ipv4_any(m->core->mainloop, port, TCPWRAP_SERVICE);
+        u->socket_server_ipv6 = pa_socket_server_new_ipv6_any(m->core->mainloop, (uint16_t) port, TCPWRAP_SERVICE);
+        u->socket_server_ipv4 = pa_socket_server_new_ipv4_any(m->core->mainloop, (uint16_t) port, TCPWRAP_SERVICE);
     }
 
     if (!u->socket_server_ipv4 && !u->socket_server_ipv6)
@@ -327,7 +327,7 @@ int pa__init(pa_module*m) {
     /* This socket doesn't reside in our own runtime dir but in
      * /tmp/.esd/, hence we have to create the dir first */
 
-    if (pa_make_secure_parent_dir(u->socket_path, pa_in_system_mode() ? 0755 : 0700, (uid_t)-1, (gid_t)-1) < 0) {
+    if (pa_make_secure_parent_dir(u->socket_path, pa_in_system_mode() ? 0755U : 0700U, (uid_t)-1, (gid_t)-1) < 0) {
         pa_log("Failed to create socket directory '%s': %s\n", u->socket_path, pa_cstrerror(errno));
         goto fail;
     }
@@ -368,8 +368,6 @@ int pa__init(pa_module*m) {
 #  endif
 #endif
 
-    m->userdata = u;
-
     if (ma)
         pa_modargs_free(ma);
 
@@ -390,7 +388,8 @@ void pa__done(pa_module*m) {
 
     pa_assert(m);
 
-    u = m->userdata;
+    if (!(u = m->userdata))
+        return;
 
 #if defined(USE_PROTOCOL_SIMPLE)
     if (u->simple_protocol) {

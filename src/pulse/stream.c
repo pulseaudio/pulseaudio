@@ -124,7 +124,7 @@ pa_stream *pa_stream_new_with_proplist(
      * what older PA versions provided. */
 
     s->buffer_attr.maxlength = (uint32_t) -1;
-    s->buffer_attr.tlength = pa_usec_to_bytes(250*PA_USEC_PER_MSEC, ss); /* 250ms of buffering */
+    s->buffer_attr.tlength = (uint32_t) pa_usec_to_bytes(250*PA_USEC_PER_MSEC, ss); /* 250ms of buffering */
     s->buffer_attr.minreq = (uint32_t) -1;
     s->buffer_attr.prebuf = (uint32_t) -1;
     s->buffer_attr.fragsize = (uint32_t) -1;
@@ -315,7 +315,7 @@ static void request_auto_timing_update(pa_stream *s, pa_bool_t force) {
     }
 }
 
-void pa_command_stream_killed(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+void pa_command_stream_killed(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_context *c = userdata;
     pa_stream *s;
     uint32_t channel;
@@ -382,7 +382,7 @@ static void check_smoother_status(pa_stream *s, pa_bool_t aposteriori, pa_bool_t
      * if prebuf is non-zero! */
 }
 
-void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_context *c = userdata;
     pa_stream *s;
     uint32_t channel;
@@ -479,7 +479,7 @@ finish:
     pa_context_unref(c);
 }
 
-void pa_command_stream_suspended(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+void pa_command_stream_suspended(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_context *c = userdata;
     pa_stream *s;
     uint32_t channel;
@@ -563,7 +563,7 @@ finish:
     pa_context_unref(c);
 }
 
-void pa_command_request(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+void pa_command_request(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_stream *s;
     pa_context *c = userdata;
     uint32_t bytes, channel;
@@ -598,7 +598,7 @@ finish:
     pa_context_unref(c);
 }
 
-void pa_command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+void pa_command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_stream *s;
     pa_context *c = userdata;
     uint32_t channel;
@@ -670,7 +670,7 @@ static void invalidate_indexes(pa_stream *s, pa_bool_t r, pa_bool_t w) {
     request_auto_timing_update(s, TRUE);
 }
 
-static void auto_timing_update_callback(PA_GCC_UNUSED pa_mainloop_api *m, PA_GCC_UNUSED pa_time_event *e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
+static void auto_timing_update_callback(pa_mainloop_api *m, pa_time_event *e, const struct timeval *tv, void *userdata) {
     pa_stream *s = userdata;
 
     pa_assert(s);
@@ -694,7 +694,7 @@ static void create_stream_complete(pa_stream *s) {
     if (s->flags & PA_STREAM_AUTO_TIMING_UPDATE) {
         struct timeval tv;
         pa_gettimeofday(&tv);
-        tv.tv_usec += LATENCY_IPOL_INTERVAL_USEC; /* every 100 ms */
+        tv.tv_usec += (suseconds_t) LATENCY_IPOL_INTERVAL_USEC; /* every 100 ms */
         pa_assert(!s->auto_timing_update_event);
         s->auto_timing_update_event = s->mainloop->time_new(s->mainloop, &tv, &auto_timing_update_callback, s);
 
@@ -722,7 +722,7 @@ static void automatic_buffer_attr(pa_stream *s, pa_buffer_attr *attr, const pa_s
         attr->maxlength = 4*1024*1024; /* 4MB is the maximum queue length PulseAudio <= 0.9.9 supported. */
 
     if (attr->tlength == (uint32_t) -1)
-        attr->tlength = pa_usec_to_bytes(250*PA_USEC_PER_MSEC, ss); /* 250ms of buffering */
+        attr->tlength = (uint32_t) pa_usec_to_bytes(250*PA_USEC_PER_MSEC, ss); /* 250ms of buffering */
 
     if (attr->minreq == (uint32_t) -1)
         attr->minreq = (attr->tlength)/5; /* Ask for more data when there are only 200ms left in the playback buffer */
@@ -734,7 +734,7 @@ static void automatic_buffer_attr(pa_stream *s, pa_buffer_attr *attr, const pa_s
         attr->fragsize = attr->tlength; /* Pass data to the app only when the buffer is filled up once */
 }
 
-void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_stream *s = userdata;
 
     pa_assert(pd);
@@ -865,6 +865,7 @@ static int create_stream(
 
     pa_tagstruct *t;
     uint32_t tag;
+    pa_bool_t volume_set = FALSE;
 
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
@@ -930,7 +931,7 @@ static int create_stream(
 
     t = pa_tagstruct_command(
             s->context,
-            s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_CREATE_PLAYBACK_STREAM : PA_COMMAND_CREATE_RECORD_STREAM,
+            (uint32_t) (s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_CREATE_PLAYBACK_STREAM : PA_COMMAND_CREATE_RECORD_STREAM),
             &tag);
 
     if (s->context->version < 13)
@@ -956,6 +957,8 @@ static int create_stream(
                 PA_TAG_U32, s->buffer_attr.minreq,
                 PA_TAG_U32, s->syncid,
                 PA_TAG_INVALID);
+
+        volume_set = !!volume;
 
         if (!volume)
             volume = pa_cvolume_reset(&cv, s->sample_spec.channels);
@@ -992,6 +995,15 @@ static int create_stream(
 
         if (s->direction == PA_STREAM_RECORD)
             pa_tagstruct_putu32(t, s->direct_on_input);
+    }
+
+    if (s->context->version >= 14 &&
+        s->direction == PA_STREAM_PLAYBACK) {
+
+        pa_tagstruct_put(
+                t,
+                PA_TAG_BOOLEAN, volume_set,
+                PA_TAG_INVALID);
     }
 
     pa_pstream_send_tagstruct(s->context->pstream, t);
@@ -1093,7 +1105,7 @@ int pa_stream_write(
         free_cb((void*) data);
 
     if (length < s->requested_bytes)
-        s->requested_bytes -= length;
+        s->requested_bytes -= (uint32_t) length;
     else
         s->requested_bytes = 0;
 
@@ -1107,10 +1119,10 @@ int pa_stream_write(
             if (seek == PA_SEEK_ABSOLUTE) {
                 s->write_index_corrections[s->current_write_index_correction].corrupt = FALSE;
                 s->write_index_corrections[s->current_write_index_correction].absolute = TRUE;
-                s->write_index_corrections[s->current_write_index_correction].value = offset + length;
+                s->write_index_corrections[s->current_write_index_correction].value = offset + (int64_t) length;
             } else if (seek == PA_SEEK_RELATIVE) {
                 if (!s->write_index_corrections[s->current_write_index_correction].corrupt)
-                    s->write_index_corrections[s->current_write_index_correction].value += offset + length;
+                    s->write_index_corrections[s->current_write_index_correction].value += offset + (int64_t) length;
             } else
                 s->write_index_corrections[s->current_write_index_correction].corrupt = TRUE;
         }
@@ -1120,10 +1132,10 @@ int pa_stream_write(
 
             if (seek == PA_SEEK_ABSOLUTE) {
                 s->timing_info.write_index_corrupt = FALSE;
-                s->timing_info.write_index = offset + length;
+                s->timing_info.write_index = offset + (int64_t) length;
             } else if (seek == PA_SEEK_RELATIVE) {
                 if (!s->timing_info.write_index_corrupt)
-                    s->timing_info.write_index += offset + length;
+                    s->timing_info.write_index += offset + (int64_t) length;
             } else
                 s->timing_info.write_index_corrupt = TRUE;
         }
@@ -1173,7 +1185,7 @@ int pa_stream_drop(pa_stream *s) {
 
     /* Fix the simulated local read index */
     if (s->timing_info_valid && !s->timing_info.read_index_corrupt)
-        s->timing_info.read_index += s->peek_memchunk.length;
+        s->timing_info.read_index += (int64_t) s->peek_memchunk.length;
 
     pa_assert(s->peek_data);
     pa_memblock_release(s->peek_memchunk.memblock);
@@ -1257,7 +1269,9 @@ static pa_usec_t calc_time(pa_stream *s, pa_bool_t ignore_transport) {
                 usec -= s->timing_info.sink_usec;
         }
 
-    } else if (s->direction == PA_STREAM_RECORD) {
+    } else {
+        pa_assert(s->direction == PA_STREAM_RECORD);
+
         /* The last byte written into the server side queue had
          * this time value associated */
         usec = pa_bytes_to_usec(s->timing_info.write_index < 0 ? 0 : (uint64_t) s->timing_info.write_index, &s->sample_spec);
@@ -1340,7 +1354,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
         i->read_index_corrupt = FALSE;
 
         i->playing = (int) playing;
-        i->since_underrun = playing ? playing_for : underrun_for;
+        i->since_underrun = (int64_t) (playing ? playing_for : underrun_for);
 
         pa_gettimeofday(&now);
 
@@ -1418,7 +1432,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
             /* Read index correction */
 
             if (!i->read_index_corrupt)
-                i->read_index -= pa_memblockq_get_length(o->stream->record_memblockq);
+                i->read_index -= (int64_t) pa_memblockq_get_length(o->stream->record_memblockq);
         }
 
         /* Update smoother */
@@ -1435,7 +1449,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
                  * speakers. Since we follow that timing here, we need
                  * to try to fix this up */
 
-                su = pa_bytes_to_usec(i->since_underrun, &o->stream->sample_spec);
+                su = pa_bytes_to_usec((uint64_t) i->since_underrun, &o->stream->sample_spec);
 
                 if (su < i->sink_usec)
                     x += i->sink_usec - su;
@@ -1494,7 +1508,7 @@ pa_operation* pa_stream_update_timing_info(pa_stream *s, pa_stream_success_cb_t 
 
     t = pa_tagstruct_command(
             s->context,
-            s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_GET_PLAYBACK_LATENCY : PA_COMMAND_GET_RECORD_LATENCY,
+            (uint32_t) (s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_GET_PLAYBACK_LATENCY : PA_COMMAND_GET_RECORD_LATENCY),
             &tag);
     pa_tagstruct_putu32(t, s->channel);
     pa_tagstruct_put_timeval(t, pa_gettimeofday(&now));
@@ -1517,7 +1531,7 @@ pa_operation* pa_stream_update_timing_info(pa_stream *s, pa_stream_success_cb_t 
     return o;
 }
 
-void pa_stream_disconnect_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+void pa_stream_disconnect_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_stream *s = userdata;
 
     pa_assert(pd);
@@ -1557,8 +1571,8 @@ int pa_stream_disconnect(pa_stream *s) {
 
     t = pa_tagstruct_command(
             s->context,
-            s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_DELETE_PLAYBACK_STREAM :
-            (s->direction == PA_STREAM_RECORD ? PA_COMMAND_DELETE_RECORD_STREAM : PA_COMMAND_DELETE_UPLOAD_STREAM),
+            (uint32_t) (s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_DELETE_PLAYBACK_STREAM :
+                        (s->direction == PA_STREAM_RECORD ? PA_COMMAND_DELETE_RECORD_STREAM : PA_COMMAND_DELETE_UPLOAD_STREAM)),
             &tag);
     pa_tagstruct_putu32(t, s->channel);
     pa_pstream_send_tagstruct(s->context->pstream, t);
@@ -1667,7 +1681,7 @@ void pa_stream_set_started_callback(pa_stream *s, pa_stream_notify_cb_t cb, void
     s->started_userdata = userdata;
 }
 
-void pa_stream_simple_ack_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+void pa_stream_simple_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     int success = 1;
 
@@ -1715,7 +1729,7 @@ pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, voi
 
     t = pa_tagstruct_command(
             s->context,
-            s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_CORK_PLAYBACK_STREAM : PA_COMMAND_CORK_RECORD_STREAM,
+            (uint32_t) (s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_CORK_PLAYBACK_STREAM : PA_COMMAND_CORK_RECORD_STREAM),
             &tag);
     pa_tagstruct_putu32(t, s->channel);
     pa_tagstruct_put_boolean(t, !!b);
@@ -1760,7 +1774,7 @@ pa_operation* pa_stream_flush(pa_stream *s, pa_stream_success_cb_t cb, void *use
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
 
-    if (!(o = stream_send_simple_command(s, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_FLUSH_PLAYBACK_STREAM : PA_COMMAND_FLUSH_RECORD_STREAM, cb, userdata)))
+    if (!(o = stream_send_simple_command(s, (uint32_t) (s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_FLUSH_PLAYBACK_STREAM : PA_COMMAND_FLUSH_RECORD_STREAM), cb, userdata)))
         return NULL;
 
     if (s->direction == PA_STREAM_PLAYBACK) {
@@ -1846,7 +1860,7 @@ pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_succe
         o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
         t = pa_tagstruct_command(
                 s->context,
-                s->direction == PA_STREAM_RECORD ? PA_COMMAND_SET_RECORD_STREAM_NAME : PA_COMMAND_SET_PLAYBACK_STREAM_NAME,
+                (uint32_t) (s->direction == PA_STREAM_RECORD ? PA_COMMAND_SET_RECORD_STREAM_NAME : PA_COMMAND_SET_PLAYBACK_STREAM_NAME),
                 &tag);
         pa_tagstruct_putu32(t, s->channel);
         pa_tagstruct_puts(t, name);
@@ -1932,7 +1946,7 @@ int pa_stream_get_latency(pa_stream *s, pa_usec_t *r_usec, int *negative) {
     if (cindex < 0)
         cindex = 0;
 
-    c = pa_bytes_to_usec(cindex, &s->sample_spec);
+    c = pa_bytes_to_usec((uint64_t) cindex, &s->sample_spec);
 
     if (s->direction == PA_STREAM_PLAYBACK)
         *r_usec = time_counter_diff(s, c, t, negative);
@@ -1978,7 +1992,7 @@ const pa_buffer_attr* pa_stream_get_buffer_attr(pa_stream *s) {
     return &s->buffer_attr;
 }
 
-static void stream_set_buffer_attr_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+static void stream_set_buffer_attr_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     int success = 1;
 
@@ -2046,7 +2060,7 @@ pa_operation* pa_stream_set_buffer_attr(pa_stream *s, const pa_buffer_attr *attr
 
     t = pa_tagstruct_command(
             s->context,
-            s->direction == PA_STREAM_RECORD ? PA_COMMAND_SET_RECORD_STREAM_BUFFER_ATTR : PA_COMMAND_SET_PLAYBACK_STREAM_BUFFER_ATTR,
+            (uint32_t) (s->direction == PA_STREAM_RECORD ? PA_COMMAND_SET_RECORD_STREAM_BUFFER_ATTR : PA_COMMAND_SET_PLAYBACK_STREAM_BUFFER_ATTR),
             &tag);
     pa_tagstruct_putu32(t, s->channel);
 
@@ -2120,7 +2134,7 @@ int pa_stream_is_corked(pa_stream *s) {
     return s->corked;
 }
 
-static void stream_update_sample_rate_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+static void stream_update_sample_rate_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     int success = 1;
 
@@ -2177,7 +2191,7 @@ pa_operation *pa_stream_update_sample_rate(pa_stream *s, uint32_t rate, pa_strea
 
     t = pa_tagstruct_command(
             s->context,
-            s->direction == PA_STREAM_RECORD ? PA_COMMAND_UPDATE_RECORD_STREAM_SAMPLE_RATE : PA_COMMAND_UPDATE_PLAYBACK_STREAM_SAMPLE_RATE,
+            (uint32_t) (s->direction == PA_STREAM_RECORD ? PA_COMMAND_UPDATE_RECORD_STREAM_SAMPLE_RATE : PA_COMMAND_UPDATE_PLAYBACK_STREAM_SAMPLE_RATE),
             &tag);
     pa_tagstruct_putu32(t, s->channel);
     pa_tagstruct_putu32(t, rate);
@@ -2205,7 +2219,7 @@ pa_operation *pa_stream_proplist_update(pa_stream *s, pa_update_mode_t mode, pa_
 
     t = pa_tagstruct_command(
             s->context,
-            s->direction == PA_STREAM_RECORD ? PA_COMMAND_UPDATE_RECORD_STREAM_PROPLIST : PA_COMMAND_UPDATE_PLAYBACK_STREAM_PROPLIST,
+            (uint32_t) (s->direction == PA_STREAM_RECORD ? PA_COMMAND_UPDATE_RECORD_STREAM_PROPLIST : PA_COMMAND_UPDATE_PLAYBACK_STREAM_PROPLIST),
             &tag);
     pa_tagstruct_putu32(t, s->channel);
     pa_tagstruct_putu32(t, (uint32_t) mode);
@@ -2238,7 +2252,7 @@ pa_operation *pa_stream_proplist_remove(pa_stream *s, const char *const keys[], 
 
     t = pa_tagstruct_command(
             s->context,
-            s->direction == PA_STREAM_RECORD ? PA_COMMAND_REMOVE_RECORD_STREAM_PROPLIST : PA_COMMAND_REMOVE_PLAYBACK_STREAM_PROPLIST,
+            (uint32_t) (s->direction == PA_STREAM_RECORD ? PA_COMMAND_REMOVE_RECORD_STREAM_PROPLIST : PA_COMMAND_REMOVE_PLAYBACK_STREAM_PROPLIST),
             &tag);
     pa_tagstruct_putu32(t, s->channel);
 

@@ -30,6 +30,7 @@
 #include <string.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/i18n.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/native-common.h>
@@ -39,32 +40,34 @@
 const char*pa_strerror(int error) {
 
     static const char* const errortab[PA_ERR_MAX] = {
-        [PA_OK] = "OK",
-        [PA_ERR_ACCESS] = "Access denied",
-        [PA_ERR_COMMAND] = "Unknown command",
-        [PA_ERR_INVALID] = "Invalid argument",
-        [PA_ERR_EXIST] = "Entity exists",
-        [PA_ERR_NOENTITY] = "No such entity",
-        [PA_ERR_CONNECTIONREFUSED] = "Connection refused",
-        [PA_ERR_PROTOCOL] = "Protocol error",
-        [PA_ERR_TIMEOUT] = "Timeout",
-        [PA_ERR_AUTHKEY] = "No authorization key",
-        [PA_ERR_INTERNAL] = "Internal error",
-        [PA_ERR_CONNECTIONTERMINATED] = "Connection terminated",
-        [PA_ERR_KILLED] = "Entity killed",
-        [PA_ERR_INVALIDSERVER] = "Invalid server",
-        [PA_ERR_MODINITFAILED] = "Module initalization failed",
-        [PA_ERR_BADSTATE] = "Bad state",
-        [PA_ERR_NODATA] = "No data",
-        [PA_ERR_VERSION] = "Incompatible protocol version",
-        [PA_ERR_TOOLARGE] = "Too large",
-        [PA_ERR_NOTSUPPORTED] = "Not supported",
-        [PA_ERR_UNKNOWN] = "Unknown error code",
-        [PA_ERR_NOEXTENSION] = "No such extension"
+        [PA_OK] = N_("OK"),
+        [PA_ERR_ACCESS] = N_("Access denied"),
+        [PA_ERR_COMMAND] = N_("Unknown command"),
+        [PA_ERR_INVALID] = N_("Invalid argument"),
+        [PA_ERR_EXIST] = N_("Entity exists"),
+        [PA_ERR_NOENTITY] = N_("No such entity"),
+        [PA_ERR_CONNECTIONREFUSED] = N_("Connection refused"),
+        [PA_ERR_PROTOCOL] = N_("Protocol error"),
+        [PA_ERR_TIMEOUT] = N_("Timeout"),
+        [PA_ERR_AUTHKEY] = N_("No authorization key"),
+        [PA_ERR_INTERNAL] = N_("Internal error"),
+        [PA_ERR_CONNECTIONTERMINATED] = N_("Connection terminated"),
+        [PA_ERR_KILLED] = N_("Entity killed"),
+        [PA_ERR_INVALIDSERVER] = N_("Invalid server"),
+        [PA_ERR_MODINITFAILED] = N_("Module initalization failed"),
+        [PA_ERR_BADSTATE] = N_("Bad state"),
+        [PA_ERR_NODATA] = N_("No data"),
+        [PA_ERR_VERSION] = N_("Incompatible protocol version"),
+        [PA_ERR_TOOLARGE] = N_("Too large"),
+        [PA_ERR_NOTSUPPORTED] = N_("Not supported"),
+        [PA_ERR_UNKNOWN] = N_("Unknown error code"),
+        [PA_ERR_NOEXTENSION] = N_("No such extension")
     };
+
+    pa_init_i18n();
 
     if (error < 0 || error >= PA_ERR_MAX)
         return NULL;
 
-    return errortab[error];
+    return _(errortab[error]);
 }

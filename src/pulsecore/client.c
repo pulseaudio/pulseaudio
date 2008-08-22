@@ -58,7 +58,7 @@ pa_client *pa_client_new(pa_core *core, const char *driver, const char *name) {
     pa_log_info("Created %u \"%s\"", c->index, pa_strnull(name));
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_NEW, c->index);
 
-    pa_core_check_quit(core);
+    pa_core_check_idle(core);
 
     return c;
 }
@@ -78,7 +78,7 @@ void pa_client_free(pa_client *c) {
     pa_xfree(c->driver);
     pa_xfree(c);
 
-    pa_core_check_quit(core);
+    pa_core_check_idle(core);
 }
 
 void pa_client_kill(pa_client *c) {

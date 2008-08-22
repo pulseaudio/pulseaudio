@@ -52,7 +52,7 @@ static void* work(void *p) {
     pa_assert_se(pthread_setschedparam(pthread_self(), SCHED_FIFO, &param) == 0);
 
     CPU_ZERO(&mask);
-    CPU_SET(PA_PTR_TO_INT(p), &mask);
+    CPU_SET((size_t) PA_PTR_TO_INT(p), &mask);
     pa_assert_se(pthread_setaffinity_np(pthread_self(), sizeof(mask), &mask) == 0);
 
     for (;;) {
@@ -65,17 +65,17 @@ static void* work(void *p) {
         pa_assert_se(clock_gettime(CLOCK_REALTIME, &end) == 0);
 
         nsec =
-            (uint64_t) ((((double) rand())*(msec_upper-msec_lower)*PA_NSEC_PER_MSEC)/RAND_MAX) +
-            (uint64_t) (msec_lower*PA_NSEC_PER_MSEC);
+            (uint64_t) ((((double) rand())*(double)(msec_upper-msec_lower)*PA_NSEC_PER_MSEC)/RAND_MAX) +
+            (uint64_t) ((uint64_t) msec_lower*PA_NSEC_PER_MSEC);
 
         pa_log_notice("CPU%i: Freezing for %ims", PA_PTR_TO_INT(p), (int) (nsec/PA_NSEC_PER_MSEC));
 
-        end.tv_sec += nsec / PA_NSEC_PER_SEC;
-        end.tv_nsec += nsec % PA_NSEC_PER_SEC;
+        end.tv_sec += (time_t) (nsec / PA_NSEC_PER_SEC);
+        end.tv_nsec += (long int) (nsec % PA_NSEC_PER_SEC);
 
         while ((pa_usec_t) end.tv_nsec > PA_NSEC_PER_SEC) {
             end.tv_sec++;
-            end.tv_nsec -= PA_NSEC_PER_SEC;
+            end.tv_nsec -= (long int) PA_NSEC_PER_SEC;
         }
 
         do {
@@ -88,7 +88,7 @@ static void* work(void *p) {
 int main(int argc, char*argv[]) {
     int n;
 
-    srand(time(NULL));
+    srand((unsigned) time(NULL));
 
     if (argc >= 3) {
         msec_lower = atoi(argv[1]);

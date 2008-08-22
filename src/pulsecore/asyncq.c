@@ -71,7 +71,7 @@ PA_STATIC_FLIST_DECLARE(localq, 0, pa_xfree);
 
 #define PA_ASYNCQ_CELLS(x) ((pa_atomic_ptr_t*) ((uint8_t*) (x) + PA_ALIGN(sizeof(struct pa_asyncq))))
 
-static int reduce(pa_asyncq *l, int value) {
+static unsigned reduce(pa_asyncq *l, unsigned value) {
     return value & (unsigned) (l->size - 1);
 }
 
@@ -132,7 +132,7 @@ void pa_asyncq_free(pa_asyncq *l, pa_free_cb_t free_cb) {
 }
 
 static int push(pa_asyncq*l, void *p, pa_bool_t wait) {
-    int idx;
+    unsigned idx;
     pa_atomic_ptr_t *cells;
 
     pa_assert(l);
@@ -220,7 +220,7 @@ void pa_asyncq_post(pa_asyncq*l, void *p) {
 }
 
 void* pa_asyncq_pop(pa_asyncq*l, pa_bool_t wait) {
-    int idx;
+    unsigned idx;
     void *ret;
     pa_atomic_ptr_t *cells;
 
@@ -263,7 +263,7 @@ int pa_asyncq_read_fd(pa_asyncq *q) {
 }
 
 int pa_asyncq_read_before_poll(pa_asyncq *l) {
-    int idx;
+    unsigned idx;
     pa_atomic_ptr_t *cells;
 
     pa_assert(l);
@@ -280,8 +280,6 @@ int pa_asyncq_read_before_poll(pa_asyncq *l) {
         if (pa_fdsem_before_poll(l->write_fdsem) >= 0)
             return 0;
     }
-
-    return 0;
 }
 
 void pa_asyncq_read_after_poll(pa_asyncq *l) {

@@ -52,14 +52,14 @@
  * Some objects can have multiple entries at the server. When requesting all
  * of these at once, the callback will be called multiple times, once for
  * each object. When the list has been exhausted, the callback will be called
- * without an information structure and the eol parameter set to a non-zero
+ * without an information structure and the eol parameter set to a positive
  * value.
  *
  * Note that even if a single object is requested, and not the entire list,
  * the terminating call will still be made.
  *
  * If an error occurs, the callback will be called without and information
- * structure and eol set to zero.
+ * structure and eol set to a negative value..
  *
  * Data members in the information structures are only valid during the
  * duration of the callback. If they are required after the callback is
@@ -209,11 +209,6 @@
  */
 
 PA_C_DECL_BEGIN
-
-#define PA_PORT_DIGITAL "spdif"
-#define PA_PORT_ANALOG_STEREO "analog-stereo"
-#define PA_PORT_ANALOG_5_1 "analog-5-1"
-#define PA_PORT_ANALOG_4_0 "analog-4-0"
 
 /** @{ \name Sinks */
 

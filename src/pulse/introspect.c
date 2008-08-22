@@ -36,7 +36,7 @@
 
 /*** Statistics ***/
 
-static void context_stat_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+static void context_stat_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     pa_stat_info i, *p = &i;
 
@@ -79,7 +79,7 @@ pa_operation* pa_context_stat(pa_context *c, pa_stat_info_cb_t cb, void *userdat
 
 /*** Server Info ***/
 
-static void context_get_server_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+static void context_get_server_info_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     pa_server_info i, *p = &i;
 
@@ -127,7 +127,7 @@ pa_operation* pa_context_get_server_info(pa_context *c, pa_server_info_cb_t cb, 
 
 /*** Sink Info ***/
 
-static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     int eol = 1;
 
@@ -248,7 +248,7 @@ pa_operation* pa_context_get_sink_info_by_name(pa_context *c, const char *name, 
 
 /*** Source info ***/
 
-static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     int eol = 1;
 
@@ -369,7 +369,7 @@ pa_operation* pa_context_get_source_info_by_name(pa_context *c, const char *name
 
 /*** Client info ***/
 
-static void context_get_client_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+static void context_get_client_info_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     int eol = 1;
 
@@ -451,7 +451,7 @@ pa_operation* pa_context_get_client_info_list(pa_context *c, pa_client_info_cb_t
 
 /*** Module info ***/
 
-static void context_get_module_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+static void context_get_module_info_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     int eol = 1;
 
@@ -530,7 +530,7 @@ pa_operation* pa_context_get_module_info_list(pa_context *c, pa_module_info_cb_t
 
 /*** Sink input info ***/
 
-static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     int eol = 1;
 
@@ -624,7 +624,7 @@ pa_operation* pa_context_get_sink_input_info_list(pa_context *c, void (*cb)(pa_c
 
 /*** Source output info ***/
 
-static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     int eol = 1;
 
@@ -954,7 +954,7 @@ pa_operation* pa_context_set_source_mute_by_name(pa_context *c, const char *name
 
 /** Sample Cache **/
 
-static void context_get_sample_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+static void context_get_sample_info_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     int eol = 1;
 
@@ -1098,7 +1098,7 @@ pa_operation* pa_context_kill_source_output(pa_context *c, uint32_t idx, pa_cont
     return command_kill(c, PA_COMMAND_KILL_SOURCE_OUTPUT, idx, cb, userdata);
 }
 
-static void context_index_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+static void context_index_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     uint32_t idx;
 
@@ -1159,7 +1159,7 @@ pa_operation* pa_context_unload_module(pa_context *c, uint32_t idx, pa_context_s
 
 /*** Autoload stuff ***/
 
-static void context_get_autoload_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+static void context_get_autoload_info_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     int eol = 1;
 

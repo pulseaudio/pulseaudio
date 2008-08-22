@@ -535,7 +535,7 @@ int pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, pa
              * data, so let's just hand out silence */
             pa_atomic_store(&i->thread_info.drained, 1);
 
-            pa_memblockq_seek(i->thread_info.render_memblockq, slength, PA_SEEK_RELATIVE);
+            pa_memblockq_seek(i->thread_info.render_memblockq, (int64_t) slength, PA_SEEK_RELATIVE);
             i->thread_info.playing_for = 0;
             if (i->thread_info.underrun_for != (uint64_t) -1)
                 i->thread_info.underrun_for += ilength;

@@ -39,7 +39,7 @@
 #include "alsa-util.h"
 
 struct pa_alsa_fdlist {
-    int num_fds;
+    unsigned num_fds;
     struct pollfd *fds;
     /* This is a temporary buffer used to avoid lots of mallocs */
     struct pollfd *work_fds;
@@ -50,16 +50,17 @@ struct pa_alsa_fdlist {
     pa_defer_event *defer;
     pa_io_event **ios;
 
-    int polled;
+    pa_bool_t polled;
 
     void (*cb)(void *userdata);
     void *userdata;
 };
 
-static void io_cb(pa_mainloop_api*a, pa_io_event* e, PA_GCC_UNUSED int fd, pa_io_event_flags_t events, void *userdata) {
+static void io_cb(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags_t events, void *userdata) {
 
     struct pa_alsa_fdlist *fdl = userdata;
-    int err, i;
+    int err;
+    unsigned i;
     unsigned short revents;
 
     pa_assert(a);
@@ -71,11 +72,11 @@ static void io_cb(pa_mainloop_api*a, pa_io_event* e, PA_GCC_UNUSED int fd, pa_io
     if (fdl->polled)
         return;
 
-    fdl->polled = 1;
+    fdl->polled = TRUE;
 
     memcpy(fdl->work_fds, fdl->fds, sizeof(struct pollfd) * fdl->num_fds);
 
-    for (i = 0;i < fdl->num_fds; i++) {
+    for (i = 0; i < fdl->num_fds; i++) {
         if (e == fdl->ios[i]) {
             if (events & PA_IO_EVENT_INPUT)
                 fdl->work_fds[i].revents |= POLLIN;
@@ -102,9 +103,10 @@ static void io_cb(pa_mainloop_api*a, pa_io_event* e, PA_GCC_UNUSED int fd, pa_io
         snd_mixer_handle_events(fdl->mixer);
 }
 
-static void defer_cb(pa_mainloop_api*a, PA_GCC_UNUSED pa_defer_event* e, void *userdata) {
+static void defer_cb(pa_mainloop_api*a, pa_defer_event* e, void *userdata) {
     struct pa_alsa_fdlist *fdl = userdata;
-    int num_fds, i, err;
+    unsigned num_fds, i;
+    int err;
     struct pollfd *temp;
 
     pa_assert(a);
@@ -113,8 +115,7 @@ static void defer_cb(pa_mainloop_api*a, PA_GCC_UNUSED pa_defer_event* e, void *u
 
     a->defer_enable(fdl->defer, 0);
 
-    num_fds = snd_mixer_poll_descriptors_count(fdl->mixer);
-    pa_assert(num_fds > 0);
+    num_fds = (unsigned) snd_mixer_poll_descriptors_count(fdl->mixer);
 
     if (num_fds != fdl->num_fds) {
         if (fdl->fds)
@@ -132,7 +133,7 @@ static void defer_cb(pa_mainloop_api*a, PA_GCC_UNUSED pa_defer_event* e, void *u
         return;
     }
 
-    fdl->polled = 0;
+    fdl->polled = FALSE;
 
     if (memcmp(fdl->fds, fdl->work_fds, sizeof(struct pollfd) * num_fds) == 0)
         return;
@@ -176,7 +177,7 @@ struct pa_alsa_fdlist *pa_alsa_fdlist_new(void) {
     fdl->m = NULL;
     fdl->defer = NULL;
     fdl->ios = NULL;
-    fdl->polled = 0;
+    fdl->polled = FALSE;
 
     return fdl;
 }
@@ -190,9 +191,9 @@ void pa_alsa_fdlist_free(struct pa_alsa_fdlist *fdl) {
     }
 
     if (fdl->ios) {
-        int i;
+        unsigned i;
         pa_assert(fdl->m);
-        for (i = 0;i < fdl->num_fds;i++)
+        for (i = 0; i < fdl->num_fds; i++)
             fdl->m->io_free(fdl->ios[i]);
         pa_xfree(fdl->ios);
     }
@@ -403,7 +404,7 @@ int pa_alsa_set_hw_params(
     /* If the sample rate deviates too much, we need to resample */
     if (r < ss->rate*.95 || r > ss->rate*1.05)
         ss->rate = r;
-    ss->channels = c;
+    ss->channels = (uint8_t) c;
     ss->format = f;
 
     pa_assert(_periods > 0);
@@ -808,7 +809,7 @@ int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel
     if (channel_map->channels > 1 &&
         ((playback && snd_mixer_selem_has_playback_volume_joined(elem)) ||
          (!playback && snd_mixer_selem_has_capture_volume_joined(elem)))) {
-        pa_log_info("ALSA device lacks independant volume controls for each channel, falling back to software volume control.");
+        pa_log_info("ALSA device lacks independant volume controls for each channel.");
         return -1;
     }
 
@@ -820,7 +821,7 @@ int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel
         id = alsa_channel_ids[channel_map->map[i]];
 
         if (!is_mono && id == SND_MIXER_SCHN_UNKNOWN) {
-            pa_log_info("Configured channel map contains channel '%s' that is unknown to the ALSA mixer. Falling back to software volume control.", pa_channel_position_to_string(channel_map->map[i]));
+            pa_log_info("Configured channel map contains channel '%s' that is unknown to the ALSA mixer.", pa_channel_position_to_string(channel_map->map[i]));
             return -1;
         }
 
@@ -832,7 +833,7 @@ int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel
         if ((playback && (!snd_mixer_selem_has_playback_channel(elem, id) || (is_mono && !snd_mixer_selem_is_playback_mono(elem)))) ||
             (!playback && (!snd_mixer_selem_has_capture_channel(elem, id) || (is_mono && !snd_mixer_selem_is_capture_mono(elem))))) {
 
-            pa_log_info("ALSA device lacks separate volumes control for channel '%s', falling back to software volume control.", pa_channel_position_to_string(channel_map->map[i]));
+            pa_log_info("ALSA device lacks separate volumes control for channel '%s'", pa_channel_position_to_string(channel_map->map[i]));
             return -1;
         }
 
@@ -848,56 +849,6 @@ int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel
     pa_log_info("All %u channels can be mapped to mixer channels.", channel_map->channels);
 
     return 0;
-}
-
-void pa_alsa_0dB_playback(snd_mixer_elem_t *elem) {
-    long min, max, v;
-
-    pa_assert(elem);
-
-    /* Try to enable 0 dB if possible. If ALSA cannot do dB, then use
-     * raw volume levels and fix them to 75% */
-
-    if (snd_mixer_selem_set_playback_dB_all(elem, 0, -1) >= 0)
-        return;
-
-    if (snd_mixer_selem_set_playback_dB_all(elem, 0, 1) >= 0)
-        return;
-
-    if (snd_mixer_selem_get_playback_volume_range(elem, &min, &max) < 0)
-        return;
-
-    v = min + ((max - min) * 3) / 4; /* 75% */
-
-    if (v <= min)
-        v = max;
-
-    snd_mixer_selem_set_playback_volume_all(elem, v);
-}
-
-void pa_alsa_0dB_capture(snd_mixer_elem_t *elem) {
-    long min, max, v;
-
-    pa_assert(elem);
-
-    /* Try to enable 0 dB if possible. If ALSA cannot do dB, then use
-     * raw volume levels and fix them to 75% */
-
-    if (snd_mixer_selem_set_capture_dB_all(elem, 0, -1) >= 0)
-        return;
-
-    if (snd_mixer_selem_set_capture_dB_all(elem, 0, 1) >= 0)
-        return;
-
-    if (snd_mixer_selem_get_capture_volume_range(elem, &min, &max) < 0)
-        return;
-
-    v = min + ((max - min) * 3) / 4; /* 75% */
-
-    if (v <= min)
-        v = max;
-
-    snd_mixer_selem_set_capture_volume_all(elem, v);
 }
 
 void pa_alsa_dump(snd_pcm_t *pcm) {
@@ -1106,14 +1057,38 @@ pa_rtpoll_item* pa_alsa_build_pollfd(snd_pcm_t *pcm, pa_rtpoll *rtpoll) {
         return NULL;
     }
 
-    item = pa_rtpoll_item_new(rtpoll, PA_RTPOLL_NEVER, n);
+    item = pa_rtpoll_item_new(rtpoll, PA_RTPOLL_NEVER, (unsigned) n);
     pollfd = pa_rtpoll_item_get_pollfd(item, NULL);
 
-    if ((err = snd_pcm_poll_descriptors(pcm, pollfd, n)) < 0) {
+    if ((err = snd_pcm_poll_descriptors(pcm, pollfd, (unsigned) n)) < 0) {
         pa_log("snd_pcm_poll_descriptors() failed: %s", snd_strerror(err));
         pa_rtpoll_item_free(item);
         return NULL;
     }
 
     return item;
+}
+
+pa_cvolume *pa_alsa_volume_divide(pa_cvolume *r, const pa_cvolume *t) {
+    unsigned i;
+
+    pa_assert(r);
+    pa_assert(t);
+    pa_assert(r->channels == t->channels);
+
+    for (i = 0; i < r->channels; i++) {
+        double a, b, c;
+
+        a = pa_sw_volume_to_linear(r->values[i]); /* the hw volume */
+        b = pa_sw_volume_to_linear(t->values[i]); /* the intended volume */
+
+        if (a <= 0)
+            c = 0;
+        else
+            c = b / a;
+
+        r->values[i] = pa_sw_volume_from_linear(c);
+    }
+
+    return r;
 }

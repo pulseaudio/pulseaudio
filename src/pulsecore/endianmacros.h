@@ -46,9 +46,14 @@
 #endif
 
 static inline float PA_FLOAT32_SWAP(float x) {
-    uint32_t i = *(uint32_t*) &x;
-    i = PA_UINT32_SWAP(i);
-    return *(float*) &i;
+    union {
+        float f;
+        uint32_t u;
+    } t;
+
+    t.f = x;
+    t.u = PA_UINT32_SWAP(t.u);
+    return t.f;
 }
 
 #define PA_MAYBE_INT16_SWAP(c,x) ((c) ? PA_INT32_SWAP(x) : x)

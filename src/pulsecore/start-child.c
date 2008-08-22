@@ -66,11 +66,6 @@ int pa_start_child_for_read(const char *name, const char *argv1, pid_t *pid) {
 
         return pipe_fds[0];
     } else {
-#ifdef __linux__
-        DIR* d;
-#endif
-        int max_fd, i;
-
         /* child */
 
         pa_reset_priority();
@@ -87,48 +82,9 @@ int pa_start_child_for_read(const char *name, const char *argv1, pid_t *pid) {
         pa_close(2);
         pa_assert_se(open("/dev/null", O_WRONLY) == 2);
 
-#ifdef __linux__
-
-        if ((d = opendir("/proc/self/fd/"))) {
-
-            struct dirent *de;
-
-            while ((de = readdir(d))) {
-                char *e = NULL;
-                int fd;
-
-                if (de->d_name[0] == '.')
-                    continue;
-
-                errno = 0;
-                fd = strtol(de->d_name, &e, 10);
-                pa_assert(errno == 0 && e && *e == 0);
-
-                if (fd >= 3 && dirfd(d) != fd)
-                    pa_close(fd);
-            }
-
-            closedir(d);
-        } else {
-
-#endif
-
-            max_fd = 1024;
-
-#ifdef HAVE_SYS_RESOURCE_H
-            {
-                struct rlimit r;
-                if (getrlimit(RLIMIT_NOFILE, &r) == 0)
-                    max_fd = r.rlim_max;
-            }
-#endif
-
-            for (i = 3; i < max_fd; i++)
-                pa_close(i);
-
-#ifdef __linux__
-        }
-#endif
+        pa_close_all(-1);
+        pa_reset_sigs(-1);
+        pa_unblock_sigs(-1);
 
 #ifdef PR_SET_PDEATHSIG
         /* On Linux we can use PR_SET_PDEATHSIG to have the helper
@@ -137,16 +93,6 @@ int pa_start_child_for_read(const char *name, const char *argv1, pid_t *pid) {
         stdout again (SIGPIPE) */
 
         prctl(PR_SET_PDEATHSIG, SIGTERM, 0, 0, 0);
-#endif
-
-#ifdef SIGPIPE
-        /* Make sure that SIGPIPE kills the child process */
-        signal(SIGPIPE, SIG_DFL);
-#endif
-
-#ifdef SIGTERM
-        /* Make sure that SIGTERM kills the child process */
-        signal(SIGTERM, SIG_DFL);
 #endif
 
         execl(name, name, argv1, NULL);

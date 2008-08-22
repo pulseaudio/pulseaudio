@@ -113,7 +113,7 @@ char *pa_xstrndup(const char *s, size_t l) {
         return NULL;
 
     if ((e = memchr(s, 0, l)))
-        return pa_xmemdup(s, e-s+1);
+        return pa_xmemdup(s, (size_t) (e-s+1));
 
     r = pa_xmalloc(l+1);
     memcpy(r, s, l);

@@ -168,21 +168,22 @@ typedef enum pa_source_message {
 
 typedef struct pa_source_new_data {
     char *name;
-    pa_bool_t namereg_fail;
     pa_proplist *proplist;
 
     const char *driver;
     pa_module *module;
 
     pa_sample_spec sample_spec;
-    pa_bool_t sample_spec_is_set;
     pa_channel_map channel_map;
-    pa_bool_t channel_map_is_set;
-
     pa_cvolume volume;
-    pa_bool_t volume_is_set;
-    pa_bool_t muted;
-    pa_bool_t muted_is_set;
+    pa_bool_t muted:1;
+
+    pa_bool_t volume_is_set:1;
+    pa_bool_t muted_is_set:1;
+    pa_bool_t sample_spec_is_set:1;
+    pa_bool_t channel_map_is_set:1;
+
+    pa_bool_t namereg_fail:1;
 } pa_source_new_data;
 
 pa_source_new_data* pa_source_new_data_init(pa_source_new_data *data);
@@ -226,9 +227,10 @@ int pa_source_suspend(pa_source *s, pa_bool_t suspend);
 int pa_source_suspend_all(pa_core *c, pa_bool_t suspend);
 
 void pa_source_set_volume(pa_source *source, const pa_cvolume *volume);
-const pa_cvolume *pa_source_get_volume(pa_source *source);
+void pa_source_set_soft_volume(pa_source *s, const pa_cvolume *volume);
+const pa_cvolume *pa_source_get_volume(pa_source *source, pa_bool_t force_refresh);
 void pa_source_set_mute(pa_source *source, pa_bool_t mute);
-pa_bool_t pa_source_get_mute(pa_source *source);
+pa_bool_t pa_source_get_mute(pa_source *source, pa_bool_t force_refresh);
 
 unsigned pa_source_linked_by(pa_source *s); /* Number of connected streams */
 unsigned pa_source_used_by(pa_source *s); /* Number of connected streams that are not corked */

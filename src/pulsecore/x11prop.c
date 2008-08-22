@@ -32,7 +32,7 @@
 
 void pa_x11_set_prop(Display *d, const char *name, const char *data) {
     Atom a = XInternAtom(d, name, False);
-    XChangeProperty(d, RootWindow(d, 0), a, XA_STRING, 8, PropModeReplace, (const unsigned char*) data, strlen(data)+1);
+    XChangeProperty(d, RootWindow(d, 0), a, XA_STRING, 8, PropModeReplace, (const unsigned char*) data, (int) (strlen(data)+1));
 }
 
 void pa_x11_del_prop(Display *d, const char *name) {
@@ -49,7 +49,7 @@ char* pa_x11_get_prop(Display *d, const char *name, char *p, size_t l) {
     char *ret = NULL;
 
     Atom a = XInternAtom(d, name, False);
-    if (XGetWindowProperty(d, RootWindow(d, 0), a, 0, (l+2)/4, False, XA_STRING, &actual_type, &actual_format, &nitems, &nbytes_after, &prop) != Success)
+    if (XGetWindowProperty(d, RootWindow(d, 0), a, 0, (long) ((l+2)/4), False, XA_STRING, &actual_type, &actual_format, &nitems, &nbytes_after, &prop) != Success)
         goto finish;
 
     if (actual_type != XA_STRING)

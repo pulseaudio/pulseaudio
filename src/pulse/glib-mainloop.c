@@ -195,11 +195,11 @@ static void cleanup_defer_events(pa_glib_mainloop *g, int force) {
 }
 
 static gushort map_flags_to_glib(pa_io_event_flags_t flags) {
-    return
-        (flags & PA_IO_EVENT_INPUT ? G_IO_IN : 0) |
-        (flags & PA_IO_EVENT_OUTPUT ? G_IO_OUT : 0) |
-        (flags & PA_IO_EVENT_ERROR ? G_IO_ERR : 0) |
-        (flags & PA_IO_EVENT_HANGUP ? G_IO_HUP : 0);
+    return (gushort)
+        ((flags & PA_IO_EVENT_INPUT ? G_IO_IN : 0) |
+         (flags & PA_IO_EVENT_OUTPUT ? G_IO_OUT : 0) |
+         (flags & PA_IO_EVENT_ERROR ? G_IO_ERR : 0) |
+         (flags & PA_IO_EVENT_HANGUP ? G_IO_HUP : 0));
 }
 
 static pa_io_event_flags_t map_flags_from_glib(gushort flags) {
@@ -425,7 +425,7 @@ static void glib_defer_set_destroy(pa_defer_event *e, pa_defer_event_destroy_cb_
 
 /* quit() */
 
-static void glib_quit(pa_mainloop_api*a, PA_GCC_UNUSED int retval) {
+static void glib_quit(pa_mainloop_api*a, int retval) {
 
     g_warning("quit() ignored");
 
@@ -536,7 +536,7 @@ static gboolean check_func(GSource *source) {
     return FALSE;
 }
 
-static gboolean dispatch_func(GSource *source, PA_GCC_UNUSED GSourceFunc callback, PA_GCC_UNUSED gpointer userdata) {
+static gboolean dispatch_func(GSource *source, GSourceFunc callback, gpointer userdata) {
     pa_glib_mainloop *g = (pa_glib_mainloop*) source;
     pa_io_event *e;
 

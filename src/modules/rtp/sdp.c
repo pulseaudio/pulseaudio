@@ -55,7 +55,7 @@ char *pa_sdp_build(int af, const void *src, const void *dst, const char *name, u
     if (!(u = pa_get_user_name(un, sizeof(un))))
         u = "-";
 
-    ntp = time(NULL) + 2208988800U;
+    ntp = (uint32_t) time(NULL) + 2208988800U;
 
     pa_assert_se(a = inet_ntop(af, src, buf_src, sizeof(buf_src)));
     pa_assert_se(a = inet_ntop(af, dst, buf_dst, sizeof(buf_dst)));
@@ -99,10 +99,10 @@ static pa_sample_spec *parse_sdp_sample_spec(pa_sample_spec *ss, char *c) {
         return NULL;
 
     if (sscanf(c, "%u/%u", &rate, &channels) == 2) {
-        ss->rate = rate;
-        ss->channels = channels;
+        ss->rate = (uint32_t) rate;
+        ss->channels = (uint8_t) channels;
     } else if (sscanf(c, "%u", &rate) == 2) {
-        ss->rate = rate;
+        ss->rate = (uint32_t) rate;
         ss->channels = 1;
     } else
         return NULL;

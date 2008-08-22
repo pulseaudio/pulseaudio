@@ -116,7 +116,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             if (u->source->thread_info.state == PA_SOURCE_RUNNING)
                 pa_source_post(u->source, chunk);
 
-            u->saved_frame_time = offset;
+            u->saved_frame_time = (jack_nframes_t) offset;
             u->saved_frame_time_valid = TRUE;
 
             return 0;
@@ -309,7 +309,7 @@ int pa__init(pa_module*m) {
 
     pa_log_info("Successfully connected as '%s'", jack_get_client_name(u->client));
 
-    ss.channels = u->channels = channels;
+    u->channels = ss.channels = (uint8_t) channels;
     ss.rate = jack_get_sample_rate(u->client);
     ss.format = PA_SAMPLE_FLOAT32NE;
 

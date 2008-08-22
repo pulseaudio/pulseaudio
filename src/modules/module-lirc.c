@@ -65,7 +65,7 @@ struct userdata {
 
 static int lirc_in_use = 0;
 
-static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GCC_UNUSED int fd, pa_io_event_flags_t events, void*userdata) {
+static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event_flags_t events, void*userdata) {
     struct userdata *u = userdata;
     char *name = NULL, *code = NULL;
 
@@ -122,7 +122,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
                     pa_log("Failed to get sink '%s'", u->sink_name);
                 else {
                     int i;
-                    pa_cvolume cv = *pa_sink_get_volume(s);
+                    pa_cvolume cv = *pa_sink_get_volume(s, FALSE);
 
 #define DELTA (PA_VOLUME_NORM/20)
 
@@ -159,7 +159,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
 
                         case MUTE_TOGGLE:
 
-                            pa_sink_set_mute(s, !pa_sink_get_mute(s));
+                            pa_sink_set_mute(s, !pa_sink_get_mute(s, FALSE));
                             break;
 
                         case INVALID:
@@ -178,7 +178,7 @@ fail:
     u->module->core->mainloop->io_free(u->io);
     u->io = NULL;
 
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
 
     pa_xfree(code);
 }

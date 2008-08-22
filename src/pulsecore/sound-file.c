@@ -108,8 +108,8 @@ int pa_sound_file_load(
             break;
     }
 
-    ss->rate = sfinfo.samplerate;
-    ss->channels = sfinfo.channels;
+    ss->rate = (uint32_t) sfinfo.samplerate;
+    ss->channels = (uint8_t) sfinfo.channels;
 
     if (!pa_sample_spec_valid(ss)) {
         pa_log("Unsupported sample format in file %s", fname);
@@ -119,7 +119,7 @@ int pa_sound_file_load(
     if (map)
         pa_channel_map_init_extend(map, ss->channels, PA_CHANNEL_MAP_DEFAULT);
 
-    if ((l = pa_frame_size(ss) * sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
+    if ((l = pa_frame_size(ss) * (size_t) sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
         pa_log("File too large");
         goto finish;
     }
@@ -131,7 +131,7 @@ int pa_sound_file_load(
     ptr = pa_memblock_acquire(chunk->memblock);
 
     if ((readf_function && readf_function(sf, ptr, sfinfo.frames) != sfinfo.frames) ||
-        (!readf_function && sf_read_raw(sf, ptr, l) != (sf_count_t) l)) {
+        (!readf_function && sf_read_raw(sf, ptr, (sf_count_t) l) != (sf_count_t) l)) {
         pa_log("Premature file end");
         goto finish;
     }
@@ -189,15 +189,15 @@ int pa_sound_file_too_big_to_cache(const char *fname) {
             break;
     }
 
-    ss.rate = sfinfo.samplerate;
-    ss.channels = sfinfo.channels;
+    ss.rate = (uint32_t) sfinfo.samplerate;
+    ss.channels = (uint8_t) sfinfo.channels;
 
     if (!pa_sample_spec_valid(&ss)) {
         pa_log("Unsupported sample format in file %s", fname);
         return -1;
     }
 
-    if ((pa_frame_size(&ss) * sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
+    if ((pa_frame_size(&ss) * (size_t) sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
         pa_log("File too large: %s", fname);
         return 1;
     }

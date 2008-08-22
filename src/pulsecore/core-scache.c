@@ -63,7 +63,7 @@
 
 #define UNLOAD_POLL_TIME 60
 
-static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
+static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, const struct timeval *tv, void *userdata) {
     pa_core *c = userdata;
     struct timeval ntv;
 
@@ -282,7 +282,7 @@ int pa_scache_remove_item(pa_core *c, const char *name) {
     return 0;
 }
 
-static void free_cb(void *p, PA_GCC_UNUSED void *userdata) {
+static void free_cb(void *p, void *userdata) {
     pa_scache_entry *e = p;
     pa_assert(e);
 

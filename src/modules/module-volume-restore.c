@@ -103,7 +103,7 @@ static pa_cvolume* parse_volume(const char *s, pa_cvolume *v) {
     if (k <= 0 || k > (long) PA_CHANNELS_MAX)
         return NULL;
 
-    v->channels = (unsigned) k;
+    v->channels = (uint8_t) k;
 
     for (i = 0; i < v->channels; i++) {
         p += strspn(p, WHITESPACE);
@@ -493,7 +493,7 @@ int pa__init(pa_module*m) {
 
     m->userdata = u;
 
-    if (!(u->table_file = pa_state_path(pa_modargs_get_value(ma, "table", DEFAULT_VOLUME_TABLE_FILE))))
+    if (!(u->table_file = pa_state_path(pa_modargs_get_value(ma, "table", DEFAULT_VOLUME_TABLE_FILE), TRUE)))
         goto fail;
 
     if (pa_modargs_get_value_boolean(ma, "restore_device", &restore_device) < 0 ||

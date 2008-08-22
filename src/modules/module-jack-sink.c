@@ -130,12 +130,12 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 void *p;
 
                 pa_assert(offset > 0);
-                nbytes = offset * pa_frame_size(&u->sink->sample_spec);
+                nbytes = (size_t) offset * pa_frame_size(&u->sink->sample_spec);
 
                 pa_sink_render_full(u->sink, nbytes, &chunk);
 
                 p = (uint8_t*) pa_memblock_acquire(chunk.memblock) + chunk.index;
-                pa_deinterleave(p, u->buffer, u->channels, sizeof(float), offset);
+                pa_deinterleave(p, u->buffer, u->channels, sizeof(float), (unsigned) offset);
                 pa_memblock_release(chunk.memblock);
 
                 pa_memblock_unref(chunk.memblock);
@@ -149,10 +149,10 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 ss.channels = 1;
 
                 for (c = 0; c < u->channels; c++)
-                    pa_silence_memory(u->buffer[c], offset * pa_sample_size(&ss), &ss);
+                    pa_silence_memory(u->buffer[c], (size_t) offset * pa_sample_size(&ss), &ss);
             }
 
-            u->frames_in_buffer = offset;
+            u->frames_in_buffer = (jack_nframes_t) offset;
             u->saved_frame_time = * (jack_nframes_t*) data;
             u->saved_frame_time_valid = TRUE;
 
@@ -342,7 +342,7 @@ int pa__init(pa_module*m) {
 
     pa_log_info("Successfully connected as '%s'", jack_get_client_name(u->client));
 
-    ss.channels = u->channels = channels;
+    u->channels = ss.channels = (uint8_t) channels;
     ss.rate = jack_get_sample_rate(u->client);
     ss.format = PA_SAMPLE_FLOAT32NE;
 

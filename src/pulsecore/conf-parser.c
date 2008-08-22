@@ -148,7 +148,7 @@ finish:
     return r;
 }
 
-int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     int *i = data;
     int32_t k;
 
@@ -166,7 +166,7 @@ int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue,
     return 0;
 }
 
-int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     int k;
     pa_bool_t *b = data;
 
@@ -185,7 +185,7 @@ int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue
     return 0;
 }
 
-int pa_config_parse_string(const char *filename, PA_GCC_UNUSED unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+int pa_config_parse_string(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     char **s = data;
 
     pa_assert(filename);

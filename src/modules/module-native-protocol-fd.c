@@ -48,7 +48,8 @@ static const char* const valid_modargs[] = {
 int pa__init(pa_module*m) {
     pa_iochannel *io;
     pa_modargs *ma;
-    int fd, r = -1;
+    int32_t fd;
+    int r = -1;
     pa_native_options *options = NULL;
 
     pa_assert(m);
@@ -63,17 +64,15 @@ int pa__init(pa_module*m) {
         goto finish;
     }
 
+    m->userdata = pa_native_protocol_get(m->core);
+
+    io = pa_iochannel_new(m->core->mainloop, fd, fd);
+
     options = pa_native_options_new();
     options->module = m;
     options->auth_anonymous = TRUE;
 
-    io = pa_iochannel_new(m->core->mainloop, fd, fd);
-
-    m->userdata = pa_native_protocol_get(m->core);
-
     pa_native_protocol_connect(m->userdata, io, options);
-
-    pa_native_options_unref(options);
 
     r = 0;
 

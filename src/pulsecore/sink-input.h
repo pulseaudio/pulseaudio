@@ -212,19 +212,19 @@ typedef struct pa_sink_input_new_data {
 
     pa_sink *sink;
 
-    pa_sample_spec sample_spec;
-    pa_bool_t sample_spec_is_set;
-    pa_channel_map channel_map;
-    pa_bool_t channel_map_is_set;
-
-    pa_cvolume volume;
-    pa_bool_t volume_is_set;
-    pa_bool_t muted;
-    pa_bool_t muted_is_set;
-
     pa_resample_method_t resample_method;
 
     pa_sink_input *sync_base;
+
+    pa_sample_spec sample_spec;
+    pa_channel_map channel_map;
+    pa_cvolume volume;
+    pa_bool_t muted:1;
+
+    pa_bool_t sample_spec_is_set:1;
+    pa_bool_t channel_map_is_set:1;
+    pa_bool_t volume_is_set:1;
+    pa_bool_t muted_is_set:1;
 } pa_sink_input_new_data;
 
 pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data);

@@ -77,7 +77,7 @@ static void die_cb(SmcConn connection, SmPointer client_data){
     pa_x11_wrapper_unref(u->x11);
     u->x11 = NULL;
 
-    pa_module_unload_request(u->module);
+    pa_module_unload_request(u->module, TRUE);
 }
 
 static void save_complete_cb(SmcConn connection, SmPointer client_data) {
@@ -181,7 +181,7 @@ int pa__init(pa_module*m) {
     prop_program.name = (char*) SmProgram;
     prop_program.type = (char*) SmARRAY8;
     val_program.value = (char*) PACKAGE_NAME;
-    val_program.length = strlen(val_program.value);
+    val_program.length = (int) strlen(val_program.value);
     prop_program.num_vals = 1;
     prop_program.vals = &val_program;
     prop_list[0] = &prop_program;
@@ -190,7 +190,7 @@ int pa__init(pa_module*m) {
     prop_user.type = (char*) SmARRAY8;
     pa_get_user_name(t, sizeof(t));
     val_user.value = t;
-    val_user.length = strlen(val_user.value);
+    val_user.length = (int) strlen(val_user.value);
     prop_user.num_vals = 1;
     prop_user.vals = &val_user;
     prop_list[1] = &prop_user;

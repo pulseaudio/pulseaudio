@@ -53,7 +53,7 @@ pa_cvolume* pa_cvolume_set(pa_cvolume *a, unsigned channels, pa_volume_t v) {
     pa_assert(channels > 0);
     pa_assert(channels <= PA_CHANNELS_MAX);
 
-    a->channels = channels;
+    a->channels = (uint8_t) channels;
 
     for (i = 0; i < a->channels; i++)
         a->values[i] = v;
@@ -72,6 +72,18 @@ pa_volume_t pa_cvolume_avg(const pa_cvolume *a) {
     sum /= a->channels;
 
     return (pa_volume_t) sum;
+}
+
+pa_volume_t pa_cvolume_max(const pa_cvolume *a) {
+    pa_volume_t m = 0;
+    int i;
+    pa_assert(a);
+
+    for (i = 0; i < a->channels; i++)
+        if (a->values[i] > m)
+            m = a->values[i];
+
+    return m;
 }
 
 pa_volume_t pa_sw_volume_multiply(pa_volume_t a, pa_volume_t b) {
@@ -163,7 +175,7 @@ pa_cvolume *pa_sw_cvolume_multiply(pa_cvolume *dest, const pa_cvolume *a, const 
             i < b->channels ? b->values[i] : PA_VOLUME_NORM);
     }
 
-    dest->channels = i;
+    dest->channels = (uint8_t) i;
 
     return dest;
 }
@@ -175,4 +187,89 @@ int pa_cvolume_valid(const pa_cvolume *v) {
         return 0;
 
     return 1;
+}
+
+static pa_bool_t on_left(pa_channel_position_t p) {
+
+    return
+        p == PA_CHANNEL_POSITION_FRONT_LEFT ||
+        p == PA_CHANNEL_POSITION_REAR_LEFT ||
+        p == PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER ||
+        p == PA_CHANNEL_POSITION_SIDE_LEFT ||
+        p == PA_CHANNEL_POSITION_TOP_FRONT_LEFT ||
+        p == PA_CHANNEL_POSITION_TOP_REAR_LEFT;
+}
+
+static pa_bool_t on_right(pa_channel_position_t p) {
+
+    return
+        p == PA_CHANNEL_POSITION_FRONT_RIGHT ||
+        p == PA_CHANNEL_POSITION_REAR_RIGHT ||
+        p == PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER ||
+        p == PA_CHANNEL_POSITION_SIDE_RIGHT ||
+        p == PA_CHANNEL_POSITION_TOP_FRONT_RIGHT ||
+        p == PA_CHANNEL_POSITION_TOP_REAR_RIGHT;
+}
+
+static pa_bool_t on_center(pa_channel_position_t p) {
+
+    return
+        p == PA_CHANNEL_POSITION_FRONT_CENTER ||
+        p == PA_CHANNEL_POSITION_REAR_CENTER ||
+        p == PA_CHANNEL_POSITION_TOP_CENTER ||
+        p == PA_CHANNEL_POSITION_TOP_FRONT_CENTER ||
+        p == PA_CHANNEL_POSITION_TOP_REAR_CENTER;
+}
+
+static pa_bool_t on_lfe(pa_channel_position_t p) {
+    return
+        p == PA_CHANNEL_POSITION_LFE;
+}
+
+pa_cvolume *pa_cvolume_remap(pa_cvolume *v, pa_channel_map *from, pa_channel_map *to) {
+    int a, b;
+    pa_cvolume result;
+
+    pa_assert(v);
+    pa_assert(from);
+    pa_assert(to);
+    pa_assert(v->channels == from->channels);
+
+    if (pa_channel_map_equal(from, to))
+        return v;
+
+    result.channels = to->channels;
+
+    for (b = 0; b < to->channels; b++) {
+        pa_volume_t k = 0;
+        int n = 0;
+
+        for (a = 0; a < from->channels; a++)
+            if (from->map[a] == to->map[b]) {
+                k += v->values[a];
+                n ++;
+            }
+
+        if (n <= 0) {
+            for (a = 0; a < from->channels; a++)
+                if ((on_left(from->map[a]) && on_left(to->map[b])) ||
+                    (on_right(from->map[a]) && on_right(to->map[b])) ||
+                    (on_center(from->map[a]) && on_center(to->map[b])) ||
+                    (on_lfe(from->map[a]) && on_lfe(to->map[b]))) {
+
+                    k += v->values[a];
+                    n ++;
+                }
+        }
+
+        if (n <= 0)
+            k = pa_cvolume_avg(v);
+        else
+            k /= n;
+
+        result.values[b] = k;
+    }
+
+    *v = result;
+    return v;
 }
