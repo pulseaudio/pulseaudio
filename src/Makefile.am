@@ -1371,7 +1371,7 @@ module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA
 module_x11_publish_la_SOURCES = modules/module-x11-publish.c
 module_x11_publish_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 module_x11_publish_la_LDFLAGS = -module -avoid-version
-module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libx11wrap.la libauthkey.la libauth-cookie.la libx11prop.la libstrlist.la libpulsecore.la
+module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libx11wrap.la libauthkey.la libauth-cookie.la libx11prop.la libstrlist.la libprotocol-native.la libpulsecore.la
 
 module_x11_xsmp_la_SOURCES = modules/module-x11-xsmp.c
 module_x11_xsmp_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
@@ -1471,7 +1471,7 @@ module_device_restore_la_CFLAGS = $(AM_CFLAGS)
 # Stream volume/muted/device restore module
 module_stream_restore_la_SOURCES = modules/module-stream-restore.c
 module_stream_restore_la_LDFLAGS = -module -avoid-version
-module_stream_restore_la_LIBADD = $(AM_LIBADD) libpulsecore.la -lgdbm
+module_stream_restore_la_LIBADD = $(AM_LIBADD) libtagstruct.la libprotocol-native.la libpulsecore.la -lgdbm
 module_stream_restore_la_CFLAGS = $(AM_CFLAGS)
 
 # Default sink/source restore module
