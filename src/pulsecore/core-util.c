@@ -398,7 +398,15 @@ int pa_close(int fd) {
     }
 #endif
 
-    return close(fd);
+    for (;;) {
+        int r;
+
+        if ((r = close(fd)) >= 0)
+            return r;
+
+        if (errno != EINTR)
+            return r;
+    }
 }
 
 /* Print a warning messages in case that the given signal is not
