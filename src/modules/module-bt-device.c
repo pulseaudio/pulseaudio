@@ -563,119 +563,52 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     return pa_sink_process_msg(o, code, data, offset, chunk);
 }
 
-static void sco_thread_func(void *userdata) {
-    struct userdata *u = userdata;
+static int sco_process_render(struct userdata *u) {
+    void *p;
+    ssize_t l;
     int write_type = 0;
 
-    pa_assert(u);
+    u->memchunk.memblock = pa_memblock_new(u->mempool, u->block_size);
+    pa_log_debug("memblock asked size %d", u->block_size);
+    u->memchunk.length = pa_memblock_get_length(u->memchunk.memblock);
+    pa_log_debug("memchunk length %d", u->memchunk.length);
+    pa_sink_render_into_full(u->sink, &u->memchunk);
 
-    pa_log_debug("SCO thread starting up");
+    pa_assert(u->memchunk.length > 0);
 
-    pa_thread_mq_install(&u->thread_mq);
-    pa_rtpoll_install(u->rtpoll);
+    p = pa_memblock_acquire(u->memchunk.memblock);
 
-    pa_smoother_set_time_offset(u->smoother, pa_rtclock_usec());
+sco_write:
+    l = pa_write(u->stream_fd, (uint8_t*) p, u->memchunk.length, &write_type);
+    pa_log_debug("memblock written to socket: %d bytes", l);
 
-    for (;;) {
-        int ret;
-        struct pollfd *pollfd;
+    pa_assert(l != 0);
 
-        if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
-            if (u->sink->thread_info.rewind_requested) {
-                pa_sink_process_rewind(u->sink, 0);
-            }
+    if (l < 0) {
+        if (errno == EINTR) {
+            pa_log_debug("EINTR");
+            goto sco_write;
         }
-
-        pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
-
-        if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && pollfd->revents) {
-            pa_usec_t usec;
-            int64_t n;
-            ssize_t l;
-
-            for (;;) {
-                /* Render some data and write it to the fifo */
-                void *p;
-
-                u->memchunk.memblock = pa_memblock_new(u->mempool, u->block_size);
-                pa_log_debug("memblock asked size %d", u->block_size);
-                u->memchunk.length = pa_memblock_get_length(u->memchunk.memblock);
-                pa_log_debug("memchunk length %d", u->memchunk.length);
-                pa_sink_render_into_full(u->sink, &u->memchunk);
-
-                pa_assert(u->memchunk.length > 0);
-
-                p = pa_memblock_acquire(u->memchunk.memblock);
-
-                l = pa_write(u->stream_fd, (uint8_t*) p, u->memchunk.length, &write_type);
-                pa_log_debug("memblock written to socket: %d bytes", l);
-                pa_memblock_release(u->memchunk.memblock);
-                pa_memblock_unref(u->memchunk.memblock);
-                pa_memchunk_reset(&u->memchunk);
-                pa_log("memchunk reseted");
-
-                pa_assert(l != 0);
-
-                if (l < 0) {
-                    if (errno == EINTR) {
-                        pa_log_debug("EINTR");
-                        continue;
-                    }
-                    else if (errno == EAGAIN) {
-                        pa_log_debug("EAGAIN");
-                        goto filled_up;
-                    }
-                    else {
-                        pa_log("Failed to write data to FIFO: %s", pa_cstrerror(errno));
-                        goto fail;
-                    }
-                } else {
-                    u->offset += l;
-                    pollfd->revents = 0;
-                }
-            }
-
-filled_up:
-            n = u->offset;
-            if (ioctl(u->stream_fd, SIOCOUTQ, &l) >= 0 && l > 0)
-                n -= l;
-            usec = pa_bytes_to_usec(n, &u->sink->sample_spec);
-            if (usec > u->latency)
-                usec -= u->latency;
-            else
-                usec = 0;
-            pa_smoother_put(u->smoother, pa_rtclock_usec(), usec);
+        else if (errno == EAGAIN) {
+            pa_log_debug("EAGAIN");
+            goto sco_write;
         }
-
-        /* Hmm, nothing to do. Let's sleep */
-        pa_log_debug("SCO thread going to sleep");
-        pollfd->events = PA_SINK_IS_OPENED(u->sink->thread_info.state) ? POLLOUT : 0;
-        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0) {
-            pa_log("rtpoll_run < 0");
-            goto fail;
+        else {
+            pa_memblock_release(u->memchunk.memblock);
+            pa_memblock_unref(u->memchunk.memblock);
+            pa_memchunk_reset(&u->memchunk);
+            pa_log_debug("memchunk reseted");
+            pa_log_error("Failed to write data to FIFO: %s", pa_cstrerror(errno));
+            return -1;
         }
-        pa_log_debug("SCO thread waking up");
-
-        if (ret == 0) {
-            pa_log_debug("rtpoll_run == 0");
-            goto finish;
-        }
-
-        pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
-        if (pollfd->revents & ~POLLOUT) {
-            pa_log_error("FIFO shutdown.");
-            goto fail;
-        }
+    } else {
+        pa_memblock_release(u->memchunk.memblock);
+        pa_memblock_unref(u->memchunk.memblock);
+        pa_memchunk_reset(&u->memchunk);
+        pa_log_debug("memchunk reseted");
+        u->offset += l;
+        return 0;
     }
-
-fail:
-    /* If this was no regular exit from the loop we have to continue processing messages until we receive PA_MESSAGE_SHUTDOWN */
-    pa_log_debug("SCO thread failed");
-    pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
-    pa_asyncmsgq_wait_for(u->thread_mq.inq, PA_MESSAGE_SHUTDOWN);
-
-finish:
-    pa_log_debug("SCO thread shutting down");
 }
 
 static int a2dp_process_render(struct userdata *u) {
@@ -764,12 +697,12 @@ avdtp_write:
     return 0;
 }
 
-static void a2dp_thread_func(void *userdata) {
+static void thread_func(void *userdata) {
     struct userdata *u = userdata;
 
     pa_assert(u);
 
-    pa_log_debug("A2DP Thread starting up");
+    pa_log_debug("IO Thread starting up");
 
     pa_thread_mq_install(&u->thread_mq);
     pa_rtpoll_install(u->rtpoll);
@@ -791,8 +724,14 @@ static void a2dp_thread_func(void *userdata) {
         pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
 
         if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && pollfd->revents) {
-            if (l = a2dp_process_render(u) < 0)
-                goto fail;
+            if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP) {
+                if (l = a2dp_process_render(u) < 0)
+                    goto fail;
+            }
+            else {
+                if ((l = sco_process_render(u)) < 0)
+                    goto fail;
+            }
             pollfd->revents = 0;
 
             /* feed the time smoother */
@@ -808,13 +747,13 @@ static void a2dp_thread_func(void *userdata) {
         }
 
         /* Hmm, nothing to do. Let's sleep */
-        pa_log_debug("A2DP thread going to sleep");
+        pa_log_debug("IO thread going to sleep");
         pollfd->events = PA_SINK_IS_OPENED(u->sink->thread_info.state) ? POLLOUT : 0;
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0) {
             pa_log_error("rtpoll_run < 0");
             goto fail;
         }
-        pa_log_debug("A2DP thread waking up");
+        pa_log_debug("IO thread waking up");
 
         if (ret == 0) {
             pa_log_debug("rtpoll_run == 0");
@@ -830,12 +769,12 @@ static void a2dp_thread_func(void *userdata) {
 
 fail:
     /* If this was no regular exit from the loop we have to continue processing messages until we receive PA_MESSAGE_SHUTDOWN */
-    pa_log_debug("A2DP thread failed");
+    pa_log_debug("IO thread failed");
     pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
     pa_asyncmsgq_wait_for(u->thread_mq.inq, PA_MESSAGE_SHUTDOWN);
 
 finish:
-    pa_log_debug("A2DP thread shutting down");
+    pa_log_debug("IO thread shutting down");
 }
 
 int pa__init(pa_module* m) {
@@ -951,17 +890,9 @@ int pa__init(pa_module* m) {
     pollfd->events = pollfd->revents = 0;
 
     /* start rt thread */
-    if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP) {
-        if (!(u->thread = pa_thread_new(a2dp_thread_func, u))) {
-            pa_log_error("failed to create A2DP thread");
-            goto fail;
-        }
-    }
-    else {
-        if (!(u->thread = pa_thread_new(sco_thread_func, u))) {
-            pa_log_error("failed to create SCO thread");
-            goto fail;
-        }
+    if (!(u->thread = pa_thread_new(thread_func, u))) {
+        pa_log_error("failed to create IO thread");
+        goto fail;
     }
     pa_sink_put(u->sink);
 
