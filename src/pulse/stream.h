@@ -473,7 +473,7 @@ void pa_stream_set_underflow_callback(pa_stream *p, pa_stream_notify_cb_t cb, vo
 
 /** Set the callback function that is called when a the server starts
  * playback after an underrun or on initial startup. This only informs
- * that audio is flowing again, it is no indication that audio startet
+ * that audio is flowing again, it is no indication that audio started
  * to reach the speakers already. (Only for playback streams). \since
  * 0.9.11 */
 void pa_stream_set_started_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
