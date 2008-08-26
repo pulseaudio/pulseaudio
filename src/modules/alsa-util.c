@@ -896,12 +896,17 @@ void pa_alsa_dump_status(snd_pcm_t *pcm) {
 
 static void alsa_error_handler(const char *file, int line, const char *function, int err, const char *fmt,...) {
     va_list ap;
+    char *alsa_file;
+
+    alsa_file = pa_sprintf_malloc("(alsa-lib)%s", file);
 
     va_start(ap, fmt);
 
-    pa_log_levelv_meta(PA_LOG_WARN, file, line, function, fmt, ap);
+    pa_log_levelv_meta(PA_LOG_INFO, alsa_file, line, function, fmt, ap);
 
     va_end(ap);
+
+    pa_xfree(alsa_file);
 }
 
 static pa_atomic_t n_error_handler_installed = PA_ATOMIC_INIT(0);
