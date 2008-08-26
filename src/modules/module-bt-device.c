@@ -105,6 +105,7 @@ struct userdata {
     int stream_fd;
 
     int transport;
+    char *strtransport;
     int link_mtu;
     size_t block_size;
     pa_usec_t latency;
@@ -447,6 +448,7 @@ static int bt_setconf(struct userdata *u) {
     }
 
     u->transport = msg.setconf_rsp.transport;
+    u->strtransport = (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP ? pa_xstrdup("A2DP") : pa_xstrdup("SCO"));
     u->link_mtu = msg.setconf_rsp.link_mtu;
 
     /* setup SBC encoder now we agree on parameters */
@@ -924,7 +926,14 @@ int pa__init(pa_module* m) {
     pa_sink_new_data_set_name(&data, u->name);
     pa_sink_new_data_set_sample_spec(&data, &u->ss);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->name);
-    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Bluetooth sink '%s' (%s)", u->name, u->addr);
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Bluetooth %s '%s' (%s)", u->strtransport, u->name, u->addr);
+    pa_proplist_setf(data.proplist, "bluetooth.protocol", u->profile);
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_API, "bluez");
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_CLASS, "sound");
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_CONNECTOR, "bluetooth");
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_FORM_FACTOR, "headset"); /*FIXME*/
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_VENDOR_PRODUCT_ID, "product_id"); /*FIXME*/
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_SERIAL, "serial"); /*FIXME*/
     u->sink = pa_sink_new(m->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
     pa_sink_new_data_done(&data);
     if (!u->sink) {
