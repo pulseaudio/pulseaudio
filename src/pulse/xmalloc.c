@@ -36,7 +36,7 @@
 #include "xmalloc.h"
 
 /* Make sure not to allocate more than this much memory. */
-#define MAX_ALLOC_SIZE (1024*1024*20) /* 20MB */
+#define MAX_ALLOC_SIZE (1024*1024*96) /* 96MB */
 
 /* #undef malloc */
 /* #undef free */
