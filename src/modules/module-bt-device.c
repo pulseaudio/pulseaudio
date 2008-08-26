@@ -26,6 +26,8 @@
 #include <string.h>
 #include <errno.h>
 #include <poll.h>
+#include <sys/ioctl.h>
+#include <linux/sockios.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
@@ -587,10 +589,10 @@ static void sco_thread_func(void *userdata) {
         if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && pollfd->revents) {
             pa_usec_t usec;
             int64_t n;
+            ssize_t l;
 
             for (;;) {
                 /* Render some data and write it to the fifo */
-                ssize_t l;
                 void *p;
 
                 u->memchunk.memblock = pa_memblock_new(u->mempool, u->block_size);
@@ -633,13 +635,8 @@ static void sco_thread_func(void *userdata) {
 
 filled_up:
             n = u->offset;
-#ifdef SIOCOUTQ
-            {
-                int l;
-                if (ioctl(u->fd, SIOCOUTQ, &l) >= 0 && l > 0)
-                    n -= l;
-            }
-#endif
+            if (ioctl(u->stream_fd, SIOCOUTQ, &l) >= 0 && l > 0)
+                n -= l;
             usec = pa_bytes_to_usec(n, &u->sink->sample_spec);
             if (usec > u->latency)
                 usec -= u->latency;
@@ -778,7 +775,7 @@ static void a2dp_thread_func(void *userdata) {
     pa_smoother_set_time_offset(u->smoother, pa_rtclock_usec());
 
     for (;;) {
-        int ret;
+        int ret, l;
         struct pollfd *pollfd;
         int64_t n;
         pa_usec_t usec;
@@ -792,19 +789,14 @@ static void a2dp_thread_func(void *userdata) {
         pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
 
         if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && pollfd->revents) {
-            if (a2dp_process_render(u) < 0)
+            if (l = a2dp_process_render(u) < 0)
                 goto fail;
             pollfd->revents = 0;
 
             /* feed the time smoother */
             n = u->offset;
-#ifdef SIOCOUTQ
-            {
-                int ll;
-                if (ioctl(u->fd, SIOCOUTQ, &ll) >= 0 && ll > 0)
-                    n -= ll;
-            }
-#endif
+            if (ioctl(u->stream_fd, SIOCOUTQ, &l) >= 0 && l > 0)
+                n -= l;
             usec = pa_bytes_to_usec(n, &u->sink->sample_spec);
             if (usec > u->latency)
                 usec -= u->latency;
