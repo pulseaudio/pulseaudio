@@ -1042,10 +1042,14 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
             pa_sink_input_set_state_within_thread(i, i->state);
 
+            /* The requested latency of the sink input needs to be
+             * fixed up and then configured on the sink */
+
+            if (i->thread_info.requested_sink_latency != (pa_usec_t) -1)
+                pa_sink_input_set_requested_latency_within_thread(i, i->thread_info.requested_sink_latency);
+
             pa_sink_input_update_max_rewind(i, s->thread_info.max_rewind);
             pa_sink_input_update_max_request(i, s->thread_info.max_request);
-
-            pa_sink_invalidate_requested_latency(s);
 
             /* We don't rewind here automatically. This is left to the
              * sink input implementor because some sink inputs need a
@@ -1158,10 +1162,11 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             if (i->attach)
                 i->attach(i);
 
+            if (i->thread_info.requested_sink_latency != (pa_usec_t) -1)
+                pa_sink_input_set_requested_latency_within_thread(i, i->thread_info.requested_sink_latency);
+
             pa_sink_input_update_max_rewind(i, s->thread_info.max_rewind);
             pa_sink_input_update_max_request(i, s->thread_info.max_request);
-
-            pa_sink_input_set_requested_latency_within_thread(i, i->thread_info.requested_sink_latency);
 
             if (i->thread_info.state != PA_SINK_INPUT_CORKED) {
                 pa_usec_t usec = 0;
@@ -1424,7 +1429,6 @@ void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind) {
 
 /* Called from IO thread */
 void pa_sink_set_max_request(pa_sink *s, size_t max_request) {
-    pa_sink_input *i;
     void *state = NULL;
 
     pa_sink_assert_ref(s);
@@ -1435,6 +1439,8 @@ void pa_sink_set_max_request(pa_sink *s, size_t max_request) {
     s->thread_info.max_request = max_request;
 
     if (PA_SINK_IS_LINKED(s->thread_info.state)) {
+        pa_sink_input *i;
+
         while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)))
             pa_sink_input_update_max_request(i, s->thread_info.max_request);
     }

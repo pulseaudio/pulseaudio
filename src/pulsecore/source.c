@@ -670,6 +670,9 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
             pa_source_output_set_state_within_thread(o, o->state);
 
+            if (o->thread_info.requested_source_latency != (pa_usec_t) -1)
+                pa_source_output_set_requested_latency_within_thread(o, o->thread_info.requested_source_latency);
+
             pa_source_output_update_max_rewind(o, s->thread_info.max_rewind);
 
             /* We don't just invalidate the requested latency here,

@@ -511,14 +511,11 @@ pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t 
 
     if (PA_SOURCE_OUTPUT_IS_LINKED(o->state))
         pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_REQUESTED_LATENCY, &usec, 0, NULL) == 0);
-    else {
+    else
         /* If this source output is not realized yet, we have to touch
          * the thread info data directly */
 
-        usec = fixup_latency(o->source, usec);
         o->thread_info.requested_source_latency = usec;
-        o->source->thread_info.requested_latency_valid = FALSE;
-    }
 
     return usec;
 }

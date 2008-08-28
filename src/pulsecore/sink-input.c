@@ -756,14 +756,11 @@ pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec) 
 
     if (PA_SINK_INPUT_IS_LINKED(i->state))
         pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_REQUESTED_LATENCY, &usec, 0, NULL) == 0);
-    else {
+    else
         /* If this sink input is not realized yet, we have to touch
          * the thread info data directly */
 
-        usec = fixup_latency(i->sink, usec);
         i->thread_info.requested_sink_latency = usec;
-        i->sink->thread_info.requested_latency_valid = FALSE;
-    }
 
     return usec;
 }
