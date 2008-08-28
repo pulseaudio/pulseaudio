@@ -686,6 +686,7 @@ int pa__init(pa_module*m) {
     pa_source_output *so;
     uint32_t idx;
     pa_bool_t restore_device = TRUE, restore_volume = TRUE, restore_muted = TRUE;
+    int gdbm_cache_size;
 
     pa_assert(m);
 
@@ -745,6 +746,10 @@ int pa__init(pa_module*m) {
         pa_xfree(fname);
         goto fail;
     }
+
+    /* By default the cache of gdbm is rather large, let's reduce it a bit to save memory */
+    gdbm_cache_size = 10;
+    gdbm_setopt(u->gdbm_file, GDBM_CACHESIZE, &gdbm_cache_size, sizeof(gdbm_cache_size));
 
     pa_log_info("Sucessfully opened database file '%s'.", fname);
     pa_xfree(fname);
