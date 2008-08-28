@@ -183,10 +183,14 @@ size_t pa_frame_size(const pa_sample_spec *spec) PA_GCC_PURE;
 /** Return the size of a sample with the specific sample type */
 size_t pa_sample_size(const pa_sample_spec *spec) PA_GCC_PURE;
 
-/** Calculate the time the specified bytes take to play with the specified sample type */
+/** Calculate the time the specified bytes take to play with the
+ * specified sample type. The return value will always be rounded
+ * down for non-integral return values. */
 pa_usec_t pa_bytes_to_usec(uint64_t length, const pa_sample_spec *spec) PA_GCC_PURE;
 
-/** Calculates the number of bytes that are required for the specified time. \since 0.9 */
+/** Calculates the number of bytes that are required for the specified
+ * time. The return value will always be rounded down for non-integral
+ * return values. \since 0.9 */
 size_t pa_usec_to_bytes(pa_usec_t t, const pa_sample_spec *spec) PA_GCC_PURE;
 
 /** Return non-zero when the sample type specification is valid */
