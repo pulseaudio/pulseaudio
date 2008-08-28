@@ -78,4 +78,7 @@ void pa_deinterleave(const void *src, void *dst[], unsigned channels, size_t ss,
 
 void pa_sample_clamp(pa_sample_format_t format, void *dst, size_t dstr, const void *src, size_t sstr, unsigned n);
 
+pa_usec_t pa_bytes_to_usec_round_up(uint64_t length, const pa_sample_spec *spec);
+size_t pa_usec_to_bytes_round_up(pa_usec_t t, const pa_sample_spec *spec);
+
 #endif

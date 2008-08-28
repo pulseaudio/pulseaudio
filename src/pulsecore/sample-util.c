@@ -31,6 +31,8 @@
 #include <liboil/liboilfuncs.h>
 #include <liboil/liboil.h>
 
+#include <pulse/timeval.h>
+
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/g711.h>
@@ -980,4 +982,35 @@ void pa_sample_clamp(pa_sample_format_t format, void *dst, size_t dstr, const vo
             d = (float*) ((uint8_t*) d + dstr);
         }
     }
+}
+
+/* Similar to pa_bytes_to_usec() but rounds up, not down */
+
+pa_usec_t pa_bytes_to_usec_round_up(uint64_t length, const pa_sample_spec *spec) {
+    size_t fs;
+    pa_usec_t usec;
+
+    pa_assert(spec);
+
+    fs = pa_frame_size(spec);
+    length = (length + fs - 1) / fs;
+
+    usec = (pa_usec_t) length * PA_USEC_PER_SEC;
+
+    return (usec + spec->rate - 1) / spec->rate;
+}
+
+/* Similar to pa_usec_to_bytes() but rounds up, not down */
+
+size_t pa_usec_to_bytes_round_up(pa_usec_t t, const pa_sample_spec *spec) {
+    uint64_t u;
+    pa_assert(spec);
+
+    u = (uint64_t) t * (uint64_t) spec->rate;
+
+    u = (u + PA_USEC_PER_SEC - 1) / PA_USEC_PER_SEC;
+
+    u *= pa_frame_size(spec);
+
+    return (size_t) u;
 }
