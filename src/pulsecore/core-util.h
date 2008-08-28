@@ -142,29 +142,35 @@ static inline int pa_is_power_of_two(unsigned n) {
     return !(n & (n - 1));
 }
 
+static inline unsigned pa_ulog2(unsigned n) {
+
+    if (n <= 1)
+        return 0;
+
+#if __GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+    return 8U * (unsigned) sizeof(unsigned) - (unsigned) __builtin_clz(n) - 1;
+#else
+{
+    unsigned r = 0;
+
+    for (;;) {
+        n = n >> 1;
+
+        if (!n)
+            return r;
+
+        r++;
+    }
+}
+#endif
+}
+
 static inline unsigned pa_make_power_of_two(unsigned n) {
-    unsigned j = n;
 
     if (pa_is_power_of_two(n))
         return n;
 
-    while (j) {
-        j = j >> 1;
-        n = n | j;
-    }
-
-    return n + 1;
-}
-
-static inline unsigned pa_ulog2(unsigned n) {
-    unsigned r = 0;
-
-    while (n) {
-        r++;
-        n = n >> 1;
-    }
-
-    return r;
+    return 1U << (pa_ulog2(n) + 1);
 }
 
 void pa_close_pipe(int fds[2]);
