@@ -1585,7 +1585,7 @@ libbt_ipc_la_CFLAGS = $(AM_CFLAGS)
 
 module_bt_device_la_SOURCES = modules/module-bt-device.c
 module_bt_device_la_LDFLAGS = -module -avoid-version
-module_bt_device_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la libdbus-util.la libbt-ipc.la libbt-sbc.la
+module_bt_device_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la libdbus-util.la libbt-ipc.la libbt-sbc.la libsocket-util.la
 module_bt_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 ###################################
