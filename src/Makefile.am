@@ -201,22 +201,22 @@ paplay_LDADD = $(AM_LDADD) libpulse.la $(LIBSNDFILE_LIBS)
 paplay_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
 paplay_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-pactl_SOURCES = utils/pactl.c pulsecore/core-util.c pulsecore/core-util.h pulsecore/core-error.c pulsecore/core-error.h pulsecore/log.c pulsecore/log.h pulsecore/once.c pulsecore/once.h $(PA_THREAD_OBJS)
+pactl_SOURCES = utils/pactl.c pulsecore/core-util.c pulsecore/core-util.h pulsecore/core-error.c pulsecore/core-error.h pulsecore/log.c pulsecore/log.h pulsecore/rtclock.c pulsecore/rtclock.h pulsecore/once.c pulsecore/once.h $(PA_THREAD_OBJS)
 pactl_LDADD = $(AM_LDADD) libpulse.la $(LIBSNDFILE_LIBS)
 pactl_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
 pactl_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-pasuspender_SOURCES = utils/pasuspender.c pulsecore/core-util.c pulsecore/core-util.h pulsecore/core-error.c pulsecore/core-error.h pulsecore/log.c pulsecore/log.h pulsecore/once.c pulsecore/once.h $(PA_THREAD_OBJS)
+pasuspender_SOURCES = utils/pasuspender.c pulsecore/core-util.c pulsecore/core-util.h pulsecore/core-error.c pulsecore/core-error.h pulsecore/log.c pulsecore/log.h pulsecore/rtclock.c pulsecore/rtclock.h pulsecore/once.c pulsecore/once.h $(PA_THREAD_OBJS)
 pasuspender_LDADD = $(AM_LDADD) libpulse.la $(LIBSNDFILE_LIBS)
 pasuspender_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
 pasuspender_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-pacmd_SOURCES = utils/pacmd.c pulsecore/pid.c pulsecore/pid.h pulsecore/core-util.c pulsecore/core-util.h pulsecore/core-error.c pulsecore/core-error.h pulsecore/log.c pulsecore/log.h pulsecore/once.c pulsecore/once.h $(PA_THREAD_OBJS)
+pacmd_SOURCES = utils/pacmd.c pulsecore/pid.c pulsecore/pid.h pulsecore/core-util.c pulsecore/core-util.h pulsecore/core-error.c pulsecore/core-error.h pulsecore/log.c pulsecore/log.h pulsecore/rtclock.c pulsecore/rtclock.h pulsecore/once.c pulsecore/once.h $(PA_THREAD_OBJS)
 pacmd_CFLAGS = $(AM_CFLAGS)
 pacmd_LDADD = $(AM_LDADD) libpulse.la
 pacmd_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-pax11publish_SOURCES = utils/pax11publish.c pulsecore/x11prop.c pulsecore/x11prop.h pulse/client-conf.c pulse/client-conf.h pulsecore/authkey.h pulsecore/authkey.c pulsecore/random.h pulsecore/random.c pulsecore/conf-parser.c pulsecore/conf-parser.h pulsecore/core-util.c pulsecore/core-util.h pulsecore/core-error.c pulsecore/core-error.h  pulsecore/log.c pulsecore/log.h pulsecore/once.c pulsecore/once.h $(PA_THREAD_OBJS)
+pax11publish_SOURCES = utils/pax11publish.c pulsecore/x11prop.c pulsecore/x11prop.h pulse/client-conf.c pulse/client-conf.h pulsecore/authkey.h pulsecore/authkey.c pulsecore/random.h pulsecore/random.c pulsecore/conf-parser.c pulsecore/rtclock.c pulsecore/rtclock.h pulsecore/conf-parser.h pulsecore/core-util.c pulsecore/core-util.h pulsecore/core-error.c pulsecore/core-error.h  pulsecore/log.c pulsecore/log.h pulsecore/once.c pulsecore/once.h $(PA_THREAD_OBJS)
 pax11publish_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 pax11publish_LDADD = $(AM_LDADD) libpulse.la $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
 pax11publish_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
@@ -618,13 +618,14 @@ libpulse_simple_la_SOURCES = \
 		pulsecore/core-util.c pulsecore/core-util.h  \
 		pulsecore/core-error.c pulsecore/core-error.h \
 		pulsecore/once.c pulsecore/once.h \
+		pulsecore/rtclock.c pulsecore/rtclock.h \
 		$(PA_THREAD_OBJS)
 
 libpulse_simple_la_CFLAGS = $(AM_CFLAGS)
 libpulse_simple_la_LIBADD = $(AM_LIBADD) libpulse.la
 libpulse_simple_la_LDFLAGS = -version-info $(LIBPULSE_SIMPLE_VERSION_INFO) -Wl,-version-script=$(srcdir)/map-file
 
-libpulse_browse_la_SOURCES = pulse/browser.c pulse/browser.h pulsecore/avahi-wrap.c pulsecore/avahi-wrap.h pulsecore/core-util.c pulsecore/core-util.h pulsecore/core-error.c pulsecore/core-error.h  pulsecore/log.c pulsecore/log.h pulsecore/once.c pulsecore/once.h $(PA_THREAD_OBJS)
+libpulse_browse_la_SOURCES = pulse/browser.c pulse/browser.h pulsecore/avahi-wrap.c pulsecore/avahi-wrap.h pulsecore/core-util.c pulsecore/core-util.h pulsecore/core-error.c pulsecore/core-error.h  pulsecore/log.c pulsecore/log.h pulsecore/rtclock.c pulsecore/rtclock.h pulsecore/once.c pulsecore/once.h $(PA_THREAD_OBJS)
 libpulse_browse_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
 libpulse_browse_la_LIBADD = $(AM_LIBADD) libpulse.la $(AVAHI_LIBS)
 libpulse_browse_la_LDFLAGS = -version-info $(LIBPULSE_BROWSE_VERSION_INFO) -Wl,-version-script=$(srcdir)/map-file
@@ -632,6 +633,7 @@ libpulse_browse_la_LDFLAGS = -version-info $(LIBPULSE_BROWSE_VERSION_INFO) -Wl,-
 libpulse_mainloop_glib_la_SOURCES = \
 		pulse/glib-mainloop.h pulse/glib-mainloop.c \
 		pulsecore/log.c pulsecore/log.h \
+		pulsecore/rtclock.c pulsecore/rtclock.h \
 		pulsecore/core-util.c pulsecore/core-util.h  \
 		pulsecore/core-error.c pulsecore/core-error.h \
 		pulsecore/once.c pulsecore/once.h \
