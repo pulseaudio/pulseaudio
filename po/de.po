@@ -1,26 +1,28 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# German translation of pulseaudio
+# Copyright (C) 2008 pulseaudion
+# This file is distributed under the same license as the pulseaudio package.
+# Fabian Affolter <fab@fedoraproject.org>, 2008.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-08-06 20:24+0200\n"
-"PO-Revision-Date: 2008-08-06 20:34+0100\n"
-"Last-Translator: Lennart Poettering <lennart@poettering.net>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2008-08-29 09:26+0000\n"
+"PO-Revision-Date: 2008-08-29 12:43+0100\n"
+"Last-Translator: Fabian Affolter <fab@fedoraproject.org>\n"
+"Language-Team: German <fedora-trans-de@redhat.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Language: German\n"
 
-#: ../src/daemon/ltdl-bind-now.c:171
-#: ../src/daemon/ltdl-bind-now.c:191
+#: ../src/daemon/ltdl-bind-now.c:177
+#: ../src/daemon/ltdl-bind-now.c:197
 msgid "Failed to add bind-now-loader."
 msgstr ""
 
-#: ../src/daemon/ltdl-bind-now.c:178
+#: ../src/daemon/ltdl-bind-now.c:184
 msgid "Failed to find original dlopen loader."
 msgstr ""
 
@@ -78,73 +80,73 @@ msgstr ""
 msgid "PolicyKit responded with '%s'"
 msgstr ""
 
-#: ../src/daemon/main.c:135
+#: ../src/daemon/main.c:134
 #, c-format
 msgid "Got signal %s."
 msgstr "Signal %s empfangen."
 
-#: ../src/daemon/main.c:162
+#: ../src/daemon/main.c:161
 msgid "Exiting."
 msgstr "Beende."
 
-#: ../src/daemon/main.c:180
+#: ../src/daemon/main.c:179
 #, c-format
 msgid "Failed to find user '%s'."
 msgstr ""
 
-#: ../src/daemon/main.c:185
+#: ../src/daemon/main.c:184
 #, c-format
 msgid "Failed to find group '%s'."
 msgstr ""
 
-#: ../src/daemon/main.c:189
+#: ../src/daemon/main.c:188
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
 msgstr ""
 
-#: ../src/daemon/main.c:194
+#: ../src/daemon/main.c:193
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
 msgstr ""
 
-#: ../src/daemon/main.c:199
+#: ../src/daemon/main.c:198
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr ""
 
-#: ../src/daemon/main.c:202
-#: ../src/daemon/main.c:207
+#: ../src/daemon/main.c:201
+#: ../src/daemon/main.c:206
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr ""
 
-#: ../src/daemon/main.c:214
+#: ../src/daemon/main.c:213
 #, c-format
 msgid "Failed to change group list: %s"
 msgstr ""
 
-#: ../src/daemon/main.c:230
+#: ../src/daemon/main.c:229
 #, c-format
 msgid "Failed to change GID: %s"
 msgstr ""
 
-#: ../src/daemon/main.c:246
+#: ../src/daemon/main.c:245
 #, c-format
 msgid "Failed to change UID: %s"
 msgstr ""
 
-#: ../src/daemon/main.c:260
+#: ../src/daemon/main.c:259
 msgid "Successfully dropped root privileges."
 msgstr ""
 
-#: ../src/daemon/main.c:268
+#: ../src/daemon/main.c:267
 msgid "System wide mode unsupported on this platform."
 msgstr ""
 
-#: ../src/daemon/main.c:286
+#: ../src/daemon/main.c:285
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
-msgstr ""
+msgstr "setrlimit(%s, (%u, %u)) fehlgeschlagen: %s"
 
 #: ../src/daemon/main.c:425
 msgid "Failed to parse command line."
@@ -182,6 +184,16 @@ msgid ""
 "We are not in group '"
 msgstr ""
 
+#: ../src/daemon/main.c:480
+msgid ""
+"' and PolicyKit refuse to grant us priviliges. Dropping SUID again.\n"
+"For enabling real-time scheduling please acquire the appropriate PolicyKit priviliges, or become a member of '"
+msgstr ""
+
+#: ../src/daemon/main.c:481
+msgid "', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
+msgstr ""
+
 #: ../src/daemon/main.c:497
 msgid "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr ""
@@ -193,7 +205,7 @@ msgstr ""
 #: ../src/daemon/main.c:525
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
-msgstr ""
+msgstr "RLIMIT_RTPRIO fehlgeschlagen: %s"
 
 #: ../src/daemon/main.c:532
 msgid "Giving up CAP_NICE"
@@ -205,7 +217,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:597
 msgid "Daemon not running"
-msgstr ""
+msgstr "Daemon läuft nicht"
 
 #: ../src/daemon/main.c:599
 #, c-format
@@ -213,7 +225,8 @@ msgid "Daemon running as PID %u"
 msgstr ""
 
 #: ../src/daemon/main.c:609
-msgid "Failed to kill daemon."
+#, c-format
+msgid "Failed to kill daemon: %s"
 msgstr ""
 
 #: ../src/daemon/main.c:627
@@ -222,7 +235,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:629
 msgid "Root priviliges required."
-msgstr ""
+msgstr "Root-Berechtigungen benötigt."
 
 #: ../src/daemon/main.c:634
 msgid "--start not supported for system instances."
@@ -244,96 +257,105 @@ msgstr ""
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 
-#: ../src/daemon/main.c:668
+#: ../src/daemon/main.c:677
 msgid "Failed to acquire stdio."
 msgstr ""
 
-#: ../src/daemon/main.c:674
+#: ../src/daemon/main.c:683
 #, c-format
 msgid "pipe failed: %s"
-msgstr ""
+msgstr "pipe fehlgeschlagen: %s"
 
-#: ../src/daemon/main.c:679
+#: ../src/daemon/main.c:688
 #, c-format
 msgid "fork() failed: %s"
-msgstr ""
+msgstr "fork() fehlgeschlagen: %s"
 
-#: ../src/daemon/main.c:693
+#: ../src/daemon/main.c:702
 #, c-format
 msgid "read() failed: %s"
-msgstr ""
+msgstr "read() fehlgeschlagen: %s"
 
-#: ../src/daemon/main.c:699
+#: ../src/daemon/main.c:708
 msgid "Daemon startup failed."
 msgstr "Start des Dämons fehlgeschlagen."
 
-#: ../src/daemon/main.c:701
+#: ../src/daemon/main.c:710
 msgid "Daemon startup successful."
 msgstr "Start des Dämons erfolgreich."
 
-#: ../src/daemon/main.c:768
+#: ../src/daemon/main.c:780
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Dies ist PulseAudio %s"
 
-#: ../src/daemon/main.c:769
+#: ../src/daemon/main.c:781
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "Seitengröße ist %lu Bytes."
 
-#: ../src/daemon/main.c:772
+#: ../src/daemon/main.c:784
+msgid "Failed to get machine ID"
+msgstr ""
+
+#: ../src/daemon/main.c:787
+#, c-format
+msgid "Machine ID is %s."
+msgstr "System- ID ist %s."
+
+#: ../src/daemon/main.c:792
 #, c-format
 msgid "Using runtime directory %s."
 msgstr ""
 
-#: ../src/daemon/main.c:775
+#: ../src/daemon/main.c:797
 #, c-format
 msgid "Using state directory %s."
 msgstr ""
 
-#: ../src/daemon/main.c:778
+#: ../src/daemon/main.c:800
 #, c-format
 msgid "Running in system mode: %s"
 msgstr ""
 
-#: ../src/daemon/main.c:793
+#: ../src/daemon/main.c:815
 msgid "pa_pid_file_create() failed."
-msgstr ""
+msgstr "pa_pid_file_create() fehlgeschlagen."
 
-#: ../src/daemon/main.c:805
+#: ../src/daemon/main.c:827
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr ""
 
-#: ../src/daemon/main.c:807
+#: ../src/daemon/main.c:829
 msgid "Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!"
 msgstr ""
 
-#: ../src/daemon/main.c:817
+#: ../src/daemon/main.c:839
 msgid "pa_core_new() failed."
-msgstr ""
+msgstr "pa_core_new() fehlgeschlagen."
 
-#: ../src/daemon/main.c:877
+#: ../src/daemon/main.c:899
 msgid "Failed to initialize daemon."
 msgstr ""
 
-#: ../src/daemon/main.c:882
+#: ../src/daemon/main.c:904
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 
-#: ../src/daemon/main.c:887
+#: ../src/daemon/main.c:909
 #, c-format
 msgid "Default sink name (%s) does not exist in name register."
 msgstr ""
 
-#: ../src/daemon/main.c:900
+#: ../src/daemon/main.c:922
 msgid "Daemon startup complete."
 msgstr "Start des Dämons abgeschlossen."
 
-#: ../src/daemon/main.c:906
+#: ../src/daemon/main.c:928
 msgid "Daemon shutdown initiated."
 msgstr ""
 
-#: ../src/daemon/main.c:923
+#: ../src/daemon/main.c:949
 msgid "Daemon terminated."
 msgstr "Dämon beendet."
 
@@ -451,7 +473,7 @@ msgstr ""
 #: ../src/daemon/dumpmodules.c:60
 #, c-format
 msgid "Name: %s\n"
-msgstr ""
+msgstr "Name: %s\n"
 
 #: ../src/daemon/dumpmodules.c:63
 #, c-format
@@ -461,22 +483,22 @@ msgstr ""
 #: ../src/daemon/dumpmodules.c:66
 #, c-format
 msgid "Version: %s\n"
-msgstr ""
+msgstr "Version: %s\n"
 
 #: ../src/daemon/dumpmodules.c:68
 #, c-format
 msgid "Description: %s\n"
-msgstr ""
+msgstr "Beschreibung: %s\n"
 
 #: ../src/daemon/dumpmodules.c:70
 #, c-format
 msgid "Author: %s\n"
-msgstr ""
+msgstr "Author: %s\n"
 
 #: ../src/daemon/dumpmodules.c:72
 #, c-format
 msgid "Usage: %s\n"
-msgstr ""
+msgstr "Verwendung: %s\n"
 
 #: ../src/daemon/dumpmodules.c:73
 #, c-format
@@ -486,7 +508,7 @@ msgstr ""
 #: ../src/daemon/dumpmodules.c:77
 #, c-format
 msgid "Path: %s\n"
-msgstr ""
+msgstr "Pfad: %s\n"
 
 #: ../src/daemon/daemon-conf.c:203
 #, c-format
@@ -860,7 +882,7 @@ msgstr "Ungültig"
 #: ../src/pulse/client-conf-x11.c:55
 #: ../src/utils/pax11publish.c:100
 msgid "XOpenDisplay() failed"
-msgstr ""
+msgstr "XOpenDisplay() fehlgeschlagen"
 
 #: ../src/pulse/client-conf-x11.c:78
 msgid "Failed to parse cookie data"
@@ -871,30 +893,26 @@ msgstr ""
 msgid "Failed to open configuration file '%s': %s"
 msgstr ""
 
-#: ../src/pulse/context.c:110
-msgid "Cannot unlock autospawn because runtime path is no more."
-msgstr ""
-
-#: ../src/pulse/context.c:536
+#: ../src/pulse/context.c:542
 msgid "No cookie loaded. Attempting to connect without."
 msgstr ""
 
-#: ../src/pulse/context.c:590
+#: ../src/pulse/context.c:596
 #, c-format
 msgid "socketpair(): %s"
-msgstr ""
+msgstr "socketpair(): %s"
 
-#: ../src/pulse/context.c:604
+#: ../src/pulse/context.c:610
 #, c-format
 msgid "fork(): %s"
-msgstr ""
+msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:667
+#: ../src/pulse/context.c:673
 #, c-format
 msgid "waitpid(): %s"
-msgstr ""
+msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1265
+#: ../src/pulse/context.c:1354
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr ""
@@ -902,12 +920,12 @@ msgstr ""
 #: ../src/utils/pacat.c:93
 #, c-format
 msgid "pa_stream_write() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_write() fehlgeschlagen: %s\n"
 
 #: ../src/utils/pacat.c:132
 #, c-format
 msgid "pa_stream_peek() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_peek() fehlgeschlagen: %s\n"
 
 #: ../src/utils/pacat.c:141
 #, c-format
@@ -917,7 +935,7 @@ msgstr ""
 #: ../src/utils/pacat.c:143
 #, c-format
 msgid "pa_stream_drop() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_drop() fehlgeschlagen: %s\n"
 
 #: ../src/utils/pacat.c:169
 #, c-format
@@ -927,7 +945,7 @@ msgstr ""
 #: ../src/utils/pacat.c:172
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_get_buffer_attr() fehlgeschlagen: %s\n"
 
 #: ../src/utils/pacat.c:176
 #, c-format
@@ -986,7 +1004,7 @@ msgstr ""
 
 #: ../src/utils/pacat.c:238
 msgid "not "
-msgstr ""
+msgstr "nicht"
 
 #: ../src/utils/pacat.c:259
 #, c-format
@@ -1037,22 +1055,22 @@ msgstr ""
 #: ../src/utils/pacat.c:369
 #, c-format
 msgid "Got EOF.\n"
-msgstr ""
+msgstr "Erhielt EOF.\n"
 
 #: ../src/utils/pacat.c:375
 #, c-format
 msgid "pa_stream_drain(): %s\n"
-msgstr ""
+msgstr "pa_stream_drain(): %s\n"
 
 #: ../src/utils/pacat.c:385
 #, c-format
 msgid "read() failed: %s\n"
-msgstr ""
+msgstr "read() fehlgeschlagen: %s\n"
 
 #: ../src/utils/pacat.c:417
 #, c-format
 msgid "write() failed: %s\n"
-msgstr ""
+msgstr "write() fehlgeschlagen: %s\n"
 
 #: ../src/utils/pacat.c:438
 #, c-format
@@ -1150,26 +1168,26 @@ msgstr ""
 
 #: ../src/utils/pacat.c:706
 msgid "recording"
-msgstr ""
+msgstr "aufnehmen"
 
 #: ../src/utils/pacat.c:706
 msgid "playback"
-msgstr ""
+msgstr "abspielen"
 
 #: ../src/utils/pacat.c:714
 #, c-format
 msgid "open(): %s\n"
-msgstr ""
+msgstr "open(): %s\n"
 
 #: ../src/utils/pacat.c:719
 #, c-format
 msgid "dup2(): %s\n"
-msgstr ""
+msgstr "dup2(): %s\n"
 
 #: ../src/utils/pacat.c:729
 #, c-format
 msgid "Too many arguments.\n"
-msgstr ""
+msgstr "Zu viele Argumente.\n"
 
 #: ../src/utils/pacat.c:742
 #: ../src/utils/pasuspender.c:280
@@ -1177,12 +1195,12 @@ msgstr ""
 #: ../src/utils/paplay.c:381
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
-msgstr ""
+msgstr "pa_mainloop_new() fehlgeschlagen.\n"
 
 #: ../src/utils/pacat.c:763
 #, c-format
 msgid "io_new() failed.\n"
-msgstr ""
+msgstr "io_new() fehlgeschlagen.\n"
 
 #: ../src/utils/pacat.c:769
 #: ../src/utils/pasuspender.c:293
@@ -1190,12 +1208,12 @@ msgstr ""
 #: ../src/utils/paplay.c:396
 #, c-format
 msgid "pa_context_new() failed.\n"
-msgstr ""
+msgstr "pa_context_new() fehlgeschlagen.\n"
 
 #: ../src/utils/pacat.c:785
 #, c-format
 msgid "time_new() failed.\n"
-msgstr ""
+msgstr "time_new() fehlgeschlagen.\n"
 
 #: ../src/utils/pacat.c:792
 #: ../src/utils/pasuspender.c:301
@@ -1203,17 +1221,17 @@ msgstr ""
 #: ../src/utils/paplay.c:407
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
-msgstr ""
+msgstr "pa_mainloop_run() fehlgeschlagen.\n"
 
 #: ../src/utils/pasuspender.c:81
 #, c-format
 msgid "fork(): %s\n"
-msgstr ""
+msgstr "fork(): %s\n"
 
 #: ../src/utils/pasuspender.c:92
 #, c-format
 msgid "execvp(): %s\n"
-msgstr ""
+msgstr "execvp(): %s\n"
 
 #: ../src/utils/pasuspender.c:109
 #, c-format
@@ -1324,7 +1342,7 @@ msgstr ""
 #: ../src/utils/pactl.c:193
 #: ../src/utils/pactl.c:371
 msgid "muted"
-msgstr ""
+msgstr "stumm"
 
 #: ../src/utils/pactl.c:212
 #, c-format
@@ -1361,7 +1379,7 @@ msgstr ""
 #: ../src/utils/pactl.c:469
 #: ../src/utils/pactl.c:473
 msgid "n/a"
-msgstr ""
+msgstr "k.A."
 
 #: ../src/utils/pactl.c:263
 #, c-format
@@ -1480,7 +1498,7 @@ msgstr ""
 
 #: ../src/utils/pactl.c:504
 msgid "source"
-msgstr ""
+msgstr "Quelle"
 
 #: ../src/utils/pactl.c:511
 #: ../src/utils/pactl.c:521
@@ -1603,12 +1621,12 @@ msgstr ""
 #: ../src/utils/pax11publish.c:108
 #, c-format
 msgid "Server: %s\n"
-msgstr ""
+msgstr "Server: %s\n"
 
 #: ../src/utils/pax11publish.c:110
 #, c-format
 msgid "Source: %s\n"
-msgstr ""
+msgstr "Quelle: %s\n"
 
 #: ../src/utils/pax11publish.c:112
 #, c-format
@@ -1618,7 +1636,7 @@ msgstr ""
 #: ../src/utils/pax11publish.c:114
 #, c-format
 msgid "Cookie: %s\n"
-msgstr ""
+msgstr "Cookie: %s\n"
 
 #: ../src/utils/pax11publish.c:132
 #, c-format
@@ -1658,12 +1676,12 @@ msgstr ""
 #: ../src/utils/pacmd.c:64
 #, c-format
 msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
-msgstr ""
+msgstr "socket(PF_UNIX, SOCK_STREAM, 0): %s"
 
 #: ../src/utils/pacmd.c:81
 #, c-format
 msgid "connect(): %s"
-msgstr ""
+msgstr "connect(): %s"
 
 #: ../src/utils/pacmd.c:89
 msgid "Failed to kill PulseAudio daemon."
@@ -1676,19 +1694,19 @@ msgstr ""
 #: ../src/utils/pacmd.c:112
 #, c-format
 msgid "select(): %s"
-msgstr ""
+msgstr "select(): %s"
 
 #: ../src/utils/pacmd.c:124
 #: ../src/utils/pacmd.c:140
 #, c-format
 msgid "read(): %s"
-msgstr ""
+msgstr "read(): %s"
 
 #: ../src/utils/pacmd.c:153
 #: ../src/utils/pacmd.c:167
 #, c-format
 msgid "write(): %s"
-msgstr ""
+msgstr "write(): %s"
 
 #: ../src/utils/paplay.c:139
 #, c-format
@@ -1698,7 +1716,7 @@ msgstr ""
 #: ../src/utils/paplay.c:144
 #, c-format
 msgid "Stream errror: %s\n"
-msgstr ""
+msgstr "Stream-Fehler: %s\n"
 
 #: ../src/utils/paplay.c:165
 #, c-format
