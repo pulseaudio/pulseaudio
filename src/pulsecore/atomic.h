@@ -42,7 +42,7 @@
 #error "Please include config.h before including this file!"
 #endif
 
-#ifdef HAVE_ATOMIC_BUILTINS
+#if HAVE_ATOMIC_BUILTINS
 
 /* __sync based implementation */
 
@@ -109,7 +109,7 @@ static inline pa_bool_t pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, v
 
 #elif defined(__GNUC__) && (defined(__amd64__) || defined(__x86_64__))
 
-#error "The native atomic operations implementation for AMD64 has not been tested. libatomic_ops is known to not work properly on AMD64 and your gcc version is too old for the gcc-builtin atomic ops support. You have three options now: make the native atomic operations implementation for AMD64 work, fix libatomic_ops, or upgrade your GCC."
+#warn "The native atomic operations implementation for AMD64 has not been tested. libatomic_ops is known to not work properly on AMD64 and your gcc version is too old for the gcc-builtin atomic ops support. You have three options now: make the native atomic operations implementation for AMD64 work, fix libatomic_ops, or upgrade your GCC."
 
 /* Addapted from glibc */
 
@@ -156,7 +156,7 @@ static inline pa_bool_t pa_atomic_cmpxchg(pa_atomic_t *a, int old_i, int new_i) 
                           : "=a" (result), "=m" (a->value)
                           : "r" (new_i), "m" (a->value), "0" (old_i));
 
-    return result == oldval;
+    return result == old_i;
 }
 
 typedef struct pa_atomic_ptr {
