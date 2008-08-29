@@ -934,7 +934,9 @@ void pa__done(pa_module *m) {
 
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
-    /* TODO: free mempool */
+
+    if (u->mempool)
+        pa_mempool_free(u->mempool);
 
     if (u->smoother)
         pa_smoother_free(u->smoother);
