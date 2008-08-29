@@ -53,7 +53,7 @@
 static char *log_ident = NULL, *log_ident_local = NULL;
 static pa_log_target_t log_target = PA_LOG_STDERR;
 static pa_log_func_t user_log_func = NULL;
-static pa_log_level_t maximal_level = PA_LOG_NOTICE;
+static pa_log_level_t maximal_level = PA_LOG_ERROR;
 
 #ifdef HAVE_SYSLOG_H
 static const int level_to_syslog[] = {

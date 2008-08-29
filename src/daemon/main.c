@@ -348,6 +348,9 @@ int main(int argc, char *argv[]) {
     int autospawn_fd = -1;
     pa_bool_t autospawn_locked = FALSE;
 
+    pa_log_set_maximal_level(PA_LOG_INFO);
+    pa_log_set_ident("pulseaudio");
+
 #if defined(__linux__) && defined(__OPTIMIZE__)
     /*
        Disable lazy relocations to make usage of external libraries
@@ -409,9 +412,6 @@ int main(int argc, char *argv[]) {
 
     setlocale(LC_ALL, "");
     pa_init_i18n();
-
-    pa_log_set_maximal_level(PA_LOG_INFO);
-    pa_log_set_ident("pulseaudio");
 
     conf = pa_daemon_conf_new();
 
