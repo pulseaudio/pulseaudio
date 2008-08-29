@@ -272,9 +272,6 @@ static int bt_a2dp_init(struct userdata *u) {
             return -1;
     }
 
-//    if (cfg->has_channel_mode)
-//        cap->channel_mode = cfg->channel_mode;
-//    else 
     if (u->ss.channels == 2) {
         if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_JOINT_STEREO)
             cap->channel_mode = BT_A2DP_CHANNEL_MODE_JOINT_STEREO;
@@ -292,9 +289,6 @@ static int bt_a2dp_init(struct userdata *u) {
         return -1;
     }
 
-//    if (cfg->has_block_length)
-//        cap->block_length = cfg->block_length;
-//    else 
     if (cap->block_length & BT_A2DP_BLOCK_LENGTH_16)
         cap->block_length = BT_A2DP_BLOCK_LENGTH_16;
     else if (cap->block_length & BT_A2DP_BLOCK_LENGTH_12)
@@ -308,8 +302,6 @@ static int bt_a2dp_init(struct userdata *u) {
         return -1;
     }
 
-//    if (cfg->has_subbands)
-//        cap->subbands = cfg->subbands;
     if (cap->subbands & BT_A2DP_SUBBANDS_8)
         cap->subbands = BT_A2DP_SUBBANDS_8;
     else if (cap->subbands & BT_A2DP_SUBBANDS_4)
@@ -319,19 +311,13 @@ static int bt_a2dp_init(struct userdata *u) {
         return -1;
     }
 
-//    if (cfg->has_allocation_method)
-//        cap->allocation_method = cfg->allocation_method;
     if (cap->allocation_method & BT_A2DP_ALLOCATION_LOUDNESS)
         cap->allocation_method = BT_A2DP_ALLOCATION_LOUDNESS;
     else if (cap->allocation_method & BT_A2DP_ALLOCATION_SNR)
         cap->allocation_method = BT_A2DP_ALLOCATION_SNR;
 
-//    if (cfg->has_bitpool)
-//        min_bitpool = max_bitpool = cfg->bitpool;
-//    else {
     min_bitpool = PA_MAX(MIN_BITPOOL, cap->min_bitpool);
     max_bitpool = PA_MIN(default_bitpool(cap->frequency, cap->channel_mode), cap->max_bitpool);
-//    }
 
     cap->min_bitpool = min_bitpool;
     cap->max_bitpool = max_bitpool;
