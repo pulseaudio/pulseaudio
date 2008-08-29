@@ -23,6 +23,8 @@
   USA.
 ***/
 
+#include <pulsecore/macro.h>
+
 /*
  * atomic_ops guarantees us that sizeof(AO_t) == sizeof(void*).  It is
  * not guaranteed however, that sizeof(AO_t) == sizeof(size_t).
@@ -35,7 +37,7 @@
  * On gcc >= 4.1 we use the builtin atomic functions. otherwise we use
  * libatomic_ops
  */
-#
+
 #ifndef PACKAGE
 #error "Please include config.h before including this file!"
 #endif
@@ -80,8 +82,8 @@ static inline int pa_atomic_dec(pa_atomic_t *a) {
     return pa_atomic_sub(a, 1);
 }
 
-/* Returns non-zero when the operation was successful. */
-static inline int pa_atomic_cmpxchg(pa_atomic_t *a, int old_i, int new_i) {
+/* Returns TRUE when the operation was successful. */
+static inline pa_bool_t pa_atomic_cmpxchg(pa_atomic_t *a, int old_i, int new_i) {
     return __sync_bool_compare_and_swap(&a->value, old_i, new_i);
 }
 
@@ -101,7 +103,7 @@ static inline void pa_atomic_ptr_store(pa_atomic_ptr_t *a, void *p) {
     __sync_synchronize();
 }
 
-static inline int pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
+static inline pa_bool_t pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
     return __sync_bool_compare_and_swap(&a->value, (long) old_p, (long) new_p);
 }
 
@@ -147,7 +149,7 @@ static inline int pa_atomic_dec(pa_atomic_t *a) {
     return pa_atomic_sub(a, 1);
 }
 
-static inline int pa_atomic_cmpxchg(pa_atomic_t *a, int old_i, int new_i) {
+static inline pa_bool_t pa_atomic_cmpxchg(pa_atomic_t *a, int old_i, int new_i) {
     int result;
 
     __asm__ __volatile__ ("lock; cmpxchgl %2, %1"
@@ -171,14 +173,14 @@ static inline void pa_atomic_ptr_store(pa_atomic_ptr_t *a, void *p) {
     a->value = (unsigned long) p;
 }
 
-static inline int pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
+static inline pa_bool_t pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
     void *result;
 
     __asm__ __volatile__ ("lock; cmpxchgq %q2, %1"
                           : "=a" (result), "=m" (a->value)
                           : "r" (new_p), "m" (a->value), "0" (old_p));
 
-    return result;
+    return result == old_p;
 }
 
 #elif defined(ATOMIC_ARM_INLINE_ASM)
@@ -255,7 +257,7 @@ static inline int pa_atomic_dec(pa_atomic_t *a) {
     return pa_atomic_sub(a, 1);
 }
 
-static inline int pa_atomic_cmpxchg(pa_atomic_t *a, int old_i, int new_i) {
+static inline pa_bool_t pa_atomic_cmpxchg(pa_atomic_t *a, int old_i, int new_i) {
     unsigned long not_equal, not_exclusive;
 
     pa_memory_barrier();
@@ -289,7 +291,7 @@ static inline void pa_atomic_ptr_store(pa_atomic_ptr_t *a, void *p) {
     pa_memory_barrier();
 }
 
-static inline int pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
+static inline pa_bool_t pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
     unsigned long not_equal, not_exclusive;
 
     pa_memory_barrier();
@@ -377,8 +379,8 @@ static inline int pa_atomic_dec(pa_atomic_t *a) {
     return pa_atomic_sub(a, 1);
 }
 
-/* Returns non-zero when the operation was successful. */
-static inline int pa_atomic_cmpxchg(pa_atomic_t *a, int old_i, int new_i) {
+/* Returns TRUE when the operation was successful. */
+static inline pa_bool_t pa_atomic_cmpxchg(pa_atomic_t *a, int old_i, int new_i) {
     pa_bool_t failed;
     do {
       failed = !!__kernel_cmpxchg(old_i, new_i, &a->value);
@@ -402,7 +404,7 @@ static inline void pa_atomic_ptr_store(pa_atomic_ptr_t *a, void *p) {
     pa_memory_barrier();
 }
 
-static inline int pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
+static inline pa_bool_t pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
     pa_bool_t failed;
     do {
         failed = !!__kernel_cmpxchg_u((unsigned long) old_p, (unsigned long) new_p, &a->value);
@@ -446,7 +448,7 @@ static inline int pa_atomic_dec(pa_atomic_t *a) {
     return (int) AO_fetch_and_sub1_full(&a->value);
 }
 
-static inline int pa_atomic_cmpxchg(pa_atomic_t *a, int old_i, int new_i) {
+static inline pa_bool_t pa_atomic_cmpxchg(pa_atomic_t *a, int old_i, int new_i) {
     return AO_compare_and_swap_full(&a->value, (unsigned long) old_i, (unsigned long) new_i);
 }
 
@@ -464,7 +466,7 @@ static inline void pa_atomic_ptr_store(pa_atomic_ptr_t *a, void *p) {
     AO_store_full(&a->value, (AO_t) p);
 }
 
-static inline int pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
+static inline pa_bool_t pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
     return AO_compare_and_swap_full(&a->value, (AO_t) old_p, (AO_t) new_p);
 }
 
