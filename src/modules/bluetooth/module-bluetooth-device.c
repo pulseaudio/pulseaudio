@@ -45,10 +45,10 @@
 #include <pulsecore/rtclock.h>
 
 #include "dbus-util.h"
-#include "module-bt-device-symdef.h"
-#include "bt-ipc.h"
-#include "bt-sbc.h"
-#include "bt-rtp.h"
+#include "module-bluetooth-device-symdef.h"
+#include "ipc.h"
+#include "sbc.h"
+#include "rtp.h"
 
 #define DEFAULT_SINK_NAME "bluetooth_sink"
 #define BUFFER_SIZE 2048

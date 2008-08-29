@@ -20,7 +20,7 @@
  *
  */
 
-#include "bt-ipc.h"
+#include "ipc.h"
 
 /* This table contains the string representation for messages */
 static const char *strmsg[] = {

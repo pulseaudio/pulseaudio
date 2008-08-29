@@ -45,7 +45,7 @@ endif
 #     Compiler/linker flags       #
 ###################################
 
-AM_CFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src/modules -I$(top_builddir)/src/modules/rtp -I$(top_builddir)/src/modules/gconf
+AM_CFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src/modules -I$(top_builddir)/src/modules/rtp -I$(top_builddir)/src/modules/gconf -I$(top_builddir)/src/modules/bluetooth
 AM_CFLAGS += $(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS
 AM_CFLAGS += $(LTDLINCL)
 AM_CFLAGS += $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS) $(LIBSPEEX_CFLAGS)
@@ -1161,10 +1161,10 @@ endif
 if HAVE_BLUEZ
 modlibexec_LTLIBRARIES += \
 		module-bt-proximity.la \
-		module-bt-discover.la \
-		libbt-ipc.la \
-		libbt-sbc.la \
-		module-bt-device.la
+		module-bluetooth-discover.la \
+		libbluetooth-ipc.la \
+		libbluetooth-sbc.la \
+		module-bluetooth-device.la
 
 pulselibexec_PROGRAMS += \
 		bt-proximity-helper
@@ -1224,8 +1224,8 @@ SYMDEF_FILES = \
 		modules/module-suspend-on-idle-symdef.h \
 		modules/module-hal-detect-symdef.h \
 		modules/module-bt-proximity-symdef.h \
-		modules/module-bt-discover-symdef.h \
-		modules/module-bt-device-symdef.h \
+		modules/bluetooth/module-bluetooth-discover-symdef.h \
+		modules/bluetooth/module-bluetooth-device-symdef.h \
 		modules/gconf/module-gconf-symdef.h \
 		modules/module-position-event-sounds-symdef.h \
 		modules/module-console-kit-symdef.h
@@ -1237,6 +1237,7 @@ $(SYMDEF_FILES): modules/module-defs.h.m4
 	$(MKDIR_P) modules
 	$(MKDIR_P) modules/gconf
 	$(MKDIR_P) modules/rtp
+	$(MKDIR_P) modules/bluetooth
 	$(M4) -Dfname="$@" $< > $@
 
 # Simple protocol
@@ -1566,27 +1567,26 @@ bt_proximity_helper_LDADD = $(AM_LDADD) $(BLUEZ_LIBS)
 bt_proximity_helper_CFLAGS = $(AM_CFLAGS) $(BLUEZ_CFLAGS)
 bt_proximity_helper_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-# Bluetooth discover
-module_bt_discover_la_SOURCES = modules/module-bt-discover.c
-module_bt_discover_la_LDFLAGS = -module -avoid-version
-module_bt_discover_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la libdbus-util.la
-module_bt_discover_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
+# Bluetooth sink / source
+module_bluetooth_discover_la_SOURCES = modules/bluetooth/module-bluetooth-discover.c
+module_bluetooth_discover_la_LDFLAGS = -module -avoid-version
+module_bluetooth_discover_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la libdbus-util.la
+module_bluetooth_discover_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
-# Bluetooth device
-libbt_sbc_la_SOURCES = modules/bt-sbc.c modules/bt-sbc.h modules/bt-sbc_tables.h modules/bt-sbc_math.h
-libbt_sbc_la_LDFLAGS = -avoid-version
-libbt_sbc_la_LIBADD = $(AM_LIBADD)
-libbt_sbc_la_CFLAGS = $(AM_CFLAGS)
+libbluetooth_sbc_la_SOURCES = modules/bluetooth/sbc.c modules/bluetooth/sbc.h modules/bluetooth/sbc_tables.h modules/bluetooth/sbc_math.h
+libbluetooth_sbc_la_LDFLAGS = -avoid-version
+libbluetooth_sbc_la_LIBADD = $(AM_LIBADD)
+libbluetooth_sbc_la_CFLAGS = $(AM_CFLAGS)
 
-libbt_ipc_la_SOURCES = modules/bt-ipc.c modules/bt-ipc.h
-libbt_ipc_la_LDFLAGS = -avoid-version
-libbt_ipc_la_LIBADD = $(AM_LIBADD)
-libbt_ipc_la_CFLAGS = $(AM_CFLAGS)
+libbluetooth_ipc_la_SOURCES = modules/bluetooth/ipc.c modules/bluetooth/ipc.h
+libbluetooth_ipc_la_LDFLAGS = -avoid-version
+libbluetooth_ipc_la_LIBADD = $(AM_LIBADD)
+libbluetooth_ipc_la_CFLAGS = $(AM_CFLAGS)
 
-module_bt_device_la_SOURCES = modules/module-bt-device.c
-module_bt_device_la_LDFLAGS = -module -avoid-version
-module_bt_device_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la libdbus-util.la libbt-ipc.la libbt-sbc.la libsocket-util.la
-module_bt_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
+module_bluetooth_device_la_SOURCES = modules/bluetooth/module-bluetooth-device.c
+module_bluetooth_device_la_LDFLAGS = -module -avoid-version
+module_bluetooth_device_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la libdbus-util.la libbluetooth-ipc.la libbluetooth-sbc.la libsocket-util.la
+module_bluetooth_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 ###################################
 #        Some minor stuff         #

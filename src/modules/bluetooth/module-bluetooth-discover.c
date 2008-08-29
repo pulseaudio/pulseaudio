@@ -34,7 +34,7 @@
 #include <pulsecore/llist.h>
 
 #include "dbus-util.h"
-#include "module-bt-discover-symdef.h"
+#include "module-bluetooth-discover-symdef.h"
 
 PA_MODULE_AUTHOR("Joao Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Detect available bluetooth audio devices and load bluetooth audio drivers");

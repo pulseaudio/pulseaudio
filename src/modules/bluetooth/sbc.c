@@ -41,10 +41,10 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-#include "bt-sbc_math.h"
-#include "bt-sbc_tables.h"
+#include "sbc_math.h"
+#include "sbc_tables.h"
 
-#include "bt-sbc.h"
+#include "sbc.h"
 
 #define SBC_SYNCWORD	0x9C
 
