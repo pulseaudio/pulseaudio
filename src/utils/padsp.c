@@ -864,7 +864,7 @@ static int fd_info_copy_data(fd_info *i, int force) {
                 return -1;
             }
 
-            if (pa_stream_write(i->play_stream, i->buf, (size_t) r, free, 0, PA_SEEK_RELATIVE) < 0) {
+            if (pa_stream_write(i->play_stream, i->buf, (size_t) r, free, 0LL, PA_SEEK_RELATIVE) < 0) {
                 debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_write(): %s\n", pa_strerror(pa_context_errno(i->context)));
                 return -1;
             }

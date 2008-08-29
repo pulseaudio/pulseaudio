@@ -122,7 +122,7 @@ double pa_sw_volume_to_linear(pa_volume_t v) {
     if (v == PA_VOLUME_MUTED)
         return 0;
 
-    return pow(10, pa_sw_volume_to_dB(v)/20);
+    return pow(10.0, pa_sw_volume_to_dB(v)/20.0);
 }
 
 char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c) {

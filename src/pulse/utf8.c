@@ -64,24 +64,24 @@
 
 #define FILTER_CHAR '_'
 
-static inline int is_unicode_valid(uint32_t ch) {
+static inline pa_bool_t is_unicode_valid(uint32_t ch) {
 
     if (ch >= 0x110000) /* End of unicode space */
-        return 0;
+        return FALSE;
     if ((ch & 0xFFFFF800) == 0xD800) /* Reserved area for UTF-16 */
-        return 0;
+        return FALSE;
     if ((ch >= 0xFDD0) && (ch <= 0xFDEF)) /* Reserved */
-        return 0;
+        return FALSE;
     if ((ch & 0xFFFE) == 0xFFFE) /* BOM (Byte Order Mark) */
-        return 0;
+        return FALSE;
 
-    return 1;
+    return TRUE;
 }
 
-static inline int is_continuation_char(uint8_t ch) {
+static inline pa_bool_t is_continuation_char(uint8_t ch) {
     if ((ch & 0xc0) != 0x80) /* 10xxxxxx */
-        return 0;
-    return 1;
+        return FALSE;
+    return TRUE;
 }
 
 static inline void merge_continuation_char(uint32_t *u_ch, uint8_t ch) {

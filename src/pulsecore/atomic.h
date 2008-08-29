@@ -42,7 +42,7 @@
 #error "Please include config.h before including this file!"
 #endif
 
-#if HAVE_ATOMIC_BUILTINS
+#ifdef HAVE_ATOMIC_BUILTINS
 
 /* __sync based implementation */
 

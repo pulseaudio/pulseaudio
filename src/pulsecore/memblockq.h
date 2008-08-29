@@ -155,7 +155,7 @@ void pa_memblockq_set_maxlength(pa_memblockq *memblockq, size_t maxlength); /* m
 void pa_memblockq_set_tlength(pa_memblockq *memblockq, size_t tlength); /* might modify minreq, too */
 void pa_memblockq_set_prebuf(pa_memblockq *memblockq, size_t prebuf); /* might modify minreq, too */
 void pa_memblockq_set_minreq(pa_memblockq *memblockq, size_t minreq);
-void pa_memblockq_set_maxrewind(pa_memblockq *memblockq, size_t rewind); /* Set the maximum history size */
+void pa_memblockq_set_maxrewind(pa_memblockq *memblockq, size_t maxrewind); /* Set the maximum history size */
 void pa_memblockq_set_silence(pa_memblockq *memblockq, pa_memchunk *silence);
 
 /* Call pa_memchunk_willneed() for every chunk in the queue from the current read pointer to the end */
