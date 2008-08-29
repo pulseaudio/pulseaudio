@@ -778,6 +778,7 @@ int main(int argc, char *argv[]) {
     pa_set_env("PULSE_SYSTEM", conf->system_instance ? "1" : "0");
 
     pa_log_info(_("This is PulseAudio %s"), PACKAGE_VERSION);
+    pa_log_debug(_("Compilation CFLAGS: %s"), PA_CFLAGS);
     pa_log_info(_("Page size is %lu bytes"), (unsigned long) PA_PAGE_SIZE);
 
     if (!(s = pa_machine_id())) {
