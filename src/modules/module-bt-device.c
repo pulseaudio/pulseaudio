@@ -28,6 +28,7 @@
 #include <poll.h>
 #include <sys/ioctl.h>
 #include <linux/sockios.h>
+#include <arpa/inet.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
@@ -75,7 +76,7 @@ struct bt_a2dp {
     uint8_t buffer[BUFFER_SIZE];         /* Codec transfer buffer */
     int count;                           /* Codec transfer buffer counter */
 
-    int nsamples;                        /* Cumulative number of codec samples */
+    uint32_t nsamples;                   /* Cumulative number of codec samples */
     uint16_t seq_num;                    /* Cumulative packet sequence */
     int frame_count;                     /* Current frames in buffer*/
 };
@@ -666,7 +667,7 @@ static int a2dp_process_render(struct userdata *u) {
     header->ssrc = htonl(1);
 
 avdtp_write:
-    l = pa_write(u->stream_fd, a2dp->buffer, a2dp->count, write_type);
+    l = pa_write(u->stream_fd, a2dp->buffer, a2dp->count, &write_type);
     pa_log_debug("avdtp_write: requested %d bytes; written %d bytes", a2dp->count, l);
 
     pa_assert(l != 0);
@@ -712,7 +713,7 @@ static void thread_func(void *userdata) {
     for (;;) {
         int ret, l;
         struct pollfd *pollfd;
-        int64_t n;
+        uint64_t n;
         pa_usec_t usec;
 
         if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
@@ -725,7 +726,7 @@ static void thread_func(void *userdata) {
 
         if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && pollfd->revents) {
             if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP) {
-                if (l = a2dp_process_render(u) < 0)
+                if ((l = a2dp_process_render(u)) < 0)
                     goto fail;
             }
             else {
@@ -780,6 +781,7 @@ finish:
 int pa__init(pa_module* m) {
     int e;
     pa_modargs *ma;
+    uint32_t channels;
     pa_sink_new_data data;
     struct pollfd *pollfd;
     struct userdata *u;
@@ -821,10 +823,11 @@ int pa__init(pa_module* m) {
         pa_log_error("failed to get rate from module arguments");
         goto fail;
     }
-    if (pa_modargs_get_value_u32(ma, "channels", &u->ss.channels) < 0) {
+    if (pa_modargs_get_value_u32(ma, "channels", &channels) < 0) {
         pa_log_error("failed to get channels from module arguments");
         goto fail;
     }
+    u->ss.channels = (uint8_t) channels;
 
     /* connect to the bluez audio service */
     u->audioservice_fd = bt_audio_service_open();
