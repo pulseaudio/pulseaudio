@@ -88,7 +88,7 @@ static int load(const char *fn, void *data, size_t length) {
     if ((fd = open(fn, O_RDWR|O_CREAT|O_BINARY|O_NOCTTY, S_IRUSR|S_IWUSR)) < 0) {
 
         if (errno != EACCES || (fd = open(fn, O_RDONLY|O_BINARY|O_NOCTTY)) < 0) {
-            pa_log("Failed to open cookie file '%s': %s", fn, pa_cstrerror(errno));
+            pa_log_warn("Failed to open cookie file '%s': %s", fn, pa_cstrerror(errno));
             goto finish;
         } else
             writable = 0;
@@ -105,7 +105,7 @@ static int load(const char *fn, void *data, size_t length) {
         pa_log_debug("Got %d bytes from cookie file '%s', expected %d", (int) r, fn, (int) length);
 
         if (!writable) {
-            pa_log("Unable to write cookie to read only file");
+            pa_log_warn("Unable to write cookie to read-only file");
             goto finish;
         }
 
@@ -140,7 +140,7 @@ int pa_authkey_load(const char *path, void *data, size_t length) {
     pa_assert(length > 0);
 
     if ((ret = load(path, data, length)) < 0)
-        pa_log("Failed to load authorization key '%s': %s", path, (ret < 0) ? pa_cstrerror(errno) : "File corrupt");
+        pa_log_warn("Failed to load authorization key '%s': %s", path, (ret < 0) ? pa_cstrerror(errno) : "File corrupt");
 
     return ret;
 }
@@ -206,7 +206,7 @@ int pa_authkey_save(const char *fn, const void *data, size_t length) {
         return -2;
 
     if ((fd = open(p, O_RDWR|O_CREAT|O_NOCTTY, S_IRUSR|S_IWUSR)) < 0) {
-        pa_log("Failed to open cookie file '%s': %s", fn, pa_cstrerror(errno));
+        pa_log_warn("Failed to open cookie file '%s': %s", fn, pa_cstrerror(errno));
         goto finish;
     }
 
