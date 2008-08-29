@@ -89,7 +89,7 @@ int pa_sound_file_load(
         case SF_FORMAT_PCM_U8:
         case SF_FORMAT_PCM_S8:
             ss->format = PA_SAMPLE_S16NE;
-            readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_short;
+            readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *_ptr, sf_count_t frames)) sf_readf_short;
             break;
 
         case SF_FORMAT_ULAW:
@@ -104,7 +104,7 @@ int pa_sound_file_load(
         case SF_FORMAT_DOUBLE:
         default:
             ss->format = PA_SAMPLE_FLOAT32NE;
-            readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_float;
+            readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *_ptr, sf_count_t frames)) sf_readf_float;
             break;
     }
 

@@ -1047,7 +1047,7 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
                                 (int16_t*) dst + oc, o_skip,
                                 (int16_t*) src + ic, i_skip,
                                 (int) n_frames,
-                                1.0, r->map_table[oc][ic]);
+                                1.0f, r->map_table[oc][ic]);
                 }
             }
 

@@ -42,7 +42,7 @@ struct pa_object {
 pa_object *pa_object_new_internal(size_t size, const char *type_name, int (*check_type)(const char *type_name));
 #define pa_object_new(type) ((type*) pa_object_new_internal(sizeof(type), #type, type##_check_type)
 
-#define pa_object_free ((void (*) (pa_object* o)) pa_xfree)
+#define pa_object_free ((void (*) (pa_object* _obj)) pa_xfree)
 
 int pa_object_check_type(const char *type);
 

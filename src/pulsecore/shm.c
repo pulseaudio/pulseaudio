@@ -143,7 +143,7 @@ int pa_shm_create_rw(pa_shm *m, size_t size, pa_bool_t shared, mode_t mode) {
             goto fail;
         }
 
-        if ((m->ptr = mmap(NULL, m->size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0)) == MAP_FAILED) {
+        if ((m->ptr = mmap(NULL, m->size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, (off_t) 0)) == MAP_FAILED) {
             pa_log("mmap() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
@@ -291,7 +291,7 @@ int pa_shm_attach_ro(pa_shm *m, unsigned id) {
 
     m->size = (size_t) st.st_size;
 
-    if ((m->ptr = mmap(NULL, m->size, PROT_READ, MAP_SHARED, fd, 0)) == MAP_FAILED) {
+    if ((m->ptr = mmap(NULL, m->size, PROT_READ, MAP_SHARED, fd, (off_t) 0)) == MAP_FAILED) {
         pa_log("mmap() failed: %s", pa_cstrerror(errno));
         goto fail;
     }

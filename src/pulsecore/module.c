@@ -59,7 +59,7 @@ static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, const struct t
     pa_module_unload_unused(c);
 
     pa_gettimeofday(&ntv);
-    pa_timeval_add(&ntv, UNLOAD_POLL_TIME*1000000);
+    pa_timeval_add(&ntv, UNLOAD_POLL_TIME*PA_USEC_PER_SEC);
     m->time_restart(e, &ntv);
 }
 
@@ -124,7 +124,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     if (m->auto_unload && !c->module_auto_unload_event) {
         struct timeval ntv;
         pa_gettimeofday(&ntv);
-        pa_timeval_add(&ntv, UNLOAD_POLL_TIME*1000000);
+        pa_timeval_add(&ntv, UNLOAD_POLL_TIME*PA_USEC_PER_SEC);
         c->module_auto_unload_event = c->mainloop->time_new(c->mainloop, &ntv, timeout_callback, c);
     }
 

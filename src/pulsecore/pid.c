@@ -235,7 +235,7 @@ int pa_pid_file_create(const char *procname) {
     }
 
     /* Overwrite the current PID file */
-    if (lseek(fd, 0, SEEK_SET) == (off_t) -1 || ftruncate(fd, 0) < 0) {
+    if (lseek(fd, (off_t) 0, SEEK_SET) == (off_t) -1 || ftruncate(fd, (off_t) 0) < 0) {
         pa_log("Failed to truncate PID file '%s': %s", fn, pa_cstrerror(errno));
         goto fail;
     }
@@ -288,7 +288,7 @@ int pa_pid_file_remove(void) {
         goto fail;
     }
 
-    if (ftruncate(fd, 0) < 0) {
+    if (ftruncate(fd, (off_t) 0) < 0) {
         pa_log_warn("Failed to truncate PID file '%s': %s", fn, pa_cstrerror(errno));
         goto fail;
     }
