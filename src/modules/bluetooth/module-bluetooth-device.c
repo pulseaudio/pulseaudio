@@ -71,14 +71,14 @@ struct bt_a2dp {
     sbc_capabilities_t sbc_capabilities;
     sbc_t sbc;                           /* Codec data */
     pa_bool_t sbc_initialized;           /* Keep track if the encoder is initialized */
-    int codesize;                        /* SBC codesize */
-    int samples;                         /* Number of encoded samples */
+    uint16_t codesize;                   /* SBC codesize */
+    uint8_t samples;                     /* Number of encoded samples */
     uint8_t buffer[BUFFER_SIZE];         /* Codec transfer buffer */
-    int count;                           /* Codec transfer buffer counter */
+    uint16_t count;                      /* Codec transfer buffer counter */
 
     uint32_t nsamples;                   /* Cumulative number of codec samples */
     uint16_t seq_num;                    /* Cumulative packet sequence */
-    int frame_count;                     /* Current frames in buffer*/
+    uint8_t frame_count;                 /* Current frames in buffer*/
 };
 
 struct userdata {
@@ -102,12 +102,12 @@ struct userdata {
     char *profile;
     pa_sample_spec ss;
 
-    int audioservice_fd;
-    int stream_fd;
+    uint8_t audioservice_fd;
+    uint8_t stream_fd;
 
-    int transport;
+    uint8_t transport;
     char *strtransport;
-    int link_mtu;
+    uint16_t link_mtu;
     size_t block_size;
     pa_usec_t latency;
 
@@ -600,7 +600,8 @@ sco_write:
 
 static int a2dp_process_render(struct userdata *u) {
     ssize_t l;
-    int write_type = 0, written;
+    uint8_t write_type = 0;
+    uint16_t written;
     struct bt_a2dp *a2dp = &u->a2dp;
     struct rtp_header *header = (void *) a2dp->buffer;
     struct rtp_payload *payload = (void *) (a2dp->buffer + sizeof(*header));
@@ -609,7 +610,8 @@ static int a2dp_process_render(struct userdata *u) {
 
     do {
         /* Render some data */
-        int frame_size, encoded;
+        uint16_t frame_size;
+        uint16_t encoded;
         void *p;
 
         u->memchunk.memblock = pa_memblock_new(u->mempool, u->block_size);
@@ -640,7 +642,6 @@ static int a2dp_process_render(struct userdata *u) {
         a2dp->frame_count++;
         a2dp->samples += encoded / frame_size;
         a2dp->nsamples += encoded / frame_size;
-
     } while (a2dp->count + written <= u->link_mtu);
 
     /* write it to the fifo */
