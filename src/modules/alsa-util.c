@@ -421,6 +421,8 @@ int pa_alsa_set_hw_params(
 
     ret = 0;
 
+    snd_pcm_nonblock(pcm_handle, 1);
+
 finish:
 
     return ret;
@@ -569,40 +571,60 @@ snd_pcm_t *pa_alsa_open_by_device_id(
             continue;
 
         d = pa_sprintf_malloc("%s:%s", device_table[i].name, dev_id);
-        pa_log_debug("Trying %s...", d);
 
-        if ((err = snd_pcm_open(&pcm_handle, d, mode,
-                                SND_PCM_NONBLOCK|
-                                SND_PCM_NO_AUTO_RESAMPLE|
-                                SND_PCM_NO_AUTO_CHANNELS|
-                                SND_PCM_NO_AUTO_FORMAT |
-                                SND_PCM_NO_SOFTVOL)) < 0) {
-            pa_log_info("Couldn't open PCM device %s: %s", d, snd_strerror(err));
-            pa_xfree(d);
-            continue;
+        for (;;) {
+            pa_log_debug("Trying %s...", d);
+
+            /* We don't pass SND_PCM_NONBLOCK here, since alsa-lib <=
+             * 1.0.17a would then ignore the SND_PCM_NO_xxx
+             * flags. Instead we enable nonblock mode afterwards via
+             * snd_pcm_nonblock(). Also see
+             * http://mailman.alsa-project.org/pipermail/alsa-devel/2008-August/010258.html */
+
+            if ((err = snd_pcm_open(&pcm_handle, d, mode,
+                                    /* SND_PCM_NONBLOCK| */
+                                    SND_PCM_NO_AUTO_RESAMPLE|
+                                    SND_PCM_NO_AUTO_CHANNELS|
+                                    SND_PCM_NO_AUTO_FORMAT)) < 0) {
+                pa_log_info("Couldn't open PCM device %s: %s", d, snd_strerror(err));
+                break;
+            }
+
+            try_ss.channels = device_table[i].map.channels;
+            try_ss.rate = ss->rate;
+            try_ss.format = ss->format;
+
+            if ((err = pa_alsa_set_hw_params(pcm_handle, &try_ss, nfrags, period_size, tsched_size, use_mmap, use_tsched, TRUE)) < 0) {
+
+                if (!pa_startswith(d, "plug:") && !pa_startswith(d, "plughw:")) {
+                    char *t;
+
+                    t = pa_sprintf_malloc("plug:%s", d);
+                    pa_xfree(d);
+                    d = t;
+
+                    snd_pcm_close(pcm_handle);
+                    continue;
+                }
+
+                pa_log_info("PCM device %s refused our hw parameters: %s", d, snd_strerror(err));
+                snd_pcm_close(pcm_handle);
+                break;
+            }
+
+            *ss = try_ss;
+            *map = device_table[i].map;
+            pa_assert(map->channels == ss->channels);
+            *dev = d;
+            return pcm_handle;
         }
 
-        try_ss.channels = device_table[i].map.channels;
-        try_ss.rate = ss->rate;
-        try_ss.format = ss->format;
-
-        if ((err = pa_alsa_set_hw_params(pcm_handle, &try_ss, nfrags, period_size, tsched_size, use_mmap, use_tsched, TRUE)) < 0) {
-            pa_log_info("PCM device %s refused our hw parameters: %s", d, snd_strerror(err));
-            pa_xfree(d);
-            snd_pcm_close(pcm_handle);
-            continue;
-        }
-
-        *ss = try_ss;
-        *map = device_table[i].map;
-        pa_assert(map->channels == ss->channels);
-        *dev = d;
-        return pcm_handle;
+        pa_xfree(d);
     }
 
     /* OK, we didn't find any good device, so let's try the raw plughw: stuff */
 
-    d = pa_sprintf_malloc("plughw:%s", dev_id);
+    d = pa_sprintf_malloc("hw:%s", dev_id);
     pa_log_debug("Trying %s as last resort...", d);
     pcm_handle = pa_alsa_open_by_device_string(d, dev, ss, map, mode, nfrags, period_size, tsched_size, use_mmap, use_tsched);
     pa_xfree(d);
@@ -636,8 +658,16 @@ snd_pcm_t *pa_alsa_open_by_device_string(
     d = pa_xstrdup(device);
 
     for (;;) {
+        pa_log_debug("Trying %s...", d);
 
-        if ((err = snd_pcm_open(&pcm_handle, d, mode, SND_PCM_NONBLOCK|
+        /* We don't pass SND_PCM_NONBLOCK here, since alsa-lib <=
+         * 1.0.17a would then ignore the SND_PCM_NO_xxx flags. Instead
+         * we enable nonblock mode afterwards via
+         * snd_pcm_nonblock(). Also see
+         * http://mailman.alsa-project.org/pipermail/alsa-devel/2008-August/010258.html */
+
+        if ((err = snd_pcm_open(&pcm_handle, d, mode,
+                                /*SND_PCM_NONBLOCK|*/
                                 SND_PCM_NO_AUTO_RESAMPLE|
                                 SND_PCM_NO_AUTO_CHANNELS|
                                 SND_PCM_NO_AUTO_FORMAT)) < 0) {
@@ -648,24 +678,23 @@ snd_pcm_t *pa_alsa_open_by_device_string(
 
         if ((err = pa_alsa_set_hw_params(pcm_handle, ss, nfrags, period_size, tsched_size, use_mmap, use_tsched, FALSE)) < 0) {
 
-            if (err == -EPERM) {
-                /* Hmm, some hw is very exotic, so we retry with plug, if without it didn't work */
+            /* Hmm, some hw is very exotic, so we retry with plug, if without it didn't work */
 
-                if (pa_startswith(d, "hw:")) {
-                    char *t = pa_sprintf_malloc("plughw:%s", d+3);
-                    pa_log_debug("Opening the device as '%s' didn't work, retrying with '%s'.", d, t);
-                    pa_xfree(d);
-                    d = t;
+            if (!pa_startswith(d, "plug:") && !pa_startswith(d, "plughw:")) {
+                char *t;
 
-                    snd_pcm_close(pcm_handle);
-                    continue;
-                }
-
-                pa_log("Failed to set hardware parameters on %s: %s", d, snd_strerror(err));
+                t = pa_sprintf_malloc("plug:%s", d);
                 pa_xfree(d);
+                d = t;
+
                 snd_pcm_close(pcm_handle);
-                return NULL;
+                continue;
             }
+
+            pa_log("Failed to set hardware parameters on %s: %s", d, snd_strerror(err));
+            pa_xfree(d);
+            snd_pcm_close(pcm_handle);
+            return NULL;
         }
 
         *dev = d;
