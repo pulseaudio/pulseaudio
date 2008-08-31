@@ -1,5 +1,5 @@
 # German translation of pulseaudio
-# Copyright (C) 2008 pulseaudion
+# Copyright (C) 2008 pulseaudio
 # This file is distributed under the same license as the pulseaudio package.
 # Fabian Affolter <fab@fedoraproject.org>, 2008.
 #
@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-08-29 09:26+0000\n"
-"PO-Revision-Date: 2008-08-29 12:43+0100\n"
+"POT-Creation-Date: 2008-08-29 11:33+0000\n"
+"PO-Revision-Date: 2008-08-31 12:22+0100\n"
 "Last-Translator: Fabian Affolter <fab@fedoraproject.org>\n"
 "Language-Team: German <fedora-trans-de@redhat.com>\n"
 "MIME-Version: 1.0\n"
@@ -20,29 +20,29 @@ msgstr ""
 #: ../src/daemon/ltdl-bind-now.c:177
 #: ../src/daemon/ltdl-bind-now.c:197
 msgid "Failed to add bind-now-loader."
-msgstr ""
+msgstr "Hinzufügen von bind-now-loader fehlgeschlagen."
 
 #: ../src/daemon/ltdl-bind-now.c:184
 msgid "Failed to find original dlopen loader."
-msgstr ""
+msgstr "Finden von originalem dlopen-Loader fehlgeschlagen."
 
 #: ../src/daemon/polkit.c:55
 #, c-format
 msgid "Cannot connect to system bus: %s"
-msgstr ""
+msgstr "Kann nicht mit dem System-Bus verbinden: %s"
 
 #: ../src/daemon/polkit.c:65
 #, c-format
 msgid "Cannot get caller from PID: %s"
-msgstr ""
+msgstr "Kann caller von PID nicht benziehen: %s"
 
 #: ../src/daemon/polkit.c:77
 msgid "Cannot set UID on caller object."
-msgstr ""
+msgstr "Kann caller-Ojekt für UID nicht setzen."
 
 #: ../src/daemon/polkit.c:82
 msgid "Failed to get CK session."
-msgstr ""
+msgstr "Kann CK-Session nicht beziehen."
 
 #: ../src/daemon/polkit.c:90
 msgid "Cannot set UID on session object."
@@ -54,7 +54,7 @@ msgstr ""
 
 #: ../src/daemon/polkit.c:100
 msgid "Cannot set action_id"
-msgstr ""
+msgstr "Kann action_id nicht setzen"
 
 #: ../src/daemon/polkit.c:105
 msgid "Cannot allocate PolKitContext."
@@ -78,7 +78,7 @@ msgstr ""
 #: ../src/daemon/polkit.c:148
 #, c-format
 msgid "PolicyKit responded with '%s'"
-msgstr ""
+msgstr "PolicyKit antwortet mit '%s'"
 
 #: ../src/daemon/main.c:134
 #, c-format
@@ -92,12 +92,12 @@ msgstr "Beende."
 #: ../src/daemon/main.c:179
 #, c-format
 msgid "Failed to find user '%s'."
-msgstr ""
+msgstr "Kann Benutzer '%s' nicht finden."
 
 #: ../src/daemon/main.c:184
 #, c-format
 msgid "Failed to find group '%s'."
-msgstr ""
+msgstr "Kann Gruppe '%s' nicht finden."
 
 #: ../src/daemon/main.c:188
 #, c-format
@@ -112,13 +112,13 @@ msgstr ""
 #: ../src/daemon/main.c:198
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr ""
+msgstr "Benutzerverzeichnis von Benutzer '%s' ist nicht '%s', ignoriere."
 
 #: ../src/daemon/main.c:201
 #: ../src/daemon/main.c:206
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr ""
+msgstr "Erzeugen von '%s' fehlgeschlagen: %s"
 
 #: ../src/daemon/main.c:213
 #, c-format
@@ -200,7 +200,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:522
 msgid "Successfully increased RLIMIT_RTPRIO"
-msgstr ""
+msgstr "RLIMIT_RTPRIO erfolgreich erhöht"
 
 #: ../src/daemon/main.c:525
 #, c-format
@@ -503,7 +503,7 @@ msgstr "Verwendung: %s\n"
 #: ../src/daemon/dumpmodules.c:73
 #, c-format
 msgid "Load Once: %s\n"
-msgstr ""
+msgstr "Lade einmalig: %s\n"
 
 #: ../src/daemon/dumpmodules.c:77
 #, c-format
@@ -577,7 +577,7 @@ msgstr ""
 
 #: ../src/daemon/caps.c:62
 msgid "Dropping root priviliges."
-msgstr ""
+msgstr "Verlasse Root-Berechtigungen."
 
 #: ../src/daemon/caps.c:102
 msgid "Limited capabilities successfully to CAP_SYS_NICE."
@@ -633,131 +633,131 @@ msgstr "Seite Rechts"
 
 #: ../src/pulse/channelmap.c:120
 msgid "Auxiliary 0"
-msgstr ""
+msgstr "Zusatz 0"
 
 #: ../src/pulse/channelmap.c:121
 msgid "Auxiliary 1"
-msgstr ""
+msgstr "Zusatz 1"
 
 #: ../src/pulse/channelmap.c:122
 msgid "Auxiliary 2"
-msgstr ""
+msgstr "Zusatz 2"
 
 #: ../src/pulse/channelmap.c:123
 msgid "Auxiliary 3"
-msgstr ""
+msgstr "Zusatz 3"
 
 #: ../src/pulse/channelmap.c:124
 msgid "Auxiliary 4"
-msgstr ""
+msgstr "Zusatz 4"
 
 #: ../src/pulse/channelmap.c:125
 msgid "Auxiliary 5"
-msgstr ""
+msgstr "Zusatz 5"
 
 #: ../src/pulse/channelmap.c:126
 msgid "Auxiliary 6"
-msgstr ""
+msgstr "Zusatz 6"
 
 #: ../src/pulse/channelmap.c:127
 msgid "Auxiliary 7"
-msgstr ""
+msgstr "Zusatz 7"
 
 #: ../src/pulse/channelmap.c:128
 msgid "Auxiliary 8"
-msgstr ""
+msgstr "Zusatz 8"
 
 #: ../src/pulse/channelmap.c:129
 msgid "Auxiliary 9"
-msgstr ""
+msgstr "Zusatz 9"
 
 #: ../src/pulse/channelmap.c:130
 msgid "Auxiliary 10"
-msgstr ""
+msgstr "Zusatz 10"
 
 #: ../src/pulse/channelmap.c:131
 msgid "Auxiliary 11"
-msgstr ""
+msgstr "Zusatz 11"
 
 #: ../src/pulse/channelmap.c:132
 msgid "Auxiliary 12"
-msgstr ""
+msgstr "Zusatz 12"
 
 #: ../src/pulse/channelmap.c:133
 msgid "Auxiliary 13"
-msgstr ""
+msgstr "Zusatz 13"
 
 #: ../src/pulse/channelmap.c:134
 msgid "Auxiliary 14"
-msgstr ""
+msgstr "Zusatz 14"
 
 #: ../src/pulse/channelmap.c:135
 msgid "Auxiliary 15"
-msgstr ""
+msgstr "Zusatz 15"
 
 #: ../src/pulse/channelmap.c:136
 msgid "Auxiliary 16"
-msgstr ""
+msgstr "Zusatz 16"
 
 #: ../src/pulse/channelmap.c:137
 msgid "Auxiliary 17"
-msgstr ""
+msgstr "Zusatz 17"
 
 #: ../src/pulse/channelmap.c:138
 msgid "Auxiliary 18"
-msgstr ""
+msgstr "Zusatz 18"
 
 #: ../src/pulse/channelmap.c:139
 msgid "Auxiliary 19"
-msgstr ""
+msgstr "Zusatz 19"
 
 #: ../src/pulse/channelmap.c:140
 msgid "Auxiliary 20"
-msgstr ""
+msgstr "Zusatz 20"
 
 #: ../src/pulse/channelmap.c:141
 msgid "Auxiliary 21"
-msgstr ""
+msgstr "Zusatz 21"
 
 #: ../src/pulse/channelmap.c:142
 msgid "Auxiliary 22"
-msgstr ""
+msgstr "Zusatz 22"
 
 #: ../src/pulse/channelmap.c:143
 msgid "Auxiliary 23"
-msgstr ""
+msgstr "Zusatz 23"
 
 #: ../src/pulse/channelmap.c:144
 msgid "Auxiliary 24"
-msgstr ""
+msgstr "Zusatz 24"
 
 #: ../src/pulse/channelmap.c:145
 msgid "Auxiliary 25"
-msgstr ""
+msgstr "Zusatz 25"
 
 #: ../src/pulse/channelmap.c:146
 msgid "Auxiliary 26"
-msgstr ""
+msgstr "Zusatz 26"
 
 #: ../src/pulse/channelmap.c:147
 msgid "Auxiliary 27"
-msgstr ""
+msgstr "Zusatz 26"
 
 #: ../src/pulse/channelmap.c:148
 msgid "Auxiliary 28"
-msgstr ""
+msgstr "Zusatz 28"
 
 #: ../src/pulse/channelmap.c:149
 msgid "Auxiliary 29"
-msgstr ""
+msgstr "Zusatz 29"
 
 #: ../src/pulse/channelmap.c:150
 msgid "Auxiliary 30"
-msgstr ""
+msgstr "Zusatz 30"
 
 #: ../src/pulse/channelmap.c:151
 msgid "Auxiliary 31"
-msgstr ""
+msgstr "Zusatz 31"
 
 #: ../src/pulse/channelmap.c:153
 msgid "Top Center"
@@ -789,7 +789,7 @@ msgstr "Oben Hinten Rechts"
 
 #: ../src/pulse/error.c:43
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: ../src/pulse/error.c:44
 msgid "Access denied"
@@ -1014,17 +1014,17 @@ msgstr ""
 #: ../src/utils/pacat.c:262
 #, c-format
 msgid "pa_stream_new() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_new() fehlgeschlagen: %s\n"
 
 #: ../src/utils/pacat.c:287
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_connect_playback() fehlgeschlagen: %s\n"
 
 #: ../src/utils/pacat.c:293
 #, c-format
 msgid "pa_stream_connect_record() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_connect_record() fehlgeschlagen: %s\n"
 
 #: ../src/utils/pacat.c:307
 #: ../src/utils/pasuspender.c:159
