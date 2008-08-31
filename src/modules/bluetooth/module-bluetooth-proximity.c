@@ -44,7 +44,7 @@
 #include <pulsecore/start-child.h>
 
 #include "dbus-util.h"
-#include "module-bt-proximity-symdef.h"
+#include "module-bluetooth-proximity-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Bluetooth Proximity Volume Control");
