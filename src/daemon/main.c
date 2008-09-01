@@ -779,6 +779,19 @@ int main(int argc, char *argv[]) {
 
     pa_log_info(_("This is PulseAudio %s"), PACKAGE_VERSION);
     pa_log_debug(_("Compilation CFLAGS: %s"), PA_CFLAGS);
+
+#ifdef HAVE_VALGRIND_MEMCHECK_H
+    pa_log_debug(_("Compiled with Valgrind support: yes"));
+#else
+    pa_log_debug(_("Compiled with Valgrind support: no"));
+#endif
+
+#ifdef __OPTIMIZE__
+    pa_log_debug(_("Optimized build: yes"));
+#else
+    pa_log_debug(_("Optimized build: no"));
+#endif
+
     pa_log_info(_("Page size is %lu bytes"), (unsigned long) PA_PAGE_SIZE);
 
     if (!(s = pa_machine_id())) {
