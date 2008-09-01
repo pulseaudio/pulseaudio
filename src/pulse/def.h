@@ -240,9 +240,12 @@ typedef enum pa_stream_flags {
                                       * accordingly. See pa_buffer_attr \since 0.9.11 */
 } pa_stream_flags_t;
 
+/** \cond fulldocs */
 
 /** English is an evil language */
 #define PA_STREAM_NOT_MONOTONOUS PA_STREAM_NOT_MONOTONIC
+
+/** \endcond */
 
 /** Playback and record buffer metrics */
 typedef struct pa_buffer_attr {
