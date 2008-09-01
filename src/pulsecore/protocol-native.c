@@ -2791,7 +2791,7 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
     pa_sink_input *si = NULL;
     pa_source_output *so = NULL;
     pa_scache_entry *sce = NULL;
-    const char *name;
+    const char *name = NULL;
     pa_tagstruct *reply;
 
     pa_native_connection_assert_ref(c);
