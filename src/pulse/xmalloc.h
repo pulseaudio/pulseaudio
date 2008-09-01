@@ -58,7 +58,9 @@ char *pa_xstrndup(const char *s, size_t l) PA_GCC_MALLOC;
 void* pa_xmemdup(const void *p, size_t l) PA_GCC_MALLOC PA_GCC_ALLOC_SIZE(2);
 
 /** Internal helper for pa_xnew() */
-static inline void* _pa_xnew_internal(unsigned n, size_t k) {
+static void* _pa_xnew_internal(size_t n, size_t k) PA_GCC_MALLOC PA_GCC_ALLOC_SIZE2(1,2);
+
+static inline void* _pa_xnew_internal(size_t n, size_t k) {
     assert(n < INT_MAX/k);
     return pa_xmalloc(n*k);
 }
@@ -67,7 +69,9 @@ static inline void* _pa_xnew_internal(unsigned n, size_t k) {
 #define pa_xnew(type, n) ((type*) _pa_xnew_internal((n), sizeof(type)))
 
 /** Internal helper for pa_xnew0() */
-static inline void* _pa_xnew0_internal(unsigned n, size_t k) {
+static void* _pa_xnew0_internal(size_t n, size_t k) PA_GCC_MALLOC PA_GCC_ALLOC_SIZE2(1,2);
+
+static inline void* _pa_xnew0_internal(size_t n, size_t k) {
     assert(n < INT_MAX/k);
     return pa_xmalloc0(n*k);
 }
@@ -76,7 +80,9 @@ static inline void* _pa_xnew0_internal(unsigned n, size_t k) {
 #define pa_xnew0(type, n) ((type*) _pa_xnew0_internal((n), sizeof(type)))
 
 /** Internal helper for pa_xnew0() */
-static inline void* _pa_xnewdup_internal(const void *p, unsigned n, size_t k) {
+static void* _pa_xnewdup_internal(const void *p, size_t n, size_t k) PA_GCC_MALLOC PA_GCC_ALLOC_SIZE2(2,3);
+
+static inline void* _pa_xnewdup_internal(const void *p, size_t n, size_t k) {
     assert(n < INT_MAX/k);
     return pa_xmemdup(p, n*k);
 }

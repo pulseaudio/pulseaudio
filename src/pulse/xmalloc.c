@@ -46,7 +46,7 @@
 
 static void oom(void) PA_GCC_NORETURN;
 
-/** called in case of an OOM situation. Prints an error message and
+/* called in case of an OOM situation. Prints an error message and
  * exits */
 static void oom(void) {
     static const char e[] = "Not enough memory\n";
