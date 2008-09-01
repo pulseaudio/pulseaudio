@@ -93,4 +93,24 @@
 #endif
 #endif
 
+#ifndef PA_GCC_ALLOC_SIZE
+#if defined(__GNUC__) && (__GNUC__ >= 4) && (__GNUC_MINOR__ >= 3)
+#define PA_GCC_ALLOC_SIZE(x) __attribute__ ((__alloc_size__(x)))
+#define PA_GCC_ALLOC_SIZE2(x,y) __attribute__ ((__alloc_size__(x,y)))
+#else
+/** Macro for usage of GCC's alloc_size attribute */
+#define PA_GCC_ALLOC_SIZE(x)
+#define PA_GCC_ALLOC_SIZE2(x,y)
+#endif
+#endif
+
+#ifndef PA_GCC_MALLOC
+#ifdef __GNUCC__
+#define PA_GCC_MALLOC __attribute__ ((malloc))
+#else
+/** Macro for usage of GCC's malloc attribute */
+#define PA_GCC_MALLOC
+#endif
+#endif
+
 #endif
