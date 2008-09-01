@@ -58,31 +58,31 @@ char *pa_xstrndup(const char *s, size_t l) PA_GCC_MALLOC;
 void* pa_xmemdup(const void *p, size_t l) PA_GCC_MALLOC PA_GCC_ALLOC_SIZE(2);
 
 /** Internal helper for pa_xnew() */
-static inline void* pa_xnew_internal(unsigned n, size_t k) {
+static inline void* _pa_xnew_internal(unsigned n, size_t k) {
     assert(n < INT_MAX/k);
     return pa_xmalloc(n*k);
 }
 
 /** Allocate n new structures of the specified type. */
-#define pa_xnew(type, n) ((type*) pa_xnew_internal((n), sizeof(type)))
+#define pa_xnew(type, n) ((type*) _pa_xnew_internal((n), sizeof(type)))
 
 /** Internal helper for pa_xnew0() */
-static inline void* pa_xnew0_internal(unsigned n, size_t k) {
+static inline void* _pa_xnew0_internal(unsigned n, size_t k) {
     assert(n < INT_MAX/k);
     return pa_xmalloc0(n*k);
 }
 
 /** Same as pa_xnew() but set the memory to zero */
-#define pa_xnew0(type, n) ((type*) pa_xnew0_internal((n), sizeof(type)))
+#define pa_xnew0(type, n) ((type*) _pa_xnew0_internal((n), sizeof(type)))
 
 /** Internal helper for pa_xnew0() */
-static inline void* pa_xnewdup_internal(const void *p, unsigned n, size_t k) {
+static inline void* _pa_xnewdup_internal(const void *p, unsigned n, size_t k) {
     assert(n < INT_MAX/k);
     return pa_xmemdup(p, n*k);
 }
 
 /** Same as pa_xnew() but set the memory to zero */
-#define pa_xnewdup(type, p, n) ((type*) pa_xnewdup_internal((p), (n), sizeof(type)))
+#define pa_xnewdup(type, p, n) ((type*) _pa_xnewdup_internal((p), (n), sizeof(type)))
 
 PA_C_DECL_END
 
