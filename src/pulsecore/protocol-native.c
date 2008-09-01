@@ -485,14 +485,14 @@ static void fix_record_buffer_attr_pre(record_stream *s, pa_bool_t adjust_latenc
         *fragsize = (uint32_t) pa_frame_size(&s->source_output->sample_spec);
 
     if (adjust_latency) {
-        pa_usec_t fragsize_usec;
+        pa_usec_t orig_fragsize_usec, fragsize_usec;
 
         /* So, the user asked us to adjust the latency according to
          * what the source can provide. Half the latency will be
          * spent on the hw buffer, half of it in the async buffer
          * queue we maintain for each client. */
 
-        fragsize_usec = pa_bytes_to_usec(*fragsize, &s->source_output->sample_spec);
+        orig_fragsize_usec = fragsize_usec = pa_bytes_to_usec(*fragsize, &s->source_output->sample_spec);
 
         s->source_latency = pa_source_output_set_requested_latency(s->source_output, fragsize_usec/2);
 
@@ -501,7 +501,10 @@ static void fix_record_buffer_attr_pre(record_stream *s, pa_bool_t adjust_latenc
         else
             fragsize_usec = s->source_latency;
 
-        *fragsize = (uint32_t) pa_usec_to_bytes(fragsize_usec, &s->source_output->sample_spec);
+        if (pa_usec_to_bytes(orig_fragsize_usec, &s->source_output->sample_spec) !=
+            pa_usec_to_bytes(fragsize_usec, &s->source_output->sample_spec))
+
+            *fragsize = (uint32_t) pa_usec_to_bytes(fragsize_usec, &s->source_output->sample_spec);
     } else
         s->source_latency = 0;
 }
@@ -736,7 +739,7 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
 
 static void fix_playback_buffer_attr_pre(playback_stream *s, pa_bool_t adjust_latency, uint32_t *maxlength, uint32_t *tlength, uint32_t* prebuf, uint32_t* minreq) {
     size_t frame_size;
-    pa_usec_t tlength_usec, minreq_usec, sink_usec;
+    pa_usec_t orig_tlength_usec, tlength_usec, orig_minreq_usec, minreq_usec, sink_usec;
 
     pa_assert(s);
     pa_assert(maxlength);
@@ -752,20 +755,20 @@ static void fix_playback_buffer_attr_pre(playback_stream *s, pa_bool_t adjust_la
         *maxlength = (uint32_t) frame_size;
 
     if (*tlength == (uint32_t) -1)
-        *tlength = (uint32_t) pa_usec_to_bytes(DEFAULT_TLENGTH_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
+        *tlength = (uint32_t) pa_usec_to_bytes_round_up(DEFAULT_TLENGTH_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
     if (*tlength <= 0)
         *tlength = (uint32_t) frame_size;
 
     if (*minreq == (uint32_t) -1)
-        *minreq = (uint32_t) pa_usec_to_bytes(DEFAULT_PROCESS_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
+        *minreq = (uint32_t) pa_usec_to_bytes_round_up(DEFAULT_PROCESS_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
     if (*minreq <= 0)
         *minreq = (uint32_t) frame_size;
 
     if (*tlength < *minreq+frame_size)
         *tlength = *minreq+(uint32_t) frame_size;
 
-    tlength_usec = pa_bytes_to_usec(*tlength, &s->sink_input->sample_spec);
-    minreq_usec = pa_bytes_to_usec(*minreq, &s->sink_input->sample_spec);
+    orig_tlength_usec = tlength_usec = pa_bytes_to_usec(*tlength, &s->sink_input->sample_spec);
+    orig_minreq_usec = minreq_usec = pa_bytes_to_usec(*minreq, &s->sink_input->sample_spec);
 
     pa_log_info("Requested tlength=%0.2f ms, minreq=%0.2f ms",
                 (double) tlength_usec / PA_USEC_PER_MSEC,
@@ -823,8 +826,13 @@ static void fix_playback_buffer_attr_pre(playback_stream *s, pa_bool_t adjust_la
     if (tlength_usec < s->sink_latency + 2*minreq_usec)
         tlength_usec = s->sink_latency + 2*minreq_usec;
 
-    *tlength = (uint32_t) pa_usec_to_bytes(tlength_usec, &s->sink_input->sample_spec);
-    *minreq = (uint32_t) pa_usec_to_bytes(minreq_usec, &s->sink_input->sample_spec);
+    if (pa_usec_to_bytes_round_up(orig_tlength_usec, &s->sink_input->sample_spec) !=
+        pa_usec_to_bytes_round_up(tlength_usec, &s->sink_input->sample_spec))
+        *tlength = (uint32_t) pa_usec_to_bytes_round_up(tlength_usec, &s->sink_input->sample_spec);
+
+    if (pa_usec_to_bytes(orig_minreq_usec, &s->sink_input->sample_spec) !=
+        pa_usec_to_bytes(minreq_usec, &s->sink_input->sample_spec))
+        *minreq = (uint32_t) pa_usec_to_bytes(minreq_usec, &s->sink_input->sample_spec);
 
     if (*minreq <= 0) {
         *minreq += (uint32_t) frame_size;
@@ -981,7 +989,6 @@ static playback_stream* playback_stream_new(
     pa_sink_input_put(s->sink_input);
     return s;
 }
-
 
 /* Called from thread context */
 static void playback_stream_request_bytes(playback_stream *s) {
