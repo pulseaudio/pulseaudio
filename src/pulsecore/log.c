@@ -139,18 +139,28 @@ void pa_log_levelv_meta(
         location[0] = 0;
 
     if (getenv(ENV_LOGTIME)) {
-        static pa_usec_t start;
-        pa_usec_t u;
+        static pa_usec_t start, last;
+        pa_usec_t u, a, r;
 
         u = pa_rtclock_usec();
 
         PA_ONCE_BEGIN {
             start = u;
+            last = u;
         } PA_ONCE_END;
 
-        u -= start;
+        r = u - last;
+        a = u - start;
 
-        pa_snprintf(timestamp, sizeof(timestamp), "(%4llu.%03llu) ", (unsigned long long) (u / PA_USEC_PER_SEC), (unsigned long long) (((u / PA_USEC_PER_MSEC)) % 1000));
+        /* This is not thread safe, but this is a debugging tool only
+         * anyway. */
+        last = u;
+
+        pa_snprintf(timestamp, sizeof(timestamp), "(%4llu.%03llu|%4llu.%03llu) ",
+                    (unsigned long long) (a / PA_USEC_PER_SEC),
+                    (unsigned long long) (((a / PA_USEC_PER_MSEC)) % 1000),
+                    (unsigned long long) (r / PA_USEC_PER_SEC),
+                    (unsigned long long) (((r / PA_USEC_PER_MSEC)) % 1000));
 
     } else
         timestamp[0] = 0;
