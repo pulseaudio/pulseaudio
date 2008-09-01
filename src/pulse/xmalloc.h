@@ -26,7 +26,9 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <assert.h>
+
 #include <pulse/cdecl.h>
+#include <pulse/gccmacro.h>
 
 /** \file
  * Memory allocation functions.
@@ -35,25 +37,25 @@
 PA_C_DECL_BEGIN
 
 /** Allocate the specified number of bytes, just like malloc() does. However, in case of OOM, terminate */
-void* pa_xmalloc(size_t l);
+void* pa_xmalloc(size_t l) PA_GCC_MALLOC PA_GCC_ALLOC_SIZE(1);
 
 /** Same as pa_xmalloc(), but initialize allocated memory to 0 */
-void *pa_xmalloc0(size_t l);
+void *pa_xmalloc0(size_t l) PA_GCC_MALLOC PA_GCC_ALLOC_SIZE(1);
 
 /**  The combination of pa_xmalloc() and realloc() */
-void *pa_xrealloc(void *ptr, size_t size);
+void *pa_xrealloc(void *ptr, size_t size) PA_GCC_ALLOC_SIZE(2);
 
 /** Free allocated memory */
 void pa_xfree(void *p);
 
 /** Duplicate the specified string, allocating memory with pa_xmalloc() */
-char *pa_xstrdup(const char *s);
+char *pa_xstrdup(const char *s) PA_GCC_MALLOC;
 
 /** Duplicate the specified string, but truncate after l characters */
-char *pa_xstrndup(const char *s, size_t l);
+char *pa_xstrndup(const char *s, size_t l) PA_GCC_MALLOC;
 
 /** Duplicate the specified memory block */
-void* pa_xmemdup(const void *p, size_t l);
+void* pa_xmemdup(const void *p, size_t l) PA_GCC_MALLOC PA_GCC_ALLOC_SIZE(2);
 
 /** Internal helper for pa_xnew() */
 static inline void* pa_xnew_internal(unsigned n, size_t k) {
