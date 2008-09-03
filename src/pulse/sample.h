@@ -120,17 +120,38 @@ PA_C_DECL_BEGIN
 
 /** Sample format */
 typedef enum pa_sample_format {
-    PA_SAMPLE_U8,              /**< Unsigned 8 Bit PCM */
-    PA_SAMPLE_ALAW,            /**< 8 Bit a-Law */
-    PA_SAMPLE_ULAW,            /**< 8 Bit mu-Law */
-    PA_SAMPLE_S16LE,           /**< Signed 16 Bit PCM, little endian (PC) */
-    PA_SAMPLE_S16BE,           /**< Signed 16 Bit PCM, big endian */
-    PA_SAMPLE_FLOAT32LE,       /**< 32 Bit IEEE floating point, little endian, range -1 to 1 */
-    PA_SAMPLE_FLOAT32BE,       /**< 32 Bit IEEE floating point, big endian, range -1 to 1 */
-    PA_SAMPLE_S32LE,           /**< Signed 32 Bit PCM, little endian (PC) */
-    PA_SAMPLE_S32BE,           /**< Signed 32 Bit PCM, big endian (PC) */
-    PA_SAMPLE_MAX,             /**< Upper limit of valid sample types */
-    PA_SAMPLE_INVALID = -1     /**< An invalid value */
+    PA_SAMPLE_U8,
+    /**< Unsigned 8 Bit PCM */
+
+    PA_SAMPLE_ALAW,
+    /**< 8 Bit a-Law */
+
+    PA_SAMPLE_ULAW,
+    /**< 8 Bit mu-Law */
+
+    PA_SAMPLE_S16LE,
+    /**< Signed 16 Bit PCM, little endian (PC) */
+
+    PA_SAMPLE_S16BE,
+    /**< Signed 16 Bit PCM, big endian */
+
+    PA_SAMPLE_FLOAT32LE,
+    /**< 32 Bit IEEE floating point, little endian, range -1 to 1 */
+
+    PA_SAMPLE_FLOAT32BE,
+    /**< 32 Bit IEEE floating point, big endian, range -1 to 1 */
+
+    PA_SAMPLE_S32LE,
+    /**< Signed 32 Bit PCM, little endian (PC) */
+
+    PA_SAMPLE_S32BE,
+    /**< Signed 32 Bit PCM, big endian (PC) */
+
+    PA_SAMPLE_MAX,
+    /**< Upper limit of valid sample types */
+
+    PA_SAMPLE_INVALID = -1
+    /**< An invalid value */
 } pa_sample_format_t;
 
 #ifdef WORDS_BIGENDIAN
@@ -166,9 +187,14 @@ typedef enum pa_sample_format {
 
 /** A sample format and attribute specification */
 typedef struct pa_sample_spec {
-    pa_sample_format_t format;     /**< The sample format */
-    uint32_t rate;                 /**< The sample rate. (e.g. 44100) */
-    uint8_t channels;              /**< Audio channels. (1 for mono, 2 for stereo, ...) */
+    pa_sample_format_t format;
+    /**< The sample format */
+
+    uint32_t rate;
+    /**< The sample rate. (e.g. 44100) */
+
+    uint8_t channels;
+    /**< Audio channels. (1 for mono, 2 for stereo, ...) */
 } pa_sample_spec;
 
 /** Type for usec specifications (unsigned). Always 64 bit. */

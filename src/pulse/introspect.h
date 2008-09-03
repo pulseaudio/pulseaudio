@@ -561,7 +561,7 @@ typedef enum pa_autoload_type {
 typedef struct pa_autoload_info {
     uint32_t index;               /**< Index of this autoload entry */
     const char *name;             /**< Name of the sink or source */
-    pa_autoload_type_t type;   /**< Type of the autoload entry */
+    pa_autoload_type_t type;      /**< Type of the autoload entry */
     const char *module;           /**< Module name to load */
     const char *argument;         /**< Argument string for module */
 } pa_autoload_info;

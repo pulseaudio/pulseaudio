@@ -168,9 +168,19 @@ int pa_proplist_get(pa_proplist *p, const char *key, const void **data, size_t *
 
 /** Update mode enum for pa_proplist_update(). \since 0.9.11 */
 typedef enum pa_update_mode {
-    PA_UPDATE_SET,  /*< Replace the entirey property list with the new one. Don't keep any of the old data around */
-    PA_UPDATE_MERGE, /*< Merge new property list into the existing one, not replacing any old entries if they share a common key with the new property list. */
-    PA_UPDATE_REPLACE /*< Merge new property list into the existing one, replacing all old entries that share a common key with  the new property list. */
+    PA_UPDATE_SET,
+    /*< Replace the entirey property list with the new one. Don't keep
+     *  any of the old data around */
+
+    PA_UPDATE_MERGE,
+    /*< Merge new property list into the existing one, not replacing
+     *  any old entries if they share a common key with the new
+     *  property list. */
+
+    PA_UPDATE_REPLACE
+    /*< Merge new property list into the existing one, replacing all
+     *  old entries that share a common key with the new property
+     *  list. */
 } pa_update_mode_t;
 
 /** Merge property list "other" into "p", adhering the merge mode as
