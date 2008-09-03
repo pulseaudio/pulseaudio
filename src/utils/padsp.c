@@ -1003,7 +1003,7 @@ static int create_playback_stream(fd_info *i) {
     attr.prebuf = (uint32_t) i->fragment_size;
     attr.minreq = (uint32_t) i->fragment_size;
 
-    flags = PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE;
+    flags = PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE|PA_STREAM_EARLY_REQUESTS;
     if (i->play_precork) {
         flags |= PA_STREAM_START_CORKED;
         debug(DEBUG_LEVEL_NORMAL, __FILE__": creating stream corked\n");
