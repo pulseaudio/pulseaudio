@@ -72,7 +72,6 @@ int main(int argc, char*argv[]) {
 
     for (;;) {
         uint8_t buf[BUFSIZE];
-        ssize_t r;
 
         /* Record some data ... */
         if (pa_simple_read(s, buf, sizeof(buf), &error) < 0) {
@@ -80,11 +79,8 @@ int main(int argc, char*argv[]) {
             goto finish;
         }
 
-        if (r == 0)
-            break;
-
         /* And write it to STDOUT */
-        if ((r = loop_write(STDOUT_FILENO, buf, sizeof(buf))) <= 0) {
+        if (loop_write(STDOUT_FILENO, buf, sizeof(buf)) != sizeof(buf)) {
             fprintf(stderr, __FILE__": write() failed: %s\n", strerror(errno));
             goto finish;
         }
