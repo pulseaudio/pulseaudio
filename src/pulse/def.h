@@ -96,148 +96,124 @@ typedef enum pa_stream_direction {
 
 /** Some special flags for stream connections. */
 typedef enum pa_stream_flags {
-    PA_STREAM_START_CORKED = 1,       /**< Create the stream corked, requiring an explicit pa_stream_cork() call to uncork it. */
-    PA_STREAM_INTERPOLATE_TIMING = 2, /**< Interpolate the latency for
-                                       * this stream. When enabled,
-                                       * pa_stream_get_latency() and
-                                       * pa_stream_get_time() will try
-                                       * to estimate the current
-                                       * record/playback time based on
-                                       * the local time that passed
-                                       * since the last timing info
-                                       * update.  Using this option
-                                       * has the advantage of not
-                                       * requiring a whole roundtrip
-                                       * when the current
-                                       * playback/recording time is
-                                       * needed. Consider using this
-                                       * option when requesting
-                                       * latency information
-                                       * frequently. This is
-                                       * especially useful on long
-                                       * latency network
-                                       * connections. It makes a lot
-                                       * of sense to combine this
-                                       * option with
-                                       * PA_STREAM_AUTO_TIMING_UPDATE. */
-    PA_STREAM_NOT_MONOTONIC = 4,    /**< Don't force the time to
-                                      * increase monotonically. If
-                                      * this option is enabled,
-                                      * pa_stream_get_time() will not
-                                      * necessarily return always
-                                      * monotonically increasing time
-                                      * values on each call. This may
-                                      * confuse applications which
-                                      * cannot deal with time going
-                                      * 'backwards', but has the
-                                      * advantage that bad transport
-                                      * latency estimations that
-                                      * caused the time to to jump
-                                      * ahead can be corrected
-                                      * quickly, without the need to
-                                      * wait. (Please note that this
-                                      * flag was named
-                                      * PA_STREAM_NOT_MONOTONOUS in
-                                      * releases prior to 0.9.11. The
-                                      * old name is still defined too,
-                                      * for compatibility reasons. */
-    PA_STREAM_AUTO_TIMING_UPDATE = 8, /**< If set timing update requests
-                                       * are issued periodically
-                                       * automatically. Combined with
-                                       * PA_STREAM_INTERPOLATE_TIMING
-                                       * you will be able to query the
-                                       * current time and latency with
-                                       * pa_stream_get_time() and
-                                       * pa_stream_get_latency() at
-                                       * all times without a packet
-                                       * round trip.*/
-    PA_STREAM_NO_REMAP_CHANNELS = 16, /**< Don't remap channels by
-                                       * their name, instead map them
-                                       * simply by their
-                                       * index. Implies
-                                       * PA_STREAM_NO_REMIX_CHANNELS. Only
-                                       * supported when the server is
-                                       * at least PA 0.9.8. It is
-                                       * ignored on older
-                                       * servers.\since 0.9.8 */
-    PA_STREAM_NO_REMIX_CHANNELS = 32, /**< When remapping channels by
-                                       * name, don't upmix or downmix
-                                       * them to related
-                                       * channels. Copy them into
-                                       * matching channels of the
-                                       * device 1:1. Only supported
-                                       * when the server is at least
-                                       * PA 0.9.8. It is ignored on
-                                       * older servers. \since
-                                       * 0.9.8 */
-    PA_STREAM_FIX_FORMAT = 64, /**< Use the sample format of the
-                                * sink/device this stream is being
-                                * connected to, and possibly ignore
-                                * the format the sample spec contains
-                                * -- but you still have to pass a
-                                * valid value in it as a hint to
-                                * PulseAudio what would suit your
-                                * stream best. If this is used you
-                                * should query the used sample format
-                                * after creating the stream by using
-                                * pa_stream_get_sample_spec(). Also,
-                                * if you specified manual buffer
-                                * metrics it is recommended to update
-                                * them with
-                                * pa_stream_set_buffer_attr() to
-                                * compensate for the changed frame
-                                * sizes. Only supported when the
-                                * server is at least PA 0.9.8. It is
-                                * ignored on older servers. \since
-                                * 0.9.8 */
 
-    PA_STREAM_FIX_RATE = 128, /**< Use the sample rate of the sink,
-                               * and possibly ignore the rate the
-                               * sample spec contains. Usage similar
-                               * to PA_STREAM_FIX_FORMAT.Only
-                               * supported when the server is at least
-                               * PA 0.9.8. It is ignored on older
-                               * servers. \since 0.9.8 */
+    PA_STREAM_START_CORKED = 0x0001U,
+    /**< Create the stream corked, requiring an explicit
+     * pa_stream_cork() call to uncork it. */
 
-    PA_STREAM_FIX_CHANNELS = 256, /**< Use the number of channels and
-                               * the channel map of the sink, and
-                               * possibly ignore the number of
-                               * channels and the map the sample spec
-                               * and the passed channel map
-                               * contains. Usage similar to
-                               * PA_STREAM_FIX_FORMAT. Only supported
-                               * when the server is at least PA
-                               * 0.9.8. It is ignored on older
-                               * servers. \since 0.9.8 */
-    PA_STREAM_DONT_MOVE = 512, /**< Don't allow moving of this stream to
-                              * another sink/device. Useful if you use
-                              * any of the PA_STREAM_FIX_ flags and
-                              * want to make sure that resampling
-                              * never takes place -- which might
-                              * happen if the stream is moved to
-                              * another sink/source whith a different
-                              * sample spec/channel map. Only
-                              * supported when the server is at least
-                              * PA 0.9.8. It is ignored on older
-                              * servers. \since 0.9.8 */
-    PA_STREAM_VARIABLE_RATE = 1024, /**< Allow dynamic changing of the
-                                     * sampling rate during playback
-                                     * with
-                                     * pa_stream_update_sample_rate(). Only
-                                     * supported when the server is at
-                                     * least PA 0.9.8. It is ignored
-                                     * on older servers. \since
-                                     * 0.9.8 */
-    PA_STREAM_PEAK_DETECT = 2048, /**< Find peaks instead of
-                                   * resampling. \since 0.9.11 */
+    PA_STREAM_INTERPOLATE_TIMING = 0x0002U,
+    /**< Interpolate the latency for this stream. When enabled,
+     * pa_stream_get_latency() and pa_stream_get_time() will try to
+     * estimate the current record/playback time based on the local
+     * time that passed since the last timing info update.  Using this
+     * option has the advantage of not requiring a whole roundtrip
+     * when the current playback/recording time is needed. Consider
+     * using this option when requesting latency information
+     * frequently. This is especially useful on long latency network
+     * connections. It makes a lot of sense to combine this option
+     * with PA_STREAM_AUTO_TIMING_UPDATE. */
 
-    PA_STREAM_START_MUTED = 4096,  /**< Create in muted state. \since 0.9.11 */
+    PA_STREAM_NOT_MONOTONIC = 0x0004U,
+    /**< Don't force the time to increase monotonically. If this
+     * option is enabled, pa_stream_get_time() will not necessarily
+     * return always monotonically increasing time values on each
+     * call. This may confuse applications which cannot deal with time
+     * going 'backwards', but has the advantage that bad transport
+     * latency estimations that caused the time to to jump ahead can
+     * be corrected quickly, without the need to wait. (Please note
+     * that this flag was named PA_STREAM_NOT_MONOTONOUS in releases
+     * prior to 0.9.11. The old name is still defined too, for
+     * compatibility reasons. */
 
-    PA_STREAM_ADJUST_LATENCY = 8192, /**< Try to adjust the latency of
-                                      * the sink/source based on the
-                                      * requested buffer metrics and
-                                      * adjust buffer metrics
-                                      * accordingly. See pa_buffer_attr \since 0.9.11 */
+    PA_STREAM_AUTO_TIMING_UPDATE = 0x0008U,
+    /**< If set timing update requests are issued periodically
+     * automatically. Combined with PA_STREAM_INTERPOLATE_TIMING you
+     * will be able to query the current time and latency with
+     * pa_stream_get_time() and pa_stream_get_latency() at all times
+     * without a packet round trip.*/
+
+    PA_STREAM_NO_REMAP_CHANNELS = 0x0010U,
+    /**< Don't remap channels by their name, instead map them simply
+     * by their index. Implies PA_STREAM_NO_REMIX_CHANNELS. Only
+     * supported when the server is at least PA 0.9.8. It is ignored
+     * on older servers.\since 0.9.8 */
+
+    PA_STREAM_NO_REMIX_CHANNELS = 0x0020U,
+    /**< When remapping channels by name, don't upmix or downmix them
+     * to related channels. Copy them into matching channels of the
+     * device 1:1. Only supported when the server is at least PA
+     * 0.9.8. It is ignored on older servers. \since 0.9.8 */
+
+    PA_STREAM_FIX_FORMAT = 0x0040U,
+    /**< Use the sample format of the sink/device this stream is being
+     * connected to, and possibly ignore the format the sample spec
+     * contains -- but you still have to pass a valid value in it as a
+     * hint to PulseAudio what would suit your stream best. If this is
+     * used you should query the used sample format after creating the
+     * stream by using pa_stream_get_sample_spec(). Also, if you
+     * specified manual buffer metrics it is recommended to update
+     * them with pa_stream_set_buffer_attr() to compensate for the
+     * changed frame sizes. Only supported when the server is at least
+     * PA 0.9.8. It is ignored on older servers. \since 0.9.8 */
+
+    PA_STREAM_FIX_RATE = 0x0080U,
+    /**< Use the sample rate of the sink, and possibly ignore the rate
+     * the sample spec contains. Usage similar to
+     * PA_STREAM_FIX_FORMAT.Only supported when the server is at least
+     * PA 0.9.8. It is ignored on older servers. \since 0.9.8 */
+
+    PA_STREAM_FIX_CHANNELS = 0x0100,
+    /**< Use the number of channels and the channel map of the sink,
+     * and possibly ignore the number of channels and the map the
+     * sample spec and the passed channel map contains. Usage similar
+     * to PA_STREAM_FIX_FORMAT. Only supported when the server is at
+     * least PA 0.9.8. It is ignored on older servers. \since 0.9.8 */
+
+    PA_STREAM_DONT_MOVE = 0x0200U,
+    /**< Don't allow moving of this stream to another
+     * sink/device. Useful if you use any of the PA_STREAM_FIX_ flags
+     * and want to make sure that resampling never takes place --
+     * which might happen if the stream is moved to another
+     * sink/source whith a different sample spec/channel map. Only
+     * supported when the server is at least PA 0.9.8. It is ignored
+     * on older servers. \since 0.9.8 */
+
+    PA_STREAM_VARIABLE_RATE = 0x0400U,
+    /**< Allow dynamic changing of the sampling rate during playback
+     * with pa_stream_update_sample_rate(). Only supported when the
+     * server is at least PA 0.9.8. It is ignored on older
+     * servers. \since 0.9.8 */
+
+    PA_STREAM_PEAK_DETECT = 0x0800U,
+    /**< Find peaks instead of resampling. \since 0.9.11 */
+
+    PA_STREAM_START_MUTED = 0x1000U,
+    /**< Create in muted state. \since 0.9.11 */
+
+    PA_STREAM_ADJUST_LATENCY = 0x2000U,
+    /**< Try to adjust the latency of the sink/source based on the
+     * requested buffer metrics and adjust buffer metrics
+     * accordingly. Also see pa_buffer_attr. This option may not be
+     * specified at the same time as PA_STREAM_EARLY_REQUESTS. \since
+     * 0.9.11 */
+
+    PA_STREAM_EARLY_REQUESTS = 0x4000U
+    /**< Enable compatibility mode for legacy clients that rely on a
+     * "classic" hardware device fragment-style playback model. If
+     * this option is set, the minreq value of the buffer metrics gets
+     * a new meaning: instead of just specifying that no requests
+     * asking for less new data than this value will be made to the
+     * client it will also guarantee that requests are generated as
+     * early as this limit is reached. This flag should only be set in
+     * very few situations where compatiblity with a fragment-based
+     * playback model needs to be kept and the client applications
+     * cannot deal with data requests that are delayed to the latest
+     * moment possible. (Usually these are programs that use usleep()
+     * or a similar call in their playback loops instead of sleeping
+     * on the device itself.) Also see pa_buffer_attr. This option may
+     * not be specified at the same time as
+     * PA_STREAM_ADJUST_LATENCY. \since 0.9.12 */
+
 } pa_stream_flags_t;
 
 /** \cond fulldocs */

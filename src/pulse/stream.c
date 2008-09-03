@@ -886,7 +886,8 @@ static int create_stream(
                                               PA_STREAM_VARIABLE_RATE|
                                               PA_STREAM_PEAK_DETECT|
                                               PA_STREAM_START_MUTED|
-                                              PA_STREAM_ADJUST_LATENCY)), PA_ERR_INVALID);
+                                              PA_STREAM_ADJUST_LATENCY|
+                                              PA_STREAM_EARLY_REQUESTS)), PA_ERR_INVALID);
 
     PA_CHECK_VALIDITY(s->context, s->context->version >= 12 || !(flags & PA_STREAM_VARIABLE_RATE), PA_ERR_NOTSUPPORTED);
     PA_CHECK_VALIDITY(s->context, s->context->version >= 13 || !(flags & PA_STREAM_PEAK_DETECT), PA_ERR_NOTSUPPORTED);
@@ -899,6 +900,7 @@ static int create_stream(
     PA_CHECK_VALIDITY(s->context, direction == PA_STREAM_RECORD || !(flags & (PA_STREAM_PEAK_DETECT)), PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, !volume || volume->channels == s->sample_spec.channels, PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, !sync_stream || (direction == PA_STREAM_PLAYBACK && sync_stream->direction == PA_STREAM_PLAYBACK), PA_ERR_INVALID);
+    PA_CHECK_VALIDITY(s->context, (flags & (PA_STREAM_ADJUST_LATENCY|PA_STREAM_EARLY_REQUESTS)) != (PA_STREAM_ADJUST_LATENCY|PA_STREAM_EARLY_REQUESTS), PA_ERR_INVALID);
 
     pa_stream_ref(s);
 
@@ -997,13 +999,12 @@ static int create_stream(
             pa_tagstruct_putu32(t, s->direct_on_input);
     }
 
-    if (s->context->version >= 14 &&
-        s->direction == PA_STREAM_PLAYBACK) {
+    if (s->context->version >= 14) {
 
-        pa_tagstruct_put(
-                t,
-                PA_TAG_BOOLEAN, volume_set,
-                PA_TAG_INVALID);
+        if (s->direction == PA_STREAM_PLAYBACK)
+            pa_tagstruct_put_boolean(t, volume_set);
+
+        pa_tagstruct_put_boolean(t, flags & PA_STREAM_EARLY_REQUESTS);
     }
 
     pa_pstream_send_tagstruct(s->context->pstream, t);
@@ -2078,6 +2079,9 @@ pa_operation* pa_stream_set_buffer_attr(pa_stream *s, const pa_buffer_attr *attr
 
     if (s->context->version >= 13)
         pa_tagstruct_put_boolean(t, !!(s->flags & PA_STREAM_ADJUST_LATENCY));
+
+    if (s->context->version >= 14)
+        pa_tagstruct_put_boolean(t, !!(s->flags & PA_STREAM_EARLY_REQUESTS));
 
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, stream_set_buffer_attr_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
