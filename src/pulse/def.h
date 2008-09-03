@@ -87,6 +87,11 @@ typedef enum pa_context_flags {
     /**< Disabled autospawning of the PulseAudio daemon if required */
 } pa_context_flags_t;
 
+/** \cond fulldocs */
+/* Allow clients to check with #ifdef for those flags */
+#define PA_CONTEXT_NOAUTOSPAWN PA_CONTEXT_NOAUTOSPAWN
+/** \endcond */
+
 /** The direction of a pa_stream object */
 typedef enum pa_stream_direction {
     PA_STREAM_NODIRECTION,   /**< Invalid direction */
@@ -219,8 +224,25 @@ typedef enum pa_stream_flags {
 
 /** \cond fulldocs */
 
-/** English is an evil language */
+/* English is an evil language */
 #define PA_STREAM_NOT_MONOTONOUS PA_STREAM_NOT_MONOTONIC
+
+/* Allow clients to check with #ifdef for those flags */
+#define PA_STREAM_START_CORKED PA_STREAM_START_CORKED
+#define PA_STREAM_INTERPOLATE_TIMING PA_STREAM_INTERPOLATE_TIMING
+#define PA_STREAM_NOT_MONOTONIC PA_STREAM_NOT_MONOTONIC
+#define PA_STREAM_AUTO_TIMING_UPDATE PA_STREAM_AUTO_TIMING_UPDATE
+#define PA_STREAM_NO_REMAP_CHANNELS PA_STREAM_NO_REMAP_CHANNELS
+#define PA_STREAM_NO_REMIX_CHANNELS PA_STREAM_NO_REMIX_CHANNELS
+#define PA_STREAM_FIX_FORMAT PA_STREAM_FIX_FORMAT
+#define PA_STREAM_FIX_RATE PA_STREAM_FIX_RATE
+#define PA_STREAM_FIX_CHANNELS PA_STREAM_FIX_CHANNELS
+#define PA_STREAM_DONT_MOVE PA_STREAM_DONT_MOVE
+#define PA_STREAM_VARIABLE_RATE PA_STREAM_VARIABLE_RATE
+#define PA_STREAM_PEAK_DETECT PA_STREAM_PEAK_DETECT
+#define PA_STREAM_START_MUTED PA_STREAM_START_MUTED
+#define PA_STREAM_ADJUST_LATENCY PA_STREAM_ADJUST_LATENCY
+#define PA_STREAM_EARLY_REQUESTS PA_STREAM_EARLY_REQUESTS
 
 /** \endcond */
 
@@ -547,6 +569,15 @@ typedef enum pa_sink_flags {
      * \since 0.9.11 */
 } pa_sink_flags_t;
 
+/** \cond fulldocs */
+#define PA_SINK_HW_VOLUME_CTRL PA_SINK_HW_VOLUME_CTRL
+#define PA_SINK_LATENCY PA_SINK_LATENCY
+#define PA_SINK_HARDWARE PA_SINK_HARDWARE
+#define PA_SINK_NETWORK PA_SINK_NETWORK
+#define PA_SINK_HW_VOLUME_CTRL PA_SINK_HW_VOLUME_CTRL
+#define PA_SINK_DECIBEL_VOLUME PA_SINK_DECIBEL_VOLUME
+/** \endcond */
+
 /** Special source flags.  */
 typedef enum pa_source_flags {
     PA_SOURCE_HW_VOLUME_CTRL = 0x0001U,
@@ -569,6 +600,15 @@ typedef enum pa_source_flags {
     /**< Volume can be translated to dB with pa_sw_volume_to_dB()
      * \since 0.9.11 */
 } pa_source_flags_t;
+
+/** \cond fulldocs */
+#define PA_SOURCE_HW_VOLUME_CTRL PA_SOURCE_HW_VOLUME_CTRL
+#define PA_SOURCE_LATENCY PA_SOURCE_LATENCY
+#define PA_SOURCE_HARDWARE PA_SOURCE_HARDWARE
+#define PA_SOURCE_NETWORK PA_SOURCE_NETWORK
+#define PA_SOURCE_HW_VOLUME_CTRL PA_SOURCE_HW_VOLUME_CTRL
+#define PA_SOURCE_DECIBEL_VOLUME PA_SOURCE_DECIBEL_VOLUME
+/** \endcond */
 
 /** A generic free() like callback prototype */
 typedef void (*pa_free_cb_t)(void *p);

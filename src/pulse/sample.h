@@ -185,6 +185,19 @@ typedef enum pa_sample_format {
 /** A Shortcut for PA_SAMPLE_FLOAT32NE */
 #define PA_SAMPLE_FLOAT32 PA_SAMPLE_FLOAT32NE
 
+/** \cond fulldocs */
+/* Allow clients to check with #ifdef for thse sample formats */
+#define PA_SAMPLE_U8 PA_SAMPLE_U8
+#define PA_SAMPLE_ALAW PA_SAMPLE_ALAW
+#define PA_SAMPLE_ULAW PA_SAMPLE_ULAW
+#define PA_SAMPLE_S16LE PA_SAMPLE_S16LE
+#define PA_SAMPLE_S16BE PA_SAMPLE_S16BE
+#define PA_SAMPLE_FLOAT32LE PA_SAMPLE_FLOAT32LE
+#define PA_SAMPLE_FLOAT32BE PA_SAMPLE_FLOAT32BE
+#define PA_SAMPLE_S32LE PA_SAMPLE_S32LE
+#define PA_SAMPLE_S32BE PA_SAMPLE_S32BE
+/** \endcond */
+
 /** A sample format and attribute specification */
 typedef struct pa_sample_spec {
     pa_sample_format_t format;
