@@ -2391,18 +2391,29 @@ char *pa_machine_id(void) {
     FILE *f;
     size_t l;
 
+    /* The returned value is supposed be some kind of ascii identifier
+     * that is unique and stable across reboots. */
+
+    /* First we try the D-Bus UUID, which is the best option we have,
+     * since it fits perfectly our needs and is not as volatile as the
+     * hostname which might be set from dhcp. */
+
     if ((f = fopen(PA_MACHINE_ID, "r"))) {
         char ln[34] = "", *r;
 
         r = fgets(ln, sizeof(ln)-1, f);
         fclose(f);
 
-        if (r)
-            return pa_xstrdup(pa_strip_nl(ln));
+        pa_strip_nl(ln);
+
+        if (ln[0])
+            return pa_xstrdup(ln);
     }
 
-    l = 100;
+    /* The we fall back to the host name. It supposed to be somewhat
+     * unique, at least in a network, but may change. */
 
+    l = 100;
     for (;;) {
         char *c;
 
@@ -2410,17 +2421,18 @@ char *pa_machine_id(void) {
 
         if (!pa_get_host_name(c, l)) {
 
-            if (errno == EINVAL || errno == ENAMETOOLONG) {
+            if (errno != EINVAL && errno != ENAMETOOLONG)
+                break;
+
+        } else if (strlen(c) < l-1) {
+
+            if (*c == 0) {
                 pa_xfree(c);
-                l *= 2;
-                continue;
+                break;
             }
 
-            return NULL;
-        }
-
-        if (strlen(c) < l-1)
             return c;
+        }
 
         /* Hmm, the hostname is as long the space we offered the
          * function, we cannot know if it fully fit in, so let's play
@@ -2429,4 +2441,9 @@ char *pa_machine_id(void) {
         pa_xfree(c);
         l *= 2;
     }
+
+    /* If no hostname was set we use the POSIX hostid. It's usually
+     * the IPv4 address.  Mit not be that stable. */
+    return pa_sprintf_malloc("%08lx", (unsigned long) gethostid);
+
 }
