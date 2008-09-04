@@ -695,7 +695,7 @@ int main(int argc, char *argv[]) {
         goto quit;
     }
 
-    if (channel_map_set && channel_map.channels != sample_spec.channels) {
+    if (channel_map_set && pa_channel_map_compatible(&channel_map, &sample_spec)) {
         fprintf(stderr, _("Channel map doesn't match sample specification\n"));
         goto quit;
     }
