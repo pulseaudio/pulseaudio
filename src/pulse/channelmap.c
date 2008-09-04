@@ -560,3 +560,10 @@ int pa_channel_map_valid(const pa_channel_map *map) {
 
     return 1;
 }
+
+int pa_channel_map_compatible(const pa_channel_map *map, const pa_sample_spec *ss) {
+    pa_assert(map);
+    pa_assert(ss);
+
+    return map->channels == ss->channels;
+}
