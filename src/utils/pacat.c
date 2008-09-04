@@ -500,7 +500,7 @@ static void help(const char *argv0) {
            "      --volume=VOLUME                   Specify the initial (linear) volume in range 0...65536\n"
            "      --rate=SAMPLERATE                 The sample rate in Hz (defaults to 44100)\n"
            "      --format=SAMPLEFORMAT             The sample type, one of s16le, s16be, u8, float32le,\n"
-           "                                        float32be, ulaw, alaw (defaults to s16ne)\n"
+           "                                        float32be, ulaw, alaw, s32le, s32be (defaults to s16ne)\n"
            "      --channels=CHANNELS               The number of channels, 1 for mono, 2 for stereo\n"
            "                                        (defaults to 2)\n"
            "      --channel-map=CHANNELMAP          Channel map to use instead of the default\n"
