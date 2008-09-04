@@ -198,6 +198,7 @@ pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels, p
     pa_assert(m);
     pa_assert(channels > 0);
     pa_assert(channels <= PA_CHANNELS_MAX);
+    pa_assert(def < PA_CHANNEL_MAP_DEF_MAX);
 
     pa_channel_map_init(m);
 
@@ -391,7 +392,7 @@ pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels, p
 
 
         default:
-            return NULL;
+            pa_assert_not_reached();
     }
 }
 
@@ -401,6 +402,7 @@ pa_channel_map* pa_channel_map_init_extend(pa_channel_map *m, unsigned channels,
     pa_assert(m);
     pa_assert(channels > 0);
     pa_assert(channels <= PA_CHANNELS_MAX);
+    pa_assert(def < PA_CHANNEL_MAP_DEF_MAX);
 
     pa_channel_map_init(m);
 

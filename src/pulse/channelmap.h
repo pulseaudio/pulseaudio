@@ -157,6 +157,9 @@ typedef enum pa_channel_map_def {
     PA_CHANNEL_MAP_OSS,
     /**< The default channel mapping used by OSS as defined in the OSS 4.0 API specs */
 
+    /**< Upper limit of valid channel mapping definitions */
+    PA_CHANNEL_MAP_DEF_MAX,
+
     PA_CHANNEL_MAP_DEFAULT = PA_CHANNEL_MAP_AIFF
     /**< The default channel map */
 } pa_channel_map_def_t;
@@ -211,7 +214,7 @@ pa_channel_map *pa_channel_map_parse(pa_channel_map *map, const char *s);
 /** Compare two channel maps. Return 1 if both match. */
 int pa_channel_map_equal(const pa_channel_map *a, const pa_channel_map *b) PA_GCC_PURE;
 
-/** Return non-zero of the specified channel map is considered valid */
+/** Return non-zero if the specified channel map is considered valid */
 int pa_channel_map_valid(const pa_channel_map *map) PA_GCC_PURE;
 
 /** Return non-zero if the specified channel map is compatible with
