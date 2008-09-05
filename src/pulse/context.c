@@ -905,8 +905,9 @@ int pa_context_connect(
             pa_xfree(d);
         }
 
-        c->server_list = pa_strlist_prepend(c->server_list, "tcp6:localhost");
-        c->server_list = pa_strlist_prepend(c->server_list, "tcp4:localhost");
+        /* Add TCP/IP on the localhost */
+        c->server_list = pa_strlist_prepend(c->server_list, "tcp6:[::1]");
+        c->server_list = pa_strlist_prepend(c->server_list, "tcp4:127.0.0.1");
 
         /* The system wide instance */
         c->server_list = pa_strlist_prepend(c->server_list, PA_SYSTEM_RUNTIME_PATH PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET);
