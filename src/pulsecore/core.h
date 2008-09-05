@@ -124,6 +124,7 @@ struct pa_core {
     pa_bool_t running_as_daemon:1;
     pa_bool_t realtime_scheduling:1;
     pa_bool_t disable_remixing:1;
+    pa_bool_t disable_lfe_remixing:1;
 
     pa_resample_method_t resample_method;
     int realtime_priority;

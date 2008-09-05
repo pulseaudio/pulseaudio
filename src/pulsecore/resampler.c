@@ -716,7 +716,11 @@ static void calc_map_table(pa_resampler *r) {
                  * channels for LFE. */
 
                 for (ic = 0; ic < r->i_ss.channels; ic++) {
-                    r->map_table[oc][ic] = 1.0f / (float) r->i_ss.channels;
+
+                    if (!(r->flags & PA_RESAMPLER_NO_LFE))
+                        r->map_table[oc][ic] = 1.0f / (float) r->i_ss.channels;
+                    else
+                        r->map_table[oc][ic] = 0;
 
                     /* Please note that a channel connected to LFE
                      * doesn't really count as connected. */
@@ -851,7 +855,7 @@ static void calc_map_table(pa_resampler *r) {
             }
         }
 
-        if (ic_unconnected_lfe > 0) {
+        if (ic_unconnected_lfe > 0 && !(r->flags & PA_RESAMPLER_NO_LFE)) {
 
             /* OK, so there is an unconnected LFE channel. Let's mix
              * it into all channels, with factor 0.375 */

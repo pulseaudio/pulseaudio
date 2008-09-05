@@ -106,6 +106,16 @@ USA.
     </option>
 
     <option>
+      <p><opt>disable-lfe-remixing=</opt> When upmixing or downmixing
+      ignore LFE channels. When this option is on the output LFE
+      channel will only get a signal when an input LFE channel is
+      available as well. If no input LFE channel is available the
+      output LFE channel will always be 0. If no output LFE channel is
+      available the signal on the input LFE channel will be
+      ignored.</p>
+    </option>
+
+    <option>
       <p><opt>use-pid-file=</opt> Create a PID file in
       <file>/tmp/pulse-$USER/pid</file>. Of this is enabled you may
       use commands like <opt>--kill</opt> or <opt>--check</opt>. If

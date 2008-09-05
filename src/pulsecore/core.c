@@ -138,6 +138,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     c->realtime_scheduling = FALSE;
     c->realtime_priority = 5;
     c->disable_remixing = FALSE;
+    c->disable_lfe_remixing = FALSE;
 
     for (j = 0; j < PA_CORE_HOOK_MAX; j++)
         pa_hook_init(&c->hooks[j], c);
