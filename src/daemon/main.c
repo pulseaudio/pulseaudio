@@ -778,7 +778,14 @@ int main(int argc, char *argv[]) {
     pa_set_env("PULSE_SYSTEM", conf->system_instance ? "1" : "0");
 
     pa_log_info(_("This is PulseAudio %s"), PACKAGE_VERSION);
+    pa_log_debug(_("Compilation host: %s"), CANONICAL_HOST);
     pa_log_debug(_("Compilation CFLAGS: %s"), PA_CFLAGS);
+
+    s = pa_uname_string();
+    pa_log_debug(_("Running on host: %s"), s);
+    pa_xfree(s);
+
+    pa_log_info(_("Page size is %lu bytes"), (unsigned long) PA_PAGE_SIZE);
 
 #ifdef HAVE_VALGRIND_MEMCHECK_H
     pa_log_debug(_("Compiled with Valgrind support: yes"));
@@ -791,8 +798,6 @@ int main(int argc, char *argv[]) {
 #else
     pa_log_debug(_("Optimized build: no"));
 #endif
-
-    pa_log_info(_("Page size is %lu bytes"), (unsigned long) PA_PAGE_SIZE);
 
     if (!(s = pa_machine_id())) {
         pa_log(_("Failed to get machine ID"));
