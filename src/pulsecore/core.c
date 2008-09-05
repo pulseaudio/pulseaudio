@@ -204,6 +204,7 @@ static void exit_callback(pa_mainloop_api*m, pa_time_event *e, const struct time
     pa_core *c = userdata;
     pa_assert(c->exit_event == e);
 
+    pa_log_info("We are idle, quitting...");
     pa_core_exit(c, TRUE, 0);
 }
 
