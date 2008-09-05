@@ -54,7 +54,6 @@
 #include <pulse/utf8.h>
 #include <pulse/util.h>
 #include <pulse/i18n.h>
-#include <pulse/lock-autospawn.h>
 
 #include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
@@ -98,26 +97,6 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_SUBSCRIBE_EVENT] = pa_command_subscribe_event,
     [PA_COMMAND_EXTENSION] = pa_command_extension
 };
-
-static void unlock_autospawn(pa_context *c) {
-    pa_assert(c);
-
-    if (c->autospawn_fd >= 0) {
-
-        if (c->autospawn_locked)
-            pa_autospawn_lock_release();
-
-        if (c->autospawn_event)
-            c->mainloop->io_free(c->autospawn_event);
-
-        pa_autospawn_lock_done(FALSE);
-    }
-
-    c->autospawn_locked = FALSE;
-    c->autospawn_fd = -1;
-    c->autospawn_event = NULL;
-}
-
 static void context_free(pa_context *c);
 
 pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
@@ -180,9 +159,6 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     c->do_shm = FALSE;
 
     c->do_autospawn = FALSE;
-    c->autospawn_fd = -1;
-    c->autospawn_locked = FALSE;
-    c->autospawn_event = NULL;
     memset(&c->spawn_api, 0, sizeof(c->spawn_api));
 
 #ifndef MSG_NOSIGNAL
@@ -251,8 +227,6 @@ static void context_free(pa_context *c) {
     pa_assert(c);
 
     context_unlink(c);
-
-    unlock_autospawn(c);
 
     if (c->record_streams)
         pa_dynarray_free(c->record_streams, NULL, NULL);
@@ -577,31 +551,89 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     pa_context_unref(c);
 }
 
-static void on_connection(pa_socket_client *client, pa_iochannel*io, void *userdata);
+static char *get_old_legacy_runtime_dir(void) {
+    char *p, u[128];
+    struct stat st;
+
+    if (!pa_get_user_name(u, sizeof(u)))
+        return NULL;
+
+    p = pa_sprintf_malloc("/tmp/pulse-%s", u);
+
+    if (stat(p, &st) < 0) {
+        pa_xfree(p);
+        return NULL;
+    }
+
+    if (st.st_uid != getuid()) {
+        pa_xfree(p);
+        return NULL;
+    }
+
+    return p;
+}
+
+static char *get_very_old_legacy_runtime_dir(void) {
+    char *p, h[128];
+    struct stat st;
+
+    if (!pa_get_home_dir(h, sizeof(h)))
+        return NULL;
+
+    p = pa_sprintf_malloc("%s/.pulse", h);
+
+    if (stat(p, &st) < 0) {
+        pa_xfree(p);
+        return NULL;
+    }
+
+    if (st.st_uid != getuid()) {
+        pa_xfree(p);
+        return NULL;
+    }
+
+    return p;
+}
+
+
+static pa_strlist *prepend_per_user(pa_strlist *l) {
+    char *ufn;
+    static char *legacy_dir;
+
+    /* The very old per-user instance path (< 0.9.11). This is supported only to ease upgrades */
+    if ((legacy_dir = get_very_old_legacy_runtime_dir())) {
+        char *p = pa_sprintf_malloc("%s" PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET, legacy_dir);
+        l = pa_strlist_prepend(l, p);
+        pa_xfree(p);
+        pa_xfree(legacy_dir);
+    }
+
+    /* The old per-user instance path (< 0.9.12). This is supported only to ease upgrades */
+    if ((legacy_dir = get_old_legacy_runtime_dir())) {
+        char *p = pa_sprintf_malloc("%s" PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET, legacy_dir);
+        l = pa_strlist_prepend(l, p);
+        pa_xfree(p);
+        pa_xfree(legacy_dir);
+    }
+
+    /* The per-user instance */
+    if ((ufn = pa_runtime_path(PA_NATIVE_DEFAULT_UNIX_SOCKET))) {
+        l = pa_strlist_prepend(l, ufn);
+        pa_xfree(ufn);
+    }
+
+    return l;
+}
 
 #ifndef OS_IS_WIN32
 
-static int context_connect_spawn(pa_context *c) {
+static int context_autospawn(pa_context *c) {
     pid_t pid;
     int status, r;
-    int fds[2] = { -1, -1} ;
-    pa_iochannel *io;
 
-    if (getuid() == 0)
-        return -1;
+    pa_log_debug("Trying to autospawn...");
 
     pa_context_ref(c);
-
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds) < 0) {
-        pa_log_error(_("socketpair(): %s"), pa_cstrerror(errno));
-        pa_context_fail(c, PA_ERR_INTERNAL);
-        goto fail;
-    }
-
-    pa_make_fd_cloexec(fds[0]);
-
-    pa_make_socket_low_delay(fds[0]);
-    pa_make_socket_low_delay(fds[1]);
 
     if (c->spawn_api.prefork)
         c->spawn_api.prefork();
@@ -617,31 +649,22 @@ static int context_connect_spawn(pa_context *c) {
     } else if (!pid) {
         /* Child */
 
-        char t[128];
         const char *state = NULL;
 #define MAX_ARGS 64
         const char * argv[MAX_ARGS+1];
         int n;
-        char *f;
-
-        pa_close_all(fds[1], -1);
-
-        f = pa_sprintf_malloc("%i", fds[1]);
-        pa_set_env("PULSE_PASSED_FD", f);
-        pa_xfree(f);
 
         if (c->spawn_api.atfork)
             c->spawn_api.atfork();
+
+        pa_close_all(-1);
 
         /* Setup argv */
 
         n = 0;
 
         argv[n++] = c->conf->daemon_binary;
-        argv[n++] = "--daemonize=yes";
-
-        pa_snprintf(t, sizeof(t), "-Lmodule-native-protocol-fd fd=%i", fds[1]);
-        argv[n++] = strdup(t);
+        argv[n++] = "--start";
 
         while (n < MAX_ARGS) {
             char *a;
@@ -661,13 +684,12 @@ static int context_connect_spawn(pa_context *c) {
 
     /* Parent */
 
-    pa_assert_se(pa_close(fds[1]) == 0);
-    fds[1] = -1;
-
-    r = waitpid(pid, &status, 0);
-
     if (c->spawn_api.postfork)
         c->spawn_api.postfork();
+
+    do {
+        r = waitpid(pid, &status, 0);
+    } while (r < 0 && errno == EINTR);
 
     if (r < 0) {
         pa_log(_("waitpid(): %s"), pa_cstrerror(errno));
@@ -678,21 +700,11 @@ static int context_connect_spawn(pa_context *c) {
         goto fail;
     }
 
-    c->is_local = TRUE;
-
-    unlock_autospawn(c);
-
-    io = pa_iochannel_new(c->mainloop, fds[0], fds[0]);
-    setup_context(c, io);
-
     pa_context_unref(c);
 
     return 0;
 
 fail:
-    pa_close_pipe(fds);
-
-    unlock_autospawn(c);
 
     pa_context_unref(c);
 
@@ -700,6 +712,8 @@ fail:
 }
 
 #endif /* OS_IS_WIN32 */
+
+static void on_connection(pa_socket_client *client, pa_iochannel*io, void *userdata);
 
 static int try_next_connection(pa_context *c) {
     char *u = NULL;
@@ -718,8 +732,18 @@ static int try_next_connection(pa_context *c) {
 
 #ifndef OS_IS_WIN32
             if (c->do_autospawn) {
-                r = context_connect_spawn(c);
-                goto finish;
+
+                if ((r = context_autospawn(c)) < 0)
+                    goto finish;
+
+                /* Autospawn only once */
+                c->do_autospawn = FALSE;
+
+                /* Connect only to per-user sockets this time */
+                c->server_list = prepend_per_user(c->server_list);
+
+                /* Retry connection */
+                continue;
             }
 #endif
 
@@ -774,89 +798,10 @@ static void on_connection(pa_socket_client *client, pa_iochannel*io, void *userd
         goto finish;
     }
 
-    unlock_autospawn(c);
     setup_context(c, io);
 
 finish:
     pa_context_unref(c);
-}
-
-static void autospawn_cb(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags_t events, void *userdata) {
-    pa_context *c = userdata;
-    int k;
-
-    pa_assert(a);
-    pa_assert(e);
-    pa_assert(fd >= 0);
-    pa_assert(events == PA_IO_EVENT_INPUT);
-    pa_assert(c);
-    pa_assert(e == c->autospawn_event);
-    pa_assert(fd == c->autospawn_fd);
-
-    pa_context_ref(c);
-
-    /* Check whether we can get the lock right now*/
-    if ((k = pa_autospawn_lock_acquire(FALSE)) < 0) {
-        pa_context_fail(c, PA_ERR_ACCESS);
-        goto finish;
-    }
-
-    if (k > 0) {
-        /* So we got it, rock on! */
-        c->autospawn_locked = TRUE;
-        try_next_connection(c);
-
-        c->mainloop->io_free(c->autospawn_event);
-        c->autospawn_event = NULL;
-    }
-
-finish:
-
-    pa_context_unref(c);
-}
-
-static char *get_old_legacy_runtime_dir(void) {
-    char *p, u[128];
-    struct stat st;
-
-    if (!pa_get_user_name(u, sizeof(u)))
-        return NULL;
-
-    p = pa_sprintf_malloc("/tmp/pulse-%s", u);
-
-    if (stat(p, &st) < 0) {
-        pa_xfree(p);
-        return NULL;
-    }
-
-    if (st.st_uid != getuid()) {
-        pa_xfree(p);
-        return NULL;
-    }
-
-    return p;
-}
-
-static char *get_very_old_legacy_runtime_dir(void) {
-    char *p, h[128];
-    struct stat st;
-
-    if (!pa_get_home_dir(h, sizeof(h)))
-        return NULL;
-
-    p = pa_sprintf_malloc("%s/.pulse", h);
-
-    if (stat(p, &st) < 0) {
-        pa_xfree(p);
-        return NULL;
-    }
-
-    if (st.st_uid != getuid()) {
-        pa_xfree(p);
-        return NULL;
-    }
-
-    return p;
 }
 
 int pa_context_connect(
@@ -888,11 +833,11 @@ int pa_context_connect(
         }
 
     } else {
-        char *d, *ufn;
-        static char *legacy_dir;
+        char *d;
 
         /* Prepend in reverse order */
 
+        /* Follow the X display */
         if ((d = getenv("DISPLAY"))) {
             char *e;
             d = pa_xstrdup(d);
@@ -909,67 +854,23 @@ int pa_context_connect(
         c->server_list = pa_strlist_prepend(c->server_list, "tcp6:[::1]");
         c->server_list = pa_strlist_prepend(c->server_list, "tcp4:127.0.0.1");
 
-        /* The system wide instance */
+        /* The system wide instance via PF_LOCAL */
         c->server_list = pa_strlist_prepend(c->server_list, PA_SYSTEM_RUNTIME_PATH PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET);
 
-        /* The very old per-user instance path (< 0.9.11). This is supported only to ease upgrades */
-        if ((legacy_dir = get_very_old_legacy_runtime_dir())) {
-            char *p = pa_sprintf_malloc("%s" PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET, legacy_dir);
-            c->server_list = pa_strlist_prepend(c->server_list, p);
-            pa_xfree(p);
-            pa_xfree(legacy_dir);
-        }
+        /* The user instance via PF_LOCAL */
+        c->server_list = prepend_per_user(c->server_list);
 
-        /* The old per-user instance path (< 0.9.12). This is supported only to ease upgrades */
-        if ((legacy_dir = get_old_legacy_runtime_dir())) {
-            char *p = pa_sprintf_malloc("%s" PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET, legacy_dir);
-            c->server_list = pa_strlist_prepend(c->server_list, p);
-            pa_xfree(p);
-            pa_xfree(legacy_dir);
-        }
-
-        /* The per-user instance */
-        if ((ufn = pa_runtime_path(PA_NATIVE_DEFAULT_UNIX_SOCKET))) {
-            c->server_list = pa_strlist_prepend(c->server_list, ufn);
-            pa_xfree(ufn);
-        }
-
-        /* Wrap the connection attempts in a single transaction for sane autospawn locking */
+        /* Set up autospawning */
         if (!(flags & PA_CONTEXT_NOAUTOSPAWN) && c->conf->autospawn) {
-            int k;
 
-            pa_assert(c->autospawn_fd < 0);
-            pa_assert(!c->autospawn_locked);
-
-            /* Start the locking procedure */
-            if ((c->autospawn_fd = pa_autospawn_lock_init()) < 0) {
-                pa_context_fail(c, PA_ERR_ACCESS);
-                goto finish;
-            }
-
-            if (api)
-                c->spawn_api = *api;
-
-            c->do_autospawn = TRUE;
-
-            /* Check whether we can get the lock right now*/
-            if ((k = pa_autospawn_lock_acquire(FALSE)) < 0) {
-                pa_context_fail(c, PA_ERR_ACCESS);
-                goto finish;
-            }
-
-            if (k > 0)
-                /* So we got it, rock on! */
-                c->autospawn_locked = TRUE;
+            if (getuid() == 0)
+                pa_log_debug("Not doing autospawn since we are root.");
             else {
-                /* Hmm, we didn't get it, so let's wait for it */
-                c->autospawn_event = c->mainloop->io_new(c->mainloop, c->autospawn_fd, PA_IO_EVENT_INPUT, autospawn_cb, c);
+                c->do_autospawn = TRUE;
 
-                pa_context_set_state(c, PA_CONTEXT_CONNECTING);
-                r = 0;
-                goto finish;
+                if (api)
+                    c->spawn_api = *api;
             }
-
         }
     }
 
