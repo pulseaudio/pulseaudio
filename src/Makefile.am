@@ -654,7 +654,7 @@ bin_SCRIPTS += utils/padsp
 
 endif
 
-libpulsedsp_la_SOURCES = utils/padsp.c pulsecore/core-util.c pulsecore/core-util.h pulsecore/core-error.c pulsecore/core-error.h  pulsecore/log.c pulsecore/log.h pulsecore/once.c pulsecore/once.h $(PA_THREAD_OBJS)
+libpulsedsp_la_SOURCES = utils/padsp.c pulsecore/core-util.c pulsecore/core-util.h pulsecore/core-error.c pulsecore/core-error.h  pulsecore/log.c pulsecore/log.h pulsecore/rtclock.c pulsecore/rtclock.h pulsecore/once.c pulsecore/once.h $(PA_THREAD_OBJS)
 libpulsedsp_la_CFLAGS = $(AM_CFLAGS)
 libpulsedsp_la_LIBADD = $(AM_LIBADD) libpulse.la
 libpulsedsp_la_LDFLAGS = -avoid-version
