@@ -318,8 +318,7 @@ void* pa_idxset_rrobin(pa_idxset *s, uint32_t *idx) {
 
     hash = *idx % NBUCKETS;
 
-    if (!(e = index_scan(s, hash, *idx)))
-        return NULL;
+    e = index_scan(s, hash, *idx);
 
     if (e && e->iterate_next)
         e = e->iterate_next;
