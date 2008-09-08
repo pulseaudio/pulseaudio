@@ -190,3 +190,4 @@ src/utils/padsp.c
 src/utils/pax11publish.c
 src/utils/pacmd.c
 src/utils/paplay.c
+src/pulsecore/lock-autospawn.c
