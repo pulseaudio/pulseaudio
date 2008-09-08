@@ -377,7 +377,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
                 pa_log_info("Restoring device for stream %s.", name);
                 new_data->source = s;
             } else
-                pa_log_info("Not restroing device for stream %s, because already set", name);
+                pa_log_info("Not restoring device for stream %s, because already set", name);
         }
 
         pa_xfree(e);
