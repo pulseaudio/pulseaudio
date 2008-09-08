@@ -198,6 +198,7 @@ pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels, p
     pa_assert(m);
     pa_assert(channels > 0);
     pa_assert(channels <= PA_CHANNELS_MAX);
+    pa_assert(def < PA_CHANNEL_MAP_DEF_MAX);
 
     pa_channel_map_init(m);
 
@@ -286,9 +287,6 @@ pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels, p
 
         case PA_CHANNEL_MAP_AUX: {
             unsigned i;
-
-            if (channels >= PA_CHANNELS_MAX)
-                return NULL;
 
             for (i = 0; i < channels; i++)
                 m->map[i] = PA_CHANNEL_POSITION_AUX0 + i;
@@ -391,7 +389,7 @@ pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels, p
 
 
         default:
-            return NULL;
+            pa_assert_not_reached();
     }
 }
 
@@ -401,6 +399,7 @@ pa_channel_map* pa_channel_map_init_extend(pa_channel_map *m, unsigned channels,
     pa_assert(m);
     pa_assert(channels > 0);
     pa_assert(channels <= PA_CHANNELS_MAX);
+    pa_assert(def < PA_CHANNEL_MAP_DEF_MAX);
 
     pa_channel_map_init(m);
 
@@ -489,7 +488,7 @@ pa_channel_map *pa_channel_map_parse(pa_channel_map *rmap, const char *s) {
     pa_assert(rmap);
     pa_assert(s);
 
-    memset(&map, 0, sizeof(map));
+    pa_channel_map_init(&map);
 
     if (strcmp(s, "stereo") == 0) {
         map.channels = 2;
@@ -552,11 +551,16 @@ int pa_channel_map_valid(const pa_channel_map *map) {
     if (map->channels <= 0 || map->channels > PA_CHANNELS_MAX)
         return 0;
 
-    for (c = 0; c < map->channels; c++) {
-
-        if (map->map[c] < 0 ||map->map[c] >= PA_CHANNEL_POSITION_MAX)
+    for (c = 0; c < map->channels; c++)
+        if (map->map[c] < 0 || map->map[c] >= PA_CHANNEL_POSITION_MAX)
             return 0;
-    }
 
     return 1;
+}
+
+int pa_channel_map_compatible(const pa_channel_map *map, const pa_sample_spec *ss) {
+    pa_assert(map);
+    pa_assert(ss);
+
+    return map->channels == ss->channels;
 }

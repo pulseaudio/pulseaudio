@@ -500,7 +500,7 @@ static void help(const char *argv0) {
            "      --volume=VOLUME                   Specify the initial (linear) volume in range 0...65536\n"
            "      --rate=SAMPLERATE                 The sample rate in Hz (defaults to 44100)\n"
            "      --format=SAMPLEFORMAT             The sample type, one of s16le, s16be, u8, float32le,\n"
-           "                                        float32be, ulaw, alaw (defaults to s16ne)\n"
+           "                                        float32be, ulaw, alaw, s32le, s32be (defaults to s16ne)\n"
            "      --channels=CHANNELS               The number of channels, 1 for mono, 2 for stereo\n"
            "                                        (defaults to 2)\n"
            "      --channel-map=CHANNELMAP          Channel map to use instead of the default\n"
@@ -695,7 +695,7 @@ int main(int argc, char *argv[]) {
         goto quit;
     }
 
-    if (channel_map_set && channel_map.channels != sample_spec.channels) {
+    if (channel_map_set && pa_channel_map_compatible(&channel_map, &sample_spec)) {
         fprintf(stderr, _("Channel map doesn't match sample specification\n"));
         goto quit;
     }
@@ -773,7 +773,10 @@ int main(int argc, char *argv[]) {
     pa_context_set_state_callback(context, context_state_callback, NULL);
 
     /* Connect the context */
-    pa_context_connect(context, server, 0, NULL);
+    if (pa_context_connect(context, server, 0, NULL) < 0) {
+        fprintf(stderr, _("pa_context_connect() failed: %s"), pa_strerror(pa_context_errno(context)));
+        goto quit;
+    }
 
     if (verbose) {
         struct timeval tv;

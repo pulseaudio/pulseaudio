@@ -49,9 +49,10 @@ typedef enum pa_resample_method {
 } pa_resample_method_t;
 
 typedef enum pa_resample_flags {
-    PA_RESAMPLER_VARIABLE_RATE = 1,
-    PA_RESAMPLER_NO_REMAP = 2,  /* implies NO_REMIX */
-    PA_RESAMPLER_NO_REMIX = 4
+    PA_RESAMPLER_VARIABLE_RATE = 0x0001U,
+    PA_RESAMPLER_NO_REMAP      = 0x0002U,  /* implies NO_REMIX */
+    PA_RESAMPLER_NO_REMIX      = 0x0004U,
+    PA_RESAMPLER_NO_LFE        = 0x0008U
 } pa_resample_flags_t;
 
 pa_resampler* pa_resampler_new(

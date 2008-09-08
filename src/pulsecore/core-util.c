@@ -42,6 +42,7 @@
 #include <dirent.h>
 #include <regex.h>
 #include <langinfo.h>
+#include <sys/utsname.h>
 
 #ifdef HAVE_STRTOF_L
 #include <locale.h>
@@ -2445,5 +2446,12 @@ char *pa_machine_id(void) {
     /* If no hostname was set we use the POSIX hostid. It's usually
      * the IPv4 address.  Mit not be that stable. */
     return pa_sprintf_malloc("%08lx", (unsigned long) gethostid);
+}
 
+char *pa_uname_string(void) {
+    struct utsname u;
+
+    pa_assert_se(uname(&u) == 0);
+
+    return pa_sprintf_malloc("%s %s %s %s", u.sysname, u.machine, u.release, u.version);
 }

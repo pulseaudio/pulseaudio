@@ -1241,7 +1241,7 @@ int pa__init(pa_module*m) {
     }
 
     if (use_tsched && !pa_rtclock_hrtimer()) {
-        pa_log("Disabling timer-based scheduling because high-resolution timers are not available from the kernel.");
+        pa_log_notice("Disabling timer-based scheduling because high-resolution timers are not available from the kernel.");
         use_tsched = FALSE;
     }
 

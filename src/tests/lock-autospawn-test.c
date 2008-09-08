@@ -28,7 +28,7 @@
 
 #include <pulsecore/macro.h>
 #include <pulsecore/thread.h>
-#include <pulse/lock-autospawn.h>
+#include <pulsecore/lock-autospawn.h>
 #include <pulse/util.h>
 
 static void thread_func(void*k) {

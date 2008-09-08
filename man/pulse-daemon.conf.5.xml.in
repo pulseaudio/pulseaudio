@@ -106,6 +106,16 @@ USA.
     </option>
 
     <option>
+      <p><opt>disable-lfe-remixing=</opt> When upmixing or downmixing
+      ignore LFE channels. When this option is on the output LFE
+      channel will only get a signal when an input LFE channel is
+      available as well. If no input LFE channel is available the
+      output LFE channel will always be 0. If no output LFE channel is
+      available the signal on the input LFE channel will be
+      ignored.</p>
+    </option>
+
+    <option>
       <p><opt>use-pid-file=</opt> Create a PID file in
       <file>/tmp/pulse-$USER/pid</file>. Of this is enabled you may
       use commands like <opt>--kill</opt> or <opt>--check</opt>. If
@@ -319,9 +329,11 @@ USA.
     <option>
       <p><opt>default-sample-format=</opt> The default sampling
       format. Specify one of <opt>u8</opt>, <opt>s16le</opt>,
-      <opt>s16be</opt>, <opt>float32le</opt>, <opt>float32be</opt>,
+      <opt>s16be</opt>, <opt>s32le</opt>,
+      <opt>s32be</opt>, <opt>float32le</opt>, <opt>float32be</opt>,
       <opt>ulaw</opt>, <opt>alaw</opt>. Depending on the endianess of
-      the CPU the formats <opt>s16ne</opt>, <opt>s16re</opt>,
+      the CPU the
+      formats <opt>s16ne</opt>, <opt>s16re</opt>, <opt>s32ne</opt>, <opt>s32re</opt>,
       <opt>float32ne</opt>, <opt>float32re</opt> (for native,
       resp. reverse endian) are available as aliases.</p>
     </option>
