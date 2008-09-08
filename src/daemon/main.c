@@ -65,8 +65,8 @@
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 #include <pulse/i18n.h>
-#include <pulse/lock-autospawn.h>
 
+#include <pulsecore/lock-autospawn.h>
 #include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/core.h>

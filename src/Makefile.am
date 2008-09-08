@@ -541,8 +541,7 @@ libpulse_la_SOURCES = \
 		pulse/xmalloc.c pulse/xmalloc.h \
 		pulse/proplist.c pulse/proplist.h \
 		pulse/ext-stream-restore.c pulse/ext-stream-restore.h \
-		pulse/i18n.c pulse/i18n.h \
-		pulse/lock-autospawn.c pulse/lock-autospawn.h
+		pulse/i18n.c pulse/i18n.h
 
 # Internal stuff that is shared with libpulsecore
 libpulse_la_SOURCES += \
@@ -740,8 +739,7 @@ libpulsecore_la_SOURCES = \
 		pulse/volume.c pulse/volume.h \
 		pulse/xmalloc.c pulse/xmalloc.h \
 		pulse/proplist.c pulse/proplist.h \
-		pulse/i18n.c pulse/i18n.h \
-		pulse/lock-autospawn.c pulse/lock-autospawn.h
+		pulse/i18n.c pulse/i18n.h
 
 # Pure core stuff (some are shared in libpulse though).
 libpulsecore_la_SOURCES += \
@@ -811,6 +809,7 @@ libpulsecore_la_SOURCES += \
 		pulsecore/start-child.c pulsecore/start-child.h \
 		pulsecore/envelope.c pulsecore/envelope.h \
 		pulsecore/proplist-util.c pulsecore/proplist-util.h \
+		pulsecore/lock-autospawn.c pulsecore/lock-autospawn.h \
 		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32
