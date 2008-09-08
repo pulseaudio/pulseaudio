@@ -40,11 +40,11 @@ AC_SUBST(PA_PROTOCOL_VERSION, 14)
 
 # The stable ABI for client applications, for the version info x:y:z
 # always will hold y=z
-AC_SUBST(LIBPULSE_VERSION_INFO, [5:0:5])
+AC_SUBST(LIBPULSE_VERSION_INFO, [6:0:6])
 
 # A simplified, synchronous, ABI-stable interface for client
 # applications, for the version info x:y:z always will hold y=z
-AC_SUBST(LIBPULSE_SIMPLE_VERSION_INFO, [0:1:0])
+AC_SUBST(LIBPULSE_SIMPLE_VERSION_INFO, [0:2:0])
 
 # The ABI-stable network browsing interface for client applications,
 # for the version info x:y:z always will hold y=z
@@ -52,12 +52,12 @@ AC_SUBST(LIBPULSE_BROWSE_VERSION_INFO, [1:1:1])
 
 # The ABI-stable GLib adapter for client applications, for the version
 # info x:y:z always will hold y=z
-AC_SUBST(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO, [0:3:0])
+AC_SUBST(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO, [0:4:0])
 
 # An internally used, ABI-unstable library that contains the
 # PulseAudio core, SONAMEs are bumped on every release, version info
 # suffix will always be 0:0
-AC_SUBST(LIBPULSECORE_VERSION_INFO, [6:0:0])
+AC_SUBST(LIBPULSECORE_VERSION_INFO, [7:0:0])
 
 AC_CANONICAL_HOST
 AC_DEFINE_UNQUOTED([CANONICAL_HOST], "$host", [Canonical host string.])
