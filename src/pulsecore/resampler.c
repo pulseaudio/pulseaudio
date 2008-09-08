@@ -1418,40 +1418,46 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
         unsigned j;
 
         j = ((r->peaks.o_counter * r->i_ss.rate) / r->o_ss.rate);
-        j = j > r->peaks.i_counter ? j - r->peaks.i_counter : 0;
 
-        if (j >= in_n_frames)
-            break;
+        if (j > r->peaks.i_counter)
+            j -= r->peaks.i_counter;
+        else
+            j = 0;
 
         pa_assert(o_index * fz < pa_memblock_get_length(output->memblock));
 
         if (r->work_format == PA_SAMPLE_S16NE) {
             unsigned i, c;
-            int16_t *s = (int16_t*) ((uint8_t*) src + fz * j);
+            int16_t *s = (int16_t*) ((uint8_t*) src + fz * start);
             int16_t *d = (int16_t*) ((uint8_t*) dst + fz * o_index);
 
-            for (i = start; i <= j; i++)
+            for (i = start; i <= j && i < in_n_frames; i++)
+
                 for (c = 0; c < r->o_ss.channels; c++, s++) {
                     int16_t n;
 
                     n = (int16_t) (*s < 0 ? -*s : *s);
 
-                    if (n > r->peaks.max_i[c])
+                    if (PA_UNLIKELY(n > r->peaks.max_i[c]))
                         r->peaks.max_i[c] = n;
                 }
 
+            if (i >= in_n_frames)
+                break;
+
             for (c = 0; c < r->o_ss.channels; c++, d++) {
-                 *d = r->peaks.max_i[c];
-                 r->peaks.max_i[c] = 0;
+                *d = r->peaks.max_i[c];
+                r->peaks.max_i[c] = 0;
             }
+
         } else {
             unsigned i, c;
-            float *s = (float*) ((uint8_t*) src + fz * j);
+            float *s = (float*) ((uint8_t*) src + fz * start);
             float *d = (float*) ((uint8_t*) dst + fz * o_index);
 
             pa_assert(r->work_format == PA_SAMPLE_FLOAT32NE);
 
-            for (i = start; i <= j; i++)
+            for (i = start; i <= j && i < in_n_frames; i++)
                 for (c = 0; c < r->o_ss.channels; c++, s++) {
                     float n = fabsf(*s);
 
@@ -1459,13 +1465,16 @@ static void peaks_resample(pa_resampler *r, const pa_memchunk *input, unsigned i
                         r->peaks.max_f[c] = n;
                 }
 
+            if (i >= in_n_frames)
+                break;
+
             for (c = 0; c < r->o_ss.channels; c++, d++) {
                 *d = r->peaks.max_f[c];
                 r->peaks.max_f[c] = 0;
             }
         }
 
-        start = j+1;
+        start = j;
     }
 
     pa_memblock_release(input->memblock);
