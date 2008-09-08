@@ -654,7 +654,9 @@ static int unsuspend(struct userdata *u) {
     }
 
     if (nfrags != u->nfragments || period_size*u->frame_size != u->fragment_size) {
-        pa_log_warn("Resume failed, couldn't restore original fragment settings.");
+        pa_log_warn("Resume failed, couldn't restore original fragment settings. (Old: %lu*%lu, New %lu*%lu)",
+                    (unsigned long) u->nfragments, (unsigned long) u->fragment_size,
+                    (unsigned long) nfrags, period_size * u->frame_size);
         goto fail;
     }
 
@@ -1154,7 +1156,7 @@ static void thread_func(void *userdata) {
                 goto fail;
             }
 
-            if (revents & (POLLERR|POLLNVAL|POLLHUP)) {
+            if (revents & (POLLERR|POLLNVAL|POLLHUP|POLLPRI)) {
                 if (pa_alsa_recover_from_poll(u->pcm_handle, revents) < 0)
                     goto fail;
 
@@ -1163,7 +1165,7 @@ static void thread_func(void *userdata) {
             }
 
             if (revents && u->use_tsched)
-                pa_log_debug("Wakeup from ALSA! (%i)", revents);
+                pa_log_debug("Wakeup from ALSA!%s%s", (revents & POLLIN) ? " INPUT" : "", (revents & POLLOUT) ? " OUTPUT" : "");
         }
     }
 
