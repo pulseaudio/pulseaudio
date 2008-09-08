@@ -370,11 +370,18 @@ int pa_alsa_set_hw_params(
         goto finish;
 
     if (_periods > 0) {
-        dir = 1;
+
+        /* First we pass 0 as direction to get exactly what we asked
+         * for. That this is necessary is presumably a bug in ALSA */
+
+        dir = 0;
         if ((ret = snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &_periods, &dir)) < 0) {
-            dir = -1;
-            if ((ret = snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &_periods, &dir)) < 0)
-                goto finish;
+            dir = 1;
+            if ((ret = snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &_periods, &dir)) < 0) {
+                dir = -1;
+                if ((ret = snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &_periods, &dir)) < 0)
+                    goto finish;
+            }
         }
     }
 
