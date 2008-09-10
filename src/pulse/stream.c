@@ -1851,7 +1851,7 @@ pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_succe
     if (s->context->version >= 13) {
         pa_proplist *p = pa_proplist_new();
 
-        pa_proplist_sets(p, PA_PROP_APPLICATION_NAME, name);
+        pa_proplist_sets(p, PA_PROP_MEDIA_NAME, name);
         o = pa_stream_proplist_update(s, PA_UPDATE_REPLACE, p, cb, userdata);
         pa_proplist_free(p);
     } else {
