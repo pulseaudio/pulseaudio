@@ -557,7 +557,7 @@ void pa_command_stream_started(pa_pdispatch *pd, uint32_t command, uint32_t tag,
     request_auto_timing_update(s, TRUE);
 
     if (s->started_callback)
-        s->started_callback(s, s->suspended_userdata);
+        s->started_callback(s, s->started_userdata);
 
 finish:
     pa_context_unref(c);
