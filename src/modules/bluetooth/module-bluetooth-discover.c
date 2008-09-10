@@ -398,7 +398,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *
     u = userdata;
     dbus_error_init(&err);
 
-    pa_log("dbus: interface=%s, path=%s, member=%s\n",
+    pa_log_debug("dbus: interface=%s, path=%s, member=%s\n",
             dbus_message_get_interface(msg),
             dbus_message_get_path(msg),
             dbus_message_get_member(msg));
