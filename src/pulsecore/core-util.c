@@ -1370,6 +1370,7 @@ static int make_random_dir_and_link(mode_t m, const char *k) {
 char *pa_get_runtime_dir(void) {
     char *d, *k = NULL, *p = NULL, *t = NULL, *mid;
     struct stat st;
+    mode_t m;
 
     /* The runtime directory shall contain dynamic data that needs NOT
      * to be kept accross reboots and is usuallly private to the user,
@@ -1378,10 +1379,9 @@ char *pa_get_runtime_dir(void) {
      * this directory, we link it to a random subdir in /tmp, if it
      * was not explicitly configured. */
 
-    if ((d = getenv("PULSE_RUNTIME_PATH"))) {
-        mode_t m;
+    m = pa_in_system_mode() ? 0755U : 0700U;
 
-        m = pa_in_system_mode() ? 0755U : 0700U;
+    if ((d = getenv("PULSE_RUNTIME_PATH"))) {
 
         if (pa_make_secure_dir(d, m, (uid_t) -1, (gid_t) -1) < 0)  {
             pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
@@ -1393,6 +1393,11 @@ char *pa_get_runtime_dir(void) {
 
     if (!(d = get_pulse_home()))
         goto fail;
+
+    if (pa_make_secure_dir(d, m, (uid_t) -1, (gid_t) -1) < 0)  {
+        pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
+        goto fail;
+    }
 
     if (!(mid = pa_machine_id())) {
         pa_xfree(d);
