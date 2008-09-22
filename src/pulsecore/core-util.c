@@ -1315,31 +1315,43 @@ static char* make_random_dir(mode_t m) {
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "0123456789";
 
-    char fn[24] = "/tmp/pulse-";
+    const char *tmpdir;
+    char *fn;
+    size_t pathlen;
 
-    fn[sizeof(fn)-1] = 0;
+    if (!(tmpdir = getenv("TMPDIR")))
+        if (!(tmpdir = getenv("TMP")))
+            if (!(tmpdir = getenv("TEMP")))
+                tmpdir = getenv("TEMPDIR");
+
+    if (!tmpdir || !pa_is_path_absolute(tmpdir))
+        tmpdir = "/tmp";
+
+    fn = pa_sprintf_malloc("%s/pulse-XXXXXXXXXXXX", tmpdir);
+    pathlen = strlen(fn);
 
     for (;;) {
-        unsigned i;
+        size_t i;
         int r;
         mode_t u;
         int saved_errno;
 
-        for (i = 11; i < sizeof(fn)-1; i++)
+        for (i = pathlen - 12; i < pathlen; i++)
             fn[i] = table[rand() % (sizeof(table)-1)];
 
         u = umask((~m) & 0777);
         r = mkdir(fn, m);
+
         saved_errno = errno;
         umask(u);
+        errno = saved_errno;
 
         if (r >= 0)
-            return pa_xstrdup(fn);
-
-        errno = saved_errno;
+            return fn;
 
         if (errno != EEXIST) {
             pa_log_error("Failed to create random directory %s: %s", fn, pa_cstrerror(errno));
+            pa_xfree(fn);
             return NULL;
         }
     }
