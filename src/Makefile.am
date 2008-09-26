@@ -263,7 +263,8 @@ noinst_PROGRAMS = \
 		proplist-test \
 		rtstutter \
 		stripnul \
-		lock-autospawn-test
+		lock-autospawn-test \
+		prioq-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -457,6 +458,11 @@ lock_autospawn_test_SOURCES = tests/lock-autospawn-test.c
 lock_autospawn_test_LDADD = $(AM_LDADD) libpulsecore.la
 lock_autospawn_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
 lock_autospawn_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
+
+prioq_test_SOURCES = tests/prioq-test.c
+prioq_test_LDADD = $(AM_LDADD) libpulsecore.la
+prioq_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+prioq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
 
 ###################################
 #         Client library          #
@@ -757,6 +763,7 @@ libpulsecore_la_SOURCES += \
 		pulsecore/g711.c pulsecore/g711.h \
 		pulsecore/hashmap.c pulsecore/hashmap.h \
 		pulsecore/idxset.c pulsecore/idxset.h \
+		pulsecore/prioq.c pulsecore/prioq.h \
 		pulsecore/log.c pulsecore/log.h \
 		pulsecore/mcalign.c pulsecore/mcalign.h \
 		pulsecore/memblock.c pulsecore/memblock.h \
