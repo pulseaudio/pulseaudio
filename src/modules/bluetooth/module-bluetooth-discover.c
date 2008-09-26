@@ -141,21 +141,21 @@ static void print_devices(struct device *device_list) {
     while (device_list_i != NULL) {
         struct uuid *uuid_list_i = device_list_i->uuid_list;
         if (strcmp(device_list_i->object_path, "/DEVICE_HEAD") != 0) {
-            pa_log("    [ %s ]", device_list_i->object_path);
-            pa_log("        Name = %s", device_list_i->name);
-            pa_log("        Paired = %d", device_list_i->paired);
-            pa_log("        Adapter = %s", device_list_i->adapter->object_path);
-            pa_log("        Alias = %s", device_list_i->alias);
-            pa_log("        Connected = %d", device_list_i->connected);
-            pa_log("        UUIDs = ");
+            pa_log_debug("    [ %s ]", device_list_i->object_path);
+            pa_log_debug("        Name = %s", device_list_i->name);
+            pa_log_debug("        Paired = %d", device_list_i->paired);
+            pa_log_debug("        Adapter = %s", device_list_i->adapter->object_path);
+            pa_log_debug("        Alias = %s", device_list_i->alias);
+            pa_log_debug("        Connected = %d", device_list_i->connected);
+            pa_log_debug("        UUIDs = ");
             while (uuid_list_i != NULL) {
                 if (strcmp(uuid_list_i->uuid, "UUID_HEAD") != 0)
                     pa_log("            %s", uuid_list_i->uuid);
                 uuid_list_i = uuid_list_i->next;
             }
-            pa_log("        Address = %s", device_list_i->address);
-            pa_log("        Class = 0x%x", device_list_i->class);
-            pa_log("        Trusted = %d", device_list_i->trusted);
+            pa_log_debug("        Address = %s", device_list_i->address);
+            pa_log_debug("        Class = 0x%x", device_list_i->class);
+            pa_log_debug("        Trusted = %d", device_list_i->trusted);
         }
         device_list_i = device_list_i->next;
     }
@@ -165,9 +165,9 @@ static void print_adapters(struct adapter *adapter_list) {
     struct adapter *adapter_list_i = adapter_list;
     while (adapter_list_i != NULL) {
         if (strcmp(adapter_list_i->object_path, "/ADAPTER_HEAD") != 0) {
-            pa_log("[ %s ]", adapter_list_i->object_path);
-            pa_log("    Mode = %s", adapter_list_i->mode);
-            pa_log("    Address = %s", adapter_list_i->address);
+            pa_log_debug("[ %s ]", adapter_list_i->object_path);
+            pa_log_debug("    Mode = %s", adapter_list_i->mode);
+            pa_log_debug("    Address = %s", adapter_list_i->address);
             print_devices(adapter_list_i->device_list);
         }
         adapter_list_i = adapter_list_i->next;
@@ -260,7 +260,7 @@ static void detect_devices(struct userdata *u) {
     struct adapter *adapter_list_i;
     struct device *device_list_i;
     const char *key, *value;
-    unsigned int uvalue;
+    int32_t ivalue;
 
     pa_assert(u);
     dbus_error_init(&e);
@@ -326,16 +326,16 @@ static void detect_devices(struct userdata *u) {
                         device_list_i->name = pa_xstrdup(value);
                     }
                     else if (strcmp(key, "Paired") == 0) {
-                        dbus_message_iter_get_basic(&variant_i, &uvalue);
-                        device_list_i->paired = uvalue;
+                        dbus_message_iter_get_basic(&variant_i, &ivalue);
+                        device_list_i->paired = ivalue;
                     }
                     else if (strcmp(key, "Alias") == 0) {
                         dbus_message_iter_get_basic(&variant_i, &value);
                         device_list_i->alias = pa_xstrdup(value);
                     }
                     else if (strcmp(key, "Connected") == 0) {
-                        dbus_message_iter_get_basic(&variant_i, &uvalue);
-                        device_list_i->connected = uvalue;
+                        dbus_message_iter_get_basic(&variant_i, &ivalue);
+                        device_list_i->connected = ivalue;
                     }
                     else if (strcmp(key, "UUIDs") == 0) {
                         DBusMessageIter uuid_i;
@@ -363,12 +363,12 @@ static void detect_devices(struct userdata *u) {
                         device_list_i->address = pa_xstrdup(value);
                     }
                     else if (strcmp(key, "Class") == 0) {
-                        dbus_message_iter_get_basic(&variant_i, &uvalue);
-                        device_list_i->class = uvalue;
+                        dbus_message_iter_get_basic(&variant_i, &ivalue);
+                        device_list_i->class = ivalue;
                     }
                     else if (strcmp(key, "Trusted") == 0) {
-                        dbus_message_iter_get_basic(&variant_i, &uvalue);
-                        device_list_i->trusted = uvalue;
+                        dbus_message_iter_get_basic(&variant_i, &ivalue);
+                        device_list_i->trusted = ivalue;
                     }
                 }
                 dbus_message_iter_next(&element_i);
@@ -465,7 +465,6 @@ void pa__done(pa_module* m) {
 
     pa_dbus_connection_unref(u->conn);
     pa_xfree(u);
-    pa_log("Unloading module-bt-discover");
     return;
 }
 
@@ -476,7 +475,6 @@ int pa__init(pa_module* m) {
     struct userdata *u;
 
     pa_assert(m);
-    pa_log("Loading module-bt-discover");
     dbus_error_init(&err);
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->module = m;
@@ -500,7 +498,7 @@ int pa__init(pa_module* m) {
     while (adapter_list_i != NULL) {
         device_list_i = adapter_list_i->device_list;
         while (device_list_i != NULL) {
-            pa_log("Loading module-bt-device for %s", device_list_i->name);
+            pa_log_debug("Loading module-bt-device for %s", device_list_i->name);
             /* TODO: call module */
             device_list_i = device_list_i->next;
         }
