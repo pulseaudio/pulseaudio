@@ -80,7 +80,7 @@ unsigned pa_idxset_trivial_hash_func(const void *p) {
 }
 
 int pa_idxset_trivial_compare_func(const void *a, const void *b) {
-    return a != b;
+    return a < b ? -1 : (a > b ? 1 : 0);
 }
 
 pa_idxset* pa_idxset_new(pa_hash_func_t hash_func, pa_compare_func_t compare_func) {
