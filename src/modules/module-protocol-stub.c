@@ -148,7 +148,7 @@
 #  include <pulsecore/esound.h>
 #  define TCPWRAP_SERVICE "esound"
 #  define IPV4_PORT ESD_DEFAULT_PORT
-#  define MODULE_ARGUMENTS_COMMON "sink", "source", "auth-anonymous", "cookie", "auth-cookie", "auth-cookie-enabled"
+#  define MODULE_ARGUMENTS_COMMON "sink", "source", "auth-anonymous", "cookie", "auth-cookie", "auth-cookie-enabled",
 
 #  ifdef USE_TCP_SOCKETS
 #    include "module-esound-protocol-tcp-symdef.h"
