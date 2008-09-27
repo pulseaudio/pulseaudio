@@ -77,6 +77,8 @@ void pa_prioq_free(pa_prioq *q, pa_free2_cb_t free_cb, void *userdata) {
 }
 
 static void shuffle_up(pa_prioq *q, pa_prioq_item *i) {
+    unsigned j;
+
     pa_assert(q);
     pa_assert(i);
 
@@ -103,7 +105,6 @@ static void shuffle_up(pa_prioq *q, pa_prioq_item *i) {
 
 pa_prioq_item* pa_prioq_put(pa_prioq *q, void *p) {
     pa_prioq_item *i;
-    unsigned j;
 
     pa_assert(q);
 
@@ -251,5 +252,5 @@ void pa_prioq_reshuffle(pa_prioq *q, pa_prioq_item *i) {
     shuffle_down(q, i->idx);
 
     /* And this will move the entry up as far as necessary */
-    shuffle_up(q, i->idx);
+    shuffle_up(q, i);
 }

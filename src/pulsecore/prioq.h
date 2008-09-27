@@ -53,7 +53,7 @@ void* pa_prioq_pop(pa_prioq*q);
 void* pa_prioq_remove(pa_prioq*q, pa_prioq_item *i);
 
 /* The priority of an item was modified. Adjustthe queue to that */
-void pa_prioq_reshuffle(pa_prioq *q, pa_prioq_item *i)
+void pa_prioq_reshuffle(pa_prioq *q, pa_prioq_item *i);
 
 /* Return the current number of items in the prioq */
 unsigned pa_prioq_size(pa_prioq*s);
