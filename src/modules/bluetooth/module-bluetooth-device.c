@@ -63,8 +63,8 @@ PA_MODULE_DESCRIPTION("Bluetooth audio sink and source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
-        "name=<name of the device> "
-        "addr=<address of the device> "
+        "sink_name=<name of the device> "
+        "address=<address of the device> "
         "profile=<a2dp|hsp>");
 
 struct bt_a2dp {
@@ -115,8 +115,8 @@ struct userdata {
 };
 
 static const char* const valid_modargs[] = {
-    "name",
-    "addr",
+    "sink_name",
+    "address",
     "profile",
     "rate",
     "channels",
@@ -789,29 +789,32 @@ int pa__init(pa_module* m) {
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll);
     u->rtpoll_item = NULL;
+    u->ss = m->core->default_sample_spec;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log_error("failed to parse module arguments");
+        pa_log_error("Failed to parse module arguments");
         goto fail;
     }
-    if (!(u->name = pa_xstrdup(pa_modargs_get_value(ma, "name", DEFAULT_SINK_NAME)))) {
-        pa_log_error("failed to get device name from module arguments");
+    if (!(u->name = pa_xstrdup(pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME)))) {
+        pa_log_error("Failed to get device name from module arguments");
         goto fail;
     }
-    if (!(u->addr = pa_xstrdup(pa_modargs_get_value(ma, "addr", NULL)))) {
-        pa_log_error("failed to get device address from module arguments");
+    if (!(u->addr = pa_xstrdup(pa_modargs_get_value(ma, "address", NULL)))) {
+        pa_log_error("Failed to get device address from module arguments");
         goto fail;
     }
     if (!(u->profile = pa_xstrdup(pa_modargs_get_value(ma, "profile", NULL)))) {
-        pa_log_error("failed to get profile from module arguments");
+        pa_log_error("Failed to get profile from module arguments");
         goto fail;
     }
     if (pa_modargs_get_value_u32(ma, "rate", &u->ss.rate) < 0) {
-        pa_log_error("failed to get rate from module arguments");
+        pa_log_error("Failed to get rate from module arguments");
         goto fail;
     }
+
+    channels = u->ss.channels;
     if (pa_modargs_get_value_u32(ma, "channels", &channels) < 0) {
-        pa_log_error("failed to get channels from module arguments");
+        pa_log_error("Failed to get channels from module arguments");
         goto fail;
     }
     u->ss.channels = (uint8_t) channels;
