@@ -53,7 +53,7 @@
 #define DEFAULT_SINK_NAME "bluetooth_sink"
 #define BUFFER_SIZE 2048
 #define MAX_BITPOOL 64
-#define MIN_BITPOOL 2
+#define MIN_BITPOOL 2U
 #define SOL_SCO 17
 #define SCO_TXBUFS 0x03
 #define SCO_RXBUFS 0x04
@@ -71,14 +71,14 @@ struct bt_a2dp {
     sbc_capabilities_t sbc_capabilities;
     sbc_t sbc;                           /* Codec data */
     pa_bool_t sbc_initialized;           /* Keep track if the encoder is initialized */
-    uint16_t codesize;                   /* SBC codesize */
-    uint8_t samples;                     /* Number of encoded samples */
+    size_t codesize;                     /* SBC codesize */
+    unsigned samples;                    /* Number of encoded samples */
     uint8_t buffer[BUFFER_SIZE];         /* Codec transfer buffer */
-    uint16_t count;                      /* Codec transfer buffer counter */
+    size_t count;                        /* Codec transfer buffer counter */
 
-    uint32_t nsamples;                   /* Cumulative number of codec samples */
+    unsigned total_samples;              /* Cumulative number of codec samples */
     uint16_t seq_num;                    /* Cumulative packet sequence */
-    uint8_t frame_count;                 /* Current frames in buffer*/
+    unsigned frame_count;                /* Current frames in buffer*/
 };
 
 struct userdata {
@@ -91,23 +91,20 @@ struct userdata {
     pa_rtpoll_item *rtpoll_item;
     pa_thread *thread;
 
-    int64_t offset;
+    uint64_t offset;
     pa_smoother *smoother;
-
-    pa_memchunk memchunk;
-    pa_mempool *mempool;
 
     char *name;
     char *addr;
     char *profile;
     pa_sample_spec ss;
 
-    uint8_t audioservice_fd;
-    uint8_t stream_fd;
+    int audioservice_fd;
+    int stream_fd;
 
     uint8_t transport;
     char *strtransport;
-    uint16_t link_mtu;
+    size_t link_mtu;
     size_t block_size;
     pa_usec_t latency;
 
@@ -188,20 +185,20 @@ static int bt_getcaps(struct userdata *u) {
     else if (strcasecmp(u->profile, "hsp") == 0)
         msg.getcaps_req.transport = BT_CAPABILITIES_TRANSPORT_SCO;
     else {
-        pa_log_error("invalid profile argument: %s", u->profile);
+        pa_log_error("Invalid profile argument: %s", u->profile);
         return -1;
     }
     msg.getcaps_req.flags = BT_FLAG_AUTOCONNECT;
 
     e = bt_audioservice_send(u->audioservice_fd, &msg.getcaps_req.h);
     if (e < 0) {
-        pa_log_error("failed to send GETCAPABILITIES_REQ");
+        pa_log_error("Failed to send GETCAPABILITIES_REQ");
         return e;
     }
 
     e = bt_audioservice_expect(u->audioservice_fd, &msg.rsp_hdr.msg_h, BT_GETCAPABILITIES_RSP);
     if (e < 0) {
-        pa_log_error("failed to expect for GETCAPABILITIES_RSP");
+        pa_log_error("Failed to expect for GETCAPABILITIES_RSP");
         return e;
     }
     if (msg.rsp_hdr.posix_errno != 0) {
@@ -320,11 +317,11 @@ static int bt_a2dp_init(struct userdata *u) {
     else if (cap->allocation_method & BT_A2DP_ALLOCATION_SNR)
         cap->allocation_method = BT_A2DP_ALLOCATION_SNR;
 
-    min_bitpool = PA_MAX(MIN_BITPOOL, cap->min_bitpool);
-    max_bitpool = PA_MIN(default_bitpool(cap->frequency, cap->channel_mode), cap->max_bitpool);
+    min_bitpool = (uint8_t) PA_MAX(MIN_BITPOOL, cap->min_bitpool);
+    max_bitpool = (uint8_t) PA_MIN(default_bitpool(cap->frequency, cap->channel_mode), cap->max_bitpool);
 
-    cap->min_bitpool = min_bitpool;
-    cap->max_bitpool = max_bitpool;
+    cap->min_bitpool = (uint8_t) min_bitpool;
+    cap->max_bitpool = (uint8_t) max_bitpool;
 
     return 0;
 }
@@ -362,7 +359,7 @@ static void bt_a2dp_setup(struct bt_a2dp *a2dp) {
     if (active_capabilities.channel_mode & BT_A2DP_CHANNEL_MODE_JOINT_STEREO)
         a2dp->sbc.mode = SBC_MODE_JOINT_STEREO;
 
-    a2dp->sbc.allocation = (active_capabilities.allocation_method == BT_A2DP_ALLOCATION_SNR ? SBC_AM_SNR : SBC_AM_LOUDNESS);
+    a2dp->sbc.allocation = (uint8_t) (active_capabilities.allocation_method == BT_A2DP_ALLOCATION_SNR ? SBC_AM_SNR : SBC_AM_LOUDNESS);
 
     switch (active_capabilities.subbands) {
         case BT_A2DP_SUBBANDS_4:
@@ -389,7 +386,7 @@ static void bt_a2dp_setup(struct bt_a2dp *a2dp) {
     }
 
     a2dp->sbc.bitpool = active_capabilities.max_bitpool;
-    a2dp->codesize = sbc_get_codesize(&a2dp->sbc);
+    a2dp->codesize = (uint16_t) sbc_get_codesize(&a2dp->sbc);
     a2dp->count = sizeof(struct rtp_header) + sizeof(struct rtp_payload);
 }
 
@@ -423,13 +420,13 @@ static int bt_setconf(struct userdata *u) {
 
     e = bt_audioservice_send(u->audioservice_fd, &msg.setconf_req.h);
     if (e < 0) {
-        pa_log_error("failed to send BT_SETCONFIGURATION_REQ");
+        pa_log_error("Failed to send BT_SETCONFIGURATION_REQ");
         return e;
     }
 
     e = bt_audioservice_expect(u->audioservice_fd, &msg.rsp_hdr.msg_h, BT_SETCONFIGURATION_RSP);
     if (e < 0) {
-        pa_log_error("failed to expect BT_SETCONFIGURATION_RSP");
+        pa_log_error("Failed to expect BT_SETCONFIGURATION_RSP");
         return e;
     }
 
@@ -470,13 +467,13 @@ static int bt_getstreamfd(struct userdata *u) {
 
     e = bt_audioservice_send(u->audioservice_fd, &msg.start_req.h);
     if (e < 0) {
-        pa_log_error("failed to send BT_STREAMSTART_REQ");
+        pa_log_error("Failed to send BT_STREAMSTART_REQ");
         return e;
     }
 
     e = bt_audioservice_expect(u->audioservice_fd, &msg.rsp_hdr.msg_h, BT_STREAMSTART_RSP);
     if (e < 0) {
-        pa_log_error("failed to expect BT_STREAMSTART_RSP");
+        pa_log_error("Failed to expect BT_STREAMSTART_RSP");
         return e;
     }
 
@@ -487,7 +484,7 @@ static int bt_getstreamfd(struct userdata *u) {
 
     e = bt_audioservice_expect(u->audioservice_fd, &msg.streamfd_ind.h, BT_STREAMFD_IND);
     if (e < 0) {
-        pa_log_error("failed to expect BT_STREAMFD_IND");
+        pa_log_error("Failed to expect BT_STREAMFD_IND");
         return e;
     }
 
@@ -496,13 +493,13 @@ static int bt_getstreamfd(struct userdata *u) {
 
     u->stream_fd = bt_audio_service_get_data_fd(u->audioservice_fd);
     if (u->stream_fd < 0) {
-        pa_log_error("failed to get data fd: %s (%d)",pa_cstrerror(errno), errno);
+        pa_log_error("Failed to get data fd: %s (%d)",pa_cstrerror(errno), errno);
         return -errno;
     }
 
     if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP) {
-        if (pa_socket_set_sndbuf(u->stream_fd, 10*u->link_mtu) < 0) {
-            pa_log_error("failed to set socket options for A2DP: %s (%d)",pa_cstrerror(errno), errno);
+        if (pa_socket_set_sndbuf(u->stream_fd, 10U*u->link_mtu) < 0) {
+            pa_log_error("Failed to set socket options for A2DP: %s (%d)",pa_cstrerror(errno), errno);
             return -errno;
         }
     }
@@ -543,9 +540,9 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
             pa_usec_t w, r;
-            r = pa_smoother_get(u->smoother, pa_rtclock_usec());
-            w = pa_bytes_to_usec(u->offset + u->memchunk.length, &u->sink->sample_spec);
-            *((pa_usec_t*) data) = w > r ? w - r : 0;
+/*             r = pa_smoother_get(u->smoother, pa_rtclock_usec()); */
+/* /\*             w = pa_bytes_to_usec(u->offset + (uint64_t) u->memchunk.length, &u->sink->sample_spec); *\/ */
+            *((pa_usec_t*) data) = /*w > r ? w - r :*/ 0;
             return 0;
         }
 
@@ -556,56 +553,46 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
 static int sco_process_render(struct userdata *u) {
     void *p;
-    ssize_t l;
-    int write_type = 0;
+    int ret = 0;
+    pa_memchunk memchunk;
 
-    u->memchunk.memblock = pa_memblock_new(u->mempool, u->block_size);
-    pa_log_debug("memblock asked size %d", u->block_size);
-    u->memchunk.length = pa_memblock_get_length(u->memchunk.memblock);
-    pa_log_debug("memchunk length %d", u->memchunk.length);
-    pa_sink_render_into_full(u->sink, &u->memchunk);
+    pa_sink_render_full(u->sink, u->block_size, &memchunk);
 
-    pa_assert(u->memchunk.length > 0);
+    p = pa_memblock_acquire(memchunk.memblock);
 
-    p = pa_memblock_acquire(u->memchunk.memblock);
+    for (;;) {
+        ssize_t l;
 
-sco_write:
-    l = pa_write(u->stream_fd, (uint8_t*) p, u->memchunk.length, &write_type);
-    pa_log_debug("memblock written to socket: %d bytes", l);
+        l = pa_loop_write(u->stream_fd, (uint8_t*) p, memchunk.length, NULL);
+        pa_log_debug("Memblock written to socket: %li bytes", (long) l);
 
-    pa_assert(l != 0);
+        pa_assert(l != 0);
 
-    if (l < 0) {
-        if (errno == EINTR) {
+        if (l > 0) {
+            u->offset += (uint64_t) l;
+            break;
+        }
+
+        if (errno == EINTR)
             pa_log_debug("EINTR");
-            goto sco_write;
-        }
-        else if (errno == EAGAIN) {
+        else if (errno == EAGAIN)
             pa_log_debug("EAGAIN");
-            goto sco_write;
-        }
         else {
-            pa_memblock_release(u->memchunk.memblock);
-            pa_memblock_unref(u->memchunk.memblock);
-            pa_memchunk_reset(&u->memchunk);
-            pa_log_debug("memchunk reseted");
             pa_log_error("Failed to write data to FIFO: %s", pa_cstrerror(errno));
-            return -1;
+            ret = -1;
+            break;
         }
-    } else {
-        pa_memblock_release(u->memchunk.memblock);
-        pa_memblock_unref(u->memchunk.memblock);
-        pa_memchunk_reset(&u->memchunk);
-        pa_log_debug("memchunk reseted");
-        u->offset += l;
-        return 0;
     }
+
+    pa_memblock_release(memchunk.memblock);
+    pa_memblock_unref(memchunk.memblock);
+
+    return ret;
 }
 
 static int a2dp_process_render(struct userdata *u) {
-    ssize_t l;
-    uint8_t write_type = 0;
-    uint16_t written;
+    int written;
+
     struct bt_a2dp *a2dp = &u->a2dp;
     struct rtp_header *header = (void *) a2dp->buffer;
     struct rtp_payload *payload = (void *) (a2dp->buffer + sizeof(*header));
@@ -614,39 +601,35 @@ static int a2dp_process_render(struct userdata *u) {
 
     do {
         /* Render some data */
-        uint16_t frame_size;
-        uint16_t encoded;
+        int frame_size, encoded;
         void *p;
+        pa_memchunk memchunk;
 
-        u->memchunk.memblock = pa_memblock_new(u->mempool, u->block_size);
-        pa_log_debug("memblock asked size %d", u->block_size);
-        u->memchunk.length = pa_memblock_get_length(u->memchunk.memblock);
-        pa_log_debug("memchunk length %d", u->memchunk.length);
-        pa_sink_render_into_full(u->sink, &u->memchunk);
+        pa_sink_render_full(u->sink, u->block_size, &memchunk);
 
-        pa_assert(u->memchunk.length > 0);
+        p = pa_memblock_acquire(memchunk.memblock);
 
-        p = pa_memblock_acquire(u->memchunk.memblock);
-        frame_size = sbc_get_frame_length(&a2dp->sbc);
+        frame_size = (uint16_t) sbc_get_frame_length(&a2dp->sbc);
         pa_log_debug("SBC frame_size: %d", frame_size);
 
-        encoded = sbc_encode(&a2dp->sbc, (uint8_t*) p, a2dp->codesize, a2dp->buffer + a2dp->count,
-                sizeof(a2dp->buffer) - a2dp->count, &written);
+        encoded = sbc_encode(&a2dp->sbc, p, (int) a2dp->codesize, a2dp->buffer + a2dp->count,
+                             (int) (sizeof(a2dp->buffer) - a2dp->count), &written);
         pa_log_debug("SBC: encoded: %d; written: %d", encoded, written);
+
+        pa_memblock_release(memchunk.memblock);
+        pa_memblock_unref(memchunk.memblock);
+
         if (encoded <= 0) {
             pa_log_error("SBC encoding error (%d)", encoded);
             return -1;
         }
-        pa_memblock_release(u->memchunk.memblock);
-        pa_memblock_unref(u->memchunk.memblock);
-        pa_memchunk_reset(&u->memchunk);
-        pa_log_debug("memchunk reseted");
 
-        a2dp->count += written;
+        a2dp->count += (size_t) written;
         a2dp->frame_count++;
-        a2dp->samples += encoded / frame_size;
-        a2dp->nsamples += encoded / frame_size;
-    } while (a2dp->count + written <= u->link_mtu);
+        a2dp->samples += (unsigned) encoded / frame_size;
+        a2dp->total_samples += (unsigned) encoded / frame_size;
+
+    } while (a2dp->count + (size_t) written <= u->link_mtu);
 
     /* write it to the fifo */
     memset(a2dp->buffer, 0, sizeof(*header) + sizeof(*payload));
@@ -654,24 +637,24 @@ static int a2dp_process_render(struct userdata *u) {
     header->v = 2;
     header->pt = 1;
     header->sequence_number = htons(a2dp->seq_num);
-    header->timestamp = htonl(a2dp->nsamples);
+    header->timestamp = htonl(a2dp->total_samples);
     header->ssrc = htonl(1);
 
-avdtp_write:
-    l = pa_write(u->stream_fd, a2dp->buffer, a2dp->count, &write_type);
-    pa_log_debug("avdtp_write: requested %d bytes; written %d bytes", a2dp->count, l);
+    for (;;) {
+        ssize_t l;
 
-    pa_assert(l != 0);
+        l = pa_loop_write(u->stream_fd, a2dp->buffer, a2dp->count, NULL);
+        pa_log_debug("avdtp_write: requested %lu bytes; written %li bytes", (unsigned long) a2dp->count, (long) l);
 
-    if (l < 0) {
-        if (errno == EINTR) {
+        pa_assert(l != 0);
+
+        if (l > 0)
+            break;
+
+        if (errno == EINTR)
             pa_log_debug("EINTR");
-            goto avdtp_write;
-        }
-        else if (errno == EAGAIN) {
+        else if (errno == EAGAIN)
             pa_log_debug("EAGAIN");
-            goto avdtp_write;
-        }
         else {
             pa_log_error("Failed to write data to FIFO: %s", pa_cstrerror(errno));
             return -1;
@@ -696,6 +679,9 @@ static void thread_func(void *userdata) {
 
     pa_log_debug("IO Thread starting up");
 
+    if (u->core->realtime_scheduling)
+        pa_make_realtime(u->core->realtime_priority);
+
     pa_thread_mq_install(&u->thread_mq);
     pa_rtpoll_install(u->rtpoll);
 
@@ -707,11 +693,9 @@ static void thread_func(void *userdata) {
         uint64_t n;
         pa_usec_t usec;
 
-        if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
-            if (u->sink->thread_info.rewind_requested) {
+        if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
+            if (u->sink->thread_info.rewind_requested)
                 pa_sink_process_rewind(u->sink, 0);
-            }
-        }
 
         pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
 
@@ -719,8 +703,7 @@ static void thread_func(void *userdata) {
             if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP) {
                 if ((l = a2dp_process_render(u)) < 0)
                     goto fail;
-            }
-            else {
+            } else {
                 if ((l = sco_process_render(u)) < 0)
                     goto fail;
             }
@@ -729,7 +712,7 @@ static void thread_func(void *userdata) {
             /* feed the time smoother */
             n = u->offset;
             if (ioctl(u->stream_fd, SIOCOUTQ, &l) >= 0 && l > 0)
-                n -= l;
+                n -= (uint64_t) l;
             usec = pa_bytes_to_usec(n, &u->sink->sample_spec);
             if (usec > u->latency)
                 usec -= u->latency;
@@ -740,7 +723,7 @@ static void thread_func(void *userdata) {
 
         /* Hmm, nothing to do. Let's sleep */
         pa_log_debug("IO thread going to sleep");
-        pollfd->events = PA_SINK_IS_OPENED(u->sink->thread_info.state) ? POLLOUT : 0;
+        pollfd->events = (short) (PA_SINK_IS_OPENED(u->sink->thread_info.state) ? POLLOUT : 0);
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0) {
             pa_log_error("rtpoll_run < 0");
             goto fail;
@@ -783,13 +766,11 @@ int pa__init(pa_module* m) {
     u->core = m->core;
     u->audioservice_fd = -1;
     u->stream_fd = -1;
-    u->transport = -1;
+    u->transport = (uint8_t) -1;
     u->offset = 0;
     u->latency = 0;
     u->a2dp.sbc_initialized = FALSE;
     u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE, 10);
-    u->mempool = pa_mempool_new(FALSE);
-    pa_memchunk_reset(&u->memchunk);
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll);
     u->rtpoll_item = NULL;
@@ -826,34 +807,34 @@ int pa__init(pa_module* m) {
     /* connect to the bluez audio service */
     u->audioservice_fd = bt_audio_service_open();
     if (u->audioservice_fd <= 0) {
-        pa_log_error("couldn't connect to bluetooth audio service");
+        pa_log_error("Couldn't connect to bluetooth audio service");
         goto fail;
     }
-    pa_log_debug("connected to the bluetooth audio service");
+    pa_log_debug("Connected to the bluetooth audio service");
 
     /* queries device capabilities */
     e = bt_getcaps(u);
     if (e < 0) {
-        pa_log_error("failed to get device capabilities");
+        pa_log_error("Failed to get device capabilities");
         goto fail;
     }
-    pa_log_debug("got device capabilities");
+    pa_log_debug("Got device capabilities");
 
     /* configures the connection */
     e = bt_setconf(u);
     if (e < 0) {
-        pa_log_error("failed to set config");
+        pa_log_error("Failed to set config");
         goto fail;
     }
-    pa_log_debug("connection to the device configured");
+    pa_log_debug("Connection to the device configured");
 
     /* gets the device socket */
     e = bt_getstreamfd(u);
     if (e < 0) {
-        pa_log_error("failed to get stream fd (%d)", e);
+        pa_log_error("Failed to get stream fd (%d)", e);
         goto fail;
     }
-    pa_log_debug("got the device socket");
+    pa_log_debug("Got the device socket");
 
     /* create sink */
     pa_sink_new_data_init(&data);
@@ -863,17 +844,17 @@ int pa__init(pa_module* m) {
     pa_sink_new_data_set_sample_spec(&data, &u->ss);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->name);
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Bluetooth %s '%s' (%s)", u->strtransport, u->name, u->addr);
-    pa_proplist_setf(data.proplist, "bluetooth.protocol", u->profile);
+    pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile);
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_API, "bluez");
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_CLASS, "sound");
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_CONNECTOR, "bluetooth");
-    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_FORM_FACTOR, "headset"); /*FIXME*/
-    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_VENDOR_PRODUCT_ID, "product_id"); /*FIXME*/
-    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_SERIAL, "serial"); /*FIXME*/
+/*     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_FORM_FACTOR, "headset"); /\*FIXME*\/ */
+/*     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_VENDOR_PRODUCT_ID, "product_id"); /\*FIXME*\/ */
+/*     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_SERIAL, "serial"); /\*FIXME*\/ */
     u->sink = pa_sink_new(m->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
     pa_sink_new_data_done(&data);
     if (!u->sink) {
-        pa_log_error("failed to create sink");
+        pa_log_error("Failed to create sink");
         goto fail;
     }
     u->sink->userdata = u;
@@ -888,7 +869,7 @@ int pa__init(pa_module* m) {
 
     /* start rt thread */
     if (!(u->thread = pa_thread_new(thread_func, u))) {
-        pa_log_error("failed to create IO thread");
+        pa_log_error("Failed to create IO thread");
         goto fail;
     }
     pa_sink_put(u->sink);
@@ -899,6 +880,7 @@ int pa__init(pa_module* m) {
 fail:
     if (ma)
         pa_modargs_free(ma);
+
     pa__done(m);
     return -1;
 }
@@ -918,10 +900,10 @@ void pa__done(pa_module *m) {
         pa_thread_free(u->thread);
     }
 
-    pa_thread_mq_done(&u->thread_mq);
-
     if (u->sink)
         pa_sink_unref(u->sink);
+
+    pa_thread_mq_done(&u->thread_mq);
 
     if (u->rtpoll_item)
         pa_rtpoll_item_free(u->rtpoll_item);
@@ -929,23 +911,13 @@ void pa__done(pa_module *m) {
     if (u->rtpoll)
         pa_rtpoll_free(u->rtpoll);
 
-    if (u->memchunk.memblock)
-        pa_memblock_unref(u->memchunk.memblock);
-
-    if (u->mempool)
-        pa_mempool_free(u->mempool);
-
     if (u->smoother)
         pa_smoother_free(u->smoother);
 
-    if (u->name)
-        pa_xfree(u->name);
-
-    if (u->addr)
-        pa_xfree(u->addr);
-
-    if (u->profile)
-        pa_xfree(u->profile);
+    pa_xfree(u->name);
+    pa_xfree(u->addr);
+    pa_xfree(u->profile);
+    pa_xfree(u->strtransport);
 
     if (u->stream_fd >= 0)
         pa_close(u->stream_fd);
