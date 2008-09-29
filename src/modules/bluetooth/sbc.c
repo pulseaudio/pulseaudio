@@ -145,7 +145,7 @@ static uint8_t sbc_crc8(const uint8_t *data, size_t len)
 
 	octet = data[i];
 	for (i = 0; i < len % 8; i++) {
-		char bit = ((octet ^ crc) & 0x80) >> 7;
+		unsigned char bit = ((octet ^ crc) & 0x80) >> 7;
 
 		crc = ((crc & 0x7f) << 1) ^ (bit ? 0x1d : 0);
 

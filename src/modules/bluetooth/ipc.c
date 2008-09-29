@@ -40,7 +40,7 @@ static const char *strmsg[] = {
 	"BT_STREAMFD_IND",
 };
 
-int bt_audio_service_open()
+int bt_audio_service_open(void)
 {
 	int sk;
 	int err;
@@ -88,7 +88,7 @@ int bt_audio_service_get_data_fd(int sk)
 	msgh.msg_control = &cmsg_b;
 	msgh.msg_controllen = CMSG_LEN(sizeof(int));
 
-	ret = recvmsg(sk, &msgh, 0);
+	ret = (int) recvmsg(sk, &msgh, 0);
 	if (ret < 0) {
 		err = errno;
 		fprintf(stderr, "%s: Unable to receive fd: %s (%d)\n",
@@ -111,9 +111,8 @@ int bt_audio_service_get_data_fd(int sk)
 
 const char *bt_audio_strmsg(int type)
 {
-	if (type < 0 || type > (sizeof(strmsg) / sizeof(strmsg[0])))
+    if (type < 0 || (size_t) type > (sizeof(strmsg) / sizeof(strmsg[0])))
 		return NULL;
 
 	return strmsg[type];
 }
-
