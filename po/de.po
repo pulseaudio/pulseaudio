@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-09-09 03:32+0000\n"
-"PO-Revision-Date: 2008-09-11 16:25+0100\n"
+"POT-Creation-Date: 2008-09-11 19:30+0000\n"
+"PO-Revision-Date: 2008-09-29 12:57+0100\n"
 "Last-Translator: Fabian Affolter <fab@fedoraproject.org>\n"
 "Language-Team: German <fedora-trans-de@redhat.com>\n"
 "MIME-Version: 1.0\n"
@@ -46,7 +46,7 @@ msgstr "Kann CK-Session nicht beziehen."
 
 #: ../src/daemon/polkit.c:90
 msgid "Cannot set UID on session object."
-msgstr ""
+msgstr "Kann UID auf Session-Objekt nicht setzen."
 
 #: ../src/daemon/polkit.c:95
 #, fuzzy
@@ -104,12 +104,12 @@ msgstr "Kann Gruppe '%s' nicht finden."
 #: ../src/daemon/main.c:188
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
-msgstr ""
+msgstr "Fand Benutzer '%s' (UID %lu) und Gruppe '%s' (GID %lu)."
 
 #: ../src/daemon/main.c:193
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
-msgstr ""
+msgstr "GID von Benutzer '%s' und von Gruppe '%s' stimme nicht überein."
 
 #: ../src/daemon/main.c:198
 #, c-format
@@ -123,27 +123,27 @@ msgid "Failed to create '%s': %s"
 msgstr "Erzeugen von '%s' fehlgeschlagen: %s"
 
 #: ../src/daemon/main.c:213
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to change group list: %s"
-msgstr "Fehler bei der Erzeugung der Einstiegsgruppe: %s\n"
+msgstr "Wechseln der Gruppen-Liste fehlgeschlagen: %s"
 
 #: ../src/daemon/main.c:229
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to change GID: %s"
-msgstr "Verzeichnis konnte nicht gewechselt werden"
+msgstr "WEchseln der GID fehlgeschlagen: %s"
 
 #: ../src/daemon/main.c:245
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to change UID: %s"
-msgstr "Verzeichnis konnte nicht gewechselt werden"
+msgstr "Wechseln der UID fehlgeschlagen: %s"
 
 #: ../src/daemon/main.c:259
 msgid "Successfully dropped root privileges."
-msgstr ""
+msgstr "Root-Berechtigungen erfolgreich zurückgesetzt."
 
 #: ../src/daemon/main.c:267
 msgid "System wide mode unsupported on this platform."
-msgstr ""
+msgstr "Systemweiter Modus auf dieser Plattform nicht unterstützt."
 
 #: ../src/daemon/main.c:285
 #, c-format
@@ -212,7 +212,7 @@ msgstr "RLIMIT_RTPRIO fehlgeschlagen: %s"
 
 #: ../src/daemon/main.c:532
 msgid "Giving up CAP_NICE"
-msgstr ""
+msgstr "Gebe CAP_NICE auf"
 
 #: ../src/daemon/main.c:539
 msgid "Real-time scheduling enabled in configuration but not allowed by policy."
@@ -223,9 +223,9 @@ msgid "Daemon not running"
 msgstr "Daemon läuft nicht"
 
 #: ../src/daemon/main.c:599
-#, fuzzy, c-format
+#, c-format
 msgid "Daemon running as PID %u"
-msgstr "Als Daemon-Prozess laufen"
+msgstr "Lasse Daemon als PID %u laufen"
 
 #: ../src/daemon/main.c:609
 #, fuzzy, c-format
@@ -241,8 +241,9 @@ msgid "Root priviliges required."
 msgstr "Root-Berechtigungen benötigt."
 
 #: ../src/daemon/main.c:634
+#, fuzzy
 msgid "--start not supported for system instances."
-msgstr ""
+msgstr "--start nicht unterstützt für System-Instanzen."
 
 #: ../src/daemon/main.c:639
 msgid "Running in system mode, but --disallow-exit not set!"
@@ -296,12 +297,12 @@ msgstr "Dies ist PulseAudio %s"
 #: ../src/daemon/main.c:781
 #, fuzzy, c-format
 msgid "Compilation host: %s"
-msgstr "P&roxy-Server:"
+msgstr "Kompilations-Host: %s"
 
 #: ../src/daemon/main.c:782
 #, c-format
 msgid "Compilation CFLAGS: %s"
-msgstr ""
+msgstr "Kompiliere CFLAGS: %s"
 
 #: ../src/daemon/main.c:785
 #, c-format
@@ -315,11 +316,11 @@ msgstr "Seitengröße ist %lu Bytes."
 
 #: ../src/daemon/main.c:791
 msgid "Compiled with Valgrind support: yes"
-msgstr ""
+msgstr "Kompiliere mit Valgrind-Unterstützung: ja"
 
 #: ../src/daemon/main.c:793
 msgid "Compiled with Valgrind support: no"
-msgstr ""
+msgstr "Kompiliere mit Valgrind-Unterstützung: nein"
 
 #: ../src/daemon/main.c:797
 msgid "Optimized build: yes"
@@ -330,9 +331,8 @@ msgid "Optimized build: no"
 msgstr "Optimiertes Build: nein"
 
 #: ../src/daemon/main.c:803
-#, fuzzy
 msgid "Failed to get machine ID"
-msgstr "Desktop-Pfad konnte nicht gefunden werden"
+msgstr "Erhalten der Maschinen-ID fehlgeschlagen"
 
 #: ../src/daemon/main.c:806
 #, c-format
@@ -541,7 +541,7 @@ msgstr ""
 
 #: ../src/daemon/cmdline.c:319
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
-msgstr ""
+msgstr "Ungültiges Log-Ziel: Benutzen Sie entweder 'syslog', 'stderr' oder 'auto'."
 
 #: ../src/daemon/cmdline.c:338
 #, c-format
@@ -601,64 +601,64 @@ msgid "Path: %s\n"
 msgstr "Pfad: %s\n"
 
 #: ../src/daemon/daemon-conf.c:204
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr "Ziele für »Kopieren«"
+msgstr "[%s:%u] Ungültiges Log-Ziel '%s'."
 
 #: ../src/daemon/daemon-conf.c:220
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid log level '%s'."
-msgstr "Mega-Bass-Niveau"
+msgstr "[%s:%u] Ungültige Log-Stufe '%s'."
 
 #: ../src/daemon/daemon-conf.c:236
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr "Alternative Vollbildmethode"
+msgstr "[%s:%u] Ungültige Resample-Methode '%s'."
 
 #: ../src/daemon/daemon-conf.c:259
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
-msgstr "Dateiname ungültig"
+msgstr "[%s:%u] Ungültiges rlimit '%s'."
 
 #: ../src/daemon/daemon-conf.c:266
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
-msgstr ""
+msgstr "[%s:%u] rlimit nicht unterstützt auf dieser Plattform."
 
 #: ../src/daemon/daemon-conf.c:282
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
-msgstr "Datums- und Zeitformat"
+msgstr "[%s:%u] Ungültiges Sample-Format '%s'."
 
 #: ../src/daemon/daemon-conf.c:300
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr "Audio-Samplerate"
+msgstr "[%s:%u] Ungültige Sample-Rate '%s'."
 
 #: ../src/daemon/daemon-conf.c:318
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
-msgstr "Anzahl von Ausgabekanälen"
+msgstr "[%s:%u] Ungültige Sample-Kanäle '%s'."
 
 #: ../src/daemon/daemon-conf.c:336
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr "Ungültige Port-Nummer"
+msgstr "[%s:%u] Ungültige Anzahl von Fragmenten '%s'."
 
 #: ../src/daemon/daemon-conf.c:354
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr "Aufnahmenfragmentgröße"
+msgstr "[%s:%u] Ungültige Fragement-Grösse '%s'."
 
 #: ../src/daemon/daemon-conf.c:372
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr "Mega-Bass-Niveau"
+msgstr "[%s:%u] Ungültige Nice-Stufe '%s'."
 
 #: ../src/daemon/daemon-conf.c:567
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open configuration file: %s"
-msgstr "Datei »%s« konnte nicht geöffnet werden: fdopen() fehlgeschlagen: %s"
+msgstr "Öffnen der Konfigurationsdatei fehlgeschlagen : %s"
 
 #: ../src/daemon/daemon-conf.c:641
 #, c-format
@@ -1071,12 +1071,12 @@ msgstr "ALSA Devicename"
 #: ../src/utils/pacat.c:217
 #, fuzzy, c-format
 msgid "Stream underrun.%s \n"
-msgstr "Andauernder Stream"
+msgstr "Stream underun.%s \n"
 
 #: ../src/utils/pacat.c:224
 #, fuzzy, c-format
 msgid "Stream overrun.%s \n"
-msgstr "Andauernder Stream"
+msgstr "Stream overrun.%s \n"
 
 #: ../src/utils/pacat.c:231
 #, c-format
@@ -1093,9 +1093,9 @@ msgid "not "
 msgstr "nicht"
 
 #: ../src/utils/pacat.c:259
-#, fuzzy, c-format
+#, c-format
 msgid "Connection established.%s \n"
-msgstr "Verbindung hergestellt, initialisiere TLS..."
+msgstr "Verbindung hergestellt.%s \n"
 
 #: ../src/utils/pacat.c:262
 #, c-format
@@ -1116,9 +1116,9 @@ msgstr "pa_stream_connect_record() fehlgeschlagen: %s\n"
 #: ../src/utils/pasuspender.c:159
 #: ../src/utils/pactl.c:666
 #: ../src/utils/paplay.c:183
-#, fuzzy, c-format
+#, c-format
 msgid "Connection failure: %s\n"
-msgstr "Verbindung getrennt"
+msgstr "Verbindungsfehler: %s\n"
 
 #: ../src/utils/pacat.c:328
 #: ../src/utils/paplay.c:75
@@ -1159,24 +1159,24 @@ msgid "write() failed: %s\n"
 msgstr "write() fehlgeschlagen: %s\n"
 
 #: ../src/utils/pacat.c:438
-#, fuzzy, c-format
+#, c-format
 msgid "Got signal, exiting.\n"
-msgstr "Client-Fehler, verlassen: %s\n"
+msgstr "Erhielt Signal, verlasse.\n"
 
 #: ../src/utils/pacat.c:452
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get latency: %s\n"
-msgstr "Desktop-Pfad konnte nicht gefunden werden"
+msgstr "Erhalten der Latenz fehlgeschlagen: %s\n"
 
 #: ../src/utils/pacat.c:457
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
-msgstr ""
+msgstr "Zeit: %0.3f sec; Latenz: %0.0f usec.  \r"
 
 #: ../src/utils/pacat.c:477
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_update_timing_info() fehlgeschlagen: %s\n"
 
 #: ../src/utils/pacat.c:490
 #, c-format
@@ -1221,21 +1221,24 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pacat %s\n"
+"Kompiliert mit libpulse %s\n"
+"Gelinkt mit libpulse %s\n"
 
 #: ../src/utils/pacat.c:647
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid channel map '%s'\n"
-msgstr "Fokus beim Zuweisen"
+msgstr "Ungültige Kanal-Zuweisung '%s'\n"
 
 #: ../src/utils/pacat.c:676
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid latency specification '%s'\n"
-msgstr "Ungültige Angabe '%s' der Fenstergröße"
+msgstr "Ungültige Latenz-Angaben '%s'\n"
 
 #: ../src/utils/pacat.c:683
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid process time specification '%s'\n"
-msgstr "Ungültige Angabe '%s' des Displays."
+msgstr "Ungültige Prozesszeit-Angaben '%s'\n"
 
 #: ../src/utils/pacat.c:694
 #, c-format
@@ -1342,9 +1345,9 @@ msgstr ""
 #: ../src/utils/pasuspender.c:176
 #: ../src/utils/pactl.c:672
 #: ../src/utils/paplay.c:191
-#, fuzzy, c-format
+#, c-format
 msgid "Got SIGINT, exiting.\n"
-msgstr "Client-Fehler, verlassen: %s\n"
+msgstr "Erhielt SIGINT, verlasse.\n"
 
 #: ../src/utils/pasuspender.c:194
 #, c-format
@@ -1397,9 +1400,9 @@ msgid "Sample cache size: %s\n"
 msgstr "Sample-Zwischenspeichergrösse: %s\n"
 
 #: ../src/utils/pactl.c:128
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get server information: %s\n"
-msgstr "Konnte keine Account-Informationen abrufen\n"
+msgstr "Erhalten der Server-Information fehlgeschlagen: %s\n"
 
 #: ../src/utils/pactl.c:135
 #, c-format
@@ -1417,7 +1420,7 @@ msgstr ""
 #: ../src/utils/pactl.c:160
 #, fuzzy, c-format
 msgid "Failed to get sink information: %s\n"
-msgstr "Konnte keine Account-Informationen abrufen\n"
+msgstr "Erhalten der Sink-Information fehlgeschlagen: %s\n"
 
 #: ../src/utils/pactl.c:176
 #, c-format
@@ -1442,9 +1445,9 @@ msgid "muted"
 msgstr "stumm"
 
 #: ../src/utils/pactl.c:212
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get source information: %s\n"
-msgstr "Konnte keine Account-Informationen abrufen\n"
+msgstr "Erhalten der Quellen-Information fehlgeschlagen: %s\n"
 
 #: ../src/utils/pactl.c:228
 #, c-format
@@ -1479,9 +1482,9 @@ msgid "n/a"
 msgstr "k.A."
 
 #: ../src/utils/pactl.c:263
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get module information: %s\n"
-msgstr "Konnte keine Account-Informationen abrufen\n"
+msgstr "Erhalten der Modul-Information fehlgeschlagen: %s\n"
 
 #: ../src/utils/pactl.c:281
 #, c-format
@@ -1494,9 +1497,9 @@ msgid ""
 msgstr ""
 
 #: ../src/utils/pactl.c:298
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get client information: %s\n"
-msgstr "Konnte keine Account-Informationen abrufen\n"
+msgstr "Erhalten der Client-Information fehlgeschlagen: %s\n"
 
 #: ../src/utils/pactl.c:316
 #, c-format
@@ -1554,9 +1557,9 @@ msgid ""
 msgstr ""
 
 #: ../src/utils/pactl.c:436
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get sample information: %s\n"
-msgstr "Konnte keine Account-Informationen abrufen\n"
+msgstr "Erhalten der Sample-Information fehlgeschlagen: %s\n"
 
 #: ../src/utils/pactl.c:455
 #, c-format
@@ -1575,9 +1578,9 @@ msgid ""
 msgstr ""
 
 #: ../src/utils/pactl.c:481
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get autoload information: %s\n"
-msgstr "Konnte keine Account-Informationen abrufen\n"
+msgstr "Erhalten der Autoload-Information fehlgeschlagen: %s\n"
 
 #: ../src/utils/pactl.c:497
 #, c-format
@@ -1604,9 +1607,9 @@ msgid "Failure: %s\n"
 msgstr "Fehlschlag: %s\n"
 
 #: ../src/utils/pactl.c:545
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to upload sample: %s\n"
-msgstr "Verzeichnis konnte nicht gewechselt werden"
+msgstr "Hinaufladen des Sample fehlgeschlagen: %s\n"
 
 #: ../src/utils/pactl.c:562
 #, fuzzy, c-format
@@ -1768,14 +1771,14 @@ msgid "Failed to parse cookie data\n"
 msgstr "TIFF-Daten konnten nicht gespeichert werden"
 
 #: ../src/utils/pax11publish.c:137
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to save cookie data\n"
-msgstr "TIFF-Daten konnten nicht gespeichert werden"
+msgstr "Speichern der Cookie-Daten fehlgeschlagen\n"
 
 #: ../src/utils/pax11publish.c:152
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to load client configuration file.\n"
-msgstr "Kann Benutzer-Konfigurations-Datei nicht aktualisieren."
+msgstr "Laden der Client-Konfigurationsdatei fehlgeschlagen\n"
 
 #: ../src/utils/pax11publish.c:157
 #, fuzzy, c-format
@@ -1890,9 +1893,9 @@ msgstr ""
 "Verknüpft mit libpulse %s\n"
 
 #: ../src/utils/paplay.c:292
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid channel map\n"
-msgstr "Fokus beim Zuweisen"
+msgstr "Ungültige Kanal-Zuweisung\n"
 
 #: ../src/utils/paplay.c:314
 #, c-format
