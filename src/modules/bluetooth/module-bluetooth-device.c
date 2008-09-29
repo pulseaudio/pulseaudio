@@ -252,33 +252,37 @@ static uint8_t default_bitpool(uint8_t freq, uint8_t mode) {
 
 static int bt_a2dp_init(struct userdata *u) {
     sbc_capabilities_t *cap = &u->a2dp.sbc_capabilities;
-    unsigned int max_bitpool, min_bitpool;
+    uint8_t max_bitpool, min_bitpool;
+    unsigned i;
 
-    switch (u->ss.rate) {
-        case 48000:
-            cap->frequency = BT_SBC_SAMPLING_FREQ_48000;
-            break;
-        case 44100:
-            cap->frequency = BT_SBC_SAMPLING_FREQ_44100;
-            break;
-        case 32000:
-            cap->frequency = BT_SBC_SAMPLING_FREQ_32000;
-            break;
-        case 16000:
-            cap->frequency = BT_SBC_SAMPLING_FREQ_16000;
-            break;
-        default:
-            pa_log_error("Rate %d not supported", u->ss.rate);
-            return -1;
-    }
+    static const struct {
+        uint32_t rate;
+        uint8_t cap;
+    } freq_table[] = {
+        { 16000U, BT_SBC_SAMPLING_FREQ_16000 },
+        { 32000U, BT_SBC_SAMPLING_FREQ_32000 },
+        { 44100U, BT_SBC_SAMPLING_FREQ_44100 },
+        { 48000U, BT_SBC_SAMPLING_FREQ_48000 }
+    };
 
-    if (u->ss.channels == 2) {
+    /* Find the lowest freq that is at least as high as the requested
+     * sampling rate */
+    for (i = 0; i < PA_ELEMENTSOF(freq_table); i++)
+        if (freq_table[i].rate >= u->ss.rate || i == PA_ELEMENTSOF(freq_table)-1 ) {
+            u->ss.rate = freq_table[i].rate;
+            cap->frequency = freq_table[i].cap;
+            break;
+        }
+
+    if (u->ss.channels >= 2) {
         if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_JOINT_STEREO)
             cap->channel_mode = BT_A2DP_CHANNEL_MODE_JOINT_STEREO;
         else if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_STEREO)
             cap->channel_mode = BT_A2DP_CHANNEL_MODE_STEREO;
         else if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_DUAL_CHANNEL)
             cap->channel_mode = BT_A2DP_CHANNEL_MODE_DUAL_CHANNEL;
+
+        u->ss.channels = 2;
     } else {
         if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_MONO)
             cap->channel_mode = BT_A2DP_CHANNEL_MODE_MONO;
