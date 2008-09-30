@@ -84,7 +84,8 @@ static const pa_daemon_conf default_conf = {
     .disable_shm = FALSE,
     .default_n_fragments = 4,
     .default_fragment_size_msec = 25,
-    .default_sample_spec = { .format = PA_SAMPLE_S16NE, .rate = 44100, .channels = 2 }
+    .default_sample_spec = { .format = PA_SAMPLE_S16NE, .rate = 44100, .channels = 2 },
+    .shm_size = 0
 #ifdef HAVE_SYS_RESOURCE_H
    ,.rlimit_fsize = { .value = 0, .is_set = FALSE },
     .rlimit_data = { .value = 0, .is_set = FALSE },
@@ -429,6 +430,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "disable-remixing",           pa_config_parse_bool,     NULL },
         { "disable-lfe-remixing",       pa_config_parse_bool,     NULL },
         { "load-default-script-file",   pa_config_parse_bool,     NULL },
+        { "shm-size-bytes",             pa_config_parse_size,     NULL },
 #ifdef HAVE_SYS_RESOURCE_H
         { "rlimit-fsize",               parse_rlimit,             NULL },
         { "rlimit-data",                parse_rlimit,             NULL },
@@ -494,65 +496,66 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     table[26].data = &c->disable_remixing;
     table[27].data = &c->disable_lfe_remixing;
     table[28].data = &c->load_default_script_file;
+    table[29].data = &c->shm_size;
 #ifdef HAVE_SYS_RESOURCE_H
-    table[29].data = &c->rlimit_fsize;
-    table[30].data = &c->rlimit_data;
-    table[31].data = &c->rlimit_stack;
-    table[32].data = &c->rlimit_as;
-    table[33].data = &c->rlimit_core;
-    table[34].data = &c->rlimit_nofile;
-    table[35].data = &c->rlimit_as;
+    table[30].data = &c->rlimit_fsize;
+    table[31].data = &c->rlimit_data;
+    table[32].data = &c->rlimit_stack;
+    table[33].data = &c->rlimit_as;
+    table[34].data = &c->rlimit_core;
+    table[35].data = &c->rlimit_nofile;
+    table[36].data = &c->rlimit_as;
 #ifdef RLIMIT_NPROC
-    table[36].data = &c->rlimit_nproc;
+    table[37].data = &c->rlimit_nproc;
 #endif
 
 #ifdef RLIMIT_MEMLOCK
 #ifndef RLIMIT_NPROC
 #error "Houston, we have a numbering problem!"
 #endif
-    table[37].data = &c->rlimit_memlock;
+    table[38].data = &c->rlimit_memlock;
 #endif
 
 #ifdef RLIMIT_LOCKS
 #ifndef RLIMIT_MEMLOCK
 #error "Houston, we have a numbering problem!"
 #endif
-    table[38].data = &c->rlimit_locks;
+    table[39].data = &c->rlimit_locks;
 #endif
 
 #ifdef RLIMIT_SIGPENDING
 #ifndef RLIMIT_LOCKS
 #error "Houston, we have a numbering problem!"
 #endif
-    table[39].data = &c->rlimit_sigpending;
+    table[40].data = &c->rlimit_sigpending;
 #endif
 
 #ifdef RLIMIT_MSGQUEUE
 #ifndef RLIMIT_SIGPENDING
 #error "Houston, we have a numbering problem!"
 #endif
-    table[40].data = &c->rlimit_msgqueue;
+    table[41].data = &c->rlimit_msgqueue;
 #endif
 
 #ifdef RLIMIT_NICE
 #ifndef RLIMIT_MSGQUEUE
 #error "Houston, we have a numbering problem!"
 #endif
-    table[41].data = &c->rlimit_nice;
+    table[42].data = &c->rlimit_nice;
 #endif
 
 #ifdef RLIMIT_RTPRIO
 #ifndef RLIMIT_NICE
 #error "Houston, we have a numbering problem!"
 #endif
-    table[42].data = &c->rlimit_rtprio;
+    table[43].data = &c->rlimit_rtprio;
 #endif
 
 #ifdef RLIMIT_RTTIME
 #ifndef RLIMIT_RTTIME
 #error "Houston, we have a numbering problem!"
 #endif
-    table[43].data = &c->rlimit_rttime;
+    table[44].data = &c->rlimit_rttime;
 #endif
 #endif
 
@@ -670,6 +673,7 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "default-sample-channels = %u\n", c->default_sample_spec.channels);
     pa_strbuf_printf(s, "default-fragments = %u\n", c->default_n_fragments);
     pa_strbuf_printf(s, "default-fragment-size-msec = %u\n", c->default_fragment_size_msec);
+    pa_strbuf_printf(s, "shm-size-bytes = %lu\n", (unsigned long) c->shm_size);
 #ifdef HAVE_SYS_RESOURCE_H
     pa_strbuf_printf(s, "rlimit-fsize = %li\n", c->rlimit_fsize.is_set ? (long int) c->rlimit_fsize.value : -1);
     pa_strbuf_printf(s, "rlimit-data = %li\n", c->rlimit_data.is_set ? (long int) c->rlimit_data.value : -1);

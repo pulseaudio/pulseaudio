@@ -201,7 +201,7 @@ int main(int argc, char *argv[]) {
     oil_init();
     pa_log_set_maximal_level(PA_LOG_DEBUG);
 
-    pa_assert_se(pool = pa_mempool_new(FALSE));
+    pa_assert_se(pool = pa_mempool_new(FALSE, 0));
 
     a.channels = 1;
     a.rate = 44100;

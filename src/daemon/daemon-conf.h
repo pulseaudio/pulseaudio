@@ -111,6 +111,7 @@ typedef struct pa_daemon_conf {
 
     unsigned default_n_fragments, default_fragment_size_msec;
     pa_sample_spec default_sample_spec;
+    size_t shm_size;
 } pa_daemon_conf;
 
 /* Allocate a new structure and fill it with sane defaults */

@@ -39,8 +39,9 @@ typedef struct pa_config_item {
  * NULL */
 int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void *userdata);
 
-/* Generic parsers for integers, booleans and strings */
+/* Generic parsers for integers, size_t, booleans and strings */
 int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata);
+int pa_config_parse_size(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata);
 int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata);
 int pa_config_parse_string(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata);
 

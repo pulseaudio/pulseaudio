@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     pa_mcalign *a;
     pa_memchunk c;
 
-    p = pa_mempool_new(0);
+    p = pa_mempool_new(FALSE, 0);
 
     a = pa_mcalign_new(11);
 

@@ -61,6 +61,7 @@ static const pa_client_conf default_conf = {
     .disable_shm = FALSE,
     .cookie_file = NULL,
     .cookie_valid = FALSE,
+    .shm_size = 0
 };
 
 pa_client_conf *pa_client_conf_new(void) {
@@ -99,6 +100,7 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
         { "autospawn",              pa_config_parse_bool,    NULL },
         { "cookie-file",            pa_config_parse_string,  NULL },
         { "disable-shm",            pa_config_parse_bool,    NULL },
+        { "shm-size-bytes",         pa_config_parse_size,    NULL },
         { NULL,                     NULL,                    NULL },
     };
 
@@ -110,6 +112,7 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
     table[5].data = &c->autospawn;
     table[6].data = &c->cookie_file;
     table[7].data = &c->disable_shm;
+    table[8].data = &c->shm_size;
 
     if (filename) {
 

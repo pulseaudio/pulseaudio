@@ -174,10 +174,10 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     pa_client_conf_load(c->conf, NULL);
     pa_client_conf_env(c->conf);
 
-    if (!(c->mempool = pa_mempool_new(!c->conf->disable_shm))) {
+    if (!(c->mempool = pa_mempool_new(!c->conf->disable_shm, c->conf->shm_size))) {
 
         if (!c->conf->disable_shm)
-            c->mempool = pa_mempool_new(FALSE);
+            c->mempool = pa_mempool_new(FALSE, c->conf->shm_size);
 
         if (!c->mempool) {
             context_free(c);

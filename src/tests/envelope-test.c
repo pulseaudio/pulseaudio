@@ -205,7 +205,7 @@ int main(int argc, char *argv[]) {
     oil_init();
     pa_log_set_maximal_level(PA_LOG_DEBUG);
 
-    pa_assert_se(pool = pa_mempool_new(FALSE));
+    pa_assert_se(pool = pa_mempool_new(FALSE, 0));
     pa_assert_se(envelope = pa_envelope_new(&ss));
 
     block = generate_block(pool, &ss);

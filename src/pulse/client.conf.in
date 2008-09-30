@@ -30,3 +30,4 @@
 ; cookie-file =
 
 ; disable-shm = no
+; shm-size-bytes = 0 # setting this 0 will use the system-default, usually 64 MiB

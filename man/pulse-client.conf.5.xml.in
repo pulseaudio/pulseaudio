@@ -97,6 +97,15 @@ USA.
       <opt>no</opt>.</p>
     </option>
 
+    <option>
+      <p><opt>shm-size-bytes=</opt> Sets the shared memory segment
+      size for clients, in bytes. If left unspecified or is set to 0
+      it will default to some system-specific default, usually 64
+      MiB. Please note that usually there is no need to change this
+      value, unless you are running an OS kernel that does not do
+      memory overcommit.</p>
+    </option>
+
   </section>
 
   <section name="Authors">

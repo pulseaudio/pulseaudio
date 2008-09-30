@@ -78,9 +78,9 @@ int main(int argc, char *argv[]) {
 
     const char txt[] = "This is a test!";
 
-    pool_a = pa_mempool_new(1);
-    pool_b = pa_mempool_new(1);
-    pool_c = pa_mempool_new(1);
+    pool_a = pa_mempool_new(TRUE, 0);
+    pool_b = pa_mempool_new(TRUE, 0);
+    pool_c = pa_mempool_new(TRUE, 0);
 
     pa_mempool_get_shm_id(pool_a, &id_a);
     pa_mempool_get_shm_id(pool_b, &id_b);

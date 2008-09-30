@@ -166,6 +166,24 @@ int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue,
     return 0;
 }
 
+int pa_config_parse_size(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+    size_t *i = data;
+    uint32_t k;
+
+    pa_assert(filename);
+    pa_assert(lvalue);
+    pa_assert(rvalue);
+    pa_assert(data);
+
+    if (pa_atou(rvalue, &k) < 0) {
+        pa_log("[%s:%u] Failed to parse numeric value: %s", filename, line, rvalue);
+        return -1;
+    }
+
+    *i = (size_t) k;
+    return 0;
+}
+
 int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     int k;
     pa_bool_t *b = data;

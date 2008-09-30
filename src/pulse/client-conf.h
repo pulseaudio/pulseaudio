@@ -31,6 +31,7 @@ typedef struct pa_client_conf {
     pa_bool_t autospawn, disable_shm;
     uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
     pa_bool_t cookie_valid; /* non-zero, when cookie is valid */
+    size_t shm_size;
 } pa_client_conf;
 
 /* Create a new configuration data object and reset it to defaults */

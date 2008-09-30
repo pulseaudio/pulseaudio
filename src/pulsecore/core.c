@@ -66,7 +66,7 @@ static int core_process_msg(pa_msgobject *o, int code, void *userdata, int64_t o
 
 static void core_free(pa_object *o);
 
-pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
+pa_core* pa_core_new(pa_mainloop_api *m, pa_bool_t shared, size_t shm_size) {
     pa_core* c;
     pa_mempool *pool;
     int j;
@@ -74,14 +74,14 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     pa_assert(m);
 
     if (shared) {
-        if (!(pool = pa_mempool_new(shared))) {
+        if (!(pool = pa_mempool_new(shared, shm_size))) {
             pa_log_warn("failed to allocate shared memory pool. Falling back to a normal memory pool.");
-            shared = 0;
+            shared = FALSE;
         }
     }
 
     if (!shared) {
-        if (!(pool = pa_mempool_new(shared))) {
+        if (!(pool = pa_mempool_new(shared, shm_size))) {
             pa_log("pa_mempool_new() failed.");
             return NULL;
         }
