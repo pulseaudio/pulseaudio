@@ -40,7 +40,7 @@
 
 ; dl-search-path = (depends on architecture)
 
-; load-defaul-script-file = yes
+; load-default-script-file = yes
 ; default-script-file = @PA_DEFAULT_CONFIG_FILE@
 
 ; log-target = auto
