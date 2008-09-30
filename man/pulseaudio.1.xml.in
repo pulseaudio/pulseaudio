@@ -127,7 +127,7 @@ USA.
     </option>
 
     <option>
-      <p><opt>-D | --daemon</opt><arg>[=BOOL]</arg></p>
+      <p><opt>-D | --daemonize</opt><arg>[=BOOL]</arg></p>
 
       <optdesc><p>Daemonize after startup, i.e. detach from the
       terminal.</p></optdesc>
