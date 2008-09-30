@@ -2192,6 +2192,7 @@ static void command_auth(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
         if (c->version < 10 || (c->version >= 13 && !shm_on_remote))
             do_shm = FALSE;
 
+#ifdef HAVE_CREDS
     if (do_shm) {
         /* Only enable SHM if both sides are owned by the same
          * user. This is a security measure because otherwise data
@@ -2201,6 +2202,7 @@ static void command_auth(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
         if (!(creds = pa_pdispatch_creds(pd)) || getuid() != creds->uid)
             do_shm = FALSE;
     }
+#endif
 
     pa_log_debug("Negotiated SHM: %s", pa_yes_no(do_shm));
     pa_pstream_enable_shm(c->pstream, do_shm);

@@ -37,7 +37,7 @@
 
 void pa_init_proplist(pa_proplist *p) {
     int a, b;
-#ifndef HAVE_DECL_ENVIRON
+#if !HAVE_DECL_ENVIRON
     extern char **environ;
 #endif
     char **e;

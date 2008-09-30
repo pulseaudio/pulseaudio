@@ -62,8 +62,8 @@ AM_CFLAGS += -DPA_MACHINE_ID=\"$(localstatedir)/lib/dbus/machine-id\"
 # This cool debug trap works on i386/gcc only
 AM_CFLAGS += '-DDEBUG_TRAP=__asm__("int $$3")'
 
-AM_LIBADD = $(PTHREAD_LIBS)
-AM_LDADD = $(PTHREAD_LIBS)
+AM_LIBADD = $(PTHREAD_LIBS) $(INTLLIBS)
+AM_LDADD = $(PTHREAD_LIBS) $(INTLLIBS)
 
 # Only required on some platforms but defined for all to avoid errors
 AM_LDFLAGS = -Wl,-no-undefined -Wl,--gc-sections

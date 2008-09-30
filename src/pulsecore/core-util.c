@@ -2351,7 +2351,7 @@ int pa_reset_sigs(int except, ...) {
 int pa_reset_sigsv(const int except[]) {
     int sig;
 
-    for (sig = 1; sig < _NSIG; sig++) {
+    for (sig = 1; sig < NSIG; sig++) {
         pa_bool_t reset = TRUE;
 
         switch (sig) {
