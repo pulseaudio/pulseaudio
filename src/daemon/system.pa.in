@@ -34,8 +34,9 @@ load-module module-esound-protocol-unix
 .endif
 load-module module-native-protocol-unix
 
-### Automatically restore the volume of playback streams
-load-module module-volume-restore
+### Automatically restore the volume of streams and devices
+load-module module-stream-restore
+load-module module-device-restore
 
 ### Automatically restore the default sink/source when changed by the user during runtime
 load-module module-default-device-restore
