@@ -180,16 +180,14 @@ static struct adapter* adapter_find(struct userdata *u, const char *path) {
     return NULL;
 }
 
-static struct device* device_find(struct userdata *u, const char *adapter, const char *path) {
-    struct adapter *a;
+static struct device* device_find(struct userdata *u, const char *path) {
+    struct adapter *j;
     struct device *i;
 
-    if (!(a = adapter_find(u, adapter)))
-        return NULL;
-
-    for (i = a->device_list; i; i = i->next)
-        if (pa_streq(i->object_path, path))
-            return i;
+    for (j = u->adapter_list; j; j = j->next)
+        for (i = j->device_list; i; i = i->next)
+            if (pa_streq(i->object_path, path))
+                return i;
 
     return NULL;
 }
@@ -285,6 +283,12 @@ static void load_module_for_device(struct userdata *u, struct device *d) {
     pa_assert(u);
     pa_assert(d);
 
+    /* Check whether we already loaded a module for this device */
+    if (d->module_index != PA_INVALID_INDEX &&
+        pa_idxset_get_by_index(u->module->core->modules, d->module_index))
+        return;
+
+    /* Check whether this is an audio device */
     if (!d->audio_profile) {
         pa_log_debug("Ignoring %s since it is not an audio device.", d->object_path);
         return;
@@ -311,6 +315,52 @@ static void load_modules(struct userdata *u) {
     for (a = u->adapter_list; a; a = a->next)
         for (d = a->device_list; d; d = d->next)
             load_module_for_device(u, d);
+}
+
+static int parse_adapter_property(struct userdata *u, struct adapter *a, DBusMessageIter *i) {
+    const char *key;
+    DBusMessageIter variant_i;
+
+    pa_assert(u);
+    pa_assert(a);
+    pa_assert(i);
+
+    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_STRING) {
+        pa_log("Property name not a string.");
+        return -1;
+    }
+
+    dbus_message_iter_get_basic(i, &key);
+
+    if (!dbus_message_iter_next(i)) {
+        pa_log("Property value missing");
+        return -1;
+    }
+
+    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_VARIANT) {
+        pa_log("Property value not a variant.");
+        return -1;
+    }
+
+    dbus_message_iter_recurse(i, &variant_i);
+
+    if (dbus_message_iter_get_arg_type(&variant_i) == DBUS_TYPE_STRING) {
+        const char *value;
+        dbus_message_iter_get_basic(&variant_i, &value);
+
+        if (pa_streq(key, "Mode")) {
+            pa_xfree(a->mode);
+            a->mode = pa_xstrdup(value);
+        } else if (pa_streq(key, "Address")) {
+            pa_xstrdup(a->address);
+            a->address = pa_xstrdup(value);
+        } else if (pa_streq(key, "Name")) {
+            pa_xfree(a->name);
+            a->name = pa_xstrdup(value);
+        }
+    }
+
+    return 0;
 }
 
 static int get_adapter_properties(struct userdata *u, struct adapter *a) {
@@ -346,36 +396,12 @@ static int get_adapter_properties(struct userdata *u, struct adapter *a) {
     while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
 
         if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
-            const char *key;
-            DBusMessageIter dict_i, variant_i;
+            DBusMessageIter dict_i;
 
             dbus_message_iter_recurse(&element_i, &dict_i);
 
-            if (dbus_message_iter_get_arg_type(&dict_i) != DBUS_TYPE_STRING) {
-                pa_log("Property name not a string.");
+            if (parse_adapter_property(u, a, &dict_i) < 0)
                 goto finish;
-            }
-
-            dbus_message_iter_get_basic(&dict_i, &key);
-
-            if (!dbus_message_iter_next(&dict_i)) {
-                pa_log("Dictionary item missing");
-                goto finish;
-            }
-
-            dbus_message_iter_recurse(&dict_i, &variant_i);
-
-            if (dbus_message_iter_get_arg_type(&variant_i) == DBUS_TYPE_STRING) {
-                const char *value;
-                dbus_message_iter_get_basic(&variant_i, &value);
-
-                if (pa_streq(key, "Mode"))
-                    a->mode = pa_xstrdup(value);
-                else if (pa_streq(key, "Address"))
-                    a->address = pa_xstrdup(value);
-                else if (pa_streq(key, "Name"))
-                    a->name = pa_xstrdup(value);
-            }
         }
 
         if (!dbus_message_iter_next(&element_i))
@@ -456,10 +482,124 @@ finish:
     return ret;
 }
 
+static int parse_device_property(struct userdata *u, struct device *d, DBusMessageIter *i) {
+    const char *key;
+    DBusMessageIter variant_i;
+
+    pa_assert(u);
+    pa_assert(d);
+    pa_assert(i);
+
+    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_STRING) {
+        pa_log("Property name not a string.");
+        return -1;
+    }
+
+    dbus_message_iter_get_basic(i, &key);
+
+    if (!dbus_message_iter_next(i))  {
+        pa_log("Property value missing");
+        return -1;
+    }
+
+    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_VARIANT) {
+        pa_log("Property value not a variant.");
+        return -1;
+    }
+
+    dbus_message_iter_recurse(i, &variant_i);
+
+    pa_log_debug("Parsing device property %s", key);
+
+    switch (dbus_message_iter_get_arg_type(&variant_i)) {
+
+        case DBUS_TYPE_STRING: {
+
+            const char *value;
+            dbus_message_iter_get_basic(&variant_i, &value);
+
+            if (pa_streq(key, "Name")) {
+                pa_xfree(d->name);
+                d->name = pa_xstrdup(value);
+            } else if (pa_streq(key, "Alias")) {
+                pa_xfree(d->alias);
+                d->alias = pa_xstrdup(value);
+            } else if (pa_streq(key, "Address")) {
+                pa_xfree(d->address);
+                d->address = pa_xstrdup(value);
+            }
+
+            break;
+        }
+
+        case DBUS_TYPE_BOOLEAN: {
+
+            dbus_bool_t value;
+            dbus_message_iter_get_basic(&variant_i, &value);
+
+            if (pa_streq(key, "Paired"))
+                d->paired = !!value;
+            else if (pa_streq(key, "Connected"))
+                d->connected = !!value;
+            else if (pa_streq(key, "Trusted"))
+                d->trusted = !!value;
+
+            break;
+        }
+
+        case DBUS_TYPE_UINT32: {
+
+            uint32_t value;
+            dbus_message_iter_get_basic(&variant_i, &value);
+
+            if (pa_streq(key, "Class"))
+                d->class = (int) value;
+
+            break;
+        }
+
+        case DBUS_TYPE_ARRAY: {
+
+            DBusMessageIter ai;
+            dbus_message_iter_recurse(&variant_i, &ai);
+
+            if (dbus_message_iter_get_arg_type(&ai) == DBUS_TYPE_STRING &&
+                pa_streq(key, "UUIDs")) {
+
+                d->audio_profile = NULL;
+
+                while (dbus_message_iter_get_arg_type(&ai) != DBUS_TYPE_INVALID) {
+                    struct uuid *node;
+                    const char *value;
+
+                    dbus_message_iter_get_basic(&ai, &value);
+                    node = uuid_new(value);
+                    PA_LLIST_PREPEND(struct uuid, d->uuid_list, node);
+
+                    if ((strcasecmp(value, A2DP_SOURCE_UUID) == 0) ||
+                        (strcasecmp(value, A2DP_SINK_UUID) == 0))
+                        d->audio_profile = "a2dp";
+                    else if (((strcasecmp(value, HSP_HS_UUID) == 0) ||
+                              (strcasecmp(value, HFP_HS_UUID) == 0)) &&
+                             !d->audio_profile)
+                        d->audio_profile = "hsp";
+
+                    if (!dbus_message_iter_next(&ai))
+                        break;
+                }
+            }
+
+            break;
+        }
+    }
+
+    return 0;
+}
+
 static int get_device_properties(struct userdata *u, struct device *d) {
     DBusError e;
     DBusMessage *m = NULL, *r = NULL;
-    DBusMessageIter arg_i, element_i, dict_i, variant_i;
+    DBusMessageIter arg_i, element_i;
     int ret = -1;
 
     pa_assert(u);
@@ -488,60 +628,14 @@ static int get_device_properties(struct userdata *u, struct device *d) {
 
     dbus_message_iter_recurse(&arg_i, &element_i);
     while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
+
         if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
-            const char *value, *key;
-            int32_t ivalue;
+            DBusMessageIter dict_i;
 
             dbus_message_iter_recurse(&element_i, &dict_i);
-            dbus_message_iter_get_basic(&dict_i, &key);
-            dbus_message_iter_next(&dict_i);
 
-            dbus_message_iter_recurse(&dict_i, &variant_i);
-            if (pa_streq(key, "Name")) {
-                dbus_message_iter_get_basic(&variant_i, &value);
-                d->name = pa_xstrdup(value);
-            } else if (pa_streq(key, "Paired")) {
-                dbus_message_iter_get_basic(&variant_i, &ivalue);
-                d->paired = ivalue;
-            } else if (pa_streq(key, "Alias")) {
-                dbus_message_iter_get_basic(&variant_i, &value);
-                d->alias = pa_xstrdup(value);
-            } else if (pa_streq(key, "Connected")) {
-                dbus_message_iter_get_basic(&variant_i, &ivalue);
-                d->connected = ivalue;
-            } else if (pa_streq(key, "UUIDs")) {
-                DBusMessageIter uuid_i;
-
-                dbus_message_iter_recurse(&variant_i, &uuid_i);
-                while (dbus_message_iter_get_arg_type(&uuid_i) != DBUS_TYPE_INVALID) {
-
-                    struct uuid *node;
-                    dbus_message_iter_get_basic(&uuid_i, &value);
-                    node = uuid_new(value);
-                    PA_LLIST_PREPEND(struct uuid, d->uuid_list, node);
-
-                    if ((strcasecmp(value, A2DP_SOURCE_UUID) == 0) ||
-                        (strcasecmp(value, A2DP_SINK_UUID) == 0))
-                        d->audio_profile = "a2dp";
-                    else if (((strcasecmp(value, HSP_HS_UUID) == 0) ||
-                              (strcasecmp(value, HFP_HS_UUID) == 0)) &&
-                             !d->audio_profile)
-                        d->audio_profile = "hsp";
-
-                    if (!dbus_message_iter_next(&uuid_i))
-                        break;
-                }
-
-            } else if (pa_streq(key, "Address")) {
-                dbus_message_iter_get_basic(&variant_i, &value);
-                d->address = pa_xstrdup(value);
-            } else if (pa_streq(key, "Class")) {
-                dbus_message_iter_get_basic(&variant_i, &ivalue);
-                d->class = ivalue;
-            } else if (pa_streq(key, "Trusted")) {
-                dbus_message_iter_get_basic(&variant_i, &ivalue);
-                d->trusted = ivalue;
-            }
+            if (parse_device_property(u, d, &dict_i) < 0)
+                goto finish;
         }
 
         if (!dbus_message_iter_next(&element_i))
@@ -557,6 +651,7 @@ finish:
         dbus_message_unref(r);
 
     dbus_error_free(&e);
+
     return ret;
 }
 
@@ -636,6 +731,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *
     pa_assert(msg);
     pa_assert(userdata);
     u = userdata;
+
     dbus_error_init(&err);
 
     pa_log_debug("dbus: interface=%s, path=%s, member=%s\n",
@@ -678,6 +774,17 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *
             }
         }
 
+    } else if (dbus_message_is_signal(msg, "org.bluez.Adapter", "PropertyChanged")) {
+
+        if (!dbus_message_iter_init(msg, &arg_i))
+            pa_log("dbus: message has no parameters");
+        else {
+            struct adapter *a;
+
+            if ((a = adapter_find(u, dbus_message_get_path(msg))))
+                parse_adapter_property(u, a, &arg_i);
+        }
+
     } else if (dbus_message_is_signal(msg, "org.bluez.Adapter", "DeviceCreated")) {
 
         if (!dbus_message_iter_init(msg, &arg_i))
@@ -715,9 +822,25 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *
             dbus_message_iter_get_basic(&arg_i, &value);
             pa_log_debug("hcid: device %s removed", value);
 
-            if ((d = device_find(u, dbus_message_get_path(msg), value))) {
+            if ((d = device_find(u, value))) {
                 PA_LLIST_REMOVE(struct device, d->adapter->device_list, d);
                 device_free(d);
+            }
+        }
+
+    } else if (dbus_message_is_signal(msg, "org.bluez.Device", "PropertyChanged")) {
+
+        if (!dbus_message_iter_init(msg, &arg_i))
+            pa_log("dbus: message has no parameters");
+        else {
+            struct device *d;
+
+            if ((d = device_find(u, dbus_message_get_path(msg)))) {
+                parse_device_property(u, d, &arg_i);
+
+                /* Hmm, something changed, let's try to reconnect if we
+                 * aren't connected yet */
+                load_module_for_device(u, d);
             }
         }
     }
@@ -786,6 +909,12 @@ int pa__init(pa_module* m) {
     dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.Adapter'", &err);
     if (dbus_error_is_set(&err)) {
         pa_log_error("Unable to subscribe to org.bluez.Adapter signals: %s: %s", err.name, err.message);
+        goto fail;
+    }
+
+    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.Device'", &err);
+    if (dbus_error_is_set(&err)) {
+        pa_log_error("Unable to subscribe to org.bluez.Device signals: %s: %s", err.name, err.message);
         goto fail;
     }
 
