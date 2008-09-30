@@ -31,15 +31,15 @@ USA.
 
   <description>
     <p>The PulseAudio client library reads configuration directives from
-    a file <file>~/.pulse/client.conf</file> on startup, and when that
+    a file <file>~/.pulse/client.conf</file> on startup and when that
     file doesn't exist from
     <file>@pulseconfdir@/client.conf</file>.</p>
 
     <p>The configuration file is a simple collection of variable
     declarations. If the configuration file parser encounters either ;
-    or # for it ignores the rest of the line until its end.</p>
+    or # it ignores the rest of the line until its end.</p>
 
-    <p>For the settings that take a boolean argument, the values
+    <p>For the settings that take a boolean argument the values
     <opt>true</opt>, <opt>yes</opt>, <opt>on</opt> and <opt>1</opt>
     are equivalent, resp. <opt>false</opt>, <opt>no</opt>,
     <opt>off</opt>, <opt>0</opt>.</p>
@@ -69,7 +69,7 @@ USA.
 
     <option>
       <p><opt>autospawn=</opt> Autospawn a PulseAudio daemon when
-      needed. Takes a boolean value, defaults to "no".</p>
+      needed. Takes a boolean value, defaults to "yes".</p>
     </option>
 
     <option>
@@ -81,7 +81,7 @@ USA.
     <option>
       <p><opt>extra-arguments=</opt> Extra arguments to pass to the
       PulseAudio daemon when autospawning. Defaults to
-      <opt>--log-target=syslog --exit-idle-time=5</opt>
+      <opt>--log-target=syslog</opt>
       </p>
     </option>
 

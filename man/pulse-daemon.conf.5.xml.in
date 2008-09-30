@@ -31,7 +31,7 @@ USA.
 
   <description>
     <p>The PulseAudio sound server reads configuration directives from
-    a file <file>~/.pulse/daemon.conf</file> on startup, and when that
+    a file <file>~/.pulse/daemon.conf</file> on startup and when that
     file doesn't exist from
     <file>@pulseconfdir@/daemon.conf</file>. Please note that the
     server also reads a configuration script on startup
@@ -40,9 +40,9 @@ USA.
 
     <p>The configuration file is a simple collection of variable
     declarations. If the configuration file parser encounters either ;
-    or # for it ignores the rest of the line until its end.</p>
+    or # it ignores the rest of the line until its end.</p>
 
-    <p>For the settings that take a boolean argument, the values
+    <p>For the settings that take a boolean argument the values
     <opt>true</opt>, <opt>yes</opt>, <opt>on</opt> and <opt>1</opt>
     are equivalent, resp. <opt>false</opt>, <opt>no</opt>,
     <opt>off</opt>, <opt>0</opt>.</p>
@@ -74,6 +74,11 @@ USA.
       option is enabled. Takes a boolean argument, defaults to
       <opt>no</opt>. The <opt>--disallow-module-loading</opt> command line
       option takes precedence.</p>
+    </option>
+
+    <option>
+      <p><opt>disallow-exit=</opt> Disallow exit on user
+      request. Defaults to <opt>no</opt>.</p>
     </option>
 
     <option>
@@ -112,7 +117,7 @@ USA.
       available as well. If no input LFE channel is available the
       output LFE channel will always be 0. If no output LFE channel is
       available the signal on the input LFE channel will be
-      ignored.</p>
+      ignored. Defaults to "on".</p>
     </option>
 
     <option>
@@ -249,9 +254,17 @@ USA.
       default script file. The default behaviour is to load
       <file>~/.pulse/default.pa</file>, and if that file does not
       exist fall back to the system wide installed version
-      <file>@pulseconfdir@/default.pa</file>. If <opt>-n</opt> is
-      passed on the command line the default configuration script is
-      ignored.</p>
+      <file>@pulseconfdir@/default.pa</file>. If run in system-wide
+      mode the file <file>@pulseconfdir@/system.pa</file> is used
+      instead. If <opt>-n</opt> is passed on the command line
+      or <opt>default-script-file=</opt> is disabled the default
+      configuration script is ignored.</p>
+    </option>
+
+    <option>
+      <p><opt>default-script-file=</opt> Load the default
+      configuration script file as specified
+      in <opt>default-script-file=</opt>. Defaults to "yes".</p>
     </option>
 
   </section>
@@ -291,6 +304,9 @@ USA.
       <p><opt>rlimit-as</opt> Defaults to -1.</p>
     </option>
     <option>
+      <p><opt>rlimit-rss</opt> Defaults to -1.</p>
+    </option>
+    <option>
       <p><opt>rlimit-core</opt> Defaults to -1.</p>
     </option>
     <option>
@@ -309,6 +325,15 @@ USA.
       <p><opt>rlimit-nproc</opt> Defaults to -1.</p>
     </option>
     <option>
+      <p><opt>rlimit-locks</opt> Defaults to -1.</p>
+    </option>
+    <option>
+      <p><opt>rlimit-sigpending</opt> Defaults to -1.</p>
+    </option>
+    <option>
+      <p><opt>rlimit-msgqueue</opt> Defaults to -1.</p>
+    </option>
+    <option>
       <p><opt>rlimit-memlock</opt> Defaults to 16 KiB. Please note
       that the JACK client libraries may require more locked
       memory.</p>
@@ -325,6 +350,9 @@ USA.
       <opt>realtime-priority=</opt> fits in this resource limit, if
       <opt>realtime-scheduling</opt> is enabled. The JACK client
       libraries require a real-time prority of 9 by default. </p>
+    </option>
+    <option>
+      <p><opt>rlimit-rttime</opt> Defaults to 1000000.</p>
     </option>
 
   </section>
