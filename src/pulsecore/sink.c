@@ -663,7 +663,6 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
         pa_sw_cvolume_multiply(&volume, &s->thread_info.soft_volume, &info[0].volume);
 
         if (s->thread_info.soft_muted || !pa_cvolume_is_norm(&volume)) {
-            pa_log("adjusting volume ");
             pa_memchunk_make_writable(result, 0);
             if (s->thread_info.soft_muted || pa_cvolume_is_muted(&volume))
                 pa_silence_memchunk(result, &s->sample_spec);
