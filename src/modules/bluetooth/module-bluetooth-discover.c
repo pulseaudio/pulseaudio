@@ -828,22 +828,6 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *
             }
         }
 
-    } else if (dbus_message_is_signal(msg, "org.bluez.Device", "PropertyChanged")) {
-
-        if (!dbus_message_iter_init(msg, &arg_i))
-            pa_log("dbus: message has no parameters");
-        else {
-            struct device *d;
-
-            if ((d = device_find(u, dbus_message_get_path(msg)))) {
-                parse_device_property(u, d, &arg_i);
-
-                /* Hmm, something changed, let's try to reconnect if we
-                 * aren't connected yet */
-                load_module_for_device(u, d);
-            }
-        }
-
     } else if (dbus_message_is_signal(msg, "org.bluez.Headset", "Connected") ||
                dbus_message_is_signal(msg, "org.bluez.AudioSink", "Connected")) {
 
