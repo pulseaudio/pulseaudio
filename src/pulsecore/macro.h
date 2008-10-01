@@ -208,7 +208,7 @@ typedef int pa_bool_t;
 #define PA_PATH_SEP_CHAR '/'
 #endif
 
-#ifdef __GNUC__
+#if defined(__GNUC__) && defined(__ELF__)
 
 #define PA_WARN_REFERENCE(sym, msg)                  \
     __asm__(".section .gnu.warning." #sym);          \
