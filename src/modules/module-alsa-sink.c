@@ -1474,14 +1474,15 @@ int pa__init(pa_module*m) {
         pa_assert(u->mixer_elem);
 
         if (snd_mixer_selem_has_playback_volume(u->mixer_elem)) {
-            pa_bool_t suitable = TRUE;
+            pa_bool_t suitable = FALSE;
 
-            if (snd_mixer_selem_get_playback_volume_range(u->mixer_elem, &u->hw_volume_min, &u->hw_volume_max) < 0) {
+            if (snd_mixer_selem_get_playback_volume_range(u->mixer_elem, &u->hw_volume_min, &u->hw_volume_max) < 0)
                 pa_log_info("Failed to get volume range. Falling back to software volume control.");
-                suitable = FALSE;
-            } else {
+            else if (u->hw_volume_min >= u->hw_volume_max)
+                pa_log_warn("Your kernel driver is broken: it reports a volume range from %li to %li which makes no sense.", u->hw_volume_min, u->hw_volume_max);
+            else {
                 pa_log_info("Volume ranges from %li to %li.", u->hw_volume_min, u->hw_volume_max);
-                pa_assert(u->hw_volume_min < u->hw_volume_max);
+                suitable = TRUE;
             }
 
             if (snd_mixer_selem_get_playback_dB_range(u->mixer_elem, &u->hw_dB_min, &u->hw_dB_max) < 0)
@@ -1492,9 +1493,12 @@ int pa__init(pa_module*m) {
                 VALGRIND_MAKE_MEM_DEFINED(&u->hw_dB_max, sizeof(u->hw_dB_max));
 #endif
 
-                pa_log_info("Volume ranges from %0.2f dB to %0.2f dB.", (double) u->hw_dB_min/100.0, (double) u->hw_dB_max/100.0);
-                pa_assert(u->hw_dB_min < u->hw_dB_max);
-                u->hw_dB_supported = TRUE;
+                if (u->hw_dB_min >= u->hw_dB_max)
+                    pa_log_warn("Your kernel driver is broken: it reports a volume range from %0.2f dB to %0.2f dB which makes no sense.", (double) u->hw_dB_min/100.0, (double) u->hw_dB_max/100.0);
+                else {
+                    pa_log_info("Volume ranges from %0.2f dB to %0.2f dB.", (double) u->hw_dB_min/100.0, (double) u->hw_dB_max/100.0);
+                    u->hw_dB_supported = TRUE;
+                }
             }
 
             if (suitable &&
