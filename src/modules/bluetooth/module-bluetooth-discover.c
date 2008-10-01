@@ -914,13 +914,13 @@ int pa__init(pa_module* m) {
         goto fail;
     }
 
-    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.Headset,member='Connected''", &err);
+    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.Headset',member='Connected'", &err);
     if (dbus_error_is_set(&err)) {
         pa_log_error("Unable to subscribe to org.bluez.Headset signals: %s: %s", err.name, err.message);
         goto fail;
     }
 
-    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.AudioSink,member='Connected''", &err);
+    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='Connected'", &err);
     if (dbus_error_is_set(&err)) {
         pa_log_error("Unable to subscribe to org.bluez.AudioSink signals: %s: %s", err.name, err.message);
         goto fail;
