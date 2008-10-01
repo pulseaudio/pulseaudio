@@ -249,7 +249,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
         pa_memblockq_seek(s->memblockq, (int64_t) chunk.length, PA_SEEK_RELATIVE);
     }
 
-    pa_log("blocks in q: %u", pa_memblockq_get_nblocks(s->memblockq));
+/*     pa_log("blocks in q: %u", pa_memblockq_get_nblocks(s->memblockq)); */
 
     pa_memblock_unref(chunk.memblock);
 
