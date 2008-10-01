@@ -2010,7 +2010,6 @@ static void stream_set_buffer_attr_callback(pa_pdispatch *pd, uint32_t command, 
 
         success = 0;
     } else {
-
         if (o->stream->direction == PA_STREAM_PLAYBACK) {
             if (pa_tagstruct_getu32(t, &o->stream->buffer_attr.maxlength) < 0 ||
                 pa_tagstruct_getu32(t, &o->stream->buffer_attr.tlength) < 0 ||
@@ -2025,6 +2024,20 @@ static void stream_set_buffer_attr_callback(pa_pdispatch *pd, uint32_t command, 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
+        }
+
+        if (o->stream->context->version >= 13) {
+            pa_usec_t usec;
+
+            if (pa_tagstruct_get_usec(t, &usec) < 0) {
+                pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                goto finish;
+            }
+
+            if (o->stream->direction == PA_STREAM_RECORD)
+                o->stream->timing_info.configured_source_usec = usec;
+            else
+                o->stream->timing_info.configured_sink_usec = usec;
         }
 
         if (!pa_tagstruct_eof(t)) {
