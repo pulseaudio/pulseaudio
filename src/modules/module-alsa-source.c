@@ -700,6 +700,21 @@ static int mixer_callback(snd_mixer_elem_t *elem, unsigned int mask) {
     return 0;
 }
 
+static pa_volume_t from_alsa_volume(struct userdata *u, long alsa_vol) {
+
+    return (pa_volume_t) round(((double) (alsa_vol - u->hw_volume_min) * PA_VOLUME_NORM) /
+                               (double) (u->hw_volume_max - u->hw_volume_min));
+}
+
+static long to_alsa_volume(struct userdata *u, pa_volume_t vol) {
+    long alsa_vol;
+
+    alsa_vol = (long) round(((double) vol * (double) (u->hw_volume_max - u->hw_volume_min))
+                            / PA_VOLUME_NORM) + u->hw_volume_min;
+
+    return PA_CLAMP_UNLIKELY(alsa_vol, u->hw_volume_min, u->hw_volume_max);
+}
+
 static int source_get_volume_cb(pa_source *s) {
     struct userdata *u = s->userdata;
     int err;
@@ -732,23 +747,31 @@ static int source_get_volume_cb(pa_source *s) {
                 if ((err = snd_mixer_selem_get_capture_volume(u->mixer_elem, u->mixer_map[i], &alsa_vol)) < 0)
                     goto fail;
 
-                r.values[i] = (pa_volume_t) round(((double) (alsa_vol - u->hw_volume_min) * PA_VOLUME_NORM) / (double) (u->hw_volume_max - u->hw_volume_min));
+                r.values[i] = from_alsa_volume(u, alsa_vol);
             }
         }
 
     } else {
         long alsa_vol;
 
-        pa_assert(u->hw_dB_supported);
+        if (u->hw_dB_supported) {
 
-        if ((err = snd_mixer_selem_get_capture_dB(u->mixer_elem, SND_MIXER_SCHN_MONO, &alsa_vol)) < 0)
-            goto fail;
+            if ((err = snd_mixer_selem_get_capture_dB(u->mixer_elem, SND_MIXER_SCHN_MONO, &alsa_vol)) < 0)
+                goto fail;
 
 #ifdef HAVE_VALGRIND_MEMCHECK_H
-        VALGRIND_MAKE_MEM_DEFINED(&alsa_vol, sizeof(alsa_vol));
+            VALGRIND_MAKE_MEM_DEFINED(&alsa_vol, sizeof(alsa_vol));
 #endif
 
-        pa_cvolume_set(&r, s->sample_spec.channels, pa_sw_volume_from_dB((double) alsa_vol / 100.0));
+            pa_cvolume_set(&r, s->sample_spec.channels, pa_sw_volume_from_dB((double) alsa_vol / 100.0));
+
+        } else {
+
+            if ((err = snd_mixer_selem_get_capture_volume(u->mixer_elem, SND_MIXER_SCHN_MONO, &alsa_vol)) < 0)
+                goto fail;
+
+            pa_cvolume_set(&r, s->sample_spec.channels, from_alsa_volume(u, alsa_vol));
+        }
     }
 
     pa_log_debug("Read hardware volume: %s", pa_cvolume_snprint(t, sizeof(t), &r));
@@ -784,7 +807,7 @@ static int source_set_volume_cb(pa_source *s) {
     pa_assert(u);
     pa_assert(u->mixer_elem);
 
-        if (u->mixer_seperate_channels) {
+    if (u->mixer_seperate_channels) {
 
         r.channels = s->sample_spec.channels;
 
@@ -806,10 +829,9 @@ static int source_set_volume_cb(pa_source *s) {
                     goto fail;
 
                 r.values[i] = pa_sw_volume_from_dB((double) alsa_vol / 100.0);
-            } else {
 
-                alsa_vol = (long) round(((double) vol * (double) (u->hw_volume_max - u->hw_volume_min)) / PA_VOLUME_NORM) + u->hw_volume_min;
-                alsa_vol = PA_CLAMP_UNLIKELY(alsa_vol, u->hw_volume_min, u->hw_volume_max);
+            } else {
+                alsa_vol = to_alsa_volume(u, vol);
 
                 if ((err = snd_mixer_selem_set_capture_volume(u->mixer_elem, u->mixer_map[i], alsa_vol)) < 0)
                     goto fail;
@@ -817,7 +839,7 @@ static int source_set_volume_cb(pa_source *s) {
                 if ((err = snd_mixer_selem_get_capture_volume(u->mixer_elem, u->mixer_map[i], &alsa_vol)) < 0)
                     goto fail;
 
-                r.values[i] = (pa_volume_t) round(((double) (alsa_vol - u->hw_volume_min) * PA_VOLUME_NORM) / (double) (u->hw_volume_max - u->hw_volume_min));
+                r.values[i] = from_alsa_volume(u, alsa_vol);
             }
         }
 
@@ -825,20 +847,31 @@ static int source_set_volume_cb(pa_source *s) {
         pa_volume_t vol;
         long alsa_vol;
 
-        pa_assert(u->hw_dB_supported);
-
         vol = pa_cvolume_max(&s->volume);
 
-        alsa_vol = (long) (pa_sw_volume_to_dB(vol) * 100);
-        alsa_vol = PA_CLAMP_UNLIKELY(alsa_vol, u->hw_dB_min, u->hw_dB_max);
+        if (u->hw_dB_supported) {
+            alsa_vol = (long) (pa_sw_volume_to_dB(vol) * 100);
+            alsa_vol = PA_CLAMP_UNLIKELY(alsa_vol, u->hw_dB_min, u->hw_dB_max);
 
-        if ((err = snd_mixer_selem_set_capture_dB_all(u->mixer_elem, alsa_vol, 1)) < 0)
-            goto fail;
+            if ((err = snd_mixer_selem_set_capture_dB_all(u->mixer_elem, alsa_vol, 1)) < 0)
+                goto fail;
 
-        if ((err = snd_mixer_selem_get_capture_dB(u->mixer_elem, SND_MIXER_SCHN_MONO, &alsa_vol)) < 0)
-            goto fail;
+            if ((err = snd_mixer_selem_get_capture_dB(u->mixer_elem, SND_MIXER_SCHN_MONO, &alsa_vol)) < 0)
+                goto fail;
 
-        pa_cvolume_set(&r, s->volume.channels, pa_sw_volume_from_dB((double) alsa_vol / 100.0));
+            pa_cvolume_set(&r, s->volume.channels, pa_sw_volume_from_dB((double) alsa_vol / 100.0));
+
+        } else {
+            alsa_vol = to_alsa_volume(u, vol);
+
+            if ((err = snd_mixer_selem_set_capture_volume_all(u->mixer_elem, alsa_vol)) < 0)
+                goto fail;
+
+            if ((err = snd_mixer_selem_get_capture_volume(u->mixer_elem, SND_MIXER_SCHN_MONO, &alsa_vol)) < 0)
+                goto fail;
+
+            pa_cvolume_set(&r, s->sample_spec.channels, from_alsa_volume(u, alsa_vol));
+        }
     }
 
     u->hardware_volume = r;
