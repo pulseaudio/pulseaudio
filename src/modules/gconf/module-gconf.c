@@ -378,7 +378,16 @@ void pa__done(pa_module*m) {
 
     if (u->pid != (pid_t) -1) {
         kill(u->pid, SIGTERM);
-        waitpid(u->pid, NULL, 0);
+
+        for (;;) {
+            if (waitpid(u->pid, NULL, 0) >= 0)
+                break;
+
+            if (errno != EINTR) {
+                pa_log("waitpid() failed: %s", pa_cstrerror(errno));
+                break;
+            }
+        }
     }
 
     if (u->io_event)
@@ -386,7 +395,6 @@ void pa__done(pa_module*m) {
 
     if (u->fd >= 0)
         pa_close(u->fd);
-
 
     if (u->module_infos)
         pa_hashmap_free(u->module_infos, module_info_free, u);
