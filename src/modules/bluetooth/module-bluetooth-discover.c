@@ -831,14 +831,10 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *
     } else if (dbus_message_is_signal(msg, "org.bluez.Headset", "Connected") ||
                dbus_message_is_signal(msg, "org.bluez.AudioSink", "Connected")) {
 
-        if (!dbus_message_iter_init(msg, &arg_i))
-            pa_log("dbus: message has no parameters");
-        else {
-            struct device *d;
+        struct device *d;
 
-            if ((d = device_find(u, dbus_message_get_path(msg))))
+        if ((d = device_find(u, dbus_message_get_path(msg))))
                 load_module_for_device(u, d);
-        }
     }
 
     dbus_error_free(&err);
