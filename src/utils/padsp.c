@@ -422,7 +422,7 @@ static void fd_info_unref(fd_info *i) {
     pthread_mutex_lock(&i->mutex);
     assert(i->ref >= 1);
     r = --i->ref;
-        debug(DEBUG_LEVEL_VERBOSE, __FILE__": ref--, now %i\n", i->ref);
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": ref--, now %i\n", i->ref);
     pthread_mutex_unlock(&i->mutex);
 
     if (r <= 0)
@@ -498,7 +498,6 @@ static void atfork_prepare(void) {
 
     pthread_mutex_lock(&func_mutex);
 
-
     debug(DEBUG_LEVEL_NORMAL, __FILE__": atfork_prepare() exit\n");
 }
 
@@ -550,12 +549,14 @@ static void atfork_child(void) {
         }
 
         if (i->app_fd >= 0) {
-            close(i->app_fd);
+            LOAD_CLOSE_FUNC();
+            _close(i->app_fd);
             i->app_fd = -1;
         }
 
         if (i->thread_fd >= 0) {
-            close(i->thread_fd);
+            LOAD_CLOSE_FUNC();
+            _close(i->thread_fd);
             i->thread_fd = -1;
         }
 
@@ -942,6 +943,10 @@ static int fd_info_copy_data(fd_info *i, int force) {
         api = pa_threaded_mainloop_get_api(i->mainloop);
         api->io_enable(i->io_event, i->io_flags);
     }
+
+    /* So, we emptied the socket now, let's tell dsp_empty_socket()
+     * about this */
+    pa_threaded_mainloop_signal(i->mainloop, 0);
 
     return 0;
 }
