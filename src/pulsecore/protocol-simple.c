@@ -173,7 +173,7 @@ static int do_read(connection *c) {
     }
 
     if (!c->playback.current_memblock) {
-        pa_assert_se(c->playback.current_memblock = pa_memblock_new(c->protocol->core->mempool, 0));
+        pa_assert_se(c->playback.current_memblock = pa_memblock_new(c->protocol->core->mempool, (size_t) -1));
         c->playback.memblock_index = 0;
 
         space = pa_memblock_get_length(c->playback.current_memblock);
@@ -492,6 +492,8 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
     c->parent.parent.free = connection_free;
     c->parent.process_msg = connection_process_msg;
     c->io = io;
+    pa_iochannel_set_callback(c->io, io_callback, c);
+
     c->sink_input = NULL;
     c->source_output = NULL;
     c->input_memblockq = c->output_memblockq = NULL;
@@ -610,7 +612,6 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
         pa_source_output_put(c->source_output);
     }
 
-    pa_iochannel_set_callback(c->io, io_callback, c);
     pa_idxset_put(p->connections, c, NULL);
 
     return;
@@ -689,6 +690,9 @@ pa_simple_options* pa_simple_options_new(void) {
     o = pa_xnew0(pa_simple_options, 1);
     PA_REFCNT_INIT(o);
 
+    o->record = FALSE;
+    o->playback = TRUE;
+
     return o;
 }
 
@@ -733,14 +737,14 @@ int pa_simple_options_parse(pa_simple_options *o, pa_core *c, pa_modargs *ma) {
     pa_xfree(o->default_sink);
     o->default_sink = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
 
-    enabled = FALSE;
+    enabled = o->record;
     if (pa_modargs_get_value_boolean(ma, "record", &enabled) < 0) {
         pa_log("record= expects a boolean argument.");
         return -1;
     }
     o->record = enabled;
 
-    enabled = TRUE;
+    enabled = o->playback;
     if (pa_modargs_get_value_boolean(ma, "playback", &enabled) < 0) {
         pa_log("playback= expects a boolean argument.");
         return -1;
