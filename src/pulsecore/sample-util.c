@@ -214,8 +214,8 @@ size_t pa_mix(
                     m->ptr = (uint8_t*) m->ptr + sizeof(int16_t);
                 }
 
-                sum = (sum * linear[channel]) / 0x10000;
                 sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
+                sum = (sum * linear[channel]) / 0x10000;
                 *((int16_t*) data) = (int16_t) sum;
 
                 data = (uint8_t*) data + sizeof(int16_t);
@@ -253,8 +253,8 @@ size_t pa_mix(
                     m->ptr = (uint8_t*) m->ptr + sizeof(int16_t);
                 }
 
-                sum = (sum * linear[channel]) / 0x10000;
                 sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
+                sum = (sum * linear[channel]) / 0x10000;
                 *((int16_t*) data) = PA_INT16_SWAP((int16_t) sum);
 
                 data = (uint8_t*) data + sizeof(int16_t);
@@ -411,8 +411,8 @@ size_t pa_mix(
                     m->ptr = (uint8_t*) m->ptr + 1;
                 }
 
-                sum = (sum * linear[channel]) / 0x10000;
                 sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
+                sum = (sum * linear[channel]) / 0x10000;
                 *((uint8_t*) data) = (uint8_t) st_14linear2ulaw((int16_t) sum >> 2);
 
                 data = (uint8_t*) data + 1;
@@ -450,8 +450,8 @@ size_t pa_mix(
                     m->ptr = (uint8_t*) m->ptr + 1;
                 }
 
-                sum = (sum * linear[channel]) / 0x10000;
                 sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
+                sum = (sum * linear[channel]) / 0x10000;
                 *((uint8_t*) data) = (uint8_t) st_13linear2alaw((int16_t) sum >> 3);
 
                 data = (uint8_t*) data + 1;
