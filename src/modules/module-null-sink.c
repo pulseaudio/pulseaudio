@@ -137,13 +137,13 @@ static void process_rewind(struct userdata *u, pa_usec_t now) {
     pa_log_debug("Requested to rewind %lu bytes.", (unsigned long) rewind_nbytes);
 
     if (u->timestamp <= now)
-        return;
+        goto do_nothing;
 
     delay = u->timestamp - now;
     in_buffer = pa_usec_to_bytes(delay, &u->sink->sample_spec);
 
     if (in_buffer <= 0)
-        return;
+        goto do_nothing;
 
     if (rewind_nbytes > in_buffer)
         rewind_nbytes = in_buffer;
@@ -152,6 +152,11 @@ static void process_rewind(struct userdata *u, pa_usec_t now) {
     u->timestamp -= pa_bytes_to_usec(rewind_nbytes, &u->sink->sample_spec);
 
     pa_log_debug("Rewound %lu bytes.", (unsigned long) rewind_nbytes);
+    return;
+
+do_nothing:
+
+    pa_sink_process_rewind(u->sink, 0);
 }
 
 static void process_render(struct userdata *u, pa_usec_t now) {
