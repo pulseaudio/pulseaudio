@@ -793,6 +793,8 @@ int main(int argc, char *argv[]) {
     pa_log_debug(_("Compiled with Valgrind support: no"));
 #endif
 
+    pa_log_debug(_("Running in valgrind mode: %s"), pa_yes_no(pa_in_valgrind()));
+
 #ifdef __OPTIMIZE__
     pa_log_debug(_("Optimized build: yes"));
 #else
