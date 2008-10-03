@@ -466,6 +466,13 @@ char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map) {
     pa_assert(l > 0);
     pa_assert(map);
 
+    pa_init_i18n();
+
+    if (!pa_channel_map_valid(map)) {
+        pa_snprintf(s, l, _("(invalid)"));
+        return s;
+    }
+
     *(e = s) = 0;
 
     for (channel = 0; channel < map->channels && l > 1; channel++) {

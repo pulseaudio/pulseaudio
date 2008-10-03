@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <pulse/i18n.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
 
@@ -133,6 +134,13 @@ char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c) {
     pa_assert(s);
     pa_assert(l > 0);
     pa_assert(c);
+
+    pa_init_i18n();
+
+    if (!pa_cvolume_valid(c)) {
+        pa_snprintf(s, l, _("(invalid)"));
+        return s;
+    }
 
     *(e = s) = 0;
 
