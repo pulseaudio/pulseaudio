@@ -332,7 +332,7 @@ static void load_module_for_device(struct userdata *u, struct device *d, const c
     pa_assert(d);
 
     get_device_properties(u, d);
-    args = pa_sprintf_malloc("sink_name=%s address=%s profile=%s", d->name, d->address, profile);
+    args = pa_sprintf_malloc("sink_name=\"%s\" address=\"%s\" profile=\"%s\"", d->name, d->address, profile);
     pa_m = pa_module_load(u->module->core, "module-bluetooth-device", args);
     pa_xfree(args);
 
