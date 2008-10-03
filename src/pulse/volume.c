@@ -96,7 +96,7 @@ pa_volume_t pa_sw_volume_from_dB(double dB) {
     if (isinf(dB) < 0 || dB <= -USER_DECIBEL_RANGE)
         return PA_VOLUME_MUTED;
 
-    return (pa_volume_t) ((dB/USER_DECIBEL_RANGE+1)*PA_VOLUME_NORM);
+    return (pa_volume_t) lrint((dB/USER_DECIBEL_RANGE+1)*PA_VOLUME_NORM);
 }
 
 double pa_sw_volume_to_dB(pa_volume_t v) {

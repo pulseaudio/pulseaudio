@@ -284,7 +284,7 @@ static void estimate(pa_smoother *s, pa_usec_t x, pa_usec_t *y, double *deriv) {
         /* The requested point is right of the point where we wanted
          * to be on track again, thus just linearly estimate */
 
-        t = (int64_t) s->py + (int64_t) (s->dp * (double) (x - s->px));
+        t = (int64_t) s->py + (int64_t) llrint(s->dp * (double) (x - s->px));
 
         if (t < 0)
             t = 0;
@@ -313,7 +313,7 @@ static void estimate(pa_smoother *s, pa_usec_t x, pa_usec_t *y, double *deriv) {
         /* Move back from origin */
         ty += (double) s->ey;
 
-        *y = ty >= 0 ? (pa_usec_t) ty : 0;
+        *y = ty >= 0 ? (pa_usec_t) lrint(ty) : 0;
 
         /* Horner scheme */
         if (deriv)
@@ -360,7 +360,7 @@ void pa_smoother_put(pa_smoother *s, pa_usec_t x, pa_usec_t y) {
 
     /* And calculate when we want to be on track again */
     s->px = s->ex + s->adjust_time;
-    s->py = s->ry + (pa_usec_t) (s->dp * (double) s->adjust_time);
+    s->py = s->ry + (pa_usec_t) lrint(s->dp * (double) s->adjust_time);
 
     s->abc_valid = FALSE;
 
@@ -456,7 +456,7 @@ pa_usec_t pa_smoother_translate(pa_smoother *s, pa_usec_t x, pa_usec_t y_delay) 
 
 /*     pa_log_debug("translate(%llu) = %llu (%0.2f)", (unsigned long long) y_delay, (unsigned long long) ((double) y_delay / nde), nde); */
 
-    return (pa_usec_t) ((double) y_delay / nde);
+    return (pa_usec_t) lrint((double) y_delay / nde);
 }
 
 void pa_smoother_reset(pa_smoother *s) {
