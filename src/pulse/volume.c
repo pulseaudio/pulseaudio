@@ -170,7 +170,7 @@ char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c) {
     return s;
 }
 
-char *pa_cvolume_snprint_dB(char *s, size_t l, const pa_cvolume *c) {
+char *pa_sw_cvolume_snprint_dB(char *s, size_t l, const pa_cvolume *c) {
     unsigned channel;
     pa_bool_t first = TRUE;
     char *e;

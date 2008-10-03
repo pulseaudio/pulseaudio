@@ -105,7 +105,7 @@ pa_cvolume_max;
 pa_cvolume_remap;
 pa_cvolume_set;
 pa_cvolume_snprint;
-pa_cvolume_snprint_dB;
+pa_sw_cvolume_snprint_dB;
 pa_cvolume_valid;
 pa_ext_stream_restore_delete;
 pa_ext_stream_restore_read;

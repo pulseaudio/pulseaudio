@@ -17,14 +17,14 @@ int main(int argc, char *argv[]) {
     }
 
     for (v = PA_VOLUME_MUTED; v <= PA_VOLUME_NORM*2; v += 256) {
-        char s[PA_CVOLUME_SNPRINT_MAX], t[PA_CVOLUME_SNPRINT_DB_MAX];
+        char s[PA_CVOLUME_SNPRINT_MAX], t[PA_SW_CVOLUME_SNPRINT_DB_MAX];
 
         pa_cvolume_set(&cv, 2, v);
 
         printf("Volume: %3i [%s] [%s]\n",
                v,
                pa_cvolume_snprint(s, sizeof(s), &cv),
-               pa_cvolume_snprint_dB(t, sizeof(t), &cv));
+               pa_sw_cvolume_snprint_dB(t, sizeof(t), &cv));
 
     }
 
