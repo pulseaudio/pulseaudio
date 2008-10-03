@@ -233,10 +233,16 @@ pa_cvolume *pa_sw_cvolume_multiply(pa_cvolume *dest, const pa_cvolume *a, const 
 }
 
 int pa_cvolume_valid(const pa_cvolume *v) {
+    unsigned c;
+
     pa_assert(v);
 
     if (v->channels <= 0 || v->channels > PA_CHANNELS_MAX)
         return 0;
+
+    for (c = 0; c < v->channels; c++)
+        if (v->values[c] == (pa_volume_t) -1)
+            return 0;
 
     return 1;
 }
