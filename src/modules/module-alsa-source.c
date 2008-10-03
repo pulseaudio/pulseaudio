@@ -881,7 +881,7 @@ static int source_set_volume_cb(pa_source *s) {
 
         /* Match exactly what the user requested by software */
 
-        pa_alsa_volume_divide(&r, &s->volume);
+        pa_sw_cvolume_divide(&r, &s->volume, &r);
         pa_source_set_soft_volume(s, &r);
 
         pa_log_debug("Requested volume: %s", pa_cvolume_snprint(t, sizeof(t), &s->volume));

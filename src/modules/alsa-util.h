@@ -92,6 +92,4 @@ int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents);
 
 pa_rtpoll_item* pa_alsa_build_pollfd(snd_pcm_t *pcm, pa_rtpoll *rtpoll);
 
-pa_cvolume *pa_alsa_volume_divide(pa_cvolume *r, const pa_cvolume *t);
-
 #endif
