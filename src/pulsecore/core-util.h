@@ -35,6 +35,10 @@
 #include <pulse/gccmacro.h>
 #include <pulsecore/macro.h>
 
+#ifndef PACKAGE
+#error "Please include config.h before including this file!"
+#endif
+
 struct timeval;
 
 /* These resource limits are pretty new on Linux, let's define them
@@ -192,5 +196,14 @@ pa_bool_t pa_in_system_mode(void);
 
 char *pa_machine_id(void);
 char *pa_uname_string(void);
+
+
+#ifdef HAVE_VALGRIND_MEMCHECK_H
+pa_bool_t pa_in_valgrind(void);
+#else
+static inline pa_bool_t pa_in_valgrind(void) {
+    return FALSE;
+}
+#endif
 
 #endif
