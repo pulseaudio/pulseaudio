@@ -539,8 +539,8 @@ static int suspend(struct userdata *u) {
 
     pa_smoother_pause(u->smoother, pa_rtclock_usec());
 
-    /* Let's suspend */
-    snd_pcm_drain(u->pcm_handle);
+    /* Let's suspend -- we don't call snd_pcm_drain() here since that might
+     * take awfully long with our long buffer sizes today. */
     snd_pcm_close(u->pcm_handle);
     u->pcm_handle = NULL;
 
