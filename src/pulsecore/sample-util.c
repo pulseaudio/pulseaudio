@@ -105,7 +105,7 @@ static void calc_linear_integer_volume(int32_t linear[], const pa_cvolume *volum
     pa_assert(volume);
 
     for (channel = 0; channel < volume->channels; channel++)
-        linear[channel] = lrint(pa_sw_volume_to_linear(volume->values[channel]) * 0x10000);
+        linear[channel] = (int32_t) lrint(pa_sw_volume_to_linear(volume->values[channel]) * 0x10000);
 }
 
 static void calc_linear_float_volume(float linear[], const pa_cvolume *volume) {
@@ -132,7 +132,7 @@ static void calc_linear_integer_stream_volumes(pa_mix_info streams[], unsigned n
 
         for (channel = 0; channel < spec->channels; channel++) {
             pa_mix_info *m = streams + k;
-            m->linear[channel].i = lrint(pa_sw_volume_to_linear(m->volume.values[channel]) * linear[channel] * 0x10000);
+            m->linear[channel].i = (int32_t) lrint(pa_sw_volume_to_linear(m->volume.values[channel]) * linear[channel] * 0x10000);
         }
     }
 }
