@@ -25,6 +25,7 @@
 
 #include <pulse/def.h>
 #include <pulsecore/once.h>
+#include <pulsecore/core-util.h>
 
 #ifndef PACKAGE
 #error "Please include config.h before including this file!"
@@ -69,6 +70,8 @@ void *pa_tls_set(pa_tls *t, void *userdata);
     static void name##_tls_destructor(void) PA_GCC_DESTRUCTOR;          \
     static void name##_tls_destructor(void) {                           \
         static void (*_free_cb)(void*) = free_cb;                       \
+        if (!pa_in_valgrind())                                          \
+            return;                                                     \
         if (!name##_tls.tls)                                            \
             return;                                                     \
         if (_free_cb) {                                                 \

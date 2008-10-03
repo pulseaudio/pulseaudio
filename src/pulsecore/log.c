@@ -85,6 +85,9 @@ void pa_log_set_ident(const char *p) {
 /* To make valgrind shut up. */
 static void ident_destructor(void) PA_GCC_DESTRUCTOR;
 static void ident_destructor(void) {
+    if (!pa_in_valgrind())
+        return;
+
     pa_xfree(log_ident);
     pa_xfree(log_ident_local);
 }

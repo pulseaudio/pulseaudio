@@ -26,6 +26,7 @@
 #include <pulse/gccmacro.h>
 
 #include <pulsecore/once.h>
+#include <pulsecore/core-util.h>
 
 /* A multiple-reader multipler-write lock-free free list implementation */
 
@@ -56,6 +57,8 @@ void* pa_flist_pop(pa_flist*l);
     }                                                                   \
     static void name##_flist_destructor(void) PA_GCC_DESTRUCTOR;        \
     static void name##_flist_destructor(void) {                         \
+        if (!pa_in_valgrind())                                          \
+            return;                                                     \
         if (name##_flist.flist)                                         \
             pa_flist_free(name##_flist.flist, (free_cb));               \
     }                                                                   \
