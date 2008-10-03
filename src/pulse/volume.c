@@ -141,7 +141,7 @@ double pa_sw_volume_to_linear(pa_volume_t v) {
 
 char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c) {
     unsigned channel;
-    int first = 1;
+    pa_bool_t first = TRUE;
     char *e;
 
     pa_assert(s);
@@ -164,7 +164,38 @@ char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c) {
                       (c->values[channel]*100)/PA_VOLUME_NORM);
 
         e = strchr(e, 0);
-        first = 0;
+        first = FALSE;
+    }
+
+    return s;
+}
+
+char *pa_cvolume_snprint_dB(char *s, size_t l, const pa_cvolume *c) {
+    unsigned channel;
+    pa_bool_t first = TRUE;
+    char *e;
+
+    pa_assert(s);
+    pa_assert(l > 0);
+    pa_assert(c);
+
+    pa_init_i18n();
+
+    if (!pa_cvolume_valid(c)) {
+        pa_snprintf(s, l, _("(invalid)"));
+        return s;
+    }
+
+    *(e = s) = 0;
+
+    for (channel = 0; channel < c->channels && l > 1; channel++) {
+        l -= pa_snprintf(e, l, "%s%u: %0.2f dB",
+                      first ? "" : " ",
+                      channel,
+                      pa_sw_volume_to_dB(c->values[channel]));
+
+        e = strchr(e, 0);
+        first = FALSE;
     }
 
     return s;

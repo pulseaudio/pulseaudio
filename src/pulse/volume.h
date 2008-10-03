@@ -136,6 +136,16 @@ pa_cvolume* pa_cvolume_set(pa_cvolume *a, unsigned channels, pa_volume_t v);
 /** Pretty print a volume structure */
 char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c);
 
+/** Maximum length of the strings returned by
+ * pa_cvolume_snprint_dB(). Please note that this value can change with
+ * any release without warning and without being considered API or ABI
+ * breakage. You should not use this definition anywhere where it
+ * might become part of an ABI. \since 0.9.13 */
+#define PA_CVOLUME_SNPRINT_DB_MAX 448
+
+/** Pretty print a volume structure but show dB values. \since 0.9.13 */
+char *pa_cvolume_snprint_dB(char *s, size_t l, const pa_cvolume *c);
+
 /** Return the average volume of all channels */
 pa_volume_t pa_cvolume_avg(const pa_cvolume *a) PA_GCC_PURE;
 
