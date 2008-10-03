@@ -47,6 +47,19 @@ int pa_cvolume_equal(const pa_cvolume *a, const pa_cvolume *b) {
     return 1;
 }
 
+pa_cvolume* pa_cvolume_init(pa_cvolume *a) {
+    unsigned c;
+
+    pa_assert(a);
+
+    a->channels = 0;
+
+    for (c = 0; c < PA_CHANNELS_MAX; c++)
+        a->values[c] = (pa_volume_t) -1;
+
+    return a;
+}
+
 pa_cvolume* pa_cvolume_set(pa_cvolume *a, unsigned channels, pa_volume_t v) {
     int i;
 
@@ -88,7 +101,7 @@ pa_volume_t pa_cvolume_max(const pa_cvolume *a) {
 }
 
 pa_volume_t pa_sw_volume_multiply(pa_volume_t a, pa_volume_t b) {
-    return pa_sw_volume_from_linear(pa_sw_volume_to_linear(a)* pa_sw_volume_to_linear(b));
+    return pa_sw_volume_from_linear(pa_sw_volume_to_linear(a) * pa_sw_volume_to_linear(b));
 }
 
 #define USER_DECIBEL_RANGE 60

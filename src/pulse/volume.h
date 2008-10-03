@@ -116,6 +116,11 @@ typedef struct pa_cvolume {
 /** Return non-zero when *a == *b */
 int pa_cvolume_equal(const pa_cvolume *a, const pa_cvolume *b) PA_GCC_PURE;
 
+/** Initialize the specified volume and return a pointer to
+ * it. The sample spec will have a defined state but
+ * pa_cvolume_valid() will fail for it. \since 0.9.13 */
+pa_cvolume* pa_cvolume_init(pa_cvolume *a);
+
 /** Set the volume of all channels to PA_VOLUME_NORM */
 #define pa_cvolume_reset(a, n) pa_cvolume_set((a), (n), PA_VOLUME_NORM)
 
