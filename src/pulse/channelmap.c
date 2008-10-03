@@ -569,5 +569,11 @@ int pa_channel_map_compatible(const pa_channel_map *map, const pa_sample_spec *s
     pa_assert(map);
     pa_assert(ss);
 
+    if (!pa_channel_map_valid(map))
+        return 0;
+
+    if (!pa_sample_spec_valid(ss))
+        return 0;
+
     return map->channels == ss->channels;
 }
