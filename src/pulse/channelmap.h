@@ -175,7 +175,9 @@ typedef struct pa_channel_map {
     /**< Channel labels */
 } pa_channel_map;
 
-/** Initialize the specified channel map and return a pointer to it */
+/** Initialize the specified channel map and return a pointer to
+ * it. The channel map will have a defined state but
+ * pa_channel_map_valid() will fail for it. */
 pa_channel_map* pa_channel_map_init(pa_channel_map *m);
 
 /** Initialize the specified channel map for monoaural audio and return a pointer to it */
