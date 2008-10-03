@@ -153,8 +153,7 @@ void pa_sconv_s16le_to_float32re(unsigned n, const int16_t *a, float *b) {
     for (; n > 0; n--) {
         int16_t s = *(a++);
         float k = ((float) INT16_FROM(s))/0x7FFF;
-        uint32_t *j = (uint32_t*) &k;
-        *j = PA_UINT32_SWAP(*j);
+        k = PA_FLOAT32_SWAP(k);
         *(b++) = k;
     }
 }
@@ -166,8 +165,7 @@ void pa_sconv_s32le_to_float32re(unsigned n, const int32_t *a, float *b) {
     for (; n > 0; n--) {
         int32_t s = *(a++);
         float k = (float) (((double) INT32_FROM(s))/0x7FFFFFFF);
-        uint32_t *j = (uint32_t*) &k;
-        *j = PA_UINT32_SWAP(*j);
+        k = PA_FLOAT32_SWAP(k);
         *(b++) = k;
     }
 }
@@ -179,8 +177,7 @@ void pa_sconv_s16le_from_float32re(unsigned n, const float *a, int16_t *b) {
     for (; n > 0; n--) {
         int16_t s;
         float v = *(a++);
-        uint32_t *j = (uint32_t*) &v;
-        *j = PA_UINT32_SWAP(*j);
+        v = PA_FLOAT32_SWAP(v);
         v = PA_CLAMP_UNLIKELY(v, -1.0f, 1.0f);
         s = (int16_t) (v * 0x7FFF);
         *(b++) = INT16_TO(s);
@@ -194,8 +191,7 @@ void pa_sconv_s32le_from_float32re(unsigned n, const float *a, int32_t *b) {
     for (; n > 0; n--) {
         int32_t s;
         float v = *(a++);
-        uint32_t *j = (uint32_t*) &v;
-        *j = PA_UINT32_SWAP(*j);
+        v = PA_FLOAT32_SWAP(v);
         v = PA_CLAMP_UNLIKELY(v, -1.0f, 1.0f);
         s = (int32_t) ((double) v * 0x7FFFFFFF);
         *(b++) = INT32_TO(s);
