@@ -112,9 +112,9 @@ void pa_drop_caps(void) {
 
 #ifndef __OPTIMIZE__
     /* Valgrind doesn't not know set_caps, so we bypass it here -- but
-     *  only in development builts.*/
+     * only in development builds.*/
 
-    if (getenv("VALGRIND") && !pa_have_caps())
+    if (pa_in_valgrind() && !pa_have_caps())
         return;
 #endif
 
