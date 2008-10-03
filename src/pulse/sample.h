@@ -232,6 +232,11 @@ pa_usec_t pa_bytes_to_usec(uint64_t length, const pa_sample_spec *spec) PA_GCC_P
  * return values. \since 0.9 */
 size_t pa_usec_to_bytes(pa_usec_t t, const pa_sample_spec *spec) PA_GCC_PURE;
 
+/** Initialize the specified sample spec and return a pointer to
+ * it. The sample spec will have a defined state but
+ * pa_sample_spec_valid() will fail for it. \since 0.9.13 */
+pa_sample_spec* pa_sample_spec_init(pa_sample_spec *spec);
+
 /** Return non-zero when the sample type specification is valid */
 int pa_sample_spec_valid(const pa_sample_spec *spec) PA_GCC_PURE;
 
