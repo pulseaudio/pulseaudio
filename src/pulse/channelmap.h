@@ -204,7 +204,11 @@ const char* pa_channel_position_to_string(pa_channel_position_t pos) PA_GCC_PURE
 /** Return a human readable text label for the specified channel position. \since 0.9.7 */
 const char* pa_channel_position_to_pretty_string(pa_channel_position_t pos);
 
-/** The maximum length of strings returned by pa_channel_map_snprint() */
+/** The maximum length of strings returned by
+ * pa_channel_map_snprint(). Please note that this value can change
+ * with any release without warning and without being considered API
+ * or ABI breakage. You should not use this definition anywhere where
+ * it might become part of an ABI. */
 #define PA_CHANNEL_MAP_SNPRINT_MAX 336
 
 /** Make a humand readable string from the specified channel map */

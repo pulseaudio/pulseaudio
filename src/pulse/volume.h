@@ -130,8 +130,12 @@ pa_cvolume* pa_cvolume_init(pa_cvolume *a);
 /** Set the volume of all channels to the specified parameter */
 pa_cvolume* pa_cvolume_set(pa_cvolume *a, unsigned channels, pa_volume_t v);
 
-/** Maximum length of the strings returned by pa_cvolume_snprint() */
-#define PA_CVOLUME_SNPRINT_MAX 64
+/** Maximum length of the strings returned by
+ * pa_cvolume_snprint(). Please note that this value can change with
+ * any release without warning and without being considered API or ABI
+ * breakage. You should not use this definition anywhere where it
+ * might become part of an ABI.*/
+#define PA_CVOLUME_SNPRINT_MAX 320
 
 /** Pretty print a volume structure */
 char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c);

@@ -249,7 +249,11 @@ const char *pa_sample_format_to_string(pa_sample_format_t f) PA_GCC_PURE;
 /** Parse a sample format text. Inverse of pa_sample_format_to_string() */
 pa_sample_format_t pa_parse_sample_format(const char *format) PA_GCC_PURE;
 
-/** Maximum required string length for pa_sample_spec_snprint() */
+/** Maximum required string length for
+ * pa_sample_spec_snprint(). Please note that this value can change
+ * with any release without warning and without being considered API
+ * or ABI breakage. You should not use this definition anywhere where
+ * it might become part of an ABI. */
 #define PA_SAMPLE_SPEC_SNPRINT_MAX 32
 
 /** Pretty print a sample type specification to a string */
