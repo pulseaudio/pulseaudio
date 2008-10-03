@@ -337,7 +337,7 @@ static pa_hook_result_t device_state_changed_hook_cb(pa_core *c, pa_object *o, s
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
-    uint32_t timeout = 1;
+    uint32_t timeout = 5;
     uint32_t idx;
     pa_sink *sink;
     pa_source *source;
