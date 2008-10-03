@@ -98,7 +98,7 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
     pa_assert(c);
     pa_assert(name);
 
-    if ((e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 0))) {
+    if ((e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, FALSE))) {
         if (e->memchunk.memblock)
             pa_memblock_unref(e->memchunk.memblock);
 
@@ -111,7 +111,7 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
     } else {
         e = pa_xnew(pa_scache_entry, 1);
 
-        if (!pa_namereg_register(c, name, PA_NAMEREG_SAMPLE, e, 1)) {
+        if (!pa_namereg_register(c, name, PA_NAMEREG_SAMPLE, e, TRUE)) {
             pa_xfree(e);
             return NULL;
         }
@@ -134,9 +134,9 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
     e->lazy = FALSE;
     e->last_used_time = 0;
 
-    memset(&e->sample_spec, 0, sizeof(e->sample_spec));
+    pa_sample_spec_init(&e->sample_spec);
     pa_channel_map_init(&e->channel_map);
-    pa_cvolume_reset(&e->volume, PA_CHANNELS_MAX);
+    pa_cvolume_init(&e->volume);
 
     pa_proplist_sets(e->proplist, PA_PROP_MEDIA_ROLE, "event");
 
@@ -159,10 +159,12 @@ int pa_scache_add_item(
     pa_assert(c);
     pa_assert(name);
     pa_assert(!ss || pa_sample_spec_valid(ss));
-    pa_assert(!map || (pa_channel_map_valid(map) && ss && ss->channels == map->channels));
+    pa_assert(!map || (pa_channel_map_valid(map) && ss && pa_channel_map_compatible(map, ss)));
 
-    if (ss && !map)
+    if (ss && !map) {
         pa_channel_map_init_extend(&tmap, ss->channels, PA_CHANNEL_MAP_DEFAULT);
+        map = &tmap;
+    }
 
     if (chunk && chunk->length > PA_SCACHE_ENTRY_SIZE_MAX)
         return -1;
@@ -170,12 +172,13 @@ int pa_scache_add_item(
     if (!(e = scache_add_item(c, name)))
         return -1;
 
-    memset(&e->sample_spec, 0, sizeof(e->sample_spec));
+    pa_sample_spec_init(&e->sample_spec);
     pa_channel_map_init(&e->channel_map);
+    pa_cvolume_init(&e->volume);
 
     if (ss) {
         e->sample_spec = *ss;
-        e->volume.channels = e->sample_spec.channels;
+        pa_cvolume_reset(&e->volume, ss->channels);
     }
 
     if (map)
@@ -310,17 +313,21 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
     pa_assert(name);
     pa_assert(sink);
 
-    if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 1)))
+    if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, FALSE)))
         return -1;
 
     if (e->lazy && !e->memchunk.memblock) {
+        pa_channel_map old_channel_map = e->channel_map;
+
         if (pa_sound_file_load(c->mempool, e->filename, &e->sample_spec, &e->channel_map, &e->memchunk) < 0)
             return -1;
 
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_CHANGE, e->index);
 
-        if (e->volume.channels > e->sample_spec.channels)
-            e->volume.channels = e->sample_spec.channels;
+        if (pa_cvolume_valid(&e->volume))
+            pa_cvolume_remap(&e->volume, &old_channel_map, &e->channel_map);
+        else
+            pa_cvolume_reset(&e->volume, e->sample_spec.channels);
     }
 
     if (!e->memchunk.memblock)
@@ -383,7 +390,7 @@ uint32_t pa_scache_get_id_by_name(pa_core *c, const char *name) {
     pa_assert(c);
     pa_assert(name);
 
-    if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 0)))
+    if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, FALSE)))
         return PA_IDXSET_INVALID;
 
     return e->index;

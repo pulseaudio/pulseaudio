@@ -51,6 +51,7 @@ static pa_bool_t is_valid_char(char c) {
         (c >= 'A' && c <= 'Z') ||
         (c >= '0' && c <= '9') ||
         c == '.' ||
+        c == '-' ||
         c == '_';
 }
 
