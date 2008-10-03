@@ -168,11 +168,24 @@ int pa_cvolume_channels_equal_to(const pa_cvolume *a, pa_volume_t v) PA_GCC_PURE
 /** Return 1 if the specified volume has all channels on normal level */
 #define pa_cvolume_is_norm(a) pa_cvolume_channels_equal_to((a), PA_VOLUME_NORM)
 
-/** Multiply two volumes specifications, return the result. This uses PA_VOLUME_NORM as neutral element of multiplication. This is only valid for software volumes! */
+/** Multiply two volume specifications, return the result. This uses
+ * PA_VOLUME_NORM as neutral element of multiplication. This is only
+ * valid for software volumes! */
 pa_volume_t pa_sw_volume_multiply(pa_volume_t a, pa_volume_t b) PA_GCC_CONST;
 
-/** Multiply to per-channel volumes and return the result in *dest. This is only valid for software volumes! */
+/** Multiply two per-channel volumes and return the result in
+ * *dest. This is only valid for software volumes! */
 pa_cvolume *pa_sw_cvolume_multiply(pa_cvolume *dest, const pa_cvolume *a, const pa_cvolume *b);
+
+/** Divide two volume specifications, return the result. This uses
+ * PA_VOLUME_NORM as neutral element of division. This is only valid
+ * for software volumes! If a division by zero is tried the result
+ * will be 0. \since 0.9.13 */
+pa_volume_t pa_sw_volume_divide(pa_volume_t a, pa_volume_t b) PA_GCC_CONST;
+
+/** Multiply to per-channel volumes and return the result in
+ * *dest. This is only valid for software volumes! \since 0.9.13 */
+pa_cvolume *pa_sw_cvolume_divide(pa_cvolume *dest, const pa_cvolume *a, const pa_cvolume *b);
 
 /** Convert a decibel value to a volume. This is only valid for software volumes! */
 pa_volume_t pa_sw_volume_from_dB(double f) PA_GCC_CONST;

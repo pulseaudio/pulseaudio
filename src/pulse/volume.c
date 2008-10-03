@@ -104,6 +104,15 @@ pa_volume_t pa_sw_volume_multiply(pa_volume_t a, pa_volume_t b) {
     return pa_sw_volume_from_linear(pa_sw_volume_to_linear(a) * pa_sw_volume_to_linear(b));
 }
 
+pa_volume_t pa_sw_volume_divide(pa_volume_t a, pa_volume_t b) {
+    double v = pa_sw_volume_to_linear(b);
+
+    if (v <= 0)
+        return 0;
+
+    return pa_sw_volume_from_linear(pa_sw_volume_to_linear(a) / v);
+}
+
 #define USER_DECIBEL_RANGE 60
 
 pa_volume_t pa_sw_volume_from_dB(double dB) {
@@ -220,12 +229,23 @@ pa_cvolume *pa_sw_cvolume_multiply(pa_cvolume *dest, const pa_cvolume *a, const 
     pa_assert(a);
     pa_assert(b);
 
-    for (i = 0; i < a->channels && i < b->channels && i < PA_CHANNELS_MAX; i++) {
+    for (i = 0; i < a->channels && i < b->channels && i < PA_CHANNELS_MAX; i++)
+        dest->values[i] = pa_sw_volume_multiply(a->values[i], b->values[i]);
 
-        dest->values[i] = pa_sw_volume_multiply(
-            i < a->channels ? a->values[i] : PA_VOLUME_NORM,
-            i < b->channels ? b->values[i] : PA_VOLUME_NORM);
-    }
+    dest->channels = (uint8_t) i;
+
+    return dest;
+}
+
+pa_cvolume *pa_sw_cvolume_divide(pa_cvolume *dest, const pa_cvolume *a, const pa_cvolume *b) {
+    unsigned i;
+
+    pa_assert(dest);
+    pa_assert(a);
+    pa_assert(b);
+
+    for (i = 0; i < a->channels && i < b->channels && i < PA_CHANNELS_MAX; i++)
+        dest->values[i] = pa_sw_volume_divide(a->values[i], b->values[i]);
 
     dest->channels = (uint8_t) i;
 
