@@ -381,18 +381,51 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *
             }
         }
 
-    } else if (dbus_message_is_signal(msg, "org.bluez.Headset", "Connected") ||
-               dbus_message_is_signal(msg, "org.bluez.AudioSink", "Connected")) {
+    } else if (dbus_message_is_signal(msg, "org.bluez.Headset", "PropertyChanged") ||
+               dbus_message_is_signal(msg, "org.bluez.AudioSink", "PropertyChanged")) {
 
         struct device *d;
         const char *profile;
+        DBusMessageIter variant_i;
+
+        if (!dbus_message_iter_init(msg, &arg_i)) {
+            pa_log("dbus: message has no parameters");
+            goto done;
+        }
+
+        if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_STRING) {
+            pa_log("Property name not a string.");
+            goto done;
+        }
+
+        dbus_message_iter_get_basic(&arg_i, &value);
+
+        if (!dbus_message_iter_next(&arg_i)) {
+            pa_log("Property value missing");
+            goto done;
+        }
+
+        if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_VARIANT) {
+            pa_log("Property value not a variant.");
+            goto done;
+        }
+
+        dbus_message_iter_recurse(&arg_i, &variant_i);
+
+        if (dbus_message_iter_get_arg_type(&variant_i) == DBUS_TYPE_BOOLEAN) {
+            dbus_bool_t connected;
+            dbus_message_iter_get_basic(&variant_i, &connected);
+
+            if (!pa_streq(value, "Connected") || !connected)
+                goto done;
+        }
 
         if (!(d = device_find(u, dbus_message_get_path(msg)))) {
                 d = device_new(dbus_message_get_path(msg));
                 PA_LLIST_PREPEND(struct device, u->device_list, d);
         }
 
-        if (dbus_message_is_signal(msg, "org.bluez.Headset", "Connected"))
+        if (dbus_message_is_signal(msg, "org.bluez.Headset", "PropertyChanged"))
             profile = "hsp";
         else
             profile = "a2dp";
@@ -400,6 +433,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *
         load_module_for_device(u, d, profile);
     }
 
+done:
     dbus_error_free(&err);
     return DBUS_HANDLER_RESULT_HANDLED;
 }
@@ -454,13 +488,13 @@ int pa__init(pa_module* m) {
         goto fail;
     }
 
-    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.Headset',member='Connected'", &err);
+    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged'", &err);
     if (dbus_error_is_set(&err)) {
         pa_log_error("Unable to subscribe to org.bluez.Headset signals: %s: %s", err.name, err.message);
         goto fail;
     }
 
-    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='Connected'", &err);
+    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged'", &err);
     if (dbus_error_is_set(&err)) {
         pa_log_error("Unable to subscribe to org.bluez.AudioSink signals: %s: %s", err.name, err.message);
         goto fail;
