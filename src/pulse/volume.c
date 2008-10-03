@@ -325,3 +325,17 @@ pa_cvolume *pa_cvolume_remap(pa_cvolume *v, pa_channel_map *from, pa_channel_map
     *v = result;
     return v;
 }
+
+int pa_cvolume_compatible(const pa_cvolume *v, const pa_sample_spec *ss) {
+
+    pa_assert(v);
+    pa_assert(ss);
+
+    if (!pa_cvolume_valid(v))
+        return 0;
+
+    if (!pa_sample_spec_valid(ss))
+        return 0;
+
+    return v->channels == ss->channels;
+}
