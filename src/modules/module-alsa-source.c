@@ -211,9 +211,10 @@ static int try_recover(struct userdata *u, const char *call, int err) {
 
 static size_t check_left_to_record(struct userdata *u, snd_pcm_sframes_t n) {
     size_t left_to_record;
+    size_t rec_space = u->hwbuf_size - (size_t) u->hwbuf_unused_frames*u->frame_size;
 
-    if ((size_t) n*u->frame_size < u->hwbuf_size)
-        left_to_record = u->hwbuf_size - ((size_t) n*u->frame_size);
+    if ((size_t) n*u->frame_size < rec_space)
+        left_to_record = rec_space - ((size_t) n*u->frame_size);
     else
         left_to_record = 0;
 
@@ -514,7 +515,7 @@ static int update_sw_params(struct userdata *u) {
         if ((latency = pa_source_get_requested_latency_within_thread(u->source)) != (pa_usec_t) -1) {
             size_t b;
 
-            pa_log_debug("latency set to %0.2f", (double) latency / PA_USEC_PER_MSEC);
+            pa_log_debug("latency set to %0.2fms", (double) latency / PA_USEC_PER_MSEC);
 
             b = pa_usec_to_bytes(latency, &u->source->sample_spec);
 

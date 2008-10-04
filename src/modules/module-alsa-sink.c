@@ -569,7 +569,7 @@ static int update_sw_params(struct userdata *u) {
         if ((latency = pa_sink_get_requested_latency_within_thread(u->sink)) != (pa_usec_t) -1) {
             size_t b;
 
-            pa_log_debug("latency set to %0.2f", (double) latency / PA_USEC_PER_MSEC);
+            pa_log_debug("latency set to %0.2fms", (double) latency / PA_USEC_PER_MSEC);
 
             b = pa_usec_to_bytes(latency, &u->sink->sample_spec);
 
