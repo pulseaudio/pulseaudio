@@ -24,6 +24,8 @@
 #include <config.h>
 #endif
 
+#include <string.h>
+
 #include <pulse/context.h>
 #include <pulse/gccmacro.h>
 
