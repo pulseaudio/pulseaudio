@@ -261,9 +261,11 @@ static struct mempool_slot* mempool_allocate_slot(pa_mempool *p) {
         }
     }
 
-#ifdef HAVE_VALGRIND_MEMCHECK_H
-    VALGRIND_MALLOCLIKE_BLOCK(slot, p->block_size, 0, 0);
-#endif
+/* #ifdef HAVE_VALGRIND_MEMCHECK_H */
+/*     if (PA_UNLIKELY(pa_in_valgrind())) { */
+/*         VALGRIND_MALLOCLIKE_BLOCK(slot, p->block_size, 0, 0); */
+/*     } */
+/* #endif */
 
     return slot;
 }
@@ -534,15 +536,17 @@ static void memblock_free(pa_memblock *b) {
 
             call_free = b->type == PA_MEMBLOCK_POOL_EXTERNAL;
 
+/* #ifdef HAVE_VALGRIND_MEMCHECK_H */
+/*             if (PA_UNLIKELY(pa_in_valgrind())) { */
+/*                 VALGRIND_FREELIKE_BLOCK(slot, b->pool->block_size); */
+/*             } */
+/* #endif */
+
             /* The free list dimensions should easily allow all slots
              * to fit in, hence try harder if pushing this slot into
              * the free list fails */
             while (pa_flist_push(b->pool->free_slots, slot) < 0)
                 ;
-
-#ifdef HAVE_VALGRIND_MEMCHECK_H
-            VALGRIND_FREELIKE_BLOCK(slot, b->pool->block_size);
-#endif
 
             if (call_free)
                 if (pa_flist_push(PA_STATIC_FLIST_GET(unused_memblocks), b) < 0)
