@@ -159,7 +159,7 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_PLAYBACK_STREAM_SUSPENDED] = command_suspended,
     [PA_COMMAND_RECORD_STREAM_SUSPENDED] = command_suspended,
     [PA_COMMAND_PLAYBACK_STREAM_MOVED] = command_moved,
-    [PA_COMMAND_RECORD_STREAM_MOVED] = command_moved,
+    [PA_COMMAND_RECORD_STREAM_MOVED] = command_moved
 };
 
 struct userdata {
@@ -1492,6 +1492,13 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
 #ifndef TUNNEL_SINK
         pa_tagstruct_putu32(reply, PA_INVALID_INDEX); /* direct on input */
 #endif
+    }
+
+    if (u->version >= 14) {
+#ifdef TUNNEL_SINK
+        pa_tagstruct_put_boolean(reply, FALSE); /* volume_set */
+#endif
+        pa_tagstruct_put_boolean(reply, TRUE); /* early rquests */
     }
 
     pa_pstream_send_tagstruct(u->pstream, reply);
