@@ -1030,6 +1030,9 @@ void pa_sink_input_set_state_within_thread(pa_sink_input *i, pa_sink_input_state
 
     } else if (uncorking) {
 
+        i->thread_info.underrun_for = (uint64_t) -1;
+        i->thread_info.playing_for = 0;
+
         pa_log_debug("Requesting rewind due to uncorking");
 
         /* OK, we're being uncorked. Make sure we're not rewound when

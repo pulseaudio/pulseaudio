@@ -3168,6 +3168,10 @@ static void command_cork_playback_stream(pa_pdispatch *pd, uint32_t command, uin
     CHECK_VALIDITY(c->pstream, playback_stream_isinstance(s), tag, PA_ERR_NOENTITY);
 
     pa_sink_input_cork(s->sink_input, b);
+
+    if (b)
+        s->is_underrun = TRUE;
+
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
 
