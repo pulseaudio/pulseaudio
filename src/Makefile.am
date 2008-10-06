@@ -1032,6 +1032,7 @@ libavahi_wrap_la_LIBADD = $(AM_LIBADD) $(AVAHI_CFLAGS) libpulsecore.la
 ###################################
 
 modlibexec_LTLIBRARIES += \
+		module-flat-volume.la \
 		module-cli.la \
 		module-cli-protocol-tcp.la \
 		module-simple-protocol-tcp.la \
@@ -1235,7 +1236,8 @@ SYMDEF_FILES = \
 		modules/bluetooth/module-bluetooth-device-symdef.h \
 		modules/gconf/module-gconf-symdef.h \
 		modules/module-position-event-sounds-symdef.h \
-		modules/module-console-kit-symdef.h
+		modules/module-console-kit-symdef.h \
+		modules/module-flat-volume-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
@@ -1246,6 +1248,12 @@ $(SYMDEF_FILES): modules/module-defs.h.m4
 	$(MKDIR_P) modules/rtp
 	$(MKDIR_P) modules/bluetooth
 	$(M4) -Dfname="$@" $< > $@
+
+# Flat volume
+
+module_flat_volume_la_SOURCES = modules/module-flat-volume.c
+module_flat_volume_la_LDFLAGS = -module -avoid-version
+module_flat_volume_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
 # Simple protocol
 
