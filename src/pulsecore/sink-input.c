@@ -75,7 +75,7 @@ void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cv
     pa_assert(data);
 
     if ((data->volume_is_set = !!volume))
-        data->volume = *volume;
+        data->volume = data->virtual_volume = *volume;
 }
 
 void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mute) {
@@ -156,6 +156,8 @@ pa_sink_input* pa_sink_input_new(
     pa_return_null_if_fail(pa_cvolume_valid(&data->volume));
     pa_return_null_if_fail(data->volume.channels == data->sample_spec.channels);
 
+    data->virtual_volume = data->volume;
+
     if (!data->muted_is_set)
         data->muted = FALSE;
 
@@ -227,7 +229,9 @@ pa_sink_input* pa_sink_input_new(
     i->sample_spec = data->sample_spec;
     i->channel_map = data->channel_map;
 
+    i->virtual_volume = data->virtual_volume;
     i->volume = data->volume;
+
     i->muted = data->muted;
 
     if (data->sync_base) {
@@ -784,17 +788,30 @@ pa_usec_t pa_sink_input_get_requested_latency(pa_sink_input *i) {
 
 /* Called from main context */
 void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume) {
+    pa_sink_input_set_volume_data data;
+
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_assert(volume);
 
-    if (pa_cvolume_equal(&i->volume, volume))
+    data.sink_input = i;
+    data.virtual_volume = *volume;
+    data.volume = *volume;
+
+    if (pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_SET_VOLUME], &data) < 0) {
         return;
+    }
 
-    i->volume = *volume;
+    if (!pa_cvolume_equal(&i->volume, &data.volume)) {
+        i->volume = data.volume;
+	pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_VOLUME, &data.volume, 0, NULL) == 0);
+        return;
+    }
 
-    pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_VOLUME, &i->volume, 0, NULL) == 0);
-    pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+    if (!pa_cvolume_equal(&i->virtual_volume, &data.virtual_volume)) {
+        i->virtual_volume = data.virtual_volume;
+        pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+    }
 }
 
 /* Called from main context */
@@ -802,7 +819,7 @@ const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
-    return &i->volume;
+    return &i->virtual_volume;
 }
 
 /* Called from main context */

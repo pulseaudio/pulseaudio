@@ -206,6 +206,11 @@ void pa_sink_new_data_set_volume(pa_sink_new_data *data, const pa_cvolume *volum
 void pa_sink_new_data_set_muted(pa_sink_new_data *data, pa_bool_t mute);
 void pa_sink_new_data_done(pa_sink_new_data *data);
 
+typedef struct pa_sink_set_volume_data {
+  pa_sink *sink;
+  pa_cvolume volume;
+} pa_sink_set_volume_data;
+
 /* To be called exclusively by the sink driver, from main context */
 
 pa_sink* pa_sink_new(

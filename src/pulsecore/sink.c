@@ -843,13 +843,21 @@ pa_usec_t pa_sink_get_latency(pa_sink *s) {
 /* Called from main thread */
 void pa_sink_set_volume(pa_sink *s, const pa_cvolume *volume) {
     pa_bool_t changed;
+    pa_sink_set_volume_data data;
 
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_IS_LINKED(s->state));
     pa_assert(volume);
 
-    changed = !pa_cvolume_equal(volume, &s->volume);
-    s->volume = *volume;
+    data.sink = s;
+    data.volume = *volume;
+
+    changed = !pa_cvolume_equal(&data.volume, &s->volume);
+
+    if (changed && pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_SET_VOLUME], &data) < 0)
+        return;
+
+    s->volume = data.volume;
 
     if (s->set_volume && s->set_volume(s) < 0)
         s->set_volume = NULL;
