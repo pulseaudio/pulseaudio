@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-09-06 06:06+0000\n"
+"POT-Creation-Date: 2008-10-06 03:21+0200\n"
 "PO-Revision-Date: 2008-09-06 10:49+0200\n"
 "Last-Translator: Robert-André Mauchin <zebob.m@pengzone.org>\n"
 "Language-Team: Fedora French <fedora-trans-fr@redhat.com>\n"
@@ -192,22 +192,6 @@ msgstr ""
 "nécessaires :\n"
 "nous ne somme pas dans le groupe "
 
-#: ../src/daemon/main.c:480
-msgid ""
-"' and PolicyKit refuse to grant us priviliges. Dropping SUID again.\n"
-"For enabling real-time scheduling please acquire the appropriate PolicyKit "
-"priviliges, or become a member of '"
-msgstr ""
-" et PolicyKit refuse de nous accorder les permissions. Abandon du SUID à nouveau.\n"
-"Pour activer la planification en temps réel, veuillez aquérir les permissions "
-"PolicyKit appropriées, ou devenez membre de "
-
-#: ../src/daemon/main.c:481
-msgid ""
-"', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
-msgstr ""
-", ou augmentez les limites de ressource RLIMIT_NICE/RLIMIT_RTPRIO pour cet utilisateur."
-
 #: ../src/daemon/main.c:497
 msgid ""
 "High-priority scheduling enabled in configuration but not allowed by policy."
@@ -319,65 +303,80 @@ msgid "This is PulseAudio %s"
 msgstr "Pulseaudio %s"
 
 #: ../src/daemon/main.c:781
+#, fuzzy, c-format
+msgid "Compilation host: %s"
+msgstr "CFLAGS de compilation : %s"
+
+#: ../src/daemon/main.c:782
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "CFLAGS de compilation : %s"
 
-#: ../src/daemon/main.c:784
-msgid "Compiled with Valgrind support: yes"
-msgstr "Compilé avec la prise en charge Valgrind : oui"
+#: ../src/daemon/main.c:785
+#, fuzzy, c-format
+msgid "Running on host: %s"
+msgstr "Exécution en mode système : %s"
 
-#: ../src/daemon/main.c:786
-msgid "Compiled with Valgrind support: no"
-msgstr "Compilé avec la prise en charge Valgrind : non"
-
-#: ../src/daemon/main.c:790
-msgid "Optimized build: yes"
-msgstr "Construction optimisée : oui"
-
-#: ../src/daemon/main.c:792
-msgid "Optimized build: no"
-msgstr "Construction optimisée : non"
-
-#: ../src/daemon/main.c:795
+#: ../src/daemon/main.c:788
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "La taille de la page est de %lu octets"
 
-#: ../src/daemon/main.c:798
+#: ../src/daemon/main.c:791
+msgid "Compiled with Valgrind support: yes"
+msgstr "Compilé avec la prise en charge Valgrind : oui"
+
+#: ../src/daemon/main.c:793
+msgid "Compiled with Valgrind support: no"
+msgstr "Compilé avec la prise en charge Valgrind : non"
+
+#: ../src/daemon/main.c:796
+#, fuzzy, c-format
+msgid "Running in valgrind mode: %s"
+msgstr "Exécution en mode système : %s"
+
+#: ../src/daemon/main.c:799
+msgid "Optimized build: yes"
+msgstr "Construction optimisée : oui"
+
+#: ../src/daemon/main.c:801
+msgid "Optimized build: no"
+msgstr "Construction optimisée : non"
+
+#: ../src/daemon/main.c:805
 msgid "Failed to get machine ID"
 msgstr "Échec lors de l'obtention de l'ID de la machine"
 
-#: ../src/daemon/main.c:801
+#: ../src/daemon/main.c:808
 #, c-format
 msgid "Machine ID is %s."
 msgstr "L'ID de la machine est %s."
 
-#: ../src/daemon/main.c:806
+#: ../src/daemon/main.c:813
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Utilisation du répertoire d'exécution %s."
 
-#: ../src/daemon/main.c:811
+#: ../src/daemon/main.c:818
 #, c-format
 msgid "Using state directory %s."
 msgstr "Utilisation du répertoire d'état %s."
 
-#: ../src/daemon/main.c:814
+#: ../src/daemon/main.c:821
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Exécution en mode système : %s"
 
-#: ../src/daemon/main.c:829
+#: ../src/daemon/main.c:836
 msgid "pa_pid_file_create() failed."
 msgstr "Échec de pa_pid_file_create()."
 
-#: ../src/daemon/main.c:841
+#: ../src/daemon/main.c:848
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr ""
 "De nouvelles horloges à haute résolution sont disponibles ! Bon appétit !"
 
-#: ../src/daemon/main.c:843
+#: ../src/daemon/main.c:850
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -385,34 +384,34 @@ msgstr ""
 "Eh mec, ton noyau il pue ! La recommandation d'aujourd'hui du patron est "
 "d'activer les horloges à haute résolution sur ton Linux."
 
-#: ../src/daemon/main.c:853
+#: ../src/daemon/main.c:860
 msgid "pa_core_new() failed."
 msgstr "Échec de pa_core_new()."
 
-#: ../src/daemon/main.c:913
+#: ../src/daemon/main.c:921
 msgid "Failed to initialize daemon."
 msgstr "Échec lors de l'initialisation du démon"
 
-#: ../src/daemon/main.c:918
+#: ../src/daemon/main.c:926
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "Démarrage du démon sans aucun module chargé : refus de fonctionner."
 
-#: ../src/daemon/main.c:923
+#: ../src/daemon/main.c:931
 #, c-format
 msgid "Default sink name (%s) does not exist in name register."
 msgstr ""
 "Le nom de la destination par défaut (%s) n'existe pas dans le registre des "
 "noms."
 
-#: ../src/daemon/main.c:936
+#: ../src/daemon/main.c:944
 msgid "Daemon startup complete."
 msgstr "Démarrage du démon effectué."
 
-#: ../src/daemon/main.c:942
+#: ../src/daemon/main.c:950
 msgid "Daemon shutdown initiated."
 msgstr "Fermeture du démon initiée."
 
-#: ../src/daemon/main.c:963
+#: ../src/daemon/main.c:971
 msgid "Daemon terminated."
 msgstr "Démon terminé."
 
@@ -664,76 +663,76 @@ msgid "Path: %s\n"
 msgstr "Chemin : %s\n"
 
 # dans les lignes suivantes [%s = nom de fichier: %u = ligne dans celui-ci]
-#: ../src/daemon/daemon-conf.c:203
+#: ../src/daemon/daemon-conf.c:205
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
 msgstr "[%s:%u] Cible du journal « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:219
+#: ../src/daemon/daemon-conf.c:221
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
 msgstr "[%s:%u] Niveau du journal « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:235
+#: ../src/daemon/daemon-conf.c:237
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
 msgstr "[%s:%u] Méthode de rééchantillonnage « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:258
+#: ../src/daemon/daemon-conf.c:260
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
 msgstr "[%s:%u] rlimit « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:265
+#: ../src/daemon/daemon-conf.c:267
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
 msgstr "[%s:%u] rlimit n'est pas pris en charge sur cette plateforme."
 
-#: ../src/daemon/daemon-conf.c:281
+#: ../src/daemon/daemon-conf.c:283
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
 msgstr "[%s:%u] Format d'échantillon « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:299
+#: ../src/daemon/daemon-conf.c:301
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
 msgstr "[%s:%u] Taux d'échantillonnage « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:317
+#: ../src/daemon/daemon-conf.c:319
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "[%s:%u] Canaux d'échantillonnage « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:335
+#: ../src/daemon/daemon-conf.c:337
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
 msgstr "[%s:%u] Nombre de fragments « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:353
+#: ../src/daemon/daemon-conf.c:355
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
 msgstr "[%s:%u] Taille du fragment « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:371
+#: ../src/daemon/daemon-conf.c:373
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Niveau de priorité (nice) « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:564
+#: ../src/daemon/daemon-conf.c:570
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "Échec lors de l'ouverture du fichier de configuration : %s"
 
-#: ../src/daemon/daemon-conf.c:638
+#: ../src/daemon/daemon-conf.c:644
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### Lecture à partir du fichier de configuration : %s ###\n"
 
-#: ../src/daemon/caps.c:62
+#: ../src/daemon/caps.c:63
 msgid "Dropping root priviliges."
 msgstr "Abandon des permissions root."
 
-#: ../src/daemon/caps.c:102
+#: ../src/daemon/caps.c:103
 msgid "Limited capabilities successfully to CAP_SYS_NICE."
 msgstr "Limitation des capacités à CAP_SYS_NICE réussie."
 
@@ -941,6 +940,12 @@ msgstr "Arrière gauche haut"
 msgid "Top Rear Right"
 msgstr "Arrière droit haut"
 
+#: ../src/pulse/channelmap.c:472 ../src/pulse/sample.c:144
+#: ../src/pulse/volume.c:163 ../src/pulse/volume.c:194
+#, fuzzy
+msgid "(invalid)"
+msgstr "Invalide"
+
 #: ../src/pulse/error.c:43
 msgid "OK"
 msgstr "OK"
@@ -1029,10 +1034,6 @@ msgstr "Code d'erreur inconnu"
 msgid "No such extension"
 msgstr "Aucune extension de ce type"
 
-#: ../src/pulse/sample.c:134
-msgid "Invalid"
-msgstr "Invalide"
-
 #: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
 msgid "XOpenDisplay() failed"
 msgstr "Échec de XOpenDisplay()"
@@ -1041,31 +1042,26 @@ msgstr "Échec de XOpenDisplay()"
 msgid "Failed to parse cookie data"
 msgstr "Échec lors de l'analyse des données du cookie"
 
-#: ../src/pulse/client-conf.c:117
+#: ../src/pulse/client-conf.c:120
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
 msgstr "Échec lors de l'ouverture du fichier de configuration « %s » :%s"
 
-#: ../src/pulse/context.c:542
+#: ../src/pulse/context.c:516
 msgid "No cookie loaded. Attempting to connect without."
 msgstr "Aucun cookie chargé. Tentative de connexion sans celui-ci."
 
-#: ../src/pulse/context.c:596
-#, c-format
-msgid "socketpair(): %s"
-msgstr "socketpair() : %s"
-
-#: ../src/pulse/context.c:610
+#: ../src/pulse/context.c:642
 #, c-format
 msgid "fork(): %s"
 msgstr "fork() : %s"
 
-#: ../src/pulse/context.c:673
+#: ../src/pulse/context.c:695
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid() : %s"
 
-#: ../src/pulse/context.c:1354
+#: ../src/pulse/context.c:1256
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Message reçu pour une extension inconnue « %s »"
@@ -1247,7 +1243,7 @@ msgstr "Échec de pa_stream_update_timing_info() : %s\n"
 # upmixer = par ex. convertir 2 canaux en 5 canaux
 # https://bugzilla.redhat.com/show_bug.cgi?id=460798
 #: ../src/utils/pacat.c:490
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1273,8 +1269,8 @@ msgid ""
 "44100)\n"
 "      --format=SAMPLEFORMAT             The sample type, one of s16le, "
 "s16be, u8, float32le,\n"
-"                                        float32be, ulaw, alaw (defaults to "
-"s16ne)\n"
+"                                        float32be, ulaw, alaw, s32le, s32be "
+"(defaults to s16ne)\n"
 "      --channels=CHANNELS               The number of channels, 1 for mono, "
 "2 for stereo\n"
 "                                        (defaults to 2)\n"
@@ -1431,12 +1427,17 @@ msgstr "Échec de io_new().\n"
 msgid "pa_context_new() failed.\n"
 msgstr "Échec de pa_context_new().\n"
 
-#: ../src/utils/pacat.c:785
+#: ../src/utils/pacat.c:777
+#, fuzzy, c-format
+msgid "pa_context_connect() failed: %s"
+msgstr "Échec de pa_context_new().\n"
+
+#: ../src/utils/pacat.c:788
 #, c-format
 msgid "time_new() failed.\n"
 msgstr "Échec de time_new().\n"
 
-#: ../src/utils/pacat.c:792 ../src/utils/pasuspender.c:301
+#: ../src/utils/pacat.c:795 ../src/utils/pasuspender.c:301
 #: ../src/utils/pactl.c:931 ../src/utils/paplay.c:407
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
@@ -2151,3 +2152,27 @@ msgstr "Le plan des canaux ne correspond pas au fichier.\n"
 #, c-format
 msgid "Using sample spec '%s'\n"
 msgstr "Utilisation de la spécification de l'échantillon « %s »\n"
+
+#: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
+msgid "Cannot access autospawn lock."
+msgstr ""
+
+#~ msgid ""
+#~ "' and PolicyKit refuse to grant us priviliges. Dropping SUID again.\n"
+#~ "For enabling real-time scheduling please acquire the appropriate "
+#~ "PolicyKit priviliges, or become a member of '"
+#~ msgstr ""
+#~ " et PolicyKit refuse de nous accorder les permissions. Abandon du SUID à "
+#~ "nouveau.\n"
+#~ "Pour activer la planification en temps réel, veuillez aquérir les "
+#~ "permissions PolicyKit appropriées, ou devenez membre de "
+
+#~ msgid ""
+#~ "', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this "
+#~ "user."
+#~ msgstr ""
+#~ ", ou augmentez les limites de ressource RLIMIT_NICE/RLIMIT_RTPRIO pour "
+#~ "cet utilisateur."
+
+#~ msgid "socketpair(): %s"
+#~ msgstr "socketpair() : %s"

@@ -34,7 +34,7 @@
 #include <pulsecore/llist.h>
 #include <pulsecore/core-util.h>
 
-#include "dbus-util.h"
+#include "../dbus-util.h"
 #include "module-bluetooth-discover-symdef.h"
 
 PA_MODULE_AUTHOR("Joao Paulo Rechi Vita");

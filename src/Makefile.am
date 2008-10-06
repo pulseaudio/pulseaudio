@@ -1590,7 +1590,7 @@ libbluetooth_ipc_la_LDFLAGS = -avoid-version
 libbluetooth_ipc_la_LIBADD = $(AM_LIBADD)
 libbluetooth_ipc_la_CFLAGS = $(AM_CFLAGS)
 
-module_bluetooth_device_la_SOURCES = modules/bluetooth/module-bluetooth-device.c
+module_bluetooth_device_la_SOURCES = modules/bluetooth/module-bluetooth-device.c modules/bluetooth/rtp.h
 module_bluetooth_device_la_LDFLAGS = -module -avoid-version
 module_bluetooth_device_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la libdbus-util.la libbluetooth-ipc.la libbluetooth-sbc.la libsocket-util.la
 module_bluetooth_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)

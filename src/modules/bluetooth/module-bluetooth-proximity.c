@@ -43,7 +43,7 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/start-child.h>
 
-#include "dbus-util.h"
+#include "../dbus-util.h"
 #include "module-bluetooth-proximity-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");

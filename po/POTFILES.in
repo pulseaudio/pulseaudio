@@ -17,7 +17,7 @@ src/modules/module-solaris.c
 src/modules/module-default-device-restore.c
 src/modules/module-x11-xsmp.c
 src/modules/module-remap-sink.c
-src/modules/module-bt-proximity.c
+src/modules/bluetooth/module-bluetooth-proximity.c
 src/modules/module-detect.c
 src/modules/module-always-sink.c
 src/modules/module-lirc.c
@@ -39,7 +39,7 @@ src/modules/module-esound-compat-spawnfd.c
 src/modules/module-esound-compat-spawnpid.c
 #src/modules/module-waveout.c
 src/modules/module-combine.c
-src/modules/bt-proximity-helper.c
+src/modules/bluetooth/proximity-helper.c
 src/modules/module-x11-publish.c
 src/modules/rtp/module-rtp-recv.c
 src/modules/rtp/sdp.c

@@ -44,7 +44,7 @@
 #include <pulsecore/time-smoother.h>
 #include <pulsecore/rtclock.h>
 
-#include "dbus-util.h"
+#include "../dbus-util.h"
 #include "module-bluetooth-device-symdef.h"
 #include "ipc.h"
 #include "sbc.h"
