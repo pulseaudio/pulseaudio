@@ -42,10 +42,11 @@ PA_MODULE_DESCRIPTION("Detect available bluetooth audio devices and load bluetoo
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_USAGE("");
 
-#define HSP_HS_UUID             "00001108-0000-1000-8000-00805F9B34FB"
-#define HFP_HS_UUID             "0000111E-0000-1000-8000-00805F9B34FB"
-#define A2DP_SOURCE_UUID        "0000110A-0000-1000-8000-00805F9B34FB"
-#define A2DP_SINK_UUID          "0000110B-0000-1000-8000-00805F9B34FB"
+struct module {
+    char *profile;
+    pa_module *pa_m;
+    PA_LLIST_FIELDS(struct module);
+};
 
 struct uuid {
     char *uuid;
@@ -56,32 +57,39 @@ struct device {
     char *name;
     char *object_path;
     int paired;
-    struct adapter *adapter;
     char *alias;
     int connected;
     PA_LLIST_HEAD(struct uuid, uuid_list);
     char *address;
     int class;
     int trusted;
-    const char *audio_profile;
-    uint32_t module_index;
+    PA_LLIST_HEAD(struct module, module_list);
     PA_LLIST_FIELDS(struct device);
-};
-
-struct adapter {
-    char *object_path;
-    char *name;
-    char *mode;
-    char *address;
-    PA_LLIST_HEAD(struct device, device_list);
-    PA_LLIST_FIELDS(struct adapter);
 };
 
 struct userdata {
     pa_module *module;
     pa_dbus_connection *conn;
-    PA_LLIST_HEAD(struct adapter, adapter_list);
+    PA_LLIST_HEAD(struct device, device_list);
 };
+
+static struct module *module_new(const char *profile, pa_module *pa_m) {
+    struct module *m;
+
+    m = pa_xnew(struct module, 1);
+    m->profile = pa_xstrdup(profile);
+    m->pa_m = pa_m;
+    PA_LLIST_INIT(struct module, m);
+
+    return m;
+}
+
+static void module_free(struct module *m) {
+    pa_assert(m);
+
+    pa_xfree(m->profile);
+    pa_xfree(m);
+}
 
 static struct uuid *uuid_new(const char *uuid) {
     struct uuid *node;
@@ -100,31 +108,35 @@ static void uuid_free(struct uuid *uuid) {
     pa_xfree(uuid);
 }
 
-static struct device *device_new(struct adapter *adapter, const char *object_path) {
+static struct device *device_new(const char *object_path) {
     struct device *node;
 
     node = pa_xnew(struct device, 1);
     node->name = NULL;
     node->object_path = pa_xstrdup(object_path);
     node->paired = -1;
-    node->adapter = adapter;
     node->alias = NULL;
     node->connected = -1;
     PA_LLIST_HEAD_INIT(struct uuid, node->uuid_list);
     node->address = NULL;
     node->class = -1;
     node->trusted = -1;
-    node->audio_profile = NULL;
-    node->module_index = PA_INVALID_INDEX;
+    PA_LLIST_HEAD_INIT(struct module, node->module_list);
     PA_LLIST_INIT(struct device, node);
 
     return node;
 }
 
 static void device_free(struct device *device) {
+    struct module *m;
     struct uuid *i;
 
     pa_assert(device);
+
+    while ((m = device->module_list)) {
+        PA_LLIST_REMOVE(struct module, device->module_list, m);
+        module_free(m);
+    }
 
     while ((i = device->uuid_list)) {
         PA_LLIST_REMOVE(struct uuid, device->uuid_list, i);
@@ -138,348 +150,14 @@ static void device_free(struct device *device) {
     pa_xfree(device);
 }
 
-static struct adapter *adapter_new(const char *object_path) {
-    struct adapter *node;
-
-    node = pa_xnew(struct adapter, 1);
-    node->object_path = pa_xstrdup(object_path);
-    node->mode = NULL;
-    node->address = NULL;
-    node->name = NULL;
-
-    PA_LLIST_HEAD_INIT(struct device, node->device_list);
-    PA_LLIST_INIT(struct adapter, node);
-
-    return node;
-}
-
-static void adapter_free(struct adapter *adapter) {
+static struct device* device_find(struct userdata *u, const char *path) {
     struct device *i;
 
-    pa_assert(adapter);
-
-    while ((i = adapter->device_list)) {
-        PA_LLIST_REMOVE(struct device, adapter->device_list, i);
-        device_free(i);
-    }
-
-    pa_xfree(adapter->object_path);
-    pa_xfree(adapter->mode);
-    pa_xfree(adapter->address);
-    pa_xfree(adapter->name);
-    pa_xfree(adapter);
-}
-
-static struct adapter* adapter_find(struct userdata *u, const char *path) {
-    struct adapter *i;
-
-    for (i = u->adapter_list; i; i = i->next)
+    for (i = u->device_list; i; i = i->next)
         if (pa_streq(i->object_path, path))
             return i;
 
     return NULL;
-}
-
-static struct device* device_find(struct userdata *u, const char *path) {
-    struct adapter *j;
-    struct device *i;
-
-    for (j = u->adapter_list; j; j = j->next)
-        for (i = j->device_list; i; i = i->next)
-            if (pa_streq(i->object_path, path))
-                return i;
-
-    return NULL;
-}
-
-static const char *yes_no_na(int b) {
-    if (b < 0)
-        return "n/a";
-
-    return pa_yes_no(b);
-}
-
-static void print_devices(struct adapter *a) {
-    struct device *i;
-
-    pa_assert(a);
-
-    for (i = a->device_list; i; i = i->next) {
-        struct uuid *j;
-
-        if (pa_streq(i->object_path, "/DEVICE_HEAD"))
-            continue;
-
-        pa_log_debug("\t[ %s ]\n"
-                     "\t\tName = %s\n"
-                     "\t\tPaired = %s\n"
-                     "\t\tAdapter = %s\n"
-                     "\t\tAlias = %s\n"
-                     "\t\tConnected = %s\n"
-                     "\t\tAudio = %s\n",
-                     i->object_path,
-                     pa_strnull(i->name),
-                     yes_no_na(i->paired),
-                     i->adapter->object_path,
-                     pa_strnull(i->alias),
-                     yes_no_na(i->connected),
-                     pa_strnull(i->audio_profile));
-
-        pa_log_debug("\t\tUUIDs = ");
-        for (j = i->uuid_list; j; j = j->next) {
-
-            if (pa_streq(j->uuid, "UUID_HEAD"))
-                continue;
-
-            pa_log_debug("\t\t         %s", j->uuid);
-        }
-
-        pa_log_debug("\t\tAddress = %s\n"
-                     "\t\tClass = 0x%x\n"
-                     "\t\tTrusted = %s",
-                     i->address,
-                     i->class,
-                     yes_no_na(i->trusted));
-    }
-}
-
-static void print_adapters(struct userdata *u) {
-    struct adapter *i;
-
-    pa_assert(u);
-
-    for (i = u->adapter_list; i; i = i->next) {
-
-        if (pa_streq(i->object_path, "/ADAPTER_HEAD"))
-            continue;
-
-        pa_log_debug(
-                "[ %s ]\n"
-                "\tName = %s\n"
-                "\tMode = %s\n"
-                "\tAddress = %s\n",
-                i->object_path,
-                pa_strnull(i->name),
-                pa_strnull(i->mode),
-                pa_strnull(i->address));
-
-        print_devices(i);
-    }
-}
-
-static const char *strip_object_path(const char *op) {
-    const char *slash;
-
-    if ((slash = strrchr(op, '/')))
-        return slash+1;
-
-    return op;
-}
-
-static void load_module_for_device(struct userdata *u, struct device *d) {
-    char *args;
-    pa_module *m;
-
-    pa_assert(u);
-    pa_assert(d);
-
-    /* Check whether we already loaded a module for this device */
-    if (d->module_index != PA_INVALID_INDEX &&
-        pa_idxset_get_by_index(u->module->core->modules, d->module_index))
-        return;
-
-    /* Check whether this is an audio device */
-    if (!d->audio_profile) {
-        pa_log_debug("Ignoring %s since it is not an audio device.", d->object_path);
-        return;
-    }
-
-    args = pa_sprintf_malloc("sink_name=%s address=%s profile=%s", strip_object_path(d->object_path), d->address, d->audio_profile);
-    m = pa_module_load(u->module->core, "module-bluetooth-device", args);
-    pa_xfree(args);
-
-    if (!m) {
-        pa_log_debug("Failed to load module for device %s", d->object_path);
-        return;
-    }
-
-    d->module_index = m->index;
-}
-
-static void load_modules(struct userdata *u) {
-    struct device *d;
-    struct adapter *a;
-
-    pa_assert(u);
-
-    for (a = u->adapter_list; a; a = a->next)
-        for (d = a->device_list; d; d = d->next)
-            load_module_for_device(u, d);
-}
-
-static int parse_adapter_property(struct userdata *u, struct adapter *a, DBusMessageIter *i) {
-    const char *key;
-    DBusMessageIter variant_i;
-
-    pa_assert(u);
-    pa_assert(a);
-    pa_assert(i);
-
-    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_STRING) {
-        pa_log("Property name not a string.");
-        return -1;
-    }
-
-    dbus_message_iter_get_basic(i, &key);
-
-    if (!dbus_message_iter_next(i)) {
-        pa_log("Property value missing");
-        return -1;
-    }
-
-    if (dbus_message_iter_get_arg_type(i) != DBUS_TYPE_VARIANT) {
-        pa_log("Property value not a variant.");
-        return -1;
-    }
-
-    dbus_message_iter_recurse(i, &variant_i);
-
-    if (dbus_message_iter_get_arg_type(&variant_i) == DBUS_TYPE_STRING) {
-        const char *value;
-        dbus_message_iter_get_basic(&variant_i, &value);
-
-        if (pa_streq(key, "Mode")) {
-            pa_xfree(a->mode);
-            a->mode = pa_xstrdup(value);
-        } else if (pa_streq(key, "Address")) {
-            pa_xstrdup(a->address);
-            a->address = pa_xstrdup(value);
-        } else if (pa_streq(key, "Name")) {
-            pa_xfree(a->name);
-            a->name = pa_xstrdup(value);
-        }
-    }
-
-    return 0;
-}
-
-static int get_adapter_properties(struct userdata *u, struct adapter *a) {
-    DBusError e;
-    DBusMessage *m = NULL, *r = NULL;
-    DBusMessageIter arg_i, element_i;
-    int ret = -1;
-
-    pa_assert(u);
-    pa_assert(a);
-    dbus_error_init(&e);
-
-    pa_assert_se(m = dbus_message_new_method_call("org.bluez", a->object_path, "org.bluez.Adapter", "GetProperties"));
-
-    r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(u->conn), m, -1, &e);
-
-    if (!r) {
-        pa_log("org.bluez.Adapter.GetProperties failed: %s", e.message);
-        goto finish;
-    }
-
-    if (!dbus_message_iter_init(r, &arg_i)) {
-        pa_log("org.bluez.Adapter.GetProperties reply has no arguments");
-        goto finish;
-    }
-
-    if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_ARRAY) {
-        pa_log("org.bluez.Adapter.GetProperties argument is not an array");
-        goto finish;
-    }
-
-    dbus_message_iter_recurse(&arg_i, &element_i);
-    while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
-
-        if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
-            DBusMessageIter dict_i;
-
-            dbus_message_iter_recurse(&element_i, &dict_i);
-
-            if (parse_adapter_property(u, a, &dict_i) < 0)
-                goto finish;
-        }
-
-        if (!dbus_message_iter_next(&element_i))
-            break;
-    }
-
-    ret = 0;
-
-finish:
-    if (m)
-        dbus_message_unref(m);
-    if (r)
-        dbus_message_unref(r);
-
-    dbus_error_free(&e);
-
-    return ret;
-}
-
-static int detect_adapters(struct userdata *u) {
-    DBusError e;
-    DBusMessage *m = NULL, *r = NULL;
-    DBusMessageIter arg_i, element_i;
-    struct adapter *adapter_list_i;
-    int ret = -1;
-
-    pa_assert(u);
-    dbus_error_init(&e);
-
-    /* get adapters */
-    pa_assert_se(m = dbus_message_new_method_call("org.bluez", "/", "org.bluez.Manager", "ListAdapters"));
-    r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(u->conn), m, -1, &e);
-
-    if (!r) {
-        pa_log("org.bluez.Manager.ListAdapters failed: %s", e.message);
-        goto finish;
-    }
-
-    if (!dbus_message_iter_init(r, &arg_i)) {
-        pa_log("org.bluez.Manager.ListAdapters reply has no arguments");
-        goto finish;
-    }
-
-    if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_ARRAY) {
-        pa_log("org.bluez.Manager.ListAdapters argument is not an array");
-        goto finish;
-    }
-
-    dbus_message_iter_recurse(&arg_i, &element_i);
-    while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
-        if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) {
-
-            struct adapter *node;
-            const char *value;
-
-            dbus_message_iter_get_basic(&element_i, &value);
-            node = adapter_new(value);
-            PA_LLIST_PREPEND(struct adapter, u->adapter_list, node);
-        }
-
-        if (!dbus_message_iter_next(&element_i))
-            break;
-    }
-
-    ret = 0;
-
-    /* get adapter properties */
-    for (adapter_list_i = u->adapter_list; adapter_list_i; adapter_list_i = adapter_list_i->next)
-        get_adapter_properties(u, adapter_list_i);
-
-finish:
-    if (m)
-        dbus_message_unref(m);
-    if (r)
-        dbus_message_unref(r);
-
-    dbus_error_free(&e);
-    return ret;
 }
 
 static int parse_device_property(struct userdata *u, struct device *d, DBusMessageIter *i) {
@@ -566,8 +244,6 @@ static int parse_device_property(struct userdata *u, struct device *d, DBusMessa
             if (dbus_message_iter_get_arg_type(&ai) == DBUS_TYPE_STRING &&
                 pa_streq(key, "UUIDs")) {
 
-                d->audio_profile = NULL;
-
                 while (dbus_message_iter_get_arg_type(&ai) != DBUS_TYPE_INVALID) {
                     struct uuid *node;
                     const char *value;
@@ -575,14 +251,6 @@ static int parse_device_property(struct userdata *u, struct device *d, DBusMessa
                     dbus_message_iter_get_basic(&ai, &value);
                     node = uuid_new(value);
                     PA_LLIST_PREPEND(struct uuid, d->uuid_list, node);
-
-                    if ((strcasecmp(value, A2DP_SOURCE_UUID) == 0) ||
-                        (strcasecmp(value, A2DP_SINK_UUID) == 0))
-                        d->audio_profile = "a2dp";
-                    else if (((strcasecmp(value, HSP_HS_UUID) == 0) ||
-                              (strcasecmp(value, HFP_HS_UUID) == 0)) &&
-                             !d->audio_profile)
-                        d->audio_profile = "hsp";
 
                     if (!dbus_message_iter_next(&ai))
                         break;
@@ -655,70 +323,26 @@ finish:
     return ret;
 }
 
-static int detect_devices(struct userdata *u) {
-    DBusError e;
-    DBusMessage *m = NULL, *r = NULL;
-    DBusMessageIter arg_i, element_i;
-    struct adapter *adapter_list_i;
-    struct device *device_list_i;
-    const char *value;
-    int ret = -1;
+static void load_module_for_device(struct userdata *u, struct device *d, const char *profile) {
+    char *args;
+    pa_module *pa_m;
+    struct module *m;
 
     pa_assert(u);
-    dbus_error_init(&e);
+    pa_assert(d);
 
-    /* get devices of each adapter */
-    for (adapter_list_i = u->adapter_list; adapter_list_i; adapter_list_i = adapter_list_i->next) {
+    get_device_properties(u, d);
+    args = pa_sprintf_malloc("sink_name=\"%s\" address=\"%s\" profile=\"%s\"", d->name, d->address, profile);
+    pa_m = pa_module_load(u->module->core, "module-bluetooth-device", args);
+    pa_xfree(args);
 
-        pa_assert_se(m = dbus_message_new_method_call("org.bluez", adapter_list_i->object_path, "org.bluez.Adapter", "ListDevices"));
-
-        r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(u->conn), m, -1, &e);
-
-        if (!r) {
-            pa_log("org.bluez.Adapter.ListDevices failed: %s", e.message);
-            goto finish;
-        }
-
-        if (!dbus_message_iter_init(r, &arg_i)) {
-            pa_log("org.bluez.Adapter.ListDevices reply has no arguments");
-            goto finish;
-        }
-
-        if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_ARRAY) {
-            pa_log("org.bluez.Adapter.ListDevices argument is not an array");
-            goto finish;
-        }
-
-        dbus_message_iter_recurse(&arg_i, &element_i);
-        while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
-            if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_OBJECT_PATH) {
-                struct device *node;
-                dbus_message_iter_get_basic(&element_i, &value);
-                node = device_new(adapter_list_i, value);
-                PA_LLIST_PREPEND(struct device, adapter_list_i->device_list, node);
-            }
-
-            if (!dbus_message_iter_next(&element_i))
-                break;
-        }
+    if (!m) {
+        pa_log_debug("Failed to load module for device %s", d->object_path);
+        return;
     }
 
-    /* get device properties */
-    for (adapter_list_i = u->adapter_list; adapter_list_i; adapter_list_i = adapter_list_i->next)
-        for (device_list_i = adapter_list_i->device_list; device_list_i; device_list_i = device_list_i->next)
-            get_device_properties(u, device_list_i);
-
-    ret = 0;
-
-finish:
-    if (m)
-        dbus_message_unref(m);
-    if (r)
-        dbus_message_unref(r);
-
-    dbus_error_free(&e);
-
-    return ret;
+    m = module_new(profile, pa_m);
+    PA_LLIST_PREPEND(struct module, d->module_list, m);
 }
 
 static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *userdata) {
@@ -739,78 +363,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *
             dbus_message_get_path(msg),
             dbus_message_get_member(msg));
 
-    if (dbus_message_is_signal(msg, "org.bluez.Manager", "AdapterAdded")) {
-
-        if (!dbus_message_iter_init(msg, &arg_i))
-            pa_log("dbus: message has no parameters");
-        else if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_OBJECT_PATH)
-            pa_log("dbus: argument is not object path");
-        else {
-            struct adapter *node;
-
-            dbus_message_iter_get_basic(&arg_i, &value);
-            pa_log_debug("hcid: adapter %s added", value);
-
-            node = adapter_new(value);
-            PA_LLIST_PREPEND(struct adapter, u->adapter_list, node);
-
-            get_adapter_properties(u, node);
-        }
-
-    } else if (dbus_message_is_signal(msg, "org.bluez.Manager", "AdapterRemoved")) {
-        if (!dbus_message_iter_init(msg, &arg_i))
-            pa_log("dbus: message has no parameters");
-        else if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_OBJECT_PATH)
-            pa_log("dbus: argument is not object path");
-        else {
-            struct adapter *a;
-
-            dbus_message_iter_get_basic(&arg_i, &value);
-            pa_log_debug("hcid: adapter %s removed", value);
-
-            if ((a = adapter_find(u, value))) {
-                PA_LLIST_REMOVE(struct adapter, u->adapter_list, a);
-                adapter_free(a);
-            }
-        }
-
-    } else if (dbus_message_is_signal(msg, "org.bluez.Adapter", "PropertyChanged")) {
-
-        if (!dbus_message_iter_init(msg, &arg_i))
-            pa_log("dbus: message has no parameters");
-        else {
-            struct adapter *a;
-
-            if ((a = adapter_find(u, dbus_message_get_path(msg))))
-                parse_adapter_property(u, a, &arg_i);
-        }
-
-    } else if (dbus_message_is_signal(msg, "org.bluez.Adapter", "DeviceCreated")) {
-
-        if (!dbus_message_iter_init(msg, &arg_i))
-            pa_log("dbus: message has no parameters");
-        else if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_OBJECT_PATH)
-            pa_log("dbus: argument is not object path");
-        else {
-            struct adapter *adapter;
-
-            if (!(adapter = adapter_find(u, dbus_message_get_path(msg))))
-                pa_log("dbus: failed to find adapter for object path");
-            else {
-                struct device *node;
-
-                dbus_message_iter_get_basic(&arg_i, &value);
-                pa_log_debug("hcid: device %s created", value);
-
-                node = device_new(adapter, value);
-                PA_LLIST_PREPEND(struct device, adapter->device_list, node);
-
-                get_device_properties(u, node);
-                load_module_for_device(u, node);
-            }
-        }
-
-    } else if (dbus_message_is_signal(msg, "org.bluez.Adapter", "DeviceRemoved")) {
+    if (dbus_message_is_signal(msg, "org.bluez.Adapter", "DeviceRemoved")) {
 
         if (!dbus_message_iter_init(msg, &arg_i))
             pa_log("dbus: message has no parameters");
@@ -823,44 +376,80 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *
             pa_log_debug("hcid: device %s removed", value);
 
             if ((d = device_find(u, value))) {
-                PA_LLIST_REMOVE(struct device, d->adapter->device_list, d);
+                PA_LLIST_REMOVE(struct device, u->device_list, d);
                 device_free(d);
             }
         }
 
-    } else if (dbus_message_is_signal(msg, "org.bluez.Device", "PropertyChanged")) {
+    } else if (dbus_message_is_signal(msg, "org.bluez.Headset", "PropertyChanged") ||
+               dbus_message_is_signal(msg, "org.bluez.AudioSink", "PropertyChanged")) {
 
-        if (!dbus_message_iter_init(msg, &arg_i))
+        struct device *d;
+        const char *profile;
+        DBusMessageIter variant_i;
+
+        if (!dbus_message_iter_init(msg, &arg_i)) {
             pa_log("dbus: message has no parameters");
-        else {
-            struct device *d;
-
-            if ((d = device_find(u, dbus_message_get_path(msg)))) {
-                parse_device_property(u, d, &arg_i);
-
-                /* Hmm, something changed, let's try to reconnect if we
-                 * aren't connected yet */
-                load_module_for_device(u, d);
-            }
+            goto done;
         }
+
+        if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_STRING) {
+            pa_log("Property name not a string.");
+            goto done;
+        }
+
+        dbus_message_iter_get_basic(&arg_i, &value);
+
+        if (!dbus_message_iter_next(&arg_i)) {
+            pa_log("Property value missing");
+            goto done;
+        }
+
+        if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_VARIANT) {
+            pa_log("Property value not a variant.");
+            goto done;
+        }
+
+        dbus_message_iter_recurse(&arg_i, &variant_i);
+
+        if (dbus_message_iter_get_arg_type(&variant_i) == DBUS_TYPE_BOOLEAN) {
+            dbus_bool_t connected;
+            dbus_message_iter_get_basic(&variant_i, &connected);
+
+            if (!pa_streq(value, "Connected") || !connected)
+                goto done;
+        }
+
+        if (!(d = device_find(u, dbus_message_get_path(msg)))) {
+                d = device_new(dbus_message_get_path(msg));
+                PA_LLIST_PREPEND(struct device, u->device_list, d);
+        }
+
+        if (dbus_message_is_signal(msg, "org.bluez.Headset", "PropertyChanged"))
+            profile = "hsp";
+        else
+            profile = "a2dp";
+
+        load_module_for_device(u, d, profile);
     }
 
+done:
     dbus_error_free(&err);
     return DBUS_HANDLER_RESULT_HANDLED;
 }
 
 void pa__done(pa_module* m) {
     struct userdata *u;
-    struct adapter *i;
+    struct device *i;
 
     pa_assert(m);
 
     if (!(u = m->userdata))
         return;
 
-    while ((i = u->adapter_list)) {
-        PA_LLIST_REMOVE(struct adapter, u->adapter_list, i);
-        adapter_free(i);
+    while ((i = u->device_list)) {
+        PA_LLIST_REMOVE(struct device, u->device_list, i);
+        device_free(i);
     }
 
     if (u->conn)
@@ -878,7 +467,7 @@ int pa__init(pa_module* m) {
 
     m->userdata = u = pa_xnew(struct userdata, 1);
     u->module = m;
-    PA_LLIST_HEAD_INIT(struct adapter, u->adapter_list);
+    PA_LLIST_HEAD_INIT(struct device, u->device_list);
 
     /* connect to the bus */
     u->conn = pa_dbus_bus_get(m->core, DBUS_BUS_SYSTEM, &err);
@@ -887,34 +476,27 @@ int pa__init(pa_module* m) {
         goto fail;
     }
 
-    /* static detection of bluetooth audio devices */
-    detect_adapters(u);
-    detect_devices(u);
-
-    print_adapters(u);
-    load_modules(u);
-
     /* dynamic detection of bluetooth audio devices */
     if (!dbus_connection_add_filter(pa_dbus_connection_get(u->conn), filter_cb, u, NULL)) {
         pa_log_error("Failed to add filter function");
         goto fail;
     }
 
-    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.Manager'", &err);
-    if (dbus_error_is_set(&err)) {
-        pa_log_error("Unable to subscribe to org.bluez.Manager signals: %s: %s", err.name, err.message);
-        goto fail;
-    }
-
-    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.Adapter'", &err);
+    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.Adapter',member='DeviceRemoved'", &err);
     if (dbus_error_is_set(&err)) {
         pa_log_error("Unable to subscribe to org.bluez.Adapter signals: %s: %s", err.name, err.message);
         goto fail;
     }
 
-    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.Device'", &err);
+    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged'", &err);
     if (dbus_error_is_set(&err)) {
-        pa_log_error("Unable to subscribe to org.bluez.Device signals: %s: %s", err.name, err.message);
+        pa_log_error("Unable to subscribe to org.bluez.Headset signals: %s: %s", err.name, err.message);
+        goto fail;
+    }
+
+    dbus_bus_add_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged'", &err);
+    if (dbus_error_is_set(&err)) {
+        pa_log_error("Unable to subscribe to org.bluez.AudioSink signals: %s: %s", err.name, err.message);
         goto fail;
     }
 

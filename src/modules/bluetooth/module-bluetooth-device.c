@@ -497,13 +497,6 @@ static int bt_getstreamfd(struct userdata *u) {
         return -errno;
     }
 
-    if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP) {
-        if (pa_socket_set_sndbuf(u->stream_fd, 10U*u->link_mtu) < 0) {
-            pa_log_error("Failed to set socket options for A2DP: %s (%d)",pa_cstrerror(errno), errno);
-            return -errno;
-        }
-    }
-
 //   if (setsockopt(u->stream_fd, SOL_SCO, SCO_TXBUFS, &period_count, sizeof(period_count)) == 0)
 //       return 0;
 //   if (setsockopt(u->stream_fd, SOL_SCO, SO_SNDBUF, &period_count, sizeof(period_count)) == 0)
