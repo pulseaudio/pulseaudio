@@ -856,8 +856,12 @@ void pa_sink_set_volume(pa_sink *s, const pa_cvolume *volume) {
 
     changed = !pa_cvolume_equal(&data.volume, &s->volume);
 
-    if (changed && pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_SET_VOLUME], &data) < 0)
-        return;
+    if (changed) {
+        if (pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_SET_VOLUME], &data) < 0)
+            return;
+
+        changed = !pa_cvolume_equal(&data.volume, &s->volume);
+    }
 
     s->volume = data.volume;
 
