@@ -69,6 +69,9 @@ static void process_input_volume_change(pa_cvolume *dest_volume, const pa_cvolum
     pa_assert(dest_channel_map);
     pa_assert(sink);
 
+    if (!(sink->flags & PA_SINK_DECIBEL_VOLUME))
+        return;
+
     pa_log_debug("Sink input volume changed");
 
     max_volume = *dest_virtual_volume;
@@ -165,6 +168,9 @@ static void subscribe_callback(pa_core *core, pa_subscription_event_type_t t, ui
         return;
 
     if (!(sink = pa_idxset_get_by_index(core->sinks, idx)))
+        return;
+
+    if (!(sink->flags & PA_SINK_DECIBEL_VOLUME))
         return;
 
     pa_log_debug("Sink volume changed");
