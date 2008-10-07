@@ -154,7 +154,7 @@ static void subscribe_callback(pa_core *core, pa_subscription_event_type_t t, ui
     pa_sink *sink;
     pa_sink_input *i;
     uint32_t iidx;
-    pa_cvolume this_volume;
+    pa_cvolume sink_volume;
 
     pa_assert(core);
     pa_assert(u);
@@ -172,10 +172,14 @@ static void subscribe_callback(pa_core *core, pa_subscription_event_type_t t, ui
     pa_log_debug("Sink volume changed");
     pa_log_debug("sink = %.2f", (double)pa_cvolume_avg(pa_sink_get_volume(sink, FALSE)) / PA_VOLUME_NORM);
 
+    sink_volume = *pa_sink_get_volume(sink, FALSE);
+
     for (i = PA_SINK_INPUT(pa_idxset_first(sink->inputs, &iidx)); i; i = PA_SINK_INPUT(pa_idxset_next(sink->inputs, &iidx))) {
-        this_volume = *pa_sink_get_volume(sink, FALSE);
-        pa_cvolume_remap(&this_volume, &sink->channel_map, &i->channel_map);
-        pa_sw_cvolume_multiply(&i->virtual_volume, &i->volume, &this_volume);
+        pa_cvolume si_volume;
+
+        si_volume = sink_volume;
+        pa_cvolume_remap(&si_volume, &sink->channel_map, &i->channel_map);
+        pa_sw_cvolume_multiply(&i->virtual_volume, &i->volume, &si_volume);
         pa_log_debug("sink input = { id = %d, flat = %.2f, true = %.2f }",
                      i->index,
                      (double)pa_cvolume_avg(&i->virtual_volume)/PA_VOLUME_NORM,
