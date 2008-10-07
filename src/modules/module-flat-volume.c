@@ -95,16 +95,8 @@ static void process_input_volume_change(
 
     /* Set the master volume, and normalize inputs */
     if (!pa_cvolume_equal(&max_volume, &sink->volume)) {
-        /* copied from pa_sink_set_volume(): need to call from here to avoid sink hooks */
-        /* alternatively, could create an extra function pa_sink_set_volume_full()? */
-        sink->volume = max_volume;
-        if (sink->set_volume && sink->set_volume(sink) < 0)
-            sink->set_volume = NULL;
 
-        if (!sink->set_volume)
-            pa_sink_set_soft_volume(sink, &max_volume);
-
-        pa_subscription_post(sink->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, sink->index);
+        pa_sink_set_volume(sink, &max_volume);
 
         pa_log_debug("sink = %.2f (changed)", (double)pa_cvolume_avg(&sink->volume)/PA_VOLUME_NORM);
 
