@@ -119,6 +119,7 @@ pa_sink_input* pa_sink_input_new(
     pa_sink_input *i;
     pa_resampler *resampler = NULL;
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    pa_channel_map original_cm;
 
     pa_assert(core);
     pa_assert(data);
@@ -141,14 +142,14 @@ pa_sink_input* pa_sink_input_new(
     pa_return_null_if_fail(pa_sample_spec_valid(&data->sample_spec));
 
     if (!data->channel_map_is_set) {
-        if (data->sink->channel_map.channels == data->sample_spec.channels)
+        if (pa_channel_map_compatible(&data->sink->channel_map, &data->sample_spec))
             data->channel_map = data->sink->channel_map;
         else
             pa_return_null_if_fail(pa_channel_map_init_auto(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT));
     }
 
     pa_return_null_if_fail(pa_channel_map_valid(&data->channel_map));
-    pa_return_null_if_fail(data->channel_map.channels == data->sample_spec.channels);
+    pa_return_null_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec));
 
     if (!data->volume_is_set) {
         pa_cvolume_reset(&data->volume, data->sample_spec.channels);
@@ -156,7 +157,7 @@ pa_sink_input* pa_sink_input_new(
     }
 
     pa_return_null_if_fail(pa_cvolume_valid(&data->volume));
-    pa_return_null_if_fail(data->volume.channels == data->sample_spec.channels);
+    pa_return_null_if_fail(pa_cvolume_compatible(&data->volume.channels, &data->sample_spec));
 
     pa_return_null_if_fail(pa_cvolume_valid(&data->virtual_volume));
     pa_return_null_if_fail(pa_cvolume_compatible(&data->virtual_volume.channels, &data->sample_spec));
@@ -796,6 +797,8 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume) {
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_assert(volume);
+    pa_assert(pa_cvolume_valid(volume));
+    pa_assert(pa_cvolume_compatible(volume, &i->sample_spec));
 
     data.sink_input = i;
     data.virtual_volume = *volume;
