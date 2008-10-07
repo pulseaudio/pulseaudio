@@ -171,6 +171,8 @@ pa_sink_input* pa_sink_input_new(
     if (flags & PA_SINK_INPUT_FIX_RATE)
         data->sample_spec.rate = data->sink->sample_spec.rate;
 
+    original_cm = data->channel_map;
+
     if (flags & PA_SINK_INPUT_FIX_CHANNELS) {
         data->sample_spec.channels = data->sink->sample_spec.channels;
         data->channel_map = data->sink->channel_map;
@@ -180,8 +182,7 @@ pa_sink_input* pa_sink_input_new(
     pa_assert(pa_channel_map_valid(&data->channel_map));
 
     /* Due to the fixing of the sample spec the volume might not match anymore */
-    if (data->volume.channels != data->sample_spec.channels)
-        pa_cvolume_set(&data->volume, data->sample_spec.channels, pa_cvolume_avg(&data->volume));
+    pa_cvolume_remap(&data->volume, &original_cm, &data->channel_map);
 
     if (data->resample_method == PA_RESAMPLER_INVALID)
         data->resample_method = core->resample_method;
