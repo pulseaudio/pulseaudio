@@ -646,9 +646,9 @@ int main(int argc, char *argv[]) {
         conf->disable_shm = TRUE;
     }
 
-    if (conf->system_instance && conf->exit_idle_time > 0) {
+    if (conf->system_instance && conf->exit_idle_time >= 0) {
         pa_log_notice(_("Running in system mode, forcibly disabling exit idle time!"));
-        conf->exit_idle_time = 0;
+        conf->exit_idle_time = -1;
     }
 
     if (conf->cmd == PA_CMD_START) {
