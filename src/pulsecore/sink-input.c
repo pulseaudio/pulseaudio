@@ -805,6 +805,10 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume) {
     data.virtual_volume = *volume;
     data.volume = *volume;
 
+    /* If you change something here, consider looking into
+     * module-flat-volume.c as well since it uses very similar
+     * code. */
+
     if (pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_SET_VOLUME], &data) < 0)
         return;
 
