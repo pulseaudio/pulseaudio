@@ -150,8 +150,10 @@ pa_sink_input* pa_sink_input_new(
     pa_return_null_if_fail(pa_channel_map_valid(&data->channel_map));
     pa_return_null_if_fail(data->channel_map.channels == data->sample_spec.channels);
 
-    if (!data->volume_is_set)
+    if (!data->volume_is_set) {
         pa_cvolume_reset(&data->volume, data->sample_spec.channels);
+        pa_cvolume_reset(&data->virtual_volume, data->sample_spec.channels);
+    }
 
     pa_return_null_if_fail(pa_cvolume_valid(&data->volume));
     pa_return_null_if_fail(data->volume.channels == data->sample_spec.channels);
