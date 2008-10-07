@@ -848,6 +848,8 @@ void pa_sink_set_volume(pa_sink *s, const pa_cvolume *volume) {
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_IS_LINKED(s->state));
     pa_assert(volume);
+    pa_assert(pa_cvolume_valid(volume));
+    pa_assert(pa_cvolume_compatible(volume, &s->sample_spec));
 
     data.sink = s;
     data.volume = *volume;
