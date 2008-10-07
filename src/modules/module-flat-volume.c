@@ -87,7 +87,7 @@ static void process_input_volume_change(
         if (this && this == i)
             continue;
 
-        if (pa_cvolume_avg(&i->virtual_volume) > pa_cvolume_avg(&max_volume)) {
+        if (pa_cvolume_max(&i->virtual_volume) > pa_cvolume_max(&max_volume)) {
             max_volume = i->virtual_volume;
             pa_cvolume_remap(&max_volume, &i->channel_map, &sink->channel_map);
         }
