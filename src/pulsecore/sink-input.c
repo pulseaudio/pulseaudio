@@ -144,7 +144,7 @@ pa_sink_input* pa_sink_input_new(
         if (data->sink->channel_map.channels == data->sample_spec.channels)
             data->channel_map = data->sink->channel_map;
         else
-            pa_return_null_if_fail(pa_channel_map_init_auto(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT));
+            pa_channel_map_init_extend(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT);
     }
 
     pa_return_null_if_fail(pa_channel_map_valid(&data->channel_map));

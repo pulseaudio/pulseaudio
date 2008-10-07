@@ -127,7 +127,7 @@ pa_source_output* pa_source_output_new(
         if (data->source->channel_map.channels == data->sample_spec.channels)
             data->channel_map = data->source->channel_map;
         else
-            pa_return_null_if_fail(pa_channel_map_init_auto(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT));
+            pa_channel_map_init_extend(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT);
     }
 
     pa_return_null_if_fail(pa_channel_map_valid(&data->channel_map));
