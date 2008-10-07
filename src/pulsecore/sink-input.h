@@ -89,6 +89,8 @@ struct pa_sink_input {
 
     pa_sink_input *sync_prev, *sync_next;
 
+    pa_cvolume virtual_volume;
+
     pa_cvolume volume;
     pa_bool_t muted;
 
@@ -218,6 +220,9 @@ typedef struct pa_sink_input_new_data {
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
+
+    pa_cvolume virtual_volume;
+
     pa_cvolume volume;
     pa_bool_t muted:1;
 
@@ -238,6 +243,12 @@ typedef struct pa_sink_input_move_hook_data {
     pa_sink_input *sink_input;
     pa_sink *destination;
 } pa_sink_input_move_hook_data;
+
+typedef struct pa_sink_set_input_volume_data {
+  pa_sink_input *sink_input;
+  pa_cvolume virtual_volume;
+  pa_cvolume volume;
+} pa_sink_input_set_volume_data;
 
 /* To be called by the implementing module only */
 

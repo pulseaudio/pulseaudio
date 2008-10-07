@@ -75,7 +75,7 @@ void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cv
     pa_assert(data);
 
     if ((data->volume_is_set = !!volume))
-        data->volume = *volume;
+        data->volume = data->virtual_volume = *volume;
 }
 
 void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mute) {
@@ -119,6 +119,7 @@ pa_sink_input* pa_sink_input_new(
     pa_sink_input *i;
     pa_resampler *resampler = NULL;
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    pa_channel_map original_cm;
 
     pa_assert(core);
     pa_assert(data);
@@ -141,20 +142,25 @@ pa_sink_input* pa_sink_input_new(
     pa_return_null_if_fail(pa_sample_spec_valid(&data->sample_spec));
 
     if (!data->channel_map_is_set) {
-        if (data->sink->channel_map.channels == data->sample_spec.channels)
+        if (pa_channel_map_compatible(&data->sink->channel_map, &data->sample_spec))
             data->channel_map = data->sink->channel_map;
         else
-            pa_return_null_if_fail(pa_channel_map_init_auto(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT));
+            pa_channel_map_init_extend(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT);
     }
 
     pa_return_null_if_fail(pa_channel_map_valid(&data->channel_map));
-    pa_return_null_if_fail(data->channel_map.channels == data->sample_spec.channels);
+    pa_return_null_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec));
 
-    if (!data->volume_is_set)
+    if (!data->volume_is_set) {
         pa_cvolume_reset(&data->volume, data->sample_spec.channels);
+        pa_cvolume_reset(&data->virtual_volume, data->sample_spec.channels);
+    }
 
     pa_return_null_if_fail(pa_cvolume_valid(&data->volume));
-    pa_return_null_if_fail(data->volume.channels == data->sample_spec.channels);
+    pa_return_null_if_fail(pa_cvolume_compatible(&data->volume.channels, &data->sample_spec));
+
+    pa_return_null_if_fail(pa_cvolume_valid(&data->virtual_volume));
+    pa_return_null_if_fail(pa_cvolume_compatible(&data->virtual_volume.channels, &data->sample_spec));
 
     if (!data->muted_is_set)
         data->muted = FALSE;
@@ -165,6 +171,8 @@ pa_sink_input* pa_sink_input_new(
     if (flags & PA_SINK_INPUT_FIX_RATE)
         data->sample_spec.rate = data->sink->sample_spec.rate;
 
+    original_cm = data->channel_map;
+
     if (flags & PA_SINK_INPUT_FIX_CHANNELS) {
         data->sample_spec.channels = data->sink->sample_spec.channels;
         data->channel_map = data->sink->channel_map;
@@ -174,8 +182,7 @@ pa_sink_input* pa_sink_input_new(
     pa_assert(pa_channel_map_valid(&data->channel_map));
 
     /* Due to the fixing of the sample spec the volume might not match anymore */
-    if (data->volume.channels != data->sample_spec.channels)
-        pa_cvolume_set(&data->volume, data->sample_spec.channels, pa_cvolume_avg(&data->volume));
+    pa_cvolume_remap(&data->volume, &original_cm, &data->channel_map);
 
     if (data->resample_method == PA_RESAMPLER_INVALID)
         data->resample_method = core->resample_method;
@@ -227,7 +234,9 @@ pa_sink_input* pa_sink_input_new(
     i->sample_spec = data->sample_spec;
     i->channel_map = data->channel_map;
 
+    i->virtual_volume = data->virtual_volume;
     i->volume = data->volume;
+
     i->muted = data->muted;
 
     if (data->sync_base) {
@@ -784,17 +793,34 @@ pa_usec_t pa_sink_input_get_requested_latency(pa_sink_input *i) {
 
 /* Called from main context */
 void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume) {
+    pa_sink_input_set_volume_data data;
+
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_assert(volume);
+    pa_assert(pa_cvolume_valid(volume));
+    pa_assert(pa_cvolume_compatible(volume, &i->sample_spec));
 
-    if (pa_cvolume_equal(&i->volume, volume))
+    data.sink_input = i;
+    data.virtual_volume = *volume;
+    data.volume = *volume;
+
+    /* If you change something here, consider looking into
+     * module-flat-volume.c as well since it uses very similar
+     * code. */
+
+    if (pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_SET_VOLUME], &data) < 0)
         return;
 
-    i->volume = *volume;
+    if (!pa_cvolume_equal(&i->volume, &data.volume)) {
+        i->volume = data.volume;
+        pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_VOLUME, &data.volume, 0, NULL) == 0);
+    }
 
-    pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_VOLUME, &i->volume, 0, NULL) == 0);
-    pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+    if (!pa_cvolume_equal(&i->virtual_volume, &data.virtual_volume)) {
+        i->virtual_volume = data.virtual_volume;
+        pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+    }
 }
 
 /* Called from main context */
@@ -802,7 +828,7 @@ const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
-    return &i->volume;
+    return &i->virtual_volume;
 }
 
 /* Called from main context */

@@ -2722,7 +2722,7 @@ static void sink_input_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, 
     pa_tagstruct_putu32(t, s->sink->index);
     pa_tagstruct_put_sample_spec(t, &fixed_ss);
     pa_tagstruct_put_channel_map(t, &s->channel_map);
-    pa_tagstruct_put_cvolume(t, &s->volume);
+    pa_tagstruct_put_cvolume(t, pa_sink_input_get_volume(s));
     pa_tagstruct_put_usec(t, pa_sink_input_get_latency(s, &sink_latency));
     pa_tagstruct_put_usec(t, sink_latency);
     pa_tagstruct_puts(t, pa_resample_method_to_string(pa_sink_input_get_resample_method(s)));

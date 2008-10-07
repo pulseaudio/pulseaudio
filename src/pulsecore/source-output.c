@@ -124,14 +124,14 @@ pa_source_output* pa_source_output_new(
     pa_return_null_if_fail(pa_sample_spec_valid(&data->sample_spec));
 
     if (!data->channel_map_is_set) {
-        if (data->source->channel_map.channels == data->sample_spec.channels)
+        if (pa_channel_map_compatible(&data->source->channel_map, &data->sample_spec))
             data->channel_map = data->source->channel_map;
         else
-            pa_return_null_if_fail(pa_channel_map_init_auto(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT));
+            pa_channel_map_init_extend(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT);
     }
 
     pa_return_null_if_fail(pa_channel_map_valid(&data->channel_map));
-    pa_return_null_if_fail(data->channel_map.channels == data->sample_spec.channels);
+    pa_return_null_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec));
 
     if (flags & PA_SOURCE_OUTPUT_FIX_FORMAT)
         data->sample_spec.format = data->source->sample_spec.format;
