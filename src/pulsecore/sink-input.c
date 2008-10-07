@@ -801,14 +801,12 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume) {
     data.virtual_volume = *volume;
     data.volume = *volume;
 
-    if (pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_SET_VOLUME], &data) < 0) {
+    if (pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_SET_VOLUME], &data) < 0)
         return;
-    }
 
     if (!pa_cvolume_equal(&i->volume, &data.volume)) {
         i->volume = data.volume;
-	pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_VOLUME, &data.volume, 0, NULL) == 0);
-        return;
+        pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_VOLUME, &data.volume, 0, NULL) == 0);
     }
 
     if (!pa_cvolume_equal(&i->virtual_volume, &data.virtual_volume)) {
