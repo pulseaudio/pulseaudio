@@ -58,8 +58,13 @@ struct userdata {
     pa_hook_slot *sink_input_fixate_hook_slot;
 };
 
-static void process_input_volume_change(pa_cvolume *dest_volume, const pa_cvolume *dest_virtual_volume, pa_channel_map *dest_channel_map,
-					pa_sink_input *this, pa_sink *sink) {
+static void process_input_volume_change(
+        pa_cvolume *dest_volume,
+        const pa_cvolume *dest_virtual_volume,
+        pa_channel_map *dest_channel_map,
+        pa_sink_input *this,
+        pa_sink *sink) {
+
     pa_sink_input *i;
     uint32_t idx;
     pa_cvolume max_volume, sink_volume;
@@ -112,25 +117,24 @@ static void process_input_volume_change(pa_cvolume *dest_volume, const pa_cvolum
             sink_volume = max_volume;
             pa_cvolume_remap(&sink_volume, &sink->channel_map, &i->channel_map);
             pa_sw_cvolume_divide(&i->volume, &i->virtual_volume, &sink_volume);
-	    pa_log_debug("sink input { id = %d, flat = %.2f, true = %.2f }",
-			 i->index,
-			 (double)pa_cvolume_avg(&i->virtual_volume)/PA_VOLUME_NORM,
-			 (double)pa_cvolume_avg(&i->volume)/PA_VOLUME_NORM);
-	    pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_VOLUME, pa_xnewdup(struct pa_cvolume, &i->volume, 1), 0, NULL, pa_xfree);
+            pa_log_debug("sink input { id = %d, flat = %.2f, true = %.2f }",
+                         i->index,
+                         (double)pa_cvolume_avg(&i->virtual_volume)/PA_VOLUME_NORM,
+                         (double)pa_cvolume_avg(&i->volume)/PA_VOLUME_NORM);
+            pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_VOLUME, pa_xnewdup(struct pa_cvolume, &i->volume, 1), 0, NULL, pa_xfree);
         }
     } else
         pa_log_debug("sink = %.2f", (double)pa_cvolume_avg(&sink->volume)/PA_VOLUME_NORM);
 
     /* and this one */
-    {
-        sink_volume = max_volume;
-        pa_cvolume_remap(&sink_volume, &sink->channel_map, dest_channel_map);
-        pa_sw_cvolume_divide(dest_volume, dest_virtual_volume, &sink_volume);
-        pa_log_debug("caller sink input: { id = %d, flat = %.2f, true = %.2f }",
-                     this ? (int)this->index : -1,
-                     (double)pa_cvolume_avg(dest_virtual_volume)/PA_VOLUME_NORM,
-                     (double)pa_cvolume_avg(dest_volume)/PA_VOLUME_NORM);
-    }
+
+    sink_volume = max_volume;
+    pa_cvolume_remap(&sink_volume, &sink->channel_map, dest_channel_map);
+    pa_sw_cvolume_divide(dest_volume, dest_virtual_volume, &sink_volume);
+    pa_log_debug("caller sink input: { id = %d, flat = %.2f, true = %.2f }",
+                 this ? (int)this->index : -1,
+                 (double)pa_cvolume_avg(dest_virtual_volume)/PA_VOLUME_NORM,
+                 (double)pa_cvolume_avg(dest_volume)/PA_VOLUME_NORM);
 }
 
 static pa_hook_result_t sink_input_set_volume_hook_callback(pa_core *c, pa_sink_input_set_volume_data *this, struct userdata *u) {
@@ -138,7 +142,7 @@ static pa_hook_result_t sink_input_set_volume_hook_callback(pa_core *c, pa_sink_
     pa_assert(this->sink_input);
 
     process_input_volume_change(&this->volume, &this->virtual_volume, &this->sink_input->channel_map,
-				this->sink_input, this->sink_input->sink);
+                                this->sink_input, this->sink_input->sink);
 
     return PA_HOOK_OK;
 }
