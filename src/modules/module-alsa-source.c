@@ -742,7 +742,7 @@ static int source_get_volume_cb(pa_source *s) {
                 VALGRIND_MAKE_MEM_DEFINED(&alsa_vol, sizeof(alsa_vol));
 #endif
 
-                r.values[i] = pa_sw_volume_from_dB((double) alsa_vol / 100.0);
+                r.values[i] = pa_sw_volume_from_dB((double) (alsa_vol - u->hw_dB_max) / 100.0);
             } else {
 
                 if ((err = snd_mixer_selem_get_capture_volume(u->mixer_elem, u->mixer_map[i], &alsa_vol)) < 0)
@@ -764,7 +764,7 @@ static int source_get_volume_cb(pa_source *s) {
             VALGRIND_MAKE_MEM_DEFINED(&alsa_vol, sizeof(alsa_vol));
 #endif
 
-            pa_cvolume_set(&r, s->sample_spec.channels, pa_sw_volume_from_dB((double) alsa_vol / 100.0));
+            pa_cvolume_set(&r, s->sample_spec.channels, pa_sw_volume_from_dB((double) (alsa_vol - u->hw_dB_max) / 100.0));
 
         } else {
 
@@ -821,6 +821,7 @@ static int source_set_volume_cb(pa_source *s) {
             if (u->hw_dB_supported) {
 
                 alsa_vol = (long) (pa_sw_volume_to_dB(vol) * 100);
+                alsa_vol += u->hw_dB_max;
                 alsa_vol = PA_CLAMP_UNLIKELY(alsa_vol, u->hw_dB_min, u->hw_dB_max);
 
                 if ((err = snd_mixer_selem_set_capture_dB(u->mixer_elem, u->mixer_map[i], alsa_vol, 1)) < 0)
@@ -829,7 +830,7 @@ static int source_set_volume_cb(pa_source *s) {
                 if ((err = snd_mixer_selem_get_capture_dB(u->mixer_elem, u->mixer_map[i], &alsa_vol)) < 0)
                     goto fail;
 
-                r.values[i] = pa_sw_volume_from_dB((double) alsa_vol / 100.0);
+                r.values[i] = pa_sw_volume_from_dB((double) (alsa_vol - u->hw_dB_max) / 100.0);
 
             } else {
                 alsa_vol = to_alsa_volume(u, vol);
@@ -852,6 +853,7 @@ static int source_set_volume_cb(pa_source *s) {
 
         if (u->hw_dB_supported) {
             alsa_vol = (long) (pa_sw_volume_to_dB(vol) * 100);
+            alsa_vol += u->hw_dB_max;
             alsa_vol = PA_CLAMP_UNLIKELY(alsa_vol, u->hw_dB_min, u->hw_dB_max);
 
             if ((err = snd_mixer_selem_set_capture_dB_all(u->mixer_elem, alsa_vol, 1)) < 0)
@@ -860,7 +862,7 @@ static int source_set_volume_cb(pa_source *s) {
             if ((err = snd_mixer_selem_get_capture_dB(u->mixer_elem, SND_MIXER_SCHN_MONO, &alsa_vol)) < 0)
                 goto fail;
 
-            pa_cvolume_set(&r, s->volume.channels, pa_sw_volume_from_dB((double) alsa_vol / 100.0));
+            pa_cvolume_set(&r, s->volume.channels, pa_sw_volume_from_dB((double) (alsa_vol - u->hw_dB_max) / 100.0));
 
         } else {
             alsa_vol = to_alsa_volume(u, vol);
