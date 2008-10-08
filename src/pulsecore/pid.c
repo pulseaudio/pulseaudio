@@ -211,6 +211,7 @@ int pa_pid_file_create(const char *procname) {
     if ((pid = read_pid(fn, fd)) == (pid_t) -1)
         pa_log_warn("Corrupt PID file, overwriting.");
     else if (pid > 0) {
+        int ours = 1;
 
 #ifdef OS_IS_WIN32
         if ((process = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid)) != NULL) {
@@ -218,11 +219,13 @@ int pa_pid_file_create(const char *procname) {
 #else
         if (kill(pid, 0) >= 0 || errno != ESRCH) {
 #endif
-            int ours = 1;
 
             if (procname)
-                if ((ours = proc_name_ours(pid, procname)) < 0)
+                if ((ours = proc_name_ours(pid, procname)) < 0) {
+                    pa_log_warn("Could not check to see if pid %lu is a pulseaudio process. "
+                                "Asssuming it is and the daemon is already running.", (unsigned long) pid);
                     goto fail;
+                }
 
             if (ours) {
                 pa_log("Daemon already running.");
