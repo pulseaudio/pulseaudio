@@ -73,7 +73,7 @@ load-module module-native-protocol-unix
 #load-module module-rtp-send source=rtp.monitor
 
 ### Enable flat volumes where possible
-load-module module-flat-volumes
+load-module module-flat-volume
 
 ### Automatically restore the volume of streams and devices
 load-module module-device-restore

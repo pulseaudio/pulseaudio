@@ -346,7 +346,7 @@ static void load_module_for_device(struct userdata *u, struct device *d, const c
     pa_m = pa_module_load(u->module->core, "module-bluetooth-device", args);
     pa_xfree(args);
 
-    if (!m) {
+    if (!pa_m) {
         pa_log_debug("Failed to load module for device %s", d->object_path);
         return;
     }
