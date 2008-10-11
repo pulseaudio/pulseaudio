@@ -508,7 +508,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
     switch (code) {
 
-        case PA_SINK_MESSAGE_SET_STATE: {
+        case PA_SOURCE_MESSAGE_SET_STATE: {
             int r;
 
             if ((r = pa_source_process_msg(o, code, data, offset, chunk)) >= 0)
@@ -520,7 +520,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
         case PA_SOURCE_MESSAGE_GET_LATENCY: {
             pa_usec_t yr, yl, *usec = data;
 
-            yl = pa_bytes_to_usec((uint64_t) u->counter, &PA_SINK(o)->sample_spec);
+            yl = pa_bytes_to_usec((uint64_t) u->counter, &PA_SOURCE(o)->sample_spec);
             yr = pa_smoother_get(u->smoother, pa_rtclock_usec());
 
             *usec = yr > yl ? yr - yl : 0;
