@@ -485,8 +485,23 @@ void pa__done(pa_module* m) {
         device_free(i);
     }
 
-    if (u->conn)
+    if (u->conn) {
+        DBusError error;
+        dbus_error_init(&error);
+
+        dbus_bus_remove_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.Adapter',member='DeviceRemoved'", &error);
+        dbus_error_free(&error);
+
+        dbus_bus_remove_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged'", &error);
+        dbus_error_free(&error);
+
+        dbus_bus_remove_match(pa_dbus_connection_get(u->conn), "type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged'", &error);
+        dbus_error_free(&error);
+
+        dbus_connection_remove_filter(pa_dbus_connection_get(u->conn), filter_cb, u);
+
         pa_dbus_connection_unref(u->conn);
+    }
 
     pa_xfree(u);
 }
