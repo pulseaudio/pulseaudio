@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-10-07 21:03+0200\n"
-"PO-Revision-Date: 2008-09-10 22:41+0200\n"
+"PO-Revision-Date: 2008-10-14 23:56+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -325,9 +325,9 @@ msgid "Compiled with Valgrind support: no"
 msgstr "Skompilowano z obsługą Valgrind: nie"
 
 #: ../src/daemon/main.c:796
-#, fuzzy, c-format
+#, c-format
 msgid "Running in valgrind mode: %s"
-msgstr "Uruchamianie w trybie systemowym: %s"
+msgstr "Uruchamianie w trybie Valgrind: %s"
 
 #: ../src/daemon/main.c:799
 msgid "Optimized build: yes"
@@ -926,9 +926,8 @@ msgstr "Górny tylny prawy"
 
 #: ../src/pulse/channelmap.c:472 ../src/pulse/sample.c:144
 #: ../src/pulse/volume.c:163 ../src/pulse/volume.c:194
-#, fuzzy
 msgid "(invalid)"
-msgstr "Nieprawidłowe"
+msgstr "(nieprawidłowe)"
 
 #: ../src/pulse/error.c:43
 msgid "OK"
