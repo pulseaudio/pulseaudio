@@ -60,7 +60,7 @@ void pa_drop_root(void) {
     if (uid == 0 || geteuid() != 0)
         return;
 
-    pa_log_info(_("Dropping root priviliges."));
+    pa_log_info(_("Dropping root privileges."));
 
 #if defined(HAVE_SETRESUID)
     pa_assert_se(setresuid(uid, uid, uid) >= 0);
