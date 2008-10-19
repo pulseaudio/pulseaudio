@@ -222,7 +222,7 @@ static int change_user(void) {
 #elif defined(HAVE_SETREGID)
     r = setregid(gr->gr_gid, gr->gr_gid);
 #else
-#error "No API to drop priviliges"
+#error "No API to drop privileges"
 #endif
 
     if (r < 0) {
@@ -238,7 +238,7 @@ static int change_user(void) {
 #elif defined(HAVE_SETREUID)
     r = setreuid(pw->pw_uid, pw->pw_uid);
 #else
-#error "No API to drop priviliges"
+#error "No API to drop privileges"
 #endif
 
     if (r < 0) {
@@ -382,7 +382,7 @@ int main(int argc, char *argv[]) {
         /* Drop all capabilities except CAP_SYS_NICE  */
         pa_limit_caps();
 
-        /* Drop priviliges, but keep CAP_SYS_NICE */
+        /* Drop privileges, but keep CAP_SYS_NICE */
         pa_drop_root();
 
         /* After dropping root, the effective set is reset, hence,
@@ -476,9 +476,9 @@ int main(int argc, char *argv[]) {
             pa_drop_caps();
 
             if (conf->high_priority || conf->realtime_scheduling)
-                pa_log_notice(_("Called SUID root and real-time/high-priority scheduling was requested in the configuration. However, we lack the necessary priviliges:\n"
-                                "We are not in group '"PA_REALTIME_GROUP"' and PolicyKit refuse to grant us priviliges. Dropping SUID again.\n"
-                                "For enabling real-time scheduling please acquire the appropriate PolicyKit priviliges, or become a member of '"PA_REALTIME_GROUP"', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."));
+                pa_log_notice(_("Called SUID root and real-time/high-priority scheduling was requested in the configuration. However, we lack the necessary privileges:\n"
+                                "We are not in group '"PA_REALTIME_GROUP"' and PolicyKit refuse to grant us privileges. Dropping SUID again.\n"
+                                "For enabling real-time scheduling please acquire the appropriate PolicyKit privileges, or become a member of '"PA_REALTIME_GROUP"', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."));
         }
     }
 
@@ -626,7 +626,7 @@ int main(int argc, char *argv[]) {
     if (real_root && !conf->system_instance)
         pa_log_warn(_("This program is not intended to be run as root (unless --system is specified)."));
     else if (!real_root && conf->system_instance) {
-        pa_log(_("Root priviliges required."));
+        pa_log(_("Root privileges required."));
         goto finish;
     }
 
