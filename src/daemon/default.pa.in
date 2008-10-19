@@ -77,6 +77,15 @@ load-module module-native-protocol-unix
 #load-module module-null-sink sink_name=rtp format=s16be channels=2 rate=44100 description="RTP Multicast Sink"
 #load-module module-rtp-send source=rtp.monitor
 
+### Load additional modules from GConf settings. This can be configured with the paprefs tool.
+### Please keep in mind that the modules configured by paprefs might conflict with manually
+### loaded modules.
+.ifexists module-gconf@PA_SOEXT@
+.nofail
+load-module module-gconf
+.fail
+.endif
+
 ### Automatically restore the default sink/source when changed by the user during runtime
 load-module module-default-device-restore
 
@@ -96,15 +105,6 @@ load-module module-console-kit
 
 ### Enable positioned event sounds
 load-module module-position-event-sounds
-
-### Load additional modules from GConf settings. This can be configured with the paprefs tool.
-### Please keep in mind that the modules configured by paprefs might conflict with manually
-### loaded modules.
-.ifexists module-gconf@PA_SOEXT@
-.nofail
-load-module module-gconf
-.fail
-.endif
 
 # X11 modules should not be started from default.pa so that one daemon
 # can be shared by multiple sessions.
