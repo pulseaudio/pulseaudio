@@ -171,14 +171,14 @@ static int proc_name_ours(pid_t pid, const char *procname) {
         good = pa_startswith(stored, expected);
         pa_xfree(expected);
 
-#if !defined(__OPTIMIZE__)
+/*#if !defined(__OPTIMIZE__)*/
         if (!good) {
             /* libtool likes to rename our binary names ... */
             expected = pa_sprintf_malloc("%lu (lt-%s)", (unsigned long) pid, procname);
             good = pa_startswith(stored, expected);
             pa_xfree(expected);
         }
-#endif
+/*#endif*/
 
         return !!good;
     }
