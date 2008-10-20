@@ -58,7 +58,7 @@ dist-hook:
 	if test -d .git ; then \
 		git pull ; \
 		chmod u+w ${distdir}/ChangeLog || true ; \
-		git-changelog.perl > ${distdir}/ChangeLog ; \
+		( git-changelog.perl || echo "git-changelog.perl failed." ) > ${distdir}/ChangeLog 2>&1 ; \
 	fi
 
 .PHONY: homepage distcleancheck doxygen
