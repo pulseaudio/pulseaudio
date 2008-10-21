@@ -134,7 +134,7 @@ static char *get_name(pa_proplist *p, const char *prefix) {
     else if ((r = pa_proplist_gets(p, PA_PROP_MEDIA_NAME)))
         return pa_sprintf_malloc("%s-by-media-name:%s", prefix, r);
 
-    return pa_sprintf_malloc("%s-fallback:%s", prefix);
+    return pa_sprintf_malloc("%s-fallback:%s", prefix, r);
 }
 
 static struct entry* read_entry(struct userdata *u, char *name) {
