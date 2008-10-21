@@ -777,7 +777,7 @@ size_t pa_frame_align(size_t l, const pa_sample_spec *ss) {
     return (l/fs) * fs;
 }
 
-int pa_frame_aligned(size_t l, const pa_sample_spec *ss) {
+pa_bool_t pa_frame_aligned(size_t l, const pa_sample_spec *ss) {
     size_t fs;
 
     pa_assert(ss);

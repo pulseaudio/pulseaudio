@@ -71,7 +71,7 @@ void pa_volume_memchunk(
 
 size_t pa_frame_align(size_t l, const pa_sample_spec *ss) PA_GCC_PURE;
 
-int pa_frame_aligned(size_t l, const pa_sample_spec *ss) PA_GCC_PURE;
+pa_bool_t pa_frame_aligned(size_t l, const pa_sample_spec *ss) PA_GCC_PURE;
 
 void pa_interleave(const void *src[], unsigned channels, void *dst, size_t ss, unsigned n);
 void pa_deinterleave(const void *src, void *dst[], unsigned channels, size_t ss, unsigned n);
