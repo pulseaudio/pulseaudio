@@ -117,6 +117,10 @@ static int pa_cli_command_vacuum(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa
 static int pa_cli_command_suspend_sink(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_log_level(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_log_meta(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_log_time(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_log_backtrace(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 
 /* A method table for all available commands */
 
@@ -167,6 +171,10 @@ static const struct command commands[] = {
     { "suspend-sink",            pa_cli_command_suspend_sink,       "Suspend sink (args: index|name, bool)", 3},
     { "suspend-source",          pa_cli_command_suspend_source,     "Suspend source (args: index|name, bool)", 3},
     { "suspend",                 pa_cli_command_suspend,            "Suspend all sinks and all sources (args: bool)", 2},
+    { "set-log-level",           pa_cli_command_log_level,          "Change the log level (args: numeric level)", 2},
+    { "set-log-meta",            pa_cli_command_log_meta,           "Show source code location in log messages (args: bool)", 2},
+    { "set-log-time",            pa_cli_command_log_time,           "Show timestamps in log messages (args: bool)", 2},
+    { "set-log-backtrace",       pa_cli_command_log_backtrace,      "Show bakctrace in log messages (args: frames)", 2},
     { NULL, NULL, NULL, 0 }
 };
 
@@ -1199,6 +1207,102 @@ static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, p
 
     if (ret < 0)
         pa_strbuf_puts(buf, "Failed to resume/suspend all sinks/sources.\n");
+
+    return 0;
+}
+
+static int pa_cli_command_log_level(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+    const char *m;
+    uint32_t level;
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+    if (!(m = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a log level (0..4).\n");
+        return -1;
+    }
+
+    if (pa_atou(m, &level) < 0 || level >= PA_LOG_LEVEL_MAX) {
+        pa_strbuf_puts(buf, "Failed to parse log level.\n");
+        return -1;
+    }
+
+    pa_log_set_maximal_level(level);
+
+    return 0;
+}
+
+static int pa_cli_command_log_meta(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+    const char *m;
+    pa_bool_t b;
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+    if (!(m = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a boolean.\n");
+        return -1;
+    }
+
+    if ((b = pa_parse_boolean(m)) < 0) {
+        pa_strbuf_puts(buf, "Failed to parse log meta switch.\n");
+        return -1;
+    }
+
+    pa_log_set_show_meta(b);
+
+    return 0;
+}
+
+static int pa_cli_command_log_time(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+    const char *m;
+    pa_bool_t b;
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+    if (!(m = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a boolean.\n");
+        return -1;
+    }
+
+    if ((b = pa_parse_boolean(m)) < 0) {
+        pa_strbuf_puts(buf, "Failed to parse log meta switch.\n");
+        return -1;
+    }
+
+    pa_log_set_show_time(b);
+
+    return 0;
+}
+
+static int pa_cli_command_log_backtrace(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+    const char *m;
+    uint32_t nframes;
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+    if (!(m = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a backtrace level.\n");
+        return -1;
+    }
+
+    if (pa_atou(m, &nframes) < 0 || nframes >= 1000) {
+        pa_strbuf_puts(buf, "Failed to parse backtrace level.\n");
+        return -1;
+    }
+
+    pa_log_set_show_backtrace(nframes);
 
     return 0;
 }
