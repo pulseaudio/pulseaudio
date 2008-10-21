@@ -55,6 +55,9 @@ enum {
     ARG_MODULE_IDLE_TIME,
     ARG_SCACHE_IDLE_TIME,
     ARG_LOG_TARGET,
+    ARG_LOG_META,
+    ARG_LOG_TIME,
+    ARG_LOG_BACKTRACE,
     ARG_LOAD,
     ARG_FILE,
     ARG_DL_SEARCH_PATH,
@@ -88,6 +91,9 @@ static const struct option long_options[] = {
     {"module-idle-time",            2, 0, ARG_MODULE_IDLE_TIME},
     {"scache-idle-time",            2, 0, ARG_SCACHE_IDLE_TIME},
     {"log-target",                  1, 0, ARG_LOG_TARGET},
+    {"log-meta",                    2, 0, ARG_LOG_META},
+    {"log-time",                    2, 0, ARG_LOG_TIME},
+    {"log-backtrace",               1, 0, ARG_LOG_BACKTRACE},
     {"load",                        1, 0, ARG_LOAD},
     {"file",                        1, 0, ARG_FILE},
     {"dl-search-path",              1, 0, ARG_DL_SEARCH_PATH},
@@ -148,6 +154,9 @@ void pa_cmdline_help(const char *argv0) {
            "      --log-level[=LEVEL]               Increase or set verbosity level\n"
            "  -v                                    Increase the verbosity level\n"
            "      --log-target={auto,syslog,stderr} Specify the log target\n"
+           "      --log-meta[=BOOL]                 Include code location in log messages\n"
+           "      --log-time[=BOOL]                 Include timestamps in log messages\n"
+           "      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
            "  -p, --dl-search-path=PATH             Set the search path for dynamic shared\n"
            "                                        objects (plugins)\n"
            "      --resample-method=METHOD          Use the specified resampling method\n"
@@ -319,6 +328,24 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
                     pa_log(_("Invalid log target: use either 'syslog', 'stderr' or 'auto'."));
                     goto fail;
                 }
+                break;
+
+            case ARG_LOG_TIME:
+                if ((conf->log_time = optarg ? pa_parse_boolean(optarg) : TRUE) < 0) {
+                    pa_log(_("--log-time boolean argument"));
+                    goto fail;
+                }
+                break;
+
+            case ARG_LOG_META:
+                if ((conf->log_meta = optarg ? pa_parse_boolean(optarg) : TRUE) < 0) {
+                    pa_log(_("--log-meta boolean argument"));
+                    goto fail;
+                }
+                break;
+
+            case ARG_LOG_BACKTRACE:
+                conf->log_backtrace = (unsigned) atoi(optarg);
                 break;
 
             case ARG_EXIT_IDLE_TIME:
