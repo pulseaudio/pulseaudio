@@ -45,26 +45,27 @@ endif
 #     Compiler/linker flags       #
 ###################################
 
-AM_CFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src/modules -I$(top_builddir)/src/modules/rtp -I$(top_builddir)/src/modules/gconf -I$(top_builddir)/src/modules/bluetooth
-AM_CFLAGS += $(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS
-AM_CFLAGS += $(LTDLINCL)
-AM_CFLAGS += $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS) $(LIBSPEEX_CFLAGS)
-AM_CFLAGS += -DPA_DLSEARCHPATH=\"$(modlibexecdir)\"
-AM_CFLAGS += -DPA_DEFAULT_CONFIG_DIR=\"$(PA_DEFAULT_CONFIG_DIR)\"
-AM_CFLAGS += -DPA_BINARY=\"$(PA_BINARY)\"
-AM_CFLAGS += -DPA_SYSTEM_RUNTIME_PATH=\"$(PA_SYSTEM_RUNTIME_PATH)\"
-AM_CFLAGS += -DPA_SYSTEM_CONFIG_PATH=\"$(PA_SYSTEM_CONFIG_PATH)\"
-AM_CFLAGS += -DPA_SYSTEM_STATE_PATH=\"$(PA_SYSTEM_STATE_PATH)\"
-AM_CFLAGS += -DAO_REQUIRE_CAS
-AM_CFLAGS += -DPULSE_LOCALEDIR=\"$(pulselocaledir)\"
-AM_CFLAGS += -DPA_MACHINE_ID=\"$(localstatedir)/lib/dbus/machine-id\"
-
-# This cool debug trap works on i386/gcc only
-AM_CFLAGS += '-DDEBUG_TRAP=__asm__("int $$3")'
-
-if HAVE_OPENSSL
-AM_CFLAGS += -I$(top_builddir)/src/modules/raop
-endif
+AM_CFLAGS = \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src/modules \
+	-I$(top_builddir)/src/modules/rtp \
+	-I$(top_builddir)/src/modules/gconf \
+	-I$(top_builddir)/src/modules/bluetooth \
+	-I$(top_builddir)/src/modules/raop \
+	$(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS \
+	$(LTDLINCL) \
+	$(LIBSAMPLERATE_CFLAGS) \
+	$(LIBSNDFILE_CFLAGS) \
+	$(LIBSPEEX_CFLAGS) \
+	-DPA_DLSEARCHPATH=\"$(modlibexecdir)\" \
+	-DPA_DEFAULT_CONFIG_DIR=\"$(PA_DEFAULT_CONFIG_DIR)\" \
+	-DPA_BINARY=\"$(PA_BINARY)\" \
+	-DPA_SYSTEM_RUNTIME_PATH=\"$(PA_SYSTEM_RUNTIME_PATH)\" \
+	-DPA_SYSTEM_CONFIG_PATH=\"$(PA_SYSTEM_CONFIG_PATH)\" \
+	-DPA_SYSTEM_STATE_PATH=\"$(PA_SYSTEM_STATE_PATH)\" \
+	-DAO_REQUIRE_CAS \
+	-DPULSE_LOCALEDIR=\"$(pulselocaledir)\" \
+	-DPA_MACHINE_ID=\"$(localstatedir)/lib/dbus/machine-id\"
 
 AM_LIBADD = $(PTHREAD_LIBS) $(INTLLIBS)
 AM_LDADD = $(PTHREAD_LIBS) $(INTLLIBS)
