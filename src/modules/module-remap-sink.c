@@ -274,6 +274,16 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
     }
 }
 
+/* Called from main context */
+static pa_bool_t sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    return u->sink != dest;
+}
+
 int pa__init(pa_module*m) {
     struct userdata *u;
     pa_sample_spec ss;
@@ -386,6 +396,7 @@ int pa__init(pa_module*m) {
     u->sink_input->detach = sink_input_detach_cb;
     u->sink_input->kill = sink_input_kill_cb;
     u->sink_input->state_change = sink_input_state_change_cb;
+    u->sink_input->may_move_to = sink_input_may_move_to_cb;
     u->sink_input->userdata = u;
 
     pa_sink_put(u->sink);
