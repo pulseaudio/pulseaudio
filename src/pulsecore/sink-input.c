@@ -108,6 +108,7 @@ static void reset_callbacks(pa_sink_input *i) {
     i->kill = NULL;
     i->get_latency = NULL;
     i->state_change = NULL;
+    i->may_move_to = NULL;
 }
 
 /* Called from main context */
@@ -911,6 +912,35 @@ pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i) {
 }
 
 /* Called from main context */
+pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
+    pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
+    pa_sink_assert_ref(dest);
+
+    if (dest == i->sink)
+        return TRUE;
+
+    if (i->flags & PA_SINK_INPUT_DONT_MOVE)
+        return FALSE;
+
+    if (i->sync_next || i->sync_prev) {
+        pa_log_warn("Moving synchronised streams not supported.");
+        return FALSE;
+    }
+
+    if (pa_idxset_size(dest->inputs) >= PA_MAX_INPUTS_PER_SINK) {
+        pa_log_warn("Failed to move sink input: too many inputs per sink.");
+        return FALSE;
+    }
+
+    if (i->may_move_to)
+        if (!i->may_move_to(i, dest))
+            return FALSE;
+
+    return TRUE;
+}
+
+/* Called from main context */
 int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest) {
     pa_resampler *new_resampler;
     pa_sink *origin;
@@ -926,18 +956,8 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest) {
     if (dest == origin)
         return 0;
 
-    if (i->flags & PA_SINK_INPUT_DONT_MOVE)
+    if (!pa_sink_input_may_move_to(i, dest))
         return -1;
-
-    if (i->sync_next || i->sync_prev) {
-        pa_log_warn("Moving synchronised streams not supported.");
-        return -1;
-    }
-
-    if (pa_idxset_size(dest->inputs) >= PA_MAX_INPUTS_PER_SINK) {
-        pa_log_warn("Failed to move sink input: too many inputs per sink.");
-        return -1;
-    }
 
     /* Kill directly connected outputs */
     while ((o = pa_idxset_first(i->direct_outputs, NULL))) {

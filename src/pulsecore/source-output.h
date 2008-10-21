@@ -126,9 +126,14 @@ struct pa_source_output {
     returns */
     pa_usec_t (*get_latency) (pa_source_output *o); /* may be NULL */
 
-    /* If non_NULL this function is called from thread context if the
+    /* If non-NULL this function is called from thread context if the
      * state changes. The old state is found in thread_info.state.  */
     void (*state_change) (pa_source_output *o, pa_source_output_state_t state); /* may be NULL */
+
+    /* If non-NULL this function is called before this source output
+     * is moved to a source and if it returns FALSE the move
+     * will not be allowed */
+    pa_bool_t (*may_move_to) (pa_source_output *o, pa_source *s); /* may be NULL */
 
     struct {
         pa_source_output_state_t state;
@@ -220,6 +225,7 @@ pa_usec_t pa_source_output_get_latency(pa_source_output *i, pa_usec_t *source_la
 
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o);
 
+pa_bool_t pa_source_output_may_move_to(pa_source_output *o, pa_source *dest);
 int pa_source_output_move_to(pa_source_output *o, pa_source *dest);
 
 #define pa_source_output_get_state(o) ((o)->state)

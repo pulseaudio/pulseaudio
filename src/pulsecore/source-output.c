@@ -90,6 +90,7 @@ static void reset_callbacks(pa_source_output *o) {
     o->kill = NULL;
     o->get_latency = NULL;
     o->state_change = NULL;
+    o->may_move_to = NULL;
 }
 
 /* Called from main context */
@@ -593,6 +594,32 @@ pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o) {
     return o->resample_method;
 }
 
+pa_bool_t pa_source_output_may_move_to(pa_source_output *o, pa_source *dest) {
+    pa_source_output_assert_ref(o);
+    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
+    pa_source_assert_ref(dest);
+
+    if (dest == o->source)
+        return TRUE;
+
+    if (o->flags & PA_SOURCE_OUTPUT_DONT_MOVE)
+        return FALSE;
+
+    if (o->direct_on_input)
+        return FALSE;
+
+    if (pa_idxset_size(dest->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
+        pa_log_warn("Failed to move source output: too many outputs per source.");
+        return FALSE;
+    }
+
+    if (o->may_move_to)
+        if (!o->may_move_to(o, dest))
+            return FALSE;
+
+    return TRUE;
+}
+
 /* Called from main context */
 int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
     pa_source *origin;
@@ -608,16 +635,8 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
     if (dest == origin)
         return 0;
 
-    if (o->flags & PA_SOURCE_OUTPUT_DONT_MOVE)
+    if (!pa_source_output_may_move_to(o, dest))
         return -1;
-
-    if (o->direct_on_input)
-        return -1;
-
-    if (pa_idxset_size(dest->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
-        pa_log_warn("Failed to move source output: too many outputs per source.");
-        return -1;
-    }
 
     if (o->thread_info.resampler &&
         pa_sample_spec_equal(&origin->sample_spec, &dest->sample_spec) &&

@@ -156,9 +156,14 @@ struct pa_sink_input {
     returns */
     pa_usec_t (*get_latency) (pa_sink_input *i); /* may be NULL */
 
-    /* If non_NULL this function is called from thread context if the
+    /* If non-NULL this function is called from thread context if the
      * state changes. The old state is found in thread_info.state.  */
     void (*state_change) (pa_sink_input *i, pa_sink_input_state_t state); /* may be NULL */
+
+    /* If non-NULL this function is called before this sink input is
+     * move to a sink and if it returns FALSE the move will not
+     * be allowed */
+    pa_bool_t (*may_move_to) (pa_sink_input *i, pa_sink *s); /* may be NULL */
 
     struct {
         pa_sink_input_state_t state;
@@ -292,6 +297,7 @@ pa_bool_t pa_sink_input_get_mute(pa_sink_input *i);
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i);
 
 int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest);
+pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest);
 
 pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i);
 
