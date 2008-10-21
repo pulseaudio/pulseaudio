@@ -220,6 +220,12 @@ typedef int pa_bool_t;
 
 #endif
 
+#if defined(__i386__) || defined(__x86_64__)
+#define PA_DEBUG_TRAP __asm__("int $3")
+#else
+#define PA_DEBUG_TRAP raise(SIGTRAP)
+#endif
+
 /* We include this at the very last place */
 #include <pulsecore/log.h>
 
