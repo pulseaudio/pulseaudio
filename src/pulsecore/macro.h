@@ -40,7 +40,7 @@
 #ifndef PA_LIKELY
 #ifdef __GNUC__
 #define PA_LIKELY(x) (__builtin_expect(!!(x),1))
-#define PA_UNLIKELY(x) (__builtin_expect((x),0))
+#define PA_UNLIKELY(x) (__builtin_expect(!!(x),0))
 #else
 #define PA_LIKELY(x) (x)
 #define PA_UNLIKELY(x) (x)
