@@ -25,6 +25,8 @@
 
 #include <stdarg.h>
 #include <stdlib.h>
+
+#include <pulsecore/macro.h>
 #include <pulse/gccmacro.h>
 
 /* A simple logging subsystem */
@@ -54,8 +56,11 @@ typedef void (*pa_log_func_t)(pa_log_level_t t, const char*s);
 /* Set another log target. If t is PA_LOG_USER you may specify a function that is called every log string */
 void pa_log_set_target(pa_log_target_t t, pa_log_func_t func);
 
-/* Minimal log level */
+/* Maximal log level */
 void pa_log_set_maximal_level(pa_log_level_t l);
+void pa_log_set_show_meta(pa_bool_t b);
+void pa_log_set_show_time(pa_bool_t b);
+void pa_log_set_show_backtrace(unsigned nlevels);
 
 void pa_log_level_meta(
         pa_log_level_t level,

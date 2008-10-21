@@ -297,6 +297,7 @@ AC_CHECK_HEADERS([sys/ioctl.h])
 AC_CHECK_HEADERS([byteswap.h])
 AC_CHECK_HEADERS([sys/syscall.h])
 AC_CHECK_HEADERS([sys/eventfd.h])
+AC_CHECK_HEADERS([execinfo.h])
 
 #### Typdefs, structures, etc. ####
 
