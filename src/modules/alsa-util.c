@@ -30,6 +30,7 @@
 
 #include <pulse/sample.h>
 #include <pulse/xmalloc.h>
+#include <pulse/timeval.h>
 
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
@@ -1108,4 +1109,63 @@ pa_rtpoll_item* pa_alsa_build_pollfd(snd_pcm_t *pcm, pa_rtpoll *rtpoll) {
     }
 
     return item;
+}
+
+snd_pcm_sframes_t pa_alsa_safe_avail_update(snd_pcm_t *pcm, size_t hwbuf_size, const pa_sample_spec *ss) {
+    snd_pcm_sframes_t n;
+    size_t k;
+
+    pa_assert(pcm);
+    pa_assert(hwbuf_size > 0);
+    pa_assert(ss);
+
+    /* Some ALSA driver expose weird bugs, let's inform the user about
+     * what is going on */
+
+    n = snd_pcm_avail_update(pcm);
+
+    if (n <= 0)
+        return n;
+
+    k = (size_t) n * pa_frame_size(ss);
+
+    if (k >= hwbuf_size * 3 ||
+        k >= pa_bytes_per_second(ss)*10)
+        pa_log("snd_pcm_avail_update() returned a value that is exceptionally large: %lu bytes (%lu ms) "
+               "Most likely this is an ALSA driver bug. Please report this issue to the PulseAudio developers.",
+               (unsigned long) k, (unsigned long) pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC);
+
+    return n;
+}
+
+int pa_alsa_safe_mmap_begin(snd_pcm_t *pcm, const snd_pcm_channel_area_t **areas, snd_pcm_uframes_t *offset, snd_pcm_uframes_t *frames, size_t hwbuf_size, const pa_sample_spec *ss) {
+    int r;
+    snd_pcm_uframes_t before;
+    size_t k;
+
+    pa_assert(pcm);
+    pa_assert(areas);
+    pa_assert(offset);
+    pa_assert(frames);
+    pa_assert(hwbuf_size > 0);
+    pa_assert(ss);
+
+    before = *frames;
+
+    r = snd_pcm_mmap_begin(pcm, areas, offset, frames);
+
+    if (r < 0)
+        return r;
+
+    k = (size_t) *frames * pa_frame_size(ss);
+
+    if (*frames > before ||
+        k >= hwbuf_size * 3 ||
+        k >= pa_bytes_per_second(ss)*10)
+
+        pa_log("snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms) "
+               "Most likely this is an ALSA driver bug. Please report this issue to the PulseAudio developers.",
+               (unsigned long) k, (unsigned long) pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC);
+
+    return r;
 }

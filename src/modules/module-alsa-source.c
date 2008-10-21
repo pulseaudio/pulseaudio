@@ -255,7 +255,7 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec) {
 
         snd_pcm_hwsync(u->pcm_handle);
 
-        if (PA_UNLIKELY((n = snd_pcm_avail_update(u->pcm_handle)) < 0)) {
+        if (PA_UNLIKELY((n = pa_alsa_safe_avail_update(u->pcm_handle, u->hwbuf_size, &u->source->sample_spec)) < 0)) {
 
             if ((r = try_recover(u, "snd_pcm_avail_update", (int) n)) == 0)
                 continue;
@@ -282,7 +282,7 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec) {
 
 /*             pa_log_debug("%lu frames to read", (unsigned long) frames); */
 
-            if (PA_UNLIKELY((err = snd_pcm_mmap_begin(u->pcm_handle, &areas, &offset, &frames)) < 0)) {
+            if (PA_UNLIKELY((err = pa_alsa_safe_mmap_begin(u->pcm_handle, &areas, &offset, &frames, u->hwbuf_size, &u->source->sample_spec)) < 0)) {
 
                 if ((r = try_recover(u, "snd_pcm_mmap_begin", err)) == 0)
                     continue;
@@ -353,7 +353,7 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec) {
 
         snd_pcm_hwsync(u->pcm_handle);
 
-        if (PA_UNLIKELY((n = snd_pcm_avail_update(u->pcm_handle)) < 0)) {
+        if (PA_UNLIKELY((n = pa_alsa_safe_avail_update(u->pcm_handle, u->hwbuf_size, &u->source->sample_spec)) < 0)) {
 
             if ((r = try_recover(u, "snd_pcm_avail_update", (int) n)) == 0)
                 continue;
