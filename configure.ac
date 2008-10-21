@@ -32,7 +32,9 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign 1.10 -Wall])
 
-AC_SUBST(PA_MAJORMINOR, "PA_MAJOR.PA_MINOR")
+AC_SUBST(PA_MAJORMINOR, PA_MAJOR.PA_MINOR)
+AC_SUBST(PA_MAJORMINORMICRO, PA_MAJOR.PA_MINOR.PA_MICRO)
+AC_SUBST(PA_MMM_USCORE, AS_TR_SH(PA_MAJOR.PA_MINOR.PA_MICRO))
 AC_SUBST(PACKAGE_URL, [http://pulseaudio.org/])
 
 AC_SUBST(PA_API_VERSION, 12)
@@ -53,11 +55,6 @@ AC_SUBST(LIBPULSE_BROWSE_VERSION_INFO, [1:1:1])
 # The ABI-stable GLib adapter for client applications, for the version
 # info x:y:z always will hold y=z
 AC_SUBST(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO, [0:4:0])
-
-# An internally used, ABI-unstable library that contains the
-# PulseAudio core, SONAMEs are bumped on every release, version info
-# suffix will always be 0:0
-AC_SUBST(LIBPULSECORE_VERSION_INFO, [8:0:0])
 
 AC_CANONICAL_HOST
 AC_DEFINE_UNQUOTED([CANONICAL_HOST], "$host", [Canonical host string.])
@@ -1135,8 +1132,8 @@ fi
 
 AC_ARG_WITH(
         [module-dir],
-        AS_HELP_STRING([--with-module-dir],[Directory where to install the modules to (defaults to ${libdir}/pulse-${PA_MAJORMINOR}/modules/]),
-        [modlibexecdir=$withval], [modlibexecdir="${libdir}/pulse-${PA_MAJORMINOR}/modules/"])
+        AS_HELP_STRING([--with-module-dir],[Directory where to install the modules to (defaults to ${libdir}/pulse-${PA_MAJORMINORMICRO}/modules/]),
+        [modlibexecdir=$withval], [modlibexecdir="${libdir}/pulse-${PA_MAJORMINORMICRO}/modules/"])
 
 AC_SUBST(modlibexecdir)
 
