@@ -74,6 +74,9 @@ static const pa_daemon_conf default_conf = {
     .default_script_file = NULL,
     .log_target = PA_LOG_SYSLOG,
     .log_level = PA_LOG_NOTICE,
+    .log_backtrace = 0,
+    .log_meta = FALSE,
+    .log_time = FALSE,
     .resample_method = PA_RESAMPLER_AUTO,
     .disable_remixing = FALSE,
     .disable_lfe_remixing = TRUE,
@@ -399,6 +402,7 @@ static int parse_rtprio(const char *filename, unsigned line, const char *lvalue,
 int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     int r = -1;
     FILE *f = NULL;
+    unsigned i = 0;
 
     pa_config_item table[] = {
         { "daemonize",                  pa_config_parse_bool,     NULL },
@@ -431,6 +435,9 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "disable-lfe-remixing",       pa_config_parse_bool,     NULL },
         { "load-default-script-file",   pa_config_parse_bool,     NULL },
         { "shm-size-bytes",             pa_config_parse_size,     NULL },
+        { "log-meta",                   pa_config_parse_bool,     NULL },
+        { "log-time",                   pa_config_parse_bool,     NULL },
+        { "log-backtrace",              pa_config_parse_unsigned, NULL },
 #ifdef HAVE_SYS_RESOURCE_H
         { "rlimit-fsize",               parse_rlimit,             NULL },
         { "rlimit-data",                parse_rlimit,             NULL },
@@ -467,97 +474,74 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { NULL,                         NULL,                     NULL },
     };
 
-    table[0].data = &c->daemonize;
-    table[1].data = &c->fail;
-    table[2].data = &c->high_priority;
-    table[3].data = &c->realtime_scheduling;
-    table[4].data = &c->disallow_module_loading;
-    table[5].data = &c->disallow_exit;
-    table[6].data = &c->use_pid_file;
-    table[7].data = &c->system_instance;
-    table[8].data = &c->no_cpu_limit;
-    table[9].data = &c->disable_shm;
-    table[10].data = &c->exit_idle_time;
-    table[11].data = &c->module_idle_time;
-    table[12].data = &c->scache_idle_time;
-    table[13].data = c;
-    table[14].data = &c->dl_search_path;
-    table[15].data = &c->default_script_file;
-    table[16].data = c;
-    table[17].data = c;
-    table[18].data = c;
-    table[19].data = c;
-    table[20].data = c;
-    table[21].data = c;
-    table[22].data = c;
-    table[23].data = c;
-    table[24].data = c;
-    table[25].data = c;
-    table[26].data = &c->disable_remixing;
-    table[27].data = &c->disable_lfe_remixing;
-    table[28].data = &c->load_default_script_file;
-    table[29].data = &c->shm_size;
+    table[i++].data = &c->daemonize;
+    table[i++].data = &c->fail;
+    table[i++].data = &c->high_priority;
+    table[i++].data = &c->realtime_scheduling;
+    table[i++].data = &c->disallow_module_loading;
+    table[i++].data = &c->disallow_exit;
+    table[i++].data = &c->use_pid_file;
+    table[i++].data = &c->system_instance;
+    table[i++].data = &c->no_cpu_limit;
+    table[i++].data = &c->disable_shm;
+    table[i++].data = &c->exit_idle_time;
+    table[i++].data = &c->module_idle_time;
+    table[i++].data = &c->scache_idle_time;
+    table[i++].data = c;
+    table[i++].data = &c->dl_search_path;
+    table[i++].data = &c->default_script_file;
+    table[i++].data = c;
+    table[i++].data = c;
+    table[i++].data = c;
+    table[i++].data = c;
+    table[i++].data = c;
+    table[i++].data = c;
+    table[i++].data = c;
+    table[i++].data = c;
+    table[i++].data = c;
+    table[i++].data = c;
+    table[i++].data = &c->disable_remixing;
+    table[i++].data = &c->disable_lfe_remixing;
+    table[i++].data = &c->load_default_script_file;
+    table[i++].data = &c->shm_size;
+    table[i++].data = &c->log_meta;
+    table[i++].data = &c->log_time;
+    table[i++].data = &c->log_backtrace;
 #ifdef HAVE_SYS_RESOURCE_H
-    table[30].data = &c->rlimit_fsize;
-    table[31].data = &c->rlimit_data;
-    table[32].data = &c->rlimit_stack;
-    table[33].data = &c->rlimit_as;
-    table[34].data = &c->rlimit_core;
-    table[35].data = &c->rlimit_nofile;
-    table[36].data = &c->rlimit_as;
+    table[i++].data = &c->rlimit_fsize;
+    table[i++].data = &c->rlimit_data;
+    table[i++].data = &c->rlimit_stack;
+    table[i++].data = &c->rlimit_as;
+    table[i++].data = &c->rlimit_core;
+    table[i++].data = &c->rlimit_nofile;
+    table[i++].data = &c->rlimit_as;
 #ifdef RLIMIT_NPROC
-    table[37].data = &c->rlimit_nproc;
+    table[i++].data = &c->rlimit_nproc;
 #endif
-
 #ifdef RLIMIT_MEMLOCK
-#ifndef RLIMIT_NPROC
-#error "Houston, we have a numbering problem!"
+    table[i++].data = &c->rlimit_memlock;
 #endif
-    table[38].data = &c->rlimit_memlock;
-#endif
-
 #ifdef RLIMIT_LOCKS
-#ifndef RLIMIT_MEMLOCK
-#error "Houston, we have a numbering problem!"
+    table[i++].data = &c->rlimit_locks;
 #endif
-    table[39].data = &c->rlimit_locks;
-#endif
-
 #ifdef RLIMIT_SIGPENDING
-#ifndef RLIMIT_LOCKS
-#error "Houston, we have a numbering problem!"
+    table[i++].data = &c->rlimit_sigpending;
 #endif
-    table[40].data = &c->rlimit_sigpending;
-#endif
-
 #ifdef RLIMIT_MSGQUEUE
-#ifndef RLIMIT_SIGPENDING
-#error "Houston, we have a numbering problem!"
+    table[i++].data = &c->rlimit_msgqueue;
 #endif
-    table[41].data = &c->rlimit_msgqueue;
-#endif
-
 #ifdef RLIMIT_NICE
-#ifndef RLIMIT_MSGQUEUE
-#error "Houston, we have a numbering problem!"
+    table[i++].data = &c->rlimit_nice;
 #endif
-    table[42].data = &c->rlimit_nice;
-#endif
-
 #ifdef RLIMIT_RTPRIO
-#ifndef RLIMIT_NICE
-#error "Houston, we have a numbering problem!"
+    table[i++].data = &c->rlimit_rtprio;
 #endif
-    table[43].data = &c->rlimit_rtprio;
+#ifdef RLIMIT_RTTIME
+    table[i++].data = &c->rlimit_rttime;
+#endif
 #endif
 
-#ifdef RLIMIT_RTTIME
-#ifndef RLIMIT_RTTIME
-#error "Houston, we have a numbering problem!"
-#endif
-    table[44].data = &c->rlimit_rttime;
-#endif
-#endif
+    pa_assert(i == PA_ELEMENTSOF(table)-1);
 
     pa_xfree(c->config_file);
     c->config_file = NULL;
@@ -674,6 +658,9 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "default-fragments = %u\n", c->default_n_fragments);
     pa_strbuf_printf(s, "default-fragment-size-msec = %u\n", c->default_fragment_size_msec);
     pa_strbuf_printf(s, "shm-size-bytes = %lu\n", (unsigned long) c->shm_size);
+    pa_strbuf_printf(s, "log-meta = %s\n", pa_yes_no(c->log_meta));
+    pa_strbuf_printf(s, "log-time = %s\n", pa_yes_no(c->log_time));
+    pa_strbuf_printf(s, "log-backtrace = %u\n", c->log_backtrace);
 #ifdef HAVE_SYS_RESOURCE_H
     pa_strbuf_printf(s, "rlimit-fsize = %li\n", c->rlimit_fsize.is_set ? (long int) c->rlimit_fsize.value : -1);
     pa_strbuf_printf(s, "rlimit-data = %li\n", c->rlimit_data.is_set ? (long int) c->rlimit_data.value : -1);

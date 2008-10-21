@@ -68,7 +68,9 @@ typedef struct pa_daemon_conf {
         disable_remixing,
         disable_lfe_remixing,
         load_default_script_file,
-        disallow_exit;
+        disallow_exit,
+        log_meta,
+        log_time;
     int exit_idle_time,
         module_idle_time,
         scache_idle_time,
@@ -79,6 +81,7 @@ typedef struct pa_daemon_conf {
     char *script_commands, *dl_search_path, *default_script_file;
     pa_log_target_t log_target;
     pa_log_level_t log_level;
+    unsigned log_backtrace;
     char *config_file;
 
 #ifdef HAVE_SYS_RESOURCE_H

@@ -428,6 +428,9 @@ int main(int argc, char *argv[]) {
 
     pa_log_set_maximal_level(conf->log_level);
     pa_log_set_target(conf->auto_log_target ? PA_LOG_STDERR : conf->log_target, NULL);
+    pa_log_set_show_meta(conf->log_meta);
+    pa_log_set_show_backtrace(conf->log_backtrace);
+    pa_log_set_show_time(conf->log_time);
 
     pa_log_debug("Started as real root: %s, suid root: %s", pa_yes_no(real_root), pa_yes_no(suid_root));
 

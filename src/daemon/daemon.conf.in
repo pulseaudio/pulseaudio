@@ -45,6 +45,9 @@
 
 ; log-target = auto
 ; log-level = notice
+; log-meta = no
+; log-time = no
+; log-backtrace = 0
 
 ; resample-method = speex-float-3
 ; disable-remixing = no
