@@ -157,10 +157,10 @@ pa_sink_input* pa_sink_input_new(
     }
 
     pa_return_null_if_fail(pa_cvolume_valid(&data->volume));
-    pa_return_null_if_fail(pa_cvolume_compatible(&data->volume.channels, &data->sample_spec));
+    pa_return_null_if_fail(pa_cvolume_compatible(&data->volume, &data->sample_spec));
 
     pa_return_null_if_fail(pa_cvolume_valid(&data->virtual_volume));
-    pa_return_null_if_fail(pa_cvolume_compatible(&data->virtual_volume.channels, &data->sample_spec));
+    pa_return_null_if_fail(pa_cvolume_compatible(&data->virtual_volume, &data->sample_spec));
 
     if (!data->muted_is_set)
         data->muted = FALSE;
