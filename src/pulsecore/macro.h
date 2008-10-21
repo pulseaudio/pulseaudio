@@ -30,7 +30,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <pulsecore/log.h>
 #include <pulse/gccmacro.h>
 
 #ifndef PACKAGE
@@ -220,5 +219,8 @@ typedef int pa_bool_t;
 #define PA_WARN_REFERENCE(sym, msg)
 
 #endif
+
+/* We include this at the very last place */
+#include <pulsecore/log.h>
 
 #endif
