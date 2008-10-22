@@ -1051,6 +1051,12 @@ int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents) {
         pa_log_warn("Got POLLNVAL from ALSA");
     if (revents & POLLHUP)
         pa_log_warn("Got POLLHUP from ALSA");
+    if (revents & POLLPRI)
+        pa_log_warn("Got POLLPRI from ALSA");
+    if (revents & POLLIN)
+        pa_log_warn("Got POLLIN from ALSA");
+    if (revents & POLLOUT)
+        pa_log_warn("Got POLLOUT from ALSA");
 
     state = snd_pcm_state(pcm);
     pa_log_warn("PCM state is %s", snd_pcm_state_name(state));

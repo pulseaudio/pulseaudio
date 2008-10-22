@@ -238,7 +238,7 @@ static size_t check_left_to_record(struct userdata *u, snd_pcm_sframes_t n) {
     return left_to_record;
 }
 
-static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec) {
+static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled) {
     int work_done = 0;
     pa_usec_t max_sleep_usec = 0, process_usec = 0;
     size_t left_to_record;
@@ -266,11 +266,20 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec) {
         left_to_record = check_left_to_record(u, n);
 
         if (u->use_tsched)
-            if (pa_bytes_to_usec(left_to_record, &u->source->sample_spec) > process_usec+max_sleep_usec/2)
+            if (!polled &&
+                pa_bytes_to_usec(left_to_record, &u->source->sample_spec) > process_usec+max_sleep_usec/2)
                 break;
 
-        if (PA_UNLIKELY(n <= 0))
+        if (PA_UNLIKELY(n <= 0)) {
+
+            if (polled)
+                pa_log("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
+                       "Most likely this is an ALSA driver bug. Please report this issue to the PulseAudio device.");
+
             break;
+        }
+
+        polled = FALSE;
 
         for (;;) {
             int err;
@@ -336,7 +345,7 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec) {
     return work_done;
 }
 
-static int unix_read(struct userdata *u, pa_usec_t *sleep_usec) {
+static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled) {
     int work_done = 0;
     pa_usec_t max_sleep_usec = 0, process_usec = 0;
     size_t left_to_record;
@@ -364,11 +373,20 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec) {
         left_to_record = check_left_to_record(u, n);
 
         if (u->use_tsched)
-            if (pa_bytes_to_usec(left_to_record, &u->source->sample_spec) > process_usec+max_sleep_usec/2)
+            if (!polled &&
+                pa_bytes_to_usec(left_to_record, &u->source->sample_spec) > process_usec+max_sleep_usec/2)
                 break;
 
-        if (PA_UNLIKELY(n <= 0))
+        if (PA_UNLIKELY(n <= 0)) {
+
+            if (polled)
+                pa_log("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
+                       "Most likely this is an ALSA driver bug. Please report this issue to the PulseAudio developers.");
+
             return work_done;
+        }
+
+        polled = FALSE;
 
         for (;;) {
             void *p;
@@ -950,6 +968,7 @@ static void source_update_requested_latency_cb(pa_source *s) {
 
 static void thread_func(void *userdata) {
     struct userdata *u = userdata;
+    unsigned short revents = 0;
 
     pa_assert(u);
 
@@ -972,9 +991,9 @@ static void thread_func(void *userdata) {
             pa_usec_t sleep_usec = 0;
 
             if (u->use_mmap)
-                work_done = mmap_read(u, &sleep_usec);
+                work_done = mmap_read(u, &sleep_usec, revents & POLLIN);
             else
-                work_done = unix_read(u, &sleep_usec);
+                work_done = unix_read(u, &sleep_usec, revents & POLLIN);
 
             if (work_done < 0)
                 goto fail;
@@ -1016,7 +1035,6 @@ static void thread_func(void *userdata) {
         /* Tell ALSA about this and process its response */
         if (PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
             struct pollfd *pollfd;
-            unsigned short revents = 0;
             int err;
             unsigned n;
 
@@ -1027,7 +1045,7 @@ static void thread_func(void *userdata) {
                 goto fail;
             }
 
-            if (revents & (POLLERR|POLLNVAL|POLLHUP|POLLPRI)) {
+            if (revents & (POLLOUT|POLLERR|POLLNVAL|POLLHUP|POLLPRI)) {
                 if (pa_alsa_recover_from_poll(u->pcm_handle, revents) < 0)
                     goto fail;
 
@@ -1036,7 +1054,8 @@ static void thread_func(void *userdata) {
 
             if (revents && u->use_tsched)
                 pa_log_debug("Wakeup from ALSA!%s%s", (revents & POLLIN) ? " INPUT" : "", (revents & POLLOUT) ? " OUTPUT" : "");
-        }
+        } else
+            revents = 0;
     }
 
 fail:
