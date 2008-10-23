@@ -119,6 +119,7 @@ pa_sink_input* pa_sink_input_new(
     pa_sink_input *i;
     pa_resampler *resampler = NULL;
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    pa_channel_map original_cm;
 
     pa_assert(core);
     pa_assert(data);
@@ -152,7 +153,6 @@ pa_sink_input* pa_sink_input_new(
 
     if (!data->volume_is_set) {
         pa_cvolume_reset(&data->volume, data->sample_spec.channels);
-        pa_cvolume_reset(&data->virtual_volume, data->sample_spec.channels);
     }
 
     pa_return_null_if_fail(pa_cvolume_valid(&data->volume));
