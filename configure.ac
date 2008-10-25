@@ -24,7 +24,7 @@ AC_PREREQ(2.62)
 
 m4_define(PA_MAJOR, [0])
 m4_define(PA_MINOR, [9])
-m4_define(PA_MICRO, [13])
+m4_define(PA_MICRO, [14])
 
 AC_INIT([pulseaudio],[PA_MAJOR.PA_MINOR.PA_MICRO],[mzchyfrnhqvb (at) 0pointer (dot) net])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
