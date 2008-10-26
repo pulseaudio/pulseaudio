@@ -194,7 +194,10 @@ typedef enum pa_stream_flags {
     /**< Find peaks instead of resampling. \since 0.9.11 */
 
     PA_STREAM_START_MUTED = 0x1000U,
-    /**< Create in muted state. \since 0.9.11 */
+    /**< Create in muted state. If neither PA_STREAM_START_UNMUTED nor
+     * PA_STREAM_START_MUTED it is left to the server to decide
+     * whether to create the stream in muted or in unmuted
+     * state. \since 0.9.11 */
 
     PA_STREAM_ADJUST_LATENCY = 0x2000U,
     /**< Try to adjust the latency of the sink/source based on the
@@ -203,7 +206,7 @@ typedef enum pa_stream_flags {
      * specified at the same time as PA_STREAM_EARLY_REQUESTS. \since
      * 0.9.11 */
 
-    PA_STREAM_EARLY_REQUESTS = 0x4000U
+    PA_STREAM_EARLY_REQUESTS = 0x4000U,
     /**< Enable compatibility mode for legacy clients that rely on a
      * "classic" hardware device fragment-style playback model. If
      * this option is set, the minreq value of the buffer metrics gets
@@ -219,6 +222,17 @@ typedef enum pa_stream_flags {
      * on the device itself.) Also see pa_buffer_attr. This option may
      * not be specified at the same time as
      * PA_STREAM_ADJUST_LATENCY. \since 0.9.12 */
+
+    PA_STREAM_DONT_INHIBIT_AUTO_SUSPEND = 0x8000U,
+    /**< If set this stream won't be taken into account when we it is
+     * checked whether the device this stream is connected to should
+     * auto-suspend. \ since 0.9.14 */
+
+    PA_STREAM_START_UNMUTED = 0x10000U
+    /**< Create in unmuted state. If neither PA_STREAM_START_UNMUTED
+     * nor PA_STREAM_START_MUTED it is left to the server to decide
+     * whether to create the stream in muted or in unmuted
+     * state. \since 0.9.14 */
 
 } pa_stream_flags_t;
 
@@ -243,6 +257,8 @@ typedef enum pa_stream_flags {
 #define PA_STREAM_START_MUTED PA_STREAM_START_MUTED
 #define PA_STREAM_ADJUST_LATENCY PA_STREAM_ADJUST_LATENCY
 #define PA_STREAM_EARLY_REQUESTS PA_STREAM_EARLY_REQUESTS
+#define PA_STREAM_DONT_INHIBIT_AUTO_SUSPEND PA_STREAM_DONT_INHIBIT_AUTO_SUSPEND
+#define PA_STREAM_START_UNMUTED PA_STREAM_START_UNMUTED
 
 /** \endcond */
 

@@ -991,7 +991,7 @@ unsigned pa_sink_linked_by(pa_sink *s) {
     ret = pa_idxset_size(s->inputs);
 
     /* We add in the number of streams connected to us here. Please
-     * not the asymmmetry to pa_sink_used_by()! */
+     * note the asymmmetry to pa_sink_used_by()! */
 
     if (s->monitor_source)
         ret += pa_source_linked_by(s->monitor_source);
@@ -1013,6 +1013,38 @@ unsigned pa_sink_used_by(pa_sink *s) {
      * pa_sink_used_by()!.*/
 
     return ret - s->n_corked;
+}
+
+/* Called from main thread */
+unsigned pa_sink_check_suspend(pa_sink *s) {
+    unsigned ret;
+    pa_sink_input *i;
+    uint32_t idx;
+
+    pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_IS_LINKED(s->state));
+
+    ret = 0;
+
+    for (i = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); i; i = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx))) {
+        pa_sink_input_state_t st;
+
+        st = pa_sink_input_get_state(i);
+        pa_assert(PA_SINK_INPUT_IS_LINKED(st));
+
+        if (st == PA_SINK_INPUT_CORKED)
+            continue;
+
+        if (i->flags & PA_SINK_INPUT_DONT_INHIBIT_AUTO_SUSPEND)
+            continue;
+
+        ret ++;
+    }
+
+    if (s->monitor_source)
+        ret += pa_source_check_suspend(s->monitor_source);
+
+    return ret;
 }
 
 /* Called from IO thread, except when it is not */

@@ -959,6 +959,7 @@ static playback_stream* playback_stream_new(
         uint32_t *minreq,
         pa_cvolume *volume,
         pa_bool_t muted,
+        pa_bool_t muted_set,
         uint32_t syncid,
         uint32_t *missing,
         pa_sink_input_flags_t flags,
@@ -1013,7 +1014,8 @@ static playback_stream* playback_stream_new(
     pa_sink_input_new_data_set_channel_map(&data, map);
     if (volume)
         pa_sink_input_new_data_set_volume(&data, volume);
-    pa_sink_input_new_data_set_muted(&data, muted);
+    if (muted_set)
+        pa_sink_input_new_data_set_muted(&data, muted);
     data.sync_base = ssync ? ssync->sink_input : NULL;
 
     sink_input = pa_sink_input_new(c->protocol->core, &data, flags);
@@ -1688,7 +1690,9 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
         variable_rate = FALSE,
         muted = FALSE,
         adjust_latency = FALSE,
-        early_requests = FALSE;
+        early_requests = FALSE,
+        dont_inhibit_auto_suspend = FALSE,
+        muted_set = FALSE;
 
     pa_sink_input_flags_t flags = 0;
     pa_proplist *p;
@@ -1769,6 +1773,16 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
         }
     }
 
+    if (c->version >= 15) {
+
+        if (pa_tagstruct_get_boolean(t, &muted_set) < 0 ||
+            pa_tagstruct_get_boolean(t, &dont_inhibit_auto_suspend) < 0) {
+            protocol_error(c);
+            pa_proplist_free(p);
+            return;
+        }
+    }
+
     if (!pa_tagstruct_eof(t)) {
         protocol_error(c);
         pa_proplist_free(p);
@@ -1800,9 +1814,14 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
         (fix_rate ?  PA_SINK_INPUT_FIX_RATE : 0) |
         (fix_channels ?  PA_SINK_INPUT_FIX_CHANNELS : 0) |
         (no_move ?  PA_SINK_INPUT_DONT_MOVE : 0) |
-        (variable_rate ?  PA_SINK_INPUT_VARIABLE_RATE : 0);
+        (variable_rate ?  PA_SINK_INPUT_VARIABLE_RATE : 0) |
+        (dont_inhibit_auto_suspend ? PA_SINK_INPUT_DONT_INHIBIT_AUTO_SUSPEND : 0);
 
-    s = playback_stream_new(c, sink, &ss, &map, &maxlength, &tlength, &prebuf, &minreq, volume_set ? &volume : NULL, muted, syncid, &missing, flags, p, adjust_latency, early_requests);
+    /* Only since protocol version 15 there's a seperate muted_set
+     * flag. For older versions we synthesize it here */
+    muted_set = muted_set || muted;
+
+    s = playback_stream_new(c, sink, &ss, &map, &maxlength, &tlength, &prebuf, &minreq, volume_set ? &volume : NULL, muted, muted_set, syncid, &missing, flags, p, adjust_latency, early_requests);
     pa_proplist_free(p);
 
     CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_INVALID);
@@ -1923,7 +1942,8 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
         variable_rate = FALSE,
         adjust_latency = FALSE,
         peak_detect = FALSE,
-        early_requests = FALSE;
+        early_requests = FALSE,
+        dont_inhibit_auto_suspend = FALSE;
     pa_source_output_flags_t flags = 0;
     pa_proplist *p;
     uint32_t direct_on_input_idx = PA_INVALID_INDEX;
@@ -1995,6 +2015,15 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
         }
     }
 
+    if (c->version >= 15) {
+
+        if (pa_tagstruct_get_boolean(t, &dont_inhibit_auto_suspend) < 0) {
+            protocol_error(c);
+            pa_proplist_free(p);
+            return;
+        }
+    }
+
     if (!pa_tagstruct_eof(t)) {
         protocol_error(c);
         pa_proplist_free(p);
@@ -2035,7 +2064,8 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
         (fix_rate ?  PA_SOURCE_OUTPUT_FIX_RATE : 0) |
         (fix_channels ?  PA_SOURCE_OUTPUT_FIX_CHANNELS : 0) |
         (no_move ?  PA_SOURCE_OUTPUT_DONT_MOVE : 0) |
-        (variable_rate ?  PA_SOURCE_OUTPUT_VARIABLE_RATE : 0);
+        (variable_rate ?  PA_SOURCE_OUTPUT_VARIABLE_RATE : 0) |
+        (dont_inhibit_auto_suspend ? PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND : 0);
 
     s = record_stream_new(c, source, &ss, &map, peak_detect, &maxlength, &fragment_size, flags, p, adjust_latency, direct_on_input, early_requests);
     pa_proplist_free(p);

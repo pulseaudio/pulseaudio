@@ -234,6 +234,7 @@ pa_bool_t pa_source_get_mute(pa_source *source, pa_bool_t force_refresh);
 
 unsigned pa_source_linked_by(pa_source *s); /* Number of connected streams */
 unsigned pa_source_used_by(pa_source *s); /* Number of connected streams that are not corked */
+unsigned pa_source_check_suspend(pa_source *s); /* Returns how many streams are active that don't allow suspensions */
 #define pa_source_get_state(s) ((pa_source_state_t) (s)->state)
 
 /* To be called exclusively by the source driver, from IO context */

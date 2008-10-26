@@ -83,12 +83,12 @@ static void timeout_cb(pa_mainloop_api*a, pa_time_event* e, const struct timeval
 
     d->userdata->core->mainloop->time_restart(d->time_event, NULL);
 
-    if (d->sink && pa_sink_used_by(d->sink) <= 0 && pa_sink_get_state(d->sink) != PA_SINK_SUSPENDED) {
+    if (d->sink && pa_sink_check_suspend(d->sink) <= 0 && pa_sink_get_state(d->sink) != PA_SINK_SUSPENDED) {
         pa_log_info("Sink %s idle for too long, suspending ...", d->sink->name);
         pa_sink_suspend(d->sink, TRUE);
     }
 
-    if (d->source && pa_source_used_by(d->source) <= 0 && pa_source_get_state(d->source) != PA_SOURCE_SUSPENDED) {
+    if (d->source && pa_source_check_suspend(d->source) <= 0 && pa_source_get_state(d->source) != PA_SOURCE_SUSPENDED) {
         pa_log_info("Source %s idle for too long, suspending ...", d->source->name);
         pa_source_suspend(d->source, TRUE);
     }
@@ -158,7 +158,7 @@ static pa_hook_result_t sink_input_unlink_hook_cb(pa_core *c, pa_sink_input *s, 
     pa_sink_input_assert_ref(s);
     pa_assert(u);
 
-    if (pa_sink_used_by(s->sink) <= 0) {
+    if (pa_sink_check_suspend(s->sink) <= 0) {
         struct device_info *d;
         if ((d = pa_hashmap_get(u->device_infos, s->sink)))
             restart(d);
@@ -172,7 +172,7 @@ static pa_hook_result_t source_output_unlink_hook_cb(pa_core *c, pa_source_outpu
     pa_source_output_assert_ref(s);
     pa_assert(u);
 
-    if (pa_source_used_by(s->source) <= 0) {
+    if (pa_source_check_suspend(s->source) <= 0) {
         struct device_info *d;
         if ((d = pa_hashmap_get(u->device_infos, s->source)))
             restart(d);
@@ -191,7 +191,7 @@ static pa_hook_result_t sink_input_move_hook_cb(pa_core *c, pa_sink_input_move_h
     if ((d = pa_hashmap_get(u->device_infos, data->destination)))
         resume(d);
 
-    if (pa_sink_used_by(data->sink_input->sink) <= 1)
+    if (pa_sink_check_suspend(data->sink_input->sink) <= 1)
         if ((d = pa_hashmap_get(u->device_infos, data->sink_input->sink)))
             restart(d);
 
@@ -208,7 +208,7 @@ static pa_hook_result_t source_output_move_hook_cb(pa_core *c, pa_source_output_
     if ((d = pa_hashmap_get(u->device_infos, data->destination)))
         resume(d);
 
-    if (pa_source_used_by(data->source_output->source) <= 1)
+    if (pa_source_check_suspend(data->source_output->source) <= 1)
         if ((d = pa_hashmap_get(u->device_infos, data->source_output->source)))
             restart(d);
 
@@ -266,8 +266,8 @@ static pa_hook_result_t device_new_hook_cb(pa_core *c, pa_object *o, struct user
     d->time_event = c->mainloop->time_new(c->mainloop, NULL, timeout_cb, d);
     pa_hashmap_put(u->device_infos, o, d);
 
-    if ((d->sink && pa_sink_used_by(d->sink) <= 0) ||
-        (d->source && pa_source_used_by(d->source) <= 0))
+    if ((d->sink && pa_sink_check_suspend(d->sink) <= 0) ||
+        (d->source && pa_source_check_suspend(d->source) <= 0))
         restart(d);
 
     return PA_HOOK_OK;
@@ -313,7 +313,7 @@ static pa_hook_result_t device_state_changed_hook_cb(pa_core *c, pa_object *o, s
         pa_sink *s = PA_SINK(o);
         pa_sink_state_t state = pa_sink_get_state(s);
 
-        if (pa_sink_used_by(s) <= 0) {
+        if (pa_sink_check_suspend(s) <= 0) {
 
             if (PA_SINK_IS_OPENED(state))
                 restart(d);
@@ -324,7 +324,7 @@ static pa_hook_result_t device_state_changed_hook_cb(pa_core *c, pa_object *o, s
         pa_source *s = PA_SOURCE(o);
         pa_source_state_t state = pa_source_get_state(s);
 
-        if (pa_source_used_by(s) <= 0) {
+        if (pa_source_check_suspend(s) <= 0) {
 
             if (PA_SOURCE_IS_OPENED(state))
                 restart(d);

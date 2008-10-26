@@ -645,6 +645,35 @@ unsigned pa_source_used_by(pa_source *s) {
     return ret - s->n_corked;
 }
 
+/* Called from main thread */
+unsigned pa_source_check_suspend(pa_source *s) {
+    unsigned ret;
+    pa_source_output *o;
+    uint32_t idx;
+
+    pa_source_assert_ref(s);
+    pa_assert(PA_SOURCE_IS_LINKED(s->state));
+
+    ret = 0;
+
+    for (o = PA_SOURCE_OUTPUT(pa_idxset_first(s->outputs, &idx)); o; o = PA_SOURCE_OUTPUT(pa_idxset_next(s->outputs, &idx))) {
+        pa_source_output_state_t st;
+
+        st = pa_source_output_get_state(o);
+        pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(st));
+
+        if (st == PA_SOURCE_OUTPUT_CORKED)
+            continue;
+
+        if (o->flags & PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND)
+            continue;
+
+        ret ++;
+    }
+
+    return ret;
+}
+
 /* Called from IO thread, except when it is not */
 int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_t offset, pa_memchunk *chunk) {
     pa_source *s = PA_SOURCE(object);
