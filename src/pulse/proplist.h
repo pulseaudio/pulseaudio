@@ -213,7 +213,11 @@ const char *pa_proplist_iterate(pa_proplist *p, void **state);
  * 0.9.11 */
 char *pa_proplist_to_string(pa_proplist *p);
 
-/** Returns 1 if an entry for the specified key is existant in the
+/** Allocate a new property list and assign key/value from a human readable string. \since
+ * 0.9.14 */
+pa_proplist *pa_proplist_from_string(const char *str);
+
+  /** Returns 1 if an entry for the specified key is existant in the
  * property list. \since 0.9.11 */
 int pa_proplist_contains(pa_proplist *p, const char *key);
 

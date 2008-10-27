@@ -291,6 +291,90 @@ char *pa_proplist_to_string(pa_proplist *p) {
     return pa_strbuf_tostring_free(buf);
 }
 
+/* Remove all whitepsapce from the beginning and the end of *s. *s may
+ * be modified. (from conf-parser.c) */
+#define WHITESPACE " \t\n"
+#define in_string(c,s) (strchr(s,c) != NULL)
+
+static char *strip(char *s) {
+    char *b = s+strspn(s, WHITESPACE);
+    char *e, *l = NULL;
+
+    for (e = b; *e; e++)
+        if (!in_string(*e, WHITESPACE))
+            l = e;
+
+    if (l)
+        *(l+1) = 0;
+
+    return b;
+}
+
+pa_proplist *pa_proplist_from_string(const char *str) {
+    pa_proplist *p;
+    char *s, *v, *k, *e;
+
+    pa_assert(str);
+    pa_assert_se(p = pa_proplist_new());
+    pa_assert_se(s = strdup(str));
+
+    for (k = s; *k; k = e) {
+        k = k+strspn(k, WHITESPACE);
+
+        if (!*k)
+            break;
+
+        if (!(v = strchr(k, '='))) {
+            pa_log("Missing '='.");
+            break;
+        }
+
+        *v++ = '\0';
+        k = strip(k);
+
+        v = v+strspn(v, WHITESPACE);
+        if (*v == '"') {
+            v++;
+            if (!(e = strchr(v, '"'))) { /* FIXME: handle escape */
+                pa_log("Missing '\"' at end of string value.");
+                break;
+            }
+            *e++ = '\0';
+            pa_proplist_sets(p, k, v);
+        } else {
+            uint8_t *blob;
+
+            if (*v++ != 'h' || *v++ != 'e' || *v++ != 'x' || *v++ != ':') {
+                pa_log("Value must be a string or \"hex:\"");
+                break;
+            }
+
+            e = v;
+            while (in_string(*e, "0123456789abcdefABCDEF"))
+                ++e;
+
+            if ((e - v) % 2) {
+                pa_log("Invalid \"hex:\" value data");
+                break;
+            }
+
+            blob = pa_xmalloc((size_t)(e-v)/2);
+            if (pa_parsehex(v, blob, (e-v)/2) != ((e-v)/2)) {
+                pa_log("Invalid \"hex:\" value data");
+                pa_xfree(blob);
+                break;
+            }
+
+            pa_proplist_set(p, k, blob, (e-v)/2);
+            pa_xfree(blob);
+        }
+    }
+
+    pa_xfree(s);
+
+    return p;
+}
+
 int pa_proplist_contains(pa_proplist *p, const char *key) {
     pa_assert(p);
     pa_assert(key);
