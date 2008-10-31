@@ -604,6 +604,20 @@ pa_bool_t pa_source_get_mute(pa_source *s, pa_bool_t force_refresh) {
     return s->muted;
 }
 
+pa_bool_t pa_source_update_proplist(pa_source *s, pa_update_mode_t mode, pa_proplist *p) {
+
+    pa_source_assert_ref(s);
+
+    pa_proplist_update(s->proplist, mode, p);
+
+    if (PA_SOURCE_IS_LINKED(s->state)) {
+        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_PROPLIST_CHANGED], s);
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    }
+
+    return TRUE;
+}
+
 /* Called from main thread */
 void pa_source_set_description(pa_source *s, const char *description) {
     const char *old;
