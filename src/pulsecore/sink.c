@@ -953,6 +953,20 @@ pa_bool_t pa_sink_get_mute(pa_sink *s, pa_bool_t force_refresh) {
     return s->muted;
 }
 
+pa_bool_t pa_sink_update_proplist(pa_sink *s, pa_update_mode_t mode, pa_proplist *p) {
+
+    pa_sink_assert_ref(s);
+
+    pa_proplist_update(s->proplist, mode, p);
+
+    if (PA_SINK_IS_LINKED(s->state)) {
+        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_PROPLIST_CHANGED], s);
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    }
+
+    return TRUE;
+}
+
 /* Called from main thread */
 void pa_sink_set_description(pa_sink *s, const char *description) {
     const char *old;

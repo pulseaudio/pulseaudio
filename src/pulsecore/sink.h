@@ -252,6 +252,8 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *sink, pa_bool_t force_refresh);
 void pa_sink_set_mute(pa_sink *sink, pa_bool_t mute);
 pa_bool_t pa_sink_get_mute(pa_sink *sink, pa_bool_t force_refres);
 
+pa_bool_t pa_sink_update_proplist(pa_sink *s, pa_update_mode_t mode, pa_proplist *p);
+
 unsigned pa_sink_linked_by(pa_sink *s); /* Number of connected streams */
 unsigned pa_sink_used_by(pa_sink *s); /* Number of connected streams which are not corked */
 unsigned pa_sink_check_suspend(pa_sink *s); /* Returns how many streams are active that don't allow suspensions */
