@@ -73,10 +73,10 @@
 struct shm_marker PA_GCC_PACKED {
     pa_atomic_t marker; /* 0xbeefcafe */
     pa_atomic_t pid;
-    uint64_t *_reserverd1;
-    uint64_t *_reserverd2;
-    uint64_t *_reserverd3;
-    uint64_t *_reserverd4;
+    uint64_t _reserved1;
+    uint64_t _reserved2;
+    uint64_t _reserved3;
+    uint64_t _reserved4;
 };
 
 static char *segment_name(char *fn, size_t l, unsigned id) {
