@@ -28,13 +28,13 @@
 
 #include "once.h"
 
-int pa_once_begin(pa_once *control) {
+pa_bool_t pa_once_begin(pa_once *control) {
     pa_mutex *m;
 
     pa_assert(control);
 
     if (pa_atomic_load(&control->done))
-        return 0;
+        return FALSE;
 
     pa_atomic_inc(&control->ref);
 
@@ -50,15 +50,17 @@ int pa_once_begin(pa_once *control) {
              * wait until it is unlocked */
             pa_mutex_lock(m);
 
+            pa_assert(pa_atomic_load(&control->done));
+
             pa_once_end(control);
-            return 0;
+            return FALSE;
         }
 
         pa_assert_se(m = pa_mutex_new(FALSE, FALSE));
         pa_mutex_lock(m);
 
         if (pa_atomic_ptr_cmpxchg(&control->mutex, NULL, m))
-            return 1;
+            return TRUE;
 
         pa_mutex_unlock(m);
         pa_mutex_free(m);
@@ -91,4 +93,3 @@ void pa_run_once(pa_once *control, pa_once_func_t func) {
         pa_once_end(control);
     }
 }
-
