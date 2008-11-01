@@ -66,7 +66,7 @@ AM_LIBADD = $(PTHREAD_LIBS) $(INTLLIBS)
 AM_LDADD = $(PTHREAD_LIBS) $(INTLLIBS)
 
 # Only required on some platforms but defined for all to avoid errors
-AM_LDFLAGS = -Wl,-no-undefined -Wl,--gc-sections
+AM_LDFLAGS = -Wl,-no-undefined -Wl,--gc-sections -Wl,-z,nodelete
 
 if STATIC_BINS
 BINLDFLAGS = -static
