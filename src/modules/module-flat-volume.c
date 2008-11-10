@@ -94,11 +94,11 @@ static void process_input_volume_change(
     }
 
     /* Set the master volume, and normalize inputs */
-    if (!pa_cvolume_equal(&max_volume, &sink->volume)) {
+    if (!pa_cvolume_equal(&max_volume, pa_sink_get_volume(sink, TRUE))) {
 
         pa_sink_set_volume(sink, &max_volume);
 
-        pa_log_debug("sink = %.2f (changed)", (double)pa_cvolume_avg(&sink->volume)/PA_VOLUME_NORM);
+        pa_log_debug("sink = %.2f (changed)", (double)pa_cvolume_avg(pa_sink_get_volume(sink, TRUE))/PA_VOLUME_NORM);
 
         /* Now, normalize each of the internal volume (client sink-input volume / sink master volume) */
         for (i = PA_SINK_INPUT(pa_idxset_first(sink->inputs, &idx)); i; i = PA_SINK_INPUT(pa_idxset_next(sink->inputs, &idx))) {
@@ -116,7 +116,7 @@ static void process_input_volume_change(
             pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_VOLUME, pa_xnewdup(struct pa_cvolume, &i->volume, 1), 0, NULL, pa_xfree);
         }
     } else
-        pa_log_debug("sink = %.2f", (double)pa_cvolume_avg(&sink->volume)/PA_VOLUME_NORM);
+        pa_log_debug("sink = %.2f", (double)pa_cvolume_avg(pa_sink_get_volume(sink, TRUE))/PA_VOLUME_NORM);
 
     /* and this one */
 
@@ -170,9 +170,9 @@ static void subscribe_callback(pa_core *core, pa_subscription_event_type_t t, ui
         return;
 
     pa_log_debug("Sink volume changed");
-    pa_log_debug("sink = %.2f", (double)pa_cvolume_avg(pa_sink_get_volume(sink, FALSE)) / PA_VOLUME_NORM);
+    pa_log_debug("sink = %.2f", (double)pa_cvolume_avg(pa_sink_get_volume(sink, TRUE)) / PA_VOLUME_NORM);
 
-    sink_volume = *pa_sink_get_volume(sink, FALSE);
+    sink_volume = *pa_sink_get_volume(sink, TRUE);
 
     for (i = PA_SINK_INPUT(pa_idxset_first(sink->inputs, &iidx)); i; i = PA_SINK_INPUT(pa_idxset_next(sink->inputs, &iidx))) {
         pa_cvolume si_volume;
