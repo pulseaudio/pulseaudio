@@ -79,6 +79,7 @@ struct pa_sink {
     pa_source *monitor_source;
 
     pa_cvolume volume;
+    pa_cvolume virtual_volume;
     pa_bool_t muted;
 
     pa_volume_t base_volume;  /* shall be constant */
@@ -211,6 +212,7 @@ void pa_sink_new_data_done(pa_sink_new_data *data);
 typedef struct pa_sink_set_volume_data {
   pa_sink *sink;
   pa_cvolume volume;
+  pa_cvolume virtual_volume;
 } pa_sink_set_volume_data;
 
 /* To be called exclusively by the sink driver, from main context */
