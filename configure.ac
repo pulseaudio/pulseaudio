@@ -1139,8 +1139,8 @@ AC_SUBST(modlibexecdir)
 AC_ARG_ENABLE(
         [force-preopen],
         AS_HELP_STRING([--enable-force-preopen],[Preopen modules, even when dlopen() is supported.]),
-        [FORCE_PREOPEN=1], [FORCE_PREOPEN=0])
-AM_CONDITIONAL([FORCE_PREOPEN], [test "x$FORCE_PREOPEN" = "x1"])
+        [FORCE_PREOPEN=$enableval], [FORCE_PREOPEN=no])
+AM_CONDITIONAL([FORCE_PREOPEN], [test "x$FORCE_PREOPEN" = "xyes"])
 
 AC_CONFIG_FILES([
 Makefile
@@ -1255,6 +1255,7 @@ echo "
     System Config Path:            ${PA_SYSTEM_CONFIG_PATH}
     Compiler:                      ${CC}
     CFLAGS:                        ${CFLAGS}
+
     Have X11:                      ${ENABLE_X11}
     Enable OSS:                    ${ENABLE_OSS}
     Enable Alsa:                   ${ENABLE_ALSA}
@@ -1271,9 +1272,12 @@ echo "
     Enable libsamplerate:          ${ENABLE_LIBSAMPLERATE}
     Enable PolicyKit:              ${ENABLE_POLKIT}
     Enable OpenSSL (for Airtunes): ${ENABLE_OPENSSL}
+
     System User:                   ${PA_SYSTEM_USER}
     System Group:                  ${PA_SYSTEM_GROUP}
     Realtime Group:                ${PA_REALTIME_GROUP}
     Access Group:                  ${PA_ACCESS_GROUP}
     Enable per-user EsounD socket: ${ENABLE_PER_USER_ESOUND_SOCKET}
+    Force preopen:                 ${FORCE_PREOPEN}
+    Preopened modules:             ${PREOPEN_MODS}
 "
