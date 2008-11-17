@@ -63,6 +63,7 @@ static const char* const valid_modargs[] = {
 struct rule {
     regex_t regex;
     pa_volume_t volume;
+    pa_proplist *proplist;
     struct rule *next;
 };
 
@@ -95,11 +96,12 @@ static int load_rules(struct userdata *u, const char *filename) {
 
     while (!feof(f)) {
         char *d, *v;
-        pa_volume_t volume;
+        pa_volume_t volume = PA_VOLUME_NORM;
         uint32_t k;
         regex_t regex;
         char ln[256];
         struct rule *rule;
+        pa_proplist *proplist = NULL;
 
         if (!fgets(ln, sizeof(ln), f))
             break;
@@ -121,13 +123,32 @@ static int load_rules(struct userdata *u, const char *filename) {
         }
 
         *d = 0;
-        if (pa_atou(v, &k) < 0) {
-            pa_log("[%s:%u] failed to parse volume", filename, n);
-            goto finish;
+        if (pa_atou(v, &k) >= 0) {
+            volume = (pa_volume_t) k;
+        } else if (*v == '"') {
+            char *e;
+
+            e = strchr(v+1, '"');
+            if (!e) {
+                pa_log(__FILE__ ": [%s:%u] failed to parse line - missing role closing quote", filename, n);
+                goto finish;
+            }
+
+            *e = '\0';
+            e = pa_sprintf_malloc("media.role=\"%s\"", v+1);
+            proplist = pa_proplist_from_string(e);
+            pa_xfree(e);
+        } else {
+            char *e;
+
+            e = v+strspn(v, WHITESPACE);
+            if (!*e) {
+                pa_log(__FILE__ ": [%s:%u] failed to parse line - missing end of property list", filename, n);
+                goto finish;
+            }
+            *e = '\0';
+            proplist = pa_proplist_from_string(v);
         }
-
-        volume = (pa_volume_t) k;
-
 
         if (regcomp(&regex, ln, REG_EXTENDED|REG_NOSUB) != 0) {
             pa_log("[%s:%u] invalid regular expression", filename, n);
@@ -136,6 +157,7 @@ static int load_rules(struct userdata *u, const char *filename) {
 
         rule = pa_xnew(struct rule, 1);
         rule->regex = regex;
+        rule->proplist = proplist;
         rule->volume = volume;
         rule->next = NULL;
 
@@ -180,12 +202,19 @@ static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, v
     if (!(n = pa_proplist_gets(si->proplist, PA_PROP_MEDIA_NAME)))
         return;
 
+    pa_log_debug("Matching with %s", n);
+
     for (r = u->rules; r; r = r->next) {
         if (!regexec(&r->regex, n, 0, NULL, 0)) {
-            pa_cvolume cv;
-            pa_log_debug("changing volume of sink input '%s' to 0x%03x", n, r->volume);
-            pa_cvolume_set(&cv, si->sample_spec.channels, r->volume);
-            pa_sink_input_set_volume(si, &cv);
+            if (r->proplist) {
+                pa_log_debug("updating proplist of sink input '%s'", n);
+                pa_proplist_update(si->proplist, PA_UPDATE_MERGE, r->proplist);
+            } else {
+                pa_cvolume cv;
+                pa_log_debug("changing volume of sink input '%s' to 0x%03x", n, r->volume);
+                pa_cvolume_set(&cv, si->sample_spec.channels, r->volume);
+                pa_sink_input_set_volume(si, &cv);
+            }
         }
     }
 }
@@ -238,6 +267,8 @@ void pa__done(pa_module*m) {
         n = r->next;
 
         regfree(&r->regex);
+        if (r->proplist)
+            pa_proplist_free(r->proplist);
         pa_xfree(r);
     }
 
