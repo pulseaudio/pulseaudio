@@ -48,7 +48,8 @@ PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Playback stream expression matching module");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
-PA_MODULE_USAGE("table=<filename>");
+PA_MODULE_USAGE("table=<filename> "
+                "key=<property_key>");
 
 #define WHITESPACE "\n\r \t"
 
@@ -57,6 +58,7 @@ PA_MODULE_USAGE("table=<filename>");
 
 static const char* const valid_modargs[] = {
     "table",
+    "key",
     NULL,
 };
 
@@ -69,6 +71,7 @@ struct rule {
 
 struct userdata {
     struct rule *rules;
+    char *property_key;
     pa_subscription *subscription;
 };
 
@@ -199,7 +202,7 @@ static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, v
     if (!(si = pa_idxset_get_by_index(c->sink_inputs, idx)))
         return;
 
-    if (!(n = pa_proplist_gets(si->proplist, PA_PROP_MEDIA_NAME)))
+    if (!(n = pa_proplist_gets(si->proplist, u->property_key)))
         return;
 
     pa_log_debug("Matching with %s", n);
@@ -230,10 +233,13 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+
     u = pa_xnew(struct userdata, 1);
     u->rules = NULL;
     u->subscription = NULL;
     m->userdata = u;
+
+    u->property_key = pa_xstrdup(pa_modargs_get_value(ma, "key", PA_PROP_MEDIA_NAME));
 
     if (load_rules(u, pa_modargs_get_value(ma, "table", NULL)) < 0)
         goto fail;
@@ -262,6 +268,9 @@ void pa__done(pa_module*m) {
 
     if (u->subscription)
         pa_subscription_free(u->subscription);
+
+    if (u->property_key)
+        pa_xfree(u->property_key);
 
     for (r = u->rules; r; r = n) {
         n = r->next;
