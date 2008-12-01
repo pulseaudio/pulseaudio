@@ -1,0 +1,102 @@
+# paprefs translation to Finnish (fi)
+# Copyright (C) 2008 Timo Jyrinki
+# This file is distributed under the same license as paprefs package.
+# Timo Jyrinki <timo.jyrinki@iki.fi>, 2008.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: git trunk\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-12-01 16:23+0200\n"
+"PO-Revision-Date: 2008-12-01 16:52+0200\n"
+"Last-Translator: Timo Jyrinki <timo.jyrinki@iki.fi>\n"
+"Language-Team: Finnish <laatu@lokalisointi.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/paprefs.desktop.in.h:1 ../src/paprefs.glade.h:12
+msgid "PulseAudio Preferences"
+msgstr "PulseAudio-asetukset"
+
+#: ../src/paprefs.desktop.in.h:2
+msgid "Sound Server Preferences"
+msgstr "Äänipalvelimen asetukset"
+
+#: ../src/paprefs.desktop.in.h:3
+msgid "View and modify the configuration of the local sound server"
+msgstr "Näytä ja muokkaa paikallisen äänipalvelimen asetuksia"
+
+#: ../src/paprefs.glade.h:1
+msgid ""
+"<span color=\"black\">View and modify the configuration of your local sound "
+"server</span>"
+msgstr ""
+"<span color=\"black\">Näytä ja muokkaa paikallisen äänipalvelimen asetuksia</"
+"span>"
+
+#: ../src/paprefs.glade.h:2
+msgid ""
+"<span size=\"18000\" color=\"black\"><b>PulseAudio Preferences</b></span>"
+msgstr ""
+"<span size=\"18000\" color=\"black\"><b>PulseAudio-asetukset</b></span>"
+
+#: ../src/paprefs.glade.h:3
+msgid ""
+"Add _virtual output device for simultaneous output on all local sound cards"
+msgstr ""
+"Lisää _näennäisulostulolaite ulostulon ohjaamiseksi yhtäaikaisesti "
+"kaikille paikallisille äänikorteille"
+
+#: ../src/paprefs.glade.h:4
+msgid "Allow other machines on the LAN to _discover local sound devices"
+msgstr "Salli muiden paikallisverkon koneiden :löytää paikalliset äänilaitteet"
+
+#: ../src/paprefs.glade.h:5
+msgid "Create seperate audio _device for Multicast/RTP"
+msgstr "Luo erillinen ääni_laite Multicast/RTP:tä varten"
+
+#: ../src/paprefs.glade.h:6
+msgid "Don't require _authentication"
+msgstr "Älä vaadi todent_amista"
+
+#: ../src/paprefs.glade.h:7
+msgid "Enable Multicast/RTP _receiver"
+msgstr "Ota Multicast/_RTP-vastaanotto käyttöön"
+
+#: ../src/paprefs.glade.h:8
+msgid "Enable Multicast/RTP _sender"
+msgstr "Ota Multicast/RTP-lähety_s käyttöön"
+
+#: ../src/paprefs.glade.h:9
+msgid "Enable _network access to local sound devices"
+msgstr "Ota käyttöön verkkopääsy paikallisiin ää_nilaitteisiin"
+
+#: ../src/paprefs.glade.h:10
+msgid "Multicast/R_TP"
+msgstr "Multicast/R_TP"
+
+#: ../src/paprefs.glade.h:11
+msgid "N_etwork Access"
+msgstr "V_erkkopääsy"
+
+#: ../src/paprefs.glade.h:13
+msgid "Send audio from local _microphone"
+msgstr "Lähetä ääntä paikallisesta _mikrofonista"
+
+#: ../src/paprefs.glade.h:14
+msgid "Send audio from local s_peakers"
+msgstr "Lähetä ääntä _paikallisista kaiuttimista"
+
+#: ../src/paprefs.glade.h:15
+msgid "Sim_ultaneous Output"
+msgstr "Yhtäaikainen _ulostulo"
+
+#: ../src/paprefs.glade.h:16
+msgid "_Loopback audio to local speakers"
+msgstr "Kierrä ääni takaisin paika_llisiin kaiuttimiin"
+
+#: ../src/paprefs.glade.h:17
+msgid "_Make discoverable network sound devices available locally"
+msgstr ""
+"Tee löydettävistä verkon ää_nilaitteista paikallisesti saatavilla olevia"
