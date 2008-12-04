@@ -111,7 +111,14 @@ void pa_shared_cleanup(pa_core *c) {
     if (!c->shared)
         return;
 
-    pa_assert(pa_hashmap_isempty(c->shared));
+    if (!pa_hashmap_isempty(c->shared)) {
+        pa_strbuf *s = pa_strbuf_new();
+
+        pa_shared_dump(c, s);
+        pa_log_debug(pa_strbuf_tostring(s));
+        pa_strbuf_free(s);
+        pa_assert(pa_hashmap_isempty(c->shared));
+    }
 
     pa_hashmap_free(c->shared, NULL, NULL);
     c->shared = NULL;
