@@ -94,7 +94,7 @@ static void module_free(struct module *m) {
 static struct module* module_find(struct device *d, const char *profile) {
     struct module *m;
 
-    for (m = d->module_list; d; d = d->next)
+    for (m = d->module_list; m; m = m->next)
         if (pa_streq(m->profile, profile))
             return m;
 
