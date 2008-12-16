@@ -580,6 +580,7 @@ int main(int argc, char *argv[]) {
                 if (pa_resample_method_supported(i))
                     printf("%s\n", pa_resample_method_to_string(i));
 
+            retval = 0;
             goto finish;
         }
 
