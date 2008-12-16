@@ -209,29 +209,9 @@ AS_IF([test "$pulseaudio_cv__Bool" = "yes"], [
   ])
 
 #### libtool stuff ####
-
-AC_LTDL_ENABLE_INSTALL
-AC_LIBLTDL_INSTALLABLE
-AC_LIBTOOL_DLOPEN
-AC_LIBTOOL_WIN32_DLL
-AC_PROG_LIBTOOL
-AC_SUBST(LTDLINCL)
-AC_SUBST(LIBLTDL)
-AC_CONFIG_SUBDIRS(libltdl)
-
-old_LIBS=$LIBS
-LIBS="$LIBS $LIBLTDL"
-AC_CHECK_FUNCS([lt_dlmutex_register])
-LIBS=$old_LIBS
-AC_CHECK_TYPES([struct lt_user_dlloader, lt_dladvise], , , [#include <ltdl.h>])
-
-if test "x$enable_ltdl_install" = "xno" && test "x$ac_cv_lib_ltdl_lt_dlinit" = "xno" ; then
-    AC_MSG_ERROR([[
-
-        *** Cannot find the libltdl development files.
-        *** Maybe you need to install the libltdl-dev package.
-        ]])
-fi
+LT_CONFIG_LTDL_DIR([libltdl])
+LT_INIT([dlopen win32-dll])
+LTDL_INIT([convenience recursive])
 
 #### Determine build environment ####
 
@@ -1144,6 +1124,7 @@ AM_CONDITIONAL([FORCE_PREOPEN], [test "x$FORCE_PREOPEN" = "x1"])
 
 AC_CONFIG_FILES([
 Makefile
+libltdl/Makefile
 src/Makefile
 man/Makefile
 libpulse.pc
