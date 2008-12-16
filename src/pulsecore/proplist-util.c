@@ -44,27 +44,34 @@ void pa_init_proplist(pa_proplist *p) {
 
     pa_assert(p);
 
-    for (e = environ; *e; e++) {
+    if (environ) {
 
-        if (pa_startswith(*e, "PULSE_PROP_")) {
-            size_t kl = strcspn(*e+11, "=");
-            char *k;
+        /* Some applications seem to reset environ to NULL for various
+         * reasons, hence we need to check for this explicitly. See
+         * rhbz #473080 */
 
-            if ((*e)[11+kl] != '=')
-                continue;
+        for (e = environ; *e; e++) {
 
-            if (!pa_utf8_valid(*e+11+kl+1))
-                continue;
+            if (pa_startswith(*e, "PULSE_PROP_")) {
+                size_t kl = strcspn(*e+11, "=");
+                char *k;
 
-            k = pa_xstrndup(*e+11, kl);
+                if ((*e)[11+kl] != '=')
+                    continue;
 
-            if (pa_proplist_contains(p, k)) {
+                if (!pa_utf8_valid(*e+11+kl+1))
+                    continue;
+
+                k = pa_xstrndup(*e+11, kl);
+
+                if (pa_proplist_contains(p, k)) {
+                    pa_xfree(k);
+                    continue;
+                }
+
+                pa_proplist_sets(p, k, *e+11+kl+1);
                 pa_xfree(k);
-                continue;
             }
-
-            pa_proplist_sets(p, k, *e+11+kl+1);
-            pa_xfree(k);
         }
     }
 
