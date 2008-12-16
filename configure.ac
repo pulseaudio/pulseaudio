@@ -20,7 +20,7 @@
 # along with PulseAudio; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
-AC_PREREQ(2.62)
+AC_PREREQ(2.63)
 
 m4_define(PA_MAJOR, [0])
 m4_define(PA_MINOR, [9])
@@ -209,8 +209,9 @@ AS_IF([test "$pulseaudio_cv__Bool" = "yes"], [
   ])
 
 #### libtool stuff ####
+LT_PREREQ(2.2)
 LT_CONFIG_LTDL_DIR([libltdl])
-LT_INIT([dlopen win32-dll])
+LT_INIT([dlopen win32-dll disable-static])
 LTDL_INIT([convenience recursive])
 
 #### Determine build environment ####
@@ -284,7 +285,7 @@ AC_TYPE_SIZE_T
 AC_CHECK_TYPES(ssize_t, , [AC_DEFINE([ssize_t], [signed long],
     [Define ssize_t if it is not done by the standard libs.])])
 AC_TYPE_OFF_T
-AC_TYPE_SIGNAL
+
 AC_TYPE_UID_T
 AC_CHECK_DECLS(environ)
 
@@ -980,7 +981,7 @@ AM_CONDITIONAL([HAVE_POLKIT], [test "x$HAVE_POLKIT" = x1])
 #### OpenSSL support (optional) ####
 
 AC_ARG_ENABLE([openssl],
-    AC_HELP_STRING([--disable-openssl], [Disable OpenSSL support (used for Airtunes/RAOP)]),
+    AS_HELP_STRING([--disable-openssl],[Disable OpenSSL support (used for Airtunes/RAOP)]),
         [
             case "${enableval}" in
                 yes) openssl=yes ;;
