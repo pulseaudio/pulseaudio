@@ -332,7 +332,7 @@ int pa__init(pa_module*m) {
     if (!fname)
         goto fail;
 
-    if (!(u->gdbm_file = gdbm_open(fname, 0, GDBM_WRCREAT, 0600, NULL))) {
+    if (!(u->gdbm_file = gdbm_open(fname, 0, GDBM_WRCREAT|GDBM_NOLOCK, 0600, NULL))) {
         pa_log("Failed to open volume database '%s': %s", fname, gdbm_strerror(gdbm_errno));
         pa_xfree(fname);
         goto fail;
