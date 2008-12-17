@@ -510,6 +510,52 @@ static pa_bool_t on_lfe(pa_channel_position_t p) {
         p == PA_CHANNEL_POSITION_LFE;
 }
 
+static pa_bool_t on_front(pa_channel_position_t p) {
+    return
+        p == PA_CHANNEL_POSITION_FRONT_LEFT ||
+        p == PA_CHANNEL_POSITION_FRONT_RIGHT ||
+        p == PA_CHANNEL_POSITION_FRONT_CENTER ||
+        p == PA_CHANNEL_POSITION_TOP_FRONT_LEFT ||
+        p == PA_CHANNEL_POSITION_TOP_FRONT_RIGHT ||
+        p == PA_CHANNEL_POSITION_TOP_FRONT_CENTER ||
+        p == PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER ||
+        p == PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER;
+}
+
+static pa_bool_t on_rear(pa_channel_position_t p) {
+    return
+        p == PA_CHANNEL_POSITION_REAR_LEFT ||
+        p == PA_CHANNEL_POSITION_REAR_RIGHT ||
+        p == PA_CHANNEL_POSITION_REAR_CENTER ||
+        p == PA_CHANNEL_POSITION_TOP_REAR_LEFT ||
+        p == PA_CHANNEL_POSITION_TOP_REAR_RIGHT ||
+        p == PA_CHANNEL_POSITION_TOP_REAR_CENTER;
+}
+
+static pa_bool_t on_side(pa_channel_position_t p) {
+    return
+        p == PA_CHANNEL_POSITION_SIDE_LEFT ||
+        p == PA_CHANNEL_POSITION_SIDE_RIGHT ||
+        p == PA_CHANNEL_POSITION_TOP_CENTER;
+}
+
+enum {
+    ON_FRONT,
+    ON_REAR,
+    ON_SIDE,
+    ON_OTHER
+};
+
+static int front_rear_side(pa_channel_position_t p) {
+    if (on_front(p))
+        return ON_FRONT;
+    if (on_rear(p))
+        return ON_REAR;
+    if (on_side(p))
+        return ON_SIDE;
+    return ON_OTHER;
+}
+
 static void calc_map_table(pa_resampler *r) {
     unsigned oc, ic;
     pa_bool_t ic_connected[PA_CHANNELS_MAX];
@@ -601,7 +647,9 @@ static void calc_map_table(pa_resampler *r) {
              *    D:left, all D:right, all D:center channels, gain is
              *    0.375. The current (as result of 1..6) factors
              *    should be multiplied by 0.75. (Alt. suggestion: 0.25
-             *    vs. 0.5)
+             *    vs. 0.5) If C-front is only mixed into
+             *    L-front/R-front if available, otherwise into all L/R
+             *    channels. Similarly for C-rear.
              *
              * S: and D: shall relate to the source resp. destination channels.
              *
@@ -628,6 +676,8 @@ static void calc_map_table(pa_resampler *r) {
 
         if (!oc_connected && remix) {
             /* OK, we shall remix */
+
+            /* Try to find matching input ports for this output port */
 
             if (on_left(b)) {
                 unsigned n = 0;
@@ -830,15 +880,52 @@ static void calc_map_table(pa_resampler *r) {
             }
 
             if (!mixed_in) {
+                unsigned ncenter[PA_CHANNELS_MAX];
+                pa_bool_t found_frs[PA_CHANNELS_MAX];
+
+                memset(ncenter, 0, sizeof(ncenter));
+                memset(found_frs, 0, sizeof(found_frs));
 
                 /* Hmm, as it appears there was no center channel we
                    could mix our center channel in. In this case, mix
                    it into left and right. Using .375 and 0.75 as
                    factors. */
 
+                for (ic = 0; ic < r->i_ss.channels; ic++) {
+
+                    if (ic_connected[ic])
+                        continue;
+
+                    if (!on_center(r->i_cm.map[ic]))
+                        continue;
+
+                    for (oc = 0; oc < r->o_ss.channels; oc++) {
+
+                        if (!on_left(r->o_cm.map[oc]) && !on_right(r->o_cm.map[oc]))
+                            continue;
+
+                        if (front_rear_side(r->i_cm.map[ic]) == front_rear_side(r->o_cm.map[oc])) {
+                            found_frs[ic] = TRUE;
+                            break;
+                        }
+                    }
+
+                    for (oc = 0; oc < r->o_ss.channels; oc++) {
+
+                        if (!on_left(r->o_cm.map[oc]) && !on_right(r->o_cm.map[oc]))
+                            continue;
+
+                        if (!found_frs[ic] || front_rear_side(r->i_cm.map[ic]) == front_rear_side(r->o_cm.map[oc]))
+                            ncenter[oc]++;
+                    }
+                }
+
                 for (oc = 0; oc < r->o_ss.channels; oc++) {
 
                     if (!on_left(r->o_cm.map[oc]) && !on_right(r->o_cm.map[oc]))
+                        continue;
+
+                    if (ncenter[oc] <= 0)
                         continue;
 
                     for (ic = 0; ic < r->i_ss.channels; ic++)  {
@@ -848,8 +935,11 @@ static void calc_map_table(pa_resampler *r) {
                             continue;
                         }
 
-                        if (on_center(r->i_cm.map[ic]))
-                            r->map_table[oc][ic] = .375f / (float) ic_unconnected_center;
+                        if (!on_center(r->i_cm.map[ic]))
+                            continue;
+
+                        if (!found_frs[ic] || front_rear_side(r->i_cm.map[ic]) == front_rear_side(r->o_cm.map[oc]))
+                            r->map_table[oc][ic] = .375f / (float) ncenter[oc];
                     }
                 }
             }
