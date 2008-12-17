@@ -29,6 +29,10 @@
 
 .fail
 
+### Automatically restore the volume of streams and devices
+load-module module-device-restore
+load-module module-stream-restore
+
 ### Load audio drivers statically (it's probably better to not load
 ### these drivers manually, but instead use module-hal-detect --
 ### see below -- for doing this automatically)
@@ -74,10 +78,6 @@ load-module module-native-protocol-unix
 
 ### Enable flat volumes where possible
 load-module module-flat-volume
-
-### Automatically restore the volume of streams and devices
-load-module module-device-restore
-load-module module-stream-restore
 
 ### Automatically restore the default sink/source when changed by the user during runtime
 load-module module-default-device-restore
