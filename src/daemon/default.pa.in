@@ -29,6 +29,10 @@
 
 .fail
 
+### Automatically restore the volume of streams and devices
+load-module module-device-restore
+load-module module-stream-restore
+
 ### Load audio drivers statically (it's probably better to not load
 ### these drivers manually, but instead use module-hal-detect --
 ### see below -- for doing this automatically)
@@ -71,10 +75,6 @@ load-module module-native-protocol-unix
 ### Load the RTP sender module (also configured via paprefs, see above)
 #load-module module-null-sink sink_name=rtp format=s16be channels=2 rate=44100 description="RTP Multicast Sink"
 #load-module module-rtp-send source=rtp.monitor
-
-### Automatically restore the volume of streams and devices
-load-module module-stream-restore
-load-module module-device-restore
 
 ### Automatically restore the default sink/source when changed by the user during runtime
 load-module module-default-device-restore
