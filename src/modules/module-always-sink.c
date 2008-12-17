@@ -50,7 +50,7 @@ static const char* const valid_modargs[] = {
 
 struct userdata {
     pa_hook_slot *put_slot, *unlink_slot;
-    pa_module* null_module;
+    uint32_t null_module;
     pa_bool_t ignore;
     char *sink_name;
 };
@@ -59,10 +59,11 @@ static void load_null_sink_if_needed(pa_core *c, pa_sink *sink, struct userdata*
     pa_sink *target;
     uint32_t idx;
     char *t;
+    pa_module *m;
 
     pa_assert(c);
     pa_assert(u);
-    pa_assert(!u->null_module);
+    pa_assert(u->null_module == PA_INVALID_INDEX);
 
     /* Loop through all sinks and check to see if we have *any*
      * sinks. Ignore the sink passed in (if it's not null) */
@@ -78,12 +79,13 @@ static void load_null_sink_if_needed(pa_core *c, pa_sink *sink, struct userdata*
     u->ignore = TRUE;
 
     t = pa_sprintf_malloc("sink_name=%s", u->sink_name);
-    u->null_module = pa_module_load(c, "module-null-sink", t);
+    m = pa_module_load(c, "module-null-sink", t);
+    u->null_module = m ? m->index : PA_INVALID_INDEX;
     pa_xfree(t);
 
     u->ignore = FALSE;
 
-    if (!u->null_module)
+    if (!m)
         pa_log_warn("Unable to load module-null-sink");
 }
 
@@ -99,17 +101,17 @@ static pa_hook_result_t put_hook_callback(pa_core *c, pa_sink *sink, void* userd
         return PA_HOOK_OK;
 
     /* Auto-loaded null-sink not active, so ignoring newly detected sink. */
-    if (!u->null_module)
+    if (u->null_module == PA_INVALID_INDEX)
         return PA_HOOK_OK;
 
     /* This is us detecting ourselves on load in a different way... just ignore this too. */
-    if (sink->module == u->null_module)
+    if (sink->module && sink->module->index == u->null_module)
         return PA_HOOK_OK;
 
     pa_log_info("A new sink has been discovered. Unloading null-sink.");
 
-    pa_module_unload_request(u->null_module, TRUE);
-    u->null_module = NULL;
+    pa_module_unload_request_by_index(c, u->null_module, TRUE);
+    u->null_module = PA_INVALID_INDEX;
 
     return PA_HOOK_OK;
 }
@@ -122,9 +124,9 @@ static pa_hook_result_t unlink_hook_callback(pa_core *c, pa_sink *sink, void* us
     pa_assert(u);
 
     /* First check to see if it's our own null-sink that's been removed... */
-    if (u->null_module && sink->module == u->null_module) {
+    if (u->null_module != PA_INVALID_INDEX && sink->module && sink->module->index == u->null_module) {
         pa_log_debug("Autoloaded null-sink removed");
-        u->null_module = NULL;
+        u->null_module = PA_INVALID_INDEX;
         return PA_HOOK_OK;
     }
 
@@ -148,7 +150,7 @@ int pa__init(pa_module*m) {
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME));
     u->put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE, (pa_hook_cb_t) put_hook_callback, u);
     u->unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_EARLY, (pa_hook_cb_t) unlink_hook_callback, u);
-    u->null_module = NULL;
+    u->null_module = PA_INVALID_INDEX;
     u->ignore = FALSE;
 
     pa_modargs_free(ma);
@@ -170,8 +172,8 @@ void pa__done(pa_module*m) {
         pa_hook_slot_free(u->put_slot);
     if (u->unlink_slot)
         pa_hook_slot_free(u->unlink_slot);
-    if (u->null_module)
-        pa_module_unload_request(u->null_module, TRUE);
+    if (u->null_module != PA_INVALID_INDEX)
+        pa_module_unload_request_by_index(m->core, u->null_module, TRUE);
 
     pa_xfree(u->sink_name);
     pa_xfree(u);
