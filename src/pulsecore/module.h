@@ -52,13 +52,15 @@ struct pa_module {
 };
 
 pa_module* pa_module_load(pa_core *c, const char *name, const char*argument);
+
 void pa_module_unload(pa_core *c, pa_module *m, pa_bool_t force);
 void pa_module_unload_by_index(pa_core *c, uint32_t idx, pa_bool_t force);
 
+void pa_module_unload_request(pa_module *m, pa_bool_t force);
+void pa_module_unload_request_by_index(pa_core *c, uint32_t idx, pa_bool_t force);
+
 void pa_module_unload_all(pa_core *c);
 void pa_module_unload_unused(pa_core *c);
-
-void pa_module_unload_request(pa_module *m, pa_bool_t force);
 
 void pa_module_set_used(pa_module*m, int used);
 
