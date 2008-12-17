@@ -247,7 +247,6 @@ static void update_n_corked(pa_source_output *o, pa_source_output_state_t state)
     else if (o->state != PA_SOURCE_OUTPUT_CORKED && state == PA_SOURCE_OUTPUT_CORKED)
         o->source->n_corked++;
 
-    pa_source_update_status(o->source);
 }
 
 /* Called from main context */
@@ -264,6 +263,8 @@ static int source_output_set_state(pa_source_output *o, pa_source_output_state_t
 
     if (state != PA_SOURCE_OUTPUT_UNLINKED)
         pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED], o);
+
+    pa_source_update_status(o->source);
 
     return 0;
 }
@@ -302,6 +303,8 @@ void pa_source_output_unlink(pa_source_output*o) {
         pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_REMOVE, o->index);
         pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK_POST], o);
     }
+
+    pa_source_update_status(o->source);
 
     o->source = NULL;
     pa_source_output_unref(o);
@@ -354,6 +357,8 @@ void pa_source_output_put(pa_source_output *o) {
 
     pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, o->index);
     pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], o);
+
+    pa_source_update_status(o->source);
 }
 
 /* Called from main context */

@@ -652,7 +652,9 @@ unsigned pa_source_check_suspend(pa_source *s) {
     uint32_t idx;
 
     pa_source_assert_ref(s);
-    pa_assert(PA_SOURCE_IS_LINKED(s->state));
+
+    if (!PA_SOURCE_IS_LINKED(s->state))
+        return 0;
 
     ret = 0;
 

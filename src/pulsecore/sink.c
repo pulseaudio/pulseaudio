@@ -1022,7 +1022,9 @@ unsigned pa_sink_check_suspend(pa_sink *s) {
     uint32_t idx;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_IS_LINKED(s->state));
+
+    if (!PA_SINK_IS_LINKED(s->state))
+        return 0;
 
     ret = 0;
 

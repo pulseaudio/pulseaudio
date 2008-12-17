@@ -302,8 +302,6 @@ static void update_n_corked(pa_sink_input *i, pa_sink_input_state_t state) {
         pa_assert_se(i->sink->n_corked -- >= 1);
     else if (i->state != PA_SINK_INPUT_CORKED && state == PA_SINK_INPUT_CORKED)
         i->sink->n_corked++;
-
-    pa_sink_update_status(i->sink);
 }
 
 /* Called from main context */
@@ -340,6 +338,8 @@ static int sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) {
         for (ssync = i->sync_next; ssync; ssync = ssync->sync_next)
             pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_STATE_CHANGED], ssync);
     }
+
+    pa_sink_update_status(i->sink);
 
     return 0;
 }
@@ -390,6 +390,8 @@ void pa_sink_input_unlink(pa_sink_input *i) {
         pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_REMOVE, i->index);
         pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK_POST], i);
     }
+
+    pa_sink_update_status(i->sink);
 
     i->sink = NULL;
     pa_sink_input_unref(i);
@@ -452,6 +454,8 @@ void pa_sink_input_put(pa_sink_input *i) {
 
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
     pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], i);
+
+    pa_sink_update_status(i->sink);
 }
 
 /* Called from main context */
