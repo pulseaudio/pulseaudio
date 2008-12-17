@@ -1046,7 +1046,7 @@ int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents) {
     pa_assert(pcm);
 
     if (revents & POLLERR)
-        pa_log_warn("Got POLLERR from ALSA");
+        pa_log_debug("Got POLLERR from ALSA");
     if (revents & POLLNVAL)
         pa_log_warn("Got POLLNVAL from ALSA");
     if (revents & POLLHUP)
@@ -1054,12 +1054,12 @@ int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents) {
     if (revents & POLLPRI)
         pa_log_warn("Got POLLPRI from ALSA");
     if (revents & POLLIN)
-        pa_log_warn("Got POLLIN from ALSA");
+        pa_log_debug("Got POLLIN from ALSA");
     if (revents & POLLOUT)
-        pa_log_warn("Got POLLOUT from ALSA");
+        pa_log_debug("Got POLLOUT from ALSA");
 
     state = snd_pcm_state(pcm);
-    pa_log_warn("PCM state is %s", snd_pcm_state_name(state));
+    pa_log_debug("PCM state is %s", snd_pcm_state_name(state));
 
     /* Try to recover from this error */
 
