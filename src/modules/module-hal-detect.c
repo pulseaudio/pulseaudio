@@ -511,7 +511,7 @@ static void device_removed_cb(LibHalContext* context, const char *udi) {
     pa_log_debug("Device removed: %s", udi);
 
     if ((d = pa_hashmap_remove(u->devices, udi))) {
-        pa_module_unload_by_index(u->core, d->index, TRUE);
+        pa_module_unload_request_by_index(u->core, d->index, TRUE);
         hal_device_free(d);
     }
 }
