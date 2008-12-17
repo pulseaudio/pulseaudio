@@ -280,6 +280,16 @@ void pa_module_unload_request(pa_module *m, pa_bool_t force) {
     m->core->mainloop->defer_enable(m->core->module_defer_unload_event, 1);
 }
 
+void pa_module_unload_request_by_index(pa_core *c, uint32_t idx, pa_bool_t force) {
+    pa_module *m;
+    pa_assert(c);
+
+    if (!(m = pa_idxset_get_by_index(c->modules, idx)))
+        return;
+
+    pa_module_unload_request(m, force);
+}
+
 void pa_module_set_used(pa_module*m, int used) {
     pa_assert(m);
 
