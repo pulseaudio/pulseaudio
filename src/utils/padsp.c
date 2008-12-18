@@ -2382,15 +2382,15 @@ int access(const char *pathname, int mode) {
     debug(DEBUG_LEVEL_VERBOSE, __FILE__": access(%s)\n", pathname?pathname:"NULL");
 
     if (!pathname ||
-        ( strcmp(pathname, "/dev/dsp") != 0 &&
-          strcmp(pathname, "/dev/adsp") != 0 &&
-          strcmp(pathname, "/dev/sndstat") != 0 &&
-          strcmp(pathname, "/dev/mixer") != 0 )) {
+        (strcmp(pathname, "/dev/dsp") != 0 &&
+         strcmp(pathname, "/dev/adsp") != 0 &&
+         strcmp(pathname, "/dev/sndstat") != 0 &&
+         strcmp(pathname, "/dev/mixer") != 0 )) {
         LOAD_ACCESS_FUNC();
         return _access(pathname, mode);
     }
 
-    if (mode & (W_OK | X_OK)) {
+    if (mode & X_OK) {
         debug(DEBUG_LEVEL_NORMAL, __FILE__": access(%s, %x) = EACCESS\n", pathname, mode);
         errno = EACCES;
         return -1;
