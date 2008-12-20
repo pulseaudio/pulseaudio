@@ -296,6 +296,11 @@ int pa__init(pa_module*m) {
             pa_log("IP_MULTICAST_TTL failed: %s", pa_cstrerror(errno));
             goto fail;
         }
+
+        if (setsockopt(sap_fd, IPPROTO_IP, IP_MULTICAST_TTL, &_ttl, sizeof(_ttl)) < 0) {
+            pa_log("IP_MULTICAST_TTL (sap) failed: %s", pa_cstrerror(errno));
+            goto fail;
+        }
     }
 
     /* If the socket queue is full, let's drop packets */
