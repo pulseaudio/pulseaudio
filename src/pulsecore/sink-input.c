@@ -1194,7 +1194,8 @@ void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sam
      * implementor. This implies 'flush' is TRUE. */
 
     pa_sink_input_assert_ref(i);
-    pa_assert(i->thread_info.rewrite_nbytes == 0);
+
+    nbytes = PA_MAX(i->thread_info.rewrite_nbytes, nbytes);
 
 /*     pa_log_debug("request rewrite %lu", (unsigned long) nbytes); */
 
@@ -1222,26 +1223,33 @@ void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sam
             nbytes = pa_resampler_request(i->thread_info.resampler, nbytes);
     }
 
-    if (rewrite) {
-        /* Make sure to not overwrite over underruns */
-        if (nbytes > i->thread_info.playing_for)
-            nbytes = (size_t) i->thread_info.playing_for;
+    if (i->thread_info.rewrite_nbytes != (size_t) -1) {
+        if (rewrite) {
+            /* Make sure to not overwrite over underruns */
+            if (nbytes > i->thread_info.playing_for)
+                nbytes = (size_t) i->thread_info.playing_for;
 
-        i->thread_info.rewrite_nbytes = nbytes;
-    } else
-        i->thread_info.rewrite_nbytes = (size_t) -1;
+            i->thread_info.rewrite_nbytes = nbytes;
+        } else
+            i->thread_info.rewrite_nbytes = (size_t) -1;
+    }
 
-    i->thread_info.rewrite_flush = flush && i->thread_info.rewrite_nbytes != 0;
+    i->thread_info.rewrite_flush =
+        i->thread_info.rewrite_flush ||
+        (flush && i->thread_info.rewrite_nbytes != 0);
 
-    /* Transform to sink domain */
-    if (i->thread_info.resampler)
-        nbytes = pa_resampler_result(i->thread_info.resampler, nbytes);
+    if (nbytes != (size_t) -1) {
 
-    if (nbytes > lbq)
-        pa_sink_request_rewind(i->sink, nbytes - lbq);
-    else
-        /* This call will make sure process_rewind() is called later */
-        pa_sink_request_rewind(i->sink, 0);
+        /* Transform to sink domain */
+        if (i->thread_info.resampler)
+            nbytes = pa_resampler_result(i->thread_info.resampler, nbytes);
+
+        if (nbytes > lbq)
+            pa_sink_request_rewind(i->sink, nbytes - lbq);
+        else
+            /* This call will make sure process_rewind() is called later */
+            pa_sink_request_rewind(i->sink, 0);
+    }
 }
 
 /* Called from main context */
