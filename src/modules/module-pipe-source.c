@@ -31,6 +31,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
+#include <sys/ioctl.h>
 #include <sys/poll.h>
 
 #include <pulse/xmalloc.h>
@@ -88,6 +89,34 @@ static const char* const valid_modargs[] = {
     "channel_map",
     NULL
 };
+
+static int source_process_msg(
+        pa_msgobject *o,
+        int code,
+        void *data,
+        int64_t offset,
+        pa_memchunk *chunk) {
+
+    struct userdata *u = PA_SOURCE(o)->userdata;
+
+    switch (code) {
+
+        case PA_SOURCE_MESSAGE_GET_LATENCY: {
+            size_t n = 0;
+            int l;
+
+#ifdef FIONREAD
+            if (ioctl(u->fd, FIONREAD, &l) >= 0 && l > 0)
+                n = (size_t) l;
+#endif
+
+            *((pa_usec_t*) data) = pa_bytes_to_usec(n, &u->source->sample_spec);
+            return 0;
+        }
+    }
+
+    return pa_source_process_msg(o, code, data, offset, chunk);
+}
 
 static void thread_func(void *userdata) {
     struct userdata *u = userdata;
@@ -243,6 +272,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+    u->source->parent.process_msg = source_process_msg;
     u->source->userdata = u;
 
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
