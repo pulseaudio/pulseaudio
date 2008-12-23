@@ -1328,28 +1328,36 @@ int pa__init(pa_module*m) {
                 suitable = TRUE;
             }
 
-            if (snd_mixer_selem_get_capture_dB_range(u->mixer_elem, &u->hw_dB_min, &u->hw_dB_max) < 0)
-                pa_log_info("Mixer doesn't support dB information.");
-            else {
+            if (suitable) {
+                if (snd_mixer_selem_get_capture_dB_range(u->mixer_elem, &u->hw_dB_min, &u->hw_dB_max) < 0)
+                    pa_log_info("Mixer doesn't support dB information.");
+                else {
 #ifdef HAVE_VALGRIND_MEMCHECK_H
-                VALGRIND_MAKE_MEM_DEFINED(&u->hw_dB_min, sizeof(u->hw_dB_min));
-                VALGRIND_MAKE_MEM_DEFINED(&u->hw_dB_max, sizeof(u->hw_dB_max));
+                    VALGRIND_MAKE_MEM_DEFINED(&u->hw_dB_min, sizeof(u->hw_dB_min));
+                    VALGRIND_MAKE_MEM_DEFINED(&u->hw_dB_max, sizeof(u->hw_dB_max));
 #endif
 
-                if (u->hw_dB_min >= u->hw_dB_max)
-                    pa_log_warn("Your kernel driver is broken: it reports a volume range from %0.2f dB to %0.2f dB which makes no sense.", (double) u->hw_dB_min/100.0, (double) u->hw_dB_max/100.0);
-                else {
-                    pa_log_info("Volume ranges from %0.2f dB to %0.2f dB.", (double) u->hw_dB_min/100.0, (double) u->hw_dB_max/100.0);
-                    u->hw_dB_supported = TRUE;
+                    if (u->hw_dB_min >= u->hw_dB_max)
+                        pa_log_warn("Your kernel driver is broken: it reports a volume range from %0.2f dB to %0.2f dB which makes no sense.", (double) u->hw_dB_min/100.0, (double) u->hw_dB_max/100.0);
+                    else {
+                        pa_log_info("Volume ranges from %0.2f dB to %0.2f dB.", (double) u->hw_dB_min/100.0, (double) u->hw_dB_max/100.0);
+                        u->hw_dB_supported = TRUE;
+
+                        if (u->hw_dB_max > 0) {
+                            u->source->base_volume = pa_sw_volume_from_dB(- (double) u->hw_dB_max/100.0);
+                            pa_log_info("Fixing base volume to %0.2f dB", pa_sw_volume_to_dB(u->source->base_volume));
+                        } else
+                            pa_log_info("No particular base volume set, fixing to 0 dB");
+
+                    }
                 }
-            }
 
-            if (suitable &&
-                !u->hw_dB_supported &&
-                u->hw_volume_max - u->hw_volume_min < 3) {
+                if (!u->hw_dB_supported &&
+                    u->hw_volume_max - u->hw_volume_min < 3) {
 
-                pa_log_info("Device has less than 4 volume levels. Falling back to software volume control.");
-                suitable = FALSE;
+                    pa_log_info("Device has less than 4 volume levels. Falling back to software volume control.");
+                    suitable = FALSE;
+                }
             }
 
             if (suitable) {
