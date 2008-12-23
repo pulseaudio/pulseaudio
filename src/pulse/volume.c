@@ -179,6 +179,21 @@ char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c) {
     return s;
 }
 
+char *pa_volume_snprint(char *s, size_t l, pa_volume_t v) {
+    pa_assert(s);
+    pa_assert(l > 0);
+
+    pa_init_i18n();
+
+    if (v == (pa_volume_t) -1) {
+        pa_snprintf(s, l, _("(invalid)"));
+        return s;
+    }
+
+    pa_snprintf(s, l, "%3u%%", (v*100)/PA_VOLUME_NORM);
+    return s;
+}
+
 char *pa_sw_cvolume_snprint_dB(char *s, size_t l, const pa_cvolume *c) {
     unsigned channel;
     pa_bool_t first = TRUE;
@@ -198,14 +213,36 @@ char *pa_sw_cvolume_snprint_dB(char *s, size_t l, const pa_cvolume *c) {
     *(e = s) = 0;
 
     for (channel = 0; channel < c->channels && l > 1; channel++) {
+        double f = pa_sw_volume_to_dB(c->values[channel]);
+
         l -= pa_snprintf(e, l, "%s%u: %0.2f dB",
-                      first ? "" : " ",
-                      channel,
-                      pa_sw_volume_to_dB(c->values[channel]));
+                         first ? "" : " ",
+                         channel,
+                         isinf(f) < 0 || f <= -USER_DECIBEL_RANGE ? -INFINITY : f);
 
         e = strchr(e, 0);
         first = FALSE;
     }
+
+    return s;
+}
+
+char *pa_sw_volume_snprint_dB(char *s, size_t l, pa_volume_t v) {
+    double f;
+
+    pa_assert(s);
+    pa_assert(l > 0);
+
+    pa_init_i18n();
+
+    if (v == (pa_volume_t) -1) {
+        pa_snprintf(s, l, _("(invalid)"));
+        return s;
+    }
+
+    f = pa_sw_volume_to_dB(v);
+    pa_snprintf(s, l, "%0.2f dB",
+                isinf(f) < 0 || f <= -USER_DECIBEL_RANGE ?  -INFINITY : f);
 
     return s;
 }
