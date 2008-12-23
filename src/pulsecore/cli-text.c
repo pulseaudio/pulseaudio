@@ -115,7 +115,12 @@ char *pa_sink_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u sink(s) available.\n", pa_idxset_size(c->sinks));
 
     for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx)) {
-        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t;
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX],
+            cv[PA_CVOLUME_SNPRINT_MAX],
+            cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX],
+            v[PA_VOLUME_SNPRINT_MAX],
+            vdb[PA_SW_VOLUME_SNPRINT_DB_MAX],
+            cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t;
         pa_usec_t min_latency, max_latency;
 
         pa_sink_get_latency_range(sink, &min_latency, &max_latency);
@@ -127,7 +132,8 @@ char *pa_sink_list_to_string(pa_core *c) {
             "\tdriver: <%s>\n"
             "\tflags: %s%s%s%s%s%s\n"
             "\tstate: %s\n"
-            "\tvolume: %s\n"
+            "\tvolume: %s%s%s\n"
+            "\tbase volume: %s%s%s\n"
             "\tmuted: %s\n"
             "\tcurrent latency: %0.2f ms\n"
             "\tconfigured latency: %0.2f ms; range is %0.2f .. %0.2f ms\n"
@@ -150,6 +156,11 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->flags & PA_SINK_LATENCY ? "LATENCY " : "",
             state_table[pa_sink_get_state(sink)],
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink, FALSE)),
+            sink->flags & PA_SINK_DECIBEL_VOLUME ? "\n\t        " : "",
+            sink->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_sink_get_volume(sink, FALSE)) : "",
+            pa_volume_snprint(v, sizeof(v), sink->base_volume),
+            sink->flags & PA_SINK_DECIBEL_VOLUME ? "\n\t             " : "",
+            sink->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_volume_snprint_dB(vdb, sizeof(vdb), sink->base_volume) : "",
             pa_yes_no(pa_sink_get_mute(sink, FALSE)),
             (double) pa_sink_get_latency(sink) / (double) PA_USEC_PER_MSEC,
             (double) pa_sink_get_requested_latency(sink) / (double) PA_USEC_PER_MSEC,
@@ -192,7 +203,12 @@ char *pa_source_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u source(s) available.\n", pa_idxset_size(c->sources));
 
     for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx)) {
-        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], *t;
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX],
+            cv[PA_CVOLUME_SNPRINT_MAX],
+            cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX],
+            v[PA_VOLUME_SNPRINT_MAX],
+            vdb[PA_SW_VOLUME_SNPRINT_DB_MAX],
+            cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t;
         pa_usec_t min_latency, max_latency;
 
         pa_source_get_latency_range(source, &min_latency, &max_latency);
@@ -204,7 +220,8 @@ char *pa_source_list_to_string(pa_core *c) {
             "\tdriver: <%s>\n"
             "\tflags: %s%s%s%s%s%s\n"
             "\tstate: %s\n"
-            "\tvolume: %s\n"
+            "\tvolume: %s%s%s\n"
+            "\tbase volume: %s%s%s\n"
             "\tmuted: %s\n"
             "\tcurrent latency: %0.2f ms\n"
             "\tconfigured latency: %0.2f ms; range is %0.2f .. %0.2f ms\n"
@@ -225,6 +242,11 @@ char *pa_source_list_to_string(pa_core *c) {
             source->flags & PA_SOURCE_LATENCY ? "LATENCY " : "",
             state_table[pa_source_get_state(source)],
             pa_cvolume_snprint(cv, sizeof(cv), pa_source_get_volume(source, FALSE)),
+            source->flags & PA_SOURCE_DECIBEL_VOLUME ? "\n\t        " : "",
+            source->flags & PA_SOURCE_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_source_get_volume(source, FALSE)) : "",
+            pa_volume_snprint(v, sizeof(v), source->base_volume),
+            source->flags & PA_SOURCE_DECIBEL_VOLUME ? "\n\t             " : "",
+            source->flags & PA_SOURCE_DECIBEL_VOLUME ? pa_sw_volume_snprint_dB(vdb, sizeof(vdb), source->base_volume) : "",
             pa_yes_no(pa_source_get_mute(source, FALSE)),
             (double) pa_source_get_latency(source) / PA_USEC_PER_MSEC,
             (double) pa_source_get_requested_latency(source) / PA_USEC_PER_MSEC,

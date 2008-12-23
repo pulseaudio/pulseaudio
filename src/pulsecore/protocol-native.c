@@ -2677,6 +2677,9 @@ static void sink_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_sin
         pa_tagstruct_put_proplist(t, sink->proplist);
         pa_tagstruct_put_usec(t, pa_sink_get_requested_latency(sink));
     }
+
+    if (c->version >= 14)
+        pa_tagstruct_put_volume(t, sink->base_volume);
 }
 
 static void source_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_source *source) {
@@ -2708,8 +2711,10 @@ static void source_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_s
         pa_tagstruct_put_proplist(t, source->proplist);
         pa_tagstruct_put_usec(t, pa_source_get_requested_latency(source));
     }
-}
 
+    if (c->version >= 14)
+        pa_tagstruct_put_volume(t, source->base_volume);
+}
 
 static void client_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_client *client) {
     pa_assert(t);

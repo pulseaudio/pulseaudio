@@ -185,6 +185,7 @@ pa_source* pa_source_new(
     s->volume = data->volume;
     s->muted = data->muted;
     s->refresh_volume = s->refresh_muted = FALSE;
+    s->base_volume = PA_VOLUME_NORM;
 
     reset_callbacks(s);
     s->userdata = NULL;

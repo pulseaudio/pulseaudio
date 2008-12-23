@@ -191,6 +191,7 @@ pa_sink* pa_sink_new(
     s->n_corked = 0;
 
     s->volume = data->volume;
+    s->base_volume = PA_VOLUME_NORM;
     s->muted = data->muted;
     s->refresh_volume = s->refresh_muted = FALSE;
 

@@ -154,6 +154,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
 
             memset(&i, 0, sizeof(i));
             i.proplist = pa_proplist_new();
+            i.base_volume = PA_VOLUME_NORM;
 
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
@@ -170,7 +171,9 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                 pa_tagstruct_getu32(t, &flags) < 0 ||
                 (o->context->version >= 13 &&
                  (pa_tagstruct_get_proplist(t, i.proplist) < 0 ||
-                  pa_tagstruct_get_usec(t, &i.configured_latency) < 0))) {
+                  pa_tagstruct_get_usec(t, &i.configured_latency) < 0)) ||
+                (o->context->version >= 14 &&
+                 pa_tagstruct_get_volume(t, &i.base_volume) < 0)) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 pa_proplist_free(i.proplist);
@@ -275,6 +278,7 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
 
             memset(&i, 0, sizeof(i));
             i.proplist = pa_proplist_new();
+            i.base_volume = PA_VOLUME_NORM;
 
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
@@ -291,7 +295,9 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_tagstruct_getu32(t, &flags) < 0 ||
                 (o->context->version >= 13 &&
                  (pa_tagstruct_get_proplist(t, i.proplist) < 0 ||
-                  pa_tagstruct_get_usec(t, &i.configured_latency) < 0))) {
+                  pa_tagstruct_get_usec(t, &i.configured_latency) < 0)) ||
+                (o->context->version >= 14 &&
+                 pa_tagstruct_get_volume(t, &i.base_volume) < 0)) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 pa_proplist_free(i.proplist);

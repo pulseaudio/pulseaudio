@@ -84,6 +84,8 @@ struct pa_source {
     pa_cvolume volume;
     pa_bool_t muted;
 
+    pa_volume_t base_volume; /* shall be constant */
+
     pa_bool_t refresh_volume:1;
     pa_bool_t refresh_muted:1;
 
