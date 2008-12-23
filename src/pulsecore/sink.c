@@ -239,7 +239,7 @@ pa_sink* pa_sink_new(
     pa_proplist_setf(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Monitor of %s", dn ? dn : s->name);
     pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_CLASS, "monitor");
 
-    s->monitor_source = pa_source_new(core, &source_data, 0);
+    s->monitor_source = pa_source_new(core, &source_data, PA_SOURCE_LATENCY);
 
     pa_source_new_data_done(&source_data);
 
@@ -835,6 +835,9 @@ pa_usec_t pa_sink_get_latency(pa_sink *s) {
     if (!PA_SINK_IS_OPENED(s->state))
         return 0;
 
+    if (!(s->flags & PA_SINK_LATENCY))
+        return 0;
+
     pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) == 0);
 
     return usec;
@@ -1113,7 +1116,8 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 size_t sink_nbytes, total_nbytes;
 
                 /* Get the latency of the sink */
-                if (PA_MSGOBJECT(s)->process_msg(PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
+                if (!(s->flags & PA_SINK_LATENCY) ||
+                    PA_MSGOBJECT(s)->process_msg(PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
                     usec = 0;
 
                 sink_nbytes = pa_usec_to_bytes(usec, &s->sample_spec);
@@ -1172,7 +1176,8 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 size_t nbytes;
 
                 /* Get the latency of the sink */
-                if (PA_MSGOBJECT(s)->process_msg(PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
+                if (!(s->flags & PA_SINK_LATENCY) ||
+                    PA_MSGOBJECT(s)->process_msg(PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
                     usec = 0;
 
                 nbytes = pa_usec_to_bytes(usec, &s->sample_spec);
