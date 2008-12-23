@@ -556,6 +556,7 @@ snd_pcm_t *pa_alsa_open_by_device_id(
 
     for (i = 0;; i += direction) {
         pa_sample_spec try_ss;
+        pa_bool_t reformat;
 
         if (i < 0) {
             pa_assert(direction == -1);
@@ -580,8 +581,9 @@ snd_pcm_t *pa_alsa_open_by_device_id(
 
         d = pa_sprintf_malloc("%s:%s", device_table[i].name, dev_id);
 
+        reformat = FALSE;
         for (;;) {
-            pa_log_debug("Trying %s...", d);
+            pa_log_debug("Trying %s %s SND_PCM_NO_AUTO_FORMAT ...", d, reformat ? "without" : "with");
 
             /* We don't pass SND_PCM_NONBLOCK here, since alsa-lib <=
              * 1.0.17a would then ignore the SND_PCM_NO_xxx
@@ -593,7 +595,7 @@ snd_pcm_t *pa_alsa_open_by_device_id(
                                     /* SND_PCM_NONBLOCK| */
                                     SND_PCM_NO_AUTO_RESAMPLE|
                                     SND_PCM_NO_AUTO_CHANNELS|
-                                    SND_PCM_NO_AUTO_FORMAT)) < 0) {
+                                    (reformat ? 0 : SND_PCM_NO_AUTO_FORMAT))) < 0) {
                 pa_log_info("Couldn't open PCM device %s: %s", d, snd_strerror(err));
                 break;
             }
@@ -604,12 +606,20 @@ snd_pcm_t *pa_alsa_open_by_device_id(
 
             if ((err = pa_alsa_set_hw_params(pcm_handle, &try_ss, nfrags, period_size, tsched_size, use_mmap, use_tsched, TRUE)) < 0) {
 
+                if (!reformat) {
+                    reformat = TRUE;
+                    snd_pcm_close(pcm_handle);
+                    continue;
+                }
+
                 if (!pa_startswith(d, "plug:") && !pa_startswith(d, "plughw:")) {
                     char *t;
 
                     t = pa_sprintf_malloc("plug:%s", d);
                     pa_xfree(d);
                     d = t;
+
+                    reformat = FALSE;
 
                     snd_pcm_close(pcm_handle);
                     continue;
@@ -655,6 +665,7 @@ snd_pcm_t *pa_alsa_open_by_device_string(
     int err;
     char *d;
     snd_pcm_t *pcm_handle;
+    pa_bool_t reformat = FALSE;
 
     pa_assert(device);
     pa_assert(dev);
@@ -666,7 +677,7 @@ snd_pcm_t *pa_alsa_open_by_device_string(
     d = pa_xstrdup(device);
 
     for (;;) {
-        pa_log_debug("Trying %s...", d);
+        pa_log_debug("Trying %s %s SND_PCM_NO_AUTO_FORMAT ...", d, reformat ? "without" : "with");
 
         /* We don't pass SND_PCM_NONBLOCK here, since alsa-lib <=
          * 1.0.17a would then ignore the SND_PCM_NO_xxx flags. Instead
@@ -678,13 +689,20 @@ snd_pcm_t *pa_alsa_open_by_device_string(
                                 /*SND_PCM_NONBLOCK|*/
                                 SND_PCM_NO_AUTO_RESAMPLE|
                                 SND_PCM_NO_AUTO_CHANNELS|
-                                SND_PCM_NO_AUTO_FORMAT)) < 0) {
+                                (reformat ? 0 : SND_PCM_NO_AUTO_FORMAT))) < 0) {
             pa_log("Error opening PCM device %s: %s", d, snd_strerror(err));
             pa_xfree(d);
             return NULL;
         }
 
         if ((err = pa_alsa_set_hw_params(pcm_handle, ss, nfrags, period_size, tsched_size, use_mmap, use_tsched, FALSE)) < 0) {
+
+            if (!reformat) {
+                reformat = TRUE;
+
+                snd_pcm_close(pcm_handle);
+                continue;
+            }
 
             /* Hmm, some hw is very exotic, so we retry with plug, if without it didn't work */
 
@@ -694,6 +712,8 @@ snd_pcm_t *pa_alsa_open_by_device_string(
                 t = pa_sprintf_malloc("plug:%s", d);
                 pa_xfree(d);
                 d = t;
+
+                reformat = FALSE;
 
                 snd_pcm_close(pcm_handle);
                 continue;
