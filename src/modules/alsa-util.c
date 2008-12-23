@@ -1159,7 +1159,7 @@ snd_pcm_sframes_t pa_alsa_safe_avail_update(snd_pcm_t *pcm, size_t hwbuf_size, c
         k >= pa_bytes_per_second(ss)*10)
         pa_log("snd_pcm_avail_update() returned a value that is exceptionally large: %lu bytes (%lu ms) "
                "Most likely this is an ALSA driver bug. Please report this issue to the PulseAudio developers.",
-               (unsigned long) k, (unsigned long) pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC);
+               (unsigned long) k, (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC));
 
     return n;
 }
@@ -1191,7 +1191,7 @@ int pa_alsa_safe_mmap_begin(snd_pcm_t *pcm, const snd_pcm_channel_area_t **areas
 
         pa_log("snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms) "
                "Most likely this is an ALSA driver bug. Please report this issue to the PulseAudio developers.",
-               (unsigned long) k, (unsigned long) pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC);
+               (unsigned long) k, (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC));
 
     return r;
 }
