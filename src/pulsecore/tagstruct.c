@@ -254,6 +254,17 @@ void pa_tagstruct_put_cvolume(pa_tagstruct *t, const pa_cvolume *cvolume) {
     }
 }
 
+void pa_tagstruct_put_volume(pa_tagstruct *t, pa_volume_t vol) {
+    uint32_t u;
+    pa_assert(t);
+
+    extend(t, 5);
+    t->data[t->length] = PA_TAG_VOLUME;
+    u = htonl((uint32_t) vol);
+    memcpy(t->data+t->length+1, &u, 4);
+    t->length += 5;
+}
+
 void pa_tagstruct_put_proplist(pa_tagstruct *t, pa_proplist *p) {
     void *state = NULL;
     pa_assert(t);
@@ -555,6 +566,25 @@ int pa_tagstruct_get_cvolume(pa_tagstruct *t, pa_cvolume *cvolume) {
     return 0;
 }
 
+int pa_tagstruct_get_volume(pa_tagstruct*t, pa_volume_t *vol) {
+    uint32_t u;
+
+    pa_assert(t);
+    pa_assert(vol);
+
+    if (t->rindex+5 > t->length)
+        return -1;
+
+    if (t->data[t->rindex] != PA_TAG_VOLUME)
+        return -1;
+
+    memcpy(&u, t->data+t->rindex+1, 4);
+    *vol = (pa_volume_t) ntohl(u);
+
+    t->rindex += 5;
+    return 0;
+}
+
 int pa_tagstruct_get_proplist(pa_tagstruct *t, pa_proplist *p) {
     size_t saved_rindex;
 
@@ -663,6 +693,10 @@ void pa_tagstruct_put(pa_tagstruct *t, ...) {
                 pa_tagstruct_put_cvolume(t, va_arg(va, pa_cvolume *));
                 break;
 
+            case PA_TAG_VOLUME:
+                pa_tagstruct_put_volume(t, va_arg(va, pa_volume_t));
+                break;
+
             case PA_TAG_PROPLIST:
                 pa_tagstruct_put_proplist(t, va_arg(va, pa_proplist *));
                 break;
@@ -736,6 +770,10 @@ int pa_tagstruct_get(pa_tagstruct *t, ...) {
 
             case PA_TAG_CVOLUME:
                 ret = pa_tagstruct_get_cvolume(t, va_arg(va, pa_cvolume *));
+                break;
+
+            case PA_TAG_VOLUME:
+                ret = pa_tagstruct_get_volume(t, va_arg(va, pa_volume_t *));
                 break;
 
             case PA_TAG_PROPLIST:

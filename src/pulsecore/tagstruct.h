@@ -54,7 +54,8 @@ enum {
     PA_TAG_USEC = 'U'  /* 64bit unsigned */,
     PA_TAG_CHANNEL_MAP = 'm',
     PA_TAG_CVOLUME = 'v',
-    PA_TAG_PROPLIST = 'P'
+    PA_TAG_PROPLIST = 'P',
+    PA_TAG_VOLUME = 'V'
 };
 
 pa_tagstruct *pa_tagstruct_new(const uint8_t* data, size_t length);
@@ -79,6 +80,7 @@ void pa_tagstruct_put_usec(pa_tagstruct*t, pa_usec_t u);
 void pa_tagstruct_put_channel_map(pa_tagstruct *t, const pa_channel_map *map);
 void pa_tagstruct_put_cvolume(pa_tagstruct *t, const pa_cvolume *cvolume);
 void pa_tagstruct_put_proplist(pa_tagstruct *t, pa_proplist *p);
+void pa_tagstruct_put_volume(pa_tagstruct *t, pa_volume_t volume);
 
 int pa_tagstruct_get(pa_tagstruct *t, ...);
 
@@ -95,6 +97,6 @@ int pa_tagstruct_get_usec(pa_tagstruct*t, pa_usec_t *u);
 int pa_tagstruct_get_channel_map(pa_tagstruct *t, pa_channel_map *map);
 int pa_tagstruct_get_cvolume(pa_tagstruct *t, pa_cvolume *v);
 int pa_tagstruct_get_proplist(pa_tagstruct *t, pa_proplist *p);
-
+int pa_tagstruct_get_volume(pa_tagstruct *t, pa_volume_t *v);
 
 #endif
