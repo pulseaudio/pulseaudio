@@ -5,22 +5,26 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-11-11 16:35+0100\n"
-"PO-Revision-Date: 2008-11-11 17:15+0100\n"
+"POT-Creation-Date: 2008-12-30 22:54+0100\n"
+"PO-Revision-Date: 2008-12-30 22:55+0100\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/daemon/ltdl-bind-now.c:177 ../src/daemon/ltdl-bind-now.c:197
+#: ../src/daemon/ltdl-bind-now.c:124
+msgid "Failed to find original lt_dlopen loader."
+msgstr ""
+"Znalezienie oryginalnego programu wczytującego lt_dlopen nie powiodło się."
+
+#: ../src/daemon/ltdl-bind-now.c:129
+msgid "Failed to allocate new dl loader."
+msgstr "Przydzielenie nowego programu wczytującego dl nie powiodło się."
+
+#: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
 msgstr "Dodanie bind-now-loader nie powiodło się."
-
-#: ../src/daemon/ltdl-bind-now.c:184
-msgid "Failed to find original dlopen loader."
-msgstr ""
-"Znalezienie oryginalnego programu wczytującego dlopen nie powiodło się."
 
 #: ../src/daemon/polkit.c:55
 #, c-format
@@ -147,87 +151,87 @@ msgstr "setrlimit(%s, (%u, %u)) nie powiodło się: %s"
 msgid "Failed to parse command line."
 msgstr "Analiza wiersza poleceń nie powiodła się."
 
-#: ../src/daemon/main.c:444
+#: ../src/daemon/main.c:447
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
 msgstr ""
 "Jesteśmy w grupie \"%s\", co umożliwia szeregowanie o wysokim priorytecie."
 
-#: ../src/daemon/main.c:451
+#: ../src/daemon/main.c:454
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
 msgstr ""
 "Jesteśmy w grupie \"%s\", co umożliwia szeregowanie w czasie rzeczywistym."
 
-#: ../src/daemon/main.c:459
+#: ../src/daemon/main.c:462
 msgid "PolicyKit grants us acquire-high-priority privilege."
 msgstr "PolicyKit nadał uprawnienie \"acquire-high-priority\"."
 
-#: ../src/daemon/main.c:462
+#: ../src/daemon/main.c:465
 msgid "PolicyKit refuses acquire-high-priority privilege."
 msgstr "PolicyKit odmówił nadania uprawnienia \"acquire-high-priority\"."
 
-#: ../src/daemon/main.c:467
+#: ../src/daemon/main.c:470
 msgid "PolicyKit grants us acquire-real-time privilege."
 msgstr "PolicyKit nadał uprawnienie \"acquire-real-time\"."
 
-#: ../src/daemon/main.c:470
+#: ../src/daemon/main.c:473
 msgid "PolicyKit refuses acquire-real-time privilege."
 msgstr "PolicyKit odmówił nadania uprawnienia \"acquire-real-time\"."
 
-#: ../src/daemon/main.c:482
+#: ../src/daemon/main.c:502
 msgid ""
-"Called SUID root and real-time/high-priority scheduling was requested in the "
-"configuration. However, we lack the necessary privileges:\n"
+"Called SUID root and real-time and/or high-priority scheduling was requested "
+"in the configuration. However, we lack the necessary privileges:\n"
 "We are not in group '"
 msgstr ""
-"Wywołane SUID roota i szeregowanie w czasie rzeczywistym/o wysokim "
+"Wywołane SUID roota i szeregowanie w czasie rzeczywistym i/lub o wysokim "
 "priorytecie zostało zażądane w konfiguracji. Mimo to brak niezbędnych "
 "uprawnień:\n"
 "Nie jesteśmy w grupie \""
 
-#: ../src/daemon/main.c:500
+#: ../src/daemon/main.c:526
 msgid ""
 "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 "Szeregowanie o wysokim priorytecie jest włączone w konfiguracji, ale nie "
 "jest zezwolone przez politykę."
 
-#: ../src/daemon/main.c:525
+#: ../src/daemon/main.c:555
 msgid "Successfully increased RLIMIT_RTPRIO"
 msgstr "Pomyślnie zwiększono RLIMIT_RTPRIO"
 
-#: ../src/daemon/main.c:528
+#: ../src/daemon/main.c:558
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
 msgstr "RLIMIT_RTPRIO nie powiodło się: %s"
 
-#: ../src/daemon/main.c:535
+#: ../src/daemon/main.c:565
 msgid "Giving up CAP_NICE"
 msgstr "Oddawanie CAP_NICE"
 
-#: ../src/daemon/main.c:542
+#: ../src/daemon/main.c:572
 msgid ""
 "Real-time scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 "Szeregowanie w czasie rzeczywistym jest włączone w konfiguracji, ale nie "
 "jest zezwolone przez politykę."
 
-#: ../src/daemon/main.c:600
+#: ../src/daemon/main.c:633
 msgid "Daemon not running"
 msgstr "Demon nie jest uruchomiony"
 
-#: ../src/daemon/main.c:602
+#: ../src/daemon/main.c:635
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "Demon jest uruchomiony jako PID %u"
 
-#: ../src/daemon/main.c:612
+#: ../src/daemon/main.c:645
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Zniszczenie demona nie powiodło się: %s"
 
-#: ../src/daemon/main.c:630
+#: ../src/daemon/main.c:663
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -235,141 +239,141 @@ msgstr ""
 "Ten program nie powinien być uruchomiany jako root (chyba, że podano --"
 "system)"
 
-#: ../src/daemon/main.c:632
+#: ../src/daemon/main.c:665
 msgid "Root privileges required."
 msgstr "Wymagane są uprawnienia roota."
 
-#: ../src/daemon/main.c:637
+#: ../src/daemon/main.c:670
 msgid "--start not supported for system instances."
 msgstr "--start nie jest obsługiwane przy uruchamianiu systemowym."
 
-#: ../src/daemon/main.c:642
+#: ../src/daemon/main.c:675
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr ""
 "Uruchamianie w trybie systemowym, ale --disallow-exit nie jest ustawione!"
 
-#: ../src/daemon/main.c:645
+#: ../src/daemon/main.c:678
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 "Uruchamianie w trybie systemowym, ale --disallow-module-loading nie jest "
 "ustawione!"
 
-#: ../src/daemon/main.c:648
+#: ../src/daemon/main.c:681
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "Uruchamianie w trybie systemowym, wymuszanie wyłączenia trybu SHM!"
 
-#: ../src/daemon/main.c:653
+#: ../src/daemon/main.c:686
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "Uruchamianie w trybie systemowym, wymuszanie wyłączenia czasu oczekiwania na "
 "zakończenie!"
 
-#: ../src/daemon/main.c:680
+#: ../src/daemon/main.c:713
 msgid "Failed to acquire stdio."
 msgstr "Uzyskanie standardowego wejścia/wyjścia nie powiodło się"
 
-#: ../src/daemon/main.c:686
+#: ../src/daemon/main.c:719
 #, c-format
 msgid "pipe failed: %s"
 msgstr "potok nie powiódł się: %s"
 
-#: ../src/daemon/main.c:691
+#: ../src/daemon/main.c:724
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() nie powiodło się: %s"
 
-#: ../src/daemon/main.c:705
+#: ../src/daemon/main.c:738
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() nie powiodło się: %s"
 
-#: ../src/daemon/main.c:711
+#: ../src/daemon/main.c:744
 msgid "Daemon startup failed."
 msgstr "Uruchomienie demona nie powiodło się."
 
-#: ../src/daemon/main.c:713
+#: ../src/daemon/main.c:746
 msgid "Daemon startup successful."
 msgstr "Pomyślnie uruchomiono demona."
 
-#: ../src/daemon/main.c:783
+#: ../src/daemon/main.c:816
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "To jest PulseAudio %s"
 
-#: ../src/daemon/main.c:784
+#: ../src/daemon/main.c:817
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Komputer kompilacji: %s"
 
-#: ../src/daemon/main.c:785
+#: ../src/daemon/main.c:818
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "CFLAGS kompilacji: %s"
 
-#: ../src/daemon/main.c:788
+#: ../src/daemon/main.c:821
 #, c-format
 msgid "Running on host: %s"
 msgstr "Uruchamianie na komputerze: %s"
 
-#: ../src/daemon/main.c:791
+#: ../src/daemon/main.c:824
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "Rozmiar strony to %lu bajtów"
 
-#: ../src/daemon/main.c:794
+#: ../src/daemon/main.c:827
 msgid "Compiled with Valgrind support: yes"
 msgstr "Skompilowano z obsługą Valgrind: tak"
 
-#: ../src/daemon/main.c:796
+#: ../src/daemon/main.c:829
 msgid "Compiled with Valgrind support: no"
 msgstr "Skompilowano z obsługą Valgrind: nie"
 
-#: ../src/daemon/main.c:799
+#: ../src/daemon/main.c:832
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "Uruchamianie w trybie Valgrind: %s"
 
-#: ../src/daemon/main.c:802
+#: ../src/daemon/main.c:835
 msgid "Optimized build: yes"
 msgstr "Budowanie optymalizowane: tak"
 
-#: ../src/daemon/main.c:804
+#: ../src/daemon/main.c:837
 msgid "Optimized build: no"
 msgstr "Budowanie optymalizowane: nie"
 
-#: ../src/daemon/main.c:808
+#: ../src/daemon/main.c:841
 msgid "Failed to get machine ID"
 msgstr "Uzyskanie identyfikatora komputera nie powiodło się"
 
-#: ../src/daemon/main.c:811
+#: ../src/daemon/main.c:844
 #, c-format
 msgid "Machine ID is %s."
 msgstr "Identyfikator komputera to %s."
 
-#: ../src/daemon/main.c:816
+#: ../src/daemon/main.c:849
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Używanie folderu wykonywania %s."
 
-#: ../src/daemon/main.c:821
+#: ../src/daemon/main.c:854
 #, c-format
 msgid "Using state directory %s."
 msgstr "Używanie folderu stanu %s."
 
-#: ../src/daemon/main.c:824
+#: ../src/daemon/main.c:857
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Uruchamianie w trybie systemowym: %s"
 
-#: ../src/daemon/main.c:839
+#: ../src/daemon/main.c:872
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() nie powiodło się."
 
-#: ../src/daemon/main.c:851
+#: ../src/daemon/main.c:884
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Świeże zegary o wysokiej rozdzielczości! Smacznego!"
 
-#: ../src/daemon/main.c:853
+#: ../src/daemon/main.c:886
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -377,32 +381,32 @@ msgstr ""
 "Koleś, twoje jądro śmierdzi! Szef kuchni poleca dzisiaj Linuksa w włączonymi "
 "zegarami o wysokiej rozdzielczości!"
 
-#: ../src/daemon/main.c:863
+#: ../src/daemon/main.c:896
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() nie powiodło się."
 
-#: ../src/daemon/main.c:924
+#: ../src/daemon/main.c:957
 msgid "Failed to initialize daemon."
 msgstr "Zainicjowanie demona nie powiodło się."
 
-#: ../src/daemon/main.c:929
+#: ../src/daemon/main.c:962
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "Uruchamianie demona bez żadnych wczytanych modułów, odmawianie pracy."
 
-#: ../src/daemon/main.c:934
+#: ../src/daemon/main.c:967
 #, c-format
 msgid "Default sink name (%s) does not exist in name register."
 msgstr "Domyślna nazwa odpływu (%s) nie istnieje w rejestrze nazw."
 
-#: ../src/daemon/main.c:947
+#: ../src/daemon/main.c:980
 msgid "Daemon startup complete."
 msgstr "Zakończono uruchamianie demona."
 
-#: ../src/daemon/main.c:953
+#: ../src/daemon/main.c:986
 msgid "Daemon shutdown initiated."
 msgstr "Zainicjowano wyłączenie demona."
 
-#: ../src/daemon/main.c:974
+#: ../src/daemon/main.c:1007
 msgid "Daemon terminated."
 msgstr "Demon został zniszczony."
 
