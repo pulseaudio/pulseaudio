@@ -127,7 +127,7 @@ static int bt_audioservice_send(int sk, const bt_audio_msg_header_t *msg) {
     type = bt_audio_strtype(msg->type);
     name = bt_audio_strname(msg->name);
     pa_log_debug("sending: %s -> %s", type, name);
-    if (send(sk, msg, BT_SUGGESTED_BUFFER_SIZE, 0) > 0)
+    if (send(sk, msg, msg->length, 0) > 0)
         e = 0;
     else {
         e = -errno;
