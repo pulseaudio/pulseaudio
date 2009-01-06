@@ -458,9 +458,12 @@ static int bt_setconf(struct userdata *u) {
 
     strncpy(msg.setconf_req.device, u->addr, 18);
     msg.setconf_req.codec.transport = u->transport;
-    if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP)
+    if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP) {
         memcpy(&msg.setconf_req.codec, &u->a2dp.sbc_capabilities,
                 sizeof(u->a2dp.sbc_capabilities));
+        msg.setconf_req.h.length += msg.setconf_req.codec.length
+                                    - sizeof(msg.setconf_req.codec);
+    }
     msg.setconf_req.access_mode = BT_CAPABILITIES_ACCESS_MODE_WRITE;
 
     e = bt_audioservice_send(u->audioservice_fd, &msg.setconf_req.h);
