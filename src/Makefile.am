@@ -204,8 +204,8 @@ pacmd_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@.la
 pacmd_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pax11publish_SOURCES = utils/pax11publish.c
-pax11publish_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
-pax11publish_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@.la $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
+pax11publish_CFLAGS = $(AM_CFLAGS) $(X11_CFLAGS)
+pax11publish_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@.la $(X11_LIBS)
 pax11publish_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pabrowse_SOURCES = utils/pabrowse.c
@@ -531,8 +531,8 @@ endif
 
 if HAVE_X11
 libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/x11prop.c pulsecore/x11prop.h
-libpulsecommon_@PA_MAJORMINORMICRO@_la_CFLAGS += $(X_CFLAGS)
-libpulsecommon_@PA_MAJORMINORMICRO@_la_LDFLAGS += $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
+libpulsecommon_@PA_MAJORMINORMICRO@_la_CFLAGS += $(X11_CFLAGS)
+libpulsecommon_@PA_MAJORMINORMICRO@_la_LDFLAGS += $(X11_LIBS)
 endif
 
 if HAVE_LIBASYNCNS
@@ -630,8 +630,8 @@ libpulse_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) $(LTLIBICONV) libpulsecommon-@
 
 if HAVE_X11
 libpulse_la_SOURCES += pulse/client-conf-x11.c pulse/client-conf-x11.h
-libpulse_la_CFLAGS += $(X_CFLAGS)
-libpulse_la_LDFLAGS += $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
+libpulse_la_CFLAGS += $(X11_CFLAGS)
+libpulse_la_LDFLAGS += $(X11_LIBS)
 endif
 
 libpulse_simple_la_SOURCES = pulse/simple.c pulse/simple.h
@@ -721,8 +721,8 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPL
 
 if HAVE_X11
 libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/x11wrap.c pulsecore/x11wrap.h
-libpulsecore_@PA_MAJORMINORMICRO@_la_CFLAGS += $(X_CFLAGS)
-libpulsecore_@PA_MAJORMINORMICRO@_la_LDFLAGS += $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
+libpulsecore_@PA_MAJORMINORMICRO@_la_CFLAGS += $(X11_CFLAGS)
+libpulsecore_@PA_MAJORMINORMICRO@_la_LDFLAGS += $(X11_LIBS)
 endif
 
 ###################################
@@ -1172,19 +1172,19 @@ module_tunnel_source_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.
 # X11
 
 module_x11_bell_la_SOURCES = modules/module-x11-bell.c
-module_x11_bell_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
+module_x11_bell_la_CFLAGS = $(AM_CFLAGS) $(X11_CFLAGS)
 module_x11_bell_la_LDFLAGS = -module -avoid-version
-module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X11_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
 module_x11_publish_la_SOURCES = modules/module-x11-publish.c
-module_x11_publish_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
+module_x11_publish_la_CFLAGS = $(AM_CFLAGS) $(X11_CFLAGS)
 module_x11_publish_la_LDFLAGS = -module -avoid-version
-module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libprotocol-native.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X11_LIBS) libprotocol-native.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
 module_x11_xsmp_la_SOURCES = modules/module-x11-xsmp.c
-module_x11_xsmp_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
+module_x11_xsmp_la_CFLAGS = $(AM_CFLAGS) $(X11_CFLAGS)
 module_x11_xsmp_la_LDFLAGS = -module -avoid-version
-module_x11_xsmp_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_x11_xsmp_la_LIBADD = $(AM_LIBADD) $(X11_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
 # OSS
 
