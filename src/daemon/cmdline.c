@@ -124,7 +124,7 @@ void pa_cmdline_help(const char *argv0) {
            "      --cleanup-shm                     Cleanup stale shared memory segments\n"
            "      --start                           Start the daemon if it is not running\n"
            "  -k  --kill                            Kill a running daemon\n"
-           "      --check                           Check for a running daemon\n\n"
+           "      --check                           Check for a running daemon (only returns exit code)\n\n"
 
            "OPTIONS:\n"
            "      --system[=BOOL]                   Run as system-wide instance\n"

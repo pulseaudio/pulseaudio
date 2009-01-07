@@ -72,7 +72,7 @@ USA.
     </option>
 
     <option>
-      <p><opt>--dump-resampe-methods</opt></p>
+      <p><opt>--dump-resample-methods</opt></p>
       <optdesc><p>List available audio resamplers.</p></optdesc>
     </option>
 
@@ -110,7 +110,9 @@ USA.
       <p><opt>--check</opt></p>
 
       <optdesc><p>Return 0 as return code when the PulseAudio daemon
-      is already running for the calling user.</p></optdesc>
+      is already running for the calling user, or non-zero
+      otherwise. Produces no output on the console except for errors
+      to stderr.</p></optdesc>
     </option>
 
 
