@@ -123,11 +123,13 @@ static const char* const valid_modargs[] = {
 static int bt_audioservice_send(int sk, const bt_audio_msg_header_t *msg) {
     int e;
     const char *type, *name;
+    uint16_t length;
 
+    length = msg->length ? msg->length : BT_SUGGESTED_BUFFER_SIZE;
     type = bt_audio_strtype(msg->type);
     name = bt_audio_strname(msg->name);
     pa_log_debug("sending: %s -> %s", type, name);
-    if (send(sk, msg, BT_SUGGESTED_BUFFER_SIZE, 0) > 0)
+    if (send(sk, msg, length, 0) > 0)
         e = 0;
     else {
         e = -errno;
@@ -139,9 +141,12 @@ static int bt_audioservice_send(int sk, const bt_audio_msg_header_t *msg) {
 static int bt_audioservice_recv(int sk, bt_audio_msg_header_t *inmsg, uint16_t expected_length) {
     int e;
     const char *type, *name;
+    uint16_t length;
+
+    length = expected_length ? expected_length : BT_SUGGESTED_BUFFER_SIZE;
 
     pa_log_debug("trying to receive msg from audio service...");
-    if (recv(sk, inmsg, expected_length ? : BT_SUGGESTED_BUFFER_SIZE, 0) > 0) {
+    if (recv(sk, inmsg, length, 0) > 0) {
         type = bt_audio_strtype(inmsg->type);
         name = bt_audio_strname(inmsg->name);
         if (type && name) {
@@ -453,9 +458,12 @@ static int bt_setconf(struct userdata *u) {
 
     strncpy(msg.setconf_req.device, u->addr, 18);
     msg.setconf_req.codec.transport = u->transport;
-    if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP)
+    if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP) {
         memcpy(&msg.setconf_req.codec, &u->a2dp.sbc_capabilities,
                 sizeof(u->a2dp.sbc_capabilities));
+        msg.setconf_req.h.length += msg.setconf_req.codec.length
+                                    - sizeof(msg.setconf_req.codec);
+    }
     msg.setconf_req.access_mode = BT_CAPABILITIES_ACCESS_MODE_WRITE;
 
     e = bt_audioservice_send(u->audioservice_fd, &msg.setconf_req.h);
