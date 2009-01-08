@@ -599,9 +599,9 @@ static int update_sw_params(struct userdata *u) {
             u->hwbuf_unused_frames = (snd_pcm_sframes_t)
                 (PA_LIKELY(b < u->hwbuf_size) ?
                  ((u->hwbuf_size - b) / u->frame_size) : 0);
-
-            fix_tsched_watermark(u);
         }
+
+        fix_tsched_watermark(u);
     }
 
     pa_log_debug("hwbuf_unused_frames=%lu", (unsigned long) u->hwbuf_unused_frames);

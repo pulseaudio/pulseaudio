@@ -73,8 +73,6 @@ struct userdata {
     pa_thread_mq thread_mq;
     pa_rtpoll *rtpoll;
 
-    size_t block_size;
-
     pa_usec_t block_usec;
     pa_usec_t timestamp;
 };
@@ -89,7 +87,13 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
+static int sink_process_msg(
+        pa_msgobject *o,
+        int code,
+        void *data,
+        int64_t offset,
+        pa_memchunk *chunk) {
+
     struct userdata *u = PA_SINK(o)->userdata;
 
     switch (code) {
@@ -104,7 +108,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             pa_usec_t now;
 
             now = pa_rtclock_usec();
-            *((pa_usec_t*) data) = u->timestamp > now ? u->timestamp - now : 0;
+            *((pa_usec_t*) data) = u->timestamp > now ? u->timestamp - now : 0ULL;
 
             return 0;
         }
@@ -117,10 +121,12 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
     struct userdata *u;
 
     pa_sink_assert_ref(s);
-    u = s->userdata;
-    pa_assert(u);
+    pa_assert_se(u = s->userdata);
 
     u->block_usec = pa_sink_get_requested_latency_within_thread(s);
+
+    if (u->block_usec == (pa_usec_t) -1)
+        u->block_usec = s->thread_info.max_latency;
 }
 
 static void process_rewind(struct userdata *u, pa_usec_t now) {
