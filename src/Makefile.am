@@ -1415,6 +1415,7 @@ libbluetooth_sbc_la_SOURCES = modules/bluetooth/sbc.c modules/bluetooth/sbc.h mo
 libbluetooth_sbc_la_LDFLAGS = -avoid-version
 libbluetooth_sbc_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 libbluetooth_sbc_la_CFLAGS = $(AM_CFLAGS)
+SBC_FILES = $(subst modules/bluetooth/,,$(libbluetooth_sbc_la_SOURCES))
 
 libbluetooth_ipc_la_SOURCES = modules/bluetooth/ipc.c modules/bluetooth/ipc.h
 libbluetooth_ipc_la_LDFLAGS = -avoid-version
@@ -1500,6 +1501,11 @@ massif: pulseaudio
 update-ffmpeg:
 	wget -O pulsecore/ffmpeg/resample2.c http://svn.mplayerhq.hu/ffmpeg/trunk/libavcodec/resample2.c?view=co
 
+update-sbc:
+	for i in $(SBC_FILES); do \
+		wget -O modules/bluetooth/$$i http://git.kernel.org/\?p=bluetooth/bluez.git\;a=blob_plain\;f=sbc/$$i ; \
+	done
+
 # Automatically generate linker version script. We use the same one for all public .sos
 update-map-file:
 	( echo "PULSE_0 {" ; \
@@ -1509,4 +1515,6 @@ update-map-file:
 	  echo "*;" ; \
 	  echo "};" ) > $(srcdir)/map-file
 
-.PHONY: utils/padsp
+update-all: update-ffmpeg update-sbc update-map-file
+
+.PHONY: utils/padsp massif update-all update-ffmpeg update-sbc update-map-file
