@@ -760,8 +760,32 @@ int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev) {
     return 0;
 }
 
-snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const char *fallback) {
-    snd_mixer_elem_t *elem;
+static pa_bool_t elem_has_volume(snd_mixer_elem_t *elem, pa_bool_t playback) {
+    pa_assert(elem);
+
+    if (playback && snd_mixer_selem_has_playback_volume(elem))
+        return TRUE;
+
+    if (!playback && snd_mixer_selem_has_capture_volume(elem))
+        return TRUE;
+
+    return FALSE;
+}
+
+static pa_bool_t elem_has_switch(snd_mixer_elem_t *elem, pa_bool_t playback) {
+    pa_assert(elem);
+
+    if (playback && snd_mixer_selem_has_playback_switch(elem))
+        return TRUE;
+
+    if (!playback && snd_mixer_selem_has_capture_switch(elem))
+        return TRUE;
+
+    return FALSE;
+}
+
+snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const char *fallback, pa_bool_t playback) {
+    snd_mixer_elem_t *elem = NULL, *fallback_elem = NULL;
     snd_mixer_selem_id_t *sid = NULL;
 
     snd_mixer_selem_id_alloca(&sid);
@@ -771,16 +795,56 @@ snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const 
 
     snd_mixer_selem_id_set_name(sid, name);
 
-    if (!(elem = snd_mixer_find_selem(mixer, sid))) {
-        pa_log_info("Cannot find mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));
+    if ((elem = snd_mixer_find_selem(mixer, sid))) {
 
-        if (fallback) {
-            snd_mixer_selem_id_set_name(sid, fallback);
+        if (elem_has_volume(elem, playback) &&
+            elem_has_switch(elem, playback))
+            goto success;
 
-            if (!(elem = snd_mixer_find_selem(mixer, sid)))
-                pa_log_warn("Cannot find fallback mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));
+        if (!elem_has_volume(elem, playback) &&
+            !elem_has_switch(elem, playback))
+            elem = NULL;
+    }
+
+    pa_log_info("Cannot find mixer control \"%s\" or mixer control is no combination of switch/volume.", snd_mixer_selem_id_get_name(sid));
+
+    if (fallback) {
+        snd_mixer_selem_id_set_name(sid, fallback);
+
+        if ((fallback_elem = snd_mixer_find_selem(mixer, sid))) {
+
+            if (elem_has_volume(fallback_elem, playback) &&
+                elem_has_switch(fallback_elem, playback)) {
+                elem = fallback_elem;
+                goto success;
+            }
+
+            if (!elem_has_volume(fallback_elem, playback) &&
+                !elem_has_switch(fallback_elem, playback))
+                fallback_elem = NULL;
+        }
+
+        pa_log_warn("Cannot find fallback mixer control \"%s\" or mixer control is no combination of switch/volume.", snd_mixer_selem_id_get_name(sid));
+    }
+
+    if (elem && fallback_elem) {
+
+        /* Hmm, so we have both elements, but neither has both mute
+         * and volume. Let's prefer the one with the volume */
+
+        if (elem_has_volume(elem, playback))
+            goto success;
+
+        if (elem_has_volume(fallback_elem, playback)) {
+            elem = fallback_elem;
+            goto success;
         }
     }
+
+    if (!elem && fallback_elem)
+        elem = fallback_elem;
+
+success:
 
     if (elem)
         pa_log_info("Using mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));

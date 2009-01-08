@@ -2,7 +2,7 @@
  *
  *  Bluetooth low-complexity, subband codec (SBC) library
  *
- *  Copyright (C) 2004-2008  Marcel Holtmann <marcel@holtmann.org>
+ *  Copyright (C) 2004-2009  Marcel Holtmann <marcel@holtmann.org>
  *  Copyright (C) 2004-2005  Henryk Ploetz <henryk@ploetzli.ch>
  *  Copyright (C) 2005-2006  Brad Midgley <bmidgley@xmission.com>
  *
@@ -87,7 +87,7 @@ int sbc_encode(sbc_t *sbc, void *input, int input_len, void *output,
 		int output_len, int *written);
 int sbc_get_frame_length(sbc_t *sbc);
 int sbc_get_frame_duration(sbc_t *sbc);
-int sbc_get_codesize(sbc_t *sbc);
+uint16_t sbc_get_codesize(sbc_t *sbc);
 void sbc_finish(sbc_t *sbc);
 
 #ifdef __cplusplus

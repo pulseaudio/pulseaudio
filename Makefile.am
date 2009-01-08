@@ -18,7 +18,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
 EXTRA_DIST = bootstrap.sh LICENSE GPL LGPL doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in README todo
-SUBDIRS=src doxygen man po libltdl
+SUBDIRS = libltdl src doxygen man po
 
 MAINTAINERCLEANFILES =
 noinst_DATA =
@@ -56,7 +56,7 @@ fedora-snapshot: dist
 
 dist-hook:
 	if test -d .git ; then \
-		git pull ; \
+		test -z $$SKIP_GIT && git pull ; \
 		chmod u+w ${distdir}/ChangeLog || true ; \
 		( git-changelog.perl || echo "git-changelog.perl failed." ) > ${distdir}/ChangeLog 2>&1 ; \
 	fi

@@ -1236,7 +1236,7 @@ int pa__init(pa_module*m) {
         }
 
         if (found)
-            if (!(u->mixer_elem = pa_alsa_find_elem(u->mixer_handle, "Capture", "Mic")))
+            if (!(u->mixer_elem = pa_alsa_find_elem(u->mixer_handle, "Capture", "Mic", FALSE)))
                 found = FALSE;
 
         if (!found) {

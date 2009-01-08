@@ -95,7 +95,7 @@ if test "x$M4" = xno ; then
 fi
 
 dnl Compiler flags
-DESIRED_FLAGS="-Wall -W -Wextra -pedantic -pipe -Wno-long-long -Wvla -Wno-overlength-strings -Wconversion -Wundef -Wformat -Wlogical-op -Wpacked -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wdeclaration-after-statement -Wfloat-equal -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-noreturn -Wshadow -Wendif-labels -Wpointer-arith -Wcast-align -Wwrite-strings -Wno-unused-parameter -ffast-math"
+DESIRED_FLAGS="-Wall -W -Wextra -pedantic -pipe -Wno-long-long -Wvla -Wno-overlength-strings -Wundef -Wformat -Wlogical-op -Wpacked -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wdeclaration-after-statement -Wfloat-equal -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-noreturn -Wshadow -Wendif-labels -Wpointer-arith -Wcast-align -Wwrite-strings -Wno-unused-parameter -ffast-math"
 
 for flag in $DESIRED_FLAGS ; do
   CC_CHECK_CFLAGS([$flag], [CFLAGS="$CFLAGS $flag"])
@@ -411,21 +411,52 @@ AC_SUBST(pulselocaledir)
 #      External libraries         #
 ###################################
 
+#### pkg-config ####
+
+# Check for pkg-config manually first, as if its not installed the
+# PKG_PROG_PKG_CONFIG macro won't be defined.
+AC_CHECK_PROG(have_pkg_config, pkg-config, yes, no)
+
+if test x"$have_pkg_config" = "xno"; then
+    AC_MSG_ERROR(pkg-config is required to install this program)
+fi
+
+PKG_PROG_PKG_CONFIG
+
 #### X11 (optional) ####
 
-HAVE_X11=0
+AC_ARG_ENABLE([x11],
+    AS_HELP_STRING([--disable-x11],[Disable optional X11 support]),
+        [
+            case "${enableval}" in
+                yes) x11=yes ;;
+                no) x11=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-x11) ;;
+            esac
+        ],
+        [x11=auto])
 
-# The macro tests the host, not the build target
-if test "x$os_is_win32" != "x1" ; then
-    AC_PATH_XTRA
-    test "x$no_x" != "xyes" && HAVE_X11=1
+if test "x${x11}" != xno ; then
+    PKG_CHECK_MODULES(X11, [ x11 ice sm ],
+        HAVE_X11=1,
+        [
+            HAVE_X11=0
+            if test "x$x11" = xyes ; then
+                AC_MSG_ERROR([*** X11 not found])
+            fi
+        ])
+else
+    HAVE_X11=0
 fi
 
+if test "x${HAVE_X11}" = x1 ; then
+   AC_DEFINE([HAVE_X11], 1, [Have X11?])
+fi
+
+AC_SUBST(X11_CFLAGS)
+AC_SUBST(X11_LIBS)
 AC_SUBST(HAVE_X11)
-AM_CONDITIONAL(HAVE_X11, test "x$HAVE_X11" = "x1")
-if test "x$HAVE_X11" = "x1" ; then
-    AC_DEFINE([HAVE_X11], 1, [Have X11])
-fi
+AM_CONDITIONAL([HAVE_X11], [test "x$HAVE_X11" = x1])
 
 #### Capabilities (optional) ####
 
@@ -449,18 +480,6 @@ fi
 #### Valgrind (optional) ####
 
 AC_CHECK_HEADERS([valgrind/memcheck.h])
-
-#### pkg-config ####
-
-# Check for pkg-config manually first, as if its not installed the
-# PKG_PROG_PKG_CONFIG macro won't be defined.
-AC_CHECK_PROG(have_pkg_config, pkg-config, yes, no)
-
-if test x"$have_pkg_config" = "xno"; then
-    AC_MSG_ERROR(pkg-config is required to install this program)
-fi
-
-PKG_PROG_PKG_CONFIG
 
 #### Sound file ####
 

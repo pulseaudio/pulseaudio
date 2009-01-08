@@ -167,7 +167,7 @@ static void callback(pa_mainloop_api*m, pa_io_event*e, int fd, pa_io_event_flags
     pa_assert(e == io_event);
     pa_assert(fd == the_pipe[0]);
 
-    pa_log("Recevied request to terminate due to CPU overload.");
+    pa_log("Received request to terminate due to CPU overload.");
 
     pa_read(the_pipe[0], &c, sizeof(c), NULL);
     m->quit(m, 1); /* Quit the main loop */

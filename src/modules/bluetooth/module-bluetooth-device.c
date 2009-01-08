@@ -122,8 +122,14 @@ static const char* const valid_modargs[] = {
 
 static int bt_audioservice_send(int sk, const bt_audio_msg_header_t *msg) {
     int e;
-    pa_log_debug("sending %s", bt_audio_strmsg(msg->msg_type));
-    if (send(sk, msg, BT_AUDIO_IPC_PACKET_SIZE, 0) > 0)
+    const char *type, *name;
+    uint16_t length;
+
+    length = msg->length ? msg->length : BT_SUGGESTED_BUFFER_SIZE;
+    type = bt_audio_strtype(msg->type);
+    name = bt_audio_strname(msg->name);
+    pa_log_debug("sending: %s -> %s", type, name);
+    if (send(sk, msg, length, 0) > 0)
         e = 0;
     else {
         e = -errno;
@@ -132,20 +138,25 @@ static int bt_audioservice_send(int sk, const bt_audio_msg_header_t *msg) {
     return e;
 }
 
-static int bt_audioservice_recv(int sk, bt_audio_msg_header_t *inmsg) {
+static int bt_audioservice_recv(int sk, bt_audio_msg_header_t *inmsg, uint16_t expected_length) {
     int e;
-    const char *type;
+    const char *type, *name;
+    uint16_t length;
+
+    length = expected_length ? expected_length : BT_SUGGESTED_BUFFER_SIZE;
 
     pa_log_debug("trying to receive msg from audio service...");
-    if (recv(sk, inmsg, BT_AUDIO_IPC_PACKET_SIZE, 0) > 0) {
-        type = bt_audio_strmsg(inmsg->msg_type);
-        if (type) {
-            pa_log_debug("Received %s", type);
+    if (recv(sk, inmsg, length, 0) > 0) {
+        type = bt_audio_strtype(inmsg->type);
+        name = bt_audio_strname(inmsg->name);
+        if (type && name) {
+            pa_log_debug("Received: %s <- %s", type, name);
             e = 0;
         }
         else {
             e = -EINVAL;
-            pa_log_error("Bogus message type %d received from audio service", inmsg->msg_type);
+            pa_log_error("Bogus message type %d name %d received from audio service",
+                        inmsg->type, inmsg->name);
         }
     }
     else {
@@ -156,29 +167,66 @@ static int bt_audioservice_recv(int sk, bt_audio_msg_header_t *inmsg) {
     return e;
 }
 
-static int bt_audioservice_expect(int sk, bt_audio_msg_header_t *rsp_hdr, int expected_type) {
-    int e = bt_audioservice_recv(sk, rsp_hdr);
-    if (e == 0) {
-        if (rsp_hdr->msg_type != expected_type) {
+static int bt_audioservice_expect(int sk, bt_audio_msg_header_t *rsp, uint8_t expected_name, uint16_t expected_length) {
+    int e = bt_audioservice_recv(sk, rsp, expected_length);
+
+    if (e < 0) {
+        if (rsp->name != expected_name) {
             e = -EINVAL;
-            pa_log_error("Bogus message %s received while %s was expected", bt_audio_strmsg(rsp_hdr->msg_type),
-                    bt_audio_strmsg(expected_type));
+            pa_log_error("Bogus message %s received while %s was expected",
+                    bt_audio_strname(rsp->name),
+                    bt_audio_strname(expected_name));
         }
     }
+
+    if (rsp->type == BT_ERROR) {
+        bt_audio_error_t *error = (void *) rsp;
+        pa_log_error("%s failed : %s(%d)", bt_audio_strname(rsp->name), pa_cstrerror(error->posix_errno), error->posix_errno);
+        return -error->posix_errno;
+    }
+
     return e;
+}
+
+static int bt_parsecaps(struct userdata *u, struct bt_get_capabilities_rsp *rsp) {
+    uint16_t bytes_left = rsp->h.length - sizeof(*rsp);
+    codec_capabilities_t *codec = (void *) rsp->data;
+
+    u->transport = codec->transport;
+
+    if (codec->transport != BT_CAPABILITIES_TRANSPORT_A2DP)
+        return 0;
+
+    while (bytes_left > 0) {
+        if (codec->type == BT_A2DP_CODEC_SBC)
+            break;
+
+        bytes_left -= codec->length;
+        codec = (void *) (codec + codec->length);
+    }
+
+    if (bytes_left <= 0 || codec->length != sizeof(u->a2dp.sbc_capabilities))
+        return -EINVAL;
+
+    memcpy(&u->a2dp.sbc_capabilities, codec, codec->length);
+
+    return 0;
 }
 
 static int bt_getcaps(struct userdata *u) {
     int e;
     union {
-        bt_audio_rsp_msg_header_t rsp_hdr;
-        struct bt_getcapabilities_req getcaps_req;
-        struct bt_getcapabilities_rsp getcaps_rsp;
-        uint8_t buf[BT_AUDIO_IPC_PACKET_SIZE];
+        bt_audio_msg_header_t rsp;
+        struct bt_get_capabilities_req getcaps_req;
+        struct bt_get_capabilities_rsp getcaps_rsp;
+        uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
     } msg;
 
-    memset(msg.buf, 0, BT_AUDIO_IPC_PACKET_SIZE);
-    msg.getcaps_req.h.msg_type = BT_GETCAPABILITIES_REQ;
+    memset(msg.buf, 0, BT_SUGGESTED_BUFFER_SIZE);
+    msg.getcaps_req.h.type = BT_REQUEST;
+    msg.getcaps_req.h.name = BT_GET_CAPABILITIES;
+    msg.getcaps_req.h.length = sizeof(msg.getcaps_req);
+
     strncpy(msg.getcaps_req.device, u->addr, 18);
     if (strcasecmp(u->profile, "a2dp") == 0)
         msg.getcaps_req.transport = BT_CAPABILITIES_TRANSPORT_A2DP;
@@ -196,20 +244,13 @@ static int bt_getcaps(struct userdata *u) {
         return e;
     }
 
-    e = bt_audioservice_expect(u->audioservice_fd, &msg.rsp_hdr.msg_h, BT_GETCAPABILITIES_RSP);
+    e = bt_audioservice_expect(u->audioservice_fd, &msg.rsp, BT_GET_CAPABILITIES, 0);
     if (e < 0) {
         pa_log_error("Failed to expect for GETCAPABILITIES_RSP");
         return e;
     }
-    if (msg.rsp_hdr.posix_errno != 0) {
-        pa_log_error("BT_GETCAPABILITIES failed : %s (%d)", pa_cstrerror(msg.rsp_hdr.posix_errno), msg.rsp_hdr.posix_errno);
-        return -msg.rsp_hdr.posix_errno;
-    }
 
-    if ((u->transport = msg.getcaps_rsp.transport) == BT_CAPABILITIES_TRANSPORT_A2DP)
-        u->a2dp.sbc_capabilities = msg.getcaps_rsp.sbc_capabilities;
-
-    return 0;
+    return bt_parsecaps(u, &msg.getcaps_rsp);
 }
 
 static uint8_t default_bitpool(uint8_t freq, uint8_t mode) {
@@ -393,10 +434,10 @@ static void bt_a2dp_setup(struct bt_a2dp *a2dp) {
 static int bt_setconf(struct userdata *u) {
     int e;
     union {
-        bt_audio_rsp_msg_header_t rsp_hdr;
-        struct bt_setconfiguration_req setconf_req;
-        struct bt_setconfiguration_rsp setconf_rsp;
-        uint8_t buf[BT_AUDIO_IPC_PACKET_SIZE];
+        bt_audio_msg_header_t rsp;
+        struct bt_set_configuration_req setconf_req;
+        struct bt_set_configuration_rsp setconf_rsp;
+        uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
     } msg;
 
     if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP) {
@@ -410,12 +451,19 @@ static int bt_setconf(struct userdata *u) {
     else
         u->ss.format = PA_SAMPLE_U8;
 
-    memset(msg.buf, 0, BT_AUDIO_IPC_PACKET_SIZE);
-    msg.setconf_req.h.msg_type = BT_SETCONFIGURATION_REQ;
+    memset(msg.buf, 0, BT_SUGGESTED_BUFFER_SIZE);
+    msg.setconf_req.h.type = BT_REQUEST;
+    msg.setconf_req.h.name = BT_SET_CONFIGURATION;
+    msg.setconf_req.h.length = sizeof(msg.setconf_req);
+
     strncpy(msg.setconf_req.device, u->addr, 18);
-    msg.setconf_req.transport = u->transport;
-    if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP)
-        msg.setconf_req.sbc_capabilities = u->a2dp.sbc_capabilities;
+    msg.setconf_req.codec.transport = u->transport;
+    if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP) {
+        memcpy(&msg.setconf_req.codec, &u->a2dp.sbc_capabilities,
+                sizeof(u->a2dp.sbc_capabilities));
+        msg.setconf_req.h.length += msg.setconf_req.codec.length
+                                    - sizeof(msg.setconf_req.codec);
+    }
     msg.setconf_req.access_mode = BT_CAPABILITIES_ACCESS_MODE_WRITE;
 
     e = bt_audioservice_send(u->audioservice_fd, &msg.setconf_req.h);
@@ -424,15 +472,10 @@ static int bt_setconf(struct userdata *u) {
         return e;
     }
 
-    e = bt_audioservice_expect(u->audioservice_fd, &msg.rsp_hdr.msg_h, BT_SETCONFIGURATION_RSP);
+    e = bt_audioservice_expect(u->audioservice_fd, &msg.rsp, BT_SET_CONFIGURATION, sizeof(msg.setconf_rsp));
     if (e < 0) {
         pa_log_error("Failed to expect BT_SETCONFIGURATION_RSP");
         return e;
-    }
-
-    if (msg.rsp_hdr.posix_errno != 0) {
-        pa_log_error("BT_SETCONFIGURATION failed : %s(%d)", pa_cstrerror(msg.rsp_hdr.posix_errno), msg.rsp_hdr.posix_errno);
-        return -msg.rsp_hdr.posix_errno;
     }
 
     u->transport = msg.setconf_rsp.transport;
@@ -456,14 +499,17 @@ static int bt_getstreamfd(struct userdata *u) {
     int e;
 //    uint32_t period_count = io->buffer_size / io->period_size;
     union {
-        bt_audio_rsp_msg_header_t rsp_hdr;
-        struct bt_streamstart_req start_req;
-        struct bt_streamfd_ind streamfd_ind;
-        uint8_t buf[BT_AUDIO_IPC_PACKET_SIZE];
+        bt_audio_msg_header_t rsp;
+        struct bt_start_stream_req start_req;
+        struct bt_start_stream_rsp start_rsp;
+        struct bt_new_stream_ind streamfd_ind;
+        uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
     } msg;
 
-    memset(msg.buf, 0, BT_AUDIO_IPC_PACKET_SIZE);
-    msg.start_req.h.msg_type = BT_STREAMSTART_REQ;
+    memset(msg.buf, 0, BT_SUGGESTED_BUFFER_SIZE);
+    msg.start_req.h.type = BT_REQUEST;
+    msg.start_req.h.name = BT_START_STREAM;
+    msg.start_req.h.length = sizeof(msg.start_req);
 
     e = bt_audioservice_send(u->audioservice_fd, &msg.start_req.h);
     if (e < 0) {
@@ -471,18 +517,13 @@ static int bt_getstreamfd(struct userdata *u) {
         return e;
     }
 
-    e = bt_audioservice_expect(u->audioservice_fd, &msg.rsp_hdr.msg_h, BT_STREAMSTART_RSP);
+    e = bt_audioservice_expect(u->audioservice_fd, &msg.rsp, BT_START_STREAM, sizeof(msg.start_rsp));
     if (e < 0) {
         pa_log_error("Failed to expect BT_STREAMSTART_RSP");
         return e;
     }
 
-    if (msg.rsp_hdr.posix_errno != 0) {
-        pa_log_error("BT_START failed : %s(%d)", pa_cstrerror(msg.rsp_hdr.posix_errno), msg.rsp_hdr.posix_errno);
-        return -msg.rsp_hdr.posix_errno;
-    }
-
-    e = bt_audioservice_expect(u->audioservice_fd, &msg.streamfd_ind.h, BT_STREAMFD_IND);
+    e = bt_audioservice_expect(u->audioservice_fd, &msg.rsp, BT_NEW_STREAM, sizeof(msg.streamfd_ind));
     if (e < 0) {
         pa_log_error("Failed to expect BT_STREAMFD_IND");
         return e;
