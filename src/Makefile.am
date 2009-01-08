@@ -809,6 +809,7 @@ modlibexec_LTLIBRARIES += \
 		module-cli-protocol-tcp.la \
 		module-simple-protocol-tcp.la \
 		module-null-sink.la \
+		module-sine-source.la \
 		module-detect.la \
 		module-volume-restore.la \
 		module-device-restore.la \
@@ -986,6 +987,7 @@ SYMDEF_FILES = \
 		modules/module-tunnel-sink-symdef.h \
 		modules/module-tunnel-source-symdef.h \
 		modules/module-null-sink-symdef.h \
+		modules/module-sine-source-symdef.h \
 		modules/module-esound-sink-symdef.h \
 		modules/module-zeroconf-publish-symdef.h \
 		modules/module-zeroconf-discover-symdef.h \
@@ -1140,6 +1142,10 @@ module_sine_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpul
 module_null_sink_la_SOURCES = modules/module-null-sink.c
 module_null_sink_la_LDFLAGS = -module -avoid-version
 module_null_sink_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+
+module_sine_source_la_SOURCES = modules/module-sine-source.c
+module_sine_source_la_LDFLAGS = -module -avoid-version
+module_sine_source_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
 # Couplings
 
