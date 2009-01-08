@@ -219,6 +219,35 @@ pabrowse_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 #         Test programs           #
 ###################################
 
+# missing: mcalign-test flist-test pacat-simple parec-simple sync-playback rtstutter stripnul interpol-test thread-test
+
+TESTS = \
+		mainloop-test \
+		strlist-test \
+		close-test \
+		voltest \
+		memblockq-test \
+		channelmap-test \
+		thread-mainloop-test \
+		utf8-test \
+		get-binary-name-test \
+		ipacl-test \
+		hook-list-test \
+		memblock-test \
+		asyncq-test \
+		asyncmsgq-test \
+		queue-test \
+		rtpoll-test \
+		sig2str-test \
+		resampler-test \
+		smoother-test \
+		mix-test \
+		remix-test \
+		envelope-test \
+		proplist-test \
+		lock-autospawn-test \
+		prioq-test
+
 noinst_PROGRAMS = \
 		mainloop-test \
 		mcalign-test \
@@ -256,12 +285,17 @@ noinst_PROGRAMS = \
 		prioq-test
 
 if HAVE_SIGXCPU
+#TESTS += \
+#		cpulimit-test \
+#		cpulimit-test2
 noinst_PROGRAMS += \
 		cpulimit-test \
 		cpulimit-test2
 endif
 
 if HAVE_GLIB20
+TESTS += \
+		mainloop-test-glib
 noinst_PROGRAMS += \
 		mainloop-test-glib
 endif
