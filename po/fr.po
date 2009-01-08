@@ -1,22 +1,23 @@
 # French translation of pulseaudio.
 # Copyright (C) 2006-2008 Lennart Poettering
 # This file is distributed under the same license as the pulseaudio package.
-#
 # Robert-André Mauchin <zebob.m@pengzone.org>, 2008.
 # Michaël Ughetto <telimektar esraonline com>, 2008.
-#
+# Pablo Martin-Gomez <pablo.martin-gomez@laposte.net>, 2008.
+# 
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-10-07 21:03+0200\n"
-"PO-Revision-Date: 2008-09-06 10:49+0200\n"
-"Last-Translator: Robert-André Mauchin <zebob.m@pengzone.org>\n"
-"Language-Team: Fedora French <fedora-trans-fr@redhat.com>\n"
+"POT-Creation-Date: 2008-10-14 02:29+0000\n"
+"PO-Revision-Date: 2008-10-18 20:34+0200\n"
+"Last-Translator: Pablo Martin-Gomez <pablo.martin-gomez@laposte.net>\n"
+"Language-Team: Français <fedora-trans-fr@redhat.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=n>1;\n"
+"Plural-Forms: nplurals=2; plural=n>1;"
 
 #: ../src/daemon/ltdl-bind-now.c:177 ../src/daemon/ltdl-bind-now.c:197
 msgid "Failed to add bind-now-loader."
@@ -163,7 +164,8 @@ msgstr ""
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
 msgstr ""
-"Nous sommes dans le groupe « %s », permettant une planification en temps réel."
+"Nous sommes dans le groupe « %s », permettant une planification en temps "
+"réel."
 
 #: ../src/daemon/main.c:456
 msgid "PolicyKit grants us acquire-high-priority privilege."
@@ -191,6 +193,24 @@ msgstr ""
 "demandée dans la configuration. Néanmoins nous n'avons pas les permissions "
 "nécessaires :\n"
 "nous ne somme pas dans le groupe "
+
+#: ../src/daemon/main.c:480
+msgid ""
+"' and PolicyKit refuse to grant us priviliges. Dropping SUID again.\n"
+"For enabling real-time scheduling please acquire the appropriate PolicyKit "
+"priviliges, or become a member of '"
+msgstr ""
+" et PolicyKit refuse de nous accorder les permissions. Abandon du SUID à "
+"nouveau.\n"
+"Pour activer la planification en temps réel, veuillez aquérir les "
+"permissions PolicyKit appropriées, ou devenez membre de "
+
+#: ../src/daemon/main.c:481
+msgid ""
+"', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
+msgstr ""
+", ou augmentez les limites de ressource RLIMIT_NICE/RLIMIT_RTPRIO pour cet "
+"utilisateur."
 
 #: ../src/daemon/main.c:497
 msgid ""
@@ -303,9 +323,9 @@ msgid "This is PulseAudio %s"
 msgstr "Pulseaudio %s"
 
 #: ../src/daemon/main.c:781
-#, fuzzy, c-format
+#, c-format
 msgid "Compilation host: %s"
-msgstr "CFLAGS de compilation : %s"
+msgstr "Hôte de compilation : %s"
 
 #: ../src/daemon/main.c:782
 #, c-format
@@ -313,9 +333,9 @@ msgid "Compilation CFLAGS: %s"
 msgstr "CFLAGS de compilation : %s"
 
 #: ../src/daemon/main.c:785
-#, fuzzy, c-format
+#, c-format
 msgid "Running on host: %s"
-msgstr "Exécution en mode système : %s"
+msgstr "Exécution sur l'hôte : %s"
 
 #: ../src/daemon/main.c:788
 #, c-format
@@ -331,9 +351,9 @@ msgid "Compiled with Valgrind support: no"
 msgstr "Compilé avec la prise en charge Valgrind : non"
 
 #: ../src/daemon/main.c:796
-#, fuzzy, c-format
+#, c-format
 msgid "Running in valgrind mode: %s"
-msgstr "Exécution en mode système : %s"
+msgstr "Exécution en mode valgrind : %s"
 
 #: ../src/daemon/main.c:799
 msgid "Optimized build: yes"
@@ -603,7 +623,8 @@ msgstr "--use-pid-file requiert un paramètre booléen"
 
 #: ../src/daemon/cmdline.c:319
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
-msgstr "Cible du journal invalide : utilisez « syslog », « stderr » ou « auto »."
+msgstr ""
+"Cible du journal invalide : utilisez « syslog », « stderr » ou « auto »."
 
 #: ../src/daemon/cmdline.c:338
 #, c-format
@@ -942,9 +963,8 @@ msgstr "Arrière droit haut"
 
 #: ../src/pulse/channelmap.c:472 ../src/pulse/sample.c:144
 #: ../src/pulse/volume.c:163 ../src/pulse/volume.c:194
-#, fuzzy
 msgid "(invalid)"
-msgstr "Invalide"
+msgstr "(invalide)"
 
 #: ../src/pulse/error.c:43
 msgid "OK"
@@ -1110,7 +1130,8 @@ msgstr "Mesures du tampon : maxlength=%u, fragsize=%u\n"
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'.\n"
 msgstr ""
-"Utilisation de la spécification d'échantillon « %s », plan des canaux « %s ».\n"
+"Utilisation de la spécification d'échantillon « %s », plan des canaux « %"
+"s ».\n"
 
 # l'espace manquant entre %s et suspended est voulu
 #: ../src/utils/pacat.c:187
@@ -1243,7 +1264,7 @@ msgstr "Échec de pa_stream_update_timing_info() : %s\n"
 # upmixer = par ex. convertir 2 canaux en 5 canaux
 # https://bugzilla.redhat.com/show_bug.cgi?id=460798
 #: ../src/utils/pacat.c:490
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1301,14 +1322,14 @@ msgstr ""
 "\n"
 "  -r, --record                          Crée une connexion pour "
 "l'enregistrement\n"
-"  -p, --playback                        Crée une connexion pour la lecture\n"
+"  -p, --playback                        Crée une connexion pour la relecture\n"
 "\n"
 "  -v, --verbose                         Active le mode verbeux\n"
 "\n"
 "  -s, --server=SERVEUR                  Le nom du serveur auquel se "
 "connecter\n"
 "  -d, --device=PÉRIPHÉRIQUE             Le nom de la destination/source à "
-"laquelle de connecter\n"
+"laquelle se connecter\n"
 "  -n, --client-name=NOM                 Définit le nom de ce client sur le "
 "serveur\n"
 "      --stream-name=NOM                 Définit le nom de ce flux sur le "
@@ -1428,9 +1449,9 @@ msgid "pa_context_new() failed.\n"
 msgstr "Échec de pa_context_new().\n"
 
 #: ../src/utils/pacat.c:777
-#, fuzzy, c-format
+#, c-format
 msgid "pa_context_connect() failed: %s"
-msgstr "Échec de pa_context_new().\n"
+msgstr "Échec de pa_context_connect() : %s"
 
 #: ../src/utils/pacat.c:788
 #, c-format
@@ -1757,7 +1778,7 @@ msgid "Failed to get sample information: %s\n"
 msgstr "Échec lors de l'obtention des informations de l'échantillon : %s\n"
 
 # Lazy ?
-# load-sample-lazy = Create a new entry in the sample cache, but don't load 
+# load-sample-lazy = Create a new entry in the sample cache, but don't load
 # the sample immediately. The sample is loaded only when it is first used
 #: ../src/utils/pactl.c:455
 #, c-format
@@ -2155,24 +2176,7 @@ msgstr "Utilisation de la spécification de l'échantillon « %s »\n"
 
 #: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
 msgid "Cannot access autospawn lock."
-msgstr ""
-
-#~ msgid ""
-#~ "' and PolicyKit refuse to grant us priviliges. Dropping SUID again.\n"
-#~ "For enabling real-time scheduling please acquire the appropriate "
-#~ "PolicyKit priviliges, or become a member of '"
-#~ msgstr ""
-#~ " et PolicyKit refuse de nous accorder les permissions. Abandon du SUID à "
-#~ "nouveau.\n"
-#~ "Pour activer la planification en temps réel, veuillez aquérir les "
-#~ "permissions PolicyKit appropriées, ou devenez membre de "
-
-#~ msgid ""
-#~ "', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this "
-#~ "user."
-#~ msgstr ""
-#~ ", ou augmentez les limites de ressource RLIMIT_NICE/RLIMIT_RTPRIO pour "
-#~ "cet utilisateur."
+msgstr "Impossible d'accèder au verrou autonome."
 
 #~ msgid "socketpair(): %s"
 #~ msgstr "socketpair() : %s"
