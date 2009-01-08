@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <liboil/liboilfuncs.h>
 #include <liboil/liboil.h>
@@ -986,4 +987,30 @@ size_t pa_usec_to_bytes_round_up(pa_usec_t t, const pa_sample_spec *spec) {
     u *= pa_frame_size(spec);
 
     return (size_t) u;
+}
+
+void pa_memchunk_dump_to_file(pa_memchunk *c, const char *fn) {
+    FILE *f;
+    void *p;
+
+    pa_assert(c);
+    pa_assert(fn);
+
+    /* Only for debugging purposes */
+
+    f = fopen(fn, "a");
+
+    if (!f) {
+        pa_log_warn("Failed to open '%s': %s", fn, pa_cstrerror(errno));
+        return;
+    }
+
+    p = pa_memblock_acquire(c->memblock);
+
+    if (fwrite((uint8_t*) p + c->index, 1, c->length, f) != c->length)
+        pa_log_warn("Failed to write to '%s': %s", fn, pa_cstrerror(errno));
+
+    pa_memblock_release(c->memblock);
+
+    fclose(f);
 }

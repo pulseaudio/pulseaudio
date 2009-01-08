@@ -81,4 +81,6 @@ void pa_sample_clamp(pa_sample_format_t format, void *dst, size_t dstr, const vo
 pa_usec_t pa_bytes_to_usec_round_up(uint64_t length, const pa_sample_spec *spec);
 size_t pa_usec_to_bytes_round_up(pa_usec_t t, const pa_sample_spec *spec);
 
+void pa_memchunk_dump_to_file(pa_memchunk *c, const char *fn);
+
 #endif
