@@ -52,7 +52,7 @@ int pa_alsa_set_hw_params(
 int pa_alsa_set_sw_params(snd_pcm_t *pcm, snd_pcm_uframes_t avail_min);
 
 int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev);
-snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const char *fallback);
+snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const char *fallback, pa_bool_t playback);
 
 snd_pcm_t *pa_alsa_open_by_device_id(
         const char *dev_id,
