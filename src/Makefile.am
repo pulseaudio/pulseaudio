@@ -459,6 +459,7 @@ lib_LTLIBRARIES = \
 libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulse/client-conf.c pulse/client-conf.h \
 		pulse/i18n.c pulse/i18n.h \
+		pulsecore/atomic.h \
 		pulsecore/authkey.c pulsecore/authkey.h \
 		pulsecore/conf-parser.c pulsecore/conf-parser.h \
 		pulsecore/core-error.c pulsecore/core-error.h \
@@ -496,6 +497,7 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/pstream.c pulsecore/pstream.h \
 		pulsecore/queue.c pulsecore/queue.h \
 		pulsecore/random.c pulsecore/random.h \
+		pulsecore/refcnt.h \
 		pulsecore/rtclock.c pulsecore/rtclock.h \
 		pulsecore/shm.c pulsecore/shm.h \
 		pulsecore/socket-client.c pulsecore/socket-client.h \
