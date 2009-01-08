@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-12-01 18:40+0200\n"
+"POT-Creation-Date: 2009-01-08 19:36+0100\n"
 "PO-Revision-Date: 2008-12-01 18:40+0200\n"
 "Last-Translator: Timo Jyrinki <timo.jyrinki@iki.fi>\n"
 "Language-Team: Finnish <laatu@lokalisointi.org>\n"
@@ -15,12 +15,17 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/daemon/ltdl-bind-now.c:177 ../src/daemon/ltdl-bind-now.c:197
-msgid "Failed to add bind-now-loader."
+#: ../src/daemon/ltdl-bind-now.c:124
+#, fuzzy
+msgid "Failed to find original lt_dlopen loader."
+msgstr "Taustaprosessin alustus epäonnistui."
+
+#: ../src/daemon/ltdl-bind-now.c:129
+msgid "Failed to allocate new dl loader."
 msgstr ""
 
-#: ../src/daemon/ltdl-bind-now.c:184
-msgid "Failed to find original dlopen loader."
+#: ../src/daemon/ltdl-bind-now.c:142
+msgid "Failed to add bind-now-loader."
 msgstr ""
 
 #: ../src/daemon/polkit.c:55
@@ -148,79 +153,79 @@ msgstr ""
 msgid "Failed to parse command line."
 msgstr ""
 
-#: ../src/daemon/main.c:444
+#: ../src/daemon/main.c:447
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
 msgstr ""
 
-#: ../src/daemon/main.c:451
+#: ../src/daemon/main.c:454
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
 msgstr ""
 
-#: ../src/daemon/main.c:459
+#: ../src/daemon/main.c:462
 msgid "PolicyKit grants us acquire-high-priority privilege."
 msgstr ""
 
-#: ../src/daemon/main.c:462
+#: ../src/daemon/main.c:465
 msgid "PolicyKit refuses acquire-high-priority privilege."
 msgstr ""
 
-#: ../src/daemon/main.c:467
+#: ../src/daemon/main.c:470
 msgid "PolicyKit grants us acquire-real-time privilege."
 msgstr ""
 
-#: ../src/daemon/main.c:470
+#: ../src/daemon/main.c:473
 msgid "PolicyKit refuses acquire-real-time privilege."
 msgstr ""
 
-#: ../src/daemon/main.c:482
+#: ../src/daemon/main.c:502
 msgid ""
-"Called SUID root and real-time/high-priority scheduling was requested in the "
-"configuration. However, we lack the necessary privileges:\n"
+"Called SUID root and real-time and/or high-priority scheduling was requested "
+"in the configuration. However, we lack the necessary privileges:\n"
 "We are not in group '"
 msgstr ""
 
-#: ../src/daemon/main.c:500
+#: ../src/daemon/main.c:526
 msgid ""
 "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 
-#: ../src/daemon/main.c:525
+#: ../src/daemon/main.c:555
 msgid "Successfully increased RLIMIT_RTPRIO"
 msgstr ""
 
-#: ../src/daemon/main.c:528
+#: ../src/daemon/main.c:558
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
 msgstr ""
 
-#: ../src/daemon/main.c:535
+#: ../src/daemon/main.c:565
 msgid "Giving up CAP_NICE"
 msgstr ""
 
-#: ../src/daemon/main.c:542
+#: ../src/daemon/main.c:572
 msgid ""
 "Real-time scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 "Tosiaikainen ajoitus otettu käyttöön asetuksissa, mutta käytännöt eivät "
 "salli sitä."
 
-#: ../src/daemon/main.c:600
+#: ../src/daemon/main.c:633
 msgid "Daemon not running"
 msgstr "Taustaprosessi ei ole käynnissä"
 
-#: ../src/daemon/main.c:602
+#: ../src/daemon/main.c:635
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "Taustaprosessi käynnissä prosessitunnisteella %u"
 
-#: ../src/daemon/main.c:612
+#: ../src/daemon/main.c:645
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Taustaprosessin lopettaminen epäonnistui: %s"
 
-#: ../src/daemon/main.c:630
+#: ../src/daemon/main.c:663
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -228,139 +233,139 @@ msgstr ""
 "Tätä ohjelmaa ei ole tarkoitettu suoritettavaksi pääkäyttäjänä (ellei --"
 "system ole määritelty)."
 
-#: ../src/daemon/main.c:632
+#: ../src/daemon/main.c:665
 msgid "Root privileges required."
 msgstr "Pääkäyttäjän (root) oikeudet vaaditaan."
 
-#: ../src/daemon/main.c:637
+#: ../src/daemon/main.c:670
 msgid "--start not supported for system instances."
 msgstr ""
 
-#: ../src/daemon/main.c:642
+#: ../src/daemon/main.c:675
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr ""
 
-#: ../src/daemon/main.c:645
+#: ../src/daemon/main.c:678
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 
-#: ../src/daemon/main.c:648
+#: ../src/daemon/main.c:681
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr ""
 "Suoritetaan järjestelmätilassa, otetaan SHM-tila pakotetusti pois käytöstä."
 
-#: ../src/daemon/main.c:653
+#: ../src/daemon/main.c:686
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "Suoritetaan järjestelmätilassa, otetaan poistumisen joutenoloaika "
 "pakotetusti pois käytöstä."
 
-#: ../src/daemon/main.c:680
+#: ../src/daemon/main.c:713
 msgid "Failed to acquire stdio."
 msgstr ""
 
-#: ../src/daemon/main.c:686
+#: ../src/daemon/main.c:719
 #, c-format
 msgid "pipe failed: %s"
 msgstr ""
 
-#: ../src/daemon/main.c:691
+#: ../src/daemon/main.c:724
 #, c-format
 msgid "fork() failed: %s"
 msgstr ""
 
-#: ../src/daemon/main.c:705
+#: ../src/daemon/main.c:738
 #, c-format
 msgid "read() failed: %s"
 msgstr ""
 
-#: ../src/daemon/main.c:711
+#: ../src/daemon/main.c:744
 msgid "Daemon startup failed."
 msgstr "Taustaprosessin käynnistys epäonnistui."
 
-#: ../src/daemon/main.c:713
+#: ../src/daemon/main.c:746
 msgid "Daemon startup successful."
 msgstr "Taustaprosessin käynnistys onnistui."
 
-#: ../src/daemon/main.c:783
+#: ../src/daemon/main.c:816
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Tämä on PulseAudio %s"
 
-#: ../src/daemon/main.c:784
+#: ../src/daemon/main.c:817
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Käännöksen isäntäkone: %s"
 
-#: ../src/daemon/main.c:785
+#: ../src/daemon/main.c:818
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "Käännösaikaiset C-liput (CFLAGS): %s"
 
-#: ../src/daemon/main.c:788
+#: ../src/daemon/main.c:821
 #, c-format
 msgid "Running on host: %s"
 msgstr "Käynnissä isäntäkoneella: %s"
 
-#: ../src/daemon/main.c:791
+#: ../src/daemon/main.c:824
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "Sivun koko on %lu tavua"
 
-#: ../src/daemon/main.c:794
+#: ../src/daemon/main.c:827
 msgid "Compiled with Valgrind support: yes"
 msgstr "Käännetty Valgrind-tuella: kyllä"
 
-#: ../src/daemon/main.c:796
+#: ../src/daemon/main.c:829
 msgid "Compiled with Valgrind support: no"
 msgstr "Käännetty Valgrind-tuella: ei"
 
-#: ../src/daemon/main.c:799
+#: ../src/daemon/main.c:832
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "Käynnissä valgrind-tilassa: %s"
 
-#: ../src/daemon/main.c:802
+#: ../src/daemon/main.c:835
 msgid "Optimized build: yes"
 msgstr "Optimoitu rakentaminen: kyllä"
 
-#: ../src/daemon/main.c:804
+#: ../src/daemon/main.c:837
 msgid "Optimized build: no"
 msgstr "Optimoitu rakentaminen: ei"
 
-#: ../src/daemon/main.c:808
+#: ../src/daemon/main.c:841
 msgid "Failed to get machine ID"
 msgstr "Konetunnisteen nouto epäonnistui"
 
-#: ../src/daemon/main.c:811
+#: ../src/daemon/main.c:844
 #, c-format
 msgid "Machine ID is %s."
 msgstr "Konetunniste on %s."
 
-#: ../src/daemon/main.c:816
+#: ../src/daemon/main.c:849
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Käytetään ajonaikaista hakemistoa %s."
 
-#: ../src/daemon/main.c:821
+#: ../src/daemon/main.c:854
 #, c-format
 msgid "Using state directory %s."
 msgstr "Käytetään tilahakemistoa %s."
 
-#: ../src/daemon/main.c:824
+#: ../src/daemon/main.c:857
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Suoritetaan järjestelmätilassa: %s"
 
-#: ../src/daemon/main.c:839
+#: ../src/daemon/main.c:872
 msgid "pa_pid_file_create() failed."
 msgstr ""
 
-#: ../src/daemon/main.c:851
+#: ../src/daemon/main.c:884
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Korkean tarkkuuden ajastimet käytettävissä."
 
-#: ../src/daemon/main.c:853
+#: ../src/daemon/main.c:886
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -368,32 +373,32 @@ msgstr ""
 "Hei, ytimesi on kehno! Linux korkean tarkkuuden ajastimien tuella on hyvin "
 "suositeltava!"
 
-#: ../src/daemon/main.c:863
+#: ../src/daemon/main.c:896
 msgid "pa_core_new() failed."
 msgstr ""
 
-#: ../src/daemon/main.c:924
+#: ../src/daemon/main.c:957
 msgid "Failed to initialize daemon."
 msgstr "Taustaprosessin alustus epäonnistui."
 
-#: ../src/daemon/main.c:929
+#: ../src/daemon/main.c:962
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 
-#: ../src/daemon/main.c:934
+#: ../src/daemon/main.c:967
 #, c-format
 msgid "Default sink name (%s) does not exist in name register."
 msgstr ""
 
-#: ../src/daemon/main.c:947
+#: ../src/daemon/main.c:980
 msgid "Daemon startup complete."
 msgstr "Taustaprosessin käynnistys valmis."
 
-#: ../src/daemon/main.c:953
+#: ../src/daemon/main.c:986
 msgid "Daemon shutdown initiated."
 msgstr "Taustaprosessin sulkeminen käynnistetty."
 
-#: ../src/daemon/main.c:974
+#: ../src/daemon/main.c:1007
 msgid "Daemon terminated."
 msgstr "Taustaprosessi lopetettu."
 
@@ -413,7 +418,8 @@ msgid ""
 "      --start                           Start the daemon if it is not "
 "running\n"
 "  -k  --kill                            Kill a running daemon\n"
-"      --check                           Check for a running daemon\n"
+"      --check                           Check for a running daemon (only "
+"returns exit code)\n"
 "\n"
 "OPTIONS:\n"
 "      --system[=BOOL]                   Run as system-wide instance\n"

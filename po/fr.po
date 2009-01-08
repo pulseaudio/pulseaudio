@@ -4,28 +4,34 @@
 # Robert-André Mauchin <zebob.m@pengzone.org>, 2008.
 # Michaël Ughetto <telimektar esraonline com>, 2008.
 # Pablo Martin-Gomez <pablo.martin-gomez@laposte.net>, 2008.
-# 
-# 
+#
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-10-14 02:29+0000\n"
+"POT-Creation-Date: 2009-01-08 19:36+0100\n"
 "PO-Revision-Date: 2008-10-18 20:34+0200\n"
 "Last-Translator: Pablo Martin-Gomez <pablo.martin-gomez@laposte.net>\n"
 "Language-Team: Français <fedora-trans-fr@redhat.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=n>1;"
+"Plural-Forms: nplurals=2; plural=n>1;\n"
 
-#: ../src/daemon/ltdl-bind-now.c:177 ../src/daemon/ltdl-bind-now.c:197
+#: ../src/daemon/ltdl-bind-now.c:124
+#, fuzzy
+msgid "Failed to find original lt_dlopen loader."
+msgstr "Échec lors de la recherche du chargeur dlopen original."
+
+#: ../src/daemon/ltdl-bind-now.c:129
+#, fuzzy
+msgid "Failed to allocate new dl loader."
+msgstr "Échec lors de la recherche du chargeur dlopen original."
+
+#: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
 msgstr "Échec lors de l'ajout du chargeur bind-now."
-
-#: ../src/daemon/ltdl-bind-now.c:184
-msgid "Failed to find original dlopen loader."
-msgstr "Échec lors de la recherche du chargeur dlopen original."
 
 #: ../src/daemon/polkit.c:55
 #, c-format
@@ -153,40 +159,40 @@ msgstr "setrlimit(%s, (%u, %u)) a échoué : %s"
 msgid "Failed to parse command line."
 msgstr "Échec lors de l'analyse de la ligne de commande"
 
-#: ../src/daemon/main.c:441
+#: ../src/daemon/main.c:447
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
 msgstr ""
 "Nous sommes dans le groupe « %s », permettant une planification à haute "
 "priorité."
 
-#: ../src/daemon/main.c:448
+#: ../src/daemon/main.c:454
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
 msgstr ""
-"Nous sommes dans le groupe « %s », permettant une planification en temps "
-"réel."
+"Nous sommes dans le groupe « %s », permettant une planification en temps réel."
 
-#: ../src/daemon/main.c:456
+#: ../src/daemon/main.c:462
 msgid "PolicyKit grants us acquire-high-priority privilege."
 msgstr "PolicyKit a accordé l'acquisition des permissions de haute priorité."
 
-#: ../src/daemon/main.c:459
+#: ../src/daemon/main.c:465
 msgid "PolicyKit refuses acquire-high-priority privilege."
 msgstr "PolicyKit a refusé l'acquisition des permissions de haute priorité."
 
-#: ../src/daemon/main.c:464
+#: ../src/daemon/main.c:470
 msgid "PolicyKit grants us acquire-real-time privilege."
 msgstr "PolicyKit a accordé l'acquisition des permissions de temps réel."
 
-#: ../src/daemon/main.c:467
+#: ../src/daemon/main.c:473
 msgid "PolicyKit refuses acquire-real-time privilege."
 msgstr "PolicyKit a refusé l'acquisition des permissions de temps réel."
 
-#: ../src/daemon/main.c:479
+#: ../src/daemon/main.c:502
+#, fuzzy
 msgid ""
-"Called SUID root and real-time/high-priority scheduling was requested in the "
-"configuration. However, we lack the necessary priviliges:\n"
+"Called SUID root and real-time and/or high-priority scheduling was requested "
+"in the configuration. However, we lack the necessary privileges:\n"
 "We are not in group '"
 msgstr ""
 "Le SUID root a été appelé et la planification à haute priorité/en temps réel "
@@ -194,66 +200,48 @@ msgstr ""
 "nécessaires :\n"
 "nous ne somme pas dans le groupe "
 
-#: ../src/daemon/main.c:480
-msgid ""
-"' and PolicyKit refuse to grant us priviliges. Dropping SUID again.\n"
-"For enabling real-time scheduling please acquire the appropriate PolicyKit "
-"priviliges, or become a member of '"
-msgstr ""
-" et PolicyKit refuse de nous accorder les permissions. Abandon du SUID à "
-"nouveau.\n"
-"Pour activer la planification en temps réel, veuillez aquérir les "
-"permissions PolicyKit appropriées, ou devenez membre de "
-
-#: ../src/daemon/main.c:481
-msgid ""
-"', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
-msgstr ""
-", ou augmentez les limites de ressource RLIMIT_NICE/RLIMIT_RTPRIO pour cet "
-"utilisateur."
-
-#: ../src/daemon/main.c:497
+#: ../src/daemon/main.c:526
 msgid ""
 "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 "La planification à haute priorité est activée dans la configuration mais "
 "n'est pas permise par la politique."
 
-#: ../src/daemon/main.c:522
+#: ../src/daemon/main.c:555
 msgid "Successfully increased RLIMIT_RTPRIO"
 msgstr "Augmentation de RLIMIT_RTPRIO réussie"
 
-#: ../src/daemon/main.c:525
+#: ../src/daemon/main.c:558
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
 msgstr "RLIMIT_RTPRIO a échoué : %s"
 
-#: ../src/daemon/main.c:532
+#: ../src/daemon/main.c:565
 msgid "Giving up CAP_NICE"
 msgstr "Abandon de CAP_NICE"
 
-#: ../src/daemon/main.c:539
+#: ../src/daemon/main.c:572
 msgid ""
 "Real-time scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 "La planification en temps réel est activée mais n'est pas permise par la "
 "politique."
 
-#: ../src/daemon/main.c:597
+#: ../src/daemon/main.c:633
 msgid "Daemon not running"
 msgstr "Lé démon n'est pas lancé"
 
-#: ../src/daemon/main.c:599
+#: ../src/daemon/main.c:635
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "Le démon est lancé avec le PID %u"
 
-#: ../src/daemon/main.c:609
+#: ../src/daemon/main.c:645
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Impossible de tuer le démon : %s"
 
-#: ../src/daemon/main.c:627
+#: ../src/daemon/main.c:663
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -261,142 +249,143 @@ msgstr ""
 "Le programme n'est pas conçu pour être lancé en tant que root (sauf si --"
 "system est renseigné)."
 
-#: ../src/daemon/main.c:629
-msgid "Root priviliges required."
+#: ../src/daemon/main.c:665
+#, fuzzy
+msgid "Root privileges required."
 msgstr "Les permissions root sont nécessaires."
 
-#: ../src/daemon/main.c:634
+#: ../src/daemon/main.c:670
 msgid "--start not supported for system instances."
 msgstr "--start n'est pas pris en charge pour les instances système."
 
-#: ../src/daemon/main.c:639
+#: ../src/daemon/main.c:675
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr ""
 "Le démon s'exécute en mode système, mais --disallow-exit n'est pas défini."
 
-#: ../src/daemon/main.c:642
+#: ../src/daemon/main.c:678
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 "Le démon s'exécute en mode système, mais --disallow-module-loading n'est pas "
 "défini."
 
-#: ../src/daemon/main.c:645
+#: ../src/daemon/main.c:681
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "Le démon s'exécute en mode système, désactivation forcée du mode SHM."
 
-#: ../src/daemon/main.c:650
+#: ../src/daemon/main.c:686
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "Le démon s'exécute en mode système, désactivation forcée de la fermeture "
 "après délai d'inactivité."
 
-#: ../src/daemon/main.c:677
+#: ../src/daemon/main.c:713
 msgid "Failed to acquire stdio."
 msgstr "Échec lors de l'acquisition de stdio."
 
-#: ../src/daemon/main.c:683
+#: ../src/daemon/main.c:719
 #, c-format
 msgid "pipe failed: %s"
 msgstr "Échec du tube : %s"
 
-#: ../src/daemon/main.c:688
+#: ../src/daemon/main.c:724
 #, c-format
 msgid "fork() failed: %s"
 msgstr "Échec de fork() : %s"
 
-#: ../src/daemon/main.c:702
+#: ../src/daemon/main.c:738
 #, c-format
 msgid "read() failed: %s"
 msgstr "Échec de read() : %s"
 
-#: ../src/daemon/main.c:708
+#: ../src/daemon/main.c:744
 msgid "Daemon startup failed."
 msgstr "Échec lors du démarrage du démon."
 
-#: ../src/daemon/main.c:710
+#: ../src/daemon/main.c:746
 msgid "Daemon startup successful."
 msgstr "Démarrage du démon réussi."
 
-#: ../src/daemon/main.c:780
+#: ../src/daemon/main.c:816
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Pulseaudio %s"
 
-#: ../src/daemon/main.c:781
+#: ../src/daemon/main.c:817
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Hôte de compilation : %s"
 
-#: ../src/daemon/main.c:782
+#: ../src/daemon/main.c:818
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "CFLAGS de compilation : %s"
 
-#: ../src/daemon/main.c:785
+#: ../src/daemon/main.c:821
 #, c-format
 msgid "Running on host: %s"
 msgstr "Exécution sur l'hôte : %s"
 
-#: ../src/daemon/main.c:788
+#: ../src/daemon/main.c:824
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "La taille de la page est de %lu octets"
 
-#: ../src/daemon/main.c:791
+#: ../src/daemon/main.c:827
 msgid "Compiled with Valgrind support: yes"
 msgstr "Compilé avec la prise en charge Valgrind : oui"
 
-#: ../src/daemon/main.c:793
+#: ../src/daemon/main.c:829
 msgid "Compiled with Valgrind support: no"
 msgstr "Compilé avec la prise en charge Valgrind : non"
 
-#: ../src/daemon/main.c:796
+#: ../src/daemon/main.c:832
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "Exécution en mode valgrind : %s"
 
-#: ../src/daemon/main.c:799
+#: ../src/daemon/main.c:835
 msgid "Optimized build: yes"
 msgstr "Construction optimisée : oui"
 
-#: ../src/daemon/main.c:801
+#: ../src/daemon/main.c:837
 msgid "Optimized build: no"
 msgstr "Construction optimisée : non"
 
-#: ../src/daemon/main.c:805
+#: ../src/daemon/main.c:841
 msgid "Failed to get machine ID"
 msgstr "Échec lors de l'obtention de l'ID de la machine"
 
-#: ../src/daemon/main.c:808
+#: ../src/daemon/main.c:844
 #, c-format
 msgid "Machine ID is %s."
 msgstr "L'ID de la machine est %s."
 
-#: ../src/daemon/main.c:813
+#: ../src/daemon/main.c:849
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Utilisation du répertoire d'exécution %s."
 
-#: ../src/daemon/main.c:818
+#: ../src/daemon/main.c:854
 #, c-format
 msgid "Using state directory %s."
 msgstr "Utilisation du répertoire d'état %s."
 
-#: ../src/daemon/main.c:821
+#: ../src/daemon/main.c:857
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Exécution en mode système : %s"
 
-#: ../src/daemon/main.c:836
+#: ../src/daemon/main.c:872
 msgid "pa_pid_file_create() failed."
 msgstr "Échec de pa_pid_file_create()."
 
-#: ../src/daemon/main.c:848
+#: ../src/daemon/main.c:884
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr ""
 "De nouvelles horloges à haute résolution sont disponibles ! Bon appétit !"
 
-#: ../src/daemon/main.c:850
+#: ../src/daemon/main.c:886
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -404,39 +393,39 @@ msgstr ""
 "Eh mec, ton noyau il pue ! La recommandation d'aujourd'hui du patron est "
 "d'activer les horloges à haute résolution sur ton Linux."
 
-#: ../src/daemon/main.c:860
+#: ../src/daemon/main.c:896
 msgid "pa_core_new() failed."
 msgstr "Échec de pa_core_new()."
 
-#: ../src/daemon/main.c:921
+#: ../src/daemon/main.c:957
 msgid "Failed to initialize daemon."
 msgstr "Échec lors de l'initialisation du démon"
 
-#: ../src/daemon/main.c:926
+#: ../src/daemon/main.c:962
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "Démarrage du démon sans aucun module chargé : refus de fonctionner."
 
-#: ../src/daemon/main.c:931
+#: ../src/daemon/main.c:967
 #, c-format
 msgid "Default sink name (%s) does not exist in name register."
 msgstr ""
 "Le nom de la destination par défaut (%s) n'existe pas dans le registre des "
 "noms."
 
-#: ../src/daemon/main.c:944
+#: ../src/daemon/main.c:980
 msgid "Daemon startup complete."
 msgstr "Démarrage du démon effectué."
 
-#: ../src/daemon/main.c:950
+#: ../src/daemon/main.c:986
 msgid "Daemon shutdown initiated."
 msgstr "Fermeture du démon initiée."
 
-#: ../src/daemon/main.c:971
+#: ../src/daemon/main.c:1007
 msgid "Daemon terminated."
 msgstr "Démon terminé."
 
-#: ../src/daemon/cmdline.c:117
-#, c-format
+#: ../src/daemon/cmdline.c:123
+#, fuzzy, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -451,7 +440,8 @@ msgid ""
 "      --start                           Start the daemon if it is not "
 "running\n"
 "  -k  --kill                            Kill a running daemon\n"
-"      --check                           Check for a running daemon\n"
+"      --check                           Check for a running daemon (only "
+"returns exit code)\n"
 "\n"
 "OPTIONS:\n"
 "      --system[=BOOL]                   Run as system-wide instance\n"
@@ -481,6 +471,10 @@ msgid ""
 "      --log-level[=LEVEL]               Increase or set verbosity level\n"
 "  -v                                    Increase the verbosity level\n"
 "      --log-target={auto,syslog,stderr} Specify the log target\n"
+"      --log-meta[=BOOL]                 Include code location in log "
+"messages\n"
+"      --log-time[=BOOL]                 Include timestamps in log messages\n"
+"      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
 "  -p, --dl-search-path=PATH             Set the search path for dynamic "
 "shared\n"
 "                                        objects (plugins)\n"
@@ -585,15 +579,15 @@ msgstr ""
 "  -n                                    Ne pas charger les fichiers de "
 "scripts par défaut\n"
 
-#: ../src/daemon/cmdline.c:245
+#: ../src/daemon/cmdline.c:254
 msgid "--daemonize expects boolean argument"
 msgstr "--daemonize requiert un paramètre booléen"
 
-#: ../src/daemon/cmdline.c:252
+#: ../src/daemon/cmdline.c:261
 msgid "--fail expects boolean argument"
 msgstr "--fail requiert un paramètre booléen"
 
-#: ../src/daemon/cmdline.c:262
+#: ../src/daemon/cmdline.c:271
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
@@ -601,45 +595,54 @@ msgstr ""
 "--log-level requiert un paramètre de niveau de journal (soit numérique entre "
 "0 et 4, soit de débogage : info, notice, warn , error)."
 
-#: ../src/daemon/cmdline.c:274
+#: ../src/daemon/cmdline.c:283
 msgid "--high-priority expects boolean argument"
 msgstr "--high-priority requiert un paramètre booléen"
 
-#: ../src/daemon/cmdline.c:281
+#: ../src/daemon/cmdline.c:290
 msgid "--realtime expects boolean argument"
 msgstr "--realtime requiert un paramètre booléen"
 
-#: ../src/daemon/cmdline.c:288
+#: ../src/daemon/cmdline.c:297
 msgid "--disallow-module-loading expects boolean argument"
 msgstr "--disallow-module-loading requiert un paramètre booléen"
 
-#: ../src/daemon/cmdline.c:295
+#: ../src/daemon/cmdline.c:304
 msgid "--disallow-exit boolean argument"
 msgstr "--disallow-exit requiert un paramètre booléen"
 
-#: ../src/daemon/cmdline.c:302
+#: ../src/daemon/cmdline.c:311
 msgid "--use-pid-file expects boolean argument"
 msgstr "--use-pid-file requiert un paramètre booléen"
 
-#: ../src/daemon/cmdline.c:319
+#: ../src/daemon/cmdline.c:328
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
-msgstr ""
-"Cible du journal invalide : utilisez « syslog », « stderr » ou « auto »."
+msgstr "Cible du journal invalide : utilisez « syslog », « stderr » ou « auto »."
 
-#: ../src/daemon/cmdline.c:338
+#: ../src/daemon/cmdline.c:335
+#, fuzzy
+msgid "--log-time boolean argument"
+msgstr "--disallow-exit requiert un paramètre booléen"
+
+#: ../src/daemon/cmdline.c:342
+#, fuzzy
+msgid "--log-meta boolean argument"
+msgstr "--disallow-exit requiert un paramètre booléen"
+
+#: ../src/daemon/cmdline.c:365
 #, c-format
 msgid "Invalid resample method '%s'."
 msgstr "Méthode de rééchantillonnage invalide « %s »."
 
-#: ../src/daemon/cmdline.c:345
+#: ../src/daemon/cmdline.c:372
 msgid "--system expects boolean argument"
 msgstr "--system requiert un paramètre booléen"
 
-#: ../src/daemon/cmdline.c:352
+#: ../src/daemon/cmdline.c:379
 msgid "--no-cpu-limit expects boolean argument"
 msgstr "--no-cpu-limit requiert un paramètre booléen"
 
-#: ../src/daemon/cmdline.c:359
+#: ../src/daemon/cmdline.c:386
 msgid "--disable-shm expects boolean argument"
 msgstr "--disable-shm requiert un paramètre booléen"
 
@@ -684,73 +687,74 @@ msgid "Path: %s\n"
 msgstr "Chemin : %s\n"
 
 # dans les lignes suivantes [%s = nom de fichier: %u = ligne dans celui-ci]
-#: ../src/daemon/daemon-conf.c:205
+#: ../src/daemon/daemon-conf.c:208
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
 msgstr "[%s:%u] Cible du journal « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:221
+#: ../src/daemon/daemon-conf.c:224
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
 msgstr "[%s:%u] Niveau du journal « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:237
+#: ../src/daemon/daemon-conf.c:240
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
 msgstr "[%s:%u] Méthode de rééchantillonnage « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:260
+#: ../src/daemon/daemon-conf.c:263
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
 msgstr "[%s:%u] rlimit « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:267
+#: ../src/daemon/daemon-conf.c:270
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
 msgstr "[%s:%u] rlimit n'est pas pris en charge sur cette plateforme."
 
-#: ../src/daemon/daemon-conf.c:283
+#: ../src/daemon/daemon-conf.c:286
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
 msgstr "[%s:%u] Format d'échantillon « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:301
+#: ../src/daemon/daemon-conf.c:304
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
 msgstr "[%s:%u] Taux d'échantillonnage « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:319
+#: ../src/daemon/daemon-conf.c:322
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "[%s:%u] Canaux d'échantillonnage « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:337
+#: ../src/daemon/daemon-conf.c:340
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
 msgstr "[%s:%u] Nombre de fragments « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:355
+#: ../src/daemon/daemon-conf.c:358
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
 msgstr "[%s:%u] Taille du fragment « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:373
+#: ../src/daemon/daemon-conf.c:376
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Niveau de priorité (nice) « %s » invalide."
 
-#: ../src/daemon/daemon-conf.c:570
+#: ../src/daemon/daemon-conf.c:554
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "Échec lors de l'ouverture du fichier de configuration : %s"
 
-#: ../src/daemon/daemon-conf.c:644
+#: ../src/daemon/daemon-conf.c:628
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### Lecture à partir du fichier de configuration : %s ###\n"
 
 #: ../src/daemon/caps.c:63
-msgid "Dropping root priviliges."
+#, fuzzy
+msgid "Dropping root privileges."
 msgstr "Abandon des permissions root."
 
 #: ../src/daemon/caps.c:103
@@ -1086,176 +1090,175 @@ msgstr "waitpid() : %s"
 msgid "Received message for unknown extension '%s'"
 msgstr "Message reçu pour une extension inconnue « %s »"
 
-#: ../src/utils/pacat.c:93
+#: ../src/utils/pacat.c:94
 #, c-format
 msgid "pa_stream_write() failed: %s\n"
 msgstr "Échec de pa_stream_write() : %s\n"
 
-#: ../src/utils/pacat.c:132
+#: ../src/utils/pacat.c:133
 #, c-format
 msgid "pa_stream_peek() failed: %s\n"
 msgstr "Échec de pa_stream_peek() : %s\n"
 
-#: ../src/utils/pacat.c:141
+#: ../src/utils/pacat.c:142
 #, c-format
 msgid "Buffer overrun, dropping incoming data\n"
 msgstr "Saturation du tampon, abandon des données entrantes\n"
 
-#: ../src/utils/pacat.c:143
+#: ../src/utils/pacat.c:144
 #, c-format
 msgid "pa_stream_drop() failed: %s\n"
 msgstr "Échec de pa_stream_drop() : %s\n"
 
-#: ../src/utils/pacat.c:169
+#: ../src/utils/pacat.c:170
 #, c-format
 msgid "Stream successfully created.\n"
 msgstr "Création du flux réussie.\n"
 
-#: ../src/utils/pacat.c:172
+#: ../src/utils/pacat.c:173
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s\n"
 msgstr "Échec de pa_stream_get_buffer_attr() : %s\n"
 
-#: ../src/utils/pacat.c:176
+#: ../src/utils/pacat.c:177
 #, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
 msgstr "Mesures du tampon : maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
 
-#: ../src/utils/pacat.c:179
+#: ../src/utils/pacat.c:180
 #, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u\n"
 msgstr "Mesures du tampon : maxlength=%u, fragsize=%u\n"
 
-#: ../src/utils/pacat.c:183
+#: ../src/utils/pacat.c:184
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'.\n"
 msgstr ""
-"Utilisation de la spécification d'échantillon « %s », plan des canaux « %"
-"s ».\n"
+"Utilisation de la spécification d'échantillon « %s », plan des canaux « %s ».\n"
 
 # l'espace manquant entre %s et suspended est voulu
-#: ../src/utils/pacat.c:187
+#: ../src/utils/pacat.c:188
 #, c-format
 msgid "Connected to device %s (%u, %ssuspended).\n"
 msgstr "Connecté au périphérique %s (%u, %ssuspendu).\n"
 
-#: ../src/utils/pacat.c:197
+#: ../src/utils/pacat.c:198
 #, c-format
 msgid "Stream error: %s\n"
 msgstr "Erreur du flux : %s\n"
 
-#: ../src/utils/pacat.c:207
+#: ../src/utils/pacat.c:208
 #, c-format
 msgid "Stream device suspended.%s \n"
 msgstr "Périphérique de flux suspendu %s \n"
 
-#: ../src/utils/pacat.c:209
+#: ../src/utils/pacat.c:210
 #, c-format
 msgid "Stream device resumed.%s \n"
 msgstr "Périphérique de flux repris %s \n"
 
-#: ../src/utils/pacat.c:217
+#: ../src/utils/pacat.c:218
 #, c-format
 msgid "Stream underrun.%s \n"
 msgstr "Flux vide %s \n"
 
-#: ../src/utils/pacat.c:224
+#: ../src/utils/pacat.c:225
 #, c-format
 msgid "Stream overrun.%s \n"
 msgstr "Flux saturé %s \n"
 
-#: ../src/utils/pacat.c:231
+#: ../src/utils/pacat.c:232
 #, c-format
 msgid "Stream started.%s \n"
 msgstr "Flux démarré %s \n"
 
-#: ../src/utils/pacat.c:238
+#: ../src/utils/pacat.c:239
 #, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s \n"
 msgstr "Flux déplacé vers le périphérique %s (%u, %ssuspendu).%s \n"
 
 # suspendu ou non suspendu
-#: ../src/utils/pacat.c:238
+#: ../src/utils/pacat.c:239
 msgid "not "
 msgstr "non "
 
-#: ../src/utils/pacat.c:259
+#: ../src/utils/pacat.c:260
 #, c-format
 msgid "Connection established.%s \n"
 msgstr "Connection établie.%s \n"
 
-#: ../src/utils/pacat.c:262
+#: ../src/utils/pacat.c:263
 #, c-format
 msgid "pa_stream_new() failed: %s\n"
 msgstr "Échec de pa_stream_new() : %s\n"
 
-#: ../src/utils/pacat.c:287
+#: ../src/utils/pacat.c:288
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s\n"
 msgstr "Échec de pa_stream_connect_playback() : %s\n"
 
-#: ../src/utils/pacat.c:293
+#: ../src/utils/pacat.c:294
 #, c-format
 msgid "pa_stream_connect_record() failed: %s\n"
 msgstr "Échec de pa_stream_connect_record() : %s\n"
 
-#: ../src/utils/pacat.c:307 ../src/utils/pasuspender.c:159
+#: ../src/utils/pacat.c:308 ../src/utils/pasuspender.c:159
 #: ../src/utils/pactl.c:666 ../src/utils/paplay.c:183
 #, c-format
 msgid "Connection failure: %s\n"
 msgstr "Échec lors de la connexion : %s\n"
 
-#: ../src/utils/pacat.c:328 ../src/utils/paplay.c:75
+#: ../src/utils/pacat.c:329 ../src/utils/paplay.c:75
 #, c-format
 msgid "Failed to drain stream: %s\n"
 msgstr "Échec lors du vidage du flux : %s\n"
 
-#: ../src/utils/pacat.c:333 ../src/utils/paplay.c:80
+#: ../src/utils/pacat.c:334 ../src/utils/paplay.c:80
 #, c-format
 msgid "Playback stream drained.\n"
 msgstr "Flux de lecture vidé.\n"
 
-#: ../src/utils/pacat.c:343 ../src/utils/paplay.c:92
+#: ../src/utils/pacat.c:344 ../src/utils/paplay.c:92
 #, c-format
 msgid "Draining connection to server.\n"
 msgstr "Vidage de la connexion au serveur.\n"
 
-#: ../src/utils/pacat.c:369
+#: ../src/utils/pacat.c:370
 #, c-format
 msgid "Got EOF.\n"
 msgstr "EOF obtenu.\n"
 
-#: ../src/utils/pacat.c:375
+#: ../src/utils/pacat.c:376
 #, c-format
 msgid "pa_stream_drain(): %s\n"
 msgstr "pa_stream_drain() : %s\n"
 
-#: ../src/utils/pacat.c:385
+#: ../src/utils/pacat.c:386
 #, c-format
 msgid "read() failed: %s\n"
 msgstr "Échec de read() : %s\n"
 
-#: ../src/utils/pacat.c:417
+#: ../src/utils/pacat.c:418
 #, c-format
 msgid "write() failed: %s\n"
 msgstr "Échec de write() : %s\n"
 
-#: ../src/utils/pacat.c:438
+#: ../src/utils/pacat.c:439
 #, c-format
 msgid "Got signal, exiting.\n"
 msgstr "Signal obtenu, fermeture.\n"
 
-#: ../src/utils/pacat.c:452
+#: ../src/utils/pacat.c:453
 #, c-format
 msgid "Failed to get latency: %s\n"
 msgstr "Échec lors de l'obtention de la latence : %s\n"
 
-#: ../src/utils/pacat.c:457
+#: ../src/utils/pacat.c:458
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr "Durée : %0.3f s ; Latency : %0.0f µs.  \r"
 
-#: ../src/utils/pacat.c:477
+#: ../src/utils/pacat.c:478
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s\n"
 msgstr "Échec de pa_stream_update_timing_info() : %s\n"
@@ -1263,7 +1266,7 @@ msgstr "Échec de pa_stream_update_timing_info() : %s\n"
 # downmix = par ex. convertir 5 canaux en 2 canaux
 # upmixer = par ex. convertir 2 canaux en 5 canaux
 # https://bugzilla.redhat.com/show_bug.cgi?id=460798
-#: ../src/utils/pacat.c:490
+#: ../src/utils/pacat.c:491
 #, c-format
 msgid ""
 "%s [options]\n"
@@ -1322,7 +1325,8 @@ msgstr ""
 "\n"
 "  -r, --record                          Crée une connexion pour "
 "l'enregistrement\n"
-"  -p, --playback                        Crée une connexion pour la relecture\n"
+"  -p, --playback                        Crée une connexion pour la "
+"relecture\n"
 "\n"
 "  -v, --verbose                         Active le mode verbeux\n"
 "\n"
@@ -1366,7 +1370,7 @@ msgstr ""
 "      --process-time=OCTETS             Demande le temps de traitement "
 "indiqué par requête en octets.\n"
 
-#: ../src/utils/pacat.c:591
+#: ../src/utils/pacat.c:592
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1377,88 +1381,88 @@ msgstr ""
 "Compilé avec libpulse %s\n"
 "Lié avec libpulse %s\n"
 
-#: ../src/utils/pacat.c:647
+#: ../src/utils/pacat.c:649
 #, c-format
 msgid "Invalid channel map '%s'\n"
 msgstr "Plan des canaux invalide « %s »\n"
 
-#: ../src/utils/pacat.c:676
+#: ../src/utils/pacat.c:678
 #, c-format
 msgid "Invalid latency specification '%s'\n"
 msgstr "Spécification de latence invalide « %s »\n"
 
-#: ../src/utils/pacat.c:683
+#: ../src/utils/pacat.c:685
 #, c-format
 msgid "Invalid process time specification '%s'\n"
 msgstr "Spécification de temps de traitement invalide « %s »\n"
 
-#: ../src/utils/pacat.c:694
+#: ../src/utils/pacat.c:696
 #, c-format
 msgid "Invalid sample specification\n"
 msgstr "Spécification d'échantillon invalide\n"
 
-#: ../src/utils/pacat.c:699
+#: ../src/utils/pacat.c:701
 #, c-format
 msgid "Channel map doesn't match sample specification\n"
 msgstr ""
 "Le plan des canaux ne correspond pas à la spécification d'échantillon\n"
 
-#: ../src/utils/pacat.c:706
+#: ../src/utils/pacat.c:708
 #, c-format
 msgid "Opening a %s stream with sample specification '%s'.\n"
 msgstr "Ouverture d'un flux %s avec une spécification d'échantillon « %s ».\n"
 
-#: ../src/utils/pacat.c:706
+#: ../src/utils/pacat.c:708
 msgid "recording"
 msgstr "enregistrement"
 
-#: ../src/utils/pacat.c:706
+#: ../src/utils/pacat.c:708
 msgid "playback"
 msgstr "lecture"
 
-#: ../src/utils/pacat.c:714
+#: ../src/utils/pacat.c:716
 #, c-format
 msgid "open(): %s\n"
 msgstr "open() : %s\n"
 
-#: ../src/utils/pacat.c:719
+#: ../src/utils/pacat.c:721
 #, c-format
 msgid "dup2(): %s\n"
 msgstr "dup2() : %s\n"
 
-#: ../src/utils/pacat.c:729
+#: ../src/utils/pacat.c:731
 #, c-format
 msgid "Too many arguments.\n"
 msgstr "Trop de paramètres.\n"
 
-#: ../src/utils/pacat.c:742 ../src/utils/pasuspender.c:280
+#: ../src/utils/pacat.c:744 ../src/utils/pasuspender.c:280
 #: ../src/utils/pactl.c:909 ../src/utils/paplay.c:381
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
 msgstr "Échec de pa_mainloop_new().\n"
 
-#: ../src/utils/pacat.c:763
+#: ../src/utils/pacat.c:765
 #, c-format
 msgid "io_new() failed.\n"
 msgstr "Échec de io_new().\n"
 
-#: ../src/utils/pacat.c:769 ../src/utils/pasuspender.c:293
+#: ../src/utils/pacat.c:771 ../src/utils/pasuspender.c:293
 #: ../src/utils/pactl.c:923 ../src/utils/paplay.c:396
 #, c-format
 msgid "pa_context_new() failed.\n"
 msgstr "Échec de pa_context_new().\n"
 
-#: ../src/utils/pacat.c:777
+#: ../src/utils/pacat.c:779
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "Échec de pa_context_connect() : %s"
 
-#: ../src/utils/pacat.c:788
+#: ../src/utils/pacat.c:790
 #, c-format
 msgid "time_new() failed.\n"
 msgstr "Échec de time_new().\n"
 
-#: ../src/utils/pacat.c:795 ../src/utils/pasuspender.c:301
+#: ../src/utils/pacat.c:797 ../src/utils/pasuspender.c:301
 #: ../src/utils/pactl.c:931 ../src/utils/paplay.c:407
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
@@ -2177,6 +2181,23 @@ msgstr "Utilisation de la spécification de l'échantillon « %s »\n"
 #: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
 msgid "Cannot access autospawn lock."
 msgstr "Impossible d'accèder au verrou autonome."
+
+#~ msgid ""
+#~ "' and PolicyKit refuse to grant us priviliges. Dropping SUID again.\n"
+#~ "For enabling real-time scheduling please acquire the appropriate "
+#~ "PolicyKit priviliges, or become a member of '"
+#~ msgstr ""
+#~ " et PolicyKit refuse de nous accorder les permissions. Abandon du SUID à "
+#~ "nouveau.\n"
+#~ "Pour activer la planification en temps réel, veuillez aquérir les "
+#~ "permissions PolicyKit appropriées, ou devenez membre de "
+
+#~ msgid ""
+#~ "', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this "
+#~ "user."
+#~ msgstr ""
+#~ ", ou augmentez les limites de ressource RLIMIT_NICE/RLIMIT_RTPRIO pour "
+#~ "cet utilisateur."
 
 #~ msgid "socketpair(): %s"
 #~ msgstr "socketpair() : %s"
