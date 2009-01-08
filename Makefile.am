@@ -56,7 +56,7 @@ fedora-snapshot: dist
 
 dist-hook:
 	if test -d .git ; then \
-		git pull ; \
+		test -z $$SKIP_GIT && git pull ; \
 		chmod u+w ${distdir}/ChangeLog || true ; \
 		( git-changelog.perl || echo "git-changelog.perl failed." ) > ${distdir}/ChangeLog 2>&1 ; \
 	fi
