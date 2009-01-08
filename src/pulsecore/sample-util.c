@@ -28,6 +28,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 
 #include <liboil/liboilfuncs.h>
 #include <liboil/liboil.h>
@@ -35,6 +36,7 @@
 #include <pulse/timeval.h>
 
 #include <pulsecore/log.h>
+#include <pulsecore/core-error.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/g711.h>
 
@@ -478,7 +480,6 @@ size_t pa_mix(
 
         case PA_SAMPLE_FLOAT32RE: {
             unsigned channel = 0;
-            float linear[PA_CHANNELS_MAX];
 
             calc_linear_float_stream_volumes(streams, nstreams, volume, spec);
 
