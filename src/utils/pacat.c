@@ -139,17 +139,16 @@ static void stream_read_callback(pa_stream *s, size_t length, void *userdata) {
     assert(length > 0);
 
     if (buffer) {
-        fprintf(stderr, _("Buffer overrun, dropping incoming data\n"));
-        if (pa_stream_drop(s) < 0) {
-            fprintf(stderr, _("pa_stream_drop() failed: %s\n"), pa_strerror(pa_context_errno(context)));
-            quit(1);
-        }
-        return;
+        buffer = pa_xrealloc(buffer, buffer_length + length);
+        memcpy((uint8_t*) buffer + buffer_length, data, length);
+        buffer_length += length;
+    } else {
+        buffer = pa_xmalloc(length);
+        memcpy(buffer, data, length);
+        buffer_length = length;
+        buffer_index = 0;
     }
 
-    buffer = pa_xmalloc(buffer_length = length);
-    memcpy(buffer, data, length);
-    buffer_index = 0;
     pa_stream_drop(s);
 }
 
