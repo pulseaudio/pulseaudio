@@ -2487,3 +2487,27 @@ pa_bool_t pa_in_valgrind(void) {
     return b > 1;
 }
 #endif
+
+unsigned pa_gcd(unsigned a, unsigned b) {
+
+    while (b > 0) {
+        unsigned t = b;
+        b = a % b;
+        a = t;
+    }
+
+    return a;
+}
+
+void pa_reduce(unsigned *num, unsigned *den) {
+
+    unsigned gcd = pa_gcd(*num, *den);
+
+    if (gcd <= 0)
+        return;
+
+    *num /= gcd;
+    *den /= gcd;
+
+    pa_assert(pa_gcd(*num, *den) == 1);
+}

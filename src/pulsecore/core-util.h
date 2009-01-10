@@ -206,4 +206,7 @@ static inline pa_bool_t pa_in_valgrind(void) {
 }
 #endif
 
+unsigned pa_gcd(unsigned a, unsigned b);
+void pa_reduce(unsigned *num, unsigned *den);
+
 #endif
