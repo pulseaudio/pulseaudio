@@ -711,11 +711,12 @@ pa_mempool* pa_mempool_new(pa_bool_t shared, size_t size) {
         return NULL;
     }
 
-    pa_log_debug("Using %s memory pool with %u slots of size %s each, total size is %s",
+    pa_log_debug("Using %s memory pool with %u slots of size %s each, total size is %s, maximum usable slot size is %lu",
                  p->memory.shared ? "shared" : "private",
                  p->n_blocks,
                  pa_bytes_snprint(t1, sizeof(t1), (unsigned) p->block_size),
-                 pa_bytes_snprint(t2, sizeof(t2), (unsigned) (p->n_blocks * p->block_size)));
+                 pa_bytes_snprint(t2, sizeof(t2), (unsigned) (p->n_blocks * p->block_size)),
+                 (unsigned long) pa_mempool_block_size_max(p));
 
     memset(&p->stat, 0, sizeof(p->stat));
     pa_atomic_store(&p->n_init, 0);
