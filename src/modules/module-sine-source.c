@@ -129,7 +129,7 @@ static void source_update_requested_latency_cb(pa_source *s) {
     if (u->block_usec == (pa_usec_t) -1)
         u->block_usec = s->thread_info.max_latency;
 
-    pa_log("new block msec = %lu", (unsigned long) (u->block_usec / PA_USEC_PER_MSEC));
+    pa_log_debug("new block msec = %lu", (unsigned long) (u->block_usec / PA_USEC_PER_MSEC));
 }
 
 static void process_render(struct userdata *u, pa_usec_t now) {
@@ -147,7 +147,6 @@ static void process_render(struct userdata *u, pa_usec_t now) {
 
         pa_log_debug("posting %lu", (unsigned long) chunk.length);
         pa_source_post(u->source, &chunk);
-        pa_memchunk_dump_to_file(&chunk, "sine");
 
         u->peek_index += chunk.length;
         while (u->peek_index >= u->memchunk.length)
@@ -208,7 +207,7 @@ static void calc_sine(float *f, size_t l, double freq) {
     l /= sizeof(float);
 
     for (i = 0; i < l; i++)
-        f[i] = (float) sin((double) i/(double)l*M_PI*2*freq)/2;
+        *(f++) = (float) 0.5f * sin((double) i*M_PI*2*freq / (double) l);
 }
 
 int pa__init(pa_module*m) {
@@ -218,6 +217,8 @@ int pa__init(pa_module*m) {
     uint32_t frequency;
     pa_sample_spec ss;
     void *p;
+    unsigned n, d;
+    size_t l;
 
     pa_assert(m);
 
@@ -249,12 +250,22 @@ int pa__init(pa_module*m) {
 
     u->peek_index = 0;
     pa_memchunk_reset(&u->memchunk);
-    u->memchunk.memblock = pa_memblock_new(m->core->mempool, (size_t) -1);
-    u->memchunk.length = pa_frame_align(pa_memblock_get_length(u->memchunk.memblock), &ss);
+
+    n = ss.rate;
+    d = frequency;
+    pa_reduce(&n, &d);
+
+    l = pa_mempool_block_size_max(m->core->mempool) / pa_frame_size(&ss);
+
+    l /= n;
+    if (l <= 0) l = 1;
+    l *= n;
+
+    u->memchunk.length = l * pa_frame_size(&ss);
+    u->memchunk.memblock = pa_memblock_new(m->core->mempool, u->memchunk.length);
 
     p = pa_memblock_acquire(u->memchunk.memblock);
-    calc_sine(p, u->memchunk.length,
-              (double) frequency * (double) pa_bytes_to_usec(u->memchunk.length, &ss) / (double) PA_USEC_PER_SEC);
+    calc_sine(p, u->memchunk.length, pa_bytes_to_usec(u->memchunk.length, &ss) * frequency / PA_USEC_PER_SEC);
     pa_memblock_release(u->memchunk.memblock);
 
     pa_source_new_data_init(&data);
