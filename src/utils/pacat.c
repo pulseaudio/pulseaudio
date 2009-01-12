@@ -278,6 +278,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
                 buffer_attr.minreq = (uint32_t) process_time;
                 buffer_attr.maxlength = (uint32_t) -1;
                 buffer_attr.prebuf = (uint32_t) -1;
+                buffer_attr.fragsize = (uint32_t) latency;
                 flags |= PA_STREAM_ADJUST_LATENCY;
             }
 
