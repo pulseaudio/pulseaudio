@@ -172,7 +172,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                 (o->context->version >= 13 &&
                  (pa_tagstruct_get_proplist(t, i.proplist) < 0 ||
                   pa_tagstruct_get_usec(t, &i.configured_latency) < 0)) ||
-                (o->context->version >= 14 &&
+                (o->context->version >= 15 &&
                  pa_tagstruct_get_volume(t, &i.base_volume) < 0)) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
@@ -296,7 +296,7 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                 (o->context->version >= 13 &&
                  (pa_tagstruct_get_proplist(t, i.proplist) < 0 ||
                   pa_tagstruct_get_usec(t, &i.configured_latency) < 0)) ||
-                (o->context->version >= 14 &&
+                (o->context->version >= 15 &&
                  pa_tagstruct_get_volume(t, &i.base_volume) < 0)) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
