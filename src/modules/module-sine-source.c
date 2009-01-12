@@ -141,11 +141,11 @@ static void process_render(struct userdata *u, pa_usec_t now) {
 
         k = pa_usec_to_bytes_round_up(now + u->block_usec - u->timestamp, &u->source->sample_spec);
 
-        chunk.memblock = u->memchunk.memblock;
-        chunk.index = u->peek_index;
-        chunk.length = PA_MIN(u->memchunk.length - u->peek_index, k);
+        chunk = u->memchunk;
+        chunk.index += u->peek_index;
+        chunk.length = PA_MIN(chunk.length - u->peek_index, k);
 
-        pa_log_debug("posting %lu", (unsigned long) chunk.length);
+/*         pa_log_debug("posting %lu", (unsigned long) chunk.length); */
         pa_source_post(u->source, &chunk);
 
         u->peek_index += chunk.length;
@@ -216,9 +216,6 @@ int pa__init(pa_module*m) {
     pa_source_new_data data;
     uint32_t frequency;
     pa_sample_spec ss;
-    void *p;
-    unsigned n, d;
-    size_t l;
 
     pa_assert(m);
 
@@ -249,24 +246,7 @@ int pa__init(pa_module*m) {
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
     u->peek_index = 0;
-    pa_memchunk_reset(&u->memchunk);
-
-    n = ss.rate;
-    d = frequency;
-    pa_reduce(&n, &d);
-
-    l = pa_mempool_block_size_max(m->core->mempool) / pa_frame_size(&ss);
-
-    l /= n;
-    if (l <= 0) l = 1;
-    l *= n;
-
-    u->memchunk.length = l * pa_frame_size(&ss);
-    u->memchunk.memblock = pa_memblock_new(m->core->mempool, u->memchunk.length);
-
-    p = pa_memblock_acquire(u->memchunk.memblock);
-    calc_sine(p, u->memchunk.length, pa_bytes_to_usec(u->memchunk.length, &ss) * frequency / PA_USEC_PER_SEC);
-    pa_memblock_release(u->memchunk.memblock);
+    pa_memchunk_sine(&u->memchunk, m->core->mempool, ss.rate, frequency);
 
     pa_source_new_data_init(&data);
     data.driver = __FILE__;

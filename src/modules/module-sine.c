@@ -49,7 +49,7 @@ struct userdata {
     pa_core *core;
     pa_module *module;
     pa_sink_input *sink_input;
-    pa_memblock *memblock;
+    pa_memchunk memchunk;
     size_t peek_index;
 };
 
@@ -66,9 +66,11 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     pa_assert_se(u = i->userdata);
     pa_assert(chunk);
 
-    chunk->memblock = pa_memblock_ref(u->memblock);
-    chunk->length = pa_memblock_get_length(u->memblock) - u->peek_index;
-    chunk->index = u->peek_index;
+    *chunk = u->memchunk;
+    pa_memblock_ref(chunk->memblock);
+
+    chunk->index += u->peek_index;
+    chunk->length -= u->peek_index;
 
     u->peek_index = 0;
 
@@ -76,19 +78,17 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 }
 
 static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
-    size_t l;
     struct userdata *u;
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    l = pa_memblock_get_length(u->memblock);
-    nbytes %= l;
+    nbytes %= u->memchunk.length;
 
     if (u->peek_index >= nbytes)
         u->peek_index -= nbytes;
     else
-        u->peek_index = l + u->peek_index - nbytes;
+        u->peek_index = u->memchunk.length + u->peek_index - nbytes;
 }
 
 static void sink_input_kill_cb(pa_sink_input *i) {
@@ -118,22 +118,12 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
         pa_sink_input_request_rewind(i, 0, FALSE, TRUE);
 }
 
-static void calc_sine(float *f, size_t l, double freq) {
-    size_t i;
-
-    l /= sizeof(float);
-
-    for (i = 0; i < l; i++)
-        f[i] = (float) sin((double) i/(double)l*M_PI*2*freq)/2;
-}
-
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
     pa_sink *sink;
     pa_sample_spec ss;
     uint32_t frequency;
-    void *p;
     pa_sink_input_new_data data;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -141,14 +131,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    m->userdata = u = pa_xnew0(struct userdata, 1);
-    u->core = m->core;
-    u->module = m;
-    u->sink_input = NULL;
-    u->memblock = NULL;
-    u->peek_index = 0;
-
-    if (!(sink = pa_namereg_get(m->core, pa_modargs_get_value(ma, "sink", NULL), PA_NAMEREG_SINK, 1))) {
+    if (!(sink = pa_namereg_get(m->core, pa_modargs_get_value(ma, "sink", NULL), PA_NAMEREG_SINK, TRUE))) {
         pa_log("No such sink.");
         goto fail;
     }
@@ -163,19 +146,22 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u->memblock = pa_memblock_new(m->core->mempool, pa_bytes_per_second(&ss));
-    p = pa_memblock_acquire(u->memblock);
-    calc_sine(p, pa_memblock_get_length(u->memblock), (double) frequency);
-    pa_memblock_release(u->memblock);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
+    u->core = m->core;
+    u->module = m;
+    u->sink_input = NULL;
+
+    u->peek_index = 0;
+    pa_memchunk_sine(&u->memchunk, m->core->mempool, ss.rate, frequency);
 
     pa_sink_input_new_data_init(&data);
-    data.sink = sink;
     data.driver = __FILE__;
+    data.module = m;
+    data.sink = sink;
     pa_proplist_setf(data.proplist, PA_PROP_MEDIA_NAME, "%u Hz Sine", frequency);
     pa_proplist_sets(data.proplist, PA_PROP_MEDIA_ROLE, "abstract");
     pa_proplist_setf(data.proplist, "sine.hz", "%u", frequency);
     pa_sink_input_new_data_set_sample_spec(&data, &ss);
-    data.module = m;
 
     u->sink_input = pa_sink_input_new(m->core, &data, 0);
     pa_sink_input_new_data_done(&data);
@@ -215,8 +201,8 @@ void pa__done(pa_module*m) {
         pa_sink_input_unref(u->sink_input);
     }
 
-    if (u->memblock)
-        pa_memblock_unref(u->memblock);
+    if (u->memchunk.memblock)
+        pa_memblock_unref(u->memchunk.memblock);
 
     pa_xfree(u);
 }
