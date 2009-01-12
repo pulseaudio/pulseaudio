@@ -24,7 +24,7 @@ AC_PREREQ(2.62)
 
 m4_define(PA_MAJOR, [0])
 m4_define(PA_MINOR, [9])
-m4_define(PA_MICRO, [13])
+m4_define(PA_MICRO, [14])
 
 AC_INIT([pulseaudio],[PA_MAJOR.PA_MINOR.PA_MICRO],[mzchyfrnhqvb (at) 0pointer (dot) net])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
@@ -40,7 +40,7 @@ AC_SUBST(PA_PROTOCOL_VERSION, 14)
 
 # The stable ABI for client applications, for the version info x:y:z
 # always will hold y=z
-AC_SUBST(LIBPULSE_VERSION_INFO, [7:0:7])
+AC_SUBST(LIBPULSE_VERSION_INFO, [7:1:7])
 
 # A simplified, synchronous, ABI-stable interface for client
 # applications, for the version info x:y:z always will hold y=z
@@ -57,7 +57,7 @@ AC_SUBST(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO, [0:4:0])
 # An internally used, ABI-unstable library that contains the
 # PulseAudio core, SONAMEs are bumped on every release, version info
 # suffix will always be 0:0
-AC_SUBST(LIBPULSECORE_VERSION_INFO, [8:0:0])
+AC_SUBST(LIBPULSECORE_VERSION_INFO, [9:0:0])
 
 AC_CANONICAL_HOST
 AC_DEFINE_UNQUOTED([CANONICAL_HOST], "$host", [Canonical host string.])
