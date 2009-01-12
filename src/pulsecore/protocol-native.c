@@ -3933,7 +3933,7 @@ static void command_suspend(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, !name || pa_namereg_is_valid_name(name), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !name || pa_namereg_is_valid_name(name) || *name == 0, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx == PA_INVALID_INDEX || !name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, !name || idx == PA_INVALID_INDEX, tag, PA_ERR_INVALID);
@@ -3941,6 +3941,8 @@ static void command_suspend(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa
     if (command == PA_COMMAND_SUSPEND_SINK) {
 
         if (idx == PA_INVALID_INDEX && name && !*name) {
+
+            pa_log_debug("%s all sinks", b ? "Suspending" : "Resuming");
 
             if (pa_sink_suspend_all(c->protocol->core, b) < 0) {
                 pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
@@ -3966,6 +3968,8 @@ static void command_suspend(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa
         pa_assert(command == PA_COMMAND_SUSPEND_SOURCE);
 
         if (idx == PA_INVALID_INDEX && name && !*name) {
+
+            pa_log_debug("%s all sources", b ? "Suspending" : "Resuming");
 
             if (pa_source_suspend_all(c->protocol->core, b) < 0) {
                 pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
