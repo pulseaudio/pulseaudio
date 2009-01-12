@@ -39,6 +39,7 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/g711.h>
+#include <pulsecore/core-util.h>
 
 #include "sample-util.h"
 #include "endianmacros.h"
@@ -1014,4 +1015,37 @@ void pa_memchunk_dump_to_file(pa_memchunk *c, const char *fn) {
     pa_memblock_release(c->memblock);
 
     fclose(f);
+}
+
+static void calc_sine(float *f, size_t l, double freq) {
+    size_t i;
+
+    l /= sizeof(float);
+
+    for (i = 0; i < l; i++)
+        *(f++) = (float) 0.5f * sin((double) i*M_PI*2*freq / (double) l);
+}
+
+void pa_memchunk_sine(pa_memchunk *c, pa_mempool *pool, unsigned rate, unsigned freq) {
+    size_t l;
+    unsigned gcd, n;
+    void *p;
+
+    pa_memchunk_reset(c);
+
+    gcd = pa_gcd(rate, freq);
+    n = rate / gcd;
+
+    l = pa_mempool_block_size_max(pool) / sizeof(float);
+
+    l /= n;
+    if (l <= 0) l = 1;
+    l *= n;
+
+    c->length = l * sizeof(float);
+    c->memblock = pa_memblock_new(pool, c->length);
+
+    p = pa_memblock_acquire(c->memblock);
+    calc_sine(p, c->length, freq * l / rate);
+    pa_memblock_release(c->memblock);
 }

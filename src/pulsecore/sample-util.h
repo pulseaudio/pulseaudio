@@ -83,4 +83,6 @@ size_t pa_usec_to_bytes_round_up(pa_usec_t t, const pa_sample_spec *spec);
 
 void pa_memchunk_dump_to_file(pa_memchunk *c, const char *fn);
 
+void pa_memchunk_sine(pa_memchunk *c, pa_mempool *pool, unsigned rate, unsigned freq);
+
 #endif
