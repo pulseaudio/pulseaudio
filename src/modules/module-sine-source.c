@@ -201,15 +201,6 @@ finish:
     pa_log_debug("Thread shutting down");
 }
 
-static void calc_sine(float *f, size_t l, double freq) {
-    size_t i;
-
-    l /= sizeof(float);
-
-    for (i = 0; i < l; i++)
-        *(f++) = (float) 0.5f * sin((double) i*M_PI*2*freq / (double) l);
-}
-
 int pa__init(pa_module*m) {
     struct userdata *u;
     pa_modargs *ma;
