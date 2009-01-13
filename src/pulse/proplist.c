@@ -359,7 +359,7 @@ pa_proplist *pa_proplist_from_string(const char *str) {
             }
 
             blob = pa_xmalloc((size_t)(e-v)/2);
-            if (pa_parsehex(v, blob, (e-v)/2) != ((e-v)/2)) {
+            if (pa_parsehex(v, blob, (e-v)/2) != (size_t)((e-v)/2)) {
                 pa_log("Invalid \"hex:\" value data");
                 pa_xfree(blob);
                 break;

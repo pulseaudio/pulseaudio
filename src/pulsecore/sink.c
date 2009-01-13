@@ -953,6 +953,7 @@ pa_bool_t pa_sink_get_mute(pa_sink *s, pa_bool_t force_refresh) {
     return s->muted;
 }
 
+/* Called from main thread */
 pa_bool_t pa_sink_update_proplist(pa_sink *s, pa_update_mode_t mode, pa_proplist *p) {
 
     pa_sink_assert_ref(s);

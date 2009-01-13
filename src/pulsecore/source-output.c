@@ -592,6 +592,21 @@ void pa_source_output_set_name(pa_source_output *o, const char *name) {
     }
 }
 
+/* Called from main thread */
+pa_bool_t pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode, pa_proplist *p) {
+
+  pa_source_output_assert_ref(o);
+
+  pa_proplist_update(o->proplist, mode, p);
+
+  if (PA_SINK_IS_LINKED(o->state)) {
+    pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], o);
+    pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+  }
+
+  return TRUE;
+}
+
 /* Called from main context */
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o) {
     pa_source_output_assert_ref(o);

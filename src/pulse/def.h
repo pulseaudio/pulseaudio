@@ -428,7 +428,7 @@ typedef enum pa_subscription_event_type {
     PA_SUBSCRIPTION_EVENT_REMOVE = 0x0020U,
     /**< An object was removed */
 
-    PA_SUBSCRIPTION_EVENT_TYPE_MASK = 0x0030U,
+    PA_SUBSCRIPTION_EVENT_TYPE_MASK = 0x0030U
     /**< A mask to extract the event operation from an event value */
 
 } pa_subscription_event_type_t;

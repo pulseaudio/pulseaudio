@@ -294,6 +294,7 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume);
 const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i);
 void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute);
 pa_bool_t pa_sink_input_get_mute(pa_sink_input *i);
+pa_bool_t pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode, pa_proplist *p);
 
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i);
 
