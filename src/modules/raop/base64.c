@@ -45,6 +45,7 @@ static int pos(char c)
     if (c >= '0' && c <= '9') return c - '0' + 52;
     if (c == '+') return 62;
     if (c == '/') return 63;
+    return -1;
 }
 
 int pa_base64_encode(const void *data, int size, char **str)
@@ -97,8 +98,12 @@ static unsigned int token_decode(const char *token)
             marker++;
         else if (marker > 0)
             return DECODE_ERROR;
-        else
-            val += pos(token[i]);
+        else {
+            int lpos = pos(token[i]);
+            if (lpos < 0)
+                return DECODE_ERROR;
+            val += lpos;
+        }
     }
     if (marker > 2)
         return DECODE_ERROR;
