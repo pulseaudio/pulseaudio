@@ -613,7 +613,7 @@ static int update_sw_params(struct userdata *u) {
         pa_usec_t sleep_usec, process_usec;
 
         hw_sleep_time(u, &sleep_usec, &process_usec);
-        avail_min += pa_usec_to_bytes(sleep_usec, &u->sink->sample_spec);
+        avail_min += pa_usec_to_bytes(sleep_usec, &u->sink->sample_spec) / u->frame_size;
     }
 
     pa_log_debug("setting avail_min=%lu", (unsigned long) avail_min);
