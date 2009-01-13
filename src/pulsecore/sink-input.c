@@ -859,6 +859,21 @@ pa_bool_t pa_sink_input_get_mute(pa_sink_input *i) {
     return i->muted;
 }
 
+/* Called from main thread */
+pa_bool_t pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode, pa_proplist *p) {
+
+  pa_sink_input_assert_ref(i);
+
+  pa_proplist_update(i->proplist, mode, p);
+
+  if (PA_SINK_IS_LINKED(i->state)) {
+      pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED], i);
+      pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+  }
+
+  return TRUE;
+}
+
 /* Called from main context */
 void pa_sink_input_cork(pa_sink_input *i, pa_bool_t b) {
     pa_sink_input_assert_ref(i);

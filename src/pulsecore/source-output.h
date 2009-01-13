@@ -209,11 +209,11 @@ pa_source_output* pa_source_output_new(
 void pa_source_output_put(pa_source_output *o);
 void pa_source_output_unlink(pa_source_output*o);
 
-void pa_source_output_set_name(pa_source_output *i, const char *name);
+void pa_source_output_set_name(pa_source_output *o, const char *name);
 
-pa_usec_t pa_source_output_set_requested_latency(pa_source_output *i, pa_usec_t usec);
+pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t usec);
 
-void pa_source_output_cork(pa_source_output *i, pa_bool_t b);
+void pa_source_output_cork(pa_source_output *o, pa_bool_t b);
 
 int pa_source_output_set_rate(pa_source_output *o, uint32_t rate);
 
@@ -222,7 +222,9 @@ int pa_source_output_set_rate(pa_source_output *o, uint32_t rate);
 /* External code may request disconnection with this funcion */
 void pa_source_output_kill(pa_source_output*o);
 
-pa_usec_t pa_source_output_get_latency(pa_source_output *i, pa_usec_t *source_latency);
+pa_usec_t pa_source_output_get_latency(pa_source_output *o, pa_usec_t *source_latency);
+
+pa_bool_t pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode, pa_proplist *p);
 
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o);
 
