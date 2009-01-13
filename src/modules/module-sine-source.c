@@ -96,9 +96,9 @@ static int source_process_msg(
 
     switch (code) {
 
-        case PA_SINK_MESSAGE_SET_STATE:
+        case PA_SOURCE_MESSAGE_SET_STATE:
 
-            if (PA_PTR_TO_UINT(data) == PA_SINK_RUNNING)
+            if (PA_PTR_TO_UINT(data) == PA_SOURCE_RUNNING)
                 u->timestamp = pa_rtclock_usec();
 
             break;
