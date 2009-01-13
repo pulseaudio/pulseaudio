@@ -122,6 +122,9 @@ static int pa_cli_command_log_meta(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, 
 static int pa_cli_command_log_time(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_log_backtrace(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_update_sink_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_update_source_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_update_sink_input_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_update_source_output_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 
 /* A method table for all available commands */
 
@@ -148,6 +151,9 @@ static const struct command commands[] = {
     { "set-sink-input-mute",     pa_cli_command_sink_input_mute,    "Set the mute switch of a sink input (args: index, bool)", 3},
     { "set-source-mute",         pa_cli_command_source_mute,        "Set the mute switch of a source (args: index|name, bool)", 3},
     { "update-sink-proplist",    pa_cli_command_update_sink_proplist, "Update the properties of a sink (args: index|name, properties)", 3},
+    { "update-source-proplist",  pa_cli_command_update_source_proplist, "Update the properties of a source (args: index|name, properties)", 3},
+    { "update-sink-input-proplist", pa_cli_command_update_sink_input_proplist, "Update the properties of a sink input (args: index, properties)", 3},
+    { "update-source-output-proplist", pa_cli_command_update_source_output_proplist, "Update the properties of a source_output (args: index, properties)", 3},
     { "set-default-sink",        pa_cli_command_sink_default,       "Set the default sink (args: index|name)", 2},
     { "set-default-source",      pa_cli_command_source_default,     "Set the default source (args: index|name)", 2},
     { "kill-client",             pa_cli_command_kill_client,        "Kill a client (args: index)", 2},
@@ -680,6 +686,122 @@ static int pa_cli_command_update_sink_proplist(pa_core *c, pa_tokenizer *t, pa_s
     p = pa_proplist_from_string(s);
 
     pa_sink_update_proplist(sink, PA_UPDATE_REPLACE, p);
+
+    pa_proplist_free(p);
+
+    return 0;
+}
+
+static int pa_cli_command_update_source_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+    const char *n, *s;
+    pa_source *source;
+    pa_proplist *p;
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+    if (!(n = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a source either by its name or its index.\n");
+        return -1;
+    }
+
+    if (!(s = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a \"key=value\" argument.\n");
+        return -1;
+    }
+
+    if (!(source = pa_namereg_get(c, n, PA_NAMEREG_SOURCE, 1))) {
+        pa_strbuf_puts(buf, "No source found by this name or index.\n");
+        return -1;
+    }
+
+    p = pa_proplist_from_string(s);
+
+    pa_source_update_proplist(source, PA_UPDATE_REPLACE, p);
+
+    pa_proplist_free(p);
+
+    return 0;
+}
+
+static int pa_cli_command_update_sink_input_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+    const char *n, *s;
+    pa_sink_input *si;
+    uint32_t idx;
+    pa_proplist *p;
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+    if (!(n = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a sink input either by index.\n");
+        return -1;
+    }
+
+    if ((idx = parse_index(n)) == PA_IDXSET_INVALID) {
+        pa_strbuf_puts(buf, "Failed to parse index.\n");
+        return -1;
+    }
+
+    if (!(s = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a \"key=value\" argument.\n");
+        return -1;
+    }
+
+    if (!(si = pa_idxset_get_by_index(c->sink_inputs, (uint32_t) idx))) {
+        pa_strbuf_puts(buf, "No sink input found with this index.\n");
+        return -1;
+    }
+
+    p = pa_proplist_from_string(s);
+
+    pa_sink_input_update_proplist(si, PA_UPDATE_REPLACE, p);
+
+    pa_proplist_free(p);
+
+    return 0;
+}
+
+static int pa_cli_command_update_source_output_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+    const char *n, *s;
+    pa_source_output *so;
+    uint32_t idx;
+    pa_proplist *p;
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+    if (!(n = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a source output by its index.\n");
+        return -1;
+    }
+
+    if ((idx = parse_index(n)) == PA_IDXSET_INVALID) {
+        pa_strbuf_puts(buf, "Failed to parse index.\n");
+        return -1;
+    }
+
+    if (!(s = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a \"key=value\" argument.\n");
+        return -1;
+    }
+
+    if (!(so = pa_idxset_get_by_index(c->source_outputs, (uint32_t) idx))) {
+        pa_strbuf_puts(buf, "No source output found with this index.\n");
+        return -1;
+    }
+
+    p = pa_proplist_from_string(s);
+
+    pa_source_output_update_proplist(so, PA_UPDATE_REPLACE, p);
+
+    pa_proplist_free(p);
 
     return 0;
 }
