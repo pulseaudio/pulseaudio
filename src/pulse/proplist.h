@@ -228,6 +228,12 @@ void pa_proplist_clear(pa_proplist *p);
  * the specific list. \since 0.9.11 */
 pa_proplist* pa_proplist_copy(pa_proplist *t);
 
+/** Return the number of entries on the property list. \since 0.9.15 */
+unsigned pa_proplist_size(pa_proplist *t);
+
+/** Returns 0 when the proplist is empty, positive otherwise \since 0.9.15 */
+int pa_proplist_isempty(pa_proplist *t);
+
 PA_C_DECL_END
 
 #endif

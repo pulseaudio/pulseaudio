@@ -406,3 +406,15 @@ pa_proplist* pa_proplist_copy(pa_proplist *template) {
 
     return p;
 }
+
+unsigned pa_proplist_size(pa_proplist *p) {
+    pa_assert(p);
+
+    return pa_hashmap_size(MAKE_HASHMAP(p));
+}
+
+int pa_proplist_isempty(pa_proplist *p) {
+    pa_assert(p);
+
+    return pa_hashmap_isempty(MAKE_HASHMAP(p));
+}
