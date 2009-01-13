@@ -27,6 +27,7 @@
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
