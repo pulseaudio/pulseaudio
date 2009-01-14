@@ -144,7 +144,7 @@ static void sink_request_rewind(pa_sink *s) {
     pa_assert_se(u = s->userdata);
 
     /* Just hand this one over to the master sink */
-    pa_sink_input_request_rewind(u->sink_input, s->thread_info.rewind_nbytes + pa_memblockq_get_length(u->memblockq), TRUE, FALSE);
+    pa_sink_input_request_rewind(u->sink_input, s->thread_info.rewind_nbytes + pa_memblockq_get_length(u->memblockq), TRUE, FALSE, FALSE);
 }
 
 /* Called from I/O thread context */
@@ -355,7 +355,7 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
     if (PA_SINK_INPUT_IS_LINKED(state) &&
         i->thread_info.state == PA_SINK_INPUT_INIT) {
         pa_log_debug("Requesting rewind due to state change.");
-        pa_sink_input_request_rewind(i, 0, FALSE, TRUE);
+        pa_sink_input_request_rewind(i, 0, FALSE, TRUE, TRUE);
     }
 }
 

@@ -1238,7 +1238,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 
             if (pa_memblockq_is_readable(c->input_memblockq) && c->playback.underrun) {
                 pa_log_debug("Requesting rewind due to end of underrun.");
-                pa_sink_input_request_rewind(c->sink_input, 0, FALSE, TRUE);
+                pa_sink_input_request_rewind(c->sink_input, 0, FALSE, TRUE, FALSE);
             }
 
 /*             pa_log("got data, %u", pa_memblockq_get_length(c->input_memblockq)); */

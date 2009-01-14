@@ -313,7 +313,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
     if (pa_memblockq_is_readable(s->memblockq) &&
         s->sink_input->thread_info.underrun_for > 0) {
         pa_log_debug("Requesting rewind due to end of underrun");
-        pa_sink_input_request_rewind(s->sink_input, 0, FALSE, TRUE);
+        pa_sink_input_request_rewind(s->sink_input, 0, FALSE, TRUE, FALSE);
     }
 
     return 1;

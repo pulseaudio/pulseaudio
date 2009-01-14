@@ -265,6 +265,7 @@ pa_sink_input* pa_sink_input_new(
     i->thread_info.requested_sink_latency = (pa_usec_t) -1;
     i->thread_info.rewrite_nbytes = 0;
     i->thread_info.rewrite_flush = FALSE;
+    i->thread_info.dont_rewind_render = FALSE;
     i->thread_info.underrun_for = (uint64_t) -1;
     i->thread_info.playing_for = 0;
     i->thread_info.direct_outputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
@@ -658,7 +659,7 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
 
     lbq = pa_memblockq_get_length(i->thread_info.render_memblockq);
 
-    if (nbytes > 0) {
+    if (nbytes > 0 && !i->thread_info.dont_rewind_render) {
         pa_log_debug("Have to rewind %lu bytes on render memblockq.", (unsigned long) nbytes);
         pa_memblockq_rewind(i->thread_info.render_memblockq, nbytes);
     }
@@ -714,6 +715,7 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
 
     i->thread_info.rewrite_nbytes = 0;
     i->thread_info.rewrite_flush = FALSE;
+    i->thread_info.dont_rewind_render = FALSE;
 }
 
 /* Called from thread context */
@@ -1091,7 +1093,7 @@ void pa_sink_input_set_state_within_thread(pa_sink_input *i, pa_sink_input_state
 
         /* This will tell the implementing sink input driver to rewind
          * so that the unplayed already mixed data is not lost */
-        pa_sink_input_request_rewind(i, 0, TRUE, TRUE);
+        pa_sink_input_request_rewind(i, 0, TRUE, TRUE, FALSE);
 
     } else if (uncorking) {
 
@@ -1102,7 +1104,7 @@ void pa_sink_input_set_state_within_thread(pa_sink_input *i, pa_sink_input_state
 
         /* OK, we're being uncorked. Make sure we're not rewound when
          * the hw buffer is remixed and request a remix. */
-        pa_sink_input_request_rewind(i, 0, FALSE, TRUE);
+        pa_sink_input_request_rewind(i, 0, FALSE, TRUE, TRUE);
     }
 }
 
@@ -1115,12 +1117,12 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t
 
         case PA_SINK_INPUT_MESSAGE_SET_VOLUME:
             i->thread_info.volume = *((pa_cvolume*) userdata);
-            pa_sink_input_request_rewind(i, 0, TRUE, FALSE);
+            pa_sink_input_request_rewind(i, 0, TRUE, FALSE, FALSE);
             return 0;
 
         case PA_SINK_INPUT_MESSAGE_SET_MUTE:
             i->thread_info.muted = PA_PTR_TO_UINT(userdata);
-            pa_sink_input_request_rewind(i, 0, TRUE, FALSE);
+            pa_sink_input_request_rewind(i, 0, TRUE, FALSE, FALSE);
             return 0;
 
         case PA_SINK_INPUT_MESSAGE_GET_LATENCY: {
@@ -1195,7 +1197,7 @@ pa_bool_t pa_sink_input_safe_to_remove(pa_sink_input *i) {
 }
 
 /* Called from IO context */
-void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sample spec */, pa_bool_t rewrite, pa_bool_t flush) {
+void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sample spec */, pa_bool_t rewrite, pa_bool_t flush, pa_bool_t dont_rewind_render) {
     size_t lbq;
 
     /* If 'rewrite' is TRUE the sink is rewound as far as requested
@@ -1206,7 +1208,9 @@ void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sam
      * If 'rewrite' is FALSE the sink is rewound as far as requested
      * and possible and the already rendered data is dropped so that
      * in the next iteration we read new data from the
-     * implementor. This implies 'flush' is TRUE. */
+     * implementor. This implies 'flush' is TRUE.  If
+     * dont_rewind_render is TRUE then the render memblockq is not
+     * rewound. */
 
     pa_sink_input_assert_ref(i);
 
@@ -1219,6 +1223,7 @@ void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sam
         return;
 
     pa_assert(rewrite || flush);
+    pa_assert(!dont_rewind_render || !rewrite);
 
     /* Calculate how much we can rewind locally without having to
      * touch the sink */
@@ -1252,6 +1257,10 @@ void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sam
     i->thread_info.rewrite_flush =
         i->thread_info.rewrite_flush ||
         (flush && i->thread_info.rewrite_nbytes != 0);
+
+    i->thread_info.dont_rewind_render =
+        i->thread_info.dont_rewind_render ||
+        dont_rewind_render;
 
     if (nbytes != (size_t) -1) {
 
