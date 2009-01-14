@@ -163,14 +163,14 @@ static int push(pa_asyncq*l, void *p, pa_bool_t wait) {
     return 0;
 }
 
-static pa_bool_t flush_postq(pa_asyncq *l) {
+static pa_bool_t flush_postq(pa_asyncq *l, pa_bool_t wait) {
     struct localq *q;
 
     pa_assert(l);
 
     while ((q = l->last_localq)) {
 
-        if (push(l, q->data, FALSE) < 0)
+        if (push(l, q->data, wait) < 0)
             return FALSE;
 
         l->last_localq = q->prev;
@@ -187,7 +187,7 @@ static pa_bool_t flush_postq(pa_asyncq *l) {
 int pa_asyncq_push(pa_asyncq*l, void *p, pa_bool_t wait) {
     pa_assert(l);
 
-    if (!flush_postq(l))
+    if (!flush_postq(l, wait))
         return -1;
 
     return push(l, p, wait);
@@ -199,8 +199,9 @@ void pa_asyncq_post(pa_asyncq*l, void *p) {
     pa_assert(l);
     pa_assert(p);
 
-    if (pa_asyncq_push(l, p, FALSE) >= 0)
-        return;
+    if (flush_postq(l, FALSE))
+        if (pa_asyncq_push(l, p, FALSE) >= 0)
+            return;
 
     /* OK, we couldn't push anything in the queue. So let's queue it
      * locally and push it later */
@@ -299,7 +300,7 @@ void pa_asyncq_write_before_poll(pa_asyncq *l) {
 
     for (;;) {
 
-        if (flush_postq(l))
+        if (flush_postq(l, FALSE))
             break;
 
         if (pa_fdsem_before_poll(l->read_fdsem) >= 0) {
