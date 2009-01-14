@@ -429,9 +429,6 @@ void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
     pa_assert(PA_SOURCE_IS_OPENED(s->thread_info.state));
     pa_assert(chunk);
 
-    if (s->thread_info.state != PA_SOURCE_RUNNING)
-        return;
-
     if (s->thread_info.soft_muted || !pa_cvolume_is_norm(&s->thread_info.soft_volume)) {
         pa_memchunk vchunk = *chunk;
 
@@ -469,9 +466,6 @@ void pa_source_post_direct(pa_source*s, pa_source_output *o, const pa_memchunk *
     pa_source_output_assert_ref(o);
     pa_assert(o->thread_info.direct_on_input);
     pa_assert(chunk);
-
-    if (s->thread_info.state != PA_SOURCE_RUNNING)
-        return;
 
     if (s->thread_info.soft_muted || !pa_cvolume_is_norm(&s->thread_info.soft_volume)) {
         pa_memchunk vchunk = *chunk;

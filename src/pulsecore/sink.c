@@ -642,7 +642,7 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
 
     pa_assert(length > 0);
 
-    n = s->thread_info.state == PA_SINK_RUNNING ? fill_mix_info(s, &length, info, MAX_MIX_CHANNELS) : 0;
+    n = fill_mix_info(s, &length, info, MAX_MIX_CHANNELS);
 
     if (n == 0) {
 
@@ -685,8 +685,7 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
         result->index = 0;
     }
 
-    if (s->thread_info.state == PA_SINK_RUNNING)
-        inputs_drop(s, info, n, result);
+    inputs_drop(s, info, n, result);
 
     pa_sink_unref(s);
 }
@@ -716,7 +715,7 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
 
     pa_assert(length > 0);
 
-    n = s->thread_info.state == PA_SINK_RUNNING ? fill_mix_info(s, &length, info, MAX_MIX_CHANNELS) : 0;
+    n = fill_mix_info(s, &length, info, MAX_MIX_CHANNELS);
 
     if (n == 0) {
         if (target->length > length)
@@ -765,8 +764,7 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
         pa_memblock_release(target->memblock);
     }
 
-    if (s->thread_info.state == PA_SINK_RUNNING)
-        inputs_drop(s, info, n, target);
+    inputs_drop(s, info, n, target);
 
     pa_sink_unref(s);
 }
