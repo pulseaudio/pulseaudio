@@ -174,6 +174,7 @@ pa_source* pa_source_new(
     s->proplist = pa_proplist_copy(data->proplist);
     s->driver = pa_xstrdup(data->driver);
     s->module = data->module;
+    s->card = data->card;
 
     s->sample_spec = data->sample_spec;
     s->channel_map = data->channel_map;
@@ -211,6 +212,9 @@ pa_source* pa_source_new(
     s->thread_info.max_latency = 0;
 
     pa_assert_se(pa_idxset_put(core->sources, s, &s->index) >= 0);
+
+    if (s->card)
+        pa_assert_se(pa_idxset_put(s->card->sources, s, NULL) >= 0);
 
     pa_log_info("Created source %u \"%s\" with sample spec %s and channel map %s",
                 s->index,
@@ -313,6 +317,9 @@ void pa_source_unlink(pa_source *s) {
     if (s->state != PA_SOURCE_UNLINKED)
         pa_namereg_unregister(s->core, s->name);
     pa_idxset_remove_by_data(s->core->sources, s, NULL);
+
+    if (s->card)
+        pa_idxset_remove_by_data(s->card->sinks, s, NULL);
 
     while ((o = pa_idxset_first(s->outputs, NULL))) {
         pa_assert(o != j);

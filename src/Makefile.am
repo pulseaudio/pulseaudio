@@ -716,6 +716,7 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/cli-command.c pulsecore/cli-command.h \
 		pulsecore/cli-text.c pulsecore/cli-text.h \
 		pulsecore/client.c pulsecore/client.h \
+		pulsecore/card.c pulsecore/card.h \
 		pulsecore/core-scache.c pulsecore/core-scache.h \
 		pulsecore/core-subscribe.c pulsecore/core-subscribe.h \
 		pulsecore/core.c pulsecore/core.h \

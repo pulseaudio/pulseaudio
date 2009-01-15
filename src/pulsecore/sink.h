@@ -38,6 +38,7 @@ typedef struct pa_sink pa_sink;
 #include <pulsecore/refcnt.h>
 #include <pulsecore/msgobject.h>
 #include <pulsecore/rtpoll.h>
+#include <pulsecore/card.h>
 
 #define PA_MAX_INPUTS_PER_SINK 32
 
@@ -70,6 +71,7 @@ struct pa_sink {
     pa_proplist *proplist;
 
     pa_module *module;                      /* may be NULL */
+    pa_card *card;                          /* may be NULL */
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
@@ -186,6 +188,7 @@ typedef struct pa_sink_new_data {
 
     const char *driver;
     pa_module *module;
+    pa_card *card;
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;

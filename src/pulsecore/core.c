@@ -97,6 +97,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, pa_bool_t shared, size_t shm_size) {
     c->sources = pa_idxset_new(NULL, NULL);
     c->source_outputs = pa_idxset_new(NULL, NULL);
     c->sink_inputs = pa_idxset_new(NULL, NULL);
+    c->cards = pa_idxset_new(NULL, NULL);
 
     c->default_source_name = c->default_sink_name = NULL;
 
@@ -166,6 +167,9 @@ static void core_free(pa_object *o) {
 
     pa_assert(pa_idxset_isempty(c->clients));
     pa_idxset_free(c->clients, NULL, NULL);
+
+    pa_assert(pa_idxset_isempty(c->cards));
+    pa_idxset_free(c->cards, NULL, NULL);
 
     pa_assert(pa_idxset_isempty(c->sinks));
     pa_idxset_free(c->sinks, NULL, NULL);

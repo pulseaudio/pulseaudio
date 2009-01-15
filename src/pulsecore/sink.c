@@ -183,6 +183,7 @@ pa_sink* pa_sink_new(
     s->proplist = pa_proplist_copy(data->proplist);
     s->driver = pa_xstrdup(data->driver);
     s->module = data->module;
+    s->card = data->card;
 
     s->sample_spec = data->sample_spec;
     s->channel_map = data->channel_map;
@@ -223,6 +224,9 @@ pa_sink* pa_sink_new(
 
     pa_assert_se(pa_idxset_put(core->sinks, s, &s->index) >= 0);
 
+    if (s->card)
+        pa_assert_se(pa_idxset_put(s->card->sinks, s, NULL) >= 0);
+
     pa_log_info("Created sink %u \"%s\" with sample spec %s and channel map %s",
                 s->index,
                 s->name,
@@ -235,6 +239,7 @@ pa_sink* pa_sink_new(
     source_data.name = pa_sprintf_malloc("%s.monitor", name);
     source_data.driver = data->driver;
     source_data.module = data->module;
+    source_data.card = data->card;
 
     dn = pa_proplist_gets(s->proplist, PA_PROP_DEVICE_DESCRIPTION);
     pa_proplist_setf(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Monitor of %s", dn ? dn : s->name);
@@ -357,6 +362,9 @@ void pa_sink_unlink(pa_sink* s) {
     if (s->state != PA_SINK_UNLINKED)
         pa_namereg_unregister(s->core, s->name);
     pa_idxset_remove_by_data(s->core->sinks, s, NULL);
+
+    if (s->card)
+        pa_idxset_remove_by_data(s->card->sinks, s, NULL);
 
     while ((i = pa_idxset_first(s->inputs, NULL))) {
         pa_assert(i != j);

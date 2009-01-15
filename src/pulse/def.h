@@ -391,7 +391,10 @@ typedef enum pa_subscription_mask {
     PA_SUBSCRIPTION_MASK_AUTOLOAD = 0x0100U,
     /**< Autoload table events. */
 
-    PA_SUBSCRIPTION_MASK_ALL = 0x01ffU
+    PA_SUBSCRIPTION_MASK_CARD = 0x0200U,
+    /**< Card events. \since 0.9.15 */
+
+    PA_SUBSCRIPTION_MASK_ALL = 0x03ffU
     /**< Catch all events */
 } pa_subscription_mask_t;
 
@@ -423,6 +426,9 @@ typedef enum pa_subscription_event_type {
 
     PA_SUBSCRIPTION_EVENT_AUTOLOAD = 0x0008U,
     /**< Event type: Autoload table changes. */
+
+    PA_SUBSCRIPTION_EVENT_CARD = 0x0009U,
+    /**< Event type: Card \since 0.9.15 */
 
     PA_SUBSCRIPTION_EVENT_FACILITY_MASK = 0x000FU,
     /**< A mask to extract the event type from an event value */

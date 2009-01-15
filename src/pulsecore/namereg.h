@@ -30,7 +30,8 @@
 typedef enum pa_namereg_type {
     PA_NAMEREG_SINK,
     PA_NAMEREG_SOURCE,
-    PA_NAMEREG_SAMPLE
+    PA_NAMEREG_SAMPLE,
+    PA_NAMEREG_CARD
 } pa_namereg_type_t;
 
 void pa_namereg_free(pa_core *c);

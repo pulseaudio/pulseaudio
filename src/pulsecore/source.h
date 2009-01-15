@@ -41,6 +41,7 @@ typedef struct pa_source pa_source;
 #include <pulsecore/msgobject.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/source-output.h>
+#include <pulsecore/card.h>
 
 #define PA_MAX_OUTPUTS_PER_SOURCE 32
 
@@ -73,6 +74,7 @@ struct pa_source {
     pa_proplist *proplist;
 
     pa_module *module;                        /* may be NULL */
+    pa_card *card;                            /* may be NULL */
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
@@ -174,6 +176,7 @@ typedef struct pa_source_new_data {
 
     const char *driver;
     pa_module *module;
+    pa_card *card;
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;

@@ -79,6 +79,9 @@ typedef enum pa_core_hook {
     PA_CORE_HOOK_CLIENT_NEW,
     PA_CORE_HOOK_CLIENT_PUT,
     PA_CORE_HOOK_CLIENT_UNLINK,
+    PA_CORE_HOOK_CARD_NEW,
+    PA_CORE_HOOK_CARD_PUT,
+    PA_CORE_HOOK_CARD_UNLINK,
     PA_CORE_HOOK_MAX
 } pa_core_hook_t;
 
@@ -96,7 +99,7 @@ struct pa_core {
     pa_mainloop_api *mainloop;
 
     /* idxset of all kinds of entities */
-    pa_idxset *clients, *sinks, *sources, *sink_inputs, *source_outputs, *modules, *scache, *autoload_idxset;
+    pa_idxset *clients, *cards, *sinks, *sources, *sink_inputs, *source_outputs, *modules, *scache, *autoload_idxset;
 
     /* Some hashmaps for all sorts of entities */
     pa_hashmap *namereg, *autoload_hashmap, *shared;
