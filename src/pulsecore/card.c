@@ -36,18 +36,18 @@
 
 #include "card.h"
 
-pa_card_config *pa_card_config_new(const char *name) {
-    pa_card_config *c;
+pa_card_profile *pa_card_profile_new(const char *name) {
+    pa_card_profile *c;
 
     pa_assert(name);
 
-    c = pa_xnew0(pa_card_config, 1);
+    c = pa_xnew0(pa_card_profile, 1);
     c->name = pa_xstrdup(name);
 
     return c;
 }
 
-void pa_card_config_free(pa_card_config *c) {
+void pa_card_profile_free(pa_card_profile *c) {
     pa_assert(c);
 
     pa_xfree(c->name);
@@ -76,13 +76,13 @@ void pa_card_new_data_done(pa_card_new_data *data) {
 
     pa_proplist_free(data->proplist);
 
-    if (data->configs) {
-        pa_card_config *c;
+    if (data->profiles) {
+        pa_card_profile *c;
 
-        while ((c = pa_hashmap_steal_first(data->configs)))
-            pa_card_config_free(c);
+        while ((c = pa_hashmap_steal_first(data->profiles)))
+            pa_card_profile_free(c);
 
-        pa_hashmap_free(data->configs, NULL, NULL);
+        pa_hashmap_free(data->profiles, NULL, NULL);
     }
 
     pa_xfree(data->name);
@@ -120,13 +120,13 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     c->sinks = pa_idxset_new(NULL, NULL);
     c->sources = pa_idxset_new(NULL, NULL);
 
-    c->configs = data->configs;
-    data->configs = NULL;
-    c->active_config = data->active_config;
-    data->active_config = NULL;
+    c->profiles = data->profiles;
+    data->profiles = NULL;
+    c->active_profile = data->active_profile;
+    data->active_profile = NULL;
 
     c->userdata = NULL;
-    c->set_config = NULL;
+    c->set_profile = NULL;
 
     pa_assert_se(pa_idxset_put(core->cards, c, &c->index) >= 0);
 
@@ -139,7 +139,7 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
 
 void pa_card_free(pa_card *c) {
     pa_core *core;
-    pa_card_config *config;
+    pa_card_profile *profile;
 
     pa_assert(c);
     pa_assert(c->core);
@@ -161,10 +161,10 @@ void pa_card_free(pa_card *c) {
     pa_assert(pa_idxset_isempty(c->sources));
     pa_idxset_free(c->sources, NULL, NULL);
 
-    while ((config = pa_hashmap_steal_first(c->configs)))
-        pa_card_config_free(config);
+    while ((profile = pa_hashmap_steal_first(c->profiles)))
+        pa_card_profile_free(profile);
 
-    pa_hashmap_free(c->configs, NULL, NULL);
+    pa_hashmap_free(c->profiles, NULL, NULL);
 
     pa_proplist_free(c->proplist);
     pa_xfree(c->driver);
@@ -174,22 +174,22 @@ void pa_card_free(pa_card *c) {
     pa_core_check_idle(core);
 }
 
-int pa_card_set_config(pa_card *c, const char *name) {
-    pa_card_config *config;
+int pa_card_set_profile(pa_card *c, const char *name) {
+    pa_card_profile *profile;
     pa_assert(c);
 
-    if (!c->set_config) {
-        pa_log_warn("set_config() operation not implemented for card %u", c->index);
+    if (!c->set_profile) {
+        pa_log_warn("set_profile() operation not implemented for card %u", c->index);
         return -1;
     }
 
-    if (!c->configs)
+    if (!c->profiles)
         return -1;
 
-    if (!(config = pa_hashmap_get(c->configs, name)))
+    if (!(profile = pa_hashmap_get(c->profiles, name)))
         return -1;
 
-    if (c->set_config(c, config) < 0)
+    if (c->set_profile(c, profile) < 0)
         return -1;
 
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);

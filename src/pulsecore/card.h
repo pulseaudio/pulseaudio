@@ -29,7 +29,7 @@ typedef struct pa_card pa_card;
 #include <pulsecore/module.h>
 #include <pulsecore/idxset.h>
 
-typedef struct pa_card_config {
+typedef struct pa_card_profile {
     char *name;
 
     pa_bool_t optical_sink:1;
@@ -40,7 +40,7 @@ typedef struct pa_card_config {
 
     unsigned max_sink_channels;
     unsigned max_source_channels;
-} pa_card_config;
+} pa_card_profile;
 
 struct pa_card {
     uint32_t index;
@@ -55,12 +55,12 @@ struct pa_card {
     pa_idxset *sinks;
     pa_idxset *sources;
 
-    pa_hashmap *configs;
-    pa_card_config *active_config;
+    pa_hashmap *profiles;
+    pa_card_profile *active_profile;
 
     void *userdata;
 
-    int (*set_config)(pa_card *c, pa_card_config *config);
+    int (*set_profile)(pa_card *c, pa_card_profile *profile);
 };
 
 typedef struct pa_card_new_data {
@@ -70,14 +70,14 @@ typedef struct pa_card_new_data {
     const char *driver;
     pa_module *module;
 
-    pa_hashmap *configs;
-    pa_card_config *active_config;
+    pa_hashmap *profiles;
+    pa_card_profile *active_profile;
 
     pa_bool_t namereg_fail:1;
 } pa_card_new_data;
 
-pa_card_config *pa_card_config_new(const char *name);
-void pa_card_config_free(pa_card_config *c);
+pa_card_profile *pa_card_profile_new(const char *name);
+void pa_card_profile_free(pa_card_profile *c);
 
 pa_card_new_data *pa_card_new_data_init(pa_card_new_data *data);
 void pa_card_new_data_set_name(pa_card_new_data *data, const char *name);
@@ -86,6 +86,6 @@ void pa_card_new_data_done(pa_card_new_data *data);
 pa_card *pa_card_new(pa_core *c, pa_card_new_data *data);
 void pa_card_free(pa_card *c);
 
-int pa_card_set_config(pa_card *c, const char *name);
+int pa_card_set_profile(pa_card *c, const char *name);
 
 #endif
