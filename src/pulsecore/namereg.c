@@ -30,7 +30,6 @@
 
 #include <pulse/xmalloc.h>
 
-#include <pulsecore/autoload.h>
 #include <pulsecore/source.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/core-subscribe.h>
