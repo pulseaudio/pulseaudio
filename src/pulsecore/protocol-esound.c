@@ -422,7 +422,6 @@ static int esd_proto_stream_play(connection *c, esd_proto_t request, const void 
     sdata.module = c->options->module;
     sdata.client = c->client;
     sdata.sink = sink;
-    pa_proplist_update(sdata.proplist, PA_UPDATE_MERGE, c->client->proplist);
     pa_sink_input_new_data_set_sample_spec(&sdata, &ss);
 
     c->sink_input = pa_sink_input_new(c->protocol->core, &sdata, 0);
@@ -525,7 +524,6 @@ static int esd_proto_stream_record(connection *c, esd_proto_t request, const voi
     sdata.module = c->options->module;
     sdata.client = c->client;
     sdata.source = source;
-    pa_proplist_update(sdata.proplist, PA_UPDATE_MERGE, c->client->proplist);
     pa_source_output_new_data_set_sample_spec(&sdata, &ss);
 
     c->source_output = pa_source_output_new(c->protocol->core, &sdata, 0);

@@ -601,7 +601,6 @@ static record_stream* record_stream_new(
     pa_source_output_new_data_init(&data);
 
     pa_proplist_update(data.proplist, PA_UPDATE_REPLACE, p);
-    pa_proplist_update(data.proplist, PA_UPDATE_MERGE, c->client->proplist);
     data.driver = __FILE__;
     data.module = c->options->module;
     data.client = c->client;
@@ -1001,7 +1000,6 @@ static playback_stream* playback_stream_new(
     pa_sink_input_new_data_init(&data);
 
     pa_proplist_update(data.proplist, PA_UPDATE_REPLACE, p);
-    pa_proplist_update(data.proplist, PA_UPDATE_MERGE, c->client->proplist);
     data.driver = __FILE__;
     data.module = c->options->module;
     data.client = c->client;

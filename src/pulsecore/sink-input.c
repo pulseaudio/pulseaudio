@@ -190,6 +190,9 @@ pa_sink_input* pa_sink_input_new(
 
     pa_return_null_if_fail(data->resample_method < PA_RESAMPLER_MAX);
 
+    if (data->client)
+        pa_proplist_update(data->proplist, PA_UPDATE_MERGE, data->client->proplist);
+
     if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], data) < 0)
         return NULL;
 

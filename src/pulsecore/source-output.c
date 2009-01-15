@@ -153,6 +153,9 @@ pa_source_output* pa_source_output_new(
 
     pa_return_null_if_fail(data->resample_method < PA_RESAMPLER_MAX);
 
+    if (data->client)
+        pa_proplist_update(data->proplist, PA_UPDATE_MERGE, data->client->proplist);
+
     if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_FIXATE], data) < 0)
         return NULL;
 

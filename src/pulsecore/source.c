@@ -158,6 +158,9 @@ pa_source* pa_source_new(
     if (!data->muted_is_set)
         data->muted = FALSE;
 
+    if (data->card)
+        pa_proplist_update(data->proplist, PA_UPDATE_MERGE, data->card->proplist);
+
     if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_FIXATE], data) < 0) {
         pa_xfree(s);
         pa_namereg_unregister(core, name);
