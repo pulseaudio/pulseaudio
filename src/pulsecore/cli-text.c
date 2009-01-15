@@ -150,17 +150,44 @@ char *pa_card_list_to_string(pa_core *c) {
     return pa_strbuf_tostring_free(s);
 }
 
+static const char *sink_state_to_string(pa_sink_state_t state) {
+    switch (state) {
+        case PA_SINK_INIT:
+            return "INIT";
+        case PA_SINK_RUNNING:
+            return "RUNNING";
+        case PA_SINK_SUSPENDED:
+            return "SUSPENDED";
+        case PA_SINK_IDLE:
+            return "IDLE";
+        case PA_SINK_UNLINKED:
+            return "UNLINKED";
+        default:
+            return "INVALID";
+    }
+}
+
+static const char *source_state_to_string(pa_source_state_t state) {
+    switch (state) {
+        case PA_SOURCE_INIT:
+            return "INIT";
+        case PA_SOURCE_RUNNING:
+            return "RUNNING";
+        case PA_SOURCE_SUSPENDED:
+            return "SUSPENDED";
+        case PA_SOURCE_IDLE:
+            return "IDLE";
+        case PA_SOURCE_UNLINKED:
+            return "UNLINKED";
+        default:
+            return "INVALID";
+    }
+}
+
 char *pa_sink_list_to_string(pa_core *c) {
     pa_strbuf *s;
     pa_sink *sink;
     uint32_t idx = PA_IDXSET_INVALID;
-    static const char* const state_table[] = {
-        [PA_SINK_INIT] = "INIT",
-        [PA_SINK_RUNNING] = "RUNNING",
-        [PA_SINK_SUSPENDED] = "SUSPENDED",
-        [PA_SINK_IDLE] = "IDLE",
-        [PA_SINK_UNLINKED] = "UNLINKED"
-    };
     pa_assert(c);
 
     s = pa_strbuf_new();
@@ -208,7 +235,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->flags & PA_SINK_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
             sink->flags & PA_SINK_DECIBEL_VOLUME ? "DECIBEL_VOLUME " : "",
             sink->flags & PA_SINK_LATENCY ? "LATENCY " : "",
-            state_table[pa_sink_get_state(sink)],
+            sink_state_to_string(pa_sink_get_state(sink)),
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink, FALSE)),
             sink->flags & PA_SINK_DECIBEL_VOLUME ? "\n\t        " : "",
             sink->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_sink_get_volume(sink, FALSE)) : "",
@@ -246,13 +273,6 @@ char *pa_source_list_to_string(pa_core *c) {
     pa_strbuf *s;
     pa_source *source;
     uint32_t idx = PA_IDXSET_INVALID;
-    static const char* const state_table[] = {
-        [PA_SOURCE_INIT] = "INIT",
-        [PA_SOURCE_RUNNING] = "RUNNING",
-        [PA_SOURCE_SUSPENDED] = "SUSPENDED",
-        [PA_SOURCE_IDLE] = "IDLE",
-        [PA_SOURCE_UNLINKED] = "UNLINKED"
-    };
     pa_assert(c);
 
     s = pa_strbuf_new();
@@ -298,7 +318,7 @@ char *pa_source_list_to_string(pa_core *c) {
             source->flags & PA_SOURCE_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? "DECIBEL_VOLUME " : "",
             source->flags & PA_SOURCE_LATENCY ? "LATENCY " : "",
-            state_table[pa_source_get_state(source)],
+            source_state_to_string(pa_source_get_state(source)),
             pa_cvolume_snprint(cv, sizeof(cv), pa_source_get_volume(source, FALSE)),
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? "\n\t        " : "",
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_source_get_volume(source, FALSE)) : "",
