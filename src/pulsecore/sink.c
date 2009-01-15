@@ -193,6 +193,8 @@ pa_sink* pa_sink_new(
 
     s->volume = data->volume;
     s->base_volume = PA_VOLUME_NORM;
+    s->virtual_volume = s->volume;
+
     s->muted = data->muted;
     s->refresh_volume = s->refresh_muted = FALSE;
 
@@ -862,24 +864,26 @@ void pa_sink_set_volume(pa_sink *s, const pa_cvolume *volume) {
     pa_assert(pa_cvolume_compatible(volume, &s->sample_spec));
 
     data.sink = s;
-    data.volume = *volume;
+    data.virtual_volume = data.volume = *volume;
 
-    changed = !pa_cvolume_equal(&data.volume, &s->volume);
+    changed = !pa_cvolume_equal(&data.virtual_volume, &s->virtual_volume) ||
+        !pa_cvolume_equal(&data.volume, &s->volume);
 
     if (changed) {
         if (pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_SET_VOLUME], &data) < 0)
             return;
 
-        changed = !pa_cvolume_equal(&data.volume, &s->volume);
+        changed = !pa_cvolume_equal(&data.virtual_volume, &s->virtual_volume); /* from client-side view */
     }
 
     s->volume = data.volume;
+    s->virtual_volume = data.virtual_volume;
 
     if (s->set_volume && s->set_volume(s) < 0)
         s->set_volume = NULL;
 
     if (!s->set_volume)
-        pa_sink_set_soft_volume(s, volume);
+        pa_sink_set_soft_volume(s, &s->volume);
 
     if (changed)
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
@@ -902,19 +906,21 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *s, pa_bool_t force_refresh) {
     pa_assert(PA_SINK_IS_LINKED(s->state));
 
     if (s->refresh_volume || force_refresh) {
-        struct pa_cvolume old_volume = s->volume;
+        struct pa_cvolume old_volume = s->virtual_volume;
 
         if (s->get_volume && s->get_volume(s) < 0)
             s->get_volume = NULL;
 
-        if (!s->get_volume)
+        if (!s->get_volume) {
             pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_VOLUME, &s->volume, 0, NULL);
+            s->virtual_volume = s->volume;
+        }
 
-        if (!pa_cvolume_equal(&old_volume, &s->volume))
+        if (!pa_cvolume_equal(&old_volume, &s->virtual_volume))
             pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
     }
 
-    return &s->volume;
+    return &s->virtual_volume;
 }
 
 /* Called from main thread */
