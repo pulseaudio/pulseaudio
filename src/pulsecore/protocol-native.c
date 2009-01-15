@@ -2731,8 +2731,8 @@ static void module_fill_tagstruct(pa_tagstruct *t, pa_module *module) {
     pa_tagstruct_putu32(t, module->index);
     pa_tagstruct_puts(t, module->name);
     pa_tagstruct_puts(t, module->argument);
-    pa_tagstruct_putu32(t, (uint32_t) module->n_used);
-    pa_tagstruct_put_boolean(t, FALSE);
+    pa_tagstruct_putu32(t, (uint32_t) pa_module_get_n_used(module));
+    pa_tagstruct_put_boolean(t, FALSE); /* autoload is obsolete */
 }
 
 static void sink_input_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_sink_input *s) {

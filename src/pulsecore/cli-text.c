@@ -62,7 +62,7 @@ char *pa_module_list_to_string(pa_core *c) {
                          m->index,
                          m->name,
                          pa_strempty(m->argument),
-                         m->n_used,
+                         pa_module_get_n_used(m),
                          pa_yes_no(m->load_once));
     }
 

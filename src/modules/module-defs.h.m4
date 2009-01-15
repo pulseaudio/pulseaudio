@@ -18,9 +18,11 @@ gen_symbol(pa__get_description)
 gen_symbol(pa__get_usage)
 gen_symbol(pa__get_version)
 gen_symbol(pa__load_once)
+gen_symbol(pa__get_n_used)
 
 int pa__init(pa_module*m);
 void pa__done(pa_module*m);
+int pa__get_n_used(pa_module*m);
 
 const char* pa__get_author(void);
 const char* pa__get_description(void);

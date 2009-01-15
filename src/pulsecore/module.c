@@ -45,8 +45,7 @@
 #define PA_SYMBOL_INIT "pa__init"
 #define PA_SYMBOL_DONE "pa__done"
 #define PA_SYMBOL_LOAD_ONCE "pa__load_once"
-
-#define UNLOAD_POLL_TIME 2
+#define PA_SYMBOL_GET_N_USED "pa__get_n_used"
 
 pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     pa_module *m = NULL;
@@ -92,9 +91,9 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     }
 
     m->done = (void (*)(pa_module*_m)) pa_load_sym(m->dl, name, PA_SYMBOL_DONE);
+    m->get_n_used = (int (*)(pa_module*_m)) pa_load_sym(m->dl, name, PA_SYMBOL_GET_N_USED);
     m->userdata = NULL;
     m->core = c;
-    m->n_used = -1;
     m->unload_requested = FALSE;
 
     if (m->init(m) < 0) {
@@ -235,17 +234,17 @@ void pa_module_unload_request_by_index(pa_core *c, uint32_t idx, pa_bool_t force
     pa_module_unload_request(m, force);
 }
 
-void pa_module_set_used(pa_module*m, int used) {
-    pa_assert(m);
-
-    if (m->n_used != used)
-        pa_subscription_post(m->core, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_CHANGE, m->index);
-
-    m->n_used = used;
-}
-
 pa_modinfo *pa_module_get_info(pa_module *m) {
     pa_assert(m);
 
     return pa_modinfo_get_by_handle(m->dl, m->name);
+}
+
+int pa_module_get_n_used(pa_module*m) {
+    pa_assert(m);
+
+    if (!m->get_n_used)
+        return -1;
+
+    return m->get_n_used(m);
 }

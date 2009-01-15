@@ -398,6 +398,15 @@ fail:
     return -1;
 }
 
+int pa__get_n_used(pa_module *m) {
+    struct userdata *u;
+
+    pa_assert(m);
+    pa_assert_se(u = m->userdata);
+
+    return pa_source_linked_by(u->source);
+}
+
 void pa__done(pa_module*m) {
     struct userdata *u;
     pa_assert(m);

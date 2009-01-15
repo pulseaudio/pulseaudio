@@ -39,10 +39,9 @@ struct pa_module {
 
     int (*init)(pa_module*m);
     void (*done)(pa_module*m);
+    int (*get_n_used)(pa_module *m);
 
     void *userdata;
-
-    int n_used;
 
     pa_bool_t load_once:1;
     pa_bool_t unload_requested:1;
@@ -58,7 +57,7 @@ void pa_module_unload_request_by_index(pa_core *c, uint32_t idx, pa_bool_t force
 
 void pa_module_unload_all(pa_core *c);
 
-void pa_module_set_used(pa_module*m, int used);
+int pa_module_get_n_used(pa_module*m);
 
 #define PA_MODULE_AUTHOR(s)                                     \
     const char *pa__get_author(void) { return s; }              \
