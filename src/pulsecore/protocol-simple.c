@@ -476,7 +476,8 @@ static void io_callback(pa_iochannel*io, void *userdata) {
 
 void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simple_options *o) {
     connection *c = NULL;
-    char cname[256], pname[128];
+    char pname[128];
+    pa_client_new_data client_data;
 
     pa_assert(p);
     pa_assert(io);
@@ -505,11 +506,18 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
     c->playback.underrun = TRUE;
     pa_atomic_store(&c->playback.missing, 0);
 
+    pa_client_new_data_init(&client_data);
+    client_data.module = o->module;
+    client_data.driver = __FILE__;
     pa_iochannel_socket_peer_to_string(io, pname, sizeof(pname));
-    pa_snprintf(cname, sizeof(cname), "Simple client (%s)", pname);
-    pa_assert_se(c->client = pa_client_new(p->core, __FILE__, cname));
-    pa_proplist_sets(c->client->proplist, "simple-protocol.peer", pname);
-    c->client->module = o->module;
+    pa_proplist_setf(client_data.proplist, PA_PROP_APPLICATION_NAME, "Simple client (%s)", pname);
+    pa_proplist_sets(client_data.proplist, "simple-protocol.peer", pname);
+    c->client = pa_client_new(p->core, &client_data);
+    pa_client_new_data_done(&client_data);
+
+    if (!c->client)
+        goto fail;
+
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
 

@@ -4214,7 +4214,9 @@ static void auth_timeout(pa_mainloop_api*m, pa_time_event *e, const struct timev
 
 void pa_native_protocol_connect(pa_native_protocol *p, pa_iochannel *io, pa_native_options *o) {
     pa_native_connection *c;
-    char cname[256], pname[128];
+    char pname[128];
+    pa_client *client;
+    pa_client_new_data data;
 
     pa_assert(p);
     pa_assert(io);
@@ -4225,6 +4227,18 @@ void pa_native_protocol_connect(pa_native_protocol *p, pa_iochannel *io, pa_nati
         pa_iochannel_free(io);
         return;
     }
+
+    pa_client_new_data_init(&data);
+    data.module = o->module;
+    data.driver = __FILE__;
+    pa_iochannel_socket_peer_to_string(io, pname, sizeof(pname));
+    pa_proplist_setf(data.proplist, PA_PROP_APPLICATION_NAME, "Native client (%s)", pname);
+    pa_proplist_sets(data.proplist, "native-protocol.peer", pname);
+    client = pa_client_new(p->core, &data);
+    pa_client_new_data_done(&data);
+
+    if (!client)
+        return;
 
     c = pa_msgobject_new(pa_native_connection);
     c->parent.parent.free = native_connection_free;
@@ -4257,13 +4271,9 @@ void pa_native_protocol_connect(pa_native_protocol *p, pa_iochannel *io, pa_nati
     c->is_local = pa_iochannel_socket_is_local(io);
     c->version = 8;
 
-    pa_iochannel_socket_peer_to_string(io, pname, sizeof(pname));
-    pa_snprintf(cname, sizeof(cname), "Native client (%s)", pname);
-    c->client = pa_client_new(p->core, __FILE__, cname);
-    pa_proplist_sets(c->client->proplist, "native-protocol.peer", pname);
+    c->client = client;
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
-    c->client->module = o->module;
 
     c->pstream = pa_pstream_new(p->core->mainloop, io, p->core->mempool);
     pa_pstream_set_recieve_packet_callback(c->pstream, pstream_packet_callback, c);

@@ -67,20 +67,33 @@ static void client_kill(pa_client *c);
 pa_cli* pa_cli_new(pa_core *core, pa_iochannel *io, pa_module *m) {
     char cname[256];
     pa_cli *c;
+    pa_client_new_data data;
+    pa_client *client;
+
     pa_assert(io);
+
+    pa_iochannel_socket_peer_to_string(io, cname, sizeof(cname));
+
+    pa_client_new_data_init(&data);
+    data.driver = __FILE__;
+    data.module = m;
+    pa_proplist_sets(data.proplist, PA_PROP_APPLICATION_NAME, cname);
+    client = pa_client_new(core, &data);
+    pa_client_new_data_done(&data);
+
+    if (!client)
+        return NULL;
 
     c = pa_xnew(pa_cli, 1);
     c->core = core;
+    c->client = client;
     pa_assert_se(c->line = pa_ioline_new(io));
 
     c->userdata = NULL;
     c->eof_callback = NULL;
 
-    pa_iochannel_socket_peer_to_string(io, cname, sizeof(cname));
-    pa_assert_se(c->client = pa_client_new(core, __FILE__, cname));
     c->client->kill = client_kill;
     c->client->userdata = c;
-    c->client->module = m;
 
     pa_ioline_set_callback(c->line, line_callback, c);
     pa_ioline_puts(c->line, "Welcome to PulseAudio! Use \"help\" for usage information.\n"PROMPT);

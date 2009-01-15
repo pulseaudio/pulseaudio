@@ -37,26 +37,45 @@
 
 #include "client.h"
 
-pa_client *pa_client_new(pa_core *core, const char *driver, const char *name) {
+pa_client_new_data* pa_client_new_data_init(pa_client_new_data *data) {
+    pa_assert(data);
+
+    memset(data, 0, sizeof(*data));
+    data->proplist = pa_proplist_new();
+
+    return data;
+}
+
+void pa_client_new_data_done(pa_client_new_data *data) {
+    pa_assert(data);
+
+    pa_proplist_free(data->proplist);
+}
+
+pa_client *pa_client_new(pa_core *core, pa_client_new_data *data) {
     pa_client *c;
 
     pa_core_assert_ref(core);
+    pa_assert(data);
+
+    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_CLIENT_NEW], data) < 0)
+        return NULL;
 
     c = pa_xnew(pa_client, 1);
     c->core = core;
-    c->proplist = pa_proplist_new();
-    if (name)
-        pa_proplist_sets(c->proplist, PA_PROP_APPLICATION_NAME, name);
-    c->driver = pa_xstrdup(driver);
-    c->module = NULL;
+    c->proplist = pa_proplist_copy(data->proplist);
+    c->driver = pa_xstrdup(data->driver);
+    c->module = data->module;
 
-    c->kill = NULL;
     c->userdata = NULL;
+    c->kill = NULL;
 
     pa_assert_se(pa_idxset_put(core->clients, c, &c->index) >= 0);
 
-    pa_log_info("Created %u \"%s\"", c->index, pa_strnull(name));
+    pa_log_info("Created %u \"%s\"", c->index, pa_strnull(pa_proplist_gets(c->proplist, PA_PROP_APPLICATION_NAME)));
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_NEW, c->index);
+
+    pa_hook_fire(&core->hooks[PA_CORE_HOOK_CLIENT_PUT], c);
 
     pa_core_check_idle(core);
 
@@ -69,11 +88,14 @@ void pa_client_free(pa_client *c) {
     pa_assert(c);
     pa_assert(c->core);
 
+    pa_hook_fire(&core->hooks[PA_CORE_HOOK_CLIENT_UNLINK], c);
+
     core = c->core;
     pa_idxset_remove_by_data(c->core->clients, c, NULL);
 
     pa_log_info("Freed %u \"%s\"", c->index, pa_strnull(pa_proplist_gets(c->proplist, PA_PROP_APPLICATION_NAME)));
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_REMOVE, c->index);
+
     pa_proplist_free(c->proplist);
     pa_xfree(c->driver);
     pa_xfree(c);

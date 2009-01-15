@@ -42,11 +42,21 @@ struct pa_client {
     pa_module *module;
     char *driver;
 
-    void (*kill)(pa_client *c);
     void *userdata;
+
+    void (*kill)(pa_client *c);
 };
 
-pa_client *pa_client_new(pa_core *c, const char *driver, const char *name);
+typedef struct pa_client_new_data {
+    pa_proplist *proplist;
+    const char *driver;
+    pa_module *module;
+} pa_client_new_data;
+
+pa_client_new_data *pa_client_new_data_init(pa_client_new_data *data);
+void pa_client_new_data_done(pa_client_new_data *data);
+
+pa_client *pa_client_new(pa_core *c, pa_client_new_data *data);
 
 /* This function should be called only by the code that created the client */
 void pa_client_free(pa_client *c);

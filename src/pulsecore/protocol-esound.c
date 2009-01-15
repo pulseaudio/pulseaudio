@@ -1377,7 +1377,9 @@ static void auth_timeout(pa_mainloop_api*m, pa_time_event *e, const struct timev
 
 void pa_esound_protocol_connect(pa_esound_protocol *p, pa_iochannel *io, pa_esound_options *o) {
     connection *c;
-    char cname[256], pname[128];
+    char pname[128];
+    pa_client_new_data data;
+    pa_client *client;
 
     pa_assert(p);
     pa_assert(io);
@@ -1389,6 +1391,18 @@ void pa_esound_protocol_connect(pa_esound_protocol *p, pa_iochannel *io, pa_esou
         return;
     }
 
+    pa_client_new_data_init(&data);
+    data.module = o->module;
+    data.driver = __FILE__;
+    pa_iochannel_socket_peer_to_string(io, pname, sizeof(pname));
+    pa_proplist_setf(data.proplist, PA_PROP_APPLICATION_NAME, "EsounD client (%s)", pname);
+    pa_proplist_sets(data.proplist, "esound-protocol.peer", pname);
+    client = pa_client_new(p->core, &data);
+    pa_client_new_data_done(&data);
+
+    if (!client)
+        return;
+
     c = pa_msgobject_new(connection);
     c->parent.parent.free = connection_free;
     c->parent.process_msg = connection_process_msg;
@@ -1396,11 +1410,7 @@ void pa_esound_protocol_connect(pa_esound_protocol *p, pa_iochannel *io, pa_esou
     c->io = io;
     pa_iochannel_set_callback(c->io, io_callback, c);
 
-    pa_iochannel_socket_peer_to_string(io, pname, sizeof(pname));
-    pa_snprintf(cname, sizeof(cname), "EsounD client (%s)", pname);
-    c->client = pa_client_new(p->core, __FILE__, cname);
-    pa_proplist_sets(c->client->proplist, "esound-protocol.peer", pname);
-    c->client->module = o->module;
+    c->client = client;
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
 
