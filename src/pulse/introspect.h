@@ -212,6 +212,7 @@ typedef struct pa_sink_info {
     pa_proplist *proplist;             /**< Property list \since 0.9.11 */
     pa_usec_t configured_latency;      /**< The latency this device has been configured to. \since 0.9.11 */
     pa_volume_t base_volume;           /**< Some kind of "base" volume that refers to unamplified/unattenuated volume in the context of the output device. \since 0.9.15 */
+    pa_sink_state_t state;             /**< State \since 0.9.15 */
 } pa_sink_info;
 
 /** Callback prototype for pa_context_get_sink_info_by_name() and friends */
@@ -268,6 +269,7 @@ typedef struct pa_source_info {
     pa_proplist *proplist;              /**< Property list \since 0.9.11 */
     pa_usec_t configured_latency;       /**< The latency this device has been configured to. \since 0.9.11 */
     pa_volume_t base_volume;           /**< Some kind of "base" volume that refers to unamplified/unattenuated volume in the context of the input device. \since 0.9.15 */
+    pa_source_state_t state;             /**< State \since 0.9.15 */
 } pa_source_info;
 
 /** Callback prototype for pa_context_get_source_info_by_name() and friends */

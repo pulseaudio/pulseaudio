@@ -27,6 +27,7 @@ typedef struct pa_sink pa_sink;
 
 #include <inttypes.h>
 
+#include <pulse/def.h>
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>
 #include <pulse/volume.h>
@@ -42,18 +43,16 @@ typedef struct pa_sink pa_sink;
 
 #define PA_MAX_INPUTS_PER_SINK 32
 
-typedef enum pa_sink_state {
-    PA_SINK_INIT,
-    PA_SINK_RUNNING,
-    PA_SINK_SUSPENDED,
-    PA_SINK_IDLE,
-    PA_SINK_UNLINKED
-} pa_sink_state_t;
+/* anonymous enum extending pa_sink_state_t */
+enum {
+    PA_SINK_INIT = -2,
+    /* Initialization state */
 
-static inline pa_bool_t PA_SINK_IS_OPENED(pa_sink_state_t x) {
-    return x == PA_SINK_RUNNING || x == PA_SINK_IDLE;
-}
+    PA_SINK_UNLINKED = -3
+    /* The state when the sink is getting unregistered and removed from client access */
+};
 
+/* Returns true if sink is linked: registered and accessible from client side. */
 static inline pa_bool_t PA_SINK_IS_LINKED(pa_sink_state_t x) {
     return x == PA_SINK_RUNNING || x == PA_SINK_IDLE || x == PA_SINK_SUSPENDED;
 }

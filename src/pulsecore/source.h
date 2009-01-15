@@ -45,18 +45,16 @@ typedef struct pa_source pa_source;
 
 #define PA_MAX_OUTPUTS_PER_SOURCE 32
 
-typedef enum pa_source_state {
-    PA_SOURCE_INIT,
-    PA_SOURCE_RUNNING,
-    PA_SOURCE_SUSPENDED,
-    PA_SOURCE_IDLE,
-    PA_SOURCE_UNLINKED
-} pa_source_state_t;
+/* anonymous enum extending pa_source_state_t */
+enum {
+    PA_SOURCE_INIT = -2,
+    /* Initialization state */
 
-static inline pa_bool_t PA_SOURCE_IS_OPENED(pa_source_state_t x) {
-    return x == PA_SOURCE_RUNNING || x == PA_SOURCE_IDLE;
-}
+    PA_SOURCE_UNLINKED = -3
+    /* The state when the source is getting unregistered and removed from client access */
+};
 
+/* Returns true if source is linked: registered and accessible from client side. */
 static inline pa_bool_t PA_SOURCE_IS_LINKED(pa_source_state_t x) {
     return x == PA_SOURCE_RUNNING || x == PA_SOURCE_IDLE || x == PA_SOURCE_SUSPENDED;
 }

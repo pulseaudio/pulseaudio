@@ -146,15 +146,18 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
 
         eol = -1;
     } else {
-        uint32_t flags;
 
         while (!pa_tagstruct_eof(t)) {
             pa_sink_info i;
-            pa_bool_t mute = FALSE;
+            pa_bool_t mute;
+            uint32_t flags;
+            uint32_t state;
 
             memset(&i, 0, sizeof(i));
             i.proplist = pa_proplist_new();
             i.base_volume = PA_VOLUME_NORM;
+            mute = FALSE;
+            state = PA_SINK_INVALID_STATE;
 
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
@@ -173,7 +176,8 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                  (pa_tagstruct_get_proplist(t, i.proplist) < 0 ||
                   pa_tagstruct_get_usec(t, &i.configured_latency) < 0)) ||
                 (o->context->version >= 15 &&
-                 pa_tagstruct_get_volume(t, &i.base_volume) < 0)) {
+                 (pa_tagstruct_get_volume(t, &i.base_volume) < 0 ||
+                  pa_tagstruct_getu32(t, &state) < 0))) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 pa_proplist_free(i.proplist);
@@ -182,6 +186,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
 
             i.mute = (int) mute;
             i.flags = (pa_sink_flags_t) flags;
+            i.state = (pa_sink_state_t) state;
 
             if (o->callback) {
                 pa_sink_info_cb_t cb = (pa_sink_info_cb_t) o->callback;
@@ -273,12 +278,15 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
 
         while (!pa_tagstruct_eof(t)) {
             pa_source_info i;
+            pa_bool_t mute;
             uint32_t flags;
-            pa_bool_t mute = FALSE;
+            uint32_t state;
 
             memset(&i, 0, sizeof(i));
             i.proplist = pa_proplist_new();
             i.base_volume = PA_VOLUME_NORM;
+            mute = FALSE;
+            state = PA_SOURCE_INVALID_STATE;
 
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
@@ -297,7 +305,8 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                  (pa_tagstruct_get_proplist(t, i.proplist) < 0 ||
                   pa_tagstruct_get_usec(t, &i.configured_latency) < 0)) ||
                 (o->context->version >= 15 &&
-                 pa_tagstruct_get_volume(t, &i.base_volume) < 0)) {
+                 (pa_tagstruct_get_volume(t, &i.base_volume) < 0 ||
+                  pa_tagstruct_getu32(t, &state) < 0))) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 pa_proplist_free(i.proplist);
@@ -306,6 +315,7 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
 
             i.mute = (int) mute;
             i.flags = (pa_source_flags_t) flags;
+            i.state = (pa_source_state_t) state;
 
             if (o->callback) {
                 pa_source_info_cb_t cb = (pa_source_info_cb_t) o->callback;

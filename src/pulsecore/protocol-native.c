@@ -2679,8 +2679,12 @@ static void sink_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_sin
         pa_tagstruct_put_usec(t, pa_sink_get_requested_latency(sink));
     }
 
-    if (c->version >= 15)
+    if (c->version >= 15) {
         pa_tagstruct_put_volume(t, sink->base_volume);
+        if (PA_UNLIKELY(pa_sink_get_state(sink) == PA_SINK_INVALID_STATE))
+            pa_log_error("Internal sink state is invalid.");
+        pa_tagstruct_putu32(t, pa_sink_get_state(sink));
+    }
 }
 
 static void source_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_source *source) {
@@ -2713,8 +2717,12 @@ static void source_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_s
         pa_tagstruct_put_usec(t, pa_source_get_requested_latency(source));
     }
 
-    if (c->version >= 15)
+    if (c->version >= 15) {
         pa_tagstruct_put_volume(t, source->base_volume);
+        if (PA_UNLIKELY(pa_source_get_state(source) == PA_SOURCE_INVALID_STATE))
+            pa_log_error("Internal source state is invalid.");
+        pa_tagstruct_putu32(t, pa_source_get_state(source));
+    }
 }
 
 static void client_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_client *client) {

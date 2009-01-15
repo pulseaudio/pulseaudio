@@ -613,6 +613,35 @@ typedef enum pa_sink_flags {
 #define PA_SINK_DECIBEL_VOLUME PA_SINK_DECIBEL_VOLUME
 /** \endcond */
 
+/** Sink state. \since 0.9.15 */
+typedef enum pa_sink_state { /* enum serialized in u8 */
+    PA_SINK_INVALID_STATE = -1,
+    /**< This state is used when the server does not support sink state introspection \since 0.9.15 */
+
+    PA_SINK_RUNNING = 0,
+    /**< Running, sink is playing and used by at least one non-corked sink-input \since 0.9.15 */
+
+    PA_SINK_IDLE = 1,
+    /**< When idle, the sink is playing but there is no non-corked sink-input attached to it \since 0.9.15 */
+
+    PA_SINK_SUSPENDED = 2
+    /**< When suspended, actual sink access can be closed, for instance \since 0.9.15 */
+
+} pa_sink_state_t;
+
+/** Returns non-zero if sink is playing: running or idle. \since 0.9.15 */
+static inline int PA_SINK_IS_OPENED(pa_sink_state_t x) {
+    return x == PA_SINK_RUNNING || x == PA_SINK_IDLE;
+}
+
+/** \cond fulldocs */
+#define PA_SINK_INVALID_STATE PA_SINK_INVALID_STATE
+#define PA_SINK_RUNNING PA_SINK_RUNNING
+#define PA_SINK_IDLE PA_SINK_IDLE
+#define PA_SINK_SUSPENDED PA_SINK_SUSPENDED
+#define PA_SINK_IS_OPENED PA_SINK_IS_OPENED
+/** \endcond */
+
 /** Special source flags.  */
 typedef enum pa_source_flags {
     PA_SOURCE_HW_VOLUME_CTRL = 0x0001U,
@@ -626,7 +655,7 @@ typedef enum pa_source_flags {
      * "virtual"/software source \since 0.9.3 */
 
     PA_SOURCE_NETWORK = 0x0008U,
-    /**< Is a networked sink of some kind. \since 0.9.7 */
+    /**< Is a networked source of some kind. \since 0.9.7 */
 
     PA_SOURCE_HW_MUTE_CTRL = 0x0010U,
     /**< Supports hardware mute control \since 0.9.11 */
@@ -643,6 +672,35 @@ typedef enum pa_source_flags {
 #define PA_SOURCE_NETWORK PA_SOURCE_NETWORK
 #define PA_SOURCE_HW_VOLUME_CTRL PA_SOURCE_HW_VOLUME_CTRL
 #define PA_SOURCE_DECIBEL_VOLUME PA_SOURCE_DECIBEL_VOLUME
+/** \endcond */
+
+/** Source state. \since 0.9.15 */
+typedef enum pa_source_state {
+    PA_SOURCE_INVALID_STATE = -1,
+    /**< This state is used when the server does not support source state introspection \since 0.9.15 */
+
+    PA_SOURCE_RUNNING = 0,
+    /**< Running, source is recording and used by at least one non-corked source-output \since 0.9.15 */
+
+    PA_SOURCE_IDLE = 1,
+    /**< When idle, the source is still recording but there is no non-corked source-output \since 0.9.15 */
+
+    PA_SOURCE_SUSPENDED = 2
+    /**< When suspended, actual source access can be closed, for instance \since 0.9.15 */
+
+} pa_source_state_t;
+
+/** Returns non-zero if source is recording: running or idle. \since 0.9.15 */
+static inline int PA_SOURCE_IS_OPENED(pa_source_state_t x) {
+    return x == PA_SOURCE_RUNNING || x == PA_SOURCE_IDLE;
+}
+
+/** \cond fulldocs */
+#define PA_SOURCE_INVALID_STATE PA_SOURCE_INVALID_STATE
+#define PA_SOURCE_RUNNING PA_SOURCE_RUNNING
+#define PA_SOURCE_IDLE PA_SOURCE_IDLE
+#define PA_SOURCE_SUSPENDED PA_SOURCE_SUSPENDED
+#define PA_SOURCE_IS_OPENED PA_SOURCE_IS_OPENED
 /** \endcond */
 
 /** A generic free() like callback prototype */
