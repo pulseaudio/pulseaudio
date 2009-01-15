@@ -1036,9 +1036,9 @@ SYMDEF_FILES = \
 		modules/module-x11-bell-symdef.h \
 		modules/module-x11-publish-symdef.h \
 		modules/module-x11-xsmp-symdef.h \
-		modules/module-oss-symdef.h \
-		modules/module-alsa-sink-symdef.h \
-		modules/module-alsa-source-symdef.h \
+		modules/oss/module-oss-symdef.h \
+		modules/alsa/module-alsa-sink-symdef.h \
+		modules/alsa/module-alsa-source-symdef.h \
 		modules/module-solaris-symdef.h \
 		modules/module-waveout-symdef.h \
 		modules/module-detect-symdef.h \
@@ -1232,27 +1232,27 @@ module_x11_xsmp_la_LIBADD = $(AM_LIBADD) $(X11_LIBS) libpulsecore-@PA_MAJORMINOR
 
 # OSS
 
-liboss_util_la_SOURCES = modules/oss-util.c modules/oss-util.h
+liboss_util_la_SOURCES = modules/oss/oss-util.c modules/oss/oss-util.h
 liboss_util_la_LDFLAGS = -avoid-version
 liboss_util_la_LIBADD = libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
-module_oss_la_SOURCES = modules/module-oss.c
+module_oss_la_SOURCES = modules/oss/module-oss.c
 module_oss_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_oss_la_LIBADD = $(AM_LIBADD) liboss-util.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
 # ALSA
 
-libalsa_util_la_SOURCES = modules/alsa-util.c modules/alsa-util.h
+libalsa_util_la_SOURCES = modules/alsa/alsa-util.c modules/alsa/alsa-util.h
 libalsa_util_la_LDFLAGS = -avoid-version
 libalsa_util_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
-module_alsa_sink_la_SOURCES = modules/module-alsa-sink.c
+module_alsa_sink_la_SOURCES = modules/alsa/module-alsa-sink.c
 module_alsa_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_alsa_sink_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_alsa_sink_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
-module_alsa_source_la_SOURCES = modules/module-alsa-source.c
+module_alsa_source_la_SOURCES = modules/alsa/module-alsa-source.c
 module_alsa_source_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_alsa_source_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_alsa_source_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
