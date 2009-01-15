@@ -88,9 +88,10 @@ void pa_client_free(pa_client *c) {
     pa_assert(c);
     pa_assert(c->core);
 
+    core = c->core;
+
     pa_hook_fire(&core->hooks[PA_CORE_HOOK_CLIENT_UNLINK], c);
 
-    core = c->core;
     pa_idxset_remove_by_data(c->core->clients, c, NULL);
 
     pa_log_info("Freed %u \"%s\"", c->index, pa_strnull(pa_proplist_gets(c->proplist, PA_PROP_APPLICATION_NAME)));
