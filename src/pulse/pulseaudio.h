@@ -108,7 +108,6 @@
  * modules:
  *
  * \li libpulse - The asynchronous API and the internal main loop implementation.
- * \li libpulse-mainloop-glib12 - GLIB 1.2 main loop bindings.
  * \li libpulse-mainloop-glib - GLIB 2.x main loop bindings.
  * \li libpulse-simple - The simple PulseAudio API.
  */
