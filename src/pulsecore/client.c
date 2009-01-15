@@ -67,6 +67,9 @@ pa_client *pa_client_new(pa_core *core, pa_client_new_data *data) {
     c->driver = pa_xstrdup(data->driver);
     c->module = data->module;
 
+    c->sink_inputs = pa_idxset_new(NULL, NULL);
+    c->source_outputs = pa_idxset_new(NULL, NULL);
+
     c->userdata = NULL;
     c->kill = NULL;
 
@@ -96,6 +99,11 @@ void pa_client_free(pa_client *c) {
 
     pa_log_info("Freed %u \"%s\"", c->index, pa_strnull(pa_proplist_gets(c->proplist, PA_PROP_APPLICATION_NAME)));
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_REMOVE, c->index);
+
+    pa_assert(pa_idxset_isempty(c->sink_inputs));
+    pa_idxset_free(c->sink_inputs, NULL, NULL);
+    pa_assert(pa_idxset_isempty(c->source_outputs));
+    pa_idxset_free(c->source_outputs, NULL, NULL);
 
     pa_proplist_free(c->proplist);
     pa_xfree(c->driver);

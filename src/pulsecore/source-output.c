@@ -223,6 +223,9 @@ pa_source_output* pa_source_output_new(
     pa_assert_se(pa_idxset_put(core->source_outputs, o, &o->index) == 0);
     pa_assert_se(pa_idxset_put(o->source->outputs, pa_source_output_ref(o), NULL) == 0);
 
+    if (o->client)
+        pa_assert_se(pa_idxset_put(o->client->source_outputs, o, NULL) >= 0);
+
     if (o->direct_on_input)
         pa_assert_se(pa_idxset_put(o->direct_on_input->direct_outputs, o, NULL) == 0);
 
@@ -289,6 +292,9 @@ void pa_source_output_unlink(pa_source_output*o) {
     pa_idxset_remove_by_data(o->source->core->source_outputs, o, NULL);
     if (pa_idxset_remove_by_data(o->source->outputs, o, NULL))
         pa_source_output_unref(o);
+
+    if (o->client)
+        pa_idxset_remove_by_data(o->client->source_outputs, o, NULL);
 
     update_n_corked(o, PA_SOURCE_OUTPUT_UNLINKED);
     o->state = PA_SOURCE_OUTPUT_UNLINKED;

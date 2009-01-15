@@ -117,8 +117,8 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     c->driver = pa_xstrdup(data->driver);
     c->module = data->module;
 
-    c->sinks = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
-    c->sources = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    c->sinks = pa_idxset_new(NULL, NULL);
+    c->sources = pa_idxset_new(NULL, NULL);
 
     c->configs = data->configs;
     data->configs = NULL;
@@ -156,7 +156,9 @@ void pa_card_free(pa_card *c) {
 
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_REMOVE, c->index);
 
+    pa_assert(pa_idxset_isempty(c->sinks));
     pa_idxset_free(c->sinks, NULL, NULL);
+    pa_assert(pa_idxset_isempty(c->sources));
     pa_idxset_free(c->sources, NULL, NULL);
 
     while ((config = pa_hashmap_steal_first(c->configs)))

@@ -42,6 +42,9 @@ struct pa_client {
     pa_module *module;
     char *driver;
 
+    pa_idxset *sink_inputs;
+    pa_idxset *source_outputs;
+
     void *userdata;
 
     void (*kill)(pa_client *c);

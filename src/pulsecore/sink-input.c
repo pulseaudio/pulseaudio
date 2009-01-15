@@ -283,6 +283,9 @@ pa_sink_input* pa_sink_input_new(
     pa_assert_se(pa_idxset_put(core->sink_inputs, pa_sink_input_ref(i), &i->index) == 0);
     pa_assert_se(pa_idxset_put(i->sink->inputs, i, NULL) == 0);
 
+    if (i->client)
+        pa_assert_se(pa_idxset_put(i->client->sink_inputs, i, NULL) >= 0);
+
     pa_log_info("Created input %u \"%s\" on %s with sample spec %s and channel map %s",
                 i->index,
                 pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME)),
@@ -371,6 +374,9 @@ void pa_sink_input_unlink(pa_sink_input *i) {
     pa_idxset_remove_by_data(i->sink->core->sink_inputs, i, NULL);
     if (pa_idxset_remove_by_data(i->sink->inputs, i, NULL))
         pa_sink_input_unref(i);
+
+    if (i->client)
+        pa_idxset_remove_by_data(i->client->sink_inputs, i, NULL);
 
     while ((o = pa_idxset_first(i->direct_outputs, NULL))) {
         pa_assert(o != p);
