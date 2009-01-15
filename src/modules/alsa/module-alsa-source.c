@@ -1087,6 +1087,7 @@ int pa__init(pa_module*m) {
     pa_bool_t namereg_fail;
     pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d;
     pa_source_new_data data;
+    const char *profile_description = NULL, *profile_name = NULL;
 
     snd_pcm_info_alloca(&pcm_info);
 
@@ -1167,7 +1168,7 @@ int pa__init(pa_module*m) {
                       &ss, &map,
                       SND_PCM_STREAM_CAPTURE,
                       &nfrags, &period_frames, tsched_frames,
-                      &b, &d)))
+                      &b, &d, &profile_description, &profile_name)))
             goto fail;
 
     } else {
@@ -1184,6 +1185,9 @@ int pa__init(pa_module*m) {
 
     pa_assert(u->device_name);
     pa_log_info("Successfully opened device %s.", u->device_name);
+
+    if (profile_description)
+        pa_log_info("Selected configuration '%s' (%s).", profile_description, profile_name);
 
     if (use_mmap && !b) {
         pa_log_info("Device doesn't support mmap(), falling back to UNIX read/write mode.");
@@ -1267,6 +1271,11 @@ int pa__init(pa_module*m) {
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (period_frames * frame_size * nfrags));
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%lu", (unsigned long) (period_frames * frame_size));
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_ACCESS_MODE, u->use_tsched ? "mmap+timer" : (u->use_mmap ? "mmap" : "serial"));
+
+    if (profile_name)
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_PROFILE_NAME, profile_name);
+    if (profile_description)
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_PROFILE_DESCRIPTION, profile_description);
 
     u->source = pa_source_new(m->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
     pa_source_new_data_done(&data);

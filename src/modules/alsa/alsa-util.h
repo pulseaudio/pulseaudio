@@ -64,7 +64,9 @@ snd_pcm_t *pa_alsa_open_by_device_id(
         snd_pcm_uframes_t *period_size,
         snd_pcm_uframes_t tsched_size,
         pa_bool_t *use_mmap,
-        pa_bool_t *use_tsched);
+        pa_bool_t *use_tsched,
+        const char **config_name,
+        const char **config_description);
 
 snd_pcm_t *pa_alsa_open_by_device_string(
         const char *device,

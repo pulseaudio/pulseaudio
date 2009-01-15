@@ -75,8 +75,10 @@ PA_C_DECL_BEGIN
  *    device.connector              isa, pci, usb, firewire, bluetooth
  *    device.access_mode            mmap, mmap_rewrite, serial
  *    device.master_device
- *    device.bufferin.buffer_size
- *    device.bufferin.fragment_size
+ *    device.buffering.buffer_size
+ *    device.buffering.fragment_size
+ *    device.profile.name           analog-stereo, analog-surround-40, iec958-stereo, ...
+ *    device.profile.description    "Analog Stereo", ...
  */
 #define PA_PROP_MEDIA_NAME                     "media.name"
 #define PA_PROP_MEDIA_TITLE                    "media.title"
@@ -124,6 +126,8 @@ PA_C_DECL_BEGIN
 #define PA_PROP_DEVICE_MASTER_DEVICE           "device.master_device"
 #define PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE   "device.buffering.buffer_size"
 #define PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE "device.buffering.fragment_size"
+#define PA_PROP_DEVICE_PROFILE_NAME            "device.profile.name"
+#define PA_PROP_DEVICE_PROFILE_DESCRIPTION     "device.profile.description"
 
 /** A property list object. Basically a dictionary with UTF-8 strings
  * as keys and arbitrary data as values. \since 0.9.11 */
