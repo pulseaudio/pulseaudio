@@ -46,7 +46,7 @@ typedef enum pa_context_state {
     PA_CONTEXT_TERMINATED      /**< The connection was terminated cleanly */
 } pa_context_state_t;
 
-/** Return non-zero if the passed state is one of the connected states */
+/** Return non-zero if the passed state is one of the connected states. \since 0.9.11 */
 static inline int PA_CONTEXT_IS_GOOD(pa_context_state_t x) {
     return
         x == PA_CONTEXT_CONNECTING ||
@@ -54,6 +54,10 @@ static inline int PA_CONTEXT_IS_GOOD(pa_context_state_t x) {
         x == PA_CONTEXT_SETTING_NAME ||
         x == PA_CONTEXT_READY;
 }
+
+/** \cond fulldocs */
+#define PA_CONTEXT_IS_GOOD PA_CONTEXT_IS_GOOD
+/** \endcond */
 
 /** The state of a stream */
 typedef enum pa_stream_state {
@@ -64,12 +68,16 @@ typedef enum pa_stream_state {
     PA_STREAM_TERMINATED    /**< The stream has been terminated cleanly */
 } pa_stream_state_t;
 
-/** Return non-zero if the passed state is one of the connected states */
+/** Return non-zero if the passed state is one of the connected states. \since 0.9.11 */
 static inline int PA_STREAM_IS_GOOD(pa_stream_state_t x) {
     return
         x == PA_STREAM_CREATING ||
         x == PA_STREAM_READY;
 }
+
+/** \cond fulldocs */
+#define PA_STREAM_IS_GOOD PA_STREAM_IS_GOOD
+/** \endcond */
 
 /** The state of an operation */
 typedef enum pa_operation_state {
