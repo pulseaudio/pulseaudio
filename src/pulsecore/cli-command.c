@@ -47,7 +47,6 @@
 #include <pulsecore/sample-util.h>
 #include <pulsecore/sound-file.h>
 #include <pulsecore/play-memchunk.h>
-#include <pulsecore/autoload.h>
 #include <pulsecore/sound-file-stream.h>
 #include <pulsecore/shared.h>
 #include <pulsecore/core-util.h>
@@ -107,9 +106,6 @@ static int pa_cli_command_scache_list(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
 static int pa_cli_command_scache_load(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_scache_load_dir(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_play_file(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_autoload_list(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_autoload_add(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
-static int pa_cli_command_autoload_remove(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_list_shared_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_move_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
@@ -168,11 +164,6 @@ static const struct command commands[] = {
     { "load-sample-lazy",        pa_cli_command_scache_load,        "Lazily load a sound file into the sample cache (args: name, filename)", 3},
     { "load-sample-dir-lazy",    pa_cli_command_scache_load_dir,    "Lazily load all files in a directory into the sample cache (args: pathname)", 2},
     { "play-file",               pa_cli_command_play_file,          "Play a sound file (args: filename, sink|index)", 3},
-    { "list-autoload",           pa_cli_command_autoload_list,      "List autoload entries", 1},
-    { "add-autoload-sink",       pa_cli_command_autoload_add,       NULL /*"Add autoload entry for a sink (args: sink, module name, arguments)"*/, 4},
-    { "add-autoload-source",     pa_cli_command_autoload_add,       NULL /*"Add autoload entry for a source (args: source, module name, arguments)"*/, 4},
-    { "remove-autoload-sink",    pa_cli_command_autoload_remove,    NULL /*"Remove autoload entry for a sink (args: name)"*/, 2},
-    { "remove-autoload-source",  pa_cli_command_autoload_remove,    NULL /*"Remove autoload entry for a source (args: name)"*/, 2},
     { "dump",                    pa_cli_command_dump,               "Dump daemon configuration", 1},
     { "shared",                  pa_cli_command_list_shared_props,  NULL, 1},
     { "move-sink-input",         pa_cli_command_move_sink_input,    "Move sink input to another sink (args: index, sink)", 3},
@@ -402,7 +393,6 @@ static int pa_cli_command_info(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     pa_cli_command_sink_inputs(c, t, buf, fail);
     pa_cli_command_source_outputs(c, t, buf, fail);
     pa_cli_command_scache_list(c, t, buf, fail);
-/*     pa_cli_command_autoload_list(c, t, buf, fail); */
     return 0;
 }
 
@@ -519,7 +509,7 @@ static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
         return -1;
     }
 
-    if (!(sink = pa_namereg_get(c, n, PA_NAMEREG_SINK, 1))) {
+    if (!(sink = pa_namereg_get(c, n, PA_NAMEREG_SINK))) {
         pa_strbuf_puts(buf, "No sink found by this name or index.\n");
         return -1;
     }
@@ -597,7 +587,7 @@ static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *
         return -1;
     }
 
-    if (!(source = pa_namereg_get(c, n, PA_NAMEREG_SOURCE, 1))) {
+    if (!(source = pa_namereg_get(c, n, PA_NAMEREG_SOURCE))) {
         pa_strbuf_puts(buf, "No source found by this name or index.\n");
         return -1;
     }
@@ -632,7 +622,7 @@ static int pa_cli_command_sink_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf,
         return -1;
     }
 
-    if (!(sink = pa_namereg_get(c, n, PA_NAMEREG_SINK, 1))) {
+    if (!(sink = pa_namereg_get(c, n, PA_NAMEREG_SINK))) {
         pa_strbuf_puts(buf, "No sink found by this name or index.\n");
         return -1;
     }
@@ -666,7 +656,7 @@ static int pa_cli_command_source_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
         return -1;
     }
 
-    if (!(source = pa_namereg_get(c, n, PA_NAMEREG_SOURCE, 1))) {
+    if (!(source = pa_namereg_get(c, n, PA_NAMEREG_SOURCE))) {
         pa_strbuf_puts(buf, "No sink found by this name or index.\n");
         return -1;
     }
@@ -695,7 +685,7 @@ static int pa_cli_command_update_sink_proplist(pa_core *c, pa_tokenizer *t, pa_s
         return -1;
     }
 
-    if (!(sink = pa_namereg_get(c, n, PA_NAMEREG_SINK, 1))) {
+    if (!(sink = pa_namereg_get(c, n, PA_NAMEREG_SINK))) {
         pa_strbuf_puts(buf, "No sink found by this name or index.\n");
         return -1;
     }
@@ -729,7 +719,7 @@ static int pa_cli_command_update_source_proplist(pa_core *c, pa_tokenizer *t, pa
         return -1;
     }
 
-    if (!(source = pa_namereg_get(c, n, PA_NAMEREG_SOURCE, 1))) {
+    if (!(source = pa_namereg_get(c, n, PA_NAMEREG_SOURCE))) {
         pa_strbuf_puts(buf, "No source found by this name or index.\n");
         return -1;
     }
@@ -1014,7 +1004,7 @@ static int pa_cli_command_scache_play(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
         return -1;
     }
 
-    if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK, 1))) {
+    if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK))) {
         pa_strbuf_puts(buf, "No sink by that name.\n");
         return -1;
     }
@@ -1110,73 +1100,13 @@ static int pa_cli_command_play_file(pa_core *c, pa_tokenizer *t, pa_strbuf *buf,
         return -1;
     }
 
-    if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK, 1))) {
+    if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK))) {
         pa_strbuf_puts(buf, "No sink by that name.\n");
         return -1;
     }
 
 
     return pa_play_file(sink, fname, NULL);
-}
-
-static int pa_cli_command_autoload_add(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
-    const char *a, *b;
-
-    pa_core_assert_ref(c);
-    pa_assert(t);
-    pa_assert(buf);
-    pa_assert(fail);
-
-    pa_log_warn("Autoload will no longer be implemented by future versions of the PulseAudio server.");
-
-    if (!(a = pa_tokenizer_get(t, 1)) || !(b = pa_tokenizer_get(t, 2))) {
-        pa_strbuf_puts(buf, "You need to specify a device name, a filename or a module name and optionally module arguments\n");
-        return -1;
-    }
-
-    pa_autoload_add(c, a, strstr(pa_tokenizer_get(t, 0), "sink") ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE, b, pa_tokenizer_get(t, 3), NULL);
-
-    return 0;
-}
-
-static int pa_cli_command_autoload_remove(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
-    const char *name;
-
-    pa_core_assert_ref(c);
-    pa_assert(t);
-    pa_assert(buf);
-    pa_assert(fail);
-
-    pa_log_warn("Autoload will no longer be implemented by future versions of the PulseAudio server.");
-
-    if (!(name = pa_tokenizer_get(t, 1))) {
-        pa_strbuf_puts(buf, "You need to specify a device name\n");
-        return -1;
-    }
-
-    if (pa_autoload_remove_by_name(c, name, strstr(pa_tokenizer_get(t, 0), "sink") ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE) < 0) {
-        pa_strbuf_puts(buf, "Failed to remove autload entry\n");
-        return -1;
-    }
-
-    return 0;
-}
-
-static int pa_cli_command_autoload_list(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
-    char *s;
-
-    pa_core_assert_ref(c);
-    pa_assert(t);
-    pa_assert(buf);
-    pa_assert(fail);
-
-    pa_log_warn("Autoload will no longer be implemented by future versions of the PulseAudio server.");
-
-    pa_assert_se(s = pa_autoload_list_to_string(c));
-    pa_strbuf_puts(buf, s);
-    pa_xfree(s);
-
-    return 0;
 }
 
 static int pa_cli_command_list_shared_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
@@ -1231,7 +1161,7 @@ static int pa_cli_command_move_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf
         return -1;
     }
 
-    if (!(sink = pa_namereg_get(c, k, PA_NAMEREG_SINK, 1))) {
+    if (!(sink = pa_namereg_get(c, k, PA_NAMEREG_SINK))) {
         pa_strbuf_puts(buf, "No sink found by this name or index.\n");
         return -1;
     }
@@ -1274,7 +1204,7 @@ static int pa_cli_command_move_source_output(pa_core *c, pa_tokenizer *t, pa_str
         return -1;
     }
 
-    if (!(source = pa_namereg_get(c, k, PA_NAMEREG_SOURCE, 1))) {
+    if (!(source = pa_namereg_get(c, k, PA_NAMEREG_SOURCE))) {
         pa_strbuf_puts(buf, "No source found by this name or index.\n");
         return -1;
     }
@@ -1311,7 +1241,7 @@ static int pa_cli_command_suspend_sink(pa_core *c, pa_tokenizer *t, pa_strbuf *b
         return -1;
     }
 
-    if (!(sink = pa_namereg_get(c, n, PA_NAMEREG_SINK, 1))) {
+    if (!(sink = pa_namereg_get(c, n, PA_NAMEREG_SINK))) {
         pa_strbuf_puts(buf, "No sink found by this name or index.\n");
         return -1;
     }
@@ -1345,7 +1275,7 @@ static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf 
         return -1;
     }
 
-    if (!(source = pa_namereg_get(c, n, PA_NAMEREG_SOURCE, 1))) {
+    if (!(source = pa_namereg_get(c, n, PA_NAMEREG_SOURCE))) {
         pa_strbuf_puts(buf, "No source found by this name or index.\n");
         return -1;
     }
@@ -1489,8 +1419,6 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     uint32_t idx;
     char txt[256];
     time_t now;
-    void *i;
-    pa_autoload_entry *a;
 
     pa_core_assert_ref(c);
     pa_assert(t);
@@ -1506,8 +1434,6 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
 #endif
 
     for (m = pa_idxset_first(c->modules, &idx); m; m = pa_idxset_next(c->modules, &idx)) {
-        if (m->auto_unload)
-            continue;
 
         pa_strbuf_printf(buf, "load-module %s", m->name);
 
@@ -1520,8 +1446,6 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     nl = 0;
 
     for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx)) {
-        if (sink->module && sink->module->auto_unload)
-            continue;
 
         if (!nl) {
             pa_strbuf_puts(buf, "\n");
@@ -1534,8 +1458,6 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     }
 
     for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx)) {
-        if (source->module && source->module->auto_unload)
-            continue;
 
         if (!nl) {
             pa_strbuf_puts(buf, "\n");
@@ -1547,26 +1469,6 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
         pa_strbuf_printf(buf, "suspend-source %s %s\n", source->name, pa_yes_no(pa_source_get_state(source) == PA_SOURCE_SUSPENDED));
     }
 
-
-    if (c->autoload_hashmap) {
-        nl = 0;
-
-        i = NULL;
-        while ((a = pa_hashmap_iterate(c->autoload_hashmap, &i, NULL))) {
-
-            if (!nl) {
-                pa_strbuf_puts(buf, "\n");
-                nl = 1;
-            }
-
-            pa_strbuf_printf(buf, "add-autoload-%s %s %s", a->type == PA_NAMEREG_SINK ? "sink" : "source", a->name, a->module);
-
-            if (a->argument)
-                pa_strbuf_printf(buf, " %s", a->argument);
-
-            pa_strbuf_puts(buf, "\n");
-        }
-    }
 
     nl = 0;
 

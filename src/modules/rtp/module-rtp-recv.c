@@ -415,7 +415,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
         goto fail;
     }
 
-    if (!(sink = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK, TRUE))) {
+    if (!(sink = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK))) {
         pa_log("Sink does not exist.");
         goto fail;
     }

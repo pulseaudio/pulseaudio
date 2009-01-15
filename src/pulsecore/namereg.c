@@ -178,7 +178,7 @@ void pa_namereg_unregister(pa_core *c, const char *name) {
     pa_xfree(e);
 }
 
-void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type, pa_bool_t autoload) {
+void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type) {
     struct namereg_entry *e;
     uint32_t idx;
     pa_assert(c);
@@ -202,7 +202,7 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type, pa_bo
         if (type == PA_NAMEREG_SOURCE) {
             pa_sink *k;
 
-            if ((k = pa_namereg_get(c, NULL, PA_NAMEREG_SINK, autoload)))
+            if ((k = pa_namereg_get(c, NULL, PA_NAMEREG_SINK)))
                 return k->monitor_source;
         }
     } else if (*name == '@')
@@ -215,18 +215,8 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type, pa_bo
         if (e->type == type)
             return e->data;
 
-    if (pa_atou(name, &idx) < 0) {
-
-        if (autoload) {
-            pa_autoload_request(c, name, type);
-
-            if (c->namereg && (e = pa_hashmap_get(c->namereg, name)))
-                if (e->type == type)
-                    return e->data;
-        }
-
+    if (pa_atou(name, &idx) < 0)
         return NULL;
-    }
 
     if (type == PA_NAMEREG_SINK)
         return pa_idxset_get_by_index(c->sinks, idx);

@@ -99,10 +99,10 @@ struct pa_core {
     pa_mainloop_api *mainloop;
 
     /* idxset of all kinds of entities */
-    pa_idxset *clients, *cards, *sinks, *sources, *sink_inputs, *source_outputs, *modules, *scache, *autoload_idxset;
+    pa_idxset *clients, *cards, *sinks, *sources, *sink_inputs, *source_outputs, *modules, *scache;
 
     /* Some hashmaps for all sorts of entities */
-    pa_hashmap *namereg, *autoload_hashmap, *shared;
+    pa_hashmap *namereg, *shared;
 
     /* The name of the default sink/source */
     char *default_source_name, *default_sink_name;
@@ -110,7 +110,6 @@ struct pa_core {
     pa_sample_spec default_sample_spec;
     unsigned default_n_fragments, default_fragment_size_msec;
 
-    pa_time_event *module_auto_unload_event;
     pa_defer_event *module_defer_unload_event;
 
     pa_defer_event *subscription_defer_event;
@@ -121,7 +120,7 @@ struct pa_core {
     pa_mempool *mempool;
     pa_silence_cache silence_cache;
 
-    int exit_idle_time, module_idle_time, scache_idle_time;
+    int exit_idle_time, scache_idle_time;
 
     pa_time_event *exit_event;
 

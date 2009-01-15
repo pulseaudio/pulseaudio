@@ -356,6 +356,7 @@ enum {
     PA_ERR_NOTSUPPORTED,           /**< Operation not supported \since 0.9.5 */
     PA_ERR_UNKNOWN,                /**< The error code was unknown to the client */
     PA_ERR_NOEXTENSION,            /**< Extension does not exist. \since 0.9.12 */
+    PA_ERR_OBSOLETE,               /**< Obsolete functionality. \since 0.9.15 */
     PA_ERR_MAX                     /**< Not really an error but the first invalid error code */
 };
 
@@ -388,13 +389,15 @@ typedef enum pa_subscription_mask {
     PA_SUBSCRIPTION_MASK_SERVER = 0x0080U,
     /**< Other global server changes. */
 
+/** \cond fulldocs */
     PA_SUBSCRIPTION_MASK_AUTOLOAD = 0x0100U,
-    /**< Autoload table events. */
+    /**< \deprecated Autoload table events. */
+/** \endcond */
 
     PA_SUBSCRIPTION_MASK_CARD = 0x0200U,
     /**< Card events. \since 0.9.15 */
 
-    PA_SUBSCRIPTION_MASK_ALL = 0x03ffU
+    PA_SUBSCRIPTION_MASK_ALL = 0x02ffU
     /**< Catch all events */
 } pa_subscription_mask_t;
 
@@ -424,8 +427,10 @@ typedef enum pa_subscription_event_type {
     PA_SUBSCRIPTION_EVENT_SERVER = 0x0007U,
     /**< Event type: Global server change, only occuring with PA_SUBSCRIPTION_EVENT_CHANGE. */
 
+/** \cond fulldocs */
     PA_SUBSCRIPTION_EVENT_AUTOLOAD = 0x0008U,
-    /**< Event type: Autoload table changes. */
+    /**< \deprecated Event type: Autoload table changes. */
+/** \endcond */
 
     PA_SUBSCRIPTION_EVENT_CARD = 0x0009U,
     /**< Event type: Card \since 0.9.15 */

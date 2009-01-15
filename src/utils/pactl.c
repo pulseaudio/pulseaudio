@@ -476,36 +476,6 @@ static void get_sample_info_callback(pa_context *c, const pa_sample_info *i, int
     pa_xfree(pl);
 }
 
-static void get_autoload_info_callback(pa_context *c, const pa_autoload_info *i, int is_last, void *userdata) {
-    if (is_last < 0) {
-        fprintf(stderr, _("Failed to get autoload information: %s\n"), pa_strerror(pa_context_errno(c)));
-        quit(1);
-        return;
-    }
-
-    if (is_last) {
-        complete_action();
-        return;
-    }
-
-    assert(i);
-
-    if (nl)
-        printf("\n");
-    nl = 1;
-
-    printf(_("*** Autoload Entry #%u ***\n"
-           "Name: %s\n"
-           "Type: %s\n"
-           "Module: %s\n"
-             "Argument: %s\n"),
-           i->index,
-           i->name,
-           i->type == PA_AUTOLOAD_SINK ? _("sink") : _("source"),
-           i->module,
-           i->argument ? i->argument : "");
-}
-
 static void simple_callback(pa_context *c, int success, void *userdata) {
     if (!success) {
         fprintf(stderr, _("Failure: %s\n"), pa_strerror(pa_context_errno(c)));
@@ -619,7 +589,6 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     pa_operation_unref(pa_context_get_source_output_info_list(c, get_source_output_info_callback, NULL));
                     pa_operation_unref(pa_context_get_client_info_list(c, get_client_info_callback, NULL));
                     pa_operation_unref(pa_context_get_sample_info_list(c, get_sample_info_callback, NULL));
-                    pa_operation_unref(pa_context_get_autoload_info_list(c, get_autoload_info_callback, NULL));
                     break;
 
                 case MOVE_SINK_INPUT:

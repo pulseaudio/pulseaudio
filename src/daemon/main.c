@@ -901,7 +901,6 @@ int main(int argc, char *argv[]) {
     c->default_n_fragments = conf->default_n_fragments;
     c->default_fragment_size_msec = conf->default_fragment_size_msec;
     c->exit_idle_time = conf->exit_idle_time;
-    c->module_idle_time = conf->module_idle_time;
     c->scache_idle_time = conf->scache_idle_time;
     c->resample_method = conf->resample_method;
     c->realtime_priority = conf->realtime_priority;
@@ -963,7 +962,7 @@ int main(int argc, char *argv[]) {
         goto finish;
     }
 
-    if (c->default_sink_name && !pa_namereg_get(c, c->default_sink_name, PA_NAMEREG_SINK, TRUE) && conf->fail) {
+    if (c->default_sink_name && !pa_namereg_get(c, c->default_sink_name, PA_NAMEREG_SINK) && conf->fail) {
         pa_log_error(_("Default sink name (%s) does not exist in name register."), c->default_sink_name);
         goto finish;
     }

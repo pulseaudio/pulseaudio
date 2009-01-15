@@ -196,7 +196,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (!(s = pa_namereg_get(m->core, pa_modargs_get_value(ma, "source", NULL), PA_NAMEREG_SOURCE, 1))) {
+    if (!(s = pa_namereg_get(m->core, pa_modargs_get_value(ma, "source", NULL), PA_NAMEREG_SOURCE))) {
         pa_log("Source does not exist.");
         goto fail;
     }

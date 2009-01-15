@@ -131,7 +131,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (!(sink = pa_namereg_get(m->core, pa_modargs_get_value(ma, "sink", NULL), PA_NAMEREG_SINK, TRUE))) {
+    if (!(sink = pa_namereg_get(m->core, pa_modargs_get_value(ma, "sink", NULL), PA_NAMEREG_SINK))) {
         pa_log("No such sink.");
         goto fail;
     }

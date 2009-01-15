@@ -403,7 +403,7 @@ static int esd_proto_stream_play(connection *c, esd_proto_t request, const void 
     CHECK_VALIDITY(pa_sample_spec_valid(&ss), "Invalid sample specification");
 
     if (c->options->default_sink) {
-        sink = pa_namereg_get(c->protocol->core, c->options->default_sink, PA_NAMEREG_SINK, 1);
+        sink = pa_namereg_get(c->protocol->core, c->options->default_sink, PA_NAMEREG_SINK);
         CHECK_VALIDITY(sink, "No such sink: %s", c->options->default_sink);
     }
 
@@ -490,7 +490,7 @@ static int esd_proto_stream_record(connection *c, esd_proto_t request, const voi
     if (request == ESD_PROTO_STREAM_MON) {
         pa_sink* sink;
 
-        if (!(sink = pa_namereg_get(c->protocol->core, c->options->default_sink, PA_NAMEREG_SINK, 1))) {
+        if (!(sink = pa_namereg_get(c->protocol->core, c->options->default_sink, PA_NAMEREG_SINK))) {
             pa_log("no such sink.");
             return -1;
         }
@@ -503,7 +503,7 @@ static int esd_proto_stream_record(connection *c, esd_proto_t request, const voi
         pa_assert(request == ESD_PROTO_STREAM_REC);
 
         if (c->options->default_source) {
-            if (!(source = pa_namereg_get(c->protocol->core, c->options->default_source, PA_NAMEREG_SOURCE, 1))) {
+            if (!(source = pa_namereg_get(c->protocol->core, c->options->default_source, PA_NAMEREG_SOURCE))) {
                 pa_log("no such source.");
                 return -1;
             }
@@ -569,7 +569,7 @@ static int esd_proto_get_latency(connection *c, esd_proto_t request, const void 
     pa_assert(!data);
     pa_assert(length == 0);
 
-    if (!(sink = pa_namereg_get(c->protocol->core, c->options->default_sink, PA_NAMEREG_SINK, 1)))
+    if (!(sink = pa_namereg_get(c->protocol->core, c->options->default_sink, PA_NAMEREG_SINK)))
         latency = 0;
     else {
         double usec = (double) pa_sink_get_latency(sink);
@@ -590,7 +590,7 @@ static int esd_proto_server_info(connection *c, esd_proto_t request, const void 
     pa_assert(data);
     pa_assert(length == sizeof(int32_t));
 
-    if ((sink = pa_namereg_get(c->protocol->core, c->options->default_sink, PA_NAMEREG_SINK, 1))) {
+    if ((sink = pa_namereg_get(c->protocol->core, c->options->default_sink, PA_NAMEREG_SINK))) {
         rate = (int32_t) sink->sample_spec.rate;
         format = format_native2esd(&sink->sample_spec);
     }
@@ -865,7 +865,7 @@ static int esd_proto_sample_free_or_play(connection *c, esd_proto_t request, con
         if (request == ESD_PROTO_SAMPLE_PLAY) {
             pa_sink *sink;
 
-            if ((sink = pa_namereg_get(c->protocol->core, c->options->default_sink, PA_NAMEREG_SINK, 1)))
+            if ((sink = pa_namereg_get(c->protocol->core, c->options->default_sink, PA_NAMEREG_SINK)))
                 if (pa_scache_play_item(c->protocol->core, name, sink, PA_VOLUME_NORM, c->client->proplist, NULL) >= 0)
                     ok = (int32_t) idx + 1;
         } else {

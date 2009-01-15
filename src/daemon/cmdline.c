@@ -52,7 +52,6 @@ enum {
     ARG_DISALLOW_MODULE_LOADING,
     ARG_DISALLOW_EXIT,
     ARG_EXIT_IDLE_TIME,
-    ARG_MODULE_IDLE_TIME,
     ARG_SCACHE_IDLE_TIME,
     ARG_LOG_TARGET,
     ARG_LOG_META,
@@ -88,7 +87,6 @@ static const struct option long_options[] = {
     {"disallow-module-loading",     2, 0, ARG_DISALLOW_MODULE_LOADING},
     {"disallow-exit",               2, 0, ARG_DISALLOW_EXIT},
     {"exit-idle-time",              2, 0, ARG_EXIT_IDLE_TIME},
-    {"module-idle-time",            2, 0, ARG_MODULE_IDLE_TIME},
     {"scache-idle-time",            2, 0, ARG_SCACHE_IDLE_TIME},
     {"log-target",                  1, 0, ARG_LOG_TARGET},
     {"log-meta",                    2, 0, ARG_LOG_META},
@@ -350,10 +348,6 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
 
             case ARG_EXIT_IDLE_TIME:
                 conf->exit_idle_time = atoi(optarg);
-                break;
-
-            case ARG_MODULE_IDLE_TIME:
-                conf->module_idle_time = atoi(optarg);
                 break;
 
             case ARG_SCACHE_IDLE_TIME:

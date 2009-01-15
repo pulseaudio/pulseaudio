@@ -128,18 +128,6 @@
  * pa_context_get_module_info() or pa_context_get_module_info_list(). The
  * information structure is called pa_module_info.
  *
- * \subsection autoload_subsec Autoload Entries
- *
- * Modules can be autoloaded as a result of a client requesting a
- * certain sink or source. Please note that autoloading is deprecated
- * in 0.9.11. and is likely to be removed from the API in a later
- * version. This mapping between sink/source names and modules can be
- * queried from the server:
- *
- * \li By index - pa_context_get_autoload_info_by_index()
- * \li By sink/source name - pa_context_get_autoload_info_by_name()
- * \li All - pa_context_get_autoload_info_list()
- *
  * \subsection client_subsec Clients
  *
  * PulseAudio clients are also identified by index and are retrieved using
@@ -188,14 +176,6 @@
  *
  * Server modules can be remotely loaded and unloaded using
  * pa_context_load_module() and pa_context_unload_module().
- *
- * \subsection autoload_subsec Autoload Entries
- *
- * New module autoloading rules can be added, and existing can be removed
- * using pa_context_add_autoload() and pa_context_remove_autoload_by_index()
- * / pa_context_remove_autoload_by_name(). Please note that autoloading is deprecated
- * in 0.9.11. and is likely to be removed from the API in a later
- * version.
  *
  * \subsection client_subsec Clients
  *
@@ -350,7 +330,9 @@ typedef struct pa_module_info {
     const char*name,                    /**< Name of the module */
         *argument;                      /**< Argument string of the module */
     uint32_t n_used;                    /**< Usage counter or PA_INVALID_INDEX */
-    int auto_unload;                    /**< Non-zero if this is an autoloaded module */
+/** \cond fulldocs */
+    int auto_unload;                    /**< \deprecated Non-zero if this is an autoloaded module */
+/** \endcond */
 } pa_module_info;
 
 /** Callback prototype for pa_context_get_module_info() and firends*/
@@ -551,13 +533,13 @@ pa_operation* pa_context_get_sample_info_list(pa_context *c, pa_sample_info_cb_t
 
 /** @{ \name Autoload Entries */
 
-/** Type of an autoload entry. */
+/** \deprecated Type of an autoload entry. */
 typedef enum pa_autoload_type {
     PA_AUTOLOAD_SINK = 0,
     PA_AUTOLOAD_SOURCE = 1
 } pa_autoload_type_t;
 
-/** Stores information about autoload entries. Please note that this structure
+/** \deprecated Stores information about autoload entries. Please note that this structure
  * can be extended as part of evolutionary API updates at any time in
  * any new release. */
 typedef struct pa_autoload_info {
@@ -568,25 +550,25 @@ typedef struct pa_autoload_info {
     const char *argument;         /**< Argument string for module */
 } pa_autoload_info;
 
-/** Callback prototype for pa_context_get_autoload_info_by_name() and firends */
+/** \deprecated Callback prototype for pa_context_get_autoload_info_by_name() and firends */
 typedef void (*pa_autoload_info_cb_t)(pa_context *c, const pa_autoload_info *i, int eol, void *userdata);
 
-/** Get info about a specific autoload entry. */
+/** \deprecated Get info about a specific autoload entry. */
 pa_operation* pa_context_get_autoload_info_by_name(pa_context *c, const char *name, pa_autoload_type_t type, pa_autoload_info_cb_t cb, void *userdata) PA_GCC_DEPRECATED;
 
-/** Get info about a specific autoload entry. */
+/** \deprecated Get info about a specific autoload entry. */
 pa_operation* pa_context_get_autoload_info_by_index(pa_context *c, uint32_t idx, pa_autoload_info_cb_t cb, void *userdata) PA_GCC_DEPRECATED;
 
-/** Get the complete list of autoload entries. */
+/** \deprecated Get the complete list of autoload entries. */
 pa_operation* pa_context_get_autoload_info_list(pa_context *c, pa_autoload_info_cb_t cb, void *userdata) PA_GCC_DEPRECATED;
 
-/** Add a new autoload entry. */
+/** \deprecated Add a new autoload entry. */
 pa_operation* pa_context_add_autoload(pa_context *c, const char *name, pa_autoload_type_t type, const char *module, const char*argument, pa_context_index_cb_t, void* userdata) PA_GCC_DEPRECATED;
 
-/** Remove an autoload entry. */
+/** \deprecated Remove an autoload entry. */
 pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name, pa_autoload_type_t type, pa_context_success_cb_t cb, void* userdata) PA_GCC_DEPRECATED;
 
-/** Remove an autoload entry. */
+/** \deprecated Remove an autoload entry. */
 pa_operation* pa_context_remove_autoload_by_index(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void* userdata) PA_GCC_DEPRECATED;
 
 /** @} */

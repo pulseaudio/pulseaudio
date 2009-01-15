@@ -304,7 +304,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
         pa_sink *s;
 
         if (u->restore_device &&
-            (s = pa_namereg_get(c, e->device, PA_NAMEREG_SINK, TRUE))) {
+            (s = pa_namereg_get(c, e->device, PA_NAMEREG_SINK))) {
 
             if (!new_data->sink) {
                 pa_log_info("Restoring device for stream %s.", name);
@@ -371,7 +371,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
 
         if (u->restore_device &&
             !new_data->direct_on_input &&
-            (s = pa_namereg_get(c, e->device, PA_NAMEREG_SOURCE, TRUE))) {
+            (s = pa_namereg_get(c, e->device, PA_NAMEREG_SOURCE))) {
 
             if (!new_data->source) {
                 pa_log_info("Restoring device for stream %s.", name);
@@ -442,7 +442,7 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
         }
 
         if (u->restore_device &&
-            (s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SOURCE, TRUE))) {
+            (s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SOURCE))) {
 
             pa_log_info("Restoring device for stream %s.", name);
             pa_sink_input_move_to(si, s);
@@ -462,7 +462,7 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
         }
 
         if (u->restore_device &&
-            (s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SOURCE, TRUE))) {
+            (s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SOURCE))) {
 
             pa_log_info("Restoring device for stream %s.", name);
             pa_source_output_move_to(so, s);

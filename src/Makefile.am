@@ -712,7 +712,6 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/asyncmsgq.c pulsecore/asyncmsgq.h \
 		pulsecore/asyncq.c pulsecore/asyncq.h \
 		pulsecore/auth-cookie.c pulsecore/auth-cookie.h \
-		pulsecore/autoload.c pulsecore/autoload.h \
 		pulsecore/cli-command.c pulsecore/cli-command.h \
 		pulsecore/cli-text.c pulsecore/cli-text.h \
 		pulsecore/client.c pulsecore/client.h \

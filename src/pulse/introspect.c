@@ -1167,186 +1167,59 @@ pa_operation* pa_context_unload_module(pa_context *c, uint32_t idx, pa_context_s
 
 /*** Autoload stuff ***/
 
-static void context_get_autoload_info_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
-    pa_operation *o = userdata;
-    int eol = 1;
-
-    pa_assert(pd);
-    pa_assert(o);
-    pa_assert(PA_REFCNT_VALUE(o) >= 1);
-
-    if (!o->context)
-        goto finish;
-
-    if (command != PA_COMMAND_REPLY) {
-        if (pa_context_handle_error(o->context, command, t, FALSE) < 0)
-            goto finish;
-
-        eol = -1;
-    } else {
-
-        while (!pa_tagstruct_eof(t)) {
-            pa_autoload_info i;
-
-            memset(&i, 0, sizeof(i));
-
-            if (pa_tagstruct_getu32(t, &i.index) < 0 ||
-                pa_tagstruct_gets(t, &i.name) < 0 ||
-                pa_tagstruct_getu32(t, &i.type) < 0 ||
-                pa_tagstruct_gets(t, &i.module) < 0 ||
-                pa_tagstruct_gets(t, &i.argument) < 0) {
-                pa_context_fail(o->context, PA_ERR_PROTOCOL);
-                goto finish;
-            }
-
-            if (o->callback) {
-                pa_autoload_info_cb_t cb = (pa_autoload_info_cb_t) o->callback;
-                cb(o->context, &i, 0, o->userdata);
-            }
-        }
-    }
-
-    if (o->callback) {
-        pa_autoload_info_cb_t cb = (pa_autoload_info_cb_t) o->callback;
-        cb(o->context, NULL, eol, o->userdata);
-    }
-
-finish:
-    pa_operation_done(o);
-    pa_operation_unref(o);
-}
-
-PA_WARN_REFERENCE(pa_context_get_autoload_info_by_name, "Autoload will no longer be implemented by future versions of the PulseAudio server.");
+PA_WARN_REFERENCE(pa_context_get_autoload_info_by_name, "Module auto-loading no longer supported.");
 
 pa_operation* pa_context_get_autoload_info_by_name(pa_context *c, const char *name, pa_autoload_type_t type, pa_autoload_info_cb_t cb, void *userdata) {
-    pa_tagstruct *t;
-    pa_operation *o;
-    uint32_t tag;
 
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
-    pa_assert(cb);
 
-    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
-    PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);
-    PA_CHECK_VALIDITY_RETURN_NULL(c, type == PA_AUTOLOAD_SINK || type == PA_AUTOLOAD_SOURCE, PA_ERR_INVALID);
-
-    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
-
-    t = pa_tagstruct_command(c, PA_COMMAND_GET_AUTOLOAD_INFO, &tag);
-    pa_tagstruct_puts(t, name);
-    pa_tagstruct_putu32(t, type);
-    pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_autoload_info_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
-
-    return o;
+    PA_FAIL_RETURN_NULL(c, PA_ERR_OBSOLETE);
 }
 
-PA_WARN_REFERENCE(pa_context_get_autoload_info_by_index, "Autoload will no longer be implemented by future versions of the PulseAudio server.");
+PA_WARN_REFERENCE(pa_context_get_autoload_info_by_index, "Module auto-loading no longer supported.");
 
 pa_operation* pa_context_get_autoload_info_by_index(pa_context *c, uint32_t idx, pa_autoload_info_cb_t cb, void *userdata) {
-    pa_tagstruct *t;
-    pa_operation *o;
-    uint32_t tag;
-
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
-    pa_assert(cb);
 
-    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
-    PA_CHECK_VALIDITY_RETURN_NULL(c, idx != PA_INVALID_INDEX, PA_ERR_INVALID);
-
-    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
-
-    t = pa_tagstruct_command(c, PA_COMMAND_GET_AUTOLOAD_INFO, &tag);
-    pa_tagstruct_putu32(t, idx);
-    pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_autoload_info_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
-
-    return o;
+    PA_FAIL_RETURN_NULL(c, PA_ERR_OBSOLETE);
 }
 
-
-PA_WARN_REFERENCE(pa_context_get_autoload_info_list, "Autoload will no longer be implemented by future versions of the PulseAudio server.");
+PA_WARN_REFERENCE(pa_context_get_autoload_info_list, "Module auto-loading no longer supported.");
 
 pa_operation* pa_context_get_autoload_info_list(pa_context *c, pa_autoload_info_cb_t cb, void *userdata) {
-    return pa_context_send_simple_command(c, PA_COMMAND_GET_AUTOLOAD_INFO_LIST, context_get_autoload_info_callback, (pa_operation_cb_t) cb, userdata);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    PA_FAIL_RETURN_NULL(c, PA_ERR_OBSOLETE);
 }
 
-PA_WARN_REFERENCE(pa_context_add_autoload, "Autoload will no longer be implemented by future versions of the PulseAudio server.");
+PA_WARN_REFERENCE(pa_context_add_autoload, "Module auto-loading no longer supported.");
 
 pa_operation* pa_context_add_autoload(pa_context *c, const char *name, pa_autoload_type_t type, const char *module, const char*argument, pa_context_index_cb_t cb, void* userdata) {
-    pa_operation *o;
-    pa_tagstruct *t;
-    uint32_t tag;
-
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
-    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
-    PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);
-    PA_CHECK_VALIDITY_RETURN_NULL(c, type == PA_AUTOLOAD_SINK || type == PA_AUTOLOAD_SOURCE, PA_ERR_INVALID);
-    PA_CHECK_VALIDITY_RETURN_NULL(c, module && *module, PA_ERR_INVALID);
-
-    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
-
-    t = pa_tagstruct_command(c, PA_COMMAND_ADD_AUTOLOAD, &tag);
-    pa_tagstruct_puts(t, name);
-    pa_tagstruct_putu32(t, type);
-    pa_tagstruct_puts(t, module);
-    pa_tagstruct_puts(t, argument);
-    pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_index_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
-
-    return o;
+    PA_FAIL_RETURN_NULL(c, PA_ERR_OBSOLETE);
 }
 
-PA_WARN_REFERENCE(pa_context_remove_autoload_by_name, "Autoload will no longer be implemented by future versions of the PulseAudio server.");
+PA_WARN_REFERENCE(pa_context_remove_autoload_by_name, "Module auto-loading no longer supported.");
 
 pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name, pa_autoload_type_t type, pa_context_success_cb_t cb, void* userdata) {
-    pa_operation *o;
-    pa_tagstruct *t;
-    uint32_t tag;
-
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
-    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
-    PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);
-    PA_CHECK_VALIDITY_RETURN_NULL(c, type == PA_AUTOLOAD_SINK || type == PA_AUTOLOAD_SOURCE, PA_ERR_INVALID);
-
-    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
-
-    t = pa_tagstruct_command(c, PA_COMMAND_REMOVE_AUTOLOAD, &tag);
-    pa_tagstruct_puts(t, name);
-    pa_tagstruct_putu32(t, type);
-    pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
-
-    return o;
+    PA_FAIL_RETURN_NULL(c, PA_ERR_OBSOLETE);
 }
 
-PA_WARN_REFERENCE(pa_context_remove_autoload_by_index, "Autoload will no longer be implemented by future versions of the PulseAudio server.");
+PA_WARN_REFERENCE(pa_context_remove_autoload_by_index, "Module auto-loading no longer supported.");
 
 pa_operation* pa_context_remove_autoload_by_index(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void* userdata) {
-    pa_operation *o;
-    pa_tagstruct *t;
-    uint32_t tag;
-
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
-    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
-    PA_CHECK_VALIDITY_RETURN_NULL(c, idx != PA_INVALID_INDEX, PA_ERR_INVALID);
-
-    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
-
-    t = pa_tagstruct_command(c, PA_COMMAND_REMOVE_AUTOLOAD, &tag);
-    pa_tagstruct_putu32(t, idx);
-    pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
-
-    return o;
+    PA_FAIL_RETURN_NULL(c, PA_ERR_OBSOLETE);
 }
 
 pa_operation* pa_context_move_sink_input_by_name(pa_context *c, uint32_t idx, const char *sink_name, pa_context_success_cb_t cb, void* userdata) {

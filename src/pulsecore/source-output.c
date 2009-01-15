@@ -112,7 +112,7 @@ pa_source_output* pa_source_output_new(
     pa_return_null_if_fail(!data->driver || pa_utf8_valid(data->driver));
 
     if (!data->source)
-        data->source = pa_namereg_get(core, NULL, PA_NAMEREG_SOURCE, TRUE);
+        data->source = pa_namereg_get(core, NULL, PA_NAMEREG_SOURCE);
 
     pa_return_null_if_fail(data->source);
     pa_return_null_if_fail(pa_source_get_state(data->source) != PA_SOURCE_UNLINKED);

@@ -68,7 +68,7 @@ static void load(struct userdata *u) {
 
         if (!ln[0])
             pa_log_info("No previous default sink setting, ignoring.");
-        else if (pa_namereg_get(u->core, ln, PA_NAMEREG_SINK, TRUE)) {
+        else if (pa_namereg_get(u->core, ln, PA_NAMEREG_SINK)) {
             pa_namereg_set_default(u->core, ln, PA_NAMEREG_SINK);
             pa_log_info("Restored default sink '%s'.", ln);
         } else
@@ -88,7 +88,7 @@ static void load(struct userdata *u) {
 
         if (!ln[0])
             pa_log_info("No previous default source setting, ignoring.");
-        else if (pa_namereg_get(u->core, ln, PA_NAMEREG_SOURCE, TRUE)) {
+        else if (pa_namereg_get(u->core, ln, PA_NAMEREG_SOURCE)) {
             pa_namereg_set_default(u->core, ln, PA_NAMEREG_SOURCE);
             pa_log_info("Restored default source '%s'.", ln);
         } else

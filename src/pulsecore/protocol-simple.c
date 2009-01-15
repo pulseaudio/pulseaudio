@@ -526,7 +526,7 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
         size_t l;
         pa_sink *sink;
 
-        if (!(sink = pa_namereg_get(c->protocol->core, o->default_sink, PA_NAMEREG_SINK, TRUE))) {
+        if (!(sink = pa_namereg_get(c->protocol->core, o->default_sink, PA_NAMEREG_SINK))) {
             pa_log("Failed to get sink.");
             goto fail;
         }
@@ -578,7 +578,7 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
         size_t l;
         pa_source *source;
 
-        if (!(source = pa_namereg_get(c->protocol->core, o->default_source, PA_NAMEREG_SOURCE, TRUE))) {
+        if (!(source = pa_namereg_get(c->protocol->core, o->default_source, PA_NAMEREG_SOURCE))) {
             pa_log("Failed to get source.");
             goto fail;
         }

@@ -49,7 +49,6 @@
 #include <pulsecore/core-scache.h>
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/log.h>
-#include <pulsecore/autoload.h>
 #include <pulsecore/strlist.h>
 #include <pulsecore/shared.h>
 #include <pulsecore/sample-util.h>
@@ -248,10 +247,6 @@ static void command_set_stream_name(pa_pdispatch *pd, uint32_t command, uint32_t
 static void command_kill(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_load_module(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_unload_module(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
-static void command_add_autoload(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
-static void command_remove_autoload(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
-static void command_get_autoload_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
-static void command_get_autoload_info_list(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_cork_record_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_flush_record_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_move_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
@@ -330,10 +325,11 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_KILL_SOURCE_OUTPUT] = command_kill,
     [PA_COMMAND_LOAD_MODULE] = command_load_module,
     [PA_COMMAND_UNLOAD_MODULE] = command_unload_module,
-    [PA_COMMAND_GET_AUTOLOAD_INFO] = command_get_autoload_info,
-    [PA_COMMAND_GET_AUTOLOAD_INFO_LIST] = command_get_autoload_info_list,
-    [PA_COMMAND_ADD_AUTOLOAD] = command_add_autoload,
-    [PA_COMMAND_REMOVE_AUTOLOAD] = command_remove_autoload,
+
+    [PA_COMMAND_GET_AUTOLOAD_INFO___OBSOLETE] = NULL,
+    [PA_COMMAND_GET_AUTOLOAD_INFO_LIST___OBSOLETE] = NULL,
+    [PA_COMMAND_ADD_AUTOLOAD___OBSOLETE] = NULL,
+    [PA_COMMAND_REMOVE_AUTOLOAD___OBSOLETE] = NULL,
 
     [PA_COMMAND_MOVE_SINK_INPUT] = command_move_stream,
     [PA_COMMAND_MOVE_SOURCE_OUTPUT] = command_move_stream,
@@ -1799,7 +1795,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
 
     } else if (sink_name) {
 
-        if (!(sink = pa_namereg_get(c->protocol->core, sink_name, PA_NAMEREG_SINK, 1))) {
+        if (!(sink = pa_namereg_get(c->protocol->core, sink_name, PA_NAMEREG_SINK))) {
             pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
             pa_proplist_free(p);
             return;
@@ -2040,7 +2036,7 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
 
     } else if (source_name) {
 
-        if (!(source = pa_namereg_get(c->protocol->core, source_name, PA_NAMEREG_SOURCE, 1))) {
+        if (!(source = pa_namereg_get(c->protocol->core, source_name, PA_NAMEREG_SOURCE))) {
             pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
             pa_proplist_free(p);
             return;
@@ -2315,12 +2311,12 @@ static void command_lookup(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_
 
     if (command == PA_COMMAND_LOOKUP_SINK) {
         pa_sink *sink;
-        if ((sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK, 1)))
+        if ((sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK)))
             idx = sink->index;
     } else {
         pa_source *source;
         pa_assert(command == PA_COMMAND_LOOKUP_SOURCE);
-        if ((source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE, 1)))
+        if ((source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE)))
             idx = source->index;
     }
 
@@ -2575,7 +2571,7 @@ static void command_play_sample(pa_pdispatch *pd, uint32_t command, uint32_t tag
     if (sink_index != PA_INVALID_INDEX)
         sink = pa_idxset_get_by_index(c->protocol->core->sinks, sink_index);
     else
-        sink = pa_namereg_get(c->protocol->core, sink_name, PA_NAMEREG_SINK, 1);
+        sink = pa_namereg_get(c->protocol->core, sink_name, PA_NAMEREG_SINK);
 
     CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);
 
@@ -2738,7 +2734,7 @@ static void module_fill_tagstruct(pa_tagstruct *t, pa_module *module) {
     pa_tagstruct_puts(t, module->name);
     pa_tagstruct_puts(t, module->argument);
     pa_tagstruct_putu32(t, (uint32_t) module->n_used);
-    pa_tagstruct_put_boolean(t, module->auto_unload);
+    pa_tagstruct_put_boolean(t, FALSE);
 }
 
 static void sink_input_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_sink_input *s) {
@@ -2855,12 +2851,12 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
         if (idx != PA_INVALID_INDEX)
             sink = pa_idxset_get_by_index(c->protocol->core->sinks, idx);
         else
-            sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK, 1);
+            sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK);
     } else if (command == PA_COMMAND_GET_SOURCE_INFO) {
         if (idx != PA_INVALID_INDEX)
             source = pa_idxset_get_by_index(c->protocol->core->sources, idx);
         else
-            source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE, 1);
+            source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE);
     } else if (command == PA_COMMAND_GET_CLIENT_INFO)
         client = pa_idxset_get_by_index(c->protocol->core->clients, idx);
     else if (command == PA_COMMAND_GET_MODULE_INFO)
@@ -2874,7 +2870,7 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
         if (idx != PA_INVALID_INDEX)
             sce = pa_idxset_get_by_index(c->protocol->core->scache, idx);
         else
-            sce = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SAMPLE, 0);
+            sce = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SAMPLE);
     }
 
     if (!sink && !source && !client && !module && !si && !so && !sce) {
@@ -3078,14 +3074,14 @@ static void command_set_volume(
             if (idx != PA_INVALID_INDEX)
                 sink = pa_idxset_get_by_index(c->protocol->core->sinks, idx);
             else
-                sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK, 1);
+                sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK);
             break;
 
         case PA_COMMAND_SET_SOURCE_VOLUME:
             if (idx != PA_INVALID_INDEX)
                 source = pa_idxset_get_by_index(c->protocol->core->sources, idx);
             else
-                source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE, 1);
+                source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE);
             break;
 
         case PA_COMMAND_SET_SINK_INPUT_VOLUME:
@@ -3148,7 +3144,7 @@ static void command_set_mute(
             if (idx != PA_INVALID_INDEX)
                 sink = pa_idxset_get_by_index(c->protocol->core->sinks, idx);
             else
-                sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK, 1);
+                sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK);
 
             break;
 
@@ -3156,7 +3152,7 @@ static void command_set_mute(
             if (idx != PA_INVALID_INDEX)
                 source = pa_idxset_get_by_index(c->protocol->core->sources, idx);
             else
-                source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE, 1);
+                source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE);
 
             break;
 
@@ -3748,143 +3744,6 @@ static void command_unload_module(pa_pdispatch *pd, uint32_t command, uint32_t t
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
 
-static void command_add_autoload(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
-    pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
-    const char *name, *module, *argument;
-    uint32_t type;
-    uint32_t idx;
-    pa_tagstruct *reply;
-
-    pa_native_connection_assert_ref(c);
-    pa_assert(t);
-
-    if (pa_tagstruct_gets(t, &name) < 0 ||
-        pa_tagstruct_getu32(t, &type) < 0 ||
-        pa_tagstruct_gets(t, &module) < 0 ||
-        pa_tagstruct_gets(t, &argument) < 0 ||
-        !pa_tagstruct_eof(t)) {
-        protocol_error(c);
-        return;
-    }
-
-    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, name && *name && pa_utf8_valid(name), tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, type == 0 || type == 1, tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, module && *module && pa_utf8_valid(module), tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, !argument || pa_utf8_valid(argument), tag, PA_ERR_INVALID);
-
-    if (pa_autoload_add(c->protocol->core, name, type == 0 ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE, module, argument, &idx) < 0) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_EXIST);
-        return;
-    }
-
-    reply = reply_new(tag);
-    pa_tagstruct_putu32(reply, idx);
-    pa_pstream_send_tagstruct(c->pstream, reply);
-}
-
-static void command_remove_autoload(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
-    pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
-    const char *name = NULL;
-    uint32_t type, idx = PA_IDXSET_INVALID;
-    int r;
-
-    pa_native_connection_assert_ref(c);
-    pa_assert(t);
-
-    if ((pa_tagstruct_getu32(t, &idx) < 0 &&
-        (pa_tagstruct_gets(t, &name) < 0 ||
-         pa_tagstruct_getu32(t, &type) < 0)) ||
-        !pa_tagstruct_eof(t)) {
-        protocol_error(c);
-        return;
-    }
-
-    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, name || idx != PA_IDXSET_INVALID, tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, !name || (*name && pa_utf8_valid(name) && (type == 0 || type == 1)), tag, PA_ERR_INVALID);
-
-    if (name)
-        r = pa_autoload_remove_by_name(c->protocol->core, name, type == 0 ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE);
-    else
-        r = pa_autoload_remove_by_index(c->protocol->core, idx);
-
-    CHECK_VALIDITY(c->pstream, r >= 0, tag, PA_ERR_NOENTITY);
-
-    pa_pstream_send_simple_ack(c->pstream, tag);
-}
-
-static void autoload_fill_tagstruct(pa_tagstruct *t, const pa_autoload_entry *e) {
-    pa_assert(t && e);
-
-    pa_tagstruct_putu32(t, e->index);
-    pa_tagstruct_puts(t, e->name);
-    pa_tagstruct_putu32(t, e->type == PA_NAMEREG_SINK ? 0U : 1U);
-    pa_tagstruct_puts(t, e->module);
-    pa_tagstruct_puts(t, e->argument);
-}
-
-static void command_get_autoload_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
-    pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
-    const pa_autoload_entry *a = NULL;
-    uint32_t type, idx;
-    const char *name;
-    pa_tagstruct *reply;
-
-    pa_native_connection_assert_ref(c);
-    pa_assert(t);
-
-    if ((pa_tagstruct_getu32(t, &idx) < 0 &&
-        (pa_tagstruct_gets(t, &name) < 0 ||
-         pa_tagstruct_getu32(t, &type) < 0)) ||
-        !pa_tagstruct_eof(t)) {
-        protocol_error(c);
-        return;
-    }
-
-    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, name || idx != PA_IDXSET_INVALID, tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, !name || (*name && (type == 0 || type == 1) && pa_utf8_valid(name)), tag, PA_ERR_INVALID);
-
-    if (name)
-        a = pa_autoload_get_by_name(c->protocol->core, name, type == 0 ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE);
-    else
-        a = pa_autoload_get_by_index(c->protocol->core, idx);
-
-    CHECK_VALIDITY(c->pstream, a, tag, PA_ERR_NOENTITY);
-
-    reply = reply_new(tag);
-    autoload_fill_tagstruct(reply, a);
-    pa_pstream_send_tagstruct(c->pstream, reply);
-}
-
-static void command_get_autoload_info_list(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
-    pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
-    pa_tagstruct *reply;
-
-    pa_native_connection_assert_ref(c);
-    pa_assert(t);
-
-    if (!pa_tagstruct_eof(t)) {
-        protocol_error(c);
-        return;
-    }
-
-    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-
-    reply = reply_new(tag);
-
-    if (c->protocol->core->autoload_hashmap) {
-        pa_autoload_entry *a;
-        void *state = NULL;
-
-        while ((a = pa_hashmap_iterate(c->protocol->core->autoload_hashmap, &state, NULL)))
-            autoload_fill_tagstruct(reply, a);
-    }
-
-    pa_pstream_send_tagstruct(c->pstream, reply);
-}
-
 static void command_move_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
     uint32_t idx = PA_INVALID_INDEX, idx_device = PA_INVALID_INDEX;
@@ -3918,7 +3777,7 @@ static void command_move_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag
         if (idx_device != PA_INVALID_INDEX)
             sink = pa_idxset_get_by_index(c->protocol->core->sinks, idx_device);
         else
-            sink = pa_namereg_get(c->protocol->core, name_device, PA_NAMEREG_SINK, 1);
+            sink = pa_namereg_get(c->protocol->core, name_device, PA_NAMEREG_SINK);
 
         CHECK_VALIDITY(c->pstream, si && sink, tag, PA_ERR_NOENTITY);
 
@@ -3937,7 +3796,7 @@ static void command_move_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag
         if (idx_device != PA_INVALID_INDEX)
             source = pa_idxset_get_by_index(c->protocol->core->sources, idx_device);
         else
-            source = pa_namereg_get(c->protocol->core, name_device, PA_NAMEREG_SOURCE, 1);
+            source = pa_namereg_get(c->protocol->core, name_device, PA_NAMEREG_SOURCE);
 
         CHECK_VALIDITY(c->pstream, so && source, tag, PA_ERR_NOENTITY);
 
@@ -3989,7 +3848,7 @@ static void command_suspend(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa
             if (idx != PA_INVALID_INDEX)
                 sink = pa_idxset_get_by_index(c->protocol->core->sinks, idx);
             else
-                sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK, 1);
+                sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK);
 
             CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);
 
@@ -4017,7 +3876,7 @@ static void command_suspend(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa
             if (idx != PA_INVALID_INDEX)
                 source = pa_idxset_get_by_index(c->protocol->core->sources, idx);
             else
-                source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE, 1);
+                source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE);
 
             CHECK_VALIDITY(c->pstream, source, tag, PA_ERR_NOENTITY);
 

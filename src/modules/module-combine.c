@@ -1103,7 +1103,7 @@ int pa__init(pa_module*m) {
         while ((n = pa_split(slaves, ",", &split_state))) {
             pa_sink *slave_sink;
 
-            if (!(slave_sink = pa_namereg_get(m->core, n, PA_NAMEREG_SINK, TRUE)) || slave_sink == u->sink) {
+            if (!(slave_sink = pa_namereg_get(m->core, n, PA_NAMEREG_SINK)) || slave_sink == u->sink) {
                 pa_log("Invalid slave sink '%s'", n);
                 pa_xfree(n);
                 goto fail;

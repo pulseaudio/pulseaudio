@@ -48,21 +48,6 @@
 
 #define UNLOAD_POLL_TIME 2
 
-static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, const struct timeval *tv, void *userdata) {
-    pa_core *c = PA_CORE(userdata);
-    struct timeval ntv;
-
-    pa_core_assert_ref(c);
-    pa_assert(c->mainloop == m);
-    pa_assert(c->module_auto_unload_event == e);
-
-    pa_module_unload_unused(c);
-
-    pa_gettimeofday(&ntv);
-    pa_timeval_add(&ntv, UNLOAD_POLL_TIME*PA_USEC_PER_SEC);
-    m->time_restart(e, &ntv);
-}
-
 pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     pa_module *m = NULL;
     pa_bool_t (*load_once)(void);
@@ -110,7 +95,6 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     m->userdata = NULL;
     m->core = c;
     m->n_used = -1;
-    m->auto_unload = FALSE;
     m->unload_requested = FALSE;
 
     if (m->init(m) < 0) {
@@ -120,13 +104,6 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
 
     if (!c->modules)
         c->modules = pa_idxset_new(NULL, NULL);
-
-    if (m->auto_unload && !c->module_auto_unload_event) {
-        struct timeval ntv;
-        pa_gettimeofday(&ntv);
-        pa_timeval_add(&ntv, UNLOAD_POLL_TIME*PA_USEC_PER_SEC);
-        c->module_auto_unload_event = c->mainloop->time_new(c->mainloop, &ntv, timeout_callback, c);
-    }
 
     pa_assert_se(pa_idxset_put(c->modules, m, &m->index) >= 0);
     pa_assert(m->index != PA_IDXSET_INVALID);
@@ -212,41 +189,9 @@ void pa_module_unload_all(pa_core *c) {
         c->modules = NULL;
     }
 
-    if (c->module_auto_unload_event) {
-        c->mainloop->time_free(c->module_auto_unload_event);
-        c->module_auto_unload_event = NULL;
-    }
-
     if (c->module_defer_unload_event) {
         c->mainloop->defer_free(c->module_defer_unload_event);
         c->module_defer_unload_event = NULL;
-    }
-}
-
-void pa_module_unload_unused(pa_core *c) {
-    void *state = NULL;
-    time_t now;
-    pa_module *m;
-
-    pa_assert(c);
-
-    if (!c->modules)
-        return;
-
-    time(&now);
-
-    while ((m = pa_idxset_iterate(c->modules, &state, NULL))) {
-
-        if (m->n_used > 0)
-            continue;
-
-        if (!m->auto_unload)
-            continue;
-
-        if (m->last_used_time + m->core->module_idle_time > now)
-            continue;
-
-        pa_module_unload(c, m, FALSE);
     }
 }
 
@@ -295,9 +240,6 @@ void pa_module_set_used(pa_module*m, int used) {
 
     if (m->n_used != used)
         pa_subscription_post(m->core, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_CHANGE, m->index);
-
-    if (used == 0 && m->n_used > 0)
-        time(&m->last_used_time);
 
     m->n_used = used;
 }

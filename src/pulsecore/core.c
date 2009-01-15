@@ -37,7 +37,6 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/core-scache.h>
-#include <pulsecore/autoload.h>
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/shared.h>
 #include <pulsecore/random.h>
@@ -104,8 +103,6 @@ pa_core* pa_core_new(pa_mainloop_api *m, pa_bool_t shared, size_t shm_size) {
     c->modules = NULL;
     c->namereg = NULL;
     c->scache = NULL;
-    c->autoload_idxset = NULL;
-    c->autoload_hashmap = NULL;
     c->running_as_daemon = FALSE;
 
     c->default_sample_spec.format = PA_SAMPLE_S16NE;
@@ -114,7 +111,6 @@ pa_core* pa_core_new(pa_mainloop_api *m, pa_bool_t shared, size_t shm_size) {
     c->default_n_fragments = 4;
     c->default_fragment_size_msec = 25;
 
-    c->module_auto_unload_event = NULL;
     c->module_defer_unload_event = NULL;
     c->scache_auto_unload_event = NULL;
 
@@ -129,7 +125,6 @@ pa_core* pa_core_new(pa_mainloop_api *m, pa_bool_t shared, size_t shm_size) {
     c->exit_event = NULL;
 
     c->exit_idle_time = -1;
-    c->module_idle_time = 20;
     c->scache_idle_time = 20;
 
     c->resample_method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 3;
@@ -185,7 +180,6 @@ static void core_free(pa_object *o) {
 
     pa_scache_free(c);
     pa_namereg_free(c);
-    pa_autoload_free(c);
     pa_subscription_free_all(c);
 
     if (c->exit_event)

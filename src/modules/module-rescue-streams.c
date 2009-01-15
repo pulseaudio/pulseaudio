@@ -59,7 +59,7 @@ static pa_hook_result_t sink_hook_callback(pa_core *c, pa_sink *sink, void* user
         return PA_HOOK_OK;
     }
 
-    if (!(target = pa_namereg_get(c, NULL, PA_NAMEREG_SINK, 0)) || target == sink) {
+    if (!(target = pa_namereg_get(c, NULL, PA_NAMEREG_SINK)) || target == sink) {
         uint32_t idx;
 
         for (target = pa_idxset_first(c->sinks, &idx); target; target = pa_idxset_next(c->sinks, &idx))
@@ -97,7 +97,7 @@ static pa_hook_result_t source_hook_callback(pa_core *c, pa_source *source, void
         return PA_HOOK_OK;
     }
 
-    if (!(target = pa_namereg_get(c, NULL, PA_NAMEREG_SOURCE, 0)) || target == source) {
+    if (!(target = pa_namereg_get(c, NULL, PA_NAMEREG_SOURCE)) || target == source) {
         uint32_t idx;
 
         for (target = pa_idxset_first(c->sources, &idx); target; target = pa_idxset_next(c->sources, &idx))

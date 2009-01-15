@@ -417,7 +417,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
 
     if ((r = pa_hashmap_get(u->hashmap, name))) {
         if (!data->sink && r->sink) {
-            if ((data->sink = pa_namereg_get(c, r->sink, PA_NAMEREG_SINK, 1)))
+            if ((data->sink = pa_namereg_get(c, r->sink, PA_NAMEREG_SINK)))
                 pa_log_info("Restoring sink for <%s>", r->name);
         }
     }
@@ -463,7 +463,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
 
     if ((r = pa_hashmap_get(u->hashmap, name))) {
         if (!data->source && r->source) {
-            if ((data->source = pa_namereg_get(c, r->source, PA_NAMEREG_SOURCE, 1)))
+            if ((data->source = pa_namereg_get(c, r->source, PA_NAMEREG_SOURCE)))
                 pa_log_info("Restoring source for <%s>", r->name);
         }
     }

@@ -38,7 +38,6 @@
 #include <pulsecore/strbuf.h>
 #include <pulsecore/sample-util.h>
 #include <pulsecore/core-scache.h>
-#include <pulsecore/autoload.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 
@@ -59,9 +58,12 @@ char *pa_module_list_to_string(pa_core *c) {
                          "\tname: <%s>\n"
                          "\targument: <%s>\n"
                          "\tused: %i\n"
-                         "\tauto unload: %s\n",
-                         m->index, m->name, m->argument ? m->argument : "", m->n_used,
-                         pa_yes_no(m->auto_unload));
+                         "\tload once: %s\n",
+                         m->index,
+                         m->name,
+                         pa_strempty(m->argument),
+                         m->n_used,
+                         pa_yes_no(m->load_once));
     }
 
     return pa_strbuf_tostring_free(s);
@@ -506,45 +508,13 @@ char *pa_scache_list_to_string(pa_core *c) {
     return pa_strbuf_tostring_free(s);
 }
 
-char *pa_autoload_list_to_string(pa_core *c) {
-    pa_strbuf *s;
-    pa_assert(c);
-
-    s = pa_strbuf_new();
-
-    pa_strbuf_printf(s, "%u autoload entries available.\n", c->autoload_hashmap ? pa_hashmap_size(c->autoload_hashmap) : 0);
-
-    if (c->autoload_hashmap) {
-        pa_autoload_entry *e;
-        void *state = NULL;
-
-        while ((e = pa_hashmap_iterate(c->autoload_hashmap, &state, NULL))) {
-            pa_strbuf_printf(
-                s,
-                "    name: <%s>\n"
-                "\ttype: %s\n"
-                "\tindex: %u\n"
-                "\tmodule_name: <%s>\n"
-                "\targuments: <%s>\n",
-                e->name,
-                e->type == PA_NAMEREG_SOURCE ? "source" : "sink",
-                e->index,
-                e->module,
-                e->argument ? e->argument : "");
-
-        }
-    }
-
-    return pa_strbuf_tostring_free(s);
-}
-
 char *pa_full_status_string(pa_core *c) {
     pa_strbuf *s;
     int i;
 
     s = pa_strbuf_new();
 
-    for (i = 0; i < 9; i++) {
+    for (i = 0; i < 8; i++) {
         char *t = NULL;
 
         switch (i) {
@@ -571,9 +541,6 @@ char *pa_full_status_string(pa_core *c) {
                 break;
             case 7:
                 t = pa_scache_list_to_string(c);
-                break;
-            case 8:
-                t = pa_autoload_list_to_string(c);
                 break;
         }
 

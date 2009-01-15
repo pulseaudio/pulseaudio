@@ -98,7 +98,7 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
     pa_assert(c);
     pa_assert(name);
 
-    if ((e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, FALSE))) {
+    if ((e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE))) {
         if (e->memchunk.memblock)
             pa_memblock_unref(e->memchunk.memblock);
 
@@ -273,7 +273,7 @@ int pa_scache_remove_item(pa_core *c, const char *name) {
     pa_assert(c);
     pa_assert(name);
 
-    if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 0)))
+    if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE)))
         return -1;
 
     pa_assert_se(pa_idxset_remove_by_data(c->scache, e, NULL) == e);
@@ -313,7 +313,7 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
     pa_assert(name);
     pa_assert(sink);
 
-    if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, FALSE)))
+    if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE)))
         return -1;
 
     if (e->lazy && !e->memchunk.memblock) {
@@ -360,13 +360,13 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
     return 0;
 }
 
-int pa_scache_play_item_by_name(pa_core *c, const char *name, const char*sink_name, pa_bool_t autoload, pa_volume_t volume, pa_proplist *p, uint32_t *sink_input_idx) {
+int pa_scache_play_item_by_name(pa_core *c, const char *name, const char*sink_name, pa_volume_t volume, pa_proplist *p, uint32_t *sink_input_idx) {
     pa_sink *sink;
 
     pa_assert(c);
     pa_assert(name);
 
-    if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK, autoload)))
+    if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK)))
         return -1;
 
     return pa_scache_play_item(c, name, sink, volume, p, sink_input_idx);
@@ -390,7 +390,7 @@ uint32_t pa_scache_get_id_by_name(pa_core *c, const char *name) {
     pa_assert(c);
     pa_assert(name);
 
-    if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, FALSE)))
+    if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE)))
         return PA_IDXSET_INVALID;
 
     return e->index;

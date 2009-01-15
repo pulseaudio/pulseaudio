@@ -131,7 +131,7 @@ pa_sink_input* pa_sink_input_new(
     pa_return_null_if_fail(!data->driver || pa_utf8_valid(data->driver));
 
     if (!data->sink)
-        data->sink = pa_namereg_get(core, NULL, PA_NAMEREG_SINK, TRUE);
+        data->sink = pa_namereg_get(core, NULL, PA_NAMEREG_SINK);
 
     pa_return_null_if_fail(data->sink);
     pa_return_null_if_fail(pa_sink_get_state(data->sink) != PA_SINK_UNLINKED);

@@ -72,7 +72,6 @@ typedef struct pa_daemon_conf {
         log_meta,
         log_time;
     int exit_idle_time,
-        module_idle_time,
         scache_idle_time,
         auto_log_target,
         realtime_priority,

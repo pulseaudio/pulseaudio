@@ -225,20 +225,37 @@ void pa_stream_set_state(pa_stream *s, pa_stream_state_t st);
 
 pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *tag);
 
-#define PA_CHECK_VALIDITY(context, expression, error) do { \
-        if (!(expression)) \
+#define PA_CHECK_VALIDITY(context, expression, error)         \
+    do {                                                      \
+        if (!(expression))                                    \
             return -pa_context_set_error((context), (error)); \
-} while(0)
+    } while(FALSE)
 
 
-#define PA_CHECK_VALIDITY_RETURN_ANY(context, expression, error, value) do { \
-        if (!(expression)) { \
-            pa_context_set_error((context), (error)); \
-            return value; \
-        } \
-} while(0)
+#define PA_CHECK_VALIDITY_RETURN_ANY(context, expression, error, value) \
+    do {                                                                \
+        if (!(expression)) {                                            \
+            pa_context_set_error((context), (error));                   \
+            return value;                                               \
+        }                                                               \
+    } while(FALSE)
 
-#define PA_CHECK_VALIDITY_RETURN_NULL(context, expression, error) PA_CHECK_VALIDITY_RETURN_ANY(context, expression, error, NULL)
+#define PA_CHECK_VALIDITY_RETURN_NULL(context, expression, error)       \
+    PA_CHECK_VALIDITY_RETURN_ANY(context, expression, error, NULL)
+
+#define PA_FAIL(context, error)                                 \
+    do {                                                        \
+        return -pa_context_set_error((context), (error));       \
+    } while(FALSE)
+
+#define PA_FAIL_RETURN_ANY(context, error, value)      \
+    do {                                               \
+        pa_context_set_error((context), (error));      \
+        return value;                                  \
+    } while(FALSE)
+
+#define PA_FAIL_RETURN_NULL(context, error)     \
+    PA_FAIL_RETURN_ANY(context, error, NULL)
 
 void pa_ext_stream_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t);
 

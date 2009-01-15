@@ -118,7 +118,7 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
             else {
                 pa_sink *s;
 
-                if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK, 1)))
+                if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK)))
                     pa_log("Failed to get sink '%s'", u->sink_name);
                 else {
                     int i;
