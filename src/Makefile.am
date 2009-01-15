@@ -801,7 +801,7 @@ libcli_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecom
 
 libprotocol_cli_la_SOURCES = pulsecore/protocol-cli.c pulsecore/protocol-cli.h
 libprotocol_cli_la_LDFLAGS = -avoid-version
-libprotocol_cli_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+libprotocol_cli_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la libcli.la
 
 libprotocol_http_la_SOURCES = pulsecore/protocol-http.c pulsecore/protocol-http.h
 libprotocol_http_la_LDFLAGS = -avoid-version
