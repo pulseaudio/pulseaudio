@@ -311,8 +311,10 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
                 i->suspend(i, state == PA_SINK_SUSPENDED);
     }
 
-    if (state != PA_SINK_UNLINKED) /* if we enter UNLINKED state pa_sink_unlink() will fire the apropriate events */
+    if (state != PA_SINK_UNLINKED) { /* if we enter UNLINKED state pa_sink_unlink() will fire the apropriate events */
         pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], s);
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    }
 
     return 0;
 }
