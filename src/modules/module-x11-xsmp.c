@@ -117,13 +117,14 @@ static void new_ice_connection(IceConn connection, IcePointer client_data, Bool 
 int pa__init(pa_module*m) {
 
     pa_modargs *ma = NULL;
-    char t[256], *vendor, *client_id, *k;
+    char t[256], *vendor, *client_id;
     SmcCallbacks callbacks;
     SmProp prop_program, prop_user;
     SmProp *prop_list[2];
     SmPropValue val_program, val_user;
     struct userdata *u;
     const char *e;
+    pa_client_new_data data;
 
     pa_assert(m);
 
@@ -198,15 +199,21 @@ int pa__init(pa_module*m) {
     SmcSetProperties(u->connection, PA_ELEMENTSOF(prop_list), prop_list);
 
     pa_log_info("Connected to session manager '%s' as '%s'.", vendor = SmcVendor(u->connection), client_id);
-    k = pa_sprintf_malloc("XSMP Session on %s as %s", vendor, client_id);
-    u->client = pa_client_new(u->core, __FILE__, k);
-    pa_xfree(k);
 
-    pa_proplist_sets(u->client->proplist, "xsmp.vendor", vendor);
-    pa_proplist_sets(u->client->proplist, "xsmp.client.id", client_id);
+    pa_client_new_data_init(&data);
+    data.module = m;
+    data.driver = __FILE__;
+    pa_proplist_setf(data.proplist, PA_PROP_APPLICATION_NAME, "XSMP Session on %s as %s", vendor, client_id);
+    pa_proplist_sets(data.proplist, "xsmp.vendor", vendor);
+    pa_proplist_sets(data.proplist, "xsmp.client.id", client_id);
+    u->client = pa_client_new(u->core, &data);
+    pa_client_new_data_done(&data);
 
     free(vendor);
     free(client_id);
+
+    if (!u->client)
+        goto fail;
 
     pa_modargs_free(ma);
 
