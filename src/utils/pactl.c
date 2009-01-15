@@ -281,13 +281,11 @@ static void get_module_info_callback(pa_context *c, const pa_module_info *i, int
     printf(_("*** Module #%u ***\n"
            "Name: %s\n"
            "Argument: %s\n"
-           "Usage counter: %s\n"
-           "Auto unload: %s\n"),
+           "Usage counter: %s\n"),
            i->index,
            i->name,
            i->argument ? i->argument : "",
-           i->n_used != PA_INVALID_INDEX ? t : _("n/a"),
-           pa_yes_no(i->auto_unload));
+           i->n_used != PA_INVALID_INDEX ? t : _("n/a"));
 }
 
 static void get_client_info_callback(pa_context *c, const pa_client_info *i, int is_last, void *userdata) {
