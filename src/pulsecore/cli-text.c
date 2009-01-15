@@ -97,6 +97,38 @@ char *pa_client_list_to_string(pa_core *c) {
     return pa_strbuf_tostring_free(s);
 }
 
+char *pa_card_list_to_string(pa_core *c) {
+    pa_strbuf *s;
+    pa_card *card;
+    uint32_t idx = PA_IDXSET_INVALID;
+    pa_assert(c);
+
+    s = pa_strbuf_new();
+
+    pa_strbuf_printf(s, "%u card(s) available in.\n", pa_idxset_size(c->cards));
+
+    for (card = pa_idxset_first(c->cards, &idx); card; card = pa_idxset_next(c->cards, &idx)) {
+        char *t;
+        pa_strbuf_printf(
+                s,
+                "    index: %u\n"
+                "\tname: <%s>\n"
+                "\tdriver: <%s>\n",
+                card->index,
+                card->name,
+                card->driver);
+
+        if (card->module)
+            pa_strbuf_printf(s, "\towner module: %u\n", card->module->index);
+
+        t = pa_proplist_to_string(card->proplist);
+        pa_strbuf_printf(s, "\tproperties:\n%s", t);
+        pa_xfree(t);
+    }
+
+    return pa_strbuf_tostring_free(s);
+}
+
 char *pa_sink_list_to_string(pa_core *c) {
     pa_strbuf *s;
     pa_sink *sink;
@@ -174,6 +206,8 @@ char *pa_sink_list_to_string(pa_core *c) {
             pa_sink_used_by(sink),
             pa_sink_linked_by(sink));
 
+        if (sink->card)
+            pa_strbuf_printf(s, "\tcard: %u <%s>\n", sink->card->index, sink->card->name);
         if (sink->module)
             pa_strbuf_printf(s, "\tmodule: %u\n", sink->module->index);
 
@@ -260,6 +294,8 @@ char *pa_source_list_to_string(pa_core *c) {
 
         if (source->monitor_of)
             pa_strbuf_printf(s, "\tmonitor_of: %u\n", source->monitor_of->index);
+        if (source->card)
+            pa_strbuf_printf(s, "\tcard: %u <%s>\n", source->card->index, source->card->name);
         if (source->module)
             pa_strbuf_printf(s, "\tmodule: %u\n", source->module->index);
 
@@ -508,7 +544,7 @@ char *pa_full_status_string(pa_core *c) {
 
     s = pa_strbuf_new();
 
-    for (i = 0; i < 8; i++) {
+    for (i = 0; i < 9; i++) {
         char *t = NULL;
 
         switch (i) {
@@ -528,12 +564,15 @@ char *pa_full_status_string(pa_core *c) {
                 t = pa_client_list_to_string(c);
                 break;
             case 5:
-                t = pa_module_list_to_string(c);
+                t = pa_card_list_to_string(c);
                 break;
             case 6:
-                t = pa_scache_list_to_string(c);
+                t = pa_module_list_to_string(c);
                 break;
             case 7:
+                t = pa_scache_list_to_string(c);
+                break;
+            case 8:
                 t = pa_autoload_list_to_string(c);
                 break;
         }

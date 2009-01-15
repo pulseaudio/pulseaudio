@@ -80,6 +80,7 @@ static int pa_cli_command_exit(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
 static int pa_cli_command_help(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_modules(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_clients(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_cards(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_sinks(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_sources(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_sink_inputs(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
@@ -137,6 +138,7 @@ static const struct command commands[] = {
     { "list-clients",            pa_cli_command_clients,            "List loaded clients",          1 },
     { "list-sink-inputs",        pa_cli_command_sink_inputs,        "List sink inputs",             1 },
     { "list-source-outputs",     pa_cli_command_source_outputs,     "List source outputs",          1 },
+    { "list-cards",              pa_cli_command_cards,              "List cards",                   1 },
     { "stat",                    pa_cli_command_stat,               "Show memory block statistics", 1 },
     { "info",                    pa_cli_command_info,               "Show comprehensive status",    1 },
     { "ls",                      pa_cli_command_info,               NULL,                           1 },
@@ -249,6 +251,20 @@ static int pa_cli_command_clients(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, p
     pa_assert(fail);
 
     pa_assert_se(s = pa_client_list_to_string(c));
+    pa_strbuf_puts(buf, s);
+    pa_xfree(s);
+    return 0;
+}
+
+static int pa_cli_command_cards(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+    char *s;
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+    pa_assert_se(s = pa_card_list_to_string(c));
     pa_strbuf_puts(buf, s);
     pa_xfree(s);
     return 0;
@@ -382,6 +398,7 @@ static int pa_cli_command_info(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     pa_cli_command_sinks(c, t, buf, fail);
     pa_cli_command_sources(c, t, buf, fail);
     pa_cli_command_clients(c, t, buf, fail);
+    pa_cli_command_cards(c, t, buf, fail);
     pa_cli_command_sink_inputs(c, t, buf, fail);
     pa_cli_command_source_outputs(c, t, buf, fail);
     pa_cli_command_scache_list(c, t, buf, fail);
