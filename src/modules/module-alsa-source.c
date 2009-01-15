@@ -274,7 +274,8 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
 
             if (polled)
                 pa_log("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
-                       "Most likely this is an ALSA driver bug. Please report this issue to the PulseAudio device.");
+                       "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
+                       "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail_update() returned 0.");
 
             break;
         }
@@ -381,7 +382,8 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
 
             if (polled)
                 pa_log("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
-                       "Most likely this is an ALSA driver bug. Please report this issue to the PulseAudio developers.");
+                       "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
+                       "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail_update() returned 0.");
 
             return work_done;
         }
