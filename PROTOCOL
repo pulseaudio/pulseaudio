@@ -155,7 +155,7 @@ PA_COMMAND_SET_RECORD_STREAM_BUFFER_ATTR at the end:
   early_requests (bool)
 
 
-### v15, implemented by >= 0.9.14
+### v15, implemented by >= 0.9.15
 
 PA_COMMAND_CREATE_PLAYBACK_STREAM
 
