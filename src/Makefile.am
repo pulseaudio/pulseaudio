@@ -920,7 +920,8 @@ if HAVE_ALSA
 modlibexec_LTLIBRARIES += \
 		libalsa-util.la \
 		module-alsa-sink.la \
-		module-alsa-source.la
+		module-alsa-source.la \
+		module-alsa-card.la
 endif
 
 if HAVE_SOLARIS
@@ -1039,6 +1040,7 @@ SYMDEF_FILES = \
 		modules/oss/module-oss-symdef.h \
 		modules/alsa/module-alsa-sink-symdef.h \
 		modules/alsa/module-alsa-source-symdef.h \
+		modules/alsa/module-alsa-card-symdef.h \
 		modules/module-solaris-symdef.h \
 		modules/module-waveout-symdef.h \
 		modules/module-detect-symdef.h \
@@ -1256,6 +1258,11 @@ module_alsa_source_la_SOURCES = modules/alsa/module-alsa-source.c
 module_alsa_source_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_alsa_source_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_alsa_source_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
+
+module_alsa_card_la_SOURCES = modules/alsa/module-alsa-card.c
+module_alsa_card_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_alsa_card_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_alsa_card_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
 # Solaris
 
