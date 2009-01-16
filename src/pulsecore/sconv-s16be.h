@@ -39,6 +39,11 @@ void pa_sconv_s24be_from_float32ne(unsigned n, const float *a, uint8_t *b);
 void pa_sconv_s24be_to_float32re(unsigned n, const uint8_t *a, float *b);
 void pa_sconv_s24be_from_float32re(unsigned n, const float *a, uint8_t *b);
 
+void pa_sconv_s24_32be_to_float32ne(unsigned n, const uint8_t *a, float *b);
+void pa_sconv_s24_32be_from_float32ne(unsigned n, const float *a, uint8_t *b);
+void pa_sconv_s24_32be_to_float32re(unsigned n, const uint8_t *a, float *b);
+void pa_sconv_s24_32be_from_float32re(unsigned n, const float *a, uint8_t *b);
+
 void pa_sconv_s32be_to_s16ne(unsigned n, const int32_t *a, int16_t *b);
 void pa_sconv_s32be_from_s16ne(unsigned n, const int16_t *a, int32_t *b);
 void pa_sconv_s32be_to_s16re(unsigned n, const int32_t *a, int16_t *b);
@@ -48,6 +53,11 @@ void pa_sconv_s24be_to_s16ne(unsigned n, const uint8_t *a, int16_t *b);
 void pa_sconv_s24be_from_s16ne(unsigned n, const int16_t *a, uint8_t *b);
 void pa_sconv_s24be_to_s16re(unsigned n, const uint8_t *a, int16_t *b);
 void pa_sconv_s24be_from_s16re(unsigned n, const int16_t *a, uint8_t *b);
+
+void pa_sconv_s24_32be_to_s16ne(unsigned n, const uint8_t *a, int16_t *b);
+void pa_sconv_s24_32be_from_s16ne(unsigned n, const int16_t *a, uint8_t *b);
+void pa_sconv_s24_32be_to_s16re(unsigned n, const uint8_t *a, int16_t *b);
+void pa_sconv_s24_32be_from_s16re(unsigned n, const int16_t *a, uint8_t *b);
 
 #ifdef WORDS_BIGENDIAN
 #define pa_sconv_float32be_to_s16ne pa_sconv_s16be_from_float32ne

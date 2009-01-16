@@ -2642,9 +2642,9 @@ static void fixup_sample_spec(pa_native_connection *c, pa_sample_spec *fixed, co
     }
 
     if (c->version < 15) {
-        if (fixed->format == PA_SAMPLE_S24LE)
+        if (fixed->format == PA_SAMPLE_S24LE || fixed->format == PA_SAMPLE_S24_32LE)
             fixed->format = PA_SAMPLE_FLOAT32LE;
-        if (fixed->format == PA_SAMPLE_S24BE)
+        if (fixed->format == PA_SAMPLE_S24BE || fixed->format == PA_SAMPLE_S24_32BE)
             fixed->format = PA_SAMPLE_FLOAT32BE;
     }
 }

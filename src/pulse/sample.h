@@ -51,8 +51,10 @@
  * \li PA_SAMPLE_ULAW - 8 bit mu-Law.
  * \li PA_SAMPLE_S32LE - Signed 32 bit integer PCM, little endian.
  * \li PA_SAMPLE_S32BE - Signed 32 bit integer PCM, big endian.
- * \li PA_SAMPLE_242LE - Signed 24 bit integer PCM packed, little endian.
- * \li PA_SAMPLE_242BE - Signed 24 bit integer PCM packed, big endian.
+ * \li PA_SAMPLE_S24LE - Signed 24 bit integer PCM packed, little endian.
+ * \li PA_SAMPLE_S24BE - Signed 24 bit integer PCM packed, big endian.
+ * \li PA_SAMPLE_S24_32LE - Signed 24 bit integer PCM in LSB of 32 bit words, little endian.
+ * \li PA_SAMPLE_S24_32BE - Signed 24 bit integer PCM in LSB of 32 bit words, big endian.
  *
  * The floating point sample formats have the range from -1.0 to 1.0.
  *
@@ -61,14 +63,14 @@
  *
  * \section rate_sec Sample Rates
  *
- * PulseAudio supports any sample rate between 1 Hz and 4 GHz. There is no
+ * PulseAudio supports any sample rate between 1 Hz and 192000 Hz. There is no
  * point trying to exceed the sample rate of the output device though as the
  * signal will only get downsampled, consuming CPU on the machine running the
  * server.
  *
  * \section chan_sec Channels
  *
- * PulseAudio supports up to 16 individiual channels. The order of the
+ * PulseAudio supports up to 32 individiual channels. The order of the
  * channels is up to the application, but they must be continous. To map
  * channels to speakers, see \ref channelmap.
  *
@@ -138,10 +140,10 @@ typedef enum pa_sample_format {
     /**< Signed 16 Bit PCM, big endian */
 
     PA_SAMPLE_FLOAT32LE,
-    /**< 32 Bit IEEE floating point, little endian, range -1 to 1 */
+    /**< 32 Bit IEEE floating point, little endian (PC), range -1.0 to 1.0 */
 
     PA_SAMPLE_FLOAT32BE,
-    /**< 32 Bit IEEE floating point, big endian, range -1 to 1 */
+    /**< 32 Bit IEEE floating point, big endian, range -1.0 to 1.0 */
 
     PA_SAMPLE_S32LE,
     /**< Signed 32 Bit PCM, little endian (PC) */
@@ -150,10 +152,16 @@ typedef enum pa_sample_format {
     /**< Signed 32 Bit PCM, big endian */
 
     PA_SAMPLE_S24LE,
-    /**< Signed 24 Bit PCM packed, little endian (PC) */
+    /**< Signed 24 Bit PCM packed, little endian (PC). \since 0.9.15 */
 
     PA_SAMPLE_S24BE,
-    /**< Signed 24 Bit PCM packed, big endian */
+    /**< Signed 24 Bit PCM packed, big endian. \since 0.9.15 */
+
+    PA_SAMPLE_S24_32LE,
+    /**< Signed 24 Bit PCM in LSB of 32 Bit words, little endian (PC). \since 0.9.15 */
+
+    PA_SAMPLE_S24_32BE,
+    /**< Signed 24 Bit PCM in LSB of 32 Bit words, big endian. \since 0.9.15 */
 
     PA_SAMPLE_MAX,
     /**< Upper limit of valid sample types */
@@ -169,16 +177,21 @@ typedef enum pa_sample_format {
 #define PA_SAMPLE_FLOAT32NE PA_SAMPLE_FLOAT32BE
 /** Signed 32 Bit PCM, native endian */
 #define PA_SAMPLE_S32NE PA_SAMPLE_S32BE
-/** Signed 24 Bit PCM packed, native endian */
+/** Signed 24 Bit PCM packed, native endian. \since 0.9.15 */
 #define PA_SAMPLE_S24NE PA_SAMPLE_S24BE
+/** Signed 24 Bit PCM in LSB of 32 Bit words, native endian. \since 0.9.15 */
+#define PA_SAMPLE_S24_32NE PA_SAMPLE_S24_32BE
+
 /** Signed 16 Bit PCM reverse endian */
 #define PA_SAMPLE_S16RE PA_SAMPLE_S16LE
 /** 32 Bit IEEE floating point, reverse endian */
 #define PA_SAMPLE_FLOAT32RE PA_SAMPLE_FLOAT32LE
 /** Signed 32 Bit PCM, reverse endian */
 #define PA_SAMPLE_S32RE PA_SAMPLE_S32LE
-/** Signed 24 Bit PCM, packed reverse endian */
-#define PA_SAMPLE_S24RE PA_SAMPLE_242LE
+/** Signed 24 Bit PCM, packed reverse endian. \since 0.9.15 */
+#define PA_SAMPLE_S24RE PA_SAMPLE_S24LE
+/** Signed 24 Bit PCM, in LSB of 32 Bit words, reverse endian. \since 0.9.15 */
+#define PA_SAMPLE_S24_32RE PA_SAMPLE_S24_32LE
 #else
 /** Signed 16 Bit PCM, native endian */
 #define PA_SAMPLE_S16NE PA_SAMPLE_S16LE
@@ -186,16 +199,21 @@ typedef enum pa_sample_format {
 #define PA_SAMPLE_FLOAT32NE PA_SAMPLE_FLOAT32LE
 /** Signed 32 Bit PCM, native endian */
 #define PA_SAMPLE_S32NE PA_SAMPLE_S32LE
-/** Signed 24 Bit PCM packed, native endian */
+/** Signed 24 Bit PCM packed, native endian. \since 0.9.15 */
 #define PA_SAMPLE_S24NE PA_SAMPLE_S24LE
+/** Signed 24 Bit PCM in LSB of 32 Bit words, native endian. \since 0.9.15 */
+#define PA_SAMPLE_S24_32NE PA_SAMPLE_S24_32LE
+
 /** Signed 16 Bit PCM, reverse endian */
 #define PA_SAMPLE_S16RE PA_SAMPLE_S16BE
 /** 32 Bit IEEE floating point, reverse endian */
 #define PA_SAMPLE_FLOAT32RE PA_SAMPLE_FLOAT32BE
 /** Signed 32 Bit PCM, reverse endian */
 #define PA_SAMPLE_S32RE PA_SAMPLE_S32BE
-/** Signed 24 Bit PCM packed, reverse endian */
+/** Signed 24 Bit PCM, packed reverse endian. \since 0.9.15 */
 #define PA_SAMPLE_S24RE PA_SAMPLE_S24BE
+/** Signed 24 Bit PCM, in LSB of 32 Bit words, reverse endian. \since 0.9.15 */
+#define PA_SAMPLE_S24_32RE PA_SAMPLE_S24_32BE
 #endif
 
 /** A Shortcut for PA_SAMPLE_FLOAT32NE */
@@ -214,6 +232,8 @@ typedef enum pa_sample_format {
 #define PA_SAMPLE_S32BE PA_SAMPLE_S32BE
 #define PA_SAMPLE_S24LE PA_SAMPLE_S24LE
 #define PA_SAMPLE_S24BE PA_SAMPLE_S24BE
+#define PA_SAMPLE_S24_32LE PA_SAMPLE_S24_32LE
+#define PA_SAMPLE_S24_32BE PA_SAMPLE_S24_32BE
 /** \endcond */
 
 /** A sample format and attribute specification */

@@ -41,23 +41,34 @@
 #ifndef INT16_FROM
 #define INT16_FROM PA_INT16_FROM_LE
 #endif
+#ifndef UINT16_FROM
+#define UINT16_FROM PA_UINT16_FROM_LE
+#endif
 
 #ifndef INT16_TO
 #define INT16_TO PA_INT16_TO_LE
+#endif
+#ifndef UINT16_TO
+#define UINT16_TO PA_UINT16_TO_LE
 #endif
 
 #ifndef INT32_FROM
 #define INT32_FROM PA_INT32_FROM_LE
 #endif
+#ifndef UINT32_FROM
+#define UINT32_FROM PA_UINT32_FROM_LE
+#endif
 
 #ifndef INT32_TO
 #define INT32_TO PA_INT32_TO_LE
+#endif
+#ifndef UINT32_TO
+#define UINT32_TO PA_UINT32_TO_LE
 #endif
 
 #ifndef READ24
 #define READ24 PA_READ24LE
 #endif
-
 #ifndef WRITE24
 #define WRITE24 PA_WRITE24LE
 #endif
@@ -351,5 +362,107 @@ void pa_sconv_s24le_from_float32re(unsigned n, const float *a, uint8_t *b) {
         WRITE24(b, ((uint32_t) s) >> 8);
         a++;
         b+=3;
+    }
+}
+
+void pa_sconv_s24_32le_to_s16ne(unsigned n, const uint32_t *a, int16_t *b) {
+    pa_assert(a);
+    pa_assert(b);
+
+    for (; n > 0; n--) {
+        *b = (int16_t) ((int32_t) (UINT32_FROM(*a) << 8) >> 16);
+        a++;
+        b++;
+    }
+}
+
+void pa_sconv_s24_32le_to_s16re(unsigned n, const uint32_t *a, int16_t *b) {
+    pa_assert(a);
+    pa_assert(b);
+
+    for (; n > 0; n--) {
+        int16_t s = (int16_t) ((int32_t) (UINT32_FROM(*a) << 8) >> 16);
+        *b = PA_INT16_SWAP(s);
+        a++;
+        b++;
+    }
+}
+
+void pa_sconv_s24_32le_from_s16ne(unsigned n, const int16_t *a, uint32_t *b) {
+    pa_assert(a);
+    pa_assert(b);
+
+    for (; n > 0; n--) {
+        *b = UINT32_TO(((uint32_t) ((int32_t) *a << 16)) >> 8);
+        a++;
+        b++;
+    }
+}
+
+void pa_sconv_s24_32le_from_s16re(unsigned n, const int16_t *a, uint32_t *b) {
+    pa_assert(a);
+    pa_assert(b);
+
+    for (; n > 0; n--) {
+        uint32_t s = ((uint32_t) ((int32_t) PA_INT16_SWAP(*a) << 16)) >> 8;
+        *b = UINT32_TO(s);
+        a++;
+        b++;
+    }
+}
+
+void pa_sconv_s24_32le_to_float32ne(unsigned n, const uint32_t *a, float *b) {
+    pa_assert(a);
+    pa_assert(b);
+
+    for (; n > 0; n--) {
+        int32_t s = (int16_t) ((int32_t) (UINT32_FROM(*a) << 8));
+        *b = ((float) s) / 0x7FFFFFFF;
+        a ++;
+        b ++;
+    }
+}
+
+void pa_sconv_s24_32le_to_float32re(unsigned n, const uint32_t *a, float *b) {
+    pa_assert(a);
+    pa_assert(b);
+
+    for (; n > 0; n--) {
+        int32_t s = (int16_t) ((int32_t) (UINT32_FROM(*a) << 8));
+        float k = ((float) s) / 0x7FFFFFFF;
+        *b = PA_FLOAT32_SWAP(k);
+        a ++;
+        b ++;
+    }
+}
+
+void pa_sconv_s24_32le_from_float32ne(unsigned n, const float *a, uint32_t *b) {
+    pa_assert(a);
+    pa_assert(b);
+
+    for (; n > 0; n--) {
+        int32_t s;
+        float v = *a;
+        v = PA_CLAMP_UNLIKELY(v, -1.0f, 1.0f);
+        s = (int32_t) lrint((double) v * (double) 0x7FFFFFFF);
+        *b = UINT32_TO(((uint32_t) s) >> 8);
+        a++;
+        b++;
+    }
+}
+
+void pa_sconv_s24_32le_from_float32re(unsigned n, const float *a, uint32_t *b) {
+    pa_assert(a);
+    pa_assert(b);
+
+    for (; n > 0; n--) {
+        int32_t s;
+        float v = *a;
+        v = PA_FLOAT32_SWAP(v);
+        v = PA_CLAMP_UNLIKELY(v, -1.0f, 1.0f);
+        s = (int32_t) lrint((double) v * (double) 0x7FFFFFFF);
+        *b = UINT32_TO(((uint32_t) s) >> 8);
+        a++;
+        b++;
     }
 }

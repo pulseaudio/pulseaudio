@@ -85,6 +85,8 @@ static uint8_t silence_byte(pa_sample_format_t format) {
         case PA_SAMPLE_FLOAT32BE:
         case PA_SAMPLE_S24LE:
         case PA_SAMPLE_S24BE:
+        case PA_SAMPLE_S24_32LE:
+        case PA_SAMPLE_S24_32BE:
             return 0;
         case PA_SAMPLE_ALAW:
             return 0xd5;
@@ -406,6 +408,78 @@ size_t pa_mix(
                 PA_WRITE24RE(data, ((uint32_t) sum) >> 8);
 
                 data = (uint8_t*) data + 3;
+
+                if (PA_UNLIKELY(++channel >= spec->channels))
+                    channel = 0;
+            }
+
+            break;
+        }
+
+        case PA_SAMPLE_S24_32NE: {
+            unsigned channel = 0;
+
+            calc_linear_integer_stream_volumes(streams, nstreams, volume, spec);
+
+            while (data < end) {
+                int64_t sum = 0;
+                unsigned i;
+
+                for (i = 0; i < nstreams; i++) {
+                    pa_mix_info *m = streams + i;
+                    int32_t cv = m->linear[channel].i;
+                    int64_t v;
+
+                    if (PA_UNLIKELY(cv <= 0))
+                        continue;
+
+                    v = (int32_t) (*((uint32_t*)m->ptr) << 8);
+                    v = (v * cv) / 0x10000;
+                    sum += v;
+
+                    m->ptr = (uint8_t*) m->ptr + sizeof(int32_t);
+                }
+
+                sum = PA_CLAMP_UNLIKELY(sum, -0x80000000LL, 0x7FFFFFFFLL);
+                *((uint32_t*) data) = ((uint32_t) (int32_t) sum) >> 8;
+
+                data = (uint8_t*) data + sizeof(uint32_t);
+
+                if (PA_UNLIKELY(++channel >= spec->channels))
+                    channel = 0;
+            }
+
+            break;
+        }
+
+        case PA_SAMPLE_S24_32RE: {
+            unsigned channel = 0;
+
+            calc_linear_integer_stream_volumes(streams, nstreams, volume, spec);
+
+            while (data < end) {
+                int64_t sum = 0;
+                unsigned i;
+
+                for (i = 0; i < nstreams; i++) {
+                    pa_mix_info *m = streams + i;
+                    int32_t cv = m->linear[channel].i;
+                    int64_t v;
+
+                    if (PA_UNLIKELY(cv <= 0))
+                        continue;
+
+                    v = (int32_t) (PA_UINT32_SWAP(*((uint32_t*) m->ptr)) << 8);
+                    v = (v * cv) / 0x10000;
+                    sum += v;
+
+                    m->ptr = (uint8_t*) m->ptr + 3;
+                }
+
+                sum = PA_CLAMP_UNLIKELY(sum, -0x80000000LL, 0x7FFFFFFFLL);
+                *((uint32_t*) data) = PA_INT32_SWAP(((uint32_t) (int32_t) sum) >> 8);
+
+                data = (uint8_t*) data + sizeof(uint32_t);
 
                 if (PA_UNLIKELY(++channel >= spec->channels))
                     channel = 0;
@@ -758,6 +832,52 @@ void pa_volume_memchunk(
                 t = (t * linear[channel]) / 0x10000;
                 t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
                 PA_WRITE24RE(d, ((uint32_t) (int32_t) t) >> 8);
+
+                if (PA_UNLIKELY(++channel >= spec->channels))
+                    channel = 0;
+            }
+            break;
+        }
+
+        case PA_SAMPLE_S24_32NE: {
+            uint32_t *d, *e;
+            unsigned channel;
+            int32_t linear[PA_CHANNELS_MAX];
+
+            calc_linear_integer_volume(linear, volume);
+
+            e = (uint32_t*) ptr + c->length/sizeof(uint32_t);
+
+            for (channel = 0, d = ptr; d < e; d++) {
+                int64_t t;
+
+                t = (int64_t) ((int32_t) (*d << 8));
+                t = (t * linear[channel]) / 0x10000;
+                t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
+                *d = ((uint32_t) ((int32_t) t)) >> 8;
+
+                if (PA_UNLIKELY(++channel >= spec->channels))
+                    channel = 0;
+            }
+            break;
+        }
+
+        case PA_SAMPLE_S24_32RE: {
+            uint32_t *d, *e;
+            unsigned channel;
+            int32_t linear[PA_CHANNELS_MAX];
+
+            calc_linear_integer_volume(linear, volume);
+
+            e = (uint32_t*) ptr + c->length/sizeof(uint32_t);
+
+            for (channel = 0, d = ptr; d < e; d++) {
+                int64_t t;
+
+                t = (int64_t) ((int32_t) (PA_UINT32_SWAP(*d) << 8));
+                t = (t * linear[channel]) / 0x10000;
+                t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
+                *d = PA_UINT32_SWAP(((uint32_t) ((int32_t) t)) >> 8);
 
                 if (PA_UNLIKELY(++channel >= spec->channels))
                     channel = 0;

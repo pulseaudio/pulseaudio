@@ -27,9 +27,13 @@
 
 #define INT16_FROM PA_INT16_FROM_BE
 #define INT16_TO PA_INT16_TO_BE
+#define UINT16_FROM PA_UINT16_FROM_BE
+#define UINT16_TO PA_UINT16_TO_BE
 
 #define INT32_FROM PA_INT32_FROM_BE
 #define INT32_TO PA_INT32_TO_BE
+#define UINT32_FROM PA_UINT32_FROM_BE
+#define UINT32_TO PA_UINT32_TO_BE
 
 #define READ24 PA_READ24BE
 #define WRITE24 PA_WRITE24BE
@@ -49,6 +53,11 @@
 #define pa_sconv_s24le_to_float32re pa_sconv_s24be_to_float32re
 #define pa_sconv_s24le_from_float32re pa_sconv_s24be_from_float32re
 
+#define pa_sconv_s24_32le_to_float32ne pa_sconv_s24_32be_to_float32ne
+#define pa_sconv_s24_32le_from_float32ne pa_sconv_s24_32be_from_float32ne
+#define pa_sconv_s24_32le_to_float32re pa_sconv_s24_32be_to_float32re
+#define pa_sconv_s24_32le_from_float32re pa_sconv_s24_32be_from_float32re
+
 #define pa_sconv_s32le_to_s16ne pa_sconv_s32be_to_s16ne
 #define pa_sconv_s32le_from_s16ne pa_sconv_s32be_from_s16ne
 #define pa_sconv_s32le_to_s16re pa_sconv_s32be_to_s16re
@@ -58,6 +67,11 @@
 #define pa_sconv_s24le_from_s16ne pa_sconv_s24be_from_s16ne
 #define pa_sconv_s24le_to_s16re pa_sconv_s24be_to_s16re
 #define pa_sconv_s24le_from_s16re pa_sconv_s24be_from_s16re
+
+#define pa_sconv_s24_32le_to_s16ne pa_sconv_s24_32be_to_s16ne
+#define pa_sconv_s24_32le_from_s16ne pa_sconv_s24_32be_from_s16ne
+#define pa_sconv_s24_32le_to_s16re pa_sconv_s24_32be_to_s16re
+#define pa_sconv_s24_32le_from_s16re pa_sconv_s24_32be_from_s16re
 
 #ifdef WORDS_BIGENDIAN
 #define SWAP_WORDS 0
