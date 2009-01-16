@@ -600,7 +600,6 @@ void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk) {
         switch (e->sample_spec.format) {
 
 
-
             case PA_SAMPLE_U8: {
                 uint8_t *t;
 

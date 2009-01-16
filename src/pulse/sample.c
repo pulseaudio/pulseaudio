@@ -48,6 +48,8 @@ size_t pa_sample_size(const pa_sample_spec *spec) {
         [PA_SAMPLE_FLOAT32BE] = 4,
         [PA_SAMPLE_S32LE] = 4,
         [PA_SAMPLE_S32BE] = 4,
+        [PA_SAMPLE_S24LE] = 3,
+        [PA_SAMPLE_S24BE] = 3
     };
 
     pa_assert(spec);
@@ -125,6 +127,8 @@ const char *pa_sample_format_to_string(pa_sample_format_t f) {
         [PA_SAMPLE_FLOAT32BE] = "float32be",
         [PA_SAMPLE_S32LE] = "s32le",
         [PA_SAMPLE_S32BE] = "s32be",
+        [PA_SAMPLE_S24LE] = "s24le",
+        [PA_SAMPLE_S24BE] = "s24be",
     };
 
     if (f < 0 || f >= PA_SAMPLE_MAX)
@@ -194,8 +198,16 @@ pa_sample_format_t pa_parse_sample_format(const char *format) {
         return PA_SAMPLE_S32BE;
     else if (strcasecmp(format, "s32ne") == 0 || strcasecmp(format, "s32") == 0 || strcasecmp(format, "32") == 0)
         return PA_SAMPLE_S32NE;
-    else if (strcasecmp(format, "s32re") == 0)
-        return PA_SAMPLE_S32RE;
+    else if (strcasecmp(format, "s24re") == 0)
+        return PA_SAMPLE_S24RE;
+    else if (strcasecmp(format, "s24le") == 0)
+        return PA_SAMPLE_S24LE;
+    else if (strcasecmp(format, "s24be") == 0)
+        return PA_SAMPLE_S24BE;
+    else if (strcasecmp(format, "s24ne") == 0 || strcasecmp(format, "s24") == 0 || strcasecmp(format, "24") == 0)
+        return PA_SAMPLE_S24NE;
+    else if (strcasecmp(format, "s24re") == 0)
+        return PA_SAMPLE_S24RE;
 
     return -1;
 }

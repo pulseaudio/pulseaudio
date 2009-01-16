@@ -45,6 +45,32 @@
 #define PA_UINT32_SWAP(x) ( (uint32_t) ( ((uint32_t) (x) >> 24) | ((uint32_t) (x) << 24) | (((uint32_t) (x) & 0xFF00) << 8) | ((((uint32_t) (x)) >> 8) & 0xFF00) ) )
 #endif
 
+static inline uint32_t PA_READ24LE(const uint8_t *p) {
+    return
+        ((uint32_t) p[0] << 16) |
+        ((uint32_t) p[1] << 8) |
+        ((uint32_t) p[2]);
+}
+
+static inline uint32_t PA_READ24BE(const uint8_t *p) {
+    return
+        ((uint32_t) p[2] << 16) |
+        ((uint32_t) p[1] << 8) |
+        ((uint32_t) p[0]);
+}
+
+static inline void PA_WRITE24LE(uint8_t *p, uint32_t u) {
+    p[0] = (uint8_t) (u >> 16);
+    p[1] = (uint8_t) (u >> 8);
+    p[2] = (uint8_t) u;
+}
+
+static inline void PA_WRITE24BE(uint8_t *p, uint32_t u) {
+    p[2] = (uint8_t) (u >> 16);
+    p[1] = (uint8_t) (u >> 8);
+    p[0] = (uint8_t) u;
+}
+
 static inline float PA_FLOAT32_SWAP(float x) {
     union {
         float f;
@@ -91,6 +117,12 @@ static inline float PA_FLOAT32_SWAP(float x) {
 
  #define PA_FLOAT32_TO_LE(x) PA_FLOAT32_SWAP(x)
  #define PA_FLOAT32_TO_BE(x) ((float) (x))
+
+ #define PA_READ24NE(x) PA_READ24BE(x)
+ #define PA_WRITE24NE(x,y) PA_WRITE24BE((x),(y))
+
+ #define PA_READ24RE(x) PA_READ24LE(x)
+ #define PA_WRITE24RE(x,y) PA_WRITE24LE((x),(y))
 #else
  #define PA_INT16_FROM_LE(x) ((int16_t)(x))
  #define PA_INT16_FROM_BE(x) PA_INT16_SWAP(x)
@@ -118,6 +150,12 @@ static inline float PA_FLOAT32_SWAP(float x) {
 
  #define PA_FLOAT32_TO_LE(x) ((float) (x))
  #define PA_FLOAT32_TO_BE(x) PA_FLOAT32_SWAP(x)
+
+ #define PA_READ24NE(x) PA_READ24LE(x)
+ #define PA_WRITE24NE(x,y) PA_WRITE24LE((x),(y))
+
+ #define PA_READ24RE(x) PA_READ24BE(x)
+ #define PA_WRITE24RE(x,y) PA_WRITE24BE((x),(y))
 #endif
 
 #endif

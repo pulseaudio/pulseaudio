@@ -83,6 +83,8 @@ static uint8_t silence_byte(pa_sample_format_t format) {
         case PA_SAMPLE_S32BE:
         case PA_SAMPLE_FLOAT32LE:
         case PA_SAMPLE_FLOAT32BE:
+        case PA_SAMPLE_S24LE:
+        case PA_SAMPLE_S24BE:
             return 0;
         case PA_SAMPLE_ALAW:
             return 0xd5;
@@ -332,6 +334,78 @@ size_t pa_mix(
                 *((int32_t*) data) = PA_INT32_SWAP((int32_t) sum);
 
                 data = (uint8_t*) data + sizeof(int32_t);
+
+                if (PA_UNLIKELY(++channel >= spec->channels))
+                    channel = 0;
+            }
+
+            break;
+        }
+
+        case PA_SAMPLE_S24NE: {
+            unsigned channel = 0;
+
+            calc_linear_integer_stream_volumes(streams, nstreams, volume, spec);
+
+            while (data < end) {
+                int64_t sum = 0;
+                unsigned i;
+
+                for (i = 0; i < nstreams; i++) {
+                    pa_mix_info *m = streams + i;
+                    int32_t cv = m->linear[channel].i;
+                    int64_t v;
+
+                    if (PA_UNLIKELY(cv <= 0))
+                        continue;
+
+                    v = (int32_t) (PA_READ24NE(m->ptr) << 8);
+                    v = (v * cv) / 0x10000;
+                    sum += v;
+
+                    m->ptr = (uint8_t*) m->ptr + 3;
+                }
+
+                sum = PA_CLAMP_UNLIKELY(sum, -0x80000000LL, 0x7FFFFFFFLL);
+                PA_WRITE24NE(data, ((uint32_t) sum) >> 8);
+
+                data = (uint8_t*) data + 3;
+
+                if (PA_UNLIKELY(++channel >= spec->channels))
+                    channel = 0;
+            }
+
+            break;
+        }
+
+        case PA_SAMPLE_S24RE: {
+            unsigned channel = 0;
+
+            calc_linear_integer_stream_volumes(streams, nstreams, volume, spec);
+
+            while (data < end) {
+                int64_t sum = 0;
+                unsigned i;
+
+                for (i = 0; i < nstreams; i++) {
+                    pa_mix_info *m = streams + i;
+                    int32_t cv = m->linear[channel].i;
+                    int64_t v;
+
+                    if (PA_UNLIKELY(cv <= 0))
+                        continue;
+
+                    v = (int32_t) (PA_READ24RE(m->ptr) << 8);
+                    v = (v * cv) / 0x10000;
+                    sum += v;
+
+                    m->ptr = (uint8_t*) m->ptr + 3;
+                }
+
+                sum = PA_CLAMP_UNLIKELY(sum, -0x80000000LL, 0x7FFFFFFFLL);
+                PA_WRITE24RE(data, ((uint32_t) sum) >> 8);
+
+                data = (uint8_t*) data + 3;
 
                 if (PA_UNLIKELY(++channel >= spec->channels))
                     channel = 0;
@@ -642,7 +716,52 @@ void pa_volume_memchunk(
                 if (PA_UNLIKELY(++channel >= spec->channels))
                     channel = 0;
             }
+            break;
+        }
 
+        case PA_SAMPLE_S24NE: {
+            uint8_t *d, *e;
+            unsigned channel;
+            int32_t linear[PA_CHANNELS_MAX];
+
+            calc_linear_integer_volume(linear, volume);
+
+            e = (uint8_t*) ptr + c->length/3;
+
+            for (channel = 0, d = ptr; d < e; d++) {
+                int64_t t;
+
+                t = (int64_t)((int32_t) (PA_READ24NE(d) << 8));
+                t = (t * linear[channel]) / 0x10000;
+                t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
+                PA_WRITE24NE(d, ((uint32_t) (int32_t) t) >> 8);
+
+                if (PA_UNLIKELY(++channel >= spec->channels))
+                    channel = 0;
+            }
+            break;
+        }
+
+        case PA_SAMPLE_S24RE: {
+            uint8_t *d, *e;
+            unsigned channel;
+            int32_t linear[PA_CHANNELS_MAX];
+
+            calc_linear_integer_volume(linear, volume);
+
+            e = (uint8_t*) ptr + c->length/3;
+
+            for (channel = 0, d = ptr; d < e; d++) {
+                int64_t t;
+
+                t = (int64_t)((int32_t) (PA_READ24RE(d) << 8));
+                t = (t * linear[channel]) / 0x10000;
+                t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
+                PA_WRITE24RE(d, ((uint32_t) (int32_t) t) >> 8);
+
+                if (PA_UNLIKELY(++channel >= spec->channels))
+                    channel = 0;
+            }
             break;
         }
 
@@ -900,12 +1019,16 @@ pa_memchunk* pa_silence_memchunk_get(pa_silence_cache *cache, pa_mempool *pool, 
             case PA_SAMPLE_S16BE:
             case PA_SAMPLE_S32LE:
             case PA_SAMPLE_S32BE:
+            case PA_SAMPLE_S24LE:
+            case PA_SAMPLE_S24BE:
             case PA_SAMPLE_FLOAT32LE:
             case PA_SAMPLE_FLOAT32BE:
                 cache->blocks[PA_SAMPLE_S16LE] = b = silence_memblock_new(pool, 0);
                 cache->blocks[PA_SAMPLE_S16BE] = pa_memblock_ref(b);
                 cache->blocks[PA_SAMPLE_S32LE] = pa_memblock_ref(b);
                 cache->blocks[PA_SAMPLE_S32BE] = pa_memblock_ref(b);
+                cache->blocks[PA_SAMPLE_S24LE] = pa_memblock_ref(b);
+                cache->blocks[PA_SAMPLE_S24BE] = pa_memblock_ref(b);
                 cache->blocks[PA_SAMPLE_FLOAT32LE] = pa_memblock_ref(b);
                 cache->blocks[PA_SAMPLE_FLOAT32BE] = pa_memblock_ref(b);
                 break;

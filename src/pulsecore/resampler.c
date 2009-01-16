@@ -257,8 +257,10 @@ pa_resampler* pa_resampler_new(
 
             if (a->format == PA_SAMPLE_S32NE || a->format == PA_SAMPLE_S32RE ||
                 a->format == PA_SAMPLE_FLOAT32NE || a->format == PA_SAMPLE_FLOAT32RE ||
+                a->format == PA_SAMPLE_S24NE || a->format == PA_SAMPLE_S24RE ||
                 b->format == PA_SAMPLE_S32NE || b->format == PA_SAMPLE_S32RE ||
-                b->format == PA_SAMPLE_FLOAT32NE || b->format == PA_SAMPLE_FLOAT32RE)
+                b->format == PA_SAMPLE_FLOAT32NE || b->format == PA_SAMPLE_FLOAT32RE ||
+                b->format == PA_SAMPLE_S24NE || b->format == PA_SAMPLE_S24RE)
                 r->work_format = PA_SAMPLE_FLOAT32NE;
             else
                 r->work_format = PA_SAMPLE_S16NE;

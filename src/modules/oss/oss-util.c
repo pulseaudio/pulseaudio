@@ -164,6 +164,8 @@ int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
         [PA_SAMPLE_FLOAT32BE] = AFMT_QUERY, /* not supported */
         [PA_SAMPLE_S32LE] = AFMT_QUERY, /* not supported */
         [PA_SAMPLE_S32BE] = AFMT_QUERY, /* not supported */
+        [PA_SAMPLE_S24LE] = AFMT_QUERY, /* not supported */
+        [PA_SAMPLE_S24BE] = AFMT_QUERY, /* not supported */
     };
 
     pa_assert(fd >= 0);

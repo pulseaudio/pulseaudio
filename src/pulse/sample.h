@@ -51,6 +51,8 @@
  * \li PA_SAMPLE_ULAW - 8 bit mu-Law.
  * \li PA_SAMPLE_S32LE - Signed 32 bit integer PCM, little endian.
  * \li PA_SAMPLE_S32BE - Signed 32 bit integer PCM, big endian.
+ * \li PA_SAMPLE_242LE - Signed 24 bit integer PCM packed, little endian.
+ * \li PA_SAMPLE_242BE - Signed 24 bit integer PCM packed, big endian.
  *
  * The floating point sample formats have the range from -1.0 to 1.0.
  *
@@ -145,7 +147,13 @@ typedef enum pa_sample_format {
     /**< Signed 32 Bit PCM, little endian (PC) */
 
     PA_SAMPLE_S32BE,
-    /**< Signed 32 Bit PCM, big endian (PC) */
+    /**< Signed 32 Bit PCM, big endian */
+
+    PA_SAMPLE_S24LE,
+    /**< Signed 24 Bit PCM packed, little endian (PC) */
+
+    PA_SAMPLE_S24BE,
+    /**< Signed 24 Bit PCM packed, big endian */
 
     PA_SAMPLE_MAX,
     /**< Upper limit of valid sample types */
@@ -161,12 +169,16 @@ typedef enum pa_sample_format {
 #define PA_SAMPLE_FLOAT32NE PA_SAMPLE_FLOAT32BE
 /** Signed 32 Bit PCM, native endian */
 #define PA_SAMPLE_S32NE PA_SAMPLE_S32BE
+/** Signed 24 Bit PCM packed, native endian */
+#define PA_SAMPLE_S24NE PA_SAMPLE_S24BE
 /** Signed 16 Bit PCM reverse endian */
 #define PA_SAMPLE_S16RE PA_SAMPLE_S16LE
 /** 32 Bit IEEE floating point, reverse endian */
 #define PA_SAMPLE_FLOAT32RE PA_SAMPLE_FLOAT32LE
-/** Signed 32 Bit PCM reverse endian */
+/** Signed 32 Bit PCM, reverse endian */
 #define PA_SAMPLE_S32RE PA_SAMPLE_S32LE
+/** Signed 24 Bit PCM, packed reverse endian */
+#define PA_SAMPLE_S24RE PA_SAMPLE_242LE
 #else
 /** Signed 16 Bit PCM, native endian */
 #define PA_SAMPLE_S16NE PA_SAMPLE_S16LE
@@ -174,12 +186,16 @@ typedef enum pa_sample_format {
 #define PA_SAMPLE_FLOAT32NE PA_SAMPLE_FLOAT32LE
 /** Signed 32 Bit PCM, native endian */
 #define PA_SAMPLE_S32NE PA_SAMPLE_S32LE
-/** Signed 16 Bit PCM reverse endian */
+/** Signed 24 Bit PCM packed, native endian */
+#define PA_SAMPLE_S24NE PA_SAMPLE_S24LE
+/** Signed 16 Bit PCM, reverse endian */
 #define PA_SAMPLE_S16RE PA_SAMPLE_S16BE
 /** 32 Bit IEEE floating point, reverse endian */
 #define PA_SAMPLE_FLOAT32RE PA_SAMPLE_FLOAT32BE
-/** Signed 32 Bit PCM reverse endian */
+/** Signed 32 Bit PCM, reverse endian */
 #define PA_SAMPLE_S32RE PA_SAMPLE_S32BE
+/** Signed 24 Bit PCM packed, reverse endian */
+#define PA_SAMPLE_S24RE PA_SAMPLE_S24BE
 #endif
 
 /** A Shortcut for PA_SAMPLE_FLOAT32NE */
@@ -196,6 +212,8 @@ typedef enum pa_sample_format {
 #define PA_SAMPLE_FLOAT32BE PA_SAMPLE_FLOAT32BE
 #define PA_SAMPLE_S32LE PA_SAMPLE_S32LE
 #define PA_SAMPLE_S32BE PA_SAMPLE_S32BE
+#define PA_SAMPLE_S24LE PA_SAMPLE_S24LE
+#define PA_SAMPLE_S24BE PA_SAMPLE_S24BE
 /** \endcond */
 
 /** A sample format and attribute specification */
