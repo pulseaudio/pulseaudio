@@ -624,8 +624,16 @@ typedef enum pa_sink_state { /* enum serialized in u8 */
     PA_SINK_IDLE = 1,
     /**< When idle, the sink is playing but there is no non-corked sink-input attached to it \since 0.9.15 */
 
-    PA_SINK_SUSPENDED = 2
+    PA_SINK_SUSPENDED = 2,
     /**< When suspended, actual sink access can be closed, for instance \since 0.9.15 */
+
+    /* *** PRIVATE: server-side values *** */
+
+    PA_SINK_INIT = -2,
+    /* Initialization state */
+
+    PA_SINK_UNLINKED = -3
+    /* The state when the sink is getting unregistered and removed from client access */
 
 } pa_sink_state_t;
 
@@ -685,8 +693,16 @@ typedef enum pa_source_state {
     PA_SOURCE_IDLE = 1,
     /**< When idle, the source is still recording but there is no non-corked source-output \since 0.9.15 */
 
-    PA_SOURCE_SUSPENDED = 2
+    PA_SOURCE_SUSPENDED = 2,
     /**< When suspended, actual source access can be closed, for instance \since 0.9.15 */
+
+    /* *** PRIVATE: server-side values *** */
+
+    PA_SOURCE_INIT = -2,
+    /* Initialization state */
+
+    PA_SOURCE_UNLINKED = -3
+    /* The state when the source is getting unregistered and removed from client access */
 
 } pa_source_state_t;
 
