@@ -885,6 +885,8 @@ int main(int argc, char *argv[]) {
     else
         pa_log_info(_("Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!"));
 
+    pa_rtclock_hrtimer_enable();
+
 #ifdef SIGRTMIN
     /* Valgrind uses SIGRTMAX. To easy debugging we don't use it here */
     pa_rtsig_configure(SIGRTMIN, SIGRTMAX-1);

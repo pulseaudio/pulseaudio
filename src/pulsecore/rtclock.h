@@ -35,6 +35,7 @@ pa_usec_t pa_rtclock_usec(void);
 
 pa_usec_t pa_rtclock_age(const struct timeval *tv);
 pa_bool_t pa_rtclock_hrtimer(void);
+void pa_rtclock_hrtimer_enable(void);
 
 /* timer with a resolution better than this are considered high-resolution */
 #define PA_HRTIMER_THRESHOLD_USEC 10

@@ -27,9 +27,12 @@
 #include <stddef.h>
 #include <time.h>
 #include <sys/time.h>
+#include <sys/prctl.h>
+#include <errno.h>
 
 #include <pulse/timeval.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/core-error.h>
 
 #include "rtclock.h"
 
@@ -85,6 +88,29 @@ pa_bool_t pa_rtclock_hrtimer(void) {
 #else /* HAVE_CLOCK_GETTIME */
 
     return FALSE;
+
+#endif
+}
+
+void pa_rtclock_hrtimer_enable(void) {
+#ifdef PR_SET_TIMERSLACK
+    int slack_ns;
+
+    if ((slack_ns = prctl(PR_GET_TIMERSLACK, 0, 0, 0, 0)) < 0) {
+        pa_log_info("PR_GET_TIMERSLACK/PR_SET_TIMERSLACK not supported.");
+        return;
+    }
+
+    pa_log_debug("Timer slack set to %i us.", slack_ns/1000);
+
+    slack_ns = 500000000;
+
+    pa_log_debug("Setting timer slack to %i us.", slack_ns/1000);
+
+    if (prctl(PR_SET_TIMERSLACK, slack_ns, 0, 0, 0) < 0) {
+        pa_log_warn("PR_SET_TIMERSLACK failed: %s", pa_cstrerror(errno));
+        return;
+    }
 
 #endif
 }
