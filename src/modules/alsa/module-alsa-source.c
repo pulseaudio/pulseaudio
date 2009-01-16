@@ -1179,7 +1179,7 @@ int pa__init(pa_module*m) {
                       &ss, &map,
                       SND_PCM_STREAM_CAPTURE,
                       &nfrags, &period_frames, tsched_frames,
-                      &b, &d)))
+                      &b, &d, FALSE)))
             goto fail;
     }
 

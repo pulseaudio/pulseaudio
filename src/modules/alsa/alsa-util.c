@@ -622,71 +622,44 @@ snd_pcm_t *pa_alsa_open_by_device_id(
 
     i = 0;
     for (;;) {
-        pa_sample_spec try_ss;
-        pa_bool_t reformat;
 
         if ((direction > 0) == channel_map_superset(&device_table[i].map, map)) {
+            pa_sample_spec try_ss;
+
             pa_log_debug("Checking for %s (%s)", device_table[i].name, device_table[i].alsa_name);
 
             d = pa_sprintf_malloc("%s:%s", device_table[i].alsa_name, dev_id);
 
-            reformat = FALSE;
-            for (;;) {
-                pa_log_debug("Trying %s %s SND_PCM_NO_AUTO_FORMAT ...", d, reformat ? "without" : "with");
+            try_ss.channels = device_table[i].map.channels;
+            try_ss.rate = ss->rate;
+            try_ss.format = ss->format;
 
-                /* We don't pass SND_PCM_NONBLOCK here, since alsa-lib <=
-                 * 1.0.17a would then ignore the SND_PCM_NO_xxx
-                 * flags. Instead we enable nonblock mode afterwards via
-                 * snd_pcm_nonblock(). Also see
-                 * http://mailman.alsa-project.org/pipermail/alsa-devel/2008-August/010258.html */
+            pcm_handle = pa_alsa_open_by_device_string(
+                    d,
+                    dev,
+                    &try_ss,
+                    map,
+                    mode,
+                    nfrags,
+                    period_size,
+                    tsched_size,
+                    use_mmap,
+                    use_tsched,
+                    TRUE);
 
-                if ((err = snd_pcm_open(&pcm_handle, d, mode,
-                                        /* SND_PCM_NONBLOCK| */
-                                        SND_PCM_NO_AUTO_RESAMPLE|
-                                        SND_PCM_NO_AUTO_CHANNELS|
-                                        (reformat ? 0 : SND_PCM_NO_AUTO_FORMAT))) < 0) {
-                    pa_log_info("Couldn't open PCM device %s: %s", d, snd_strerror(err));
-                    break;
-                }
+            pa_xfree(d);
 
-                try_ss.channels = device_table[i].map.channels;
-                try_ss.rate = ss->rate;
-                try_ss.format = ss->format;
-
-                if ((err = pa_alsa_set_hw_params(pcm_handle, &try_ss, nfrags, period_size, tsched_size, use_mmap, use_tsched, TRUE)) < 0) {
-
-                    if (!reformat) {
-                        reformat = TRUE;
-                        snd_pcm_close(pcm_handle);
-                        continue;
-                    }
-
-                    if (!pa_startswith(d, "plug:") && !pa_startswith(d, "plughw:")) {
-                        char *t;
-
-                        t = pa_sprintf_malloc("plug:%s", d);
-                        pa_xfree(d);
-                        d = t;
-
-                        reformat = FALSE;
-
-                        snd_pcm_close(pcm_handle);
-                        continue;
-                    }
-
-                    pa_log_info("PCM device %s refused our hw parameters: %s", d, snd_strerror(err));
-                    snd_pcm_close(pcm_handle);
-                    break;
-                }
+            if (pcm_handle) {
 
                 *ss = try_ss;
                 *map = device_table[i].map;
                 pa_assert(map->channels == ss->channels);
-                *dev = d;
+
                 if (config_description)
                     *config_description = device_table[i].description;
                 if (config_name)
                     *config_name = device_table[i].name;
+
 
                 return pcm_handle;
             }
@@ -742,7 +715,7 @@ snd_pcm_t *pa_alsa_open_by_device_id(
 
     d = pa_sprintf_malloc("hw:%s", dev_id);
     pa_log_debug("Trying %s as last resort...", d);
-    pcm_handle = pa_alsa_open_by_device_string(d, dev, ss, map, mode, nfrags, period_size, tsched_size, use_mmap, use_tsched);
+    pcm_handle = pa_alsa_open_by_device_string(d, dev, ss, map, mode, nfrags, period_size, tsched_size, use_mmap, use_tsched, FALSE);
     pa_xfree(d);
 
     if (pcm_handle) {
@@ -763,7 +736,8 @@ snd_pcm_t *pa_alsa_open_by_device_string(
         snd_pcm_uframes_t *period_size,
         snd_pcm_uframes_t tsched_size,
         pa_bool_t *use_mmap,
-        pa_bool_t *use_tsched) {
+        pa_bool_t *use_tsched,
+        pa_bool_t require_exact_channel_number) {
 
     int err;
     char *d;
@@ -798,7 +772,7 @@ snd_pcm_t *pa_alsa_open_by_device_string(
             return NULL;
         }
 
-        if ((err = pa_alsa_set_hw_params(pcm_handle, ss, nfrags, period_size, tsched_size, use_mmap, use_tsched, FALSE)) < 0) {
+        if ((err = pa_alsa_set_hw_params(pcm_handle, ss, nfrags, period_size, tsched_size, use_mmap, use_tsched, require_exact_channel_number)) < 0) {
 
             if (!reformat) {
                 reformat = TRUE;
