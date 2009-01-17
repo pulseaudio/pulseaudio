@@ -1205,7 +1205,26 @@ void pa_alsa_redirect_errors_dec(void) {
         snd_lib_error_set_handler(NULL);
 }
 
-void pa_alsa_init_proplist(pa_proplist *p, snd_pcm_info_t *pcm_info) {
+void pa_alsa_init_proplist_card(pa_proplist *p, int card) {
+    char *cn, *lcn;
+
+    pa_assert(p);
+    pa_assert(card >= 0);
+
+    pa_proplist_setf(p, "alsa.card", "%i", card);
+
+    if (snd_card_get_name(card, &cn) >= 0) {
+        pa_proplist_sets(p, "alsa.card_name", cn);
+        free(cn);
+    }
+
+    if (snd_card_get_longname(card, &lcn) >= 0) {
+        pa_proplist_sets(p, "alsa.long_card_name", lcn);
+        free(lcn);
+    }
+}
+
+void pa_alsa_init_proplist_pcm(pa_proplist *p, snd_pcm_info_t *pcm_info) {
 
     static const char * const alsa_class_table[SND_PCM_CLASS_LAST+1] = {
         [SND_PCM_CLASS_GENERIC] = "generic",
@@ -1226,8 +1245,7 @@ void pa_alsa_init_proplist(pa_proplist *p, snd_pcm_info_t *pcm_info) {
 
     snd_pcm_class_t class;
     snd_pcm_subclass_t subclass;
-    const char *n, *id, *sdn;
-    char *cn = NULL, *lcn = NULL;
+    const char *n, *id, *sdn, *cn;
     int card;
 
     pa_assert(p);
@@ -1260,13 +1278,8 @@ void pa_alsa_init_proplist(pa_proplist *p, snd_pcm_info_t *pcm_info) {
     pa_proplist_setf(p, "alsa.device", "%u", snd_pcm_info_get_device(pcm_info));
 
     if ((card = snd_pcm_info_get_card(pcm_info)) >= 0) {
-        pa_proplist_setf(p, "alsa.card", "%i", card);
-
-        if (snd_card_get_name(card, &cn) >= 0)
-            pa_proplist_sets(p, "alsa.card_name", cn);
-
-        if (snd_card_get_longname(card, &lcn) >= 0)
-            pa_proplist_sets(p, "alsa.long_card_name", lcn);
+        pa_alsa_init_proplist_card(p, card);
+        cn = pa_proplist_gets(p, "alsa.card_name");
     }
 
     if (cn && n)
@@ -1275,9 +1288,6 @@ void pa_alsa_init_proplist(pa_proplist *p, snd_pcm_info_t *pcm_info) {
         pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, cn);
     else if (n)
         pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, n);
-
-    free(lcn);
-    free(cn);
 }
 
 int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents) {

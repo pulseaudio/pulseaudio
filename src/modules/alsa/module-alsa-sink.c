@@ -1308,10 +1308,9 @@ int pa__init(pa_module*m) {
         use_tsched = FALSE;
     }
 
-    u = pa_xnew0(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
-    m->userdata = u;
     u->use_mmap = use_mmap;
     u->use_tsched = use_tsched;
     u->first = TRUE;
@@ -1439,7 +1438,7 @@ int pa__init(pa_module*m) {
     pa_sink_new_data_set_sample_spec(&data, &ss);
     pa_sink_new_data_set_channel_map(&data, &map);
 
-    pa_alsa_init_proplist(data.proplist, pcm_info);
+    pa_alsa_init_proplist_pcm(data.proplist, pcm_info);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_name);
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (period_frames * frame_size * nfrags));
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%lu", (unsigned long) (period_frames * frame_size));
@@ -1633,10 +1632,8 @@ void pa__done(pa_module*m) {
 
     pa_assert(m);
 
-    if (!(u = m->userdata)) {
-        pa_alsa_redirect_errors_dec();
-        return;
-    }
+    if (!(u = m->userdata))
+        goto finish;
 
     if (u->sink)
         pa_sink_unlink(u->sink);
@@ -1677,7 +1674,8 @@ void pa__done(pa_module*m) {
     pa_xfree(u->device_name);
     pa_xfree(u);
 
-    snd_config_update_free_global();
+finish:
 
+    snd_config_update_free_global();
     pa_alsa_redirect_errors_dec();
 }
