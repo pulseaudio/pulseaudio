@@ -31,16 +31,19 @@ typedef struct pa_card pa_card;
 
 typedef struct pa_card_profile {
     char *name;
+    char *description;
 
-    pa_bool_t optical_sink:1;
-    pa_bool_t optical_source:1;
-
+    /* We probably want to have different properties later on here */
     unsigned n_sinks;
     unsigned n_sources;
 
     unsigned max_sink_channels;
     unsigned max_source_channels;
+
+    /* .. followed by some implementation specific data */
 } pa_card_profile;
+
+#define PA_CARD_PROFILE_DATA(d) ((void*) ((uint8_t*) d + PA_ALIGN(sizeof(pa_card_profile))))
 
 struct pa_card {
     uint32_t index;
@@ -65,6 +68,7 @@ struct pa_card {
 
 typedef struct pa_card_new_data {
     char *name;
+    char *description;
 
     pa_proplist *proplist;
     const char *driver;
@@ -76,7 +80,7 @@ typedef struct pa_card_new_data {
     pa_bool_t namereg_fail:1;
 } pa_card_new_data;
 
-pa_card_profile *pa_card_profile_new(const char *name);
+pa_card_profile *pa_card_profile_new(const char *name, const char *description, size_t extra);
 void pa_card_profile_free(pa_card_profile *c);
 
 pa_card_new_data *pa_card_new_data_init(pa_card_new_data *data);

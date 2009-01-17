@@ -36,13 +36,14 @@
 
 #include "card.h"
 
-pa_card_profile *pa_card_profile_new(const char *name) {
+pa_card_profile *pa_card_profile_new(const char *name, const char *description, size_t extra) {
     pa_card_profile *c;
 
     pa_assert(name);
 
-    c = pa_xnew0(pa_card_profile, 1);
+    c = pa_xmalloc(PA_ALIGN(sizeof(pa_card_profile)) + extra);
     c->name = pa_xstrdup(name);
+    c->description = pa_xstrdup(description);
 
     return c;
 }
@@ -51,6 +52,7 @@ void pa_card_profile_free(pa_card_profile *c) {
     pa_assert(c);
 
     pa_xfree(c->name);
+    pa_xfree(c->description);
     pa_xfree(c);
 }
 
@@ -122,7 +124,9 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
 
     c->profiles = data->profiles;
     data->profiles = NULL;
-    c->active_profile = data->active_profile;
+    if (!(c->active_profile = data->active_profile))
+        if (c->profiles)
+            c->active_profile = pa_hashmap_first(c->profiles);
     data->active_profile = NULL;
 
     c->userdata = NULL;
@@ -188,6 +192,9 @@ int pa_card_set_profile(pa_card *c, const char *name) {
 
     if (!(profile = pa_hashmap_get(c->profiles, name)))
         return -1;
+
+    if (c->active_profile == profile)
+        return 0;
 
     if (c->set_profile(c, profile) < 0)
         return -1;
