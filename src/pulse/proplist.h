@@ -213,12 +213,19 @@ int pa_proplist_unset_many(pa_proplist *p, const char * const keys[]);
  * have any particular order. \since 0.9.11 */
 const char *pa_proplist_iterate(pa_proplist *p, void **state);
 
-/** Format the property list nicely as a human readable string. Call pa_xfree() on the result. \since
- * 0.9.11 */
+/** Format the property list nicely as a human readable string. This
+ * works very much like pa_proplist_to_string_sep() and uses a newline
+ * as seperator and appends one final one. Call pa_xfree() on the
+ * result. \since 0.9.11 */
 char *pa_proplist_to_string(pa_proplist *p);
 
-/** Allocate a new property list and assign key/value from a human readable string. \since
+/** Format the property list nicely as a human readable string and
+ * choose the seperator. Call pa_xfree() on the result. \since
  * 0.9.15 */
+char *pa_proplist_to_string_sep(pa_proplist *p, const char *sep);
+
+/** Allocate a new property list and assign key/value from a human
+ * readable string. \since 0.9.15 */
 pa_proplist *pa_proplist_from_string(const char *str);
 
   /** Returns 1 if an entry for the specified key is existant in the

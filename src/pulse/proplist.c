@@ -259,21 +259,24 @@ const char *pa_proplist_iterate(pa_proplist *p, void **state) {
     return prop->key;
 }
 
-char *pa_proplist_to_string(pa_proplist *p) {
+char *pa_proplist_to_string_sep(pa_proplist *p, const char *sep) {
     const char *key;
     void *state = NULL;
     pa_strbuf *buf;
 
     pa_assert(p);
+    pa_assert(sep);
 
     buf = pa_strbuf_new();
 
     while ((key = pa_proplist_iterate(p, &state))) {
-
         const char *v;
 
+        if (!pa_strbuf_isempty(buf))
+            pa_strbuf_puts(buf, sep);
+
         if ((v = pa_proplist_gets(p, key)))
-            pa_strbuf_printf(buf, "%s = \"%s\"\n", key, v);
+            pa_strbuf_printf(buf, "%s = \"%s\"", key, v);
         else {
             const void *value;
             size_t nbytes;
@@ -283,12 +286,22 @@ char *pa_proplist_to_string(pa_proplist *p) {
             c = pa_xmalloc(nbytes*2+1);
             pa_hexstr((const uint8_t*) value, nbytes, c, nbytes*2+1);
 
-            pa_strbuf_printf(buf, "%s = hex:%s\n", key, c);
+            pa_strbuf_printf(buf, "%s = hex:%s", key, c);
             pa_xfree(c);
         }
     }
 
     return pa_strbuf_tostring_free(buf);
+}
+
+char *pa_proplist_to_string(pa_proplist *p) {
+    char *s, *t;
+
+    s = pa_proplist_to_string_sep(p, "\n");
+    t = pa_sprintf_malloc("%s\n", s);
+    pa_xfree(s);
+
+    return t;
 }
 
 /* Remove all whitepsapce from the beginning and the end of *s. *s may

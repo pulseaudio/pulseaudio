@@ -159,6 +159,7 @@ pa_proplist_setf;
 pa_proplist_sets;
 pa_proplist_size;
 pa_proplist_to_string;
+pa_proplist_to_string_sep;
 pa_proplist_unset;
 pa_proplist_unset_many;
 pa_proplist_update;
