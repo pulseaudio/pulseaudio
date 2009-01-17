@@ -91,8 +91,8 @@ char *pa_client_list_to_string(pa_core *c) {
         if (client->module)
             pa_strbuf_printf(s, "\towner module: %u\n", client->module->index);
 
-        t = pa_proplist_to_string(client->proplist);
-        pa_strbuf_printf(s, "\tproperties:\n%s", t);
+        t = pa_proplist_to_string_sep(client->proplist, "\n\t\t");
+        pa_strbuf_printf(s, "\tproperties:\n\t\t%s\n", t);
         pa_xfree(t);
     }
 
@@ -107,7 +107,7 @@ char *pa_card_list_to_string(pa_core *c) {
 
     s = pa_strbuf_new();
 
-    pa_strbuf_printf(s, "%u card(s) available in.\n", pa_idxset_size(c->cards));
+    pa_strbuf_printf(s, "%u card(s) available.\n", pa_idxset_size(c->cards));
 
     for (card = pa_idxset_first(c->cards, &idx); card; card = pa_idxset_next(c->cards, &idx)) {
         char *t;
@@ -226,8 +226,8 @@ char *pa_sink_list_to_string(pa_core *c) {
         if (sink->module)
             pa_strbuf_printf(s, "\tmodule: %u\n", sink->module->index);
 
-        t = pa_proplist_to_string(sink->proplist);
-        pa_strbuf_printf(s, "\tproperties:\n%s", t);
+        t = pa_proplist_to_string_sep(sink->proplist, "\n\t\t");
+        pa_strbuf_printf(s, "\tproperties:\n\t\t%s\n", t);
         pa_xfree(t);
     }
 
@@ -314,8 +314,8 @@ char *pa_source_list_to_string(pa_core *c) {
         if (source->module)
             pa_strbuf_printf(s, "\tmodule: %u\n", source->module->index);
 
-        t = pa_proplist_to_string(source->proplist);
-        pa_strbuf_printf(s, "\tproperties:\n%s", t);
+        t = pa_proplist_to_string_sep(source->proplist, "\n\t\t");
+        pa_strbuf_printf(s, "\tproperties:\n\t\t%s\n", t);
         pa_xfree(t);
     }
 
@@ -386,8 +386,8 @@ char *pa_source_output_list_to_string(pa_core *c) {
         if (o->direct_on_input)
             pa_strbuf_printf(s, "\tdirect on input: %u\n", o->direct_on_input->index);
 
-        t = pa_proplist_to_string(o->proplist);
-        pa_strbuf_printf(s, "\tproperties:\n%s", t);
+        t = pa_proplist_to_string_sep(o->proplist, "\n\t\t");
+        pa_strbuf_printf(s, "\tproperties:\n\t\t%s\n", t);
         pa_xfree(t);
     }
 
@@ -461,8 +461,8 @@ char *pa_sink_input_list_to_string(pa_core *c) {
         if (i->client)
             pa_strbuf_printf(s, "\tclient: %u <%s>\n", i->client->index, pa_strnull(pa_proplist_gets(i->client->proplist, PA_PROP_APPLICATION_NAME)));
 
-        t = pa_proplist_to_string(i->proplist);
-        pa_strbuf_printf(s, "\tproperties:\n%s", t);
+        t = pa_proplist_to_string_sep(i->proplist, "\n\t\t");
+        pa_strbuf_printf(s, "\tproperties:\n\t\t%s\n", t);
         pa_xfree(t);
     }
 
@@ -475,7 +475,7 @@ char *pa_scache_list_to_string(pa_core *c) {
 
     s = pa_strbuf_new();
 
-    pa_strbuf_printf(s, "%u cache entries available.\n", c->scache ? pa_idxset_size(c->scache) : 0);
+    pa_strbuf_printf(s, "%u cache entrie(s) available.\n", c->scache ? pa_idxset_size(c->scache) : 0);
 
     if (c->scache) {
         pa_scache_entry *e;
@@ -512,8 +512,8 @@ char *pa_scache_list_to_string(pa_core *c) {
                 pa_yes_no(e->lazy),
                 e->filename ? e->filename : "n/a");
 
-            t = pa_proplist_to_string(e->proplist);
-            pa_strbuf_printf(s, "\tproperties:\n%s", t);
+            t = pa_proplist_to_string_sep(e->proplist, "\n\t\t");
+            pa_strbuf_printf(s, "\tproperties:\n\t\t%s\n", t);
             pa_xfree(t);
         }
     }
