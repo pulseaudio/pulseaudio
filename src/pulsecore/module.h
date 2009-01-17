@@ -79,6 +79,4 @@ int pa_module_get_n_used(pa_module*m);
     pa_bool_t pa__load_once(void) { return b; }                 \
     struct __stupid_useless_struct_to_allow_trailing_semicolon
 
-pa_modinfo *pa_module_get_info(pa_module *m);
-
 #endif

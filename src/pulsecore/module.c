@@ -234,12 +234,6 @@ void pa_module_unload_request_by_index(pa_core *c, uint32_t idx, pa_bool_t force
     pa_module_unload_request(m, force);
 }
 
-pa_modinfo *pa_module_get_info(pa_module *m) {
-    pa_assert(m);
-
-    return pa_modinfo_get_by_handle(m->dl, m->name);
-}
-
 int pa_module_get_n_used(pa_module*m) {
     pa_assert(m);
 
