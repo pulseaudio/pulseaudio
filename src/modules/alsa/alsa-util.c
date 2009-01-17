@@ -880,8 +880,9 @@ int pa_alsa_probe_profiles(
             if (pcm_j)
                 snd_pcm_close(pcm_j);
 
-            cb(i->alsa_name ? i : NULL,
-               j->alsa_name ? j : NULL, userdata);
+            if (i->alsa_name || j->alsa_name)
+                cb(i->alsa_name ? i : NULL,
+                   j->alsa_name ? j : NULL, userdata);
         }
 
         if (pcm_i)
