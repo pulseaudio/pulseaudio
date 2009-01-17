@@ -23,6 +23,7 @@
 ***/
 
 #include <pulse/gccmacro.h>
+#include <pulsecore/macro.h>
 
 typedef struct pa_strbuf pa_strbuf;
 
@@ -34,5 +35,7 @@ char *pa_strbuf_tostring_free(pa_strbuf *sb);
 size_t pa_strbuf_printf(pa_strbuf *sb, const char *format, ...)  PA_GCC_PRINTF_ATTR(2,3);
 void pa_strbuf_puts(pa_strbuf *sb, const char *t);
 void pa_strbuf_putsn(pa_strbuf *sb, const char *t, size_t m);
+
+pa_bool_t pa_strbuf_isempty(pa_strbuf *sb);
 
 #endif
