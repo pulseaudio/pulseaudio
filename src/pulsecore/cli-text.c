@@ -123,9 +123,22 @@ char *pa_card_list_to_string(pa_core *c) {
         if (card->module)
             pa_strbuf_printf(s, "\towner module: %u\n", card->module->index);
 
-        t = pa_proplist_to_string(card->proplist);
-        pa_strbuf_printf(s, "\tproperties:\n%s", t);
+        t = pa_proplist_to_string_sep(card->proplist, "\n\t\t");
+        pa_strbuf_printf(s, "\tproperties:\n\t\t%s\n", t);
         pa_xfree(t);
+
+        if (card->profiles) {
+            pa_card_profile *p;
+            void *state = NULL;
+
+            pa_strbuf_puts(
+                    s,
+                    "\tprofiles:\n");
+
+            while ((p = pa_hashmap_iterate(card->profiles, &state, NULL)))
+                pa_strbuf_printf(s, "\t\t%s: %s\n", p->name, p->description);
+        }
+
     }
 
     return pa_strbuf_tostring_free(s);
