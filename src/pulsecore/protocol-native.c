@@ -2728,10 +2728,9 @@ static void client_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_c
 
     if (c->version >= 13)
         pa_tagstruct_put_proplist(t, client->proplist);
-
 }
 
-static void module_fill_tagstruct(pa_tagstruct *t, pa_module *module) {
+static void module_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_module *module) {
     pa_assert(t);
     pa_assert(module);
 
@@ -2739,7 +2738,12 @@ static void module_fill_tagstruct(pa_tagstruct *t, pa_module *module) {
     pa_tagstruct_puts(t, module->name);
     pa_tagstruct_puts(t, module->argument);
     pa_tagstruct_putu32(t, (uint32_t) pa_module_get_n_used(module));
-    pa_tagstruct_put_boolean(t, FALSE); /* autoload is obsolete */
+
+    if (c->version < 15)
+        pa_tagstruct_put_boolean(t, FALSE); /* autoload is obsolete */
+
+    if (c->version >= 15)
+        pa_tagstruct_put_proplist(t, module->proplist);
 }
 
 static void sink_input_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_sink_input *s) {
@@ -2891,7 +2895,7 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
     else if (client)
         client_fill_tagstruct(c, reply, client);
     else if (module)
-        module_fill_tagstruct(reply, module);
+        module_fill_tagstruct(c, reply, module);
     else if (si)
         sink_input_fill_tagstruct(c, reply, si);
     else if (so)
@@ -2946,7 +2950,7 @@ static void command_get_info_list(pa_pdispatch *pd, uint32_t command, uint32_t t
             else if (command == PA_COMMAND_GET_CLIENT_INFO_LIST)
                 client_fill_tagstruct(c, reply, p);
             else if (command == PA_COMMAND_GET_MODULE_INFO_LIST)
-                module_fill_tagstruct(reply, p);
+                module_fill_tagstruct(c, reply, p);
             else if (command == PA_COMMAND_GET_SINK_INPUT_INFO_LIST)
                 sink_input_fill_tagstruct(c, reply, p);
             else if (command == PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST)

@@ -154,7 +154,6 @@ PA_COMMAND_SET_RECORD_STREAM_BUFFER_ATTR at the end:
 
   early_requests (bool)
 
-
 ### v15, implemented by >= 0.9.15
 
 PA_COMMAND_CREATE_PLAYBACK_STREAM
@@ -163,4 +162,9 @@ PA_COMMAND_CREATE_PLAYBACK_STREAM
 
 PA_COMMAND_CREATE_PLAYBACK_STREAM, PA_COMMAND_CREATE_RECORD_STREAM:
 
-  bool dont_inhibit_auto_suspend ate the end
+  bool dont_inhibit_auto_suspend at the end
+
+PA_COMMAND_GET_MODULE_INFO_LIST
+
+  remove bool auto_unload
+  add proplist at the end

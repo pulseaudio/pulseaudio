@@ -27,8 +27,9 @@
 
 typedef struct pa_module pa_module;
 
+#include <pulse/proplist.h>
+
 #include <pulsecore/core.h>
-#include <pulsecore/modinfo.h>
 
 struct pa_module {
     pa_core *core;
@@ -45,6 +46,8 @@ struct pa_module {
 
     pa_bool_t load_once:1;
     pa_bool_t unload_requested:1;
+
+    pa_proplist *proplist;
 };
 
 pa_module* pa_module_load(pa_core *c, const char *name, const char*argument);

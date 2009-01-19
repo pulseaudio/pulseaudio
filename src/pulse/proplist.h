@@ -128,6 +128,10 @@ PA_C_DECL_BEGIN
 #define PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE "device.buffering.fragment_size"
 #define PA_PROP_DEVICE_PROFILE_NAME            "device.profile.name"
 #define PA_PROP_DEVICE_PROFILE_DESCRIPTION     "device.profile.description"
+#define PA_PROP_MODULE_AUTHOR                  "module.author"
+#define PA_PROP_MODULE_DESCRIPTION             "module.description"
+#define PA_PROP_MODULE_USAGE                   "module.usage"
+#define PA_PROP_MODULE_VERSION                 "module.version"
 
 /** A property list object. Basically a dictionary with UTF-8 strings
  * as keys and arbitrary data as values. \since 0.9.11 */

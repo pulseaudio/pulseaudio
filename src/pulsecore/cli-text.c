@@ -54,6 +54,8 @@ char *pa_module_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u module(s) loaded.\n", pa_idxset_size(c->modules));
 
     for (m = pa_idxset_first(c->modules, &idx); m; m = pa_idxset_next(c->modules, &idx)) {
+        char *t;
+
         pa_strbuf_printf(s, "    index: %u\n"
                          "\tname: <%s>\n"
                          "\targument: <%s>\n"
@@ -64,6 +66,10 @@ char *pa_module_list_to_string(pa_core *c) {
                          pa_strempty(m->argument),
                          pa_module_get_n_used(m),
                          pa_yes_no(m->load_once));
+
+        t = pa_proplist_to_string_sep(m->proplist, "\n\t\t");
+        pa_strbuf_printf(s, "\tproperties:\n\t\t%s\n", t);
+        pa_xfree(t);
     }
 
     return pa_strbuf_tostring_free(s);

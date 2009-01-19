@@ -480,13 +480,16 @@ static void context_get_module_info_callback(pa_pdispatch *pd, uint32_t command,
         while (!pa_tagstruct_eof(t)) {
             pa_module_info i;
             pa_bool_t auto_unload = FALSE;
+
             memset(&i, 0, sizeof(i));
+            i.proplist = pa_proplist_new();
 
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_gets(t, &i.argument) < 0 ||
                 pa_tagstruct_getu32(t, &i.n_used) < 0 ||
-                pa_tagstruct_get_boolean(t, &auto_unload) < 0) {
+                (o->context->version < 15 && pa_tagstruct_get_boolean(t, &auto_unload) < 0) ||
+                (o->context->version >= 15 && pa_tagstruct_get_proplist(t, i.proplist) < 0)) {
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
@@ -497,6 +500,8 @@ static void context_get_module_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_module_info_cb_t cb = (pa_module_info_cb_t) o->callback;
                 cb(o->context, &i, 0, o->userdata);
             }
+
+            pa_proplist_free(i.proplist);
         }
     }
 

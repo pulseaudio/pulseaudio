@@ -33,12 +33,14 @@
 
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
+#include <pulse/proplist.h>
 
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/ltdl-helper.h>
+#include <pulsecore/modinfo.h>
 
 #include "module.h"
 
@@ -50,6 +52,7 @@
 pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     pa_module *m = NULL;
     pa_bool_t (*load_once)(void);
+    pa_modinfo *mi;
 
     pa_assert(c);
     pa_assert(name);
@@ -61,6 +64,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     m->name = pa_xstrdup(name);
     m->argument = pa_xstrdup(argument);
     m->load_once = FALSE;
+    m->proplist = pa_proplist_new();
 
     if (!(m->dl = lt_dlopenext(name))) {
         pa_log("Failed to open module \"%s\": %s", name, lt_dlerror());
@@ -111,11 +115,28 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
 
     pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_NEW, m->index);
 
+    if ((mi = pa_modinfo_get_by_handle(m->dl, name))) {
+
+        if (mi->author && !pa_proplist_contains(m->proplist, PA_PROP_MODULE_AUTHOR))
+            pa_proplist_sets(m->proplist, PA_PROP_MODULE_AUTHOR, mi->author);
+
+        if (mi->description && !pa_proplist_contains(m->proplist, PA_PROP_MODULE_DESCRIPTION))
+            pa_proplist_sets(m->proplist, PA_PROP_MODULE_DESCRIPTION, mi->description);
+
+        if (mi->version && !pa_proplist_contains(m->proplist, PA_PROP_MODULE_VERSION))
+            pa_proplist_sets(m->proplist, PA_PROP_MODULE_VERSION, mi->version);
+
+        pa_modinfo_free(mi);
+    }
+
     return m;
 
 fail:
 
     if (m) {
+        if (m->proplist)
+            pa_proplist_free(m->proplist);
+
         pa_xfree(m->argument);
         pa_xfree(m->name);
 
@@ -136,6 +157,9 @@ static void pa_module_free(pa_module *m) {
 
     if (m->done)
         m->done(m);
+
+    if (m->proplist)
+        pa_proplist_free(m->proplist);
 
     lt_dlclose(m->dl);
 

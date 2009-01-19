@@ -333,6 +333,7 @@ typedef struct pa_module_info {
 /** \cond fulldocs */
     int auto_unload;                    /**< \deprecated Non-zero if this is an autoloaded module */
 /** \endcond */
+    pa_proplist *proplist;              /**< Property list \since 0.9.15 */
 } pa_module_info;
 
 /** Callback prototype for pa_context_get_module_info() and firends*/
