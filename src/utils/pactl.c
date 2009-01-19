@@ -153,7 +153,13 @@ static void get_server_info_callback(pa_context *c, const pa_server_info *i, voi
 }
 
 static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_last, void *userdata) {
-    char s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    char
+        s[PA_SAMPLE_SPEC_SNPRINT_MAX],
+        cv[PA_CVOLUME_SNPRINT_MAX],
+        cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX],
+        v[PA_VOLUME_SNPRINT_MAX],
+        vdb[PA_SW_VOLUME_SNPRINT_DB_MAX],
+        cm[PA_CHANNEL_MAP_SNPRINT_MAX];
     char *pl;
 
     if (is_last < 0) {
@@ -173,24 +179,36 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
         printf("\n");
     nl = 1;
 
-    printf(_("*** Sink #%u ***\n"
-           "Name: %s\n"
-           "Driver: %s\n"
-           "Sample Specification: %s\n"
-           "Channel Map: %s\n"
-           "Owner Module: %u\n"
-           "Volume: %s\n"
-           "Monitor Source: %s\n"
-           "Latency: %0.0f usec, configured %0.0f usec\n"
-           "Flags: %s%s%s%s%s%s\n"
-           "Properties:\n%s"),
+    printf(_("Sink #%u\n"
+             "\tName: %s\n"
+             "\tDescription: %s\n"
+             "\tDriver: %s\n"
+             "\tSample Specification: %s\n"
+             "\tChannel Map: %s\n"
+             "\tOwner Module: %u\n"
+             "\tMute: %s\n"
+             "\tVolume: %s%s%s\n"
+             "\t        balance %0.2f\n"
+             "\tBase Volume: %s%s%s\n"
+             "\tMonitor Source: %s\n"
+             "\tLatency: %0.0f usec, configured %0.0f usec\n"
+             "\tFlags: %s%s%s%s%s%s\n"
+             "\tProperties:\n\t\t%s\n"),
            i->index,
            i->name,
+           pa_strnull(i->description),
            pa_strnull(i->driver),
            pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
            pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
            i->owner_module,
-           i->mute ? _("muted") : pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
+           pa_yes_no(i->mute),
+           pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
+           i->flags & PA_SINK_DECIBEL_VOLUME ? "\n\t        " : "",
+           i->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &i->volume) : "",
+           pa_cvolume_get_balance(&i->channel_map, &i->volume),
+           pa_volume_snprint(v, sizeof(v), i->base_volume),
+           i->flags & PA_SINK_DECIBEL_VOLUME ? "\n\t             " : "",
+           i->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_volume_snprint_dB(vdb, sizeof(vdb), i->base_volume) : "",
            pa_strnull(i->monitor_source_name),
            (double) i->latency, (double) i->configured_latency,
            i->flags & PA_SINK_HARDWARE ? "HARDWARE " : "",
@@ -199,13 +217,19 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
            i->flags & PA_SINK_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
            i->flags & PA_SINK_DECIBEL_VOLUME ? "DECIBEL_VOLUME " : "",
            i->flags & PA_SINK_LATENCY ? "LATENCY " : "",
-           pl = pa_proplist_to_string(i->proplist));
+           pl = pa_proplist_to_string_sep(i->proplist, "\n\t\t"));
 
     pa_xfree(pl);
 }
 
 static void get_source_info_callback(pa_context *c, const pa_source_info *i, int is_last, void *userdata) {
-    char s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    char
+        s[PA_SAMPLE_SPEC_SNPRINT_MAX],
+        cv[PA_CVOLUME_SNPRINT_MAX],
+        cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX],
+        v[PA_VOLUME_SNPRINT_MAX],
+        vdb[PA_SW_VOLUME_SNPRINT_DB_MAX],
+        cm[PA_CHANNEL_MAP_SNPRINT_MAX];
     char *pl;
 
     if (is_last < 0) {
@@ -225,24 +249,36 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
         printf("\n");
     nl = 1;
 
-    printf(_("*** Source #%u ***\n"
-           "Name: %s\n"
-           "Driver: %s\n"
-           "Sample Specification: %s\n"
-           "Channel Map: %s\n"
-           "Owner Module: %u\n"
-           "Volume: %s\n"
-           "Monitor of Sink: %s\n"
-           "Latency: %0.0f usec, configured %0.0f usec\n"
-           "Flags: %s%s%s%s%s%s\n"
-           "Properties:\n%s"),
+    printf(_("Source #%u\n"
+             "\tName: %s\n"
+             "\tDescription: %s\n"
+             "\tDriver: %s\n"
+             "\tSample Specification: %s\n"
+             "\tChannel Map: %s\n"
+             "\tOwner Module: %u\n"
+             "\tMute: %s\n"
+             "\tVolume: %s%s%s\n"
+             "\t        balance %0.2f\n"
+             "\tBase Volume: %s%s%s\n"
+             "\tMonitor of Sink: %s\n"
+             "\tLatency: %0.0f usec, configured %0.0f usec\n"
+             "\tFlags: %s%s%s%s%s%s\n"
+             "\tProperties:\n\t\t%s\n"),
            i->index,
            i->name,
+           pa_strnull(i->description),
            pa_strnull(i->driver),
            pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
            pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
            i->owner_module,
-           i->mute ? "muted" : pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
+           pa_yes_no(i->mute),
+           pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
+           i->flags & PA_SOURCE_DECIBEL_VOLUME ? "\n\t        " : "",
+           i->flags & PA_SOURCE_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &i->volume) : "",
+           pa_cvolume_get_balance(&i->channel_map, &i->volume),
+           pa_volume_snprint(v, sizeof(v), i->base_volume),
+           i->flags & PA_SOURCE_DECIBEL_VOLUME ? "\n\t             " : "",
+           i->flags & PA_SOURCE_DECIBEL_VOLUME ? pa_sw_volume_snprint_dB(vdb, sizeof(vdb), i->base_volume) : "",
            i->monitor_of_sink_name ? i->monitor_of_sink_name : _("n/a"),
            (double) i->latency, (double) i->configured_latency,
            i->flags & PA_SOURCE_HARDWARE ? "HARDWARE " : "",
@@ -251,13 +287,14 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
            i->flags & PA_SOURCE_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
            i->flags & PA_SOURCE_DECIBEL_VOLUME ? "DECIBEL_VOLUME " : "",
            i->flags & PA_SOURCE_LATENCY ? "LATENCY " : "",
-           pl = pa_proplist_to_string(i->proplist));
+           pl = pa_proplist_to_string_sep(i->proplist, "\n\t\t"));
 
     pa_xfree(pl);
 }
 
 static void get_module_info_callback(pa_context *c, const pa_module_info *i, int is_last, void *userdata) {
     char t[32];
+    char *pl;
 
     if (is_last < 0) {
         fprintf(stderr, _("Failed to get module information: %s\n"), pa_strerror(pa_context_errno(c)));
@@ -278,14 +315,18 @@ static void get_module_info_callback(pa_context *c, const pa_module_info *i, int
 
     snprintf(t, sizeof(t), "%u", i->n_used);
 
-    printf(_("*** Module #%u ***\n"
-           "Name: %s\n"
-           "Argument: %s\n"
-           "Usage counter: %s\n"),
+    printf(_("Module #%u\n"
+             "\tName: %s\n"
+             "\tArgument: %s\n"
+             "\tUsage counter: %s\n"
+             "\tProperties:\n\t\t%s\n"),
            i->index,
            i->name,
            i->argument ? i->argument : "",
-           i->n_used != PA_INVALID_INDEX ? t : _("n/a"));
+           i->n_used != PA_INVALID_INDEX ? t : _("n/a"),
+           pl = pa_proplist_to_string_sep(i->proplist, "\n\t\t"));
+
+    pa_xfree(pl);
 }
 
 static void get_client_info_callback(pa_context *c, const pa_client_info *i, int is_last, void *userdata) {
@@ -311,20 +352,20 @@ static void get_client_info_callback(pa_context *c, const pa_client_info *i, int
 
     snprintf(t, sizeof(t), "%u", i->owner_module);
 
-    printf(_("*** Client #%u ***\n"
-           "Driver: %s\n"
-           "Owner Module: %s\n"
-           "Properties:\n%s"),
+    printf(_("Client #%u\n"
+             "\tDriver: %s\n"
+             "\tOwner Module: %s\n"
+             "\tProperties:\n\t\t%s\n"),
            i->index,
            pa_strnull(i->driver),
            i->owner_module != PA_INVALID_INDEX ? t : _("n/a"),
-           pl = pa_proplist_to_string(i->proplist));
+           pl = pa_proplist_to_string_sep(i->proplist, "\n\t\t"));
 
     pa_xfree(pl);
 }
 
 static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info *i, int is_last, void *userdata) {
-    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
     char *pl;
 
     if (is_last < 0) {
@@ -347,18 +388,21 @@ static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info
     snprintf(t, sizeof(t), "%u", i->owner_module);
     snprintf(k, sizeof(k), "%u", i->client);
 
-    printf(_("*** Sink Input #%u ***\n"
-           "Driver: %s\n"
-           "Owner Module: %s\n"
-           "Client: %s\n"
-           "Sink: %u\n"
-           "Sample Specification: %s\n"
-           "Channel Map: %s\n"
-           "Volume: %s\n"
-           "Buffer Latency: %0.0f usec\n"
-           "Sink Latency: %0.0f usec\n"
-           "Resample method: %s\n"
-             "Properties:\n%s"),
+    printf(_("Sink Input #%u\n"
+             "\tDriver: %s\n"
+             "\tOwner Module: %s\n"
+             "\tClient: %s\n"
+             "\tSink: %u\n"
+             "\tSample Specification: %s\n"
+             "\tChannel Map: %s\n"
+             "\tMute: %s\n"
+             "\tVolume: %s\n"
+             "\t        %s\n"
+             "\t        balance %0.2f\n"
+             "\tBuffer Latency: %0.0f usec\n"
+             "\tSink Latency: %0.0f usec\n"
+             "\tResample method: %s\n"
+             "\tProperties:\n\t\t%s\n"),
            i->index,
            pa_strnull(i->driver),
            i->owner_module != PA_INVALID_INDEX ? t : _("n/a"),
@@ -366,11 +410,14 @@ static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info
            i->sink,
            pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
            pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
-           i->mute ? _("muted") : pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
+           pa_yes_no(i->mute),
+           pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
+           pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &i->volume),
+           pa_cvolume_get_balance(&i->channel_map, &i->volume),
            (double) i->buffer_usec,
            (double) i->sink_usec,
            i->resample_method ? i->resample_method : _("n/a"),
-           pl = pa_proplist_to_string(i->proplist));
+           pl = pa_proplist_to_string_sep(i->proplist, "\n\t\t"));
 
     pa_xfree(pl);
 }
@@ -400,17 +447,17 @@ static void get_source_output_info_callback(pa_context *c, const pa_source_outpu
     snprintf(t, sizeof(t), "%u", i->owner_module);
     snprintf(k, sizeof(k), "%u", i->client);
 
-    printf(_("*** Source Output #%u ***\n"
-           "Driver: %s\n"
-           "Owner Module: %s\n"
-           "Client: %s\n"
-           "Source: %u\n"
-           "Sample Specification: %s\n"
-           "Channel Map: %s\n"
-           "Buffer Latency: %0.0f usec\n"
-           "Source Latency: %0.0f usec\n"
-           "Resample method: %s\n"
-           "Properties:\n%s"),
+    printf(_("Source Output #%u\n"
+             "\tDriver: %s\n"
+             "\tOwner Module: %s\n"
+             "\tClient: %s\n"
+             "\tSource: %u\n"
+             "\tSample Specification: %s\n"
+             "\tChannel Map: %s\n"
+             "\tBuffer Latency: %0.0f usec\n"
+             "\tSource Latency: %0.0f usec\n"
+             "\tResample method: %s\n"
+             "\tProperties:\n\t\t%s\n"),
            i->index,
            pa_strnull(i->driver),
            i->owner_module != PA_INVALID_INDEX ? t : _("n/a"),
@@ -421,13 +468,13 @@ static void get_source_output_info_callback(pa_context *c, const pa_source_outpu
            (double) i->buffer_usec,
            (double) i->source_usec,
            i->resample_method ? i->resample_method : _("n/a"),
-           pl = pa_proplist_to_string(i->proplist));
+           pl = pa_proplist_to_string_sep(i->proplist, "\n\t\t"));
 
     pa_xfree(pl);
 }
 
 static void get_sample_info_callback(pa_context *c, const pa_sample_info *i, int is_last, void *userdata) {
-    char t[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    char t[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
     char *pl;
 
     if (is_last < 0) {
@@ -447,29 +494,32 @@ static void get_sample_info_callback(pa_context *c, const pa_sample_info *i, int
         printf("\n");
     nl = 1;
 
-
     pa_bytes_snprint(t, sizeof(t), i->bytes);
 
-    printf(_("*** Sample #%u ***\n"
-           "Name: %s\n"
-           "Volume: %s\n"
-           "Sample Specification: %s\n"
-           "Channel Map: %s\n"
-           "Duration: %0.1fs\n"
-           "Size: %s\n"
-           "Lazy: %s\n"
-           "Filename: %s\n"
-           "Properties:\n%s"),
+    printf(_("Sample #%u\n"
+             "\tName: %s\n"
+             "\tSample Specification: %s\n"
+             "\tChannel Map: %s\n"
+             "\tVolume: %s\n"
+             "\t        %s\n"
+             "\t        balance %0.2f\n"
+             "\tDuration: %0.1fs\n"
+             "\tSize: %s\n"
+             "\tLazy: %s\n"
+             "\tFilename: %s\n"
+             "\tProperties:\n\t\t%s\n"),
            i->index,
            i->name,
-           pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
            pa_sample_spec_valid(&i->sample_spec) ? pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec) : _("n/a"),
            pa_sample_spec_valid(&i->sample_spec) ? pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map) : _("n/a"),
-           (double) i->duration/1000000,
+           pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
+           pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &i->volume),
+           pa_cvolume_get_balance(&i->channel_map, &i->volume),
+           (double) i->duration/1000000.0,
            t,
            pa_yes_no(i->lazy),
            i->filename ? i->filename : _("n/a"),
-           pl = pa_proplist_to_string(i->proplist));
+           pl = pa_proplist_to_string_sep(i->proplist, "\n\t\t"));
 
     pa_xfree(pl);
 }
@@ -579,7 +629,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     break;
 
                 case LIST:
-                    actions = 8;
+                    actions = 7;
                     pa_operation_unref(pa_context_get_module_info_list(c, get_module_info_callback, NULL));
                     pa_operation_unref(pa_context_get_sink_info_list(c, get_sink_info_callback, NULL));
                     pa_operation_unref(pa_context_get_source_info_list(c, get_source_info_callback, NULL));

@@ -458,8 +458,8 @@ float pa_cvolume_get_balance(const pa_channel_map *map, const pa_cvolume *v) {
 pa_cvolume* pa_cvolume_set_balance(const pa_channel_map *map, pa_cvolume *v, float new_balance) {
     pa_volume_t left, nleft, right, nright, m;
     unsigned c;
-    pa_assert(map->channels == v->channels);
 
+    pa_assert(map->channels == v->channels);
     pa_assert(map);
     pa_assert(v);
     pa_assert(new_balance >= -1.0f);
