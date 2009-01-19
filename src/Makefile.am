@@ -1068,10 +1068,7 @@ EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
 
 $(SYMDEF_FILES): modules/module-defs.h.m4
-	$(MKDIR_P) modules
-	$(MKDIR_P) modules/gconf
-	$(MKDIR_P) modules/rtp
-	$(MKDIR_P) modules/bluetooth
+	$(MKDIR_P) $(dir $@)
 	$(M4) -Dfname="$@" $< > $@
 
 # Flat volume
