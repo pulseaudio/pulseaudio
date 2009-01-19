@@ -47,10 +47,15 @@ endif
 
 AM_CFLAGS = \
 	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
 	-I$(top_srcdir)/src/modules \
+	-I$(top_builddir)/src/modules \
 	-I$(top_srcdir)/src/modules/rtp \
+	-I$(top_builddir)/src/modules/rtp \
 	-I$(top_srcdir)/src/modules/gconf \
+	-I$(top_builddir)/src/modules/gconf \
 	-I$(top_srcdir)/src/modules/bluetooth \
+	-I$(top_builddir)/src/modules/bluetooth \
 	-I$(top_srcdir)/src/modules/raop \
 	$(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS \
 	$(LTDLINCL) \
@@ -1070,10 +1075,7 @@ EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
 
 $(SYMDEF_FILES): modules/module-defs.h.m4
-	$(MKDIR_P) modules
-	$(MKDIR_P) modules/gconf
-	$(MKDIR_P) modules/rtp
-	$(MKDIR_P) modules/bluetooth
+	$(MKDIR_P) $(dir $@)
 	$(M4) -Dfname="$@" $< > $@
 
 # Flat volume
