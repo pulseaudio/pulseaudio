@@ -47,10 +47,15 @@ endif
 
 AM_CFLAGS = \
 	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src \
 	-I$(top_srcdir)/src/modules \
+	-I$(top_builddir)/src/modules \
 	-I$(top_srcdir)/src/modules/rtp \
+	-I$(top_builddir)/src/modules/rtp \
 	-I$(top_srcdir)/src/modules/gconf \
+	-I$(top_builddir)/src/modules/gconf \
 	-I$(top_srcdir)/src/modules/bluetooth \
+	-I$(top_builddir)/src/modules/bluetooth \
 	-I$(top_srcdir)/src/modules/raop \
 	$(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS \
 	$(LTDLINCL) \
