@@ -658,8 +658,6 @@ snd_pcm_t *pa_alsa_open_by_device_id(
 
                 return pcm_handle;
             }
-
-            pa_xfree(d);
         }
 
         if (direction > 0) {
