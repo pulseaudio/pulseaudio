@@ -56,6 +56,8 @@ AM_CFLAGS = \
 	-I$(top_builddir)/src/modules/gconf \
 	-I$(top_srcdir)/src/modules/bluetooth \
 	-I$(top_builddir)/src/modules/bluetooth \
+	-I$(top_srcdir)/src/modules/alsa \
+	-I$(top_builddir)/src/modules/alsa \
 	-I$(top_srcdir)/src/modules/raop \
 	$(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS \
 	$(LTDLINCL) \
