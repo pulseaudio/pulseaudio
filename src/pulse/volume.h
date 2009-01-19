@@ -233,6 +233,20 @@ pa_cvolume *pa_cvolume_remap(pa_cvolume *v, pa_channel_map *from, pa_channel_map
  * the specified sample spec. \since 0.9.13 */
 int pa_cvolume_compatible(const pa_cvolume *v, const pa_sample_spec *ss) PA_GCC_PURE;
 
+/** Calculate a 'balance' value for the specified volume with the
+ * specified channel map. The return value will range from -1.0f
+ * (left) to +1.0f (right) \since 0.9.15 */
+float pa_cvolume_get_balance(const pa_channel_map *map, const pa_cvolume *v) PA_GCC_PURE;
+
+/** Adjust the 'balance' value for the specified volume with the
+ * specified channel map. v will be modified in place and
+ * returned. The balance is a value between -1.0f and +1.0f. This
+ * operation might not be reversable! Also, after this call
+ * pa_cvolume_get_balance() is not guaranteed to actually return the
+ * requested balance (e.g. when the input volume was zero anyway for
+ * all channels)- \since 0.9.15 */
+pa_cvolume* pa_cvolume_set_balance(const pa_channel_map *map, pa_cvolume *v, float new_balance);
+
 PA_C_DECL_END
 
 #endif

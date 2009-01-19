@@ -402,3 +402,94 @@ int pa_cvolume_compatible(const pa_cvolume *v, const pa_sample_spec *ss) {
 
     return v->channels == ss->channels;
 }
+
+static void get_avg_lr(const pa_channel_map *map, const pa_cvolume *v, pa_volume_t *l, pa_volume_t *r) {
+    int c;
+    pa_volume_t left = 0, right = 0;
+    unsigned n_left = 0, n_right = 0;
+
+    pa_assert(v);
+    pa_assert(map);
+    pa_assert(map->channels == v->channels);
+    pa_assert(l);
+    pa_assert(r);
+
+    for (c = 0; c < map->channels; c++) {
+        if (on_left(map->map[c])) {
+            left += v->values[c];
+            n_left++;
+        } else if (on_right(map->map[c])) {
+            right += v->values[c];
+            n_right++;
+        }
+    }
+
+    *l = left / n_left;
+    *r = right / n_right;
+}
+
+float pa_cvolume_get_balance(const pa_channel_map *map, const pa_cvolume *v) {
+    pa_volume_t left, right;
+
+    pa_assert(v);
+    pa_assert(map);
+    pa_assert(map->channels == v->channels);
+
+    get_avg_lr(map, v, &left, &right);
+
+    if (left == right)
+        return 0.0f;
+
+    /*   1.0,  0.0  =>  -1.0
+         0.0,  1.0  =>   1.0
+         0.0,  0.0  =>   0.0
+         0.5,  0.5  =>   0.0
+         1.0,  0.5  =>  -0.5
+         1.0,  0.25 => -0.75
+         0.75, 0.25 => -0.66
+         0.5,  0.25 => -0.5   */
+
+    if (left > right)
+        return -1.0f + ((float) right / (float) left);
+    else
+        return 1.0f - ((float) left / (float) right);
+}
+
+pa_cvolume* pa_cvolume_set_balance(const pa_channel_map *map, pa_cvolume *v, float new_balance) {
+    pa_volume_t left, nleft, right, nright, m;
+    unsigned c;
+    pa_assert(map->channels == v->channels);
+
+    pa_assert(map);
+    pa_assert(v);
+    pa_assert(new_balance >= -1.0f);
+    pa_assert(new_balance <= 1.0f);
+
+    get_avg_lr(map, v, &left, &right);
+
+    m = PA_MAX(left, right);
+
+    if (new_balance <= 0) {
+        nright  = (new_balance + 1.0f) * m;
+        nleft = m;
+    } else  {
+        nleft = (1.0f - new_balance) * m;
+        nright = m;
+    }
+
+    for (c = 0; c < map->channels; c++) {
+        if (on_left(map->map[c])) {
+            if (left == 0)
+                v->values[c] = 0;
+            else
+                v->values[c] = (pa_volume_t) (((uint64_t) v->values[c] * (uint64_t) nleft) / (uint64_t) left);
+        } else if (on_right(map->map[c])) {
+            if (right == 0)
+                v->values[c] = 0;
+            else
+                v->values[c] = (pa_volume_t) (((uint64_t) v->values[c] * (uint64_t) nright) / (uint64_t) right);
+        }
+    }
+
+    return v;
+}
