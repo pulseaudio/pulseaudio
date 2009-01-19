@@ -253,7 +253,7 @@ TESTS = \
 		lock-autospawn-test \
 		prioq-test
 
-noinst_PROGRAMS = \
+TESTS_BINARIES = \
 		mainloop-test \
 		mcalign-test \
 		pacat-simple \
@@ -293,7 +293,7 @@ if HAVE_SIGXCPU
 #TESTS += \
 #		cpulimit-test \
 #		cpulimit-test2
-noinst_PROGRAMS += \
+TESTS_BINARIES += \
 		cpulimit-test \
 		cpulimit-test2
 endif
@@ -301,8 +301,14 @@ endif
 if HAVE_GLIB20
 TESTS += \
 		mainloop-test-glib
-noinst_PROGRAMS += \
+TESTS_BINARIES += \
 		mainloop-test-glib
+endif
+
+if BUILD_TESTS_DEFAULT
+noinst_PROGRAMS = $(TESTS_BINARIES)
+else
+check_PROGRAMS = $(TESTS_BINARIES)
 endif
 
 mainloop_test_SOURCES = tests/mainloop-test.c
