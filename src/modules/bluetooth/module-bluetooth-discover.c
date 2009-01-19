@@ -342,7 +342,7 @@ static void load_module_for_device(struct userdata *u, struct device *d, const c
     pa_assert(d);
 
     get_device_properties(u, d);
-    args = pa_sprintf_malloc("sink_name=\"%s\" address=\"%s\" profile=\"%s\"", d->name, d->address, profile);
+    args = pa_sprintf_malloc("sink_name=\"%s\" address=\"%s\" profile=\"%s\" path=\"%s\"", d->name, d->address, profile, d->object_path);
     pa_m = pa_module_load(u->module->core, "module-bluetooth-device", args);
     pa_xfree(args);
 
@@ -468,7 +468,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *
 
 done:
     dbus_error_free(&err);
-    return DBUS_HANDLER_RESULT_HANDLED;
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
 void pa__done(pa_module* m) {
