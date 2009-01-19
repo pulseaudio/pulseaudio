@@ -37,6 +37,10 @@
 
 typedef struct pa_tagstruct pa_tagstruct;
 
+/* Due to a stupid design flaw, proplists may only be at the END of a
+ * packet or not before a STRING! Don't forget that! We can't really
+ * fix this without breaking compat. */
+
 enum {
     PA_TAG_INVALID = 0,
     PA_TAG_STRING = 't',
