@@ -180,6 +180,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             "\tflags: %s%s%s%s%s%s\n"
             "\tstate: %s\n"
             "\tvolume: %s%s%s\n"
+            "\t        balance %-20.2f\n"
             "\tbase volume: %s%s%s\n"
             "\tmuted: %s\n"
             "\tcurrent latency: %0.2f ms\n"
@@ -205,6 +206,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink, FALSE)),
             sink->flags & PA_SINK_DECIBEL_VOLUME ? "\n\t        " : "",
             sink->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_sink_get_volume(sink, FALSE)) : "",
+            pa_cvolume_get_balance(&sink->channel_map, pa_sink_get_volume(sink, FALSE)),
             pa_volume_snprint(v, sizeof(v), sink->base_volume),
             sink->flags & PA_SINK_DECIBEL_VOLUME ? "\n\t             " : "",
             sink->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_volume_snprint_dB(vdb, sizeof(vdb), sink->base_volume) : "",
@@ -270,6 +272,7 @@ char *pa_source_list_to_string(pa_core *c) {
             "\tflags: %s%s%s%s%s%s\n"
             "\tstate: %s\n"
             "\tvolume: %s%s%s\n"
+            "\t        balance %-20.2f\n"
             "\tbase volume: %s%s%s\n"
             "\tmuted: %s\n"
             "\tcurrent latency: %0.2f ms\n"
@@ -293,6 +296,7 @@ char *pa_source_list_to_string(pa_core *c) {
             pa_cvolume_snprint(cv, sizeof(cv), pa_source_get_volume(source, FALSE)),
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? "\n\t        " : "",
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_source_get_volume(source, FALSE)) : "",
+            pa_cvolume_get_balance(&source->channel_map, pa_source_get_volume(source, FALSE)),
             pa_volume_snprint(v, sizeof(v), source->base_volume),
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? "\n\t             " : "",
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? pa_sw_volume_snprint_dB(vdb, sizeof(vdb), source->base_volume) : "",
@@ -412,7 +416,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u sink input(s) available.\n", pa_idxset_size(c->sink_inputs));
 
     for (i = pa_idxset_first(c->sink_inputs, &idx); i; i = pa_idxset_next(c->sink_inputs, &idx)) {
-        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t, clt[28];
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t, clt[28];
         pa_usec_t cl;
 
         if ((cl = pa_sink_input_get_requested_latency(i)) == (pa_usec_t) -1)
@@ -430,6 +434,8 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             "\tstate: %s\n"
             "\tsink: %u <%s>\n"
             "\tvolume: %s\n"
+            "\t        %s\n"
+            "\t        balance %-20.2f\n"
             "\tmuted: %s\n"
             "\tcurrent latency: %0.2f ms\n"
             "\trequested latency: %s\n"
@@ -449,6 +455,8 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             state_table[pa_sink_input_get_state(i)],
             i->sink->index, i->sink->name,
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_input_get_volume(i)),
+            pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_sink_input_get_volume(i)),
+            pa_cvolume_get_balance(&i->channel_map, pa_sink_input_get_volume(i)),
             pa_yes_no(pa_sink_input_get_mute(i)),
             (double) pa_sink_input_get_latency(i, NULL) / PA_USEC_PER_MSEC,
             clt,
