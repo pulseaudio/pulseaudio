@@ -153,6 +153,14 @@ static void get_server_info_callback(pa_context *c, const pa_server_info *i, voi
 }
 
 static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_last, void *userdata) {
+
+    static const char *state_table[] = {
+        [1+PA_SINK_INVALID_STATE] = "n/a",
+        [1+PA_SINK_RUNNING] = "RUNNING",
+        [1+PA_SINK_IDLE] = "IDLE",
+        [1+PA_SINK_SUSPENDED] = "SUSPENDED"
+    };
+
     char
         s[PA_SAMPLE_SPEC_SNPRINT_MAX],
         cv[PA_CVOLUME_SNPRINT_MAX],
@@ -180,6 +188,7 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
     nl = 1;
 
     printf(_("Sink #%u\n"
+             "\tState: %s\n"
              "\tName: %s\n"
              "\tDescription: %s\n"
              "\tDriver: %s\n"
@@ -195,6 +204,7 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
              "\tFlags: %s%s%s%s%s%s\n"
              "\tProperties:\n\t\t%s\n"),
            i->index,
+           state_table[1+i->state],
            i->name,
            pa_strnull(i->description),
            pa_strnull(i->driver),
@@ -223,6 +233,14 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
 }
 
 static void get_source_info_callback(pa_context *c, const pa_source_info *i, int is_last, void *userdata) {
+
+    static const char *state_table[] = {
+        [1+PA_SOURCE_INVALID_STATE] = "n/a",
+        [1+PA_SOURCE_RUNNING] = "RUNNING",
+        [1+PA_SOURCE_IDLE] = "IDLE",
+        [1+PA_SOURCE_SUSPENDED] = "SUSPENDED"
+    };
+
     char
         s[PA_SAMPLE_SPEC_SNPRINT_MAX],
         cv[PA_CVOLUME_SNPRINT_MAX],
@@ -250,6 +268,7 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
     nl = 1;
 
     printf(_("Source #%u\n"
+             "\tState: %s\n"
              "\tName: %s\n"
              "\tDescription: %s\n"
              "\tDriver: %s\n"
@@ -265,6 +284,7 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
              "\tFlags: %s%s%s%s%s%s\n"
              "\tProperties:\n\t\t%s\n"),
            i->index,
+           state_table[1+i->state],
            i->name,
            pa_strnull(i->description),
            pa_strnull(i->driver),
