@@ -497,7 +497,7 @@ char *pa_scache_list_to_string(pa_core *c) {
 
         for (e = pa_idxset_first(c->scache, &idx); e; e = pa_idxset_next(c->scache, &idx)) {
             double l = 0;
-            char ss[PA_SAMPLE_SPEC_SNPRINT_MAX] = "n/a", cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX] = "n/a", *t;
+            char ss[PA_SAMPLE_SPEC_SNPRINT_MAX] = "n/a", cv[PA_CVOLUME_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX] = "n/a", *t;
 
             if (e->memchunk.memblock) {
                 pa_sample_spec_snprint(ss, sizeof(ss), &e->sample_spec);
@@ -514,6 +514,8 @@ char *pa_scache_list_to_string(pa_core *c) {
                 "\tlength: %lu\n"
                 "\tduration: %0.1f s\n"
                 "\tvolume: %s\n"
+                "\t        %s\n"
+                "\t        balance %0.2f\n"
                 "\tlazy: %s\n"
                 "\tfilename: <%s>\n",
                 e->name,
@@ -523,6 +525,8 @@ char *pa_scache_list_to_string(pa_core *c) {
                 (long unsigned)(e->memchunk.memblock ? e->memchunk.length : 0),
                 l,
                 pa_cvolume_snprint(cv, sizeof(cv), &e->volume),
+                pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &e->volume),
+                e->memchunk.memblock ? pa_cvolume_get_balance(&e->channel_map, &e->volume) : 0.0f,
                 pa_yes_no(e->lazy),
                 e->filename ? e->filename : "n/a");
 
