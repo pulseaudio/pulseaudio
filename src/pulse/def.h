@@ -234,13 +234,13 @@ typedef enum pa_stream_flags {
     PA_STREAM_DONT_INHIBIT_AUTO_SUSPEND = 0x8000U,
     /**< If set this stream won't be taken into account when we it is
      * checked whether the device this stream is connected to should
-     * auto-suspend. \ since 0.9.14 */
+     * auto-suspend. \ since 0.9.15 */
 
     PA_STREAM_START_UNMUTED = 0x10000U
     /**< Create in unmuted state. If neither PA_STREAM_START_UNMUTED
      * nor PA_STREAM_START_MUTED it is left to the server to decide
      * whether to create the stream in muted or in unmuted
-     * state. \since 0.9.14 */
+     * state. \since 0.9.15 */
 
 } pa_stream_flags_t;
 

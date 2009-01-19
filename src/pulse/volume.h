@@ -154,20 +154,20 @@ char *pa_sw_cvolume_snprint_dB(char *s, size_t l, const pa_cvolume *c);
  * pa_volume_snprint(). Please note that this value can change with
  * any release without warning and without being considered API or ABI
  * breakage. You should not use this definition anywhere where it
- * might become part of an ABI. \since 0.9.14 */
+ * might become part of an ABI. \since 0.9.15 */
 #define PA_VOLUME_SNPRINT_MAX 10
 
-/** Pretty print a volume \since 0.9.14 */
+/** Pretty print a volume \since 0.9.15 */
 char *pa_volume_snprint(char *s, size_t l, pa_volume_t v);
 
 /** Maximum length of the strings returned by
  * pa_volume_snprint_dB(). Please note that this value can change with
  * any release without warning and without being considered API or ABI
  * breakage. You should not use this definition anywhere where it
- * might become part of an ABI. \since 0.9.14 */
+ * might become part of an ABI. \since 0.9.15 */
 #define PA_SW_VOLUME_SNPRINT_DB_MAX 10
 
-/** Pretty print a volume but show dB values. \since 0.9.14 */
+/** Pretty print a volume but show dB values. \since 0.9.15 */
 char *pa_sw_volume_snprint_dB(char *s, size_t l, pa_volume_t v);
 
 /** Return the average volume of all channels */
