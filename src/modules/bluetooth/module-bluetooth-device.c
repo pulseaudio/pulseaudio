@@ -448,8 +448,11 @@ static int bt_setconf(struct userdata *u) {
         }
         u->ss.format = PA_SAMPLE_S16LE;
     }
-    else
-        u->ss.format = PA_SAMPLE_U8;
+    else {
+        u->ss.format = PA_SAMPLE_S16LE;
+        u->ss.channels = 1;
+        u->ss.rate = 8000;
+    }
 
     memset(msg.buf, 0, BT_SUGGESTED_BUFFER_SIZE);
     msg.setconf_req.h.type = BT_REQUEST;
