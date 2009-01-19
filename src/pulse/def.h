@@ -627,13 +627,19 @@ typedef enum pa_sink_state { /* enum serialized in u8 */
     PA_SINK_SUSPENDED = 2,
     /**< When suspended, actual sink access can be closed, for instance \since 0.9.15 */
 
-    /* *** PRIVATE: server-side values *** */
+/** \cond fulldocs */
+    /* PRIVATE: Server-side values -- DO NOT USE THIS ON THE CLIENT
+     * SIDE! These values are *not* considered part of the official PA
+     * API/ABI. If you use them your application might break when PA
+     * is upgraded. Also, please note that these values are not useful
+     * on the client side anyway. */
 
     PA_SINK_INIT = -2,
-    /* Initialization state */
+    /**< Initialization state */
 
     PA_SINK_UNLINKED = -3
-    /* The state when the sink is getting unregistered and removed from client access */
+    /**< The state when the sink is getting unregistered and removed from client access */
+/** \endcond */
 
 } pa_sink_state_t;
 
@@ -696,13 +702,19 @@ typedef enum pa_source_state {
     PA_SOURCE_SUSPENDED = 2,
     /**< When suspended, actual source access can be closed, for instance \since 0.9.15 */
 
-    /* *** PRIVATE: server-side values *** */
+/** \cond fulldocs */
+    /* PRIVATE: Server-side values -- DO NOT USE THIS ON THE CLIENT
+     * SIDE! These values are *not* considered part of the official PA
+     * API/ABI. If you use them your application might break when PA
+     * is upgraded. Also, please note that these values are not useful
+     * on the client side anyway. */
 
     PA_SOURCE_INIT = -2,
-    /* Initialization state */
+    /**< Initialization state */
 
     PA_SOURCE_UNLINKED = -3
-    /* The state when the source is getting unregistered and removed from client access */
+    /**< The state when the source is getting unregistered and removed from client access */
+/** \endcond */
 
 } pa_source_state_t;
 
