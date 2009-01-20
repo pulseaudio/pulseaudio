@@ -90,14 +90,15 @@ static void enumerate_cb(
     struct profile_data *d;
 
     if (sink && source) {
-        n = pa_sprintf_malloc("%s+%s", sink->name, source->name);
+        n = pa_sprintf_malloc("output-%s+input-%s", sink->name, source->name);
         t = pa_sprintf_malloc("Output %s + Input %s", sink->description, source->description);
     } else if (sink) {
-        n = pa_xstrdup(sink->name);
+        n = pa_sprintf_malloc("output-%s", sink->name);
         t = pa_sprintf_malloc("Output %s", sink->description);
     } else {
         pa_assert(source);
         n = pa_xstrdup(source->name);
+        n = pa_sprintf_malloc("input-%s", source->name);
         t = pa_sprintf_malloc("Input %s", source->description);
     }
 
