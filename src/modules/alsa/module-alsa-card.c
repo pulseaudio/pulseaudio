@@ -108,6 +108,7 @@ static void enumerate_cb(
     pa_xfree(t);
     pa_xfree(n);
 
+    p->priority = (sink ? sink->priority : 0)*100 + (source ? source->priority : 0);
     p->n_sinks = !!sink;
     p->n_sources = !!source;
 

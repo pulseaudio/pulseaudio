@@ -33,6 +33,8 @@ typedef struct pa_card_profile {
     char *name;
     char *description;
 
+    unsigned priority;
+
     /* We probably want to have different properties later on here */
     unsigned n_sinks;
     unsigned n_sources;

@@ -86,6 +86,7 @@ typedef struct pa_alsa_profile_info {
     const char *alsa_name;
     const char *description;
     const char *name;
+    unsigned priority;
 } pa_alsa_profile_info;
 
 int pa_alsa_probe_profiles(

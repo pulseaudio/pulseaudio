@@ -45,6 +45,10 @@ pa_card_profile *pa_card_profile_new(const char *name, const char *description, 
     c->name = pa_xstrdup(name);
     c->description = pa_xstrdup(description);
 
+    c->priority = 0;
+    c->n_sinks = c->n_sources = 0;
+    c->max_sink_channels = c->max_source_channels = 0;
+
     return c;
 }
 
@@ -125,8 +129,17 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     c->profiles = data->profiles;
     data->profiles = NULL;
     if (!(c->active_profile = data->active_profile))
-        if (c->profiles)
-            c->active_profile = pa_hashmap_first(c->profiles);
+        if (c->profiles) {
+            void *state = NULL;
+            pa_card_profile *p;
+
+            while ((p = pa_hashmap_iterate(c->profiles, &state, NULL))) {
+                if (!c->active_profile ||
+                    p->priority > c->active_profile->priority)
+
+                    c->active_profile = p;
+            }
+        }
     data->active_profile = NULL;
 
     c->userdata = NULL;

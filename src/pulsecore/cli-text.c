@@ -142,7 +142,7 @@ char *pa_card_list_to_string(pa_core *c) {
                     "\tprofiles:\n");
 
             while ((p = pa_hashmap_iterate(card->profiles, &state, NULL)))
-                pa_strbuf_printf(s, "\t\t%s: %s\n", p->name, p->description);
+                pa_strbuf_printf(s, "\t\t%s: %s (priority %u)\n", p->name, p->description, p->priority);
         }
 
         if (card->active_profile)
