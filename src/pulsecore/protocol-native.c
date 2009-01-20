@@ -2484,7 +2484,9 @@ static void command_create_upload_stream(pa_pdispatch *pd, uint32_t command, uin
 
     p = pa_proplist_new();
 
-    if (c->version >= 13 && pa_tagstruct_get_proplist(t, p) < 0) {
+    if ((c->version >= 13 && pa_tagstruct_get_proplist(t, p) < 0) ||
+        !pa_tagstruct_eof(t)) {
+
         protocol_error(c);
         pa_proplist_free(p);
         return;

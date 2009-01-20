@@ -366,7 +366,8 @@ int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t, pa
     if (command == PA_COMMAND_ERROR) {
         pa_assert(t);
 
-        if (pa_tagstruct_getu32(t, &err) < 0) {
+        if (pa_tagstruct_getu32(t, &err) < 0 ||
+            !pa_tagstruct_eof(t)) {
             pa_context_fail(c, PA_ERR_PROTOCOL);
             return -1;
         }
