@@ -574,7 +574,7 @@ static const struct pa_alsa_profile_info device_table[] = {
     {{ 0, { 0 }}, NULL, NULL, NULL, 0 }
 };
 
-snd_pcm_t *pa_alsa_open_by_device_id(
+snd_pcm_t *pa_alsa_open_by_device_id_auto(
         const char *dev_id,
         char **dev,
         pa_sample_spec *ss,
@@ -585,8 +585,7 @@ snd_pcm_t *pa_alsa_open_by_device_id(
         snd_pcm_uframes_t tsched_size,
         pa_bool_t *use_mmap,
         pa_bool_t *use_tsched,
-        const char**config_description,
-        const char **config_name) {
+        const pa_alsa_profile_info **profile) {
 
     int i;
     int direction = 1;
@@ -642,11 +641,8 @@ snd_pcm_t *pa_alsa_open_by_device_id(
                 *map = device_table[i].map;
                 pa_assert(map->channels == ss->channels);
 
-                if (config_description)
-                    *config_description = device_table[i].description;
-                if (config_name)
-                    *config_name = device_table[i].name;
-
+                if (profile)
+                    *profile = &device_table[i];
 
                 return pcm_handle;
             }
@@ -703,10 +699,64 @@ snd_pcm_t *pa_alsa_open_by_device_id(
     pcm_handle = pa_alsa_open_by_device_string(d, dev, ss, map, mode, nfrags, period_size, tsched_size, use_mmap, use_tsched, FALSE);
     pa_xfree(d);
 
-    if (pcm_handle) {
-        *config_description = NULL;
-        *config_name = NULL;
-    }
+    if (pcm_handle && profile)
+        *profile = NULL;
+
+    return pcm_handle;
+}
+
+snd_pcm_t *pa_alsa_open_by_device_id_profile(
+        const char *dev_id,
+        char **dev,
+        pa_sample_spec *ss,
+        pa_channel_map* map,
+        int mode,
+        uint32_t *nfrags,
+        snd_pcm_uframes_t *period_size,
+        snd_pcm_uframes_t tsched_size,
+        pa_bool_t *use_mmap,
+        pa_bool_t *use_tsched,
+        const pa_alsa_profile_info *profile) {
+
+    char *d;
+    snd_pcm_t *pcm_handle;
+    pa_sample_spec try_ss;
+
+    pa_assert(dev_id);
+    pa_assert(dev);
+    pa_assert(ss);
+    pa_assert(map);
+    pa_assert(nfrags);
+    pa_assert(period_size);
+    pa_assert(profile);
+
+    d = pa_sprintf_malloc("%s:%s", profile->alsa_name, dev_id);
+
+    try_ss.channels = profile->map.channels;
+    try_ss.rate = ss->rate;
+    try_ss.format = ss->format;
+
+    pcm_handle = pa_alsa_open_by_device_string(
+            d,
+            dev,
+            &try_ss,
+            map,
+            mode,
+            nfrags,
+            period_size,
+            tsched_size,
+            use_mmap,
+            use_tsched,
+            TRUE);
+
+    pa_xfree(d);
+
+    if (!pcm_handle)
+        return NULL;
+
+    *ss = try_ss;
+    *map = profile->map;
+    pa_assert(map->channels == ss->channels);
 
     return pcm_handle;
 }

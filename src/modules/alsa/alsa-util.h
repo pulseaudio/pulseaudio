@@ -54,7 +54,16 @@ int pa_alsa_set_sw_params(snd_pcm_t *pcm, snd_pcm_uframes_t avail_min);
 int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev);
 snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const char *fallback, pa_bool_t playback);
 
-snd_pcm_t *pa_alsa_open_by_device_id(
+typedef struct pa_alsa_profile_info {
+    pa_channel_map map;
+    const char *alsa_name;
+    const char *description;
+    const char *name;
+    unsigned priority;
+} pa_alsa_profile_info;
+
+/* Picks a working profile based on the specified ss/map */
+snd_pcm_t *pa_alsa_open_by_device_id_auto(
         const char *dev_id,
         char **dev,
         pa_sample_spec *ss,
@@ -65,9 +74,23 @@ snd_pcm_t *pa_alsa_open_by_device_id(
         snd_pcm_uframes_t tsched_size,
         pa_bool_t *use_mmap,
         pa_bool_t *use_tsched,
-        const char **config_name,
-        const char **config_description);
+        const pa_alsa_profile_info **profile);
 
+/* Uses the specified profile */
+snd_pcm_t *pa_alsa_open_by_device_id_profile(
+        const char *dev_id,
+        char **dev,
+        pa_sample_spec *ss,
+        pa_channel_map* map,
+        int mode,
+        uint32_t *nfrags,
+        snd_pcm_uframes_t *period_size,
+        snd_pcm_uframes_t tsched_size,
+        pa_bool_t *use_mmap,
+        pa_bool_t *use_tsched,
+        const pa_alsa_profile_info *profile);
+
+/* Opens the explicit ALSA device */
 snd_pcm_t *pa_alsa_open_by_device_string(
         const char *device,
         char **dev,
@@ -80,14 +103,6 @@ snd_pcm_t *pa_alsa_open_by_device_string(
         pa_bool_t *use_mmap,
         pa_bool_t *use_tsched,
         pa_bool_t require_exact_channel_number);
-
-typedef struct pa_alsa_profile_info {
-    pa_channel_map map;
-    const char *alsa_name;
-    const char *description;
-    const char *name;
-    unsigned priority;
-} pa_alsa_profile_info;
 
 int pa_alsa_probe_profiles(
         const char *dev_id,
