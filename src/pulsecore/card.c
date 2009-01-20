@@ -165,10 +165,12 @@ void pa_card_free(pa_card *c) {
     pa_assert(pa_idxset_isempty(c->sources));
     pa_idxset_free(c->sources, NULL, NULL);
 
-    while ((profile = pa_hashmap_steal_first(c->profiles)))
-        pa_card_profile_free(profile);
+    if (c->profiles) {
+        while ((profile = pa_hashmap_steal_first(c->profiles)))
+            pa_card_profile_free(profile);
 
-    pa_hashmap_free(c->profiles, NULL, NULL);
+        pa_hashmap_free(c->profiles, NULL, NULL);
+    }
 
     pa_proplist_free(c->proplist);
     pa_xfree(c->driver);
