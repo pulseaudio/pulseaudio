@@ -1254,7 +1254,7 @@ module_oss_la_LIBADD = $(AM_LIBADD) liboss-util.la libpulsecore-@PA_MAJORMINORMI
 
 # ALSA
 
-libalsa_util_la_SOURCES = modules/alsa/alsa-util.c modules/alsa/alsa-util.h
+libalsa_util_la_SOURCES = modules/alsa/alsa-util.c modules/alsa/alsa-util.h modules/alsa/alsa-sink.c modules/alsa/alsa-sink.h modules/alsa/alsa-source.c modules/alsa/alsa-source.h
 libalsa_util_la_LDFLAGS = -avoid-version
 libalsa_util_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
