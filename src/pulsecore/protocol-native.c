@@ -2867,7 +2867,6 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
     pa_source *source = NULL;
     pa_client *client = NULL;
     pa_card *card = NULL;
-    pa_core *core = NULL;
     pa_module *module = NULL;
     pa_sink_input *si = NULL;
     pa_source_output *so = NULL;
