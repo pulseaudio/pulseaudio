@@ -97,7 +97,6 @@ static void enumerate_cb(
         t = pa_sprintf_malloc("Output %s", sink->description);
     } else {
         pa_assert(source);
-        n = pa_xstrdup(source->name);
         n = pa_sprintf_malloc("input-%s", source->name);
         t = pa_sprintf_malloc("Input %s", source->description);
     }
@@ -121,6 +120,18 @@ static void enumerate_cb(
 
     d->sink = sink;
     d->source = source;
+
+    pa_hashmap_put(profiles, p->name, p);
+}
+
+static void add_disabled_profile(pa_hashmap *profiles) {
+    pa_card_profile *p;
+    struct profile_data *d;
+
+    p = pa_card_profile_new("off", "Off", sizeof(struct profile_data));
+
+    d = PA_CARD_PROFILE_DATA(p);
+    d->sink = d->source = NULL;
 
     pa_hashmap_put(profiles, p->name, p);
 }
@@ -162,6 +173,14 @@ int pa__init(pa_module*m) {
         pa_card_new_data_done(&data);
         goto fail;
     }
+
+    if (pa_hashmap_isempty(data.profiles)) {
+        pa_log("Failed to find a working profile.");
+        pa_card_new_data_done(&data);
+        goto fail;
+    }
+
+    add_disabled_profile(data.profiles);
 
     u->card = pa_card_new(m->core, &data);
     pa_card_new_data_done(&data);
