@@ -145,6 +145,11 @@ char *pa_card_list_to_string(pa_core *c) {
                 pa_strbuf_printf(s, "\t\t%s: %s\n", p->name, p->description);
         }
 
+        if (card->active_profile)
+            pa_strbuf_printf(
+                    s,
+                    "\tactive profile: <%s>\n",
+                    card->active_profile->name);
     }
 
     return pa_strbuf_tostring_free(s);
