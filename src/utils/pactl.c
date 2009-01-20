@@ -384,6 +384,51 @@ static void get_client_info_callback(pa_context *c, const pa_client_info *i, int
     pa_xfree(pl);
 }
 
+static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_last, void *userdata) {
+    char t[32];
+    char *pl;
+
+    if (is_last < 0) {
+        fprintf(stderr, _("Failed to get card information: %s\n"), pa_strerror(pa_context_errno(c)));
+        complete_action();
+        return;
+    }
+
+    if (is_last) {
+        complete_action();
+        return;
+    }
+
+    assert(i);
+
+    if (nl)
+        printf("\n");
+    nl = 1;
+
+    snprintf(t, sizeof(t), "%u", i->owner_module);
+
+    printf(_("Card #%u\n"
+             "\tName: %s\n"
+             "\tDriver: %s\n"
+             "\tOwner Module: %s\n"
+             "\tProperties:\n\t\t%s\n"),
+           i->index,
+           i->name,
+           pa_strnull(i->driver),
+           i->owner_module != PA_INVALID_INDEX ? t : _("n/a"),
+           pl = pa_proplist_to_string_sep(i->proplist, "\n\t\t"));
+
+    if (i->profiles) {
+        pa_card_profile_info *p;
+
+        printf(_("\tProfiles:\n"));
+        for (p = i->profiles; p->name; p++)
+            printf("\t\t%s: %s\n", p->name, p->description);
+    }
+
+    pa_xfree(pl);
+}
+
 static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info *i, int is_last, void *userdata) {
     char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
     char *pl;
@@ -649,7 +694,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     break;
 
                 case LIST:
-                    actions = 7;
+                    actions = 8;
                     pa_operation_unref(pa_context_get_module_info_list(c, get_module_info_callback, NULL));
                     pa_operation_unref(pa_context_get_sink_info_list(c, get_sink_info_callback, NULL));
                     pa_operation_unref(pa_context_get_source_info_list(c, get_source_info_callback, NULL));
@@ -657,6 +702,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     pa_operation_unref(pa_context_get_source_output_info_list(c, get_source_output_info_callback, NULL));
                     pa_operation_unref(pa_context_get_client_info_list(c, get_client_info_callback, NULL));
                     pa_operation_unref(pa_context_get_sample_info_list(c, get_sample_info_callback, NULL));
+                    pa_operation_unref(pa_context_get_card_info_list(c, get_card_info_callback, NULL));
                     break;
 
                 case MOVE_SINK_INPUT:

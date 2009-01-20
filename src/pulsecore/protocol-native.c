@@ -283,6 +283,7 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_GET_SINK_INFO] = command_get_info,
     [PA_COMMAND_GET_SOURCE_INFO] = command_get_info,
     [PA_COMMAND_GET_CLIENT_INFO] = command_get_info,
+    [PA_COMMAND_GET_CARD_INFO] = command_get_info,
     [PA_COMMAND_GET_MODULE_INFO] = command_get_info,
     [PA_COMMAND_GET_SINK_INPUT_INFO] = command_get_info,
     [PA_COMMAND_GET_SOURCE_OUTPUT_INFO] = command_get_info,
@@ -291,6 +292,7 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_GET_SOURCE_INFO_LIST] = command_get_info_list,
     [PA_COMMAND_GET_MODULE_INFO_LIST] = command_get_info_list,
     [PA_COMMAND_GET_CLIENT_INFO_LIST] = command_get_info_list,
+    [PA_COMMAND_GET_CARD_INFO_LIST] = command_get_info_list,
     [PA_COMMAND_GET_SINK_INPUT_INFO_LIST] = command_get_info_list,
     [PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST] = command_get_info_list,
     [PA_COMMAND_GET_SAMPLE_INFO_LIST] = command_get_info_list,
@@ -2740,6 +2742,31 @@ static void client_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_c
         pa_tagstruct_put_proplist(t, client->proplist);
 }
 
+static void card_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_card *card) {
+    void *state = NULL;
+    pa_card_profile *p;
+
+    pa_assert(t);
+    pa_assert(card);
+
+    pa_tagstruct_putu32(t, card->index);
+    pa_tagstruct_puts(t, card->name);
+    pa_tagstruct_putu32(t, card->module ? card->module->index : PA_INVALID_INDEX);
+    pa_tagstruct_puts(t, card->driver);
+
+    pa_tagstruct_putu32(t, card->profiles ? pa_hashmap_size(card->profiles) : 0);
+
+    if (card->profiles) {
+        while ((p = pa_hashmap_iterate(card->profiles, &state, NULL))) {
+            pa_tagstruct_puts(t, p->name);
+            pa_tagstruct_puts(t, p->description);
+        }
+    }
+
+    pa_tagstruct_puts(t, card->active_profile ? card->active_profile->name : NULL);
+    pa_tagstruct_put_proplist(t, card->proplist);
+}
+
 static void module_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_module *module) {
     pa_assert(t);
     pa_assert(module);
@@ -2839,6 +2866,8 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
     pa_sink *sink = NULL;
     pa_source *source = NULL;
     pa_client *client = NULL;
+    pa_card *card = NULL;
+    pa_core *core = NULL;
     pa_module *module = NULL;
     pa_sink_input *si = NULL;
     pa_source_output *so = NULL;
@@ -2851,6 +2880,7 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
 
     if (pa_tagstruct_getu32(t, &idx) < 0 ||
         (command != PA_COMMAND_GET_CLIENT_INFO &&
+         command != PA_COMMAND_GET_CARD_INFO &&
          command != PA_COMMAND_GET_MODULE_INFO &&
          command != PA_COMMAND_GET_SINK_INPUT_INFO &&
          command != PA_COMMAND_GET_SOURCE_OUTPUT_INFO &&
@@ -2876,6 +2906,11 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
             source = pa_idxset_get_by_index(c->protocol->core->sources, idx);
         else
             source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE);
+    } else if (command == PA_COMMAND_GET_CARD_INFO) {
+        if (idx != PA_INVALID_INDEX)
+            card = pa_idxset_get_by_index(c->protocol->core->cards, idx);
+        else
+            card = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_CARD);
     } else if (command == PA_COMMAND_GET_CLIENT_INFO)
         client = pa_idxset_get_by_index(c->protocol->core->clients, idx);
     else if (command == PA_COMMAND_GET_MODULE_INFO)
@@ -2892,7 +2927,7 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
             sce = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SAMPLE);
     }
 
-    if (!sink && !source && !client && !module && !si && !so && !sce) {
+    if (!sink && !source && !client && !card && !module && !si && !so && !sce) {
         pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
         return;
     }
@@ -2904,6 +2939,8 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
         source_fill_tagstruct(c, reply, source);
     else if (client)
         client_fill_tagstruct(c, reply, client);
+    else if (client)
+        card_fill_tagstruct(c, reply, card);
     else if (module)
         module_fill_tagstruct(c, reply, module);
     else if (si)
@@ -2940,6 +2977,8 @@ static void command_get_info_list(pa_pdispatch *pd, uint32_t command, uint32_t t
         i = c->protocol->core->sources;
     else if (command == PA_COMMAND_GET_CLIENT_INFO_LIST)
         i = c->protocol->core->clients;
+    else if (command == PA_COMMAND_GET_CARD_INFO_LIST)
+        i = c->protocol->core->cards;
     else if (command == PA_COMMAND_GET_MODULE_INFO_LIST)
         i = c->protocol->core->modules;
     else if (command == PA_COMMAND_GET_SINK_INPUT_INFO_LIST)
@@ -2959,6 +2998,8 @@ static void command_get_info_list(pa_pdispatch *pd, uint32_t command, uint32_t t
                 source_fill_tagstruct(c, reply, p);
             else if (command == PA_COMMAND_GET_CLIENT_INFO_LIST)
                 client_fill_tagstruct(c, reply, p);
+            else if (command == PA_COMMAND_GET_CARD_INFO_LIST)
+                card_fill_tagstruct(c, reply, p);
             else if (command == PA_COMMAND_GET_MODULE_INFO_LIST)
                 module_fill_tagstruct(c, reply, p);
             else if (command == PA_COMMAND_GET_SINK_INPUT_INFO_LIST)

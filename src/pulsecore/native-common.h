@@ -152,6 +152,11 @@ enum {
     /* Supported since protocol v14 (0.9.12) */
     PA_COMMAND_EXTENSION,
 
+    /* Supported since protocol v15 (0.9.15*/
+    PA_COMMAND_GET_CARD_INFO,
+    PA_COMMAND_GET_CARD_INFO_LIST,
+    PA_COMMAND_SET_CARD_PROFILE,
+
     PA_COMMAND_MAX
 };
 

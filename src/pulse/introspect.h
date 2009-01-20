@@ -222,7 +222,7 @@ typedef void (*pa_sink_info_cb_t)(pa_context *c, const pa_sink_info *i, int eol,
 pa_operation* pa_context_get_sink_info_by_name(pa_context *c, const char *name, pa_sink_info_cb_t cb, void *userdata);
 
 /** Get information about a sink by its index */
-pa_operation* pa_context_get_sink_info_by_index(pa_context *c, uint32_t id, pa_sink_info_cb_t cb, void *userdata);
+pa_operation* pa_context_get_sink_info_by_index(pa_context *c, uint32_t idx, pa_sink_info_cb_t cb, void *userdata);
 
 /** Get the complete sink list */
 pa_operation* pa_context_get_sink_info_list(pa_context *c, pa_sink_info_cb_t cb, void *userdata);
@@ -279,7 +279,7 @@ typedef void (*pa_source_info_cb_t)(pa_context *c, const pa_source_info *i, int 
 pa_operation* pa_context_get_source_info_by_name(pa_context *c, const char *name, pa_source_info_cb_t cb, void *userdata);
 
 /** Get information about a source by its index */
-pa_operation* pa_context_get_source_info_by_index(pa_context *c, uint32_t id, pa_source_info_cb_t cb, void *userdata);
+pa_operation* pa_context_get_source_info_by_index(pa_context *c, uint32_t idx, pa_source_info_cb_t cb, void *userdata);
 
 /** Get the complete source list */
 pa_operation* pa_context_get_source_info_list(pa_context *c, pa_source_info_cb_t cb, void *userdata);
@@ -382,6 +382,50 @@ pa_operation* pa_context_get_client_info_list(pa_context *c, pa_client_info_cb_t
 
 /** Kill a client. */
 pa_operation* pa_context_kill_client(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
+
+/** @} */
+
+/** @{ \name Cards */
+
+/** Stores information about a specific profile of a card.  Please
+ * note that this structure can be extended as part of evolutionary
+ * API updates at any time in any new release. \since 0.9.15 */
+typedef struct pa_card_profile_info {
+    const char *name;                   /**< Name of this profile */
+    const char *description;            /**< Description of this profile */
+} pa_card_profile_info;
+
+/** Stores information about cards. Please note that this structure
+ * can be extended as part of evolutionary API updates at any time in
+ * any new release.  \since 0.9.15 */
+typedef struct pa_card_info {
+    uint32_t index;                      /**< Index of this card */
+    const char *name;                    /**< Name of this card */
+    uint32_t owner_module;               /**< Index of the owning module, or PA_INVALID_INDEX */
+    const char *driver;                  /**< Driver name */
+    uint32_t n_profiles;                 /**< Number of entries in profile array */
+    pa_card_profile_info* profiles;      /**< Array of available profile, or NULL. Array is terminated by an entry with name set to NULL. Number of entries is stored in n_profiles */
+    pa_card_profile_info* active_profile; /**< Pointer to active profile in the array, or NULL */
+    pa_proplist *proplist;               /**< Property list */
+} pa_card_info;
+
+/** Callback prototype for pa_context_get_card_info() and firends \since 0.9.15 */
+typedef void (*pa_card_info_cb_t) (pa_context *c, const pa_card_info*i, int eol, void *userdata);
+
+/** Get information about a card by its index \since 0.9.15 */
+pa_operation* pa_context_get_card_info_by_index(pa_context *c, uint32_t idx, pa_card_info_cb_t cb, void *userdata);
+
+/** Get information about a card by its name \since 0.9.15 */
+pa_operation* pa_context_get_card_info_by_name(pa_context *c, const char *name, pa_card_info_cb_t cb, void *userdata);
+
+/** Get the complete card list \since 0.9.15 */
+pa_operation* pa_context_get_card_info_list(pa_context *c, pa_card_info_cb_t cb, void *userdata);
+
+/** Change the profile of a card. \since 0.9.15 */
+pa_operation* pa_context_set_card_profile_by_index(pa_context *c, uint32_t idx, const char*profile, pa_context_success_cb_t cb, void *userdata);
+
+/** Change the profile of a card. \since 0.9.15 */
+pa_operation* pa_context_set_card_profile_by_name(pa_context *c, const char*name, const char*profile, pa_context_success_cb_t cb, void *userdata);
 
 /** @} */
 
