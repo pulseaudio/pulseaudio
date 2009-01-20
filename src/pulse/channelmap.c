@@ -577,3 +577,22 @@ int pa_channel_map_compatible(const pa_channel_map *map, const pa_sample_spec *s
 
     return map->channels == ss->channels;
 }
+
+int pa_channel_map_superset(const pa_channel_map *a, const pa_channel_map *b) {
+    pa_bool_t in_a[PA_CHANNEL_POSITION_MAX];
+    unsigned i;
+
+    pa_assert(a);
+    pa_assert(b);
+
+    memset(in_a, 0, sizeof(in_a));
+
+    for (i = 0; i < a->channels; i++)
+        in_a[a->map[i]] = TRUE;
+
+    for (i = 0; i < b->channels; i++)
+        if (!in_a[b->map[i]])
+            return 0;
+
+    return 1;
+}

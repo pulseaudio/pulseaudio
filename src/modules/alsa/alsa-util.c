@@ -574,25 +574,6 @@ static const struct pa_alsa_profile_info device_table[] = {
     {{ 0, { 0 }}, NULL, NULL, NULL, 0 }
 };
 
-static pa_bool_t channel_map_superset(const pa_channel_map *a, const pa_channel_map *b) {
-    pa_bool_t in_a[PA_CHANNEL_POSITION_MAX];
-    unsigned i;
-
-    pa_assert(a);
-    pa_assert(b);
-
-    memset(in_a, 0, sizeof(in_a));
-
-    for (i = 0; i < a->channels; i++)
-        in_a[a->map[i]] = TRUE;
-
-    for (i = 0; i < b->channels; i++)
-        if (!in_a[b->map[i]])
-            return FALSE;
-
-    return TRUE;
-}
-
 snd_pcm_t *pa_alsa_open_by_device_id(
         const char *dev_id,
         char **dev,
@@ -629,7 +610,7 @@ snd_pcm_t *pa_alsa_open_by_device_id(
     i = 0;
     for (;;) {
 
-        if ((direction > 0) == channel_map_superset(&device_table[i].map, map)) {
+        if ((direction > 0) == pa_channel_map_superset(&device_table[i].map, map)) {
             pa_sample_spec try_ss;
 
             pa_log_debug("Checking for %s (%s)", device_table[i].name, device_table[i].alsa_name);

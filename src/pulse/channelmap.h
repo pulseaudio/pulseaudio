@@ -227,6 +227,9 @@ int pa_channel_map_valid(const pa_channel_map *map) PA_GCC_PURE;
  * the specified sample spec. \since 0.9.12 */
 int pa_channel_map_compatible(const pa_channel_map *map, const pa_sample_spec *ss) PA_GCC_PURE;
 
+/** Returns non-zero if every channel defined in b is also defined in a. \since 0.9.15 */
+int pa_channel_map_superset(const pa_channel_map *a, const pa_channel_map *b) PA_GCC_PURE;
+
 PA_C_DECL_END
 
 #endif

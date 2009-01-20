@@ -18,6 +18,7 @@ pa_channel_map_init_mono;
 pa_channel_map_init_stereo;
 pa_channel_map_parse;
 pa_channel_map_snprint;
+pa_channel_map_superset;
 pa_channel_map_valid;
 pa_channel_position_to_pretty_string;
 pa_channel_position_to_string;
