@@ -426,6 +426,10 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
             printf("\t\t%s: %s\n", p->name, p->description);
     }
 
+    if (i->active_profile)
+        printf(_("\tActive Profile: %s\n"),
+               i->active_profile->name);
+
     pa_xfree(pl);
 }
 
