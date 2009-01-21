@@ -865,6 +865,7 @@ modlibexec_LTLIBRARIES += \
 		module-volume-restore.la \
 		module-device-restore.la \
 		module-stream-restore.la \
+		module-card-restore.la \
 		module-default-device-restore.la \
 		module-always-sink.la \
 		module-rescue-streams.la \
@@ -1064,6 +1065,7 @@ SYMDEF_FILES = \
 		modules/module-volume-restore-symdef.h \
 		modules/module-device-restore-symdef.h \
 		modules/module-stream-restore-symdef.h \
+		modules/module-card-restore-symdef.h \
 		modules/module-default-device-restore-symdef.h \
 		modules/module-always-sink-symdef.h \
 		modules/module-rescue-streams-symdef.h \
@@ -1342,6 +1344,12 @@ module_stream_restore_la_SOURCES = modules/module-stream-restore.c
 module_stream_restore_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_stream_restore_la_LIBADD = $(AM_LIBADD) libprotocol-native.la libpulsecore-@PA_MAJORMINORMICRO@.la -lgdbm libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_stream_restore_la_CFLAGS = $(AM_CFLAGS)
+
+# Card profile restore module
+module_card_restore_la_SOURCES = modules/module-card-restore.c
+module_card_restore_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_card_restore_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la -lgdbm libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_card_restore_la_CFLAGS = $(AM_CFLAGS)
 
 # Default sink/source restore module
 module_default_device_restore_la_SOURCES = modules/module-default-device-restore.c
