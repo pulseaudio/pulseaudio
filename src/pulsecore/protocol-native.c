@@ -256,6 +256,7 @@ static void command_update_stream_sample_rate(pa_pdispatch *pd, uint32_t command
 static void command_update_proplist(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_remove_proplist(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+static void command_set_card_profile(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = NULL,
@@ -349,6 +350,8 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REMOVE_RECORD_STREAM_PROPLIST] = command_remove_proplist,
     [PA_COMMAND_REMOVE_PLAYBACK_STREAM_PROPLIST] = command_remove_proplist,
     [PA_COMMAND_REMOVE_CLIENT_PROPLIST] = command_remove_proplist,
+
+    [PA_COMMAND_SET_CARD_PROFILE] = command_set_card_profile,
 
     [PA_COMMAND_EXTENSION] = command_extension
 };
@@ -3989,6 +3992,43 @@ static void command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, 
         protocol_error(c);
 }
 
+static void command_set_card_profile(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
+    uint32_t idx = PA_INVALID_INDEX;
+    const char *name = NULL, *profile = NULL;
+    pa_card *card = NULL;
+
+    pa_native_connection_assert_ref(c);
+    pa_assert(t);
+
+    if (pa_tagstruct_getu32(t, &idx) < 0 ||
+        pa_tagstruct_gets(t, &name) < 0 ||
+        pa_tagstruct_gets(t, &profile) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, !name || pa_namereg_is_valid_name(name), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, idx == PA_INVALID_INDEX || !name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !name || idx == PA_INVALID_INDEX, tag, PA_ERR_INVALID);
+
+    if (idx != PA_INVALID_INDEX)
+        card = pa_idxset_get_by_index(c->protocol->core->cards, idx);
+    else
+        card = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_CARD);
+
+    CHECK_VALIDITY(c->pstream, card, tag, PA_ERR_NOENTITY);
+
+    if (pa_card_set_profile(card, profile) < 0) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
+        return;
+    }
+
+    pa_pstream_send_simple_ack(c->pstream, tag);
+}
 
 /*** pstream callbacks ***/
 
