@@ -76,6 +76,13 @@ void pa_card_new_data_set_name(pa_card_new_data *data, const char *name) {
     data->name = pa_xstrdup(name);
 }
 
+void pa_card_new_data_set_profile(pa_card_new_data *data, const char *profile) {
+    pa_assert(data);
+
+    pa_xfree(data->active_profile);
+    data->active_profile = pa_xstrdup(profile);
+}
+
 void pa_card_new_data_done(pa_card_new_data *data) {
 
     pa_assert(data);
@@ -92,6 +99,7 @@ void pa_card_new_data_done(pa_card_new_data *data) {
     }
 
     pa_xfree(data->name);
+    pa_xfree(data->active_profile);
 }
 
 pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
@@ -126,21 +134,27 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     c->sinks = pa_idxset_new(NULL, NULL);
     c->sources = pa_idxset_new(NULL, NULL);
 
+    /* As a minor optimization we just steal the list instead of
+     * copying it here */
     c->profiles = data->profiles;
     data->profiles = NULL;
-    if (!(c->active_profile = data->active_profile))
-        if (c->profiles) {
-            void *state = NULL;
-            pa_card_profile *p;
 
-            while ((p = pa_hashmap_iterate(c->profiles, &state, NULL))) {
-                if (!c->active_profile ||
-                    p->priority > c->active_profile->priority)
+    c->active_profile = NULL;
 
-                    c->active_profile = p;
-            }
+    if (data->active_profile && c->profiles)
+        c->active_profile = pa_hashmap_get(c->profiles, data->active_profile);
+
+    if (!c->active_profile && c->profiles) {
+        void *state = NULL;
+        pa_card_profile *p;
+
+        while ((p = pa_hashmap_iterate(c->profiles, &state, NULL))) {
+            if (!c->active_profile ||
+                p->priority > c->active_profile->priority)
+
+                c->active_profile = p;
         }
-    data->active_profile = NULL;
+    }
 
     c->userdata = NULL;
     c->set_profile = NULL;

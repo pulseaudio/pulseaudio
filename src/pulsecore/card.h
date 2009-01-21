@@ -77,7 +77,7 @@ typedef struct pa_card_new_data {
     pa_module *module;
 
     pa_hashmap *profiles;
-    pa_card_profile *active_profile;
+    char *active_profile;
 
     pa_bool_t namereg_fail:1;
 } pa_card_new_data;
@@ -87,6 +87,7 @@ void pa_card_profile_free(pa_card_profile *c);
 
 pa_card_new_data *pa_card_new_data_init(pa_card_new_data *data);
 void pa_card_new_data_set_name(pa_card_new_data *data, const char *name);
+void pa_card_new_data_set_profile(pa_card_new_data *data, const char *profile);
 void pa_card_new_data_done(pa_card_new_data *data);
 
 pa_card *pa_card_new(pa_core *c, pa_card_new_data *data);
