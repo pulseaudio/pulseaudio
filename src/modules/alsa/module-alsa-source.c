@@ -106,7 +106,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (!(m->userdata = pa_alsa_source_new(m, ma, NULL)))
+    if (!(m->userdata = pa_alsa_source_new(m, ma, __FILE__, NULL, NULL)))
         goto fail;
 
     pa_modargs_free(ma);

@@ -29,7 +29,7 @@
 
 #include "alsa-util.h"
 
-pa_source* pa_alsa_source_new(pa_module *m, pa_modargs *ma, const pa_alsa_profile_info *profile);
+pa_source* pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, pa_card *card, const pa_alsa_profile_info *profile);
 
 void pa_alsa_source_free(pa_source *s);
 

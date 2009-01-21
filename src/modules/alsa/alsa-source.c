@@ -1036,7 +1036,7 @@ finish:
     pa_log_debug("Thread shutting down");
 }
 
-pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const pa_alsa_profile_info *profile) {
+pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, pa_card *card, const pa_alsa_profile_info *profile) {
 
     struct userdata *u = NULL;
     const char *dev_id = NULL;
@@ -1197,11 +1197,11 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const pa_alsa_profil
 
             if (snd_pcm_info(u->pcm_handle, info) >= 0) {
                 char *md;
-                int card;
+                int card_idx;
 
-                if ((card = snd_pcm_info_get_card(info)) >= 0) {
+                if ((card_idx = snd_pcm_info_get_card(info)) >= 0) {
 
-                    md = pa_sprintf_malloc("hw:%i", card);
+                    md = pa_sprintf_malloc("hw:%i", card_idx);
 
                     if (strcmp(u->device_name, md))
                         if (pa_alsa_prepare_mixer(u->mixer_handle, md) >= 0)
@@ -1223,14 +1223,18 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const pa_alsa_profil
 
     if ((name = pa_modargs_get_value(ma, "source_name", NULL)))
         namereg_fail = TRUE;
-    else {
+    else if ((name = pa_modargs_get_value(ma, "name", NULL))) {
+        name = name_buf = pa_sprintf_malloc("alsa_input.%s", name);
+        namereg_fail = TRUE;
+    } else {
         name = name_buf = pa_sprintf_malloc("alsa_input.%s", u->device_name);
         namereg_fail = FALSE;
     }
 
     pa_source_new_data_init(&data);
-    data.driver = __FILE__;
+    data.driver = driver;
     data.module = m;
+    data.card = card;
     pa_source_new_data_set_name(&data, name);
     data.namereg_fail = namereg_fail;
     pa_source_new_data_set_sample_spec(&data, &ss);

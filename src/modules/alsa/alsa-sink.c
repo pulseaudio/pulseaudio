@@ -1201,7 +1201,7 @@ finish:
     pa_log_debug("Thread shutting down");
 }
 
-pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const pa_alsa_profile_info *profile) {
+pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_card *card, const pa_alsa_profile_info *profile) {
 
     struct userdata *u = NULL;
     const char *dev_id = NULL;
@@ -1372,11 +1372,11 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const pa_alsa_profile_in
 
             if (snd_pcm_info(u->pcm_handle, info) >= 0) {
                 char *md;
-                int card;
+                int card_idx;
 
-                if ((card = snd_pcm_info_get_card(info)) >= 0) {
+                if ((card_idx = snd_pcm_info_get_card(info)) >= 0) {
 
-                    md = pa_sprintf_malloc("hw:%i", card);
+                    md = pa_sprintf_malloc("hw:%i", card_idx);
 
                     if (strcmp(u->device_name, md))
                         if (pa_alsa_prepare_mixer(u->mixer_handle, md) >= 0)
@@ -1407,8 +1407,9 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const pa_alsa_profile_in
     }
 
     pa_sink_new_data_init(&data);
-    data.driver = __FILE__;
+    data.driver = driver;
     data.module = m;
+    data.card = card;
     pa_sink_new_data_set_name(&data, name);
     data.namereg_fail = namereg_fail;
     pa_sink_new_data_set_sample_spec(&data, &ss);
