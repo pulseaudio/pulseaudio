@@ -223,6 +223,8 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type) {
         return pa_idxset_get_by_index(c->sources, idx);
     else if (type == PA_NAMEREG_SAMPLE && c->scache)
         return pa_idxset_get_by_index(c->scache, idx);
+    else if (type == PA_NAMEREG_CARD)
+        return pa_idxset_get_by_index(c->cards, idx);
 
     return NULL;
 }
