@@ -32,6 +32,7 @@
 ### Automatically restore the volume of streams and devices
 load-module module-device-restore
 load-module module-stream-restore
+load-module module-card-restore
 
 ### Load audio drivers statically (it's probably better to not load
 ### these drivers manually, but instead use module-hal-detect --
