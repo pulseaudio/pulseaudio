@@ -45,6 +45,7 @@
 int pa_oss_open(const char *device, int *mode, int* pcaps) {
     int fd = -1;
     int caps;
+    char *t;
 
     pa_assert(device);
     pa_assert(mode);
@@ -92,7 +93,8 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
 
 success:
 
-    pa_log_debug("capabilities:%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
+    t = pa_sprintf_malloc(
+            "%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
                  *pcaps & DSP_CAP_BATCH ? " BATCH" : "",
 #ifdef DSP_CAP_BIND
                  *pcaps & DSP_CAP_BIND ? " BIND" : "",
@@ -139,6 +141,9 @@ success:
                  "",
 #endif
                  *pcaps & DSP_CAP_TRIGGER ? " TRIGGER" : "");
+
+    pa_log_debug("capabilities:%s", t);
+    pa_xfree(t);
 
     pa_make_fd_cloexec(fd);
 
