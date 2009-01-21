@@ -45,7 +45,7 @@
 static pa_context *context = NULL;
 static pa_mainloop_api *mainloop_api = NULL;
 
-static char *device = NULL, *sample_name = NULL, *sink_name = NULL, *source_name = NULL, *module_name = NULL, *module_args = NULL;
+static char *device = NULL, *sample_name = NULL, *sink_name = NULL, *source_name = NULL, *module_name = NULL, *module_args = NULL, *card_name = NULL, *profile_name = NULL;
 static uint32_t sink_input_idx = PA_INVALID_INDEX, source_output_idx = PA_INVALID_INDEX;
 static uint32_t module_index;
 static int suspend;
@@ -73,6 +73,7 @@ static enum {
     UNLOAD_MODULE,
     SUSPEND_SINK,
     SUSPEND_SOURCE,
+    SET_CARD_PROFILE
 } action = NONE;
 
 static void quit(int ret) {
@@ -739,6 +740,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
                         pa_operation_unref(pa_context_suspend_source_by_index(c, PA_INVALID_INDEX, suspend, simple_callback, NULL));
                     break;
 
+                case SET_CARD_PROFILE:
+                    pa_operation_unref(pa_context_set_card_profile_by_name(c, card_name, profile_name, simple_callback, NULL));
+                    break;
+
                 default:
                     assert(0);
             }
@@ -763,22 +768,23 @@ static void exit_signal_callback(pa_mainloop_api *m, pa_signal_event *e, int sig
 static void help(const char *argv0) {
 
     printf(_("%s [options] stat\n"
-           "%s [options] list\n"
-           "%s [options] exit\n"
-           "%s [options] upload-sample FILENAME [NAME]\n"
-           "%s [options] play-sample NAME [SINK]\n"
-           "%s [options] remove-sample NAME\n"
-           "%s [options] move-sink-input ID SINK\n"
-           "%s [options] move-source-output ID SOURCE\n"
-           "%s [options] load-module NAME [ARGS ...]\n"
-           "%s [options] unload-module ID\n"
-           "%s [options] suspend-sink [SINK] 1|0\n"
-           "%s [options] suspend-source [SOURCE] 1|0\n\n"
-           "  -h, --help                            Show this help\n"
-           "      --version                         Show version\n\n"
-           "  -s, --server=SERVER                   The name of the server to connect to\n"
-           "  -n, --client-name=NAME                How to call this client on the server\n"),
-           argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0);
+             "%s [options] list\n"
+             "%s [options] exit\n"
+             "%s [options] upload-sample FILENAME [NAME]\n"
+             "%s [options] play-sample NAME [SINK]\n"
+             "%s [options] remove-sample NAME\n"
+             "%s [options] move-sink-input ID SINK\n"
+             "%s [options] move-source-output ID SOURCE\n"
+             "%s [options] load-module NAME [ARGS ...]\n"
+             "%s [options] unload-module ID\n"
+             "%s [options] suspend-sink [SINK] 1|0\n"
+             "%s [options] suspend-source [SOURCE] 1|0\n"
+             "%s [options] set-card-profile [CARD] [PROFILE] \n\n"
+             "  -h, --help                            Show this help\n"
+             "      --version                         Show version\n\n"
+             "  -s, --server=SERVER                   The name of the server to connect to\n"
+             "  -n, --client-name=NAME                How to call this client on the server\n"),
+           argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0);
 }
 
 enum { ARG_VERSION = 256 };
@@ -959,7 +965,7 @@ int main(int argc, char *argv[]) {
             action = SUSPEND_SINK;
 
             if (argc > optind+3 || optind+1 >= argc) {
-                fprintf(stderr, _("You may not specify more than one sink. You have to specify at least one boolean value.\n"));
+                fprintf(stderr, _("You may not specify more than one sink. You have to specify a boolean value.\n"));
                 goto quit;
             }
 
@@ -972,7 +978,7 @@ int main(int argc, char *argv[]) {
             action = SUSPEND_SOURCE;
 
             if (argc > optind+3 || optind+1 >= argc) {
-                fprintf(stderr, _("You may not specify more than one source. You have to specify at least one boolean value.\n"));
+                fprintf(stderr, _("You may not specify more than one source. You have to specify a boolean value.\n"));
                 goto quit;
             }
 
@@ -980,6 +986,17 @@ int main(int argc, char *argv[]) {
 
             if (argc > optind+2)
                 source_name = pa_xstrdup(argv[optind+1]);
+        } else if (!strcmp(argv[optind], "set-card-profile")) {
+            action = SET_CARD_PROFILE;
+
+            if (argc != optind+3) {
+                fprintf(stderr, _("You have to specify a card name/index and a profile name\n"));
+                goto quit;
+            }
+
+            card_name = pa_xstrdup(argv[optind+1]);
+            profile_name = pa_xstrdup(argv[optind+2]);
+
         } else if (!strcmp(argv[optind], "help")) {
             help(bn);
             ret = 0;
@@ -1041,6 +1058,8 @@ quit:
     pa_xfree(source_name);
     pa_xfree(module_args);
     pa_xfree(client_name);
+    pa_xfree(card_name);
+    pa_xfree(profile_name);
 
     return ret;
 }
