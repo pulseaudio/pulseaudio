@@ -32,6 +32,7 @@
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
+#include <pulse/util.h>
 
 #include <pulsecore/sink-input.h>
 #include <pulsecore/namereg.h>
@@ -184,7 +185,7 @@ pa_sink* pa_sink_new(
     s->flags = flags;
     s->name = pa_xstrdup(name);
     s->proplist = pa_proplist_copy(data->proplist);
-    s->driver = pa_xstrdup(data->driver);
+    s->driver = pa_xstrdup(pa_path_get_filename(data->driver));
     s->module = data->module;
     s->card = data->card;
 

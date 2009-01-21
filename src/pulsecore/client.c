@@ -29,6 +29,7 @@
 #include <string.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/util.h>
 
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/log.h>
@@ -64,7 +65,7 @@ pa_client *pa_client_new(pa_core *core, pa_client_new_data *data) {
     c = pa_xnew(pa_client, 1);
     c->core = core;
     c->proplist = pa_proplist_copy(data->proplist);
-    c->driver = pa_xstrdup(data->driver);
+    c->driver = pa_xstrdup(pa_path_get_filename(data->driver));
     c->module = data->module;
 
     c->sink_inputs = pa_idxset_new(NULL, NULL);

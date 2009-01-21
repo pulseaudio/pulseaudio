@@ -29,6 +29,7 @@
 
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
+#include <pulse/util.h>
 
 #include <pulsecore/sample-util.h>
 #include <pulsecore/core-subscribe.h>
@@ -192,7 +193,7 @@ pa_source_output* pa_source_output_new(
     o->state = PA_SOURCE_OUTPUT_INIT;
     o->flags = flags;
     o->proplist = pa_proplist_copy(data->proplist);
-    o->driver = pa_xstrdup(data->driver);
+    o->driver = pa_xstrdup(pa_path_get_filename(data->driver));
     o->module = data->module;
     o->source = data->source;
     o->client = data->client;

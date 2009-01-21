@@ -30,6 +30,7 @@
 
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
+#include <pulse/util.h>
 
 #include <pulsecore/sample-util.h>
 #include <pulsecore/core-subscribe.h>
@@ -229,7 +230,7 @@ pa_sink_input* pa_sink_input_new(
     i->state = PA_SINK_INPUT_INIT;
     i->flags = flags;
     i->proplist = pa_proplist_copy(data->proplist);
-    i->driver = pa_xstrdup(data->driver);
+    i->driver = pa_xstrdup(pa_path_get_filename(data->driver));
     i->module = data->module;
     i->sink = data->sink;
     i->client = data->client;
