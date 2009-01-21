@@ -836,6 +836,8 @@ snd_pcm_t *pa_alsa_open_by_device_string(
 
         if (dev)
             *dev = d;
+        else
+            pa_xfree(d);
 
         if (ss->channels != map->channels)
             pa_channel_map_init_extend(map, ss->channels, PA_CHANNEL_MAP_ALSA);
