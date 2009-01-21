@@ -322,7 +322,7 @@ void pa_source_unlink(pa_source *s) {
     pa_idxset_remove_by_data(s->core->sources, s, NULL);
 
     if (s->card)
-        pa_idxset_remove_by_data(s->card->sinks, s, NULL);
+        pa_idxset_remove_by_data(s->card->sources, s, NULL);
 
     while ((o = pa_idxset_first(s->outputs, NULL))) {
         pa_assert(o != j);
