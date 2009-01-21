@@ -235,3 +235,20 @@ int pa_card_set_profile(pa_card *c, const char *name) {
 
     return 0;
 }
+
+int pa_card_suspend(pa_card *c, pa_bool_t suspend) {
+    pa_sink *sink;
+    pa_source *source;
+    uint32_t idx;
+    int ret = 0;
+
+    pa_assert(c);
+
+    for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx))
+        ret -= pa_sink_suspend(sink, suspend) < 0;
+
+    for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx))
+        ret -= pa_source_suspend(source, suspend) < 0;
+
+    return ret;
+}
