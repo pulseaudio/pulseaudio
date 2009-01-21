@@ -123,6 +123,7 @@ static int pa_cli_command_update_sink_proplist(pa_core *c, pa_tokenizer *t, pa_s
 static int pa_cli_command_update_source_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_update_sink_input_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_update_source_output_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_card_profile(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 
 /* A method table for all available commands */
 
@@ -173,6 +174,7 @@ static const struct command commands[] = {
     { "suspend-sink",            pa_cli_command_suspend_sink,       "Suspend sink (args: index|name, bool)", 3},
     { "suspend-source",          pa_cli_command_suspend_source,     "Suspend source (args: index|name, bool)", 3},
     { "suspend",                 pa_cli_command_suspend,            "Suspend all sinks and all sources (args: bool)", 2},
+    { "set-card-profile",        pa_cli_command_card_profile,       "Change the profile of a card (aargs: index, name)", 3},
     { "set-log-level",           pa_cli_command_log_level,          "Change the log level (args: numeric level)", 2},
     { "set-log-meta",            pa_cli_command_log_meta,           "Show source code location in log messages (args: bool)", 2},
     { "set-log-time",            pa_cli_command_log_time,           "Show timestamps in log messages (args: bool)", 2},
@@ -1411,10 +1413,43 @@ static int pa_cli_command_log_backtrace(pa_core *c, pa_tokenizer *t, pa_strbuf *
     return 0;
 }
 
+static int pa_cli_command_card_profile(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+    const char *n, *p;
+    pa_card *card;
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+    if (!(n = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a card either by its name or its index.\n");
+        return -1;
+    }
+
+    if (!(p = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a profile by its name.\n");
+        return -1;
+    }
+
+    if (!(card = pa_namereg_get(c, n, PA_NAMEREG_CARD))) {
+        pa_strbuf_puts(buf, "No card found by this name or index.\n");
+        return -1;
+    }
+
+    if (pa_card_set_profile(card, p) < 0) {
+        pa_strbuf_printf(buf, "Failed to set card profile to '%s'.\n", p);
+        return -1;
+    }
+
+    return 0;
+}
+
 static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
     pa_module *m;
     pa_sink *sink;
     pa_source *source;
+    pa_card *card;
     int nl;
     const char *p;
     uint32_t idx;
@@ -1470,6 +1505,16 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
         pa_strbuf_printf(buf, "suspend-source %s %s\n", source->name, pa_yes_no(pa_source_get_state(source) == PA_SOURCE_SUSPENDED));
     }
 
+    for (card = pa_idxset_first(c->cards, &idx); card; card = pa_idxset_next(c->cards, &idx)) {
+
+        if (!nl) {
+            pa_strbuf_puts(buf, "\n");
+            nl = 1;
+        }
+
+        if (card->active_profile)
+            pa_strbuf_printf(buf, "set-card-profile %s %s\n", card->name, card->active_profile->name);
+    }
 
     nl = 0;
 
