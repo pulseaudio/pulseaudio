@@ -627,6 +627,7 @@ static int sink_set_state(pa_sink *sink, pa_sink_state_t state) {
 
         case PA_SINK_UNLINKED:
         case PA_SINK_INIT:
+        case PA_SINK_INVALID_STATE:
             ;
     }
 

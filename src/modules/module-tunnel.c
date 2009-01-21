@@ -494,6 +494,7 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
 
         case PA_SINK_UNLINKED:
         case PA_SINK_INIT:
+        case PA_SINK_INVALID_STATE:
             ;
     }
 
@@ -581,6 +582,7 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
 
         case PA_SOURCE_UNLINKED:
         case PA_SOURCE_INIT:
+        case PA_SINK_INVALID_STATE:
             ;
     }
 

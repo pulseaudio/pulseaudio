@@ -156,6 +156,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
                 case PA_SINK_UNLINKED:
                 case PA_SINK_INIT:
+                case PA_SINK_INVALID_STATE:
                     ;
             }
 

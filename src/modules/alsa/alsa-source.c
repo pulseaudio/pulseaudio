@@ -661,6 +661,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
                 case PA_SOURCE_UNLINKED:
                 case PA_SOURCE_INIT:
+                case PA_SOURCE_INVALID_STATE:
                     ;
             }
 
