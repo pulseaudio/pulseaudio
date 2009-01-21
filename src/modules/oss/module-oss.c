@@ -601,10 +601,10 @@ static int unsuspend(struct userdata *u) {
 
     build_pollfd(u);
 
-    if (u->sink)
-        sink_get_volume(u->sink);
-    if (u->source)
-        source_get_volume(u->source);
+    if (u->sink && u->sink->get_volume)
+        u->sink->get_volume(u->sink);
+    if (u->source && u->source->get_volume)
+        u->source->get_volume(u->source);
 
     pa_log_info("Resumed successfully...");
 
@@ -1201,12 +1201,12 @@ int pa__init(pa_module*m) {
 
     if (use_mmap && (!(caps & DSP_CAP_MMAP) || !(caps & DSP_CAP_TRIGGER))) {
         pa_log_info("OSS device not mmap capable, falling back to UNIX read/write mode.");
-        use_mmap = 0;
+        use_mmap = FALSE;
     }
 
     if (use_mmap && mode == O_WRONLY) {
         pa_log_info("Device opened for playback only, cannot do memory mapping, falling back to UNIX write() mode.");
-        use_mmap = 0;
+        use_mmap = FALSE;
     }
 
     if (pa_oss_get_hw_description(dev, hwdesc, sizeof(hwdesc)) >= 0)
@@ -1235,6 +1235,7 @@ int pa__init(pa_module*m) {
     m->userdata = u;
     u->fd = fd;
     u->mixer_fd = -1;
+    u->mixer_devmask = 0;
     u->use_getospace = u->use_getispace = TRUE;
     u->use_getodelay = TRUE;
     u->mode = mode;
@@ -1383,7 +1384,6 @@ int pa__init(pa_module*m) {
 
     if ((u->mixer_fd = pa_oss_open_mixer_for_device(u->device_name)) >= 0) {
         pa_bool_t do_close = TRUE;
-        u->mixer_devmask = 0;
 
         if (ioctl(fd, SOUND_MIXER_READ_DEVMASK, &u->mixer_devmask) < 0)
             pa_log_warn("SOUND_MIXER_READ_DEVMASK failed: %s", pa_cstrerror(errno));
@@ -1409,6 +1409,7 @@ int pa__init(pa_module*m) {
         if (do_close) {
             pa_close(u->mixer_fd);
             u->mixer_fd = -1;
+            u->mixer_devmask = 0;
         }
     }
 
