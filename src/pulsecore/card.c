@@ -189,8 +189,6 @@ void pa_card_free(pa_card *c) {
     pa_xfree(c->driver);
     pa_xfree(c->name);
     pa_xfree(c);
-
-    pa_core_check_idle(core);
 }
 
 int pa_card_set_profile(pa_card *c, const char *name) {
