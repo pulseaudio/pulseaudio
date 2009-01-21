@@ -196,7 +196,7 @@ int pa_card_set_profile(pa_card *c, const char *name) {
     pa_assert(c);
 
     if (!c->set_profile) {
-        pa_log_warn("set_profile() operation not implemented for card %u", c->index);
+        pa_log_warn("set_profile() operation not implemented for card %u \"%s\"", c->index, c->name);
         return -1;
     }
 
@@ -213,6 +213,10 @@ int pa_card_set_profile(pa_card *c, const char *name) {
         return -1;
 
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);
+
+    pa_log_info("Successfully changed profile of card %u \"%s\" to %s", c->index, c->name, profile->name);
+
+    c->active_profile = profile;
 
     return 0;
 }
