@@ -62,6 +62,7 @@ PA_MODULE_DESCRIPTION("ALSA Source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
+        "name=<name for the source, to be prefixed> "
         "source_name=<name for the source> "
         "device=<ALSA device> "
         "device_id=<ALSA card index> "
@@ -77,6 +78,7 @@ PA_MODULE_USAGE(
         "tsched_buffer_watermark=<upper fill watermark>");
 
 static const char* const valid_modargs[] = {
+    "name",
     "source_name",
     "device",
     "device_id",

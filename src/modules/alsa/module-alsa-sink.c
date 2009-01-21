@@ -38,6 +38,7 @@ PA_MODULE_DESCRIPTION("ALSA Sink");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
+        "name=<name of the sink, to be prefixed> "
         "sink_name=<name for the sink> "
         "device=<ALSA device> "
         "device_id=<ALSA card index> "
@@ -53,6 +54,7 @@ PA_MODULE_USAGE(
         "tsched_buffer_watermark=<lower fill watermark>");
 
 static const char* const valid_modargs[] = {
+    "name",
     "sink_name",
     "device",
     "device_id",

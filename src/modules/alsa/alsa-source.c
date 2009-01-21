@@ -1044,6 +1044,32 @@ finish:
     pa_log_debug("Thread shutting down");
 }
 
+static void set_source_name(pa_source_new_data *data, pa_modargs *ma, const char *device_id, const char *device_name) {
+    const char *n;
+    char *t;
+
+    pa_assert(data);
+    pa_assert(ma);
+    pa_assert(device_name);
+
+    if ((n = pa_modargs_get_value(ma, "source_name", NULL))) {
+        pa_source_new_data_set_name(data, n);
+        data->namereg_fail = TRUE;
+        return;
+    }
+
+    if ((n = pa_modargs_get_value(ma, "name", NULL)))
+        data->namereg_fail = TRUE;
+    else {
+        n = device_id ? device_id : device_name;
+        data->namereg_fail = FALSE;
+    }
+
+    t = pa_sprintf_malloc("alsa_input.%s", n);
+    pa_source_new_data_set_name(data, t);
+    pa_xfree(t);
+}
+
 pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, pa_card *card, const pa_alsa_profile_info *profile) {
 
     struct userdata *u = NULL;
@@ -1055,9 +1081,6 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     size_t frame_size;
     snd_pcm_info_t *pcm_info = NULL;
     int err;
-    const char *name;
-    char *name_buf = NULL;
-    pa_bool_t namereg_fail;
     pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d;
     pa_source_new_data data;
 
@@ -1229,22 +1252,11 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         }
     }
 
-    if ((name = pa_modargs_get_value(ma, "source_name", NULL)))
-        namereg_fail = TRUE;
-    else if ((name = pa_modargs_get_value(ma, "name", NULL))) {
-        name = name_buf = pa_sprintf_malloc("alsa_input.%s", name);
-        namereg_fail = TRUE;
-    } else {
-        name = name_buf = pa_sprintf_malloc("alsa_input.%s", u->device_name);
-        namereg_fail = FALSE;
-    }
-
     pa_source_new_data_init(&data);
     data.driver = driver;
     data.module = m;
     data.card = card;
-    pa_source_new_data_set_name(&data, name);
-    data.namereg_fail = namereg_fail;
+    set_source_name(&data, ma, dev_id, u->device_name);
     pa_source_new_data_set_sample_spec(&data, &ss);
     pa_source_new_data_set_channel_map(&data, &map);
 
@@ -1261,7 +1273,6 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
 
     u->source = pa_source_new(m->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
     pa_source_new_data_done(&data);
-    pa_xfree(name_buf);
 
     if (!u->source) {
         pa_log("Failed to create source object");

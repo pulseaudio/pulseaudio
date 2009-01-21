@@ -37,7 +37,10 @@ PA_MODULE_DESCRIPTION("ALSA Card");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
-        "name=<name for the sink/source> "
+        "name=<name for the card/sink/source, to be prefixed> "
+        "card_name=<name for card> "
+        "sink_name=<name for sink> "
+        "source_name=<name for source> "
         "device_id=<ALSA card index> "
         "format=<sample format> "
         "rate=<sample rate> "
@@ -51,6 +54,9 @@ PA_MODULE_USAGE(
 
 static const char* const valid_modargs[] = {
     "name",
+    "card_name",
+    "sink_name",
+    "source_name",
     "device_id",
     "format",
     "rate",
@@ -189,6 +195,32 @@ static void init_profile(struct userdata *u) {
         u->source = pa_alsa_source_new(u->module, u->modargs, __FILE__, u->card, d->source_profile);
 }
 
+static void set_card_name(pa_card_new_data *data, pa_modargs *ma, const char *device_id) {
+    char *t;
+    const char *n;
+
+    pa_assert(data);
+    pa_assert(ma);
+    pa_assert(device_id);
+
+    if ((n = pa_modargs_get_value(ma, "card_name", NULL))) {
+        pa_card_new_data_set_name(data, n);
+        data->namereg_fail = TRUE;
+        return;
+    }
+
+    if ((n = pa_modargs_get_value(ma, "name", NULL)))
+        data->namereg_fail = TRUE;
+    else {
+        n = device_id;
+        data->namereg_fail = FALSE;
+    }
+
+    t = pa_sprintf_malloc("alsa_card.%s", n);
+    pa_card_new_data_set_name(data, t);
+    pa_xfree(t);
+}
+
 int pa__init(pa_module*m) {
     pa_card_new_data data;
     pa_modargs *ma;
@@ -224,7 +256,7 @@ int pa__init(pa_module*m) {
     data.module = m;
     pa_alsa_init_proplist_card(data.proplist, alsa_card_index);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_id);
-    pa_card_new_data_set_name(&data, pa_modargs_get_value(ma, "name", u->device_id));
+    set_card_name(&data, ma, u->device_id);
 
     data.profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     if (pa_alsa_probe_profiles(u->device_id, &m->core->default_sample_spec, enumerate_cb, data.profiles) < 0) {
