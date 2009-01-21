@@ -93,8 +93,6 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-#define DEFAULT_DEVICE "default"
-
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
 
