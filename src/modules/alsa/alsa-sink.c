@@ -1204,7 +1204,7 @@ finish:
 pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const pa_alsa_profile_info *profile) {
 
     struct userdata *u = NULL;
-    const char *dev_id;
+    const char *dev_id = NULL;
     pa_sample_spec ss;
     pa_channel_map map;
     uint32_t nfrags, hwbuf_size, frag_size, tsched_size, tsched_watermark;
@@ -1222,6 +1222,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const pa_alsa_profile_in
     snd_pcm_info_alloca(&pcm_info);
 
     pa_assert(m);
+    pa_assert(ma);
 
     ss = m->core->default_sample_spec;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_ALSA) < 0) {
@@ -1286,6 +1287,11 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const pa_alsa_profile_in
     d = use_tsched;
 
     if (profile) {
+
+        if (!(dev_id = pa_modargs_get_value(ma, "device_id", NULL))) {
+            pa_log("device_id= not set");
+            goto fail;
+        }
 
         if (!(u->pcm_handle = pa_alsa_open_by_device_id_profile(
                       dev_id,
