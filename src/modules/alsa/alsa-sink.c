@@ -870,6 +870,10 @@ static int sink_set_volume_cb(pa_sink *s) {
                 if ((err = snd_mixer_selem_get_playback_dB(u->mixer_elem, u->mixer_map[i], &alsa_vol)) < 0)
                     goto fail;
 
+#ifdef HAVE_VALGRIND_MEMCHECK_H
+                VALGRIND_MAKE_MEM_DEFINED(&alsa_vol, sizeof(alsa_vol));
+#endif
+
                 r.values[i] = pa_sw_volume_from_dB((double) (alsa_vol - u->hw_dB_max) / 100.0);
 
             } else {
@@ -901,6 +905,10 @@ static int sink_set_volume_cb(pa_sink *s) {
 
             if ((err = snd_mixer_selem_get_playback_dB(u->mixer_elem, SND_MIXER_SCHN_MONO, &alsa_vol)) < 0)
                 goto fail;
+
+#ifdef HAVE_VALGRIND_MEMCHECK_H
+            VALGRIND_MAKE_MEM_DEFINED(&alsa_vol, sizeof(alsa_vol));
+#endif
 
             pa_cvolume_set(&r, s->volume.channels, pa_sw_volume_from_dB((double) (alsa_vol - u->hw_dB_max) / 100.0));
 
