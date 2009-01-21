@@ -97,6 +97,10 @@ static inline const char *pa_strempty(const char *x) {
     return x ? x : "";
 }
 
+static inline const char *pa_strna(const char *x) {
+    return x ? x : "n/a";
+}
+
 char *pa_split(const char *c, const char*delimiters, const char **state);
 char *pa_split_spaces(const char *c, const char **state);
 
@@ -197,7 +201,6 @@ pa_bool_t pa_in_system_mode(void);
 
 char *pa_machine_id(void);
 char *pa_uname_string(void);
-
 
 #ifdef HAVE_VALGRIND_MEMCHECK_H
 pa_bool_t pa_in_valgrind(void);
