@@ -98,14 +98,14 @@ static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct
     pa_log_info("Synced.");
 }
 
-static struct entry* read_entry(struct userdata *u, char *name) {
+static struct entry* read_entry(struct userdata *u, const char *name) {
     datum key, data;
     struct entry *e;
 
     pa_assert(u);
     pa_assert(name);
 
-    key.dptr = name;
+    key.dptr = (char*) name;
     key.dsize = (int) strlen(name);
 
     data = gdbm_fetch(u->gdbm_file, key);
@@ -235,13 +235,22 @@ static pa_hook_result_t sink_fixate_hook_callback(pa_core *c, pa_sink_new_data *
     if ((e = read_entry(u, name))) {
 
         if (u->restore_volume) {
-            pa_log_info("Restoring volume for sink %s.", new_data->name);
-            pa_sink_new_data_set_volume(new_data, pa_cvolume_remap(&e->volume, &e->channel_map, &new_data->channel_map));
+
+            if (!new_data->volume_is_set) {
+                pa_log_info("Restoring volume for sink %s.", new_data->name);
+                pa_sink_new_data_set_volume(new_data, pa_cvolume_remap(&e->volume, &e->channel_map, &new_data->channel_map));
+            } else
+                pa_log_debug("Not restoring volume for sink %s, because already set.", new_data->name);
+
         }
 
         if (u->restore_muted) {
-            pa_log_info("Restoring mute state for sink %s.", new_data->name);
-            pa_sink_new_data_set_muted(new_data, e->muted);
+
+            if (!new_data->muted_is_set) {
+                pa_log_info("Restoring mute state for sink %s.", new_data->name);
+                pa_sink_new_data_set_muted(new_data, e->muted);
+            } else
+                pa_log_debug("Not restoring mute state for sink %s, because already set.", new_data->name);
         }
 
         pa_xfree(e);
@@ -263,13 +272,21 @@ static pa_hook_result_t source_fixate_hook_callback(pa_core *c, pa_source_new_da
     if ((e = read_entry(u, name))) {
 
         if (u->restore_volume) {
-            pa_log_info("Restoring volume for source %s.", new_data->name);
-            pa_source_new_data_set_volume(new_data, pa_cvolume_remap(&e->volume, &e->channel_map, &new_data->channel_map));
+
+            if (!new_data->volume_is_set) {
+                pa_log_info("Restoring volume for source %s.", new_data->name);
+                pa_source_new_data_set_volume(new_data, pa_cvolume_remap(&e->volume, &e->channel_map, &new_data->channel_map));
+            } else
+                pa_log_debug("Not restoring volume for source %s, because already set.", new_data->name);
         }
 
         if (u->restore_muted) {
-            pa_log_info("Restoring mute state for source %s.", new_data->name);
-            pa_source_new_data_set_muted(new_data, e->muted);
+
+            if (!new_data->muted_is_set) {
+                pa_log_info("Restoring mute state for source %s.", new_data->name);
+                pa_source_new_data_set_muted(new_data, e->muted);
+            } else
+                pa_log_debug("Not restoring mute state for source %s, because already set.", new_data->name);
         }
 
         pa_xfree(e);
