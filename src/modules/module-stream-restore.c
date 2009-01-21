@@ -137,14 +137,14 @@ static char *get_name(pa_proplist *p, const char *prefix) {
     return pa_sprintf_malloc("%s-fallback:%s", prefix, r);
 }
 
-static struct entry* read_entry(struct userdata *u, char *name) {
+static struct entry* read_entry(struct userdata *u, const char *name) {
     datum key, data;
     struct entry *e;
 
     pa_assert(u);
     pa_assert(name);
 
-    key.dptr = name;
+    key.dptr = (char*) name;
     key.dsize = (int) strlen(name);
 
     data = gdbm_fetch(u->gdbm_file, key);
@@ -266,7 +266,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         if (pa_cvolume_equal(pa_cvolume_remap(&old->volume, &old->channel_map, &entry.channel_map), &entry.volume) &&
             !old->muted == !entry.muted &&
-            strcmp(old->device, entry.device) == 0) {
+            strncmp(old->device, entry.device, sizeof(entry.device)) == 0) {
 
             pa_xfree(old);
             pa_xfree(name);
