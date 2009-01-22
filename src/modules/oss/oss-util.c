@@ -309,7 +309,11 @@ static int get_device_number(const char *dev) {
     int r;
 
     if (!(p = rp = pa_readlink(dev))) {
+#ifdef ENOLINK
         if (errno != EINVAL && errno != ENOLINK) {
+#else
+        if (errno != EINVAL) {
+#endif
             r = -1;
             goto finish;
         }
