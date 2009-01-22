@@ -462,14 +462,6 @@ AC_SUBST(pulselocaledir)
 
 #### pkg-config ####
 
-# Check for pkg-config manually first, as if its not installed the
-# PKG_PROG_PKG_CONFIG macro won't be defined.
-AC_CHECK_PROG(have_pkg_config, pkg-config, yes, no)
-
-if test x"$have_pkg_config" = "xno"; then
-    AC_MSG_ERROR(pkg-config is required to install this program)
-fi
-
 PKG_PROG_PKG_CONFIG
 
 #### X11 (optional) ####
