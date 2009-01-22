@@ -250,6 +250,8 @@ int pa_oss_set_fragments(int fd, int nfrags, int frag_size) {
     int arg;
     arg = ((int) nfrags << 16) | simple_log2(frag_size);
 
+    pa_log_debug("Asking for %i fragments of size %i (requested %i)", nfrags, 1 << simple_log2(frag_size), frag_size);
+
     if (ioctl(fd, SNDCTL_DSP_SETFRAGMENT, &arg) < 0) {
         pa_log("SNDCTL_DSP_SETFRAGMENT: %s", pa_cstrerror(errno));
         return -1;

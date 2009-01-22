@@ -121,7 +121,7 @@ struct userdata {
     int mixer_fd;
     int mixer_devmask;
 
-    int nfrags, frag_size;
+    int nfrags, frag_size, orig_frag_size;
 
     pa_bool_t use_mmap;
     unsigned out_mmap_current, in_mmap_current;
@@ -536,7 +536,7 @@ static int unsuspend(struct userdata *u) {
     }
 
     if (u->nfrags >= 2 && u->frag_size >= 1)
-        if (pa_oss_set_fragments(u->fd, u->nfrags, u->frag_size) < 0) {
+        if (pa_oss_set_fragments(u->fd, u->nfrags, u->orig_frag_size) < 0) {
             pa_log_warn("Resume failed, couldn't set original fragment settings.");
             goto fail;
         }
@@ -1146,7 +1146,7 @@ int pa__init(pa_module*m) {
     struct userdata *u = NULL;
     const char *dev;
     int fd = -1;
-    int nfrags, frag_size;
+    int nfrags, orig_frag_size, frag_size;
     int mode, caps;
     pa_bool_t record = TRUE, playback = TRUE, use_mmap = TRUE;
     pa_sample_spec ss;
@@ -1218,6 +1218,7 @@ int pa__init(pa_module*m) {
 
     pa_log_info("Device opened in %s mode.", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
 
+    orig_frag_size = frag_size;
     if (nfrags >= 2 && frag_size >= 1)
         if (pa_oss_set_fragments(fd, nfrags, frag_size) < 0)
             goto fail;
@@ -1245,6 +1246,7 @@ int pa__init(pa_module*m) {
     u->device_name = pa_xstrdup(dev);
     u->in_nfrags = u->out_nfrags = (uint32_t) (u->nfrags = nfrags);
     u->out_fragment_size = u->in_fragment_size = (uint32_t) (u->frag_size = frag_size);
+    u->orig_frag_size = orig_frag_size;
     u->use_mmap = use_mmap;
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
