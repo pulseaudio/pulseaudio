@@ -107,6 +107,79 @@ static inline pa_bool_t pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, v
     return __sync_bool_compare_and_swap(&a->value, (long) old_p, (long) new_p);
 }
 
+#elif defined(__NetBSD__) && defined(HAVE_SYS_ATOMIC_H)
+
+/* NetBSD 5.0+ atomic_ops(3) implementation */
+
+#include <sys/atomic.h>
+
+typedef struct pa_atomic {
+    volatile unsigned int value;
+} pa_atomic_t;
+
+#define PA_ATOMIC_INIT(v) { .value = (unsigned int) (v) }
+
+static inline int pa_atomic_load(const pa_atomic_t *a) {
+    membar_sync();
+    return (int) a->value;
+}
+
+static inline void pa_atomic_store(pa_atomic_t *a, int i) {
+    a->value = (unsigned int) i;
+    membar_sync();
+}
+
+/* Returns the previously set value */
+static inline int pa_atomic_add(pa_atomic_t *a, int i) {
+    int nv = (int) atomic_add_int_nv(&a->value, i);
+    return nv - i;
+}
+
+/* Returns the previously set value */
+static inline int pa_atomic_sub(pa_atomic_t *a, int i) {
+    int nv = (int) atomic_add_int_nv(&a->value, -i);
+    return nv + i;
+}
+
+/* Returns the previously set value */
+static inline int pa_atomic_inc(pa_atomic_t *a) {
+    int nv = (int) atomic_inc_uint_nv(&a->value);
+    return nv - 1;
+}
+
+/* Returns the previously set value */
+static inline int pa_atomic_dec(pa_atomic_t *a) {
+    int nv = (int) atomic_dec_uint_nv(&a->value);
+    return nv + 1;
+}
+
+/* Returns TRUE when the operation was successful. */
+static inline pa_bool_t pa_atomic_cmpxchg(pa_atomic_t *a, int old_i, int new_i) {
+    unsigned int r = atomic_cas_uint(&a->value, (unsigned int) old_i, (unsigned int) new_i);
+    return (int) r == old_i;
+}
+
+typedef struct pa_atomic_ptr {
+    volatile void *value;
+} pa_atomic_ptr_t;
+
+#define PA_ATOMIC_PTR_INIT(v) { .value = (v) }
+
+static inline void* pa_atomic_ptr_load(const pa_atomic_ptr_t *a) {
+    membar_sync();
+    return (void *) a->value;
+}
+
+static inline void pa_atomic_ptr_store(pa_atomic_ptr_t *a, void *p) {
+    a->value = p;
+    membar_sync();
+}
+
+static inline pa_bool_t pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
+    void *r = atomic_cas_ptr(&a->value, old_p, new_p);
+    return r == old_p;
+}
+
 #elif defined(__GNUC__) && (defined(__amd64__) || defined(__x86_64__))
 
 #warn "The native atomic operations implementation for AMD64 has not been tested thoroughly. libatomic_ops is known to not work properly on AMD64 and your gcc version is too old for the gcc-builtin atomic ops support. You have three options now: test the native atomic operations implementation for AMD64, fix libatomic_ops, or upgrade your GCC."

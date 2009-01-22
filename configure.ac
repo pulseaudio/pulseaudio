@@ -129,16 +129,31 @@ AC_ARG_ENABLE([atomic-arm-memory-barrier],
             esac
         ],)
 
+AC_ARG_ENABLE([netbsd-atomic-ops],
+    AS_HELP_STRING([--enable-netbsd-atomic-ops],[Use the native NetBSD atomic_ops implementation]),
+        [
+            case "${enableval}" in
+                yes) atomic_netbsd_helpers=yes ;;
+                no) atomic_netbsd_helpers=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --enable-netbsd-atomic-ops) ;;
+            esac
+        ],
+        [atomic_netbsd_helpers=auto])
+
 AC_MSG_CHECKING([target operating system])
 case $host in
-    	*-*-linux*)
-	    AC_MSG_RESULT([linux])
-	    pulse_target_os=linux
-    	;;
-	*)
-	    AC_MSG_RESULT([unknown])
-	    pulse_target_os=unknown
-	;;
+        *-*-linux*)
+            AC_MSG_RESULT([linux])
+            pulse_target_os=linux
+        ;;
+        *-*-netbsd*)
+            AC_MSG_RESULT([netbsd])
+            pulse_target_os=netbsd
+        ;;
+        *)
+            AC_MSG_RESULT([unknown])
+            pulse_target_os=unknown
+        ;;
 esac
 
 # If everything else fails use libatomic_ops
@@ -160,42 +175,48 @@ else
     AC_MSG_CHECKING([architecture for native atomic operations])
     case $host_cpu in
         arm*)
-	    AC_MSG_RESULT([arm])
-	    AC_MSG_CHECKING([whether we can use Linux kernel helpers])
-	    # The Linux kernel helper functions have been there since 2.6.16. However
-  	    # compile time checking for kernel version in cross compile environment
-	    # (which is usually the case for arm cpu) is tricky (or impossible).
-	    if test "x$pulse_target_os" = "xlinux" && test "x$atomic_arm_linux_helpers" != "xno"; then
-	        AC_MSG_RESULT([yes])
-        	AC_DEFINE_UNQUOTED(ATOMIC_ARM_LINUX_HELPERS, 1, [special arm linux implementation])
-    		need_libatomic_ops=no
-	    else
-	       AC_MSG_RESULT([no])
-	       AC_CACHE_CHECK([compiler support for arm inline asm atomic operations],
-	         pulseaudio_cv_support_arm_atomic_ops,
-		 [AC_COMPILE_IFELSE(
-		    AC_LANG_PROGRAM([],
-		      [[volatile int a=0;
-	                int o=0, n=1, r;
-	                asm volatile ("ldrex	%0, [%1]\n"
-		        	 	 "subs	%0, %0, %2\n"
-		        	 	 "strexeq %0, %3, [%1]\n"
-		        	 	 : "=&r" (r)
-		        	 	 : "r" (&a), "Ir" (o), "r" (n)
-		        	 	 : "cc");
+            AC_MSG_RESULT([arm])
+            AC_MSG_CHECKING([whether we can use Linux kernel helpers])
+            # The Linux kernel helper functions have been there since 2.6.16. However
+            # compile time checking for kernel version in cross compile environment
+            # (which is usually the case for arm cpu) is tricky (or impossible).
+            if test "x$pulse_target_os" = "xlinux" && test "x$atomic_arm_linux_helpers" != "xno"; then
+                AC_MSG_RESULT([yes])
+                AC_DEFINE_UNQUOTED(ATOMIC_ARM_LINUX_HELPERS, 1, [special arm linux implementation])
+                need_libatomic_ops=no
+            else
+               AC_MSG_RESULT([no])
+               AC_CACHE_CHECK([compiler support for arm inline asm atomic operations],
+                 pulseaudio_cv_support_arm_atomic_ops,
+                 [AC_COMPILE_IFELSE(
+                    AC_LANG_PROGRAM([],
+                      [[volatile int a=0;
+                        int o=0, n=1, r;
+                        asm volatile ("ldrex    %0, [%1]\n"
+                                         "subs  %0, %0, %2\n"
+                                         "strexeq %0, %3, [%1]\n"
+                                         : "=&r" (r)
+                                         : "r" (&a), "Ir" (o), "r" (n)
+                                         : "cc");
                         return (a==1 ? 0 : -1);
-		      ]]),
-		    [pulseaudio_cv_support_arm_atomic_ops=yes],
-		    [pulseaudio_cv_support_arm_atomic_ops=no])
-		 ])
-	       AS_IF([test "$pulseaudio_cv_support_arm_atomic_ops" = "yes"], [
-	       	   AC_DEFINE([ATOMIC_ARM_INLINE_ASM], 1, [Have ARMv6 instructions.])
-		   need_libatomic_ops=no
-	         ])
-	   fi
-      	;;
+                      ]]),
+                    [pulseaudio_cv_support_arm_atomic_ops=yes],
+                    [pulseaudio_cv_support_arm_atomic_ops=no])
+                 ])
+               AS_IF([test "$pulseaudio_cv_support_arm_atomic_ops" = "yes"], [
+                   AC_DEFINE([ATOMIC_ARM_INLINE_ASM], 1, [Have ARMv6 instructions.])
+                   need_libatomic_ops=no
+                 ])
+           fi
+        ;;
         *)
-	    AC_MSG_RESULT([unknown])
+            if test "x$pulse_target_os" = "xnetbsd" && test "x$atomic_netbsd_helpers" = "xyes"; then
+                AC_MSG_RESULT([yes])
+                AC_DEFINE_UNQUOTED(NETBSD_ATOMIC_OPS, 1, [netbsd implementation])
+                need_libatomic_ops=no
+            else
+                AC_MSG_RESULT([unknown])
+            fi
         ;;
     esac
 fi
@@ -225,11 +246,11 @@ LTDL_INIT([convenience recursive])
 os_is_win32=0
 
 case "$host_os" in
-	mingw*)
+        mingw*)
         AC_DEFINE([OS_IS_WIN32], 1, [Build target is Windows.])
         os_is_win32=1
-		;;
-	esac
+                ;;
+        esac
 
 AM_CONDITIONAL(OS_IS_WIN32, test "x$os_is_win32" = "x1")
 
@@ -248,14 +269,14 @@ AC_CHECK_HEADERS([arpa/inet.h glob.h grp.h netdb.h netinet/in.h \
     sys/mman.h sys/resource.h sys/select.h sys/socket.h sys/wait.h \
     sys/uio.h syslog.h sys/dl.h dlfcn.h linux/sockios.h])
 AC_CHECK_HEADERS([netinet/ip.h], [], [],
-		 [#include <sys/types.h>
-		  #if HAVE_NETINET_IN_H
-		  # include <netinet/in.h>
-		  #endif
-		  #if HAVE_NETINET_IN_SYSTM_H
-		  # include <netinet/in_systm.h>
-		  #endif
-		 ])
+                 [#include <sys/types.h>
+                  #if HAVE_NETINET_IN_H
+                  # include <netinet/in.h>
+                  #endif
+                  #if HAVE_NETINET_IN_SYSTM_H
+                  # include <netinet/in_systm.h>
+                  #endif
+                 ])
 AC_CHECK_HEADERS([regex.h], [HAVE_REGEX=1], [HAVE_REGEX=0])
 AC_CHECK_HEADERS([sys/un.h], [HAVE_AF_UNIX=1], [HAVE_AF_UNIX=0])
 
@@ -274,6 +295,9 @@ AC_CHECK_HEADERS([sys/filio.h])
 
 # Windows
 AC_CHECK_HEADERS([windows.h winsock2.h ws2tcpip.h])
+
+# NetBSD
+AC_CHECK_HEADERS([sys/atomic.h])
 
 # Other
 AC_CHECK_HEADERS([sys/ioctl.h])
