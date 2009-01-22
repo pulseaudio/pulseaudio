@@ -36,6 +36,7 @@
 
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/core-util.h>
 
 static int msec_lower, msec_upper;
 
@@ -106,7 +107,7 @@ int main(int argc, char*argv[]) {
 
     pa_log_notice("Creating random latencies in the range of %ims to  %ims.", msec_lower, msec_upper);
 
-    for (n = 1; n < sysconf(_SC_NPROCESSORS_CONF); n++) {
+    for (n = 1; n < pa_ncpus(); n++) {
         pthread_t t;
         pa_assert_se(pthread_create(&t, NULL, work, PA_INT_TO_PTR(n)) == 0);
     }
