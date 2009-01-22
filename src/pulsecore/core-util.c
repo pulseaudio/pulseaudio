@@ -935,7 +935,7 @@ static int is_group(gid_t gid, const char *name) {
 #else
     n = -1;
 #endif
-    if (n < 0)
+    if (n <= 0)
         n = 512;
 
     data = pa_xmalloc((size_t) n);
@@ -959,7 +959,7 @@ finish:
      * support getgrgid_r. */
 
     errno = 0;
-    if ((result = getgrgid(gid)) == NULL) {
+    if (!(result = getgrgid(gid))) {
         pa_log("getgrgid(%u): %s", gid, pa_cstrerror(errno));
 
         if (!errno)
@@ -1026,18 +1026,35 @@ int pa_uid_in_group(uid_t uid, const char *name) {
     char **i;
     int r = -1;
 
+#ifdef _SC_GETGR_R_SIZE_MAX
     g_n = sysconf(_SC_GETGR_R_SIZE_MAX);
+#else
+    g_n = -1;
+#endif
+    if (g_n <= 0)
+        g_n = 512;
+
     g_buf = pa_xmalloc((size_t) g_n);
 
+#ifdef _SC_GETPW_R_SIZE_MAX
     p_n = sysconf(_SC_GETPW_R_SIZE_MAX);
+#else
+    p_n = -1;
+#endif
+    if (p_n <= 0)
+        p_n = 512;
+
     p_buf = pa_xmalloc((size_t) p_n);
 
     errno = 0;
-    if (getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr) != 0 || !gr) {
-
+#ifdef HAVE_GETGRNAM_R
+    if (getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr) != 0 || !gr)
+#else
+    if (!(gr = getgrnam(name)))
+#endif
+    {
         if (!errno)
             errno = ENOENT;
-
         goto finish;
     }
 
@@ -1045,8 +1062,11 @@ int pa_uid_in_group(uid_t uid, const char *name) {
     for (i = gr->gr_mem; *i; i++) {
         struct passwd pwbuf, *pw;
 
-        errno = 0;
+#ifdef HAVE_GETPWNAM_R
         if (getpwnam_r(*i, &pwbuf, p_buf, (size_t) p_n, &pw) != 0 || !pw)
+#else
+        if (!(pw = getpwnam(*i)))
+#endif
             continue;
 
         if (pw->pw_uid == uid) {
@@ -1069,15 +1089,25 @@ gid_t pa_get_gid_of_group(const char *name) {
     long g_n;
     struct group grbuf, *gr;
 
+#ifdef _SC_GETGR_R_SIZE_MAX
     g_n = sysconf(_SC_GETGR_R_SIZE_MAX);
+#else
+    g_n = -1;
+#endif
+    if (g_n <= 0)
+        g_n = 512;
+
     g_buf = pa_xmalloc((size_t) g_n);
 
     errno = 0;
-    if (getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr) != 0 || !gr) {
-
+#ifdef HAVE_GETGRNAM_R
+    if (getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr) != 0 || !gr)
+#else
+    if (!(gr = getgrnam(name)))
+#endif
+    {
         if (!errno)
             errno = ENOENT;
-
         goto finish;
     }
 

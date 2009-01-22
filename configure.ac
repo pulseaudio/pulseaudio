@@ -367,8 +367,8 @@ AC_CHECK_FUNCS([lrintf strtof])
 AC_FUNC_FORK
 AC_FUNC_GETGROUPS
 AC_FUNC_SELECT_ARGTYPES
-AC_CHECK_FUNCS([chmod chown clock_gettime getaddrinfo getgrgid_r \
-    getpwuid_r gettimeofday getuid inet_ntop inet_pton mlock nanosleep \
+AC_CHECK_FUNCS([chmod chown clock_gettime getaddrinfo getgrgid_r getgrnam_r \
+    getpwnam_r getpwuid_r gettimeofday getuid inet_ntop inet_pton mlock nanosleep \
     pipe posix_fadvise posix_madvise posix_memalign setpgid setsid shm_open \
     sigaction sleep sysconf])
 AC_CHECK_FUNCS([mkfifo], [HAVE_MKFIFO=1], [HAVE_MKFIFO=0])
