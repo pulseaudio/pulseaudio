@@ -239,7 +239,7 @@ int pa__init(pa_module*m) {
 #ifdef HAVE_ALSA
     if ((n = detect_alsa(m->core, just_one)) <= 0)
 #endif
-#if HAVE_OSS
+#ifdef HAVE_OSS
     if ((n = detect_oss(m->core, just_one)) <= 0)
 #endif
 #ifdef HAVE_SOLARIS
