@@ -71,6 +71,11 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 
+#if defined(__NetBSD__) && !defined(SNDCTL_DSP_GETODELAY)
+#include <sys/audioio.h>
+#include <sys/syscall.h>
+#endif
+
 #include "oss-util.h"
 #include "module-oss-symdef.h"
 
@@ -399,13 +404,27 @@ static pa_usec_t io_sink_get_latency(struct userdata *u) {
 
     if (u->use_getodelay) {
         int arg;
-
+#if defined(__NetBSD__) && !defined(SNDCTL_DSP_GETODELAY)
+#if defined(AUDIO_GETBUFINFO)
+        struct audio_info info;
+        if (syscall(SYS_ioctl, u->fd, AUDIO_GETBUFINFO, &info) < 0) {
+            pa_log_info("Device doesn't support AUDIO_GETBUFINFO: %s", pa_cstrerror(errno));
+            u->use_getodelay = 0;
+        } else {
+            arg = info.play.seek + info.blocksize / 2;
+            r = pa_bytes_to_usec((size_t) arg, &u->sink->sample_spec);
+        }
+#else
+        pa_log_info("System doesn't support AUDIO_GETBUFINFO");
+        u->use_getodelay = 0;
+#endif
+#else
         if (ioctl(u->fd, SNDCTL_DSP_GETODELAY, &arg) < 0) {
             pa_log_info("Device doesn't support SNDCTL_DSP_GETODELAY: %s", pa_cstrerror(errno));
             u->use_getodelay = 0;
         } else
             r = pa_bytes_to_usec((size_t) arg, &u->sink->sample_spec);
-
+#endif
     }
 
     if (!u->use_getodelay && u->use_getospace) {
