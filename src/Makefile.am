@@ -60,7 +60,6 @@ AM_CFLAGS = \
 	-I$(top_builddir)/src/modules/alsa \
 	-I$(top_srcdir)/src/modules/raop \
 	$(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS \
-	$(LTDLINCL) \
 	$(LIBSAMPLERATE_CFLAGS) \
 	$(LIBSNDFILE_CFLAGS) \
 	$(LIBSPEEX_CFLAGS) \
