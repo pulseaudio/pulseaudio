@@ -2541,3 +2541,15 @@ void pa_reduce(unsigned *num, unsigned *den) {
 
     pa_assert(pa_gcd(*num, *den) == 1);
 }
+
+unsigned pa_ncpus(void) {
+    long ncpus;
+
+#ifdef _SC_NPROCESSORS_CONF
+    ncpus = sysconf(_SC_NPROCESSORS_CONF);
+#else
+    ncpus = 1;
+#endif
+
+    return ncpus <= 0 ? 1 : (unsigned) ncpus;
+}

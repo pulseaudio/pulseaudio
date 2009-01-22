@@ -823,6 +823,8 @@ int main(int argc, char *argv[]) {
     pa_log_debug(_("Running on host: %s"), s);
     pa_xfree(s);
 
+    pa_log_debug(_("Found %u CPUs."), pa_ncpus());
+
     pa_log_info(_("Page size is %lu bytes"), (unsigned long) PA_PAGE_SIZE);
 
 #ifdef HAVE_VALGRIND_MEMCHECK_H

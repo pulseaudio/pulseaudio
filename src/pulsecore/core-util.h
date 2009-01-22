@@ -213,4 +213,6 @@ static inline pa_bool_t pa_in_valgrind(void) {
 unsigned pa_gcd(unsigned a, unsigned b);
 void pa_reduce(unsigned *num, unsigned *den);
 
+unsigned pa_ncpus(void);
+
 #endif
