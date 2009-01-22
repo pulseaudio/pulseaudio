@@ -105,7 +105,7 @@ dnl Check whether to build tests by default (as compile-test) or not
 AC_ARG_ENABLE([default-build-tests],
     AS_HELP_STRING([--disable-default-build-tests], [Build test programs only during make check]))
 
-AM_CONDITIONAL([BUILD_TESTS_DEFAULT], [test "x$enable_default_build_tests" = "xno"])
+AM_CONDITIONAL([BUILD_TESTS_DEFAULT], [test "x$enable_default_build_tests" != "xno"])
 
 # Native atomic operation support
 AC_ARG_ENABLE([atomic-arm-linux-helpers],
