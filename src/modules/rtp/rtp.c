@@ -35,6 +35,10 @@
 #include <sys/filio.h>
 #endif
 
+#ifdef HAVE_SYS_UIO_H
+#include <sys/uio.h>
+#endif
+
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
