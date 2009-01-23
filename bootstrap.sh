@@ -66,7 +66,7 @@ else
     test "x$LIBTOOLIZE" = "x" && LIBTOOLIZE=libtoolize
 
     intltoolize --copy --force --automake
-    "$LIBTOOLIZE" -c --force --ltdl --recursive
+    "$LIBTOOLIZE" -c --force
     run_versioned aclocal "$VERSION" -I m4
     run_versioned autoconf 2.63 -Wall
     run_versioned autoheader 2.63
