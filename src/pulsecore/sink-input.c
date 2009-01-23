@@ -338,13 +338,13 @@ static int sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) {
     }
 
     if (state != PA_SINK_INPUT_UNLINKED) {
-        pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_STATE_CHANGED], i);
+        pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_STATE_CHANGED], i);
 
         for (ssync = i->sync_prev; ssync; ssync = ssync->sync_prev)
-            pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_STATE_CHANGED], ssync);
+            pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_STATE_CHANGED], ssync);
 
         for (ssync = i->sync_next; ssync; ssync = ssync->sync_next)
-            pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_STATE_CHANGED], ssync);
+            pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_STATE_CHANGED], ssync);
     }
 
     pa_sink_update_status(i->sink);
@@ -366,7 +366,7 @@ void pa_sink_input_unlink(pa_sink_input *i) {
     linked = PA_SINK_INPUT_IS_LINKED(i->state);
 
     if (linked)
-        pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], i);
+        pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], i);
 
     if (i->sync_prev)
         i->sync_prev->sync_next = i->sync_next;
@@ -398,8 +398,8 @@ void pa_sink_input_unlink(pa_sink_input *i) {
     reset_callbacks(i);
 
     if (linked) {
-        pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_REMOVE, i->index);
-        pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK_POST], i);
+        pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_REMOVE, i->index);
+        pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK_POST], i);
     }
 
     pa_sink_update_status(i->sink);
@@ -463,8 +463,8 @@ void pa_sink_input_put(pa_sink_input *i) {
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_ADD_INPUT, i, 0, NULL) == 0);
 
-    pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
-    pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], i);
+    pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
+    pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], i);
 
     pa_sink_update_status(i->sink);
 }
@@ -519,9 +519,9 @@ int pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, pa
 
     block_size_max_sink_input = i->thread_info.resampler ?
         pa_resampler_max_block_size(i->thread_info.resampler) :
-        pa_frame_align(pa_mempool_block_size_max(i->sink->core->mempool), &i->sample_spec);
+        pa_frame_align(pa_mempool_block_size_max(i->core->mempool), &i->sample_spec);
 
-    block_size_max_sink = pa_frame_align(pa_mempool_block_size_max(i->sink->core->mempool), &i->sink->sample_spec);
+    block_size_max_sink = pa_frame_align(pa_mempool_block_size_max(i->core->mempool), &i->sink->sample_spec);
 
     /* Default buffer size */
     if (slength <= 0)
@@ -836,7 +836,7 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume) {
 
     if (!pa_cvolume_equal(&i->virtual_volume, &data.virtual_volume)) {
         i->virtual_volume = data.virtual_volume;
-        pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+        pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
     }
 }
 
@@ -860,7 +860,7 @@ void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute) {
     i->muted = mute;
 
     pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_MUTE, PA_UINT_TO_PTR(mute), 0, NULL, NULL);
-    pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+    pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
 }
 
 /* Called from main context */
@@ -879,8 +879,8 @@ pa_bool_t pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode,
   pa_proplist_update(i->proplist, mode, p);
 
   if (PA_SINK_IS_LINKED(i->state)) {
-      pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED], i);
-      pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+      pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED], i);
+      pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
   }
 
   return TRUE;
@@ -907,7 +907,7 @@ int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate) {
 
     pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_RATE, PA_UINT_TO_PTR(rate), 0, NULL, NULL);
 
-    pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+    pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
     return 0;
 }
 
@@ -930,8 +930,8 @@ void pa_sink_input_set_name(pa_sink_input *i, const char *name) {
         pa_proplist_unset(i->proplist, PA_PROP_MEDIA_NAME);
 
     if (PA_SINK_INPUT_IS_LINKED(i->state)) {
-        pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED], i);
-        pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+        pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED], i);
+        pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
     }
 }
 
@@ -1011,7 +1011,7 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest) {
         /* Okey, we need a new resampler for the new sink */
 
         if (!(new_resampler = pa_resampler_new(
-                      dest->core->mempool,
+                      i->core->mempool,
                       &i->sample_spec, &i->channel_map,
                       &dest->sample_spec, &dest->channel_map,
                       i->resample_method,
@@ -1292,8 +1292,8 @@ pa_memchunk* pa_sink_input_get_silence(pa_sink_input *i, pa_memchunk *ret) {
     pa_assert(ret);
 
     pa_silence_memchunk_get(
-                &i->sink->core->silence_cache,
-                i->sink->core->mempool,
+                &i->core->silence_cache,
+                i->core->mempool,
                 ret,
                 &i->sample_spec,
                 i->thread_info.resampler ? pa_resampler_max_block_size(i->thread_info.resampler) : 0);

@@ -269,7 +269,7 @@ static int source_output_set_state(pa_source_output *o, pa_source_output_state_t
     o->state = state;
 
     if (state != PA_SOURCE_OUTPUT_UNLINKED)
-        pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED], o);
+        pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED], o);
 
     pa_source_update_status(o->source);
 
@@ -289,7 +289,7 @@ void pa_source_output_unlink(pa_source_output*o) {
     linked = PA_SOURCE_OUTPUT_IS_LINKED(o->state);
 
     if (linked)
-        pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], o);
+        pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], o);
 
     if (o->direct_on_input)
         pa_idxset_remove_by_data(o->direct_on_input->direct_outputs, o, NULL);
@@ -310,8 +310,8 @@ void pa_source_output_unlink(pa_source_output*o) {
     reset_callbacks(o);
 
     if (linked) {
-        pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_REMOVE, o->index);
-        pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK_POST], o);
+        pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_REMOVE, o->index);
+        pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK_POST], o);
     }
 
     pa_source_update_status(o->source);
@@ -365,8 +365,8 @@ void pa_source_output_put(pa_source_output *o) {
 
     pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, o, 0, NULL) == 0);
 
-    pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, o->index);
-    pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], o);
+    pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, o->index);
+    pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], o);
 
     pa_source_update_status(o->source);
 }
@@ -574,7 +574,7 @@ int pa_source_output_set_rate(pa_source_output *o, uint32_t rate) {
 
     pa_asyncmsgq_post(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_RATE, PA_UINT_TO_PTR(rate), 0, NULL, NULL);
 
-    pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+    pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
     return 0;
 }
 
@@ -597,8 +597,8 @@ void pa_source_output_set_name(pa_source_output *o, const char *name) {
         pa_proplist_unset(o->proplist, PA_PROP_MEDIA_NAME);
 
     if (PA_SOURCE_OUTPUT_IS_LINKED(o->state)) {
-        pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], o);
-        pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+        pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], o);
+        pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
     }
 }
 
@@ -610,8 +610,8 @@ pa_bool_t pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t
   pa_proplist_update(o->proplist, mode, p);
 
   if (PA_SINK_IS_LINKED(o->state)) {
-    pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], o);
-    pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+    pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], o);
+    pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
   }
 
   return TRUE;
@@ -682,7 +682,7 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
         /* Okey, we need a new resampler for the new source */
 
         if (!(new_resampler = pa_resampler_new(
-                      dest->core->mempool,
+                      o->core->mempool,
                       &dest->sample_spec, &dest->channel_map,
                       &o->sample_spec, &o->channel_map,
                       o->resample_method,
