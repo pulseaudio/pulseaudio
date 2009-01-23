@@ -58,3 +58,4 @@ thread-test
 utf8-test
 voltest
 start-pulseaudio-x11
+vector-test

@@ -233,6 +233,7 @@ TESTS = \
 		strlist-test \
 		close-test \
 		voltest \
+		vector-test \
 		memblockq-test \
 		channelmap-test \
 		thread-mainloop-test \
@@ -263,6 +264,7 @@ TESTS_BINARIES = \
 		strlist-test \
 		close-test \
 		voltest \
+		vector-test \
 		memblockq-test \
 		sync-playback \
 		interpol-test \
@@ -408,6 +410,11 @@ voltest_CFLAGS = $(AM_CFLAGS)
 voltest_LDADD = $(AM_LDADD) libpulse.la
 voltest_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
+vector_test_SOURCES = tests/vector-test.c
+vector_test_CFLAGS = $(AM_CFLAGS)
+vector_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la
+vector_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
 channelmap_test_SOURCES = tests/channelmap-test.c
 channelmap_test_CFLAGS = $(AM_CFLAGS)
 channelmap_test_LDADD = $(AM_LDADD) libpulse.la
@@ -527,7 +534,7 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/llist.h \
 		pulsecore/lock-autospawn.c pulsecore/lock-autospawn.h \
 		pulsecore/log.c pulsecore/log.h \
-		pulsecore/macro.h \
+		pulsecore/macro.h pulsecore/vector.h \
 		pulsecore/mcalign.c pulsecore/mcalign.h \
 		pulsecore/memblock.c pulsecore/memblock.h \
 		pulsecore/memblockq.c pulsecore/memblockq.h \
