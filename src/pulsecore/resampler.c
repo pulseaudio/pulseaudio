@@ -25,7 +25,7 @@
 
 #include <string.h>
 
-#if HAVE_LIBSAMPLERATE
+#ifdef HAVE_LIBSAMPLERATE
 #include <samplerate.h>
 #endif
 

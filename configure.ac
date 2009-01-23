@@ -105,7 +105,7 @@ dnl Check whether to build tests by default (as compile-test) or not
 AC_ARG_ENABLE([default-build-tests],
     AS_HELP_STRING([--disable-default-build-tests], [Build test programs only during make check]))
 
-AM_CONDITIONAL([BUILD_TESTS_DEFAULT], [test "x$enable_default_build_tests" = "xno"])
+AM_CONDITIONAL([BUILD_TESTS_DEFAULT], [test "x$enable_default_build_tests" != "xno"])
 
 # Native atomic operation support
 AC_ARG_ENABLE([atomic-arm-linux-helpers],
@@ -237,9 +237,32 @@ AS_IF([test "$pulseaudio_cv__Bool" = "yes"], [
 
 #### libtool stuff ####
 LT_PREREQ(2.2)
-LT_CONFIG_LTDL_DIR([libltdl])
 LT_INIT([dlopen win32-dll disable-static])
-LTDL_INIT([convenience recursive])
+
+dnl Unfortunately, even up to libtool 2.2.6a there is no way to know
+dnl exactly which version of libltdl is present in the system, so we
+dnl just assume that it's a working version as long as we have the
+dnl library and the header files.
+dnl
+dnl As an extra safety device, check for lt_dladvise_init() which is
+dnl only implemented in libtool 2.x, and refine as we go if we have
+dnl refined requirements.
+dnl
+dnl Check the header files first since the system may have a
+dnl libltdl.so for runtime, but no headers, and we want to bail out as
+dnl soon as possible.
+dnl
+dnl We don't need any special variable for this though, since the user
+dnl can give the proper place to find libltdl through the standard
+dnl variables like LDFLAGS and CPPFLAGS.
+
+AC_CHECK_HEADER([ltdl.h],
+    [AC_CHECK_LIB([ltdl], [lt_dladvise_init], [LIBLTDL=-lltdl], [LIBLTDL=])],
+    [LIBLTDL=])
+
+AS_IF([test "x$LIBLTDL" = "x"],
+    [AC_MSG_ERROR([Unable to find libltdl.])])
+AC_SUBST([LIBLTDL])
 
 #### Determine build environment ####
 
@@ -442,14 +465,6 @@ AC_SUBST(pulselocaledir)
 ###################################
 
 #### pkg-config ####
-
-# Check for pkg-config manually first, as if its not installed the
-# PKG_PROG_PKG_CONFIG macro won't be defined.
-AC_CHECK_PROG(have_pkg_config, pkg-config, yes, no)
-
-if test x"$have_pkg_config" = "xno"; then
-    AC_MSG_ERROR(pkg-config is required to install this program)
-fi
 
 PKG_PROG_PKG_CONFIG
 
@@ -1174,7 +1189,6 @@ AM_CONDITIONAL([FORCE_PREOPEN], [test "x$FORCE_PREOPEN" = "xyes"])
 
 AC_CONFIG_FILES([
 Makefile
-libltdl/Makefile
 src/Makefile
 man/Makefile
 libpulse.pc
