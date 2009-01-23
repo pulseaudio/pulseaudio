@@ -117,6 +117,10 @@ char *pa_card_list_to_string(pa_core *c) {
 
     for (card = pa_idxset_first(c->cards, &idx); card; card = pa_idxset_next(c->cards, &idx)) {
         char *t;
+        pa_sink *sink;
+        pa_source *source;
+        uint32_t sidx;
+
         pa_strbuf_printf(
                 s,
                 "    index: %u\n"
@@ -137,9 +141,7 @@ char *pa_card_list_to_string(pa_core *c) {
             pa_card_profile *p;
             void *state = NULL;
 
-            pa_strbuf_puts(
-                    s,
-                    "\tprofiles:\n");
+            pa_strbuf_puts(s, "\tprofiles:\n");
 
             while ((p = pa_hashmap_iterate(card->profiles, &state, NULL)))
                 pa_strbuf_printf(s, "\t\t%s: %s (priority %u)\n", p->name, p->description, p->priority);
@@ -150,6 +152,18 @@ char *pa_card_list_to_string(pa_core *c) {
                     s,
                     "\tactive profile: <%s>\n",
                     card->active_profile->name);
+
+        if (!pa_idxset_isempty(card->sinks)) {
+            pa_strbuf_puts(s, "\tsinks:\n");
+            for (sink = pa_idxset_first(card->sinks, &sidx); sink; sink = pa_idxset_next(card->sinks, &sidx))
+                pa_strbuf_printf(s, "\t\t%s/#%u: %s\n", sink->name, sink->index, pa_strna(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+        }
+
+        if (!pa_idxset_isempty(card->sources)) {
+            pa_strbuf_puts(s, "\tsources:\n");
+            for (source = pa_idxset_first(card->sources, &sidx); source; source = pa_idxset_next(card->sources, &sidx))
+                pa_strbuf_printf(s, "\t\t%s/#%u: %s\n", source->name, source->index, pa_strna(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+        }
     }
 
     return pa_strbuf_tostring_free(s);
