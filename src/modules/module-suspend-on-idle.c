@@ -62,8 +62,10 @@ struct userdata {
         *source_output_new_slot,
         *sink_input_unlink_slot,
         *source_output_unlink_slot,
-        *sink_input_move_slot,
-        *source_output_move_slot,
+        *sink_input_move_start_slot,
+        *source_output_move_start_slot,
+        *sink_input_move_finish_slot,
+        *source_output_move_finish_slot,
         *sink_input_state_changed_slot,
         *source_output_state_changed_slot;
 };
@@ -181,36 +183,56 @@ static pa_hook_result_t source_output_unlink_hook_cb(pa_core *c, pa_source_outpu
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t sink_input_move_hook_cb(pa_core *c, pa_sink_input_move_hook_data *data, struct userdata *u) {
+static pa_hook_result_t sink_input_move_start_hook_cb(pa_core *c, pa_sink_input *s, struct userdata *u) {
     struct device_info *d;
 
     pa_assert(c);
-    pa_assert(data);
+    pa_sink_input_assert_ref(s);
     pa_assert(u);
 
-    if ((d = pa_hashmap_get(u->device_infos, data->destination)))
-        resume(d);
-
-    if (pa_sink_check_suspend(data->sink_input->sink) <= 1)
-        if ((d = pa_hashmap_get(u->device_infos, data->sink_input->sink)))
+    if (pa_sink_check_suspend(s->sink) <= 1)
+        if ((d = pa_hashmap_get(u->device_infos, s->sink)))
             restart(d);
 
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t source_output_move_hook_cb(pa_core *c, pa_source_output_move_hook_data *data, struct userdata *u) {
+static pa_hook_result_t sink_input_move_finish_hook_cb(pa_core *c, pa_sink_input *s, struct userdata *u) {
     struct device_info *d;
 
     pa_assert(c);
-    pa_assert(data);
+    pa_sink_input_assert_ref(s);
     pa_assert(u);
 
-    if ((d = pa_hashmap_get(u->device_infos, data->destination)))
+    if ((d = pa_hashmap_get(u->device_infos, s->sink)))
         resume(d);
 
-    if (pa_source_check_suspend(data->source_output->source) <= 1)
-        if ((d = pa_hashmap_get(u->device_infos, data->source_output->source)))
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_output_move_start_hook_cb(pa_core *c, pa_source_output *s, struct userdata *u) {
+    struct device_info *d;
+
+    pa_assert(c);
+    pa_source_output_assert_ref(s);
+    pa_assert(u);
+
+    if (pa_source_check_suspend(s->source) <= 1)
+        if ((d = pa_hashmap_get(u->device_infos, s->source)))
             restart(d);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_output_move_finish_hook_cb(pa_core *c, pa_source_output *s, struct userdata *u) {
+    struct device_info *d;
+
+    pa_assert(c);
+    pa_source_output_assert_ref(s);
+    pa_assert(u);
+
+    if ((d = pa_hashmap_get(u->device_infos, s->source)))
+        resume(d);
 
     return PA_HOOK_OK;
 }
@@ -376,8 +398,10 @@ int pa__init(pa_module*m) {
     u->source_output_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_FIXATE], PA_HOOK_NORMAL, (pa_hook_cb_t) source_output_fixate_hook_cb, u);
     u->sink_input_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK_POST], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_input_unlink_hook_cb, u);
     u->source_output_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK_POST], PA_HOOK_NORMAL, (pa_hook_cb_t) source_output_unlink_hook_cb, u);
-    u->sink_input_move_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_input_move_hook_cb, u);
-    u->source_output_move_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE], PA_HOOK_NORMAL, (pa_hook_cb_t) source_output_move_hook_cb, u);
+    u->sink_input_move_start_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_START], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_input_move_start_hook_cb, u);
+    u->source_output_move_start_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_START], PA_HOOK_NORMAL, (pa_hook_cb_t) source_output_move_start_hook_cb, u);
+    u->sink_input_move_finish_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FINISH], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_input_move_finish_hook_cb, u);
+    u->source_output_move_finish_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_FINISH], PA_HOOK_NORMAL, (pa_hook_cb_t) source_output_move_finish_hook_cb, u);
     u->sink_input_state_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_STATE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_input_state_changed_hook_cb, u);
     u->source_output_state_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) source_output_state_changed_hook_cb, u);
 
@@ -421,8 +445,10 @@ void pa__done(pa_module*m) {
         pa_hook_slot_free(u->sink_input_new_slot);
     if (u->sink_input_unlink_slot)
         pa_hook_slot_free(u->sink_input_unlink_slot);
-    if (u->sink_input_move_slot)
-        pa_hook_slot_free(u->sink_input_move_slot);
+    if (u->sink_input_move_start_slot)
+        pa_hook_slot_free(u->sink_input_move_start_slot);
+    if (u->sink_input_move_finish_slot)
+        pa_hook_slot_free(u->sink_input_move_finish_slot);
     if (u->sink_input_state_changed_slot)
         pa_hook_slot_free(u->sink_input_state_changed_slot);
 
@@ -430,8 +456,10 @@ void pa__done(pa_module*m) {
         pa_hook_slot_free(u->source_output_new_slot);
     if (u->source_output_unlink_slot)
         pa_hook_slot_free(u->source_output_unlink_slot);
-    if (u->source_output_move_slot)
-        pa_hook_slot_free(u->source_output_move_slot);
+    if (u->source_output_move_start_slot)
+        pa_hook_slot_free(u->source_output_move_start_slot);
+    if (u->source_output_move_finish_slot)
+        pa_hook_slot_free(u->source_output_move_finish_slot);
     if (u->source_output_state_changed_slot)
         pa_hook_slot_free(u->source_output_state_changed_slot);
 

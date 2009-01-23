@@ -78,7 +78,7 @@ struct pa_sink_input {
     pa_module *module;                  /* may be NULL */
     pa_client *client;                  /* may be NULL */
 
-    pa_sink *sink;
+    pa_sink *sink; /* NULL while we are being moved */
 
     /* A sink input may be connected to multiple source outputs
      * directly, so that they don't get mixed data of the entire
@@ -246,11 +246,6 @@ void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cv
 void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mute);
 void pa_sink_input_new_data_done(pa_sink_input_new_data *data);
 
-typedef struct pa_sink_input_move_hook_data {
-    pa_sink_input *sink_input;
-    pa_sink *destination;
-} pa_sink_input_move_hook_data;
-
 typedef struct pa_sink_set_input_volume_data {
   pa_sink_input *sink_input;
   pa_cvolume virtual_volume;
@@ -300,7 +295,14 @@ pa_bool_t pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode,
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i);
 
 int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest);
-pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest);
+pa_bool_t pa_sink_input_may_move(pa_sink_input *i); /* may this sink input move at all? */
+pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest); /* may this sink input move to this sink? */
+
+/* The same as pa_sink_input_move_to() but in two seperate steps,
+ * first the detaching from the old sink, then the attaching to the
+ * new sink */
+int pa_sink_input_start_move(pa_sink_input *i);
+int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest);
 
 pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i);
 

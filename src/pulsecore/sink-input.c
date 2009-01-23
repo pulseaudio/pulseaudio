@@ -306,6 +306,9 @@ pa_sink_input* pa_sink_input_new(
 static void update_n_corked(pa_sink_input *i, pa_sink_input_state_t state) {
     pa_assert(i);
 
+    if (!i->sink)
+        return;
+
     if (i->state == PA_SINK_INPUT_CORKED && state != PA_SINK_INPUT_CORKED)
         pa_assert_se(i->sink->n_corked -- >= 1);
     else if (i->state != PA_SINK_INPUT_CORKED && state == PA_SINK_INPUT_CORKED)
@@ -375,9 +378,11 @@ void pa_sink_input_unlink(pa_sink_input *i) {
 
     i->sync_prev = i->sync_next = NULL;
 
-    pa_idxset_remove_by_data(i->sink->core->sink_inputs, i, NULL);
-    if (pa_idxset_remove_by_data(i->sink->inputs, i, NULL))
-        pa_sink_input_unref(i);
+    pa_idxset_remove_by_data(i->core->sink_inputs, i, NULL);
+
+    if (i->sink)
+        if (pa_idxset_remove_by_data(i->sink->inputs, i, NULL))
+            pa_sink_input_unref(i);
 
     if (i->client)
         pa_idxset_remove_by_data(i->client->sink_inputs, i, NULL);
@@ -391,7 +396,7 @@ void pa_sink_input_unlink(pa_sink_input *i) {
     update_n_corked(i, PA_SINK_INPUT_UNLINKED);
     i->state = PA_SINK_INPUT_UNLINKED;
 
-    if (linked)
+    if (linked && i->sink)
         if (i->sink->asyncmsgq)
             pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_REMOVE_INPUT, i, 0, NULL) == 0);
 
@@ -402,9 +407,11 @@ void pa_sink_input_unlink(pa_sink_input *i) {
         pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK_POST], i);
     }
 
-    pa_sink_update_status(i->sink);
+    if (i->sink) {
+        pa_sink_update_status(i->sink);
+        i->sink = NULL;
+    }
 
-    i->sink = NULL;
     pa_sink_input_unref(i);
 }
 
@@ -943,13 +950,9 @@ pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i) {
 }
 
 /* Called from main context */
-pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
+pa_bool_t pa_sink_input_may_move(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
-    pa_sink_assert_ref(dest);
-
-    if (dest == i->sink)
-        return TRUE;
 
     if (i->flags & PA_SINK_INPUT_DONT_MOVE)
         return FALSE;
@@ -958,6 +961,21 @@ pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
         pa_log_warn("Moving synchronised streams not supported.");
         return FALSE;
     }
+
+    return TRUE;
+}
+
+/* Called from main context */
+pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
+    pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
+    pa_sink_assert_ref(dest);
+
+    if (dest == i->sink)
+        return TRUE;
+
+    if (!pa_sink_input_may_move(i))
+        return FALSE;
 
     if (pa_idxset_size(dest->inputs) >= PA_MAX_INPUTS_PER_SINK) {
         pa_log_warn("Failed to move sink input: too many inputs per sink.");
@@ -972,23 +990,21 @@ pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
 }
 
 /* Called from main context */
-int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest) {
-    pa_resampler *new_resampler;
-    pa_sink *origin;
-    pa_sink_input_move_hook_data hook_data;
+int pa_sink_input_start_move(pa_sink_input *i) {
     pa_source_output *o, *p = NULL;
+    pa_sink *origin;
 
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
-    pa_sink_assert_ref(dest);
+    pa_assert(i->sink);
+
+    if (!pa_sink_input_may_move(i))
+        return -1;
+
+    if (pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_START], i) < 0)
+        return -1;
 
     origin = i->sink;
-
-    if (dest == origin)
-        return 0;
-
-    if (!pa_sink_input_may_move_to(i, dest))
-        return -1;
 
     /* Kill directly connected outputs */
     while ((o = pa_idxset_first(i->direct_outputs, NULL))) {
@@ -996,10 +1012,42 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest) {
         pa_source_output_kill(o);
         p = o;
     }
+    pa_assert(pa_idxset_isempty(i->direct_outputs));
+
+    pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_START_MOVE, i, 0, NULL) == 0);
+
+    if (pa_sink_input_get_state(i) == PA_SINK_INPUT_CORKED)
+        pa_assert_se(i->sink->n_corked-- >= 1);
+
+    pa_idxset_remove_by_data(i->sink->inputs, i, NULL);
+    i->sink = NULL;
+
+    pa_sink_update_status(origin);
+
+    return 0;
+}
+
+/* Called from main context */
+int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest) {
+    pa_resampler *new_resampler;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
+    pa_assert(!i->sink);
+    pa_sink_assert_ref(dest);
+
+    if (!pa_sink_input_may_move_to(i, dest))
+        return -1;
+
+    i->sink = dest;
+    pa_idxset_put(dest->inputs, i, NULL);
+
+    if (pa_sink_input_get_state(i) == PA_SINK_INPUT_CORKED)
+        i->sink->n_corked++;
 
     if (i->thread_info.resampler &&
-        pa_sample_spec_equal(&origin->sample_spec, &dest->sample_spec) &&
-        pa_channel_map_equal(&origin->channel_map, &dest->channel_map))
+        pa_sample_spec_equal(pa_resampler_output_sample_spec(i->thread_info.resampler), &dest->sample_spec) &&
+        pa_channel_map_equal(pa_resampler_output_channel_map(i->thread_info.resampler), &dest->channel_map))
 
         /* Try to reuse the old resampler if possible */
         new_resampler = i->thread_info.resampler;
@@ -1024,21 +1072,6 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest) {
     } else
         new_resampler = NULL;
 
-    hook_data.sink_input = i;
-    hook_data.destination = dest;
-    pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE], &hook_data);
-
-    pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_START_MOVE, i, 0, NULL) == 0);
-
-    pa_idxset_remove_by_data(origin->inputs, i, NULL);
-    pa_idxset_put(dest->inputs, i, NULL);
-    i->sink = dest;
-
-    if (pa_sink_input_get_state(i) == PA_SINK_INPUT_CORKED) {
-        pa_assert_se(origin->n_corked-- >= 1);
-        dest->n_corked++;
-    }
-
     /* Replace resampler and render queue */
     if (new_resampler != i->thread_info.resampler) {
 
@@ -1059,20 +1092,39 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest) {
                 &i->sink->silence);
     }
 
-    pa_sink_update_status(origin);
     pa_sink_update_status(dest);
-
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_FINISH_MOVE, i, 0, NULL) == 0);
 
+    pa_log_debug("Successfully moved sink input %i to %s.", i->index, dest->name);
+
+    /* Notify everyone */
     if (i->moved)
         i->moved(i);
 
-    pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_POST], i);
+    pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FINISH], i);
+    pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
 
-    pa_log_debug("Successfully moved sink input %i from %s to %s.", i->index, origin->name, dest->name);
+    return 0;
+}
 
-    /* Notify everyone */
-    pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+/* Called from main context */
+int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest) {
+    pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
+    pa_assert(!i->sink);
+    pa_sink_assert_ref(dest);
+
+    if (dest == i->sink)
+        return 0;
+
+    if (!pa_sink_input_may_move_to(i, dest))
+        return -1;
+
+    if (pa_sink_input_start_move(i) < 0)
+        return -1;
+
+    if (pa_sink_input_finish_move(i, dest) < 0)
+        return -1;
 
     return 0;
 }

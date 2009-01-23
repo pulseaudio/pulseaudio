@@ -71,7 +71,7 @@ struct pa_source_output {
     pa_module *module;                    /* may be NULL */
     pa_client *client;                    /* may be NULL */
 
-    pa_source *source;
+    pa_source *source; /* NULL while being moved */
 
     /* A source output can monitor just a single input of a sink, in which case we find it here */
     pa_sink_input *direct_on_input;       /* may be NULL */
@@ -194,11 +194,6 @@ void pa_source_output_new_data_set_sample_spec(pa_source_output_new_data *data, 
 void pa_source_output_new_data_set_channel_map(pa_source_output_new_data *data, const pa_channel_map *map);
 void pa_source_output_new_data_done(pa_source_output_new_data *data);
 
-typedef struct pa_source_output_move_hook_data {
-    pa_source_output *source_output;
-    pa_source *destination;
-} pa_source_output_move_hook_data;
-
 /* To be called by the implementing module only */
 
 pa_source_output* pa_source_output_new(
@@ -228,8 +223,15 @@ pa_bool_t pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t
 
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o);
 
+pa_bool_t pa_source_output_may_move(pa_source_output *o);
 pa_bool_t pa_source_output_may_move_to(pa_source_output *o, pa_source *dest);
 int pa_source_output_move_to(pa_source_output *o, pa_source *dest);
+
+/* The same as pa_source_output_move_to() but in two seperate steps,
+ * first the detaching from the old source, then the attaching to the
+ * new source */
+int pa_source_output_start_move(pa_source_output *o);
+int pa_source_output_finish_move(pa_source_output *o, pa_source *dest);
 
 #define pa_source_output_get_state(o) ((o)->state)
 

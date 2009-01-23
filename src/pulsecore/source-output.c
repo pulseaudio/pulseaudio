@@ -249,11 +249,13 @@ pa_source_output* pa_source_output_new(
 static void update_n_corked(pa_source_output *o, pa_source_output_state_t state) {
     pa_assert(o);
 
+    if (!o->source)
+        return;
+
     if (o->state == PA_SOURCE_OUTPUT_CORKED && state != PA_SOURCE_OUTPUT_CORKED)
         pa_assert_se(o->source->n_corked -- >= 1);
     else if (o->state != PA_SOURCE_OUTPUT_CORKED && state == PA_SOURCE_OUTPUT_CORKED)
         o->source->n_corked++;
-
 }
 
 /* Called from main context */
@@ -293,9 +295,12 @@ void pa_source_output_unlink(pa_source_output*o) {
 
     if (o->direct_on_input)
         pa_idxset_remove_by_data(o->direct_on_input->direct_outputs, o, NULL);
-    pa_idxset_remove_by_data(o->source->core->source_outputs, o, NULL);
-    if (pa_idxset_remove_by_data(o->source->outputs, o, NULL))
-        pa_source_output_unref(o);
+
+    pa_idxset_remove_by_data(o->core->source_outputs, o, NULL);
+
+    if (o->source)
+        if (pa_idxset_remove_by_data(o->source->outputs, o, NULL))
+            pa_source_output_unref(o);
 
     if (o->client)
         pa_idxset_remove_by_data(o->client->source_outputs, o, NULL);
@@ -303,7 +308,7 @@ void pa_source_output_unlink(pa_source_output*o) {
     update_n_corked(o, PA_SOURCE_OUTPUT_UNLINKED);
     o->state = PA_SOURCE_OUTPUT_UNLINKED;
 
-    if (linked)
+    if (linked && o->source)
         if (o->source->asyncmsgq)
             pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL) == 0);
 
@@ -314,9 +319,11 @@ void pa_source_output_unlink(pa_source_output*o) {
         pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK_POST], o);
     }
 
-    pa_source_update_status(o->source);
+    if (o->source) {
+        pa_source_update_status(o->source);
+        o->source = NULL;
+    }
 
-    o->source = NULL;
     pa_source_output_unref(o);
 }
 
@@ -624,6 +631,21 @@ pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o) {
     return o->resample_method;
 }
 
+/* Called from main context */
+pa_bool_t pa_source_output_may_move(pa_source_output *o) {
+    pa_source_output_assert_ref(o);
+    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
+
+    if (o->flags & PA_SOURCE_OUTPUT_DONT_MOVE)
+        return FALSE;
+
+    if (o->direct_on_input)
+        return FALSE;
+
+    return TRUE;
+}
+
+/* Called from main context */
 pa_bool_t pa_source_output_may_move_to(pa_source_output *o, pa_source *dest) {
     pa_source_output_assert_ref(o);
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
@@ -632,10 +654,7 @@ pa_bool_t pa_source_output_may_move_to(pa_source_output *o, pa_source *dest) {
     if (dest == o->source)
         return TRUE;
 
-    if (o->flags & PA_SOURCE_OUTPUT_DONT_MOVE)
-        return FALSE;
-
-    if (o->direct_on_input)
+    if (!pa_source_output_may_move(o))
         return FALSE;
 
     if (pa_idxset_size(dest->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
@@ -651,26 +670,52 @@ pa_bool_t pa_source_output_may_move_to(pa_source_output *o, pa_source *dest) {
 }
 
 /* Called from main context */
-int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
+int pa_source_output_start_move(pa_source_output *o) {
     pa_source *origin;
-    pa_resampler *new_resampler;
-    pa_source_output_move_hook_data hook_data;
 
     pa_source_output_assert_ref(o);
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
-    pa_source_assert_ref(dest);
+    pa_assert(o->source);
+
+    if (!pa_source_output_may_move(o))
+        return -1;
+
+    if (pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_START], o) < 0)
+        return -1;
 
     origin = o->source;
 
-    if (dest == origin)
-        return 0;
+    pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL) == 0);
 
-    if (!pa_source_output_may_move_to(o, dest))
-        return -1;
+    if (pa_source_output_get_state(o) == PA_SOURCE_OUTPUT_CORKED)
+        pa_assert_se(origin->n_corked-- >= 1);
+
+    pa_idxset_remove_by_data(o->source->outputs, o, NULL);
+    o->source = NULL;
+
+    pa_source_update_status(origin);
+
+    return 0;
+}
+
+/* Called from main context */
+int pa_source_output_finish_move(pa_source_output *o, pa_source *dest) {
+    pa_resampler *new_resampler;
+
+    pa_source_output_assert_ref(o);
+    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
+    pa_assert(!o->source);
+    pa_source_assert_ref(dest);
+
+    o->source = dest;
+    pa_idxset_put(o->source->outputs, o, NULL);
+
+    if (pa_source_output_get_state(o) == PA_SOURCE_OUTPUT_CORKED)
+        o->source->n_corked++;
 
     if (o->thread_info.resampler &&
-        pa_sample_spec_equal(&origin->sample_spec, &dest->sample_spec) &&
-        pa_channel_map_equal(&origin->channel_map, &dest->channel_map))
+        pa_sample_spec_equal(pa_resampler_input_sample_spec(o->thread_info.resampler), &dest->sample_spec) &&
+        pa_channel_map_equal(pa_resampler_input_channel_map(o->thread_info.resampler), &dest->channel_map))
 
         /* Try to reuse the old resampler if possible */
         new_resampler = o->thread_info.resampler;
@@ -695,22 +740,6 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
     } else
         new_resampler = NULL;
 
-    hook_data.source_output = o;
-    hook_data.destination = dest;
-    pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE], &hook_data);
-
-    /* Okey, let's move it */
-    pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL) == 0);
-
-    pa_idxset_remove_by_data(origin->outputs, o, NULL);
-    pa_idxset_put(dest->outputs, o, NULL);
-    o->source = dest;
-
-    if (pa_source_output_get_state(o) == PA_SOURCE_OUTPUT_CORKED) {
-        pa_assert_se(origin->n_corked-- >= 1);
-        dest->n_corked++;
-    }
-
     /* Replace resampler */
     if (new_resampler != o->thread_info.resampler) {
         if (o->thread_info.resampler)
@@ -730,20 +759,40 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
                 &o->source->silence);
     }
 
-    pa_source_update_status(origin);
     pa_source_update_status(dest);
-
     pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, o, 0, NULL) == 0);
 
+    pa_log_debug("Successfully moved source output %i to %s.", o->index, dest->name);
+
+    /* Notify everyone */
     if (o->moved)
         o->moved(o);
 
-    pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_POST], o);
+    pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_FINISH], o);
+    pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
 
-    pa_log_debug("Successfully moved source output %i from %s to %s.", o->index, origin->name, dest->name);
+    return 0;
+}
 
-    /* Notify everyone */
-    pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+/* Called from main context */
+int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
+
+    pa_source_output_assert_ref(o);
+    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
+    pa_assert(o->source);
+    pa_source_assert_ref(dest);
+
+    if (dest == o->source)
+        return 0;
+
+    if (!pa_source_output_may_move_to(o, dest))
+        return -1;
+
+    if (pa_source_output_start_move(o) < 0)
+        return -1;
+
+    if (pa_source_output_finish_move(o, dest) < 0)
+        return -1;
 
     return 0;
 }
