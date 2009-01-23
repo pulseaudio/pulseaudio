@@ -533,6 +533,7 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/llist.h \
 		pulsecore/lock-autospawn.c pulsecore/lock-autospawn.h \
 		pulsecore/log.c pulsecore/log.h \
+		pulsecore/ratelimit.c pulsecore/ratelimit.h \
 		pulsecore/macro.h pulsecore/vector.h \
 		pulsecore/mcalign.c pulsecore/mcalign.h \
 		pulsecore/memblock.c pulsecore/memblock.h \
