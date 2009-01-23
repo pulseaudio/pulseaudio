@@ -26,6 +26,7 @@
 #include <pulse/xmalloc.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
+#include <pulsecore/queue.h>
 
 #include "alsa-util.h"
 #include "alsa-sink.h"
@@ -159,23 +160,49 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     od = PA_CARD_PROFILE_DATA(c->active_profile);
 
     if (od->sink_profile != nd->sink_profile) {
+        pa_queue *inputs = NULL;
+
         if (u->sink) {
+            if (nd->sink_profile)
+                inputs = pa_sink_move_all_start(u->sink);
+
             pa_alsa_sink_free(u->sink);
             u->sink = NULL;
         }
 
-        if (nd->sink_profile)
+        if (nd->sink_profile) {
             u->sink = pa_alsa_sink_new(c->module, u->modargs, __FILE__, c, nd->sink_profile);
+
+            if (inputs) {
+                if (u->sink)
+                    pa_sink_move_all_finish(u->sink, inputs);
+                else
+                    pa_sink_move_all_fail(inputs);
+            }
+        }
     }
 
     if (od->source_profile != nd->source_profile) {
+        pa_queue *outputs = NULL;
+
         if (u->source) {
+            if (nd->source_profile)
+                outputs = pa_source_move_all_start(u->source);
+
             pa_alsa_source_free(u->source);
             u->source = NULL;
         }
 
-        if (nd->source_profile)
+        if (nd->source_profile) {
             u->source = pa_alsa_source_new(c->module, u->modargs, __FILE__, c, nd->source_profile);
+
+            if (outputs) {
+                if (u->source)
+                    pa_source_move_all_finish(u->source, outputs);
+                else
+                    pa_source_move_all_fail(outputs);
+            }
+        }
     }
 
     return 0;
