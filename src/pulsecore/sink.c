@@ -474,6 +474,58 @@ int pa_sink_suspend(pa_sink *s, pa_bool_t suspend) {
         return sink_set_state(s, pa_sink_used_by(s) ? PA_SINK_RUNNING : PA_SINK_IDLE);
 }
 
+/* Called from main context */
+pa_queue *pa_sink_move_all_start(pa_sink *s) {
+    pa_queue *q;
+    pa_sink_input *i, *n;
+    uint32_t idx;
+
+    pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_IS_LINKED(s->state));
+
+    q = pa_queue_new();
+
+    for (i = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); i; i = n) {
+        n = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx));
+
+        if (pa_sink_input_start_move(i) >= 0)
+            pa_queue_push(q, pa_sink_input_ref(i));
+    }
+
+    return q;
+}
+
+/* Called from main context */
+void pa_sink_move_all_finish(pa_sink *s, pa_queue *q) {
+    pa_sink_input *i;
+
+    pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_IS_LINKED(s->state));
+    pa_assert(q);
+
+    while ((i = PA_SINK_INPUT(pa_queue_pop(q)))) {
+        if (pa_sink_input_finish_move(i, s) < 0)
+            pa_sink_input_unlink(i);
+
+        pa_sink_input_unref(i);
+    }
+
+    pa_queue_free(q, NULL, NULL);
+}
+
+/* Called from main context */
+void pa_sink_move_all_fail(pa_queue *q) {
+    pa_sink_input *i;
+    pa_assert(q);
+
+    while ((i = PA_SINK_INPUT(pa_queue_pop(q)))) {
+        pa_sink_input_unlink(i);
+        pa_sink_input_unref(i);
+    }
+
+    pa_queue_free(q, NULL, NULL);
+}
+
 /* Called from IO thread context */
 void pa_sink_process_rewind(pa_sink *s, size_t nbytes) {
     pa_sink_input *i;

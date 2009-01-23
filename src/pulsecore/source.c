@@ -412,6 +412,58 @@ int pa_source_suspend(pa_source *s, pa_bool_t suspend) {
         return source_set_state(s, pa_source_used_by(s) ? PA_SOURCE_RUNNING : PA_SOURCE_IDLE);
 }
 
+/* Called from main context */
+pa_queue *pa_source_move_all_start(pa_source *s) {
+    pa_queue *q;
+    pa_source_output *o, *n;
+    uint32_t idx;
+
+    pa_source_assert_ref(s);
+    pa_assert(PA_SOURCE_IS_LINKED(s->state));
+
+    q = pa_queue_new();
+
+    for (o = PA_SOURCE_OUTPUT(pa_idxset_first(s->outputs, &idx)); o; o = n) {
+        n = PA_SOURCE_OUTPUT(pa_idxset_next(s->outputs, &idx));
+
+        if (pa_source_output_start_move(o) >= 0)
+            pa_queue_push(q, pa_source_output_ref(o));
+    }
+
+    return q;
+}
+
+/* Called from main context */
+void pa_source_move_all_finish(pa_source *s, pa_queue *q) {
+    pa_source_output *o;
+
+    pa_source_assert_ref(s);
+    pa_assert(PA_SOURCE_IS_LINKED(s->state));
+    pa_assert(q);
+
+    while ((o = PA_SOURCE_OUTPUT(pa_queue_pop(q)))) {
+        if (pa_source_output_finish_move(o, s) < 0)
+            pa_source_output_unlink(o);
+
+        pa_source_output_unref(o);
+    }
+
+    pa_queue_free(q, NULL, NULL);
+}
+
+/* Called from main context */
+void pa_source_move_all_fail(pa_queue *q) {
+    pa_source_output *o;
+    pa_assert(q);
+
+    while ((o = PA_SOURCE_OUTPUT(pa_queue_pop(q)))) {
+        pa_source_output_unlink(o);
+        pa_source_output_unref(o);
+    }
+
+    pa_queue_free(q, NULL, NULL);
+}
+
 /* Called from IO thread context */
 void pa_source_process_rewind(pa_source *s, size_t nbytes) {
     pa_source_output *o;

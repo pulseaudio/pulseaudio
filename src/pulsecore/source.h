@@ -42,6 +42,7 @@ typedef struct pa_source pa_source;
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/source-output.h>
 #include <pulsecore/card.h>
+#include <pulsecore/queue.h>
 
 #define PA_MAX_OUTPUTS_PER_SOURCE 32
 
@@ -232,6 +233,11 @@ unsigned pa_source_linked_by(pa_source *s); /* Number of connected streams */
 unsigned pa_source_used_by(pa_source *s); /* Number of connected streams that are not corked */
 unsigned pa_source_check_suspend(pa_source *s); /* Returns how many streams are active that don't allow suspensions */
 #define pa_source_get_state(s) ((pa_source_state_t) (s)->state)
+
+/* Moves all inputs away, and stores them in pa_queue */
+pa_queue *pa_source_move_all_start(pa_source *s);
+void pa_source_move_all_finish(pa_source *s, pa_queue *q);
+void pa_source_move_all_fail(pa_queue *q);
 
 /* To be called exclusively by the source driver, from IO context */
 

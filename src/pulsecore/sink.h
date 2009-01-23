@@ -40,6 +40,7 @@ typedef struct pa_sink pa_sink;
 #include <pulsecore/msgobject.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/card.h>
+#include <pulsecore/queue.h>
 
 #define PA_MAX_INPUTS_PER_SINK 32
 
@@ -253,6 +254,11 @@ unsigned pa_sink_linked_by(pa_sink *s); /* Number of connected streams */
 unsigned pa_sink_used_by(pa_sink *s); /* Number of connected streams which are not corked */
 unsigned pa_sink_check_suspend(pa_sink *s); /* Returns how many streams are active that don't allow suspensions */
 #define pa_sink_get_state(s) ((s)->state)
+
+/* Moves all inputs away, and stores them in pa_queue */
+pa_queue *pa_sink_move_all_start(pa_sink *s);
+void pa_sink_move_all_finish(pa_sink *s, pa_queue *q);
+void pa_sink_move_all_fail(pa_queue *q);
 
 /* To be called exclusively by the sink driver, from IO context */
 
