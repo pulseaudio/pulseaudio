@@ -54,6 +54,10 @@ static pa_hook_result_t sink_hook_callback(pa_core *c, pa_sink *sink, void* user
     pa_assert(c);
     pa_assert(sink);
 
+    /* There's no point in doing anything if the core is shut down anyway */
+    if (c->state == PA_CORE_SHUTDOWN)
+        return PA_HOOK_OK;
+
     if (!pa_idxset_size(sink->inputs)) {
         pa_log_debug("No sink inputs to move away.");
         return PA_HOOK_OK;
@@ -91,6 +95,10 @@ static pa_hook_result_t source_hook_callback(pa_core *c, pa_source *source, void
 
     pa_assert(c);
     pa_assert(source);
+
+    /* There's no point in doing anything if the core is shut down anyway */
+    if (c->state == PA_CORE_SHUTDOWN)
+        return PA_HOOK_OK;
 
     if (!pa_idxset_size(source->outputs)) {
         pa_log_debug("No source outputs to move away.");

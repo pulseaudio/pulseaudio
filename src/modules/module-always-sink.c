@@ -100,6 +100,10 @@ static pa_hook_result_t put_hook_callback(pa_core *c, pa_sink *sink, void* userd
     if (u->ignore)
         return PA_HOOK_OK;
 
+    /* There's no point in doing anything if the core is shut down anyway */
+    if (c->state == PA_CORE_SHUTDOWN)
+        return PA_HOOK_OK;
+
     /* Auto-loaded null-sink not active, so ignoring newly detected sink. */
     if (u->null_module == PA_INVALID_INDEX)
         return PA_HOOK_OK;
@@ -129,6 +133,10 @@ static pa_hook_result_t unlink_hook_callback(pa_core *c, pa_sink *sink, void* us
         u->null_module = PA_INVALID_INDEX;
         return PA_HOOK_OK;
     }
+
+    /* There's no point in doing anything if the core is shut down anyway */
+    if (c->state == PA_CORE_SHUTDOWN)
+        return PA_HOOK_OK;
 
     load_null_sink_if_needed(c, sink, u);
 
@@ -172,7 +180,7 @@ void pa__done(pa_module*m) {
         pa_hook_slot_free(u->put_slot);
     if (u->unlink_slot)
         pa_hook_slot_free(u->unlink_slot);
-    if (u->null_module != PA_INVALID_INDEX)
+    if (u->null_module != PA_INVALID_INDEX && m->core->state != PA_CORE_SHUTDOWN)
         pa_module_unload_request_by_index(m->core, u->null_module, TRUE);
 
     pa_xfree(u->sink_name);
