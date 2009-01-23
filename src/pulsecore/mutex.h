@@ -23,6 +23,7 @@
 ***/
 
 #include <pulsecore/macro.h>
+#include <pulsecore/atomic.h>
 
 typedef struct pa_mutex pa_mutex;
 
@@ -44,5 +45,11 @@ pa_cond *pa_cond_new(void);
 void pa_cond_free(pa_cond *c);
 void pa_cond_signal(pa_cond *c, int broadcast);
 int pa_cond_wait(pa_cond *c, pa_mutex *m);
+
+typedef struct pa_static_mutex {
+    pa_atomic_ptr_t ptr;
+} pa_static_mutex;
+
+pa_mutex* pa_static_mutex_get(pa_static_mutex *m, pa_bool_t recursive, pa_bool_t inherit_priority);
 
 #endif
