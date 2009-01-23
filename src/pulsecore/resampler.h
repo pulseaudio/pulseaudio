@@ -99,5 +99,9 @@ const char *pa_resample_method_to_string(pa_resample_method_t m);
 /* Return 1 when the specified resampling method is supported */
 int pa_resample_method_supported(pa_resample_method_t m);
 
+const pa_channel_map* pa_resampler_input_channel_map(pa_resampler *r);
+const pa_sample_spec* pa_resampler_input_sample_spec(pa_resampler *r);
+const pa_channel_map* pa_resampler_output_channel_map(pa_resampler *r);
+const pa_sample_spec* pa_resampler_output_sample_spec(pa_resampler *r);
 
 #endif

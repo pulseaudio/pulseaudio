@@ -403,6 +403,30 @@ pa_resample_method_t pa_resampler_get_method(pa_resampler *r) {
     return r->method;
 }
 
+const pa_channel_map* pa_resampler_input_channel_map(pa_resampler *r) {
+    pa_assert(r);
+
+    return &r->i_cm;
+}
+
+const pa_sample_spec* pa_resampler_input_sample_spec(pa_resampler *r) {
+    pa_assert(r);
+
+    return &r->i_ss;
+}
+
+const pa_channel_map* pa_resampler_output_channel_map(pa_resampler *r) {
+    pa_assert(r);
+
+    return &r->o_cm;
+}
+
+const pa_sample_spec* pa_resampler_output_sample_spec(pa_resampler *r) {
+    pa_assert(r);
+
+    return &r->o_ss;
+}
+
 static const char * const resample_methods[] = {
     "src-sinc-best-quality",
     "src-sinc-medium-quality",
