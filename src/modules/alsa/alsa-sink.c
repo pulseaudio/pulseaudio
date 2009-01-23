@@ -251,7 +251,7 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
 
         if (PA_UNLIKELY(n <= u->hwbuf_unused_frames)) {
 
-            if (polled)
+            if (polled && pa_log_ratelimit())
                 pa_log("ALSA woke us up to write new data to the device, but there was actually nothing to write! "
                        "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
                        "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail_update() returned 0.");
@@ -374,7 +374,7 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
 
         if (PA_UNLIKELY(n <= u->hwbuf_unused_frames)) {
 
-            if (polled)
+            if (polled && pa_log_ratelimit())
                 pa_log("ALSA woke us up to write new data to the device, but there was actually nothing to write! "
                        "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
                        "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail_update() returned 0.");
@@ -1194,7 +1194,7 @@ static void thread_func(void *userdata) {
                 u->since_start = 0;
             }
 
-            if (revents && u->use_tsched)
+            if (revents && u->use_tsched && pa_log_ratelimit())
                 pa_log_debug("Wakeup from ALSA!%s%s", (revents & POLLIN) ? " INPUT" : "", (revents & POLLOUT) ? " OUTPUT" : "");
         } else
             revents = 0;

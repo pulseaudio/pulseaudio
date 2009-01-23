@@ -238,7 +238,7 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
 
         if (PA_UNLIKELY(n <= 0)) {
 
-            if (polled)
+            if (polled && pa_log_ratelimit())
                 pa_log("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
                        "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
                        "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail_update() returned 0.");
@@ -346,7 +346,7 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
 
         if (PA_UNLIKELY(n <= 0)) {
 
-            if (polled)
+            if (polled && pa_log_ratelimit())
                 pa_log("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
                        "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
                        "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail_update() returned 0.");
@@ -1029,7 +1029,7 @@ static void thread_func(void *userdata) {
                 snd_pcm_start(u->pcm_handle);
             }
 
-            if (revents && u->use_tsched)
+            if (revents && u->use_tsched && pa_log_ratelimit())
                 pa_log_debug("Wakeup from ALSA!%s%s", (revents & POLLIN) ? " INPUT" : "", (revents & POLLOUT) ? " OUTPUT" : "");
         } else
             revents = 0;
