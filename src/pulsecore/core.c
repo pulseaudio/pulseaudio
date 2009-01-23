@@ -90,6 +90,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, pa_bool_t shared, size_t shm_size) {
     c->parent.parent.free = core_free;
     c->parent.process_msg = core_process_msg;
 
+    c->state = PA_CORE_STARTUP;
     c->mainloop = m;
     c->clients = pa_idxset_new(NULL, NULL);
     c->sinks = pa_idxset_new(NULL, NULL);
@@ -149,6 +150,8 @@ pa_core* pa_core_new(pa_mainloop_api *m, pa_bool_t shared, size_t shm_size) {
 
     pa_core_check_idle(c);
 
+    c->state = PA_CORE_RUNNING;
+
     return c;
 }
 
@@ -156,6 +159,8 @@ static void core_free(pa_object *o) {
     pa_core *c = PA_CORE(o);
     int j;
     pa_assert(c);
+
+    c->state = PA_CORE_SHUTDOWN;
 
     pa_module_unload_all(c);
     pa_assert(!c->modules);

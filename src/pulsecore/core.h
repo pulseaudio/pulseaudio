@@ -41,6 +41,12 @@ typedef struct pa_core pa_core;
 #include <pulsecore/sink-input.h>
 #include <pulsecore/msgobject.h>
 
+typedef enum pa_core_state {
+    PA_CORE_STARTUP,
+    PA_CORE_RUNNING,
+    PA_CORE_SHUTDOWN
+} pa_core_state_t;
+
 typedef enum pa_core_hook {
     PA_CORE_HOOK_SINK_NEW,
     PA_CORE_HOOK_SINK_FIXATE,
@@ -91,6 +97,8 @@ typedef enum pa_core_hook {
 
 struct pa_core {
     pa_msgobject parent;
+
+    pa_core_state_t state;
 
     /* A random value which may be used to identify this instance of
      * PulseAudio. Not cryptographically secure in any way. */
