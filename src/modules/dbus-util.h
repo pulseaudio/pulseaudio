@@ -24,6 +24,8 @@
 
 #include <dbus/dbus.h>
 
+#include <pulsecore/core.h>
+
 typedef struct pa_dbus_connection pa_dbus_connection;
 
 /* return the DBusConnection of the specified type for the given core,

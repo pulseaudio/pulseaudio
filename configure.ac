@@ -916,7 +916,10 @@ AC_ARG_ENABLE([hal],
         [hal=auto])
 if test "x${hal}" != xno -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x1" \) ; then
     PKG_CHECK_MODULES(HAL, [ hal >= 0.5.11 ],
-        HAVE_HAL=1,
+        [
+            HAVE_HAL=1
+            AC_DEFINE([HAVE_HAL], 1, [Have HAL.])
+        ],
         [
             HAVE_HAL=0
             if test "x$hal" = xyes ; then

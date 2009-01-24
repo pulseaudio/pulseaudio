@@ -32,6 +32,7 @@
 #include <pulse/proplist.h>
 
 #include <pulsecore/rtpoll.h>
+#include <pulsecore/core.h>
 
 typedef struct pa_alsa_fdlist pa_alsa_fdlist;
 
@@ -118,8 +119,8 @@ void pa_alsa_dump_status(snd_pcm_t *pcm);
 void pa_alsa_redirect_errors_inc(void);
 void pa_alsa_redirect_errors_dec(void);
 
-void pa_alsa_init_proplist_pcm(pa_proplist *p, snd_pcm_info_t *pcm_info);
-void pa_alsa_init_proplist_card(pa_proplist *p, int card);
+void pa_alsa_init_proplist_pcm(pa_core *c, pa_proplist *p, snd_pcm_info_t *pcm_info);
+void pa_alsa_init_proplist_card(pa_core *c, pa_proplist *p, int card);
 
 int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents);
 

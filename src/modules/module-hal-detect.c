@@ -801,7 +801,6 @@ fail:
     return -1;
 }
 
-
 void pa__done(pa_module *m) {
     struct userdata *u;
 

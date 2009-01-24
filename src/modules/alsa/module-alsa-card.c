@@ -281,7 +281,7 @@ int pa__init(pa_module*m) {
     pa_card_new_data_init(&data);
     data.driver = __FILE__;
     data.module = m;
-    pa_alsa_init_proplist_card(data.proplist, alsa_card_index);
+    pa_alsa_init_proplist_card(m->core, data.proplist, alsa_card_index);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_id);
     set_card_name(&data, ma, u->device_id);
 

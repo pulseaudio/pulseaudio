@@ -39,6 +39,10 @@
 
 #include "alsa-util.h"
 
+#ifdef HAVE_HAL
+#include "hal-util.h"
+#endif
+
 struct pa_alsa_fdlist {
     unsigned num_fds;
     struct pollfd *fds;
@@ -1248,7 +1252,7 @@ void pa_alsa_redirect_errors_dec(void) {
         snd_lib_error_set_handler(NULL);
 }
 
-void pa_alsa_init_proplist_card(pa_proplist *p, int card) {
+void pa_alsa_init_proplist_card(pa_core *c, pa_proplist *p, int card) {
     char *cn, *lcn;
 
     pa_assert(p);
@@ -1265,9 +1269,13 @@ void pa_alsa_init_proplist_card(pa_proplist *p, int card) {
         pa_proplist_sets(p, "alsa.long_card_name", lcn);
         free(lcn);
     }
+
+#ifdef HAVE_HAL
+    pa_hal_get_info(c, p, card);
+#endif
 }
 
-void pa_alsa_init_proplist_pcm(pa_proplist *p, snd_pcm_info_t *pcm_info) {
+void pa_alsa_init_proplist_pcm(pa_core *c, pa_proplist *p, snd_pcm_info_t *pcm_info) {
 
     static const char * const alsa_class_table[SND_PCM_CLASS_LAST+1] = {
         [SND_PCM_CLASS_GENERIC] = "generic",
@@ -1321,7 +1329,7 @@ void pa_alsa_init_proplist_pcm(pa_proplist *p, snd_pcm_info_t *pcm_info) {
     pa_proplist_setf(p, "alsa.device", "%u", snd_pcm_info_get_device(pcm_info));
 
     if ((card = snd_pcm_info_get_card(pcm_info)) >= 0) {
-        pa_alsa_init_proplist_card(p, card);
+        pa_alsa_init_proplist_card(c, p, card);
         cn = pa_proplist_gets(p, "alsa.card_name");
     }
 
