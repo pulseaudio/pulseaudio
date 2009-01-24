@@ -2,86 +2,87 @@
 # Copyright (C) 2008 THE 'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the  package.
 # 闫丰刚 (sainry)<sainry@gmail.com> 2008
+# 闫丰刚 <sainry@gmail.com>, 2009. 
 # 
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: PulseAudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-11-23 01:37+0000\n"
-"PO-Revision-Date: 2008-11-23 20:06+0800\n"
-"Last-Translator: 闫丰刚 <sainry@gmail.com>\n"
-"Language-Team: \n"
+"POT-Creation-Date: 2008-11-26 01:41+0000\n"
+"PO-Revision-Date: 2009-01-24 12:47+0800\n"
+"Last-Translator: 王泽国 <zak.zeguo.wang@gmail.com>\n"
+"Language-Team: Chinese/Simplified\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit"
 
 #: ../src/daemon/ltdl-bind-now.c:177 ../src/daemon/ltdl-bind-now.c:197
 msgid "Failed to add bind-now-loader."
-msgstr ""
+msgstr "添加bind-now-loader失败。"
 
 #: ../src/daemon/ltdl-bind-now.c:184
 msgid "Failed to find original dlopen loader."
-msgstr ""
+msgstr "查找原始dlopen加载器失败。"
 
 #: ../src/daemon/polkit.c:55
 #, c-format
 msgid "Cannot connect to system bus: %s"
-msgstr "连接系统总线失败: %s"
+msgstr "无法连接到系统总线：%s"
 
 #: ../src/daemon/polkit.c:65
 #, c-format
 msgid "Cannot get caller from PID: %s"
-msgstr ""
+msgstr "无法从PID获取调用者：%s"
 
 #: ../src/daemon/polkit.c:77
 msgid "Cannot set UID on caller object."
-msgstr "不能设置调用对象UID"
+msgstr "无法为调用者设定UID。"
 
 #: ../src/daemon/polkit.c:82
 msgid "Failed to get CK session."
-msgstr ""
+msgstr "获取CK会话失败。"
 
 #: ../src/daemon/polkit.c:90
 msgid "Cannot set UID on session object."
-msgstr "不能设置对话对象UID"
+msgstr "无法为会话对象设定UID。"
 
 #: ../src/daemon/polkit.c:95
 msgid "Cannot allocate PolKitAction."
-msgstr ""
+msgstr "不能分配PolKitAction。"
 
 #: ../src/daemon/polkit.c:100
 msgid "Cannot set action_id"
-msgstr ""
+msgstr "无法设定action_id"
 
 #: ../src/daemon/polkit.c:105
 msgid "Cannot allocate PolKitContext."
-msgstr ""
+msgstr "无法分配PolKitContext。"
 
 #: ../src/daemon/polkit.c:110
 #, c-format
 msgid "Cannot initialize PolKitContext: %s"
-msgstr ""
+msgstr "无法初使化PolKitContext: %s"
 
 #: ../src/daemon/polkit.c:119
 #, c-format
 msgid "Could not determine whether caller is authorized: %s"
-msgstr ""
+msgstr "无法判断调用者是否已获得授权: %s"
 
 #: ../src/daemon/polkit.c:139
 #, c-format
 msgid "Cannot obtain auth: %s"
-msgstr ""
+msgstr "无法获取授权: %s"
 
 #: ../src/daemon/polkit.c:148
 #, c-format
 msgid "PolicyKit responded with '%s'"
-msgstr ""
+msgstr "PolicyKit回复'%s'"
 
 #: ../src/daemon/main.c:134
 #, c-format
 msgid "Got signal %s."
-msgstr ""
+msgstr "获得信号%s"
 
 #: ../src/daemon/main.c:161
 msgid "Exiting."
@@ -100,306 +101,309 @@ msgstr "找不到用户组 `%s'"
 #: ../src/daemon/main.c:188
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
-msgstr ""
+msgstr "发现用户'%s' (UID %lu)和组'%s' (GID %lu)."
 
 #: ../src/daemon/main.c:193
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
-msgstr ""
+msgstr "用户'%s'与组'%s'的GID不匹配."
 
 #: ../src/daemon/main.c:198
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr ""
+msgstr "用户'%s'的主文件夹不是'%s'，忽略。"
 
 #: ../src/daemon/main.c:201 ../src/daemon/main.c:206
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr ""
+msgstr "创建'%s'失败： %s"
 
 #: ../src/daemon/main.c:213
 #, c-format
 msgid "Failed to change group list: %s"
-msgstr ""
+msgstr "更改组列表失败：%s"
 
 #: ../src/daemon/main.c:229
 #, c-format
 msgid "Failed to change GID: %s"
-msgstr ""
+msgstr "更改GID失败：%s"
 
 #: ../src/daemon/main.c:245
 #, c-format
 msgid "Failed to change UID: %s"
-msgstr ""
+msgstr "更改UID失败：%s"
 
 #: ../src/daemon/main.c:259
 msgid "Successfully dropped root privileges."
-msgstr ""
+msgstr "成功放弃root权限。"
 
 #: ../src/daemon/main.c:267
 msgid "System wide mode unsupported on this platform."
-msgstr ""
+msgstr "此平台不支持system-wide模式。"
 
 #: ../src/daemon/main.c:285
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
-msgstr ""
+msgstr "setrlimit(%s, (%u, %u)) 失败：%s"
 
 #: ../src/daemon/main.c:425
 msgid "Failed to parse command line."
-msgstr ""
+msgstr "分析命令行失败。"
 
 #: ../src/daemon/main.c:441
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
-msgstr ""
+msgstr "我们在'%s'组中，允许高优先级调度。"
 
 #: ../src/daemon/main.c:448
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
-msgstr ""
+msgstr "我们在'%s'组中，允许实时调度。"
 
 #: ../src/daemon/main.c:456
 msgid "PolicyKit grants us acquire-high-priority privilege."
-msgstr ""
+msgstr "PolicyKit授予我们“获取高优先级”权限。"
 
 #: ../src/daemon/main.c:459
 msgid "PolicyKit refuses acquire-high-priority privilege."
-msgstr ""
+msgstr "PolicyKit拒绝“获取高优先级”权限。"
 
 #: ../src/daemon/main.c:464
 msgid "PolicyKit grants us acquire-real-time privilege."
-msgstr ""
+msgstr "PolicyKit授予我们“获取实时”权限。"
 
 #: ../src/daemon/main.c:467
 msgid "PolicyKit refuses acquire-real-time privilege."
-msgstr ""
+msgstr "PolicyKit拒绝我们“获取实时”权限。"
 
 #: ../src/daemon/main.c:479
 msgid ""
 "Called SUID root and real-time/high-priority scheduling was requested in the "
 "configuration. However, we lack the necessary priviliges:\n"
 "We are not in group '"
-msgstr ""
+msgstr "此配置需要调用SUID root和实时／高优先级调度。但是我们没有所需的权限：\n"
+"我们不属该组"
 
 #: ../src/daemon/main.c:480
 msgid ""
 "' and PolicyKit refuse to grant us priviliges. Dropping SUID again.\n"
 "For enabling real-time scheduling please acquire the appropriate PolicyKit "
 "priviliges, or become a member of '"
-msgstr ""
+msgstr "而且PolicyKit拒绝授予我们权限。再次取消SUID。\n"
+"要启用实时调度，请取得适应的PolicyKit权限，或者成为组成员'"
 
 #: ../src/daemon/main.c:481
 msgid ""
 "', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
-msgstr ""
+msgstr "'，或者提高本用户的RLIMIT_NICE/RLIMIT_RTPRIO资源上限。"
 
 #: ../src/daemon/main.c:497
 msgid ""
 "High-priority scheduling enabled in configuration but not allowed by policy."
-msgstr ""
+msgstr "配置中已启用高优先级调度，但策略未允许。"
 
 #: ../src/daemon/main.c:522
 msgid "Successfully increased RLIMIT_RTPRIO"
-msgstr ""
+msgstr "提高RLIMIT_RTPRIO成功。"
 
 #: ../src/daemon/main.c:525
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
-msgstr ""
+msgstr "RLIMIT_RTPRIO失败：%s"
 
 #: ../src/daemon/main.c:532
 msgid "Giving up CAP_NICE"
-msgstr ""
+msgstr "正在放弃CAP_NICE"
 
 #: ../src/daemon/main.c:539
 msgid ""
 "Real-time scheduling enabled in configuration but not allowed by policy."
-msgstr ""
+msgstr "配置中已启用实时调度，但策略未允许。"
 
 #: ../src/daemon/main.c:597
 msgid "Daemon not running"
-msgstr ""
+msgstr "后台程序没有运行"
 
 #: ../src/daemon/main.c:599
 #, c-format
 msgid "Daemon running as PID %u"
-msgstr ""
+msgstr "后台程序正在运行，PID %u"
 
 #: ../src/daemon/main.c:609
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr ""
+msgstr "杀死后台程序失败：%s"
 
 #: ../src/daemon/main.c:627
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr ""
+msgstr "不应以root身份运行本程序（除非指定 --system）。"
 
 #: ../src/daemon/main.c:629
 msgid "Root priviliges required."
-msgstr ""
+msgstr "需要root权限。"
 
 #: ../src/daemon/main.c:634
 msgid "--start not supported for system instances."
-msgstr ""
+msgstr "系统实例不支持 --start。"
 
 #: ../src/daemon/main.c:639
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr ""
+msgstr "正在以系统模式运行，但是 --disallow-exit 未设定！"
 
 #: ../src/daemon/main.c:642
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr ""
+msgstr "正在以系统模式运行，但是 --disallow-module-loading 未设定！"
 
 #: ../src/daemon/main.c:645
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr ""
+msgstr "正在以系统模式运行，强制禁用SHM模式！"
 
 #: ../src/daemon/main.c:650
 msgid "Running in system mode, forcibly disabling exit idle time!"
-msgstr ""
+msgstr "正在以系统模式运行，强制禁用退出空闲时间！"
 
 #: ../src/daemon/main.c:677
 msgid "Failed to acquire stdio."
-msgstr ""
+msgstr "获取stdio失败。"
 
 #: ../src/daemon/main.c:683
 #, c-format
 msgid "pipe failed: %s"
-msgstr ""
+msgstr "管道失败：%s"
 
 #: ../src/daemon/main.c:688
 #, c-format
 msgid "fork() failed: %s"
-msgstr ""
+msgstr "fork()失败：%s"
 
 #: ../src/daemon/main.c:702
 #, c-format
 msgid "read() failed: %s"
-msgstr ""
+msgstr "read()失败：%s"
 
 #: ../src/daemon/main.c:708
 msgid "Daemon startup failed."
-msgstr ""
+msgstr "后台程序启动失败。"
 
 #: ../src/daemon/main.c:710
 msgid "Daemon startup successful."
-msgstr ""
+msgstr "后台程序启动成功。"
 
 #: ../src/daemon/main.c:780
 #, c-format
 msgid "This is PulseAudio %s"
-msgstr ""
+msgstr "这是 PulseAudio %s"
 
 #: ../src/daemon/main.c:781
 #, c-format
 msgid "Compilation host: %s"
-msgstr ""
+msgstr "编译主机：%s"
 
 #: ../src/daemon/main.c:782
 #, c-format
 msgid "Compilation CFLAGS: %s"
-msgstr ""
+msgstr "编译CFLAGS：%s"
 
 #: ../src/daemon/main.c:785
 #, c-format
 msgid "Running on host: %s"
-msgstr ""
+msgstr "正在主机上运行：%s"
 
 #: ../src/daemon/main.c:788
 #, c-format
 msgid "Page size is %lu bytes"
-msgstr ""
+msgstr "页面大小为%lu字节"
 
 #: ../src/daemon/main.c:791
 msgid "Compiled with Valgrind support: yes"
-msgstr ""
+msgstr "编译启用Valgrind支持：是"
 
 #: ../src/daemon/main.c:793
 msgid "Compiled with Valgrind support: no"
-msgstr ""
+msgstr "编译启用Valgrind支持：否"
 
 #: ../src/daemon/main.c:796
 #, c-format
 msgid "Running in valgrind mode: %s"
-msgstr ""
+msgstr "正在以valgrind模式运行：%s"
 
 #: ../src/daemon/main.c:799
 msgid "Optimized build: yes"
-msgstr ""
+msgstr "优化生成：是"
 
 #: ../src/daemon/main.c:801
 msgid "Optimized build: no"
-msgstr ""
+msgstr "优化生成：否"
 
 #: ../src/daemon/main.c:805
 msgid "Failed to get machine ID"
-msgstr ""
+msgstr "获取machine ID失败"
 
 #: ../src/daemon/main.c:808
 #, c-format
 msgid "Machine ID is %s."
-msgstr ""
+msgstr "machine ID是%s。"
 
 #: ../src/daemon/main.c:813
 #, c-format
 msgid "Using runtime directory %s."
-msgstr ""
+msgstr "正在使用运行时文件夹%s。"
 
 #: ../src/daemon/main.c:818
 #, c-format
 msgid "Using state directory %s."
-msgstr ""
+msgstr "正在使用状态文件夹%s。"
 
 #: ../src/daemon/main.c:821
 #, c-format
 msgid "Running in system mode: %s"
-msgstr ""
+msgstr "正在以系统模式运行：%s"
 
 #: ../src/daemon/main.c:836
 msgid "pa_pid_file_create() failed."
-msgstr ""
+msgstr "pa_pid_file_create()失败。"
 
 #: ../src/daemon/main.c:848
 msgid "Fresh high-resolution timers available! Bon appetit!"
-msgstr ""
+msgstr "新鲜的高分辨率计时器开锅了！吃个饱！"
 
 #: ../src/daemon/main.c:850
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 msgstr ""
+"老兄，你的内核真臭！现在流行的是启用了高分辩率计分器的Linux！"
 
 #: ../src/daemon/main.c:860
 msgid "pa_core_new() failed."
-msgstr ""
+msgstr "pa_core_new()失败。"
 
 #: ../src/daemon/main.c:921
 msgid "Failed to initialize daemon."
-msgstr ""
+msgstr "后台程序初始化失败。"
 
 #: ../src/daemon/main.c:926
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr ""
+msgstr "后台程序启动未加载任何模块，拒绝工作。"
 
 #: ../src/daemon/main.c:931
 #, c-format
 msgid "Default sink name (%s) does not exist in name register."
-msgstr ""
+msgstr "名称登记表中不存在默认的音频出口名（%s）。"
 
 #: ../src/daemon/main.c:944
 msgid "Daemon startup complete."
-msgstr ""
+msgstr "后台程序启动完成。"
 
 #: ../src/daemon/main.c:950
 msgid "Daemon shutdown initiated."
-msgstr ""
+msgstr "开始关闭后台程序。"
 
 #: ../src/daemon/main.c:971
 msgid "Daemon terminated."
-msgstr ""
+msgstr "后台程序已终止。"
 
 #: ../src/daemon/cmdline.c:117
 #, c-format
@@ -469,628 +473,680 @@ msgid ""
 "\n"
 "  -n                                    Don't load default script file\n"
 msgstr ""
+"%s [options]\n"
+"\n"
+"COMMANDS:\n"
+"  -h, --help                            显示此帮助\n"
+"      --version                         显示版本号\n"
+"      --dump-conf                       转出默认设置\n"
+"      --dump-modules                    转出可用的模块列表\n"
+"      --dump-resample-methods           转出可用的重采样方法\n"
+"      --cleanup-shm                     清理滞留的共享内存段\n"
+"      --start                           如果后台程序没有运行则启动后台程序\n"
+"  -k  --kill                            杀死运行中的后台程序\n"
+"      --check                           检查运行中的后台程序\n"
+"\n"
+"OPTIONS:\n"
+"      --system[=BOOL]                   作为系统范围实例运行\n"
+"  -D, --daemonize[=BOOL]                启动后转为后台运行\n"
+"      --fail[=BOOL]                     启动失败则退出\n"
+"      --high-priority[=BOOL]            尝试设定高nice level\n"
+"                                        （仅以root运行时，处于SUID或者\n"
+"                                        在RLIMIT_NICE提升时可用）\n"
+"      --realtime[=BOOL]                 尝试启用实时调度\n"
+"                                        （仅以root运行时，处于SUID或者\n"
+"                                        在RLIMIT_PTPRIO提升时可用）\n"
+"      --disallow-module-loading[=BOOL]  启动后不批准模块用户的\n"
+"                                        加载／卸载请求\n"
+"      --disallow-exit[=BOOL]            不批准用户的退出请求\n"
+"      --exit-idle-time=SECS             空闲指定时长后终止后台程序\n"
+"      --module-idle-time=SECS           空闲指定时长后卸载\n"
+"                                        自动加载的模块\n"
+"      --scache-idle-time=SECS           空闲指定时长后卸载\n"
+"                                        自动加载的样品\n"
+"      --log-level[=LEVEL]               提高或者设定verbosity level\n"
+"  -v                                    提高verbosity level\n"
+"      --log-target={auto,syslog,stderr} 提定日志目标\n"
+"  -p, --dl-search-path=PATH             为动态共享对象（插件）设定\n"
+"                                        搜索路径\n"
+"      --resample-method=METHOD          使用指定的重采样方法\n"
+"                                        (使用 --dump-resample-methods 查看\n"
+"                                        可能的值)\n"
+"      --use-pid-file[=BOOL]             创建一个PID文件\n"
+"      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
+"                                        platforms that support it.\n"
+"      --disable-shm[=BOOL]              禁用共享内存支持\n"
+"\n"
+"STARTUP SCRIPT:\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         用指令参数加载\n"
+"                                        指定插件模块\n"
+"  -F, --file=FILENAME                   运行指定脚本\n"
+"  -C                                    启动后在运行的虚拟终端上\n"
+"                                        打开命令行\n"
+"\n"
+"  -n                                    不加载默认的脚本文件\n"
 
 #: ../src/daemon/cmdline.c:245
 msgid "--daemonize expects boolean argument"
-msgstr ""
+msgstr "--daemonize 期待布尔参数"
 
 #: ../src/daemon/cmdline.c:252
 msgid "--fail expects boolean argument"
-msgstr ""
+msgstr "--fail 期待布尔参数"
 
 #: ../src/daemon/cmdline.c:262
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
-msgstr ""
+msgstr "--log-level 期待日志级别参数（可以是数字0～4或者debug，info，notice，warn，error中的一个）"
 
 #: ../src/daemon/cmdline.c:274
 msgid "--high-priority expects boolean argument"
-msgstr ""
+msgstr "--high-priority 期待布尔参数"
 
 #: ../src/daemon/cmdline.c:281
 msgid "--realtime expects boolean argument"
-msgstr ""
+msgstr "--realtime 期待布尔参数"
 
 #: ../src/daemon/cmdline.c:288
 msgid "--disallow-module-loading expects boolean argument"
-msgstr ""
+msgstr "--disallow-module-loading 期待布尔参数"
 
 #: ../src/daemon/cmdline.c:295
 msgid "--disallow-exit boolean argument"
-msgstr ""
+msgstr "--disallow-exit 布尔参数"
 
 #: ../src/daemon/cmdline.c:302
 msgid "--use-pid-file expects boolean argument"
-msgstr ""
+msgstr "--use-pid-file 期待布尔参数"
 
 #: ../src/daemon/cmdline.c:319
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
-msgstr ""
+msgstr "无效的日志目标：从syslog，stderr和auto中选取一个"
 
 #: ../src/daemon/cmdline.c:338
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr ""
+msgstr "无效的重采样方法'%s'。"
 
 #: ../src/daemon/cmdline.c:345
 msgid "--system expects boolean argument"
-msgstr ""
+msgstr "--system 期待布尔参数"
 
 #: ../src/daemon/cmdline.c:352
 msgid "--no-cpu-limit expects boolean argument"
-msgstr ""
+msgstr "--no-cpu-limit 期待布尔参数"
 
 #: ../src/daemon/cmdline.c:359
 msgid "--disable-shm expects boolean argument"
-msgstr ""
+msgstr "--disable-shm 期待布尔参数"
 
 #: ../src/daemon/dumpmodules.c:60
 #, c-format
 msgid "Name: %s\n"
-msgstr ""
+msgstr "名称：%s\n"
 
 #: ../src/daemon/dumpmodules.c:63
 #, c-format
 msgid "No module information available\n"
-msgstr ""
+msgstr "没有可用的模块信息\n"
 
 #: ../src/daemon/dumpmodules.c:66
 #, c-format
 msgid "Version: %s\n"
-msgstr ""
+msgstr "版本号：%s\n"
 
 #: ../src/daemon/dumpmodules.c:68
 #, c-format
 msgid "Description: %s\n"
-msgstr ""
+msgstr "描述：%s\n"
 
 #: ../src/daemon/dumpmodules.c:70
 #, c-format
 msgid "Author: %s\n"
-msgstr ""
+msgstr "作者：%s\n"
 
 #: ../src/daemon/dumpmodules.c:72
 #, c-format
 msgid "Usage: %s\n"
-msgstr ""
+msgstr "用法：%s\n"
 
 #: ../src/daemon/dumpmodules.c:73
 #, c-format
 msgid "Load Once: %s\n"
-msgstr ""
+msgstr "加载一次：%s\n"
 
 #: ../src/daemon/dumpmodules.c:77
 #, c-format
 msgid "Path: %s\n"
-msgstr ""
+msgstr "路径：%s\n"
 
 #: ../src/daemon/daemon-conf.c:205
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr ""
+msgstr "[%s:%u] 无效的日志目标'%s'。"
 
 #: ../src/daemon/daemon-conf.c:221
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
-msgstr ""
+msgstr "[%s:%u] 无效的日志级别'%s'。"
 
 #: ../src/daemon/daemon-conf.c:237
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr ""
+msgstr "[%s:%u] 无效的重采样方法'%s'。"
 
 #: ../src/daemon/daemon-conf.c:260
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
-msgstr ""
+msgstr "[%s:%u] 无效的rlimit '%s'。"
 
 #: ../src/daemon/daemon-conf.c:267
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
-msgstr ""
+msgstr "[%s:%u] 此平台不支持rlimit。"
 
 #: ../src/daemon/daemon-conf.c:283
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
-msgstr ""
+msgstr "[%s:%u] 无效的样品格式'%s'。"
 
 #: ../src/daemon/daemon-conf.c:301
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr ""
+msgstr "[%s:%u] 无效的样品率'%s'。"
 
 #: ../src/daemon/daemon-conf.c:319
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
-msgstr ""
+msgstr "[%s:%u] 无效的样品通道'%s'。"
 
 #: ../src/daemon/daemon-conf.c:337
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr ""
+msgstr "[%s:%u] 无效的分段数'%s'。"
 
 #: ../src/daemon/daemon-conf.c:355
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr ""
+msgstr "[%s:%u] 无效的分段大小'%s'。"
 
 #: ../src/daemon/daemon-conf.c:373
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr ""
+msgstr "[%s:%u] 无效的nice level '%s'。"
 
 #: ../src/daemon/daemon-conf.c:570
 #, c-format
 msgid "Failed to open configuration file: %s"
-msgstr ""
+msgstr "打开配置文件失败：%s"
 
 #: ../src/daemon/daemon-conf.c:644
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
-msgstr ""
+msgstr "### 从配置文件读取：%s ###\n"
 
 #: ../src/daemon/caps.c:63
 msgid "Dropping root priviliges."
-msgstr ""
+msgstr "正在取消root权限。"
 
 #: ../src/daemon/caps.c:103
 msgid "Limited capabilities successfully to CAP_SYS_NICE."
-msgstr ""
+msgstr "性能成功限制到CAP_SYS_NICE。"
 
 #: ../src/pulse/channelmap.c:102
 msgid "Mono"
-msgstr ""
+msgstr "单声道"
 
 #: ../src/pulse/channelmap.c:104
 msgid "Front Center"
-msgstr ""
+msgstr "中前"
 
 #: ../src/pulse/channelmap.c:105
 msgid "Front Left"
-msgstr ""
+msgstr "左前"
 
 #: ../src/pulse/channelmap.c:106
 msgid "Front Right"
-msgstr ""
+msgstr "右前"
 
 #: ../src/pulse/channelmap.c:108
 msgid "Rear Center"
-msgstr ""
+msgstr "中后"
 
 #: ../src/pulse/channelmap.c:109
 msgid "Rear Left"
-msgstr ""
+msgstr "左后"
 
 #: ../src/pulse/channelmap.c:110
 msgid "Rear Right"
-msgstr ""
+msgstr "右后"
 
 #: ../src/pulse/channelmap.c:112
 msgid "Low Frequency Emmiter"
-msgstr ""
+msgstr "低频脉冲"
 
 #: ../src/pulse/channelmap.c:114
 msgid "Front Left-of-center"
-msgstr ""
+msgstr "前左中央"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Front Right-of-center"
-msgstr ""
+msgstr "前右中央"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Side Left"
-msgstr ""
+msgstr "左侧"
 
 #: ../src/pulse/channelmap.c:118
 msgid "Side Right"
-msgstr ""
+msgstr "右侧"
 
 #: ../src/pulse/channelmap.c:120
 msgid "Auxiliary 0"
-msgstr ""
+msgstr "辅助 0"
 
 #: ../src/pulse/channelmap.c:121
 msgid "Auxiliary 1"
-msgstr ""
+msgstr "辅助 1"
 
 #: ../src/pulse/channelmap.c:122
 msgid "Auxiliary 2"
-msgstr ""
+msgstr "辅助 2"
 
 #: ../src/pulse/channelmap.c:123
 msgid "Auxiliary 3"
-msgstr ""
+msgstr "辅助 3"
 
 #: ../src/pulse/channelmap.c:124
 msgid "Auxiliary 4"
-msgstr ""
+msgstr "辅助 4"
 
 #: ../src/pulse/channelmap.c:125
 msgid "Auxiliary 5"
-msgstr ""
+msgstr "辅助 5"
 
 #: ../src/pulse/channelmap.c:126
 msgid "Auxiliary 6"
-msgstr ""
+msgstr "辅助 6"
 
 #: ../src/pulse/channelmap.c:127
 msgid "Auxiliary 7"
-msgstr ""
+msgstr "辅助 7"
 
 #: ../src/pulse/channelmap.c:128
 msgid "Auxiliary 8"
-msgstr ""
+msgstr "辅助 7"
 
 #: ../src/pulse/channelmap.c:129
 msgid "Auxiliary 9"
-msgstr ""
+msgstr "辅助 9"
 
 #: ../src/pulse/channelmap.c:130
 msgid "Auxiliary 10"
-msgstr ""
+msgstr "辅助 10"
 
 #: ../src/pulse/channelmap.c:131
 msgid "Auxiliary 11"
-msgstr ""
+msgstr "辅助 11"
 
 #: ../src/pulse/channelmap.c:132
 msgid "Auxiliary 12"
-msgstr ""
+msgstr "辅助 12"
 
 #: ../src/pulse/channelmap.c:133
 msgid "Auxiliary 13"
-msgstr ""
+msgstr "辅助 13"
 
 #: ../src/pulse/channelmap.c:134
 msgid "Auxiliary 14"
-msgstr ""
+msgstr "辅助 14"
 
 #: ../src/pulse/channelmap.c:135
 msgid "Auxiliary 15"
-msgstr ""
+msgstr "辅助 15"
 
 #: ../src/pulse/channelmap.c:136
 msgid "Auxiliary 16"
-msgstr ""
+msgstr "辅助 16"
 
 #: ../src/pulse/channelmap.c:137
 msgid "Auxiliary 17"
-msgstr ""
+msgstr "辅助 17"
 
 #: ../src/pulse/channelmap.c:138
 msgid "Auxiliary 18"
-msgstr ""
+msgstr "辅助 18"
 
 #: ../src/pulse/channelmap.c:139
 msgid "Auxiliary 19"
-msgstr ""
+msgstr "辅助 19"
 
 #: ../src/pulse/channelmap.c:140
 msgid "Auxiliary 20"
-msgstr ""
+msgstr "辅助 20"
 
 #: ../src/pulse/channelmap.c:141
 msgid "Auxiliary 21"
-msgstr ""
+msgstr "辅助 21"
 
 #: ../src/pulse/channelmap.c:142
 msgid "Auxiliary 22"
-msgstr ""
+msgstr "辅助 22"
 
 #: ../src/pulse/channelmap.c:143
 msgid "Auxiliary 23"
-msgstr ""
+msgstr "辅助 23"
 
 #: ../src/pulse/channelmap.c:144
 msgid "Auxiliary 24"
-msgstr ""
+msgstr "辅助 24"
 
 #: ../src/pulse/channelmap.c:145
 msgid "Auxiliary 25"
-msgstr ""
+msgstr "辅助 25"
 
 #: ../src/pulse/channelmap.c:146
 msgid "Auxiliary 26"
-msgstr ""
+msgstr "辅助 26"
 
 #: ../src/pulse/channelmap.c:147
 msgid "Auxiliary 27"
-msgstr ""
+msgstr "辅助 27"
 
 #: ../src/pulse/channelmap.c:148
 msgid "Auxiliary 28"
-msgstr ""
+msgstr "辅助 28"
 
 #: ../src/pulse/channelmap.c:149
 msgid "Auxiliary 29"
-msgstr ""
+msgstr "辅助 29"
 
 #: ../src/pulse/channelmap.c:150
 msgid "Auxiliary 30"
-msgstr ""
+msgstr "辅助 30"
 
 #: ../src/pulse/channelmap.c:151
 msgid "Auxiliary 31"
-msgstr ""
+msgstr "辅助 31"
 
 #: ../src/pulse/channelmap.c:153
 msgid "Top Center"
-msgstr ""
+msgstr "上中"
 
 #: ../src/pulse/channelmap.c:155
 msgid "Top Front Center"
-msgstr ""
+msgstr "上中前"
 
 #: ../src/pulse/channelmap.c:156
 msgid "Top Front Left"
-msgstr ""
+msgstr "上左前"
 
 #: ../src/pulse/channelmap.c:157
 msgid "Top Front Right"
-msgstr ""
+msgstr "上右前"
 
 #: ../src/pulse/channelmap.c:159
 msgid "Top Rear Center"
-msgstr ""
+msgstr "上中后"
 
 #: ../src/pulse/channelmap.c:160
 msgid "Top Rear Left"
-msgstr ""
+msgstr "上左后"
 
 #: ../src/pulse/channelmap.c:161
 msgid "Top Rear Right"
-msgstr ""
+msgstr "上右后"
 
 #: ../src/pulse/channelmap.c:472 ../src/pulse/sample.c:144
 #: ../src/pulse/volume.c:163 ../src/pulse/volume.c:194
 msgid "(invalid)"
-msgstr ""
+msgstr "（无效）"
 
 #: ../src/pulse/error.c:43
 msgid "OK"
-msgstr ""
+msgstr "好"
 
 #: ../src/pulse/error.c:44
 msgid "Access denied"
-msgstr ""
+msgstr "拒绝访问"
 
 #: ../src/pulse/error.c:45
 msgid "Unknown command"
-msgstr ""
+msgstr "未知命令"
 
 #: ../src/pulse/error.c:46
 msgid "Invalid argument"
-msgstr ""
+msgstr "无效参数"
 
 #: ../src/pulse/error.c:47
 msgid "Entity exists"
-msgstr ""
+msgstr "实体存在"
 
 #: ../src/pulse/error.c:48
 msgid "No such entity"
-msgstr ""
+msgstr "没有该实体"
 
 #: ../src/pulse/error.c:49
 msgid "Connection refused"
-msgstr ""
+msgstr "拒绝连接"
 
 #: ../src/pulse/error.c:50
 msgid "Protocol error"
-msgstr ""
+msgstr "协议错误"
 
 #: ../src/pulse/error.c:51
 msgid "Timeout"
-msgstr ""
+msgstr "超时"
 
 #: ../src/pulse/error.c:52
 msgid "No authorization key"
-msgstr ""
+msgstr "没有授权密钥"
 
 #: ../src/pulse/error.c:53
 msgid "Internal error"
-msgstr ""
+msgstr "内部错误"
 
 #: ../src/pulse/error.c:54
 msgid "Connection terminated"
-msgstr ""
+msgstr "连接终止"
 
 #: ../src/pulse/error.c:55
 msgid "Entity killed"
-msgstr ""
+msgstr "实体已杀死"
 
 #: ../src/pulse/error.c:56
 msgid "Invalid server"
-msgstr ""
+msgstr "无效服务器"
 
 #: ../src/pulse/error.c:57
 msgid "Module initalization failed"
-msgstr ""
+msgstr "模块初始化失败"
 
 #: ../src/pulse/error.c:58
 msgid "Bad state"
-msgstr ""
+msgstr "坏状态"
 
 #: ../src/pulse/error.c:59
 msgid "No data"
-msgstr ""
+msgstr "没有数据"
 
 #: ../src/pulse/error.c:60
 msgid "Incompatible protocol version"
-msgstr ""
+msgstr "不兼容的协议版本"
 
 #: ../src/pulse/error.c:61
 msgid "Too large"
-msgstr ""
+msgstr "太大"
 
 #: ../src/pulse/error.c:62
 msgid "Not supported"
-msgstr ""
+msgstr "不支持"
 
 #: ../src/pulse/error.c:63
 msgid "Unknown error code"
-msgstr ""
+msgstr "未知错误码"
 
 #: ../src/pulse/error.c:64
 msgid "No such extension"
-msgstr ""
+msgstr "没有该扩展"
 
 #: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
 msgid "XOpenDisplay() failed"
-msgstr ""
+msgstr "XOpenDisplay()失败"
 
 #: ../src/pulse/client-conf-x11.c:78
 msgid "Failed to parse cookie data"
-msgstr ""
+msgstr "cookie数据分析失败"
 
 #: ../src/pulse/client-conf.c:120
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
-msgstr ""
+msgstr "打开配置文件'%s'失败：%s"
 
 #: ../src/pulse/context.c:516
 msgid "No cookie loaded. Attempting to connect without."
-msgstr ""
+msgstr "没有加载cookie。尝试不加载cookie进行连接。"
 
 #: ../src/pulse/context.c:642
 #, c-format
 msgid "fork(): %s"
-msgstr ""
+msgstr "fork()：%s"
 
 #: ../src/pulse/context.c:695
 #, c-format
 msgid "waitpid(): %s"
-msgstr ""
+msgstr "waitpid()：%s"
 
 #: ../src/pulse/context.c:1256
 #, c-format
 msgid "Received message for unknown extension '%s'"
-msgstr ""
+msgstr "收到未知扩展'%s'的信息"
 
 #: ../src/utils/pacat.c:93
 #, c-format
 msgid "pa_stream_write() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_write()失败：%s\n"
 
 #: ../src/utils/pacat.c:132
 #, c-format
 msgid "pa_stream_peek() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_peek()失败：%s\n"
 
 #: ../src/utils/pacat.c:141
 #, c-format
 msgid "Buffer overrun, dropping incoming data\n"
-msgstr ""
+msgstr "缓冲超限，丢弃正在读入的数据\n"
 
 #: ../src/utils/pacat.c:143
 #, c-format
 msgid "pa_stream_drop() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_drop()失败：%s\n"
 
 #: ../src/utils/pacat.c:169
 #, c-format
 msgid "Stream successfully created.\n"
-msgstr ""
+msgstr "流创建成功。\n"
 
 #: ../src/utils/pacat.c:172
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_get_buffer_attr()失败：%s\n"
 
 #: ../src/utils/pacat.c:176
 #, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
-msgstr ""
+msgstr "缓冲计量：maxlength=%u，tlength=%u，prebuf=%u，minreq=%u\n"
 
 #: ../src/utils/pacat.c:179
 #, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u\n"
-msgstr ""
+msgstr "缓冲计量：maxlength=%u，fragsize=%u\n"
 
 #: ../src/utils/pacat.c:183
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'.\n"
-msgstr ""
+msgstr "正在使用样品规格'%s'，通道映射'%s'。\n"
 
 #: ../src/utils/pacat.c:187
 #, c-format
 msgid "Connected to device %s (%u, %ssuspended).\n"
-msgstr ""
+msgstr "已连接至设备%s (%u，%s挂起）。\n"
 
 #: ../src/utils/pacat.c:197
 #, c-format
 msgid "Stream error: %s\n"
-msgstr ""
+msgstr "流错误：%s\n"
 
 #: ../src/utils/pacat.c:207
 #, c-format
 msgid "Stream device suspended.%s \n"
-msgstr ""
+msgstr "流设备挂起。%s\n"
 
 #: ../src/utils/pacat.c:209
 #, c-format
 msgid "Stream device resumed.%s \n"
-msgstr ""
+msgstr "流设备恢复。%s\n"
 
 #: ../src/utils/pacat.c:217
 #, c-format
 msgid "Stream underrun.%s \n"
-msgstr ""
+msgstr "流欠载运行。%s\n"
 
 #: ../src/utils/pacat.c:224
 #, c-format
 msgid "Stream overrun.%s \n"
-msgstr ""
+msgstr "流超限运行。%s\n"
 
 #: ../src/utils/pacat.c:231
 #, c-format
 msgid "Stream started.%s \n"
-msgstr ""
+msgstr "流已启动。%s\n"
 
 #: ../src/utils/pacat.c:238
 #, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s \n"
-msgstr ""
+msgstr "流移至设备%s （%u，%s挂起）。%s\n"
 
 #: ../src/utils/pacat.c:238
 msgid "not "
-msgstr ""
+msgstr "not "
 
 #: ../src/utils/pacat.c:259
 #, c-format
 msgid "Connection established.%s \n"
-msgstr ""
+msgstr "连接已建立。%s \n"
 
 #: ../src/utils/pacat.c:262
 #, c-format
 msgid "pa_stream_new() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_new()失败：%s\n"
 
 #: ../src/utils/pacat.c:287
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_connect_playback()失败：%s\n"
 
 #: ../src/utils/pacat.c:293
 #, c-format
 msgid "pa_stream_connect_record() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_connect_playback()失败：%s\n"
 
 #: ../src/utils/pacat.c:307 ../src/utils/pasuspender.c:159
 #: ../src/utils/pactl.c:666 ../src/utils/paplay.c:183
 #, c-format
 msgid "Connection failure: %s\n"
-msgstr ""
+msgstr "连接失败：%s\n"
 
 #: ../src/utils/pacat.c:328 ../src/utils/paplay.c:75
 #, c-format
 msgid "Failed to drain stream: %s\n"
-msgstr ""
+msgstr "排出流失败：%s\n"
 
 #: ../src/utils/pacat.c:333 ../src/utils/paplay.c:80
 #, c-format
 msgid "Playback stream drained.\n"
-msgstr ""
+msgstr "流播放完毕。\n"
 
 #: ../src/utils/pacat.c:343 ../src/utils/paplay.c:92
 #, c-format
@@ -1100,42 +1156,42 @@ msgstr ""
 #: ../src/utils/pacat.c:369
 #, c-format
 msgid "Got EOF.\n"
-msgstr ""
+msgstr "收到EOF。\n"
 
 #: ../src/utils/pacat.c:375
 #, c-format
 msgid "pa_stream_drain(): %s\n"
-msgstr ""
+msgstr "pa_stream_drain()：%s\n"
 
 #: ../src/utils/pacat.c:385
 #, c-format
 msgid "read() failed: %s\n"
-msgstr ""
+msgstr "read()失败：%s\n"
 
 #: ../src/utils/pacat.c:417
 #, c-format
 msgid "write() failed: %s\n"
-msgstr ""
+msgstr "write()失败：%s\n"
 
 #: ../src/utils/pacat.c:438
 #, c-format
 msgid "Got signal, exiting.\n"
-msgstr ""
+msgstr "收到信号，正在退出。\n"
 
 #: ../src/utils/pacat.c:452
 #, c-format
 msgid "Failed to get latency: %s\n"
-msgstr ""
+msgstr "获取传输延迟失败：%s\n"
 
 #: ../src/utils/pacat.c:457
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
-msgstr ""
+msgstr "时间：%0.3f秒；延迟：%0.0f 微秒。  \r"
 
 #: ../src/utils/pacat.c:477
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_update_timing_info()失败：%s\n"
 
 #: ../src/utils/pacat.c:490
 #, c-format
@@ -1188,7 +1244,33 @@ msgid ""
 "bytes.\n"
 "      --process-time=BYTES              Request the specified process time "
 "per request in bytes.\n"
-msgstr ""
+msgstr "%s [options]\n"
+"\n"
+"  -h, --help                            显示此帮助\n"
+"      --version                         显示版本号\n"
+"\n"
+"  -r, --record                          为录制创建连接\n"
+"  -p, --playback                        为回放创建连接\n"
+"\n"
+"  -v, --verbose                         启用详述操作\n"
+"\n"
+"  -s, --server=SERVER                   要连接的服务器名\n"
+"  -d, --device=DEVICE                   要连接的sink/source名\n"
+"  -n, --client-name=NAME                指定客户端在服务器上的名称\n"
+"      --stream-name=NAME                指定流在服务器上的名称\n"
+"      --volume=VOLUME                   指定初始（线性）音量，取值在0...65536之间\n"
+"      --rate=SAMPLERATE                 采样频率（单位Hz，默认为44100）\n"
+"      --format=SAMPLEFORMAT             采样类型，从s16le，s16be，u8，float32le，\n"
+"                                        float32be，ulaw，alaw，s32le，s32be中取（默认为s16ne）\n"
+"      --channels=CHANNELS               通道数，1为单声道，2为立体声（默认为2）\n"
+"      --channel-map=CHANNELMAP          取代默认值的通道映射表\n"
+"      --fix-format                      从流连接的音频出口处取采样格式。\n"
+"      --fix-rate                        从流连接的音频出口处取采样率。\n"
+"      --fix-channels                    从流连接的音频出口处取通道数和通道映射表。\n"
+"      --no-remix                        Don't upmix or downmix channels.\n"
+"      --no-remap                        根据下标而非名称来映射通道。\n"
+"      --latency=BYTES                   请求指定字节数的延迟。\n"
+"      --process-time=BYTES              每次请求指定字节数的处理时间。\n"
 
 #: ../src/utils/pacat.c:591
 #, c-format
@@ -1197,128 +1279,131 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pacat %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
 
 #: ../src/utils/pacat.c:647
 #, c-format
 msgid "Invalid channel map '%s'\n"
-msgstr ""
+msgstr "无效的通道映射描述'%s'\n"
 
 #: ../src/utils/pacat.c:676
 #, c-format
 msgid "Invalid latency specification '%s'\n"
-msgstr ""
+msgstr "无效的延迟规格描述 %s'\n"
 
 #: ../src/utils/pacat.c:683
 #, c-format
 msgid "Invalid process time specification '%s'\n"
-msgstr ""
+msgstr "无效的处理时间描述 '%s'\n"
 
 #: ../src/utils/pacat.c:694
 #, c-format
 msgid "Invalid sample specification\n"
-msgstr ""
+msgstr "无效的采样描述\n"
 
 #: ../src/utils/pacat.c:699
 #, c-format
 msgid "Channel map doesn't match sample specification\n"
-msgstr ""
+msgstr "通道映射与采样描述不匹配\n"
 
 #: ../src/utils/pacat.c:706
 #, c-format
 msgid "Opening a %s stream with sample specification '%s'.\n"
-msgstr ""
+msgstr "以采样规格'%s'打开%s流。\n"
 
 #: ../src/utils/pacat.c:706
 msgid "recording"
-msgstr ""
+msgstr "正在录制"
 
 #: ../src/utils/pacat.c:706
 msgid "playback"
-msgstr ""
+msgstr "回放"
 
 #: ../src/utils/pacat.c:714
 #, c-format
 msgid "open(): %s\n"
-msgstr ""
+msgstr "open()：%s\n"
 
 #: ../src/utils/pacat.c:719
 #, c-format
 msgid "dup2(): %s\n"
-msgstr ""
+msgstr "dup2()：%s\n"
 
 #: ../src/utils/pacat.c:729
 #, c-format
 msgid "Too many arguments.\n"
-msgstr ""
+msgstr "参数过多。\n"
 
 #: ../src/utils/pacat.c:742 ../src/utils/pasuspender.c:280
 #: ../src/utils/pactl.c:909 ../src/utils/paplay.c:381
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
-msgstr ""
+msgstr "pa_mainloop_new()失败。\n"
 
 #: ../src/utils/pacat.c:763
 #, c-format
 msgid "io_new() failed.\n"
-msgstr ""
+msgstr "io_new()失败。\n"
 
 #: ../src/utils/pacat.c:769 ../src/utils/pasuspender.c:293
 #: ../src/utils/pactl.c:923 ../src/utils/paplay.c:396
 #, c-format
 msgid "pa_context_new() failed.\n"
-msgstr ""
+msgstr "pa_context_new()失败。\n"
 
 #: ../src/utils/pacat.c:777
 #, c-format
 msgid "pa_context_connect() failed: %s"
-msgstr ""
+msgstr "pa_context_connect()失败：%s"
 
 #: ../src/utils/pacat.c:788
 #, c-format
 msgid "time_new() failed.\n"
-msgstr ""
+msgstr "time_new()失败。\n"
 
 #: ../src/utils/pacat.c:795 ../src/utils/pasuspender.c:301
 #: ../src/utils/pactl.c:931 ../src/utils/paplay.c:407
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
-msgstr ""
+msgstr "pa_mainloop_run()失败。\n"
 
 #: ../src/utils/pasuspender.c:81
 #, c-format
 msgid "fork(): %s\n"
-msgstr ""
+msgstr "fork()：%s\n"
 
 #: ../src/utils/pasuspender.c:92
 #, c-format
 msgid "execvp(): %s\n"
-msgstr ""
+msgstr "execvp()：%s\n"
 
 #: ../src/utils/pasuspender.c:109
 #, c-format
 msgid "Failure to suspend: %s\n"
-msgstr ""
+msgstr "挂起失败：%s\n"
 
 #: ../src/utils/pasuspender.c:124
 #, c-format
 msgid "Failure to resume: %s\n"
-msgstr ""
+msgstr "恢复失败：%s\n"
 
 #: ../src/utils/pasuspender.c:147
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
-msgstr ""
+msgstr "警告：非本地声音服务器，不会挂起。\n"
 
 #: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:672
 #: ../src/utils/paplay.c:191
 #, c-format
 msgid "Got SIGINT, exiting.\n"
-msgstr ""
+msgstr "收到SIGINT，正在退出。\n"
 
 #: ../src/utils/pasuspender.c:194
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr ""
+msgstr "警告：子进程被信号%u终止\n"
 
 #: ../src/utils/pasuspender.c:212
 #, c-format
@@ -1330,7 +1415,12 @@ msgid ""
 "  -s, --server=SERVER                   The name of the server to connect "
 "to\n"
 "\n"
-msgstr ""
+msgstr "%s [options] ... \n"
+"\n"
+"  -h, --help                            显示此帮助\n"
+"      --version                         显示版本\n"
+"  -s, --server=SERVER                   要连接的服务器名\n"
+"\n"
 
 #: ../src/utils/pasuspender.c:251
 #, c-format
@@ -1339,31 +1429,34 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pasuspender %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
 
 #: ../src/utils/pactl.c:107
 #, c-format
 msgid "Failed to get statistics: %s\n"
-msgstr ""
+msgstr "获取统计数据失败：%s\n"
 
 #: ../src/utils/pactl.c:113
 #, c-format
 msgid "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr ""
+msgstr "当前使用：%u块，总共%s字节。\n"
 
 #: ../src/utils/pactl.c:116
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr ""
+msgstr "整个生命周期所得分配：%u块，总共%s字节。\n"
 
 #: ../src/utils/pactl.c:119
 #, c-format
 msgid "Sample cache size: %s\n"
-msgstr ""
+msgstr "采样缓存大小：%s\n"
 
 #: ../src/utils/pactl.c:128
 #, c-format
 msgid "Failed to get server information: %s\n"
-msgstr ""
+msgstr "获取服务器信息失败：%s\n"
 
 #: ../src/utils/pactl.c:135
 #, c-format
@@ -1376,12 +1469,19 @@ msgid ""
 "Default Sink: %s\n"
 "Default Source: %s\n"
 "Cookie: %08x\n"
-msgstr ""
+msgstr "用户名：%s\n"
+"主机名：%s\n"
+"服务器名：%s\n"
+"服务器版本：%s\n"
+"默认采样规格：%s\n"
+"默认音频出口：%s\n"
+"默认音频入口：%s\n"
+"Cookie：%08x\n"
 
 #: ../src/utils/pactl.c:160
 #, c-format
 msgid "Failed to get sink information: %s\n"
-msgstr ""
+msgstr "获取音频出口信息失败：%s\n"
 
 #: ../src/utils/pactl.c:176
 #, c-format
@@ -1398,16 +1498,27 @@ msgid ""
 "Flags: %s%s%s%s%s%s\n"
 "Properties:\n"
 "%s"
-msgstr ""
+msgstr "*** 音频出口 #%u ***\n"
+"名称：%s\n"
+"驱动：%s\n"
+"采样规格：%s\n"
+"通道映射表：%s\n"
+"所有者模块：%u\n"
+"音量：%s\n"
+"音频入口监视器：%s\n"
+"延迟：%0.0f微秒，配置%0.0f微秒\n"
+"标记：%s%s%s%s%s%s\n"
+"属性：\n"
+"%s"
 
 #: ../src/utils/pactl.c:193 ../src/utils/pactl.c:371
 msgid "muted"
-msgstr ""
+msgstr "已静音"
 
 #: ../src/utils/pactl.c:212
 #, c-format
 msgid "Failed to get source information: %s\n"
-msgstr ""
+msgstr "获取音频入口信息失败：%s\n"
 
 #: ../src/utils/pactl.c:228
 #, c-format
@@ -1424,19 +1535,30 @@ msgid ""
 "Flags: %s%s%s%s%s%s\n"
 "Properties:\n"
 "%s"
-msgstr ""
+msgstr "*** 音频入口 #%u ***\n"
+"名称：%s\n"
+"驱动：%s\n"
+"采样规格：%s\n"
+"通道映射表：%s\n"
+"所有者模块：%u\n"
+"音量：%s\n"
+"音频出口监视器：%s\n"
+"延迟：%0.0f微秒，配置%0.0f微秒\n"
+"标记：%s%s%s%s%s%s\n"
+"属性：\n"
+"%s"
 
 #: ../src/utils/pactl.c:246 ../src/utils/pactl.c:289 ../src/utils/pactl.c:322
 #: ../src/utils/pactl.c:366 ../src/utils/pactl.c:367 ../src/utils/pactl.c:374
 #: ../src/utils/pactl.c:418 ../src/utils/pactl.c:419 ../src/utils/pactl.c:425
 #: ../src/utils/pactl.c:468 ../src/utils/pactl.c:469 ../src/utils/pactl.c:473
 msgid "n/a"
-msgstr ""
+msgstr "n/a"
 
 #: ../src/utils/pactl.c:263
 #, c-format
 msgid "Failed to get module information: %s\n"
-msgstr ""
+msgstr "获取模块信息失败：%s\n"
 
 #: ../src/utils/pactl.c:281
 #, c-format
@@ -1446,12 +1568,16 @@ msgid ""
 "Argument: %s\n"
 "Usage counter: %s\n"
 "Auto unload: %s\n"
-msgstr ""
+msgstr "*** 模块 #%u ***\n"
+"名称：%s\n"
+"参数：%s\n"
+"使用计数器：%s\n"
+"自动卸载：%s\n"
 
 #: ../src/utils/pactl.c:298
 #, c-format
 msgid "Failed to get client information: %s\n"
-msgstr ""
+msgstr "获取客户端信息失败：%s\n"
 
 #: ../src/utils/pactl.c:316
 #, c-format
@@ -1461,12 +1587,16 @@ msgid ""
 "Owner Module: %s\n"
 "Properties:\n"
 "%s"
-msgstr ""
+msgstr "*** 客户端 #%u ***\n"
+"驱动：%s\n"
+"所有者模块：%s\n"
+"属性：\n"
+"%s"
 
 #: ../src/utils/pactl.c:333
 #, c-format
 msgid "Failed to get sink input information: %s\n"
-msgstr ""
+msgstr "获取音频出口输入信息失败：%s\n"
 
 #: ../src/utils/pactl.c:352
 #, c-format
@@ -1484,12 +1614,24 @@ msgid ""
 "Resample method: %s\n"
 "Properties:\n"
 "%s"
-msgstr ""
+msgstr "*** 音频出口输入 #%u ***\n"
+"驱动：%s\n"
+"所有者模块：%s\n"
+"客户端：%s\n"
+"音频出口：%u\n"
+"采样规格：%s\n"
+"通道映射表：%s\n"
+"音量：%s\n"
+"缓冲延迟：%0.0f微秒\n"
+"音频出口延迟：%0.0f微秒\n"
+"重采样方法：%s\n"
+"属性：\n"
+"%s"
 
 #: ../src/utils/pactl.c:385
 #, c-format
 msgid "Failed to get source output information: %s\n"
-msgstr ""
+msgstr "获取音频入口输出信息失败：%s\n"
 
 #: ../src/utils/pactl.c:405
 #, c-format
@@ -1506,12 +1648,23 @@ msgid ""
 "Resample method: %s\n"
 "Properties:\n"
 "%s"
-msgstr ""
+msgstr "*** 音频入口输出 #%u ***\n"
+"驱动：%s\n"
+"所有者模块：%s\n"
+"客户端：%s\n"
+"音频入口：%u\n"
+"采样规格：%s\n"
+"通道映射表：%s\n"
+"缓冲延迟：%0.0f微秒\n"
+"音频入口延迟：%0.0f微秒\n"
+"重采样方法：%s\n"
+"属性：\n"
+"%s"
 
 #: ../src/utils/pactl.c:436
 #, c-format
 msgid "Failed to get sample information: %s\n"
-msgstr ""
+msgstr "获取采样信息失败：%s\n"
 
 #: ../src/utils/pactl.c:455
 #, c-format
@@ -1527,12 +1680,22 @@ msgid ""
 "Filename: %s\n"
 "Properties:\n"
 "%s"
-msgstr ""
+msgstr "*** 采样 #%u ***\n"
+"名称：%s\n"
+"音量：%s\n"
+"采样规格：%s\n"
+"通道映射表：%s\n"
+"持续时长：%0.1f秒\n"
+"大小：%s\n"
+"Lazy：%s\n"
+"文件名：%s\n"
+"属性：\n"
+"%s"
 
 #: ../src/utils/pactl.c:481
 #, c-format
 msgid "Failed to get autoload information: %s\n"
-msgstr ""
+msgstr "获取自动加载信息失败：%s\n"
 
 #: ../src/utils/pactl.c:497
 #, c-format
@@ -1542,30 +1705,34 @@ msgid ""
 "Type: %s\n"
 "Module: %s\n"
 "Argument: %s\n"
-msgstr ""
+msgstr "*** 自动加载项 #%u ***\n"
+"名称：%s\n"
+"类型：%s\n"
+"模块：%s\n"
+"参数：%s\n"
 
 #: ../src/utils/pactl.c:504
 msgid "sink"
-msgstr ""
+msgstr "音频出口"
 
 #: ../src/utils/pactl.c:504
 msgid "source"
-msgstr ""
+msgstr "音频入口"
 
 #: ../src/utils/pactl.c:511 ../src/utils/pactl.c:521
 #, c-format
 msgid "Failure: %s\n"
-msgstr ""
+msgstr "失败：%s\n"
 
 #: ../src/utils/pactl.c:545
 #, c-format
 msgid "Failed to upload sample: %s\n"
-msgstr ""
+msgstr "上传采样失败：%s\n"
 
 #: ../src/utils/pactl.c:562
 #, c-format
 msgid "Premature end of file\n"
-msgstr ""
+msgstr "文件过早结束\n"
 
 #: ../src/utils/pactl.c:678
 #, c-format
@@ -1590,7 +1757,24 @@ msgid ""
 "to\n"
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
-msgstr ""
+msgstr "%s [options] stat\n"
+"%s [options] list\n"
+"%s [options] exit\n"
+"%s [options] upload-sample FILENAME [NAME]\n"
+"%s [options] play-sample NAME [SINK]\n"
+"%s [options] remove-sample NAME\n"
+"%s [options] move-sink-input ID SINK\n"
+"%s [options] move-source-output ID SOURCE\n"
+"%s [options] load-module NAME [ARGS ...]\n"
+"%s [options] unload-module ID\n"
+"%s [options] suspend-sink [SINK] 1|0\n"
+"%s [options] suspend-source [SOURCE] 1|0\n"
+"\n"
+"  -h, --help                            显示此帮助\n"
+"      --version                         显示版本\n"
+"\n"
+"  -s, --server=SERVER                   要连接的服务器名\n"
+"  -n, --client-name=NAME                此客户端在服务器上的名称\n"
 
 #: ../src/utils/pactl.c:729
 #, c-format
@@ -1599,65 +1783,68 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pactl %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
 
 #: ../src/utils/pactl.c:768
 #, c-format
 msgid "Please specify a sample file to load\n"
-msgstr ""
+msgstr "请指定要加载的采样文件\n"
 
 #: ../src/utils/pactl.c:790
 #, c-format
 msgid "Failed to open sound file.\n"
-msgstr ""
+msgstr "打开声音文件失败。\n"
 
 #: ../src/utils/pactl.c:802
 #, c-format
 msgid "You have to specify a sample name to play\n"
-msgstr ""
+msgstr "你必须指定要播放的采样名\n"
 
 #: ../src/utils/pactl.c:814
 #, c-format
 msgid "You have to specify a sample name to remove\n"
-msgstr ""
+msgstr "你必须指定要删除的采样名\n"
 
 #: ../src/utils/pactl.c:822
 #, c-format
 msgid "You have to specify a sink input index and a sink\n"
-msgstr ""
+msgstr "你必须指定音频出口索引和音频出口\n"
 
 #: ../src/utils/pactl.c:831
 #, c-format
 msgid "You have to specify a source output index and a source\n"
-msgstr ""
+msgstr "你必须指定音频入口输出索引和音频入口\n"
 
 #: ../src/utils/pactl.c:845
 #, c-format
 msgid "You have to specify a module name and arguments.\n"
-msgstr ""
+msgstr "必须指定模块名和参数。\n"
 
 #: ../src/utils/pactl.c:865
 #, c-format
 msgid "You have to specify a module index\n"
-msgstr ""
+msgstr "必须指定模块索引\n"
 
 #: ../src/utils/pactl.c:875
 #, c-format
 msgid ""
 "You may not specify more than one sink. You have to specify at least one "
 "boolean value.\n"
-msgstr ""
+msgstr "不可指定多个音频出口。必须指定至少一个布尔值。\n"
 
 #: ../src/utils/pactl.c:888
 #, c-format
 msgid ""
 "You may not specify more than one source. You have to specify at least one "
 "boolean value.\n"
-msgstr ""
+msgstr "不可指定多个音频入口。必须指定至少一个布尔值。\n"
 
 #: ../src/utils/pactl.c:904
 #, c-format
 msgid "No valid command specified.\n"
-msgstr ""
+msgstr "未指定有效的命令。\n"
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -1670,114 +1857,120 @@ msgid ""
 "variables and cookie file.\n"
 " -r    Remove PulseAudio data from X11 display\n"
 msgstr ""
+"%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n"
+"\n"
+" -d    显示与X11显示器关联的当前PulseAudio数据（默认）\n"
+" -e    将本地PulseAudio数据导出至X11显示器\n"
+" -i    将PulseAudio数据由X11显示器导入至本地环境变量和cookie文件。\n"
+" -r    从X11显示器清除PulseAudio数据\n"
 
 #: ../src/utils/pax11publish.c:94
 #, c-format
 msgid "Failed to parse command line.\n"
-msgstr ""
+msgstr "分析命令行失败。\n"
 
 #: ../src/utils/pax11publish.c:108
 #, c-format
 msgid "Server: %s\n"
-msgstr ""
+msgstr "服务器：%s\n"
 
 #: ../src/utils/pax11publish.c:110
 #, c-format
 msgid "Source: %s\n"
-msgstr ""
+msgstr "音频入口：%s\n"
 
 #: ../src/utils/pax11publish.c:112
 #, c-format
 msgid "Sink: %s\n"
-msgstr ""
+msgstr "音频出口：%s\n"
 
 #: ../src/utils/pax11publish.c:114
 #, c-format
 msgid "Cookie: %s\n"
-msgstr ""
+msgstr "Cookie：%s\n"
 
 #: ../src/utils/pax11publish.c:132
 #, c-format
 msgid "Failed to parse cookie data\n"
-msgstr ""
+msgstr "分析cookie数据失败\n"
 
 #: ../src/utils/pax11publish.c:137
 #, c-format
 msgid "Failed to save cookie data\n"
-msgstr ""
+msgstr "保存cookie数据失败\n"
 
 #: ../src/utils/pax11publish.c:152
 #, c-format
 msgid "Failed to load client configuration file.\n"
-msgstr ""
+msgstr "加载客户端配置文件失败。\n"
 
 #: ../src/utils/pax11publish.c:157
 #, c-format
 msgid "Failed to read environment configuration data.\n"
-msgstr ""
+msgstr "读取环境配置数据失败。\n"
 
 #: ../src/utils/pax11publish.c:174
 #, c-format
 msgid "Failed to get FQDN.\n"
-msgstr ""
+msgstr "获取FQDN失败。\n"
 
 #: ../src/utils/pax11publish.c:194
 #, c-format
 msgid "Failed to load cookie data\n"
-msgstr ""
+msgstr "加载cookie数据失败\n"
 
 #: ../src/utils/pax11publish.c:211
 #, c-format
 msgid "Not yet implemented.\n"
-msgstr ""
+msgstr "尚未实现。\n"
 
 #: ../src/utils/pacmd.c:64
 #, c-format
 msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
-msgstr ""
+msgstr "socket(PF_UNIX, SOCK_STREAM, 0)：%s"
 
 #: ../src/utils/pacmd.c:81
 #, c-format
 msgid "connect(): %s"
-msgstr ""
+msgstr "connect()：%s"
 
 #: ../src/utils/pacmd.c:89
 msgid "Failed to kill PulseAudio daemon."
-msgstr ""
+msgstr "杀死PulseAudio后台程序失败。"
 
 #: ../src/utils/pacmd.c:97
 msgid "Daemon not responding."
-msgstr ""
+msgstr "后台程序未响应。"
 
 #: ../src/utils/pacmd.c:112
 #, c-format
 msgid "select(): %s"
-msgstr ""
+msgstr "select()：%s"
 
 #: ../src/utils/pacmd.c:124 ../src/utils/pacmd.c:140
 #, c-format
 msgid "read(): %s"
-msgstr ""
+msgstr "read()：%s"
 
 #: ../src/utils/pacmd.c:153 ../src/utils/pacmd.c:167
 #, c-format
 msgid "write(): %s"
-msgstr ""
+msgstr "write()：%s"
 
 #: ../src/utils/paplay.c:139
 #, c-format
 msgid "Stream successfully created\n"
-msgstr ""
+msgstr "成功创建流\n"
 
 #: ../src/utils/paplay.c:144
 #, c-format
 msgid "Stream errror: %s\n"
-msgstr ""
+msgstr "流错误：%s\n"
 
 #: ../src/utils/paplay.c:165
 #, c-format
 msgid "Connection established.\n"
-msgstr ""
+msgstr "连接已建立。\n"
 
 #: ../src/utils/paplay.c:198
 #, c-format
@@ -1800,6 +1993,19 @@ msgid ""
 "in range 0...65536\n"
 "      --channel-map=CHANNELMAP          Set the channel map to the use\n"
 msgstr ""
+"%s [options] [FILE]\n"
+"\n"
+"  -h, --help                            显示此帮助\n"
+"      --version                         显示版本\n"
+"\n"
+"  -v, --verbose                         启用详述操作\n"
+"\n"
+"  -s, --server=SERVER                   要连接的服务器名\n"
+"  -d, --device=DEVICE                   要连接的音频出口名\n"
+"  -n, --client-name=NAME                此客户端在服务器上的名称\n"
+"      --stream-name=NAME                此流在服务器上的名称\n"
+"      --volume=VOLUME                   指定初始（线性）音量，取值在0...65536之间\n"
+"      --channel-map=CHANNELMAP          设定使用的通道映射表\n"
 
 #: ../src/utils/paplay.c:255
 #, c-format
@@ -1808,28 +2014,31 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"paplay %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
 
 #: ../src/utils/paplay.c:292
 #, c-format
 msgid "Invalid channel map\n"
-msgstr ""
+msgstr "无效的通道映射表\n"
 
 #: ../src/utils/paplay.c:314
 #, c-format
 msgid "Failed to open file '%s'\n"
-msgstr ""
+msgstr "打开文件'%s'失败\n"
 
 #: ../src/utils/paplay.c:350
 #, c-format
 msgid "Channel map doesn't match file.\n"
-msgstr ""
+msgstr "通道映射表与文件不匹配。\n"
 
 #: ../src/utils/paplay.c:376
 #, c-format
 msgid "Using sample spec '%s'\n"
-msgstr ""
+msgstr "正在使用采样规格'%s'\n"
 
 #: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
 msgid "Cannot access autospawn lock."
-msgstr ""
+msgstr "不能访问autospawn锁。"
 
