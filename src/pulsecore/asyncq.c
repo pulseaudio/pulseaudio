@@ -206,7 +206,8 @@ void pa_asyncq_post(pa_asyncq*l, void *p) {
     /* OK, we couldn't push anything in the queue. So let's queue it
      * locally and push it later */
 
-    pa_log("q overrun, queuing locally");
+    if (pa_log_ratelimit())
+        pa_log_warn("q overrun, queuing locally");
 
     if (!(q = pa_flist_pop(PA_STATIC_FLIST_GET(localq))))
         q = pa_xnew(struct localq, 1);
