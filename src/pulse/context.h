@@ -232,14 +232,14 @@ uint32_t pa_context_get_protocol_version(pa_context *c);
 /** Return the protocol version of the connected server. */
 uint32_t pa_context_get_server_protocol_version(pa_context *c);
 
-/* Update the property list of the client, adding new entries. Please
+/** Update the property list of the client, adding new entries. Please
  * note that it is highly recommended to set as much properties
  * initially via pa_context_new_with_proplist() as possible instead a
  * posteriori with this function, since that information may then be
  * used to route streams of the client to the right device. \since 0.9.11 */
 pa_operation *pa_context_proplist_update(pa_context *c, pa_update_mode_t mode, pa_proplist *p, pa_context_success_cb_t cb, void *userdata);
 
-/* Update the property list of the client, remove entries. \since 0.9.11 */
+/** Update the property list of the client, remove entries. \since 0.9.11 */
 pa_operation *pa_context_proplist_remove(pa_context *c, const char *const keys[], pa_context_success_cb_t cb, void *userdata);
 
 /** Return the client index this context is
