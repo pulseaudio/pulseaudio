@@ -556,6 +556,7 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/refcnt.h \
 		pulsecore/rtclock.c pulsecore/rtclock.h \
 		pulsecore/shm.c pulsecore/shm.h \
+		pulsecore/bitset.c pulsecore/bitset.h \
 		pulsecore/socket-client.c pulsecore/socket-client.h \
 		pulsecore/socket-server.c pulsecore/socket-server.h \
 		pulsecore/socket-util.c pulsecore/socket-util.h \
