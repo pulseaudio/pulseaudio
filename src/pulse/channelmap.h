@@ -214,7 +214,10 @@ const char* pa_channel_position_to_pretty_string(pa_channel_position_t pos);
 /** Make a humand readable string from the specified channel map */
 char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map);
 
-/** Parse a channel position list into a channel map structure. */
+/** Parse a channel position list or well-known mapping name into a
+ * channel map structure. This turns the output of
+ * pa_channel_map_snprint() and pa_channel_map_to_name() back into a
+ * pa_channel_map */
 pa_channel_map *pa_channel_map_parse(pa_channel_map *map, const char *s);
 
 /** Compare two channel maps. Return 1 if both match. */
@@ -229,6 +232,22 @@ int pa_channel_map_compatible(const pa_channel_map *map, const pa_sample_spec *s
 
 /** Returns non-zero if every channel defined in b is also defined in a. \since 0.9.15 */
 int pa_channel_map_superset(const pa_channel_map *a, const pa_channel_map *b) PA_GCC_PURE;
+
+/** Returns non-zero if it makes sense to apply a volume 'balance'
+ * with this mapping, i.e. if there are left/right channels
+ * available. \since 0.9.15 */
+int pa_channel_map_can_balance(const pa_channel_map *map) PA_GCC_PURE;
+
+/** Tries to find a well-known channel mapping name for this channel
+ * mapping. I.e. "stereo", "surround-71" and so on. If the channel
+ * mapping is unknown NULL will be returned. This name can be parsed
+ * with pa_channel_map_parse() \since 0.9.15 */
+const char* pa_channel_map_to_name(const pa_channel_map *map) PA_GCC_PURE;
+
+/** Tries to find a human readable text label for this channel
+mapping. I.e. "Stereo", "Surround 7.1" and so on. If the channel
+mapping is unknown NULL will be returned. \since 0.9.15 */
+const char* pa_channel_map_to_pretty_name(const pa_channel_map *map) PA_GCC_PURE;
 
 PA_C_DECL_END
 
