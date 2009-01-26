@@ -600,7 +600,7 @@ static int sco_process_render(struct userdata *u) {
     for (;;) {
         ssize_t l;
 
-        l = pa_loop_write(u->stream_fd, (uint8_t*) p, memchunk.length, NULL);
+        l = pa_loop_write(u->stream_fd, p, memchunk.length, NULL);
         pa_log_debug("Memblock written to socket: %li bytes", (long) l);
 
         pa_assert(l != 0);
