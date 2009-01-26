@@ -244,8 +244,13 @@ float pa_cvolume_get_balance(const pa_channel_map *map, const pa_cvolume *v) PA_
  * operation might not be reversable! Also, after this call
  * pa_cvolume_get_balance() is not guaranteed to actually return the
  * requested balance (e.g. when the input volume was zero anyway for
- * all channels)- \since 0.9.15 */
+ * all channels) \since 0.9.15 */
 pa_cvolume* pa_cvolume_set_balance(const pa_channel_map *map, pa_cvolume *v, float new_balance);
+
+/** Scale the passed pa_cvolume structure so that the maximum volume
+ * of all channels equals max. The proportions between the channel
+ * volumes are kept. \since 0.9.15 */
+pa_cvolume* pa_cvolume_scale(pa_cvolume *v, pa_volume_t max);
 
 PA_C_DECL_END
 

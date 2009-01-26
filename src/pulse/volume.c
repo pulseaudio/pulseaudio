@@ -500,3 +500,22 @@ pa_cvolume* pa_cvolume_set_balance(const pa_channel_map *map, pa_cvolume *v, flo
 
     return v;
 }
+
+pa_cvolume* pa_cvolume_scale(pa_cvolume *v, pa_volume_t max) {
+    unsigned c;
+    pa_volume_t t = 0;
+
+    pa_assert(c);
+
+    for (c = 0; c < v->channels; c++)
+        if (v->values[c] > t)
+            t = v->values[c];
+
+    if (t <= 0)
+        return pa_cvolume_set(v, v->channels, max);
+
+    for (c = 0; c < v->channels; c++)
+        v->values[c] = (pa_volume_t) (((uint64_t)  v->values[c] * (uint64_t) max) / (uint64_t) t);
+
+    return v;
+}

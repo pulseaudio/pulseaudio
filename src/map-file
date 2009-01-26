@@ -113,6 +113,7 @@ pa_cvolume_get_balance;
 pa_cvolume_init;
 pa_cvolume_max;
 pa_cvolume_remap;
+pa_cvolume_scale;
 pa_cvolume_set;
 pa_cvolume_set_balance;
 pa_cvolume_snprint;
