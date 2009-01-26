@@ -218,8 +218,6 @@ pa_sink_input* pa_sink_input_new(
             pa_log_warn("Unsupported resampling operation.");
             return NULL;
         }
-
-        data->resample_method = pa_resampler_get_method(resampler);
     }
 
     i = pa_msgobject_new(pa_sink_input);
@@ -235,7 +233,8 @@ pa_sink_input* pa_sink_input_new(
     i->sink = data->sink;
     i->client = data->client;
 
-    i->resample_method = data->resample_method;
+    i->requested_resample_method = data->resample_method;
+    i->actual_resample_method = resampler ? pa_resampler_get_method(resampler) : PA_RESAMPLER_INVALID;
     i->sample_spec = data->sample_spec;
     i->channel_map = data->channel_map;
 
@@ -946,7 +945,7 @@ void pa_sink_input_set_name(pa_sink_input *i, const char *name) {
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
 
-    return i->resample_method;
+    return i->actual_resample_method;
 }
 
 /* Called from main context */
@@ -1062,7 +1061,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest) {
                       i->core->mempool,
                       &i->sample_spec, &i->channel_map,
                       &dest->sample_spec, &dest->channel_map,
-                      i->resample_method,
+                      i->requested_resample_method,
                       ((i->flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
                       ((i->flags & PA_SINK_INPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
                       (i->core->disable_remixing || (i->flags & PA_SINK_INPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0)))) {

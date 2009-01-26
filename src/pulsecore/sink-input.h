@@ -95,7 +95,7 @@ struct pa_sink_input {
     pa_cvolume volume;
     pa_bool_t muted;
 
-    pa_resample_method_t resample_method;
+    pa_resample_method_t requested_resample_method, actual_resample_method;
 
     /* Returns the chunk of audio data and drops it from the
      * queue. Returns -1 on failure. Called from IO thread context. If

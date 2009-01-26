@@ -79,7 +79,7 @@ struct pa_source_output {
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
 
-    pa_resample_method_t resample_method;
+    pa_resample_method_t requested_resample_method, actual_resample_method;
 
     /* Pushes a new memchunk into the output. Called from IO thread
      * context. */
@@ -139,7 +139,7 @@ struct pa_source_output {
     struct {
         pa_source_output_state_t state;
 
-        pa_bool_t attached; /* True only between ->attach() and ->detach() calls */
+        pa_bool_t attached:1; /* True only between ->attach() and ->detach() calls */
 
         pa_sample_spec sample_spec;
 

@@ -181,8 +181,6 @@ pa_source_output* pa_source_output_new(
             pa_log_warn("Unsupported resampling operation.");
             return NULL;
         }
-
-        data->resample_method = pa_resampler_get_method(resampler);
     }
 
     o = pa_msgobject_new(pa_source_output);
@@ -198,7 +196,9 @@ pa_source_output* pa_source_output_new(
     o->source = data->source;
     o->client = data->client;
 
-    o->resample_method = data->resample_method;
+
+    o->actual_resample_method = resampler ? pa_resampler_get_method(resampler) : PA_RESAMPLER_INVALID;
+    o->requested_resample_method = data->resample_method;
     o->sample_spec = data->sample_spec;
     o->channel_map = data->channel_map;
 
@@ -628,7 +628,7 @@ pa_bool_t pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o) {
     pa_source_output_assert_ref(o);
 
-    return o->resample_method;
+    return o->actual_resample_method;
 }
 
 /* Called from main context */
@@ -730,7 +730,7 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest) {
                       o->core->mempool,
                       &dest->sample_spec, &dest->channel_map,
                       &o->sample_spec, &o->channel_map,
-                      o->resample_method,
+                      o->requested_resample_method,
                       ((o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
                       ((o->flags & PA_SOURCE_OUTPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
                       (o->core->disable_remixing || (o->flags & PA_SOURCE_OUTPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0)))) {
