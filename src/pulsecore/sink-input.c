@@ -1110,7 +1110,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest) {
 int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest) {
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
-    pa_assert(!i->sink);
+    pa_assert(i->sink);
     pa_sink_assert_ref(dest);
 
     if (dest == i->sink)
