@@ -84,7 +84,14 @@ typedef struct pa_daemon_conf {
     char *config_file;
 
 #ifdef HAVE_SYS_RESOURCE_H
-    pa_rlimit rlimit_fsize, rlimit_data, rlimit_stack, rlimit_core, rlimit_rss, rlimit_nofile, rlimit_as;
+    pa_rlimit rlimit_fsize, rlimit_data, rlimit_stack, rlimit_core, rlimit_rss;
+
+#ifdef RLIMIT_NOFILE
+    pa_rlimit rlimit_nofile;
+#endif
+#ifdef RLIMIT_AS
+    pa_rlimit rlimit_as;
+#endif
 #ifdef RLIMIT_NPROC
     pa_rlimit rlimit_nproc;
 #endif
