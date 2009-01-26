@@ -221,6 +221,9 @@ char *pa_sink_list_to_string(pa_core *c) {
             vdb[PA_SW_VOLUME_SNPRINT_DB_MAX],
             cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t;
         pa_usec_t min_latency, max_latency;
+        const char *cmn;
+
+        cmn = pa_channel_map_to_pretty_name(&sink->channel_map);
 
         pa_sink_get_latency_range(sink, &min_latency, &max_latency);
 
@@ -241,7 +244,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             "\tmax rewind: %lu KiB\n"
             "\tmonitor source: %u\n"
             "\tsample spec: %s\n"
-            "\tchannel map: %s\n"
+            "\tchannel map: %s%s%s\n"
             "\tused by: %u\n"
             "\tlinked by: %u\n",
             c->default_sink_name && !strcmp(sink->name, c->default_sink_name) ? '*' : ' ',
@@ -272,6 +275,8 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->monitor_source ? sink->monitor_source->index : PA_INVALID_INDEX,
             pa_sample_spec_snprint(ss, sizeof(ss), &sink->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &sink->channel_map),
+            cmn ? "\n\t            " : "",
+            cmn ? cmn : "",
             pa_sink_used_by(sink),
             pa_sink_linked_by(sink));
 
@@ -306,6 +311,9 @@ char *pa_source_list_to_string(pa_core *c) {
             vdb[PA_SW_VOLUME_SNPRINT_DB_MAX],
             cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t;
         pa_usec_t min_latency, max_latency;
+        const char *cmn;
+
+        cmn = pa_channel_map_to_pretty_name(&source->channel_map);
 
         pa_source_get_latency_range(source, &min_latency, &max_latency);
 
@@ -324,7 +332,7 @@ char *pa_source_list_to_string(pa_core *c) {
             "\tconfigured latency: %0.2f ms; range is %0.2f .. %0.2f ms\n"
             "\tmax rewind: %lu KiB\n"
             "\tsample spec: %s\n"
-            "\tchannel map: %s\n"
+            "\tchannel map: %s%s%s\n"
             "\tused by: %u\n"
             "\tlinked by: %u\n",
             c->default_source_name && !strcmp(source->name, c->default_source_name) ? '*' : ' ',
@@ -353,6 +361,8 @@ char *pa_source_list_to_string(pa_core *c) {
             (unsigned long) pa_source_get_max_rewind(source) / 1024,
             pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &source->channel_map),
+            cmn ? "\n\t            " : "",
+            cmn ? cmn : "",
             pa_source_used_by(source),
             pa_source_linked_by(source));
 
@@ -391,6 +401,9 @@ char *pa_source_output_list_to_string(pa_core *c) {
     for (o = pa_idxset_first(c->source_outputs, &idx); o; o = pa_idxset_next(c->source_outputs, &idx)) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t, clt[28];
         pa_usec_t cl;
+        const char *cmn;
+
+        cmn = pa_channel_map_to_pretty_name(&o->channel_map);
 
         if ((cl = pa_source_output_get_requested_latency(o)) == (pa_usec_t) -1)
             pa_snprintf(clt, sizeof(clt), "n/a");
@@ -409,7 +422,7 @@ char *pa_source_output_list_to_string(pa_core *c) {
             "\tcurrent latency: %0.2f ms\n"
             "\trequested latency: %s\n"
             "\tsample spec: %s\n"
-            "\tchannel map: %s\n"
+            "\tchannel map: %s%s%s\n"
             "\tresample method: %s\n",
             o->index,
             o->driver,
@@ -427,6 +440,8 @@ char *pa_source_output_list_to_string(pa_core *c) {
             clt,
             pa_sample_spec_snprint(ss, sizeof(ss), &o->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &o->channel_map),
+            cmn ? "\n\t            " : "",
+            cmn ? cmn : "",
             pa_resample_method_to_string(pa_source_output_get_resample_method(o)));
         if (o->module)
             pa_strbuf_printf(s, "\towner module: %u\n", o->module->index);
@@ -463,6 +478,9 @@ char *pa_sink_input_list_to_string(pa_core *c) {
     for (i = pa_idxset_first(c->sink_inputs, &idx); i; i = pa_idxset_next(c->sink_inputs, &idx)) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t, clt[28];
         pa_usec_t cl;
+        const char *cmn;
+
+        cmn = pa_channel_map_to_pretty_name(&i->channel_map);
 
         if ((cl = pa_sink_input_get_requested_latency(i)) == (pa_usec_t) -1)
             pa_snprintf(clt, sizeof(clt), "n/a");
@@ -485,7 +503,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             "\tcurrent latency: %0.2f ms\n"
             "\trequested latency: %s\n"
             "\tsample spec: %s\n"
-            "\tchannel map: %s\n"
+            "\tchannel map: %s%s%s\n"
             "\tresample method: %s\n",
             i->index,
             i->driver,
@@ -507,6 +525,8 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             clt,
             pa_sample_spec_snprint(ss, sizeof(ss), &i->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
+            cmn ? "\n\t            " : "",
+            cmn ? cmn : "",
             pa_resample_method_to_string(pa_sink_input_get_resample_method(i)));
 
         if (i->module)
@@ -537,6 +557,9 @@ char *pa_scache_list_to_string(pa_core *c) {
         for (e = pa_idxset_first(c->scache, &idx); e; e = pa_idxset_next(c->scache, &idx)) {
             double l = 0;
             char ss[PA_SAMPLE_SPEC_SNPRINT_MAX] = "n/a", cv[PA_CVOLUME_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX] = "n/a", *t;
+            const char *cmn;
+
+            cmn = pa_channel_map_to_pretty_name(&e->channel_map);
 
             if (e->memchunk.memblock) {
                 pa_sample_spec_snprint(ss, sizeof(ss), &e->sample_spec);
@@ -549,7 +572,7 @@ char *pa_scache_list_to_string(pa_core *c) {
                 "    name: <%s>\n"
                 "\tindex: %u\n"
                 "\tsample spec: %s\n"
-                "\tchannel map: %s\n"
+                "\tchannel map: %s%s%s\n"
                 "\tlength: %lu\n"
                 "\tduration: %0.1f s\n"
                 "\tvolume: %s\n"
@@ -561,6 +584,8 @@ char *pa_scache_list_to_string(pa_core *c) {
                 e->index,
                 ss,
                 cm,
+                cmn ? "\n\t            " : "",
+                cmn ? cmn : "",
                 (long unsigned)(e->memchunk.memblock ? e->memchunk.length : 0),
                 l,
                 pa_cvolume_snprint(cv, sizeof(cv), &e->volume),
