@@ -22,18 +22,21 @@
 
 AC_PREREQ(2.63)
 
-m4_define(PA_MAJOR, [0])
-m4_define(PA_MINOR, [9])
-m4_define(PA_MICRO, [15])
+m4_define(pa_major, [0])
+m4_define(pa_minor, [9])
+m4_define(pa_micro, [15])
 
-AC_INIT([pulseaudio],[PA_MAJOR.PA_MINOR.PA_MICRO],[mzchyfrnhqvb (at) 0pointer (dot) net])
+AC_INIT([pulseaudio],[pa_major.pa_minor.pa_micro],[mzchyfrnhqvb (at) 0pointer (dot) net])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign 1.10 -Wall])
 
-AC_SUBST(PA_MAJORMINOR, PA_MAJOR.PA_MINOR)
-AC_SUBST(PA_MAJORMINORMICRO, PA_MAJOR.PA_MINOR.PA_MICRO)
+AC_SUBST(PA_MAJOR, pa_major)
+AC_SUBST(PA_MINOR, pa_minor)
+AC_SUBST(PA_MICRO, pa_micro)
+AC_SUBST(PA_MAJORMINOR, pa_major.pa_minor)
+AC_SUBST(PA_MAJORMINORMICRO, pa_major.pa_minor.pa_micro)
 AC_SUBST(PACKAGE_URL, [http://pulseaudio.org/])
 
 AC_SUBST(PA_API_VERSION, 12)

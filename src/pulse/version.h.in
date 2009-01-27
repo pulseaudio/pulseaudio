@@ -51,6 +51,15 @@ const char* pa_get_library_version(void);
  * 0.8/PulseAudio 0.9. */
 #define PA_PROTOCOL_VERSION @PA_PROTOCOL_VERSION@
 
+/** The major version of PA. \since 0.9.15 */
+#define PA_MAJOR @PA_MAJOR@
+
+/** The minor version of PA. \since 0.9.15 */
+#define PA_MINOR @PA_MINOR@
+
+/** The micro version of PA. \since 0.9.15 */
+#define PA_MICRO @PA_MICRO@
+
 PA_C_DECL_END
 
 #endif
