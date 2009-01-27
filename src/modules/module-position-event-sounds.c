@@ -58,30 +58,9 @@ struct userdata {
     pa_hook_slot *sink_input_fixate_hook_slot;
 };
 
-static pa_bool_t is_left(pa_channel_position_t p) {
-    return
-        p == PA_CHANNEL_POSITION_FRONT_LEFT ||
-        p == PA_CHANNEL_POSITION_REAR_LEFT ||
-        p == PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER ||
-        p == PA_CHANNEL_POSITION_SIDE_LEFT ||
-        p == PA_CHANNEL_POSITION_TOP_FRONT_LEFT ||
-        p == PA_CHANNEL_POSITION_TOP_REAR_LEFT;
-}
-
-static pa_bool_t is_right(pa_channel_position_t p) {
-    return
-        p == PA_CHANNEL_POSITION_FRONT_RIGHT ||
-        p == PA_CHANNEL_POSITION_REAR_RIGHT||
-        p == PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER ||
-        p == PA_CHANNEL_POSITION_SIDE_RIGHT ||
-        p == PA_CHANNEL_POSITION_TOP_FRONT_RIGHT ||
-        p == PA_CHANNEL_POSITION_TOP_REAR_RIGHT;
-}
-
 static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *core, pa_sink_input_new_data *data, struct userdata *u) {
     const char *hpos;
     double f;
-    unsigned c;
     char t[PA_CVOLUME_SNPRINT_MAX];
 
     pa_assert(data);
@@ -104,18 +83,11 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *core, pa_sink_i
     if (!data->virtual_volume_is_set) {
         pa_cvolume_reset(&data->virtual_volume, data->sample_spec.channels);
         data->virtual_volume_is_set = TRUE;
+        data->virtual_volume_is_absolute = FALSE;
     }
 
-    for (c = 0; c < data->sample_spec.channels; c++) {
-
-        if (is_left(data->channel_map.map[c]))
-            data->virtual_volume.values[c] =
-                pa_sw_volume_multiply(data->virtual_volume.values[c], (pa_volume_t) (PA_VOLUME_NORM * (1.0 - f)));
-
-        if (is_right(data->channel_map.map[c]))
-            data->virtual_volume.values[c] =
-                pa_sw_volume_multiply(data->virtual_volume.values[c], (pa_volume_t) (PA_VOLUME_NORM * f));
-    }
+    pa_cvolume_set_balance(&data->virtual_volume, &data->channel_map, f*2.0-1.0);
+    data->save_volume = FALSE;
 
     pa_log_debug("Final volume %s.", pa_cvolume_snprint(t, sizeof(t), &data->virtual_volume));
 
