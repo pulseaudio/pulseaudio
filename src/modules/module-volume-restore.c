@@ -443,7 +443,7 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
 
         if (r->volume_is_set && data->sample_spec.channels == r->volume.channels) {
             pa_log_info("Restoring volume for <%s>", r->name);
-            pa_sink_input_new_data_set_volume(data, &r->volume);
+            pa_sink_input_new_data_set_virtual_volume(data, &r->volume);
         }
     }
 

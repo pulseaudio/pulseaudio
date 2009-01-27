@@ -70,7 +70,8 @@ typedef struct pa_daemon_conf {
         load_default_script_file,
         disallow_exit,
         log_meta,
-        log_time;
+        log_time,
+        flat_volumes;
     int exit_idle_time,
         scache_idle_time,
         auto_log_target,

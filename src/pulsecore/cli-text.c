@@ -232,11 +232,12 @@ char *pa_sink_list_to_string(pa_core *c) {
             "  %c index: %u\n"
             "\tname: <%s>\n"
             "\tdriver: <%s>\n"
-            "\tflags: %s%s%s%s%s%s\n"
+            "\tflags: %s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
             "\tvolume: %s%s%s\n"
             "\t        balance %0.2f\n"
             "\tbase volume: %s%s%s\n"
+            "\tvolume steps: %u\n"
             "\tmuted: %s\n"
             "\tcurrent latency: %0.2f ms\n"
             "\tconfigured latency: %0.2f ms; range is %0.2f .. %0.2f ms\n"
@@ -257,6 +258,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->flags & PA_SINK_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
             sink->flags & PA_SINK_DECIBEL_VOLUME ? "DECIBEL_VOLUME " : "",
             sink->flags & PA_SINK_LATENCY ? "LATENCY " : "",
+            sink->flags & PA_SINK_FLAT_VOLUME ? "FLAT_VOLUME" : "",
             sink_state_to_string(pa_sink_get_state(sink)),
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink, FALSE)),
             sink->flags & PA_SINK_DECIBEL_VOLUME ? "\n\t        " : "",
@@ -265,6 +267,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             pa_volume_snprint(v, sizeof(v), sink->base_volume),
             sink->flags & PA_SINK_DECIBEL_VOLUME ? "\n\t             " : "",
             sink->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_volume_snprint_dB(vdb, sizeof(vdb), sink->base_volume) : "",
+            sink->n_volume_steps,
             pa_yes_no(pa_sink_get_mute(sink, FALSE)),
             (double) pa_sink_get_latency(sink) / (double) PA_USEC_PER_MSEC,
             (double) pa_sink_get_requested_latency(sink) / (double) PA_USEC_PER_MSEC,
@@ -275,7 +278,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->monitor_source ? sink->monitor_source->index : PA_INVALID_INDEX,
             pa_sample_spec_snprint(ss, sizeof(ss), &sink->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &sink->channel_map),
-            cmn ? "\n\t            " : "",
+            cmn ? "\n\t             " : "",
             cmn ? cmn : "",
             pa_sink_used_by(sink),
             pa_sink_linked_by(sink));
@@ -327,6 +330,7 @@ char *pa_source_list_to_string(pa_core *c) {
             "\tvolume: %s%s%s\n"
             "\t        balance %0.2f\n"
             "\tbase volume: %s%s%s\n"
+            "\tvolume steps: %u\n"
             "\tmuted: %s\n"
             "\tcurrent latency: %0.2f ms\n"
             "\tconfigured latency: %0.2f ms; range is %0.2f .. %0.2f ms\n"
@@ -353,6 +357,7 @@ char *pa_source_list_to_string(pa_core *c) {
             pa_volume_snprint(v, sizeof(v), source->base_volume),
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? "\n\t             " : "",
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? pa_sw_volume_snprint_dB(vdb, sizeof(vdb), source->base_volume) : "",
+            source->n_volume_steps,
             pa_yes_no(pa_source_get_mute(source, FALSE)),
             (double) pa_source_get_latency(source) / PA_USEC_PER_MSEC,
             (double) pa_source_get_requested_latency(source) / PA_USEC_PER_MSEC,
@@ -361,7 +366,7 @@ char *pa_source_list_to_string(pa_core *c) {
             (unsigned long) pa_source_get_max_rewind(source) / 1024,
             pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &source->channel_map),
-            cmn ? "\n\t            " : "",
+            cmn ? "\n\t             " : "",
             cmn ? cmn : "",
             pa_source_used_by(source),
             pa_source_linked_by(source));
@@ -440,7 +445,7 @@ char *pa_source_output_list_to_string(pa_core *c) {
             clt,
             pa_sample_spec_snprint(ss, sizeof(ss), &o->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &o->channel_map),
-            cmn ? "\n\t            " : "",
+            cmn ? "\n\t             " : "",
             cmn ? cmn : "",
             pa_resample_method_to_string(pa_source_output_get_resample_method(o)));
         if (o->module)
@@ -525,7 +530,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             clt,
             pa_sample_spec_snprint(ss, sizeof(ss), &i->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
-            cmn ? "\n\t            " : "",
+            cmn ? "\n\t             " : "",
             cmn ? cmn : "",
             pa_resample_method_to_string(pa_sink_input_get_resample_method(i)));
 
@@ -584,7 +589,7 @@ char *pa_scache_list_to_string(pa_core *c) {
                 e->index,
                 ss,
                 cm,
-                cmn ? "\n\t            " : "",
+                cmn ? "\n\t             " : "",
                 cmn ? cmn : "",
                 (long unsigned)(e->memchunk.memblock ? e->memchunk.length : 0),
                 l,

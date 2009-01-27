@@ -917,6 +917,7 @@ int main(int argc, char *argv[]) {
     c->disable_lfe_remixing = !!conf->disable_lfe_remixing;
     c->running_as_daemon = !!conf->daemonize;
     c->disallow_exit = conf->disallow_exit;
+    c->flat_volumes = conf->flat_volumes;
 
     pa_assert_se(pa_signal_init(pa_mainloop_get_api(mainloop)) == 0);
     pa_signal_new(SIGINT, signal_callback, c);

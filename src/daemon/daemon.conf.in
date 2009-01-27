@@ -53,6 +53,8 @@
 ; disable-remixing = no
 ; disable-lfe-remixing = yes
 
+; flat-volumes = yes
+
 ; no-cpu-limit = no
 
 ; rlimit-fsize = -1

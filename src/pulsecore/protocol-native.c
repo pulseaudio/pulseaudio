@@ -1012,7 +1012,7 @@ static playback_stream* playback_stream_new(
     pa_sink_input_new_data_set_sample_spec(&data, ss);
     pa_sink_input_new_data_set_channel_map(&data, map);
     if (volume)
-        pa_sink_input_new_data_set_volume(&data, volume);
+        pa_sink_input_new_data_set_virtual_volume(&data, volume);
     if (muted_set)
         pa_sink_input_new_data_set_muted(&data, muted);
     data.sync_base = ssync ? ssync->sink_input : NULL;
@@ -2691,6 +2691,7 @@ static void sink_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_sin
         if (PA_UNLIKELY(pa_sink_get_state(sink) == PA_SINK_INVALID_STATE))
             pa_log_error("Internal sink state is invalid.");
         pa_tagstruct_putu32(t, pa_sink_get_state(sink));
+        pa_tagstruct_putu32(t, sink->n_volume_steps);
     }
 }
 
@@ -2729,6 +2730,7 @@ static void source_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_s
         if (PA_UNLIKELY(pa_source_get_state(source) == PA_SOURCE_INVALID_STATE))
             pa_log_error("Internal source state is invalid.");
         pa_tagstruct_putu32(t, pa_source_get_state(source));
+        pa_tagstruct_putu32(t, source->n_volume_steps);
     }
 }
 
@@ -3164,7 +3166,7 @@ static void command_set_volume(
     CHECK_VALIDITY(c->pstream, si || sink || source, tag, PA_ERR_NOENTITY);
 
     if (sink)
-        pa_sink_set_volume(sink, &volume);
+        pa_sink_set_volume(sink, &volume, TRUE, TRUE);
     else if (source)
         pa_source_set_volume(source, &volume);
     else if (si)

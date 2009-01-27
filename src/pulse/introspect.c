@@ -159,6 +159,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
             memset(&i, 0, sizeof(i));
             i.proplist = pa_proplist_new();
             i.base_volume = PA_VOLUME_NORM;
+            i.n_volume_steps = PA_VOLUME_NORM+1;
             mute = FALSE;
             state = PA_SINK_INVALID_STATE;
 
@@ -180,7 +181,8 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                   pa_tagstruct_get_usec(t, &i.configured_latency) < 0)) ||
                 (o->context->version >= 15 &&
                  (pa_tagstruct_get_volume(t, &i.base_volume) < 0 ||
-                  pa_tagstruct_getu32(t, &state) < 0))) {
+                  pa_tagstruct_getu32(t, &state) < 0 ||
+                  pa_tagstruct_getu32(t, &i.n_volume_steps) < 0))) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 pa_proplist_free(i.proplist);
@@ -288,6 +290,7 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
             memset(&i, 0, sizeof(i));
             i.proplist = pa_proplist_new();
             i.base_volume = PA_VOLUME_NORM;
+            i.n_volume_steps = PA_VOLUME_NORM+1;
             mute = FALSE;
             state = PA_SOURCE_INVALID_STATE;
 
@@ -309,7 +312,8 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                   pa_tagstruct_get_usec(t, &i.configured_latency) < 0)) ||
                 (o->context->version >= 15 &&
                  (pa_tagstruct_get_volume(t, &i.base_volume) < 0 ||
-                  pa_tagstruct_getu32(t, &state) < 0))) {
+                  pa_tagstruct_getu32(t, &state) < 0 ||
+                  pa_tagstruct_getu32(t, &i.n_volume_steps) < 0))) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 pa_proplist_free(i.proplist);

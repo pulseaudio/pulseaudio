@@ -757,7 +757,7 @@ static long to_alsa_volume(struct userdata *u, pa_volume_t vol) {
     return PA_CLAMP_UNLIKELY(alsa_vol, u->hw_volume_min, u->hw_volume_max);
 }
 
-static int sink_get_volume_cb(pa_sink *s) {
+static void sink_get_volume_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     int err;
     unsigned i;
@@ -820,27 +820,24 @@ static int sink_get_volume_cb(pa_sink *s) {
 
     if (!pa_cvolume_equal(&u->hardware_volume, &r)) {
 
-        u->hardware_volume = s->volume = r;
+        s->virtual_volume = u->hardware_volume = r;
 
         if (u->hw_dB_supported) {
             pa_cvolume reset;
 
             /* Hmm, so the hardware volume changed, let's reset our software volume */
-
             pa_cvolume_reset(&reset, s->sample_spec.channels);
             pa_sink_set_soft_volume(s, &reset);
         }
     }
 
-    return 0;
+    return;
 
 fail:
     pa_log_error("Unable to read volume: %s", snd_strerror(err));
-
-    return -1;
 }
 
-static int sink_set_volume_cb(pa_sink *s) {
+static void sink_set_volume_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     int err;
     unsigned i;
@@ -857,7 +854,7 @@ static int sink_set_volume_cb(pa_sink *s) {
             long alsa_vol;
             pa_volume_t vol;
 
-            vol = s->volume.values[i];
+            vol = s->virtual_volume.values[i];
 
             if (u->hw_dB_supported) {
 
@@ -894,7 +891,7 @@ static int sink_set_volume_cb(pa_sink *s) {
         pa_volume_t vol;
         long alsa_vol;
 
-        vol = pa_cvolume_max(&s->volume);
+        vol = pa_cvolume_max(&s->virtual_volume);
 
         if (u->hw_dB_supported) {
             alsa_vol = (long) (pa_sw_volume_to_dB(vol) * 100);
@@ -911,7 +908,7 @@ static int sink_set_volume_cb(pa_sink *s) {
             VALGRIND_MAKE_MEM_DEFINED(&alsa_vol, sizeof(alsa_vol));
 #endif
 
-            pa_cvolume_set(&r, s->volume.channels, pa_sw_volume_from_dB((double) (alsa_vol - u->hw_dB_max) / 100.0));
+            pa_cvolume_set(&r, s->sample_spec.channels, pa_sw_volume_from_dB((double) (alsa_vol - u->hw_dB_max) / 100.0));
 
         } else {
             alsa_vol = to_alsa_volume(u, vol);
@@ -932,11 +929,9 @@ static int sink_set_volume_cb(pa_sink *s) {
         char t[PA_CVOLUME_SNPRINT_MAX];
 
         /* Match exactly what the user requested by software */
+        pa_sw_cvolume_divide(&s->soft_volume, &s->virtual_volume, &r);
 
-        pa_sw_cvolume_divide(&r, &s->volume, &r);
-        pa_sink_set_soft_volume(s, &r);
-
-        pa_log_debug("Requested volume: %s", pa_cvolume_snprint(t, sizeof(t), &s->volume));
+        pa_log_debug("Requested volume: %s", pa_cvolume_snprint(t, sizeof(t), &s->virtual_volume));
         pa_log_debug("Got hardware volume: %s", pa_cvolume_snprint(t, sizeof(t), &u->hardware_volume));
         pa_log_debug("Calculated software volume: %s", pa_cvolume_snprint(t, sizeof(t), &r));
 
@@ -945,17 +940,15 @@ static int sink_set_volume_cb(pa_sink *s) {
         /* We can't match exactly what the user requested, hence let's
          * at least tell the user about it */
 
-        s->volume = r;
+        s->virtual_volume = r;
 
-    return 0;
+    return;
 
 fail:
     pa_log_error("Unable to set volume: %s", snd_strerror(err));
-
-    return -1;
 }
 
-static int sink_get_mute_cb(pa_sink *s) {
+static void sink_get_mute_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     int err, sw;
 
@@ -964,15 +957,13 @@ static int sink_get_mute_cb(pa_sink *s) {
 
     if ((err = snd_mixer_selem_get_playback_switch(u->mixer_elem, 0, &sw)) < 0) {
         pa_log_error("Unable to get switch: %s", snd_strerror(err));
-        return -1;
+        return;
     }
 
     s->muted = !sw;
-
-    return 0;
 }
 
-static int sink_set_mute_cb(pa_sink *s) {
+static void sink_set_mute_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     int err;
 
@@ -981,10 +972,8 @@ static int sink_set_mute_cb(pa_sink *s) {
 
     if ((err = snd_mixer_selem_set_playback_switch_all(u->mixer_elem, !s->muted)) < 0) {
         pa_log_error("Unable to set switch: %s", snd_strerror(err));
-        return -1;
+        return;
     }
-
-    return 0;
 }
 
 static void sink_update_requested_latency_cb(pa_sink *s) {
@@ -1552,6 +1541,8 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
                 u->sink->flags |= PA_SINK_HW_VOLUME_CTRL | (u->hw_dB_supported ? PA_SINK_DECIBEL_VOLUME : 0);
                 pa_log_info("Using hardware volume control. Hardware dB scale %s.", u->hw_dB_supported ? "supported" : "not supported");
 
+                if (!u->hw_dB_supported)
+                    u->sink->n_volume_steps = u->hw_volume_max - u->hw_volume_min + 1;
             } else
                 pa_log_info("Using software volume control.");
         }

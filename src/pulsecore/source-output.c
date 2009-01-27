@@ -685,15 +685,15 @@ int pa_source_output_start_move(pa_source_output *o) {
 
     origin = o->source;
 
-    pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL) == 0);
+    pa_idxset_remove_by_data(o->source->outputs, o, NULL);
 
     if (pa_source_output_get_state(o) == PA_SOURCE_OUTPUT_CORKED)
         pa_assert_se(origin->n_corked-- >= 1);
 
-    pa_idxset_remove_by_data(o->source->outputs, o, NULL);
-    o->source = NULL;
+    pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL) == 0);
 
-    pa_source_update_status(origin);
+    pa_source_update_status(o->source);
+    o->source = NULL;
 
     return 0;
 }
@@ -706,6 +706,9 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest) {
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
     pa_assert(!o->source);
     pa_source_assert_ref(dest);
+
+    if (!pa_source_output_may_move_to(o, dest))
+        return -1;
 
     o->source = dest;
     pa_idxset_put(o->source->outputs, o, NULL);

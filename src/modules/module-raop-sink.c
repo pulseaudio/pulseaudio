@@ -255,20 +255,17 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     return pa_sink_process_msg(o, code, data, offset, chunk);
 }
 
-static int sink_get_volume_cb(pa_sink *s) {
+static void sink_get_volume_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     int i;
 
     pa_assert(u);
 
-    for (i = 0; i < s->sample_spec.channels; i++) {
-        s->volume.values[i] = u->volume;
-    }
-
-    return 0;
+    for (i = 0; i < s->sample_spec.channels; i++)
+        s->virtual_volume.values[i] = u->volume;
 }
 
-static int sink_set_volume_cb(pa_sink *s) {
+static void sink_set_volume_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     int rv;
 
@@ -276,39 +273,34 @@ static int sink_set_volume_cb(pa_sink *s) {
 
     /* If we're muted, we fake it */
     if (u->muted)
-        return 0;
+        return;
 
     pa_assert(s->sample_spec.channels > 0);
 
     /* Avoid pointless volume sets */
-    if (u->volume == s->volume.values[0])
-        return 0;
+    if (u->volume == s->virtual_volume.values[0])
+        return;
 
-    rv = pa_raop_client_set_volume(u->raop, s->volume.values[0]);
+    rv = pa_raop_client_set_volume(u->raop, s->virtual_volume.values[0]);
     if (0 == rv)
-        u->volume = s->volume.values[0];
-
-    return rv;
+        u->volume = s->virtual_volume.values[0];
 }
 
-static int sink_get_mute_cb(pa_sink *s) {
+static void sink_get_mute_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
 
     pa_assert(u);
 
     s->muted = u->muted;
-    return 0;
 }
 
-static int sink_set_mute_cb(pa_sink *s) {
+static void sink_set_mute_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
-    int rv;
 
     pa_assert(u);
 
-    rv = pa_raop_client_set_volume(u->raop, (s->muted ? PA_VOLUME_MUTED : u->volume));
+    pa_raop_client_set_volume(u->raop, (s->muted ? PA_VOLUME_MUTED : u->volume));
     u->muted = s->muted;
-    return rv;
 }
 
 static void thread_func(void *userdata) {

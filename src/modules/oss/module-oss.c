@@ -443,7 +443,6 @@ static pa_usec_t io_sink_get_latency(struct userdata *u) {
     return r;
 }
 
-
 static pa_usec_t io_source_get_latency(struct userdata *u) {
     pa_usec_t r = 0;
 
@@ -526,9 +525,6 @@ static int suspend(struct userdata *u) {
 
     return 0;
 }
-
-static int sink_get_volume(pa_sink *s);
-static int source_get_volume(pa_source *s);
 
 static int unsuspend(struct userdata *u) {
     int m;
@@ -620,10 +616,10 @@ static int unsuspend(struct userdata *u) {
 
     build_pollfd(u);
 
-    if (u->sink && u->sink->get_volume)
-        u->sink->get_volume(u->sink);
-    if (u->source && u->source->get_volume)
-        u->source->get_volume(u->source);
+    if (u->sink)
+        pa_sink_get_volume(u->sink, TRUE);
+    if (u->source)
+        pa_source_get_volume(u->source, TRUE);
 
     pa_log_info("Resumed successfully...");
 
@@ -798,84 +794,76 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
     return ret;
 }
 
-static int sink_get_volume(pa_sink *s) {
+static void sink_get_volume(pa_sink *s) {
     struct userdata *u;
-    int r;
 
     pa_assert_se(u = s->userdata);
 
     pa_assert(u->mixer_devmask & (SOUND_MASK_VOLUME|SOUND_MASK_PCM));
 
     if (u->mixer_devmask & SOUND_MASK_VOLUME)
-        if ((r = pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_VOLUME, &s->sample_spec, &s->volume)) >= 0)
-            return r;
+        if (pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_VOLUME, &s->sample_spec, &s->virtual_volume) >= 0)
+            return;
 
     if (u->mixer_devmask & SOUND_MASK_PCM)
-        if ((r = pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_PCM, &s->sample_spec, &s->volume)) >= 0)
-            return r;
+        if (pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_PCM, &s->sample_spec, &s->virtual_volume) >= 0)
+            return;
 
     pa_log_info("Device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
-    return -1;
 }
 
-static int sink_set_volume(pa_sink *s) {
+static void sink_set_volume(pa_sink *s) {
     struct userdata *u;
-    int r;
 
     pa_assert_se(u = s->userdata);
 
     pa_assert(u->mixer_devmask & (SOUND_MASK_VOLUME|SOUND_MASK_PCM));
 
     if (u->mixer_devmask & SOUND_MASK_VOLUME)
-        if ((r = pa_oss_set_volume(u->mixer_fd, SOUND_MIXER_WRITE_VOLUME, &s->sample_spec, &s->volume)) >= 0)
-            return r;
+        if (pa_oss_set_volume(u->mixer_fd, SOUND_MIXER_WRITE_VOLUME, &s->sample_spec, &s->virtual_volume) >= 0)
+            return;
 
     if (u->mixer_devmask & SOUND_MASK_PCM)
-        if ((r = pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_WRITE_PCM, &s->sample_spec, &s->volume)) >= 0)
-            return r;
+        if (pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_WRITE_PCM, &s->sample_spec, &s->virtual_volume) >= 0)
+            return;
 
     pa_log_info("Device doesn't support writing mixer settings: %s", pa_cstrerror(errno));
-    return -1;
 }
 
-static int source_get_volume(pa_source *s) {
+static void source_get_volume(pa_source *s) {
     struct userdata *u;
-    int r;
 
     pa_assert_se(u = s->userdata);
 
     pa_assert(u->mixer_devmask & (SOUND_MASK_IGAIN|SOUND_MASK_RECLEV));
 
     if (u->mixer_devmask & SOUND_MASK_IGAIN)
-        if ((r = pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_IGAIN, &s->sample_spec, &s->volume)) >= 0)
-            return r;
+        if (pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_IGAIN, &s->sample_spec, &s->virtual_volume) >= 0)
+            return;
 
     if (u->mixer_devmask & SOUND_MASK_RECLEV)
-        if ((r = pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_RECLEV, &s->sample_spec, &s->volume)) >= 0)
-            return r;
+        if (pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_RECLEV, &s->sample_spec, &s->virtual_volume) >= 0)
+            return;
 
     pa_log_info("Device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
-    return -1;
 }
 
-static int source_set_volume(pa_source *s) {
+static void source_set_volume(pa_source *s) {
     struct userdata *u;
-    int r;
 
     pa_assert_se(u = s->userdata);
 
     pa_assert(u->mixer_devmask & (SOUND_MASK_IGAIN|SOUND_MASK_RECLEV));
 
     if (u->mixer_devmask & SOUND_MASK_IGAIN)
-        if ((r = pa_oss_set_volume(u->mixer_fd, SOUND_MIXER_WRITE_IGAIN, &s->sample_spec, &s->volume)) >= 0)
-            return r;
+        if (pa_oss_set_volume(u->mixer_fd, SOUND_MIXER_WRITE_IGAIN, &s->sample_spec, &s->virtual_volume) >= 0)
+            return;
 
     if (u->mixer_devmask & SOUND_MASK_RECLEV)
-        if ((r = pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_WRITE_RECLEV, &s->sample_spec, &s->volume)) >= 0)
-            return r;
+        if (pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_WRITE_RECLEV, &s->sample_spec, &s->virtual_volume) >= 0)
+            return;
 
     pa_log_info("Device doesn't support writing mixer settings: %s", pa_cstrerror(errno));
-    return -1;
 }
 
 static void thread_func(void *userdata) {
@@ -1417,6 +1405,7 @@ int pa__init(pa_module*m) {
                 u->sink->flags |= PA_SINK_HW_VOLUME_CTRL;
                 u->sink->get_volume = sink_get_volume;
                 u->sink->set_volume = sink_set_volume;
+                u->sink->n_volume_steps = 101;
                 do_close = FALSE;
             }
 
@@ -1425,6 +1414,7 @@ int pa__init(pa_module*m) {
                 u->source->flags |= PA_SOURCE_HW_VOLUME_CTRL;
                 u->source->get_volume = source_get_volume;
                 u->source->set_volume = source_set_volume;
+                u->source->n_volume_steps = 101;
                 do_close = FALSE;
             }
         }

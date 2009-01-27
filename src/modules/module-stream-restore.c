@@ -334,9 +334,9 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
 
         if (u->restore_volume) {
 
-            if (!new_data->volume_is_set) {
+            if (!new_data->virtual_volume_is_set) {
                 pa_log_info("Restoring volume for sink input %s.", name);
-                pa_sink_input_new_data_set_volume(new_data, pa_cvolume_remap(&e->volume, &e->channel_map, &new_data->channel_map));
+                pa_sink_input_new_data_set_virtual_volume(new_data, pa_cvolume_remap(&e->volume, &e->channel_map, &new_data->channel_map));
             } else
                 pa_log_debug("Not restoring volume for sink input %s, because already set.", name);
         }

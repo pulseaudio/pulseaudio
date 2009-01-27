@@ -127,6 +127,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, pa_bool_t shared, size_t shm_size) {
 
     c->exit_idle_time = -1;
     c->scache_idle_time = 20;
+    c->flat_volumes = TRUE;
 
     c->resample_method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 3;
 

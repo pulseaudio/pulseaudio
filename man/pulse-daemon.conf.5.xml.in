@@ -140,14 +140,12 @@ USA.
       precedence.</p>
     </option>
 
-
     <option>
       <p><opt>system-instance=</opt> Run the daemon as system-wide
       instance, requires root priviliges. Takes a boolean argument,
       defaults to <opt>no</opt>. The <opt>--system</opt> command line
       argument takes precedence.</p>
     </option>
-
 
     <option>
       <p><opt>disable-shm=</opt> Disable data transfer via POSIX
@@ -163,6 +161,13 @@ USA.
       MiB. Please note that usually there is no need to change this
       value, unless you are running an OS kernel that does not do
       memory overcommit.</p>
+    </option>
+
+    <option>
+      <p><opt>flat-volumes=</opt> Enable 'flat' volumes, i.e. where
+      possible let the sink volume equal the maximum of the volumes of
+      the inputs connected to it. Takes a boolean argument, defaults
+      to <opt>yes</opt>.</p>
     </option>
 
   </section>

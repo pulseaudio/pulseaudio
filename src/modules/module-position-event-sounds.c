@@ -101,23 +101,23 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *core, pa_sink_i
 
     pa_log_debug("Positioning event sound '%s' at %0.2f.", pa_strnull(pa_proplist_gets(data->proplist, PA_PROP_EVENT_ID)), f);
 
-    if (!data->volume_is_set) {
-        pa_cvolume_reset(&data->volume, data->sample_spec.channels);
-        data->volume_is_set = TRUE;
+    if (!data->virtual_volume_is_set) {
+        pa_cvolume_reset(&data->virtual_volume, data->sample_spec.channels);
+        data->virtual_volume_is_set = TRUE;
     }
 
     for (c = 0; c < data->sample_spec.channels; c++) {
 
         if (is_left(data->channel_map.map[c]))
-            data->volume.values[c] =
-                pa_sw_volume_multiply(data->volume.values[c], (pa_volume_t) (PA_VOLUME_NORM * (1.0 - f)));
+            data->virtual_volume.values[c] =
+                pa_sw_volume_multiply(data->virtual_volume.values[c], (pa_volume_t) (PA_VOLUME_NORM * (1.0 - f)));
 
         if (is_right(data->channel_map.map[c]))
-            data->volume.values[c] =
-                pa_sw_volume_multiply(data->volume.values[c], (pa_volume_t) (PA_VOLUME_NORM * f));
+            data->virtual_volume.values[c] =
+                pa_sw_volume_multiply(data->virtual_volume.values[c], (pa_volume_t) (PA_VOLUME_NORM * f));
     }
 
-    pa_log_debug("Final volume %s.", pa_cvolume_snprint(t, sizeof(t), &data->volume));
+    pa_log_debug("Final volume %s.", pa_cvolume_snprint(t, sizeof(t), &data->virtual_volume));
 
     return PA_HOOK_OK;
 }

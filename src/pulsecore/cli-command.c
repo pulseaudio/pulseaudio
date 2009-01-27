@@ -518,7 +518,7 @@ static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
     }
 
     pa_cvolume_set(&cvolume, sink->sample_spec.channels, volume);
-    pa_sink_set_volume(sink, &cvolume);
+    pa_sink_set_volume(sink, &cvolume, TRUE, TRUE);
     return 0;
 }
 

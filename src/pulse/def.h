@@ -600,9 +600,13 @@ typedef enum pa_sink_flags {
     PA_SINK_HW_MUTE_CTRL = 0x0010U,
     /**< Supports hardware mute control \since 0.9.11 */
 
-    PA_SINK_DECIBEL_VOLUME = 0x0020U
+    PA_SINK_DECIBEL_VOLUME = 0x0020U,
     /**< Volume can be translated to dB with pa_sw_volume_to_dB()
      * \since 0.9.11 */
+
+    PA_SINK_FLAT_VOLUME = 0x0040U
+    /**< This sink is in flat volume mode, i.e. always the maximum of
+     * the volume of all connected inputs. \since 0.9.15 */
 } pa_sink_flags_t;
 
 /** \cond fulldocs */
@@ -612,6 +616,7 @@ typedef enum pa_sink_flags {
 #define PA_SINK_NETWORK PA_SINK_NETWORK
 #define PA_SINK_HW_MUTE_CTRL PA_SINK_HW_MUTE_CTRL
 #define PA_SINK_DECIBEL_VOLUME PA_SINK_DECIBEL_VOLUME
+#define PA_SINK_FLAT_VOLUME PA_SINK_FLAT_VOLUME
 /** \endcond */
 
 /** Sink state. \since 0.9.15 */

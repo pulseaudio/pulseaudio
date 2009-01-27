@@ -55,7 +55,6 @@ typedef enum pa_core_hook {
     PA_CORE_HOOK_SINK_UNLINK_POST,
     PA_CORE_HOOK_SINK_STATE_CHANGED,
     PA_CORE_HOOK_SINK_PROPLIST_CHANGED,
-    PA_CORE_HOOK_SINK_SET_VOLUME,
     PA_CORE_HOOK_SOURCE_NEW,
     PA_CORE_HOOK_SOURCE_FIXATE,
     PA_CORE_HOOK_SOURCE_PUT,
@@ -129,6 +128,7 @@ struct pa_core {
     pa_silence_cache silence_cache;
 
     int exit_idle_time, scache_idle_time;
+    pa_bool_t flat_volumes;
 
     pa_time_event *exit_event;
 
