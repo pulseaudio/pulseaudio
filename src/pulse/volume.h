@@ -228,7 +228,7 @@ double pa_sw_volume_to_linear(pa_volume_t v) PA_GCC_CONST;
 #endif
 
 /** Remap a volume from one channel mapping to a different channel mapping. \since 0.9.12 */
-pa_cvolume *pa_cvolume_remap(pa_cvolume *v, pa_channel_map *from, pa_channel_map *to);
+pa_cvolume *pa_cvolume_remap(pa_cvolume *v, const pa_channel_map *from, const pa_channel_map *to);
 
 /** Return non-zero if the specified volume is compatible with
  * the specified sample spec. \since 0.9.13 */

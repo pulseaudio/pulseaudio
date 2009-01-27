@@ -341,7 +341,7 @@ static pa_bool_t on_lfe(pa_channel_position_t p) {
         p == PA_CHANNEL_POSITION_LFE;
 }
 
-pa_cvolume *pa_cvolume_remap(pa_cvolume *v, pa_channel_map *from, pa_channel_map *to) {
+pa_cvolume *pa_cvolume_remap(pa_cvolume *v, const pa_channel_map *from, const pa_channel_map *to) {
     int a, b;
     pa_cvolume result;
 
