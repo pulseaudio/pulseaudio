@@ -392,15 +392,20 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
 
                     if (e->absolute_volume_valid &&
                         e->device_valid &&
-                        pa_streq(new_data->sink->name, e->device))
+                        pa_streq(new_data->sink->name, e->device)) {
+
                         v = e->absolute_volume;
-                    else if (e->relative_volume_valid) {
-                        pa_cvolume t = new_data->sink->virtual_volume;
-                        pa_sw_cvolume_multiply(&v, &e->relative_volume, pa_cvolume_remap(&t, &new_data->sink->channel_map, &e->channel_map));
+                        new_data->virtual_volume_is_absolute = TRUE;
+                    } else if (e->relative_volume_valid) {
+
+                        v = e->relative_volume;
+                        new_data->virtual_volume_is_absolute = FALSE;
                     }
 
-                } else if (e->relative_volume_valid)
+                } else if (e->relative_volume_valid) {
                     v = e->relative_volume;
+                    new_data->virtual_volume_is_absolute = FALSE;
+                }
 
                 if (v.channels > 0) {
                     pa_log_info("Restoring volume for sink input %s.", name);
