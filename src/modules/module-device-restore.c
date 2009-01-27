@@ -53,6 +53,9 @@ PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Automatically restore the volume/mute state of devices");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_USAGE(
+        "restore_volume=<Save/restore volumes?> "
+        "restore_muted=<Save/restore muted states?>");
 
 #define SAVE_INTERVAL 10
 
