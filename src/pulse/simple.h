@@ -29,6 +29,7 @@
 #include <pulse/channelmap.h>
 #include <pulse/def.h>
 #include <pulse/cdecl.h>
+#include <pulse/version.h>
 
 /** \page simple Simple API
  *

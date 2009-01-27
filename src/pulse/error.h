@@ -25,6 +25,7 @@
 
 #include <inttypes.h>
 #include <pulse/cdecl.h>
+#include <pulse/version.h>
 
 /** \file
  * Error management */

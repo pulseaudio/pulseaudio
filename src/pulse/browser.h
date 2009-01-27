@@ -26,6 +26,7 @@
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>
 #include <pulse/cdecl.h>
+#include <pulse/version.h>
 
 /** \file
  * An abstract interface for Zeroconf browsing of PulseAudio servers */

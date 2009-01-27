@@ -29,6 +29,7 @@
 #include <pulse/cdecl.h>
 #include <pulse/operation.h>
 #include <pulse/proplist.h>
+#include <pulse/version.h>
 
 /** \page async Asynchronous API
  *

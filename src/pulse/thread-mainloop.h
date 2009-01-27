@@ -25,6 +25,7 @@
 
 #include <pulse/mainloop-api.h>
 #include <pulse/cdecl.h>
+#include <pulse/version.h>
 
 PA_C_DECL_BEGIN
 

@@ -30,6 +30,7 @@
 
 #include <pulse/gccmacro.h>
 #include <pulse/cdecl.h>
+#include <pulse/version.h>
 
 /** \page sample Sample Format Specifications
  *

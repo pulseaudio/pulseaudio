@@ -29,6 +29,7 @@
 #include <pulse/gccmacro.h>
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>
+#include <pulse/version.h>
 
 /** \page volume Volume Control
  *

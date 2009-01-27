@@ -28,6 +28,7 @@
 #include <pulse/def.h>
 #include <pulse/context.h>
 #include <pulse/cdecl.h>
+#include <pulse/version.h>
 
 /** \page subscribe Event Subscription
  *

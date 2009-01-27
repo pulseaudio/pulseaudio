@@ -24,6 +24,7 @@
 
 #include <pulse/cdecl.h>
 #include <pulse/gccmacro.h>
+#include <pulse/version.h>
 
 PA_C_DECL_BEGIN
 

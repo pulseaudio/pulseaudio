@@ -23,6 +23,7 @@
 ***/
 
 #include <pulse/context.h>
+#include <pulse/version.h>
 
 /** \file
  *

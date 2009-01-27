@@ -28,6 +28,7 @@
 #include <pulse/context.h>
 #include <pulse/stream.h>
 #include <pulse/cdecl.h>
+#include <pulse/version.h>
 
 /** \page scache Sample Cache
  *

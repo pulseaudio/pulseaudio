@@ -27,6 +27,7 @@
 
 #include <pulse/mainloop-api.h>
 #include <pulse/cdecl.h>
+#include <pulse/version.h>
 
 /** \page glib-mainloop GLIB Main Loop Bindings
  *

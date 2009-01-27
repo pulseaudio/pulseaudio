@@ -24,6 +24,7 @@
 
 #include <pulse/cdecl.h>
 #include <pulse/def.h>
+#include <pulse/version.h>
 
 /** \file
  * Asynchronous operations */

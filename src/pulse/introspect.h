@@ -32,6 +32,7 @@
 #include <pulse/channelmap.h>
 #include <pulse/volume.h>
 #include <pulse/proplist.h>
+#include <pulse/version.h>
 
 /** \page introspect Server Query and Control
  *
