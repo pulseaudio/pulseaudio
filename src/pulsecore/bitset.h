@@ -26,7 +26,7 @@
 #include <pulsecore/macro.h>
 
 #define PA_BITSET_ELEMENTS(n) (((n)+31)/32)
-#define PA_BITSET_SIZE(n) (PA_BITSET_ELEMENTS(n)*32)
+#define PA_BITSET_SIZE(n) (PA_BITSET_ELEMENTS(n)*4)
 
 typedef uint32_t pa_bitset_t;
 
