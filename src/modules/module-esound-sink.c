@@ -169,7 +169,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             w = pa_bytes_to_usec((uint64_t) u->offset + u->memchunk.length, &u->sink->sample_spec);
 
             *((pa_usec_t*) data) = w > r ? w - r : 0;
-            break;
+            return 0;
         }
 
         case SINK_MESSAGE_PASS_SOCKET: {
