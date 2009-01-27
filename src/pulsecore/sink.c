@@ -503,7 +503,7 @@ pa_queue *pa_sink_move_all_start(pa_sink *s) {
 }
 
 /* Called from main context */
-void pa_sink_move_all_finish(pa_sink *s, pa_queue *q) {
+void pa_sink_move_all_finish(pa_sink *s, pa_queue *q, pa_bool_t save) {
     pa_sink_input *i;
 
     pa_sink_assert_ref(s);
@@ -511,7 +511,7 @@ void pa_sink_move_all_finish(pa_sink *s, pa_queue *q) {
     pa_assert(q);
 
     while ((i = PA_SINK_INPUT(pa_queue_pop(q)))) {
-        if (pa_sink_input_finish_move(i, s) < 0)
+        if (pa_sink_input_finish_move(i, s, save) < 0)
             pa_sink_input_unlink(i);
 
         pa_sink_input_unref(i);

@@ -438,14 +438,14 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
 
         if (u->restore_muted) {
             pa_log_info("Restoring mute state for sink input %s.", name);
-            pa_sink_input_set_mute(si, e->muted);
+            pa_sink_input_set_mute(si, e->muted, TRUE);
         }
 
         if (u->restore_device &&
             (s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SOURCE))) {
 
             pa_log_info("Restoring device for stream %s.", name);
-            pa_sink_input_move_to(si, s);
+            pa_sink_input_move_to(si, s, TRUE);
         }
     }
 
@@ -465,7 +465,7 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
             (s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SOURCE))) {
 
             pa_log_info("Restoring device for stream %s.", name);
-            pa_source_output_move_to(so, s);
+            pa_source_output_move_to(so, s, TRUE);
         }
     }
 }

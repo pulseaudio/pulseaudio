@@ -138,8 +138,10 @@ pa_sink_input* pa_sink_input_new(
 
     pa_return_null_if_fail(!data->driver || pa_utf8_valid(data->driver));
 
-    if (!data->sink)
+    if (!data->sink) {
         data->sink = pa_namereg_get(core, NULL, PA_NAMEREG_SINK);
+        data->save_sink = FALSE;
+    }
 
     pa_return_null_if_fail(data->sink);
     pa_return_null_if_fail(pa_sink_get_state(data->sink) != PA_SINK_UNLINKED);
@@ -167,6 +169,8 @@ pa_sink_input* pa_sink_input_new(
             pa_cvolume_remap(&data->virtual_volume, &data->sink->channel_map, &data->channel_map);
         } else
             pa_cvolume_reset(&data->virtual_volume, data->sample_spec.channels);
+
+        data->save_volume = FALSE;
 
     } else if (!data->virtual_volume_is_absolute) {
 
@@ -265,6 +269,9 @@ pa_sink_input* pa_sink_input_new(
 
     i->virtual_volume = data->virtual_volume;
     i->soft_volume = data->soft_volume;
+    i->save_volume = data->save_volume;
+    i->save_sink = data->save_sink;
+    i->save_muted = data->save_muted;
 
     i->muted = data->muted;
 
@@ -855,7 +862,7 @@ pa_usec_t pa_sink_input_get_requested_latency(pa_sink_input *i) {
 }
 
 /* Called from main context */
-void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume) {
+void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_bool_t save) {
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_assert(volume);
@@ -866,6 +873,7 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume) {
         return;
 
     i->virtual_volume = *volume;
+    i->save_volume = save;
 
     if (i->sink->flags & PA_SINK_FLAT_VOLUME) {
         pa_cvolume new_volume;
@@ -902,7 +910,7 @@ const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i) {
 }
 
 /* Called from main context */
-void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute) {
+void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute, pa_bool_t save) {
     pa_assert(i);
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
@@ -911,6 +919,7 @@ void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute) {
         return;
 
     i->muted = mute;
+    i->save_muted = save;
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_SOFT_MUTE, NULL, 0, NULL) == 0);
     pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
@@ -1081,7 +1090,7 @@ int pa_sink_input_start_move(pa_sink_input *i) {
 }
 
 /* Called from main context */
-int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest) {
+int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     pa_resampler *new_resampler;
 
     pa_sink_input_assert_ref(i);
@@ -1093,6 +1102,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest) {
         return -1;
 
     i->sink = dest;
+    i->save_sink = save;
     pa_idxset_put(dest->inputs, i, NULL);
 
     if (pa_sink_input_get_state(i) == PA_SINK_INPUT_CORKED)
@@ -1169,7 +1179,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest) {
 }
 
 /* Called from main context */
-int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest) {
+int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_assert(i->sink);
@@ -1184,7 +1194,7 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest) {
     if (pa_sink_input_start_move(i) < 0)
         return -1;
 
-    if (pa_sink_input_finish_move(i, dest) < 0)
+    if (pa_sink_input_finish_move(i, dest, save) < 0)
         return -1;
 
     return 0;

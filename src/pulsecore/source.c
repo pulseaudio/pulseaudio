@@ -439,7 +439,7 @@ pa_queue *pa_source_move_all_start(pa_source *s) {
 }
 
 /* Called from main context */
-void pa_source_move_all_finish(pa_source *s, pa_queue *q) {
+void pa_source_move_all_finish(pa_source *s, pa_queue *q, pa_bool_t save) {
     pa_source_output *o;
 
     pa_source_assert_ref(s);
@@ -447,7 +447,7 @@ void pa_source_move_all_finish(pa_source *s, pa_queue *q) {
     pa_assert(q);
 
     while ((o = PA_SOURCE_OUTPUT(pa_queue_pop(q)))) {
-        if (pa_source_output_finish_move(o, s) < 0)
+        if (pa_source_output_finish_move(o, s, save) < 0)
             pa_source_output_unlink(o);
 
         pa_source_output_unref(o);

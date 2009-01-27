@@ -77,7 +77,7 @@ static pa_hook_result_t sink_hook_callback(pa_core *c, pa_sink *sink, void* user
     }
 
     while ((i = pa_idxset_first(sink->inputs, NULL))) {
-        if (pa_sink_input_move_to(i, target) < 0) {
+        if (pa_sink_input_move_to(i, target, FALSE) < 0) {
             pa_log_warn("Failed to move sink input %u \"%s\" to %s.", i->index, pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME), target->name);
             return PA_HOOK_OK;
         }
@@ -121,7 +121,7 @@ static pa_hook_result_t source_hook_callback(pa_core *c, pa_source *source, void
     pa_assert(target != source);
 
     while ((o = pa_idxset_first(source->outputs, NULL))) {
-        if (pa_source_output_move_to(o, target) < 0) {
+        if (pa_source_output_move_to(o, target, FALSE) < 0) {
             pa_log_warn("Failed to move source output %u \"%s\" to %s.", o->index, pa_proplist_gets(o->proplist, PA_PROP_APPLICATION_NAME), target->name);
             return PA_HOOK_OK;
         }

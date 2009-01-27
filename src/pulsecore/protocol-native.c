@@ -3170,7 +3170,7 @@ static void command_set_volume(
     else if (source)
         pa_source_set_volume(source, &volume);
     else if (si)
-        pa_sink_input_set_volume(si, &volume);
+        pa_sink_input_set_volume(si, &volume, TRUE);
 
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
@@ -3242,7 +3242,7 @@ static void command_set_mute(
     else if (source)
         pa_source_set_mute(source, mute);
     else if (si)
-        pa_sink_input_set_mute(si, mute);
+        pa_sink_input_set_mute(si, mute, TRUE);
 
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
@@ -3852,7 +3852,7 @@ static void command_move_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag
 
         CHECK_VALIDITY(c->pstream, si && sink, tag, PA_ERR_NOENTITY);
 
-        if (pa_sink_input_move_to(si, sink) < 0) {
+        if (pa_sink_input_move_to(si, sink, TRUE) < 0) {
             pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
             return;
         }
@@ -3871,7 +3871,7 @@ static void command_move_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag
 
         CHECK_VALIDITY(c->pstream, so && source, tag, PA_ERR_NOENTITY);
 
-        if (pa_source_output_move_to(so, source) < 0) {
+        if (pa_source_output_move_to(so, source, TRUE) < 0) {
             pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
             return;
         }

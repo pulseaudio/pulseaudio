@@ -256,7 +256,7 @@ unsigned pa_sink_check_suspend(pa_sink *s); /* Returns how many streams are acti
 
 /* Moves all inputs away, and stores them in pa_queue */
 pa_queue *pa_sink_move_all_start(pa_sink *s);
-void pa_sink_move_all_finish(pa_sink *s, pa_queue *q);
+void pa_sink_move_all_finish(pa_sink *s, pa_queue *q, pa_bool_t save);
 void pa_sink_move_all_fail(pa_queue *q);
 
 /*** To be called exclusively by the sink driver, from IO context */

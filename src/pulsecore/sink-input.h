@@ -91,7 +91,13 @@ struct pa_sink_input {
     pa_sink_input *sync_prev, *sync_next;
 
     pa_cvolume virtual_volume, soft_volume;
-    pa_bool_t muted;
+    pa_bool_t muted:1;
+
+    /* if TRUE then the source we are connected to and/or the volume
+     * set is worth remembering, i.e. was explicitly chosen by the
+     * user and not automatically. module-stream-restore looks for
+     * this.*/
+    pa_bool_t save_sink:1, save_volume:1, save_muted:1;
 
     pa_resample_method_t requested_resample_method, actual_resample_method;
 
@@ -236,6 +242,8 @@ typedef struct pa_sink_input_new_data {
     pa_bool_t muted_is_set:1;
 
     pa_bool_t virtual_volume_is_absolute:1;
+
+    pa_bool_t save_sink:1, save_volume:1, save_muted:1;
 } pa_sink_input_new_data;
 
 pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data);
@@ -280,15 +288,15 @@ void pa_sink_input_kill(pa_sink_input*i);
 
 pa_usec_t pa_sink_input_get_latency(pa_sink_input *i, pa_usec_t *sink_latency);
 
-void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume);
+void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_bool_t save);
 const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i);
-void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute);
+void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute, pa_bool_t save);
 pa_bool_t pa_sink_input_get_mute(pa_sink_input *i);
 pa_bool_t pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode, pa_proplist *p);
 
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i);
 
-int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest);
+int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, pa_bool_t save);
 pa_bool_t pa_sink_input_may_move(pa_sink_input *i); /* may this sink input move at all? */
 pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest); /* may this sink input move to this sink? */
 
@@ -296,7 +304,7 @@ pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest); /* may thi
  * first the detaching from the old sink, then the attaching to the
  * new sink */
 int pa_sink_input_start_move(pa_sink_input *i);
-int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest);
+int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save);
 
 pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i);
 

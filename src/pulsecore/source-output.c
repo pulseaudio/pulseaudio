@@ -112,8 +112,10 @@ pa_source_output* pa_source_output_new(
 
     pa_return_null_if_fail(!data->driver || pa_utf8_valid(data->driver));
 
-    if (!data->source)
+    if (!data->source) {
         data->source = pa_namereg_get(core, NULL, PA_NAMEREG_SOURCE);
+        data->save_source = FALSE;
+    }
 
     pa_return_null_if_fail(data->source);
     pa_return_null_if_fail(pa_source_get_state(data->source) != PA_SOURCE_UNLINKED);
@@ -196,13 +198,14 @@ pa_source_output* pa_source_output_new(
     o->source = data->source;
     o->client = data->client;
 
-
     o->actual_resample_method = resampler ? pa_resampler_get_method(resampler) : PA_RESAMPLER_INVALID;
     o->requested_resample_method = data->resample_method;
     o->sample_spec = data->sample_spec;
     o->channel_map = data->channel_map;
 
     o->direct_on_input = data->direct_on_input;
+
+    o->save_source = data->save_source;
 
     reset_callbacks(o);
     o->userdata = NULL;
@@ -699,7 +702,7 @@ int pa_source_output_start_move(pa_source_output *o) {
 }
 
 /* Called from main context */
-int pa_source_output_finish_move(pa_source_output *o, pa_source *dest) {
+int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t save) {
     pa_resampler *new_resampler;
 
     pa_source_output_assert_ref(o);
@@ -711,6 +714,7 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest) {
         return -1;
 
     o->source = dest;
+    o->save_source = save;
     pa_idxset_put(o->source->outputs, o, NULL);
 
     if (pa_source_output_get_state(o) == PA_SOURCE_OUTPUT_CORKED)
@@ -778,7 +782,7 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest) {
 }
 
 /* Called from main context */
-int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
+int pa_source_output_move_to(pa_source_output *o, pa_source *dest, pa_bool_t save) {
 
     pa_source_output_assert_ref(o);
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
@@ -794,7 +798,7 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
     if (pa_source_output_start_move(o) < 0)
         return -1;
 
-    if (pa_source_output_finish_move(o, dest) < 0)
+    if (pa_source_output_finish_move(o, dest, save) < 0)
         return -1;
 
     return 0;

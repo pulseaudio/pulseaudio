@@ -177,7 +177,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 
             if (inputs) {
                 if (u->sink)
-                    pa_sink_move_all_finish(u->sink, inputs);
+                    pa_sink_move_all_finish(u->sink, inputs, FALSE);
                 else
                     pa_sink_move_all_fail(inputs);
             }
@@ -200,7 +200,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 
             if (outputs) {
                 if (u->source)
-                    pa_source_move_all_finish(u->source, outputs);
+                    pa_source_move_all_finish(u->source, outputs, FALSE);
                 else
                     pa_source_move_all_fail(outputs);
             }

@@ -239,7 +239,7 @@ unsigned pa_source_check_suspend(pa_source *s); /* Returns how many streams are 
 
 /* Moves all inputs away, and stores them in pa_queue */
 pa_queue *pa_source_move_all_start(pa_source *s);
-void pa_source_move_all_finish(pa_source *s, pa_queue *q);
+void pa_source_move_all_finish(pa_source *s, pa_queue *q, pa_bool_t save);
 void pa_source_move_all_fail(pa_queue *q);
 
 /*** To be called exclusively by the source driver, from IO context */

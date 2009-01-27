@@ -79,6 +79,11 @@ struct pa_source_output {
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
 
+    /* if TRUE then the source we are connected to is worth
+     * remembering, i.e. was explicitly chosen by the user and not
+     * automatically. module-stream-restore looks for this.*/
+    pa_bool_t save_source:1;
+
     pa_resample_method_t requested_resample_method, actual_resample_method;
 
     /* Pushes a new memchunk into the output. Called from IO thread
@@ -187,6 +192,8 @@ typedef struct pa_source_output_new_data {
 
     pa_bool_t sample_spec_is_set:1;
     pa_bool_t channel_map_is_set:1;
+
+    pa_bool_t save_source:1;
 } pa_source_output_new_data;
 
 pa_source_output_new_data* pa_source_output_new_data_init(pa_source_output_new_data *data);
@@ -225,13 +232,13 @@ pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o);
 
 pa_bool_t pa_source_output_may_move(pa_source_output *o);
 pa_bool_t pa_source_output_may_move_to(pa_source_output *o, pa_source *dest);
-int pa_source_output_move_to(pa_source_output *o, pa_source *dest);
+int pa_source_output_move_to(pa_source_output *o, pa_source *dest, pa_bool_t save);
 
 /* The same as pa_source_output_move_to() but in two seperate steps,
  * first the detaching from the old source, then the attaching to the
  * new source */
 int pa_source_output_start_move(pa_source_output *o);
-int pa_source_output_finish_move(pa_source_output *o, pa_source *dest);
+int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t save);
 
 #define pa_source_output_get_state(o) ((o)->state)
 

@@ -560,7 +560,7 @@ static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strb
     }
 
     pa_cvolume_set(&cvolume, si->sample_spec.channels, volume);
-    pa_sink_input_set_volume(si, &cvolume);
+    pa_sink_input_set_volume(si, &cvolume, TRUE);
     return 0;
 }
 
@@ -852,7 +852,7 @@ static int pa_cli_command_sink_input_mute(pa_core *c, pa_tokenizer *t, pa_strbuf
         return -1;
     }
 
-    pa_sink_input_set_mute(si, mute);
+    pa_sink_input_set_mute(si, mute, TRUE);
     return 0;
 }
 
@@ -1169,7 +1169,7 @@ static int pa_cli_command_move_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf
         return -1;
     }
 
-    if (pa_sink_input_move_to(si, sink) < 0) {
+    if (pa_sink_input_move_to(si, sink, TRUE) < 0) {
         pa_strbuf_puts(buf, "Moved failed.\n");
         return -1;
     }
@@ -1212,7 +1212,7 @@ static int pa_cli_command_move_source_output(pa_core *c, pa_tokenizer *t, pa_str
         return -1;
     }
 
-    if (pa_source_output_move_to(so, source) < 0) {
+    if (pa_source_output_move_to(so, source, TRUE) < 0) {
         pa_strbuf_puts(buf, "Moved failed.\n");
         return -1;
     }

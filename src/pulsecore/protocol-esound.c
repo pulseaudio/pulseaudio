@@ -760,7 +760,7 @@ static int esd_proto_stream_pan(connection *c, esd_proto_t request, const void *
         volume.values[0] = (lvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
         volume.values[1] = (rvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
         volume.channels = 2;
-        pa_sink_input_set_volume(conn->sink_input, &volume);
+        pa_sink_input_set_volume(conn->sink_input, &volume, TRUE);
         ok = 1;
     } else
         ok = 0;
