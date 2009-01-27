@@ -77,9 +77,6 @@ load-module module-native-protocol-unix
 #load-module module-null-sink sink_name=rtp format=s16be channels=2 rate=44100 description="RTP Multicast Sink"
 #load-module module-rtp-send source=rtp.monitor
 
-### Enable flat volumes where possible
-load-module module-flat-volume
-
 ### Automatically restore the default sink/source when changed by the user during runtime
 load-module module-default-device-restore
 
