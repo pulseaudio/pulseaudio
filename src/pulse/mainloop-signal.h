@@ -40,8 +40,10 @@ PA_C_DECL_BEGIN
 /** An opaque UNIX signal event source object */
 typedef struct pa_signal_event pa_signal_event;
 
+/** Callback prototype for signal events */
 typedef void (*pa_signal_cb_t) (pa_mainloop_api *api, pa_signal_event*e, int sig, void *userdata);
 
+/** Destroy callback prototype for signal events */
 typedef void (*pa_signal_destroy_cb_t) (pa_mainloop_api *api, pa_signal_event*e, void *userdata);
 
 /** Initialize the UNIX signal subsystem and bind it to the specified main loop */

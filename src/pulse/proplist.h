@@ -162,7 +162,7 @@ int pa_proplist_setf(pa_proplist *p, const char *key, const char *format, ...) P
  * internal copy of the data passed is made. \since 0.9.11 */
 int pa_proplist_set(pa_proplist *p, const char *key, const void *data, size_t nbytes);
 
-/* Return a string entry for the specified key. Will return NULL if
+/** Return a string entry for the specified key. Will return NULL if
  * the data is not valid UTF-8. Will return a NUL-terminated string in
  * an internally allocated buffer. The caller should make a copy of
  * the data before accessing the property list again. \since 0.9.11 */

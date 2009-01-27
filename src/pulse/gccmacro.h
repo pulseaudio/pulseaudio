@@ -22,6 +22,9 @@
   USA.
 ***/
 
+/** \file
+ * GCC attribute macros */
+
 #ifdef __GNUC__
 #define PA_GCC_PRINTF_ATTR(a,b) __attribute__ ((format (printf, a, b)))
 #else
@@ -100,6 +103,7 @@
 #else
 /** Macro for usage of GCC's alloc_size attribute */
 #define PA_GCC_ALLOC_SIZE(x)
+/** Macro for usage of GCC's alloc_size attribute */
 #define PA_GCC_ALLOC_SIZE2(x,y)
 #endif
 #endif
