@@ -87,10 +87,12 @@ struct userdata {
 };
 
 struct entry {
-    char device[PA_NAME_MAX];
     pa_channel_map channel_map;
-    pa_cvolume volume;
+    char device[PA_NAME_MAX];
+    pa_cvolume relative_volume;
+    pa_cvolume absolute_volume;
     pa_bool_t muted:1;
+    pa_bool_t device_valid:1, relative_volume_valid:1, absolute_volume_valid:1, muted_valid:1;
 };
 
 
@@ -153,7 +155,9 @@ static struct entry* read_entry(struct userdata *u, const char *name) {
         goto fail;
 
     if (data.dsize != sizeof(struct entry)) {
-        pa_log_warn("Database contains entry for stream %s of wrong size %lu != %lu", name, (unsigned long) data.dsize, (unsigned long) sizeof(struct entry));
+        /* This is probably just a database upgrade, hence let's not
+         * consider this more than a debug message */
+        pa_log_debug("Database contains entry for stream %s of wrong size %lu != %lu", name, (unsigned long) data.dsize, (unsigned long) sizeof(struct entry));
         goto fail;
     }
 
@@ -164,18 +168,19 @@ static struct entry* read_entry(struct userdata *u, const char *name) {
         goto fail;
     }
 
-    if (!(pa_cvolume_valid(&e->volume))) {
-        pa_log_warn("Invalid volume stored in database for stream %s", name);
-        goto fail;
-    }
-
     if (!(pa_channel_map_valid(&e->channel_map))) {
         pa_log_warn("Invalid channel map stored in database for stream %s", name);
         goto fail;
     }
 
-    if (e->volume.channels != e->channel_map.channels) {
-        pa_log_warn("Volume and channel map don't match in database entry for stream %s", name);
+    if (e->device_valid && !pa_namereg_is_valid_name(e->device)) {
+        pa_log_warn("Invalid device name stored in database for stream %s", name);
+        goto fail;
+    }
+
+    if ((e->relative_volume_valid && (!pa_cvolume_valid(&e->relative_volume) || e->relative_volume.channels != e->channel_map.channels)) ||
+        (e->absolute_volume_valid && (!pa_cvolume_valid(&e->absolute_volume) || e->absolute_volume.channels != e->channel_map.channels))) {
+        pa_log_warn("Invalid volume stored in database for stream %s", name);
         goto fail;
     }
 
@@ -213,6 +218,33 @@ static void trigger_save(struct userdata *u) {
     u->save_time_event = u->core->mainloop->time_new(u->core->mainloop, &tv, save_time_callback, u);
 }
 
+static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
+    pa_cvolume t;
+
+    pa_assert(a);
+    pa_assert(b);
+
+    if (a->device_valid != b->device_valid ||
+        (a->device_valid && strncmp(a->device, b->device, sizeof(a->device))))
+        return FALSE;
+
+    if (a->muted_valid != b->muted_valid ||
+        (a->muted && (a->muted != b->muted)))
+        return FALSE;
+
+    t = b->relative_volume;
+    if (a->relative_volume_valid != b->relative_volume_valid ||
+        (a->relative_volume_valid && !pa_cvolume_equal(pa_cvolume_remap(&t, &b->channel_map, &a->channel_map), &a->relative_volume)))
+        return FALSE;
+
+    t = b->absolute_volume;
+    if (a->absolute_volume_valid != b->absolute_volume_valid ||
+        (a->absolute_volume_valid && !pa_cvolume_equal(pa_cvolume_remap(&t, &b->channel_map, &a->channel_map), &a->absolute_volume)))
+        return FALSE;
+
+    return TRUE;
+}
+
 static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     struct userdata *u = userdata;
     struct entry entry, *old;
@@ -240,9 +272,23 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
             return;
 
         entry.channel_map = sink_input->channel_map;
-        entry.volume = *pa_sink_input_get_volume(sink_input);
+
+        if (sink_input->sink->flags & PA_SINK_FLAT_VOLUME) {
+            entry.absolute_volume = *pa_sink_input_get_volume(sink_input);
+            entry.absolute_volume_valid = sink_input->save_volume;
+
+            pa_sw_cvolume_divide(&entry.relative_volume, &entry.absolute_volume, pa_sink_get_volume(sink_input->sink, FALSE));
+            entry.relative_volume_valid = sink_input->save_volume;
+        } else {
+            entry.relative_volume = *pa_sink_input_get_volume(sink_input);
+            entry.relative_volume_valid = sink_input->save_volume;
+        }
+
         entry.muted = pa_sink_input_get_mute(sink_input);
+        entry.muted_valid = sink_input->save_muted;
+
         pa_strlcpy(entry.device, sink_input->sink->name, sizeof(entry.device));
+        entry.device_valid = sink_input->save_sink;
 
     } else {
         pa_source_output *source_output;
@@ -255,19 +301,15 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (!(name = get_name(source_output->proplist, "source-output")))
             return;
 
-        /* The following fields are filled in to make the entry valid
-         * according to read_entry(). They are otherwise useless */
         entry.channel_map = source_output->channel_map;
-        pa_cvolume_reset(&entry.volume, entry.channel_map.channels);
+
         pa_strlcpy(entry.device, source_output->source->name, sizeof(entry.device));
+        entry.device_valid = source_output->save_source;
     }
 
     if ((old = read_entry(u, name))) {
 
-        if (pa_cvolume_equal(pa_cvolume_remap(&old->volume, &old->channel_map, &entry.channel_map), &entry.volume) &&
-            !old->muted == !entry.muted &&
-            strncmp(old->device, entry.device, sizeof(entry.device)) == 0) {
-
+        if (entries_equal(old, &entry)) {
             pa_xfree(old);
             pa_xfree(name);
             return;
@@ -297,20 +339,25 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
 
     pa_assert(new_data);
 
+    if (!u->restore_device)
+        return PA_HOOK_OK;
+
     if (!(name = get_name(new_data->proplist, "sink-input")))
         return PA_HOOK_OK;
 
     if ((e = read_entry(u, name))) {
         pa_sink *s;
 
-        if (u->restore_device &&
-            (s = pa_namereg_get(c, e->device, PA_NAMEREG_SINK))) {
+        if (e->device_valid) {
 
-            if (!new_data->sink) {
-                pa_log_info("Restoring device for stream %s.", name);
-                new_data->sink = s;
-            } else
-                pa_log_info("Not restore device for stream %s, because already set.", name);
+            if ((s = pa_namereg_get(c, e->device, PA_NAMEREG_SINK))) {
+                if (!new_data->sink) {
+                    pa_log_info("Restoring device for stream %s.", name);
+                    new_data->sink = s;
+                    new_data->save_sink = TRUE;
+                } else
+                    pa_log_info("Not restore device for stream %s, because already set.", name);
+            }
         }
 
         pa_xfree(e);
@@ -327,6 +374,9 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
 
     pa_assert(new_data);
 
+    if (!u->restore_volume && !u->restore_muted)
+        return PA_HOOK_OK;
+
     if (!(name = get_name(new_data->proplist, "sink-input")))
         return PA_HOOK_OK;
 
@@ -335,16 +385,37 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
         if (u->restore_volume) {
 
             if (!new_data->virtual_volume_is_set) {
-                pa_log_info("Restoring volume for sink input %s.", name);
-                pa_sink_input_new_data_set_virtual_volume(new_data, pa_cvolume_remap(&e->volume, &e->channel_map, &new_data->channel_map));
+                pa_cvolume v;
+                pa_cvolume_init(&v);
+
+                if (new_data->sink->flags & PA_SINK_FLAT_VOLUME) {
+
+                    if (e->absolute_volume_valid &&
+                        e->device_valid &&
+                        pa_streq(new_data->sink->name, e->device))
+                        v = e->absolute_volume;
+                    else if (e->relative_volume_valid) {
+                        pa_cvolume t = new_data->sink->virtual_volume;
+                        pa_sw_cvolume_multiply(&v, &e->relative_volume, pa_cvolume_remap(&t, &new_data->sink->channel_map, &e->channel_map));
+                    }
+
+                } else if (e->relative_volume_valid)
+                    v = e->relative_volume;
+
+                if (v.channels > 0) {
+                    pa_log_info("Restoring volume for sink input %s.", name);
+                    pa_sink_input_new_data_set_virtual_volume(new_data, pa_cvolume_remap(&v, &e->channel_map, &new_data->channel_map));
+                    new_data->save_volume = TRUE;
+                }
             } else
                 pa_log_debug("Not restoring volume for sink input %s, because already set.", name);
         }
 
-        if (u->restore_muted) {
+        if (u->restore_muted && e->muted_valid) {
             if (!new_data->muted_is_set) {
                 pa_log_info("Restoring mute state for sink input %s.", name);
                 pa_sink_input_new_data_set_muted(new_data, e->muted);
+                new_data->save_muted = TRUE;
             } else
                 pa_log_debug("Not restoring mute state for sink input %s, because already set.", name);
         }
@@ -363,21 +434,27 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
 
     pa_assert(new_data);
 
+    if (!u->restore_device)
+        return PA_HOOK_OK;
+
+    if (new_data->direct_on_input)
+        return PA_HOOK_OK;
+
     if (!(name = get_name(new_data->proplist, "source-output")))
         return PA_HOOK_OK;
 
     if ((e = read_entry(u, name))) {
         pa_source *s;
 
-        if (u->restore_device &&
-            !new_data->direct_on_input &&
-            (s = pa_namereg_get(c, e->device, PA_NAMEREG_SOURCE))) {
-
-            if (!new_data->source) {
-                pa_log_info("Restoring device for stream %s.", name);
-                new_data->source = s;
-            } else
-                pa_log_info("Not restoring device for stream %s, because already set", name);
+        if (e->device_valid) {
+            if ((s = pa_namereg_get(c, e->device, PA_NAMEREG_SOURCE))) {
+                if (!new_data->source) {
+                    pa_log_info("Restoring device for stream %s.", name);
+                    new_data->source = s;
+                    new_data->save_source = TRUE;
+                } else
+                    pa_log_info("Not restoring device for stream %s, because already set", name);
+            }
         }
 
         pa_xfree(e);
@@ -431,18 +508,37 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
         }
 
         if (u->restore_volume) {
-            pa_cvolume v = e->volume;
-            pa_log_info("Restoring volume for sink input %s.", name);
-            pa_sink_input_set_volume(si, pa_cvolume_remap(&v, &e->channel_map, &si->channel_map));
+            pa_cvolume v;
+            pa_cvolume_init(&v);
+
+            if (si->sink->flags & PA_SINK_FLAT_VOLUME) {
+
+                if (e->absolute_volume_valid &&
+                    e->device_valid &&
+                    pa_streq(e->device, si->sink->name))
+                    v = e->absolute_volume;
+                else if (e->relative_volume_valid) {
+                    pa_cvolume t = si->sink->virtual_volume;
+                    pa_sw_cvolume_multiply(&v, &e->relative_volume, pa_cvolume_remap(&t, &si->sink->channel_map, &e->channel_map));
+                }
+            } else if (e->relative_volume_valid)
+                v = e->relative_volume;
+
+            if (v.channels > 0) {
+                pa_log_info("Restoring volume for sink input %s.", name);
+                pa_sink_input_set_volume(si, pa_cvolume_remap(&v, &e->channel_map, &si->channel_map), TRUE);
+            }
         }
 
-        if (u->restore_muted) {
+        if (u->restore_muted &&
+            e->muted_valid) {
             pa_log_info("Restoring mute state for sink input %s.", name);
             pa_sink_input_set_mute(si, e->muted, TRUE);
         }
 
         if (u->restore_device &&
-            (s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SOURCE))) {
+            e->device_valid &&
+            (s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SINK))) {
 
             pa_log_info("Restoring device for stream %s.", name);
             pa_sink_input_move_to(si, s, TRUE);
@@ -462,6 +558,7 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
         }
 
         if (u->restore_device &&
+            e->device_valid &&
             (s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SOURCE))) {
 
             pa_log_info("Restoring device for stream %s.", name);
@@ -548,11 +645,13 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 pa_xfree(key.dptr);
 
                 if ((e = read_entry(u, name))) {
+                    pa_cvolume r;
+
                     pa_tagstruct_puts(reply, name);
                     pa_tagstruct_put_channel_map(reply, &e->channel_map);
-                    pa_tagstruct_put_cvolume(reply, &e->volume);
-                    pa_tagstruct_puts(reply, e->device);
-                    pa_tagstruct_put_boolean(reply, e->muted);
+                    pa_tagstruct_put_cvolume(reply, e->relative_volume_valid ? &e->relative_volume : pa_cvolume_init(&r));
+                    pa_tagstruct_puts(reply, e->device_valid ? e->device : NULL);
+                    pa_tagstruct_put_boolean(reply, e->muted_valid ? e->muted : FALSE);
 
                     pa_xfree(e);
                 }
@@ -592,16 +691,28 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
 
                 if (pa_tagstruct_gets(t, &name) < 0 ||
                     pa_tagstruct_get_channel_map(t, &entry.channel_map) ||
-                    pa_tagstruct_get_cvolume(t, &entry.volume) < 0 ||
+                    pa_tagstruct_get_cvolume(t, &entry.relative_volume) < 0 ||
                     pa_tagstruct_gets(t, &device) < 0 ||
                     pa_tagstruct_get_boolean(t, &muted) < 0)
                     goto fail;
 
-                if (entry.channel_map.channels != entry.volume.channels)
+                entry.absolute_volume_valid = FALSE;
+                entry.relative_volume_valid = entry.relative_volume.channels > 0;
+
+                if (entry.relative_volume_valid &&
+                    entry.channel_map.channels != entry.relative_volume.channels)
                     goto fail;
 
                 entry.muted = muted;
-                pa_strlcpy(entry.device, device, sizeof(entry.device));
+                entry.muted_valid = TRUE;
+
+                if (device)
+                    pa_strlcpy(entry.device, device, sizeof(entry.device));
+                entry.device_valid = !!entry.device[0];
+
+                if (entry.device_valid &&
+                    !pa_namereg_is_valid_name(entry.device))
+                    goto fail;
 
                 key.dptr = (void*) name;
                 key.dsize = (int) strlen(name);
