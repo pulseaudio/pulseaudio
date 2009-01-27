@@ -435,7 +435,7 @@ static void get_avg_lr(const pa_channel_map *map, const pa_cvolume *v, pa_volume
         *r = right / n_right;
 }
 
-float pa_cvolume_get_balance(const pa_channel_map *map, const pa_cvolume *v) {
+float pa_cvolume_get_balance(const pa_cvolume *v, const pa_channel_map *map) {
     pa_volume_t left, right;
 
     pa_assert(v);
@@ -462,7 +462,7 @@ float pa_cvolume_get_balance(const pa_channel_map *map, const pa_cvolume *v) {
         return 1.0f - ((float) left / (float) right);
 }
 
-pa_cvolume* pa_cvolume_set_balance(const pa_channel_map *map, pa_cvolume *v, float new_balance) {
+pa_cvolume* pa_cvolume_set_balance(pa_cvolume *v, const pa_channel_map *map, float new_balance) {
     pa_volume_t left, nleft, right, nright, m;
     unsigned c;
 

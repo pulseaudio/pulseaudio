@@ -237,7 +237,7 @@ int pa_cvolume_compatible(const pa_cvolume *v, const pa_sample_spec *ss) PA_GCC_
 /** Calculate a 'balance' value for the specified volume with the
  * specified channel map. The return value will range from -1.0f
  * (left) to +1.0f (right) \since 0.9.15 */
-float pa_cvolume_get_balance(const pa_channel_map *map, const pa_cvolume *v) PA_GCC_PURE;
+float pa_cvolume_get_balance(const pa_cvolume *v, const pa_channel_map *map) PA_GCC_PURE;
 
 /** Adjust the 'balance' value for the specified volume with the
  * specified channel map. v will be modified in place and
@@ -246,7 +246,7 @@ float pa_cvolume_get_balance(const pa_channel_map *map, const pa_cvolume *v) PA_
  * pa_cvolume_get_balance() is not guaranteed to actually return the
  * requested balance (e.g. when the input volume was zero anyway for
  * all channels) \since 0.9.15 */
-pa_cvolume* pa_cvolume_set_balance(const pa_channel_map *map, pa_cvolume *v, float new_balance);
+pa_cvolume* pa_cvolume_set_balance(pa_cvolume *v, const pa_channel_map *map, float new_balance);
 
 /** Scale the passed pa_cvolume structure so that the maximum volume
  * of all channels equals max. The proportions between the channel

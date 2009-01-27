@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
         for (cv.values[1] = PA_VOLUME_MUTED; cv.values[1] <= PA_VOLUME_NORM*2; cv.values[1] += 4096) {
             char s[PA_CVOLUME_SNPRINT_MAX];
 
-            printf("Volume: [%s]; balance: %2.1f\n", pa_cvolume_snprint(s, sizeof(s), &cv), pa_cvolume_get_balance(&map, &cv));
+            printf("Volume: [%s]; balance: %2.1f\n", pa_cvolume_snprint(s, sizeof(s), &cv), pa_cvolume_get_balance(&cv, &map));
         }
 
     for (cv.values[0] = PA_VOLUME_MUTED+4096; cv.values[0] <= PA_VOLUME_NORM*2; cv.values[0] += 4096)
@@ -48,12 +48,12 @@ int main(int argc, char *argv[]) {
                 pa_cvolume r;
                 float k;
 
-                printf("Before: volume: [%s]; balance: %2.1f\n", pa_cvolume_snprint(s, sizeof(s), &cv), pa_cvolume_get_balance(&map, &cv));
+                printf("Before: volume: [%s]; balance: %2.1f\n", pa_cvolume_snprint(s, sizeof(s), &cv), pa_cvolume_get_balance(&cv, &map));
 
                 r = cv;
-                pa_cvolume_set_balance(&map, &r, b);
+                pa_cvolume_set_balance(&r, &map,b);
 
-                k = pa_cvolume_get_balance(&map, &r);
+                k = pa_cvolume_get_balance(&r, &map);
                 printf("After: volume: [%s]; balance: %2.1f (intended: %2.1f) %s\n", pa_cvolume_snprint(s, sizeof(s), &r), k, b, k < b-.05 || k > b+.5 ? "MISMATCH" : "");
             }
 
