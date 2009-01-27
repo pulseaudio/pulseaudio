@@ -51,7 +51,8 @@ PA_MODULE_USAGE(
         "mmap=<enable memory mapping?> "
         "tsched=<enable system timer based scheduling mode?> "
         "tsched_buffer_size=<buffer size when using timer based scheduling> "
-        "tsched_buffer_watermark=<lower fill watermark>");
+        "tsched_buffer_watermark=<lower fill watermark> "
+        "ignore_dB=<ignore dB information from the device?>");
 
 static const char* const valid_modargs[] = {
     "name",
@@ -68,6 +69,7 @@ static const char* const valid_modargs[] = {
     "tsched",
     "tsched_buffer_size",
     "tsched_buffer_watermark",
+    "ignore_dB",
     NULL
 };
 

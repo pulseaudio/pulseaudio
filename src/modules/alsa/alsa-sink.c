@@ -1236,7 +1236,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     size_t frame_size;
     snd_pcm_info_t *pcm_info = NULL;
     int err;
-    pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d;
+    pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE;
     pa_usec_t usec;
     pa_sink_new_data data;
 
@@ -1279,6 +1279,11 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
 
     if (pa_modargs_get_value_boolean(ma, "tsched", &use_tsched) < 0) {
         pa_log("Failed to parse tsched argument.");
+        goto fail;
+    }
+
+    if (pa_modargs_get_value_boolean(ma, "ignore_dB", &ignore_dB) < 0) {
+        pa_log("Failed to parse ignore_dB argument.");
         goto fail;
     }
 
@@ -1503,8 +1508,8 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
             }
 
             if (suitable) {
-                if (snd_mixer_selem_get_playback_dB_range(u->mixer_elem, &u->hw_dB_min, &u->hw_dB_max) < 0)
-                    pa_log_info("Mixer doesn't support dB information.");
+                if (ignore_dB || snd_mixer_selem_get_playback_dB_range(u->mixer_elem, &u->hw_dB_min, &u->hw_dB_max) < 0)
+                    pa_log_info("Mixer doesn't support dB information or data is ignored.");
                 else {
 #ifdef HAVE_VALGRIND_MEMCHECK_H
                     VALGRIND_MAKE_MEM_DEFINED(&u->hw_dB_min, sizeof(u->hw_dB_min));
