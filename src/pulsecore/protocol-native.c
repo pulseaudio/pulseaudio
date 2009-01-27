@@ -2840,6 +2840,7 @@ static void source_output_fill_tagstruct(pa_native_connection *c, pa_tagstruct *
 
 static void scache_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_scache_entry *e) {
     pa_sample_spec fixed_ss;
+    pa_cvolume v;
 
     pa_assert(t);
     pa_assert(e);
@@ -2851,7 +2852,13 @@ static void scache_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_s
 
     pa_tagstruct_putu32(t, e->index);
     pa_tagstruct_puts(t, e->name);
-    pa_tagstruct_put_cvolume(t, &e->volume);
+
+    if (e->volume_is_set)
+        v = e->volume;
+    else
+        pa_cvolume_init(&v);
+
+    pa_tagstruct_put_cvolume(t, &v);
     pa_tagstruct_put_usec(t, e->memchunk.memblock ? pa_bytes_to_usec(e->memchunk.length, &e->sample_spec) : 0);
     pa_tagstruct_put_sample_spec(t, &fixed_ss);
     pa_tagstruct_put_channel_map(t, &e->channel_map);

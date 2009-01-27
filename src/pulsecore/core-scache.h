@@ -36,6 +36,7 @@ typedef struct pa_scache_entry {
     char *name;
 
     pa_cvolume volume;
+    pa_bool_t volume_is_set;
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
     pa_memchunk memchunk;

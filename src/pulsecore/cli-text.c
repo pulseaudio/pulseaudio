@@ -588,9 +588,9 @@ char *pa_scache_list_to_string(pa_core *c) {
                 cmn ? cmn : "",
                 (long unsigned)(e->memchunk.memblock ? e->memchunk.length : 0),
                 l,
-                pa_cvolume_snprint(cv, sizeof(cv), &e->volume),
-                pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &e->volume),
-                e->memchunk.memblock ? pa_cvolume_get_balance(&e->volume, &e->channel_map) : 0.0f,
+                e->volume_is_set ? pa_cvolume_snprint(cv, sizeof(cv), &e->volume) : "n/a",
+                e->volume_is_set ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &e->volume) : "n/a",
+                (e->memchunk.memblock && e->volume_is_set) ? pa_cvolume_get_balance(&e->volume, &e->channel_map) : 0.0f,
                 pa_yes_no(e->lazy),
                 e->filename ? e->filename : "n/a");
 
