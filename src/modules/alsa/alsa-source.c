@@ -876,7 +876,7 @@ static void source_set_volume_cb(pa_source *s) {
 
         /* Match exactly what the user requested by software */
 
-        pa_sw_cvolume_divide(&s->soft_volume, &s->virtual_volume, &s->hardware_volume);
+        pa_sw_cvolume_divide(&s->soft_volume, &s->virtual_volume, &u->hardware_volume);
 
         pa_log_debug("Requested volume: %s", pa_cvolume_snprint(t, sizeof(t), &s->virtual_volume));
         pa_log_debug("Got hardware volume: %s", pa_cvolume_snprint(t, sizeof(t), &u->hardware_volume));
