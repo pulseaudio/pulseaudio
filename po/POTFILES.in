@@ -2,16 +2,16 @@ src/modules/module-rescue-streams.c
 src/modules/module-tunnel.c
 src/modules/module-native-protocol-fd.c
 src/modules/module-zeroconf-discover.c
-src/modules/module-alsa-source.c
+src/modules/alsa/module-alsa-source.c
 src/modules/module-device-restore.c
 src/modules/module-match.c
 src/modules/dbus-util.c
 src/modules/module-console-kit.c
-src/modules/module-oss.c
-src/modules/oss-util.c
+src/modules/oss/module-oss.c
+src/modules/oss/oss-util.c
 src/modules/module-mmkbd-evdev.c
 src/modules/module-position-event-sounds.c
-src/modules/alsa-util.c
+src/modules/alsa/alsa-util.c
 src/modules/module-pipe-source.c
 src/modules/module-solaris.c
 src/modules/module-default-device-restore.c
@@ -29,7 +29,7 @@ src/modules/module-cli.c
 src/modules/gconf/module-gconf.c
 src/modules/gconf/gconf-helper.c
 src/modules/module-esound-sink.c
-src/modules/module-alsa-sink.c
+src/modules/alsa/module-alsa-sink.c
 src/modules/module-volume-restore.c
 src/modules/module-x11-bell.c
 src/modules/module-protocol-stub.c
@@ -57,7 +57,6 @@ src/pulsecore/core.c
 src/pulsecore/x11wrap.c
 src/pulsecore/rtclock.c
 src/pulsecore/ioline.c
-src/pulsecore/autoload.c
 src/pulsecore/asyncq.c
 src/pulsecore/mutex-posix.c
 src/pulsecore/protocol-esound.c
