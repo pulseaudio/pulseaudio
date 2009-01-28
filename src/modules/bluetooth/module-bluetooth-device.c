@@ -851,15 +851,14 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *
 
             if (pa_streq(value, "SpeakerGain")) {
                 pa_log("spk gain: %d", gain);
-                pa_cvolume_set(&u->sink->volume, 1, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
-                u->sink->virtual_volume = u->sink->volume;
+                pa_cvolume_set(&u->sink->virtual_volume, 1, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
                 pa_subscription_post(u->sink->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, u->sink->index);
             } else {
                 pa_log("mic gain: %d", gain);
                 if (!u->source)
                     goto done;
 
-                pa_cvolume_set(&u->source->volume, 1, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
+                pa_cvolume_set(&u->source->virtual_volume, 1, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
                 pa_subscription_post(u->source->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, u->source->index);
             }
         }
@@ -899,7 +898,7 @@ static int sink_set_volume_cb(pa_sink *s) {
 
     dbus_error_init(&e);
 
-    vol = ((float)pa_cvolume_max(&s->volume) / PA_VOLUME_NORM) * 15;
+    vol = ((float) pa_cvolume_max(&s->virtual_volume) / PA_VOLUME_NORM) * 15;
     pa_log_debug("set headset volume: %d", vol);
 
     pa_assert_se(m = dbus_message_new_method_call("org.bluez", u->path, "org.bluez.Headset", "SetProperty"));
@@ -927,7 +926,7 @@ static int source_set_volume_cb(pa_source *s) {
     struct userdata *u = s->userdata;
     pa_assert(u);
 
-    vol = ((float)pa_cvolume_max(&s->volume) / PA_VOLUME_NORM) * 15;
+    vol = ((float)pa_cvolume_max(&s->virtual_volume) / PA_VOLUME_NORM) * 15;
 
     pa_log_debug("set headset mic volume: %d (not implemented yet)", vol);
 
