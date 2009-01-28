@@ -65,7 +65,10 @@ PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name of the device> "
         "address=<address of the device> "
-        "profile=<a2dp|hsp>");
+        "profile=<a2dp|hsp> "
+        "rate=<sample rate> "
+        "channels=<number of channels> "
+        "path=<device object path>");
 
 struct bt_a2dp {
     sbc_capabilities_t sbc_capabilities;
@@ -85,6 +88,7 @@ struct userdata {
     pa_core *core;
     pa_module *module;
     pa_sink *sink;
+    pa_source *source;
 
     pa_thread_mq thread_mq;
     pa_rtpoll *rtpoll;
@@ -109,6 +113,8 @@ struct userdata {
     pa_usec_t latency;
 
     struct bt_a2dp a2dp;
+    char *path;
+    pa_dbus_connection *conn;
 };
 
 static const char* const valid_modargs[] = {
@@ -117,6 +123,7 @@ static const char* const valid_modargs[] = {
     "profile",
     "rate",
     "channels",
+    "path",
     NULL
 };
 
@@ -228,9 +235,9 @@ static int bt_getcaps(struct userdata *u) {
     msg.getcaps_req.h.length = sizeof(msg.getcaps_req);
 
     strncpy(msg.getcaps_req.device, u->addr, 18);
-    if (strcasecmp(u->profile, "a2dp") == 0)
+    if (pa_streq(u->profile, "a2dp"))
         msg.getcaps_req.transport = BT_CAPABILITIES_TRANSPORT_A2DP;
-    else if (strcasecmp(u->profile, "hsp") == 0)
+    else if (pa_streq(u->profile, "hsp"))
         msg.getcaps_req.transport = BT_CAPABILITIES_TRANSPORT_SCO;
     else {
         pa_log_error("Invalid profile argument: %s", u->profile);
@@ -789,6 +796,144 @@ finish:
     pa_log_debug("IO thread shutting down");
 }
 
+static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *userdata) {
+    DBusMessageIter arg_i;
+    DBusError err;
+    const char *value;
+    struct userdata *u;
+
+    pa_assert(bus);
+    pa_assert(msg);
+    pa_assert(userdata);
+    u = userdata;
+
+    pa_log_debug("dbus: interface=%s, path=%s, member=%s\n",
+                 dbus_message_get_interface(msg),
+                 dbus_message_get_path(msg),
+                 dbus_message_get_member(msg));
+
+    dbus_error_init(&err);
+
+    if (dbus_message_is_signal(msg, "org.bluez.Headset", "PropertyChanged") ||
+        dbus_message_is_signal(msg, "org.bluez.AudioSink", "PropertyChanged")) {
+
+        struct device *d;
+        const char *profile;
+        DBusMessageIter variant_i;
+        dbus_uint16_t gain;
+
+        if (!dbus_message_iter_init(msg, &arg_i)) {
+            pa_log("dbus: message has no parameters");
+            goto done;
+        }
+
+        if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_STRING) {
+            pa_log("Property name not a string.");
+            goto done;
+        }
+
+        dbus_message_iter_get_basic(&arg_i, &value);
+
+        if (!dbus_message_iter_next(&arg_i)) {
+            pa_log("Property value missing");
+            goto done;
+        }
+
+        if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_VARIANT) {
+            pa_log("Property value not a variant.");
+            goto done;
+        }
+
+        dbus_message_iter_recurse(&arg_i, &variant_i);
+
+        if (dbus_message_iter_get_arg_type(&variant_i) != DBUS_TYPE_UINT16) {
+            dbus_message_iter_get_basic(&variant_i, &gain);
+
+            if (pa_streq(value, "SpeakerGain")) {
+                pa_log("spk gain: %d", gain);
+                pa_cvolume_set(&u->sink->volume, 1, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
+                u->sink->virtual_volume = u->sink->volume;
+                pa_subscription_post(u->sink->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, u->sink->index);
+            } else {
+                pa_log("mic gain: %d", gain);
+                if (!u->source)
+                    goto done;
+
+                pa_cvolume_set(&u->source->volume, 1, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
+                pa_subscription_post(u->source->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, u->source->index);
+            }
+        }
+    }
+
+done:
+    dbus_error_free(&err);
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+}
+
+static int sink_get_volume_cb(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    pa_assert(u);
+
+    /* refresh? */
+
+    return 0;
+}
+
+static int source_get_volume_cb(pa_source *s) {
+    struct userdata *u = s->userdata;
+    pa_assert(u);
+
+    /* refresh? */
+
+    return 0;
+}
+
+static int sink_set_volume_cb(pa_sink *s) {
+    DBusError e;
+    DBusMessage *m, *r;
+    DBusMessageIter it, itvar;
+    dbus_uint16_t vol;
+    const char *spkgain = "SpeakerGain";
+    struct userdata *u = s->userdata;
+    pa_assert(u);
+
+    dbus_error_init(&e);
+
+    vol = ((float)pa_cvolume_max(&s->volume) / PA_VOLUME_NORM) * 15;
+    pa_log_debug("set headset volume: %d", vol);
+
+    pa_assert_se(m = dbus_message_new_method_call("org.bluez", u->path, "org.bluez.Headset", "SetProperty"));
+    dbus_message_iter_init_append(m, &it);
+    dbus_message_iter_append_basic(&it, DBUS_TYPE_STRING, &spkgain);
+    dbus_message_iter_open_container(&it, DBUS_TYPE_VARIANT, DBUS_TYPE_UINT16_AS_STRING, &itvar);
+    dbus_message_iter_append_basic(&itvar, DBUS_TYPE_UINT16, &vol);
+    dbus_message_iter_close_container(&it, &itvar);
+
+    r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(u->conn), m, -1, &e);
+
+finish:
+    if (m)
+        dbus_message_unref(m);
+    if (r)
+        dbus_message_unref(r);
+
+    dbus_error_free(&e);
+
+    return 0;
+}
+
+static int source_set_volume_cb(pa_source *s) {
+    dbus_uint16_t vol;
+    struct userdata *u = s->userdata;
+    pa_assert(u);
+
+    vol = ((float)pa_cvolume_max(&s->volume) / PA_VOLUME_NORM) * 15;
+
+    pa_log_debug("set headset mic volume: %d (not implemented yet)", vol);
+
+    return 0;
+}
+
 int pa__init(pa_module* m) {
     int e;
     pa_modargs *ma;
@@ -796,8 +941,12 @@ int pa__init(pa_module* m) {
     pa_sink_new_data data;
     struct pollfd *pollfd;
     struct userdata *u;
+    DBusError err;
+    char *tmp;
 
     pa_assert(m);
+    dbus_error_init(&err);
+
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->module = m;
     u->core = m->core;
@@ -833,6 +982,7 @@ int pa__init(pa_module* m) {
         pa_log_error("Failed to get rate from module arguments");
         goto fail;
     }
+    u->path = pa_xstrdup(pa_modargs_get_value(ma, "path", NULL));
 
     channels = u->ss.channels;
     if (pa_modargs_get_value_u32(ma, "channels", &channels) < 0) {
@@ -910,7 +1060,50 @@ int pa__init(pa_module* m) {
         goto fail;
     }
     pa_sink_put(u->sink);
+    if (!u->path)
+        goto end;
 
+    /* connect to the bus */
+    u->conn = pa_dbus_bus_get(m->core, DBUS_BUS_SYSTEM, &err);
+    if (dbus_error_is_set(&err) || (u->conn == NULL) ) {
+        pa_log("Failed to get D-Bus connection: %s", err.message);
+        goto fail;
+    }
+
+    /* monitor property changes */
+    if (!dbus_connection_add_filter(pa_dbus_connection_get(u->conn), filter_cb, u, NULL)) {
+        pa_log_error("Failed to add filter function");
+        goto fail;
+    }
+
+    if (pa_streq(u->profile, "hsp")) {
+
+        tmp = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged',path='%s'", u->path);
+        dbus_bus_add_match(pa_dbus_connection_get(u->conn), tmp, &err);
+        pa_xfree(tmp);
+        if (dbus_error_is_set(&err)) {
+            pa_log_error("Unable to subscribe to org.bluez.Headset signals: %s: %s", err.name, err.message);
+            goto fail;
+        }
+    } else {
+
+        tmp = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged',path='%s'", u->path);
+        dbus_bus_add_match(pa_dbus_connection_get(u->conn), tmp, &err);
+        pa_xfree(tmp);
+        if (dbus_error_is_set(&err)) {
+            pa_log_error("Unable to subscribe to org.bluez.AudioSink signals: %s: %s", err.name, err.message);
+            goto fail;
+        }
+    }
+
+    u->sink->get_volume = sink_get_volume_cb;
+    u->sink->set_volume = sink_set_volume_cb;
+    if (u->source) {
+        u->source->get_volume = source_get_volume_cb;
+        u->source->set_volume = source_set_volume_cb;
+    }
+
+end:
     pa_modargs_free(ma);
     return 0;
 
@@ -928,6 +1121,31 @@ void pa__done(pa_module *m) {
 
     if (!(u = m->userdata))
         return;
+
+    if (u->conn) {
+        DBusError error;
+        char *tmp;
+        dbus_error_init(&error);
+
+        if (pa_streq(u->profile, "hsp")) {
+            tmp = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged',path='%s'", u->path);
+            dbus_bus_remove_match(pa_dbus_connection_get(u->conn), tmp, &error);
+            pa_xfree(tmp);
+            dbus_error_free(&error);
+        } else {
+            tmp = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged',path='%s'", u->path);
+            dbus_bus_remove_match(pa_dbus_connection_get(u->conn), tmp, &error);
+            pa_xfree(tmp);
+            dbus_error_free(&error);
+        }
+
+        dbus_connection_remove_filter(pa_dbus_connection_get(u->conn), filter_cb, u);
+
+        pa_dbus_connection_unref(u->conn);
+    }
+
+    if (u->path)
+        pa_xfree(u->path);
 
     if (u->sink)
         pa_sink_unlink(u->sink);

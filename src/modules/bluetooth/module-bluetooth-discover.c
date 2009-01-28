@@ -53,6 +53,13 @@ struct uuid {
     PA_LLIST_FIELDS(struct uuid);
 };
 
+struct dbus_pending {
+    char *path;
+    char *profile;
+    DBusPendingCall *pending;
+    PA_LLIST_FIELDS(struct dbus_pending);
+};
+
 struct device {
     char *name;
     char *object_path;
@@ -70,7 +77,9 @@ struct device {
 struct userdata {
     pa_module *module;
     pa_dbus_connection *conn;
+    dbus_int32_t dbus_data_slot;
     PA_LLIST_HEAD(struct device, device_list);
+    PA_LLIST_HEAD(struct dbus_pending, dbus_pending_list);
 };
 
 static struct module *module_new(const char *profile, pa_module *pa_m) {
@@ -116,6 +125,31 @@ static void uuid_free(struct uuid *uuid) {
 
     pa_xfree(uuid->uuid);
     pa_xfree(uuid);
+}
+
+static struct dbus_pending *dbus_pending_new(struct userdata *u, DBusPendingCall *pending, const char *path, const char *profile) {
+    struct dbus_pending *node;
+
+    pa_assert(pending);
+
+    node = pa_xnew(struct dbus_pending, 1);
+    node->pending = pending;
+    node->path = pa_xstrdup(path);
+    node->profile = pa_xstrdup(profile);
+    PA_LLIST_INIT(struct dbus_pending, node);
+    dbus_pending_call_set_data(pending, u->dbus_data_slot, node, NULL);
+
+    return node;
+}
+
+static void dbus_pending_free(struct dbus_pending *pending) {
+    pa_assert(pending);
+
+    pa_xfree(pending->path);
+    pa_xfree(pending->profile);
+    dbus_pending_call_cancel(pending->pending);
+    dbus_pending_call_unref(pending->pending);
+    pa_xfree(pending);
 }
 
 static struct device *device_new(const char *object_path) {
@@ -342,7 +376,7 @@ static void load_module_for_device(struct userdata *u, struct device *d, const c
     pa_assert(d);
 
     get_device_properties(u, d);
-    args = pa_sprintf_malloc("sink_name=\"%s\" address=\"%s\" profile=\"%s\"", d->name, d->address, profile);
+    args = pa_sprintf_malloc("sink_name=\"%s\" address=\"%s\" profile=\"%s\" path=\"%s\"", d->name, d->address, profile, d->object_path);
     pa_m = pa_module_load(u->module->core, "module-bluetooth-device", args);
     pa_xfree(args);
 
@@ -468,21 +502,267 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *
 
 done:
     dbus_error_free(&err);
-    return DBUS_HANDLER_RESULT_HANDLED;
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+}
+
+
+
+static void get_properties_reply(DBusPendingCall *pending, void *user_data) {
+    struct userdata *u;
+    DBusMessage *r;
+    dbus_bool_t connected;
+    DBusMessageIter arg_i, element_i;
+    DBusMessageIter variant_i;
+    struct device *d;
+    struct dbus_pending *p;
+
+    pa_assert(u = user_data);
+
+    r = dbus_pending_call_steal_reply(pending);
+    if (!r)
+        goto end;
+
+    if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
+        pa_log("Error from GetProperties reply: %s", dbus_message_get_error_name(r));
+        goto end;
+    }
+
+    if (!dbus_message_iter_init(r, &arg_i)) {
+        pa_log("%s GetProperties reply has no arguments", p->profile);
+        goto end;
+    }
+
+    if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_ARRAY) {
+        pa_log("%s GetProperties argument is not an array", p->profile);
+        goto end;
+    }
+
+    connected = FALSE;
+    dbus_message_iter_recurse(&arg_i, &element_i);
+    while (dbus_message_iter_get_arg_type(&element_i) != DBUS_TYPE_INVALID) {
+
+        if (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
+            DBusMessageIter dict_i;
+            const char *key;
+
+            dbus_message_iter_recurse(&element_i, &dict_i);
+
+            if (dbus_message_iter_get_arg_type(&dict_i) != DBUS_TYPE_STRING) {
+                pa_log("Property name not a string.");
+                goto end;
+            }
+
+            dbus_message_iter_get_basic(&dict_i, &key);
+
+            if (!dbus_message_iter_next(&dict_i))  {
+                pa_log("Property value missing");
+                goto end;
+            }
+
+            if (dbus_message_iter_get_arg_type(&dict_i) != DBUS_TYPE_VARIANT) {
+                pa_log("Property value not a variant.");
+                goto end;
+            }
+
+            dbus_message_iter_recurse(&dict_i, &variant_i);
+
+            switch (dbus_message_iter_get_arg_type(&variant_i)) {
+
+                case DBUS_TYPE_BOOLEAN: {
+
+                    dbus_bool_t value;
+                    dbus_message_iter_get_basic(&variant_i, &value);
+
+                    if (pa_streq(key, "Connected")) {
+                        connected = value;
+                        goto endloop;
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        if (!dbus_message_iter_next(&element_i))
+            break;
+    }
+
+endloop:
+    if (connected) {
+        p = dbus_pending_call_get_data(pending, u->dbus_data_slot);
+        pa_log_debug("%s: %s connected", p->path, p->profile);
+        d = device_find(u, p->path);
+
+        if (!d) {
+            d = device_new(p->path);
+            PA_LLIST_PREPEND(struct device, u->device_list, d);
+        }
+
+        load_module_for_device(u, d, p->profile);
+    }
+
+    dbus_message_unref(r);
+
+end:
+    p = dbus_pending_call_get_data(pending, u->dbus_data_slot);
+    PA_LLIST_REMOVE(struct dbus_pending, u->dbus_pending_list, p);
+    dbus_pending_free(p);
+}
+
+static void list_devices_reply(DBusPendingCall *pending, void *user_data) {
+    DBusMessage *r, *m;
+    DBusPendingCall *call;
+    DBusError e;
+    char **paths = NULL;
+    int i, num = -1;
+    struct dbus_pending *p;
+    struct userdata *u;
+
+    pa_assert(u = user_data);
+    dbus_error_init(&e);
+
+    r = dbus_pending_call_steal_reply(pending);
+    if (!r) {
+        pa_log("Failed to get ListDevices reply");
+        goto end;
+    }
+
+    if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
+        pa_log("Error from ListDevices reply: %s", dbus_message_get_error_name(r));
+        goto end;
+    }
+
+    if (!dbus_message_get_args(r, &e, DBUS_TYPE_ARRAY, DBUS_TYPE_OBJECT_PATH, &paths, &num, DBUS_TYPE_INVALID)) {
+        pa_log("org.bluez.Adapter.ListDevices returned an error: '%s'\n", e.message);
+        dbus_error_free(&e);
+    } else {
+        for (i = 0; i < num; ++i) {
+            pa_assert_se(m = dbus_message_new_method_call("org.bluez", paths[i], "org.bluez.Headset", "GetProperties"));
+            if (dbus_connection_send_with_reply(pa_dbus_connection_get(u->conn), m, &call, -1)) {
+                p = dbus_pending_new(u, call, paths[i], "hsp");
+                PA_LLIST_PREPEND(struct dbus_pending, u->dbus_pending_list, p);
+                dbus_pending_call_set_notify(call, get_properties_reply, u, NULL);
+            } else {
+                pa_log("Failed to send GetProperties");
+            }
+
+            dbus_message_unref(m);
+
+            pa_assert_se(m = dbus_message_new_method_call("org.bluez", paths[i], "org.bluez.AudioSink", "GetProperties"));
+            if (dbus_connection_send_with_reply(pa_dbus_connection_get(u->conn), m, &call, -1)) {
+                p = dbus_pending_new(u, call, paths[i], "a2dp");
+                PA_LLIST_PREPEND(struct dbus_pending, u->dbus_pending_list, p);
+                dbus_pending_call_set_notify(call, get_properties_reply, u, NULL);
+            } else {
+                pa_log("Failed to send GetProperties");
+            }
+
+            dbus_message_unref(m);
+        }
+    }
+
+    if (paths)
+        dbus_free_string_array (paths);
+    dbus_message_unref(r);
+
+end:
+    p = dbus_pending_call_get_data(pending, u->dbus_data_slot);
+    PA_LLIST_REMOVE(struct dbus_pending, u->dbus_pending_list, p);
+    dbus_pending_free(p);
+}
+
+static void list_adapters_reply(DBusPendingCall *pending, void *user_data) {
+    DBusMessage *r, *m;
+    DBusPendingCall *call;
+    DBusError e;
+    char **paths = NULL;
+    int i, num = -1;
+    struct dbus_pending *p;
+    struct userdata *u;
+
+    pa_assert(u = user_data);
+    dbus_error_init(&e);
+
+    r = dbus_pending_call_steal_reply(pending);
+    if (!r) {
+        pa_log("Failed to get ListAdapters reply");
+        goto end;
+    }
+
+    if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
+        pa_log("Error from ListAdapters reply: %s", dbus_message_get_error_name(r));
+        goto end;
+    }
+
+    if (!dbus_message_get_args(r, &e, DBUS_TYPE_ARRAY, DBUS_TYPE_OBJECT_PATH, &paths, &num, DBUS_TYPE_INVALID)) {
+        pa_log("org.bluez.Manager.ListAdapters returned an error: '%s'\n", e.message);
+        dbus_error_free(&e);
+    } else {
+        for (i = 0; i < num; ++i) {
+            pa_assert_se(m = dbus_message_new_method_call("org.bluez", paths[i], "org.bluez.Adapter", "ListDevices"));
+            if (dbus_connection_send_with_reply(pa_dbus_connection_get(u->conn), m, &call, -1)) {
+                p = dbus_pending_new(u, call, NULL, NULL);
+                PA_LLIST_PREPEND(struct dbus_pending, u->dbus_pending_list, p);
+                dbus_pending_call_set_notify(call, list_devices_reply, u, NULL);
+            } else {
+                pa_log("Failed to send ListDevices");
+            }
+
+            dbus_message_unref(m);
+        }
+    }
+
+    if (paths)
+        dbus_free_string_array (paths);
+    dbus_message_unref(r);
+
+end:
+    p = dbus_pending_call_get_data(pending, u->dbus_data_slot);
+    PA_LLIST_REMOVE(struct dbus_pending, u->dbus_pending_list, p);
+    dbus_pending_free(p);
+}
+
+static void lookup_devices(struct userdata *u) {
+    DBusMessage *m;
+    DBusPendingCall *call;
+    struct dbus_pending *p;
+
+    pa_assert(u);
+
+    pa_assert_se(m = dbus_message_new_method_call("org.bluez", "/", "org.bluez.Manager", "ListAdapters"));
+    if (dbus_connection_send_with_reply(pa_dbus_connection_get(u->conn), m, &call, -1)) {
+        p = dbus_pending_new(u, call, NULL, NULL);
+        PA_LLIST_PREPEND(struct dbus_pending, u->dbus_pending_list, p);
+        dbus_pending_call_set_notify(call, list_adapters_reply, u, NULL);
+    } else {
+        pa_log("Failed to send ListAdapters");
+    }
+
+    dbus_message_unref(m);
 }
 
 void pa__done(pa_module* m) {
     struct userdata *u;
     struct device *i;
+    struct dbus_pending *p;
 
     pa_assert(m);
 
     if (!(u = m->userdata))
         return;
 
+    while ((p = u->dbus_pending_list)) {
+        PA_LLIST_REMOVE(struct dbus_pending, u->dbus_pending_list, p);
+        dbus_pending_free(p);
+    }
+
     while ((i = u->device_list)) {
         PA_LLIST_REMOVE(struct device, u->device_list, i);
         device_free(i);
+    }
+
+    if (u->dbus_data_slot != -1) {
+        dbus_pending_call_free_data_slot(&u->dbus_data_slot);
     }
 
     if (u->conn) {
@@ -514,8 +794,10 @@ int pa__init(pa_module* m) {
     dbus_error_init(&err);
 
     m->userdata = u = pa_xnew(struct userdata, 1);
+    u->dbus_data_slot = -1;
     u->module = m;
     PA_LLIST_HEAD_INIT(struct device, u->device_list);
+    PA_LLIST_HEAD_INIT(DBusPendingCall, u->dbus_pending_list);
 
     /* connect to the bus */
     u->conn = pa_dbus_bus_get(m->core, DBUS_BUS_SYSTEM, &err);
@@ -523,6 +805,9 @@ int pa__init(pa_module* m) {
         pa_log("Failed to get D-Bus connection: %s", err.message);
         goto fail;
     }
+
+    if (!dbus_pending_call_allocate_data_slot(&u->dbus_data_slot))
+        goto fail;
 
     /* dynamic detection of bluetooth audio devices */
     if (!dbus_connection_add_filter(pa_dbus_connection_get(u->conn), filter_cb, u, NULL)) {
@@ -547,6 +832,8 @@ int pa__init(pa_module* m) {
         pa_log_error("Unable to subscribe to org.bluez.AudioSink signals: %s: %s", err.name, err.message);
         goto fail;
     }
+
+    lookup_devices(u);
 
     return 0;
 
