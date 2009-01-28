@@ -156,6 +156,8 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
 
             if (!strcmp(c->url, URL_ROOT)) {
                 char txt[256];
+                pa_sink *def_sink;
+                pa_source *def_source;
                 http_response(c, 200, "OK", "text/html");
 
                 pa_ioline_puts(c->line,
@@ -173,8 +175,12 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
                 PRINTF_FIELD("User Name:", pa_get_user_name(txt, sizeof(txt)));
                 PRINTF_FIELD("Host name:", pa_get_host_name(txt, sizeof(txt)));
                 PRINTF_FIELD("Default Sample Specification:", pa_sample_spec_snprint(txt, sizeof(txt), &c->protocol->core->default_sample_spec));
-                PRINTF_FIELD("Default Sink:", pa_namereg_get_default_sink_name(c->protocol->core));
-                PRINTF_FIELD("Default Source:", pa_namereg_get_default_source_name(c->protocol->core));
+
+                def_sink = pa_namereg_get_default_sink(c->protocol->core);
+                def_source = pa_namereg_get_default_source(c->protocol->core);
+
+                PRINTF_FIELD("Default Sink:", def_sink ? def_sink->name : "n/a");
+                PRINTF_FIELD("Default Source:", def_source ? def_source->name : "n/a");
 
                 pa_ioline_puts(c->line, "</table>");
 

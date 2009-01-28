@@ -248,7 +248,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             "\tchannel map: %s%s%s\n"
             "\tused by: %u\n"
             "\tlinked by: %u\n",
-            c->default_sink_name && !strcmp(sink->name, c->default_sink_name) ? '*' : ' ',
+            sink == c->default_sink ? '*' : ' ',
             sink->index,
             sink->name,
             sink->driver,
@@ -339,7 +339,7 @@ char *pa_source_list_to_string(pa_core *c) {
             "\tchannel map: %s%s%s\n"
             "\tused by: %u\n"
             "\tlinked by: %u\n",
-            c->default_source_name && !strcmp(source->name, c->default_source_name) ? '*' : ' ',
+            c->default_source == source ? '*' : ' ',
             source->index,
             source->name,
             source->driver,

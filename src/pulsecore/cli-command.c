@@ -324,7 +324,8 @@ static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     char s[256];
     const pa_mempool_stat *stat;
     unsigned k;
-    const char *def_sink, *def_source;
+    pa_sink *def_sink;
+    pa_source *def_source;
 
     static const char* const type_table[PA_MEMBLOCK_TYPE_MAX] = {
         [PA_MEMBLOCK_POOL] = "POOL",
@@ -364,12 +365,12 @@ static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     pa_strbuf_printf(buf, "Default sample spec: %s\n",
                      pa_sample_spec_snprint(s, sizeof(s), &c->default_sample_spec));
 
-    def_sink = pa_namereg_get_default_sink_name(c);
-    def_source = pa_namereg_get_default_source_name(c);
+    def_sink = pa_namereg_get_default_sink(c);
+    def_source = pa_namereg_get_default_source(c);
     pa_strbuf_printf(buf, "Default sink name: %s\n"
                      "Default source name: %s\n",
-                     def_sink ? def_sink : "none",
-                     def_source ? def_source : "none");
+                     def_sink ? def_sink->name : "none",
+                     def_source ? def_source->name : "none");
 
     for (k = 0; k < PA_MEMBLOCK_TYPE_MAX; k++)
         pa_strbuf_printf(buf,
@@ -858,6 +859,7 @@ static int pa_cli_command_sink_input_mute(pa_core *c, pa_tokenizer *t, pa_strbuf
 
 static int pa_cli_command_sink_default(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
     const char *n;
+    pa_sink *s;
 
     pa_core_assert_ref(c);
     pa_assert(t);
@@ -869,12 +871,17 @@ static int pa_cli_command_sink_default(pa_core *c, pa_tokenizer *t, pa_strbuf *b
         return -1;
     }
 
-    pa_namereg_set_default(c, n, PA_NAMEREG_SINK);
+    if ((s = pa_namereg_get(c, n, PA_NAMEREG_SINK)))
+        pa_namereg_set_default_sink(c, s);
+    else
+        pa_strbuf_printf(buf, "Sink %s does not exist.\n", n);
+
     return 0;
 }
 
 static int pa_cli_command_source_default(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
     const char *n;
+    pa_source *s;
 
     pa_core_assert_ref(c);
     pa_assert(t);
@@ -886,7 +893,10 @@ static int pa_cli_command_source_default(pa_core *c, pa_tokenizer *t, pa_strbuf 
         return -1;
     }
 
-    pa_namereg_set_default(c, n, PA_NAMEREG_SOURCE);
+    if ((s = pa_namereg_get(c, n, PA_NAMEREG_SOURCE)))
+        pa_namereg_set_default_source(c, s);
+    else
+        pa_strbuf_printf(buf, "Source %s does not exist.\n", n);
     return 0;
 }
 
@@ -1451,7 +1461,6 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     pa_source *source;
     pa_card *card;
     int nl;
-    const char *p;
     uint32_t idx;
     char txt[256];
     time_t now;
@@ -1518,20 +1527,20 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
 
     nl = 0;
 
-    if ((p = pa_namereg_get_default_sink_name(c))) {
+    if ((sink = pa_namereg_get_default_sink(c))) {
         if (!nl) {
             pa_strbuf_puts(buf, "\n");
             nl = 1;
         }
-        pa_strbuf_printf(buf, "set-default-sink %s\n", p);
+        pa_strbuf_printf(buf, "set-default-sink %s\n", sink->name);
     }
 
-    if ((p = pa_namereg_get_default_source_name(c))) {
+    if ((source = pa_namereg_get_default_source(c))) {
         if (!nl) {
             pa_strbuf_puts(buf, "\n");
             nl = 1;
         }
-        pa_strbuf_printf(buf, "set-default-source %s\n", p);
+        pa_strbuf_printf(buf, "set-default-source %s\n", source->name);
     }
 
     pa_strbuf_puts(buf, "\n### EOF\n");

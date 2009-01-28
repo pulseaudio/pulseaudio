@@ -99,7 +99,8 @@ pa_core* pa_core_new(pa_mainloop_api *m, pa_bool_t shared, size_t shm_size) {
     c->sink_inputs = pa_idxset_new(NULL, NULL);
     c->cards = pa_idxset_new(NULL, NULL);
 
-    c->default_source_name = c->default_sink_name = NULL;
+    c->default_source = NULL;
+    c->default_sink = NULL;
 
     c->modules = NULL;
     c->namereg = NULL;
@@ -191,8 +192,8 @@ static void core_free(pa_object *o) {
     if (c->exit_event)
         c->mainloop->time_free(c->exit_event);
 
-    pa_xfree(c->default_source_name);
-    pa_xfree(c->default_sink_name);
+    pa_assert(!c->default_source);
+    pa_assert(!c->default_sink);
 
     pa_silence_cache_done(&c->silence_cache);
     pa_mempool_free(c->mempool);

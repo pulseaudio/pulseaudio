@@ -32,6 +32,7 @@ typedef struct pa_source_output pa_source_output;
 #include <pulsecore/resampler.h>
 #include <pulsecore/module.h>
 #include <pulsecore/client.h>
+#include <pulsecore/sink-input.h>
 
 typedef enum pa_source_output_state {
     PA_SOURCE_OUTPUT_INIT,

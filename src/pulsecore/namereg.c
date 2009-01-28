@@ -173,6 +173,11 @@ void pa_namereg_unregister(pa_core *c, const char *name) {
 
     pa_assert_se(e = pa_hashmap_remove(c->namereg, name));
 
+    if (c->default_sink == e->data)
+        pa_namereg_set_default_sink(c, NULL);
+    else if (c->default_source == e->data)
+        pa_namereg_set_default_source(c, NULL);
+
     pa_xfree(e->name);
     pa_xfree(e);
 }
@@ -182,32 +187,27 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type) {
     uint32_t idx;
     pa_assert(c);
 
-    if (!name) {
+    if (type == PA_NAMEREG_SOURCE && (!name || pa_streq(name, "@DEFAULT_SOURCE@"))) {
+        pa_source *s;
 
-        if (type == PA_NAMEREG_SOURCE)
-            name = pa_namereg_get_default_source_name(c);
-        else if (type == PA_NAMEREG_SINK)
-            name = pa_namereg_get_default_sink_name(c);
+        if ((s = pa_namereg_get_default_source(c)))
+            return s;
 
-    } else if (strcmp(name, "@DEFAULT_SINK@") == 0) {
-        if (type == PA_NAMEREG_SINK)
-               name = pa_namereg_get_default_sink_name(c);
+    } else if (type == PA_NAMEREG_SINK && (!name || pa_streq(name, "@DEFAULT_SINK@"))) {
+        pa_sink *s;
 
-    } else if (strcmp(name, "@DEFAULT_SOURCE@") == 0) {
-        if (type == PA_NAMEREG_SOURCE)
-            name = pa_namereg_get_default_source_name(c);
+        if ((s = pa_namereg_get_default_sink(c)))
+            return s;
 
-    } else if (strcmp(name, "@DEFAULT_MONITOR@") == 0) {
-        if (type == PA_NAMEREG_SOURCE) {
-            pa_sink *k;
+    } else if (type == PA_NAMEREG_SOURCE && name && pa_streq(name, "@DEFAULT_MONITOR@")) {
+        pa_sink *s;
 
-            if ((k = pa_namereg_get(c, NULL, PA_NAMEREG_SINK)))
-                return k->monitor_source;
-        }
-    } else if (*name == '@')
-        name = NULL;
+        if ((s = pa_namereg_get(c, NULL, PA_NAMEREG_SINK)))
+            return s->monitor_source;
 
-    if (!name)
+    }
+
+    if (*name == '@' || !name || !pa_namereg_is_valid_name(name))
         return NULL;
 
     if (c->namereg && (e = pa_hashmap_get(c->namereg, name)))
@@ -229,62 +229,57 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type) {
     return NULL;
 }
 
-int pa_namereg_set_default(pa_core*c, const char *name, pa_namereg_type_t type) {
-    char **s;
-
+pa_sink* pa_namereg_set_default_sink(pa_core*c, pa_sink *s) {
     pa_assert(c);
-    pa_assert(type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE);
 
-    s = type == PA_NAMEREG_SINK ? &c->default_sink_name : &c->default_source_name;
+    if (c->default_sink != s) {
+        c->default_sink = s;
+        pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SERVER|PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
+    }
 
-    if (!name && !*s)
-        return 0;
-
-    if (name && *s && !strcmp(name, *s))
-        return 0;
-
-    if (!pa_namereg_is_valid_name(name))
-        return -1;
-
-    pa_xfree(*s);
-    *s = pa_xstrdup(name);
-    pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SERVER|PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
-
-    return 0;
+    return s;
 }
 
-const char *pa_namereg_get_default_sink_name(pa_core *c) {
+pa_source* pa_namereg_set_default_source(pa_core*c, pa_source *s) {
+    pa_assert(c);
+
+    if (c->default_source != s) {
+        c->default_source = s;
+        pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SERVER|PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
+    }
+
+    return s;
+}
+
+pa_sink *pa_namereg_get_default_sink(pa_core *c) {
     pa_sink *s;
 
     pa_assert(c);
 
-    if (c->default_sink_name)
-        return c->default_sink_name;
+    if (c->default_sink)
+        return c->default_sink;
 
     if ((s = pa_idxset_first(c->sinks, NULL)))
-        pa_namereg_set_default(c, s->name, PA_NAMEREG_SINK);
+        return pa_namereg_set_default_sink(c, s);
 
-    return c->default_sink_name;
+    return NULL;
 }
 
-const char *pa_namereg_get_default_source_name(pa_core *c) {
+pa_source *pa_namereg_get_default_source(pa_core *c) {
     pa_source *s;
     uint32_t idx;
 
     pa_assert(c);
 
-    if (c->default_source_name)
-        return c->default_source_name;
+    if (c->default_source)
+        return c->default_source;
 
-    for (s = pa_idxset_first(c->sources, &idx); s; s = pa_idxset_next(c->sources, &idx))
-        if (!s->monitor_of) {
-            pa_namereg_set_default(c, s->name, PA_NAMEREG_SOURCE);
-            break;
-        }
+    for (s = PA_SOURCE(pa_idxset_first(c->sources, &idx)); s; s = PA_SOURCE(pa_idxset_next(c->sources, &idx)))
+        if (!s->monitor_of)
+            return pa_namereg_set_default_source(c, s);
 
-    if (!c->default_source_name)
-        if ((s = pa_idxset_first(c->sources, NULL)))
-            pa_namereg_set_default(c, s->name, PA_NAMEREG_SOURCE);
+    if ((s = pa_idxset_first(c->sources, NULL)))
+        return pa_namereg_set_default_source(c, s);
 
-    return c->default_source_name;
+    return NULL;
 }

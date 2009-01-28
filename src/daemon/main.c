@@ -971,11 +971,6 @@ int main(int argc, char *argv[]) {
         goto finish;
     }
 
-    if (c->default_sink_name && !pa_namereg_get(c, c->default_sink_name, PA_NAMEREG_SINK) && conf->fail) {
-        pa_log_error(_("Default sink name (%s) does not exist in name register."), c->default_sink_name);
-        goto finish;
-    }
-
 #ifdef HAVE_FORK
     if (daemon_pipe[1] >= 0) {
         int ok = 0;

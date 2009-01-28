@@ -57,10 +57,11 @@ static void load(struct userdata *u) {
 
     /* We never overwrite manually configured settings */
 
-    if (u->core->default_sink_name)
+    if (u->core->default_sink)
         pa_log_info("Manually configured default sink, not overwriting.");
     else if ((f = fopen(u->sink_filename, "r"))) {
         char ln[256] = "";
+        pa_sink *s;
 
         fgets(ln, sizeof(ln)-1, f);
         pa_strip_nl(ln);
@@ -68,8 +69,8 @@ static void load(struct userdata *u) {
 
         if (!ln[0])
             pa_log_info("No previous default sink setting, ignoring.");
-        else if (pa_namereg_get(u->core, ln, PA_NAMEREG_SINK)) {
-            pa_namereg_set_default(u->core, ln, PA_NAMEREG_SINK);
+        else if ((s = pa_namereg_get(u->core, ln, PA_NAMEREG_SINK))) {
+            pa_namereg_set_default_sink(u->core, s);
             pa_log_info("Restored default sink '%s'.", ln);
         } else
             pa_log_info("Saved default sink '%s' not existant, not restoring default sink setting.", ln);
@@ -77,10 +78,11 @@ static void load(struct userdata *u) {
     } else if (errno != ENOENT)
         pa_log("Failed to load default sink: %s", pa_cstrerror(errno));
 
-    if (u->core->default_source_name)
+    if (u->core->default_source)
         pa_log_info("Manually configured default source, not overwriting.");
     else if ((f = fopen(u->source_filename, "r"))) {
         char ln[256] = "";
+        pa_source *s;
 
         fgets(ln, sizeof(ln)-1, f);
         pa_strip_nl(ln);
@@ -88,8 +90,8 @@ static void load(struct userdata *u) {
 
         if (!ln[0])
             pa_log_info("No previous default source setting, ignoring.");
-        else if (pa_namereg_get(u->core, ln, PA_NAMEREG_SOURCE)) {
-            pa_namereg_set_default(u->core, ln, PA_NAMEREG_SOURCE);
+        else if ((s = pa_namereg_get(u->core, ln, PA_NAMEREG_SOURCE))) {
+            pa_namereg_set_default_source(u->core, s);
             pa_log_info("Restored default source '%s'.", ln);
         } else
             pa_log_info("Saved default source '%s' not existant, not restoring default source setting.", ln);
@@ -106,8 +108,8 @@ static void save(struct userdata *u) {
 
     if (u->sink_filename) {
         if ((f = fopen(u->sink_filename, "w"))) {
-            const char *n = pa_namereg_get_default_sink_name(u->core);
-            fprintf(f, "%s\n", pa_strempty(n));
+            pa_sink *s = pa_namereg_get_default_sink(u->core);
+            fprintf(f, "%s\n", s ? s->name : "");
             fclose(f);
         } else
             pa_log("Failed to save default sink: %s", pa_cstrerror(errno));
@@ -115,8 +117,8 @@ static void save(struct userdata *u) {
 
     if (u->source_filename) {
         if ((f = fopen(u->source_filename, "w"))) {
-            const char *n = pa_namereg_get_default_source_name(u->core);
-            fprintf(f, "%s\n", pa_strempty(n));
+            pa_source *s = pa_namereg_get_default_source(u->core);
+            fprintf(f, "%s\n", s ? s->name : "");
             fclose(f);
         } else
             pa_log("Failed to save default source: %s", pa_cstrerror(errno));

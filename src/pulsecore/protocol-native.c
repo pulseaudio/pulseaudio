@@ -3031,7 +3031,8 @@ static void command_get_server_info(pa_pdispatch *pd, uint32_t command, uint32_t
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
     pa_tagstruct *reply;
     char txt[256];
-    const char *n;
+    pa_sink *def_sink;
+    pa_source *def_source;
     pa_sample_spec fixed_ss;
 
     pa_native_connection_assert_ref(c);
@@ -3053,10 +3054,10 @@ static void command_get_server_info(pa_pdispatch *pd, uint32_t command, uint32_t
     fixup_sample_spec(c, &fixed_ss, &c->protocol->core->default_sample_spec);
     pa_tagstruct_put_sample_spec(reply, &fixed_ss);
 
-    n = pa_namereg_get_default_sink_name(c->protocol->core);
-    pa_tagstruct_puts(reply, n);
-    n = pa_namereg_get_default_source_name(c->protocol->core);
-    pa_tagstruct_puts(reply, n);
+    def_sink = pa_namereg_get_default_sink(c->protocol->core);
+    pa_tagstruct_puts(reply, def_sink ? def_sink->name : NULL);
+    def_source = pa_namereg_get_default_source(c->protocol->core);
+    pa_tagstruct_puts(reply, def_source ? def_source->name : NULL);
 
     pa_tagstruct_putu32(reply, c->protocol->core->cookie);
 
@@ -3671,7 +3672,23 @@ static void command_set_default_sink_or_source(pa_pdispatch *pd, uint32_t comman
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
     CHECK_VALIDITY(c->pstream, !s || pa_namereg_is_valid_name(s), tag, PA_ERR_INVALID);
 
-    pa_namereg_set_default(c->protocol->core, s, command == PA_COMMAND_SET_DEFAULT_SOURCE ? PA_NAMEREG_SOURCE : PA_NAMEREG_SINK);
+    if (command == PA_COMMAND_SET_DEFAULT_SOURCE) {
+        pa_source *source;
+
+        source = pa_namereg_get(c->protocol->core, s, PA_NAMEREG_SOURCE);
+        CHECK_VALIDITY(c->pstream, source, tag, PA_ERR_NOENTITY);
+
+        pa_namereg_set_default_source(c->protocol->core, source);
+    } else {
+        pa_sink *sink;
+        pa_assert(command == PA_COMMAND_SET_DEFAULT_SINK);
+
+        sink = pa_namereg_get(c->protocol->core, s, PA_NAMEREG_SINK);
+        CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);
+
+        pa_namereg_set_default_sink(c->protocol->core, sink);
+    }
+
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
 

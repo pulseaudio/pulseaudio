@@ -25,6 +25,8 @@
 #include <pulse/mainloop-api.h>
 #include <pulse/sample.h>
 
+typedef struct pa_core pa_core;
+
 #include <pulsecore/idxset.h>
 #include <pulsecore/hashmap.h>
 #include <pulsecore/memblock.h>
@@ -34,9 +36,8 @@
 #include <pulsecore/hook-list.h>
 #include <pulsecore/asyncmsgq.h>
 #include <pulsecore/sample-util.h>
-
-typedef struct pa_core pa_core;
-
+#include <pulsecore/sink.h>
+#include <pulsecore/source.h>
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/sink-input.h>
 #include <pulsecore/msgobject.h>
@@ -112,7 +113,8 @@ struct pa_core {
     pa_hashmap *namereg, *shared;
 
     /* The name of the default sink/source */
-    char *default_source_name, *default_sink_name;
+    pa_source *default_source;
+    pa_sink *default_sink;
 
     pa_sample_spec default_sample_spec;
     unsigned default_n_fragments, default_fragment_size_msec;
