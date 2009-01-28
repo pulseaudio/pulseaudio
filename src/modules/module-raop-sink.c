@@ -100,9 +100,6 @@ struct userdata {
 
     pa_usec_t latency;
 
-    pa_volume_t volume;
-    pa_bool_t muted;
-
     /*esd_format_t format;*/
     int32_t rate;
 
@@ -133,6 +130,9 @@ enum {
     SINK_MESSAGE_RIP_SOCKET
 };
 
+/* Forward declaration */
+static void sink_set_volume_cb(pa_sink *);
+
 static void on_connection(PA_GCC_UNUSED int fd, void*userdata) {
     struct userdata *u = userdata;
     pa_assert(u);
@@ -141,7 +141,7 @@ static void on_connection(PA_GCC_UNUSED int fd, void*userdata) {
     u->fd = fd;
 
     /* Set the initial volume */
-    pa_raop_client_set_volume(u->raop, u->volume);
+    sink_set_volume_cb(u->sink);
 
     pa_log_debug("Connection authenticated, handing fd to IO thread...");
 
@@ -255,43 +255,36 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     return pa_sink_process_msg(o, code, data, offset, chunk);
 }
 
-static void sink_get_volume_cb(pa_sink *s) {
-    struct userdata *u = s->userdata;
-    int i;
-
-    pa_assert(u);
-
-    for (i = 0; i < s->sample_spec.channels; i++)
-        s->virtual_volume.values[i] = u->volume;
-}
-
 static void sink_set_volume_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
-    int rv;
+    pa_cvolume hw;
+    pa_volume_t v;
+    char t[PA_CVOLUME_SNPRINT_MAX];
 
     pa_assert(u);
 
-    /* If we're muted, we fake it */
-    if (u->muted)
+    /* If we're muted we don't need to do anything */
+    if (s->muted)
         return;
 
-    pa_assert(s->sample_spec.channels > 0);
+    /* Calculate the max volume of all channels.
+       We'll use this as our (single) volume on the APEX device and emulate
+       any variation in channel volumes in software */
+    v = pa_cvolume_max(&s->virtual_volume);
 
-    /* Avoid pointless volume sets */
-    if (u->volume == s->virtual_volume.values[0])
-        return;
+    /* Create a pa_cvolume version of our single value */
+    pa_cvolume_set(&hw, s->sample_spec.channels, v);
 
-    rv = pa_raop_client_set_volume(u->raop, s->virtual_volume.values[0]);
-    if (0 == rv)
-        u->volume = s->virtual_volume.values[0];
-}
+    /* Perfome any software manipulation of the volume needed */
+    pa_sw_cvolume_divide(&s->soft_volume, &s->virtual_volume, &hw);
 
-static void sink_get_mute_cb(pa_sink *s) {
-    struct userdata *u = s->userdata;
+    pa_log_debug("Requested volume: %s", pa_cvolume_snprint(t, sizeof(t), &s->virtual_volume));
+    pa_log_debug("Got hardware volume: %s", pa_cvolume_snprint(t, sizeof(t), &hw));
+    pa_log_debug("Calculated software volume: %s", pa_cvolume_snprint(t, sizeof(t), &s->soft_volume));
 
-    pa_assert(u);
-
-    s->muted = u->muted;
+    /* Any necessary software volume manipulateion is done so set
+       our hw volume (or v as a single value) on the device */
+    pa_raop_client_set_volume(u->raop, v);
 }
 
 static void sink_set_mute_cb(pa_sink *s) {
@@ -299,8 +292,11 @@ static void sink_set_mute_cb(pa_sink *s) {
 
     pa_assert(u);
 
-    pa_raop_client_set_volume(u->raop, (s->muted ? PA_VOLUME_MUTED : u->volume));
-    u->muted = s->muted;
+    if (s->muted) {
+        pa_raop_client_set_volume(u->raop, PA_VOLUME_MUTED);
+    } else {
+        sink_set_volume_cb(s);
+    }
 }
 
 static void thread_func(void *userdata) {
@@ -541,9 +537,6 @@ int pa__init(pa_module*m) {
     u->next_encoding_overhead = 0;
     u->encoding_ratio = 1.0;
 
-    u->volume = roundf(0.7 * PA_VOLUME_NORM);
-    u->muted = FALSE;
-
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
     u->rtpoll_item = NULL;
@@ -583,9 +576,7 @@ int pa__init(pa_module*m) {
 
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->userdata = u;
-    u->sink->get_volume = sink_get_volume_cb;
     u->sink->set_volume = sink_set_volume_cb;
-    u->sink->get_mute = sink_get_mute_cb;
     u->sink->set_mute = sink_set_mute_cb;
     u->sink->flags = PA_SINK_LATENCY|PA_SINK_NETWORK|PA_SINK_HW_VOLUME_CTRL;
 
