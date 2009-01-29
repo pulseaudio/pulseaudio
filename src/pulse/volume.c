@@ -505,7 +505,7 @@ pa_cvolume* pa_cvolume_scale(pa_cvolume *v, pa_volume_t max) {
     unsigned c;
     pa_volume_t t = 0;
 
-    pa_assert(c);
+    pa_assert(v);
 
     for (c = 0; c < v->channels; c++)
         if (v->values[c] > t)
