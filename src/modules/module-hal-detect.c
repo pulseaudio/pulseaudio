@@ -773,15 +773,12 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    dbus_bus_add_match(pa_dbus_connection_get(u->connection), "type='signal',sender='org.freedesktop.Hal', interface='org.freedesktop.Hal.Device.AccessControl'", &error);
-    if (dbus_error_is_set(&error)) {
+    if (pa_dbus_add_matches(
+                pa_dbus_connection_get(u->connection), &error,
+                "type='signal',sender='org.freedesktop.Hal',interface='org.freedesktop.Hal.Device.AccessControl',member='ACLAdded'",
+                "type='signal',sender='org.freedesktop.Hal',interface='org.freedesktop.Hal.Device.AccessControl',member='ACLRemoved'",
+                "type='signal',interface='org.pulseaudio.Server',member='DirtyGiveUpMessage'", NULL) < 0) {
         pa_log_error("Unable to subscribe to HAL ACL signals: %s: %s", error.name, error.message);
-        goto fail;
-    }
-
-    dbus_bus_add_match(pa_dbus_connection_get(u->connection), "type='signal',interface='org.pulseaudio.Server'", &error);
-    if (dbus_error_is_set(&error)) {
-        pa_log_error("Unable to subscribe to PulseAudio signals: %s: %s", error.name, error.message);
         goto fail;
     }
 
@@ -825,17 +822,13 @@ void pa__done(pa_module *m) {
     }
 
     if (u->connection) {
-        DBusError error;
-        dbus_error_init(&error);
-
-        dbus_bus_remove_match(pa_dbus_connection_get(u->connection), "type='signal',sender='org.freedesktop.Hal', interface='org.freedesktop.Hal.Device.AccessControl'", &error);
-        dbus_error_free(&error);
-
-        dbus_bus_remove_match(pa_dbus_connection_get(u->connection), "type='signal',interface='org.pulseaudio.Server'", &error);
-        dbus_error_free(&error);
+        pa_dbus_remove_matches(
+                pa_dbus_connection_get(u->connection),
+                "type='signal',sender='org.freedesktop.Hal',interface='org.freedesktop.Hal.Device.AccessControl',member='ACLAdded'",
+                "type='signal',sender='org.freedesktop.Hal',interface='org.freedesktop.Hal.Device.AccessControl',member='ACLRemoved'",
+                "type='signal',interface='org.pulseaudio.Server',member='DirtyGiveUpMessage'", NULL);
 
         dbus_connection_remove_filter(pa_dbus_connection_get(u->connection), filter_cb, u);
-
         pa_dbus_connection_unref(u->connection);
     }
 
