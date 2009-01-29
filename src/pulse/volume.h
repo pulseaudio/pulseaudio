@@ -242,11 +242,26 @@ float pa_cvolume_get_balance(const pa_cvolume *v, const pa_channel_map *map) PA_
 /** Adjust the 'balance' value for the specified volume with the
  * specified channel map. v will be modified in place and
  * returned. The balance is a value between -1.0f and +1.0f. This
- * operation might not be reversable! Also, after this call
+ * operation might not be reversible! Also, after this call
  * pa_cvolume_get_balance() is not guaranteed to actually return the
- * requested balance (e.g. when the input volume was zero anyway for
+ * requested balance value (e.g. when the input volume was zero anyway for
  * all channels) \since 0.9.15 */
 pa_cvolume* pa_cvolume_set_balance(pa_cvolume *v, const pa_channel_map *map, float new_balance);
+
+/** Calculate a 'fade' value (i.e. 'balance' between front and rear)
+ * for the specified volume with the specified channel map. The return
+ * value will range from -1.0f (rear) to +1.0f (left) \since
+ * 0.9.15 */
+float pa_cvolume_get_fade(const pa_cvolume *v, const pa_channel_map *map) PA_GCC_PURE;
+
+/** Adjust the 'fade' value (i.e. 'balance' between front and rear)
+ * for the specified volume with the specified channel map. v will be
+ * modified in place and returned. The balance is a value between
+ * -1.0f and +1.0f. This operation might not be reversible! Also,
+ * after this call pa_cvolume_get_fade() is not guaranteed to
+ * actually return the requested fade value (e.g. when the input volume
+ * was zero anyway for all channels) \since 0.9.15 */
+pa_cvolume* pa_cvolume_set_fade(pa_cvolume *v, const pa_channel_map *map, float new_fade);
 
 /** Scale the passed pa_cvolume structure so that the maximum volume
  * of all channels equals max. The proportions between the channel
