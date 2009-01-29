@@ -37,4 +37,7 @@ DBusConnection* pa_dbus_connection_get(pa_dbus_connection *conn);
 pa_dbus_connection* pa_dbus_connection_ref(pa_dbus_connection *conn);
 void pa_dbus_connection_unref(pa_dbus_connection *conn);
 
+int pa_dbus_add_matches(DBusConnection *c, DBusError *error, ...) PA_GCC_SENTINEL;
+void pa_dbus_remove_matches(DBusConnection *c,  ...) PA_GCC_SENTINEL;
+
 #endif

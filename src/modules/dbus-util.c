@@ -24,6 +24,8 @@
 #include <config.h>
 #endif
 
+#include <stdarg.h>
+
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 #include <pulsecore/log.h>
@@ -324,4 +326,59 @@ pa_dbus_connection* pa_dbus_bus_get(pa_core *c, DBusBusType type, DBusError *err
     dbus_connection_set_wakeup_main_function(conn, wakeup_main, pconn, NULL);
 
     return pconn;
+}
+
+int pa_dbus_add_matches(DBusConnection *c, DBusError *error, ...) {
+    const char *t;
+    va_list ap;
+    unsigned k = 0;
+
+    pa_assert(c);
+    pa_assert(error);
+
+    va_start(ap, error);
+    while ((t = va_arg(ap, const char*))) {
+        dbus_bus_add_match(c, t, error);
+
+        if (dbus_error_is_set(error))
+            goto fail;
+
+        k++;
+    }
+    va_end(ap);
+    return 0;
+
+fail:
+
+    va_end(ap);
+    va_start(ap, error);
+    for (; k > 0; k--) {
+        DBusError e;
+
+        pa_assert_se(t = va_arg(ap, const char*));
+
+        dbus_error_init(&e);
+        dbus_bus_remove_match(c, t, &e);
+        dbus_error_free(&e);
+    }
+    va_end(ap);
+
+    return -1;
+}
+
+void pa_dbus_remove_matches(DBusConnection *c, ...) {
+    const char *t;
+    va_list ap;
+    DBusError error;
+
+    pa_assert(c);
+
+    dbus_error_init(&error);
+
+    va_start(ap, c);
+    while ((t = va_arg(ap, const char*))) {
+        dbus_bus_remove_match(c, t, &error);
+        dbus_error_free(&error);
+    }
+    va_end(ap);
 }
