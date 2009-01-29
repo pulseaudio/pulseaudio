@@ -1,22 +1,22 @@
 /***
-    This file is part of PulseAudio.
+  This file is part of PulseAudio.
 
-    Copyright 2008 Joao Paulo Rechi Vita
+  Copyright 2008 Joao Paulo Rechi Vita
 
-    PulseAudio is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published
-    by the Free Software Foundation; either version 2 of the License,
-    or (at your option) any later version.
+  PulseAudio is free software; you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 2 of the
+  License, or (at your option) any later version.
 
-    PulseAudio is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-    General Public License for more details.
+  PulseAudio is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with PulseAudio; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
-    USA.
+  You should have received a copy of the GNU Lesser General Public
+  License along with PulseAudio; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  USA.
 ***/
 
 #ifdef HAVE_CONFIG_H
@@ -44,13 +44,14 @@
 #include <pulsecore/time-smoother.h>
 #include <pulsecore/rtclock.h>
 
-#include "../dbus-util.h"
+#include <modules/dbus-util.h>
+
 #include "module-bluetooth-device-symdef.h"
 #include "ipc.h"
 #include "sbc.h"
 #include "rtp.h"
+#include "bluetooth-util.h"
 
-#define DEFAULT_SINK_NAME "bluetooth_sink"
 #define BUFFER_SIZE 2048
 #define MAX_BITPOOL 64
 #define MIN_BITPOOL 2U
@@ -63,12 +64,28 @@ PA_MODULE_DESCRIPTION("Bluetooth audio sink and source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
-        "sink_name=<name of the device> "
+        "name=<name for the card/sink/source, to be prefixed> "
+        "card_name=<name for the card> "
+        "sink_name=<name for the sink> "
+        "source_name=<name for the source> "
         "address=<address of the device> "
         "profile=<a2dp|hsp> "
         "rate=<sample rate> "
         "channels=<number of channels> "
         "path=<device object path>");
+
+static const char* const valid_modargs[] = {
+    "name",
+    "card_name",
+    "sink_name",
+    "source_name",
+    "address",
+    "profile",
+    "rate",
+    "channels",
+    "path",
+    NULL
+};
 
 struct bt_a2dp {
     sbc_capabilities_t sbc_capabilities;
@@ -82,6 +99,12 @@ struct bt_a2dp {
     unsigned total_samples;              /* Cumulative number of codec samples */
     uint16_t seq_num;                    /* Cumulative packet sequence */
     unsigned frame_count;                /* Current frames in buffer*/
+};
+
+enum profile {
+    PROFILE_A2DP,
+    PROFILE_SCO,
+    PROFILE_OFF
 };
 
 struct userdata {
@@ -98,33 +121,24 @@ struct userdata {
     uint64_t offset;
     pa_smoother *smoother;
 
-    char *name;
-    char *addr;
-    char *profile;
-    pa_sample_spec ss;
+    char *address;
+    pa_sample_spec sample_spec;
 
-    int audioservice_fd;
+    int service_fd;
     int stream_fd;
 
     uint8_t transport;
-    char *strtransport;
     size_t link_mtu;
     size_t block_size;
     pa_usec_t latency;
 
     struct bt_a2dp a2dp;
     char *path;
-    pa_dbus_connection *conn;
-};
+    pa_dbus_connection *connection;
 
-static const char* const valid_modargs[] = {
-    "sink_name",
-    "address",
-    "profile",
-    "rate",
-    "channels",
-    "path",
-    NULL
+    enum profile profile;
+
+    pa_bluetooth_device *device;
 };
 
 static int bt_audioservice_send(int sk, const bt_audio_msg_header_t *msg) {
@@ -234,7 +248,7 @@ static int bt_getcaps(struct userdata *u) {
     msg.getcaps_req.h.name = BT_GET_CAPABILITIES;
     msg.getcaps_req.h.length = sizeof(msg.getcaps_req);
 
-    strncpy(msg.getcaps_req.device, u->addr, 18);
+    strncpy(msg.getcaps_req.device, u->address, 18);
     if (pa_streq(u->profile, "a2dp"))
         msg.getcaps_req.transport = BT_CAPABILITIES_TRANSPORT_A2DP;
     else if (pa_streq(u->profile, "hsp"))
@@ -489,7 +503,6 @@ static int bt_setconf(struct userdata *u) {
     }
 
     u->transport = msg.setconf_rsp.transport;
-    u->strtransport = (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP ? pa_xstrdup("A2DP") : pa_xstrdup("SCO"));
     u->link_mtu = msg.setconf_rsp.link_mtu;
 
     /* setup SBC encoder now we agree on parameters */
@@ -933,18 +946,288 @@ static int source_set_volume_cb(pa_source *s) {
     return 0;
 }
 
+static char *get_name(const char *type, pa_modargs *ma, const char *device_id, pa_bool_t *namereg_fail) {
+    char *t;
+    const char *n;
+
+    pa_assert(type);
+    pa_assert(ma);
+    pa_assert(device_id);
+    pa_assert(namereg_fail);
+
+    t = pa_sprintf_malloc("%s_name", type);
+    n = pa_modargs_get_value(ma, t, NULL);
+    pa_xfree(t);
+
+    if (n) {
+        *namereg_fail = TRUE;
+        return pa_xstrdup(n);
+    }
+
+    if ((n = pa_modargs_get_value(ma, "name", NULL)))
+        *namereg_fail = TRUE;
+    else {
+        n = device_id;
+        *namereg_fail = FALSE;
+    }
+
+    return pa_sprintf_malloc("bluez_%s.%s", type, n);
+}
+
+static int add_sink(struct userdata *u) {
+    pa_sink_new_data data;
+    pa_bool_t b;
+
+    pa_sink_new_data_init(&data);
+    data.driver = __FILE__;
+    data.module = m;
+    pa_sink_new_data_set_sample_spec(&data, &u->ss);
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Bluetooth %s on %s", u->profile == PROFILE_A2DP ? "A2DP" : "HSP/HFP", u->addr);
+    pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP ? "a2dp" : "sco");
+    data.card = u->card;
+    data.name = get_name("sink", ma, u->addr, &b);
+    data.namereg_fail = b;
+
+    u->sink = pa_sink_new(u->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
+    pa_sink_new_data_done(&data);
+
+    if (!u->sink) {
+        pa_log_error("Failed to create sink");
+        return -1;
+    }
+
+    u->sink->userdata = u;
+    u->sink->parent.process_msg = sink_process_msg;
+    u->sink->get_volume = sink_get_volume_cb;
+    u->sink->set_volume = sink_set_volume_cb;
+
+    pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
+    pa_sink_set_rtpoll(u->sink, u->rtpoll);
+
+    return 0;
+}
+
+static int add_source(struct userdata *u) {
+    pa_source_new_data data;
+    pa_bool_t b;
+
+    pa_source_new_data_init(&data);
+    data.driver = __FILE__;
+    data.module = m;
+    pa_source_new_data_set_sample_spec(&data, &u->ss);
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Bluetooth %s on %s", u->profile == PROFILE_A2DP ? "A2DP" : "HSP/HFP", u->addr);
+    pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP ? "a2dp" : "sco");
+    data.card = u->card;
+    data.name = get_name("source", ma, u->addr, &b);
+    data.namereg_fail = b;
+
+    u->source = pa_source_new(u->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
+    pa_source_new_data_done(&data);
+
+    if (!u->source) {
+        pa_log_error("Failed to create source");
+        return -1;
+    }
+
+    u->source->userdata = u;
+    u->source->parent.process_msg = source_process_msg;
+    u->source->get_volume = source_get_volume_cb;
+    u->source->set_volume = source_set_volume_cb;
+
+    pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
+    pa_source_set_rtpoll(u->source, u->rtpoll);
+
+    return 0;
+}
+
+static void init_profile(struct userdata *u) {
+    enum profile *d;
+
+    pa_assert(u);
+
+    if (u->profile == PROFILE_A2DP ||
+        u->profile == PROFILE_SCO)
+        add_sink(u);
+
+    if (u->profile == PROFILE_SCO)
+        add_source(u);
+}
+
+static int init_bt(struct userdata *u) {
+    pa_assert(u);
+
+    /* connect to the bluez audio service */
+    if ((u->audioservice_fd = bt_audio_service_open()) < 0) {
+        pa_log_error("Couldn't connect to bluetooth audio service");
+        return -1;
+    }
+    pa_log_debug("Connected to the bluetooth audio service");
+
+    /* queries device capabilities */
+    if (bt_getcaps(u) < 0) {
+        pa_log_error("Failed to get device capabilities");
+        return -1;
+    }
+    pa_log_debug("Got device capabilities");
+
+    return 0;
+}
+
+static setup_bt(struct userdata *u) {
+    pa_assert(u);
+
+    /* configures the connection */
+    if (bt_setconf(u) < 0) {
+        pa_log_error("Failed to set config");
+        return -1;
+    }
+    pa_log_debug("Connection to the device configured");
+
+    /* gets the device socket */
+    if (bt_getstreamfd(u) < 0) {
+        pa_log_error("Failed to get stream fd (%d)", e);
+        return -1;
+    }
+    pa_log_debug("Got the device socket");
+}
+
+static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
+    struct userdata *u;
+    enum profile *d;
+    pa_queue *inputs = NULL, *outputs = NULL;
+
+    pa_assert(c);
+    pa_assert(new_profile);
+    pa_assert_se(u = c->userdata);
+
+    d = PA_CARD_PROFILE_DATA(new_profile);
+
+    if (u->sink) {
+        inputs = pa_sink_move_all_start(u->sink);
+
+        pa_sink_unlink(u->sink);
+        pa_sink_unref(u->sink);
+        u->sink = NULL;
+    }
+
+    if (u->source) {
+        outputs = pa_source_move_all_start(u->source);
+
+        pa_source_unlink(u->source);
+        pa_source_unref(u->source);
+        u->source = NULL;
+    }
+
+    u->profile = *d;
+
+    init_profile(u);
+
+    if (inputs) {
+        if (u->sink)
+            pa_sink_move_all_finish(u->sink, inputs, FALSE);
+        else
+            pa_sink_move_all_fail(inputs);
+    }
+
+    if (outputs) {
+        if (u->source)
+            pa_source_move_all_finish(u->source, outputs, FALSE);
+        else
+            pa_source_move_all_fail(outputs);
+    }
+
+    return 0;
+}
+
+static int add_card(struct userdata *u) {
+    pa_card_new_data data;
+    pa_bool_t b;
+    pa_card_profile *p;
+    enum profile *d;
+
+    pa_card_new_data_init(&data);
+    data.driver = __FILE__;
+    data.module = u->module;
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->addr);
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_API, "bluez");
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_CLASS, "sound");
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_CONNECTOR, "bluetooth");
+/*     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_FORM_FACTOR, "headset"); /\*FIXME*\/ */
+/*     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_VENDOR_PRODUCT_ID, "product_id"); /\*FIXME*\/ */
+/*     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_SERIAL, "serial"); /\*FIXME*\/ */
+    data.name = get_name("card", ma, u->addr, &b);
+    data.namereg_fail = b;
+
+    data.profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+
+    if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP ||
+        u->transport == BT_CAPABILITIES_TRANSPORT_ANY) {
+
+        p = pa_card_profile_new("a2dp", "A2DP Advanced Audio Distribution Profile", sizeof(enum profile));
+        p->priority = 10;
+        p->n_sinks = 1;
+        p->n_sources = 0;
+        p->max_sink_channels = 2;
+        p->max_source_channels = 0;
+
+        d = PA_CARD_PROFILE_DATA(p);
+        *d = PROFILE_A2DP;
+    }
+
+    if (u->transport == BT_CAPABILITIES_TRANSPORT_SCO ||
+        u->transport == BT_CAPABILITIES_TRANSPORT_ANY) {
+
+        p = pa_card_profile_new("hsp", "HSP/HFP Headset/Hands-Free Profile", sizeof(enum profile));
+        p->priority = 20;
+        p->n_sinks = 1;
+        p->n_sources = 1;
+        p->max_sink_channels = 1;
+        p->max_source_channels = 1;
+
+        d = PA_CARD_PROFILE_DATA(p);
+        *d = PROFILE_SCO;
+    }
+
+    pa_assert(!pa_hashmap_isempty(data.profiles));
+
+    p = pa_card_profile_new("off", "Off", sizeof(enum profile));
+    d = PA_CARD_PROFILE_DATA(p);
+    *d = PROFILE_OFF;
+
+    u->card = pa_card_new(m->core, &data);
+    pa_card_new_data_done(&data);
+
+    if (!u->card) {
+        pa_log("Failed to allocate card.");
+        return -1;
+    }
+
+    card->userdata = u;
+    card->set_profile = card_set_profile;
+
+    d = PA_CARD_PROFILE_DATA(u->card->active_profile);
+    u->profile = *d;
+
+    return 0;
+}
+
 int pa__init(pa_module* m) {
-    int e;
     pa_modargs *ma;
     uint32_t channels;
-    pa_sink_new_data data;
+    pa_sink_new_data sink_data;
+    pa_source_new_data source_data;
+    pa_card card_data;
     struct pollfd *pollfd;
     struct userdata *u;
-    DBusError err;
-    char *tmp;
+    pa_bool_t b;
+    const char *p;
 
     pa_assert(m);
-    dbus_error_init(&err);
+
+    if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
+        pa_log_error("Failed to parse module arguments");
+        goto fail;
+    }
 
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->module = m;
@@ -952,157 +1235,109 @@ int pa__init(pa_module* m) {
     u->audioservice_fd = -1;
     u->stream_fd = -1;
     u->transport = (uint8_t) -1;
-    u->offset = 0;
-    u->latency = 0;
-    u->a2dp.sbc_initialized = FALSE;
     u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE, 10);
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll);
-    u->rtpoll_item = NULL;
-    u->ss = m->core->default_sample_spec;
+    u->add_source = m->core->default_sample_spec;
 
-    if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log_error("Failed to parse module arguments");
-        goto fail;
-    }
-    if (!(u->name = pa_xstrdup(pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME)))) {
-        pa_log_error("Failed to get device name from module arguments");
-        goto fail;
-    }
-    if (!(u->addr = pa_xstrdup(pa_modargs_get_value(ma, "address", NULL)))) {
+    if (!(u->address = pa_xstrdup(pa_modargs_get_value(ma, "address", NULL)))) {
         pa_log_error("Failed to get device address from module arguments");
         goto fail;
     }
-    if (!(u->profile = pa_xstrdup(pa_modargs_get_value(ma, "profile", NULL)))) {
+
+    u->path = pa_xstrdup(pa_modargs_get_value(ma, "path", NULL));
+
+    p = pa_modargs_get_value(ma, "profile", NULL);
+    if (p && !pa_streq(p, "hsp") && !pa_streq(p, "a2dp")) {
         pa_log_error("Failed to get profile from module arguments");
         goto fail;
     }
-    if (pa_modargs_get_value_u32(ma, "rate", &u->ss.rate) < 0) {
+
+    if (pa_modargs_get_value_u32(ma, "rate", &u->ss.rate) < 0 ||
+        u->ss.rate <= 0 || u->ss.rate > PA_RATE_MAX) {
         pa_log_error("Failed to get rate from module arguments");
         goto fail;
     }
-    u->path = pa_xstrdup(pa_modargs_get_value(ma, "path", NULL));
 
     channels = u->ss.channels;
-    if (pa_modargs_get_value_u32(ma, "channels", &channels) < 0) {
+    if (pa_modargs_get_value_u32(ma, "channels", &channels) < 0 ||
+        channels <= 0 || channels > PA_CHANNELS_MAX) {
         pa_log_error("Failed to get channels from module arguments");
         goto fail;
     }
     u->ss.channels = (uint8_t) channels;
 
-    /* connect to the bluez audio service */
-    u->audioservice_fd = bt_audio_service_open();
-    if (u->audioservice_fd <= 0) {
-        pa_log_error("Couldn't connect to bluetooth audio service");
+    /* Connect to the BT service and query capabilities */
+    if (init_bt(u) < 0)
         goto fail;
-    }
-    pa_log_debug("Connected to the bluetooth audio service");
 
-    /* queries device capabilities */
-    e = bt_getcaps(u);
-    if (e < 0) {
-        pa_log_error("Failed to get device capabilities");
+    /* Add the card structure. This will also initialize the default profile */
+    if (add_card(u) < 0)
         goto fail;
-    }
-    pa_log_debug("Got device capabilities");
 
-    /* configures the connection */
-    e = bt_setconf(u);
-    if (e < 0) {
-        pa_log_error("Failed to set config");
-        goto fail;
-    }
-    pa_log_debug("Connection to the device configured");
+    /* Now configure the the right profile */
+    if (setup_bt(u) < 0)
 
-    /* gets the device socket */
-    e = bt_getstreamfd(u);
-    if (e < 0) {
-        pa_log_error("Failed to get stream fd (%d)", e);
+    if (init_profile(u) < 0)
         goto fail;
-    }
-    pa_log_debug("Got the device socket");
 
-    /* create sink */
-    pa_sink_new_data_init(&data);
-    data.driver = __FILE__;
-    data.module = m;
-    pa_sink_new_data_set_name(&data, u->name);
-    pa_sink_new_data_set_sample_spec(&data, &u->ss);
-    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->name);
-    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Bluetooth %s '%s' (%s)", u->strtransport, u->name, u->addr);
-    pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile);
-    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_API, "bluez");
-    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_CLASS, "sound");
-    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_CONNECTOR, "bluetooth");
-/*     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_FORM_FACTOR, "headset"); /\*FIXME*\/ */
-/*     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_VENDOR_PRODUCT_ID, "product_id"); /\*FIXME*\/ */
-/*     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_SERIAL, "serial"); /\*FIXME*\/ */
-    u->sink = pa_sink_new(m->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
-    pa_sink_new_data_done(&data);
-    if (!u->sink) {
-        pa_log_error("Failed to create sink");
-        goto fail;
+    if (u->path) {
+        DBusError err;
+        dbus_error_init(&err);
+        char *t;
+
+        u->conn = pa_dbus_bus_get(m->core, DBUS_BUS_SYSTEM, &err);
+        if (dbus_error_is_set(&err) || (!u->conn)) {
+            pa_log("Failed to get D-Bus connection: %s", err.message);
+            goto fail;
+        }
+
+        if (!dbus_connection_add_filter(pa_dbus_connection_get(u->conn), filter_cb, u, NULL)) {
+            pa_log_error("Failed to add filter function");
+            goto fail;
+        }
+
+        if (u->transport == BT_CAPABILITIES_TRANSPORT_SCO ||
+            u->transport == BT_CAPABILITIES_TRANSPORT_ANY) {
+            t = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged',path='%s'", u->path);
+            dbus_bus_add_match(pa_dbus_connection_get(u->conn), t, &err);
+            pa_xfree(t);
+
+            if (dbus_error_is_set(&err)) {
+                pa_log_error("Unable to subscribe to org.bluez.Headset signals: %s: %s", err.name, err.message);
+                goto fail;
+            }
+        }
+
+        if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP ||
+            u->transport == BT_CAPABILITIES_TRANSPORT_ANY) {
+            t = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged',path='%s'", u->path);
+            dbus_bus_add_match(pa_dbus_connection_get(u->conn), t, &err);
+            pa_xfree(t);
+
+            if (dbus_error_is_set(&err)) {
+                pa_log_error("Unable to subscribe to org.bluez.AudioSink signals: %s: %s", err.name, err.message);
+                goto fail;
+            }
+        }
     }
-    u->sink->userdata = u;
-    u->sink->parent.process_msg = sink_process_msg;
-    pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
-    pa_sink_set_rtpoll(u->sink, u->rtpoll);
 
     u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
     pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
     pollfd->fd = u->stream_fd;
     pollfd->events = pollfd->revents = 0;
 
-    /* start rt thread */
     if (!(u->thread = pa_thread_new(thread_func, u))) {
         pa_log_error("Failed to create IO thread");
         goto fail;
     }
-    pa_sink_put(u->sink);
-    if (!u->path)
-        goto end;
 
-    /* connect to the bus */
-    u->conn = pa_dbus_bus_get(m->core, DBUS_BUS_SYSTEM, &err);
-    if (dbus_error_is_set(&err) || (u->conn == NULL) ) {
-        pa_log("Failed to get D-Bus connection: %s", err.message);
-        goto fail;
-    }
+    if (u->sink)
+        pa_sink_put(u->sink);
 
-    /* monitor property changes */
-    if (!dbus_connection_add_filter(pa_dbus_connection_get(u->conn), filter_cb, u, NULL)) {
-        pa_log_error("Failed to add filter function");
-        goto fail;
-    }
+    if (u->source)
+        pa_sink_put(u->source);
 
-    if (pa_streq(u->profile, "hsp")) {
-
-        tmp = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged',path='%s'", u->path);
-        dbus_bus_add_match(pa_dbus_connection_get(u->conn), tmp, &err);
-        pa_xfree(tmp);
-        if (dbus_error_is_set(&err)) {
-            pa_log_error("Unable to subscribe to org.bluez.Headset signals: %s: %s", err.name, err.message);
-            goto fail;
-        }
-    } else {
-
-        tmp = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged',path='%s'", u->path);
-        dbus_bus_add_match(pa_dbus_connection_get(u->conn), tmp, &err);
-        pa_xfree(tmp);
-        if (dbus_error_is_set(&err)) {
-            pa_log_error("Unable to subscribe to org.bluez.AudioSink signals: %s: %s", err.name, err.message);
-            goto fail;
-        }
-    }
-
-    u->sink->get_volume = sink_get_volume_cb;
-    u->sink->set_volume = sink_set_volume_cb;
-    if (u->source) {
-        u->source->get_volume = source_get_volume_cb;
-        u->source->set_volume = source_set_volume_cb;
-    }
-
-end:
     pa_modargs_free(ma);
     return 0;
 
@@ -1114,6 +1349,17 @@ fail:
     return -1;
 }
 
+int pa__get_n_used(pa_module *m) {
+    struct userdata *u;
+
+    pa_assert(m);
+    pa_assert_se(u = m->userdata);
+
+    return
+        (u->sink ? pa_sink_linked_by(u->sink) : 0) +
+        (u->source ? pa_source_linked_by(u->source) : 0);
+}
+
 void pa__done(pa_module *m) {
     struct userdata *u;
     pa_assert(m);
@@ -1123,23 +1369,29 @@ void pa__done(pa_module *m) {
 
     if (u->conn) {
         DBusError error;
-        char *tmp;
-        dbus_error_init(&error);
+        char *t;
 
-        if (pa_streq(u->profile, "hsp")) {
-            tmp = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged',path='%s'", u->path);
-            dbus_bus_remove_match(pa_dbus_connection_get(u->conn), tmp, &error);
-            pa_xfree(tmp);
+        if (u->transport == BT_CAPABILITIES_TRANSPORT_SCO ||
+            u->transport == BT_CAPABILITIES_TRANSPORT_ANY) {
+
+            t = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged',path='%s'", u->path);
+            dbus_error_init(&error);
+            dbus_bus_remove_match(pa_dbus_connection_get(u->conn), t, &error);
             dbus_error_free(&error);
-        } else {
-            tmp = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged',path='%s'", u->path);
-            dbus_bus_remove_match(pa_dbus_connection_get(u->conn), tmp, &error);
-            pa_xfree(tmp);
+            pa_xfree(t);
+        }
+
+        if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP ||
+            u->transport == BT_CAPABILITIES_TRANSPORT_ANY) {
+
+            t = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged',path='%s'", u->path);
+            dbus_error_init(&error);
+            dbus_bus_remove_match(pa_dbus_connection_get(u->conn), t, &error);
             dbus_error_free(&error);
+            pa_xfree(t);
         }
 
         dbus_connection_remove_filter(pa_dbus_connection_get(u->conn), filter_cb, u);
-
         pa_dbus_connection_unref(u->conn);
     }
 
@@ -1149,6 +1401,9 @@ void pa__done(pa_module *m) {
     if (u->sink)
         pa_sink_unlink(u->sink);
 
+    if (u->source)
+        pa_source_unlink(u->source);
+
     if (u->thread) {
         pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
         pa_thread_free(u->thread);
@@ -1156,6 +1411,12 @@ void pa__done(pa_module *m) {
 
     if (u->sink)
         pa_sink_unref(u->sink);
+
+    if (u->source)
+        pa_source_unref(u->source);
+
+    if (u->card)
+        pa_card_unref(u->card);
 
     pa_thread_mq_done(&u->thread_mq);
 
@@ -1177,7 +1438,7 @@ void pa__done(pa_module *m) {
         pa_close(u->stream_fd);
 
     if (u->audioservice_fd >= 0)
-        pa_close(u->audioservice_fd);
+        pa_close(u->service_fd);
 
     pa_xfree(u);
 }
