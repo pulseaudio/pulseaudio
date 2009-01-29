@@ -87,16 +87,6 @@ char* pa_namereg_make_valid_name(const char *name) {
     return n;
 }
 
-void pa_namereg_free(pa_core *c) {
-    pa_assert(c);
-
-    if (!c->namereg)
-        return;
-
-    pa_assert(pa_hashmap_size(c->namereg) == 0);
-    pa_hashmap_free(c->namereg, NULL, NULL);
-}
-
 const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t type, void *data, pa_bool_t fail) {
     struct namereg_entry *e;
     char *n = NULL;
@@ -117,9 +107,6 @@ const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t 
         if (!(name = n = pa_namereg_make_valid_name(name)))
             return NULL;
     }
-
-    if (!c->namereg)
-        c->namereg = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
     if ((e = pa_hashmap_get(c->namereg, name)) && fail) {
         pa_xfree(n);
@@ -210,7 +197,7 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type) {
     if (*name == '@' || !name || !pa_namereg_is_valid_name(name))
         return NULL;
 
-    if (c->namereg && (e = pa_hashmap_get(c->namereg, name)))
+    if ((e = pa_hashmap_get(c->namereg, name)))
         if (e->type == type)
             return e->data;
 

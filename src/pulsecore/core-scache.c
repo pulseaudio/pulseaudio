@@ -120,9 +120,6 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
         e->core = c;
         e->proplist = pa_proplist_new();
 
-        if (!c->scache)
-            c->scache = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
-
         pa_idxset_put(c->scache, e, &e->index);
 
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_NEW, e->index);
@@ -287,23 +284,18 @@ int pa_scache_remove_item(pa_core *c, const char *name) {
     return 0;
 }
 
-static void free_cb(void *p, void *userdata) {
-    pa_scache_entry *e = p;
-    pa_assert(e);
+void pa_scache_free_all(pa_core *c) {
+    pa_scache_entry *e;
 
-    free_entry(e);
-}
-
-void pa_scache_free(pa_core *c) {
     pa_assert(c);
 
-    if (c->scache) {
-        pa_idxset_free(c->scache, free_cb, NULL);
-        c->scache = NULL;
-    }
+    while ((e = pa_idxset_steal_first(c->scache, NULL)))
+        free_entry(e);
 
-    if (c->scache_auto_unload_event)
+    if (c->scache_auto_unload_event) {
         c->mainloop->time_free(c->scache_auto_unload_event);
+        c->scache_auto_unload_event = NULL;
+    }
 }
 
 int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t volume, pa_proplist *p, uint32_t *sink_input_idx) {

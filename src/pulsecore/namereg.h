@@ -34,8 +34,6 @@ typedef enum pa_namereg_type {
     PA_NAMEREG_CARD
 } pa_namereg_type_t;
 
-void pa_namereg_free(pa_core *c);
-
 const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t type, void *data, pa_bool_t fail);
 void pa_namereg_unregister(pa_core *c, const char *name);
 void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type);

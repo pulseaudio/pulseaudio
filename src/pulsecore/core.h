@@ -112,7 +112,7 @@ struct pa_core {
     /* Some hashmaps for all sorts of entities */
     pa_hashmap *namereg, *shared;
 
-    /* The name of the default sink/source */
+    /* The default sink/source */
     pa_source *default_source;
     pa_sink *default_sink;
 
@@ -129,13 +129,12 @@ struct pa_core {
     pa_mempool *mempool;
     pa_silence_cache silence_cache;
 
-    int exit_idle_time, scache_idle_time;
-    pa_bool_t flat_volumes;
-
     pa_time_event *exit_event;
-
     pa_time_event *scache_auto_unload_event;
 
+    int exit_idle_time, scache_idle_time;
+
+    pa_bool_t flat_volumes:1;
     pa_bool_t disallow_module_loading:1;
     pa_bool_t disallow_exit:1;
     pa_bool_t running_as_daemon:1;

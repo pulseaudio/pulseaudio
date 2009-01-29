@@ -49,12 +49,6 @@ int pa_shared_remove(pa_core *c, const char *name);
 /* A combination of pa_shared_remove() and pa_shared_set() */
 int pa_shared_replace(pa_core *c, const char *name, void *data);
 
-/* Free all memory used by the shared property system */
-void pa_shared_cleanup(pa_core *c);
-
-/* Initialize the shared property system */
-void pa_shared_init(pa_core *c);
-
 /* Dump the current set of shared properties */
 void pa_shared_dump(pa_core *c, pa_strbuf *s);
 

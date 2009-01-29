@@ -75,7 +75,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
 
         m->load_once = load_once();
 
-        if (m->load_once && c->modules) {
+        if (m->load_once) {
             pa_module *i;
             uint32_t idx;
             /* OK, the module only wants to be loaded once, let's make sure it is */
@@ -104,9 +104,6 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
         pa_log_error("Failed to load  module \"%s\" (argument: \"%s\"): initialization failed.", name, argument ? argument : "");
         goto fail;
     }
-
-    if (!c->modules)
-        c->modules = pa_idxset_new(NULL, NULL);
 
     pa_assert_se(pa_idxset_put(c->modules, m, &m->index) >= 0);
     pa_assert(m->index != PA_IDXSET_INVALID);
@@ -200,17 +197,11 @@ void pa_module_unload_by_index(pa_core *c, uint32_t idx, pa_bool_t force) {
 }
 
 void pa_module_unload_all(pa_core *c) {
+    pa_module *m;
     pa_assert(c);
 
-    if (c->modules) {
-        pa_module *m;
-
-        while ((m = pa_idxset_steal_first(c->modules, NULL)))
-            pa_module_free(m);
-
-        pa_idxset_free(c->modules, NULL, NULL);
-        c->modules = NULL;
-    }
+    while ((m = pa_idxset_steal_first(c->modules, NULL)))
+        pa_module_free(m);
 
     if (c->module_defer_unload_event) {
         c->mainloop->defer_free(c->module_defer_unload_event);
@@ -225,9 +216,6 @@ static void defer_cb(pa_mainloop_api*api, pa_defer_event *e, void *userdata) {
 
     pa_core_assert_ref(c);
     api->defer_enable(e, 0);
-
-    if (!c->modules)
-        return;
 
     while ((m = pa_idxset_iterate(c->modules, &state, NULL)))
         if (m->unload_requested)
