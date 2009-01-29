@@ -382,3 +382,51 @@ void pa_dbus_remove_matches(DBusConnection *c, ...) {
     }
     va_end(ap);
 }
+
+pa_dbus_pending *pa_dbus_pending_new(DBusMessage *m, DBusPendingCall *pending, void *context_data, void *call_data) {
+    pa_dbus_pending *p;
+
+    pa_assert(pending);
+
+    p = pa_xnew(pa_dbus_pending, 1);
+    p->message = m;
+    p->pending = pending;
+    p->context_data = context_data;
+    p->call_data = call_data;
+
+    PA_LLIST_INIT(pa_dbus_pending, p);
+
+    return p;
+}
+
+void pa_dbus_pending_free(pa_dbus_pending *p) {
+    pa_assert(p);
+
+    if (p->pending) {
+        dbus_pending_call_cancel(p->pending);
+        dbus_pending_call_unref(p->pending);
+    }
+
+    if (p->message)
+        dbus_message_unref(p->message);
+
+    pa_xfree(p);
+}
+
+void pa_dbus_sync_pending_list(pa_dbus_pending **p) {
+    pa_assert(p);
+
+    while (*p)
+        dbus_pending_call_block((*p)->pending);
+}
+
+void pa_dbus_free_pending_list(pa_dbus_pending **p) {
+    pa_dbus_pending *i;
+
+    pa_assert(p);
+
+    while ((i = *p)) {
+        PA_LLIST_REMOVE(pa_dbus_pending, *p, i);
+        pa_dbus_pending_free(i);
+    }
+}
