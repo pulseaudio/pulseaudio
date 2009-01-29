@@ -487,12 +487,12 @@ pa_cvolume* pa_cvolume_set_balance(pa_cvolume *v, const pa_channel_map *map, flo
     for (c = 0; c < map->channels; c++) {
         if (on_left(map->map[c])) {
             if (left == 0)
-                v->values[c] = 0;
+                v->values[c] = nleft;
             else
                 v->values[c] = (pa_volume_t) (((uint64_t) v->values[c] * (uint64_t) nleft) / (uint64_t) left);
         } else if (on_right(map->map[c])) {
             if (right == 0)
-                v->values[c] = 0;
+                v->values[c] = nright;
             else
                 v->values[c] = (pa_volume_t) (((uint64_t) v->values[c] * (uint64_t) nright) / (uint64_t) right);
         }
