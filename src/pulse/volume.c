@@ -341,6 +341,28 @@ static pa_bool_t on_lfe(pa_channel_position_t p) {
         p == PA_CHANNEL_POSITION_LFE;
 }
 
+static pa_bool_t on_front(pa_channel_position_t p) {
+    return
+        p == PA_CHANNEL_POSITION_FRONT_LEFT ||
+        p == PA_CHANNEL_POSITION_FRONT_RIGHT ||
+        p == PA_CHANNEL_POSITION_FRONT_CENTER ||
+        p == PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER ||
+        p == PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER ||
+        p == PA_CHANNEL_POSITION_TOP_FRONT_LEFT ||
+        p == PA_CHANNEL_POSITION_TOP_FRONT_RIGHT ||
+        p == PA_CHANNEL_POSITION_TOP_FRONT_CENTER;
+}
+
+static pa_bool_t on_rear(pa_channel_position_t p) {
+    return
+        p == PA_CHANNEL_POSITION_REAR_LEFT ||
+        p == PA_CHANNEL_POSITION_REAR_RIGHT ||
+        p == PA_CHANNEL_POSITION_REAR_CENTER ||
+        p == PA_CHANNEL_POSITION_TOP_REAR_LEFT ||
+        p == PA_CHANNEL_POSITION_TOP_REAR_RIGHT ||
+        p == PA_CHANNEL_POSITION_TOP_REAR_CENTER;
+}
+
 pa_cvolume *pa_cvolume_remap(pa_cvolume *v, const pa_channel_map *from, const pa_channel_map *to) {
     int a, b;
     pa_cvolume result;
@@ -516,6 +538,95 @@ pa_cvolume* pa_cvolume_scale(pa_cvolume *v, pa_volume_t max) {
 
     for (c = 0; c < v->channels; c++)
         v->values[c] = (pa_volume_t) (((uint64_t)  v->values[c] * (uint64_t) max) / (uint64_t) t);
+
+    return v;
+}
+
+static void get_avg_fr(const pa_channel_map *map, const pa_cvolume *v, pa_volume_t *f, pa_volume_t *r) {
+    int c;
+    pa_volume_t front = 0, rear = 0;
+    unsigned n_front = 0, n_rear = 0;
+
+    pa_assert(v);
+    pa_assert(map);
+    pa_assert(map->channels == v->channels);
+    pa_assert(f);
+    pa_assert(r);
+
+    for (c = 0; c < map->channels; c++) {
+        if (on_front(map->map[c])) {
+            front += v->values[c];
+            n_front++;
+        } else if (on_rear(map->map[c])) {
+            rear += v->values[c];
+            n_rear++;
+        }
+    }
+
+    if (n_front <= 0)
+        *f = PA_VOLUME_NORM;
+    else
+        *f = front / n_front;
+
+    if (n_rear <= 0)
+        *r = PA_VOLUME_NORM;
+    else
+        *r = rear / n_rear;
+}
+
+float pa_cvolume_get_fade(const pa_cvolume *v, const pa_channel_map *map) {
+    pa_volume_t front, rear;
+
+    pa_assert(v);
+    pa_assert(map);
+    pa_assert(map->channels == v->channels);
+
+    get_avg_fr(map, v, &front, &rear);
+
+    if (front == rear)
+        return 0.0f;
+
+    if (rear > front)
+        return -1.0f + ((float) front / (float) rear);
+    else
+        return 1.0f - ((float) rear / (float) front);
+}
+
+pa_cvolume* pa_cvolume_set_fade(pa_cvolume *v, const pa_channel_map *map, float new_fade) {
+    pa_volume_t front, nfront, rear, nrear, m;
+    unsigned c;
+
+    pa_assert(map->channels == v->channels);
+    pa_assert(map);
+    pa_assert(v);
+    pa_assert(new_fade >= -1.0f);
+    pa_assert(new_fade <= 1.0f);
+
+    get_avg_fr(map, v, &front, &rear);
+
+    m = PA_MAX(front, rear);
+
+    if (new_fade <= 0) {
+        nfront  = (new_fade + 1.0f) * m;
+        nrear = m;
+    } else  {
+        nrear = (1.0f - new_fade) * m;
+        nfront = m;
+    }
+
+    for (c = 0; c < map->channels; c++) {
+        if (on_front(map->map[c])) {
+            if (front == 0)
+                v->values[c] = nfront;
+            else
+                v->values[c] = (pa_volume_t) (((uint64_t) v->values[c] * (uint64_t) nfront) / (uint64_t) front);
+        } else if (on_rear(map->map[c])) {
+            if (rear == 0)
+                v->values[c] = nrear;
+            else
+                v->values[c] = (pa_volume_t) (((uint64_t) v->values[c] * (uint64_t) nrear) / (uint64_t) rear);
+        }
+    }
 
     return v;
 }
