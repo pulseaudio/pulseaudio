@@ -119,6 +119,7 @@ pa_source* pa_source_new(
     pa_source *s;
     const char *name;
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    char *pt;
 
     pa_assert(core);
     pa_assert(data);
@@ -222,11 +223,14 @@ pa_source* pa_source_new(
     if (s->card)
         pa_assert_se(pa_idxset_put(s->card->sources, s, NULL) >= 0);
 
-    pa_log_info("Created source %u \"%s\" with sample spec %s and channel map %s",
+    pt = pa_proplist_to_string_sep(s->proplist, "\n    ");
+    pa_log_info("Created source %u \"%s\" with sample spec %s and channel map %s\n    %s",
                 s->index,
                 s->name,
                 pa_sample_spec_snprint(st, sizeof(st), &s->sample_spec),
-                pa_channel_map_snprint(cm, sizeof(cm), &s->channel_map));
+                pa_channel_map_snprint(cm, sizeof(cm), &s->channel_map),
+                pt);
+    pa_xfree(pt);
 
     return s;
 }

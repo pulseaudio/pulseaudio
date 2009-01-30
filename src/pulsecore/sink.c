@@ -128,6 +128,7 @@ pa_sink* pa_sink_new(
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
     pa_source_new_data source_data;
     const char *dn;
+    char *pt;
 
     pa_assert(core);
     pa_assert(data);
@@ -233,11 +234,14 @@ pa_sink* pa_sink_new(
     if (s->card)
         pa_assert_se(pa_idxset_put(s->card->sinks, s, NULL) >= 0);
 
-    pa_log_info("Created sink %u \"%s\" with sample spec %s and channel map %s",
+    pt = pa_proplist_to_string_sep(s->proplist, "\n    ");
+    pa_log_info("Created sink %u \"%s\" with sample spec %s and channel map %s\n    %s",
                 s->index,
                 s->name,
                 pa_sample_spec_snprint(st, sizeof(st), &s->sample_spec),
-                pa_channel_map_snprint(cm, sizeof(cm), &s->channel_map));
+                pa_channel_map_snprint(cm, sizeof(cm), &s->channel_map),
+                pt);
+    pa_xfree(pt);
 
     pa_source_new_data_init(&source_data);
     pa_source_new_data_set_sample_spec(&source_data, &s->sample_spec);
