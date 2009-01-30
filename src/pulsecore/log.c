@@ -278,7 +278,8 @@ void pa_log_levelv_meta(
             n++;
         }
 
-        if (!*t)
+        /* We ignore strings only made out of whitespace */
+        if (t[strspn(t, "\t ")] == 0)
             continue;
 
         switch (log_target) {

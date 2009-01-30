@@ -31,6 +31,7 @@
 #include <pulse/sample.h>
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
+#include <pulse/util.h>
 
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
@@ -1253,7 +1254,7 @@ void pa_alsa_redirect_errors_dec(void) {
 }
 
 void pa_alsa_init_proplist_card(pa_core *c, pa_proplist *p, int card) {
-    char *cn, *lcn;
+    char *cn, *lcn, *dn;
 
     pa_assert(p);
     pa_assert(card >= 0);
@@ -1268,6 +1269,11 @@ void pa_alsa_init_proplist_card(pa_core *c, pa_proplist *p, int card) {
     if (snd_card_get_longname(card, &lcn) >= 0) {
         pa_proplist_sets(p, "alsa.long_card_name", lcn);
         free(lcn);
+    }
+
+    if ((dn = pa_alsa_get_driver_name(card))) {
+        pa_proplist_sets(p, "alsa.driver_name", dn);
+        pa_xfree(dn);
     }
 
 #ifdef HAVE_HAL
@@ -1476,4 +1482,22 @@ int pa_alsa_safe_mmap_begin(snd_pcm_t *pcm, const snd_pcm_channel_area_t **areas
                (unsigned long) k, (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC));
 
     return r;
+}
+
+char *pa_alsa_get_driver_name(int card) {
+    char *t, *m, *n;
+
+    pa_assert(card >= 0);
+
+    t = pa_sprintf_malloc("/sys/class/sound/card%i/device/driver/module", card);
+    m = pa_readlink(t);
+    pa_xfree(t);
+
+    if (!m)
+        return NULL;
+
+    n = pa_xstrdup(pa_path_get_filename(m));
+    pa_xfree(m);
+
+    return n;
 }
