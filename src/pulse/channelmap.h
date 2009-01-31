@@ -239,6 +239,11 @@ int pa_channel_map_superset(const pa_channel_map *a, const pa_channel_map *b) PA
  * available. \since 0.9.15 */
 int pa_channel_map_can_balance(const pa_channel_map *map) PA_GCC_PURE;
 
+/** Returns non-zero if it makes sense to apply a volume 'fade'
+ * (i.e. 'balance' between front and rear) with this mapping, i.e. if
+ * there are front/rear channels available. \since 0.9.15 */
+int pa_channel_map_can_fade(const pa_channel_map *map) PA_GCC_PURE;
+
 /** Tries to find a well-known channel mapping name for this channel
  * mapping. I.e. "stereo", "surround-71" and so on. If the channel
  * mapping is unknown NULL will be returned. This name can be parsed

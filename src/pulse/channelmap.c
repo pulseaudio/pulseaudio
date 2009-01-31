@@ -647,29 +647,76 @@ int pa_channel_map_superset(const pa_channel_map *a, const pa_channel_map *b) {
 
 int pa_channel_map_can_balance(const pa_channel_map *map) {
     unsigned c;
+    pa_bool_t left = FALSE, right = FALSE;
 
     pa_assert(map);
 
-    for (c = 0; c < map->channels; c++)
+    for (c = 0; c < map->channels; c++) {
 
         switch (map->map[c]) {
             case PA_CHANNEL_POSITION_LEFT:
-            case PA_CHANNEL_POSITION_RIGHT:
             case PA_CHANNEL_POSITION_REAR_LEFT:
-            case PA_CHANNEL_POSITION_REAR_RIGHT:
             case PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER:
-            case PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER:
             case PA_CHANNEL_POSITION_SIDE_LEFT:
-            case PA_CHANNEL_POSITION_SIDE_RIGHT:
             case PA_CHANNEL_POSITION_TOP_FRONT_LEFT:
-            case PA_CHANNEL_POSITION_TOP_FRONT_RIGHT:
             case PA_CHANNEL_POSITION_TOP_REAR_LEFT:
+                left = TRUE;
+                break;
+
+            case PA_CHANNEL_POSITION_RIGHT:
+            case PA_CHANNEL_POSITION_REAR_RIGHT:
+            case PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER:
+            case PA_CHANNEL_POSITION_SIDE_RIGHT:
+            case PA_CHANNEL_POSITION_TOP_FRONT_RIGHT:
             case PA_CHANNEL_POSITION_TOP_REAR_RIGHT:
-                return 1;
+                right = TRUE;
+                break;
 
             default:
                 ;
         }
+
+        if (left && right)
+            return 1;
+    }
+
+    return 0;
+}
+
+int pa_channel_map_can_fade(const pa_channel_map *map) {
+    unsigned c;
+    pa_bool_t front = FALSE, rear = FALSE;
+
+    for (c = 0; c < map->channels; c++) {
+
+        switch (map->map[c]) {
+            case PA_CHANNEL_POSITION_FRONT_LEFT:
+            case PA_CHANNEL_POSITION_FRONT_RIGHT:
+            case PA_CHANNEL_POSITION_FRONT_CENTER:
+            case PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER:
+            case PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER:
+            case PA_CHANNEL_POSITION_TOP_FRONT_LEFT:
+            case PA_CHANNEL_POSITION_TOP_FRONT_RIGHT:
+            case PA_CHANNEL_POSITION_TOP_FRONT_CENTER:
+                front = TRUE;
+                break;
+
+            case PA_CHANNEL_POSITION_REAR_LEFT:
+            case PA_CHANNEL_POSITION_REAR_RIGHT:
+            case PA_CHANNEL_POSITION_REAR_CENTER:
+            case PA_CHANNEL_POSITION_TOP_REAR_LEFT:
+            case PA_CHANNEL_POSITION_TOP_REAR_RIGHT:
+            case PA_CHANNEL_POSITION_TOP_REAR_CENTER:
+                rear = TRUE;
+                break;
+
+            default:
+                ;
+        }
+
+        if (front && rear)
+            return 1;
+    }
 
     return 0;
 }

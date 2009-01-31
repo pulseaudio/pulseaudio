@@ -10,6 +10,7 @@ pa_bytes_per_second;
 pa_bytes_snprint;
 pa_bytes_to_usec;
 pa_channel_map_can_balance;
+pa_channel_map_can_fade;
 pa_channel_map_compatible;
 pa_channel_map_equal;
 pa_channel_map_init;
