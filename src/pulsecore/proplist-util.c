@@ -136,4 +136,23 @@ void pa_init_proplist(pa_proplist *p) {
         if ((l = setlocale(LC_MESSAGES, NULL)))
             pa_proplist_sets(p, PA_PROP_APPLICATION_LANGUAGE, l);
     }
+
+    if (!pa_proplist_contains(p, PA_PROP_WINDOW_X11_DISPLAY)) {
+        const char *t;
+
+        if ((t = getenv("DISPLAY"))) {
+            char *c = pa_utf8_filter(t);
+            pa_proplist_sets(p, PA_PROP_WINDOW_X11_DISPLAY, c);
+            pa_xfree(c);
+        }
+    }
+
+    if (!pa_proplist_contains(p, PA_PROP_APPLICATION_PROCESS_MACHINE_ID)) {
+        char *m;
+
+        if ((m = pa_machine_id())) {
+            pa_proplist_sets(p, PA_PROP_APPLICATION_PROCESS_MACHINE_ID, m);
+            pa_xfree(m);
+        }
+    }
 }
