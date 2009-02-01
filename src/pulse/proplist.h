@@ -65,6 +65,7 @@ PA_C_DECL_BEGIN
  *    application.process.binary
  *    application.process.user
  *    application.process.host
+ *    application.process.machine_id D-Bus machine ID
  *    device.string
  *    device.api                    oss, alsa, sunaudio
  *    device.description
@@ -114,6 +115,7 @@ PA_C_DECL_BEGIN
 #define PA_PROP_APPLICATION_PROCESS_BINARY     "application.process.binary"
 #define PA_PROP_APPLICATION_PROCESS_USER       "application.process.user"
 #define PA_PROP_APPLICATION_PROCESS_HOST       "application.process.host"
+#define PA_PROP_APPLICATION_PROCESS_MACHINE_ID "application.process.machine_id"
 #define PA_PROP_DEVICE_STRING                  "device.string"
 #define PA_PROP_DEVICE_API                     "device.api"
 #define PA_PROP_DEVICE_DESCRIPTION             "device.description"
