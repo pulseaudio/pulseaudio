@@ -25,6 +25,7 @@
 
 #include <string.h>
 #include <locale.h>
+#include <dlfcn.h>
 
 #include <pulse/proplist.h>
 #include <pulse/utf8.h>
@@ -36,7 +37,6 @@
 #include "proplist-util.h"
 
 void pa_init_proplist(pa_proplist *p) {
-    int a, b;
 #if !HAVE_DECL_ENVIRON
     extern char **environ;
 #endif
@@ -99,21 +99,35 @@ void pa_init_proplist(pa_proplist *p) {
         }
     }
 
-    a = pa_proplist_contains(p, PA_PROP_APPLICATION_PROCESS_BINARY);
-    b = pa_proplist_contains(p, PA_PROP_APPLICATION_NAME);
-
-    if (!a || !b) {
+    if (!pa_proplist_contains(p, PA_PROP_APPLICATION_PROCESS_BINARY)) {
         char t[PATH_MAX];
         if (pa_get_binary_name(t, sizeof(t))) {
             char *c = pa_utf8_filter(t);
-
-            if (!a)
-                pa_proplist_sets(p, PA_PROP_APPLICATION_PROCESS_BINARY, c);
-            if (!b)
-                pa_proplist_sets(p, PA_PROP_APPLICATION_NAME, c);
-
+            pa_proplist_sets(p, PA_PROP_APPLICATION_PROCESS_BINARY, c);
             pa_xfree(c);
         }
+    }
+
+#ifdef RTLD_NOLOAD
+    if (!pa_proplist_contains(p, PA_PROP_APPLICATION_NAME)) {
+        void *dl;
+
+        if ((dl = dlopen("libglib-2.0", RTLD_NOLOAD))) {
+            const char *(*_g_get_application_name)(void);
+
+            if ((*(void**) &_g_get_application_name = dlsym(dl, "g_get_application_name")))
+                pa_proplist_sets(p, PA_PROP_APPLICATION_NAME, _g_get_application_name());
+
+            dlclose(dl);
+        }
+    }
+#endif
+
+    if (!pa_proplist_contains(p, PA_PROP_APPLICATION_NAME)) {
+        const char *t;
+
+        if ((t = pa_proplist_gets(p, PA_PROP_APPLICATION_PROCESS_BINARY)))
+            pa_proplist_sets(p, PA_PROP_APPLICATION_NAME, t);
     }
 
     if (!pa_proplist_contains(p, PA_PROP_APPLICATION_LANGUAGE)) {
