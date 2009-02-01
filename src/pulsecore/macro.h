@@ -187,17 +187,17 @@ typedef int pa_bool_t;
         abort();                                                        \
     } while (FALSE)
 
-#define PA_PTR_TO_UINT(p) ((unsigned int) (unsigned long) (p))
-#define PA_UINT_TO_PTR(u) ((void*) (unsigned long) (u))
+#define PA_PTR_TO_UINT(p) ((unsigned int) ((uintptr_t) (p)))
+#define PA_UINT_TO_PTR(u) ((void*) ((uintptr_t) (u)))
 
-#define PA_PTR_TO_UINT32(p) ((uint32_t) PA_PTR_TO_UINT(p))
-#define PA_UINT32_TO_PTR(u) PA_UINT_TO_PTR((uint32_t) u)
+#define PA_PTR_TO_UINT32(p) ((uint32_t) ((uintptr_t) (p)))
+#define PA_UINT32_TO_PTR(u) ((void*) ((uintptr_t) (u)))
 
-#define PA_PTR_TO_INT(p) ((int) PA_PTR_TO_UINT(p))
-#define PA_INT_TO_PTR(u) PA_UINT_TO_PTR((int) u)
+#define PA_PTR_TO_INT(p) ((int) ((intptr_t) (p)))
+#define PA_INT_TO_PTR(u) ((void*) ((intptr_t) (u)))
 
-#define PA_PTR_TO_INT32(p) ((int32_t) PA_PTR_TO_UINT(p))
-#define PA_INT32_TO_PTR(u) PA_UINT_TO_PTR((int32_t) u)
+#define PA_PTR_TO_INT32(p) ((int32_t) ((intptr_t) (p)))
+#define PA_INT32_TO_PTR(u) ((void*) ((intptr_t) (u)))
 
 #ifdef OS_IS_WIN32
 #define PA_PATH_SEP "\\"
