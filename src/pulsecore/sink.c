@@ -544,6 +544,11 @@ void pa_sink_process_rewind(pa_sink *s, size_t nbytes) {
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
 
+    /* If nobody requested this and this is actually no real rewind
+     * then we can short cut this */
+    if (!s->thread_info.rewind_requested && nbytes <= 0)
+        return;
+
     s->thread_info.rewind_nbytes = 0;
     s->thread_info.rewind_requested = FALSE;
 
