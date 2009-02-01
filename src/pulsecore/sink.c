@@ -1519,6 +1519,10 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
         case PA_SINK_MESSAGE_SET_STATE:
 
             s->thread_info.state = PA_PTR_TO_UINT(userdata);
+
+            if (s->thread_info.state == PA_SINK_SUSPENDED)
+                s->thread_info.rewind_requested = FALSE;
+
             return 0;
 
         case PA_SINK_MESSAGE_DETACH:
