@@ -926,11 +926,23 @@ void pa_sink_update_flat_volume(pa_sink *s, pa_cvolume *new_volume) {
     pa_sink_input *i;
     uint32_t idx;
 
+    pa_sink_assert_ref(s);
+    pa_assert(new_volume);
+    pa_assert(PA_SINK_IS_LINKED(s->state));
+    pa_assert(s->flags & PA_SINK_FLAT_VOLUME);
+
     /* This is called whenever a sink input volume changes and we
      * might need to fix up the sink volume accordingly. Please note
      * that we don't actually update the sinks volume here, we only
      * return how it needs to be updated. The caller should then call
      * pa_sink_set_flat_volume().*/
+
+    if (pa_idxset_isempty(s->inputs)) {
+        /* In the special case that we have no sink input we leave the
+         * volume unmodified. */
+        *new_volume = s->virtual_volume;
+        return;
+    }
 
     pa_cvolume_mute(new_volume, s->channel_map.channels);
 
@@ -1133,6 +1145,7 @@ pa_bool_t pa_sink_get_mute(pa_sink *s, pa_bool_t force_refresh) {
 pa_bool_t pa_sink_update_proplist(pa_sink *s, pa_update_mode_t mode, pa_proplist *p) {
 
     pa_sink_assert_ref(s);
+    pa_assert(p);
 
     pa_proplist_update(s->proplist, mode, p);
 
