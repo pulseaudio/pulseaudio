@@ -155,7 +155,7 @@ static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device 
 
     dbus_message_iter_recurse(i, &variant_i);
 
-    pa_log_debug("Parsing property org.bluez.Device.%s", key);
+/*     pa_log_debug("Parsing property org.bluez.Device.%s", key); */
 
     switch (dbus_message_iter_get_arg_type(&variant_i)) {
 
@@ -175,7 +175,7 @@ static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device 
                 d->address = pa_xstrdup(value);
             }
 
-            pa_log_debug("Value %s", value);
+/*             pa_log_debug("Value %s", value); */
 
             break;
         }
@@ -192,7 +192,7 @@ static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device 
             else if (pa_streq(key, "Trusted"))
                 d->trusted = !!value;
 
-            pa_log_debug("Value %s", pa_yes_no(value));
+/*             pa_log_debug("Value %s", pa_yes_no(value)); */
 
             break;
         }
@@ -205,7 +205,7 @@ static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device 
             if (pa_streq(key, "Class"))
                 d->class = (int) value;
 
-            pa_log_debug("Value %u", (unsigned) value);
+/*             pa_log_debug("Value %u", (unsigned) value); */
 
             break;
         }
@@ -265,7 +265,7 @@ static int parse_audio_property(pa_bluetooth_discovery *u, int *connected, DBusM
 
     dbus_message_iter_recurse(i, &variant_i);
 
-    pa_log_debug("Parsing property org.bluez.{AudioSink|Headset}.%s", key);
+/*     pa_log_debug("Parsing property org.bluez.{AudioSink|Headset}.%s", key); */
 
     switch (dbus_message_iter_get_arg_type(&variant_i)) {
 
@@ -277,7 +277,7 @@ static int parse_audio_property(pa_bluetooth_discovery *u, int *connected, DBusM
             if (pa_streq(key, "Connected"))
                 *connected = !!value;
 
-            pa_log_debug("Value %s", pa_yes_no(value));
+/*             pa_log_debug("Value %s", pa_yes_no(value)); */
 
             break;
         }
@@ -285,7 +285,6 @@ static int parse_audio_property(pa_bluetooth_discovery *u, int *connected, DBusM
 
     return 0;
 }
-
 
 static void run_callback(pa_bluetooth_discovery *y, pa_bluetooth_device *d, pa_bool_t good) {
     pa_assert(y);
@@ -802,4 +801,64 @@ void pa_bluetooth_discovery_sync(pa_bluetooth_discovery *y) {
     pa_assert(y);
 
     pa_dbus_sync_pending_list(&y->pending);
+}
+
+const char*pa_bluetooth_get_form_factor(uint32_t class) {
+    unsigned i;
+    const char *r;
+
+    static const char * const table[] = {
+        [1] = "headset",
+        [2] = "hands-free",
+        [4] = "microphone",
+        [5] = "external-speakers",
+        [6] = "headphones",
+        [7] = "portable",
+        [8] = "car",
+        [10] = "hifi"
+    };
+
+    if (((class >> 8) & 31) != 4)
+        return NULL;
+
+    if ((i = (class >> 2) & 63) > PA_ELEMENTSOF(table))
+        r =  NULL;
+    else
+        r = table[i];
+
+    if (!r)
+        pa_log_debug("Unknown Bluetooth minor device class %u", i);
+
+    return r;
+}
+
+char *pa_bluetooth_cleanup_name(const char *name) {
+    char *t, *s, *d;
+    pa_bool_t space = FALSE;
+
+    pa_assert(name);
+
+    while ((*name >= 1 && *name <= 32) || *name >= 127)
+        name++;
+
+    t = pa_xstrdup(name);
+
+    for (s = d = t; *s; s++) {
+
+        if (*s <= 32 || *s >= 127 || *s == '_') {
+            space = TRUE;
+            continue;
+        }
+
+        if (space) {
+            *(d++) = ' ';
+            space = FALSE;
+        }
+
+        *(d++) = *s;
+    }
+
+    *d = 0;
+
+    return t;
 }

@@ -74,4 +74,8 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_new(DBusConnection *c, pa_bluetoo
 void pa_bluetooth_discovery_free(pa_bluetooth_discovery *d);
 void pa_bluetooth_discovery_sync(pa_bluetooth_discovery *d);
 
+const char*pa_bluetooth_get_form_factor(uint32_t class);
+
+char *pa_bluetooth_cleanup_name(const char *name);
+
 #endif
