@@ -64,31 +64,31 @@ static void load_module_for_device(struct userdata *u, pa_bluetooth_device *d, p
         d->device_connected > 0 &&
         (d->audio_sink_connected > 0 || d->headset_connected > 0)) {
 
-        if (PA_PTR_TO_UINT(d->data) == PA_INVALID_INDEX) {
+        if (((uint32_t) PA_PTR_TO_UINT(d->data))-1 == PA_INVALID_INDEX) {
             pa_module *m = NULL;
             char *args;
 
             /* Oh, awesome, a new device has shown up and been connected! */
 
-            args = pa_sprintf_malloc("name=\"%s\" address=\"%s\" path=\"%s\"", d->address, d->address, d->path);
+            args = pa_sprintf_malloc("address=\"%s\" path=\"%s\"", d->address, d->path);
             pa_log_debug("Loading module-bluetooth-device %s", args);
-/*             m = pa_module_load(u->module->core, "module-bluetooth-device", args); */
+            m = pa_module_load(u->module->core, "module-bluetooth-device", args);
             pa_xfree(args);
 
             if (m)
-                d->data = PA_UINT_TO_PTR(m->index);
+                d->data = PA_UINT_TO_PTR((uint32_t) (m->index+1));
             else
                 pa_log_debug("Failed to load module for device %s", d->path);
         }
 
     } else {
 
-        if (PA_PTR_TO_UINT(d->data) != PA_INVALID_INDEX) {
+        if (((uint32_t) PA_PTR_TO_UINT(d->data))-1 != PA_INVALID_INDEX) {
 
             /* Hmm, disconnection? Then let's unload our module */
 
             pa_log_debug("Unloading module for %s", d->path);
-/*             pa_module_unload_request_by_index(u->core, PA_PTR_TO_UINT(d->data), TRUE); */
+            pa_module_unload_request_by_index(u->core, (uint32_t) (PA_PTR_TO_UINT(d->data))-1, TRUE);
             d->data = NULL;
         }
     }
