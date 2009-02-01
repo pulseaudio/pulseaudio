@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import pygtk, gtk
+import pygtk, gtk, sys
 from ctypes import *
 
 try:
@@ -35,6 +35,18 @@ class ChannelMap(Structure):
     _position_to_pretty_string.restype = c_char_p
     _position_to_pretty_string.argtypes = [c_uint]
 
+    _can_balance = libpulse.pa_channel_map_can_balance
+    _can_balance.restype = c_int
+    _can_balance.argtypes = [c_void_p]
+
+    _can_fade = libpulse.pa_channel_map_can_fade
+    _can_fade.restype = c_int
+    _can_fade.argtypes = [c_void_p]
+
+    _parse = libpulse.pa_channel_map_parse
+    _parse.restype = c_void_p
+    _parse.argtypes = [c_void_p, c_char_p]
+
     def to_name(this):
         return this._to_name(byref(this))
 
@@ -48,7 +60,7 @@ class ChannelMap(Structure):
         if r is None:
             return None
         else:
-            return s.raw
+            return s.value
 
     def position_to_string(this, pos):
         return this._position_to_string(pos)
@@ -56,10 +68,20 @@ class ChannelMap(Structure):
     def position_to_pretty_string(this, pos):
         return this._position_to_pretty_string(pos)
 
+    def can_balance(this):
+        return bool(this._can_balance(byref(this)))
+
+    def can_fade(this):
+        return bool(this._can_fade(byref(this)))
+
+    def parse(this, s):
+        if this._parse(byref(this), s) is None:
+            raise Exception("Parse failure")
+
+
 class CVolume(Structure):
     _fields_ = [("channels", c_ubyte),
                 ("values", c_uint32 * 32)]
-
 
     _snprint = libpulse.pa_cvolume_snprint
     _snprint.restype = c_char_p
@@ -116,19 +138,12 @@ class CVolume(Structure):
     def set_fade(this, cm, f):
         return this._set_fade(byref(this), byref(cm), f)
 
-
-
 cm = ChannelMap()
-cm.channels = 6
-cm.map[0] = 1
-cm.map[1] = 2
-cm.map[2] = 3
-cm.map[3] = 5
-cm.map[4] = 6
-cm.map[5] = 7
 
-print "Channel map name: %s" % cm.to_name()
-print "Channel map mapping: %s" % cm.snprint()
+if len(sys.argv) > 1:
+    cm.parse(sys.argv[1])
+else:
+    cm.parse("surround-51")
 
 v = CVolume()
 v.channels = cm.channels
@@ -136,13 +151,12 @@ v.channels = cm.channels
 for i in range(cm.channels):
     v.values[i] = 65536/2
 
-print v.max()
-print v.snprint()
-print v.get_balance(cm)
-print v.get_fade(cm)
+title = cm.to_pretty_name()
+if title is None:
+    title = cm.snprint()
 
 window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-window.set_title(cm.to_pretty_name())
+window.set_title(unicode(title))
 window.set_border_width(12)
 
 vbox = gtk.VBox(spacing=6)
@@ -219,7 +233,7 @@ fade_scale.set_digits(2)
 vbox.pack_start(fade_scale, expand=False, fill=True)
 
 window.add(vbox)
-window.set_default_size(600, 400)
+window.set_default_size(600, 50)
 
 update_volume()
 
@@ -229,5 +243,17 @@ fade_scale.connect("value_changed", fade_value_changed)
 balance_scale.connect("value_changed", balance_value_changed)
 value_scale.connect("value_changed", value_value_changed)
 
-window.show_all()
+vbox.show_all()
+
+if not cm.can_balance():
+    balance_label.hide()
+    balance_scale.hide()
+
+if not cm.can_fade():
+    fade_label.hide()
+    fade_scale.hide()
+
+
+window.show()
+
 gtk.main()
