@@ -73,7 +73,7 @@ PA_C_DECL_BEGIN
  *    device.serial
  *    device.vendor_product_id
  *    device.class                  sound, modem, monitor, filter, abstract
- *    device.form_factor            laptop-speakers, external-speakers, telephone, tv-capture, webcam-capture, microphone-capture, headset
+ *    device.form_factor            laptop-speakers, external-speakers, telephone, tv-capture, webcam-capture, microphone-capture, headset, headphones, hands-free, car, hifi, computer, portable
  *    device.connector              isa, pci, usb, firewire, bluetooth
  *    device.access_mode            mmap, mmap_rewrite, serial
  *    device.master_device
