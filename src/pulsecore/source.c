@@ -479,7 +479,10 @@ void pa_source_process_rewind(pa_source *s, size_t nbytes) {
     void *state = NULL;
 
     pa_source_assert_ref(s);
-    pa_assert(PA_SOURCE_IS_OPENED(s->thread_info.state));
+    pa_assert(PA_SOURCE_IS_LINKED(s->thread_info.state));
+
+    if (s->thread_info.state == PA_SOURCE_SUSPENDED)
+        return;
 
     if (nbytes <= 0)
         return;
@@ -498,8 +501,11 @@ void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
     void *state = NULL;
 
     pa_source_assert_ref(s);
-    pa_assert(PA_SOURCE_IS_OPENED(s->thread_info.state));
+    pa_assert(PA_SOURCE_IS_LINKED(s->thread_info.state));
     pa_assert(chunk);
+
+    if (s->thread_info.state == PA_SOURCE_SUSPENDED)
+        return;
 
     if (s->thread_info.soft_muted || !pa_cvolume_is_norm(&s->thread_info.soft_volume)) {
         pa_memchunk vchunk = *chunk;
@@ -534,10 +540,13 @@ void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
 /* Called from IO thread context */
 void pa_source_post_direct(pa_source*s, pa_source_output *o, const pa_memchunk *chunk) {
     pa_source_assert_ref(s);
-    pa_assert(PA_SOURCE_IS_OPENED(s->thread_info.state));
+    pa_assert(PA_SOURCE_IS_LINKED(s->thread_info.state));
     pa_source_output_assert_ref(o);
     pa_assert(o->thread_info.direct_on_input);
     pa_assert(chunk);
+
+    if (s->thread_info.state == PA_SOURCE_SUSPENDED)
+        return;
 
     if (s->thread_info.soft_muted || !pa_cvolume_is_norm(&s->thread_info.soft_volume)) {
         pa_memchunk vchunk = *chunk;
@@ -564,7 +573,7 @@ pa_usec_t pa_source_get_latency(pa_source *s) {
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
 
-    if (!PA_SOURCE_IS_OPENED(s->state))
+    if (s->state == PA_SOURCE_SUSPENDED)
         return 0;
 
     if (!(s->flags & PA_SOURCE_LATENCY))
@@ -675,8 +684,8 @@ pa_bool_t pa_source_get_mute(pa_source *s, pa_bool_t force_refresh) {
 
 /* Called from main thread */
 pa_bool_t pa_source_update_proplist(pa_source *s, pa_update_mode_t mode, pa_proplist *p) {
-
     pa_source_assert_ref(s);
+    pa_assert(p);
 
     pa_proplist_update(s->proplist, mode, p);
 
@@ -1000,7 +1009,7 @@ pa_usec_t pa_source_get_requested_latency(pa_source *s) {
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
 
-    if (!PA_SOURCE_IS_OPENED(s->state))
+    if (s->state == PA_SOURCE_SUSPENDED)
         return 0;
 
     pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_REQUESTED_LATENCY, &usec, 0, NULL) == 0);

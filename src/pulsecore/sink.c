@@ -547,6 +547,9 @@ void pa_sink_process_rewind(pa_sink *s, size_t nbytes) {
     s->thread_info.rewind_nbytes = 0;
     s->thread_info.rewind_requested = FALSE;
 
+    if (s->thread_info.state == PA_SINK_SUSPENDED)
+        return;
+
     if (nbytes > 0)
         pa_log_debug("Processing rewind...");
 
@@ -556,7 +559,7 @@ void pa_sink_process_rewind(pa_sink *s, size_t nbytes) {
     }
 
     if (nbytes > 0)
-        if (s->monitor_source && PA_SOURCE_IS_OPENED(s->monitor_source->thread_info.state))
+        if (s->monitor_source && PA_SOURCE_IS_LINKED(s->monitor_source->thread_info.state))
             pa_source_process_rewind(s->monitor_source, nbytes);
 }
 
@@ -636,7 +639,7 @@ static void inputs_drop(pa_sink *s, pa_mix_info *info, unsigned n, pa_memchunk *
         /* Drop read data */
         pa_sink_input_drop(i, result->length);
 
-        if (s->monitor_source && PA_SOURCE_IS_OPENED(pa_source_get_state(s->monitor_source))) {
+        if (s->monitor_source && PA_SOURCE_IS_LINKED(s->monitor_source->thread_info.state)) {
 
             if (pa_hashmap_size(i->thread_info.direct_outputs) > 0) {
                 void *ostate = NULL;
@@ -692,7 +695,7 @@ static void inputs_drop(pa_sink *s, pa_mix_info *info, unsigned n, pa_memchunk *
         }
     }
 
-    if (s->monitor_source && PA_SOURCE_IS_OPENED(pa_source_get_state(s->monitor_source)))
+    if (s->monitor_source && PA_SOURCE_IS_LINKED(s->monitor_source->thread_info.state))
         pa_source_post(s->monitor_source, result);
 }
 
@@ -703,7 +706,7 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
     size_t block_size_max;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_IS_OPENED(s->thread_info.state));
+    pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
     pa_assert(pa_frame_aligned(length, &s->sample_spec));
     pa_assert(result);
 
@@ -711,6 +714,13 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
 
     pa_assert(!s->thread_info.rewind_requested);
     pa_assert(s->thread_info.rewind_nbytes == 0);
+
+    if (s->thread_info.state == PA_SINK_SUSPENDED) {
+        result->memblock = pa_memblock_ref(s->silence.memblock);
+        result->index = s->silence.index;
+        result->length = PA_MIN(s->silence.length, length);
+        return;
+    }
 
     if (length <= 0)
         length = pa_frame_align(MIX_BUFFER_LENGTH, &s->sample_spec);
@@ -776,7 +786,7 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
     size_t length, block_size_max;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_IS_OPENED(s->thread_info.state));
+    pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
     pa_assert(target);
     pa_assert(target->memblock);
     pa_assert(target->length > 0);
@@ -786,6 +796,11 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
 
     pa_assert(!s->thread_info.rewind_requested);
     pa_assert(s->thread_info.rewind_nbytes == 0);
+
+    if (s->thread_info.state == PA_SINK_SUSPENDED) {
+        pa_silence_memchunk(target, &s->sample_spec);
+        return;
+    }
 
     length = target->length;
     block_size_max = pa_mempool_block_size_max(s->core->mempool);
@@ -854,7 +869,7 @@ void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target) {
     size_t l, d;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_IS_OPENED(s->thread_info.state));
+    pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
     pa_assert(target);
     pa_assert(target->memblock);
     pa_assert(target->length > 0);
@@ -884,7 +899,7 @@ void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target) {
 /* Called from IO thread context */
 void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_IS_OPENED(s->thread_info.state));
+    pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
     pa_assert(length > 0);
     pa_assert(pa_frame_aligned(length, &s->sample_spec));
     pa_assert(result);
@@ -910,7 +925,7 @@ pa_usec_t pa_sink_get_latency(pa_sink *s) {
 
     /* The returned value is supposed to be in the time domain of the sound card! */
 
-    if (!PA_SINK_IS_OPENED(s->state))
+    if (s->state == PA_SINK_SUSPENDED)
         return 0;
 
     if (!(s->flags & PA_SINK_LATENCY))
@@ -985,8 +1000,8 @@ void pa_sink_propagate_flat_volume(pa_sink *s, const pa_cvolume *old_volume) {
     uint32_t idx;
 
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_IS_LINKED(s->state));
     pa_assert(old_volume);
+    pa_assert(PA_SINK_IS_LINKED(s->state));
     pa_assert(s->flags & PA_SINK_FLAT_VOLUME);
 
     /* This is called whenever the sink volume changes that is not
@@ -1626,6 +1641,9 @@ void pa_sink_request_rewind(pa_sink*s, size_t nbytes) {
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
 
+    if (s->thread_info.state == PA_SINK_SUSPENDED)
+        return;
+
     if (nbytes == (size_t) -1)
         nbytes = s->thread_info.max_rewind;
 
@@ -1687,7 +1705,7 @@ pa_usec_t pa_sink_get_requested_latency(pa_sink *s) {
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_IS_LINKED(s->state));
 
-    if (!PA_SINK_IS_OPENED(s->state))
+    if (s->state == PA_SINK_SUSPENDED)
         return 0;
 
     pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_REQUESTED_LATENCY, &usec, 0, NULL) == 0);
