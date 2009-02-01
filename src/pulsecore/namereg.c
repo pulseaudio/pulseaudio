@@ -194,7 +194,7 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type) {
 
     }
 
-    if (*name == '@' || !name || !pa_namereg_is_valid_name(name))
+    if (!name || *name == '@' || !pa_namereg_is_valid_name(name))
         return NULL;
 
     if ((e = pa_hashmap_get(c->namereg, name)))
