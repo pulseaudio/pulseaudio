@@ -3,7 +3,13 @@
 import pygtk, gtk
 from ctypes import *
 
-libpulse = cdll.LoadLibrary("../.libs/libpulse.so")
+try:
+    libpulse = cdll.LoadLibrary("../.libs/libpulse.so")
+except OSError:
+    try:
+        libpulse = cdll.LoadLibrary(".libs/libpulse.so")
+    except OSError:
+        libpulse = cdll.LoadLibrary("libpulse.so")
 
 class ChannelMap(Structure):
     _fields_ = [("channels", c_ubyte),
