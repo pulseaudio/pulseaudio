@@ -337,11 +337,13 @@ static pa_bool_t on_center(pa_channel_position_t p) {
 }
 
 static pa_bool_t on_lfe(pa_channel_position_t p) {
+
     return
         p == PA_CHANNEL_POSITION_LFE;
 }
 
 static pa_bool_t on_front(pa_channel_position_t p) {
+
     return
         p == PA_CHANNEL_POSITION_FRONT_LEFT ||
         p == PA_CHANNEL_POSITION_FRONT_RIGHT ||
@@ -354,6 +356,7 @@ static pa_bool_t on_front(pa_channel_position_t p) {
 }
 
 static pa_bool_t on_rear(pa_channel_position_t p) {
+
     return
         p == PA_CHANNEL_POSITION_REAR_LEFT ||
         p == PA_CHANNEL_POSITION_REAR_RIGHT ||
