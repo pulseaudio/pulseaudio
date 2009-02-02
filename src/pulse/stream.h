@@ -532,7 +532,7 @@ pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_succe
  * value returned by this function is guaranteed to increase
  * monotonically. (that means: the returned value is always greater or
  * equal to the value returned on the last call) This behaviour can
- * be disabled by using PA_STREAM_NOT_MONOTONOUS. This may be
+ * be disabled by using PA_STREAM_NOT_MONOTONIC. This may be
  * desirable to deal better with bad estimations of transport
  * latencies, but may have strange effects if the application is not
  * able to deal with time going 'backwards'. */

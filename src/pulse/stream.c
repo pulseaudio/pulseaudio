@@ -877,7 +877,7 @@ static int create_stream(
     PA_CHECK_VALIDITY(s->context, s->direct_on_input == PA_INVALID_INDEX || direction == PA_STREAM_RECORD, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, !(flags & ~(PA_STREAM_START_CORKED|
                                               PA_STREAM_INTERPOLATE_TIMING|
-                                              PA_STREAM_NOT_MONOTONOUS|
+                                              PA_STREAM_NOT_MONOTONIC|
                                               PA_STREAM_AUTO_TIMING_UPDATE|
                                               PA_STREAM_NO_REMAP_CHANNELS|
                                               PA_STREAM_NO_REMIX_CHANNELS|
@@ -1902,7 +1902,7 @@ int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec) {
         usec = calc_time(s, FALSE);
 
     /* Make sure the time runs monotonically */
-    if (!(s->flags & PA_STREAM_NOT_MONOTONOUS)) {
+    if (!(s->flags & PA_STREAM_NOT_MONOTONIC)) {
         if (usec < s->previous_time)
             usec = s->previous_time;
         else
