@@ -1005,9 +1005,8 @@ modlibexec_LTLIBRARIES += \
 		module-bluetooth-discover.la \
 		libbluetooth-util.la \
 		libbluetooth-ipc.la \
-		libbluetooth-sbc.la
-#\
-#		module-bluetooth-device.la
+		libbluetooth-sbc.la \
+		module-bluetooth-device.la
 
 pulselibexec_PROGRAMS += \
 		proximity-helper
@@ -1464,10 +1463,10 @@ libbluetooth_util_la_LDFLAGS = -avoid-version
 libbluetooth_util_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la libdbus-util.la
 libbluetooth_util_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
-#module_bluetooth_device_la_SOURCES = modules/bluetooth/module-bluetooth-device.c modules/bluetooth/rtp.h
-#module_bluetooth_device_la_LDFLAGS = $(MODULE_LDFLAGS)
-#module_bluetooth_device_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libdbus-util.la libbluetooth-ipc.la libbluetooth-sbc.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
-#module_bluetooth_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS) -w
+module_bluetooth_device_la_SOURCES = modules/bluetooth/module-bluetooth-device.c modules/bluetooth/rtp.h
+module_bluetooth_device_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_bluetooth_device_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libdbus-util.la libbluetooth-ipc.la libbluetooth-sbc.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_bluetooth_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 # Apple Airtunes/RAOP
 module_raop_sink_la_SOURCES = modules/module-raop-sink.c
