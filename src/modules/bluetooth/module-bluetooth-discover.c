@@ -123,7 +123,7 @@ int pa__init(pa_module* m) {
     }
 
     if (pa_modargs_get_value_boolean(ma, "async", &async) < 0) {
-        pa_log("Failed to parse tsched argument.");
+        pa_log("Failed to parse async argument.");
         goto fail;
     }
 
