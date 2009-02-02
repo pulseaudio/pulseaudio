@@ -1068,6 +1068,9 @@ finish:
 
 /*     dbus_error_init(&err); */
 
+/*    if (!dbus_message_has_path(msg, u->path)) */
+/*        goto done; */
+
 /*     if (dbus_message_is_signal(msg, "org.bluez.Headset", "PropertyChanged") || */
 /*         dbus_message_is_signal(msg, "org.bluez.AudioSink", "PropertyChanged")) { */
 
