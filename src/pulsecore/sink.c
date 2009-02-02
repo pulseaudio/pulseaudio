@@ -1506,7 +1506,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
         case PA_SINK_MESSAGE_SET_MUTE:
 
-            if (!s->thread_info.soft_muted != s->muted) {
+            if (s->thread_info.soft_muted != s->muted) {
                 s->thread_info.soft_muted = s->muted;
                 pa_sink_request_rewind(s, (size_t) -1);
             }
