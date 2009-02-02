@@ -138,7 +138,9 @@ static int process_render(struct userdata *u) {
 
             if (errno == EINTR)
                 continue;
-            else if (errno != EAGAIN) {
+            else if (errno == EAGAIN)
+                return 0;
+            else {
                 pa_log("Failed to write data to FIFO: %s", pa_cstrerror(errno));
                 return -1;
             }
