@@ -364,6 +364,7 @@ enum {
     PA_ERR_UNKNOWN,                /**< The error code was unknown to the client */
     PA_ERR_NOEXTENSION,            /**< Extension does not exist. \since 0.9.12 */
     PA_ERR_OBSOLETE,               /**< Obsolete functionality. \since 0.9.15 */
+    PA_ERR_NOTIMPLEMENTED,         /**< Missing implementation. \since 0.9.15 */
     PA_ERR_MAX                     /**< Not really an error but the first invalid error code */
 };
 

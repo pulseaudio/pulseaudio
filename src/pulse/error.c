@@ -61,7 +61,9 @@ const char*pa_strerror(int error) {
         [PA_ERR_TOOLARGE] = N_("Too large"),
         [PA_ERR_NOTSUPPORTED] = N_("Not supported"),
         [PA_ERR_UNKNOWN] = N_("Unknown error code"),
-        [PA_ERR_NOEXTENSION] = N_("No such extension")
+        [PA_ERR_NOEXTENSION] = N_("No such extension"),
+        [PA_ERR_OBSOLETE] = N_("Obsolete functionality"),
+        [PA_ERR_NOTIMPLEMENTED] = N_("Missing implementation")
     };
 
     pa_init_i18n();
