@@ -1073,9 +1073,15 @@ int pa_sink_input_start_move(pa_sink_input *i) {
     if (pa_sink_input_get_state(i) == PA_SINK_INPUT_CORKED)
         pa_assert_se(i->sink->n_corked-- >= 1);
 
-    /* We might need to update the sink's volume if we are in flat volume mode. */
     if (i->sink->flags & PA_SINK_FLAT_VOLUME) {
         pa_cvolume new_volume;
+
+        /* Make the absolute volume relative */
+        i->virtual_volume = i->soft_volume;
+        pa_cvolume_reset(&i->soft_volume, i->sample_spec.channels);
+
+        /* We might need to update the sink's volume if we are in flat
+         * volume mode. */
         pa_sink_update_flat_volume(i->sink, &new_volume);
         pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE);
     }
@@ -1156,9 +1162,15 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
 
     pa_sink_update_status(dest);
 
-    /* We might need to update the sink's volume if we are in flat volume mode. */
     if (i->sink->flags & PA_SINK_FLAT_VOLUME) {
         pa_cvolume new_volume;
+
+        /* Make relative volume absolute again */
+        pa_cvolume t = dest->virtual_volume;
+        pa_cvolume_remap(&t, &dest->channel_map, &i->channel_map);
+        pa_sw_cvolume_multiply(&i->virtual_volume, &i->virtual_volume, &t);
+
+        /* We might need to update the sink's volume if we are in flat volume mode. */
         pa_sink_update_flat_volume(i->sink, &new_volume);
         pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE);
     }
