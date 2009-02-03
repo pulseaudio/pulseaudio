@@ -448,6 +448,9 @@ int pa_channel_map_equal(const pa_channel_map *a, const pa_channel_map *b) {
     pa_assert(a);
     pa_assert(b);
 
+    pa_return_val_if_fail(pa_channel_map_valid(a), 0);
+    pa_return_val_if_fail(pa_channel_map_valid(b), 0);
+
     if (a->channels != b->channels)
         return 0;
 
@@ -617,11 +620,8 @@ int pa_channel_map_compatible(const pa_channel_map *map, const pa_sample_spec *s
     pa_assert(map);
     pa_assert(ss);
 
-    if (!pa_channel_map_valid(map))
-        return 0;
-
-    if (!pa_sample_spec_valid(ss))
-        return 0;
+    pa_return_val_if_fail(pa_channel_map_valid(map), 0);
+    pa_return_val_if_fail(pa_sample_spec_valid(ss), 0);
 
     return map->channels == ss->channels;
 }
@@ -632,6 +632,9 @@ int pa_channel_map_superset(const pa_channel_map *a, const pa_channel_map *b) {
 
     pa_assert(a);
     pa_assert(b);
+
+    pa_return_val_if_fail(pa_channel_map_valid(a), 0);
+    pa_return_val_if_fail(pa_channel_map_valid(b), 0);
 
     memset(in_a, 0, sizeof(in_a));
 
@@ -650,6 +653,8 @@ int pa_channel_map_can_balance(const pa_channel_map *map) {
     pa_bool_t left = FALSE, right = FALSE;
 
     pa_assert(map);
+
+    pa_return_val_if_fail(pa_channel_map_valid(map), 0);
 
     for (c = 0; c < map->channels; c++) {
 
@@ -686,6 +691,10 @@ int pa_channel_map_can_balance(const pa_channel_map *map) {
 int pa_channel_map_can_fade(const pa_channel_map *map) {
     unsigned c;
     pa_bool_t front = FALSE, rear = FALSE;
+
+    pa_assert(map);
+
+    pa_return_val_if_fail(pa_channel_map_valid(map), 0);
 
     for (c = 0; c < map->channels; c++) {
 
@@ -726,6 +735,8 @@ const char* pa_channel_map_to_name(const pa_channel_map *map) {
     unsigned c;
 
     pa_assert(map);
+
+    pa_return_val_if_fail(pa_channel_map_valid(map), NULL);
 
     memset(in_map, 0, sizeof(in_map));
 
@@ -778,6 +789,8 @@ const char* pa_channel_map_to_pretty_name(const pa_channel_map *map) {
     unsigned c;
 
     pa_assert(map);
+
+    pa_return_val_if_fail(pa_channel_map_valid(map), NULL);
 
     memset(in_map, 0, sizeof(in_map));
 
