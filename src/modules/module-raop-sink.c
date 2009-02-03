@@ -275,7 +275,7 @@ static void sink_set_volume_cb(pa_sink *s) {
     /* Create a pa_cvolume version of our single value */
     pa_cvolume_set(&hw, s->sample_spec.channels, v);
 
-    /* Perfome any software manipulation of the volume needed */
+    /* Perform any software manipulation of the volume needed */
     pa_sw_cvolume_divide(&s->soft_volume, &s->virtual_volume, &hw);
 
     pa_log_debug("Requested volume: %s", pa_cvolume_snprint(t, sizeof(t), &s->virtual_volume));
