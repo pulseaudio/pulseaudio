@@ -104,6 +104,7 @@ struct a2dp_info {
 };
 
 struct hsp_info {
+    pcm_capabilities_t pcm_capabilities;
     pa_sink *sco_sink;
     pa_source *sco_source;
     pa_hook_slot *sink_state_changed_slot;
@@ -271,23 +272,33 @@ static int parse_caps(struct userdata *u, const struct bt_get_capabilities_rsp *
         return -1;
     }
 
-    if (u->profile != PROFILE_A2DP)
-        return 0;
+    if (u->profile == PROFILE_HSP) {
+        if (bytes_left <= 0 || codec->length != sizeof(u->hsp.pcm_capabilities))
+            return -1;
 
-    while (bytes_left > 0) {
-        if (codec->type == BT_A2DP_CODEC_SBC)
-            break;
+        pa_assert(codec->type == BT_HFP_CODEC_PCM);
 
-        bytes_left -= codec->length;
-        codec = (const codec_capabilities_t*) ((const uint8_t*) codec + codec->length);
+        memcpy(&u->hsp.pcm_capabilities, codec, sizeof(u->hsp.pcm_capabilities));
     }
 
-    if (bytes_left <= 0 || codec->length != sizeof(u->a2dp.sbc_capabilities))
-        return -1;
+    if (u->profile == PROFILE_A2DP) {
 
-    pa_assert(codec->type == BT_A2DP_CODEC_SBC);
+        while (bytes_left > 0) {
+            if (codec->type == BT_A2DP_CODEC_SBC)
+                break;
 
-    memcpy(&u->a2dp.sbc_capabilities, codec, sizeof(u->a2dp.sbc_capabilities));
+            bytes_left -= codec->length;
+            codec = (const codec_capabilities_t*) ((const uint8_t*) codec + codec->length);
+        }
+
+        if (bytes_left <= 0 || codec->length != sizeof(u->a2dp.sbc_capabilities))
+            return -1;
+
+        pa_assert(codec->type == BT_A2DP_CODEC_SBC);
+
+        memcpy(&u->a2dp.sbc_capabilities, codec, sizeof(u->a2dp.sbc_capabilities));
+    }
+
     return 0;
 }
 
@@ -1334,10 +1345,9 @@ static int add_sink(struct userdata *u) {
 }
 
 static int add_source(struct userdata *u) {
+    pa_proplist *p;
 
     if (USE_SCO_OVER_PCM(u)) {
-        pa_proplist *p;
-
         u->source = u->hsp.sco_source;
         u->source->card = u->card; /* FIXME! */
         p = pa_proplist_new();
@@ -1378,6 +1388,11 @@ static int add_source(struct userdata *u) {
 
 /*     u->source->get_volume = source_get_volume_cb; */
 /*     u->source->set_volume = source_set_volume_cb; */
+
+    p = pa_proplist_new();
+    pa_proplist_sets(p, "bluetooth.nrec", pa_yes_no(u->hsp.pcm_capabilities.flags & BT_PCM_FLAG_NREC));
+    pa_proplist_update(u->source->proplist, PA_UPDATE_MERGE, p);
+    pa_proplist_free(p);
 
     return 0;
 }
