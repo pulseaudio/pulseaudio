@@ -305,6 +305,11 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
 
     s->state = state;
 
+    if (state != PA_SINK_UNLINKED) { /* if we enter UNLINKED state pa_sink_unlink() will fire the apropriate events */
+        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], s);
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    }
+
     if (suspend_change) {
         pa_sink_input *i;
         uint32_t idx;
@@ -312,13 +317,11 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
         /* We're suspending or resuming, tell everyone about it */
 
         for (i = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); i; i = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx)))
-            if (i->suspend)
+            if (s->state == PA_SINK_SUSPENDED &&
+                (i->flags & PA_SINK_INPUT_FAIL_ON_SUSPEND))
+                pa_sink_input_kill(i);
+            else if (i->suspend)
                 i->suspend(i, state == PA_SINK_SUSPENDED);
-    }
-
-    if (state != PA_SINK_UNLINKED) { /* if we enter UNLINKED state pa_sink_unlink() will fire the apropriate events */
-        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], s);
-        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
     }
 
     return 0;

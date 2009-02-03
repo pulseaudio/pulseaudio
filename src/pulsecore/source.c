@@ -267,6 +267,11 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
 
     s->state = state;
 
+    if (state != PA_SOURCE_UNLINKED) { /* if we enter UNLINKED state pa_source_unlink() will fire the apropriate events */
+        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_STATE_CHANGED], s);
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    }
+
     if (suspend_change) {
         pa_source_output *o;
         uint32_t idx;
@@ -274,12 +279,13 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
         /* We're suspending or resuming, tell everyone about it */
 
         for (o = PA_SOURCE_OUTPUT(pa_idxset_first(s->outputs, &idx)); o; o = PA_SOURCE_OUTPUT(pa_idxset_next(s->outputs, &idx)))
-            if (o->suspend)
+            if (s->state == PA_SOURCE_SUSPENDED &&
+                (o->flags & PA_SOURCE_OUTPUT_FAIL_ON_SUSPEND))
+                pa_source_output_kill(o);
+            else if (o->suspend)
                 o->suspend(o, state == PA_SOURCE_SUSPENDED);
     }
 
-    if (state != PA_SOURCE_UNLINKED) /* if we enter UNLINKED state pa_source_unlink() will fire the apropriate events */
-        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_STATE_CHANGED], s);
 
     return 0;
 }

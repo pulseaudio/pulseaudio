@@ -144,8 +144,12 @@ pa_sink_input* pa_sink_input_new(
     }
 
     pa_return_null_if_fail(data->sink);
-    pa_return_null_if_fail(pa_sink_get_state(data->sink) != PA_SINK_UNLINKED);
+    pa_return_null_if_fail(PA_SINK_IS_LINKED(pa_sink_get_state(data->sink)));
     pa_return_null_if_fail(!data->sync_base || (data->sync_base->sink == data->sink && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED));
+
+    if ((flags & PA_SINK_INPUT_FAIL_ON_SUSPEND) &&
+        pa_sink_get_state(data->sink) == PA_SINK_SUSPENDED)
+        return NULL;
 
     if (!data->sample_spec_is_set)
         data->sample_spec = data->sink->sample_spec;

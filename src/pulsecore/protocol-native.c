@@ -1691,8 +1691,8 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
         adjust_latency = FALSE,
         early_requests = FALSE,
         dont_inhibit_auto_suspend = FALSE,
-        muted_set = FALSE;
-
+        muted_set = FALSE,
+        fail_on_suspend = FALSE;
     pa_sink_input_flags_t flags = 0;
     pa_proplist *p;
     pa_bool_t volume_set = TRUE;
@@ -1775,7 +1775,8 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
     if (c->version >= 15) {
 
         if (pa_tagstruct_get_boolean(t, &muted_set) < 0 ||
-            pa_tagstruct_get_boolean(t, &dont_inhibit_auto_suspend) < 0) {
+            pa_tagstruct_get_boolean(t, &dont_inhibit_auto_suspend) < 0 ||
+            pa_tagstruct_get_boolean(t, &fail_on_suspend) < 0) {
             protocol_error(c);
             pa_proplist_free(p);
             return;
@@ -1814,7 +1815,8 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
         (fix_channels ?  PA_SINK_INPUT_FIX_CHANNELS : 0) |
         (no_move ?  PA_SINK_INPUT_DONT_MOVE : 0) |
         (variable_rate ?  PA_SINK_INPUT_VARIABLE_RATE : 0) |
-        (dont_inhibit_auto_suspend ? PA_SINK_INPUT_DONT_INHIBIT_AUTO_SUSPEND : 0);
+        (dont_inhibit_auto_suspend ? PA_SINK_INPUT_DONT_INHIBIT_AUTO_SUSPEND : 0) |
+        (fail_on_suspend ? PA_SINK_INPUT_FAIL_ON_SUSPEND : 0);
 
     /* Only since protocol version 15 there's a seperate muted_set
      * flag. For older versions we synthesize it here */
@@ -1942,7 +1944,8 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
         adjust_latency = FALSE,
         peak_detect = FALSE,
         early_requests = FALSE,
-        dont_inhibit_auto_suspend = FALSE;
+        dont_inhibit_auto_suspend = FALSE,
+        fail_on_suspend = FALSE;
     pa_source_output_flags_t flags = 0;
     pa_proplist *p;
     uint32_t direct_on_input_idx = PA_INVALID_INDEX;
@@ -2016,7 +2019,8 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
 
     if (c->version >= 15) {
 
-        if (pa_tagstruct_get_boolean(t, &dont_inhibit_auto_suspend) < 0) {
+        if (pa_tagstruct_get_boolean(t, &dont_inhibit_auto_suspend) < 0 ||
+            pa_tagstruct_get_boolean(t, &fail_on_suspend) < 0) {
             protocol_error(c);
             pa_proplist_free(p);
             return;
@@ -2064,7 +2068,8 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
         (fix_channels ?  PA_SOURCE_OUTPUT_FIX_CHANNELS : 0) |
         (no_move ?  PA_SOURCE_OUTPUT_DONT_MOVE : 0) |
         (variable_rate ?  PA_SOURCE_OUTPUT_VARIABLE_RATE : 0) |
-        (dont_inhibit_auto_suspend ? PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND : 0);
+        (dont_inhibit_auto_suspend ? PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND : 0) |
+        (fail_on_suspend ? PA_SOURCE_OUTPUT_FAIL_ON_SUSPEND : 0);
 
     s = record_stream_new(c, source, &ss, &map, peak_detect, &maxlength, &fragment_size, flags, p, adjust_latency, direct_on_input, early_requests);
     pa_proplist_free(p);

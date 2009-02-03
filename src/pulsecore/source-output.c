@@ -118,9 +118,12 @@ pa_source_output* pa_source_output_new(
     }
 
     pa_return_null_if_fail(data->source);
-    pa_return_null_if_fail(pa_source_get_state(data->source) != PA_SOURCE_UNLINKED);
-
+    pa_return_null_if_fail(PA_SOURCE_IS_LINKED(pa_source_get_state(data->source)));
     pa_return_null_if_fail(!data->direct_on_input || data->direct_on_input->sink == data->source->monitor_of);
+
+    if ((flags & PA_SOURCE_OUTPUT_FAIL_ON_SUSPEND) &&
+        pa_source_get_state(data->source) == PA_SOURCE_SUSPENDED)
+        return NULL;
 
     if (!data->sample_spec_is_set)
         data->sample_spec = data->source->sample_spec;
