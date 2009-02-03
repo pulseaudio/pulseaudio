@@ -106,6 +106,8 @@ struct a2dp_info {
 struct hsp_info {
     pa_sink *sco_sink;
     pa_source *sco_source;
+    pa_hook_slot *sink_state_changed_slot;
+    pa_hook_slot *source_state_changed_slot;
 };
 
 enum profile {
@@ -153,6 +155,9 @@ struct userdata {
 
     int write_type, read_type;
 };
+
+static int init_bt(struct userdata *u);
+static int init_profile(struct userdata *u);
 
 static int service_send(int fd, const bt_audio_msg_header_t *msg) {
     size_t length;
@@ -1228,6 +1233,57 @@ static char *get_name(const char *type, pa_modargs *ma, const char *device_id, p
 
 #define USE_SCO_OVER_PCM(u) (u->profile == PROFILE_HSP && (u->hsp.sco_sink && u->hsp.sco_source))
 
+static void sco_over_pcm_state_update(struct userdata *u) {
+    pa_assert(u);
+
+    if (PA_SINK_IS_OPENED(pa_sink_get_state(u->hsp.sco_sink)) ||
+        PA_SOURCE_IS_OPENED(pa_source_get_state(u->hsp.sco_source))) {
+
+        if (u->service_fd > 0)
+            return;
+
+        pa_log_debug("Resuming SCO over PCM");
+        if ((init_bt(u) < 0) || (init_profile(u) < 0))
+            pa_log("Can't resume SCO over PCM");
+
+    } else {
+
+        if (u->service_fd <= 0)
+            return;
+
+        pa_log_debug("Closing SCO over PCM");
+        pa_close(u->service_fd);
+        u->service_fd = 0;
+
+    }
+}
+
+static pa_hook_result_t sink_state_changed_cb(pa_core *c, pa_sink *s, struct userdata *u) {
+    pa_assert(c);
+    pa_sink_assert_ref(s);
+    pa_assert(u);
+
+    if (s != u->hsp.sco_sink)
+        return PA_HOOK_OK;
+
+    sco_over_pcm_state_update(u);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_state_changed_cb(pa_core *c, pa_source *s, struct userdata *u) {
+    pa_assert(c);
+    pa_source_assert_ref(s);
+    pa_assert(u);
+
+    if (s != u->hsp.sco_source)
+        return PA_HOOK_OK;
+
+    sco_over_pcm_state_update(u);
+
+    return PA_HOOK_OK;
+}
+
 static int add_sink(struct userdata *u) {
 
     if (USE_SCO_OVER_PCM(u)) {
@@ -1239,6 +1295,9 @@ static int add_sink(struct userdata *u) {
         pa_proplist_sets(p, "bluetooth.protocol", "sco");
         pa_proplist_update(u->sink->proplist, PA_UPDATE_MERGE, p);
         pa_proplist_free(p);
+
+	if (!u->hsp.sink_state_changed_slot)
+            u->hsp.sink_state_changed_slot = pa_hook_connect(&u->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_state_changed_cb, u);
 
     } else {
         pa_sink_new_data data;
@@ -1285,6 +1344,9 @@ static int add_source(struct userdata *u) {
         pa_proplist_sets(p, "bluetooth.protocol", "sco");
         pa_proplist_update(u->source->proplist, PA_UPDATE_MERGE, p);
         pa_proplist_free(p);
+
+        if (!u->hsp.source_state_changed_slot)
+            u->hsp.source_state_changed_slot = pa_hook_connect(&u->core->hooks[PA_CORE_HOOK_SOURCE_STATE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) source_state_changed_cb, u);
 
     } else {
         pa_source_new_data data;
@@ -1403,6 +1465,16 @@ static void stop_thread(struct userdata *u) {
     if (u->rtpoll_item) {
         pa_rtpoll_item_free(u->rtpoll_item);
         u->rtpoll_item = NULL;
+    }
+
+    if (u->hsp.sink_state_changed_slot) {
+        pa_hook_slot_free(u->hsp.sink_state_changed_slot);
+        u->hsp.sink_state_changed_slot = NULL;
+    }
+
+    if (u->hsp.source_state_changed_slot) {
+        pa_hook_slot_free(u->hsp.source_state_changed_slot);
+        u->hsp.source_state_changed_slot = NULL;
     }
 
     if (u->sink) {
