@@ -434,10 +434,10 @@ const char* pa_channel_position_to_string(pa_channel_position_t pos) {
 
 const char* pa_channel_position_to_pretty_string(pa_channel_position_t pos) {
 
-    pa_init_i18n();
-
     if (pos < 0 || pos >= PA_CHANNEL_POSITION_MAX)
         return NULL;
+
+    pa_init_i18n();
 
     return _(pretty_table[pos]);
 }
@@ -502,19 +502,19 @@ pa_channel_map *pa_channel_map_parse(pa_channel_map *rmap, const char *s) {
      * "mono" here explicitly, because that can be understood as
      * listing with one channel called "mono". */
 
-    if (strcmp(s, "stereo") == 0) {
+    if (pa_streq(s, "stereo")) {
         map.channels = 2;
         map.map[0] = PA_CHANNEL_POSITION_LEFT;
         map.map[1] = PA_CHANNEL_POSITION_RIGHT;
         goto finish;
-    } else if (strcmp(s, "surround-40") == 0) {
+    } else if (pa_streq(s, "surround-40")) {
         map.channels = 4;
         map.map[0] = PA_CHANNEL_POSITION_FRONT_LEFT;
         map.map[1] = PA_CHANNEL_POSITION_FRONT_RIGHT;
         map.map[2] = PA_CHANNEL_POSITION_REAR_LEFT;
         map.map[3] = PA_CHANNEL_POSITION_REAR_RIGHT;
         goto finish;
-    } else if (strcmp(s, "surround-41") == 0) {
+    } else if (pa_streq(s, "surround-41")) {
         map.channels = 5;
         map.map[0] = PA_CHANNEL_POSITION_FRONT_LEFT;
         map.map[1] = PA_CHANNEL_POSITION_FRONT_RIGHT;
@@ -522,7 +522,7 @@ pa_channel_map *pa_channel_map_parse(pa_channel_map *rmap, const char *s) {
         map.map[3] = PA_CHANNEL_POSITION_REAR_RIGHT;
         map.map[4] = PA_CHANNEL_POSITION_LFE;
         goto finish;
-    } else if (strcmp(s, "surround-50") == 0) {
+    } else if (pa_streq(s, "surround-50")) {
         map.channels = 5;
         map.map[0] = PA_CHANNEL_POSITION_FRONT_LEFT;
         map.map[1] = PA_CHANNEL_POSITION_FRONT_RIGHT;
@@ -530,7 +530,7 @@ pa_channel_map *pa_channel_map_parse(pa_channel_map *rmap, const char *s) {
         map.map[3] = PA_CHANNEL_POSITION_REAR_RIGHT;
         map.map[4] = PA_CHANNEL_POSITION_FRONT_CENTER;
         goto finish;
-    } else if (strcmp(s, "surround-51") == 0) {
+    } else if (pa_streq(s, "surround-51")) {
         map.channels = 6;
         map.map[0] = PA_CHANNEL_POSITION_FRONT_LEFT;
         map.map[1] = PA_CHANNEL_POSITION_FRONT_RIGHT;
@@ -539,7 +539,7 @@ pa_channel_map *pa_channel_map_parse(pa_channel_map *rmap, const char *s) {
         map.map[4] = PA_CHANNEL_POSITION_FRONT_CENTER;
         map.map[5] = PA_CHANNEL_POSITION_LFE;
         goto finish;
-    } else if (strcmp(s, "surround-71") == 0) {
+    } else if (pa_streq(s, "surround-71")) {
         map.channels = 8;
         map.map[0] = PA_CHANNEL_POSITION_FRONT_LEFT;
         map.map[1] = PA_CHANNEL_POSITION_FRONT_RIGHT;
@@ -563,13 +563,13 @@ pa_channel_map *pa_channel_map_parse(pa_channel_map *rmap, const char *s) {
         }
 
         /* Some special aliases */
-        if (strcmp(p, "left") == 0)
+        if (pa_streq(p, "left"))
             map.map[map.channels++] = PA_CHANNEL_POSITION_LEFT;
-        else if (strcmp(p, "right") == 0)
+        else if (pa_streq(p, "right"))
             map.map[map.channels++] = PA_CHANNEL_POSITION_RIGHT;
-        else if (strcmp(p, "center") == 0)
+        else if (pa_streq(p, "center"))
             map.map[map.channels++] = PA_CHANNEL_POSITION_CENTER;
-        else if (strcmp(p, "subwoofer") == 0)
+        else if (pa_streq(p, "subwoofer"))
             map.map[map.channels++] = PA_CHANNEL_POSITION_SUBWOOFER;
         else {
             pa_channel_position_t i;
@@ -783,6 +783,8 @@ const char* pa_channel_map_to_pretty_name(const pa_channel_map *map) {
 
     for (c = 0; c < map->channels; c++)
         pa_bitset_set(in_map, map->map[c], TRUE);
+
+    pa_init_i18n();
 
     if (pa_bitset_equals(in_map, PA_CHANNEL_POSITION_MAX,
                          PA_CHANNEL_POSITION_MONO, -1))

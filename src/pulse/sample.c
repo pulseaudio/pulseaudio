@@ -151,22 +151,25 @@ char *pa_sample_spec_snprint(char *s, size_t l, const pa_sample_spec *spec) {
     if (!pa_sample_spec_valid(spec))
         pa_snprintf(s, l, _("(invalid)"));
     else
-        pa_snprintf(s, l, "%s %uch %uHz", pa_sample_format_to_string(spec->format), spec->channels, spec->rate);
+        pa_snprintf(s, l, _("%s %uch %uHz"), pa_sample_format_to_string(spec->format), spec->channels, spec->rate);
 
     return s;
 }
 
 char* pa_bytes_snprint(char *s, size_t l, unsigned v) {
     pa_assert(s);
+    pa_assert(l > 0);
+
+    pa_init_i18n();
 
     if (v >= ((unsigned) 1024)*1024*1024)
-        pa_snprintf(s, l, "%0.1f GiB", ((double) v)/1024/1024/1024);
+        pa_snprintf(s, l, _("%0.1f GiB"), ((double) v)/1024/1024/1024);
     else if (v >= ((unsigned) 1024)*1024)
-        pa_snprintf(s, l, "%0.1f MiB", ((double) v)/1024/1024);
+        pa_snprintf(s, l, _("%0.1f MiB"), ((double) v)/1024/1024);
     else if (v >= (unsigned) 1024)
-        pa_snprintf(s, l, "%0.1f KiB", ((double) v)/1024);
+        pa_snprintf(s, l, _("%0.1f KiB"), ((double) v)/1024);
     else
-        pa_snprintf(s, l, "%u B", (unsigned) v);
+        pa_snprintf(s, l, _("%u B"), (unsigned) v);
 
     return s;
 }
