@@ -2,7 +2,7 @@
  *
  *  BlueZ - Bluetooth protocol stack for Linux
  *
- *  Copyright (C) 2004-2008  Marcel Holtmann <marcel@holtmann.org>
+ *  Copyright (C) 2004-2009  Marcel Holtmann <marcel@holtmann.org>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -98,8 +98,6 @@ typedef struct {
 #define BT_NEW_STREAM			2
 #define BT_START_STREAM			3
 #define BT_STOP_STREAM			4
-#define BT_SUSPEND_STREAM		5
-#define BT_RESUME_STREAM		6
 #define BT_CONTROL			7
 
 #define BT_CAPABILITIES_TRANSPORT_A2DP	0
@@ -120,7 +118,7 @@ struct bt_get_capabilities_req {
 } __attribute__ ((packed));
 
 /**
- * SBC Codec parameters as per A2DP profile 1.0 § 4.3
+ * SBC Codec parameters as per A2DP profile 1.0 Â§ 4.3
  */
 
 #define BT_A2DP_CODEC_SBC			0x00
@@ -197,7 +195,6 @@ typedef struct {
 	uint8_t flags;
 	uint16_t sampling_rate;
 } __attribute__ ((packed)) pcm_capabilities_t;
-
 
 struct bt_get_capabilities_rsp {
 	bt_audio_msg_header_t	h;
