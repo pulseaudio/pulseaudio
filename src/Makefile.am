@@ -862,6 +862,13 @@ libavahi_wrap_la_LIBADD = $(AM_LIBADD) $(AVAHI_CFLAGS) libpulsecore-@PA_MAJORMIN
 #        Plug-in libraries        #
 ###################################
 
+if HAVE_DBUS
+# Serveral module (e.g. libalsa-util.la)
+modlibexec_LTLIBRARIES += \
+		libdbus-util.la \
+		module-console-kit.la
+endif
+
 modlibexec_LTLIBRARIES += \
 		module-cli.la \
 		module-cli-protocol-tcp.la \
@@ -989,21 +996,14 @@ endif
 
 if HAVE_HAL
 modlibexec_LTLIBRARIES += \
-		libdbus-util.la \
 		module-hal-detect.la
-endif
-
-if HAVE_DBUS
-modlibexec_LTLIBRARIES += \
-		libdbus-util.la \
-		module-console-kit.la
 endif
 
 if HAVE_BLUEZ
 modlibexec_LTLIBRARIES += \
+		libbluetooth-util.la \
 		module-bluetooth-proximity.la \
 		module-bluetooth-discover.la \
-		libbluetooth-util.la \
 		libbluetooth-ipc.la \
 		libbluetooth-sbc.la \
 		module-bluetooth-device.la
