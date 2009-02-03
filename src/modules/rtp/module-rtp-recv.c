@@ -453,7 +453,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     data.module = u->module;
     pa_sink_input_new_data_set_sample_spec(&data, &sdp_info->sample_spec);
 
-    s->sink_input = pa_sink_input_new(u->module->core, &data, 0);
+    pa_sink_input_new(&s->sink_input, u->module->core, &data, 0);
     pa_sink_input_new_data_done(&data);
 
     if (!s->sink_input) {

@@ -205,7 +205,8 @@ void pa_source_output_new_data_done(pa_source_output_new_data *data);
 
 /* To be called by the implementing module only */
 
-pa_source_output* pa_source_output_new(
+int pa_source_output_new(
+        pa_source_output**o,
         pa_core *core,
         pa_source_output_new_data *data,
         pa_source_output_flags_t flags);

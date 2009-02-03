@@ -120,7 +120,8 @@ static void reset_callbacks(pa_sink_input *i) {
 }
 
 /* Called from main context */
-pa_sink_input* pa_sink_input_new(
+int pa_sink_input_new(
+        pa_sink_input **_i,
         pa_core *core,
         pa_sink_input_new_data *data,
         pa_sink_input_flags_t flags) {
@@ -129,32 +130,31 @@ pa_sink_input* pa_sink_input_new(
     pa_resampler *resampler = NULL;
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
     pa_channel_map original_cm;
+    int r;
 
+    pa_assert(_i);
     pa_assert(core);
     pa_assert(data);
 
-    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], data) < 0)
-        return NULL;
+    if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], data)) < 0)
+        return r;
 
-    pa_return_null_if_fail(!data->driver || pa_utf8_valid(data->driver));
+    pa_return_val_if_fail(!data->driver || pa_utf8_valid(data->driver), -PA_ERR_INVALID);
 
     if (!data->sink) {
         data->sink = pa_namereg_get(core, NULL, PA_NAMEREG_SINK);
         data->save_sink = FALSE;
     }
 
-    pa_return_null_if_fail(data->sink);
-    pa_return_null_if_fail(PA_SINK_IS_LINKED(pa_sink_get_state(data->sink)));
-    pa_return_null_if_fail(!data->sync_base || (data->sync_base->sink == data->sink && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED));
-
-    if ((flags & PA_SINK_INPUT_FAIL_ON_SUSPEND) &&
-        pa_sink_get_state(data->sink) == PA_SINK_SUSPENDED)
-        return NULL;
+    pa_return_val_if_fail(data->sink, -PA_ERR_NOENTITY);
+    pa_return_val_if_fail(PA_SINK_IS_LINKED(pa_sink_get_state(data->sink)), -PA_ERR_BADSTATE);
+    pa_return_val_if_fail(!data->sync_base || (data->sync_base->sink == data->sink && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED), -PA_ERR_INVALID);
+    pa_return_val_if_fail(!(flags & PA_SINK_INPUT_FAIL_ON_SUSPEND) || pa_sink_get_state(data->sink) != PA_SINK_SUSPENDED, -PA_ERR_BADSTATE);
 
     if (!data->sample_spec_is_set)
         data->sample_spec = data->sink->sample_spec;
 
-    pa_return_null_if_fail(pa_sample_spec_valid(&data->sample_spec));
+    pa_return_val_if_fail(pa_sample_spec_valid(&data->sample_spec), -PA_ERR_INVALID);
 
     if (!data->channel_map_is_set) {
         if (pa_channel_map_compatible(&data->sink->channel_map, &data->sample_spec))
@@ -163,8 +163,8 @@ pa_sink_input* pa_sink_input_new(
             pa_channel_map_init_extend(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT);
     }
 
-    pa_return_null_if_fail(pa_channel_map_valid(&data->channel_map));
-    pa_return_null_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec));
+    pa_return_val_if_fail(pa_channel_map_valid(&data->channel_map), -PA_ERR_INVALID);
+    pa_return_val_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec), -PA_ERR_INVALID);
 
     if (!data->virtual_volume_is_set) {
 
@@ -187,14 +187,14 @@ pa_sink_input* pa_sink_input_new(
         }
     }
 
-    pa_return_null_if_fail(pa_cvolume_valid(&data->virtual_volume));
-    pa_return_null_if_fail(pa_cvolume_compatible(&data->virtual_volume, &data->sample_spec));
+    pa_return_val_if_fail(pa_cvolume_valid(&data->virtual_volume), -PA_ERR_INVALID);
+    pa_return_val_if_fail(pa_cvolume_compatible(&data->virtual_volume, &data->sample_spec), -PA_ERR_INVALID);
 
     if (!data->soft_volume_is_set)
         data->soft_volume = data->virtual_volume;
 
-    pa_return_null_if_fail(pa_cvolume_valid(&data->soft_volume));
-    pa_return_null_if_fail(pa_cvolume_compatible(&data->soft_volume, &data->sample_spec));
+    pa_return_val_if_fail(pa_cvolume_valid(&data->soft_volume), -PA_ERR_INVALID);
+    pa_return_val_if_fail(pa_cvolume_compatible(&data->soft_volume, &data->sample_spec), -PA_ERR_INVALID);
 
     if (!data->muted_is_set)
         data->muted = FALSE;
@@ -222,17 +222,17 @@ pa_sink_input* pa_sink_input_new(
     if (data->resample_method == PA_RESAMPLER_INVALID)
         data->resample_method = core->resample_method;
 
-    pa_return_null_if_fail(data->resample_method < PA_RESAMPLER_MAX);
+    pa_return_val_if_fail(data->resample_method < PA_RESAMPLER_MAX, -PA_ERR_INVALID);
 
     if (data->client)
         pa_proplist_update(data->proplist, PA_UPDATE_MERGE, data->client->proplist);
 
-    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], data) < 0)
-        return NULL;
+    if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], data)) < 0)
+        return r;
 
     if (pa_idxset_size(data->sink->inputs) >= PA_MAX_INPUTS_PER_SINK) {
         pa_log_warn("Failed to create sink input: too many inputs per sink.");
-        return NULL;
+        return -PA_ERR_TOOLARGE;
     }
 
     if ((flags & PA_SINK_INPUT_VARIABLE_RATE) ||
@@ -249,7 +249,7 @@ pa_sink_input* pa_sink_input_new(
                       (core->disable_remixing || (flags & PA_SINK_INPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0) |
                       (core->disable_lfe_remixing ? PA_RESAMPLER_NO_LFE : 0)))) {
             pa_log_warn("Unsupported resampling operation.");
-            return NULL;
+            return -PA_ERR_NOTSUPPORTED;
         }
     }
 
@@ -334,7 +334,8 @@ pa_sink_input* pa_sink_input_new(
 
     /* Don't forget to call pa_sink_input_put! */
 
-    return i;
+    *_i = i;
+    return 0;
 }
 
 /* Called from main context */
@@ -957,7 +958,7 @@ void pa_sink_input_cork(pa_sink_input *i, pa_bool_t b) {
 int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate) {
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
-    pa_return_val_if_fail(i->thread_info.resampler, -1);
+    pa_return_val_if_fail(i->thread_info.resampler, -PA_ERR_BADSTATE);
 
     if (i->sample_spec.rate == rate)
         return 0;
@@ -1045,16 +1046,17 @@ pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
 int pa_sink_input_start_move(pa_sink_input *i) {
     pa_source_output *o, *p = NULL;
     pa_sink *origin;
+    int r;
 
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_assert(i->sink);
 
     if (!pa_sink_input_may_move(i))
-        return -1;
+        return -PA_ERR_NOTSUPPORTED;
 
-    if (pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_START], i) < 0)
-        return -1;
+    if ((r = pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_START], i)) < 0)
+        return r;
 
     origin = i->sink;
 
@@ -1096,14 +1098,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     pa_sink_assert_ref(dest);
 
     if (!pa_sink_input_may_move_to(i, dest))
-        return -1;
-
-    i->sink = dest;
-    i->save_sink = save;
-    pa_idxset_put(dest->inputs, i, NULL);
-
-    if (pa_sink_input_get_state(i) == PA_SINK_INPUT_CORKED)
-        i->sink->n_corked++;
+        return -PA_ERR_NOTSUPPORTED;
 
     if (i->thread_info.resampler &&
         pa_sample_spec_equal(pa_resampler_output_sample_spec(i->thread_info.resampler), &dest->sample_spec) &&
@@ -1127,10 +1122,17 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
                       ((i->flags & PA_SINK_INPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
                       (i->core->disable_remixing || (i->flags & PA_SINK_INPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0)))) {
             pa_log_warn("Unsupported resampling operation.");
-            return -1;
+            return -PA_ERR_NOTSUPPORTED;
         }
     } else
         new_resampler = NULL;
+
+    i->sink = dest;
+    i->save_sink = save;
+    pa_idxset_put(dest->inputs, i, NULL);
+
+    if (pa_sink_input_get_state(i) == PA_SINK_INPUT_CORKED)
+        i->sink->n_corked++;
 
     /* Replace resampler and render queue */
     if (new_resampler != i->thread_info.resampler) {
@@ -1177,6 +1179,8 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
 
 /* Called from main context */
 int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
+    int r;
+
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_assert(i->sink);
@@ -1186,13 +1190,13 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
         return 0;
 
     if (!pa_sink_input_may_move_to(i, dest))
-        return -1;
+        return -PA_ERR_NOTSUPPORTED;
 
-    if (pa_sink_input_start_move(i) < 0)
-        return -1;
+    if ((r = pa_sink_input_start_move(i)) < 0)
+        return r;
 
-    if (pa_sink_input_finish_move(i, dest, save) < 0)
-        return -1;
+    if ((r = pa_sink_input_finish_move(i, dest, save)) < 0)
+        return r;
 
     return 0;
 }
@@ -1307,7 +1311,7 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t
         }
     }
 
-    return -1;
+    return -PA_ERR_NOTIMPLEMENTED;
 }
 
 /* Called from main thread */

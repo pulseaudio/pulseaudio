@@ -326,7 +326,7 @@ int pa_play_file(
     pa_proplist_sets(data.proplist, PA_PROP_MEDIA_NAME, pa_path_get_filename(fname));
     pa_proplist_sets(data.proplist, PA_PROP_MEDIA_FILENAME, fname);
 
-    u->sink_input = pa_sink_input_new(sink->core, &data, 0);
+    pa_sink_input_new(&u->sink_input, sink->core, &data, 0);
     pa_sink_input_new_data_done(&data);
 
     if (!u->sink_input)

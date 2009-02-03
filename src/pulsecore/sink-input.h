@@ -257,7 +257,8 @@ void pa_sink_input_new_data_done(pa_sink_input_new_data *data);
 
 /* To be called by the implementing module only */
 
-pa_sink_input* pa_sink_input_new(
+int pa_sink_input_new(
+        pa_sink_input **i,
         pa_core *core,
         pa_sink_input_new_data *data,
         pa_sink_input_flags_t flags);
@@ -313,7 +314,7 @@ pa_usec_t pa_sink_input_get_requested_latency(pa_sink_input *i);
 
 /* To be used exclusively by the sink driver IO thread */
 
-int pa_sink_input_peek(pa_sink_input *i, size_t length, pa_memchunk *chunk, pa_cvolume *volume);
+void pa_sink_input_peek(pa_sink_input *i, size_t length, pa_memchunk *chunk, pa_cvolume *volume);
 void pa_sink_input_drop(pa_sink_input *i, size_t length);
 void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in the sink's sample spec */);
 void pa_sink_input_update_max_rewind(pa_sink_input *i, size_t nbytes  /* in the sink's sample spec */);

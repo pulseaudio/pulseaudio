@@ -799,7 +799,7 @@ static int output_create_sink_input(struct output *o) {
     data.module = o->userdata->module;
     data.resample_method = o->userdata->resample_method;
 
-    o->sink_input = pa_sink_input_new(o->userdata->core, &data, PA_SINK_INPUT_VARIABLE_RATE|PA_SINK_INPUT_DONT_MOVE);
+    pa_sink_input_new(&o->sink_input, o->userdata->core, &data, PA_SINK_INPUT_VARIABLE_RATE|PA_SINK_INPUT_DONT_MOVE);
 
     pa_sink_input_new_data_done(&data);
 

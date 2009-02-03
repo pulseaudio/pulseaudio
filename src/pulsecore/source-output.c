@@ -95,7 +95,8 @@ static void reset_callbacks(pa_source_output *o) {
 }
 
 /* Called from main context */
-pa_source_output* pa_source_output_new(
+int pa_source_output_new(
+        pa_source_output**_o,
         pa_core *core,
         pa_source_output_new_data *data,
         pa_source_output_flags_t flags) {
@@ -103,32 +104,31 @@ pa_source_output* pa_source_output_new(
     pa_source_output *o;
     pa_resampler *resampler = NULL;
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    int r;
 
+    pa_assert(_o);
     pa_assert(core);
     pa_assert(data);
 
-    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_NEW], data) < 0)
-        return NULL;
+    if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_NEW], data)) < 0)
+        return r;
 
-    pa_return_null_if_fail(!data->driver || pa_utf8_valid(data->driver));
+    pa_return_val_if_fail(!data->driver || pa_utf8_valid(data->driver), -PA_ERR_INVALID);
 
     if (!data->source) {
         data->source = pa_namereg_get(core, NULL, PA_NAMEREG_SOURCE);
         data->save_source = FALSE;
     }
 
-    pa_return_null_if_fail(data->source);
-    pa_return_null_if_fail(PA_SOURCE_IS_LINKED(pa_source_get_state(data->source)));
-    pa_return_null_if_fail(!data->direct_on_input || data->direct_on_input->sink == data->source->monitor_of);
-
-    if ((flags & PA_SOURCE_OUTPUT_FAIL_ON_SUSPEND) &&
-        pa_source_get_state(data->source) == PA_SOURCE_SUSPENDED)
-        return NULL;
+    pa_return_val_if_fail(data->source, -PA_ERR_NOENTITY);
+    pa_return_val_if_fail(PA_SOURCE_IS_LINKED(pa_source_get_state(data->source)), -PA_ERR_BADSTATE);
+    pa_return_val_if_fail(!data->direct_on_input || data->direct_on_input->sink == data->source->monitor_of, -PA_ERR_INVALID);
+    pa_return_val_if_fail(!(flags & PA_SOURCE_OUTPUT_FAIL_ON_SUSPEND) || pa_source_get_state(data->source) != PA_SOURCE_SUSPENDED, -PA_ERR_BADSTATE);
 
     if (!data->sample_spec_is_set)
         data->sample_spec = data->source->sample_spec;
 
-    pa_return_null_if_fail(pa_sample_spec_valid(&data->sample_spec));
+    pa_return_val_if_fail(pa_sample_spec_valid(&data->sample_spec), -PA_ERR_INVALID);
 
     if (!data->channel_map_is_set) {
         if (pa_channel_map_compatible(&data->source->channel_map, &data->sample_spec))
@@ -137,8 +137,8 @@ pa_source_output* pa_source_output_new(
             pa_channel_map_init_extend(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT);
     }
 
-    pa_return_null_if_fail(pa_channel_map_valid(&data->channel_map));
-    pa_return_null_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec));
+    pa_return_val_if_fail(pa_channel_map_valid(&data->channel_map), -PA_ERR_INVALID);
+    pa_return_val_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec), -PA_ERR_INVALID);
 
     if (flags & PA_SOURCE_OUTPUT_FIX_FORMAT)
         data->sample_spec.format = data->source->sample_spec.format;
@@ -157,17 +157,17 @@ pa_source_output* pa_source_output_new(
     if (data->resample_method == PA_RESAMPLER_INVALID)
         data->resample_method = core->resample_method;
 
-    pa_return_null_if_fail(data->resample_method < PA_RESAMPLER_MAX);
+    pa_return_val_if_fail(data->resample_method < PA_RESAMPLER_MAX, -PA_ERR_INVALID);
 
     if (data->client)
         pa_proplist_update(data->proplist, PA_UPDATE_MERGE, data->client->proplist);
 
-    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_FIXATE], data) < 0)
-        return NULL;
+    if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_FIXATE], data)) < 0)
+        return r;
 
     if (pa_idxset_size(data->source->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
         pa_log("Failed to create source output: too many outputs per source.");
-        return NULL;
+        return -PA_ERR_TOOLARGE;
     }
 
     if ((flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ||
@@ -184,7 +184,7 @@ pa_source_output* pa_source_output_new(
                       (core->disable_remixing || (flags & PA_SOURCE_OUTPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0) |
                       (core->disable_lfe_remixing ? PA_RESAMPLER_NO_LFE : 0)))) {
             pa_log_warn("Unsupported resampling operation.");
-            return NULL;
+            return -PA_ERR_NOTSUPPORTED;
         }
     }
 
@@ -248,7 +248,8 @@ pa_source_output* pa_source_output_new(
 
     /* Don't forget to call pa_source_output_put! */
 
-    return o;
+    *_o = o;
+    return 0;
 }
 
 /* Called from main context */
@@ -576,7 +577,7 @@ void pa_source_output_cork(pa_source_output *o, pa_bool_t b) {
 int pa_source_output_set_rate(pa_source_output *o, uint32_t rate) {
     pa_source_output_assert_ref(o);
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
-    pa_return_val_if_fail(o->thread_info.resampler, -1);
+    pa_return_val_if_fail(o->thread_info.resampler, -PA_ERR_BADSTATE);
 
     if (o->sample_spec.rate == rate)
         return 0;
@@ -676,16 +677,17 @@ pa_bool_t pa_source_output_may_move_to(pa_source_output *o, pa_source *dest) {
 /* Called from main context */
 int pa_source_output_start_move(pa_source_output *o) {
     pa_source *origin;
+    int r;
 
     pa_source_output_assert_ref(o);
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
     pa_assert(o->source);
 
     if (!pa_source_output_may_move(o))
-        return -1;
+        return -PA_ERR_NOTSUPPORTED;
 
-    if (pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_START], o) < 0)
-        return -1;
+    if ((r = pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_START], o)) < 0)
+        return r;
 
     origin = o->source;
 
@@ -714,13 +716,6 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
     if (!pa_source_output_may_move_to(o, dest))
         return -1;
 
-    o->source = dest;
-    o->save_source = save;
-    pa_idxset_put(o->source->outputs, o, NULL);
-
-    if (pa_source_output_get_state(o) == PA_SOURCE_OUTPUT_CORKED)
-        o->source->n_corked++;
-
     if (o->thread_info.resampler &&
         pa_sample_spec_equal(pa_resampler_input_sample_spec(o->thread_info.resampler), &dest->sample_spec) &&
         pa_channel_map_equal(pa_resampler_input_channel_map(o->thread_info.resampler), &dest->channel_map))
@@ -743,10 +738,17 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
                       ((o->flags & PA_SOURCE_OUTPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
                       (o->core->disable_remixing || (o->flags & PA_SOURCE_OUTPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0)))) {
             pa_log_warn("Unsupported resampling operation.");
-            return -1;
+            return -PA_ERR_NOTSUPPORTED;
         }
     } else
         new_resampler = NULL;
+
+    o->source = dest;
+    o->save_source = save;
+    pa_idxset_put(o->source->outputs, o, NULL);
+
+    if (pa_source_output_get_state(o) == PA_SOURCE_OUTPUT_CORKED)
+        o->source->n_corked++;
 
     /* Replace resampler */
     if (new_resampler != o->thread_info.resampler) {
@@ -784,6 +786,7 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
 
 /* Called from main context */
 int pa_source_output_move_to(pa_source_output *o, pa_source *dest, pa_bool_t save) {
+    int r;
 
     pa_source_output_assert_ref(o);
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
@@ -794,13 +797,13 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest, pa_bool_t sav
         return 0;
 
     if (!pa_source_output_may_move_to(o, dest))
-        return -1;
+        return -PA_ERR_NOTSUPPORTED;
 
-    if (pa_source_output_start_move(o) < 0)
-        return -1;
+    if ((r = pa_source_output_start_move(o)) < 0)
+        return r;
 
-    if (pa_source_output_finish_move(o, dest, save) < 0)
-        return -1;
+    if ((r = pa_source_output_finish_move(o, dest, save)) < 0)
+        return r;
 
     return 0;
 }
@@ -864,5 +867,5 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
         }
     }
 
-    return -1;
+    return -PA_ERR_NOTIMPLEMENTED;
 }

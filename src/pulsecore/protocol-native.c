@@ -591,7 +591,8 @@ static record_stream* record_stream_new(
         pa_proplist *p,
         pa_bool_t adjust_latency,
         pa_sink_input *direct_on_input,
-        pa_bool_t early_requests) {
+        pa_bool_t early_requests,
+        int *ret) {
 
     record_stream *s;
     pa_source_output *source_output;
@@ -602,6 +603,7 @@ static record_stream* record_stream_new(
     pa_assert(ss);
     pa_assert(maxlength);
     pa_assert(p);
+    pa_assert(ret);
 
     pa_source_output_new_data_init(&data);
 
@@ -616,7 +618,7 @@ static record_stream* record_stream_new(
     if (peak_detect)
         data.resample_method = PA_RESAMPLER_PEAKS;
 
-    source_output = pa_source_output_new(c->protocol->core, &data, flags);
+    *ret = pa_source_output_new(&source_output, c->protocol->core, &data, flags);
 
     pa_source_output_new_data_done(&data);
 
@@ -965,7 +967,8 @@ static playback_stream* playback_stream_new(
         pa_sink_input_flags_t flags,
         pa_proplist *p,
         pa_bool_t adjust_latency,
-        pa_bool_t early_requests) {
+        pa_bool_t early_requests,
+        int *ret) {
 
     playback_stream *s, *ssync;
     pa_sink_input *sink_input;
@@ -982,6 +985,7 @@ static playback_stream* playback_stream_new(
     pa_assert(minreq);
     pa_assert(missing);
     pa_assert(p);
+    pa_assert(ret);
 
     /* Find syncid group */
     for (ssync = pa_idxset_first(c->output_streams, &idx); ssync; ssync = pa_idxset_next(c->output_streams, &idx)) {
@@ -998,8 +1002,10 @@ static playback_stream* playback_stream_new(
 
         if (!sink)
             sink = ssync->sink_input->sink;
-        else if (sink != ssync->sink_input->sink)
+        else if (sink != ssync->sink_input->sink) {
+            *ret = PA_ERR_INVALID;
             return NULL;
+        }
     }
 
     pa_sink_input_new_data_init(&data);
@@ -1017,7 +1023,7 @@ static playback_stream* playback_stream_new(
         pa_sink_input_new_data_set_muted(&data, muted);
     data.sync_base = ssync ? ssync->sink_input : NULL;
 
-    sink_input = pa_sink_input_new(c->protocol->core, &data, flags);
+    *ret = pa_sink_input_new(&sink_input, c->protocol->core, &data, flags);
 
     pa_sink_input_new_data_done(&data);
 
@@ -1696,6 +1702,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
     pa_sink_input_flags_t flags = 0;
     pa_proplist *p;
     pa_bool_t volume_set = TRUE;
+    int ret = PA_ERR_INVALID;
 
     pa_native_connection_assert_ref(c);
     pa_assert(t);
@@ -1822,10 +1829,10 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
      * flag. For older versions we synthesize it here */
     muted_set = muted_set || muted;
 
-    s = playback_stream_new(c, sink, &ss, &map, &maxlength, &tlength, &prebuf, &minreq, volume_set ? &volume : NULL, muted, muted_set, syncid, &missing, flags, p, adjust_latency, early_requests);
+    s = playback_stream_new(c, sink, &ss, &map, &maxlength, &tlength, &prebuf, &minreq, volume_set ? &volume : NULL, muted, muted_set, syncid, &missing, flags, p, adjust_latency, early_requests, &ret);
     pa_proplist_free(p);
 
-    CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, s, tag, ret);
 
     reply = reply_new(tag);
     pa_tagstruct_putu32(reply, s->index);
@@ -1950,6 +1957,7 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
     pa_proplist *p;
     uint32_t direct_on_input_idx = PA_INVALID_INDEX;
     pa_sink_input *direct_on_input = NULL;
+    int ret = PA_ERR_INVALID;
 
     pa_native_connection_assert_ref(c);
     pa_assert(t);
@@ -2071,10 +2079,10 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
         (dont_inhibit_auto_suspend ? PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND : 0) |
         (fail_on_suspend ? PA_SOURCE_OUTPUT_FAIL_ON_SUSPEND : 0);
 
-    s = record_stream_new(c, source, &ss, &map, peak_detect, &maxlength, &fragment_size, flags, p, adjust_latency, direct_on_input, early_requests);
+    s = record_stream_new(c, source, &ss, &map, peak_detect, &maxlength, &fragment_size, flags, p, adjust_latency, direct_on_input, early_requests, &ret);
     pa_proplist_free(p);
 
-    CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, s, tag, ret);
 
     reply = reply_new(tag);
     pa_tagstruct_putu32(reply, s->index);
