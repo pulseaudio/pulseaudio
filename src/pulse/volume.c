@@ -467,6 +467,9 @@ float pa_cvolume_get_balance(const pa_cvolume *v, const pa_channel_map *map) {
     pa_assert(map);
     pa_assert(map->channels == v->channels);
 
+    if (!pa_channel_map_can_balance(map))
+        return 0.0f;
+
     get_avg_lr(map, v, &left, &right);
 
     if (left == right)
@@ -496,6 +499,9 @@ pa_cvolume* pa_cvolume_set_balance(pa_cvolume *v, const pa_channel_map *map, flo
     pa_assert(v);
     pa_assert(new_balance >= -1.0f);
     pa_assert(new_balance <= 1.0f);
+
+    if (!pa_channel_map_can_balance(map))
+        return v;
 
     get_avg_lr(map, v, &left, &right);
 
@@ -584,6 +590,9 @@ float pa_cvolume_get_fade(const pa_cvolume *v, const pa_channel_map *map) {
     pa_assert(map);
     pa_assert(map->channels == v->channels);
 
+    if (!pa_channel_map_can_fade(map))
+        return 0.0f;
+
     get_avg_fr(map, v, &front, &rear);
 
     if (front == rear)
@@ -604,6 +613,9 @@ pa_cvolume* pa_cvolume_set_fade(pa_cvolume *v, const pa_channel_map *map, float 
     pa_assert(v);
     pa_assert(new_fade >= -1.0f);
     pa_assert(new_fade <= 1.0f);
+
+    if (!pa_channel_map_can_fade(map))
+        return v;
 
     get_avg_fr(map, v, &front, &rear);
 
