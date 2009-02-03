@@ -428,6 +428,19 @@ int pa_cvolume_compatible(const pa_cvolume *v, const pa_sample_spec *ss) {
     return v->channels == ss->channels;
 }
 
+int pa_cvolume_compatible_with_channel_map(const pa_cvolume *v, const pa_channel_map *cm) {
+    pa_assert(v);
+    pa_assert(cm);
+
+    if (!pa_cvolume_valid(v))
+        return 0;
+
+    if (!pa_channel_map_valid(cm))
+        return 0;
+
+    return v->channels == cm->channels;
+}
+
 static void get_avg_lr(const pa_channel_map *map, const pa_cvolume *v, pa_volume_t *l, pa_volume_t *r) {
     int c;
     pa_volume_t left = 0, right = 0;

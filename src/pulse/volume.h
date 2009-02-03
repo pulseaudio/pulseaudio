@@ -230,9 +230,13 @@ double pa_sw_volume_to_linear(pa_volume_t v) PA_GCC_CONST;
 /** Remap a volume from one channel mapping to a different channel mapping. \since 0.9.12 */
 pa_cvolume *pa_cvolume_remap(pa_cvolume *v, const pa_channel_map *from, const pa_channel_map *to);
 
-/** Return non-zero if the specified volume is compatible with
- * the specified sample spec. \since 0.9.13 */
+/** Return non-zero if the specified volume is compatible with the
+ * specified sample spec. \since 0.9.13 */
 int pa_cvolume_compatible(const pa_cvolume *v, const pa_sample_spec *ss) PA_GCC_PURE;
+
+/** Return non-zero if the specified volume is compatible with the
+ * specified sample spec. \since 0.9.15 */
+int pa_cvolume_compatible_with_channel_map(const pa_cvolume *v, const pa_channel_map *cm) PA_GCC_PURE;
 
 /** Calculate a 'balance' value for the specified volume with the
  * specified channel map. The return value will range from -1.0f
