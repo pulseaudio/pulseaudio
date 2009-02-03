@@ -584,8 +584,7 @@ static unsigned fill_mix_info(pa_sink *s, size_t *length, pa_mix_info *info, uns
     while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)) && maxinfo > 0) {
         pa_sink_input_assert_ref(i);
 
-        if (pa_sink_input_peek(i, *length, &info->chunk, &info->volume) < 0)
-            continue;
+        pa_sink_input_peek(i, *length, &info->chunk, &info->volume);
 
         if (mixlength == 0 || info->chunk.length < mixlength)
             mixlength = info->chunk.length;

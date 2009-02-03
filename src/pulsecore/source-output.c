@@ -265,11 +265,11 @@ static void update_n_corked(pa_source_output *o, pa_source_output_state_t state)
 }
 
 /* Called from main context */
-static int source_output_set_state(pa_source_output *o, pa_source_output_state_t state) {
+static void source_output_set_state(pa_source_output *o, pa_source_output_state_t state) {
     pa_assert(o);
 
     if (o->state == state)
-        return 0;
+        return;
 
     pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL) == 0);
 
@@ -280,8 +280,6 @@ static int source_output_set_state(pa_source_output *o, pa_source_output_state_t
         pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED], o);
 
     pa_source_update_status(o->source);
-
-    return 0;
 }
 
 /* Called from main context */

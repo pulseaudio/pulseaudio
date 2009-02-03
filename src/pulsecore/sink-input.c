@@ -351,7 +351,7 @@ static void update_n_corked(pa_sink_input *i, pa_sink_input_state_t state) {
 }
 
 /* Called from main context */
-static int sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) {
+static void sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) {
     pa_sink_input *ssync;
     pa_assert(i);
 
@@ -359,7 +359,7 @@ static int sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) {
         state = PA_SINK_INPUT_RUNNING;
 
     if (i->state == state)
-        return 0;
+        return;
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL) == 0);
 
@@ -386,8 +386,6 @@ static int sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) {
     }
 
     pa_sink_update_status(i->sink);
-
-    return 0;
 }
 
 /* Called from main context */
@@ -553,7 +551,7 @@ pa_usec_t pa_sink_input_get_latency(pa_sink_input *i, pa_usec_t *sink_latency) {
 }
 
 /* Called from thread context */
-int pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, pa_memchunk *chunk, pa_cvolume *volume) {
+void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, pa_memchunk *chunk, pa_cvolume *volume) {
     pa_bool_t do_volume_adj_here;
     pa_bool_t volume_is_norm;
     size_t block_size_max_sink, block_size_max_sink_input;
@@ -566,9 +564,6 @@ int pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, pa
     pa_assert(volume);
 
 /*     pa_log_debug("peek"); */
-
-    if (!i->pop)
-        return -1;
 
     pa_assert(i->thread_info.state == PA_SINK_INPUT_RUNNING ||
               i->thread_info.state == PA_SINK_INPUT_CORKED ||
@@ -696,8 +691,6 @@ int pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, pa
         pa_cvolume_mute(volume, i->sink->sample_spec.channels);
     else
         *volume = i->thread_info.soft_volume;
-
-    return 0;
 }
 
 /* Called from thread context */
