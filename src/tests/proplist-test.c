@@ -29,8 +29,9 @@
 #include <pulsecore/core-util.h>
 
 int main(int argc, char*argv[]) {
-    pa_proplist *a, *b, *c;
-    char *s, *t, *u;
+    pa_proplist *a, *b, *c, *d;
+    char *s, *t, *u, *v;
+    const char *text;
 
     a = pa_proplist_new();
     pa_assert_se(pa_proplist_sets(a, PA_PROP_MEDIA_TITLE, "Brandenburgische Konzerte") == 0);
@@ -62,6 +63,20 @@ int main(int argc, char*argv[]) {
     pa_proplist_free(a);
     pa_proplist_free(b);
     pa_proplist_free(c);
+
+    text = "  eins = zwei drei = \"\\\"vier\\\"\" fuenf=sechs sieben ='\\a\\c\\h\\t\\'\\\"' neun= hex:0123456789abCDef ";
+
+    printf("%s\n", text);
+    d = pa_proplist_from_string(text);
+    v = pa_proplist_to_string(d);
+    pa_proplist_free(d);
+    printf("%s\n", v);
+    d = pa_proplist_from_string(v);
+    pa_xfree(v);
+    v = pa_proplist_to_string(d);
+    pa_proplist_free(d);
+    printf("%s\n", v);
+    pa_xfree(v);
 
     return 0;
 }
