@@ -261,6 +261,10 @@ size_t pa_frame_size(const pa_sample_spec *spec) PA_GCC_PURE;
 /** Return the size of a sample with the specific sample type */
 size_t pa_sample_size(const pa_sample_spec *spec) PA_GCC_PURE;
 
+/** Similar to pa_sample_size() but take a sample format instead of a
+ * full sample spec. \since 0.9.15 */
+size_t pa_sample_size_of_format(pa_sample_format_t f) PA_GCC_PURE;
+
 /** Calculate the time the specified bytes take to play with the
  * specified sample type. The return value will always be rounded
  * down for non-integral return values. */

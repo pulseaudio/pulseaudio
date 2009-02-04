@@ -36,7 +36,7 @@
 
 #include "sample.h"
 
-size_t pa_sample_size(const pa_sample_spec *spec) {
+size_t pa_sample_size_of_format(pa_sample_format_t f) {
 
     static const size_t table[] = {
         [PA_SAMPLE_U8] = 1,
@@ -54,10 +54,18 @@ size_t pa_sample_size(const pa_sample_spec *spec) {
         [PA_SAMPLE_S24_32BE] = 4
     };
 
+    pa_assert(f >= 0);
+    pa_assert(f < PA_SAMPLE_MAX);
+
+    return table[f];
+}
+
+size_t pa_sample_size(const pa_sample_spec *spec) {
+
     pa_assert(spec);
     pa_return_val_if_fail(pa_sample_spec_valid(spec), 0);
 
-    return table[spec->format];
+    return pa_sample_size_of_format(spec->format);
 }
 
 size_t pa_frame_size(const pa_sample_spec *spec) {

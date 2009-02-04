@@ -181,6 +181,7 @@ pa_proplist_unset_many;
 pa_proplist_update;
 pa_sample_format_to_string;
 pa_sample_size;
+pa_sample_size_of_format;
 pa_sample_spec_equal;
 pa_sample_spec_init;
 pa_sample_spec_snprint;
