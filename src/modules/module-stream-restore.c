@@ -240,7 +240,7 @@ static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
         return FALSE;
 
     if (a->muted_valid != b->muted_valid ||
-        (a->muted && (a->muted != b->muted)))
+        (a->muted_valid && (a->muted != b->muted)))
         return FALSE;
 
     t = b->relative_volume;
