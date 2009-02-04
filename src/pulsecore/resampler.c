@@ -156,16 +156,6 @@ static int (* const init_table[])(pa_resampler*r) = {
     [PA_RESAMPLER_PEAKS]                   = peaks_init,
 };
 
-static inline size_t sample_size(pa_sample_format_t f) {
-    pa_sample_spec ss = {
-        .format = f,
-        .rate = 0,
-        .channels = 1
-    };
-
-    return pa_sample_size(&ss);
-}
-
 pa_resampler* pa_resampler_new(
         pa_mempool *pool,
         const pa_sample_spec *a,
@@ -275,7 +265,7 @@ pa_resampler* pa_resampler_new(
 
     pa_log_info("Using %s as working format.", pa_sample_format_to_string(r->work_format));
 
-    r->w_sz = sample_size(r->work_format);
+    r->w_sz = pa_sample_size_of_format(r->work_format);
 
     if (r->i_ss.format == r->work_format)
         r->to_work_format_func = NULL;
