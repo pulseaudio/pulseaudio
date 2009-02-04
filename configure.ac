@@ -30,7 +30,7 @@ AC_INIT([pulseaudio],[pa_major.pa_minor.pa_micro],[mzchyfrnhqvb (at) 0pointer (d
 AC_CONFIG_SRCDIR([src/daemon/main.c])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE([foreign 1.10 -Wall])
+AM_INIT_AUTOMAKE([foreign 1.10 -Wall -Wno-portability])
 
 AC_SUBST(PA_MAJOR, pa_major)
 AC_SUBST(PA_MINOR, pa_minor)
