@@ -24,6 +24,7 @@
 #endif
 
 #include <string.h>
+#include <ctype.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/utf8.h>
@@ -46,7 +47,7 @@ struct property {
 
 static pa_bool_t property_name_valid(const char *key) {
 
-    if (!pa_utf8_valid(key))
+    if (!pa_ascii_valid(key))
         return FALSE;
 
     if (strlen(key) <= 0)
@@ -64,8 +65,6 @@ static void property_free(struct property *prop) {
 }
 
 pa_proplist* pa_proplist_new(void) {
-    pa_init_i18n();
-
     return MAKE_PROPLIST(pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func));
 }
 
@@ -83,6 +82,7 @@ int pa_proplist_sets(pa_proplist *p, const char *key, const char *value) {
 
     pa_assert(p);
     pa_assert(key);
+    pa_assert(value);
 
     if (!property_name_valid(key) || !pa_utf8_valid(value))
         return -1;
@@ -104,25 +104,130 @@ int pa_proplist_sets(pa_proplist *p, const char *key, const char *value) {
 }
 
 /** Will accept only valid UTF-8 */
-int pa_proplist_setf(pa_proplist *p, const char *key, const char *format, ...) {
-    va_list ap;
-    int r;
-    char *t;
+static int proplist_setn(pa_proplist *p, const char *key, size_t key_length, const char *value, size_t value_length) {
+    struct property *prop;
+    pa_bool_t add = FALSE;
+    char *k, *v;
 
     pa_assert(p);
     pa_assert(key);
+    pa_assert(value);
+
+    k = pa_xstrndup(key, key_length);
+    v = pa_xstrndup(value, value_length);
+
+    if (!property_name_valid(k) || !pa_utf8_valid(v)) {
+        pa_xfree(k);
+        pa_xfree(v);
+        return -1;
+    }
+
+    if (!(prop = pa_hashmap_get(MAKE_HASHMAP(p), k))) {
+        prop = pa_xnew(struct property, 1);
+        prop->key = k;
+        add = TRUE;
+    } else {
+        pa_xfree(prop->value);
+        pa_xfree(k);
+    }
+
+    prop->value = v;
+    prop->nbytes = strlen(v)+1;
+
+    if (add)
+        pa_hashmap_put(MAKE_HASHMAP(p), prop->key, prop);
+
+    return 0;
+}
+
+static int proplist_sethex(pa_proplist *p, const char *key, size_t key_length, const char *value, size_t value_length) {
+    struct property *prop;
+    pa_bool_t add = FALSE;
+    char *k, *v;
+    uint8_t *d;
+    size_t dn;
+
+    pa_assert(p);
+    pa_assert(key);
+    pa_assert(value);
+
+    k = pa_xstrndup(key, key_length);
+
+    if (!property_name_valid(k)) {
+        pa_xfree(k);
+        return -1;
+    }
+
+    v = pa_xstrndup(value, value_length);
+    d = pa_xmalloc(value_length*2+1);
+
+    if ((dn = pa_parsehex(v, d, value_length*2)) == (size_t) -1) {
+        pa_xfree(k);
+        pa_xfree(v);
+        pa_xfree(d);
+        return -1;
+    }
+
+    pa_xfree(v);
+
+    if (!(prop = pa_hashmap_get(MAKE_HASHMAP(p), k))) {
+        prop = pa_xnew(struct property, 1);
+        prop->key = k;
+        add = TRUE;
+    } else {
+        pa_xfree(prop->value);
+        pa_xfree(k);
+    }
+
+    d[dn] = 0;
+    prop->value = d;
+    prop->nbytes = dn;
+
+    if (add)
+        pa_hashmap_put(MAKE_HASHMAP(p), prop->key, prop);
+
+    return 0;
+}
+
+/** Will accept only valid UTF-8 */
+int pa_proplist_setf(pa_proplist *p, const char *key, const char *format, ...) {
+    struct property *prop;
+    pa_bool_t add = FALSE;
+    va_list ap;
+    char *v;
+
+    pa_assert(p);
+    pa_assert(key);
+    pa_assert(format);
 
     if (!property_name_valid(key) || !pa_utf8_valid(format))
         return -1;
 
     va_start(ap, format);
-    t = pa_vsprintf_malloc(format, ap);
+    v = pa_vsprintf_malloc(format, ap);
     va_end(ap);
 
-    r = pa_proplist_sets(p, key, t);
+    if (!pa_utf8_valid(v))
+        goto fail;
 
-    pa_xfree(t);
-    return r;
+    if (!(prop = pa_hashmap_get(MAKE_HASHMAP(p), key))) {
+        prop = pa_xnew(struct property, 1);
+        prop->key = pa_xstrdup(key);
+        add = TRUE;
+    } else
+        pa_xfree(prop->value);
+
+    prop->value = v;
+    prop->nbytes = strlen(v)+1;
+
+    if (add)
+        pa_hashmap_put(MAKE_HASHMAP(p), prop->key, prop);
+
+    return 0;
+
+fail:
+    pa_xfree(v);
+    return -1;
 }
 
 int pa_proplist_set(pa_proplist *p, const char *key, const void *data, size_t nbytes) {
@@ -131,6 +236,7 @@ int pa_proplist_set(pa_proplist *p, const char *key, const void *data, size_t nb
 
     pa_assert(p);
     pa_assert(key);
+    pa_assert(data);
 
     if (!property_name_valid(key))
         return -1;
@@ -142,7 +248,9 @@ int pa_proplist_set(pa_proplist *p, const char *key, const void *data, size_t nb
     } else
         pa_xfree(prop->value);
 
-    prop->value = pa_xmemdup(data, nbytes);
+    prop->value = pa_xmalloc(nbytes+1);
+    memcpy(prop->value, data, nbytes);
+    ((char*) prop->value)[nbytes] = 0;
     prop->nbytes = nbytes;
 
     if (add)
@@ -183,6 +291,8 @@ int pa_proplist_get(pa_proplist *p, const char *key, const void **data, size_t *
 
     pa_assert(p);
     pa_assert(key);
+    pa_assert(data);
+    pa_assert(nbytes);
 
     if (!property_name_valid(key))
         return -1;
@@ -275,9 +385,32 @@ char *pa_proplist_to_string_sep(pa_proplist *p, const char *sep) {
         if (!pa_strbuf_isempty(buf))
             pa_strbuf_puts(buf, sep);
 
-        if ((v = pa_proplist_gets(p, key)))
-            pa_strbuf_printf(buf, "%s = \"%s\"", key, v);
-        else {
+        if ((v = pa_proplist_gets(p, key))) {
+            const char *t;
+
+            pa_strbuf_printf(buf, "%s = \"", key);
+
+            for (t = v;;) {
+                size_t h;
+
+                h = strcspn(t, "\"");
+
+                if (h > 0)
+                    pa_strbuf_putsn(buf, t, h);
+
+                t += h;
+
+                if (*t == 0)
+                    break;
+
+                pa_assert(*t == '"');
+                pa_strbuf_puts(buf, "\\\"");
+
+                t++;
+            }
+
+            pa_strbuf_puts(buf, "\"");
+        } else {
             const void *value;
             size_t nbytes;
             char *c;
@@ -304,88 +437,189 @@ char *pa_proplist_to_string(pa_proplist *p) {
     return t;
 }
 
-/* Remove all whitepsapce from the beginning and the end of *s. *s may
- * be modified. (from conf-parser.c) */
-#define WHITESPACE " \t\n"
-#define in_string(c,s) (strchr(s,c) != NULL)
+pa_proplist *pa_proplist_from_string(const char *s) {
+    enum {
+        WHITESPACE,
+        KEY,
+        AFTER_KEY,
+        VALUE_START,
+        VALUE_SIMPLE,
+        VALUE_DOUBLE_QUOTES,
+        VALUE_DOUBLE_QUOTES_ESCAPE,
+        VALUE_TICKS,
+        VALUE_TICKS_ESCAPED,
+        VALUE_HEX
+    } state;
 
-static char *strip(char *s) {
-    char *b = s+strspn(s, WHITESPACE);
-    char *e, *l = NULL;
+    pa_proplist *pl;
+    const char *p, *key = NULL, *value = NULL;
+    size_t key_len = 0, value_len = 0;
 
-    for (e = b; *e; e++)
-        if (!in_string(*e, WHITESPACE))
-            l = e;
+    pa_assert(s);
 
-    if (l)
-        *(l+1) = 0;
+    pl = pa_proplist_new();
 
-    return b;
-}
+    state = WHITESPACE;
 
-pa_proplist *pa_proplist_from_string(const char *str) {
-    pa_proplist *p;
-    char *s, *v, *k, *e;
+    for (p = s;; p++) {
+        switch (state) {
 
-    pa_assert(str);
-    pa_assert_se(p = pa_proplist_new());
-    pa_assert_se(s = strdup(str));
-
-    for (k = s; *k; k = e) {
-        k = k+strspn(k, WHITESPACE);
-
-        if (!*k)
-            break;
-
-        if (!(v = strchr(k, '='))) {
-            pa_log("Missing '='.");
-            break;
-        }
-
-        *v++ = '\0';
-        k = strip(k);
-
-        v = v+strspn(v, WHITESPACE);
-        if (*v == '"') {
-            v++;
-            if (!(e = strchr(v, '"'))) { /* FIXME: handle escape */
-                pa_log("Missing '\"' at end of string value.");
+            case WHITESPACE:
+                if (*p == 0)
+                    goto success;
+                else if (*p == '=')
+                    goto fail;
+                else if (!isspace(*p)) {
+                    key = p;
+                    state = KEY;
+                    key_len = 1;
+                }
                 break;
-            }
-            *e++ = '\0';
-            pa_proplist_sets(p, k, v);
-        } else {
-            uint8_t *blob;
 
-            if (*v++ != 'h' || *v++ != 'e' || *v++ != 'x' || *v++ != ':') {
-                pa_log("Value must be a string or \"hex:\"");
+            case KEY:
+                if (*p == 0)
+                    goto fail;
+                else if (*p == '=')
+                    state = VALUE_START;
+                else if (isspace(*p))
+                    state = AFTER_KEY;
+                else
+                    key_len++;
                 break;
-            }
 
-            e = v;
-            while (in_string(*e, "0123456789abcdefABCDEF"))
-                ++e;
-
-            if ((e - v) % 2) {
-                pa_log("Invalid \"hex:\" value data");
+            case AFTER_KEY:
+                if (*p == 0)
+                    goto fail;
+                else if (*p == '=')
+                    state = VALUE_START;
+                else if (!isspace(*p))
+                    goto fail;
                 break;
-            }
 
-            blob = pa_xmalloc((size_t)(e-v)/2);
-            if (pa_parsehex(v, blob, (e-v)/2) != (size_t)((e-v)/2)) {
-                pa_log("Invalid \"hex:\" value data");
-                pa_xfree(blob);
+            case VALUE_START:
+                if (*p == 0)
+                    goto fail;
+                else if (strncmp(p, "hex:", 4) == 0) {
+                    state = VALUE_HEX;
+                    value = p+4;
+                    value_len = 0;
+                    p += 3;
+                } else if (*p == '\'') {
+                    state = VALUE_TICKS;
+                    value = p+1;
+                    value_len = 0;
+                } else if (*p == '"') {
+                    state = VALUE_DOUBLE_QUOTES;
+                    value = p+1;
+                    value_len = 0;
+                } else if (!isspace(*p)) {
+                    state = VALUE_SIMPLE;
+                    value = p;
+                    value_len = 1;
+                }
                 break;
-            }
 
-            pa_proplist_set(p, k, blob, (e-v)/2);
-            pa_xfree(blob);
+            case VALUE_SIMPLE:
+                if (*p == 0 || isspace(*p)) {
+                    if (proplist_setn(pl, key, key_len, value, value_len) < 0)
+                        goto fail;
+
+                    if (*p == 0)
+                        goto success;
+
+                    state = WHITESPACE;
+                } else
+                    value_len++;
+                break;
+
+            case VALUE_DOUBLE_QUOTES:
+                if (*p == 0)
+                    goto fail;
+                else if (*p == '"') {
+                    char *v;
+
+                    v = pa_unescape(pa_xstrndup(value, value_len));
+
+                    if (proplist_setn(pl, key, key_len, v, strlen(v)) < 0) {
+                        pa_xfree(v);
+                        goto fail;
+                    }
+
+                    pa_xfree(v);
+                    state = WHITESPACE;
+                } else if (*p == '\\') {
+                    state = VALUE_DOUBLE_QUOTES_ESCAPE;
+                    value_len++;
+                } else
+                    value_len++;
+                break;
+
+            case VALUE_DOUBLE_QUOTES_ESCAPE:
+                if (*p == 0)
+                    goto fail;
+                else {
+                    state = VALUE_DOUBLE_QUOTES;
+                    value_len++;
+                }
+                break;
+
+            case VALUE_TICKS:
+                if (*p == 0)
+                    goto fail;
+                else if (*p == '\'') {
+                    char *v;
+
+                    v = pa_unescape(pa_xstrndup(value, value_len));
+
+                    if (proplist_setn(pl, key, key_len, v, strlen(v)) < 0) {
+                        pa_xfree(v);
+                        goto fail;
+                    }
+
+                    pa_xfree(v);
+                    state = WHITESPACE;
+                } else if (*p == '\\') {
+                    state = VALUE_TICKS_ESCAPED;
+                    value_len++;
+                } else
+                    value_len++;
+                break;
+
+            case VALUE_TICKS_ESCAPED:
+                if (*p == 0)
+                    goto fail;
+                else {
+                    state = VALUE_TICKS;
+                    value_len++;
+                }
+                break;
+
+            case VALUE_HEX:
+                if ((*p >= '0' && *p <= '9') ||
+                    (*p >= 'A' && *p <= 'F') ||
+                    (*p >= 'a' && *p <= 'f')) {
+                    value_len++;
+                } else if (*p == 0 || isspace(*p)) {
+
+                    if (proplist_sethex(pl, key, key_len, value, value_len) < 0)
+                        goto fail;
+
+                    if (*p == 0)
+                        goto success;
+
+                    state = WHITESPACE;
+                } else
+                    goto fail;
+                break;
         }
     }
 
-    pa_xfree(s);
+success:
+    return MAKE_PROPLIST(pl);
 
-    return p;
+fail:
+    pa_proplist_free(pl);
+    return NULL;
 }
 
 int pa_proplist_contains(pa_proplist *p, const char *key) {

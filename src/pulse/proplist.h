@@ -136,7 +136,7 @@ PA_C_DECL_BEGIN
 #define PA_PROP_MODULE_USAGE                   "module.usage"
 #define PA_PROP_MODULE_VERSION                 "module.version"
 
-/** A property list object. Basically a dictionary with UTF-8 strings
+/** A property list object. Basically a dictionary with ASCII strings
  * as keys and arbitrary data as values. \since 0.9.11 */
 typedef struct pa_proplist pa_proplist;
 
