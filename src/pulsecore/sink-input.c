@@ -136,6 +136,9 @@ int pa_sink_input_new(
     pa_assert(core);
     pa_assert(data);
 
+    if (data->client)
+        pa_proplist_update(data->proplist, PA_UPDATE_MERGE, data->client->proplist);
+
     if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], data)) < 0)
         return r;
 
@@ -223,9 +226,6 @@ int pa_sink_input_new(
         data->resample_method = core->resample_method;
 
     pa_return_val_if_fail(data->resample_method < PA_RESAMPLER_MAX, -PA_ERR_INVALID);
-
-    if (data->client)
-        pa_proplist_update(data->proplist, PA_UPDATE_MERGE, data->client->proplist);
 
     if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], data)) < 0)
         return r;
