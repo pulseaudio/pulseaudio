@@ -26,7 +26,7 @@ m4_define(pa_major, [0])
 m4_define(pa_minor, [9])
 m4_define(pa_micro, [15])
 
-AC_INIT([pulseaudio],[pa_major.pa_minor.pa_micro],[mzchyfrnhqvb (at) 0pointer (dot) net])
+AC_INIT([pulseaudio],[pa_major.pa_minor.pa_micro-test1],[mzchyfrnhqvb (at) 0pointer (dot) net])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
@@ -44,7 +44,7 @@ AC_SUBST(PA_PROTOCOL_VERSION, 15)
 
 # The stable ABI for client applications, for the version info x:y:z
 # always will hold y=z
-AC_SUBST(LIBPULSE_VERSION_INFO, [7:1:7])
+AC_SUBST(LIBPULSE_VERSION_INFO, [8:0:8])
 
 # A simplified, synchronous, ABI-stable interface for client
 # applications, for the version info x:y:z always will hold y=z
