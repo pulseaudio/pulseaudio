@@ -1,5 +1,7 @@
 PULSE_0 {
 global:
+pa_ascii_filter;
+pa_ascii_valid;
 pa_browser_new;
 pa_browser_new_full;
 pa_browser_ref;

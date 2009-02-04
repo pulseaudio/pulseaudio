@@ -263,3 +263,29 @@ char* pa_locale_to_utf8 (const char *str) {
 }
 
 #endif
+
+char *pa_ascii_valid(const char *str) {
+    const char *p;
+    pa_assert(str);
+
+    for (p = str; *p; p++)
+        if ((unsigned char) *p >= 128)
+            return NULL;
+
+    return (char*) str;
+}
+
+char *pa_ascii_filter(const char *str) {
+    char *r, *s, *d;
+    pa_assert(str);
+
+    r = pa_xstrdup(str);
+
+    for (s = r, d = r; *s; s++)
+        if ((unsigned char) *s < 128)
+            *(d++) = *s;
+
+    *d = 0;
+
+    return r;
+}

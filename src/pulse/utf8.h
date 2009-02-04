@@ -36,8 +36,14 @@ PA_C_DECL_BEGIN
 /** Test if the specified strings qualifies as valid UTF8. Return the string if so, otherwise NULL */
 char *pa_utf8_valid(const char *str) PA_GCC_PURE;
 
+/** Test if the specified strings qualifies as valid 7-bit ASCII. Return the string if so, otherwise NULL. \since 0.9.15 */
+char *pa_ascii_valid(const char *str) PA_GCC_PURE;
+
 /** Filter all invalid UTF8 characters from the specified string, returning a new fully UTF8 valid string. Don't forget to free the returned string with pa_xfree() */
 char *pa_utf8_filter(const char *str);
+
+/** Filter all invalid ASCII characters from the specified string, returning a new fully ASCII valid string. Don't forget to free the returned string with pa_xfree(). \since 0.9.15 */
+char *pa_ascii_filter(const char *str);
 
 /** Convert a UTF-8 string to the current locale. Free the string using pa_xfree(). */
 char* pa_utf8_to_locale (const char *str);
