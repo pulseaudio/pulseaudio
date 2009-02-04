@@ -744,6 +744,13 @@ void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk) {
                 break;
             }
 
+            case PA_SAMPLE_S24LE:
+            case PA_SAMPLE_S24BE:
+            case PA_SAMPLE_S24_32LE:
+            case PA_SAMPLE_S24_32BE:
+                /* FIXME */
+                pa_assert_not_reached();
+
             case PA_SAMPLE_MAX:
             case PA_SAMPLE_INVALID:
                 pa_assert_not_reached();
