@@ -62,6 +62,7 @@ PA_MODULE_USAGE(
         "restore_muted=<Save/restore muted states?>");
 
 #define SAVE_INTERVAL 10
+#define IDENTIFICATION_PROPERTY "module-stream-restore.id"
 
 static const char* const valid_modargs[] = {
     "restore_device",
@@ -129,20 +130,27 @@ static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct
 
 static char *get_name(pa_proplist *p, const char *prefix) {
     const char *r;
+    char *t;
 
     if (!p)
         return NULL;
 
-    if ((r = pa_proplist_gets(p, PA_PROP_MEDIA_ROLE)))
-        return pa_sprintf_malloc("%s-by-media-role:%s", prefix, r);
-    else if ((r = pa_proplist_gets(p, PA_PROP_APPLICATION_ID)))
-        return pa_sprintf_malloc("%s-by-application-id:%s", prefix, r);
-    else if ((r = pa_proplist_gets(p, PA_PROP_APPLICATION_NAME)))
-        return pa_sprintf_malloc("%s-by-application-name:%s", prefix, r);
-    else if ((r = pa_proplist_gets(p, PA_PROP_MEDIA_NAME)))
-        return pa_sprintf_malloc("%s-by-media-name:%s", prefix, r);
+    if ((r = pa_proplist_gets(p, IDENTIFICATION_PROPERTY)))
+        return pa_xstrdup(r);
 
-    return pa_sprintf_malloc("%s-fallback:%s", prefix, r);
+    if ((r = pa_proplist_gets(p, PA_PROP_MEDIA_ROLE)))
+        t = pa_sprintf_malloc("%s-by-media-role:%s", prefix, r);
+    else if ((r = pa_proplist_gets(p, PA_PROP_APPLICATION_ID)))
+        t = pa_sprintf_malloc("%s-by-application-id:%s", prefix, r);
+    else if ((r = pa_proplist_gets(p, PA_PROP_APPLICATION_NAME)))
+        t = pa_sprintf_malloc("%s-by-application-name:%s", prefix, r);
+    else if ((r = pa_proplist_gets(p, PA_PROP_MEDIA_NAME)))
+        t = pa_sprintf_malloc("%s-by-media-name:%s", prefix, r);
+    else
+        t = pa_sprintf_malloc("%s-fallback:%s", prefix, r);
+
+    pa_proplist_sets(p, IDENTIFICATION_PROPERTY, t);
+    return t;
 }
 
 static struct entry* read_entry(struct userdata *u, const char *name) {
