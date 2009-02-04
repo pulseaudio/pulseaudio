@@ -97,6 +97,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/thread.h>
+#include <pulsecore/strbuf.h>
 
 #include "core-util.h"
 
@@ -2552,4 +2553,50 @@ unsigned pa_ncpus(void) {
 #endif
 
     return ncpus <= 0 ? 1 : (unsigned) ncpus;
+}
+
+char *pa_replace(const char*s, const char*a, const char *b) {
+    pa_strbuf *sb;
+    size_t an;
+
+    pa_assert(s);
+    pa_assert(a);
+    pa_assert(b);
+
+    an = strlen(a);
+    sb = pa_strbuf_new();
+
+    for (;;) {
+        const char *p;
+
+        if (!(p = strstr(s, a)))
+            break;
+
+        pa_strbuf_putsn(sb, s, p-s);
+        pa_strbuf_puts(sb, b);
+        s = p + an;
+    }
+
+    pa_strbuf_puts(sb, s);
+
+    return pa_strbuf_tostring_free(sb);
+}
+
+char *pa_unescape(char *p) {
+    char *s, *d;
+    pa_bool_t escaped = FALSE;
+
+    for (s = p, d = p; *s; s++) {
+        if (!escaped && *s == '\\') {
+            escaped = TRUE;
+            continue;
+        }
+
+        *(d++) = *s;
+        escaped = FALSE;
+    }
+
+    *d = 0;
+
+    return p;
 }

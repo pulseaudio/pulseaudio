@@ -215,4 +215,8 @@ void pa_reduce(unsigned *num, unsigned *den);
 
 unsigned pa_ncpus(void);
 
+char *pa_replace(const char*s, const char*a, const char *b);
+
+char *pa_unescape(char *p);
+
 #endif
