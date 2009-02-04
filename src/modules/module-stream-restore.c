@@ -396,32 +396,33 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
 
         if (u->restore_volume) {
 
-            if (!new_data->virtual_volume_is_set) {
+            if (!new_data->volume_is_set) {
                 pa_cvolume v;
                 pa_cvolume_init(&v);
 
                 if (new_data->sink->flags & PA_SINK_FLAT_VOLUME) {
 
+                    /* We don't check for e->device_valid here because
+                    that bit marks whether it is a good choice for
+                    restoring, not just if the data is filled in. */
                     if (e->absolute_volume_valid &&
-                        e->device_valid &&
-                        pa_streq(new_data->sink->name, e->device)) {
+                        (e->device[0] == 0 || pa_streq(new_data->sink->name, e->device))) {
 
                         v = e->absolute_volume;
-                        new_data->virtual_volume_is_absolute = TRUE;
+                        new_data->volume_is_absolute = TRUE;
                     } else if (e->relative_volume_valid) {
-
                         v = e->relative_volume;
-                        new_data->virtual_volume_is_absolute = FALSE;
+                        new_data->volume_is_absolute = FALSE;
                     }
 
                 } else if (e->relative_volume_valid) {
                     v = e->relative_volume;
-                    new_data->virtual_volume_is_absolute = FALSE;
+                    new_data->volume_is_absolute = FALSE;
                 }
 
                 if (v.channels > 0) {
                     pa_log_info("Restoring volume for sink input %s.", name);
-                    pa_sink_input_new_data_set_virtual_volume(new_data, pa_cvolume_remap(&v, &e->channel_map, &new_data->channel_map));
+                    pa_sink_input_new_data_set_volume(new_data, pa_cvolume_remap(&v, &e->channel_map, &new_data->channel_map));
                     new_data->save_volume = TRUE;
                 }
             } else
@@ -531,11 +532,10 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
             if (si->sink->flags & PA_SINK_FLAT_VOLUME) {
 
                 if (e->absolute_volume_valid &&
-                    e->device_valid &&
-                    pa_streq(e->device, si->sink->name))
+                    (e->device[0] == 0 || pa_streq(e->device, si->sink->name)))
                     v = e->absolute_volume;
                 else if (e->relative_volume_valid) {
-                    pa_cvolume t = si->sink->virtual_volume;
+                    pa_cvolume t = *pa_sink_get_volume(si->sink, FALSE);
                     pa_sw_cvolume_multiply(&v, &e->relative_volume, pa_cvolume_remap(&t, &si->sink->channel_map, &e->channel_map));
                 }
             } else if (e->relative_volume_valid)
@@ -663,10 +663,11 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
 
                 if ((e = read_entry(u, name))) {
                     pa_cvolume r;
+                    pa_channel_map cm;
 
                     pa_tagstruct_puts(reply, name);
-                    pa_tagstruct_put_channel_map(reply, &e->channel_map);
-                    pa_tagstruct_put_cvolume(reply, e->relative_volume_valid ? &e->relative_volume : pa_cvolume_init(&r));
+                    pa_tagstruct_put_channel_map(reply, (e->relative_volume_valid || e->absolute_volume_valid) ? &e->channel_map : pa_channel_map_init(&cm));
+                    pa_tagstruct_put_cvolume(reply, e->absolute_volume_valid ? &e->absolute_volume : (e->relative_volume_valid ? &e->relative_volume : pa_cvolume_init(&r)));
                     pa_tagstruct_puts(reply, e->device_valid ? e->device : NULL);
                     pa_tagstruct_put_boolean(reply, e->muted_valid ? e->muted : FALSE);
 
@@ -709,17 +710,20 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
 
                 if (pa_tagstruct_gets(t, &name) < 0 ||
                     pa_tagstruct_get_channel_map(t, &entry.channel_map) ||
-                    pa_tagstruct_get_cvolume(t, &entry.relative_volume) < 0 ||
+                    pa_tagstruct_get_cvolume(t, &entry.absolute_volume) < 0 ||
                     pa_tagstruct_gets(t, &device) < 0 ||
                     pa_tagstruct_get_boolean(t, &muted) < 0)
                     goto fail;
 
-                entry.absolute_volume_valid = FALSE;
-                entry.relative_volume_valid = entry.relative_volume.channels > 0;
-
-                if (entry.relative_volume_valid &&
-                    entry.channel_map.channels != entry.relative_volume.channels)
+                if (!name || !*name)
                     goto fail;
+
+                entry.relative_volume = entry.absolute_volume;
+                entry.absolute_volume_valid = entry.relative_volume_valid = entry.relative_volume.channels > 0;
+
+                if (entry.relative_volume_valid)
+                    if (!pa_cvolume_compatible_with_channel_map(&entry.relative_volume, &entry.channel_map))
+                        goto fail;
 
                 entry.muted = muted;
                 entry.muted_valid = TRUE;

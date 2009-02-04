@@ -80,16 +80,16 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *core, pa_sink_i
 
     pa_log_debug("Positioning event sound '%s' at %0.2f.", pa_strnull(pa_proplist_gets(data->proplist, PA_PROP_EVENT_ID)), f);
 
-    if (!data->virtual_volume_is_set) {
-        pa_cvolume_reset(&data->virtual_volume, data->sample_spec.channels);
-        data->virtual_volume_is_set = TRUE;
-        data->virtual_volume_is_absolute = FALSE;
+    if (!data->volume_is_set) {
+        pa_cvolume_reset(&data->volume, data->sample_spec.channels);
+        data->volume_is_set = TRUE;
+        data->volume_is_absolute = FALSE;
     }
 
-    pa_cvolume_set_balance(&data->virtual_volume, &data->channel_map, f*2.0-1.0);
+    pa_cvolume_set_balance(&data->volume, &data->channel_map, f*2.0-1.0);
     data->save_volume = FALSE;
 
-    pa_log_debug("Final volume %s.", pa_cvolume_snprint(t, sizeof(t), &data->virtual_volume));
+    pa_log_debug("Final volume %s.", pa_cvolume_snprint(t, sizeof(t), &data->volume));
 
     return PA_HOOK_OK;
 }

@@ -197,7 +197,7 @@ pa_sink_input* pa_memblockq_sink_input_new(
     data.driver = __FILE__;
     pa_sink_input_new_data_set_sample_spec(&data, ss);
     pa_sink_input_new_data_set_channel_map(&data, map);
-    pa_sink_input_new_data_set_virtual_volume(&data, volume);
+    pa_sink_input_new_data_set_volume(&data, volume);
     pa_proplist_update(data.proplist, PA_UPDATE_REPLACE, p);
 
     pa_sink_input_new(&u->sink_input, sink->core, &data, 0);

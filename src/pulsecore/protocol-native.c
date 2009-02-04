@@ -1018,7 +1018,7 @@ static playback_stream* playback_stream_new(
     pa_sink_input_new_data_set_sample_spec(&data, ss);
     pa_sink_input_new_data_set_channel_map(&data, map);
     if (volume)
-        pa_sink_input_new_data_set_virtual_volume(&data, volume);
+        pa_sink_input_new_data_set_volume(&data, volume);
     if (muted_set)
         pa_sink_input_new_data_set_muted(&data, muted);
     data.sync_base = ssync ? ssync->sink_input : NULL;

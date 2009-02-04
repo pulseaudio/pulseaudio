@@ -233,16 +233,16 @@ typedef struct pa_sink_input_new_data {
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
 
-    pa_cvolume virtual_volume, soft_volume;
+    pa_cvolume volume;
     pa_bool_t muted:1;
 
     pa_bool_t sample_spec_is_set:1;
     pa_bool_t channel_map_is_set:1;
 
-    pa_bool_t virtual_volume_is_set:1, soft_volume_is_set:1;
+    pa_bool_t volume_is_set:1;
     pa_bool_t muted_is_set:1;
 
-    pa_bool_t virtual_volume_is_absolute:1;
+    pa_bool_t volume_is_absolute:1;
 
     pa_bool_t save_sink:1, save_volume:1, save_muted:1;
 } pa_sink_input_new_data;
@@ -250,8 +250,7 @@ typedef struct pa_sink_input_new_data {
 pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data);
 void pa_sink_input_new_data_set_sample_spec(pa_sink_input_new_data *data, const pa_sample_spec *spec);
 void pa_sink_input_new_data_set_channel_map(pa_sink_input_new_data *data, const pa_channel_map *map);
-void pa_sink_input_new_data_set_soft_volume(pa_sink_input_new_data *data, const pa_cvolume *volume);
-void pa_sink_input_new_data_set_virtual_volume(pa_sink_input_new_data *data, const pa_cvolume *volume);
+void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cvolume *volume);
 void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mute);
 void pa_sink_input_new_data_done(pa_sink_input_new_data *data);
 
