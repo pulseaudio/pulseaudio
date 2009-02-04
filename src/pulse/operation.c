@@ -62,6 +62,7 @@ pa_operation *pa_operation_ref(pa_operation *o) {
     PA_REFCNT_INC(o);
     return o;
 }
+
 void pa_operation_unref(pa_operation *o) {
     pa_assert(o);
     pa_assert(PA_REFCNT_VALUE(o) >= 1);

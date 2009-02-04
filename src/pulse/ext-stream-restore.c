@@ -30,6 +30,7 @@
 #include <pulsecore/pstream-util.h>
 
 #include "internal.h"
+#include "operation.h"
 
 #include "ext-stream-restore.h"
 
@@ -191,8 +192,8 @@ pa_operation *pa_ext_stream_restore_write(
         void *userdata) {
 
     uint32_t tag;
-    pa_operation *o;
-    pa_tagstruct *t;
+    pa_operation *o = NULL;
+    pa_tagstruct *t = NULL;
 
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
@@ -213,7 +214,15 @@ pa_operation *pa_ext_stream_restore_write(
     pa_tagstruct_put_boolean(t, apply_immediately);
 
     for (; n > 0; n--, data++) {
+        if (!data->name || !*data->name)
+            goto fail;
+
         pa_tagstruct_puts(t, data->name);
+
+        if (data->volume.channels > 0 &&
+            !pa_cvolume_compatible_with_channel_map(&data->volume, &data->channel_map))
+            goto fail;
+
         pa_tagstruct_put_channel_map(t, &data->channel_map);
         pa_tagstruct_put_cvolume(t, &data->volume);
         pa_tagstruct_puts(t, data->device);
@@ -224,6 +233,18 @@ pa_operation *pa_ext_stream_restore_write(
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
+
+fail:
+    if (o) {
+        pa_operation_cancel(o);
+        pa_operation_unref(o);
+    }
+
+    if (t)
+        pa_tagstruct_free(t);
+
+    pa_context_set_error(c, PA_ERR_INVALID);
+    return NULL;
 }
 
 pa_operation *pa_ext_stream_restore_delete(
@@ -233,8 +254,8 @@ pa_operation *pa_ext_stream_restore_delete(
         void *userdata) {
 
     uint32_t tag;
-    pa_operation *o;
-    pa_tagstruct *t;
+    pa_operation *o = NULL;
+    pa_tagstruct *t = NULL;
     const char *const *k;
 
     pa_assert(c);
@@ -251,13 +272,29 @@ pa_operation *pa_ext_stream_restore_delete(
     pa_tagstruct_puts(t, "module-stream-restore");
     pa_tagstruct_putu32(t, SUBCOMMAND_DELETE);
 
-    for (k = s; *k; k++)
+    for (k = s; *k; k++) {
+        if (!*k || !**k)
+            goto fail;
+
         pa_tagstruct_puts(t, *k);
+    }
 
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
+
+fail:
+    if (o) {
+        pa_operation_cancel(o);
+        pa_operation_unref(o);
+    }
+
+    if (t)
+        pa_tagstruct_free(t);
+
+    pa_context_set_error(c, PA_ERR_INVALID);
+    return NULL;
 }
 
 pa_operation *pa_ext_stream_restore_subscribe(
@@ -322,5 +359,4 @@ void pa_ext_stream_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t)
 
     if (c->ext_stream_restore.callback)
         c->ext_stream_restore.callback(c, c->ext_stream_restore.userdata);
-
 }
