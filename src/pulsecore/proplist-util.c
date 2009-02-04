@@ -41,6 +41,7 @@ void pa_init_proplist(pa_proplist *p) {
     extern char **environ;
 #endif
     char **e;
+    const char *pp;
 
     pa_assert(p);
 
@@ -72,6 +73,15 @@ void pa_init_proplist(pa_proplist *p) {
                 pa_proplist_sets(p, k, *e+11+kl+1);
                 pa_xfree(k);
             }
+        }
+    }
+
+    if ((pp = getenv("PULSE_PROP"))) {
+        pa_proplist *t;
+
+        if ((t = pa_proplist_from_string(pp))) {
+            pa_proplist_update(p, PA_UPDATE_MERGE, t);
+            pa_proplist_free(t);
         }
     }
 
