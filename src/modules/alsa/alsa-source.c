@@ -187,7 +187,8 @@ static size_t check_left_to_record(struct userdata *u, snd_pcm_sframes_t n) {
     if (left_to_record > 0) {
 /*         pa_log_debug("%0.2f ms left to record", (double) pa_bytes_to_usec(left_to_record, &u->source->sample_spec) / PA_USEC_PER_MSEC); */
     } else {
-        pa_log_info("Overrun!");
+        if (pa_log_ratelimit())
+            pa_log_info("Overrun!");
 
         if (u->use_tsched) {
             size_t old_watermark = u->tsched_watermark;

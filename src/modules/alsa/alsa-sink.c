@@ -190,7 +190,9 @@ static size_t check_left_to_play(struct userdata *u, snd_pcm_sframes_t n) {
     if (left_to_play > 0) {
 /*         pa_log_debug("%0.2f ms left to play", (double) pa_bytes_to_usec(left_to_play, &u->sink->sample_spec) / PA_USEC_PER_MSEC); */
     } else if (!u->first && !u->after_rewind) {
-        pa_log_info("Underrun!");
+
+        if (pa_log_ratelimit())
+            pa_log_info("Underrun!");
 
         if (u->use_tsched) {
             size_t old_watermark = u->tsched_watermark;
