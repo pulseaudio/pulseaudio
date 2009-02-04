@@ -79,106 +79,111 @@ static int add_key_value(pa_hashmap *map, char *key, char *value, const char* co
 }
 
 pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
-    pa_hashmap *map = NULL;
+    enum {
+        WHITESPACE,
+        KEY,
+        VALUE_START,
+        VALUE_SIMPLE,
+        VALUE_DOUBLE_QUOTES,
+        VALUE_TICKS
+    } state;
+
+    const char *p, *key = NULL, *value = NULL;
+    size_t key_len = 0, value_len = 0;
+    pa_hashmap *map;
 
     map = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
-    if (args) {
-        enum {
-            WHITESPACE,
-            KEY,
-            VALUE_START,
-            VALUE_SIMPLE,
-            VALUE_DOUBLE_QUOTES,
-            VALUE_TICKS
-        } state;
+    if (!args)
+        return (pa_modargs*) map;
 
-        const char *p, *key, *value;
-        size_t key_len = 0, value_len = 0;
+    state = WHITESPACE;
 
-        key = value = NULL;
-        state = WHITESPACE;
-        for (p = args; *p; p++) {
-            switch (state) {
-                case WHITESPACE:
-                    if (*p == '=')
+    for (p = args; *p; p++) {
+        switch (state) {
+
+            case WHITESPACE:
+                if (*p == '=')
+                    goto fail;
+                else if (!isspace(*p)) {
+                    key = p;
+                    state = KEY;
+                    key_len = 1;
+                }
+                break;
+
+            case KEY:
+                if (*p == '=')
+                    state = VALUE_START;
+                else if (isspace(*p))
+                    goto fail;
+                else
+                    key_len++;
+                break;
+
+            case  VALUE_START:
+                if (*p == '\'') {
+                    state = VALUE_TICKS;
+                    value = p+1;
+                    value_len = 0;
+                } else if (*p == '"') {
+                    state = VALUE_DOUBLE_QUOTES;
+                    value = p+1;
+                    value_len = 0;
+                } else if (isspace(*p)) {
+                    if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrdup(""), valid_keys) < 0)
                         goto fail;
-                    else if (!isspace(*p)) {
-                        key = p;
-                        state = KEY;
-                        key_len = 1;
-                    }
-                    break;
-                case KEY:
-                    if (*p == '=')
-                        state = VALUE_START;
-                    else if (isspace(*p))
+                    state = WHITESPACE;
+                } else {
+                    state = VALUE_SIMPLE;
+                    value = p;
+                    value_len = 1;
+                }
+                break;
+
+            case VALUE_SIMPLE:
+                if (isspace(*p)) {
+                    if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrndup(value, value_len), valid_keys) < 0)
                         goto fail;
-                    else
-                        key_len++;
-                    break;
-                case  VALUE_START:
-                    if (*p == '\'') {
-                        state = VALUE_TICKS;
-                        value = p+1;
-                        value_len = 0;
-                    } else if (*p == '"') {
-                        state = VALUE_DOUBLE_QUOTES;
-                        value = p+1;
-                        value_len = 0;
-                    } else if (isspace(*p)) {
-                        if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrdup(""), valid_keys) < 0)
-                            goto fail;
-                        state = WHITESPACE;
-                    } else {
-                        state = VALUE_SIMPLE;
-                        value = p;
-                        value_len = 1;
-                    }
-                    break;
-                case VALUE_SIMPLE:
-                    if (isspace(*p)) {
-                        if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrndup(value, value_len), valid_keys) < 0)
-                            goto fail;
-                        state = WHITESPACE;
-                    } else
-                        value_len++;
-                    break;
-                case VALUE_DOUBLE_QUOTES:
-                    if (*p == '"') {
-                        if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrndup(value, value_len), valid_keys) < 0)
-                            goto fail;
-                        state = WHITESPACE;
-                    } else
-                        value_len++;
-                    break;
-                case VALUE_TICKS:
-                    if (*p == '\'') {
-                        if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrndup(value, value_len), valid_keys) < 0)
-                            goto fail;
-                        state = WHITESPACE;
-                    } else
-                        value_len++;
-                    break;
-            }
+                    state = WHITESPACE;
+                } else
+                    value_len++;
+                break;
+
+            case VALUE_DOUBLE_QUOTES:
+                if (*p == '"') {
+                    if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrndup(value, value_len), valid_keys) < 0)
+                        goto fail;
+                    state = WHITESPACE;
+                } else
+                    value_len++;
+                break;
+
+            case VALUE_TICKS:
+                if (*p == '\'') {
+                    if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrndup(value, value_len), valid_keys) < 0)
+                        goto fail;
+                    state = WHITESPACE;
+                } else
+                    value_len++;
+                break;
         }
-
-        if (state == VALUE_START) {
-            if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrdup(""), valid_keys) < 0)
-                goto fail;
-        } else if (state == VALUE_SIMPLE) {
-            if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrdup(value), valid_keys) < 0)
-                goto fail;
-        } else if (state != WHITESPACE)
-            goto fail;
     }
+
+    if (state == VALUE_START) {
+        if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrdup(""), valid_keys) < 0)
+            goto fail;
+    } else if (state == VALUE_SIMPLE) {
+        if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrdup(value), valid_keys) < 0)
+            goto fail;
+    } else if (state != WHITESPACE)
+        goto fail;
 
     return (pa_modargs*) map;
 
 fail:
 
-    if (map)
-        pa_modargs_free((pa_modargs*) map);
+    pa_modargs_free((pa_modargs*) map);
 
     return NULL;
 }
