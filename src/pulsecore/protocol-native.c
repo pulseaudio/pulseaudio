@@ -595,7 +595,7 @@ static record_stream* record_stream_new(
         int *ret) {
 
     record_stream *s;
-    pa_source_output *source_output;
+    pa_source_output *source_output = NULL;
     size_t base;
     pa_source_output_new_data data;
 
@@ -618,7 +618,7 @@ static record_stream* record_stream_new(
     if (peak_detect)
         data.resample_method = PA_RESAMPLER_PEAKS;
 
-    *ret = pa_source_output_new(&source_output, c->protocol->core, &data, flags);
+    *ret = -pa_source_output_new(&source_output, c->protocol->core, &data, flags);
 
     pa_source_output_new_data_done(&data);
 
@@ -971,7 +971,7 @@ static playback_stream* playback_stream_new(
         int *ret) {
 
     playback_stream *s, *ssync;
-    pa_sink_input *sink_input;
+    pa_sink_input *sink_input = NULL;
     pa_memchunk silence;
     uint32_t idx;
     int64_t start_index;
@@ -1023,7 +1023,7 @@ static playback_stream* playback_stream_new(
         pa_sink_input_new_data_set_muted(&data, muted);
     data.sync_base = ssync ? ssync->sink_input : NULL;
 
-    *ret = pa_sink_input_new(&sink_input, c->protocol->core, &data, flags);
+    *ret = -pa_sink_input_new(&sink_input, c->protocol->core, &data, flags);
 
     pa_sink_input_new_data_done(&data);
 
