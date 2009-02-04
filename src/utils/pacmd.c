@@ -47,16 +47,16 @@ int main(int argc, char*argv[]) {
     int fd = -1;
     int ret = 1, i;
     struct sockaddr_un sa;
-    char ibuf[256], obuf[256];
+    char ibuf[PIPE_BUF], obuf[PIPE_BUF];
     size_t ibuf_index, ibuf_length, obuf_index, obuf_length;
-    fd_set ifds, ofds;
     char *cli;
+    pa_bool_t ibuf_eof, obuf_eof, ibuf_closed, obuf_closed;
 
     setlocale(LC_ALL, "");
     bindtextdomain(GETTEXT_PACKAGE, PULSE_LOCALEDIR);
 
     if (pa_pid_file_check_running(&pid, "pulseaudio") < 0) {
-        pa_log("No PulseAudio daemon running");
+        pa_log("No PulseAudio daemon running, or not running as session daemon.");
         goto fail;
     }
 
@@ -99,15 +99,47 @@ int main(int argc, char*argv[]) {
     }
 
     ibuf_index = ibuf_length = obuf_index = obuf_length = 0;
+    ibuf_eof = obuf_eof = ibuf_closed = obuf_closed = FALSE;
 
+    if (argc > 1) {
+        for (i = 1; i < argc; i++) {
+            size_t k;
 
-    FD_ZERO(&ifds);
-    FD_SET(0, &ifds);
-    FD_SET(fd, &ifds);
+            k = PA_MIN(sizeof(ibuf) - ibuf_length, strlen(argv[i]));
+            memcpy(ibuf + ibuf_length, argv[1], k);
+            ibuf_length += k;
 
-    FD_ZERO(&ofds);
+            if (ibuf_length < sizeof(ibuf)) {
+                ibuf[ibuf_length] = i < argc-1 ? ' ' : '\n';
+                ibuf_length++;
+            }
+        }
+
+        ibuf_eof = TRUE;
+    }
 
     for (;;) {
+        fd_set ifds, ofds;
+
+        if (ibuf_eof &&
+            obuf_eof &&
+            ibuf_length <= 0 &&
+            obuf_length <= 0)
+            break;
+
+        FD_ZERO(&ifds);
+        FD_ZERO(&ofds);
+
+        if (obuf_length > 0)
+            FD_SET(1, &ofds);
+        else if (!obuf_eof)
+            FD_SET(fd, &ifds);
+
+        if (ibuf_length > 0)
+            FD_SET(fd, &ofds);
+        else if (!ibuf_eof)
+            FD_SET(0, &ifds);
+
         if (select(FD_SETSIZE, &ifds, &ofds, NULL, NULL) < 0) {
             pa_log(_("select(): %s"), strerror(errno));
             goto fail;
@@ -118,15 +150,16 @@ int main(int argc, char*argv[]) {
             assert(!ibuf_length);
 
             if ((r = read(0, ibuf, sizeof(ibuf))) <= 0) {
-                if (r == 0)
-                    break;
+                if (r < 0) {
+                    pa_log(_("read(): %s"), strerror(errno));
+                    goto fail;
+                }
 
-                pa_log(_("read(): %s"), strerror(errno));
-                goto fail;
+                ibuf_eof = TRUE;
+            } else {
+                ibuf_length = (size_t) r;
+                ibuf_index = 0;
             }
-
-            ibuf_length = (size_t) r;
-            ibuf_index = 0;
         }
 
         if (FD_ISSET(fd, &ifds)) {
@@ -134,15 +167,16 @@ int main(int argc, char*argv[]) {
             assert(!obuf_length);
 
             if ((r = read(fd, obuf, sizeof(obuf))) <= 0) {
-                if (r == 0)
-                    break;
+                if (r < 0) {
+                    pa_log(_("read(): %s"), strerror(errno));
+                    goto fail;
+                }
 
-                pa_log(_("read(): %s"), strerror(errno));
-                goto fail;
+                obuf_eof = TRUE;
+            } else {
+                obuf_length = (size_t) r;
+                obuf_index = 0;
             }
-
-            obuf_length = (size_t) r;
-            obuf_index = 0;
         }
 
         if (FD_ISSET(1, &ofds)) {
@@ -170,28 +204,26 @@ int main(int argc, char*argv[]) {
 
             ibuf_length -= (size_t) r;
             ibuf_index += obuf_index;
-
         }
 
-        FD_ZERO(&ifds);
-        FD_ZERO(&ofds);
+        if (ibuf_length <= 0 && ibuf_eof && !ibuf_closed) {
+            close(0);
+            shutdown(fd, SHUT_WR);
+            ibuf_closed = TRUE;
+        }
 
-        if (obuf_length <= 0)
-            FD_SET(fd, &ifds);
-        else
-            FD_SET(1, &ofds);
-
-        if (ibuf_length <= 0)
-            FD_SET(0, &ifds);
-        else
-            FD_SET(fd, &ofds);
+        if (obuf_length <= 0 && obuf_eof && !obuf_closed) {
+            shutdown(fd, SHUT_RD);
+            close(1);
+            obuf_closed = TRUE;
+        }
     }
 
     ret = 0;
 
 fail:
     if (fd >= 0)
-        close(fd);
+        pa_close(fd);
 
     return ret;
 }
