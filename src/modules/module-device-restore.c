@@ -79,10 +79,13 @@ struct userdata {
     pa_bool_t restore_muted:1;
 };
 
-struct entry {
+#define ENTRY_VERSION 1
+
+struct entry PA_GCC_PACKED {
+    uint8_t version;
+    pa_bool_t muted:1;
     pa_channel_map channel_map;
     pa_cvolume volume;
-    pa_bool_t muted:1;
 };
 
 static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *tv, void *userdata) {
@@ -117,11 +120,16 @@ static struct entry* read_entry(struct userdata *u, const char *name) {
         goto fail;
 
     if (data.dsize != sizeof(struct entry)) {
-        pa_log_warn("Database contains entry for device %s of wrong size %lu != %lu", name, (unsigned long) data.dsize, (unsigned long) sizeof(struct entry));
+        pa_log_debug("Database contains entry for device %s of wrong size %lu != %lu. Probably due to upgrade, ignoring.", name, (unsigned long) data.dsize, (unsigned long) sizeof(struct entry));
         goto fail;
     }
 
     e = (struct entry*) data.dptr;
+
+    if (e->version != ENTRY_VERSION) {
+        pa_log_debug("Version of database entry for device %s doesn't match our version. Probably due to upgrade, ignoring.", name);
+        goto fail;
+    }
 
     if (!(pa_cvolume_valid(&e->volume))) {
         pa_log_warn("Invalid volume stored in database for device %s", name);
@@ -173,6 +181,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         return;
 
     memset(&entry, 0, sizeof(entry));
+    entry.version = ENTRY_VERSION;
 
     if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK) {
         pa_sink *sink;

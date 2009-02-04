@@ -90,15 +90,17 @@ struct userdata {
     pa_idxset *subscribed;
 };
 
-struct entry {
+#define ENTRY_VERSION 1
+
+struct entry PA_GCC_PACKED {
+    uint8_t version;
+    pa_bool_t muted_valid:1, relative_volume_valid:1, absolute_volume_valid:1, device_valid:1;
+    pa_bool_t muted:1;
     pa_channel_map channel_map;
-    char device[PA_NAME_MAX];
     pa_cvolume relative_volume;
     pa_cvolume absolute_volume;
-    pa_bool_t muted:1;
-    pa_bool_t device_valid:1, relative_volume_valid:1, absolute_volume_valid:1, muted_valid:1;
+    char device[PA_NAME_MAX];
 };
-
 
 enum {
     SUBCOMMAND_TEST,
@@ -161,24 +163,29 @@ static struct entry* read_entry(struct userdata *u, const char *name) {
     if (data.dsize != sizeof(struct entry)) {
         /* This is probably just a database upgrade, hence let's not
          * consider this more than a debug message */
-        pa_log_debug("Database contains entry for stream %s of wrong size %lu != %lu", name, (unsigned long) data.dsize, (unsigned long) sizeof(struct entry));
+        pa_log_debug("Database contains entry for stream %s of wrong size %lu != %lu. Probably due to uprade, ignoring.", name, (unsigned long) data.dsize, (unsigned long) sizeof(struct entry));
         goto fail;
     }
 
     e = (struct entry*) data.dptr;
+
+    if (e->version != ENTRY_VERSION) {
+        pa_log_debug("Version of database entry for stream %s doesn't match our version. Probably due to upgrade, ignoring.", name);
+        goto fail;
+    }
 
     if (!memchr(e->device, 0, sizeof(e->device))) {
         pa_log_warn("Database contains entry for stream %s with missing NUL byte in device name", name);
         goto fail;
     }
 
-    if (!(pa_channel_map_valid(&e->channel_map))) {
-        pa_log_warn("Invalid channel map stored in database for stream %s", name);
+    if (e->device_valid && !pa_namereg_is_valid_name(e->device)) {
+        pa_log_warn("Invalid device name stored in database for stream %s", name);
         goto fail;
     }
 
-    if (e->device_valid && !pa_namereg_is_valid_name(e->device)) {
-        pa_log_warn("Invalid device name stored in database for stream %s", name);
+    if ((e->relative_volume_valid || e->absolute_volume_valid) && !(pa_channel_map_valid(&e->channel_map))) {
+        pa_log_warn("Invalid channel map stored in database for stream %s", name);
         goto fail;
     }
 
@@ -265,6 +272,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         return;
 
     memset(&entry, 0, sizeof(entry));
+    entry.version = ENTRY_VERSION;
 
     if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK_INPUT) {
         pa_sink_input *sink_input;
@@ -697,6 +705,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 int k;
 
                 memset(&entry, 0, sizeof(entry));
+                entry.version = ENTRY_VERSION;
 
                 if (pa_tagstruct_gets(t, &name) < 0 ||
                     pa_tagstruct_get_channel_map(t, &entry.channel_map) ||

@@ -68,7 +68,10 @@ struct userdata {
     GDBM_FILE gdbm_file;
 };
 
-struct entry {
+#define ENTRY_VERSION 1
+
+struct entry PA_GCC_PACKED {
+    uint8_t version;
     char profile[PA_NAME_MAX];
 };
 
@@ -104,11 +107,16 @@ static struct entry* read_entry(struct userdata *u, const char *name) {
         goto fail;
 
     if (data.dsize != sizeof(struct entry)) {
-        pa_log_warn("Database contains entry for card %s of wrong size %lu != %lu", name, (unsigned long) data.dsize, (unsigned long) sizeof(struct entry));
+        pa_log_debug("Database contains entry for card %s of wrong size %lu != %lu. Probably due to upgrade, ignoring.", name, (unsigned long) data.dsize, (unsigned long) sizeof(struct entry));
         goto fail;
     }
 
     e = (struct entry*) data.dptr;
+
+    if (e->version != ENTRY_VERSION) {
+        pa_log_debug("Version of database entry for card %s doesn't match our version. Probably due to upgrade, ignoring.", name);
+        goto fail;
+    }
 
     if (!memchr(e->profile, 0, sizeof(e->profile))) {
         pa_log_warn("Database contains entry for card %s with missing NUL byte in profile name", name);
@@ -148,6 +156,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         return;
 
     memset(&entry, 0, sizeof(entry));
+    entry.version = ENTRY_VERSION;
 
     if (!(card = pa_idxset_get_by_index(c->cards, idx)))
         return;
