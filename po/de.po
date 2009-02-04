@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-28 04:30+0100\n"
+"POT-Creation-Date: 2009-02-04 21:48+0100\n"
 "PO-Revision-Date: 2008-10-22 00:58+0100\n"
 "Last-Translator: Fabian Affolter <fab@fedoraproject.org>\n"
 "Language-Team: German <fedora-trans-de@redhat.com>\n"
@@ -727,7 +727,7 @@ msgstr "Gebe Root-Privilegien auf."
 msgid "Limited capabilities successfully to CAP_SYS_NICE."
 msgstr "Fähigkeiten erfolgreich auf CAP_SYS_NICE reduziert."
 
-#: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:742
+#: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:804
 msgid "Mono"
 msgstr "Mono"
 
@@ -931,33 +931,33 @@ msgstr "Oben Hinten Links"
 msgid "Top Rear Right"
 msgstr "Oben Hinten Rechts"
 
-#: ../src/pulse/channelmap.c:473 ../src/pulse/sample.c:152
-#: ../src/pulse/volume.c:163 ../src/pulse/volume.c:189
-#: ../src/pulse/volume.c:209 ../src/pulse/volume.c:239
+#: ../src/pulse/channelmap.c:476 ../src/pulse/sample.c:167
+#: ../src/pulse/volume.c:170 ../src/pulse/volume.c:196
+#: ../src/pulse/volume.c:216 ../src/pulse/volume.c:246
 msgid "(invalid)"
 msgstr "(ungültig)"
 
-#: ../src/pulse/channelmap.c:746
+#: ../src/pulse/channelmap.c:808
 msgid "Stereo"
 msgstr ""
 
-#: ../src/pulse/channelmap.c:751
+#: ../src/pulse/channelmap.c:813
 msgid "Surround 4.0"
 msgstr ""
 
-#: ../src/pulse/channelmap.c:757
+#: ../src/pulse/channelmap.c:819
 msgid "Surround 4.1"
 msgstr ""
 
-#: ../src/pulse/channelmap.c:763
+#: ../src/pulse/channelmap.c:825
 msgid "Surround 5.0"
 msgstr ""
 
-#: ../src/pulse/channelmap.c:769
+#: ../src/pulse/channelmap.c:831
 msgid "Surround 5.1"
 msgstr ""
 
-#: ../src/pulse/channelmap.c:776
+#: ../src/pulse/channelmap.c:838
 msgid "Surround 7.1"
 msgstr ""
 
@@ -1048,6 +1048,39 @@ msgstr "Unbekannter Fehlercode"
 #: ../src/pulse/error.c:64
 msgid "No such extension"
 msgstr "Erweiterung nicht vorhanden"
+
+#: ../src/pulse/error.c:65
+msgid "Obsolete functionality"
+msgstr ""
+
+#: ../src/pulse/error.c:66
+msgid "Missing implementation"
+msgstr ""
+
+#: ../src/pulse/sample.c:169
+#, c-format
+msgid "%s %uch %uHz"
+msgstr ""
+
+#: ../src/pulse/sample.c:181
+#, c-format
+msgid "%0.1f GiB"
+msgstr ""
+
+#: ../src/pulse/sample.c:183
+#, c-format
+msgid "%0.1f MiB"
+msgstr ""
+
+#: ../src/pulse/sample.c:185
+#, c-format
+msgid "%0.1f KiB"
+msgstr ""
+
+#: ../src/pulse/sample.c:187
+#, c-format
+msgid "%u B"
+msgstr ""
 
 #: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
 msgid "XOpenDisplay() failed"
@@ -2042,17 +2075,17 @@ msgstr "Terminieren des PulseAudio-Daemon fehlgeschlagen."
 msgid "Daemon not responding."
 msgstr "Daemon antwortet nicht."
 
-#: ../src/utils/pacmd.c:112
+#: ../src/utils/pacmd.c:144
 #, c-format
 msgid "select(): %s"
 msgstr "select(): %s"
 
-#: ../src/utils/pacmd.c:124 ../src/utils/pacmd.c:140
+#: ../src/utils/pacmd.c:154 ../src/utils/pacmd.c:171
 #, c-format
 msgid "read(): %s"
 msgstr "read(): %s"
 
-#: ../src/utils/pacmd.c:153 ../src/utils/pacmd.c:167
+#: ../src/utils/pacmd.c:187 ../src/utils/pacmd.c:201
 #, c-format
 msgid "write(): %s"
 msgstr "write(): %s"
