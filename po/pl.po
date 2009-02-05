@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-28 04:30+0100\n"
-"PO-Revision-Date: 2009-01-09 22:17+0100\n"
+"POT-Creation-Date: 2009-02-04 21:48+0100\n"
+"PO-Revision-Date: 2009-02-05 22:09+0100\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -318,7 +318,7 @@ msgstr "Uruchamianie na komputerze: %s"
 #: ../src/daemon/main.c:828
 #, c-format
 msgid "Found %u CPUs."
-msgstr ""
+msgstr "Znaleziono %u procesorów."
 
 #: ../src/daemon/main.c:830
 #, c-format
@@ -740,7 +740,7 @@ msgstr "Porzucanie uprawnień roota."
 msgid "Limited capabilities successfully to CAP_SYS_NICE."
 msgstr "Pomyślnie ograniczono możliwości do CAP_SYS_NICE."
 
-#: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:742
+#: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:804
 msgid "Mono"
 msgstr "Mono"
 
@@ -944,35 +944,35 @@ msgstr "Górny tylny lewy"
 msgid "Top Rear Right"
 msgstr "Górny tylny prawy"
 
-#: ../src/pulse/channelmap.c:473 ../src/pulse/sample.c:152
-#: ../src/pulse/volume.c:163 ../src/pulse/volume.c:189
-#: ../src/pulse/volume.c:209 ../src/pulse/volume.c:239
+#: ../src/pulse/channelmap.c:476 ../src/pulse/sample.c:167
+#: ../src/pulse/volume.c:170 ../src/pulse/volume.c:196
+#: ../src/pulse/volume.c:216 ../src/pulse/volume.c:246
 msgid "(invalid)"
 msgstr "(nieprawidłowe)"
 
-#: ../src/pulse/channelmap.c:746
+#: ../src/pulse/channelmap.c:808
 msgid "Stereo"
-msgstr ""
+msgstr "Stereo"
 
-#: ../src/pulse/channelmap.c:751
+#: ../src/pulse/channelmap.c:813
 msgid "Surround 4.0"
-msgstr ""
+msgstr "Surround 4.0"
 
-#: ../src/pulse/channelmap.c:757
+#: ../src/pulse/channelmap.c:819
 msgid "Surround 4.1"
-msgstr ""
+msgstr "Surround 4.1"
 
-#: ../src/pulse/channelmap.c:763
+#: ../src/pulse/channelmap.c:825
 msgid "Surround 5.0"
-msgstr ""
+msgstr "Surround 5.0"
 
-#: ../src/pulse/channelmap.c:769
+#: ../src/pulse/channelmap.c:831
 msgid "Surround 5.1"
-msgstr ""
+msgstr "Surround 5.1"
 
-#: ../src/pulse/channelmap.c:776
+#: ../src/pulse/channelmap.c:838
 msgid "Surround 7.1"
-msgstr ""
+msgstr "Surround 7.1"
 
 #: ../src/pulse/error.c:43
 msgid "OK"
@@ -1061,6 +1061,39 @@ msgstr "Nieznany kod błędu"
 #: ../src/pulse/error.c:64
 msgid "No such extension"
 msgstr "Nie ma takiego rozszerzenia"
+
+#: ../src/pulse/error.c:65
+msgid "Obsolete functionality"
+msgstr "Przestarzała funkcjonalność"
+
+#: ../src/pulse/error.c:66
+msgid "Missing implementation"
+msgstr "Brak implementacji"
+
+#: ../src/pulse/sample.c:169
+#, c-format
+msgid "%s %uch %uHz"
+msgstr "%s %uch %uHz"
+
+#: ../src/pulse/sample.c:181
+#, c-format
+msgid "%0.1f GiB"
+msgstr "%0.1f GiB"
+
+#: ../src/pulse/sample.c:183
+#, c-format
+msgid "%0.1f MiB"
+msgstr "%0.1f MiB"
+
+#: ../src/pulse/sample.c:185
+#, c-format
+msgid "%0.1f KiB"
+msgstr "%0.1f KiB"
+
+#: ../src/pulse/sample.c:187
+#, c-format
+msgid "%u B"
+msgstr "%u B"
 
 #: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
 msgid "XOpenDisplay() failed"
@@ -1317,7 +1350,7 @@ msgstr ""
 "  -v, --verbose                         Wyświetla więcej informacji o "
 "działaniu\n"
 "\n"
-"  -s, --server=SERWER                   Nazwa serwera do połączenia się z\n"
+"  -s, --server=SERWER                   Nazwa serwera do połączenia się\n"
 "  -d, --device=URZĄDZENIE               Nazwa odpływu/źródła do połączenia "
 "się z\n"
 "  -n, --client-name=NAZWA               Jak nazywać tego klienta na "
@@ -1503,7 +1536,7 @@ msgstr ""
 "\n"
 "  -h, --help                            Wyświetla tę pomoc\n"
 "      --version                         Wyświetla wersję\n"
-"  -s, --server=SERWER                   Nazwa serwera do połączenia się z\n"
+"  -s, --server=SERWER                   Nazwa serwera do połączenia się\n"
 "\n"
 
 #: ../src/utils/pasuspender.c:251
@@ -1571,7 +1604,7 @@ msgid "Failed to get sink information: %s\n"
 msgstr "Uzyskanie informacji o odpływie nie powiodło się: %s\n"
 
 #: ../src/utils/pactl.c:191
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sink #%u\n"
 "\tState: %s\n"
@@ -1591,18 +1624,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** Odpływ #%u ***\n"
-"Nazwa: %s\n"
-"Sterownik: %s\n"
-"Określenie próbki: %s\n"
-"Mapa kanałów: %s\n"
-"Właściciel modułu: %u\n"
-"Poziom głośności: %s\n"
-"Źródło monitora: %s\n"
-"Opóźnienie: %0.0f usekundy, skonfigurowano %0.0f usekundy\n"
-"Flagi: %s%s%s%s%s%s\n"
-"Właściwości:\n"
-"%s"
+"Odpływ #%u\n"
+"\tStan: %s\n"
+"\tNazwa: %s\n"
+"\tOpis: %s\n"
+"\tSterownik: %s\n"
+"\tOkreślenie próbki: %s\n"
+"\tMapa kanałów: %s\n"
+"\tWłaściciel modułu: %u\n"
+"\tWyciszenie: %s\n"
+"\tPoziom głośności: %s%s%s\n"
+"\t                  balans %0.2f\n"
+"\tGłośność podstawowa: %s%s%s\n"
+"\tŹródło monitora: %s\n"
+"\tOpóźnienie: %0.0f usekundy, skonfigurowano %0.0f usekundy\n"
+"\tFlagi: %s%s%s%s%s%s\n"
+"\tWłaściwości:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:255
 #, c-format
@@ -1610,7 +1648,7 @@ msgid "Failed to get source information: %s\n"
 msgstr "Uzyskanie informacji o źródle nie powiodło się: %s\n"
 
 #: ../src/utils/pactl.c:271
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Source #%u\n"
 "\tState: %s\n"
@@ -1630,18 +1668,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** Źródło #%u ***\n"
-"Nazwa: %s\n"
-"Sterownik: %s\n"
-"Określenie próbki: %s\n"
-"Mapa kanałów: %s\n"
-"Właściciel modułu: %u\n"
-"Poziom głośności: %s\n"
-"Monitor odpływu: %s\n"
-"Opóźnienie: %0.0f usekundy, skonfigurowano %0.0f usekundy\n"
-"Flagi: %s%s%s%s%s%s\n"
-"Właściwości:\n"
-"%s"
+"Źródło #%u\n"
+"\tStan: %s\n"
+"\tNazwa: %s\n"
+"\tOpis: %s\n"
+"\tSterownik: %s\n"
+"\tOkreślenie próbki: %s\n"
+"\tMapa kanałów: %s\n"
+"\tWłaściciel modułu: %u\n"
+"\tWyciszenie: %s\n"
+"\tPoziom głośności: %s%s%s\n"
+"\t                  balans %0.2f\n"
+"\tGłośność podstawowa: %s%s%s\n"
+"\tMonitor odpływu: %s\n"
+"\tOpóźnienie: %0.0f usekundy, skonfigurowano %0.0f usekundy\n"
+"\tFlagi: %s%s%s%s%s%s\n"
+"\tWłaściwości:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:303 ../src/utils/pactl.c:347 ../src/utils/pactl.c:382
 #: ../src/utils/pactl.c:419 ../src/utils/pactl.c:478 ../src/utils/pactl.c:479
@@ -1657,7 +1700,7 @@ msgid "Failed to get module information: %s\n"
 msgstr "Uzyskanie informacji o module nie powiodło się: %s\n"
 
 #: ../src/utils/pactl.c:339
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Module #%u\n"
 "\tName: %s\n"
@@ -1666,11 +1709,12 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** Moduł #%u ***\n"
-"Nazwa: %s\n"
-"Parametr: %s\n"
-"Liczniki użycia: %s\n"
-"Automatyczne usuwanie: %s\n"
+"Moduł #%u\n"
+"\tNazwa: %s\n"
+"\tParametr: %s\n"
+"\tLicznik użycia: %s\n"
+"\tWłaściwości:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:358
 #, c-format
@@ -1678,7 +1722,7 @@ msgid "Failed to get client information: %s\n"
 msgstr "Uzyskanie informacji o kliencie nie powiodło się: %s\n"
 
 #: ../src/utils/pactl.c:376
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Client #%u\n"
 "\tDriver: %s\n"
@@ -1686,20 +1730,19 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** Klient #%u ***\n"
-"Sterownik: %s\n"
-"Właściciel modułu: %s\n"
-"Właściwości:\n"
-"%s"
+"Klient #%u\n"
+"\tSterownik: %s\n"
+"\tWłaściciel modułu: %s\n"
+"\tWłaściwości:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:393
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get card information: %s\n"
-msgstr ""
-"Uzyskanie informacji o automatycznym wczytywaniu nie powiodło się: %s\n"
+msgstr "Uzyskanie informacji o karcie nie powiodło się: %s\n"
 
 #: ../src/utils/pactl.c:411
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Card #%u\n"
 "\tName: %s\n"
@@ -1708,21 +1751,22 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** Klient #%u ***\n"
-"Sterownik: %s\n"
-"Właściciel modułu: %s\n"
-"Właściwości:\n"
-"%s"
+"Karta #%u\n"
+"\tNazwa: %s\n"
+"\tSterownik: %s\n"
+"\tWłaściciel modułu: %s\n"
+"\tWłaściwości:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:425
 #, c-format
 msgid "\tProfiles:\n"
-msgstr ""
+msgstr "\tProfile:\n"
 
 #: ../src/utils/pactl.c:431
-#, fuzzy, c-format
+#, c-format
 msgid "\tActive Profile: %s\n"
-msgstr "potok nie powiódł się: %s"
+msgstr "\tAktywny profil: %s\n"
 
 #: ../src/utils/pactl.c:442
 #, c-format
@@ -1730,7 +1774,7 @@ msgid "Failed to get sink input information: %s\n"
 msgstr "Uzyskanie informacji o wejściu odpływu nie powiodło się: %s\n"
 
 #: ../src/utils/pactl.c:461
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sink Input #%u\n"
 "\tDriver: %s\n"
@@ -1749,19 +1793,22 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** Odpływ wejścia #%u ***\n"
-"Sterownik: %s\n"
-"Właściciel modułu: %s\n"
-"Klient: %s\n"
-"Odpływ: %u\n"
-"Określenie próbki: %s\n"
-"Mapa kanałów: %s\n"
-"Poziom głośności: %s\n"
-"Opóźnienie bufora: %0.0f usekundy\n"
-"Opóźnienie odpływu: %0.0f usekundy\n"
-"Metoda resamplingu: %s\n"
-"Właściwości:\n"
-"%s"
+"Odpływ wejścia #%u\n"
+"\tSterownik: %s\n"
+"\tWłaściciel modułu: %s\n"
+"\tKlient: %s\n"
+"\tOdpływ: %u\n"
+"\tOkreślenie próbki: %s\n"
+"\tMapa kanałów: %s\n"
+"\tWyciszenie: %s\n"
+"\tPoziom głośności: %s\n"
+"\t                  %s\n"
+"\t                  balans %0.2f\n"
+"\tOpóźnienie bufora: %0.0f usekundy\n"
+"\tOpóźnienie odpływu: %0.0f usekundy\n"
+"\tMetoda resamplingu: %s\n"
+"\tWłaściwości:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:500
 #, c-format
@@ -1769,7 +1816,7 @@ msgid "Failed to get source output information: %s\n"
 msgstr "Uzyskanie informacji o wyjściu źródła nie powiodło się: %s\n"
 
 #: ../src/utils/pactl.c:520
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Source Output #%u\n"
 "\tDriver: %s\n"
@@ -1784,18 +1831,18 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** Źródło wyjścia #%u ***\n"
-"Sterownik: %s\n"
-"Właściciel modułu: %s\n"
-"Klient: %s\n"
-"Źródło: %u\n"
-"Określenie próbki: %s\n"
-"Mapa kanałów: %s\n"
-"Opóźnienie bufora: %0.0f usekundy\n"
-"Opóźnienie źródła: %0.0f usekundy\n"
-"Metoda resamplingu: %s\n"
-"Właściwości:\n"
-"%s"
+"Źródło wyjścia #%u\n"
+"\tSterownik: %s\n"
+"\tWłaściciel modułu: %s\n"
+"\tKlient: %s\n"
+"\tŹródło: %u\n"
+"\tOkreślenie próbki: %s\n"
+"\tMapa kanałów: %s\n"
+"\tOpóźnienie bufora: %0.0f usekundy\n"
+"\tOpóźnienie źródła: %0.0f usekundy\n"
+"\tMetoda resamplingu: %s\n"
+"\tWłaściwości:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:551
 #, c-format
@@ -1803,7 +1850,7 @@ msgid "Failed to get sample information: %s\n"
 msgstr "Uzyskanie informacji o przykładzie nie powiodło się: %s\n"
 
 #: ../src/utils/pactl.c:569
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sample #%u\n"
 "\tName: %s\n"
@@ -1819,17 +1866,19 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** Próbka #%u ***\n"
-"Nazwa: %s\n"
-"Poziom głośności: %s\n"
-"Określenie próbki: %s\n"
-"Mapa kanałów: %s\n"
-"Czas trwania: %0.1fs\n"
-"Rozmiar: %s\n"
-"Lazy: %s\n"
-"Nazwa pliku: %s\n"
-"Właściwości:\n"
-"%s"
+"Próbka #%u\n"
+"\tNazwa: %s\n"
+"\tOkreślenie próbki: %s\n"
+"\tMapa kanałów: %s\n"
+"\tPoziom głośności: %s\n"
+"\t                  %s\n"
+"\t                  balans %0.2f\n"
+"\tCzas trwania: %0.1fs\n"
+"\tRozmiar: %s\n"
+"\tLazy: %s\n"
+"\tNazwa pliku: %s\n"
+"\tWłaściwości:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:599 ../src/utils/pactl.c:609
 #, c-format
@@ -1847,7 +1896,7 @@ msgid "Premature end of file\n"
 msgstr "Przedwczesny koniec pliku\n"
 
 #: ../src/utils/pactl.c:770
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -1883,11 +1932,12 @@ msgstr ""
 "%s [opcje] unload-module IDENTYFIKATOR\n"
 "%s [opcje] suspend-sink [ODPŁYW] 1|0\n"
 "%s [opcje] suspend-source [ŹRÓDŁO] 1|0\n"
+"%s [opcje] set-card-profile [KARTA] [PROFIL] \n"
 "\n"
 "  -h, --help                            Wyświetla tę pomoc\n"
 "      --version                         Wyświetla wersję\n"
 "\n"
-"  -s, --server=SERWER                   Nazwa serwera do połączenia się z\n"
+"  -s, --server=SERWER                   Nazwa serwera do połączenia się\n"
 "  -n, --client-name=NAZWA               Jak nazwać tego klienta na serwerze\n"
 
 #: ../src/utils/pactl.c:822
@@ -1942,27 +1992,25 @@ msgid "You have to specify a module index\n"
 msgstr "Należy podać indeks modułu\n"
 
 #: ../src/utils/pactl.c:968
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean "
 "value.\n"
 msgstr ""
-"Nie można podać więcej niż jednego odpływu. Należy podać co najmniej jedną "
-"wartość logiczną.\n"
+"Nie można podać więcej niż jednego odpływu. Należy podać wartość logiczną.\n"
 
 #: ../src/utils/pactl.c:981
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value.\n"
 msgstr ""
-"Nie można podać więcej niż jednego źródła. Należy podać co najmniej jedną "
-"wartość logiczną.\n"
+"Nie można podać więcej niż jednego źródła. Należy podać wartość logiczną.\n"
 
 #: ../src/utils/pactl.c:993
-#, fuzzy, c-format
+#, c-format
 msgid "You have to specify a card name/index and a profile name\n"
-msgstr "Należy podać indeks odpływu wejścia i odpływ\n"
+msgstr "Należy podać nazwę karty/indeks i nazwę profilu\n"
 
 #: ../src/utils/pactl.c:1008
 #, c-format
@@ -2066,17 +2114,17 @@ msgstr "Zniszczenie demona PulseAudio nie powiodło się."
 msgid "Daemon not responding."
 msgstr "Demon nie odpowiada."
 
-#: ../src/utils/pacmd.c:112
+#: ../src/utils/pacmd.c:144
 #, c-format
 msgid "select(): %s"
 msgstr "select(): %s"
 
-#: ../src/utils/pacmd.c:124 ../src/utils/pacmd.c:140
+#: ../src/utils/pacmd.c:154 ../src/utils/pacmd.c:171
 #, c-format
 msgid "read(): %s"
 msgstr "read(): %s"
 
-#: ../src/utils/pacmd.c:153 ../src/utils/pacmd.c:167
+#: ../src/utils/pacmd.c:187 ../src/utils/pacmd.c:201
 #, c-format
 msgid "write(): %s"
 msgstr "write(): %s"
@@ -2125,8 +2173,8 @@ msgstr ""
 "  -v, --verbose                         Wyświetla więcej informacji o "
 "działaniach\n"
 "\n"
-"  -s, --server=SERWER                   Nazwa serwera do połączenia się z\n"
-"  -d, --device=URZĄDZENIE               Nazwa odpływu do połączenia się z\n"
+"  -s, --server=SERWER                   Nazwa serwera do połączenia się\n"
+"  -d, --device=URZĄDZENIE               Nazwa odpływu do połączenia się\n"
 "  -n, --client-name=NAZWA               Jak nazwać tego klienta na serwerze\n"
 "      --stream-name=NAZWA               Jak nazwać ten strumień na serwerze\n"
 "      --volume=POZIOMGŁOŚNOŚCI          Określa początkowy (liniowy) poziom "
@@ -2167,34 +2215,3 @@ msgstr "Używanie przykładowej specyfikacji \"%s\"\n"
 #: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
 msgid "Cannot access autospawn lock."
 msgstr "Nie można uzyskać dostępu do blokady automatycznego wznawiania."
-
-#~ msgid "Default sink name (%s) does not exist in name register."
-#~ msgstr "Domyślna nazwa odpływu (%s) nie istnieje w rejestrze nazw."
-
-#~ msgid "Buffer overrun, dropping incoming data\n"
-#~ msgstr "Przepełniono bufor, porzucanie danych przychodzących\n"
-
-#~ msgid "pa_stream_drop() failed: %s\n"
-#~ msgstr "pa_stream_drop() nie powiodło się: %s\n"
-
-#~ msgid "muted"
-#~ msgstr "wyciszone"
-
-#~ msgid ""
-#~ "*** Autoload Entry #%u ***\n"
-#~ "Name: %s\n"
-#~ "Type: %s\n"
-#~ "Module: %s\n"
-#~ "Argument: %s\n"
-#~ msgstr ""
-#~ "*** Wpis automatycznego wczytywania #%u ***\n"
-#~ "Nazwa: %s\n"
-#~ "Typ: %s\n"
-#~ "Moduł: %s\n"
-#~ "Parametr: %s\n"
-
-#~ msgid "sink"
-#~ msgstr "odpływ"
-
-#~ msgid "source"
-#~ msgstr "źródło"
