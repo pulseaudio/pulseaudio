@@ -65,11 +65,6 @@ void pa_init_proplist(pa_proplist *p) {
 
                 k = pa_xstrndup(*e+11, kl);
 
-                if (pa_proplist_contains(p, k)) {
-                    pa_xfree(k);
-                    continue;
-                }
-
                 pa_proplist_sets(p, k, *e+11+kl+1);
                 pa_xfree(k);
             }
@@ -80,7 +75,7 @@ void pa_init_proplist(pa_proplist *p) {
         pa_proplist *t;
 
         if ((t = pa_proplist_from_string(pp))) {
-            pa_proplist_update(p, PA_UPDATE_MERGE, t);
+            pa_proplist_update(p, PA_UPDATE_REPLACE, t);
             pa_proplist_free(t);
         }
     }
