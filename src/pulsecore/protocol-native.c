@@ -2295,10 +2295,8 @@ static void command_set_client_name(pa_pdispatch *pd, uint32_t command, uint32_t
             return;
         }
 
-    pa_proplist_update(c->client->proplist, PA_UPDATE_REPLACE, p);
+    pa_client_update_proplist(c->client, PA_UPDATE_REPLACE, p);
     pa_proplist_free(p);
-
-    pa_subscription_post(c->protocol->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_CHANGE, c->client->index);
 
     reply = reply_new(tag);
 
@@ -3551,8 +3549,7 @@ static void command_update_proplist(pa_pdispatch *pd, uint32_t command, uint32_t
         CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
         CHECK_VALIDITY(c->pstream, playback_stream_isinstance(s), tag, PA_ERR_NOENTITY);
 
-        pa_proplist_update(s->sink_input->proplist, mode, p);
-        pa_subscription_post(c->protocol->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, s->sink_input->index);
+        pa_sink_input_update_proplist(s->sink_input, mode, p);
 
     } else if (command == PA_COMMAND_UPDATE_RECORD_STREAM_PROPLIST) {
         record_stream *s;
@@ -3560,13 +3557,11 @@ static void command_update_proplist(pa_pdispatch *pd, uint32_t command, uint32_t
         s = pa_idxset_get_by_index(c->record_streams, idx);
         CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
 
-        pa_proplist_update(s->source_output->proplist, mode, p);
-        pa_subscription_post(c->protocol->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, s->source_output->index);
+        pa_source_output_update_proplist(s->source_output, mode, p);
     } else {
         pa_assert(command == PA_COMMAND_UPDATE_CLIENT_PROPLIST);
 
-        pa_proplist_update(c->client->proplist, mode, p);
-        pa_subscription_post(c->protocol->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_CHANGE, c->client->index);
+        pa_client_update_proplist(c->client, mode, p);
     }
 
     pa_pstream_send_simple_ack(c->pstream, tag);
