@@ -179,8 +179,11 @@ int pa_sink_input_new(
         if (data->sink->flags & PA_SINK_FLAT_VOLUME) {
             data->volume = *pa_sink_get_volume(data->sink, FALSE);
             pa_cvolume_remap(&data->volume, &data->sink->channel_map, &data->channel_map);
-        } else
+            data->volume_is_absolute = TRUE;
+        } else {
             pa_cvolume_reset(&data->volume, data->sample_spec.channels);
+            data->volume_is_absolute = FALSE;
+        }
 
         data->save_volume = FALSE;
     }
