@@ -79,6 +79,18 @@ void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cv
         data->volume = *volume;
 }
 
+void pa_sink_input_new_data_apply_volume_factor(pa_sink_input_new_data *data, const pa_cvolume *volume_factor) {
+    pa_assert(data);
+    pa_assert(volume_factor);
+
+    if (data->volume_factor_is_set)
+        pa_sw_cvolume_multiply(&data->volume_factor, &data->volume_factor, volume_factor);
+    else {
+        data->volume_factor_is_set = TRUE;
+        data->volume_factor = *volume_factor;
+    }
+}
+
 void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mute) {
     pa_assert(data);
 
@@ -171,11 +183,16 @@ int pa_sink_input_new(
             pa_cvolume_reset(&data->volume, data->sample_spec.channels);
 
         data->save_volume = FALSE;
-
     }
 
     pa_return_val_if_fail(pa_cvolume_valid(&data->volume), -PA_ERR_INVALID);
     pa_return_val_if_fail(pa_cvolume_compatible(&data->volume, &data->sample_spec), -PA_ERR_INVALID);
+
+    if (!data->volume_factor_is_set)
+        pa_cvolume_reset(&data->volume_factor, data->sample_spec.channels);
+
+    pa_return_val_if_fail(pa_cvolume_valid(&data->volume_factor), -PA_ERR_INVALID);
+    pa_return_val_if_fail(pa_cvolume_compatible(&data->volume_factor, &data->sample_spec), -PA_ERR_INVALID);
 
     if (!data->muted_is_set)
         data->muted = FALSE;
@@ -259,6 +276,7 @@ int pa_sink_input_new(
     } else
         i->virtual_volume = data->volume;
 
+    i->volume_factor = data->volume_factor;
     pa_cvolume_init(&i->soft_volume);
     i->save_volume = data->save_volume;
     i->save_sink = data->save_sink;
@@ -500,7 +518,7 @@ void pa_sink_input_put(pa_sink_input *i) {
         pa_sink_update_flat_volume(i->sink, &new_volume);
         pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE);
     } else
-        i->soft_volume = i->virtual_volume;
+        pa_sw_cvolume_multiply(&i->soft_volume, &i->virtual_volume, &i->volume_factor);
 
     i->thread_info.soft_volume = i->soft_volume;
     i->thread_info.muted = i->muted;
@@ -874,8 +892,7 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_boo
 
         /* OK, we are in normal volume mode. The volume only affects
          * ourselves */
-
-        i->soft_volume = *volume;
+        pa_sw_cvolume_multiply(&i->soft_volume, volume, &i->volume_factor);
 
         /* Hooks have the ability to play games with i->soft_volume */
         pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_SET_VOLUME], i);
@@ -1066,7 +1083,7 @@ int pa_sink_input_start_move(pa_sink_input *i) {
 
         /* Make the absolute volume relative */
         i->virtual_volume = i->soft_volume;
-        pa_cvolume_reset(&i->soft_volume, i->sample_spec.channels);
+        i->soft_volume = i->volume_factor;
 
         /* We might need to update the sink's volume if we are in flat
          * volume mode. */

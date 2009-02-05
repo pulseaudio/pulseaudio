@@ -990,6 +990,7 @@ void pa_sink_update_flat_volume(pa_sink *s, pa_cvolume *new_volume) {
         remapped_new_volume = *new_volume;
         pa_cvolume_remap(&remapped_new_volume, &s->channel_map, &i->channel_map);
         pa_sw_cvolume_divide(&i->soft_volume, &i->virtual_volume, &remapped_new_volume);
+        pa_sw_cvolume_multiply(&i->soft_volume, &i->soft_volume, &i->volume_factor);
 
         /* Hooks have the ability to play games with i->soft_volume */
         pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_INPUT_SET_VOLUME], i);
