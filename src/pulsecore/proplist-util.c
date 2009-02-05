@@ -27,6 +27,13 @@
 #include <locale.h>
 #include <dlfcn.h>
 
+#ifdef __APPLE__
+#include <crt_externs.h>
+#define environ (*_NSGetEnviron())
+#elif !HAVE_DECL_ENVIRON
+extern char **environ;
+#endif
+
 #include <pulse/proplist.h>
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
@@ -37,9 +44,6 @@
 #include "proplist-util.h"
 
 void pa_init_proplist(pa_proplist *p) {
-#if !HAVE_DECL_ENVIRON
-    extern char **environ;
-#endif
     char **e;
     const char *pp;
 

@@ -88,6 +88,10 @@
 #include <samplerate.h>
 #endif
 
+#ifdef __APPLE__
+#include <xlocale.h>
+#endif
+
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
 #include <pulse/utf8.h>
