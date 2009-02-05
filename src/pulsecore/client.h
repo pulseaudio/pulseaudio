@@ -71,4 +71,6 @@ void pa_client_kill(pa_client *c);
 /* Rename the client */
 void pa_client_set_name(pa_client *c, const char *name);
 
+void pa_client_update_proplist(pa_client *c, pa_update_mode_t mode, pa_proplist *p);
+
 #endif

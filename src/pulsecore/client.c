@@ -126,8 +126,21 @@ void pa_client_kill(pa_client *c) {
 
 void pa_client_set_name(pa_client *c, const char *name) {
     pa_assert(c);
+    pa_assert(name);
 
     pa_log_info("Client %u changed name from \"%s\" to \"%s\"", c->index, pa_strnull(pa_proplist_gets(c->proplist, PA_PROP_APPLICATION_NAME)), name);
     pa_proplist_sets(c->proplist, PA_PROP_APPLICATION_NAME, name);
+
+    pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CLIENT_PROPLIST_CHANGED], c);
+    pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);
+}
+
+void pa_client_update_proplist(pa_client *c, pa_update_mode_t mode, pa_proplist *p) {
+    pa_assert(c);
+    pa_assert(p);
+
+    pa_proplist_update(c->proplist, mode, p);
+
+    pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CLIENT_PROPLIST_CHANGED], c);
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);
 }
