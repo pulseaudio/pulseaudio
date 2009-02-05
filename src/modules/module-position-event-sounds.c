@@ -54,7 +54,6 @@ static const char* const valid_modargs[] = {
 };
 
 struct userdata {
-    pa_core *core;
     pa_hook_slot *sink_input_fixate_hook_slot;
 };
 
@@ -62,6 +61,7 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *core, pa_sink_i
     const char *hpos;
     double f;
     char t[PA_CVOLUME_SNPRINT_MAX];
+    pa_cvolume v;
 
     pa_assert(data);
 
@@ -80,16 +80,12 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *core, pa_sink_i
 
     pa_log_debug("Positioning event sound '%s' at %0.2f.", pa_strnull(pa_proplist_gets(data->proplist, PA_PROP_EVENT_ID)), f);
 
-    if (!data->volume_is_set) {
-        pa_cvolume_reset(&data->volume, data->sample_spec.channels);
-        data->volume_is_set = TRUE;
-        data->volume_is_absolute = FALSE;
-    }
+    pa_cvolume_reset(&v, data->sample_spec.channels);
+    pa_cvolume_set_balance(&v, &data->channel_map, f*2.0-1.0);
 
-    pa_cvolume_set_balance(&data->volume, &data->channel_map, f*2.0-1.0);
-    data->save_volume = FALSE;
+    pa_log_debug("Final volume factor %s.", pa_cvolume_snprint(t, sizeof(t), &v));
 
-    pa_log_debug("Final volume %s.", pa_cvolume_snprint(t, sizeof(t), &data->volume));
+    pa_sink_input_new_data_apply_volume_factor(data, &v);
 
     return PA_HOOK_OK;
 }
@@ -106,7 +102,6 @@ int pa__init(pa_module*m) {
     }
 
     m->userdata = u = pa_xnew(struct userdata, 1);
-    u->core = m->core;
     u->sink_input_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], PA_HOOK_EARLY, (pa_hook_cb_t) sink_input_fixate_hook_callback, u);
 
     pa_modargs_free(ma);
