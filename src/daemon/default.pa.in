@@ -34,6 +34,10 @@ load-module module-device-restore
 load-module module-stream-restore
 load-module module-card-restore
 
+### Automatically augment property information from .desktop files
+### stored in /usr/share/application
+load-module module-augment-properties
+
 ### Load audio drivers statically (it's probably better to not load
 ### these drivers manually, but instead use module-hal-detect --
 ### see below -- for doing this automatically)

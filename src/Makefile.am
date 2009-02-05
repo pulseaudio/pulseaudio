@@ -895,7 +895,8 @@ modlibexec_LTLIBRARIES += \
 		module-esound-sink.la \
 		module-tunnel-sink.la \
 		module-tunnel-source.la \
-		module-position-event-sounds.la
+		module-position-event-sounds.la \
+		module-augment-properties.la
 
 
 # See comment at librtp.la above
@@ -1084,6 +1085,7 @@ SYMDEF_FILES = \
 		modules/module-raop-discover-symdef.h \
 		modules/gconf/module-gconf-symdef.h \
 		modules/module-position-event-sounds-symdef.h \
+		modules/module-augment-properties-symdef.h \
 		modules/module-console-kit-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
@@ -1336,7 +1338,14 @@ module_volume_restore_la_CFLAGS = $(AM_CFLAGS)
 module_position_event_sounds_la_SOURCES = modules/module-position-event-sounds.c
 module_position_event_sounds_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_position_event_sounds_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
-module_position_event_sounds_CFLAGS = $(AM_CFLAGS)
+module_position_event_sounds_la_CFLAGS = $(AM_CFLAGS)
+
+# Augment properties from XDG .desktop files
+module_augment_properties_la_SOURCES = modules/module-augment-properties.c
+module_augment_properties_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_augment_properties_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+#module_augment_properties_la_CFLAGS = $(AM_CFLAGS) -DDESKTOPFILEDIR=\"$(datadir)/applications\"
+module_augment_properties_la_CFLAGS = $(AM_CFLAGS) -DDESKTOPFILEDIR=\"/usr/share/applications\"
 
 # Device volume/muted restore module
 module_device_restore_la_SOURCES = modules/module-device-restore.c

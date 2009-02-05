@@ -233,7 +233,6 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-
     u = pa_xnew(struct userdata, 1);
     u->rules = NULL;
     u->subscription = NULL;
