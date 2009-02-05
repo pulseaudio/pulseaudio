@@ -615,18 +615,16 @@ void pa_source_output_set_name(pa_source_output *o, const char *name) {
 }
 
 /* Called from main thread */
-pa_bool_t pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode, pa_proplist *p) {
+void pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode, pa_proplist *p) {
+    pa_source_output_assert_ref(o);
+    pa_assert(p);
 
-  pa_source_output_assert_ref(o);
+    pa_proplist_update(o->proplist, mode, p);
 
-  pa_proplist_update(o->proplist, mode, p);
-
-  if (PA_SINK_IS_LINKED(o->state)) {
-    pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], o);
-    pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
-  }
-
-  return TRUE;
+    if (PA_SINK_IS_LINKED(o->state)) {
+        pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], o);
+        pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+    }
 }
 
 /* Called from main context */

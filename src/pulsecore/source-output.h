@@ -229,7 +229,7 @@ void pa_source_output_kill(pa_source_output*o);
 
 pa_usec_t pa_source_output_get_latency(pa_source_output *o, pa_usec_t *source_latency);
 
-pa_bool_t pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode, pa_proplist *p);
+void pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode, pa_proplist *p);
 
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o);
 
