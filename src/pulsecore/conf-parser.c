@@ -40,17 +40,19 @@
 #define COMMENTS "#;\n"
 
 /* Run the user supplied parser for an assignment */
-static int next_assignment(const char *filename, unsigned line, const pa_config_item *t, const char *lvalue, const char *rvalue, void *userdata) {
+static int next_assignment(const char *filename, unsigned line, const char *section, const pa_config_item *t, const char *lvalue, const char *rvalue, void *userdata) {
     pa_assert(filename);
     pa_assert(t);
     pa_assert(lvalue);
     pa_assert(rvalue);
 
     for (; t->parse; t++)
-        if (!strcmp(lvalue, t->lvalue))
-            return t->parse(filename, line, lvalue, rvalue, t->data, userdata);
+        if (!t->lvalue ||
+            (pa_streq(lvalue, t->lvalue) &&
+             ((!section && !t->section) || pa_streq(section, t->section))))
+            return t->parse(filename, line, section, lvalue, rvalue, t->data, userdata);
 
-    pa_log("[%s:%u] Unknown lvalue '%s'.", filename, line, lvalue);
+    pa_log("[%s:%u] Unknown lvalue '%s' in section '%s'.", filename, line, lvalue, pa_strnull(section));
 
     return -1;
 }
@@ -83,14 +85,32 @@ static char *strip(char *s) {
 }
 
 /* Parse a variable assignment line */
-static int parse_line(const char *filename, unsigned line, const pa_config_item *t, char *l, void *userdata) {
-    char *e, *c, *b = l+strspn(l, WHITESPACE);
+static int parse_line(const char *filename, unsigned line, char **section, const pa_config_item *t, char *l, void *userdata) {
+    char *e, *c, *b;
+
+    b = l+strspn(l, WHITESPACE);
 
     if ((c = strpbrk(b, COMMENTS)))
         *c = 0;
 
     if (!*b)
         return 0;
+
+    if (*b == '[') {
+        size_t k;
+
+        k = strlen(b);
+        pa_assert(k > 0);
+
+        if (b[k-1] != ']') {
+            pa_log("[%s:%u] Invalid section header.", filename, line);
+            return -1;
+        }
+
+        pa_xfree(*section);
+        *section = pa_xstrndup(b+1, k-2);
+        return 0;
+    }
 
     if (!(e = strchr(b, '='))) {
         pa_log("[%s:%u] Missing '='.", filename, line);
@@ -100,7 +120,7 @@ static int parse_line(const char *filename, unsigned line, const pa_config_item 
     *e = 0;
     e++;
 
-    return next_assignment(filename, line, t, strip(b), strip(e), userdata);
+    return next_assignment(filename, line, *section, t, strip(b), strip(e), userdata);
 }
 
 /* Go through the file and parse each line */
@@ -108,6 +128,7 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
     int r = -1;
     unsigned line = 0;
     int do_close = !f;
+    char *section = NULL;
 
     pa_assert(filename);
     pa_assert(t);
@@ -118,29 +139,29 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
             goto finish;
         }
 
-        pa_log_warn("Failed to open configuration file '%s': %s",
-            filename, pa_cstrerror(errno));
+        pa_log_warn("Failed to open configuration file '%s': %s", filename, pa_cstrerror(errno));
         goto finish;
     }
 
     while (!feof(f)) {
         char l[256];
+
         if (!fgets(l, sizeof(l), f)) {
             if (feof(f))
                 break;
 
-            pa_log_warn("Failed to read configuration file '%s': %s",
-                filename, pa_cstrerror(errno));
+            pa_log_warn("Failed to read configuration file '%s': %s", filename, pa_cstrerror(errno));
             goto finish;
         }
 
-        if (parse_line(filename, ++line, t,  l, userdata) < 0)
+        if (parse_line(filename, ++line, &section, t, l, userdata) < 0)
             goto finish;
     }
 
     r = 0;
 
 finish:
+    pa_xfree(section);
 
     if (do_close && f)
         fclose(f);
@@ -148,7 +169,7 @@ finish:
     return r;
 }
 
-int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+int pa_config_parse_int(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     int *i = data;
     int32_t k;
 
@@ -166,7 +187,7 @@ int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue,
     return 0;
 }
 
-int pa_config_parse_unsigned(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+int pa_config_parse_unsigned(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     unsigned *u = data;
     uint32_t k;
 
@@ -184,7 +205,7 @@ int pa_config_parse_unsigned(const char *filename, unsigned line, const char *lv
     return 0;
 }
 
-int pa_config_parse_size(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+int pa_config_parse_size(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     size_t *i = data;
     uint32_t k;
 
@@ -202,7 +223,7 @@ int pa_config_parse_size(const char *filename, unsigned line, const char *lvalue
     return 0;
 }
 
-int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+int pa_config_parse_bool(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     int k;
     pa_bool_t *b = data;
 
@@ -221,7 +242,7 @@ int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue
     return 0;
 }
 
-int pa_config_parse_string(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+int pa_config_parse_string(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     char **s = data;
 
     pa_assert(filename);

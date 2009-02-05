@@ -92,16 +92,16 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
 
     /* Prepare the configuration parse table */
     pa_config_item table[] = {
-        { "daemon-binary",          pa_config_parse_string,  NULL },
-        { "extra-arguments",        pa_config_parse_string,  NULL },
-        { "default-sink",           pa_config_parse_string,  NULL },
-        { "default-source",         pa_config_parse_string,  NULL },
-        { "default-server",         pa_config_parse_string,  NULL },
-        { "autospawn",              pa_config_parse_bool,    NULL },
-        { "cookie-file",            pa_config_parse_string,  NULL },
-        { "disable-shm",            pa_config_parse_bool,    NULL },
-        { "shm-size-bytes",         pa_config_parse_size,    NULL },
-        { NULL,                     NULL,                    NULL },
+        { "daemon-binary",          pa_config_parse_string,  NULL, NULL },
+        { "extra-arguments",        pa_config_parse_string,  NULL, NULL },
+        { "default-sink",           pa_config_parse_string,  NULL, NULL },
+        { "default-source",         pa_config_parse_string,  NULL, NULL },
+        { "default-server",         pa_config_parse_string,  NULL, NULL },
+        { "autospawn",              pa_config_parse_bool,    NULL, NULL },
+        { "cookie-file",            pa_config_parse_string,  NULL, NULL },
+        { "disable-shm",            pa_config_parse_bool,    NULL, NULL },
+        { "shm-size-bytes",         pa_config_parse_size,    NULL, NULL },
+        { NULL,                     NULL,                    NULL, NULL },
     };
 
     table[0].data = &c->daemon_binary;
