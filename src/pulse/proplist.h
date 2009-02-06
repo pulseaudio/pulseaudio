@@ -194,6 +194,12 @@ typedef enum pa_update_mode {
      *  list. */
 } pa_update_mode_t;
 
+/** \cond fulldocs */
+#define PA_UPDATE_SET PA_UPDATE_SET
+#define PA_UPDATE_MERGE PA_UPDATE_MERGE
+#define PA_UPDATE_REPLACE PA_UPDATE_REPLACE
+/** \endcond */
+
 /** Merge property list "other" into "p", adhering the merge mode as
  * specified in "mode". \since 0.9.11 */
 void pa_proplist_update(pa_proplist *p, pa_update_mode_t mode, pa_proplist *other);
