@@ -1282,6 +1282,19 @@ static int add_source(struct userdata *u) {
 static int init_bt(struct userdata *u) {
     pa_assert(u);
 
+    /* shutdown bt */
+    if (u->stream_fd >= 0) {
+        pa_close(u->stream_fd);
+        u->stream_fd = -1;
+    }
+
+    if (u->service_fd >= 0) {
+        pa_close(u->service_fd);
+        u->service_fd = -1;
+    }
+
+    u->write_type = u->read_type = 0;
+
     /* connect to the bluez audio service */
     if ((u->service_fd = bt_audio_service_open()) < 0) {
         pa_log_error("Couldn't connect to bluetooth audio service");
@@ -1290,17 +1303,6 @@ static int init_bt(struct userdata *u) {
     pa_log_debug("Connected to the bluetooth audio service");
 
     return 0;
-}
-
-static void shutdown_bt(struct userdata *u) {
-    pa_assert(u);
-
-    if (u->stream_fd <= 0) {
-        pa_close(u->stream_fd);
-        u->stream_fd = -1;
-    }
-
-    u->write_type = u->read_type = 0;
 }
 
 static int setup_bt(struct userdata *u) {
@@ -1417,7 +1419,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     }
 
     stop_thread(u);
-    shutdown_bt(u);
+    init_bt(u);
 
     if (u->write_memchunk.memblock) {
         pa_memblock_unref(u->write_memchunk.memblock);
