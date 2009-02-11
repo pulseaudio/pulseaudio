@@ -472,8 +472,10 @@ void pa_source_move_all_fail(pa_queue *q) {
     pa_assert(q);
 
     while ((o = PA_SOURCE_OUTPUT(pa_queue_pop(q)))) {
-        pa_source_output_unlink(o);
-        pa_source_output_unref(o);
+        if (pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_FAIL], o) == PA_HOOK_OK) {
+            pa_source_output_unlink(o);
+            pa_source_output_unref(o);
+        }
     }
 
     pa_queue_free(q, NULL, NULL);
