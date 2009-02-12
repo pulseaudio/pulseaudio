@@ -39,7 +39,7 @@ PA_C_DECL_BEGIN
  *    media.filename
  *    media.icon                    Binary blob containing PNG icon data
  *    media.icon_name               Name from XDG icon naming spec
- *    media.role                    video, music, game, event, phone, production, filter, abstract, stream
+ *    media.role                    video, music, game, event, phone, animation, production, filter, abstract, stream
  *    event.id                      Name from XDG sound naming spec
  *    event.description             "Button blabla clicked" for a11y
  *    event.mouse.x
