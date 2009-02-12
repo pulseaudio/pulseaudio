@@ -533,8 +533,10 @@ void pa_sink_move_all_fail(pa_queue *q) {
     pa_assert(q);
 
     while ((i = PA_SINK_INPUT(pa_queue_pop(q)))) {
-        pa_sink_input_unlink(i);
-        pa_sink_input_unref(i);
+        if (pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FAIL], i) == PA_HOOK_OK) {
+            pa_sink_input_unlink(i);
+            pa_sink_input_unref(i);
+        }
     }
 
     pa_queue_free(q, NULL, NULL);

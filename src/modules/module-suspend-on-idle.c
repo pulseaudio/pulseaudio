@@ -174,6 +174,9 @@ static pa_hook_result_t source_output_unlink_hook_cb(pa_core *c, pa_source_outpu
     pa_source_output_assert_ref(s);
     pa_assert(u);
 
+    if (!s->source)
+        return PA_HOOK_OK;
+
     if (pa_source_check_suspend(s->source) <= 0) {
         struct device_info *d;
         if ((d = pa_hashmap_get(u->device_infos, s->source)))

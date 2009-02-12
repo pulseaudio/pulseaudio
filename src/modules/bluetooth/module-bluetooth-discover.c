@@ -42,15 +42,20 @@
 PA_MODULE_AUTHOR("Joao Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Detect available bluetooth audio devices and load bluetooth audio drivers");
 PA_MODULE_VERSION(PACKAGE_VERSION);
-PA_MODULE_USAGE("async=<Asynchronous initialization?>");
+PA_MODULE_USAGE("sco_sink=<name of sink> "
+		"sco_source=<name of source>"
+		"async=<Asynchronous initialization?>");
 
 static const char* const valid_modargs[] = {
+    "sco_sink",
+    "sco_source",
     "async",
     NULL
 };
 
 struct userdata {
     pa_module *module;
+    pa_modargs *ma;
     pa_core *core;
     pa_dbus_connection *connection;
     pa_bluetooth_discovery *discovery;
@@ -71,6 +76,16 @@ static void load_module_for_device(struct userdata *u, pa_bluetooth_device *d, p
             /* Oh, awesome, a new device has shown up and been connected! */
 
             args = pa_sprintf_malloc("address=\"%s\" path=\"%s\"", d->address, d->path);
+
+            if (pa_modargs_get_value(u->ma, "sco_sink", NULL) &&
+                pa_modargs_get_value(u->ma, "sco_source", NULL)) {
+                char *tmp;
+
+                tmp = pa_sprintf_malloc("%s sco_sink=\"%s\" sco_source=\"%s\"", args, pa_modargs_get_value(u->ma, "sco_sink", NULL), pa_modargs_get_value(u->ma, "sco_source", NULL));
+                pa_xfree(args);
+                args = tmp;
+            }
+
             pa_log_debug("Loading module-bluetooth-device %s", args);
             m = pa_module_load(u->module->core, "module-bluetooth-device", args);
             pa_xfree(args);
@@ -123,13 +138,14 @@ int pa__init(pa_module* m) {
     }
 
     if (pa_modargs_get_value_boolean(ma, "async", &async) < 0) {
-        pa_log("Failed to parse tsched argument.");
+        pa_log("Failed to parse async argument.");
         goto fail;
     }
 
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->module = m;
     u->core = m->core;
+    u->ma = ma;
 
     if (setup_dbus(u) < 0)
         goto fail;
@@ -161,6 +177,9 @@ void pa__done(pa_module* m) {
 
     if (u->connection)
         pa_dbus_connection_unref(u->connection);
+
+    if (u->ma)
+        pa_modargs_free(u->ma);
 
     pa_xfree(u);
 }

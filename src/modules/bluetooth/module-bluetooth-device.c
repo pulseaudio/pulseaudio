@@ -43,6 +43,7 @@
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/time-smoother.h>
 #include <pulsecore/rtclock.h>
+#include <pulsecore/namereg.h>
 
 #include <modules/dbus-util.h>
 
@@ -71,7 +72,9 @@ PA_MODULE_USAGE(
         "profile=<a2dp|hsp> "
         "rate=<sample rate> "
         "channels=<number of channels> "
-        "path=<device object path>");
+        "path=<device object path> "
+	"sco_sink=<SCO over PCM sink name> "
+	"sco_source=<SCO over PCM source name>");
 
 static const char* const valid_modargs[] = {
     "name",
@@ -83,6 +86,8 @@ static const char* const valid_modargs[] = {
     "rate",
     "channels",
     "path",
+    "sco_sink",
+    "sco_source",
     NULL
 };
 
@@ -96,6 +101,14 @@ struct a2dp_info {
     size_t buffer_size;                  /* Size of the buffer */
 
     uint16_t seq_num;                    /* Cumulative packet sequence */
+};
+
+struct hsp_info {
+    pcm_capabilities_t pcm_capabilities;
+    pa_sink *sco_sink;
+    pa_source *sco_source;
+    pa_hook_slot *sink_state_changed_slot;
+    pa_hook_slot *source_state_changed_slot;
 };
 
 enum profile {
@@ -132,6 +145,7 @@ struct userdata {
     size_t block_size;
 
     struct a2dp_info a2dp;
+    struct hsp_info hsp;
     pa_dbus_connection *connection;
 
     enum profile profile;
@@ -142,6 +156,9 @@ struct userdata {
 
     int write_type, read_type;
 };
+
+static int init_bt(struct userdata *u);
+static int init_profile(struct userdata *u);
 
 static int service_send(int fd, const bt_audio_msg_header_t *msg) {
     size_t length;
@@ -255,23 +272,33 @@ static int parse_caps(struct userdata *u, const struct bt_get_capabilities_rsp *
         return -1;
     }
 
-    if (u->profile != PROFILE_A2DP)
-        return 0;
+    if (u->profile == PROFILE_HSP) {
+        if (bytes_left <= 0 || codec->length != sizeof(u->hsp.pcm_capabilities))
+            return -1;
 
-    while (bytes_left > 0) {
-        if (codec->type == BT_A2DP_CODEC_SBC)
-            break;
+        pa_assert(codec->type == BT_HFP_CODEC_PCM);
 
-        bytes_left -= codec->length;
-        codec = (const codec_capabilities_t*) ((const uint8_t*) codec + codec->length);
+        memcpy(&u->hsp.pcm_capabilities, codec, sizeof(u->hsp.pcm_capabilities));
     }
 
-    if (bytes_left <= 0 || codec->length != sizeof(u->a2dp.sbc_capabilities))
-        return -1;
+    if (u->profile == PROFILE_A2DP) {
 
-    pa_assert(codec->type == BT_A2DP_CODEC_SBC);
+        while (bytes_left > 0) {
+            if (codec->type == BT_A2DP_CODEC_SBC)
+                break;
 
-    memcpy(&u->a2dp.sbc_capabilities, codec, sizeof(u->a2dp.sbc_capabilities));
+            bytes_left -= codec->length;
+            codec = (const codec_capabilities_t*) ((const uint8_t*) codec + codec->length);
+        }
+
+        if (bytes_left <= 0 || codec->length != sizeof(u->a2dp.sbc_capabilities))
+            return -1;
+
+        pa_assert(codec->type == BT_A2DP_CODEC_SBC);
+
+        memcpy(&u->a2dp.sbc_capabilities, codec, sizeof(u->a2dp.sbc_capabilities));
+    }
+
     return 0;
 }
 
@@ -1218,72 +1245,176 @@ static char *get_name(const char *type, pa_modargs *ma, const char *device_id, p
     return pa_sprintf_malloc("bluez_%s.%s", type, n);
 }
 
+#define USE_SCO_OVER_PCM(u) (u->profile == PROFILE_HSP && (u->hsp.sco_sink && u->hsp.sco_source))
+
+static void sco_over_pcm_state_update(struct userdata *u) {
+    pa_assert(u);
+
+    if (PA_SINK_IS_OPENED(pa_sink_get_state(u->hsp.sco_sink)) ||
+        PA_SOURCE_IS_OPENED(pa_source_get_state(u->hsp.sco_source))) {
+
+        if (u->service_fd > 0)
+            return;
+
+        pa_log_debug("Resuming SCO over PCM");
+        if ((init_bt(u) < 0) || (init_profile(u) < 0))
+            pa_log("Can't resume SCO over PCM");
+
+    } else {
+
+        if (u->service_fd <= 0)
+            return;
+
+        pa_log_debug("Closing SCO over PCM");
+        pa_close(u->service_fd);
+        u->service_fd = 0;
+
+    }
+}
+
+static pa_hook_result_t sink_state_changed_cb(pa_core *c, pa_sink *s, struct userdata *u) {
+    pa_assert(c);
+    pa_sink_assert_ref(s);
+    pa_assert(u);
+
+    if (s != u->hsp.sco_sink)
+        return PA_HOOK_OK;
+
+    sco_over_pcm_state_update(u);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_state_changed_cb(pa_core *c, pa_source *s, struct userdata *u) {
+    pa_assert(c);
+    pa_source_assert_ref(s);
+    pa_assert(u);
+
+    if (s != u->hsp.sco_source)
+        return PA_HOOK_OK;
+
+    sco_over_pcm_state_update(u);
+
+    return PA_HOOK_OK;
+}
+
 static int add_sink(struct userdata *u) {
-    pa_sink_new_data data;
-    pa_bool_t b;
 
-    pa_sink_new_data_init(&data);
-    data.driver = __FILE__;
-    data.module = u->module;
-    pa_sink_new_data_set_sample_spec(&data, &u->sample_spec);
-    pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP ? "a2dp" : "sco");
-    data.card = u->card;
-    data.name = get_name("sink", u->modargs, u->device->address, &b);
-    data.namereg_fail = b;
+    if (USE_SCO_OVER_PCM(u)) {
+        pa_proplist *p;
 
-    u->sink = pa_sink_new(u->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
-    pa_sink_new_data_done(&data);
+        u->sink = u->hsp.sco_sink;
+        u->sink->card = u->card; /* FIXME! */
+        p = pa_proplist_new();
+        pa_proplist_sets(p, "bluetooth.protocol", "sco");
+        pa_proplist_update(u->sink->proplist, PA_UPDATE_MERGE, p);
+        pa_proplist_free(p);
 
-    if (!u->sink) {
-        pa_log_error("Failed to create sink");
-        return -1;
+	if (!u->hsp.sink_state_changed_slot)
+            u->hsp.sink_state_changed_slot = pa_hook_connect(&u->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_state_changed_cb, u);
+
+    } else {
+        pa_sink_new_data data;
+        pa_bool_t b;
+
+        pa_sink_new_data_init(&data);
+        data.driver = __FILE__;
+        data.module = u->module;
+        pa_sink_new_data_set_sample_spec(&data, &u->sample_spec);
+        pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP ? "a2dp" : "sco");
+        data.card = u->card;
+        data.name = get_name("sink", u->modargs, u->device->address, &b);
+        data.namereg_fail = b;
+
+        u->sink = pa_sink_new(u->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
+        pa_sink_new_data_done(&data);
+
+        if (!u->sink) {
+            pa_log_error("Failed to create sink");
+            return -1;
+        }
+
+        u->sink->userdata = u;
+        u->sink->parent.process_msg = sink_process_msg;
+
+        pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
+        pa_sink_set_rtpoll(u->sink, u->rtpoll);
     }
 
-    u->sink->userdata = u;
-    u->sink->parent.process_msg = sink_process_msg;
 /*     u->sink->get_volume = sink_get_volume_cb; */
 /*     u->sink->set_volume = sink_set_volume_cb; */
-
-    pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
-    pa_sink_set_rtpoll(u->sink, u->rtpoll);
 
     return 0;
 }
 
 static int add_source(struct userdata *u) {
-    pa_source_new_data data;
-    pa_bool_t b;
+    pa_proplist *p;
 
-    pa_source_new_data_init(&data);
-    data.driver = __FILE__;
-    data.module = u->module;
-    pa_source_new_data_set_sample_spec(&data, &u->sample_spec);
-    pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP ? "a2dp" : "sco");
-    data.card = u->card;
-    data.name = get_name("source", u->modargs, u->device->address, &b);
-    data.namereg_fail = b;
+    if (USE_SCO_OVER_PCM(u)) {
+        u->source = u->hsp.sco_source;
+        u->source->card = u->card; /* FIXME! */
+        p = pa_proplist_new();
+        pa_proplist_sets(p, "bluetooth.protocol", "sco");
+        pa_proplist_update(u->source->proplist, PA_UPDATE_MERGE, p);
+        pa_proplist_free(p);
 
-    u->source = pa_source_new(u->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
-    pa_source_new_data_done(&data);
+        if (!u->hsp.source_state_changed_slot)
+            u->hsp.source_state_changed_slot = pa_hook_connect(&u->core->hooks[PA_CORE_HOOK_SOURCE_STATE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) source_state_changed_cb, u);
 
-    if (!u->source) {
-        pa_log_error("Failed to create source");
-        return -1;
+    } else {
+        pa_source_new_data data;
+        pa_bool_t b;
+
+        pa_source_new_data_init(&data);
+        data.driver = __FILE__;
+        data.module = u->module;
+        pa_source_new_data_set_sample_spec(&data, &u->sample_spec);
+        pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP ? "a2dp" : "sco");
+        data.card = u->card;
+        data.name = get_name("source", u->modargs, u->device->address, &b);
+        data.namereg_fail = b;
+
+        u->source = pa_source_new(u->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
+        pa_source_new_data_done(&data);
+
+        if (!u->source) {
+            pa_log_error("Failed to create source");
+            return -1;
+        }
+
+        u->source->userdata = u;
+        u->source->parent.process_msg = source_process_msg;
+
+        pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
+        pa_source_set_rtpoll(u->source, u->rtpoll);
     }
 
-    u->source->userdata = u;
-    u->source->parent.process_msg = source_process_msg;
 /*     u->source->get_volume = source_get_volume_cb; */
 /*     u->source->set_volume = source_set_volume_cb; */
 
-    pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
-    pa_source_set_rtpoll(u->source, u->rtpoll);
+    p = pa_proplist_new();
+    pa_proplist_sets(p, "bluetooth.nrec", pa_yes_no(u->hsp.pcm_capabilities.flags & BT_PCM_FLAG_NREC));
+    pa_proplist_update(u->source->proplist, PA_UPDATE_MERGE, p);
+    pa_proplist_free(p);
 
     return 0;
 }
 
 static int init_bt(struct userdata *u) {
     pa_assert(u);
+
+    /* shutdown bt */
+    if (u->stream_fd >= 0) {
+        pa_close(u->stream_fd);
+        u->stream_fd = -1;
+    }
+
+    if (u->service_fd >= 0) {
+        pa_close(u->service_fd);
+        u->service_fd = -1;
+    }
+
+    u->write_type = u->read_type = 0;
 
     /* connect to the bluez audio service */
     if ((u->service_fd = bt_audio_service_open()) < 0) {
@@ -1293,17 +1424,6 @@ static int init_bt(struct userdata *u) {
     pa_log_debug("Connected to the bluetooth audio service");
 
     return 0;
-}
-
-static void shutdown_bt(struct userdata *u) {
-    pa_assert(u);
-
-    if (u->stream_fd <= 0) {
-        pa_close(u->stream_fd);
-        u->stream_fd = -1;
-    }
-
-    u->write_type = u->read_type = 0;
 }
 
 static int setup_bt(struct userdata *u) {
@@ -1318,6 +1438,11 @@ static int setup_bt(struct userdata *u) {
         return -1;
 
     pa_log_debug("Connection to the device configured");
+
+    if (USE_SCO_OVER_PCM(u)) {
+        pa_log_debug("Configured to use SCO over PCM");
+        return 0;
+    }
 
     if (setup_stream_fd(u) < 0)
         return -1;
@@ -1360,6 +1485,16 @@ static void stop_thread(struct userdata *u) {
         u->rtpoll_item = NULL;
     }
 
+    if (u->hsp.sink_state_changed_slot) {
+        pa_hook_slot_free(u->hsp.sink_state_changed_slot);
+        u->hsp.sink_state_changed_slot = NULL;
+    }
+
+    if (u->hsp.source_state_changed_slot) {
+        pa_hook_slot_free(u->hsp.source_state_changed_slot);
+        u->hsp.source_state_changed_slot = NULL;
+    }
+
     if (u->sink) {
         pa_sink_unref(u->sink);
         u->sink = NULL;
@@ -1377,6 +1512,12 @@ static int start_thread(struct userdata *u) {
     pa_assert(u);
     pa_assert(!u->thread);
     pa_assert(!u->rtpoll_item);
+
+    if (USE_SCO_OVER_PCM(u)) {
+        pa_sink_ref(u->sink);
+        pa_source_ref(u->source);
+        return 0;
+    }
 
     u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
     pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
@@ -1411,16 +1552,18 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 
     if (u->sink) {
         inputs = pa_sink_move_all_start(u->sink);
-        pa_sink_unlink(u->sink);
+	if (!USE_SCO_OVER_PCM(u))
+            pa_sink_unlink(u->sink);
     }
 
     if (u->source) {
         outputs = pa_source_move_all_start(u->source);
-        pa_source_unlink(u->source);
+	if (!USE_SCO_OVER_PCM(u))
+            pa_source_unlink(u->source);
     }
 
     stop_thread(u);
-    shutdown_bt(u);
+    init_bt(u);
 
     if (u->write_memchunk.memblock) {
         pa_memblock_unref(u->write_memchunk.memblock);
@@ -1428,6 +1571,14 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     }
 
     u->profile = *d;
+
+    /* Reinitialize the sample spec to default with module argument rate */
+    u->sample_spec = u->module->core->default_sample_spec;
+    if (pa_modargs_get_value_u32(u->modargs, "rate", &u->sample_spec.rate) < 0 ||
+        u->sample_spec.rate <= 0 || u->sample_spec.rate > PA_RATE_MAX) {
+        u->sample_spec = u->module->core->default_sample_spec;
+    }
+
     init_profile(u);
 
     if (u->sink || u->source)
@@ -1605,6 +1756,18 @@ int pa__init(pa_module* m) {
     u->sample_spec = m->core->default_sample_spec;
     u->modargs = ma;
 
+    if (pa_modargs_get_value(ma, "sco_sink", NULL) &&
+        !(u->hsp.sco_sink = pa_namereg_get(m->core, pa_modargs_get_value(ma, "sco_sink", NULL), PA_NAMEREG_SINK))) {
+        pa_log("SCO sink not found");
+        goto fail;
+    }
+
+    if (pa_modargs_get_value(ma, "sco_source", NULL) &&
+        !(u->hsp.sco_source = pa_namereg_get(m->core, pa_modargs_get_value(ma, "sco_source", NULL), PA_NAMEREG_SOURCE))) {
+        pa_log("SCO source not found");
+        goto fail;
+    }
+
     if (pa_modargs_get_value_u32(ma, "rate", &u->sample_spec.rate) < 0 ||
         u->sample_spec.rate <= 0 || u->sample_spec.rate > PA_RATE_MAX) {
         pa_log_error("Failed to get rate from module arguments");
@@ -1705,10 +1868,10 @@ void pa__done(pa_module *m) {
     if (!(u = m->userdata))
         return;
 
-    if (u->sink)
+    if (u->sink && !USE_SCO_OVER_PCM(u))
         pa_sink_unlink(u->sink);
 
-    if (u->source)
+    if (u->source && !USE_SCO_OVER_PCM(u))
         pa_source_unlink(u->source);
 
     stop_thread(u);
