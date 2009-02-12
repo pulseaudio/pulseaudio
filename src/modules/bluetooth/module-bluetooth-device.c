@@ -193,6 +193,9 @@ static int service_recv(int fd, bt_audio_msg_header_t *msg, size_t expected_leng
 
     length = expected_length ? expected_length : BT_SUGGESTED_BUFFER_SIZE;
 
+    if (length < sizeof(bt_audio_error_t))
+        length = sizeof(bt_audio_error_t);
+
     pa_log_debug("Trying to receive message from audio service...");
 
     r = recv(fd, msg, length, 0);
@@ -212,6 +215,7 @@ static int service_recv(int fd, bt_audio_msg_header_t *msg, size_t expected_leng
         pa_log_debug("Received %s <- %s",
                      pa_strnull(bt_audio_strtype(msg->type)),
                      pa_strnull(bt_audio_strname(msg->name)));
+
         return 0;
     }
 
@@ -223,7 +227,7 @@ static int service_recv(int fd, bt_audio_msg_header_t *msg, size_t expected_leng
     return -1;
 }
 
-static int service_expect(int fd, bt_audio_msg_header_t *rsp, uint8_t expected_name, size_t expected_length) {
+static ssize_t service_expect(int fd, bt_audio_msg_header_t *rsp, uint8_t expected_name, size_t expected_length) {
     int r;
 
     pa_assert(fd >= 0);
@@ -232,16 +236,14 @@ static int service_expect(int fd, bt_audio_msg_header_t *rsp, uint8_t expected_n
     if ((r = service_recv(fd, rsp, expected_length)) < 0)
         return r;
 
-    if (rsp->name != expected_name) {
-        pa_log_error("Bogus message %s received while %s was expected",
-                     pa_strnull(bt_audio_strname(rsp->name)),
-                     pa_strnull(bt_audio_strname(expected_name)));
-        return -1;
-    }
+    if (rsp->type != BT_RESPONSE || rsp->name != expected_name) {
 
-    if (rsp->type == BT_ERROR) {
-        bt_audio_error_t *error = (bt_audio_error_t *) rsp;
-        pa_log_error("%s failed: %s", pa_strnull(bt_audio_strname(rsp->name)), pa_cstrerror(error->posix_errno));
+        if (rsp->type == BT_ERROR && rsp->length == sizeof(bt_audio_error_t))
+            pa_log_error("Received error condition: %s", pa_cstrerror(((bt_audio_error_t*) rsp)->posix_errno));
+        else
+            pa_log_error("Bogus message %s received while %s was expected",
+                         pa_strnull(bt_audio_strname(rsp->name)),
+                         pa_strnull(bt_audio_strname(expected_name)));
         return -1;
     }
 
@@ -306,6 +308,7 @@ static int get_caps(struct userdata *u) {
     union {
         struct bt_get_capabilities_req getcaps_req;
         struct bt_get_capabilities_rsp getcaps_rsp;
+        bt_audio_error_t error;
         uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
     } msg;
 
@@ -575,6 +578,7 @@ static int set_conf(struct userdata *u) {
     union {
         struct bt_set_configuration_req setconf_req;
         struct bt_set_configuration_rsp setconf_rsp;
+        bt_audio_error_t error;
         uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
     } msg;
 
@@ -644,6 +648,7 @@ static int setup_stream_fd(struct userdata *u) {
         struct bt_start_stream_req start_req;
         struct bt_start_stream_rsp start_rsp;
         struct bt_new_stream_ind streamfd_ind;
+        bt_audio_error_t error;
         uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
     } msg;
 
