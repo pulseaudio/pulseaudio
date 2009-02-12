@@ -55,7 +55,7 @@ static const char* const valid_modargs[] = {
 
 struct userdata {
     pa_module *module;
-    pa_modargs *ma;
+    pa_modargs *modargs;
     pa_core *core;
     pa_dbus_connection *connection;
     pa_bluetooth_discovery *discovery;
@@ -77,11 +77,13 @@ static void load_module_for_device(struct userdata *u, pa_bluetooth_device *d, p
 
             args = pa_sprintf_malloc("address=\"%s\" path=\"%s\"", d->address, d->path);
 
-            if (pa_modargs_get_value(u->ma, "sco_sink", NULL) &&
-                pa_modargs_get_value(u->ma, "sco_source", NULL)) {
+            if (pa_modargs_get_value(u->modargs, "sco_sink", NULL) &&
+                pa_modargs_get_value(u->modargs, "sco_source", NULL)) {
                 char *tmp;
 
-                tmp = pa_sprintf_malloc("%s sco_sink=\"%s\" sco_source=\"%s\"", args, pa_modargs_get_value(u->ma, "sco_sink", NULL), pa_modargs_get_value(u->ma, "sco_source", NULL));
+                tmp = pa_sprintf_malloc("%s sco_sink=\"%s\" sco_source=\"%s\"", args,
+                                        pa_modargs_get_value(u->modargs, "sco_sink", NULL),
+                                        pa_modargs_get_value(u->modargs, "sco_source", NULL));
                 pa_xfree(args);
                 args = tmp;
             }
@@ -127,7 +129,7 @@ static int setup_dbus(struct userdata *u) {
 
 int pa__init(pa_module* m) {
     struct userdata *u;
-    pa_modargs *ma;
+    pa_modargs *ma = NULL;
     pa_bool_t async = FALSE;
 
     pa_assert(m);
@@ -145,7 +147,8 @@ int pa__init(pa_module* m) {
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->module = m;
     u->core = m->core;
-    u->ma = ma;
+    u->modargs = ma;
+    ma = NULL;
 
     if (setup_dbus(u) < 0)
         goto fail;
@@ -160,6 +163,9 @@ int pa__init(pa_module* m) {
 
 fail:
     pa__done(m);
+
+    if (ma)
+        pa_modargs_free(ma);
 
     return -1;
 }
@@ -178,8 +184,8 @@ void pa__done(pa_module* m) {
     if (u->connection)
         pa_dbus_connection_unref(u->connection);
 
-    if (u->ma)
-        pa_modargs_free(u->ma);
+    if (u->modargs)
+        pa_modargs_free(u->modargs);
 
     pa_xfree(u);
 }
