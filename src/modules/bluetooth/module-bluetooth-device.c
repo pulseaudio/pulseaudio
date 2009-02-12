@@ -273,15 +273,15 @@ static int parse_caps(struct userdata *u, const struct bt_get_capabilities_rsp *
     }
 
     if (u->profile == PROFILE_HSP) {
+
         if (bytes_left <= 0 || codec->length != sizeof(u->hsp.pcm_capabilities))
             return -1;
 
         pa_assert(codec->type == BT_HFP_CODEC_PCM);
 
         memcpy(&u->hsp.pcm_capabilities, codec, sizeof(u->hsp.pcm_capabilities));
-    }
 
-    if (u->profile == PROFILE_A2DP) {
+    } else if (u->profile == PROFILE_A2DP) {
 
         while (bytes_left > 0) {
             if (codec->type == BT_A2DP_CODEC_SBC)
@@ -1249,6 +1249,7 @@ static char *get_name(const char *type, pa_modargs *ma, const char *device_id, p
 
 static void sco_over_pcm_state_update(struct userdata *u) {
     pa_assert(u);
+    pa_assert(USE_SCO_OVER_PCM(u));
 
     if (PA_SINK_IS_OPENED(pa_sink_get_state(u->hsp.sco_sink)) ||
         PA_SOURCE_IS_OPENED(pa_source_get_state(u->hsp.sco_source))) {
@@ -1267,8 +1268,7 @@ static void sco_over_pcm_state_update(struct userdata *u) {
 
         pa_log_debug("Closing SCO over PCM");
         pa_close(u->service_fd);
-        u->service_fd = 0;
-
+        u->service_fd = -1;
     }
 }
 
@@ -1304,7 +1304,6 @@ static int add_sink(struct userdata *u) {
         pa_proplist *p;
 
         u->sink = u->hsp.sco_sink;
-        u->sink->card = u->card; /* FIXME! */
         p = pa_proplist_new();
         pa_proplist_sets(p, "bluetooth.protocol", "sco");
         pa_proplist_update(u->sink->proplist, PA_UPDATE_MERGE, p);
@@ -1352,7 +1351,6 @@ static int add_source(struct userdata *u) {
 
     if (USE_SCO_OVER_PCM(u)) {
         u->source = u->hsp.sco_source;
-        u->source->card = u->card; /* FIXME! */
         p = pa_proplist_new();
         pa_proplist_sets(p, "bluetooth.protocol", "sco");
         pa_proplist_update(u->source->proplist, PA_UPDATE_MERGE, p);
