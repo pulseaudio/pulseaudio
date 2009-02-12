@@ -160,6 +160,9 @@ static pa_hook_result_t sink_input_unlink_hook_cb(pa_core *c, pa_sink_input *s, 
     pa_sink_input_assert_ref(s);
     pa_assert(u);
 
+    if (!s->sink)
+        return PA_HOOK_OK;
+
     if (pa_sink_check_suspend(s->sink) <= 0) {
         struct device_info *d;
         if ((d = pa_hashmap_get(u->device_infos, s->sink)))
