@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-02-04 21:48+0100\n"
+"POT-Creation-Date: 2009-02-12 16:57+0100\n"
 "PO-Revision-Date: 2008-10-19 22:31+0200\n"
 "Last-Translator: Petr Kovar <pknbe@volny.cz>\n"
 "Language-Team: Czech <translation-team-cs@lists.sourceforge.net>\n"
@@ -1080,21 +1080,21 @@ msgstr "Selhala analýza dat cookie"
 msgid "Failed to open configuration file '%s': %s"
 msgstr "Selhalo otevření konfiguračního souboru \"%s\": %s"
 
-#: ../src/pulse/context.c:517
+#: ../src/pulse/context.c:523
 msgid "No cookie loaded. Attempting to connect without."
 msgstr "Žádný soubor cookie nenahrán. Pokus o spojení bez tohoto kroku."
 
-#: ../src/pulse/context.c:643
+#: ../src/pulse/context.c:649
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:696
+#: ../src/pulse/context.c:702
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1257
+#: ../src/pulse/context.c:1279
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Přijata zpráva pro neznámé rozšíření \"%s\""
@@ -1179,88 +1179,88 @@ msgstr "Proud přesunut na zařízení %s (%u, %ssuspended).%s \n"
 msgid "not "
 msgstr "nikoliv "
 
-#: ../src/utils/pacat.c:259
+#: ../src/utils/pacat.c:271
 #, c-format
 msgid "Connection established.%s \n"
 msgstr "Spojení navázáno.%s \n"
 
-#: ../src/utils/pacat.c:262
+#: ../src/utils/pacat.c:274
 #, c-format
 msgid "pa_stream_new() failed: %s\n"
 msgstr "pa_stream_new() selhalo: %s\n"
 
-#: ../src/utils/pacat.c:288
+#: ../src/utils/pacat.c:301
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s\n"
 msgstr "pa_stream_connect_playback() selhalo: %s\n"
 
-#: ../src/utils/pacat.c:294
+#: ../src/utils/pacat.c:307
 #, c-format
 msgid "pa_stream_connect_record() failed: %s\n"
 msgstr "pa_stream_connect_record() selhalo: %s\n"
 
-#: ../src/utils/pacat.c:308 ../src/utils/pasuspender.c:159
+#: ../src/utils/pacat.c:321 ../src/utils/pasuspender.c:159
 #: ../src/utils/pactl.c:758 ../src/utils/paplay.c:183
 #, c-format
 msgid "Connection failure: %s\n"
 msgstr "Spojení selhalo: %s\n"
 
-#: ../src/utils/pacat.c:329 ../src/utils/paplay.c:75
+#: ../src/utils/pacat.c:342 ../src/utils/paplay.c:75
 #, c-format
 msgid "Failed to drain stream: %s\n"
 msgstr "Nezdařilo se vyprázdnit proud: %s\n"
 
-#: ../src/utils/pacat.c:334 ../src/utils/paplay.c:80
+#: ../src/utils/pacat.c:347 ../src/utils/paplay.c:80
 #, c-format
 msgid "Playback stream drained.\n"
 msgstr "Proud přehrávání vyprázdněn.\n"
 
-#: ../src/utils/pacat.c:344 ../src/utils/paplay.c:92
+#: ../src/utils/pacat.c:357 ../src/utils/paplay.c:92
 #, c-format
 msgid "Draining connection to server.\n"
 msgstr "Vyprazdňování spojení se serverem.\n"
 
-#: ../src/utils/pacat.c:370
+#: ../src/utils/pacat.c:383
 #, c-format
 msgid "Got EOF.\n"
 msgstr "Získáno EOF.\n"
 
-#: ../src/utils/pacat.c:376
+#: ../src/utils/pacat.c:389
 #, c-format
 msgid "pa_stream_drain(): %s\n"
 msgstr "pa_stream_drain(): %s\n"
 
-#: ../src/utils/pacat.c:386
+#: ../src/utils/pacat.c:399
 #, c-format
 msgid "read() failed: %s\n"
 msgstr "read() selhalo: %s\n"
 
-#: ../src/utils/pacat.c:418
+#: ../src/utils/pacat.c:431
 #, c-format
 msgid "write() failed: %s\n"
 msgstr "write() selhalo: %s\n"
 
-#: ../src/utils/pacat.c:439
+#: ../src/utils/pacat.c:452
 #, c-format
 msgid "Got signal, exiting.\n"
 msgstr "Získán signál, ukončování.\n"
 
-#: ../src/utils/pacat.c:453
+#: ../src/utils/pacat.c:466
 #, c-format
 msgid "Failed to get latency: %s\n"
 msgstr "Nezdařilo se získat latenci: %s\n"
 
-#: ../src/utils/pacat.c:458
+#: ../src/utils/pacat.c:471
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr "Čas: %0.3f sekund; latence: %0.0f μs.  \r"
 
-#: ../src/utils/pacat.c:478
+#: ../src/utils/pacat.c:491
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s\n"
 msgstr "pa_stream_update_timing_info() selhalo: %s\n"
 
-#: ../src/utils/pacat.c:491
+#: ../src/utils/pacat.c:504
 #, fuzzy, c-format
 msgid ""
 "%s [options]\n"
@@ -1340,7 +1340,7 @@ msgstr ""
 " Požadavek in bajty\n"
 " čas Požadavek čas in bajty n"
 
-#: ../src/utils/pacat.c:592
+#: ../src/utils/pacat.c:605
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1351,87 +1351,87 @@ msgstr ""
 "Přeloženo s libpulse %s\n"
 "Propojeno s libpulse %s\n"
 
-#: ../src/utils/pacat.c:649
+#: ../src/utils/pacat.c:662
 #, c-format
 msgid "Invalid channel map '%s'\n"
 msgstr "Neplatná mapa kanálů \"%s\"\n"
 
-#: ../src/utils/pacat.c:678
+#: ../src/utils/pacat.c:691
 #, c-format
 msgid "Invalid latency specification '%s'\n"
 msgstr "Neplatné upřesnění latence \"%s\"\n"
 
-#: ../src/utils/pacat.c:685
+#: ../src/utils/pacat.c:698
 #, c-format
 msgid "Invalid process time specification '%s'\n"
 msgstr "Neplatné upřesnění času zpracování \"%s\"\n"
 
-#: ../src/utils/pacat.c:696
+#: ../src/utils/pacat.c:709
 #, c-format
 msgid "Invalid sample specification\n"
 msgstr "Neplatné upřesnění vzorkování\n"
 
-#: ../src/utils/pacat.c:701
+#: ../src/utils/pacat.c:714
 #, c-format
 msgid "Channel map doesn't match sample specification\n"
 msgstr "Mapa kanálů se neshoduje s upřesněním vzorkování\n"
 
-#: ../src/utils/pacat.c:708
+#: ../src/utils/pacat.c:721
 #, c-format
 msgid "Opening a %s stream with sample specification '%s'.\n"
 msgstr "Otevírání proudu %s s upřesněním vzorkování \"%s\".\n"
 
-#: ../src/utils/pacat.c:708
+#: ../src/utils/pacat.c:721
 msgid "recording"
 msgstr "nahrávání"
 
-#: ../src/utils/pacat.c:708
+#: ../src/utils/pacat.c:721
 msgid "playback"
 msgstr "přehrávání"
 
-#: ../src/utils/pacat.c:716
+#: ../src/utils/pacat.c:729
 #, c-format
 msgid "open(): %s\n"
 msgstr "open(): %s\n"
 
-#: ../src/utils/pacat.c:721
+#: ../src/utils/pacat.c:734
 #, c-format
 msgid "dup2(): %s\n"
 msgstr "dup2(): %s\n"
 
-#: ../src/utils/pacat.c:731
+#: ../src/utils/pacat.c:744
 #, c-format
 msgid "Too many arguments.\n"
 msgstr "Příliš mnoho argumentů.\n"
 
-#: ../src/utils/pacat.c:744 ../src/utils/pasuspender.c:280
+#: ../src/utils/pacat.c:757 ../src/utils/pasuspender.c:280
 #: ../src/utils/pactl.c:1013 ../src/utils/paplay.c:381
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
 msgstr "pa_mainloop_new() selhalo.\n"
 
-#: ../src/utils/pacat.c:765
+#: ../src/utils/pacat.c:778
 #, c-format
 msgid "io_new() failed.\n"
 msgstr "io_new() selhalo.\n"
 
-#: ../src/utils/pacat.c:771 ../src/utils/pasuspender.c:293
+#: ../src/utils/pacat.c:784 ../src/utils/pasuspender.c:293
 #: ../src/utils/pactl.c:1027 ../src/utils/paplay.c:396
 #, c-format
 msgid "pa_context_new() failed.\n"
 msgstr "pa_context_new() selhalo.\n"
 
-#: ../src/utils/pacat.c:779
+#: ../src/utils/pacat.c:792
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() selhalo: %s"
 
-#: ../src/utils/pacat.c:790
+#: ../src/utils/pacat.c:803
 #, c-format
 msgid "time_new() failed.\n"
 msgstr "time_new() selhalo.\n"
 
-#: ../src/utils/pacat.c:797 ../src/utils/pasuspender.c:301
+#: ../src/utils/pacat.c:810 ../src/utils/pasuspender.c:301
 #: ../src/utils/pactl.c:1035 ../src/utils/paplay.c:407
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
