@@ -69,6 +69,8 @@ static void reset_callbacks(pa_stream *s) {
     s->suspended_userdata = NULL;
     s->started_callback = NULL;
     s->started_userdata = NULL;
+    s->event_callback = NULL;
+    s->event_userdata = NULL;
 }
 
 pa_stream *pa_stream_new_with_proplist(
@@ -563,6 +565,52 @@ void pa_command_stream_started(pa_pdispatch *pd, uint32_t command, uint32_t tag,
 
 finish:
     pa_context_unref(c);
+}
+
+void pa_command_stream_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_context *c = userdata;
+    pa_stream *s;
+    uint32_t channel;
+    pa_proplist *pl = NULL;
+    const char *event;
+
+    pa_assert(pd);
+    pa_assert(command == PA_COMMAND_PLAYBACK_STREAM_EVENT || command == PA_COMMAND_RECORD_STREAM_EVENT);
+    pa_assert(t);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    pa_context_ref(c);
+
+    if (c->version < 15) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        goto finish;
+    }
+
+    pl = pa_proplist_new();
+
+    if (pa_tagstruct_getu32(t, &channel) < 0 ||
+        pa_tagstruct_gets(t, &event) < 0 ||
+        pa_tagstruct_get_proplist(t, pl) < 0 ||
+        !pa_tagstruct_eof(t) || !event) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        goto finish;
+    }
+
+    if (!(s = pa_dynarray_get(command == PA_COMMAND_PLAYBACK_STREAM_EVENT ? c->playback_streams : c->record_streams, channel)))
+        goto finish;
+
+    if (s->state != PA_STREAM_READY)
+        goto finish;
+
+    if (s->event_callback)
+        s->event_callback(s, event, pl, s->event_userdata);
+
+finish:
+    pa_context_unref(c);
+
+    if (pl)
+        pa_proplist_free(pl);
 }
 
 void pa_command_request(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -1694,6 +1742,17 @@ void pa_stream_set_started_callback(pa_stream *s, pa_stream_notify_cb_t cb, void
 
     s->started_callback = cb;
     s->started_userdata = userdata;
+}
+
+void pa_stream_set_event_callback(pa_stream *s, pa_stream_event_cb_t cb, void *userdata) {
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+
+    if (s->state == PA_STREAM_TERMINATED || s->state == PA_STREAM_FAILED)
+        return;
+
+    s->event_callback = cb;
+    s->event_userdata = userdata;
 }
 
 void pa_stream_simple_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {

@@ -92,6 +92,7 @@ static void reset_callbacks(pa_source_output *o) {
     o->get_latency = NULL;
     o->state_change = NULL;
     o->may_move_to = NULL;
+    o->send_event = NULL;
 }
 
 /* Called from main context */
@@ -866,4 +867,31 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
     }
 
     return -PA_ERR_NOTIMPLEMENTED;
+}
+
+void pa_source_output_send_event(pa_source_output *o, const char *event, pa_proplist *data) {
+    pa_proplist *pl = NULL;
+    pa_source_output_send_event_hook_data hook_data;
+
+    pa_source_output_assert_ref(o);
+    pa_assert(event);
+
+    if (!o->send_event)
+        return;
+
+    if (!data)
+        data = pl = pa_proplist_new();
+
+    hook_data.source_output = o;
+    hook_data.data = data;
+    hook_data.event = event;
+
+    if (pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_SEND_EVENT], &hook_data) < 0)
+        goto finish;
+
+    o->send_event(o, event, data);
+
+finish:
+    if (pl)
+        pa_proplist_free(pl);
 }

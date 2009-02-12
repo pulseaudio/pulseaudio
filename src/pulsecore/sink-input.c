@@ -122,6 +122,7 @@ static void reset_callbacks(pa_sink_input *i) {
     i->get_latency = NULL;
     i->state_change = NULL;
     i->may_move_to = NULL;
+    i->send_event = NULL;
 }
 
 /* Called from main context */
@@ -1445,4 +1446,32 @@ pa_memchunk* pa_sink_input_get_silence(pa_sink_input *i, pa_memchunk *ret) {
                 i->thread_info.resampler ? pa_resampler_max_block_size(i->thread_info.resampler) : 0);
 
     return ret;
+}
+
+/* Called from main context */
+void pa_sink_input_send_event(pa_sink_input *i, const char *event, pa_proplist *data) {
+    pa_proplist *pl = NULL;
+    pa_sink_input_send_event_hook_data hook_data;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert(event);
+
+    if (!i->send_event)
+        return;
+
+    if (!data)
+        data = pl = pa_proplist_new();
+
+    hook_data.sink_input = i;
+    hook_data.data = data;
+    hook_data.event = event;
+
+    if (pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_SEND_EVENT], &hook_data) < 0)
+        goto finish;
+
+    i->send_event(i, event, data);
+
+finish:
+    if (pl)
+        pa_proplist_free(pl);
 }

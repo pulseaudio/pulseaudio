@@ -171,6 +171,10 @@ struct pa_sink_input {
      * be allowed */
     pa_bool_t (*may_move_to) (pa_sink_input *i, pa_sink *s); /* may be NULL */
 
+    /* If non-NULL this function is used to dispatch asynchronous
+     * control events. */
+    void (*send_event)(pa_sink_input *i, const char *event, pa_proplist* data);
+
     struct {
         pa_sink_input_state_t state;
         pa_atomic_t drained;
@@ -216,6 +220,12 @@ enum {
     PA_SINK_INPUT_MESSAGE_GET_REQUESTED_LATENCY,
     PA_SINK_INPUT_MESSAGE_MAX
 };
+
+typedef struct pa_sink_input_send_event_hook_data {
+    pa_sink_input *sink_input;
+    const char *event;
+    pa_proplist *data;
+} pa_sink_input_send_event_hook_data;
 
 typedef struct pa_sink_input_new_data {
     pa_proplist *proplist;
@@ -297,6 +307,8 @@ pa_bool_t pa_sink_input_get_mute(pa_sink_input *i);
 void pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode, pa_proplist *p);
 
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i);
+
+void pa_sink_input_send_event(pa_sink_input *i, const char *name, pa_proplist *data);
 
 int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, pa_bool_t save);
 pa_bool_t pa_sink_input_may_move(pa_sink_input *i); /* may this sink input move at all? */

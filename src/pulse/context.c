@@ -95,7 +95,10 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_RECORD_STREAM_SUSPENDED] = pa_command_stream_suspended,
     [PA_COMMAND_STARTED] = pa_command_stream_started,
     [PA_COMMAND_SUBSCRIBE_EVENT] = pa_command_subscribe_event,
-    [PA_COMMAND_EXTENSION] = pa_command_extension
+    [PA_COMMAND_EXTENSION] = pa_command_extension,
+    [PA_COMMAND_PLAYBACK_STREAM_EVENT] = pa_command_stream_event,
+    [PA_COMMAND_RECORD_STREAM_EVENT] = pa_command_stream_event,
+    [PA_COMMAND_CLIENT_EVENT] = pa_command_client_event
 };
 static void context_free(pa_context *c);
 
@@ -111,6 +114,9 @@ static void reset_callbacks(pa_context *c) {
 
     c->subscribe_callback = NULL;
     c->subscribe_userdata = NULL;
+
+    c->event_callback = NULL;
+    c->event_userdata = NULL;
 
     c->ext_stream_restore.callback = NULL;
     c->ext_stream_restore.userdata = NULL;
@@ -917,6 +923,17 @@ void pa_context_set_state_callback(pa_context *c, pa_context_notify_cb_t cb, voi
     c->state_userdata = userdata;
 }
 
+void pa_context_set_event_callback(pa_context *c, pa_context_event_cb_t cb, void *userdata) {
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    if (c->state == PA_CONTEXT_TERMINATED || c->state == PA_CONTEXT_FAILED)
+        return;
+
+    c->event_callback = cb;
+    c->event_userdata = userdata;
+}
+
 int pa_context_is_pending(pa_context *c) {
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
@@ -1245,6 +1262,11 @@ void pa_command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_t
 
     pa_context_ref(c);
 
+    if (c->version < 15) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        goto finish;
+    }
+
     if (pa_tagstruct_getu32(t, &idx) < 0 ||
         pa_tagstruct_gets(t, &name) < 0) {
         pa_context_fail(c, PA_ERR_PROTOCOL);
@@ -1258,4 +1280,42 @@ void pa_command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_t
 
 finish:
     pa_context_unref(c);
+}
+
+
+void pa_command_client_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_context *c = userdata;
+    pa_proplist *pl = NULL;
+    const char *event;
+
+    pa_assert(pd);
+    pa_assert(command == PA_COMMAND_CLIENT_EVENT);
+    pa_assert(t);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    pa_context_ref(c);
+
+    if (c->version < 15) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        goto finish;
+    }
+
+    pl = pa_proplist_new();
+
+    if (pa_tagstruct_gets(t, &event) < 0 ||
+        pa_tagstruct_get_proplist(t, pl) < 0 ||
+        !pa_tagstruct_eof(t) || !event) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        goto finish;
+    }
+
+    if (c->event_callback)
+        c->event_callback(c, event, pl, c->event_userdata);
+
+finish:
+    pa_context_unref(c);
+
+    if (pl)
+        pa_proplist_free(pl);
 }

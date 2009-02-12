@@ -143,6 +143,10 @@ struct pa_source_output {
      * will not be allowed */
     pa_bool_t (*may_move_to) (pa_source_output *o, pa_source *s); /* may be NULL */
 
+    /* If non-NULL this function is used to dispatch asynchronous
+     * control events. */
+    void (*send_event)(pa_source_output *o, const char *event, pa_proplist* data);
+
     struct {
         pa_source_output_state_t state;
 
@@ -176,6 +180,12 @@ enum {
     PA_SOURCE_OUTPUT_MESSAGE_GET_REQUESTED_LATENCY,
     PA_SOURCE_OUTPUT_MESSAGE_MAX
 };
+
+typedef struct pa_source_output_send_event_hook_data {
+    pa_source_output *source_output;
+    const char *event;
+    pa_proplist *data;
+} pa_source_output_send_event_hook_data;
 
 typedef struct pa_source_output_new_data {
     pa_proplist *proplist;
@@ -232,6 +242,8 @@ pa_usec_t pa_source_output_get_latency(pa_source_output *o, pa_usec_t *source_la
 void pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode, pa_proplist *p);
 
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o);
+
+void pa_source_output_send_event(pa_source_output *o, const char *name, pa_proplist *data);
 
 pa_bool_t pa_source_output_may_move(pa_source_output *o);
 pa_bool_t pa_source_output_may_move_to(pa_source_output *o, pa_source *dest);

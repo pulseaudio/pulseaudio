@@ -73,6 +73,7 @@ pa_client *pa_client_new(pa_core *core, pa_client_new_data *data) {
 
     c->userdata = NULL;
     c->kill = NULL;
+    c->send_event = NULL;
 
     pa_assert_se(pa_idxset_put(core->clients, c, &c->index) >= 0);
 
@@ -143,4 +144,32 @@ void pa_client_update_proplist(pa_client *c, pa_update_mode_t mode, pa_proplist 
 
     pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CLIENT_PROPLIST_CHANGED], c);
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);
+}
+
+void pa_client_send_event(pa_client *c, const char *event, pa_proplist *data) {
+    pa_proplist *pl = NULL;
+    pa_client_send_event_hook_data hook_data;
+
+    pa_assert(c);
+    pa_assert(event);
+
+    if (!c->send_event)
+        return;
+
+    if (!data)
+        data = pl = pa_proplist_new();
+
+    hook_data.client = c;
+    hook_data.data = data;
+    hook_data.event = event;
+
+    if (pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CLIENT_SEND_EVENT], &hook_data) < 0)
+        goto finish;
+
+    c->send_event(c, event, data);
+
+finish:
+
+    if (pl)
+        pa_proplist_free(pl);
 }

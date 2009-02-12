@@ -48,6 +48,8 @@ struct pa_client {
     void *userdata;
 
     void (*kill)(pa_client *c);
+
+    void (*send_event)(pa_client *c, const char *name, pa_proplist *data);
 };
 
 typedef struct pa_client_new_data {
@@ -72,5 +74,13 @@ void pa_client_kill(pa_client *c);
 void pa_client_set_name(pa_client *c, const char *name);
 
 void pa_client_update_proplist(pa_client *c, pa_update_mode_t mode, pa_proplist *p);
+
+void pa_client_send_event(pa_client *c, const char *event, pa_proplist *data);
+
+typedef struct pa_client_send_event_hook_data {
+    pa_client *client;
+    const char *event;
+    pa_proplist *data;
+} pa_client_send_event_hook_data;
 
 #endif

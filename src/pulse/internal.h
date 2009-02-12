@@ -71,6 +71,8 @@ struct pa_context {
     void *state_userdata;
     pa_context_subscribe_cb_t subscribe_callback;
     void *subscribe_userdata;
+    pa_context_event_cb_t event_callback;
+    void *event_userdata;
 
     pa_mempool *mempool;
 
@@ -181,6 +183,8 @@ struct pa_stream {
     void *suspended_userdata;
     pa_stream_notify_cb_t started_callback;
     void *started_userdata;
+    pa_stream_event_cb_t event_callback;
+    void *event_userdata;
 };
 
 typedef void (*pa_operation_cb_t)(void);
@@ -207,6 +211,9 @@ void pa_command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, uint32
 void pa_command_stream_suspended(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 void pa_command_stream_started(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+void pa_command_stream_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+void pa_command_client_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+
 pa_operation *pa_operation_new(pa_context *c, pa_stream *s, pa_operation_cb_t callback, void *userdata);
 void pa_operation_done(pa_operation *o);
 

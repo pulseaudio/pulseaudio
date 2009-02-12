@@ -207,6 +207,7 @@ static void sink_input_moved_cb(pa_sink_input *i);
 static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes);
 static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes);
 static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes);
+static void sink_input_send_event_cb(pa_sink_input *i, const char *event, pa_proplist *pl);
 
 static void native_connection_send_memblock(pa_native_connection *c);
 static void playback_stream_request_bytes(struct playback_stream*s);
@@ -216,6 +217,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
 static void source_output_suspend_cb(pa_source_output *o, pa_bool_t suspend);
 static void source_output_moved_cb(pa_source_output *o);
 static pa_usec_t source_output_get_latency_cb(pa_source_output *o);
+static void source_output_send_event_cb(pa_source_output *o, const char *event, pa_proplist *pl);
 
 static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
 
@@ -636,6 +638,7 @@ static record_stream* record_stream_new(
     s->source_output->get_latency = source_output_get_latency_cb;
     s->source_output->moved = source_output_moved_cb;
     s->source_output->suspend = source_output_suspend_cb;
+    s->source_output->send_event = source_output_send_event_cb;
     s->source_output->userdata = s;
 
     fix_record_buffer_attr_pre(s, adjust_latency, early_requests, maxlength, fragsize);
@@ -1048,6 +1051,7 @@ static playback_stream* playback_stream_new(
     s->sink_input->kill = sink_input_kill_cb;
     s->sink_input->moved = sink_input_moved_cb;
     s->sink_input->suspend = sink_input_suspend_cb;
+    s->sink_input->send_event = sink_input_send_event_cb;
     s->sink_input->userdata = s;
 
     start_index = ssync ? pa_memblockq_get_read_index(ssync->memblockq) : 0;
@@ -1494,6 +1498,27 @@ static void sink_input_kill_cb(pa_sink_input *i) {
 }
 
 /* Called from main context */
+static void sink_input_send_event_cb(pa_sink_input *i, const char *event, pa_proplist *pl) {
+    playback_stream *s;
+    pa_tagstruct *t;
+
+    pa_sink_input_assert_ref(i);
+    s = PLAYBACK_STREAM(i->userdata);
+    playback_stream_assert_ref(s);
+
+    if (s->connection->version < 15)
+      return;
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_PLAYBACK_STREAM_EVENT);
+    pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
+    pa_tagstruct_putu32(t, s->index);
+    pa_tagstruct_puts(t, event);
+    pa_tagstruct_put_proplist(t, pl);
+    pa_pstream_send_tagstruct(s->connection->pstream, t);
+}
+
+/* Called from main context */
 static void sink_input_suspend_cb(pa_sink_input *i, pa_bool_t suspend) {
     playback_stream *s;
     pa_tagstruct *t;
@@ -1592,6 +1617,27 @@ static pa_usec_t source_output_get_latency_cb(pa_source_output *o) {
     /*pa_log("get_latency: %u", pa_memblockq_get_length(s->memblockq));*/
 
     return pa_bytes_to_usec(pa_memblockq_get_length(s->memblockq), &o->sample_spec);
+}
+
+/* Called from main context */
+static void source_output_send_event_cb(pa_source_output *o, const char *event, pa_proplist *pl) {
+    record_stream *s;
+    pa_tagstruct *t;
+
+    pa_source_output_assert_ref(o);
+    s = RECORD_STREAM(o->userdata);
+    record_stream_assert_ref(s);
+
+    if (s->connection->version < 15)
+      return;
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_RECORD_STREAM_EVENT);
+    pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
+    pa_tagstruct_putu32(t, s->index);
+    pa_tagstruct_puts(t, event);
+    pa_tagstruct_put_proplist(t, pl);
+    pa_pstream_send_tagstruct(s->connection->pstream, t);
 }
 
 /* Called from main context */
@@ -4188,6 +4234,25 @@ static void client_kill_cb(pa_client *c) {
     pa_log_info("Connection killed.");
 }
 
+static void client_send_event_cb(pa_client *client, const char*event, pa_proplist *pl) {
+    pa_tagstruct *t;
+    pa_native_connection *c;
+
+    pa_assert(client);
+    c = PA_NATIVE_CONNECTION(client->userdata);
+    pa_native_connection_assert_ref(c);
+
+    if (c->version < 15)
+      return;
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_CLIENT_EVENT);
+    pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
+    pa_tagstruct_puts(t, event);
+    pa_tagstruct_put_proplist(t, pl);
+    pa_pstream_send_tagstruct(c->pstream, t);
+}
+
 /*** module entry points ***/
 
 static void auth_timeout(pa_mainloop_api*m, pa_time_event *e, const struct timeval *tv, void *userdata) {
@@ -4265,6 +4330,7 @@ void pa_native_protocol_connect(pa_native_protocol *p, pa_iochannel *io, pa_nati
 
     c->client = client;
     c->client->kill = client_kill_cb;
+    c->client->send_event = client_send_event_cb;
     c->client->userdata = c;
 
     c->pstream = pa_pstream_new(p->core->mainloop, io, p->core->mempool);

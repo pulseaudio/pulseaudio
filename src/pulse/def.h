@@ -840,6 +840,16 @@ static inline int PA_SOURCE_IS_OPENED(pa_source_state_t x) {
 /** A generic free() like callback prototype */
 typedef void (*pa_free_cb_t)(void *p);
 
+/** A stream policy/meta event requesting that an application should
+ * cork a specific stream. See pa_stream_event_cb_t for more
+ * information, \since 0.9.15 */
+#define PA_STREAM_EVENT_REQUEST_CORK "request-cork"
+
+/** A stream policy/meta event requesting that an application should
+ * cork a specific stream. See pa_stream_event_cb_t for more
+ * information, \since 0.9.15 */
+#define PA_STREAM_EVENT_REQUEST_UNCORK "request-uncork"
+
 PA_C_DECL_END
 
 #endif

@@ -164,6 +164,13 @@ typedef void (*pa_context_notify_cb_t)(pa_context *c, void *userdata);
 /** A generic callback for operation completion */
 typedef void (*pa_context_success_cb_t) (pa_context *c, int success, void *userdata);
 
+/** A callback for asynchronous meta/policy event messages. The set
+ * of defined events can be extended at any time. Also, server modules
+ * may introduce additional message types so make sure that your
+ * callback function ignores messages it doesn't know. \since
+ * 0.9.15 */
+typedef void (*pa_context_event_cb_t)(pa_context *c, const char *name, pa_proplist *p, void *userdata);
+
 /** Instantiate a new connection context with an abstract mainloop API
  * and an application name. It is recommended to use pa_context_new_with_proplist()
  * instead and specify some initial properties.*/
@@ -182,6 +189,10 @@ pa_context* pa_context_ref(pa_context *c);
 
 /** Set a callback function that is called whenever the context status changes */
 void pa_context_set_state_callback(pa_context *c, pa_context_notify_cb_t cb, void *userdata);
+
+/** Set a callback function that is called whenver a meta/policy
+ * control event is received. \since 0.9.15 */
+void pa_context_set_event_callback(pa_context *p, pa_context_event_cb_t cb, void *userdata);
 
 /** Return the error number of the last failed operation */
 int pa_context_errno(pa_context *c);
