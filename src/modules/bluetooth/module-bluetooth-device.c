@@ -162,20 +162,18 @@ static int init_bt(struct userdata *u);
 static int init_profile(struct userdata *u);
 
 static int service_send(struct userdata *u, const bt_audio_msg_header_t *msg) {
-    size_t length;
     ssize_t r;
 
     pa_assert(u);
     pa_assert(u->service_fd >= 0);
     pa_assert(msg);
-
-    length = msg->length ? msg->length : BT_SUGGESTED_BUFFER_SIZE;
+    pa_assert(msg->length > 0);
 
     pa_log_debug("Sending %s -> %s",
                  pa_strnull(bt_audio_strtype(msg->type)),
                  pa_strnull(bt_audio_strname(msg->name)));
 
-    if ((r = pa_loop_write(u->service_fd, msg, length, &u->service_write_type)) == (ssize_t) length)
+    if ((r = pa_loop_write(u->service_fd, msg, msg->length, &u->service_write_type)) == (ssize_t) msg->length)
         return 0;
 
     if (r < 0)
@@ -207,7 +205,7 @@ static int service_recv(struct userdata *u, bt_audio_msg_header_t *msg, size_t r
         return -1;
     }
 
-    /* Second, read the payload */
+    /* Secondly, read the payload */
     if (msg->length > sizeof(*msg)) {
 
         size_t remains = msg->length - sizeof(*msg);
@@ -217,7 +215,6 @@ static int service_recv(struct userdata *u, bt_audio_msg_header_t *msg, size_t r
                               remains,
                               &u->service_read_type)) != (ssize_t) remains)
             goto read_fail;
-
     }
 
     pa_log_debug("Received %s <- %s",
@@ -231,7 +228,7 @@ read_fail:
     if (r < 0)
         pa_log_error("Error receiving data from audio service: %s", pa_cstrerror(errno));
     else
-        pa_log_error("Short recv()");
+        pa_log_error("Short read()");
 
     return -1;
 }
