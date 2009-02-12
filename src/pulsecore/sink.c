@@ -519,7 +519,7 @@ void pa_sink_move_all_finish(pa_sink *s, pa_queue *q, pa_bool_t save) {
 
     while ((i = PA_SINK_INPUT(pa_queue_pop(q)))) {
         if (pa_sink_input_finish_move(i, s, save) < 0)
-            pa_sink_input_unlink(i);
+            pa_sink_input_kill(i);
 
         pa_sink_input_unref(i);
     }
@@ -534,7 +534,7 @@ void pa_sink_move_all_fail(pa_queue *q) {
 
     while ((i = PA_SINK_INPUT(pa_queue_pop(q)))) {
         if (pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FAIL], i) == PA_HOOK_OK) {
-            pa_sink_input_unlink(i);
+            pa_sink_input_kill(i);
             pa_sink_input_unref(i);
         }
     }

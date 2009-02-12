@@ -458,7 +458,7 @@ void pa_source_move_all_finish(pa_source *s, pa_queue *q, pa_bool_t save) {
 
     while ((o = PA_SOURCE_OUTPUT(pa_queue_pop(q)))) {
         if (pa_source_output_finish_move(o, s, save) < 0)
-            pa_source_output_unlink(o);
+            pa_source_output_kill(o);
 
         pa_source_output_unref(o);
     }
@@ -473,7 +473,7 @@ void pa_source_move_all_fail(pa_queue *q) {
 
     while ((o = PA_SOURCE_OUTPUT(pa_queue_pop(q)))) {
         if (pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_FAIL], o) == PA_HOOK_OK) {
-            pa_source_output_unlink(o);
+            pa_source_output_kill(o);
             pa_source_output_unref(o);
         }
     }
