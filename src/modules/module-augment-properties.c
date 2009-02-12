@@ -230,7 +230,7 @@ static pa_hook_result_t client_proplist_changed_cb(pa_core *core, pa_client *cli
     return process(u, client->proplist);
 }
 
-int pa__init(pa_module*m) {
+int pa__init(pa_module *m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
 
@@ -260,7 +260,7 @@ fail:
     return  -1;
 }
 
-void pa__done(pa_module*m) {
+void pa__done(pa_module *m) {
     struct userdata* u;
 
     pa_assert(m);
