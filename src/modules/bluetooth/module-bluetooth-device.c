@@ -1522,6 +1522,13 @@ static void stop_thread(struct userdata *u) {
         pa_source_unref(u->source);
         u->source = NULL;
     }
+
+    pa_thread_mq_done(&u->thread_mq);
+
+    if (u->rtpoll) {
+        pa_rtpoll_free(u->rtpoll);
+        u->rtpoll = NULL;
+    }
 }
 
 static int start_thread(struct userdata *u) {
@@ -1529,6 +1536,7 @@ static int start_thread(struct userdata *u) {
 
     pa_assert(u);
     pa_assert(!u->thread);
+    pa_assert(!u->rtpoll);
     pa_assert(!u->rtpoll_item);
 
     if (USE_SCO_OVER_PCM(u)) {
@@ -1536,6 +1544,9 @@ static int start_thread(struct userdata *u) {
         pa_source_ref(u->source);
         return 0;
     }
+
+    u->rtpoll = pa_rtpoll_new();
+    pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll);
 
     u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
     pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
@@ -1764,8 +1775,6 @@ int pa__init(pa_module* m) {
     u->service_fd = -1;
     u->stream_fd = -1;
     u->read_smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE, 10);
-    u->rtpoll = pa_rtpoll_new();
-    pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll);
     u->sample_spec = m->core->default_sample_spec;
     u->modargs = ma;
 
@@ -1920,11 +1929,6 @@ void pa__done(pa_module *m) {
 
     if (u->card)
         pa_card_free(u->card);
-
-    pa_thread_mq_done(&u->thread_mq);
-
-    if (u->rtpoll)
-        pa_rtpoll_free(u->rtpoll);
 
     if (u->read_smoother)
         pa_smoother_free(u->read_smoother);

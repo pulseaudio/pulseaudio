@@ -156,7 +156,7 @@ void pa_rtpoll_install(pa_rtpoll *p) {
     pa_assert(p);
     pa_assert(!p->installed);
 
-    p->installed = 1;
+    p->installed = TRUE;
 
 #ifdef HAVE_PPOLL
 # ifdef __linux__
