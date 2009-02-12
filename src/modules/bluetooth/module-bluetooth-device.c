@@ -136,7 +136,7 @@ struct userdata {
 
     pa_memchunk write_memchunk;
 
-    pa_sample_spec sample_spec;
+    pa_sample_spec sample_spec, requested_sample_spec;
 
     int service_fd;
     int stream_fd;
@@ -1571,13 +1571,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     }
 
     u->profile = *d;
-
-    /* Reinitialize the sample spec to default with module argument rate */
-    u->sample_spec = u->module->core->default_sample_spec;
-    if (pa_modargs_get_value_u32(u->modargs, "rate", &u->sample_spec.rate) < 0 ||
-        u->sample_spec.rate <= 0 || u->sample_spec.rate > PA_RATE_MAX) {
-        u->sample_spec = u->module->core->default_sample_spec;
-    }
+    u->sample_spec = u->requested_sample_spec;
 
     init_profile(u);
 
@@ -1781,6 +1775,7 @@ int pa__init(pa_module* m) {
         goto fail;
     }
     u->sample_spec.channels = (uint8_t) channels;
+    u->requested_sample_spec = u->sample_spec;
 
     if (setup_dbus(u) < 0)
         goto fail;
