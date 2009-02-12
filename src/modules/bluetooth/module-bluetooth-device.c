@@ -154,17 +154,19 @@ struct userdata {
 
     pa_bluetooth_device *device;
 
-    int write_type, read_type;
+    int stream_write_type, stream_read_type;
+    int service_write_type, service_read_type;
 };
 
 static int init_bt(struct userdata *u);
 static int init_profile(struct userdata *u);
 
-static int service_send(int fd, const bt_audio_msg_header_t *msg) {
+static int service_send(struct userdata *u, const bt_audio_msg_header_t *msg) {
     size_t length;
     ssize_t r;
 
-    pa_assert(fd >= 0);
+    pa_assert(u);
+    pa_assert(u->service_fd >= 0);
     pa_assert(msg);
 
     length = msg->length ? msg->length : BT_SUGGESTED_BUFFER_SIZE;
@@ -173,51 +175,58 @@ static int service_send(int fd, const bt_audio_msg_header_t *msg) {
                  pa_strnull(bt_audio_strtype(msg->type)),
                  pa_strnull(bt_audio_strname(msg->name)));
 
-    if ((r = send(fd, msg, length, 0)) == (ssize_t) length)
+    if ((r = pa_loop_write(u->service_fd, msg, length, &u->service_write_type)) == (ssize_t) length)
         return 0;
 
     if (r < 0)
         pa_log_error("Error sending data to audio service: %s", pa_cstrerror(errno));
     else
-        pa_log_error("Short send()");
+        pa_log_error("Short write()");
 
     return -1;
 }
 
-static int service_recv(int fd, bt_audio_msg_header_t *msg, size_t expected_length) {
-    size_t length;
+static int service_recv(struct userdata *u, bt_audio_msg_header_t *msg, size_t room) {
     ssize_t r;
 
-    pa_assert(fd >= 0);
+    pa_assert(u);
+    pa_assert(u->service_fd >= 0);
     pa_assert(msg);
 
-    length = expected_length ? expected_length : BT_SUGGESTED_BUFFER_SIZE;
-
-    if (length < sizeof(bt_audio_error_t))
-        length = sizeof(bt_audio_error_t);
+    if (room <= 0)
+        room = BT_SUGGESTED_BUFFER_SIZE;
 
     pa_log_debug("Trying to receive message from audio service...");
 
-    r = recv(fd, msg, length, 0);
+    /* First, read the header */
+    if ((r = pa_loop_read(u->service_fd, msg, sizeof(*msg), &u->service_read_type)) != sizeof(*msg))
+        goto read_fail;
 
-    if (r > 0 && (r == (ssize_t) length || expected_length <= 0)) {
-
-        if ((size_t) r < sizeof(*msg)) {
-            pa_log_error("Packet read too small.");
-            return -1;
-        }
-
-        if (r != msg->length) {
-            pa_log_error("Size read doesn't match header size.");
-            return -1;
-        }
-
-        pa_log_debug("Received %s <- %s",
-                     pa_strnull(bt_audio_strtype(msg->type)),
-                     pa_strnull(bt_audio_strname(msg->name)));
-
-        return 0;
+    if (msg->length < sizeof(*msg)) {
+        pa_log_error("Invalid message size.");
+        return -1;
     }
+
+    /* Second, read the payload */
+    if (msg->length > sizeof(*msg)) {
+
+        size_t remains = msg->length - sizeof(*msg);
+
+        if ((r = pa_loop_read(u->service_fd,
+                              (uint8_t*) msg + sizeof(*msg),
+                              remains,
+                              &u->service_read_type)) != (ssize_t) remains)
+            goto read_fail;
+
+    }
+
+    pa_log_debug("Received %s <- %s",
+                 pa_strnull(bt_audio_strtype(msg->type)),
+                 pa_strnull(bt_audio_strname(msg->name)));
+
+    return 0;
+
+read_fail:
 
     if (r < 0)
         pa_log_error("Error receiving data from audio service: %s", pa_cstrerror(errno));
@@ -227,16 +236,19 @@ static int service_recv(int fd, bt_audio_msg_header_t *msg, size_t expected_leng
     return -1;
 }
 
-static ssize_t service_expect(int fd, bt_audio_msg_header_t *rsp, uint8_t expected_name, size_t expected_length) {
+static ssize_t service_expect(struct userdata*u, bt_audio_msg_header_t *rsp, size_t room, uint8_t expected_name, size_t expected_size) {
     int r;
 
-    pa_assert(fd >= 0);
+    pa_assert(u);
+    pa_assert(u->service_fd >= 0);
     pa_assert(rsp);
 
-    if ((r = service_recv(fd, rsp, expected_length)) < 0)
+    if ((r = service_recv(u, rsp, room)) < 0)
         return r;
 
-    if (rsp->type != BT_RESPONSE || rsp->name != expected_name) {
+    if ((rsp->type != BT_INDICATION && rsp->type != BT_RESPONSE) ||
+        rsp->name != expected_name ||
+        (expected_size > 0 && rsp->length != expected_size)) {
 
         if (rsp->type == BT_ERROR && rsp->length == sizeof(bt_audio_error_t))
             pa_log_error("Received error condition: %s", pa_cstrerror(((bt_audio_error_t*) rsp)->posix_errno));
@@ -328,10 +340,10 @@ static int get_caps(struct userdata *u) {
     }
     msg.getcaps_req.flags = BT_FLAG_AUTOCONNECT;
 
-    if (service_send(u->service_fd, &msg.getcaps_req.h) < 0)
+    if (service_send(u, &msg.getcaps_req.h) < 0)
         return -1;
 
-    if (service_expect(u->service_fd, &msg.getcaps_rsp.h, BT_GET_CAPABILITIES, 0) < 0)
+    if (service_expect(u, &msg.getcaps_rsp.h, sizeof(msg), BT_GET_CAPABILITIES, 0) < 0)
         return -1;
 
     return parse_caps(u, &msg.getcaps_rsp);
@@ -610,10 +622,10 @@ static int set_conf(struct userdata *u) {
         msg.setconf_req.h.length += msg.setconf_req.codec.length - sizeof(msg.setconf_req.codec);
     }
 
-    if (service_send(u->service_fd, &msg.setconf_req.h) < 0)
+    if (service_send(u, &msg.setconf_req.h) < 0)
         return -1;
 
-    if (service_expect(u->service_fd, &msg.setconf_rsp.h, BT_SET_CONFIGURATION, sizeof(msg.setconf_rsp)) < 0)
+    if (service_expect(u, &msg.setconf_rsp.h, sizeof(msg), BT_SET_CONFIGURATION, sizeof(msg.setconf_rsp)) < 0)
         return -1;
 
     if ((u->profile == PROFILE_A2DP && msg.setconf_rsp.transport != BT_CAPABILITIES_TRANSPORT_A2DP) ||
@@ -660,13 +672,13 @@ static int setup_stream_fd(struct userdata *u) {
     msg.start_req.h.name = BT_START_STREAM;
     msg.start_req.h.length = sizeof(msg.start_req);
 
-    if (service_send(u->service_fd, &msg.start_req.h) < 0)
+    if (service_send(u, &msg.start_req.h) < 0)
         return -1;
 
-    if (service_expect(u->service_fd, &msg.rsp, BT_START_STREAM, sizeof(msg.start_rsp)) < 0)
+    if (service_expect(u, &msg.rsp, sizeof(msg), BT_START_STREAM, sizeof(msg.start_rsp)) < 0)
         return -1;
 
-    if (service_expect(u->service_fd, &msg.rsp, BT_NEW_STREAM, sizeof(msg.streamfd_ind)) < 0)
+    if (service_expect(u, &msg.rsp, sizeof(msg), BT_NEW_STREAM, sizeof(msg.streamfd_ind)) < 0)
         return -1;
 
     if ((u->stream_fd = bt_audio_service_get_data_fd(u->service_fd)) < 0) {
@@ -776,7 +788,7 @@ static int hsp_process_render(struct userdata *u) {
         const void *p;
 
         p = (const uint8_t*) pa_memblock_acquire(memchunk.memblock) + memchunk.index;
-        l = pa_write(u->stream_fd, p, memchunk.length, &u->write_type);
+        l = pa_write(u->stream_fd, p, memchunk.length, &u->stream_write_type);
         pa_memblock_release(memchunk.memblock);
 
         pa_log_debug("Memblock written to socket: %lli bytes", (long long) l);
@@ -825,7 +837,7 @@ static int hsp_process_push(struct userdata *u) {
         void *p;
 
         p = pa_memblock_acquire(memchunk.memblock);
-        l = pa_read(u->stream_fd, p, pa_memblock_get_length(memchunk.memblock), &u->read_type);
+        l = pa_read(u->stream_fd, p, pa_memblock_get_length(memchunk.memblock), &u->stream_read_type);
         pa_memblock_release(memchunk.memblock);
 
         if (l <= 0) {
@@ -941,7 +953,7 @@ static int a2dp_process_render(struct userdata *u) {
     for (;;) {
         ssize_t l;
 
-        l = pa_write(u->stream_fd, p, left, &u->write_type);
+        l = pa_write(u->stream_fd, p, left, &u->stream_write_type);
 /*         pa_log_debug("write: requested %lu bytes; written %li bytes; mtu=%li", (unsigned long) left, (long) l, (unsigned long) u->link_mtu); */
 
         pa_assert(l != 0);
@@ -1417,7 +1429,8 @@ static int init_bt(struct userdata *u) {
         u->service_fd = -1;
     }
 
-    u->write_type = u->read_type = 0;
+    u->stream_write_type = u->stream_read_type = 0;
+    u->service_write_type = u->stream_write_type = 0;
 
     /* connect to the bluez audio service */
     if ((u->service_fd = bt_audio_service_open()) < 0) {
