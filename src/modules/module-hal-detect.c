@@ -180,7 +180,7 @@ finish:
 
 static int hal_device_load_alsa(struct userdata *u, const char *udi, struct device *d) {
     enum alsa_type type;
-    int device, card;
+    int card;
     DBusError error;
     pa_module *m;
     char *args, *originating_udi = NULL, *card_name = NULL;
@@ -198,11 +198,6 @@ static int hal_device_load_alsa(struct userdata *u, const char *udi, struct devi
 
     /* We don't care for modems */
     if (hal_alsa_device_is_modem(u->context, udi))
-        goto fail;
-
-    /* We only care for the main device */
-    device = libhal_device_get_property_int(u->context, udi, "alsa.device", &error);
-    if (dbus_error_is_set(&error) || device != 0)
         goto fail;
 
     /* We store only one entry per card, hence we look for the originating device */
