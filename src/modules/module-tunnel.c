@@ -662,7 +662,7 @@ fail:
 /* Called from main context */
 static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
-    pa_usec_t sink_usec, source_usec, transport_usec;
+    pa_usec_t sink_usec, source_usec, transport_usec = 0;
     pa_bool_t playing;
     int64_t write_index, read_index;
     struct timeval local, remote, now;
