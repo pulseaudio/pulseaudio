@@ -73,8 +73,8 @@ PA_MODULE_USAGE(
         "rate=<sample rate> "
         "channels=<number of channels> "
         "path=<device object path> "
-	"sco_sink=<SCO over PCM sink name> "
-	"sco_source=<SCO over PCM source name>");
+        "sco_sink=<SCO over PCM sink name> "
+        "sco_source=<SCO over PCM source name>");
 
 static const char* const valid_modargs[] = {
     "name",
@@ -1309,7 +1309,7 @@ static int add_sink(struct userdata *u) {
         pa_proplist_update(u->sink->proplist, PA_UPDATE_MERGE, p);
         pa_proplist_free(p);
 
-	if (!u->hsp.sink_state_changed_slot)
+        if (!u->hsp.sink_state_changed_slot)
             u->hsp.sink_state_changed_slot = pa_hook_connect(&u->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) sink_state_changed_cb, u);
 
     } else {
@@ -1550,13 +1550,13 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 
     if (u->sink) {
         inputs = pa_sink_move_all_start(u->sink);
-	if (!USE_SCO_OVER_PCM(u))
+        if (!USE_SCO_OVER_PCM(u))
             pa_sink_unlink(u->sink);
     }
 
     if (u->source) {
         outputs = pa_source_move_all_start(u->source);
-	if (!USE_SCO_OVER_PCM(u))
+        if (!USE_SCO_OVER_PCM(u))
             pa_source_unlink(u->source);
     }
 
