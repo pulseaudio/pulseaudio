@@ -110,6 +110,9 @@ load-module module-console-kit
 ### Enable positioned event sounds
 load-module module-position-event-sounds
 
+### Cork music streams when a phone stream is active
+load-module module-cork-music-on-phone
+
 # X11 modules should not be started from default.pa so that one daemon
 # can be shared by multiple sessions.
 

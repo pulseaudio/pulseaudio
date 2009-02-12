@@ -896,7 +896,8 @@ modlibexec_LTLIBRARIES += \
 		module-tunnel-sink.la \
 		module-tunnel-source.la \
 		module-position-event-sounds.la \
-		module-augment-properties.la
+		module-augment-properties.la \
+		module-cork-music-on-phone.la
 
 
 # See comment at librtp.la above
@@ -1086,6 +1087,7 @@ SYMDEF_FILES = \
 		modules/gconf/module-gconf-symdef.h \
 		modules/module-position-event-sounds-symdef.h \
 		modules/module-augment-properties-symdef.h \
+		modules/module-cork-music-on-phone-symdef.h \
 		modules/module-console-kit-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
@@ -1346,6 +1348,12 @@ module_augment_properties_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_augment_properties_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 #module_augment_properties_la_CFLAGS = $(AM_CFLAGS) -DDESKTOPFILEDIR=\"$(datadir)/applications\"
 module_augment_properties_la_CFLAGS = $(AM_CFLAGS) -DDESKTOPFILEDIR=\"/usr/share/applications\"
+
+# Cork music streams while a phone stream is active
+module_cork_music_on_phone_la_SOURCES = modules/module-cork-music-on-phone.c
+module_cork_music_on_phone_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_cork_music_on_phone_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_cork_music_on_phone_la_CFLAGS = $(AM_CFLAGS)
 
 # Device volume/muted restore module
 module_device_restore_la_SOURCES = modules/module-device-restore.c
