@@ -229,7 +229,7 @@ int pa_card_set_profile(pa_card *c, const char *name) {
 
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);
 
-    pa_log_info("Successfully changed profile of card %u \"%s\" to %s", c->index, c->name, profile->name);
+    pa_log_info("Changed profile of card %u \"%s\" to %s", c->index, c->name, profile->name);
 
     c->active_profile = profile;
 
