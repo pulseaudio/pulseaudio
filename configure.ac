@@ -1268,6 +1268,11 @@ if test "x$HAVE_SOLARIS" = "x1" ; then
    ENABLE_SOLARIS=yes
 fi
 
+ENABLE_GTK20=no
+if test "x$HAVE_GTK20" = "x1" ; then
+   ENABLE_GTK20=yes
+fi
+
 ENABLE_GLIB20=no
 if test "x$HAVE_GLIB20" = "x1" ; then
    ENABLE_GLIB20=yes
@@ -1350,6 +1355,7 @@ echo "
     Enable Alsa:                   ${ENABLE_ALSA}
     Enable Solaris:                ${ENABLE_SOLARIS}
     Enable GLib 2.0:               ${ENABLE_GLIB20}
+    Enable Gtk+ 2.0:               ${ENABLE_GTK20}
     Enable GConf:                  ${ENABLE_GCONF}
     Enable Avahi:                  ${ENABLE_AVAHI}
     Enable Jack:                   ${ENABLE_JACK}
