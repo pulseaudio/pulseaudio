@@ -129,9 +129,6 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
 
     pa_init_i18n();
 
-    if (!name && !pa_proplist_contains(p, PA_PROP_APPLICATION_NAME))
-        return NULL;
-
     c = pa_xnew(pa_context, 1);
     PA_REFCNT_INIT(c);
 
