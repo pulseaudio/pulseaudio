@@ -30,110 +30,163 @@
 
 PA_C_DECL_BEGIN
 
-/* Defined properties:
- *
- *    media.name                    "Guns'N'Roses: Civil War"
- *    media.title                   "Civil War"
- *    media.artist                  "Guns'N'Roses"
- *    media.language                "de_DE"
- *    media.filename
- *    media.icon                    Binary blob containing PNG icon data
- *    media.icon_name               Name from XDG icon naming spec
- *    media.role                    video, music, game, event, phone, animation, production, filter, abstract, stream
- *    event.id                      Name from XDG sound naming spec
- *    event.description             "Button blabla clicked" for a11y
- *    event.mouse.x
- *    event.mouse.y
- *    event.mouse.hpos              Float formatted as string in range 0..1
- *    event.mouse.vpos              Float formatted as string in range 0..1
- *    event.mouse.button            Button number following X11 ordering
- *    window.name
- *    window.id                     "org.gnome.rhytmbox.MainWindow"
- *    window.icon                   Binary blob containing PNG icon data
- *    window.icon_name              Name from XDG icon naming spec
- *    window.x11.display
- *    window.x11.screen
- *    window.x11.monitor
- *    window.x11.xid
- *    application.name              "Rhythmbox Media Player"
- *    application.id                "org.gnome.rhythmbox"
- *    application.version
- *    application.icon              Binary blob containing PNG icon data
- *    application.icon_name         Name from XDG icon naming spec
- *    application.language
- *    application.process.id
- *    application.process.binary
- *    application.process.user
- *    application.process.host
- *    application.process.machine_id D-Bus machine ID
- *    device.string
- *    device.api                    oss, alsa, sunaudio
- *    device.description
- *    device.bus_path
- *    device.serial
- *    device.vendor_product_id
- *    device.class                  sound, modem, monitor, filter, abstract
- *    device.form_factor            laptop-speakers, external-speakers, telephone, tv-capture, webcam-capture, microphone-capture, headset, headphones, hands-free, car, hifi, computer, portable
- *    device.connector              isa, pci, usb, firewire, bluetooth
- *    device.access_mode            mmap, mmap_rewrite, serial
- *    device.master_device
- *    device.buffering.buffer_size
- *    device.buffering.fragment_size
- *    device.profile.name           analog-stereo, analog-surround-40, iec958-stereo, ...
- *    device.profile.description    "Analog Stereo", ...
- */
+/** For streams: localized media name, formatted as UTF-8. e.g. "Guns'N'Roses: Civil War".*/
 #define PA_PROP_MEDIA_NAME                     "media.name"
+
+/** For streams: localized media title if applicable, formatted as UTF-8. e.g. "Civil War" */
 #define PA_PROP_MEDIA_TITLE                    "media.title"
+
+/** For streams: localized media artist if applicable, formatted as UTF-8. e.g. "Guns'N'Roses" */
 #define PA_PROP_MEDIA_ARTIST                   "media.artist"
+
+/** For streams: media language if applicable, in standard POSIX format. e.g. "de_DE" */
 #define PA_PROP_MEDIA_LANGUAGE                 "media.language"
+
+/** For streams: source filename if applicable, in URI format or local path. e.g. "/home/lennart/music/foobar.ogg" */
 #define PA_PROP_MEDIA_FILENAME                 "media.filename"
+
+/** For streams: icon for the media. A binary blob containing PNG image data */
 #define PA_PROP_MEDIA_ICON                     "media.icon"
+
+/** For streams: an XDG icon name for the media. e.g. "audio-x-mp3" */
 #define PA_PROP_MEDIA_ICON_NAME                "media.icon_name"
+
+/** For streams: logic role of this media. One of the strings "video", "music", "game", "event", "phone", "animation", "production" */
 #define PA_PROP_MEDIA_ROLE                     "media.role"
+
+/** For event sound streams: XDG event sound name. e.g. "message-new-email" (Event sound streams are those with media.role set to "event") */
 #define PA_PROP_EVENT_ID                       "event.id"
+
+/** For event sound streams: localized human readable one-line description of the event, formatted as UTF-8. e.g. "Email from lennart@example.com received." */
 #define PA_PROP_EVENT_DESCRIPTION              "event.description"
+
+/** For event sound streams: absolute horizontal mouse position on the screen if the event sound was triggered by a mouse click, integer formatted as text string. e.g. "865" */
 #define PA_PROP_EVENT_MOUSE_X                  "event.mouse.x"
+
+/** For event sound streams: absolute vertical mouse position on the screen if the event sound was triggered by a mouse click, integer formatted as text string. e.g. "432" */
 #define PA_PROP_EVENT_MOUSE_Y                  "event.mouse.y"
+
+/** For event sound streams: relative horizontal mouse position on the screen if the event sound was triggered by a mouse click, float formatted as text string, ranging from 0.0 (left side of the screen) to 1.0 (right side of the screen). e.g. "0.65" */
 #define PA_PROP_EVENT_MOUSE_HPOS               "event.mouse.hpos"
+
+/** For event sound streams: relative vertical mouse position on the screen if the event sound was triggered by a mouse click, float formatted as text string, ranging from 0.0 (top of the screen) to 1.0 (bottom of the screen). e.g. "0.43" */
 #define PA_PROP_EVENT_MOUSE_VPOS               "event.mouse.vpos"
+
+/** For event sound streams: mouse button that triggered the event if applicable, integer formatted as string with 0=left, 1=middle, 2=right. e.g. "0" */
 #define PA_PROP_EVENT_MOUSE_BUTTON             "event.mouse.button"
+
+/** For streams that belong to a window on the screen: localized window title. e.g. "Totem Music Player" */
 #define PA_PROP_WINDOW_NAME                    "window.name"
+
+/** For streams that belong to a window on the screen: a textual id for identifying a window logically. e.g. "org.gnome.Totem.MainWindow" */
 #define PA_PROP_WINDOW_ID                      "window.id"
+
+/** For streams that belong to a window on the screen: window icon. A binary blob containing PNG image data */
 #define PA_PROP_WINDOW_ICON                    "window.icon"
+
+/** For streams that belong to a window on the screen: an XDG icon name for the window. e.g. "totem" */
 #define PA_PROP_WINDOW_ICON_NAME               "window.icon_name"
+
+/** For streams that belong to an X11 window on the screen: the X11 display string. e.g. ":0.0" */
 #define PA_PROP_WINDOW_X11_DISPLAY             "window.x11.display"
+
+/** For streams that belong to an X11 window on the screen: the X11 screen the window is on, an integer formatted as string. e.g. "0" */
 #define PA_PROP_WINDOW_X11_SCREEN              "window.x11.screen"
+
+/** For streams that belong to an X11 window on the screen: the X11 monitor the window is on, an integer formatted as string. e.g. "0" */
 #define PA_PROP_WINDOW_X11_MONITOR             "window.x11.monitor"
+
+/** For streams that belong to an X11 window on the screen: the window XID, an integer formatted as string. e.g. "25632" */
 #define PA_PROP_WINDOW_X11_XID                 "window.x11.xid"
+
+/** For clients/streams: localized human readable application name. e.g. "Totem Music Player" */
 #define PA_PROP_APPLICATION_NAME               "application.name"
+
+/** For clients/streams: a textual id for identifying an application logically. e.g. "org.gnome.Totem" */
 #define PA_PROP_APPLICATION_ID                 "application.id"
+
+/** For clients/streams: a version string e.g. "0.6.88" */
 #define PA_PROP_APPLICATION_VERSION            "application.version"
+
+/** For clients/streams: application icon. A binary blob containing PNG image data */
 #define PA_PROP_APPLICATION_ICON               "application.icon"
+
+/** For clients/streams: an XDG icon name for the application. e.g. "totem" */
 #define PA_PROP_APPLICATION_ICON_NAME          "application.icon_name"
+
+/** For clients/streams: application language if applicable, in standard POSIX format. e.g. "de_DE" */
 #define PA_PROP_APPLICATION_LANGUAGE           "application.language"
+
+/** For clients/streams on UNIX: application process PID, an integer formatted as string. e.g. "4711" */
 #define PA_PROP_APPLICATION_PROCESS_ID         "application.process.id"
+
+/** For clients/streams: application process name. e.g. "totem" */
 #define PA_PROP_APPLICATION_PROCESS_BINARY     "application.process.binary"
+
+/** For clients/streams: application user name. e.g. "lennart" */
 #define PA_PROP_APPLICATION_PROCESS_USER       "application.process.user"
+
+/** For clients/streams: host name the application runs on. e.g. "omega" */
 #define PA_PROP_APPLICATION_PROCESS_HOST       "application.process.host"
+
+/** For clients/streams: the D-Bus host id the application runs on. e.g. "543679e7b01393ed3e3e650047d78f6e" */
 #define PA_PROP_APPLICATION_PROCESS_MACHINE_ID "application.process.machine_id"
+
+/** For devices: device string in the underlying audio layer's format. e.g. "surround51:0" */
 #define PA_PROP_DEVICE_STRING                  "device.string"
+
+/** For devices: API this device is access with. e.g. "alsa" */
 #define PA_PROP_DEVICE_API                     "device.api"
+
+/** For devices: localized human readable device one-line description, e.g. "Foobar Industries USB Headset 2000+ Ultra" */
 #define PA_PROP_DEVICE_DESCRIPTION             "device.description"
+
+/** For devices: bus path to the device in the OS' format. e.g. "/sys/bus/pci/devices/0000:00:1f.2" */
 #define PA_PROP_DEVICE_BUS_PATH                "device.bus_path"
+
+/** For devices: serial number if applicable. e.g. "4711-0815-1234" */
 #define PA_PROP_DEVICE_SERIAL                  "device.serial"
+
+/** For devices: vendor/product ID if applicable. e.g. 1274:1371 */
 #define PA_PROP_DEVICE_VENDOR_PRODUCT_ID       "device.vendor_product_id"
+
+/** For devices: device class. One of "sound", "modem", "monitor", "filter" */
 #define PA_PROP_DEVICE_CLASS                   "device.class"
+
+/** For devices: form factor if applicable. One of "laptop-speakers", "external-speakers", "telephone", "tv-capture", "webcam-capture", "microphone-capture", "headset", "headphones", "hands-free", "car", "hifi", "computer", "portable" */
 #define PA_PROP_DEVICE_FORM_FACTOR             "device.form_factor"
+
+/** For devices: connector of the device if applicable. One of "isa", "pci", "usb", "firewire", "bluetooth" */
 #define PA_PROP_DEVICE_CONNECTOR               "device.connector"
+
+/** For devices: access mode of the device if applicable. One of "mmap", "mmap_rewrite", "serial" */
 #define PA_PROP_DEVICE_ACCESS_MODE             "device.access_mode"
+
+/** For filter devices: master device id if applicable. */
 #define PA_PROP_DEVICE_MASTER_DEVICE           "device.master_device"
+
+/** For devices: buffer size in bytes, integer formatted as string.. */
 #define PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE   "device.buffering.buffer_size"
+
+/** For devices: fragment size in bytes, integer formatted as string. */
 #define PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE "device.buffering.fragment_size"
+
+/** For devices: profile identifier for the profile this devices is in. e.g. "analog-stereo", "analog-surround-40", "iec958-stereo", ...*/
 #define PA_PROP_DEVICE_PROFILE_NAME            "device.profile.name"
+
+/** For devices: human readable one-line description of the profile this device is in. e.g. "Analog Stereo", ... */
 #define PA_PROP_DEVICE_PROFILE_DESCRIPTION     "device.profile.description"
+
+/** For modules: the author's name, formatted as UTF-8 string. e.g. "Lennart Poettering" */
 #define PA_PROP_MODULE_AUTHOR                  "module.author"
+
+/** For modules: a human readable one-line description of the module's purpose formatted as UTF-8. e.g. "Frobnicate sounds with a flux compensator" */
 #define PA_PROP_MODULE_DESCRIPTION             "module.description"
+
+/** For modules: a human readable usage description of the module's arguments formatted as UTF-8. */
 #define PA_PROP_MODULE_USAGE                   "module.usage"
+
+/** For modules: a version string for the module. e.g. "0.9.15" */
 #define PA_PROP_MODULE_VERSION                 "module.version"
 
 /** A property list object. Basically a dictionary with ASCII strings
@@ -179,17 +232,17 @@ int pa_proplist_get(pa_proplist *p, const char *key, const void **data, size_t *
 
 /** Update mode enum for pa_proplist_update(). \since 0.9.11 */
 typedef enum pa_update_mode {
-    PA_UPDATE_SET,
-    /*< Replace the entirey property list with the new one. Don't keep
-     *  any of the old data around */
+    PA_UPDATE_SET
+    /**< Replace the entirey property list with the new one. Don't keep
+     *  any of the old data around */,
 
-    PA_UPDATE_MERGE,
-    /*< Merge new property list into the existing one, not replacing
+    PA_UPDATE_MERGE
+    /**< Merge new property list into the existing one, not replacing
      *  any old entries if they share a common key with the new
-     *  property list. */
+     *  property list. */,
 
     PA_UPDATE_REPLACE
-    /*< Merge new property list into the existing one, replacing all
+    /**< Merge new property list into the existing one, replacing all
      *  old entries that share a common key with the new property
      *  list. */
 } pa_update_mode_t;
