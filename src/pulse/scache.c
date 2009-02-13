@@ -66,10 +66,8 @@ int pa_stream_connect_upload(pa_stream *s, size_t length) {
     pa_tagstruct_put_channel_map(t, &s->channel_map);
     pa_tagstruct_putu32(t, (uint32_t) length);
 
-    if (s->context->version >= 13) {
-        pa_init_proplist(s->proplist);
+    if (s->context->version >= 13)
         pa_tagstruct_put_proplist(t, s->proplist);
-    }
 
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_create_stream_callback, s, NULL);
