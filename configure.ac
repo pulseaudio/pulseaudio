@@ -721,6 +721,45 @@ AC_SUBST(GLIB20_LIBS)
 AC_SUBST(HAVE_GLIB20)
 AM_CONDITIONAL([HAVE_GLIB20], [test "x$HAVE_GLIB20" = x1])
 
+if test "x$HAVE_GLIB20" = x1 ; then
+   AC_DEFINE([HAVE_GLIB], 1, [Have GLIB?])
+fi
+
+#### GTK2 support (optional) ####
+
+AC_ARG_ENABLE([gtk2],
+    AS_HELP_STRING([--disable-gtk2],[Disable optional Gtk+ 2 support]),
+        [
+            case "${enableval}" in
+                yes) gtk2=yes ;;
+                no) gtk2=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-gtk2) ;;
+            esac
+        ],
+        [gtk2=auto])
+
+if test "x${gtk2}" != xno ; then
+    PKG_CHECK_MODULES(GTK20, [ gtk+-2.0 >= 2.4.0 ],
+        HAVE_GTK20=1,
+        [
+            HAVE_GTK20=0
+            if test "x$gtk2" = xyes ; then
+                AC_MSG_ERROR([*** Gtk+ 2 support not found])
+            fi
+        ])
+else
+    HAVE_GTK20=0
+fi
+
+AC_SUBST(GTK20_CFLAGS)
+AC_SUBST(GTK20_LIBS)
+AC_SUBST(HAVE_GTK20)
+AM_CONDITIONAL([HAVE_GTK20], [test "x$HAVE_GTK20" = x1])
+
+if test "x$HAVE_GTK20" = x1 ; then
+   AC_DEFINE([HAVE_GTK], 1, [Have GTK?])
+fi
+
 #### GConf support (optional) ####
 
 AC_ARG_ENABLE([gconf],

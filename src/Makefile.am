@@ -308,6 +308,11 @@ TESTS_BINARIES += \
 		mainloop-test-glib
 endif
 
+if HAVE_GTK20
+TESTS_BINARIES += \
+		gtk-test
+endif
+
 if BUILD_TESTS_DEFAULT
 noinst_PROGRAMS = $(TESTS_BINARIES)
 else
@@ -504,6 +509,11 @@ prioq_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecomm
 prioq_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
 prioq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
 
+gtk_test_SOURCES = tests/gtk-test.c
+gtk_test_LDADD = $(AM_LDADD) libpulse.la libpulse-mainloop-glib.la
+gtk_test_CFLAGS = $(AM_CFLAGS) $(GTK20_CFLAGS)
+gtk_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(GTK20_LIBS)
+
 ###################################
 #         Common library          #
 ###################################
@@ -570,6 +580,9 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 libpulsecommon_@PA_MAJORMINORMICRO@_la_CFLAGS = $(AM_CFLAGS)
 libpulsecommon_@PA_MAJORMINORMICRO@_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
 libpulsecommon_@PA_MAJORMINORMICRO@_la_LIBADD = $(AM_LIBADD) $(LIBWRAP_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV)
+
+# proplist-util.h uses these header files, but not the library itself!
+libpulsecommon_@PA_MAJORMINORMICRO@_la_CFLAGS += $(GLIB20_CFLAGS) $(GTK20_CFLAGS)
 
 ## Please note that libpulsecommon implicitly also depends on<
 ## libpulse! i.e. we have a cyclic dependancy here. Which is intended

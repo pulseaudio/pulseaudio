@@ -34,6 +34,7 @@
 extern char **environ;
 #endif
 
+#include <pulse/gccmacro.h>
 #include <pulse/proplist.h>
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
@@ -41,7 +42,63 @@ extern char **environ;
 
 #include <pulsecore/core-util.h>
 
+#if defined(HAVE_GLIB) && defined(PA_GCC_WEAKREF)
+#include <glib.h>
+static G_CONST_RETURN gchar* _g_get_application_name(void) PA_GCC_WEAKREF(g_get_application_name);
+#endif
+
+#if defined(HAVE_GTK) && defined(PA_GCC_WEAKREF)
+#include <gtk/gtk.h>
+#include <gdk/gdkx.h>
+static G_CONST_RETURN gchar* _gtk_window_get_default_icon_name(void) PA_GCC_WEAKREF(gtk_window_get_default_icon_name);
+static Display *_gdk_display PA_GCC_WEAKREF(gdk_display);
+#endif
+
 #include "proplist-util.h"
+
+static void add_glib_properties(pa_proplist *p) {
+
+#if defined(HAVE_GLIB) && defined(PA_GCC_WEAKREF)
+
+    if (!pa_proplist_contains(p, PA_PROP_APPLICATION_NAME))
+        if (_g_get_application_name) {
+            const gchar *t;
+
+            /* We ignore the tiny race condition here. */
+
+            if ((t = _g_get_application_name()))
+                pa_proplist_sets(p, PA_PROP_APPLICATION_NAME, t);
+        }
+
+#endif
+}
+
+static void add_gtk_properties(pa_proplist *p) {
+
+#if defined(HAVE_GTK) && defined(PA_GCC_WEAKREF)
+
+    if (!pa_proplist_contains(p, PA_PROP_APPLICATION_ICON_NAME))
+        if (_gtk_window_get_default_icon_name) {
+            const gchar *t;
+
+            /* We ignore the tiny race condition here. */
+
+            if ((t = _gtk_window_get_default_icon_name()))
+                pa_proplist_sets(p, PA_PROP_APPLICATION_ICON_NAME, t);
+        }
+
+    if (!pa_proplist_contains(p, PA_PROP_WINDOW_X11_DISPLAY))
+        if (&_gdk_display && _gdk_display) {
+            const char *t;
+
+            /* We ignore the tiny race condition here. */
+
+            if ((t = DisplayString(_gdk_display)))
+                pa_proplist_sets(p, PA_PROP_WINDOW_X11_DISPLAY, t);
+        }
+
+#endif
+}
 
 void pa_init_proplist(pa_proplist *p) {
     char **e;
@@ -135,20 +192,8 @@ void pa_init_proplist(pa_proplist *p) {
         }
     }
 
-#ifdef RTLD_NOLOAD
-    if (!pa_proplist_contains(p, PA_PROP_APPLICATION_NAME)) {
-        void *dl;
-
-        if ((dl = dlopen("libglib-2.0", RTLD_NOLOAD))) {
-            const char *(*_g_get_application_name)(void);
-
-            if ((*(void**) &_g_get_application_name = dlsym(dl, "g_get_application_name")))
-                pa_proplist_sets(p, PA_PROP_APPLICATION_NAME, _g_get_application_name());
-
-            dlclose(dl);
-        }
-    }
-#endif
+    add_glib_properties(p);
+    add_gtk_properties(p);
 
     if (!pa_proplist_contains(p, PA_PROP_APPLICATION_NAME)) {
         const char *t;
