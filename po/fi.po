@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-02-12 16:57+0100\n"
-"PO-Revision-Date: 2008-12-01 18:40+0200\n"
+"POT-Creation-Date: 2009-02-13 08:57+0200\n"
+"PO-Revision-Date: 2009-02-13 08:57+0200\n"
 "Last-Translator: Timo Jyrinki <timo.jyrinki@iki.fi>\n"
 "Language-Team: Finnish <laatu@lokalisointi.org>\n"
 "MIME-Version: 1.0\n"
@@ -16,9 +16,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: ../src/daemon/ltdl-bind-now.c:124
-#, fuzzy
 msgid "Failed to find original lt_dlopen loader."
-msgstr "Taustaprosessin alustus epäonnistui."
+msgstr "Alkuperäisen ld_dlopen-lataimen löytäminen epäonnistui."
 
 #: ../src/daemon/ltdl-bind-now.c:129
 msgid "Failed to allocate new dl loader."
@@ -310,7 +309,7 @@ msgstr "Käynnissä isäntäkoneella: %s"
 #: ../src/daemon/main.c:828
 #, c-format
 msgid "Found %u CPUs."
-msgstr ""
+msgstr "Löydettiin %u CPU:ta."
 
 #: ../src/daemon/main.c:830
 #, c-format
@@ -389,6 +388,8 @@ msgstr "Taustaprosessin alustus epäonnistui."
 #: ../src/daemon/main.c:970
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
+"Taustaprosessin käynnistys ilman ladattavia moduuleita, kieltäydytään "
+"toiminnasta."
 
 #: ../src/daemon/main.c:983
 msgid "Daemon startup complete."
@@ -1454,7 +1455,7 @@ msgid "Failed to get sink information: %s\n"
 msgstr "Nielun tietojen nouto epäonnistui: %s\n"
 
 #: ../src/utils/pactl.c:191
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sink #%u\n"
 "\tState: %s\n"
@@ -1474,18 +1475,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** Nielu #%u ***\n"
-"Nimi: %s\n"
-"Ajuri: %s\n"
-"Näytemäärittely: %s\n"
-"Kanavakartta: %s\n"
-"Omistava moduuli: %u\n"
-"Äänenvoimakkuus: %s\n"
-"Tarkkailulähde: %s\n"
-"Latenssi: %0.0f μs, asetettu %0.0f μs\n"
-"Liput: %s%s%s%s%s%s\n"
-"Ominaisuudet:\n"
-"%s"
+"Nielu #%u\n"
+"\tTila: %s\n"
+"\tNimi: %s\n"
+"\tKuvaus: %s\n"
+"\tAjuri: %s\n"
+"\tNäytemäärittely: %s\n"
+"\tKanavakartta: %s\n"
+"\tOmistava moduuli: %u\n"
+"\tVaimennus: %s\n"
+"\tÄänenvoimakkuus: %s%s%s\n"
+"\t                 balanssi %0.2f\n"
+"\tPerusäänenvoimakkuus: %s%s%s\n"
+"\tTarkkailulähde: %s\n"
+"\tLatenssi: %0.0f μs, asetettu %0.0f μs\n"
+"\tLiput: %s%s%s%s%s%s\n"
+"\tOminaisuudet:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:255
 #, c-format
@@ -1493,7 +1499,7 @@ msgid "Failed to get source information: %s\n"
 msgstr "Lähteen tietojen nouto epäonnistui: %s\n"
 
 #: ../src/utils/pactl.c:271
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Source #%u\n"
 "\tState: %s\n"
@@ -1513,18 +1519,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** Lähde #%u ***\n"
-"Nimi: %s\n"
-"Ajuri: %s\n"
-"Näytemäärittely: %s\n"
-"Kanavakartta: %s\n"
-"Omistava moduuli: %u\n"
-"Äänenvoimakkuus: %s\n"
-"Tarkkailtava nielu: %s\n"
-"Latenssi: %0.0f μs, asetettu %0.0f μs\n"
-"Liput: %s%s%s%s%s%s\n"
-"Ominaisuudet:\n"
-"%s"
+"Lähde #%u\n"
+"\tTila: %s\n"
+"\tNimi: %s\n"
+"\tKuvaus: %s\n"
+"\tAjuri: %s\n"
+"\tNäytemäärittely: %s\n"
+"\tKanavakartta: %s\n"
+"\tOmistava moduuli: %u\n"
+"\tVaimennus: %s\n"
+"\tÄänenvoimakkuus: %s%s%s\n"
+"\t                 balanssi %0.2f\n"
+"\tPerusäänenvoimakkuus: %s%s%s\n"
+"\tTarkkailtava nielu: %s\n"
+"\tLatenssi: %0.0f μs, asetettu %0.0f μs\n"
+"\tLiput: %s%s%s%s%s%s\n"
+"\tOminaisuudet:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:303 ../src/utils/pactl.c:347 ../src/utils/pactl.c:382
 #: ../src/utils/pactl.c:419 ../src/utils/pactl.c:478 ../src/utils/pactl.c:479
@@ -1540,7 +1551,7 @@ msgid "Failed to get module information: %s\n"
 msgstr "Moduulin tietojen nouto epäonnistui: %s\n"
 
 #: ../src/utils/pactl.c:339
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Module #%u\n"
 "\tName: %s\n"
@@ -1549,11 +1560,12 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** Moduuli #%u ***\n"
-"Nimi: %s\n"
-"Argumentti: %s\n"
-"Käyttölaskuri: %s\n"
-"Automaattinen purku: %s\n"
+"Moduuli #%u\n"
+"\tNimi: %s\n"
+"\tArgumentti: %s\n"
+"\tKäyttölaskuri: %s\n"
+"\tOminaisuudet:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:358
 #, c-format
@@ -1561,7 +1573,7 @@ msgid "Failed to get client information: %s\n"
 msgstr "Asiakkaan tietojen nouto epäonnistui: %s\n"
 
 #: ../src/utils/pactl.c:376
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Client #%u\n"
 "\tDriver: %s\n"
@@ -1569,19 +1581,19 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** Asiakas #%u ***\n"
-"Ajuri: %s\n"
-"Omistava moduuli: %s\n"
-"Ominaisuudet:\n"
-"%s"
+"Asiakas #%u\n"
+"\tAjuri: %s\n"
+"\tOmistava moduuli: %s\n"
+"\tOminaisuudet:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:393
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get card information: %s\n"
-msgstr "Automaattilatauksen tietojen nouto epäonnistui: %s\n"
+msgstr "Kortin tietojen nouto epäonnistui: %s\n"
 
 #: ../src/utils/pactl.c:411
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Card #%u\n"
 "\tName: %s\n"
@@ -1590,21 +1602,22 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** Asiakas #%u ***\n"
-"Ajuri: %s\n"
-"Omistava moduuli: %s\n"
-"Ominaisuudet:\n"
-"%s"
+"Kortti #%u\n"
+"\tNimi: %s\n"
+"\tAjuri: %s\n"
+"\tOmistava moduuli: %s\n"
+"\tOminaisuudet:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:425
 #, c-format
 msgid "\tProfiles:\n"
-msgstr ""
+msgstr "\tProfiilit:\n"
 
 #: ../src/utils/pactl.c:431
-#, fuzzy, c-format
+#, c-format
 msgid "\tActive Profile: %s\n"
-msgstr "Yhteysvirhe: %s\n"
+msgstr "\tAktiivinen profiili: %s\n"
 
 #: ../src/utils/pactl.c:442
 #, c-format
@@ -1612,7 +1625,7 @@ msgid "Failed to get sink input information: %s\n"
 msgstr "Nielun sisääntulon tietojen nouto epäonnistui: %s\n"
 
 #: ../src/utils/pactl.c:461
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sink Input #%u\n"
 "\tDriver: %s\n"
@@ -1631,19 +1644,22 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** Nielun sisääntulo #%u ***\n"
-"Ajuri: %s\n"
-"Omistava moduuli: %s\n"
-"Asiakas: %s\n"
-"Nielu: %u\n"
-"Näytemäärittely: %s\n"
-"Kanavakartta: %s\n"
-"Äänenvoimakkuus: %s\n"
-"Puskurin latenssi: %0.0f μs\n"
-"Nielun latenssi: %0.0f μs\n"
-"Uudelleennäytteistyksen tapa: %s\n"
-"Ominaisuudet:\n"
-"%s"
+"Nielun sisääntulo #%u\n"
+"\tAjuri: %s\n"
+"\tOmistava moduuli: %s\n"
+"\tAsiakas: %s\n"
+"\tNielu: %u\n"
+"\tNäytemäärittely: %s\n"
+"\tKanavakartta: %s\n"
+"\tVaimennus: %s\n"
+"\tÄänenvoimakkuus: %s\n"
+"\t                 %s\n"
+"\t                 balanssi %0.2f\n"
+"\tPuskurin latenssi: %0.0f μs\n"
+"\tNielun latenssi: %0.0f μs\n"
+"\tUudelleennäytteistyksen tapa: %s\n"
+"\tOminaisuudet:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:500
 #, c-format
@@ -1651,7 +1667,7 @@ msgid "Failed to get source output information: %s\n"
 msgstr "Lähteen ulostulon tietojen nouto epäonnistui: %s\n"
 
 #: ../src/utils/pactl.c:520
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Source Output #%u\n"
 "\tDriver: %s\n"
@@ -1666,18 +1682,18 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** Lähteen ulostulo #%u ***\n"
-"Ajuri: %s\n"
-"Omistava moduuli: %s\n"
-"Asiakas: %s\n"
-"Lähde: %u\n"
-"Näytemäärittely: %s\n"
-"Kanavakartta: %s\n"
-"Puskurin latenssi: %0.0f μs\n"
-"Lähteen latenssi: %0.0f μs\n"
-"Uudelleennäytteistyksen tapa: %s\n"
-"Ominaisuudet:\n"
-"%s"
+"Lähteen ulostulo #%u\n"
+"\tAjuri: %s\n"
+"\tOmistava moduuli: %s\n"
+"\tAsiakas: %s\n"
+"\tLähde: %u\n"
+"\tNäytemäärittely: %s\n"
+"\tKanavakartta: %s\n"
+"\tPuskurin latenssi: %0.0f μs\n"
+"\tLähteen latenssi: %0.0f μs\n"
+"\tUudelleennäytteistyksen tapa: %s\n"
+"\tOminaisuudet:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:551
 #, c-format
@@ -1685,7 +1701,7 @@ msgid "Failed to get sample information: %s\n"
 msgstr "Näytetietojen nouto epäonnistui: %s\n"
 
 #: ../src/utils/pactl.c:569
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sample #%u\n"
 "\tName: %s\n"
@@ -1701,17 +1717,19 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** Näyte #%u ***\n"
-"Nimi: %s\n"
-"Äänenvoimakkuus: %s\n"
-"Näytemäärittely: %s\n"
-"Kanavakartta: %s\n"
-"Kesto: %0.1fs\n"
-"Koko: %s\n"
-"Laiska: %s\n"
-"Tiedostonimi: %s\n"
-"Ominaisuudet:\n"
-"%s"
+"Näyte #%u\n"
+"\tNimi: %s\n"
+"\tNäytemäärittely: %s\n"
+"\tKanavakartta: %s\n"
+"\tÄänenvoimakkuus: %s\n"
+"\t                 %s\n"
+"\t                 balanssi %0.2f\n"
+"\tKesto: %0.1fs\n"
+"\tKoko: %s\n"
+"\tLaiska: %s\n"
+"\tTiedostonimi: %s\n"
+"\tOminaisuudet:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:599 ../src/utils/pactl.c:609
 #, c-format
@@ -1726,7 +1744,7 @@ msgstr ""
 #: ../src/utils/pactl.c:650
 #, c-format
 msgid "Premature end of file\n"
-msgstr ""
+msgstr "Ennenaikainen tiedoston päättyminen\n"
 
 #: ../src/utils/pactl.c:770
 #, c-format
@@ -1841,7 +1859,7 @@ msgstr ""
 #: ../src/utils/pax11publish.c:94
 #, c-format
 msgid "Failed to parse command line.\n"
-msgstr ""
+msgstr "Komentorivin jäsentäminen epäonnistui.\n"
 
 #: ../src/utils/pax11publish.c:108
 #, c-format
@@ -1975,11 +1993,14 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"paplay %s\n"
+"Käännetty libpulsen versiolle %s\n"
+"Linkitetty libpulsen versiolle %s\n"
 
 #: ../src/utils/paplay.c:292
 #, c-format
 msgid "Invalid channel map\n"
-msgstr "Virheellinen kanavakartta\n"
+msgstr "Epäkelpo kanavakartta\n"
 
 #: ../src/utils/paplay.c:314
 #, c-format
