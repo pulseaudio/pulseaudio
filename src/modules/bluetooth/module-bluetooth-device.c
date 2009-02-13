@@ -1517,9 +1517,9 @@ static void stop_thread(struct userdata *u) {
         u->source = NULL;
     }
 
-    pa_thread_mq_done(&u->thread_mq);
-
     if (u->rtpoll) {
+        pa_thread_mq_done(&u->thread_mq);
+
         pa_rtpoll_free(u->rtpoll);
         u->rtpoll = NULL;
     }
