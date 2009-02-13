@@ -117,4 +117,10 @@
 #endif
 #endif
 
+#ifndef PA_GCC_WEAKREF
+#ifdef __GNUC__
+#define PA_GCC_WEAKREF(x) __attribute__((weakref(#x)));
+#endif
+#endif
+
 #endif
