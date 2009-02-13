@@ -278,7 +278,11 @@ static int sockaddr_prepare(pa_socket_client *c, const struct sockaddr *sa, size
 
     pa_make_fd_cloexec(c->fd);
 
+#ifdef HAVE_IPV6
     if (sa->sa_family == AF_INET || sa->sa_family == AF_INET6)
+#else
+    if (sa->sa_family == AF_INET)
+#endif
         pa_make_tcp_socket_low_delay(c->fd);
     else
         pa_make_socket_low_delay(c->fd);
@@ -353,6 +357,7 @@ void pa_socket_client_set_callback(pa_socket_client *c, pa_socket_client_cb_t on
     c->userdata = userdata;
 }
 
+#ifdef HAVE_IPV6
 pa_socket_client* pa_socket_client_new_ipv6(pa_mainloop_api *m, uint8_t address[16], uint16_t port) {
     struct sockaddr_in6 sa;
 
@@ -367,6 +372,7 @@ pa_socket_client* pa_socket_client_new_ipv6(pa_mainloop_api *m, uint8_t address[
 
     return pa_socket_client_new_sockaddr(m, (struct sockaddr*) &sa, sizeof(sa));
 }
+#endif
 
 #ifdef HAVE_LIBASYNCNS
 
@@ -470,7 +476,15 @@ pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char*nam
             pa_snprintf(port, sizeof(port), "%u", (unsigned) a.port);
 
             memset(&hints, 0, sizeof(hints));
-            hints.ai_family = a.type == PA_PARSED_ADDRESS_TCP4 ? PF_INET : (a.type == PA_PARSED_ADDRESS_TCP6 ? PF_INET6 : PF_UNSPEC);
+            if (a.type == PA_PARSED_ADDRESS_TCP4)
+                hints.ai_family = PF_INET;
+#ifdef HAVE_IPV6
+            else if (a.type == PA_PARSED_ADDRESS_TCP6)
+                hints.ai_family = PF_INET6;
+#endif
+            else
+                hints.ai_family = PF_UNSPEC;
+
             hints.ai_socktype = SOCK_STREAM;
 
 #if defined(HAVE_LIBASYNCNS)
@@ -509,11 +523,13 @@ pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char*nam
                 struct hostent *host = NULL;
                 struct sockaddr_in s;
 
+#ifdef HAVE_IPV6
                 /* FIXME: PF_INET6 support */
                 if (hints.ai_family == PF_INET6) {
                     pa_log_error("IPv6 is not supported on Windows");
                     goto finish;
                 }
+#endif
 
                 host = gethostbyname(a.path_or_host);
                 if (!host) {

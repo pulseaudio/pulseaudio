@@ -30,7 +30,9 @@
 
 int main(int argc, char *argv[]) {
     struct sockaddr_in sa;
+#ifdef HAVE_IPV6
     struct sockaddr_in6 sa6;
+#endif
     int fd;
     int r;
     pa_ip_acl *acl;
@@ -87,6 +89,7 @@ int main(int argc, char *argv[]) {
 
     close(fd);
 
+#ifdef HAVE_IPV6
     fd = socket(PF_INET6, SOCK_STREAM, 0);
     assert(fd >= 0);
 
@@ -129,6 +132,7 @@ int main(int argc, char *argv[]) {
     pa_ip_acl_free(acl);
 
     close(fd);
+#endif
 
     return 0;
 }

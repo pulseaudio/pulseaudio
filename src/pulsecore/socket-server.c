@@ -289,6 +289,7 @@ fail:
     return NULL;
 }
 
+#ifdef HAVE_IPV6
 pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t address[16], uint16_t port, const char *tcpwrap_service) {
     pa_socket_server *ss;
     int fd = -1;
@@ -347,6 +348,7 @@ fail:
 
     return NULL;
 }
+#endif
 
 pa_socket_server* pa_socket_server_new_ipv4_loopback(pa_mainloop_api *m, uint16_t port, const char *tcpwrap_service) {
     pa_assert(m);
@@ -355,12 +357,14 @@ pa_socket_server* pa_socket_server_new_ipv4_loopback(pa_mainloop_api *m, uint16_
     return pa_socket_server_new_ipv4(m, INADDR_LOOPBACK, port, tcpwrap_service);
 }
 
+#ifdef HAVE_IPV6
 pa_socket_server* pa_socket_server_new_ipv6_loopback(pa_mainloop_api *m, uint16_t port, const char *tcpwrap_service) {
     pa_assert(m);
     pa_assert(port > 0);
 
     return pa_socket_server_new_ipv6(m, in6addr_loopback.s6_addr, port, tcpwrap_service);
 }
+#endif
 
 pa_socket_server* pa_socket_server_new_ipv4_any(pa_mainloop_api *m, uint16_t port, const char *tcpwrap_service) {
     pa_assert(m);
@@ -369,12 +373,14 @@ pa_socket_server* pa_socket_server_new_ipv4_any(pa_mainloop_api *m, uint16_t por
     return pa_socket_server_new_ipv4(m, INADDR_ANY, port, tcpwrap_service);
 }
 
+#ifdef HAVE_IPV6
 pa_socket_server* pa_socket_server_new_ipv6_any(pa_mainloop_api *m, uint16_t port, const char *tcpwrap_service) {
     pa_assert(m);
     pa_assert(port > 0);
 
     return pa_socket_server_new_ipv6(m, in6addr_any.s6_addr, port, tcpwrap_service);
 }
+#endif
 
 pa_socket_server* pa_socket_server_new_ipv4_string(pa_mainloop_api *m, const char *name, uint16_t port, const char *tcpwrap_service) {
     struct in_addr ipv4;
@@ -389,6 +395,7 @@ pa_socket_server* pa_socket_server_new_ipv4_string(pa_mainloop_api *m, const cha
     return NULL;
 }
 
+#ifdef HAVE_IPV6
 pa_socket_server* pa_socket_server_new_ipv6_string(pa_mainloop_api *m, const char *name, uint16_t port, const char *tcpwrap_service) {
     struct in6_addr ipv6;
 
@@ -401,6 +408,7 @@ pa_socket_server* pa_socket_server_new_ipv6_string(pa_mainloop_api *m, const cha
 
     return NULL;
 }
+#endif
 
 static void socket_server_free(pa_socket_server*s) {
     pa_assert(s);
@@ -441,6 +449,7 @@ char *pa_socket_server_get_address(pa_socket_server *s, char *c, size_t l) {
     pa_assert(l > 0);
 
     switch (s->type) {
+#ifdef HAVE_IPV6
         case SOCKET_SERVER_IPV6: {
             struct sockaddr_in6 sa;
             socklen_t sa_len = sizeof(sa);
@@ -476,6 +485,7 @@ char *pa_socket_server_get_address(pa_socket_server *s, char *c, size_t l) {
 
             return c;
         }
+#endif
 
         case SOCKET_SERVER_IPV4: {
             struct sockaddr_in sa;

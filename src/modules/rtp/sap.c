@@ -87,18 +87,31 @@ int pa_sap_send(pa_sap_context *c, pa_bool_t goodbye) {
         return -1;
     }
 
+#ifdef HAVE_IPV6
     pa_assert(sa->sa_family == AF_INET || sa->sa_family == AF_INET6);
+#else
+    pa_assert(sa->sa_family == AF_INET);
+#endif
 
     header = htonl(((uint32_t) 1 << 29) |
+#ifdef HAVE_IPV6
                    (sa->sa_family == AF_INET6 ? (uint32_t) 1 << 28 : 0) |
+#endif
                    (goodbye ? (uint32_t) 1 << 26 : 0) |
                    (c->msg_id_hash));
 
     iov[0].iov_base = &header;
     iov[0].iov_len = sizeof(header);
 
-    iov[1].iov_base = sa->sa_family == AF_INET ? (void*) &((struct sockaddr_in*) sa)->sin_addr : (void*) &((struct sockaddr_in6*) sa)->sin6_addr;
-    iov[1].iov_len = sa->sa_family == AF_INET ? 4U : 16U;
+    if (sa->sa_family == AF_INET) {
+        iov[1].iov_base = (void*) &((struct sockaddr_in*) sa)->sin_addr;
+        iov[1].iov_len = 4U;
+#ifdef HAVE_IPV6
+    } else {
+        iov[1].iov_base = (void*) &((struct sockaddr_in6*) sa)->sin6_addr;
+        iov[1].iov_len = 16U;
+#endif
+    }
 
     iov[2].iov_base = (char*) MIME_TYPE;
     iov[2].iov_len = sizeof(MIME_TYPE);

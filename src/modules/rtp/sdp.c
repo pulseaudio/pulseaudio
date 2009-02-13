@@ -48,7 +48,12 @@ char *pa_sdp_build(int af, const void *src, const void *dst, const char *name, u
 
     pa_assert(src);
     pa_assert(dst);
+
+#ifdef HAVE_IPV6
     pa_assert(af == AF_INET || af == AF_INET6);
+#else
+    pa_assert(af == AF_INET);
+#endif
 
     pa_assert_se(f = pa_rtp_format_to_string(ss->format));
 
@@ -162,6 +167,7 @@ pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *i, int is_goodbye) {
             ((struct sockaddr_in*) &i->sa)->sin_family = AF_INET;
             ((struct sockaddr_in*) &i->sa)->sin_port = 0;
             i->salen = sizeof(struct sockaddr_in);
+#ifdef HAVE_IPV6
         } else if (pa_startswith(t, "c=IN IP6 ")) {
             char a[64];
             size_t k;
@@ -179,6 +185,7 @@ pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *i, int is_goodbye) {
             ((struct sockaddr_in6*) &i->sa)->sin6_family = AF_INET6;
             ((struct sockaddr_in6*) &i->sa)->sin6_port = 0;
             i->salen = sizeof(struct sockaddr_in6);
+#endif
         } else if (pa_startswith(t, "m=audio ")) {
 
             if (i->payload > 127) {

@@ -211,7 +211,9 @@ struct userdata {
 
 #if defined(USE_TCP_SOCKETS)
     pa_socket_server *socket_server_ipv4;
+#  ifdef HAVE_IPV6
     pa_socket_server *socket_server_ipv6;
+#  endif
 #else
     pa_socket_server *socket_server_unix;
     char *socket_path;
@@ -299,20 +301,30 @@ int pa__init(pa_module*m) {
     listen_on = pa_modargs_get_value(ma, "listen", NULL);
 
     if (listen_on) {
+#  ifdef HAVE_IPV6
         u->socket_server_ipv6 = pa_socket_server_new_ipv6_string(m->core->mainloop, listen_on, (uint16_t) port, TCPWRAP_SERVICE);
+#  endif
         u->socket_server_ipv4 = pa_socket_server_new_ipv4_string(m->core->mainloop, listen_on, (uint16_t) port, TCPWRAP_SERVICE);
     } else {
+#  ifdef HAVE_IPV6
         u->socket_server_ipv6 = pa_socket_server_new_ipv6_any(m->core->mainloop, (uint16_t) port, TCPWRAP_SERVICE);
+#  endif
         u->socket_server_ipv4 = pa_socket_server_new_ipv4_any(m->core->mainloop, (uint16_t) port, TCPWRAP_SERVICE);
     }
 
+#  ifdef HAVE_IPV6
     if (!u->socket_server_ipv4 && !u->socket_server_ipv6)
+#  else
+    if (!u->socket_server_ipv4)
+#  endif
         goto fail;
 
     if (u->socket_server_ipv4)
         pa_socket_server_set_callback(u->socket_server_ipv4, socket_server_on_connection_cb, u);
+#  ifdef HAVE_IPV6
     if (u->socket_server_ipv6)
         pa_socket_server_set_callback(u->socket_server_ipv6, socket_server_on_connection_cb, u);
+#  endif
 
 #else
 
@@ -358,9 +370,11 @@ int pa__init(pa_module*m) {
         if (pa_socket_server_get_address(u->socket_server_ipv4, t, sizeof(t)))
             pa_native_protocol_add_server_string(u->native_protocol, t);
 
+#    ifdef HAVE_IPV6
     if (u->socket_server_ipv6)
         if (pa_socket_server_get_address(u->socket_server_ipv6, t, sizeof(t)))
             pa_native_protocol_add_server_string(u->native_protocol, t);
+#    endif
 #  else
     if (pa_socket_server_get_address(u->socket_server_unix, t, sizeof(t)))
         pa_native_protocol_add_server_string(u->native_protocol, t);
@@ -418,9 +432,11 @@ void pa__done(pa_module*m) {
             if (pa_socket_server_get_address(u->socket_server_ipv4, t, sizeof(t)))
                 pa_native_protocol_remove_server_string(u->native_protocol, t);
 
+#    ifdef HAVE_IPV6
         if (u->socket_server_ipv6)
             if (pa_socket_server_get_address(u->socket_server_ipv6, t, sizeof(t)))
                 pa_native_protocol_remove_server_string(u->native_protocol, t);
+#    endif
 #  else
         if (u->socket_server_unix)
             if (pa_socket_server_get_address(u->socket_server_unix, t, sizeof(t)))
@@ -444,8 +460,10 @@ void pa__done(pa_module*m) {
 #if defined(USE_TCP_SOCKETS)
     if (u->socket_server_ipv4)
         pa_socket_server_unref(u->socket_server_ipv4);
+#  ifdef HAVE_IPV6
     if (u->socket_server_ipv6)
         pa_socket_server_unref(u->socket_server_ipv6);
+#  endif
 #else
     if (u->socket_server_unix)
         pa_socket_server_unref(u->socket_server_unix);

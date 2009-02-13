@@ -1087,6 +1087,27 @@ AC_SUBST(POLKIT_LIBS)
 AC_SUBST(HAVE_POLKIT)
 AM_CONDITIONAL([HAVE_POLKIT], [test "x$HAVE_POLKIT" = x1])
 
+
+### IPv6 connection support (optional) ###
+
+AC_ARG_ENABLE([ipv6],
+    AS_HELP_STRING([--disable-ipv6],[Disable optional IPv6 support]),
+        [
+            case "${enableval}" in
+                yes) ipv6=yes ;;
+                no) ipv6=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-ipv6) ;;
+            esac
+        ],
+        [ipv6=auto])
+
+if test "x${ipv6}" != xno ; then
+    AC_DEFINE([HAVE_IPV6], [1], [Define this to enable IPv6 connection support])
+    HAVE_IPV6=1
+else
+    HAVE_IPV6=0
+fi
+
 #### OpenSSL support (optional) ####
 
 AC_ARG_ENABLE([openssl],
@@ -1333,6 +1354,11 @@ if test "x${HAVE_OPENSSL}" = "x1" ; then
    ENABLE_OPENSSL=yes
 fi
 
+ENABLE_IPV6=no
+if test "x${HAVE_IPV6}" = "x1" ; then
+   ENABLE_IPV6=yes
+fi
+
 ENABLE_PER_USER_ESOUND_SOCKET=no
 if test "x$per_user_esound_socket" = "x1" ; then
    ENABLE_PER_USER_ESOUND_SOCKET=yes
@@ -1366,6 +1392,7 @@ echo "
     Enable TCP Wrappers:           ${ENABLE_TCPWRAP}
     Enable libsamplerate:          ${ENABLE_LIBSAMPLERATE}
     Enable PolicyKit:              ${ENABLE_POLKIT}
+    Enable IPv6:                   ${ENABLE_IPV6}
     Enable OpenSSL (for Airtunes): ${ENABLE_OPENSSL}
 
     System User:                   ${PA_SYSTEM_USER}

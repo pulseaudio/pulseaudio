@@ -38,7 +38,9 @@
 
 const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt) {
     struct in_addr *in = (struct in_addr*)src;
+#ifdef HAVE_IPV6
     struct in6_addr *in6 = (struct in6_addr*)src;
+#endif
 
     assert(src && dst);
 
@@ -57,6 +59,7 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt) {
             (int)(in->s_addr >> 24) & 0xff);
 #endif
         break;
+#ifdef HAVE_IPV6
     case AF_INET6:
         pa_snprintf(dst, cnt, "%x:%x:%x:%x:%x:%x:%x:%x",
             in6->s6_addr[ 0] << 8 | in6->s6_addr[ 1],
@@ -68,6 +71,7 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt) {
             in6->s6_addr[12] << 8 | in6->s6_addr[13],
             in6->s6_addr[14] << 8 | in6->s6_addr[15]);
         break;
+#endif
     default:
         errno = EAFNOSUPPORT;
         return NULL;

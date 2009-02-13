@@ -38,7 +38,9 @@
 
 int inet_pton(int af, const char *src, void *dst) {
     struct in_addr *in = (struct in_addr*)dst;
+#ifdef HAVE_IPV6
     struct in6_addr *in6 = (struct in6_addr*)dst;
+#endif
 
     assert(src && dst);
 
@@ -48,8 +50,10 @@ int inet_pton(int af, const char *src, void *dst) {
         if (in->s_addr == INADDR_NONE)
             return 0;
         break;
+#ifdef HAVE_IPV6
     case AF_INET6:
         /* FIXME */
+#endif
     default:
         errno = EAFNOSUPPORT;
         return -1;

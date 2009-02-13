@@ -62,7 +62,9 @@ struct acl_entry {
     PA_LLIST_FIELDS(struct acl_entry);
     int family;
     struct in_addr address_ipv4;
+#ifdef HAVE_IPV6
     struct in6_addr address_ipv6;
+#endif
     int bits;
 };
 
@@ -109,6 +111,7 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
             if (e.bits < 32 && (uint32_t) (ntohl(e.address_ipv4.s_addr) << e.bits) != 0)
                 pa_log_warn("Host part of ACL entry '%s/%u' is not zero!", a, e.bits);
 
+#ifdef HAVE_IPV6
         } else if (inet_pton(AF_INET6, a, &e.address_ipv6) > 0) {
 
             e.bits = bits == (uint32_t) -1 ? 128 : (int) bits;
@@ -138,6 +141,7 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
                 if (t)
                     pa_log_warn("Host part of ACL entry '%s/%u' is not zero!", a, e.bits);
             }
+#endif
 
         } else {
             pa_log_warn("Failed to parse address: %s", a);
@@ -183,14 +187,20 @@ int pa_ip_acl_check(pa_ip_acl *acl, int fd) {
     if (getpeername(fd, (struct sockaddr*) &sa, &salen) < 0)
         return -1;
 
+#ifdef HAVE_IPV6
     if (sa.ss_family != AF_INET && sa.ss_family != AF_INET6)
+#else
+    if (sa.ss_family != AF_INET)
+#endif
         return -1;
 
     if (sa.ss_family == AF_INET && salen != sizeof(struct sockaddr_in))
         return -1;
 
+#ifdef HAVE_IPV6
     if (sa.ss_family == AF_INET6 && salen != sizeof(struct sockaddr_in6))
         return -1;
+#endif
 
     for (e = acl->entries; e; e = e->next) {
 
@@ -203,6 +213,7 @@ int pa_ip_acl_check(pa_ip_acl *acl, int fd) {
             if (e->bits == 0 || /* this needs special handling because >> takes the right-hand side modulo 32 */
                 (ntohl(sai->sin_addr.s_addr ^ e->address_ipv4.s_addr) >> (32 - e->bits)) == 0)
                 return 1;
+#ifdef HAVE_IPV6
         } else if (e->family == AF_INET6) {
             int i, bits ;
             struct sockaddr_in6 *sai = (struct sockaddr_in6*) &sa;
@@ -230,6 +241,7 @@ int pa_ip_acl_check(pa_ip_acl *acl, int fd) {
                 if (bits == 0)
                     return 1;
             }
+#endif
         }
     }
 

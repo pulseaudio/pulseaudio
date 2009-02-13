@@ -373,11 +373,13 @@ static int mcast_socket(const struct sockaddr* sa, socklen_t salen) {
         memset(&mr4, 0, sizeof(mr4));
         mr4.imr_multiaddr = ((const struct sockaddr_in*) sa)->sin_addr;
         r = setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mr4, sizeof(mr4));
+#ifdef HAVE_IPV6
     } else {
         struct ipv6_mreq mr6;
         memset(&mr6, 0, sizeof(mr6));
         mr6.ipv6mr_multiaddr = ((const struct sockaddr_in6*) sa)->sin6_addr;
         r = setsockopt(fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mr6, sizeof(mr6));
+#endif
     }
 
     if (r < 0) {
@@ -608,7 +610,9 @@ int pa__init(pa_module*m) {
     struct userdata *u;
     pa_modargs *ma = NULL;
     struct sockaddr_in sa4;
+#ifdef HAVE_IPV6
     struct sockaddr_in6 sa6;
+#endif
     struct sockaddr *sa;
     socklen_t salen;
     const char *sap_address;
@@ -624,16 +628,18 @@ int pa__init(pa_module*m) {
 
     sap_address = pa_modargs_get_value(ma, "sap_address", DEFAULT_SAP_ADDRESS);
 
-    if (inet_pton(AF_INET6, sap_address, &sa6.sin6_addr) > 0) {
-        sa6.sin6_family = AF_INET6;
-        sa6.sin6_port = htons(SAP_PORT);
-        sa = (struct sockaddr*) &sa6;
-        salen = sizeof(sa6);
-    } else if (inet_pton(AF_INET, sap_address, &sa4.sin_addr) > 0) {
+    if (inet_pton(AF_INET, sap_address, &sa4.sin_addr) > 0) {
         sa4.sin_family = AF_INET;
         sa4.sin_port = htons(SAP_PORT);
         sa = (struct sockaddr*) &sa4;
         salen = sizeof(sa4);
+#ifdef HAVE_IPV6
+    } else if (inet_pton(AF_INET6, sap_address, &sa6.sin6_addr) > 0) {
+        sa6.sin6_family = AF_INET6;
+        sa6.sin6_port = htons(SAP_PORT);
+        sa = (struct sockaddr*) &sa6;
+        salen = sizeof(sa6);
+#endif
     } else {
         pa_log("Invalid SAP address '%s'", sap_address);
         goto fail;

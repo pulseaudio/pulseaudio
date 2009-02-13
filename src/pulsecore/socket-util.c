@@ -93,7 +93,9 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
         union {
             struct sockaddr sa;
             struct sockaddr_in in;
+#ifdef HAVE_IPV6
             struct sockaddr_in6 in6;
+#endif
 #ifdef HAVE_SYS_UN_H
             struct sockaddr_un un;
 #endif
@@ -112,6 +114,7 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
                             ip & 0xFF,
                             ntohs(sa.in.sin_port));
                 return;
+#ifdef HAVE_IPV6
             } else if (sa.sa.sa_family == AF_INET6) {
                 char buf[INET6_ADDRSTRLEN];
                 const char *res;
@@ -121,6 +124,7 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
                     pa_snprintf(c, l, "TCP/IP client from [%s]:%u", buf, ntohs(sa.in6.sin6_port));
                     return;
                 }
+#endif
 #ifdef HAVE_SYS_UN_H
             } else if (sa.sa.sa_family == AF_UNIX) {
                 pa_snprintf(c, l, "UNIX socket client");
@@ -298,8 +302,10 @@ pa_bool_t pa_socket_address_is_local(const struct sockaddr *sa) {
         case AF_INET:
             return ((const struct sockaddr_in*) sa)->sin_addr.s_addr == INADDR_LOOPBACK;
 
+#ifdef HAVE_IPV6
         case AF_INET6:
             return memcmp(&((const struct sockaddr_in6*) sa)->sin6_addr, &in6addr_loopback, sizeof(struct in6_addr)) == 0;
+#endif
 
         default:
             return FALSE;
@@ -311,7 +317,9 @@ pa_bool_t pa_socket_is_local(int fd) {
     union {
         struct sockaddr sa;
         struct sockaddr_in in;
+#ifdef HAVE_IPV6
         struct sockaddr_in6 in6;
+#endif
 #ifdef HAVE_SYS_UN_H
         struct sockaddr_un un;
 #endif
