@@ -904,6 +904,11 @@ static int a2dp_process_render(struct userdata *u) {
                              (void*) p, u->write_memchunk.length,
                              d, left,
                              &written);
+
+        PA_ONCE_BEGIN {
+            pa_log_debug("Using SBC encoder implementation: %s", pa_strnull(sbc_get_implementation_info(&a2dp->sbc)));
+        } PA_ONCE_END;
+
         pa_memblock_release(u->write_memchunk.memblock);
 
         if (encoded <= 0) {
