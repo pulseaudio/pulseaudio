@@ -1057,6 +1057,86 @@ success:
     return elem;
 }
 
+
+int pa_alsa_find_mixer_and_elem(
+        snd_pcm_t *pcm,
+        snd_mixer_t **_m,
+        snd_mixer_elem_t **_e) {
+
+    int err;
+    snd_mixer_t *m;
+    snd_mixer_elem_t *e;
+    pa_bool_t found = FALSE;
+    const char *dev;
+
+    pa_assert(pcm);
+    pa_assert(_m);
+    pa_assert(_e);
+
+    if ((err = snd_mixer_open(&m, 0)) < 0) {
+        pa_log("Error opening mixer: %s", snd_strerror(err));
+        return -1;
+    }
+
+    /* First, try by name */
+    if ((dev = snd_pcm_name(pcm)))
+        if (pa_alsa_prepare_mixer(m, dev) >= 0)
+            found = TRUE;
+
+    /* Then, try by card index */
+    if (!found) {
+        snd_pcm_info_t* info;
+        snd_pcm_info_alloca(&info);
+
+        if (snd_pcm_info(pcm, info) >= 0) {
+            char *md;
+            int card_idx;
+
+            if ((card_idx = snd_pcm_info_get_card(info)) >= 0) {
+
+                md = pa_sprintf_malloc("hw:%i", card_idx);
+
+                if (!dev || !pa_streq(dev, md))
+                    if (pa_alsa_prepare_mixer(m, md) >= 0)
+                        found = TRUE;
+
+                pa_xfree(md);
+            }
+        }
+    }
+
+    if (!found) {
+        snd_mixer_close(m);
+        return -1;
+    }
+
+    switch (snd_pcm_stream(pcm)) {
+
+        case SND_PCM_STREAM_PLAYBACK:
+            e = pa_alsa_find_elem(m, "Master", "PCM", TRUE);
+            break;
+
+        case SND_PCM_STREAM_CAPTURE:
+            e = pa_alsa_find_elem(m, "Capture", "Mic", FALSE);
+            break;
+
+        default:
+            pa_assert_not_reached();
+    }
+
+    if (!e) {
+        snd_mixer_close(m);
+        return -1;
+    }
+
+    pa_assert(e && m);
+
+    *_m = m;
+    *_e = e;
+
+    return 0;
+}
+
 static const snd_mixer_selem_channel_id_t alsa_channel_ids[PA_CHANNEL_POSITION_MAX] = {
     [PA_CHANNEL_POSITION_MONO] = SND_MIXER_SCHN_MONO, /* The ALSA name is just an alias! */
 

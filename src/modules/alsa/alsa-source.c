@@ -1211,43 +1211,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     /* ALSA might tweak the sample spec, so recalculate the frame size */
     frame_size = pa_frame_size(&ss);
 
-    if ((err = snd_mixer_open(&u->mixer_handle, 0)) < 0)
-        pa_log("Error opening mixer: %s", snd_strerror(err));
-    else {
-        pa_bool_t found = FALSE;
-
-        if (pa_alsa_prepare_mixer(u->mixer_handle, u->device_name) >= 0)
-            found = TRUE;
-        else {
-            snd_pcm_info_t* info;
-
-            snd_pcm_info_alloca(&info);
-
-            if (snd_pcm_info(u->pcm_handle, info) >= 0) {
-                char *md;
-                int card_idx;
-
-                if ((card_idx = snd_pcm_info_get_card(info)) >= 0) {
-
-                    md = pa_sprintf_malloc("hw:%i", card_idx);
-
-                    if (strcmp(u->device_name, md))
-                        if (pa_alsa_prepare_mixer(u->mixer_handle, md) >= 0)
-                            found = TRUE;
-                    pa_xfree(md);
-                }
-            }
-        }
-
-        if (found)
-            if (!(u->mixer_elem = pa_alsa_find_elem(u->mixer_handle, "Capture", "Mic", FALSE)))
-                found = FALSE;
-
-        if (!found) {
-            snd_mixer_close(u->mixer_handle);
-            u->mixer_handle = NULL;
-        }
-    }
+    pa_alsa_find_mixer_and_elem(u->pcm_handle, &u->mixer_handle, &u->mixer_elem);
 
     pa_source_new_data_init(&data);
     data.driver = driver;
