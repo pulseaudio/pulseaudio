@@ -70,10 +70,10 @@ struct userdata {
 
 #define ENTRY_VERSION 1
 
-struct entry PA_GCC_PACKED {
+struct entry {
     uint8_t version;
     char profile[PA_NAME_MAX];
-};
+} PA_GCC_PACKED ;
 
 static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *tv, void *userdata) {
     struct userdata *u = userdata;

@@ -88,7 +88,7 @@
 #endif
 
 #ifndef PA_GCC_PACKED
-#ifdef __GNUCC__
+#ifdef __GNUC__
 #define PA_GCC_PACKED __attribute__ ((packed))
 #else
 /** Structure shall be packed in memory **/
@@ -109,7 +109,7 @@
 #endif
 
 #ifndef PA_GCC_MALLOC
-#ifdef __GNUCC__
+#ifdef __GNUC__
 #define PA_GCC_MALLOC __attribute__ ((malloc))
 #else
 /** Macro for usage of GCC's malloc attribute */

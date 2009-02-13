@@ -70,14 +70,14 @@
 
 /* We now put this SHM marker at the end of each segment. It's
  * optional, to not require a reboot when upgrading, though */
-struct shm_marker PA_GCC_PACKED {
+struct shm_marker {
     pa_atomic_t marker; /* 0xbeefcafe */
     pa_atomic_t pid;
     uint64_t _reserved1;
     uint64_t _reserved2;
     uint64_t _reserved3;
     uint64_t _reserved4;
-};
+} PA_GCC_PACKED;
 
 static char *segment_name(char *fn, size_t l, unsigned id) {
     pa_snprintf(fn, l, "/pulse-shm-%u", id);
