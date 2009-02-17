@@ -3011,7 +3011,7 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
         source_fill_tagstruct(c, reply, source);
     else if (client)
         client_fill_tagstruct(c, reply, client);
-    else if (client)
+    else if (card)
         card_fill_tagstruct(c, reply, card);
     else if (module)
         module_fill_tagstruct(c, reply, module);
