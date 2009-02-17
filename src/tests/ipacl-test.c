@@ -25,6 +25,7 @@
 #endif
 
 #include "../pulsecore/winsock.h"
+#include "../pulsecore/macro.h"
 
 #include <pulsecore/ipacl.h>
 
@@ -96,7 +97,7 @@ int main(int argc, char *argv[]) {
     memset(&sa6, 0, sizeof(sa6));
     sa6.sin6_family = AF_INET6;
     sa6.sin6_port = htons(22);
-    inet_pton(AF_INET6, "::1", &sa6.sin6_addr);
+    pa_assert_se(inet_pton(AF_INET6, "::1", &sa6.sin6_addr) == 1);
 
     r = connect(fd, (struct sockaddr*) &sa6, sizeof(sa6));
     assert(r >= 0);
