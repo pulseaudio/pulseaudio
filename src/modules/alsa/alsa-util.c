@@ -1,7 +1,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
+  Copyright 2004-2009 Lennart Poettering
   Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
@@ -1388,7 +1388,7 @@ void pa_alsa_init_proplist_pcm_info(pa_core *c, pa_proplist *p, snd_pcm_info_t *
 
     snd_pcm_class_t class;
     snd_pcm_subclass_t subclass;
-    const char *n, *id, *sdn, *cn;
+    const char *n, *id, *sdn, *cn = NULL;
     int card;
 
     pa_assert(p);
