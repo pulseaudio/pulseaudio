@@ -126,7 +126,8 @@ int main(int argc, char *argv[]) {
 
     pa_gettimeofday(&start);
 
-    pa_threaded_mainloop_start(m);
+    r = pa_threaded_mainloop_start(m);
+    assert(r >= 0);
 
     for (k = 0; k < 5000; k++) {
         pa_bool_t success = FALSE, changed = FALSE;
