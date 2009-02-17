@@ -174,11 +174,16 @@ int main(int argc, char *argv[]) {
 
     pa_context_set_state_callback(context, context_state_callback, NULL);
 
-    pa_context_connect(context, NULL, 0, NULL);
+    /* Connect the context */
+    if (pa_context_connect(context, NULL, 0, NULL) < 0) {
+        fprintf(stderr, "pa_context_connect() failed.\n");
+        goto quit;
+    }
 
     if (pa_mainloop_run(m, &ret) < 0)
         fprintf(stderr, "pa_mainloop_run() failed.\n");
 
+quit:
     pa_context_unref(context);
 
     for (i = 0; i < NSTREAMS; i++)
