@@ -370,6 +370,7 @@ static struct device* hal_device_add(struct userdata *u, const char *udi) {
     d->originating_udi = NULL;
     d->module = PA_INVALID_INDEX;
     d->sink_name = d->source_name = d->card_name = NULL;
+    r = -1;
 
 #ifdef HAVE_ALSA
     if (pa_streq(u->capability, CAPABILITY_ALSA))
