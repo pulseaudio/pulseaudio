@@ -653,7 +653,8 @@ static int set_conf(struct userdata *u) {
     return 0;
 }
 
-static int setup_stream_fd(struct userdata *u) {
+/* from IO thread */
+static int start_stream_fd(struct userdata *u) {
     union {
         bt_audio_msg_header_t rsp;
         struct bt_start_stream_req start_req;
@@ -662,8 +663,11 @@ static int setup_stream_fd(struct userdata *u) {
         bt_audio_error_t error;
         uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
     } msg;
+    struct pollfd *pollfd;
 
     pa_assert(u);
+    pa_assert(u->rtpoll);
+    pa_assert(!u->rtpoll_item);
     pa_assert(u->stream_fd < 0);
 
     memset(msg.buf, 0, BT_SUGGESTED_BUFFER_SIZE);
@@ -691,6 +695,47 @@ static int setup_stream_fd(struct userdata *u) {
     pa_make_fd_nonblock(u->stream_fd);
     pa_make_socket_low_delay(u->stream_fd);
 
+    u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
+    pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+    pollfd->fd = u->stream_fd;
+    pollfd->events = pollfd->revents = 0;
+
+    return 0;
+}
+
+/* from IO thread */
+static int stop_stream_fd(struct userdata *u) {
+    union {
+        bt_audio_msg_header_t rsp;
+        struct bt_stop_stream_req start_req;
+        struct bt_stop_stream_rsp start_rsp;
+        bt_audio_error_t error;
+        uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
+    } msg;
+
+    pa_assert(u);
+    pa_assert(u->rtpoll);
+    pa_assert(u->rtpoll_item);
+    pa_assert(u->stream_fd >= 0);
+
+    /* FIXME: HSP, only when sink&source suspended */
+    pa_rtpoll_item_free(u->rtpoll_item);
+    u->rtpoll_item = NULL;
+
+    memset(msg.buf, 0, BT_SUGGESTED_BUFFER_SIZE);
+    msg.start_req.h.type = BT_REQUEST;
+    msg.start_req.h.name = BT_STOP_STREAM;
+    msg.start_req.h.length = sizeof(msg.start_req);
+
+    if (service_send(u, &msg.start_req.h) < 0)
+        return -1;
+
+    if (service_expect(u, &msg.rsp, sizeof(msg), BT_STOP_STREAM, sizeof(msg.start_rsp)) < 0)
+        return -1;
+
+    pa_close(u->stream_fd);
+    u->stream_fd = -1;
+
     return 0;
 }
 
@@ -707,12 +752,19 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
                 case PA_SINK_SUSPENDED:
                     pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
+
+                    stop_stream_fd(u); /* FIXME: return value */
+
                     break;
 
                 case PA_SINK_IDLE:
                 case PA_SINK_RUNNING:
-                    if (!PA_SINK_IS_OPENED(u->sink->thread_info.state))
-                        u->started_at = pa_rtclock_usec();
+                    if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
+                        break;
+
+                    if (u->rtpoll_item == NULL)
+                        start_stream_fd(u); /* FIXME: return value */
+                    u->started_at = pa_rtclock_usec();
 
                     break;
 
@@ -994,6 +1046,9 @@ static void thread_func(void *userdata) {
     if (u->core->realtime_scheduling)
         pa_make_realtime(u->core->realtime_priority);
 
+    if (start_stream_fd(u) < 0)
+        goto fail;
+
     pa_thread_mq_install(&u->thread_mq);
     pa_rtpoll_install(u->rtpoll);
 
@@ -1074,11 +1129,17 @@ static void thread_func(void *userdata) {
         pollfd->events = (short) (((u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state) && !writable) ? POLLOUT : 0) |
                                   (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state) ? POLLIN : 0));
 
+    poll_run:
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
             goto fail;
 
         if (ret == 0)
             goto finish;
+
+        if (!u->rtpoll_item) {
+            pa_rtpoll_set_timer_disabled(u->rtpoll);
+            goto poll_run;
+        }
 
         pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
 
@@ -1463,9 +1524,6 @@ static int setup_bt(struct userdata *u) {
         return 0;
     }
 
-    if (setup_stream_fd(u) < 0)
-        return -1;
-
     pa_log_debug("Got the stream socket");
 
     return 0;
@@ -1533,8 +1591,6 @@ static void stop_thread(struct userdata *u) {
 }
 
 static int start_thread(struct userdata *u) {
-    struct pollfd *pollfd;
-
     pa_assert(u);
     pa_assert(!u->thread);
     pa_assert(!u->rtpoll);
@@ -1548,11 +1604,6 @@ static int start_thread(struct userdata *u) {
 
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, u->core->mainloop, u->rtpoll);
-
-    u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
-    pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
-    pollfd->fd = u->stream_fd;
-    pollfd->events = pollfd->revents = 0;
 
     if (!(u->thread = pa_thread_new(thread_func, u))) {
         pa_log_error("Failed to create IO thread");
