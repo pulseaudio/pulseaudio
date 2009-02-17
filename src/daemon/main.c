@@ -348,7 +348,6 @@ int main(int argc, char *argv[]) {
     pa_time_event *win32_timer;
     struct timeval win32_tv;
 #endif
-    char *lf = NULL;
     int autospawn_fd = -1;
     pa_bool_t autospawn_locked = FALSE;
 
@@ -999,9 +998,6 @@ finish:
 
         pa_autospawn_lock_done(FALSE);
     }
-
-    if (lf)
-        pa_xfree(lf);
 
 #ifdef OS_IS_WIN32
     if (win32_timer)
