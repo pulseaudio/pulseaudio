@@ -649,6 +649,7 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
         pa_xfree(d);
         fprintf(stderr, _("Premature end of file\n"));
         quit(1);
+        return;
     }
 
     pa_stream_write(s, d, length, pa_xfree, 0, PA_SEEK_RELATIVE);
