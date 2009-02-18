@@ -221,4 +221,6 @@ char *pa_replace(const char*s, const char*a, const char *b);
 
 char *pa_unescape(char *p);
 
+char *pa_realpath(const char *path);
+
 #endif
