@@ -2459,7 +2459,7 @@ char *pa_machine_id(void) {
 
         pa_strip_nl(ln);
 
-        if (ln[0])
+        if (r && ln[0])
             return pa_xstrdup(ln);
     }
 
