@@ -1411,6 +1411,7 @@ static int make_random_dir_and_link(mode_t m, const char *k) {
         return -1;
     }
 
+    pa_xfree(p);
     return 0;
 }
 
