@@ -924,7 +924,7 @@ static int do_read(connection *c) {
 
             c->request = PA_MAYBE_INT32_SWAP(c->swap_byte_order, c->request);
 
-            if (c->request < ESD_PROTO_CONNECT || c->request > ESD_PROTO_MAX) {
+            if (c->request < ESD_PROTO_CONNECT || c->request >= ESD_PROTO_MAX) {
                 pa_log("recieved invalid request.");
                 return -1;
             }
