@@ -2749,6 +2749,7 @@ static void sink_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_sin
             pa_log_error("Internal sink state is invalid.");
         pa_tagstruct_putu32(t, pa_sink_get_state(sink));
         pa_tagstruct_putu32(t, sink->n_volume_steps);
+        pa_tagstruct_putu32(t, sink->card ? sink->card->index : PA_INVALID_INDEX);
     }
 }
 
@@ -2788,6 +2789,7 @@ static void source_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_s
             pa_log_error("Internal source state is invalid.");
         pa_tagstruct_putu32(t, pa_source_get_state(source));
         pa_tagstruct_putu32(t, source->n_volume_steps);
+        pa_tagstruct_putu32(t, source->card ? source->card->index : PA_INVALID_INDEX);
     }
 }
 
@@ -2822,6 +2824,8 @@ static void card_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_car
         while ((p = pa_hashmap_iterate(card->profiles, &state, NULL))) {
             pa_tagstruct_puts(t, p->name);
             pa_tagstruct_puts(t, p->description);
+            pa_tagstruct_putu32(t, p->n_sinks);
+            pa_tagstruct_putu32(t, p->n_sources);
         }
     }
 

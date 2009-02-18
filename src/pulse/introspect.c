@@ -162,6 +162,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
             i.n_volume_steps = PA_VOLUME_NORM+1;
             mute = FALSE;
             state = PA_SINK_INVALID_STATE;
+            i.card = PA_INVALID_INDEX;
 
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
@@ -182,7 +183,8 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                 (o->context->version >= 15 &&
                  (pa_tagstruct_get_volume(t, &i.base_volume) < 0 ||
                   pa_tagstruct_getu32(t, &state) < 0 ||
-                  pa_tagstruct_getu32(t, &i.n_volume_steps) < 0))) {
+                  pa_tagstruct_getu32(t, &i.n_volume_steps) < 0 ||
+                  pa_tagstruct_getu32(t, &i.card) < 0))) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 pa_proplist_free(i.proplist);
@@ -293,6 +295,7 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
             i.n_volume_steps = PA_VOLUME_NORM+1;
             mute = FALSE;
             state = PA_SOURCE_INVALID_STATE;
+            i.card = PA_INVALID_INDEX;
 
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
@@ -313,7 +316,8 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                 (o->context->version >= 15 &&
                  (pa_tagstruct_get_volume(t, &i.base_volume) < 0 ||
                   pa_tagstruct_getu32(t, &state) < 0 ||
-                  pa_tagstruct_getu32(t, &i.n_volume_steps) < 0))) {
+                  pa_tagstruct_getu32(t, &i.n_volume_steps) < 0 ||
+                  pa_tagstruct_getu32(t, &i.card) < 0))) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 pa_proplist_free(i.proplist);
@@ -517,7 +521,9 @@ static void context_get_card_info_callback(pa_pdispatch *pd, uint32_t command, u
                 for (j = 0; j < i.n_profiles; j++) {
 
                     if (pa_tagstruct_gets(t, &i.profiles[j].name) < 0 ||
-                        pa_tagstruct_gets(t, &i.profiles[j].description) < 0) {
+                        pa_tagstruct_gets(t, &i.profiles[j].description) < 0 ||
+                        pa_tagstruct_getu32(t, &i.profiles[j].n_sinks) < 0 ||
+                        pa_tagstruct_getu32(t, &i.profiles[j].n_sources)< 0) {
 
                         pa_context_fail(o->context, PA_ERR_PROTOCOL);
                         pa_xfree(i.profiles);
