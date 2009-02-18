@@ -138,7 +138,7 @@ int pa_hashmap_put(pa_hashmap *h, const void *key, void *value) {
 
     hash = h->hash_func(key) % NBUCKETS;
 
-    if ((e = hash_scan(h, hash, key)))
+    if (hash_scan(h, hash, key))
         return -1;
 
     if (!(e = pa_flist_pop(PA_STATIC_FLIST_GET(entries))))
