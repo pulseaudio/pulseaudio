@@ -37,6 +37,7 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/atomic.h>
+#include <pulsecore/core-error.h>
 
 #include "alsa-util.h"
 
@@ -1361,7 +1362,7 @@ void pa_alsa_init_proplist_card(pa_core *c, pa_proplist *p, int card) {
 #endif
 }
 
-void pa_alsa_init_proplist_pcm(pa_core *c, pa_proplist *p, snd_pcm_info_t *pcm_info) {
+void pa_alsa_init_proplist_pcm_info(pa_core *c, pa_proplist *p, snd_pcm_info_t *pcm_info) {
 
     static const char * const alsa_class_table[SND_PCM_CLASS_LAST+1] = {
         [SND_PCM_CLASS_GENERIC] = "generic",
@@ -1425,6 +1426,28 @@ void pa_alsa_init_proplist_pcm(pa_core *c, pa_proplist *p, snd_pcm_info_t *pcm_i
         pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, cn);
     else if (n)
         pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, n);
+}
+
+void pa_alsa_init_proplist_pcm(pa_core *c, pa_proplist *p, snd_pcm_t *pcm) {
+    snd_pcm_hw_params_t *hwparams;
+    snd_pcm_info_t *info;
+    int bits, err;
+
+    snd_pcm_hw_params_alloca(&hwparams);
+    snd_pcm_info_alloca(&info);
+
+    if ((err = snd_pcm_hw_params_current(pcm, hwparams)) < 0)
+        pa_log_warn("Error fetching hardware parameter info: %s", snd_strerror(err));
+    else {
+
+        if ((bits = snd_pcm_hw_params_get_sbits(hwparams)) >= 0)
+            pa_proplist_setf(p, "alsa.resolution_bits", "%i", bits);
+    }
+
+    if ((err = snd_pcm_info(pcm, info)) < 0)
+        pa_log_warn("Error fetching PCM info: %s", snd_strerror(err));
+    else
+        pa_alsa_init_proplist_pcm_info(c, p, info);
 }
 
 int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents) {

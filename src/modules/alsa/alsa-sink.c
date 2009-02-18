@@ -1236,13 +1236,10 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     uint32_t nfrags, hwbuf_size, frag_size, tsched_size, tsched_watermark;
     snd_pcm_uframes_t period_frames, tsched_frames;
     size_t frame_size;
-    snd_pcm_info_t *pcm_info = NULL;
     int err;
     pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE;
     pa_usec_t usec;
     pa_sink_new_data data;
-
-    snd_pcm_info_alloca(&pcm_info);
 
     pa_assert(m);
     pa_assert(ma);
@@ -1378,11 +1375,6 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     if (u->use_tsched)
         pa_log_info("Successfully enabled timer-based scheduling mode.");
 
-    if ((err = snd_pcm_info(u->pcm_handle, pcm_info)) < 0) {
-        pa_log("Error fetching PCM info: %s", snd_strerror(err));
-        goto fail;
-    }
-
     /* ALSA might tweak the sample spec, so recalculate the frame size */
     frame_size = pa_frame_size(&ss);
 
@@ -1396,7 +1388,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     pa_sink_new_data_set_sample_spec(&data, &ss);
     pa_sink_new_data_set_channel_map(&data, &map);
 
-    pa_alsa_init_proplist_pcm(m->core, data.proplist, pcm_info);
+    pa_alsa_init_proplist_pcm(m->core, data.proplist, u->pcm_handle);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_name);
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (period_frames * frame_size * nfrags));
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%lu", (unsigned long) (period_frames * frame_size));
