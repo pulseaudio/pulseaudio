@@ -985,7 +985,7 @@ int sbc_decode(sbc_t *sbc, void *input, int input_len, void *output,
 	char *ptr;
 	int i, ch, framelen, samples;
 
-	if (!sbc && !input)
+	if (!sbc || !input)
 		return -EIO;
 
 	priv = sbc->priv;
@@ -1053,7 +1053,7 @@ int sbc_encode(sbc_t *sbc, void *input, int input_len, void *output,
 			const uint8_t *pcm, int16_t X[2][SBC_X_BUFFER_SIZE],
 			int nsamples, int nchannels);
 
-	if (!sbc && !input)
+	if (!sbc || !input)
 		return -EIO;
 
 	priv = sbc->priv;
@@ -1219,6 +1219,20 @@ uint16_t sbc_get_codesize(sbc_t *sbc)
 	}
 
 	return subbands * blocks * channels * 2;
+}
+
+const char *sbc_get_implementation_info(sbc_t *sbc)
+{
+	struct sbc_priv *priv;
+
+	if (!sbc)
+		return NULL;
+
+	priv = sbc->priv;
+	if (!priv)
+		return NULL;
+
+	return priv->enc_state.implementation_info;
 }
 
 int sbc_reinit(sbc_t *sbc, unsigned long flags)
