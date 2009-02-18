@@ -335,8 +335,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
 
     pa_assert(p);
     pa_assert(chunk);
-    pa_assert(chunk->memblock);
-    pa_assert(chunk->length);
+    pa_assert(chunk->length > 0);
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
@@ -344,11 +343,11 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
 
     if ((s = pa_dynarray_get(c->record_streams, channel))) {
 
-        pa_assert(seek == PA_SEEK_RELATIVE);
-        pa_assert(offset == 0);
-
-        pa_memblockq_seek(s->record_memblockq, offset, seek);
-        pa_memblockq_push_align(s->record_memblockq, chunk);
+        if (chunk->memblock) {
+            pa_memblockq_seek(s->record_memblockq, offset, seek);
+            pa_memblockq_push_align(s->record_memblockq, chunk);
+        } else
+            pa_memblockq_seek(s->record_memblockq, offset+chunk->length, seek);
 
         if (s->read_callback) {
             size_t l;

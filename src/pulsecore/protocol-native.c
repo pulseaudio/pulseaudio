@@ -4144,17 +4144,20 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     if (playback_stream_isinstance(stream)) {
         playback_stream *ps = PLAYBACK_STREAM(stream);
 
-        if (seek != PA_SEEK_RELATIVE || offset != 0)
-            pa_asyncmsgq_post(ps->sink_input->sink->asyncmsgq, PA_MSGOBJECT(ps->sink_input), SINK_INPUT_MESSAGE_SEEK, PA_UINT_TO_PTR(seek), offset, NULL, NULL);
+        if (chunk->memblock) {
+            if (seek != PA_SEEK_RELATIVE || offset != 0)
+                pa_asyncmsgq_post(ps->sink_input->sink->asyncmsgq, PA_MSGOBJECT(ps->sink_input), SINK_INPUT_MESSAGE_SEEK, PA_UINT_TO_PTR(seek), offset, NULL, NULL);
 
-        pa_asyncmsgq_post(ps->sink_input->sink->asyncmsgq, PA_MSGOBJECT(ps->sink_input), SINK_INPUT_MESSAGE_POST_DATA, NULL, 0, chunk, NULL);
+            pa_asyncmsgq_post(ps->sink_input->sink->asyncmsgq, PA_MSGOBJECT(ps->sink_input), SINK_INPUT_MESSAGE_POST_DATA, NULL, 0, chunk, NULL);
+        } else
+            pa_asyncmsgq_post(ps->sink_input->sink->asyncmsgq, PA_MSGOBJECT(ps->sink_input), SINK_INPUT_MESSAGE_SEEK, PA_UINT_TO_PTR(seek), offset+chunk->length, NULL, NULL);
 
     } else {
         upload_stream *u = UPLOAD_STREAM(stream);
         size_t l;
 
         if (!u->memchunk.memblock) {
-            if (u->length == chunk->length) {
+            if (u->length == chunk->length && chunk->memblock) {
                 u->memchunk = *chunk;
                 pa_memblock_ref(u->memchunk.memblock);
                 u->length = 0;
@@ -4170,17 +4173,22 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
         if (l > chunk->length)
             l = chunk->length;
 
-
         if (l > 0) {
-            void *src, *dst;
+            void *dst;
             dst = pa_memblock_acquire(u->memchunk.memblock);
-            src = pa_memblock_acquire(chunk->memblock);
 
-            memcpy((uint8_t*) dst + u->memchunk.index + u->memchunk.length,
-                   (uint8_t*) src+chunk->index, l);
+            if (chunk->memblock) {
+                void *src;
+                src = pa_memblock_acquire(chunk->memblock);
+
+                memcpy((uint8_t*) dst + u->memchunk.index + u->memchunk.length,
+                       (uint8_t*) src + chunk->index, l);
+
+                pa_memblock_release(chunk->memblock);
+            } else
+                pa_silence_memory((uint8_t*) dst + u->memchunk.index + u->memchunk.length, l, &u->sample_spec);
 
             pa_memblock_release(u->memchunk.memblock);
-            pa_memblock_release(chunk->memblock);
 
             u->memchunk.length += l;
             u->length -= l;

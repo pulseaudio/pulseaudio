@@ -832,8 +832,8 @@ static int do_read(pa_pstream *p) {
                                           ntohl(p->read.shm_info[PA_PSTREAM_SHM_INDEX]),
                                           ntohl(p->read.shm_info[PA_PSTREAM_SHM_LENGTH])))) {
 
-                    pa_log_warn("Failed to import memory block.");
-                    return -1;
+                    if (pa_log_ratelimit())
+                        pa_log_debug("Failed to import memory block.");
                 }
 
                 if (p->recieve_memblock_callback) {
@@ -842,7 +842,7 @@ static int do_read(pa_pstream *p) {
 
                     chunk.memblock = b;
                     chunk.index = 0;
-                    chunk.length = pa_memblock_get_length(b);
+                    chunk.length = b ? pa_memblock_get_length(b) : ntohl(p->read.shm_info[PA_PSTREAM_SHM_LENGTH]);
 
                     offset = (int64_t) (
                             (((uint64_t) ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI])) << 32) |
@@ -857,7 +857,8 @@ static int do_read(pa_pstream *p) {
                             p->recieve_memblock_callback_userdata);
                 }
 
-                pa_memblock_unref(b);
+                if (b)
+                    pa_memblock_unref(b);
             }
 
             goto frame_done;
