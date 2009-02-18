@@ -57,7 +57,7 @@
 
 #define PA_MEMEXPORT_SLOTS_MAX 128
 
-#define PA_MEMIMPORT_SLOTS_MAX 128
+#define PA_MEMIMPORT_SLOTS_MAX 160
 #define PA_MEMIMPORT_SEGMENTS_MAX 16
 
 struct pa_memblock {
