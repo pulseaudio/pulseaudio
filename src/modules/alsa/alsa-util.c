@@ -343,7 +343,8 @@ int pa_alsa_set_hw_params(
         goto finish;
 
     if (_use_mmap) {
-        if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_MMAP_INTERLEAVED)) < 0) {
+
+        if (snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_MMAP_INTERLEAVED) < 0) {
 
             /* mmap() didn't work, fall back to interleaved */
 
@@ -806,8 +807,7 @@ snd_pcm_t *pa_alsa_open_by_device_string(
                                 SND_PCM_NO_AUTO_CHANNELS|
                                 (reformat ? 0 : SND_PCM_NO_AUTO_FORMAT))) < 0) {
             pa_log_info("Error opening PCM device %s: %s", d, snd_strerror(err));
-            pa_xfree(d);
-            return NULL;
+            goto fail;
         }
 
         if ((err = pa_alsa_set_hw_params(pcm_handle, ss, nfrags, period_size, tsched_size, use_mmap, use_tsched, require_exact_channel_number)) < 0) {
@@ -835,9 +835,9 @@ snd_pcm_t *pa_alsa_open_by_device_string(
             }
 
             pa_log_info("Failed to set hardware parameters on %s: %s", d, snd_strerror(err));
-            pa_xfree(d);
             snd_pcm_close(pcm_handle);
-            return NULL;
+
+            goto fail;
         }
 
         if (dev)
@@ -850,6 +850,11 @@ snd_pcm_t *pa_alsa_open_by_device_string(
 
         return pcm_handle;
     }
+
+fail:
+    pa_xfree(d);
+
+    return NULL;
 }
 
 int pa_alsa_probe_profiles(
