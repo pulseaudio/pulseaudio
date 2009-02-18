@@ -44,7 +44,7 @@
 char *pa_sdp_build(int af, const void *src, const void *dst, const char *name, uint16_t port, uint8_t payload, const pa_sample_spec *ss) {
     uint32_t ntp;
     char buf_src[64], buf_dst[64], un[64];
-    const char *u, *f, *a;
+    const char *u, *f;
 
     pa_assert(src);
     pa_assert(dst);
@@ -62,8 +62,8 @@ char *pa_sdp_build(int af, const void *src, const void *dst, const char *name, u
 
     ntp = (uint32_t) time(NULL) + 2208988800U;
 
-    pa_assert_se(a = inet_ntop(af, src, buf_src, sizeof(buf_src)));
-    pa_assert_se(a = inet_ntop(af, dst, buf_dst, sizeof(buf_dst)));
+    pa_assert_se(inet_ntop(af, src, buf_src, sizeof(buf_src)));
+    pa_assert_se(inet_ntop(af, dst, buf_dst, sizeof(buf_dst)));
 
     return pa_sprintf_malloc(
             PA_SDP_HEADER
