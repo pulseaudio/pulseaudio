@@ -369,8 +369,11 @@ int main(int argc, char *argv[]) {
          * value of $LD_BIND_NOW on initialization. */
 
         pa_set_env("LD_BIND_NOW", "1");
-        pa_assert_se(rp = pa_readlink("/proc/self/exe"));
-        pa_assert_se(execv(rp, argv) == 0);
+
+        if ((rp = pa_readlink("/proc/self/exe")))
+            pa_assert_se(execv(rp, argv) == 0);
+        else
+            pa_log_warn("Couldn't read /proc/self/exe, cannot self execute. Running in a chroot()?");
     }
 #endif
 
