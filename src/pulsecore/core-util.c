@@ -1443,6 +1443,7 @@ char *pa_get_runtime_dir(void) {
 
     if (pa_make_secure_dir(d, m, (uid_t) -1, (gid_t) -1) < 0)  {
         pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
+        pa_xfree(d);
         goto fail;
     }
 
