@@ -1220,6 +1220,12 @@ AC_SUBST(PA_SYSTEM_STATE_PATH)
 #            Output               #
 ###################################
 
+AC_ARG_ENABLE([legacy-runtime-dir],
+        AS_HELP_STRING([--disable-legacy-runtime-dir], [Try to connect on legacy (< 0.9.12) socket paths.]))
+if test "x$enable_legacy_runtime_dir" != "xno" ; then
+        AC_DEFINE(ENABLE_LEGACY_RUNTIME_DIR, [1], [Legacy runtime dir])
+fi
+
 AC_ARG_ENABLE(
         [static-bins],
         AS_HELP_STRING([--enable-static-bins],[Statically link executables.]),
