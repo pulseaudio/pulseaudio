@@ -704,7 +704,7 @@ void pa_reset_priority(void) {
 #endif
 }
 
-static int match(const char *expr, const char *v) {
+int pa_match(const char *expr, const char *v) {
     int k;
     regex_t re;
     int r;
@@ -744,12 +744,12 @@ int pa_parse_boolean(const char *v) {
     /* And then we check language dependant */
     if ((expr = nl_langinfo(YESEXPR)))
         if (expr[0])
-            if ((r = match(expr, v)) > 0)
+            if ((r = pa_match(expr, v)) > 0)
                 return 1;
 
     if ((expr = nl_langinfo(NOEXPR)))
         if (expr[0])
-            if ((r = match(expr, v)) > 0)
+            if ((r = pa_match(expr, v)) > 0)
                 return 0;
 
     errno = EINVAL;
