@@ -1846,6 +1846,9 @@ void pa_sink_update_latency_range(pa_sink *s, pa_usec_t min_latency, pa_usec_t m
 
     pa_sink_assert_ref(s);
 
+    pa_assert(!min_latency || !max_latency ||
+              min_latency <= max_latency);
+
     s->thread_info.min_latency = min_latency;
     s->thread_info.max_latency = max_latency;
 
