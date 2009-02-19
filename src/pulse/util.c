@@ -54,6 +54,8 @@
 #endif
 
 #include <pulse/xmalloc.h>
+#include <pulse/timeval.h>
+
 #include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
@@ -260,8 +262,8 @@ int pa_msleep(unsigned long t) {
 #elif defined(HAVE_NANOSLEEP)
     struct timespec ts;
 
-    ts.tv_sec = (time_t) (t/1000UL);
-    ts.tv_nsec = (long) ((t % 1000UL) * 1000000UL);
+    ts.tv_sec = (time_t) (t / PA_MSEC_PER_SEC);
+    ts.tv_nsec = (long) ((t % PA_MSEC_PER_SEC) * PA_NSEC_PER_MSEC);
 
     return nanosleep(&ts, NULL);
 #else
