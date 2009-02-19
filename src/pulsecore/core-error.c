@@ -47,6 +47,9 @@ const char* pa_cstrerror(int errnum) {
     char *translated, *t;
     char errbuf[128];
 
+    if (errnum < 0)
+        errnum = -errnum;
+
     if ((t = PA_STATIC_TLS_GET(cstrerror)))
         pa_xfree(t);
 
