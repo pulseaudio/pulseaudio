@@ -904,6 +904,11 @@ static int a2dp_process_render(struct userdata *u) {
                              (void*) p, u->write_memchunk.length,
                              d, left,
                              &written);
+
+        PA_ONCE_BEGIN {
+            pa_log_debug("Using SBC encoder implementation: %s", pa_strnull(sbc_get_implementation_info(&a2dp->sbc)));
+        } PA_ONCE_END;
+
         pa_memblock_release(u->write_memchunk.memblock);
 
         if (encoded <= 0) {
@@ -1349,9 +1354,6 @@ static int add_sink(struct userdata *u) {
 
         u->sink->userdata = u;
         u->sink->parent.process_msg = sink_process_msg;
-
-        pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
-        pa_sink_set_rtpoll(u->sink, u->rtpoll);
     }
 
 /*     u->sink->get_volume = sink_get_volume_cb; */
@@ -1396,9 +1398,6 @@ static int add_source(struct userdata *u) {
 
         u->source->userdata = u;
         u->source->parent.process_msg = source_process_msg;
-
-        pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
-        pa_source_set_rtpoll(u->source, u->rtpoll);
     }
 
 /*     u->source->get_volume = source_get_volume_cb; */
@@ -1523,9 +1522,9 @@ static void stop_thread(struct userdata *u) {
         u->source = NULL;
     }
 
-    pa_thread_mq_done(&u->thread_mq);
-
     if (u->rtpoll) {
+        pa_thread_mq_done(&u->thread_mq);
+
         pa_rtpoll_free(u->rtpoll);
         u->rtpoll = NULL;
     }
@@ -1559,11 +1558,17 @@ static int start_thread(struct userdata *u) {
         return -1;
     }
 
-    if (u->sink)
+    if (u->sink) {
+        pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
+        pa_sink_set_rtpoll(u->sink, u->rtpoll);
         pa_sink_put(u->sink);
+    }
 
-    if (u->source)
+    if (u->source) {
+        pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
+        pa_source_set_rtpoll(u->source, u->rtpoll);
         pa_source_put(u->source);
+    }
 
     return 0;
 }
