@@ -118,7 +118,7 @@
 #endif
 
 #ifndef PA_GCC_WEAKREF
-#ifdef __GNUC__
+#if defined(__GNUC__) && (((__GNUC__ == 4) && (__GNUC_MINOR__ > 1)) || (__GNUC__ > 4))
 /** Macro for usgae of GCC's weakref attribute */
 #define PA_GCC_WEAKREF(x) __attribute__((weakref(#x)));
 #endif
