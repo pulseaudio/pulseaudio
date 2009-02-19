@@ -141,3 +141,11 @@ struct timeval* pa_rtclock_from_wallclock(struct timeval *tv) {
 
     return tv;
 }
+
+pa_usec_t pa_timespec_load(const struct timespec *ts) {
+    pa_assert(ts);
+
+    return
+        (pa_usec_t) ts->tv_sec * PA_USEC_PER_SEC +
+        (pa_usec_t) ts->tv_nsec / PA_NSEC_PER_USEC;
+}
