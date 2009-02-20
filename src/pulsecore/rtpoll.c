@@ -478,59 +478,56 @@ static void update_timer(pa_rtpoll *p) {
 #ifdef HAVE_PPOLL
 
 #ifdef __linux__
-    if (!p->dont_use_ppoll) {
+    if (p->dont_use_ppoll)
+        return;
 #endif
 
-        if (p->timer == (timer_t) -1) {
-            struct sigevent se;
+    if (p->timer == (timer_t) -1) {
+        struct sigevent se;
 
-            memset(&se, 0, sizeof(se));
-            se.sigev_notify = SIGEV_SIGNAL;
-            se.sigev_signo = p->rtsig;
+        memset(&se, 0, sizeof(se));
+        se.sigev_notify = SIGEV_SIGNAL;
+        se.sigev_signo = p->rtsig;
 
-            if (timer_create(CLOCK_MONOTONIC, &se, &p->timer) < 0)
-                if (timer_create(CLOCK_REALTIME, &se, &p->timer) < 0) {
-                    pa_log_warn("Failed to allocate POSIX timer: %s", pa_cstrerror(errno));
-                    p->timer = (timer_t) -1;
-                }
-        }
-
-        if (p->timer != (timer_t) -1) {
-            struct itimerspec its;
-            struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
-            sigset_t ss;
-
-            if (p->timer_armed) {
-                /* First disarm timer */
-                memset(&its, 0, sizeof(its));
-                pa_assert_se(timer_settime(p->timer, TIMER_ABSTIME, &its, NULL) == 0);
-
-                /* Remove a signal that might be waiting in the signal q */
-                pa_assert_se(sigemptyset(&ss) == 0);
-                pa_assert_se(sigaddset(&ss, p->rtsig) == 0);
-                sigtimedwait(&ss, NULL, &ts);
+        if (timer_create(CLOCK_MONOTONIC, &se, &p->timer) < 0)
+            if (timer_create(CLOCK_REALTIME, &se, &p->timer) < 0) {
+                pa_log_warn("Failed to allocate POSIX timer: %s", pa_cstrerror(errno));
+                p->timer = (timer_t) -1;
             }
-
-            /* And install the new timer */
-            if (p->timer_enabled) {
-                memset(&its, 0, sizeof(its));
-
-                its.it_value.tv_sec = p->next_elapse.tv_sec;
-                its.it_value.tv_nsec = p->next_elapse.tv_usec*1000;
-
-                /* Make sure that 0,0 is not understood as
-                 * "disarming" */
-                if (its.it_value.tv_sec == 0 && its.it_value.tv_nsec == 0)
-                    its.it_value.tv_nsec = 1;
-                pa_assert_se(timer_settime(p->timer, TIMER_ABSTIME, &its, NULL) == 0);
-            }
-
-            p->timer_armed = p->timer_enabled;
-        }
-
-#ifdef __linux__
     }
-#endif
+
+    if (p->timer != (timer_t) -1) {
+        struct itimerspec its;
+        struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
+        sigset_t ss;
+
+        if (p->timer_armed) {
+            /* First disarm timer */
+            memset(&its, 0, sizeof(its));
+            pa_assert_se(timer_settime(p->timer, TIMER_ABSTIME, &its, NULL) == 0);
+
+            /* Remove a signal that might be waiting in the signal q */
+            pa_assert_se(sigemptyset(&ss) == 0);
+            pa_assert_se(sigaddset(&ss, p->rtsig) == 0);
+            sigtimedwait(&ss, NULL, &ts);
+        }
+
+        /* And install the new timer */
+        if (p->timer_enabled) {
+            memset(&its, 0, sizeof(its));
+
+            its.it_value.tv_sec = p->next_elapse.tv_sec;
+            its.it_value.tv_nsec = p->next_elapse.tv_usec*1000;
+
+            /* Make sure that 0,0 is not understood as
+             * "disarming" */
+            if (its.it_value.tv_sec == 0 && its.it_value.tv_nsec == 0)
+                its.it_value.tv_nsec = 1;
+            pa_assert_se(timer_settime(p->timer, TIMER_ABSTIME, &its, NULL) == 0);
+        }
+
+        p->timer_armed = p->timer_enabled;
+    }
 
 #endif
 }
