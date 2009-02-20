@@ -465,6 +465,7 @@ finish:
 
 int pa_alsa_set_sw_params(snd_pcm_t *pcm, snd_pcm_uframes_t avail_min) {
     snd_pcm_sw_params_t *swparams;
+    snd_pcm_uframes_t boundary;
     int err;
 
     pa_assert(pcm);
@@ -476,7 +477,22 @@ int pa_alsa_set_sw_params(snd_pcm_t *pcm, snd_pcm_uframes_t avail_min) {
         return err;
     }
 
-    if ((err = snd_pcm_sw_params_set_stop_threshold(pcm, swparams, (snd_pcm_uframes_t) -1)) < 0) {
+    if ((err = snd_pcm_sw_params_set_period_event(pcm, swparams, 0)) < 0) {
+        pa_log_warn("Unable to disable period event: %s\n", snd_strerror(err));
+        return err;
+    }
+
+    if ((err = snd_pcm_sw_params_set_tstamp_mode(pcm, swparams, SND_PCM_TSTAMP_ENABLE)) < 0) {
+        pa_log_warn("Unable to enable time stamping: %s\n", snd_strerror(err));
+        return err;
+    }
+
+    if ((err = snd_pcm_sw_params_get_boundary(swparams, &boundary)) < 0) {
+        pa_log_warn("Unable to get boundary: %s\n", snd_strerror(err));
+        return err;
+    }
+
+    if ((err = snd_pcm_sw_params_set_stop_threshold(pcm, swparams, boundary)) < 0) {
         pa_log_warn("Unable to set stop threshold: %s\n", snd_strerror(err));
         return err;
     }
@@ -1534,7 +1550,7 @@ pa_rtpoll_item* pa_alsa_build_pollfd(snd_pcm_t *pcm, pa_rtpoll *rtpoll) {
     return item;
 }
 
-snd_pcm_sframes_t pa_alsa_safe_avail_update(snd_pcm_t *pcm, size_t hwbuf_size, const pa_sample_spec *ss) {
+snd_pcm_sframes_t pa_alsa_safe_avail(snd_pcm_t *pcm, size_t hwbuf_size, const pa_sample_spec *ss) {
     snd_pcm_sframes_t n;
     size_t k;
 
@@ -1545,7 +1561,7 @@ snd_pcm_sframes_t pa_alsa_safe_avail_update(snd_pcm_t *pcm, size_t hwbuf_size, c
     /* Some ALSA driver expose weird bugs, let's inform the user about
      * what is going on */
 
-    n = snd_pcm_avail_update(pcm);
+    n = snd_pcm_avail(pcm);
 
     if (n <= 0)
         return n;

@@ -57,11 +57,13 @@
 #include "alsa-util.h"
 #include "alsa-source.h"
 
+/* #define DEBUG_TIMING */
+
 #define DEFAULT_DEVICE "default"
 #define DEFAULT_TSCHED_BUFFER_USEC (2*PA_USEC_PER_SEC)       /* 2s */
 #define DEFAULT_TSCHED_WATERMARK_USEC (20*PA_USEC_PER_MSEC)  /* 20ms */
-#define TSCHED_MIN_SLEEP_USEC (3*PA_USEC_PER_MSEC)           /* 3ms */
-#define TSCHED_MIN_WAKEUP_USEC (3*PA_USEC_PER_MSEC)          /* 3ms */
+#define TSCHED_MIN_SLEEP_USEC (10*PA_USEC_PER_MSEC)          /* 10ms */
+#define TSCHED_MIN_WAKEUP_USEC (4*PA_USEC_PER_MSEC)          /* 4ms */
 
 struct userdata {
     pa_core *core;
@@ -79,55 +81,85 @@ struct userdata {
     snd_mixer_elem_t *mixer_elem;
     long hw_volume_max, hw_volume_min;
     long hw_dB_max, hw_dB_min;
-    pa_bool_t hw_dB_supported;
-    pa_bool_t mixer_seperate_channels;
+    pa_bool_t hw_dB_supported:1;
+    pa_bool_t mixer_seperate_channels:1;
 
     pa_cvolume hardware_volume;
 
-    size_t frame_size, fragment_size, hwbuf_size, tsched_watermark;
+    size_t frame_size, fragment_size, hwbuf_size, tsched_watermark, hwbuf_unused, min_sleep, min_wakeup;
     unsigned nfragments;
 
     char *device_name;
 
-    pa_bool_t use_mmap, use_tsched;
+    pa_bool_t use_mmap:1, use_tsched:1;
 
     pa_rtpoll_item *alsa_rtpoll_item;
 
     snd_mixer_selem_channel_id_t mixer_map[SND_MIXER_SCHN_LAST];
 
     pa_smoother *smoother;
-    int64_t frame_index;
-
-    snd_pcm_sframes_t hwbuf_unused_frames;
+    uint64_t read_count;
 };
 
 static void userdata_free(struct userdata *u);
 
-static void fix_tsched_watermark(struct userdata *u) {
-    size_t max_use;
-    size_t min_sleep, min_wakeup;
+static void fix_min_sleep_wakeup(struct userdata *u) {
+    size_t max_use, max_use_2;
     pa_assert(u);
 
-    max_use = u->hwbuf_size - (size_t) u->hwbuf_unused_frames * u->frame_size;
+    max_use = u->hwbuf_size - u->hwbuf_unused;
+    max_use_2 = pa_frame_align(max_use/2, &u->source->sample_spec);
 
-    min_sleep = pa_usec_to_bytes(TSCHED_MIN_SLEEP_USEC, &u->source->sample_spec);
-    min_wakeup = pa_usec_to_bytes(TSCHED_MIN_WAKEUP_USEC, &u->source->sample_spec);
+    u->min_sleep = pa_usec_to_bytes(TSCHED_MIN_SLEEP_USEC, &u->source->sample_spec);
+    u->min_sleep = PA_CLAMP(u->min_sleep, u->frame_size, max_use_2);
 
-    if (min_sleep > max_use/2)
-        min_sleep = pa_frame_align(max_use/2, &u->source->sample_spec);
-    if (min_sleep < u->frame_size)
-        min_sleep = u->frame_size;
+    u->min_wakeup = pa_usec_to_bytes(TSCHED_MIN_WAKEUP_USEC, &u->source->sample_spec);
+    u->min_wakeup = PA_CLAMP(u->min_wakeup, u->frame_size, max_use_2);
+}
 
-    if (min_wakeup > max_use/2)
-        min_wakeup = pa_frame_align(max_use/2, &u->source->sample_spec);
-    if (min_wakeup < u->frame_size)
-        min_wakeup = u->frame_size;
+static void fix_tsched_watermark(struct userdata *u) {
+    size_t max_use;
+    pa_assert(u);
 
-    if (u->tsched_watermark > max_use-min_sleep)
-        u->tsched_watermark = max_use-min_sleep;
+    max_use = u->hwbuf_size - u->hwbuf_unused;
 
-    if (u->tsched_watermark < min_wakeup)
-        u->tsched_watermark = min_wakeup;
+    if (u->tsched_watermark > max_use - u->min_sleep)
+        u->tsched_watermark = max_use - u->min_sleep;
+
+    if (u->tsched_watermark < u->min_wakeup)
+        u->tsched_watermark = u->min_wakeup;
+}
+
+static void adjust_after_overrun(struct userdata *u) {
+    size_t old_watermark;
+    pa_usec_t old_min_latency, new_min_latency;
+
+    pa_assert(u);
+
+    /* First, just try to increase the watermark */
+    old_watermark = u->tsched_watermark;
+    u->tsched_watermark *= 2;
+    fix_tsched_watermark(u);
+
+    if (old_watermark != u->tsched_watermark) {
+        pa_log_notice("Increasing wakeup watermark to %0.2f ms",
+                      (double) pa_bytes_to_usec(u->tsched_watermark, &u->source->sample_spec) / PA_USEC_PER_MSEC);
+        return;
+    }
+
+    /* Hmm, we cannot increase the watermark any further, hence let's raise the latency */
+    old_min_latency = u->source->thread_info.min_latency;
+    new_min_latency = PA_MIN(old_min_latency * 2, u->source->thread_info.max_latency);
+
+    if (old_min_latency != new_min_latency) {
+        pa_log_notice("Increasing minimal latency to %0.2f ms",
+                      (double) new_min_latency / PA_USEC_PER_MSEC);
+
+        pa_source_update_latency_range(u->source, new_min_latency, u->source->thread_info.max_latency);
+        return;
+    }
+
+    /* When we reach this we're officialy fucked! */
 }
 
 static pa_usec_t hw_sleep_time(struct userdata *u, pa_usec_t *sleep_usec, pa_usec_t*process_usec) {
@@ -140,17 +172,20 @@ static pa_usec_t hw_sleep_time(struct userdata *u, pa_usec_t *sleep_usec, pa_use
     if (usec == (pa_usec_t) -1)
         usec = pa_bytes_to_usec(u->hwbuf_size, &u->source->sample_spec);
 
-/*     pa_log_debug("hw buffer time: %u ms", (unsigned) (usec / PA_USEC_PER_MSEC)); */
-
     wm = pa_bytes_to_usec(u->tsched_watermark, &u->source->sample_spec);
 
-    if (usec >= wm) {
-        *sleep_usec = usec - wm;
-        *process_usec = wm;
-    } else
-        *process_usec = *sleep_usec = usec /= 2;
+    if (wm > usec)
+        wm = usec/2;
 
-/*     pa_log_debug("after watermark: %u ms", (unsigned) (*sleep_usec / PA_USEC_PER_MSEC)); */
+    *sleep_usec = usec - wm;
+    *process_usec = wm;
+
+#ifdef DEBUG_TIMING
+    pa_log_debug("Buffer time: %lu ms; Sleep time: %lu ms; Process time: %lu ms",
+                 (unsigned long) (usec / PA_USEC_PER_MSEC),
+                 (unsigned long) (*sleep_usec / PA_USEC_PER_MSEC),
+                 (unsigned long) (*process_usec / PA_USEC_PER_MSEC));
+#endif
 
     return usec;
 }
@@ -167,47 +202,50 @@ static int try_recover(struct userdata *u, const char *call, int err) {
     if (err == -EPIPE)
         pa_log_debug("%s: Buffer overrun!", call);
 
-    if ((err = snd_pcm_recover(u->pcm_handle, err, 1)) == 0) {
-        snd_pcm_start(u->pcm_handle);
-        return 0;
+    if ((err = snd_pcm_recover(u->pcm_handle, err, 1)) < 0) {
+        pa_log("%s: %s", call, snd_strerror(err));
+        return -1;
     }
 
-    pa_log("%s: %s", call, snd_strerror(err));
-    return -1;
+    snd_pcm_start(u->pcm_handle);
+    return 0;
 }
 
-static size_t check_left_to_record(struct userdata *u, snd_pcm_sframes_t n) {
+static size_t check_left_to_record(struct userdata *u, size_t n_bytes) {
     size_t left_to_record;
-    size_t rec_space = u->hwbuf_size - (size_t) u->hwbuf_unused_frames*u->frame_size;
+    size_t rec_space = u->hwbuf_size - u->hwbuf_unused;
 
-    if ((size_t) n*u->frame_size < rec_space)
-        left_to_record = rec_space - ((size_t) n*u->frame_size);
-    else
+    /* We use <= instead of < for this check here because an overrun
+     * only happens after the last sample was processed, not already when
+     * it is removed from the buffer. This is particularly important
+     * when block transfer is used. */
+
+    if (n_bytes <= rec_space) {
+        left_to_record = rec_space - n_bytes;
+
+#ifdef DEBUG_TIMING
+        pa_log_debug("%0.2f ms left to record", (double) pa_bytes_to_usec(left_to_record, &u->source->sample_spec) / PA_USEC_PER_MSEC);
+#endif
+
+    } else {
         left_to_record = 0;
 
-    if (left_to_record > 0) {
-/*         pa_log_debug("%0.2f ms left to record", (double) pa_bytes_to_usec(left_to_record, &u->source->sample_spec) / PA_USEC_PER_MSEC); */
-    } else {
+#ifdef DEBUG_TIMING
+        PA_DEBUG_TRAP;
+#endif
+
         if (pa_log_ratelimit())
             pa_log_info("Overrun!");
 
-        if (u->use_tsched) {
-            size_t old_watermark = u->tsched_watermark;
-
-            u->tsched_watermark *= 2;
-            fix_tsched_watermark(u);
-
-            if (old_watermark != u->tsched_watermark)
-                pa_log_notice("Increasing wakeup watermark to %0.2f ms",
-                              (double) pa_bytes_to_usec(u->tsched_watermark, &u->source->sample_spec) / PA_USEC_PER_MSEC);
-        }
+        if (u->use_tsched)
+            adjust_after_overrun(u);
     }
 
     return left_to_record;
 }
 
 static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled) {
-    int work_done = 0;
+    pa_bool_t work_done = FALSE;
     pa_usec_t max_sleep_usec = 0, process_usec = 0;
     size_t left_to_record;
 
@@ -219,44 +257,62 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
 
     for (;;) {
         snd_pcm_sframes_t n;
+        size_t n_bytes;
         int r;
 
-        snd_pcm_hwsync(u->pcm_handle);
+        if (PA_UNLIKELY((n = pa_alsa_safe_avail(u->pcm_handle, u->hwbuf_size, &u->source->sample_spec)) < 0)) {
 
-        if (PA_UNLIKELY((n = pa_alsa_safe_avail_update(u->pcm_handle, u->hwbuf_size, &u->source->sample_spec)) < 0)) {
-
-            if ((r = try_recover(u, "snd_pcm_avail_update", (int) n)) == 0)
+            if ((r = try_recover(u, "snd_pcm_avail", (int) n)) == 0)
                 continue;
 
             return r;
         }
 
-        left_to_record = check_left_to_record(u, n);
+        n_bytes = (size_t) n * u->frame_size;
+
+#ifdef DEBUG_TIMING
+        pa_log_debug("avail: %lu", (unsigned long) n_bytes);
+#endif
+
+        left_to_record = check_left_to_record(u, n_bytes);
 
         if (u->use_tsched)
             if (!polled &&
-                pa_bytes_to_usec(left_to_record, &u->source->sample_spec) > process_usec+max_sleep_usec/2)
+                pa_bytes_to_usec(left_to_record, &u->source->sample_spec) > process_usec+max_sleep_usec/2) {
+#ifdef DEBUG_TIMING
+                pa_log_debug("Not reading, because too early.");
+#endif
                 break;
+            }
 
-        if (PA_UNLIKELY(n <= 0)) {
+        if (PA_UNLIKELY(n_bytes <= 0)) {
 
             if (polled && pa_log_ratelimit())
                 pa_log(_("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
                          "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
                          "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail_update() returned 0."));
 
+#ifdef DEBUG_TIMING
+            pa_log_debug("Not reading, because not necessary.");
+#endif
             break;
         }
 
         polled = FALSE;
 
+#ifdef DEBUG_TIMING
+        pa_log_debug("Reading");
+#endif
+
         for (;;) {
             int err;
             const snd_pcm_channel_area_t *areas;
-            snd_pcm_uframes_t offset, frames = (snd_pcm_uframes_t) n;
+            snd_pcm_uframes_t offset, frames;
             pa_memchunk chunk;
             void *p;
             snd_pcm_sframes_t sframes;
+
+            frames = (snd_pcm_uframes_t) (n_bytes / u->frame_size);
 
 /*             pa_log_debug("%lu frames to read", (unsigned long) frames); */
 
@@ -297,25 +353,27 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
                 return r;
             }
 
-            work_done = 1;
+            work_done = TRUE;
 
-            u->frame_index += (int64_t) frames;
+            u->read_count += frames * u->frame_size;
 
-/*             pa_log_debug("read %lu frames", (unsigned long) frames); */
+#ifdef DEBUG_TIMING
+            pa_log_debug("Read %lu bytes", (unsigned long) (frames * u->frame_size));
+#endif
 
-            if (frames >= (snd_pcm_uframes_t) n)
+            if ((size_t) frames * u->frame_size >= n_bytes)
                 break;
 
-            n -= (snd_pcm_sframes_t) frames;
+            n_bytes -= (size_t) frames * u->frame_size;
         }
     }
 
     *sleep_usec = pa_bytes_to_usec(left_to_record, &u->source->sample_spec) - process_usec;
-    return work_done;
+    return work_done ? 1 : 0;
 }
 
 static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled) {
-    int work_done = 0;
+    int work_done = FALSE;
     pa_usec_t max_sleep_usec = 0, process_usec = 0;
     size_t left_to_record;
 
@@ -327,33 +385,33 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
 
     for (;;) {
         snd_pcm_sframes_t n;
+        size_t n_bytes;
         int r;
 
-        snd_pcm_hwsync(u->pcm_handle);
+        if (PA_UNLIKELY((n = pa_alsa_safe_avail(u->pcm_handle, u->hwbuf_size, &u->source->sample_spec)) < 0)) {
 
-        if (PA_UNLIKELY((n = pa_alsa_safe_avail_update(u->pcm_handle, u->hwbuf_size, &u->source->sample_spec)) < 0)) {
-
-            if ((r = try_recover(u, "snd_pcm_avail_update", (int) n)) == 0)
+            if ((r = try_recover(u, "snd_pcm_avail", (int) n)) == 0)
                 continue;
 
             return r;
         }
 
-        left_to_record = check_left_to_record(u, n);
+        n_bytes = (size_t) n * u->frame_size;
+        left_to_record = check_left_to_record(u, n_bytes);
 
         if (u->use_tsched)
             if (!polled &&
                 pa_bytes_to_usec(left_to_record, &u->source->sample_spec) > process_usec+max_sleep_usec/2)
                 break;
 
-        if (PA_UNLIKELY(n <= 0)) {
+        if (PA_UNLIKELY(n_bytes <= 0)) {
 
             if (polled && pa_log_ratelimit())
                 pa_log(_("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
                          "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
                          "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail_update() returned 0."));
 
-            return work_done;
+            break;
         }
 
         polled = FALSE;
@@ -367,8 +425,8 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
 
             frames = (snd_pcm_sframes_t) (pa_memblock_get_length(chunk.memblock) / u->frame_size);
 
-            if (frames > n)
-                frames = n;
+            if (frames > (snd_pcm_sframes_t) (n_bytes/u->frame_size))
+                frames = (snd_pcm_sframes_t) (n_bytes/u->frame_size);
 
 /*             pa_log_debug("%lu frames to read", (unsigned long) n); */
 
@@ -393,53 +451,63 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
             pa_source_post(u->source, &chunk);
             pa_memblock_unref(chunk.memblock);
 
-            work_done = 1;
+            work_done = TRUE;
 
-            u->frame_index += frames;
+            u->read_count += frames * u->frame_size;
 
 /*             pa_log_debug("read %lu frames", (unsigned long) frames); */
 
-            if (frames >= n)
+            if ((size_t) frames * u->frame_size >= n_bytes)
                 break;
 
-            n -= frames;
+            n_bytes -= (size_t) frames * u->frame_size;
         }
     }
 
     *sleep_usec = pa_bytes_to_usec(left_to_record, &u->source->sample_spec) - process_usec;
-    return work_done;
+    return work_done ? 1 : 0;
 }
 
 static void update_smoother(struct userdata *u) {
     snd_pcm_sframes_t delay = 0;
-    int64_t frames;
+    uint64_t position;
     int err;
-    pa_usec_t now1, now2;
+    pa_usec_t now1 = 0, now2;
+    snd_pcm_status_t *status;
+
+    snd_pcm_status_alloca(&status);
 
     pa_assert(u);
     pa_assert(u->pcm_handle);
 
     /* Let's update the time smoother */
 
-    snd_pcm_hwsync(u->pcm_handle);
-    snd_pcm_avail_update(u->pcm_handle);
-
     if (PA_UNLIKELY((err = snd_pcm_delay(u->pcm_handle, &delay)) < 0)) {
         pa_log_warn("Failed to get delay: %s", snd_strerror(err));
         return;
     }
 
-    frames = u->frame_index + delay;
+    if (PA_UNLIKELY((err = snd_pcm_status(u->pcm_handle, status)) < 0))
+        pa_log_warn("Failed to get timestamp: %s", snd_strerror(err));
+    else {
+        snd_htimestamp_t htstamp = { 0, 0 };
+        snd_pcm_status_get_htstamp(status, &htstamp);
+        now1 = pa_timespec_load(&htstamp);
+    }
 
-    now1 = pa_rtclock_usec();
-    now2 = pa_bytes_to_usec((uint64_t) frames * u->frame_size, &u->source->sample_spec);
+    position = u->read_count + ((uint64_t) delay * (uint64_t) u->frame_size);
+
+    /* Hmm, if the timestamp is 0, then it wasn't set and we take the current time */
+    if (now1 <= 0)
+        now1 = pa_rtclock_usec();
+
+    now2 = pa_bytes_to_usec(position, &u->source->sample_spec);
 
     pa_smoother_put(u->smoother, now1, now2);
 }
 
 static pa_usec_t source_get_latency(struct userdata *u) {
-    pa_usec_t r = 0;
-    int64_t delay;
+   int64_t delay;
     pa_usec_t now1, now2;
 
     pa_assert(u);
@@ -447,12 +515,9 @@ static pa_usec_t source_get_latency(struct userdata *u) {
     now1 = pa_rtclock_usec();
     now2 = pa_smoother_get(u->smoother, now1);
 
-    delay = (int64_t) now2 - (int64_t) pa_bytes_to_usec((uint64_t) u->frame_index * u->frame_size, &u->source->sample_spec);
+    delay = (int64_t) now2 - (int64_t) pa_bytes_to_usec(u->read_count, &u->source->sample_spec);
 
-    if (delay > 0)
-        r = (pa_usec_t) delay;
-
-    return r;
+    return delay >= 0 ? (pa_usec_t) delay : 0;
 }
 
 static int build_pollfd(struct userdata *u) {
@@ -495,7 +560,7 @@ static int update_sw_params(struct userdata *u) {
     pa_assert(u);
 
     /* Use the full buffer if noone asked us for anything specific */
-    u->hwbuf_unused_frames = 0;
+    u->hwbuf_unused = 0;
 
     if (u->use_tsched) {
         pa_usec_t latency;
@@ -512,15 +577,14 @@ static int update_sw_params(struct userdata *u) {
             if (PA_UNLIKELY(b < u->frame_size))
                 b = u->frame_size;
 
-            u->hwbuf_unused_frames = (snd_pcm_sframes_t)
-                (PA_LIKELY(b < u->hwbuf_size) ?
-                 ((u->hwbuf_size - b) / u->frame_size) : 0);
+            u->hwbuf_unused = PA_LIKELY(b < u->hwbuf_size) ? (u->hwbuf_size - b) : 0;
         }
 
+        fix_min_sleep_wakeup(u);
         fix_tsched_watermark(u);
     }
 
-    pa_log_debug("hwbuf_unused_frames=%lu", (unsigned long) u->hwbuf_unused_frames);
+    pa_log_debug("hwbuf_unused=%lu", (unsigned long) u->hwbuf_unused);
 
     avail_min = 1;
 
@@ -952,11 +1016,13 @@ static void thread_func(void *userdata) {
     for (;;) {
         int ret;
 
-/*         pa_log_debug("loop"); */
+#ifdef DEBUG_TIMING
+        pa_log_debug("Loop");
+#endif
 
         /* Read some data and pass it to the sources */
         if (PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
-            int work_done = 0;
+            int work_done;
             pa_usec_t sleep_usec = 0;
 
             if (u->use_mmap)
@@ -1014,15 +1080,14 @@ static void thread_func(void *userdata) {
                 goto fail;
             }
 
-            if (revents & (POLLOUT|POLLERR|POLLNVAL|POLLHUP|POLLPRI)) {
+            if (revents & ~POLLIN) {
                 if (pa_alsa_recover_from_poll(u->pcm_handle, revents) < 0)
                     goto fail;
 
                 snd_pcm_start(u->pcm_handle);
-            }
+            } else if (revents && u->use_tsched && pa_log_ratelimit())
+                pa_log_debug("Wakeup from ALSA!");
 
-            if (revents && u->use_tsched && pa_log_ratelimit())
-                pa_log_debug("Wakeup from ALSA!%s%s", (revents & POLLIN) ? " INPUT" : "", (revents & POLLOUT) ? " OUTPUT" : "");
         } else
             revents = 0;
     }
@@ -1219,7 +1284,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
     u->alsa_rtpoll_item = NULL;
 
-    u->smoother = pa_smoother_new(DEFAULT_TSCHED_WATERMARK_USEC, DEFAULT_TSCHED_WATERMARK_USEC, TRUE, 5);
+    u->smoother = pa_smoother_new(DEFAULT_TSCHED_WATERMARK_USEC*2, DEFAULT_TSCHED_WATERMARK_USEC*2, TRUE, 5);
     pa_smoother_set_time_offset(u->smoother, pa_rtclock_usec());
 
     b = use_mmap;
@@ -1329,17 +1394,13 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     u->fragment_size = frag_size = (uint32_t) (period_frames * frame_size);
     u->nfragments = nfrags;
     u->hwbuf_size = u->fragment_size * nfrags;
-    u->hwbuf_unused_frames = 0;
     u->tsched_watermark = tsched_watermark;
-    u->frame_index = 0;
-    u->hw_dB_supported = FALSE;
-    u->hw_dB_min = u->hw_dB_max = 0;
-    u->hw_volume_min = u->hw_volume_max = 0;
-    u->mixer_seperate_channels = FALSE;
     pa_cvolume_mute(&u->hardware_volume, u->source->sample_spec.channels);
 
-    if (use_tsched)
+    if (use_tsched) {
+        fix_min_sleep_wakeup(u);
         fix_tsched_watermark(u);
+    }
 
     pa_source_set_latency_range(u->source,
                                 !use_tsched ? pa_bytes_to_usec(u->hwbuf_size, &ss) : (pa_usec_t) -1,
