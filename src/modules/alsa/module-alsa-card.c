@@ -24,6 +24,8 @@
 #endif
 
 #include <pulse/xmalloc.h>
+#include <pulse/i18n.h>
+
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/queue.h>
@@ -104,14 +106,14 @@ static void enumerate_cb(
 
     if (sink && source) {
         n = pa_sprintf_malloc("output-%s+input-%s", sink->name, source->name);
-        t = pa_sprintf_malloc("Output %s + Input %s", sink->description, source->description);
+        t = pa_sprintf_malloc(_("Output %s + Input %s"), sink->description, _(source->description));
     } else if (sink) {
         n = pa_sprintf_malloc("output-%s", sink->name);
-        t = pa_sprintf_malloc("Output %s", sink->description);
+        t = pa_sprintf_malloc(_("Output %s"), _(sink->description));
     } else {
         pa_assert(source);
         n = pa_sprintf_malloc("input-%s", source->name);
-        t = pa_sprintf_malloc("Input %s", source->description);
+        t = pa_sprintf_malloc(_("Input %s"), _(source->description));
     }
 
     pa_log_info("Found output profile '%s'", t);
@@ -142,7 +144,7 @@ static void add_disabled_profile(pa_hashmap *profiles) {
     pa_card_profile *p;
     struct profile_data *d;
 
-    p = pa_card_profile_new("off", "Off", sizeof(struct profile_data));
+    p = pa_card_profile_new("off", _("Off"), sizeof(struct profile_data));
 
     d = PA_CARD_PROFILE_DATA(p);
     d->sink_profile = d->source_profile = NULL;
