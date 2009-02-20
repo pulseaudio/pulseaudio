@@ -35,6 +35,7 @@
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
 #include <pulse/timeval.h>
+#include <pulse/i18n.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core.h>
@@ -240,9 +241,9 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
         if (PA_UNLIKELY(n <= 0)) {
 
             if (polled && pa_log_ratelimit())
-                pa_log("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
-                       "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
-                       "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail_update() returned 0.");
+                pa_log(_("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
+                         "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
+                         "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail_update() returned 0."));
 
             break;
         }
@@ -348,9 +349,9 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
         if (PA_UNLIKELY(n <= 0)) {
 
             if (polled && pa_log_ratelimit())
-                pa_log("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
-                       "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
-                       "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail_update() returned 0.");
+                pa_log(_("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
+                         "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
+                         "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail_update() returned 0."));
 
             return work_done;
         }

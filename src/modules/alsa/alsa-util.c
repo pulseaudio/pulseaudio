@@ -32,6 +32,7 @@
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 #include <pulse/util.h>
+#include <pulse/i18n.h>
 
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
@@ -501,39 +502,39 @@ int pa_alsa_set_sw_params(snd_pcm_t *pcm, snd_pcm_uframes_t avail_min) {
 static const struct pa_alsa_profile_info device_table[] = {
     {{ 1, { PA_CHANNEL_POSITION_MONO }},
      "hw",
-     "Analog Mono",
+     N_("Analog Mono"),
      "analog-mono",
      1 },
 
     {{ 2, { PA_CHANNEL_POSITION_LEFT, PA_CHANNEL_POSITION_RIGHT }},
      "front",
-     "Analog Stereo",
+     N_("Analog Stereo"),
      "analog-stereo",
      10 },
 
     {{ 2, { PA_CHANNEL_POSITION_LEFT, PA_CHANNEL_POSITION_RIGHT }},
      "iec958",
-     "IEC958 Digital Stereo",
+     N_("Digital Stereo (IEC958)"),
      "iec958-stereo",
      5 },
 
     {{ 2, { PA_CHANNEL_POSITION_LEFT, PA_CHANNEL_POSITION_RIGHT }},
      "hdmi",
-     "HDMI Digital Stereo",
+     N_("Digital Stereo (HDMI)"),
      "hdmi-stereo",
      4 },
 
     {{ 4, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT }},
      "surround40",
-     "Analog Surround 4.0",
+     N_("Analog Surround 4.0"),
      "analog-surround-40",
      7 },
 
     {{ 4, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT }},
      "a52",
-     "IEC958/AC3 Digital Surround 4.0",
+     N_("Digital Surround 4.0 (IEC958/AC3)"),
      "iec958-ac3-surround-40",
      2 },
 
@@ -541,7 +542,7 @@ static const struct pa_alsa_profile_info device_table[] = {
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT,
             PA_CHANNEL_POSITION_LFE }},
      "surround41",
-     "Analog Surround 4.1",
+     N_("Analog Surround 4.1"),
      "analog-surround-41",
      7 },
 
@@ -549,7 +550,7 @@ static const struct pa_alsa_profile_info device_table[] = {
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT,
             PA_CHANNEL_POSITION_CENTER }},
      "surround50",
-     "Analog Surround 5.0",
+     N_("Analog Surround 5.0"),
      "analog-surround-50",
      7 },
 
@@ -557,7 +558,7 @@ static const struct pa_alsa_profile_info device_table[] = {
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT,
             PA_CHANNEL_POSITION_CENTER, PA_CHANNEL_POSITION_LFE }},
      "surround51",
-     "Analog Surround 5.1",
+     N_("Analog Surround 5.1"),
      "analog-surround-51",
      8 },
 
@@ -565,7 +566,7 @@ static const struct pa_alsa_profile_info device_table[] = {
             PA_CHANNEL_POSITION_FRONT_RIGHT, PA_CHANNEL_POSITION_REAR_LEFT,
             PA_CHANNEL_POSITION_REAR_RIGHT, PA_CHANNEL_POSITION_LFE}},
      "a52",
-     "IEC958/AC3 Digital Surround 5.1",
+     N_("Digital Surround 5.1 (IEC958/AC3)"),
      "iec958-ac3-surround-51",
      3 },
 
@@ -574,7 +575,7 @@ static const struct pa_alsa_profile_info device_table[] = {
             PA_CHANNEL_POSITION_CENTER, PA_CHANNEL_POSITION_LFE,
             PA_CHANNEL_POSITION_SIDE_LEFT, PA_CHANNEL_POSITION_SIDE_RIGHT }},
      "surround71",
-     "Analog Surround 7.1",
+     N_("Analog Surround 7.1"),
      "analog-surround-71",
      7 },
 
@@ -1553,8 +1554,8 @@ snd_pcm_sframes_t pa_alsa_safe_avail_update(snd_pcm_t *pcm, size_t hwbuf_size, c
 
     if (k >= hwbuf_size * 3 ||
         k >= pa_bytes_per_second(ss)*10)
-        pa_log("snd_pcm_avail_update() returned a value that is exceptionally large: %lu bytes (%lu ms). "
-               "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers.",
+        pa_log(_("snd_pcm_avail_update() returned a value that is exceptionally large: %lu bytes (%lu ms). "
+                 "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers."),
                (unsigned long) k, (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC));
 
     return n;
@@ -1585,8 +1586,8 @@ int pa_alsa_safe_mmap_begin(snd_pcm_t *pcm, const snd_pcm_channel_area_t **areas
         k >= hwbuf_size * 3 ||
         k >= pa_bytes_per_second(ss)*10)
 
-        pa_log("snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms). "
-               "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers.",
+        pa_log(_("snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms). "
+                 "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers."),
                (unsigned long) k, (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC));
 
     return r;

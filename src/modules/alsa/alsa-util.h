@@ -59,7 +59,7 @@ int pa_alsa_find_mixer_and_elem(snd_pcm_t *pcm, snd_mixer_t **_m, snd_mixer_elem
 typedef struct pa_alsa_profile_info {
     pa_channel_map map;
     const char *alsa_name;
-    const char *description;
+    const char *description; /* internationalized */
     const char *name;
     unsigned priority;
 } pa_alsa_profile_info;

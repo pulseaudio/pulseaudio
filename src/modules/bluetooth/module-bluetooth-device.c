@@ -33,6 +33,8 @@
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 #include <pulse/sample.h>
+#include <pulse/i18n.h>
+
 #include <pulsecore/module.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/core-util.h>
@@ -1655,7 +1657,7 @@ static int add_card(struct userdata *u, const char * default_profile) {
     data.profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
     if (u->device->audio_sink_info_valid > 0) {
-        p = pa_card_profile_new("a2dp", "A2DP Advanced Audio Distribution Profile", sizeof(enum profile));
+        p = pa_card_profile_new("a2dp", _("High Fidelity Playback (A2DP)"), sizeof(enum profile));
         p->priority = 10;
         p->n_sinks = 1;
         p->n_sources = 0;
@@ -1669,7 +1671,7 @@ static int add_card(struct userdata *u, const char * default_profile) {
     }
 
     if (u->device->headset_info_valid > 0) {
-        p = pa_card_profile_new("hsp", "HSP/HFP Headset/Hands-Free Profile", sizeof(enum profile));
+        p = pa_card_profile_new("hsp", _("Telephony Duplex (HSP/HFP)"), sizeof(enum profile));
         p->priority = 20;
         p->n_sinks = 1;
         p->n_sources = 1;
@@ -1684,7 +1686,7 @@ static int add_card(struct userdata *u, const char * default_profile) {
 
     pa_assert(!pa_hashmap_isempty(data.profiles));
 
-    p = pa_card_profile_new("off", "Off", sizeof(enum profile));
+    p = pa_card_profile_new("off", _("Off"), sizeof(enum profile));
     d = PA_CARD_PROFILE_DATA(p);
     *d = PROFILE_OFF;
     pa_hashmap_put(data.profiles, p->name, p);
