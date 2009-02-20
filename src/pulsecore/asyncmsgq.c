@@ -159,7 +159,7 @@ int pa_asyncmsgq_send(pa_asyncmsgq *a, pa_msgobject *object, int code, const voi
 
     pa_assert_se(i.semaphore);
 
-    /* Thus mutex makes the queue multiple-writer safe. This lock is only used on the writing side */
+    /* This mutex makes the queue multiple-writer safe. This lock is only used on the writing side */
     pa_mutex_lock(a->mutex);
     pa_assert_se(pa_asyncq_push(a->asyncq, &i, TRUE) == 0);
     pa_mutex_unlock(a->mutex);
@@ -196,7 +196,13 @@ int pa_asyncmsgq_get(pa_asyncmsgq *a, pa_msgobject **object, int *code, void **u
     if (chunk)
         *chunk = a->current->memchunk;
 
-/*     pa_log_debug("Get q=%p object=%p (%s) code=%i data=%p chunk.length=%lu", (void*) a, (void*) a->current->object, a->current->object ? a->current->object->parent.type_name : NULL, a->current->code, (void*) a->current->userdata, (unsigned long) a->current->memchunk.length); */
+/*     pa_log_debug("Get q=%p object=%p (%s) code=%i data=%p chunk.length=%lu", */
+/*                  (void*) a, */
+/*                  (void*) a->current->object, */
+/*                  a->current->object ? a->current->object->parent.type_name : NULL, */
+/*                  a->current->code, */
+/*                  (void*) a->current->userdata, */
+/*                  (unsigned long) a->current->memchunk.length); */
 
     return 0;
 }
