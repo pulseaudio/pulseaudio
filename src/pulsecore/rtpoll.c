@@ -50,29 +50,39 @@
 #include <pulsecore/rtsig.h>
 #include <pulsecore/flist.h>
 #include <pulsecore/core-util.h>
-
 #include <pulsecore/winsock.h>
+#include <pulsecore/ratelimit.h>
 
 #include "rtpoll.h"
+
+/* #define DEBUG_TIMING */
 
 struct pa_rtpoll {
     struct pollfd *pollfd, *pollfd2;
     unsigned n_pollfd_alloc, n_pollfd_used;
 
-    pa_bool_t timer_enabled;
     struct timeval next_elapse;
+    pa_bool_t timer_enabled:1;
 
-    pa_bool_t scan_for_dead;
-    pa_bool_t running, installed, rebuild_needed, quit;
+    pa_bool_t scan_for_dead:1;
+    pa_bool_t running:1;
+    pa_bool_t installed:1;
+    pa_bool_t rebuild_needed:1;
+    pa_bool_t quit:1;
 
 #ifdef HAVE_PPOLL
+    pa_bool_t timer_armed:1;
+#ifdef __linux__
+    pa_bool_t dont_use_ppoll:1;
+#endif
     int rtsig;
     sigset_t sigset_unblocked;
     timer_t timer;
-    pa_bool_t timer_armed;
-#ifdef __linux__
-    pa_bool_t dont_use_ppoll;
 #endif
+
+#ifdef DEBUG_TIMING
+    pa_usec_t timestamp;
+    pa_usec_t slept, awake;
 #endif
 
     PA_LLIST_HEAD(pa_rtpoll_item, items);
@@ -148,6 +158,11 @@ pa_rtpoll *pa_rtpoll_new(void) {
     p->quit = FALSE;
 
     PA_LLIST_HEAD_INIT(pa_rtpoll_item, p->items);
+
+#ifdef DEBUG_TIMING
+    p->timestamp = pa_rtclock_usec();
+    p->slept = p->awake = 0;
+#endif
 
     return p;
 }
@@ -377,6 +392,14 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
             pa_timeval_add(&timeout, pa_timeval_diff(&p->next_elapse, &now));
     }
 
+#ifdef DEBUG_TIMING
+    {
+        pa_usec_t now = pa_rtclock_usec();
+        p->awake = now - p->timestamp;
+        p->timestamp = now;
+    }
+#endif
+
     /* OK, now let's sleep */
 #ifdef HAVE_PPOLL
 
@@ -395,6 +418,18 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
 
 #endif
         r = poll(p->pollfd, p->n_pollfd_used, (!wait || p->quit || p->timer_enabled) ? (int) ((timeout.tv_sec*1000) + (timeout.tv_usec / 1000)) : -1);
+
+#ifdef DEBUG_TIMING
+    {
+        pa_usec_t now = pa_rtclock_usec();
+        p->slept = now - p->timestamp;
+        p->timestamp = now;
+
+        pa_log("Process time %llu ms; sleep time %llu ms",
+               (unsigned long long) (p->awake / PA_USEC_PER_MSEC),
+               (unsigned long long) (p->slept / PA_USEC_PER_MSEC));
+    }
+#endif
 
     if (r < 0) {
         if (errno == EAGAIN || errno == EINTR)
