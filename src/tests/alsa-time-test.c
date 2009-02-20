@@ -1,0 +1,200 @@
+#include <assert.h>
+#include <inttypes.h>
+#include <time.h>
+
+#include <alsa/asoundlib.h>
+
+static uint64_t timespec_us(const struct timespec *ts) {
+    return
+        ts->tv_sec * 1000000LLU +
+        ts->tv_nsec / 1000LLU;
+}
+
+int main(int argc, char *argv[]) {
+    const char *dev;
+    int r;
+    snd_pcm_hw_params_t *hwparams;
+    snd_pcm_sw_params_t *swparams;
+    snd_pcm_status_t *status;
+    snd_pcm_t *pcm;
+    unsigned rate = 44100;
+    unsigned periods = 0;
+    snd_pcm_uframes_t boundary, buffer_size = 44100/10; /* 100s */
+    int dir = 1;
+    struct timespec start, last_timestamp = { 0, 0 };
+    uint64_t start_us;
+    snd_pcm_sframes_t last_avail, last_delay;
+    struct pollfd *pollfds;
+    int n_pollfd;
+    int64_t sample_count = 0;
+
+    snd_pcm_hw_params_alloca(&hwparams);
+    snd_pcm_sw_params_alloca(&swparams);
+    snd_pcm_status_alloca(&status);
+
+    r = clock_gettime(CLOCK_MONOTONIC, &start);
+    assert(r == 0);
+
+    start_us = timespec_us(&start);
+
+    dev = argc > 1 ? argv[1] : "front:AudioPCI";
+
+    r = snd_pcm_open(&pcm, dev, SND_PCM_STREAM_PLAYBACK, 0);
+    assert(r == 0);
+
+    r = snd_pcm_hw_params_any(pcm, hwparams);
+    assert(r == 0);
+
+    r = snd_pcm_hw_params_set_rate_resample(pcm, hwparams, 0);
+    assert(r == 0);
+
+    r = snd_pcm_hw_params_set_access(pcm, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED);
+    assert(r == 0);
+
+    r = snd_pcm_hw_params_set_format(pcm, hwparams, SND_PCM_FORMAT_S16_LE);
+    assert(r == 0);
+
+    r = snd_pcm_hw_params_set_rate_near(pcm, hwparams, &rate, NULL);
+    assert(r == 0);
+
+    r = snd_pcm_hw_params_set_channels(pcm, hwparams, 2);
+    assert(r == 0);
+
+    r = snd_pcm_hw_params_set_periods_integer(pcm, hwparams);
+    assert(r == 0);
+
+    r = snd_pcm_hw_params_set_periods_near(pcm, hwparams, &periods, &dir);
+    assert(r == 0);
+
+    r = snd_pcm_hw_params_set_buffer_size_near(pcm, hwparams, &buffer_size);
+    assert(r == 0);
+
+    r = snd_pcm_hw_params(pcm, hwparams);
+    assert(r == 0);
+
+    r = snd_pcm_hw_params_current(pcm, hwparams);
+    assert(r == 0);
+
+    r = snd_pcm_sw_params_set_avail_min(pcm, swparams, 1);
+    assert(r == 0);
+
+    r = snd_pcm_sw_params_set_period_event(pcm, swparams, 1);
+    assert(r == 0);
+
+    r = snd_pcm_hw_params_get_buffer_size(hwparams, &buffer_size);
+    assert(r == 0);
+    r = snd_pcm_sw_params_set_start_threshold(pcm, swparams, buffer_size);
+    assert(r == 0);
+
+    r = snd_pcm_sw_params_get_boundary(swparams, &boundary);
+    assert(r == 0);
+    r = snd_pcm_sw_params_set_stop_threshold(pcm, swparams, boundary);
+    assert(r == 0);
+
+    r = snd_pcm_sw_params_set_tstamp_mode(pcm, swparams, SND_PCM_TSTAMP_ENABLE);
+    assert(r == 0);
+
+    r = snd_pcm_sw_params(pcm, swparams);
+    assert(r == 0);
+
+    r = snd_pcm_prepare(pcm);
+    assert(r == 0);
+
+    r = snd_pcm_sw_params_current(pcm, swparams);
+    assert(r == 0);
+
+/*     assert(snd_pcm_hw_params_is_monotonic(hwparams) > 0); */
+
+    n_pollfd = snd_pcm_poll_descriptors_count(pcm);
+    assert(n_pollfd > 0);
+
+    pollfds = malloc(sizeof(struct pollfd) * n_pollfd);
+    assert(pollfds);
+
+    r = snd_pcm_poll_descriptors(pcm, pollfds, n_pollfd);
+    assert(r == n_pollfd);
+
+    for (;;) {
+        snd_pcm_sframes_t avail, delay;
+/*         snd_pcm_uframes_t avail2; */
+        struct timespec now, timestamp;
+        unsigned short revents;
+        int written = 0;
+        uint64_t now_us, timestamp_us;
+        snd_pcm_state_t state;
+
+        r = poll(pollfds, n_pollfd, 0);
+        assert(r >= 0);
+
+        r = snd_pcm_poll_descriptors_revents(pcm, pollfds, n_pollfd, &revents);
+        assert(r == 0);
+
+        assert((revents & ~POLLOUT) == 0);
+
+/*         state = snd_pcm_get_state(pcm); */
+
+        avail = snd_pcm_avail(pcm);
+        assert(avail >= 0);
+
+        r = snd_pcm_status(pcm, status);
+        assert(r == 0);
+
+        printf("%lu %lu\n", (unsigned long) avail, (unsigned long) snd_pcm_status_get_avail(status));
+
+        assert(avail == (snd_pcm_sframes_t) snd_pcm_status_get_avail(status));
+        snd_pcm_status_get_htstamp(status, &timestamp);
+        delay = snd_pcm_status_get_delay(status);
+        state = snd_pcm_status_get_state(status);
+
+/*         r = snd_pcm_avail_delay(pcm, &avail, &delay); */
+/*         assert(r == 0); */
+
+/*         r = snd_pcm_htimestamp(pcm, &avail2, &timestamp); */
+/*         assert(r == 0); */
+
+/*         assert(avail == (snd_pcm_sframes_t) avail2); */
+
+        r = clock_gettime(CLOCK_MONOTONIC, &now);
+        assert(r == 0);
+
+        assert(!revents || avail > 0);
+
+        if (avail) {
+            snd_pcm_sframes_t sframes;
+            static const uint16_t samples[2] = { 0, 0 };
+
+            sframes = snd_pcm_writei(pcm, samples, 1);
+            assert(sframes == 1);
+
+            written = 1;
+            sample_count++;
+        }
+
+        if (!written &&
+            memcmp(&timestamp, &last_timestamp, sizeof(timestamp)) == 0 &&
+            avail == last_avail &&
+            delay == last_delay) {
+            /* This is boring */
+            continue;
+        }
+
+        now_us = timespec_us(&now);
+        timestamp_us = timespec_us(&timestamp);
+
+        printf("%llu\t%llu\t%llu\t%li\t%li\t%i\t%i\t%i\n",
+               (unsigned long long) (now_us - start_us),
+               (unsigned long long) (timestamp_us ? timestamp_us - start_us : 0),
+               (unsigned long long) ((sample_count - 1 - delay) * 1000000LU / 44100),
+               (signed long) avail,
+               (signed long) delay,
+               revents,
+               written,
+               state);
+
+        last_avail = avail;
+        last_delay = delay;
+        last_timestamp = timestamp;
+    }
+
+    return 0;
+}

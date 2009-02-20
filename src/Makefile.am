@@ -313,6 +313,11 @@ TESTS_BINARIES += \
 		gtk-test
 endif
 
+if HAVE_ALSA
+TESTS_BINARIES += \
+		alsa-time-test
+endif
+
 if BUILD_TESTS_DEFAULT
 noinst_PROGRAMS = $(TESTS_BINARIES)
 else
@@ -513,6 +518,11 @@ gtk_test_SOURCES = tests/gtk-test.c
 gtk_test_LDADD = $(AM_LDADD) libpulse.la libpulse-mainloop-glib.la
 gtk_test_CFLAGS = $(AM_CFLAGS) $(GTK20_CFLAGS)
 gtk_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(GTK20_LIBS)
+
+alsa_time_test_SOURCES = tests/alsa-time-test.c
+alsa_time_test_LDADD = $(AM_LDADD)
+alsa_time_test_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
+alsa_time_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(ASOUNDLIB_LIBS)
 
 ###################################
 #         Common library          #
@@ -960,6 +970,8 @@ modlibexec_LTLIBRARIES += \
 		module-oss.la
 endif
 
+pulselibexec_PROGRAMS =
+
 if HAVE_ALSA
 modlibexec_LTLIBRARIES += \
 		libalsa-util.la \
@@ -994,8 +1006,6 @@ modlibexec_LTLIBRARIES += \
 		module-jack-sink.la \
 		module-jack-source.la
 endif
-
-pulselibexec_PROGRAMS =
 
 if HAVE_GCONF
 modlibexec_LTLIBRARIES += \
