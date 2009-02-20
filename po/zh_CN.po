@@ -9,13 +9,73 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PulseAudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-02-12 16:57+0100\n"
+"POT-Creation-Date: 2009-02-20 03:24+0100\n"
 "PO-Revision-Date: 2009-01-24 12:47+0800\n"
 "Last-Translator: 王泽国 <zak.zeguo.wang@gmail.com>\n"
 "Language-Team: Chinese/Simplified\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/modules/alsa/alsa-util.c:525
+msgid "Analog Mono"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:531
+msgid "Analog Stereo"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:537
+msgid "Digital Stereo (IEC958)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:543
+msgid "Digital Stereo (HDMI)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:550
+msgid "Analog Surround 4.0"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:557
+msgid "Digital Surround 4.0 (IEC958/AC3)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:565
+msgid "Analog Surround 4.1"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:573
+msgid "Analog Surround 5.0"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:581
+msgid "Analog Surround 5.1"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:589
+msgid "Digital Surround 5.1 (IEC958/AC3)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:598
+msgid "Analog Surround 7.1"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:1577
+#, c-format
+msgid ""
+"snd_pcm_avail_update() returned a value that is exceptionally large: %lu "
+"bytes (%lu ms). Most likely this is an ALSA driver bug. Please report this "
+"issue to the ALSA developers."
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:1609
+#, c-format
+msgid ""
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
+"(%lu ms). Most likely this is an ALSA driver bug. Please report this issue "
+"to the ALSA developers."
+msgstr ""
 
 #: ../src/daemon/ltdl-bind-now.c:124
 #, fuzzy
@@ -152,37 +212,37 @@ msgstr "此平台不支持system-wide模式。"
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) 失败：%s"
 
-#: ../src/daemon/main.c:429
+#: ../src/daemon/main.c:431
 msgid "Failed to parse command line."
 msgstr "分析命令行失败。"
 
-#: ../src/daemon/main.c:451
+#: ../src/daemon/main.c:453
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
 msgstr "我们在'%s'组中，允许高优先级调度。"
 
-#: ../src/daemon/main.c:458
+#: ../src/daemon/main.c:460
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
 msgstr "我们在'%s'组中，允许实时调度。"
 
-#: ../src/daemon/main.c:466
+#: ../src/daemon/main.c:468
 msgid "PolicyKit grants us acquire-high-priority privilege."
 msgstr "PolicyKit授予我们“获取高优先级”权限。"
 
-#: ../src/daemon/main.c:469
+#: ../src/daemon/main.c:471
 msgid "PolicyKit refuses acquire-high-priority privilege."
 msgstr "PolicyKit拒绝“获取高优先级”权限。"
 
-#: ../src/daemon/main.c:474
+#: ../src/daemon/main.c:476
 msgid "PolicyKit grants us acquire-real-time privilege."
 msgstr "PolicyKit授予我们“获取实时”权限。"
 
-#: ../src/daemon/main.c:477
+#: ../src/daemon/main.c:479
 msgid "PolicyKit refuses acquire-real-time privilege."
 msgstr "PolicyKit拒绝我们“获取实时”权限。"
 
-#: ../src/daemon/main.c:506
+#: ../src/daemon/main.c:508
 #, fuzzy
 msgid ""
 "Called SUID root and real-time and/or high-priority scheduling was requested "
@@ -192,211 +252,211 @@ msgstr ""
 "此配置需要调用SUID root和实时／高优先级调度。但是我们没有所需的权限：\n"
 "我们不属该组"
 
-#: ../src/daemon/main.c:530
+#: ../src/daemon/main.c:532
 msgid ""
 "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr "配置中已启用高优先级调度，但策略未允许。"
 
-#: ../src/daemon/main.c:559
+#: ../src/daemon/main.c:561
 msgid "Successfully increased RLIMIT_RTPRIO"
 msgstr "提高RLIMIT_RTPRIO成功。"
 
-#: ../src/daemon/main.c:562
+#: ../src/daemon/main.c:564
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
 msgstr "RLIMIT_RTPRIO失败：%s"
 
-#: ../src/daemon/main.c:569
+#: ../src/daemon/main.c:571
 msgid "Giving up CAP_NICE"
 msgstr "正在放弃CAP_NICE"
 
-#: ../src/daemon/main.c:576
+#: ../src/daemon/main.c:578
 msgid ""
 "Real-time scheduling enabled in configuration but not allowed by policy."
 msgstr "配置中已启用实时调度，但策略未允许。"
 
-#: ../src/daemon/main.c:637
+#: ../src/daemon/main.c:639
 msgid "Daemon not running"
 msgstr "后台程序没有运行"
 
-#: ../src/daemon/main.c:639
+#: ../src/daemon/main.c:641
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "后台程序正在运行，PID %u"
 
-#: ../src/daemon/main.c:649
+#: ../src/daemon/main.c:651
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "杀死后台程序失败：%s"
 
-#: ../src/daemon/main.c:667
+#: ../src/daemon/main.c:669
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
 msgstr "不应以root身份运行本程序（除非指定 --system）。"
 
-#: ../src/daemon/main.c:669
+#: ../src/daemon/main.c:671
 #, fuzzy
 msgid "Root privileges required."
 msgstr "需要root权限。"
 
-#: ../src/daemon/main.c:674
+#: ../src/daemon/main.c:676
 msgid "--start not supported for system instances."
 msgstr "系统实例不支持 --start。"
 
-#: ../src/daemon/main.c:679
+#: ../src/daemon/main.c:681
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr "正在以系统模式运行，但是 --disallow-exit 未设定！"
 
-#: ../src/daemon/main.c:682
+#: ../src/daemon/main.c:684
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr "正在以系统模式运行，但是 --disallow-module-loading 未设定！"
 
-#: ../src/daemon/main.c:685
+#: ../src/daemon/main.c:687
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "正在以系统模式运行，强制禁用SHM模式！"
 
-#: ../src/daemon/main.c:690
+#: ../src/daemon/main.c:692
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr "正在以系统模式运行，强制禁用退出空闲时间！"
 
-#: ../src/daemon/main.c:717
+#: ../src/daemon/main.c:719
 msgid "Failed to acquire stdio."
 msgstr "获取stdio失败。"
 
-#: ../src/daemon/main.c:723
+#: ../src/daemon/main.c:725
 #, c-format
 msgid "pipe failed: %s"
 msgstr "管道失败：%s"
 
-#: ../src/daemon/main.c:728
+#: ../src/daemon/main.c:730
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork()失败：%s"
 
-#: ../src/daemon/main.c:742
+#: ../src/daemon/main.c:744
 #, c-format
 msgid "read() failed: %s"
 msgstr "read()失败：%s"
 
-#: ../src/daemon/main.c:748
+#: ../src/daemon/main.c:750
 msgid "Daemon startup failed."
 msgstr "后台程序启动失败。"
 
-#: ../src/daemon/main.c:750
+#: ../src/daemon/main.c:752
 msgid "Daemon startup successful."
 msgstr "后台程序启动成功。"
 
-#: ../src/daemon/main.c:820
+#: ../src/daemon/main.c:822
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "这是 PulseAudio %s"
 
-#: ../src/daemon/main.c:821
+#: ../src/daemon/main.c:823
 #, c-format
 msgid "Compilation host: %s"
 msgstr "编译主机：%s"
 
-#: ../src/daemon/main.c:822
+#: ../src/daemon/main.c:824
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "编译CFLAGS：%s"
 
-#: ../src/daemon/main.c:825
+#: ../src/daemon/main.c:827
 #, c-format
 msgid "Running on host: %s"
 msgstr "正在主机上运行：%s"
 
-#: ../src/daemon/main.c:828
+#: ../src/daemon/main.c:830
 #, c-format
 msgid "Found %u CPUs."
 msgstr ""
 
-#: ../src/daemon/main.c:830
+#: ../src/daemon/main.c:832
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "页面大小为%lu字节"
 
-#: ../src/daemon/main.c:833
+#: ../src/daemon/main.c:835
 msgid "Compiled with Valgrind support: yes"
 msgstr "编译启用Valgrind支持：是"
 
-#: ../src/daemon/main.c:835
+#: ../src/daemon/main.c:837
 msgid "Compiled with Valgrind support: no"
 msgstr "编译启用Valgrind支持：否"
 
-#: ../src/daemon/main.c:838
+#: ../src/daemon/main.c:840
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "正在以valgrind模式运行：%s"
 
-#: ../src/daemon/main.c:841
+#: ../src/daemon/main.c:843
 msgid "Optimized build: yes"
 msgstr "优化生成：是"
 
-#: ../src/daemon/main.c:843
+#: ../src/daemon/main.c:845
 msgid "Optimized build: no"
 msgstr "优化生成：否"
 
-#: ../src/daemon/main.c:847
+#: ../src/daemon/main.c:849
 msgid "Failed to get machine ID"
 msgstr "获取machine ID失败"
 
-#: ../src/daemon/main.c:850
+#: ../src/daemon/main.c:852
 #, c-format
 msgid "Machine ID is %s."
 msgstr "machine ID是%s。"
 
-#: ../src/daemon/main.c:855
+#: ../src/daemon/main.c:857
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "正在使用运行时文件夹%s。"
 
-#: ../src/daemon/main.c:860
+#: ../src/daemon/main.c:862
 #, c-format
 msgid "Using state directory %s."
 msgstr "正在使用状态文件夹%s。"
 
-#: ../src/daemon/main.c:863
+#: ../src/daemon/main.c:865
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "正在以系统模式运行：%s"
 
-#: ../src/daemon/main.c:878
+#: ../src/daemon/main.c:880
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create()失败。"
 
-#: ../src/daemon/main.c:890
+#: ../src/daemon/main.c:892
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "新鲜的高分辨率计时器开锅了！吃个饱！"
 
-#: ../src/daemon/main.c:892
+#: ../src/daemon/main.c:894
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 msgstr "老兄，你的内核真臭！现在流行的是启用了高分辩率计分器的Linux！"
 
-#: ../src/daemon/main.c:904
+#: ../src/daemon/main.c:906
 msgid "pa_core_new() failed."
 msgstr "pa_core_new()失败。"
 
-#: ../src/daemon/main.c:965
+#: ../src/daemon/main.c:967
 msgid "Failed to initialize daemon."
 msgstr "后台程序初始化失败。"
 
-#: ../src/daemon/main.c:970
+#: ../src/daemon/main.c:972
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "后台程序启动未加载任何模块，拒绝工作。"
 
-#: ../src/daemon/main.c:983
+#: ../src/daemon/main.c:985
 msgid "Daemon startup complete."
 msgstr "后台程序启动完成。"
 
-#: ../src/daemon/main.c:989
+#: ../src/daemon/main.c:991
 msgid "Daemon shutdown initiated."
 msgstr "开始关闭后台程序。"
 
-#: ../src/daemon/main.c:1010
+#: ../src/daemon/main.c:1009
 msgid "Daemon terminated."
 msgstr "后台程序已终止。"
 
@@ -1075,7 +1135,7 @@ msgstr "cookie数据分析失败"
 msgid "Failed to open configuration file '%s': %s"
 msgstr "打开配置文件'%s'失败：%s"
 
-#: ../src/pulse/context.c:523
+#: ../src/pulse/context.c:519
 msgid "No cookie loaded. Attempting to connect without."
 msgstr "没有加载cookie。尝试不加载cookie进行连接。"
 
@@ -1194,67 +1254,67 @@ msgid "pa_stream_connect_record() failed: %s\n"
 msgstr "pa_stream_connect_playback()失败：%s\n"
 
 #: ../src/utils/pacat.c:321 ../src/utils/pasuspender.c:159
-#: ../src/utils/pactl.c:758 ../src/utils/paplay.c:183
+#: ../src/utils/pactl.c:759 ../src/utils/paplay.c:183
 #, c-format
 msgid "Connection failure: %s\n"
 msgstr "连接失败：%s\n"
 
-#: ../src/utils/pacat.c:342 ../src/utils/paplay.c:75
+#: ../src/utils/pacat.c:341 ../src/utils/paplay.c:75
 #, c-format
 msgid "Failed to drain stream: %s\n"
 msgstr "排出流失败：%s\n"
 
-#: ../src/utils/pacat.c:347 ../src/utils/paplay.c:80
+#: ../src/utils/pacat.c:346 ../src/utils/paplay.c:80
 #, c-format
 msgid "Playback stream drained.\n"
 msgstr "流播放完毕。\n"
 
-#: ../src/utils/pacat.c:357 ../src/utils/paplay.c:92
+#: ../src/utils/pacat.c:356 ../src/utils/paplay.c:92
 #, c-format
 msgid "Draining connection to server.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:383
+#: ../src/utils/pacat.c:382
 #, c-format
 msgid "Got EOF.\n"
 msgstr "收到EOF。\n"
 
-#: ../src/utils/pacat.c:389
+#: ../src/utils/pacat.c:388
 #, c-format
 msgid "pa_stream_drain(): %s\n"
 msgstr "pa_stream_drain()：%s\n"
 
-#: ../src/utils/pacat.c:399
+#: ../src/utils/pacat.c:398
 #, c-format
 msgid "read() failed: %s\n"
 msgstr "read()失败：%s\n"
 
-#: ../src/utils/pacat.c:431
+#: ../src/utils/pacat.c:430
 #, c-format
 msgid "write() failed: %s\n"
 msgstr "write()失败：%s\n"
 
-#: ../src/utils/pacat.c:452
+#: ../src/utils/pacat.c:451
 #, c-format
 msgid "Got signal, exiting.\n"
 msgstr "收到信号，正在退出。\n"
 
-#: ../src/utils/pacat.c:466
+#: ../src/utils/pacat.c:465
 #, c-format
 msgid "Failed to get latency: %s\n"
 msgstr "获取传输延迟失败：%s\n"
 
-#: ../src/utils/pacat.c:471
+#: ../src/utils/pacat.c:470
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr "时间：%0.3f秒；延迟：%0.0f 微秒。  \r"
 
-#: ../src/utils/pacat.c:491
+#: ../src/utils/pacat.c:490
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s\n"
 msgstr "pa_stream_update_timing_info()失败：%s\n"
 
-#: ../src/utils/pacat.c:504
+#: ../src/utils/pacat.c:503
 #, c-format
 msgid ""
 "%s [options]\n"
@@ -1339,7 +1399,7 @@ msgstr ""
 "      --latency=BYTES                   请求指定字节数的延迟。\n"
 "      --process-time=BYTES              每次请求指定字节数的处理时间。\n"
 
-#: ../src/utils/pacat.c:605
+#: ../src/utils/pacat.c:604
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1350,88 +1410,89 @@ msgstr ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 
-#: ../src/utils/pacat.c:662
+#: ../src/utils/pacat.c:661
 #, c-format
 msgid "Invalid channel map '%s'\n"
 msgstr "无效的通道映射描述'%s'\n"
 
-#: ../src/utils/pacat.c:691
+#: ../src/utils/pacat.c:690
 #, c-format
 msgid "Invalid latency specification '%s'\n"
 msgstr "无效的延迟规格描述 %s'\n"
 
-#: ../src/utils/pacat.c:698
+#: ../src/utils/pacat.c:697
 #, c-format
 msgid "Invalid process time specification '%s'\n"
 msgstr "无效的处理时间描述 '%s'\n"
 
-#: ../src/utils/pacat.c:709
+#: ../src/utils/pacat.c:708
 #, c-format
 msgid "Invalid sample specification\n"
 msgstr "无效的采样描述\n"
 
-#: ../src/utils/pacat.c:714
+#: ../src/utils/pacat.c:713
 #, c-format
 msgid "Channel map doesn't match sample specification\n"
 msgstr "通道映射与采样描述不匹配\n"
 
-#: ../src/utils/pacat.c:721
+#: ../src/utils/pacat.c:720
 #, c-format
 msgid "Opening a %s stream with sample specification '%s'.\n"
 msgstr "以采样规格'%s'打开%s流。\n"
 
-#: ../src/utils/pacat.c:721
+#: ../src/utils/pacat.c:720
 msgid "recording"
 msgstr "正在录制"
 
-#: ../src/utils/pacat.c:721
+#: ../src/utils/pacat.c:720
 msgid "playback"
 msgstr "回放"
 
-#: ../src/utils/pacat.c:729
+#: ../src/utils/pacat.c:728
 #, c-format
 msgid "open(): %s\n"
 msgstr "open()：%s\n"
 
-#: ../src/utils/pacat.c:734
+#: ../src/utils/pacat.c:733
 #, c-format
 msgid "dup2(): %s\n"
 msgstr "dup2()：%s\n"
 
-#: ../src/utils/pacat.c:744
+#: ../src/utils/pacat.c:743
 #, c-format
 msgid "Too many arguments.\n"
 msgstr "参数过多。\n"
 
-#: ../src/utils/pacat.c:757 ../src/utils/pasuspender.c:280
-#: ../src/utils/pactl.c:1013 ../src/utils/paplay.c:381
+#: ../src/utils/pacat.c:756 ../src/utils/pasuspender.c:280
+#: ../src/utils/pactl.c:1014 ../src/utils/paplay.c:381
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
 msgstr "pa_mainloop_new()失败。\n"
 
-#: ../src/utils/pacat.c:778
+#: ../src/utils/pacat.c:777
 #, c-format
 msgid "io_new() failed.\n"
 msgstr "io_new()失败。\n"
 
-#: ../src/utils/pacat.c:784 ../src/utils/pasuspender.c:293
-#: ../src/utils/pactl.c:1027 ../src/utils/paplay.c:396
+#: ../src/utils/pacat.c:783 ../src/utils/pasuspender.c:293
+#: ../src/utils/pactl.c:1028 ../src/utils/paplay.c:396
 #, c-format
 msgid "pa_context_new() failed.\n"
 msgstr "pa_context_new()失败。\n"
 
-#: ../src/utils/pacat.c:792
+#: ../src/utils/pacat.c:791 ../src/utils/pactl.c:1034
+#: ../src/utils/paplay.c:404
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect()失败：%s"
 
-#: ../src/utils/pacat.c:803
+#: ../src/utils/pacat.c:802
 #, c-format
 msgid "time_new() failed.\n"
 msgstr "time_new()失败。\n"
 
-#: ../src/utils/pacat.c:810 ../src/utils/pasuspender.c:301
-#: ../src/utils/pactl.c:1035 ../src/utils/paplay.c:407
+#: ../src/utils/pacat.c:809 ../src/utils/pasuspender.c:301
+#: ../src/utils/pactl.c:1039 ../src/utils/paplay.c:410
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
 msgstr "pa_mainloop_run()失败。\n"
@@ -1461,7 +1522,7 @@ msgstr "恢复失败：%s\n"
 msgid "WARNING: Sound server is not local, not suspending.\n"
 msgstr "警告：非本地声音服务器，不会挂起。\n"
 
-#: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:764
+#: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:765
 #: ../src/utils/paplay.c:191
 #, c-format
 msgid "Got SIGINT, exiting.\n"
@@ -1827,7 +1888,7 @@ msgstr "上传采样失败：%s\n"
 msgid "Premature end of file\n"
 msgstr "文件过早结束\n"
 
-#: ../src/utils/pactl.c:770
+#: ../src/utils/pactl.c:771
 #, fuzzy, c-format
 msgid ""
 "%s [options] stat\n"
@@ -1871,7 +1932,7 @@ msgstr ""
 "  -s, --server=SERVER                   要连接的服务器名\n"
 "  -n, --client-name=NAME                此客户端在服务器上的名称\n"
 
-#: ../src/utils/pactl.c:822
+#: ../src/utils/pactl.c:823
 #, c-format
 msgid ""
 "pactl %s\n"
@@ -1882,66 +1943,66 @@ msgstr ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 
-#: ../src/utils/pactl.c:861
+#: ../src/utils/pactl.c:862
 #, c-format
 msgid "Please specify a sample file to load\n"
 msgstr "请指定要加载的采样文件\n"
 
-#: ../src/utils/pactl.c:883
+#: ../src/utils/pactl.c:884
 #, c-format
 msgid "Failed to open sound file.\n"
 msgstr "打开声音文件失败。\n"
 
-#: ../src/utils/pactl.c:895
+#: ../src/utils/pactl.c:896
 #, c-format
 msgid "You have to specify a sample name to play\n"
 msgstr "你必须指定要播放的采样名\n"
 
-#: ../src/utils/pactl.c:907
+#: ../src/utils/pactl.c:908
 #, c-format
 msgid "You have to specify a sample name to remove\n"
 msgstr "你必须指定要删除的采样名\n"
 
-#: ../src/utils/pactl.c:915
+#: ../src/utils/pactl.c:916
 #, c-format
 msgid "You have to specify a sink input index and a sink\n"
 msgstr "你必须指定音频出口索引和音频出口\n"
 
-#: ../src/utils/pactl.c:924
+#: ../src/utils/pactl.c:925
 #, c-format
 msgid "You have to specify a source output index and a source\n"
 msgstr "你必须指定音频入口输出索引和音频入口\n"
 
-#: ../src/utils/pactl.c:938
+#: ../src/utils/pactl.c:939
 #, c-format
 msgid "You have to specify a module name and arguments.\n"
 msgstr "必须指定模块名和参数。\n"
 
-#: ../src/utils/pactl.c:958
+#: ../src/utils/pactl.c:959
 #, c-format
 msgid "You have to specify a module index\n"
 msgstr "必须指定模块索引\n"
 
-#: ../src/utils/pactl.c:968
+#: ../src/utils/pactl.c:969
 #, fuzzy, c-format
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean "
 "value.\n"
 msgstr "不可指定多个音频出口。必须指定至少一个布尔值。\n"
 
-#: ../src/utils/pactl.c:981
+#: ../src/utils/pactl.c:982
 #, fuzzy, c-format
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value.\n"
 msgstr "不可指定多个音频入口。必须指定至少一个布尔值。\n"
 
-#: ../src/utils/pactl.c:993
+#: ../src/utils/pactl.c:994
 #, fuzzy, c-format
 msgid "You have to specify a card name/index and a profile name\n"
 msgstr "你必须指定音频出口索引和音频出口\n"
 
-#: ../src/utils/pactl.c:1008
+#: ../src/utils/pactl.c:1009
 #, c-format
 msgid "No valid command specified.\n"
 msgstr "未指定有效的命令。\n"

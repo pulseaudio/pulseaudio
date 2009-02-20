@@ -7,13 +7,73 @@ msgid ""
 msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-02-13 08:57+0200\n"
+"POT-Creation-Date: 2009-02-20 03:24+0100\n"
 "PO-Revision-Date: 2009-02-13 08:57+0200\n"
 "Last-Translator: Timo Jyrinki <timo.jyrinki@iki.fi>\n"
 "Language-Team: Finnish <laatu@lokalisointi.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/modules/alsa/alsa-util.c:525
+msgid "Analog Mono"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:531
+msgid "Analog Stereo"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:537
+msgid "Digital Stereo (IEC958)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:543
+msgid "Digital Stereo (HDMI)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:550
+msgid "Analog Surround 4.0"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:557
+msgid "Digital Surround 4.0 (IEC958/AC3)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:565
+msgid "Analog Surround 4.1"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:573
+msgid "Analog Surround 5.0"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:581
+msgid "Analog Surround 5.1"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:589
+msgid "Digital Surround 5.1 (IEC958/AC3)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:598
+msgid "Analog Surround 7.1"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:1577
+#, c-format
+msgid ""
+"snd_pcm_avail_update() returned a value that is exceptionally large: %lu "
+"bytes (%lu ms). Most likely this is an ALSA driver bug. Please report this "
+"issue to the ALSA developers."
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:1609
+#, c-format
+msgid ""
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
+"(%lu ms). Most likely this is an ALSA driver bug. Please report this issue "
+"to the ALSA developers."
+msgstr ""
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
@@ -148,83 +208,83 @@ msgstr ""
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr ""
 
-#: ../src/daemon/main.c:429
+#: ../src/daemon/main.c:431
 msgid "Failed to parse command line."
 msgstr ""
 
-#: ../src/daemon/main.c:451
+#: ../src/daemon/main.c:453
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
 msgstr ""
 
-#: ../src/daemon/main.c:458
+#: ../src/daemon/main.c:460
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
 msgstr ""
 
-#: ../src/daemon/main.c:466
+#: ../src/daemon/main.c:468
 msgid "PolicyKit grants us acquire-high-priority privilege."
 msgstr ""
 
-#: ../src/daemon/main.c:469
+#: ../src/daemon/main.c:471
 msgid "PolicyKit refuses acquire-high-priority privilege."
 msgstr ""
 
-#: ../src/daemon/main.c:474
+#: ../src/daemon/main.c:476
 msgid "PolicyKit grants us acquire-real-time privilege."
 msgstr ""
 
-#: ../src/daemon/main.c:477
+#: ../src/daemon/main.c:479
 msgid "PolicyKit refuses acquire-real-time privilege."
 msgstr ""
 
-#: ../src/daemon/main.c:506
+#: ../src/daemon/main.c:508
 msgid ""
 "Called SUID root and real-time and/or high-priority scheduling was requested "
 "in the configuration. However, we lack the necessary privileges:\n"
 "We are not in group '"
 msgstr ""
 
-#: ../src/daemon/main.c:530
+#: ../src/daemon/main.c:532
 msgid ""
 "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 
-#: ../src/daemon/main.c:559
+#: ../src/daemon/main.c:561
 msgid "Successfully increased RLIMIT_RTPRIO"
 msgstr ""
 
-#: ../src/daemon/main.c:562
+#: ../src/daemon/main.c:564
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
 msgstr ""
 
-#: ../src/daemon/main.c:569
+#: ../src/daemon/main.c:571
 msgid "Giving up CAP_NICE"
 msgstr ""
 
-#: ../src/daemon/main.c:576
+#: ../src/daemon/main.c:578
 msgid ""
 "Real-time scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 "Tosiaikainen ajoitus otettu käyttöön asetuksissa, mutta käytännöt eivät "
 "salli sitä."
 
-#: ../src/daemon/main.c:637
+#: ../src/daemon/main.c:639
 msgid "Daemon not running"
 msgstr "Taustaprosessi ei ole käynnissä"
 
-#: ../src/daemon/main.c:639
+#: ../src/daemon/main.c:641
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "Taustaprosessi käynnissä prosessitunnisteella %u"
 
-#: ../src/daemon/main.c:649
+#: ../src/daemon/main.c:651
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Taustaprosessin lopettaminen epäonnistui: %s"
 
-#: ../src/daemon/main.c:667
+#: ../src/daemon/main.c:669
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -232,144 +292,144 @@ msgstr ""
 "Tätä ohjelmaa ei ole tarkoitettu suoritettavaksi pääkäyttäjänä (ellei --"
 "system ole määritelty)."
 
-#: ../src/daemon/main.c:669
+#: ../src/daemon/main.c:671
 msgid "Root privileges required."
 msgstr "Pääkäyttäjän (root) oikeudet vaaditaan."
 
-#: ../src/daemon/main.c:674
+#: ../src/daemon/main.c:676
 msgid "--start not supported for system instances."
 msgstr ""
 
-#: ../src/daemon/main.c:679
+#: ../src/daemon/main.c:681
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr ""
 
-#: ../src/daemon/main.c:682
+#: ../src/daemon/main.c:684
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 
-#: ../src/daemon/main.c:685
+#: ../src/daemon/main.c:687
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr ""
 "Suoritetaan järjestelmätilassa, otetaan SHM-tila pakotetusti pois käytöstä."
 
-#: ../src/daemon/main.c:690
+#: ../src/daemon/main.c:692
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "Suoritetaan järjestelmätilassa, otetaan poistumisen joutenoloaika "
 "pakotetusti pois käytöstä."
 
-#: ../src/daemon/main.c:717
+#: ../src/daemon/main.c:719
 msgid "Failed to acquire stdio."
 msgstr ""
 
-#: ../src/daemon/main.c:723
+#: ../src/daemon/main.c:725
 #, c-format
 msgid "pipe failed: %s"
 msgstr ""
 
-#: ../src/daemon/main.c:728
+#: ../src/daemon/main.c:730
 #, c-format
 msgid "fork() failed: %s"
 msgstr ""
 
-#: ../src/daemon/main.c:742
+#: ../src/daemon/main.c:744
 #, c-format
 msgid "read() failed: %s"
 msgstr ""
 
-#: ../src/daemon/main.c:748
+#: ../src/daemon/main.c:750
 msgid "Daemon startup failed."
 msgstr "Taustaprosessin käynnistys epäonnistui."
 
-#: ../src/daemon/main.c:750
+#: ../src/daemon/main.c:752
 msgid "Daemon startup successful."
 msgstr "Taustaprosessin käynnistys onnistui."
 
-#: ../src/daemon/main.c:820
+#: ../src/daemon/main.c:822
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Tämä on PulseAudio %s"
 
-#: ../src/daemon/main.c:821
+#: ../src/daemon/main.c:823
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Käännöksen isäntäkone: %s"
 
-#: ../src/daemon/main.c:822
+#: ../src/daemon/main.c:824
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "Käännösaikaiset C-liput (CFLAGS): %s"
 
-#: ../src/daemon/main.c:825
+#: ../src/daemon/main.c:827
 #, c-format
 msgid "Running on host: %s"
 msgstr "Käynnissä isäntäkoneella: %s"
 
-#: ../src/daemon/main.c:828
+#: ../src/daemon/main.c:830
 #, c-format
 msgid "Found %u CPUs."
 msgstr "Löydettiin %u CPU:ta."
 
-#: ../src/daemon/main.c:830
+#: ../src/daemon/main.c:832
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "Sivun koko on %lu tavua"
 
-#: ../src/daemon/main.c:833
+#: ../src/daemon/main.c:835
 msgid "Compiled with Valgrind support: yes"
 msgstr "Käännetty Valgrind-tuella: kyllä"
 
-#: ../src/daemon/main.c:835
+#: ../src/daemon/main.c:837
 msgid "Compiled with Valgrind support: no"
 msgstr "Käännetty Valgrind-tuella: ei"
 
-#: ../src/daemon/main.c:838
+#: ../src/daemon/main.c:840
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "Käynnissä valgrind-tilassa: %s"
 
-#: ../src/daemon/main.c:841
+#: ../src/daemon/main.c:843
 msgid "Optimized build: yes"
 msgstr "Optimoitu rakentaminen: kyllä"
 
-#: ../src/daemon/main.c:843
+#: ../src/daemon/main.c:845
 msgid "Optimized build: no"
 msgstr "Optimoitu rakentaminen: ei"
 
-#: ../src/daemon/main.c:847
+#: ../src/daemon/main.c:849
 msgid "Failed to get machine ID"
 msgstr "Konetunnisteen nouto epäonnistui"
 
-#: ../src/daemon/main.c:850
+#: ../src/daemon/main.c:852
 #, c-format
 msgid "Machine ID is %s."
 msgstr "Konetunniste on %s."
 
-#: ../src/daemon/main.c:855
+#: ../src/daemon/main.c:857
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Käytetään ajonaikaista hakemistoa %s."
 
-#: ../src/daemon/main.c:860
+#: ../src/daemon/main.c:862
 #, c-format
 msgid "Using state directory %s."
 msgstr "Käytetään tilahakemistoa %s."
 
-#: ../src/daemon/main.c:863
+#: ../src/daemon/main.c:865
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Suoritetaan järjestelmätilassa: %s"
 
-#: ../src/daemon/main.c:878
+#: ../src/daemon/main.c:880
 msgid "pa_pid_file_create() failed."
 msgstr ""
 
-#: ../src/daemon/main.c:890
+#: ../src/daemon/main.c:892
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Korkean tarkkuuden ajastimet käytettävissä."
 
-#: ../src/daemon/main.c:892
+#: ../src/daemon/main.c:894
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -377,29 +437,29 @@ msgstr ""
 "Hei, ytimesi on kehno! Linux korkean tarkkuuden ajastimien tuella on hyvin "
 "suositeltava!"
 
-#: ../src/daemon/main.c:904
+#: ../src/daemon/main.c:906
 msgid "pa_core_new() failed."
 msgstr ""
 
-#: ../src/daemon/main.c:965
+#: ../src/daemon/main.c:967
 msgid "Failed to initialize daemon."
 msgstr "Taustaprosessin alustus epäonnistui."
 
-#: ../src/daemon/main.c:970
+#: ../src/daemon/main.c:972
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "Taustaprosessin käynnistys ilman ladattavia moduuleita, kieltäydytään "
 "toiminnasta."
 
-#: ../src/daemon/main.c:983
+#: ../src/daemon/main.c:985
 msgid "Daemon startup complete."
 msgstr "Taustaprosessin käynnistys valmis."
 
-#: ../src/daemon/main.c:989
+#: ../src/daemon/main.c:991
 msgid "Daemon shutdown initiated."
 msgstr "Taustaprosessin sulkeminen käynnistetty."
 
-#: ../src/daemon/main.c:1010
+#: ../src/daemon/main.c:1009
 msgid "Daemon terminated."
 msgstr "Taustaprosessi lopetettu."
 
@@ -1021,7 +1081,7 @@ msgstr "Evästetietojen jäsennys epäonnistui"
 msgid "Failed to open configuration file '%s': %s"
 msgstr ""
 
-#: ../src/pulse/context.c:523
+#: ../src/pulse/context.c:519
 msgid "No cookie loaded. Attempting to connect without."
 msgstr "Ei ladattua evästettä. Yritetään yhdistämistä ilman."
 
@@ -1140,67 +1200,67 @@ msgid "pa_stream_connect_record() failed: %s\n"
 msgstr ""
 
 #: ../src/utils/pacat.c:321 ../src/utils/pasuspender.c:159
-#: ../src/utils/pactl.c:758 ../src/utils/paplay.c:183
+#: ../src/utils/pactl.c:759 ../src/utils/paplay.c:183
 #, c-format
 msgid "Connection failure: %s\n"
 msgstr "Yhteysvirhe: %s\n"
 
-#: ../src/utils/pacat.c:342 ../src/utils/paplay.c:75
+#: ../src/utils/pacat.c:341 ../src/utils/paplay.c:75
 #, c-format
 msgid "Failed to drain stream: %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:347 ../src/utils/paplay.c:80
+#: ../src/utils/pacat.c:346 ../src/utils/paplay.c:80
 #, c-format
 msgid "Playback stream drained.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:357 ../src/utils/paplay.c:92
+#: ../src/utils/pacat.c:356 ../src/utils/paplay.c:92
 #, c-format
 msgid "Draining connection to server.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:383
+#: ../src/utils/pacat.c:382
 #, c-format
 msgid "Got EOF.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:389
+#: ../src/utils/pacat.c:388
 #, c-format
 msgid "pa_stream_drain(): %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:399
+#: ../src/utils/pacat.c:398
 #, c-format
 msgid "read() failed: %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:431
+#: ../src/utils/pacat.c:430
 #, c-format
 msgid "write() failed: %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:452
+#: ../src/utils/pacat.c:451
 #, c-format
 msgid "Got signal, exiting.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:466
+#: ../src/utils/pacat.c:465
 #, c-format
 msgid "Failed to get latency: %s\n"
 msgstr "Latenssin selvittäminen epäonnistui: %s\n"
 
-#: ../src/utils/pacat.c:471
+#: ../src/utils/pacat.c:470
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr "Aika: %0.3f s; latenssi: %0.0f μs.  \r"
 
-#: ../src/utils/pacat.c:491
+#: ../src/utils/pacat.c:490
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:504
+#: ../src/utils/pacat.c:503
 #, c-format
 msgid ""
 "%s [options]\n"
@@ -1253,7 +1313,7 @@ msgid ""
 "per request in bytes.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:605
+#: ../src/utils/pacat.c:604
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1261,88 +1321,89 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:662
+#: ../src/utils/pacat.c:661
 #, c-format
 msgid "Invalid channel map '%s'\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:691
+#: ../src/utils/pacat.c:690
 #, c-format
 msgid "Invalid latency specification '%s'\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:698
+#: ../src/utils/pacat.c:697
 #, c-format
 msgid "Invalid process time specification '%s'\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:709
+#: ../src/utils/pacat.c:708
 #, c-format
 msgid "Invalid sample specification\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:714
+#: ../src/utils/pacat.c:713
 #, c-format
 msgid "Channel map doesn't match sample specification\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:721
+#: ../src/utils/pacat.c:720
 #, c-format
 msgid "Opening a %s stream with sample specification '%s'.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:721
+#: ../src/utils/pacat.c:720
 msgid "recording"
 msgstr "nauhoitus"
 
-#: ../src/utils/pacat.c:721
+#: ../src/utils/pacat.c:720
 msgid "playback"
 msgstr "toisto"
 
-#: ../src/utils/pacat.c:729
+#: ../src/utils/pacat.c:728
 #, c-format
 msgid "open(): %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:734
+#: ../src/utils/pacat.c:733
 #, c-format
 msgid "dup2(): %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:744
+#: ../src/utils/pacat.c:743
 #, c-format
 msgid "Too many arguments.\n"
 msgstr "Liian monta argumenttia.\n"
 
-#: ../src/utils/pacat.c:757 ../src/utils/pasuspender.c:280
-#: ../src/utils/pactl.c:1013 ../src/utils/paplay.c:381
+#: ../src/utils/pacat.c:756 ../src/utils/pasuspender.c:280
+#: ../src/utils/pactl.c:1014 ../src/utils/paplay.c:381
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:778
+#: ../src/utils/pacat.c:777
 #, c-format
 msgid "io_new() failed.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:784 ../src/utils/pasuspender.c:293
-#: ../src/utils/pactl.c:1027 ../src/utils/paplay.c:396
+#: ../src/utils/pacat.c:783 ../src/utils/pasuspender.c:293
+#: ../src/utils/pactl.c:1028 ../src/utils/paplay.c:396
 #, c-format
 msgid "pa_context_new() failed.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:792
+#: ../src/utils/pacat.c:791 ../src/utils/pactl.c:1034
+#: ../src/utils/paplay.c:404
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr ""
 
-#: ../src/utils/pacat.c:803
+#: ../src/utils/pacat.c:802
 #, c-format
 msgid "time_new() failed.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:810 ../src/utils/pasuspender.c:301
-#: ../src/utils/pactl.c:1035 ../src/utils/paplay.c:407
+#: ../src/utils/pacat.c:809 ../src/utils/pasuspender.c:301
+#: ../src/utils/pactl.c:1039 ../src/utils/paplay.c:410
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
 msgstr ""
@@ -1372,7 +1433,7 @@ msgstr ""
 msgid "WARNING: Sound server is not local, not suspending.\n"
 msgstr ""
 
-#: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:764
+#: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:765
 #: ../src/utils/paplay.c:191
 #, c-format
 msgid "Got SIGINT, exiting.\n"
@@ -1746,7 +1807,7 @@ msgstr ""
 msgid "Premature end of file\n"
 msgstr "Ennenaikainen tiedoston päättyminen\n"
 
-#: ../src/utils/pactl.c:770
+#: ../src/utils/pactl.c:771
 #, c-format
 msgid ""
 "%s [options] stat\n"
@@ -1772,7 +1833,7 @@ msgid ""
 "server\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:822
+#: ../src/utils/pactl.c:823
 #, c-format
 msgid ""
 "pactl %s\n"
@@ -1780,66 +1841,66 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:861
+#: ../src/utils/pactl.c:862
 #, c-format
 msgid "Please specify a sample file to load\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:883
+#: ../src/utils/pactl.c:884
 #, c-format
 msgid "Failed to open sound file.\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:895
+#: ../src/utils/pactl.c:896
 #, c-format
 msgid "You have to specify a sample name to play\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:907
+#: ../src/utils/pactl.c:908
 #, c-format
 msgid "You have to specify a sample name to remove\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:915
+#: ../src/utils/pactl.c:916
 #, c-format
 msgid "You have to specify a sink input index and a sink\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:924
+#: ../src/utils/pactl.c:925
 #, c-format
 msgid "You have to specify a source output index and a source\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:938
+#: ../src/utils/pactl.c:939
 #, c-format
 msgid "You have to specify a module name and arguments.\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:958
+#: ../src/utils/pactl.c:959
 #, c-format
 msgid "You have to specify a module index\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:968
+#: ../src/utils/pactl.c:969
 #, c-format
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean "
 "value.\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:981
+#: ../src/utils/pactl.c:982
 #, c-format
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value.\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:993
+#: ../src/utils/pactl.c:994
 #, c-format
 msgid "You have to specify a card name/index and a profile name\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:1008
+#: ../src/utils/pactl.c:1009
 #, c-format
 msgid "No valid command specified.\n"
 msgstr ""
