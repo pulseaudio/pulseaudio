@@ -649,6 +649,7 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
         pa_xfree(d);
         fprintf(stderr, _("Premature end of file\n"));
         quit(1);
+        return;
     }
 
     pa_stream_write(s, d, length, pa_xfree, 0, PA_SEEK_RELATIVE);
@@ -1029,7 +1030,10 @@ int main(int argc, char *argv[]) {
     }
 
     pa_context_set_state_callback(context, context_state_callback, NULL);
-    pa_context_connect(context, server, 0, NULL);
+    if (pa_context_connect(context, server, 0, NULL) < 0) {
+        fprintf(stderr, _("pa_context_connect() failed: %s"), pa_strerror(pa_context_errno(context)));
+        goto quit;
+    }
 
     if (pa_mainloop_run(m, &ret) < 0) {
         fprintf(stderr, _("pa_mainloop_run() failed.\n"));

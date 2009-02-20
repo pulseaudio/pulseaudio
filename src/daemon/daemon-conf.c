@@ -639,7 +639,7 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     if (c->config_file)
         pa_strbuf_printf(s, _("### Read from configuration file: %s ###\n"), c->config_file);
 
-    pa_assert(c->log_level <= PA_LOG_LEVEL_MAX);
+    pa_assert(c->log_level < PA_LOG_LEVEL_MAX);
 
     pa_strbuf_printf(s, "daemonize = %s\n", pa_yes_no(c->daemonize));
     pa_strbuf_printf(s, "fail = %s\n", pa_yes_no(c->fail));

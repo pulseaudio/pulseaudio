@@ -351,6 +351,7 @@ void pa_log_levelv_meta(
     }
 
     errno = saved_errno;
+    pa_xfree(bt);
 }
 
 void pa_log_level_meta(

@@ -191,7 +191,7 @@ static pa_hook_result_t card_new_hook_callback(pa_core *c, pa_card_new_data *new
 
     pa_assert(new_data);
 
-    if ((e = read_entry(u, new_data->name)) && e->profile) {
+    if ((e = read_entry(u, new_data->name)) && e->profile[0]) {
 
         if (!new_data->active_profile) {
             pa_card_new_data_set_profile(new_data, e->profile);

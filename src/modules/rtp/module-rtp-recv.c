@@ -562,7 +562,7 @@ static void sap_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
     } else {
 
         if (!(s = pa_hashmap_get(u->by_origin, info.origin))) {
-            if (!(s = session_new(u, &info)))
+            if (!session_new(u, &info))
                 pa_sdp_info_destroy(&info);
 
         } else {

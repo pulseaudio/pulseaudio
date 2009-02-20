@@ -1411,6 +1411,7 @@ static int make_random_dir_and_link(mode_t m, const char *k) {
         return -1;
     }
 
+    pa_xfree(p);
     return 0;
 }
 
@@ -1443,6 +1444,7 @@ char *pa_get_runtime_dir(void) {
 
     if (pa_make_secure_dir(d, m, (uid_t) -1, (gid_t) -1) < 0)  {
         pa_log_error("Failed to create secure directory: %s", pa_cstrerror(errno));
+        pa_xfree(d);
         goto fail;
     }
 
@@ -2459,7 +2461,7 @@ char *pa_machine_id(void) {
 
         pa_strip_nl(ln);
 
-        if (ln[0])
+        if (r && ln[0])
             return pa_xstrdup(ln);
     }
 

@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
     pa_assert_se(m = pa_threaded_mainloop_new());
     pa_assert_se(a = pa_threaded_mainloop_get_api(m));
 
-    pa_threaded_mainloop_start(m);
+    pa_assert_se(pa_threaded_mainloop_start(m) >= 0);
 
     pa_threaded_mainloop_lock(m);
 

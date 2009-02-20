@@ -1,7 +1,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
+  Copyright 2004-2009 Lennart Poettering
   Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
@@ -114,7 +114,7 @@ static void io_cb(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags_t
 static void defer_cb(pa_mainloop_api*a, pa_defer_event* e, void *userdata) {
     struct pa_alsa_fdlist *fdl = userdata;
     unsigned num_fds, i;
-    int err;
+    int err, n;
     struct pollfd *temp;
 
     pa_assert(a);
@@ -123,7 +123,11 @@ static void defer_cb(pa_mainloop_api*a, pa_defer_event* e, void *userdata) {
 
     a->defer_enable(fdl->defer, 0);
 
-    num_fds = (unsigned) snd_mixer_poll_descriptors_count(fdl->mixer);
+    if ((n = snd_mixer_poll_descriptors_count(fdl->mixer)) < 0) {
+        pa_log("snd_mixer_poll_descriptors_count() failed: %s", snd_strerror(n));
+        return;
+    }
+    num_fds = (unsigned) n;
 
     if (num_fds != fdl->num_fds) {
         if (fdl->fds)
@@ -1405,7 +1409,7 @@ void pa_alsa_init_proplist_pcm_info(pa_core *c, pa_proplist *p, snd_pcm_info_t *
 
     snd_pcm_class_t class;
     snd_pcm_subclass_t subclass;
-    const char *n, *id, *sdn, *cn;
+    const char *n, *id, *sdn, *cn = NULL;
     int card;
 
     pa_assert(p);

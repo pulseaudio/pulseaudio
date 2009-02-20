@@ -532,6 +532,7 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
             pa_xfree(n);
             continue;
         }
+	pa_xfree(n);
 
         if (u->restore_volume) {
             pa_cvolume v;
@@ -581,6 +582,7 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
             pa_xfree(n);
             continue;
         }
+	pa_xfree(n);
 
         if (u->restore_device &&
             e->device_valid &&

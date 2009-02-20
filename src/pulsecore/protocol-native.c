@@ -2560,7 +2560,10 @@ static void command_create_upload_stream(pa_pdispatch *pd, uint32_t command, uin
         if (!(name = pa_proplist_gets(p, PA_PROP_EVENT_ID)))
             name = pa_proplist_gets(p, PA_PROP_MEDIA_NAME);
 
-    CHECK_VALIDITY(c->pstream, name && pa_namereg_is_valid_name(name), tag, PA_ERR_INVALID);
+    if (!name || !pa_namereg_is_valid_name(name)) {
+        pa_proplist_free(p);
+        CHECK_VALIDITY(c->pstream, FALSE, tag, PA_ERR_INVALID);
+    }
 
     s = upload_stream_new(c, &ss, &map, name, length, p);
     pa_proplist_free(p);
@@ -3011,7 +3014,7 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
         source_fill_tagstruct(c, reply, source);
     else if (client)
         client_fill_tagstruct(c, reply, client);
-    else if (client)
+    else if (card)
         card_fill_tagstruct(c, reply, card);
     else if (module)
         module_fill_tagstruct(c, reply, module);
@@ -3590,24 +3593,30 @@ static void command_update_proplist(pa_pdispatch *pd, uint32_t command, uint32_t
         }
     }
 
-    CHECK_VALIDITY(c->pstream, mode == PA_UPDATE_SET || mode == PA_UPDATE_MERGE || mode == PA_UPDATE_REPLACE, tag, PA_ERR_INVALID);
+    if (!(mode == PA_UPDATE_SET || mode == PA_UPDATE_MERGE || mode == PA_UPDATE_REPLACE)) {
+        pa_proplist_free(p);
+        CHECK_VALIDITY(c->pstream, FALSE, tag, PA_ERR_INVALID);
+    }
 
     if (command == PA_COMMAND_UPDATE_PLAYBACK_STREAM_PROPLIST) {
         playback_stream *s;
 
         s = pa_idxset_get_by_index(c->output_streams, idx);
-        CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
-        CHECK_VALIDITY(c->pstream, playback_stream_isinstance(s), tag, PA_ERR_NOENTITY);
-
+        if (!s || !playback_stream_isinstance(s)) {
+            pa_proplist_free(p);
+            CHECK_VALIDITY(c->pstream, FALSE, tag, PA_ERR_NOENTITY);
+        }
         pa_sink_input_update_proplist(s->sink_input, mode, p);
 
     } else if (command == PA_COMMAND_UPDATE_RECORD_STREAM_PROPLIST) {
         record_stream *s;
 
-        s = pa_idxset_get_by_index(c->record_streams, idx);
-        CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
-
+        if (!(s = pa_idxset_get_by_index(c->record_streams, idx))) {
+            pa_proplist_free(p);
+            CHECK_VALIDITY(c->pstream, FALSE, tag, PA_ERR_NOENTITY);
+        }
         pa_source_output_update_proplist(s->source_output, mode, p);
+
     } else {
         pa_assert(command == PA_COMMAND_UPDATE_CLIENT_PROPLIST);
 
@@ -3615,6 +3624,7 @@ static void command_update_proplist(pa_pdispatch *pd, uint32_t command, uint32_t
     }
 
     pa_pstream_send_simple_ack(c->pstream, tag);
+    pa_proplist_free(p);
 }
 
 static void command_remove_proplist(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -4070,7 +4080,7 @@ static void command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, 
     CHECK_VALIDITY(c->pstream, m->load_once || idx != PA_INVALID_INDEX, tag, PA_ERR_INVALID);
 
     cb = (pa_native_protocol_ext_cb_t) (unsigned long) pa_hashmap_get(c->protocol->extensions, m);
-    CHECK_VALIDITY(c->pstream, m, tag, PA_ERR_NOEXTENSION);
+    CHECK_VALIDITY(c->pstream, cb, tag, PA_ERR_NOEXTENSION);
 
     if (cb(c->protocol, m, c, tag, t) < 0)
         protocol_error(c);
