@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-02-20 03:24+0100\n"
-"PO-Revision-Date: 2009-02-05 22:09+0100\n"
+"PO-Revision-Date: 2009-02-20 18:42+0100\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -15,53 +15,47 @@ msgstr ""
 
 #: ../src/modules/alsa/alsa-util.c:525
 msgid "Analog Mono"
-msgstr ""
+msgstr "Analogowe mono"
 
 #: ../src/modules/alsa/alsa-util.c:531
-#, fuzzy
 msgid "Analog Stereo"
-msgstr "Stereo"
+msgstr "Analogowe stereo"
 
 #: ../src/modules/alsa/alsa-util.c:537
 msgid "Digital Stereo (IEC958)"
-msgstr ""
+msgstr "Cyfrowe stereo (IEC958)"
 
 #: ../src/modules/alsa/alsa-util.c:543
 msgid "Digital Stereo (HDMI)"
-msgstr ""
+msgstr "Cyfrowe stereo (HDMI)"
 
 #: ../src/modules/alsa/alsa-util.c:550
-#, fuzzy
 msgid "Analog Surround 4.0"
-msgstr "Surround 4.0"
+msgstr "Analogowe surround 4.0"
 
 #: ../src/modules/alsa/alsa-util.c:557
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr ""
+msgstr "Cyfrowe surround 4.0 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-util.c:565
-#, fuzzy
 msgid "Analog Surround 4.1"
-msgstr "Surround 4.1"
+msgstr "Analogowe surround 4.1"
 
 #: ../src/modules/alsa/alsa-util.c:573
-#, fuzzy
 msgid "Analog Surround 5.0"
-msgstr "Surround 5.0"
+msgstr "Analogowe surround 5.0"
 
 #: ../src/modules/alsa/alsa-util.c:581
-#, fuzzy
 msgid "Analog Surround 5.1"
-msgstr "Surround 5.1"
+msgstr "Analogowe surround 5.1"
 
 #: ../src/modules/alsa/alsa-util.c:589
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr ""
+msgstr "Cyfrowe surround 5.1 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-util.c:598
-#, fuzzy
 msgid "Analog Surround 7.1"
-msgstr "Surround 7.1"
+msgstr "Analogowe surround 7.1"
 
 #: ../src/modules/alsa/alsa-util.c:1577
 #, c-format
@@ -70,6 +64,9 @@ msgid ""
 "bytes (%lu ms). Most likely this is an ALSA driver bug. Please report this "
 "issue to the ALSA developers."
 msgstr ""
+"snd_pcm_avail_update() zwróciło wyjątkowo dużą wartość: %lu bajty (%lu ms). "
+"Prawdopodobnie jest to błąd sterownika ALSA. Proszę zgłosić ten problem "
+"programistom ALSA."
 
 #: ../src/modules/alsa/alsa-util.c:1609
 #, c-format
@@ -78,6 +75,8 @@ msgid ""
 "(%lu ms). Most likely this is an ALSA driver bug. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_mmap_begin() zwróciło wyjątkowo dużą wartość: %lu bajty (%lu ms). "
+"Proszę zgłosić ten problem programistom ALSA."
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
