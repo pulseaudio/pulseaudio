@@ -1052,8 +1052,9 @@ int pa__init(pa_module*m) {
 
     slaves = pa_modargs_get_value(ma, "slaves", NULL);
     u->automatic = !slaves;
-    ss = m->core->default_sample_spec;
 
+    ss = m->core->default_sample_spec;
+    map = m->core->default_channel_map;
     if ((pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_DEFAULT) < 0)) {
         pa_log("Invalid sample specification.");
         goto fail;

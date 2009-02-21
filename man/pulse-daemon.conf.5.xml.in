@@ -388,6 +388,10 @@ USA.
       <p><opt>default-sample-channels</opt> The default number of channels.</p>
     </option>
 
+    <option>
+      <p><opt>default-channel-map</opt> The default channel map.</p>
+    </option>
+
   </section>
 
   <section name="Default Fragment Settings">

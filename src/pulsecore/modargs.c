@@ -274,11 +274,15 @@ int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *rss) {
     pa_assert(rss);
 
     ss = *rss;
-    if ((pa_modargs_get_value_u32(ma, "rate", &ss.rate)) < 0)
+    if ((pa_modargs_get_value_u32(ma, "rate", &ss.rate)) < 0 ||
+        ss.rate <= 0 ||
+        ss.rate > PA_RATE_MAX)
         return -1;
 
     channels = ss.channels;
-    if ((pa_modargs_get_value_u32(ma, "channels", &channels)) < 0)
+    if ((pa_modargs_get_value_u32(ma, "channels", &channels)) < 0 ||
+        channels <= 0 ||
+        channels >= PA_CHANNELS_MAX)
         return -1;
     ss.channels = (uint8_t) channels;
 
@@ -314,7 +318,12 @@ int pa_modargs_get_channel_map(pa_modargs *ma, const char *name, pa_channel_map 
     return 0;
 }
 
-int pa_modargs_get_sample_spec_and_channel_map(pa_modargs *ma, pa_sample_spec *rss, pa_channel_map *rmap, pa_channel_map_def_t def) {
+int pa_modargs_get_sample_spec_and_channel_map(
+        pa_modargs *ma,
+        pa_sample_spec *rss,
+        pa_channel_map *rmap,
+        pa_channel_map_def_t def) {
+
     pa_sample_spec ss;
     pa_channel_map map;
 
@@ -327,7 +336,10 @@ int pa_modargs_get_sample_spec_and_channel_map(pa_modargs *ma, pa_sample_spec *r
     if (pa_modargs_get_sample_spec(ma, &ss) < 0)
         return -1;
 
-    pa_channel_map_init_extend(&map, ss.channels, def);
+    map = *rmap;
+
+    if (ss.channels != map.channels)
+        pa_channel_map_init_extend(&map, ss.channels, def);
 
     if (pa_modargs_get_channel_map(ma, NULL, &map) < 0)
         return -1;

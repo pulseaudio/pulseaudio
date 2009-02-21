@@ -321,6 +321,8 @@ static int pa_cli_command_source_outputs(pa_core *c, pa_tokenizer *t, pa_strbuf 
 }
 
 static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+    char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
+    char cm[PA_CHANNEL_MAP_SNPRINT_MAX];
     char s[256];
     const pa_mempool_stat *stat;
     unsigned k;
@@ -363,7 +365,10 @@ static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
                      pa_bytes_snprint(s, sizeof(s), (unsigned) pa_scache_total_size(c)));
 
     pa_strbuf_printf(buf, "Default sample spec: %s\n",
-                     pa_sample_spec_snprint(s, sizeof(s), &c->default_sample_spec));
+                     pa_sample_spec_snprint(ss, sizeof(ss), &c->default_sample_spec));
+
+    pa_strbuf_printf(buf, "Default channel map: %s\n",
+                     pa_channel_map_snprint(cm, sizeof(cm), &c->default_channel_map));
 
     def_sink = pa_namereg_get_default_sink(c);
     def_source = pa_namereg_get_default_source(c);

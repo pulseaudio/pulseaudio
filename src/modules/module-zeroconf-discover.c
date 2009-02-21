@@ -162,7 +162,7 @@ static void resolver_cb(
         pa_module *m;
 
         ss = u->core->default_sample_spec;
-        pa_channel_map_init_extend(&cm, ss.channels, PA_CHANNEL_MAP_DEFAULT);
+        cm = u->core->default_channel_map;
 
         for (l = txt; l; l = l->next) {
             char *key, *value;

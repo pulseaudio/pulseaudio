@@ -122,6 +122,7 @@ struct pa_core {
     pa_source *default_source;
     pa_sink *default_sink;
 
+    pa_channel_map default_channel_map;
     pa_sample_spec default_sample_spec;
     unsigned default_n_fragments, default_fragment_size_msec;
 

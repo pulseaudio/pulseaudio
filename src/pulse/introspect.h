@@ -317,6 +317,7 @@ typedef struct pa_server_info {
     const char *default_sink_name;      /**< Name of default sink. */
     const char *default_source_name;    /**< Name of default sink. */
     uint32_t cookie;                    /**< A random cookie for identifying this instance of PulseAudio. */
+    pa_channel_map channel_map;         /**< Default channel map. \since 0.9.15 */
 } pa_server_info;
 
 /** Callback prototype for pa_context_get_server_info() */

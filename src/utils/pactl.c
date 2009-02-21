@@ -123,7 +123,7 @@ static void stat_callback(pa_context *c, const pa_stat_info *i, void *userdata) 
 }
 
 static void get_server_info_callback(pa_context *c, const pa_server_info *i, void *useerdata) {
-    char s[PA_SAMPLE_SPEC_SNPRINT_MAX];
+    char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
     if (!i) {
         fprintf(stderr, _("Failed to get server information: %s\n"), pa_strerror(pa_context_errno(c)));
@@ -131,21 +131,24 @@ static void get_server_info_callback(pa_context *c, const pa_server_info *i, voi
         return;
     }
 
-    pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec);
+    pa_sample_spec_snprint(ss, sizeof(ss), &i->sample_spec);
+    pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map);
 
     printf(_("User name: %s\n"
-           "Host Name: %s\n"
-           "Server Name: %s\n"
-           "Server Version: %s\n"
-           "Default Sample Specification: %s\n"
-           "Default Sink: %s\n"
-           "Default Source: %s\n"
-           "Cookie: %08x\n"),
+             "Host Name: %s\n"
+             "Server Name: %s\n"
+             "Server Version: %s\n"
+             "Default Sample Specification: %s\n"
+             "Default Channel Map: %s\n"
+             "Default Sink: %s\n"
+             "Default Source: %s\n"
+             "Cookie: %08x\n"),
            i->user_name,
            i->host_name,
            i->server_name,
            i->server_version,
-           s,
+           ss,
+           cm,
            i->default_sink_name,
            i->default_source_name,
            i->cookie);

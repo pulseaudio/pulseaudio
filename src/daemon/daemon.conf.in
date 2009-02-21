@@ -76,6 +76,7 @@
 ; default-sample-format = s16le
 ; default-sample-rate = 44100
 ; default-sample-channels = 2
+; default-channel-map = front-left,front-right
 
 ; default-fragments = 4
 ; default-fragment-size-msec = 25

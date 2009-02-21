@@ -329,12 +329,18 @@ int pa__init(pa_module*m) {
     if (!channels)
         channels = m->core->default_sample_spec.channels;
 
-    if (pa_modargs_get_value_u32(ma, "channels", &channels) < 0 || channels <= 0 || channels >= PA_CHANNELS_MAX) {
+    if (pa_modargs_get_value_u32(ma, "channels", &channels) < 0 ||
+        channels <= 0 ||
+        channels > PA_CHANNELS_MAX) {
         pa_log("Failed to parse channels= argument.");
         goto fail;
     }
 
-    pa_channel_map_init_extend(&map, channels, PA_CHANNEL_MAP_ALSA);
+    if (channels == m->core->default_channel_map.channels)
+        map = m->core->default_channel_map;
+    else
+        pa_channel_map_init_extend(&map, channels, PA_CHANNEL_MAP_ALSA);
+
     if (pa_modargs_get_channel_map(ma, NULL, &map) < 0 || map.channels != channels) {
         pa_log("Failed to parse channel_map= argument.");
         goto fail;

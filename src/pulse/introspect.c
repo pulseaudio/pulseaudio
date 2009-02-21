@@ -110,11 +110,16 @@ static void context_get_server_info_callback(pa_pdispatch *pd, uint32_t command,
                pa_tagstruct_gets(t, &i.default_sink_name) < 0 ||
                pa_tagstruct_gets(t, &i.default_source_name) < 0 ||
                pa_tagstruct_getu32(t, &i.cookie) < 0 ||
+               (o->context->version >= 15 &&
+                pa_tagstruct_get_channel_map(t, &i.channel_map) < 0) ||
                !pa_tagstruct_eof(t)) {
 
         pa_context_fail(o->context, PA_ERR_PROTOCOL);
         goto finish;
     }
+
+    if (p && o->context->version < 15)
+        pa_channel_map_init_extend(&i.channel_map, i.sample_spec.channels, PA_CHANNEL_MAP_DEFAULT);
 
     if (o->callback) {
         pa_server_info_cb_t cb = (pa_server_info_cb_t) o->callback;

@@ -3125,6 +3125,9 @@ static void command_get_server_info(pa_pdispatch *pd, uint32_t command, uint32_t
 
     pa_tagstruct_putu32(reply, c->protocol->core->cookie);
 
+    if (c->version >= 15)
+        pa_tagstruct_put_channel_map(reply, &c->protocol->core->default_channel_map);
+
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 

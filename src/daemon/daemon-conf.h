@@ -23,10 +23,12 @@
   USA.
 ***/
 
+#include <pulse/sample.h>
+#include <pulse/channelmap.h>
+
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
-#include <pulse/sample.h>
 
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
@@ -121,6 +123,7 @@ typedef struct pa_daemon_conf {
 
     unsigned default_n_fragments, default_fragment_size_msec;
     pa_sample_spec default_sample_spec;
+    pa_channel_map default_channel_map;
     size_t shm_size;
 } pa_daemon_conf;
 
