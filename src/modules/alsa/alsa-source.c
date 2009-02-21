@@ -287,10 +287,12 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
 
         if (PA_UNLIKELY(n_bytes <= 0)) {
 
-            if (polled && pa_log_ratelimit())
-                pa_log(_("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
-                         "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
-                         "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail_update() returned 0."));
+            if (polled)
+                PA_ONCE_BEGIN {
+                    pa_log(_("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
+                             "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
+                             "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail_update() returned 0."));
+                } PA_ONCE_END;
 
 #ifdef DEBUG_TIMING
             pa_log_debug("Not reading, because not necessary.");
@@ -406,10 +408,12 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
 
         if (PA_UNLIKELY(n_bytes <= 0)) {
 
-            if (polled && pa_log_ratelimit())
-                pa_log(_("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
-                         "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
-                         "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail_update() returned 0."));
+            if (polled)
+                PA_ONCE_BEGIN {
+                    pa_log(_("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
+                             "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
+                             "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail_update() returned 0."));
+                } PA_ONCE_END;
 
             break;
         }

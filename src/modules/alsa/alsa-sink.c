@@ -304,10 +304,12 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
 
         if (PA_UNLIKELY(n_bytes <= u->hwbuf_unused)) {
 
-            if (polled && pa_log_ratelimit())
-                pa_log(_("ALSA woke us up to write new data to the device, but there was actually nothing to write! "
-                         "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
-                         "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail_update() returned 0."));
+            if (polled)
+                PA_ONCE_BEGIN {
+                    pa_log(_("ALSA woke us up to write new data to the device, but there was actually nothing to write! "
+                             "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
+                             "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail_update() returned 0."));
+                } PA_ONCE_END;
 
 #ifdef DEBUG_TIMING
             pa_log_debug("Not filling up, because not necessary.");
@@ -431,10 +433,12 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
 
         if (PA_UNLIKELY(n_bytes <= u->hwbuf_unused)) {
 
-            if (polled && pa_log_ratelimit())
-                pa_log(_("ALSA woke us up to write new data to the device, but there was actually nothing to write! "
-                         "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
-                         "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail_update() returned 0."));
+            if (polled)
+                PA_ONCE_BEGIN {
+                    pa_log(_("ALSA woke us up to write new data to the device, but there was actually nothing to write! "
+                             "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
+                             "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail_update() returned 0."));
+                } PA_ONCE_END;
 
             break;
         }

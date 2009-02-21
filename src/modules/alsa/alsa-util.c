@@ -39,6 +39,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/atomic.h>
 #include <pulsecore/core-error.h>
+#include <pulsecore/once.h>
 
 #include "alsa-util.h"
 
@@ -1574,9 +1575,12 @@ snd_pcm_sframes_t pa_alsa_safe_avail(snd_pcm_t *pcm, size_t hwbuf_size, const pa
 
     if (k >= hwbuf_size * 3 ||
         k >= pa_bytes_per_second(ss)*10)
-        pa_log(_("snd_pcm_avail_update() returned a value that is exceptionally large: %lu bytes (%lu ms). "
-                 "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers."),
-               (unsigned long) k, (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC));
+
+        PA_ONCE_BEGIN {
+            pa_log(_("snd_pcm_avail_update() returned a value that is exceptionally large: %lu bytes (%lu ms). "
+                     "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers."),
+                   (unsigned long) k, (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC));
+        } PA_ONCE_END;
 
     return n;
 }
@@ -1606,9 +1610,11 @@ int pa_alsa_safe_mmap_begin(snd_pcm_t *pcm, const snd_pcm_channel_area_t **areas
         k >= hwbuf_size * 3 ||
         k >= pa_bytes_per_second(ss)*10)
 
-        pa_log(_("snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms). "
-                 "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers."),
-               (unsigned long) k, (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC));
+        PA_ONCE_BEGIN {
+            pa_log(_("snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms). "
+                     "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers."),
+                   (unsigned long) k, (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC));
+        } PA_ONCE_END;
 
     return r;
 }
