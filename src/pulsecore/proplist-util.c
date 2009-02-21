@@ -135,8 +135,9 @@ void pa_init_proplist(pa_proplist *p) {
 
                 k = pa_xstrndup(*e+skip, kl);
 
-                if (override || !pa_proplist_contains(p, k))
-                    pa_proplist_sets(p, k, *e+skip+kl+1);
+                if (!pa_streq(k, "OVERRIDE"))
+                    if (override || !pa_proplist_contains(p, k))
+                        pa_proplist_sets(p, k, *e+skip+kl+1);
                 pa_xfree(k);
             }
         }
