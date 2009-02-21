@@ -228,4 +228,14 @@ void pa_init_proplist(pa_proplist *p) {
             pa_xfree(m);
         }
     }
+
+    if (!pa_proplist_contains(p, PA_PROP_APPLICATION_PROCESS_SESSION_ID)) {
+        const char *t;
+
+        if ((t = getenv("XDG_SESSION_COOKIE"))) {
+            char *c = pa_utf8_filter(t);
+            pa_proplist_sets(p, PA_PROP_APPLICATION_PROCESS_SESSION_ID, c);
+            pa_xfree(c);
+        }
+    }
 }
