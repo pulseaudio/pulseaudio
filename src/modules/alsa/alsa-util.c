@@ -1027,6 +1027,7 @@ snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const 
     pa_assert(name);
 
     snd_mixer_selem_id_set_name(sid, name);
+    snd_mixer_selem_id_set_index(sid, 0);
 
     if ((elem = snd_mixer_find_selem(mixer, sid))) {
 
@@ -1043,6 +1044,7 @@ snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const 
 
     if (fallback) {
         snd_mixer_selem_id_set_name(sid, fallback);
+        snd_mixer_selem_id_set_index(sid, 0);
 
         if ((fallback_elem = snd_mixer_find_selem(mixer, sid))) {
 
@@ -1084,7 +1086,6 @@ success:
 
     return elem;
 }
-
 
 int pa_alsa_find_mixer_and_elem(
         snd_pcm_t *pcm,
