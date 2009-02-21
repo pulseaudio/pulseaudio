@@ -506,8 +506,9 @@ int main(int argc, char *argv[]) {
         if ((conf->high_priority && !allow_high_priority) ||
             (conf->realtime_scheduling && !allow_realtime))
             pa_log_notice(_("Called SUID root and real-time and/or high-priority scheduling was requested in the configuration. However, we lack the necessary privileges:\n"
-                            "We are not in group '"PA_REALTIME_GROUP"', PolicyKit refuse to grant us the requested privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource limits.\n"
-                            "For enabling real-time/high-priority scheduling please acquire the appropriate PolicyKit privileges, or become a member of '"PA_REALTIME_GROUP"', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."));
+                            "We are not in group '%s', PolicyKit refuse to grant us the requested privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource limits.\n"
+                            "For enabling real-time/high-priority scheduling please acquire the appropriate PolicyKit privileges, or become a member of '%s', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."),
+                          PA_REALTIME_GROUP, PA_REALTIME_GROUP);
 
 
         if (!allow_realtime)
