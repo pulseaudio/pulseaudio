@@ -351,8 +351,9 @@ int main(int argc, char *argv[]) {
     int autospawn_fd = -1;
     pa_bool_t autospawn_locked = FALSE;
 
-    pa_log_set_maximal_level(PA_LOG_INFO);
     pa_log_set_ident("pulseaudio");
+    pa_log_set_level(PA_LOG_INFO);
+    pa_log_set_flags(PA_LOG_COLORS|PA_LOG_PRINT_FILE|PA_LOG_PRINT_LEVEL, PA_LOG_RESET);
 
 #if defined(__linux__) && defined(__OPTIMIZE__)
     /*
@@ -432,11 +433,13 @@ int main(int argc, char *argv[]) {
         goto finish;
     }
 
-    pa_log_set_maximal_level(conf->log_level);
-    pa_log_set_target(conf->auto_log_target ? PA_LOG_STDERR : conf->log_target, NULL);
-    pa_log_set_show_meta(conf->log_meta);
+    pa_log_set_level(conf->log_level);
+    pa_log_set_target(conf->auto_log_target ? PA_LOG_STDERR : conf->log_target);
+    if (conf->log_meta)
+        pa_log_set_flags(PA_LOG_PRINT_META, PA_LOG_SET);
+    if (conf->log_time)
+        pa_log_set_flags(PA_LOG_PRINT_TIME, PA_LOG_SET);
     pa_log_set_show_backtrace(conf->log_backtrace);
-    pa_log_set_show_time(conf->log_time);
 
     pa_log_debug("Started as real root: %s, suid root: %s", pa_yes_no(real_root), pa_yes_no(suid_root));
 
@@ -771,7 +774,7 @@ int main(int argc, char *argv[]) {
 #endif
 
         if (conf->auto_log_target)
-            pa_log_set_target(PA_LOG_SYSLOG, NULL);
+            pa_log_set_target(PA_LOG_SYSLOG);
 
 #ifdef HAVE_SETSID
         setsid();

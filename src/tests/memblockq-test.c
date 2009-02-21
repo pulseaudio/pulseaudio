@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
     pa_memchunk chunk1, chunk2, chunk3, chunk4;
     pa_memchunk silence;
 
-    pa_log_set_maximal_level(PA_LOG_DEBUG);
+    pa_log_set_level(PA_LOG_DEBUG);
 
     p = pa_mempool_new(FALSE, 0);
 

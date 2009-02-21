@@ -1350,7 +1350,7 @@ static int pa_cli_command_log_level(pa_core *c, pa_tokenizer *t, pa_strbuf *buf,
         return -1;
     }
 
-    pa_log_set_maximal_level(level);
+    pa_log_set_level(level);
 
     return 0;
 }
@@ -1374,7 +1374,7 @@ static int pa_cli_command_log_meta(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, 
         return -1;
     }
 
-    pa_log_set_show_meta(b);
+    pa_log_set_flags(PA_LOG_PRINT_META, b ? PA_LOG_SET : PA_LOG_UNSET);
 
     return 0;
 }
@@ -1398,7 +1398,7 @@ static int pa_cli_command_log_time(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, 
         return -1;
     }
 
-    pa_log_set_show_time(b);
+    pa_log_set_flags(PA_LOG_PRINT_TIME, b ? PA_LOG_SET : PA_LOG_UNSET);
 
     return 0;
 }

@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
     pa_mempool *pool;
 
     oil_init();
-    pa_log_set_maximal_level(PA_LOG_DEBUG);
+    pa_log_set_level(PA_LOG_DEBUG);
 
     pa_assert_se(pool = pa_mempool_new(FALSE, 0));
 
