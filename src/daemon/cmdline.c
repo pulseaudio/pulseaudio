@@ -299,7 +299,7 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
 
             case ARG_DISALLOW_EXIT:
                 if ((conf->disallow_exit = optarg ? pa_parse_boolean(optarg) : TRUE) < 0) {
-                    pa_log(_("--disallow-exit boolean argument"));
+                    pa_log(_("--disallow-exit expects boolean argument"));
                     goto fail;
                 }
                 break;
@@ -330,14 +330,14 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
 
             case ARG_LOG_TIME:
                 if ((conf->log_time = optarg ? pa_parse_boolean(optarg) : TRUE) < 0) {
-                    pa_log(_("--log-time boolean argument"));
+                    pa_log(_("--log-time expects boolean argument"));
                     goto fail;
                 }
                 break;
 
             case ARG_LOG_META:
                 if ((conf->log_meta = optarg ? pa_parse_boolean(optarg) : TRUE) < 0) {
-                    pa_log(_("--log-meta boolean argument"));
+                    pa_log(_("--log-meta expects boolean argument"));
                     goto fail;
                 }
                 break;
