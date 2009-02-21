@@ -86,6 +86,7 @@ AM_LDFLAGS+=-Wl,--export-all-symbols
 WINSOCK_LIBS=-lwsock32 -lws2_32 -lwininet
 endif
 
+FOREIGN_CLFGAS = -w
 MODULE_LDFLAGS = -module -disable-static -avoid-version
 
 ###################################
@@ -765,7 +766,6 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/core.c pulsecore/core.h \
 		pulsecore/envelope.c pulsecore/envelope.h \
 		pulsecore/fdsem.c pulsecore/fdsem.h \
-		pulsecore/ffmpeg/resample2.c pulsecore/ffmpeg/avcodec.h pulsecore/ffmpeg/dsputil.h \
 		pulsecore/g711.c pulsecore/g711.h \
 		pulsecore/hook-list.c pulsecore/hook-list.h \
 		pulsecore/ltdl-helper.c pulsecore/ltdl-helper.h \
@@ -799,13 +799,21 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 
 libpulsecore_@PA_MAJORMINORMICRO@_la_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
 libpulsecore_@PA_MAJORMINORMICRO@_la_LDFLAGS = -avoid-version
-libpulsecore_@PA_MAJORMINORMICRO@_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(LIBSPEEX_LIBS) $(WINSOCK_LIBS) $(LIBOIL_LIBS) $(LTLIBICONV) libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+libpulsecore_@PA_MAJORMINORMICRO@_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(LIBSPEEX_LIBS) $(WINSOCK_LIBS) $(LIBOIL_LIBS) $(LTLIBICONV) libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la libpulsecore-foreign.la
 
 if HAVE_X11
 libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/x11wrap.c pulsecore/x11wrap.h
 libpulsecore_@PA_MAJORMINORMICRO@_la_CFLAGS += $(X11_CFLAGS)
 libpulsecore_@PA_MAJORMINORMICRO@_la_LDFLAGS += $(X11_LIBS)
 endif
+
+# We split the foreign code off to not be annoyed by warnings we don't care about
+noinst_LTLIBRARIES = libpulsecore-foreign.la
+
+libpulsecore_foreign_la_SOURCES = \
+		pulsecore/ffmpeg/resample2.c pulsecore/ffmpeg/avcodec.h pulsecore/ffmpeg/dsputil.h
+
+libpulsecore_foreign_la_CFLAGS = $(AM_CFLAGS) -w
 
 ###################################
 #   Plug-in support libraries     #
