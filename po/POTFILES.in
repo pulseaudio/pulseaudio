@@ -155,6 +155,8 @@ src/daemon/cmdline.c
 src/daemon/dumpmodules.c
 src/daemon/daemon-conf.c
 src/daemon/caps.c
+src/daemon/pulseaudio.desktop.in
+src/daemon/org.pulseaudio.policy.in
 src/pulse/channelmap.c
 src/pulse/error.c
 src/pulse/proplist.c

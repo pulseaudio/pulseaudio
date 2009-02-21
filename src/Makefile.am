@@ -105,9 +105,9 @@ EXTRA_DIST = \
 		daemon/start-pulseaudio-x11.in \
 		utils/padsp \
 		modules/module-defs.h.m4 \
-		daemon/pulseaudio.desktop \
+		daemon/pulseaudio.desktop.in \
 		map-file \
-		daemon/org.pulseaudio.policy
+		daemon/org.pulseaudio.policy.in
 
 pulseconf_DATA = \
 		default.pa \
@@ -116,9 +116,12 @@ pulseconf_DATA = \
 		client.conf
 
 if HAVE_X11
-xdgautostart_DATA = \
-		daemon/pulseaudio.desktop
+xdgautostart_in_files = \
+		daemon/pulseaudio.desktop.in
 endif
+xdgautostart_DATA = $(xdgautostart_in_files:.desktop.in=.desktop)
+@INTLTOOL_DESKTOP_RULE@
+
 
 BUILT_SOURCES = \
 		pulse/version.h
@@ -156,7 +159,9 @@ pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) -dlopen force $(foreach f,$(PRE
 endif
 
 if HAVE_POLKIT
-policy_DATA = daemon/org.pulseaudio.policy
+policy_in_files = daemon/org.pulseaudio.policy.in
+policy_DATA = $(policy_in_files:.policy.in=.policy)
+@INTLTOOL_POLICY_RULE@
 
 pulseaudio_SOURCES += daemon/polkit.c daemon/polkit.h
 pulseaudio_CFLAGS += $(POLKIT_CFLAGS)
@@ -1543,7 +1548,7 @@ suid: pulseaudio .libs/lt-pulseaudio
 	chown root $^
 	chmod u+s $^
 
-CLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11
+CLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 daemon/pulseaudio.desktop daemon/org.pulseaudio.policy
 
 esdcompat: daemon/esdcompat.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
