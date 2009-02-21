@@ -88,6 +88,8 @@ struct userdata {
     pa_source *source;
 
     pa_modargs *modargs;
+
+    pa_hashmap *profiles;
 };
 
 struct profile_data {
@@ -99,10 +101,11 @@ static void enumerate_cb(
         const pa_alsa_profile_info *source,
         void *userdata) {
 
-    pa_hashmap *profiles = (pa_hashmap *) userdata;
+    struct userdata *u = userdata;
     char *t, *n;
     pa_card_profile *p;
     struct profile_data *d;
+    unsigned bonus = 0;
 
     if (sink && source) {
         n = pa_sprintf_malloc("output-%s+input-%s", sink->name, source->name);
@@ -116,6 +119,20 @@ static void enumerate_cb(
         t = pa_sprintf_malloc(_("Input %s"), _(source->description));
     }
 
+    if (sink) {
+        if (pa_channel_map_equal(&sink->map, &u->core->default_channel_map))
+            bonus += 50000;
+        else if (sink->map.channels == u->core->default_channel_map.channels)
+            bonus += 40000;
+    }
+
+    if (source) {
+        if (pa_channel_map_equal(&source->map, &u->core->default_channel_map))
+            bonus += 30000;
+        else if (source->map.channels == u->core->default_channel_map.channels)
+            bonus += 20000;
+    }
+
     pa_log_info("Found output profile '%s'", t);
 
     p = pa_card_profile_new(n, t, sizeof(struct profile_data));
@@ -123,7 +140,11 @@ static void enumerate_cb(
     pa_xfree(t);
     pa_xfree(n);
 
-    p->priority = (sink ? sink->priority : 0)*100 + (source ? source->priority : 0);
+    p->priority =
+        (sink ? sink->priority : 0) * 100 +
+        (source ? source->priority : 0) +
+        bonus;
+
     p->n_sinks = !!sink;
     p->n_sources = !!source;
 
@@ -137,7 +158,7 @@ static void enumerate_cb(
     d->sink_profile = sink;
     d->source_profile = source;
 
-    pa_hashmap_put(profiles, p->name, p);
+    pa_hashmap_put(u->profiles, p->name, p);
 }
 
 static void add_disabled_profile(pa_hashmap *profiles) {
@@ -289,8 +310,8 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_id);
     set_card_name(&data, ma, u->device_id);
 
-    data.profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    if (pa_alsa_probe_profiles(u->device_id, &m->core->default_sample_spec, enumerate_cb, data.profiles) < 0) {
+    u->profiles = data.profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    if (pa_alsa_probe_profiles(u->device_id, &m->core->default_sample_spec, enumerate_cb, u) < 0) {
         pa_card_new_data_done(&data);
         goto fail;
     }
