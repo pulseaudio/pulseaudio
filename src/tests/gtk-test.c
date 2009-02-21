@@ -17,6 +17,8 @@
   USA.
 ***/
 
+#pragma GCC diagnostic ignored "-Wstrict-prototypes"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
