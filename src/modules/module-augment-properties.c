@@ -195,6 +195,8 @@ static pa_hook_result_t process(struct userdata *u, pa_proplist *p) {
 
     time(&now);
 
+    pa_log_debug("Looking for .desktop file for %s", pn);
+
     if ((r = pa_hashmap_get(u->cache, pn))) {
         if (now-r->timestamp > STAT_INTERVAL) {
             r->timestamp = now;

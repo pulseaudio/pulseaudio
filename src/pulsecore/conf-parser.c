@@ -127,7 +127,7 @@ static int parse_line(const char *filename, unsigned line, char **section, const
 int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void *userdata) {
     int r = -1;
     unsigned line = 0;
-    int do_close = !f;
+    pa_bool_t do_close = !f;
     char *section = NULL;
 
     pa_assert(filename);
@@ -144,7 +144,7 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
     }
 
     while (!feof(f)) {
-        char l[256];
+        char l[4096];
 
         if (!fgets(l, sizeof(l), f)) {
             if (feof(f))
