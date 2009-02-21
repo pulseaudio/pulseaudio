@@ -554,7 +554,7 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     pa_context_unref(c);
 }
 
-#if ENABLE_LEGACY_RUNTIME_DIR
+#ifdef ENABLE_LEGACY_RUNTIME_DIR
 static char *get_old_legacy_runtime_dir(void) {
     char *p, u[128];
     struct stat st;
@@ -603,7 +603,7 @@ static char *get_very_old_legacy_runtime_dir(void) {
 static pa_strlist *prepend_per_user(pa_strlist *l) {
     char *ufn;
 
-#if ENABLE_LEGACY_RUNTIME_DIR
+#ifdef ENABLE_LEGACY_RUNTIME_DIR
     static char *legacy_dir;
 
     /* The very old per-user instance path (< 0.9.11). This is supported only to ease upgrades */
