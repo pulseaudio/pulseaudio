@@ -404,7 +404,7 @@ static int esd_proto_stream_play(connection *c, esd_proto_t request, const void 
 
     if (c->options->default_sink) {
         sink = pa_namereg_get(c->protocol->core, c->options->default_sink, PA_NAMEREG_SINK);
-        CHECK_VALIDITY(sink, "No such sink: %s", c->options->default_sink);
+        CHECK_VALIDITY(sink, "No such sink: %s", pa_strnull(c->options->default_sink));
     }
 
     pa_strlcpy(name, data, sizeof(name));
@@ -489,23 +489,17 @@ static int esd_proto_stream_record(connection *c, esd_proto_t request, const voi
     if (request == ESD_PROTO_STREAM_MON) {
         pa_sink* sink;
 
-        if (!(sink = pa_namereg_get(c->protocol->core, c->options->default_sink, PA_NAMEREG_SINK))) {
-            pa_log("no such sink.");
-            return -1;
-        }
+        sink = pa_namereg_get(c->protocol->core, c->options->default_sink, PA_NAMEREG_SINK);
+        CHECK_VALIDITY(sink, "No such sink: %s", pa_strnull(c->options->default_sink));
 
-        if (!(source = sink->monitor_source)) {
-            pa_log("no such monitor source.");
-            return -1;
-        }
+        source = sink->monitor_source;
+        CHECK_VALIDITY(source, "No such source.");
     } else {
         pa_assert(request == ESD_PROTO_STREAM_REC);
 
         if (c->options->default_source) {
-            if (!(source = pa_namereg_get(c->protocol->core, c->options->default_source, PA_NAMEREG_SOURCE))) {
-                pa_log("no such source.");
-                return -1;
-            }
+            source = pa_namereg_get(c->protocol->core, c->options->default_source, PA_NAMEREG_SOURCE);
+            CHECK_VALIDITY(source, "No such source: %s", pa_strnull(c->options->default_source));
         }
     }
 
@@ -621,7 +615,7 @@ static int esd_proto_all_info(connection *c, esd_proto_t request, const void *da
 
     k = sizeof(int32_t)*5+ESD_NAME_MAX;
     s = sizeof(int32_t)*6+ESD_NAME_MAX;
-    nsamples = c->protocol->core->scache ? pa_idxset_size(c->protocol->core->scache) : 0;
+    nsamples = pa_idxset_size(c->protocol->core->scache);
     t = s*(nsamples+1) + k*(c->protocol->n_player+1);
 
     connection_write_prepare(c, t);
@@ -912,7 +906,13 @@ static int do_read(connection *c) {
         ssize_t r;
         pa_assert(c->read_data_length < sizeof(c->request));
 
-        if ((r = pa_iochannel_read(c->io, ((uint8_t*) &c->request) + c->read_data_length, sizeof(c->request) - c->read_data_length)) <= 0) {
+        if ((r = pa_iochannel_read(c->io,
+                                   ((uint8_t*) &c->request) + c->read_data_length,
+                                   sizeof(c->request) - c->read_data_length)) <= 0) {
+
+            if (r < 0 && (errno == EINTR || errno == EAGAIN))
+                return 0;
+
             pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
             return -1;
         }
@@ -962,7 +962,10 @@ static int do_read(connection *c) {
 
         pa_assert(c->read_data && c->read_data_length < handler->data_length);
 
-        if ((r = pa_iochannel_read(c->io, (uint8_t*) c->read_data + c->read_data_length, handler->data_length - c->read_data_length)) <= 0) {
+        if ((r = pa_iochannel_read(c->io,
+                                   (uint8_t*) c->read_data + c->read_data_length,
+                                   handler->data_length - c->read_data_length)) <= 0) {
+
             if (r < 0 && (errno == EINTR || errno == EAGAIN))
                 return 0;
 
