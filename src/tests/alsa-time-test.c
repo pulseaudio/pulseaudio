@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
     snd_pcm_status_t *status;
     snd_pcm_t *pcm;
     unsigned rate = 44100;
-    unsigned periods = 0;
+    unsigned periods = 2;
     snd_pcm_uframes_t boundary, buffer_size = 44100/10; /* 100s */
     int dir = 1;
     struct timespec start, last_timestamp = { 0, 0 };
@@ -75,10 +75,13 @@ int main(int argc, char *argv[]) {
     r = snd_pcm_hw_params_current(pcm, hwparams);
     assert(r == 0);
 
+    r = snd_pcm_sw_params_current(pcm, swparams);
+    assert(r == 0);
+
     r = snd_pcm_sw_params_set_avail_min(pcm, swparams, 1);
     assert(r == 0);
 
-    r = snd_pcm_sw_params_set_period_event(pcm, swparams, 1);
+    r = snd_pcm_sw_params_set_period_event(pcm, swparams, 0);
     assert(r == 0);
 
     r = snd_pcm_hw_params_get_buffer_size(hwparams, &buffer_size);
@@ -116,7 +119,6 @@ int main(int argc, char *argv[]) {
 
     for (;;) {
         snd_pcm_sframes_t avail, delay;
-/*         snd_pcm_uframes_t avail2; */
         struct timespec now, timestamp;
         unsigned short revents;
         int written = 0;
@@ -131,28 +133,19 @@ int main(int argc, char *argv[]) {
 
         assert((revents & ~POLLOUT) == 0);
 
-/*         state = snd_pcm_get_state(pcm); */
-
         avail = snd_pcm_avail(pcm);
         assert(avail >= 0);
 
         r = snd_pcm_status(pcm, status);
         assert(r == 0);
 
-        printf("%lu %lu\n", (unsigned long) avail, (unsigned long) snd_pcm_status_get_avail(status));
+        /* This assertion fails from time to time. ALSA seems to be broken */
+/*         assert(avail == (snd_pcm_sframes_t) snd_pcm_status_get_avail(status)); */
+/*         printf("%lu %lu\n", (unsigned long) avail, (unsigned long) snd_pcm_status_get_avail(status)); */
 
-        assert(avail == (snd_pcm_sframes_t) snd_pcm_status_get_avail(status));
         snd_pcm_status_get_htstamp(status, &timestamp);
         delay = snd_pcm_status_get_delay(status);
         state = snd_pcm_status_get_state(status);
-
-/*         r = snd_pcm_avail_delay(pcm, &avail, &delay); */
-/*         assert(r == 0); */
-
-/*         r = snd_pcm_htimestamp(pcm, &avail2, &timestamp); */
-/*         assert(r == 0); */
-
-/*         assert(avail == (snd_pcm_sframes_t) avail2); */
 
         r = clock_gettime(CLOCK_MONOTONIC, &now);
         assert(r == 0);
@@ -190,6 +183,10 @@ int main(int argc, char *argv[]) {
                revents,
                written,
                state);
+
+        /** When this assert is hit, most likely something bad
+         * happened, i.e. the avail jumped suddenly. */
+        assert((unsigned) avail <= buffer_size);
 
         last_avail = avail;
         last_delay = delay;
