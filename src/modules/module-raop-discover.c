@@ -53,7 +53,7 @@
 #include "module-raop-discover-symdef.h"
 
 PA_MODULE_AUTHOR("Colin Guthrie");
-PA_MODULE_DESCRIPTION("mDNS/DNS-SD Service Discovery of Airtunes");
+PA_MODULE_DESCRIPTION("mDNS/DNS-SD Service Discovery of RAOP devices");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
 
@@ -172,9 +172,9 @@ static void resolver_cb(
         }
 
         if (device)
-            dname = pa_sprintf_malloc("airtunes.%s.%s", host_name, device);
+            dname = pa_sprintf_malloc("raop.%s.%s", host_name, device);
         else
-            dname = pa_sprintf_malloc("airtunes.%s", host_name);
+            dname = pa_sprintf_malloc("raop.%s", host_name);
 
         if (!(vname = pa_namereg_make_valid_name(dname))) {
             pa_log("Cannot construct valid device name from '%s'.", dname);

@@ -67,7 +67,7 @@
 #include "raop_client.h"
 
 PA_MODULE_AUTHOR("Colin Guthrie");
-PA_MODULE_DESCRIPTION("RAOP Sink (Apple Airtunes)");
+PA_MODULE_DESCRIPTION("RAOP Sink");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
@@ -77,7 +77,7 @@ PA_MODULE_USAGE(
         "channels=<number of channels> "
         "rate=<sample rate>");
 
-#define DEFAULT_SINK_NAME "airtunes"
+#define DEFAULT_SINK_NAME "raop"
 
 struct userdata {
     pa_core *core;
@@ -564,7 +564,7 @@ int pa__init(pa_module*m) {
     pa_sink_new_data_set_name(&data, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME));
     pa_sink_new_data_set_sample_spec(&data, &ss);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, server);
-    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Airtunes sink '%s'", server);
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "RAOP sink '%s'", server);
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY|PA_SINK_NETWORK);
     pa_sink_new_data_done(&data);
