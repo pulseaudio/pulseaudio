@@ -618,9 +618,9 @@ void pa_source_output_set_name(pa_source_output *o, const char *name) {
 /* Called from main thread */
 void pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode, pa_proplist *p) {
     pa_source_output_assert_ref(o);
-    pa_assert(p);
 
-    pa_proplist_update(o->proplist, mode, p);
+    if (p)
+        pa_proplist_update(o->proplist, mode, p);
 
     if (PA_SINK_IS_LINKED(o->state)) {
         pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], o);

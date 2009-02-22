@@ -943,9 +943,9 @@ pa_bool_t pa_sink_input_get_mute(pa_sink_input *i) {
 /* Called from main thread */
 void pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode, pa_proplist *p) {
     pa_sink_input_assert_ref(i);
-    pa_assert(p);
 
-    pa_proplist_update(i->proplist, mode, p);
+    if (p)
+        pa_proplist_update(i->proplist, mode, p);
 
     if (PA_SINK_IS_LINKED(i->state)) {
         pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED], i);
