@@ -165,6 +165,7 @@ static int esd_proto_get_latency(connection *c, esd_proto_t request, const void 
 static int esd_proto_server_info(connection *c, esd_proto_t request, const void *data, size_t length);
 static int esd_proto_all_info(connection *c, esd_proto_t request, const void *data, size_t length);
 static int esd_proto_stream_pan(connection *c, esd_proto_t request, const void *data, size_t length);
+static int esd_proto_sample_pan(connection *c, esd_proto_t request, const void *data, size_t length);
 static int esd_proto_sample_cache(connection *c, esd_proto_t request, const void *data, size_t length);
 static int esd_proto_sample_free_or_play(connection *c, esd_proto_t request, const void *data, size_t length);
 static int esd_proto_sample_get_id(connection *c, esd_proto_t request, const void *data, size_t length);
@@ -199,7 +200,7 @@ static struct proto_handler proto_map[ESD_PROTO_MAX] = {
     { (size_t) -1,                    NULL, "TODO: unsubscribe" },
 
     { 3 * sizeof(int),                esd_proto_stream_pan, "stream pan"},
-    { 3 * sizeof(int),                NULL, "sample pan" },
+    { 3 * sizeof(int),                esd_proto_sample_pan, "sample pan" },
 
     { sizeof(int),                    NULL, "standby mode" },
     { 0,                              esd_proto_get_latency, "get latency" }
@@ -685,8 +686,25 @@ static int esd_proto_all_info(connection *c, esd_proto_t request, const void *da
         for (ce = pa_idxset_first(c->protocol->core->scache, &idx); ce; ce = pa_idxset_next(c->protocol->core->scache, &idx)) {
             int32_t id, rate, lvolume, rvolume, format, len;
             char name[ESD_NAME_MAX];
+            pa_channel_map stereo = { .channels = 2, .map = { PA_CHANNEL_POSITION_LEFT, PA_CHANNEL_POSITION_RIGHT } };
+            pa_cvolume volume;
+            pa_sample_spec ss;
 
             pa_assert(t >= s*2);
+
+            if (ce->volume_is_set) {
+                volume = ce->volume;
+                pa_cvolume_remap(&volume, &ce->channel_map, &stereo);
+            } else
+                pa_cvolume_reset(&volume, 2);
+
+            if (ce->memchunk.memblock)
+                ss = ce->sample_spec;
+            else {
+                ss.format = PA_SAMPLE_S16NE;
+                ss.rate = 44100;
+                ss.channels = 2;
+            }
 
             /* id */
             id = PA_MAYBE_INT32_SWAP(c->swap_byte_order, (int) (ce->index+1));
@@ -701,19 +719,19 @@ static int esd_proto_all_info(connection *c, esd_proto_t request, const void *da
             connection_write(c, name, ESD_NAME_MAX);
 
             /* rate */
-            rate = PA_MAYBE_INT32_SWAP(c->swap_byte_order, (int32_t) ce->sample_spec.rate);
+            rate = PA_MAYBE_INT32_SWAP(c->swap_byte_order, (int32_t) ss.rate);
             connection_write(c, &rate, sizeof(int32_t));
 
             /* left */
-            lvolume = PA_MAYBE_INT32_SWAP(c->swap_byte_order, (int32_t) ((ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM));
+            lvolume = PA_MAYBE_INT32_SWAP(c->swap_byte_order, (int32_t) ((volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM));
             connection_write(c, &lvolume, sizeof(int32_t));
 
             /*right*/
-            rvolume = PA_MAYBE_INT32_SWAP(c->swap_byte_order, (int32_t) ((ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM));
+            rvolume = PA_MAYBE_INT32_SWAP(c->swap_byte_order, (int32_t) ((volume.values[1]*ESD_VOLUME_BASE)/PA_VOLUME_NORM));
             connection_write(c, &rvolume, sizeof(int32_t));
 
             /*format*/
-            format = PA_MAYBE_INT32_SWAP(c->swap_byte_order, format_native2esd(&ce->sample_spec));
+            format = PA_MAYBE_INT32_SWAP(c->swap_byte_order, format_native2esd(&ss));
             connection_write(c, &format, sizeof(int32_t));
 
             /*length*/
@@ -761,6 +779,46 @@ static int esd_proto_stream_pan(connection *c, esd_proto_t request, const void *
         ok = 1;
     } else
         ok = 0;
+
+    connection_write(c, &ok, sizeof(int32_t));
+
+    return 0;
+}
+
+static int esd_proto_sample_pan(connection *c, esd_proto_t request, const void *data, size_t length) {
+    int32_t ok = 0;
+    uint32_t idx, lvolume, rvolume;
+    pa_cvolume volume;
+    pa_scache_entry *ce;
+
+    connection_assert_ref(c);
+    pa_assert(data);
+    pa_assert(length == sizeof(int32_t)*3);
+
+    memcpy(&idx, data, sizeof(uint32_t));
+    idx = PA_MAYBE_UINT32_SWAP(c->swap_byte_order, idx) - 1;
+    data = (const char*)data + sizeof(uint32_t);
+
+    memcpy(&lvolume, data, sizeof(uint32_t));
+    lvolume = PA_MAYBE_UINT32_SWAP(c->swap_byte_order, lvolume);
+    data = (const char*)data + sizeof(uint32_t);
+
+    memcpy(&rvolume, data, sizeof(uint32_t));
+    rvolume = PA_MAYBE_UINT32_SWAP(c->swap_byte_order, rvolume);
+    data = (const char*)data + sizeof(uint32_t);
+
+    volume.values[0] = (lvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
+    volume.values[1] = (rvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
+    volume.channels = 2;
+
+    if ((ce = pa_idxset_get_by_index(c->protocol->core->scache, idx))) {
+        pa_channel_map stereo = { .channels = 2, .map = { PA_CHANNEL_POSITION_LEFT, PA_CHANNEL_POSITION_RIGHT } };
+
+        pa_cvolume_remap(&volume, &stereo, &ce->channel_map);
+        ce->volume = volume;
+        ce->volume_is_set = TRUE;
+        ok = 1;
+    }
 
     connection_write(c, &ok, sizeof(int32_t));
 
