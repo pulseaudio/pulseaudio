@@ -1586,6 +1586,43 @@ snd_pcm_sframes_t pa_alsa_safe_avail(snd_pcm_t *pcm, size_t hwbuf_size, const pa
     return n;
 }
 
+int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_sframes_t *delay, size_t hwbuf_size, const pa_sample_spec *ss) {
+    ssize_t k;
+    size_t abs_k;
+    int r;
+
+    pa_assert(pcm);
+    pa_assert(delay);
+    pa_assert(hwbuf_size > 0);
+    pa_assert(ss);
+
+    /* Some ALSA driver expose weird bugs, let's inform the user about
+     * what is going on */
+
+    if ((r = snd_pcm_delay(pcm, delay)) < 0)
+        return r;
+
+    k = (ssize_t) *delay * (ssize_t) pa_frame_size(ss);
+
+    abs_k = k >= 0 ? (size_t) k : (size_t) -k;
+
+    if (abs_k >= hwbuf_size * 3 ||
+        abs_k >= pa_bytes_per_second(ss)*10)
+
+        PA_ONCE_BEGIN {
+            char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
+            pa_log(_("snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%lu ms).\n"
+                     "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."),
+                   (signed long) k,
+                   k < 0 ? "-" : "",
+                   (unsigned long) (pa_bytes_to_usec(abs_k, ss) / PA_USEC_PER_MSEC),
+                   pa_strnull(dn));
+            pa_xfree(dn);
+        } PA_ONCE_END;
+
+    return 0;
+}
+
 int pa_alsa_safe_mmap_begin(snd_pcm_t *pcm, const snd_pcm_channel_area_t **areas, snd_pcm_uframes_t *offset, snd_pcm_uframes_t *frames, size_t hwbuf_size, const pa_sample_spec *ss) {
     int r;
     snd_pcm_uframes_t before;
