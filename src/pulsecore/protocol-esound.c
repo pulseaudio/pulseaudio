@@ -34,6 +34,7 @@
 #include <pulse/timeval.h>
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
+#include <pulse/proplist.h>
 
 #include <pulsecore/esound.h>
 #include <pulsecore/memblock.h>
@@ -371,6 +372,8 @@ static int esd_proto_connect(connection *c, esd_proto_t request, const void *dat
         pa_log_warn("Client sent invalid endian key");
         return -1;
     }
+
+    pa_proplist_sets(c->client->proplist, "esound.byte_order", c->swap_byte_order ? "reverse" : "native");
 
     ok = 1;
     connection_write(c, &ok, sizeof(int));
