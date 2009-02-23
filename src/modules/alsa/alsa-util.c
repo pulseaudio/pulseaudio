@@ -1578,9 +1578,13 @@ snd_pcm_sframes_t pa_alsa_safe_avail(snd_pcm_t *pcm, size_t hwbuf_size, const pa
         k >= pa_bytes_per_second(ss)*10)
 
         PA_ONCE_BEGIN {
-            pa_log(_("snd_pcm_avail_update() returned a value that is exceptionally large: %lu bytes (%lu ms). "
-                     "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers."),
-                   (unsigned long) k, (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC));
+            char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
+            pa_log(_("snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
+                     "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."),
+                   (unsigned long) k,
+                   (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC),
+                   pa_strnull(dn));
+            pa_xfree(dn);
         } PA_ONCE_END;
 
     return n;
@@ -1649,9 +1653,13 @@ int pa_alsa_safe_mmap_begin(snd_pcm_t *pcm, const snd_pcm_channel_area_t **areas
         k >= pa_bytes_per_second(ss)*10)
 
         PA_ONCE_BEGIN {
-            pa_log(_("snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms). "
-                     "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers."),
-                   (unsigned long) k, (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC));
+            char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
+            pa_log(_("snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
+                     "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."),
+                   (unsigned long) k,
+                   (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC),
+                   pa_strnull(dn));
+            pa_xfree(dn);
         } PA_ONCE_END;
 
     return r;

@@ -289,9 +289,12 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
 
             if (polled)
                 PA_ONCE_BEGIN {
-                    pa_log(_("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
-                             "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
-                             "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail_update() returned 0."));
+                    char *dn = pa_alsa_get_driver_name_by_pcm(u->pcm_handle);
+                    pa_log(_("ALSA woke us up to read new data from the device, but there was actually nothing to read!\n"
+                             "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.\n"
+                             "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail."),
+                           pa_strnull(dn));
+                    pa_xfree(dn);
                 } PA_ONCE_END;
 
 #ifdef DEBUG_TIMING
@@ -410,9 +413,12 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
 
             if (polled)
                 PA_ONCE_BEGIN {
-                    pa_log(_("ALSA woke us up to read new data from the device, but there was actually nothing to read! "
-                             "Most likely this is an ALSA driver bug. Please report this issue to the ALSA developers. "
-                             "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail_update() returned 0."));
+                    char *dn = pa_alsa_get_driver_name_by_pcm(u->pcm_handle);
+                    pa_log(_("ALSA woke us up to read new data from the device, but there was actually nothing to read!\n"
+                             "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.\n"
+                             "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail."),
+                           pa_strnull(dn));
+                    pa_xfree(dn);
                 } PA_ONCE_END;
 
             break;
