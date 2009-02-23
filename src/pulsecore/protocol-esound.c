@@ -569,7 +569,7 @@ static int esd_proto_get_latency(connection *c, esd_proto_t request, const void 
     if (!(sink = pa_namereg_get(c->protocol->core, c->options->default_sink, PA_NAMEREG_SINK)))
         latency = 0;
     else {
-        double usec = (double) pa_sink_get_latency(sink);
+        double usec = (double) pa_sink_get_requested_latency(sink);
         latency = (int) ((usec*44100)/1000000);
     }
 
