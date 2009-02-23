@@ -1637,3 +1637,18 @@ char *pa_alsa_get_driver_name(int card) {
 
     return n;
 }
+
+char *pa_alsa_get_driver_name_by_pcm(snd_pcm_t *pcm) {
+    int card;
+
+    snd_pcm_info_t* info;
+    snd_pcm_info_alloca(&info);
+
+    if (snd_pcm_info(pcm, info) < 0)
+        return NULL;
+
+    if ((card = snd_pcm_info_get_card(info)) < 0)
+        return NULL;
+
+    return pa_alsa_get_driver_name(card);
+}

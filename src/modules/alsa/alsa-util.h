@@ -133,4 +133,6 @@ int pa_alsa_safe_mmap_begin(snd_pcm_t *pcm, const snd_pcm_channel_area_t **areas
 
 char *pa_alsa_get_driver_name(int card);
 
+char *pa_alsa_get_driver_name_by_pcm(snd_pcm_t *pcm);
+
 #endif
