@@ -1261,6 +1261,8 @@ AM_CONDITIONAL([FORCE_PREOPEN], [test "x$FORCE_PREOPEN" = "xyes"])
 
 AC_CONFIG_FILES([
 Makefile
+shave
+shave-libtool
 src/Makefile
 man/Makefile
 libpulse.pc
@@ -1272,7 +1274,10 @@ doxygen/doxygen.conf
 src/pulse/version.h
 po/Makefile.in
 ])
+
+SHAVE_INIT
 AC_OUTPUT
+SHAVE_OUTPUT
 
 # ==========================================================================
 ENABLE_X11=no

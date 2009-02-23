@@ -49,6 +49,10 @@ if ! pkg-config --version &>/dev/null; then
     exit 1
 fi
 
+if type -p colorgcc > /dev/null ; then
+   export CC=colorgcc
+fi
+
 if [ "x$1" = "xam" ] ; then
     run_versioned automake "$VERSION" -a -c --foreign
     ./config.status
@@ -73,7 +77,7 @@ else
     run_versioned automake "$VERSION" --copy --foreign --add-missing
 
     if test "x$NOCONFIGURE" = "x"; then
-        CFLAGS="-g -O0" ./configure --sysconfdir=/etc --localstatedir=/var --enable-force-preopen "$@"
+        CFLAGS="-g -O0" ./configure --sysconfdir=/etc --localstatedir=/var --enable-force-preopen --enable-shave "$@"
         make clean
     fi
 fi
