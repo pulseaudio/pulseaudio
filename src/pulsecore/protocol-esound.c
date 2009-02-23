@@ -170,6 +170,7 @@ static int esd_proto_sample_cache(connection *c, esd_proto_t request, const void
 static int esd_proto_sample_free_or_play(connection *c, esd_proto_t request, const void *data, size_t length);
 static int esd_proto_sample_get_id(connection *c, esd_proto_t request, const void *data, size_t length);
 static int esd_proto_standby_or_resume(connection *c, esd_proto_t request, const void *data, size_t length);
+static int esd_proto_standby_mode(connection *c, esd_proto_t request, const void *data, size_t length);
 
 /* the big map of protocol handler info */
 static struct proto_handler proto_map[ESD_PROTO_MAX] = {
@@ -188,8 +189,8 @@ static struct proto_handler proto_map[ESD_PROTO_MAX] = {
     { sizeof(int),                    NULL, "sample stop" },
     { (size_t) -1,                    NULL, "TODO: sample kill" },
 
-    { ESD_KEY_LEN + sizeof(int),      esd_proto_standby_or_resume, "standby" },  /* NOOP! */
-    { ESD_KEY_LEN + sizeof(int),      esd_proto_standby_or_resume, "resume" },   /* NOOP! */         /* 13 */
+    { ESD_KEY_LEN + sizeof(int),      esd_proto_standby_or_resume, "standby" },
+    { ESD_KEY_LEN + sizeof(int),      esd_proto_standby_or_resume, "resume" },                       /* 13 */
 
     { ESD_NAME_MAX,                   esd_proto_sample_get_id, "sample getid" },                     /* 14 */
     { ESD_NAME_MAX + 2 * sizeof(int), NULL, "stream filter" },
@@ -202,7 +203,7 @@ static struct proto_handler proto_map[ESD_PROTO_MAX] = {
     { 3 * sizeof(int),                esd_proto_stream_pan, "stream pan"},
     { 3 * sizeof(int),                esd_proto_sample_pan, "sample pan" },
 
-    { sizeof(int),                    NULL, "standby mode" },
+    { sizeof(int),                    esd_proto_standby_mode, "standby mode" },
     { 0,                              esd_proto_get_latency, "get latency" }
 };
 
@@ -935,16 +936,44 @@ static int esd_proto_sample_free_or_play(connection *c, esd_proto_t request, con
 }
 
 static int esd_proto_standby_or_resume(connection *c, esd_proto_t request, const void *data, size_t length) {
-    int32_t ok;
+    int32_t ok = 1;
 
     connection_assert_ref(c);
 
     connection_write_prepare(c, sizeof(int32_t) * 2);
-
-    ok = 1;
-    connection_write(c, &ok, sizeof(int32_t));
     connection_write(c, &ok, sizeof(int32_t));
 
+    if (request == ESD_PROTO_STANDBY)
+        ok = pa_sink_suspend_all(c->protocol->core, TRUE) >= 0;
+    else {
+        pa_assert(request == ESD_PROTO_RESUME);
+        ok = pa_sink_suspend_all(c->protocol->core, FALSE) >= 0;
+    }
+
+    connection_write(c, &ok, sizeof(int32_t));
+
+    return 0;
+}
+
+static int esd_proto_standby_mode(connection *c, esd_proto_t request, const void *data, size_t length) {
+    int32_t mode;
+    pa_sink *sink, *source;
+
+    connection_assert_ref(c);
+
+    mode = ESM_RUNNING;
+
+    if ((sink = pa_namereg_get(c->protocol->core, c->options->default_sink, PA_NAMEREG_SINK)))
+        if (pa_sink_get_state(sink) == PA_SINK_SUSPENDED)
+            mode = ESM_ON_STANDBY;
+
+    if ((source = pa_namereg_get(c->protocol->core, c->options->default_source, PA_NAMEREG_SOURCE)))
+        if (pa_source_get_state(source) == PA_SOURCE_SUSPENDED)
+            mode = ESM_ON_STANDBY;
+
+    mode = PA_MAYBE_INT32_SWAP(c->swap_byte_order, mode);
+
+    connection_write(c, &mode, sizeof(mode));
     return 0;
 }
 
