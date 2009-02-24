@@ -158,7 +158,6 @@ int pa_sink_input_new(
     pa_return_val_if_fail(data->sink, -PA_ERR_NOENTITY);
     pa_return_val_if_fail(PA_SINK_IS_LINKED(pa_sink_get_state(data->sink)), -PA_ERR_BADSTATE);
     pa_return_val_if_fail(!data->sync_base || (data->sync_base->sink == data->sink && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED), -PA_ERR_INVALID);
-    pa_return_val_if_fail(!(flags & PA_SINK_INPUT_FAIL_ON_SUSPEND) || pa_sink_get_state(data->sink) != PA_SINK_SUSPENDED, -PA_ERR_BADSTATE);
 
     if (!data->sample_spec_is_set)
         data->sample_spec = data->sink->sample_spec;
@@ -227,6 +226,12 @@ int pa_sink_input_new(
 
     if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], data)) < 0)
         return r;
+
+    if ((flags & PA_SINK_INPUT_FAIL_ON_SUSPEND) &&
+        pa_sink_get_state(data->sink) == PA_SINK_SUSPENDED) {
+        pa_log_warn("Failed to create sink input: sink is suspended.");
+        return -PA_ERR_BADSTATE;
+    }
 
     if (pa_idxset_size(data->sink->inputs) >= PA_MAX_INPUTS_PER_SINK) {
         pa_log_warn("Failed to create sink input: too many inputs per sink.");

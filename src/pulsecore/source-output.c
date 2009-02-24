@@ -127,7 +127,6 @@ int pa_source_output_new(
     pa_return_val_if_fail(data->source, -PA_ERR_NOENTITY);
     pa_return_val_if_fail(PA_SOURCE_IS_LINKED(pa_source_get_state(data->source)), -PA_ERR_BADSTATE);
     pa_return_val_if_fail(!data->direct_on_input || data->direct_on_input->sink == data->source->monitor_of, -PA_ERR_INVALID);
-    pa_return_val_if_fail(!(flags & PA_SOURCE_OUTPUT_FAIL_ON_SUSPEND) || pa_source_get_state(data->source) != PA_SOURCE_SUSPENDED, -PA_ERR_BADSTATE);
 
     if (!data->sample_spec_is_set)
         data->sample_spec = data->source->sample_spec;
@@ -165,6 +164,12 @@ int pa_source_output_new(
 
     if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_FIXATE], data)) < 0)
         return r;
+
+    if ((flags & PA_SOURCE_OUTPUT_FAIL_ON_SUSPEND) &&
+        pa_source_get_state(data->source) == PA_SOURCE_SUSPENDED) {
+        pa_log("Failed to create source output: source is suspended.");
+        return -PA_ERR_BADSTATE;
+    }
 
     if (pa_idxset_size(data->source->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
         pa_log("Failed to create source output: too many outputs per source.");
