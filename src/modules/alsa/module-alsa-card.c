@@ -30,6 +30,8 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/queue.h>
 
+#include <modules/reserve-wrap.h>
+
 #include "alsa-util.h"
 #include "alsa-sink.h"
 #include "alsa-source.h"
@@ -273,11 +275,13 @@ static void set_card_name(pa_card_new_data *data, pa_modargs *ma, const char *de
     pa_xfree(t);
 }
 
-int pa__init(pa_module*m) {
+int pa__init(pa_module *m) {
     pa_card_new_data data;
     pa_modargs *ma;
     int alsa_card_index;
     struct userdata *u;
+    char rname[32];
+    pa_reserve_wrapper *reserve = NULL;
 
     pa_alsa_redirect_errors_inc();
     snd_config_update_free_global();
@@ -302,6 +306,11 @@ int pa__init(pa_module*m) {
         pa_log("Card '%s' doesn't exist: %s", u->device_id, snd_strerror(alsa_card_index));
         goto fail;
     }
+
+    pa_snprintf(rname, sizeof(rname), "Audio%i", alsa_card_index);
+
+    if (!(reserve = pa_reserve_wrapper_get(m->core, rname)))
+        goto fail;
 
     pa_card_new_data_init(&data);
     data.driver = __FILE__;
@@ -335,11 +344,16 @@ int pa__init(pa_module*m) {
 
     init_profile(u);
 
+    pa_reserve_wrapper_unref(reserve);
+
     return 0;
 
 fail:
+    if (reserve)
+        pa_reserve_wrapper_unref(reserve);
 
     pa__done(m);
+
     return -1;
 }
 

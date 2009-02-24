@@ -1708,3 +1708,24 @@ char *pa_alsa_get_driver_name_by_pcm(snd_pcm_t *pcm) {
 
     return pa_alsa_get_driver_name(card);
 }
+
+char *pa_alsa_get_reserve_name(const char *device) {
+    const char *t;
+    int i;
+
+    pa_assert(device);
+
+    if ((t = strchr(device, ':')))
+        device = t+1;
+
+    if ((i = snd_card_get_index(device)) < 0) {
+        int32_t k;
+
+        if (pa_atoi(device, &k) < 0)
+            return NULL;
+
+        i = (int) k;
+    }
+
+    return pa_sprintf_malloc("Audio%i", i);
+}

@@ -136,4 +136,6 @@ char *pa_alsa_get_driver_name(int card);
 
 char *pa_alsa_get_driver_name_by_pcm(snd_pcm_t *pcm);
 
+char *pa_alsa_get_reserve_name(const char *device);
+
 #endif

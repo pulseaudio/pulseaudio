@@ -1309,8 +1309,14 @@ libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
 if HAVE_HAL
 libalsa_util_la_SOURCES += modules/hal-util.h modules/hal-util.c
-libalsa_util_la_LIBADD += $(HAL_LIBS) libdbus-util.la
+libalsa_util_la_LIBADD += $(HAL_LIBS)
 libalsa_util_la_CFLAGS += $(HAL_CFLAGS)
+endif
+
+if HAVE_DBUS
+libalsa_util_la_SOURCES += modules/reserve.h modules/reserve.c modules/reserve-wrap.c modules/reserve-wrap.h
+libalsa_util_la_LIBADD += $(DBUS_LIBS)
+libalsa_util_la_CFLAGS += $(DBUS_CFLAGS)
 endif
 
 module_alsa_sink_la_SOURCES = modules/alsa/module-alsa-sink.c
@@ -1612,6 +1618,11 @@ update-sbc:
 	for i in $(BLUETOOTH_IPC_FILES); do \
 		wget -O /dev/null http://git.kernel.org/\?p=bluetooth/bluez.git\;a=blob_plain\;f=audio/$$i ; \
 		wget -O modules/bluetooth/$$i http://git.kernel.org/\?p=bluetooth/bluez.git\;a=blob_plain\;f=audio/$$i ; \
+	done
+
+update-reserve:
+	for i in reserve.c reserve.h ; do \
+		wget -O modules/$$i http://git.0pointer.de/\?p=reserve.git\;a=blob_plain\;f=$$i\;hb=master ; \
 	done
 
 # Automatically generate linker version script. We use the same one for all public .sos

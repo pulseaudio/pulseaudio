@@ -54,6 +54,8 @@
 #include <pulsecore/time-smoother.h>
 #include <pulsecore/rtclock.h>
 
+#include <modules/reserve-wrap.h>
+
 #include "alsa-util.h"
 #include "alsa-source.h"
 
@@ -99,9 +101,61 @@ struct userdata {
 
     pa_smoother *smoother;
     uint64_t read_count;
+
+    pa_reserve_wrapper *reserve;
+    pa_hook_slot *reserve_slot;
 };
 
 static void userdata_free(struct userdata *u);
+
+static pa_hook_result_t reserve_cb(pa_reserve_wrapper *r, void *forced, struct userdata *u) {
+    pa_assert(r);
+    pa_assert(u);
+
+    if (pa_source_suspend(u->source, TRUE) < 0)
+        return PA_HOOK_CANCEL;
+
+    return PA_HOOK_OK;
+}
+
+static void reserve_done(struct userdata *u) {
+    pa_assert(u);
+
+    if (u->reserve_slot) {
+        pa_hook_slot_free(u->reserve_slot);
+        u->reserve_slot = NULL;
+    }
+
+    if (u->reserve) {
+        pa_reserve_wrapper_unref(u->reserve);
+        u->reserve = NULL;
+    }
+}
+
+static int reserve_init(struct userdata *u, const char *dname) {
+    char *rname;
+
+    pa_assert(u);
+    pa_assert(dname);
+
+    if (u->reserve)
+        return 0;
+
+    /* We are resuming, try to lock the device */
+    if (!(rname = pa_alsa_get_reserve_name(dname)))
+        return 0;
+
+    u->reserve = pa_reserve_wrapper_get(u->core, rname);
+    pa_xfree(rname);
+
+    if (!(u->reserve))
+        return -1;
+
+    pa_assert(!u->reserve_slot);
+    u->reserve_slot = pa_hook_connect(pa_reserve_wrapper_hook(u->reserve), PA_HOOK_NORMAL, (pa_hook_cb_t) reserve_cb, u);
+
+    return 0;
+}
 
 static void fix_min_sleep_wakeup(struct userdata *u) {
     size_t max_use, max_use_2;
@@ -765,6 +819,25 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
     return pa_source_process_msg(o, code, data, offset, chunk);
 }
 
+/* Called from main context */
+static int source_set_state_cb(pa_source *s, pa_source_state_t new_state) {
+    pa_source_state_t old_state;
+    struct userdata *u;
+
+    pa_source_assert_ref(s);
+    pa_assert_se(u = s->userdata);
+
+    old_state = pa_source_get_state(u->source);
+
+    if (PA_SINK_IS_OPENED(old_state) && new_state == PA_SINK_SUSPENDED)
+        reserve_done(u);
+    else if (old_state == PA_SINK_SUSPENDED && PA_SINK_IS_OPENED(new_state))
+        if (reserve_init(u, u->device_name) < 0)
+            return -1;
+
+    return 0;
+}
+
 static int mixer_callback(snd_mixer_elem_t *elem, unsigned int mask) {
     struct userdata *u = snd_mixer_elem_get_callback_private(elem);
 
@@ -1316,6 +1389,11 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     u->smoother = pa_smoother_new(DEFAULT_TSCHED_WATERMARK_USEC*2, DEFAULT_TSCHED_WATERMARK_USEC*2, TRUE, 5);
     pa_smoother_set_time_offset(u->smoother, pa_rtclock_usec());
 
+    if (reserve_init(u, pa_modargs_get_value(
+                             ma, "device_id",
+                             pa_modargs_get_value(ma, "device", DEFAULT_DEVICE))) < 0)
+        goto fail;
+
     b = use_mmap;
     d = use_tsched;
 
@@ -1414,6 +1492,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
 
     u->source->parent.process_msg = source_process_msg;
     u->source->update_requested_latency = source_update_requested_latency_cb;
+    u->source->set_state = source_set_state_cb;
     u->source->userdata = u;
 
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
@@ -1518,6 +1597,8 @@ static void userdata_free(struct userdata *u) {
 
     if (u->smoother)
         pa_smoother_free(u->smoother);
+
+    reserve_done(u);
 
     pa_xfree(u->device_name);
     pa_xfree(u);

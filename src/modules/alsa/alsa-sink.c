@@ -53,6 +53,8 @@
 #include <pulsecore/rtclock.h>
 #include <pulsecore/time-smoother.h>
 
+#include <modules/reserve-wrap.h>
+
 #include "alsa-util.h"
 #include "alsa-sink.h"
 
@@ -101,9 +103,61 @@ struct userdata {
     pa_smoother *smoother;
     uint64_t write_count;
     uint64_t since_start;
+
+    pa_reserve_wrapper *reserve;
+    pa_hook_slot *reserve_slot;
 };
 
 static void userdata_free(struct userdata *u);
+
+static pa_hook_result_t reserve_cb(pa_reserve_wrapper *r, void *forced, struct userdata *u) {
+    pa_assert(r);
+    pa_assert(u);
+
+    if (pa_sink_suspend(u->sink, TRUE) < 0)
+        return PA_HOOK_CANCEL;
+
+    return PA_HOOK_OK;
+}
+
+static void reserve_done(struct userdata *u) {
+    pa_assert(u);
+
+    if (u->reserve_slot) {
+        pa_hook_slot_free(u->reserve_slot);
+        u->reserve_slot = NULL;
+    }
+
+    if (u->reserve) {
+        pa_reserve_wrapper_unref(u->reserve);
+        u->reserve = NULL;
+    }
+}
+
+static int reserve_init(struct userdata *u, const char *dname) {
+    char *rname;
+
+    pa_assert(u);
+    pa_assert(dname);
+
+    if (u->reserve)
+        return 0;
+
+    /* We are resuming, try to lock the device */
+    if (!(rname = pa_alsa_get_reserve_name(dname)))
+        return 0;
+
+    u->reserve = pa_reserve_wrapper_get(u->core, rname);
+    pa_xfree(rname);
+
+    if (!(u->reserve))
+        return -1;
+
+    pa_assert(!u->reserve_slot);
+    u->reserve_slot = pa_hook_connect(pa_reserve_wrapper_hook(u->reserve), PA_HOOK_NORMAL, (pa_hook_cb_t) reserve_cb, u);
+
+    return 0;
+}
 
 static void fix_min_sleep_wakeup(struct userdata *u) {
     size_t max_use, max_use_2;
@@ -601,6 +655,7 @@ static int build_pollfd(struct userdata *u) {
     return 0;
 }
 
+/* Called from IO context */
 static int suspend(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->pcm_handle);
@@ -622,6 +677,7 @@ static int suspend(struct userdata *u) {
     return 0;
 }
 
+/* Called from IO context */
 static int update_sw_params(struct userdata *u) {
     snd_pcm_uframes_t avail_min;
     int err;
@@ -677,6 +733,7 @@ static int update_sw_params(struct userdata *u) {
     return 0;
 }
 
+/* Called from IO context */
 static int unsuspend(struct userdata *u) {
     pa_sample_spec ss;
     int err;
@@ -749,6 +806,7 @@ fail:
     return -1;
 }
 
+/* Called from IO context */
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
 
@@ -802,6 +860,25 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     }
 
     return pa_sink_process_msg(o, code, data, offset, chunk);
+}
+
+/* Called from main context */
+static int sink_set_state_cb(pa_sink *s, pa_sink_state_t new_state) {
+    pa_sink_state_t old_state;
+    struct userdata *u;
+
+    pa_sink_assert_ref(s);
+    pa_assert_se(u = s->userdata);
+
+    old_state = pa_sink_get_state(u->sink);
+
+    if (PA_SINK_IS_OPENED(old_state) && new_state == PA_SINK_SUSPENDED)
+        reserve_done(u);
+    else if (old_state == PA_SINK_SUSPENDED && PA_SINK_IS_OPENED(new_state))
+        if (reserve_init(u, u->device_name) < 0)
+            return -1;
+
+    return 0;
 }
 
 static int mixer_callback(snd_mixer_elem_t *elem, unsigned int mask) {
@@ -1468,6 +1545,11 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     pa_smoother_set_time_offset(u->smoother, usec);
     pa_smoother_pause(u->smoother, usec);
 
+    if (reserve_init(u, pa_modargs_get_value(
+                             ma, "device_id",
+                             pa_modargs_get_value(ma, "device", DEFAULT_DEVICE))) < 0)
+        goto fail;
+
     b = use_mmap;
     d = use_tsched;
 
@@ -1569,6 +1651,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
 
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->update_requested_latency = sink_update_requested_latency_cb;
+    u->sink->set_state = sink_set_state_cb;
     u->sink->userdata = u;
 
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
@@ -1680,6 +1763,8 @@ static void userdata_free(struct userdata *u) {
 
     if (u->smoother)
         pa_smoother_free(u->smoother);
+
+    reserve_done(u);
 
     pa_xfree(u->device_name);
     pa_xfree(u);
