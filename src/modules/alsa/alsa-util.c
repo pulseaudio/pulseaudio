@@ -1574,8 +1574,8 @@ snd_pcm_sframes_t pa_alsa_safe_avail(snd_pcm_t *pcm, size_t hwbuf_size, const pa
 
     k = (size_t) n * pa_frame_size(ss);
 
-    if (k >= hwbuf_size * 3 ||
-        k >= pa_bytes_per_second(ss)*10)
+    if (k >= hwbuf_size * 5 ||
+        k >= pa_bytes_per_second(ss)*10) {
 
         PA_ONCE_BEGIN {
             char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
@@ -1586,6 +1586,10 @@ snd_pcm_sframes_t pa_alsa_safe_avail(snd_pcm_t *pcm, size_t hwbuf_size, const pa
                    pa_strnull(dn));
             pa_xfree(dn);
         } PA_ONCE_END;
+
+        /* Mhmm, let's try not to fail completely */
+        n = (snd_pcm_sframes_t) (hwbuf_size / pa_frame_size(ss));
+    }
 
     return n;
 }
@@ -1610,8 +1614,8 @@ int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_sframes_t *delay, size_t hwbuf_si
 
     abs_k = k >= 0 ? (size_t) k : (size_t) -k;
 
-    if (abs_k >= hwbuf_size * 3 ||
-        abs_k >= pa_bytes_per_second(ss)*10)
+    if (abs_k >= hwbuf_size * 5 ||
+        abs_k >= pa_bytes_per_second(ss)*10) {
 
         PA_ONCE_BEGIN {
             char *dn = pa_alsa_get_driver_name_by_pcm(pcm);
@@ -1623,6 +1627,13 @@ int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_sframes_t *delay, size_t hwbuf_si
                    pa_strnull(dn));
             pa_xfree(dn);
         } PA_ONCE_END;
+
+        /* Mhmm, let's try not to fail completely */
+        if (k < 0)
+            *delay = -(snd_pcm_sframes_t) (hwbuf_size / pa_frame_size(ss));
+        else
+            *delay = (snd_pcm_sframes_t) (hwbuf_size / pa_frame_size(ss));
+    }
 
     return 0;
 }
