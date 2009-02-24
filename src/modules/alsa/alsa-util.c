@@ -1448,9 +1448,9 @@ void pa_alsa_init_proplist_pcm_info(pa_core *c, pa_proplist *p, snd_pcm_info_t *
         cn = pa_proplist_gets(p, "alsa.card_name");
     }
 
-    if (cn && n)
-        pa_proplist_setf(p, PA_PROP_DEVICE_DESCRIPTION, "%s - %s", cn, n);
-    else if (cn)
+    if (cn && n && !strstr(cn, n) && !strstr(n, cn))
+        pa_proplist_setf(p, PA_PROP_DEVICE_DESCRIPTION, "%s, %s", cn, n);
+    else if (cn && (!n || strstr(cn, n)))
         pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, cn);
     else if (n)
         pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, n);
