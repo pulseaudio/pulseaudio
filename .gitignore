@@ -1,3 +1,6 @@
+shave
+shave-libtool
+.*.swp
 ABOUT-NLS
 intltool-extract.in
 intltool-merge.in
