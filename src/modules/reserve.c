@@ -59,6 +59,8 @@ struct rd_device {
 static const char introspection[] =
 	DBUS_INTROSPECT_1_0_XML_DOCTYPE_DECL_NODE
 	"<node>"
+	" <!-- If you are looking for documentation make sure to check out\n"
+	"      http://git.0pointer.de/?p=reserve.git;a=blob;f=reserve.txt -->\n"
 	" <interface name=\"org.freedesktop.ReserveDevice1\">"
 	"  <method name=\"RequestRelease\">"
 	"   <arg name=\"priority\" type=\"i\" direction=\"in\"/>"
@@ -461,8 +463,17 @@ int rd_acquire(
 	if (!(reply = dbus_connection_send_with_reply_and_block(
 		      d->connection,
 		      m,
-		      -1,
+		      5000, /* 5s */
 		      error))) {
+
+		if (dbus_error_has_name(error, DBUS_ERROR_TIMED_OUT) ||
+		    dbus_error_has_name(error, DBUS_ERROR_UNKNOWN_METHOD) ||
+		    dbus_error_has_name(error, DBUS_ERROR_NO_REPLY)) {
+			/* This must be treated as denied. */
+			r = -EBUSY;
+			goto fail;
+		}
+
 		r = -EIO;
 		goto fail;
 	}
