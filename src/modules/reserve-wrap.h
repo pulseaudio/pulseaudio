@@ -33,4 +33,6 @@ void pa_reserve_wrapper_unref(pa_reserve_wrapper *r);
 
 pa_hook* pa_reserve_wrapper_hook(pa_reserve_wrapper *r);
 
+void pa_reserve_wrapper_set_application_device_name(pa_reserve_wrapper *r, const char *name);
+
 #endif

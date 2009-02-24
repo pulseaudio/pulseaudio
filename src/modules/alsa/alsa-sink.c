@@ -134,6 +134,17 @@ static void reserve_done(struct userdata *u) {
     }
 }
 
+static void reserve_update(struct userdata *u) {
+    const char *description;
+    pa_assert(u);
+
+    if (!u->sink)
+        return;
+
+    if ((description = pa_proplist_gets(u->sink->proplist, PA_PROP_DEVICE_DESCRIPTION)))
+        pa_reserve_wrapper_set_application_device_name(u->reserve, description);
+}
+
 static int reserve_init(struct userdata *u, const char *dname) {
     char *rname;
 
@@ -152,6 +163,8 @@ static int reserve_init(struct userdata *u, const char *dname) {
 
     if (!(u->reserve))
         return -1;
+
+    reserve_update(u);
 
     pa_assert(!u->reserve_slot);
     u->reserve_slot = pa_hook_connect(pa_reserve_wrapper_hook(u->reserve), PA_HOOK_NORMAL, (pa_hook_cb_t) reserve_cb, u);
@@ -1683,6 +1696,8 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     if (use_tsched)
         pa_log_info("Time scheduling watermark is %0.2fms",
                     (double) pa_bytes_to_usec(u->tsched_watermark, &ss) / PA_USEC_PER_MSEC);
+
+    reserve_update(u);
 
     if (update_sw_params(u) < 0)
         goto fail;

@@ -123,7 +123,7 @@ pa_reserve_wrapper* pa_reserve_wrapper_get(pa_core *c, const char *device_name) 
                  _("PulseAudio Sound Server"),
                  0,
                  request_cb,
-                 &error)) < 0) {
+                 NULL)) < 0) {
 
         pa_log_error("Failed to acquire reservation lock on device '%s': %s", device_name, pa_cstrerror(-k));
         goto fail;
@@ -136,7 +136,10 @@ pa_reserve_wrapper* pa_reserve_wrapper_get(pa_core *c, const char *device_name) 
     return r;
 
 fail:
+    dbus_error_free(&error);
+
     reserve_wrapper_free(r);
+
     return NULL;
 }
 
@@ -155,4 +158,11 @@ pa_hook* pa_reserve_wrapper_hook(pa_reserve_wrapper *r) {
     pa_assert(PA_REFCNT_VALUE(r) >= 1);
 
     return &r->hook;
+}
+
+void pa_reserve_wrapper_set_application_device_name(pa_reserve_wrapper *r, const char *name) {
+    pa_assert(r);
+    pa_assert(PA_REFCNT_VALUE(r) >= 1);
+
+    rd_set_application_device_name(r->device, name);
 }

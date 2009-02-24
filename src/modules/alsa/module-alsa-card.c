@@ -282,6 +282,7 @@ int pa__init(pa_module *m) {
     struct userdata *u;
     char rname[32];
     pa_reserve_wrapper *reserve = NULL;
+    const char *description;
 
     pa_alsa_redirect_errors_inc();
     snd_config_update_free_global();
@@ -318,6 +319,10 @@ int pa__init(pa_module *m) {
     pa_alsa_init_proplist_card(m->core, data.proplist, alsa_card_index);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_id);
     set_card_name(&data, ma, u->device_id);
+
+    if (reserve)
+        if ((description = pa_proplist_gets(data.proplist, PA_PROP_DEVICE_DESCRIPTION)))
+            pa_reserve_wrapper_set_application_device_name(reserve, description);
 
     u->profiles = data.profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     if (pa_alsa_probe_profiles(u->device_id, &m->core->default_sample_spec, enumerate_cb, u) < 0) {
