@@ -255,6 +255,7 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
     pa_bool_t work_done = TRUE;
     pa_usec_t max_sleep_usec = 0, process_usec = 0;
     size_t left_to_play;
+    unsigned j = 0;
 
     pa_assert(u);
     pa_sink_assert_ref(u->sink);
@@ -317,6 +318,15 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
 #ifdef DEBUG_TIMING
             pa_log_debug("Not filling up, because not necessary.");
 #endif
+            break;
+        }
+
+
+        if (++j > 10) {
+#ifdef DEBUG_TIMING
+            pa_log_debug("Not filling up, because already too many iterations.");
+#endif
+
             break;
         }
 
@@ -399,6 +409,7 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
     pa_bool_t work_done = FALSE;
     pa_usec_t max_sleep_usec = 0, process_usec = 0;
     size_t left_to_play;
+    unsigned j = 0;
 
     pa_assert(u);
     pa_sink_assert_ref(u->sink);
@@ -445,6 +456,14 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
                            pa_strnull(dn));
                     pa_xfree(dn);
                 } PA_ONCE_END;
+
+            break;
+        }
+
+        if (++j > 10) {
+#ifdef DEBUG_TIMING
+            pa_log_debug("Not filling up, because already too many iterations.");
+#endif
 
             break;
         }

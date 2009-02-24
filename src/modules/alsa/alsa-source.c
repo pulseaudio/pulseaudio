@@ -248,6 +248,7 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
     pa_bool_t work_done = FALSE;
     pa_usec_t max_sleep_usec = 0, process_usec = 0;
     size_t left_to_record;
+    unsigned j = 0;
 
     pa_assert(u);
     pa_source_assert_ref(u->source);
@@ -300,6 +301,14 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
 #ifdef DEBUG_TIMING
             pa_log_debug("Not reading, because not necessary.");
 #endif
+            break;
+        }
+
+        if (++j > 10) {
+#ifdef DEBUG_TIMING
+            pa_log_debug("Not filling up, because already too many iterations.");
+#endif
+
             break;
         }
 
@@ -381,6 +390,7 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
     int work_done = FALSE;
     pa_usec_t max_sleep_usec = 0, process_usec = 0;
     size_t left_to_record;
+    unsigned j = 0;
 
     pa_assert(u);
     pa_source_assert_ref(u->source);
@@ -420,6 +430,14 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
                            pa_strnull(dn));
                     pa_xfree(dn);
                 } PA_ONCE_END;
+
+            break;
+        }
+
+        if (++j > 10) {
+#ifdef DEBUG_TIMING
+            pa_log_debug("Not filling up, because already too many iterations.");
+#endif
 
             break;
         }
