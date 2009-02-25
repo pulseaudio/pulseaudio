@@ -921,7 +921,7 @@ static int hsp_process_push(struct userdata *u) {
             if (l < 0 && errno == EINTR)
                 continue;
             else {
-                pa_log_error("Failed to read data from SCO socket: %s", ret < 0 ? pa_cstrerror(errno) : "EOF");
+                pa_log_error("Failed to read data from SCO socket: %s", l < 0 ? pa_cstrerror(errno) : "EOF");
                 ret = -1;
                 break;
             }
