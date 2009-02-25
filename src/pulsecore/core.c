@@ -250,3 +250,14 @@ int pa_core_exit(pa_core *c, pa_bool_t force, int retval) {
     c->mainloop->quit(c->mainloop, retval);
     return 0;
 }
+
+void pa_core_maybe_vacuum(pa_core *c) {
+    pa_assert(c);
+
+    if (!pa_idxset_isempty(c->sink_inputs) ||
+        !pa_idxset_isempty(c->source_outputs))
+        return;
+
+    pa_log_debug("Hmm, no streams around, trying to vacuum.");
+    pa_mempool_vacuum(c->mempool);
+}

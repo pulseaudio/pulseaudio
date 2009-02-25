@@ -468,6 +468,8 @@ void pa_sink_input_unlink(pa_sink_input *i) {
         i->sink = NULL;
     }
 
+    pa_core_maybe_vacuum(i->core);
+
     pa_sink_input_unref(i);
 }
 

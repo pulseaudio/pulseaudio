@@ -171,4 +171,6 @@ void pa_core_check_idle(pa_core *c);
 
 int pa_core_exit(pa_core *c, pa_bool_t force, int retval);
 
+void pa_core_maybe_vacuum(pa_core *c);
+
 #endif

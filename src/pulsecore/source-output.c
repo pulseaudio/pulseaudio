@@ -335,6 +335,8 @@ void pa_source_output_unlink(pa_source_output*o) {
         o->source = NULL;
     }
 
+    pa_core_maybe_vacuum(o->core);
+
     pa_source_output_unref(o);
 }
 
