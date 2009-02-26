@@ -156,7 +156,7 @@ PA_C_DECL_BEGIN
 /** For devices: device class. One of "sound", "modem", "monitor", "filter" */
 #define PA_PROP_DEVICE_CLASS                   "device.class"
 
-/** For devices: form factor if applicable. One of "laptop-speakers", "external-speakers", "telephone", "tv-capture", "webcam-capture", "microphone-capture", "headset", "headphones", "hands-free", "car", "hifi", "computer", "portable" */
+/** For devices: form factor if applicable. One of "internal-speakers", "external-speakers", "handset", "tv-capture", "webcam", "microphone", "headset", "headphones", "hands-free", "car", "hifi", "computer", "portable" */
 #define PA_PROP_DEVICE_FORM_FACTOR             "device.form_factor"
 
 /** For devices: connector of the device if applicable. One of "isa", "pci", "usb", "firewire", "bluetooth" */
