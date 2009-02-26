@@ -1363,7 +1363,7 @@ static void sco_over_pcm_state_update(struct userdata *u) {
     if (PA_SINK_IS_OPENED(pa_sink_get_state(u->hsp.sco_sink)) ||
         PA_SOURCE_IS_OPENED(pa_source_get_state(u->hsp.sco_source))) {
 
-        if (u->service_fd > 0)
+        if (u->service_fd >= 0)
             return;
 
         pa_log_debug("Resuming SCO over PCM");
@@ -1372,7 +1372,7 @@ static void sco_over_pcm_state_update(struct userdata *u) {
 
     } else {
 
-        if (u->service_fd <= 0)
+        if (u->service_fd < 0)
             return;
 
         pa_log_debug("Closing SCO over PCM");
