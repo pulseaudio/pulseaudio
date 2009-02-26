@@ -2505,7 +2505,7 @@ char *pa_machine_id(void) {
 char *pa_uname_string(void) {
     struct utsname u;
 
-    pa_assert_se(uname(&u) == 0);
+    pa_assert_se(uname(&u) >= 0);
 
     return pa_sprintf_malloc("%s %s %s %s", u.sysname, u.machine, u.release, u.version);
 }

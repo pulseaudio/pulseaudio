@@ -27,8 +27,11 @@
 #include <stddef.h>
 #include <time.h>
 #include <sys/time.h>
-#include <sys/prctl.h>
 #include <errno.h>
+
+#ifdef HAVE_SYS_PRCTL_H
+#include <sys/prctl.h>
+#endif
 
 #include <pulse/timeval.h>
 #include <pulsecore/macro.h>

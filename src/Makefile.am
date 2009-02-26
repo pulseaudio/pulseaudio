@@ -713,8 +713,11 @@ libpulse_la_SOURCES = \
 		pulse/xmalloc.c pulse/xmalloc.h
 
 libpulse_la_CFLAGS = $(AM_CFLAGS)
-libpulse_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(LIBPULSE_VERSION_INFO) -Wl,-version-script=$(srcdir)/map-file
 libpulse_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) $(LTLIBICONV) libpulsecommon-@PA_MAJORMINORMICRO@.la
+libpulse_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(LIBPULSE_VERSION_INFO)
+if HAVE_GNU_LD
+libpulse_la_LDFLAGS += -Wl,-version-script=$(srcdir)/map-file
+endif
 
 if HAVE_X11
 libpulse_la_SOURCES += pulse/client-conf-x11.c pulse/client-conf-x11.h
@@ -725,17 +728,26 @@ endif
 libpulse_simple_la_SOURCES = pulse/simple.c pulse/simple.h
 libpulse_simple_la_CFLAGS = $(AM_CFLAGS)
 libpulse_simple_la_LIBADD = $(AM_LIBADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@.la
-libpulse_simple_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(LIBPULSE_SIMPLE_VERSION_INFO) -Wl,-version-script=$(srcdir)/map-file
+libpulse_simple_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(LIBPULSE_SIMPLE_VERSION_INFO)
+if HAVE_GNU_LD
+libpulse_simple_la_LDFLAGS += -Wl,-version-script=$(srcdir)/map-file
+endif
 
 libpulse_browse_la_SOURCES = pulse/browser.c pulse/browser.h pulsecore/avahi-wrap.c pulsecore/avahi-wrap.h
 libpulse_browse_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
 libpulse_browse_la_LIBADD = $(AM_LIBADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@.la $(AVAHI_LIBS)
-libpulse_browse_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(LIBPULSE_BROWSE_VERSION_INFO) -Wl,-version-script=$(srcdir)/map-file
+libpulse_browse_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(LIBPULSE_BROWSE_VERSION_INFO)
+if HAVE_GNU_LD
+libpulse_browse_la_LDFLAGS += -Wl,-version-script=$(srcdir)/map-file
+endif
 
 libpulse_mainloop_glib_la_SOURCES = pulse/glib-mainloop.h pulse/glib-mainloop.c
 libpulse_mainloop_glib_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
 libpulse_mainloop_glib_la_LIBADD = $(AM_LIBADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@.la $(GLIB20_LIBS)
-libpulse_mainloop_glib_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO) -Wl,-version-script=$(srcdir)/map-file
+libpulse_mainloop_glib_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO)
+if HAVE_GNU_LD
+libpulse_mainloop_glib_la_LDFLAGS += -Wl,-version-script=$(srcdir)/map-file
+endif
 
 ###################################
 #         OSS emulation           #

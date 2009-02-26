@@ -51,7 +51,12 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/strbuf.h>
 #include <pulsecore/random.h>
+
+#ifdef HAVE_POLL_H
+#include <poll.h>
+#else
 #include <pulsecore/poll.h>
+#endif
 
 #include "raop_client.h"
 #include "rtsp_client.h"

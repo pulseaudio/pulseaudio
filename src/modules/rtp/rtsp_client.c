@@ -43,8 +43,13 @@
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/strbuf.h>
-#include <pulsecore/poll.h>
 #include <pulsecore/ioline.h>
+
+#ifdef HAVE_POLL_H
+#include <poll.h>
+#else
+#include <pulsecore/poll.h>
+#endif
 
 #include "rtsp_client.h"
 

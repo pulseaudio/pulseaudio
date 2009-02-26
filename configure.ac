@@ -70,8 +70,7 @@ fi
 
 case $host in
    *-*-solaris* )
-      AC_DEFINE(_XOPEN_SOURCE_EXTENDED, 1, Needed to get declarations for msg_control and msg_controllen on Solaris)
-      AC_DEFINE(_XOPEN_SOURCE,          2, Needed to get declarations for msg_control and msg_controllen on Solaris)
+      AC_DEFINE(_XOPEN_SOURCE,        600, Needed to get declarations for msg_control and msg_controllen on Solaris)
       AC_DEFINE(__EXTENSIONS__,         1, Needed to get declarations for msg_control and msg_controllen on Solaris)
       ;;
 esac
@@ -92,10 +91,19 @@ AC_USE_SYSTEM_EXTENSIONS
 
 # M4
 
-AC_PATH_PROG([M4], [m4 gm4], [no])
+AC_CHECK_PROGS([M4], gm4 m4, no)
 if test "x$M4" = xno ; then
    AC_MSG_ERROR([m4 missing])
 fi
+
+# Linker
+
+AC_PROG_LD
+AC_PROG_LD_GNU
+
+AC_SUBST(HAVE_GNU_LD)
+AM_CONDITIONAL([HAVE_GNU_LD], [test "x$HAVE_GNU_LD" = x1])
+
 
 dnl Compiler flags
 DESIRED_FLAGS="-Wall -W -Wextra -pipe -Wno-long-long -Winline -Wvla -Wno-overlength-strings -Wunsafe-loop-optimizations -Wundef -Wformat=2 -Wlogical-op -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wcast-align -Wstrict-aliasing=2 -Wwrite-strings -Wno-unused-parameter -ffast-math -Wp,-D_FORTIFY_SOURCE=2 -fno-common -fdiagnostics-show-option"
@@ -1059,7 +1067,7 @@ if test "x$HAVE_HAL" = x1 ; then
    dbus=yes
 fi
 
-if test "x${dbus}" != xno || test "x${bluez}" != xno || "x${hal}" != xno ; then
+if test "x${dbus}" != xno || test "x${bluez}" != xno || test "x${hal}" != xno ; then
 
     PKG_CHECK_MODULES(DBUS, [ dbus-1 >= 1.0.0 ],
         [
