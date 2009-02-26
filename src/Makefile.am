@@ -1315,7 +1315,7 @@ endif
 
 if HAVE_DBUS
 libalsa_util_la_SOURCES += modules/reserve.h modules/reserve.c modules/reserve-wrap.c modules/reserve-wrap.h
-libalsa_util_la_LIBADD += $(DBUS_LIBS)
+libalsa_util_la_LIBADD += $(DBUS_LIBS) libdbus-util.la
 libalsa_util_la_CFLAGS += $(DBUS_CFLAGS)
 endif
 
