@@ -61,10 +61,11 @@
 /* #define DEBUG_TIMING */
 
 #define DEFAULT_DEVICE "default"
-#define DEFAULT_TSCHED_BUFFER_USEC (2*PA_USEC_PER_SEC)            /* 2s */
-#define DEFAULT_TSCHED_WATERMARK_USEC (20*PA_USEC_PER_MSEC)       /* 20ms */
-#define TSCHED_MIN_SLEEP_USEC (10*PA_USEC_PER_MSEC)               /* 10ms */
-#define TSCHED_MIN_WAKEUP_USEC (4*PA_USEC_PER_MSEC)               /* 4ms */
+#define DEFAULT_TSCHED_BUFFER_USEC (2*PA_USEC_PER_SEC)            /* 2s   -- Overall buffer size */
+#define DEFAULT_TSCHED_WATERMARK_USEC (20*PA_USEC_PER_MSEC)       /* 20ms -- Fill up when only this much is left in the buffer */
+#define TSCHED_WATERMARK_STEP_USEC (10*PA_USEC_PER_MSEC)          /* 10ms -- On underrun, increase watermark by this */
+#define TSCHED_MIN_SLEEP_USEC (10*PA_USEC_PER_MSEC)               /* 10ms -- Sleep at least 10ms on each iteration */
+#define TSCHED_MIN_WAKEUP_USEC (4*PA_USEC_PER_MSEC)               /* 4ms  -- Wakeup at least this long before the buffer runs empty*/
 
 struct userdata {
     pa_core *core;
@@ -86,7 +87,16 @@ struct userdata {
     pa_bool_t mixer_seperate_channels:1;
     pa_cvolume hardware_volume;
 
-    size_t frame_size, fragment_size, hwbuf_size, tsched_watermark, hwbuf_unused, min_sleep, min_wakeup;
+    size_t
+        frame_size,
+        fragment_size,
+        hwbuf_size,
+        tsched_watermark,
+        hwbuf_unused,
+        min_sleep,
+        min_wakeup,
+        watermark_step;
+
     unsigned nfragments;
     pa_memchunk memchunk;
 
@@ -205,10 +215,11 @@ static void adjust_after_underrun(struct userdata *u) {
     pa_usec_t old_min_latency, new_min_latency;
 
     pa_assert(u);
+    pa_assert(u->use_tsched);
 
     /* First, just try to increase the watermark */
     old_watermark = u->tsched_watermark;
-    u->tsched_watermark *= 2;
+    u->tsched_watermark = PA_MIN(u->tsched_watermark * 2, u->tsched_watermark + u->watermark_step);
     fix_tsched_watermark(u);
 
     if (old_watermark != u->tsched_watermark) {
@@ -219,7 +230,8 @@ static void adjust_after_underrun(struct userdata *u) {
 
     /* Hmm, we cannot increase the watermark any further, hence let's raise the latency */
     old_min_latency = u->sink->thread_info.min_latency;
-    new_min_latency = PA_MIN(old_min_latency * 2, u->sink->thread_info.max_latency);
+    new_min_latency = PA_MIN(old_min_latency * 2, old_min_latency + TSCHED_WATERMARK_STEP_USEC);
+    new_min_latency = PA_MIN(new_min_latency, u->sink->thread_info.max_latency);
 
     if (old_min_latency != new_min_latency) {
         pa_log_notice("Increasing minimal latency to %0.2f ms",
@@ -1680,6 +1692,8 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     if (use_tsched) {
         fix_min_sleep_wakeup(u);
         fix_tsched_watermark(u);
+
+        u->watermark_step = pa_usec_to_bytes(TSCHED_WATERMARK_STEP_USEC, &u->sink->sample_spec);
     }
 
     u->sink->thread_info.max_rewind = use_tsched ? u->hwbuf_size : 0;
