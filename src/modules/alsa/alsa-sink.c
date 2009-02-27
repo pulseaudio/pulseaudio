@@ -1496,7 +1496,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
 
     struct userdata *u = NULL;
     const char *dev_id = NULL;
-    pa_sample_spec ss;
+    pa_sample_spec ss, requested_ss;
     pa_channel_map map;
     uint32_t nfrags, hwbuf_size, frag_size, tsched_size, tsched_watermark;
     snd_pcm_uframes_t period_frames, tsched_frames;
@@ -1515,6 +1515,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         goto fail;
     }
 
+    requested_ss = ss;
     frame_size = pa_frame_size(&ss);
 
     nfrags = m->core->default_n_fragments;
@@ -1686,7 +1687,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     u->fragment_size = frag_size = (uint32_t) (period_frames * frame_size);
     u->nfragments = nfrags;
     u->hwbuf_size = u->fragment_size * nfrags;
-    u->tsched_watermark = tsched_watermark;
+    u->tsched_watermark = pa_usec_to_bytes_round_up(pa_bytes_to_usec_round_up(tsched_watermark, &requested_ss), &u->sink->sample_spec);
     pa_cvolume_mute(&u->hardware_volume, u->sink->sample_spec.channels);
 
     if (use_tsched) {
