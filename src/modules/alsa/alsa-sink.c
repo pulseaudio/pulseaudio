@@ -148,7 +148,7 @@ static void reserve_update(struct userdata *u) {
     const char *description;
     pa_assert(u);
 
-    if (!u->sink)
+    if (!u->sink || !u->reserve)
         return;
 
     if ((description = pa_proplist_gets(u->sink->proplist, PA_PROP_DEVICE_DESCRIPTION)))
