@@ -811,8 +811,8 @@ const char*pa_bluetooth_get_form_factor(uint32_t class) {
         [1] = "headset",
         [2] = "hands-free",
         [4] = "microphone",
-        [5] = "external-speakers",
-        [6] = "headphones",
+        [5] = "speaker",
+        [6] = "headphone",
         [7] = "portable",
         [8] = "car",
         [10] = "hifi"
