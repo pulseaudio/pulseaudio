@@ -171,6 +171,12 @@ PA_C_DECL_BEGIN
 /** For devices: bus of the device if applicable. One of "isa", "pci", "usb", "firewire", "bluetooth" */
 #define PA_PROP_DEVICE_BUS                     "device.bus"
 
+/** For devices: icon for the device. A binary blob containing PNG image data */
+#define PA_PROP_DEVICE_ICON                    "device.icon"
+
+/** For devices: an XDG icon name for the device. e.g. "sound-card-speakers-usb" */
+#define PA_PROP_DEVICE_ICON_NAME               "device.icon_name"
+
 /** For devices: access mode of the device if applicable. One of "mmap", "mmap_rewrite", "serial" */
 #define PA_PROP_DEVICE_ACCESS_MODE             "device.access_mode"
 

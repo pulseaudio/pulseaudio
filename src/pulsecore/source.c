@@ -163,6 +163,9 @@ pa_source* pa_source_new(
     if (data->card)
         pa_proplist_update(data->proplist, PA_UPDATE_MERGE, data->card->proplist);
 
+    pa_device_init_description(data->proplist);
+    pa_device_init_icon(data->proplist, FALSE);
+
     if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_FIXATE], data) < 0) {
         pa_xfree(s);
         pa_namereg_unregister(core, name);

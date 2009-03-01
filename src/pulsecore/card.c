@@ -160,6 +160,9 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     c->userdata = NULL;
     c->set_profile = NULL;
 
+    pa_device_init_description(c->proplist);
+    pa_device_init_icon(c->proplist, TRUE);
+
     pa_assert_se(pa_idxset_put(core->cards, c, &c->index) >= 0);
 
     pa_log_info("Created %u \"%s\"", c->index, c->name);

@@ -1366,33 +1366,24 @@ void pa_alsa_redirect_errors_dec(void) {
         snd_lib_error_set_handler(NULL);
 }
 
-void pa_alsa_set_description(pa_proplist *p) {
+pa_bool_t pa_alsa_init_description(pa_proplist *p) {
     const char *s;
     pa_assert(p);
 
-    if (pa_proplist_contains(p, PA_PROP_DEVICE_DESCRIPTION))
-        return;
-
-    if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_FORM_FACTOR)))
-        if (pa_streq(s, "internal")) {
-            pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, _("Internal Audio"));
-            return;
-        }
-
-    if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_PRODUCT_NAME))) {
-        pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, s);
-        return;
-    }
+    if (pa_device_init_description(p))
+        return TRUE;
 
     if ((s = pa_proplist_gets(p, "alsa.card_name"))) {
         pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, s);
-        return;
+        return TRUE;
     }
 
     if ((s = pa_proplist_gets(p, "alsa.name"))) {
         pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, s);
-        return;
+        return TRUE;
     }
+
+    return FALSE;
 }
 
 void pa_alsa_init_proplist_card(pa_core *c, pa_proplist *p, int card) {

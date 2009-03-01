@@ -225,6 +225,9 @@ void pa_sink_attach(pa_sink *s);
 
 void pa_sink_set_soft_volume(pa_sink *s, const pa_cvolume *volume);
 
+pa_bool_t pa_device_init_description(pa_proplist *p);
+pa_bool_t pa_device_init_icon(pa_proplist *p, pa_bool_t is_sink);
+
 /**** May be called by everyone, from main context */
 
 /* The returned value is supposed to be in the time domain of the sound card! */
