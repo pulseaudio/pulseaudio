@@ -72,6 +72,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
+        "description=<description for the sink> "
         "server=<address>  "
         "format=<sample format> "
         "channels=<number of channels> "
@@ -122,6 +123,7 @@ static const char* const valid_modargs[] = {
     "format",
     "channels",
     "sink_name",
+    "description",
     NULL
 };
 
@@ -502,7 +504,7 @@ int pa__init(pa_module*m) {
     struct userdata *u = NULL;
     pa_sample_spec ss;
     pa_modargs *ma = NULL;
-    const char *server;
+    const char *server, *desc;
     pa_sink_new_data data;
 
     pa_assert(m);
@@ -564,7 +566,10 @@ int pa__init(pa_module*m) {
     pa_sink_new_data_set_name(&data, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME));
     pa_sink_new_data_set_sample_spec(&data, &ss);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, server);
-    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "RAOP sink '%s'", server);
+    if ((desc = pa_modargs_get_value(ma, "description", NULL)))
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, desc);
+    else
+        pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "RAOP sink '%s'", server);
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY|PA_SINK_NETWORK);
     pa_sink_new_data_done(&data);
