@@ -318,6 +318,7 @@ int pa__init(pa_module *m) {
     data.module = m;
     pa_alsa_init_proplist_card(m->core, data.proplist, alsa_card_index);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_id);
+    pa_alsa_set_description(data.proplist);
     set_card_name(&data, ma, u->device_id);
 
     if (reserve)

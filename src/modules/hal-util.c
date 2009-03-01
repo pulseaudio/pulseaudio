@@ -89,6 +89,9 @@ int pa_hal_get_info(pa_core *core, pa_proplist *p, int card) {
 
     pa_proplist_sets(p, "hal.udi", udis[i]);
 
+    /* The data HAL stores in info.product is not actually a product
+     * string but simply the ALSA card name. We will hence not write
+     * it to PA_PROP_DEVICE_PRODUCT_NAME */
     t = libhal_device_get_property_string(hal, udis[i], "info.product", &error);
     if (dbus_error_is_set(&error))
         dbus_error_free(&error);

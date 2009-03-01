@@ -47,6 +47,10 @@
 #include "hal-util.h"
 #endif
 
+#ifdef HAVE_UDEV
+#include "udev-util.h"
+#endif
+
 struct pa_alsa_fdlist {
     unsigned num_fds;
     struct pollfd *fds;
@@ -1362,6 +1366,35 @@ void pa_alsa_redirect_errors_dec(void) {
         snd_lib_error_set_handler(NULL);
 }
 
+void pa_alsa_set_description(pa_proplist *p) {
+    const char *s;
+    pa_assert(p);
+
+    if (pa_proplist_contains(p, PA_PROP_DEVICE_DESCRIPTION))
+        return;
+
+    if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_FORM_FACTOR)))
+        if (pa_streq(s, "internal")) {
+            pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, _("Internal Audio"));
+            return;
+        }
+
+    if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_PRODUCT_NAME))) {
+        pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, s);
+        return;
+    }
+
+    if ((s = pa_proplist_gets(p, "alsa.card_name"))) {
+        pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, s);
+        return;
+    }
+
+    if ((s = pa_proplist_gets(p, "alsa.name"))) {
+        pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, s);
+        return;
+    }
+}
+
 void pa_alsa_init_proplist_card(pa_core *c, pa_proplist *p, int card) {
     char *cn, *lcn, *dn;
 
@@ -1384,6 +1417,10 @@ void pa_alsa_init_proplist_card(pa_core *c, pa_proplist *p, int card) {
         pa_proplist_sets(p, "alsa.driver_name", dn);
         pa_xfree(dn);
     }
+
+#ifdef HAVE_UDEV
+    pa_udev_get_info(c, p, card);
+#endif
 
 #ifdef HAVE_HAL
     pa_hal_get_info(c, p, card);
@@ -1411,7 +1448,7 @@ void pa_alsa_init_proplist_pcm_info(pa_core *c, pa_proplist *p, snd_pcm_info_t *
 
     snd_pcm_class_t class;
     snd_pcm_subclass_t subclass;
-    const char *n, *id, *sdn, *cn = NULL;
+    const char *n, *id, *sdn;
     int card;
 
     pa_assert(p);
@@ -1426,6 +1463,7 @@ void pa_alsa_init_proplist_pcm_info(pa_core *c, pa_proplist *p, snd_pcm_info_t *
         if (alsa_class_table[class])
             pa_proplist_sets(p, "alsa.class", alsa_class_table[class]);
     }
+
     subclass = snd_pcm_info_get_subclass(pcm_info);
     if (subclass <= SND_PCM_SUBCLASS_LAST)
         if (alsa_subclass_table[subclass])
@@ -1443,17 +1481,8 @@ void pa_alsa_init_proplist_pcm_info(pa_core *c, pa_proplist *p, snd_pcm_info_t *
 
     pa_proplist_setf(p, "alsa.device", "%u", snd_pcm_info_get_device(pcm_info));
 
-    if ((card = snd_pcm_info_get_card(pcm_info)) >= 0) {
+    if ((card = snd_pcm_info_get_card(pcm_info)) >= 0)
         pa_alsa_init_proplist_card(c, p, card);
-        cn = pa_proplist_gets(p, "alsa.card_name");
-    }
-
-    if (cn && n && !strstr(cn, n) && !strstr(n, cn))
-        pa_proplist_setf(p, PA_PROP_DEVICE_DESCRIPTION, "%s, %s", cn, n);
-    else if (cn && (!n || strstr(cn, n)))
-        pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, cn);
-    else if (n)
-        pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, n);
 }
 
 void pa_alsa_init_proplist_pcm(pa_core *c, pa_proplist *p, snd_pcm_t *pcm) {

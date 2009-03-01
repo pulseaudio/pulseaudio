@@ -1313,6 +1313,12 @@ libalsa_util_la_LIBADD += $(HAL_LIBS)
 libalsa_util_la_CFLAGS += $(HAL_CFLAGS)
 endif
 
+if HAVE_UDEV
+libalsa_util_la_SOURCES += modules/udev-util.h modules/udev-util.c
+libalsa_util_la_LIBADD += $(UDEV_LIBS)
+libalsa_util_la_CFLAGS += $(UDEV_CFLAGS)
+endif
+
 if HAVE_DBUS
 libalsa_util_la_SOURCES += modules/reserve.h modules/reserve.c modules/reserve-wrap.c modules/reserve-wrap.h
 libalsa_util_la_LIBADD += $(DBUS_LIBS) libdbus-util.la

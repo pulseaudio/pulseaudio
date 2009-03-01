@@ -123,6 +123,7 @@ void pa_alsa_redirect_errors_dec(void);
 void pa_alsa_init_proplist_pcm_info(pa_core *c, pa_proplist *p, snd_pcm_info_t *pcm_info);
 void pa_alsa_init_proplist_card(pa_core *c, pa_proplist *p, int card);
 void pa_alsa_init_proplist_pcm(pa_core *c, pa_proplist *p, snd_pcm_t *pcm);
+void pa_alsa_set_description(pa_proplist *p);
 
 int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents);
 

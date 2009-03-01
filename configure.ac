@@ -977,6 +977,41 @@ AC_SUBST(HAL_LIBS)
 AC_SUBST(HAVE_HAL)
 AM_CONDITIONAL([HAVE_HAL], [test "x$HAVE_HAL" = x1])
 
+#### UDEV support (optional) ####
+
+AC_ARG_ENABLE([udev],
+    AS_HELP_STRING([--disable-udev],[Disable optional UDEV support]),
+        [
+            case "${enableval}" in
+                yes) udev=yes ;;
+                no) udev=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-udev) ;;
+            esac
+        ],
+        [udev=auto])
+if test "x${udev}" != xno -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x1" \) ; then
+    PKG_CHECK_MODULES(UDEV, [ libudev ],
+        [
+            HAVE_UDEV=1
+            AC_DEFINE([HAVE_UDEV], 1, [Have UDEV.])
+        ],
+        [
+            HAVE_UDEV=0
+            if test "x$udev" = xyes ; then
+                AC_MSG_ERROR([*** UDEV support not found])
+            fi
+        ])
+else
+    HAVE_UDEV=0
+fi
+
+AC_SUBST(UDEV_CFLAGS)
+AC_SUBST(UDEV_LIBS)
+AC_SUBST(HAVE_UDEV)
+AM_CONDITIONAL([HAVE_UDEV], [test "x$HAVE_UDEV" = x1])
+
+AC_DEFINE([LIBUDEV_I_KNOW_THE_API_IS_SUBJECT_TO_CHANGE], 1, [I know the API is subject to change.])
+
 #### BlueZ support (optional) ####
 
 AC_ARG_ENABLE([bluez],
@@ -1340,6 +1375,11 @@ if test "x$HAVE_HAL" = "x1" ; then
    ENABLE_HAL=yes
 fi
 
+ENABLE_UDEV=no
+if test "x$HAVE_UDEV" = "x1" ; then
+   ENABLE_UDEV=yes
+fi
+
 ENABLE_TCPWRAP=no
 if test "x${LIBWRAP_LIBS}" != x ; then
    ENABLE_TCPWRAP=yes
@@ -1399,6 +1439,7 @@ echo "
     Enable Async DNS:              ${ENABLE_LIBASYNCNS}
     Enable LIRC:                   ${ENABLE_LIRC}
     Enable HAL:                    ${ENABLE_HAL}
+    Enable udev:                   ${ENABLE_UDEV}
     Enable BlueZ:                  ${ENABLE_BLUEZ}
     Enable TCP Wrappers:           ${ENABLE_TCPWRAP}
     Enable libsamplerate:          ${ENABLE_LIBSAMPLERATE}
