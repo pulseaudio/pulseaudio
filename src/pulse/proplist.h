@@ -150,8 +150,17 @@ PA_C_DECL_BEGIN
 /** For devices: serial number if applicable. e.g. "4711-0815-1234" */
 #define PA_PROP_DEVICE_SERIAL                  "device.serial"
 
-/** For devices: vendor/product ID if applicable. e.g. 1274:1371 */
-#define PA_PROP_DEVICE_VENDOR_PRODUCT_ID       "device.vendor_product_id"
+/** For devices: vendor ID if applicable. e.g. 1274 */
+#define PA_PROP_DEVICE_VENDOR_ID               "device.vendor.id"
+
+/** For devices: vendor name if applicable. e.g. "Foocorp Heavy Industries" */
+#define PA_PROP_DEVICE_VENDOR_NAME             "device.vendor.name"
+
+/** For devices: product ID if applicable. e.g. 4565 */
+#define PA_PROP_DEVICE_PRODUCT_ID              "device.product.id"
+
+/** For devices: product name if applicable. e.g. "SuperSpeakers 2000 Pro" */
+#define PA_PROP_DEVICE_PRODUCT_NAME            "device.product.name"
 
 /** For devices: device class. One of "sound", "modem", "monitor", "filter" */
 #define PA_PROP_DEVICE_CLASS                   "device.class"
