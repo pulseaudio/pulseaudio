@@ -1728,7 +1728,7 @@ static int add_card(struct userdata *u, const char * default_profile) {
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device->address);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "bluez");
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_CLASS, "sound");
-    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_CONNECTOR, "bluetooth");
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_BUS, "bluetooth");
     if ((ff = pa_bluetooth_get_form_factor(u->device->class)))
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_FORM_FACTOR, ff);
     pa_proplist_sets(data.proplist, "bluez.path", u->device->path);
