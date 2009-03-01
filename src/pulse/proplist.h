@@ -45,8 +45,10 @@ PA_C_DECL_BEGIN
 /** For streams: source filename if applicable, in URI format or local path. e.g. "/home/lennart/music/foobar.ogg" */
 #define PA_PROP_MEDIA_FILENAME                 "media.filename"
 
+/** \cond fulldocs */
 /** For streams: icon for the media. A binary blob containing PNG image data */
 #define PA_PROP_MEDIA_ICON                     "media.icon"
+/** \endcond */
 
 /** For streams: an XDG icon name for the media. e.g. "audio-x-mp3" */
 #define PA_PROP_MEDIA_ICON_NAME                "media.icon_name"
@@ -81,8 +83,10 @@ PA_C_DECL_BEGIN
 /** For streams that belong to a window on the screen: a textual id for identifying a window logically. e.g. "org.gnome.Totem.MainWindow" */
 #define PA_PROP_WINDOW_ID                      "window.id"
 
+/** \cond fulldocs */
 /** For streams that belong to a window on the screen: window icon. A binary blob containing PNG image data */
 #define PA_PROP_WINDOW_ICON                    "window.icon"
+/** \endcond */
 
 /** For streams that belong to a window on the screen: an XDG icon name for the window. e.g. "totem" */
 #define PA_PROP_WINDOW_ICON_NAME               "window.icon_name"
@@ -108,8 +112,10 @@ PA_C_DECL_BEGIN
 /** For clients/streams: a version string e.g. "0.6.88" */
 #define PA_PROP_APPLICATION_VERSION            "application.version"
 
+/** \cond fulldocs */
 /** For clients/streams: application icon. A binary blob containing PNG image data */
 #define PA_PROP_APPLICATION_ICON               "application.icon"
+/** \endcond */
 
 /** For clients/streams: an XDG icon name for the application. e.g. "totem" */
 #define PA_PROP_APPLICATION_ICON_NAME          "application.icon_name"
@@ -171,8 +177,10 @@ PA_C_DECL_BEGIN
 /** For devices: bus of the device if applicable. One of "isa", "pci", "usb", "firewire", "bluetooth" */
 #define PA_PROP_DEVICE_BUS                     "device.bus"
 
+/** \cond fulldocs */
 /** For devices: icon for the device. A binary blob containing PNG image data */
 #define PA_PROP_DEVICE_ICON                    "device.icon"
+/** \endcond */
 
 /** For devices: an XDG icon name for the device. e.g. "sound-card-speakers-usb" */
 #define PA_PROP_DEVICE_ICON_NAME               "device.icon_name"
