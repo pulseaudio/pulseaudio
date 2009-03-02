@@ -61,6 +61,12 @@ dist-hook:
 		( git-changelog.perl || echo "git-changelog.perl failed." ) > ${distdir}/ChangeLog 2>&1 ; \
 	fi
 
+update-shave:
+	for i in shave.in shave.m4 shave-libtool.in; do \
+		wget -O $$i http://git.lespiau.name/cgit/shave/blob/\?path=shave/$$i ; \
+	done
+	mv shave.m4 m4/
+
 .PHONY: homepage distcleancheck doxygen
 
 DISTCLEANFILES = \
