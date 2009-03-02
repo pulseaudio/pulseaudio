@@ -31,10 +31,11 @@
 typedef struct rd_device rd_device;
 
 /* Prototype for a function that is called whenever someone else wants
- * your app to release the device you having locked. A return value <=
- * 0 denies the request, a positive return value agrees to it. Before
- * returning your application should close the device in question
- * completely to make sure the new application may acceess it. */
+ * your application to release the device it has locked. A return
+ * value <= 0 denies the request, a positive return value agrees to
+ * it. Before returning your application should close the device in
+ * question completely to make sure the new application may access
+ * it. */
 typedef int (*rd_request_cb_t)(
 	rd_device *d,
 	int forced);                  /* Non-zero if an application forcibly took the lock away without asking. If this is the case then the return value of this call is ignored. */
@@ -48,20 +49,20 @@ int rd_acquire(
 	const char *device_name,      /* The device to lock, e.g. "Audio0" */
 	const char *application_name, /* A human readable name of the application, e.g. "PulseAudio Sound Server" */
 	int32_t priority,             /* The priority for this application. If unsure use 0 */
-	rd_request_cb_t request_cb,   /* Will be called whenever someone asks that this device shall be released. May be NULL if priority is INT32_MAX */
+	rd_request_cb_t request_cb,   /* Will be called whenever someone requests that this device shall be released. May be NULL if priority is INT32_MAX */
 	DBusError *error);            /* If we fail due to a D-Bus related issue the error will be filled in here. May be NULL. */
 
-/* Unlock (if needed) and destroy a rd_device object again */
+/* Unlock (if needed) and destroy an rd_device object again */
 void rd_release(rd_device *d);
 
-/* Set the application device name for a rd_device object Returns 0 on
- * success, a negative errno style return value on error. */
+/* Set the application device name for an rd_device object. Returns 0
+ * on success, a negative errno style return value on error. */
 int rd_set_application_device_name(rd_device *d, const char *name);
 
-/* Attach a userdata pointer to a rd_device */
+/* Attach a userdata pointer to an rd_device */
 void rd_set_userdata(rd_device *d, void *userdata);
 
-/* Query the userdata pointer from a rd_device. Returns NULL if no
+/* Query the userdata pointer from an rd_device. Returns NULL if no
  * userdata was set. */
 void* rd_get_userdata(rd_device *d);
 
