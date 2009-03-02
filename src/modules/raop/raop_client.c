@@ -339,9 +339,13 @@ static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* he
             break;
 
         case STATE_TEARDOWN:
+            pa_log_debug("RAOP: TEARDOWN");
+            break;
+
         case STATE_SET_PARAMETER:
             pa_log_debug("RAOP: SET_PARAMETER");
             break;
+
         case STATE_DISCONNECTED:
             pa_assert(c->closed_callback);
             pa_assert(c->rtsp);

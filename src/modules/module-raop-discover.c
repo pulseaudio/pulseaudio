@@ -152,10 +152,17 @@ static void resolver_cb(
     if (event != AVAHI_RESOLVER_FOUND)
         pa_log("Resolving of '%s' failed: %s", name, avahi_strerror(avahi_client_errno(u->client)));
     else {
-        char *device = NULL, *dname, *vname, *args;
+        char *device = NULL, *nicename, *dname, *vname, *args;
         char at[AVAHI_ADDRESS_STR_MAX];
         AvahiStringList *l;
         pa_module *m;
+
+        if ((nicename = strstr(name, "@"))) {
+            ++nicename;
+            if (strlen(nicename) > 0) {
+                pa_log_debug("Found RAOP: %s", nicename);
+            }
+        }
 
         for (l = txt; l; l = l->next) {
             char *key, *value;
@@ -190,10 +197,20 @@ static void resolver_cb(
                                  "sink_name=%s",
                                  avahi_address_snprint(at, sizeof(at), a), port,
                                  vname);*/
-        args = pa_sprintf_malloc("server=%s "
-                                 "sink_name=%s",
-                                 avahi_address_snprint(at, sizeof(at), a),
-                                 vname);
+        if (nicename) {
+            args = pa_sprintf_malloc("server=%s "
+                                     "sink_name=%s "
+                                     "description=\"%s\"",
+                                     avahi_address_snprint(at, sizeof(at), a),
+                                     vname,
+                                     nicename);
+
+        } else {
+            args = pa_sprintf_malloc("server=%s "
+                                     "sink_name=%s",
+                                     avahi_address_snprint(at, sizeof(at), a),
+                                     vname);
+        }
 
         pa_log_debug("Loading module-raop-sink with arguments '%s'", args);
 

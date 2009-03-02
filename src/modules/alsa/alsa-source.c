@@ -146,7 +146,7 @@ static void reserve_update(struct userdata *u) {
     const char *description;
     pa_assert(u);
 
-    if (!u->source)
+    if (!u->source || !u->reserve)
         return;
 
     if ((description = pa_proplist_gets(u->source->proplist, PA_PROP_DEVICE_DESCRIPTION)))
