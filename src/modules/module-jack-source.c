@@ -163,7 +163,7 @@ static int jack_process(jack_nframes_t nframes, void *arg) {
     pa_assert(u);
 
     for (c = 0; c < u->channels; c++)
-        pa_assert(buffer[c] = jack_port_get_buffer(u->port[c], nframes));
+        pa_assert_se(buffer[c] = jack_port_get_buffer(u->port[c], nframes));
 
     /* We interleave the data and pass it on to the other RT thread */
 
