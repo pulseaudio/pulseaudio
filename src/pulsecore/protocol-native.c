@@ -2955,7 +2955,6 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
 
     if (pa_tagstruct_getu32(t, &idx) < 0 ||
         (command != PA_COMMAND_GET_CLIENT_INFO &&
-         command != PA_COMMAND_GET_CARD_INFO &&
          command != PA_COMMAND_GET_MODULE_INFO &&
          command != PA_COMMAND_GET_SINK_INPUT_INFO &&
          command != PA_COMMAND_GET_SOURCE_OUTPUT_INFO &&
