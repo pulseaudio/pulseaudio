@@ -487,7 +487,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     struct output *o;
 
     pa_sink_input_assert_ref(i);
-    pa_assert(o = i->userdata);
+    pa_assert_se(o = i->userdata);
 
     pa_module_unload_request(o->userdata->module, TRUE);
     output_free(o);
