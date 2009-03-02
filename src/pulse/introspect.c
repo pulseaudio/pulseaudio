@@ -528,7 +528,8 @@ static void context_get_card_info_callback(pa_pdispatch *pd, uint32_t command, u
                     if (pa_tagstruct_gets(t, &i.profiles[j].name) < 0 ||
                         pa_tagstruct_gets(t, &i.profiles[j].description) < 0 ||
                         pa_tagstruct_getu32(t, &i.profiles[j].n_sinks) < 0 ||
-                        pa_tagstruct_getu32(t, &i.profiles[j].n_sources)< 0) {
+                        pa_tagstruct_getu32(t, &i.profiles[j].n_sources) < 0 ||
+                        pa_tagstruct_getu32(t, &i.profiles[j].priority) < 0) {
 
                         pa_context_fail(o->context, PA_ERR_PROTOCOL);
                         pa_xfree(i.profiles);
