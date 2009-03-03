@@ -310,8 +310,9 @@ int pa__init(pa_module *m) {
 
     pa_snprintf(rname, sizeof(rname), "Audio%i", alsa_card_index);
 
-    if (!(reserve = pa_reserve_wrapper_get(m->core, rname)))
-        goto fail;
+    if (!pa_in_system_mode())
+        if (!(reserve = pa_reserve_wrapper_get(m->core, rname)))
+            goto fail;
 
     pa_card_new_data_init(&data);
     data.driver = __FILE__;

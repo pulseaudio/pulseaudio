@@ -164,6 +164,9 @@ static int reserve_init(struct userdata *u, const char *dname) {
     if (u->reserve)
         return 0;
 
+    if (pa_in_system_mode())
+        return 0;
+
     /* We are resuming, try to lock the device */
     if (!(rname = pa_alsa_get_reserve_name(dname)))
         return 0;
