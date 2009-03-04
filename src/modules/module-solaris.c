@@ -821,9 +821,7 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    if (!(u = pa_xnew0(struct userdata, 1)))
-        goto fail;
-
+    u = pa_xnew0(struct userdata, 1);
     u->sample_counter_lock = pa_mutex_new(FALSE, FALSE);
     u->written_bytes_lock = pa_mutex_new(FALSE, FALSE);
 
