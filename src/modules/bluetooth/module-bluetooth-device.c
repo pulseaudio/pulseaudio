@@ -1559,6 +1559,7 @@ static int setup_bt(struct userdata *u) {
 static int init_profile(struct userdata *u) {
     int r = 0;
     pa_assert(u);
+    pa_assert(u->profile != PROFILE_OFF);
 
     if (setup_bt(u) < 0)
         return -1;
@@ -1688,7 +1689,9 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     u->sample_spec = u->requested_sample_spec;
 
     init_bt(u);
-    init_profile(u);
+
+    if (u->profile != PROFILE_OFF)
+        init_profile(u);
 
     if (u->sink || u->source)
         start_thread(u);
@@ -1909,8 +1912,9 @@ int pa__init(pa_module* m) {
     if (init_bt(u) < 0)
         goto fail;
 
-    if (init_profile(u) < 0)
-        goto fail;
+    if (u->profile != PROFILE_OFF)
+        if (init_profile(u) < 0)
+            goto fail;
 
 /*     if (u->path) { */
 /*         DBusError err; */
@@ -1948,8 +1952,9 @@ int pa__init(pa_module* m) {
 /*         } */
 /*     } */
 
-    if (start_thread(u) < 0)
-        goto fail;
+    if (u->sink || u->source)
+        if (start_thread(u) < 0)
+            goto fail;
 
     return 0;
 
