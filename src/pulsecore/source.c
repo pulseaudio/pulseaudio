@@ -955,8 +955,15 @@ int pa_source_suspend_all(pa_core *c, pa_bool_t suspend) {
 
     pa_core_assert_ref(c);
 
-    for (source = PA_SOURCE(pa_idxset_first(c->sources, &idx)); source; source = PA_SOURCE(pa_idxset_next(c->sources, &idx)))
-        ret -= pa_source_suspend(source, suspend) < 0;
+    for (source = PA_SOURCE(pa_idxset_first(c->sources, &idx)); source; source = PA_SOURCE(pa_idxset_next(c->sources, &idx))) {
+        int r;
+
+        if (source->monitor_of)
+            continue;
+
+        if ((r = pa_source_suspend(source, suspend)) < 0)
+            ret = r;
+    }
 
     return ret;
 }

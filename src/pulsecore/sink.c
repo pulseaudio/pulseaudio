@@ -1605,8 +1605,12 @@ int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend) {
 
     pa_core_assert_ref(c);
 
-    for (sink = PA_SINK(pa_idxset_first(c->sinks, &idx)); sink; sink = PA_SINK(pa_idxset_next(c->sinks, &idx)))
-        ret -= pa_sink_suspend(sink, suspend) < 0;
+    for (sink = PA_SINK(pa_idxset_first(c->sinks, &idx)); sink; sink = PA_SINK(pa_idxset_next(c->sinks, &idx))) {
+        int r;
+
+        if ((r = pa_sink_suspend(sink, suspend)) < 0)
+            ret = r;
+    }
 
     return ret;
 }
