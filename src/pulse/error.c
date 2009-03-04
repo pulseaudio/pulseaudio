@@ -68,7 +68,10 @@ const char*pa_strerror(int error) {
 
     pa_init_i18n();
 
-    if (error < 0 || error >= PA_ERR_MAX)
+    if (error < 0)
+        error = -error;
+
+    if (error >= PA_ERR_MAX)
         return NULL;
 
     return _(errortab[error]);
