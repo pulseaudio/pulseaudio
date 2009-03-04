@@ -5,7 +5,7 @@
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
-  by the Free Software Foundation; either version 2 of the License,
+  by the Free Software Foundation; either version 2.1 of the License,
   or (at your option) any later version.
 
   PulseAudio is distributed in the hope that it will be useful, but
@@ -427,7 +427,7 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
 
         printf(_("\tProfiles:\n"));
         for (p = i->profiles; p->name; p++)
-            printf("\t\t%s: %s\n", p->name, p->description);
+            printf("\t\t%s: %s (sinks: %u, sources: %u, priority. %u)\n", p->name, p->description, p->n_sinks, p->n_sources, p->priority);
     }
 
     if (i->active_profile)

@@ -6,7 +6,7 @@
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
-  by the Free Software Foundation; either version 2 of the License,
+  by the Free Software Foundation; either version 2.1 of the License,
   or (at your option) any later version.
 
   PulseAudio is distributed in the hope that it will be useful, but
@@ -146,7 +146,7 @@ static void reserve_update(struct userdata *u) {
     const char *description;
     pa_assert(u);
 
-    if (!u->source)
+    if (!u->source || !u->reserve)
         return;
 
     if ((description = pa_proplist_gets(u->source->proplist, PA_PROP_DEVICE_DESCRIPTION)))
@@ -160,6 +160,9 @@ static int reserve_init(struct userdata *u, const char *dname) {
     pa_assert(dname);
 
     if (u->reserve)
+        return 0;
+
+    if (pa_in_system_mode())
         return 0;
 
     /* We are resuming, try to lock the device */
@@ -1542,7 +1545,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     }
 
     pa_source_set_latency_range(u->source,
-                                !use_tsched ? pa_bytes_to_usec(u->hwbuf_size, &ss) : (pa_usec_t) -1,
+                                use_tsched ? (pa_usec_t) -1 : pa_bytes_to_usec(u->hwbuf_size, &ss),
                                 pa_bytes_to_usec(u->hwbuf_size, &ss));
 
     pa_log_info("Using %u fragments of size %lu bytes, buffer time is %0.2fms",

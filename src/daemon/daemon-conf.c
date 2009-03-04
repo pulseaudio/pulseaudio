@@ -6,7 +6,7 @@
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
-  by the Free Software Foundation; either version 2 of the License,
+  by the Free Software Foundation; either version 2.1 of the License,
   or (at your option) any later version.
 
   PulseAudio is distributed in the hope that it will be useful, but
@@ -94,8 +94,10 @@ static const pa_daemon_conf default_conf = {
    ,.rlimit_fsize = { .value = 0, .is_set = FALSE },
     .rlimit_data = { .value = 0, .is_set = FALSE },
     .rlimit_stack = { .value = 0, .is_set = FALSE },
-    .rlimit_core = { .value = 0, .is_set = FALSE },
-    .rlimit_rss = { .value = 0, .is_set = FALSE }
+    .rlimit_core = { .value = 0, .is_set = FALSE }
+#ifdef RLIMIT_RSS
+   ,.rlimit_rss = { .value = 0, .is_set = FALSE }
+#endif
 #ifdef RLIMIT_NPROC
    ,.rlimit_nproc = { .value = 0, .is_set = FALSE }
 #endif
@@ -472,7 +474,9 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "rlimit-data",                parse_rlimit,             &c->rlimit_data, NULL },
         { "rlimit-stack",               parse_rlimit,             &c->rlimit_stack, NULL },
         { "rlimit-core",                parse_rlimit,             &c->rlimit_core, NULL },
+#ifdef RLIMIT_RSS
         { "rlimit-rss",                 parse_rlimit,             &c->rlimit_rss, NULL },
+#endif
 #ifdef RLIMIT_NOFILE
         { "rlimit-nofile",              parse_rlimit,             &c->rlimit_nofile, NULL },
 #endif
@@ -651,7 +655,9 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "rlimit-data = %li\n", c->rlimit_data.is_set ? (long int) c->rlimit_data.value : -1);
     pa_strbuf_printf(s, "rlimit-stack = %li\n", c->rlimit_stack.is_set ? (long int) c->rlimit_stack.value : -1);
     pa_strbuf_printf(s, "rlimit-core = %li\n", c->rlimit_core.is_set ? (long int) c->rlimit_core.value : -1);
+#ifdef RLIMIT_RSS
     pa_strbuf_printf(s, "rlimit-rss = %li\n", c->rlimit_rss.is_set ? (long int) c->rlimit_rss.value : -1);
+#endif
 #ifdef RLIMIT_AS
     pa_strbuf_printf(s, "rlimit-as = %li\n", c->rlimit_as.is_set ? (long int) c->rlimit_as.value : -1);
 #endif

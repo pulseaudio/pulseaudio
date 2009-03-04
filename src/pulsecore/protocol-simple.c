@@ -5,7 +5,7 @@
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
-  by the Free Software Foundation; either version 2 of the License,
+  by the Free Software Foundation; either version 2.1 of the License,
   or (at your option) any later version.
 
   PulseAudio is distributed in the hope that it will be useful, but
@@ -282,6 +282,9 @@ fail:
 static int connection_process_msg(pa_msgobject *o, int code, void*userdata, int64_t offset, pa_memchunk *chunk) {
     connection *c = CONNECTION(o);
     connection_assert_ref(c);
+
+    if (!c->protocol)
+        return -1;
 
     switch (code) {
         case CONNECTION_MESSAGE_REQUEST_DATA:

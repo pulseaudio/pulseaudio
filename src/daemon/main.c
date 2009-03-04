@@ -6,7 +6,7 @@
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
-  by the Free Software Foundation; either version 2 of the License,
+  by the Free Software Foundation; either version 2.1 of the License,
   or (at your option) any later version.
 
   PulseAudio is distributed in the hope that it will be useful, but
@@ -294,7 +294,9 @@ static void set_all_rlimits(const pa_daemon_conf *conf) {
     set_one_rlimit(&conf->rlimit_data, RLIMIT_DATA, "RLIMIT_DATA");
     set_one_rlimit(&conf->rlimit_stack, RLIMIT_STACK, "RLIMIT_STACK");
     set_one_rlimit(&conf->rlimit_core, RLIMIT_CORE, "RLIMIT_CORE");
+#ifdef RLIMIT_RSS
     set_one_rlimit(&conf->rlimit_rss, RLIMIT_RSS, "RLIMIT_RSS");
+#endif
 #ifdef RLIMIT_NPROC
     set_one_rlimit(&conf->rlimit_nproc, RLIMIT_NPROC, "RLIMIT_NPROC");
 #endif

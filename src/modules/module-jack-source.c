@@ -5,7 +5,7 @@
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
-  by the Free Software Foundation; either version 2 of the License,
+  by the Free Software Foundation; either version 2.1 of the License,
   or (at your option) any later version.
 
   PulseAudio is distributed in the hope that it will be useful, but
@@ -163,7 +163,7 @@ static int jack_process(jack_nframes_t nframes, void *arg) {
     pa_assert(u);
 
     for (c = 0; c < u->channels; c++)
-        pa_assert(buffer[c] = jack_port_get_buffer(u->port[c], nframes));
+        pa_assert_se(buffer[c] = jack_port_get_buffer(u->port[c], nframes));
 
     /* We interleave the data and pass it on to the other RT thread */
 

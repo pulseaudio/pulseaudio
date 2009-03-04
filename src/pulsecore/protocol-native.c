@@ -6,7 +6,7 @@
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
-  by the Free Software Foundation; either version 2 of the License,
+  by the Free Software Foundation; either version 2.1 of the License,
   or (at your option) any later version.
 
   PulseAudio is distributed in the hope that it will be useful, but
@@ -2829,6 +2829,7 @@ static void card_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_car
             pa_tagstruct_puts(t, p->description);
             pa_tagstruct_putu32(t, p->n_sinks);
             pa_tagstruct_putu32(t, p->n_sources);
+            pa_tagstruct_putu32(t, p->priority);
         }
     }
 
@@ -2955,7 +2956,6 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
 
     if (pa_tagstruct_getu32(t, &idx) < 0 ||
         (command != PA_COMMAND_GET_CLIENT_INFO &&
-         command != PA_COMMAND_GET_CARD_INFO &&
          command != PA_COMMAND_GET_MODULE_INFO &&
          command != PA_COMMAND_GET_SINK_INPUT_INFO &&
          command != PA_COMMAND_GET_SOURCE_OUTPUT_INFO &&

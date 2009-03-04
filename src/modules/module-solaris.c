@@ -3,10 +3,11 @@
 
   Copyright 2006 Lennart Poettering
   Copyright 2006-2007 Pierre Ossman <ossman@cendio.se> for Cendio AB
+  Copyright 2009 Finn Thain
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
-  by the Free Software Foundation; either version 2 of the License,
+  by the Free Software Foundation; either version 2.1 of the License,
   or (at your option) any later version.
 
   PulseAudio is distributed in the hope that it will be useful, but
@@ -44,6 +45,7 @@
 #include <pulse/mainloop-signal.h>
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
+#include <pulse/util.h>
 
 #include <pulsecore/iochannel.h>
 #include <pulsecore/sink.h>
@@ -57,22 +59,25 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/thread.h>
+#include <pulsecore/rtclock.h>
 
 #include "module-solaris-symdef.h"
 
-PA_MODULE_AUTHOR("Pierre Ossman")
-PA_MODULE_DESCRIPTION("Solaris Sink/Source")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Pierre Ossman");
+PA_MODULE_DESCRIPTION("Solaris Sink/Source");
+PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_USAGE(
     "sink_name=<name for the sink> "
     "source_name=<name for the source> "
-    "device=<OSS device> record=<enable source?> "
+    "device=<audio device file name> "
+    "record=<enable source?> "
     "playback=<enable sink?> "
     "format=<sample format> "
     "channels=<number of channels> "
     "rate=<sample rate> "
     "buffer_size=<record buffer size> "
-    "channel_map=<channel map>")
+    "channel_map=<channel map>");
+PA_MODULE_LOAD_ONCE(FALSE);
 
 struct userdata {
     pa_core *core;
@@ -87,15 +92,24 @@ struct userdata {
 
     pa_memchunk memchunk;
 
-    unsigned int page_size;
-
     uint32_t frame_size;
-    uint32_t buffer_size;
-    unsigned int written_bytes, read_bytes;
+    int32_t buffer_size;
+    volatile uint64_t written_bytes, read_bytes;
+    pa_mutex *written_bytes_lock;
 
+    char *device_name;
+    int mode;
     int fd;
     pa_rtpoll_item *rtpoll_item;
     pa_module *module;
+
+    pa_bool_t sink_suspended, source_suspended;
+
+    uint32_t play_samples_msw, record_samples_msw;
+    uint32_t prev_playback_samples, prev_record_samples;
+    pa_mutex *sample_counter_lock;
+
+    size_t min_request;
 };
 
 static const char* const valid_modargs[] = {
@@ -112,89 +126,303 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-#define DEFAULT_SINK_NAME "solaris_output"
-#define DEFAULT_SOURCE_NAME "solaris_input"
 #define DEFAULT_DEVICE "/dev/audio"
+#define MIN_BUFFER_SIZE (640)
+#define MAX_RENDER_HZ   (300)
+
+/* This render rate limit implies a minimum latency,  but without it we waste too much CPU time in the
+ * IO thread. The maximum render rate and minimum latency (or minimum buffer size) are unachievable on
+ * common hardware anyway. Note that MIN_BUFFER_SIZE * MAX_RENDER_HZ >= 4 * 48000 Bps.
+ */
+
+static uint64_t get_playback_buffered_bytes(struct userdata *u) {
+    audio_info_t info;
+    uint64_t played_bytes;
+    int err;
+
+    pa_assert(u->sink);
+
+    pa_mutex_lock(u->sample_counter_lock);
+
+    err = ioctl(u->fd, AUDIO_GETINFO, &info);
+    pa_assert(err >= 0);
+
+    /* Handle wrap-around of the device's sample counter, which is a uint_32. */
+    if (u->prev_playback_samples > info.play.samples) {
+        /* Unfortunately info.play.samples can sometimes go backwards, even before it wraps! */
+        if (u->prev_playback_samples + info.play.samples < 240000) {
+            ++u->play_samples_msw;
+        } else {
+            pa_log_debug("play.samples went backwards %d bytes", u->prev_playback_samples - info.play.samples);
+        }
+    }
+    u->prev_playback_samples = info.play.samples;
+    played_bytes = (((uint64_t)u->play_samples_msw << 32) + info.play.samples) * u->frame_size;
+
+    pa_mutex_unlock(u->sample_counter_lock);
+
+    return u->written_bytes - played_bytes;
+}
+
+static pa_usec_t sink_get_latency(struct userdata *u, pa_sample_spec *ss) {
+    pa_usec_t r = 0;
+
+    pa_assert(u);
+    pa_assert(ss);
+
+    if (u->fd >= 0) {
+        pa_mutex_lock(u->written_bytes_lock);
+        r = pa_bytes_to_usec(get_playback_buffered_bytes(u), ss);
+        if (u->memchunk.memblock)
+            r += pa_bytes_to_usec(u->memchunk.length, ss);
+        pa_mutex_unlock(u->written_bytes_lock);
+    }
+    return r;
+}
+
+static uint64_t get_recorded_bytes(struct userdata *u) {
+    audio_info_t info;
+    uint64_t result;
+    int err;
+
+    pa_assert(u->source);
+
+    err = ioctl(u->fd, AUDIO_GETINFO, &info);
+    pa_assert(err >= 0);
+
+    if (u->prev_record_samples > info.record.samples)
+        ++u->record_samples_msw;
+    u->prev_record_samples = info.record.samples;
+    result = (((uint64_t)u->record_samples_msw << 32) + info.record.samples) * u->frame_size;
+
+    return result;
+}
+
+static pa_usec_t source_get_latency(struct userdata *u, pa_sample_spec *ss) {
+    pa_usec_t r = 0;
+    audio_info_t info;
+
+    pa_assert(u);
+    pa_assert(ss);
+
+    if (u->fd) {
+        int err = ioctl(u->fd, AUDIO_GETINFO, &info);
+        pa_assert(err >= 0);
+
+        r = pa_bytes_to_usec(get_recorded_bytes(u), ss) - pa_bytes_to_usec(u->read_bytes, ss);
+    }
+    return r;
+}
+
+static void build_pollfd(struct userdata *u) {
+    struct pollfd *pollfd;
+
+    pa_assert(u);
+    pa_assert(!u->rtpoll_item);
+    u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
+
+    pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+    pollfd->fd = u->fd;
+    pollfd->events = 0;
+    pollfd->revents = 0;
+}
+
+static int set_buffer(int fd, int buffer_size) {
+    audio_info_t info;
+
+    pa_assert(fd >= 0);
+
+    AUDIO_INITINFO(&info);
+    info.play.buffer_size = buffer_size;
+    info.record.buffer_size = buffer_size;
+
+    if (ioctl(fd, AUDIO_SETINFO, &info) < 0) {
+        if (errno == EINVAL)
+            pa_log("AUDIO_SETINFO: Unsupported buffer size.");
+        else
+            pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
+        return -1;
+    }
+
+    return 0;
+}
+
+static int auto_format(int fd, int mode, pa_sample_spec *ss) {
+    audio_info_t info;
+
+    pa_assert(fd >= 0);
+    pa_assert(ss);
+
+    AUDIO_INITINFO(&info);
+
+    if (mode != O_RDONLY) {
+        info.play.sample_rate = ss->rate;
+        info.play.channels = ss->channels;
+        switch (ss->format) {
+        case PA_SAMPLE_U8:
+            info.play.precision = 8;
+            info.play.encoding = AUDIO_ENCODING_LINEAR;
+            break;
+        case PA_SAMPLE_ALAW:
+            info.play.precision = 8;
+            info.play.encoding = AUDIO_ENCODING_ALAW;
+            break;
+        case PA_SAMPLE_ULAW:
+            info.play.precision = 8;
+            info.play.encoding = AUDIO_ENCODING_ULAW;
+            break;
+        case PA_SAMPLE_S16NE:
+            info.play.precision = 16;
+            info.play.encoding = AUDIO_ENCODING_LINEAR;
+            break;
+        default:
+            pa_log("AUDIO_SETINFO: Unsupported sample format.");
+            return -1;
+        }
+    }
+
+    if (mode != O_WRONLY) {
+        info.record.sample_rate = ss->rate;
+        info.record.channels = ss->channels;
+        switch (ss->format) {
+        case PA_SAMPLE_U8:
+            info.record.precision = 8;
+            info.record.encoding = AUDIO_ENCODING_LINEAR;
+            break;
+        case PA_SAMPLE_ALAW:
+            info.record.precision = 8;
+            info.record.encoding = AUDIO_ENCODING_ALAW;
+            break;
+        case PA_SAMPLE_ULAW:
+            info.record.precision = 8;
+            info.record.encoding = AUDIO_ENCODING_ULAW;
+            break;
+        case PA_SAMPLE_S16NE:
+            info.record.precision = 16;
+            info.record.encoding = AUDIO_ENCODING_LINEAR;
+            break;
+        default:
+             pa_log("AUDIO_SETINFO: Unsupported sample format.");
+             return -1;
+        }
+    }
+
+    if (ioctl(fd, AUDIO_SETINFO, &info) < 0) {
+        if (errno == EINVAL)
+            pa_log("AUDIO_SETINFO: Failed to set sample format.");
+        else
+            pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
+        return -1;
+    }
+
+    return 0;
+}
+
+static int open_audio_device(struct userdata *u, pa_sample_spec *ss) {
+    pa_assert(u);
+    pa_assert(ss);
+
+    if ((u->fd = open(u->device_name, u->mode | O_NONBLOCK)) < 0) {
+        pa_log_warn("open %s failed (%s)", u->device_name, pa_cstrerror(errno));
+        return -1;
+    }
+
+    pa_log_info("device opened in %s mode.", u->mode == O_WRONLY ? "O_WRONLY" : (u->mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
+
+    if (auto_format(u->fd, u->mode, ss) < 0)
+        return -1;
+
+    if (set_buffer(u->fd, u->buffer_size) < 0)
+        return -1;
+
+    u->written_bytes = u->read_bytes = 0;
+    u->play_samples_msw = u->record_samples_msw = 0;
+    u->prev_playback_samples = u->prev_record_samples = 0;
+
+    return u->fd;
+}
+
+static int suspend(struct userdata *u) {
+    pa_assert(u);
+    pa_assert(u->fd >= 0);
+
+    pa_log_info("Suspending...");
+
+    ioctl(u->fd, AUDIO_DRAIN, NULL);
+    pa_close(u->fd);
+    u->fd = -1;
+
+    if (u->rtpoll_item) {
+        pa_rtpoll_item_free(u->rtpoll_item);
+        u->rtpoll_item = NULL;
+    }
+
+    pa_log_info("Device suspended.");
+
+    return 0;
+}
+
+static int unsuspend(struct userdata *u) {
+    pa_assert(u);
+    pa_assert(u->fd < 0);
+
+    pa_log_info("Resuming...");
+
+    if (open_audio_device(u, u->sink ? &u->sink->sample_spec : &u->source->sample_spec) < 0)
+        return -1;
+
+    build_pollfd(u);
+
+    pa_log_info("Device resumed.");
+
+    return 0;
+}
 
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
-    int err;
-    audio_info_t info;
 
     switch (code) {
-    case PA_SINK_MESSAGE_GET_LATENCY: {
-        pa_usec_t r = 0;
 
-        if (u->fd >= 0) {
+        case PA_SINK_MESSAGE_GET_LATENCY:
+            *((pa_usec_t*) data) = sink_get_latency(u, &PA_SINK(o)->sample_spec);
+            return 0;
 
-            err = ioctl(u->fd, AUDIO_GETINFO, &info);
-            pa_assert(err >= 0);
+        case PA_SINK_MESSAGE_SET_STATE:
 
-            r += pa_bytes_to_usec(u->written_bytes, &PA_SINK(o)->sample_spec);
-            r -= pa_bytes_to_usec(info.play.samples * u->frame_size, &PA_SINK(o)->sample_spec);
+            switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
 
-            if (u->memchunk.memblock)
-                r += pa_bytes_to_usec(u->memchunk.length, &PA_SINK(o)->sample_spec);
-        }
+                case PA_SINK_SUSPENDED:
 
-        *((pa_usec_t*) data) = r;
+                    pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
 
-        return 0;
-    }
+                    if (!u->source || u->source_suspended) {
+                        if (suspend(u) < 0)
+                            return -1;
+                    }
+                    u->sink_suspended = TRUE;
+                    break;
 
-    case PA_SINK_MESSAGE_SET_VOLUME:
-        if (u->fd >= 0) {
-            AUDIO_INITINFO(&info);
+                case PA_SINK_IDLE:
+                case PA_SINK_RUNNING:
 
-            info.play.gain = pa_cvolume_avg((pa_cvolume*)data) * AUDIO_MAX_GAIN / PA_VOLUME_NORM;
-            assert(info.play.gain <= AUDIO_MAX_GAIN);
+                    if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
+                        if (!u->source || u->source_suspended) {
+                            if (unsuspend(u) < 0)
+                                return -1;
+                            u->sink->get_volume(u->sink);
+                            u->sink->get_mute(u->sink);
+                        }
+                        u->sink_suspended = FALSE;
+                    }
+                    break;
 
-            if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0) {
-                if (errno == EINVAL)
-                    pa_log("AUDIO_SETINFO: Unsupported volume.");
-                else
-                    pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
-            } else {
-                return 0;
+                case PA_SINK_INVALID_STATE:
+                case PA_SINK_UNLINKED:
+                case PA_SINK_INIT:
+                    ;
             }
-        }
-        break;
 
-    case PA_SINK_MESSAGE_GET_VOLUME:
-        if (u->fd >= 0) {
-            err = ioctl(u->fd, AUDIO_GETINFO, &info);
-            assert(err >= 0);
-
-            pa_cvolume_set((pa_cvolume*) data, ((pa_cvolume*) data)->channels,
-                info.play.gain * PA_VOLUME_NORM / AUDIO_MAX_GAIN);
-
-            return 0;
-        }
-        break;
-
-    case PA_SINK_MESSAGE_SET_MUTE:
-        if (u->fd >= 0) {
-            AUDIO_INITINFO(&info);
-
-            info.output_muted = !!PA_PTR_TO_UINT(data);
-
-            if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0)
-                pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
-            else
-                return 0;
-        }
-        break;
-
-    case PA_SINK_MESSAGE_GET_MUTE:
-        if (u->fd >= 0) {
-            err = ioctl(u->fd, AUDIO_GETINFO, &info);
-            pa_assert(err >= 0);
-
-            *(int*)data = !!info.output_muted;
-
-            return 0;
-        }
-        break;
+            break;
     }
 
     return pa_sink_process_msg(o, code, data, offset, chunk);
@@ -202,95 +430,168 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
 static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SOURCE(o)->userdata;
-    int err;
-    audio_info_t info;
 
     switch (code) {
-        case PA_SOURCE_MESSAGE_GET_LATENCY: {
-            pa_usec_t r = 0;
 
-            if (u->fd) {
-                err = ioctl(u->fd, AUDIO_GETINFO, &info);
-                pa_assert(err >= 0);
-
-                r += pa_bytes_to_usec(info.record.samples * u->frame_size, &PA_SOURCE(o)->sample_spec);
-                r -= pa_bytes_to_usec(u->read_bytes, &PA_SOURCE(o)->sample_spec);
-            }
-
-            *((pa_usec_t*) data) = r;
-
+        case PA_SOURCE_MESSAGE_GET_LATENCY:
+            *((pa_usec_t*) data) = source_get_latency(u, &PA_SOURCE(o)->sample_spec);
             return 0;
-        }
 
-        case PA_SOURCE_MESSAGE_SET_VOLUME:
-            if (u->fd >= 0) {
-                AUDIO_INITINFO(&info);
+        case PA_SOURCE_MESSAGE_SET_STATE:
 
-                info.record.gain = pa_cvolume_avg((pa_cvolume*) data) * AUDIO_MAX_GAIN / PA_VOLUME_NORM;
-                assert(info.record.gain <= AUDIO_MAX_GAIN);
+            switch ((pa_source_state_t) PA_PTR_TO_UINT(data)) {
 
-                if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0) {
-                    if (errno == EINVAL)
-                        pa_log("AUDIO_SETINFO: Unsupported volume.");
-                    else
-                        pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
-                } else {
-                    return 0;
-                }
+                case PA_SOURCE_SUSPENDED:
+
+                    pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
+
+                    if (!u->sink || u->sink_suspended) {
+                        if (suspend(u) < 0)
+                            return -1;
+                    }
+                    u->source_suspended = TRUE;
+                    break;
+
+                case PA_SOURCE_IDLE:
+                case PA_SOURCE_RUNNING:
+
+                    if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
+                        if (!u->sink || u->sink_suspended) {
+                            if (unsuspend(u) < 0)
+                                return -1;
+                            u->source->get_volume(u->source);
+                        }
+                        u->source_suspended = FALSE;
+                    }
+                    break;
+
+                case PA_SOURCE_UNLINKED:
+                case PA_SOURCE_INIT:
+                case PA_SOURCE_INVALID_STATE:
+                    ;
+
             }
             break;
 
-        case PA_SOURCE_MESSAGE_GET_VOLUME:
-            if (u->fd >= 0) {
-                err = ioctl(u->fd, AUDIO_GETINFO, &info);
-                pa_assert(err >= 0);
-
-                pa_cvolume_set((pa_cvolume*) data, ((pa_cvolume*) data)->channels,
-                    info.record.gain * PA_VOLUME_NORM / AUDIO_MAX_GAIN);
-
-                return 0;
-            }
-            break;
     }
 
     return pa_source_process_msg(o, code, data, offset, chunk);
 }
 
-static void clear_underflow(struct userdata *u)
-{
+static void sink_set_volume(pa_sink *s) {
+    struct userdata *u;
     audio_info_t info;
 
-    AUDIO_INITINFO(&info);
+    pa_assert_se(u = s->userdata);
 
-    info.play.error = 0;
+    if (u->fd >= 0) {
+        AUDIO_INITINFO(&info);
 
-    if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0)
-        pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
+        info.play.gain = pa_cvolume_avg(&s->virtual_volume) * AUDIO_MAX_GAIN / PA_VOLUME_NORM;
+        assert(info.play.gain <= AUDIO_MAX_GAIN);
+
+        if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0) {
+            if (errno == EINVAL)
+                pa_log("AUDIO_SETINFO: Unsupported volume.");
+            else
+                pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
+        }
+    }
 }
 
-static void clear_overflow(struct userdata *u)
-{
+static void sink_get_volume(pa_sink *s) {
+    struct userdata *u;
     audio_info_t info;
 
-    AUDIO_INITINFO(&info);
+    pa_assert_se(u = s->userdata);
 
-    info.record.error = 0;
+    if (u->fd >= 0) {
+        if (ioctl(u->fd, AUDIO_GETINFO, &info) < 0)
+            pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
+        else
+            pa_cvolume_set(&s->virtual_volume, s->sample_spec.channels,
+                info.play.gain * PA_VOLUME_NORM / AUDIO_MAX_GAIN);
+    }
+}
 
-    if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0)
-        pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
+static void source_set_volume(pa_source *s) {
+    struct userdata *u;
+    audio_info_t info;
+
+    pa_assert_se(u = s->userdata);
+
+    if (u->fd >= 0) {
+        AUDIO_INITINFO(&info);
+
+        info.play.gain = pa_cvolume_avg(&s->virtual_volume) * AUDIO_MAX_GAIN / PA_VOLUME_NORM;
+        assert(info.play.gain <= AUDIO_MAX_GAIN);
+
+        if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0) {
+            if (errno == EINVAL)
+                pa_log("AUDIO_SETINFO: Unsupported volume.");
+            else
+                pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
+        }
+    }
+}
+
+static void source_get_volume(pa_source *s) {
+    struct userdata *u;
+    audio_info_t info;
+
+    pa_assert_se(u = s->userdata);
+
+    if (u->fd >= 0) {
+        if (ioctl(u->fd, AUDIO_GETINFO, &info) < 0)
+            pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
+        else
+            pa_cvolume_set(&s->virtual_volume, s->sample_spec.channels,
+                info.play.gain * PA_VOLUME_NORM / AUDIO_MAX_GAIN);
+    }
+}
+
+static void sink_set_mute(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    audio_info_t info;
+
+    pa_assert(u);
+
+    if (u->fd >= 0) {
+        AUDIO_INITINFO(&info);
+
+        info.output_muted = !!s->muted;
+
+        if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0)
+            pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
+    }
+}
+
+static void sink_get_mute(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    audio_info_t info;
+
+    pa_assert(u);
+
+    if (u->fd >= 0) {
+        if (ioctl(u->fd, AUDIO_GETINFO, &info) < 0)
+            pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
+        else
+            s->muted = !!info.output_muted;
+    }
 }
 
 static void thread_func(void *userdata) {
     struct userdata *u = userdata;
     unsigned short revents = 0;
-    int ret;
+    int ret, err;
+    audio_info_t info;
 
     pa_assert(u);
 
     pa_log_debug("Thread starting up");
 
-    if (u->core->high_priority)
-        pa_make_realtime();
+    if (u->core->realtime_scheduling)
+        pa_make_realtime(u->core->realtime_priority);
 
     pa_thread_mq_install(&u->thread_mq);
     pa_rtpoll_install(u->rtpoll);
@@ -298,139 +599,158 @@ static void thread_func(void *userdata) {
     for (;;) {
         /* Render some data and write it to the dsp */
 
-        if (u->sink && PA_SINK_OPENED(u->sink->thread_info.state)) {
-            audio_info_t info;
-            int err;
+        if (u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
+            pa_usec_t xtime0;
+            uint64_t buffered_bytes;
+
+            if (u->sink->thread_info.rewind_requested)
+                pa_sink_process_rewind(u->sink, 0);
+
+            err = ioctl(u->fd, AUDIO_GETINFO, &info);
+            pa_assert(err >= 0);
+
+            if (info.play.error) {
+                pa_log_debug("buffer under-run!");
+
+                AUDIO_INITINFO(&info);
+                info.play.error = 0;
+                if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0)
+                    pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
+            }
+
+            for (;;) {
+                void *p;
+                ssize_t w;
+                size_t len;
+
+                /*
+                 * Since we cannot modify the size of the output buffer we fake it
+                 * by not filling it more than u->buffer_size.
+                 */
+                xtime0 = pa_rtclock_usec();
+                buffered_bytes = get_playback_buffered_bytes(u);
+                if (buffered_bytes >= (uint64_t)u->buffer_size)
+                    break;
+
+                len = u->buffer_size - buffered_bytes;
+                len -= len % u->frame_size;
+
+                if (len < u->min_request)
+                    break;
+
+                if (u->memchunk.length < len)
+                    pa_sink_render(u->sink, u->sink->thread_info.max_request, &u->memchunk);
+
+                p = pa_memblock_acquire(u->memchunk.memblock);
+                w = pa_write(u->fd, (uint8_t*) p + u->memchunk.index, u->memchunk.length, NULL);
+                pa_memblock_release(u->memchunk.memblock);
+
+                if (w <= 0) {
+                    switch (errno) {
+                        case EINTR:
+                            break;
+                        case EAGAIN:
+                            u->buffer_size = u->buffer_size * 18 / 25;
+                            u->buffer_size -= u->buffer_size % u->frame_size;
+                            u->buffer_size = PA_MAX(u->buffer_size, (int32_t)MIN_BUFFER_SIZE);
+                            pa_sink_set_max_request(u->sink, u->buffer_size);
+                            pa_log("EAGAIN. Buffer size is now %u bytes (%llu buffered)", u->buffer_size, buffered_bytes);
+                            break;
+                        default:
+                            pa_log("Failed to write data to DSP: %s", pa_cstrerror(errno));
+                            goto fail;
+                    }
+                } else {
+                    pa_assert(w % u->frame_size == 0);
+
+                    pa_mutex_lock(u->written_bytes_lock);
+                    u->written_bytes += w;
+                    u->memchunk.length -= w;
+                    pa_mutex_unlock(u->written_bytes_lock);
+
+                    u->memchunk.index += w;
+                    if (u->memchunk.length <= 0) {
+                        pa_memblock_unref(u->memchunk.memblock);
+                        pa_memchunk_reset(&u->memchunk);
+                    }
+                }
+            }
+
+            pa_rtpoll_set_timer_absolute(u->rtpoll, xtime0 + pa_bytes_to_usec(buffered_bytes / 2, &u->sink->sample_spec));
+        } else {
+            pa_rtpoll_set_timer_disabled(u->rtpoll);
+        }
+
+        /* Try to read some data and pass it on to the source driver */
+
+        if (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state) && (revents & POLLIN)) {
+            pa_memchunk memchunk;
+            void *p;
+            ssize_t r;
             size_t len;
 
             err = ioctl(u->fd, AUDIO_GETINFO, &info);
             pa_assert(err >= 0);
 
-            /*
-             * Since we cannot modify the size of the output buffer we fake it
-             * by not filling it more than u->buffer_size.
-             */
-            len = u->buffer_size;
-            len -= u->written_bytes - (info.play.samples * u->frame_size);
-
-            /* The sample counter can sometimes go backwards :( */
-            if (len > u->buffer_size)
-                len = 0;
-
-            if (info.play.error) {
-                pa_log_debug("Solaris buffer underflow!");
-                clear_underflow(u);
-            }
-
-            len -= len % u->frame_size;
-
-            while (len) {
-                void *p;
-                ssize_t r;
-
-                if (!u->memchunk.length)
-                    pa_sink_render(u->sink, len, &u->memchunk);
-
-                pa_assert(u->memchunk.length);
-
-                p = pa_memblock_acquire(u->memchunk.memblock);
-                r = pa_write(u->fd, (uint8_t*) p + u->memchunk.index, u->memchunk.length, NULL);
-                pa_memblock_release(u->memchunk.memblock);
-
-                if (r < 0) {
-                    if (errno == EINTR)
-                        continue;
-                    else if (errno != EAGAIN) {
-                        pa_log("Failed to read data from DSP: %s", pa_cstrerror(errno));
-                        goto fail;
-                    }
-                } else {
-                    pa_assert(r % u->frame_size == 0);
-
-                    u->memchunk.index += r;
-                    u->memchunk.length -= r;
-
-                    if (u->memchunk.length <= 0) {
-                        pa_memblock_unref(u->memchunk.memblock);
-                        pa_memchunk_reset(&u->memchunk);
-                    }
-
-                    len -= r;
-                    u->written_bytes += r;
-                }
-            }
-        }
-
-        /* Try to read some data and pass it on to the source driver */
-
-        if (u->source && PA_SOURCE_OPENED(u->source->thread_info.state) && ((revents & POLLIN))) {
-            pa_memchunk memchunk;
-            int err;
-            size_t l;
-            void *p;
-            ssize_t r;
-            audio_info_t info;
-
-            err = ioctl(u->fd, AUDIO_GETINFO, &info);
-            pa_assert(err >= 0);
-
             if (info.record.error) {
-                pa_log_debug("Solaris buffer overflow!");
-                clear_overflow(u);
+                pa_log_debug("buffer overflow!");
+
+                AUDIO_INITINFO(&info);
+                info.record.error = 0;
+                if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0)
+                    pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
             }
 
-            err = ioctl(u->fd, I_NREAD, &l);
+            err = ioctl(u->fd, I_NREAD, &len);
             pa_assert(err >= 0);
 
-            if (l > 0) {
-                /* This is to make sure it fits in the memory pool. Also, a page
-                   should be the most efficient transfer size. */
-                if (l > u->page_size)
-                    l = u->page_size;
-
-                memchunk.memblock = pa_memblock_new(u->core->mempool, l);
+            if (len > 0) {
+                memchunk.memblock = pa_memblock_new(u->core->mempool, len);
                 pa_assert(memchunk.memblock);
 
                 p = pa_memblock_acquire(memchunk.memblock);
-                r = pa_read(u->fd, p, l, NULL);
+                r = pa_read(u->fd, p, len, NULL);
                 pa_memblock_release(memchunk.memblock);
 
                 if (r < 0) {
                     pa_memblock_unref(memchunk.memblock);
-                    if (errno != EAGAIN) {
+                    if (errno == EAGAIN)
+                        break;
+                    else {
                         pa_log("Failed to read data from DSP: %s", pa_cstrerror(errno));
                         goto fail;
                     }
                 } else {
+                    u->read_bytes += r;
+
                     memchunk.index = 0;
                     memchunk.length = r;
 
                     pa_source_post(u->source, &memchunk);
                     pa_memblock_unref(memchunk.memblock);
 
-                    u->read_bytes += r;
-
                     revents &= ~POLLIN;
                 }
             }
         }
 
-        if (u->fd >= 0) {
+        if (u->rtpoll_item) {
             struct pollfd *pollfd;
 
+            pa_assert(u->fd >= 0);
+
             pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
-            pollfd->events =
-                ((u->source && PA_SOURCE_OPENED(u->source->thread_info.state)) ? POLLIN : 0);
+            pollfd->events = (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state)) ? POLLIN : 0;
         }
 
         /* Hmm, nothing to do. Let's sleep */
-        if ((ret = pa_rtpoll_run(u->rtpoll, 1)) < 0)
+        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
             goto fail;
 
         if (ret == 0)
             goto finish;
 
-        if (u->fd >= 0) {
+        if (u->rtpoll_item) {
             struct pollfd *pollfd;
 
             pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
@@ -460,112 +780,29 @@ static void sig_callback(pa_mainloop_api *api, pa_signal_event*e, int sig, void 
 
     assert(u);
 
+    pa_log_debug("caught signal");
+
     if (u->sink) {
-        pa_sink_get_volume(u->sink);
-        pa_sink_get_mute(u->sink);
+        pa_sink_get_volume(u->sink, TRUE);
+        pa_sink_get_mute(u->sink, TRUE);
     }
 
     if (u->source)
-        pa_source_get_volume(u->source);
-}
-
-static int pa_solaris_auto_format(int fd, int mode, pa_sample_spec *ss) {
-    audio_info_t info;
-
-    AUDIO_INITINFO(&info);
-
-    if (mode != O_RDONLY) {
-        info.play.sample_rate = ss->rate;
-        info.play.channels = ss->channels;
-        switch (ss->format) {
-        case PA_SAMPLE_U8:
-            info.play.precision = 8;
-            info.play.encoding = AUDIO_ENCODING_LINEAR;
-            break;
-        case PA_SAMPLE_ALAW:
-            info.play.precision = 8;
-            info.play.encoding = AUDIO_ENCODING_ALAW;
-            break;
-        case PA_SAMPLE_ULAW:
-            info.play.precision = 8;
-            info.play.encoding = AUDIO_ENCODING_ULAW;
-            break;
-        case PA_SAMPLE_S16NE:
-            info.play.precision = 16;
-            info.play.encoding = AUDIO_ENCODING_LINEAR;
-            break;
-        default:
-            return -1;
-        }
-    }
-
-    if (mode != O_WRONLY) {
-        info.record.sample_rate = ss->rate;
-        info.record.channels = ss->channels;
-        switch (ss->format) {
-        case PA_SAMPLE_U8:
-            info.record.precision = 8;
-            info.record.encoding = AUDIO_ENCODING_LINEAR;
-            break;
-        case PA_SAMPLE_ALAW:
-            info.record.precision = 8;
-            info.record.encoding = AUDIO_ENCODING_ALAW;
-            break;
-        case PA_SAMPLE_ULAW:
-            info.record.precision = 8;
-            info.record.encoding = AUDIO_ENCODING_ULAW;
-            break;
-        case PA_SAMPLE_S16NE:
-            info.record.precision = 16;
-            info.record.encoding = AUDIO_ENCODING_LINEAR;
-            break;
-        default:
-            return -1;
-        }
-    }
-
-    if (ioctl(fd, AUDIO_SETINFO, &info) < 0) {
-        if (errno == EINVAL)
-            pa_log("AUDIO_SETINFO: Unsupported sample format.");
-        else
-            pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
-        return -1;
-    }
-
-    return 0;
-}
-
-static int pa_solaris_set_buffer(int fd, int buffer_size) {
-    audio_info_t info;
-
-    AUDIO_INITINFO(&info);
-
-    info.play.buffer_size = buffer_size;
-    info.record.buffer_size = buffer_size;
-
-    if (ioctl(fd, AUDIO_SETINFO, &info) < 0) {
-        if (errno == EINVAL)
-            pa_log("AUDIO_SETINFO: Unsupported buffer size.");
-        else
-            pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
-        return -1;
-    }
-
-    return 0;
+        pa_source_get_volume(u->source, TRUE);
 }
 
 int pa__init(pa_module *m) {
     struct userdata *u = NULL;
-    const char *p;
-    int fd = -1;
-    int buffer_size;
-    int mode;
-    int record = 1, playback = 1;
+    pa_bool_t record = TRUE, playback = TRUE;
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;
-    char *t;
-    struct pollfd *pollfd;
+    int fd;
+    pa_sink_new_data sink_new_data;
+    pa_source_new_data source_new_data;
+    char const *name;
+    char *name_buf;
+    pa_bool_t namereg_fail;
 
     pa_assert(m);
 
@@ -575,7 +812,7 @@ int pa__init(pa_module *m) {
     }
 
     if (pa_modargs_get_value_boolean(ma, "record", &record) < 0 || pa_modargs_get_value_boolean(ma, "playback", &playback) < 0) {
-        pa_log("record= and playback= expect numeric argument.");
+        pa_log("record= and playback= expect a boolean argument.");
         goto fail;
     }
 
@@ -584,97 +821,133 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    mode = (playback&&record) ? O_RDWR : (playback ? O_WRONLY : (record ? O_RDONLY : 0));
+    u = pa_xnew0(struct userdata, 1);
+    u->sample_counter_lock = pa_mutex_new(FALSE, FALSE);
+    u->written_bytes_lock = pa_mutex_new(FALSE, FALSE);
 
-    buffer_size = 16384;
-    if (pa_modargs_get_value_s32(ma, "buffer_size", &buffer_size) < 0) {
-        pa_log("failed to parse buffer size argument");
-        goto fail;
-    }
+    /*
+     * For a process (or several processes) to use the same audio device for both
+     * record and playback at the same time, the device's mixer must be enabled.
+     * See mixerctl(1). It may be turned off for playback only or record only.
+     */
+    u->mode = (playback && record) ? O_RDWR : (playback ? O_WRONLY : (record ? O_RDONLY : 0));
 
     ss = m->core->default_sample_spec;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_DEFAULT) < 0) {
         pa_log("failed to parse sample specification");
         goto fail;
     }
-
-    if ((fd = open(p = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), mode | O_NONBLOCK)) < 0)
-        goto fail;
-
-    pa_log_info("device opened in %s mode.", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
-
-    if (pa_solaris_auto_format(fd, mode, &ss) < 0)
-        goto fail;
-
-    if (pa_solaris_set_buffer(fd, buffer_size) < 0)
-        goto fail;
-
-    u = pa_xmalloc(sizeof(struct userdata));
-    u->core = m->core;
-
-    u->fd = fd;
-
-    pa_memchunk_reset(&u->memchunk);
-
-    /* We use this to get a reasonable chunk size */
-    u->page_size = PA_PAGE_SIZE;
-
     u->frame_size = pa_frame_size(&ss);
-    u->buffer_size = buffer_size;
 
-    u->written_bytes = 0;
-    u->read_bytes = 0;
+    u->buffer_size = 16384;
+    if (pa_modargs_get_value_s32(ma, "buffer_size", &u->buffer_size) < 0) {
+        pa_log("failed to parse buffer size argument");
+        goto fail;
+    }
+    u->buffer_size -= u->buffer_size % u->frame_size;
+    if (u->buffer_size < (int32_t)MIN_BUFFER_SIZE) {
+        pa_log("supplied buffer size argument is too small");
+        goto fail;
+    }
 
+    u->device_name = pa_xstrdup(pa_modargs_get_value(ma, "device", DEFAULT_DEVICE));
+
+    if ((fd = open_audio_device(u, &ss)) < 0)
+        goto fail;
+
+    u->core = m->core;
     u->module = m;
     m->userdata = u;
 
-    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
+    pa_memchunk_reset(&u->memchunk);
 
     u->rtpoll = pa_rtpoll_new();
-    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
-    pa_rtpoll_set_timer_periodic(u->rtpoll, pa_bytes_to_usec(u->buffer_size / 10, &ss));
+    u->rtpoll_item = NULL;
+    build_pollfd(u);
 
-    u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
-    pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
-    pollfd->fd = fd;
-    pollfd->events = 0;
-    pollfd->revents = 0;
+    if (u->mode != O_WRONLY) {
+        name_buf = NULL;
+        namereg_fail = TRUE;
 
-    if (mode != O_WRONLY) {
-        u->source = pa_source_new(m->core, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &map);
-        pa_assert(u->source);
+        if (!(name = pa_modargs_get_value(ma, "source_name", NULL))) {
+            name = name_buf = pa_sprintf_malloc("solaris_input.%s", pa_path_get_filename(u->device_name));
+            namereg_fail = FALSE;
+        }
+
+        pa_source_new_data_init(&source_new_data);
+        source_new_data.driver = __FILE__;
+        source_new_data.module = m;
+        pa_source_new_data_set_name(&source_new_data, name);
+        source_new_data.namereg_fail = namereg_fail;
+        pa_source_new_data_set_sample_spec(&source_new_data, &ss);
+        pa_source_new_data_set_channel_map(&source_new_data, &map);
+        pa_proplist_sets(source_new_data.proplist, PA_PROP_DEVICE_STRING, u->device_name);
+        pa_proplist_sets(source_new_data.proplist, PA_PROP_DEVICE_API, "solaris");
+        pa_proplist_setf(source_new_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Solaris PCM source");
+        pa_proplist_sets(source_new_data.proplist, PA_PROP_DEVICE_ACCESS_MODE, "serial");
+        pa_proplist_setf(source_new_data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) u->buffer_size);
+
+        u->source = pa_source_new(m->core, &source_new_data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY|PA_SOURCE_HW_VOLUME_CTRL);
+        pa_source_new_data_done(&source_new_data);
+        pa_xfree(name_buf);
+
+        if (!u->source) {
+            pa_log("Failed to create source object");
+            goto fail;
+        }
 
         u->source->userdata = u;
         u->source->parent.process_msg = source_process_msg;
 
-        pa_source_set_module(u->source, m);
-        pa_source_set_description(u->source, t = pa_sprintf_malloc("Solaris PCM on '%s'", p));
-        pa_xfree(t);
         pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
         pa_source_set_rtpoll(u->source, u->rtpoll);
 
-        u->source->flags = PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY|PA_SOURCE_HW_VOLUME_CTRL;
-        u->source->refresh_volume = 1;
+        u->source->get_volume = source_get_volume;
+        u->source->set_volume = source_set_volume;
+        u->source->refresh_volume = TRUE;
     } else
         u->source = NULL;
 
-    if (mode != O_RDONLY) {
-        u->sink = pa_sink_new(m->core, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map);
-        pa_assert(u->sink);
+    if (u->mode != O_RDONLY) {
+        name_buf = NULL;
+        namereg_fail = TRUE;
+        if (!(name = pa_modargs_get_value(ma, "sink_name", NULL))) {
+            name = name_buf = pa_sprintf_malloc("solaris_output.%s", pa_path_get_filename(u->device_name));
+            namereg_fail = FALSE;
+        }
 
+        pa_sink_new_data_init(&sink_new_data);
+        sink_new_data.driver = __FILE__;
+        sink_new_data.module = m;
+        pa_sink_new_data_set_name(&sink_new_data, name);
+        sink_new_data.namereg_fail = namereg_fail;
+        pa_sink_new_data_set_sample_spec(&sink_new_data, &ss);
+        pa_sink_new_data_set_channel_map(&sink_new_data, &map);
+        pa_proplist_sets(sink_new_data.proplist, PA_PROP_DEVICE_STRING, u->device_name);
+        pa_proplist_sets(sink_new_data.proplist, PA_PROP_DEVICE_API, "solaris");
+        pa_proplist_setf(sink_new_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Solaris PCM sink");
+        pa_proplist_sets(sink_new_data.proplist, PA_PROP_DEVICE_ACCESS_MODE, "serial");
+
+        u->sink = pa_sink_new(m->core, &sink_new_data, PA_SINK_HARDWARE|PA_SINK_LATENCY|PA_SINK_HW_VOLUME_CTRL|PA_SINK_HW_MUTE_CTRL);
+        pa_sink_new_data_done(&sink_new_data);
+
+        pa_assert(u->sink);
         u->sink->userdata = u;
         u->sink->parent.process_msg = sink_process_msg;
 
-        pa_sink_set_module(u->sink, m);
-        pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Solaris PCM on '%s'", p));
-        pa_xfree(t);
         pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
         pa_sink_set_rtpoll(u->sink, u->rtpoll);
 
-        u->sink->flags = PA_SINK_HARDWARE|PA_SINK_LATENCY|PA_SINK_HW_VOLUME_CTRL;
-        u->sink->refresh_volume = 1;
-        u->sink->refresh_mute = 1;
+        u->sink->get_volume = sink_get_volume;
+        u->sink->set_volume = sink_set_volume;
+        u->sink->get_mute = sink_get_mute;
+        u->sink->set_mute = sink_set_mute;
+        u->sink->refresh_volume = u->sink->refresh_muted = TRUE;
+
+        u->sink->thread_info.max_request = u->buffer_size;
+        u->min_request = pa_usec_to_bytes(PA_USEC_PER_SEC / MAX_RENDER_HZ, &ss);
     } else
         u->sink = NULL;
 
@@ -690,17 +963,28 @@ int pa__init(pa_module *m) {
     }
 
     /* Read mixer settings */
-    if (u->source)
-        pa_asyncmsgq_send(u->thread_mq.inq, PA_MSGOBJECT(u->source), PA_SOURCE_MESSAGE_GET_VOLUME, &u->source->volume, 0, NULL);
     if (u->sink) {
-        pa_asyncmsgq_send(u->thread_mq.inq, PA_MSGOBJECT(u->sink), PA_SINK_MESSAGE_GET_VOLUME, &u->sink->volume, 0, NULL);
-        pa_asyncmsgq_send(u->thread_mq.inq, PA_MSGOBJECT(u->sink), PA_SINK_MESSAGE_GET_MUTE, &u->sink->muted, 0, NULL);
+        if (sink_new_data.volume_is_set)
+            u->sink->set_volume(u->sink);
+        else
+            u->sink->get_volume(u->sink);
+
+        if (sink_new_data.muted_is_set)
+            u->sink->set_mute(u->sink);
+        else
+            u->sink->get_mute(u->sink);
+
+        pa_sink_put(u->sink);
     }
 
-    if (u->sink)
-        pa_sink_put(u->sink);
-    if (u->source)
+    if (u->source) {
+        if (source_new_data.volume_is_set)
+            u->source->set_volume(u->source);
+        else
+            u->source->get_volume(u->source);
+
         pa_source_put(u->source);
+    }
 
     pa_modargs_free(ma);
 
@@ -748,7 +1032,7 @@ void pa__done(pa_module *m) {
     if (u->source)
         pa_source_unref(u->source);
 
-     if (u->memchunk.memblock)
+    if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
 
     if (u->rtpoll_item)
@@ -759,6 +1043,11 @@ void pa__done(pa_module *m) {
 
     if (u->fd >= 0)
         close(u->fd);
+
+    pa_mutex_free(u->written_bytes_lock);
+    pa_mutex_free(u->sample_counter_lock);
+
+    pa_xfree(u->device_name);
 
     pa_xfree(u);
 }

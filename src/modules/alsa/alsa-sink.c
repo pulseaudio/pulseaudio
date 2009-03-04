@@ -6,7 +6,7 @@
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
-  by the Free Software Foundation; either version 2 of the License,
+  by the Free Software Foundation; either version 2.1 of the License,
   or (at your option) any later version.
 
   PulseAudio is distributed in the hope that it will be useful, but
@@ -148,7 +148,7 @@ static void reserve_update(struct userdata *u) {
     const char *description;
     pa_assert(u);
 
-    if (!u->sink)
+    if (!u->sink || !u->reserve)
         return;
 
     if ((description = pa_proplist_gets(u->sink->proplist, PA_PROP_DEVICE_DESCRIPTION)))
@@ -162,6 +162,9 @@ static int reserve_init(struct userdata *u, const char *dname) {
     pa_assert(dname);
 
     if (u->reserve)
+        return 0;
+
+    if (pa_in_system_mode())
         return 0;
 
     /* We are resuming, try to lock the device */
@@ -1187,17 +1190,11 @@ static int process_rewind(struct userdata *u) {
 
     /* Figure out how much we shall rewind and reset the counter */
     rewind_nbytes = u->sink->thread_info.rewind_nbytes;
-    u->sink->thread_info.rewind_nbytes = 0;
 
-    if (rewind_nbytes <= 0)
-        goto finish;
-
-    pa_assert(rewind_nbytes > 0);
     pa_log_debug("Requested to rewind %lu bytes.", (unsigned long) rewind_nbytes);
 
-    snd_pcm_hwsync(u->pcm_handle);
-    if ((unused = snd_pcm_avail_update(u->pcm_handle)) < 0) {
-        pa_log("snd_pcm_avail_update() failed: %s", snd_strerror((int) unused));
+    if (PA_UNLIKELY((unused = pa_alsa_safe_avail(u->pcm_handle, u->hwbuf_size, &u->sink->sample_spec)) < 0)) {
+        pa_log("snd_pcm_avail() failed: %s", snd_strerror((int) unused));
         return -1;
     }
 
@@ -1239,12 +1236,8 @@ static int process_rewind(struct userdata *u) {
     } else
         pa_log_debug("Mhmm, actually there is nothing to rewind.");
 
-finish:
-
     pa_sink_process_rewind(u->sink, 0);
-
     return 0;
-
 }
 
 static void thread_func(void *userdata) {
@@ -1273,7 +1266,7 @@ static void thread_func(void *userdata) {
             int work_done;
             pa_usec_t sleep_usec = 0;
 
-            if (u->sink->thread_info.rewind_requested)
+            if (PA_UNLIKELY(u->sink->thread_info.rewind_requested))
                 if (process_rewind(u) < 0)
                         goto fail;
 
@@ -1699,11 +1692,10 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         u->watermark_step = pa_usec_to_bytes(TSCHED_WATERMARK_STEP_USEC, &u->sink->sample_spec);
     }
 
-    u->sink->thread_info.max_rewind = use_tsched ? u->hwbuf_size : 0;
-    u->sink->thread_info.max_request = u->hwbuf_size;
-
+    pa_sink_set_max_rewind(u->sink, use_tsched ? u->hwbuf_size : 0);
+    pa_sink_set_max_request(u->sink, u->hwbuf_size);
     pa_sink_set_latency_range(u->sink,
-                              !use_tsched ? pa_bytes_to_usec(u->hwbuf_size, &ss) : (pa_usec_t) -1,
+                              use_tsched ? (pa_usec_t) -1 : pa_bytes_to_usec(u->hwbuf_size, &ss),
                               pa_bytes_to_usec(u->hwbuf_size, &ss));
 
     pa_log_info("Using %u fragments of size %lu bytes, buffer time is %0.2fms",

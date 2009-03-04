@@ -9,7 +9,7 @@
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
-  by the Free Software Foundation; either version 2 of the License,
+  by the Free Software Foundation; either version 2.1 of the License,
   or (at your option) any later version.
 
   PulseAudio is distributed in the hope that it will be useful, but
@@ -211,6 +211,8 @@ void pa_source_detach(pa_source *s);
 void pa_source_attach(pa_source *s);
 
 void pa_source_set_soft_volume(pa_source *s, const pa_cvolume *volume);
+
+int pa_source_sync_suspend(pa_source *s);
 
 /*** May be called by everyone, from main context */
 

@@ -5,7 +5,7 @@
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
-  by the Free Software Foundation; either version 2 of the License,
+  by the Free Software Foundation; either version 2.1 of the License,
   or (at your option) any later version.
 
   PulseAudio is distributed in the hope that it will be useful, but
@@ -51,7 +51,12 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/strbuf.h>
 #include <pulsecore/random.h>
+
+#ifdef HAVE_POLL_H
+#include <poll.h>
+#else
 #include <pulsecore/poll.h>
+#endif
 
 #include "raop_client.h"
 #include "rtsp_client.h"
@@ -339,9 +344,13 @@ static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* he
             break;
 
         case STATE_TEARDOWN:
+            pa_log_debug("RAOP: TEARDOWN");
+            break;
+
         case STATE_SET_PARAMETER:
             pa_log_debug("RAOP: SET_PARAMETER");
             break;
+
         case STATE_DISCONNECTED:
             pa_assert(c->closed_callback);
             pa_assert(c->rtsp);

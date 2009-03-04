@@ -6,7 +6,7 @@
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
-  by the Free Software Foundation; either version 2 of the License,
+  by the Free Software Foundation; either version 2.1 of the License,
   or (at your option) any later version.
 
   PulseAudio is distributed in the hope that it will be useful, but
@@ -424,10 +424,31 @@ int pa_source_suspend(pa_source *s, pa_bool_t suspend) {
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
 
+    if (s->monitor_of)
+        return -PA_ERR_NOTSUPPORTED;
+
     if (suspend)
         return source_set_state(s, PA_SOURCE_SUSPENDED);
     else
         return source_set_state(s, pa_source_used_by(s) ? PA_SOURCE_RUNNING : PA_SOURCE_IDLE);
+}
+
+/* Called from main context */
+int pa_source_sync_suspend(pa_source *s) {
+    pa_sink_state_t state;
+
+    pa_source_assert_ref(s);
+    pa_assert(PA_SOURCE_IS_LINKED(s->state));
+    pa_assert(s->monitor_of);
+
+    state = pa_sink_get_state(s->monitor_of);
+
+    if (state == PA_SINK_SUSPENDED)
+        return source_set_state(s, PA_SOURCE_SUSPENDED);
+
+    pa_assert(PA_SINK_IS_OPENED(state));
+
+    return source_set_state(s, pa_source_used_by(s) ? PA_SOURCE_RUNNING : PA_SOURCE_IDLE);
 }
 
 /* Called from main context */
@@ -934,8 +955,15 @@ int pa_source_suspend_all(pa_core *c, pa_bool_t suspend) {
 
     pa_core_assert_ref(c);
 
-    for (source = PA_SOURCE(pa_idxset_first(c->sources, &idx)); source; source = PA_SOURCE(pa_idxset_next(c->sources, &idx)))
-        ret -= pa_source_suspend(source, suspend) < 0;
+    for (source = PA_SOURCE(pa_idxset_first(c->sources, &idx)); source; source = PA_SOURCE(pa_idxset_next(c->sources, &idx))) {
+        int r;
+
+        if (source->monitor_of)
+            continue;
+
+        if ((r = pa_source_suspend(source, suspend)) < 0)
+            ret = r;
+    }
 
     return ret;
 }

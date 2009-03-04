@@ -5,7 +5,7 @@
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
-  by the Free Software Foundation; either version 2 of the License,
+  by the Free Software Foundation; either version 2.1 of the License,
   or (at your option) any later version.
 
   PulseAudio is distributed in the hope that it will be useful, but
@@ -43,8 +43,13 @@
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/strbuf.h>
-#include <pulsecore/poll.h>
 #include <pulsecore/ioline.h>
+
+#ifdef HAVE_POLL_H
+#include <poll.h>
+#else
+#include <pulsecore/poll.h>
+#endif
 
 #include "rtsp_client.h"
 
@@ -101,26 +106,27 @@ pa_rtsp_client* pa_rtsp_client_new(pa_mainloop_api *mainloop, const char* hostna
 
 
 void pa_rtsp_client_free(pa_rtsp_client* c) {
-    if (c) {
-        if (c->sc)
-            pa_socket_client_unref(c->sc);
-        if (c->ioline)
-            pa_ioline_close(c->ioline);
-        else if (c->io)
-            pa_iochannel_free(c->io);
+    pa_assert(c);
 
-        pa_xfree(c->hostname);
-        pa_xfree(c->url);
-        pa_xfree(c->localip);
-        pa_xfree(c->session);
-        pa_xfree(c->transport);
-        pa_xfree(c->last_header);
-        if (c->header_buffer)
-            pa_strbuf_free(c->header_buffer);
-        if (c->response_headers)
-            pa_headerlist_free(c->response_headers);
-        pa_headerlist_free(c->headers);
-    }
+    if (c->sc)
+        pa_socket_client_unref(c->sc);
+    if (c->ioline)
+        pa_ioline_close(c->ioline);
+    else if (c->io)
+        pa_iochannel_free(c->io);
+
+    pa_xfree(c->hostname);
+    pa_xfree(c->url);
+    pa_xfree(c->localip);
+    pa_xfree(c->session);
+    pa_xfree(c->transport);
+    pa_xfree(c->last_header);
+    if (c->header_buffer)
+        pa_strbuf_free(c->header_buffer);
+    if (c->response_headers)
+        pa_headerlist_free(c->response_headers);
+    pa_headerlist_free(c->headers);
+
     pa_xfree(c);
 }
 
@@ -141,8 +147,6 @@ static void headers_read(pa_rtsp_client *c) {
         c->transport = pa_xstrdup(pa_headerlist_gets(c->response_headers, "Transport"));
 
         if (!c->session || !c->transport) {
-            pa_headerlist_free(c->response_headers);
-            c->response_headers = NULL;
             pa_log("Invalid SETUP response.");
             return;
         }
@@ -160,8 +164,6 @@ static void headers_read(pa_rtsp_client *c) {
         }
         if (0 == c->rtp_port) {
             /* Error no server_port in response */
-            pa_headerlist_free(c->response_headers);
-            c->response_headers = NULL;
             pa_log("Invalid SETUP response (no port number).");
             return;
         }
@@ -169,9 +171,6 @@ static void headers_read(pa_rtsp_client *c) {
 
     /* Call our callback */
     c->callback(c, c->state, c->response_headers, c->userdata);
-
-    pa_headerlist_free(c->response_headers);
-    c->response_headers = NULL;
 }
 
 
@@ -201,7 +200,8 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     }
     if (c->waiting && 0 == strcmp("RTSP/1.0 200 OK", s2)) {
         c->waiting = 0;
-        pa_assert(!c->response_headers);
+        if (c->response_headers)
+            pa_headerlist_free(c->response_headers);
         c->response_headers = pa_headerlist_new();
         goto exit;
     }
@@ -353,9 +353,12 @@ void pa_rtsp_set_callback(pa_rtsp_client *c, pa_rtsp_cb_t callback, void *userda
 void pa_rtsp_disconnect(pa_rtsp_client *c) {
     pa_assert(c);
 
-    if (c->io)
+    if (c->ioline)
+        pa_ioline_close(c->ioline);
+    else if (c->io)
         pa_iochannel_free(c->io);
     c->io = NULL;
+    c->ioline = NULL;
 }
 
 

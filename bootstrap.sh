@@ -62,7 +62,7 @@ else
 
     rm -f Makefile.am~ configure.ac~
     # Evil, evil, evil, evil hack
-    sed 's/read dummy/\#/' `which gettextize` | sh -s -- --copy --force
+    sed 's/read dummy/\#/' `which gettextize` | bash -s -- --copy --force
     test -f Makefile.am~ && mv Makefile.am~ Makefile.am
     test -f configure.ac~ && mv configure.ac~ configure.ac
 
