@@ -32,6 +32,7 @@
 #include <ltdl.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/error.h>
 
 #include <pulsecore/module.h>
 #include <pulsecore/sink.h>
@@ -1236,7 +1237,7 @@ static int pa_cli_command_move_source_output(pa_core *c, pa_tokenizer *t, pa_str
 static int pa_cli_command_suspend_sink(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
     const char *n, *m;
     pa_sink *sink;
-    int suspend;
+    int suspend, r;
 
     pa_core_assert_ref(c);
     pa_assert(t);
@@ -1263,14 +1264,16 @@ static int pa_cli_command_suspend_sink(pa_core *c, pa_tokenizer *t, pa_strbuf *b
         return -1;
     }
 
-    pa_sink_suspend(sink, suspend);
+    if ((r = pa_sink_suspend(sink, suspend)) < 0)
+        pa_strbuf_printf(buf, "Failed to resume/suspend sink: %s\n", pa_strerror(r));
+
     return 0;
 }
 
 static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
     const char *n, *m;
     pa_source *source;
-    int suspend;
+    int suspend, r;
 
     pa_core_assert_ref(c);
     pa_assert(t);
@@ -1297,14 +1300,15 @@ static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf 
         return -1;
     }
 
-    pa_source_suspend(source, suspend);
+    if ((r = pa_source_suspend(source, suspend)) < 0)
+        pa_strbuf_printf(buf, "Failed to resume/suspend source: %s\n", pa_strerror(r));
+
     return 0;
 }
 
 static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
     const char *m;
-    int suspend;
-    int ret;
+    int suspend, r;
 
     pa_core_assert_ref(c);
     pa_assert(t);
@@ -1321,12 +1325,11 @@ static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, p
         return -1;
     }
 
-    ret = - (pa_sink_suspend_all(c, suspend) < 0);
-    if (pa_source_suspend_all(c, suspend) < 0)
-        ret = -1;
+    if ((r = pa_sink_suspend_all(c, suspend)) < 0)
+        pa_strbuf_printf(buf, "Failed to resume/suspend all sinks: %s\n", pa_strerror(r));
 
-    if (ret < 0)
-        pa_strbuf_puts(buf, "Failed to resume/suspend all sinks/sources.\n");
+    if ((r = pa_source_suspend_all(c, suspend)) < 0)
+        pa_strbuf_printf(buf, "Failed to resume/suspend all sources: %s\n", pa_strerror(r));
 
     return 0;
 }
