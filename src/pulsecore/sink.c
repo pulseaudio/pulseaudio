@@ -1902,7 +1902,7 @@ size_t pa_sink_get_max_request(pa_sink *s) {
 
 /* Called from main context */
 pa_bool_t pa_device_init_icon(pa_proplist *p, pa_bool_t is_sink) {
-    const char *ff, *t = NULL, *s = "", *profile, *bus;
+    const char *ff, *c, *t = NULL, *s = "", *profile, *bus;
 
     pa_assert(p);
 
@@ -1919,7 +1919,14 @@ pa_bool_t pa_device_init_icon(pa_proplist *p, pa_bool_t is_sink) {
             t = "computer";
         else if (pa_streq(ff, "handset"))
             t = "phone";
+        else if (pa_streq(ff, "portable"))
+            t = "multimedia-player";
     }
+
+    if (!t)
+        if ((c = pa_proplist_gets(p, PA_PROP_DEVICE_CLASS)))
+            if (pa_streq(c, "modem"))
+                t = "modem";
 
     if (!t) {
         if (is_sink)
@@ -1954,6 +1961,12 @@ pa_bool_t pa_device_init_description(pa_proplist *p) {
     if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_FORM_FACTOR)))
         if (pa_streq(s, "internal")) {
             pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, _("Internal Audio"));
+            return TRUE;
+        }
+
+    if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_CLASS)))
+        if (pa_streq(s, "modem")) {
+            pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, _("Modem"));
             return TRUE;
         }
 
