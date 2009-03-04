@@ -326,6 +326,9 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
                 pa_sink_input_kill(i);
             else if (i->suspend)
                 i->suspend(i, state == PA_SINK_SUSPENDED);
+
+        if (s->monitor_source)
+            pa_source_sync_suspend(s->monitor_source);
     }
 
     return 0;

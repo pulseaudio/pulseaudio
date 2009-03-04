@@ -434,6 +434,24 @@ int pa_source_suspend(pa_source *s, pa_bool_t suspend) {
 }
 
 /* Called from main context */
+int pa_source_sync_suspend(pa_source *s) {
+    pa_sink_state_t state;
+
+    pa_source_assert_ref(s);
+    pa_assert(PA_SOURCE_IS_LINKED(s->state));
+    pa_assert(s->monitor_of);
+
+    state = pa_sink_get_state(s->monitor_of);
+
+    if (state == PA_SINK_SUSPENDED)
+        return source_set_state(s, PA_SOURCE_SUSPENDED);
+
+    pa_assert(PA_SINK_IS_OPENED(state));
+
+    return source_set_state(s, pa_source_used_by(s) ? PA_SOURCE_RUNNING : PA_SOURCE_IDLE);
+}
+
+/* Called from main context */
 pa_queue *pa_source_move_all_start(pa_source *s) {
     pa_queue *q;
     pa_source_output *o, *n;

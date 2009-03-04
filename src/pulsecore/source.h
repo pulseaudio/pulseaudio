@@ -212,6 +212,8 @@ void pa_source_attach(pa_source *s);
 
 void pa_source_set_soft_volume(pa_source *s, const pa_cvolume *volume);
 
+int pa_source_sync_suspend(pa_source *s);
+
 /*** May be called by everyone, from main context */
 
 /* The returned value is supposed to be in the time domain of the sound card! */
