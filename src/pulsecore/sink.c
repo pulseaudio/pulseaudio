@@ -1529,8 +1529,10 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
             s->thread_info.state = PA_PTR_TO_UINT(userdata);
 
-            if (s->thread_info.state == PA_SINK_SUSPENDED)
+            if (s->thread_info.state == PA_SINK_SUSPENDED) {
+                s->thread_info.rewind_nbytes = 0;
                 s->thread_info.rewind_requested = FALSE;
+            }
 
             return 0;
 
@@ -1730,7 +1732,7 @@ pa_usec_t pa_sink_get_requested_latency(pa_sink *s) {
     return usec;
 }
 
-/* Called from IO thread */
+/* Called from IO as well as the main thread -- the latter only before the IO thread started up */
 void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind) {
     pa_sink_input *i;
     void *state = NULL;
@@ -1751,7 +1753,7 @@ void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind) {
         pa_source_set_max_rewind(s->monitor_source, s->thread_info.max_rewind);
 }
 
-/* Called from IO thread */
+/* Called from IO as well as the main thread -- the latter only before the IO thread started up */
 void pa_sink_set_max_request(pa_sink *s, size_t max_request) {
     void *state = NULL;
 
