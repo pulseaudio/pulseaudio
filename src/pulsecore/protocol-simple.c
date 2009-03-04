@@ -283,6 +283,9 @@ static int connection_process_msg(pa_msgobject *o, int code, void*userdata, int6
     connection *c = CONNECTION(o);
     connection_assert_ref(c);
 
+    if (!c->protocol)
+        return -1;
+
     switch (code) {
         case CONNECTION_MESSAGE_REQUEST_DATA:
             do_work(c);
