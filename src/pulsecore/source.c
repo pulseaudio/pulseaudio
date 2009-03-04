@@ -424,6 +424,9 @@ int pa_source_suspend(pa_source *s, pa_bool_t suspend) {
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
 
+    if (s->monitor_of)
+        return -PA_ERR_NOTSUPPORTED;
+
     if (suspend)
         return source_set_state(s, PA_SOURCE_SUSPENDED);
     else
