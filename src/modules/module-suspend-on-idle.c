@@ -149,7 +149,12 @@ static pa_hook_result_t source_output_fixate_hook_cb(pa_core *c, pa_source_outpu
     pa_assert(data);
     pa_assert(u);
 
-    if ((d = pa_hashmap_get(u->device_infos, data->source)))
+    if (data->source->monitor_of)
+        d = pa_hashmap_get(u->device_infos, data->source->monitor_of);
+    else
+        d = pa_hashmap_get(u->device_infos, data->source);
+
+    if (d)
         resume(d);
 
     return PA_HOOK_OK;
@@ -173,6 +178,8 @@ static pa_hook_result_t sink_input_unlink_hook_cb(pa_core *c, pa_sink_input *s, 
 }
 
 static pa_hook_result_t source_output_unlink_hook_cb(pa_core *c, pa_source_output *s, struct userdata *u) {
+    struct device_info *d = NULL;
+
     pa_assert(c);
     pa_source_output_assert_ref(s);
     pa_assert(u);
@@ -180,11 +187,16 @@ static pa_hook_result_t source_output_unlink_hook_cb(pa_core *c, pa_source_outpu
     if (!s->source)
         return PA_HOOK_OK;
 
-    if (pa_source_check_suspend(s->source) <= 0) {
-        struct device_info *d;
-        if ((d = pa_hashmap_get(u->device_infos, s->source)))
-            restart(d);
+    if (s->source->monitor_of) {
+        if (pa_sink_check_suspend(s->source->monitor_of) <= 0)
+            d = pa_hashmap_get(u->device_infos, s->source->monitor_of);
+    } else {
+        if (pa_source_check_suspend(s->source) <= 0)
+            d = pa_hashmap_get(u->device_infos, s->source);
     }
+
+    if (d)
+        restart(d);
 
     return PA_HOOK_OK;
 }
@@ -217,15 +229,22 @@ static pa_hook_result_t sink_input_move_finish_hook_cb(pa_core *c, pa_sink_input
 }
 
 static pa_hook_result_t source_output_move_start_hook_cb(pa_core *c, pa_source_output *s, struct userdata *u) {
-    struct device_info *d;
+    struct device_info *d = NULL;
 
     pa_assert(c);
     pa_source_output_assert_ref(s);
     pa_assert(u);
 
-    if (pa_source_check_suspend(s->source) <= 1)
-        if ((d = pa_hashmap_get(u->device_infos, s->source)))
-            restart(d);
+    if (s->source->monitor_of) {
+        if (pa_sink_check_suspend(s->source->monitor_of) <= 1)
+            d = pa_hashmap_get(u->device_infos, s->source->monitor_of);
+    } else {
+        if (pa_source_check_suspend(s->source) <= 1)
+            d = pa_hashmap_get(u->device_infos, s->source);
+    }
+
+    if (d)
+        restart(d);
 
     return PA_HOOK_OK;
 }
@@ -237,7 +256,12 @@ static pa_hook_result_t source_output_move_finish_hook_cb(pa_core *c, pa_source_
     pa_source_output_assert_ref(s);
     pa_assert(u);
 
-    if ((d = pa_hashmap_get(u->device_infos, s->source)))
+    if (s->source->monitor_of)
+        d = pa_hashmap_get(u->device_infos, s->source->monitor_of);
+    else
+        d = pa_hashmap_get(u->device_infos, s->source);
+
+    if (d)
         resume(d);
 
     return PA_HOOK_OK;
@@ -259,16 +283,25 @@ static pa_hook_result_t sink_input_state_changed_hook_cb(pa_core *c, pa_sink_inp
 }
 
 static pa_hook_result_t source_output_state_changed_hook_cb(pa_core *c, pa_source_output *s, struct userdata *u) {
-    struct device_info *d;
     pa_source_output_state_t state;
+
     pa_assert(c);
     pa_source_output_assert_ref(s);
     pa_assert(u);
 
     state = pa_source_output_get_state(s);
-    if (state == PA_SOURCE_OUTPUT_RUNNING)
-        if ((d = pa_hashmap_get(u->device_infos, s->source)))
+
+    if (state == PA_SOURCE_OUTPUT_RUNNING) {
+        struct device_info *d;
+
+        if (s->source->monitor_of)
+            d = pa_hashmap_get(u->device_infos, s->source->monitor_of);
+        else
+            d = pa_hashmap_get(u->device_infos, s->source);
+
+        if (d)
             resume(d);
+    }
 
     return PA_HOOK_OK;
 }
@@ -284,6 +317,10 @@ static pa_hook_result_t device_new_hook_cb(pa_core *c, pa_object *o, struct user
 
     source = pa_source_isinstance(o) ? PA_SOURCE(o) : NULL;
     sink = pa_sink_isinstance(o) ? PA_SINK(o) : NULL;
+
+    /* Never suspend monitors */
+    if (source && source->monitor_of)
+        return PA_HOOK_OK;
 
     pa_assert(source || sink);
 
