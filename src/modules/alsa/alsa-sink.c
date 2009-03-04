@@ -1190,17 +1190,11 @@ static int process_rewind(struct userdata *u) {
 
     /* Figure out how much we shall rewind and reset the counter */
     rewind_nbytes = u->sink->thread_info.rewind_nbytes;
-    u->sink->thread_info.rewind_nbytes = 0;
 
-    if (rewind_nbytes <= 0)
-        goto finish;
-
-    pa_assert(rewind_nbytes > 0);
     pa_log_debug("Requested to rewind %lu bytes.", (unsigned long) rewind_nbytes);
 
-    snd_pcm_hwsync(u->pcm_handle);
-    if ((unused = snd_pcm_avail_update(u->pcm_handle)) < 0) {
-        pa_log("snd_pcm_avail_update() failed: %s", snd_strerror((int) unused));
+    if (PA_UNLIKELY((unused = pa_alsa_safe_avail(u->pcm_handle, u->hwbuf_size, &u->sink->sample_spec)) < 0)) {
+        pa_log("snd_pcm_avail() failed: %s", snd_strerror((int) unused));
         return -1;
     }
 
@@ -1242,12 +1236,8 @@ static int process_rewind(struct userdata *u) {
     } else
         pa_log_debug("Mhmm, actually there is nothing to rewind.");
 
-finish:
-
     pa_sink_process_rewind(u->sink, 0);
-
     return 0;
-
 }
 
 static void thread_func(void *userdata) {
@@ -1276,7 +1266,7 @@ static void thread_func(void *userdata) {
             int work_done;
             pa_usec_t sleep_usec = 0;
 
-            if (u->sink->thread_info.rewind_requested)
+            if (PA_UNLIKELY(u->sink->thread_info.rewind_requested))
                 if (process_rewind(u) < 0)
                         goto fail;
 
@@ -1702,11 +1692,10 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         u->watermark_step = pa_usec_to_bytes(TSCHED_WATERMARK_STEP_USEC, &u->sink->sample_spec);
     }
 
-    u->sink->thread_info.max_rewind = use_tsched ? u->hwbuf_size : 0;
-    u->sink->thread_info.max_request = u->hwbuf_size;
-
+    pa_sink_set_max_rewind(u->sink, use_tsched ? u->hwbuf_size : 0);
+    pa_sink_set_max_request(u->sink, u->hwbuf_size);
     pa_sink_set_latency_range(u->sink,
-                              !use_tsched ? pa_bytes_to_usec(u->hwbuf_size, &ss) : (pa_usec_t) -1,
+                              use_tsched ? (pa_usec_t) -1 : pa_bytes_to_usec(u->hwbuf_size, &ss),
                               pa_bytes_to_usec(u->hwbuf_size, &ss));
 
     pa_log_info("Using %u fragments of size %lu bytes, buffer time is %0.2fms",
