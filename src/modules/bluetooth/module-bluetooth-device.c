@@ -876,7 +876,7 @@ static int hsp_process_render(struct userdata *u) {
         pa_assert(l != 0);
 
         if (l < 0) {
-            if (errno == EINTR)
+            if (errno == EINTR || errno == EAGAIN)
                 continue;
             else {
                 pa_log_error("Failed to write data to SCO socket: %s", pa_cstrerror(errno));
@@ -921,7 +921,7 @@ static int hsp_process_push(struct userdata *u) {
         pa_memblock_release(memchunk.memblock);
 
         if (l <= 0) {
-            if (l < 0 && errno == EINTR)
+            if (l < 0 && (errno == EINTR || errno == EAGAIN))
                 continue;
             else {
                 pa_log_error("Failed to read data from SCO socket: %s", l < 0 ? pa_cstrerror(errno) : "EOF");
@@ -1044,7 +1044,7 @@ static int a2dp_process_render(struct userdata *u) {
         pa_assert(l != 0);
 
         if (l < 0) {
-            if (errno == EINTR)
+            if (errno == EINTR || errno == EAGAIN)
                 continue;
             else {
                 pa_log_error("Failed to write data to socket: %s", pa_cstrerror(errno));
