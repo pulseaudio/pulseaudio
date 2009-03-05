@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-02-24 11:33+0100\n"
-"PO-Revision-Date: 2009-02-20 18:42+0100\n"
+"PO-Revision-Date: 2009-02-25 00:31+0100\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -58,39 +58,40 @@ msgid "Analog Surround 7.1"
 msgstr "Analogowe surround 7.1"
 
 #: ../src/modules/alsa/alsa-util.c:1582
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
 "ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_avail_update() zwróciło wyjątkowo dużą wartość: %lu bajty (%lu ms). "
-"Prawdopodobnie jest to błąd sterownika ALSA. Proszę zgłosić ten problem "
-"programistom ALSA."
+"snd_pcm_avail() zwróciło wyjątkowo dużą wartość: %lu bajty (%lu ms).\n"
+"Prawdopodobnie jest to błąd sterownika ALSA \"%s\". Proszę zgłosić ten "
+"problem programistom ALSA."
 
 #: ../src/modules/alsa/alsa-util.c:1622
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
 "lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_avail_update() zwróciło wyjątkowo dużą wartość: %lu bajty (%lu ms). "
-"Prawdopodobnie jest to błąd sterownika ALSA. Proszę zgłosić ten problem "
-"programistom ALSA."
+"snd_pcm_delay() zwróciło wyjątkowo dużą wartość: %li bajty (%s%lu ms).\n"
+"Prawdopodobnie jest to błąd sterownika ALSA \"%s\". Proszę zgłosić ten "
+"problem programistom ALSA."
 
 #: ../src/modules/alsa/alsa-util.c:1668
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
 "(%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_mmap_begin() zwróciło wyjątkowo dużą wartość: %lu bajty (%lu ms). "
-"Proszę zgłosić ten problem programistom ALSA."
+"snd_pcm_mmap_begin() zwróciło wyjątkowo dużą wartość: %lu bajty (%lu ms).\n"
+"Prawdopodobnie jest to błąd sterownika ALSA \"%s\". Proszę zgłosić ten "
+"problem programistom ALSA."
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
@@ -270,6 +271,14 @@ msgid ""
 "appropriate PolicyKit privileges, or become a member of '%s', or increase "
 "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 msgstr ""
+"W konfiguracji zażądano SUID roota i szeregowanie w czasie rzeczywistym "
+"i/lub o wysokim priorytecie. Brak wymaganych uprawnień:\n"
+"Nie jesteśmy w grupie \"%s\", PolicyKit odmawia przyznania żądanych "
+"uprawnień i brak ograniczeń zwiększania zasobów RLIMIT_NICE/RLIMIT_RTPRIO.\n"
+"Aby włączyć szeregowanie w czasie rzeczywistym i/lub o wysokim priorytecie, "
+"należy uzyskać odpowiednie uprawnienia PolicyKit, zostać członkiem grupy "
+"\"%s\" lub zwiększyć ograniczenia zasobów RLIMIT_NICE/RLIMIT_RTPRIO dla tego "
+"użytkownika."
 
 #: ../src/daemon/main.c:536
 msgid ""
@@ -318,7 +327,7 @@ msgid ""
 "specified)."
 msgstr ""
 "Ten program nie powinien być uruchomiany jako root (chyba, że podano --"
-"system)"
+"system)."
 
 #: ../src/daemon/main.c:675
 msgid "Root privileges required."
@@ -351,7 +360,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:723
 msgid "Failed to acquire stdio."
-msgstr "Uzyskanie standardowego wejścia/wyjścia nie powiodło się"
+msgstr "Uzyskanie standardowego wejścia/wyjścia nie powiodło się."
 
 #: ../src/daemon/main.c:729
 #, c-format
@@ -663,16 +672,15 @@ msgstr "--high-priority oczekuje parametru zmiennej logicznej"
 
 #: ../src/daemon/cmdline.c:288
 msgid "--realtime expects boolean argument"
-msgstr "-realtime oczekuje parametru zmiennej logicznej"
+msgstr "--realtime oczekuje parametru zmiennej logicznej"
 
 #: ../src/daemon/cmdline.c:295
 msgid "--disallow-module-loading expects boolean argument"
 msgstr "--disallow-module-loading oczekuje parametru zmiennej logicznej"
 
 #: ../src/daemon/cmdline.c:302
-#, fuzzy
 msgid "--disallow-exit expects boolean argument"
-msgstr "--disallow-exit zmienna logiczna"
+msgstr "--disallow-exit oczekuje parametru zmiennej logicznej"
 
 #: ../src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
@@ -685,14 +693,12 @@ msgstr ""
 "\"auto\"."
 
 #: ../src/daemon/cmdline.c:333
-#, fuzzy
 msgid "--log-time expects boolean argument"
-msgstr "-realtime oczekuje parametru zmiennej logicznej"
+msgstr "--log-time oczekuje parametru zmiennej logicznej"
 
 #: ../src/daemon/cmdline.c:340
-#, fuzzy
 msgid "--log-meta expects boolean argument"
-msgstr "--log-meta parametr zmiennej logicznej"
+msgstr "--log-meta oczekuje parametru zmiennej logicznej"
 
 #: ../src/daemon/cmdline.c:359
 #, c-format
@@ -792,9 +798,9 @@ msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "[%s:%u] Nieprawidłowe kanały próbki \"%s\"."
 
 #: ../src/daemon/daemon-conf.c:351
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr "[%s:%u] Nieprawidłowe kanały próbki \"%s\"."
+msgstr "[%s:%u] Nieprawidłowa mapa kanałów \"%s\"."
 
 #: ../src/daemon/daemon-conf.c:369
 #, c-format
@@ -821,6 +827,8 @@ msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
 msgstr ""
+"Podana domyślna mapa kanałów ma inną liczbę kanałów niż podana domyślna "
+"liczba kanałów."
 
 #: ../src/daemon/daemon-conf.c:612
 #, c-format
@@ -837,32 +845,35 @@ msgstr "Pomyślnie ograniczono możliwości do CAP_SYS_NICE."
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
-msgstr ""
+msgstr "System dźwięku PulseAudio"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
-msgstr ""
+msgstr "Uruchomienie systemu dźwięku PulseAudio"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:1
 msgid ""
 "High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
 msgstr ""
+"Szeregowanie o wysokim priorytecie (ujemny poziom nice Uniksa) dla demona "
+"PulseAudio"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:2
-#, fuzzy
 msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr "Zniszczenie demona PulseAudio nie powiodło się."
+msgstr "Szeregowanie w czasie rzeczywistym dla demona PulseAudio"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:3
-#, fuzzy
 msgid ""
 "System policy prevents PulseAudio from acquiring high-priority scheduling."
 msgstr ""
-"Jesteśmy w grupie \"%s\", co umożliwia szeregowanie o wysokim priorytecie."
+"Polityka systemu uniemożliwia PulseAudio uzyskanie szeregowania o wysokim "
+"priorytecie."
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:4
 msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
 msgstr ""
+"Polityka systemu uniemożliwia PulseAudio uzyskanie szeregowania w czasie "
+"rzeczywistym."
 
 #: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:804
 msgid "Mono"
@@ -1703,7 +1714,7 @@ msgid "Failed to get server information: %s\n"
 msgstr "Uzyskanie informacji o serwerze nie powiodło się: %s\n"
 
 #: ../src/utils/pactl.c:137
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "User name: %s\n"
 "Host Name: %s\n"
@@ -1720,6 +1731,7 @@ msgstr ""
 "Nazwa serwera: %s\n"
 "Wersja serwera: %s\n"
 "Domyślne określenie próbki: %s\n"
+"Domyślna mapa kanałów: %s\n"
 "Domyślny odpływ: %s\n"
 "Domyślne źródło: %s\n"
 "Ciasteczko: %08x\n"
@@ -2341,17 +2353,3 @@ msgstr "Używanie przykładowej specyfikacji \"%s\"\n"
 #: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
 msgid "Cannot access autospawn lock."
 msgstr "Nie można uzyskać dostępu do blokady automatycznego wznawiania."
-
-#~ msgid ""
-#~ "Called SUID root and real-time and/or high-priority scheduling was "
-#~ "requested in the configuration. However, we lack the necessary "
-#~ "privileges:\n"
-#~ "We are not in group '"
-#~ msgstr ""
-#~ "Wywołane SUID roota i szeregowanie w czasie rzeczywistym i/lub o wysokim "
-#~ "priorytecie zostało zażądane w konfiguracji. Mimo to brak niezbędnych "
-#~ "uprawnień:\n"
-#~ "Nie jesteśmy w grupie \""
-
-#~ msgid "--log-time boolean argument"
-#~ msgstr "--log-time parametr zmiennej logicznej"
