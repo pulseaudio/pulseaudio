@@ -921,7 +921,7 @@ static int hsp_process_push(struct userdata *u) {
             if (l < 0 && errno == EINTR)
                 continue;
             else {
-                pa_log_error("Failed to read data from SCO socket: %s", ret < 0 ? pa_cstrerror(errno) : "EOF");
+                pa_log_error("Failed to read data from SCO socket: %s", l < 0 ? pa_cstrerror(errno) : "EOF");
                 ret = -1;
                 break;
             }
@@ -1363,7 +1363,7 @@ static void sco_over_pcm_state_update(struct userdata *u) {
     if (PA_SINK_IS_OPENED(pa_sink_get_state(u->hsp.sco_sink)) ||
         PA_SOURCE_IS_OPENED(pa_source_get_state(u->hsp.sco_source))) {
 
-        if (u->service_fd > 0)
+        if (u->service_fd >= 0)
             return;
 
         pa_log_debug("Resuming SCO over PCM");
@@ -1372,7 +1372,7 @@ static void sco_over_pcm_state_update(struct userdata *u) {
 
     } else {
 
-        if (u->service_fd <= 0)
+        if (u->service_fd < 0)
             return;
 
         pa_log_debug("Closing SCO over PCM");
@@ -1559,6 +1559,7 @@ static int setup_bt(struct userdata *u) {
 static int init_profile(struct userdata *u) {
     int r = 0;
     pa_assert(u);
+    pa_assert(u->profile != PROFILE_OFF);
 
     if (setup_bt(u) < 0)
         return -1;
@@ -1688,7 +1689,9 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     u->sample_spec = u->requested_sample_spec;
 
     init_bt(u);
-    init_profile(u);
+
+    if (u->profile != PROFILE_OFF)
+        init_profile(u);
 
     if (u->sink || u->source)
         start_thread(u);
@@ -1909,8 +1912,9 @@ int pa__init(pa_module* m) {
     if (init_bt(u) < 0)
         goto fail;
 
-    if (init_profile(u) < 0)
-        goto fail;
+    if (u->profile != PROFILE_OFF)
+        if (init_profile(u) < 0)
+            goto fail;
 
 /*     if (u->path) { */
 /*         DBusError err; */
@@ -1948,8 +1952,9 @@ int pa__init(pa_module* m) {
 /*         } */
 /*     } */
 
-    if (start_thread(u) < 0)
-        goto fail;
+    if (u->sink || u->source)
+        if (start_thread(u) < 0)
+            goto fail;
 
     return 0;
 
