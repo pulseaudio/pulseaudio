@@ -86,7 +86,7 @@ AM_LDFLAGS+=-Wl,--export-all-symbols
 WINSOCK_LIBS=-lwsock32 -lws2_32 -lwininet
 endif
 
-FOREIGN_CLFGAS = -w
+FOREIGN_CFLAGS = -w
 MODULE_LDFLAGS = -module -disable-static -avoid-version
 
 ###################################
@@ -831,7 +831,7 @@ noinst_LTLIBRARIES = libpulsecore-foreign.la
 libpulsecore_foreign_la_SOURCES = \
 		pulsecore/ffmpeg/resample2.c pulsecore/ffmpeg/avcodec.h pulsecore/ffmpeg/dsputil.h
 
-libpulsecore_foreign_la_CFLAGS = $(AM_CFLAGS) -w
+libpulsecore_foreign_la_CFLAGS = $(AM_CFLAGS) $(FOREIGN_CFLAGS)
 
 ###################################
 #   Plug-in support libraries     #
