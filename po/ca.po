@@ -19,7 +19,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-11-08 01:48+0000\n"
+"POT-Creation-Date: 2009-03-05 12:27+0100\n"
 "PO-Revision-Date: 2009-02-15 20:53+0100\n"
 "Last-Translator: Agusti Grau <fletxa@gmail.com>\n"
 "Language-Team: Catalan <fedora@softcatala.net>\n"
@@ -27,14 +27,99 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/daemon/ltdl-bind-now.c:177
-#: ../src/daemon/ltdl-bind-now.c:197
+#: ../src/modules/alsa/alsa-util.c:530
+msgid "Analog Mono"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:536
+msgid "Analog Stereo"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:542
+msgid "Digital Stereo (IEC958)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:548
+msgid "Digital Stereo (HDMI)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:555
+msgid "Analog Surround 4.0"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:562
+msgid "Digital Surround 4.0 (IEC958/AC3)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:570
+msgid "Analog Surround 4.1"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:578
+msgid "Analog Surround 5.0"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:586
+msgid "Analog Surround 5.1"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:594
+msgid "Digital Surround 5.1 (IEC958/AC3)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:603
+msgid "Analog Surround 7.1"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:1602
+#, c-format
+msgid ""
+"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
+"ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:1642
+#, c-format
+msgid ""
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
+"lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:1688
+#, c-format
+msgid ""
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
+"(%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+
+#: ../src/pulsecore/sink.c:1963
+#, fuzzy
+msgid "Internal Audio"
+msgstr "S'ha produït un error intern"
+
+#: ../src/pulsecore/sink.c:1969
+msgid "Modem"
+msgstr ""
+
+#: ../src/daemon/ltdl-bind-now.c:124
+#, fuzzy
+msgid "Failed to find original lt_dlopen loader."
+msgstr "No s'ha trobat el carregador dlopen original."
+
+#: ../src/daemon/ltdl-bind-now.c:129
+#, fuzzy
+msgid "Failed to allocate new dl loader."
+msgstr "No s'ha trobat el carregador dlopen original."
+
+#: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
 msgstr "S'ha produït un error en afegir bind-now-loader."
-
-#: ../src/daemon/ltdl-bind-now.c:184
-msgid "Failed to find original dlopen loader."
-msgstr "No s'ha trobat el carregador dlopen original."
 
 #: ../src/daemon/polkit.c:55
 #, c-format
@@ -124,8 +209,7 @@ msgstr "El GID de l'usuari '%s' i del grup '%s' no coincideixen"
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "El directori arrel de l'usuari '%s' no és '%s', s'ignorarà."
 
-#: ../src/daemon/main.c:201
-#: ../src/daemon/main.c:206
+#: ../src/daemon/main.c:201 ../src/daemon/main.c:206
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "S'ha produït un error durant la creació '%s': %s"
@@ -158,259 +242,277 @@ msgstr "El mode de sistema ampli no està suportat en aquesta plataforma."
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "S'ha produït un error en setrlimit(%s, (%u, %u)): %s"
 
-#: ../src/daemon/main.c:425
+#: ../src/daemon/main.c:434
 msgid "Failed to parse command line."
 msgstr "S'ha produït un error en interpretar la línia de comandes."
 
-#: ../src/daemon/main.c:441
+#: ../src/daemon/main.c:458
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
-msgstr "Aquesta aplicació està en el grup '%s', s'està establint la prioritat alta."
+msgstr ""
+"Aquesta aplicació està en el grup '%s', s'està establint la prioritat alta."
 
-#: ../src/daemon/main.c:448
+#: ../src/daemon/main.c:465
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
-msgstr "Aquesta aplicació està en el grup '%s', s'està establint la prioritat en temps real."
+msgstr ""
+"Aquesta aplicació està en el grup '%s', s'està establint la prioritat en "
+"temps real."
 
-#: ../src/daemon/main.c:456
+#: ../src/daemon/main.c:473
 msgid "PolicyKit grants us acquire-high-priority privilege."
 msgstr "PolicyKit ha permés el permís acquire-high-priority."
 
-#: ../src/daemon/main.c:459
+#: ../src/daemon/main.c:476
 msgid "PolicyKit refuses acquire-high-priority privilege."
 msgstr "PolicyKit ha rebutjat el permís acquire-high-priority."
 
-#: ../src/daemon/main.c:464
+#: ../src/daemon/main.c:481
 msgid "PolicyKit grants us acquire-real-time privilege."
 msgstr "PolicyKit h permés el permís acquire-real-time."
 
-#: ../src/daemon/main.c:467
+#: ../src/daemon/main.c:484
 msgid "PolicyKit refuses acquire-real-time privilege."
 msgstr "PolicyKit ha rebutjat el permís acquire-real-time."
 
-#: ../src/daemon/main.c:479
+#: ../src/daemon/main.c:513
+#, c-format
 msgid ""
-"Called SUID root and real-time/high-priority scheduling was requested in the configuration. However, we lack the necessary priviliges:\n"
-"We are not in group '"
+"Called SUID root and real-time and/or high-priority scheduling was requested "
+"in the configuration. However, we lack the necessary privileges:\n"
+"We are not in group '%s', PolicyKit refuse to grant us the requested "
+"privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
+"limits.\n"
+"For enabling real-time/high-priority scheduling please acquire the "
+"appropriate PolicyKit privileges, or become a member of '%s', or increase "
+"the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 msgstr ""
-"La crida de la SUID de root i la prioritat alta/temps real estàn especificades en la configuració, però no té els permissos necessaris:\n"
-"No es pertany al grup '"
 
-#: ../src/daemon/main.c:480
+#: ../src/daemon/main.c:538
 msgid ""
-"' and PolicyKit refuse to grant us priviliges. Dropping SUID again.\n"
-"For enabling real-time scheduling please acquire the appropriate PolicyKit priviliges, or become a member of '"
+"High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr ""
-"' i PolicyKit ha denegat els permísos. S'està lliberant SUID. \n"
-"Per habilitar la prioritat en temps real, s'ha de adquirir els permissos de PolicyKit, o pertanyer a '"
+"La prioritat alta està habilitada en la configuració però no està permesa "
+"per la política."
 
-#: ../src/daemon/main.c:481
-msgid "', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
-msgstr "', o incremetar els límits de recursos RLIMIT_NICE/RLIMIT_RTPRIO per aquest usuari."
-
-#: ../src/daemon/main.c:497
-msgid "High-priority scheduling enabled in configuration but not allowed by policy."
-msgstr "La prioritat alta està habilitada en la configuració però no està permesa per la política."
-
-#: ../src/daemon/main.c:522
+#: ../src/daemon/main.c:567
 msgid "Successfully increased RLIMIT_RTPRIO"
 msgstr "S'ha incrementat el valor de RLIMIT_RTPRIO amb éxit."
 
-#: ../src/daemon/main.c:525
+#: ../src/daemon/main.c:570
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
 msgstr "S'ha produït un error amb RLIMIT_RTPRIO: %s"
 
-#: ../src/daemon/main.c:532
+#: ../src/daemon/main.c:577
 msgid "Giving up CAP_NICE"
 msgstr "Es deixa CAP_NICE"
 
-#: ../src/daemon/main.c:539
-msgid "Real-time scheduling enabled in configuration but not allowed by policy."
-msgstr "La prioritat temps real està habilitada en la configuració però no està permesa per la política."
+#: ../src/daemon/main.c:584
+msgid ""
+"Real-time scheduling enabled in configuration but not allowed by policy."
+msgstr ""
+"La prioritat temps real està habilitada en la configuració però no està "
+"permesa per la política."
 
-#: ../src/daemon/main.c:597
+#: ../src/daemon/main.c:645
 msgid "Daemon not running"
 msgstr "El dimoni no s'està executant."
 
-#: ../src/daemon/main.c:599
+#: ../src/daemon/main.c:647
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "El dimoni s'està executant amb PID %u"
 
-#: ../src/daemon/main.c:609
+#: ../src/daemon/main.c:657
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "S'ha produït un error en matar el dimoni: %s"
 
-#: ../src/daemon/main.c:627
-msgid "This program is not intended to be run as root (unless --system is specified)."
-msgstr "No és necessari executar aquesta aplicació com a root (excepte si s'especifica --system)"
+#: ../src/daemon/main.c:675
+msgid ""
+"This program is not intended to be run as root (unless --system is "
+"specified)."
+msgstr ""
+"No és necessari executar aquesta aplicació com a root (excepte si "
+"s'especifica --system)"
 
-#: ../src/daemon/main.c:629
-msgid "Root priviliges required."
+#: ../src/daemon/main.c:677
+#, fuzzy
+msgid "Root privileges required."
 msgstr "Es requereixen permísos de root."
 
-#: ../src/daemon/main.c:634
+#: ../src/daemon/main.c:682
 msgid "--start not supported for system instances."
 msgstr "La opció --start no està suportada per a instàncies de sistema."
 
-#: ../src/daemon/main.c:639
+#: ../src/daemon/main.c:687
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr "S'està executant en mode sistema, però no s'ha especificat la opció --disallow-exit."
+msgstr ""
+"S'està executant en mode sistema, però no s'ha especificat la opció --"
+"disallow-exit."
 
-#: ../src/daemon/main.c:642
+#: ../src/daemon/main.c:690
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr "S'està executant en mode sistema, però no s'ha especificat la opció --disallow-module-loading."
+msgstr ""
+"S'està executant en mode sistema, però no s'ha especificat la opció --"
+"disallow-module-loading."
 
-#: ../src/daemon/main.c:645
+#: ../src/daemon/main.c:693
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr "S'està executant en mode sistema, es deshabilitarà el mode SHM forçosament."
+msgstr ""
+"S'està executant en mode sistema, es deshabilitarà el mode SHM forçosament."
 
-#: ../src/daemon/main.c:650
+#: ../src/daemon/main.c:698
 msgid "Running in system mode, forcibly disabling exit idle time!"
-msgstr "S'està executant en mode sistema, la sortida per temps d'inactivitat es deshabilita."
+msgstr ""
+"S'està executant en mode sistema, la sortida per temps d'inactivitat es "
+"deshabilita."
 
-#: ../src/daemon/main.c:677
+#: ../src/daemon/main.c:725
 msgid "Failed to acquire stdio."
 msgstr "S'ha produït un error en adquirir stdio."
 
-#: ../src/daemon/main.c:683
+#: ../src/daemon/main.c:731
 #, c-format
 msgid "pipe failed: %s"
 msgstr "Ha fallat la canonada: %s"
 
-#: ../src/daemon/main.c:688
+#: ../src/daemon/main.c:736
 #, c-format
 msgid "fork() failed: %s"
 msgstr "Ha fallat fork(): %s"
 
-#: ../src/daemon/main.c:702
+#: ../src/daemon/main.c:750
 #, c-format
 msgid "read() failed: %s"
 msgstr "Ha fallat read(): %s"
 
-#: ../src/daemon/main.c:708
+#: ../src/daemon/main.c:756
 msgid "Daemon startup failed."
 msgstr "S'ha produït un error en iniciar el dimoni."
 
-#: ../src/daemon/main.c:710
+#: ../src/daemon/main.c:758
 msgid "Daemon startup successful."
 msgstr "S'ha iniciat el dimoni."
 
-#: ../src/daemon/main.c:780
+#: ../src/daemon/main.c:828
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Aquest és el PulseAudio %s"
 
-#: ../src/daemon/main.c:781
+#: ../src/daemon/main.c:829
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Host de compilació: %s"
 
-#: ../src/daemon/main.c:782
+#: ../src/daemon/main.c:830
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "CFLAGS de compilació: %s"
 
-#: ../src/daemon/main.c:785
+#: ../src/daemon/main.c:833
 #, c-format
 msgid "Running on host: %s"
 msgstr "S'està executant en el host: %s"
 
-#: ../src/daemon/main.c:788
+#: ../src/daemon/main.c:836
+#, c-format
+msgid "Found %u CPUs."
+msgstr ""
+
+#: ../src/daemon/main.c:838
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "La mida de pàgina és de %lu bytes."
 
-#: ../src/daemon/main.c:791
+#: ../src/daemon/main.c:841
 msgid "Compiled with Valgrind support: yes"
 msgstr "Compilat amb suport per a Valgrind: sí"
 
-#: ../src/daemon/main.c:793
+#: ../src/daemon/main.c:843
 msgid "Compiled with Valgrind support: no"
 msgstr "Compilat amb suport per a Valgrind: no"
 
-#: ../src/daemon/main.c:796
+#: ../src/daemon/main.c:846
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "S'està executant amb el mode valgrind: %s"
 
-#: ../src/daemon/main.c:799
+#: ../src/daemon/main.c:849
 msgid "Optimized build: yes"
 msgstr "Construcció optimitzada: sí"
 
-#: ../src/daemon/main.c:801
+#: ../src/daemon/main.c:851
 msgid "Optimized build: no"
 msgstr "Construcció optmitzada: no"
 
-#: ../src/daemon/main.c:805
+#: ../src/daemon/main.c:855
 msgid "Failed to get machine ID"
 msgstr "S'ha produït un error en obtenir la ID de la màquina"
 
-#: ../src/daemon/main.c:808
+#: ../src/daemon/main.c:858
 #, c-format
 msgid "Machine ID is %s."
 msgstr "La ID de la màquina és %s."
 
-#: ../src/daemon/main.c:813
+#: ../src/daemon/main.c:863
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "S'esta utilitzant el directori d'execució %s."
 
-#: ../src/daemon/main.c:818
+#: ../src/daemon/main.c:868
 #, c-format
 msgid "Using state directory %s."
 msgstr "S'està utilitzant el directori d'estat %s."
 
-#: ../src/daemon/main.c:821
+#: ../src/daemon/main.c:871
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "S'està executant en mode sistema: %s"
 
-#: ../src/daemon/main.c:836
+#: ../src/daemon/main.c:886
 msgid "pa_pid_file_create() failed."
 msgstr "S'ha produït un error en pa_pid_file_create()."
 
-#: ../src/daemon/main.c:848
+#: ../src/daemon/main.c:898
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Estàn disponibles els temporitzadors frescos de alta resolució."
 
-#: ../src/daemon/main.c:850
-msgid "Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!"
-msgstr "Es recomana la utilització d'un kernel amb els temporitzadors d'alta resolució habilitats."
+#: ../src/daemon/main.c:900
+msgid ""
+"Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
+"resolution timers enabled!"
+msgstr ""
+"Es recomana la utilització d'un kernel amb els temporitzadors d'alta "
+"resolució habilitats."
 
-#: ../src/daemon/main.c:860
+#: ../src/daemon/main.c:912
 msgid "pa_core_new() failed."
 msgstr "S'ha produït un error en pa_core_new()."
 
-#: ../src/daemon/main.c:921
+#: ../src/daemon/main.c:974
 msgid "Failed to initialize daemon."
 msgstr "S'ha produït un error en inicialitzar el dimoni."
 
-#: ../src/daemon/main.c:926
+#: ../src/daemon/main.c:979
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "Com el dimoni s'ha iniciat sense cap mòdul carregat, no funciona."
 
-#: ../src/daemon/main.c:931
-#, c-format
-msgid "Default sink name (%s) does not exist in name register."
-msgstr "El nom sink per omissió  (%s) no existeix en el registre de noms."
-
-#: ../src/daemon/main.c:944
+#: ../src/daemon/main.c:992
 msgid "Daemon startup complete."
 msgstr "S'ha completat la inicialització del dimoni."
 
-#: ../src/daemon/main.c:950
+#: ../src/daemon/main.c:998
 msgid "Daemon shutdown initiated."
 msgstr "S'ha iniciat l'aturada del dimoni."
 
-#: ../src/daemon/main.c:971
+#: ../src/daemon/main.c:1016
 msgid "Daemon terminated."
 msgstr "S'ha aturat el dimoni."
 
-#: ../src/daemon/cmdline.c:117
-#, c-format
+#: ../src/daemon/cmdline.c:121
+#, fuzzy, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -420,34 +522,48 @@ msgid ""
 "      --dump-conf                       Dump default configuration\n"
 "      --dump-modules                    Dump list of available modules\n"
 "      --dump-resample-methods           Dump available resample methods\n"
-"      --cleanup-shm                     Cleanup stale shared memory segments\n"
-"      --start                           Start the daemon if it is not running\n"
+"      --cleanup-shm                     Cleanup stale shared memory "
+"segments\n"
+"      --start                           Start the daemon if it is not "
+"running\n"
 "  -k  --kill                            Kill a running daemon\n"
-"      --check                           Check for a running daemon\n"
+"      --check                           Check for a running daemon (only "
+"returns exit code)\n"
 "\n"
 "OPTIONS:\n"
 "      --system[=BOOL]                   Run as system-wide instance\n"
 "  -D, --daemonize[=BOOL]                Daemonize after startup\n"
 "      --fail[=BOOL]                     Quit when startup fails\n"
 "      --high-priority[=BOOL]            Try to set high nice level\n"
-"                                        (only available as root, when SUID or\n"
+"                                        (only available as root, when SUID "
+"or\n"
 "                                        with elevated RLIMIT_NICE)\n"
 "      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
-"                                        (only available as root, when SUID or\n"
+"                                        (only available as root, when SUID "
+"or\n"
 "                                        with elevated RLIMIT_RTPRIO)\n"
-"      --disallow-module-loading[=BOOL]  Disallow module user requested module\n"
+"      --disallow-module-loading[=BOOL]  Disallow module user requested "
+"module\n"
 "                                        loading/unloading after startup\n"
 "      --disallow-exit[=BOOL]            Disallow user requested exit\n"
-"      --exit-idle-time=SECS             Terminate the daemon when idle and this\n"
+"      --exit-idle-time=SECS             Terminate the daemon when idle and "
+"this\n"
 "                                        time passed\n"
-"      --module-idle-time=SECS           Unload autoloaded modules when idle and\n"
+"      --module-idle-time=SECS           Unload autoloaded modules when idle "
+"and\n"
 "                                        this time passed\n"
-"      --scache-idle-time=SECS           Unload autoloaded samples when idle and\n"
+"      --scache-idle-time=SECS           Unload autoloaded samples when idle "
+"and\n"
 "                                        this time passed\n"
 "      --log-level[=LEVEL]               Increase or set verbosity level\n"
 "  -v                                    Increase the verbosity level\n"
 "      --log-target={auto,syslog,stderr} Specify the log target\n"
-"  -p, --dl-search-path=PATH             Set the search path for dynamic shared\n"
+"      --log-meta[=BOOL]                 Include code location in log "
+"messages\n"
+"      --log-time[=BOOL]                 Include timestamps in log messages\n"
+"      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
+"  -p, --dl-search-path=PATH             Set the search path for dynamic "
+"shared\n"
 "                                        objects (plugins)\n"
 "      --resample-method=METHOD          Use the specified resampling method\n"
 "                                        (See --dump-resample-methods for\n"
@@ -458,10 +574,12 @@ msgid ""
 "      --disable-shm[=BOOL]              Disable shared memory support.\n"
 "\n"
 "STARTUP SCRIPT:\n"
-"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module with\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
+"with\n"
 "                                        the specified argument\n"
 "  -F, --file=FILENAME                   Run the specified script\n"
-"  -C                                    Open a command line on the running TTY\n"
+"  -C                                    Open a command line on the running "
+"TTY\n"
 "                                        after startup\n"
 "\n"
 "  -n                                    Don't load default script file\n"
@@ -471,104 +589,145 @@ msgstr ""
 "COMANDES:\n"
 "  -h, --help                            Mostra aquesta ajuda\n"
 "      --version                            Mostra la versió\n"
-"      --dump-conf                            Volca la configuració per omissió\n"
+"      --dump-conf                            Volca la configuració per "
+"omissió\n"
 "      --dump-modules                            Volca la llista de mòduls\n"
-"      --dump-resample-methods                            Volca els mètodes disponibles de remostratge\n"
-"      --cleanup-shm                            Neteja els segments de memòria compartida sense emprar\n"
-"      --start                            Inicia el dimoni si aquest no està corrent\n"
+"      --dump-resample-methods                            Volca els mètodes "
+"disponibles de remostratge\n"
+"      --cleanup-shm                            Neteja els segments de "
+"memòria compartida sense emprar\n"
+"      --start                            Inicia el dimoni si aquest no està "
+"corrent\n"
 "  -k  --kill                            Mata el dimoni en execució\n"
 "      --check                           Comprova l'execució del dimoni\n"
 "\n"
 "OPCIONS:\n"
-"      --system[=BOOL]                   Executa com una instància de sistema\n"
-"  -D, --daemonize[=BOOL]                Converteix en dimoni després de la inicialització\n"
+"      --system[=BOOL]                   Executa com una instància de "
+"sistema\n"
+"  -D, --daemonize[=BOOL]                Converteix en dimoni després de la "
+"inicialització\n"
 "      --fail[=BOOL]                     Surt quan falli la inicialització\n"
 "      --high-priority[=BOOL]            Prova d'establir un nivell de \n"
-"                                        prioritat alt (només disponible com a root,\n"
-"                                        amb SUID o amb un RLIMIT_NICE elevat)\n"
+"                                        prioritat alt (només disponible com "
+"a root,\n"
+"                                        amb SUID o amb un RLIMIT_NICE "
+"elevat)\n"
 "      --realtime[=BOOL]                 Intenta habilitar la programació en\n"
-"                                        en temps real (només disponible com a root,\n"
-"                                        amb SUID o amb un RLIMIT_RTPRIO elevat)\n"
-"      --disallow-module-loading[=BOOL]  Inhabilita el mòdul de carrega/descarrega \n"
-"                                        de mòduls demanats per l'usuari després de l'inici\n"
-"      --disallow-exit[=BOOL]            Inhabilita la petició de l'usuari de sortida\n"
-"      --exit-idle-time=SEGS             Mata el dimoni quan estigui inactiu i hagi passat\n"
+"                                        en temps real (només disponible com "
+"a root,\n"
+"                                        amb SUID o amb un RLIMIT_RTPRIO "
+"elevat)\n"
+"      --disallow-module-loading[=BOOL]  Inhabilita el mòdul de carrega/"
+"descarrega \n"
+"                                        de mòduls demanats per l'usuari "
+"després de l'inici\n"
+"      --disallow-exit[=BOOL]            Inhabilita la petició de l'usuari de "
+"sortida\n"
+"      --exit-idle-time=SEGS             Mata el dimoni quan estigui inactiu "
+"i hagi passat\n"
 "                                        aquest temps\n"
-"      --module-idle-time=SEGS           Descarrega els mòduls carregats automàticament\n"
-"                                        quan estigui inactiu o hagi passat aquest temps\n"
-"      --scache-idle-time=SEGS           Descarrega les mostres carregades automàticament\n"
-"                                        després que hagi passat aquest temps\n"
-"      --log-level[=NIVELL]              Incrementa o especifica el nivell de detall\n"
+"      --module-idle-time=SEGS           Descarrega els mòduls carregats "
+"automàticament\n"
+"                                        quan estigui inactiu o hagi passat "
+"aquest temps\n"
+"      --scache-idle-time=SEGS           Descarrega les mostres carregades "
+"automàticament\n"
+"                                        després que hagi passat aquest "
+"temps\n"
+"      --log-level[=NIVELL]              Incrementa o especifica el nivell de "
+"detall\n"
 "  -v                                    Incrementa el nivell de detall\n"
 "      --log-target={auto,syslog,stderr} Especifica el destí del log\n"
-"  -p, --dl-search-path=CAMI             Estableix el camí de cerca d'objectes dinàmics\n"
+"  -p, --dl-search-path=CAMI             Estableix el camí de cerca "
+"d'objectes dinàmics\n"
 "                                        compartits (plugins)\n"
 "      --resample-method=METODE          Utilitza el mètode de remostreig\n"
-"                                        (Per veure els valors possibles utilitza                                        --dump-resample-methods)\n"
+"                                        (Per veure els valors possibles "
+"utilitza                                        --dump-resample-methods)\n"
 "      --use-pid-file[=BOOL]             Crea un fitxer PID\n"
-"      --no-cpu-limit[=BOOL]             No instal·lis un limitador de càrrega de CPU\n"
+"      --no-cpu-limit[=BOOL]             No instal·lis un limitador de "
+"càrrega de CPU\n"
 "                                        en plataformes que ho suportin.\n"
-"      --disable-shm[=BOOL]              Inhabilita el suport de memòria compartida.\n"
+"      --disable-shm[=BOOL]              Inhabilita el suport de memòria "
+"compartida.\n"
 "\n"
 "SCRIPT D'INICI:\n"
 "  -L, --load=\"ARGUMENTS MODUL\"         Carrega el mòdul especificat amb\n"
 "                                        els arguments especificats\n"
 "  -F, --file=NOMFITXER                  Executa l'script especificat\n"
-"  -C                                    Obre una línia d'ordres en la TTY actual després\n"
+"  -C                                    Obre una línia d'ordres en la TTY "
+"actual després\n"
 "                                        de l'inici\n"
 "\n"
-"  -n                                    No carreguis el fitxer de configuració per omissió\n"
-#xc
-#: ../src/daemon/cmdline.c:245
+"  -n                                    No carreguis el fitxer de "
+"configuració per omissió\n"
+
+# xc
+#: ../src/daemon/cmdline.c:252
 msgid "--daemonize expects boolean argument"
 msgstr "--daemonize necessita un argument booleà"
 
-#: ../src/daemon/cmdline.c:252
+#: ../src/daemon/cmdline.c:259
 msgid "--fail expects boolean argument"
 msgstr "--fail necessita un argument booleà"
 
-#: ../src/daemon/cmdline.c:262
-msgid "--log-level expects log level argument (either numeric in range 0..4 or one of debug, info, notice, warn, error)."
-msgstr "--log-level necessita un argument de nivell de log (valor númeric 0..4 o debug, info, notice, warn, error)."
+#: ../src/daemon/cmdline.c:269
+msgid ""
+"--log-level expects log level argument (either numeric in range 0..4 or one "
+"of debug, info, notice, warn, error)."
+msgstr ""
+"--log-level necessita un argument de nivell de log (valor númeric 0..4 o "
+"debug, info, notice, warn, error)."
 
-#: ../src/daemon/cmdline.c:274
+#: ../src/daemon/cmdline.c:281
 msgid "--high-priority expects boolean argument"
 msgstr "--high-priority necessita un argument booleà"
 
-#: ../src/daemon/cmdline.c:281
+#: ../src/daemon/cmdline.c:288
 msgid "--realtime expects boolean argument"
 msgstr "--realtime necessita un argument booleà"
 
-#: ../src/daemon/cmdline.c:288
+#: ../src/daemon/cmdline.c:295
 msgid "--disallow-module-loading expects boolean argument"
 msgstr "--disallow-module-loading necessita un argument booleà"
 
-#: ../src/daemon/cmdline.c:295
-msgid "--disallow-exit boolean argument"
+#: ../src/daemon/cmdline.c:302
+#, fuzzy
+msgid "--disallow-exit expects boolean argument"
 msgstr "--disallow-exit necessita un argument booleà"
 
-#: ../src/daemon/cmdline.c:302
+#: ../src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
 msgstr "--use-pid-file necessita un argument booleà"
 
-#: ../src/daemon/cmdline.c:319
+#: ../src/daemon/cmdline.c:326
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
 msgstr "Objectiu de log invàlid: utilitzeu 'syslog', 'stderr' o 'auto'."
 
-#: ../src/daemon/cmdline.c:338
+#: ../src/daemon/cmdline.c:333
+#, fuzzy
+msgid "--log-time expects boolean argument"
+msgstr "--realtime necessita un argument booleà"
+
+#: ../src/daemon/cmdline.c:340
+#, fuzzy
+msgid "--log-meta expects boolean argument"
+msgstr "--realtime necessita un argument booleà"
+
+#: ../src/daemon/cmdline.c:359
 #, c-format
 msgid "Invalid resample method '%s'."
 msgstr "Mètode de remostratge invàlid '%s'."
 
-#: ../src/daemon/cmdline.c:345
+#: ../src/daemon/cmdline.c:366
 msgid "--system expects boolean argument"
 msgstr "--system necessita un argument booleà"
 
-#: ../src/daemon/cmdline.c:352
+#: ../src/daemon/cmdline.c:373
 msgid "--no-cpu-limit expects boolean argument"
 msgstr "--no-cpu-limit necessita un argument booleà"
 
-#: ../src/daemon/cmdline.c:359
+#: ../src/daemon/cmdline.c:380
 msgid "--disable-shm expects boolean argument"
 msgstr "--disable-shm necessita un argument booleà"
 
@@ -612,289 +771,353 @@ msgstr "Càrrega: %s\n"
 msgid "Path: %s\n"
 msgstr "Ruta: %s\n"
 
-#: ../src/daemon/daemon-conf.c:205
+#: ../src/daemon/daemon-conf.c:215
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
 msgstr "[%s:%u] Destí de log incorrecte '%s'"
 
-#: ../src/daemon/daemon-conf.c:221
+#: ../src/daemon/daemon-conf.c:231
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
 msgstr "[%s:%u] Nivell de log incorrecte '%s'."
 
-#: ../src/daemon/daemon-conf.c:237
+#: ../src/daemon/daemon-conf.c:247
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
 msgstr "[%s:%u] Mètode de remostreig incorrecte '%s'."
 
-#: ../src/daemon/daemon-conf.c:260
+#: ../src/daemon/daemon-conf.c:270
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
 msgstr "[%s:%u] rlimit incorrecte '%s'."
 
-#: ../src/daemon/daemon-conf.c:267
+#: ../src/daemon/daemon-conf.c:277
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
 msgstr "[%s:%u] rlimit no disponible en aquesta plataforma."
 
-#: ../src/daemon/daemon-conf.c:283
+#: ../src/daemon/daemon-conf.c:293
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
 msgstr "[%s:%u] Format de mostra incorrecte '%s'."
 
-#: ../src/daemon/daemon-conf.c:301
+#: ../src/daemon/daemon-conf.c:311
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
 msgstr "[%s:%u] Velocitat de mostreig '%s'."
 
-#: ../src/daemon/daemon-conf.c:319
+#: ../src/daemon/daemon-conf.c:335
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "[%s:%u] Canals de mostreig incorrectes '%s'."
 
-#: ../src/daemon/daemon-conf.c:337
+#: ../src/daemon/daemon-conf.c:353
+#, fuzzy, c-format
+msgid "[%s:%u] Invalid channel map '%s'."
+msgstr "[%s:%u] Canals de mostreig incorrectes '%s'."
+
+#: ../src/daemon/daemon-conf.c:371
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
 msgstr "[%s:%u] Nombre de fragments incorrecte '%s'."
 
-#: ../src/daemon/daemon-conf.c:355
+#: ../src/daemon/daemon-conf.c:389
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
 msgstr "[%s:%u] Mida de fragment incorrecta '%s'."
 
-#: ../src/daemon/daemon-conf.c:373
+#: ../src/daemon/daemon-conf.c:407
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Nivell de prioritat incorrecte '%s'."
 
-#: ../src/daemon/daemon-conf.c:570
+#: ../src/daemon/daemon-conf.c:522
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "Error en obrir el fitxer de configuració: %s"
 
-#: ../src/daemon/daemon-conf.c:644
+#: ../src/daemon/daemon-conf.c:538
+msgid ""
+"The specified default channel map has a different number of channels than "
+"the specified default number of channels."
+msgstr ""
+
+#: ../src/daemon/daemon-conf.c:616
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### Lectura del fitxer de configuració: %s ###\n"
 
 #: ../src/daemon/caps.c:63
-msgid "Dropping root priviliges."
+#, fuzzy
+msgid "Dropping root privileges."
 msgstr "Lliberant privilegis de root."
 
 #: ../src/daemon/caps.c:103
 msgid "Limited capabilities successfully to CAP_SYS_NICE."
 msgstr "S'han limitat les capacitats cap a CAP_SYS_NICE."
 
-#: ../src/pulse/channelmap.c:102
+#: ../src/daemon/pulseaudio.desktop.in.h:1
+msgid "PulseAudio Sound System"
+msgstr ""
+
+#: ../src/daemon/pulseaudio.desktop.in.h:2
+msgid "Start the PulseAudio Sound System"
+msgstr ""
+
+#: ../src/daemon/org.pulseaudio.policy.in.h:1
+msgid ""
+"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
+msgstr ""
+
+#: ../src/daemon/org.pulseaudio.policy.in.h:2
+#, fuzzy
+msgid "Real-time scheduling for the PulseAudio daemon"
+msgstr "Ha fallat en matar el dimoni PulseAudio."
+
+#: ../src/daemon/org.pulseaudio.policy.in.h:3
+#, fuzzy
+msgid ""
+"System policy prevents PulseAudio from acquiring high-priority scheduling."
+msgstr ""
+"Aquesta aplicació està en el grup '%s', s'està establint la prioritat alta."
+
+#: ../src/daemon/org.pulseaudio.policy.in.h:4
+msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
+msgstr ""
+
+#: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:804
 msgid "Mono"
 msgstr "Mono"
 
-#: ../src/pulse/channelmap.c:104
+#: ../src/pulse/channelmap.c:105
 msgid "Front Center"
 msgstr "Frontal central"
 
-#: ../src/pulse/channelmap.c:105
+#: ../src/pulse/channelmap.c:106
 msgid "Front Left"
 msgstr "Frontal esquerra"
 
-#: ../src/pulse/channelmap.c:106
+#: ../src/pulse/channelmap.c:107
 msgid "Front Right"
 msgstr "Frontal dreta"
 
-#: ../src/pulse/channelmap.c:108
+#: ../src/pulse/channelmap.c:109
 msgid "Rear Center"
 msgstr "Posterior central"
 
-#: ../src/pulse/channelmap.c:109
+#: ../src/pulse/channelmap.c:110
 msgid "Rear Left"
 msgstr "Posterior esquerra"
 
-#: ../src/pulse/channelmap.c:110
+#: ../src/pulse/channelmap.c:111
 msgid "Rear Right"
 msgstr "Posterior dreta"
 
-#: ../src/pulse/channelmap.c:112
+#: ../src/pulse/channelmap.c:113
 msgid "Low Frequency Emmiter"
 msgstr "Emissor de baixa freqüència"
 
-#: ../src/pulse/channelmap.c:114
+#: ../src/pulse/channelmap.c:115
 msgid "Front Left-of-center"
 msgstr "Frontal central part esquerra"
 
-#: ../src/pulse/channelmap.c:115
+#: ../src/pulse/channelmap.c:116
 msgid "Front Right-of-center"
 msgstr "Frontal central part dreta"
 
-#: ../src/pulse/channelmap.c:117
+#: ../src/pulse/channelmap.c:118
 msgid "Side Left"
 msgstr "Lateral esquerra"
 
-#: ../src/pulse/channelmap.c:118
+#: ../src/pulse/channelmap.c:119
 msgid "Side Right"
 msgstr "Lateral dreta"
 
-#: ../src/pulse/channelmap.c:120
+#: ../src/pulse/channelmap.c:121
 msgid "Auxiliary 0"
 msgstr "Auxiliar 0"
 
-#: ../src/pulse/channelmap.c:121
+#: ../src/pulse/channelmap.c:122
 msgid "Auxiliary 1"
 msgstr "Auxiliar 1"
 
-#: ../src/pulse/channelmap.c:122
+#: ../src/pulse/channelmap.c:123
 msgid "Auxiliary 2"
 msgstr "Auxiliar 2"
 
-#: ../src/pulse/channelmap.c:123
+#: ../src/pulse/channelmap.c:124
 msgid "Auxiliary 3"
 msgstr "Auxiliar 3"
 
-#: ../src/pulse/channelmap.c:124
+#: ../src/pulse/channelmap.c:125
 msgid "Auxiliary 4"
 msgstr "Auxiliar 4"
 
-#: ../src/pulse/channelmap.c:125
+#: ../src/pulse/channelmap.c:126
 msgid "Auxiliary 5"
 msgstr "Auxiliar 5"
 
-#: ../src/pulse/channelmap.c:126
+#: ../src/pulse/channelmap.c:127
 msgid "Auxiliary 6"
 msgstr "Auxiliar 6"
 
-#: ../src/pulse/channelmap.c:127
+#: ../src/pulse/channelmap.c:128
 msgid "Auxiliary 7"
 msgstr "Auxiliar 7"
 
-#: ../src/pulse/channelmap.c:128
+#: ../src/pulse/channelmap.c:129
 msgid "Auxiliary 8"
 msgstr "Auxiliar 8"
 
-#: ../src/pulse/channelmap.c:129
+#: ../src/pulse/channelmap.c:130
 msgid "Auxiliary 9"
 msgstr "Auxiliar 9"
 
-#: ../src/pulse/channelmap.c:130
+#: ../src/pulse/channelmap.c:131
 msgid "Auxiliary 10"
 msgstr "Auxiliar 10"
 
-#: ../src/pulse/channelmap.c:131
+#: ../src/pulse/channelmap.c:132
 msgid "Auxiliary 11"
 msgstr "Auxiliar 11"
 
-#: ../src/pulse/channelmap.c:132
+#: ../src/pulse/channelmap.c:133
 msgid "Auxiliary 12"
 msgstr "Auxiliar 12"
 
-#: ../src/pulse/channelmap.c:133
+#: ../src/pulse/channelmap.c:134
 msgid "Auxiliary 13"
 msgstr "Auxiliar 13"
 
-#: ../src/pulse/channelmap.c:134
+#: ../src/pulse/channelmap.c:135
 msgid "Auxiliary 14"
 msgstr "Auxiliar 14"
 
-#: ../src/pulse/channelmap.c:135
+#: ../src/pulse/channelmap.c:136
 msgid "Auxiliary 15"
 msgstr "Auxiliar 15"
 
-#: ../src/pulse/channelmap.c:136
+#: ../src/pulse/channelmap.c:137
 msgid "Auxiliary 16"
 msgstr "Auxiliar 16"
 
-#: ../src/pulse/channelmap.c:137
+#: ../src/pulse/channelmap.c:138
 msgid "Auxiliary 17"
 msgstr "Auxiliar 17"
 
-#: ../src/pulse/channelmap.c:138
+#: ../src/pulse/channelmap.c:139
 msgid "Auxiliary 18"
 msgstr "Auxiliar 18"
 
-#: ../src/pulse/channelmap.c:139
+#: ../src/pulse/channelmap.c:140
 msgid "Auxiliary 19"
 msgstr "Auxiliar 19"
 
-#: ../src/pulse/channelmap.c:140
+#: ../src/pulse/channelmap.c:141
 msgid "Auxiliary 20"
 msgstr "Auxiliar 20"
 
-#: ../src/pulse/channelmap.c:141
+#: ../src/pulse/channelmap.c:142
 msgid "Auxiliary 21"
 msgstr "Auxiliar 21"
 
-#: ../src/pulse/channelmap.c:142
+#: ../src/pulse/channelmap.c:143
 msgid "Auxiliary 22"
 msgstr "Auxiliar 22"
 
-#: ../src/pulse/channelmap.c:143
+#: ../src/pulse/channelmap.c:144
 msgid "Auxiliary 23"
 msgstr "Auxiliar 23"
 
-#: ../src/pulse/channelmap.c:144
+#: ../src/pulse/channelmap.c:145
 msgid "Auxiliary 24"
 msgstr "Auxiliar 24"
 
-#: ../src/pulse/channelmap.c:145
+#: ../src/pulse/channelmap.c:146
 msgid "Auxiliary 25"
 msgstr "Auxiliar 25"
 
-#: ../src/pulse/channelmap.c:146
+#: ../src/pulse/channelmap.c:147
 msgid "Auxiliary 26"
 msgstr "Auxiliar 26"
 
-#: ../src/pulse/channelmap.c:147
+#: ../src/pulse/channelmap.c:148
 msgid "Auxiliary 27"
 msgstr "Auxiliar 27"
 
-#: ../src/pulse/channelmap.c:148
+#: ../src/pulse/channelmap.c:149
 msgid "Auxiliary 28"
 msgstr "Auxiliar 28"
 
-#: ../src/pulse/channelmap.c:149
+#: ../src/pulse/channelmap.c:150
 msgid "Auxiliary 29"
 msgstr "Auxiliar 31"
 
-#: ../src/pulse/channelmap.c:150
+#: ../src/pulse/channelmap.c:151
 msgid "Auxiliary 30"
 msgstr "Auxiliar 30"
 
-#: ../src/pulse/channelmap.c:151
+#: ../src/pulse/channelmap.c:152
 msgid "Auxiliary 31"
 msgstr "Auxiliar 31"
 
-#: ../src/pulse/channelmap.c:153
+#: ../src/pulse/channelmap.c:154
 msgid "Top Center"
 msgstr "Superior central"
 
-#: ../src/pulse/channelmap.c:155
+#: ../src/pulse/channelmap.c:156
 msgid "Top Front Center"
 msgstr "Superior frontal central"
 
-#: ../src/pulse/channelmap.c:156
+#: ../src/pulse/channelmap.c:157
 msgid "Top Front Left"
 msgstr "Superior frontal central"
 
-#: ../src/pulse/channelmap.c:157
+#: ../src/pulse/channelmap.c:158
 msgid "Top Front Right"
 msgstr "Superior frontal dreta"
 
-#: ../src/pulse/channelmap.c:159
+#: ../src/pulse/channelmap.c:160
 msgid "Top Rear Center"
 msgstr "Superior posterior central"
 
-#: ../src/pulse/channelmap.c:160
+#: ../src/pulse/channelmap.c:161
 msgid "Top Rear Left"
 msgstr "Superior posterior esquerra"
 
-#: ../src/pulse/channelmap.c:161
+#: ../src/pulse/channelmap.c:162
 msgid "Top Rear Right"
 msgstr "Superior posterior dreta"
 
-#: ../src/pulse/channelmap.c:472
-#: ../src/pulse/sample.c:144
-#: ../src/pulse/volume.c:163
-#: ../src/pulse/volume.c:194
+#: ../src/pulse/channelmap.c:476 ../src/pulse/sample.c:167
+#: ../src/pulse/volume.c:170 ../src/pulse/volume.c:196
+#: ../src/pulse/volume.c:216 ../src/pulse/volume.c:246
 msgid "(invalid)"
 msgstr "(incorrecte)"
+
+#: ../src/pulse/channelmap.c:808
+msgid "Stereo"
+msgstr ""
+
+#: ../src/pulse/channelmap.c:813
+msgid "Surround 4.0"
+msgstr ""
+
+#: ../src/pulse/channelmap.c:819
+msgid "Surround 4.1"
+msgstr ""
+
+#: ../src/pulse/channelmap.c:825
+msgid "Surround 5.0"
+msgstr ""
+
+#: ../src/pulse/channelmap.c:831
+msgid "Surround 5.1"
+msgstr ""
+
+#: ../src/pulse/channelmap.c:838
+msgid "Surround 7.1"
+msgstr ""
 
 #: ../src/pulse/error.c:43
 msgid "OK"
@@ -984,8 +1207,44 @@ msgstr "Codi d'error desconegut"
 msgid "No such extension"
 msgstr "No existeix l'extensió"
 
-#: ../src/pulse/client-conf-x11.c:55
-#: ../src/utils/pax11publish.c:100
+#: ../src/pulse/error.c:65
+msgid "Obsolete functionality"
+msgstr ""
+
+#: ../src/pulse/error.c:66
+msgid "Missing implementation"
+msgstr ""
+
+#: ../src/pulse/error.c:67
+msgid "Client forked"
+msgstr ""
+
+#: ../src/pulse/sample.c:169
+#, c-format
+msgid "%s %uch %uHz"
+msgstr ""
+
+#: ../src/pulse/sample.c:181
+#, c-format
+msgid "%0.1f GiB"
+msgstr ""
+
+#: ../src/pulse/sample.c:183
+#, c-format
+msgid "%0.1f MiB"
+msgstr ""
+
+#: ../src/pulse/sample.c:185
+#, c-format
+msgid "%0.1f KiB"
+msgstr ""
+
+#: ../src/pulse/sample.c:187
+#, c-format
+msgid "%u B"
+msgstr ""
+
+#: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
 msgid "XOpenDisplay() failed"
 msgstr "Ha fallat XOpenDisplay()"
 
@@ -998,44 +1257,34 @@ msgstr "Ha fallat el parseig de les dades de la cookie"
 msgid "Failed to open configuration file '%s': %s"
 msgstr "S'ha produït un error en obrir el fitxer de configuració '%s': %s"
 
-#: ../src/pulse/context.c:516
+#: ../src/pulse/context.c:523
 msgid "No cookie loaded. Attempting to connect without."
 msgstr "No s'ha carregat cap cookie. S'està intentant connectar sense aquesta."
 
-#: ../src/pulse/context.c:642
+#: ../src/pulse/context.c:653
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:695
+#: ../src/pulse/context.c:706
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1256
+#: ../src/pulse/context.c:1304
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "S'ha rebut un missatge per a l'extensió desconeguda '%s'"
 
-#: ../src/utils/pacat.c:93
+#: ../src/utils/pacat.c:94
 #, c-format
 msgid "pa_stream_write() failed: %s\n"
 msgstr "Ha fallat pa_stream_write(): %s\n"
 
-#: ../src/utils/pacat.c:132
+#: ../src/utils/pacat.c:133
 #, c-format
 msgid "pa_stream_peek() failed: %s\n"
 msgstr "Ha fallat pa_stream_peek(): %s\n"
-
-#: ../src/utils/pacat.c:141
-#, c-format
-msgid "Buffer overrun, dropping incoming data\n"
-msgstr "S'ha sobrepassat la memòria intermitja, s'estan descartant les dades entrants\n"
-
-#: ../src/utils/pacat.c:143
-#, c-format
-msgid "pa_stream_drop() failed: %s\n"
-msgstr "Ha fallat pa_stream_drop(): %s\n"
 
 #: ../src/utils/pacat.c:169
 #, c-format
@@ -1060,7 +1309,9 @@ msgstr "Mètriques del búffer: maxlength=%u, fragsize=%u\n"
 #: ../src/utils/pacat.c:183
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'.\n"
-msgstr "S'estan utilitzant les especificacions de mostreig '%s', mapejat del canal '%s'.\n"
+msgstr ""
+"S'estan utilitzant les especificacions de mostreig '%s', mapejat del canal '%"
+"s'.\n"
 
 #: ../src/utils/pacat.c:187
 #, c-format
@@ -1106,93 +1357,88 @@ msgstr "S'ha mogut l'stream al dispositiu %s (%u, %s suspés).%s\n"
 msgid "not "
 msgstr "no"
 
-#: ../src/utils/pacat.c:259
+#: ../src/utils/pacat.c:271
 #, c-format
 msgid "Connection established.%s \n"
 msgstr "S'ha establert la connexió.%s\n"
 
-#: ../src/utils/pacat.c:262
+#: ../src/utils/pacat.c:274
 #, c-format
 msgid "pa_stream_new() failed: %s\n"
 msgstr "Ha fallat pa_stream_new(): %s\n"
 
-#: ../src/utils/pacat.c:287
+#: ../src/utils/pacat.c:301
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s\n"
 msgstr "Ha fallat pa_stream_connect_playback(): %s\n"
 
-#: ../src/utils/pacat.c:293
+#: ../src/utils/pacat.c:307
 #, c-format
 msgid "pa_stream_connect_record() failed: %s\n"
 msgstr "Ha fallat pa_stream_connect_record(): %s\n"
 
-#: ../src/utils/pacat.c:307
-#: ../src/utils/pasuspender.c:159
-#: ../src/utils/pactl.c:666
-#: ../src/utils/paplay.c:183
+#: ../src/utils/pacat.c:321 ../src/utils/pasuspender.c:159
+#: ../src/utils/pactl.c:762 ../src/utils/paplay.c:183
 #, c-format
 msgid "Connection failure: %s\n"
 msgstr "Ha fallat la connexió: %s\n"
 
-#: ../src/utils/pacat.c:328
-#: ../src/utils/paplay.c:75
+#: ../src/utils/pacat.c:341 ../src/utils/paplay.c:75
 #, c-format
 msgid "Failed to drain stream: %s\n"
 msgstr "S'ha produït un error en drenar l'stream: %s\n"
 
-#: ../src/utils/pacat.c:333
-#: ../src/utils/paplay.c:80
+#: ../src/utils/pacat.c:346 ../src/utils/paplay.c:80
 #, c-format
 msgid "Playback stream drained.\n"
 msgstr "Stream de reproducció drenat.\n"
 
-#: ../src/utils/pacat.c:343
-#: ../src/utils/paplay.c:92
+#: ../src/utils/pacat.c:356 ../src/utils/paplay.c:92
 #, c-format
 msgid "Draining connection to server.\n"
 msgstr "S'està drenant la connexió amb el servidor.\n"
 
-#: ../src/utils/pacat.c:369
+#: ../src/utils/pacat.c:382
 #, c-format
 msgid "Got EOF.\n"
 msgstr "S'ha llegit EOF.\n"
 
-#: ../src/utils/pacat.c:375
+#: ../src/utils/pacat.c:388
 #, c-format
 msgid "pa_stream_drain(): %s\n"
 msgstr "pa_stream_drain(): %s\n"
 
-#: ../src/utils/pacat.c:385
+#: ../src/utils/pacat.c:398
 #, c-format
 msgid "read() failed: %s\n"
 msgstr "Ha fallat read(): %s\n"
 
-#: ../src/utils/pacat.c:417
+#: ../src/utils/pacat.c:430
 #, c-format
 msgid "write() failed: %s\n"
 msgstr "Ha fallat write(): %s\n"
 
-#: ../src/utils/pacat.c:438
+#: ../src/utils/pacat.c:451
 #, c-format
 msgid "Got signal, exiting.\n"
 msgstr "S'ha rebut una signal, s'està sortint.\n"
 
-#: ../src/utils/pacat.c:452
+#: ../src/utils/pacat.c:465
 #, c-format
 msgid "Failed to get latency: %s\n"
 msgstr "Ha fallat en obtenir la latència: %s\n"
 
-#: ../src/utils/pacat.c:457
+#: ../src/utils/pacat.c:470
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr "Temps: %0.3f segs; Latència: %0.0f microsegs.\r"
 
-#: ../src/utils/pacat.c:477
+#: ../src/utils/pacat.c:490
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s\n"
 msgstr "Ha fallat pa_stream_update_timing_info(): %s\n"
 
-#: ../src/utils/pacat.c:490
+#: ../src/utils/pacat.c:503
 #, c-format
 msgid ""
 "%s [options]\n"
@@ -1205,61 +1451,94 @@ msgid ""
 "\n"
 "  -v, --verbose                         Enable verbose operations\n"
 "\n"
-"  -s, --server=SERVER                   The name of the server to connect to\n"
-"  -d, --device=DEVICE                   The name of the sink/source to connect to\n"
-"  -n, --client-name=NAME                How to call this client on the server\n"
-"      --stream-name=NAME                How to call this stream on the server\n"
-"      --volume=VOLUME                   Specify the initial (linear) volume in range 0...65536\n"
-"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to 44100)\n"
-"      --format=SAMPLEFORMAT             The sample type, one of s16le, s16be, u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be (defaults to s16ne)\n"
-"      --channels=CHANNELS               The number of channels, 1 for mono, 2 for stereo\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -d, --device=DEVICE                   The name of the sink/source to "
+"connect to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
+"44100)\n"
+"      --format=SAMPLEFORMAT             The sample type, one of s16le, "
+"s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be "
+"(defaults to s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, "
+"2 for stereo\n"
 "                                        (defaults to 2)\n"
-"      --channel-map=CHANNELMAP          Channel map to use instead of the default\n"
-"      --fix-format                      Take the sample format from the sink the stream is\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the "
+"default\n"
+"      --fix-format                      Take the sample format from the sink "
+"the stream is\n"
 "                                        being connected to.\n"
-"      --fix-rate                        Take the sampling rate from the sink the stream is\n"
+"      --fix-rate                        Take the sampling rate from the sink "
+"the stream is\n"
 "                                        being connected to.\n"
-"      --fix-channels                    Take the number of channels and the channel map\n"
-"                                        from the sink the stream is being connected to.\n"
+"      --fix-channels                    Take the number of channels and the "
+"channel map\n"
+"                                        from the sink the stream is being "
+"connected to.\n"
 "      --no-remix                        Don't upmix or downmix channels.\n"
-"      --no-remap                        Map channels by index instead of name.\n"
-"      --latency=BYTES                   Request the specified latency in bytes.\n"
-"      --process-time=BYTES              Request the specified process time per request in bytes.\n"
+"      --no-remap                        Map channels by index instead of "
+"name.\n"
+"      --latency=BYTES                   Request the specified latency in "
+"bytes.\n"
+"      --process-time=BYTES              Request the specified process time "
+"per request in bytes.\n"
 msgstr ""
 "%s [opcions]\n"
 "\n"
 "  -h, --help                            Mostra aquesta ajuda\n"
 "      --version                         Mostra la versió\n"
 "\n"
-"  -r, --record                          Crea una connexió per a l'enregistrament\n"
-"  -p, --playback                        Crea una connexió per a la reproducció\n"
+"  -r, --record                          Crea una connexió per a "
+"l'enregistrament\n"
+"  -p, --playback                        Crea una connexió per a la "
+"reproducció\n"
 "\n"
 "  -v, --verbose                         Habilita les operacions detallades\n"
 "\n"
-"  -s, --server=SERVIDOR                 Nom del servidor al qual connectar-se\n"
-"  -d, --device=DISPOSITIU               Nom del conducte/font al qual connectar-se\n"
-"  -n, --client-name=NOM                 Com cridar aquest client al servidor\n"
+"  -s, --server=SERVIDOR                 Nom del servidor al qual connectar-"
+"se\n"
+"  -d, --device=DISPOSITIU               Nom del conducte/font al qual "
+"connectar-se\n"
+"  -n, --client-name=NOM                 Com cridar aquest client al "
+"servidor\n"
 "      --stream-name=NOM                 Com cridar aquest flux al servidor\n"
-"      --volume=VOLUM                    Especifica el volum inicial lineal dins el rang 0...65536\n"
-"      --rate=VELOCITATMOSTREIG          La velocitat de mostreig en Hz (per omissió, 44100)\n"
-"      --format=FORMATMOSTRA             El tipus de mostra, una de s16le, s16be, u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be (per omissió, s16ne)\n"
-"      --channels=CANALS                 Número de canals, 1 per a mono, 2 per a estèreo\n"
+"      --volume=VOLUM                    Especifica el volum inicial lineal "
+"dins el rang 0...65536\n"
+"      --rate=VELOCITATMOSTREIG          La velocitat de mostreig en Hz (per "
+"omissió, 44100)\n"
+"      --format=FORMATMOSTRA             El tipus de mostra, una de s16le, "
+"s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be "
+"(per omissió, s16ne)\n"
+"      --channels=CANALS                 Número de canals, 1 per a mono, 2 "
+"per a estèreo\n"
 "                                        (per omissió, 2)\n"
 "      --channel-map=MAPACANAL           Mapa de canals a utilitzar\n"
-"      --fix-format                      Pren el format de mostra del conducte al qual s'està connectant\n"
+"      --fix-format                      Pren el format de mostra del "
+"conducte al qual s'està connectant\n"
 "                                        el flux.\n"
-"      --fix-rate                        Pren la velocitat de mostreig del conducte al qual\n"
+"      --fix-rate                        Pren la velocitat de mostreig del "
+"conducte al qual\n"
 "                                        s'està connectant el flux.\n"
-"      --fix-channels                    Pren el número de canals i el mapa de canals del\n"
-"                                        conducte al qual s'està connectant el flux.\n"
+"      --fix-channels                    Pren el número de canals i el mapa "
+"de canals del\n"
+"                                        conducte al qual s'està connectant "
+"el flux.\n"
 "      --no-remix                        No mesclar els canals.\n"
-"      --no-remap                        Mapeja els canals per índex enlloc de per nom .\n"
+"      --no-remap                        Mapeja els canals per índex enlloc "
+"de per nom .\n"
 "      --latency=BYTES                   Especifica la latència en bytes.\n"
-"      --process-time=BYTES              Especifica el temps de procés per peticio en bytes.\n"
+"      --process-time=BYTES              Especifica el temps de procés per "
+"peticio en bytes.\n"
 
-#: ../src/utils/pacat.c:591
+#: ../src/utils/pacat.c:604
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1270,94 +1549,89 @@ msgstr ""
 "Compil·lat amb libpulse %s\n"
 "Enllaçat amb libpulse %s\n"
 
-#: ../src/utils/pacat.c:647
+#: ../src/utils/pacat.c:661
 #, c-format
 msgid "Invalid channel map '%s'\n"
 msgstr "Mapa de canals invàlid '%s'\n"
 
-#: ../src/utils/pacat.c:676
+#: ../src/utils/pacat.c:690
 #, c-format
 msgid "Invalid latency specification '%s'\n"
 msgstr "Especificació de latència invàlida '%s'\n"
 
-#: ../src/utils/pacat.c:683
+#: ../src/utils/pacat.c:697
 #, c-format
 msgid "Invalid process time specification '%s'\n"
 msgstr "Especificació de temps de procés invàlida '%s'\n"
 
-#: ../src/utils/pacat.c:694
+#: ../src/utils/pacat.c:708
 #, c-format
 msgid "Invalid sample specification\n"
 msgstr "Especificació de mostra invàlida\n"
 
-#: ../src/utils/pacat.c:699
+#: ../src/utils/pacat.c:713
 #, c-format
 msgid "Channel map doesn't match sample specification\n"
 msgstr "El mapa de canals no coincideix amb l'especificació de mostra\n"
 
-#: ../src/utils/pacat.c:706
+#: ../src/utils/pacat.c:720
 #, c-format
 msgid "Opening a %s stream with sample specification '%s'.\n"
 msgstr "S'està obrint un flux %s amb especificació de mostra '%s'.\n"
 
-#: ../src/utils/pacat.c:706
+#: ../src/utils/pacat.c:720
 msgid "recording"
 msgstr "enregistrant"
 
-#: ../src/utils/pacat.c:706
+#: ../src/utils/pacat.c:720
 msgid "playback"
 msgstr "reproducció"
 
-#: ../src/utils/pacat.c:714
+#: ../src/utils/pacat.c:728
 #, c-format
 msgid "open(): %s\n"
 msgstr "open(): %s\n"
 
-#: ../src/utils/pacat.c:719
+#: ../src/utils/pacat.c:733
 #, c-format
 msgid "dup2(): %s\n"
 msgstr "dup2(): %s\n"
 
-#: ../src/utils/pacat.c:729
+#: ../src/utils/pacat.c:743
 #, c-format
 msgid "Too many arguments.\n"
 msgstr "Hi han massa arguments.\n"
 
-#: ../src/utils/pacat.c:742
-#: ../src/utils/pasuspender.c:280
-#: ../src/utils/pactl.c:909
-#: ../src/utils/paplay.c:381
+#: ../src/utils/pacat.c:756 ../src/utils/pasuspender.c:280
+#: ../src/utils/pactl.c:1017 ../src/utils/paplay.c:381
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
 msgstr "Ha fallat pa_mainloop_new().\n"
 
-#: ../src/utils/pacat.c:763
+#: ../src/utils/pacat.c:777
 #, c-format
 msgid "io_new() failed.\n"
 msgstr "Ha fallat io_new().\n"
 
-#: ../src/utils/pacat.c:769
-#: ../src/utils/pasuspender.c:293
-#: ../src/utils/pactl.c:923
-#: ../src/utils/paplay.c:396
+#: ../src/utils/pacat.c:783 ../src/utils/pasuspender.c:293
+#: ../src/utils/pactl.c:1031 ../src/utils/paplay.c:396
 #, c-format
 msgid "pa_context_new() failed.\n"
 msgstr "Ha fallat pa_context_new().\n"
 
-#: ../src/utils/pacat.c:777
+#: ../src/utils/pacat.c:791 ../src/utils/pactl.c:1037
+#: ../src/utils/paplay.c:404
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "Ha fallat pa_context_connect(): %s"
 
-#: ../src/utils/pacat.c:788
+#: ../src/utils/pacat.c:802
 #, c-format
 msgid "time_new() failed.\n"
 msgstr "Ha fallat time_new().\n"
 
-#: ../src/utils/pacat.c:795
-#: ../src/utils/pasuspender.c:301
-#: ../src/utils/pactl.c:931
-#: ../src/utils/paplay.c:407
+#: ../src/utils/pacat.c:809 ../src/utils/pasuspender.c:301
+#: ../src/utils/pactl.c:1042 ../src/utils/paplay.c:410
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
 msgstr "Ha fallat pa_mainloop_run().\n"
@@ -1387,8 +1661,7 @@ msgstr "Ha fallat en reprendre: %s\n"
 msgid "WARNING: Sound server is not local, not suspending.\n"
 msgstr "ADVERTÈNCIA: el sevidor de so no és local, no s'està suspenent.\n"
 
-#: ../src/utils/pasuspender.c:176
-#: ../src/utils/pactl.c:672
+#: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:768
 #: ../src/utils/paplay.c:191
 #, c-format
 msgid "Got SIGINT, exiting.\n"
@@ -1406,14 +1679,16 @@ msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
-"  -s, --server=SERVER                   The name of the server to connect to\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
 "\n"
 msgstr ""
 "%s [opcions] ... \n"
 "\n"
 "  -h, --help                            Mostra aquesta ajuda\n"
 "      --version                         Mostra la versió\n"
-"  -s, --server=SERVIDOR                 Nom del servidor al qual connectar-se\n"
+"  -s, --server=SERVIDOR                 Nom del servidor al qual connectar-"
+"se\n"
 "\n"
 
 #: ../src/utils/pasuspender.c:251
@@ -1427,39 +1702,41 @@ msgstr ""
 "Compil·lat amb libpulse %s\n"
 "Enllaçat amb libpulse %s\n"
 
-#: ../src/utils/pactl.c:107
+#: ../src/utils/pactl.c:108
 #, c-format
 msgid "Failed to get statistics: %s\n"
 msgstr "Ha fallat en obtenir les estadístiques: %s\n"
 
-#: ../src/utils/pactl.c:113
+#: ../src/utils/pactl.c:114
 #, c-format
 msgid "Currently in use: %u blocks containing %s bytes total.\n"
 msgstr "Actualment s'estan utilitzant: %u blocs contenent %s bytes en total.\n"
 
-#: ../src/utils/pactl.c:116
+#: ../src/utils/pactl.c:117
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr "Allotjats durant el temps de vida: %u blocs contenent %s bytes en total.\n"
+msgstr ""
+"Allotjats durant el temps de vida: %u blocs contenent %s bytes en total.\n"
 
-#: ../src/utils/pactl.c:119
+#: ../src/utils/pactl.c:120
 #, c-format
 msgid "Sample cache size: %s\n"
 msgstr "Mida de caché de mostra: %s\n"
 
-#: ../src/utils/pactl.c:128
+#: ../src/utils/pactl.c:129
 #, c-format
 msgid "Failed to get server information: %s\n"
 msgstr "Ha fallat en obtenir la informació del servidor: %s\n"
 
-#: ../src/utils/pactl.c:135
-#, c-format
+#: ../src/utils/pactl.c:137
+#, fuzzy, c-format
 msgid ""
 "User name: %s\n"
 "Host Name: %s\n"
 "Server Name: %s\n"
 "Server Version: %s\n"
 "Default Sample Specification: %s\n"
+"Default Channel Map: %s\n"
 "Default Sink: %s\n"
 "Default Source: %s\n"
 "Cookie: %08x\n"
@@ -1473,26 +1750,31 @@ msgstr ""
 "Font per omissió: %s\n"
 "Cookie: %08x\n"
 
-#: ../src/utils/pactl.c:160
+#: ../src/utils/pactl.c:178
 #, c-format
 msgid "Failed to get sink information: %s\n"
 msgstr "Ha fallat en obtenir la informació del conducte: %s\n"
 
-#: ../src/utils/pactl.c:176
-#, c-format
+#: ../src/utils/pactl.c:194
+#, fuzzy, c-format
 msgid ""
-"*** Sink #%u ***\n"
-"Name: %s\n"
-"Driver: %s\n"
-"Sample Specification: %s\n"
-"Channel Map: %s\n"
-"Owner Module: %u\n"
-"Volume: %s\n"
-"Monitor Source: %s\n"
-"Latency: %0.0f usec, configured %0.0f usec\n"
-"Flags: %s%s%s%s%s%s\n"
-"Properties:\n"
-"%s"
+"Sink #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s%s%s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s%s%s\n"
+"\tMonitor Source: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 msgstr ""
 "*** Conducte #%u ***\n"
 "Nom: %s\n"
@@ -1507,31 +1789,31 @@ msgstr ""
 "Propietats:\n"
 "%s"
 
-#: ../src/utils/pactl.c:193
-#: ../src/utils/pactl.c:371
-msgid "muted"
-msgstr "silenciat"
-
-#: ../src/utils/pactl.c:212
+#: ../src/utils/pactl.c:258
 #, c-format
 msgid "Failed to get source information: %s\n"
 msgstr "Ha fallat en obtenir la informació de la font: %s\n"
 
-#: ../src/utils/pactl.c:228
-#, c-format
+#: ../src/utils/pactl.c:274
+#, fuzzy, c-format
 msgid ""
-"*** Source #%u ***\n"
-"Name: %s\n"
-"Driver: %s\n"
-"Sample Specification: %s\n"
-"Channel Map: %s\n"
-"Owner Module: %u\n"
-"Volume: %s\n"
-"Monitor of Sink: %s\n"
-"Latency: %0.0f usec, configured %0.0f usec\n"
-"Flags: %s%s%s%s%s%s\n"
-"Properties:\n"
-"%s"
+"Source #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s%s%s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s%s%s\n"
+"\tMonitor of Sink: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 msgstr ""
 "*** Font #%u ***\n"
 "Nom: %s\n"
@@ -1546,34 +1828,28 @@ msgstr ""
 "Propietats:\n"
 "%s"
 
-#: ../src/utils/pactl.c:246
-#: ../src/utils/pactl.c:289
-#: ../src/utils/pactl.c:322
-#: ../src/utils/pactl.c:366
-#: ../src/utils/pactl.c:367
-#: ../src/utils/pactl.c:374
-#: ../src/utils/pactl.c:418
-#: ../src/utils/pactl.c:419
-#: ../src/utils/pactl.c:425
-#: ../src/utils/pactl.c:468
-#: ../src/utils/pactl.c:469
-#: ../src/utils/pactl.c:473
+#: ../src/utils/pactl.c:306 ../src/utils/pactl.c:350 ../src/utils/pactl.c:385
+#: ../src/utils/pactl.c:422 ../src/utils/pactl.c:481 ../src/utils/pactl.c:482
+#: ../src/utils/pactl.c:492 ../src/utils/pactl.c:536 ../src/utils/pactl.c:537
+#: ../src/utils/pactl.c:543 ../src/utils/pactl.c:586 ../src/utils/pactl.c:587
+#: ../src/utils/pactl.c:594
 msgid "n/a"
 msgstr "n/d"
 
-#: ../src/utils/pactl.c:263
+#: ../src/utils/pactl.c:324
 #, c-format
 msgid "Failed to get module information: %s\n"
 msgstr "Ha fallat en obtenir informació del mòdul: %s\n"
 
-#: ../src/utils/pactl.c:281
-#, c-format
+#: ../src/utils/pactl.c:342
+#, fuzzy, c-format
 msgid ""
-"*** Module #%u ***\n"
-"Name: %s\n"
-"Argument: %s\n"
-"Usage counter: %s\n"
-"Auto unload: %s\n"
+"Module #%u\n"
+"\tName: %s\n"
+"\tArgument: %s\n"
+"\tUsage counter: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 msgstr ""
 "*** Mòdul #%u ***\n"
 "Nom: %s\n"
@@ -1581,19 +1857,19 @@ msgstr ""
 "Contador d'utilització: %s\n"
 "Auto descàrrega: %s\n"
 
-#: ../src/utils/pactl.c:298
+#: ../src/utils/pactl.c:361
 #, c-format
 msgid "Failed to get client information: %s\n"
 msgstr "Ha fallat en obtenir informació: %s\n"
 
-#: ../src/utils/pactl.c:316
-#, c-format
+#: ../src/utils/pactl.c:379
+#, fuzzy, c-format
 msgid ""
-"*** Client #%u ***\n"
-"Driver: %s\n"
-"Owner Module: %s\n"
-"Properties:\n"
-"%s"
+"Client #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 msgstr ""
 "*** Client #%u ***\n"
 "Controlador: %s\n"
@@ -1601,27 +1877,61 @@ msgstr ""
 "Propietats:\n"
 "%s"
 
-#: ../src/utils/pactl.c:333
+#: ../src/utils/pactl.c:396
+#, fuzzy, c-format
+msgid "Failed to get card information: %s\n"
+msgstr "Ha fallat en obtenir la informació de la càrrega automàtica: %s\n"
+
+#: ../src/utils/pactl.c:414
+#, fuzzy, c-format
+msgid ""
+"Card #%u\n"
+"\tName: %s\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"*** Client #%u ***\n"
+"Controlador: %s\n"
+"Propietari del mòdul: %s\n"
+"Propietats:\n"
+"%s"
+
+#: ../src/utils/pactl.c:428
+#, c-format
+msgid "\tProfiles:\n"
+msgstr ""
+
+#: ../src/utils/pactl.c:434
+#, fuzzy, c-format
+msgid "\tActive Profile: %s\n"
+msgstr "Ha fallat la canonada: %s"
+
+#: ../src/utils/pactl.c:445
 #, c-format
 msgid "Failed to get sink input information: %s\n"
 msgstr "Ha fallat en obtenir informació del conducte d'entrada: %s\n"
 
-#: ../src/utils/pactl.c:352
-#, c-format
+#: ../src/utils/pactl.c:464
+#, fuzzy, c-format
 msgid ""
-"*** Sink Input #%u ***\n"
-"Driver: %s\n"
-"Owner Module: %s\n"
-"Client: %s\n"
-"Sink: %u\n"
-"Sample Specification: %s\n"
-"Channel Map: %s\n"
-"Volume: %s\n"
-"Buffer Latency: %0.0f usec\n"
-"Sink Latency: %0.0f usec\n"
-"Resample method: %s\n"
-"Properties:\n"
-"%s"
+"Sink Input #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSink: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        %s\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSink Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 msgstr ""
 "*** Conducte d'entrada #%u ***\n"
 "Controlador: %s\n"
@@ -1637,26 +1947,26 @@ msgstr ""
 "Propietats:\n"
 "%s"
 
-#: ../src/utils/pactl.c:385
+#: ../src/utils/pactl.c:503
 #, c-format
 msgid "Failed to get source output information: %s\n"
 msgstr "Ha fallat en obtenir la informació del conducte de sortida: %s\n"
 
-#: ../src/utils/pactl.c:405
-#, c-format
+#: ../src/utils/pactl.c:523
+#, fuzzy, c-format
 msgid ""
-"*** Source Output #%u ***\n"
-"Driver: %s\n"
-"Owner Module: %s\n"
-"Client: %s\n"
-"Source: %u\n"
-"Sample Specification: %s\n"
-"Channel Map: %s\n"
-"Buffer Latency: %0.0f usec\n"
-"Source Latency: %0.0f usec\n"
-"Resample method: %s\n"
-"Properties:\n"
-"%s"
+"Source Output #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSource: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSource Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 msgstr ""
 "*** Sortida de la font #%u ***\n"
 "Driver: %s\n"
@@ -1671,25 +1981,27 @@ msgstr ""
 "Propietats:\n"
 "%s"
 
-#: ../src/utils/pactl.c:436
+#: ../src/utils/pactl.c:554
 #, c-format
 msgid "Failed to get sample information: %s\n"
 msgstr "Ha fallat en obteinr informació de la mostra: %s\n"
 
-#: ../src/utils/pactl.c:455
-#, c-format
+#: ../src/utils/pactl.c:572
+#, fuzzy, c-format
 msgid ""
-"*** Sample #%u ***\n"
-"Name: %s\n"
-"Volume: %s\n"
-"Sample Specification: %s\n"
-"Channel Map: %s\n"
-"Duration: %0.1fs\n"
-"Size: %s\n"
-"Lazy: %s\n"
-"Filename: %s\n"
-"Properties:\n"
-"%s"
+"Sample #%u\n"
+"\tName: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tVolume: %s\n"
+"\t        %s\n"
+"\t        balance %0.2f\n"
+"\tDuration: %0.1fs\n"
+"\tSize: %s\n"
+"\tLazy: %s\n"
+"\tFilename: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 msgstr ""
 "*** Mostra #%u ***\n"
 "Nom: %s\n"
@@ -1703,52 +2015,23 @@ msgstr ""
 "Propietats:\n"
 "%s"
 
-#: ../src/utils/pactl.c:481
-#, c-format
-msgid "Failed to get autoload information: %s\n"
-msgstr "Ha fallat en obtenir la informació de la càrrega automàtica: %s\n"
-
-#: ../src/utils/pactl.c:497
-#, c-format
-msgid ""
-"*** Autoload Entry #%u ***\n"
-"Name: %s\n"
-"Type: %s\n"
-"Module: %s\n"
-"Argument: %s\n"
-msgstr ""
-"*** Entrada de càrrega automàtica #%u ***\n"
-"Nom: %s\n"
-"Tipus: %s\n"
-"Mòdul: %s\n"
-"Arguments: %s\n"
-
-#: ../src/utils/pactl.c:504
-msgid "sink"
-msgstr "conducte"
-
-#: ../src/utils/pactl.c:504
-msgid "source"
-msgstr "font"
-
-#: ../src/utils/pactl.c:511
-#: ../src/utils/pactl.c:521
+#: ../src/utils/pactl.c:602 ../src/utils/pactl.c:612
 #, c-format
 msgid "Failure: %s\n"
 msgstr "Ha fallat: %s\n"
 
-#: ../src/utils/pactl.c:545
+#: ../src/utils/pactl.c:636
 #, c-format
 msgid "Failed to upload sample: %s\n"
 msgstr "Ha fallat en pujar la mostra: %s\n"
 
-#: ../src/utils/pactl.c:562
+#: ../src/utils/pactl.c:653
 #, c-format
 msgid "Premature end of file\n"
 msgstr "S'ha trobat un fi de fitxer prematurament\n"
 
-#: ../src/utils/pactl.c:678
-#, c-format
+#: ../src/utils/pactl.c:774
+#, fuzzy, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -1762,12 +2045,15 @@ msgid ""
 "%s [options] unload-module ID\n"
 "%s [options] suspend-sink [SINK] 1|0\n"
 "%s [options] suspend-source [SOURCE] 1|0\n"
+"%s [options] set-card-profile [CARD] [PROFILE] \n"
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
 "\n"
-"  -s, --server=SERVER                   The name of the server to connect to\n"
-"  -n, --client-name=NAME                How to call this client on the server\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
 msgstr ""
 "%s [opcions] stat\n"
 "%s [opcions] list\n"
@@ -1784,11 +2070,13 @@ msgstr ""
 "\n"
 "  -h, --help                            Mostra aquesta ajuda\n"
 "      --version                         Mostra la versió\n"
-"  -s, --server=SERVIDOR                 Nom del servidor al qual connectar-se\n"
-"  -n, --client-name=NOM                 Com cridar aquest client al servidor\n"
+"  -s, --server=SERVIDOR                 Nom del servidor al qual connectar-"
+"se\n"
+"  -n, --client-name=NOM                 Com cridar aquest client al "
+"servidor\n"
 "\n"
 
-#: ../src/utils/pactl.c:729
+#: ../src/utils/pactl.c:826
 #, c-format
 msgid ""
 "pactl %s\n"
@@ -1799,57 +2087,70 @@ msgstr ""
 "Compil·lat amb libpulse %s\n"
 "Enllaçat amb libpulse %s\n"
 
-#: ../src/utils/pactl.c:768
+#: ../src/utils/pactl.c:865
 #, c-format
 msgid "Please specify a sample file to load\n"
 msgstr "Especifiqueu un fitxer de mostra per a carregar\n"
 
-#: ../src/utils/pactl.c:790
+#: ../src/utils/pactl.c:887
 #, c-format
 msgid "Failed to open sound file.\n"
 msgstr "Ha fallat en obrir el fitxer de so.\n"
 
-#: ../src/utils/pactl.c:802
+#: ../src/utils/pactl.c:899
 #, c-format
 msgid "You have to specify a sample name to play\n"
 msgstr "Heu d'especificar un nom de mostra a reproduir\n"
 
-#: ../src/utils/pactl.c:814
+#: ../src/utils/pactl.c:911
 #, c-format
 msgid "You have to specify a sample name to remove\n"
 msgstr "Heu d'especificar un nom de mostra a esborrar\n"
 
-#: ../src/utils/pactl.c:822
+#: ../src/utils/pactl.c:919
 #, c-format
 msgid "You have to specify a sink input index and a sink\n"
 msgstr "Heu d'especificar una entrada del conducte i un conducte\n"
 
-#: ../src/utils/pactl.c:831
+#: ../src/utils/pactl.c:928
 #, c-format
 msgid "You have to specify a source output index and a source\n"
 msgstr "Heu d'especificar una font de sortida i una font\n"
 
-#: ../src/utils/pactl.c:845
+#: ../src/utils/pactl.c:942
 #, c-format
 msgid "You have to specify a module name and arguments.\n"
 msgstr "Heu d'especificar un nom de mòdul i els seus arguments.\n"
 
-#: ../src/utils/pactl.c:865
+#: ../src/utils/pactl.c:962
 #, c-format
 msgid "You have to specify a module index\n"
 msgstr "Heu d'especificar un índex de mòdul\n"
 
-#: ../src/utils/pactl.c:875
-#, c-format
-msgid "You may not specify more than one sink. You have to specify at least one boolean value.\n"
-msgstr "No haríeu d'especificar més d'un conducte. Heu d'especifcar com a mínim un valor booleà.\n"
+#: ../src/utils/pactl.c:972
+#, fuzzy, c-format
+msgid ""
+"You may not specify more than one sink. You have to specify a boolean "
+"value.\n"
+msgstr ""
+"No haríeu d'especificar més d'un conducte. Heu d'especifcar com a mínim un "
+"valor booleà.\n"
 
-#: ../src/utils/pactl.c:888
-#, c-format
-msgid "You may not specify more than one source. You have to specify at least one boolean value.\n"
-msgstr "No haríeu d'especificar més d'una font. Heu d'especificar com a mínim un valor booleà.\n"
+#: ../src/utils/pactl.c:985
+#, fuzzy, c-format
+msgid ""
+"You may not specify more than one source. You have to specify a boolean "
+"value.\n"
+msgstr ""
+"No haríeu d'especificar més d'una font. Heu d'especificar com a mínim un "
+"valor booleà.\n"
 
-#: ../src/utils/pactl.c:904
+#: ../src/utils/pactl.c:997
+#, fuzzy, c-format
+msgid "You have to specify a card name/index and a profile name\n"
+msgstr "Heu d'especificar una entrada del conducte i un conducte\n"
+
+#: ../src/utils/pactl.c:1012
 #, c-format
 msgid "No valid command specified.\n"
 msgstr "S'ha especificat una ordre invàlida.\n"
@@ -1861,14 +2162,18 @@ msgid ""
 "\n"
 " -d    Show current PulseAudio data attached to X11 display (default)\n"
 " -e    Export local PulseAudio data to X11 display\n"
-" -i    Import PulseAudio data from X11 display to local environment variables and cookie file.\n"
+" -i    Import PulseAudio data from X11 display to local environment "
+"variables and cookie file.\n"
 " -r    Remove PulseAudio data from X11 display\n"
 msgstr ""
-"%s [-D pantalla] [-S servidor] [-O conducte] [-I font] [-c fitxer]  [-d|-e|-i|-r]\n"
+"%s [-D pantalla] [-S servidor] [-O conducte] [-I font] [-c fitxer]  [-d|-e|-"
+"i|-r]\n"
 "\n"
-" -d    Mostra les dades actuals de PulseAudio vinculat a una pantalla X11 (per omissió)\n"
+" -d    Mostra les dades actuals de PulseAudio vinculat a una pantalla X11 "
+"(per omissió)\n"
 " -e    Exporta les dades locals de PulseAudio a una pantalla X11\n"
-" -i    Importa les dades de PulseAudio de una pantalla X11 a les variables d'entorn locals i a un fitxer cookie\n"
+" -i    Importa les dades de PulseAudio de una pantalla X11 a les variables "
+"d'entorn locals i a un fitxer cookie\n"
 " -r    Esborra les dades de PulseAudio de una pantalla X11\n"
 
 #: ../src/utils/pax11publish.c:94
@@ -1949,19 +2254,17 @@ msgstr "Ha fallat en matar el dimoni PulseAudio."
 msgid "Daemon not responding."
 msgstr "El dimoni no respon."
 
-#: ../src/utils/pacmd.c:112
+#: ../src/utils/pacmd.c:144
 #, c-format
 msgid "select(): %s"
 msgstr "select(): %s"
 
-#: ../src/utils/pacmd.c:124
-#: ../src/utils/pacmd.c:140
+#: ../src/utils/pacmd.c:154 ../src/utils/pacmd.c:171
 #, c-format
 msgid "read(): %s"
 msgstr "read(): %s"
 
-#: ../src/utils/pacmd.c:153
-#: ../src/utils/pacmd.c:167
+#: ../src/utils/pacmd.c:187 ../src/utils/pacmd.c:201
 #, c-format
 msgid "write(): %s"
 msgstr "write(): %s"
@@ -1991,11 +2294,15 @@ msgid ""
 "\n"
 "  -v, --verbose                         Enable verbose operation\n"
 "\n"
-"  -s, --server=SERVER                   The name of the server to connect to\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
 "  -d, --device=DEVICE                   The name of the sink to connect to\n"
-"  -n, --client-name=NAME                How to call this client on the server\n"
-"      --stream-name=NAME                How to call this stream on the server\n"
-"      --volume=VOLUME                   Specify the initial (linear) volume in range 0...65536\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
 "      --channel-map=CHANNELMAP          Set the channel map to the use\n"
 msgstr ""
 "%s [opcions] [FITXER]\n"
@@ -2005,27 +2312,41 @@ msgstr ""
 "\n"
 "  -v, --verbose                         Habilita les operacions detallades\n"
 "\n"
-"  -s, --server=SERVIDOR                 Nom del servidor al qual connectar-se\n"
-"  -d, --device=DISPOSITIU               Nom del conducte/font al qual connectar-se\n"
-"  -n, --client-name=NOM                 Com cridar aquest client al servidor\n"
+"  -s, --server=SERVIDOR                 Nom del servidor al qual connectar-"
+"se\n"
+"  -d, --device=DISPOSITIU               Nom del conducte/font al qual "
+"connectar-se\n"
+"  -n, --client-name=NOM                 Com cridar aquest client al "
+"servidor\n"
 "      --stream-name=NOM                 Com cridar aquest flux al servidor\n"
-"      --volume=VOLUM                    Especifica el volum inicial lineal dins el rang 0...65536\n"
-"      --rate=VELOCITATMOSTREIG          La velocitat de mostreig en Hz (per omissió, 44100)\n"
-"      --format=FORMATMOSTRA             El tipus de mostra, una de s16le, s16be, u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be (per omissió, s16ne)\n"
-"      --channels=CANALS                 Número de canals, 1 per a mono, 2 per a estèreo\n"
+"      --volume=VOLUM                    Especifica el volum inicial lineal "
+"dins el rang 0...65536\n"
+"      --rate=VELOCITATMOSTREIG          La velocitat de mostreig en Hz (per "
+"omissió, 44100)\n"
+"      --format=FORMATMOSTRA             El tipus de mostra, una de s16le, "
+"s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be "
+"(per omissió, s16ne)\n"
+"      --channels=CANALS                 Número de canals, 1 per a mono, 2 "
+"per a estèreo\n"
 "                                        (per omissió, 2)\n"
 "      --channel-map=MAPACANAL           Mapa de canals a utilitzar\n"
-"      --fix-format                      Pren el format de mostra del conducte al qual s'està connectant\n"
+"      --fix-format                      Pren el format de mostra del "
+"conducte al qual s'està connectant\n"
 "                                        el flux.\n"
-"      --fix-rate                        Pren la velocitat de mostreig del conducte al qual\n"
+"      --fix-rate                        Pren la velocitat de mostreig del "
+"conducte al qual\n"
 "                                        s'està connectant el flux.\n"
-"      --fix-channels                    Pren el número de canals i el mapa de canals del\n"
-"                                        conducte al qual s'està connectant el flux.\n"
+"      --fix-channels                    Pren el número de canals i el mapa "
+"de canals del\n"
+"                                        conducte al qual s'està connectant "
+"el flux.\n"
 "      --no-remix                        No mesclar els canals.\n"
-"      --no-remap                        Mapeja els canals per índex enlloc de per nom .\n"
+"      --no-remap                        Mapeja els canals per índex enlloc "
+"de per nom .\n"
 "      --latency=BYTES                   Especifica la latència en bytes.\n"
-"      --process-time=BYTES              Especifica el temps de procés per petició en bytes.\n"
+"      --process-time=BYTES              Especifica el temps de procés per "
+"petició en bytes.\n"
 
 #: ../src/utils/paplay.c:255
 #, c-format
@@ -2058,8 +2379,64 @@ msgstr "El mapa de canals no coincideix amb el fitxer.\n"
 msgid "Using sample spec '%s'\n"
 msgstr "S'estan utilitzant les especificacions de mostra '%s'\n"
 
-#: ../src/pulsecore/lock-autospawn.c:126
-#: ../src/pulsecore/lock-autospawn.c:207
+#: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
 msgid "Cannot access autospawn lock."
 msgstr "No s'ha pogut accedir al bloqueig d'autospawn."
 
+#~ msgid ""
+#~ "Called SUID root and real-time/high-priority scheduling was requested in "
+#~ "the configuration. However, we lack the necessary priviliges:\n"
+#~ "We are not in group '"
+#~ msgstr ""
+#~ "La crida de la SUID de root i la prioritat alta/temps real estàn "
+#~ "especificades en la configuració, però no té els permissos necessaris:\n"
+#~ "No es pertany al grup '"
+
+#~ msgid ""
+#~ "' and PolicyKit refuse to grant us priviliges. Dropping SUID again.\n"
+#~ "For enabling real-time scheduling please acquire the appropriate "
+#~ "PolicyKit priviliges, or become a member of '"
+#~ msgstr ""
+#~ "' i PolicyKit ha denegat els permísos. S'està lliberant SUID. \n"
+#~ "Per habilitar la prioritat en temps real, s'ha de adquirir els permissos "
+#~ "de PolicyKit, o pertanyer a '"
+
+#~ msgid ""
+#~ "', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this "
+#~ "user."
+#~ msgstr ""
+#~ "', o incremetar els límits de recursos RLIMIT_NICE/RLIMIT_RTPRIO per "
+#~ "aquest usuari."
+
+#~ msgid "Default sink name (%s) does not exist in name register."
+#~ msgstr "El nom sink per omissió  (%s) no existeix en el registre de noms."
+
+#~ msgid "Buffer overrun, dropping incoming data\n"
+#~ msgstr ""
+#~ "S'ha sobrepassat la memòria intermitja, s'estan descartant les dades "
+#~ "entrants\n"
+
+#~ msgid "pa_stream_drop() failed: %s\n"
+#~ msgstr "Ha fallat pa_stream_drop(): %s\n"
+
+#~ msgid "muted"
+#~ msgstr "silenciat"
+
+#~ msgid ""
+#~ "*** Autoload Entry #%u ***\n"
+#~ "Name: %s\n"
+#~ "Type: %s\n"
+#~ "Module: %s\n"
+#~ "Argument: %s\n"
+#~ msgstr ""
+#~ "*** Entrada de càrrega automàtica #%u ***\n"
+#~ "Nom: %s\n"
+#~ "Tipus: %s\n"
+#~ "Mòdul: %s\n"
+#~ "Arguments: %s\n"
+
+#~ msgid "sink"
+#~ msgstr "conducte"
+
+#~ msgid "source"
+#~ msgstr "font"

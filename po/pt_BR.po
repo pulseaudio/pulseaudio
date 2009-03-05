@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-02-24 11:33+0100\n"
+"POT-Creation-Date: 2009-03-05 12:27+0100\n"
 "PO-Revision-Date: 2008-11-21 01:21-0300\n"
 "Last-Translator: Henrique (LonelySpooky) Junior <lspooky@fedoraproject.org>\n"
 "Language-Team: Brazilian-Portuguese <fedora-trans-pt_br@redhat.com>\n"
@@ -18,51 +18,51 @@ msgstr ""
 "X-Poedit-Language: Brazilian Portuguese\n"
 "X-Poedit-Country: Brazil\n"
 
-#: ../src/modules/alsa/alsa-util.c:526
+#: ../src/modules/alsa/alsa-util.c:530
 msgid "Analog Mono"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:532
+#: ../src/modules/alsa/alsa-util.c:536
 msgid "Analog Stereo"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:538
+#: ../src/modules/alsa/alsa-util.c:542
 msgid "Digital Stereo (IEC958)"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:544
+#: ../src/modules/alsa/alsa-util.c:548
 msgid "Digital Stereo (HDMI)"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:551
+#: ../src/modules/alsa/alsa-util.c:555
 msgid "Analog Surround 4.0"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:558
+#: ../src/modules/alsa/alsa-util.c:562
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:566
+#: ../src/modules/alsa/alsa-util.c:570
 msgid "Analog Surround 4.1"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:574
+#: ../src/modules/alsa/alsa-util.c:578
 msgid "Analog Surround 5.0"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:582
+#: ../src/modules/alsa/alsa-util.c:586
 msgid "Analog Surround 5.1"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:590
+#: ../src/modules/alsa/alsa-util.c:594
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:599
+#: ../src/modules/alsa/alsa-util.c:603
 msgid "Analog Surround 7.1"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1582
+#: ../src/modules/alsa/alsa-util.c:1602
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -71,7 +71,7 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1622
+#: ../src/modules/alsa/alsa-util.c:1642
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -80,13 +80,22 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1668
+#: ../src/modules/alsa/alsa-util.c:1688
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
 "(%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
+msgstr ""
+
+#: ../src/pulsecore/sink.c:1963
+#, fuzzy
+msgid "Internal Audio"
+msgstr "Erro interno"
+
+#: ../src/pulsecore/sink.c:1969
+msgid "Modem"
 msgstr ""
 
 #: ../src/daemon/ltdl-bind-now.c:124
@@ -224,37 +233,37 @@ msgstr "O modo ampliado do sistema não tem suporte nessa plataforma."
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) falhou: %s"
 
-#: ../src/daemon/main.c:432
+#: ../src/daemon/main.c:434
 msgid "Failed to parse command line."
 msgstr "Falha em interpretar a linha de comando."
 
-#: ../src/daemon/main.c:456
+#: ../src/daemon/main.c:458
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
 msgstr "Estamos no grupo '%s', permitindo escalonamento de alta prioridade."
 
-#: ../src/daemon/main.c:463
+#: ../src/daemon/main.c:465
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
 msgstr "Estamos no grupo '%s', permitindo escalonamento em tempo real."
 
-#: ../src/daemon/main.c:471
+#: ../src/daemon/main.c:473
 msgid "PolicyKit grants us acquire-high-priority privilege."
 msgstr "O PolicyKit assegura-nos a aquisição de privilégio de alta prioridade."
 
-#: ../src/daemon/main.c:474
+#: ../src/daemon/main.c:476
 msgid "PolicyKit refuses acquire-high-priority privilege."
 msgstr "O PolicyKit recusa a aquisição de privilégios de alta prioridade."
 
-#: ../src/daemon/main.c:479
+#: ../src/daemon/main.c:481
 msgid "PolicyKit grants us acquire-real-time privilege."
 msgstr "O PolicyKit assegura-nos a aquisição de privilégios de tempo-real."
 
-#: ../src/daemon/main.c:482
+#: ../src/daemon/main.c:484
 msgid "PolicyKit refuses acquire-real-time privilege."
 msgstr "O PolicyKit recusa a aquisição de privilégios de tempo real."
 
-#: ../src/daemon/main.c:511
+#: ../src/daemon/main.c:513
 #, c-format
 msgid ""
 "Called SUID root and real-time and/or high-priority scheduling was requested "
@@ -267,48 +276,48 @@ msgid ""
 "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 msgstr ""
 
-#: ../src/daemon/main.c:536
+#: ../src/daemon/main.c:538
 msgid ""
 "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 "O escalonamento de alta prioridade foi habilitado para esta configuração, "
 "mas não é permitida pela política."
 
-#: ../src/daemon/main.c:565
+#: ../src/daemon/main.c:567
 msgid "Successfully increased RLIMIT_RTPRIO"
 msgstr "RLIMIT_RTPRIO aumentado com sucesso"
 
-#: ../src/daemon/main.c:568
+#: ../src/daemon/main.c:570
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
 msgstr "RLIMIT_RTPRIO falhou: %s"
 
-#: ../src/daemon/main.c:575
+#: ../src/daemon/main.c:577
 msgid "Giving up CAP_NICE"
 msgstr "Abandonando CAP_NICE"
 
-#: ../src/daemon/main.c:582
+#: ../src/daemon/main.c:584
 msgid ""
 "Real-time scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 "O escalonamento de tempo real foi habilitado pela configuração, mas não é "
 "permitido pela política."
 
-#: ../src/daemon/main.c:643
+#: ../src/daemon/main.c:645
 msgid "Daemon not running"
 msgstr "O daemon não está em execução"
 
-#: ../src/daemon/main.c:645
+#: ../src/daemon/main.c:647
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "Daemon executando como PID %u"
 
-#: ../src/daemon/main.c:655
+#: ../src/daemon/main.c:657
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Falha em encerrar o daemon: %s"
 
-#: ../src/daemon/main.c:673
+#: ../src/daemon/main.c:675
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -316,144 +325,144 @@ msgstr ""
 "Este programa não é para ser executado como root (a não ser que --system "
 "seja especificado)."
 
-#: ../src/daemon/main.c:675
+#: ../src/daemon/main.c:677
 #, fuzzy
 msgid "Root privileges required."
 msgstr "Privilégios de rot são requeridos."
 
-#: ../src/daemon/main.c:680
+#: ../src/daemon/main.c:682
 msgid "--start not supported for system instances."
 msgstr "--start não tem suporte para instâncias de sistemas."
 
-#: ../src/daemon/main.c:685
+#: ../src/daemon/main.c:687
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr "Executando em no modo system, mas --disallow-exit não foi configurado!"
 
-#: ../src/daemon/main.c:688
+#: ../src/daemon/main.c:690
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 "Executando no modo system, mas --disallow-module-loading não foi configurado!"
 
-#: ../src/daemon/main.c:691
+#: ../src/daemon/main.c:693
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "Executando no modo system, desabilitando forçadamente o modo SHM!"
 
-#: ../src/daemon/main.c:696
+#: ../src/daemon/main.c:698
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "Executando no modo system, desabilitando forçadamente o exit idle time!"
 
-#: ../src/daemon/main.c:723
+#: ../src/daemon/main.c:725
 msgid "Failed to acquire stdio."
 msgstr "Falha em adquirir o stdio."
 
-#: ../src/daemon/main.c:729
+#: ../src/daemon/main.c:731
 #, c-format
 msgid "pipe failed: %s"
 msgstr "O pipe falhou: %s"
 
-#: ../src/daemon/main.c:734
+#: ../src/daemon/main.c:736
 #, c-format
 msgid "fork() failed: %s"
 msgstr "O fork() falhou: %s"
 
-#: ../src/daemon/main.c:748
+#: ../src/daemon/main.c:750
 #, c-format
 msgid "read() failed: %s"
 msgstr "A operação read() falhou: %s"
 
-#: ../src/daemon/main.c:754
+#: ../src/daemon/main.c:756
 msgid "Daemon startup failed."
 msgstr "Falha na partida do daemon."
 
-#: ../src/daemon/main.c:756
+#: ../src/daemon/main.c:758
 msgid "Daemon startup successful."
 msgstr "Os daemons foram iniciados com sucesso."
 
-#: ../src/daemon/main.c:826
+#: ../src/daemon/main.c:828
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Este é o PulseAudio %s"
 
-#: ../src/daemon/main.c:827
+#: ../src/daemon/main.c:829
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Host de compilação: %s"
 
-#: ../src/daemon/main.c:828
+#: ../src/daemon/main.c:830
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "Compilação CFLAGS: %s"
 
-#: ../src/daemon/main.c:831
+#: ../src/daemon/main.c:833
 #, c-format
 msgid "Running on host: %s"
 msgstr "Executando no host: %s"
 
-#: ../src/daemon/main.c:834
+#: ../src/daemon/main.c:836
 #, c-format
 msgid "Found %u CPUs."
 msgstr ""
 
-#: ../src/daemon/main.c:836
+#: ../src/daemon/main.c:838
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "O tamanho da página é %lu bytes"
 
-#: ../src/daemon/main.c:839
+#: ../src/daemon/main.c:841
 msgid "Compiled with Valgrind support: yes"
 msgstr "Compilado com suporte do Valgrind: sim"
 
-#: ../src/daemon/main.c:841
+#: ../src/daemon/main.c:843
 msgid "Compiled with Valgrind support: no"
 msgstr "Compilado com suporte do Valgrind: não"
 
-#: ../src/daemon/main.c:844
+#: ../src/daemon/main.c:846
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "Executando em modo valgrind: %s"
 
-#: ../src/daemon/main.c:847
+#: ../src/daemon/main.c:849
 msgid "Optimized build: yes"
 msgstr "Build otimizado: sim"
 
-#: ../src/daemon/main.c:849
+#: ../src/daemon/main.c:851
 msgid "Optimized build: no"
 msgstr "Build otimizado: não"
 
-#: ../src/daemon/main.c:853
+#: ../src/daemon/main.c:855
 msgid "Failed to get machine ID"
 msgstr "Falha em obter o ID da máquina"
 
-#: ../src/daemon/main.c:856
+#: ../src/daemon/main.c:858
 #, c-format
 msgid "Machine ID is %s."
 msgstr "A ID da máquina é %s."
 
-#: ../src/daemon/main.c:861
+#: ../src/daemon/main.c:863
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Usando o diretório de runtime %s."
 
-#: ../src/daemon/main.c:866
+#: ../src/daemon/main.c:868
 #, c-format
 msgid "Using state directory %s."
 msgstr "Usando o diretório de estado %s."
 
-#: ../src/daemon/main.c:869
+#: ../src/daemon/main.c:871
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Executando em modo do sistema: %s"
 
-#: ../src/daemon/main.c:884
+#: ../src/daemon/main.c:886
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() falhou."
 
-#: ../src/daemon/main.c:896
+#: ../src/daemon/main.c:898
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Timers de alta resolução frequinhos disponíveis! Bon appetit!"
 
-#: ../src/daemon/main.c:898
+#: ../src/daemon/main.c:900
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -461,28 +470,28 @@ msgstr ""
 "Cara, teu kernel fede! A recomendação do chef hoje é Linux com timers de "
 "alta resolução habilitados!"
 
-#: ../src/daemon/main.c:910
+#: ../src/daemon/main.c:912
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() falhou."
 
-#: ../src/daemon/main.c:972
+#: ../src/daemon/main.c:974
 msgid "Failed to initialize daemon."
 msgstr "Falha em iniciar o daemon."
 
-#: ../src/daemon/main.c:977
+#: ../src/daemon/main.c:979
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "O Daemon iniciou sem qualquer módulo carregado, recusando-se a trabalhar."
 
-#: ../src/daemon/main.c:990
+#: ../src/daemon/main.c:992
 msgid "Daemon startup complete."
 msgstr "A partida dos Daemon está completa."
 
-#: ../src/daemon/main.c:996
+#: ../src/daemon/main.c:998
 msgid "Daemon shutdown initiated."
 msgstr "O encerramento do Daemon foi iniciado."
 
-#: ../src/daemon/main.c:1014
+#: ../src/daemon/main.c:1016
 msgid "Daemon terminated."
 msgstr "Daemon terminado."
 
@@ -742,78 +751,78 @@ msgstr "Carrega uma vez: %s\n"
 msgid "Path: %s\n"
 msgstr "Caminho: %s\n"
 
-#: ../src/daemon/daemon-conf.c:213
+#: ../src/daemon/daemon-conf.c:215
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
 msgstr "[%s:%u] Alvo do log inválido '%s'."
 
-#: ../src/daemon/daemon-conf.c:229
+#: ../src/daemon/daemon-conf.c:231
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
 msgstr "[%s:%u] Nível de log inválido '%s'."
 
-#: ../src/daemon/daemon-conf.c:245
+#: ../src/daemon/daemon-conf.c:247
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
 msgstr "[%s:%u] Método de reamostragem inválido '%s'."
 
-#: ../src/daemon/daemon-conf.c:268
+#: ../src/daemon/daemon-conf.c:270
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
 msgstr "[%s:%u] rlimit inválido '%s'."
 
-#: ../src/daemon/daemon-conf.c:275
+#: ../src/daemon/daemon-conf.c:277
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
 msgstr "[%s:%u] rlimit não tem suporte nessa plataforma."
 
-#: ../src/daemon/daemon-conf.c:291
+#: ../src/daemon/daemon-conf.c:293
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
 msgstr "[%s:%u] Formato de amostragem inválido '%s'."
 
-#: ../src/daemon/daemon-conf.c:309
+#: ../src/daemon/daemon-conf.c:311
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
 msgstr "[%s:%u] Taxa de amostragem inválida '%s'."
 
-#: ../src/daemon/daemon-conf.c:333
+#: ../src/daemon/daemon-conf.c:335
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "[%s:%u] Canais de amostragem inválidos'%s'."
 
-#: ../src/daemon/daemon-conf.c:351
+#: ../src/daemon/daemon-conf.c:353
 #, fuzzy, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
 msgstr "[%s:%u] Canais de amostragem inválidos'%s'."
 
-#: ../src/daemon/daemon-conf.c:369
+#: ../src/daemon/daemon-conf.c:371
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
 msgstr "[%s:%u] Números de fragmentos inválidos '%s'."
 
-#: ../src/daemon/daemon-conf.c:387
+#: ../src/daemon/daemon-conf.c:389
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
 msgstr "[%s:%u] Tamanho de fragmentos inválido '%s'."
 
-#: ../src/daemon/daemon-conf.c:405
+#: ../src/daemon/daemon-conf.c:407
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Número de nice inválido'%s'."
 
-#: ../src/daemon/daemon-conf.c:518
+#: ../src/daemon/daemon-conf.c:522
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "Falha em abrir o arquivo de configuração: %s"
 
-#: ../src/daemon/daemon-conf.c:534
+#: ../src/daemon/daemon-conf.c:538
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
 msgstr ""
 
-#: ../src/daemon/daemon-conf.c:612
+#: ../src/daemon/daemon-conf.c:616
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### Lido do arquivo de configuração: %s ###\n"
@@ -1185,6 +1194,10 @@ msgstr ""
 msgid "Missing implementation"
 msgstr ""
 
+#: ../src/pulse/error.c:67
+msgid "Client forked"
+msgstr ""
+
 #: ../src/pulse/sample.c:169
 #, c-format
 msgid "%s %uch %uHz"
@@ -1223,21 +1236,21 @@ msgstr "Falhou ao analisar os dados do cookie"
 msgid "Failed to open configuration file '%s': %s"
 msgstr "Falha em abrir o arquivo de configuração '%s': %s"
 
-#: ../src/pulse/context.c:519
+#: ../src/pulse/context.c:523
 msgid "No cookie loaded. Attempting to connect without."
 msgstr "Nenhum cookie foi carregado. Tentativa de conexão sem eles."
 
-#: ../src/pulse/context.c:649
+#: ../src/pulse/context.c:653
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:702
+#: ../src/pulse/context.c:706
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1279
+#: ../src/pulse/context.c:1304
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Foi recebida uma mensagem para uma extensão desconhecida '%s'"
