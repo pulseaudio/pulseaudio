@@ -389,6 +389,7 @@ enum {
     PA_ERR_NOEXTENSION,            /**< Extension does not exist. \since 0.9.12 */
     PA_ERR_OBSOLETE,               /**< Obsolete functionality. \since 0.9.15 */
     PA_ERR_NOTIMPLEMENTED,         /**< Missing implementation. \since 0.9.15 */
+    PA_ERR_FORKED,                 /**< The caler forked without calling execve() and tried to reuse the context. \since 0.9.15 */
     PA_ERR_MAX                     /**< Not really an error but the first invalid error code */
 };
 
@@ -417,6 +418,7 @@ enum {
 #define PA_ERR_NOEXTENSION PA_ERR_NOEXTENSION
 #define PA_ERR_OBSOLETE PA_ERR_OBSOLETE
 #define PA_ERR_NOTIMPLEMENTED PA_ERR_NOTIMPLEMENTED
+#define PA_ERR_FORKED PA_ERR_FORKED
 #define PA_ERR_MAX PA_ERR_MAX
 /** \endcond */
 

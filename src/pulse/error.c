@@ -63,7 +63,8 @@ const char*pa_strerror(int error) {
         [PA_ERR_UNKNOWN] = N_("Unknown error code"),
         [PA_ERR_NOEXTENSION] = N_("No such extension"),
         [PA_ERR_OBSOLETE] = N_("Obsolete functionality"),
-        [PA_ERR_NOTIMPLEMENTED] = N_("Missing implementation")
+        [PA_ERR_NOTIMPLEMENTED] = N_("Missing implementation"),
+        [PA_ERR_FORKED] = N_("Client forked")
     };
 
     pa_init_i18n();

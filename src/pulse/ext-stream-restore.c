@@ -31,6 +31,7 @@
 
 #include "internal.h"
 #include "operation.h"
+#include "fork-detect.h"
 
 #include "ext-stream-restore.h"
 
@@ -87,6 +88,7 @@ pa_operation *pa_ext_stream_restore_test(
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 14, PA_ERR_NOTSUPPORTED);
 
@@ -167,6 +169,7 @@ pa_operation *pa_ext_stream_restore_read(
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 14, PA_ERR_NOTSUPPORTED);
 
@@ -200,6 +203,7 @@ pa_operation *pa_ext_stream_restore_write(
     pa_assert(mode == PA_UPDATE_MERGE || mode == PA_UPDATE_REPLACE || mode == PA_UPDATE_SET);
     pa_assert(data);
 
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 14, PA_ERR_NOTSUPPORTED);
 
@@ -262,6 +266,7 @@ pa_operation *pa_ext_stream_restore_delete(
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
     pa_assert(s);
 
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 14, PA_ERR_NOTSUPPORTED);
 
@@ -310,6 +315,7 @@ pa_operation *pa_ext_stream_restore_subscribe(
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 14, PA_ERR_NOTSUPPORTED);
 
@@ -333,6 +339,9 @@ void pa_ext_stream_restore_set_subscribe_cb(
 
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    if (pa_detect_fork())
+        return;
 
     c->ext_stream_restore.callback = cb;
     c->ext_stream_restore.userdata = userdata;

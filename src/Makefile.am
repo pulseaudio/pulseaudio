@@ -540,6 +540,7 @@ lib_LTLIBRARIES = \
 libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulse/client-conf.c pulse/client-conf.h \
 		pulse/i18n.c pulse/i18n.h \
+		pulse/fork-detect.c pulse/fork-detect.h \
 		pulsecore/atomic.h \
 		pulsecore/authkey.c pulsecore/authkey.h \
 		pulsecore/conf-parser.c pulsecore/conf-parser.h \

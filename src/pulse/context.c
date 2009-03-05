@@ -74,6 +74,7 @@
 #include "internal.h"
 
 #include "client-conf.h"
+#include "fork-detect.h"
 
 #ifdef HAVE_X11
 #include "client-conf-x11.h"
@@ -126,6 +127,9 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     pa_context *c;
 
     pa_assert(mainloop);
+
+    if (pa_detect_fork())
+        return NULL;
 
     pa_init_i18n();
 
@@ -822,6 +826,7 @@ int pa_context_connect(
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    PA_CHECK_VALIDITY(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY(c, c->state == PA_CONTEXT_UNCONNECTED, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(c, !(flags & ~PA_CONTEXT_NOAUTOSPAWN), PA_ERR_INVALID);
     PA_CHECK_VALIDITY(c, !server || *server, PA_ERR_INVALID);
@@ -894,6 +899,9 @@ void pa_context_disconnect(pa_context *c) {
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    if (pa_detect_fork())
+        return;
+
     if (PA_CONTEXT_IS_GOOD(c->state))
         pa_context_set_state(c, PA_CONTEXT_TERMINATED);
 }
@@ -916,6 +924,9 @@ void pa_context_set_state_callback(pa_context *c, pa_context_notify_cb_t cb, voi
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    if (pa_detect_fork())
+        return;
+
     if (c->state == PA_CONTEXT_TERMINATED || c->state == PA_CONTEXT_FAILED)
         return;
 
@@ -926,6 +937,9 @@ void pa_context_set_state_callback(pa_context *c, pa_context_notify_cb_t cb, voi
 void pa_context_set_event_callback(pa_context *c, pa_context_event_cb_t cb, void *userdata) {
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    if (pa_detect_fork())
+        return;
 
     if (c->state == PA_CONTEXT_TERMINATED || c->state == PA_CONTEXT_FAILED)
         return;
@@ -938,6 +952,7 @@ int pa_context_is_pending(pa_context *c) {
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    PA_CHECK_VALIDITY(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY(c, PA_CONTEXT_IS_GOOD(c->state), PA_ERR_BADSTATE);
 
     return (c->pstream && pa_pstream_is_pending(c->pstream)) ||
@@ -994,6 +1009,7 @@ pa_operation* pa_context_drain(pa_context *c, pa_context_notify_cb_t cb, void *u
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, pa_context_is_pending(c), PA_ERR_BADSTATE);
 
@@ -1042,6 +1058,7 @@ pa_operation* pa_context_send_simple_command(pa_context *c, uint32_t command, pa
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
     o = pa_operation_new(c, NULL, cb, userdata);
@@ -1068,6 +1085,7 @@ pa_operation* pa_context_set_default_sink(pa_context *c, const char *name, pa_co
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
@@ -1087,6 +1105,7 @@ pa_operation* pa_context_set_default_source(pa_context *c, const char *name, pa_
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
@@ -1102,6 +1121,7 @@ int pa_context_is_local(pa_context *c) {
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    PA_CHECK_VALIDITY_RETURN_ANY(c, !pa_detect_fork(), PA_ERR_FORKED, -1);
     PA_CHECK_VALIDITY_RETURN_ANY(c, PA_CONTEXT_IS_GOOD(c->state), PA_ERR_BADSTATE, -1);
 
     return !!c->is_local;
@@ -1114,6 +1134,7 @@ pa_operation* pa_context_set_name(pa_context *c, const char *name, pa_context_su
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
     pa_assert(name);
 
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
     if (c->version >= 13) {
@@ -1144,8 +1165,8 @@ const char* pa_context_get_server(pa_context *c) {
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
-    if (!c->server)
-        return NULL;
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->server, PA_ERR_NOENTITY);
 
     if (*c->server == '{') {
         char *e = strchr(c->server+1, '}');
@@ -1163,6 +1184,7 @@ uint32_t pa_context_get_server_protocol_version(pa_context *c) {
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    PA_CHECK_VALIDITY_RETURN_ANY(c, !pa_detect_fork(), PA_ERR_FORKED, PA_INVALID_INDEX);
     PA_CHECK_VALIDITY_RETURN_ANY(c, PA_CONTEXT_IS_GOOD(c->state), PA_ERR_BADSTATE, PA_INVALID_INDEX);
 
     return c->version;
@@ -1185,6 +1207,7 @@ uint32_t pa_context_get_index(pa_context *c) {
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    PA_CHECK_VALIDITY_RETURN_ANY(c, !pa_detect_fork(), PA_ERR_FORKED, PA_INVALID_INDEX);
     PA_CHECK_VALIDITY_RETURN_ANY(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE, PA_INVALID_INDEX);
     PA_CHECK_VALIDITY_RETURN_ANY(c, c->version >= 13, PA_ERR_NOTSUPPORTED, PA_INVALID_INDEX);
 
@@ -1199,6 +1222,7 @@ pa_operation *pa_context_proplist_update(pa_context *c, pa_update_mode_t mode, p
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, mode == PA_UPDATE_SET || mode == PA_UPDATE_MERGE || mode == PA_UPDATE_REPLACE, PA_ERR_INVALID);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 13, PA_ERR_NOTSUPPORTED);
@@ -1227,6 +1251,7 @@ pa_operation *pa_context_proplist_remove(pa_context *c, const char *const keys[]
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, keys && keys[0], PA_ERR_INVALID);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 13, PA_ERR_NOTSUPPORTED);
