@@ -1126,6 +1126,8 @@ static void thread_func(void *userdata) {
                 }
 
                 if (writable && do_write) {
+                    if (u->write_index == 0)
+                        u->started_at = pa_rtclock_usec();
 
                     if (u->profile == PROFILE_A2DP) {
                         if (a2dp_process_render(u) < 0)
