@@ -1164,8 +1164,8 @@ static void thread_func(void *userdata) {
 
         /* Hmm, nothing to do. Let's sleep */
         if (pollfd)
-            pollfd->events = (short) (((u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state) && !writable) ? POLLOUT : 0) |
-                                      (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state) ? POLLIN : 0));
+            pollfd->events = (short) (((u->sink && PA_SINK_IS_LINKED(u->sink->thread_info.state) && !writable) ? POLLOUT : 0) |
+                                      (u->source && PA_SOURCE_IS_LINKED(u->source->thread_info.state) ? POLLIN : 0));
 
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
             goto fail;
