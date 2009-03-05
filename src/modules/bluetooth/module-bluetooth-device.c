@@ -700,6 +700,9 @@ static int start_stream_fd(struct userdata *u) {
     pollfd->fd = u->stream_fd;
     pollfd->events = pollfd->revents = 0;
 
+    u->read_index = 0;
+    u->write_index = 0;
+
     return 0;
 }
 
