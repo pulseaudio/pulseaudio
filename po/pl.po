@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-03-05 12:27+0100\n"
-"PO-Revision-Date: 2009-02-25 00:31+0100\n"
+"PO-Revision-Date: 2009-03-05 16:17+0100\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -94,13 +94,12 @@ msgstr ""
 "problem programistom ALSA."
 
 #: ../src/pulsecore/sink.c:1963
-#, fuzzy
 msgid "Internal Audio"
-msgstr "Wewnętrzny błąd"
+msgstr "Wewnętrzny dźwięk"
 
 #: ../src/pulsecore/sink.c:1969
 msgid "Modem"
-msgstr ""
+msgstr "Modem"
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
@@ -1216,7 +1215,7 @@ msgstr "Brak implementacji"
 
 #: ../src/pulse/error.c:67
 msgid "Client forked"
-msgstr ""
+msgstr "Rozdzielono klienta"
 
 #: ../src/pulse/sample.c:169
 #, c-format
