@@ -96,21 +96,23 @@ if test "x$M4" = xno ; then
    AC_MSG_ERROR([m4 missing])
 fi
 
-# Linker
-
-AC_PROG_LD
-AC_PROG_LD_GNU
-
-AC_SUBST(HAVE_GNU_LD)
-AM_CONDITIONAL([HAVE_GNU_LD], [test "x$HAVE_GNU_LD" = x1])
-
-
 dnl Compiler flags
 DESIRED_FLAGS="-Wall -W -Wextra -pipe -Wno-long-long -Winline -Wvla -Wno-overlength-strings -Wunsafe-loop-optimizations -Wundef -Wformat=2 -Wlogical-op -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wcast-align -Wstrict-aliasing=2 -Wwrite-strings -Wno-unused-parameter -ffast-math -Wp,-D_FORTIFY_SOURCE=2 -fno-common -fdiagnostics-show-option"
 
 for flag in $DESIRED_FLAGS ; do
   CC_CHECK_CFLAGS([$flag], [CFLAGS="$CFLAGS $flag"])
 done
+
+dnl Linker flags.
+dnl Check whether the linker supports the -version-script option.
+
+dnl This variable is used to make sure ${srcdir} is expanded and not
+dnl passed to the CC_CHECK_LDFLAGS macro as a name.
+tmp_ldflag="-Wl,-version-script=${srcdir}/src/map-file"
+
+CC_CHECK_LDFLAGS([${tmp_ldflag}],
+    [VERSIONING_LDFLAGS='-Wl,-version-script=$(srcdir)/map-file'])
+AC_SUBST([VERSIONING_LDFLAGS])
 
 dnl Check whether to build tests by default (as compile-test) or not
 AC_ARG_ENABLE([default-build-tests],
