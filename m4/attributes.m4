@@ -63,7 +63,7 @@ AC_DEFUN([CC_CHECK_LDFLAGS], [
      LDFLAGS="$LDFLAGS $1"
      AC_LINK_IFELSE([int main() { return 1; }],
        [eval "AS_TR_SH([cc_cv_ldflags_$1])='yes'"],
-       [eval "AS_TR_SH([cc_cv_ldflags_$1])="])
+       [eval "AS_TR_SH([cc_cv_ldflags_$1])='no'"])
      LDFLAGS="$ac_save_LDFLAGS"
     ])
 
