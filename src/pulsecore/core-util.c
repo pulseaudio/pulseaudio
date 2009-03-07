@@ -2608,7 +2608,7 @@ char *pa_unescape(char *p) {
 }
 
 char *pa_realpath(const char *path) {
-    char *r, *t;
+    char *t;
     pa_assert(path);
 
     /* We want only abolsute paths */
@@ -2617,17 +2617,31 @@ char *pa_realpath(const char *path) {
         return NULL;
     }
 
-#if !defined(__GLIBC__) && !defined(__APPLE__)
+#if defined(__GLIBC__) || defined(__APPLE__)
+    {
+        char *r;
+
+        if (!(r = realpath(path, NULL)))
+            return NULL;
+
+        /* We copy this here in case our pa_xmalloc() is not
+         * implemented on top of libc malloc() */
+        t = pa_xstrdup(r);
+        pa_xfree(r);
+    }
+#elif defined(PATH_MAX)
+    {
+        char *path_buf;
+        path_buf = pa_xmalloc(PATH_MAX);
+
+        if (!(t = realpath(path, path_buf))) {
+            pa_xfree(path_buf);
+            return NULL;
+        }
+    }
+#else
 #error "It's not clear whether this system supports realpath(..., NULL) like GNU libc does. If it doesn't we need a private version of realpath() here."
 #endif
-
-    if (!(r = realpath(path, NULL)))
-        return NULL;
-
-    /* We copy this here in case our pa_xmalloc() is not implemented
-     * on top of libc malloc() */
-    t = pa_xstrdup(r);
-    pa_xfree(r);
 
     return t;
 }
