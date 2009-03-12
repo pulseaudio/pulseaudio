@@ -700,6 +700,9 @@ static int start_stream_fd(struct userdata *u) {
     pollfd->fd = u->stream_fd;
     pollfd->events = pollfd->revents = 0;
 
+    u->read_index = 0;
+    u->write_index = 0;
+
     return 0;
 }
 
@@ -873,7 +876,7 @@ static int hsp_process_render(struct userdata *u) {
         pa_assert(l != 0);
 
         if (l < 0) {
-            if (errno == EINTR)
+            if (errno == EINTR || errno == EAGAIN)
                 continue;
             else {
                 pa_log_error("Failed to write data to SCO socket: %s", pa_cstrerror(errno));
@@ -918,7 +921,7 @@ static int hsp_process_push(struct userdata *u) {
         pa_memblock_release(memchunk.memblock);
 
         if (l <= 0) {
-            if (l < 0 && errno == EINTR)
+            if (l < 0 && (errno == EINTR || errno == EAGAIN))
                 continue;
             else {
                 pa_log_error("Failed to read data from SCO socket: %s", l < 0 ? pa_cstrerror(errno) : "EOF");
@@ -1041,7 +1044,7 @@ static int a2dp_process_render(struct userdata *u) {
         pa_assert(l != 0);
 
         if (l < 0) {
-            if (errno == EINTR)
+            if (errno == EINTR || errno == EAGAIN)
                 continue;
             else {
                 pa_log_error("Failed to write data to socket: %s", pa_cstrerror(errno));
@@ -1123,6 +1126,8 @@ static void thread_func(void *userdata) {
                 }
 
                 if (writable && do_write) {
+                    if (u->write_index == 0)
+                        u->started_at = pa_rtclock_usec();
 
                     if (u->profile == PROFILE_A2DP) {
                         if (a2dp_process_render(u) < 0)
@@ -1159,8 +1164,8 @@ static void thread_func(void *userdata) {
 
         /* Hmm, nothing to do. Let's sleep */
         if (pollfd)
-            pollfd->events = (short) (((u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state) && !writable) ? POLLOUT : 0) |
-                                      (u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state) ? POLLIN : 0));
+            pollfd->events = (short) (((u->sink && PA_SINK_IS_LINKED(u->sink->thread_info.state) && !writable) ? POLLOUT : 0) |
+                                      (u->source && PA_SOURCE_IS_LINKED(u->source->thread_info.state) ? POLLIN : 0));
 
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
             goto fail;
