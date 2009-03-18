@@ -633,6 +633,12 @@ if OS_IS_WIN32
 libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/dllmain.c
 endif
 
+if HAVE_DBUS
+libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/dbus-util.c pulsecore/dbus-util.h
+libpulsecommon_@PA_MAJORMINORMICRO@_la_CFLAGS += $(DBUS_CFLAGS)
+libpulsecommon_@PA_MAJORMINORMICRO@_la_LIBADD += $(DBUS_LIBS)
+endif
+
 ###################################
 #         Client library          #
 ###################################
@@ -713,7 +719,7 @@ libpulse_la_SOURCES = \
 		pulse/volume.c pulse/volume.h \
 		pulse/xmalloc.c pulse/xmalloc.h
 
-libpulse_la_CFLAGS = $(AM_CFLAGS)
+libpulse_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 libpulse_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) $(LTLIBICONV) libpulsecommon-@PA_MAJORMINORMICRO@.la
 libpulse_la_LDFLAGS = $(AM_LDFLAGS) $(VERSIONING_LDFLAGS) -version-info $(LIBPULSE_VERSION_INFO)
 
@@ -813,6 +819,13 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_CFLAGS += $(X11_CFLAGS)
 libpulsecore_@PA_MAJORMINORMICRO@_la_LDFLAGS += $(X11_LIBS)
 endif
 
+
+if HAVE_DBUS
+libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/dbus-shared.c pulsecore/dbus-shared.h
+libpulsecore_@PA_MAJORMINORMICRO@_la_CFLAGS += $(DBUS_CFLAGS)
+libpulsecore_@PA_MAJORMINORMICRO@_la_LIBADD += $(DBUS_LIBS)
+endif
+
 # We split the foreign code off to not be annoyed by warnings we don't care about
 noinst_LTLIBRARIES = libpulsecore-foreign.la
 
@@ -902,7 +915,6 @@ libavahi_wrap_la_LIBADD = $(AM_LIBADD) $(AVAHI_CFLAGS) libpulsecore-@PA_MAJORMIN
 if HAVE_DBUS
 # Serveral module (e.g. libalsa-util.la)
 modlibexec_LTLIBRARIES += \
-		libdbus-util.la \
 		module-console-kit.la
 endif
 
@@ -1322,7 +1334,7 @@ endif
 
 if HAVE_DBUS
 libalsa_util_la_SOURCES += modules/reserve.h modules/reserve.c modules/reserve-wrap.c modules/reserve-wrap.h
-libalsa_util_la_LIBADD += $(DBUS_LIBS) libdbus-util.la
+libalsa_util_la_LIBADD += $(DBUS_LIBS)
 libalsa_util_la_CFLAGS += $(DBUS_CFLAGS)
 endif
 
@@ -1476,20 +1488,14 @@ module_jack_source_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_jack_source_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la $(JACK_LIBS) libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_jack_source_la_CFLAGS = $(AM_CFLAGS) $(JACK_CFLAGS)
 
-# HAL/D-Bus
-libdbus_util_la_SOURCES = modules/dbus-util.c modules/dbus-util.h
-libdbus_util_la_LDFLAGS = -avoid-version
-libdbus_util_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
-libdbus_util_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
-
 module_hal_detect_la_SOURCES = modules/module-hal-detect.c
 module_hal_detect_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_hal_detect_la_LIBADD = $(AM_LIBADD) $(HAL_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libdbus-util.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_hal_detect_la_LIBADD = $(AM_LIBADD) $(HAL_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_hal_detect_la_CFLAGS = $(AM_CFLAGS) $(HAL_CFLAGS)
 
 module_console_kit_la_SOURCES = modules/module-console-kit.c
 module_console_kit_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_console_kit_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libdbus-util.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_console_kit_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_console_kit_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 # GConf support
@@ -1506,7 +1512,7 @@ gconf_helper_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 # Bluetooth proximity
 module_bluetooth_proximity_la_SOURCES = modules/bluetooth/module-bluetooth-proximity.c
 module_bluetooth_proximity_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_bluetooth_proximity_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libdbus-util.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_bluetooth_proximity_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_bluetooth_proximity_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS) -DPA_BT_PROXIMITY_HELPER=\"$(pulselibexecdir)/proximity-helper\"
 
 proximity_helper_SOURCES = modules/bluetooth/proximity-helper.c
@@ -1517,7 +1523,7 @@ proximity_helper_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 # Bluetooth sink / source
 module_bluetooth_discover_la_SOURCES = modules/bluetooth/module-bluetooth-discover.c
 module_bluetooth_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_bluetooth_discover_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libdbus-util.la libbluetooth-util.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_bluetooth_discover_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libbluetooth-util.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_bluetooth_discover_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 libbluetooth_sbc_la_SOURCES = modules/bluetooth/sbc.c modules/bluetooth/sbc.h modules/bluetooth/sbc_tables.h modules/bluetooth/sbc_math.h modules/bluetooth/sbc_primitives.h modules/bluetooth/sbc_primitives.c modules/bluetooth/sbc_primitives_mmx.h modules/bluetooth/sbc_primitives_neon.h modules/bluetooth/sbc_primitives_mmx.c modules/bluetooth/sbc_primitives_neon.c
@@ -1534,12 +1540,12 @@ BLUETOOTH_IPC_FILES = $(subst modules/bluetooth/,,$(libbluetooth_ipc_la_SOURCES)
 
 libbluetooth_util_la_SOURCES = modules/bluetooth/bluetooth-util.c modules/bluetooth/bluetooth-util.h
 libbluetooth_util_la_LDFLAGS = -avoid-version
-libbluetooth_util_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la libdbus-util.la
+libbluetooth_util_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 libbluetooth_util_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 module_bluetooth_device_la_SOURCES = modules/bluetooth/module-bluetooth-device.c modules/bluetooth/rtp.h
 module_bluetooth_device_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_bluetooth_device_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libdbus-util.la libbluetooth-util.la libbluetooth-ipc.la libbluetooth-sbc.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_bluetooth_device_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libbluetooth-util.la libbluetooth-ipc.la libbluetooth-sbc.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_bluetooth_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 # Apple Airtunes/RAOP

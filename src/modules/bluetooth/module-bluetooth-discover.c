@@ -34,7 +34,7 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/llist.h>
 #include <pulsecore/core-util.h>
-#include <modules/dbus-util.h>
+#include <pulsecore/dbus-shared.h>
 
 #include "module-bluetooth-discover-symdef.h"
 #include "bluetooth-util.h"

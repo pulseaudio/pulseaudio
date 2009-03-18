@@ -45,10 +45,10 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/core-scache.h>
 #include <pulsecore/modargs.h>
+#include <pulsecore/dbus-shared.h>
 
 #include <hal/libhal.h>
 
-#include "dbus-util.h"
 #include "module-hal-detect-symdef.h"
 
 PA_MODULE_AUTHOR("Shahms King");

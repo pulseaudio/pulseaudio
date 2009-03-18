@@ -44,8 +44,8 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/core-scache.h>
 #include <pulsecore/modargs.h>
+#include <pulsecore/dbus-shared.h>
 
-#include "dbus-util.h"
 #include "module-console-kit-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");
