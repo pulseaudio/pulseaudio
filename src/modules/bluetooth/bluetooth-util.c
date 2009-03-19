@@ -114,15 +114,14 @@ void pa_bluetooth_device_free(pa_bluetooth_device *d) {
 static pa_bool_t device_is_loaded(pa_bluetooth_device *d) {
     pa_assert(d);
 
-    return d->device_info_valid && d->audio_sink_info_valid && d->headset_info_valid;
+    return d->device_info_valid && (d->audio_sink_info_valid || d->headset_info_valid);
 }
 
 static pa_bool_t device_is_audio(pa_bluetooth_device *d) {
     pa_assert(d);
 
     pa_assert(d->device_info_valid);
-    pa_assert(d->audio_sink_info_valid);
-    pa_assert(d->headset_info_valid);
+    pa_assert(d->audio_sink_info_valid || d->headset_info_valid);
 
     return d->device_info_valid > 0 &&
         (d->audio_sink_info_valid > 0 || d->headset_info_valid > 0);
