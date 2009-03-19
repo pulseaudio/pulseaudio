@@ -604,7 +604,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             pa_bluetooth_device_free(d);
         }
 
-        return DBUS_HANDLER_RESULT_HANDLED;
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
     } else if (dbus_message_is_signal(m, "org.bluez.Adapter", "DeviceCreated")) {
         const char *path;
@@ -617,7 +617,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
         pa_log_debug("Device %s created", path);
 
         found_device(y, path);
-        return DBUS_HANDLER_RESULT_HANDLED;
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
     } else if (dbus_message_is_signal(m, "org.bluez.Manager", "AdapterAdded")) {
         const char *path;
@@ -630,7 +630,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
         pa_log_debug("Adapter %s created", path);
 
         found_adapter(y, path);
-        return DBUS_HANDLER_RESULT_HANDLED;
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
     } else if (dbus_message_is_signal(m, "org.bluez.Headset", "PropertyChanged") ||
                dbus_message_is_signal(m, "org.bluez.AudioSink", "PropertyChanged") ||
@@ -663,7 +663,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             run_callback(y, d, TRUE);
         }
 
-        return DBUS_HANDLER_RESULT_HANDLED;
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
     }
 
 fail:

@@ -302,7 +302,7 @@ static DBusHandlerResult filter_func(DBusConnection *connection, DBusMessage *m,
 
         bonding_new(u, a);
 
-        return DBUS_HANDLER_RESULT_HANDLED;
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
     } else if (dbus_message_is_signal(m, "org.bluez.Adapter", "BondingRemoved")) {
 
@@ -315,7 +315,7 @@ static DBusHandlerResult filter_func(DBusConnection *connection, DBusMessage *m,
 
         bonding_remove(u, a);
 
-        return DBUS_HANDLER_RESULT_HANDLED;
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
     }
 
 finish:
