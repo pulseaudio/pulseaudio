@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-03-05 12:27+0100\n"
+"POT-Creation-Date: 2009-03-19 17:58+0100\n"
 "PO-Revision-Date: 2008-11-21 01:21-0300\n"
 "Last-Translator: Henrique (LonelySpooky) Junior <lspooky@fedoraproject.org>\n"
 "Language-Team: Brazilian-Portuguese <fedora-trans-pt_br@redhat.com>\n"
@@ -89,12 +89,12 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/pulsecore/sink.c:1963
+#: ../src/pulsecore/sink.c:1965
 #, fuzzy
 msgid "Internal Audio"
 msgstr "Erro interno"
 
-#: ../src/pulsecore/sink.c:1969
+#: ../src/pulsecore/sink.c:1971
 msgid "Modem"
 msgstr ""
 

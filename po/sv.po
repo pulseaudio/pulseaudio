@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-03-05 12:27+0100\n"
+"POT-Creation-Date: 2009-03-19 17:58+0100\n"
 "PO-Revision-Date: 2008-09-05 18:24+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -86,12 +86,12 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/pulsecore/sink.c:1963
+#: ../src/pulsecore/sink.c:1965
 #, fuzzy
 msgid "Internal Audio"
 msgstr "Internt fel"
 
-#: ../src/pulsecore/sink.c:1969
+#: ../src/pulsecore/sink.c:1971
 msgid "Modem"
 msgstr ""
 

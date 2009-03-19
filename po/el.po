@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: el\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-03-05 12:27+0100\n"
+"POT-Creation-Date: 2009-03-19 17:58+0100\n"
 "PO-Revision-Date: 2008-08-22 19:40+0300\n"
 "Last-Translator: Dimitris Glezos <dimitris@glezos.com>\n"
 "Language-Team: Greek <fedora-trans-el@redhat.com>\n"
@@ -87,11 +87,11 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/pulsecore/sink.c:1963
+#: ../src/pulsecore/sink.c:1965
 msgid "Internal Audio"
 msgstr ""
 
-#: ../src/pulsecore/sink.c:1969
+#: ../src/pulsecore/sink.c:1971
 msgid "Modem"
 msgstr ""
 

@@ -19,7 +19,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-03-05 12:27+0100\n"
+"POT-Creation-Date: 2009-03-19 17:58+0100\n"
 "PO-Revision-Date: 2009-02-15 20:53+0100\n"
 "Last-Translator: Agusti Grau <fletxa@gmail.com>\n"
 "Language-Team: Catalan <fedora@softcatala.net>\n"
@@ -98,12 +98,12 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/pulsecore/sink.c:1963
+#: ../src/pulsecore/sink.c:1965
 #, fuzzy
 msgid "Internal Audio"
 msgstr "S'ha produït un error intern"
 
-#: ../src/pulsecore/sink.c:1969
+#: ../src/pulsecore/sink.c:1971
 msgid "Modem"
 msgstr ""
 
