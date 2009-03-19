@@ -1921,6 +1921,8 @@ pa_bool_t pa_device_init_icon(pa_proplist *p, pa_bool_t is_sink) {
             t = "phone";
         else if (pa_streq(ff, "portable"))
             t = "multimedia-player";
+        else if (pa_streq(ff, "tv"))
+            t = "video-display";
     }
 
     if (!t)
