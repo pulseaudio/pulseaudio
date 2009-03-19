@@ -57,9 +57,6 @@
 
 #define MAX_BITPOOL 64
 #define MIN_BITPOOL 2U
-#define SOL_SCO 17
-#define SCO_TXBUFS 0x03
-#define SCO_RXBUFS 0x04
 
 PA_MODULE_AUTHOR("Joao Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Bluetooth audio sink and source");
@@ -688,9 +685,6 @@ static int start_stream_fd(struct userdata *u) {
         pa_log("Failed to get stream fd from audio service.");
         return -1;
     }
-
-/*     setsockopt(u->stream_fd, SOL_SCO, SCO_TXBUFS, &period_count, sizeof(period_count)); */
-/*     setsockopt(u->stream_fd, SOL_SCO, SCO_SNDBUF, &period_count, sizeof(period_count)); */
 
     pa_make_fd_nonblock(u->stream_fd);
     pa_make_socket_low_delay(u->stream_fd);
