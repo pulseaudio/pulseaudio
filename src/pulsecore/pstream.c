@@ -38,7 +38,6 @@
 #include <netinet/in.h>
 #endif
 
-
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/winsock.h>

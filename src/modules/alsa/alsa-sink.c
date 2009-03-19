@@ -1329,7 +1329,7 @@ static void thread_func(void *userdata) {
         } else if (u->use_tsched)
 
             /* OK, we're in an invalid state, let's disable our timers */
-            pa_rtpoll_set_timer_disabled(u->rtpoll);
+            pa_rtpoll_disable_timer(u->rtpoll);
 
         /* Hmm, nothing to do. Let's sleep */
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)

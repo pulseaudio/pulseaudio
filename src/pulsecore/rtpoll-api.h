@@ -1,10 +1,10 @@
-#ifndef foopulsertclockhfoo
-#define foopulsertclockhfoo
+#ifndef foopulsertpollapihfoo
+#define foopulsertpollapihfoo
 
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
+  Copyright 2009 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -22,27 +22,11 @@
   USA.
 ***/
 
-#include <pulsecore/macro.h>
-#include <pulse/sample.h>
+/* A pa_mainloop_api implementation on top of rtpoll */
 
-struct timeval;
+#include <pulse/mainloop-api.h>
+#include <pulsecore/rtpoll.h>
 
-/* Something like pulse/timeval.h but based on CLOCK_MONOTONIC */
-
-struct timeval *pa_rtclock_get(struct timeval *ts);
-
-pa_usec_t pa_rtclock_usec(void);
-
-pa_usec_t pa_rtclock_age(const struct timeval *tv);
-pa_bool_t pa_rtclock_hrtimer(void);
-void pa_rtclock_hrtimer_enable(void);
-
-/* timer with a resolution better than this are considered high-resolution */
-#define PA_HRTIMER_THRESHOLD_USEC 10
-
-struct timeval* pa_rtclock_from_wallclock(struct timeval *tv);
-
-struct timespec *pa_timespec_store(struct timespec *ts, pa_usec_t v);
-pa_usec_t pa_timespec_load(const struct timespec *ts);
+pa_mainloop_api* pa_rtpoll_get_api(pa_rtpoll *p);
 
 #endif

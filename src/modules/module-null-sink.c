@@ -227,7 +227,7 @@ static void thread_func(void *userdata) {
 
             pa_rtpoll_set_timer_absolute(u->rtpoll, u->timestamp);
         } else
-            pa_rtpoll_set_timer_disabled(u->rtpoll);
+            pa_rtpoll_disable_timer(u->rtpoll);
 
         /* Hmm, nothing to do. Let's sleep */
         if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)

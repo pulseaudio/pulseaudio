@@ -226,6 +226,8 @@ typedef int pa_bool_t;
 #define PA_DEBUG_TRAP raise(SIGTRAP)
 #endif
 
+typedef void (*pa_function_t) (...);
+
 /* We include this at the very last place */
 #include <pulsecore/log.h>
 

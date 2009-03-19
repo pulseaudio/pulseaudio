@@ -302,7 +302,7 @@ static void thread_func(void *userdata) {
             pa_rtpoll_set_timer_absolute(u->rtpoll, u->thread_info.timestamp);
             u->thread_info.in_null_mode = TRUE;
         } else {
-            pa_rtpoll_set_timer_disabled(u->rtpoll);
+            pa_rtpoll_disable_timer(u->rtpoll);
             u->thread_info.in_null_mode = FALSE;
         }
 

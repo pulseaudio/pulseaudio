@@ -74,7 +74,10 @@ int pa_rtpoll_run(pa_rtpoll *f, pa_bool_t wait);
 
 void pa_rtpoll_set_timer_absolute(pa_rtpoll *p, pa_usec_t usec);
 void pa_rtpoll_set_timer_relative(pa_rtpoll *p, pa_usec_t usec);
-void pa_rtpoll_set_timer_disabled(pa_rtpoll *p);
+void pa_rtpoll_disable_timer(pa_rtpoll *p);
+
+void pa_rtpoll_set_userdata(pa_rtpoll *i, void *userdata);
+void* pa_rtpoll_get_userdata(pa_rtpoll *i);
 
 /* A new fd wakeup item for pa_rtpoll */
 pa_rtpoll_item *pa_rtpoll_item_new(pa_rtpoll *p, pa_rtpoll_priority_t prio, unsigned n_fds);
@@ -84,6 +87,8 @@ void pa_rtpoll_item_free(pa_rtpoll_item *i);
  * pa_rtpoll_run() is called. Hence: call this immediately before
  * using the pointer and don't save the result anywhere */
 struct pollfd *pa_rtpoll_item_get_pollfd(pa_rtpoll_item *i, unsigned *n_fds);
+
+void pa_rtpoll_item_set_n_fds(pa_rtpoll_item *i, unsigned n_fds);
 
 /* Set the callback that shall be called when there's time to do some work: If the
  * callback returns a value > 0, the poll is skipped and the next
@@ -102,6 +107,12 @@ void pa_rtpoll_item_set_after_callback(pa_rtpoll_item *i, void (*after_cb)(pa_rt
 
 void pa_rtpoll_item_set_userdata(pa_rtpoll_item *i, void *userdata);
 void* pa_rtpoll_item_get_userdata(pa_rtpoll_item *i);
+
+void pa_rtpoll_item_set_timer_absolute(pa_rtpoll_item *i, pa_usec_t usec);
+void pa_rtpoll_item_set_timer_relative(pa_rtpoll_item *i, pa_usec_t usec);
+void pa_rtpoll_item_disable_timer(pa_rtpoll_item *i);
+
+pa_rtpoll *pa_rtpoll_item_rtpoll(pa_rtpoll_item *i);
 
 pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_fdsem *s);
 pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq_read(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_asyncmsgq *q);

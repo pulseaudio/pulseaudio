@@ -2631,3 +2631,24 @@ char *pa_realpath(const char *path) {
 
     return t;
 }
+
+pa_bool_t pa_linux_newer_than(unsigned major, unsigned minor, unsigned micro) {
+
+#ifdef __linux__
+    unsigned _major, _minor, _micro;
+    struct utsname u;
+
+    pa_assert_se(uname(&u) == 0);
+
+    if (sscanf(u.release, "%u.%u.%u", &_major, &_minor, &_micro) != 3)
+        return FALSE;
+
+    return
+        (_major > major) ||
+        (_major == major && _minor > minor) ||
+        (_major == major && _minor == minor && _micro > micro);
+
+#endif
+
+    return FALSE;
+}

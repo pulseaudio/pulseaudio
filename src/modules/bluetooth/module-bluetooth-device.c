@@ -1161,7 +1161,7 @@ static void thread_func(void *userdata) {
         }
 
         if (disable_timer)
-            pa_rtpoll_set_timer_disabled(u->rtpoll);
+            pa_rtpoll_disable_timer(u->rtpoll);
 
         /* Hmm, nothing to do. Let's sleep */
         if (pollfd)

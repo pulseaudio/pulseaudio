@@ -223,4 +223,6 @@ char *pa_unescape(char *p);
 
 char *pa_realpath(const char *path);
 
+pa_bool_t pa_linux_newer_than(unsigned major, unsigned minor, unsigned micro);
+
 #endif
