@@ -452,7 +452,8 @@ static void device_added_cb(LibHalContext *context, const char *udi) {
 
 finish:
     if (dbus_error_is_set(&error)) {
-        pa_log_error("D-Bus error while parsing HAL data: %s: %s", error.name, error.message);
+        if (!dbus_error_has_name(&error, "org.freedesktop.Hal.NoSuchProperty"))
+            pa_log_error("D-Bus error while parsing HAL data: %s: %s", error.name, error.message);
         dbus_error_free(&error);
     }
 }
