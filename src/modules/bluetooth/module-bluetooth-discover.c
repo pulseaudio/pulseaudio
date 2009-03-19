@@ -75,7 +75,7 @@ static void load_module_for_device(struct userdata *u, pa_bluetooth_device *d, p
 
             /* Oh, awesome, a new device has shown up and been connected! */
 
-            args = pa_sprintf_malloc("address=\"%s\" path=\"%s\"", d->address, d->path);
+            args = pa_sprintf_malloc("address=\"%s\" path=\"%s\" profile=\"%s\"", d->address, d->path, d->headset_connected ? "hsp" : "a2dp");
 
             if (pa_modargs_get_value(u->modargs, "sco_sink", NULL) &&
                 pa_modargs_get_value(u->modargs, "sco_source", NULL)) {
