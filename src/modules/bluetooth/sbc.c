@@ -1044,8 +1044,10 @@ int sbc_decode(sbc_t *sbc, void *input, int input_len, void *output,
 	return framelen;
 }
 
-int sbc_encode(sbc_t *sbc, void *input, int input_len, void *output,
-		int output_len, int *written)
+ssize_t sbc_encode(sbc_t *sbc,
+               const void *input, size_t input_len,
+               void *output, size_t output_len,
+               size_t *written)
 {
 	struct sbc_priv *priv;
 	int framelen, samples;
@@ -1133,9 +1135,9 @@ void sbc_finish(sbc_t *sbc)
 	memset(sbc, 0, sizeof(sbc_t));
 }
 
-int sbc_get_frame_length(sbc_t *sbc)
+size_t sbc_get_frame_length(sbc_t *sbc)
 {
-	int ret;
+	size_t ret;
 	uint8_t subbands, channels, blocks, joint;
 	struct sbc_priv *priv;
 
@@ -1164,7 +1166,7 @@ int sbc_get_frame_length(sbc_t *sbc)
 	return ret;
 }
 
-int sbc_get_frame_duration(sbc_t *sbc)
+unsigned sbc_get_frame_duration(sbc_t *sbc)
 {
 	uint8_t subbands, blocks;
 	uint16_t frequency;
@@ -1202,7 +1204,7 @@ int sbc_get_frame_duration(sbc_t *sbc)
 	return (1000000 * blocks * subbands) / frequency;
 }
 
-uint16_t sbc_get_codesize(sbc_t *sbc)
+size_t sbc_get_codesize(sbc_t *sbc)
 {
 	uint16_t subbands, channels, blocks;
 	struct sbc_priv *priv;

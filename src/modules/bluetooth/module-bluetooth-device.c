@@ -949,7 +949,7 @@ static int a2dp_process_render(struct userdata *u) {
     void *d;
     const void *p;
     unsigned frame_count;
-    int written;
+    size_t written;
     uint64_t writing_at;
 
     pa_assert(u);
@@ -975,14 +975,14 @@ static int a2dp_process_render(struct userdata *u) {
     writing_at = u->write_index;
 
     do {
-        int encoded;
+        ssize_t encoded;
 
         if (!u->write_memchunk.memblock)
             pa_sink_render_full(u->sink, u->block_size, &u->write_memchunk);
 
         p = (const uint8_t*) pa_memblock_acquire(u->write_memchunk.memblock) + u->write_memchunk.index;
         encoded = sbc_encode(&a2dp->sbc,
-                             (void*) p, u->write_memchunk.length,
+                             p, u->write_memchunk.length,
                              d, left,
                              &written);
 
@@ -997,10 +997,11 @@ static int a2dp_process_render(struct userdata *u) {
             return -1;
         }
 
-        pa_assert(written >= 0);
-
         pa_assert((size_t) encoded <= u->write_memchunk.length);
+        pa_assert((size_t) encoded == sbc_get_codesize(&a2dp->sbc));
+
         pa_assert((size_t) written <= left);
+        pa_assert((size_t) written == sbc_get_frame_length(&a2dp->sbc));
 
 /*         pa_log_debug("SBC: encoded: %d; written: %d", encoded, written); */
 
@@ -1019,7 +1020,7 @@ static int a2dp_process_render(struct userdata *u) {
 
         frame_count++;
 
-    } while ((uint8_t*) d - (uint8_t*) a2dp->buffer + written < (ptrdiff_t) u->link_mtu);
+    } while (((uint8_t*) d - ((uint8_t*) a2dp->buffer + sbc_get_frame_length(&a2dp->sbc))) < (ptrdiff_t) u->link_mtu);
 
     /* write it to the fifo */
     memset(a2dp->buffer, 0, sizeof(*header) + sizeof(*payload));
