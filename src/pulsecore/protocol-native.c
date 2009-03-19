@@ -775,7 +775,7 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
             if (s->connection->version >= 13) {
                 pa_tagstruct *t;
 
-                /* Notify the user we're overflowed*/
+                /* Notify the user we started playback */
                 t = pa_tagstruct_new(NULL, 0);
                 pa_tagstruct_putu32(t, PA_COMMAND_STARTED);
                 pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
