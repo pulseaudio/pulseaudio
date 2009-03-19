@@ -114,6 +114,8 @@ void pa_bluetooth_device_free(pa_bluetooth_device *d) {
 static pa_bool_t device_is_loaded(pa_bluetooth_device *d) {
     pa_assert(d);
 
+    /* FIXME: e83621724d7939b97b4f01f0d7e965d61ef8e55e, f1daa282f030e4e2381341e0f65faca47c4b891b is borked, probably needs to be reversed */
+
     return d->device_info_valid && (d->audio_sink_info_valid || d->headset_info_valid);
 }
 
@@ -122,6 +124,8 @@ static pa_bool_t device_is_audio(pa_bluetooth_device *d) {
 
     pa_assert(d->device_info_valid);
     pa_assert(d->audio_sink_info_valid || d->headset_info_valid);
+
+    /* FIXME: e83621724d7939b97b4f01f0d7e965d61ef8e55e, f1daa282f030e4e2381341e0f65faca47c4b891b is borked, probably needs to be reversed */
 
     return d->device_info_valid > 0 &&
         (d->audio_sink_info_valid > 0 || d->headset_info_valid > 0);
