@@ -653,10 +653,12 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             } else if (dbus_message_has_interface(m, "org.bluez.Headset")) {
                 if (parse_audio_property(y, &d->headset_connected, &arg_i) < 0)
                     goto fail;
+		d->headset_info_valid = 1;
 
             }  else if (dbus_message_has_interface(m, "org.bluez.AudioSink")) {
                 if (parse_audio_property(y, &d->audio_sink_connected, &arg_i) < 0)
                     goto fail;
+		d->audio_sink_info_valid = 1;
             }
 
             pa_assert_se(y->mode == MODE_DISCOVER);
