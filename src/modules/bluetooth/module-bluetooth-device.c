@@ -75,6 +75,10 @@ PA_MODULE_USAGE(
         "sco_sink=<SCO over PCM sink name> "
         "sco_source=<SCO over PCM source name>");
 
+/* TODO: not close fd when entering suspend mode in a2dp */
+
+/* TODO: BT_PCM_FLAG_NREC */
+
 static const char* const valid_modargs[] = {
     "name",
     "card_name",
