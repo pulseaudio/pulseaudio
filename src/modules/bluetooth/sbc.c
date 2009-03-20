@@ -973,13 +973,15 @@ int sbc_init(sbc_t *sbc, unsigned long flags)
 	return 0;
 }
 
-int sbc_parse(sbc_t *sbc, void *input, int input_len)
+ssize_t sbc_parse(sbc_t *sbc, const void *input, size_t input_len)
 {
 	return sbc_decode(sbc, input, input_len, NULL, 0, NULL);
 }
 
-int sbc_decode(sbc_t *sbc, void *input, int input_len, void *output,
-		int output_len, int *written)
+ssize_t sbc_decode(sbc_t *sbc,
+               const void *input, size_t input_len,
+               void *output, size_t output_len,
+               size_t *written)
 {
 	struct sbc_priv *priv;
 	char *ptr;
@@ -1020,7 +1022,7 @@ int sbc_decode(sbc_t *sbc, void *input, int input_len, void *output,
 
 	ptr = output;
 
-	if (output_len < samples * priv->frame.channels * 2)
+	if (output_len < (size_t) (samples * priv->frame.channels * 2))
 		samples = output_len / (priv->frame.channels * 2);
 
 	for (i = 0; i < samples; i++) {
