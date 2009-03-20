@@ -924,6 +924,28 @@ const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i) {
 }
 
 /* Called from main context */
+pa_cvolume *pa_sink_input_get_relative_volume(pa_sink_input *i, pa_cvolume *v) {
+    pa_sink_input_assert_ref(i);
+    pa_assert(v);
+    pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
+
+    *v = i->virtual_volume;
+
+    /* This always returns a relative volume, even in flat volume mode */
+
+    if (i->sink->flags & PA_SINK_FLAT_VOLUME) {
+        pa_cvolume sv;
+
+        sv = *pa_sink_get_volume(i->sink, FALSE);
+
+        pa_sw_cvolume_divide(v, v,
+                             pa_cvolume_remap(&sv, &i->sink->channel_map, &i->channel_map));
+    }
+
+    return v;
+}
+
+/* Called from main context */
 void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute, pa_bool_t save) {
     pa_assert(i);
     pa_sink_input_assert_ref(i);
