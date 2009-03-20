@@ -114,18 +114,18 @@ void pa_bluetooth_device_free(pa_bluetooth_device *d) {
 static pa_bool_t device_is_loaded(pa_bluetooth_device *d) {
     pa_assert(d);
 
-    /* FIXME: e83621724d7939b97b4f01f0d7e965d61ef8e55e, f1daa282f030e4e2381341e0f65faca47c4b891b is borked, probably needs to be reversed */
-
-    return d->device_info_valid && (d->audio_sink_info_valid || d->headset_info_valid);
+    return
+        d->device_info_valid &&
+        d->audio_sink_info_valid &&
+        d->headset_info_valid;
 }
 
 static pa_bool_t device_is_audio(pa_bluetooth_device *d) {
     pa_assert(d);
 
     pa_assert(d->device_info_valid);
-    pa_assert(d->audio_sink_info_valid || d->headset_info_valid);
-
-    /* FIXME: e83621724d7939b97b4f01f0d7e965d61ef8e55e, f1daa282f030e4e2381341e0f65faca47c4b891b is borked, probably needs to be reversed */
+    pa_assert(d->audio_sink_info_valid);
+    pa_assert(d->headset_info_valid);
 
     return d->device_info_valid > 0 &&
         (d->audio_sink_info_valid > 0 || d->headset_info_valid > 0);
@@ -303,7 +303,6 @@ static void run_callback(pa_bluetooth_discovery *y, pa_bluetooth_device *d, pa_b
         return;
 
     y->callback(y->userdata, d, good);
-
 }
 
 static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
@@ -395,7 +394,7 @@ static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_discovery *y, pa_bl
 
     pa_assert_se(dbus_connection_send_with_reply(y->connection, m, &call, -1));
 
-    p = pa_dbus_pending_new(m, call, y, d);
+    p = pa_dbus_pending_new(y->connection, m, call, y, d);
     PA_LLIST_PREPEND(pa_dbus_pending, y->pending, p);
     dbus_pending_call_set_notify(call, func, p, NULL);
 
@@ -656,12 +655,10 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             } else if (dbus_message_has_interface(m, "org.bluez.Headset")) {
                 if (parse_audio_property(y, &d->headset_connected, &arg_i) < 0)
                     goto fail;
-		d->headset_info_valid = 1;
 
             }  else if (dbus_message_has_interface(m, "org.bluez.AudioSink")) {
                 if (parse_audio_property(y, &d->audio_sink_connected, &arg_i) < 0)
                     goto fail;
-		d->audio_sink_info_valid = 1;
             }
 
             pa_assert_se(y->mode == MODE_DISCOVER);

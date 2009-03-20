@@ -46,6 +46,7 @@ typedef struct pa_dbus_pending pa_dbus_pending;
 struct userdata; /* We leave the actual definition to the caller */
 
 struct pa_dbus_pending {
+    DBusConnection *connection;
     DBusMessage *message;
     DBusPendingCall *pending;
 
@@ -55,7 +56,7 @@ struct pa_dbus_pending {
     PA_LLIST_FIELDS(pa_dbus_pending);
 };
 
-pa_dbus_pending *pa_dbus_pending_new(DBusMessage *m, DBusPendingCall *pending, void *context_data, void *call_data);
+pa_dbus_pending *pa_dbus_pending_new(DBusConnection *c, DBusMessage *m, DBusPendingCall *pending, void *context_data, void *call_data);
 void pa_dbus_pending_free(pa_dbus_pending *p);
 
 /* Sync up a list of pa_dbus_pending_call objects */

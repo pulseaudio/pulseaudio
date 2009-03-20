@@ -383,12 +383,19 @@ void pa_dbus_remove_matches(DBusConnection *c, ...) {
     va_end(ap);
 }
 
-pa_dbus_pending *pa_dbus_pending_new(DBusMessage *m, DBusPendingCall *pending, void *context_data, void *call_data) {
+pa_dbus_pending *pa_dbus_pending_new(
+        DBusConnection *c,
+        DBusMessage *m,
+        DBusPendingCall *pending,
+        void *context_data,
+        void *call_data) {
+
     pa_dbus_pending *p;
 
     pa_assert(pending);
 
     p = pa_xnew(pa_dbus_pending, 1);
+    p->connection = c;
     p->message = m;
     p->pending = pending;
     p->context_data = context_data;
@@ -402,9 +409,8 @@ pa_dbus_pending *pa_dbus_pending_new(DBusMessage *m, DBusPendingCall *pending, v
 void pa_dbus_pending_free(pa_dbus_pending *p) {
     pa_assert(p);
 
-    if (p->pending) {
+    if (p->pending)
         dbus_pending_call_cancel(p->pending); /* p->pending is freed by cancel() */
-    }
 
     if (p->message)
         dbus_message_unref(p->message);
@@ -415,8 +421,8 @@ void pa_dbus_pending_free(pa_dbus_pending *p) {
 void pa_dbus_sync_pending_list(pa_dbus_pending **p) {
     pa_assert(p);
 
-    while (*p)
-        dbus_pending_call_block((*p)->pending);
+    while (*p && dbus_connection_read_write_dispatch((*p)->connection, -1))
+        ;
 }
 
 void pa_dbus_free_pending_list(pa_dbus_pending **p) {
