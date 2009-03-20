@@ -77,8 +77,6 @@ PA_MODULE_USAGE(
 
 /* TODO: not close fd when entering suspend mode in a2dp */
 
-/* TODO: BT_PCM_FLAG_NREC */
-
 static const char* const valid_modargs[] = {
     "name",
     "card_name",
@@ -1500,10 +1498,7 @@ static int add_source(struct userdata *u) {
 /*     u->source->get_volume = source_get_volume_cb; */
 /*     u->source->set_volume = source_set_volume_cb; */
 
-    p = pa_proplist_new();
-    pa_proplist_sets(p, "bluetooth.nrec", pa_yes_no(u->hsp.pcm_capabilities.flags & BT_PCM_FLAG_NREC));
-    pa_proplist_update(u->source->proplist, PA_UPDATE_MERGE, p);
-    pa_proplist_free(p);
+    pa_proplist_sets(u->source->proplist, "bluetooth.nrec", (u->hsp.pcm_capabilities.flags & BT_PCM_FLAG_NREC) ? "1" : "0");
 
     return 0;
 }
