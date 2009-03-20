@@ -192,7 +192,7 @@ static struct entry* read_entry(struct userdata *u, const char *name) {
         goto fail;
     }
 
-    if ((e->relative_volume_valid || e->absolute_volume_valid) && !(pa_channel_map_valid(&e->channel_map))) {
+    if ((e->relative_volume_valid || e->absolute_volume_valid) && !pa_channel_map_valid(&e->channel_map)) {
         pa_log_warn("Invalid channel map stored in database for stream %s", name);
         goto fail;
     }
@@ -293,16 +293,14 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         entry.channel_map = sink_input->channel_map;
 
+        pa_sink_input_get_relative_volume(sink_input, &entry.relative_volume);
+        entry.relative_volume_valid = sink_input->save_volume;
+
         if (sink_input->sink->flags & PA_SINK_FLAT_VOLUME) {
             entry.absolute_volume = *pa_sink_input_get_volume(sink_input);
             entry.absolute_volume_valid = sink_input->save_volume;
-
-            pa_sw_cvolume_divide(&entry.relative_volume, &entry.absolute_volume, pa_sink_get_volume(sink_input->sink, FALSE));
-            entry.relative_volume_valid = sink_input->save_volume;
-        } else {
-            entry.relative_volume = *pa_sink_input_get_volume(sink_input);
-            entry.relative_volume_valid = sink_input->save_volume;
-        }
+        } else
+            entry.absolute_volume_valid = FALSE;
 
         entry.muted = pa_sink_input_get_mute(sink_input);
         entry.muted_valid = sink_input->save_muted;
@@ -528,11 +526,11 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
         if (!(n = get_name(si->proplist, "sink-input")))
             continue;
 
-        if (strcmp(name, n)) {
+        if (!pa_streq(name, n)) {
             pa_xfree(n);
             continue;
         }
-	pa_xfree(n);
+        pa_xfree(n);
 
         if (u->restore_volume) {
             pa_cvolume v;
@@ -578,11 +576,11 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
         if (!(n = get_name(so->proplist, "source-output")))
             continue;
 
-        if (strcmp(name, n)) {
+        if (!pa_streq(name, n)) {
             pa_xfree(n);
             continue;
         }
-	pa_xfree(n);
+        pa_xfree(n);
 
         if (u->restore_device &&
             e->device_valid &&
