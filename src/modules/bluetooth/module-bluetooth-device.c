@@ -953,7 +953,7 @@ static int hsp_process_push(struct userdata *u) {
             break;
         }
 
-        pa_assert((size_t) l <= memchunk.length);
+        pa_assert((size_t) l <= pa_memblock_get_length(memchunk.memblock));
 
         memchunk.length = (size_t) l;
         u->read_index += (uint64_t) l;
