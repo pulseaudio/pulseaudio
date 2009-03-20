@@ -351,7 +351,8 @@ int pa__init(pa_module *m) {
 
     init_profile(u);
 
-    pa_reserve_wrapper_unref(reserve);
+    if (reserve)
+        pa_reserve_wrapper_unref(reserve);
 
     return 0;
 
