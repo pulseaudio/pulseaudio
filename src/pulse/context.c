@@ -102,6 +102,7 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_CLIENT_EVENT] = pa_command_client_event
 };
 static void context_free(pa_context *c);
+static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, void *userdata);
 
 pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
     return pa_context_new_with_proplist(mainloop, name, NULL);
@@ -141,6 +142,8 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     if (name)
         pa_proplist_sets(c->proplist, PA_PROP_APPLICATION_NAME, name);
 
+    c->no_fail = FALSE;
+    c->system_bus = c->session_bus = NULL;
     c->mainloop = mainloop;
     c->client = NULL;
     c->pstream = NULL;
@@ -234,6 +237,16 @@ static void context_free(pa_context *c) {
     pa_assert(c);
 
     context_unlink(c);
+
+    if (c->system_bus) {
+        dbus_connection_remove_filter(pa_dbus_wrap_connection_get(c->system_bus), filter_cb, c);
+        pa_dbus_wrap_connection_free(c->system_bus);
+    }
+
+    if (c->session_bus) {
+        dbus_connection_remove_filter(pa_dbus_wrap_connection_get(c->session_bus), filter_cb, c);
+        pa_dbus_wrap_connection_free(c->session_bus);
+    }
 
     if (c->record_streams)
         pa_dynarray_free(c->record_streams, NULL, NULL);
@@ -726,6 +739,32 @@ fail:
 
 static void on_connection(pa_socket_client *client, pa_iochannel*io, void *userdata);
 
+static void track_pulseaudio_on_dbus(pa_context *c, DBusBusType type, pa_dbus_wrap_connection **conn) {
+    DBusError error;
+
+    pa_assert(c);
+    pa_assert(conn);
+
+    dbus_error_init(&error);
+    if (!(*conn = pa_dbus_wrap_connection_new(c->mainloop, type, &error)) || dbus_error_is_set(&error)) {
+        pa_log_warn("Unable to contact DBUS: %s: %s", error.name, error.message);
+        goto finish;
+    }
+
+    if (!dbus_connection_add_filter(pa_dbus_wrap_connection_get(*conn), filter_cb, c, NULL)) {
+        pa_log_warn("Failed to add filter function");
+        goto finish;
+    }
+
+    if (pa_dbus_add_matches(
+                pa_dbus_wrap_connection_get(*conn), &error,
+                "type='signal',sender='" DBUS_SERVICE_DBUS "',interface='" DBUS_INTERFACE_DBUS "',member='NameOwnerChanged',arg0='org.pulseaudio',arg1=''", NULL) < 0)
+        pa_log_warn("Unable to track org.pulseaudio: %s: %s", error.name, error.message);
+
+ finish:
+    dbus_error_free(&error);
+}
+
 static int try_next_connection(pa_context *c) {
     char *u = NULL;
     int r = -1;
@@ -758,7 +797,14 @@ static int try_next_connection(pa_context *c) {
             }
 #endif
 
-            pa_context_fail(c, PA_ERR_CONNECTIONREFUSED);
+            if (c->no_fail) {
+                if (!c->system_bus)
+                    track_pulseaudio_on_dbus(c, DBUS_BUS_SYSTEM, &c->system_bus);
+                if (!c->session_bus)
+                    track_pulseaudio_on_dbus(c, DBUS_BUS_SESSION, &c->session_bus);
+            } else
+                pa_context_fail(c, PA_ERR_CONNECTIONREFUSED);
+
             goto finish;
         }
 
@@ -815,6 +861,34 @@ finish:
     pa_context_unref(c);
 }
 
+static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, void *userdata) {
+    pa_context *c = userdata;
+    pa_bool_t is_session;
+
+    pa_assert(bus);
+    pa_assert(message);
+    pa_assert(c);
+
+    if (c->state != PA_CONTEXT_CONNECTING)
+        goto finish;
+
+    is_session = bus == pa_dbus_wrap_connection_get(c->session_bus);
+    pa_log_debug("Rock!! PulseAudio is baack on %s bus", is_session ? "session" : "system");
+
+    if (is_session) {
+        /* The user instance via PF_LOCAL */
+        c->server_list = prepend_per_user(c->server_list);
+    } else {
+        /* The system wide instance via PF_LOCAL */
+        c->server_list = pa_strlist_prepend(c->server_list, PA_SYSTEM_RUNTIME_PATH PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET);
+    }
+
+    try_next_connection(c);
+
+finish:
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+}
+
 int pa_context_connect(
         pa_context *c,
         const char *server,
@@ -828,7 +902,7 @@ int pa_context_connect(
 
     PA_CHECK_VALIDITY(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY(c, c->state == PA_CONTEXT_UNCONNECTED, PA_ERR_BADSTATE);
-    PA_CHECK_VALIDITY(c, !(flags & ~PA_CONTEXT_NOAUTOSPAWN), PA_ERR_INVALID);
+    PA_CHECK_VALIDITY(c, !(flags & ~(PA_CONTEXT_NOAUTOSPAWN|PA_CONTEXT_NOFAIL)), PA_ERR_INVALID);
     PA_CHECK_VALIDITY(c, !server || *server, PA_ERR_INVALID);
 
     if (!server)
@@ -836,6 +910,7 @@ int pa_context_connect(
 
     pa_context_ref(c);
 
+    c->no_fail = flags & PA_CONTEXT_NOFAIL;
     pa_assert(!c->server_list);
 
     if (server) {
