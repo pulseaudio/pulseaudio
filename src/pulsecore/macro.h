@@ -164,8 +164,8 @@ typedef int pa_bool_t;
 
 #define pa_return_null_if_fail(expr) pa_return_val_if_fail(expr, NULL)
 
-/* An assert which guarantees side effects of x, i.e. is never
- * optimized away */
+/* pa_assert_se() is an assert which guarantees side effects of x,
+ * i.e. is never optimized away, regardless of NDEBUG or FASTPATH. */
 #define pa_assert_se(expr)                                              \
     do {                                                                \
         if (PA_UNLIKELY(!(expr))) {                                     \
@@ -174,11 +174,23 @@ typedef int pa_bool_t;
         }                                                               \
     } while (FALSE)
 
-/* An assert that may be optimized away by defining NDEBUG */
+/* Does exactly nothing */
+#define pa_nop() do {} while (FALSE)
+
+/* pa_assert() is an assert that may be optimized away by defining
+ * NDEBUG. pa_assert_fp() is an assert that may be optimized away by
+ * defining FASTPATH. It is supposed to be used in inner loops. It's
+ * there for extra paranoia checking and should probably be removed in
+ * production builds. */
 #ifdef NDEBUG
-#define pa_assert(expr) do {} while (FALSE)
+#define pa_assert(expr) pa_nop()
+#define pa_assert_fp(expr) pa_nop()
+#elif defined (FASTPATH)
+#define pa_assert(expr) pa_assert_se(expr)
+#define pa_assert_fp(expr) pa_nop()
 #else
 #define pa_assert(expr) pa_assert_se(expr)
+#define pa_assert_fp(expr) pa_assert_se(expr)
 #endif
 
 #define pa_assert_not_reached()                                         \

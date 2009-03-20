@@ -851,6 +851,14 @@ int main(int argc, char *argv[]) {
     pa_log_debug(_("Optimized build: no"));
 #endif
 
+#ifdef NDEBUG
+    pa_log_debug(_("NDEBUG defined, all asserts disabled."));
+#elif defined(FASTPATH)
+    pa_log_debug(_("FASTPATH defined, only fast path asserts disabled."));
+#else
+    pa_log_debug(_("All asserts enabled."));
+#endif
+
     if (!(s = pa_machine_id())) {
         pa_log(_("Failed to get machine ID"));
         goto finish;
