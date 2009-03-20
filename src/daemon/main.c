@@ -87,6 +87,9 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/once.h>
 #include <pulsecore/shm.h>
+#ifdef HAVE_DBUS
+#include <pulsecore/dbus-shared.h>
+#endif
 
 #include "cmdline.h"
 #include "cpulimit.h"
@@ -327,6 +330,31 @@ static void set_all_rlimits(const pa_daemon_conf *conf) {
 #ifdef RLIMIT_RTTIME
     set_one_rlimit(&conf->rlimit_rttime, RLIMIT_RTTIME, "RLIMIT_RTTIME");
 #endif
+}
+#endif
+
+#ifdef HAVE_DBUS
+static void register_org_pulseaudio(pa_core *c)
+{
+    DBusError error;
+    pa_dbus_connection *conn;
+
+    dbus_error_init(&error);
+    if (!(conn = pa_dbus_bus_get(c, pa_in_system_mode() ? DBUS_BUS_SYSTEM : DBUS_BUS_SESSION, &error)) || dbus_error_is_set(&error)) {
+        pa_log_warn("Unable to contact DBUS: %s: %s", error.name, error.message);
+        goto finish_dbus;
+    }
+
+    if (dbus_bus_request_name (pa_dbus_connection_get(conn), "org.pulseaudio", 0, &error) == DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER)
+        pa_log_debug("Got org.pulseaudio!");
+    else if (dbus_error_is_set(&error))
+        pa_log_warn("Unable to get org.pulseaudio: %s: %s", error.name, error.message);
+
+finish_dbus:
+    if (conn)
+        pa_dbus_connection_unref(conn);
+
+    dbus_error_free(&error);
 }
 #endif
 
@@ -995,6 +1023,10 @@ int main(int argc, char *argv[]) {
         pa_close(daemon_pipe[1]);
         daemon_pipe[1] = -1;
     }
+#endif
+
+#ifdef HAVE_DBUS
+    register_org_pulseaudio(c);
 #endif
 
     pa_log_info(_("Daemon startup complete."));
