@@ -132,6 +132,9 @@ struct userdata {
     pa_module *module;
 
     char *address;
+    char *path;
+
+    pa_dbus_connection *connection;
 
     pa_card *card;
     pa_sink *sink;
@@ -158,7 +161,6 @@ struct userdata {
 
     struct a2dp_info a2dp;
     struct hsp_info hsp;
-    pa_dbus_connection *connection;
 
     enum profile profile;
 
@@ -1247,145 +1249,100 @@ finish:
     pa_log_debug("IO thread shutting down");
 }
 
-/* static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *msg, void *userdata) { */
-/*     DBusMessageIter arg_i; */
-/*     DBusError err; */
-/*     const char *value; */
-/*     struct userdata *u; */
+static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *userdata) {
+    DBusError err;
+    struct userdata *u;
 
-/*     pa_assert(bus); */
-/*     pa_assert(msg); */
-/*     pa_assert(userdata); */
-/*     u = userdata; */
+    pa_assert(bus);
+    pa_assert(m);
+    pa_assert_se(u = userdata);
 
-/*     pa_log_debug("dbus: interface=%s, path=%s, member=%s\n", */
-/*                  dbus_message_get_interface(msg), */
-/*                  dbus_message_get_path(msg), */
-/*                  dbus_message_get_member(msg)); */
+    dbus_error_init(&err);
 
-/*     dbus_error_init(&err); */
+    pa_log_debug("dbus: interface=%s, path=%s, member=%s\n",
+                 dbus_message_get_interface(m),
+                 dbus_message_get_path(m),
+                 dbus_message_get_member(m));
 
-/*    if (!dbus_message_has_path(msg, u->path)) */
-/*        goto done; */
+   if (!dbus_message_has_path(m, u->path))
+       goto fail;
 
-/*     if (dbus_message_is_signal(msg, "org.bluez.Headset", "PropertyChanged") || */
-/*         dbus_message_is_signal(msg, "org.bluez.AudioSink", "PropertyChanged")) { */
+    if (dbus_message_is_signal(m, "org.bluez.Headset", "SpeakerGainChanged") ||
+        dbus_message_is_signal(m, "org.bluez.Headset", "MicrophoneGainChanged")) {
 
-/*         struct device *d; */
-/*         const char *profile; */
-/*         DBusMessageIter variant_i; */
-/*         dbus_uint16_t gain; */
+        dbus_uint16_t gain;
+        pa_cvolume v;
 
-/*         if (!dbus_message_iter_init(msg, &arg_i)) { */
-/*             pa_log("dbus: message has no parameters"); */
-/*             goto done; */
-/*         } */
+        if (!dbus_message_get_args(m, &err, DBUS_TYPE_UINT16, &gain, DBUS_TYPE_INVALID) || gain > 15) {
+            pa_log("Failed to parse org.bluez.Headset.{Speaker|Microphone}GainChanged: %s", err.message);
+            goto fail;
+        }
 
-/*         if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_STRING) { */
-/*             pa_log("Property name not a string."); */
-/*             goto done; */
-/*         } */
+        if (u->profile == PROFILE_HSP) {
+            if (u->sink && dbus_message_is_signal(m, "org.bluez.Headset", "SpeakerGainChanged")) {
 
-/*         dbus_message_iter_get_basic(&arg_i, &value); */
+                pa_cvolume_set(&v, u->sink->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
+                pa_sink_volume_changed(u->sink, &v);
 
-/*         if (!dbus_message_iter_next(&arg_i)) { */
-/*             pa_log("Property value missing"); */
-/*             goto done; */
-/*         } */
+            } else if (u->source && dbus_message_is_signal(m, "org.bluez.Headset", "MicrophoneGainChanged")) {
 
-/*         if (dbus_message_iter_get_arg_type(&arg_i) != DBUS_TYPE_VARIANT) { */
-/*             pa_log("Property value not a variant."); */
-/*             goto done; */
-/*         } */
+                pa_cvolume_set(&v, u->sink->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
+                pa_source_volume_changed(u->source, &v);
+            }
+        }
+    }
 
-/*         dbus_message_iter_recurse(&arg_i, &variant_i); */
+fail:
+    dbus_error_free(&err);
 
-/*         if (dbus_message_iter_get_arg_type(&variant_i) != DBUS_TYPE_UINT16) { */
-/*             dbus_message_iter_get_basic(&variant_i, &gain); */
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+}
 
-/*             if (pa_streq(value, "SpeakerGain")) { */
-/*                 pa_log("spk gain: %d", gain); */
-/*                 pa_cvolume_set(&u->sink->virtual_volume, 1, (pa_volume_t) (gain * PA_VOLUME_NORM / 15)); */
-/*                 pa_subscription_post(u->sink->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, u->sink->index); */
-/*             } else { */
-/*                 pa_log("mic gain: %d", gain); */
-/*                 if (!u->source) */
-/*                     goto done; */
+static void sink_set_volume_cb(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    DBusMessage *m;
+    dbus_uint16_t gain;
 
-/*                 pa_cvolume_set(&u->source->virtual_volume, 1, (pa_volume_t) (gain * PA_VOLUME_NORM / 15)); */
-/*                 pa_subscription_post(u->source->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, u->source->index); */
-/*             } */
-/*         } */
-/*     } */
+    pa_assert(u);
 
-/* done: */
-/*     dbus_error_free(&err); */
-/*     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED; */
-/* } */
+    if (u->profile != PROFILE_HSP)
+        return;
 
-/* static int sink_get_volume_cb(pa_sink *s) { */
-/*     struct userdata *u = s->userdata; */
-/*     pa_assert(u); */
+    gain = (pa_cvolume_max(&s->virtual_volume) * 15) / PA_VOLUME_NORM;
 
-/*     /\* refresh? *\/ */
+    if (gain > 15)
+        gain = 15;
 
-/*     return 0; */
-/* } */
+    pa_cvolume_set(&s->virtual_volume, u->sink->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
 
-/* static int source_get_volume_cb(pa_source *s) { */
-/*     struct userdata *u = s->userdata; */
-/*     pa_assert(u); */
+    pa_assert_se(m = dbus_message_new_method_call("org.bluez", u->path, "org.bluez.Headset", "SetSpeakerGain"));
+    pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_UINT16, &gain, DBUS_TYPE_INVALID));
+    pa_assert_se(dbus_connection_send(pa_dbus_connection_get(u->connection), m, NULL));
+    dbus_message_unref(m);
+}
 
-/*     /\* refresh? *\/ */
+static void source_set_volume_cb(pa_source *s) {
+    struct userdata *u = s->userdata;
+    DBusMessage *m;
+    dbus_uint16_t gain;
 
-/*     return 0; */
-/* } */
+    pa_assert(u);
 
-/* static int sink_set_volume_cb(pa_sink *s) { */
-/*     DBusError e; */
-/*     DBusMessage *m, *r; */
-/*     DBusMessageIter it, itvar; */
-/*     dbus_uint16_t vol; */
-/*     const char *spkgain = "SpeakerGain"; */
-/*     struct userdata *u = s->userdata; */
-/*     pa_assert(u); */
+    if (u->profile != PROFILE_HSP)
+        return;
 
-/*     dbus_error_init(&e); */
+    gain = (pa_cvolume_max(&s->virtual_volume) * 15) / PA_VOLUME_NORM;
 
-/*     vol = ((float) pa_cvolume_max(&s->virtual_volume) / PA_VOLUME_NORM) * 15; */
-/*     pa_log_debug("set headset volume: %d", vol); */
+    if (gain > 15)
+        gain = 15;
 
-/*     pa_assert_se(m = dbus_message_new_method_call("org.bluez", u->path, "org.bluez.Headset", "SetProperty")); */
-/*     dbus_message_iter_init_append(m, &it); */
-/*     dbus_message_iter_append_basic(&it, DBUS_TYPE_STRING, &spkgain); */
-/*     dbus_message_iter_open_container(&it, DBUS_TYPE_VARIANT, DBUS_TYPE_UINT16_AS_STRING, &itvar); */
-/*     dbus_message_iter_append_basic(&itvar, DBUS_TYPE_UINT16, &vol); */
-/*     dbus_message_iter_close_container(&it, &itvar); */
+    pa_cvolume_set(&s->virtual_volume, u->source->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
 
-/*     r = dbus_connection_send_with_reply_and_block(pa_dbus_connection_get(u->conn), m, -1, &e); */
-
-/* finish: */
-/*     if (m) */
-/*         dbus_message_unref(m); */
-/*     if (r) */
-/*         dbus_message_unref(r); */
-
-/*     dbus_error_free(&e); */
-
-/*     return 0; */
-/* } */
-
-/* static int source_set_volume_cb(pa_source *s) { */
-/*     dbus_uint16_t vol; */
-/*     struct userdata *u = s->userdata; */
-/*     pa_assert(u); */
-
-/*     vol = ((float)pa_cvolume_max(&s->virtual_volume) / PA_VOLUME_NORM) * 15; */
-
-/*     pa_log_debug("set headset mic volume: %d (not implemented yet)", vol); */
-
-/*     return 0; */
-/* } */
+    pa_assert_se(m = dbus_message_new_method_call("org.bluez", u->path, "org.bluez.Headset", "SetMicrophoneGain"));
+    pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_UINT16, &gain, DBUS_TYPE_INVALID));
+    pa_assert_se(dbus_connection_send(pa_dbus_connection_get(u->connection), m, NULL));
+    dbus_message_unref(m);
+}
 
 static char *get_name(const char *type, pa_modargs *ma, const char *device_id, pa_bool_t *namereg_fail) {
     char *t;
@@ -1504,7 +1461,7 @@ static int add_sink(struct userdata *u) {
         data.name = get_name("sink", u->modargs, u->address, &b);
         data.namereg_fail = b;
 
-        u->sink = pa_sink_new(u->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
+        u->sink = pa_sink_new(u->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY | (u->profile == PROFILE_HSP ? PA_SINK_HW_VOLUME_CTRL : 0));
         pa_sink_new_data_done(&data);
 
         if (!u->sink) {
@@ -1516,8 +1473,10 @@ static int add_sink(struct userdata *u) {
         u->sink->parent.process_msg = sink_process_msg;
     }
 
-/*     u->sink->get_volume = sink_get_volume_cb; */
-/*     u->sink->set_volume = sink_set_volume_cb; */
+    if (u->profile == PROFILE_HSP) {
+        u->sink->set_volume = sink_set_volume_cb;
+        u->sink->n_volume_steps = 16;
+    }
 
     return 0;
 }
@@ -1548,7 +1507,7 @@ static int add_source(struct userdata *u) {
         data.name = get_name("source", u->modargs, u->address, &b);
         data.namereg_fail = b;
 
-        u->source = pa_source_new(u->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
+        u->source = pa_source_new(u->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY | (u->profile == PROFILE_HSP ? PA_SOURCE_HW_VOLUME_CTRL : 0));
         pa_source_new_data_done(&data);
 
         if (!u->source) {
@@ -1560,10 +1519,11 @@ static int add_source(struct userdata *u) {
         u->source->parent.process_msg = source_process_msg;
     }
 
-/*     u->source->get_volume = source_get_volume_cb; */
-/*     u->source->set_volume = source_set_volume_cb; */
-
-    pa_proplist_sets(u->source->proplist, "bluetooth.nrec", (u->hsp.pcm_capabilities.flags & BT_PCM_FLAG_NREC) ? "1" : "0");
+    if (u->profile == PROFILE_HSP) {
+        pa_proplist_sets(u->source->proplist, "bluetooth.nrec", (u->hsp.pcm_capabilities.flags & BT_PCM_FLAG_NREC) ? "1" : "0");
+        u->source->set_volume = source_set_volume_cb;
+        u->source->n_volume_steps = 16;
+    }
 
     return 0;
 }
@@ -1726,12 +1686,18 @@ static int start_thread(struct userdata *u) {
         pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
         pa_sink_set_rtpoll(u->sink, u->rtpoll);
         pa_sink_put(u->sink);
+
+        if (u->sink->set_volume)
+            u->sink->set_volume(u->sink);
     }
 
     if (u->source) {
         pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
         pa_source_set_rtpoll(u->source, u->rtpoll);
         pa_source_put(u->source);
+
+        if (u->source->set_volume)
+            u->source->set_volume(u->source);
     }
 
     return 0;
@@ -1912,10 +1878,28 @@ static const pa_bluetooth_device* find_device(struct userdata *u, pa_bluetooth_d
         }
     }
 
-    if (d)
+    if (d) {
         u->address = pa_xstrdup(d->address);
+        u->path = pa_xstrdup(d->path);
+    }
 
     return d;
+}
+
+static int setup_dbus(struct userdata *u) {
+    DBusError err;
+
+    dbus_error_init(&err);
+
+    u->connection = pa_dbus_bus_get(u->core, DBUS_BUS_SYSTEM, &err);
+
+    if (dbus_error_is_set(&err) || !u->connection) {
+        pa_log("Failed to get D-Bus connection: %s", err.message);
+        dbus_error_free(&err);
+        return -1;
+    }
+
+    return 0;
 }
 
 int pa__init(pa_module* m) {
@@ -1925,8 +1909,12 @@ int pa__init(pa_module* m) {
     const char *address, *path;
     const pa_bluetooth_device *d;
     pa_bluetooth_discovery *y = NULL;
+    DBusError err;
+    char *mike, *speaker;
 
     pa_assert(m);
+
+    dbus_error_init(&err);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log_error("Failed to parse module arguments");
@@ -1974,6 +1962,9 @@ int pa__init(pa_module* m) {
     address = pa_modargs_get_value(ma, "address", NULL);
     path = pa_modargs_get_value(ma, "path", NULL);
 
+    if (setup_dbus(u) < 0)
+        goto fail;
+
     if (!(y = pa_bluetooth_discovery_get(m->core)))
         goto fail;
 
@@ -1991,45 +1982,33 @@ int pa__init(pa_module* m) {
     if (init_bt(u) < 0)
         goto fail;
 
+    if (!dbus_connection_add_filter(pa_dbus_connection_get(u->connection), filter_cb, u, NULL)) {
+        pa_log_error("Failed to add filter function");
+        goto fail;
+    }
+
+    speaker = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='SpeakerGainChanged',path='%s'", u->path);
+    mike = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='MicrophoneGainChanged',path='%s'", u->path);
+
+    if (pa_dbus_add_matches(
+                pa_dbus_connection_get(u->connection), &err,
+                speaker,
+                mike,
+                NULL) < 0) {
+
+        pa_xfree(speaker);
+        pa_xfree(mike);
+
+        pa_log("Failed to add D-Bus matches: %s", err.message);
+        goto fail;
+    }
+
+    pa_xfree(speaker);
+    pa_xfree(mike);
+
     if (u->profile != PROFILE_OFF)
         if (init_profile(u) < 0)
             goto fail;
-
-/*     if (u->path) { */
-/*         DBusError err; */
-/*         dbus_error_init(&err); */
-/*         char *t; */
-
-
-/*         if (!dbus_connection_add_filter(pa_dbus_connection_get(u->conn), filter_cb, u, NULL)) { */
-/*             pa_log_error("Failed to add filter function"); */
-/*             goto fail; */
-/*         } */
-
-/*         if (u->transport == BT_CAPABILITIES_TRANSPORT_SCO || */
-/*             u->transport == BT_CAPABILITIES_TRANSPORT_ANY) { */
-/*             t = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged',path='%s'", u->path); */
-/*             dbus_bus_add_match(pa_dbus_connection_get(u->conn), t, &err); */
-/*             pa_xfree(t); */
-
-/*             if (dbus_error_is_set(&err)) { */
-/*                 pa_log_error("Unable to subscribe to org.bluez.Headset signals: %s: %s", err.name, err.message); */
-/*                 goto fail; */
-/*             } */
-/*         } */
-
-/*         if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP || */
-/*             u->transport == BT_CAPABILITIES_TRANSPORT_ANY) { */
-/*             t = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged',path='%s'", u->path); */
-/*             dbus_bus_add_match(pa_dbus_connection_get(u->conn), t, &err); */
-/*             pa_xfree(t); */
-
-/*             if (dbus_error_is_set(&err)) { */
-/*                 pa_log_error("Unable to subscribe to org.bluez.AudioSink signals: %s: %s", err.name, err.message); */
-/*                 goto fail; */
-/*             } */
-/*         } */
-/*     } */
 
     if (u->sink || u->source)
         if (start_thread(u) < 0)
@@ -2043,6 +2022,8 @@ fail:
         pa_bluetooth_discovery_unref(y);
 
     pa__done(m);
+
+    dbus_error_free(&err);
 
     return -1;
 }
@@ -2082,30 +2063,22 @@ void pa__done(pa_module *m) {
     stop_thread(u);
 
     if (u->connection) {
-/*         DBusError error; */
-/*         char *t; */
 
-/*         if (u->transport == BT_CAPABILITIES_TRANSPORT_SCO || */
-/*             u->transport == BT_CAPABILITIES_TRANSPORT_ANY) { */
+        if (u->path) {
+            char *speaker, *mike;
+            speaker = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='SpeakerGainChanged',path='%s'", u->path);
+            mike = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='MicrophoneGainChanged',path='%s'", u->path);
 
-/*             t = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged',path='%s'", u->path); */
-/*             dbus_error_init(&error); */
-/*             dbus_bus_remove_match(pa_dbus_connection_get(u->conn), t, &error); */
-/*             dbus_error_free(&error); */
-/*             pa_xfree(t); */
-/*         } */
+            pa_dbus_remove_matches(pa_dbus_connection_get(u->connection),
+                                   speaker,
+                                   mike,
+                                   NULL);
 
-/*         if (u->transport == BT_CAPABILITIES_TRANSPORT_A2DP || */
-/*             u->transport == BT_CAPABILITIES_TRANSPORT_ANY) { */
+            pa_xfree(speaker);
+            pa_xfree(mike);
+        }
 
-/*             t = pa_sprintf_malloc("type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged',path='%s'", u->path); */
-/*             dbus_error_init(&error); */
-/*             dbus_bus_remove_match(pa_dbus_connection_get(u->conn), t, &error); */
-/*             dbus_error_free(&error); */
-/*             pa_xfree(t); */
-/*         } */
-
-/*         dbus_connection_remove_filter(pa_dbus_connection_get(u->conn), filter_cb, u); */
+        dbus_connection_remove_filter(pa_dbus_connection_get(u->connection), filter_cb, u);
         pa_dbus_connection_unref(u->connection);
     }
 
@@ -2126,6 +2099,7 @@ void pa__done(pa_module *m) {
         pa_modargs_free(u->modargs);
 
     pa_xfree(u->address);
+    pa_xfree(u->path);
 
     pa_xfree(u);
 }
