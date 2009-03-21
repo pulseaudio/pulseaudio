@@ -1135,6 +1135,19 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *s, pa_bool_t force_refresh) {
 }
 
 /* Called from main thread */
+void pa_sink_volume_changed(pa_sink *s, const pa_cvolume *new_volume) {
+    pa_sink_assert_ref(s);
+
+    /* The sink implementor may call this if the volume changed to make sure everyone is notified */
+
+    if (pa_cvolume_equal(&s->virtual_volume, new_volume))
+        return;
+
+    s->virtual_volume = *new_volume;
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+}
+
+/* Called from main thread */
 void pa_sink_set_mute(pa_sink *s, pa_bool_t mute) {
     pa_bool_t old_muted;
 
@@ -1171,6 +1184,19 @@ pa_bool_t pa_sink_get_mute(pa_sink *s, pa_bool_t force_refresh) {
     }
 
     return s->muted;
+}
+
+/* Called from main thread */
+void pa_sink_mute_changed(pa_sink *s, pa_bool_t new_muted) {
+    pa_sink_assert_ref(s);
+
+    /* The sink implementor may call this if the volume changed to make sure everyone is notified */
+
+    if (s->muted == new_muted)
+        return;
+
+    s->muted = new_muted;
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
 /* Called from main thread */

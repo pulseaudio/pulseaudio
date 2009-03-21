@@ -675,6 +675,19 @@ const pa_cvolume *pa_source_get_volume(pa_source *s, pa_bool_t force_refresh) {
 }
 
 /* Called from main thread */
+void pa_source_volume_changed(pa_source *s, const pa_cvolume *new_volume) {
+    pa_source_assert_ref(s);
+
+    /* The source implementor may call this if the volume changed to make sure everyone is notified */
+
+    if (pa_cvolume_equal(&s->virtual_volume, new_volume))
+        return;
+
+    s->virtual_volume = *new_volume;
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+}
+
+/* Called from main thread */
 void pa_source_set_mute(pa_source *s, pa_bool_t mute) {
     pa_bool_t old_muted;
 
@@ -695,7 +708,6 @@ void pa_source_set_mute(pa_source *s, pa_bool_t mute) {
 
 /* Called from main thread */
 pa_bool_t pa_source_get_mute(pa_source *s, pa_bool_t force_refresh) {
-
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
 
@@ -712,6 +724,19 @@ pa_bool_t pa_source_get_mute(pa_source *s, pa_bool_t force_refresh) {
     }
 
     return s->muted;
+}
+
+/* Called from main thread */
+void pa_source_mute_changed(pa_source *s, pa_bool_t new_muted) {
+    pa_source_assert_ref(s);
+
+    /* The source implementor may call this if the mute state changed to make sure everyone is notified */
+
+    if (s->muted == new_muted)
+        return;
+
+    s->muted = new_muted;
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
 /* Called from main thread */
