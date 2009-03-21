@@ -57,19 +57,28 @@ struct userdata {
     pa_module *module;
     pa_modargs *modargs;
     pa_core *core;
-    pa_dbus_connection *connection;
     pa_bluetooth_discovery *discovery;
+    pa_hook_slot *slot;
+    pa_hashmap *hashmap;
 };
 
-static void load_module_for_device(struct userdata *u, pa_bluetooth_device *d, pa_bool_t good) {
+static pa_hook_result_t load_module_for_device(pa_bluetooth_discovery *y, const pa_bluetooth_device *d, struct userdata *u) {
+    uint32_t midx;
+
     pa_assert(u);
     pa_assert(d);
 
-    if (good &&
+
+    if (!(midx = PA_PTR_TO_UINT(pa_hashmap_get(u->hashmap, d->path))))
+        midx = PA_INVALID_INDEX;
+    else
+        midx--;
+
+    if (!d->dead &&
         d->device_connected > 0 &&
         (d->audio_sink_connected > 0 || d->headset_connected > 0)) {
 
-        if (((uint32_t) PA_PTR_TO_UINT(d->data))-1 == PA_INVALID_INDEX) {
+        if (midx == PA_INVALID_INDEX) {
             pa_module *m = NULL;
             char *args;
 
@@ -93,38 +102,25 @@ static void load_module_for_device(struct userdata *u, pa_bluetooth_device *d, p
             pa_xfree(args);
 
             if (m)
-                d->data = PA_UINT_TO_PTR((uint32_t) (m->index+1));
+                pa_hashmap_put(u->hashmap, d->path, PA_UINT_TO_PTR((uint32_t) (m->index+1)));
             else
                 pa_log_debug("Failed to load module for device %s", d->path);
         }
 
     } else {
 
-        if (((uint32_t) PA_PTR_TO_UINT(d->data))-1 != PA_INVALID_INDEX) {
+        if (midx != PA_INVALID_INDEX) {
 
             /* Hmm, disconnection? Then let's unload our module */
 
             pa_log_debug("Unloading module for %s", d->path);
-            pa_module_unload_request_by_index(u->core, (uint32_t) (PA_PTR_TO_UINT(d->data))-1, TRUE);
-            d->data = NULL;
+            pa_module_unload_request_by_index(u->core, midx, TRUE);
+
+            pa_hashmap_remove(u->hashmap, d->path);
         }
     }
-}
 
-static int setup_dbus(struct userdata *u) {
-    DBusError err;
-
-    dbus_error_init(&err);
-
-    u->connection = pa_dbus_bus_get(u->core, DBUS_BUS_SYSTEM, &err);
-
-    if (dbus_error_is_set(&err) || !u->connection) {
-        pa_log("Failed to get D-Bus connection: %s", err.message);
-        dbus_error_free(&err);
-        return -1;
-    }
-
-    return 0;
+    return PA_HOOK_OK;
 }
 
 int pa__init(pa_module* m) {
@@ -149,12 +145,12 @@ int pa__init(pa_module* m) {
     u->core = m->core;
     u->modargs = ma;
     ma = NULL;
+    u->hashmap = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
-    if (setup_dbus(u) < 0)
+    if (!(u->discovery = pa_bluetooth_discovery_get(u->core)))
         goto fail;
 
-    if (!(u->discovery = pa_bluetooth_discovery_new(pa_dbus_connection_get(u->connection), load_module_for_device, u)))
-        goto fail;
+    u->slot = pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery), PA_HOOK_NORMAL, (pa_hook_cb_t) load_module_for_device, u);
 
     if (!async)
         pa_bluetooth_discovery_sync(u->discovery);
@@ -178,11 +174,14 @@ void pa__done(pa_module* m) {
     if (!(u = m->userdata))
         return;
 
-    if (u->discovery)
-        pa_bluetooth_discovery_free(u->discovery);
+    if (u->slot)
+        pa_hook_slot_free(u->slot);
 
-    if (u->connection)
-        pa_dbus_connection_unref(u->connection);
+    if (u->discovery)
+        pa_bluetooth_discovery_unref(u->discovery);
+
+    if (u->hashmap)
+        pa_hashmap_free(u->hashmap, NULL, NULL);
 
     if (u->modargs)
         pa_modargs_free(u->modargs);

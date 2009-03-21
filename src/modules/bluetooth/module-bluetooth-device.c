@@ -122,6 +122,8 @@ struct userdata {
     pa_core *core;
     pa_module *module;
 
+    char *address;
+
     pa_card *card;
     pa_sink *sink;
     pa_source *source;
@@ -152,8 +154,6 @@ struct userdata {
     enum profile profile;
 
     pa_modargs *modargs;
-
-    pa_bluetooth_device *device;
 
     int stream_write_type, stream_read_type;
     int service_write_type, service_read_type;
@@ -331,7 +331,7 @@ static int get_caps(struct userdata *u) {
     msg.getcaps_req.h.name = BT_GET_CAPABILITIES;
     msg.getcaps_req.h.length = sizeof(msg.getcaps_req);
 
-    pa_strlcpy(msg.getcaps_req.device, u->device->address, sizeof(msg.getcaps_req.device));
+    pa_strlcpy(msg.getcaps_req.device, u->address, sizeof(msg.getcaps_req.device));
     if (u->profile == PROFILE_A2DP)
         msg.getcaps_req.transport = BT_CAPABILITIES_TRANSPORT_A2DP;
     else {
@@ -613,7 +613,7 @@ static int set_conf(struct userdata *u) {
     msg.setconf_req.h.name = BT_SET_CONFIGURATION;
     msg.setconf_req.h.length = sizeof(msg.setconf_req);
 
-    pa_strlcpy(msg.setconf_req.device, u->device->address, sizeof(msg.setconf_req.device));
+    pa_strlcpy(msg.setconf_req.device, u->address, sizeof(msg.setconf_req.device));
     msg.setconf_req.access_mode = u->profile == PROFILE_A2DP ? BT_CAPABILITIES_ACCESS_MODE_WRITE : BT_CAPABILITIES_ACCESS_MODE_READWRITE;
 
     msg.setconf_req.codec.transport = u->profile == PROFILE_A2DP ? BT_CAPABILITIES_TRANSPORT_A2DP : BT_CAPABILITIES_TRANSPORT_SCO;
@@ -1482,7 +1482,7 @@ static int add_sink(struct userdata *u) {
         pa_sink_new_data_set_sample_spec(&data, &u->sample_spec);
         pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP ? "a2dp" : "sco");
         data.card = u->card;
-        data.name = get_name("sink", u->modargs, u->device->address, &b);
+        data.name = get_name("sink", u->modargs, u->address, &b);
         data.namereg_fail = b;
 
         u->sink = pa_sink_new(u->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
@@ -1526,7 +1526,7 @@ static int add_source(struct userdata *u) {
         pa_source_new_data_set_sample_spec(&data, &u->sample_spec);
         pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP ? "a2dp" : "sco");
         data.card = u->card;
-        data.name = get_name("source", u->modargs, u->device->address, &b);
+        data.name = get_name("source", u->modargs, u->address, &b);
         data.namereg_fail = b;
 
         u->source = pa_source_new(u->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
@@ -1768,7 +1768,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     return 0;
 }
 
-static int add_card(struct userdata *u, const char * default_profile) {
+static int add_card(struct userdata *u, const char *default_profile, const pa_bluetooth_device *device) {
     pa_card_new_data data;
     pa_bool_t b;
     pa_card_profile *p;
@@ -1780,24 +1780,24 @@ static int add_card(struct userdata *u, const char * default_profile) {
     data.driver = __FILE__;
     data.module = u->module;
 
-    n = pa_bluetooth_cleanup_name(u->device->name);
+    n = pa_bluetooth_cleanup_name(device->name);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, n);
     pa_xfree(n);
-    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device->address);
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, device->address);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "bluez");
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_CLASS, "sound");
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_BUS, "bluetooth");
-    if ((ff = pa_bluetooth_get_form_factor(u->device->class)))
+    if ((ff = pa_bluetooth_get_form_factor(device->class)))
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_FORM_FACTOR, ff);
-    pa_proplist_sets(data.proplist, "bluez.path", u->device->path);
-    pa_proplist_setf(data.proplist, "bluez.class", "0x%06x", (unsigned) u->device->class);
-    pa_proplist_sets(data.proplist, "bluez.name", u->device->name);
-    data.name = get_name("card", u->modargs, u->device->address, &b);
+    pa_proplist_sets(data.proplist, "bluez.path", device->path);
+    pa_proplist_setf(data.proplist, "bluez.class", "0x%06x", (unsigned) device->class);
+    pa_proplist_sets(data.proplist, "bluez.name", device->name);
+    data.name = get_name("card", u->modargs, device->address, &b);
     data.namereg_fail = b;
 
     data.profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
-    if (u->device->audio_sink_info_valid > 0) {
+    if (device->audio_sink_info_valid > 0) {
         p = pa_card_profile_new("a2dp", _("High Fidelity Playback (A2DP)"), sizeof(enum profile));
         p->priority = 10;
         p->n_sinks = 1;
@@ -1811,7 +1811,7 @@ static int add_card(struct userdata *u, const char * default_profile) {
         pa_hashmap_put(data.profiles, p->name, p);
     }
 
-    if (u->device->headset_info_valid > 0) {
+    if (device->headset_info_valid > 0) {
         p = pa_card_profile_new("hsp", _("Telephony Duplex (HSP/HFP)"), sizeof(enum profile));
         p->priority = 20;
         p->n_sinks = 1;
@@ -1856,47 +1856,39 @@ static int add_card(struct userdata *u, const char * default_profile) {
     return 0;
 }
 
-static int setup_dbus(struct userdata *u) {
-    DBusError error;
+static const pa_bluetooth_device* find_device(struct userdata *u, pa_bluetooth_discovery *y, const char *address, const char *path) {
+    const pa_bluetooth_device *d = NULL;
 
-    dbus_error_init(&error);
-
-    u->connection = pa_dbus_bus_get(u->core, DBUS_BUS_SYSTEM, &error);
-    if (dbus_error_is_set(&error) || (!u->connection)) {
-        pa_log("Failed to get D-Bus connection: %s", error.message);
-        dbus_error_free(&error);
-        return -1;
-    }
-
-    return 0;
-}
-
-static int find_device(struct userdata *u, const char *address, const char *path) {
     pa_assert(u);
+    pa_assert(y);
 
     if (!address && !path) {
         pa_log_error("Failed to get device address/path from module arguments.");
-        return -1;
+        return NULL;
     }
 
     if (path) {
-        if (!(u->device = pa_bluetooth_get_device(pa_dbus_connection_get(u->connection), path))) {
+        if (!(d = pa_bluetooth_discovery_get_by_path(y, path))) {
             pa_log_error("%s is not a valid BlueZ audio device.", path);
-            return -1;
+            return NULL;
         }
 
-        if (address && !(pa_streq(u->device->address, address))) {
+        if (address && !(pa_streq(d->address, address))) {
             pa_log_error("Passed path %s and address %s don't match.", path, address);
-            return -1;
+            return NULL;
         }
+
     } else {
-        if (!(u->device = pa_bluetooth_find_device(pa_dbus_connection_get(u->connection), address))) {
+        if (!(d = pa_bluetooth_discovery_get_by_address(y, address))) {
             pa_log_error("%s is not known.", address);
-            return -1;
+            return NULL;
         }
     }
 
-    return 0;
+    if (d)
+        u->address = pa_xstrdup(d->address);
+
+    return d;
 }
 
 int pa__init(pa_module* m) {
@@ -1904,6 +1896,8 @@ int pa__init(pa_module* m) {
     uint32_t channels;
     struct userdata *u;
     const char *address, *path;
+    const pa_bluetooth_device *d;
+    pa_bluetooth_discovery *y = NULL;
 
     pa_assert(m);
 
@@ -1948,20 +1942,21 @@ int pa__init(pa_module* m) {
     u->sample_spec.channels = (uint8_t) channels;
     u->requested_sample_spec = u->sample_spec;
 
-    if (setup_dbus(u) < 0)
-        goto fail;
-
     address = pa_modargs_get_value(ma, "address", NULL);
     path = pa_modargs_get_value(ma, "path", NULL);
 
-    if (find_device(u, address, path) < 0)
+    if (!(y = pa_bluetooth_discovery_get(m->core)))
         goto fail;
 
-    pa_assert(u->device);
+    if (!(d = find_device(u, y, address, path)))
+        goto fail;
 
     /* Add the card structure. This will also initialize the default profile */
-    if (add_card(u, pa_modargs_get_value(ma, "profile", NULL)) < 0)
+    if (add_card(u, pa_modargs_get_value(ma, "profile", NULL), d) < 0)
         goto fail;
+
+    pa_bluetooth_discovery_unref(y);
+    y = NULL;
 
     /* Connect to the BT service and query capabilities */
     if (init_bt(u) < 0)
@@ -2014,7 +2009,12 @@ int pa__init(pa_module* m) {
     return 0;
 
 fail:
+
+    if (y)
+        pa_bluetooth_discovery_unref(y);
+
     pa__done(m);
+
     return -1;
 }
 
@@ -2080,9 +2080,6 @@ void pa__done(pa_module *m) {
 
     shutdown_bt(u);
 
-    if (u->device)
-        pa_bluetooth_device_free(u->device);
-
     if (u->a2dp.buffer)
         pa_xfree(u->a2dp.buffer);
 
@@ -2090,6 +2087,8 @@ void pa__done(pa_module *m) {
 
     if (u->modargs)
         pa_modargs_free(u->modargs);
+
+    pa_xfree(u->address);
 
     pa_xfree(u);
 }

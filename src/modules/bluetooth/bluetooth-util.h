@@ -40,7 +40,7 @@ struct pa_bluetooth_uuid {
 };
 
 struct pa_bluetooth_device {
-    void *data; /* arbitrary information for the one owning the discovery object */
+    pa_bool_t dead;
 
     int device_info_valid;      /* 0: no results yet; 1: good results; -1: bad results ... */
     int audio_sink_info_valid;  /* ... same here ... */
@@ -64,17 +64,18 @@ struct pa_bluetooth_device {
     int headset_connected;
 };
 
-void pa_bluetooth_device_free(pa_bluetooth_device *d);
+pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *core);
+pa_bluetooth_discovery* pa_bluetooth_discovery_ref(pa_bluetooth_discovery *y);
+void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *d);
 
-pa_bluetooth_device* pa_bluetooth_get_device(DBusConnection *c, const char* path);
-pa_bluetooth_device* pa_bluetooth_find_device(DBusConnection *c, const char* address);
-
-typedef void (*pa_bluetooth_device_callback_t)(struct userdata *u, pa_bluetooth_device *d, pa_bool_t good);
-pa_bluetooth_discovery* pa_bluetooth_discovery_new(DBusConnection *c, pa_bluetooth_device_callback_t cb, struct userdata *u);
-void pa_bluetooth_discovery_free(pa_bluetooth_discovery *d);
 void pa_bluetooth_discovery_sync(pa_bluetooth_discovery *d);
 
-const char*pa_bluetooth_get_form_factor(uint32_t class);
+const pa_bluetooth_device* pa_bluetooth_discovery_get_by_path(pa_bluetooth_discovery *d, const char* path);
+const pa_bluetooth_device* pa_bluetooth_discovery_get_by_address(pa_bluetooth_discovery *d, const char* address);
+
+pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *d);
+
+const char* pa_bluetooth_get_form_factor(uint32_t class);
 
 char *pa_bluetooth_cleanup_name(const char *name);
 
