@@ -121,3 +121,9 @@ pa_hook_result_t pa_hook_fire(pa_hook *hook, void *data) {
 
     return result;
 }
+
+pa_bool_t pa_hook_is_firing(pa_hook *hook) {
+    pa_assert(hook);
+
+    return hook->n_firing > 0;
+}

@@ -71,4 +71,6 @@ void pa_hook_slot_free(pa_hook_slot *slot);
 
 pa_hook_result_t pa_hook_fire(pa_hook *hook, void *data);
 
+pa_bool_t pa_hook_is_firing(pa_hook *hook);
+
 #endif
