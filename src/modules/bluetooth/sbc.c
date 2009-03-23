@@ -978,10 +978,8 @@ ssize_t sbc_parse(sbc_t *sbc, const void *input, size_t input_len)
 	return sbc_decode(sbc, input, input_len, NULL, 0, NULL);
 }
 
-ssize_t sbc_decode(sbc_t *sbc,
-               const void *input, size_t input_len,
-               void *output, size_t output_len,
-               size_t *written)
+ssize_t sbc_decode(sbc_t *sbc, const void *input, size_t input_len,
+			void *output, size_t output_len, size_t *written)
 {
 	struct sbc_priv *priv;
 	char *ptr;
@@ -1046,10 +1044,8 @@ ssize_t sbc_decode(sbc_t *sbc,
 	return framelen;
 }
 
-ssize_t sbc_encode(sbc_t *sbc,
-               const void *input, size_t input_len,
-               void *output, size_t output_len,
-               size_t *written)
+ssize_t sbc_encode(sbc_t *sbc, const void *input, size_t input_len,
+			void *output, size_t output_len, size_t *written)
 {
 	struct sbc_priv *priv;
 	int framelen, samples;
