@@ -112,8 +112,11 @@ pa_reserve_wrapper* pa_reserve_wrapper_get(pa_core *c, const char *device_name) 
     pa_assert_se(pa_shared_set(c, r->shared_name, r) >= 0);
 
     if (!(r->connection = pa_dbus_bus_get(c, DBUS_BUS_SESSION, &error)) || dbus_error_is_set(&error)) {
-        pa_log_error("Unable to contact D-Bus session bus: %s: %s", error.name, error.message);
-        goto fail;
+        pa_log_warn("Unable to contact D-Bus session bus: %s: %s", error.name, error.message);
+
+        /* We don't treat this as error here because we want allow PA
+         * to run even when no session bus is available. */
+        return r;
     }
 
     if ((k = rd_acquire(
