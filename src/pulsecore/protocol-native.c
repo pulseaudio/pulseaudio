@@ -4119,7 +4119,7 @@ static void command_set_card_profile(pa_pdispatch *pd, uint32_t command, uint32_
 
     CHECK_VALIDITY(c->pstream, card, tag, PA_ERR_NOENTITY);
 
-    if (pa_card_set_profile(card, profile) < 0) {
+    if (pa_card_set_profile(card, profile, TRUE) < 0) {
         pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
         return;
     }

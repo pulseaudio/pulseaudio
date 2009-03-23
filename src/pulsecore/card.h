@@ -63,6 +63,8 @@ struct pa_card {
     pa_hashmap *profiles;
     pa_card_profile *active_profile;
 
+    pa_bool_t save_profile;
+
     void *userdata;
 
     int (*set_profile)(pa_card *c, pa_card_profile *profile);
@@ -80,6 +82,8 @@ typedef struct pa_card_new_data {
     char *active_profile;
 
     pa_bool_t namereg_fail:1;
+
+    pa_bool_t save_profile:1;
 } pa_card_new_data;
 
 pa_card_profile *pa_card_profile_new(const char *name, const char *description, size_t extra);
@@ -93,7 +97,7 @@ void pa_card_new_data_done(pa_card_new_data *data);
 pa_card *pa_card_new(pa_core *c, pa_card_new_data *data);
 void pa_card_free(pa_card *c);
 
-int pa_card_set_profile(pa_card *c, const char *name);
+int pa_card_set_profile(pa_card *c, const char *name, pa_bool_t save);
 
 int pa_card_suspend(pa_card *c, pa_bool_t suspend);
 

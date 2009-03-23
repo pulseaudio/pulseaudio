@@ -143,7 +143,8 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     c->active_profile = NULL;
 
     if (data->active_profile && c->profiles)
-        c->active_profile = pa_hashmap_get(c->profiles, data->active_profile);
+        if ((c->active_profile = pa_hashmap_get(c->profiles, data->active_profile)))
+            c->save_profile = data->save_profile;
 
     if (!c->active_profile && c->profiles) {
         void *state = NULL;
@@ -209,7 +210,7 @@ void pa_card_free(pa_card *c) {
     pa_xfree(c);
 }
 
-int pa_card_set_profile(pa_card *c, const char *name) {
+int pa_card_set_profile(pa_card *c, const char *name, pa_bool_t save) {
     pa_card_profile *profile;
     pa_assert(c);
 
@@ -224,8 +225,10 @@ int pa_card_set_profile(pa_card *c, const char *name) {
     if (!(profile = pa_hashmap_get(c->profiles, name)))
         return -1;
 
-    if (c->active_profile == profile)
+    if (c->active_profile == profile) {
+        c->save_profile = c->save_profile || save;
         return 0;
+    }
 
     if (c->set_profile(c, profile) < 0)
         return -1;
@@ -235,6 +238,7 @@ int pa_card_set_profile(pa_card *c, const char *name) {
     pa_log_info("Changed profile of card %u \"%s\" to %s", c->index, c->name, profile->name);
 
     c->active_profile = profile;
+    c->save_profile = save;
 
     return 0;
 }

@@ -161,6 +161,9 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     if (!(card = pa_idxset_get_by_index(c->cards, idx)))
         return;
 
+    if (!card->save_profile)
+        return;
+
     pa_strlcpy(entry.profile, card->active_profile ? card->active_profile->name : "", sizeof(entry.profile));
 
     if ((old = read_entry(u, card->name))) {

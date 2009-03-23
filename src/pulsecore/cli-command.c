@@ -1454,7 +1454,7 @@ static int pa_cli_command_card_profile(pa_core *c, pa_tokenizer *t, pa_strbuf *b
         return -1;
     }
 
-    if (pa_card_set_profile(card, p) < 0) {
+    if (pa_card_set_profile(card, p, TRUE) < 0) {
         pa_strbuf_printf(buf, "Failed to set card profile to '%s'.\n", p);
         return -1;
     }
