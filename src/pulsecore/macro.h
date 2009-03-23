@@ -193,10 +193,24 @@ typedef int pa_bool_t;
 #define pa_assert_fp(expr) pa_assert_se(expr)
 #endif
 
+#ifdef NDEBUG
+#define pa_assert_not_reached() pa_nop()
+#else
 #define pa_assert_not_reached()                                         \
     do {                                                                \
         pa_log_error("Code should not be reached at %s:%u, function %s(). Aborting.", __FILE__, __LINE__, PA_PRETTY_FUNCTION); \
         abort();                                                        \
+    } while (FALSE)
+#endif
+
+/* A compile time assertion */
+#define pa_assert_cc(expr)                         \
+    do {                                           \
+        switch (0) {                               \
+            case 0:                                \
+            case !!(expr):                         \
+                ;                                  \
+        }                                          \
     } while (FALSE)
 
 #define PA_PTR_TO_UINT(p) ((unsigned int) ((uintptr_t) (p)))
