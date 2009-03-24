@@ -133,6 +133,7 @@ struct userdata {
 
     char *address;
     char *path;
+    const pa_bluetooth_device* device;
 
     pa_dbus_connection *connection;
 
@@ -1733,6 +1734,15 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 
     d = PA_CARD_PROFILE_DATA(new_profile);
 
+    if (u->device->headset_connected <= 0 && *d == PROFILE_HSP) {
+        pa_log_warn("HSP is not connected, refused to switch profile");
+        return -1;
+    }
+    else if (u->device->audio_sink_connected <= 0 && *d == PROFILE_A2DP) {
+        pa_log_warn("A2DP is not connected, refused to switch profile");
+        return -1;
+    }
+
     if (u->sink) {
         inputs = pa_sink_move_all_start(u->sink);
 #ifdef NOKIA
@@ -1926,7 +1936,6 @@ int pa__init(pa_module* m) {
     uint32_t channels;
     struct userdata *u;
     const char *address, *path;
-    const pa_bluetooth_device *d;
     pa_bluetooth_discovery *y = NULL;
     DBusError err;
     char *mike, *speaker;
@@ -1987,11 +1996,11 @@ int pa__init(pa_module* m) {
     if (!(y = pa_bluetooth_discovery_get(m->core)))
         goto fail;
 
-    if (!(d = find_device(u, y, address, path)))
+    if (!(u->device = find_device(u, y, address, path))) /* should discovery ref be kept? */
         goto fail;
 
     /* Add the card structure. This will also initialize the default profile */
-    if (add_card(u, pa_modargs_get_value(ma, "profile", NULL), d) < 0)
+    if (add_card(u, pa_modargs_get_value(ma, "profile", NULL), u->device) < 0)
         goto fail;
 
     pa_bluetooth_discovery_unref(y);
