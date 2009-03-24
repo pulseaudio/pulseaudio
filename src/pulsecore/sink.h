@@ -219,9 +219,9 @@ void pa_sink_unlink(pa_sink* s);
 void pa_sink_set_description(pa_sink *s, const char *description);
 void pa_sink_set_asyncmsgq(pa_sink *s, pa_asyncmsgq *q);
 void pa_sink_set_rtpoll(pa_sink *s, pa_rtpoll *p);
+
 void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind);
 void pa_sink_set_max_request(pa_sink *s, size_t max_request);
-
 void pa_sink_set_latency_range(pa_sink *s, pa_usec_t min_latency, pa_usec_t max_latency);
 
 void pa_sink_detach(pa_sink *s);

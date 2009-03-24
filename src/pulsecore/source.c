@@ -42,7 +42,6 @@
 #include "source.h"
 
 #define ABSOLUTE_MIN_LATENCY (500)
-#define DEFAULT_MIN_LATENCY (4*PA_USEC_PER_MSEC)
 #define ABSOLUTE_MAX_LATENCY (10*PA_USEC_PER_SEC)
 
 static PA_DEFINE_CHECK_TYPE(pa_source, pa_msgobject);
@@ -220,8 +219,8 @@ pa_source* pa_source_new(
     s->thread_info.max_rewind = 0;
     s->thread_info.requested_latency_valid = FALSE;
     s->thread_info.requested_latency = 0;
-    s->thread_info.min_latency = DEFAULT_MIN_LATENCY;
-    s->thread_info.max_latency = DEFAULT_MIN_LATENCY;
+    s->thread_info.min_latency = ABSOLUTE_MIN_LATENCY;
+    s->thread_info.max_latency = ABSOLUTE_MAX_LATENCY;
 
     pa_assert_se(pa_idxset_put(core->sources, s, &s->index) >= 0);
 
@@ -1124,21 +1123,15 @@ void pa_source_set_latency_range(pa_source *s, pa_usec_t min_latency, pa_usec_t 
     pa_source_assert_ref(s);
 
     /* min_latency == 0:           no limit
-     * min_latency == (size_t) -1: default limit
      * min_latency anything else:  specified limit
      *
      * Similar for max_latency */
 
-    if (min_latency == (pa_usec_t) -1)
-        min_latency = DEFAULT_MIN_LATENCY;
-
     if (min_latency < ABSOLUTE_MIN_LATENCY)
         min_latency = ABSOLUTE_MIN_LATENCY;
 
-    if (max_latency == (pa_usec_t) -1)
-        max_latency = min_latency;
-
-    if (max_latency > ABSOLUTE_MAX_LATENCY || max_latency <= 0)
+    if (max_latency <= 0 ||
+        max_latency > ABSOLUTE_MAX_LATENCY)
         max_latency = ABSOLUTE_MAX_LATENCY;
 
     pa_assert(min_latency <= max_latency);
