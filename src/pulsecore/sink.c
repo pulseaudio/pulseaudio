@@ -1202,11 +1202,10 @@ void pa_sink_mute_changed(pa_sink *s, pa_bool_t new_muted) {
 
 /* Called from main thread */
 pa_bool_t pa_sink_update_proplist(pa_sink *s, pa_update_mode_t mode, pa_proplist *p) {
-
     pa_sink_assert_ref(s);
-    pa_assert(p);
 
-    pa_proplist_update(s->proplist, mode, p);
+    if (p)
+        pa_proplist_update(s->proplist, mode, p);
 
     if (PA_SINK_IS_LINKED(s->state)) {
         pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_PROPLIST_CHANGED], s);

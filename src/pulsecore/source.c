@@ -744,9 +744,9 @@ void pa_source_mute_changed(pa_source *s, pa_bool_t new_muted) {
 /* Called from main thread */
 pa_bool_t pa_source_update_proplist(pa_source *s, pa_update_mode_t mode, pa_proplist *p) {
     pa_source_assert_ref(s);
-    pa_assert(p);
 
-    pa_proplist_update(s->proplist, mode, p);
+    if (p)
+        pa_proplist_update(s->proplist, mode, p);
 
     if (PA_SOURCE_IS_LINKED(s->state)) {
         pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_PROPLIST_CHANGED], s);
