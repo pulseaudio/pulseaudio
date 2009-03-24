@@ -1718,16 +1718,16 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
         inputs = pa_sink_move_all_start(u->sink);
 #ifdef NOKIA
         if (!USE_SCO_OVER_PCM(u))
-            pa_sink_unlink(u->sink);
 #endif
+            pa_sink_unlink(u->sink);
     }
 
     if (u->source) {
         outputs = pa_source_move_all_start(u->source);
 #ifdef NOKIA
         if (!USE_SCO_OVER_PCM(u))
-            pa_source_unlink(u->source);
 #endif
+            pa_source_unlink(u->source);
     }
 
     stop_thread(u);
