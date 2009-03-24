@@ -62,7 +62,7 @@ PA_MODULE_USAGE(
         "description=<description for the sink>");
 
 #define DEFAULT_SINK_NAME "null"
-#define MAX_LATENCY_USEC (PA_USEC_PER_SEC * 2)
+#define BLOCK_USEC (PA_USEC_PER_SEC * 2)
 
 struct userdata {
     pa_core *core;
@@ -299,9 +299,7 @@ int pa__init(pa_module*m) {
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
 
-    pa_sink_set_latency_range(u->sink, (pa_usec_t) -1, MAX_LATENCY_USEC);
-
-    u->block_usec = u->sink->thread_info.max_latency;
+    u->block_usec = BLOCK_USEC;
     nbytes = pa_usec_to_bytes(u->block_usec, &u->sink->sample_spec);
     pa_sink_set_max_rewind(u->sink, nbytes);
     pa_sink_set_max_request(u->sink, nbytes);
