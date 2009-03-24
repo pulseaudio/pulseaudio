@@ -273,7 +273,6 @@ int pa__init(pa_module*m) {
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
-    m->userdata = u;
     u->saved_frame_time_valid = FALSE;
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
