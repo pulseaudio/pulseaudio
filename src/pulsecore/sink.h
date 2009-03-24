@@ -283,7 +283,7 @@ pa_usec_t pa_sink_get_requested_latency_within_thread(pa_sink *s);
 void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind);
 void pa_sink_set_max_request(pa_sink *s, size_t max_request);
 
-void pa_sink_update_latency_range(pa_sink *s, pa_usec_t min_latency, pa_usec_t max_latency);
+void pa_sink_set_latency_range_within_thread(pa_sink *s, pa_usec_t min_latency, pa_usec_t max_latency);
 
 /*** To be called exclusively by sink input drivers, from IO context */
 

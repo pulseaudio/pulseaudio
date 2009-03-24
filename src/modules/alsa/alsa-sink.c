@@ -240,7 +240,7 @@ static void adjust_after_underrun(struct userdata *u) {
         pa_log_notice("Increasing minimal latency to %0.2f ms",
                       (double) new_min_latency / PA_USEC_PER_MSEC);
 
-        pa_sink_update_latency_range(u->sink, new_min_latency, u->sink->thread_info.max_latency);
+        pa_sink_set_latency_range_within_thread(u->sink, new_min_latency, u->sink->thread_info.max_latency);
         return;
     }
 

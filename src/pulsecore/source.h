@@ -260,7 +260,7 @@ void pa_source_detach_within_thread(pa_source *s);
 pa_usec_t pa_source_get_requested_latency_within_thread(pa_source *s);
 
 void pa_source_set_max_rewind(pa_source *s, size_t max_rewind);
-void pa_source_update_latency_range(pa_source *s, pa_usec_t min_latency, pa_usec_t max_latency);
+void pa_source_set_latency_range_within_thread(pa_source *s, pa_usec_t min_latency, pa_usec_t max_latency);
 
 /*** To be called exclusively by source output drivers, from IO context */
 

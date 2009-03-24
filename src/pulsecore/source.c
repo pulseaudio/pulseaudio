@@ -41,7 +41,9 @@
 
 #include "source.h"
 
+#define ABSOLUTE_MIN_LATENCY (500)
 #define DEFAULT_MIN_LATENCY (4*PA_USEC_PER_MSEC)
+#define ABSOLUTE_MAX_LATENCY (10*PA_USEC_PER_SEC)
 
 static PA_DEFINE_CHECK_TYPE(pa_source, pa_msgobject);
 
@@ -219,7 +221,7 @@ pa_source* pa_source_new(
     s->thread_info.requested_latency_valid = FALSE;
     s->thread_info.requested_latency = 0;
     s->thread_info.min_latency = DEFAULT_MIN_LATENCY;
-    s->thread_info.max_latency = 0;
+    s->thread_info.max_latency = DEFAULT_MIN_LATENCY;
 
     pa_assert_se(pa_idxset_put(core->sources, s, &s->index) >= 0);
 
@@ -936,7 +938,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
         case PA_SOURCE_MESSAGE_SET_LATENCY_RANGE: {
             pa_usec_t *r = userdata;
 
-            pa_source_update_latency_range(s, r[0], r[1]);
+            pa_source_set_latency_range_within_thread(s, r[0], r[1]);
 
             return 0;
         }
@@ -1130,11 +1132,16 @@ void pa_source_set_latency_range(pa_source *s, pa_usec_t min_latency, pa_usec_t 
     if (min_latency == (pa_usec_t) -1)
         min_latency = DEFAULT_MIN_LATENCY;
 
+    if (min_latency < ABSOLUTE_MIN_LATENCY)
+        min_latency = ABSOLUTE_MIN_LATENCY;
+
     if (max_latency == (pa_usec_t) -1)
         max_latency = min_latency;
 
-    pa_assert(!min_latency || !max_latency ||
-              min_latency <= max_latency);
+    if (max_latency > ABSOLUTE_MAX_LATENCY || max_latency <= 0)
+        max_latency = ABSOLUTE_MAX_LATENCY;
+
+    pa_assert(min_latency <= max_latency);
 
     if (PA_SOURCE_IS_LINKED(s->state)) {
         pa_usec_t r[2];
@@ -1170,14 +1177,15 @@ void pa_source_get_latency_range(pa_source *s, pa_usec_t *min_latency, pa_usec_t
 }
 
 /* Called from IO thread */
-void pa_source_update_latency_range(pa_source *s, pa_usec_t min_latency, pa_usec_t max_latency) {
+void pa_source_set_latency_range_within_thread(pa_source *s, pa_usec_t min_latency, pa_usec_t max_latency) {
     pa_source_output *o;
     void *state = NULL;
 
     pa_source_assert_ref(s);
 
-    pa_assert(!min_latency || !max_latency ||
-              min_latency <= max_latency);
+    pa_assert(min_latency >= ABSOLUTE_MIN_LATENCY);
+    pa_assert(max_latency <= ABSOLUTE_MAX_LATENCY);
+    pa_assert(min_latency <= max_latency);
 
     s->thread_info.min_latency = min_latency;
     s->thread_info.max_latency = max_latency;

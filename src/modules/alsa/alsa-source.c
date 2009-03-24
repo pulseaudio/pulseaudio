@@ -238,7 +238,7 @@ static void adjust_after_overrun(struct userdata *u) {
         pa_log_notice("Increasing minimal latency to %0.2f ms",
                       (double) new_min_latency / PA_USEC_PER_MSEC);
 
-        pa_source_update_latency_range(u->source, new_min_latency, u->source->thread_info.max_latency);
+        pa_source_set_latency_range_within_thread(u->source, new_min_latency, u->source->thread_info.max_latency);
         return;
     }
 
