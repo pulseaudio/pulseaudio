@@ -705,7 +705,7 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(sink_data.proplist, "device.ladspa.copyright", d->Copyright);
     pa_proplist_setf(sink_data.proplist, "device.ladspa.unique_id", "%lu", (unsigned long) d->UniqueID);
 
-    u->sink = pa_sink_new(m->core, &sink_data, PA_SINK_LATENCY);
+    u->sink = pa_sink_new(m->core, &sink_data, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY);
     pa_sink_new_data_done(&sink_data);
 
     if (!u->sink) {

@@ -354,7 +354,7 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
 
-    u->sink = pa_sink_new(m->core, &sink_data, PA_SINK_LATENCY);
+    u->sink = pa_sink_new(m->core, &sink_data, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY);
     pa_sink_new_data_done(&sink_data);
 
     if (!u->sink) {
