@@ -95,6 +95,8 @@ pa_bool_t pa_rtclock_hrtimer(void) {
 #endif
 }
 
+#define TIMER_SLACK_NS (int) ((500 * PA_NSEC_PER_USEC))
+
 void pa_rtclock_hrtimer_enable(void) {
 #ifdef PR_SET_TIMERSLACK
     int slack_ns;
@@ -104,15 +106,17 @@ void pa_rtclock_hrtimer_enable(void) {
         return;
     }
 
-    pa_log_debug("Timer slack set to %i us.", slack_ns/1000);
+    pa_log_debug("Timer slack is set to %i us.", (int) (slack_ns/PA_NSEC_PER_USEC));
 
-    slack_ns = 500000000;
+    if (slack_ns > TIMER_SLACK_NS) {
+        slack_ns = TIMER_SLACK_NS;
 
-    pa_log_debug("Setting timer slack to %i us.", slack_ns/1000);
+        pa_log_debug("Setting timer slack to %i us.", (int) (slack_ns/PA_NSEC_PER_USEC));
 
-    if (prctl(PR_SET_TIMERSLACK, slack_ns, 0, 0, 0) < 0) {
-        pa_log_warn("PR_SET_TIMERSLACK failed: %s", pa_cstrerror(errno));
-        return;
+        if (prctl(PR_SET_TIMERSLACK, slack_ns, 0, 0, 0) < 0) {
+            pa_log_warn("PR_SET_TIMERSLACK failed: %s", pa_cstrerror(errno));
+            return;
+        }
     }
 
 #endif
