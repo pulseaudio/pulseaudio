@@ -69,23 +69,24 @@ struct userdata {
     pa_hashmap *hashmap;
 };
 
+struct module_info {
+    char *path;
+    uint32_t module;
+};
+
 static pa_hook_result_t load_module_for_device(pa_bluetooth_discovery *y, const pa_bluetooth_device *d, struct userdata *u) {
-    uint32_t midx;
+    struct module_info *mi;
 
     pa_assert(u);
     pa_assert(d);
 
-
-    if (!(midx = PA_PTR_TO_UINT(pa_hashmap_get(u->hashmap, d->path))))
-        midx = PA_INVALID_INDEX;
-    else
-        midx--;
+    mi = pa_hashmap_get(u->hashmap, d->path);
 
     if (!d->dead &&
         d->device_connected > 0 &&
         (d->audio_sink_connected > 0 || d->headset_connected > 0)) {
 
-        if (midx == PA_INVALID_INDEX) {
+        if (!mi) {
             pa_module *m = NULL;
             char *args;
 
@@ -110,22 +111,28 @@ static pa_hook_result_t load_module_for_device(pa_bluetooth_discovery *y, const 
             m = pa_module_load(u->module->core, "module-bluetooth-device", args);
             pa_xfree(args);
 
-            if (m)
-                pa_hashmap_put(u->hashmap, d->path, PA_UINT_TO_PTR((uint32_t) (m->index+1)));
-            else
+            if (m) {
+                mi = pa_xnew(struct module_info, 1);
+                mi->module = m->index;
+                mi->path = pa_xstrdup(d->path);
+
+                pa_hashmap_put(u->hashmap, mi->path, mi);
+            } else
                 pa_log_debug("Failed to load module for device %s", d->path);
         }
 
     } else {
 
-        if (midx != PA_INVALID_INDEX) {
+        if (mi) {
 
             /* Hmm, disconnection? Then let's unload our module */
 
             pa_log_debug("Unloading module for %s", d->path);
-            pa_module_unload_request_by_index(u->core, midx, TRUE);
+            pa_module_unload_request_by_index(u->core, mi->module, TRUE);
 
-            pa_hashmap_remove(u->hashmap, d->path);
+            pa_hashmap_remove(u->hashmap, mi->path);
+            pa_xfree(mi->path);
+            pa_xfree(mi);
         }
     }
 
@@ -189,8 +196,16 @@ void pa__done(pa_module* m) {
     if (u->discovery)
         pa_bluetooth_discovery_unref(u->discovery);
 
-    if (u->hashmap)
+    if (u->hashmap) {
+        struct module_info *mi;
+
+        while ((mi = pa_hashmap_steal_first(u->hashmap))) {
+            pa_xfree(mi->path);
+            pa_xfree(mi);
+        }
+
         pa_hashmap_free(u->hashmap, NULL, NULL);
+    }
 
     if (u->modargs)
         pa_modargs_free(u->modargs);
