@@ -1537,24 +1537,23 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     u->tsched_watermark = pa_usec_to_bytes_round_up(pa_bytes_to_usec_round_up(tsched_watermark, &requested_ss), &u->source->sample_spec);
     pa_cvolume_mute(&u->hardware_volume, u->source->sample_spec.channels);
 
+    pa_log_info("Using %u fragments of size %lu bytes, buffer time is %0.2fms",
+                nfrags, (long unsigned) u->fragment_size,
+                (double) pa_bytes_to_usec(u->hwbuf_size, &ss) / PA_USEC_PER_MSEC);
+
     if (use_tsched) {
         fix_min_sleep_wakeup(u);
         fix_tsched_watermark(u);
 
         u->watermark_step = pa_usec_to_bytes(TSCHED_WATERMARK_STEP_USEC, &u->source->sample_spec);
-    }
 
-    pa_source_set_latency_range(u->source,
-                                use_tsched ? (pa_usec_t) -1 : pa_bytes_to_usec(u->hwbuf_size, &ss),
-                                pa_bytes_to_usec(u->hwbuf_size, &ss));
+        pa_source_set_latency_range(u->source,
+                                    0,
+                                    pa_bytes_to_usec(u->hwbuf_size, &ss));
 
-    pa_log_info("Using %u fragments of size %lu bytes, buffer time is %0.2fms",
-                nfrags, (long unsigned) u->fragment_size,
-                (double) pa_bytes_to_usec(u->hwbuf_size, &ss) / PA_USEC_PER_MSEC);
-
-    if (use_tsched)
         pa_log_info("Time scheduling watermark is %0.2fms",
                     (double) pa_bytes_to_usec(u->tsched_watermark, &ss) / PA_USEC_PER_MSEC);
+    }
 
     reserve_update(u);
 
