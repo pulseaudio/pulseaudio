@@ -275,7 +275,7 @@ static ssize_t service_expect(struct userdata*u, bt_audio_msg_header_t *rsp, siz
     return 0;
 }
 
-static int parse_caps(struct userdata *u, const struct bt_get_capabilities_rsp *rsp) {
+static int parse_caps(struct userdata *u, uint8_t seid, const struct bt_get_capabilities_rsp *rsp) {
     uint16_t bytes_left;
     const codec_capabilities_t *codec;
 
@@ -306,6 +306,9 @@ static int parse_caps(struct userdata *u, const struct bt_get_capabilities_rsp *
 
         pa_assert(codec->type == BT_HFP_CODEC_PCM);
 
+        if (codec->configured && seid == 0)
+            return codec->seid;
+
         memcpy(&u->hsp.pcm_capabilities, codec, sizeof(u->hsp.pcm_capabilities));
 
     } else if (u->profile == PROFILE_A2DP) {
@@ -323,19 +326,23 @@ static int parse_caps(struct userdata *u, const struct bt_get_capabilities_rsp *
 
         pa_assert(codec->type == BT_A2DP_SBC_SINK);
 
+        if (codec->configured && seid == 0)
+            return codec->seid;
+
         memcpy(&u->a2dp.sbc_capabilities, codec, sizeof(u->a2dp.sbc_capabilities));
     }
 
     return 0;
 }
 
-static int get_caps(struct userdata *u) {
+static int get_caps(struct userdata *u, uint8_t seid) {
     union {
         struct bt_get_capabilities_req getcaps_req;
         struct bt_get_capabilities_rsp getcaps_rsp;
         bt_audio_error_t error;
         uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
     } msg;
+    int ret;
 
     pa_assert(u);
 
@@ -343,6 +350,7 @@ static int get_caps(struct userdata *u) {
     msg.getcaps_req.h.type = BT_REQUEST;
     msg.getcaps_req.h.name = BT_GET_CAPABILITIES;
     msg.getcaps_req.h.length = sizeof(msg.getcaps_req);
+    msg.getcaps_req.seid = seid;
 
     pa_strlcpy(msg.getcaps_req.object, u->path, sizeof(msg.getcaps_req.object));
     if (u->profile == PROFILE_A2DP)
@@ -359,7 +367,11 @@ static int get_caps(struct userdata *u) {
     if (service_expect(u, &msg.getcaps_rsp.h, sizeof(msg), BT_GET_CAPABILITIES, 0) < 0)
         return -1;
 
-    return parse_caps(u, &msg.getcaps_rsp);
+    ret = parse_caps(u, seid, &msg.getcaps_rsp);
+    if (ret <= 0)
+        return ret;
+
+    return get_caps(u, ret);
 }
 
 static uint8_t a2dp_default_bitpool(uint8_t freq, uint8_t mode) {
@@ -1575,7 +1587,7 @@ static int init_bt(struct userdata *u) {
 static int setup_bt(struct userdata *u) {
     pa_assert(u);
 
-    if (get_caps(u) < 0)
+    if (get_caps(u, 0) < 0)
         return -1;
 
     pa_log_debug("Got device capabilities");
