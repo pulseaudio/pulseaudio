@@ -956,6 +956,11 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
             *((size_t*) userdata) = s->thread_info.max_rewind;
             return 0;
 
+        case PA_SOURCE_MESSAGE_SET_MAX_REWIND:
+
+            pa_source_set_max_rewind_within_thread(s, (size_t) offset);
+            return 0;
+
         case PA_SOURCE_MESSAGE_GET_LATENCY:
 
             if (s->monitor_of) {
@@ -1083,7 +1088,7 @@ pa_usec_t pa_source_get_requested_latency(pa_source *s) {
 }
 
 /* Called from IO thread */
-void pa_source_set_max_rewind(pa_source *s, size_t max_rewind) {
+void pa_source_set_max_rewind_within_thread(pa_source *s, size_t max_rewind) {
     pa_source_output *o;
     void *state = NULL;
 
@@ -1100,6 +1105,17 @@ void pa_source_set_max_rewind(pa_source *s, size_t max_rewind) {
     }
 }
 
+/* Called from main thread */
+void pa_source_set_max_rewind(pa_source *s, size_t max_rewind) {
+    pa_source_assert_ref(s);
+
+    if (PA_SOURCE_IS_LINKED(s->state))
+        pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_MAX_REWIND, NULL, max_rewind, NULL) == 0);
+    else
+        pa_source_set_max_rewind_within_thread(s, max_rewind);
+}
+
+/* Called from IO thread */
 void pa_source_invalidate_requested_latency(pa_source *s) {
     pa_source_output *o;
     void *state = NULL;

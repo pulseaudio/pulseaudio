@@ -159,6 +159,7 @@ typedef enum pa_source_message {
     PA_SOURCE_MESSAGE_SET_LATENCY_RANGE,
     PA_SOURCE_MESSAGE_GET_LATENCY_RANGE,
     PA_SOURCE_MESSAGE_GET_MAX_REWIND,
+    PA_SOURCE_MESSAGE_SET_MAX_REWIND,
     PA_SOURCE_MESSAGE_MAX
 } pa_source_message_t;
 
@@ -205,6 +206,7 @@ void pa_source_set_description(pa_source *s, const char *description);
 void pa_source_set_asyncmsgq(pa_source *s, pa_asyncmsgq *q);
 void pa_source_set_rtpoll(pa_source *s, pa_rtpoll *p);
 
+void pa_source_set_max_rewind(pa_source *s, size_t max_rewind);
 void pa_source_set_latency_range(pa_source *s, pa_usec_t min_latency, pa_usec_t max_latency);
 
 void pa_source_detach(pa_source *s);
@@ -259,7 +261,7 @@ void pa_source_detach_within_thread(pa_source *s);
 
 pa_usec_t pa_source_get_requested_latency_within_thread(pa_source *s);
 
-void pa_source_set_max_rewind(pa_source *s, size_t max_rewind);
+void pa_source_set_max_rewind_within_thread(pa_source *s, size_t max_rewind);
 void pa_source_set_latency_range_within_thread(pa_source *s, pa_usec_t min_latency, pa_usec_t max_latency);
 
 /*** To be called exclusively by source output drivers, from IO context */
