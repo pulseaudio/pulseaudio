@@ -270,12 +270,11 @@ int pa__init(pa_module*m) {
     server_name = pa_modargs_get_value(ma, "server_name", NULL);
     client_name = pa_modargs_get_value(ma, "client_name", "PulseAudio JACK Source");
 
-    u = pa_xnew0(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
     m->userdata = u;
     u->saved_frame_time_valid = FALSE;
-
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
@@ -372,14 +371,14 @@ int pa__init(pa_module*m) {
         for (i = 0, p = ports; i < ss.channels; i++, p++) {
 
             if (!*p) {
-                pa_log("not enough physical output ports, leaving unconnected.");
+                pa_log("Not enough physical output ports, leaving unconnected.");
                 break;
             }
 
-            pa_log_info("connecting %s to %s", jack_port_name(u->port[i]), *p);
+            pa_log_info("Connecting %s to %s", jack_port_name(u->port[i]), *p);
 
             if (jack_connect(u->client, *p, jack_port_name(u->port[i]))) {
-                pa_log("failed to connect %s to %s, leaving unconnected.", jack_port_name(u->port[i]), *p);
+                pa_log("Failed to connect %s to %s, leaving unconnected.", jack_port_name(u->port[i]), *p);
                 break;
             }
         }
