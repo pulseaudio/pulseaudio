@@ -649,7 +649,7 @@ static void update_max_request(struct userdata *u) {
     if (max_request <= 0)
         max_request = pa_usec_to_bytes(u->block_usec, &u->sink->sample_spec);
 
-    pa_sink_set_max_request(u->sink, max_request);
+    pa_sink_set_max_request_within_thread(u->sink, max_request);
 }
 
 /* Called from thread context of the io thread */

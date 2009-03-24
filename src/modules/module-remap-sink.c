@@ -179,7 +179,7 @@ static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     if (!u->sink || !PA_SINK_IS_LINKED(u->sink->thread_info.state))
         return;
 
-    pa_sink_set_max_rewind(u->sink, nbytes);
+    pa_sink_set_max_rewind_within_thread(u->sink, nbytes);
 }
 
 /* Called from I/O thread context */
@@ -192,7 +192,7 @@ static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
     if (!u->sink || !PA_SINK_IS_LINKED(u->sink->thread_info.state))
         return;
 
-    pa_sink_set_max_request(u->sink, nbytes);
+    pa_sink_set_max_request_within_thread(u->sink, nbytes);
 }
 
 /* Called from I/O thread context */

@@ -756,7 +756,7 @@ static int update_sw_params(struct userdata *u) {
         return err;
     }
 
-    pa_sink_set_max_request(u->sink, u->hwbuf_size - u->hwbuf_unused);
+    pa_sink_set_max_request_within_thread(u->sink, u->hwbuf_size - u->hwbuf_unused);
 
     return 0;
 }

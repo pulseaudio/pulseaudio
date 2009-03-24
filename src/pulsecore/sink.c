@@ -1616,6 +1616,16 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             *((size_t*) userdata) = s->thread_info.max_request;
             return 0;
 
+        case PA_SINK_MESSAGE_SET_MAX_REWIND:
+
+            pa_sink_set_max_rewind_within_thread(s, (size_t) offset);
+            return 0;
+
+        case PA_SINK_MESSAGE_SET_MAX_REQUEST:
+
+            pa_sink_set_max_request_within_thread(s, (size_t) offset);
+            return 0;
+
         case PA_SINK_MESSAGE_GET_LATENCY:
         case PA_SINK_MESSAGE_MAX:
             ;
@@ -1767,7 +1777,7 @@ pa_usec_t pa_sink_get_requested_latency(pa_sink *s) {
 }
 
 /* Called from IO as well as the main thread -- the latter only before the IO thread started up */
-void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind) {
+void pa_sink_set_max_rewind_within_thread(pa_sink *s, size_t max_rewind) {
     pa_sink_input *i;
     void *state = NULL;
 
@@ -1787,8 +1797,18 @@ void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind) {
         pa_source_set_max_rewind(s->monitor_source, s->thread_info.max_rewind);
 }
 
+/* Called from main thread */
+void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind) {
+    pa_sink_assert_ref(s);
+
+    if (PA_SINK_IS_LINKED(s->state))
+        pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_MAX_REWIND, NULL, max_rewind, NULL) == 0);
+    else
+        pa_sink_set_max_rewind_within_thread(s, max_rewind);
+}
+
 /* Called from IO as well as the main thread -- the latter only before the IO thread started up */
-void pa_sink_set_max_request(pa_sink *s, size_t max_request) {
+void pa_sink_set_max_request_within_thread(pa_sink *s, size_t max_request) {
     void *state = NULL;
 
     pa_sink_assert_ref(s);
@@ -1804,6 +1824,16 @@ void pa_sink_set_max_request(pa_sink *s, size_t max_request) {
         while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)))
             pa_sink_input_update_max_request(i, s->thread_info.max_request);
     }
+}
+
+/* Called from main thread */
+void pa_sink_set_max_request(pa_sink *s, size_t max_request) {
+    pa_sink_assert_ref(s);
+
+    if (PA_SINK_IS_LINKED(s->state))
+        pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_MAX_REQUEST, NULL, max_request, NULL) == 0);
+    else
+        pa_sink_set_max_request_within_thread(s, max_request);
 }
 
 /* Called from IO thread */

@@ -653,7 +653,7 @@ static void thread_func(void *userdata) {
                             u->buffer_size = u->buffer_size * 18 / 25;
                             u->buffer_size -= u->buffer_size % u->frame_size;
                             u->buffer_size = PA_MAX(u->buffer_size, (int32_t)MIN_BUFFER_SIZE);
-                            pa_sink_set_max_request(u->sink, u->buffer_size);
+                            pa_sink_set_max_request_within_thread(u->sink, u->buffer_size);
                             pa_log("EAGAIN. Buffer size is now %u bytes (%llu buffered)", u->buffer_size, buffered_bytes);
                             break;
                         default:
@@ -946,7 +946,7 @@ int pa__init(pa_module *m) {
         u->sink->set_mute = sink_set_mute;
         u->sink->refresh_volume = u->sink->refresh_muted = TRUE;
 
-        u->sink->thread_info.max_request = u->buffer_size;
+        pa_sink_set_max_request(u->sink, u->buffer_size);
         u->min_request = pa_usec_to_bytes(PA_USEC_PER_SEC / MAX_RENDER_HZ, &ss);
     } else
         u->sink = NULL;
