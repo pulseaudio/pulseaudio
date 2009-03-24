@@ -1843,12 +1843,15 @@ void pa_sink_invalidate_requested_latency(pa_sink *s) {
 
     s->thread_info.requested_latency_valid = FALSE;
 
-    if (s->update_requested_latency)
-        s->update_requested_latency(s);
+    if (PA_SINK_IS_LINKED(s->thread_info.state)) {
 
-    while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)))
-        if (i->update_sink_requested_latency)
-            i->update_sink_requested_latency(i);
+        if (s->update_requested_latency)
+            s->update_requested_latency(s);
+
+        while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)))
+            if (i->update_sink_requested_latency)
+                i->update_sink_requested_latency(i);
+    }
 }
 
 /* Called from main thread */
@@ -1881,15 +1884,8 @@ void pa_sink_set_latency_range(pa_sink *s, pa_usec_t min_latency, pa_usec_t max_
         r[1] = max_latency;
 
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_LATENCY_RANGE, r, 0, NULL) == 0);
-    } else {
-        s->thread_info.min_latency = min_latency;
-        s->thread_info.max_latency = max_latency;
-
-        s->monitor_source->thread_info.min_latency = min_latency;
-        s->monitor_source->thread_info.max_latency = max_latency;
-
-        s->thread_info.requested_latency_valid = s->monitor_source->thread_info.requested_latency_valid = FALSE;
-    }
+    } else
+        pa_sink_set_latency_range_within_thread(s, min_latency, max_latency);
 }
 
 /* Called from main thread */
@@ -1913,7 +1909,6 @@ void pa_sink_get_latency_range(pa_sink *s, pa_usec_t *min_latency, pa_usec_t *ma
 
 /* Called from IO thread */
 void pa_sink_set_latency_range_within_thread(pa_sink *s, pa_usec_t min_latency, pa_usec_t max_latency) {
-    pa_sink_input *i;
     void *state = NULL;
 
     pa_sink_assert_ref(s);
@@ -1930,9 +1925,13 @@ void pa_sink_set_latency_range_within_thread(pa_sink *s, pa_usec_t min_latency, 
     s->thread_info.min_latency = min_latency;
     s->thread_info.max_latency = max_latency;
 
-    while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)))
-        if (i->update_sink_latency_range)
-            i->update_sink_latency_range(i);
+    if (PA_SINK_IS_LINKED(s->thread_info.state)) {
+        pa_sink_input *i;
+
+        while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)))
+            if (i->update_sink_latency_range)
+                i->update_sink_latency_range(i);
+    }
 
     pa_sink_invalidate_requested_latency(s);
 
