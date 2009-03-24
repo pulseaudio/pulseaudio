@@ -138,13 +138,13 @@ pa_stream *pa_stream_new_with_proplist(
     s->device_index = PA_INVALID_INDEX;
     s->device_name = NULL;
     s->suspended = FALSE;
+    s->corked = FALSE;
 
     pa_memchunk_reset(&s->peek_memchunk);
     s->peek_data = NULL;
 
     s->record_memblockq = NULL;
 
-    s->corked = FALSE;
 
     memset(&s->timing_info, 0, sizeof(s->timing_info));
     s->timing_info_valid = FALSE;
