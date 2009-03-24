@@ -93,7 +93,7 @@ static pa_hook_result_t load_module_for_device(pa_bluetooth_discovery *y, const 
 
             /* Oh, awesome, a new device has shown up and been connected! */
 
-            args = pa_sprintf_malloc("address=\"%s\" path=\"%s\" profile=\"%s\"", d->address, d->path, d->headset_connected ? "hsp" : "a2dp");
+            args = pa_sprintf_malloc("address=\"%s\" path=\"%s\" profile=\"%s\"", d->address, d->path, d->headset_connected > 0 ? "hsp" : "a2dp");
 
 #ifdef NOKIA
             if (pa_modargs_get_value(u->modargs, "sco_sink", NULL) &&
