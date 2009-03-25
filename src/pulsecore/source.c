@@ -1204,7 +1204,8 @@ void pa_source_set_latency_range_within_thread(pa_source *s, pa_usec_t min_laten
     /* Hmm, let's see if someone forgot to set PA_SOURCE_DYNAMIC_LATENCY here... */
     pa_assert((min_latency == ABSOLUTE_MIN_LATENCY &&
                max_latency == ABSOLUTE_MAX_LATENCY) ||
-              (s->flags & PA_SOURCE_DYNAMIC_LATENCY));
+              (s->flags & PA_SOURCE_DYNAMIC_LATENCY) ||
+              s->monitor_of);
 
     s->thread_info.min_latency = min_latency;
     s->thread_info.max_latency = max_latency;
