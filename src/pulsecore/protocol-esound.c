@@ -1105,8 +1105,7 @@ static int do_read(connection *c) {
             pa_scache_add_item(c->protocol->core, c->scache.name, &c->scache.sample_spec, NULL, &c->scache.memchunk, c->client->proplist, &idx);
 
             pa_memblock_unref(c->scache.memchunk.memblock);
-            c->scache.memchunk.memblock = NULL;
-            c->scache.memchunk.index = c->scache.memchunk.length = 0;
+            pa_memchunk_reset(&c->scache.memchunk);
 
             pa_xfree(c->scache.name);
             c->scache.name = NULL;
