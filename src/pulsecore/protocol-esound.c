@@ -562,7 +562,7 @@ static int esd_proto_get_latency(connection *c, esd_proto_t request, const void 
     pa_sink *sink;
     int32_t latency;
 
-    connection_ref(c);
+    connection_assert_ref(c);
     pa_assert(!data);
     pa_assert(length == 0);
 
@@ -575,6 +575,7 @@ static int esd_proto_get_latency(connection *c, esd_proto_t request, const void 
 
     latency = PA_MAYBE_INT32_SWAP(c->swap_byte_order, latency);
     connection_write(c, &latency, sizeof(int32_t));
+
     return 0;
 }
 
@@ -583,7 +584,7 @@ static int esd_proto_server_info(connection *c, esd_proto_t request, const void 
     int32_t response;
     pa_sink *sink;
 
-    connection_ref(c);
+    connection_assert_ref(c);
     pa_assert(data);
     pa_assert(length == sizeof(int32_t));
 
@@ -611,7 +612,7 @@ static int esd_proto_all_info(connection *c, esd_proto_t request, const void *da
     unsigned nsamples;
     char terminator[sizeof(int32_t)*6+ESD_NAME_MAX];
 
-    connection_ref(c);
+    connection_assert_ref(c);
     pa_assert(data);
     pa_assert(length == sizeof(int32_t));
 
