@@ -135,12 +135,21 @@ enum {
 /* Forward declaration */
 static void sink_set_volume_cb(pa_sink *);
 
-static void on_connection(PA_GCC_UNUSED int fd, void*userdata) {
+static void on_connection(int fd, void*userdata) {
+    int so_sndbuf = 0;
+    socklen_t sl = sizeof(int);
     struct userdata *u = userdata;
     pa_assert(u);
 
     pa_assert(u->fd < 0);
     u->fd = fd;
+
+    if (getsockopt(u->fd, SOL_SOCKET, SO_SNDBUF, &so_sndbuf, &sl) < 0)
+        pa_log_warn("getsockopt(SO_SNDBUF) failed: %s", pa_cstrerror(errno));
+    else {
+        pa_log_debug("SO_SNDBUF is %zu.", (size_t) so_sndbuf);
+        pa_sink_set_max_request(u->sink, PA_MAX((size_t) so_sndbuf, u->block_size));
+    }
 
     /* Set the initial volume */
     sink_set_volume_cb(u->sink);
