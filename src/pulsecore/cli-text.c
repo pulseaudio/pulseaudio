@@ -255,7 +255,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->flags & PA_SINK_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
             sink->flags & PA_SINK_DECIBEL_VOLUME ? "DECIBEL_VOLUME " : "",
             sink->flags & PA_SINK_LATENCY ? "LATENCY " : "",
-            sink->flags & PA_SINK_FLAT_VOLUME ? "FLAT_VOLUME" : "",
+            sink->flags & PA_SINK_FLAT_VOLUME ? "FLAT_VOLUME " : "",
             sink->flags & PA_SINK_DYNAMIC_LATENCY ? "DYNAMIC_LATENCY" : "",
             sink_state_to_string(pa_sink_get_state(sink)),
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink, FALSE)),
