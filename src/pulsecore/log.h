@@ -77,6 +77,9 @@ void pa_log_set_flags(pa_log_flags_t flags, pa_log_merge_t merge);
 /* Enable backtrace */
 void pa_log_set_show_backtrace(unsigned nlevels);
 
+/* Skip the first backtrace frames */
+void pa_log_set_skip_backtrace(unsigned nlevels);
+
 void pa_log_level_meta(
         pa_log_level_t level,
         const char*file,

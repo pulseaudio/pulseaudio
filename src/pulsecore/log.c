@@ -59,12 +59,13 @@
 #define ENV_LOG_PRINT_META "PULSE_LOG_META"
 #define ENV_LOG_PRINT_LEVEL "PULSE_LOG_LEVEL"
 #define ENV_LOG_BACKTRACE "PULSE_LOG_BACKTRACE"
+#define ENV_LOG_BACKTRACE_SKIP "PULSE_LOG_BACKTRACE_SKIP"
 
 static char *ident = NULL; /* in local charset format */
 static pa_log_target_t target = PA_LOG_STDERR, target_override;
 static pa_bool_t target_override_set = FALSE;
 static pa_log_level_t maximum_level = PA_LOG_ERROR, maximum_level_override = PA_LOG_ERROR;
-static unsigned show_backtrace = 0, show_backtrace_override = 0;
+static unsigned show_backtrace = 0, show_backtrace_override = 0, skip_backtrace = 0;
 static pa_log_flags_t flags = 0, flags_override = 0;
 
 #ifdef HAVE_SYSLOG_H
@@ -128,13 +129,17 @@ void pa_log_set_show_backtrace(unsigned nlevels) {
     show_backtrace = nlevels;
 }
 
+void pa_log_set_skip_backtrace(unsigned nlevels) {
+    skip_backtrace = nlevels;
+}
+
 #ifdef HAVE_EXECINFO_H
 
 static char* get_backtrace(unsigned show_nframes) {
     void* trace[32];
     int n_frames;
     char **symbols, *e, *r;
-    unsigned j, n;
+    unsigned j, n, s;
     size_t a;
 
     pa_assert(show_nframes > 0);
@@ -149,12 +154,13 @@ static char* get_backtrace(unsigned show_nframes) {
     if (!symbols)
         return NULL;
 
-    n = PA_MIN((unsigned) n_frames, show_nframes);
+    s = skip_backtrace;
+    n = PA_MIN((unsigned) n_frames, s + show_nframes);
 
     a = 4;
 
-    for (j = 0; j < n; j++) {
-        if (j > 0)
+    for (j = s; j < n; j++) {
+        if (j > s)
             a += 2;
         a += strlen(pa_path_get_filename(symbols[j]));
     }
@@ -164,10 +170,10 @@ static char* get_backtrace(unsigned show_nframes) {
     strcpy(r, " (");
     e = r + 2;
 
-    for (j = 0; j < n; j++) {
+    for (j = s; j < n; j++) {
         const char *sym;
 
-        if (j > 0) {
+        if (j > s) {
             strcpy(e, "<<");
             e += 2;
         }
@@ -228,6 +234,13 @@ static void init_defaults(void) {
 
         if (show_backtrace_override <= 0)
             show_backtrace_override = 0;
+    }
+
+    if ((e = getenv(ENV_LOG_BACKTRACE_SKIP))) {
+        skip_backtrace = (unsigned) atoi(e);
+
+        if (skip_backtrace <= 0)
+            skip_backtrace = 0;
     }
 }
 
