@@ -260,7 +260,7 @@ pa_sink* pa_sink_new(
     pa_proplist_setf(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Monitor of %s", dn ? dn : s->name);
     pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_CLASS, "monitor");
 
-    s->monitor_source = pa_source_new(core, &source_data, PA_SOURCE_LATENCY);
+    s->monitor_source = pa_source_new(core, &source_data, 0);
 
     pa_source_new_data_done(&source_data);
 
@@ -359,6 +359,12 @@ void pa_sink_put(pa_sink* s) {
     if (s->core->flat_volumes)
         if (s->flags & PA_SINK_DECIBEL_VOLUME)
             s->flags |= PA_SINK_FLAT_VOLUME;
+
+    if (s->flags & PA_SINK_LATENCY)
+        s->monitor_source->flags |= PA_SOURCE_LATENCY;
+
+    if (s->flags & PA_SINK_DYNAMIC_LATENCY)
+        s->monitor_source->flags |= PA_SOURCE_DYNAMIC_LATENCY;
 
     pa_assert_se(sink_set_state(s, PA_SINK_IDLE) == 0);
 
