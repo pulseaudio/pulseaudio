@@ -311,7 +311,7 @@ static int parse_caps(struct userdata *u, const struct bt_get_capabilities_rsp *
     } else if (u->profile == PROFILE_A2DP) {
 
         while (bytes_left > 0) {
-            if (codec->type == BT_A2DP_CODEC_SBC)
+            if ((codec->type == BT_A2DP_SBC_SINK) && !codec->lock)
                 break;
 
             bytes_left -= codec->length;
@@ -321,7 +321,7 @@ static int parse_caps(struct userdata *u, const struct bt_get_capabilities_rsp *
         if (bytes_left <= 0 || codec->length != sizeof(u->a2dp.sbc_capabilities))
             return -1;
 
-        pa_assert(codec->type == BT_A2DP_CODEC_SBC);
+        pa_assert(codec->type == BT_A2DP_SBC_SINK);
 
         memcpy(&u->a2dp.sbc_capabilities, codec, sizeof(u->a2dp.sbc_capabilities));
     }
@@ -344,7 +344,7 @@ static int get_caps(struct userdata *u) {
     msg.getcaps_req.h.name = BT_GET_CAPABILITIES;
     msg.getcaps_req.h.length = sizeof(msg.getcaps_req);
 
-    pa_strlcpy(msg.getcaps_req.device, u->address, sizeof(msg.getcaps_req.device));
+    pa_strlcpy(msg.getcaps_req.object, u->path, sizeof(msg.getcaps_req.object));
     if (u->profile == PROFILE_A2DP)
         msg.getcaps_req.transport = BT_CAPABILITIES_TRANSPORT_A2DP;
     else {
@@ -602,11 +602,28 @@ static void setup_sbc(struct a2dp_info *a2dp) {
 
 static int set_conf(struct userdata *u) {
     union {
+        struct bt_open_req open_req;
+        struct bt_open_rsp open_rsp;
         struct bt_set_configuration_req setconf_req;
         struct bt_set_configuration_rsp setconf_rsp;
         bt_audio_error_t error;
         uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
     } msg;
+
+    memset(&msg, 0, sizeof(msg));
+    msg.open_req.h.type = BT_REQUEST;
+    msg.open_req.h.name = BT_OPEN;
+    msg.open_req.h.length = sizeof(msg.open_req);
+
+    pa_strlcpy(msg.open_req.object, u->path, sizeof(msg.open_req.object));
+    msg.open_req.seid = u->profile == PROFILE_A2DP ? u->a2dp.sbc_capabilities.capability.seid : BT_A2DP_SEID_RANGE + 1;
+    msg.open_req.lock = u->profile == PROFILE_A2DP ? BT_WRITE_LOCK : BT_READ_LOCK | BT_WRITE_LOCK;
+
+    if (service_send(u, &msg.open_req.h) < 0)
+        return -1;
+
+    if (service_expect(u, &msg.open_rsp.h, sizeof(msg), BT_OPEN, sizeof(msg.open_rsp)) < 0)
+        return -1;
 
     if (u->profile == PROFILE_A2DP ) {
         u->sample_spec.format = PA_SAMPLE_S16LE;
@@ -626,33 +643,20 @@ static int set_conf(struct userdata *u) {
     msg.setconf_req.h.name = BT_SET_CONFIGURATION;
     msg.setconf_req.h.length = sizeof(msg.setconf_req);
 
-    pa_strlcpy(msg.setconf_req.device, u->address, sizeof(msg.setconf_req.device));
-    msg.setconf_req.access_mode = u->profile == PROFILE_A2DP ? BT_CAPABILITIES_ACCESS_MODE_WRITE : BT_CAPABILITIES_ACCESS_MODE_READWRITE;
-
-    msg.setconf_req.codec.transport = u->profile == PROFILE_A2DP ? BT_CAPABILITIES_TRANSPORT_A2DP : BT_CAPABILITIES_TRANSPORT_SCO;
-
     if (u->profile == PROFILE_A2DP) {
         memcpy(&msg.setconf_req.codec, &u->a2dp.sbc_capabilities, sizeof(u->a2dp.sbc_capabilities));
-        msg.setconf_req.h.length += msg.setconf_req.codec.length - sizeof(msg.setconf_req.codec);
+    } else {
+        msg.setconf_req.codec.transport = BT_CAPABILITIES_TRANSPORT_SCO;
+        msg.setconf_req.codec.seid = BT_A2DP_SEID_RANGE + 1;
+        msg.setconf_req.codec.length = sizeof(pcm_capabilities_t);
     }
+    msg.setconf_req.h.length += msg.setconf_req.codec.length - sizeof(msg.setconf_req.codec);
 
     if (service_send(u, &msg.setconf_req.h) < 0)
         return -1;
 
     if (service_expect(u, &msg.setconf_rsp.h, sizeof(msg), BT_SET_CONFIGURATION, sizeof(msg.setconf_rsp)) < 0)
         return -1;
-
-    if ((u->profile == PROFILE_A2DP && msg.setconf_rsp.transport != BT_CAPABILITIES_TRANSPORT_A2DP) ||
-        (u->profile == PROFILE_HSP && msg.setconf_rsp.transport != BT_CAPABILITIES_TRANSPORT_SCO)) {
-        pa_log("Transport doesn't match what we requested.");
-        return -1;
-    }
-
-    if ((u->profile == PROFILE_A2DP && msg.setconf_rsp.access_mode != BT_CAPABILITIES_ACCESS_MODE_WRITE) ||
-        (u->profile == PROFILE_HSP && msg.setconf_rsp.access_mode != BT_CAPABILITIES_ACCESS_MODE_READWRITE)) {
-        pa_log("Access mode doesn't match what we requested.");
-        return -1;
-    }
 
     u->link_mtu = msg.setconf_rsp.link_mtu;
 
