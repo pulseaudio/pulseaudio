@@ -156,7 +156,7 @@ static char* get_backtrace(unsigned show_nframes) {
     for (j = 0; j < n; j++) {
         if (j > 0)
             a += 2;
-        a += strlen(symbols[j]);
+        a += strlen(pa_path_get_filename(symbols[j]));
     }
 
     r = pa_xnew(char, a);
@@ -165,13 +165,17 @@ static char* get_backtrace(unsigned show_nframes) {
     e = r + 2;
 
     for (j = 0; j < n; j++) {
+        const char *sym;
+
         if (j > 0) {
             strcpy(e, "<<");
             e += 2;
         }
 
-        strcpy(e, symbols[j]);
-        e += strlen(symbols[j]);
+        sym = pa_path_get_filename(symbols[j]);
+
+        strcpy(e, sym);
+        e += strlen(sym);
     }
 
     strcpy(e, ")");
