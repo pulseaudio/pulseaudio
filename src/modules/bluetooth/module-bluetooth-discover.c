@@ -43,6 +43,7 @@ PA_MODULE_AUTHOR("Joao Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("Detect available bluetooth audio devices and load bluetooth audio drivers");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_USAGE("async=<Asynchronous initialization?>");
+PA_MODULE_LOAD_ONCE(TRUE);
 
 /*
 #ifdef NOKIA
