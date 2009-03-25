@@ -745,8 +745,47 @@ void pa_mempool_free(pa_mempool *p) {
     pa_flist_free(p->free_slots, NULL);
 
     if (pa_atomic_load(&p->stat.n_allocated) > 0) {
-/*         raise(SIGTRAP);  */
-        pa_log_warn("Memory pool destroyed but not all memory blocks freed! %u remain.", pa_atomic_load(&p->stat.n_allocated));
+
+        /* Ouch, somebody is retaining a memory block reference! */
+
+#ifdef DEBUG_REF
+        unsigned i;
+        pa_flist *list;
+
+        /* Let's try to find at least one of those leaked memory blocks */
+
+        list = pa_flist_new(p->n_blocks);
+
+        for (i = 0; i < (unsigned) pa_atomic_load(&p->n_init); i++) {
+            struct mempool_slot *slot;
+            pa_memblock *b, *k;
+
+            slot = (struct mempool_slot*) ((uint8_t*) p->memory.ptr + (p->block_size * (size_t) i));
+            b = mempool_slot_data(slot);
+
+            while ((k = pa_flist_pop(p->free_slots))) {
+                while (pa_flist_push(list, k) < 0)
+                    ;
+
+                if (b == k)
+                    break;
+            }
+
+            if (!k)
+                pa_log("REF: Leaked memory block %p", b);
+
+            while ((k = pa_flist_pop(list)))
+                while (pa_flist_push(p->free_slots, k) < 0)
+                    ;
+        }
+
+        pa_flist_free(list, NULL);
+
+#endif
+
+        pa_log_error("Memory pool destroyed but not all memory blocks freed! %u remain.", pa_atomic_load(&p->stat.n_allocated));
+
+/*         PA_DEBUG_TRAP; */
     }
 
     pa_shm_free(&p->memory);
