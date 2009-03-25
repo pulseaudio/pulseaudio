@@ -354,6 +354,9 @@ static int do_write(struct userdata *u) {
     }
 
     if (!u->write_data && u->state == STATE_PREPARE) {
+        int so_sndbuf = 0;
+        socklen_t sl = sizeof(int);
+
         /* OK, we're done with sending all control data we need to, so
          * let's hand the socket over to the IO thread now */
 
@@ -365,6 +368,13 @@ static int do_write(struct userdata *u) {
         u->io = NULL;
 
         pa_make_tcp_socket_low_delay(u->fd);
+
+        if (getsockopt(u->fd, SOL_SOCKET, SO_SNDBUF, &so_sndbuf, &sl) < 0)
+            pa_log_warn("getsockopt(SO_SNDBUF) failed: %s", pa_cstrerror(errno));
+        else {
+            pa_log_debug("SO_SNDBUF is %zu.", (size_t) so_sndbuf);
+            pa_sink_set_max_request(u->sink, PA_MAX((size_t) so_sndbuf, u->block_size));
+        }
 
         pa_log_debug("Connection authenticated, handing fd to IO thread...");
 
