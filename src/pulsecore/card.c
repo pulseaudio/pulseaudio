@@ -141,6 +141,7 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     data->profiles = NULL;
 
     c->active_profile = NULL;
+    c->save_profile = FALSE;
 
     if (data->active_profile && c->profiles)
         if ((c->active_profile = pa_hashmap_get(c->profiles, data->active_profile)))
