@@ -789,7 +789,7 @@ typedef enum pa_source_flags {
     /**< Volume can be translated to dB with pa_sw_volume_to_dB()
      * \since 0.9.11 */
 
-    PA_SOURCE_DYNAMIC_LATENCY = 0x0080U
+    PA_SOURCE_DYNAMIC_LATENCY = 0x0040U
     /**< The latency can be adjusted dynamically depending on the
      * needs of the connected streams. \since 0.9.15 */
 } pa_source_flags_t;
