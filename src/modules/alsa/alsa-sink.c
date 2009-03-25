@@ -1691,7 +1691,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
 
     pa_sink_set_max_request(u->sink, u->hwbuf_size);
 
-    if (use_tsched) {
+    if (u->use_tsched) {
         fix_min_sleep_wakeup(u);
         fix_tsched_watermark(u);
 

@@ -1541,7 +1541,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
                 nfrags, (long unsigned) u->fragment_size,
                 (double) pa_bytes_to_usec(u->hwbuf_size, &ss) / PA_USEC_PER_MSEC);
 
-    if (use_tsched) {
+    if (u->use_tsched) {
         fix_min_sleep_wakeup(u);
         fix_tsched_watermark(u);
 
