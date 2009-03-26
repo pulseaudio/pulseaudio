@@ -462,6 +462,9 @@ static int setup_a2dp(struct userdata *u) {
         }
     }
 
+    if (cap->capability.configured)
+        return 0;
+
     if (u->sample_spec.channels <= 1) {
         if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_MONO) {
             cap->channel_mode = BT_A2DP_CHANNEL_MODE_MONO;
