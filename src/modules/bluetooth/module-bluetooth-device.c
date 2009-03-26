@@ -448,8 +448,8 @@ static int setup_a2dp(struct userdata *u) {
             break;
         }
 
-    if ((unsigned) i >= PA_ELEMENTSOF(freq_table)) {
-        for (; i >= 0; i--) {
+    if ((unsigned) i == PA_ELEMENTSOF(freq_table)) {
+        for (--i; i >= 0; i--) {
             if (cap->frequency & freq_table[i].cap) {
                 u->sample_spec.rate = freq_table[i].rate;
                 cap->frequency = freq_table[i].cap;
@@ -462,6 +462,8 @@ static int setup_a2dp(struct userdata *u) {
             return -1;
         }
     }
+
+    pa_assert(i < PA_ELEMENTSOF(freq_table));
 
     if (cap->capability.configured)
         return 0;
