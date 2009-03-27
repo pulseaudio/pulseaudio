@@ -2617,7 +2617,7 @@ char *pa_realpath(const char *path) {
         return NULL;
     }
 
-#ifndef __GLIBC__
+#if !defined(__GLIBC__) && !defined(__APPLE__)
 #error "It's not clear whether this system supports realpath(..., NULL) like GNU libc does. If it doesn't we need a private version of realpath() here."
 #endif
 
