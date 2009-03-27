@@ -53,12 +53,20 @@ struct pa_bluetooth_uuid {
     PA_LLIST_FIELDS(pa_bluetooth_uuid);
 };
 
+/* This enum is shared among Audio, Headset, and AudioSink, although not all values are acceptable in all profiles */
+enum pa_bt_audio_state {
+    PA_BT_AUDIO_STATE_INVALID = -1,
+    PA_BT_AUDIO_STATE_DISCONNECTED,
+    PA_BT_AUDIO_STATE_CONNECTING,
+    PA_BT_AUDIO_STATE_CONNECTED,
+    PA_BT_AUDIO_STATE_PLAYING,
+    PA_BT_AUDIO_STATE_LAST
+};
+
 struct pa_bluetooth_device {
     pa_bool_t dead;
 
     int device_info_valid;      /* 0: no results yet; 1: good results; -1: bad results ... */
-    int audio_sink_info_valid;  /* ... same here ... */
-    int headset_info_valid;     /* ... and here */
 
     /* Device information */
     char *name;
@@ -71,11 +79,14 @@ struct pa_bluetooth_device {
     int class;
     int trusted;
 
-    /* AudioSink information */
-    int audio_sink_connected;
+    /* Audio state */
+    int audio_state;
 
-    /* Headset information */
-    int headset_connected;
+    /* AudioSink state */
+    int audio_sink_state;
+
+    /* Headset state */
+    int headset_state;
 };
 
 pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *core);
@@ -92,5 +103,7 @@ pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *d);
 const char* pa_bluetooth_get_form_factor(uint32_t class);
 
 char *pa_bluetooth_cleanup_name(const char *name);
+
+pa_bool_t pa_bluetooth_uuid_has(pa_bluetooth_uuid *uuids, const char *uuid);
 
 #endif

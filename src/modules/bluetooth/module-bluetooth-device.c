@@ -1736,11 +1736,11 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 
     d = PA_CARD_PROFILE_DATA(new_profile);
 
-    if (u->device->headset_connected <= 0 && *d == PROFILE_HSP) {
+    if (u->device->headset_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HSP) {
         pa_log_warn("HSP is not connected, refused to switch profile");
         return -1;
     }
-    else if (u->device->audio_sink_connected <= 0 && *d == PROFILE_A2DP) {
+    else if (u->device->audio_sink_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP) {
         pa_log_warn("A2DP is not connected, refused to switch profile");
         return -1;
     }
@@ -1821,7 +1821,11 @@ static int add_card(struct userdata *u, const char *default_profile, const pa_bl
 
     data.profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
-    if (device->audio_sink_info_valid > 0) {
+    /* we base hsp/a2dp availability on UUIDs.
+       Ideally, it would be based on "Connected" state, but
+       we can't afford to wait for this information when
+       we are loaded with profile="hsp", for instance */
+    if (pa_bluetooth_uuid_has(device->uuids, A2DP_SINK_UUID)) {
         p = pa_card_profile_new("a2dp", _("High Fidelity Playback (A2DP)"), sizeof(enum profile));
         p->priority = 10;
         p->n_sinks = 1;
@@ -1835,7 +1839,8 @@ static int add_card(struct userdata *u, const char *default_profile, const pa_bl
         pa_hashmap_put(data.profiles, p->name, p);
     }
 
-    if (device->headset_info_valid > 0) {
+    if (pa_bluetooth_uuid_has(device->uuids, HSP_HS_UUID) ||
+	pa_bluetooth_uuid_has(device->uuids, HFP_HS_UUID)) {
         p = pa_card_profile_new("hsp", _("Telephony Duplex (HSP/HFP)"), sizeof(enum profile));
         p->priority = 20;
         p->n_sinks = 1;
