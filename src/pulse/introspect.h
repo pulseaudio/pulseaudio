@@ -344,7 +344,7 @@ typedef struct pa_module_info {
     pa_proplist *proplist;              /**< Property list \since 0.9.15 */
 } pa_module_info;
 
-/** Callback prototype for pa_context_get_module_info() and firends*/
+/** Callback prototype for pa_context_get_module_info() and friends*/
 typedef void (*pa_module_info_cb_t) (pa_context *c, const pa_module_info*i, int eol, void *userdata);
 
 /** Get some information about a module by its index */
@@ -377,7 +377,7 @@ typedef struct pa_client_info {
     pa_proplist *proplist;               /**< Property list \since 0.9.11 */
 } pa_client_info;
 
-/** Callback prototype for pa_context_get_client_info() and firends*/
+/** Callback prototype for pa_context_get_client_info() and friends*/
 typedef void (*pa_client_info_cb_t) (pa_context *c, const pa_client_info*i, int eol, void *userdata);
 
 /** Get information about a client by its index */
@@ -418,7 +418,7 @@ typedef struct pa_card_info {
     pa_proplist *proplist;               /**< Property list */
 } pa_card_info;
 
-/** Callback prototype for pa_context_get_card_info() and firends \since 0.9.15 */
+/** Callback prototype for pa_context_get_card_info() and friends \since 0.9.15 */
 typedef void (*pa_card_info_cb_t) (pa_context *c, const pa_card_info*i, int eol, void *userdata);
 
 /** Get information about a card by its index \since 0.9.15 */
@@ -460,7 +460,7 @@ typedef struct pa_sink_input_info {
     pa_proplist *proplist;               /**< Property list \since 0.9.11 */
 } pa_sink_input_info;
 
-/** Callback prototype for pa_context_get_sink_input_info() and firends*/
+/** Callback prototype for pa_context_get_sink_input_info() and friends*/
 typedef void (*pa_sink_input_info_cb_t) (pa_context *c, const pa_sink_input_info *i, int eol, void *userdata);
 
 /** Get some information about a sink input by its index */
@@ -506,7 +506,7 @@ typedef struct pa_source_output_info {
     pa_proplist *proplist;               /**< Property list \since 0.9.11 */
 } pa_source_output_info;
 
-/** Callback prototype for pa_context_get_source_output_info() and firends*/
+/** Callback prototype for pa_context_get_source_output_info() and friends*/
 typedef void (*pa_source_output_info_cb_t) (pa_context *c, const pa_source_output_info *i, int eol, void *userdata);
 
 /** Get information about a source output by its index */
@@ -571,7 +571,7 @@ typedef struct pa_sample_info {
     pa_proplist *proplist;                /**< Property list for this sample. \since 0.9.11 */
 } pa_sample_info;
 
-/** Callback prototype for pa_context_get_sample_info_by_name() and firends */
+/** Callback prototype for pa_context_get_sample_info_by_name() and friends */
 typedef void (*pa_sample_info_cb_t)(pa_context *c, const pa_sample_info *i, int eol, void *userdata);
 
 /** Get information about a sample by its name */
@@ -606,7 +606,7 @@ typedef struct pa_autoload_info {
     const char *argument;         /**< Argument string for module */
 } pa_autoload_info;
 
-/** \deprecated Callback prototype for pa_context_get_autoload_info_by_name() and firends */
+/** \deprecated Callback prototype for pa_context_get_autoload_info_by_name() and friends */
 typedef void (*pa_autoload_info_cb_t)(pa_context *c, const pa_autoload_info *i, int eol, void *userdata);
 
 /** \deprecated Get info about a specific autoload entry. */
