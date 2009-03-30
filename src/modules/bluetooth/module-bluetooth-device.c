@@ -462,7 +462,7 @@ static int setup_a2dp(struct userdata *u) {
         }
     }
 
-    pa_assert(i < PA_ELEMENTSOF(freq_table));
+    pa_assert((unsigned) i < PA_ELEMENTSOF(freq_table));
 
     if (cap->capability.configured)
         return 0;
