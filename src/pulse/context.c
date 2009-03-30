@@ -874,16 +874,20 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
     if (c->state != PA_CONTEXT_CONNECTING)
         goto finish;
 
-    is_session = bus == pa_dbus_wrap_connection_get(c->session_bus);
-    pa_log_debug("Rock!! PulseAudio is baack on %s bus", is_session ? "session" : "system");
+    if (!c->no_fail)
+        goto finish;
 
-    if (is_session) {
+    /* FIXME: We probably should check if this is actually the NameOwnerChanged we were looking for */
+
+    is_session = bus == pa_dbus_wrap_connection_get(c->session_bus);
+    pa_log_debug("Rock!! PulseAudio is back on %s bus", is_session ? "session" : "system");
+
+    if (is_session)
         /* The user instance via PF_LOCAL */
         c->server_list = prepend_per_user(c->server_list);
-    } else {
+    else
         /* The system wide instance via PF_LOCAL */
         c->server_list = pa_strlist_prepend(c->server_list, PA_SYSTEM_RUNTIME_PATH PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET);
-    }
 
     try_next_connection(c);
 
