@@ -516,26 +516,12 @@ void pa_source_output_update_max_rewind(pa_source_output *o, size_t nbytes  /* i
 }
 
 /* Called from thread context */
-static pa_usec_t fixup_latency(pa_source *s, pa_usec_t usec) {
-    pa_source_assert_ref(s);
-
-    if (usec == (pa_usec_t) -1)
-        return usec;
-
-    if (s->thread_info.max_latency > 0 && usec > s->thread_info.max_latency)
-        usec = s->thread_info.max_latency;
-
-    if (s->thread_info.min_latency > 0 && usec < s->thread_info.min_latency)
-        usec = s->thread_info.min_latency;
-
-    return usec;
-}
-
-/* Called from thread context */
 pa_usec_t pa_source_output_set_requested_latency_within_thread(pa_source_output *o, pa_usec_t usec) {
     pa_source_output_assert_ref(o);
 
-    usec = fixup_latency(o->source, usec);
+    if (usec != (pa_usec_t) -1)
+        usec = PA_CLAMP(usec, o->source->thread_info.min_latency, o->source->thread_info.max_latency);
+
     o->thread_info.requested_source_latency = usec;
     pa_source_invalidate_requested_latency(o->source);
 
@@ -544,33 +530,42 @@ pa_usec_t pa_source_output_set_requested_latency_within_thread(pa_source_output 
 
 /* Called from main context */
 pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t usec) {
+    pa_usec_t min_latency, max_latency;
+
     pa_source_output_assert_ref(o);
 
-    if (PA_SOURCE_OUTPUT_IS_LINKED(o->state))
+    if (PA_SOURCE_OUTPUT_IS_LINKED(o->state) && o->source) {
         pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_REQUESTED_LATENCY, &usec, 0, NULL) == 0);
-    else
-        /* If this source output is not realized yet, we have to touch
-         * the thread info data directly */
+        return usec;
+    }
 
-        o->thread_info.requested_source_latency = usec;
+    /* If this source output is not realized yet or is being moved, we
+     * have to touch the thread info data directly */
+
+    pa_source_get_latency_range(o->source, &min_latency, &max_latency);
+
+    if (usec != (pa_usec_t) -1)
+        usec = PA_CLAMP(usec, min_latency, max_latency);
+
+    o->thread_info.requested_source_latency = usec;
 
     return usec;
 }
 
 /* Called from main context */
 pa_usec_t pa_source_output_get_requested_latency(pa_source_output *o) {
-    pa_usec_t usec = 0;
-
     pa_source_output_assert_ref(o);
 
-    if (PA_SOURCE_OUTPUT_IS_LINKED(o->state))
+    if (PA_SOURCE_OUTPUT_IS_LINKED(o->state) && o->source) {
+        pa_usec_t usec = 0;
         pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_GET_REQUESTED_LATENCY, &usec, 0, NULL) == 0);
-    else
-        /* If this source output is not realized yet, we have to touch
-         * the thread info data directly */
-        usec = o->thread_info.requested_source_latency;
+        return usec;
+    }
 
-    return usec;
+    /* If this source output is not realized yet or is being moved, we
+     * have to touch the thread info data directly */
+
+    return o->thread_info.requested_source_latency;
 }
 
 /* Called from main context */

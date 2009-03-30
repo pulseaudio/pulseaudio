@@ -819,26 +819,12 @@ void pa_sink_input_update_max_request(pa_sink_input *i, size_t nbytes  /* in the
 }
 
 /* Called from thread context */
-static pa_usec_t fixup_latency(pa_sink *s, pa_usec_t usec) {
-    pa_sink_assert_ref(s);
-
-    if (usec == (pa_usec_t) -1)
-        return usec;
-
-    if (s->thread_info.max_latency > 0 && usec > s->thread_info.max_latency)
-        usec = s->thread_info.max_latency;
-
-    if (s->thread_info.min_latency > 0 && usec < s->thread_info.min_latency)
-        usec = s->thread_info.min_latency;
-
-    return usec;
-}
-
-/* Called from thread context */
 pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa_usec_t usec) {
     pa_sink_input_assert_ref(i);
 
-    usec = fixup_latency(i->sink, usec);
+    if (usec != (pa_usec_t) -1)
+        usec =  PA_CLAMP(usec, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
+
     i->thread_info.requested_sink_latency = usec;
     pa_sink_invalidate_requested_latency(i->sink);
 
@@ -847,33 +833,42 @@ pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa
 
 /* Called from main context */
 pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec) {
+    pa_usec_t min_latency, max_latency;
+
     pa_sink_input_assert_ref(i);
 
-    if (PA_SINK_INPUT_IS_LINKED(i->state))
+    if (PA_SINK_INPUT_IS_LINKED(i->state) && i->sink) {
         pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_REQUESTED_LATENCY, &usec, 0, NULL) == 0);
-    else
-        /* If this sink input is not realized yet, we have to touch
-         * the thread info data directly */
+        return usec;
+    }
 
-        i->thread_info.requested_sink_latency = usec;
+    /* If this sink input is not realized yet or we are being moved,
+     * we have to touch the thread info data directly */
+
+    pa_sink_get_latency_range(i->sink, &min_latency, &max_latency);
+
+    if (usec != (pa_usec_t) -1)
+        usec =  PA_CLAMP(usec, min_latency, max_latency);
+
+    i->thread_info.requested_sink_latency = usec;
 
     return usec;
 }
 
 /* Called from main context */
 pa_usec_t pa_sink_input_get_requested_latency(pa_sink_input *i) {
-    pa_usec_t usec = 0;
-
     pa_sink_input_assert_ref(i);
 
-    if (PA_SINK_INPUT_IS_LINKED(i->state))
+    if (PA_SINK_INPUT_IS_LINKED(i->state) && i->sink) {
+        pa_usec_t usec = 0;
         pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_GET_REQUESTED_LATENCY, &usec, 0, NULL) == 0);
-    else
-        /* If this sink input is not realized yet, we have to touch
-         * the thread info data directly */
-        usec = i->thread_info.requested_sink_latency;
+        return usec;
+    }
 
-    return usec;
+    /* If this sink input is not realized yet or we are being moved,
+     * we have to touch the thread info data directly */
+
+    return i->thread_info.requested_sink_latency;
 }
 
 /* Called from main context */
