@@ -175,7 +175,7 @@ static const struct command commands[] = {
     { "suspend-sink",            pa_cli_command_suspend_sink,       "Suspend sink (args: index|name, bool)", 3},
     { "suspend-source",          pa_cli_command_suspend_source,     "Suspend source (args: index|name, bool)", 3},
     { "suspend",                 pa_cli_command_suspend,            "Suspend all sinks and all sources (args: bool)", 2},
-    { "set-card-profile",        pa_cli_command_card_profile,       "Change the profile of a card (aargs: index, name)", 3},
+    { "set-card-profile",        pa_cli_command_card_profile,       "Change the profile of a card (args: index, name)", 3},
     { "set-log-level",           pa_cli_command_log_level,          "Change the log level (args: numeric level)", 2},
     { "set-log-meta",            pa_cli_command_log_meta,           "Show source code location in log messages (args: bool)", 2},
     { "set-log-time",            pa_cli_command_log_time,           "Show timestamps in log messages (args: bool)", 2},
