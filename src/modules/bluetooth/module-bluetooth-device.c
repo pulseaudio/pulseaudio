@@ -132,7 +132,7 @@ struct userdata {
 
     char *address;
     char *path;
-    const pa_bluetooth_device* device;
+    pa_bluetooth_discovery *discovery;
 
     pa_dbus_connection *connection;
 
@@ -1728,6 +1728,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     struct userdata *u;
     enum profile *d;
     pa_queue *inputs = NULL, *outputs = NULL;
+    const pa_bluetooth_device *device;
 
     pa_assert(c);
     pa_assert(new_profile);
@@ -1735,11 +1736,16 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 
     d = PA_CARD_PROFILE_DATA(new_profile);
 
-    if (u->device->headset_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HSP) {
+    if (!(device = pa_bluetooth_discovery_get_by_path(u->discovery, u->path))) {
+        pa_log_error("Failed to get device object.");
+        return -1;
+    }
+
+    if (device->headset_state != PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HSP) {
         pa_log_warn("HSP is not connected, refused to switch profile");
         return -1;
     }
-    else if (u->device->audio_sink_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP) {
+    else if (device->audio_sink_state != PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP) {
         pa_log_warn("A2DP is not connected, refused to switch profile");
         return -1;
     }
@@ -1884,11 +1890,10 @@ static int add_card(struct userdata *u, const char *default_profile, const pa_bl
     return 0;
 }
 
-static const pa_bluetooth_device* find_device(struct userdata *u, pa_bluetooth_discovery *y, const char *address, const char *path) {
+static const pa_bluetooth_device* find_device(struct userdata *u, const char *address, const char *path) {
     const pa_bluetooth_device *d = NULL;
 
     pa_assert(u);
-    pa_assert(y);
 
     if (!address && !path) {
         pa_log_error("Failed to get device address/path from module arguments.");
@@ -1896,7 +1901,7 @@ static const pa_bluetooth_device* find_device(struct userdata *u, pa_bluetooth_d
     }
 
     if (path) {
-        if (!(d = pa_bluetooth_discovery_get_by_path(y, path))) {
+        if (!(d = pa_bluetooth_discovery_get_by_path(u->discovery, path))) {
             pa_log_error("%s is not a valid BlueZ audio device.", path);
             return NULL;
         }
@@ -1907,7 +1912,7 @@ static const pa_bluetooth_device* find_device(struct userdata *u, pa_bluetooth_d
         }
 
     } else {
-        if (!(d = pa_bluetooth_discovery_get_by_address(y, address))) {
+        if (!(d = pa_bluetooth_discovery_get_by_address(u->discovery, address))) {
             pa_log_error("%s is not known.", address);
             return NULL;
         }
@@ -1942,9 +1947,9 @@ int pa__init(pa_module* m) {
     uint32_t channels;
     struct userdata *u;
     const char *address, *path;
-    pa_bluetooth_discovery *y = NULL;
     DBusError err;
     char *mike, *speaker;
+    const pa_bluetooth_device *device;
 
     pa_assert(m);
 
@@ -1999,18 +2004,15 @@ int pa__init(pa_module* m) {
     if (setup_dbus(u) < 0)
         goto fail;
 
-    if (!(y = pa_bluetooth_discovery_get(m->core)))
+    if (!(u->discovery = pa_bluetooth_discovery_get(m->core)))
         goto fail;
 
-    if (!(u->device = find_device(u, y, address, path))) /* should discovery ref be kept? */
+    if (!(device = find_device(u, address, path)))
         goto fail;
 
     /* Add the card structure. This will also initialize the default profile */
-    if (add_card(u, pa_modargs_get_value(ma, "profile", NULL), u->device) < 0)
+    if (add_card(u, pa_modargs_get_value(ma, "profile", NULL), device) < 0)
         goto fail;
-
-    pa_bluetooth_discovery_unref(y);
-    y = NULL;
 
     /* Connect to the BT service and query capabilities */
     if (init_bt(u) < 0)
@@ -2051,9 +2053,6 @@ int pa__init(pa_module* m) {
     return 0;
 
 fail:
-
-    if (y)
-        pa_bluetooth_discovery_unref(y);
 
     pa__done(m);
 
@@ -2134,6 +2133,9 @@ void pa__done(pa_module *m) {
 
     pa_xfree(u->address);
     pa_xfree(u->path);
+
+    if (u->discovery)
+        pa_bluetooth_discovery_unref(u->discovery);
 
     pa_xfree(u);
 }
