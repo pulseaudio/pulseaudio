@@ -290,17 +290,6 @@ static int parse_audio_property(pa_bluetooth_discovery *u, int *state, DBusMessa
             if (pa_streq(key, "State"))
                 *state = pa_bt_audio_state_from_string(value);
 /*             pa_log_debug("Value %s", value); */
-        }
-
-        case DBUS_TYPE_BOOLEAN: {
-
-            dbus_bool_t value;
-            dbus_message_iter_get_basic(&variant_i, &value);
-
-            /* if (pa_streq(key, "Connected")) */
-            /*     *connected = !!value; */
-
-/*             pa_log_debug("Value %s", pa_yes_no(value)); */
 
             break;
         }
