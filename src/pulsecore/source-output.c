@@ -87,7 +87,7 @@ static void reset_callbacks(pa_source_output *o) {
     o->attach = NULL;
     o->detach = NULL;
     o->suspend = NULL;
-    o->moved = NULL;
+    o->moving = NULL;
     o->kill = NULL;
     o->get_latency = NULL;
     o->state_change = NULL;
@@ -749,6 +749,9 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
     } else
         new_resampler = NULL;
 
+    if (o->moving)
+        o->moving(o);
+
     o->source = dest;
     o->save_source = save;
     pa_idxset_put(o->source->outputs, o, NULL);
@@ -776,14 +779,12 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
     }
 
     pa_source_update_status(dest);
+
     pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, o, 0, NULL) == 0);
 
     pa_log_debug("Successfully moved source output %i to %s.", o->index, dest->name);
 
     /* Notify everyone */
-    if (o->moved)
-        o->moved(o);
-
     pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_FINISH], o);
     pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
 

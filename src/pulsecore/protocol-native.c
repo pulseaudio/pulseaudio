@@ -203,7 +203,7 @@ enum {
 static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk);
 static void sink_input_kill_cb(pa_sink_input *i);
 static void sink_input_suspend_cb(pa_sink_input *i, pa_bool_t suspend);
-static void sink_input_moved_cb(pa_sink_input *i);
+static void sink_input_moving_cb(pa_sink_input *i);
 static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes);
 static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes);
 static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes);
@@ -215,7 +215,7 @@ static void playback_stream_request_bytes(struct playback_stream*s);
 static void source_output_kill_cb(pa_source_output *o);
 static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk);
 static void source_output_suspend_cb(pa_source_output *o, pa_bool_t suspend);
-static void source_output_moved_cb(pa_source_output *o);
+static void source_output_moving_cb(pa_source_output *o);
 static pa_usec_t source_output_get_latency_cb(pa_source_output *o);
 static void source_output_send_event_cb(pa_source_output *o, const char *event, pa_proplist *pl);
 
@@ -636,7 +636,7 @@ static record_stream* record_stream_new(
     s->source_output->push = source_output_push_cb;
     s->source_output->kill = source_output_kill_cb;
     s->source_output->get_latency = source_output_get_latency_cb;
-    s->source_output->moved = source_output_moved_cb;
+    s->source_output->moving = source_output_moving_cb;
     s->source_output->suspend = source_output_suspend_cb;
     s->source_output->send_event = source_output_send_event_cb;
     s->source_output->userdata = s;
@@ -1049,7 +1049,7 @@ static playback_stream* playback_stream_new(
     s->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;
     s->sink_input->update_max_request = sink_input_update_max_request_cb;
     s->sink_input->kill = sink_input_kill_cb;
-    s->sink_input->moved = sink_input_moved_cb;
+    s->sink_input->moving = sink_input_moving_cb;
     s->sink_input->suspend = sink_input_suspend_cb;
     s->sink_input->send_event = sink_input_send_event_cb;
     s->sink_input->userdata = s;
@@ -1539,7 +1539,7 @@ static void sink_input_suspend_cb(pa_sink_input *i, pa_bool_t suspend) {
 }
 
 /* Called from main context */
-static void sink_input_moved_cb(pa_sink_input *i) {
+static void sink_input_moving_cb(pa_sink_input *i) {
     playback_stream *s;
     pa_tagstruct *t;
     uint32_t maxlength, tlength, prebuf, minreq;
@@ -1661,7 +1661,7 @@ static void source_output_suspend_cb(pa_source_output *o, pa_bool_t suspend) {
 }
 
 /* Called from main context */
-static void source_output_moved_cb(pa_source_output *o) {
+static void source_output_moving_cb(pa_source_output *o) {
     record_stream *s;
     pa_tagstruct *t;
     uint32_t maxlength, fragsize;

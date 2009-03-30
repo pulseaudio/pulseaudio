@@ -122,7 +122,7 @@ struct pa_source_output {
 
     /* If non-NULL called whenever the the source this output is attached
      * to changes. Called from main context */
-    void (*moved) (pa_source_output *o);   /* may be NULL */
+    void (*moving) (pa_source_output *o);   /* may be NULL */
 
     /* Supposed to unlink and destroy this stream. Called from main
      * context. */

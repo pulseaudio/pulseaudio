@@ -150,7 +150,7 @@ struct pa_sink_input {
 
     /* If non-NULL called whenever the the sink this input is attached
      * to changes. Called from main context */
-    void (*moved) (pa_sink_input *i);   /* may be NULL */
+    void (*moving) (pa_sink_input *i);   /* may be NULL */
 
     /* Supposed to unlink and destroy this stream. Called from main
      * context. */

@@ -117,7 +117,7 @@ static void reset_callbacks(pa_sink_input *i) {
     i->attach = NULL;
     i->detach = NULL;
     i->suspend = NULL;
-    i->moved = NULL;
+    i->moving = NULL;
     i->kill = NULL;
     i->get_latency = NULL;
     i->state_change = NULL;
@@ -1169,6 +1169,9 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     } else
         new_resampler = NULL;
 
+    if (i->moving)
+        i->moving(i);
+
     i->sink = dest;
     i->save_sink = save;
     pa_idxset_put(dest->inputs, i, NULL);
@@ -1195,7 +1198,6 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
                 0,
                 &i->sink->silence);
     }
-
     pa_sink_update_status(dest);
 
     if (i->sink->flags & PA_SINK_FLAT_VOLUME) {
@@ -1216,9 +1218,6 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     pa_log_debug("Successfully moved sink input %i to %s.", i->index, dest->name);
 
     /* Notify everyone */
-    if (i->moved)
-        i->moved(i);
-
     pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FINISH], i);
     pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
 
