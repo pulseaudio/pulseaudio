@@ -699,7 +699,10 @@ static int pa_cli_command_update_sink_proplist(pa_core *c, pa_tokenizer *t, pa_s
         return -1;
     }
 
-    p = pa_proplist_from_string(s);
+    if (!(p = pa_proplist_from_string(s))) {
+        pa_strbuf_puts(buf, "Failed to parse proplist.\n");
+        return -1;
+    }
 
     pa_sink_update_proplist(sink, PA_UPDATE_REPLACE, p);
 
@@ -733,7 +736,10 @@ static int pa_cli_command_update_source_proplist(pa_core *c, pa_tokenizer *t, pa
         return -1;
     }
 
-    p = pa_proplist_from_string(s);
+    if (!(p = pa_proplist_from_string(s))) {
+        pa_strbuf_puts(buf, "Failed to parse proplist.\n");
+        return -1;
+    }
 
     pa_source_update_proplist(source, PA_UPDATE_REPLACE, p);
 
@@ -773,7 +779,10 @@ static int pa_cli_command_update_sink_input_proplist(pa_core *c, pa_tokenizer *t
         return -1;
     }
 
-    p = pa_proplist_from_string(s);
+    if (!(p = pa_proplist_from_string(s))) {
+        pa_strbuf_puts(buf, "Failed to parse proplist.\n");
+        return -1;
+    }
 
     pa_sink_input_update_proplist(si, PA_UPDATE_REPLACE, p);
 
@@ -813,7 +822,10 @@ static int pa_cli_command_update_source_output_proplist(pa_core *c, pa_tokenizer
         return -1;
     }
 
-    p = pa_proplist_from_string(s);
+    if (!(p = pa_proplist_from_string(s))) {
+        pa_strbuf_puts(buf, "Failed to parse proplist.\n");
+        return -1;
+    }
 
     pa_source_output_update_proplist(so, PA_UPDATE_REPLACE, p);
 
