@@ -624,7 +624,7 @@ typedef struct pa_timing_info {
     /**< The configured latency for the sink. \since 0.9.11 */
 
     pa_usec_t configured_source_usec;
-    /**< The configured latency for * the source. \since 0.9.11 */
+    /**< The configured latency for the source. \since 0.9.11 */
 
     int64_t since_underrun;
     /**< Bytes that were handed to the sink since the last underrun
