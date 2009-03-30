@@ -145,6 +145,7 @@ static void command_stream_killed(pa_pdispatch *pd, uint32_t command, uint32_t t
 static void command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_suspended(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_moved(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+static void command_stream_or_client_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
 #ifdef TUNNEL_SINK
@@ -159,7 +160,10 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_PLAYBACK_STREAM_SUSPENDED] = command_suspended,
     [PA_COMMAND_RECORD_STREAM_SUSPENDED] = command_suspended,
     [PA_COMMAND_PLAYBACK_STREAM_MOVED] = command_moved,
-    [PA_COMMAND_RECORD_STREAM_MOVED] = command_moved
+    [PA_COMMAND_RECORD_STREAM_MOVED] = command_moved,
+    [PA_COMMAND_PLAYBACK_STREAM_EVENT] = command_stream_or_client_event,
+    [PA_COMMAND_RECORD_STREAM_EVENT] = command_stream_or_client_event,
+    [PA_COMMAND_CLIENT_EVENT] = command_stream_or_client_event
 };
 
 struct userdata {
@@ -196,8 +200,8 @@ struct userdata {
     pa_bool_t remote_corked:1;
     pa_bool_t remote_suspended:1;
 
-    pa_usec_t transport_usec;
-    pa_bool_t transport_usec_valid;
+    pa_usec_t transport_usec; /* maintained in the main thread */
+    pa_usec_t thread_transport_usec; /* maintained in the IO thread */
 
     uint32_t ignore_latency_before;
 
@@ -220,6 +224,11 @@ struct userdata {
 };
 
 static void request_latency(struct userdata *u);
+
+/* Called from main context */
+static void command_stream_or_client_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_log_debug("Got stream or client event.");
+}
 
 /* Called from main context */
 static void command_stream_killed(pa_pdispatch *pd,  uint32_t command,  uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -261,10 +270,13 @@ static void command_suspended(pa_pdispatch *pd,  uint32_t command,  uint32_t tag
     if (pa_tagstruct_getu32(t, &channel) < 0 ||
         pa_tagstruct_get_boolean(t, &suspended) < 0 ||
         !pa_tagstruct_eof(t)) {
-        pa_log("Invalid packet");
+
+        pa_log("Invalid packet.");
         pa_module_unload_request(u->module, TRUE);
         return;
     }
+
+    pa_log_debug("Server reports device suspend.");
 
 #ifdef TUNNEL_SINK
     pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_REMOTE_SUSPEND, PA_UINT32_TO_PTR(!!suspended), 0, NULL);
@@ -278,13 +290,33 @@ static void command_suspended(pa_pdispatch *pd,  uint32_t command,  uint32_t tag
 /* Called from main context */
 static void command_moved(pa_pdispatch *pd,  uint32_t command,  uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
+    uint32_t channel, di;
+    const char *dn;
+    pa_bool_t suspended;
 
     pa_assert(pd);
     pa_assert(t);
     pa_assert(u);
     pa_assert(u->pdispatch == pd);
 
+    if (pa_tagstruct_getu32(t, &channel) < 0 ||
+        pa_tagstruct_getu32(t, &di) < 0 ||
+        pa_tagstruct_gets(t, &dn) < 0 ||
+        pa_tagstruct_get_boolean(t, &suspended) < 0) {
+
+        pa_log_error("Invalid packet.");
+        pa_module_unload_request(u->module, TRUE);
+        return;
+    }
+
     pa_log_debug("Server reports a stream move.");
+
+#ifdef TUNNEL_SINK
+    pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_REMOTE_SUSPEND, PA_UINT32_TO_PTR(!!suspended), 0, NULL);
+#else
+    pa_asyncmsgq_send(u->source->asyncmsgq, PA_MSGOBJECT(u->source), SOURCE_MESSAGE_REMOTE_SUSPEND, PA_UINT32_TO_PTR(!!suspended), 0, NULL);
+#endif
+
     request_latency(u);
 }
 
@@ -306,26 +338,37 @@ static void command_started(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa
 #endif
 
 /* Called from IO thread context */
-static void stream_cork_within_thread(struct userdata *u, pa_bool_t cork) {
+static void check_smoother_status(struct userdata *u, pa_bool_t past)  {
     pa_usec_t x;
+
+    pa_assert(u);
+
+    x = pa_rtclock_usec();
+
+    /* Correct by the time the requested issued needs to travel to the
+     * other side.  This is a valid thread-safe access, because the
+     * main thread is waiting for us */
+
+    if (past)
+        x -= u->thread_transport_usec;
+    else
+        x += u->thread_transport_usec;
+
+    if (u->remote_suspended || u->remote_corked)
+        pa_smoother_pause(u->smoother, x);
+    else
+        pa_smoother_resume(u->smoother, x);
+}
+
+/* Called from IO thread context */
+static void stream_cork_within_thread(struct userdata *u, pa_bool_t cork) {
     pa_assert(u);
 
     if (u->remote_corked == cork)
         return;
 
     u->remote_corked = cork;
-    x = pa_rtclock_usec();
-
-    /* Correct by the time this needs to travel to the other side.
-     * This is a valid thread-safe access, because the main thread is
-     * waiting for us */
-    if (u->transport_usec_valid)
-        x += u->transport_usec;
-
-    if (u->remote_suspended || u->remote_corked)
-        pa_smoother_pause(u->smoother, x);
-    else
-        pa_smoother_resume(u->smoother, x);
+    check_smoother_status(u, FALSE);
 }
 
 /* Called from main context */
@@ -352,26 +395,13 @@ static void stream_cork(struct userdata *u, pa_bool_t cork) {
 
 /* Called from IO thread context */
 static void stream_suspend_within_thread(struct userdata *u, pa_bool_t suspend) {
-    pa_usec_t x;
     pa_assert(u);
 
     if (u->remote_suspended == suspend)
         return;
 
     u->remote_suspended = suspend;
-
-    x = pa_rtclock_usec();
-
-    /* Correct by the time this needed to travel from the other side.
-     * This is a valid thread-safe access, because the main thread is
-     * waiting for us */
-    if (u->transport_usec_valid)
-        x -= u->transport_usec;
-
-    if (u->remote_suspended || u->remote_corked)
-        pa_smoother_pause(u->smoother, x);
-    else
-        pa_smoother_resume(u->smoother, x);
+    check_smoother_status(u, TRUE);
 }
 
 #ifdef TUNNEL_SINK
@@ -446,12 +476,15 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
             y = pa_bytes_to_usec((uint64_t) u->counter, &u->sink->sample_spec);
 
-            if (y > (pa_usec_t) offset || offset < 0)
+            if (y > (pa_usec_t) offset)
                 y -= (pa_usec_t) offset;
             else
                 y = 0;
 
             pa_smoother_put(u->smoother, pa_rtclock_usec(), y);
+
+            /* We can access this freely here, since the main thread is waiting for us */
+            u->thread_transport_usec = u->transport_usec;
 
             return 0;
         }
@@ -546,13 +579,12 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             pa_usec_t y;
 
             y = pa_bytes_to_usec((uint64_t) u->counter, &u->source->sample_spec);
-
-            if (offset >= 0 || y > (pa_usec_t) -offset)
-                y += (pa_usec_t) offset;
-            else
-                y = 0;
+            y += (pa_usec_t) offset;
 
             pa_smoother_put(u->smoother, pa_rtclock_usec(), y);
+
+            /* We can access this freely here, since the main thread is waiting for us */
+            u->thread_transport_usec = u->transport_usec;
 
             return 0;
         }
@@ -606,7 +638,7 @@ static void thread_func(void *userdata) {
 
 #ifdef TUNNEL_SINK
         if (PA_SINK_IS_OPENED(u->sink->thread_info.state))
-            if (u->sink->thread_info.rewind_requested)
+            if (PA_UNLIKELY(u->sink->thread_info.rewind_requested))
                 pa_sink_process_rewind(u->sink, 0);
 #endif
 
@@ -662,7 +694,7 @@ fail:
 /* Called from main context */
 static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
-    pa_usec_t sink_usec, source_usec, transport_usec = 0;
+    pa_usec_t sink_usec, source_usec;
     pa_bool_t playing;
     int64_t write_index, read_index;
     struct timeval local, remote, now;
@@ -709,7 +741,6 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, uint
     }
 
     if (tag < u->ignore_latency_before) {
-        request_latency(u);
         return;
     }
 
@@ -725,7 +756,6 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, uint
 #endif
     } else
         u->transport_usec = pa_timeval_diff(&now, &local)/2;
-    u->transport_usec_valid = TRUE;
 
     /* First, take the device's delay */
 #ifdef TUNNEL_SINK
@@ -745,9 +775,9 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, uint
     /* Our measurements are already out of date, hence correct by the     *
      * transport latency */
 #ifdef TUNNEL_SINK
-    delay -= (int64_t) transport_usec;
+    delay -= (int64_t) u->transport_usec;
 #else
-    delay += (int64_t) transport_usec;
+    delay += (int64_t) u->transport_usec;
 #endif
 
     /* Now correct by what we have have read/written since we requested the update */
@@ -786,8 +816,7 @@ static void request_latency(struct userdata *u) {
     pa_tagstruct_putu32(t, tag = u->ctag++);
     pa_tagstruct_putu32(t, u->channel);
 
-    pa_gettimeofday(&now);
-    pa_tagstruct_put_timeval(t, &now);
+    pa_tagstruct_put_timeval(t, pa_gettimeofday(&now));
 
     pa_pstream_send_tagstruct(u->pstream, t);
     pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_latency_callback, u, NULL);
@@ -861,6 +890,7 @@ static void update_description(struct userdata *u) {
 static void server_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
     pa_sample_spec ss;
+    pa_channel_map cm;
     const char *server_name, *server_version, *user_name, *host_name, *default_sink_name, *default_source_name;
     uint32_t cookie;
 
@@ -882,7 +912,9 @@ static void server_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa
         pa_tagstruct_get_sample_spec(t, &ss) < 0 ||
         pa_tagstruct_gets(t, &default_sink_name) < 0 ||
         pa_tagstruct_gets(t, &default_source_name) < 0 ||
-        pa_tagstruct_getu32(t, &cookie) < 0) {
+        pa_tagstruct_getu32(t, &cookie) < 0 ||
+        (u->version >= 15 &&
+         pa_tagstruct_get_channel_map(t, &cm) < 0)) {
 
         pa_log("Parse failure");
         goto fail;
@@ -957,6 +989,20 @@ static void sink_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa_t
 
         if (pa_tagstruct_get_proplist(t, pl) < 0 ||
             pa_tagstruct_get_usec(t, &configured_latency) < 0) {
+
+            pa_log("Parse failure");
+            goto fail;
+        }
+    }
+
+    if (u->version >= 15) {
+        pa_volume_t base_volume;
+        uint32_t state, n_volume_steps, card;
+
+        if (pa_tagstruct_get_volume(t, &base_volume) < 0 ||
+            pa_tagstruct_getu32(t, &state) < 0 ||
+            pa_tagstruct_getu32(t, &n_volume_steps) < 0 ||
+            pa_tagstruct_getu32(t, &card) < 0) {
 
             pa_log("Parse failure");
             goto fail;
@@ -1059,12 +1105,11 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag
         pa_cvolume_equal(&volume, &u->sink->virtual_volume))
         return;
 
-    memcpy(&u->sink->virtual_volume, &volume, sizeof(pa_cvolume));
+    pa_sink_volume_changed(u->sink, &volume);
 
     if (u->version >= 11)
-        u->sink->muted = !!mute;
+        pa_sink_mute_changed(u->sink, mute);
 
-    pa_subscription_post(u->sink->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, u->sink->index);
     return;
 
 fail:
@@ -1120,6 +1165,20 @@ static void source_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa
     if (u->version >= 13) {
         if (pa_tagstruct_get_proplist(t, pl) < 0 ||
             pa_tagstruct_get_usec(t, &configured_latency) < 0) {
+
+            pa_log("Parse failure");
+            goto fail;
+        }
+    }
+
+    if (u->version >= 15) {
+        pa_volume_t base_volume;
+        uint32_t state, n_volume_steps, card;
+
+        if (pa_tagstruct_get_volume(t, &base_volume) < 0 ||
+            pa_tagstruct_getu32(t, &state) < 0 ||
+            pa_tagstruct_getu32(t, &n_volume_steps) < 0 ||
+            pa_tagstruct_getu32(t, &card) < 0) {
 
             pa_log("Parse failure");
             goto fail;
@@ -1314,11 +1373,11 @@ static void create_stream_callback(pa_pdispatch *pd, uint32_t command,  uint32_t
         if (pa_tagstruct_get_usec(t, &usec) < 0)
             goto parse_error;
 
-#ifdef TUNNEL_SINK
-        pa_sink_set_latency_range(u->sink, usec + MIN_NETWORK_LATENCY_USEC, 0);
-#else
-        pa_source_set_latency_range(u->source, usec + MIN_NETWORK_LATENCY_USEC, 0);
-#endif
+/* #ifdef TUNNEL_SINK */
+/*         pa_sink_set_latency_range(u->sink, usec + MIN_NETWORK_LATENCY_USEC, 0); */
+/* #else */
+/*         pa_source_set_latency_range(u->source, usec + MIN_NETWORK_LATENCY_USEC, 0); */
+/* #endif */
     }
 
     if (!pa_tagstruct_eof(t))
@@ -1391,11 +1450,17 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     pa_log_debug("Protocol version: remote %u, local %u", u->version, PA_PROTOCOL_VERSION);
 
 #ifdef TUNNEL_SINK
+    pa_proplist_setf(u->sink->proplist, "tunnel.remote_version", "%u", u->version);
+    pa_sink_update_proplist(u->sink, 0, NULL);
+
     pa_snprintf(name, sizeof(name), "%s for %s@%s",
                 u->sink_name,
                 pa_get_user_name(un, sizeof(un)),
                 pa_get_host_name(hn, sizeof(hn)));
 #else
+    pa_proplist_setf(u->source->proplist, "tunnel.remote_version", "%u", u->version);
+    pa_source_update_proplist(u->source, 0, NULL);
+
     pa_snprintf(name, sizeof(name), "%s for %s@%s",
                 u->source_name,
                 pa_get_user_name(un, sizeof(un)),
@@ -1409,9 +1474,9 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     if (u->version >= 13) {
         pa_proplist *pl;
         pl = pa_proplist_new();
-        pa_init_proplist(pl);
         pa_proplist_sets(pl, PA_PROP_APPLICATION_ID, "org.PulseAudio.PulseAudio");
         pa_proplist_sets(pl, PA_PROP_APPLICATION_VERSION, PACKAGE_VERSION);
+        pa_init_proplist(pl);
         pa_tagstruct_put_proplist(reply, pl);
         pa_proplist_free(pl);
     } else
@@ -1503,6 +1568,14 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
         pa_tagstruct_put_boolean(reply, TRUE); /* early rquests */
     }
 
+    if (u->version >= 15) {
+#ifdef TUNNEL_SINK
+        pa_tagstruct_put_boolean(reply, FALSE); /* muted_set */
+#endif
+        pa_tagstruct_put_boolean(reply, FALSE); /* don't inhibit auto suspend */
+        pa_tagstruct_put_boolean(reply, FALSE); /* fail on suspend */
+    }
+
     pa_pstream_send_tagstruct(u->pstream, reply);
     pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, create_stream_callback, u, NULL);
 
@@ -1559,7 +1632,6 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
 
     u->counter_delta += (int64_t) chunk->length;
 }
-
 #endif
 
 /* Called from main context */
@@ -1700,8 +1772,7 @@ int pa__init(pa_module*m) {
     u->device_index = u->channel = PA_INVALID_INDEX;
     u->time_event = NULL;
     u->ignore_latency_before = 0;
-    u->transport_usec = 0;
-    u->transport_usec_valid = FALSE;
+    u->transport_usec = u->thread_transport_usec = 0;
     u->remote_suspended = u->remote_corked = FALSE;
     u->counter = u->counter_delta = 0;
 
@@ -1747,7 +1818,7 @@ int pa__init(pa_module*m) {
     if (u->sink_name)
         pa_proplist_sets(data.proplist, "tunnel.remote.sink", u->sink_name);
 
-    u->sink = pa_sink_new(m->core, &data, PA_SINK_NETWORK|PA_SINK_LATENCY|PA_SINK_HW_VOLUME_CTRL);
+    u->sink = pa_sink_new(m->core, &data, PA_SINK_NETWORK|PA_SINK_LATENCY|PA_SINK_HW_VOLUME_CTRL|PA_SINK_HW_MUTE_CTRL);
     pa_sink_new_data_done(&data);
 
     if (!u->sink) {
@@ -1763,7 +1834,7 @@ int pa__init(pa_module*m) {
 
     u->sink->refresh_volume = u->sink->refresh_muted = FALSE;
 
-    pa_sink_set_latency_range(u->sink, MIN_NETWORK_LATENCY_USEC, 0);
+/*     pa_sink_set_latency_range(u->sink, MIN_NETWORK_LATENCY_USEC, 0); */
 
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
@@ -1797,7 +1868,7 @@ int pa__init(pa_module*m) {
     u->source->set_state = source_set_state;
     u->source->userdata = u;
 
-    pa_source_set_latency_range(u->source, MIN_NETWORK_LATENCY_USEC, 0);
+/*     pa_source_set_latency_range(u->source, MIN_NETWORK_LATENCY_USEC, 0); */
 
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_rtpoll(u->source, u->rtpoll);
