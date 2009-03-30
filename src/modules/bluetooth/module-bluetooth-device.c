@@ -132,6 +132,7 @@ struct userdata {
 
     char *address;
     char *path;
+    const pa_bluetooth_device* device;
 
     pa_dbus_connection *connection;
 
@@ -274,7 +275,7 @@ static ssize_t service_expect(struct userdata*u, bt_audio_msg_header_t *rsp, siz
     return 0;
 }
 
-static int parse_caps(struct userdata *u, const struct bt_get_capabilities_rsp *rsp) {
+static int parse_caps(struct userdata *u, uint8_t seid, const struct bt_get_capabilities_rsp *rsp) {
     uint16_t bytes_left;
     const codec_capabilities_t *codec;
 
@@ -305,12 +306,15 @@ static int parse_caps(struct userdata *u, const struct bt_get_capabilities_rsp *
 
         pa_assert(codec->type == BT_HFP_CODEC_PCM);
 
+        if (codec->configured && seid == 0)
+            return codec->seid;
+
         memcpy(&u->hsp.pcm_capabilities, codec, sizeof(u->hsp.pcm_capabilities));
 
     } else if (u->profile == PROFILE_A2DP) {
 
         while (bytes_left > 0) {
-            if (codec->type == BT_A2DP_CODEC_SBC)
+            if ((codec->type == BT_A2DP_SBC_SINK) && !codec->lock)
                 break;
 
             bytes_left -= codec->length;
@@ -320,7 +324,10 @@ static int parse_caps(struct userdata *u, const struct bt_get_capabilities_rsp *
         if (bytes_left <= 0 || codec->length != sizeof(u->a2dp.sbc_capabilities))
             return -1;
 
-        pa_assert(codec->type == BT_A2DP_CODEC_SBC);
+        pa_assert(codec->type == BT_A2DP_SBC_SINK);
+
+        if (codec->configured && seid == 0)
+            return codec->seid;
 
         memcpy(&u->a2dp.sbc_capabilities, codec, sizeof(u->a2dp.sbc_capabilities));
     }
@@ -328,13 +335,14 @@ static int parse_caps(struct userdata *u, const struct bt_get_capabilities_rsp *
     return 0;
 }
 
-static int get_caps(struct userdata *u) {
+static int get_caps(struct userdata *u, uint8_t seid) {
     union {
         struct bt_get_capabilities_req getcaps_req;
         struct bt_get_capabilities_rsp getcaps_rsp;
         bt_audio_error_t error;
         uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
     } msg;
+    int ret;
 
     pa_assert(u);
 
@@ -342,8 +350,9 @@ static int get_caps(struct userdata *u) {
     msg.getcaps_req.h.type = BT_REQUEST;
     msg.getcaps_req.h.name = BT_GET_CAPABILITIES;
     msg.getcaps_req.h.length = sizeof(msg.getcaps_req);
+    msg.getcaps_req.seid = seid;
 
-    pa_strlcpy(msg.getcaps_req.device, u->address, sizeof(msg.getcaps_req.device));
+    pa_strlcpy(msg.getcaps_req.object, u->path, sizeof(msg.getcaps_req.object));
     if (u->profile == PROFILE_A2DP)
         msg.getcaps_req.transport = BT_CAPABILITIES_TRANSPORT_A2DP;
     else {
@@ -358,7 +367,11 @@ static int get_caps(struct userdata *u) {
     if (service_expect(u, &msg.getcaps_rsp.h, sizeof(msg), BT_GET_CAPABILITIES, 0) < 0)
         return -1;
 
-    return parse_caps(u, &msg.getcaps_rsp);
+    ret = parse_caps(u, seid, &msg.getcaps_rsp);
+    if (ret <= 0)
+        return ret;
+
+    return get_caps(u, ret);
 }
 
 static uint8_t a2dp_default_bitpool(uint8_t freq, uint8_t mode) {
@@ -434,8 +447,8 @@ static int setup_a2dp(struct userdata *u) {
             break;
         }
 
-    if ((unsigned) i >= PA_ELEMENTSOF(freq_table)) {
-        for (; i >= 0; i--) {
+    if ((unsigned) i == PA_ELEMENTSOF(freq_table)) {
+        for (--i; i >= 0; i--) {
             if (cap->frequency & freq_table[i].cap) {
                 u->sample_spec.rate = freq_table[i].rate;
                 cap->frequency = freq_table[i].cap;
@@ -448,6 +461,11 @@ static int setup_a2dp(struct userdata *u) {
             return -1;
         }
     }
+
+    pa_assert(i < PA_ELEMENTSOF(freq_table));
+
+    if (cap->capability.configured)
+        return 0;
 
     if (u->sample_spec.channels <= 1) {
         if (cap->channel_mode & BT_A2DP_CHANNEL_MODE_MONO) {
@@ -601,11 +619,28 @@ static void setup_sbc(struct a2dp_info *a2dp) {
 
 static int set_conf(struct userdata *u) {
     union {
+        struct bt_open_req open_req;
+        struct bt_open_rsp open_rsp;
         struct bt_set_configuration_req setconf_req;
         struct bt_set_configuration_rsp setconf_rsp;
         bt_audio_error_t error;
         uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
     } msg;
+
+    memset(&msg, 0, sizeof(msg));
+    msg.open_req.h.type = BT_REQUEST;
+    msg.open_req.h.name = BT_OPEN;
+    msg.open_req.h.length = sizeof(msg.open_req);
+
+    pa_strlcpy(msg.open_req.object, u->path, sizeof(msg.open_req.object));
+    msg.open_req.seid = u->profile == PROFILE_A2DP ? u->a2dp.sbc_capabilities.capability.seid : BT_A2DP_SEID_RANGE + 1;
+    msg.open_req.lock = u->profile == PROFILE_A2DP ? BT_WRITE_LOCK : BT_READ_LOCK | BT_WRITE_LOCK;
+
+    if (service_send(u, &msg.open_req.h) < 0)
+        return -1;
+
+    if (service_expect(u, &msg.open_rsp.h, sizeof(msg), BT_OPEN, sizeof(msg.open_rsp)) < 0)
+        return -1;
 
     if (u->profile == PROFILE_A2DP ) {
         u->sample_spec.format = PA_SAMPLE_S16LE;
@@ -625,33 +660,20 @@ static int set_conf(struct userdata *u) {
     msg.setconf_req.h.name = BT_SET_CONFIGURATION;
     msg.setconf_req.h.length = sizeof(msg.setconf_req);
 
-    pa_strlcpy(msg.setconf_req.device, u->address, sizeof(msg.setconf_req.device));
-    msg.setconf_req.access_mode = u->profile == PROFILE_A2DP ? BT_CAPABILITIES_ACCESS_MODE_WRITE : BT_CAPABILITIES_ACCESS_MODE_READWRITE;
-
-    msg.setconf_req.codec.transport = u->profile == PROFILE_A2DP ? BT_CAPABILITIES_TRANSPORT_A2DP : BT_CAPABILITIES_TRANSPORT_SCO;
-
     if (u->profile == PROFILE_A2DP) {
         memcpy(&msg.setconf_req.codec, &u->a2dp.sbc_capabilities, sizeof(u->a2dp.sbc_capabilities));
-        msg.setconf_req.h.length += msg.setconf_req.codec.length - sizeof(msg.setconf_req.codec);
+    } else {
+        msg.setconf_req.codec.transport = BT_CAPABILITIES_TRANSPORT_SCO;
+        msg.setconf_req.codec.seid = BT_A2DP_SEID_RANGE + 1;
+        msg.setconf_req.codec.length = sizeof(pcm_capabilities_t);
     }
+    msg.setconf_req.h.length += msg.setconf_req.codec.length - sizeof(msg.setconf_req.codec);
 
     if (service_send(u, &msg.setconf_req.h) < 0)
         return -1;
 
     if (service_expect(u, &msg.setconf_rsp.h, sizeof(msg), BT_SET_CONFIGURATION, sizeof(msg.setconf_rsp)) < 0)
         return -1;
-
-    if ((u->profile == PROFILE_A2DP && msg.setconf_rsp.transport != BT_CAPABILITIES_TRANSPORT_A2DP) ||
-        (u->profile == PROFILE_HSP && msg.setconf_rsp.transport != BT_CAPABILITIES_TRANSPORT_SCO)) {
-        pa_log("Transport doesn't match what we requested.");
-        return -1;
-    }
-
-    if ((u->profile == PROFILE_A2DP && msg.setconf_rsp.access_mode != BT_CAPABILITIES_ACCESS_MODE_WRITE) ||
-        (u->profile == PROFILE_HSP && msg.setconf_rsp.access_mode != BT_CAPABILITIES_ACCESS_MODE_READWRITE)) {
-        pa_log("Access mode doesn't match what we requested.");
-        return -1;
-    }
 
     u->link_mtu = msg.setconf_rsp.link_mtu;
 
@@ -1570,7 +1592,7 @@ static int init_bt(struct userdata *u) {
 static int setup_bt(struct userdata *u) {
     pa_assert(u);
 
-    if (get_caps(u) < 0)
+    if (get_caps(u, 0) < 0)
         return -1;
 
     pa_log_debug("Got device capabilities");
@@ -1713,6 +1735,15 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 
     d = PA_CARD_PROFILE_DATA(new_profile);
 
+    if (u->device->headset_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HSP) {
+        pa_log_warn("HSP is not connected, refused to switch profile");
+        return -1;
+    }
+    else if (u->device->audio_sink_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP) {
+        pa_log_warn("A2DP is not connected, refused to switch profile");
+        return -1;
+    }
+
     if (u->sink) {
         inputs = pa_sink_move_all_start(u->sink);
 #ifdef NOKIA
@@ -1789,7 +1820,11 @@ static int add_card(struct userdata *u, const char *default_profile, const pa_bl
 
     data.profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
-    if (device->audio_sink_info_valid > 0) {
+    /* we base hsp/a2dp availability on UUIDs.
+       Ideally, it would be based on "Connected" state, but
+       we can't afford to wait for this information when
+       we are loaded with profile="hsp", for instance */
+    if (pa_bluetooth_uuid_has(device->uuids, A2DP_SINK_UUID)) {
         p = pa_card_profile_new("a2dp", _("High Fidelity Playback (A2DP)"), sizeof(enum profile));
         p->priority = 10;
         p->n_sinks = 1;
@@ -1803,7 +1838,8 @@ static int add_card(struct userdata *u, const char *default_profile, const pa_bl
         pa_hashmap_put(data.profiles, p->name, p);
     }
 
-    if (device->headset_info_valid > 0) {
+    if (pa_bluetooth_uuid_has(device->uuids, HSP_HS_UUID) ||
+	pa_bluetooth_uuid_has(device->uuids, HFP_HS_UUID)) {
         p = pa_card_profile_new("hsp", _("Telephony Duplex (HSP/HFP)"), sizeof(enum profile));
         p->priority = 20;
         p->n_sinks = 1;
@@ -1906,7 +1942,6 @@ int pa__init(pa_module* m) {
     uint32_t channels;
     struct userdata *u;
     const char *address, *path;
-    const pa_bluetooth_device *d;
     pa_bluetooth_discovery *y = NULL;
     DBusError err;
     char *mike, *speaker;
@@ -1967,11 +2002,11 @@ int pa__init(pa_module* m) {
     if (!(y = pa_bluetooth_discovery_get(m->core)))
         goto fail;
 
-    if (!(d = find_device(u, y, address, path)))
+    if (!(u->device = find_device(u, y, address, path))) /* should discovery ref be kept? */
         goto fail;
 
     /* Add the card structure. This will also initialize the default profile */
-    if (add_card(u, pa_modargs_get_value(ma, "profile", NULL), d) < 0)
+    if (add_card(u, pa_modargs_get_value(ma, "profile", NULL), u->device) < 0)
         goto fail;
 
     pa_bluetooth_discovery_unref(y);
