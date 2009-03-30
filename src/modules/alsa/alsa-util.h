@@ -139,4 +139,6 @@ char *pa_alsa_get_driver_name_by_pcm(snd_pcm_t *pcm);
 
 char *pa_alsa_get_reserve_name(const char *device);
 
+pa_bool_t pa_alsa_pcm_is_hw(snd_pcm_t *pcm);
+
 #endif

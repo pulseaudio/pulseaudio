@@ -1716,9 +1716,10 @@ char *pa_alsa_get_driver_name(int card) {
 
 char *pa_alsa_get_driver_name_by_pcm(snd_pcm_t *pcm) {
     int card;
-
     snd_pcm_info_t* info;
     snd_pcm_info_alloca(&info);
+
+    pa_assert(pcm);
 
     if (snd_pcm_info(pcm, info) < 0)
         return NULL;
@@ -1748,4 +1749,16 @@ char *pa_alsa_get_reserve_name(const char *device) {
     }
 
     return pa_sprintf_malloc("Audio%i", i);
+}
+
+pa_bool_t pa_alsa_pcm_is_hw(snd_pcm_t *pcm) {
+    snd_pcm_info_t* info;
+    snd_pcm_info_alloca(&info);
+
+    pa_assert(pcm);
+
+    if (snd_pcm_info(pcm, info) < 0)
+        return FALSE;
+
+    return snd_pcm_info_get_card(info) >= 0;
 }
