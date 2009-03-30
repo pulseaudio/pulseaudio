@@ -54,14 +54,14 @@ struct pa_bluetooth_uuid {
 };
 
 /* This enum is shared among Audio, Headset, and AudioSink, although not all values are acceptable in all profiles */
-enum pa_bt_audio_state {
+typedef enum pa_bt_audio_state {
     PA_BT_AUDIO_STATE_INVALID = -1,
     PA_BT_AUDIO_STATE_DISCONNECTED,
     PA_BT_AUDIO_STATE_CONNECTING,
     PA_BT_AUDIO_STATE_CONNECTED,
     PA_BT_AUDIO_STATE_PLAYING,
     PA_BT_AUDIO_STATE_LAST
-};
+} pa_bt_audio_state_t;
 
 struct pa_bluetooth_device {
     pa_bool_t dead;
@@ -80,13 +80,13 @@ struct pa_bluetooth_device {
     int trusted;
 
     /* Audio state */
-    int audio_state;
+    pa_bt_audio_state_t audio_state;
 
     /* AudioSink state */
-    int audio_sink_state;
+    pa_bt_audio_state_t audio_sink_state;
 
     /* Headset state */
-    int headset_state;
+    pa_bt_audio_state_t headset_state;
 };
 
 pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *core);

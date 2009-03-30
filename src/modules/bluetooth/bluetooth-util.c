@@ -42,18 +42,17 @@ struct pa_bluetooth_discovery {
 static void get_properties_reply(DBusPendingCall *pending, void *userdata);
 static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_discovery *y, pa_bluetooth_device *d, DBusMessage *m, DBusPendingCallNotifyFunction func);
 
-static enum pa_bt_audio_state pa_bt_audio_state_from_string(const char* value) {
+static pa_bt_audio_state_t pa_bt_audio_state_from_string(const char* value) {
     pa_assert(value);
 
-    if (pa_streq(value, "disconnected")) {
+    if (pa_streq(value, "disconnected"))
         return PA_BT_AUDIO_STATE_DISCONNECTED;
-    } else if (pa_streq(value, "connecting")) {
+    else if (pa_streq(value, "connecting"))
         return PA_BT_AUDIO_STATE_CONNECTING;
-    } else if (pa_streq(value, "connected")) {
+    else if (pa_streq(value, "connected"))
         return PA_BT_AUDIO_STATE_CONNECTED;
-    } else if (pa_streq(value, "playing")) {
+    else if (pa_streq(value, "playing"))
         return PA_BT_AUDIO_STATE_PLAYING;
-    }
 
     return PA_BT_AUDIO_STATE_INVALID;
 }
