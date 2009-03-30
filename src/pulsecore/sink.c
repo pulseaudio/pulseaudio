@@ -1798,7 +1798,7 @@ void pa_sink_set_max_rewind_within_thread(pa_sink *s, size_t max_rewind) {
     }
 
     if (s->monitor_source)
-        pa_source_set_max_rewind(s->monitor_source, s->thread_info.max_rewind);
+        pa_source_set_max_rewind_within_thread(s->monitor_source, s->thread_info.max_rewind);
 }
 
 /* Called from main thread */
