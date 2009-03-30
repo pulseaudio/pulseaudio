@@ -51,7 +51,6 @@
 struct pa_context {
     PA_REFCNT_DECLARE;
 
-    pa_bool_t no_fail:1;
     pa_dbus_wrap_connection *system_bus;
     pa_dbus_wrap_connection *session_bus;
 
@@ -83,7 +82,8 @@ struct pa_context {
 
     pa_bool_t is_local:1;
     pa_bool_t do_shm:1;
-
+    pa_bool_t server_specified:1;
+    pa_bool_t no_fail:1;
     pa_bool_t do_autospawn:1;
     pa_spawn_api spawn_api;
 

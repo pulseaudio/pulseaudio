@@ -144,7 +144,6 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     if (name)
         pa_proplist_sets(c->proplist, PA_PROP_APPLICATION_NAME, name);
 
-    c->no_fail = FALSE;
     c->system_bus = c->session_bus = NULL;
     c->mainloop = mainloop;
     c->client = NULL;
@@ -170,6 +169,8 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
 
     c->do_shm = FALSE;
 
+    c->server_specified = FALSE;
+    c->no_fail = FALSE;
     c->do_autospawn = FALSE;
     memset(&c->spawn_api, 0, sizeof(c->spawn_api));
 
@@ -799,7 +800,7 @@ static int try_next_connection(pa_context *c) {
             }
 #endif
 
-            if (c->no_fail) {
+            if (c->no_fail && !c->server_specified) {
                 if (!c->system_bus)
                     track_pulseaudio_on_dbus(c, DBUS_BUS_SYSTEM, &c->system_bus);
                 if (!c->session_bus)
@@ -917,6 +918,7 @@ int pa_context_connect(
     pa_context_ref(c);
 
     c->no_fail = flags & PA_CONTEXT_NOFAIL;
+    c->server_specified = !!server;
     pa_assert(!c->server_list);
 
     if (server) {
