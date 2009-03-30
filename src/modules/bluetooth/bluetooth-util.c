@@ -418,15 +418,6 @@ static void found_device(pa_bluetooth_discovery *y, const char* path) {
 
     pa_assert_se(m = dbus_message_new_method_call("org.bluez", path, "org.bluez.Device", "GetProperties"));
     send_and_add_to_pending(y, d, m, get_properties_reply);
-
-    pa_assert_se(m = dbus_message_new_method_call("org.bluez", path, "org.bluez.Audio", "GetProperties"));
-    send_and_add_to_pending(y, d, m, get_properties_reply);
-
-    pa_assert_se(m = dbus_message_new_method_call("org.bluez", path, "org.bluez.Headset", "GetProperties"));
-    send_and_add_to_pending(y, d, m, get_properties_reply);
-
-    pa_assert_se(m = dbus_message_new_method_call("org.bluez", path, "org.bluez.AudioSink", "GetProperties"));
-    send_and_add_to_pending(y, d, m, get_properties_reply);
 }
 
 static void list_devices_reply(DBusPendingCall *pending, void *userdata) {
