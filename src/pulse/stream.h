@@ -512,6 +512,13 @@ void pa_stream_set_suspended_callback(pa_stream *p, pa_stream_notify_cb_t cb, vo
  * control event is received.\since 0.9.15 */
 void pa_stream_set_event_callback(pa_stream *p, pa_stream_event_cb_t cb, void *userdata);
 
+/** Set the callback function that is called whenver the buffer
+ * attributes on the server side change. Please note that the buffer
+ * attributes can change when moving a stream to a different
+ * sink/source too, hence if you use this callback you should use
+ * pa_stream_set_moved_callback() as well. \since 0.9.15 */
+void pa_stream_set_buffer_attr_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
+
 /** Pause (or resume) playback of this stream temporarily. Available on both playback and recording streams. */
 pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, void *userdata);
 
@@ -530,7 +537,7 @@ pa_operation* pa_stream_prebuf(pa_stream *s, pa_stream_success_cb_t cb, void *us
  * temporarily. Available for playback streams only. */
 pa_operation* pa_stream_trigger(pa_stream *s, pa_stream_success_cb_t cb, void *userdata);
 
-/** Rename the stream.*/
+/** Rename the stream. */
 pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_success_cb_t cb, void *userdata);
 
 /** Return the current playback/recording time. This is based on the

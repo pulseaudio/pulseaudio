@@ -99,7 +99,9 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_EXTENSION] = pa_command_extension,
     [PA_COMMAND_PLAYBACK_STREAM_EVENT] = pa_command_stream_event,
     [PA_COMMAND_RECORD_STREAM_EVENT] = pa_command_stream_event,
-    [PA_COMMAND_CLIENT_EVENT] = pa_command_client_event
+    [PA_COMMAND_CLIENT_EVENT] = pa_command_client_event,
+    [PA_COMMAND_PLAYBACK_BUFFER_ATTR_CHANGED] = pa_command_stream_buffer_attr,
+    [PA_COMMAND_RECORD_BUFFER_ATTR_CHANGED] = pa_command_stream_buffer_attr
 };
 static void context_free(pa_context *c);
 

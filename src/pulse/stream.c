@@ -72,6 +72,8 @@ static void reset_callbacks(pa_stream *s) {
     s->started_userdata = NULL;
     s->event_callback = NULL;
     s->event_userdata = NULL;
+    s->buffer_attr_callback = NULL;
+    s->buffer_attr_userdata = NULL;
 }
 
 pa_stream *pa_stream_new_with_proplist(
@@ -396,7 +398,7 @@ void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
     const char *dn;
     pa_bool_t suspended;
     uint32_t di;
-    pa_usec_t usec;
+    pa_usec_t usec = 0;
     uint32_t maxlength = 0, fragsize = 0, minreq = 0, tlength = 0, prebuf = 0;
 
     pa_assert(pd);
@@ -481,6 +483,80 @@ void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
 
     if (s->moved_callback)
         s->moved_callback(s, s->moved_userdata);
+
+finish:
+    pa_context_unref(c);
+}
+
+void pa_command_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_context *c = userdata;
+    pa_stream *s;
+    uint32_t channel;
+    pa_usec_t usec = 0;
+    uint32_t maxlength = 0, fragsize = 0, minreq = 0, tlength = 0, prebuf = 0;
+
+    pa_assert(pd);
+    pa_assert(command == PA_COMMAND_PLAYBACK_BUFFER_ATTR_CHANGED || command == PA_COMMAND_RECORD_BUFFER_ATTR_CHANGED);
+    pa_assert(t);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    pa_context_ref(c);
+
+    if (c->version < 15) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        goto finish;
+    }
+
+    if (pa_tagstruct_getu32(t, &channel) < 0) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        goto finish;
+    }
+
+    if (command == PA_COMMAND_RECORD_STREAM_MOVED) {
+        if (pa_tagstruct_getu32(t, &maxlength) < 0 ||
+            pa_tagstruct_getu32(t, &fragsize) < 0 ||
+            pa_tagstruct_get_usec(t, &usec) < 0) {
+            pa_context_fail(c, PA_ERR_PROTOCOL);
+            goto finish;
+        }
+    } else {
+        if (pa_tagstruct_getu32(t, &maxlength) < 0 ||
+            pa_tagstruct_getu32(t, &tlength) < 0 ||
+            pa_tagstruct_getu32(t, &prebuf) < 0 ||
+            pa_tagstruct_getu32(t, &minreq) < 0 ||
+            pa_tagstruct_get_usec(t, &usec) < 0) {
+            pa_context_fail(c, PA_ERR_PROTOCOL);
+            goto finish;
+        }
+    }
+
+    if (!pa_tagstruct_eof(t)) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        goto finish;
+    }
+
+    if (!(s = pa_dynarray_get(command == PA_COMMAND_PLAYBACK_BUFFER_ATTR_CHANGED ? c->playback_streams : c->record_streams, channel)))
+        goto finish;
+
+    if (s->state != PA_STREAM_READY)
+        goto finish;
+
+    if (s->direction == PA_STREAM_RECORD)
+        s->timing_info.configured_source_usec = usec;
+    else
+        s->timing_info.configured_sink_usec = usec;
+
+    s->buffer_attr.maxlength = maxlength;
+    s->buffer_attr.fragsize = fragsize;
+    s->buffer_attr.tlength = tlength;
+    s->buffer_attr.prebuf = prebuf;
+    s->buffer_attr.minreq = minreq;
+
+    request_auto_timing_update(s, TRUE);
+
+    if (s->buffer_attr_callback)
+        s->buffer_attr_callback(s, s->buffer_attr_userdata);
 
 finish:
     pa_context_unref(c);
@@ -1796,6 +1872,20 @@ void pa_stream_set_event_callback(pa_stream *s, pa_stream_event_cb_t cb, void *u
 
     s->event_callback = cb;
     s->event_userdata = userdata;
+}
+
+void pa_stream_set_buffer_attr_callback(pa_stream *s, pa_stream_notify_cb_t cb, void *userdata) {
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+
+    if (pa_detect_fork())
+        return;
+
+    if (s->state == PA_STREAM_TERMINATED || s->state == PA_STREAM_FAILED)
+        return;
+
+    s->buffer_attr_callback = cb;
+    s->buffer_attr_userdata = userdata;
 }
 
 void pa_stream_simple_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {

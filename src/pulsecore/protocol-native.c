@@ -81,7 +81,11 @@ typedef struct record_stream {
 
     pa_source_output *source_output;
     pa_memblockq *memblockq;
-    size_t fragment_size;
+
+    pa_bool_t adjust_latency:1;
+    pa_bool_t early_requests:1;
+
+    pa_buffer_attr buffer_attr;
     pa_usec_t source_latency;
 } record_stream;
 
@@ -105,14 +109,18 @@ typedef struct playback_stream {
 
     pa_sink_input *sink_input;
     pa_memblockq *memblockq;
+
+    pa_bool_t adjust_latency:1;
+    pa_bool_t early_requests:1;
+
     pa_bool_t is_underrun:1;
     pa_bool_t drain_request:1;
     uint32_t drain_tag;
     uint32_t syncid;
 
     pa_atomic_t missing;
-    size_t minreq;
     pa_usec_t sink_latency;
+    pa_buffer_attr buffer_attr;
 
     /* Only updated after SINK_INPUT_MESSAGE_UPDATE_LATENCY */
     int64_t read_index, write_index;
@@ -180,7 +188,8 @@ enum {
     SINK_INPUT_MESSAGE_TRIGGER,
     SINK_INPUT_MESSAGE_SEEK,
     SINK_INPUT_MESSAGE_PREBUF_FORCE,
-    SINK_INPUT_MESSAGE_UPDATE_LATENCY
+    SINK_INPUT_MESSAGE_UPDATE_LATENCY,
+    SINK_INPUT_MESSAGE_UPDATE_BUFFER_ATTR
 };
 
 enum {
@@ -188,7 +197,8 @@ enum {
     PLAYBACK_STREAM_MESSAGE_UNDERFLOW,
     PLAYBACK_STREAM_MESSAGE_OVERFLOW,
     PLAYBACK_STREAM_MESSAGE_DRAIN_ACK,
-    PLAYBACK_STREAM_MESSAGE_STARTED
+    PLAYBACK_STREAM_MESSAGE_STARTED,
+    PLAYBACK_STREAM_MESSAGE_UPDATE_TLENGTH
 };
 
 enum {
@@ -478,35 +488,34 @@ static int record_stream_process_msg(pa_msgobject *o, int code, void*userdata, i
     return 0;
 }
 
-static void fix_record_buffer_attr_pre(
-        record_stream *s,
-        pa_bool_t adjust_latency,
-        pa_bool_t early_requests,
-        uint32_t *maxlength,
-        uint32_t *fragsize) {
+/* Called from main context */
+static void fix_record_buffer_attr_pre(record_stream *s) {
 
     size_t frame_size;
     pa_usec_t orig_fragsize_usec, fragsize_usec, source_usec;
 
     pa_assert(s);
-    pa_assert(maxlength);
-    pa_assert(fragsize);
+
+    /* This function will be called from the main thread, before as
+     * well as after the source output has been activated using
+     * pa_source_output_put()! That means it may not touch any
+     * ->thread_info data! */
 
     frame_size = pa_frame_size(&s->source_output->sample_spec);
 
-    if (*maxlength == (uint32_t) -1 || *maxlength > MAX_MEMBLOCKQ_LENGTH)
-        *maxlength = MAX_MEMBLOCKQ_LENGTH;
-    if (*maxlength <= 0)
-        *maxlength = (uint32_t) frame_size;
+    if (s->buffer_attr.maxlength == (uint32_t) -1 || s->buffer_attr.maxlength > MAX_MEMBLOCKQ_LENGTH)
+        s->buffer_attr.maxlength = MAX_MEMBLOCKQ_LENGTH;
+    if (s->buffer_attr.maxlength <= 0)
+        s->buffer_attr.maxlength = (uint32_t) frame_size;
 
-    if (*fragsize == (uint32_t) -1)
-        *fragsize = (uint32_t) pa_usec_to_bytes(DEFAULT_FRAGSIZE_MSEC*PA_USEC_PER_MSEC, &s->source_output->sample_spec);
-    if (*fragsize <= 0)
-        *fragsize = (uint32_t) frame_size;
+    if (s->buffer_attr.fragsize == (uint32_t) -1)
+        s->buffer_attr.fragsize = (uint32_t) pa_usec_to_bytes(DEFAULT_FRAGSIZE_MSEC*PA_USEC_PER_MSEC, &s->source_output->sample_spec);
+    if (s->buffer_attr.fragsize <= 0)
+        s->buffer_attr.fragsize = (uint32_t) frame_size;
 
-    orig_fragsize_usec = fragsize_usec = pa_bytes_to_usec(*fragsize, &s->source_output->sample_spec);
+    orig_fragsize_usec = fragsize_usec = pa_bytes_to_usec(s->buffer_attr.fragsize, &s->source_output->sample_spec);
 
-    if (early_requests) {
+    if (s->early_requests) {
 
         /* In early request mode we need to emulate the classic
          * fragment-based playback model. We do this setting the source
@@ -514,7 +523,7 @@ static void fix_record_buffer_attr_pre(
 
         source_usec = fragsize_usec;
 
-    } else if (adjust_latency) {
+    } else if (s->adjust_latency) {
 
         /* So, the user asked us to adjust the latency according to
          * what the source can provide. Half the latency will be
@@ -536,14 +545,14 @@ static void fix_record_buffer_attr_pre(
     else
         s->source_latency = 0;
 
-    if (early_requests) {
+    if (s->early_requests) {
 
         /* Ok, we didn't necessarily get what we were asking for, so
          * let's tell the user */
 
         fragsize_usec = s->source_latency;
 
-    } else if (adjust_latency) {
+    } else if (s->adjust_latency) {
 
         /* Now subtract what we actually got */
 
@@ -556,35 +565,31 @@ static void fix_record_buffer_attr_pre(
     if (pa_usec_to_bytes(orig_fragsize_usec, &s->source_output->sample_spec) !=
         pa_usec_to_bytes(fragsize_usec, &s->source_output->sample_spec))
 
-        *fragsize = (uint32_t) pa_usec_to_bytes(fragsize_usec, &s->source_output->sample_spec);
+        s->buffer_attr.fragsize = (uint32_t) pa_usec_to_bytes(fragsize_usec, &s->source_output->sample_spec);
 
-    if (*fragsize <= 0)
-        *fragsize = (uint32_t) frame_size;
+    if (s->buffer_attr.fragsize <= 0)
+        s->buffer_attr.fragsize = (uint32_t) frame_size;
 }
 
-static void fix_record_buffer_attr_post(
-        record_stream *s,
-        uint32_t *maxlength,
-        uint32_t *fragsize) {
-
+/* Called from main context */
+static void fix_record_buffer_attr_post(record_stream *s) {
     size_t base;
 
     pa_assert(s);
-    pa_assert(maxlength);
-    pa_assert(fragsize);
 
-    *maxlength = (uint32_t) pa_memblockq_get_maxlength(s->memblockq);
+    /* This function will be called from the main thread, before as
+     * well as after the source output has been activated using
+     * pa_source_output_put()! That means it may not touch and
+     * ->thread_info data! */
 
     base = pa_frame_size(&s->source_output->sample_spec);
 
-    s->fragment_size = (*fragsize/base)*base;
-    if (s->fragment_size <= 0)
-        s->fragment_size = base;
+    s->buffer_attr.fragsize = (s->buffer_attr.fragsize/base)*base;
+    if (s->buffer_attr.fragsize <= 0)
+        s->buffer_attr.fragsize = base;
 
-    if (s->fragment_size > *maxlength)
-        s->fragment_size = *maxlength;
-
-    *fragsize = (uint32_t) s->fragment_size;
+    if (s->buffer_attr.fragsize > s->buffer_attr.maxlength)
+        s->buffer_attr.fragsize = s->buffer_attr.maxlength;
 }
 
 /* Called from main context */
@@ -594,8 +599,7 @@ static record_stream* record_stream_new(
         pa_sample_spec *ss,
         pa_channel_map *map,
         pa_bool_t peak_detect,
-        uint32_t *maxlength,
-        uint32_t *fragsize,
+        pa_buffer_attr *attr,
         pa_source_output_flags_t flags,
         pa_proplist *p,
         pa_bool_t adjust_latency,
@@ -610,7 +614,6 @@ static record_stream* record_stream_new(
 
     pa_assert(c);
     pa_assert(ss);
-    pa_assert(maxlength);
     pa_assert(p);
     pa_assert(ret);
 
@@ -639,6 +642,9 @@ static record_stream* record_stream_new(
     s->parent.process_msg = record_stream_process_msg;
     s->connection = c;
     s->source_output = source_output;
+    s->buffer_attr = *attr;
+    s->adjust_latency = adjust_latency;
+    s->early_requests = early_requests;
 
     s->source_output->push = source_output_push_cb;
     s->source_output->kill = source_output_kill_cb;
@@ -648,11 +654,11 @@ static record_stream* record_stream_new(
     s->source_output->send_event = source_output_send_event_cb;
     s->source_output->userdata = s;
 
-    fix_record_buffer_attr_pre(s, adjust_latency, early_requests, maxlength, fragsize);
+    fix_record_buffer_attr_pre(s);
 
     s->memblockq = pa_memblockq_new(
             0,
-            *maxlength,
+            s->buffer_attr.maxlength,
             0,
             base = pa_frame_size(&source_output->sample_spec),
             1,
@@ -660,7 +666,8 @@ static record_stream* record_stream_new(
             0,
             NULL);
 
-    fix_record_buffer_attr_post(s, maxlength, fragsize);
+    pa_memblockq_get_attr(s->memblockq, &s->buffer_attr);
+    fix_record_buffer_attr_post(s);
 
     *ss = s->source_output->sample_spec;
     *map = s->source_output->channel_map;
@@ -668,8 +675,8 @@ static record_stream* record_stream_new(
     pa_idxset_put(c->record_streams, s, &s->index);
 
     pa_log_info("Final latency %0.2f ms = %0.2f ms + %0.2f ms",
-                ((double) pa_bytes_to_usec(s->fragment_size, &source_output->sample_spec) + (double) s->source_latency) / PA_USEC_PER_MSEC,
-                (double) pa_bytes_to_usec(s->fragment_size, &source_output->sample_spec) / PA_USEC_PER_MSEC,
+                ((double) pa_bytes_to_usec(s->buffer_attr.fragsize, &source_output->sample_spec) + (double) s->source_latency) / PA_USEC_PER_MSEC,
+                (double) pa_bytes_to_usec(s->buffer_attr.fragsize, &source_output->sample_spec) / PA_USEC_PER_MSEC,
                 (double) s->source_latency / PA_USEC_PER_MSEC);
 
     pa_source_output_put(s->source_output);
@@ -799,67 +806,79 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
         case PLAYBACK_STREAM_MESSAGE_DRAIN_ACK:
             pa_pstream_send_simple_ack(s->connection->pstream, PA_PTR_TO_UINT(userdata));
             break;
+
+        case PLAYBACK_STREAM_MESSAGE_UPDATE_TLENGTH: {
+            pa_tagstruct *t;
+
+            s->buffer_attr.tlength = (uint32_t) offset;
+
+            t = pa_tagstruct_new(NULL, 0);
+            pa_tagstruct_putu32(t, PA_COMMAND_PLAYBACK_BUFFER_ATTR_CHANGED);
+            pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
+            pa_tagstruct_putu32(t, s->index);
+            pa_tagstruct_putu32(t, s->buffer_attr.maxlength);
+            pa_tagstruct_putu32(t, s->buffer_attr.tlength);
+            pa_tagstruct_putu32(t, s->buffer_attr.prebuf);
+            pa_tagstruct_putu32(t, s->buffer_attr.minreq);
+            pa_tagstruct_put_usec(t, s->sink_latency);
+            pa_pstream_send_tagstruct(s->connection->pstream, t);
+
+            break;
+        }
     }
 
     return 0;
 }
 
-static void fix_playback_buffer_attr_pre(
-        playback_stream *s,
-        pa_bool_t adjust_latency,
-        pa_bool_t early_requests,
-        uint32_t *maxlength,
-        uint32_t *tlength,
-        uint32_t* prebuf,
-        uint32_t* minreq) {
-
+/* Called from main context */
+static void fix_playback_buffer_attr(playback_stream *s) {
     size_t frame_size;
     pa_usec_t orig_tlength_usec, tlength_usec, orig_minreq_usec, minreq_usec, sink_usec;
 
     pa_assert(s);
-    pa_assert(maxlength);
-    pa_assert(tlength);
-    pa_assert(prebuf);
-    pa_assert(minreq);
+
+    /* This function will be called from the main thread, before as
+     * well as after the sink input has been activated using
+     * pa_sink_input_put()! That means it may not touch any
+     * ->thread_info data, such as the memblockq! */
 
     frame_size = pa_frame_size(&s->sink_input->sample_spec);
 
-    if (*maxlength == (uint32_t) -1 || *maxlength > MAX_MEMBLOCKQ_LENGTH)
-        *maxlength = MAX_MEMBLOCKQ_LENGTH;
-    if (*maxlength <= 0)
-        *maxlength = (uint32_t) frame_size;
+    if (s->buffer_attr.maxlength == (uint32_t) -1 || s->buffer_attr.maxlength > MAX_MEMBLOCKQ_LENGTH)
+        s->buffer_attr.maxlength = MAX_MEMBLOCKQ_LENGTH;
+    if (s->buffer_attr.maxlength <= 0)
+        s->buffer_attr.maxlength = (uint32_t) frame_size;
 
-    if (*tlength == (uint32_t) -1)
-        *tlength = (uint32_t) pa_usec_to_bytes_round_up(DEFAULT_TLENGTH_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
-    if (*tlength <= 0)
-        *tlength = (uint32_t) frame_size;
+    if (s->buffer_attr.tlength == (uint32_t) -1)
+        s->buffer_attr.tlength = (uint32_t) pa_usec_to_bytes_round_up(DEFAULT_TLENGTH_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
+    if (s->buffer_attr.tlength <= 0)
+        s->buffer_attr.tlength = (uint32_t) frame_size;
 
-    if (*minreq == (uint32_t) -1)
-        *minreq = (uint32_t) pa_usec_to_bytes_round_up(DEFAULT_PROCESS_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
-    if (*minreq <= 0)
-        *minreq = (uint32_t) frame_size;
+    if (s->buffer_attr.minreq == (uint32_t) -1)
+        s->buffer_attr.minreq = (uint32_t) pa_usec_to_bytes_round_up(DEFAULT_PROCESS_MSEC*PA_USEC_PER_MSEC, &s->sink_input->sample_spec);
+    if (s->buffer_attr.minreq <= 0)
+        s->buffer_attr.minreq = (uint32_t) frame_size;
 
-    if (*tlength < *minreq+frame_size)
-        *tlength = *minreq+(uint32_t) frame_size;
+    if (s->buffer_attr.tlength < s->buffer_attr.minreq+frame_size)
+        s->buffer_attr.tlength = s->buffer_attr.minreq+(uint32_t) frame_size;
 
-    orig_tlength_usec = tlength_usec = pa_bytes_to_usec(*tlength, &s->sink_input->sample_spec);
-    orig_minreq_usec = minreq_usec = pa_bytes_to_usec(*minreq, &s->sink_input->sample_spec);
+    orig_tlength_usec = tlength_usec = pa_bytes_to_usec(s->buffer_attr.tlength, &s->sink_input->sample_spec);
+    orig_minreq_usec = minreq_usec = pa_bytes_to_usec(s->buffer_attr.minreq, &s->sink_input->sample_spec);
 
     pa_log_info("Requested tlength=%0.2f ms, minreq=%0.2f ms",
                 (double) tlength_usec / PA_USEC_PER_MSEC,
                 (double) minreq_usec / PA_USEC_PER_MSEC);
 
-    if (early_requests) {
+    if (s->early_requests) {
 
         /* In early request mode we need to emulate the classic
          * fragment-based playback model. We do this setting the sink
          * latency to the fragment size. */
 
         sink_usec = minreq_usec;
-
         pa_log_debug("Early requests mode enabled, configuring sink latency to minreq.");
 
-    } else if (adjust_latency) {
+    } else if (s->adjust_latency) {
 
         /* So, the user asked us to adjust the latency of the stream
          * buffer according to the what the sink can provide. The
@@ -901,14 +920,14 @@ static void fix_playback_buffer_attr_pre(
 
     s->sink_latency = pa_sink_input_set_requested_latency(s->sink_input, sink_usec);
 
-    if (early_requests) {
+    if (s->early_requests) {
 
         /* Ok, we didn't necessarily get what we were asking for, so
          * let's tell the user */
 
         minreq_usec = s->sink_latency;
 
-    } else if (adjust_latency) {
+    } else if (s->adjust_latency) {
 
         /* Ok, we didn't necessarily get what we were asking for, so
          * let's subtract from what we asked for for the remaining
@@ -925,43 +944,22 @@ static void fix_playback_buffer_attr_pre(
 
     if (pa_usec_to_bytes_round_up(orig_tlength_usec, &s->sink_input->sample_spec) !=
         pa_usec_to_bytes_round_up(tlength_usec, &s->sink_input->sample_spec))
-        *tlength = (uint32_t) pa_usec_to_bytes_round_up(tlength_usec, &s->sink_input->sample_spec);
+        s->buffer_attr.tlength = (uint32_t) pa_usec_to_bytes_round_up(tlength_usec, &s->sink_input->sample_spec);
 
     if (pa_usec_to_bytes(orig_minreq_usec, &s->sink_input->sample_spec) !=
         pa_usec_to_bytes(minreq_usec, &s->sink_input->sample_spec))
-        *minreq = (uint32_t) pa_usec_to_bytes(minreq_usec, &s->sink_input->sample_spec);
+        s->buffer_attr.minreq = (uint32_t) pa_usec_to_bytes(minreq_usec, &s->sink_input->sample_spec);
 
-    if (*minreq <= 0) {
-        *minreq = (uint32_t) frame_size;
-        *tlength += (uint32_t) frame_size*2;
+    if (s->buffer_attr.minreq <= 0) {
+        s->buffer_attr.minreq = (uint32_t) frame_size;
+        s->buffer_attr.tlength += (uint32_t) frame_size*2;
     }
 
-    if (*tlength <= *minreq)
-        *tlength = *minreq*2 + (uint32_t) frame_size;
+    if (s->buffer_attr.tlength <= s->buffer_attr.minreq)
+        s->buffer_attr.tlength = s->buffer_attr.minreq*2 + (uint32_t) frame_size;
 
-    if (*prebuf == (uint32_t) -1 || *prebuf > *tlength)
-        *prebuf = *tlength;
-}
-
-static void fix_playback_buffer_attr_post(
-        playback_stream *s,
-        uint32_t *maxlength,
-        uint32_t *tlength,
-        uint32_t* prebuf,
-        uint32_t* minreq) {
-
-    pa_assert(s);
-    pa_assert(maxlength);
-    pa_assert(tlength);
-    pa_assert(prebuf);
-    pa_assert(minreq);
-
-    *maxlength = (uint32_t) pa_memblockq_get_maxlength(s->memblockq);
-    *tlength = (uint32_t) pa_memblockq_get_tlength(s->memblockq);
-    *prebuf = (uint32_t) pa_memblockq_get_prebuf(s->memblockq);
-    *minreq = (uint32_t) pa_memblockq_get_minreq(s->memblockq);
-
-    s->minreq = *minreq;
+    if (s->buffer_attr.prebuf == (uint32_t) -1 || s->buffer_attr.prebuf > s->buffer_attr.tlength)
+        s->buffer_attr.prebuf = s->buffer_attr.tlength;
 }
 
 /* Called from main context */
@@ -970,10 +968,7 @@ static playback_stream* playback_stream_new(
         pa_sink *sink,
         pa_sample_spec *ss,
         pa_channel_map *map,
-        uint32_t *maxlength,
-        uint32_t *tlength,
-        uint32_t *prebuf,
-        uint32_t *minreq,
+        pa_buffer_attr *a,
         pa_cvolume *volume,
         pa_bool_t muted,
         pa_bool_t muted_set,
@@ -994,10 +989,6 @@ static playback_stream* playback_stream_new(
 
     pa_assert(c);
     pa_assert(ss);
-    pa_assert(maxlength);
-    pa_assert(tlength);
-    pa_assert(prebuf);
-    pa_assert(minreq);
     pa_assert(missing);
     pa_assert(p);
     pa_assert(ret);
@@ -1054,6 +1045,9 @@ static playback_stream* playback_stream_new(
     s->is_underrun = TRUE;
     s->drain_request = FALSE;
     pa_atomic_store(&s->missing, 0);
+    s->buffer_attr = *a;
+    s->adjust_latency = adjust_latency;
+    s->early_requests = early_requests;
 
     s->sink_input->parent.process_msg = sink_input_process_msg;
     s->sink_input->pop = sink_input_pop_cb;
@@ -1068,21 +1062,21 @@ static playback_stream* playback_stream_new(
 
     start_index = ssync ? pa_memblockq_get_read_index(ssync->memblockq) : 0;
 
-    fix_playback_buffer_attr_pre(s, adjust_latency, early_requests, maxlength, tlength, prebuf, minreq);
-    pa_sink_input_get_silence(sink_input, &silence);
+    fix_playback_buffer_attr(s);
 
+    pa_sink_input_get_silence(sink_input, &silence);
     s->memblockq = pa_memblockq_new(
             start_index,
-            *maxlength,
-            *tlength,
+            s->buffer_attr.maxlength,
+            s->buffer_attr.tlength,
             pa_frame_size(&sink_input->sample_spec),
-            *prebuf,
-            *minreq,
+            s->buffer_attr.prebuf,
+            s->buffer_attr.minreq,
             0,
             &silence);
-
     pa_memblock_unref(silence.memblock);
-    fix_playback_buffer_attr_post(s, maxlength, tlength, prebuf, minreq);
+
+    pa_memblockq_get_attr(s->memblockq, &s->buffer_attr);
 
     *missing = (uint32_t) pa_memblockq_pop_missing(s->memblockq);
 
@@ -1092,9 +1086,9 @@ static playback_stream* playback_stream_new(
     pa_idxset_put(c->output_streams, s, &s->index);
 
     pa_log_info("Final latency %0.2f ms = %0.2f ms + 2*%0.2f ms + %0.2f ms",
-                ((double) pa_bytes_to_usec(*tlength, &sink_input->sample_spec) + (double) s->sink_latency) / PA_USEC_PER_MSEC,
-                (double) pa_bytes_to_usec(*tlength-*minreq*2, &sink_input->sample_spec) / PA_USEC_PER_MSEC,
-                (double) pa_bytes_to_usec(*minreq, &sink_input->sample_spec) / PA_USEC_PER_MSEC,
+                ((double) pa_bytes_to_usec(s->buffer_attr.tlength, &sink_input->sample_spec) + (double) s->sink_latency) / PA_USEC_PER_MSEC,
+                (double) pa_bytes_to_usec(s->buffer_attr.tlength-s->buffer_attr.minreq*2, &sink_input->sample_spec) / PA_USEC_PER_MSEC,
+                (double) pa_bytes_to_usec(s->buffer_attr.minreq, &sink_input->sample_spec) / PA_USEC_PER_MSEC,
                 (double) s->sink_latency / PA_USEC_PER_MSEC);
 
     pa_sink_input_put(s->sink_input);
@@ -1103,7 +1097,7 @@ static playback_stream* playback_stream_new(
 
 /* Called from IO context */
 static void playback_stream_request_bytes(playback_stream *s) {
-    size_t m, previous_missing;
+    size_t m, previous_missing, minreq;
 
     playback_stream_assert_ref(s);
 
@@ -1115,9 +1109,10 @@ static void playback_stream_request_bytes(playback_stream *s) {
 /*     pa_log("request_bytes(%lu)", (unsigned long) m); */
 
     previous_missing = (size_t) pa_atomic_add(&s->missing, (int) m);
+    minreq = pa_memblockq_get_minreq(s->memblockq);
 
     if (pa_memblockq_prebuf_active(s->memblockq) ||
-        (previous_missing < s->minreq && previous_missing+m >= s->minreq))
+        (previous_missing < minreq && previous_missing+m >= minreq))
         pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
 }
 
@@ -1234,8 +1229,8 @@ static void native_connection_send_memblock(pa_native_connection *c) {
         if (pa_memblockq_peek(r->memblockq,  &chunk) >= 0) {
             pa_memchunk schunk = chunk;
 
-            if (schunk.length > r->fragment_size)
-                schunk.length = r->fragment_size;
+            if (schunk.length > r->buffer_attr.fragsize)
+                schunk.length = r->buffer_attr.fragsize;
 
             pa_pstream_send_memblock(c->pstream, r->index, 0, PA_SEEK_RELATIVE, &schunk);
 
@@ -1417,6 +1412,12 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
              * latency added by the resampler */
             break;
         }
+
+        case SINK_INPUT_MESSAGE_UPDATE_BUFFER_ATTR: {
+            pa_memblockq_apply_attr(s->memblockq, &s->buffer_attr);
+            pa_memblockq_get_attr(s->memblockq, &s->buffer_attr);
+            return 0;
+        }
     }
 
     return pa_sink_input_process_msg(o, code, userdata, offset, chunk);
@@ -1502,8 +1503,10 @@ static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
 
     tlength = nbytes+2*pa_memblockq_get_minreq(s->memblockq);
 
-    if (pa_memblockq_get_tlength(s->memblockq) < tlength)
+    if (pa_memblockq_get_tlength(s->memblockq) < tlength) {
         pa_memblockq_set_tlength(s->memblockq, tlength);
+        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_UPDATE_TLENGTH, NULL, pa_memblockq_get_tlength(s->memblockq), NULL, NULL);
+    }
 }
 
 /* Called from main context */
@@ -1563,23 +1566,14 @@ static void sink_input_suspend_cb(pa_sink_input *i, pa_bool_t suspend) {
 static void sink_input_moving_cb(pa_sink_input *i) {
     playback_stream *s;
     pa_tagstruct *t;
-    uint32_t maxlength, tlength, prebuf, minreq;
 
     pa_sink_input_assert_ref(i);
     s = PLAYBACK_STREAM(i->userdata);
     playback_stream_assert_ref(s);
 
-    maxlength = (uint32_t) pa_memblockq_get_maxlength(s->memblockq);
-    tlength = (uint32_t) pa_memblockq_get_tlength(s->memblockq);
-    prebuf = (uint32_t) pa_memblockq_get_prebuf(s->memblockq);
-    minreq = (uint32_t) pa_memblockq_get_minreq(s->memblockq);
-
-    fix_playback_buffer_attr_pre(s, TRUE, FALSE, &maxlength, &tlength, &prebuf, &minreq);
-    pa_memblockq_set_maxlength(s->memblockq, maxlength);
-    pa_memblockq_set_tlength(s->memblockq, tlength);
-    pa_memblockq_set_prebuf(s->memblockq, prebuf);
-    pa_memblockq_set_minreq(s->memblockq, minreq);
-    fix_playback_buffer_attr_post(s, &maxlength, &tlength, &prebuf, &minreq);
+    fix_playback_buffer_attr(s);
+    pa_memblockq_apply_attr(s->memblockq, &s->buffer_attr);
+    pa_memblockq_get_attr(s->memblockq, &s->buffer_attr);
 
     if (s->connection->version < 12)
       return;
@@ -1593,10 +1587,10 @@ static void sink_input_moving_cb(pa_sink_input *i) {
     pa_tagstruct_put_boolean(t, pa_sink_get_state(i->sink) == PA_SINK_SUSPENDED);
 
     if (s->connection->version >= 13) {
-        pa_tagstruct_putu32(t, maxlength);
-        pa_tagstruct_putu32(t, tlength);
-        pa_tagstruct_putu32(t, prebuf);
-        pa_tagstruct_putu32(t, minreq);
+        pa_tagstruct_putu32(t, s->buffer_attr.maxlength);
+        pa_tagstruct_putu32(t, s->buffer_attr.tlength);
+        pa_tagstruct_putu32(t, s->buffer_attr.prebuf);
+        pa_tagstruct_putu32(t, s->buffer_attr.minreq);
         pa_tagstruct_put_usec(t, s->sink_latency);
     }
 
@@ -1685,18 +1679,15 @@ static void source_output_suspend_cb(pa_source_output *o, pa_bool_t suspend) {
 static void source_output_moving_cb(pa_source_output *o) {
     record_stream *s;
     pa_tagstruct *t;
-    uint32_t maxlength, fragsize;
 
     pa_source_output_assert_ref(o);
     s = RECORD_STREAM(o->userdata);
     record_stream_assert_ref(s);
 
-    fragsize = (uint32_t) s->fragment_size;
-    maxlength = (uint32_t) pa_memblockq_get_length(s->memblockq);
-
-    fix_record_buffer_attr_pre(s, TRUE, FALSE, &maxlength, &fragsize);
-    pa_memblockq_set_maxlength(s->memblockq, maxlength);
-    fix_record_buffer_attr_post(s, &maxlength, &fragsize);
+    fix_record_buffer_attr_pre(s);
+    pa_memblockq_set_maxlength(s->memblockq, s->buffer_attr.maxlength);
+    pa_memblockq_get_attr(s->memblockq, &s->buffer_attr);
+    fix_record_buffer_attr_post(s);
 
     if (s->connection->version < 12)
       return;
@@ -1710,8 +1701,8 @@ static void source_output_moving_cb(pa_source_output *o) {
     pa_tagstruct_put_boolean(t, pa_source_get_state(o->source) == PA_SOURCE_SUSPENDED);
 
     if (s->connection->version >= 13) {
-        pa_tagstruct_putu32(t, maxlength);
-        pa_tagstruct_putu32(t, fragsize);
+        pa_tagstruct_putu32(t, s->buffer_attr.maxlength);
+        pa_tagstruct_putu32(t, s->buffer_attr.fragsize);
         pa_tagstruct_put_usec(t, s->source_latency);
     }
 
@@ -1744,7 +1735,8 @@ static pa_tagstruct *reply_new(uint32_t tag) {
 static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
     playback_stream *s;
-    uint32_t maxlength, tlength, prebuf, minreq, sink_index, syncid, missing;
+    uint32_t sink_index, syncid, missing;
+    pa_buffer_attr attr;
     const char *name = NULL, *sink_name;
     pa_sample_spec ss;
     pa_channel_map map;
@@ -1773,6 +1765,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
 
     pa_native_connection_assert_ref(c);
     pa_assert(t);
+    memset(&attr, 0, sizeof(attr));
 
     if ((c->version < 13 && (pa_tagstruct_gets(t, &name) < 0 || !name)) ||
         pa_tagstruct_get(
@@ -1781,11 +1774,11 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
                 PA_TAG_CHANNEL_MAP, &map,
                 PA_TAG_U32, &sink_index,
                 PA_TAG_STRING, &sink_name,
-                PA_TAG_U32, &maxlength,
+                PA_TAG_U32, &attr.maxlength,
                 PA_TAG_BOOLEAN, &corked,
-                PA_TAG_U32, &tlength,
-                PA_TAG_U32, &prebuf,
-                PA_TAG_U32, &minreq,
+                PA_TAG_U32, &attr.tlength,
+                PA_TAG_U32, &attr.prebuf,
+                PA_TAG_U32, &attr.minreq,
                 PA_TAG_U32, &syncid,
                 PA_TAG_CVOLUME, &volume,
                 PA_TAG_INVALID) < 0) {
@@ -1896,7 +1889,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
      * flag. For older versions we synthesize it here */
     muted_set = muted_set || muted;
 
-    s = playback_stream_new(c, sink, &ss, &map, &maxlength, &tlength, &prebuf, &minreq, volume_set ? &volume : NULL, muted, muted_set, syncid, &missing, flags, p, adjust_latency, early_requests, &ret);
+    s = playback_stream_new(c, sink, &ss, &map, &attr, volume_set ? &volume : NULL, muted, muted_set, syncid, &missing, flags, p, adjust_latency, early_requests, &ret);
     pa_proplist_free(p);
 
     CHECK_VALIDITY(c->pstream, s, tag, ret);
@@ -1912,10 +1905,10 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
     if (c->version >= 9) {
         /* Since 0.9.0 we support sending the buffer metrics back to the client */
 
-        pa_tagstruct_putu32(reply, (uint32_t) maxlength);
-        pa_tagstruct_putu32(reply, (uint32_t) tlength);
-        pa_tagstruct_putu32(reply, (uint32_t) prebuf);
-        pa_tagstruct_putu32(reply, (uint32_t) minreq);
+        pa_tagstruct_putu32(reply, (uint32_t) s->buffer_attr.maxlength);
+        pa_tagstruct_putu32(reply, (uint32_t) s->buffer_attr.tlength);
+        pa_tagstruct_putu32(reply, (uint32_t) s->buffer_attr.prebuf);
+        pa_tagstruct_putu32(reply, (uint32_t) s->buffer_attr.minreq);
     }
 
     if (c->version >= 12) {
@@ -1999,7 +1992,7 @@ static void command_delete_stream(pa_pdispatch *pd, uint32_t command, uint32_t t
 static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
     record_stream *s;
-    uint32_t maxlength, fragment_size;
+    pa_buffer_attr attr;
     uint32_t source_index;
     const char *name = NULL, *source_name;
     pa_sample_spec ss;
@@ -2029,14 +2022,16 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
     pa_native_connection_assert_ref(c);
     pa_assert(t);
 
+    memset(&attr, 0, sizeof(attr));
+
     if ((c->version < 13 && (pa_tagstruct_gets(t, &name) < 0 || !name)) ||
         pa_tagstruct_get_sample_spec(t, &ss) < 0 ||
         pa_tagstruct_get_channel_map(t, &map) < 0 ||
         pa_tagstruct_getu32(t, &source_index) < 0 ||
         pa_tagstruct_gets(t, &source_name) < 0 ||
-        pa_tagstruct_getu32(t, &maxlength) < 0 ||
+        pa_tagstruct_getu32(t, &attr.maxlength) < 0 ||
         pa_tagstruct_get_boolean(t, &corked) < 0 ||
-        pa_tagstruct_getu32(t, &fragment_size) < 0) {
+        pa_tagstruct_getu32(t, &attr.fragsize) < 0) {
         protocol_error(c);
         return;
     }
@@ -2146,7 +2141,7 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
         (dont_inhibit_auto_suspend ? PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND : 0) |
         (fail_on_suspend ? PA_SOURCE_OUTPUT_FAIL_ON_SUSPEND : 0);
 
-    s = record_stream_new(c, source, &ss, &map, peak_detect, &maxlength, &fragment_size, flags, p, adjust_latency, direct_on_input, early_requests, &ret);
+    s = record_stream_new(c, source, &ss, &map, peak_detect, &attr, flags, p, adjust_latency, direct_on_input, early_requests, &ret);
     pa_proplist_free(p);
 
     CHECK_VALIDITY(c->pstream, s, tag, ret);
@@ -2159,8 +2154,8 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
     if (c->version >= 9) {
         /* Since 0.9 we support sending the buffer metrics back to the client */
 
-        pa_tagstruct_putu32(reply, (uint32_t) maxlength);
-        pa_tagstruct_putu32(reply, (uint32_t) fragment_size);
+        pa_tagstruct_putu32(reply, (uint32_t) s->buffer_attr.maxlength);
+        pa_tagstruct_putu32(reply, (uint32_t) s->buffer_attr.fragsize);
     }
 
     if (c->version >= 12) {
@@ -3456,11 +3451,13 @@ static void command_flush_record_stream(pa_pdispatch *pd, uint32_t command, uint
 static void command_set_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
     uint32_t idx;
-    uint32_t maxlength, tlength, prebuf, minreq, fragsize;
+    pa_buffer_attr a;
     pa_tagstruct *reply;
 
     pa_native_connection_assert_ref(c);
     pa_assert(t);
+
+    memset(&a, 0, sizeof(a));
 
     if (pa_tagstruct_getu32(t, &idx) < 0) {
         protocol_error(c);
@@ -3479,10 +3476,10 @@ static void command_set_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, u
 
         if (pa_tagstruct_get(
                     t,
-                    PA_TAG_U32, &maxlength,
-                    PA_TAG_U32, &tlength,
-                    PA_TAG_U32, &prebuf,
-                    PA_TAG_U32, &minreq,
+                    PA_TAG_U32, &a.maxlength,
+                    PA_TAG_U32, &a.tlength,
+                    PA_TAG_U32, &a.prebuf,
+                    PA_TAG_U32, &a.minreq,
                     PA_TAG_INVALID) < 0 ||
             (c->version >= 13 && pa_tagstruct_get_boolean(t, &adjust_latency) < 0) ||
             (c->version >= 14 && pa_tagstruct_get_boolean(t, &early_requests) < 0) ||
@@ -3491,18 +3488,18 @@ static void command_set_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, u
             return;
         }
 
-        fix_playback_buffer_attr_pre(s, adjust_latency, early_requests, &maxlength, &tlength, &prebuf, &minreq);
-        pa_memblockq_set_maxlength(s->memblockq, maxlength);
-        pa_memblockq_set_tlength(s->memblockq, tlength);
-        pa_memblockq_set_prebuf(s->memblockq, prebuf);
-        pa_memblockq_set_minreq(s->memblockq, minreq);
-        fix_playback_buffer_attr_post(s, &maxlength, &tlength, &prebuf, &minreq);
+        s->adjust_latency = adjust_latency;
+        s->early_requests = early_requests;
+        s->buffer_attr = a;
+
+        fix_playback_buffer_attr(s);
+        pa_assert_se(pa_asyncmsgq_send(s->sink_input->sink->asyncmsgq, PA_MSGOBJECT(s->sink_input), SINK_INPUT_MESSAGE_UPDATE_BUFFER_ATTR, NULL, 0, NULL) == 0);
 
         reply = reply_new(tag);
-        pa_tagstruct_putu32(reply, maxlength);
-        pa_tagstruct_putu32(reply, tlength);
-        pa_tagstruct_putu32(reply, prebuf);
-        pa_tagstruct_putu32(reply, minreq);
+        pa_tagstruct_putu32(reply, s->buffer_attr.maxlength);
+        pa_tagstruct_putu32(reply, s->buffer_attr.tlength);
+        pa_tagstruct_putu32(reply, s->buffer_attr.prebuf);
+        pa_tagstruct_putu32(reply, s->buffer_attr.minreq);
 
         if (c->version >= 13)
             pa_tagstruct_put_usec(reply, s->sink_latency);
@@ -3517,8 +3514,8 @@ static void command_set_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, u
 
         if (pa_tagstruct_get(
                     t,
-                    PA_TAG_U32, &maxlength,
-                    PA_TAG_U32, &fragsize,
+                    PA_TAG_U32, &a.maxlength,
+                    PA_TAG_U32, &a.fragsize,
                     PA_TAG_INVALID) < 0 ||
             (c->version >= 13 && pa_tagstruct_get_boolean(t, &adjust_latency) < 0) ||
             (c->version >= 14 && pa_tagstruct_get_boolean(t, &early_requests) < 0) ||
@@ -3527,13 +3524,18 @@ static void command_set_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, u
             return;
         }
 
-        fix_record_buffer_attr_pre(s, adjust_latency, early_requests, &maxlength, &fragsize);
-        pa_memblockq_set_maxlength(s->memblockq, maxlength);
-        fix_record_buffer_attr_post(s, &maxlength, &fragsize);
+        s->adjust_latency = adjust_latency;
+        s->early_requests = early_requests;
+        s->buffer_attr = a;
+
+        fix_record_buffer_attr_pre(s);
+        pa_memblockq_set_maxlength(s->memblockq, s->buffer_attr.maxlength);
+        pa_memblockq_get_attr(s->memblockq, &s->buffer_attr);
+        fix_record_buffer_attr_post(s);
 
         reply = reply_new(tag);
-        pa_tagstruct_putu32(reply, maxlength);
-        pa_tagstruct_putu32(reply, fragsize);
+        pa_tagstruct_putu32(reply, s->buffer_attr.maxlength);
+        pa_tagstruct_putu32(reply, s->buffer_attr.fragsize);
 
         if (c->version >= 13)
             pa_tagstruct_put_usec(reply, s->source_latency);
