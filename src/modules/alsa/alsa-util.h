@@ -54,7 +54,7 @@ int pa_alsa_set_sw_params(snd_pcm_t *pcm, snd_pcm_uframes_t avail_min);
 
 int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev);
 snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const char *fallback, pa_bool_t playback);
-int pa_alsa_find_mixer_and_elem(snd_pcm_t *pcm, snd_mixer_t **_m, snd_mixer_elem_t **_e);
+int pa_alsa_find_mixer_and_elem(snd_pcm_t *pcm, snd_mixer_t **_m, snd_mixer_elem_t **_e, const char *control_name);
 
 typedef struct pa_alsa_profile_info {
     pa_channel_map map;

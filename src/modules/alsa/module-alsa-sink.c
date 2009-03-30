@@ -52,7 +52,8 @@ PA_MODULE_USAGE(
         "tsched=<enable system timer based scheduling mode?> "
         "tsched_buffer_size=<buffer size when using timer based scheduling> "
         "tsched_buffer_watermark=<lower fill watermark> "
-        "ignore_dB=<ignore dB information from the device?>");
+        "ignore_dB=<ignore dB information from the device?> "
+        "control=<name of mixer control>");
 
 static const char* const valid_modargs[] = {
     "name",
@@ -70,6 +71,7 @@ static const char* const valid_modargs[] = {
     "tsched_buffer_size",
     "tsched_buffer_watermark",
     "ignore_dB",
+    "control",
     NULL
 };
 
