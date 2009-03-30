@@ -360,6 +360,7 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
 
 /* structure management */
 
+/* Called from main context */
 static void upload_stream_unlink(upload_stream *s) {
     pa_assert(s);
 
@@ -371,6 +372,7 @@ static void upload_stream_unlink(upload_stream *s) {
     upload_stream_unref(s);
 }
 
+/* Called from main context */
 static void upload_stream_free(pa_object *o) {
     upload_stream *s = UPLOAD_STREAM(o);
     pa_assert(s);
@@ -388,6 +390,7 @@ static void upload_stream_free(pa_object *o) {
     pa_xfree(s);
 }
 
+/* Called from main context */
 static upload_stream* upload_stream_new(
         pa_native_connection *c,
         const pa_sample_spec *ss,
@@ -420,6 +423,7 @@ static upload_stream* upload_stream_new(
     return s;
 }
 
+/* Called from main context */
 static void record_stream_unlink(record_stream *s) {
     pa_assert(s);
 
@@ -437,6 +441,7 @@ static void record_stream_unlink(record_stream *s) {
     record_stream_unref(s);
 }
 
+/* Called from main context */
 static void record_stream_free(pa_object *o) {
     record_stream *s = RECORD_STREAM(o);
     pa_assert(s);
@@ -447,6 +452,7 @@ static void record_stream_free(pa_object *o) {
     pa_xfree(s);
 }
 
+/* Called from main context */
 static int record_stream_process_msg(pa_msgobject *o, int code, void*userdata, int64_t offset, pa_memchunk *chunk) {
     record_stream *s = RECORD_STREAM(o);
     record_stream_assert_ref(s);
@@ -581,6 +587,7 @@ static void fix_record_buffer_attr_post(
     *fragsize = (uint32_t) s->fragment_size;
 }
 
+/* Called from main context */
 static record_stream* record_stream_new(
         pa_native_connection *c,
         pa_source *source,
@@ -669,6 +676,7 @@ static record_stream* record_stream_new(
     return s;
 }
 
+/* Called from main context */
 static void record_stream_send_killed(record_stream *r) {
     pa_tagstruct *t;
     record_stream_assert_ref(r);
@@ -680,6 +688,7 @@ static void record_stream_send_killed(record_stream *r) {
     pa_pstream_send_tagstruct(r->connection->pstream, t);
 }
 
+/* Called from main context */
 static void playback_stream_unlink(playback_stream *s) {
     pa_assert(s);
 
@@ -700,6 +709,7 @@ static void playback_stream_unlink(playback_stream *s) {
     playback_stream_unref(s);
 }
 
+/* Called from main context */
 static void playback_stream_free(pa_object* o) {
     playback_stream *s = PLAYBACK_STREAM(o);
     pa_assert(s);
@@ -710,6 +720,7 @@ static void playback_stream_free(pa_object* o) {
     pa_xfree(s);
 }
 
+/* Called from main context */
 static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata, int64_t offset, pa_memchunk *chunk) {
     playback_stream *s = PLAYBACK_STREAM(o);
     playback_stream_assert_ref(s);
@@ -953,6 +964,7 @@ static void fix_playback_buffer_attr_post(
     s->minreq = *minreq;
 }
 
+/* Called from main context */
 static playback_stream* playback_stream_new(
         pa_native_connection *c,
         pa_sink *sink,
@@ -1089,7 +1101,7 @@ static playback_stream* playback_stream_new(
     return s;
 }
 
-/* Called from thread context */
+/* Called from IO context */
 static void playback_stream_request_bytes(playback_stream *s) {
     size_t m, previous_missing;
 
@@ -1110,6 +1122,7 @@ static void playback_stream_request_bytes(playback_stream *s) {
 }
 
 
+/* Called from main context */
 static void playback_stream_send_killed(playback_stream *p) {
     pa_tagstruct *t;
     playback_stream_assert_ref(p);
@@ -1121,6 +1134,7 @@ static void playback_stream_send_killed(playback_stream *p) {
     pa_pstream_send_tagstruct(p->connection->pstream, t);
 }
 
+/* Called from main context */
 static int native_connection_process_msg(pa_msgobject *o, int code, void*userdata, int64_t offset, pa_memchunk *chunk) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(o);
     pa_native_connection_assert_ref(c);
@@ -1142,6 +1156,7 @@ static int native_connection_process_msg(pa_msgobject *o, int code, void*userdat
     return 0;
 }
 
+/* Called from main context */
 static void native_connection_unlink(pa_native_connection *c) {
     record_stream *r;
     output_stream *o;
@@ -1181,6 +1196,7 @@ static void native_connection_unlink(pa_native_connection *c) {
     pa_native_connection_unref(c);
 }
 
+/* Called from main context */
 static void native_connection_free(pa_object *o) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(o);
 
@@ -1198,6 +1214,7 @@ static void native_connection_free(pa_object *o) {
     pa_xfree(c);
 }
 
+/* Called from main context */
 static void native_connection_send_memblock(pa_native_connection *c) {
     uint32_t start;
     record_stream *r;
@@ -1232,6 +1249,7 @@ static void native_connection_send_memblock(pa_native_connection *c) {
 
 /*** sink input callbacks ***/
 
+/* Called from thread context */
 static void handle_seek(playback_stream *s, int64_t indexw) {
     playback_stream_assert_ref(s);
 
@@ -1447,6 +1465,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     return 0;
 }
 
+/* Called from thread context */
 static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     playback_stream *s;
 
@@ -1461,6 +1480,7 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     pa_memblockq_rewind(s->memblockq, nbytes);
 }
 
+/* Called from thread context */
 static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     playback_stream *s;
 
@@ -1471,6 +1491,7 @@ static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     pa_memblockq_set_maxrewind(s->memblockq, nbytes);
 }
 
+/* Called from thread context */
 static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
     playback_stream *s;
     size_t tlength;
