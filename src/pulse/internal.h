@@ -42,6 +42,7 @@
 #include <pulsecore/hashmap.h>
 #include <pulsecore/refcnt.h>
 #include <pulsecore/time-smoother.h>
+#include <pulsecore/dbus-util.h>
 
 #include "client-conf.h"
 
@@ -49,6 +50,10 @@
 
 struct pa_context {
     PA_REFCNT_DECLARE;
+
+    pa_bool_t no_fail:1;
+    pa_dbus_wrap_connection *system_bus;
+    pa_dbus_wrap_connection *session_bus;
 
     pa_proplist *proplist;
     pa_mainloop_api* mainloop;

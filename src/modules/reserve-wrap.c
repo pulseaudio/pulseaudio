@@ -29,8 +29,7 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/shared.h>
-
-#include <modules/dbus-util.h>
+#include <pulsecore/dbus-shared.h>
 
 #include "reserve.h"
 #include "reserve-wrap.h"

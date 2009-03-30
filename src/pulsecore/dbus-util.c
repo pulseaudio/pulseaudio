@@ -29,16 +29,12 @@
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 #include <pulsecore/log.h>
-#include <pulsecore/shared.h>
 
 #include "dbus-util.h"
 
-struct pa_dbus_connection {
-    PA_REFCNT_DECLARE;
-
-    pa_core *core;
+struct pa_dbus_wrap_connection {
+    pa_mainloop_api *mainloop;
     DBusConnection *connection;
-    const char *property_name;
     pa_defer_event* dispatch_event;
 };
 
@@ -53,20 +49,20 @@ static void dispatch_cb(pa_mainloop_api *ea, pa_defer_event *ev, void *userdata)
 
 /* DBusDispatchStatusFunction callback for the pa mainloop */
 static void dispatch_status(DBusConnection *conn, DBusDispatchStatus status, void *userdata) {
-    pa_dbus_connection *c = userdata;
+    pa_dbus_wrap_connection *c = userdata;
 
     pa_assert(c);
 
     switch(status) {
 
         case DBUS_DISPATCH_COMPLETE:
-            c->core->mainloop->defer_enable(c->dispatch_event, 0);
+            c->mainloop->defer_enable(c->dispatch_event, 0);
             break;
 
         case DBUS_DISPATCH_DATA_REMAINS:
         case DBUS_DISPATCH_NEED_MEMORY:
         default:
-            c->core->mainloop->defer_enable(c->dispatch_event, 1);
+            c->mainloop->defer_enable(c->dispatch_event, 1);
             break;
     }
 }
@@ -135,7 +131,7 @@ static void handle_time_event(pa_mainloop_api *ea, pa_time_event* e, const struc
 
 /* DBusAddWatchFunction callback for pa mainloop */
 static dbus_bool_t add_watch(DBusWatch *watch, void *data) {
-    pa_core *c = PA_CORE(data);
+    pa_dbus_wrap_connection *c = data;
     pa_io_event *ev;
 
     pa_assert(watch);
@@ -157,7 +153,7 @@ static dbus_bool_t add_watch(DBusWatch *watch, void *data) {
 
 /* DBusRemoveWatchFunction callback for pa mainloop */
 static void remove_watch(DBusWatch *watch, void *data) {
-    pa_core *c = PA_CORE(data);
+    pa_dbus_wrap_connection *c = data;
     pa_io_event *ev;
 
     pa_assert(watch);
@@ -169,11 +165,11 @@ static void remove_watch(DBusWatch *watch, void *data) {
 
 /* DBusWatchToggledFunction callback for pa mainloop */
 static void toggle_watch(DBusWatch *watch, void *data) {
-    pa_core *c = PA_CORE(data);
+    pa_dbus_wrap_connection *c = data;
     pa_io_event *ev;
 
     pa_assert(watch);
-    pa_core_assert_ref(c);
+    pa_assert(c);
 
     pa_assert_se(ev = dbus_watch_get_data(watch));
 
@@ -183,7 +179,7 @@ static void toggle_watch(DBusWatch *watch, void *data) {
 
 /* DBusAddTimeoutFunction callback for pa mainloop */
 static dbus_bool_t add_timeout(DBusTimeout *timeout, void *data) {
-    pa_core *c = PA_CORE(data);
+    pa_dbus_wrap_connection *c = data;
     pa_time_event *ev;
     struct timeval tv;
 
@@ -205,7 +201,7 @@ static dbus_bool_t add_timeout(DBusTimeout *timeout, void *data) {
 
 /* DBusRemoveTimeoutFunction callback for pa mainloop */
 static void remove_timeout(DBusTimeout *timeout, void *data) {
-    pa_core *c = PA_CORE(data);
+    pa_dbus_wrap_connection *c = data;
     pa_time_event *ev;
 
     pa_assert(timeout);
@@ -217,7 +213,7 @@ static void remove_timeout(DBusTimeout *timeout, void *data) {
 
 /* DBusTimeoutToggledFunction callback for pa mainloop */
 static void toggle_timeout(DBusTimeout *timeout, void *data) {
-    pa_core *c = PA_CORE(data);
+    pa_dbus_wrap_connection *c = data;
     pa_time_event *ev;
 
     pa_assert(timeout);
@@ -237,95 +233,59 @@ static void toggle_timeout(DBusTimeout *timeout, void *data) {
 }
 
 static void wakeup_main(void *userdata) {
-    pa_dbus_connection *c = userdata;
+    pa_dbus_wrap_connection *c = userdata;
 
     pa_assert(c);
 
     /* this will wakeup the mainloop and dispatch events, although
      * it may not be the cleanest way of accomplishing it */
-    c->core->mainloop->defer_enable(c->dispatch_event, 1);
+    c->mainloop->defer_enable(c->dispatch_event, 1);
 }
 
-static pa_dbus_connection* pa_dbus_connection_new(pa_core* c, DBusConnection *conn, const char* name) {
-    pa_dbus_connection *pconn;
-
-    pconn = pa_xnew(pa_dbus_connection, 1);
-    PA_REFCNT_INIT(pconn);
-    pconn->core = c;
-    pconn->property_name = name;
-    pconn->connection = conn;
-    pconn->dispatch_event = c->mainloop->defer_new(c->mainloop, dispatch_cb, conn);
-
-    pa_shared_set(c, name, pconn);
-
-    return pconn;
-}
-
-DBusConnection* pa_dbus_connection_get(pa_dbus_connection *c){
-    pa_assert(c);
-    pa_assert(PA_REFCNT_VALUE(c) > 0);
-    pa_assert(c->connection);
-
-    return c->connection;
-}
-
-void pa_dbus_connection_unref(pa_dbus_connection *c) {
-    pa_assert(c);
-    pa_assert(PA_REFCNT_VALUE(c) > 0);
-
-    if (PA_REFCNT_DEC(c) > 0)
-        return;
-
-    if (dbus_connection_get_is_connected(c->connection)) {
-        dbus_connection_close(c->connection);
-         /* must process remaining messages, bit of a kludge to handle
-         * both unload and shutdown */
-        while (dbus_connection_read_write_dispatch(c->connection, -1));
-    }
-
-    /* already disconnected, just free */
-    pa_shared_remove(c->core, c->property_name);
-    c->core->mainloop->defer_free(c->dispatch_event);
-    dbus_connection_unref(c->connection);
-    pa_xfree(c);
-}
-
-pa_dbus_connection* pa_dbus_connection_ref(pa_dbus_connection *c) {
-    pa_assert(c);
-    pa_assert(PA_REFCNT_VALUE(c) > 0);
-
-    PA_REFCNT_INC(c);
-
-    return c;
-}
-
-pa_dbus_connection* pa_dbus_bus_get(pa_core *c, DBusBusType type, DBusError *error) {
-
-    static const char *const prop_name[] = {
-        [DBUS_BUS_SESSION] = "dbus-connection-session",
-        [DBUS_BUS_SYSTEM] = "dbus-connection-system",
-        [DBUS_BUS_STARTER] = "dbus-connection-starter"
-    };
+pa_dbus_wrap_connection* pa_dbus_wrap_connection_new(pa_mainloop_api *m, DBusBusType type, DBusError *error) {
     DBusConnection *conn;
-    pa_dbus_connection *pconn;
+    pa_dbus_wrap_connection *pconn = NULL;
 
     pa_assert(type == DBUS_BUS_SYSTEM || type == DBUS_BUS_SESSION || type == DBUS_BUS_STARTER);
-
-    if ((pconn = pa_shared_get(c, prop_name[type])))
-        return pa_dbus_connection_ref(pconn);
 
     if (!(conn = dbus_bus_get_private(type, error)))
         return NULL;
 
-    pconn = pa_dbus_connection_new(c, conn, prop_name[type]);
+    pconn = pa_xnew(pa_dbus_wrap_connection, 1);
+    pconn->mainloop = m;
+    pconn->connection = conn;
 
     dbus_connection_set_exit_on_disconnect(conn, FALSE);
     dbus_connection_set_dispatch_status_function(conn, dispatch_status, pconn, NULL);
-    dbus_connection_set_watch_functions(conn, add_watch, remove_watch, toggle_watch, c, NULL);
-    dbus_connection_set_timeout_functions(conn, add_timeout, remove_timeout, toggle_timeout, c, NULL);
+    dbus_connection_set_watch_functions(conn, add_watch, remove_watch, toggle_watch, pconn, NULL);
+    dbus_connection_set_timeout_functions(conn, add_timeout, remove_timeout, toggle_timeout, pconn, NULL);
     dbus_connection_set_wakeup_main_function(conn, wakeup_main, pconn, NULL);
 
+    pconn->dispatch_event = pconn->mainloop->defer_new(pconn->mainloop, dispatch_cb, conn);
+
     return pconn;
+}
+
+void pa_dbus_wrap_connection_free(pa_dbus_wrap_connection* c) {
+    pa_assert(c);
+
+    if (dbus_connection_get_is_connected(c->connection)) {
+        dbus_connection_close(c->connection);
+        /* must process remaining messages, bit of a kludge to handle
+         * both unload and shutdown */
+        while (dbus_connection_read_write_dispatch(c->connection, -1));
+    }
+
+    c->mainloop->defer_free(c->dispatch_event);
+    dbus_connection_unref(c->connection);
+    pa_xfree(c);
+}
+
+DBusConnection* pa_dbus_wrap_connection_get(pa_dbus_wrap_connection *c) {
+  pa_assert(c);
+  pa_assert(c->connection);
+
+  return c->connection;
 }
 
 int pa_dbus_add_matches(DBusConnection *c, DBusError *error, ...) {

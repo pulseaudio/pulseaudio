@@ -29,12 +29,38 @@
 #include <pulse/context.h>
 #include <pulse/glib-mainloop.h>
 
+pa_context *ctxt;
+pa_glib_mainloop *m;
+
+static void context_state_callback(pa_context *c, void *userdata);
+
+static void connect(void) {
+    int r;
+
+    ctxt = pa_context_new(pa_glib_mainloop_get_api(m), NULL);
+    g_assert(ctxt);
+
+    r = pa_context_connect(ctxt, NULL, PA_CONTEXT_NOAUTOSPAWN|PA_CONTEXT_NOFAIL, NULL);
+    g_assert(r == 0);
+
+    pa_context_set_state_callback(ctxt, context_state_callback, NULL);
+}
+
+static void context_state_callback(pa_context *c, void *userdata) {
+    switch (pa_context_get_state(c)) {
+        case PA_CONTEXT_FAILED:
+            pa_context_unref(ctxt);
+            ctxt = NULL;
+            connect();
+            break;
+        default:
+            break;
+    }
+}
+
 int main(int argc, char *argv[]) {
 
-    pa_context *c;
-    pa_glib_mainloop *m;
     GtkWidget *window;
-    int r;
 
     gtk_init(&argc, &argv);
 
@@ -49,15 +75,10 @@ int main(int argc, char *argv[]) {
     m = pa_glib_mainloop_new(NULL);
     g_assert(m);
 
-    c = pa_context_new(pa_glib_mainloop_get_api(m), NULL);
-    g_assert(c);
-
-    r = pa_context_connect(c, NULL, 0, NULL);
-    g_assert(r == 0);
-
+    connect();
     gtk_main();
 
-    pa_context_unref(c);
+    pa_context_unref(ctxt);
     pa_glib_mainloop_free(m);
 
     return 0;

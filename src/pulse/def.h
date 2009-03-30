@@ -109,13 +109,16 @@ typedef enum pa_operation_state {
 
 /** Some special flags for contexts. */
 typedef enum pa_context_flags {
-    PA_CONTEXT_NOAUTOSPAWN = 1
+    PA_CONTEXT_NOAUTOSPAWN = 0x0001U,
     /**< Disabled autospawning of the PulseAudio daemon if required */
+    PA_CONTEXT_NOFAIL = 0x0002U
+    /**< Don't fail if the daemon is not available when pa_context_connect() is called, instead enter PA_CONTEXT_CONNECTING state and wait for the daemon to appear.  \since 0.9.15 */
 } pa_context_flags_t;
 
 /** \cond fulldocs */
 /* Allow clients to check with #ifdef for those flags */
 #define PA_CONTEXT_NOAUTOSPAWN PA_CONTEXT_NOAUTOSPAWN
+#define PA_CONTEXT_NOFAIL PA_CONTEXT_NOFAIL
 /** \endcond */
 
 /** The direction of a pa_stream object */

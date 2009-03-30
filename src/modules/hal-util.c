@@ -24,10 +24,10 @@
 #endif
 
 #include <pulsecore/log.h>
+#include <pulsecore/dbus-shared.h>
 
 #include <hal/libhal.h>
 
-#include "dbus-util.h"
 #include "hal-util.h"
 
 int pa_hal_get_info(pa_core *core, pa_proplist *p, int card) {

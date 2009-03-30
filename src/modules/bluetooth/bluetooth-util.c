@@ -25,7 +25,7 @@
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/shared.h>
-#include <modules/dbus-util.h>
+#include <pulsecore/dbus-shared.h>
 
 #include "bluetooth-util.h"
 
