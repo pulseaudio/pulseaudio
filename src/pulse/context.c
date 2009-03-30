@@ -760,8 +760,8 @@ static void track_pulseaudio_on_dbus(pa_context *c, DBusBusType type, pa_dbus_wr
 
     if (pa_dbus_add_matches(
                 pa_dbus_wrap_connection_get(*conn), &error,
-                "type='signal',sender='" DBUS_SERVICE_DBUS "',interface='" DBUS_INTERFACE_DBUS "',member='NameOwnerChanged',arg0='org.pulseaudio',arg1=''", NULL) < 0)
-        pa_log_warn("Unable to track org.pulseaudio: %s: %s", error.name, error.message);
+                "type='signal',sender='" DBUS_SERVICE_DBUS "',interface='" DBUS_INTERFACE_DBUS "',member='NameOwnerChanged',arg0='org.pulseaudio.Server',arg1=''", NULL) < 0)
+        pa_log_warn("Unable to track org.pulseaudio.Server: %s: %s", error.name, error.message);
 
  finish:
     dbus_error_free(&error);

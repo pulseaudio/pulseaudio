@@ -345,10 +345,10 @@ static void register_org_pulseaudio(pa_core *c)
         goto finish_dbus;
     }
 
-    if (dbus_bus_request_name (pa_dbus_connection_get(conn), "org.pulseaudio", 0, &error) == DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER)
-        pa_log_debug("Got org.pulseaudio!");
+    if (dbus_bus_request_name (pa_dbus_connection_get(conn), "org.pulseaudio.Server", DBUS_NAME_FLAG_DO_NOT_QUEUE, &error) == DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER)
+        pa_log_debug("Got org.pulseaudio.Server!");
     else if (dbus_error_is_set(&error))
-        pa_log_warn("Unable to get org.pulseaudio: %s: %s", error.name, error.message);
+        pa_log_warn("Unable to get org.pulseaudio.Server: %s: %s", error.name, error.message);
 
 finish_dbus:
     if (conn)
