@@ -41,7 +41,8 @@
 #include "fork-detect.h"
 #include "internal.h"
 
-#define LATENCY_IPOL_INTERVAL_USEC (333*PA_USEC_PER_MSEC)
+#define AUTO_TIMING_INTERVAL_START_USEC (10*PA_USEC_PER_MSEC)
+#define AUTO_TIMING_INTERVAL_END_USEC (1500*PA_USEC_PER_MSEC)
 
 #define SMOOTHER_ADJUST_TIME (1000*PA_USEC_PER_MSEC)
 #define SMOOTHER_HISTORY_TIME (5000*PA_USEC_PER_MSEC)
@@ -161,6 +162,7 @@ pa_stream *pa_stream_new_with_proplist(
 
     s->auto_timing_update_event = NULL;
     s->auto_timing_update_requested = FALSE;
+    s->auto_timing_interval_usec = AUTO_TIMING_INTERVAL_START_USEC;
 
     reset_callbacks(s);
 
@@ -308,7 +310,7 @@ static void request_auto_timing_update(pa_stream *s, pa_bool_t force) {
         (force || !s->auto_timing_update_requested)) {
         pa_operation *o;
 
-/*         pa_log("automatically requesting new timing data"); */
+/*         pa_log("Automatically requesting new timing data"); */
 
         if ((o = pa_stream_update_timing_info(s, NULL, NULL))) {
             pa_operation_unref(o);
@@ -318,9 +320,15 @@ static void request_auto_timing_update(pa_stream *s, pa_bool_t force) {
 
     if (s->auto_timing_update_event) {
         struct timeval next;
+
+        if (force)
+            s->auto_timing_interval_usec = AUTO_TIMING_INTERVAL_START_USEC;
+
         pa_gettimeofday(&next);
-        pa_timeval_add(&next, LATENCY_IPOL_INTERVAL_USEC);
+        pa_timeval_add(&next, s->auto_timing_interval_usec);
         s->mainloop->time_restart(s->auto_timing_update_event, &next);
+
+        s->auto_timing_interval_usec = PA_MIN(AUTO_TIMING_INTERVAL_END_USEC, s->auto_timing_interval_usec*2);
     }
 }
 
@@ -823,7 +831,8 @@ static void create_stream_complete(pa_stream *s) {
     if (s->flags & PA_STREAM_AUTO_TIMING_UPDATE) {
         struct timeval tv;
         pa_gettimeofday(&tv);
-        tv.tv_usec += (suseconds_t) LATENCY_IPOL_INTERVAL_USEC; /* every 100 ms */
+        s->auto_timing_interval_usec = AUTO_TIMING_INTERVAL_START_USEC;
+        pa_timeval_add(&tv, s->auto_timing_interval_usec);
         pa_assert(!s->auto_timing_update_event);
         s->auto_timing_update_event = s->mainloop->time_new(s->mainloop, &tv, &auto_timing_update_callback, s);
 

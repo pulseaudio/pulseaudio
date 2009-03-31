@@ -166,6 +166,7 @@ struct pa_stream {
 
     /* Latency interpolation stuff */
     pa_time_event *auto_timing_update_event;
+    pa_usec_t auto_timing_interval_usec;
 
     pa_smoother *smoother;
 
