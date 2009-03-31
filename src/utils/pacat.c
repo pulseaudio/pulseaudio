@@ -238,6 +238,13 @@ static void stream_moved_callback(pa_stream *s, void *userdata) {
         fprintf(stderr, _("Stream moved to device %s (%u, %ssuspended).%s \n"), pa_stream_get_device_name(s), pa_stream_get_device_index(s), pa_stream_is_suspended(s) ? "" : _("not "),  CLEAR_LINE);
 }
 
+static void stream_buffer_attr_callback(pa_stream *s, void *userdata) {
+    assert(s);
+
+    if (verbose)
+        fprintf(stderr, _("Stream buffer attributes changed.%s \n"),  CLEAR_LINE);
+}
+
 static void stream_event_callback(pa_stream *s, const char *name, pa_proplist *pl, void *userdata) {
     char *t;
 
@@ -284,6 +291,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
             pa_stream_set_overflow_callback(stream, stream_overflow_callback, NULL);
             pa_stream_set_started_callback(stream, stream_started_callback, NULL);
             pa_stream_set_event_callback(stream, stream_event_callback, NULL);
+            pa_stream_set_buffer_attr_callback(stream, stream_buffer_attr_callback, NULL);
 
             if (latency > 0) {
                 memset(&buffer_attr, 0, sizeof(buffer_attr));
