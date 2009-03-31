@@ -1926,11 +1926,11 @@ int pa__init(pa_module*m) {
 
     u->time_event = NULL;
 
-    u->maxlength = 0;
+    u->maxlength = (uint32_t) -1;
 #ifdef TUNNEL_SINK
-    u->tlength = u->minreq = u->prebuf = 0;
+    u->tlength = u->minreq = u->prebuf = (uint32_t) -1;
 #else
-    u->fragsize = 0;
+    u->fragsize = (uint32_t) -1;
 #endif
 
     pa_smoother_set_time_offset(u->smoother, pa_rtclock_usec());
