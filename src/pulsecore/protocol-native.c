@@ -1495,17 +1495,26 @@ static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
 /* Called from thread context */
 static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
     playback_stream *s;
-    size_t tlength;
+    size_t new_tlength, old_tlength;
 
     pa_sink_input_assert_ref(i);
     s = PLAYBACK_STREAM(i->userdata);
     playback_stream_assert_ref(s);
 
-    tlength = nbytes+2*pa_memblockq_get_minreq(s->memblockq);
+    old_tlength = pa_memblockq_get_tlength(s->memblockq);
+    new_tlength = nbytes+2*pa_memblockq_get_minreq(s->memblockq);
 
-    if (pa_memblockq_get_tlength(s->memblockq) < tlength) {
-        pa_memblockq_set_tlength(s->memblockq, tlength);
-        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_UPDATE_TLENGTH, NULL, pa_memblockq_get_tlength(s->memblockq), NULL, NULL);
+    if (old_tlength < new_tlength) {
+        pa_log_debug("max_request changed, trying to update from %zu to %zu.", old_tlength, new_tlength);
+        pa_memblockq_set_tlength(s->memblockq, new_tlength);
+        new_tlength = pa_memblockq_get_tlength(s->memblockq);
+
+        if (new_tlength == old_tlength)
+            pa_log_debug("Failed to increase tlength");
+        else {
+            pa_log_debug("Notifying client about increased tlength");
+            pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_UPDATE_TLENGTH, NULL, pa_memblockq_get_tlength(s->memblockq), NULL, NULL);
+        }
     }
 }
 
