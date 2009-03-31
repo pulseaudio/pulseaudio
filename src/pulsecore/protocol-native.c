@@ -1437,7 +1437,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     if (pa_memblockq_is_readable(s->memblockq))
         s->is_underrun = FALSE;
     else {
-/*         pa_log("%s, UNDERRUN: %lu", pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME), (unsigned long) pa_memblockq_get_length(s->memblockq)); */
+        pa_log_debug("Underrun on '%s', %lu bytes in queue.", pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME)), (unsigned long) pa_memblockq_get_length(s->memblockq));
 
         if (s->drain_request && pa_sink_input_safe_to_remove(i)) {
             s->drain_request = FALSE;
