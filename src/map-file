@@ -233,6 +233,7 @@ pa_stream_proplist_update;
 pa_stream_readable_size;
 pa_stream_ref;
 pa_stream_set_buffer_attr;
+pa_stream_set_buffer_attr_callback;
 pa_stream_set_event_callback;
 pa_stream_set_latency_update_callback;
 pa_stream_set_monitor_stream;
