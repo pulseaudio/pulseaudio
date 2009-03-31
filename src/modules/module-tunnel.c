@@ -146,6 +146,7 @@ static void command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, ui
 static void command_suspended(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_moved(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_stream_or_client_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+static void command_stream_buffer_attr_changed(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
 #ifdef TUNNEL_SINK
@@ -163,7 +164,9 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_RECORD_STREAM_MOVED] = command_moved,
     [PA_COMMAND_PLAYBACK_STREAM_EVENT] = command_stream_or_client_event,
     [PA_COMMAND_RECORD_STREAM_EVENT] = command_stream_or_client_event,
-    [PA_COMMAND_CLIENT_EVENT] = command_stream_or_client_event
+    [PA_COMMAND_CLIENT_EVENT] = command_stream_or_client_event,
+    [PA_COMMAND_PLAYBACK_BUFFER_ATTR_CHANGED] = command_stream_buffer_attr_changed,
+    [PA_COMMAND_RECORD_BUFFER_ATTR_CHANGED] = command_stream_buffer_attr_changed
 };
 
 struct userdata {
@@ -315,6 +318,51 @@ static void command_moved(pa_pdispatch *pd,  uint32_t command,  uint32_t tag, pa
     pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_REMOTE_SUSPEND, PA_UINT32_TO_PTR(!!suspended), 0, NULL);
 #else
     pa_asyncmsgq_send(u->source->asyncmsgq, PA_MSGOBJECT(u->source), SOURCE_MESSAGE_REMOTE_SUSPEND, PA_UINT32_TO_PTR(!!suspended), 0, NULL);
+#endif
+
+    request_latency(u);
+}
+
+static void command_stream_buffer_attr_changed(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    struct userdata *u = userdata;
+    uint32_t channel, maxlength, tlength, fragsize, prebuf, minreq;
+    pa_usec_t usec;
+
+    pa_assert(pd);
+    pa_assert(t);
+    pa_assert(u);
+    pa_assert(u->pdispatch == pd);
+
+    if (pa_tagstruct_getu32(t, &channel) < 0 ||
+        pa_tagstruct_getu32(t, &maxlength) < 0) {
+
+        pa_log_error("Invalid packet.");
+        pa_module_unload_request(u->module, TRUE);
+        return;
+    }
+
+    if (command == PA_COMMAND_RECORD_BUFFER_ATTR_CHANGED) {
+        if (pa_tagstruct_getu32(t, &fragsize) < 0 ||
+            pa_tagstruct_get_usec(t, &usec) < 0) {
+
+            pa_log_error("Invalid packet.");
+            pa_module_unload_request(u->module, TRUE);
+            return;
+        }
+    } else {
+        if (pa_tagstruct_getu32(t, &tlength) < 0 ||
+            pa_tagstruct_getu32(t, &prebuf) < 0 ||
+            pa_tagstruct_getu32(t, &minreq) < 0 ||
+            pa_tagstruct_get_usec(t, &usec) < 0) {
+
+            pa_log_error("Invalid packet.");
+            pa_module_unload_request(u->module, TRUE);
+            return;
+        }
+    }
+
+#ifdef TUNNEL_SINK
+    pa_log_debug("Server reports buffer attrs changed. tlength now at %lu, before %lu.", (unsigned long) tlength, (unsigned long) u->tlength);
 #endif
 
     request_latency(u);
