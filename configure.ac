@@ -26,7 +26,7 @@ m4_define(pa_major, [0])
 m4_define(pa_minor, [9])
 m4_define(pa_micro, [15])
 
-AC_INIT([pulseaudio],[pa_major.pa_minor.pa_micro-test5],[mzchyfrnhqvb (at) 0pointer (dot) net])
+AC_INIT([pulseaudio],[pa_major.pa_minor.pa_micro-test6],[mzchyfrnhqvb (at) 0pointer (dot) net])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
