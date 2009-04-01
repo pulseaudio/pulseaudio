@@ -58,9 +58,9 @@ load-module module-detect
 .endif
 
 ### Automatically load driver modules for Bluetooth hardware
-#.ifexists module-bluetooth-discover@PA_SOEXT@
+.ifexists module-bluetooth-discover@PA_SOEXT@
 load-module module-bluetooth-discover
-#.endif
+.endif
 
 ### Load several protocols
 .ifexists module-esound-protocol-unix@PA_SOEXT@
