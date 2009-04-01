@@ -542,10 +542,12 @@ pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t 
     /* If this source output is not realized yet or is being moved, we
      * have to touch the thread info data directly */
 
-    pa_source_get_latency_range(o->source, &min_latency, &max_latency);
+    if (o->source) {
+        pa_source_get_latency_range(o->source, &min_latency, &max_latency);
 
-    if (usec != (pa_usec_t) -1)
-        usec = PA_CLAMP(usec, min_latency, max_latency);
+        if (usec != (pa_usec_t) -1)
+            usec = PA_CLAMP(usec, min_latency, max_latency);
+    }
 
     o->thread_info.requested_source_latency = usec;
 

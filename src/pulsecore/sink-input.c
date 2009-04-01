@@ -845,10 +845,12 @@ pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec) 
     /* If this sink input is not realized yet or we are being moved,
      * we have to touch the thread info data directly */
 
-    pa_sink_get_latency_range(i->sink, &min_latency, &max_latency);
+    if (i->sink) {
+        pa_sink_get_latency_range(i->sink, &min_latency, &max_latency);
 
-    if (usec != (pa_usec_t) -1)
-        usec =  PA_CLAMP(usec, min_latency, max_latency);
+        if (usec != (pa_usec_t) -1)
+            usec =  PA_CLAMP(usec, min_latency, max_latency);
+    }
 
     i->thread_info.requested_sink_latency = usec;
 
