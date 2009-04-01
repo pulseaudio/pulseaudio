@@ -162,11 +162,12 @@ int main(int argc, char *argv[]) {
             pa_bool_t cork_now;
 
             rtc = pa_timeval_diff(&now, &start);
-            printf("%i\t%llu\t%llu\t%llu\t%llu\t%u\t%u\n", k,
+            printf("%i\t%llu\t%llu\t%llu\t%llu\t%lli\t%u\t%u\n", k,
                    (unsigned long long) rtc,
                    (unsigned long long) t,
                    (unsigned long long) (rtc-old_rtc),
                    (unsigned long long) (t-old_t),
+                   (signed long long) rtc - (signed long long) t,
                    changed,
                    playing);
 
