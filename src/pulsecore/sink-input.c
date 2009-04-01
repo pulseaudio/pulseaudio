@@ -1167,7 +1167,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
         new_resampler = NULL;
 
     if (i->moving)
-        i->moving(i);
+        i->moving(i, dest);
 
     i->sink = dest;
     i->save_sink = save;

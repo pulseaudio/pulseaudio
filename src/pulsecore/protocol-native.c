@@ -213,7 +213,7 @@ enum {
 static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk);
 static void sink_input_kill_cb(pa_sink_input *i);
 static void sink_input_suspend_cb(pa_sink_input *i, pa_bool_t suspend);
-static void sink_input_moving_cb(pa_sink_input *i);
+static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest);
 static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes);
 static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes);
 static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes);
@@ -225,7 +225,7 @@ static void playback_stream_request_bytes(struct playback_stream*s);
 static void source_output_kill_cb(pa_source_output *o);
 static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk);
 static void source_output_suspend_cb(pa_source_output *o, pa_bool_t suspend);
-static void source_output_moving_cb(pa_source_output *o);
+static void source_output_moving_cb(pa_source_output *o, pa_source *dest);
 static pa_usec_t source_output_get_latency_cb(pa_source_output *o);
 static void source_output_send_event_cb(pa_source_output *o, const char *event, pa_proplist *pl);
 
@@ -1572,7 +1572,7 @@ static void sink_input_suspend_cb(pa_sink_input *i, pa_bool_t suspend) {
 }
 
 /* Called from main context */
-static void sink_input_moving_cb(pa_sink_input *i) {
+static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     playback_stream *s;
     pa_tagstruct *t;
 
@@ -1591,9 +1591,9 @@ static void sink_input_moving_cb(pa_sink_input *i) {
     pa_tagstruct_putu32(t, PA_COMMAND_PLAYBACK_STREAM_MOVED);
     pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
     pa_tagstruct_putu32(t, s->index);
-    pa_tagstruct_putu32(t, i->sink->index);
-    pa_tagstruct_puts(t, i->sink->name);
-    pa_tagstruct_put_boolean(t, pa_sink_get_state(i->sink) == PA_SINK_SUSPENDED);
+    pa_tagstruct_putu32(t, dest->index);
+    pa_tagstruct_puts(t, dest->name);
+    pa_tagstruct_put_boolean(t, pa_sink_get_state(dest) == PA_SINK_SUSPENDED);
 
     if (s->connection->version >= 13) {
         pa_tagstruct_putu32(t, s->buffer_attr.maxlength);
@@ -1685,7 +1685,7 @@ static void source_output_suspend_cb(pa_source_output *o, pa_bool_t suspend) {
 }
 
 /* Called from main context */
-static void source_output_moving_cb(pa_source_output *o) {
+static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     record_stream *s;
     pa_tagstruct *t;
 
@@ -1705,9 +1705,9 @@ static void source_output_moving_cb(pa_source_output *o) {
     pa_tagstruct_putu32(t, PA_COMMAND_RECORD_STREAM_MOVED);
     pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
     pa_tagstruct_putu32(t, s->index);
-    pa_tagstruct_putu32(t, o->source->index);
-    pa_tagstruct_puts(t, o->source->name);
-    pa_tagstruct_put_boolean(t, pa_source_get_state(o->source) == PA_SOURCE_SUSPENDED);
+    pa_tagstruct_putu32(t, dest->index);
+    pa_tagstruct_puts(t, dest->name);
+    pa_tagstruct_put_boolean(t, pa_source_get_state(dest) == PA_SOURCE_SUSPENDED);
 
     if (s->connection->version >= 13) {
         pa_tagstruct_putu32(t, s->buffer_attr.maxlength);

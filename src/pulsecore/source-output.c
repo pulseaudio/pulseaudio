@@ -747,7 +747,7 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
         new_resampler = NULL;
 
     if (o->moving)
-        o->moving(o);
+        o->moving(o, dest);
 
     o->source = dest;
     o->save_source = save;
