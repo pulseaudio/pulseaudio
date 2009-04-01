@@ -35,7 +35,7 @@
  * \section overv_sec Overview
  *
  * The application can be notified, asynchronously, whenever the internal
- * layout of the server changes. Possible notifications are desribed in the
+ * layout of the server changes. Possible notifications are described in the
  * \ref pa_subscription_event_type and \ref pa_subscription_mask
  * enumerations.
  *

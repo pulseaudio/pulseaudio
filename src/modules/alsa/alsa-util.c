@@ -705,7 +705,7 @@ snd_pcm_t *pa_alsa_open_by_device_id_auto(
             } else {
                 /* Hmm, so the next entry does not have the same
                  * number of channels, so let's go backwards until we
-                 * find the next entry with a differnt number of
+                 * find the next entry with a different number of
                  * channels */
 
                 for (i--; i >= 0; i--)

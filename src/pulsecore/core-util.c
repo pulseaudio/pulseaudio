@@ -326,7 +326,7 @@ ssize_t pa_write(int fd, const void *buf, size_t count, int *type) {
 }
 
 /** Calls read() in a loop. Makes sure that as much as 'size' bytes,
- * unless EOF is reached or an error occured */
+ * unless EOF is reached or an error occurred */
 ssize_t pa_loop_read(int fd, void*data, size_t size, int *type) {
     ssize_t ret = 0;
     int _type;
@@ -1242,7 +1242,7 @@ int pa_lock_lockfile(const char *fn) {
             goto fail;
         }
 
-        /* Check wheter the file has been removed meanwhile. When yes,
+        /* Check whether the file has been removed meanwhile. When yes,
          * restart this loop, otherwise, we're done */
         if (st.st_nlink >= 1)
             break;

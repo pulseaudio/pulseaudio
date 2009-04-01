@@ -59,7 +59,7 @@
  * \section intro_sec Introduction
  *
  * This document describes the client API for the PulseAudio sound
- * server. The API comes in two flavours to accomodate different styles
+ * server. The API comes in two flavours to accommodate different styles
  * of applications and different needs in complexity:
  *
  * \li The complete but somewhat complicated to use asynchronous API

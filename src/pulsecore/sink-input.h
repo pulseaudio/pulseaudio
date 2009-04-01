@@ -121,7 +121,7 @@ struct pa_sink_input {
      * changes. Called from IO context. */
     void (*update_max_rewind) (pa_sink_input *i, size_t nbytes); /* may be NULL */
 
-    /* Called whenever the maxiumum request size of the sink
+    /* Called whenever the maximum request size of the sink
      * changes. Called from IO context. */
     void (*update_max_request) (pa_sink_input *i, size_t nbytes); /* may be NULL */
 

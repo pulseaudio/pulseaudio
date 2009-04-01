@@ -229,7 +229,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
         }
     }
 
-    /* Check wheter there was a timestamp overflow */
+    /* Check whether there was a timestamp overflow */
     k = (int64_t) s->rtp_context.timestamp - (int64_t) s->offset;
     j = (int64_t) 0x100000000LL - (int64_t) s->offset + (int64_t) s->rtp_context.timestamp;
 

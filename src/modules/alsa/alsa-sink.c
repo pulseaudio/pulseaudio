@@ -1173,7 +1173,7 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
 
     /* Let's check whether we now use only a smaller part of the
     buffer then before. If so, we need to make sure that subsequent
-    rewinds are relative to the new maxium fill level and not to the
+    rewinds are relative to the new maximum fill level and not to the
     current fill level. Thus, let's do a full rewind once, to clear
     things up. */
 
@@ -1300,7 +1300,7 @@ static void thread_func(void *userdata) {
                     /* USB devices on ALSA seem to hit a buffer
                      * underrun during the first iterations much
                      * quicker then we calculate here, probably due to
-                     * the transport latency. To accomodate for that
+                     * the transport latency. To accommodate for that
                      * we artificially decrease the sleep time until
                      * we have filled the buffer at least once
                      * completely.*/

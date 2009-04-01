@@ -427,7 +427,7 @@ int main(int argc, char *argv[]) {
         pa_limit_caps();
 
         /* When capabilities are not supported we will not be able to
-         * aquire RT sched anymore. But yes, that's the way it is. It
+         * acquire RT sched anymore. But yes, that's the way it is. It
          * is just too risky tun let PA run as root all the time. */
     }
 

@@ -50,7 +50,7 @@
  * \li pa_channel_map_init_stereo() - Create a standard stereo mapping.
  * \li pa_channel_map_init_auto() - Create a standard channel map for a specific number of channels
  * \li pa_channel_map_init_extend() - Similar to
- * pa_channel_map_init_auto() but synthesize a channel map if noone
+ * pa_channel_map_init_auto() but synthesize a channel map if no
  * predefined one is known for the specified number of channels.
  *
  * \section conv_sec Convenience Functions
@@ -251,7 +251,7 @@ typedef struct pa_channel_map {
  * pa_channel_map_valid() will fail for it. */
 pa_channel_map* pa_channel_map_init(pa_channel_map *m);
 
-/** Initialize the specified channel map for monoaural audio and return a pointer to it */
+/** Initialize the specified channel map for monaural audio and return a pointer to it */
 pa_channel_map* pa_channel_map_init_mono(pa_channel_map *m);
 
 /** Initialize the specified channel map for stereophonic audio and return a pointer to it */
@@ -282,7 +282,7 @@ const char* pa_channel_position_to_pretty_string(pa_channel_position_t pos);
  * it might become part of an ABI. */
 #define PA_CHANNEL_MAP_SNPRINT_MAX 336
 
-/** Make a humand readable string from the specified channel map */
+/** Make a human readable string from the specified channel map */
 char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map);
 
 /** Parse a channel position list or well-known mapping name into a

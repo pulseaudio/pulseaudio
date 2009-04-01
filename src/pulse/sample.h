@@ -71,7 +71,7 @@
  *
  * \section chan_sec Channels
  *
- * PulseAudio supports up to 32 individiual channels. The order of the
+ * PulseAudio supports up to 32 individual channels. The order of the
  * channels is up to the application, but they must be continous. To map
  * channels to speakers, see \ref channelmap.
  *
@@ -221,7 +221,7 @@ typedef enum pa_sample_format {
 #define PA_SAMPLE_FLOAT32 PA_SAMPLE_FLOAT32NE
 
 /** \cond fulldocs */
-/* Allow clients to check with #ifdef for thse sample formats */
+/* Allow clients to check with #ifdef for these sample formats */
 #define PA_SAMPLE_U8 PA_SAMPLE_U8
 #define PA_SAMPLE_ALAW PA_SAMPLE_ALAW
 #define PA_SAMPLE_ULAW PA_SAMPLE_ULAW

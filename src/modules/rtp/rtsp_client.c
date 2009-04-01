@@ -211,7 +211,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     }
     if (!strlen(s2)) {
         /* End of headers */
-        /* We will have a header left from our looping itteration, so add it in :) */
+        /* We will have a header left from our looping iteration, so add it in :) */
         if (c->last_header) {
             /* This is not a continuation header so let's dump it into our proplist */
             pa_headerlist_puts(c->response_headers, c->last_header, pa_strbuf_tostring_free(c->header_buffer));
@@ -488,7 +488,7 @@ int pa_rtsp_record(pa_rtsp_client* c, uint16_t* seq, uint32_t* rtptime) {
 
     pa_assert(c);
     if (!c->session) {
-        /* No seesion in progres */
+        /* No session in progress */
         return -1;
     }
 

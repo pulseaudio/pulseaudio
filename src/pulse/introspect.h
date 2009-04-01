@@ -454,7 +454,7 @@ typedef struct pa_sink_input_info {
     pa_cvolume volume;                   /**< The volume of this sink input */
     pa_usec_t buffer_usec;               /**< Latency due to buffering in sink input, see pa_latency_info for details */
     pa_usec_t sink_usec;                 /**< Latency of the sink device, see pa_latency_info for details */
-    const char *resample_method;         /**< Thre resampling method used by this sink input. */
+    const char *resample_method;         /**< The resampling method used by this sink input. */
     const char *driver;                  /**< Driver name */
     int mute;                            /**< Stream muted \since 0.9.7 */
     pa_proplist *proplist;               /**< Property list \since 0.9.11 */
@@ -501,7 +501,7 @@ typedef struct pa_source_output_info {
     pa_channel_map channel_map;          /**< Channel map */
     pa_usec_t buffer_usec;               /**< Latency due to buffering in the source output, see pa_latency_info for details. */
     pa_usec_t source_usec;               /**< Latency of the source device, see pa_latency_info for details. */
-    const char *resample_method;         /**< Thre resampling method used by this source output. */
+    const char *resample_method;         /**< The resampling method used by this source output. */
     const char *driver;                  /**< Driver name */
     pa_proplist *proplist;               /**< Property list \since 0.9.11 */
 } pa_source_output_info;
@@ -539,7 +539,7 @@ pa_operation* pa_context_kill_source_output(pa_context *c, uint32_t idx, pa_cont
  * any new release. */
 typedef struct pa_stat_info {
     uint32_t memblock_total;           /**< Currently allocated memory blocks */
-    uint32_t memblock_total_size;      /**< Currentl total size of allocated memory blocks */
+    uint32_t memblock_total_size;      /**< Current total size of allocated memory blocks */
     uint32_t memblock_allocated;       /**< Allocated memory blocks during the whole lifetime of the daemon */
     uint32_t memblock_allocated_size;  /**< Total size of all memory blocks allocated during the whole lifetime of the daemon */
     uint32_t scache_size;              /**< Total size of all sample cache entries. */
