@@ -5,7 +5,7 @@ src/modules/module-zeroconf-discover.c
 src/modules/alsa/module-alsa-source.c
 src/modules/module-device-restore.c
 src/modules/module-match.c
-src/modules/dbus-util.c
+src/pulsecore/dbus-util.c
 src/modules/module-console-kit.c
 src/modules/oss/module-oss.c
 src/modules/oss/oss-util.c
