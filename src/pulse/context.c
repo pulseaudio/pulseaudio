@@ -364,10 +364,10 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     if ((s = pa_dynarray_get(c->record_streams, channel))) {
 
         if (chunk->memblock) {
-            pa_memblockq_seek(s->record_memblockq, offset, seek);
+            pa_memblockq_seek(s->record_memblockq, offset, seek, TRUE);
             pa_memblockq_push_align(s->record_memblockq, chunk);
         } else
-            pa_memblockq_seek(s->record_memblockq, offset+chunk->length, seek);
+            pa_memblockq_seek(s->record_memblockq, offset+chunk->length, seek, TRUE);
 
         if (s->read_callback) {
             size_t l;

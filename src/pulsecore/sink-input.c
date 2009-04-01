@@ -631,7 +631,7 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
              * data, so let's just hand out silence */
             pa_atomic_store(&i->thread_info.drained, 1);
 
-            pa_memblockq_seek(i->thread_info.render_memblockq, (int64_t) slength, PA_SEEK_RELATIVE);
+            pa_memblockq_seek(i->thread_info.render_memblockq, (int64_t) slength, PA_SEEK_RELATIVE, TRUE);
             i->thread_info.playing_for = 0;
             if (i->thread_info.underrun_for != (uint64_t) -1)
                 i->thread_info.underrun_for += ilength;
@@ -776,7 +776,7 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
 
             if (amount > 0)
                 /* Ok, now update the write pointer */
-                pa_memblockq_seek(i->thread_info.render_memblockq, - ((int64_t) amount), PA_SEEK_RELATIVE);
+                pa_memblockq_seek(i->thread_info.render_memblockq, - ((int64_t) amount), PA_SEEK_RELATIVE, TRUE);
 
             if (i->thread_info.rewrite_flush)
                 pa_memblockq_silence(i->thread_info.render_memblockq);

@@ -729,7 +729,7 @@ void pa_command_request(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tag
     s->requested_bytes += bytes;
 
     if (s->requested_bytes > 0 && s->write_callback)
-        s->write_callback(s, s->requested_bytes, s->write_userdata);
+        s->write_callback(s, (size_t) s->requested_bytes, s->write_userdata);
 
 finish:
     pa_context_unref(c);
@@ -826,7 +826,7 @@ static void create_stream_complete(pa_stream *s) {
     pa_stream_set_state(s, PA_STREAM_READY);
 
     if (s->requested_bytes > 0 && s->write_callback)
-        s->write_callback(s, s->requested_bytes, s->write_userdata);
+        s->write_callback(s, (size_t) s->requested_bytes, s->write_userdata);
 
     if (s->flags & PA_STREAM_AUTO_TIMING_UPDATE) {
         struct timeval tv;
@@ -874,6 +874,7 @@ static void automatic_buffer_attr(pa_stream *s, pa_buffer_attr *attr, const pa_s
 
 void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_stream *s = userdata;
+    uint32_t requested_bytes;
 
     pa_assert(pd);
     pa_assert(s);
@@ -893,10 +894,12 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag,
     if (pa_tagstruct_getu32(t, &s->channel) < 0 ||
         s->channel == PA_INVALID_INDEX ||
         ((s->direction != PA_STREAM_UPLOAD) && (pa_tagstruct_getu32(t, &s->stream_index) < 0 ||  s->stream_index == PA_INVALID_INDEX)) ||
-        ((s->direction != PA_STREAM_RECORD) && pa_tagstruct_getu32(t, &s->requested_bytes) < 0)) {
+        ((s->direction != PA_STREAM_RECORD) && pa_tagstruct_getu32(t, &requested_bytes) < 0)) {
         pa_context_fail(s->context, PA_ERR_PROTOCOL);
         goto finish;
     }
+
+    s->requested_bytes = (int64_t) requested_bytes;
 
     if (s->context->version >= 9) {
         if (s->direction == PA_STREAM_PLAYBACK) {
@@ -1258,12 +1261,9 @@ int pa_stream_write(
     if (free_cb && pa_pstream_get_shm(s->context->pstream))
         free_cb((void*) data);
 
-    if (length < s->requested_bytes)
-        s->requested_bytes -= (uint32_t) length;
-    else
-        s->requested_bytes = 0;
-
-    /* FIXME!!! ^^^ will break when offset is != 0 and mode is not RELATIVE*/
+    /* This is obviously wrong since we ignore the seeking index . But
+     * that's OK, the server side applies the same error */
+    s->requested_bytes -= (seek == PA_SEEK_RELATIVE ? offset : 0) + (int64_t) length;
 
     if (s->direction == PA_STREAM_PLAYBACK) {
 
@@ -1359,7 +1359,7 @@ size_t pa_stream_writable_size(pa_stream *s) {
     PA_CHECK_VALIDITY_RETURN_ANY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE, (size_t) -1);
     PA_CHECK_VALIDITY_RETURN_ANY(s->context, s->direction != PA_STREAM_RECORD, PA_ERR_BADSTATE, (size_t) -1);
 
-    return s->requested_bytes;
+    return s->requested_bytes > 0 ? (size_t) s->requested_bytes : 0;
 }
 
 size_t pa_stream_readable_size(pa_stream *s) {

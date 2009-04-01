@@ -601,7 +601,7 @@ size_t pa_memblockq_missing(pa_memblockq *bq) {
     return l >= bq->minreq ? l : 0;
 }
 
-void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek) {
+void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek, pa_bool_t account) {
     int64_t old, delta;
     pa_assert(bq);
 
@@ -628,12 +628,14 @@ void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek) {
 
     delta = bq->write_index - old;
 
-    if (delta >= (int64_t) bq->requested) {
-        delta -= (int64_t) bq->requested;
-        bq->requested = 0;
-    } else if (delta >= 0) {
-        bq->requested -= (size_t) delta;
-        delta = 0;
+    if (account) {
+        if (delta >= (int64_t) bq->requested) {
+            delta -= (int64_t) bq->requested;
+            bq->requested = 0;
+        } else if (delta >= 0) {
+            bq->requested -= (size_t) delta;
+            delta = 0;
+        }
     }
 
     bq->missing -= delta;
@@ -895,7 +897,7 @@ int pa_memblockq_splice(pa_memblockq *bq, pa_memblockq *source) {
 
             pa_memblock_unref(chunk.memblock);
         } else
-            pa_memblockq_seek(bq, (int64_t) chunk.length, PA_SEEK_RELATIVE);
+            pa_memblockq_seek(bq, (int64_t) chunk.length, PA_SEEK_RELATIVE, TRUE);
 
         pa_memblockq_drop(bq, chunk.length);
     }

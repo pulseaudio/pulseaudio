@@ -105,45 +105,45 @@ int main(int argc, char *argv[]) {
     ret = pa_memblockq_push(bq, &chunk4);
     assert(ret == 0);
 
-    pa_memblockq_seek(bq, -6, 0);
+    pa_memblockq_seek(bq, -6, 0, TRUE);
     ret = pa_memblockq_push(bq, &chunk3);
     assert(ret == 0);
 
-    pa_memblockq_seek(bq, -2, 0);
+    pa_memblockq_seek(bq, -2, 0, TRUE);
     ret = pa_memblockq_push(bq, &chunk1);
     assert(ret == 0);
 
-    pa_memblockq_seek(bq, -10, 0);
+    pa_memblockq_seek(bq, -10, 0, TRUE);
     ret = pa_memblockq_push(bq, &chunk4);
     assert(ret == 0);
 
-    pa_memblockq_seek(bq, 10, 0);
+    pa_memblockq_seek(bq, 10, 0, TRUE);
 
     ret = pa_memblockq_push(bq, &chunk1);
     assert(ret == 0);
 
-    pa_memblockq_seek(bq, -6, 0);
+    pa_memblockq_seek(bq, -6, 0, TRUE);
     ret = pa_memblockq_push(bq, &chunk2);
     assert(ret == 0);
 
     /* Test splitting */
-    pa_memblockq_seek(bq, -12, 0);
+    pa_memblockq_seek(bq, -12, 0, TRUE);
     ret = pa_memblockq_push(bq, &chunk1);
     assert(ret == 0);
 
-    pa_memblockq_seek(bq, 20, 0);
+    pa_memblockq_seek(bq, 20, 0, TRUE);
 
     /* Test merging */
     ret = pa_memblockq_push(bq, &chunk3);
     assert(ret == 0);
-    pa_memblockq_seek(bq, -2, 0);
+    pa_memblockq_seek(bq, -2, 0, TRUE);
 
     chunk3.index += 2;
     chunk3.length -= 2;
     ret = pa_memblockq_push(bq, &chunk3);
     assert(ret == 0);
 
-    pa_memblockq_seek(bq, 30, PA_SEEK_RELATIVE);
+    pa_memblockq_seek(bq, 30, PA_SEEK_RELATIVE, TRUE);
 
     dump(bq);
 

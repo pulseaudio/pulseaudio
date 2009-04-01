@@ -238,7 +238,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
     else
         delta = j;
 
-    pa_memblockq_seek(s->memblockq, delta * (int64_t) s->rtp_context.frame_size, PA_SEEK_RELATIVE);
+    pa_memblockq_seek(s->memblockq, delta * (int64_t) s->rtp_context.frame_size, PA_SEEK_RELATIVE, TRUE);
 
     pa_rtclock_get(&now);
 
@@ -246,7 +246,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
 
     if (pa_memblockq_push(s->memblockq, &chunk) < 0) {
         pa_log_warn("Queue overrun");
-        pa_memblockq_seek(s->memblockq, (int64_t) chunk.length, PA_SEEK_RELATIVE);
+        pa_memblockq_seek(s->memblockq, (int64_t) chunk.length, PA_SEEK_RELATIVE, TRUE);
     }
 
 /*     pa_log("blocks in q: %u", pa_memblockq_get_nblocks(s->memblockq)); */

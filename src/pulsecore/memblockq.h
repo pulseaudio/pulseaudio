@@ -85,7 +85,7 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *chunk);
 int pa_memblockq_push_align(pa_memblockq* bq, const pa_memchunk *chunk);
 
 /* Manipulate the write pointer */
-void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek);
+void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek, pa_bool_t account);
 
 /* Return a copy of the next memory chunk in the queue. It is not
  * removed from the queue. There are two reasons this function might

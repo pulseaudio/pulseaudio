@@ -434,7 +434,7 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
 
     if (pa_memblockq_push(o->thread_info.delay_memblockq, chunk) < 0) {
         pa_log_debug("Delay queue overflow!");
-        pa_memblockq_seek(o->thread_info.delay_memblockq, (int64_t) chunk->length, PA_SEEK_RELATIVE);
+        pa_memblockq_seek(o->thread_info.delay_memblockq, (int64_t) chunk->length, PA_SEEK_RELATIVE, TRUE);
     }
 
     limit = o->process_rewind ? 0 : o->source->thread_info.max_rewind;

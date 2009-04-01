@@ -738,24 +738,21 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
     switch (code) {
         case PLAYBACK_STREAM_MESSAGE_REQUEST_DATA: {
             pa_tagstruct *t;
-            uint32_t l = 0;
+            int l = 0;
 
             for (;;) {
-                if ((l = (uint32_t) pa_atomic_load(&s->missing)) <= 0)
-                    break;
+                if ((l = pa_atomic_load(&s->missing)) <= 0)
+                    return 0;
 
-                if (pa_atomic_cmpxchg(&s->missing, (int) l, 0))
+                if (pa_atomic_cmpxchg(&s->missing, l, 0))
                     break;
             }
-
-            if (l <= 0)
-                break;
 
             t = pa_tagstruct_new(NULL, 0);
             pa_tagstruct_putu32(t, PA_COMMAND_REQUEST);
             pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
             pa_tagstruct_putu32(t, s->index);
-            pa_tagstruct_putu32(t, l);
+            pa_tagstruct_putu32(t, (uint32_t) l);
             pa_pstream_send_tagstruct(s->connection->pstream, t);
 
 /*             pa_log("Requesting %lu bytes", (unsigned long) l); */
@@ -1097,7 +1094,8 @@ static playback_stream* playback_stream_new(
 
 /* Called from IO context */
 static void playback_stream_request_bytes(playback_stream *s) {
-    size_t m, previous_missing, minreq;
+    size_t m, minreq;
+    int previous_missing;
 
     playback_stream_assert_ref(s);
 
@@ -1108,11 +1106,11 @@ static void playback_stream_request_bytes(playback_stream *s) {
 
 /*     pa_log("request_bytes(%lu)", (unsigned long) m); */
 
-    previous_missing = (size_t) pa_atomic_add(&s->missing, (int) m);
+    previous_missing = pa_atomic_add(&s->missing, (int) m);
     minreq = pa_memblockq_get_minreq(s->memblockq);
 
     if (pa_memblockq_prebuf_active(s->memblockq) ||
-        (previous_missing < minreq && previous_missing+m >= minreq))
+        (previous_missing < (int) minreq && previous_missing + (int) m >= (int) minreq))
         pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
 }
 
@@ -1297,7 +1295,12 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
             int64_t windex;
 
             windex = pa_memblockq_get_write_index(s->memblockq);
-            pa_memblockq_seek(s->memblockq, offset, PA_PTR_TO_UINT(userdata));
+
+            /* The client side is incapable of accounting correctly
+             * for seeks of a type != PA_SEEK_RELATIVE. We need to be
+             * able to deal with that. */
+
+            pa_memblockq_seek(s->memblockq, offset, PA_PTR_TO_UINT(userdata), PA_PTR_TO_UINT(userdata) == PA_SEEK_RELATIVE);
 
             handle_seek(s, windex);
             return 0;
@@ -1315,7 +1318,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
             if (pa_memblockq_push_align(s->memblockq, chunk) < 0) {
                 pa_log_warn("Failed to push data into queue");
                 pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_OVERFLOW, NULL, 0, NULL, NULL);
-                pa_memblockq_seek(s->memblockq, (int64_t) chunk->length, PA_SEEK_RELATIVE);
+                pa_memblockq_seek(s->memblockq, (int64_t) chunk->length, PA_SEEK_RELATIVE, TRUE);
             }
 
             handle_seek(s, windex);

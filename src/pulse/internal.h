@@ -140,7 +140,7 @@ struct pa_stream {
     uint32_t syncid;
     uint32_t stream_index;
 
-    uint32_t requested_bytes;
+    int64_t requested_bytes;
     pa_buffer_attr buffer_attr;
 
     uint32_t device_index;
