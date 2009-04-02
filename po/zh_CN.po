@@ -1,65 +1,68 @@
+# translation of pulseaudio.master-tx.po to Simplified Chinese
 # 简体中文翻译
 # Copyright (C) 2008 THE 'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the  package.
 # 闫丰刚 (sainry)<sainry@gmail.com> 2008
-# 闫丰刚 <sainry@gmail.com>, 2009. 
 #
 #
+# 闫丰刚 <sainry@gmail.com>, 2009.
+# Leah Liu <lliu@redhat.com>, 2009.
 msgid ""
 msgstr ""
-"Project-Id-Version: PulseAudio\n"
+"Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-03-19 17:58+0100\n"
-"PO-Revision-Date: 2009-01-24 12:47+0800\n"
-"Last-Translator: 王泽国 <zak.zeguo.wang@gmail.com>\n"
-"Language-Team: Chinese/Simplified\n"
+"PO-Revision-Date: 2009-04-01 21:36+1000\n"
+"Last-Translator: Leah Liu <lliu@redhat.com>\n"
+"Language-Team: Simplified Chinese <zh@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
 
 #: ../src/modules/alsa/alsa-util.c:530
 msgid "Analog Mono"
-msgstr ""
+msgstr "模拟单声道"
 
 #: ../src/modules/alsa/alsa-util.c:536
 msgid "Analog Stereo"
-msgstr ""
+msgstr "模拟立体声"
 
 #: ../src/modules/alsa/alsa-util.c:542
 msgid "Digital Stereo (IEC958)"
-msgstr ""
+msgstr "数字立体声（IEC958）"
 
 #: ../src/modules/alsa/alsa-util.c:548
 msgid "Digital Stereo (HDMI)"
-msgstr ""
+msgstr "数字立体声（HDMI）"
 
 #: ../src/modules/alsa/alsa-util.c:555
 msgid "Analog Surround 4.0"
-msgstr ""
+msgstr "模拟环绕 4.0"
 
 #: ../src/modules/alsa/alsa-util.c:562
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr ""
+msgstr "数字环绕 4.0（IEC958/AC3）"
 
 #: ../src/modules/alsa/alsa-util.c:570
 msgid "Analog Surround 4.1"
-msgstr ""
+msgstr "模拟环绕 4.1"
 
 #: ../src/modules/alsa/alsa-util.c:578
 msgid "Analog Surround 5.0"
-msgstr ""
+msgstr "模拟环绕 5.0"
 
 #: ../src/modules/alsa/alsa-util.c:586
 msgid "Analog Surround 5.1"
-msgstr ""
+msgstr "模拟环绕 5.1"
 
 #: ../src/modules/alsa/alsa-util.c:594
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr ""
+msgstr "数字环绕 5.1（IEC958/AC3）"
 
 #: ../src/modules/alsa/alsa-util.c:603
 msgid "Analog Surround 7.1"
-msgstr ""
+msgstr "模拟环绕 7.1"
 
 #: ../src/modules/alsa/alsa-util.c:1602
 #, c-format
@@ -69,6 +72,8 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_avail() 返回的值非常大：%lu 字节（%lu ms）。\n"
+"很可能是 ALSA 驱动程序 '%s' 中的 bug。请向 ALSA 开发者举报这个问题。"
 
 #: ../src/modules/alsa/alsa-util.c:1642
 #, c-format
@@ -78,6 +83,8 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_delay() 返回的值非常大：%li 字节（%s%lu ms）。\n"
+"很可能是 ALSA 驱动程序 '%s' 中的 bug。请向 ALSA 开发者举报这个问题。"
 
 #: ../src/modules/alsa/alsa-util.c:1688
 #, c-format
@@ -87,29 +94,28 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_mmap_begin() 返回的值非常大：%lu 字节（%lu ms）。\n"
+"很可能是 ALSA 驱动程序 '%s' 中的 bug。请向 ALSA 开发者举报这个问题。"
 
 #: ../src/pulsecore/sink.c:1965
-#, fuzzy
 msgid "Internal Audio"
-msgstr "内部错误"
+msgstr "内部音频"
 
 #: ../src/pulsecore/sink.c:1971
 msgid "Modem"
-msgstr ""
+msgstr "调制解调器"
 
 #: ../src/daemon/ltdl-bind-now.c:124
-#, fuzzy
 msgid "Failed to find original lt_dlopen loader."
-msgstr "查找原始dlopen加载器失败。"
+msgstr "查找原始 lt_dlopen 加载器失败。"
 
 #: ../src/daemon/ltdl-bind-now.c:129
-#, fuzzy
 msgid "Failed to allocate new dl loader."
-msgstr "查找原始dlopen加载器失败。"
+msgstr "分配新的 dl 加载器失败。"
 
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
-msgstr "添加bind-now-loader失败。"
+msgstr "添加 bind-now-loader 失败。"
 
 #: ../src/daemon/polkit.c:55
 #, c-format
@@ -274,10 +280,12 @@ msgid ""
 "appropriate PolicyKit privileges, or become a member of '%s', or increase "
 "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 msgstr ""
+"配置中需要调用 SUID root、实时和/或者高优先调度。但是我们缺少必要的特权：\n"
+"我们不属于组群 '%s'，PolicyKit 拒绝赋予我们要求的特权，而我们无法增加 RLIMIT_NICE/RLIMIT_RTPRIO 资源限制。\n"
+"要启用实时/高优先调度，请获得适当的 PolicyKit 特权，或者成为 '%s' 成员，也可以为这个用户增加 RLIMIT_NICE/RLIMIT_RTPRIO 资源限制。"
 
 #: ../src/daemon/main.c:538
-msgid ""
-"High-priority scheduling enabled in configuration but not allowed by policy."
+msgid "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr "配置中已启用高优先级调度，但策略未允许。"
 
 #: ../src/daemon/main.c:567
@@ -294,8 +302,7 @@ msgid "Giving up CAP_NICE"
 msgstr "正在放弃CAP_NICE"
 
 #: ../src/daemon/main.c:584
-msgid ""
-"Real-time scheduling enabled in configuration but not allowed by policy."
+msgid "Real-time scheduling enabled in configuration but not allowed by policy."
 msgstr "配置中已启用实时调度，但策略未允许。"
 
 #: ../src/daemon/main.c:645
@@ -319,9 +326,8 @@ msgid ""
 msgstr "不应以root身份运行本程序（除非指定 --system）。"
 
 #: ../src/daemon/main.c:677
-#, fuzzy
 msgid "Root privileges required."
-msgstr "需要root权限。"
+msgstr "需要 root 权限。"
 
 #: ../src/daemon/main.c:682
 msgid "--start not supported for system instances."
@@ -393,7 +399,7 @@ msgstr "正在主机上运行：%s"
 #: ../src/daemon/main.c:836
 #, c-format
 msgid "Found %u CPUs."
-msgstr ""
+msgstr "找到 %u CPU。"
 
 #: ../src/daemon/main.c:838
 #, c-format
@@ -484,7 +490,7 @@ msgid "Daemon terminated."
 msgstr "后台程序已终止。"
 
 #: ../src/daemon/cmdline.c:121
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -561,16 +567,16 @@ msgstr ""
 "COMMANDS:\n"
 "  -h, --help                            显示此帮助\n"
 "      --version                         显示版本号\n"
-"      --dump-conf                       转出默认设置\n"
-"      --dump-modules                    转出可用的模块列表\n"
-"      --dump-resample-methods           转出可用的重采样方法\n"
+"      --dump-conf                       转储默认设置\n"
+"      --dump-modules                    转储可用的模块列表\n"
+"      --dump-resample-methods           转储可用的重采样方法\n"
 "      --cleanup-shm                     清理滞留的共享内存段\n"
 "      --start                           如果后台程序没有运行则启动后台程序\n"
 "  -k  --kill                            杀死运行中的后台程序\n"
 "      --check                           检查运行中的后台程序\n"
 "\n"
 "OPTIONS:\n"
-"      --system[=BOOL]                   作为系统范围实例运行\n"
+"      --system[=BOOL]                   作为系统范围事件运行\n"
 "  -D, --daemonize[=BOOL]                启动后转为后台运行\n"
 "      --fail[=BOOL]                     启动失败则退出\n"
 "      --high-priority[=BOOL]            尝试设定高nice level\n"
@@ -596,8 +602,8 @@ msgstr ""
 "                                        (使用 --dump-resample-methods 查看\n"
 "                                        可能的值)\n"
 "      --use-pid-file[=BOOL]             创建一个PID文件\n"
-"      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
-"                                        platforms that support it.\n"
+"      --no-cpu-limit[=BOOL]             不在支持它的平台中安装 CPU 载入限制程序。\n"
+"                                        "
 "      --disable-shm[=BOOL]              禁用共享内存支持\n"
 "\n"
 "STARTUP SCRIPT:\n"
@@ -638,9 +644,8 @@ msgid "--disallow-module-loading expects boolean argument"
 msgstr "--disallow-module-loading 期待布尔参数"
 
 #: ../src/daemon/cmdline.c:302
-#, fuzzy
 msgid "--disallow-exit expects boolean argument"
-msgstr "--disallow-exit 布尔参数"
+msgstr "--disallow-exit 需要布尔值参数"
 
 #: ../src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
@@ -651,14 +656,12 @@ msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
 msgstr "无效的日志目标：从syslog，stderr和auto中选取一个"
 
 #: ../src/daemon/cmdline.c:333
-#, fuzzy
 msgid "--log-time expects boolean argument"
-msgstr "--realtime 期待布尔参数"
+msgstr "--log-time 需要布尔值参数"
 
 #: ../src/daemon/cmdline.c:340
-#, fuzzy
 msgid "--log-meta expects boolean argument"
-msgstr "--disallow-exit 布尔参数"
+msgstr "--log-meta 需要布尔值参数"
 
 #: ../src/daemon/cmdline.c:359
 #, c-format
@@ -758,9 +761,9 @@ msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "[%s:%u] 无效的样品通道'%s'。"
 
 #: ../src/daemon/daemon-conf.c:353
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr "[%s:%u] 无效的样品通道'%s'。"
+msgstr "[%s:%u] 无效频道地图 '%s'。"
 
 #: ../src/daemon/daemon-conf.c:371
 #, c-format
@@ -786,7 +789,7 @@ msgstr "打开配置文件失败：%s"
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
-msgstr ""
+msgstr "指定的默认频道地图的频道数与指定的默认频道数不同。"
 
 #: ../src/daemon/daemon-conf.c:616
 #, c-format
@@ -794,9 +797,8 @@ msgid "### Read from configuration file: %s ###\n"
 msgstr "### 从配置文件读取：%s ###\n"
 
 #: ../src/daemon/caps.c:63
-#, fuzzy
 msgid "Dropping root privileges."
-msgstr "正在取消root权限。"
+msgstr "正在取消 root 特权。"
 
 #: ../src/daemon/caps.c:103
 msgid "Limited capabilities successfully to CAP_SYS_NICE."
@@ -804,31 +806,27 @@ msgstr "性能成功限制到CAP_SYS_NICE。"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
-msgstr ""
+msgstr "PulseAudio 声音系统"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
-msgstr ""
+msgstr "启动 PulseAudio 声音系统"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:1
-msgid ""
-"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr ""
+msgid "High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
+msgstr "PulseAudio 守护进程的高优先调度（负的 Unix nic 等级）"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:2
-#, fuzzy
 msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr "杀死PulseAudio后台程序失败。"
+msgstr "PulseAudio 守护进程的实时调度。"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:3
-#, fuzzy
-msgid ""
-"System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr "我们在'%s'组中，允许高优先级调度。"
+msgid "System policy prevents PulseAudio from acquiring high-priority scheduling."
+msgstr "系统策略防止 PulseAudio 获得高优先调度。"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:4
 msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr ""
+msgstr "系统策略防止 PulseAudio 获得实时调度。"
 
 #: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:804
 msgid "Mono"
@@ -1042,31 +1040,31 @@ msgstr "（无效）"
 
 #: ../src/pulse/channelmap.c:808
 msgid "Stereo"
-msgstr ""
+msgstr "立体声"
 
 #: ../src/pulse/channelmap.c:813
 msgid "Surround 4.0"
-msgstr ""
+msgstr "环绕 4.0 "
 
 #: ../src/pulse/channelmap.c:819
 msgid "Surround 4.1"
-msgstr ""
+msgstr "环绕 4.1"
 
 #: ../src/pulse/channelmap.c:825
 msgid "Surround 5.0"
-msgstr ""
+msgstr "环绕 5.0"
 
 #: ../src/pulse/channelmap.c:831
 msgid "Surround 5.1"
-msgstr ""
+msgstr "环绕 5.1"
 
 #: ../src/pulse/channelmap.c:838
 msgid "Surround 7.1"
-msgstr ""
+msgstr "环绕 7.1"
 
 #: ../src/pulse/error.c:43
 msgid "OK"
-msgstr "好"
+msgstr "确定"
 
 #: ../src/pulse/error.c:44
 msgid "Access denied"
@@ -1154,40 +1152,40 @@ msgstr "没有该扩展"
 
 #: ../src/pulse/error.c:65
 msgid "Obsolete functionality"
-msgstr ""
+msgstr "废弃的功能性"
 
 #: ../src/pulse/error.c:66
 msgid "Missing implementation"
-msgstr ""
+msgstr "缺少部署"
 
 #: ../src/pulse/error.c:67
 msgid "Client forked"
-msgstr ""
+msgstr "客户端分支"
 
 #: ../src/pulse/sample.c:169
 #, c-format
 msgid "%s %uch %uHz"
-msgstr ""
+msgstr "%s %uch %uHz"
 
 #: ../src/pulse/sample.c:181
 #, c-format
 msgid "%0.1f GiB"
-msgstr ""
+msgstr "%0.1f GiB"
 
 #: ../src/pulse/sample.c:183
 #, c-format
 msgid "%0.1f MiB"
-msgstr ""
+msgstr "%0.1f MiB"
 
 #: ../src/pulse/sample.c:185
 #, c-format
 msgid "%0.1f KiB"
-msgstr ""
+msgstr "%0.1f KiB"
 
 #: ../src/pulse/sample.c:187
 #, c-format
 msgid "%u B"
-msgstr ""
+msgstr "%u B"
 
 #: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
 msgid "XOpenDisplay() failed"
@@ -1339,7 +1337,7 @@ msgstr "流播放完毕。\n"
 #: ../src/utils/pacat.c:356 ../src/utils/paplay.c:92
 #, c-format
 msgid "Draining connection to server.\n"
-msgstr ""
+msgstr "Draining 连接到服务器。\n"
 
 #: ../src/utils/pacat.c:382
 #, c-format
@@ -1655,7 +1653,7 @@ msgid "Failed to get server information: %s\n"
 msgstr "获取服务器信息失败：%s\n"
 
 #: ../src/utils/pactl.c:137
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "User name: %s\n"
 "Host Name: %s\n"
@@ -1672,8 +1670,9 @@ msgstr ""
 "服务器名：%s\n"
 "服务器版本：%s\n"
 "默认采样规格：%s\n"
-"默认音频出口：%s\n"
+"默认频道地图：%s\n"
 "默认音频入口：%s\n"
+"默认源： %s\n"
 "Cookie：%08x\n"
 
 #: ../src/utils/pactl.c:178
@@ -1682,7 +1681,7 @@ msgid "Failed to get sink information: %s\n"
 msgstr "获取音频出口信息失败：%s\n"
 
 #: ../src/utils/pactl.c:194
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sink #%u\n"
 "\tState: %s\n"
@@ -1702,18 +1701,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** 音频出口 #%u ***\n"
-"名称：%s\n"
-"驱动：%s\n"
-"采样规格：%s\n"
-"通道映射表：%s\n"
-"所有者模块：%u\n"
-"音量：%s\n"
-"音频入口监视器：%s\n"
-"延迟：%0.0f微秒，配置%0.0f微秒\n"
-"标记：%s%s%s%s%s%s\n"
-"属性：\n"
-"%s"
+"Sink #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s%s%s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s%s%s\n"
+"\tMonitor Source: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:258
 #, c-format
@@ -1721,7 +1725,7 @@ msgid "Failed to get source information: %s\n"
 msgstr "获取音频入口信息失败：%s\n"
 
 #: ../src/utils/pactl.c:274
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Source #%u\n"
 "\tState: %s\n"
@@ -1741,18 +1745,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** 音频入口 #%u ***\n"
-"名称：%s\n"
-"驱动：%s\n"
-"采样规格：%s\n"
-"通道映射表：%s\n"
-"所有者模块：%u\n"
-"音量：%s\n"
-"音频出口监视器：%s\n"
-"延迟：%0.0f微秒，配置%0.0f微秒\n"
-"标记：%s%s%s%s%s%s\n"
-"属性：\n"
-"%s"
+"Source #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s%s%s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s%s%s\n"
+"\tMonitor of Sink: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:306 ../src/utils/pactl.c:350 ../src/utils/pactl.c:385
 #: ../src/utils/pactl.c:422 ../src/utils/pactl.c:481 ../src/utils/pactl.c:482
@@ -1768,7 +1777,7 @@ msgid "Failed to get module information: %s\n"
 msgstr "获取模块信息失败：%s\n"
 
 #: ../src/utils/pactl.c:342
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Module #%u\n"
 "\tName: %s\n"
@@ -1777,11 +1786,12 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** 模块 #%u ***\n"
-"名称：%s\n"
-"参数：%s\n"
-"使用计数器：%s\n"
-"自动卸载：%s\n"
+"Module #%u\n"
+"\tName: %s\n"
+"\tArgument: %s\n"
+"\tUsage counter: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:361
 #, c-format
@@ -1789,7 +1799,7 @@ msgid "Failed to get client information: %s\n"
 msgstr "获取客户端信息失败：%s\n"
 
 #: ../src/utils/pactl.c:379
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Client #%u\n"
 "\tDriver: %s\n"
@@ -1797,19 +1807,19 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** 客户端 #%u ***\n"
-"驱动：%s\n"
-"所有者模块：%s\n"
-"属性：\n"
-"%s"
+"Client #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:396
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get card information: %s\n"
-msgstr "获取自动加载信息失败：%s\n"
+msgstr "获取声卡信息失败：%s\n"
 
 #: ../src/utils/pactl.c:414
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Card #%u\n"
 "\tName: %s\n"
@@ -1818,21 +1828,22 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** 客户端 #%u ***\n"
-"驱动：%s\n"
-"所有者模块：%s\n"
-"属性：\n"
-"%s"
+"Card #%u\n"
+"\tName: %s\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:428
 #, c-format
 msgid "\tProfiles:\n"
-msgstr ""
+msgstr "\tProfiles:\n"
 
 #: ../src/utils/pactl.c:434
-#, fuzzy, c-format
+#, c-format
 msgid "\tActive Profile: %s\n"
-msgstr "管道失败：%s"
+msgstr "\tActive Profile: %s\n"
 
 #: ../src/utils/pactl.c:445
 #, c-format
@@ -1840,7 +1851,7 @@ msgid "Failed to get sink input information: %s\n"
 msgstr "获取音频出口输入信息失败：%s\n"
 
 #: ../src/utils/pactl.c:464
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sink Input #%u\n"
 "\tDriver: %s\n"
@@ -1859,19 +1870,22 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** 音频出口输入 #%u ***\n"
-"驱动：%s\n"
-"所有者模块：%s\n"
-"客户端：%s\n"
-"音频出口：%u\n"
-"采样规格：%s\n"
-"通道映射表：%s\n"
-"音量：%s\n"
-"缓冲延迟：%0.0f微秒\n"
-"音频出口延迟：%0.0f微秒\n"
-"重采样方法：%s\n"
-"属性：\n"
-"%s"
+"Sink Input #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSink: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        %s\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSink Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:503
 #, c-format
@@ -1879,7 +1893,7 @@ msgid "Failed to get source output information: %s\n"
 msgstr "获取音频入口输出信息失败：%s\n"
 
 #: ../src/utils/pactl.c:523
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Source Output #%u\n"
 "\tDriver: %s\n"
@@ -1894,18 +1908,18 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** 音频入口输出 #%u ***\n"
-"驱动：%s\n"
-"所有者模块：%s\n"
-"客户端：%s\n"
-"音频入口：%u\n"
-"采样规格：%s\n"
-"通道映射表：%s\n"
-"缓冲延迟：%0.0f微秒\n"
-"音频入口延迟：%0.0f微秒\n"
-"重采样方法：%s\n"
-"属性：\n"
-"%s"
+"Source Output #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSource: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSource Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:554
 #, c-format
@@ -1913,7 +1927,7 @@ msgid "Failed to get sample information: %s\n"
 msgstr "获取采样信息失败：%s\n"
 
 #: ../src/utils/pactl.c:572
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sample #%u\n"
 "\tName: %s\n"
@@ -1929,17 +1943,19 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"*** 采样 #%u ***\n"
-"名称：%s\n"
-"音量：%s\n"
-"采样规格：%s\n"
-"通道映射表：%s\n"
-"持续时长：%0.1f秒\n"
-"大小：%s\n"
-"Lazy：%s\n"
-"文件名：%s\n"
-"属性：\n"
-"%s"
+"Sample #%u\n"
+"\tName: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tVolume: %s\n"
+"\t        %s\n"
+"\t        balance %0.2f\n"
+"\tDuration: %0.1fs\n"
+"\tSize: %s\n"
+"\tLazy: %s\n"
+"\tFilename: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:602 ../src/utils/pactl.c:612
 #, c-format
@@ -1957,7 +1973,7 @@ msgid "Premature end of file\n"
 msgstr "文件过早结束\n"
 
 #: ../src/utils/pactl.c:774
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -1993,12 +2009,15 @@ msgstr ""
 "%s [options] unload-module ID\n"
 "%s [options] suspend-sink [SINK] 1|0\n"
 "%s [options] suspend-source [SOURCE] 1|0\n"
+"%s [options] set-card-profile [CARD] [PROFILE] \n"
 "\n"
-"  -h, --help                            显示此帮助\n"
-"      --version                         显示版本\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
 "\n"
-"  -s, --server=SERVER                   要连接的服务器名\n"
-"  -n, --client-name=NAME                此客户端在服务器上的名称\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
 
 #: ../src/utils/pactl.c:826
 #, c-format
@@ -2052,23 +2071,23 @@ msgid "You have to specify a module index\n"
 msgstr "必须指定模块索引\n"
 
 #: ../src/utils/pactl.c:972
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean "
 "value.\n"
-msgstr "不可指定多个音频出口。必须指定至少一个布尔值。\n"
+msgstr "不可指定多个音频出口。必须指定一个布尔值。\n"
 
 #: ../src/utils/pactl.c:985
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value.\n"
-msgstr "不可指定多个音频入口。必须指定至少一个布尔值。\n"
+msgstr "不可指定多个源。必须指定一个布尔值。\n"
 
 #: ../src/utils/pactl.c:997
-#, fuzzy, c-format
+#, c-format
 msgid "You have to specify a card name/index and a profile name\n"
-msgstr "你必须指定音频出口索引和音频出口\n"
+msgstr "你必须指定声卡名称/索引和侧写名称\n"
 
 #: ../src/utils/pactl.c:1012
 #, c-format
@@ -2272,60 +2291,3 @@ msgstr "正在使用采样规格'%s'\n"
 msgid "Cannot access autospawn lock."
 msgstr "不能访问autospawn锁。"
 
-#, fuzzy
-#~ msgid ""
-#~ "Called SUID root and real-time and/or high-priority scheduling was "
-#~ "requested in the configuration. However, we lack the necessary "
-#~ "privileges:\n"
-#~ "We are not in group '"
-#~ msgstr ""
-#~ "此配置需要调用SUID root和实时／高优先级调度。但是我们没有所需的权限：\n"
-#~ "我们不属该组"
-
-#, fuzzy
-#~ msgid "--log-time boolean argument"
-#~ msgstr "--disallow-exit 布尔参数"
-
-#~ msgid ""
-#~ "' and PolicyKit refuse to grant us priviliges. Dropping SUID again.\n"
-#~ "For enabling real-time scheduling please acquire the appropriate "
-#~ "PolicyKit priviliges, or become a member of '"
-#~ msgstr ""
-#~ "而且PolicyKit拒绝授予我们权限。再次取消SUID。\n"
-#~ "要启用实时调度，请取得适应的PolicyKit权限，或者成为组成员'"
-
-#~ msgid ""
-#~ "', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this "
-#~ "user."
-#~ msgstr "'，或者提高本用户的RLIMIT_NICE/RLIMIT_RTPRIO资源上限。"
-
-#~ msgid "Default sink name (%s) does not exist in name register."
-#~ msgstr "名称登记表中不存在默认的音频出口名（%s）。"
-
-#~ msgid "Buffer overrun, dropping incoming data\n"
-#~ msgstr "缓冲超限，丢弃正在读入的数据\n"
-
-#~ msgid "pa_stream_drop() failed: %s\n"
-#~ msgstr "pa_stream_drop()失败：%s\n"
-
-#~ msgid "muted"
-#~ msgstr "已静音"
-
-#~ msgid ""
-#~ "*** Autoload Entry #%u ***\n"
-#~ "Name: %s\n"
-#~ "Type: %s\n"
-#~ "Module: %s\n"
-#~ "Argument: %s\n"
-#~ msgstr ""
-#~ "*** 自动加载项 #%u ***\n"
-#~ "名称：%s\n"
-#~ "类型：%s\n"
-#~ "模块：%s\n"
-#~ "参数：%s\n"
-
-#~ msgid "sink"
-#~ msgstr "音频出口"
-
-#~ msgid "source"
-#~ msgstr "音频入口"
