@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-03-28 14:22+0000\n"
-"PO-Revision-Date: 2009-04-03 14:19-0400\n"
+"PO-Revision-Date: 2009-04-03 14:39-0400\n"
 "Last-Translator: Igor Miletic (Igor Miletić) <grejigl-gnomeprevod@yahoo.ca>\n"
 "Language-Team: Serbian <fedora-trans-sr@redhat.com>\n"
 "MIME-Version: 1.0\n"
@@ -165,12 +165,12 @@ msgstr "Ne mogu inicijalizovati PolKitContex: %s"
 #: ../src/daemon/polkit.c:119
 #, c-format
 msgid "Could not determine whether caller is authorized: %s"
-msgstr "Nije moguće odrediti ovlašćenost pozivnika: %s"
+msgstr "Nije moguće odrediti ovlašćenje pozivnika: %s"
 
 #: ../src/daemon/polkit.c:139
 #, c-format
 msgid "Cannot obtain auth: %s"
-msgstr "Ne mogu dobiti ovlašćenost: %s"
+msgstr "Ne mogu dobiti ovlašćenje: %s"
 
 #: ../src/daemon/polkit.c:148
 #, c-format
@@ -630,7 +630,7 @@ msgstr ""
 "      --module-idle-time=SEKUNDI        Ukloni samoučitane module posle "
 "mirovanja\n"
 "                                        od ovoliko sekundi\n"
-"      --scache-idle-time=SEKUNDI        Ukloni samoučitane primerke psole "
+"      --scache-idle-time=SEKUNDI        Ukloni samoučitane primerke posle "
 "mirovanja\n"
 "                                        od ovoliko sekundi\n"
 "      --log-level[=NIVO]                Povećaj ili postavi nivo opširnosti\n"
@@ -1218,12 +1218,12 @@ msgstr "Izbačena funkcionalnost"
 
 #: ../src/pulse/error.c:66
 msgid "Missing implementation"
-msgstr "Nije izprogramirano"
+msgstr "Nije odrađeno"
 
 # Nisam siguran da imamo reč za fork. Možda da koristimo forkiranje? Ružno zvuči, ali grananje nije najbolje. -- Igor
 #: ../src/pulse/error.c:67
 msgid "Client forked"
-msgstr "Klijent razgranan"
+msgstr "Klijent razgranat"
 
 #: ../src/pulse/sample.c:169
 #, c-format
@@ -1920,7 +1920,7 @@ msgstr "\tProfili:\n"
 #: ../src/utils/pactl.c:434
 #, c-format
 msgid "\tActive Profile: %s\n"
-msgstr "\tAktivni progil: %s\n"
+msgstr "\tAktivni profil: %s\n"
 
 #: ../src/utils/pactl.c:445
 #, c-format
