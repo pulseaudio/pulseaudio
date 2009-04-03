@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-03-28 14:22+0000\n"
-"PO-Revision-Date: 2009-04-03 14:19-0400\n"
+"PO-Revision-Date: 2009-04-03 14:39-0400\n"
 "Last-Translator: Igor Miletic (Игор Милетић) <grejigl-gnomeprevod@yahoo.ca>\n"
 "Language-Team: Serbian <fedora-trans-sr@redhat.com>\n"
 "MIME-Version: 1.0\n"
@@ -165,12 +165,12 @@ msgstr "Не могу иницијализовати PolKitContex: %s"
 #: ../src/daemon/polkit.c:119
 #, c-format
 msgid "Could not determine whether caller is authorized: %s"
-msgstr "Није могуће одредити овлашћеност позивника: %s"
+msgstr "Није могуће одредити овлашћење позивника: %s"
 
 #: ../src/daemon/polkit.c:139
 #, c-format
 msgid "Cannot obtain auth: %s"
-msgstr "Не могу добити овлашћеност: %s"
+msgstr "Не могу добити овлашћење: %s"
 
 #: ../src/daemon/polkit.c:148
 #, c-format
@@ -628,7 +628,7 @@ msgstr ""
 "      --module-idle-time=СЕКУНДИ        Уклони самоучитане модуле после "
 "мировања\n"
 "                                        од оволико секунди\n"
-"      --scache-idle-time=СЕКУНДИ        Уклони самоучитане примерке псоле "
+"      --scache-idle-time=СЕКУНДИ        Уклони самоучитане примерке после "
 "мировања\n"
 "                                        од оволико секунди\n"
 "      --log-level[=НИВО]                Повећај или постави ниво опширности\n"
@@ -1217,12 +1217,12 @@ msgstr "Избачена функционалност"
 
 #: ../src/pulse/error.c:66
 msgid "Missing implementation"
-msgstr "Није изпрограмирано"
+msgstr "Није одрађено"
 
 # Нисам сигуран да имамо реч за форк. Можда да користимо форкирање? Ружно звучи, али гранање није најбоље. -- Игор
 #: ../src/pulse/error.c:67
 msgid "Client forked"
-msgstr "Клијент разгранан"
+msgstr "Клијент разгранат"
 
 #: ../src/pulse/sample.c:169
 #, c-format
@@ -1918,7 +1918,7 @@ msgstr "\tПрофили:\n"
 #: ../src/utils/pactl.c:434
 #, c-format
 msgid "\tActive Profile: %s\n"
-msgstr "\tАктивни прогил: %s\n"
+msgstr "\tАктивни профил: %s\n"
 
 #: ../src/utils/pactl.c:445
 #, c-format
