@@ -87,13 +87,15 @@ int pa_parse_address(const char *name, pa_parsed_address *ret_p) {
     ret_p->type = PA_PARSED_ADDRESS_TCP_AUTO;
 
     if (*name == '{') {
-        char hn[256], *pfx;
-        /* The URL starts with a host specification for detecting local connections */
+        char *id, *pfx;
 
-        if (!pa_get_host_name(hn, sizeof(hn)))
+        /* The URL starts with a host id for detecting local connections */
+        if (!(id = pa_machine_id()))
             return -1;
 
-        pfx = pa_sprintf_malloc("{%s}", hn);
+        pfx = pa_sprintf_malloc("{%s}", id);
+        pa_xfree(id);
+
         if (!pa_startswith(name, pfx)) {
             pa_xfree(pfx);
             /* Not local */

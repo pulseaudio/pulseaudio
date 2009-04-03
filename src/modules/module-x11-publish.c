@@ -136,7 +136,7 @@ static void x11_kill_cb(pa_x11_wrapper *w, void *userdata) {
 int pa__init(pa_module*m) {
     struct userdata *u;
     pa_modargs *ma = NULL;
-    char hn[256], un[128];
+    char *mid;
     char hx[PA_NATIVE_COOKIE_LENGTH*2+1];
     const char *t;
 
@@ -164,10 +164,10 @@ int pa__init(pa_module*m) {
     if (!(u->x11_wrapper = pa_x11_wrapper_get(m->core, pa_modargs_get_value(ma, "display", NULL))))
         goto fail;
 
-    if (!pa_get_fqdn(hn, sizeof(hn)) || !pa_get_user_name(un, sizeof(un)))
-        goto fail;
+    mid = pa_machine_id();
+    u->id = pa_sprintf_malloc("%lu@%s/%lu", (unsigned long) getuid(), mid, (unsigned long) getpid());
+    pa_xfree(mid);
 
-    u->id = pa_sprintf_malloc("%s@%s/%u", un, hn, (unsigned) getpid());
     pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_ID", u->id);
 
     publish_servers(u, pa_native_protocol_servers(u->protocol));

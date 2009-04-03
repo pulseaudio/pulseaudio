@@ -144,13 +144,15 @@ struct pa_sink_input {
      * disconnected from its sink. Called from IO thread context */
     void (*detach) (pa_sink_input *i);           /* may be NULL */
 
-    /* If non-NULL called whenever the the sink this input is attached
+    /* If non-NULL called whenever the sink this input is attached
      * to suspends or resumes. Called from main context */
     void (*suspend) (pa_sink_input *i, pa_bool_t b);   /* may be NULL */
 
-    /* If non-NULL called whenever the the sink this input is attached
-     * to changes. Called from main context */
-    void (*moving) (pa_sink_input *i);   /* may be NULL */
+    /* If non-NULL called whenever the sink input is moved to a new
+     * sink. Called from main context after the sink input has been
+     * detached from the old sink and before it has been attached to
+     * the new sink. */
+    void (*moving) (pa_sink_input *i, pa_sink *dest);   /* may be NULL */
 
     /* Supposed to unlink and destroy this stream. Called from main
      * context. */
