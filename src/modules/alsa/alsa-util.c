@@ -1063,7 +1063,7 @@ snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const 
                 fallback_elem = NULL;
         }
 
-        pa_log_warn("Cannot find fallback mixer control \"%s\" or mixer control is no combination of switch/volume.", snd_mixer_selem_id_get_name(sid));
+        pa_log_info("Cannot find fallback mixer control \"%s\" or mixer control is no combination of switch/volume.", snd_mixer_selem_id_get_name(sid));
     }
 
     if (elem && fallback_elem) {
