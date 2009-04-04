@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/util.h>
 #include <pulse/version.h>
@@ -50,7 +51,7 @@
 #include <pulsecore/time-smoother.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
-#include <pulsecore/rtclock.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/proplist-util.h>
 #include <pulsecore/auth-cookie.h>

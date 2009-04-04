@@ -38,6 +38,7 @@
 #include <syslog.h>
 #endif
 
+#include <pulse/rtclock.h>
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
@@ -45,7 +46,7 @@
 
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
-#include <pulsecore/rtclock.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/once.h>
 #include <pulsecore/ratelimit.h>
 

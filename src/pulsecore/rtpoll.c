@@ -44,7 +44,7 @@
 #include <pulse/timeval.h>
 
 #include <pulsecore/core-error.h>
-#include <pulsecore/rtclock.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/llist.h>
 #include <pulsecore/rtsig.h>

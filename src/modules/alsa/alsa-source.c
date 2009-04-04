@@ -28,10 +28,11 @@
 
 #include <asoundlib.h>
 
-#include <pulse/xmalloc.h>
-#include <pulse/util.h>
-#include <pulse/timeval.h>
 #include <pulse/i18n.h>
+#include <pulse/rtclock.h>
+#include <pulse/timeval.h>
+#include <pulse/util.h>
+#include <pulse/xmalloc.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core.h>
@@ -39,6 +40,7 @@
 #include <pulsecore/memchunk.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/modargs.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/sample-util.h>
 #include <pulsecore/log.h>
@@ -48,7 +50,6 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/time-smoother.h>
-#include <pulsecore/rtclock.h>
 
 #include <modules/reserve-wrap.h>
 

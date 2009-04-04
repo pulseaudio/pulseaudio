@@ -30,13 +30,15 @@
 #include <linux/sockios.h>
 #include <arpa/inet.h>
 
-#include <pulse/xmalloc.h>
-#include <pulse/timeval.h>
-#include <pulse/sample.h>
 #include <pulse/i18n.h>
+#include <pulse/rtclock.h>
+#include <pulse/sample.h>
+#include <pulse/timeval.h>
+#include <pulse/xmalloc.h>
 
 #include <pulsecore/module.h>
 #include <pulsecore/modargs.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/socket-util.h>
@@ -44,7 +46,6 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/time-smoother.h>
-#include <pulsecore/rtclock.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/dbus-shared.h>
 

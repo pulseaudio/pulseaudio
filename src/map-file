@@ -195,6 +195,7 @@ pa_proplist_to_string_sep;
 pa_proplist_unset;
 pa_proplist_unset_many;
 pa_proplist_update;
+pa_rtclock_now;
 pa_sample_format_is_be;
 pa_sample_format_is_le;
 pa_sample_format_to_string;

@@ -42,13 +42,15 @@
 #include <linux/sockios.h>
 #endif
 
-#include <pulse/xmalloc.h>
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
+#include <pulse/xmalloc.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/iochannel.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/module.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
@@ -57,7 +59,6 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/time-smoother.h>
-#include <pulsecore/rtclock.h>
 #include <pulsecore/socket-util.h>
 
 #include "module-raop-sink-symdef.h"

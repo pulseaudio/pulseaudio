@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <errno.h>
 
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
@@ -36,6 +37,7 @@
 #include <pulsecore/sink-input.h>
 #include <pulsecore/memblockq.h>
 #include <pulsecore/log.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/namereg.h>
@@ -43,7 +45,6 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
-#include <pulsecore/rtclock.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/time-smoother.h>
 

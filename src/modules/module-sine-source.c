@@ -34,19 +34,20 @@
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 
-#include <pulse/xmalloc.h>
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
+#include <pulse/xmalloc.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/source.h>
 #include <pulsecore/module.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
-#include <pulsecore/rtclock.h>
 
 #include "module-sine-source-symdef.h"
 

@@ -24,13 +24,14 @@
 #endif
 
 #include <pulse/error.h>
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
-#include <pulsecore/rtclock.h>
 
 #include "cpulimit.h"
 

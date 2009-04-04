@@ -572,6 +572,7 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/authkey.c pulsecore/authkey.h \
 		pulsecore/conf-parser.c pulsecore/conf-parser.h \
 		pulsecore/core-error.c pulsecore/core-error.h \
+		pulsecore/core-rtclock.c pulsecore/core-rtclock.h \
 		pulsecore/core-util.c pulsecore/core-util.h \
 		pulsecore/creds.h \
 		pulsecore/dynarray.c pulsecore/dynarray.h \
@@ -610,7 +611,6 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/queue.c pulsecore/queue.h \
 		pulsecore/random.c pulsecore/random.h \
 		pulsecore/refcnt.h \
-		pulsecore/rtclock.c pulsecore/rtclock.h \
 		pulsecore/shm.c pulsecore/shm.h \
 		pulsecore/bitset.c pulsecore/bitset.h \
 		pulsecore/socket-client.c pulsecore/socket-client.h \
@@ -738,6 +738,7 @@ libpulse_la_SOURCES = \
 		pulse/operation.c pulse/operation.h \
 		pulse/proplist.c pulse/proplist.h \
 		pulse/pulseaudio.h \
+		pulse/rtclock.c pulse/rtclock.h \
 		pulse/sample.c pulse/sample.h \
 		pulse/scache.c pulse/scache.h \
 		pulse/stream.c pulse/stream.h \

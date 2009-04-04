@@ -30,13 +30,14 @@
 
 #include <pulse/def.h>
 #include <pulse/timeval.h>
+#include <pulse/rtclock.h>
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/pstream-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/hashmap.h>
 #include <pulsecore/macro.h>
-#include <pulsecore/rtclock.h>
+#include <pulsecore/core-rtclock.h>
 
 #include "fork-detect.h"
 #include "internal.h"

@@ -37,7 +37,7 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/core-error.h>
 
-#include "rtclock.h"
+#include "core-rtclock.h"
 
 pa_usec_t pa_rtclock_age(const struct timeval *tv) {
     struct timeval now;
@@ -120,12 +120,6 @@ void pa_rtclock_hrtimer_enable(void) {
     }
 
 #endif
-}
-
-pa_usec_t pa_rtclock_now(void) {
-    struct timeval tv;
-
-    return pa_timeval_load(pa_rtclock_get(&tv));
 }
 
 struct timeval* pa_rtclock_from_wallclock(struct timeval *tv) {

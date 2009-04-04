@@ -23,7 +23,8 @@
 #include <config.h>
 #endif
 
-#include <pulsecore/rtclock.h>
+#include <pulse/rtclock.h>
+
 #include <pulsecore/log.h>
 #include <pulsecore/mutex.h>
 

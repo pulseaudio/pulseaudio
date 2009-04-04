@@ -73,6 +73,7 @@
 #include <pulsecore/lock-autospawn.h>
 #include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core.h>
 #include <pulsecore/memblock.h>
 #include <pulsecore/module.h>
@@ -85,7 +86,6 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/random.h>
 #include <pulsecore/rtsig.h>
-#include <pulsecore/rtclock.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/mutex.h>
 #include <pulsecore/thread.h>
