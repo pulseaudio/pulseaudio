@@ -25,6 +25,7 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
+#include <pulse/rtclock.h>
 
 #include <pulsecore/core.h>
 #include <pulsecore/core-util.h>
@@ -75,11 +76,11 @@ struct device_info {
     struct userdata *userdata;
     pa_sink *sink;
     pa_source *source;
-    struct timeval last_use;
+    pa_usec_t last_use;
     pa_time_event *time_event;
 };
 
-static void timeout_cb(pa_mainloop_api*a, pa_time_event* e, const struct timeval *tv, void *userdata) {
+static void timeout_cb(pa_mainloop_api*a, pa_time_event* e, const struct timeval *t, void *userdata) {
     struct device_info *d = userdata;
 
     pa_assert(d);
@@ -98,22 +99,20 @@ static void timeout_cb(pa_mainloop_api*a, pa_time_event* e, const struct timeval
 }
 
 static void restart(struct device_info *d) {
-    struct timeval tv;
+    pa_usec_t now;
     const char *s;
     uint32_t timeout;
+
     pa_assert(d);
     pa_assert(d->sink || d->source);
 
-    pa_gettimeofday(&tv);
-    d->last_use = tv;
+    d->last_use = now = pa_rtclock_now();
 
     s = pa_proplist_gets(d->sink ? d->sink->proplist : d->source->proplist, "module-suspend-on-idle.timeout");
     if (!s || pa_atou(s, &timeout) < 0)
-      timeout = d->userdata->timeout;
+        timeout = d->userdata->timeout;
 
-    pa_timeval_add(&tv, timeout * PA_USEC_PER_SEC);
-
-    d->userdata->core->mainloop->time_restart(d->time_event, &tv);
+    pa_core_rttime_restart(d->userdata->core, d->time_event, now + timeout * PA_USEC_PER_SEC);
 
     if (d->sink)
         pa_log_debug("Sink %s becomes idle, timeout in %u seconds.", d->sink->name, timeout);
@@ -338,7 +337,7 @@ static pa_hook_result_t device_new_hook_cb(pa_core *c, pa_object *o, struct user
     d->userdata = u;
     d->source = source ? pa_source_ref(source) : NULL;
     d->sink = sink ? pa_sink_ref(sink) : NULL;
-    d->time_event = c->mainloop->time_new(c->mainloop, NULL, timeout_cb, d);
+    d->time_event = pa_core_rttime_new(c, PA_USEC_INVALID, timeout_cb, d);
     pa_hashmap_put(u->device_infos, o, d);
 
     if ((d->sink && pa_sink_check_suspend(d->sink) <= 0) ||

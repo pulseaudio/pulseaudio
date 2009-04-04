@@ -64,6 +64,11 @@ AM_CFLAGS = \
 	-I$(top_srcdir)/src/modules/alsa \
 	-I$(top_builddir)/src/modules/alsa \
 	-I$(top_srcdir)/src/modules/raop \
+	-I$(top_builddir)/src/modules/raop \
+	-I$(top_srcdir)/src/modules/x11 \
+	-I$(top_builddir)/src/modules/x11 \
+	-I$(top_srcdir)/src/modules/jack \
+	-I$(top_builddir)/src/modules/jack \
 	$(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS \
 	$(LIBSAMPLERATE_CFLAGS) \
 	$(LIBSNDFILE_CFLAGS) \
@@ -688,6 +693,7 @@ pulseinclude_HEADERS = \
 		pulse/operation.h \
 		pulse/proplist.h \
 		pulse/pulseaudio.h \
+		pulse/rtclock.h \
 		pulse/sample.h \
 		pulse/scache.h \
 		pulse/simple.h \

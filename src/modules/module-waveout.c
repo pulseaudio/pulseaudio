@@ -256,7 +256,7 @@ static void poll_cb(pa_mainloop_api*a, pa_time_event *e, const struct timeval *t
     pa_gettimeofday(&ntv);
     pa_timeval_add(&ntv, u->poll_timeout);
 
-    a->time_restart(e, &ntv);
+    a->rtclock_time_restart(e, &ntv);
 }
 
 static void defer_cb(pa_mainloop_api*a, pa_defer_event *e, void *userdata) {
@@ -549,7 +549,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_gettimeofday(&tv);
     pa_timeval_add(&tv, u->poll_timeout);
 
-    u->event = c->mainloop->time_new(c->mainloop, &tv, poll_cb, u);
+    u->event = c->mainloop->rtclock_time_new(c->mainloop, &tv, poll_cb, u);
     assert(u->event);
 
     u->defer = c->mainloop->defer_new(c->mainloop, defer_cb, u);

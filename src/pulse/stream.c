@@ -320,14 +320,10 @@ static void request_auto_timing_update(pa_stream *s, pa_bool_t force) {
     }
 
     if (s->auto_timing_update_event) {
-        struct timeval next;
-
         if (force)
             s->auto_timing_interval_usec = AUTO_TIMING_INTERVAL_START_USEC;
 
-        pa_gettimeofday(&next);
-        pa_timeval_add(&next, s->auto_timing_interval_usec);
-        s->mainloop->time_restart(s->auto_timing_update_event, &next);
+        pa_context_rttime_restart(s->context, s->auto_timing_update_event, pa_rtclock_now() + s->auto_timing_interval_usec);
 
         s->auto_timing_interval_usec = PA_MIN(AUTO_TIMING_INTERVAL_END_USEC, s->auto_timing_interval_usec*2);
     }
@@ -801,7 +797,7 @@ static void invalidate_indexes(pa_stream *s, pa_bool_t r, pa_bool_t w) {
     request_auto_timing_update(s, TRUE);
 }
 
-static void auto_timing_update_callback(pa_mainloop_api *m, pa_time_event *e, const struct timeval *tv, void *userdata) {
+static void auto_timing_update_callback(pa_mainloop_api *m, pa_time_event *e, const struct timeval *t, void *userdata) {
     pa_stream *s = userdata;
 
     pa_assert(s);
@@ -823,12 +819,9 @@ static void create_stream_complete(pa_stream *s) {
         s->write_callback(s, (size_t) s->requested_bytes, s->write_userdata);
 
     if (s->flags & PA_STREAM_AUTO_TIMING_UPDATE) {
-        struct timeval tv;
-        pa_gettimeofday(&tv);
         s->auto_timing_interval_usec = AUTO_TIMING_INTERVAL_START_USEC;
-        pa_timeval_add(&tv, s->auto_timing_interval_usec);
         pa_assert(!s->auto_timing_update_event);
-        s->auto_timing_update_event = s->mainloop->time_new(s->mainloop, &tv, &auto_timing_update_callback, s);
+	s->auto_timing_update_event = pa_context_rttime_new(s->context, pa_rtclock_now() + s->auto_timing_interval_usec, &auto_timing_update_callback, s);
 
         request_auto_timing_update(s, TRUE);
     }

@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <signal.h>
 
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
@@ -35,6 +36,7 @@
 #include <pulsecore/sink.h>
 #include <pulsecore/source.h>
 #include <pulsecore/namereg.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/core-scache.h>
 #include <pulsecore/core-subscribe.h>
@@ -214,7 +216,7 @@ static void core_free(pa_object *o) {
     pa_xfree(c);
 }
 
-static void exit_callback(pa_mainloop_api*m, pa_time_event *e, const struct timeval *tv, void *userdata) {
+static void exit_callback(pa_mainloop_api *m, pa_time_event *e, const struct timeval *t, void *userdata) {
     pa_core *c = userdata;
     pa_assert(c->exit_event == e);
 
@@ -229,11 +231,7 @@ void pa_core_check_idle(pa_core *c) {
         c->exit_idle_time >= 0 &&
         pa_idxset_size(c->clients) == 0) {
 
-        struct timeval tv;
-        pa_gettimeofday(&tv);
-        tv.tv_sec+= c->exit_idle_time;
-
-        c->exit_event = c->mainloop->time_new(c->mainloop, &tv, exit_callback, c);
+        c->exit_event = pa_core_rttime_new(c, pa_rtclock_now() + c->exit_idle_time * PA_USEC_PER_SEC, exit_callback, c);
 
     } else if (c->exit_event && pa_idxset_size(c->clients) > 0) {
         c->mainloop->time_free(c->exit_event);
@@ -260,4 +258,22 @@ void pa_core_maybe_vacuum(pa_core *c) {
 
     pa_log_debug("Hmm, no streams around, trying to vacuum.");
     pa_mempool_vacuum(c->mempool);
+}
+
+pa_time_event* pa_core_rttime_new(pa_core *c, pa_usec_t usec, pa_time_event_cb_t cb, void *userdata) {
+    struct timeval tv;
+
+    pa_assert(c);
+    pa_assert(c->mainloop);
+
+    return c->mainloop->time_new(c->mainloop, pa_timeval_rtstore(&tv, usec, TRUE), cb, userdata);
+}
+
+void pa_core_rttime_restart(pa_core *c, pa_time_event *e, pa_usec_t usec) {
+    struct timeval tv;
+
+    pa_assert(c);
+    pa_assert(c->mainloop);
+
+    c->mainloop->time_restart(e, pa_timeval_rtstore(&tv, usec, TRUE));
 }

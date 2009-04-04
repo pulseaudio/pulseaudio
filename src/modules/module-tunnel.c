@@ -113,7 +113,7 @@ static const char* const valid_modargs[] = {
 
 #define DEFAULT_TIMEOUT 5
 
-#define LATENCY_INTERVAL 10
+#define LATENCY_INTERVAL (10*PA_USEC_PER_SEC)
 
 #define MIN_NETWORK_LATENCY_USEC (8*PA_USEC_PER_MSEC)
 
@@ -879,9 +879,8 @@ static void request_latency(struct userdata *u) {
 }
 
 /* Called from main context */
-static void timeout_callback(pa_mainloop_api *m, pa_time_event*e,  const struct timeval *tv, void *userdata) {
+static void timeout_callback(pa_mainloop_api *m, pa_time_event *e, const struct timeval *t, void *userdata) {
     struct userdata *u = userdata;
-    struct timeval ntv;
 
     pa_assert(m);
     pa_assert(e);
@@ -889,9 +888,7 @@ static void timeout_callback(pa_mainloop_api *m, pa_time_event*e,  const struct 
 
     request_latency(u);
 
-    pa_gettimeofday(&ntv);
-    ntv.tv_sec += LATENCY_INTERVAL;
-    m->time_restart(e, &ntv);
+    pa_core_rttime_restart(u->core, e, pa_rtclock_now() + LATENCY_INTERVAL);
 }
 
 /* Called from main context */
@@ -1358,7 +1355,6 @@ static void start_subscribe(struct userdata *u) {
 /* Called from main context */
 static void create_stream_callback(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
-    struct timeval ntv;
 #ifdef TUNNEL_SINK
     uint32_t bytes;
 #endif
@@ -1440,9 +1436,7 @@ static void create_stream_callback(pa_pdispatch *pd, uint32_t command,  uint32_t
     request_info(u);
 
     pa_assert(!u->time_event);
-    pa_gettimeofday(&ntv);
-    ntv.tv_sec += LATENCY_INTERVAL;
-    u->time_event = u->core->mainloop->time_new(u->core->mainloop, &ntv, timeout_callback, u);
+    u->time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + LATENCY_INTERVAL, timeout_callback, u);
 
     request_latency(u);
 
@@ -1707,7 +1701,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
     }
 
     u->pstream = pa_pstream_new(u->core->mainloop, io, u->core->mempool);
-    u->pdispatch = pa_pdispatch_new(u->core->mainloop, command_table, PA_COMMAND_MAX);
+    u->pdispatch = pa_pdispatch_new(u->core->mainloop, TRUE, command_table, PA_COMMAND_MAX);
 
     pa_pstream_set_die_callback(u->pstream, pstream_die_callback, u);
     pa_pstream_set_recieve_packet_callback(u->pstream, pstream_packet_callback, u);
@@ -1854,7 +1848,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (!(u->client = pa_socket_client_new_string(m->core->mainloop, u->server_name, PA_NATIVE_DEFAULT_PORT))) {
+    if (!(u->client = pa_socket_client_new_string(m->core->mainloop, TRUE, u->server_name, PA_NATIVE_DEFAULT_PORT))) {
         pa_log("Failed to connect to server '%s'", u->server_name);
         goto fail;
     }

@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/version.h>
 #include <pulse/utf8.h>
@@ -61,7 +62,7 @@
 #include "protocol-native.h"
 
 /* Kick a client if it doesn't authenticate within this time */
-#define AUTH_TIMEOUT 60
+#define AUTH_TIMEOUT (60 * PA_USEC_PER_SEC)
 
 /* Don't accept more connection than this */
 #define MAX_CONNECTIONS 64
@@ -4479,11 +4480,10 @@ static void client_send_event_cb(pa_client *client, const char*event, pa_proplis
 
 /*** module entry points ***/
 
-static void auth_timeout(pa_mainloop_api*m, pa_time_event *e, const struct timeval *tv, void *userdata) {
+static void auth_timeout(pa_mainloop_api*m, pa_time_event *e, const struct timeval *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
 
     pa_assert(m);
-    pa_assert(tv);
     pa_native_connection_assert_ref(c);
     pa_assert(c->auth_timeout_event == e);
 
@@ -4541,12 +4541,9 @@ void pa_native_protocol_connect(pa_native_protocol *p, pa_iochannel *io, pa_nati
         c->authorized = TRUE;
     }
 
-    if (!c->authorized) {
-        struct timeval tv;
-        pa_gettimeofday(&tv);
-        tv.tv_sec += AUTH_TIMEOUT;
-        c->auth_timeout_event = p->core->mainloop->time_new(p->core->mainloop, &tv, auth_timeout, c);
-    } else
+    if (!c->authorized)
+        c->auth_timeout_event = pa_core_rttime_new(p->core, pa_rtclock_now() + AUTH_TIMEOUT, auth_timeout, c);
+    else
         c->auth_timeout_event = NULL;
 
     c->is_local = pa_iochannel_socket_is_local(io);
@@ -4565,7 +4562,7 @@ void pa_native_protocol_connect(pa_native_protocol *p, pa_iochannel *io, pa_nati
     pa_pstream_set_revoke_callback(c->pstream, pstream_revoke_callback, c);
     pa_pstream_set_release_callback(c->pstream, pstream_release_callback, c);
 
-    c->pdispatch = pa_pdispatch_new(p->core->mainloop, command_table, PA_COMMAND_MAX);
+    c->pdispatch = pa_pdispatch_new(p->core->mainloop, TRUE, command_table, PA_COMMAND_MAX);
 
     c->record_streams = pa_idxset_new(NULL, NULL);
     c->output_streams = pa_idxset_new(NULL, NULL);

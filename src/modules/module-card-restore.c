@@ -35,6 +35,7 @@
 #include <pulse/volume.h>
 #include <pulse/timeval.h>
 #include <pulse/util.h>
+#include <pulse/rtclock.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/module.h>
@@ -53,7 +54,7 @@ PA_MODULE_DESCRIPTION("Automatically restore profile of cards");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
 
-#define SAVE_INTERVAL 10
+#define SAVE_INTERVAL (10 * PA_USEC_PER_SEC)
 
 static const char* const valid_modargs[] = {
     NULL
@@ -75,12 +76,11 @@ struct entry {
     char profile[PA_NAME_MAX];
 } PA_GCC_PACKED ;
 
-static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *tv, void *userdata) {
+static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *t, void *userdata) {
     struct userdata *u = userdata;
 
     pa_assert(a);
     pa_assert(e);
-    pa_assert(tv);
     pa_assert(u);
 
     pa_assert(e == u->save_time_event);
@@ -132,14 +132,10 @@ fail:
 }
 
 static void trigger_save(struct userdata *u) {
-    struct timeval tv;
-
     if (u->save_time_event)
         return;
 
-    pa_gettimeofday(&tv);
-    tv.tv_sec += SAVE_INTERVAL;
-    u->save_time_event = u->core->mainloop->time_new(u->core->mainloop, &tv, save_time_callback, u);
+    u->save_time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + SAVE_INTERVAL, save_time_callback, u);
 }
 
 static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {

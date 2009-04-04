@@ -40,7 +40,7 @@ pa_socket_client* pa_socket_client_new_ipv6(pa_mainloop_api *m, uint8_t address[
 #endif
 pa_socket_client* pa_socket_client_new_unix(pa_mainloop_api *m, const char *filename);
 pa_socket_client* pa_socket_client_new_sockaddr(pa_mainloop_api *m, const struct sockaddr *sa, size_t salen);
-pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char *a, uint16_t default_port);
+pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, pa_bool_t use_rtclock, const char *a, uint16_t default_port);
 
 pa_socket_client* pa_socket_client_ref(pa_socket_client *c);
 void pa_socket_client_unref(pa_socket_client *c);

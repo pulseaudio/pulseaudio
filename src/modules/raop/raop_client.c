@@ -331,7 +331,7 @@ static void rtsp_cb(pa_rtsp_client *rtsp, pa_rtsp_state state, pa_headerlist* he
             uint32_t port = pa_rtsp_serverport(c->rtsp);
             pa_log_debug("RAOP: RECORDED");
 
-            if (!(c->sc = pa_socket_client_new_string(c->core->mainloop, c->host, port))) {
+            if (!(c->sc = pa_socket_client_new_string(c->core->mainloop, TRUE, c->host, port))) {
                 pa_log("failed to connect to server '%s:%d'", c->host, port);
                 return;
             }

@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <stdio.h>
 
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/util.h>
 
@@ -42,7 +43,7 @@ PA_MODULE_DESCRIPTION("Automatically restore the default sink and source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
 
-#define DEFAULT_SAVE_INTERVAL 5
+#define SAVE_INTERVAL (5 * PA_USEC_PER_SEC)
 
 struct userdata {
     pa_core *core;
@@ -127,7 +128,7 @@ static void save(struct userdata *u) {
     u->modified = FALSE;
 }
 
-static void time_cb(pa_mainloop_api *a, pa_time_event *e, const struct timeval *tv, void *userdata) {
+static void time_cb(pa_mainloop_api *a, pa_time_event *e, const struct timeval *t, void *userdata) {
     struct userdata *u = userdata;
 
     pa_assert(u);
@@ -146,12 +147,8 @@ static void subscribe_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t id
 
     u->modified = TRUE;
 
-    if (!u->time_event) {
-        struct timeval tv;
-        pa_gettimeofday(&tv);
-        pa_timeval_add(&tv, DEFAULT_SAVE_INTERVAL*PA_USEC_PER_SEC);
-        u->time_event = u->core->mainloop->time_new(u->core->mainloop, &tv, time_cb, u);
-    }
+    if (!u->time_event)
+        u->time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + SAVE_INTERVAL, time_cb, u);
 }
 
 int pa__init(pa_module *m) {

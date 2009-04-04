@@ -150,3 +150,38 @@ pa_usec_t pa_timespec_load(const struct timespec *ts) {
         (pa_usec_t) ts->tv_sec * PA_USEC_PER_SEC +
         (pa_usec_t) ts->tv_nsec / PA_NSEC_PER_USEC;
 }
+
+
+static struct timeval* wallclock_from_rtclock(struct timeval *tv) {
+
+#ifdef HAVE_CLOCK_GETTIME
+    struct timeval wc_now, rt_now;
+
+    pa_gettimeofday(&wc_now);
+    pa_rtclock_get(&rt_now);
+
+    pa_assert(tv);
+
+    if (pa_timeval_cmp(&rt_now, tv) < 0)
+        pa_timeval_add(&wc_now, pa_timeval_diff(tv, &rt_now));
+    else
+        pa_timeval_sub(&wc_now, pa_timeval_diff(&rt_now, tv));
+
+    *tv = wc_now;
+#endif
+
+    return tv;
+}
+
+struct timeval* pa_timeval_rtstore(struct timeval *tv, pa_usec_t v, pa_bool_t rtclock) {
+    pa_assert(tv);
+
+    pa_timeval_store(tv, v);
+
+    if (rtclock)
+        tv->tv_usec |= PA_TIMEVAL_RTCLOCK;
+    else
+        wallclock_from_rtclock(tv);
+
+    return tv;
+}

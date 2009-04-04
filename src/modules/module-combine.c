@@ -225,9 +225,8 @@ static void adjust_rates(struct userdata *u) {
     pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_UPDATE_LATENCY, NULL, (int64_t) avg_total_latency, NULL);
 }
 
-static void time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *tv, void *userdata) {
+static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct timeval *t, void *userdata) {
     struct userdata *u = userdata;
-    struct timeval n;
 
     pa_assert(u);
     pa_assert(a);
@@ -235,9 +234,7 @@ static void time_callback(pa_mainloop_api*a, pa_time_event* e, const struct time
 
     adjust_rates(u);
 
-    pa_gettimeofday(&n);
-    n.tv_sec += (time_t) u->adjust_time;
-    u->sink->core->mainloop->time_restart(e, &n);
+    pa_core_rttime_restart(u->core, e, pa_rtclock_now() + u->adjust_time * PA_USEC_PER_SEC);
 }
 
 static void process_render_null(struct userdata *u, pa_usec_t now) {
@@ -1171,12 +1168,8 @@ int pa__init(pa_module*m) {
         if (o->sink_input)
             pa_sink_input_put(o->sink_input);
 
-    if (u->adjust_time > 0) {
-        struct timeval tv;
-        pa_gettimeofday(&tv);
-        tv.tv_sec += (time_t) u->adjust_time;
-        u->time_event = m->core->mainloop->time_new(m->core->mainloop, &tv, time_callback, u);
-    }
+    if (u->adjust_time > 0)
+        u->time_event = pa_core_rttime_new(m->core, pa_rtclock_now() + u->adjust_time * PA_USEC_PER_SEC, time_callback, u);
 
     pa_modargs_free(ma);
 
