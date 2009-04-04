@@ -2,62 +2,65 @@
 # Copyright (C) 2008 Timo Jyrinki
 # This file is distributed under the same license as the pulseaudio package.
 # Timo Jyrinki <timo.jyrinki@iki.fi>.
-#
+# Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>, 2009
 msgid ""
 msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-03-19 17:58+0100\n"
-"PO-Revision-Date: 2009-02-13 08:57+0200\n"
-"Last-Translator: Timo Jyrinki <timo.jyrinki@iki.fi>\n"
+"PO-Revision-Date: 2009-04-05 01:09+0300\n"
+"Last-Translator: Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>\n"
 "Language-Team: Finnish <laatu@lokalisointi.org>\n"
+"Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Virtaal 0.3.1\n"
 
 #: ../src/modules/alsa/alsa-util.c:530
 msgid "Analog Mono"
-msgstr ""
+msgstr "Analoginen mono"
 
 #: ../src/modules/alsa/alsa-util.c:536
 msgid "Analog Stereo"
-msgstr ""
+msgstr "Analoginen stereo"
 
 #: ../src/modules/alsa/alsa-util.c:542
 msgid "Digital Stereo (IEC958)"
-msgstr ""
+msgstr "Digitaalinen stereo (IEC958)"
 
 #: ../src/modules/alsa/alsa-util.c:548
 msgid "Digital Stereo (HDMI)"
-msgstr ""
+msgstr "Digitaalinen stereo (HDMI)"
 
 #: ../src/modules/alsa/alsa-util.c:555
 msgid "Analog Surround 4.0"
-msgstr ""
+msgstr "Analoginen tilaääni 4.0"
 
 #: ../src/modules/alsa/alsa-util.c:562
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr ""
+msgstr "Digitaalinen tilaääni 4.0 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-util.c:570
 msgid "Analog Surround 4.1"
-msgstr ""
+msgstr "Analoginen tilaääni 4.1"
 
 #: ../src/modules/alsa/alsa-util.c:578
 msgid "Analog Surround 5.0"
-msgstr ""
+msgstr "Analoginen tilaääni 5.0"
 
 #: ../src/modules/alsa/alsa-util.c:586
 msgid "Analog Surround 5.1"
-msgstr ""
+msgstr "Analoginen tilaääni 5.1"
 
 #: ../src/modules/alsa/alsa-util.c:594
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr ""
+msgstr "Digitaalinen tilaääni 5.1 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-util.c:603
 msgid "Analog Surround 7.1"
-msgstr ""
+msgstr "Analoginen tilaääni 7.1"
 
 #: ../src/modules/alsa/alsa-util.c:1602
 #, c-format
@@ -67,6 +70,9 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_avail() palautti poikkeuksellisen suuren arvon: %lu tavua (%lu ms).\n"
+"Tämä on todennäköisesti ohjelmavirhe ALSA-ajurissa ”%s”. Ilmoita tästä "
+"ongelmasta ALSA-kehittäjille."
 
 #: ../src/modules/alsa/alsa-util.c:1642
 #, c-format
@@ -76,6 +82,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_delay() palautti poikkeuksellisen suuren arvon: %li tavua (%s%lu "
+"ms).\n"
+"Tämä on todennäköisesti ohjelmavirhe ALSA-ajurissa ”%s”. Ilmoita tästä "
+"ongelmasta ALSA-kehittäjille."
 
 #: ../src/modules/alsa/alsa-util.c:1688
 #, c-format
@@ -85,86 +95,89 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_mmap_begin() palautti poikkeuksellisen suuren arvon: %lu tavua (%lu "
+"ms).\n"
+"Tämä on todennäköisesti ohjelmavirhe ALSA-ajurissa ”%s”. Ilmoita tästä "
+"ongelmasta ALSA-kehittäjille."
 
 #: ../src/pulsecore/sink.c:1965
-#, fuzzy
 msgid "Internal Audio"
-msgstr "Sisäinen virhe"
+msgstr "Sisäinen äänentoisto"
 
 #: ../src/pulsecore/sink.c:1971
 msgid "Modem"
-msgstr ""
+msgstr "Modeemi"
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
-msgstr "Alkuperäisen ld_dlopen-lataimen löytäminen epäonnistui."
+msgstr "Alkuperäisen lt_dlopen-lataimen löytäminen epäonnistui."
 
 #: ../src/daemon/ltdl-bind-now.c:129
 msgid "Failed to allocate new dl loader."
-msgstr ""
+msgstr "Uuden dl-lataaminen varaaminen epäonnistui."
 
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
-msgstr ""
+msgstr "bind-now-loaderin lisääminen epäonnistui."
 
 #: ../src/daemon/polkit.c:55
 #, c-format
 msgid "Cannot connect to system bus: %s"
-msgstr ""
+msgstr "Järjestelmäväylään ei voida yhdistää: %s"
 
 #: ../src/daemon/polkit.c:65
 #, c-format
 msgid "Cannot get caller from PID: %s"
-msgstr ""
+msgstr "Kutsujaa ei saada PID:stä: %s"
 
 #: ../src/daemon/polkit.c:77
 msgid "Cannot set UID on caller object."
-msgstr ""
+msgstr "UID:tä ei voida asettaa kutsujaobjektille."
 
 #: ../src/daemon/polkit.c:82
 msgid "Failed to get CK session."
-msgstr ""
+msgstr "CK-istunnon saaminen epäonnistui."
 
 #: ../src/daemon/polkit.c:90
 msgid "Cannot set UID on session object."
-msgstr ""
+msgstr "UID:tä ei voida asettaa istunto-objektille."
 
 #: ../src/daemon/polkit.c:95
 msgid "Cannot allocate PolKitAction."
-msgstr ""
+msgstr "Ei voida varata PolKitActionia."
 
 #: ../src/daemon/polkit.c:100
 msgid "Cannot set action_id"
-msgstr ""
+msgstr "Ei voida asettaa action_id:tä"
 
 #: ../src/daemon/polkit.c:105
 msgid "Cannot allocate PolKitContext."
-msgstr ""
+msgstr "Ei voida varata PolKitContextia."
 
 #: ../src/daemon/polkit.c:110
 #, c-format
 msgid "Cannot initialize PolKitContext: %s"
-msgstr ""
+msgstr "Ei voida alustaa PolKitContextia: %s"
 
 #: ../src/daemon/polkit.c:119
 #, c-format
 msgid "Could not determine whether caller is authorized: %s"
-msgstr ""
+msgstr "Ei voida päätellä onko kutsujalla käyttöoikeus: %s"
 
 #: ../src/daemon/polkit.c:139
 #, c-format
 msgid "Cannot obtain auth: %s"
-msgstr ""
+msgstr "Tunnistautumista ei saada: %s"
 
 #: ../src/daemon/polkit.c:148
 #, c-format
 msgid "PolicyKit responded with '%s'"
-msgstr ""
+msgstr "PolicyKit vastasi ”%s”"
 
 #: ../src/daemon/main.c:134
 #, c-format
 msgid "Got signal %s."
-msgstr ""
+msgstr "Saatiin signaali %s."
 
 #: ../src/daemon/main.c:161
 msgid "Exiting."
@@ -173,90 +186,90 @@ msgstr "Poistutaan."
 #: ../src/daemon/main.c:179
 #, c-format
 msgid "Failed to find user '%s'."
-msgstr ""
+msgstr "Käyttäjää ”%s” ei löydetty."
 
 #: ../src/daemon/main.c:184
 #, c-format
 msgid "Failed to find group '%s'."
-msgstr ""
+msgstr "Ryhmää ”%s” ei löydetty."
 
 #: ../src/daemon/main.c:188
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
-msgstr ""
+msgstr "Löydettiin käyttäjä ”%s” (UID %lu) ja ryhmä ”%s” (GID %lu)."
 
 #: ../src/daemon/main.c:193
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
-msgstr ""
+msgstr "Käyttäjän ”%s” ja ryhmän ”%s” GID:t eivät vastaa toisiaan."
 
 #: ../src/daemon/main.c:198
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr ""
+msgstr "Käyttäjän ”%s” kotihakemisto ei ole ”%s”, ohitetaan."
 
 #: ../src/daemon/main.c:201 ../src/daemon/main.c:206
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr ""
+msgstr "Hakemiston ”%s” luominen epäonnistui: %s"
 
 #: ../src/daemon/main.c:213
 #, c-format
 msgid "Failed to change group list: %s"
-msgstr ""
+msgstr "Ryhmäluettelon vaihtaminen epäonnistui: %s"
 
 #: ../src/daemon/main.c:229
 #, c-format
 msgid "Failed to change GID: %s"
-msgstr ""
+msgstr "GID:n vaihtaminen epäonnistui: %s"
 
 #: ../src/daemon/main.c:245
 #, c-format
 msgid "Failed to change UID: %s"
-msgstr ""
+msgstr "UID:n vaihtaminen epäonnistui: %s"
 
 #: ../src/daemon/main.c:259
 msgid "Successfully dropped root privileges."
-msgstr ""
+msgstr "Root-oikeuksista luopuminen onnistui."
 
 #: ../src/daemon/main.c:267
 msgid "System wide mode unsupported on this platform."
-msgstr ""
+msgstr "Järjestelmänlaajuista tilaa ei tueta tällä alustalla."
 
 #: ../src/daemon/main.c:285
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
-msgstr ""
+msgstr "setrlimit(%s, (%u, %u)) epäonnistui: %s"
 
 #: ../src/daemon/main.c:434
 msgid "Failed to parse command line."
-msgstr ""
+msgstr "Komentorivin jäsentäminen epäonnistui."
 
 #: ../src/daemon/main.c:458
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
-msgstr ""
+msgstr "Ollaan ryhmässä ”%s”, korkean prioriteetin ajoitus on sallittua."
 
 #: ../src/daemon/main.c:465
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
-msgstr ""
+msgstr "Ollaan ryhmässä ”%s”, tosiaikainen vuorottaminen on sallittua."
 
 #: ../src/daemon/main.c:473
 msgid "PolicyKit grants us acquire-high-priority privilege."
-msgstr ""
+msgstr "PolicyKit myöntää acquire-high-priority-oikeuden."
 
 #: ../src/daemon/main.c:476
 msgid "PolicyKit refuses acquire-high-priority privilege."
-msgstr ""
+msgstr "PolicyKit ei myönnä acquire-high-priority-oikeutta."
 
 #: ../src/daemon/main.c:481
 msgid "PolicyKit grants us acquire-real-time privilege."
-msgstr ""
+msgstr "PolicyKit myöntää acquire-real-time-oikeuden."
 
 #: ../src/daemon/main.c:484
 msgid "PolicyKit refuses acquire-real-time privilege."
-msgstr ""
+msgstr "PolicyKit ei myönnä acquire-real-time-oikeutta."
 
 #: ../src/daemon/main.c:513
 #, c-format
@@ -270,24 +283,34 @@ msgid ""
 "appropriate PolicyKit privileges, or become a member of '%s', or increase "
 "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 msgstr ""
+"Ohjelmaa kutsuttiin SUID-rootina ja reaaliaikaista ja/tai korkean "
+"prioriteetin ajoitusta pyydettiin asetuksissa. Tarvittavat oikeudet "
+"kuitenkin puuttuvat:\n"
+"Ei olla ryhmässä ”%s”, PolicyKit ei myönnä pyydettyjä oikeuksia ja "
+"RLIMIT_NICE/RLIMIT_RTPRIO-resurssirajoja ei ole kasvatettu.\n"
+"Hanki riittävät PolicyKit-oikeudet, liity ryhmään ”%s” tai kasvata tämän "
+"käyttäjän RLIMIT_NICE/RLIMIT_RTPRIO-resurssirajoja reaaliaikaisen ja/tai "
+"korkean prioriteetin ajoituksen ottamiseksi käyttöön."
 
 #: ../src/daemon/main.c:538
 msgid ""
 "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr ""
+"Korkean prioriteetin ajoitus otettu käyttöön asetuksissa, mutta käytännöt "
+"eivät salli sitä."
 
 #: ../src/daemon/main.c:567
 msgid "Successfully increased RLIMIT_RTPRIO"
-msgstr ""
+msgstr "RLIMIT_RTPRIO:n kasvatus onnistui"
 
 #: ../src/daemon/main.c:570
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
-msgstr ""
+msgstr "RLIMIT_RTPRIO epäonnistui: %s"
 
 #: ../src/daemon/main.c:577
 msgid "Giving up CAP_NICE"
-msgstr ""
+msgstr "Luovutaan CAP_NICE:stä"
 
 #: ../src/daemon/main.c:584
 msgid ""
@@ -324,15 +347,18 @@ msgstr "Pääkäyttäjän (root) oikeudet vaaditaan."
 
 #: ../src/daemon/main.c:682
 msgid "--start not supported for system instances."
-msgstr ""
+msgstr "--start-valitsinta ei tueta järjestelmätilassa."
 
 #: ../src/daemon/main.c:687
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr ""
+"Suoritetaan järjestelmätilassa, mutta --disallow-exit ei ole asetettuna!"
 
 #: ../src/daemon/main.c:690
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
+"Suoritetaan järjestelmätilassa, mutta -disallow-module-loading ei ole "
+"asetettuna!"
 
 #: ../src/daemon/main.c:693
 msgid "Running in system mode, forcibly disabling SHM mode!"
@@ -347,22 +373,22 @@ msgstr ""
 
 #: ../src/daemon/main.c:725
 msgid "Failed to acquire stdio."
-msgstr ""
+msgstr "stdio:n saaminen epäonnistui."
 
 #: ../src/daemon/main.c:731
 #, c-format
 msgid "pipe failed: %s"
-msgstr ""
+msgstr "putki epäonnistui: %s"
 
 #: ../src/daemon/main.c:736
 #, c-format
 msgid "fork() failed: %s"
-msgstr ""
+msgstr "fork() epäonnistui: %s"
 
 #: ../src/daemon/main.c:750
 #, c-format
 msgid "read() failed: %s"
-msgstr ""
+msgstr "read() epäonnistui: %s"
 
 #: ../src/daemon/main.c:756
 msgid "Daemon startup failed."
@@ -449,7 +475,7 @@ msgstr "Suoritetaan järjestelmätilassa: %s"
 
 #: ../src/daemon/main.c:886
 msgid "pa_pid_file_create() failed."
-msgstr ""
+msgstr "pa_pid_file_create() epäonnistui."
 
 #: ../src/daemon/main.c:898
 msgid "Fresh high-resolution timers available! Bon appetit!"
@@ -465,7 +491,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:912
 msgid "pa_core_new() failed."
-msgstr ""
+msgstr "pa_core_new() epäonnistui."
 
 #: ../src/daemon/main.c:974
 msgid "Failed to initialize daemon."
@@ -490,7 +516,7 @@ msgid "Daemon terminated."
 msgstr "Taustaprosessi lopetettu."
 
 #: ../src/daemon/cmdline.c:121
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -562,6 +588,78 @@ msgid ""
 "\n"
 "  -n                                    Don't load default script file\n"
 msgstr ""
+"%s [valitsimet]\n"
+"\n"
+"KOMENNOT:\n"
+"  -h, --help                            Näytä tämä ohje\n"
+"      --version                         Näytä versio\n"
+"      --dump-conf                       Tulosta oletusasetukset\n"
+"      --dump-modules                    Tulosta saatavilla olevien moduulien\n"
+"                                        luettelo\n"
+"      --dump-resample-methods           Tulosta saatavilla olevat "
+"                                        uudelleennäytteistystavat\n"
+"      --cleanup-shm                     Puhdista vanhentuneet jaetun muistin "
+"                                        segmentit\n"
+"      --start                           Käynnistä taustaprosessi, jos se ei "
+"                                        ole käynnissä\n"
+"  -k  --kill                            Tapa suoritettava taustaprosessi\n"
+"      --check                           Tarkista onko taustaprosessi "
+"                                        suoritettavana (palauttaa vain\n"
+"                                        lopetuskoodin)\n"
+"\n"
+"VALITSIMET:\n"
+"      --system[=BOOL]                   Suorita järjestelmänlaajuisena\n"
+"  -D, --daemonize[=BOOL]                Vaihda taustaprosessiksi "
+"                                        käynnistyksen jälkeen\n"
+"      --fail[=BOOL]                     Lopeta kun käynnistys epäonnistuu\n"
+"      --high-priority[=BOOL]            Yritä asettaa korkea nice-taso\n"
+"                                        (käytettävissä vain root-käyttäjänä, "
+"                                        SUIDilla tai kohotetulla\n"
+"                                        RLIMIT_NICE-arvolla)\n"
+"      --realtime[=BOOL]                 Yritä asettaa reaaliaikainen ajoitus\n"
+"                                        (käytettävissä vain root-käyttäjänä, "
+"                                        SUIDilla tai kohotetulla\n"
+"                                        RLIMIT_RTPRIO-arvolla)\n"
+"      --disallow-module-loading[=BOOL]  Kiellä käyttäjän pyytämä moduulin\n"
+"                                        lataus tai poisto käynnistyksen\n"
+"                                        jälkeen\n"
+"      --disallow-exit[=BOOL]            Kiellä käyttäjän pyytämä lopettaminen\n"
+"      --exit-idle-time=SECS             Lopeta taustaprosessi, kun se on\n"
+"                                        toimettomana ja tämä aika on kulunut\n"
+"      --module-idle-time=SECS           Poista automaattisesti ladatut\n"
+"                                        moduulit, kun taustaprosessi on\n"
+"                                        toimettomana ja tämä aika on kulunut\n"
+"      --scache-idle-time=SECS           Unload autoloaded samples when idle "
+"and\n"
+"                                        this time passed\n"
+"      --log-level[=LEVEL]               Increase or set verbosity level\n"
+"  -v                                    Increase the verbosity level\n"
+"      --log-target={auto,syslog,stderr} Specify the log target\n"
+"      --log-meta[=BOOL]                 Include code location in log "
+"messages\n"
+"      --log-time[=BOOL]                 Include timestamps in log messages\n"
+"      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
+"  -p, --dl-search-path=PATH             Set the search path for dynamic "
+"shared\n"
+"                                        objects (plugins)\n"
+"      --resample-method=METHOD          Use the specified resampling method\n"
+"                                        (See --dump-resample-methods for\n"
+"                                        possible values)\n"
+"      --use-pid-file[=BOOL]             Create a PID file\n"
+"      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
+"                                        platforms that support it.\n"
+"      --disable-shm[=BOOL]              Disable shared memory support.\n"
+"\n"
+"STARTUP SCRIPT:\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
+"with\n"
+"                                        the specified argument\n"
+"  -F, --file=FILENAME                   Run the specified script\n"
+"  -C                                    Open a command line on the running "
+"TTY\n"
+"                                        after startup\n"
+"\n"
+"  -n                                    Don't load default script file\n"
 
 #: ../src/daemon/cmdline.c:252
 msgid "--daemonize expects boolean argument"
