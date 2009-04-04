@@ -1877,11 +1877,16 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
         return -1;
     }
 
-    if (device->headset_state != PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HSP) {
+    /* The state signal is sent by bluez, so it is racy to check
+       strictly for CONNECTED, we should also accept STREAMING state
+       as being good enough. However, if the profile is used
+       concurrently (which is unlikely), ipc will fail later on, and
+       module will be unloaded. */
+    if (device->headset_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HSP) {
         pa_log_warn("HSP is not connected, refused to switch profile");
         return -1;
     }
-    else if (device->audio_sink_state != PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP) {
+    else if (device->audio_sink_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP) {
         pa_log_warn("A2DP is not connected, refused to switch profile");
         return -1;
     }
