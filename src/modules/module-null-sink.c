@@ -101,14 +101,14 @@ static int sink_process_msg(
         case PA_SINK_MESSAGE_SET_STATE:
 
             if (PA_PTR_TO_UINT(data) == PA_SINK_RUNNING)
-                u->timestamp = pa_rtclock_usec();
+                u->timestamp = pa_rtclock_now();
 
             break;
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
             pa_usec_t now;
 
-            now = pa_rtclock_usec();
+            now = pa_rtclock_now();
             *((pa_usec_t*) data) = u->timestamp > now ? u->timestamp - now : 0ULL;
 
             return 0;
@@ -210,7 +210,7 @@ static void thread_func(void *userdata) {
     pa_thread_mq_install(&u->thread_mq);
     pa_rtpoll_install(u->rtpoll);
 
-    u->timestamp = pa_rtclock_usec();
+    u->timestamp = pa_rtclock_now();
 
     for (;;) {
         int ret;
@@ -219,7 +219,7 @@ static void thread_func(void *userdata) {
         if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
             pa_usec_t now;
 
-            now = pa_rtclock_usec();
+            now = pa_rtclock_now();
 
             if (u->sink->thread_info.rewind_requested) {
                 if (u->sink->thread_info.rewind_nbytes > 0)

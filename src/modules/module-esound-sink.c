@@ -145,14 +145,14 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 case PA_SINK_SUSPENDED:
                     pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
 
-                    pa_smoother_pause(u->smoother, pa_rtclock_usec());
+                    pa_smoother_pause(u->smoother, pa_rtclock_now());
                     break;
 
                 case PA_SINK_IDLE:
                 case PA_SINK_RUNNING:
 
                     if (u->sink->thread_info.state == PA_SINK_SUSPENDED)
-                        pa_smoother_resume(u->smoother, pa_rtclock_usec(), TRUE);
+                        pa_smoother_resume(u->smoother, pa_rtclock_now(), TRUE);
 
                     break;
 
@@ -167,7 +167,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         case PA_SINK_MESSAGE_GET_LATENCY: {
             pa_usec_t w, r;
 
-            r = pa_smoother_get(u->smoother, pa_rtclock_usec());
+            r = pa_smoother_get(u->smoother, pa_rtclock_now());
             w = pa_bytes_to_usec((uint64_t) u->offset + u->memchunk.length, &u->sink->sample_spec);
 
             *((pa_usec_t*) data) = w > r ? w - r : 0;
@@ -202,7 +202,7 @@ static void thread_func(void *userdata) {
     pa_thread_mq_install(&u->thread_mq);
     pa_rtpoll_install(u->rtpoll);
 
-    pa_smoother_set_time_offset(u->smoother, pa_rtclock_usec());
+    pa_smoother_set_time_offset(u->smoother, pa_rtclock_now());
 
     for (;;) {
         int ret;
@@ -295,7 +295,7 @@ static void thread_func(void *userdata) {
                 else
                     usec = 0;
 
-                pa_smoother_put(u->smoother, pa_rtclock_usec(), usec);
+                pa_smoother_put(u->smoother, pa_rtclock_now(), usec);
             }
 
             /* Hmm, nothing to do. Let's sleep */

@@ -395,7 +395,7 @@ static void check_smoother_status(struct userdata *u, pa_bool_t past)  {
 
     pa_assert(u);
 
-    x = pa_rtclock_usec();
+    x = pa_rtclock_now();
 
     /* Correct by the time the requested issued needs to travel to the
      * other side.  This is a valid thread-safe access, because the
@@ -500,7 +500,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             pa_usec_t yl, yr, *usec = data;
 
             yl = pa_bytes_to_usec((uint64_t) u->counter, &u->sink->sample_spec);
-            yr = pa_smoother_get(u->smoother, pa_rtclock_usec());
+            yr = pa_smoother_get(u->smoother, pa_rtclock_now());
 
             *usec = yl > yr ? yl - yr : 0;
             return 0;
@@ -533,7 +533,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             else
                 y = 0;
 
-            pa_smoother_put(u->smoother, pa_rtclock_usec(), y);
+            pa_smoother_put(u->smoother, pa_rtclock_now(), y);
 
             /* We can access this freely here, since the main thread is waiting for us */
             u->thread_transport_usec = u->transport_usec;
@@ -607,7 +607,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             pa_usec_t yr, yl, *usec = data;
 
             yl = pa_bytes_to_usec((uint64_t) u->counter, &PA_SOURCE(o)->sample_spec);
-            yr = pa_smoother_get(u->smoother, pa_rtclock_usec());
+            yr = pa_smoother_get(u->smoother, pa_rtclock_now());
 
             *usec = yr > yl ? yr - yl : 0;
             return 0;
@@ -633,7 +633,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             y = pa_bytes_to_usec((uint64_t) u->counter, &u->source->sample_spec);
             y += (pa_usec_t) offset;
 
-            pa_smoother_put(u->smoother, pa_rtclock_usec(), y);
+            pa_smoother_put(u->smoother, pa_rtclock_now(), y);
 
             /* We can access this freely here, since the main thread is waiting for us */
             u->thread_transport_usec = u->transport_usec;
@@ -1825,7 +1825,7 @@ int pa__init(pa_module*m) {
             TRUE,
             TRUE,
             10,
-            pa_rtclock_usec(),
+            pa_rtclock_now(),
             FALSE);
     u->ctag = 1;
     u->device_index = u->channel = PA_INVALID_INDEX;

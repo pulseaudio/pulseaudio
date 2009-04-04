@@ -707,7 +707,7 @@ static void update_smoother(struct userdata *u) {
 
     /* Hmm, if the timestamp is 0, then it wasn't set and we take the current time */
     if (now1 <= 0)
-        now1 = pa_rtclock_usec();
+        now1 = pa_rtclock_now();
 
     now2 = pa_bytes_to_usec((uint64_t) position, &u->sink->sample_spec);
 
@@ -721,7 +721,7 @@ static pa_usec_t sink_get_latency(struct userdata *u) {
 
     pa_assert(u);
 
-    now1 = pa_rtclock_usec();
+    now1 = pa_rtclock_now();
     now2 = pa_smoother_get(u->smoother, now1);
 
     delay = (int64_t) pa_bytes_to_usec(u->write_count, &u->sink->sample_spec) - (int64_t) now2;
@@ -752,7 +752,7 @@ static int suspend(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->pcm_handle);
 
-    pa_smoother_pause(u->smoother, pa_rtclock_usec());
+    pa_smoother_pause(u->smoother, pa_rtclock_now());
 
     /* Let's suspend -- we don't call snd_pcm_drain() here since that might
      * take awfully long with our long buffer sizes today. */
@@ -1246,7 +1246,7 @@ static void thread_func(void *userdata) {
                     pa_log_info("Starting playback.");
                     snd_pcm_start(u->pcm_handle);
 
-                    pa_smoother_resume(u->smoother, pa_rtclock_usec(), TRUE);
+                    pa_smoother_resume(u->smoother, pa_rtclock_now(), TRUE);
                 }
 
                 update_smoother(u);
@@ -1275,7 +1275,7 @@ static void thread_func(void *userdata) {
 
                 /* Convert from the sound card time domain to the
                  * system time domain */
-                cusec = pa_smoother_translate(u->smoother, pa_rtclock_usec(), sleep_usec);
+                cusec = pa_smoother_translate(u->smoother, pa_rtclock_now(), sleep_usec);
 
 /*                 pa_log_debug("Waking up in %0.2fms (system clock).", (double) cusec / PA_USEC_PER_MSEC); */
 
@@ -1581,7 +1581,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
             TRUE,
             TRUE,
             5,
-            pa_rtclock_usec(),
+            pa_rtclock_now(),
             TRUE);
 
     dev_id = pa_modargs_get_value(

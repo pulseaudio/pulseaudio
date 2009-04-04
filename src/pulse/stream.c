@@ -373,7 +373,7 @@ static void check_smoother_status(pa_stream *s, pa_bool_t aposteriori, pa_bool_t
     if (!s->smoother)
         return;
 
-    x = pa_rtclock_usec();
+    x = pa_rtclock_now();
 
     if (s->timing_info_valid) {
         if (aposteriori)
@@ -1057,7 +1057,7 @@ static int create_stream(
     if (flags & PA_STREAM_INTERPOLATE_TIMING) {
         pa_usec_t x;
 
-        x = pa_rtclock_usec();
+        x = pa_rtclock_now();
 
         pa_assert(!s->smoother);
         s->smoother = pa_smoother_new(
@@ -1594,7 +1594,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
         if (o->stream->smoother) {
             pa_usec_t u, x;
 
-            u = x = pa_rtclock_usec() - i->transport_usec;
+            u = x = pa_rtclock_now() - i->transport_usec;
 
             if (o->stream->direction == PA_STREAM_PLAYBACK && o->context->version >= 13) {
                 pa_usec_t su;
@@ -2103,7 +2103,7 @@ int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec) {
     PA_CHECK_VALIDITY(s->context, s->direction != PA_STREAM_RECORD || !s->timing_info.write_index_corrupt, PA_ERR_NODATA);
 
     if (s->smoother)
-        usec = pa_smoother_get(s->smoother, pa_rtclock_usec());
+        usec = pa_smoother_get(s->smoother, pa_rtclock_now());
     else
         usec = calc_time(s, FALSE);
 

@@ -160,7 +160,7 @@ pa_rtpoll *pa_rtpoll_new(void) {
     PA_LLIST_HEAD_INIT(pa_rtpoll_item, p->items);
 
 #ifdef DEBUG_TIMING
-    p->timestamp = pa_rtclock_usec();
+    p->timestamp = pa_rtclock_now();
     p->slept = p->awake = 0;
 #endif
 
@@ -394,7 +394,7 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
 
 #ifdef DEBUG_TIMING
     {
-        pa_usec_t now = pa_rtclock_usec();
+        pa_usec_t now = pa_rtclock_now();
         p->awake = now - p->timestamp;
         p->timestamp = now;
     }
@@ -421,7 +421,7 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
 
 #ifdef DEBUG_TIMING
     {
-        pa_usec_t now = pa_rtclock_usec();
+        pa_usec_t now = pa_rtclock_now();
         p->slept = now - p->timestamp;
         p->timestamp = now;
 

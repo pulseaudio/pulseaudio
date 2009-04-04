@@ -101,14 +101,14 @@ static int source_process_msg(
         case PA_SOURCE_MESSAGE_SET_STATE:
 
             if (PA_PTR_TO_UINT(data) == PA_SOURCE_RUNNING)
-                u->timestamp = pa_rtclock_usec();
+                u->timestamp = pa_rtclock_now();
 
             break;
 
         case PA_SOURCE_MESSAGE_GET_LATENCY: {
             pa_usec_t now, left_to_fill;
 
-            now = pa_rtclock_usec();
+            now = pa_rtclock_now();
             left_to_fill = u->timestamp > now ? u->timestamp - now : 0ULL;
 
             *((pa_usec_t*) data) = u->block_usec > left_to_fill ? u->block_usec - left_to_fill : 0ULL;
@@ -168,7 +168,7 @@ static void thread_func(void *userdata) {
     pa_thread_mq_install(&u->thread_mq);
     pa_rtpoll_install(u->rtpoll);
 
-    u->timestamp = pa_rtclock_usec();
+    u->timestamp = pa_rtclock_now();
 
     for (;;) {
         int ret;
@@ -176,7 +176,7 @@ static void thread_func(void *userdata) {
         if (PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
             pa_usec_t now;
 
-            now = pa_rtclock_usec();
+            now = pa_rtclock_now();
 
             if (u->timestamp <= now)
                 process_render(u, now);

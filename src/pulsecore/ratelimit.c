@@ -38,7 +38,7 @@ pa_bool_t pa_ratelimit_test(pa_ratelimit *r) {
     pa_usec_t now;
     pa_mutex *m;
 
-    now = pa_rtclock_usec();
+    now = pa_rtclock_now();
 
     m = pa_static_mutex_get(&mutex, FALSE, FALSE);
     pa_mutex_lock(m);

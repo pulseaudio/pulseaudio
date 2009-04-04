@@ -294,7 +294,7 @@ void pa_log_levelv_meta(
         static pa_usec_t start, last;
         pa_usec_t u, a, r;
 
-        u = pa_rtclock_usec();
+        u = pa_rtclock_now();
 
         PA_ONCE_BEGIN {
             start = u;

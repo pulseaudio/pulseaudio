@@ -122,7 +122,7 @@ void pa_rtclock_hrtimer_enable(void) {
 #endif
 }
 
-pa_usec_t pa_rtclock_usec(void) {
+pa_usec_t pa_rtclock_now(void) {
     struct timeval tv;
 
     return pa_timeval_load(pa_rtclock_get(&tv));

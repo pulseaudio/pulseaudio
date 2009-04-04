@@ -193,7 +193,7 @@ static void sink_input_suspend_within_thread(pa_sink_input* i, pa_bool_t b) {
     pa_assert_se(s = i->userdata);
 
     if (b) {
-        pa_smoother_pause(s->smoother, pa_rtclock_usec());
+        pa_smoother_pause(s->smoother, pa_rtclock_now());
         pa_memblockq_flush_read(s->memblockq);
     } else
         s->first_packet = FALSE;
