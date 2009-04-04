@@ -1769,3 +1769,15 @@ pa_bool_t pa_alsa_pcm_is_hw(snd_pcm_t *pcm) {
 
     return snd_pcm_info_get_card(info) >= 0;
 }
+
+pa_bool_t pa_alsa_pcm_is_modem(snd_pcm_t *pcm) {
+    snd_pcm_info_t* info;
+    snd_pcm_info_alloca(&info);
+
+    pa_assert(pcm);
+
+    if (snd_pcm_info(pcm, info) < 0)
+        return FALSE;
+
+    return snd_pcm_info_get_class(info) == SND_PCM_CLASS_MODEM;
+}
