@@ -2,14 +2,15 @@
 # Copyright (C) 2008, 2009 The Free Software Foundation, Inc
 # This file is distributed under the same license as the pulseaudio package.
 # Luca Ferretti <elle.uca@libero.it>, 2008, 2009.
+# Milo Casagrande <milo@ubuntu.com>, 2009
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-03-19 17:58+0100\n"
-"PO-Revision-Date: 2009-02-23 19:19+0100\n"
-"Last-Translator: Luca Ferretti <elle.uca@libero.it>\n"
+"POT-Creation-Date: 2009-03-30 19:28+0000\n"
+"PO-Revision-Date: 2009-04-01 19:18+0200\n"
+"Last-Translator: Milo Casagrande <milo@ubuntu.com>\n"
 "Language-Team: Italiano <tp@lists.linux.it>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -17,53 +18,47 @@ msgstr ""
 
 #: ../src/modules/alsa/alsa-util.c:530
 msgid "Analog Mono"
-msgstr ""
+msgstr "Mono analogico"
 
 #: ../src/modules/alsa/alsa-util.c:536
-#, fuzzy
 msgid "Analog Stereo"
-msgstr "Stereo"
+msgstr "Stereo analogico"
 
 #: ../src/modules/alsa/alsa-util.c:542
 msgid "Digital Stereo (IEC958)"
-msgstr ""
+msgstr "Stereo digitale (IEC958)"
 
 #: ../src/modules/alsa/alsa-util.c:548
 msgid "Digital Stereo (HDMI)"
-msgstr ""
+msgstr "Stereo digitale (HDMI)"
 
 #: ../src/modules/alsa/alsa-util.c:555
-#, fuzzy
 msgid "Analog Surround 4.0"
-msgstr "Surround 4.0"
+msgstr "Surround analogico 4.0"
 
 #: ../src/modules/alsa/alsa-util.c:562
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr ""
+msgstr "Surround digitale 4.0 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-util.c:570
-#, fuzzy
 msgid "Analog Surround 4.1"
-msgstr "Surround 4.1"
+msgstr "Surround analogico 4.1"
 
 #: ../src/modules/alsa/alsa-util.c:578
-#, fuzzy
 msgid "Analog Surround 5.0"
-msgstr "Surround 5.0"
+msgstr "Surround analogico 5.0"
 
 #: ../src/modules/alsa/alsa-util.c:586
-#, fuzzy
 msgid "Analog Surround 5.1"
-msgstr "Surround 5.1"
+msgstr "Surround analogico 5.1"
 
 #: ../src/modules/alsa/alsa-util.c:594
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr ""
+msgstr "Surround digitale 5.1 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-util.c:603
-#, fuzzy
 msgid "Analog Surround 7.1"
-msgstr "Surround 7.1"
+msgstr "Surround analogico 7.1"
 
 #: ../src/modules/alsa/alsa-util.c:1602
 #, c-format
@@ -73,6 +68,9 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_avail() ha restituito un valore molto grande: %lu byte (%lu ms).\n"
+"Molto probabilmente si tratta di un bug nel driver ALSA «%s». Segnalare "
+"questo problema agli sviluppatori ALSA."
 
 #: ../src/modules/alsa/alsa-util.c:1642
 #, c-format
@@ -82,6 +80,9 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_delay() ha restituito un valore molto grande: %li byte (%s%lu ms).\n"
+"Molto probabilmente si tratta di un bug nel driver ALSA «%s». Segnalare "
+"questo problema agli sviluppatori ALSA."
 
 #: ../src/modules/alsa/alsa-util.c:1688
 #, c-format
@@ -91,15 +92,18 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_mmap_begin() ha restituito un valore molto grande: %lu byte (%lu "
+"ms).\n"
+"Molto probabilmente si tratta di un bug nel driver ALSA «%s». Segnalare "
+"questo problema agli sviluppatori ALSA."
 
 #: ../src/pulsecore/sink.c:1965
-#, fuzzy
 msgid "Internal Audio"
-msgstr "Errore interno"
+msgstr "Audio interno"
 
 #: ../src/pulsecore/sink.c:1971
 msgid "Modem"
-msgstr ""
+msgstr "Modem"
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
@@ -277,6 +281,14 @@ msgid ""
 "appropriate PolicyKit privileges, or become a member of '%s', or increase "
 "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 msgstr ""
+"Lo SUID root e lo scheduling real-time o high-priority erano richiesti nella "
+"configurazione, ma mancano i privilegi necessari:\n"
+"non si è nel gruppo «%s», PolicyKit non consente di acquisire i privilegi "
+"richiesti e non è possibile incrementare i limiti RLIMIT_NICE/RLIMIT_RTPRIO "
+"della risorsa.\n"
+"Per abilitare lo scheduling real-time/high-priority, acquisire i privilegi "
+"PolicyKit appropriati, diventare un membro di «%s» oppure incrementare i "
+"limiti RLIMIT_NICE/RLIMIT_RTPRIO della risorsa per questo utente."
 
 #: ../src/daemon/main.c:538
 msgid ""
@@ -349,14 +361,14 @@ msgstr ""
 #: ../src/daemon/main.c:693
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr ""
-"In esecuzione in modalità sistema, disabilitata modalità SHM in modo forzoso."
+"In esecuzione in modalità sistema, disabilitata in modo forzoso la modalità "
+"SHM."
 
-# tempo idle????
 #: ../src/daemon/main.c:698
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
-"In esecuzione in modalità sistema, disabilitato il tempo idle di uscita in "
-"modo forzoso."
+"In esecuzione in modalità sistema, disabilitato in modo forzoso il tempo di "
+"uscita per inattività."
 
 #: ../src/daemon/main.c:725
 msgid "Failed to acquire stdio."
@@ -617,7 +629,7 @@ msgstr ""
 "elevato)\n"
 "      --disallow-module-loading[=BOOL]  Rifiuta il caricamento/rimozione "
 "dei\n"
-"                                         moduli richiesi dall'utente dopo \n"
+"                                         moduli richiesti dall'utente dopo \n"
 "                                         l'avvio\n"
 "      --disallow-exit[=BOOL]            Rifiuta le richieste utente di "
 "uscita\n"
@@ -705,11 +717,7 @@ msgstr "--realtime richiede un argomento booleano"
 msgid "--disallow-module-loading expects boolean argument"
 msgstr "--disallow-module-loading richiede un argomento booleano"
 
-# FIXME missing expects???
-#
-# Segnalato http://pulseaudio.org/ticket/484
 #: ../src/daemon/cmdline.c:302
-#, fuzzy
 msgid "--disallow-exit expects boolean argument"
 msgstr "--disallow-exit richiede un argomento booleano"
 
@@ -724,13 +732,10 @@ msgstr ""
 "\"."
 
 #: ../src/daemon/cmdline.c:333
-#, fuzzy
 msgid "--log-time expects boolean argument"
-msgstr "--realtime richiede un argomento booleano"
+msgstr "--log-time richiede un argomento booleano"
 
-# FIXME missing expects???
 #: ../src/daemon/cmdline.c:340
-#, fuzzy
 msgid "--log-meta expects boolean argument"
 msgstr "--log-meta richiede un argomento booleano"
 
@@ -834,9 +839,9 @@ msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "[%s:%u] Canali di campionamento \"%s\" non validi."
 
 #: ../src/daemon/daemon-conf.c:353
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr "[%s:%u] Canali di campionamento \"%s\" non validi."
+msgstr "[%s:%u] Mappa del canale \"%s\" non valida."
 
 #: ../src/daemon/daemon-conf.c:371
 #, c-format
@@ -863,6 +868,8 @@ msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
 msgstr ""
+"La mappa del canale predefinita specificata presenta un numero diverso di "
+"canali rispetto a quello predefinito specificato."
 
 #: ../src/daemon/daemon-conf.c:616
 #, c-format
@@ -879,31 +886,29 @@ msgstr "Limitazione delle capacità a CAP_SYS_NICE riuscita."
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
-msgstr ""
+msgstr "Sistema sonoro PulseAudio"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
-msgstr ""
+msgstr "Avvia il sistema sonoro PulseAudio"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:1
 msgid ""
 "High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr ""
+msgstr "Scheduling high-priority (valori negativi di \"nice\") per il demone PulseAudio"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:2
-#, fuzzy
 msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr "Uccisione del demone PulseAudio non riuscita."
+msgstr "Scheduling realt-time per il demone PulseAudio"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:3
-#, fuzzy
 msgid ""
 "System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr "Attualmente nel gruppo \"%s\", che consente scheduling high-priority."
+msgstr "La politica di sistema previene PulseAudio dall'ottenere lo scheduling high-priority."
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:4
 msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr ""
+msgstr "La politica di sistema previene PulseAudio dall'ottenere lo scheduling real-time."
 
 #: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:804
 msgid "Mono"
@@ -925,7 +930,7 @@ msgstr "Frontale destro"
 
 #: ../src/pulse/channelmap.c:109
 msgid "Rear Center"
-msgstr "Centrale posteriore "
+msgstr "Centrale posteriore"
 
 #: ../src/pulse/channelmap.c:110
 msgid "Rear Left"
@@ -1239,7 +1244,7 @@ msgstr "Implementazione mancante"
 
 #: ../src/pulse/error.c:67
 msgid "Client forked"
-msgstr ""
+msgstr "Fork del client"
 
 #: ../src/pulse/sample.c:169
 #, c-format
@@ -1377,7 +1382,7 @@ msgstr "Stream spostato sul device %s (%u, %ssospeso).%s \n"
 
 #: ../src/utils/pacat.c:238
 msgid "not "
-msgstr "non"
+msgstr "non "
 
 #: ../src/utils/pacat.c:271
 #, c-format
@@ -1454,7 +1459,7 @@ msgstr "Recupero della latenza non riuscito: %s\n"
 #: ../src/utils/pacat.c:470
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
-msgstr "Tempo: %0.3f sec; Latenza: %0.0f millisec.  \r"
+msgstr "Tempo: %0.3f sec; Latenza: %0.0f microsec.  \\r"
 
 #: ../src/utils/pacat.c:490
 #, c-format
@@ -1521,7 +1526,7 @@ msgstr ""
 "  -r, --record                          Crea una connessione per registrare\n"
 "  -p, --playback                        Crea una connessione per riprodurre\n"
 "\n"
-"  -v, --verbose                         Abilita la modalità prolisse\n"
+"  -v, --verbose                         Abilita la modalità prolissa\n"
 "\n"
 "  -s, --server=SERVER                   Il nome del server a cui "
 "connettersi\n"
@@ -1563,7 +1568,7 @@ msgstr ""
 "                                         dei canali dal sink a cui lo "
 "stream \n"
 "                                         sta per essere connesso.\n"
-"      --no-remix                        Non eseguire l'upmix o il downmix \n"
+"      --no-remix                        Non esegue l'upmix o il downmix \n"
 "                                         dei canali.\n"
 "      --no-remap                        Mappa i canali per indice invece "
 "che \n"
@@ -1768,7 +1773,7 @@ msgid "Failed to get server information: %s\n"
 msgstr "Recupero delle informazioni del server non riuscito: %s\n"
 
 #: ../src/utils/pactl.c:137
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "User name: %s\n"
 "Host Name: %s\n"
@@ -1785,6 +1790,7 @@ msgstr ""
 "Nome server: %s\n"
 "Versione server: %s\n"
 "Specifica campionamento predefinita: %s\n"
+"Mappa canale predefinita: %s\n"
 "Sink predefinito: %s\n"
 "Sorgente predefinita: %s\n"
 "Cookie: %08x\n"
@@ -1831,7 +1837,7 @@ msgstr ""
 "\t        bilanciamento %0.2f\n"
 "\tVolume base: %s%s%s\n"
 "\tMonitor della sorgente: %s\n"
-"\tLatenza: %0.0f millisec, configurata %0.0f millisec\n"
+"\tLatenza: %0.0f microsec, configurata %0.0f microsec\n"
 "\tFlag: %s%s%s%s%s%s\n"
 "\tProprietà:\n"
 "\t\t%s\n"
@@ -1875,7 +1881,7 @@ msgstr ""
 "\t        bilanciamento %0.2f\n"
 "\tVolume base: %s%s%s\n"
 "\tMonitor del sink: %s\n"
-"\tLatenza: %0.0f millisec, configurata %0.0f millisec\n"
+"\tLatenza: %0.0f microsec, configurata %0.0f microsec\n"
 "\tFlag: %s%s%s%s%s%s\n"
 "\tProprietà:\n"
 "\t\t%s\n"
@@ -2003,8 +2009,8 @@ msgstr ""
 "\tVolume: %s\n"
 "\t        %s\n"
 "\t        bilanciamento %0.2f\n"
-"\tLatenza del buffer: %0.0f millisec\n"
-"\tLatenza del sink: %0.0f millisec\n"
+"\tLatenza del buffer: %0.0f microsec\n"
+"\tLatenza del sink: %0.0f microsec\n"
 "\tMetodo di ricampionamento: %s\n"
 "\tProprietà:\n"
 "\t\t%s\n"
@@ -2042,8 +2048,8 @@ msgstr ""
 "\tSorgente: %u\n"
 "\tSpecifica di campionamento: %s\n"
 "\tMappa dei canali: %s\n"
-"\tLatenza del buffer: %0.0f millisec\n"
-"\tLatenza della sorgente: %0.0f millisec\n"
+"\tLatenza del buffer: %0.0f microsec\n"
+"\tLatenza della sorgente: %0.0f microsec\n"
 "\tMetodo di ricampionamento: %s\n"
 "\tProprietà:\n"
 "\t\t%s\n"
@@ -2279,12 +2285,12 @@ msgstr "Analisi dei dati cookie non riuscita\n"
 #: ../src/utils/pax11publish.c:137
 #, c-format
 msgid "Failed to save cookie data\n"
-msgstr "Salvataggio dei dati cookie non riuscita\n"
+msgstr "Salvataggio dei dati cookie non riuscito\n"
 
 #: ../src/utils/pax11publish.c:152
 #, c-format
 msgid "Failed to load client configuration file.\n"
-msgstr "Caricamento dei file di configurazione del client non riuscita.\n"
+msgstr "Caricamento del file di configurazione del client non riuscito.\n"
 
 #: ../src/utils/pax11publish.c:157
 #, c-format
@@ -2429,23 +2435,3 @@ msgstr "In uso la specifica di campionamento \"%s\"\n"
 #: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
 msgid "Cannot access autospawn lock."
 msgstr "Impossibile accedere al lock di autospawn."
-
-#~ msgid ""
-#~ "Called SUID root and real-time and/or high-priority scheduling was "
-#~ "requested in the configuration. However, we lack the necessary "
-#~ "privileges:\n"
-#~ "We are not in group '"
-#~ msgstr ""
-#~ "Lo scheduling invocato come root SUID e real-time o high-priority è stato "
-#~ "richiesto nella configurazione. Purtroppo mancano i privilegi necessari:\n"
-#~ "Non si è parte del gruppo '"
-
-# FIXME missing expects???
-#~ msgid "--log-time boolean argument"
-#~ msgstr "--log-time richiede un argomento booleano"
-
-#~ msgid "Default sink name (%s) does not exist in name register."
-#~ msgstr "Il nome del sink predefinito (%s) non esiste nel registro dei nomi."
-
-#~ msgid "pa_stream_drop() failed: %s\n"
-#~ msgstr "pa_stream_drop() non riuscita: %s\n"
