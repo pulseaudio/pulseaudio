@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-04-05 03:15+0200\n"
-"PO-Revision-Date: 2009-03-05 16:17+0100\n"
+"PO-Revision-Date: 2009-04-05 16:11+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -446,15 +446,15 @@ msgstr "Budowanie optymalizowane: nie"
 
 #: ../src/daemon/main.c:883
 msgid "NDEBUG defined, all asserts disabled."
-msgstr ""
+msgstr "Podano NDEBUG, wszystkie asercje zostały wyłączone."
 
 #: ../src/daemon/main.c:885
 msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr ""
+msgstr "Podano FASTPATH, tylko szybkie asercje ścieżek zostały wyłączone."
 
 #: ../src/daemon/main.c:887
 msgid "All asserts enabled."
-msgstr ""
+msgstr "Wszystkie asercje są włączone."
 
 #: ../src/daemon/main.c:891
 msgid "Failed to get machine ID"
@@ -1366,9 +1366,9 @@ msgid "not "
 msgstr "nie "
 
 #: ../src/utils/pacat.c:245
-#, fuzzy, c-format
+#, c-format
 msgid "Stream buffer attributes changed.%s \n"
-msgstr "Niedopełniono strumień.%s \n"
+msgstr "Zmieniono atrybuty bufora strumienia.%s \n"
 
 #: ../src/utils/pacat.c:278
 #, c-format
@@ -2393,6 +2393,12 @@ msgid ""
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
+"ALSA została wybudzona, aby zapisać nowe dane do urządzenia, ale nie było "
+"nic do zapisania!\n"
+"Prawdopodobnie jest to błąd w sterowniku ALSA \"%s\". Proszę zgłosić ten "
+"problem programistom ALSA.\n"
+"Wybudzono za pomocą ustawienia POLLOUT - ale jednoczesne wywołanie "
+"snd_pcm_avail() zwróciło zero lub inną wartość < min_avail."
 
 #: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:510
 #, c-format
@@ -2404,36 +2410,41 @@ msgid ""
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
+"ALSA została wybudzona, aby odczytać nowe dane z urządzenia, ale nie było "
+"nic do odczytania!\n"
+"Prawdopodobnie jest to błąd w sterowniku ALSA \"%s\". Proszę zgłosić ten "
+"problem programistom ALSA.\n"
+"Wybudzono za pomocą ustawienia POLLIN - ale jednoczesne wywołanie "
+"snd_pcm_avail() zwróciło zero lub inną wartość < min_avail."
 
 #: ../src/modules/alsa/module-alsa-card.c:114
 #, c-format
 msgid "Output %s + Input %s"
-msgstr ""
+msgstr "Wyjście %s + wejście %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:117
 #, c-format
 msgid "Output %s"
-msgstr ""
+msgstr "Wyjście %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:121
 #, c-format
 msgid "Input %s"
-msgstr ""
+msgstr "Wejście %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:170
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1864
 msgid "Off"
-msgstr ""
+msgstr "Wyłącz"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1834
 msgid "High Fidelity Playback (A2DP)"
-msgstr ""
+msgstr "Odtwarzanie o wysokiej dokładności (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1849
 msgid "Telephony Duplex (HSP/HFP)"
-msgstr ""
+msgstr "Duplex telefoniczny (HSP/HFP)"
 
 #: ../src/modules/reserve-wrap.c:125
-#, fuzzy
 msgid "PulseAudio Sound Server"
-msgstr "System dźwięku PulseAudio"
+msgstr "Serwer dźwięku PulseAudio"
