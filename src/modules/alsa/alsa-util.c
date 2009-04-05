@@ -705,7 +705,7 @@ snd_pcm_t *pa_alsa_open_by_device_id_auto(
             } else {
                 /* Hmm, so the next entry does not have the same
                  * number of channels, so let's go backwards until we
-                 * find the next entry with a differnt number of
+                 * find the next entry with a different number of
                  * channels */
 
                 for (i--; i >= 0; i--)
@@ -1063,7 +1063,7 @@ snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const 
                 fallback_elem = NULL;
         }
 
-        pa_log_warn("Cannot find fallback mixer control \"%s\" or mixer control is no combination of switch/volume.", snd_mixer_selem_id_get_name(sid));
+        pa_log_info("Cannot find fallback mixer control \"%s\" or mixer control is no combination of switch/volume.", snd_mixer_selem_id_get_name(sid));
     }
 
     if (elem && fallback_elem) {
@@ -1768,4 +1768,16 @@ pa_bool_t pa_alsa_pcm_is_hw(snd_pcm_t *pcm) {
         return FALSE;
 
     return snd_pcm_info_get_card(info) >= 0;
+}
+
+pa_bool_t pa_alsa_pcm_is_modem(snd_pcm_t *pcm) {
+    snd_pcm_info_t* info;
+    snd_pcm_info_alloca(&info);
+
+    pa_assert(pcm);
+
+    if (snd_pcm_info(pcm, info) < 0)
+        return FALSE;
+
+    return snd_pcm_info_get_class(info) == SND_PCM_CLASS_MODEM;
 }

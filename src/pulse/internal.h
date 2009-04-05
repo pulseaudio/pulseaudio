@@ -160,7 +160,7 @@ struct pa_stream {
     uint32_t write_index_not_before;
     uint32_t read_index_not_before;
 
-    /* Data about individual timing update correctoins */
+    /* Data about individual timing update corrections */
     pa_index_correction write_index_corrections[PA_MAX_WRITE_INDEX_CORRECTIONS];
     int current_write_index_correction;
 

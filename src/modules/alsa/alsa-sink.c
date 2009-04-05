@@ -1173,7 +1173,7 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
 
     /* Let's check whether we now use only a smaller part of the
     buffer then before. If so, we need to make sure that subsequent
-    rewinds are relative to the new maxium fill level and not to the
+    rewinds are relative to the new maximum fill level and not to the
     current fill level. Thus, let's do a full rewind once, to clear
     things up. */
 
@@ -1300,7 +1300,7 @@ static void thread_func(void *userdata) {
                     /* USB devices on ALSA seem to hit a buffer
                      * underrun during the first iterations much
                      * quicker then we calculate here, probably due to
-                     * the transport latency. To accomodate for that
+                     * the transport latency. To accommodate for that
                      * we artificially decrease the sleep time until
                      * we have filled the buffer at least once
                      * completely.*/
@@ -1619,6 +1619,11 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
 
     pa_assert(u->device_name);
     pa_log_info("Successfully opened device %s.", u->device_name);
+
+    if (pa_alsa_pcm_is_modem(u->pcm_handle)) {
+        pa_log_notice("Device %s is modem, refusing further initialization.", u->device_name);
+        goto fail;
+    }
 
     if (profile)
         pa_log_info("Selected configuration '%s' (%s).", profile->description, profile->name);

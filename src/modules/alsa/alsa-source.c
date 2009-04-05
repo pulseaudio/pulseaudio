@@ -1475,6 +1475,11 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     pa_assert(u->device_name);
     pa_log_info("Successfully opened device %s.", u->device_name);
 
+    if (pa_alsa_pcm_is_modem(u->pcm_handle)) {
+        pa_log_notice("Device %s is modem, refusing further initialization.", u->device_name);
+        goto fail;
+    }
+
     if (profile)
         pa_log_info("Selected configuration '%s' (%s).", profile->description, profile->name);
 

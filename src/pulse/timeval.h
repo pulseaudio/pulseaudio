@@ -60,7 +60,7 @@ struct timeval *pa_gettimeofday(struct timeval *tv);
  * structs. */
 pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b) PA_GCC_PURE;
 
-/** Compare the two timeval structs and return 0 when equal, negative when a < b, positive otherwse */
+/** Compare the two timeval structs and return 0 when equal, negative when a < b, positive otherwise */
 int pa_timeval_cmp(const struct timeval *a, const struct timeval *b) PA_GCC_PURE;
 
 /** Return the time difference between now and the specified timestamp */

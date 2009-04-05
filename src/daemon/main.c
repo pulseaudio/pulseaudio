@@ -427,7 +427,7 @@ int main(int argc, char *argv[]) {
         pa_limit_caps();
 
         /* When capabilities are not supported we will not be able to
-         * aquire RT sched anymore. But yes, that's the way it is. It
+         * acquire RT sched anymore. But yes, that's the way it is. It
          * is just too risky tun let PA run as root all the time. */
     }
 
@@ -538,7 +538,7 @@ int main(int argc, char *argv[]) {
 
         if ((conf->high_priority && !allow_high_priority) ||
             (conf->realtime_scheduling && !allow_realtime))
-            pa_log_notice(_("Called SUID root and real-time and/or high-priority scheduling was requested in the configuration. However, we lack the necessary privileges:\n"
+            pa_log_info(_("Called SUID root and real-time and/or high-priority scheduling was requested in the configuration. However, we lack the necessary privileges:\n"
                             "We are not in group '%s', PolicyKit refuse to grant us the requested privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource limits.\n"
                             "For enabling real-time/high-priority scheduling please acquire the appropriate PolicyKit privileges, or become a member of '%s', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."),
                           PA_REALTIME_GROUP, PA_REALTIME_GROUP);
@@ -563,7 +563,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     if (conf->high_priority && !pa_can_high_priority()) {
-        pa_log_warn(_("High-priority scheduling enabled in configuration but not allowed by policy."));
+        pa_log_info(_("High-priority scheduling enabled in configuration but not allowed by policy."));
         conf->high_priority = FALSE;
     }
 
@@ -609,7 +609,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (conf->realtime_scheduling && !pa_can_realtime()) {
-        pa_log_warn(_("Real-time scheduling enabled in configuration but not allowed by policy."));
+        pa_log_info(_("Real-time scheduling enabled in configuration but not allowed by policy."));
         conf->realtime_scheduling = FALSE;
     }
 

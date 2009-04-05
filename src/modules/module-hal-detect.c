@@ -121,6 +121,7 @@ static const char *strip_udi(const char *udi) {
 enum alsa_type {
     ALSA_TYPE_PLAYBACK,
     ALSA_TYPE_CAPTURE,
+    ALSA_TYPE_CONTROL,
     ALSA_TYPE_OTHER
 };
 
@@ -141,6 +142,8 @@ static enum alsa_type hal_alsa_device_get_type(LibHalContext *context, const cha
         t = ALSA_TYPE_PLAYBACK;
     else if (pa_streq(type, "capture"))
         t = ALSA_TYPE_CAPTURE;
+    else if (pa_streq(type, "control"))
+        t = ALSA_TYPE_CONTROL;
 
     libhal_free_string(type);
 
@@ -171,7 +174,8 @@ static pa_bool_t hal_alsa_device_is_modem(LibHalContext *context, const char *ud
 
 finish:
     if (dbus_error_is_set(&error)) {
-        pa_log_error("D-Bus error while parsing HAL ALSA data: %s: %s", error.name, error.message);
+        if (!dbus_error_has_name(&error, "org.freedesktop.Hal.NoSuchProperty"))
+            pa_log_error("D-Bus error while parsing HAL ALSA data: %s: %s", error.name, error.message);
         dbus_error_free(&error);
     }
 
@@ -193,10 +197,23 @@ static int hal_device_load_alsa(struct userdata *u, const char *udi, struct devi
 
     /* We only care for PCM devices */
     type = hal_alsa_device_get_type(u->context, udi);
-    if (type == ALSA_TYPE_OTHER)
+
+    /* For each ALSA card that appears the control device will be the
+     * last one to be created, this is considered part of the ALSA
+     * usperspace API. We rely on this and load our modules only when
+     * the control device is available assuming that *all* device
+     * nodes have been properly created and assigned the right ACLs at
+     * that time. Also see:
+     *
+     * http://mailman.alsa-project.org/pipermail/alsa-devel/2009-April/015958.html
+     *
+     * and the associated thread.*/
+
+    if (type != ALSA_TYPE_CONTROL)
         goto fail;
 
-    /* We don't care for modems */
+    /* We don't care for modems -- this is most likely not set for
+     * control devices, so kind of pointless here. */
     if (hal_alsa_device_is_modem(u->context, udi))
         goto fail;
 
@@ -411,9 +428,10 @@ static int hal_device_add_all(struct userdata *u) {
         for (i = 0; i < n; i++) {
             struct device *d;
 
-            if ((d = hal_device_add(u, udis[i])))
+            if ((d = hal_device_add(u, udis[i]))) {
                 count++;
-            else
+                pa_log_debug("Loaded device %s", udis[i]);
+            } else
                 pa_log_debug("Not loaded device %s", udis[i]);
         }
     }
@@ -449,6 +467,8 @@ static void device_added_cb(LibHalContext *context, const char *udi) {
 
     if (!hal_device_add(u, udi))
         pa_log_debug("Not loaded device %s", udi);
+    else
+        pa_log_debug("Loaded device %s", udi);
 
 finish:
     if (dbus_error_is_set(&error)) {
