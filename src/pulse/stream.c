@@ -380,14 +380,6 @@ static void check_smoother_status(pa_stream *s, pa_bool_t aposteriori, pa_bool_t
             x -= s->timing_info.transport_usec;
         else
             x += s->timing_info.transport_usec;
-
-        if (s->direction == PA_STREAM_PLAYBACK)
-            /* it takes a while until the pause/resume is actually
-             * audible */
-            x += s->timing_info.sink_usec;
-        else
-            /* Data froma  while back will be dropped */
-            x -= s->timing_info.source_usec;
     }
 
     if (s->suspended || s->corked || force_stop)
