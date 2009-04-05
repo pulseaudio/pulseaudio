@@ -86,7 +86,15 @@ typedef struct record_stream {
     pa_bool_t early_requests:1;
 
     pa_buffer_attr buffer_attr;
-    pa_usec_t source_latency;
+
+    pa_atomic_t on_the_fly;
+    pa_usec_t configured_source_latency;
+    size_t drop_initial;
+
+    /* Only updated after SOURCE_OUTPUT_MESSAGE_UPDATE_LATENCY */
+    size_t on_the_fly_snapshot;
+    pa_usec_t current_monitor_latency;
+    pa_usec_t current_source_latency;
 } record_stream;
 
 PA_DECLARE_CLASS(record_stream);
@@ -119,12 +127,14 @@ typedef struct playback_stream {
     uint32_t syncid;
 
     pa_atomic_t missing;
-    pa_usec_t sink_latency;
+    pa_usec_t configured_sink_latency;
     pa_buffer_attr buffer_attr;
 
     /* Only updated after SINK_INPUT_MESSAGE_UPDATE_LATENCY */
     int64_t read_index, write_index;
     size_t render_memblockq_length;
+    pa_usec_t current_sink_latency;
+    uint64_t playing_for, underrun_for;
 } playback_stream;
 
 PA_DECLARE_CLASS(playback_stream);
@@ -182,6 +192,10 @@ struct pa_native_protocol {
 };
 
 enum {
+    SOURCE_OUTPUT_MESSAGE_UPDATE_LATENCY = PA_SOURCE_OUTPUT_MESSAGE_MAX
+};
+
+enum {
     SINK_INPUT_MESSAGE_POST_DATA = PA_SINK_INPUT_MESSAGE_MAX, /* data from main loop to sink input */
     SINK_INPUT_MESSAGE_DRAIN, /* disabled prebuf, get playback started. */
     SINK_INPUT_MESSAGE_FLUSH,
@@ -230,6 +244,7 @@ static pa_usec_t source_output_get_latency_cb(pa_source_output *o);
 static void source_output_send_event_cb(pa_source_output *o, const char *event, pa_proplist *pl);
 
 static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
+static int source_output_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
 
 static void command_exit(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
@@ -474,6 +489,10 @@ static int record_stream_process_msg(pa_msgobject *o, int code, void*userdata, i
 
         case RECORD_STREAM_MESSAGE_POST_DATA:
 
+            /* We try to keep up to date with how many bytes are
+             * currently on the fly */
+            pa_atomic_sub(&s->on_the_fly, chunk->length);
+
             if (pa_memblockq_push_align(s->memblockq, chunk) < 0) {
 /*                 pa_log_warn("Failed to push data into output queue."); */
                 return -1;
@@ -537,29 +556,29 @@ static void fix_record_buffer_attr_pre(record_stream *s) {
         /* Ok, the user didn't ask us to adjust the latency, hence we
          * don't */
 
-        source_usec = 0;
+        source_usec = (pa_usec_t) -1;
     }
 
-    if (source_usec > 0)
-        s->source_latency = pa_source_output_set_requested_latency(s->source_output, source_usec);
+    if (source_usec != (pa_usec_t) -1)
+        s->configured_source_latency = pa_source_output_set_requested_latency(s->source_output, source_usec);
     else
-        s->source_latency = 0;
+        s->configured_source_latency = 0;
 
     if (s->early_requests) {
 
         /* Ok, we didn't necessarily get what we were asking for, so
          * let's tell the user */
 
-        fragsize_usec = s->source_latency;
+        fragsize_usec = s->configured_source_latency;
 
     } else if (s->adjust_latency) {
 
         /* Now subtract what we actually got */
 
-        if (fragsize_usec >= s->source_latency*2)
-            fragsize_usec -= s->source_latency;
+        if (fragsize_usec >= s->configured_source_latency*2)
+            fragsize_usec -= s->configured_source_latency;
         else
-            fragsize_usec = s->source_latency;
+            fragsize_usec = s->configured_source_latency;
     }
 
     if (pa_usec_to_bytes(orig_fragsize_usec, &s->source_output->sample_spec) !=
@@ -645,7 +664,9 @@ static record_stream* record_stream_new(
     s->buffer_attr = *attr;
     s->adjust_latency = adjust_latency;
     s->early_requests = early_requests;
+    pa_atomic_store(&s->on_the_fly, 0);
 
+    s->source_output->parent.process_msg = source_output_process_msg;
     s->source_output->push = source_output_push_cb;
     s->source_output->kill = source_output_kill_cb;
     s->source_output->get_latency = source_output_get_latency_cb;
@@ -675,9 +696,9 @@ static record_stream* record_stream_new(
     pa_idxset_put(c->record_streams, s, &s->index);
 
     pa_log_info("Final latency %0.2f ms = %0.2f ms + %0.2f ms",
-                ((double) pa_bytes_to_usec(s->buffer_attr.fragsize, &source_output->sample_spec) + (double) s->source_latency) / PA_USEC_PER_MSEC,
+                ((double) pa_bytes_to_usec(s->buffer_attr.fragsize, &source_output->sample_spec) + (double) s->configured_source_latency) / PA_USEC_PER_MSEC,
                 (double) pa_bytes_to_usec(s->buffer_attr.fragsize, &source_output->sample_spec) / PA_USEC_PER_MSEC,
-                (double) s->source_latency / PA_USEC_PER_MSEC);
+                (double) s->configured_source_latency / PA_USEC_PER_MSEC);
 
     pa_source_output_put(s->source_output);
     return s;
@@ -817,7 +838,7 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
             pa_tagstruct_putu32(t, s->buffer_attr.tlength);
             pa_tagstruct_putu32(t, s->buffer_attr.prebuf);
             pa_tagstruct_putu32(t, s->buffer_attr.minreq);
-            pa_tagstruct_put_usec(t, s->sink_latency);
+            pa_tagstruct_put_usec(t, s->configured_sink_latency);
             pa_pstream_send_tagstruct(s->connection->pstream, t);
 
             break;
@@ -915,14 +936,14 @@ static void fix_playback_buffer_attr(playback_stream *s) {
         pa_log_debug("Traditional mode enabled, modifying sink usec only for compat with minreq.");
     }
 
-    s->sink_latency = pa_sink_input_set_requested_latency(s->sink_input, sink_usec);
+    s->configured_sink_latency = pa_sink_input_set_requested_latency(s->sink_input, sink_usec);
 
     if (s->early_requests) {
 
         /* Ok, we didn't necessarily get what we were asking for, so
          * let's tell the user */
 
-        minreq_usec = s->sink_latency;
+        minreq_usec = s->configured_sink_latency;
 
     } else if (s->adjust_latency) {
 
@@ -930,14 +951,14 @@ static void fix_playback_buffer_attr(playback_stream *s) {
          * let's subtract from what we asked for for the remaining
          * buffer space */
 
-        if (tlength_usec >= s->sink_latency)
-            tlength_usec -= s->sink_latency;
+        if (tlength_usec >= s->configured_sink_latency)
+            tlength_usec -= s->configured_sink_latency;
     }
 
     /* FIXME: This is actually larger than necessary, since not all of
      * the sink latency is actually rewritable. */
-    if (tlength_usec < s->sink_latency + 2*minreq_usec)
-        tlength_usec = s->sink_latency + 2*minreq_usec;
+    if (tlength_usec < s->configured_sink_latency + 2*minreq_usec)
+        tlength_usec = s->configured_sink_latency + 2*minreq_usec;
 
     if (pa_usec_to_bytes_round_up(orig_tlength_usec, &s->sink_input->sample_spec) !=
         pa_usec_to_bytes_round_up(tlength_usec, &s->sink_input->sample_spec))
@@ -1083,10 +1104,10 @@ static playback_stream* playback_stream_new(
     pa_idxset_put(c->output_streams, s, &s->index);
 
     pa_log_info("Final latency %0.2f ms = %0.2f ms + 2*%0.2f ms + %0.2f ms",
-                ((double) pa_bytes_to_usec(s->buffer_attr.tlength, &sink_input->sample_spec) + (double) s->sink_latency) / PA_USEC_PER_MSEC,
+                ((double) pa_bytes_to_usec(s->buffer_attr.tlength, &sink_input->sample_spec) + (double) s->configured_sink_latency) / PA_USEC_PER_MSEC,
                 (double) pa_bytes_to_usec(s->buffer_attr.tlength-s->buffer_attr.minreq*2, &sink_input->sample_spec) / PA_USEC_PER_MSEC,
                 (double) pa_bytes_to_usec(s->buffer_attr.minreq, &sink_input->sample_spec) / PA_USEC_PER_MSEC,
-                (double) s->sink_latency / PA_USEC_PER_MSEC);
+                (double) s->configured_sink_latency / PA_USEC_PER_MSEC);
 
     pa_sink_input_put(s->sink_input);
     return s;
@@ -1387,10 +1408,14 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
         }
 
         case SINK_INPUT_MESSAGE_UPDATE_LATENCY:
-
+            /* Atomically get a snapshot of all timing parameters... */
             s->read_index = pa_memblockq_get_read_index(s->memblockq);
             s->write_index = pa_memblockq_get_write_index(s->memblockq);
             s->render_memblockq_length = pa_memblockq_get_length(s->sink_input->thread_info.render_memblockq);
+            s->current_sink_latency = pa_sink_get_latency_within_thread(s->sink_input->sink);
+            s->underrun_for = s->sink_input->thread_info.underrun_for;
+            s->playing_for = s->sink_input->thread_info.playing_for;
+
             return 0;
 
         case PA_SINK_INPUT_MESSAGE_SET_STATE: {
@@ -1603,13 +1628,34 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
         pa_tagstruct_putu32(t, s->buffer_attr.tlength);
         pa_tagstruct_putu32(t, s->buffer_attr.prebuf);
         pa_tagstruct_putu32(t, s->buffer_attr.minreq);
-        pa_tagstruct_put_usec(t, s->sink_latency);
+        pa_tagstruct_put_usec(t, s->configured_sink_latency);
     }
 
     pa_pstream_send_tagstruct(s->connection->pstream, t);
 }
 
 /*** source_output callbacks ***/
+
+/* Called from thread context */
+static int source_output_process_msg(pa_msgobject *_o, int code, void *userdata, int64_t offset, pa_memchunk *chunk) {
+    pa_source_output *o = PA_SOURCE_OUTPUT(_o);
+    record_stream *s;
+
+    pa_source_output_assert_ref(o);
+    s = RECORD_STREAM(o->userdata);
+    record_stream_assert_ref(s);
+
+    switch (code) {
+        case SOURCE_OUTPUT_MESSAGE_UPDATE_LATENCY:
+            /* Atomically get a snapshot of all timing parameters... */
+            s->current_monitor_latency = o->source->monitor_of ? pa_sink_get_latency_within_thread(o->source->monitor_of) : 0;
+            s->current_source_latency = pa_source_get_latency_within_thread(o->source);
+            s->on_the_fly_snapshot = pa_atomic_load(&s->on_the_fly);
+            return 0;
+    }
+
+    return pa_source_output_process_msg(_o, code, userdata, offset, chunk);
+}
 
 /* Called from thread context */
 static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk) {
@@ -1620,6 +1666,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     record_stream_assert_ref(s);
     pa_assert(chunk);
 
+    pa_atomic_add(&s->on_the_fly, chunk->length);
     pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), RECORD_STREAM_MESSAGE_POST_DATA, NULL, 0, chunk, NULL);
 }
 
@@ -1715,7 +1762,7 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     if (s->connection->version >= 13) {
         pa_tagstruct_putu32(t, s->buffer_attr.maxlength);
         pa_tagstruct_putu32(t, s->buffer_attr.fragsize);
-        pa_tagstruct_put_usec(t, s->source_latency);
+        pa_tagstruct_put_usec(t, s->configured_source_latency);
     }
 
     pa_pstream_send_tagstruct(s->connection->pstream, t);
@@ -1938,7 +1985,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
     }
 
     if (c->version >= 13)
-        pa_tagstruct_put_usec(reply, s->sink_latency);
+        pa_tagstruct_put_usec(reply, s->configured_sink_latency);
 
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
@@ -2185,7 +2232,7 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
     }
 
     if (c->version >= 13)
-        pa_tagstruct_put_usec(reply, s->source_latency);
+        pa_tagstruct_put_usec(reply, s->configured_source_latency);
 
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
@@ -2472,7 +2519,6 @@ static void command_get_playback_latency(pa_pdispatch *pd, uint32_t command, uin
     playback_stream *s;
     struct timeval tv, now;
     uint32_t idx;
-    pa_usec_t latency;
 
     pa_native_connection_assert_ref(c);
     pa_assert(t);
@@ -2488,25 +2534,27 @@ static void command_get_playback_latency(pa_pdispatch *pd, uint32_t command, uin
     s = pa_idxset_get_by_index(c->output_streams, idx);
     CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
     CHECK_VALIDITY(c->pstream, playback_stream_isinstance(s), tag, PA_ERR_NOENTITY);
-    CHECK_VALIDITY(c->pstream, pa_asyncmsgq_send(s->sink_input->sink->asyncmsgq, PA_MSGOBJECT(s->sink_input), SINK_INPUT_MESSAGE_UPDATE_LATENCY, s, 0, NULL) == 0, tag, PA_ERR_NOENTITY)
+
+    /* Get an atomic snapshot of all timing parameters */
+    pa_assert_se(pa_asyncmsgq_send(s->sink_input->sink->asyncmsgq, PA_MSGOBJECT(s->sink_input), SINK_INPUT_MESSAGE_UPDATE_LATENCY, s, 0, NULL) == 0);
 
     reply = reply_new(tag);
-
-    latency = pa_sink_get_latency(s->sink_input->sink);
-    latency += pa_bytes_to_usec(s->render_memblockq_length, &s->sink_input->sample_spec);
-
-    pa_tagstruct_put_usec(reply, latency);
-
+    pa_tagstruct_put_usec(reply,
+                          s->current_sink_latency +
+                          pa_bytes_to_usec(s->render_memblockq_length, &s->sink_input->sample_spec));
     pa_tagstruct_put_usec(reply, 0);
-    pa_tagstruct_put_boolean(reply, s->sink_input->thread_info.playing_for > 0);
+    pa_tagstruct_put_boolean(reply,
+                             s->playing_for > 0 &&
+                             pa_sink_get_state(s->sink_input->sink) == PA_SINK_RUNNING &&
+                             pa_sink_input_get_state(s->sink_input) == PA_SINK_INPUT_RUNNING);
     pa_tagstruct_put_timeval(reply, &tv);
     pa_tagstruct_put_timeval(reply, pa_gettimeofday(&now));
     pa_tagstruct_puts64(reply, s->write_index);
     pa_tagstruct_puts64(reply, s->read_index);
 
     if (c->version >= 13) {
-        pa_tagstruct_putu64(reply, s->sink_input->thread_info.underrun_for);
-        pa_tagstruct_putu64(reply, s->sink_input->thread_info.playing_for);
+        pa_tagstruct_putu64(reply, s->underrun_for);
+        pa_tagstruct_putu64(reply, s->playing_for);
     }
 
     pa_pstream_send_tagstruct(c->pstream, reply);
@@ -2533,10 +2581,17 @@ static void command_get_record_latency(pa_pdispatch *pd, uint32_t command, uint3
     s = pa_idxset_get_by_index(c->record_streams, idx);
     CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
 
+    /* Get an atomic snapshot of all timing parameters */
+    pa_assert_se(pa_asyncmsgq_send(s->source_output->source->asyncmsgq, PA_MSGOBJECT(s->source_output), SOURCE_OUTPUT_MESSAGE_UPDATE_LATENCY, s, 0, NULL) == 0);
+
     reply = reply_new(tag);
-    pa_tagstruct_put_usec(reply, s->source_output->source->monitor_of ? pa_sink_get_latency(s->source_output->source->monitor_of) : 0);
-    pa_tagstruct_put_usec(reply, pa_source_get_latency(s->source_output->source));
-    pa_tagstruct_put_boolean(reply, pa_source_get_state(s->source_output->source) == PA_SOURCE_RUNNING);
+    pa_tagstruct_put_usec(reply, s->current_monitor_latency);
+    pa_tagstruct_put_usec(reply,
+                          s->current_source_latency +
+                          pa_bytes_to_usec(s->on_the_fly_snapshot, &s->source_output->sample_spec));
+    pa_tagstruct_put_boolean(reply,
+                             pa_source_get_state(s->source_output->source) == PA_SOURCE_RUNNING &&
+                             pa_source_output_get_state(s->source_output) == PA_SOURCE_OUTPUT_RUNNING);
     pa_tagstruct_put_timeval(reply, &tv);
     pa_tagstruct_put_timeval(reply, pa_gettimeofday(&now));
     pa_tagstruct_puts64(reply, pa_memblockq_get_write_index(s->memblockq));
@@ -3514,7 +3569,7 @@ static void command_set_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, u
         pa_tagstruct_putu32(reply, s->buffer_attr.minreq);
 
         if (c->version >= 13)
-            pa_tagstruct_put_usec(reply, s->sink_latency);
+            pa_tagstruct_put_usec(reply, s->configured_sink_latency);
 
     } else {
         record_stream *s;
@@ -3550,7 +3605,7 @@ static void command_set_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, u
         pa_tagstruct_putu32(reply, s->buffer_attr.fragsize);
 
         if (c->version >= 13)
-            pa_tagstruct_put_usec(reply, s->source_latency);
+            pa_tagstruct_put_usec(reply, s->configured_source_latency);
     }
 
     pa_pstream_send_tagstruct(c->pstream, reply);
