@@ -405,7 +405,7 @@ static void check_smoother_status(struct userdata *u, pa_bool_t past)  {
     if (u->remote_suspended || u->remote_corked)
         pa_smoother_pause(u->smoother, x);
     else
-        pa_smoother_resume(u->smoother, x);
+        pa_smoother_resume(u->smoother, x, TRUE);
 }
 
 /* Called from IO thread context */
@@ -1815,7 +1815,14 @@ int pa__init(pa_module*m) {
     u->source_name = pa_xstrdup(pa_modargs_get_value(ma, "source", NULL));;
     u->source = NULL;
 #endif
-    u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE, 10);
+    u->smoother = pa_smoother_new(
+            PA_USEC_PER_SEC,
+            PA_USEC_PER_SEC*2,
+            TRUE,
+            TRUE,
+            10,
+            pa_rtclock_usec(),
+            FALSE);
     u->ctag = 1;
     u->device_index = u->channel = PA_INVALID_INDEX;
     u->time_event = NULL;
@@ -1932,8 +1939,6 @@ int pa__init(pa_module*m) {
 #else
     u->fragsize = (uint32_t) -1;
 #endif
-
-    pa_smoother_set_time_offset(u->smoother, pa_rtclock_usec());
 
     if (!(u->thread = pa_thread_new(thread_func, u))) {
         pa_log("Failed to create thread.");

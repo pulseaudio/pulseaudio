@@ -78,17 +78,26 @@ struct pa_smoother {
 
     /* Cached parameters for our interpolation polynomial y=ax^3+b^2+cx */
     double a, b, c;
-    pa_bool_t abc_valid;
+    pa_bool_t abc_valid:1;
 
     pa_bool_t monotonic:1;
     pa_bool_t paused:1;
+    pa_bool_t smoothing:1; /* If FALSE we skip the polonyomial interpolation step */
 
     pa_usec_t pause_time;
 
     unsigned min_history;
 };
 
-pa_smoother* pa_smoother_new(pa_usec_t adjust_time, pa_usec_t history_time, pa_bool_t monotonic, unsigned min_history) {
+pa_smoother* pa_smoother_new(
+        pa_usec_t adjust_time,
+        pa_usec_t history_time,
+        pa_bool_t monotonic,
+        pa_bool_t smoothing,
+        unsigned min_history,
+        pa_usec_t time_offset,
+        pa_bool_t paused) {
+
     pa_smoother *s;
 
     pa_assert(adjust_time > 0);
@@ -116,8 +125,12 @@ pa_smoother* pa_smoother_new(pa_usec_t adjust_time, pa_usec_t history_time, pa_b
     s->abc_valid = FALSE;
 
     s->paused = FALSE;
+    s->smoothing = smoothing;
 
     s->min_history = min_history;
+
+    s->paused = paused;
+    s->time_offset = s->pause_time = time_offset;
 
     return s;
 }
@@ -278,7 +291,7 @@ static void estimate(pa_smoother *s, pa_usec_t x, pa_usec_t *y, double *deriv) {
     pa_assert(s);
     pa_assert(y);
 
-    if (x >= s->px) {
+    if (!s->smoothing || x >= s->px) {
         int64_t t;
 
         /* The requested point is right of the point where we wanted
@@ -348,7 +361,6 @@ void pa_smoother_put(pa_smoother *s, pa_usec_t x, pa_usec_t y) {
          * we can adjust our position smoothly from this one */
         estimate(s, x, &ney, &nde);
         s->ex = x; s->ey = ney; s->de = nde;
-
         s->ry = y;
     }
 
@@ -359,8 +371,13 @@ void pa_smoother_put(pa_smoother *s, pa_usec_t x, pa_usec_t y) {
     s->dp = avg_gradient(s, x);
 
     /* And calculate when we want to be on track again */
-    s->px = s->ex + s->adjust_time;
-    s->py = s->ry + (pa_usec_t) llrint(s->dp * (double) s->adjust_time);
+    if (s->smoothing) {
+        s->px = s->ex + s->adjust_time;
+        s->py = s->ry + (pa_usec_t) llrint(s->dp * (double) s->adjust_time);
+    } else {
+        s->px = s->ex;
+        s->py = s->ry;
+    }
 
     s->abc_valid = FALSE;
 
@@ -420,7 +437,7 @@ void pa_smoother_pause(pa_smoother *s, pa_usec_t x) {
     s->pause_time = x;
 }
 
-void pa_smoother_resume(pa_smoother *s, pa_usec_t x) {
+void pa_smoother_resume(pa_smoother *s, pa_usec_t x, pa_bool_t fix_now) {
     pa_assert(s);
 
     if (!s->paused)
@@ -433,6 +450,16 @@ void pa_smoother_resume(pa_smoother *s, pa_usec_t x) {
 
     s->paused = FALSE;
     s->time_offset += x - s->pause_time;
+
+    if (fix_now)
+        pa_smoother_fix_now(s);
+}
+
+void pa_smoother_fix_now(pa_smoother *s) {
+    pa_assert(s);
+
+    s->px = s->ex;
+    s->py = s->ry;
 }
 
 pa_usec_t pa_smoother_translate(pa_smoother *s, pa_usec_t x, pa_usec_t y_delay) {

@@ -869,7 +869,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                         if (start_stream_fd(u) < 0)
                             failed = TRUE;
 
-                    pa_smoother_resume(u->read_smoother, pa_rtclock_usec());
+                    pa_smoother_resume(u->read_smoother, pa_rtclock_usec(), TRUE);
                     break;
 
                 case PA_SOURCE_UNLINKED:
@@ -1965,7 +1965,14 @@ int pa__init(pa_module* m) {
     u->core = m->core;
     u->service_fd = -1;
     u->stream_fd = -1;
-    u->read_smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE, 10);
+    u->read_smoother = pa_smoother_new(
+            PA_USEC_PER_SEC,
+            PA_USEC_PER_SEC*2,
+            TRUE,
+            TRUE,
+            10,
+            0,
+            FALSE);
     u->sample_spec = m->core->default_sample_spec;
     u->modargs = ma;
 

@@ -150,7 +150,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 case PA_SINK_RUNNING:
 
                     if (u->sink->thread_info.state == PA_SINK_SUSPENDED)
-                        pa_smoother_resume(u->smoother, pa_rtclock_usec());
+                        pa_smoother_resume(u->smoother, pa_rtclock_usec(), TRUE);
 
                     break;
 
@@ -545,7 +545,14 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     u->fd = -1;
-    u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE, 10);
+    u->smoother = pa_smoother_new(
+            PA_USEC_PER_SEC,
+            PA_USEC_PER_SEC*2,
+            TRUE,
+            TRUE,
+            10,
+            0,
+            FALSE);
     pa_memchunk_reset(&u->memchunk);
     u->offset = 0;
 

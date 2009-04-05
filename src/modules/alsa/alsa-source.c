@@ -776,7 +776,7 @@ static int unsuspend(struct userdata *u) {
     /* FIXME: We need to reload the volume somehow */
 
     snd_pcm_start(u->pcm_handle);
-    pa_smoother_resume(u->smoother, pa_rtclock_usec());
+    pa_smoother_resume(u->smoother, pa_rtclock_usec(), TRUE);
 
     pa_log_info("Resumed successfully...");
 
@@ -1416,8 +1416,14 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
     u->alsa_rtpoll_item = NULL;
 
-    u->smoother = pa_smoother_new(DEFAULT_TSCHED_WATERMARK_USEC*2, DEFAULT_TSCHED_WATERMARK_USEC*2, TRUE, 5);
-    pa_smoother_set_time_offset(u->smoother, pa_rtclock_usec());
+    u->smoother = pa_smoother_new(
+            DEFAULT_TSCHED_WATERMARK_USEC*2,
+            DEFAULT_TSCHED_WATERMARK_USEC*2,
+            TRUE,
+            TRUE,
+            5,
+            pa_rtclock_usec(),
+            FALSE);
 
     if (reserve_init(u, pa_modargs_get_value(
                              ma, "device_id",

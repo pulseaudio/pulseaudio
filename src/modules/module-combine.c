@@ -664,7 +664,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             if (PA_PTR_TO_UINT(data) == PA_SINK_SUSPENDED)
                 pa_smoother_pause(u->thread_info.smoother, pa_rtclock_usec());
             else
-                pa_smoother_resume(u->thread_info.smoother, pa_rtclock_usec());
+                pa_smoother_resume(u->thread_info.smoother, pa_rtclock_usec(), TRUE);
 
             break;
 
@@ -1043,7 +1043,14 @@ int pa__init(pa_module*m) {
     pa_atomic_store(&u->thread_info.running, FALSE);
     u->thread_info.in_null_mode = FALSE;
     u->thread_info.counter = 0;
-    u->thread_info.smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE, 10);
+    u->thread_info.smoother = pa_smoother_new(
+            PA_USEC_PER_SEC,
+            PA_USEC_PER_SEC*2,
+            TRUE,
+            TRUE,
+            10,
+            0,
+            FALSE);
 
     if (pa_modargs_get_value_u32(ma, "adjust_time", &u->adjust_time) < 0) {
         pa_log("Failed to parse adjust_time value");

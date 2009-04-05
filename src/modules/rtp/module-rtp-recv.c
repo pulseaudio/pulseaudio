@@ -430,8 +430,14 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     s->sdp_info = *sdp_info;
     s->rtpoll_item = NULL;
     s->intended_latency = LATENCY_USEC;
-    s->smoother = pa_smoother_new(PA_USEC_PER_SEC*5, PA_USEC_PER_SEC*2, TRUE, 10);
-    pa_smoother_set_time_offset(s->smoother, pa_timeval_load(&now));
+    s->smoother = pa_smoother_new(
+            PA_USEC_PER_SEC*5,
+            PA_USEC_PER_SEC*2,
+            TRUE,
+            TRUE,
+            10,
+            pa_timeval_load(&now),
+            FALSE);
     s->last_rate_update = pa_timeval_load(&now);
     pa_atomic_store(&s->timestamp, (int) now.tv_sec);
 

@@ -45,10 +45,12 @@ int main(int argc, char*argv[]) {
 
     srand(0);
 
+    pa_log_set_level(PA_LOG_DEBUG);
+
     for (m = 0, u = 0; u < PA_ELEMENTSOF(msec); u+= 2) {
 
         msec[u] = m+1 + (rand() % 100) - 50;
-        msec[u+1] = m + (rand() % 2000) - 1000;
+        msec[u+1] = m + (rand() % 2000) - 1000   + 5000;
 
         m += rand() % 100;
 
@@ -59,7 +61,7 @@ int main(int argc, char*argv[]) {
             msec[u+1] = 0;
     }
 
-    s = pa_smoother_new(700*PA_USEC_PER_MSEC, 2000*PA_USEC_PER_MSEC, TRUE, 6);
+    s = pa_smoother_new(700*PA_USEC_PER_MSEC, 2000*PA_USEC_PER_MSEC, FALSE, TRUE, 6, 0, TRUE);
 
     for (x = 0, u = 0; x < PA_USEC_PER_SEC * 10; x += PA_USEC_PER_MSEC) {
 
@@ -67,6 +69,8 @@ int main(int argc, char*argv[]) {
             pa_smoother_put(s, (pa_usec_t) msec[u] * PA_USEC_PER_MSEC, (pa_usec_t) msec[u+1] * PA_USEC_PER_MSEC);
             printf("%i\t\t%i\n", msec[u],  msec[u+1]);
             u += 2;
+
+            pa_smoother_resume(s, (pa_usec_t) msec[u] * PA_USEC_PER_MSEC, TRUE);
         }
 
         printf("%llu\t%llu\n", (unsigned long long) (x/PA_USEC_PER_MSEC), (unsigned long long) (pa_smoother_get(s, x)/PA_USEC_PER_MSEC));

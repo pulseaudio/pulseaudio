@@ -393,7 +393,8 @@ static void check_smoother_status(pa_stream *s, pa_bool_t aposteriori, pa_bool_t
     if (s->suspended || s->corked || force_stop)
         pa_smoother_pause(s->smoother, x);
     else if (force_start || s->buffer_attr.prebuf == 0)
-        pa_smoother_resume(s->smoother, x);
+        pa_smoother_resume(s->smoother, x, TRUE);
+
 
     /* Please note that we have no idea if playback actually started
      * if prebuf is non-zero! */
@@ -1064,14 +1065,17 @@ static int create_stream(
     if (flags & PA_STREAM_INTERPOLATE_TIMING) {
         pa_usec_t x;
 
-        if (s->smoother)
-            pa_smoother_free(s->smoother);
-
-        s->smoother = pa_smoother_new(SMOOTHER_ADJUST_TIME, SMOOTHER_HISTORY_TIME, !(flags & PA_STREAM_NOT_MONOTONIC), SMOOTHER_MIN_HISTORY);
-
         x = pa_rtclock_usec();
-        pa_smoother_set_time_offset(s->smoother, x);
-        pa_smoother_pause(s->smoother, x);
+
+        pa_assert(!s->smoother);
+        s->smoother = pa_smoother_new(
+                SMOOTHER_ADJUST_TIME,
+                SMOOTHER_HISTORY_TIME,
+                !(flags & PA_STREAM_NOT_MONOTONIC),
+                TRUE,
+                SMOOTHER_MIN_HISTORY,
+                x,
+                TRUE);
     }
 
     if (!dev)
@@ -1623,7 +1627,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
                 pa_smoother_put(o->stream->smoother, u, calc_time(o->stream, TRUE));
 
             if (i->playing)
-                pa_smoother_resume(o->stream->smoother, x);
+                pa_smoother_resume(o->stream->smoother, x, TRUE);
         }
     }
 

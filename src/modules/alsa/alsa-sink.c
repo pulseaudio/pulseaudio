@@ -1286,7 +1286,7 @@ static void thread_func(void *userdata) {
                     pa_log_info("Starting playback.");
                     snd_pcm_start(u->pcm_handle);
 
-                    pa_smoother_resume(u->smoother, pa_rtclock_usec());
+                    pa_smoother_resume(u->smoother, pa_rtclock_usec(), TRUE);
                 }
 
                 update_smoother(u);
@@ -1495,7 +1495,6 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     snd_pcm_uframes_t period_frames, tsched_frames;
     size_t frame_size;
     pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE;
-    pa_usec_t usec;
     pa_sink_new_data data;
 
     pa_assert(m);
@@ -1559,10 +1558,14 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
 
-    u->smoother = pa_smoother_new(DEFAULT_TSCHED_BUFFER_USEC*2, DEFAULT_TSCHED_BUFFER_USEC*2, TRUE, 5);
-    usec = pa_rtclock_usec();
-    pa_smoother_set_time_offset(u->smoother, usec);
-    pa_smoother_pause(u->smoother, usec);
+    u->smoother = pa_smoother_new(
+            DEFAULT_TSCHED_BUFFER_USEC*2,
+            DEFAULT_TSCHED_BUFFER_USEC*2,
+            TRUE,
+            TRUE,
+            5,
+            pa_rtclock_usec(),
+            TRUE);
 
     if (reserve_init(u, pa_modargs_get_value(
                              ma, "device_id",
