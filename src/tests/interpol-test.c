@@ -36,6 +36,8 @@
 
 #include <pulsecore/thread.h>
 
+#define INTERPOLATE
+
 static pa_context *context = NULL;
 static pa_stream *stream = NULL;
 static pa_mainloop_api *mainloop_api = NULL;
@@ -58,6 +60,15 @@ static void stream_read_cb(pa_stream *p, size_t nbytes, void *userdata) {
     }
 }
 
+static void stream_latency_cb(pa_stream *p, void *userdata) {
+#ifndef INTERPOLATE
+    pa_operation *o;
+
+    o = pa_stream_update_timing_info(p, NULL, NULL);
+    pa_operation_unref(o);
+#endif
+}
+
 /* This is called whenever the context status changes */
 static void context_state_callback(pa_context *c, void *userdata) {
     assert(c);
@@ -69,6 +80,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
             break;
 
         case PA_CONTEXT_READY: {
+            pa_stream_flags_t flags = PA_STREAM_AUTO_TIMING_UPDATE;
 
             static const pa_sample_spec ss = {
                 .format = PA_SAMPLE_S16LE,
@@ -76,18 +88,24 @@ static void context_state_callback(pa_context *c, void *userdata) {
                 .channels = 2
             };
 
+#ifdef INTERPOLATE
+            flags |= PA_STREAM_INTERPOLATE_TIMING;
+#endif
+
             fprintf(stderr, "Connection established.\n");
 
             stream = pa_stream_new(c, "interpol-test", &ss, NULL);
             assert(stream);
 
             if (playback) {
-                pa_assert_se(pa_stream_connect_playback(stream, NULL, NULL, PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE, NULL, NULL) == 0);
+                pa_assert_se(pa_stream_connect_playback(stream, NULL, NULL, flags, NULL, NULL) == 0);
                 pa_stream_set_write_callback(stream, stream_write_cb, NULL);
             } else {
-                pa_assert_se(pa_stream_connect_record(stream, NULL, NULL, PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE) == 0);
+                pa_assert_se(pa_stream_connect_record(stream, NULL, NULL, flags) == 0);
                 pa_stream_set_read_callback(stream, stream_read_cb, NULL);
             }
+
+            pa_stream_set_latency_update_callback(stream, stream_latency_cb, NULL);
 
             break;
         }
@@ -108,6 +126,8 @@ int main(int argc, char *argv[]) {
     struct timeval start, last_info = { 0, 0 };
     pa_usec_t old_t = 0, old_rtc = 0;
     pa_bool_t corked = FALSE;
+
+    pa_log_set_level(PA_LOG_DEBUG);
 
     playback = argc <= 1 || !pa_streq(argv[1], "-r");
 
