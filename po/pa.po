@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-04 02:28+0200\n"
+"POT-Creation-Date: 2009-04-05 03:15+0200\n"
 "PO-Revision-Date: 2008-12-24 09:37+0530\n"
 "Last-Translator: Amanpreet Singh Alam <aalam@users.sf.net>\n"
 "Language-Team: Punjabi <punjabi-l10n@users.sf.net>\n"
@@ -88,12 +88,12 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/pulsecore/sink.c:2035
+#: ../src/pulsecore/sink.c:2061
 #, fuzzy
 msgid "Internal Audio"
 msgstr "ਅੰਦਰੂਨੀ ਗਲਤੀ"
 
-#: ../src/pulsecore/sink.c:2041
+#: ../src/pulsecore/sink.c:2067
 msgid "Modem"
 msgstr ""
 
@@ -2055,6 +2055,60 @@ msgstr ""
 
 #: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
 msgid "Cannot access autospawn lock."
+msgstr ""
+
+#: ../src/modules/alsa/alsa-sink.c:393 ../src/modules/alsa/alsa-sink.c:535
+#, c-format
+msgid ""
+"ALSA woke us up to write new data to the device, but there was actually "
+"nothing to write!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+
+#: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:510
+#, c-format
+msgid ""
+"ALSA woke us up to read new data from the device, but there was actually "
+"nothing to read!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+
+#: ../src/modules/alsa/module-alsa-card.c:114
+#, c-format
+msgid "Output %s + Input %s"
+msgstr ""
+
+#: ../src/modules/alsa/module-alsa-card.c:117
+#, c-format
+msgid "Output %s"
+msgstr ""
+
+#: ../src/modules/alsa/module-alsa-card.c:121
+#, c-format
+msgid "Input %s"
+msgstr ""
+
+#: ../src/modules/alsa/module-alsa-card.c:170
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1864
+msgid "Off"
+msgstr ""
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1834
+msgid "High Fidelity Playback (A2DP)"
+msgstr ""
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1849
+msgid "Telephony Duplex (HSP/HFP)"
+msgstr ""
+
+#: ../src/modules/reserve-wrap.c:125
+msgid "PulseAudio Sound Server"
 msgstr ""
 
 #~ msgid "pa_stream_drop() failed: %s\n"

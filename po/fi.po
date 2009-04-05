@@ -7,12 +7,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-04-05 03:15+0200\n"
 "Last-Translator: Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>\n"
 "Language-Team: Finnish <laatu@lokalisointi.org>\n"
-"Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: fi\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Virtaal 0.3.1\n"
 
@@ -98,11 +99,11 @@ msgstr ""
 "Tämä on todennäköisesti ohjelmavirhe ALSA-ajurissa ”%s”. Ilmoita tästä "
 "ongelmasta ALSA-kehittäjille."
 
-#: ../src/pulsecore/sink.c:2035
+#: ../src/pulsecore/sink.c:2061
 msgid "Internal Audio"
 msgstr "Sisäinen äänentoisto"
 
-#: ../src/pulsecore/sink.c:2041
+#: ../src/pulsecore/sink.c:2067
 msgid "Modem"
 msgstr "Modeemi"
 
@@ -604,41 +605,50 @@ msgstr ""
 "  -h, --help                            Näytä tämä ohje\n"
 "      --version                         Näytä versio\n"
 "      --dump-conf                       Tulosta oletusasetukset\n"
-"      --dump-modules                    Tulosta saatavilla olevien moduulien\n"
+"      --dump-modules                    Tulosta saatavilla olevien "
+"moduulien\n"
 "                                        luettelo\n"
-"      --dump-resample-methods           Tulosta saatavilla olevat "
-"                                        uudelleennäytteistystavat\n"
-"      --cleanup-shm                     Puhdista vanhentuneet jaetun muistin "
-"                                        segmentit\n"
-"      --start                           Käynnistä taustaprosessi, jos se ei "
-"                                        ole käynnissä\n"
+"      --dump-resample-methods           Tulosta saatavilla "
+"olevat                                         uudelleennäytteistystavat\n"
+"      --cleanup-shm                     Puhdista vanhentuneet jaetun "
+"muistin                                         segmentit\n"
+"      --start                           Käynnistä taustaprosessi, jos se "
+"ei                                         ole käynnissä\n"
 "  -k  --kill                            Tapa suoritettava taustaprosessi\n"
-"      --check                           Tarkista onko taustaprosessi "
-"                                        suoritettavana (palauttaa vain\n"
+"      --check                           Tarkista onko "
+"taustaprosessi                                         suoritettavana "
+"(palauttaa vain\n"
 "                                        lopetuskoodin)\n"
 "\n"
 "VALITSIMET:\n"
 "      --system[=BOOL]                   Suorita järjestelmänlaajuisena\n"
-"  -D, --daemonize[=BOOL]                Vaihda taustaprosessiksi "
-"                                        käynnistyksen jälkeen\n"
+"  -D, --daemonize[=BOOL]                Vaihda "
+"taustaprosessiksi                                         käynnistyksen "
+"jälkeen\n"
 "      --fail[=BOOL]                     Lopeta kun käynnistys epäonnistuu\n"
 "      --high-priority[=BOOL]            Yritä asettaa korkea nice-taso\n"
-"                                        (käytettävissä vain root-käyttäjänä, "
-"                                        SUIDilla tai kohotetulla\n"
+"                                        (käytettävissä vain root-"
+"käyttäjänä,                                         SUIDilla tai "
+"kohotetulla\n"
 "                                        RLIMIT_NICE-arvolla)\n"
-"      --realtime[=BOOL]                 Yritä asettaa reaaliaikainen ajoitus\n"
-"                                        (käytettävissä vain root-käyttäjänä, "
-"                                        SUIDilla tai kohotetulla\n"
+"      --realtime[=BOOL]                 Yritä asettaa reaaliaikainen "
+"ajoitus\n"
+"                                        (käytettävissä vain root-"
+"käyttäjänä,                                         SUIDilla tai "
+"kohotetulla\n"
 "                                        RLIMIT_RTPRIO-arvolla)\n"
 "      --disallow-module-loading[=BOOL]  Kiellä käyttäjän pyytämä moduulin\n"
 "                                        lataus tai poisto käynnistyksen\n"
 "                                        jälkeen\n"
-"      --disallow-exit[=BOOL]            Kiellä käyttäjän pyytämä lopettaminen\n"
+"      --disallow-exit[=BOOL]            Kiellä käyttäjän pyytämä "
+"lopettaminen\n"
 "      --exit-idle-time=SECS             Lopeta taustaprosessi, kun se on\n"
-"                                        toimettomana ja tämä aika on kulunut\n"
+"                                        toimettomana ja tämä aika on "
+"kulunut\n"
 "      --module-idle-time=SECS           Poista automaattisesti ladatut\n"
 "                                        moduulit, kun taustaprosessi on\n"
-"                                        toimettomana ja tämä aika on kulunut\n"
+"                                        toimettomana ja tämä aika on "
+"kulunut\n"
 "      --scache-idle-time=SECS           Unload autoloaded samples when idle "
 "and\n"
 "                                        this time passed\n"
@@ -2262,6 +2272,60 @@ msgstr "Käytetään näytemäärittelyä \"%s\"\n"
 
 #: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
 msgid "Cannot access autospawn lock."
+msgstr ""
+
+#: ../src/modules/alsa/alsa-sink.c:393 ../src/modules/alsa/alsa-sink.c:535
+#, c-format
+msgid ""
+"ALSA woke us up to write new data to the device, but there was actually "
+"nothing to write!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+
+#: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:510
+#, c-format
+msgid ""
+"ALSA woke us up to read new data from the device, but there was actually "
+"nothing to read!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+
+#: ../src/modules/alsa/module-alsa-card.c:114
+#, c-format
+msgid "Output %s + Input %s"
+msgstr ""
+
+#: ../src/modules/alsa/module-alsa-card.c:117
+#, c-format
+msgid "Output %s"
+msgstr ""
+
+#: ../src/modules/alsa/module-alsa-card.c:121
+#, c-format
+msgid "Input %s"
+msgstr ""
+
+#: ../src/modules/alsa/module-alsa-card.c:170
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1864
+msgid "Off"
+msgstr ""
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1834
+msgid "High Fidelity Playback (A2DP)"
+msgstr ""
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1849
+msgid "Telephony Duplex (HSP/HFP)"
+msgstr ""
+
+#: ../src/modules/reserve-wrap.c:125
+msgid "PulseAudio Sound Server"
 msgstr ""
 
 #~ msgid "muted"

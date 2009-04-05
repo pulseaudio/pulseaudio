@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PulseAudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-04 02:28+0200\n"
+"POT-Creation-Date: 2009-04-05 03:15+0200\n"
 "PO-Revision-Date: 2009-03-31 09:32-0300\n"
 "Last-Translator: Domingo Becker <domingobecker@gmail.com>\n"
 "Language-Team: Fedora Spanish <fedora-trans-es@redhat.com>\n"
@@ -100,11 +100,11 @@ msgstr ""
 "Lo más probable es que sea un error del controlador ALSA '%s'. Por favor, "
 "informe ésto a los desarrolladores de ALSA."
 
-#: ../src/pulsecore/sink.c:2035
+#: ../src/pulsecore/sink.c:2061
 msgid "Internal Audio"
 msgstr "Audio Interno"
 
-#: ../src/pulsecore/sink.c:2041
+#: ../src/pulsecore/sink.c:2067
 msgid "Modem"
 msgstr "Módem"
 
@@ -2407,6 +2407,61 @@ msgstr "Utilizando especificaciones de muestra '%s'\n"
 #: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
 msgid "Cannot access autospawn lock."
 msgstr "No se puede acceder al candado de autogeneración."
+
+#: ../src/modules/alsa/alsa-sink.c:393 ../src/modules/alsa/alsa-sink.c:535
+#, c-format
+msgid ""
+"ALSA woke us up to write new data to the device, but there was actually "
+"nothing to write!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+
+#: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:510
+#, c-format
+msgid ""
+"ALSA woke us up to read new data from the device, but there was actually "
+"nothing to read!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+
+#: ../src/modules/alsa/module-alsa-card.c:114
+#, c-format
+msgid "Output %s + Input %s"
+msgstr ""
+
+#: ../src/modules/alsa/module-alsa-card.c:117
+#, c-format
+msgid "Output %s"
+msgstr ""
+
+#: ../src/modules/alsa/module-alsa-card.c:121
+#, c-format
+msgid "Input %s"
+msgstr ""
+
+#: ../src/modules/alsa/module-alsa-card.c:170
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1864
+msgid "Off"
+msgstr ""
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1834
+msgid "High Fidelity Playback (A2DP)"
+msgstr ""
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1849
+msgid "Telephony Duplex (HSP/HFP)"
+msgstr ""
+
+#: ../src/modules/reserve-wrap.c:125
+#, fuzzy
+msgid "PulseAudio Sound Server"
+msgstr "Sistema de Sonido PulseAudio"
 
 #, fuzzy
 #~ msgid ""
