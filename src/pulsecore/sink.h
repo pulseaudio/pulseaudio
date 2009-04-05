@@ -295,4 +295,6 @@ void pa_sink_request_rewind(pa_sink*s, size_t nbytes);
 
 void pa_sink_invalidate_requested_latency(pa_sink *s);
 
+pa_usec_t pa_sink_get_latency_within_thread(pa_sink *s);
+
 #endif

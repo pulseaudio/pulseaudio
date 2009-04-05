@@ -958,6 +958,32 @@ pa_usec_t pa_sink_get_latency(pa_sink *s) {
     return usec;
 }
 
+/* Called from IO thread */
+pa_usec_t pa_sink_get_latency_within_thread(pa_sink *s) {
+    pa_usec_t usec = 0;
+    pa_msgobject *o;
+
+    pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
+
+    /* The returned value is supposed to be in the time domain of the sound card! */
+
+    if (s->thread_info.state == PA_SINK_SUSPENDED)
+        return 0;
+
+    if (!(s->flags & PA_SINK_LATENCY))
+        return 0;
+
+    o = PA_MSGOBJECT(s);
+
+    /* We probably should make this a proper vtable callback instead of going through process_msg() */
+
+    if (o->process_msg(o, PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
+        return -1;
+
+    return usec;
+}
+
 /* Called from main thread */
 void pa_sink_update_flat_volume(pa_sink *s, pa_cvolume *new_volume) {
     pa_sink_input *i;
