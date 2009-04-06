@@ -52,6 +52,8 @@
 #include <pulsecore/rtclock.h>
 #include <pulsecore/atomic.h>
 #include <pulsecore/time-smoother.h>
+#include <pulsecore/socket-util.h>
+#include <pulsecore/once.h>
 
 #include "module-rtp-recv-symdef.h"
 
@@ -165,7 +167,7 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     pa_memblockq_rewind(s->memblockq, nbytes);
 }
 
-/* Called from thread context */
+/* Called from I/O thread context */
 static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     struct session *s;
 
@@ -184,11 +186,24 @@ static void sink_input_kill(pa_sink_input* i) {
     session_free(s);
 }
 
+/* Called from IO context */
+static void sink_input_suspend_within_thread(pa_sink_input* i, pa_bool_t b) {
+    struct session *s;
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(s = i->userdata);
+
+    if (b) {
+        pa_smoother_pause(s->smoother, pa_rtclock_usec());
+        pa_memblockq_flush_read(s->memblockq);
+    } else
+        s->first_packet = FALSE;
+}
+
 /* Called from I/O thread context */
 static int rtpoll_work_cb(pa_rtpoll_item *i) {
     pa_memchunk chunk;
     int64_t k, j, delta;
-    struct timeval now;
+    struct timeval now = { 0, 0 };
     struct session *s;
     struct pollfd *p;
 
@@ -206,10 +221,11 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
 
     p->revents = 0;
 
-    if (pa_rtp_recv(&s->rtp_context, &chunk, s->userdata->module->core->mempool) < 0)
+    if (pa_rtp_recv(&s->rtp_context, &chunk, s->userdata->module->core->mempool, &now) < 0)
         return 0;
 
-    if (s->sdp_info.payload != s->rtp_context.payload) {
+    if (s->sdp_info.payload != s->rtp_context.payload ||
+        !PA_SINK_IS_OPENED(s->sink_input->sink->thread_info.state)) {
         pa_memblock_unref(chunk.memblock);
         return 0;
     }
@@ -240,9 +256,18 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
 
     pa_memblockq_seek(s->memblockq, delta * (int64_t) s->rtp_context.frame_size, PA_SEEK_RELATIVE, TRUE);
 
-    pa_rtclock_get(&now);
+    if (now.tv_sec == 0) {
+        PA_ONCE_BEGIN {
+            pa_log_warn("Using artificial time instead of timestamp");
+        } PA_ONCE_END;
+        pa_rtclock_get(&now);
+    } else
+        pa_rtclock_from_wallclock(&now);
 
     pa_smoother_put(s->smoother, pa_timeval_load(&now), pa_bytes_to_usec((uint64_t) pa_memblockq_get_write_index(s->memblockq), &s->sink_input->sample_spec));
+
+    /* Tell the smoother that we are rolling now, in case it is still paused */
+    pa_smoother_resume(s->smoother, pa_timeval_load(&now), TRUE);
 
     if (pa_memblockq_push(s->memblockq, &chunk) < 0) {
         pa_log_warn("Queue overrun");
@@ -266,6 +291,8 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
 
         wi = pa_smoother_get(s->smoother, pa_timeval_load(&now));
         ri = pa_bytes_to_usec((uint64_t) pa_memblockq_get_read_index(s->memblockq), &s->sink_input->sample_spec);
+
+        pa_log_debug("wi=%lu ri=%lu", (unsigned long) wi, (unsigned long) ri);
 
         sink_delay = pa_sink_get_latency_within_thread(s->sink_input->sink);
         render_delay = pa_bytes_to_usec(pa_memblockq_get_length(s->sink_input->thread_info.render_memblockq), &s->sink_input->sink->sample_spec);
@@ -292,7 +319,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
         fix_samples = (unsigned) (fix * (pa_usec_t) s->sink_input->thread_info.sample_spec.rate / (pa_usec_t) RATE_UPDATE_INTERVAL);
 
         /* Check if deviation is in bounds */
-        if (fix_samples > s->sink_input->sample_spec.rate*.20)
+        if (fix_samples > s->sink_input->sample_spec.rate*.50)
             pa_log_debug("Hmmm, rate fix is too large (%lu Hz), not applying.", (unsigned long) fix_samples);
         else {
             /* Fix up rate */
@@ -363,6 +390,14 @@ static int mcast_socket(const struct sockaddr* sa, socklen_t salen) {
     af = sa->sa_family;
     if ((fd = socket(af, SOCK_DGRAM, 0)) < 0) {
         pa_log("Failed to create socket: %s", pa_cstrerror(errno));
+        goto fail;
+    }
+
+    pa_make_udp_socket_low_delay(fd);
+
+    one = 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_TIMESTAMP, &one, sizeof(one)) < 0) {
+        pa_log("SO_TIMESTAMP failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -441,7 +476,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
             TRUE,
             10,
             pa_timeval_load(&now),
-            FALSE);
+            TRUE);
     s->last_rate_update = pa_timeval_load(&now);
     pa_atomic_store(&s->timestamp, (int) now.tv_sec);
 
@@ -482,6 +517,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     s->sink_input->kill = sink_input_kill;
     s->sink_input->attach = sink_input_attach;
     s->sink_input->detach = sink_input_detach;
+    s->sink_input->suspend_within_thread = sink_input_suspend_within_thread;
 
     pa_sink_input_get_silence(s->sink_input, &silence);
 
