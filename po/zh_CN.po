@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-05 03:15+0200\n"
-"PO-Revision-Date: 2009-04-01 21:36+1000\n"
+"POT-Creation-Date: 2009-04-05 08:27+0000\n"
+"PO-Revision-Date: 2009-04-06 10:26+1000\n"
 "Last-Translator: Leah Liu <lliu@redhat.com>\n"
 "Language-Team: Simplified Chinese <zh@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -287,8 +287,7 @@ msgstr ""
 "以为这个用户增加 RLIMIT_NICE/RLIMIT_RTPRIO 资源限制。"
 
 #: ../src/daemon/main.c:566
-msgid ""
-"High-priority scheduling enabled in configuration but not allowed by policy."
+msgid "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr "配置中已启用高优先级调度，但策略未允许。"
 
 #: ../src/daemon/main.c:595
@@ -305,8 +304,7 @@ msgid "Giving up CAP_NICE"
 msgstr "正在放弃CAP_NICE"
 
 #: ../src/daemon/main.c:612
-msgid ""
-"Real-time scheduling enabled in configuration but not allowed by policy."
+msgid "Real-time scheduling enabled in configuration but not allowed by policy."
 msgstr "配置中已启用实时调度，但策略未允许。"
 
 #: ../src/daemon/main.c:673
@@ -433,15 +431,15 @@ msgstr "优化生成：否"
 
 #: ../src/daemon/main.c:883
 msgid "NDEBUG defined, all asserts disabled."
-msgstr ""
+msgstr "拒绝 NDEBUG，禁用所有 assert"
 
 #: ../src/daemon/main.c:885
 msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr ""
+msgstr "拒绝 FASTPATH，只禁用快速路径 assert。"
 
 #: ../src/daemon/main.c:887
 msgid "All asserts enabled."
-msgstr ""
+msgstr "启用所有 assert。"
 
 #: ../src/daemon/main.c:891
 msgid "Failed to get machine ID"
@@ -830,8 +828,7 @@ msgid "Start the PulseAudio Sound System"
 msgstr "启动 PulseAudio 声音系统"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:1
-msgid ""
-"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
+msgid "High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
 msgstr "PulseAudio 守护进程的高优先调度（负的 Unix nic 等级）"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:2
@@ -839,8 +836,7 @@ msgid "Real-time scheduling for the PulseAudio daemon"
 msgstr "PulseAudio 守护进程的实时调度。"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:3
-msgid ""
-"System policy prevents PulseAudio from acquiring high-priority scheduling."
+msgid "System policy prevents PulseAudio from acquiring high-priority scheduling."
 msgstr "系统策略防止 PulseAudio 获得高优先调度。"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:4
@@ -1318,9 +1314,9 @@ msgid "not "
 msgstr "not "
 
 #: ../src/utils/pacat.c:245
-#, fuzzy, c-format
+#, c-format
 msgid "Stream buffer attributes changed.%s \n"
-msgstr "流欠载运行。%s\n"
+msgstr "更改流换出属性。%s\n"
 
 #: ../src/utils/pacat.c:278
 #, c-format
@@ -2325,6 +2321,9 @@ msgid ""
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
+"ALSA 提醒我们在该设备中写入新数据，但实际上没有什么可以写入的！\n"
+"这很可能是 ALSA 驱动程序 '%s' 中的一个 bug。请向 ALSA 开发人员报告这个问题。\n"
+"提醒我们设置 POLLOUT -- 但结果是 snd_pcm_avail() 返回 0 或者另一个小于最小可用值的数值。"
 
 #: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:510
 #, c-format
@@ -2336,36 +2335,39 @@ msgid ""
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
+"ALSA 提醒我们从该设备中读取新数据，但实际上没有什么可以读取的！\n"
+"这很可能是 ALSA 驱动程序 '%s' 中的一个 bug。请向 ALSA 开发人员报告这个问题。\n"
+"提醒我们设置 POLLOUT -- 但结果是 snd_pcm_avail() 返回 0 或者另一个小于最小可用值的数值。"
 
 #: ../src/modules/alsa/module-alsa-card.c:114
 #, c-format
 msgid "Output %s + Input %s"
-msgstr ""
+msgstr "输出 %s + 输入 %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:117
 #, c-format
 msgid "Output %s"
-msgstr ""
+msgstr "输出 %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:121
 #, c-format
 msgid "Input %s"
-msgstr ""
+msgstr "输入 %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:170
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1864
 msgid "Off"
-msgstr ""
+msgstr "关闭"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1834
 msgid "High Fidelity Playback (A2DP)"
-msgstr ""
+msgstr "高保真回放（A2DP）"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1849
 msgid "Telephony Duplex (HSP/HFP)"
-msgstr ""
+msgstr "双工电话（HSP/HFP）"
 
 #: ../src/modules/reserve-wrap.c:125
-#, fuzzy
 msgid "PulseAudio Sound Server"
-msgstr "PulseAudio 声音系统"
+msgstr "PulseAudio 声音服务器"
+
