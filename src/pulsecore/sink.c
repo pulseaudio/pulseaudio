@@ -1585,7 +1585,11 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
         case PA_SINK_MESSAGE_GET_MUTE:
             return 0;
 
-        case PA_SINK_MESSAGE_SET_STATE:
+        case PA_SINK_MESSAGE_SET_STATE: {
+
+            pa_bool_t suspend_change =
+                (s->thread_info.state == PA_SINK_SUSPENDED && PA_SINK_IS_OPENED(PA_PTR_TO_UINT(userdata))) ||
+                (PA_SINK_IS_OPENED(s->thread_info.state) && PA_PTR_TO_UINT(userdata) == PA_SINK_SUSPENDED);
 
             s->thread_info.state = PA_PTR_TO_UINT(userdata);
 
@@ -1594,7 +1598,17 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 s->thread_info.rewind_requested = FALSE;
             }
 
+            if (suspend_change) {
+                pa_sink_input *i;
+                void *state = NULL;
+
+                while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)))
+                    if (i->suspend_within_thread)
+                        i->suspend_within_thread(i, s->thread_info.state == PA_SINK_SUSPENDED);
+            }
+
             return 0;
+        }
 
         case PA_SINK_MESSAGE_DETACH:
 

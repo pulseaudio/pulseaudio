@@ -87,6 +87,7 @@ static void reset_callbacks(pa_source_output *o) {
     o->attach = NULL;
     o->detach = NULL;
     o->suspend = NULL;
+    o->suspend_within_thread = NULL;
     o->moving = NULL;
     o->kill = NULL;
     o->get_latency = NULL;

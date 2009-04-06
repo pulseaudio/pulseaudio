@@ -933,9 +933,26 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
         case PA_SOURCE_MESSAGE_GET_MUTE:
             return 0;
 
-        case PA_SOURCE_MESSAGE_SET_STATE:
+        case PA_SOURCE_MESSAGE_SET_STATE: {
+
+            pa_bool_t suspend_change =
+                (s->thread_info.state == PA_SOURCE_SUSPENDED && PA_SOURCE_IS_OPENED(PA_PTR_TO_UINT(userdata))) ||
+                (PA_SOURCE_IS_OPENED(s->thread_info.state) && PA_PTR_TO_UINT(userdata) == PA_SOURCE_SUSPENDED);
+
             s->thread_info.state = PA_PTR_TO_UINT(userdata);
+
+            if (suspend_change) {
+                pa_source_output *o;
+                void *state = NULL;
+
+                while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
+                    if (o->suspend_within_thread)
+                        o->suspend_within_thread(o, s->thread_info.state == PA_SOURCE_SUSPENDED);
+            }
+
+
             return 0;
+        }
 
         case PA_SOURCE_MESSAGE_DETACH:
 
@@ -1217,7 +1234,7 @@ void pa_source_get_latency_range(pa_source *s, pa_usec_t *min_latency, pa_usec_t
    }
 }
 
-/* Called from IO thread, and from main thread before pa_sink_put() is called */
+/* Called from IO thread, and from main thread before pa_source_put() is called */
 void pa_source_set_latency_range_within_thread(pa_source *s, pa_usec_t min_latency, pa_usec_t max_latency) {
     void *state = NULL;
 

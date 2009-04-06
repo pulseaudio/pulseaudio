@@ -117,6 +117,7 @@ static void reset_callbacks(pa_sink_input *i) {
     i->attach = NULL;
     i->detach = NULL;
     i->suspend = NULL;
+    i->suspend_within_thread = NULL;
     i->moving = NULL;
     i->kill = NULL;
     i->get_latency = NULL;

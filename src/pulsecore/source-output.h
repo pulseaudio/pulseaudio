@@ -120,6 +120,10 @@ struct pa_source_output {
      * to suspends or resumes. Called from main context */
     void (*suspend) (pa_source_output *o, pa_bool_t b);   /* may be NULL */
 
+    /* If non-NULL called whenever the source this output is attached
+     * to suspends or resumes. Called from IO context */
+    void (*suspend_within_thread) (pa_source_output *o, pa_bool_t b);   /* may be NULL */
+
     /* If non-NULL called whenever the source output is moved to a new
      * source. Called from main context after the stream was detached
      * from the old source and before it is attached to the new
