@@ -28,6 +28,8 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
+
+#include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 
 #include "dbus-util.h"
@@ -262,6 +264,11 @@ pa_dbus_wrap_connection* pa_dbus_wrap_connection_new(pa_mainloop_api *m, DBusBus
     dbus_connection_set_wakeup_main_function(conn, wakeup_main, pconn, NULL);
 
     pconn->dispatch_event = pconn->mainloop->defer_new(pconn->mainloop, dispatch_cb, conn);
+
+    pa_log_debug("Successfully connected to D-Bus %s bus %s as %s",
+                 type == DBUS_BUS_SYSTEM ? "system" : (type == DBUS_BUS_SESSION ? "session" : "starter"),
+                 pa_strnull(dbus_connection_get_server_id(conn)),
+                 pa_strnull(dbus_bus_get_unique_name(conn)));
 
     return pconn;
 }
