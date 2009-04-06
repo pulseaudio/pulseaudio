@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-04-05 08:27+0000\n"
-"PO-Revision-Date: 2009-04-06 14:54+0530\n"
+"PO-Revision-Date: 2009-04-06 15:19+0530\n"
 "Last-Translator: Sweta Kothari <swkothar@redhat.com>\n"
 "Language-Team: Gujarati\n"
 "MIME-Version: 1.0\n"
@@ -19,47 +19,47 @@ msgstr ""
 
 #: ../src/modules/alsa/alsa-util.c:530
 msgid "Analog Mono"
-msgstr ""
+msgstr "એનાલોગ મોનો"
 
 #: ../src/modules/alsa/alsa-util.c:536
 msgid "Analog Stereo"
-msgstr ""
+msgstr "એનાલોગ સ્ટેરિઓ"
 
 #: ../src/modules/alsa/alsa-util.c:542
 msgid "Digital Stereo (IEC958)"
-msgstr ""
+msgstr "ડિજિટલ સ્ટેરિઓ (IEC958)"
 
 #: ../src/modules/alsa/alsa-util.c:548
 msgid "Digital Stereo (HDMI)"
-msgstr ""
+msgstr "ડિજિટલ સ્ટેરિઓ (HDMI)"
 
 #: ../src/modules/alsa/alsa-util.c:555
 msgid "Analog Surround 4.0"
-msgstr ""
+msgstr "એનાલોગ સરાઉન્ડ 4.0"
 
 #: ../src/modules/alsa/alsa-util.c:562
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr ""
+msgstr "એનાલોગ સરાઉન્ડ 4.0 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-util.c:570
 msgid "Analog Surround 4.1"
-msgstr ""
+msgstr "એનાલોગ સરાઉન્ડ 4.1"
 
 #: ../src/modules/alsa/alsa-util.c:578
 msgid "Analog Surround 5.0"
-msgstr ""
+msgstr "એનાલોગ સરાઉન્ડ 4.2"
 
 #: ../src/modules/alsa/alsa-util.c:586
 msgid "Analog Surround 5.1"
-msgstr ""
+msgstr "એનાલોગ સરાઉન્ડ 5.1"
 
 #: ../src/modules/alsa/alsa-util.c:594
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr ""
+msgstr "એનાલોગ સરાઉન્ડ 5.1 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-util.c:603
 msgid "Analog Surround 7.1"
-msgstr ""
+msgstr "એનાલોગ સરાઉન્ડ 7.1"
 
 #: ../src/modules/alsa/alsa-util.c:1609
 #, c-format
@@ -140,27 +140,27 @@ msgstr "action_id ને સુયોજિત કરી શકાતુ નથ�
 
 #: ../src/daemon/polkit.c:105
 msgid "Cannot allocate PolKitContext."
-msgstr ""
+msgstr "PolKitContext ને ફાળવી શકાતી નથી."
 
 #: ../src/daemon/polkit.c:110
 #, c-format
 msgid "Cannot initialize PolKitContext: %s"
-msgstr ""
+msgstr "PolKitContext નું પ્રારંભ કરી શકાતુ નથી: %s"
 
 #: ../src/daemon/polkit.c:119
 #, c-format
 msgid "Could not determine whether caller is authorized: %s"
-msgstr ""
+msgstr "નક્કી કરી શકાયુ નહિં ક્યાંતો કોલર એ સત્તાધિકરણ થયેલ છે: %s"
 
 #: ../src/daemon/polkit.c:139
 #, c-format
 msgid "Cannot obtain auth: %s"
-msgstr ""
+msgstr "auth મેળવા શકાતુ નથી: %s"
 
 #: ../src/daemon/polkit.c:148
 #, c-format
 msgid "PolicyKit responded with '%s'"
-msgstr ""
+msgstr "'%s' સાથે PolicyKit એ પ્રત્યુત્તર આપેલ છે"
 
 #: ../src/daemon/main.c:137
 #, c-format
@@ -315,7 +315,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:705
 msgid "Root privileges required."
-msgstr ""
+msgstr "રુટ અધિકારો જરૂરી છે."
 
 #: ../src/daemon/main.c:710
 msgid "--start not supported for system instances."
@@ -323,11 +323,11 @@ msgstr ""
 
 #: ../src/daemon/main.c:715
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr ""
+msgstr "સિસ્ટમ સ્થિતિમાં ચાલી રહ્યુ છે, પરંતુ --disallow-exit સુયોજિત નથી!"
 
 #: ../src/daemon/main.c:718
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr ""
+msgstr "સિસ્ટમ સ્થિતિમાં ચાલી રહ્યુ છે, પરંતુ --disallow-module-loading એ સુયોજિત નથી!"
 
 #: ../src/daemon/main.c:721
 msgid "Running in system mode, forcibly disabling SHM mode!"
@@ -471,23 +471,23 @@ msgstr "pa_core_new() નિષ્ફળ"
 
 #: ../src/daemon/main.c:1010
 msgid "Failed to initialize daemon."
-msgstr ""
+msgstr "ડિમનને શરૂ કરવામાં નિષ્ફળ."
 
 #: ../src/daemon/main.c:1015
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr ""
+msgstr "કોઇપણ લોડ થયેલ મોડ્યુલો વગર ડિમનને શરૂ કરો, કામ કરવા માટે ફરી શરૂ કરી રહ્યા છે."
 
 #: ../src/daemon/main.c:1032
 msgid "Daemon startup complete."
-msgstr ""
+msgstr "ડિમન પારંભ કરવાનું સમાપ્ત છે."
 
 #: ../src/daemon/main.c:1038
 msgid "Daemon shutdown initiated."
-msgstr ""
+msgstr "ડિમનને બંધ કરવાનું પ્રારંભ થયેલ છે."
 
 #: ../src/daemon/main.c:1056
 msgid "Daemon terminated."
-msgstr ""
+msgstr "ડિમનનો અંત આવેલ છે."
 
 #: ../src/daemon/cmdline.c:121
 #, c-format
@@ -721,7 +721,7 @@ msgstr "વપરાશ: %s\n"
 #: ../src/daemon/dumpmodules.c:73
 #, c-format
 msgid "Load Once: %s\n"
-msgstr ""
+msgstr "એકવાર લોડ કરો: %s\n"
 
 #: ../src/daemon/dumpmodules.c:77
 #, c-format
@@ -886,151 +886,151 @@ msgstr "જમણી બાજુ"
 
 #: ../src/pulse/channelmap.c:121
 msgid "Auxiliary 0"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 0"
 
 #: ../src/pulse/channelmap.c:122
 msgid "Auxiliary 1"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 1"
 
 #: ../src/pulse/channelmap.c:123
 msgid "Auxiliary 2"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 2"
 
 #: ../src/pulse/channelmap.c:124
 msgid "Auxiliary 3"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 3"
 
 #: ../src/pulse/channelmap.c:125
 msgid "Auxiliary 4"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 4"
 
 #: ../src/pulse/channelmap.c:126
 msgid "Auxiliary 5"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 5"
 
 #: ../src/pulse/channelmap.c:127
 msgid "Auxiliary 6"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 6"
 
 #: ../src/pulse/channelmap.c:128
 msgid "Auxiliary 7"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 7"
 
 #: ../src/pulse/channelmap.c:129
 msgid "Auxiliary 8"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 8"
 
 #: ../src/pulse/channelmap.c:130
 msgid "Auxiliary 9"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 9"
 
 #: ../src/pulse/channelmap.c:131
 msgid "Auxiliary 10"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 10"
 
 #: ../src/pulse/channelmap.c:132
 msgid "Auxiliary 11"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 11"
 
 #: ../src/pulse/channelmap.c:133
 msgid "Auxiliary 12"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 12"
 
 #: ../src/pulse/channelmap.c:134
 msgid "Auxiliary 13"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 13"
 
 #: ../src/pulse/channelmap.c:135
 msgid "Auxiliary 14"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 14"
 
 #: ../src/pulse/channelmap.c:136
 msgid "Auxiliary 15"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 15"
 
 #: ../src/pulse/channelmap.c:137
 msgid "Auxiliary 16"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 16"
 
 #: ../src/pulse/channelmap.c:138
 msgid "Auxiliary 17"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 17"
 
 #: ../src/pulse/channelmap.c:139
 msgid "Auxiliary 18"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 18"
 
 #: ../src/pulse/channelmap.c:140
 msgid "Auxiliary 19"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 19"
 
 #: ../src/pulse/channelmap.c:141
 msgid "Auxiliary 20"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 20"
 
 #: ../src/pulse/channelmap.c:142
 msgid "Auxiliary 21"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 21"
 
 #: ../src/pulse/channelmap.c:143
 msgid "Auxiliary 22"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 22"
 
 #: ../src/pulse/channelmap.c:144
 msgid "Auxiliary 23"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 23"
 
 #: ../src/pulse/channelmap.c:145
 msgid "Auxiliary 24"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 24"
 
 #: ../src/pulse/channelmap.c:146
 msgid "Auxiliary 25"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 25"
 
 #: ../src/pulse/channelmap.c:147
 msgid "Auxiliary 26"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 26"
 
 #: ../src/pulse/channelmap.c:148
 msgid "Auxiliary 27"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 27"
 
 #: ../src/pulse/channelmap.c:149
 msgid "Auxiliary 28"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 28"
 
 #: ../src/pulse/channelmap.c:150
 msgid "Auxiliary 29"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 29"
 
 #: ../src/pulse/channelmap.c:151
 msgid "Auxiliary 30"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 30"
 
 #: ../src/pulse/channelmap.c:152
 msgid "Auxiliary 31"
-msgstr ""
+msgstr "ઑગ્ઝિલિઅરિ 31"
 
 #: ../src/pulse/channelmap.c:154
 msgid "Top Center"
-msgstr ""
+msgstr "ઊંચે કેન્દ્ર"
 
 #: ../src/pulse/channelmap.c:156
 msgid "Top Front Center"
-msgstr ""
+msgstr "ઊંચે આગળ કેન્દ્ર"
 
 #: ../src/pulse/channelmap.c:157
 msgid "Top Front Left"
-msgstr ""
+msgstr "ઊંચે આગળ ડાબે"
 
 #: ../src/pulse/channelmap.c:158
 msgid "Top Front Right"
-msgstr ""
+msgstr "ઊંચે આગળ જમણે"
 
 #: ../src/pulse/channelmap.c:160
 msgid "Top Rear Center"
-msgstr ""
+msgstr "ઊંચે રિઅર કેન્દ્ર"
 
 #: ../src/pulse/channelmap.c:161
 msgid "Top Rear Left"
@@ -1048,27 +1048,27 @@ msgstr "(અયોગ્ય)"
 
 #: ../src/pulse/channelmap.c:808
 msgid "Stereo"
-msgstr ""
+msgstr "સ્ટેરિઓ"
 
 #: ../src/pulse/channelmap.c:813
 msgid "Surround 4.0"
-msgstr ""
+msgstr "સરાઉન્ડ 4.0"
 
 #: ../src/pulse/channelmap.c:819
 msgid "Surround 4.1"
-msgstr ""
+msgstr "સરાઉન્ડ 4.1"
 
 #: ../src/pulse/channelmap.c:825
 msgid "Surround 5.0"
-msgstr ""
+msgstr "સરાઉન્ડ 5.0"
 
 #: ../src/pulse/channelmap.c:831
 msgid "Surround 5.1"
-msgstr ""
+msgstr "સરાઉન્ડ 5.1"
 
 #: ../src/pulse/channelmap.c:838
 msgid "Surround 7.1"
-msgstr ""
+msgstr "સરાઉન્ડ 7.1"
 
 #: ../src/pulse/error.c:43
 msgid "OK"
