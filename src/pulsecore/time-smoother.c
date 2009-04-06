@@ -291,7 +291,8 @@ static void estimate(pa_smoother *s, pa_usec_t x, pa_usec_t *y, double *deriv) {
     pa_assert(s);
     pa_assert(y);
 
-    if (!s->smoothing || x >= s->px) {
+    if (x >= s->px) {
+        /* Linear interpolation right from px */
         int64_t t;
 
         /* The requested point is right of the point where we wanted
@@ -307,7 +308,22 @@ static void estimate(pa_smoother *s, pa_usec_t x, pa_usec_t *y, double *deriv) {
         if (deriv)
             *deriv = s->dp;
 
+    } else if (x <= s->ex) {
+        /* Linear interpolation left from ex */
+        int64_t t;
+
+        t = (int64_t) s->ey - (int64_t) llrint(s->de * (double) (s->ex - x));
+
+        if (t < 0)
+            t = 0;
+
+        *y = (pa_usec_t) t;
+
+        if (deriv)
+            *deriv = s->de;
+
     } else {
+        /* Spline interpolation between ex and px */
         double tx, ty;
 
         /* Ok, we're not yet on track, thus let's interpolate, and
