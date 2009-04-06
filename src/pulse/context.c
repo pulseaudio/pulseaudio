@@ -104,7 +104,10 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_RECORD_BUFFER_ATTR_CHANGED] = pa_command_stream_buffer_attr
 };
 static void context_free(pa_context *c);
+
+#ifdef HAVE_DBUS
 static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, void *userdata);
+#endif
 
 pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
     return pa_context_new_with_proplist(mainloop, name, NULL);
@@ -144,7 +147,9 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     if (name)
         pa_proplist_sets(c->proplist, PA_PROP_APPLICATION_NAME, name);
 
+#ifdef HAVE_DBUS
     c->system_bus = c->session_bus = NULL;
+#endif
     c->mainloop = mainloop;
     c->client = NULL;
     c->pstream = NULL;
@@ -241,6 +246,7 @@ static void context_free(pa_context *c) {
 
     context_unlink(c);
 
+#ifdef HAVE_DBUS
     if (c->system_bus) {
         dbus_connection_remove_filter(pa_dbus_wrap_connection_get(c->system_bus), filter_cb, c);
         pa_dbus_wrap_connection_free(c->system_bus);
@@ -250,6 +256,7 @@ static void context_free(pa_context *c) {
         dbus_connection_remove_filter(pa_dbus_wrap_connection_get(c->session_bus), filter_cb, c);
         pa_dbus_wrap_connection_free(c->session_bus);
     }
+#endif
 
     if (c->record_streams)
         pa_dynarray_free(c->record_streams, NULL, NULL);
@@ -742,6 +749,7 @@ fail:
 
 static void on_connection(pa_socket_client *client, pa_iochannel*io, void *userdata);
 
+#ifdef HAVE_DBUS
 static void track_pulseaudio_on_dbus(pa_context *c, DBusBusType type, pa_dbus_wrap_connection **conn) {
     DBusError error;
 
@@ -767,6 +775,7 @@ static void track_pulseaudio_on_dbus(pa_context *c, DBusBusType type, pa_dbus_wr
  finish:
     dbus_error_free(&error);
 }
+#endif
 
 static int try_next_connection(pa_context *c) {
     char *u = NULL;
@@ -800,12 +809,14 @@ static int try_next_connection(pa_context *c) {
             }
 #endif
 
+#ifdef HAVE_DBUS
             if (c->no_fail && !c->server_specified) {
                 if (!c->system_bus)
                     track_pulseaudio_on_dbus(c, DBUS_BUS_SYSTEM, &c->system_bus);
                 if (!c->session_bus)
                     track_pulseaudio_on_dbus(c, DBUS_BUS_SESSION, &c->session_bus);
             } else
+#endif
                 pa_context_fail(c, PA_ERR_CONNECTIONREFUSED);
 
             goto finish;
@@ -864,6 +875,7 @@ finish:
     pa_context_unref(c);
 }
 
+#ifdef HAVE_DBUS
 static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, void *userdata) {
     pa_context *c = userdata;
     pa_bool_t is_session;
@@ -895,6 +907,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
 finish:
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
+#endif
 
 int pa_context_connect(
         pa_context *c,
