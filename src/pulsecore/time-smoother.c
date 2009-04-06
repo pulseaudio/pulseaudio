@@ -397,7 +397,9 @@ void pa_smoother_put(pa_smoother *s, pa_usec_t x, pa_usec_t y) {
 
     s->abc_valid = FALSE;
 
-/*     pa_log_debug("put(%llu | %llu) = %llu", (unsigned long long)  (x + s->time_offset), (unsigned long long) x, (unsigned long long) y); */
+#ifdef DEBUG_DATA
+    pa_log_debug("%p, put(%llu | %llu) = %llu", s, (unsigned long long)  (x + s->time_offset), (unsigned long long) x, (unsigned long long) y);
+#endif
 }
 
 pa_usec_t pa_smoother_get(pa_smoother *s, pa_usec_t x) {
@@ -428,7 +430,9 @@ pa_usec_t pa_smoother_get(pa_smoother *s, pa_usec_t x) {
             s->last_y = y;
     }
 
-/*     pa_log_debug("get(%llu | %llu) = %llu", (unsigned long long) (x + s->time_offset), (unsigned long long) x, (unsigned long long) y); */
+#ifdef DEBUG_DATA
+    pa_log_debug("%p, get(%llu | %llu) = %llu", s, (unsigned long long) (x + s->time_offset), (unsigned long long) x, (unsigned long long) y);
+#endif
 
     return y;
 }
@@ -438,7 +442,9 @@ void pa_smoother_set_time_offset(pa_smoother *s, pa_usec_t offset) {
 
     s->time_offset = offset;
 
-/*     pa_log_debug("offset(%llu)", (unsigned long long) offset); */
+#ifdef DEBUG_DATA
+    pa_log_debug("offset(%llu)", (unsigned long long) offset);
+#endif
 }
 
 void pa_smoother_pause(pa_smoother *s, pa_usec_t x) {
@@ -447,7 +453,9 @@ void pa_smoother_pause(pa_smoother *s, pa_usec_t x) {
     if (s->paused)
         return;
 
-/*     pa_log_debug("pause(%llu)", (unsigned long long)  x); */
+#ifdef DEBUG_DATA
+    pa_log_debug("pause(%llu)", (unsigned long long)  x);
+#endif
 
     s->paused = TRUE;
     s->pause_time = x;
@@ -462,7 +470,9 @@ void pa_smoother_resume(pa_smoother *s, pa_usec_t x, pa_bool_t fix_now) {
     if (x < s->pause_time)
         x = s->pause_time;
 
-/*     pa_log_debug("resume(%llu)", (unsigned long long) x); */
+#ifdef DEBUG_DATA
+    pa_log_debug("resume(%llu)", (unsigned long long) x);
+#endif
 
     s->paused = FALSE;
     s->time_offset += x - s->pause_time;
@@ -497,7 +507,9 @@ pa_usec_t pa_smoother_translate(pa_smoother *s, pa_usec_t x, pa_usec_t y_delay) 
     if (s->dp > nde)
         nde = s->dp;
 
-/*     pa_log_debug("translate(%llu) = %llu (%0.2f)", (unsigned long long) y_delay, (unsigned long long) ((double) y_delay / nde), nde); */
+#ifdef DEBUG_DATA
+    pa_log_debug("translate(%llu) = %llu (%0.2f)", (unsigned long long) y_delay, (unsigned long long) ((double) y_delay / nde), nde);
+#endif
 
     return (pa_usec_t) llrint((double) y_delay / nde);
 }
