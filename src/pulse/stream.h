@@ -519,7 +519,16 @@ void pa_stream_set_event_callback(pa_stream *p, pa_stream_event_cb_t cb, void *u
  * pa_stream_set_moved_callback() as well. \since 0.9.15 */
 void pa_stream_set_buffer_attr_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
 
-/** Pause (or resume) playback of this stream temporarily. Available on both playback and recording streams. */
+/** Pause (or resume) playback of this stream temporarily. Available
+ * on both playback and recording streams. If b is 1 the stream is
+ * paused. If b is 0 the stream is resumed. The pause/resume operation
+ * is executed as quickly as possible. If a cork is very quickly
+ * followed by an uncork or the other way round this might not
+ * actually have any effect on the stream that is output. You can use
+ * pa_stream_is_corked() to find out whether the stream is currently
+ * paused or not. Normally a stream will be created in uncorked
+ * state. If you pass PA_STREAM_START_CORKED as flag during connection
+ * of the stream it will be created in corked state. */
 pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, void *userdata);
 
 /** Flush the playback buffer of this stream. Most of the time you're
