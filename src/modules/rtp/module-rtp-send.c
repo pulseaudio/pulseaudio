@@ -347,10 +347,10 @@ int pa__init(pa_module*m) {
     o->push = source_output_push;
     o->kill = source_output_kill;
 
-    u = pa_xnew(struct userdata, 1);
-    m->userdata = u;
-    o->userdata = u;
+    pa_log_info("Configured source latency of %lu ms.",
+                pa_source_output_set_requested_latency(o, pa_bytes_to_usec(mtu, &o->sample_spec)) / PA_USEC_PER_MSEC);
 
+    m->userdata = o->userdata = u = pa_xnew(struct userdata, 1);
     u->module = m;
     u->source_output = o;
 
