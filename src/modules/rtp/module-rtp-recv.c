@@ -262,14 +262,12 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
         pa_usec_t wi, ri, render_delay, sink_delay = 0, latency, fix;
         unsigned fix_samples;
 
-        pa_log("Updating sample rate");
+        pa_log_debug("Updating sample rate");
 
         wi = pa_smoother_get(s->smoother, pa_timeval_load(&now));
         ri = pa_bytes_to_usec((uint64_t) pa_memblockq_get_read_index(s->memblockq), &s->sink_input->sample_spec);
 
-        if (PA_MSGOBJECT(s->sink_input->sink)->process_msg(PA_MSGOBJECT(s->sink_input->sink), PA_SINK_MESSAGE_GET_LATENCY, &sink_delay, 0, NULL) < 0)
-            sink_delay = 0;
-
+        sink_delay = pa_sink_get_latency_within_thread(s->sink_input->sink);
         render_delay = pa_bytes_to_usec(pa_memblockq_get_length(s->sink_input->thread_info.render_memblockq), &s->sink_input->sink->sample_spec);
 
         if (ri > render_delay+sink_delay)
@@ -296,12 +294,18 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
         /* Check if deviation is in bounds */
         if (fix_samples > s->sink_input->sample_spec.rate*.20)
             pa_log_debug("Hmmm, rate fix is too large (%lu Hz), not applying.", (unsigned long) fix_samples);
+        else {
+            /* Fix up rate */
+            if (latency < s->intended_latency)
+                s->sink_input->sample_spec.rate -= fix_samples;
+            else
+                s->sink_input->sample_spec.rate += fix_samples;
 
-        /* Fix up rate */
-        if (latency < s->intended_latency)
-            s->sink_input->sample_spec.rate -= fix_samples;
-        else
-            s->sink_input->sample_spec.rate += fix_samples;
+            if (s->sink_input->sample_spec.rate > PA_RATE_MAX)
+                s->sink_input->sample_spec.rate = PA_RATE_MAX;
+        }
+
+        pa_assert(pa_sample_spec_valid(&s->sink_input->sample_spec));
 
         pa_resampler_set_input_rate(s->sink_input->thread_info.resampler, s->sink_input->sample_spec.rate);
 
@@ -654,8 +658,7 @@ int pa__init(pa_module*m) {
     if ((fd = mcast_socket(sa, salen)) < 0)
         goto fail;
 
-    u = pa_xnew(struct userdata, 1);
-    m->userdata = u;
+    m->userdata = u = pa_xnew(struct userdata, 1);
     u->module = m;
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
 
