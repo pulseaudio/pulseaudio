@@ -334,27 +334,38 @@ static void set_all_rlimits(const pa_daemon_conf *conf) {
 #endif
 
 #ifdef HAVE_DBUS
-static void register_org_pulseaudio(pa_core *c)
-{
+static pa_dbus_connection *register_dbus(pa_core *c) {
     DBusError error;
     pa_dbus_connection *conn;
 
     dbus_error_init(&error);
+
     if (!(conn = pa_dbus_bus_get(c, pa_in_system_mode() ? DBUS_BUS_SYSTEM : DBUS_BUS_SESSION, &error)) || dbus_error_is_set(&error)) {
-        pa_log_warn("Unable to contact DBUS: %s: %s", error.name, error.message);
-        goto finish_dbus;
+        pa_log_warn("Unable to contact D-Bus: %s: %s", error.name, error.message);
+        goto fail;
     }
 
-    if (dbus_bus_request_name (pa_dbus_connection_get(conn), "org.pulseaudio.Server", DBUS_NAME_FLAG_DO_NOT_QUEUE, &error) == DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER)
+    if (dbus_bus_request_name(pa_dbus_connection_get(conn), "org.pulseaudio.Server", DBUS_NAME_FLAG_DO_NOT_QUEUE, &error) == DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
         pa_log_debug("Got org.pulseaudio.Server!");
-    else if (dbus_error_is_set(&error))
-        pa_log_warn("Unable to get org.pulseaudio.Server: %s: %s", error.name, error.message);
+        return conn;
+    }
 
-finish_dbus:
+    if (dbus_error_is_set(&error))
+        pa_log_warn("Failed to acquire org.pulseaudio.Server: %s: %s", error.name, error.message);
+    else
+        pa_log_warn("D-Bus name org.pulseaudio.Server already taken. Weird shit!");
+
+    /* PA cannot be started twice by the same user and hence we can
+     * ignore mostly the case that org.pulseaudio.Server is already
+     * taken. */
+
+fail:
+
     if (conn)
         pa_dbus_connection_unref(conn);
 
     dbus_error_free(&error);
+    return NULL;
 }
 #endif
 
@@ -380,6 +391,9 @@ int main(int argc, char *argv[]) {
 #endif
     int autospawn_fd = -1;
     pa_bool_t autospawn_locked = FALSE;
+#ifdef HAVE_DBUS
+    pa_dbus_connection *dbus = NULL;
+#endif
 
     pa_log_set_ident("pulseaudio");
     pa_log_set_level(PA_LOG_INFO);
@@ -1026,7 +1040,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef HAVE_DBUS
-    register_org_pulseaudio(c);
+    dbus = register_dbus(c);
 #endif
 
     pa_log_info(_("Daemon startup complete."));
@@ -1038,6 +1052,10 @@ int main(int argc, char *argv[]) {
     pa_log_info(_("Daemon shutdown initiated."));
 
 finish:
+#ifdef HAVE_DBUS
+    if (dbus)
+        pa_dbus_connection_unref(dbus);
+#endif
 
     if (autospawn_fd >= 0) {
         if (autospawn_locked)

@@ -244,7 +244,7 @@ static void wakeup_main(void *userdata) {
 
 pa_dbus_wrap_connection* pa_dbus_wrap_connection_new(pa_mainloop_api *m, DBusBusType type, DBusError *error) {
     DBusConnection *conn;
-    pa_dbus_wrap_connection *pconn = NULL;
+    pa_dbus_wrap_connection *pconn;
 
     pa_assert(type == DBUS_BUS_SYSTEM || type == DBUS_BUS_SESSION || type == DBUS_BUS_STARTER);
 
@@ -273,7 +273,8 @@ void pa_dbus_wrap_connection_free(pa_dbus_wrap_connection* c) {
         dbus_connection_close(c->connection);
         /* must process remaining messages, bit of a kludge to handle
          * both unload and shutdown */
-        while (dbus_connection_read_write_dispatch(c->connection, -1));
+        while (dbus_connection_read_write_dispatch(c->connection, -1))
+            ;
     }
 
     c->mainloop->defer_free(c->dispatch_event);
