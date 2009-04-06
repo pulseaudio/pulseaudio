@@ -850,7 +850,7 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
 
 /* Called from main context */
 static void fix_playback_buffer_attr(playback_stream *s) {
-    size_t frame_size;
+    size_t frame_size, max_prebuf;
     pa_usec_t orig_tlength_usec, tlength_usec, orig_minreq_usec, minreq_usec, sink_usec;
 
     pa_assert(s);
@@ -976,8 +976,11 @@ static void fix_playback_buffer_attr(playback_stream *s) {
     if (s->buffer_attr.tlength <= s->buffer_attr.minreq)
         s->buffer_attr.tlength = s->buffer_attr.minreq*2 + (uint32_t) frame_size;
 
-    if (s->buffer_attr.prebuf == (uint32_t) -1 || s->buffer_attr.prebuf > s->buffer_attr.tlength)
-        s->buffer_attr.prebuf = s->buffer_attr.tlength;
+    max_prebuf = s->buffer_attr.tlength + (uint32_t)frame_size - s->buffer_attr.minreq;
+
+    if (s->buffer_attr.prebuf == (uint32_t) -1 ||
+        s->buffer_attr.prebuf > max_prebuf)
+        s->buffer_attr.prebuf = max_prebuf;
 }
 
 /* Called from main context */
