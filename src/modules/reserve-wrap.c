@@ -23,6 +23,8 @@
 #include <config.h>
 #endif
 
+#include <errno.h>
+
 #include <pulse/xmalloc.h>
 #include <pulse/i18n.h>
 
@@ -127,8 +129,13 @@ pa_reserve_wrapper* pa_reserve_wrapper_get(pa_core *c, const char *device_name) 
                  request_cb,
                  NULL)) < 0) {
 
-        pa_log_error("Failed to acquire reservation lock on device '%s': %s", device_name, pa_cstrerror(-k));
-        goto fail;
+        if (k == -EBUSY) {
+            pa_log_error("Device '%s' already locked.", device_name);
+            goto fail;
+        } else {
+            pa_log_warn("Failed to acquire reservation lock on device '%s': %s", device_name, pa_cstrerror(-k));
+            return r;
+        }
     }
 
     pa_log_debug("Successfully acquired reservation lock on device '%s'", device_name);
