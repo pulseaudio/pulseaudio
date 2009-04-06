@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-04-05 08:27+0000\n"
-"PO-Revision-Date: 2009-04-06 15:19+0530\n"
+"PO-Revision-Date: 2009-04-06 17:25+0530\n"
 "Last-Translator: Sweta Kothari <swkothar@redhat.com>\n"
 "Language-Team: Gujarati\n"
 "MIME-Version: 1.0\n"
@@ -69,6 +69,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_avail() કિંમતને પાછુ મળેલ છે કે જે અપવાદ રીતે વિશાળ છે: %lu bytes (%lu "
+"ms).\n"
+"ALSA ડ્રાઇવર '%s' માં મોટેભાગે આ ભૂલ જેવુ છે. ALSA ડેવલ્પરોમાં આ સમસ્યાને મહેરબાની કરીને "
+"અહેવાલ કરો."
 
 #: ../src/modules/alsa/alsa-util.c:1649
 #, c-format
@@ -78,6 +82,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_delay() કિંમતને પાછુ મળેલ છે કે જે અપવાદ રીતે વિશાળ છે: %li bytes (%s%"
+"lu ms).\n"
+"ALSA ડ્રાઇવર '%s' માં મોટેભાગે આ ભૂલ જેવુ છે. ALSA ડેવલ્પરોમાં આ સમસ્યાને મહેરબાની કરીને "
+"અહેવાલ કરો."
 
 #: ../src/modules/alsa/alsa-util.c:1695
 #, c-format
@@ -87,6 +95,9 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_mmap_begin() કિંમતને પાછુ મળેલ છે કે જે અપવાદ રીતે વિશાળ છે: %lu બાઇટો (%lu ms).\n"
+"ALSA ડ્રાઇવર '%s' માં મોટેભાગે આ ભૂલ જેવુ છે. ALSA ડેવલ્પરોમાં આ સમસ્યાને મહેરબાની કરીને "
+"અહેવાલ કરો."
 
 #: ../src/pulsecore/sink.c:2061
 msgid "Internal Audio"
@@ -218,11 +229,11 @@ msgstr "UID ને બદલવામાં નિષ્ફળ: %s"
 
 #: ../src/daemon/main.c:262
 msgid "Successfully dropped root privileges."
-msgstr ""
+msgstr "સફળતાપૂર્વક છોડી દીધેલ રુટ અધિકારો."
 
 #: ../src/daemon/main.c:270
 msgid "System wide mode unsupported on this platform."
-msgstr ""
+msgstr "આ પ્લેટફોર્મ પર બિનઆધારભૂત સિસ્ટમ વિશાળ સ્થિતિ."
 
 #: ../src/daemon/main.c:288
 #, c-format
@@ -236,12 +247,12 @@ msgstr "આદેશ વાક્યને પદચ્છેદન કરવા
 #: ../src/daemon/main.c:486
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
-msgstr ""
+msgstr "આપણે જૂથ '%s' માં છીએ, high-priority ગોઠવવાની પરવાનગી આપી રહ્યા છે."
 
 #: ../src/daemon/main.c:493
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
-msgstr ""
+msgstr "આપણે જૂથ '%s' માં છીએ, સાચા સમયે ગોઠવવાની પરવાનગી આપી રહ્યા છે."
 
 #: ../src/daemon/main.c:501
 msgid "PolicyKit grants us acquire-high-priority privilege."
