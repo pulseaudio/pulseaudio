@@ -138,7 +138,7 @@ double pa_sw_volume_to_dB(pa_volume_t v) {
 
 pa_volume_t pa_sw_volume_from_linear(double v) {
 
-    if (v <= 0)
+    if (v <= 0.0)
         return PA_VOLUME_MUTED;
 
     if (v > .999 && v < 1.001)
@@ -150,7 +150,7 @@ pa_volume_t pa_sw_volume_from_linear(double v) {
 double pa_sw_volume_to_linear(pa_volume_t v) {
 
     if (v == PA_VOLUME_MUTED)
-        return 0;
+        return 0.0;
 
     return pow(10.0, pa_sw_volume_to_dB(v)/20.0);
 }
