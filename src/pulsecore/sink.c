@@ -1071,7 +1071,7 @@ void pa_sink_propagate_flat_volume(pa_sink *s, const pa_cvolume *old_volume) {
      * sink input volumes accordingly */
 
     for (i = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); i; i = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx))) {
-        pa_cvolume remapped_old_volume, remapped_new_volume, fixed_volume;
+        pa_cvolume remapped_old_volume, remapped_new_volume, new_virtual_volume;
         unsigned c;
 
         /* This basically calculates i->virtual_volume := i->virtual_volume * s->virtual_volume / old_volume */
@@ -1084,18 +1084,18 @@ void pa_sink_propagate_flat_volume(pa_sink *s, const pa_cvolume *old_volume) {
 
         for (c = 0; c < i->sample_spec.channels; c++)
 
-            if (remapped_old_volume.values[c] == PA_VOLUME_MUTED)
-                fixed_volume.values[c] = remapped_new_volume.values[c];
+            if (remapped_old_volume.values[c] <= PA_VOLUME_MUTED)
+                new_virtual_volume.values[c] = remapped_new_volume.values[c];
             else
-                fixed_volume.values[c] = (pa_volume_t)
-                    ((uint64_t) i->virtual_volume.values[c] *
-                     (uint64_t) remapped_new_volume.values[c] /
-                     (uint64_t) remapped_old_volume.values[c]);
+                new_virtual_volume.values[c] = pa_sw_volume_from_linear(
+                        pa_sw_volume_to_linear(i->virtual_volume.values[c]) *
+                        pa_sw_volume_to_linear(remapped_new_volume.values[c]) /
+                        pa_sw_volume_to_linear(remapped_old_volume.values[c]));
 
-        fixed_volume.channels = i->virtual_volume.channels;
+        new_virtual_volume.channels = i->sample_spec.channels;
 
-        if (!pa_cvolume_equal(&fixed_volume, &i->virtual_volume)) {
-            i->virtual_volume = fixed_volume;
+        if (!pa_cvolume_equal(&new_virtual_volume, &i->virtual_volume)) {
+            i->virtual_volume = new_virtual_volume;
 
             /* The virtual volume changed, let's tell people so */
             pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
