@@ -3,14 +3,14 @@
 # This file is distributed under the same license as the pulseaudio package.
 #
 # Igor Miletic (Igor Miletić) <grejigl-gnomeprevod@yahoo.ca>, 2009.
-# Igor Miletic (Igor Miletić) <grejigl-gnomeprevod@yahoo.ca>, 2009.
+# Miloš Komarčević <kmilos@gmail.com>, 2009.
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-04-05 08:27+0000\n"
-"PO-Revision-Date: 2009-04-05 18:59-0400\n"
-"Last-Translator: Igor Miletic (Igor Miletić) <grejigl-gnomeprevod@yahoo.ca>\n"
+"PO-Revision-Date: 2009-04-07 23:02+0100\n"
+"Last-Translator: Miloš Komarčević <kmilos@gmail.com>\n"
 "Language-Team: Serbian <fedora-trans-sr@redhat.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -289,7 +289,7 @@ msgid ""
 "appropriate PolicyKit privileges, or become a member of '%s', or increase "
 "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 msgstr ""
-"SUID root i svtarnovremensko i/ili visokoprioritetno raspoređivanje je "
+"SUID root i stvarnovremensko i/ili visokoprioritetno raspoređivanje je "
 "zahtevano u podešavanjima. Međutim, nemamo potrebna ovlašćenja:\n"
 "nismo u grupi „%s“, PolicyKit odbija da nam dȃ tražena ovlašćenja i  nemamo "
 "sredstava za povećanje RLIMIT_NICE/RLIMIT_RTPRIO ograničenja.\n"
@@ -312,7 +312,7 @@ msgstr "Uspešno povećano RLIMIT_RTPRIO ograničenje"
 #: ../src/daemon/main.c:598
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
-msgstr "Nuespešno postavljanje RLIMIT_RTPRIO-a:%s"
+msgstr "Neuspešno postavljanje RLIMIT_RTPRIO-a:%s"
 
 #: ../src/daemon/main.c:605
 msgid "Giving up CAP_NICE"
@@ -922,7 +922,7 @@ msgstr "Prednji desni"
 
 #: ../src/pulse/channelmap.c:109
 msgid "Rear Center"
-msgstr "Pozadisnki centralni"
+msgstr "Pozadinski centralni"
 
 #: ../src/pulse/channelmap.c:110
 msgid "Rear Left"
@@ -1314,7 +1314,7 @@ msgstr "Tok uspešno napravljen.\n"
 #: ../src/utils/pacat.c:172
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s\n"
-msgstr "Nuespešno pa_stream_get_buffer_attr(): %s\n"
+msgstr "Neuspešno pa_stream_get_buffer_attr(): %s\n"
 
 #: ../src/utils/pacat.c:176
 #, c-format
@@ -1885,7 +1885,7 @@ msgstr ""
 "Modul #%u\n"
 "\tIme: %s\n"
 "\tParametar: %s\n"
-"\tBrojač koriščenja: %s\n"
+"\tBrojač korišćenja: %s\n"
 "\tSvojstva:\n"
 "\t\t%s\n"
 
@@ -2449,7 +2449,7 @@ msgstr "Isključeno"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1834
 msgid "High Fidelity Playback (A2DP)"
-msgstr "Rerpodukcija visoke tačnosti (A2DP)"
+msgstr "Reprodukcija visoke tačnosti (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1849
 msgid "Telephony Duplex (HSP/HFP)"
