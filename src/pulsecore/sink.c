@@ -984,6 +984,36 @@ pa_usec_t pa_sink_get_latency_within_thread(pa_sink *s) {
     return usec;
 }
 
+static void compute_new_soft_volume(pa_sink_input *i, const pa_cvolume *new_volume) {
+    unsigned c;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert(new_volume->channels == i->sample_spec.channels);
+
+    /* This basically calculates i->soft_volume := i->virtual_volume / new_volume * i->volume_factor */
+
+    /* The new sink volume passed in here must already be remapped to
+     * the sink input's channel map! */
+
+    for (c = 0; c < i->sample_spec.channels; c++)
+
+        if (new_volume->values[c] <= PA_VOLUME_MUTED)
+            i->soft_volume.values[c] = PA_VOLUME_MUTED;
+        else
+            i->soft_volume.values[c] = pa_sw_volume_from_linear(
+                    pa_sw_volume_to_linear(i->virtual_volume.values[c]) *
+                    pa_sw_volume_to_linear(i->volume_factor.values[c]) /
+                    pa_sw_volume_to_linear(new_volume->values[c]));
+
+    i->soft_volume.channels = i->sample_spec.channels;
+
+    /* Hooks have the ability to play games with i->soft_volume */
+    pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_SET_VOLUME], i);
+
+    /* We don't copy the soft_volume to the thread_info data
+     * here. That must be done by the caller */
+}
+
 /* Called from main thread */
 void pa_sink_update_flat_volume(pa_sink *s, pa_cvolume *new_volume) {
     pa_sink_input *i;
@@ -998,7 +1028,7 @@ void pa_sink_update_flat_volume(pa_sink *s, pa_cvolume *new_volume) {
      * might need to fix up the sink volume accordingly. Please note
      * that we don't actually update the sinks volume here, we only
      * return how it needs to be updated. The caller should then call
-     * pa_sink_set_flat_volume().*/
+     * pa_sink_set_volume().*/
 
     if (pa_idxset_isempty(s->inputs)) {
         /* In the special case that we have no sink input we leave the
@@ -1027,32 +1057,16 @@ void pa_sink_update_flat_volume(pa_sink *s, pa_cvolume *new_volume) {
      * to this sink */
     for (i = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); i; i = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx))) {
         pa_cvolume remapped_new_volume;
-        unsigned c;
-
-        /* This basically calculates i->soft_volume := i->virtual_volume / new_volume * i->volume_factor */
 
         remapped_new_volume = *new_volume;
         pa_cvolume_remap(&remapped_new_volume, &s->channel_map, &i->channel_map);
+        compute_new_soft_volume(i, &remapped_new_volume);
 
-        for (c = 0; c < i->sample_spec.channels; c++)
-
-            if (remapped_new_volume.values[c] <= PA_VOLUME_MUTED)
-                i->soft_volume.values[c] = PA_VOLUME_MUTED;
-            else
-                i->soft_volume.values[c] = pa_sw_volume_from_linear(
-                        pa_sw_volume_to_linear(i->virtual_volume.values[c]) *
-                        pa_sw_volume_to_linear(i->volume_factor.values[c]) /
-                        pa_sw_volume_to_linear(remapped_new_volume.values[c]));
-
-        i->soft_volume.channels = i->sample_spec.channels;
-
-        /* Hooks have the ability to play games with i->soft_volume */
-        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_INPUT_SET_VOLUME], i);
-
-        /* We don't issue PA_SINK_INPUT_MESSAGE_SET_VOLUME because
-         * we want the update to have atomically with the sink
-         * volume update, hence we do it within the
-         * pa_sink_set_flat_volume() call below */
+        /* We don't copy soft_volume to the thread_info data here
+         * (i.e. issue PA_SINK_INPUT_MESSAGE_SET_VOLUME) because we
+         * want the update to be atomically with the sink volume
+         * update, hence we do it within the pa_sink_set_volume() call
+         * below */
     }
 }
 
@@ -1097,10 +1111,21 @@ void pa_sink_propagate_flat_volume(pa_sink *s, const pa_cvolume *old_volume) {
         if (!pa_cvolume_equal(&new_virtual_volume, &i->virtual_volume)) {
             i->virtual_volume = new_virtual_volume;
 
+            /* Hmm, the soft volume might no longer actually match
+             * what has been chosen as new virtual volume here,
+             * especially when the old volume was
+             * PA_VOLUME_MUTED. Hence let's recalculate the soft
+             * volumes here. */
+            compute_new_soft_volume(i, &remapped_new_volume);
+
             /* The virtual volume changed, let's tell people so */
             pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
         }
     }
+
+    /* If the soft_volume of any of the sink inputs got changed, let's
+     * make sure the thread copies are synced up. */
+    pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SYNC_VOLUMES, NULL, 0, NULL) == 0);
 }
 
 /* Called from main thread */
@@ -1580,9 +1605,13 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 pa_sink_request_rewind(s, (size_t) -1);
             }
 
-            if (s->flags & PA_SINK_FLAT_VOLUME)
-                sync_input_volumes_within_thread(s);
+            if (!(s->flags & PA_SINK_FLAT_VOLUME))
+                return 0;
 
+            /* Fall through ... */
+
+        case PA_SINK_MESSAGE_SYNC_VOLUMES:
+            sync_input_volumes_within_thread(s);
             return 0;
 
         case PA_SINK_MESSAGE_GET_VOLUME:
