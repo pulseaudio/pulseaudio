@@ -424,7 +424,9 @@ int pa_stream_disconnect(pa_stream *s);
  * is not copied. If NULL, the data is copied into an internal
  * buffer. The client my freely seek around in the output buffer. For
  * most applications passing 0 and PA_SEEK_RELATIVE as arguments for
- * offset and seek should be useful.*/
+ * offset and seek should be useful. Afte ther write call succeeded
+ * the write index will be a the position after where this chunk of
+ * data has been written to. */
 int pa_stream_write(
         pa_stream *p             /**< The stream to use */,
         const void *data         /**< The data to write */,
@@ -551,37 +553,63 @@ pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_succe
 
 /** Return the current playback/recording time. This is based on the
  * data in the timing info structure returned by
- * pa_stream_get_timing_info(). This function will usually only return
- * new data if a timing info update has been recieved. Only if timing
- * interpolation has been requested (PA_STREAM_INTERPOLATE_TIMING)
- * the data from the last timing update is used for an estimation of
- * the current playback/recording time based on the local time that
- * passed since the timing info structure has been acquired. The time
- * value returned by this function is guaranteed to increase
- * monotonically. (that means: the returned value is always greater or
- * equal to the value returned on the last call) This behaviour can
- * be disabled by using PA_STREAM_NOT_MONOTONIC. This may be
+ * pa_stream_get_timing_info().
+ *
+ * This function will usually only return new data if a timing info
+ * update has been recieved. Only if timing interpolation has been
+ * requested (PA_STREAM_INTERPOLATE_TIMING) the data from the last
+ * timing update is used for an estimation of the current
+ * playback/recording time based on the local time that passed since
+ * the timing info structure has been acquired.
+ *
+ * The time value returned by this function is guaranteed to increase
+ * monotonically.  (that means: the returned value is always greater
+ * or equal to the value returned on the last call). This behaviour
+ * can be disabled by using PA_STREAM_NOT_MONOTONIC. This may be
  * desirable to deal better with bad estimations of transport
  * latencies, but may have strange effects if the application is not
- * able to deal with time going 'backwards'. */
+ * able to deal with time going 'backwards'.
+ *
+ * The time interpolator activated by PA_STREAM_INTERPOLATE_TIMING
+ * favours 'smooth' time graphs over accurate ones to improve the
+ * smoothness of UI operations that are tied to the audio clock. If
+ * accuracy is more important to you you might need to estimate your
+ * timing based on the data from pa_stream_get_timing_info() yourself
+ * or not work with interpolated timing at all and instead always
+ * query on the server side for the most up to date timing with
+ * pa_stream_update_timing_info().
+ *
+ * If no timing information has been
+ * recieved yet this call will return PA_ERR_NODATA. For more details
+ * see pa_stream_get_timing_info(). */
 int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec);
 
 /** Return the total stream latency. This function is based on
- * pa_stream_get_time(). In case the stream is a monitoring stream the
- * result can be negative, i.e. the captured samples are not yet
- * played. In this case *negative is set to 1. */
+ * pa_stream_get_time().
+ *
+ * In case the stream is a monitoring stream the result can be
+ * negative, i.e. the captured samples are not yet played. In this
+ * case *negative is set to 1.
+ *
+ * If no timing information has been recieved yet this call will
+ * return PA_ERR_NODATA. For more details see
+ * pa_stream_get_timing_info() and pa_stream_get_time(). */
 int pa_stream_get_latency(pa_stream *s, pa_usec_t *r_usec, int *negative);
 
 /** Return the latest raw timing data structure. The returned pointer
  * points to an internal read-only instance of the timing
  * structure. The user should make a copy of this structure if he
  * wants to modify it. An in-place update to this data structure may
- * be requested using pa_stream_update_timing_info(). If no
- * pa_stream_update_timing_info() call was issued before, this
- * function will fail with PA_ERR_NODATA. Please note that the
- * write_index member field (and only this field) is updated on each
- * pa_stream_write() call, not just when a timing update has been
- * recieved. */
+ * be requested using pa_stream_update_timing_info().
+ *
+ * If no timing information has been received before (i.e. by
+ * requesting pa_stream_update_timing_info() or by using
+ * PA_STREAM_AUTO_TIMING_UPDATE), this function will fail with
+ * PA_ERR_NODATA.
+ *
+ * Please note that the write_index member field (and only this field)
+ * is updated on each pa_stream_write() call, not just when a timing
+ * update has been recieved. */
 const pa_timing_info* pa_stream_get_timing_info(pa_stream *s);
 
 /** Return a pointer to the stream's sample specification. */
