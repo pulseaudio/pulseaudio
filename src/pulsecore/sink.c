@@ -1027,13 +1027,24 @@ void pa_sink_update_flat_volume(pa_sink *s, pa_cvolume *new_volume) {
      * to this sink */
     for (i = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); i; i = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx))) {
         pa_cvolume remapped_new_volume;
+        unsigned c;
 
         /* This basically calculates i->soft_volume := i->virtual_volume / new_volume * i->volume_factor */
 
         remapped_new_volume = *new_volume;
         pa_cvolume_remap(&remapped_new_volume, &s->channel_map, &i->channel_map);
-        pa_sw_cvolume_divide(&i->soft_volume, &i->virtual_volume, &remapped_new_volume);
-        pa_sw_cvolume_multiply(&i->soft_volume, &i->soft_volume, &i->volume_factor);
+
+        for (c = 0; c < i->sample_spec.channels; c++)
+
+            if (remapped_new_volume.values[c] <= PA_VOLUME_MUTED)
+                i->soft_volume.values[c] = PA_VOLUME_MUTED;
+            else
+                i->soft_volume.values[c] = pa_sw_volume_from_linear(
+                        pa_sw_volume_to_linear(i->virtual_volume.values[c]) *
+                        pa_sw_volume_to_linear(i->volume_factor.values[c]) /
+                        pa_sw_volume_to_linear(remapped_new_volume.values[c]));
+
+        i->soft_volume.channels = i->sample_spec.channels;
 
         /* Hooks have the ability to play games with i->soft_volume */
         pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_INPUT_SET_VOLUME], i);
