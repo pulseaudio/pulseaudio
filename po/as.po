@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.pulseaudio.as\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-04-05 08:27+0000\n"
-"PO-Revision-Date: 2009-04-07 21:49+0530\n"
+"PO-Revision-Date: 2009-04-08 12:35+0530\n"
 "Last-Translator: Amitakhya Phukan <aphukan@fedoraproject.org>\n"
 "Language-Team: Assamese <fedora-trans-as@redhat.com>\n"
 "MIME-Version: 1.0\n"
@@ -34,31 +34,31 @@ msgstr "Digital Stereo (HDMI)"
 
 #: ../src/modules/alsa/alsa-util.c:555
 msgid "Analog Surround 4.0"
-msgstr "Analog Surround 4.0"
+msgstr "Analog ছাৰাউণ্ড 4.০"
 
 #: ../src/modules/alsa/alsa-util.c:562
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr "Digital Surround 4.0 (IEC958/AC3)"
+msgstr "Digital ছাৰাউণ্ড 4.০ (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-util.c:570
 msgid "Analog Surround 4.1"
-msgstr "Analog Surround 4.1"
+msgstr "Analog ছাৰাউণ্ড 4.1"
 
 #: ../src/modules/alsa/alsa-util.c:578
 msgid "Analog Surround 5.0"
-msgstr "Analog Surround 5.0"
+msgstr "Analog ছাৰাউণ্ড 5.০"
 
 #: ../src/modules/alsa/alsa-util.c:586
 msgid "Analog Surround 5.1"
-msgstr "Analog Surround 5.1"
+msgstr "Analog ছাৰাউণ্ড 5.1"
 
 #: ../src/modules/alsa/alsa-util.c:594
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr "Digital Surround 5.1 (IEC958/AC3)"
+msgstr "Digital ছাৰাউণ্ড 5.1 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-util.c:603
 msgid "Analog Surround 7.1"
-msgstr "Analog Surround 7.1"
+msgstr "Analog ছাৰাউণ্ড 7.1"
 
 #: ../src/modules/alsa/alsa-util.c:1609
 #, c-format
@@ -294,220 +294,232 @@ msgstr ""
 msgid ""
 "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr ""
+"বিন্যাস দ্বাৰা high-priority scheduling ৰ সক্ৰিয় হ'লেও নিয়মনীতি দ্বাৰা সেইটো "
+"অনুমোদিত নহয় ।"
 
 #: ../src/daemon/main.c:595
 msgid "Successfully increased RLIMIT_RTPRIO"
-msgstr ""
+msgstr "RLIMIT_RTPRIO সফলতাৰে বৃদ্ধি কৰা হৈছে"
 
 #: ../src/daemon/main.c:598
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
-msgstr ""
+msgstr "RLIMIT_RTPRIO বিফল: %s"
 
 #: ../src/daemon/main.c:605
 msgid "Giving up CAP_NICE"
-msgstr ""
+msgstr "CAP_NICE বৰ্জন কৰা হৈছে"
 
 #: ../src/daemon/main.c:612
 msgid ""
 "Real-time scheduling enabled in configuration but not allowed by policy."
 msgstr ""
+"বিন্যাস দ্বাৰা real-time scheduling ৰ সক্ৰিয় হ'লেও নিয়মনীতি দ্বাৰা সেইটো "
+"অনুমোদিত নহয় ।"
 
 #: ../src/daemon/main.c:673
 msgid "Daemon not running"
-msgstr ""
+msgstr "ডেমন নাই চলা"
 
 #: ../src/daemon/main.c:675
 #, c-format
 msgid "Daemon running as PID %u"
-msgstr ""
+msgstr "PID %u ৰূপে ডেমন চলিছে"
 
 #: ../src/daemon/main.c:685
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr ""
+msgstr "ডেমন kill কৰিবলৈ ব্যৰ্থ: %s"
 
 #: ../src/daemon/main.c:703
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
 msgstr ""
+"root পৰিচয়ে এই প্ৰোগ্ৰাম সঞ্চালিত হোৱা উচিত নহয় (ন'হ'লে --system উল্লিখিত "
+"হয়) ।"
 
 #: ../src/daemon/main.c:705
 msgid "Root privileges required."
-msgstr ""
+msgstr "Root-ৰ অধিকাৰ আৱশ্যক ।"
 
 #: ../src/daemon/main.c:710
 msgid "--start not supported for system instances."
-msgstr ""
+msgstr "প্ৰণালী চানেকিৰ ক্ষেত্ৰত --start সমৰ্থিত নহয় ।"
 
 #: ../src/daemon/main.c:715
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr ""
+msgstr "প্ৰণালী মোডত চলিছে, কিন্তু --disallow-exit নিৰ্ধাৰিত নহয়!"
 
 #: ../src/daemon/main.c:718
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr ""
+msgstr "প্ৰণালী মোডত চলিছে, কিন্তু --disallow-module-loading নিৰ্ধাৰিত নহয়!"
 
 #: ../src/daemon/main.c:721
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr ""
+msgstr "প্ৰণালী মোডত চলিছে, SHM মোড বলপূৰ্বক নিষ্ক্ৰিয় কৰা হৈছে!"
 
 #: ../src/daemon/main.c:726
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
+"প্ৰণালী মোডত চলিছে, কাম নকৰা সময়ৰ পৰা প্ৰস্থান কৰা বলপূৰ্বক নিষ্ক্ৰিয় কৰা "
+"হৈছে!"
 
 #: ../src/daemon/main.c:753
 msgid "Failed to acquire stdio."
-msgstr ""
+msgstr "stdio প্ৰাপ্ত কৰিবলৈ ব্যৰ্থ ।"
 
 #: ../src/daemon/main.c:759
 #, c-format
 msgid "pipe failed: %s"
-msgstr ""
+msgstr "pipe বিফল: %s"
 
 #: ../src/daemon/main.c:764
 #, c-format
 msgid "fork() failed: %s"
-msgstr ""
+msgstr "fork() বিফল: %s"
 
 #: ../src/daemon/main.c:778
 #, c-format
 msgid "read() failed: %s"
-msgstr ""
+msgstr "read() বিফল: %s"
 
 #: ../src/daemon/main.c:784
 msgid "Daemon startup failed."
-msgstr ""
+msgstr "ডেমন আৰম্ভ কৰিবলৈ বিফল ।"
 
 #: ../src/daemon/main.c:786
 msgid "Daemon startup successful."
-msgstr ""
+msgstr "সফলতাৰে ডেমন আৰম্ভ কৰা হৈছে ।"
 
 #: ../src/daemon/main.c:856
 #, c-format
 msgid "This is PulseAudio %s"
-msgstr ""
+msgstr "এইটো PulseAudio %s"
 
 #: ../src/daemon/main.c:857
 #, c-format
 msgid "Compilation host: %s"
-msgstr ""
+msgstr "সঙ্কলনৰ গৃহস্থ: %s"
 
 #: ../src/daemon/main.c:858
 #, c-format
 msgid "Compilation CFLAGS: %s"
-msgstr ""
+msgstr "সঙ্কলনৰ CFLAGS: %s"
 
 #: ../src/daemon/main.c:861
 #, c-format
 msgid "Running on host: %s"
-msgstr ""
+msgstr "গৃহস্থত চলোৱা হৈছে: %s"
 
 #: ../src/daemon/main.c:864
 #, c-format
 msgid "Found %u CPUs."
-msgstr ""
+msgstr "%u CPU পোৱা গৈছে ।"
 
 #: ../src/daemon/main.c:866
 #, c-format
 msgid "Page size is %lu bytes"
-msgstr ""
+msgstr "পেজৰ মাপ %lu bytes"
 
 #: ../src/daemon/main.c:869
 msgid "Compiled with Valgrind support: yes"
-msgstr ""
+msgstr "Valgrind সমৰ্থনৰ সৈতে সঙ্কলন কৰা হৈছে: হয়"
 
 #: ../src/daemon/main.c:871
 msgid "Compiled with Valgrind support: no"
-msgstr ""
+msgstr "Valgrind সমৰ্থনৰ সৈতে সঙ্কলন কৰা হৈছে: নহয়"
 
 #: ../src/daemon/main.c:874
 #, c-format
 msgid "Running in valgrind mode: %s"
-msgstr ""
+msgstr "valgrind মোডত চলিছে: %s"
 
 #: ../src/daemon/main.c:877
 msgid "Optimized build: yes"
-msgstr ""
+msgstr "Optimized build: হয়"
 
 #: ../src/daemon/main.c:879
 msgid "Optimized build: no"
-msgstr ""
+msgstr "Optimized build: নহয়"
 
 #: ../src/daemon/main.c:883
 msgid "NDEBUG defined, all asserts disabled."
-msgstr ""
+msgstr "NDEBUG ব্যাখ্যা কৰা হৈছে, সকলো asserts নিষ্ক্ৰিয় কৰা হৈছে ।"
 
 #: ../src/daemon/main.c:885
 msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr ""
+msgstr "FASTPATH ব্যাখ্যা কৰা হৈছে, অকল fast path asserts নিষ্ক্ৰিয় কৰা হৈছে ।"
 
 #: ../src/daemon/main.c:887
 msgid "All asserts enabled."
-msgstr ""
+msgstr "সকলো asserts সক্ৰিয় কৰা হৈছে ।"
 
 #: ../src/daemon/main.c:891
 msgid "Failed to get machine ID"
-msgstr ""
+msgstr "যন্ত্ৰ ID প্ৰাপ্ত কৰিবলৈ ব্যৰ্থ"
 
 #: ../src/daemon/main.c:894
 #, c-format
 msgid "Machine ID is %s."
-msgstr ""
+msgstr "যন্ত্ৰ ID হ'ল %s ।"
 
 #: ../src/daemon/main.c:899
 #, c-format
 msgid "Using runtime directory %s."
-msgstr ""
+msgstr "ৰান-টাইম পঞ্জিকা %s ব্যৱহাৰ কৰা হৈছে ।"
 
 #: ../src/daemon/main.c:904
 #, c-format
 msgid "Using state directory %s."
-msgstr ""
+msgstr "অৱস্থাসূচক পঞ্জিকা %s ব্যৱহাৰ কৰা হৈছে ।"
 
 #: ../src/daemon/main.c:907
 #, c-format
 msgid "Running in system mode: %s"
-msgstr ""
+msgstr "প্ৰণালী মোডত চলিছে: %s"
 
 #: ../src/daemon/main.c:922
 msgid "pa_pid_file_create() failed."
-msgstr ""
+msgstr "pa_pid_file_create() ব্যৰ্থ ।"
 
 #: ../src/daemon/main.c:934
 msgid "Fresh high-resolution timers available! Bon appetit!"
-msgstr ""
+msgstr "নতুন high-resolution timers পোৱা হয়! অভিনন্দন!"
 
 #: ../src/daemon/main.c:936
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 msgstr ""
+"শ্ৰীমান, আপোনাৰ কাৰ্ণেল পূৰণি! high-resolution timer সক্ৰিয় থকা Linux ক আজি "
+"উপদেশ দিয়া হয়!"
 
 #: ../src/daemon/main.c:948
 msgid "pa_core_new() failed."
-msgstr ""
+msgstr "pa_core_new() ব্যৰ্থ ।"
 
 #: ../src/daemon/main.c:1010
 msgid "Failed to initialize daemon."
-msgstr ""
+msgstr "ডেমন আৰম্ভ কৰিবলৈ ব্যৰ্থ ।"
 
 #: ../src/daemon/main.c:1015
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
+"তুলি লোৱা মডিউল নোহোৱাকে ডেমন আৰম্ভ কৰা হৈছে, কোনো কাম সঞ্চালন কৰা সম্ভৱ নহয় "
+"।"
 
 #: ../src/daemon/main.c:1032
 msgid "Daemon startup complete."
-msgstr ""
+msgstr "ডেমন আৰম্ভ কৰা সম্পূৰ্ণ ।"
 
 #: ../src/daemon/main.c:1038
 msgid "Daemon shutdown initiated."
-msgstr ""
+msgstr "ডেমন বন্ধ কৰাৰ প্ৰক্ৰিয়া আৰম্ভ কৰা হৈছে ।"
 
 #: ../src/daemon/main.c:1056
 msgid "Daemon terminated."
-msgstr ""
+msgstr "ডেমন বন্ধ কৰা হৈছে ।"
 
 #: ../src/daemon/cmdline.c:121
 #, c-format
@@ -654,244 +666,247 @@ msgstr ""
 
 #: ../src/daemon/cmdline.c:252
 msgid "--daemonize expects boolean argument"
-msgstr ""
+msgstr "--daemonize দ্বাৰা বুলিয়েন তৰ্ক প্ৰত্যাশিত"
 
 #: ../src/daemon/cmdline.c:259
 msgid "--fail expects boolean argument"
-msgstr ""
+msgstr "--fail দ্বাৰা বুলিয়েন তৰ্ক প্ৰত্যাশিত"
 
 #: ../src/daemon/cmdline.c:269
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
 msgstr ""
+"--log-level ৰ কাৰণে লগ স্তৰৰ তৰ্ক প্ৰত্যাশিত (হয় সংখ্যা ০..৪ ৰ সীমাত বা "
+"debug, info, notice, warn, error ৰ যিকোনো এটা) ।"
 
 #: ../src/daemon/cmdline.c:281
 msgid "--high-priority expects boolean argument"
-msgstr ""
+msgstr "--high-priority দ্বাৰা বুলিয়েন তৰ্ক প্ৰত্যাশিত"
 
 #: ../src/daemon/cmdline.c:288
 msgid "--realtime expects boolean argument"
-msgstr ""
+msgstr "--realtime দ্বাৰা বুলিয়েন তৰ্ক প্ৰত্যাশিত"
 
 #: ../src/daemon/cmdline.c:295
 msgid "--disallow-module-loading expects boolean argument"
-msgstr ""
+msgstr "--disallow-module-loading দ্বাৰা বুলিয়েন তৰ্ক প্ৰত্যাশিত"
 
 #: ../src/daemon/cmdline.c:302
 msgid "--disallow-exit expects boolean argument"
-msgstr ""
+msgstr "--disallow-exit দ্বাৰা বুলিয়েন তৰ্ক প্ৰত্যাশিত"
 
 #: ../src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
-msgstr ""
+msgstr "--use-pid-file দ্বাৰা বুলিয়েন তৰ্ক প্ৰত্যাশিত"
 
 #: ../src/daemon/cmdline.c:326
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
-msgstr ""
+msgstr "অবৈধ লগ লক্ষ্য: 'syslog', 'stderr' বা 'auto' ৰ এটা ব্যৱহাৰ কৰক"
 
 #: ../src/daemon/cmdline.c:333
 msgid "--log-time expects boolean argument"
-msgstr ""
+msgstr "--log-time দ্বাৰা বুলিয়েন তৰ্ক প্ৰত্যাশিত"
 
 #: ../src/daemon/cmdline.c:340
 msgid "--log-meta expects boolean argument"
-msgstr ""
+msgstr "--log-meta দ্বাৰা বুলিয়েন তৰ্ক প্ৰত্যাশিত"
 
 #: ../src/daemon/cmdline.c:359
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr ""
+msgstr "resample পদ্ধতি '%s' বৈধ নহয় ।"
 
 #: ../src/daemon/cmdline.c:366
 msgid "--system expects boolean argument"
-msgstr ""
+msgstr "--system দ্বাৰা বুলিয়েন তৰ্ক প্ৰত্যাশিত"
 
 #: ../src/daemon/cmdline.c:373
 msgid "--no-cpu-limit expects boolean argument"
-msgstr ""
+msgstr "--no-cpu-limit দ্বাৰা বুলিয়েন তৰ্ক প্ৰত্যাশিত"
 
 #: ../src/daemon/cmdline.c:380
 msgid "--disable-shm expects boolean argument"
-msgstr ""
+msgstr "--disable-shm দ্বাৰা বুলিয়েন তৰ্ক প্ৰত্যাশিত"
 
-#: ../src/daemon/dumpmodules.c:60
-#, c-format
+#: ../src/daemon/dumpmodules.c:60, c-format
 msgid "Name: %s\n"
-msgstr ""
+msgstr "নাম: %s\n"
 
 #: ../src/daemon/dumpmodules.c:63
 #, c-format
 msgid "No module information available\n"
-msgstr ""
+msgstr "মডিউল সংক্ৰান্ত কোনো তথ্য উপলব্ধ নাই\n"
 
 #: ../src/daemon/dumpmodules.c:66
 #, c-format
 msgid "Version: %s\n"
-msgstr ""
+msgstr "সংস্কৰণ: %s\n"
 
 #: ../src/daemon/dumpmodules.c:68
 #, c-format
 msgid "Description: %s\n"
-msgstr ""
+msgstr "বিৱৰণ: %s\n"
 
 #: ../src/daemon/dumpmodules.c:70
 #, c-format
 msgid "Author: %s\n"
-msgstr ""
+msgstr "নিৰ্মাতা: %s\n"
 
-#: ../src/daemon/dumpmodules.c:72
-#, c-format
+#: ../src/daemon/dumpmodules.c:72, c-format
 msgid "Usage: %s\n"
-msgstr ""
+msgstr "ব্যৱহাৰ পদ্ধতি: %s\n"
 
 #: ../src/daemon/dumpmodules.c:73
 #, c-format
 msgid "Load Once: %s\n"
-msgstr ""
+msgstr "এবাৰ তুলি লোৱা হ'ব: %s\n"
 
 #: ../src/daemon/dumpmodules.c:77
 #, c-format
 msgid "Path: %s\n"
-msgstr ""
+msgstr "পাথ: %s\n"
 
 #: ../src/daemon/daemon-conf.c:215
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr ""
+msgstr "[%s:%u] লগ লক্ষ্য '%s' বৈধ নহয় ।"
 
 #: ../src/daemon/daemon-conf.c:231
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
-msgstr ""
+msgstr "[%s:%u] লগৰ স্তৰ '%s' বৈধ নহয় ।"
 
 #: ../src/daemon/daemon-conf.c:247
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr ""
+msgstr "[%s:%u] resample পদ্ধতি '%s' বৈধ নহয় ।"
 
 #: ../src/daemon/daemon-conf.c:270
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
-msgstr ""
+msgstr "[%s:%u] rlimit '%s' বৈধ নহয় ।"
 
 #: ../src/daemon/daemon-conf.c:277
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
-msgstr ""
+msgstr "[%s:%u] এই স্থাপত্যত rlimit সমৰ্থিত নহয় ।"
 
 #: ../src/daemon/daemon-conf.c:293
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
-msgstr ""
+msgstr "[%s:%u] চানেকিৰ বিন্যাস '%s' বৈধ নহয় ।"
 
 #: ../src/daemon/daemon-conf.c:311
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr ""
+msgstr "[%s:%u] চানেকিৰ মাত্ৰা '%s' বৈধ নহয় ।"
 
 #: ../src/daemon/daemon-conf.c:335
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
-msgstr ""
+msgstr "[%s:%u] চানেকিৰ চেনেল '%s' বৈধ নহয়"
 
 #: ../src/daemon/daemon-conf.c:353
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr ""
+msgstr "[%s:%u] চেনেল মেপ '%s' বৈধ নহয় ।"
 
 #: ../src/daemon/daemon-conf.c:371
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr ""
+msgstr "[%s:%u] অংশৰ সংখ্যা '%s' বৈধ নহয় ।"
 
 #: ../src/daemon/daemon-conf.c:389
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr ""
+msgstr "[%s:%u] অংশৰ মাপ '%s' বৈধ নহয় ।"
 
 #: ../src/daemon/daemon-conf.c:407
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr ""
+msgstr "[%s:%u] nice স্তৰ '%s' বৈধ নহয় ।"
 
 #: ../src/daemon/daemon-conf.c:522
 #, c-format
 msgid "Failed to open configuration file: %s"
-msgstr ""
+msgstr "বিন্যাস নথিপত্ৰ খুলিবলৈ ব্যৰ্থ: %s"
 
 #: ../src/daemon/daemon-conf.c:538
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
 msgstr ""
+"নিৰ্ধাৰিত অবিকল্পিত চেনেল মেপত নিৰ্ধাৰিত অবিকল্পিত চেনেলৰ সংখ্যাতকে বেলেগ "
+"সংখ্যক চেনেল আছে ।"
 
 #: ../src/daemon/daemon-conf.c:616
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
-msgstr ""
+msgstr "### চিহ্নিত বিন্যাস নথিপত্ৰৰ পৰা পঢ়া হ'ব: %s ###\n"
 
 #: ../src/daemon/caps.c:63
 msgid "Dropping root privileges."
-msgstr ""
+msgstr "root-ৰ অধিকাৰ বৰ্জন কৰা হৈছে ।"
 
 #: ../src/daemon/caps.c:103
 msgid "Limited capabilities successfully to CAP_SYS_NICE."
-msgstr ""
+msgstr "CAP_SYS_NICE লৈ কাৰ্য্যক্ষমতা সফলভাবে সীমিত কৰা হ'ল ।"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
-msgstr ""
+msgstr "PulseAudio শব্দ ব্যৱস্থা"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
-msgstr ""
+msgstr "PulseAudio শব্দ ব্যৱস্থা আৰম্ভ কৰা হ'ব"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:1
 msgid ""
 "High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
 msgstr ""
+"PulseAudio ডেমনৰ কাৰণে High-priority scheduling (ঋণাত্মক Unix nice স্তৰ)"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:2
 msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr ""
+msgstr "PulseAudio ডেমনৰ কাৰণে Real-time scheduling"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:3
 msgid ""
 "System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr ""
+msgstr "প্ৰণালীৰ নীতিয়ে PulseAudio ক high-priority scheduling পাবলৈ নিদিয়ে ।"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:4
 msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr ""
+msgstr "প্ৰণালীৰ নীতিয়ে PulseAudio ক real-time scheduling পাবলৈ নিদিয়ে ।"
 
 #: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:804
 msgid "Mono"
-msgstr "Mono"
+msgstr "মোনো"
 
 #: ../src/pulse/channelmap.c:105
 msgid "Front Center"
-msgstr "Front Center"
+msgstr "সন্মুখত কেন্দ্ৰস্থিত"
 
 #: ../src/pulse/channelmap.c:106
 msgid "Front Left"
-msgstr "Front Left"
+msgstr "সন্মুখত কেন্দ্ৰস্থিত"
 
 #: ../src/pulse/channelmap.c:107
 msgid "Front Right"
-msgstr "Front Right"
+msgstr "সন্মুখত বাওঁফালে"
 
 #: ../src/pulse/channelmap.c:109
 msgid "Rear Center"
-msgstr "Rear Center"
+msgstr "পিছত কেন্দ্ৰস্থিত"
 
 #: ../src/pulse/channelmap.c:110
 msgid "Rear Left"
-msgstr "Rear Left"
+msgstr "পিছত বাওঁফালে"
 
 #: ../src/pulse/channelmap.c:111
 msgid "Rear Right"
-msgstr "Rear Right"
+msgstr "পিছত সোঁফালে"
 
 #: ../src/pulse/channelmap.c:113
 msgid "Low Frequency Emmiter"
@@ -899,175 +914,175 @@ msgstr "Low Frequency Emmiter"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Front Left-of-center"
-msgstr "Front Left-of-center"
+msgstr "সন্মুখত কেন্দ্ৰৰ-বাওঁফালে"
 
 #: ../src/pulse/channelmap.c:116
 msgid "Front Right-of-center"
-msgstr "Front Right-of-center"
+msgstr "সন্মুখত কেন্দ্ৰৰ-সোঁফালে"
 
 #: ../src/pulse/channelmap.c:118
 msgid "Side Left"
-msgstr "Side Left"
+msgstr "কাষত বাওঁফালে"
 
 #: ../src/pulse/channelmap.c:119
 msgid "Side Right"
-msgstr "Side Right"
+msgstr "কাষত সোঁফালে"
 
 #: ../src/pulse/channelmap.c:121
 msgid "Auxiliary 0"
-msgstr "Auxiliary 0"
+msgstr "অ'ক্সিলেৰি ০"
 
 #: ../src/pulse/channelmap.c:122
 msgid "Auxiliary 1"
-msgstr "Auxiliary 1"
+msgstr "অ'ক্সিলেৰি ০"
 
 #: ../src/pulse/channelmap.c:123
 msgid "Auxiliary 2"
-msgstr "Auxiliary 2"
+msgstr "অ'ক্সিলেৰি ১"
 
 #: ../src/pulse/channelmap.c:124
 msgid "Auxiliary 3"
-msgstr "Auxiliary 3"
+msgstr "অ'ক্সিলেৰি ৩"
 
 #: ../src/pulse/channelmap.c:125
 msgid "Auxiliary 4"
-msgstr "Auxiliary 4"
+msgstr "অ'ক্সিলেৰি ৪"
 
 #: ../src/pulse/channelmap.c:126
 msgid "Auxiliary 5"
-msgstr "Auxiliary 5"
+msgstr "অ'ক্সিলেৰি ৪"
 
 #: ../src/pulse/channelmap.c:127
 msgid "Auxiliary 6"
-msgstr "Auxiliary 6"
+msgstr "অ'ক্সিলেৰি ৬"
 
 #: ../src/pulse/channelmap.c:128
 msgid "Auxiliary 7"
-msgstr "Auxiliary 7"
+msgstr "অ'ক্সিলেৰি ৭"
 
 #: ../src/pulse/channelmap.c:129
 msgid "Auxiliary 8"
-msgstr "Auxiliary 8"
+msgstr "অ'ক্সিলেৰি ৮"
 
 #: ../src/pulse/channelmap.c:130
 msgid "Auxiliary 9"
-msgstr "Auxiliary 9"
+msgstr "অ'ক্সিলেৰি ৯"
 
 #: ../src/pulse/channelmap.c:131
 msgid "Auxiliary 10"
-msgstr "Auxiliary 10"
+msgstr "অ'ক্সিলেৰি ১০"
 
 #: ../src/pulse/channelmap.c:132
 msgid "Auxiliary 11"
-msgstr "Auxiliary 11"
+msgstr "অ'ক্সিলেৰি ১১"
 
 #: ../src/pulse/channelmap.c:133
 msgid "Auxiliary 12"
-msgstr "Auxiliary 12"
+msgstr "অ'ক্সিলেৰি ১২"
 
 #: ../src/pulse/channelmap.c:134
 msgid "Auxiliary 13"
-msgstr "Auxiliary 13"
+msgstr "অ'ক্সিলেৰি ১৩"
 
 #: ../src/pulse/channelmap.c:135
 msgid "Auxiliary 14"
-msgstr "Auxiliary 14"
+msgstr "অ'ক্সিলেৰি ১৪"
 
 #: ../src/pulse/channelmap.c:136
 msgid "Auxiliary 15"
-msgstr "Auxiliary 15"
+msgstr "অ'ক্সিলেৰি ১৫"
 
 #: ../src/pulse/channelmap.c:137
 msgid "Auxiliary 16"
-msgstr "Auxiliary 16"
+msgstr "অ'ক্সিলেৰি ১৬"
 
 #: ../src/pulse/channelmap.c:138
 msgid "Auxiliary 17"
-msgstr "Auxiliary 17"
+msgstr "অ'ক্সিলেৰি ১৭"
 
 #: ../src/pulse/channelmap.c:139
 msgid "Auxiliary 18"
-msgstr "Auxiliary 18"
+msgstr "অ'ক্সিলেৰি ১৮"
 
 #: ../src/pulse/channelmap.c:140
 msgid "Auxiliary 19"
-msgstr "Auxiliary 19"
+msgstr "অ'ক্সিলেৰি ১৯"
 
 #: ../src/pulse/channelmap.c:141
 msgid "Auxiliary 20"
-msgstr "Auxiliary 20"
+msgstr "অ'ক্সিলেৰি ২০"
 
 #: ../src/pulse/channelmap.c:142
 msgid "Auxiliary 21"
-msgstr "Auxiliary 21"
+msgstr "অ'ক্সিলেৰি ২১"
 
 #: ../src/pulse/channelmap.c:143
 msgid "Auxiliary 22"
-msgstr "Auxiliary 22"
+msgstr "অ'ক্সিলেৰি ২২"
 
 #: ../src/pulse/channelmap.c:144
 msgid "Auxiliary 23"
-msgstr "Auxiliary 23"
+msgstr "অ'ক্সিলেৰি ২৩"
 
 #: ../src/pulse/channelmap.c:145
 msgid "Auxiliary 24"
-msgstr "Auxiliary 24"
+msgstr "অ'ক্সিলেৰি ২৪"
 
 #: ../src/pulse/channelmap.c:146
 msgid "Auxiliary 25"
-msgstr "Auxiliary 25"
+msgstr "অ'ক্সিলেৰি ২৫"
 
 #: ../src/pulse/channelmap.c:147
 msgid "Auxiliary 26"
-msgstr "Auxiliary 26"
+msgstr "অ'ক্সিলেৰি ২৬"
 
 #: ../src/pulse/channelmap.c:148
 msgid "Auxiliary 27"
-msgstr "Auxiliary 27"
+msgstr "অ'ক্সিলেৰি ২৭"
 
 #: ../src/pulse/channelmap.c:149
 msgid "Auxiliary 28"
-msgstr "Auxiliary 28"
+msgstr "অ'ক্সিলেৰি ২৮"
 
 #: ../src/pulse/channelmap.c:150
 msgid "Auxiliary 29"
-msgstr "Auxiliary 29"
+msgstr "অ'ক্সিলেৰি ২৯"
 
 #: ../src/pulse/channelmap.c:151
 msgid "Auxiliary 30"
-msgstr "Auxiliary 30"
+msgstr "অ'ক্সিলেৰি ৩০"
 
 #: ../src/pulse/channelmap.c:152
 msgid "Auxiliary 31"
-msgstr "Auxiliary 31"
+msgstr "অ'ক্সিলেৰি ৩১"
 
 #: ../src/pulse/channelmap.c:154
 msgid "Top Center"
-msgstr "Top Center"
+msgstr "ওপৰত কেন্দ্ৰস্থিত"
 
 #: ../src/pulse/channelmap.c:156
 msgid "Top Front Center"
-msgstr "Top Front Center"
+msgstr "ওপৰত সন্মুখত কেন্দ্ৰস্থিত"
 
 #: ../src/pulse/channelmap.c:157
 msgid "Top Front Left"
-msgstr "Top Front Left"
+msgstr "ওপৰত সন্মুখত বাওঁফালে"
 
 #: ../src/pulse/channelmap.c:158
 msgid "Top Front Right"
-msgstr "Top Front Right"
+msgstr "ওপৰত সন্মুখত বাওঁফালে"
 
 #: ../src/pulse/channelmap.c:160
 msgid "Top Rear Center"
-msgstr "Top Rear Center"
+msgstr "ওপৰত পিছত কেন্দ্ৰস্থিত"
 
 #: ../src/pulse/channelmap.c:161
 msgid "Top Rear Left"
-msgstr "Top Rear Left"
+msgstr "ওপৰত পিছত বাওঁফালে"
 
 #: ../src/pulse/channelmap.c:162
 msgid "Top Rear Right"
-msgstr "Top Rear Right"
+msgstr "ওপৰত পিছত সোঁফালে"
 
 #: ../src/pulse/channelmap.c:476 ../src/pulse/sample.c:167
 #: ../src/pulse/volume.c:170 ../src/pulse/volume.c:196
@@ -1077,127 +1092,127 @@ msgstr "(অবৈধ)"
 
 #: ../src/pulse/channelmap.c:808
 msgid "Stereo"
-msgstr "Stereo"
+msgstr "স্টিৰিও"
 
 #: ../src/pulse/channelmap.c:813
 msgid "Surround 4.0"
-msgstr "Surround 4.0"
+msgstr "ছাৰাউণ্ড ৪.০"
 
 #: ../src/pulse/channelmap.c:819
 msgid "Surround 4.1"
-msgstr "Surround 4.1"
+msgstr "ছাৰাউণ্ড ৪.১"
 
 #: ../src/pulse/channelmap.c:825
 msgid "Surround 5.0"
-msgstr "Surround 5.0"
+msgstr "ছাৰাউণ্ড ৫.০"
 
 #: ../src/pulse/channelmap.c:831
 msgid "Surround 5.1"
-msgstr "Surround 5.1"
+msgstr "ছাৰাউণ্ড ৫.১"
 
 #: ../src/pulse/channelmap.c:838
 msgid "Surround 7.1"
-msgstr "Surround 7.1"
+msgstr "ছাৰাউণ্ড ৭.১"
 
 #: ../src/pulse/error.c:43
 msgid "OK"
-msgstr ""
+msgstr "ঠিক আছে"
 
 #: ../src/pulse/error.c:44
 msgid "Access denied"
-msgstr ""
+msgstr "ব্যৱহাৰৰ অধিকাৰ প্ৰত্যাখ্যাত"
 
 #: ../src/pulse/error.c:45
 msgid "Unknown command"
-msgstr ""
+msgstr "অজ্ঞাত নিৰ্দেশ"
 
 #: ../src/pulse/error.c:46
 msgid "Invalid argument"
-msgstr ""
+msgstr "অবৈধ তৰ্ক"
 
 #: ../src/pulse/error.c:47
 msgid "Entity exists"
-msgstr ""
+msgstr "পদাৰ্থ উপস্থিত"
 
 #: ../src/pulse/error.c:48
 msgid "No such entity"
-msgstr ""
+msgstr "এই ধৰনৰ কোনো পদাৰ্থ উপস্থিত নাই"
 
 #: ../src/pulse/error.c:49
 msgid "Connection refused"
-msgstr ""
+msgstr "সংযোগ নাকচ কৰা হৈছে"
 
 #: ../src/pulse/error.c:50
 msgid "Protocol error"
-msgstr ""
+msgstr "প্ৰোটোকল সংক্ৰান্ত ত্ৰুটি"
 
 #: ../src/pulse/error.c:51
 msgid "Timeout"
-msgstr ""
+msgstr "সময়সীমা"
 
 #: ../src/pulse/error.c:52
 msgid "No authorization key"
-msgstr ""
+msgstr "কোনো অনুমোদনৰ-কি নাই"
 
 #: ../src/pulse/error.c:53
 msgid "Internal error"
-msgstr ""
+msgstr "অভ্যন্তৰীণ ত্ৰুটি"
 
 #: ../src/pulse/error.c:54
 msgid "Connection terminated"
-msgstr ""
+msgstr "সংযোগ বন্ধ কৰা হৈছে"
 
 #: ../src/pulse/error.c:55
 msgid "Entity killed"
-msgstr ""
+msgstr "পদাৰ্থ kill কৰা হৈছে"
 
 #: ../src/pulse/error.c:56
 msgid "Invalid server"
-msgstr ""
+msgstr "সেৱক বৈধ নহয়"
 
 #: ../src/pulse/error.c:57
 msgid "Module initalization failed"
-msgstr ""
+msgstr "মডিউল আৰম্ভ কৰিবলৈ ব্যৰ্থ"
 
 #: ../src/pulse/error.c:58
 msgid "Bad state"
-msgstr ""
+msgstr "অৱস্থা সঠিক নহয়"
 
 #: ../src/pulse/error.c:59
 msgid "No data"
-msgstr ""
+msgstr "তথ্য অনুপস্থিত "
 
 #: ../src/pulse/error.c:60
 msgid "Incompatible protocol version"
-msgstr ""
+msgstr "বিসঙ্গতিপূৰ্ণ প্ৰটকল সংস্কৰণ"
 
 #: ../src/pulse/error.c:61
 msgid "Too large"
-msgstr ""
+msgstr "অত্যাধিক বড়"
 
 #: ../src/pulse/error.c:62
 msgid "Not supported"
-msgstr ""
+msgstr "সমৰ্থন কৰা নহয়"
 
 #: ../src/pulse/error.c:63
 msgid "Unknown error code"
-msgstr ""
+msgstr "অজানা ত্ৰুটিৰ কোড"
 
 #: ../src/pulse/error.c:64
 msgid "No such extension"
-msgstr ""
+msgstr "এই ধৰনৰ কোনো এক্সটেনশন নাই"
 
 #: ../src/pulse/error.c:65
 msgid "Obsolete functionality"
-msgstr ""
+msgstr "অবচিত বৈশিষ্ট্য"
 
 #: ../src/pulse/error.c:66
 msgid "Missing implementation"
-msgstr ""
+msgstr "অনুপস্থিত বাস্তবায়ন"
 
 #: ../src/pulse/error.c:67
 msgid "Client forked"
-msgstr ""
+msgstr "গ্ৰাহক ফৰ্ক কৰা হৈছে"
 
 #: ../src/pulse/sample.c:169
 #, c-format
@@ -1226,20 +1241,20 @@ msgstr "%u B"
 
 #: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
 msgid "XOpenDisplay() failed"
-msgstr ""
+msgstr "XOpenDisplay() ব্যৰ্থ"
 
 #: ../src/pulse/client-conf-x11.c:78
 msgid "Failed to parse cookie data"
-msgstr ""
+msgstr "কুকিৰ তথ্য বিশ্লেষণ কৰিবলৈ ব্যৰ্থ"
 
 #: ../src/pulse/client-conf.c:120
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
-msgstr ""
+msgstr "বিন্যাস নথিপত্ৰ '%s' খুলিবলৈ ব্যৰ্থ: %s"
 
 #: ../src/pulse/context.c:539
 msgid "No cookie loaded. Attempting to connect without."
-msgstr ""
+msgstr "কোনো কুকি তুলি লোৱা নহয় । কুকি নোহোৱাকে সংযোগৰ প্ৰচেষ্টা কৰা হৈছে ।"
 
 #: ../src/pulse/context.c:669
 #, c-format
@@ -1254,172 +1269,172 @@ msgstr "waitpid(): %s"
 #: ../src/pulse/context.c:1387
 #, c-format
 msgid "Received message for unknown extension '%s'"
-msgstr ""
+msgstr "অজানা এক্সটেনশন '%s'-ৰ বাবে বাৰ্তা প্ৰাপ্ত হৈছে"
 
 #: ../src/utils/pacat.c:94
 #, c-format
 msgid "pa_stream_write() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_write() ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pacat.c:133
 #, c-format
 msgid "pa_stream_peek() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_peek() ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pacat.c:169
 #, c-format
 msgid "Stream successfully created.\n"
-msgstr ""
+msgstr "সফলতাৰে স্ট্ৰিম নিৰ্মিত হৈছে ।\n"
 
 #: ../src/utils/pacat.c:172
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_get_buffer_attr() ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pacat.c:176
 #, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
-msgstr ""
+msgstr "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
 
 #: ../src/utils/pacat.c:179
 #, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u\n"
-msgstr ""
+msgstr "Buffer metrics: maxlength=%u, fragsize=%u\n"
 
 #: ../src/utils/pacat.c:183
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'.\n"
-msgstr ""
+msgstr "চানেকি spec '%s', চেনেল মেপ '%s'প্ৰয়োগ কৰা হৈছে\n"
 
 #: ../src/utils/pacat.c:187
 #, c-format
 msgid "Connected to device %s (%u, %ssuspended).\n"
-msgstr ""
+msgstr "যন্ত্ৰ %s-ৰ সৈতে সংযোগ কৰা হৈছে (%u, %ssuspended) ।\n"
 
 #: ../src/utils/pacat.c:197
 #, c-format
 msgid "Stream error: %s\n"
-msgstr ""
+msgstr "ষ্ট্ৰিম সংক্ৰান্ত ত্ৰুটি: %s\n"
 
 #: ../src/utils/pacat.c:207
 #, c-format
 msgid "Stream device suspended.%s \n"
-msgstr ""
+msgstr "স্ট্ৰিম যন্ত্ৰ স্থগিত কৰা হৈছে । %s \n"
 
 #: ../src/utils/pacat.c:209
 #, c-format
 msgid "Stream device resumed.%s \n"
-msgstr ""
+msgstr "স্ট্ৰিম যন্ত্ৰ পুনৰাৰম্ভ কৰা হৈছে । %s \n"
 
 #: ../src/utils/pacat.c:217
 #, c-format
 msgid "Stream underrun.%s \n"
-msgstr ""
+msgstr "ষ্ট্ৰিম underrun: %s\n"
 
 #: ../src/utils/pacat.c:224
 #, c-format
 msgid "Stream overrun.%s \n"
-msgstr ""
+msgstr "ষ্ট্ৰিম overrun: %s\n"
 
 #: ../src/utils/pacat.c:231
 #, c-format
 msgid "Stream started.%s \n"
-msgstr ""
+msgstr "স্ট্ৰিম আৰম্ভ কৰা হৈছে । %s \n"
 
 #: ../src/utils/pacat.c:238
 #, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s \n"
-msgstr ""
+msgstr "%s যন্ত্ৰলৈ স্ট্ৰিম স্থানান্তৰ কৰা হৈছে (%u, %ssuspended) ।%s \n"
 
 #: ../src/utils/pacat.c:238
 msgid "not "
-msgstr ""
+msgstr "not "
 
 #: ../src/utils/pacat.c:245
 #, c-format
 msgid "Stream buffer attributes changed.%s \n"
-msgstr ""
+msgstr "স্ট্ৰিম প্ৰশমকৰ গুণ পৰিবৰ্তিত হৈছে । %s \n"
 
 #: ../src/utils/pacat.c:278
 #, c-format
 msgid "Connection established.%s \n"
-msgstr ""
+msgstr "সংযোগ স্থাপিত হৈছে ।%s \n"
 
 #: ../src/utils/pacat.c:281
 #, c-format
 msgid "pa_stream_new() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_new() ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pacat.c:309
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_connect_playback() ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pacat.c:315
 #, c-format
 msgid "pa_stream_connect_record() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_connect_record() ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pacat.c:329 ../src/utils/pasuspender.c:159
 #: ../src/utils/pactl.c:762 ../src/utils/paplay.c:183
 #, c-format
 msgid "Connection failure: %s\n"
-msgstr ""
+msgstr "<b>সংযোগৰ মোড</b>: %s<br>\n"
 
 #: ../src/utils/pacat.c:349 ../src/utils/paplay.c:75
 #, c-format
 msgid "Failed to drain stream: %s\n"
-msgstr ""
+msgstr "স্ট্ৰিম drain কৰিবলৈ ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pacat.c:354 ../src/utils/paplay.c:80
 #, c-format
 msgid "Playback stream drained.\n"
-msgstr ""
+msgstr "প্লেবেক স্ট্ৰিমক drain কৰা হ'ল ।\n"
 
 #: ../src/utils/pacat.c:364 ../src/utils/paplay.c:92
 #, c-format
 msgid "Draining connection to server.\n"
-msgstr ""
+msgstr "সেৱকৰ সৈতে সংযোগ Drain কৰা হৈছে ।\n"
 
 #: ../src/utils/pacat.c:390
 #, c-format
 msgid "Got EOF.\n"
-msgstr ""
+msgstr "EOF পোৱা গ'ল ।\n"
 
 #: ../src/utils/pacat.c:396
 #, c-format
 msgid "pa_stream_drain(): %s\n"
-msgstr ""
+msgstr "pa_stream_drain(): %s\n"
 
 #: ../src/utils/pacat.c:406
 #, c-format
 msgid "read() failed: %s\n"
-msgstr ""
+msgstr "read() ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pacat.c:438
 #, c-format
 msgid "write() failed: %s\n"
-msgstr ""
+msgstr "write() ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pacat.c:459
 #, c-format
 msgid "Got signal, exiting.\n"
-msgstr ""
+msgstr "চিগ্নেল পোৱা গ'ল, প্ৰস্থান কৰা হৈছে ।\n"
 
 #: ../src/utils/pacat.c:473
 #, c-format
 msgid "Failed to get latency: %s\n"
-msgstr ""
+msgstr "latency পাবলৈ ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pacat.c:478
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
-msgstr ""
+msgstr "সময়: %0.3f sec; Latency: %0.0f usec.  \r"
 
 #: ../src/utils/pacat.c:498
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s\n"
-msgstr ""
+msgstr "pa_stream_update_timing_info() ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pacat.c:511
 #, c-format
@@ -1473,6 +1488,54 @@ msgid ""
 "      --process-time=BYTES              Request the specified process time "
 "per request in bytes.\n"
 msgstr ""
+"%s [options]\n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -r, --record                          Create a connection for recording\n"
+"  -p, --playback                        Create a connection for playback\n"
+"\n"
+"  -v, --verbose                         Enable verbose operations\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -d, --device=DEVICE                   The name of the sink/source to "
+"connect to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
+"44100)\n"
+"      --format=SAMPLEFORMAT             The sample type, one of s16le, "
+"s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be "
+"(defaults to s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, "
+"2 for stereo\n"
+"                                        (defaults to 2)\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the "
+"default\n"
+"      --fix-format                      Take the sample format from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-rate                        Take the sampling rate from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-channels                    Take the number of channels and the "
+"channel map\n"
+"                                        from the sink the stream is being "
+"connected to.\n"
+"      --no-remix                        Don't upmix or downmix channels.\n"
+"      --no-remap                        Map channels by index instead of "
+"name.\n"
+"      --latency=BYTES                   Request the specified latency in "
+"bytes.\n"
+"      --process-time=BYTES              Request the specified process time "
+"per request in bytes.\n"
 
 #: ../src/utils/pacat.c:612
 #, c-format
@@ -1481,129 +1544,132 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pacat %s\n"
+"libpulse ৰ সৈতে সঙ্কলন কৰা হৈছে %s\n"
+"libpulse ৰ সৈতে যুক্ত %s\n"
 
 #: ../src/utils/pacat.c:669
 #, c-format
 msgid "Invalid channel map '%s'\n"
-msgstr ""
+msgstr "চেনেল মেপ '%s' বৈধ নহয়\n"
 
 #: ../src/utils/pacat.c:698
 #, c-format
 msgid "Invalid latency specification '%s'\n"
-msgstr ""
+msgstr "অবৈধ latency নিৰ্ধাৰণ '%s'\n"
 
 #: ../src/utils/pacat.c:705
 #, c-format
 msgid "Invalid process time specification '%s'\n"
-msgstr ""
+msgstr "অবৈধ প্ৰক্ৰিয়াৰ সময়ৰ নিৰ্ধাৰণ '%s'\n"
 
 #: ../src/utils/pacat.c:716
 #, c-format
 msgid "Invalid sample specification\n"
-msgstr ""
+msgstr "অবৈধ চানেকি নিৰ্ধাৰিত\n"
 
 #: ../src/utils/pacat.c:721
 #, c-format
 msgid "Channel map doesn't match sample specification\n"
-msgstr ""
+msgstr "চেনেল মেপ আৰু নথিপত্ৰ অমিল ।\n"
 
 #: ../src/utils/pacat.c:728
 #, c-format
 msgid "Opening a %s stream with sample specification '%s'.\n"
-msgstr ""
+msgstr "এটা %s স্ট্ৰিম চানেকি নিৰ্ধাৰণ '%s' ৰ সৈতে খোলা হৈছে ।\n"
 
 #: ../src/utils/pacat.c:728
 msgid "recording"
-msgstr ""
+msgstr "ৰেকৰ্ড কৰা হৈছে"
 
 #: ../src/utils/pacat.c:728
 msgid "playback"
-msgstr ""
+msgstr "প্লে-বেক"
 
 #: ../src/utils/pacat.c:736
 #, c-format
 msgid "open(): %s\n"
-msgstr ""
+msgstr "open(): %s\n"
 
 #: ../src/utils/pacat.c:741
 #, c-format
 msgid "dup2(): %s\n"
-msgstr ""
+msgstr "dup2(): %s\n"
 
 #: ../src/utils/pacat.c:751
 #, c-format
 msgid "Too many arguments.\n"
-msgstr ""
+msgstr "অত্যাধিক তৰ্ক ।\n"
 
 #: ../src/utils/pacat.c:764 ../src/utils/pasuspender.c:280
 #: ../src/utils/pactl.c:1017 ../src/utils/paplay.c:381
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
-msgstr ""
+msgstr "pa_mainloop_new() ব্যৰ্থ ।\n"
 
 #: ../src/utils/pacat.c:785
 #, c-format
 msgid "io_new() failed.\n"
-msgstr ""
+msgstr "io_new() ব্যৰ্থ ।\n"
 
 #: ../src/utils/pacat.c:791 ../src/utils/pasuspender.c:293
 #: ../src/utils/pactl.c:1031 ../src/utils/paplay.c:396
 #, c-format
 msgid "pa_context_new() failed.\n"
-msgstr ""
+msgstr "pa_context_new() ব্যৰ্থ ।\n"
 
 #: ../src/utils/pacat.c:799 ../src/utils/pactl.c:1037
 #: ../src/utils/paplay.c:404
 #, c-format
 msgid "pa_context_connect() failed: %s"
-msgstr ""
+msgstr "pa_context_connect() ব্যৰ্থ: %s"
 
 #: ../src/utils/pacat.c:810
 #, c-format
 msgid "time_new() failed.\n"
-msgstr ""
+msgstr "time_new() ব্যৰ্থ ।\n"
 
 #: ../src/utils/pacat.c:817 ../src/utils/pasuspender.c:301
 #: ../src/utils/pactl.c:1042 ../src/utils/paplay.c:410
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
-msgstr ""
+msgstr "pa_mainloop_run() ব্যৰ্থ ।\n"
 
 #: ../src/utils/pasuspender.c:81
 #, c-format
 msgid "fork(): %s\n"
-msgstr ""
+msgstr "fork(): %s\n"
 
 #: ../src/utils/pasuspender.c:92
 #, c-format
 msgid "execvp(): %s\n"
-msgstr ""
+msgstr "execvp(): %s\n"
 
 #: ../src/utils/pasuspender.c:109
 #, c-format
 msgid "Failure to suspend: %s\n"
-msgstr ""
+msgstr "স্থগিত কৰিবলৈ ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pasuspender.c:124
 #, c-format
 msgid "Failure to resume: %s\n"
-msgstr ""
+msgstr "পুনৰাৰম্ভ কৰিবলৈ ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pasuspender.c:147
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
-msgstr ""
+msgstr "সতৰ্কবাৰ্তা: ধ্বনি সেৱক স্থানীয় নহয়, স্থগিত কৰা নহয় ।\n"
 
 #: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:768
 #: ../src/utils/paplay.c:191
 #, c-format
 msgid "Got SIGINT, exiting.\n"
-msgstr ""
+msgstr "SIGINT প্ৰাপ্ত হৈছে, প্ৰস্থান কৰা হৈছে ।\n"
 
 #: ../src/utils/pasuspender.c:194
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr ""
+msgstr "সতৰ্কবাৰ্তা: চিগ্নেল %u দ্বাৰা চাইল্ড প্ৰক্ৰিয়া বন্ধ কৰা হৈছে\n"
 
 #: ../src/utils/pasuspender.c:212
 #, c-format
@@ -1616,6 +1682,13 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
+"%s [options] ... \n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"\n"
 
 #: ../src/utils/pasuspender.c:251
 #, c-format
@@ -1624,31 +1697,34 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pasuspender %s\n"
+"libpulse ৰ সৈতে সঙ্কলন কৰা হৈছে %s\n"
+"libpulse ৰ সৈতে যুক্ত %s\n"
 
 #: ../src/utils/pactl.c:108
 #, c-format
 msgid "Failed to get statistics: %s\n"
-msgstr ""
+msgstr "পৰিসংখ্যান পাবলৈ ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pactl.c:114
 #, c-format
 msgid "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr ""
+msgstr "বৰ্ত্তমানে ব্যৱহৃত: %u blocks containing %s bytes total.\n"
 
 #: ../src/utils/pactl.c:117
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr ""
+msgstr "সম্পূৰ্ণ জীৱনকালত বিতৰণ কৰা: %u blocks containing %s bytes total.\n"
 
 #: ../src/utils/pactl.c:120
 #, c-format
 msgid "Sample cache size: %s\n"
-msgstr ""
+msgstr "চানেকি কেশ্বৰ মাপ: %s\n"
 
 #: ../src/utils/pactl.c:129
 #, c-format
 msgid "Failed to get server information: %s\n"
-msgstr ""
+msgstr "সেৱক সংক্ৰান্ত তথ্য প্ৰাপ্ত কৰিবলৈ ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pactl.c:137
 #, c-format
@@ -1663,11 +1739,20 @@ msgid ""
 "Default Source: %s\n"
 "Cookie: %08x\n"
 msgstr ""
+"ব্যৱহাৰকৰ্তাৰ নাম: %s\n"
+"গৃহস্থৰ নাম: %s\n"
+"সেৱকৰ নাম: %s\n"
+"সেৱকৰ সংস্কৰণ: %s\n"
+"চানেকিৰ অবিকল্পিত নিৰ্ধাৰিত মান: %s\n"
+"অবিকল্পিত চেনেল মেপ: %s\n"
+"অবিকল্পিত চিঙ্ক: %s\n"
+"অবিকল্পিত উৎস: %s\n"
+"কুকি: %08x\n"
 
 #: ../src/utils/pactl.c:178
 #, c-format
 msgid "Failed to get sink information: %s\n"
-msgstr ""
+msgstr "চিঙ্ক সংক্ৰান্ত তথ্য প্ৰাপ্ত কৰিবলৈ ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pactl.c:194
 #, c-format
@@ -1690,11 +1775,28 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"চিঙ্ক #%u\n"
+"\tঅৱস্থা: %s\n"
+"\tনাম: %s\n"
+"\tবিৱৰণ: %s\n"
+"\tচালক: %s\n"
+"\tচানেকি নিৰ্ধাৰণ: %s\n"
+"\tচেনেল মাপ: %s\n"
+"\tগৰাকীৰ অংশ: %u\n"
+"\tমিউট: %s\n"
+"\tধ্বনি মাত্ৰা: %s%s%s\n"
+"\t        balance %0.2f\n"
+"\tBase ধ্বনি: %s%s%s\n"
+"\tমণিটৰ উৎস: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tফ্লেগ: %s%s%s%s%s%s\n"
+"\tগুণ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:258
 #, c-format
 msgid "Failed to get source information: %s\n"
-msgstr ""
+msgstr "উৎস সংক্ৰান্ত তথ্য প্ৰাপ্ত কৰিবলৈ ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pactl.c:274
 #, c-format
@@ -1717,6 +1819,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"উৎস #%u\n"
+"\tঅৱস্থা: %s\n"
+"\tনাম: %s\n"
+"\tবিৱৰণ: %s\n"
+"\tচালক: %s\n"
+"\tচানেকি নিৰ্ধাৰণ: %s\n"
+"\tচেনেল মেপ: %s\n"
+"\tগৰাকীৰ অংশ: %u\n"
+"\tমিউট: %s\n"
+"\tধ্বনিৰ মাত্ৰা: %s%s%s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s%s%s\n"
+"\tচিঙ্কৰ মণিটৰ: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tফ্লেগ: %s%s%s%s%s%s\n"
+"\tগুণ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:306 ../src/utils/pactl.c:350 ../src/utils/pactl.c:385
 #: ../src/utils/pactl.c:422 ../src/utils/pactl.c:481 ../src/utils/pactl.c:482
@@ -1724,12 +1843,12 @@ msgstr ""
 #: ../src/utils/pactl.c:543 ../src/utils/pactl.c:586 ../src/utils/pactl.c:587
 #: ../src/utils/pactl.c:594
 msgid "n/a"
-msgstr ""
+msgstr "n/a"
 
 #: ../src/utils/pactl.c:324
 #, c-format
 msgid "Failed to get module information: %s\n"
-msgstr ""
+msgstr "মডিউল সংক্ৰান্ত তথ্য প্ৰাপ্ত কৰিবলৈ ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pactl.c:342
 #, c-format
@@ -1741,11 +1860,17 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"অংশ #%u\n"
+"\tনাম: %s\n"
+"\tতৰ্ক: %s\n"
+"\tব্যৱহাৰৰ কাউন্টাৰ: %s\n"
+"\tগুণ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:361
 #, c-format
 msgid "Failed to get client information: %s\n"
-msgstr ""
+msgstr "গ্ৰাহক সংক্ৰান্ত তথ্য প্ৰাপ্ত কৰিবলৈ ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pactl.c:379
 #, c-format
@@ -1756,11 +1881,16 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"গ্ৰাহক #%u\n"
+"\tচালক: %s\n"
+"\tগৰাকীৰ অংশ: %s\n"
+"\tগুণ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:396
 #, c-format
 msgid "Failed to get card information: %s\n"
-msgstr ""
+msgstr "কাৰ্ড সংক্ৰান্ত তথ্য প্ৰাপ্ত কৰিবলৈ ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pactl.c:414
 #, c-format
@@ -1772,21 +1902,27 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"কাৰ্ড #%u\n"
+"\tনাম: %s\n"
+"\tচালক: %s\n"
+"\tগৰাকীৰ অংশ: %s\n"
+"\tগুণ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:428
 #, c-format
 msgid "\tProfiles:\n"
-msgstr ""
+msgstr "\tপাৰ্শ্বৰূপ:\n"
 
 #: ../src/utils/pactl.c:434
 #, c-format
 msgid "\tActive Profile: %s\n"
-msgstr ""
+msgstr "\tসক্ৰিয় পাৰ্শ্বৰূপ: %s\n"
 
 #: ../src/utils/pactl.c:445
 #, c-format
 msgid "Failed to get sink input information: %s\n"
-msgstr ""
+msgstr "চিঙ্ক নিবেশ তথ্য প্ৰাপ্ত কৰিবলৈ ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pactl.c:464
 #, c-format
@@ -1808,11 +1944,27 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"চিঙ্ক নিবেশ #%u\n"
+"\tচালক: %s\n"
+"\tগৰাকীৰ অংশ: %s\n"
+"\tগ্ৰাহক: %s\n"
+"\tচিঙ্ক: %u\n"
+"\tচানেকি নিৰ্ধাৰণ: %s\n"
+"\tচেনেল মেপ: %s\n"
+"\tমিউট: %s\n"
+"\tধ্বনি মাত্ৰা: %s\n"
+"\t        %s\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSink Latency: %0.0f usec\n"
+"\tResample ধৰণ: %s\n"
+"\tগুণ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:503
 #, c-format
 msgid "Failed to get source output information: %s\n"
-msgstr ""
+msgstr "উৎস আউটপুট সংক্ৰান্ত তথ্য প্ৰাপ্ত কৰিবলৈ ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pactl.c:523
 #, c-format
@@ -1830,11 +1982,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"উৎসৰ নিৰ্গম #%u\n"
+"\tচালক: %s\n"
+"\tগৰাকীৰ অংশ: %s\n"
+"\tগ্ৰাহক: %s\n"
+"\tউৎস: %u\n"
+"\tচানেকি নিৰ্ধাৰণ: %s\n"
+"\tচেনেল মেপ: %s\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSource Latency: %0.0f usec\n"
+"\tResample ধৰণ: %s\n"
+"\tগুণ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:554
 #, c-format
 msgid "Failed to get sample information: %s\n"
-msgstr ""
+msgstr "চানেকি সংক্ৰান্ত তথ্য প্ৰাপ্ত কৰিবলৈ ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pactl.c:572
 #, c-format
@@ -1853,21 +2017,34 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"চানেকি #%u\n"
+"\tনাম: %s\n"
+"\tচানেকি নিৰ্ধাৰণ: %s\n"
+"\tচেনেল মেপ: %s\n"
+"\tধ্বনি মাত্ৰা: %s\n"
+"\t        %s\n"
+"\t        balance %0.2f\n"
+"\tসময়: %0.1fs\n"
+"\tআকাৰ: %s\n"
+"\tএলেহুৱা: %s\n"
+"\tনথিপত্ৰৰ নাম: %s\n"
+"\tগুণ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:602 ../src/utils/pactl.c:612
 #, c-format
 msgid "Failure: %s\n"
-msgstr ""
+msgstr "ব্যৰ্থতা: %s\n"
 
 #: ../src/utils/pactl.c:636
 #, c-format
 msgid "Failed to upload sample: %s\n"
-msgstr ""
+msgstr "চানেকি আপল'ড ব্যৰ্থ: %s\n"
 
 #: ../src/utils/pactl.c:653
 #, c-format
 msgid "Premature end of file\n"
-msgstr ""
+msgstr "নথিপত্ৰৰ অসময়ত হোৱা সমাপ্তি\n"
 
 #: ../src/utils/pactl.c:774
 #, c-format
@@ -1894,6 +2071,27 @@ msgid ""
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 msgstr ""
+"%s [options] stat\n"
+"%s [options] list\n"
+"%s [options] exit\n"
+"%s [options] upload-sample FILENAME [NAME]\n"
+"%s [options] play-sample NAME [SINK]\n"
+"%s [options] remove-sample NAME\n"
+"%s [options] move-sink-input ID SINK\n"
+"%s [options] move-source-output ID SOURCE\n"
+"%s [options] load-module NAME [ARGS ...]\n"
+"%s [options] unload-module ID\n"
+"%s [options] suspend-sink [SINK] 1|0\n"
+"%s [options] suspend-source [SOURCE] 1|0\n"
+"%s [options] set-card-profile [CARD] [PROFILE] \n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
 
 #: ../src/utils/pactl.c:826
 #, c-format
@@ -1902,46 +2100,49 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pactl %s\n"
+"libpulseৰ সৈতে সঙ্কলন কৰা %s\n"
+"libpulse-ৰ সৈতে যুক্ত %s\n"
 
 #: ../src/utils/pactl.c:865
 #, c-format
 msgid "Please specify a sample file to load\n"
-msgstr ""
+msgstr "তুলি লোৱাৰ উদ্দেশ্যে অনুগ্ৰহ কৰে একটি চানেকি নথিপত্ৰ উল্লেখ কৰুন\n"
 
 #: ../src/utils/pactl.c:887
 #, c-format
 msgid "Failed to open sound file.\n"
-msgstr ""
+msgstr "শব্দেৰ নথিপত্ৰ খুলিবলৈ ব্যৰ্থ ।\n"
 
 #: ../src/utils/pactl.c:899
 #, c-format
 msgid "You have to specify a sample name to play\n"
-msgstr ""
+msgstr "বাজানোৰ উদ্দেশ্যে একটি চানেকি নথিপত্ৰ উল্লেখ কৰা আৱশ্যক\n"
 
 #: ../src/utils/pactl.c:911
 #, c-format
 msgid "You have to specify a sample name to remove\n"
-msgstr ""
+msgstr "আঁতৰাবলৈ এটা চানেকি নাম দিব লাগিব \n"
 
 #: ../src/utils/pactl.c:919
 #, c-format
 msgid "You have to specify a sink input index and a sink\n"
-msgstr ""
+msgstr "চিঙ্ক ইনপুট ইন্ডেক্স আৰু এটা চিঙ্ক নিৰ্ধাৰণ কৰা আৱশ্যক\n"
 
 #: ../src/utils/pactl.c:928
 #, c-format
 msgid "You have to specify a source output index and a source\n"
-msgstr ""
+msgstr "উৎস আউটপুট ইন্ডেক্স আৰু একটি উৎস নিৰ্ধাৰণ কৰা আৱশ্যক\n"
 
 #: ../src/utils/pactl.c:942
 #, c-format
 msgid "You have to specify a module name and arguments.\n"
-msgstr ""
+msgstr "মডিউলৰ নাম আৰু তৰ্ক নিৰ্ধাৰণ কৰা আৱশ্যক\n"
 
 #: ../src/utils/pactl.c:962
 #, c-format
 msgid "You have to specify a module index\n"
-msgstr ""
+msgstr "মডিউল ইন্ডেক্স নিৰ্ধাৰণ কৰা আৱশ্যক\n"
 
 #: ../src/utils/pactl.c:972
 #, c-format
@@ -1949,23 +2150,24 @@ msgid ""
 "You may not specify more than one sink. You have to specify a boolean "
 "value.\n"
 msgstr ""
+"একাধিক চিঙ্ক নিৰ্ধাৰণ কৰা যাবে না । বুলিয়েন মান নিৰ্ধাৰণ কৰা আৱশ্যক ।\n"
 
 #: ../src/utils/pactl.c:985
 #, c-format
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value.\n"
-msgstr ""
+msgstr "একাধিক উৎস নিৰ্ধাৰণ কৰা যাবে না । বুলিয়েন মান নিৰ্ধাৰণ কৰা আৱশ্যক ।\n"
 
 #: ../src/utils/pactl.c:997
 #, c-format
 msgid "You have to specify a card name/index and a profile name\n"
-msgstr ""
+msgstr "কাৰ্ডেৰ নাম/ইন্ডেক্স আৰু একটি পাৰ্শ্বৰূপৰ নাম উল্লেখ কৰা আৱশ্যক\n"
 
 #: ../src/utils/pactl.c:1012
 #, c-format
 msgid "No valid command specified.\n"
-msgstr ""
+msgstr "সঞ্চালনৰ বাবে আদেশ নিৰ্ধাৰিত নহয় ।\n"
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -1978,114 +2180,119 @@ msgid ""
 "variables and cookie file.\n"
 " -r    Remove PulseAudio data from X11 display\n"
 msgstr ""
+"%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n"
+"\n"
+" -d    Show current PulseAudio data attached to X11 display (default)\n"
+" -e    Export local PulseAudio data to X11 display\n"
+" -i    Import PulseAudio data from X11 display to local environment "
+"variables and cookie file.\n"
+" -r    Remove PulseAudio data from X11 display\n"
 
 #: ../src/utils/pax11publish.c:94
 #, c-format
 msgid "Failed to parse command line.\n"
-msgstr ""
+msgstr "আদেশ-শাৰী বিশ্লেষণ কৰিবলৈ ব্যৰ্থ ।\n"
 
 #: ../src/utils/pax11publish.c:108
 #, c-format
 msgid "Server: %s\n"
-msgstr ""
+msgstr "সেৱক: %s\n"
 
 #: ../src/utils/pax11publish.c:110
 #, c-format
 msgid "Source: %s\n"
-msgstr ""
+msgstr "উৎস: %s\n"
 
 #: ../src/utils/pax11publish.c:112
 #, c-format
 msgid "Sink: %s\n"
-msgstr ""
+msgstr "চিঙ্ক: %s\n"
 
 #: ../src/utils/pax11publish.c:114
 #, c-format
 msgid "Cookie: %s\n"
-msgstr ""
+msgstr "কুকি: %s\n"
 
 #: ../src/utils/pax11publish.c:132
 #, c-format
 msgid "Failed to parse cookie data\n"
-msgstr ""
+msgstr "কুকি সংক্ৰান্ত তথ্য বিশ্লেষণ কৰিবলৈ ব্যৰ্থ\n"
 
 #: ../src/utils/pax11publish.c:137
 #, c-format
 msgid "Failed to save cookie data\n"
-msgstr ""
+msgstr "কুকি সংক্ৰান্ত তথ্য সংৰক্ষণ কৰিবলৈ ব্যৰ্থ\n"
 
 #: ../src/utils/pax11publish.c:152
 #, c-format
 msgid "Failed to load client configuration file.\n"
-msgstr ""
+msgstr "গ্ৰাহক বিন্যাস নথিপত্ৰ তুলিবলৈ ব্যৰ্থ ।\n"
 
 #: ../src/utils/pax11publish.c:157
 #, c-format
 msgid "Failed to read environment configuration data.\n"
-msgstr ""
+msgstr "পৰিবেশ বিন্যাস সংক্ৰান্ত তথ্য পঢ়িবলৈ ব্যৰ্থ ।\n"
 
 #: ../src/utils/pax11publish.c:174
 #, c-format
 msgid "Failed to get FQDN.\n"
-msgstr ""
+msgstr "FQDN প্ৰাপ্ত কৰিবলৈ ব্যৰ্থ ।\n"
 
 #: ../src/utils/pax11publish.c:194
 #, c-format
 msgid "Failed to load cookie data\n"
-msgstr ""
+msgstr "কুকি সংক্ৰান্ত তথ্য তুলিবলৈ ব্যৰ্থ\n"
 
 #: ../src/utils/pax11publish.c:211
 #, c-format
 msgid "Not yet implemented.\n"
-msgstr ""
+msgstr "এতিয়াও বাস্তবায়িত নহয় ।\n"
 
 #: ../src/utils/pacmd.c:64
 #, c-format
 msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
-msgstr ""
+msgstr "socket(PF_UNIX, SOCK_STREAM, 0): %s"
 
 #: ../src/utils/pacmd.c:81
 #, c-format
 msgid "connect(): %s"
-msgstr ""
+msgstr "connect(): %s"
 
 #: ../src/utils/pacmd.c:89
 msgid "Failed to kill PulseAudio daemon."
-msgstr ""
+msgstr "PulseAudio ডেমন kill কৰিবলৈ ব্যৰ্থ ।"
 
 #: ../src/utils/pacmd.c:97
 msgid "Daemon not responding."
-msgstr ""
+msgstr "ডেমনৰ পৰা কোনো প্ৰতিক্ৰিয়া পোৱা নাযায় ।"
 
 #: ../src/utils/pacmd.c:144
 #, c-format
 msgid "select(): %s"
-msgstr ""
+msgstr "select(): %s"
 
-#: ../src/utils/pacmd.c:154 ../src/utils/pacmd.c:171
-#, c-format
+#: ../src/utils/pacmd.c:154 ../src/utils/pacmd.c:171, c-format
 msgid "read(): %s"
-msgstr ""
+msgstr "read(): %s"
 
-#: ../src/utils/pacmd.c:187 ../src/utils/pacmd.c:201
-#, c-format
+#: ../src/utils/pacmd.c:187 ../src/utils/pacmd.c:201, c-format
 msgid "write(): %s"
-msgstr ""
+msgstr "write(): %s"
 
 #: ../src/utils/paplay.c:139
 #, c-format
 msgid "Stream successfully created\n"
-msgstr ""
+msgstr "সফলতাৰে স্ট্ৰিম নিৰ্মিত হৈছে\n"
 
 #: ../src/utils/paplay.c:144
 #, c-format
 msgid "Stream errror: %s\n"
-msgstr ""
+msgstr "স্ট্ৰিমৰ ত্ৰুটি: %s\n"
 
 #: ../src/utils/paplay.c:165
 #, c-format
 msgid "Connection established.\n"
-msgstr ""
+msgstr "সংযোগ স্থাপিত ।\n"
 
 #: ../src/utils/paplay.c:198
 #, c-format
@@ -2108,6 +2315,23 @@ msgid ""
 "in range 0...65536\n"
 "      --channel-map=CHANNELMAP          Set the channel map to the use\n"
 msgstr ""
+"%s [options] [FILE]\n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -v, --verbose                         Enable verbose operation\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -d, --device=DEVICE                   The name of the sink to connect to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
+"      --channel-map=CHANNELMAP          Set the channel map to the use\n"
 
 #: ../src/utils/paplay.c:255
 #, c-format
@@ -2116,30 +2340,33 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"paplay %s\n"
+"libpulse ৰ সৈতে সঙ্কলন কৰা হৈছে %s\n"
+"libpulse ৰ সৈতে যুক্ত %s\n"
 
 #: ../src/utils/paplay.c:292
 #, c-format
 msgid "Invalid channel map\n"
-msgstr ""
+msgstr "অবৈধ চেনেল মেপ\n"
 
 #: ../src/utils/paplay.c:314
 #, c-format
 msgid "Failed to open file '%s'\n"
-msgstr ""
+msgstr "'%s' নথিপত্ৰ খুলিবলৈ ব্যৰ্থ\n"
 
 #: ../src/utils/paplay.c:350
 #, c-format
 msgid "Channel map doesn't match file.\n"
-msgstr ""
+msgstr "চেনেল মেপ আৰু নথিপত্ৰ অমিল ।\n"
 
 #: ../src/utils/paplay.c:376
 #, c-format
 msgid "Using sample spec '%s'\n"
-msgstr ""
+msgstr "চানেকি spec '%s' প্ৰয়োগ কৰা হৈছে\n"
 
 #: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
 msgid "Cannot access autospawn lock."
-msgstr ""
+msgstr "autospawn লক প্ৰয়োগ কৰিবলৈ ব্যৰ্থ ।"
 
 #: ../src/modules/alsa/alsa-sink.c:393 ../src/modules/alsa/alsa-sink.c:535
 #, c-format
@@ -2151,6 +2378,11 @@ msgid ""
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
+"ALSA ই আমাক যন্ত্ৰৰ পৰা নতুন তথ্য লিখিবলৈ উথালে, কিন্তু একো লিখিবলৈ নাছিল!\n"
+"অতি সম্ভৱ এইটো ALSA চালক '%s' ৰ এটা বাগ । অনুগ্ৰহ কৰি এই সমস্যা ALSA বিকাশকক "
+"জনাওক ।\n"
+"POLLOUT নিৰ্ধাৰিত হোৱাৰি পিছতো আমি উথিলো -- কিন্তু তাৰ পিছৰ snd_pcm_avail() "
+"এ ০ দিলে বা অন্য এটা মান < min_avail."
 
 #: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:510
 #, c-format
@@ -2162,37 +2394,41 @@ msgid ""
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
+"ALSA ই আমাক যন্ত্ৰৰ পৰা নতুন তথ্য পঢ়িবলৈ উথালে, কিন্তু একো পঢ়িবলৈ নাছিল!\n"
+"অতি সম্ভৱ এইটো ALSA চালক '%s' ৰ এটা বাগ । অনুগ্ৰহ কৰি এই সমস্যা ALSA বিকাশকক "
+"জনাওক ।\n"
+"POLLIN নিৰ্ধাৰিত হোৱাৰি পিছতো আমি উথিলো -- কিন্তু তাৰ পিছৰ snd_pcm_avail() এ "
+"০ দিলে বা অন্য এটা মান < min_avail."
 
 #: ../src/modules/alsa/module-alsa-card.c:114
 #, c-format
 msgid "Output %s + Input %s"
-msgstr ""
+msgstr "নিৰ্গম %s + নিবেশ %s"
 
-#: ../src/modules/alsa/module-alsa-card.c:117
-#, c-format
+#: ../src/modules/alsa/module-alsa-card.c:117, c-format
 msgid "Output %s"
-msgstr ""
+msgstr "নিৰ্গম %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:121
 #, c-format
 msgid "Input %s"
-msgstr ""
+msgstr "নিবেশ %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:170
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1864
 msgid "Off"
-msgstr ""
+msgstr "বন্ধ"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1834
 msgid "High Fidelity Playback (A2DP)"
-msgstr ""
+msgstr "High Fidelity Playback (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1849
 msgid "Telephony Duplex (HSP/HFP)"
-msgstr ""
+msgstr "Telephony Duplex (HSP/HFP)"
 
 #: ../src/modules/reserve-wrap.c:125
 msgid "PulseAudio Sound Server"
-msgstr ""
+msgstr "PulseAudio ধ্বনি সেৱক"
 
 
