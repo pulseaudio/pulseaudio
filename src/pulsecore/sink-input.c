@@ -288,6 +288,7 @@ int pa_sink_input_new(
 
     i->volume_factor = data->volume_factor;
     pa_cvolume_init(&i->soft_volume);
+    memset(i->relative_volume, 0, sizeof(i->relative_volume));
     i->save_volume = data->save_volume;
     i->save_sink = data->save_sink;
     i->save_muted = data->save_muted;
@@ -530,7 +531,7 @@ void pa_sink_input_put(pa_sink_input *i) {
         pa_sink_update_flat_volume(i->sink, &new_volume);
         pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE);
     } else
-        pa_sw_cvolume_multiply(&i->soft_volume, &i->virtual_volume, &i->volume_factor);
+        pa_sink_input_set_relative_volume(i, &i->virtual_volume);
 
     i->thread_info.soft_volume = i->soft_volume;
     i->thread_info.muted = i->muted;
@@ -901,11 +902,12 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_boo
 
         /* OK, we are in normal volume mode. The volume only affects
          * ourselves */
-        pa_sw_cvolume_multiply(&i->soft_volume, volume, &i->volume_factor);
+        pa_sink_input_set_relative_volume(i, volume);
 
         /* Hooks have the ability to play games with i->soft_volume */
         pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_SET_VOLUME], i);
 
+        /* Copy the new soft_volume to the thread_info struct */
         pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_SOFT_VOLUME, NULL, 0, NULL) == 0);
     }
 
@@ -923,24 +925,50 @@ const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i) {
 
 /* Called from main context */
 pa_cvolume *pa_sink_input_get_relative_volume(pa_sink_input *i, pa_cvolume *v) {
+    unsigned c;
+
     pa_sink_input_assert_ref(i);
     pa_assert(v);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
-    *v = i->virtual_volume;
-
     /* This always returns a relative volume, even in flat volume mode */
 
-    if (i->sink->flags & PA_SINK_FLAT_VOLUME) {
-        pa_cvolume sv;
+    v->channels = i->sample_spec.channels;
 
-        sv = *pa_sink_get_volume(i->sink, FALSE);
-
-        pa_sw_cvolume_divide(v, v,
-                             pa_cvolume_remap(&sv, &i->sink->channel_map, &i->channel_map));
-    }
+    for (c = 0; c < v->channels; c++)
+        v->values[c] = pa_sw_volume_from_linear(i->relative_volume[c]);
 
     return v;
+}
+
+/* Called from main context */
+void pa_sink_input_set_relative_volume(pa_sink_input *i, const pa_cvolume *v) {
+    unsigned c;
+    pa_cvolume _v;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
+    pa_assert(!v || pa_cvolume_compatible(v, &i->sample_spec));
+
+    if (!v)
+        v = pa_cvolume_reset(&_v, i->sample_spec.channels);
+
+    /* This basically calculates:
+     *
+     * i->relative_volume := v
+     * i->soft_volume := i->relative_volume * i->volume_factor */
+
+    i->soft_volume.channels = i->sample_spec.channels;
+
+    for (c = 0; c < i->sample_spec.channels; c++) {
+        i->relative_volume[c] = pa_sw_volume_to_linear(v->values[c]);
+
+        i->soft_volume.values[c] = pa_sw_volume_from_linear(
+                i->relative_volume[c] *
+                pa_sw_volume_to_linear(i->volume_factor.values[c]));
+    }
+
+    /* We don't copy the data to the thread_info data. That's left for someone else to do */
 }
 
 /* Called from main context */
@@ -1110,9 +1138,11 @@ int pa_sink_input_start_move(pa_sink_input *i) {
     if (i->sink->flags & PA_SINK_FLAT_VOLUME) {
         pa_cvolume new_volume;
 
-        /* Make the absolute volume relative */
-        i->virtual_volume = i->soft_volume;
-        i->soft_volume = i->volume_factor;
+        /* Make the virtual volume relative */
+        pa_sink_input_get_relative_volume(i, &i->virtual_volume);
+
+        /* And reset the the relative volume */
+        pa_sink_input_set_relative_volume(i, NULL);
 
         /* We might need to update the sink's volume if we are in flat
          * volume mode. */

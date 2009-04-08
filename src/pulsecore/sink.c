@@ -990,22 +990,32 @@ static void compute_new_soft_volume(pa_sink_input *i, const pa_cvolume *new_volu
     pa_sink_input_assert_ref(i);
     pa_assert(new_volume->channels == i->sample_spec.channels);
 
-    /* This basically calculates i->soft_volume := i->virtual_volume / new_volume * i->volume_factor */
+    /*
+     * This basically calculates:
+     *
+     * i->relative_volume := i->virtual_volume / new_volume
+     * i->soft_volume := i->relative_volume * i->volume_factor
+     */
 
     /* The new sink volume passed in here must already be remapped to
      * the sink input's channel map! */
 
+    i->soft_volume.channels = i->sample_spec.channels;
+
     for (c = 0; c < i->sample_spec.channels; c++)
 
         if (new_volume->values[c] <= PA_VOLUME_MUTED)
+            /* We leave i->relative_volume untouched */
             i->soft_volume.values[c] = PA_VOLUME_MUTED;
-        else
-            i->soft_volume.values[c] = pa_sw_volume_from_linear(
-                    pa_sw_volume_to_linear(i->virtual_volume.values[c]) *
-                    pa_sw_volume_to_linear(i->volume_factor.values[c]) /
-                    pa_sw_volume_to_linear(new_volume->values[c]));
+        else {
+            i->relative_volume[c] =
+                pa_sw_volume_to_linear(i->virtual_volume.values[c]) /
+                pa_sw_volume_to_linear(new_volume->values[c]);
 
-    i->soft_volume.channels = i->sample_spec.channels;
+            i->soft_volume.values[c] = pa_sw_volume_from_linear(
+                    i->relative_volume[c] *
+                    pa_sw_volume_to_linear(i->volume_factor.values[c]));
+        }
 
     /* Hooks have the ability to play games with i->soft_volume */
     pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_SET_VOLUME], i);
@@ -1071,12 +1081,11 @@ void pa_sink_update_flat_volume(pa_sink *s, pa_cvolume *new_volume) {
 }
 
 /* Called from main thread */
-void pa_sink_propagate_flat_volume(pa_sink *s, const pa_cvolume *old_volume) {
+void pa_sink_propagate_flat_volume(pa_sink *s) {
     pa_sink_input *i;
     uint32_t idx;
 
     pa_sink_assert_ref(s);
-    pa_assert(old_volume);
     pa_assert(PA_SINK_IS_LINKED(s->state));
     pa_assert(s->flags & PA_SINK_FLAT_VOLUME);
 
@@ -1085,26 +1094,18 @@ void pa_sink_propagate_flat_volume(pa_sink *s, const pa_cvolume *old_volume) {
      * sink input volumes accordingly */
 
     for (i = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); i; i = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx))) {
-        pa_cvolume remapped_old_volume, remapped_new_volume, new_virtual_volume;
+        pa_cvolume sink_volume, new_virtual_volume;
         unsigned c;
 
-        /* This basically calculates i->virtual_volume := i->virtual_volume * s->virtual_volume / old_volume */
+        /* This basically calculates i->virtual_volume := i->relative_volume * s->virtual_volume  */
 
-        remapped_new_volume = s->virtual_volume;
-        pa_cvolume_remap(&remapped_new_volume, &s->channel_map, &i->channel_map);
-
-        remapped_old_volume = *old_volume;
-        pa_cvolume_remap(&remapped_old_volume, &s->channel_map, &i->channel_map);
+        sink_volume = s->virtual_volume;
+        pa_cvolume_remap(&sink_volume, &s->channel_map, &i->channel_map);
 
         for (c = 0; c < i->sample_spec.channels; c++)
-
-            if (remapped_old_volume.values[c] <= PA_VOLUME_MUTED)
-                new_virtual_volume.values[c] = remapped_new_volume.values[c];
-            else
-                new_virtual_volume.values[c] = pa_sw_volume_from_linear(
-                        pa_sw_volume_to_linear(i->virtual_volume.values[c]) *
-                        pa_sw_volume_to_linear(remapped_new_volume.values[c]) /
-                        pa_sw_volume_to_linear(remapped_old_volume.values[c]));
+            new_virtual_volume.values[c] = pa_sw_volume_from_linear(
+                    i->relative_volume[c] *
+                    pa_sw_volume_to_linear(sink_volume.values[c]));
 
         new_virtual_volume.channels = i->sample_spec.channels;
 
@@ -1116,7 +1117,7 @@ void pa_sink_propagate_flat_volume(pa_sink *s, const pa_cvolume *old_volume) {
              * especially when the old volume was
              * PA_VOLUME_MUTED. Hence let's recalculate the soft
              * volumes here. */
-            compute_new_soft_volume(i, &remapped_new_volume);
+            compute_new_soft_volume(i, &sink_volume);
 
             /* The virtual volume changed, let's tell people so */
             pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
@@ -1130,7 +1131,6 @@ void pa_sink_propagate_flat_volume(pa_sink *s, const pa_cvolume *old_volume) {
 
 /* Called from main thread */
 void pa_sink_set_volume(pa_sink *s, const pa_cvolume *volume, pa_bool_t propagate, pa_bool_t sendmsg) {
-    pa_cvolume old_virtual_volume;
     pa_bool_t virtual_volume_changed;
 
     pa_sink_assert_ref(s);
@@ -1139,14 +1139,13 @@ void pa_sink_set_volume(pa_sink *s, const pa_cvolume *volume, pa_bool_t propagat
     pa_assert(pa_cvolume_valid(volume));
     pa_assert(pa_cvolume_compatible(volume, &s->sample_spec));
 
-    old_virtual_volume = s->virtual_volume;
+    virtual_volume_changed = !pa_cvolume_equal(volume, &s->virtual_volume);
     s->virtual_volume = *volume;
-    virtual_volume_changed = !pa_cvolume_equal(&old_virtual_volume, &s->virtual_volume);
 
     /* Propagate this volume change back to the inputs */
     if (virtual_volume_changed)
         if (propagate && (s->flags & PA_SINK_FLAT_VOLUME))
-            pa_sink_propagate_flat_volume(s, &old_virtual_volume);
+            pa_sink_propagate_flat_volume(s);
 
     if (s->set_volume) {
         /* If we have a function set_volume(), then we do not apply a
@@ -1197,7 +1196,7 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *s, pa_bool_t force_refresh) {
         if (!pa_cvolume_equal(&old_virtual_volume, &s->virtual_volume)) {
 
             if (s->flags & PA_SINK_FLAT_VOLUME)
-                pa_sink_propagate_flat_volume(s, &old_virtual_volume);
+                pa_sink_propagate_flat_volume(s);
 
             pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
         }

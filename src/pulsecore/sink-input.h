@@ -91,7 +91,10 @@ struct pa_sink_input {
 
     pa_sink_input *sync_prev, *sync_next;
 
-    pa_cvolume virtual_volume, soft_volume, volume_factor;
+    pa_cvolume virtual_volume;  /* The volume clients are informed about */
+    pa_cvolume volume_factor;   /* An internally used volume factor that can be used by modules to apply effects and suchlike without having that visible to the outside */
+    double relative_volume[PA_CHANNELS_MAX]; /* The calculated volume relative to the sink volume as linear factors. */
+    pa_cvolume soft_volume;     /* The internal software volume we apply to all PCM data while it passes through. Usually calculated as relative_volume * volume_factor  */
     pa_bool_t muted:1;
 
     /* if TRUE then the source we are connected to and/or the volume
@@ -348,5 +351,8 @@ pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa
 pa_bool_t pa_sink_input_safe_to_remove(pa_sink_input *i);
 
 pa_memchunk* pa_sink_input_get_silence(pa_sink_input *i, pa_memchunk *ret);
+
+/* To be used by sink.c only */
+void pa_sink_input_set_relative_volume(pa_sink_input *i, const pa_cvolume *v);
 
 #endif
