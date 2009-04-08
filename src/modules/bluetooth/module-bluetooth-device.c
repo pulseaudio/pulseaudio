@@ -275,6 +275,7 @@ static ssize_t service_expect(struct userdata*u, bt_audio_msg_header_t *rsp, siz
     return 0;
 }
 
+/* Run from main thread */
 static int parse_caps(struct userdata *u, uint8_t seid, const struct bt_get_capabilities_rsp *rsp) {
     uint16_t bytes_left;
     const codec_capabilities_t *codec;
@@ -335,6 +336,7 @@ static int parse_caps(struct userdata *u, uint8_t seid, const struct bt_get_capa
     return 0;
 }
 
+/* Run from main thread */
 static int get_caps(struct userdata *u, uint8_t seid) {
     union {
         struct bt_get_capabilities_req getcaps_req;
@@ -374,6 +376,7 @@ static int get_caps(struct userdata *u, uint8_t seid) {
     return get_caps(u, ret);
 }
 
+/* Run from main thread */
 static uint8_t a2dp_default_bitpool(uint8_t freq, uint8_t mode) {
 
     switch (freq) {
@@ -419,6 +422,7 @@ static uint8_t a2dp_default_bitpool(uint8_t freq, uint8_t mode) {
     }
 }
 
+/* Run from main thread */
 static int setup_a2dp(struct userdata *u) {
     sbc_capabilities_t *cap;
     int i;
@@ -526,6 +530,7 @@ static int setup_a2dp(struct userdata *u) {
     return 0;
 }
 
+/* Run from main thread */
 static void setup_sbc(struct a2dp_info *a2dp) {
     sbc_capabilities_t *active_capabilities;
 
@@ -617,6 +622,7 @@ static void setup_sbc(struct a2dp_info *a2dp) {
     a2dp->frame_length = sbc_get_frame_length(&a2dp->sbc);
 }
 
+/* Run from main thread */
 static int set_conf(struct userdata *u) {
     union {
         struct bt_open_req open_req;
@@ -778,6 +784,7 @@ static int stop_stream_fd(struct userdata *u) {
     return r;
 }
 
+/* Run from IO thread */
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
     pa_bool_t failed = FALSE;
@@ -785,7 +792,6 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
     pa_assert(u->sink == PA_SINK(o));
 
-    pa_log_debug("got message: %d", code);
     switch (code) {
 
         case PA_SINK_MESSAGE_SET_STATE:
@@ -835,6 +841,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     return (r < 0 || !failed) ? r : -1;
 }
 
+/* Run from IO thread */
 static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SOURCE(o)->userdata;
     pa_bool_t failed = FALSE;
@@ -842,7 +849,6 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
     pa_assert(u->source == PA_SOURCE(o));
 
-    pa_log_debug("got message: %d", code);
     switch (code) {
 
         case PA_SOURCE_MESSAGE_SET_STATE:
@@ -891,6 +897,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
     return (r < 0 || !failed) ? r : -1;
 }
 
+/* Run from IO thread */
 static int hsp_process_render(struct userdata *u) {
     int ret = 0;
 
@@ -953,6 +960,7 @@ static int hsp_process_render(struct userdata *u) {
     return ret;
 }
 
+/* Run from IO thread */
 static int hsp_process_push(struct userdata *u) {
     int ret = 0;
     pa_memchunk memchunk;
@@ -1001,6 +1009,7 @@ static int hsp_process_push(struct userdata *u) {
     return ret;
 }
 
+/* Run from IO thread */
 static void a2dp_prepare_buffer(struct userdata *u) {
     pa_assert(u);
 
@@ -1012,6 +1021,7 @@ static void a2dp_prepare_buffer(struct userdata *u) {
     u->a2dp.buffer = pa_xmalloc(u->a2dp.buffer_size);
 }
 
+/* Run from IO thread */
 static int a2dp_process_render(struct userdata *u) {
     struct a2dp_info *a2dp;
     struct rtp_header *header;
@@ -1270,6 +1280,7 @@ finish:
     pa_log_debug("IO thread shutting down");
 }
 
+/* Run from main thread */
 static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *userdata) {
     DBusError err;
     struct userdata *u;
@@ -1319,6 +1330,7 @@ fail:
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
+/* Run from main thread */
 static void sink_set_volume_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     DBusMessage *m;
@@ -1342,6 +1354,7 @@ static void sink_set_volume_cb(pa_sink *s) {
     dbus_message_unref(m);
 }
 
+/* Run from main thread */
 static void source_set_volume_cb(pa_source *s) {
     struct userdata *u = s->userdata;
     DBusMessage *m;
@@ -1365,6 +1378,7 @@ static void source_set_volume_cb(pa_source *s) {
     dbus_message_unref(m);
 }
 
+/* Run from main thread */
 static char *get_name(const char *type, pa_modargs *ma, const char *device_id, pa_bool_t *namereg_fail) {
     char *t;
     const char *n;
@@ -1451,6 +1465,7 @@ static pa_hook_result_t source_state_changed_cb(pa_core *c, pa_source *s, struct
 
 #endif
 
+/* Run from main thread */
 static int add_sink(struct userdata *u) {
 
 #ifdef NOKIA
@@ -1492,6 +1507,8 @@ static int add_sink(struct userdata *u) {
 
         u->sink->userdata = u;
         u->sink->parent.process_msg = sink_process_msg;
+
+        pa_sink_set_max_request(u->sink, u->block_size);
     }
 
     if (u->profile == PROFILE_HSP) {
@@ -1502,6 +1519,7 @@ static int add_sink(struct userdata *u) {
     return 0;
 }
 
+/* Run from main thread */
 static int add_source(struct userdata *u) {
 
 #ifdef NOKIA
@@ -1549,6 +1567,7 @@ static int add_source(struct userdata *u) {
     return 0;
 }
 
+/* Run from main thread */
 static void shutdown_bt(struct userdata *u) {
     pa_assert(u);
 
@@ -1571,6 +1590,7 @@ static void shutdown_bt(struct userdata *u) {
     }
 }
 
+/* Run from main thread */
 static int init_bt(struct userdata *u) {
     pa_assert(u);
 
@@ -1589,6 +1609,7 @@ static int init_bt(struct userdata *u) {
     return 0;
 }
 
+/* Run from main thread */
 static int setup_bt(struct userdata *u) {
     pa_assert(u);
 
@@ -1614,6 +1635,7 @@ static int setup_bt(struct userdata *u) {
     return 0;
 }
 
+/* Run from main thread */
 static int init_profile(struct userdata *u) {
     int r = 0;
     pa_assert(u);
@@ -1634,6 +1656,7 @@ static int init_profile(struct userdata *u) {
     return r;
 }
 
+/* Run from main thread */
 static void stop_thread(struct userdata *u) {
     pa_assert(u);
 
@@ -1676,6 +1699,7 @@ static void stop_thread(struct userdata *u) {
     }
 }
 
+/* Run from main thread */
 static int start_thread(struct userdata *u) {
     pa_assert(u);
     pa_assert(!u->thread);
@@ -1724,6 +1748,7 @@ static int start_thread(struct userdata *u) {
     return 0;
 }
 
+/* Run from main thread */
 static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     struct userdata *u;
     enum profile *d;
@@ -1797,6 +1822,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     return 0;
 }
 
+/* Run from main thread */
 static int add_card(struct userdata *u, const char *default_profile, const pa_bluetooth_device *device) {
     pa_card_new_data data;
     pa_bool_t b;
@@ -1890,6 +1916,7 @@ static int add_card(struct userdata *u, const char *default_profile, const pa_bl
     return 0;
 }
 
+/* Run from main thread */
 static const pa_bluetooth_device* find_device(struct userdata *u, const char *address, const char *path) {
     const pa_bluetooth_device *d = NULL;
 
@@ -1926,6 +1953,7 @@ static const pa_bluetooth_device* find_device(struct userdata *u, const char *ad
     return d;
 }
 
+/* Run from main thread */
 static int setup_dbus(struct userdata *u) {
     DBusError err;
 
