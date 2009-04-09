@@ -1268,6 +1268,12 @@ static void thread_func(void *userdata) {
 
         if (u->source && PA_SOURCE_IS_LINKED(u->source->thread_info.state)) {
 
+            /* We should send two blocks to the device before we expect
+             * a response. */
+
+            if (u->write_index == 0 && u->read_index <= 0)
+                do_write = 2;
+
             if (pollfd && (pollfd->revents & POLLIN)) {
                 int n_read;
 
