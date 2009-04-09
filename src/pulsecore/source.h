@@ -87,6 +87,8 @@ struct pa_source {
 
     pa_memchunk silence;
 
+    pa_usec_t fixed_latency; /* for sources with PA_SOURCE_DYNAMIC_LATENCY this is 0 */
+
     /* Called when the main loop requests a state change. Called from
      * main loop context. If returns -1 the state change will be
      * inhibited */

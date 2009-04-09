@@ -288,7 +288,11 @@ char *pa_sink_list_to_string(pa_core *c) {
                     (double) pa_sink_get_requested_latency(sink) / (double) PA_USEC_PER_MSEC,
                     (double) min_latency / PA_USEC_PER_MSEC,
                     (double) max_latency / PA_USEC_PER_MSEC);
-        }
+        } else
+            pa_strbuf_printf(
+                    s,
+                    "\tfixed latency: %0.2f ms\n",
+                    (double) pa_sink_get_requested_latency(sink) / PA_USEC_PER_MSEC);
 
         if (sink->card)
             pa_strbuf_printf(s, "\tcard: %u <%s>\n", sink->card->index, sink->card->name);
@@ -382,7 +386,11 @@ char *pa_source_list_to_string(pa_core *c) {
                     (double) pa_source_get_requested_latency(source) / PA_USEC_PER_MSEC,
                     (double) min_latency / PA_USEC_PER_MSEC,
                     (double) max_latency / PA_USEC_PER_MSEC);
-        }
+        } else
+            pa_strbuf_printf(
+                    s,
+                    "\tfixed latency: %0.2f ms\n",
+                    (double) pa_source_get_requested_latency(source) / PA_USEC_PER_MSEC);
 
         if (source->monitor_of)
             pa_strbuf_printf(s, "\tmonitor_of: %u\n", source->monitor_of->index);

@@ -520,6 +520,9 @@ void pa_source_output_update_max_rewind(pa_source_output *o, size_t nbytes  /* i
 pa_usec_t pa_source_output_set_requested_latency_within_thread(pa_source_output *o, pa_usec_t usec) {
     pa_source_output_assert_ref(o);
 
+    if (!(o->source->flags & PA_SOURCE_DYNAMIC_LATENCY))
+        usec = o->source->fixed_latency;
+
     if (usec != (pa_usec_t) -1)
         usec = PA_CLAMP(usec, o->source->thread_info.min_latency, o->source->thread_info.max_latency);
 
@@ -531,8 +534,6 @@ pa_usec_t pa_source_output_set_requested_latency_within_thread(pa_source_output 
 
 /* Called from main context */
 pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t usec) {
-    pa_usec_t min_latency, max_latency;
-
     pa_source_output_assert_ref(o);
 
     if (PA_SOURCE_OUTPUT_IS_LINKED(o->state) && o->source) {
@@ -544,10 +545,14 @@ pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t 
      * have to touch the thread info data directly */
 
     if (o->source) {
-        pa_source_get_latency_range(o->source, &min_latency, &max_latency);
+        if (!(o->source->flags & PA_SOURCE_DYNAMIC_LATENCY))
+            usec = o->source->fixed_latency;
 
-        if (usec != (pa_usec_t) -1)
+        if (usec != (pa_usec_t) -1) {
+            pa_usec_t min_latency, max_latency;
+            pa_source_get_latency_range(o->source, &min_latency, &max_latency);
             usec = PA_CLAMP(usec, min_latency, max_latency);
+        }
     }
 
     o->thread_info.requested_source_latency = usec;

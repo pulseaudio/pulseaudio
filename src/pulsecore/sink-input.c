@@ -824,6 +824,9 @@ void pa_sink_input_update_max_request(pa_sink_input *i, size_t nbytes  /* in the
 pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa_usec_t usec) {
     pa_sink_input_assert_ref(i);
 
+    if (!(i->sink->flags & PA_SINK_DYNAMIC_LATENCY))
+        usec = i->sink->fixed_latency;
+
     if (usec != (pa_usec_t) -1)
         usec =  PA_CLAMP(usec, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
 
@@ -835,8 +838,6 @@ pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa
 
 /* Called from main context */
 pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec) {
-    pa_usec_t min_latency, max_latency;
-
     pa_sink_input_assert_ref(i);
 
     if (PA_SINK_INPUT_IS_LINKED(i->state) && i->sink) {
@@ -848,10 +849,14 @@ pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec) 
      * we have to touch the thread info data directly */
 
     if (i->sink) {
-        pa_sink_get_latency_range(i->sink, &min_latency, &max_latency);
+        if (!(i->sink->flags & PA_SINK_DYNAMIC_LATENCY))
+            usec = i->sink->fixed_latency;
 
-        if (usec != (pa_usec_t) -1)
+        if (usec != (pa_usec_t) -1) {
+            pa_usec_t min_latency, max_latency;
+            pa_sink_get_latency_range(i->sink, &min_latency, &max_latency);
             usec =  PA_CLAMP(usec, min_latency, max_latency);
+        }
     }
 
     i->thread_info.requested_sink_latency = usec;

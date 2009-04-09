@@ -50,6 +50,7 @@
 #define MIX_BUFFER_LENGTH (PA_PAGE_SIZE)
 #define ABSOLUTE_MIN_LATENCY (500)
 #define ABSOLUTE_MAX_LATENCY (10*PA_USEC_PER_SEC)
+#define DEFAULT_FIXED_LATENCY (250*PA_USEC_PER_MSEC)
 
 static PA_DEFINE_CHECK_TYPE(pa_sink, pa_msgobject);
 
@@ -208,6 +209,8 @@ pa_sink* pa_sink_new(
     s->muted = data->muted;
     s->refresh_volume = s->refresh_muted = FALSE;
 
+    s->fixed_latency = flags & PA_SINK_DYNAMIC_LATENCY ? 0 : DEFAULT_FIXED_LATENCY;
+
     reset_callbacks(s);
     s->userdata = NULL;
 
@@ -363,8 +366,13 @@ void pa_sink_put(pa_sink* s) {
     if (s->flags & PA_SINK_LATENCY)
         s->monitor_source->flags |= PA_SOURCE_LATENCY;
 
-    if (s->flags & PA_SINK_DYNAMIC_LATENCY)
+    if (s->flags & PA_SINK_DYNAMIC_LATENCY) {
         s->monitor_source->flags |= PA_SOURCE_DYNAMIC_LATENCY;
+        s->fixed_latency = 0;
+    } else if (s->fixed_latency <= 0)
+        s->fixed_latency = DEFAULT_FIXED_LATENCY;
+
+    s->monitor_source->fixed_latency = s->fixed_latency;
 
     pa_assert_se(sink_set_state(s, PA_SINK_IDLE) == 0);
 
@@ -1824,6 +1832,9 @@ pa_usec_t pa_sink_get_requested_latency_within_thread(pa_sink *s) {
 
     pa_sink_assert_ref(s);
 
+    if (!(s->flags & PA_SINK_DYNAMIC_LATENCY))
+        return PA_CLAMP(s->fixed_latency, s->thread_info.min_latency, s->thread_info.max_latency);
+
     if (s->thread_info.requested_latency_valid)
         return s->thread_info.requested_latency;
 
@@ -1839,13 +1850,8 @@ pa_usec_t pa_sink_get_requested_latency_within_thread(pa_sink *s) {
         (result == (pa_usec_t) -1 || result > monitor_latency))
         result = monitor_latency;
 
-    if (result != (pa_usec_t) -1) {
-        if (result > s->thread_info.max_latency)
-            result = s->thread_info.max_latency;
-
-        if (result < s->thread_info.min_latency)
-            result = s->thread_info.min_latency;
-    }
+    if (result != (pa_usec_t) -1)
+        result = PA_CLAMP(result, s->thread_info.min_latency, s->thread_info.max_latency);
 
     s->thread_info.requested_latency = result;
     s->thread_info.requested_latency_valid = TRUE;
@@ -1933,6 +1939,9 @@ void pa_sink_invalidate_requested_latency(pa_sink *s) {
     void *state = NULL;
 
     pa_sink_assert_ref(s);
+
+    if (!(s->flags & PA_SINK_DYNAMIC_LATENCY))
+        return;
 
     s->thread_info.requested_latency_valid = FALSE;
 

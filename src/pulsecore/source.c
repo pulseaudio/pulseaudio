@@ -43,6 +43,7 @@
 
 #define ABSOLUTE_MIN_LATENCY (500)
 #define ABSOLUTE_MAX_LATENCY (10*PA_USEC_PER_SEC)
+#define DEFAULT_FIXED_LATENCY (250*PA_USEC_PER_MSEC)
 
 static PA_DEFINE_CHECK_TYPE(pa_source, pa_msgobject);
 
@@ -199,6 +200,8 @@ pa_source* pa_source_new(
     s->muted = data->muted;
     s->refresh_volume = s->refresh_muted = FALSE;
 
+    s->fixed_latency = flags & PA_SOURCE_DYNAMIC_LATENCY ? 0 : DEFAULT_FIXED_LATENCY;
+
     reset_callbacks(s);
     s->userdata = NULL;
 
@@ -303,8 +306,7 @@ void pa_source_put(pa_source *s) {
     /* The following fields must be initialized properly when calling _put() */
     pa_assert(s->asyncmsgq);
     pa_assert(s->rtpoll);
-    pa_assert(!s->thread_info.min_latency || !s->thread_info.max_latency ||
-              s->thread_info.min_latency <= s->thread_info.max_latency);
+    pa_assert(s->thread_info.min_latency <= s->thread_info.max_latency);
 
     if (!(s->flags & PA_SOURCE_HW_VOLUME_CTRL)) {
         s->flags |= PA_SOURCE_DECIBEL_VOLUME;
@@ -315,6 +317,11 @@ void pa_source_put(pa_source *s) {
 
     if (s->flags & PA_SOURCE_DECIBEL_VOLUME)
         s->n_volume_steps = PA_VOLUME_NORM+1;
+
+    if (s->flags & PA_SOURCE_DYNAMIC_LATENCY)
+        s->fixed_latency = 0;
+    else if (s->fixed_latency <= 0)
+        s->fixed_latency = DEFAULT_FIXED_LATENCY;
 
     pa_assert_se(source_set_state(s, PA_SOURCE_IDLE) == 0);
 
@@ -1096,6 +1103,9 @@ pa_usec_t pa_source_get_requested_latency_within_thread(pa_source *s) {
 
     pa_source_assert_ref(s);
 
+    if (!(s->flags & PA_SOURCE_DYNAMIC_LATENCY))
+        return PA_CLAMP(s->fixed_latency, s->thread_info.min_latency, s->thread_info.max_latency);
+
     if (s->thread_info.requested_latency_valid)
         return s->thread_info.requested_latency;
 
@@ -1105,13 +1115,8 @@ pa_usec_t pa_source_get_requested_latency_within_thread(pa_source *s) {
             (result == (pa_usec_t) -1 || result > o->thread_info.requested_source_latency))
             result = o->thread_info.requested_source_latency;
 
-    if (result != (pa_usec_t) -1) {
-        if (s->thread_info.max_latency > 0 && result > s->thread_info.max_latency)
-            result = s->thread_info.max_latency;
-
-        if (s->thread_info.min_latency > 0 && result < s->thread_info.min_latency)
-            result = s->thread_info.min_latency;
-    }
+    if (result != (pa_usec_t) -1)
+        result = PA_CLAMP(result, s->thread_info.min_latency, s->thread_info.max_latency);
 
     s->thread_info.requested_latency = result;
     s->thread_info.requested_latency_valid = TRUE;
@@ -1121,7 +1126,7 @@ pa_usec_t pa_source_get_requested_latency_within_thread(pa_source *s) {
 
 /* Called from main thread */
 pa_usec_t pa_source_get_requested_latency(pa_source *s) {
-    pa_usec_t usec;
+    pa_usec_t usec = 0;
 
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
@@ -1168,6 +1173,9 @@ void pa_source_invalidate_requested_latency(pa_source *s) {
     void *state = NULL;
 
     pa_source_assert_ref(s);
+
+    if (!(s->flags & PA_SOURCE_DYNAMIC_LATENCY))
+        return;
 
     s->thread_info.requested_latency_valid = FALSE;
 
