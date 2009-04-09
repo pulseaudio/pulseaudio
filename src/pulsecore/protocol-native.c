@@ -4245,7 +4245,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     pa_native_connection_assert_ref(c);
 
     if (!(stream = OUTPUT_STREAM(pa_idxset_get_by_index(c->output_streams, channel)))) {
-        pa_log("client sent block for invalid stream.");
+        pa_log_debug("Client sent block for invalid stream.");
         /* Ignoring */
         return;
     }
