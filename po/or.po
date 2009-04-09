@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-04-05 08:27+0000\n"
-"PO-Revision-Date: 2009-04-09 13:07+0530\n"
+"PO-Revision-Date: 2009-04-09 13:16+0530\n"
 "Last-Translator: Manoj Kumar Giri <mgiri@redhat.com>\n"
 "Language-Team: Oriya <oriya-it@googlegroups.com>\n"
 "MIME-Version: 1.0\n"
@@ -16,6 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
 "Plural-Forms:  nplurals=2; plural=(n!=1);\n\n"
+"\n"
 "\n"
 "\n"
 "\n"
@@ -287,10 +288,18 @@ msgid ""
 "appropriate PolicyKit privileges, or become a member of '%s', or increase "
 "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 msgstr ""
+"Called SUID root and real-time and/or high-priority scheduling was requested "
+"in the configuration. However, we lack the necessary privileges:\n"
+"We are not in group '%s', PolicyKit refuse to grant us the requested "
+"privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
+"limits.\n"
+"For enabling real-time/high-priority scheduling please acquire the "
+"appropriate PolicyKit privileges, or become a member of '%s', or increase "
+"the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 
 #: ../src/daemon/main.c:566
 msgid "High-priority scheduling enabled in configuration but not allowed by policy."
-msgstr ""
+msgstr "ଉଚ୍ଚ-ପ୍ରାଥମିକ ଯୋଜନା ବିନ୍ୟାସରେ ସକ୍ରିୟ କିନ୍ତୁ ନୀତି ଦ୍ୱାରା ଅନୁମୋଦିତ ନୁହଁ।"
 
 #: ../src/daemon/main.c:595
 msgid "Successfully increased RLIMIT_RTPRIO"
@@ -328,6 +337,8 @@ msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
 msgstr ""
+"ଏହି ପ୍ରଗ୍ରାମଟି ମୂଖ୍ୟ ଚାଳକ ଭାବରେ ଚଲାଇବା ପାଇଁ ନିର୍ଦ୍ଦିଷ୍ଟ ହୋଇନାହିଁ (unless --system is "
+"specified)।"
 
 #: ../src/daemon/main.c:705
 msgid "Root privileges required."
@@ -480,6 +491,8 @@ msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 msgstr ""
+"Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
+"resolution timers enabled!"
 
 #: ../src/daemon/main.c:948
 msgid "pa_core_new() failed."
@@ -660,6 +673,8 @@ msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
 msgstr ""
+"--log-level expects log level argument (either numeric in range 0..4 or one "
+"of debug, info, notice, warn, error)."
 
 #: ../src/daemon/cmdline.c:281
 msgid "--high-priority expects boolean argument"
@@ -820,6 +835,8 @@ msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
 msgstr ""
+"ନିର୍ଦ୍ଦିଷ୍ଟିତ ପୂର୍ବନିର୍ଦ୍ଧାରିତ ଚ୍ୟାନେଲ ମ୍ୟାପରେ ପୂର୍ବନିର୍ଦ୍ଧାରିତ ସଂଖ୍ୟକ ଚ୍ୟାନେଲ ବ୍ୟତିତ "
+"ଭିନ୍ନ ସଂଖ୍ୟକ ଚ୍ୟାନେଲ ଉଲ୍ଲେଖ ଅଛି।"
 
 #: ../src/daemon/daemon-conf.c:616
 #, c-format
@@ -2350,6 +2367,12 @@ msgid ""
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
+"ALSA woke us up to write new data to the device, but there was actually "
+"nothing to write!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
 
 #: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:510
 #, c-format
@@ -2361,6 +2384,12 @@ msgid ""
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
+"ALSA woke us up to read new data from the device, but there was actually "
+"nothing to read!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
 
 #: ../src/modules/alsa/module-alsa-card.c:114
 #, c-format
