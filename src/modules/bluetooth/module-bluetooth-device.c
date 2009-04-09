@@ -1265,7 +1265,11 @@ static void thread_func(void *userdata) {
         pollfd = u->rtpoll_item ? pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL) : NULL;
 
         if (pollfd && (pollfd->revents & ~(POLLOUT|POLLIN))) {
-            pa_log_error("FD error.");
+            pa_log_info("FD error: %s%s%s%s",
+                        pollfd->revents & POLLERR ? "POLLERR " :"",
+                        pollfd->revents & POLLHUP ? "POLLHUP " :"",
+                        pollfd->revents & POLLPRI ? "POLLPRI " :"",
+                        pollfd->revents & POLLNVAL ? "POLLNVAL " :"");
             goto fail;
         }
     }
