@@ -1297,7 +1297,7 @@ int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel
     return 0;
 }
 
-void pa_alsa_dump(snd_pcm_t *pcm) {
+void pa_alsa_dump(pa_log_level_t level, snd_pcm_t *pcm) {
     int err;
     snd_output_t *out;
 
@@ -1306,11 +1306,11 @@ void pa_alsa_dump(snd_pcm_t *pcm) {
     pa_assert_se(snd_output_buffer_open(&out) == 0);
 
     if ((err = snd_pcm_dump(pcm, out)) < 0)
-        pa_log_debug("snd_pcm_dump(): %s", snd_strerror(err));
+        pa_logl(level, "snd_pcm_dump(): %s", snd_strerror(err));
     else {
         char *s = NULL;
         snd_output_buffer_string(out, &s);
-        pa_log_debug("snd_pcm_dump():\n%s", pa_strnull(s));
+        pa_logl(level, "snd_pcm_dump():\n%s", pa_strnull(s));
     }
 
     pa_assert_se(snd_output_close(out) == 0);
@@ -1612,6 +1612,7 @@ snd_pcm_sframes_t pa_alsa_safe_avail(snd_pcm_t *pcm, size_t hwbuf_size, const pa
                    (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC),
                    pa_strnull(dn));
             pa_xfree(dn);
+            pa_alsa_dump(PA_LOG_ERROR, pcm);
         } PA_ONCE_END;
 
         /* Mhmm, let's try not to fail completely */
@@ -1653,6 +1654,7 @@ int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_sframes_t *delay, size_t hwbuf_si
                    (unsigned long) (pa_bytes_to_usec(abs_k, ss) / PA_USEC_PER_MSEC),
                    pa_strnull(dn));
             pa_xfree(dn);
+            pa_alsa_dump(PA_LOG_ERROR, pcm);
         } PA_ONCE_END;
 
         /* Mhmm, let's try not to fail completely */
@@ -1698,6 +1700,7 @@ int pa_alsa_safe_mmap_begin(snd_pcm_t *pcm, const snd_pcm_channel_area_t **areas
                    (unsigned long) (pa_bytes_to_usec(k, ss) / PA_USEC_PER_MSEC),
                    pa_strnull(dn));
             pa_xfree(dn);
+            pa_alsa_dump(PA_LOG_ERROR, pcm);
         } PA_ONCE_END;
 
     return r;

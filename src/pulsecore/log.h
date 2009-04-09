@@ -113,6 +113,7 @@ void pa_log_levelv(
 #define pa_log_notice(...) pa_log_level_meta(PA_LOG_NOTICE, __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define pa_log_warn(...)   pa_log_level_meta(PA_LOG_WARN,   __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define pa_log_error(...)  pa_log_level_meta(PA_LOG_ERROR,  __FILE__, __LINE__, __func__, __VA_ARGS__)
+#define pa_logl(level, ...)  pa_log_level_meta(level,  __FILE__, __LINE__, __func__, __VA_ARGS__)
 
 #else
 

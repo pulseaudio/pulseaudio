@@ -1579,7 +1579,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     if (setup_mixer(u, ignore_dB) < 0)
         goto fail;
 
-    pa_alsa_dump(u->pcm_handle);
+    pa_alsa_dump(PA_LOG_DEBUG, u->pcm_handle);
 
     if (!(u->thread = pa_thread_new(thread_func, u))) {
         pa_log("Failed to create thread.");
