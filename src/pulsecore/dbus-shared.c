@@ -91,7 +91,8 @@ void pa_dbus_connection_unref(pa_dbus_connection *c) {
     if (PA_REFCNT_DEC(c) > 0)
         return;
 
-    /* already disconnected, just free */
+    pa_dbus_wrap_connection_free(c->connection);
+
     pa_shared_remove(c->core, c->property_name);
     pa_xfree(c);
 }
