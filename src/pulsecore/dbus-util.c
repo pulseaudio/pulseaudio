@@ -247,6 +247,7 @@ static void wakeup_main(void *userdata) {
 pa_dbus_wrap_connection* pa_dbus_wrap_connection_new(pa_mainloop_api *m, DBusBusType type, DBusError *error) {
     DBusConnection *conn;
     pa_dbus_wrap_connection *pconn;
+    char *id;
 
     pa_assert(type == DBUS_BUS_SYSTEM || type == DBUS_BUS_SESSION || type == DBUS_BUS_STARTER);
 
@@ -267,8 +268,10 @@ pa_dbus_wrap_connection* pa_dbus_wrap_connection_new(pa_mainloop_api *m, DBusBus
 
     pa_log_debug("Successfully connected to D-Bus %s bus %s as %s",
                  type == DBUS_BUS_SYSTEM ? "system" : (type == DBUS_BUS_SESSION ? "session" : "starter"),
-                 pa_strnull(dbus_connection_get_server_id(conn)),
+                 pa_strnull((id = dbus_connection_get_server_id(conn))),
                  pa_strnull(dbus_bus_get_unique_name(conn)));
+
+    dbus_free(id);
 
     return pconn;
 }
