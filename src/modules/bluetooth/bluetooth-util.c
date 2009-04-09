@@ -773,6 +773,8 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
 
     if (y->core)
         pa_shared_remove(y->core, "bluetooth-discovery");
+
+    pa_xfree(y);
 }
 
 void pa_bluetooth_discovery_sync(pa_bluetooth_discovery *y) {
