@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-04-05 08:27+0000\n"
-"PO-Revision-Date: 2009-04-08 18:38+0530\n"
+"PO-Revision-Date: 2009-04-09 13:07+0530\n"
 "Last-Translator: Manoj Kumar Giri <mgiri@redhat.com>\n"
 "Language-Team: Oriya <oriya-it@googlegroups.com>\n"
 "MIME-Version: 1.0\n"
@@ -16,6 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
 "Plural-Forms:  nplurals=2; plural=(n!=1);\n\n"
+"\n"
 "\n"
 "\n"
 "\n"
@@ -72,6 +73,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
+"ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
 
 #: ../src/modules/alsa/alsa-util.c:1649
 #, c-format
@@ -81,6 +86,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
+"lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
 
 #: ../src/modules/alsa/alsa-util.c:1695
 #, c-format
@@ -90,6 +99,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
+"(%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
 
 #: ../src/pulsecore/sink.c:2061
 msgid "Internal Audio"
@@ -565,6 +578,74 @@ msgid ""
 "\n"
 "  -n                                    Don't load default script file\n"
 msgstr ""
+"%s [options]\n"
+"\n"
+"COMMANDS:\n"
+"  -h, --help                            ଏହି ସହାୟତା ଦର୍ଶାନ୍ତୁ\n"
+"      --version                         ସଂସ୍କରଣ ଦର୍ଶାନ୍ତୁ\n"
+"      --dump-conf                       ପୂର୍ବନିର୍ଦ୍ଧାରିତ ବିନ୍ୟାସକୁ ଡମ୍ପ କରନ୍ତୁ\n"
+"      --dump-modules                    ଉପଲବ୍ଧ ଏକକାଂଶଗୁଡ଼ିକର ଡମ୍ପ ତାଲିକା\n"
+"      --dump-resample-methods           Dump available resample methods\n"
+"      --cleanup-shm                     Cleanup stale shared memory "
+"segments\n"
+"      --start                           ଡେମନକୁ ଆରମ୍ଭ କରନ୍ତୁ ଯଦି ତାହା ଚାଲୁନାହିଁ\n"
+"  -k  --kill                            ଚାଲୁଥିବା ଡେମନକୁ ବନ୍ଦ କରନ୍ତୁ\n"
+"      --check                           Check for a running daemon (only "
+"returns exit code)\n"
+"\n"
+"OPTIONS:\n"
+"      --system[=BOOL]                   Run as system-wide instance\n"
+"  -D, --daemonize[=BOOL]                Daemonize after startup\n"
+"      --fail[=BOOL]                     Quit when startup fails\n"
+"      --high-priority[=BOOL]            Try to set high nice level\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_NICE)\n"
+"      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_RTPRIO)\n"
+"      --disallow-module-loading[=BOOL]  Disallow module user requested "
+"module\n"
+"                                        loading/unloading after startup\n"
+"      --disallow-exit[=BOOL]            Disallow user requested exit\n"
+"      --exit-idle-time=SECS             Terminate the daemon when idle and "
+"this\n"
+"                                        time passed\n"
+"      --module-idle-time=SECS           Unload autoloaded modules when idle "
+"and\n"
+"                                        this time passed\n"
+"      --scache-idle-time=SECS           Unload autoloaded samples when idle "
+"and\n"
+"                                        this time passed\n"
+"      --log-level[=LEVEL]               Increase or set verbosity level\n"
+"  -v                                    Increase the verbosity level\n"
+"      --log-target={auto,syslog,stderr} Specify the log target\n"
+"      --log-meta[=BOOL]                 Include code location in log "
+"messages\n"
+"      --log-time[=BOOL]                 Include timestamps in log messages\n"
+"      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
+"  -p, --dl-search-path=PATH             Set the search path for dynamic "
+"shared\n"
+"                                        objects (plugins)\n"
+"      --resample-method=METHOD          Use the specified resampling method\n"
+"                                        (See --dump-resample-methods for\n"
+"                                        possible values)\n"
+"      --use-pid-file[=BOOL]             Create a PID file\n"
+"      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
+"                                        platforms that support it.\n"
+"      --disable-shm[=BOOL]              Disable shared memory support.\n"
+"\n"
+"STARTUP SCRIPT:\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
+"with\n"
+"                                        the specified argument\n"
+"  -F, --file=FILENAME                   Run the specified script\n"
+"  -C                                    Open a command line on the running "
+"TTY\n"
+"                                        after startup\n"
+"\n"
+"  -n                                    Don't load default script file\n"
 
 #: ../src/daemon/cmdline.c:252
 msgid "--daemonize expects boolean argument"
@@ -1385,6 +1466,49 @@ msgid ""
 "      --process-time=BYTES              Request the specified process time "
 "per request in bytes.\n"
 msgstr ""
+"%s [options]\n"
+"\n"
+"  -h, --help                            ଏହି ସହାୟତା ଦର୍ଶାନ୍ତୁ\n"
+"      --version                         ସଂସ୍କରଣ ଦର୍ଶାନ୍ତୁ\n"
+"\n"
+"  -r, --record                          ଲେଖିବା ପାଇଁ ସଂଯୋଗ ନିର୍ମାଣ କରନ୍ତୁ\n"
+"  -p, --playback                        ପଛକୁ ଚଲାଇବା ପାଇଁ ଗୋଟିଏ ସଂଯୋଗ ନିର୍ମାଣ କରନ୍ତୁ\n"
+"\n"
+"  -v, --verbose                         verbose ପ୍ରକ୍ରିୟାଗୁଡ଼ିକୁ ସକ୍ରିୟ କରନ୍ତୁ\n"
+"\n"
+"  -s, --server=SERVER                   ସଂଯୋଗ କରିବା ପାଇଁ ସର୍ଭରର ନାମ\n"
+"  -d, --device=DEVICE                   ସଂଯୋଗ କରିବା ପାଇଁ ସିଙ୍କ/ଉତ୍ସର ନାମ\n"
+"  -n, --client-name=NAME                ସର୍ଭରରେ ଏହି ଗ୍ରାହକଙ୍କୁ କିପରି ଡାକିବେ\n"
+"      --stream-name=NAME                ସର୍ଭରରେ ଏହି ଧାରାକୁ କିପରି ଡାକିବେ\n"
+"      --volume=VOLUME                   ପ୍ରାରମ୍ଭିକ (ସିଧା) ଭଲ୍ୟୁମକୁ ସୀମା 0...65536 ମଧ୍ଯରେଉଲ୍ଲେଖ କରନ୍ତୁ\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
+"44100)\n"
+"      --format=SAMPLEFORMAT             The sample type, one of s16le, "
+"s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be "
+"(defaults to s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, "
+"2 for stereo\n"
+"                                        (defaults to 2)\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the "
+"default\n"
+"      --fix-format                      Take the sample format from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-rate                        Take the sampling rate from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-channels                    Take the number of channels and the "
+"channel map\n"
+"                                        from the sink the stream is being "
+"connected to.\n"
+"      --no-remix                        Don't upmix or downmix channels.\n"
+"      --no-remap                        Map channels by index instead of "
+"name.\n"
+"      --latency=BYTES                   Request the specified latency in "
+"bytes.\n"
+"      --process-time=BYTES              Request the specified process time "
+"per request in bytes.\n"
 
 #: ../src/utils/pacat.c:612
 #, c-format
@@ -1393,6 +1517,9 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pacat %s\n"
+"libpulse %s ସହିତ ସଂକଳିତ\n"
+"libpulse %s ସହିତ ସଂଯୁକ୍ତ\n"
 
 #: ../src/utils/pacat.c:669
 #, c-format
@@ -1422,7 +1549,7 @@ msgstr "ନମୁନା ବିଶେଷ ଲକ୍ଷଣ ସହିତ ଚ୍ୟ�
 #: ../src/utils/pacat.c:728
 #, c-format
 msgid "Opening a %s stream with sample specification '%s'.\n"
-msgstr ""
+msgstr "ନମୁନା ବିଶେଷ ଲକ୍ଷଣ '%s' ସହିତ ଗୋଟିଏ %s ଧାରାକୁ ଖୋଲୁଅଛି।\n"
 
 #: ../src/utils/pacat.c:728
 msgid "recording"
@@ -1504,7 +1631,7 @@ msgstr "ପୁନଃ ଚଳନ କରିବାରେ ବିଫଳ: %s\n"
 #: ../src/utils/pasuspender.c:147
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
-msgstr ""
+msgstr "WARNING: ଧ୍ୱନି ସର୍ଭରଟି ସ୍ଥାନୀୟ ନୁହଁ, ନିଲମ୍ବିତ କରୁନାହିଁ।\n"
 
 #: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:768
 #: ../src/utils/paplay.c:191
@@ -1515,7 +1642,7 @@ msgstr "SIGINT ପାଇଛି, ଉତ୍ସାହିତ କରୁଅଛି।\n
 #: ../src/utils/pasuspender.c:194
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr ""
+msgstr "WARNING: ନିମ୍ନ ସ୍ତରର ପ୍ରକ୍ରିୟାଟି ସଂକେତ %u ଦ୍ୱାରା ସମାପ୍ତ\n"
 
 #: ../src/utils/pasuspender.c:212
 #, c-format
@@ -1528,6 +1655,12 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
+"%s [options] ... \n"
+"\n"
+"  -h, --help                            ଏହି ସହାୟତାକୁ ଦର୍ଶାନ୍ତୁ\n"
+"      --version                         ସଂସ୍କରଣ ଦର୍ଶାନ୍ତୁ\n"
+"  -s, --server=SERVER                   ସଂଯୋଗ କରିବା ପାଇଁ ସର୍ଭରର ନାମ\n"
+"\n"
 
 #: ../src/utils/pasuspender.c:251
 #, c-format
@@ -1536,31 +1669,34 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pasuspender %s\n"
+"libpulse %s ସହିତ ସଂକଳିତ\n"
+"libpulse %s ସହିତ ସଂଯୁକ୍ତ\n"
 
 #: ../src/utils/pactl.c:108
 #, c-format
 msgid "Failed to get statistics: %s\n"
-msgstr ""
+msgstr "ପରିସଂଖ୍ୟାନ ପାଇବାରେ ବିଫଳ: %s\n"
 
 #: ../src/utils/pactl.c:114
 #, c-format
 msgid "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr ""
+msgstr "ବର୍ତ୍ତମାନ ବ୍ୟବହାରରେ ଅଛି: %u ବ୍ଲକ ସମୁଦାୟ %s ବାଇଟ ଧାରଣ କରିଥାଏ।\n"
 
 #: ../src/utils/pactl.c:117
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr ""
+msgstr "ସମଗ୍ର ଜୀବନରେ ବଣ୍ଟିତ ହୋଇଥାଏ: %u ବ୍ଲକ ସମୁଦାୟ %s ବାଇଟ ଧାରଣ କରିଥାଏ।\n"
 
 #: ../src/utils/pactl.c:120
 #, c-format
 msgid "Sample cache size: %s\n"
-msgstr ""
+msgstr "ନମୁନା କ୍ୟାଶେ ଆକାର: %s\n"
 
 #: ../src/utils/pactl.c:129
 #, c-format
 msgid "Failed to get server information: %s\n"
-msgstr ""
+msgstr "ସର୍ଭର ସୂଚନା ପାଇବାରେ ବିଫଳ: %s\n"
 
 #: ../src/utils/pactl.c:137
 #, c-format
@@ -1575,6 +1711,15 @@ msgid ""
 "Default Source: %s\n"
 "Cookie: %08x\n"
 msgstr ""
+"ଚାଳକ ନାମ: %s\n"
+"ଆଧାର ନାମ: %s\n"
+"ସର୍ଭର ନାମ: %s\n"
+"ସର୍ଭର ସଂସ୍କରଣ: %s\n"
+"ପୂର୍ବନିର୍ଦ୍ଧାରିତ ନମୁନା ବିଶିଷ୍ଟ: %s\n"
+"ପୂର୍ବନିର୍ଦ୍ଧାରିତ ଚ୍ୟାନେଲ ମ୍ୟାପ: %s\n"
+"ପୂର୍ବନିର୍ଦ୍ଧାରିତ ସିଙ୍କ: %s\n"
+"ପୂର୍ବନିର୍ଦ୍ଧାରିତ ଉତ୍ସ: %s\n"
+"କୁକି: %08x\n"
 
 #: ../src/utils/pactl.c:178
 #, c-format
@@ -1602,6 +1747,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"ସିଙ୍କ #%u\n"
+"\tସ୍ଥିତି: %s\n"
+"\tନାମ: %s\n"
+"\tବର୍ଣ୍ଣନା: %s\n"
+"\tଡ୍ରାଇଭର: %s\n"
+"\tନମୁନା ବିଶେଷ ଲକ୍ଷଣ: %s\n"
+"\tଚ୍ୟାନେଲ ମ୍ୟାପ: %s\n"
+"\tନିଜ ଏକକାଂଶ: %u\n"
+"\tମୁକ: %s\n"
+"\tଭଲ୍ୟୁମ: %s%s%s\n"
+"\t        ସମତୁଲ %0.2f\n"
+"\tଆଧାର ଭଲ୍ୟୁମ: %s%s%s\n"
+"\tପ୍ରଦର୍ଶିକା ଉତ୍ସ: %s\n"
+"\tବିଲମ୍ବତା: %0.0f usec, ବିନ୍ୟାସିତ %0.0f usec\n"
+"\tଚିହ୍ନକ: %s%s%s%s%s%s\n"
+"\tଗୁଣଧର୍ମ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:258
 #, c-format
@@ -1629,6 +1791,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"ଉତ୍ସ #%u\n"
+"\tସ୍ଥିତି: %s\n"
+"\tନାମ: %s\n"
+"\tବର୍ଣ୍ଣନା: %s\n"
+"\tଡ୍ରାଇଭର: %s\n"
+"\tନମୁନା ବିଶେଷ ଲକ୍ଷଣ: %s\n"
+"\tଚ୍ୟାନେଲ ମ୍ୟାପ: %s\n"
+"\tମାଲିକ ଏକକାଂଶ: %u\n"
+"\tମୁକ: %s\n"
+"\tଭଲ୍ୟୁମ: %s%s%s\n"
+"\t        ସମତୁଲ %0.2f\n"
+"\tଆଧାର ଭଲ୍ୟୁମ: %s%s%s\n"
+"\tସିଙ୍କର ପ୍ରଦର୍ଶିକା: %s\n"
+"\tବିଲମ୍ବତା: %0.0f usec, ବିନ୍ୟାସିତ %0.0f usec\n"
+"\tଚିହ୍ନକ: %s%s%s%s%s%s\n"
+"\tଗୁଣଧର୍ମ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:306 ../src/utils/pactl.c:350 ../src/utils/pactl.c:385
 #: ../src/utils/pactl.c:422 ../src/utils/pactl.c:481 ../src/utils/pactl.c:482
@@ -1653,11 +1832,17 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"ଏକକାଂଶ #%u\n"
+"\tନାମ: %s\n"
+"\tସ୍ୱତନ୍ତ୍ରଚର: %s\n"
+"\tଉପଯୋଗିତା ଗଣକ: %s\n"
+"\tଗୁଣଧର୍ମ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:361
 #, c-format
 msgid "Failed to get client information: %s\n"
-msgstr ""
+msgstr "ଗ୍ରାହକ ସୂଚନା ପାଇବାରେ ବିଫଳ: %s\n"
 
 #: ../src/utils/pactl.c:379
 #, c-format
@@ -1731,6 +1916,22 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"ସିଙ୍କ ନିବେଶ #%u\n"
+"\tଡ୍ରାଇଭର: %s\n"
+"\tମାଲିକ ଏକକାଂଶ: %s\n"
+"\tଗ୍ରାହକ: %s\n"
+"\tସିଙ୍କ: %u\n"
+"\tନମୁନା ବିଶେଷ ଲକ୍ଷଣ: %s\n"
+"\tଚ୍ୟାନେଲ ମ୍ୟାପ: %s\n"
+"\tମୁକ: %s\n"
+"\tଭଲ୍ୟୁମ: %s\n"
+"\t        %s\n"
+"\t        ସମତୁଲ %0.2f\n"
+"\tବଫର ବିଳମ୍ବତା: %0.0f usec\n"
+"\tସିଙ୍କ ବିଳମ୍ବତା: %0.0f usec\n"
+"\tପୁନଃ ମିଶ୍ରଣ ପଦ୍ଧତି: %s\n"
+"\tଗୁଣଧର୍ମ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:503
 #, c-format
@@ -1753,6 +1954,18 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"ଉତ୍ସ ନିର୍ଗମ #%u\n"
+"\tଡ୍ରାଇଭର: %s\n"
+"\tମାଲିକ ଏକକାଂଶ: %s\n"
+"\tଗ୍ରାହକ: %s\n"
+"\tଉତ୍ସ: %u\n"
+"\tନମୁନା ବିଶେଷ ଲକ୍ଷଣ: %s\n"
+"\tଚ୍ୟାନେଲ ମ୍ୟାପ: %s\n"
+"\tବଫର ବିଳମ୍ବତା: %0.0f usec\n"
+"\tଉତ୍ସ ବିଳମ୍ବତା: %0.0f usec\n"
+"\tପୁନଃ ମିଶ୍ରଣ ପଦ୍ଧତି: %s\n"
+"\tଗୁଣଧର୍ମ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:554
 #, c-format
@@ -1776,6 +1989,19 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"ନମୁନା #%u\n"
+"\tନାମ: %s\n"
+"\tନମୁନା ବିଶେଷ ଲକ୍ଷଣ: %s\n"
+"\tଚ୍ୟାନେଲ ମ୍ୟାପ: %s\n"
+"\tଭଲ୍ୟୁମ: %s\n"
+"\t        %s\n"
+"\t        ସମତୁଲ %0.2f\n"
+"\tଅବଧି: %0.1fs\n"
+"\tଆକାର: %s\n"
+"\tଶିଥିଳ: %s\n"
+"\tଫାଇଲ ନାମ: %s\n"
+"\tଗୁଣଧର୍ମ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:602 ../src/utils/pactl.c:612
 #, c-format
@@ -1790,7 +2016,7 @@ msgstr "ନମୁନାକୁ ଧାରଣ କରିବାରେ ବିଫଳ: %
 #: ../src/utils/pactl.c:653
 #, c-format
 msgid "Premature end of file\n"
-msgstr ""
+msgstr "ଫାଇଲର ସମୟ ପୂର୍ବ ସମାପ୍ତି\n"
 
 #: ../src/utils/pactl.c:774
 #, c-format
@@ -1817,6 +2043,27 @@ msgid ""
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 msgstr ""
+"%s [options] stat\n"
+"%s [options] list\n"
+"%s [options] exit\n"
+"%s [options] upload-sample FILENAME [NAME]\n"
+"%s [options] play-sample NAME [SINK]\n"
+"%s [options] remove-sample NAME\n"
+"%s [options] move-sink-input ID SINK\n"
+"%s [options] move-source-output ID SOURCE\n"
+"%s [options] load-module NAME [ARGS ...]\n"
+"%s [options] unload-module ID\n"
+"%s [options] suspend-sink [SINK] 1|0\n"
+"%s [options] suspend-source [SOURCE] 1|0\n"
+"%s [options] set-card-profile [CARD] [PROFILE] \n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
 
 #: ../src/utils/pactl.c:826
 #, c-format
@@ -1825,36 +2072,39 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pactl %s\n"
+"libpulse %s ସହିତ ସଂକଳିତ\n"
+"libpulse %s ସହିତ ସଂଯୁକ୍ତ\n"
 
 #: ../src/utils/pactl.c:865
 #, c-format
 msgid "Please specify a sample file to load\n"
-msgstr ""
+msgstr "ଧାରଣ କରିବା ପାଇଁ ଗୋଟିଏ ନୁମନା ଫାଇଲ ଉଲ୍ଲେଖ କରନ୍ତୁ\n"
 
 #: ../src/utils/pactl.c:887
 #, c-format
 msgid "Failed to open sound file.\n"
-msgstr ""
+msgstr "ଧ୍ୱନି ଫାଇଲ ଖୋଲିବାରେ ବିଫଳ।\n"
 
 #: ../src/utils/pactl.c:899
 #, c-format
 msgid "You have to specify a sample name to play\n"
-msgstr ""
+msgstr "ଚଲାଇବା ପାଇଁ ଆପଣଙ୍କୁ ଗୋଟିଏ ନମୁନା ନାମ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ\n"
 
 #: ../src/utils/pactl.c:911
 #, c-format
 msgid "You have to specify a sample name to remove\n"
-msgstr ""
+msgstr "କାଢ଼ିବା ପାଇଁ ଆପଣଙ୍କୁ ଗୋଟିଏ ନମୁନା ନାମ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ\n"
 
 #: ../src/utils/pactl.c:919
 #, c-format
 msgid "You have to specify a sink input index and a sink\n"
-msgstr ""
+msgstr "ଆପଣଙ୍କୁ ଗୋଟିଏ ସିଙ୍କ ନିବେଶ ଅନୁକ୍ରମଣିକା ଏବଂ ଗୋଟିଏ ସିଙ୍କ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ\n"
 
 #: ../src/utils/pactl.c:928
 #, c-format
 msgid "You have to specify a source output index and a source\n"
-msgstr ""
+msgstr "ଆପଣଙ୍କୁ ଗୋଟିଏ ଉତ୍ସ ନିର୍ଗମ ଅନୁକ୍ରମଣିକା ଏବଂ ଗୋଟିଏ ଉତ୍ସ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ\n"
 
 #: ../src/utils/pactl.c:942
 #, c-format
@@ -1872,6 +2122,8 @@ msgid ""
 "You may not specify more than one sink. You have to specify a boolean "
 "value.\n"
 msgstr ""
+"ଆପଣଙ୍କୁ ଗୋଟିଏରୁ ଅଧିକ ସିଙ୍କ ଉଲ୍ଲେଖ କରିବାକୁ ପଡ଼ିନପାରେ। ଆପଣଙ୍କୁ "
+"ଗୋଟିଏ ବୁଲିଆନ ମୂଲ୍ୟ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ।\n"
 
 #: ../src/utils/pactl.c:985
 #, c-format
@@ -1879,11 +2131,13 @@ msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value.\n"
 msgstr ""
+"ଆପଣଙ୍କୁ ଗୋଟିଏରୁ ଅଧିକ ଉତ୍ସ ଉଲ୍ଲେଖ କରିବାକୁ ପଡ଼ିନପାରେ। ଆପଣଙ୍କୁ ଗୋଟିଏ "
+"ବୁଲିଆନ ମୂଲ୍ୟ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ।\n"
 
 #: ../src/utils/pactl.c:997
 #, c-format
 msgid "You have to specify a card name/index and a profile name\n"
-msgstr ""
+msgstr "ଆପଣଙ୍କୁ ଗୋଟିଏ କାର୍ଡ ନାମ/ଅନୁକ୍ରମଣିକା ଏବଂ ରୂପରେଖା ନାମ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ\n"
 
 #: ../src/utils/pactl.c:1012
 #, c-format
@@ -1901,6 +2155,12 @@ msgid ""
 "variables and cookie file.\n"
 " -r    Remove PulseAudio data from X11 display\n"
 msgstr ""
+"%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n"
+"\n"
+" -d    X11 ପ୍ରଦର୍ଶିକା ସହିତ ସଂଲଗ୍ନ ପ୍ରଚଳିତ PulseAudio ତଥ୍ୟ ଦର୍ଶାନ୍ତୁ (ପୂର୍ବନିର୍ଦ୍ଧାରିତ)\n"
+" -e    X11 ପ୍ରଦର୍ଶିକାକୁ ସ୍ଥାନୀୟ PulseAudio ତଥ୍ୟ ରପ୍ତାନି କରନ୍ତୁ\n"
+" -i    X11 ପ୍ରଦର୍ଶିକାରୁ ସ୍ଥାନୀୟ ପରିବେଶ ପ୍ରାଚଳ ଏବଂ କୁକି ଫାଇଲକୁ ଆମଦାନି କରନ୍ତୁ।\n"
+" -r    X11 ପ୍ରଦର୍ଶିକାରୁ PulseAudio ତଥ୍ୟକୁ କାଢ଼ନ୍ତୁ\n"
 
 #: ../src/utils/pax11publish.c:94
 #, c-format
@@ -1945,7 +2205,7 @@ msgstr "ଗ୍ରାହକ ବିନ୍ୟାସ ଫାଇଲକୁ ଧାରଣ
 #: ../src/utils/pax11publish.c:157
 #, c-format
 msgid "Failed to read environment configuration data.\n"
-msgstr ""
+msgstr "ପରିବେଶ ବିନ୍ୟାସ ତଥ୍ୟକୁ ପଢ଼ିବାରେ ବିଫଳ।\n"
 
 #: ../src/utils/pax11publish.c:174
 #, c-format
@@ -2031,6 +2291,19 @@ msgid ""
 "in range 0...65536\n"
 "      --channel-map=CHANNELMAP          Set the channel map to the use\n"
 msgstr ""
+"%s [options] [FILE]\n"
+"\n"
+"  -h, --help                            ଏହି ସହାୟତା ଦର୍ଶାନ୍ତୁ\n"
+"      --version                         ସଂସ୍କରଣ ଦର୍ଶାନ୍ତୁ\n"
+"\n"
+"  -v, --verbose                         verbose ପ୍ରୟୋଗକୁ ସକ୍ରିୟ କରନ୍ତୁ\n"
+"\n"
+"  -s, --server=SERVER                   ସଂଯୋଗ କରିବା ପାଇଁ ସର୍ଭରର ନାମ\n"
+"  -d, --device=DEVICE                   ସଂଯୋଗ କରିବା ପାଇଁ ସିଙ୍କର ନାମ\n"
+"  -n, --client-name=NAME                ସର୍ଭର ଉପରେ ଏହି ଗ୍ରାହକଙ୍କୁ କିପରି ଡ଼ାକିବେ\n"
+"      --stream-name=NAME                ସର୍ଭର ଉପରେ ଏହି ଧାରାକୁ କିପରି ଡ଼ାକିବେ\n"
+"      --volume=VOLUME                   ପ୍ରାରମ୍ଭିକ (ସିଧା) ଆକାରକୁ ସୀମା 0...65536 ମଧ୍ଯରେ ଉଲ୍ଲେଖ କରନ୍ତୁ\n"
+"      --channel-map=CHANNELMAP          ବ୍ୟବହାର ପାଇଁ ଚ୍ୟାନେଲ ମ୍ୟାପକୁ ସେଟ କରନ୍ତୁ\n"
 
 #: ../src/utils/paplay.c:255
 #, c-format
@@ -2039,6 +2312,9 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"paplay %s\n"
+"libpulse %s ସହିତ ସଂକଳିତ\n"
+"libpulse %s ସହିତ ସଂଯୁକ୍ତ\n"
 
 #: ../src/utils/paplay.c:292
 #, c-format
