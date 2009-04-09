@@ -536,6 +536,7 @@ char *pa_socket_server_get_address(pa_socket_server *s, char *c, size_t l) {
                 return NULL;
 
             pa_snprintf(c, l, "{%s}unix:%s", id, s->filename);
+            pa_xfree(id);
             return c;
         }
 
