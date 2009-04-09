@@ -1525,7 +1525,7 @@ static int add_source(struct userdata *u) {
 #ifdef NOKIA
     if (USE_SCO_OVER_PCM(u)) {
         u->source = u->hsp.sco_source;
-        pa_proplist_sets(u->source->proplist, "bluetooth.protocol", "sco");
+        pa_proplist_sets(u->source->proplist, "bluetooth.protocol", "hsp");
 
         if (!u->hsp.source_state_changed_slot)
             u->hsp.source_state_changed_slot = pa_hook_connect(&u->core->hooks[PA_CORE_HOOK_SOURCE_STATE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) source_state_changed_cb, u);
@@ -1541,7 +1541,7 @@ static int add_source(struct userdata *u) {
         data.driver = __FILE__;
         data.module = u->module;
         pa_source_new_data_set_sample_spec(&data, &u->sample_spec);
-        pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP ? "a2dp" : "sco");
+        pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP ? "a2dp" : "hsp");
         data.card = u->card;
         data.name = get_name("source", u->modargs, u->address, &b);
         data.namereg_fail = b;
@@ -1871,7 +1871,7 @@ static int add_card(struct userdata *u, const char *default_profile, const pa_bl
     }
 
     if (pa_bluetooth_uuid_has(device->uuids, HSP_HS_UUID) ||
-	pa_bluetooth_uuid_has(device->uuids, HFP_HS_UUID)) {
+        pa_bluetooth_uuid_has(device->uuids, HFP_HS_UUID)) {
         p = pa_card_profile_new("hsp", _("Telephony Duplex (HSP/HFP)"), sizeof(enum profile));
         p->priority = 20;
         p->n_sinks = 1;
