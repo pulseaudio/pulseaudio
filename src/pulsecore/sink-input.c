@@ -335,8 +335,8 @@ int pa_sink_input_new(
             0,
             &i->sink->silence);
 
-    pa_assert_se(pa_idxset_put(core->sink_inputs, pa_sink_input_ref(i), &i->index) == 0);
-    pa_assert_se(pa_idxset_put(i->sink->inputs, i, NULL) == 0);
+    pa_assert_se(pa_idxset_put(core->sink_inputs, i, &i->index) == 0);
+    pa_assert_se(pa_idxset_put(i->sink->inputs, pa_sink_input_ref(i), NULL) == 0);
 
     if (i->client)
         pa_assert_se(pa_idxset_put(i->client->sink_inputs, i, NULL) >= 0);
@@ -1155,6 +1155,8 @@ int pa_sink_input_start_move(pa_sink_input *i) {
     pa_sink_update_status(i->sink);
     i->sink = NULL;
 
+    pa_sink_input_unref(i);
+
     return 0;
 }
 
@@ -1202,7 +1204,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
 
     i->sink = dest;
     i->save_sink = save;
-    pa_idxset_put(dest->inputs, i, NULL);
+    pa_idxset_put(dest->inputs, pa_sink_input_ref(i), NULL);
 
     if (pa_sink_input_get_state(i) == PA_SINK_INPUT_CORKED)
         i->sink->n_corked++;
@@ -1267,11 +1269,19 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     if (!pa_sink_input_may_move_to(i, dest))
         return -PA_ERR_NOTSUPPORTED;
 
-    if ((r = pa_sink_input_start_move(i)) < 0)
-        return r;
+    pa_sink_input_ref(i);
 
-    if ((r = pa_sink_input_finish_move(i, dest, save)) < 0)
+    if ((r = pa_sink_input_start_move(i)) < 0) {
+        pa_sink_input_unref(i);
         return r;
+    }
+
+    if ((r = pa_sink_input_finish_move(i, dest, save)) < 0) {
+        pa_sink_input_unref(i);
+        return r;
+    }
+
+    pa_sink_input_unref(i);
 
     return 0;
 }

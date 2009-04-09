@@ -705,6 +705,8 @@ int pa_source_output_start_move(pa_source_output *o) {
     pa_source_update_status(o->source);
     o->source = NULL;
 
+    pa_source_output_unref(o);
+
     return 0;
 }
 
@@ -752,7 +754,7 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
 
     o->source = dest;
     o->save_source = save;
-    pa_idxset_put(o->source->outputs, o, NULL);
+    pa_idxset_put(o->source->outputs, pa_source_output_ref(o), NULL);
 
     if (pa_source_output_get_state(o) == PA_SOURCE_OUTPUT_CORKED)
         o->source->n_corked++;
@@ -804,11 +806,19 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest, pa_bool_t sav
     if (!pa_source_output_may_move_to(o, dest))
         return -PA_ERR_NOTSUPPORTED;
 
-    if ((r = pa_source_output_start_move(o)) < 0)
-        return r;
+    pa_source_output_ref(o);
 
-    if ((r = pa_source_output_finish_move(o, dest, save)) < 0)
+    if ((r = pa_source_output_start_move(o)) < 0) {
+        pa_source_output_unref(o);
         return r;
+    }
+
+    if ((r = pa_source_output_finish_move(o, dest, save)) < 0) {
+        pa_source_output_unref(o);
+        return r;
+    }
+
+    pa_source_output_unref(o);
 
     return 0;
 }

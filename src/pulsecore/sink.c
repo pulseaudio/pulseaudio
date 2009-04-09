@@ -515,8 +515,12 @@ pa_queue *pa_sink_move_all_start(pa_sink *s) {
     for (i = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); i; i = n) {
         n = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx));
 
+        pa_sink_input_ref(i);
+
         if (pa_sink_input_start_move(i) >= 0)
-            pa_queue_push(q, pa_sink_input_ref(i));
+            pa_queue_push(q, i);
+        else
+            pa_sink_input_unref(i);
     }
 
     return q;

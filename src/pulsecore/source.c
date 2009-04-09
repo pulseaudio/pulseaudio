@@ -466,8 +466,12 @@ pa_queue *pa_source_move_all_start(pa_source *s) {
     for (o = PA_SOURCE_OUTPUT(pa_idxset_first(s->outputs, &idx)); o; o = n) {
         n = PA_SOURCE_OUTPUT(pa_idxset_next(s->outputs, &idx));
 
+        pa_source_output_ref(o);
+
         if (pa_source_output_start_move(o) >= 0)
-            pa_queue_push(q, pa_source_output_ref(o));
+            pa_queue_push(q, o);
+        else
+            pa_source_output_unref(o);
     }
 
     return q;
