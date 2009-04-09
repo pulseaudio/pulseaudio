@@ -380,8 +380,10 @@ pa_dbus_pending *pa_dbus_pending_new(
 void pa_dbus_pending_free(pa_dbus_pending *p) {
     pa_assert(p);
 
-    if (p->pending)
-        dbus_pending_call_cancel(p->pending); /* p->pending is freed by cancel() */
+    if (p->pending) {
+        dbus_pending_call_cancel(p->pending);
+        dbus_pending_call_unref(p->pending);
+    }
 
     if (p->message)
         dbus_message_unref(p->message);
