@@ -37,6 +37,7 @@
 #include <pulsecore/thread.h>
 
 #define INTERPOLATE
+//#define CORK
 
 static pa_context *context = NULL;
 static pa_stream *stream = NULL;
@@ -125,7 +126,9 @@ int main(int argc, char *argv[]) {
     int k, r;
     struct timeval start, last_info = { 0, 0 };
     pa_usec_t old_t = 0, old_rtc = 0;
+#ifdef CORK
     pa_bool_t corked = FALSE;
+#endif
 
     pa_log_set_level(PA_LOG_DEBUG);
 
@@ -150,7 +153,12 @@ int main(int argc, char *argv[]) {
     r = pa_threaded_mainloop_start(m);
     assert(r >= 0);
 
-    for (k = 0; k < 20000; k++) {
+/* #ifdef CORK */
+    for (k = 0; k < 20000; k++)
+/* #else */
+/*     for (k = 0; k < 2000; k++) */
+/* #endif */
+    {
         pa_bool_t success = FALSE, changed = FALSE;
         pa_usec_t t, rtc;
         struct timeval now, tv;
@@ -179,8 +187,9 @@ int main(int argc, char *argv[]) {
         pa_gettimeofday(&now);
 
         if (success) {
+#ifdef CORK
             pa_bool_t cork_now;
-
+#endif
             rtc = pa_timeval_diff(&now, &start);
             printf("%i\t%llu\t%llu\t%llu\t%llu\t%lli\t%u\t%u\n", k,
                    (unsigned long long) rtc,
@@ -195,6 +204,7 @@ int main(int argc, char *argv[]) {
             old_t = t;
             old_rtc = rtc;
 
+#ifdef CORK
             cork_now = (rtc / (2*PA_USEC_PER_SEC)) % 2 == 1;
 
             if (corked != cork_now) {
@@ -206,6 +216,7 @@ int main(int argc, char *argv[]) {
 
                 corked = cork_now;
             }
+#endif
         }
 
         /* Spin loop, ugly but normal usleep() is just too badly grained */
