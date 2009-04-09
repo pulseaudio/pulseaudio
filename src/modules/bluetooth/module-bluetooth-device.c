@@ -166,9 +166,13 @@ struct userdata {
 
     pa_modargs *modargs;
 
-    int stream_write_type, stream_read_type;
+    int stream_write_type;
     int service_write_type, service_read_type;
 };
+
+#define FIXED_LATENCY_PLAYBACK_A2DP (25*PA_USEC_PER_MSEC)
+#define FIXED_LATENCY_PLAYBACK_HSP (125*PA_USEC_PER_MSEC)
+#define FIXED_LATENCY_RECORD_HSP (25*PA_USEC_PER_MSEC)
 
 #ifdef NOKIA
 #define USE_SCO_OVER_PCM(u) (u->profile == PROFILE_HSP && (u->hsp.sco_sink && u->hsp.sco_source))
@@ -711,6 +715,7 @@ static int start_stream_fd(struct userdata *u) {
         uint8_t buf[BT_SUGGESTED_BUFFER_SIZE];
     } msg;
     struct pollfd *pollfd;
+    int one;
 
     pa_assert(u);
     pa_assert(u->rtpoll);
@@ -739,13 +744,29 @@ static int start_stream_fd(struct userdata *u) {
     pa_make_fd_nonblock(u->stream_fd);
     pa_make_socket_low_delay(u->stream_fd);
 
+    one = 1;
+    if (setsockopt(u->stream_fd, SOL_SOCKET, SO_TIMESTAMP, &one, sizeof(one)) < 0)
+        pa_log_warn("Failed to enable SO_TIMESTAMP: %s", pa_cstrerror(errno));
+
+    pa_log_debug("Stream properly set up, we're ready to roll!");
+
     u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
     pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
     pollfd->fd = u->stream_fd;
     pollfd->events = pollfd->revents = 0;
 
-    u->read_index = 0;
-    u->write_index = 0;
+    u->read_index = u->write_index = 0;
+    u->started_at = 0;
+
+    if (u->source)
+        u->read_smoother = pa_smoother_new(
+                PA_USEC_PER_SEC,
+                PA_USEC_PER_SEC*2,
+                TRUE,
+                TRUE,
+                10,
+                pa_rtclock_usec(),
+                TRUE);
 
     return 0;
 }
@@ -780,6 +801,11 @@ static int stop_stream_fd(struct userdata *u) {
 
     pa_close(u->stream_fd);
     u->stream_fd = -1;
+
+    if (u->read_smoother) {
+        pa_smoother_free(u->read_smoother);
+        u->read_smoother = NULL;
+    }
 
     return r;
 }
@@ -819,8 +845,6 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                     if (!u->source || u->source->state == PA_SOURCE_SUSPENDED)
                         if (start_stream_fd(u) < 0)
                             failed = TRUE;
-
-                    u->started_at = pa_rtclock_usec();
                     break;
 
                 case PA_SINK_UNLINKED:
@@ -831,7 +855,24 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             break;
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
-            *((pa_usec_t*) data) = 0;
+
+            if (u->read_smoother) {
+                pa_usec_t wi, ri;
+
+                ri = pa_smoother_get(u->read_smoother, pa_rtclock_usec());
+                wi = pa_bytes_to_usec(u->write_index + u->block_size, &u->sample_spec);
+
+                *((pa_usec_t*) data) = wi > ri ? wi - ri : 0;
+            } else {
+                pa_usec_t ri, wi;
+
+                ri = pa_rtclock_usec() - u->started_at;
+                wi = pa_bytes_to_usec(u->write_index, &u->sample_spec);
+
+                *((pa_usec_t*) data) = wi > ri ? wi - ri : 0;
+            }
+
+            *((pa_usec_t*) data) += u->sink->fixed_latency;
             return 0;
         }
     }
@@ -862,7 +903,8 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                     if (!u->sink || u->sink->state == PA_SINK_SUSPENDED)
                         stop_stream_fd(u);
 
-                    pa_smoother_pause(u->read_smoother, pa_rtclock_usec());
+                    if (u->read_smoother)
+                        pa_smoother_pause(u->read_smoother, pa_rtclock_usec());
                     break;
 
                 case PA_SOURCE_IDLE:
@@ -875,7 +917,8 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                         if (start_stream_fd(u) < 0)
                             failed = TRUE;
 
-                    pa_smoother_resume(u->read_smoother, pa_rtclock_usec(), TRUE);
+                    /* We don't resume the smoother here. Instead we
+                     * wait until the first packet arrives */
                     break;
 
                 case PA_SOURCE_UNLINKED:
@@ -886,7 +929,12 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             break;
 
         case PA_SOURCE_MESSAGE_GET_LATENCY: {
-            *((pa_usec_t*) data) = 0;
+            pa_usec_t wi, ri;
+
+            wi = pa_smoother_get(u->read_smoother, pa_rtclock_usec());
+            ri = pa_bytes_to_usec(u->read_index, &u->sample_spec);
+
+            *((pa_usec_t*) data) = (wi > ri ? wi - ri : 0) + u->source->fixed_latency;
             return 0;
         }
 
@@ -954,6 +1002,7 @@ static int hsp_process_render(struct userdata *u) {
         pa_memblock_unref(u->write_memchunk.memblock);
         pa_memchunk_reset(&u->write_memchunk);
 
+        ret = 1;
         break;
     }
 
@@ -968,6 +1017,7 @@ static int hsp_process_push(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->profile == PROFILE_HSP);
     pa_assert(u->source);
+    pa_assert(u->read_smoother);
 
     memchunk.memblock = pa_memblock_new(u->core->mempool, u->block_size);
     memchunk.index = memchunk.length = 0;
@@ -975,9 +1025,26 @@ static int hsp_process_push(struct userdata *u) {
     for (;;) {
         ssize_t l;
         void *p;
+        struct msghdr m;
+        struct cmsghdr *cm;
+        uint8_t aux[1024];
+        struct iovec iov;
+        pa_bool_t found_tstamp = FALSE;
+        pa_usec_t tstamp;
+
+        memset(&m, 0, sizeof(m));
+        memset(&aux, 0, sizeof(aux));
+        memset(&iov, 0, sizeof(iov));
+
+        m.msg_iov = &iov;
+        m.msg_iovlen = 1;
+        m.msg_control = aux;
+        m.msg_controllen = sizeof(aux);
 
         p = pa_memblock_acquire(memchunk.memblock);
-        l = pa_read(u->stream_fd, p, pa_memblock_get_length(memchunk.memblock), &u->stream_read_type);
+        iov.iov_base = p;
+        iov.iov_len = pa_memblock_get_length(memchunk.memblock);
+        l = recvmsg(u->stream_fd, &m, 0);
         pa_memblock_release(memchunk.memblock);
 
         if (l <= 0) {
@@ -1000,7 +1067,26 @@ static int hsp_process_push(struct userdata *u) {
         memchunk.length = (size_t) l;
         u->read_index += (uint64_t) l;
 
+        for (cm = CMSG_FIRSTHDR(&m); cm; cm = CMSG_NXTHDR(&m, cm))
+            if (cm->cmsg_level == SOL_SOCKET && cm->cmsg_type == SO_TIMESTAMP) {
+                struct timeval *tv = (struct timeval*) CMSG_DATA(cm);
+                pa_rtclock_from_wallclock(tv);
+                tstamp = pa_timeval_load(tv);
+                found_tstamp = TRUE;
+                break;
+            }
+
+        if (!found_tstamp) {
+            pa_log_warn("Couldn't find SO_TIMESTAMP data in auxiliary recvmsg() data!");
+            tstamp = pa_rtclock_usec();
+        }
+
+        pa_smoother_put(u->read_smoother, tstamp, pa_bytes_to_usec(u->read_index, &u->sample_spec));
+        pa_smoother_resume(u->read_smoother, tstamp, TRUE);
+
         pa_source_post(u->source, &memchunk);
+
+        ret = 1;
         break;
     }
 
@@ -1105,7 +1191,7 @@ static int a2dp_process_render(struct userdata *u) {
     header->v = 2;
     header->pt = 1;
     header->sequence_number = htons(a2dp->seq_num++);
-    header->timestamp = htonl(u->write_index / pa_frame_size(&u->sink->sample_spec));
+    header->timestamp = htonl(u->write_index / pa_frame_size(&u->sample_spec));
     header->ssrc = htonl(1);
     payload->frame_count = frame_count;
 
@@ -1147,6 +1233,8 @@ static int a2dp_process_render(struct userdata *u) {
         pa_memblock_unref(u->write_memchunk.memblock);
         pa_memchunk_reset(&u->write_memchunk);
 
+        ret = 1;
+
         break;
     }
 
@@ -1155,7 +1243,8 @@ static int a2dp_process_render(struct userdata *u) {
 
 static void thread_func(void *userdata) {
     struct userdata *u = userdata;
-    pa_bool_t do_write = FALSE, writable = FALSE;
+    unsigned do_write = 0;
+    pa_bool_t writable = FALSE;
 
     pa_assert(u);
 
@@ -1170,8 +1259,6 @@ static void thread_func(void *userdata) {
     pa_thread_mq_install(&u->thread_mq);
     pa_rtpoll_install(u->rtpoll);
 
-    pa_smoother_set_time_offset(u->read_smoother, pa_rtclock_usec());
-
     for (;;) {
         struct pollfd *pollfd;
         int ret;
@@ -1182,12 +1269,13 @@ static void thread_func(void *userdata) {
         if (u->source && PA_SOURCE_IS_LINKED(u->source->thread_info.state)) {
 
             if (pollfd && (pollfd->revents & POLLIN)) {
+                int n_read;
 
-                if (hsp_process_push(u) < 0)
+                if ((n_read = hsp_process_push(u)) < 0)
                     goto fail;
 
                 /* We just read something, so we are supposed to write something, too */
-                do_write = TRUE;
+                do_write += n_read;
             }
         }
 
@@ -1200,7 +1288,7 @@ static void thread_func(void *userdata) {
                 if (pollfd->revents & POLLOUT)
                     writable = TRUE;
 
-                if ((!u->source || !PA_SOURCE_IS_LINKED(u->source->thread_info.state)) && !do_write && writable) {
+                if ((!u->source || !PA_SOURCE_IS_LINKED(u->source->thread_info.state)) && do_write <= 0 && writable) {
                     pa_usec_t time_passed;
                     uint64_t should_have_written;
 
@@ -1208,36 +1296,37 @@ static void thread_func(void *userdata) {
                      * to. So let's do things by time */
 
                     time_passed = pa_rtclock_usec() - u->started_at;
-                    should_have_written = pa_usec_to_bytes(time_passed, &u->sink->sample_spec);
+                    should_have_written = pa_usec_to_bytes(time_passed, &u->sample_spec);
 
-                    do_write = u->write_index <= should_have_written ;
-/*                 pa_log_debug("Time has come: %s", pa_yes_no(do_write)); */
+                    do_write = u->write_index <= should_have_written;
                 }
 
-                if (writable && do_write) {
-                    if (u->write_index == 0)
+                if (writable && do_write > 0) {
+                    int n_written;
+
+                    if (u->write_index <= 0)
                         u->started_at = pa_rtclock_usec();
 
                     if (u->profile == PROFILE_A2DP) {
-                        if (a2dp_process_render(u) < 0)
+                        if ((n_written = a2dp_process_render(u)) < 0)
                             goto fail;
                     } else {
-                        if (hsp_process_render(u) < 0)
+                        if ((n_written = hsp_process_render(u)) < 0)
                             goto fail;
                     }
 
-                    do_write = FALSE;
+                    do_write -= n_written;
                     writable = FALSE;
                 }
 
-                if ((!u->source || !PA_SOURCE_IS_LINKED(u->source->thread_info.state)) && !do_write) {
+                if ((!u->source || !PA_SOURCE_IS_LINKED(u->source->thread_info.state)) && do_write <= 0) {
                     pa_usec_t time_passed, next_write_at, sleep_for;
 
                     /* Hmm, there is no input stream we could synchronize
                      * to. So let's estimate when we need to wake up the latest */
 
                     time_passed = pa_rtclock_usec() - u->started_at;
-                    next_write_at = pa_bytes_to_usec(u->write_index, &u->sink->sample_spec);
+                    next_write_at = pa_bytes_to_usec(u->write_index, &u->sample_spec);
                     sleep_for = time_passed < next_write_at ? next_write_at - time_passed : 0;
 
 /*                 pa_log("Sleeping for %lu; time passed %lu, next write at %lu", (unsigned long) sleep_for, (unsigned long) time_passed, (unsigned long)next_write_at); */
@@ -1317,12 +1406,12 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
         if (u->profile == PROFILE_HSP) {
             if (u->sink && dbus_message_is_signal(m, "org.bluez.Headset", "SpeakerGainChanged")) {
 
-                pa_cvolume_set(&v, u->sink->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
+                pa_cvolume_set(&v, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
                 pa_sink_volume_changed(u->sink, &v);
 
             } else if (u->source && dbus_message_is_signal(m, "org.bluez.Headset", "MicrophoneGainChanged")) {
 
-                pa_cvolume_set(&v, u->sink->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
+                pa_cvolume_set(&v, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
                 pa_source_volume_changed(u->source, &v);
             }
         }
@@ -1350,7 +1439,7 @@ static void sink_set_volume_cb(pa_sink *s) {
     if (gain > 15)
         gain = 15;
 
-    pa_cvolume_set(&s->virtual_volume, u->sink->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
+    pa_cvolume_set(&s->virtual_volume, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
 
     pa_assert_se(m = dbus_message_new_method_call("org.bluez", u->path, "org.bluez.Headset", "SetSpeakerGain"));
     pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_UINT16, &gain, DBUS_TYPE_INVALID));
@@ -1374,7 +1463,7 @@ static void source_set_volume_cb(pa_source *s) {
     if (gain > 15)
         gain = 15;
 
-    pa_cvolume_set(&s->virtual_volume, u->source->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
+    pa_cvolume_set(&s->virtual_volume, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
 
     pa_assert_se(m = dbus_message_new_method_call("org.bluez", u->path, "org.bluez.Headset", "SetMicrophoneGain"));
     pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_UINT16, &gain, DBUS_TYPE_INVALID));
@@ -1513,6 +1602,9 @@ static int add_sink(struct userdata *u) {
         u->sink->parent.process_msg = sink_process_msg;
 
         pa_sink_set_max_request(u->sink, u->block_size);
+        u->sink->fixed_latency =
+            (u->profile == PROFILE_A2DP ? FIXED_LATENCY_PLAYBACK_A2DP : FIXED_LATENCY_PLAYBACK_HSP) +
+            pa_bytes_to_usec(u->block_size, &u->sample_spec);
     }
 
     if (u->profile == PROFILE_HSP) {
@@ -1560,6 +1652,10 @@ static int add_source(struct userdata *u) {
 
         u->source->userdata = u;
         u->source->parent.process_msg = source_process_msg;
+
+        u->source->fixed_latency =
+            (/* u->profile == PROFILE_A2DP ? FIXED_LATENCY_RECORD_A2DP : */ FIXED_LATENCY_RECORD_HSP) +
+            pa_bytes_to_usec(u->block_size, &u->sample_spec);
     }
 
     if (u->profile == PROFILE_HSP) {
@@ -1580,12 +1676,12 @@ static void shutdown_bt(struct userdata *u) {
         u->stream_fd = -1;
 
         u->stream_write_type = 0;
-        u->stream_read_type = 0;
     }
 
     if (u->service_fd >= 0) {
         pa_close(u->service_fd);
         u->service_fd = -1;
+        u->service_write_type = u->service_write_type = 0;
     }
 
     if (u->write_memchunk.memblock) {
@@ -1600,7 +1696,7 @@ static int init_bt(struct userdata *u) {
 
     shutdown_bt(u);
 
-    u->stream_write_type = u->stream_read_type = 0;
+    u->stream_write_type = 0;
     u->service_write_type = u->service_write_type = 0;
 
     if ((u->service_fd = bt_audio_service_open()) < 0) {
@@ -1700,6 +1796,11 @@ static void stop_thread(struct userdata *u) {
 
         pa_rtpoll_free(u->rtpoll);
         u->rtpoll = NULL;
+    }
+
+    if (u->read_smoother) {
+        pa_smoother_free(u->read_smoother);
+        u->read_smoother = NULL;
     }
 }
 
@@ -1997,14 +2098,6 @@ int pa__init(pa_module* m) {
     u->core = m->core;
     u->service_fd = -1;
     u->stream_fd = -1;
-    u->read_smoother = pa_smoother_new(
-            PA_USEC_PER_SEC,
-            PA_USEC_PER_SEC*2,
-            TRUE,
-            TRUE,
-            10,
-            0,
-            FALSE);
     u->sample_spec = m->core->default_sample_spec;
     u->modargs = ma;
 
