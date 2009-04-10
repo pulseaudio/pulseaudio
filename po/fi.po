@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-05 08:27+0000\n"
+"POT-Creation-Date: 2009-04-10 02:02+0200\n"
 "PO-Revision-Date: 2009-04-05 16:24+0300\n"
 "Last-Translator: Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>\n"
 "Language-Team: Finnish <laatu@lokalisointi.org>\n"
@@ -72,7 +72,7 @@ msgstr ""
 "Tämä on todennäköisesti ohjelmavirhe ALSA-ajurissa ”%s”. Ilmoita tästä "
 "ongelmasta ALSA-kehittäjille."
 
-#: ../src/modules/alsa/alsa-util.c:1649
+#: ../src/modules/alsa/alsa-util.c:1650
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -85,7 +85,7 @@ msgstr ""
 "Tämä on todennäköisesti ohjelmavirhe ALSA-ajurissa ”%s”. Ilmoita tästä "
 "ongelmasta ALSA-kehittäjille."
 
-#: ../src/modules/alsa/alsa-util.c:1695
+#: ../src/modules/alsa/alsa-util.c:1697
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -98,11 +98,11 @@ msgstr ""
 "Tämä on todennäköisesti ohjelmavirhe ALSA-ajurissa ”%s”. Ilmoita tästä "
 "ongelmasta ALSA-kehittäjille."
 
-#: ../src/pulsecore/sink.c:2061
+#: ../src/pulsecore/sink.c:2131
 msgid "Internal Audio"
 msgstr "Sisäinen äänentoisto"
 
-#: ../src/pulsecore/sink.c:2067
+#: ../src/pulsecore/sink.c:2137
 msgid "Modem"
 msgstr "Modeemi"
 
@@ -239,37 +239,37 @@ msgstr "Järjestelmänlaajuista tilaa ei tueta tällä alustalla."
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) epäonnistui: %s"
 
-#: ../src/daemon/main.c:462
+#: ../src/daemon/main.c:476
 msgid "Failed to parse command line."
 msgstr "Komentorivin jäsentäminen epäonnistui."
 
-#: ../src/daemon/main.c:486
+#: ../src/daemon/main.c:500
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
 msgstr "Ollaan ryhmässä ”%s”, korkean prioriteetin ajoitus on sallittua."
 
-#: ../src/daemon/main.c:493
+#: ../src/daemon/main.c:507
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
 msgstr "Ollaan ryhmässä ”%s”, tosiaikainen vuorottaminen on sallittua."
 
-#: ../src/daemon/main.c:501
+#: ../src/daemon/main.c:515
 msgid "PolicyKit grants us acquire-high-priority privilege."
 msgstr "PolicyKit myöntää acquire-high-priority-oikeuden."
 
-#: ../src/daemon/main.c:504
+#: ../src/daemon/main.c:518
 msgid "PolicyKit refuses acquire-high-priority privilege."
 msgstr "PolicyKit ei myönnä acquire-high-priority-oikeutta."
 
-#: ../src/daemon/main.c:509
+#: ../src/daemon/main.c:523
 msgid "PolicyKit grants us acquire-real-time privilege."
 msgstr "PolicyKit myöntää acquire-real-time-oikeuden."
 
-#: ../src/daemon/main.c:512
+#: ../src/daemon/main.c:526
 msgid "PolicyKit refuses acquire-real-time privilege."
 msgstr "PolicyKit ei myönnä acquire-real-time-oikeutta."
 
-#: ../src/daemon/main.c:541
+#: ../src/daemon/main.c:555
 #, c-format
 msgid ""
 "Called SUID root and real-time and/or high-priority scheduling was requested "
@@ -290,48 +290,48 @@ msgstr ""
 "käyttäjän RLIMIT_NICE/RLIMIT_RTPRIO-resurssirajoja reaaliaikaisen ja/tai "
 "korkean prioriteetin ajoituksen ottamiseksi käyttöön."
 
-#: ../src/daemon/main.c:566
+#: ../src/daemon/main.c:580
 msgid ""
 "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 "Korkean prioriteetin ajoitus otettu käyttöön asetuksissa, mutta käytännöt "
 "eivät salli sitä."
 
-#: ../src/daemon/main.c:595
+#: ../src/daemon/main.c:609
 msgid "Successfully increased RLIMIT_RTPRIO"
 msgstr "RLIMIT_RTPRIO:n kasvatus onnistui"
 
-#: ../src/daemon/main.c:598
+#: ../src/daemon/main.c:612
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
 msgstr "RLIMIT_RTPRIO epäonnistui: %s"
 
-#: ../src/daemon/main.c:605
+#: ../src/daemon/main.c:619
 msgid "Giving up CAP_NICE"
 msgstr "Luovutaan CAP_NICE:stä"
 
-#: ../src/daemon/main.c:612
+#: ../src/daemon/main.c:626
 msgid ""
 "Real-time scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 "Tosiaikainen ajoitus otettu käyttöön asetuksissa, mutta käytännöt eivät "
 "salli sitä."
 
-#: ../src/daemon/main.c:673
+#: ../src/daemon/main.c:687
 msgid "Daemon not running"
 msgstr "Taustaprosessi ei ole käynnissä"
 
-#: ../src/daemon/main.c:675
+#: ../src/daemon/main.c:689
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "Taustaprosessi käynnissä prosessitunnisteella %u"
 
-#: ../src/daemon/main.c:685
+#: ../src/daemon/main.c:699
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Taustaprosessin lopettaminen epäonnistui: %s"
 
-#: ../src/daemon/main.c:703
+#: ../src/daemon/main.c:717
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -339,159 +339,159 @@ msgstr ""
 "Tätä ohjelmaa ei ole tarkoitettu suoritettavaksi pääkäyttäjänä (ellei --"
 "system ole määritelty)."
 
-#: ../src/daemon/main.c:705
+#: ../src/daemon/main.c:719
 msgid "Root privileges required."
 msgstr "Pääkäyttäjän (root) oikeudet vaaditaan."
 
-#: ../src/daemon/main.c:710
+#: ../src/daemon/main.c:724
 msgid "--start not supported for system instances."
 msgstr "--start-valitsinta ei tueta järjestelmätilassa."
 
-#: ../src/daemon/main.c:715
+#: ../src/daemon/main.c:729
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr ""
 "Suoritetaan järjestelmätilassa, mutta --disallow-exit ei ole asetettuna!"
 
-#: ../src/daemon/main.c:718
+#: ../src/daemon/main.c:732
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 "Suoritetaan järjestelmätilassa, mutta -disallow-module-loading ei ole "
 "asetettuna!"
 
-#: ../src/daemon/main.c:721
+#: ../src/daemon/main.c:735
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr ""
 "Suoritetaan järjestelmätilassa, otetaan SHM-tila pakotetusti pois käytöstä."
 
-#: ../src/daemon/main.c:726
+#: ../src/daemon/main.c:740
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "Suoritetaan järjestelmätilassa, otetaan poistumisen joutenoloaika "
 "pakotetusti pois käytöstä."
 
-#: ../src/daemon/main.c:753
+#: ../src/daemon/main.c:767
 msgid "Failed to acquire stdio."
 msgstr "stdio:n saaminen epäonnistui."
 
-#: ../src/daemon/main.c:759
+#: ../src/daemon/main.c:773
 #, c-format
 msgid "pipe failed: %s"
 msgstr "putki epäonnistui: %s"
 
-#: ../src/daemon/main.c:764
+#: ../src/daemon/main.c:778
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() epäonnistui: %s"
 
-#: ../src/daemon/main.c:778
+#: ../src/daemon/main.c:792
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() epäonnistui: %s"
 
-#: ../src/daemon/main.c:784
+#: ../src/daemon/main.c:798
 msgid "Daemon startup failed."
 msgstr "Taustaprosessin käynnistys epäonnistui."
 
-#: ../src/daemon/main.c:786
+#: ../src/daemon/main.c:800
 msgid "Daemon startup successful."
 msgstr "Taustaprosessin käynnistys onnistui."
 
-#: ../src/daemon/main.c:856
+#: ../src/daemon/main.c:870
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Tämä on PulseAudio %s"
 
-#: ../src/daemon/main.c:857
+#: ../src/daemon/main.c:871
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Käännöksen isäntäkone: %s"
 
-#: ../src/daemon/main.c:858
+#: ../src/daemon/main.c:872
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "Käännösaikaiset C-liput (CFLAGS): %s"
 
-#: ../src/daemon/main.c:861
+#: ../src/daemon/main.c:875
 #, c-format
 msgid "Running on host: %s"
 msgstr "Käynnissä isäntäkoneella: %s"
 
-#: ../src/daemon/main.c:864
+#: ../src/daemon/main.c:878
 #, c-format
 msgid "Found %u CPUs."
 msgstr "Löydettiin %u CPU:ta."
 
-#: ../src/daemon/main.c:866
+#: ../src/daemon/main.c:880
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "Sivun koko on %lu tavua"
 
-#: ../src/daemon/main.c:869
+#: ../src/daemon/main.c:883
 msgid "Compiled with Valgrind support: yes"
 msgstr "Käännetty Valgrind-tuella: kyllä"
 
-#: ../src/daemon/main.c:871
+#: ../src/daemon/main.c:885
 msgid "Compiled with Valgrind support: no"
 msgstr "Käännetty Valgrind-tuella: ei"
 
-#: ../src/daemon/main.c:874
+#: ../src/daemon/main.c:888
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "Käynnissä valgrind-tilassa: %s"
 
-#: ../src/daemon/main.c:877
+#: ../src/daemon/main.c:891
 msgid "Optimized build: yes"
 msgstr "Optimoitu rakentaminen: kyllä"
 
-#: ../src/daemon/main.c:879
+#: ../src/daemon/main.c:893
 msgid "Optimized build: no"
 msgstr "Optimoitu rakentaminen: ei"
 
-#: ../src/daemon/main.c:883
+#: ../src/daemon/main.c:897
 msgid "NDEBUG defined, all asserts disabled."
 msgstr "NDEBUG on määritelty, kaikki assertit ovat poissa käytöstä."
 
-#: ../src/daemon/main.c:885
+#: ../src/daemon/main.c:899
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr "FASTPATH on määritelty, vain fast path -assertit ovat poissa käytöstä."
 
-#: ../src/daemon/main.c:887
+#: ../src/daemon/main.c:901
 msgid "All asserts enabled."
 msgstr "Kaikki assertit ovat käytössä."
 
-#: ../src/daemon/main.c:891
+#: ../src/daemon/main.c:905
 msgid "Failed to get machine ID"
 msgstr "Konetunnisteen nouto epäonnistui"
 
-#: ../src/daemon/main.c:894
+#: ../src/daemon/main.c:908
 #, c-format
 msgid "Machine ID is %s."
 msgstr "Konetunniste on %s."
 
-#: ../src/daemon/main.c:899
+#: ../src/daemon/main.c:913
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Käytetään ajonaikaista hakemistoa %s."
 
-#: ../src/daemon/main.c:904
+#: ../src/daemon/main.c:918
 #, c-format
 msgid "Using state directory %s."
 msgstr "Käytetään tilahakemistoa %s."
 
-#: ../src/daemon/main.c:907
+#: ../src/daemon/main.c:921
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Suoritetaan järjestelmätilassa: %s"
 
-#: ../src/daemon/main.c:922
+#: ../src/daemon/main.c:936
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() epäonnistui."
 
-#: ../src/daemon/main.c:934
+#: ../src/daemon/main.c:948
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Korkean tarkkuuden ajastimet käytettävissä."
 
-#: ../src/daemon/main.c:936
+#: ../src/daemon/main.c:950
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -499,29 +499,29 @@ msgstr ""
 "Hei, ytimesi on kehno! Linux korkean tarkkuuden ajastimien tuella on hyvin "
 "suositeltava!"
 
-#: ../src/daemon/main.c:948
+#: ../src/daemon/main.c:962
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() epäonnistui."
 
-#: ../src/daemon/main.c:1010
+#: ../src/daemon/main.c:1024
 msgid "Failed to initialize daemon."
 msgstr "Taustaprosessin alustus epäonnistui."
 
-#: ../src/daemon/main.c:1015
+#: ../src/daemon/main.c:1029
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "Taustaprosessin käynnistys ilman ladattavia moduuleita, kieltäydytään "
 "toiminnasta."
 
-#: ../src/daemon/main.c:1032
+#: ../src/daemon/main.c:1046
 msgid "Daemon startup complete."
 msgstr "Taustaprosessin käynnistys valmis."
 
-#: ../src/daemon/main.c:1038
+#: ../src/daemon/main.c:1052
 msgid "Daemon shutdown initiated."
 msgstr "Taustaprosessin sulkeminen käynnistetty."
 
-#: ../src/daemon/main.c:1056
+#: ../src/daemon/main.c:1074
 msgid "Daemon terminated."
 msgstr "Taustaprosessi lopetettu."
 
@@ -1526,7 +1526,8 @@ msgstr ""
 "                                        yhdistetään\n"
 "  -d, --device=LAITE                    Sen nielun/lähteen nimi, johon\n"
 "                                        yhdistetään\n"
-"  -n, --client-name=NIMI                Kuinka tätä asiakasohjelmaa kutsutaan\n"
+"  -n, --client-name=NIMI                Kuinka tätä asiakasohjelmaa "
+"kutsutaan\n"
 "                                        palvelimella\n"
 "      --stream-name=NIMI                Kuinka tätä virtaa kutsutaan\n"
 "                                        palvelimella\n"
@@ -1544,15 +1545,19 @@ msgstr ""
 "                                        kanavakartta\n"
 "      --fix-format                      Valitse näytemuoto nielusta, johon\n"
 "                                        virtaa yhdistetään\n"
-"      --fix-rate                        Valitse näytteenottotaajuus nielusta,\n"
+"      --fix-rate                        Valitse näytteenottotaajuus "
+"nielusta,\n"
 "                                        johon virtaa yhdistetään\n"
 "      --fix-channels                    Valitse kanavien määrä ja kanava-\n"
 "                                        kartta nielusta, johon virtaa\n"
 "                                        yhdistetään.\n"
 "      --no-remix                        Älä yli- tai alimiksaa kanavia.\n"
-"      --no-remap                        Kartoita kanavat indeksin mukaan, älä nimen mukaan.\n"
-"      --latency=TAVUA                   Pyydä määritettyä latenssia tavuissa.\n"
-"      --process-time=TAVUA              Pyydä määritettyä prosessiaikaa pyyntöä kohti tavuissa.\n"
+"      --no-remap                        Kartoita kanavat indeksin mukaan, "
+"älä nimen mukaan.\n"
+"      --latency=TAVUA                   Pyydä määritettyä latenssia "
+"tavuissa.\n"
+"      --process-time=TAVUA              Pyydä määritettyä prosessiaikaa "
+"pyyntöä kohti tavuissa.\n"
 
 #: ../src/utils/pacat.c:612
 #, c-format
@@ -2196,11 +2201,13 @@ msgid ""
 "variables and cookie file.\n"
 " -r    Remove PulseAudio data from X11 display\n"
 msgstr ""
-"%s [-D näyttö] [-S palvelin] [-O nielu] [-I lähde] [-c tiedosto]  [-d|-e|-i|-r]\n"
+"%s [-D näyttö] [-S palvelin] [-O nielu] [-I lähde] [-c tiedosto]  [-d|-e|-i|-"
+"r]\n"
 "\n"
 " -d    Näytä nykyiseen X11-näyttöön yhdistetyn PulseAudion tiedot (oletus)\n"
 " -e    Vie paikalliset PulseAudio-tiedot X11-näytölle\n"
-" -i    Tuo PulseAudio-tiedot X11-näytöltä paikallisiin ympäristömuuttujiin ja\n"
+" -i    Tuo PulseAudio-tiedot X11-näytöltä paikallisiin ympäristömuuttujiin "
+"ja\n"
 "       evästetiedostoon.\n"
 " -r    Poista PulseAudio-tiedostot X11-näytöltä\n"
 
@@ -2343,7 +2350,8 @@ msgstr ""
 "  -s, --server=PALVELIN                 Sen palvelimen nimi, johon\n"
 "                                        yhdistetään\n"
 "  -d, --device=LAITE                    Sen nielun nimi, johon yhdistetään\n"
-"  -n, --client-name=NIMI                Kuinka tätä asiakasohjelmaa kutsutaan\n"
+"  -n, --client-name=NIMI                Kuinka tätä asiakasohjelmaa "
+"kutsutaan\n"
 "                                        palvelimella\n"
 "      --stream-name=NIMI                Kuinka tätä virtaa kutsutaan\n"
 "                                        palvelimella\n"
@@ -2399,9 +2407,9 @@ msgstr ""
 "ALSA herätti taustaprosessin kirjoittamaan uutta dataa laitteelle, mutta "
 "mitään kirjoitettavaa ei ollut!\n"
 "Tämä on luultavasti ohjelmavirhe ALSA-ajurissa ”%s”. Raportoi tästä "
-"ongelmasta ALSA-kehittäjille. Taustaprosessi herätettiin POLLOUT asetettuna, "
-" snd_pcm_avail() palautti kuitenkin 0 tai jonkin muun arvon, joka on < "
-"min_avail."
+"ongelmasta ALSA-kehittäjille. Taustaprosessi herätettiin POLLOUT "
+"asetettuna,  snd_pcm_avail() palautti kuitenkin 0 tai jonkin muun arvon, "
+"joka on < min_avail."
 
 #: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:510
 #, c-format
@@ -2416,9 +2424,8 @@ msgstr ""
 "ALSA herätti taustaprosessin lukemaan uutta dataa laitteelta, mutta mitään "
 "luettavaa ei ollut!\n"
 "Tämä on luultavasti ohjelmavirhe ALSA-ajurissa ”%s”. Raportoi tästä "
-"ongelmasta ALSA-kehittäjille. Taustaprosessi herätettiin POLLIN asetettuna, "
-" snd_pcm_avail() palautti kuitenkin 0 tai jonkin muun arvon, on < "
-"min_avail."
+"ongelmasta ALSA-kehittäjille. Taustaprosessi herätettiin POLLIN asetettuna,  "
+"snd_pcm_avail() palautti kuitenkin 0 tai jonkin muun arvon, on < min_avail."
 
 #: ../src/modules/alsa/module-alsa-card.c:114
 #, c-format
@@ -2436,19 +2443,19 @@ msgid "Input %s"
 msgstr "Sisääntulo %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:170
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1864
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2001
 msgid "Off"
 msgstr "Poissa"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1834
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1971
 msgid "High Fidelity Playback (A2DP)"
 msgstr "Korkean äänenlaadun toisto (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1849
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1986
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr ""
 
-#: ../src/modules/reserve-wrap.c:125
+#: ../src/modules/reserve-wrap.c:127
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio-äänipalvelin"
 

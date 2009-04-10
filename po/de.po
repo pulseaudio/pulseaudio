@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-05 03:15+0200\n"
+"POT-Creation-Date: 2009-04-10 02:02+0200\n"
 "PO-Revision-Date: 2009-02-19 12:04+0100\n"
 "Last-Translator: Fabian Affolter <fab@fedoraproject.org>\n"
 "Language-Team: German <fedora-trans-de@redhat.com>\n"
@@ -77,7 +77,7 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1649
+#: ../src/modules/alsa/alsa-util.c:1650
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -86,7 +86,7 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1695
+#: ../src/modules/alsa/alsa-util.c:1697
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -95,12 +95,12 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/pulsecore/sink.c:2061
+#: ../src/pulsecore/sink.c:2131
 #, fuzzy
 msgid "Internal Audio"
 msgstr "Interner Fehler"
 
-#: ../src/pulsecore/sink.c:2067
+#: ../src/pulsecore/sink.c:2137
 msgid "Modem"
 msgstr ""
 
@@ -237,40 +237,40 @@ msgstr "System-Modus auf dieser Plattform nicht unterstützt."
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) fehlgeschlagen: %s"
 
-#: ../src/daemon/main.c:462
+#: ../src/daemon/main.c:476
 msgid "Failed to parse command line."
 msgstr "Parsen der Kommandzeile fehlgeschlagen."
 
-#: ../src/daemon/main.c:486
+#: ../src/daemon/main.c:500
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
 msgstr ""
 "Wir befinden uns in der Gruppe '%s', was Scheduling höchster Priorität "
 "ermöglicht."
 
-#: ../src/daemon/main.c:493
+#: ../src/daemon/main.c:507
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
 msgstr ""
 "Wir befinden uns in der Gruppe '%s', was Echtzeit-Scheduling ermöglicht."
 
-#: ../src/daemon/main.c:501
+#: ../src/daemon/main.c:515
 msgid "PolicyKit grants us acquire-high-priority privilege."
 msgstr "Richtlinien gewähren das Recht aquire-high-priority."
 
-#: ../src/daemon/main.c:504
+#: ../src/daemon/main.c:518
 msgid "PolicyKit refuses acquire-high-priority privilege."
 msgstr "Richtlinien verweigern das Recht acquire-high-priority."
 
-#: ../src/daemon/main.c:509
+#: ../src/daemon/main.c:523
 msgid "PolicyKit grants us acquire-real-time privilege."
 msgstr "Richtlinien gewähren das Recht aquire-real-time."
 
-#: ../src/daemon/main.c:512
+#: ../src/daemon/main.c:526
 msgid "PolicyKit refuses acquire-real-time privilege."
 msgstr "Richtlinien verweigern das Recht acquire-real-time."
 
-#: ../src/daemon/main.c:541
+#: ../src/daemon/main.c:555
 #, fuzzy, c-format
 msgid ""
 "Called SUID root and real-time and/or high-priority scheduling was requested "
@@ -286,44 +286,44 @@ msgstr ""
 "Erlangen Sie die den Richtlinien entsprechenden Rechte, um Echtzeit-"
 "Scheduling zu aktivieren oder werden Sie Mitglied der Gruppe '"
 
-#: ../src/daemon/main.c:566
+#: ../src/daemon/main.c:580
 msgid ""
 "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr "Scheduling höchster Priorität konfiguriert, jedoch nicht erlaubt."
 
-#: ../src/daemon/main.c:595
+#: ../src/daemon/main.c:609
 msgid "Successfully increased RLIMIT_RTPRIO"
 msgstr "RLIMIT_RTPRIO erfolgreich erhöht"
 
-#: ../src/daemon/main.c:598
+#: ../src/daemon/main.c:612
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
 msgstr "RLIMIT_RTPRIO fehlgeschlagen: %s"
 
-#: ../src/daemon/main.c:605
+#: ../src/daemon/main.c:619
 msgid "Giving up CAP_NICE"
 msgstr "Verwerfe CAP_NICE"
 
-#: ../src/daemon/main.c:612
+#: ../src/daemon/main.c:626
 msgid ""
 "Real-time scheduling enabled in configuration but not allowed by policy."
 msgstr "Echtzeit-Scheduling konfiguriert, jedoch nicht erlaubt."
 
-#: ../src/daemon/main.c:673
+#: ../src/daemon/main.c:687
 msgid "Daemon not running"
 msgstr "Daemon läuft nicht"
 
-#: ../src/daemon/main.c:675
+#: ../src/daemon/main.c:689
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "Daemon läuft als PID %u"
 
-#: ../src/daemon/main.c:685
+#: ../src/daemon/main.c:699
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Konnte Prozess nicht abbrechen: %s"
 
-#: ../src/daemon/main.c:703
+#: ../src/daemon/main.c:717
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -331,179 +331,179 @@ msgstr ""
 "Dieses Programm sollte ohne die Option --system nicht als Administrator "
 "ausgeführt werden."
 
-#: ../src/daemon/main.c:705
+#: ../src/daemon/main.c:719
 msgid "Root privileges required."
 msgstr "Root-Berechtigungen benötigt."
 
-#: ../src/daemon/main.c:710
+#: ../src/daemon/main.c:724
 msgid "--start not supported for system instances."
 msgstr "--start nicht unterstützt für System-Instanzen."
 
-#: ../src/daemon/main.c:715
+#: ../src/daemon/main.c:729
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr "System-Modus aktiv, jeodch --disallow-exit nicht gesetzt!"
 
-#: ../src/daemon/main.c:718
+#: ../src/daemon/main.c:732
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr "System-Modus aktiv, jedoch --disallow-module-loading nicht gesetzt!"
 
-#: ../src/daemon/main.c:721
+#: ../src/daemon/main.c:735
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "System-Modus aktiv, SHM-Modus gezwungenermaßen deaktiviert!"
 
-#: ../src/daemon/main.c:726
+#: ../src/daemon/main.c:740
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr "System-Modus aktiv, Exit-Idle-Time gezwungenermaßen deaktiviert!"
 
-#: ../src/daemon/main.c:753
+#: ../src/daemon/main.c:767
 msgid "Failed to acquire stdio."
 msgstr "Reservieren von STDIO fehlgeschlagen."
 
-#: ../src/daemon/main.c:759
+#: ../src/daemon/main.c:773
 #, c-format
 msgid "pipe failed: %s"
 msgstr "pipe fehlgeschlagen: %s"
 
-#: ../src/daemon/main.c:764
+#: ../src/daemon/main.c:778
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() fehlgeschlagen: %s"
 
-#: ../src/daemon/main.c:778
+#: ../src/daemon/main.c:792
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() fehlgeschlagen: %s"
 
-#: ../src/daemon/main.c:784
+#: ../src/daemon/main.c:798
 msgid "Daemon startup failed."
 msgstr "Start des Daemons fehlgeschlagen."
 
-#: ../src/daemon/main.c:786
+#: ../src/daemon/main.c:800
 msgid "Daemon startup successful."
 msgstr "Start des Daemons erfolgreich."
 
-#: ../src/daemon/main.c:856
+#: ../src/daemon/main.c:870
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Dies ist PulseAudio %s"
 
-#: ../src/daemon/main.c:857
+#: ../src/daemon/main.c:871
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Kompilier-Host: %s"
 
-#: ../src/daemon/main.c:858
+#: ../src/daemon/main.c:872
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "Kompilier-CFLAGS: %s"
 
-#: ../src/daemon/main.c:861
+#: ../src/daemon/main.c:875
 #, c-format
 msgid "Running on host: %s"
 msgstr "Laufe auf Host: %s"
 
-#: ../src/daemon/main.c:864
+#: ../src/daemon/main.c:878
 #, c-format
 msgid "Found %u CPUs."
 msgstr "%u CPUs gefunden."
 
-#: ../src/daemon/main.c:866
+#: ../src/daemon/main.c:880
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "Seitengröße ist %lu Bytes."
 
-#: ../src/daemon/main.c:869
+#: ../src/daemon/main.c:883
 msgid "Compiled with Valgrind support: yes"
 msgstr "Kompiliere mit Valgrind-Unterstützung: ja"
 
-#: ../src/daemon/main.c:871
+#: ../src/daemon/main.c:885
 msgid "Compiled with Valgrind support: no"
 msgstr "Kompiliere mit Valgrind-Unterstützung: nein"
 
-#: ../src/daemon/main.c:874
+#: ../src/daemon/main.c:888
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "Läuft im Valgrind-Modus: %s"
 
-#: ../src/daemon/main.c:877
+#: ../src/daemon/main.c:891
 msgid "Optimized build: yes"
 msgstr "Optimiertes Build: ja"
 
-#: ../src/daemon/main.c:879
+#: ../src/daemon/main.c:893
 msgid "Optimized build: no"
 msgstr "Optimiertes Build: nein"
 
-#: ../src/daemon/main.c:883
+#: ../src/daemon/main.c:897
 msgid "NDEBUG defined, all asserts disabled."
 msgstr ""
 
-#: ../src/daemon/main.c:885
+#: ../src/daemon/main.c:899
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr ""
 
-#: ../src/daemon/main.c:887
+#: ../src/daemon/main.c:901
 msgid "All asserts enabled."
 msgstr ""
 
-#: ../src/daemon/main.c:891
+#: ../src/daemon/main.c:905
 msgid "Failed to get machine ID"
 msgstr "Beziehen der Maschinen-ID fehlgeschlagen"
 
-#: ../src/daemon/main.c:894
+#: ../src/daemon/main.c:908
 #, c-format
 msgid "Machine ID is %s."
 msgstr "System- ID ist %s."
 
-#: ../src/daemon/main.c:899
+#: ../src/daemon/main.c:913
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Nutze Laufzeit-Verzeichnis %s."
 
-#: ../src/daemon/main.c:904
+#: ../src/daemon/main.c:918
 #, c-format
 msgid "Using state directory %s."
 msgstr "Nutze Zustands-Verzeichnis %s."
 
-#: ../src/daemon/main.c:907
+#: ../src/daemon/main.c:921
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Laufe im System-Modus: %s"
 
-#: ../src/daemon/main.c:922
+#: ../src/daemon/main.c:936
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() fehlgeschlagen."
 
-#: ../src/daemon/main.c:934
+#: ../src/daemon/main.c:948
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Neue hochauslösende Timer verfügbar! Guten Appetit!"
 
-#: ../src/daemon/main.c:936
+#: ../src/daemon/main.c:950
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 msgstr "Der Chefkoch empfiehlt: Linux mit aktivierten hochauslösenden Timern!"
 
-#: ../src/daemon/main.c:948
+#: ../src/daemon/main.c:962
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() fehlgeschlagen."
 
-#: ../src/daemon/main.c:1010
+#: ../src/daemon/main.c:1024
 msgid "Failed to initialize daemon."
 msgstr "Konnte Daemon nicht initialisieren."
 
-#: ../src/daemon/main.c:1015
+#: ../src/daemon/main.c:1029
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "Daemon verweigert Ausführung, da keine Module geladen."
 
-#: ../src/daemon/main.c:1032
+#: ../src/daemon/main.c:1046
 msgid "Daemon startup complete."
 msgstr "Start des Daemons abgeschlossen."
 
-#: ../src/daemon/main.c:1038
+#: ../src/daemon/main.c:1052
 msgid "Daemon shutdown initiated."
 msgstr "Herunterfahren des Daemon gestartet."
 
-#: ../src/daemon/main.c:1056
+#: ../src/daemon/main.c:1074
 msgid "Daemon terminated."
 msgstr "Daemon beendet."
 
@@ -2385,19 +2385,19 @@ msgid "Input %s"
 msgstr ""
 
 #: ../src/modules/alsa/module-alsa-card.c:170
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1864
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2001
 msgid "Off"
 msgstr ""
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1834
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1971
 msgid "High Fidelity Playback (A2DP)"
 msgstr ""
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1849
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1986
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr ""
 
-#: ../src/modules/reserve-wrap.c:125
+#: ../src/modules/reserve-wrap.c:127
 msgid "PulseAudio Sound Server"
 msgstr ""
 
