@@ -1558,10 +1558,10 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
                 (double) pa_bytes_to_usec(u->hwbuf_size, &ss) / PA_USEC_PER_MSEC);
 
     if (u->use_tsched) {
+        u->watermark_step = pa_usec_to_bytes(TSCHED_WATERMARK_STEP_USEC, &u->source->sample_spec);
+
         fix_min_sleep_wakeup(u);
         fix_tsched_watermark(u);
-
-        u->watermark_step = pa_usec_to_bytes(TSCHED_WATERMARK_STEP_USEC, &u->source->sample_spec);
 
         pa_source_set_latency_range(u->source,
                                     0,
@@ -1569,7 +1569,8 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
 
         pa_log_info("Time scheduling watermark is %0.2fms",
                     (double) pa_bytes_to_usec(u->tsched_watermark, &ss) / PA_USEC_PER_MSEC);
-    }
+    } else
+        u->source->fixed_latency = pa_bytes_to_usec(u->hwbuf_size, &ss);
 
     reserve_update(u);
 

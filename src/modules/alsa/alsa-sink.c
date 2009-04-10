@@ -1703,14 +1703,13 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
                 (double) pa_bytes_to_usec(u->hwbuf_size, &ss) / PA_USEC_PER_MSEC);
 
     pa_sink_set_max_request(u->sink, u->hwbuf_size);
+    pa_sink_set_max_rewind(u->sink, u->hwbuf_size);
 
     if (u->use_tsched) {
-        fix_min_sleep_wakeup(u);
-        fix_tsched_watermark(u);
-
         u->watermark_step = pa_usec_to_bytes(TSCHED_WATERMARK_STEP_USEC, &u->sink->sample_spec);
 
-        pa_sink_set_max_rewind(u->sink, u->hwbuf_size);
+        fix_min_sleep_wakeup(u);
+        fix_tsched_watermark(u);
 
         pa_sink_set_latency_range(u->sink,
                                   0,
@@ -1718,7 +1717,8 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
 
         pa_log_info("Time scheduling watermark is %0.2fms",
                     (double) pa_bytes_to_usec(u->tsched_watermark, &ss) / PA_USEC_PER_MSEC);
-    }
+    } else
+        u->sink->fixed_latency = pa_bytes_to_usec(u->hwbuf_size, &ss);
 
     reserve_update(u);
 

@@ -260,10 +260,12 @@ int pa__init(pa_module*m) {
     u->source->update_requested_latency = source_update_requested_latency_cb;
     u->source->userdata = u;
 
+    u->block_usec = BLOCK_USEC;
+
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_rtpoll(u->source, u->rtpoll);
+    u->source->fixed_latency = u->block_usec;
 
-    u->block_usec = BLOCK_USEC;
 
     if (!(u->thread = pa_thread_new(thread_func, u))) {
         pa_log("Failed to create thread.");

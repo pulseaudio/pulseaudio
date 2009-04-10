@@ -293,6 +293,7 @@ int pa__init(pa_module*m) {
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
     pa_sink_set_max_request(u->sink, PIPE_BUF);
+    u->sink->fixed_latency = pa_bytes_to_usec(PIPE_BUF, &u->sink->sample_spec);
 
     u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
     pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
