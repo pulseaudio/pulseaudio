@@ -1,68 +1,70 @@
-# translation of pulseaudio.master-tx.po to Simplified Chinese
-# 简体中文翻译
-# Copyright (C) 2008 THE 'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the  package.
-# 闫丰刚 (sainry)<sainry@gmail.com> 2008
+# translation of pulseaudio.master-tx.pulseaudio.po to Oriya
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
 #
-#
-# 闫丰刚 <sainry@gmail.com>, 2009.
-# Leah Liu <lliu@redhat.com>, 2009.
+# Manoj Kumar Giri <mgiri@redhat.com>, 2009.
 msgid ""
 msgstr ""
-"Project-Id-Version: pulseaudio.master-tx\n"
+"Project-Id-Version: pulseaudio.master-tx.pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-04-05 08:27+0000\n"
-"PO-Revision-Date: 2009-04-06 10:26+1000\n"
-"Last-Translator: Leah Liu <lliu@redhat.com>\n"
-"Language-Team: Simplified Chinese <zh@li.org>\n"
+"PO-Revision-Date: 2009-04-09 13:16+0530\n"
+"Last-Translator: Manoj Kumar Giri <mgiri@redhat.com>\n"
+"Language-Team: Oriya <oriya-it@googlegroups.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
+"Plural-Forms:  nplurals=2; plural=(n!=1);\n\n"
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
 
 #: ../src/modules/alsa/alsa-util.c:530
 msgid "Analog Mono"
-msgstr "模拟单声道"
+msgstr "ଅନୁରୂପ ମୋନୋ"
 
 #: ../src/modules/alsa/alsa-util.c:536
 msgid "Analog Stereo"
-msgstr "模拟立体声"
+msgstr "ଅନୁରୂପ ଷ୍ଟେରିଓ"
 
 #: ../src/modules/alsa/alsa-util.c:542
 msgid "Digital Stereo (IEC958)"
-msgstr "数字立体声（IEC958）"
+msgstr "ସାଂଖିକ ଷ୍ଟେରିଓ (IEC958)"
 
 #: ../src/modules/alsa/alsa-util.c:548
 msgid "Digital Stereo (HDMI)"
-msgstr "数字立体声（HDMI）"
+msgstr "ସାଂଖିକ ଷ୍ଟେରିଓ (HDMI)"
 
 #: ../src/modules/alsa/alsa-util.c:555
 msgid "Analog Surround 4.0"
-msgstr "模拟环绕 4.0"
+msgstr "ଅନୁରୂପ ଚତୁର୍ପାର୍ଶ୍ୱ 4.0"
 
 #: ../src/modules/alsa/alsa-util.c:562
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr "数字环绕 4.0（IEC958/AC3）"
+msgstr "ସାଂଖିକ ଚତୁର୍ପାର୍ଶ୍ୱ 4.0 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-util.c:570
 msgid "Analog Surround 4.1"
-msgstr "模拟环绕 4.1"
+msgstr "ଅନୁରୂପ ଚତୁର୍ପାର୍ଶ୍ୱ 4.1"
 
 #: ../src/modules/alsa/alsa-util.c:578
 msgid "Analog Surround 5.0"
-msgstr "模拟环绕 5.0"
+msgstr "ଅନୁରୂପ ଚତୁର୍ପାର୍ଶ୍ୱ 5.0"
 
 #: ../src/modules/alsa/alsa-util.c:586
 msgid "Analog Surround 5.1"
-msgstr "模拟环绕 5.1"
+msgstr "ଅନୁରୂପ ଚତୁର୍ପାର୍ଶ୍ୱ 5.1"
 
 #: ../src/modules/alsa/alsa-util.c:594
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr "数字环绕 5.1（IEC958/AC3）"
+msgstr "ସାଂଖିକ ଚତୁର୍ପାର୍ଶ୍ୱ 5.1 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-util.c:603
 msgid "Analog Surround 7.1"
-msgstr "模拟环绕 7.1"
+msgstr "ଅନୁରୂପ ଚତୁର୍ପାର୍ଶ୍ୱ 7.1"
 
 #: ../src/modules/alsa/alsa-util.c:1609
 #, c-format
@@ -72,8 +74,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_avail() 返回的值非常大：%lu 字节（%lu ms）。\n"
-"很可能是 ALSA 驱动程序 '%s' 中的 bug。请向 ALSA 开发者举报这个问题。"
+"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
+"ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
 
 #: ../src/modules/alsa/alsa-util.c:1649
 #, c-format
@@ -83,8 +87,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_delay() 返回的值非常大：%li 字节（%s%lu ms）。\n"
-"很可能是 ALSA 驱动程序 '%s' 中的 bug。请向 ALSA 开发者举报这个问题。"
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
+"lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
 
 #: ../src/modules/alsa/alsa-util.c:1695
 #, c-format
@@ -94,179 +100,181 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_mmap_begin() 返回的值非常大：%lu 字节（%lu ms）。\n"
-"很可能是 ALSA 驱动程序 '%s' 中的 bug。请向 ALSA 开发者举报这个问题。"
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
+"(%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
 
 #: ../src/pulsecore/sink.c:2061
 msgid "Internal Audio"
-msgstr "内部音频"
+msgstr "ଆଭ୍ୟନ୍ତରୀଣ ଧ୍ୱନି"
 
 #: ../src/pulsecore/sink.c:2067
 msgid "Modem"
-msgstr "调制解调器"
+msgstr "ମଡେମ"
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
-msgstr "查找原始 lt_dlopen 加载器失败。"
+msgstr "ପ୍ରକୃତ lt_dlopen ଧାରକକୁ ଖୋଜି ପାଇବାରେ ବିଫଳ।"
 
 #: ../src/daemon/ltdl-bind-now.c:129
 msgid "Failed to allocate new dl loader."
-msgstr "分配新的 dl 加载器失败。"
+msgstr "ନୂତନ dl ଧାରକକୁ ବଣ୍ଟନ କରିବାରେ ବିଫଳ।"
 
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
-msgstr "添加 bind-now-loader 失败。"
+msgstr "bind-now-loaderକୁ ଯୋଗ କରିବାରେ ବିଫଳ।"
 
 #: ../src/daemon/polkit.c:55
 #, c-format
 msgid "Cannot connect to system bus: %s"
-msgstr "无法连接到系统总线：%s"
+msgstr "ତନ୍ତ୍ର ପରିପଥ ସହିତ ସଂଯୋଗ କରିପାରିବେ ନାହିଁ: %s"
 
 #: ../src/daemon/polkit.c:65
 #, c-format
 msgid "Cannot get caller from PID: %s"
-msgstr "无法从PID获取调用者：%s"
+msgstr "PIDରୁ କଲରକୁ ପାଇପାରିବେ ନାହିଁ: %s"
 
 #: ../src/daemon/polkit.c:77
 msgid "Cannot set UID on caller object."
-msgstr "无法为调用者设定UID。"
+msgstr "କଲର ବସ୍ତୁରେ UID କୁ ସେଟ କରିପାରିବେ ନାହିଁ।"
 
 #: ../src/daemon/polkit.c:82
 msgid "Failed to get CK session."
-msgstr "获取CK会话失败。"
+msgstr "CK ଅଧିବେଶନକୁ ପାଇବାରେ ବିଫଳ।"
 
 #: ../src/daemon/polkit.c:90
 msgid "Cannot set UID on session object."
-msgstr "无法为会话对象设定UID。"
+msgstr "ଅଧିବେଶନ ବସ୍ତୁରେ UID ସେଟ କରିପାରିବେ ନାହିଁ।"
 
 #: ../src/daemon/polkit.c:95
 msgid "Cannot allocate PolKitAction."
-msgstr "不能分配PolKitAction。"
+msgstr "PolKitActionକୁ ବଣ୍ଟନ କରିପାରିବେ ନାହିଁ।"
 
 #: ../src/daemon/polkit.c:100
 msgid "Cannot set action_id"
-msgstr "无法设定action_id"
+msgstr "action_id ସେଟ କରିପାରିବେ ନାହିଁ"
 
 #: ../src/daemon/polkit.c:105
 msgid "Cannot allocate PolKitContext."
-msgstr "无法分配PolKitContext。"
+msgstr "PolKitContext ବଣ୍ଟନ କରିପାରିବେ ନାହିଁ।"
 
 #: ../src/daemon/polkit.c:110
 #, c-format
 msgid "Cannot initialize PolKitContext: %s"
-msgstr "无法初使化PolKitContext: %s"
+msgstr "PolKitContextକୁ ଆରମ୍ଭ କରିପାରିବେ ନାହିଁ: %s"
 
 #: ../src/daemon/polkit.c:119
 #, c-format
 msgid "Could not determine whether caller is authorized: %s"
-msgstr "无法判断调用者是否已获得授权: %s"
+msgstr "କଲର ଅଧିକାର ପ୍ରାପ୍ତ କି ନୁହଁ ତାହା ନିର୍ଦ୍ଧାରଣ କରି ପାରିଲା ନାହିଁ: %s"
 
 #: ../src/daemon/polkit.c:139
 #, c-format
 msgid "Cannot obtain auth: %s"
-msgstr "无法获取授权: %s"
+msgstr "auth ପାଇଲା ନାହିଁ: %s"
 
 #: ../src/daemon/polkit.c:148
 #, c-format
 msgid "PolicyKit responded with '%s'"
-msgstr "PolicyKit回复'%s'"
+msgstr "PolicyKit '%s' ସହିତ ଉତ୍ତର ଦେଇଥିଲା"
 
 #: ../src/daemon/main.c:137
 #, c-format
 msgid "Got signal %s."
-msgstr "获得信号%s"
+msgstr "ସଂକେତ %s ପାଇଲା।"
 
 #: ../src/daemon/main.c:164
 msgid "Exiting."
-msgstr "退出"
+msgstr "ଉତ୍ତେଜିତ କରୁଅଛି।"
 
 #: ../src/daemon/main.c:182
 #, c-format
 msgid "Failed to find user '%s'."
-msgstr "找不到用户 `%s' "
+msgstr "ଚାଳକ '%s' କୁ ଖୋଜିବାରେ ବିଫଳ।"
 
 #: ../src/daemon/main.c:187
 #, c-format
 msgid "Failed to find group '%s'."
-msgstr "找不到用户组 `%s'"
+msgstr "ସମୂହ '%s' କୁ ଖୋଜି ପାଇବାରେ ବିଫଳ।"
 
 #: ../src/daemon/main.c:191
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
-msgstr "发现用户'%s' (UID %lu)和组'%s' (GID %lu)."
+msgstr "ଚାଳକ '%s' (UID %lu) ଏବଂ ସମୂହ '%s' (GID %lu) ମିଳିଲା।"
 
 #: ../src/daemon/main.c:196
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
-msgstr "用户'%s'与组'%s'的GID不匹配."
+msgstr "ଚାଳକ '%s' ଏବଂ ସମୂହ '%s' ର GID ମେଳଖାଏନାହିଁ।"
 
 #: ../src/daemon/main.c:201
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr "用户'%s'的主文件夹不是'%s'，忽略。"
+msgstr "ଚାଳକ '%s' ର ମୂଖ୍ୟ ଡିରେକ୍ଟୋରୀଟି '%s' ନୁହଁ, ଅଗ୍ରାହ୍ୟ କରୁଅଛି।"
 
 #: ../src/daemon/main.c:204 ../src/daemon/main.c:209
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr "创建'%s'失败： %s"
+msgstr "'%s' ନିର୍ମାଣ କରିବାରେ ବିଫଳ: %s"
 
 #: ../src/daemon/main.c:216
 #, c-format
 msgid "Failed to change group list: %s"
-msgstr "更改组列表失败：%s"
+msgstr "ସମୂହ ତାଲିକାକୁ ପରିବର୍ତ୍ତନ କରିବାରେ ବିଫଳ: %s"
 
 #: ../src/daemon/main.c:232
 #, c-format
 msgid "Failed to change GID: %s"
-msgstr "更改GID失败：%s"
+msgstr "GID କୁ ପରିବର୍ତ୍ତନ କରିବାରେ ବିଫଳ ହୋଇଛି: %s"
 
 #: ../src/daemon/main.c:248
 #, c-format
 msgid "Failed to change UID: %s"
-msgstr "更改UID失败：%s"
+msgstr "UID କୁ ପରିବର୍ତ୍ତନ କରିବାରେ ବିଫଳ ହୋଇଛି: %s"
 
 #: ../src/daemon/main.c:262
 msgid "Successfully dropped root privileges."
-msgstr "成功放弃root权限。"
+msgstr "ମୂଖ୍ୟ ଚାଳକ ଅଧିକାରକୁ ସଫଳତାର ସହିତ ପକାଯାଇଛି।"
 
 #: ../src/daemon/main.c:270
 msgid "System wide mode unsupported on this platform."
-msgstr "此平台不支持system-wide模式。"
+msgstr "ତନ୍ତ୍ରମୟ ଧାରା ଏହି ପ୍ଲାଟଫର୍ମରେ ଅସମର୍ଥିତ।"
 
 #: ../src/daemon/main.c:288
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
-msgstr "setrlimit(%s, (%u, %u)) 失败：%s"
+msgstr "setrlimit(%s, (%u, %u)) ବିଫଳ ହୋଇଛି: %s"
 
 #: ../src/daemon/main.c:462
 msgid "Failed to parse command line."
-msgstr "分析命令行失败。"
+msgstr "ପାଠ୍ୟ ନିର୍ଦ୍ଦେଶକୁ ବିଶ୍ଳେଷଣ କରିବାରେ ବିଫଳ।"
 
 #: ../src/daemon/main.c:486
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
-msgstr "我们在'%s'组中，允许高优先级调度。"
+msgstr "ଆମେ ମାନେ ଶ୍ରେଣୀ '%s'ରେ ଅଛୁ, ଉଚ୍ଚ-ପ୍ରାଥମିକତା ଯୋଜନାକୁ ଅନୁମତି ଦେଇ।"
 
 #: ../src/daemon/main.c:493
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
-msgstr "我们在'%s'组中，允许实时调度。"
+msgstr "ଆମେ ମାନେ ଶ୍ରେଣୀ '%s'ରେ ଅଛୁ, ପ୍ରକୃତ- ସମୟ ଯୋଜନାକୁ ଅନୁମତି ଦେଇ।"
 
 #: ../src/daemon/main.c:501
 msgid "PolicyKit grants us acquire-high-priority privilege."
-msgstr "PolicyKit授予我们“获取高优先级”权限。"
+msgstr "PolicyKit ଆମକୁ acquire-high-priority ଅଧିକାର ଦେଇଥାଏ।"
 
 #: ../src/daemon/main.c:504
 msgid "PolicyKit refuses acquire-high-priority privilege."
-msgstr "PolicyKit拒绝“获取高优先级”权限。"
+msgstr "PolicyKit acquire-high-priority ଅଧିକାରକୁ ବାରଣ କରିଥାଏ।"
 
 #: ../src/daemon/main.c:509
 msgid "PolicyKit grants us acquire-real-time privilege."
-msgstr "PolicyKit授予我们“获取实时”权限。"
+msgstr "PolicyKit ଆମକୁ acquire-real-time ଅଧିକାର ଦେଇଥାଏ।"
 
 #: ../src/daemon/main.c:512
 msgid "PolicyKit refuses acquire-real-time privilege."
-msgstr "PolicyKit拒绝我们“获取实时”权限。"
+msgstr "PolicyKit acquire-real-time ଅଧିକାରକୁ ବାରଣ କରିଥାଏ।"
 
 #: ../src/daemon/main.c:541
 #, c-format
@@ -280,228 +288,235 @@ msgid ""
 "appropriate PolicyKit privileges, or become a member of '%s', or increase "
 "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 msgstr ""
-"配置中需要调用 SUID root、实时和/或者高优先调度。但是我们缺少必要的特权：\n"
-"我们不属于组群 '%s'，PolicyKit 拒绝赋予我们要求的特权，而我们无法增加 "
-"RLIMIT_NICE/RLIMIT_RTPRIO 资源限制。\n"
-"要启用实时/高优先调度，请获得适当的 PolicyKit 特权，或者成为 '%s' 成员，也可"
-"以为这个用户增加 RLIMIT_NICE/RLIMIT_RTPRIO 资源限制。"
+"Called SUID root and real-time and/or high-priority scheduling was requested "
+"in the configuration. However, we lack the necessary privileges:\n"
+"We are not in group '%s', PolicyKit refuse to grant us the requested "
+"privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
+"limits.\n"
+"For enabling real-time/high-priority scheduling please acquire the "
+"appropriate PolicyKit privileges, or become a member of '%s', or increase "
+"the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 
 #: ../src/daemon/main.c:566
 msgid "High-priority scheduling enabled in configuration but not allowed by policy."
-msgstr "配置中已启用高优先级调度，但策略未允许。"
+msgstr "ଉଚ୍ଚ-ପ୍ରାଥମିକ ଯୋଜନା ବିନ୍ୟାସରେ ସକ୍ରିୟ କିନ୍ତୁ ନୀତି ଦ୍ୱାରା ଅନୁମୋଦିତ ନୁହଁ।"
 
 #: ../src/daemon/main.c:595
 msgid "Successfully increased RLIMIT_RTPRIO"
-msgstr "提高RLIMIT_RTPRIO成功。"
+msgstr "RLIMIT_RTPRIO କୁ ସଫଳତାର ସହିତ ବୃଦ୍ଧିକରିଥାଏ"
 
 #: ../src/daemon/main.c:598
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
-msgstr "RLIMIT_RTPRIO失败：%s"
+msgstr "RLIMIT_RTPRIO ବିଫଳ ହୋଇଛି: %s"
 
 #: ../src/daemon/main.c:605
 msgid "Giving up CAP_NICE"
-msgstr "正在放弃CAP_NICE"
+msgstr "CAP_NICE କୁ ତ୍ୟାଗ କରିଥାଏ"
 
 #: ../src/daemon/main.c:612
 msgid "Real-time scheduling enabled in configuration but not allowed by policy."
-msgstr "配置中已启用实时调度，但策略未允许。"
+msgstr "Real-time ଯୋଜନା ବିନ୍ୟାସ ଫାଇଲରେ ସକ୍ରିୟ ହୋଇଥାଏ କିନ୍ତୁ ନିତୀ ଦ୍ୱାରା ଅନୁମୋଦିତ ନୁହଁ।"
 
 #: ../src/daemon/main.c:673
 msgid "Daemon not running"
-msgstr "后台程序没有运行"
+msgstr "ଡେମନ ଚାଲୁନାହିଁ"
 
 #: ../src/daemon/main.c:675
 #, c-format
 msgid "Daemon running as PID %u"
-msgstr "后台程序正在运行，PID %u"
+msgstr "ଡେମନ PID %u ପରି ଚାଲୁଅଛି"
 
 #: ../src/daemon/main.c:685
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr "杀死后台程序失败：%s"
+msgstr "ଡେମନକୁ ବନ୍ଦ କରିବାରେ ବିଫଳ: %s"
 
 #: ../src/daemon/main.c:703
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr "不应以root身份运行本程序（除非指定 --system）。"
+msgstr ""
+"ଏହି ପ୍ରଗ୍ରାମଟି ମୂଖ୍ୟ ଚାଳକ ଭାବରେ ଚଲାଇବା ପାଇଁ ନିର୍ଦ୍ଦିଷ୍ଟ ହୋଇନାହିଁ (unless --system is "
+"specified)।"
 
 #: ../src/daemon/main.c:705
 msgid "Root privileges required."
-msgstr "需要 root 权限。"
+msgstr "ମୂଖ୍ୟ ଚାଳକ ଅଧିକାର ଆବଶ୍ୟକ।"
 
 #: ../src/daemon/main.c:710
 msgid "--start not supported for system instances."
-msgstr "系统实例不支持 --start。"
+msgstr "--start ତନ୍ତ୍ର ସ୍ଥିତି ପାଇଁ ସମର୍ଥିତ ନୁହଁ।"
 
 #: ../src/daemon/main.c:715
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr "正在以系统模式运行，但是 --disallow-exit 未设定！"
+msgstr "ତନ୍ତ୍ର ଧାରାରେ ଚାଲୁଅଛି, କିନ୍ତୁ --disallow-exit କୁ ସେଟ କରାଯାଇନାହିଁ!"
 
 #: ../src/daemon/main.c:718
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr "正在以系统模式运行，但是 --disallow-module-loading 未设定！"
+msgstr "ତନ୍ତ୍ର ଧାରାରେ ଚାଲୁଅଛି, କିନ୍ତୁ --disallow-module-loading କୁ ସେଟ କରାଯାଇନାହିଁ!"
 
 #: ../src/daemon/main.c:721
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr "正在以系统模式运行，强制禁用SHM模式！"
+msgstr "ତନ୍ତ୍ର ଧାରାରେ ଚାଲୁଅଛି, SHM ଧାରାକୁ ବାଧ୍ଯତାମୁଳକ ଭାବରେ ନିଷ୍କ୍ରିୟ କରିଥାଏ!"
 
 #: ../src/daemon/main.c:726
 msgid "Running in system mode, forcibly disabling exit idle time!"
-msgstr "正在以系统模式运行，强制禁用退出空闲时间！"
+msgstr "ତନ୍ତ୍ର ଧାରାରେ ଚାଲୁଅଛି, ପ୍ରସ୍ଥାନ ସ୍ଥିର ସମୟକୁ ବାଧ୍ଯତାମୁଳକ ଭାବରେ ନିଷ୍କ୍ରିୟ କରିଥାଏ!"
 
 #: ../src/daemon/main.c:753
 msgid "Failed to acquire stdio."
-msgstr "获取stdio失败。"
+msgstr "stdio କୁ ଅଧିକାର କରିବାରେ ବିଫଳ।"
 
 #: ../src/daemon/main.c:759
 #, c-format
 msgid "pipe failed: %s"
-msgstr "管道失败：%s"
+msgstr "ପାଇପ ବିଫଳ ହୋଇଛି: %s"
 
 #: ../src/daemon/main.c:764
 #, c-format
 msgid "fork() failed: %s"
-msgstr "fork()失败：%s"
+msgstr "fork() ବିଫଳ ହୋଇଛି: %s"
 
 #: ../src/daemon/main.c:778
 #, c-format
 msgid "read() failed: %s"
-msgstr "read()失败：%s"
+msgstr "read() ବିଫଳ ହୋଇଛି: %s"
 
 #: ../src/daemon/main.c:784
 msgid "Daemon startup failed."
-msgstr "后台程序启动失败。"
+msgstr "ଡେମନ ଆରମ୍ଭ ବିଫଳ ହୋଇଛି।"
 
 #: ../src/daemon/main.c:786
 msgid "Daemon startup successful."
-msgstr "后台程序启动成功。"
+msgstr "ଡେମନ ଆରମ୍ଭ ସଫଳ ହୋଇଛି।"
 
 #: ../src/daemon/main.c:856
 #, c-format
 msgid "This is PulseAudio %s"
-msgstr "这是 PulseAudio %s"
+msgstr "ଏହା ହେଉଛି PulseAudio %s"
 
 #: ../src/daemon/main.c:857
 #, c-format
 msgid "Compilation host: %s"
-msgstr "编译主机：%s"
+msgstr "ସଂକଳନ ଆଧାର: %s"
 
 #: ../src/daemon/main.c:858
 #, c-format
 msgid "Compilation CFLAGS: %s"
-msgstr "编译CFLAGS：%s"
+msgstr "ସଂକଳନ CFLAGS: %s"
 
 #: ../src/daemon/main.c:861
 #, c-format
 msgid "Running on host: %s"
-msgstr "正在主机上运行：%s"
+msgstr "ଆଧାରରେ ଚାଲୁଅଛି: %s"
 
 #: ../src/daemon/main.c:864
 #, c-format
 msgid "Found %u CPUs."
-msgstr "找到 %u CPU。"
+msgstr "%u CPUs ମିଳିଛି।"
 
 #: ../src/daemon/main.c:866
 #, c-format
 msgid "Page size is %lu bytes"
-msgstr "页面大小为%lu字节"
+msgstr "ପୃଷ୍ଠା ଆକାରଟି ହେଉଛି %lu ବାଇଟ"
 
 #: ../src/daemon/main.c:869
 msgid "Compiled with Valgrind support: yes"
-msgstr "编译启用Valgrind支持：是"
+msgstr "Valgrind ସମର୍ଥନ ସହିତ ସଂକଳନ ହୋଇଛି: yes"
 
 #: ../src/daemon/main.c:871
 msgid "Compiled with Valgrind support: no"
-msgstr "编译启用Valgrind支持：否"
+msgstr "Valgrind ସମର୍ଥନ ସହିତ ସଂକଳନ ହୋଇଛି: no"
 
 #: ../src/daemon/main.c:874
 #, c-format
 msgid "Running in valgrind mode: %s"
-msgstr "正在以valgrind模式运行：%s"
+msgstr "valgrind ଧାରାରେ ଚାଲୁଅଛି: %s"
 
 #: ../src/daemon/main.c:877
 msgid "Optimized build: yes"
-msgstr "优化生成：是"
+msgstr "ଉପଯୁକ୍ତ ନିର୍ମାଣ: yes"
 
 #: ../src/daemon/main.c:879
 msgid "Optimized build: no"
-msgstr "优化生成：否"
+msgstr "ଉପଯୁକ୍ତ ନିର୍ମାଣ: no"
 
 #: ../src/daemon/main.c:883
 msgid "NDEBUG defined, all asserts disabled."
-msgstr "拒绝 NDEBUG，禁用所有 assert"
+msgstr "NDEBUG କୁ ବ୍ୟାଖ୍ୟା କରାଯାଇଛି, ସମସ୍ତ ନିଶ୍ଚୟକୁ ନିଷ୍କ୍ରିୟ କରାଯାଇଛି।"
 
 #: ../src/daemon/main.c:885
 msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr "拒绝 FASTPATH，只禁用快速路径 assert。"
+msgstr "FASTPATH କୁ ବ୍ୟାଖ୍ୟା କରାଯାଇଛି, କେବଳ ତୀବ୍ର ପଥ ନିଶ୍ଚୟକୁ ନିଷ୍କ୍ରିୟ କରାଯାଇଛି।"
 
 #: ../src/daemon/main.c:887
 msgid "All asserts enabled."
-msgstr "启用所有 assert。"
+msgstr "ସମସ୍ତ ନିଶ୍ଚୟକୁ ସକ୍ରିୟ କରାଯାଇଛି।"
 
 #: ../src/daemon/main.c:891
 msgid "Failed to get machine ID"
-msgstr "获取machine ID失败"
+msgstr "ଯନ୍ତ୍ର ID ପାଇବାରେ ବିଫଳ"
 
 #: ../src/daemon/main.c:894
 #, c-format
 msgid "Machine ID is %s."
-msgstr "machine ID是%s。"
+msgstr "ଯନ୍ତ୍ର ID ଟି ହେଉଛି %s।"
 
 #: ../src/daemon/main.c:899
 #, c-format
 msgid "Using runtime directory %s."
-msgstr "正在使用运行时文件夹%s。"
+msgstr "ପ୍ରଚଳିତ ଡିରେକ୍ଟୋରୀ %s କୁ ବ୍ୟବହାର କରୁଅଛି।"
 
 #: ../src/daemon/main.c:904
 #, c-format
 msgid "Using state directory %s."
-msgstr "正在使用状态文件夹%s。"
+msgstr "ସ୍ଥିତି ଡିରେକ୍ଟୋରୀ %s କୁ ବ୍ୟବହାର କରି।"
 
 #: ../src/daemon/main.c:907
 #, c-format
 msgid "Running in system mode: %s"
-msgstr "正在以系统模式运行：%s"
+msgstr "ତନ୍ତ୍ର ଧାରାରେ ଚାଲୁଅଛି: %s"
 
 #: ../src/daemon/main.c:922
 msgid "pa_pid_file_create() failed."
-msgstr "pa_pid_file_create()失败。"
+msgstr "pa_pid_file_create() ବିଫଳ ହୋଇଛି।"
 
 #: ../src/daemon/main.c:934
 msgid "Fresh high-resolution timers available! Bon appetit!"
-msgstr "新鲜的高分辨率计时器开锅了！吃个饱！"
+msgstr "ସତେଜ ଉଚ୍ଚ-ବିଭେଦନ ସମୟ ମାପକ ଉପଲବ୍ଧ! Bon appetit!"
 
 #: ../src/daemon/main.c:936
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
-msgstr "老兄，你的内核真臭！现在流行的是启用了高分辩率计分器的Linux！"
+msgstr ""
+"Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
+"resolution timers enabled!"
 
 #: ../src/daemon/main.c:948
 msgid "pa_core_new() failed."
-msgstr "pa_core_new()失败。"
+msgstr "pa_core_new() ବିଫଳ ହୋଇଛି।"
 
 #: ../src/daemon/main.c:1010
 msgid "Failed to initialize daemon."
-msgstr "后台程序初始化失败。"
+msgstr "ଡେମନକୁ ଆରମ୍ଭ କରିବାରେ ବିଫଳ।"
 
 #: ../src/daemon/main.c:1015
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr "后台程序启动未加载任何模块，拒绝工作。"
+msgstr "ଧାରଣ ହୋଇଥିବା ଏକକାଂଶଗୁଡ଼ିକ ବିନା ଡେମନ ଆରମ୍ଭ ହୋଇଛି, କାର୍ଯ୍ୟ କରିବାକୁ ବାରଣ କରୁଅଛି।"
 
 #: ../src/daemon/main.c:1032
 msgid "Daemon startup complete."
-msgstr "后台程序启动完成。"
+msgstr "ଡେମନ ଆରମ୍ଭ ସମ୍ପୂର୍ଣ୍ଣ ହୋଇଛି।"
 
 #: ../src/daemon/main.c:1038
 msgid "Daemon shutdown initiated."
-msgstr "开始关闭后台程序。"
+msgstr "ଡେମନ ବନ୍ଦକୁ ଆରମ୍ଭ କରାଯାଇଛି।"
 
 #: ../src/daemon/main.c:1056
 msgid "Daemon terminated."
-msgstr "后台程序已终止。"
+msgstr "ଡେମନକୁ ସମାପ୍ତ କରାଯାଇଛି।"
 
 #: ../src/daemon/cmdline.c:121
 #, c-format
@@ -579,603 +594,620 @@ msgstr ""
 "%s [options]\n"
 "\n"
 "COMMANDS:\n"
-"  -h, --help                            显示此帮助\n"
-"      --version                         显示版本号\n"
-"      --dump-conf                       转储默认设置\n"
-"      --dump-modules                    转储可用的模块列表\n"
-"      --dump-resample-methods           转储可用的重采样方法\n"
-"      --cleanup-shm                     清理滞留的共享内存段\n"
-"      --start                           如果后台程序没有运行则启动后台程序\n"
-"  -k  --kill                            杀死运行中的后台程序\n"
-"      --check                           检查运行中的后台程序\n"
+"  -h, --help                            ଏହି ସହାୟତା ଦର୍ଶାନ୍ତୁ\n"
+"      --version                         ସଂସ୍କରଣ ଦର୍ଶାନ୍ତୁ\n"
+"      --dump-conf                       ପୂର୍ବନିର୍ଦ୍ଧାରିତ ବିନ୍ୟାସକୁ ଡମ୍ପ କରନ୍ତୁ\n"
+"      --dump-modules                    ଉପଲବ୍ଧ ଏକକାଂଶଗୁଡ଼ିକର ଡମ୍ପ ତାଲିକା\n"
+"      --dump-resample-methods           Dump available resample methods\n"
+"      --cleanup-shm                     Cleanup stale shared memory "
+"segments\n"
+"      --start                           ଡେମନକୁ ଆରମ୍ଭ କରନ୍ତୁ ଯଦି ତାହା ଚାଲୁନାହିଁ\n"
+"  -k  --kill                            ଚାଲୁଥିବା ଡେମନକୁ ବନ୍ଦ କରନ୍ତୁ\n"
+"      --check                           Check for a running daemon (only "
+"returns exit code)\n"
 "\n"
 "OPTIONS:\n"
-"      --system[=BOOL]                   作为系统范围事件运行\n"
-"  -D, --daemonize[=BOOL]                启动后转为后台运行\n"
-"      --fail[=BOOL]                     启动失败则退出\n"
-"      --high-priority[=BOOL]            尝试设定高nice level\n"
-"                                        （仅以root运行时，处于SUID或者\n"
-"                                        在RLIMIT_NICE提升时可用）\n"
-"      --realtime[=BOOL]                 尝试启用实时调度\n"
-"                                        （仅以root运行时，处于SUID或者\n"
-"                                        在RLIMIT_PTPRIO提升时可用）\n"
-"      --disallow-module-loading[=BOOL]  启动后不批准模块用户的\n"
-"                                        加载／卸载请求\n"
-"      --disallow-exit[=BOOL]            不批准用户的退出请求\n"
-"      --exit-idle-time=SECS             空闲指定时长后终止后台程序\n"
-"      --module-idle-time=SECS           空闲指定时长后卸载\n"
-"                                        自动加载的模块\n"
-"      --scache-idle-time=SECS           空闲指定时长后卸载\n"
-"                                        自动加载的样品\n"
-"      --log-level[=LEVEL]               提高或者设定verbosity level\n"
-"  -v                                    提高verbosity level\n"
-"      --log-target={auto,syslog,stderr} 提定日志目标\n"
-"  -p, --dl-search-path=PATH             为动态共享对象（插件）设定\n"
-"                                        搜索路径\n"
-"      --resample-method=METHOD          使用指定的重采样方法\n"
-"                                        (使用 --dump-resample-methods 查看\n"
-"                                        可能的值)\n"
-"      --use-pid-file[=BOOL]             创建一个PID文件\n"
-"      --no-cpu-limit[=BOOL]             不在支持它的平台中安装 CPU 载入限制程"
-"序。\n"
-"                                              --disable-shm"
-"[=BOOL]              禁用共享内存支持\n"
+"      --system[=BOOL]                   Run as system-wide instance\n"
+"  -D, --daemonize[=BOOL]                Daemonize after startup\n"
+"      --fail[=BOOL]                     Quit when startup fails\n"
+"      --high-priority[=BOOL]            Try to set high nice level\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_NICE)\n"
+"      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_RTPRIO)\n"
+"      --disallow-module-loading[=BOOL]  Disallow module user requested "
+"module\n"
+"                                        loading/unloading after startup\n"
+"      --disallow-exit[=BOOL]            Disallow user requested exit\n"
+"      --exit-idle-time=SECS             Terminate the daemon when idle and "
+"this\n"
+"                                        time passed\n"
+"      --module-idle-time=SECS           Unload autoloaded modules when idle "
+"and\n"
+"                                        this time passed\n"
+"      --scache-idle-time=SECS           Unload autoloaded samples when idle "
+"and\n"
+"                                        this time passed\n"
+"      --log-level[=LEVEL]               Increase or set verbosity level\n"
+"  -v                                    Increase the verbosity level\n"
+"      --log-target={auto,syslog,stderr} Specify the log target\n"
+"      --log-meta[=BOOL]                 Include code location in log "
+"messages\n"
+"      --log-time[=BOOL]                 Include timestamps in log messages\n"
+"      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
+"  -p, --dl-search-path=PATH             Set the search path for dynamic "
+"shared\n"
+"                                        objects (plugins)\n"
+"      --resample-method=METHOD          Use the specified resampling method\n"
+"                                        (See --dump-resample-methods for\n"
+"                                        possible values)\n"
+"      --use-pid-file[=BOOL]             Create a PID file\n"
+"      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
+"                                        platforms that support it.\n"
+"      --disable-shm[=BOOL]              Disable shared memory support.\n"
 "\n"
 "STARTUP SCRIPT:\n"
-"  -L, --load=\"MODULE ARGUMENTS\"         用指令参数加载\n"
-"                                        指定插件模块\n"
-"  -F, --file=FILENAME                   运行指定脚本\n"
-"  -C                                    启动后在运行的虚拟终端上\n"
-"                                        打开命令行\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
+"with\n"
+"                                        the specified argument\n"
+"  -F, --file=FILENAME                   Run the specified script\n"
+"  -C                                    Open a command line on the running "
+"TTY\n"
+"                                        after startup\n"
 "\n"
-"  -n                                    不加载默认的脚本文件\n"
+"  -n                                    Don't load default script file\n"
 
 #: ../src/daemon/cmdline.c:252
 msgid "--daemonize expects boolean argument"
-msgstr "--daemonize 期待布尔参数"
+msgstr "--daemonize ବୁଲିଆନ ସ୍ୱତନ୍ତ୍ରଚର ଆଶା କରୁଅଛି"
 
 #: ../src/daemon/cmdline.c:259
 msgid "--fail expects boolean argument"
-msgstr "--fail 期待布尔参数"
+msgstr "--fail ବୁଲିଆନ ସ୍ୱତନ୍ତ୍ରଚର ଆଶା କରୁଅଛି"
 
 #: ../src/daemon/cmdline.c:269
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
 msgstr ""
-"--log-level 期待日志级别参数（可以是数字0～4或者debug，info，notice，warn，"
-"error中的一个）"
+"--log-level expects log level argument (either numeric in range 0..4 or one "
+"of debug, info, notice, warn, error)."
 
 #: ../src/daemon/cmdline.c:281
 msgid "--high-priority expects boolean argument"
-msgstr "--high-priority 期待布尔参数"
+msgstr "--high-priority ବୁଲିଆନ ସ୍ୱତନ୍ତ୍ରଚର ଆଶା କରୁଅଛି"
 
 #: ../src/daemon/cmdline.c:288
 msgid "--realtime expects boolean argument"
-msgstr "--realtime 期待布尔参数"
+msgstr "--realtime ବୁଲିଆନ ସ୍ୱତନ୍ତ୍ରଚର ଆଶା କରୁଅଛି"
 
 #: ../src/daemon/cmdline.c:295
 msgid "--disallow-module-loading expects boolean argument"
-msgstr "--disallow-module-loading 期待布尔参数"
+msgstr "--disallow-module-loading ବୁଲିଆନ ସ୍ୱତନ୍ତ୍ରଚର ଆଶା କରୁଅଛି"
 
 #: ../src/daemon/cmdline.c:302
 msgid "--disallow-exit expects boolean argument"
-msgstr "--disallow-exit 需要布尔值参数"
+msgstr "--disallow-exit ବୁଲିଆନ ସ୍ୱତନ୍ତ୍ରଚର ଆଶା କରୁଅଛି"
 
 #: ../src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
-msgstr "--use-pid-file 期待布尔参数"
+msgstr "--use-pid-file ବୁଲିଆନ ସ୍ୱତନ୍ତ୍ରଚର ଆଶା କରୁଅଛି"
 
 #: ../src/daemon/cmdline.c:326
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
-msgstr "无效的日志目标：从syslog，stderr和auto中选取一个"
+msgstr "ଅବୈଧ ଲଗ ଲକ୍ଷ୍ଯସ୍ଥଳ: 'syslog', 'stderr' କିମ୍ବା 'auto' କୁ ବ୍ୟବହାର କରନ୍ତୁ।"
 
 #: ../src/daemon/cmdline.c:333
 msgid "--log-time expects boolean argument"
-msgstr "--log-time 需要布尔值参数"
+msgstr "--log-time ବୁଲିଆନ ସ୍ୱତନ୍ତ୍ରଚର ଆଶା କରୁଅଛି"
 
 #: ../src/daemon/cmdline.c:340
 msgid "--log-meta expects boolean argument"
-msgstr "--log-meta 需要布尔值参数"
+msgstr "--log-meta ବୁଲିଆନ ସ୍ୱତନ୍ତ୍ରଚର ଆଶା କରୁଅଛି"
 
 #: ../src/daemon/cmdline.c:359
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr "无效的重采样方法'%s'。"
+msgstr "ଅବୈଧ ପୁନଃ ପ୍ରତିଦର୍ଶନ ଧାରା '%s'।"
 
 #: ../src/daemon/cmdline.c:366
 msgid "--system expects boolean argument"
-msgstr "--system 期待布尔参数"
+msgstr "--system ବୁଲିଆନ ସ୍ୱତନ୍ତ୍ରଚର ଆଶା କରୁଅଛି"
 
 #: ../src/daemon/cmdline.c:373
 msgid "--no-cpu-limit expects boolean argument"
-msgstr "--no-cpu-limit 期待布尔参数"
+msgstr "--no-cpu-limit ବୁଲିଆନ ସ୍ୱତନ୍ତ୍ରଚର ଆଶା କରୁଅଛି"
 
 #: ../src/daemon/cmdline.c:380
 msgid "--disable-shm expects boolean argument"
-msgstr "--disable-shm 期待布尔参数"
+msgstr "--disable-shm ବୁଲିଆନ ସ୍ୱତନ୍ତ୍ରଚର ଆଶା କରୁଅଛି"
 
 #: ../src/daemon/dumpmodules.c:60
 #, c-format
 msgid "Name: %s\n"
-msgstr "名称：%s\n"
+msgstr "ନାମ: %s\n"
 
 #: ../src/daemon/dumpmodules.c:63
 #, c-format
 msgid "No module information available\n"
-msgstr "没有可用的模块信息\n"
+msgstr "କୌଣସି ଏକକାଂଶ ସୂଚନା ଉପଲବ୍ଧ ନାହିଁ\n"
 
 #: ../src/daemon/dumpmodules.c:66
 #, c-format
 msgid "Version: %s\n"
-msgstr "版本号：%s\n"
+msgstr "ସଂସ୍କରଣ: %s\n"
 
 #: ../src/daemon/dumpmodules.c:68
 #, c-format
 msgid "Description: %s\n"
-msgstr "描述：%s\n"
+msgstr "ବର୍ଣ୍ଣନା: %s\n"
 
 #: ../src/daemon/dumpmodules.c:70
 #, c-format
 msgid "Author: %s\n"
-msgstr "作者：%s\n"
+msgstr "ଲେଖକ: %s\n"
 
 #: ../src/daemon/dumpmodules.c:72
 #, c-format
 msgid "Usage: %s\n"
-msgstr "用法：%s\n"
+msgstr "ବ୍ୟବହାର ବିଧି: %s\n"
 
 #: ../src/daemon/dumpmodules.c:73
 #, c-format
 msgid "Load Once: %s\n"
-msgstr "加载一次：%s\n"
+msgstr "ଥରେ ଧାରଣ କରନ୍ତୁ: %s\n"
 
 #: ../src/daemon/dumpmodules.c:77
 #, c-format
 msgid "Path: %s\n"
-msgstr "路径：%s\n"
+msgstr "ପଥ: %s\n"
 
 #: ../src/daemon/daemon-conf.c:215
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr "[%s:%u] 无效的日志目标'%s'。"
+msgstr "[%s:%u] ଅବୈଧ ଲଗ ଲକ୍ଷ୍ଯସ୍ଥଳ '%s'।"
 
 #: ../src/daemon/daemon-conf.c:231
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
-msgstr "[%s:%u] 无效的日志级别'%s'。"
+msgstr "[%s:%u] ଅବୈଧ ଲଗ ସ୍ତର%s'."
 
 #: ../src/daemon/daemon-conf.c:247
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr "[%s:%u] 无效的重采样方法'%s'。"
+msgstr "[%s:%u] ଅବୈଧ ପୁନଃ ମିଶ୍ରଣ ଧାରା '%s'।"
 
 #: ../src/daemon/daemon-conf.c:270
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
-msgstr "[%s:%u] 无效的rlimit '%s'。"
+msgstr "[%s:%u] ଅବୈଧ rlimit '%s'."
 
 #: ../src/daemon/daemon-conf.c:277
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
-msgstr "[%s:%u] 此平台不支持rlimit。"
+msgstr "[%s:%u] rlimit ଏହି ପ୍ଲାଟଫର୍ମରେ ସମର୍ଥିତ ନୁହଁ।"
 
 #: ../src/daemon/daemon-conf.c:293
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
-msgstr "[%s:%u] 无效的样品格式'%s'。"
+msgstr "[%s:%u] ଅବୈଧ ନମୁନା ଶୈଳୀ '%s'।"
 
 #: ../src/daemon/daemon-conf.c:311
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr "[%s:%u] 无效的样品率'%s'。"
+msgstr "[%s:%u] ଅବୈଧ ନମୁନା ହାର '%s'।"
 
 #: ../src/daemon/daemon-conf.c:335
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
-msgstr "[%s:%u] 无效的样品通道'%s'。"
+msgstr "[%s:%u] ଅବୈଧ ନମୁନା ଚ୍ୟାନେଲ '%s'।"
 
 #: ../src/daemon/daemon-conf.c:353
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr "[%s:%u] 无效频道地图 '%s'。"
+msgstr "[%s:%u] ଅବୈଧ ଚ୍ୟାନେଲ ମ୍ୟାପ '%s'."
 
 #: ../src/daemon/daemon-conf.c:371
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr "[%s:%u] 无效的分段数'%s'。"
+msgstr "[%s:%u] ଅବୈଧ ସଂଖ୍ୟକ ଖଣ୍ଡଗୁଡ଼ିକ '%s'."
 
 #: ../src/daemon/daemon-conf.c:389
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr "[%s:%u] 无效的分段大小'%s'。"
+msgstr "[%s:%u] ଅବୈଧ ଖଣ୍ଡ ଆକାର '%s'."
 
 #: ../src/daemon/daemon-conf.c:407
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr "[%s:%u] 无效的nice level '%s'。"
+msgstr "[%s:%u] ଅବୈଧ ସୁନ୍ଦର ସ୍ତର '%s'."
 
 #: ../src/daemon/daemon-conf.c:522
 #, c-format
 msgid "Failed to open configuration file: %s"
-msgstr "打开配置文件失败：%s"
+msgstr "ବିନ୍ୟାସ ଫାଇଲ ଖୋଲିବାରେ ବିଫଳ: %s"
 
 #: ../src/daemon/daemon-conf.c:538
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
-msgstr "指定的默认频道地图的频道数与指定的默认频道数不同。"
+msgstr ""
+"ନିର୍ଦ୍ଦିଷ୍ଟିତ ପୂର୍ବନିର୍ଦ୍ଧାରିତ ଚ୍ୟାନେଲ ମ୍ୟାପରେ ପୂର୍ବନିର୍ଦ୍ଧାରିତ ସଂଖ୍ୟକ ଚ୍ୟାନେଲ ବ୍ୟତିତ "
+"ଭିନ୍ନ ସଂଖ୍ୟକ ଚ୍ୟାନେଲ ଉଲ୍ଲେଖ ଅଛି।"
 
 #: ../src/daemon/daemon-conf.c:616
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
-msgstr "### 从配置文件读取：%s ###\n"
+msgstr "### ବିନ୍ୟାସ ଫାଇଲରୁ ପଢ଼ନ୍ତୁ: %s ###\n"
 
 #: ../src/daemon/caps.c:63
 msgid "Dropping root privileges."
-msgstr "正在取消 root 特权。"
+msgstr "ମୂଖ୍ୟ ଚାଳକ ଅଧିକାରଗୁଡ଼ିକୁ ବାତିଲ କରୁଅଛି।"
 
 #: ../src/daemon/caps.c:103
 msgid "Limited capabilities successfully to CAP_SYS_NICE."
-msgstr "性能成功限制到CAP_SYS_NICE。"
+msgstr "CAP_SYS_NICE କୁ ସୀମିତ କ୍ଷମତା ସଫଳତାର ସହିତ ଦିଆହୋଇଛି।"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
-msgstr "PulseAudio 声音系统"
+msgstr "PulseAudio ଧ୍ୱନି ତନ୍ତ୍ର"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
-msgstr "启动 PulseAudio 声音系统"
+msgstr "PulseAudio ଧ୍ୱନି ତନ୍ତ୍ରକୁ ଆରମ୍ଭ କରନ୍ତୁ"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:1
 msgid "High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr "PulseAudio 守护进程的高优先调度（负的 Unix nic 等级）"
+msgstr "PulseAudio ଡେମନ ପାଇଁ ଉଚ୍ଚ-ପ୍ରାଥମିକତା ଯୋଜନା (ଋଣାତ୍ମକ Unix ସୁନ୍ଦର ସ୍ତର)"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:2
 msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr "PulseAudio 守护进程的实时调度。"
+msgstr "PulseAudio ଡେମନ ପାଇଁ ପ୍ରକୃତ-ସମୟ ଯୋଜନା"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:3
 msgid "System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr "系统策略防止 PulseAudio 获得高优先调度。"
+msgstr "ତନ୍ତ୍ର ନୀତି PulseAudio କୁ ଉଚ୍ଚ-ପ୍ରାଥମିକ ଯୋଜନାକୁ ଗ୍ରହଣ କରିବାରୁ ଅଟକାଇଥାଏ।"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:4
 msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr "系统策略防止 PulseAudio 获得实时调度。"
+msgstr "ତନ୍ତ୍ର ନୀତି PulseAudio କୁ ପ୍ରକୃତ-ସମୟ ଯୋଜନାକୁ ଗ୍ରହଣ କରିବାରୁ ଅଟକାଇଥାଏ।"
 
 #: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:804
 msgid "Mono"
-msgstr "单声道"
+msgstr "ମୋନୋ"
 
 #: ../src/pulse/channelmap.c:105
 msgid "Front Center"
-msgstr "中前"
+msgstr "ସାମ୍ନା ପାଖ କେନ୍ଦ୍ର"
 
 #: ../src/pulse/channelmap.c:106
 msgid "Front Left"
-msgstr "左前"
+msgstr "ସାମ୍ନା ବାମ ପାଖ"
 
 #: ../src/pulse/channelmap.c:107
 msgid "Front Right"
-msgstr "右前"
+msgstr "ସାମ୍ନା ଡ଼ାହାଣ ପାଖ"
 
 #: ../src/pulse/channelmap.c:109
 msgid "Rear Center"
-msgstr "中后"
+msgstr "ପଛ ପାଖ କେନ୍ଦ୍ର"
 
 #: ../src/pulse/channelmap.c:110
 msgid "Rear Left"
-msgstr "左后"
+msgstr "ପଛ ବାମ ପାଖ"
 
 #: ../src/pulse/channelmap.c:111
 msgid "Rear Right"
-msgstr "右后"
+msgstr "ପଛ ଡ଼ାହାଣ ପାଖ"
 
 #: ../src/pulse/channelmap.c:113
 msgid "Low Frequency Emmiter"
-msgstr "低频脉冲"
+msgstr "ନିମ୍ନ ଆବୃତ୍ତି ପରିତ୍ୟାଗ କାରୀ"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Front Left-of-center"
-msgstr "前左中央"
+msgstr "ସାମ୍ନା କେନ୍ଦ୍ର-ର-ବାମ ପାଖ"
 
 #: ../src/pulse/channelmap.c:116
 msgid "Front Right-of-center"
-msgstr "前右中央"
+msgstr "ସାମ୍ନା କେନ୍ଦ୍ର-ର-ଡ଼ାହାଣ ପାଖ"
 
 #: ../src/pulse/channelmap.c:118
 msgid "Side Left"
-msgstr "左侧"
+msgstr "ବାମ ପାର୍ଶ୍ୱ"
 
 #: ../src/pulse/channelmap.c:119
 msgid "Side Right"
-msgstr "右侧"
+msgstr "ଡ଼ାହାଣ ପାର୍ଶ୍ୱ"
 
 #: ../src/pulse/channelmap.c:121
 msgid "Auxiliary 0"
-msgstr "辅助 0"
+msgstr "ସହାୟକ 0"
 
 #: ../src/pulse/channelmap.c:122
 msgid "Auxiliary 1"
-msgstr "辅助 1"
+msgstr "ସହାୟକ 1"
 
 #: ../src/pulse/channelmap.c:123
 msgid "Auxiliary 2"
-msgstr "辅助 2"
+msgstr "ସହାୟକ 2"
 
 #: ../src/pulse/channelmap.c:124
 msgid "Auxiliary 3"
-msgstr "辅助 3"
+msgstr "ସହାୟକ 3"
 
 #: ../src/pulse/channelmap.c:125
 msgid "Auxiliary 4"
-msgstr "辅助 4"
+msgstr "ସହାୟକ 4"
 
 #: ../src/pulse/channelmap.c:126
 msgid "Auxiliary 5"
-msgstr "辅助 5"
+msgstr "ସହାୟକ 5"
 
 #: ../src/pulse/channelmap.c:127
 msgid "Auxiliary 6"
-msgstr "辅助 6"
+msgstr "ସହାୟକ 6"
 
 #: ../src/pulse/channelmap.c:128
 msgid "Auxiliary 7"
-msgstr "辅助 7"
+msgstr "ସହାୟକ 7"
 
 #: ../src/pulse/channelmap.c:129
 msgid "Auxiliary 8"
-msgstr "辅助 7"
+msgstr "ସହାୟକ 8"
 
 #: ../src/pulse/channelmap.c:130
 msgid "Auxiliary 9"
-msgstr "辅助 9"
+msgstr "ସହାୟକ 9"
 
 #: ../src/pulse/channelmap.c:131
 msgid "Auxiliary 10"
-msgstr "辅助 10"
+msgstr "ସହାୟକ 10"
 
 #: ../src/pulse/channelmap.c:132
 msgid "Auxiliary 11"
-msgstr "辅助 11"
+msgstr "ସହାୟକ 11"
 
 #: ../src/pulse/channelmap.c:133
 msgid "Auxiliary 12"
-msgstr "辅助 12"
+msgstr "ସହାୟକ 12"
 
 #: ../src/pulse/channelmap.c:134
 msgid "Auxiliary 13"
-msgstr "辅助 13"
+msgstr "ସହାୟକ 13"
 
 #: ../src/pulse/channelmap.c:135
 msgid "Auxiliary 14"
-msgstr "辅助 14"
+msgstr "ସହାୟକ 14"
 
 #: ../src/pulse/channelmap.c:136
 msgid "Auxiliary 15"
-msgstr "辅助 15"
+msgstr "ସହାୟକ 15"
 
 #: ../src/pulse/channelmap.c:137
 msgid "Auxiliary 16"
-msgstr "辅助 16"
+msgstr "ସହାୟକ 16"
 
 #: ../src/pulse/channelmap.c:138
 msgid "Auxiliary 17"
-msgstr "辅助 17"
+msgstr "ସହାୟକ 17"
 
 #: ../src/pulse/channelmap.c:139
 msgid "Auxiliary 18"
-msgstr "辅助 18"
+msgstr "ସହାୟକ 18"
 
 #: ../src/pulse/channelmap.c:140
 msgid "Auxiliary 19"
-msgstr "辅助 19"
+msgstr "ସହାୟକ 19"
 
 #: ../src/pulse/channelmap.c:141
 msgid "Auxiliary 20"
-msgstr "辅助 20"
+msgstr "ସହାୟକ 20"
 
 #: ../src/pulse/channelmap.c:142
 msgid "Auxiliary 21"
-msgstr "辅助 21"
+msgstr "ସହାୟକ 21"
 
 #: ../src/pulse/channelmap.c:143
 msgid "Auxiliary 22"
-msgstr "辅助 22"
+msgstr "ସହାୟକ 22"
 
 #: ../src/pulse/channelmap.c:144
 msgid "Auxiliary 23"
-msgstr "辅助 23"
+msgstr "ସହାୟକ 23"
 
 #: ../src/pulse/channelmap.c:145
 msgid "Auxiliary 24"
-msgstr "辅助 24"
+msgstr "ସହାୟକ 24"
 
 #: ../src/pulse/channelmap.c:146
 msgid "Auxiliary 25"
-msgstr "辅助 25"
+msgstr "ସହାୟକ 25"
 
 #: ../src/pulse/channelmap.c:147
 msgid "Auxiliary 26"
-msgstr "辅助 26"
+msgstr "ସହାୟକ 26"
 
 #: ../src/pulse/channelmap.c:148
 msgid "Auxiliary 27"
-msgstr "辅助 27"
+msgstr "ସହାୟକ 27"
 
 #: ../src/pulse/channelmap.c:149
 msgid "Auxiliary 28"
-msgstr "辅助 28"
+msgstr "ସହାୟକ 28"
 
 #: ../src/pulse/channelmap.c:150
 msgid "Auxiliary 29"
-msgstr "辅助 29"
+msgstr "ସହାୟକ 28"
 
 #: ../src/pulse/channelmap.c:151
 msgid "Auxiliary 30"
-msgstr "辅助 30"
+msgstr "ସହାୟକ 30"
 
 #: ../src/pulse/channelmap.c:152
 msgid "Auxiliary 31"
-msgstr "辅助 31"
+msgstr "ସହାୟକ 31"
 
 #: ../src/pulse/channelmap.c:154
 msgid "Top Center"
-msgstr "上中"
+msgstr "ଉପର କେନ୍ଦ୍ର"
 
 #: ../src/pulse/channelmap.c:156
 msgid "Top Front Center"
-msgstr "上中前"
+msgstr "ଉପର ସମ୍ନା ପାଖ କେନ୍ଦ୍ର"
 
 #: ../src/pulse/channelmap.c:157
 msgid "Top Front Left"
-msgstr "上左前"
+msgstr "ଉପର ସାମ୍ନା ବାମ ପାଖ"
 
 #: ../src/pulse/channelmap.c:158
 msgid "Top Front Right"
-msgstr "上右前"
+msgstr "ଉପର ସାମ୍ନା ଡ଼ାହାଣ ପାଖ"
 
 #: ../src/pulse/channelmap.c:160
 msgid "Top Rear Center"
-msgstr "上中后"
+msgstr "ଉପର ପଛ ପାଖ କେନ୍ଦ୍ର"
 
 #: ../src/pulse/channelmap.c:161
 msgid "Top Rear Left"
-msgstr "上左后"
+msgstr "ଉପର ପଛ ବାମ ପାଖ"
 
 #: ../src/pulse/channelmap.c:162
 msgid "Top Rear Right"
-msgstr "上右后"
+msgstr "ଉପର ପଛ ଡ଼ାହାଣ ପାଖ"
 
 #: ../src/pulse/channelmap.c:476 ../src/pulse/sample.c:167
 #: ../src/pulse/volume.c:170 ../src/pulse/volume.c:196
 #: ../src/pulse/volume.c:216 ../src/pulse/volume.c:246
 msgid "(invalid)"
-msgstr "（无效）"
+msgstr "(ଅବୈଧ)"
 
 #: ../src/pulse/channelmap.c:808
 msgid "Stereo"
-msgstr "立体声"
+msgstr "ଷ୍ଟେରିଓ"
 
 #: ../src/pulse/channelmap.c:813
 msgid "Surround 4.0"
-msgstr "环绕 4.0 "
+msgstr "ଚତୁଃ ପାର୍ଶ୍ୱ 4.0"
 
 #: ../src/pulse/channelmap.c:819
 msgid "Surround 4.1"
-msgstr "环绕 4.1"
+msgstr "ଚତୁଃ ପାର୍ଶ୍ୱ 4.1"
 
 #: ../src/pulse/channelmap.c:825
 msgid "Surround 5.0"
-msgstr "环绕 5.0"
+msgstr "ଚତୁଃ ପାର୍ଶ୍ୱ 5.0"
 
 #: ../src/pulse/channelmap.c:831
 msgid "Surround 5.1"
-msgstr "环绕 5.1"
+msgstr "ଚତୁଃ ପାର୍ଶ୍ୱ 5.1"
 
 #: ../src/pulse/channelmap.c:838
 msgid "Surround 7.1"
-msgstr "环绕 7.1"
+msgstr "ଚତୁଃ ପାର୍ଶ୍ୱ 7.1"
 
 #: ../src/pulse/error.c:43
 msgid "OK"
-msgstr "确定"
+msgstr "OK"
 
 #: ../src/pulse/error.c:44
 msgid "Access denied"
-msgstr "拒绝访问"
+msgstr "ଅଭିଗମ୍ୟତା ବାରଣ ହୋଇଛି"
 
 #: ../src/pulse/error.c:45
 msgid "Unknown command"
-msgstr "未知命令"
+msgstr "ଅଜଣା ନିର୍ଦ୍ଦେଶ"
 
 #: ../src/pulse/error.c:46
 msgid "Invalid argument"
-msgstr "无效参数"
+msgstr "ଅବୈଧ ସ୍ୱତନ୍ତ୍ରଚର"
 
 #: ../src/pulse/error.c:47
 msgid "Entity exists"
-msgstr "实体存在"
+msgstr "ବସ୍ତୁ ଅବସ୍ଥିତ"
 
 #: ../src/pulse/error.c:48
 msgid "No such entity"
-msgstr "没有该实体"
+msgstr "ଏପରି କୌଣସି ବସ୍ତୁ ନାହିଁ"
 
 #: ../src/pulse/error.c:49
 msgid "Connection refused"
-msgstr "拒绝连接"
+msgstr "ସଂଯୋଗ ବାରଣ ହୋଇଛି"
 
 #: ../src/pulse/error.c:50
 msgid "Protocol error"
-msgstr "协议错误"
+msgstr "ପ୍ରୋଟୋକଲ ତ୍ରୁଟି"
 
 #: ../src/pulse/error.c:51
 msgid "Timeout"
-msgstr "超时"
+msgstr "ସମୟ ସମାପ୍ତ"
 
 #: ../src/pulse/error.c:52
 msgid "No authorization key"
-msgstr "没有授权密钥"
+msgstr "କୌଣସି ପ୍ରାଧିକରଣ କି ନାହିଁ"
 
 #: ../src/pulse/error.c:53
 msgid "Internal error"
-msgstr "内部错误"
+msgstr "ଆଭ୍ୟନ୍ତରୀଣ ତ୍ରୁଟି"
 
 #: ../src/pulse/error.c:54
 msgid "Connection terminated"
-msgstr "连接终止"
+msgstr "ସଂଯୋଗ ବନ୍ଦ ହୋଇଯାଇଛି"
 
 #: ../src/pulse/error.c:55
 msgid "Entity killed"
-msgstr "实体已杀死"
+msgstr "ବସ୍ତୁକୁ ବନ୍ଦକରାଯାଇଛି"
 
 #: ../src/pulse/error.c:56
 msgid "Invalid server"
-msgstr "无效服务器"
+msgstr "ଅବୈଧ ସର୍ଭର"
 
 #: ../src/pulse/error.c:57
 msgid "Module initalization failed"
-msgstr "模块初始化失败"
+msgstr "ଏକକାଂଶ ପ୍ରାରମ୍ଭିକରଣ ବିଫଳ ହୋଇଛି"
 
 #: ../src/pulse/error.c:58
 msgid "Bad state"
-msgstr "坏状态"
+msgstr "ଖରାପ ସ୍ଥିତି"
 
 #: ../src/pulse/error.c:59
 msgid "No data"
-msgstr "没有数据"
+msgstr "କୌଣସି ତଥ୍ୟ ନାହିଁ"
 
 #: ../src/pulse/error.c:60
 msgid "Incompatible protocol version"
-msgstr "不兼容的协议版本"
+msgstr "ଅସଙ୍ଗତ ପ୍ରୋଟୋକଲ ସଂସ୍କରଣ"
 
 #: ../src/pulse/error.c:61
 msgid "Too large"
-msgstr "太大"
+msgstr "ଅତ୍ୟଧିକ ବଡ଼"
 
 #: ../src/pulse/error.c:62
 msgid "Not supported"
-msgstr "不支持"
+msgstr "ସମର୍ଥିତ ନୁହଁ"
 
 #: ../src/pulse/error.c:63
 msgid "Unknown error code"
-msgstr "未知错误码"
+msgstr "ଅଜଣା ତ୍ରୁଟି ସଂକେତ"
 
 #: ../src/pulse/error.c:64
 msgid "No such extension"
-msgstr "没有该扩展"
+msgstr "ଏପରି କୌଣସି ଅନୁଲଗ୍ନ ନାହିଁ"
 
 #: ../src/pulse/error.c:65
 msgid "Obsolete functionality"
-msgstr "废弃的功能性"
+msgstr "ଅଚଳ କାର୍ଯ୍ୟକାରିତା"
 
 #: ../src/pulse/error.c:66
 msgid "Missing implementation"
-msgstr "缺少部署"
+msgstr "ଅନୁପସ୍ଥିତ ପ୍ରୟୋଗ"
 
 #: ../src/pulse/error.c:67
 msgid "Client forked"
-msgstr "客户端分支"
+msgstr "ଗ୍ରାହକ ଶାଖାଯୁକ୍ତ ହୋଇଛି"
 
 #: ../src/pulse/sample.c:169
 #, c-format
@@ -1204,110 +1236,110 @@ msgstr "%u B"
 
 #: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
 msgid "XOpenDisplay() failed"
-msgstr "XOpenDisplay()失败"
+msgstr "XOpenDisplay() ବିଫଳ ହୋଇଛି"
 
 #: ../src/pulse/client-conf-x11.c:78
 msgid "Failed to parse cookie data"
-msgstr "cookie数据分析失败"
+msgstr "କୁକି ତଥ୍ୟକୁ ବିଶ୍ଳେଷଣ କରିବାରେ ବିଫଳ"
 
 #: ../src/pulse/client-conf.c:120
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
-msgstr "打开配置文件'%s'失败：%s"
+msgstr "ବିନ୍ୟାସ ଫାଇଲ '%s' କୁ ଖୋଲିବାରେ ବିଫଳ: %s"
 
 #: ../src/pulse/context.c:539
 msgid "No cookie loaded. Attempting to connect without."
-msgstr "没有加载cookie。尝试不加载cookie进行连接。"
+msgstr "କୌଣସି କୁକି ଧାରଣ କରାଯାଇନାହିଁ। ତାହା ବିନା ସଂଯୋଗ କରିବାକୁ ପ୍ରଚେଷ୍ଚା କରୁଅଛି।"
 
 #: ../src/pulse/context.c:669
 #, c-format
 msgid "fork(): %s"
-msgstr "fork()：%s"
+msgstr "fork(): %s"
 
 #: ../src/pulse/context.c:722
 #, c-format
 msgid "waitpid(): %s"
-msgstr "waitpid()：%s"
+msgstr "waitpid(): %s"
 
 #: ../src/pulse/context.c:1387
 #, c-format
 msgid "Received message for unknown extension '%s'"
-msgstr "收到未知扩展'%s'的信息"
+msgstr "ଅଜଣା ଅନୁଲଗ୍ନ '%s' ପାଇଁ ସନ୍ଦେଶ ଗ୍ରହଣ କରିଅଛି"
 
 #: ../src/utils/pacat.c:94
 #, c-format
 msgid "pa_stream_write() failed: %s\n"
-msgstr "pa_stream_write()失败：%s\n"
+msgstr "pa_stream_write() ବିଫଳ ହୋଇଛି: %s\n"
 
 #: ../src/utils/pacat.c:133
 #, c-format
 msgid "pa_stream_peek() failed: %s\n"
-msgstr "pa_stream_peek()失败：%s\n"
+msgstr "pa_stream_peek() ବିଫଳ ହୋଇଛି: %s\n"
 
 #: ../src/utils/pacat.c:169
 #, c-format
 msgid "Stream successfully created.\n"
-msgstr "流创建成功。\n"
+msgstr "ଧାରା ସଫଳତାର ସହିତ ନିର୍ମାଣ ହୋଇଛି।\n"
 
 #: ../src/utils/pacat.c:172
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s\n"
-msgstr "pa_stream_get_buffer_attr()失败：%s\n"
+msgstr "pa_stream_get_buffer_attr() ବିଫଳ ହୋଇଛି: %s\n"
 
 #: ../src/utils/pacat.c:176
 #, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
-msgstr "缓冲计量：maxlength=%u，tlength=%u，prebuf=%u，minreq=%u\n"
+msgstr "ବଫର ମେଟ୍ରିକସ: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
 
 #: ../src/utils/pacat.c:179
 #, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u\n"
-msgstr "缓冲计量：maxlength=%u，fragsize=%u\n"
+msgstr "ବଫର ମେଟ୍ରିକସ: maxlength=%u, fragsize=%u\n"
 
 #: ../src/utils/pacat.c:183
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'.\n"
-msgstr "正在使用样品规格'%s'，通道映射'%s'。\n"
+msgstr "ନମୁନା spec '%s' ବ୍ୟବହାର କରି, ଚ୍ୟାନେଲ ମ୍ୟାପ '%s'।\n"
 
 #: ../src/utils/pacat.c:187
 #, c-format
 msgid "Connected to device %s (%u, %ssuspended).\n"
-msgstr "已连接至设备%s (%u，%s挂起）。\n"
+msgstr "ଉପକରଣ %s ସହିତ ସଂଯୁକ୍ତ ହୋଇଛି (%u, %ssuspended)।\n"
 
 #: ../src/utils/pacat.c:197
 #, c-format
 msgid "Stream error: %s\n"
-msgstr "流错误：%s\n"
+msgstr "ଧାରା ତ୍ରୁଟି: %s\n"
 
 #: ../src/utils/pacat.c:207
 #, c-format
 msgid "Stream device suspended.%s \n"
-msgstr "流设备挂起。%s\n"
+msgstr "ଧାରା ଉପକରଣ ନିଲମ୍ବିତ ହୋଇଛି।%s \n"
 
 #: ../src/utils/pacat.c:209
 #, c-format
 msgid "Stream device resumed.%s \n"
-msgstr "流设备恢复。%s\n"
+msgstr "ଧାରା ଉପକରଣ ପୁନଃ ଚଳନ ହୋଇଛି।%s \n"
 
 #: ../src/utils/pacat.c:217
 #, c-format
 msgid "Stream underrun.%s \n"
-msgstr "流欠载运行。%s\n"
+msgstr "ଧାରା underrun.%s \n"
 
 #: ../src/utils/pacat.c:224
 #, c-format
 msgid "Stream overrun.%s \n"
-msgstr "流超限运行。%s\n"
+msgstr "ଧାରା overrun.%s \n"
 
 #: ../src/utils/pacat.c:231
 #, c-format
 msgid "Stream started.%s \n"
-msgstr "流已启动。%s\n"
+msgstr "ଧାରା ଆରମ୍ଭ ହୋଇଛି।%s \n"
 
 #: ../src/utils/pacat.c:238
 #, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s \n"
-msgstr "流移至设备%s （%u，%s挂起）。%s\n"
+msgstr "ଧାରା ଉପକରଣ %sକୁ ଗତି କରିଛି (%u, %ssuspended).%s \n"
 
 #: ../src/utils/pacat.c:238
 msgid "not "
@@ -1316,88 +1348,88 @@ msgstr "not "
 #: ../src/utils/pacat.c:245
 #, c-format
 msgid "Stream buffer attributes changed.%s \n"
-msgstr "更改流换出属性。%s\n"
+msgstr "ଧାରା ବଫର ଗୁଣଗୁଡ଼ିକ ପରିବର୍ତ୍ତନ ହୋଇଛି।%s\n"
 
 #: ../src/utils/pacat.c:278
 #, c-format
 msgid "Connection established.%s \n"
-msgstr "连接已建立。%s \n"
+msgstr "ସଂଯୋଗ ସ୍ଥାପିତ ହୋଇଛି।%s \n"
 
 #: ../src/utils/pacat.c:281
 #, c-format
 msgid "pa_stream_new() failed: %s\n"
-msgstr "pa_stream_new()失败：%s\n"
+msgstr "pa_stream_new() ବିଫଳ ହୋଇଛି: %s\n"
 
 #: ../src/utils/pacat.c:309
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s\n"
-msgstr "pa_stream_connect_playback()失败：%s\n"
+msgstr "pa_stream_connect_playback() ବିଫଳ ହୋଇଛି: %s\n"
 
 #: ../src/utils/pacat.c:315
 #, c-format
 msgid "pa_stream_connect_record() failed: %s\n"
-msgstr "pa_stream_connect_playback()失败：%s\n"
+msgstr "pa_stream_connect_record() ବିଫଳ ହୋଇଛି: %s\n"
 
 #: ../src/utils/pacat.c:329 ../src/utils/pasuspender.c:159
 #: ../src/utils/pactl.c:762 ../src/utils/paplay.c:183
 #, c-format
 msgid "Connection failure: %s\n"
-msgstr "连接失败：%s\n"
+msgstr "ସଂଯୋଗ ବିଫଳ ହୋଇଛି: %s\n"
 
 #: ../src/utils/pacat.c:349 ../src/utils/paplay.c:75
 #, c-format
 msgid "Failed to drain stream: %s\n"
-msgstr "排出流失败：%s\n"
+msgstr "ଧାରାକୁ ବାହାର କରିବାରେ ବିଫଳ ହୋଇଛି: %s\n"
 
 #: ../src/utils/pacat.c:354 ../src/utils/paplay.c:80
 #, c-format
 msgid "Playback stream drained.\n"
-msgstr "流播放完毕。\n"
+msgstr "ପଛଚଲା ଧାରାକୁ ବାହାର କରାଯାଇଛି।\n"
 
 #: ../src/utils/pacat.c:364 ../src/utils/paplay.c:92
 #, c-format
 msgid "Draining connection to server.\n"
-msgstr "Draining 连接到服务器。\n"
+msgstr "ସର୍ଭର ପ୍ରତି ଡ୍ରେନିଙ୍ଗ ସଂଯୋଗ।\n"
 
 #: ../src/utils/pacat.c:390
 #, c-format
 msgid "Got EOF.\n"
-msgstr "收到EOF。\n"
+msgstr "EOF ପାଇଅଛି।\n"
 
 #: ../src/utils/pacat.c:396
 #, c-format
 msgid "pa_stream_drain(): %s\n"
-msgstr "pa_stream_drain()：%s\n"
+msgstr "pa_stream_drain(): %s\n"
 
 #: ../src/utils/pacat.c:406
 #, c-format
 msgid "read() failed: %s\n"
-msgstr "read()失败：%s\n"
+msgstr "read() ବିଫଳ ହୋଇଛି: %s\n"
 
 #: ../src/utils/pacat.c:438
 #, c-format
 msgid "write() failed: %s\n"
-msgstr "write()失败：%s\n"
+msgstr "write() ବିଫଳ ହୋଇଛି: %s\n"
 
 #: ../src/utils/pacat.c:459
 #, c-format
 msgid "Got signal, exiting.\n"
-msgstr "收到信号，正在退出。\n"
+msgstr "ସଂକେତ ପାଇଲା, ପ୍ରସ୍ଥାନ କରୁଅଛି।\n"
 
 #: ../src/utils/pacat.c:473
 #, c-format
 msgid "Failed to get latency: %s\n"
-msgstr "获取传输延迟失败：%s\n"
+msgstr "ବିଳମ୍ବତା ପାଇବାରେ ବିଫଳ: %s\n"
 
 #: ../src/utils/pacat.c:478
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
-msgstr "时间：%0.3f秒；延迟：%0.0f 微秒。  \r"
+msgstr "ସମୟ: %0.3f sec; ବିଳମ୍ବତା: %0.0f usec.  \r"
 
 #: ../src/utils/pacat.c:498
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s\n"
-msgstr "pa_stream_update_timing_info()失败：%s\n"
+msgstr "pa_stream_update_timing_info() ବିଫଳ ହୋଇଛି: %s\n"
 
 #: ../src/utils/pacat.c:511
 #, c-format
@@ -1453,36 +1485,47 @@ msgid ""
 msgstr ""
 "%s [options]\n"
 "\n"
-"  -h, --help                            显示此帮助\n"
-"      --version                         显示版本号\n"
+"  -h, --help                            ଏହି ସହାୟତା ଦର୍ଶାନ୍ତୁ\n"
+"      --version                         ସଂସ୍କରଣ ଦର୍ଶାନ୍ତୁ\n"
 "\n"
-"  -r, --record                          为录制创建连接\n"
-"  -p, --playback                        为回放创建连接\n"
+"  -r, --record                          ଲେଖିବା ପାଇଁ ସଂଯୋଗ ନିର୍ମାଣ କରନ୍ତୁ\n"
+"  -p, --playback                        ପଛକୁ ଚଲାଇବା ପାଇଁ ଗୋଟିଏ ସଂଯୋଗ ନିର୍ମାଣ କରନ୍ତୁ\n"
 "\n"
-"  -v, --verbose                         启用详述操作\n"
+"  -v, --verbose                         verbose ପ୍ରକ୍ରିୟାଗୁଡ଼ିକୁ ସକ୍ରିୟ କରନ୍ତୁ\n"
 "\n"
-"  -s, --server=SERVER                   要连接的服务器名\n"
-"  -d, --device=DEVICE                   要连接的sink/source名\n"
-"  -n, --client-name=NAME                指定客户端在服务器上的名称\n"
-"      --stream-name=NAME                指定流在服务器上的名称\n"
-"      --volume=VOLUME                   指定初始（线性）音量，取值在0...65536"
-"之间\n"
-"      --rate=SAMPLERATE                 采样频率（单位Hz，默认为44100）\n"
-"      --format=SAMPLEFORMAT             采样类型，从s16le，s16be，u8，"
-"float32le，\n"
-"                                        float32be，ulaw，alaw，s32le，s32be中"
-"取（默认为s16ne）\n"
-"      --channels=CHANNELS               通道数，1为单声道，2为立体声（默认为"
-"2）\n"
-"      --channel-map=CHANNELMAP          取代默认值的通道映射表\n"
-"      --fix-format                      从流连接的音频出口处取采样格式。\n"
-"      --fix-rate                        从流连接的音频出口处取采样率。\n"
-"      --fix-channels                    从流连接的音频出口处取通道数和通道映"
-"射表。\n"
+"  -s, --server=SERVER                   ସଂଯୋଗ କରିବା ପାଇଁ ସର୍ଭରର ନାମ\n"
+"  -d, --device=DEVICE                   ସଂଯୋଗ କରିବା ପାଇଁ ସିଙ୍କ/ଉତ୍ସର ନାମ\n"
+"  -n, --client-name=NAME                ସର୍ଭରରେ ଏହି ଗ୍ରାହକଙ୍କୁ କିପରି ଡାକିବେ\n"
+"      --stream-name=NAME                ସର୍ଭରରେ ଏହି ଧାରାକୁ କିପରି ଡାକିବେ\n"
+"      --volume=VOLUME                   ପ୍ରାରମ୍ଭିକ (ସିଧା) ଭଲ୍ୟୁମକୁ ସୀମା 0...65536 ମଧ୍ଯରେଉଲ୍ଲେଖ କରନ୍ତୁ\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
+"44100)\n"
+"      --format=SAMPLEFORMAT             The sample type, one of s16le, "
+"s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be "
+"(defaults to s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, "
+"2 for stereo\n"
+"                                        (defaults to 2)\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the "
+"default\n"
+"      --fix-format                      Take the sample format from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-rate                        Take the sampling rate from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-channels                    Take the number of channels and the "
+"channel map\n"
+"                                        from the sink the stream is being "
+"connected to.\n"
 "      --no-remix                        Don't upmix or downmix channels.\n"
-"      --no-remap                        根据下标而非名称来映射通道。\n"
-"      --latency=BYTES                   请求指定字节数的延迟。\n"
-"      --process-time=BYTES              每次请求指定字节数的处理时间。\n"
+"      --no-remap                        Map channels by index instead of "
+"name.\n"
+"      --latency=BYTES                   Request the specified latency in "
+"bytes.\n"
+"      --process-time=BYTES              Request the specified process time "
+"per request in bytes.\n"
 
 #: ../src/utils/pacat.c:612
 #, c-format
@@ -1492,131 +1535,131 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 "pacat %s\n"
-"Compiled with libpulse %s\n"
-"Linked with libpulse %s\n"
+"libpulse %s ସହିତ ସଂକଳିତ\n"
+"libpulse %s ସହିତ ସଂଯୁକ୍ତ\n"
 
 #: ../src/utils/pacat.c:669
 #, c-format
 msgid "Invalid channel map '%s'\n"
-msgstr "无效的通道映射描述'%s'\n"
+msgstr "ଅବୈଧ ଚ୍ୟାନେଲ ମ୍ୟାପ '%s'\n"
 
 #: ../src/utils/pacat.c:698
 #, c-format
 msgid "Invalid latency specification '%s'\n"
-msgstr "无效的延迟规格描述 %s'\n"
+msgstr "ଅବୈଧ ବିଳମ୍ବତା ବିଶେଷ ଲକ୍ଷଣ '%s'\n"
 
 #: ../src/utils/pacat.c:705
 #, c-format
 msgid "Invalid process time specification '%s'\n"
-msgstr "无效的处理时间描述 '%s'\n"
+msgstr "ଅବୈଧ ପଦ୍ଧତି ସମୟ ବିଶେଷ ଲକ୍ଷଣ '%s'\n"
 
 #: ../src/utils/pacat.c:716
 #, c-format
 msgid "Invalid sample specification\n"
-msgstr "无效的采样描述\n"
+msgstr "ଅବୈଧ ନମୁନା ବିଶେଷ ଲକ୍ଷଣ\n"
 
 #: ../src/utils/pacat.c:721
 #, c-format
 msgid "Channel map doesn't match sample specification\n"
-msgstr "通道映射与采样描述不匹配\n"
+msgstr "ନମୁନା ବିଶେଷ ଲକ୍ଷଣ ସହିତ ଚ୍ୟାନେଲ ମ୍ୟାପ ମେଳ ଖାଉନାହିଁ\n"
 
 #: ../src/utils/pacat.c:728
 #, c-format
 msgid "Opening a %s stream with sample specification '%s'.\n"
-msgstr "以采样规格'%s'打开%s流。\n"
+msgstr "ନମୁନା ବିଶେଷ ଲକ୍ଷଣ '%s' ସହିତ ଗୋଟିଏ %s ଧାରାକୁ ଖୋଲୁଅଛି।\n"
 
 #: ../src/utils/pacat.c:728
 msgid "recording"
-msgstr "正在录制"
+msgstr "ଅନୁଲିପି କରୁଅଛି"
 
 #: ../src/utils/pacat.c:728
 msgid "playback"
-msgstr "回放"
+msgstr "ପଛଚଲା"
 
 #: ../src/utils/pacat.c:736
 #, c-format
 msgid "open(): %s\n"
-msgstr "open()：%s\n"
+msgstr "open(): %s\n"
 
 #: ../src/utils/pacat.c:741
 #, c-format
 msgid "dup2(): %s\n"
-msgstr "dup2()：%s\n"
+msgstr "dup2(): %s\n"
 
 #: ../src/utils/pacat.c:751
 #, c-format
 msgid "Too many arguments.\n"
-msgstr "参数过多。\n"
+msgstr "ଅତ୍ୟଧିକ ସ୍ୱତନ୍ତ୍ରଚର।\n"
 
 #: ../src/utils/pacat.c:764 ../src/utils/pasuspender.c:280
 #: ../src/utils/pactl.c:1017 ../src/utils/paplay.c:381
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
-msgstr "pa_mainloop_new()失败。\n"
+msgstr "pa_mainloop_new() ବିଫଳ ହୋଇଛି।\n"
 
 #: ../src/utils/pacat.c:785
 #, c-format
 msgid "io_new() failed.\n"
-msgstr "io_new()失败。\n"
+msgstr "io_new() ବିଫଳ ହୋଇଛି।\n"
 
 #: ../src/utils/pacat.c:791 ../src/utils/pasuspender.c:293
 #: ../src/utils/pactl.c:1031 ../src/utils/paplay.c:396
 #, c-format
 msgid "pa_context_new() failed.\n"
-msgstr "pa_context_new()失败。\n"
+msgstr "pa_context_new() ବିଫଳ ହୋଇଛି।\n"
 
 #: ../src/utils/pacat.c:799 ../src/utils/pactl.c:1037
 #: ../src/utils/paplay.c:404
 #, c-format
 msgid "pa_context_connect() failed: %s"
-msgstr "pa_context_connect()失败：%s"
+msgstr "pa_context_connect() ବିଫଳ ହୋଇଛି: %s"
 
 #: ../src/utils/pacat.c:810
 #, c-format
 msgid "time_new() failed.\n"
-msgstr "time_new()失败。\n"
+msgstr "time_new() ବିଫଳ ହୋଇଛି।\n"
 
 #: ../src/utils/pacat.c:817 ../src/utils/pasuspender.c:301
 #: ../src/utils/pactl.c:1042 ../src/utils/paplay.c:410
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
-msgstr "pa_mainloop_run()失败。\n"
+msgstr "pa_mainloop_run() ବିଫଳ ହୋଇଛି।\n"
 
 #: ../src/utils/pasuspender.c:81
 #, c-format
 msgid "fork(): %s\n"
-msgstr "fork()：%s\n"
+msgstr "fork(): %s\n"
 
 #: ../src/utils/pasuspender.c:92
 #, c-format
 msgid "execvp(): %s\n"
-msgstr "execvp()：%s\n"
+msgstr "execvp(): %s\n"
 
 #: ../src/utils/pasuspender.c:109
 #, c-format
 msgid "Failure to suspend: %s\n"
-msgstr "挂起失败：%s\n"
+msgstr "ନିଲମ୍ବନ କରିବାରେ ବିଫଳ: %s\n"
 
 #: ../src/utils/pasuspender.c:124
 #, c-format
 msgid "Failure to resume: %s\n"
-msgstr "恢复失败：%s\n"
+msgstr "ପୁନଃ ଚଳନ କରିବାରେ ବିଫଳ: %s\n"
 
 #: ../src/utils/pasuspender.c:147
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
-msgstr "警告：非本地声音服务器，不会挂起。\n"
+msgstr "WARNING: ଧ୍ୱନି ସର୍ଭରଟି ସ୍ଥାନୀୟ ନୁହଁ, ନିଲମ୍ବିତ କରୁନାହିଁ।\n"
 
 #: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:768
 #: ../src/utils/paplay.c:191
 #, c-format
 msgid "Got SIGINT, exiting.\n"
-msgstr "收到SIGINT，正在退出。\n"
+msgstr "SIGINT ପାଇଛି, ଉତ୍ସାହିତ କରୁଅଛି।\n"
 
 #: ../src/utils/pasuspender.c:194
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr "警告：子进程被信号%u终止\n"
+msgstr "WARNING: ନିମ୍ନ ସ୍ତରର ପ୍ରକ୍ରିୟାଟି ସଂକେତ %u ଦ୍ୱାରା ସମାପ୍ତ\n"
 
 #: ../src/utils/pasuspender.c:212
 #, c-format
@@ -1631,9 +1674,9 @@ msgid ""
 msgstr ""
 "%s [options] ... \n"
 "\n"
-"  -h, --help                            显示此帮助\n"
-"      --version                         显示版本\n"
-"  -s, --server=SERVER                   要连接的服务器名\n"
+"  -h, --help                            ଏହି ସହାୟତାକୁ ଦର୍ଶାନ୍ତୁ\n"
+"      --version                         ସଂସ୍କରଣ ଦର୍ଶାନ୍ତୁ\n"
+"  -s, --server=SERVER                   ସଂଯୋଗ କରିବା ପାଇଁ ସର୍ଭରର ନାମ\n"
 "\n"
 
 #: ../src/utils/pasuspender.c:251
@@ -1644,33 +1687,33 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 "pasuspender %s\n"
-"Compiled with libpulse %s\n"
-"Linked with libpulse %s\n"
+"libpulse %s ସହିତ ସଂକଳିତ\n"
+"libpulse %s ସହିତ ସଂଯୁକ୍ତ\n"
 
 #: ../src/utils/pactl.c:108
 #, c-format
 msgid "Failed to get statistics: %s\n"
-msgstr "获取统计数据失败：%s\n"
+msgstr "ପରିସଂଖ୍ୟାନ ପାଇବାରେ ବିଫଳ: %s\n"
 
 #: ../src/utils/pactl.c:114
 #, c-format
 msgid "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr "当前使用：%u块，总共%s字节。\n"
+msgstr "ବର୍ତ୍ତମାନ ବ୍ୟବହାରରେ ଅଛି: %u ବ୍ଲକ ସମୁଦାୟ %s ବାଇଟ ଧାରଣ କରିଥାଏ।\n"
 
 #: ../src/utils/pactl.c:117
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr "整个生命周期所得分配：%u块，总共%s字节。\n"
+msgstr "ସମଗ୍ର ଜୀବନରେ ବଣ୍ଟିତ ହୋଇଥାଏ: %u ବ୍ଲକ ସମୁଦାୟ %s ବାଇଟ ଧାରଣ କରିଥାଏ।\n"
 
 #: ../src/utils/pactl.c:120
 #, c-format
 msgid "Sample cache size: %s\n"
-msgstr "采样缓存大小：%s\n"
+msgstr "ନମୁନା କ୍ୟାଶେ ଆକାର: %s\n"
 
 #: ../src/utils/pactl.c:129
 #, c-format
 msgid "Failed to get server information: %s\n"
-msgstr "获取服务器信息失败：%s\n"
+msgstr "ସର୍ଭର ସୂଚନା ପାଇବାରେ ବିଫଳ: %s\n"
 
 #: ../src/utils/pactl.c:137
 #, c-format
@@ -1685,20 +1728,20 @@ msgid ""
 "Default Source: %s\n"
 "Cookie: %08x\n"
 msgstr ""
-"用户名：%s\n"
-"主机名：%s\n"
-"服务器名：%s\n"
-"服务器版本：%s\n"
-"默认采样规格：%s\n"
-"默认频道地图：%s\n"
-"默认音频入口：%s\n"
-"默认源： %s\n"
-"Cookie：%08x\n"
+"ଚାଳକ ନାମ: %s\n"
+"ଆଧାର ନାମ: %s\n"
+"ସର୍ଭର ନାମ: %s\n"
+"ସର୍ଭର ସଂସ୍କରଣ: %s\n"
+"ପୂର୍ବନିର୍ଦ୍ଧାରିତ ନମୁନା ବିଶିଷ୍ଟ: %s\n"
+"ପୂର୍ବନିର୍ଦ୍ଧାରିତ ଚ୍ୟାନେଲ ମ୍ୟାପ: %s\n"
+"ପୂର୍ବନିର୍ଦ୍ଧାରିତ ସିଙ୍କ: %s\n"
+"ପୂର୍ବନିର୍ଦ୍ଧାରିତ ଉତ୍ସ: %s\n"
+"କୁକି: %08x\n"
 
 #: ../src/utils/pactl.c:178
 #, c-format
 msgid "Failed to get sink information: %s\n"
-msgstr "获取音频出口信息失败：%s\n"
+msgstr "ସିଙ୍କ ସୂଚନା ପାଇବାରେ ବିଫଳ: %s\n"
 
 #: ../src/utils/pactl.c:194
 #, c-format
@@ -1721,28 +1764,28 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Sink #%u\n"
-"\tState: %s\n"
-"\tName: %s\n"
-"\tDescription: %s\n"
-"\tDriver: %s\n"
-"\tSample Specification: %s\n"
-"\tChannel Map: %s\n"
-"\tOwner Module: %u\n"
-"\tMute: %s\n"
-"\tVolume: %s%s%s\n"
-"\t        balance %0.2f\n"
-"\tBase Volume: %s%s%s\n"
-"\tMonitor Source: %s\n"
-"\tLatency: %0.0f usec, configured %0.0f usec\n"
-"\tFlags: %s%s%s%s%s%s\n"
-"\tProperties:\n"
+"ସିଙ୍କ #%u\n"
+"\tସ୍ଥିତି: %s\n"
+"\tନାମ: %s\n"
+"\tବର୍ଣ୍ଣନା: %s\n"
+"\tଡ୍ରାଇଭର: %s\n"
+"\tନମୁନା ବିଶେଷ ଲକ୍ଷଣ: %s\n"
+"\tଚ୍ୟାନେଲ ମ୍ୟାପ: %s\n"
+"\tନିଜ ଏକକାଂଶ: %u\n"
+"\tମୁକ: %s\n"
+"\tଭଲ୍ୟୁମ: %s%s%s\n"
+"\t        ସମତୁଲ %0.2f\n"
+"\tଆଧାର ଭଲ୍ୟୁମ: %s%s%s\n"
+"\tପ୍ରଦର୍ଶିକା ଉତ୍ସ: %s\n"
+"\tବିଲମ୍ବତା: %0.0f usec, ବିନ୍ୟାସିତ %0.0f usec\n"
+"\tଚିହ୍ନକ: %s%s%s%s%s%s\n"
+"\tଗୁଣଧର୍ମ:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:258
 #, c-format
 msgid "Failed to get source information: %s\n"
-msgstr "获取音频入口信息失败：%s\n"
+msgstr "ଉତ୍ସ ସୂଚନା ପାଇବାରେ ବିଫଳ: %s\n"
 
 #: ../src/utils/pactl.c:274
 #, c-format
@@ -1765,22 +1808,22 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Source #%u\n"
-"\tState: %s\n"
-"\tName: %s\n"
-"\tDescription: %s\n"
-"\tDriver: %s\n"
-"\tSample Specification: %s\n"
-"\tChannel Map: %s\n"
-"\tOwner Module: %u\n"
-"\tMute: %s\n"
-"\tVolume: %s%s%s\n"
-"\t        balance %0.2f\n"
-"\tBase Volume: %s%s%s\n"
-"\tMonitor of Sink: %s\n"
-"\tLatency: %0.0f usec, configured %0.0f usec\n"
-"\tFlags: %s%s%s%s%s%s\n"
-"\tProperties:\n"
+"ଉତ୍ସ #%u\n"
+"\tସ୍ଥିତି: %s\n"
+"\tନାମ: %s\n"
+"\tବର୍ଣ୍ଣନା: %s\n"
+"\tଡ୍ରାଇଭର: %s\n"
+"\tନମୁନା ବିଶେଷ ଲକ୍ଷଣ: %s\n"
+"\tଚ୍ୟାନେଲ ମ୍ୟାପ: %s\n"
+"\tମାଲିକ ଏକକାଂଶ: %u\n"
+"\tମୁକ: %s\n"
+"\tଭଲ୍ୟୁମ: %s%s%s\n"
+"\t        ସମତୁଲ %0.2f\n"
+"\tଆଧାର ଭଲ୍ୟୁମ: %s%s%s\n"
+"\tସିଙ୍କର ପ୍ରଦର୍ଶିକା: %s\n"
+"\tବିଲମ୍ବତା: %0.0f usec, ବିନ୍ୟାସିତ %0.0f usec\n"
+"\tଚିହ୍ନକ: %s%s%s%s%s%s\n"
+"\tଗୁଣଧର୍ମ:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:306 ../src/utils/pactl.c:350 ../src/utils/pactl.c:385
@@ -1794,7 +1837,7 @@ msgstr "n/a"
 #: ../src/utils/pactl.c:324
 #, c-format
 msgid "Failed to get module information: %s\n"
-msgstr "获取模块信息失败：%s\n"
+msgstr "ଏକକାଂଶ ସୂଚନା ପାଇବାରେ ବିଫଳ: %s\n"
 
 #: ../src/utils/pactl.c:342
 #, c-format
@@ -1806,17 +1849,17 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Module #%u\n"
-"\tName: %s\n"
-"\tArgument: %s\n"
-"\tUsage counter: %s\n"
-"\tProperties:\n"
+"ଏକକାଂଶ #%u\n"
+"\tନାମ: %s\n"
+"\tସ୍ୱତନ୍ତ୍ରଚର: %s\n"
+"\tଉପଯୋଗିତା ଗଣକ: %s\n"
+"\tଗୁଣଧର୍ମ:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:361
 #, c-format
 msgid "Failed to get client information: %s\n"
-msgstr "获取客户端信息失败：%s\n"
+msgstr "ଗ୍ରାହକ ସୂଚନା ପାଇବାରେ ବିଫଳ: %s\n"
 
 #: ../src/utils/pactl.c:379
 #, c-format
@@ -1827,16 +1870,16 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Client #%u\n"
-"\tDriver: %s\n"
-"\tOwner Module: %s\n"
-"\tProperties:\n"
+"ଗ୍ରାହକ #%u\n"
+"\tଡ୍ରାଇଭର: %s\n"
+"\tମାଲିକର ଏକକାଂଶ: %s\n"
+"\tଗୁଣଧର୍ମ:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:396
 #, c-format
 msgid "Failed to get card information: %s\n"
-msgstr "获取声卡信息失败：%s\n"
+msgstr "କାର୍ଡ ସୂଚନା ପାଇବାରେ ବିଫଳ: %s\n"
 
 #: ../src/utils/pactl.c:414
 #, c-format
@@ -1848,27 +1891,27 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Card #%u\n"
-"\tName: %s\n"
-"\tDriver: %s\n"
-"\tOwner Module: %s\n"
-"\tProperties:\n"
+"କାର୍ଡ #%u\n"
+"\tନାମ: %s\n"
+"\tଡ୍ରାଇଭର: %s\n"
+"\tନିଜ ଏକକାଂଶ: %s\n"
+"\tଗୁଣଧର୍ମ:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:428
 #, c-format
 msgid "\tProfiles:\n"
-msgstr "\tProfiles:\n"
+msgstr "\tରୂପରେଖଗୁଡ଼ିକ:\n"
 
 #: ../src/utils/pactl.c:434
 #, c-format
 msgid "\tActive Profile: %s\n"
-msgstr "\tActive Profile: %s\n"
+msgstr "\tସକ୍ରିୟ ରୂପରେଖା: %s\n"
 
 #: ../src/utils/pactl.c:445
 #, c-format
 msgid "Failed to get sink input information: %s\n"
-msgstr "获取音频出口输入信息失败：%s\n"
+msgstr "ସିଙ୍କ ନିବେଶ ସୂଚନା ପାଇବାରେ ବିଫଳ: %s\n"
 
 #: ../src/utils/pactl.c:464
 #, c-format
@@ -1890,27 +1933,27 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Sink Input #%u\n"
-"\tDriver: %s\n"
-"\tOwner Module: %s\n"
-"\tClient: %s\n"
-"\tSink: %u\n"
-"\tSample Specification: %s\n"
-"\tChannel Map: %s\n"
-"\tMute: %s\n"
-"\tVolume: %s\n"
+"ସିଙ୍କ ନିବେଶ #%u\n"
+"\tଡ୍ରାଇଭର: %s\n"
+"\tମାଲିକ ଏକକାଂଶ: %s\n"
+"\tଗ୍ରାହକ: %s\n"
+"\tସିଙ୍କ: %u\n"
+"\tନମୁନା ବିଶେଷ ଲକ୍ଷଣ: %s\n"
+"\tଚ୍ୟାନେଲ ମ୍ୟାପ: %s\n"
+"\tମୁକ: %s\n"
+"\tଭଲ୍ୟୁମ: %s\n"
 "\t        %s\n"
-"\t        balance %0.2f\n"
-"\tBuffer Latency: %0.0f usec\n"
-"\tSink Latency: %0.0f usec\n"
-"\tResample method: %s\n"
-"\tProperties:\n"
+"\t        ସମତୁଲ %0.2f\n"
+"\tବଫର ବିଳମ୍ବତା: %0.0f usec\n"
+"\tସିଙ୍କ ବିଳମ୍ବତା: %0.0f usec\n"
+"\tପୁନଃ ମିଶ୍ରଣ ପଦ୍ଧତି: %s\n"
+"\tଗୁଣଧର୍ମ:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:503
 #, c-format
 msgid "Failed to get source output information: %s\n"
-msgstr "获取音频入口输出信息失败：%s\n"
+msgstr "ଉତ୍ସ ଫଳାଫଳ ସୂଚନା ପାଇବାରେ ବିଫଳ: %s\n"
 
 #: ../src/utils/pactl.c:523
 #, c-format
@@ -1928,23 +1971,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Source Output #%u\n"
-"\tDriver: %s\n"
-"\tOwner Module: %s\n"
-"\tClient: %s\n"
-"\tSource: %u\n"
-"\tSample Specification: %s\n"
-"\tChannel Map: %s\n"
-"\tBuffer Latency: %0.0f usec\n"
-"\tSource Latency: %0.0f usec\n"
-"\tResample method: %s\n"
-"\tProperties:\n"
+"ଉତ୍ସ ନିର୍ଗମ #%u\n"
+"\tଡ୍ରାଇଭର: %s\n"
+"\tମାଲିକ ଏକକାଂଶ: %s\n"
+"\tଗ୍ରାହକ: %s\n"
+"\tଉତ୍ସ: %u\n"
+"\tନମୁନା ବିଶେଷ ଲକ୍ଷଣ: %s\n"
+"\tଚ୍ୟାନେଲ ମ୍ୟାପ: %s\n"
+"\tବଫର ବିଳମ୍ବତା: %0.0f usec\n"
+"\tଉତ୍ସ ବିଳମ୍ବତା: %0.0f usec\n"
+"\tପୁନଃ ମିଶ୍ରଣ ପଦ୍ଧତି: %s\n"
+"\tଗୁଣଧର୍ମ:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:554
 #, c-format
 msgid "Failed to get sample information: %s\n"
-msgstr "获取采样信息失败：%s\n"
+msgstr "ନମୁନା ସୂଚନା ପାଇବାରେ ବିଫଳ: %s\n"
 
 #: ../src/utils/pactl.c:572
 #, c-format
@@ -1963,34 +2006,34 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Sample #%u\n"
-"\tName: %s\n"
-"\tSample Specification: %s\n"
-"\tChannel Map: %s\n"
-"\tVolume: %s\n"
+"ନମୁନା #%u\n"
+"\tନାମ: %s\n"
+"\tନମୁନା ବିଶେଷ ଲକ୍ଷଣ: %s\n"
+"\tଚ୍ୟାନେଲ ମ୍ୟାପ: %s\n"
+"\tଭଲ୍ୟୁମ: %s\n"
 "\t        %s\n"
-"\t        balance %0.2f\n"
-"\tDuration: %0.1fs\n"
-"\tSize: %s\n"
-"\tLazy: %s\n"
-"\tFilename: %s\n"
-"\tProperties:\n"
+"\t        ସମତୁଲ %0.2f\n"
+"\tଅବଧି: %0.1fs\n"
+"\tଆକାର: %s\n"
+"\tଶିଥିଳ: %s\n"
+"\tଫାଇଲ ନାମ: %s\n"
+"\tଗୁଣଧର୍ମ:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:602 ../src/utils/pactl.c:612
 #, c-format
 msgid "Failure: %s\n"
-msgstr "失败：%s\n"
+msgstr "ବିଫଳତା: %s\n"
 
 #: ../src/utils/pactl.c:636
 #, c-format
 msgid "Failed to upload sample: %s\n"
-msgstr "上传采样失败：%s\n"
+msgstr "ନମୁନାକୁ ଧାରଣ କରିବାରେ ବିଫଳ: %s\n"
 
 #: ../src/utils/pactl.c:653
 #, c-format
 msgid "Premature end of file\n"
-msgstr "文件过早结束\n"
+msgstr "ଫାଇଲର ସମୟ ପୂର୍ବ ସମାପ୍ତି\n"
 
 #: ../src/utils/pactl.c:774
 #, c-format
@@ -2047,72 +2090,76 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 "pactl %s\n"
-"Compiled with libpulse %s\n"
-"Linked with libpulse %s\n"
+"libpulse %s ସହିତ ସଂକଳିତ\n"
+"libpulse %s ସହିତ ସଂଯୁକ୍ତ\n"
 
 #: ../src/utils/pactl.c:865
 #, c-format
 msgid "Please specify a sample file to load\n"
-msgstr "请指定要加载的采样文件\n"
+msgstr "ଧାରଣ କରିବା ପାଇଁ ଗୋଟିଏ ନୁମନା ଫାଇଲ ଉଲ୍ଲେଖ କରନ୍ତୁ\n"
 
 #: ../src/utils/pactl.c:887
 #, c-format
 msgid "Failed to open sound file.\n"
-msgstr "打开声音文件失败。\n"
+msgstr "ଧ୍ୱନି ଫାଇଲ ଖୋଲିବାରେ ବିଫଳ।\n"
 
 #: ../src/utils/pactl.c:899
 #, c-format
 msgid "You have to specify a sample name to play\n"
-msgstr "你必须指定要播放的采样名\n"
+msgstr "ଚଲାଇବା ପାଇଁ ଆପଣଙ୍କୁ ଗୋଟିଏ ନମୁନା ନାମ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ\n"
 
 #: ../src/utils/pactl.c:911
 #, c-format
 msgid "You have to specify a sample name to remove\n"
-msgstr "你必须指定要删除的采样名\n"
+msgstr "କାଢ଼ିବା ପାଇଁ ଆପଣଙ୍କୁ ଗୋଟିଏ ନମୁନା ନାମ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ\n"
 
 #: ../src/utils/pactl.c:919
 #, c-format
 msgid "You have to specify a sink input index and a sink\n"
-msgstr "你必须指定音频出口索引和音频出口\n"
+msgstr "ଆପଣଙ୍କୁ ଗୋଟିଏ ସିଙ୍କ ନିବେଶ ଅନୁକ୍ରମଣିକା ଏବଂ ଗୋଟିଏ ସିଙ୍କ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ\n"
 
 #: ../src/utils/pactl.c:928
 #, c-format
 msgid "You have to specify a source output index and a source\n"
-msgstr "你必须指定音频入口输出索引和音频入口\n"
+msgstr "ଆପଣଙ୍କୁ ଗୋଟିଏ ଉତ୍ସ ନିର୍ଗମ ଅନୁକ୍ରମଣିକା ଏବଂ ଗୋଟିଏ ଉତ୍ସ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ\n"
 
 #: ../src/utils/pactl.c:942
 #, c-format
 msgid "You have to specify a module name and arguments.\n"
-msgstr "必须指定模块名和参数。\n"
+msgstr "ଆପଣଙ୍କୁ ଗୋଟିଏ ଏକକାଂଶ ନାମ ଏବଂ ସ୍ୱତନ୍ତ୍ରଚରଗୁଡ଼ିକୁ ଉଲ୍ଲେଖ କରିବା ଉଚିତ।\n"
 
 #: ../src/utils/pactl.c:962
 #, c-format
 msgid "You have to specify a module index\n"
-msgstr "必须指定模块索引\n"
+msgstr "ଆପଣଙ୍କୁ ଗୋଟିଏ ଏକକାଂଶ ଅନୁକ୍ରମଣିକାକୁ ଉଲ୍ଲେଖ କରିବା ଉଚିତ ନୁହଁ\n"
 
 #: ../src/utils/pactl.c:972
 #, c-format
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean "
 "value.\n"
-msgstr "不可指定多个音频出口。必须指定一个布尔值。\n"
+msgstr ""
+"ଆପଣଙ୍କୁ ଗୋଟିଏରୁ ଅଧିକ ସିଙ୍କ ଉଲ୍ଲେଖ କରିବାକୁ ପଡ଼ିନପାରେ। ଆପଣଙ୍କୁ "
+"ଗୋଟିଏ ବୁଲିଆନ ମୂଲ୍ୟ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ।\n"
 
 #: ../src/utils/pactl.c:985
 #, c-format
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value.\n"
-msgstr "不可指定多个源。必须指定一个布尔值。\n"
+msgstr ""
+"ଆପଣଙ୍କୁ ଗୋଟିଏରୁ ଅଧିକ ଉତ୍ସ ଉଲ୍ଲେଖ କରିବାକୁ ପଡ଼ିନପାରେ। ଆପଣଙ୍କୁ ଗୋଟିଏ "
+"ବୁଲିଆନ ମୂଲ୍ୟ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ।\n"
 
 #: ../src/utils/pactl.c:997
 #, c-format
 msgid "You have to specify a card name/index and a profile name\n"
-msgstr "你必须指定声卡名称/索引和侧写名称\n"
+msgstr "ଆପଣଙ୍କୁ ଗୋଟିଏ କାର୍ଡ ନାମ/ଅନୁକ୍ରମଣିକା ଏବଂ ରୂପରେଖା ନାମ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ\n"
 
 #: ../src/utils/pactl.c:1012
 #, c-format
 msgid "No valid command specified.\n"
-msgstr "未指定有效的命令。\n"
+msgstr "କୌଣସି ବୈଧ ନିର୍ଦ୍ଦେଶ ଉଲ୍ଲେଖ କରାଯାଇନାହିଁ।\n"
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2127,118 +2174,118 @@ msgid ""
 msgstr ""
 "%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n"
 "\n"
-" -d    显示与X11显示器关联的当前PulseAudio数据（默认）\n"
-" -e    将本地PulseAudio数据导出至X11显示器\n"
-" -i    将PulseAudio数据由X11显示器导入至本地环境变量和cookie文件。\n"
-" -r    从X11显示器清除PulseAudio数据\n"
+" -d    X11 ପ୍ରଦର୍ଶିକା ସହିତ ସଂଲଗ୍ନ ପ୍ରଚଳିତ PulseAudio ତଥ୍ୟ ଦର୍ଶାନ୍ତୁ (ପୂର୍ବନିର୍ଦ୍ଧାରିତ)\n"
+" -e    X11 ପ୍ରଦର୍ଶିକାକୁ ସ୍ଥାନୀୟ PulseAudio ତଥ୍ୟ ରପ୍ତାନି କରନ୍ତୁ\n"
+" -i    X11 ପ୍ରଦର୍ଶିକାରୁ ସ୍ଥାନୀୟ ପରିବେଶ ପ୍ରାଚଳ ଏବଂ କୁକି ଫାଇଲକୁ ଆମଦାନି କରନ୍ତୁ।\n"
+" -r    X11 ପ୍ରଦର୍ଶିକାରୁ PulseAudio ତଥ୍ୟକୁ କାଢ଼ନ୍ତୁ\n"
 
 #: ../src/utils/pax11publish.c:94
 #, c-format
 msgid "Failed to parse command line.\n"
-msgstr "分析命令行失败。\n"
+msgstr "ପାଠ୍ୟ ନିର୍ଦ୍ଦେଶକୁ ବିଶ୍ଳେଷଣ କରିବାରେ ବିଫଳ।\n"
 
 #: ../src/utils/pax11publish.c:108
 #, c-format
 msgid "Server: %s\n"
-msgstr "服务器：%s\n"
+msgstr "ସର୍ଭର: %s\n"
 
 #: ../src/utils/pax11publish.c:110
 #, c-format
 msgid "Source: %s\n"
-msgstr "音频入口：%s\n"
+msgstr "ଉତ୍ସ: %s\n"
 
 #: ../src/utils/pax11publish.c:112
 #, c-format
 msgid "Sink: %s\n"
-msgstr "音频出口：%s\n"
+msgstr "ସିଙ୍କ: %s\n"
 
 #: ../src/utils/pax11publish.c:114
 #, c-format
 msgid "Cookie: %s\n"
-msgstr "Cookie：%s\n"
+msgstr "କୁକି: %s\n"
 
 #: ../src/utils/pax11publish.c:132
 #, c-format
 msgid "Failed to parse cookie data\n"
-msgstr "分析cookie数据失败\n"
+msgstr "କୁକି ତଥ୍ୟକୁ ବିଶ୍ଳେଷଣ କରିବାରେ ବିଫଳ\n"
 
 #: ../src/utils/pax11publish.c:137
 #, c-format
 msgid "Failed to save cookie data\n"
-msgstr "保存cookie数据失败\n"
+msgstr "କୁକି ତଥ୍ୟକୁ ସଂରକ୍ଷଣ କରିବାରେ ବିଫଳ\n"
 
 #: ../src/utils/pax11publish.c:152
 #, c-format
 msgid "Failed to load client configuration file.\n"
-msgstr "加载客户端配置文件失败。\n"
+msgstr "ଗ୍ରାହକ ବିନ୍ୟାସ ଫାଇଲକୁ ଧାରଣ କରିବାରେ ବିଫଳ।\n"
 
 #: ../src/utils/pax11publish.c:157
 #, c-format
 msgid "Failed to read environment configuration data.\n"
-msgstr "读取环境配置数据失败。\n"
+msgstr "ପରିବେଶ ବିନ୍ୟାସ ତଥ୍ୟକୁ ପଢ଼ିବାରେ ବିଫଳ।\n"
 
 #: ../src/utils/pax11publish.c:174
 #, c-format
 msgid "Failed to get FQDN.\n"
-msgstr "获取FQDN失败。\n"
+msgstr "FQDNକୁ ପାଇବାରେ ବିଫଳ।\n"
 
 #: ../src/utils/pax11publish.c:194
 #, c-format
 msgid "Failed to load cookie data\n"
-msgstr "加载cookie数据失败\n"
+msgstr "କୁକି ତଥ୍ୟ ଧାରଣ କରିବାରେ ବିଫଳ\n"
 
 #: ../src/utils/pax11publish.c:211
 #, c-format
 msgid "Not yet implemented.\n"
-msgstr "尚未实现。\n"
+msgstr "ଅପର୍ଯ୍ୟନ୍ତ କାର୍ଯ୍ୟକାରୀ ହୋଇନାହିଁ।\n"
 
 #: ../src/utils/pacmd.c:64
 #, c-format
 msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
-msgstr "socket(PF_UNIX, SOCK_STREAM, 0)：%s"
+msgstr "ସକେଟ(PF_UNIX, SOCK_STREAM, 0): %s"
 
 #: ../src/utils/pacmd.c:81
 #, c-format
 msgid "connect(): %s"
-msgstr "connect()：%s"
+msgstr "ସଂଯୋଗ କରନ୍ତୁ(): %s"
 
 #: ../src/utils/pacmd.c:89
 msgid "Failed to kill PulseAudio daemon."
-msgstr "杀死PulseAudio后台程序失败。"
+msgstr "PulseAudio ଡେମନକୁ ବନ୍ଦ କରିବାରେ ବିଫଳ।"
 
 #: ../src/utils/pacmd.c:97
 msgid "Daemon not responding."
-msgstr "后台程序未响应。"
+msgstr "ଡେମନ ଉତ୍ତର ଦେଉନାହିଁ।"
 
 #: ../src/utils/pacmd.c:144
 #, c-format
 msgid "select(): %s"
-msgstr "select()：%s"
+msgstr "ବାଛନ୍ତୁ(): %s"
 
 #: ../src/utils/pacmd.c:154 ../src/utils/pacmd.c:171
 #, c-format
 msgid "read(): %s"
-msgstr "read()：%s"
+msgstr "ପଢ଼ନ୍ତୁ(): %s"
 
 #: ../src/utils/pacmd.c:187 ../src/utils/pacmd.c:201
 #, c-format
 msgid "write(): %s"
-msgstr "write()：%s"
+msgstr "ଲେଖନ୍ତୁ(): %s"
 
 #: ../src/utils/paplay.c:139
 #, c-format
 msgid "Stream successfully created\n"
-msgstr "成功创建流\n"
+msgstr "ଧାରା ସଫଳତାର ସହିତ ନିର୍ମିତ ହୋଇଛି\n"
 
 #: ../src/utils/paplay.c:144
 #, c-format
 msgid "Stream errror: %s\n"
-msgstr "流错误：%s\n"
+msgstr "ଧାରା ତ୍ରୁଟି: %s\n"
 
 #: ../src/utils/paplay.c:165
 #, c-format
 msgid "Connection established.\n"
-msgstr "连接已建立。\n"
+msgstr "ସଂଯୋଗ ସ୍ଥାପିତ ହୋଇସାରିଛି।\n"
 
 #: ../src/utils/paplay.c:198
 #, c-format
@@ -2263,18 +2310,17 @@ msgid ""
 msgstr ""
 "%s [options] [FILE]\n"
 "\n"
-"  -h, --help                            显示此帮助\n"
-"      --version                         显示版本\n"
+"  -h, --help                            ଏହି ସହାୟତା ଦର୍ଶାନ୍ତୁ\n"
+"      --version                         ସଂସ୍କରଣ ଦର୍ଶାନ୍ତୁ\n"
 "\n"
-"  -v, --verbose                         启用详述操作\n"
+"  -v, --verbose                         verbose ପ୍ରୟୋଗକୁ ସକ୍ରିୟ କରନ୍ତୁ\n"
 "\n"
-"  -s, --server=SERVER                   要连接的服务器名\n"
-"  -d, --device=DEVICE                   要连接的音频出口名\n"
-"  -n, --client-name=NAME                此客户端在服务器上的名称\n"
-"      --stream-name=NAME                此流在服务器上的名称\n"
-"      --volume=VOLUME                   指定初始（线性）音量，取值在0...65536"
-"之间\n"
-"      --channel-map=CHANNELMAP          设定使用的通道映射表\n"
+"  -s, --server=SERVER                   ସଂଯୋଗ କରିବା ପାଇଁ ସର୍ଭରର ନାମ\n"
+"  -d, --device=DEVICE                   ସଂଯୋଗ କରିବା ପାଇଁ ସିଙ୍କର ନାମ\n"
+"  -n, --client-name=NAME                ସର୍ଭର ଉପରେ ଏହି ଗ୍ରାହକଙ୍କୁ କିପରି ଡ଼ାକିବେ\n"
+"      --stream-name=NAME                ସର୍ଭର ଉପରେ ଏହି ଧାରାକୁ କିପରି ଡ଼ାକିବେ\n"
+"      --volume=VOLUME                   ପ୍ରାରମ୍ଭିକ (ସିଧା) ଆକାରକୁ ସୀମା 0...65536 ମଧ୍ଯରେ ଉଲ୍ଲେଖ କରନ୍ତୁ\n"
+"      --channel-map=CHANNELMAP          ବ୍ୟବହାର ପାଇଁ ଚ୍ୟାନେଲ ମ୍ୟାପକୁ ସେଟ କରନ୍ତୁ\n"
 
 #: ../src/utils/paplay.c:255
 #, c-format
@@ -2284,32 +2330,32 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 "paplay %s\n"
-"Compiled with libpulse %s\n"
-"Linked with libpulse %s\n"
+"libpulse %s ସହିତ ସଂକଳିତ\n"
+"libpulse %s ସହିତ ସଂଯୁକ୍ତ\n"
 
 #: ../src/utils/paplay.c:292
 #, c-format
 msgid "Invalid channel map\n"
-msgstr "无效的通道映射表\n"
+msgstr "ଅବୈଧ ଚ୍ୟାନେଲ ମ୍ୟାପ\n"
 
 #: ../src/utils/paplay.c:314
 #, c-format
 msgid "Failed to open file '%s'\n"
-msgstr "打开文件'%s'失败\n"
+msgstr "ଫାଇଲ '%s' କୁ ଖୋଲିବାରେ ବିଫଳ\n"
 
 #: ../src/utils/paplay.c:350
 #, c-format
 msgid "Channel map doesn't match file.\n"
-msgstr "通道映射表与文件不匹配。\n"
+msgstr "ଚ୍ୟାନେଲ ମ୍ୟାପ ଫାଇଲ ସହିତ ମେଳ ଖାଉନାହିଁ।\n"
 
 #: ../src/utils/paplay.c:376
 #, c-format
 msgid "Using sample spec '%s'\n"
-msgstr "正在使用采样规格'%s'\n"
+msgstr "ନମୁନା spec '%s' ବ୍ୟବହାର କରି\n"
 
 #: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
 msgid "Cannot access autospawn lock."
-msgstr "不能访问autospawn锁。"
+msgstr "autospawn ଅପରିବର୍ତ୍ତନୀୟତାକୁ ଅଭିଗମ୍ୟ କରିହେଉ ନାହିଁ"
 
 #: ../src/modules/alsa/alsa-sink.c:393 ../src/modules/alsa/alsa-sink.c:535
 #, c-format
@@ -2321,9 +2367,12 @@ msgid ""
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
-"ALSA 提醒我们在该设备中写入新数据，但实际上没有什么可以写入的！\n"
-"这很可能是 ALSA 驱动程序 '%s' 中的一个 bug。请向 ALSA 开发人员报告这个问题。\n"
-"提醒我们设置 POLLOUT -- 但结果是 snd_pcm_avail() 返回 0 或者另一个小于最小可用值的数值。"
+"ALSA woke us up to write new data to the device, but there was actually "
+"nothing to write!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
 
 #: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:510
 #, c-format
@@ -2335,39 +2384,42 @@ msgid ""
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
-"ALSA 提醒我们从该设备中读取新数据，但实际上没有什么可以读取的！\n"
-"这很可能是 ALSA 驱动程序 '%s' 中的一个 bug。请向 ALSA 开发人员报告这个问题。\n"
-"提醒我们设置 POLLOUT -- 但结果是 snd_pcm_avail() 返回 0 或者另一个小于最小可用值的数值。"
+"ALSA woke us up to read new data from the device, but there was actually "
+"nothing to read!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
 
 #: ../src/modules/alsa/module-alsa-card.c:114
 #, c-format
 msgid "Output %s + Input %s"
-msgstr "输出 %s + 输入 %s"
+msgstr "ଫଳାଫଳ %s + ନିବେଶ %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:117
 #, c-format
 msgid "Output %s"
-msgstr "输出 %s"
+msgstr "ଫଳାଫଳ %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:121
 #, c-format
 msgid "Input %s"
-msgstr "输入 %s"
+msgstr "ନିବେଶ %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:170
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1864
 msgid "Off"
-msgstr "关闭"
+msgstr "ଅଫ"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1834
 msgid "High Fidelity Playback (A2DP)"
-msgstr "高保真回放（A2DP）"
+msgstr "ଉଚ୍ଚ ଫିଡିଲିଟି ପଛଚଲା (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1849
 msgid "Telephony Duplex (HSP/HFP)"
-msgstr "双工电话（HSP/HFP）"
+msgstr "ଟେଲିଫୋନି ଡ୍ୟୁପ୍ଲେକ୍ସ (HSP/HFP)"
 
 #: ../src/modules/reserve-wrap.c:125
 msgid "PulseAudio Sound Server"
-msgstr "PulseAudio 声音服务器"
+msgstr "PulseAudio ଧ୍ୱନି ସର୍ଭର"
 
