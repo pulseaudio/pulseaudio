@@ -396,7 +396,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     pa_log_set_ident("pulseaudio");
-    pa_log_set_level(PA_LOG_INFO);
+    pa_log_set_level(PA_LOG_NOTICE);
     pa_log_set_flags(PA_LOG_COLORS|PA_LOG_PRINT_FILE|PA_LOG_PRINT_LEVEL, PA_LOG_RESET);
 
 #if defined(__linux__) && defined(__OPTIMIZE__)
