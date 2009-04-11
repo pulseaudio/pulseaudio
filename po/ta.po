@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-03-30 19:28+0000\n"
-"PO-Revision-Date: 2009-04-08 09:42+0530\n"
+"PO-Revision-Date: 2009-04-12 05:02+0530\n"
 "Last-Translator: I. Felix <ifelix@redhat.com>\n"
 "Language-Team: Tamil <fedora-trans-ta@redhat.com>\n"
 "MIME-Version: 1.0\n"
@@ -16,6 +16,13 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\\n\n"
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
 "\n"
 "\n"
 "\n"
@@ -79,6 +86,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
+"ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
 
 #: ../src/modules/alsa/alsa-util.c:1642
 #, c-format
@@ -88,6 +99,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
+"lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
 
 #: ../src/modules/alsa/alsa-util.c:1688
 #, c-format
@@ -97,6 +112,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
+"(%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
 
 #: ../src/pulsecore/sink.c:1965
 msgid "Internal Audio"
@@ -108,7 +127,7 @@ msgstr "மாதிரி"
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
-msgstr ""
+msgstr "அசல் lt_dlopen ஏற்றியை காண முடியவில்லை."
 
 #: ../src/daemon/ltdl-bind-now.c:129
 msgid "Failed to allocate new dl loader."
@@ -165,7 +184,7 @@ msgstr "அழைப்பாளர் அங்கீகரிக்கப்�
 #: ../src/daemon/polkit.c:139
 #, c-format
 msgid "Cannot obtain auth: %s"
-msgstr ""
+msgstr "authஐ பெற முடியவில்லை: %s"
 
 #: ../src/daemon/polkit.c:148
 #, c-format
@@ -232,7 +251,7 @@ msgstr "ரூட் முன்னுரிமைகள் வெற்றி�
 
 #: ../src/daemon/main.c:267
 msgid "System wide mode unsupported on this platform."
-msgstr ""
+msgstr "இந்த தளத்தில் கணினியின் திறந்த முறைமை துணைபுரியவில்லை."
 
 #: ../src/daemon/main.c:285
 #, c-format
@@ -246,28 +265,28 @@ msgstr "கட்டளை வரியை மாற்றுவதில் த
 #: ../src/daemon/main.c:458
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
-msgstr ""
+msgstr "நாம் குழு '%s'ல் இருந்த போது , உயர்ந்த முதன்மை அட்டவணைப்படுத்த அனுமதி அளிக்கப்பட்டிருந்தது."
 
 #: ../src/daemon/main.c:465
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
-msgstr ""
+msgstr "குழு '%s'இல் இருக்கிறோம், நிகழ்நேர திட்டமிடுதலை அனுமதிக்கிறது."
 
 #: ../src/daemon/main.c:473
 msgid "PolicyKit grants us acquire-high-priority privilege."
-msgstr ""
+msgstr "நமக்காக PolicyKit உயர்ந்த முக்கிய முன்னுரிமையை வழங்குகிறது."
 
 #: ../src/daemon/main.c:476
 msgid "PolicyKit refuses acquire-high-priority privilege."
-msgstr ""
+msgstr "PolicyKit உயர்ந்த முக்கிய முன்னுரிமையை மறுக்கிறது."
 
 #: ../src/daemon/main.c:481
 msgid "PolicyKit grants us acquire-real-time privilege."
-msgstr ""
+msgstr "PolicyKit acquire-real-time முன்னுரிமைகளை கொடுக்கிறது."
 
 #: ../src/daemon/main.c:484
 msgid "PolicyKit refuses acquire-real-time privilege."
-msgstr ""
+msgstr "PolicyKit acquire-real-time முன்னுரிமைகளை நிராகரிக்கிறது."
 
 #: ../src/daemon/main.c:513
 #, c-format
@@ -281,10 +300,18 @@ msgid ""
 "appropriate PolicyKit privileges, or become a member of '%s', or increase "
 "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 msgstr ""
+"Called SUID root and real-time and/or high-priority scheduling was requested "
+"in the configuration. However, we lack the necessary privileges:\n"
+"We are not in group '%s', PolicyKit refuse to grant us the requested "
+"privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
+"limits.\n"
+"For enabling real-time/high-priority scheduling please acquire the "
+"appropriate PolicyKit privileges, or become a member of '%s', or increase "
+"the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 
 #: ../src/daemon/main.c:538
 msgid "High-priority scheduling enabled in configuration but not allowed by policy."
-msgstr ""
+msgstr "உயர்ந்த சலுகைகளின் அட்டவணையை கட்டமைப்பில் செயல்படுத்தப்பட்டது ஆனால் பாலிசியால் அனுமதிக்கப்படவில்லை."
 
 #: ../src/daemon/main.c:567
 msgid "Successfully increased RLIMIT_RTPRIO"
@@ -303,7 +330,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:584
 msgid "Real-time scheduling enabled in configuration but not allowed by policy."
-msgstr ""
+msgstr "நிகழ்நேர திட்டமிடுதல் கட்டமைப்பில் செயல்படுத்தப்பட்டது ஆனால் கொள்கையால் அனுமதிக்கப்படுவதில்லை"
 
 #: ../src/daemon/main.c:645
 msgid "Daemon not running"
@@ -323,7 +350,7 @@ msgstr "டோமோனுக்கு முடிவு கட்டுவத�
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr ""
+msgstr "இந்த நிரல் ரூட்டாக இயங்க முடியவில்லை (--system குறிப்பிடாத வரை)."
 
 #: ../src/daemon/main.c:677
 msgid "Root privileges required."
@@ -331,27 +358,27 @@ msgstr "ரூட் முன்னுரிமைகள் தேவைப்�
 
 #: ../src/daemon/main.c:682
 msgid "--start not supported for system instances."
-msgstr ""
+msgstr "--start கணினி நிகழ்வில் துணைபுரியவில்லை."
 
 #: ../src/daemon/main.c:687
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr ""
+msgstr "கணினி முறைமையில் இயங்குகிறது, ஆனால் --disallow-exit அமைக்கப்படவில்லை!"
 
 #: ../src/daemon/main.c:690
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr ""
+msgstr "கணினி முறைமையில் இயங்குகிறது, ஆனால் --disallow-module-loading அமைக்கப்படவில்லை!"
 
 #: ../src/daemon/main.c:693
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr ""
+msgstr "கணினி முறைமையில் இயங்குகிறது, SHM முறைமை செயல்நீக்குதல் கட்டாயப்படுத்துகிறது!"
 
 #: ../src/daemon/main.c:698
 msgid "Running in system mode, forcibly disabling exit idle time!"
-msgstr ""
+msgstr "கணினி முறைமையில் இயங்குகிறது, வெறுமை நேரத்தை செயல்நீக்க கட்டாயப்படுத்துகிறது!"
 
 #: ../src/daemon/main.c:725
 msgid "Failed to acquire stdio."
-msgstr ""
+msgstr "stdioஐ பெற முடியவில்லை."
 
 #: ../src/daemon/main.c:731
 #, c-format
@@ -361,7 +388,7 @@ msgstr "பைப் தோல்வியுற்றது: %s"
 #: ../src/daemon/main.c:736
 #, c-format
 msgid "fork() failed: %s"
-msgstr ""
+msgstr "fork() தோல்வியுற்றது: %s"
 
 #: ../src/daemon/main.c:750
 #, c-format
@@ -408,11 +435,11 @@ msgstr "பக்க அளவுகள் %lu பைட்ஸ்"
 
 #: ../src/daemon/main.c:841
 msgid "Compiled with Valgrind support: yes"
-msgstr ""
+msgstr "Compiled with Valgrind support: yes"
 
 #: ../src/daemon/main.c:843
 msgid "Compiled with Valgrind support: no"
-msgstr ""
+msgstr "Compiled with Valgrind support: no"
 
 #: ../src/daemon/main.c:846
 #, c-format
@@ -421,11 +448,11 @@ msgstr "valgrind முறைமையில் இயங்குகிறத�
 
 #: ../src/daemon/main.c:849
 msgid "Optimized build: yes"
-msgstr ""
+msgstr "Optimized build: yes"
 
 #: ../src/daemon/main.c:851
 msgid "Optimized build: no"
-msgstr ""
+msgstr "சுருக்கமான உருவாக்கம்: இல்லை"
 
 #: ../src/daemon/main.c:855
 msgid "Failed to get machine ID"
@@ -453,21 +480,23 @@ msgstr "கணினியின் முறைமையில் இயங்�
 
 #: ../src/daemon/main.c:886
 msgid "pa_pid_file_create() failed."
-msgstr ""
+msgstr "pa_pid_file_create() தோல்வியுற்றது."
 
 #: ../src/daemon/main.c:898
 msgid "Fresh high-resolution timers available! Bon appetit!"
-msgstr ""
+msgstr "உயர்ந்த திரைத்திறன் நேரம்காட்டி கிடைக்கிளது! Bon appetit!"
 
 #: ../src/daemon/main.c:900
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 msgstr ""
+"Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
+"resolution timers enabled!"
 
 #: ../src/daemon/main.c:912
 msgid "pa_core_new() failed."
-msgstr ""
+msgstr "pa_core_new() தோல்வியுற்றது."
 
 #: ../src/daemon/main.c:974
 msgid "Failed to initialize daemon."
@@ -475,7 +504,7 @@ msgstr "டோமோனை ஆரம்பிப்பதில் தோல்�
 
 #: ../src/daemon/main.c:979
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr ""
+msgstr "டீமான் துவக்கம் எந்த தொகுதிகளும் ஏற்றப்படாமல், வேலையை நிராகரிக்கிறது."
 
 #: ../src/daemon/main.c:992
 msgid "Daemon startup complete."
@@ -634,49 +663,49 @@ msgstr ""
 
 #: ../src/daemon/cmdline.c:252
 msgid "--daemonize expects boolean argument"
-msgstr ""
+msgstr "--daemonize பூலியன் அளவுரு எதிர்பார்க்கிறது"
 
 #: ../src/daemon/cmdline.c:259
 msgid "--fail expects boolean argument"
-msgstr ""
+msgstr "--fail பூலியன் அளவுரு எதிர்பார்க்கிறது"
 
 #: ../src/daemon/cmdline.c:269
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
-msgstr ""
+msgstr "--log-level பதிவு நிலை அளவுருவை எதிர்பார்க்கிறது (எண் 0..4 அல்லது debug, info, notice, warn, errorஇல் ஒன்று)."
 
 #: ../src/daemon/cmdline.c:281
 msgid "--high-priority expects boolean argument"
-msgstr ""
+msgstr "--high-priority பூலியன் அளவுரு எதிர்பார்க்கிறது"
 
 #: ../src/daemon/cmdline.c:288
 msgid "--realtime expects boolean argument"
-msgstr ""
+msgstr "--realtime பூலியன் அளவுரு எதிர்பார்க்கிறது"
 
 #: ../src/daemon/cmdline.c:295
 msgid "--disallow-module-loading expects boolean argument"
-msgstr ""
+msgstr "--disallow-module-loading பூலியன் அளவுரு எதிர்பார்க்கிறது"
 
 #: ../src/daemon/cmdline.c:302
 msgid "--disallow-exit expects boolean argument"
-msgstr ""
+msgstr "--disallow-exit பூலியன் அளவுரு எதிர்பார்க்கிறது"
 
 #: ../src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
-msgstr ""
+msgstr "--use-pid-file பூலியன் அளவுரு எதிர்பார்க்கிறது"
 
 #: ../src/daemon/cmdline.c:326
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
-msgstr ""
+msgstr "தவறான பதிவு இலக்கு: 'syslog', 'stderr' அல்லது 'auto'ஐ பயன்படுத்தவும்."
 
 #: ../src/daemon/cmdline.c:333
 msgid "--log-time expects boolean argument"
-msgstr ""
+msgstr "--log-time பூலியன் அளவுரு எதிர்பார்க்கிறது"
 
 #: ../src/daemon/cmdline.c:340
 msgid "--log-meta expects boolean argument"
-msgstr ""
+msgstr "--log-meta பூலியன் அளவுரு எதிர்பார்க்கிறது"
 
 #: ../src/daemon/cmdline.c:359
 #, c-format
@@ -685,15 +714,15 @@ msgstr "தவறான மறுமாதிரி முறை '%s'."
 
 #: ../src/daemon/cmdline.c:366
 msgid "--system expects boolean argument"
-msgstr ""
+msgstr "--system பூலியன் அளவுரு எதிர்பார்க்கிறது"
 
 #: ../src/daemon/cmdline.c:373
 msgid "--no-cpu-limit expects boolean argument"
-msgstr ""
+msgstr "--no-cpu-limit பூலியன் அளவுரு எதிர்பார்க்கிறது"
 
 #: ../src/daemon/cmdline.c:380
 msgid "--disable-shm expects boolean argument"
-msgstr ""
+msgstr "--disable-shm பூலியன் அளவுரு எதிர்பார்க்கிறது"
 
 #: ../src/daemon/dumpmodules.c:60
 #, c-format
@@ -738,12 +767,12 @@ msgstr "பாதை: %s\n"
 #: ../src/daemon/daemon-conf.c:215
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr ""
+msgstr "[%s:%u] தவறான பதிவு இலக்கு '%s'."
 
 #: ../src/daemon/daemon-conf.c:231
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
-msgstr ""
+msgstr "[%s:%u] தவறான பதிவு இலக்கு '%s'."
 
 #: ../src/daemon/daemon-conf.c:247
 #, c-format
@@ -758,7 +787,7 @@ msgstr "[%s:%u] தவறான rlimit '%s'."
 #: ../src/daemon/daemon-conf.c:277
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
-msgstr ""
+msgstr "[%s:%u] rlimit இந்த தளத்தில் துணைபுரியவில்லை."
 
 #: ../src/daemon/daemon-conf.c:293
 #, c-format
@@ -783,12 +812,12 @@ msgstr "[%s:%u] தவறான சேனல் படம் '%s'."
 #: ../src/daemon/daemon-conf.c:371
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr ""
+msgstr "[%s:%u] பகுப்பு '%s'க்கு தவறான எண்"
 
 #: ../src/daemon/daemon-conf.c:389
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr ""
+msgstr "[%s:%u] தவறான பகுப்பு அளவு '%s'."
 
 #: ../src/daemon/daemon-conf.c:407
 #, c-format
@@ -804,7 +833,7 @@ msgstr "கட்டமைக்கப்பட்ட கோப்பினை �
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
-msgstr ""
+msgstr "குறிப்பிட்ட முன்னிருப்பு சேனல் மேப் வேறுபட்ட சேனல்களின் எண்ணிக்கையை குறிப்பிட்ட முன்னிருப்பு சேனல்களின் எண்ணிக்கையை விட கொண்டுள்ளது"
 
 #: ../src/daemon/daemon-conf.c:616
 #, c-format
@@ -817,7 +846,7 @@ msgstr "ரூட் முன்னுரிமைகள் விடுபட�
 
 #: ../src/daemon/caps.c:103
 msgid "Limited capabilities successfully to CAP_SYS_NICE."
-msgstr ""
+msgstr "குறிப்பிட்ட திறன்கள் CAP_SYS_NICEக்கு அமைக்கப்பட்டது."
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
@@ -829,19 +858,19 @@ msgstr "பள்ஸ் ஆடியோ ஒலி கணினியை து�
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:1
 msgid "High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr ""
+msgstr "அதிக முன்னுரிமையுள்ள திட்டமிடுதல் (negative Unix nice level) PulseAudio daemonக்கு"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:2
 msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr ""
+msgstr "PulseAudio daemonக்கான நிகழ்நேர திட்டமிடுதல்"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:3
 msgid "System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr ""
+msgstr "கணினி கொள்கை PulseAudioஐ அதிக முன்னுரிமை திட்டமிடுதலை பெறுவதிலிருந்து தடுக்கிறது."
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:4
 msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr ""
+msgstr "கணினி கொள்கை PulseAudio ஐ நிகழ்நேர திட்டமிடுதலை எடுக்கிறது."
 
 #: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:804
 msgid "Mono"
@@ -873,7 +902,7 @@ msgstr "பின் வலது"
 
 #: ../src/pulse/channelmap.c:113
 msgid "Low Frequency Emmiter"
-msgstr ""
+msgstr "குறைந்த அலைவரிசை எம்மிட்டர்"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Front Left-of-center"
@@ -1095,11 +1124,11 @@ msgstr "தவறான விவாதம்"
 
 #: ../src/pulse/error.c:47
 msgid "Entity exists"
-msgstr ""
+msgstr "உருப்படி உள்ளது"
 
 #: ../src/pulse/error.c:48
 msgid "No such entity"
-msgstr ""
+msgstr "உருப்படி எதுவும் இல்லை"
 
 #: ../src/pulse/error.c:49
 msgid "Connection refused"
@@ -1127,7 +1156,7 @@ msgstr "இணைப்பு துண்டிக்கப்பட்டத�
 
 #: ../src/pulse/error.c:55
 msgid "Entity killed"
-msgstr ""
+msgstr "உருப்படி நீக்கப்பட்டது"
 
 #: ../src/pulse/error.c:56
 msgid "Invalid server"
@@ -1267,7 +1296,7 @@ msgstr "Buffer metrics: maxlength=%u, fragsize=%u\n"
 #: ../src/utils/pacat.c:183
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'.\n"
-msgstr ""
+msgstr "குறிப்பிட்ட குறிப்பு '%s', சேனல் மேப் '%s'ஐ பயன்படுத்தி.\n"
 
 #: ../src/utils/pacat.c:187
 #, c-format
@@ -1282,22 +1311,22 @@ msgstr "ஸ்டிரீம் பிழை: %s\n"
 #: ../src/utils/pacat.c:207
 #, c-format
 msgid "Stream device suspended.%s \n"
-msgstr ""
+msgstr "ஸ்டீரிம் சாதனம் இடைநீக்கப்பட்டது.%s \n"
 
 #: ../src/utils/pacat.c:209
 #, c-format
 msgid "Stream device resumed.%s \n"
-msgstr ""
+msgstr "ஸ்டீரிம் சாதனம் தொடர்கிறது.%s \n"
 
 #: ../src/utils/pacat.c:217
 #, c-format
 msgid "Stream underrun.%s \n"
-msgstr ""
+msgstr "ஸ்டீரிம் இயங்குகிறது.%s \n"
 
 #: ../src/utils/pacat.c:224
 #, c-format
 msgid "Stream overrun.%s \n"
-msgstr ""
+msgstr "ஸ்டீரிம் அதிகளவு இயங்கியது.%s \n"
 
 #: ../src/utils/pacat.c:231
 #, c-format
@@ -1316,7 +1345,7 @@ msgstr "இல்லை"
 #: ../src/utils/pacat.c:271
 #, c-format
 msgid "Connection established.%s \n"
-msgstr ""
+msgstr "இணைப்பு துவக்கப்பட்டது.%s \n"
 
 #: ../src/utils/pacat.c:274
 #, c-format
@@ -1342,17 +1371,17 @@ msgstr "இணைப்பதில் தோல்வி: %s\n"
 #: ../src/utils/pacat.c:341 ../src/utils/paplay.c:75
 #, c-format
 msgid "Failed to drain stream: %s\n"
-msgstr ""
+msgstr "ஸ்டீரிமை ட்ரைன் செய்ய முடியவில்லை: %s\n"
 
 #: ../src/utils/pacat.c:346 ../src/utils/paplay.c:80
 #, c-format
 msgid "Playback stream drained.\n"
-msgstr ""
+msgstr "ட்ரைன் செய்யப்பட்ட ஸ்டீரிம்.\n"
 
 #: ../src/utils/pacat.c:356 ../src/utils/paplay.c:92
 #, c-format
 msgid "Draining connection to server.\n"
-msgstr ""
+msgstr "ட்ரைன் செய்யும் இணைப்பு சேவையகத்திற்கு.\n"
 
 #: ../src/utils/pacat.c:382
 #, c-format
@@ -1362,7 +1391,7 @@ msgstr "EOF கிடைக்கப் பெற்றது\n"
 #: ../src/utils/pacat.c:388
 #, c-format
 msgid "pa_stream_drain(): %s\n"
-msgstr ""
+msgstr "pa_stream_drain(): %s\n"
 
 #: ../src/utils/pacat.c:398
 #, c-format
@@ -1377,12 +1406,12 @@ msgstr "எழுதுவதில் () தோல்வியுற்றத�
 #: ../src/utils/pacat.c:451
 #, c-format
 msgid "Got signal, exiting.\n"
-msgstr ""
+msgstr "சிக்னல் கிடைத்தது, வெளியேறுகிறது.\n"
 
 #: ../src/utils/pacat.c:465
 #, c-format
 msgid "Failed to get latency: %s\n"
-msgstr ""
+msgstr "லடன்சியை பெற முடியவில்லை: %s\n"
 
 #: ../src/utils/pacat.c:470
 #, c-format
@@ -1514,27 +1543,27 @@ msgstr "தவறான சேனல் வரைபடம் '%s'\n"
 #: ../src/utils/pacat.c:690
 #, c-format
 msgid "Invalid latency specification '%s'\n"
-msgstr ""
+msgstr "தவறான லேடன்சி குறிப்பீடு '%s'\n"
 
 #: ../src/utils/pacat.c:697
 #, c-format
 msgid "Invalid process time specification '%s'\n"
-msgstr ""
+msgstr "தவறான செயல் நேர குறிப்பீடு '%s'\n"
 
 #: ../src/utils/pacat.c:708
 #, c-format
 msgid "Invalid sample specification\n"
-msgstr ""
+msgstr "தவறான மாதிரி குறிப்பீடு\n"
 
 #: ../src/utils/pacat.c:713
 #, c-format
 msgid "Channel map doesn't match sample specification\n"
-msgstr ""
+msgstr "சேனல் மேப் மாதிரி குறிப்பீட்டுடன் பொருந்தவில்லை\n"
 
 #: ../src/utils/pacat.c:720
 #, c-format
 msgid "Opening a %s stream with sample specification '%s'.\n"
-msgstr ""
+msgstr "ஒரு %s ஸ்டீரமை மாதிரி குறிப்பீடு '%s'உடன் திறக்கிறது.\n"
 
 #: ../src/utils/pacat.c:720
 msgid "recording"
@@ -1547,7 +1576,7 @@ msgstr "பிண்ணனி"
 #: ../src/utils/pacat.c:728
 #, c-format
 msgid "open(): %s\n"
-msgstr "திற(): %s\n"
+msgstr "open(): %s\n"
 
 #: ../src/utils/pacat.c:733
 #, c-format
@@ -1611,23 +1640,23 @@ msgstr "நீக்க முடியவில்லை: %s\n"
 #: ../src/utils/pasuspender.c:124
 #, c-format
 msgid "Failure to resume: %s\n"
-msgstr ""
+msgstr "தொடர முடியவில்லை: %s\n"
 
 #: ../src/utils/pasuspender.c:147
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
-msgstr ""
+msgstr "எச்சரிக்கை: ஒலி சேவையம் உள்ளமைவாக இல்லை, இடைநிறுத்தப்படவில்லை.\n"
 
 #: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:768
 #: ../src/utils/paplay.c:191
 #, c-format
 msgid "Got SIGINT, exiting.\n"
-msgstr ""
+msgstr "SIGINT பெறப்பட்டது, வெளியேறுகிறது.\n"
 
 #: ../src/utils/pasuspender.c:194
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr ""
+msgstr "எச்சரிக்கை: சேய் செயல் சிக்னல் %uஆல் முடிக்கப்பட்டது\n"
 
 #: ../src/utils/pasuspender.c:212
 #, c-format
@@ -1661,22 +1690,22 @@ msgstr ""
 #: ../src/utils/pactl.c:108
 #, c-format
 msgid "Failed to get statistics: %s\n"
-msgstr ""
+msgstr "புள்ளிவிவரத்தை பெற இயலாது: %s\n"
 
 #: ../src/utils/pactl.c:114
 #, c-format
 msgid "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr ""
+msgstr "தற்போது பயனிலுள்ளது: %u தொகுதிகள் %s பைட்களை மொத்தமாக கொண்டுள்ளது.\n"
 
 #: ../src/utils/pactl.c:117
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr ""
+msgstr "வாழ்க்கை முழுவதும் ஒதுக்கப்பட்டது: %u தொகுதிகள் %s பைட்களை மொத்தமாக கொண்டுள்ளது.\n"
 
 #: ../src/utils/pactl.c:120
 #, c-format
 msgid "Sample cache size: %s\n"
-msgstr ""
+msgstr "மாதிரி இடையக அளவு: %s\n"
 
 #: ../src/utils/pactl.c:129
 #, c-format
@@ -1879,7 +1908,7 @@ msgstr "\tசெயல்பாட்டிலுள்ள விவரக்க
 #: ../src/utils/pactl.c:445
 #, c-format
 msgid "Failed to get sink input information: %s\n"
-msgstr ""
+msgstr "சிங்க் தகவலை பெற முடியவில்லை: %s\n"
 
 #: ../src/utils/pactl.c:464
 #, c-format
@@ -1921,7 +1950,7 @@ msgstr ""
 #: ../src/utils/pactl.c:503
 #, c-format
 msgid "Failed to get source output information: %s\n"
-msgstr ""
+msgstr "மூல வெளிப்பாடு தகவலை பெற முடியவில்லை: %s\n"
 
 #: ../src/utils/pactl.c:523
 #, c-format
@@ -2001,7 +2030,7 @@ msgstr "மாதிரியை மேம்படுத்த முடிய�
 #: ../src/utils/pactl.c:653
 #, c-format
 msgid "Premature end of file\n"
-msgstr ""
+msgstr "முன்னாக கோப்பு முடித்தல்\n"
 
 #: ../src/utils/pactl.c:774
 #, c-format
@@ -2084,12 +2113,12 @@ msgstr "நீக்குவதற்கு நீங்கள் ஒரு ம
 #: ../src/utils/pactl.c:919
 #, c-format
 msgid "You have to specify a sink input index and a sink\n"
-msgstr ""
+msgstr "நீங்கள் ஒரு சிங்க் உள்ளீடு சுட்டி மற்றும் ஒரு சிங்கை குறிப்பிட வேண்டும்\n"
 
 #: ../src/utils/pactl.c:928
 #, c-format
 msgid "You have to specify a source output index and a source\n"
-msgstr ""
+msgstr "நீங்கள் ஒரு மூல வெளிப்பாடு சுட்டி மற்றும் ஒரு மூலத்தை குறிப்பிட வேண்டும்\n"
 
 #: ../src/utils/pactl.c:942
 #, c-format
@@ -2106,14 +2135,14 @@ msgstr "தொகுதி அட்டவணையை நீங்கள் க
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean "
 "value.\n"
-msgstr ""
+msgstr "ஒரு சிங்கிற்கு மேல் நீங்கள் குறிப்பிடக் கூடாது. பூலியன் மதிப்பை நீங்கள் குறிப்பிட வேண்டும்.\n"
 
 #: ../src/utils/pactl.c:985
 #, c-format
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value.\n"
-msgstr ""
+msgstr "ஒரு மூலத்திற்கு மேல் நீங்கள் குறிப்பிடக் கூடாது. பூலியன் மதிப்பை நீங்கள் குறிப்பிட வேண்டும்.\n"
 
 #: ../src/utils/pactl.c:997
 #, c-format
