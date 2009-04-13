@@ -136,7 +136,7 @@ static void x11_kill_cb(pa_x11_wrapper *w, void *userdata) {
 int pa__init(pa_module*m) {
     struct userdata *u;
     pa_modargs *ma = NULL;
-    char *mid;
+    char *mid, *sid;
     char hx[PA_NATIVE_COOKIE_LENGTH*2+1];
     const char *t;
 
@@ -169,6 +169,11 @@ int pa__init(pa_module*m) {
     pa_xfree(mid);
 
     pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_ID", u->id);
+
+    if ((sid = pa_session_id())) {
+        pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SESSION_ID", sid);
+        pa_xfree(sid);
+    }
 
     publish_servers(u, pa_native_protocol_servers(u->protocol));
 
@@ -219,6 +224,7 @@ void pa__done(pa_module*m) {
             pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SINK");
             pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SOURCE");
             pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_COOKIE");
+            pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SESSION_ID");
             XSync(pa_x11_wrapper_get_display(u->x11_wrapper), False);
         }
 
