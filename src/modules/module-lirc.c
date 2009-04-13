@@ -148,11 +148,11 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
                             break;
 
                         case MUTE:
-                            pa_sink_set_mute(s, 0);
+                            pa_sink_set_mute(s, TRUE);
                             break;
 
                         case RESET:
-                            pa_sink_set_mute(s, 1);
+                            pa_sink_set_mute(s, FALSE);
                             break;
 
                         case MUTE_TOGGLE:
