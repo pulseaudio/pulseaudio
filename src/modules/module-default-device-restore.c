@@ -63,7 +63,7 @@ static void load(struct userdata *u) {
         char ln[256] = "";
         pa_sink *s;
 
-        fgets(ln, sizeof(ln)-1, f);
+        (void) fgets(ln, sizeof(ln)-1, f);
         pa_strip_nl(ln);
         fclose(f);
 
@@ -84,7 +84,7 @@ static void load(struct userdata *u) {
         char ln[256] = "";
         pa_source *s;
 
-        fgets(ln, sizeof(ln)-1, f);
+        (void) fgets(ln, sizeof(ln)-1, f);
         pa_strip_nl(ln);
         fclose(f);
 
