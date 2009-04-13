@@ -2462,7 +2462,7 @@ char *pa_machine_id(void) {
         pa_strip_nl(ln);
 
         if (r && ln[0])
-            return pa_xstrdup(ln);
+            return pa_utf8_filter(ln);
     }
 
     /* The we fall back to the host name. It supposed to be somewhat
@@ -2480,13 +2480,16 @@ char *pa_machine_id(void) {
                 break;
 
         } else if (strlen(c) < l-1) {
+            char *u;
 
             if (*c == 0) {
                 pa_xfree(c);
                 break;
             }
 
-            return c;
+            u = pa_utf8_filter(c);
+            pa_xfree(c);
+            return u;
         }
 
         /* Hmm, the hostname is as long the space we offered the
@@ -2498,7 +2501,7 @@ char *pa_machine_id(void) {
     }
 
     /* If no hostname was set we use the POSIX hostid. It's usually
-     * the IPv4 address.  Mit not be that stable. */
+     * the IPv4 address.  Might not be that stable. */
     return pa_sprintf_malloc("%08lx", (unsigned long) gethostid);
 }
 
