@@ -53,17 +53,19 @@ int pa_alsa_set_hw_params(
 
 int pa_alsa_set_sw_params(snd_pcm_t *pcm, snd_pcm_uframes_t avail_min);
 
-int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev);
-snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const char *fallback, pa_bool_t playback);
-int pa_alsa_find_mixer_and_elem(snd_pcm_t *pcm, snd_mixer_t **_m, snd_mixer_elem_t **_e, const char *control_name);
-
 typedef struct pa_alsa_profile_info {
     pa_channel_map map;
     const char *alsa_name;
     const char *description; /* internationalized */
     const char *name;
     unsigned priority;
+    const char *playback_control_name, *playback_control_fallback;
+    const char *record_control_name, *record_control_fallback;
 } pa_alsa_profile_info;
+
+int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev);
+snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const char *fallback, pa_bool_t playback);
+int pa_alsa_find_mixer_and_elem(snd_pcm_t *pcm, snd_mixer_t **_m, snd_mixer_elem_t **_e, const char *control_name, const pa_alsa_profile_info*profile);
 
 /* Picks a working profile based on the specified ss/map */
 snd_pcm_t *pa_alsa_open_by_device_id_auto(

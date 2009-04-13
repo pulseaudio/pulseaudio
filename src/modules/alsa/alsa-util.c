@@ -529,39 +529,51 @@ static const struct pa_alsa_profile_info device_table[] = {
      "hw",
      N_("Analog Mono"),
      "analog-mono",
-     1 },
+     1,
+     "Master", "PCM",
+     "Capture", "Mic" },
 
     {{ 2, { PA_CHANNEL_POSITION_LEFT, PA_CHANNEL_POSITION_RIGHT }},
      "front",
      N_("Analog Stereo"),
      "analog-stereo",
-     10 },
+     10,
+     "Master", "PCM",
+     "Capture", "Mic" },
 
     {{ 2, { PA_CHANNEL_POSITION_LEFT, PA_CHANNEL_POSITION_RIGHT }},
      "iec958",
      N_("Digital Stereo (IEC958)"),
      "iec958-stereo",
-     5 },
+     5,
+     "IEC958", NULL,
+     "IEC958 In", NULL },
 
     {{ 2, { PA_CHANNEL_POSITION_LEFT, PA_CHANNEL_POSITION_RIGHT }},
      "hdmi",
      N_("Digital Stereo (HDMI)"),
      "hdmi-stereo",
-     4 },
+     4,
+     "IEC958", NULL,
+     "IEC958 In", NULL },
 
     {{ 4, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT }},
      "surround40",
      N_("Analog Surround 4.0"),
      "analog-surround-40",
-     7 },
+     7,
+     "Master", "PCM",
+     "Capture", "Mic" },
 
     {{ 4, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT }},
      "a52",
      N_("Digital Surround 4.0 (IEC958/AC3)"),
      "iec958-ac3-surround-40",
-     2 },
+     2,
+     "Master", "PCM",
+     "Capture", "Mic" },
 
     {{ 5, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT,
@@ -569,7 +581,9 @@ static const struct pa_alsa_profile_info device_table[] = {
      "surround41",
      N_("Analog Surround 4.1"),
      "analog-surround-41",
-     7 },
+     7,
+     "Master", "PCM",
+     "Capture", "Mic" },
 
     {{ 5, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT,
@@ -577,7 +591,9 @@ static const struct pa_alsa_profile_info device_table[] = {
      "surround50",
      N_("Analog Surround 5.0"),
      "analog-surround-50",
-     7 },
+     7,
+     "Master", "PCM",
+     "Capture", "Mic" },
 
     {{ 6, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT,
@@ -585,7 +601,9 @@ static const struct pa_alsa_profile_info device_table[] = {
      "surround51",
      N_("Analog Surround 5.1"),
      "analog-surround-51",
-     8 },
+     8,
+     "Master", "PCM",
+     "Capture", "Mic" },
 
     {{ 6, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT,
@@ -593,7 +611,9 @@ static const struct pa_alsa_profile_info device_table[] = {
      "a52",
      N_("Digital Surround 5.1 (IEC958/AC3)"),
      "iec958-ac3-surround-51",
-     3 },
+     3,
+     "IEC958", NULL,
+     "IEC958 In", NULL },
 
     {{ 8, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT,
@@ -602,9 +622,11 @@ static const struct pa_alsa_profile_info device_table[] = {
      "surround71",
      N_("Analog Surround 7.1"),
      "analog-surround-71",
-     7 },
+     7,
+     "Master", "PCM",
+     "Capture", "Mic" },
 
-    {{ 0, { 0 }}, NULL, NULL, NULL, 0 }
+    {{ 0, { 0 }}, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL }
 };
 
 snd_pcm_t *pa_alsa_open_by_device_id_auto(
@@ -1095,7 +1117,8 @@ int pa_alsa_find_mixer_and_elem(
         snd_pcm_t *pcm,
         snd_mixer_t **_m,
         snd_mixer_elem_t **_e,
-        const char *control_name) {
+        const char *control_name,
+        const pa_alsa_profile_info *profile) {
 
     int err;
     snd_mixer_t *m;
@@ -1154,6 +1177,8 @@ int pa_alsa_find_mixer_and_elem(
         case SND_PCM_STREAM_PLAYBACK:
             if (control_name)
                 e = pa_alsa_find_elem(m, control_name, NULL, TRUE);
+            else if (profile)
+                e = pa_alsa_find_elem(m, profile->playback_control_name, profile->playback_control_fallback, TRUE);
             else
                 e = pa_alsa_find_elem(m, "Master", "PCM", TRUE);
             break;
@@ -1161,6 +1186,8 @@ int pa_alsa_find_mixer_and_elem(
         case SND_PCM_STREAM_CAPTURE:
             if (control_name)
                 e = pa_alsa_find_elem(m, control_name, NULL, FALSE);
+            else if (profile)
+                e = pa_alsa_find_elem(m, profile->record_control_name, profile->record_control_fallback, FALSE);
             else
                 e = pa_alsa_find_elem(m, "Capture", "Mic", FALSE);
             break;
