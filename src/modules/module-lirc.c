@@ -127,10 +127,10 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
                     switch (volchange) {
                         case UP:
                             for (i = 0; i < cv.channels; i++) {
-                                cv.values[i] += DELTA;
-
-                                if (cv.values[i] > PA_VOLUME_NORM)
-                                    cv.values[i] = PA_VOLUME_NORM;
+                                if (cv.values[i] < PA_VOLUME_MAX - DELTA)
+                                    cv.values[i] += DELTA;
+                                else
+                                    cv.values[i] = PA_VOLUME_MAX;
                             }
 
                             pa_sink_set_volume(s, &cv, TRUE, TRUE);
@@ -138,7 +138,7 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
 
                         case DOWN:
                             for (i = 0; i < cv.channels; i++) {
-                                if (cv.values[i] >= DELTA)
+                                if (cv.values[i] > DELTA)
                                     cv.values[i] -= DELTA;
                                 else
                                     cv.values[i] = PA_VOLUME_MUTED;
