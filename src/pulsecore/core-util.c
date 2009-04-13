@@ -2502,6 +2502,15 @@ char *pa_machine_id(void) {
     return pa_sprintf_malloc("%08lx", (unsigned long) gethostid);
 }
 
+char *pa_session_id(void) {
+    const char *e;
+
+    if (!(e = getenv("XDG_SESSION_COOKIE")))
+        return NULL;
+
+    return pa_utf8_filter(e);
+}
+
 char *pa_uname_string(void) {
     struct utsname u;
 
