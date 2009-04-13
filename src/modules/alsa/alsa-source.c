@@ -465,7 +465,13 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
         }
     }
 
-    *sleep_usec = pa_bytes_to_usec(left_to_record, &u->source->sample_spec) - process_usec;
+    *sleep_usec = pa_bytes_to_usec(left_to_record, &u->source->sample_spec);
+
+    if (*sleep_usec > process_usec)
+        *sleep_usec -= process_usec;
+    else
+        *sleep_usec = 0;
+
     return work_done ? 1 : 0;
 }
 
@@ -575,7 +581,13 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
         }
     }
 
-    *sleep_usec = pa_bytes_to_usec(left_to_record, &u->source->sample_spec) - process_usec;
+    *sleep_usec = pa_bytes_to_usec(left_to_record, &u->source->sample_spec);
+
+    if (*sleep_usec > process_usec)
+        *sleep_usec -= process_usec;
+    else
+        *sleep_usec = 0;
+
     return work_done ? 1 : 0;
 }
 
