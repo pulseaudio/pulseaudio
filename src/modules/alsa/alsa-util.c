@@ -1107,6 +1107,11 @@ int pa_alsa_find_mixer_and_elem(
     pa_assert(_m);
     pa_assert(_e);
 
+    if (control_name && *control_name == 0) {
+        pa_log_debug("Hardware mixer usage disabled because empty control name passed");
+        return -1;
+    }
+
     if ((err = snd_mixer_open(&m, 0)) < 0) {
         pa_log("Error opening mixer: %s", snd_strerror(err));
         return -1;
