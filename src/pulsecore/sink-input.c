@@ -1362,12 +1362,9 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t
 
         case PA_SINK_INPUT_MESSAGE_GET_LATENCY: {
             pa_usec_t *r = userdata;
-            pa_usec_t sink_usec = 0;
 
             r[0] += pa_bytes_to_usec(pa_memblockq_get_length(i->thread_info.render_memblockq), &i->sink->sample_spec);
-
-            if (i->sink->parent.process_msg(PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_GET_LATENCY, &sink_usec, 0, NULL) >= 0)
-                r[1] += sink_usec;
+            r[1] += pa_sink_get_latency_within_thread(i->sink);
 
             return 0;
         }

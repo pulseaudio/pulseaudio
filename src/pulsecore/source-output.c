@@ -850,12 +850,9 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
 
         case PA_SOURCE_OUTPUT_MESSAGE_GET_LATENCY: {
             pa_usec_t *r = userdata;
-            pa_usec_t source_usec = 0;
 
             r[0] += pa_bytes_to_usec(pa_memblockq_get_length(o->thread_info.delay_memblockq), &o->source->sample_spec);
-
-            if (o->source->parent.process_msg(PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_GET_LATENCY, &source_usec, 0, NULL) >= 0)
-                r[1] += source_usec;
+            r[1] += pa_source_get_latency_within_thread(o->source);
 
             return 0;
         }
