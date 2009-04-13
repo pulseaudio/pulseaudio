@@ -61,7 +61,7 @@ static int read_id(struct udev_device *d, const char *n) {
 int pa_udev_get_info(pa_core *core, pa_proplist *p, int card_idx) {
     int r = -1;
     struct udev *udev;
-    struct udev_device *card;
+    struct udev_device *card = NULL;
     char *t;
     const char *v;
     int id;
@@ -89,7 +89,7 @@ int pa_udev_get_info(pa_core *core, pa_proplist *p, int card_idx) {
             pa_proplist_sets(p, PA_PROP_DEVICE_BUS, v);
 
     if (!pa_proplist_contains(p, PA_PROP_DEVICE_VENDOR_ID))
-        if ((id = read_id(card, "ID_VENDOR_ID")) > 0 && *v)
+        if ((id = read_id(card, "ID_VENDOR_ID")) > 0)
             pa_proplist_setf(p, PA_PROP_DEVICE_VENDOR_ID, "%04x", id);
 
     if (!pa_proplist_contains(p, PA_PROP_DEVICE_VENDOR_NAME)) {
