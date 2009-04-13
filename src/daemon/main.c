@@ -908,6 +908,11 @@ int main(int argc, char *argv[]) {
     pa_log_info(_("Machine ID is %s."), s);
     pa_xfree(s);
 
+    if ((s = pa_session_id())) {
+            pa_log_info(_("Session ID is %s."), s);
+            pa_xfree(s);
+    }
+
     if (!(s = pa_get_runtime_dir()))
         goto finish;
     pa_log_info(_("Using runtime directory %s."), s);
