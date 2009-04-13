@@ -1529,7 +1529,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     pa_source_new_data_set_sample_spec(&data, &ss);
     pa_source_new_data_set_channel_map(&data, &map);
 
-    pa_alsa_init_proplist_pcm(m->core, data.proplist, u->pcm_handle);
+    pa_alsa_init_proplist_pcm(m->core, data.proplist, u->pcm_handle, u->mixer_elem);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_name);
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (period_frames * frame_size * nfrags));
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%lu", (unsigned long) (period_frames * frame_size));

@@ -1515,7 +1515,7 @@ void pa_alsa_init_proplist_pcm_info(pa_core *c, pa_proplist *p, snd_pcm_info_t *
         pa_alsa_init_proplist_card(c, p, card);
 }
 
-void pa_alsa_init_proplist_pcm(pa_core *c, pa_proplist *p, snd_pcm_t *pcm) {
+void pa_alsa_init_proplist_pcm(pa_core *c, pa_proplist *p, snd_pcm_t *pcm, snd_mixer_elem_t *elem) {
     snd_pcm_hw_params_t *hwparams;
     snd_pcm_info_t *info;
     int bits, err;
@@ -1530,6 +1530,9 @@ void pa_alsa_init_proplist_pcm(pa_core *c, pa_proplist *p, snd_pcm_t *pcm) {
         if ((bits = snd_pcm_hw_params_get_sbits(hwparams)) >= 0)
             pa_proplist_setf(p, "alsa.resolution_bits", "%i", bits);
     }
+
+    if (elem)
+        pa_proplist_sets(p, "alsa.mixer_element", snd_mixer_selem_get_name(elem));
 
     if ((err = snd_pcm_info(pcm, info)) < 0)
         pa_log_warn("Error fetching PCM info: %s", snd_strerror(err));
