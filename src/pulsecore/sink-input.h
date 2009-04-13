@@ -91,6 +91,7 @@ struct pa_sink_input {
 
     pa_sink_input *sync_prev, *sync_next;
 
+    /* Also see http://pulseaudio.org/wiki/InternalVolumes */
     pa_cvolume virtual_volume;  /* The volume clients are informed about */
     pa_cvolume volume_factor;   /* An internally used volume factor that can be used by modules to apply effects and suchlike without having that visible to the outside */
     double relative_volume[PA_CHANNELS_MAX]; /* The calculated volume relative to the sink volume as linear factors. */
@@ -309,11 +310,14 @@ void pa_sink_input_kill(pa_sink_input*i);
 
 pa_usec_t pa_sink_input_get_latency(pa_sink_input *i, pa_usec_t *sink_latency);
 
-void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_bool_t save);
-const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i);
+void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_bool_t save, pa_bool_t absolute);
+pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i, pa_cvolume *volume, pa_bool_t absolute);
+
 pa_cvolume *pa_sink_input_get_relative_volume(pa_sink_input *i, pa_cvolume *v);
+
 void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute, pa_bool_t save);
 pa_bool_t pa_sink_input_get_mute(pa_sink_input *i);
+
 void pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode, pa_proplist *p);
 
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i);

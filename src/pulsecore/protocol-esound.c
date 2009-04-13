@@ -638,7 +638,8 @@ static int esd_proto_all_info(connection *c, esd_proto_t request, const void *da
         pa_assert(t >= k*2+s);
 
         if (conn->sink_input) {
-            pa_cvolume volume = *pa_sink_input_get_volume(conn->sink_input);
+            pa_cvolume volume;
+            pa_sink_input_get_volume(conn->sink_input, &volume, TRUE);
             rate = (int32_t) conn->sink_input->sample_spec.rate;
             lvolume = (int32_t) ((volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
             rvolume = (int32_t) ((volume.values[volume.channels == 2 ? 1 : 0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
@@ -778,7 +779,7 @@ static int esd_proto_stream_pan(connection *c, esd_proto_t request, const void *
         volume.values[1] = (rvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
         volume.channels = conn->sink_input->sample_spec.channels;
 
-        pa_sink_input_set_volume(conn->sink_input, &volume, TRUE);
+        pa_sink_input_set_volume(conn->sink_input, &volume, TRUE, TRUE);
         ok = 1;
     } else
         ok = 0;

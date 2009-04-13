@@ -931,7 +931,7 @@ static int mixer_callback(snd_mixer_elem_t *elem, unsigned int mask) {
         return 0;
 
     if (mask & SND_CTL_EVENT_MASK_VALUE) {
-        pa_sink_get_volume(u->sink, TRUE);
+        pa_sink_get_volume(u->sink, TRUE, FALSE);
         pa_sink_get_mute(u->sink, TRUE);
     }
 

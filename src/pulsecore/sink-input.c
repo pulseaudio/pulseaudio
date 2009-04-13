@@ -176,16 +176,8 @@ int pa_sink_input_new(
     pa_return_val_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec), -PA_ERR_INVALID);
 
     if (!data->volume_is_set) {
-
-        if (data->sink->flags & PA_SINK_FLAT_VOLUME) {
-            data->volume = *pa_sink_get_volume(data->sink, FALSE);
-            pa_cvolume_remap(&data->volume, &data->sink->channel_map, &data->channel_map);
-            data->volume_is_absolute = TRUE;
-        } else {
-            pa_cvolume_reset(&data->volume, data->sample_spec.channels);
-            data->volume_is_absolute = FALSE;
-        }
-
+        pa_cvolume_reset(&data->volume, data->sample_spec.channels);
+        data->volume_is_absolute = FALSE;
         data->save_volume = FALSE;
     }
 
@@ -279,10 +271,9 @@ int pa_sink_input_new(
         /* When the 'absolute' bool is not set then we'll treat the volume
          * as relative to the sink volume even in flat volume mode */
 
-        pa_cvolume t = *pa_sink_get_volume(data->sink, FALSE);
-        pa_cvolume_remap(&t, &data->sink->channel_map, &data->channel_map);
-
-        pa_sw_cvolume_multiply(&i->virtual_volume, &data->volume, &t);
+        pa_cvolume v = data->sink->reference_volume;
+        pa_cvolume_remap(&v, &data->sink->channel_map, &data->channel_map);
+        pa_sw_cvolume_multiply(&i->virtual_volume, &data->volume, &v);
     } else
         i->virtual_volume = data->volume;
 
@@ -451,7 +442,7 @@ void pa_sink_input_unlink(pa_sink_input *i) {
         if (i->sink->flags & PA_SINK_FLAT_VOLUME) {
             pa_cvolume new_volume;
             pa_sink_update_flat_volume(i->sink, &new_volume);
-            pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE);
+            pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE, FALSE);
         }
 
         if (i->sink->asyncmsgq)
@@ -529,7 +520,7 @@ void pa_sink_input_put(pa_sink_input *i) {
     if (i->sink->flags & PA_SINK_FLAT_VOLUME) {
         pa_cvolume new_volume;
         pa_sink_update_flat_volume(i->sink, &new_volume);
-        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE);
+        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE, FALSE);
     } else
         pa_sink_input_set_relative_volume(i, &i->virtual_volume);
 
@@ -881,12 +872,20 @@ pa_usec_t pa_sink_input_get_requested_latency(pa_sink_input *i) {
 }
 
 /* Called from main context */
-void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_bool_t save) {
+void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_bool_t save, pa_bool_t absolute) {
+    pa_cvolume v;
+
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_assert(volume);
     pa_assert(pa_cvolume_valid(volume));
     pa_assert(pa_cvolume_compatible(volume, &i->sample_spec));
+
+    if ((i->sink->flags & PA_SINK_FLAT_VOLUME) && !absolute) {
+        v = i->sink->reference_volume;
+        pa_cvolume_remap(&v, &i->sink->channel_map, &i->channel_map);
+        volume = pa_sw_cvolume_multiply(&v, &v, volume);
+    }
 
     if (pa_cvolume_equal(volume, &i->virtual_volume))
         return;
@@ -901,7 +900,7 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_boo
          * volumes and update the flat volume of the sink */
 
         pa_sink_update_flat_volume(i->sink, &new_volume);
-        pa_sink_set_volume(i->sink, &new_volume, FALSE, TRUE);
+        pa_sink_set_volume(i->sink, &new_volume, FALSE, TRUE, FALSE);
 
     } else {
 
@@ -921,11 +920,18 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_boo
 }
 
 /* Called from main context */
-const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i) {
+pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i, pa_cvolume *volume, pa_bool_t absolute) {
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
-    return &i->virtual_volume;
+    if ((i->sink->flags & PA_SINK_FLAT_VOLUME) && !absolute) {
+        pa_cvolume v = i->sink->reference_volume;
+        pa_cvolume_remap(&v, &i->sink->channel_map, &i->channel_map);
+        pa_sw_cvolume_divide(volume, &i->virtual_volume, &v);
+    } else
+        *volume = i->virtual_volume;
+
+    return volume;
 }
 
 /* Called from main context */
@@ -936,7 +942,8 @@ pa_cvolume *pa_sink_input_get_relative_volume(pa_sink_input *i, pa_cvolume *v) {
     pa_assert(v);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
-    /* This always returns a relative volume, even in flat volume mode */
+    /* This always returns the relative volume. Converts the float
+     * version into a pa_cvolume */
 
     v->channels = i->sample_spec.channels;
 
@@ -1152,7 +1159,7 @@ int pa_sink_input_start_move(pa_sink_input *i) {
         /* We might need to update the sink's volume if we are in flat
          * volume mode. */
         pa_sink_update_flat_volume(i->sink, &new_volume);
-        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE);
+        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE, FALSE);
     }
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_START_MOVE, i, 0, NULL) == 0);
@@ -1239,13 +1246,13 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
         pa_cvolume new_volume;
 
         /* Make relative volume absolute again */
-        pa_cvolume t = dest->virtual_volume;
+        pa_cvolume t = dest->reference_volume;
         pa_cvolume_remap(&t, &dest->channel_map, &i->channel_map);
         pa_sw_cvolume_multiply(&i->virtual_volume, &i->virtual_volume, &t);
 
         /* We might need to update the sink's volume if we are in flat volume mode. */
         pa_sink_update_flat_volume(i->sink, &new_volume);
-        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE);
+        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE, FALSE);
     }
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_FINISH_MOVE, i, 0, NULL) == 0);

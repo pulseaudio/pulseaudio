@@ -216,7 +216,7 @@ static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, v
                 pa_cvolume cv;
                 pa_log_debug("changing volume of sink input '%s' to 0x%03x", n, r->volume);
                 pa_cvolume_set(&cv, si->sample_spec.channels, r->volume);
-                pa_sink_input_set_volume(si, &cv, TRUE);
+                pa_sink_input_set_volume(si, &cv, TRUE, TRUE);
             }
         }
     }

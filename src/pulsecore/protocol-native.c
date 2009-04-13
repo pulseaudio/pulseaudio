@@ -2819,7 +2819,7 @@ static void sink_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_sin
         PA_TAG_SAMPLE_SPEC, &fixed_ss,
         PA_TAG_CHANNEL_MAP, &sink->channel_map,
         PA_TAG_U32, sink->module ? sink->module->index : PA_INVALID_INDEX,
-        PA_TAG_CVOLUME, pa_sink_get_volume(sink, FALSE),
+        PA_TAG_CVOLUME, pa_sink_get_volume(sink, FALSE, FALSE),
         PA_TAG_BOOLEAN, pa_sink_get_mute(sink, FALSE),
         PA_TAG_U32, sink->monitor_source ? sink->monitor_source->index : PA_INVALID_INDEX,
         PA_TAG_STRING, sink->monitor_source ? sink->monitor_source->name : NULL,
@@ -2943,6 +2943,7 @@ static void module_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_m
 static void sink_input_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_sink_input *s) {
     pa_sample_spec fixed_ss;
     pa_usec_t sink_latency;
+    pa_cvolume v;
 
     pa_assert(t);
     pa_sink_input_assert_ref(s);
@@ -2956,7 +2957,7 @@ static void sink_input_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, 
     pa_tagstruct_putu32(t, s->sink->index);
     pa_tagstruct_put_sample_spec(t, &fixed_ss);
     pa_tagstruct_put_channel_map(t, &s->channel_map);
-    pa_tagstruct_put_cvolume(t, pa_sink_input_get_volume(s));
+    pa_tagstruct_put_cvolume(t, pa_sink_input_get_volume(s, &v, TRUE));
     pa_tagstruct_put_usec(t, pa_sink_input_get_latency(s, &sink_latency));
     pa_tagstruct_put_usec(t, sink_latency);
     pa_tagstruct_puts(t, pa_resample_method_to_string(pa_sink_input_get_resample_method(s)));
@@ -3321,11 +3322,11 @@ static void command_set_volume(
     CHECK_VALIDITY(c->pstream, si || sink || source, tag, PA_ERR_NOENTITY);
 
     if (sink)
-        pa_sink_set_volume(sink, &volume, TRUE, TRUE);
+        pa_sink_set_volume(sink, &volume, TRUE, TRUE, TRUE);
     else if (source)
         pa_source_set_volume(source, &volume);
     else if (si)
-        pa_sink_input_set_volume(si, &volume, TRUE);
+        pa_sink_input_set_volume(si, &volume, TRUE, TRUE);
 
     pa_pstream_send_simple_ack(c->pstream, tag);
 }

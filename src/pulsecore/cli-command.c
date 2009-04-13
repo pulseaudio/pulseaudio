@@ -524,7 +524,7 @@ static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
     }
 
     pa_cvolume_set(&cvolume, sink->sample_spec.channels, volume);
-    pa_sink_set_volume(sink, &cvolume, TRUE, TRUE);
+    pa_sink_set_volume(sink, &cvolume, TRUE, TRUE, TRUE);
     return 0;
 }
 
@@ -566,7 +566,7 @@ static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strb
     }
 
     pa_cvolume_set(&cvolume, si->sample_spec.channels, volume);
-    pa_sink_input_set_volume(si, &cvolume, TRUE);
+    pa_sink_input_set_volume(si, &cvolume, TRUE, TRUE);
     return 0;
 }
 
@@ -1516,7 +1516,7 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
             nl = 1;
         }
 
-        pa_strbuf_printf(buf, "set-sink-volume %s 0x%03x\n", sink->name, pa_cvolume_avg(pa_sink_get_volume(sink, FALSE)));
+        pa_strbuf_printf(buf, "set-sink-volume %s 0x%03x\n", sink->name, pa_cvolume_avg(pa_sink_get_volume(sink, FALSE, TRUE)));
         pa_strbuf_printf(buf, "set-sink-mute %s %s\n", sink->name, pa_yes_no(pa_sink_get_mute(sink, FALSE)));
         pa_strbuf_printf(buf, "suspend-sink %s %s\n", sink->name, pa_yes_no(pa_sink_get_state(sink) == PA_SINK_SUSPENDED));
     }

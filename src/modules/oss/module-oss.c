@@ -617,7 +617,7 @@ static int unsuspend(struct userdata *u) {
     build_pollfd(u);
 
     if (u->sink)
-        pa_sink_get_volume(u->sink, TRUE);
+        pa_sink_get_volume(u->sink, TRUE, FALSE);
     if (u->source)
         pa_source_get_volume(u->source, TRUE);
 

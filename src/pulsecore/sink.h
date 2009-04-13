@@ -74,8 +74,10 @@ struct pa_sink {
     pa_volume_t base_volume; /* shall be constant */
     unsigned n_volume_steps; /* shall be constant */
 
-    pa_cvolume virtual_volume; /* The volume clients are informed about */
-    pa_cvolume soft_volume;    /* The internal software volume we apply to all PCM data while it passes through */
+    /* Also see http://pulseaudio.org/wiki/InternalVolumes */
+    pa_cvolume virtual_volume;   /* The volume clients are informed about */
+    pa_cvolume reference_volume; /* The volume taken as refernce base for relative sink input volumes */
+    pa_cvolume soft_volume;      /* The internal software volume we apply to all PCM data while it passes through */
     pa_bool_t muted:1;
 
     pa_bool_t refresh_volume:1;
@@ -255,8 +257,9 @@ int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend);
 void pa_sink_update_flat_volume(pa_sink *s, pa_cvolume *new_volume);
 void pa_sink_propagate_flat_volume(pa_sink *s);
 
-void pa_sink_set_volume(pa_sink *sink, const pa_cvolume *volume, pa_bool_t propagate, pa_bool_t sendmsg);
-const pa_cvolume *pa_sink_get_volume(pa_sink *sink, pa_bool_t force_refresh);
+void pa_sink_set_volume(pa_sink *sink, const pa_cvolume *volume, pa_bool_t propagate, pa_bool_t sendmsg, pa_bool_t become_reference);
+const pa_cvolume *pa_sink_get_volume(pa_sink *sink, pa_bool_t force_refresh, pa_bool_t reference);
+
 void pa_sink_set_mute(pa_sink *sink, pa_bool_t mute);
 pa_bool_t pa_sink_get_mute(pa_sink *sink, pa_bool_t force_refresh);
 

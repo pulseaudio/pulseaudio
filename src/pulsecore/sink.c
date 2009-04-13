@@ -202,7 +202,7 @@ pa_sink* pa_sink_new(
     s->inputs = pa_idxset_new(NULL, NULL);
     s->n_corked = 0;
 
-    s->virtual_volume = data->volume;
+    s->reference_volume = s->virtual_volume = data->volume;
     pa_cvolume_reset(&s->soft_volume, s->sample_spec.channels);
     s->base_volume = PA_VOLUME_NORM;
     s->n_volume_steps = PA_VOLUME_NORM+1;
@@ -351,10 +351,11 @@ void pa_sink_put(pa_sink* s) {
 
     if (!(s->flags & PA_SINK_HW_VOLUME_CTRL)) {
         s->flags |= PA_SINK_DECIBEL_VOLUME;
-
-        s->thread_info.soft_volume = s->soft_volume;
-        s->thread_info.soft_muted = s->muted;
+        s->base_volume = PA_VOLUME_NORM;
     }
+
+    s->thread_info.soft_volume = s->soft_volume;
+    s->thread_info.soft_muted = s->muted;
 
     if (s->flags & PA_SINK_DECIBEL_VOLUME)
         s->n_volume_steps = PA_VOLUME_NORM+1;
@@ -1046,16 +1047,16 @@ void pa_sink_update_flat_volume(pa_sink *s, pa_cvolume *new_volume) {
     pa_assert(PA_SINK_IS_LINKED(s->state));
     pa_assert(s->flags & PA_SINK_FLAT_VOLUME);
 
-    /* This is called whenever a sink input volume changes and we
-     * might need to fix up the sink volume accordingly. Please note
-     * that we don't actually update the sinks volume here, we only
-     * return how it needs to be updated. The caller should then call
-     * pa_sink_set_volume().*/
+    /* This is called whenever a sink input volume changes or a sink
+     * input is added/removed and we might need to fix up the sink
+     * volume accordingly. Please note that we don't actually update
+     * the sinks volume here, we only return how it needs to be
+     * updated. The caller should then call pa_sink_set_volume().*/
 
     if (pa_idxset_isempty(s->inputs)) {
         /* In the special case that we have no sink input we leave the
          * volume unmodified. */
-        *new_volume = s->virtual_volume;
+        *new_volume = s->reference_volume;
         return;
     }
 
@@ -1142,7 +1143,7 @@ void pa_sink_propagate_flat_volume(pa_sink *s) {
 }
 
 /* Called from main thread */
-void pa_sink_set_volume(pa_sink *s, const pa_cvolume *volume, pa_bool_t propagate, pa_bool_t sendmsg) {
+void pa_sink_set_volume(pa_sink *s, const pa_cvolume *volume, pa_bool_t propagate, pa_bool_t sendmsg, pa_bool_t become_reference) {
     pa_bool_t virtual_volume_changed;
 
     pa_sink_assert_ref(s);
@@ -1154,6 +1155,9 @@ void pa_sink_set_volume(pa_sink *s, const pa_cvolume *volume, pa_bool_t propagat
     virtual_volume_changed = !pa_cvolume_equal(volume, &s->virtual_volume);
     s->virtual_volume = *volume;
 
+    if (become_reference)
+        s->reference_volume = s->virtual_volume;
+
     /* Propagate this volume change back to the inputs */
     if (virtual_volume_changed)
         if (propagate && (s->flags & PA_SINK_FLAT_VOLUME))
@@ -1161,8 +1165,8 @@ void pa_sink_set_volume(pa_sink *s, const pa_cvolume *volume, pa_bool_t propagat
 
     if (s->set_volume) {
         /* If we have a function set_volume(), then we do not apply a
-         * soft volume by default. However, set_volume() is apply one
-         * to s->soft_volume */
+         * soft volume by default. However, set_volume() is free to
+         * apply one to s->soft_volume */
 
         pa_cvolume_reset(&s->soft_volume, s->sample_spec.channels);
         s->set_volume(s);
@@ -1194,7 +1198,7 @@ void pa_sink_set_soft_volume(pa_sink *s, const pa_cvolume *volume) {
 }
 
 /* Called from main thread */
-const pa_cvolume *pa_sink_get_volume(pa_sink *s, pa_bool_t force_refresh) {
+const pa_cvolume *pa_sink_get_volume(pa_sink *s, pa_bool_t force_refresh, pa_bool_t reference) {
     pa_sink_assert_ref(s);
 
     if (s->refresh_volume || force_refresh) {
@@ -1207,6 +1211,8 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *s, pa_bool_t force_refresh) {
 
         if (!pa_cvolume_equal(&old_virtual_volume, &s->virtual_volume)) {
 
+            s->reference_volume = s->virtual_volume;
+
             if (s->flags & PA_SINK_FLAT_VOLUME)
                 pa_sink_propagate_flat_volume(s);
 
@@ -1214,7 +1220,7 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *s, pa_bool_t force_refresh) {
         }
     }
 
-    return &s->virtual_volume;
+    return reference ? &s->reference_volume : &s->virtual_volume;
 }
 
 /* Called from main thread */
@@ -1226,7 +1232,11 @@ void pa_sink_volume_changed(pa_sink *s, const pa_cvolume *new_volume) {
     if (pa_cvolume_equal(&s->virtual_volume, new_volume))
         return;
 
-    s->virtual_volume = *new_volume;
+    s->reference_volume = s->virtual_volume = *new_volume;
+
+    if (s->flags & PA_SINK_FLAT_VOLUME)
+        pa_sink_propagate_flat_volume(s);
+
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 

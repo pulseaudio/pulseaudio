@@ -120,7 +120,7 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
                     pa_log("Failed to get sink '%s'", u->sink_name);
                 else {
                     int i;
-                    pa_cvolume cv = *pa_sink_get_volume(s, FALSE);
+                    pa_cvolume cv = *pa_sink_get_volume(s, FALSE, FALSE);
 
 #define DELTA (PA_VOLUME_NORM/20)
 
@@ -133,7 +133,7 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
                                     cv.values[i] = PA_VOLUME_MAX;
                             }
 
-                            pa_sink_set_volume(s, &cv, TRUE, TRUE);
+                            pa_sink_set_volume(s, &cv, TRUE, TRUE, TRUE);
                             break;
 
                         case DOWN:
@@ -144,7 +144,7 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
                                     cv.values[i] = PA_VOLUME_MUTED;
                             }
 
-                            pa_sink_set_volume(s, &cv, TRUE, TRUE);
+                            pa_sink_set_volume(s, &cv, TRUE, TRUE, TRUE);
                             break;
 
                         case MUTE:
