@@ -63,8 +63,6 @@ struct userdata {
     float mute_toggle_save;
 };
 
-static int lirc_in_use = 0;
-
 static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event_flags_t events, void*userdata) {
     struct userdata *u = userdata;
     char *name = NULL, *code = NULL;
@@ -189,11 +187,6 @@ int pa__init(pa_module*m) {
 
     pa_assert(m);
 
-    if (lirc_in_use) {
-        pa_log("module-lirc may no be loaded twice.");
-        return -1;
-    }
-
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
         goto fail;
@@ -218,8 +211,6 @@ int pa__init(pa_module*m) {
     }
 
     u->io = m->core->mainloop->io_new(m->core->mainloop, u->lirc_fd, PA_IO_EVENT_INPUT|PA_IO_EVENT_HANGUP, io_callback, u);
-
-    lirc_in_use = 1;
 
     pa_modargs_free(ma);
 
@@ -252,6 +243,4 @@ void pa__done(pa_module*m) {
 
     pa_xfree(u->sink_name);
     pa_xfree(u);
-
-    lirc_in_use = 0;
 }
