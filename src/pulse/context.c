@@ -186,10 +186,10 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
 #endif
 
     c->conf = pa_client_conf_new();
+    pa_client_conf_load(c->conf, NULL);
 #ifdef HAVE_X11
     pa_client_conf_from_x11(c->conf, NULL);
 #endif
-    pa_client_conf_load(c->conf, NULL);
     pa_client_conf_env(c->conf);
 
     if (!(c->mempool = pa_mempool_new(!c->conf->disable_shm, c->conf->shm_size))) {
@@ -925,7 +925,9 @@ int pa_context_connect(
     PA_CHECK_VALIDITY(c, !(flags & ~(PA_CONTEXT_NOAUTOSPAWN|PA_CONTEXT_NOFAIL)), PA_ERR_INVALID);
     PA_CHECK_VALIDITY(c, !server || *server, PA_ERR_INVALID);
 
-    if (!server)
+    if (server)
+        c->conf->autospawn = FALSE;
+    else
         server = c->conf->default_server;
 
     pa_context_ref(c);
@@ -967,18 +969,18 @@ int pa_context_connect(
 
         /* The user instance via PF_LOCAL */
         c->server_list = prepend_per_user(c->server_list);
+    }
 
-        /* Set up autospawning */
-        if (!(flags & PA_CONTEXT_NOAUTOSPAWN) && c->conf->autospawn) {
+    /* Set up autospawning */
+    if (!(flags & PA_CONTEXT_NOAUTOSPAWN) && c->conf->autospawn) {
 
-            if (getuid() == 0)
-                pa_log_debug("Not doing autospawn since we are root.");
-            else {
-                c->do_autospawn = TRUE;
+        if (getuid() == 0)
+            pa_log_debug("Not doing autospawn since we are root.");
+        else {
+            c->do_autospawn = TRUE;
 
-                if (api)
-                    c->spawn_api = *api;
-            }
+            if (api)
+                c->spawn_api = *api;
         }
     }
 
