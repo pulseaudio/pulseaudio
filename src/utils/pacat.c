@@ -796,7 +796,7 @@ int main(int argc, char *argv[]) {
 
     /* Connect the context */
     if (pa_context_connect(context, server, 0, NULL) < 0) {
-        fprintf(stderr, _("pa_context_connect() failed: %s"), pa_strerror(pa_context_errno(context)));
+        fprintf(stderr, _("pa_context_connect() failed: %s\n"), pa_strerror(pa_context_errno(context)));
         goto quit;
     }
 
