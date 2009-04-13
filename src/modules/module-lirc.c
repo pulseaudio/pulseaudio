@@ -161,7 +161,7 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
                             break;
 
                         case INVALID:
-                            ;
+                            pa_assert_not_reached();
                     }
                 }
             }
