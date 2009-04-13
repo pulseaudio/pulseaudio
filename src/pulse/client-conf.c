@@ -150,6 +150,9 @@ int pa_client_conf_env(pa_client_conf *c) {
     if ((e = getenv(ENV_DEFAULT_SERVER))) {
         pa_xfree(c->default_server);
         c->default_server = pa_xstrdup(e);
+
+        /* We disable autospawning automatically if a specific server was set */
+        c->autospawn = FALSE;
     }
 
     if ((e = getenv(ENV_DAEMON_BINARY))) {
