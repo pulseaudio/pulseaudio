@@ -120,7 +120,7 @@ pa_volume_t pa_sw_volume_divide(pa_volume_t a, pa_volume_t b) {
     return pa_sw_volume_from_linear(pa_sw_volume_to_linear(a) / v);
 }
 
-#define USER_DECIBEL_RANGE 60
+#define USER_DECIBEL_RANGE 90
 
 pa_volume_t pa_sw_volume_from_dB(double dB) {
     if (isinf(dB) < 0 || dB <= -USER_DECIBEL_RANGE)
