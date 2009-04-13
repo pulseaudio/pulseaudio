@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PulseAudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-10 02:02+0200\n"
+"POT-Creation-Date: 2009-04-13 23:08+0200\n"
 "PO-Revision-Date: 2009-04-09 11:49-0300\n"
 "Last-Translator: Claudio Rodrigo Pereyra Diaz <claudio@pereyradiaz.com.ar>\n"
 "Language-Team: Fedora Spanish <fedora-trans-es@redhat.com>\n"
@@ -21,47 +21,47 @@ msgstr ""
 msgid "Analog Mono"
 msgstr "Mono Analógico"
 
-#: ../src/modules/alsa/alsa-util.c:536
+#: ../src/modules/alsa/alsa-util.c:538
 msgid "Analog Stereo"
 msgstr "Estéreo Analógico"
 
-#: ../src/modules/alsa/alsa-util.c:542
+#: ../src/modules/alsa/alsa-util.c:546
 msgid "Digital Stereo (IEC958)"
 msgstr "Estéreo Digital (IEC958)"
 
-#: ../src/modules/alsa/alsa-util.c:548
+#: ../src/modules/alsa/alsa-util.c:554
 msgid "Digital Stereo (HDMI)"
 msgstr "Estéreo Digital (HDMI)"
 
-#: ../src/modules/alsa/alsa-util.c:555
+#: ../src/modules/alsa/alsa-util.c:563
 msgid "Analog Surround 4.0"
 msgstr "Análogo Envolvente 4.0"
 
-#: ../src/modules/alsa/alsa-util.c:562
+#: ../src/modules/alsa/alsa-util.c:572
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr "Digital Envolvente 4.0 (IEC9588/AC3)"
 
-#: ../src/modules/alsa/alsa-util.c:570
+#: ../src/modules/alsa/alsa-util.c:582
 msgid "Analog Surround 4.1"
 msgstr "Análogo Envolvente 4.1"
 
-#: ../src/modules/alsa/alsa-util.c:578
+#: ../src/modules/alsa/alsa-util.c:592
 msgid "Analog Surround 5.0"
 msgstr "Análogo Envolvente 5.0"
 
-#: ../src/modules/alsa/alsa-util.c:586
+#: ../src/modules/alsa/alsa-util.c:602
 msgid "Analog Surround 5.1"
 msgstr "Análogo Envolvente 5.1"
 
-#: ../src/modules/alsa/alsa-util.c:594
+#: ../src/modules/alsa/alsa-util.c:612
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "Digital Envolvente 5.1 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-util.c:603
+#: ../src/modules/alsa/alsa-util.c:623
 msgid "Analog Surround 7.1"
 msgstr "Análogo Envolvénte 7.1"
 
-#: ../src/modules/alsa/alsa-util.c:1609
+#: ../src/modules/alsa/alsa-util.c:1644
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -74,7 +74,7 @@ msgstr ""
 "Lo más probable es que sea un error del controlador ALSA '%s'. Por favor, "
 "informe ésto a los desarrolladores de ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1650
+#: ../src/modules/alsa/alsa-util.c:1685
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -87,7 +87,7 @@ msgstr ""
 "Lo más probable es que sea un error del controlador ALSA '%s'. Por favor, "
 "informe ésto a los desarrolladores de ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1697
+#: ../src/modules/alsa/alsa-util.c:1732
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -100,11 +100,11 @@ msgstr ""
 "Lo más probable es que sea un error del controlador ALSA '%s'. Por favor, "
 "informe ésto a los desarrolladores de ALSA."
 
-#: ../src/pulsecore/sink.c:2131
+#: ../src/pulsecore/sink.c:2141
 msgid "Internal Audio"
 msgstr "Audio Interno"
 
-#: ../src/pulsecore/sink.c:2137
+#: ../src/pulsecore/sink.c:2147
 msgid "Modem"
 msgstr "Módem"
 
@@ -470,32 +470,37 @@ msgstr "Fallo al intentar obtener el ID de la máquina"
 msgid "Machine ID is %s."
 msgstr "El ID de la máquina es %s"
 
-#: ../src/daemon/main.c:913
+#: ../src/daemon/main.c:912
+#, fuzzy, c-format
+msgid "Session ID is %s."
+msgstr "El ID de la máquina es %s"
+
+#: ../src/daemon/main.c:918
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Utilizando directorio de tiempo de ejecución %s."
 
-#: ../src/daemon/main.c:918
+#: ../src/daemon/main.c:923
 #, c-format
 msgid "Using state directory %s."
 msgstr "Utilizando directorio de estado %s."
 
-#: ../src/daemon/main.c:921
+#: ../src/daemon/main.c:926
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Ejecutándose en modo de sistema: %s"
 
-#: ../src/daemon/main.c:936
+#: ../src/daemon/main.c:941
 msgid "pa_pid_file_create() failed."
 msgstr "Ha fallado pa_pid_file_create()."
 
-#: ../src/daemon/main.c:948
+#: ../src/daemon/main.c:953
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr ""
 "¡Existen cronómetros de alta resolución fresquitos y disponibles! ¡Bon "
 "appetit!"
 
-#: ../src/daemon/main.c:950
+#: ../src/daemon/main.c:955
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -503,29 +508,29 @@ msgstr ""
 "¡Amigo, su kernel deja mucho que desear! ¡El plato que hoy recomienda el "
 "chef es Linux con cronómetros de alta resolución activados!  "
 
-#: ../src/daemon/main.c:962
+#: ../src/daemon/main.c:967
 msgid "pa_core_new() failed."
 msgstr "Falló pa_core_new()."
 
-#: ../src/daemon/main.c:1024
+#: ../src/daemon/main.c:1029
 msgid "Failed to initialize daemon."
 msgstr "Fallo al intentar iniciar el demonio."
 
-#: ../src/daemon/main.c:1029
+#: ../src/daemon/main.c:1034
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "El demonio se ha iniciado sin ningún módulo cargado, y por ello se niega a "
 "funcionar."
 
-#: ../src/daemon/main.c:1046
+#: ../src/daemon/main.c:1051
 msgid "Daemon startup complete."
 msgstr "El demonio se inició completamente."
 
-#: ../src/daemon/main.c:1052
+#: ../src/daemon/main.c:1057
 msgid "Daemon shutdown initiated."
 msgstr "Comienza a apagarse el demonio."
 
-#: ../src/daemon/main.c:1074
+#: ../src/daemon/main.c:1079
 msgid "Daemon terminated."
 msgstr "El demonio se ha apagado."
 
@@ -1268,30 +1273,30 @@ msgstr "%u B"
 msgid "XOpenDisplay() failed"
 msgstr "XOpenDisplay() falló"
 
-#: ../src/pulse/client-conf-x11.c:78
+#: ../src/pulse/client-conf-x11.c:93
 msgid "Failed to parse cookie data"
 msgstr "Fallo al analizar los datos de la cookie"
 
-#: ../src/pulse/client-conf.c:120
+#: ../src/pulse/client-conf.c:110
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
 msgstr "Fallo al abrir el archivo de configuración '%s': %s"
 
-#: ../src/pulse/context.c:539
+#: ../src/pulse/context.c:546
 msgid "No cookie loaded. Attempting to connect without."
 msgstr "No se ha cargado ninguna cookie. Intentando conectar de todos modos."
 
-#: ../src/pulse/context.c:669
+#: ../src/pulse/context.c:676
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:722
+#: ../src/pulse/context.c:729
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(:) %s"
 
-#: ../src/pulse/context.c:1387
+#: ../src/pulse/context.c:1402
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Se ha recibido un mensaje para una extensión desconocida '%s'"
@@ -2408,7 +2413,7 @@ msgstr "Utilizando especificaciones de muestra '%s'\n"
 msgid "Cannot access autospawn lock."
 msgstr "No se puede acceder al candado de autogeneración."
 
-#: ../src/modules/alsa/alsa-sink.c:393 ../src/modules/alsa/alsa-sink.c:535
+#: ../src/modules/alsa/alsa-sink.c:393 ../src/modules/alsa/alsa-sink.c:541
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2419,7 +2424,7 @@ msgid ""
 "returned 0 or another value < min_avail."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:510
+#: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:516
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "

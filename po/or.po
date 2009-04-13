@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-05 08:27+0000\n"
+"POT-Creation-Date: 2009-04-13 23:08+0200\n"
 "PO-Revision-Date: 2009-04-09 13:16+0530\n"
 "Last-Translator: Manoj Kumar Giri <mgiri@redhat.com>\n"
 "Language-Team: Oriya <oriya-it@googlegroups.com>\n"
@@ -15,7 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
-"Plural-Forms:  nplurals=2; plural=(n!=1);\n\n"
+"Plural-Forms:  nplurals=2; plural=(n!=1);\n"
+"\n"
 "\n"
 "\n"
 "\n"
@@ -26,47 +27,47 @@ msgstr ""
 msgid "Analog Mono"
 msgstr "ଅନୁରୂପ ମୋନୋ"
 
-#: ../src/modules/alsa/alsa-util.c:536
+#: ../src/modules/alsa/alsa-util.c:538
 msgid "Analog Stereo"
 msgstr "ଅନୁରୂପ ଷ୍ଟେରିଓ"
 
-#: ../src/modules/alsa/alsa-util.c:542
+#: ../src/modules/alsa/alsa-util.c:546
 msgid "Digital Stereo (IEC958)"
 msgstr "ସାଂଖିକ ଷ୍ଟେରିଓ (IEC958)"
 
-#: ../src/modules/alsa/alsa-util.c:548
+#: ../src/modules/alsa/alsa-util.c:554
 msgid "Digital Stereo (HDMI)"
 msgstr "ସାଂଖିକ ଷ୍ଟେରିଓ (HDMI)"
 
-#: ../src/modules/alsa/alsa-util.c:555
+#: ../src/modules/alsa/alsa-util.c:563
 msgid "Analog Surround 4.0"
 msgstr "ଅନୁରୂପ ଚତୁର୍ପାର୍ଶ୍ୱ 4.0"
 
-#: ../src/modules/alsa/alsa-util.c:562
+#: ../src/modules/alsa/alsa-util.c:572
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr "ସାଂଖିକ ଚତୁର୍ପାର୍ଶ୍ୱ 4.0 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-util.c:570
+#: ../src/modules/alsa/alsa-util.c:582
 msgid "Analog Surround 4.1"
 msgstr "ଅନୁରୂପ ଚତୁର୍ପାର୍ଶ୍ୱ 4.1"
 
-#: ../src/modules/alsa/alsa-util.c:578
+#: ../src/modules/alsa/alsa-util.c:592
 msgid "Analog Surround 5.0"
 msgstr "ଅନୁରୂପ ଚତୁର୍ପାର୍ଶ୍ୱ 5.0"
 
-#: ../src/modules/alsa/alsa-util.c:586
+#: ../src/modules/alsa/alsa-util.c:602
 msgid "Analog Surround 5.1"
 msgstr "ଅନୁରୂପ ଚତୁର୍ପାର୍ଶ୍ୱ 5.1"
 
-#: ../src/modules/alsa/alsa-util.c:594
+#: ../src/modules/alsa/alsa-util.c:612
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "ସାଂଖିକ ଚତୁର୍ପାର୍ଶ୍ୱ 5.1 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-util.c:603
+#: ../src/modules/alsa/alsa-util.c:623
 msgid "Analog Surround 7.1"
 msgstr "ଅନୁରୂପ ଚତୁର୍ପାର୍ଶ୍ୱ 7.1"
 
-#: ../src/modules/alsa/alsa-util.c:1609
+#: ../src/modules/alsa/alsa-util.c:1644
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -79,7 +80,7 @@ msgstr ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 
-#: ../src/modules/alsa/alsa-util.c:1649
+#: ../src/modules/alsa/alsa-util.c:1685
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -92,7 +93,7 @@ msgstr ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 
-#: ../src/modules/alsa/alsa-util.c:1695
+#: ../src/modules/alsa/alsa-util.c:1732
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -105,11 +106,11 @@ msgstr ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 
-#: ../src/pulsecore/sink.c:2061
+#: ../src/pulsecore/sink.c:2141
 msgid "Internal Audio"
 msgstr "ଆଭ୍ୟନ୍ତରୀଣ ଧ୍ୱନି"
 
-#: ../src/pulsecore/sink.c:2067
+#: ../src/pulsecore/sink.c:2147
 msgid "Modem"
 msgstr "ମଡେମ"
 
@@ -246,37 +247,37 @@ msgstr "ତନ୍ତ୍ରମୟ ଧାରା ଏହି ପ୍ଲାଟଫର୍
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) ବିଫଳ ହୋଇଛି: %s"
 
-#: ../src/daemon/main.c:462
+#: ../src/daemon/main.c:476
 msgid "Failed to parse command line."
 msgstr "ପାଠ୍ୟ ନିର୍ଦ୍ଦେଶକୁ ବିଶ୍ଳେଷଣ କରିବାରେ ବିଫଳ।"
 
-#: ../src/daemon/main.c:486
+#: ../src/daemon/main.c:500
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
 msgstr "ଆମେ ମାନେ ଶ୍ରେଣୀ '%s'ରେ ଅଛୁ, ଉଚ୍ଚ-ପ୍ରାଥମିକତା ଯୋଜନାକୁ ଅନୁମତି ଦେଇ।"
 
-#: ../src/daemon/main.c:493
+#: ../src/daemon/main.c:507
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
 msgstr "ଆମେ ମାନେ ଶ୍ରେଣୀ '%s'ରେ ଅଛୁ, ପ୍ରକୃତ- ସମୟ ଯୋଜନାକୁ ଅନୁମତି ଦେଇ।"
 
-#: ../src/daemon/main.c:501
+#: ../src/daemon/main.c:515
 msgid "PolicyKit grants us acquire-high-priority privilege."
 msgstr "PolicyKit ଆମକୁ acquire-high-priority ଅଧିକାର ଦେଇଥାଏ।"
 
-#: ../src/daemon/main.c:504
+#: ../src/daemon/main.c:518
 msgid "PolicyKit refuses acquire-high-priority privilege."
 msgstr "PolicyKit acquire-high-priority ଅଧିକାରକୁ ବାରଣ କରିଥାଏ।"
 
-#: ../src/daemon/main.c:509
+#: ../src/daemon/main.c:523
 msgid "PolicyKit grants us acquire-real-time privilege."
 msgstr "PolicyKit ଆମକୁ acquire-real-time ଅଧିକାର ଦେଇଥାଏ।"
 
-#: ../src/daemon/main.c:512
+#: ../src/daemon/main.c:526
 msgid "PolicyKit refuses acquire-real-time privilege."
 msgstr "PolicyKit acquire-real-time ଅଧିକାରକୁ ବାରଣ କରିଥାଏ।"
 
-#: ../src/daemon/main.c:541
+#: ../src/daemon/main.c:555
 #, c-format
 msgid ""
 "Called SUID root and real-time and/or high-priority scheduling was requested "
@@ -297,42 +298,44 @@ msgstr ""
 "appropriate PolicyKit privileges, or become a member of '%s', or increase "
 "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 
-#: ../src/daemon/main.c:566
-msgid "High-priority scheduling enabled in configuration but not allowed by policy."
+#: ../src/daemon/main.c:580
+msgid ""
+"High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr "ଉଚ୍ଚ-ପ୍ରାଥମିକ ଯୋଜନା ବିନ୍ୟାସରେ ସକ୍ରିୟ କିନ୍ତୁ ନୀତି ଦ୍ୱାରା ଅନୁମୋଦିତ ନୁହଁ।"
 
-#: ../src/daemon/main.c:595
+#: ../src/daemon/main.c:609
 msgid "Successfully increased RLIMIT_RTPRIO"
 msgstr "RLIMIT_RTPRIO କୁ ସଫଳତାର ସହିତ ବୃଦ୍ଧିକରିଥାଏ"
 
-#: ../src/daemon/main.c:598
+#: ../src/daemon/main.c:612
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
 msgstr "RLIMIT_RTPRIO ବିଫଳ ହୋଇଛି: %s"
 
-#: ../src/daemon/main.c:605
+#: ../src/daemon/main.c:619
 msgid "Giving up CAP_NICE"
 msgstr "CAP_NICE କୁ ତ୍ୟାଗ କରିଥାଏ"
 
-#: ../src/daemon/main.c:612
-msgid "Real-time scheduling enabled in configuration but not allowed by policy."
+#: ../src/daemon/main.c:626
+msgid ""
+"Real-time scheduling enabled in configuration but not allowed by policy."
 msgstr "Real-time ଯୋଜନା ବିନ୍ୟାସ ଫାଇଲରେ ସକ୍ରିୟ ହୋଇଥାଏ କିନ୍ତୁ ନିତୀ ଦ୍ୱାରା ଅନୁମୋଦିତ ନୁହଁ।"
 
-#: ../src/daemon/main.c:673
+#: ../src/daemon/main.c:687
 msgid "Daemon not running"
 msgstr "ଡେମନ ଚାଲୁନାହିଁ"
 
-#: ../src/daemon/main.c:675
+#: ../src/daemon/main.c:689
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "ଡେମନ PID %u ପରି ଚାଲୁଅଛି"
 
-#: ../src/daemon/main.c:685
+#: ../src/daemon/main.c:699
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "ଡେମନକୁ ବନ୍ଦ କରିବାରେ ବିଫଳ: %s"
 
-#: ../src/daemon/main.c:703
+#: ../src/daemon/main.c:717
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -340,153 +343,158 @@ msgstr ""
 "ଏହି ପ୍ରଗ୍ରାମଟି ମୂଖ୍ୟ ଚାଳକ ଭାବରେ ଚଲାଇବା ପାଇଁ ନିର୍ଦ୍ଦିଷ୍ଟ ହୋଇନାହିଁ (unless --system is "
 "specified)।"
 
-#: ../src/daemon/main.c:705
+#: ../src/daemon/main.c:719
 msgid "Root privileges required."
 msgstr "ମୂଖ୍ୟ ଚାଳକ ଅଧିକାର ଆବଶ୍ୟକ।"
 
-#: ../src/daemon/main.c:710
+#: ../src/daemon/main.c:724
 msgid "--start not supported for system instances."
 msgstr "--start ତନ୍ତ୍ର ସ୍ଥିତି ପାଇଁ ସମର୍ଥିତ ନୁହଁ।"
 
-#: ../src/daemon/main.c:715
+#: ../src/daemon/main.c:729
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr "ତନ୍ତ୍ର ଧାରାରେ ଚାଲୁଅଛି, କିନ୍ତୁ --disallow-exit କୁ ସେଟ କରାଯାଇନାହିଁ!"
 
-#: ../src/daemon/main.c:718
+#: ../src/daemon/main.c:732
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr "ତନ୍ତ୍ର ଧାରାରେ ଚାଲୁଅଛି, କିନ୍ତୁ --disallow-module-loading କୁ ସେଟ କରାଯାଇନାହିଁ!"
 
-#: ../src/daemon/main.c:721
+#: ../src/daemon/main.c:735
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "ତନ୍ତ୍ର ଧାରାରେ ଚାଲୁଅଛି, SHM ଧାରାକୁ ବାଧ୍ଯତାମୁଳକ ଭାବରେ ନିଷ୍କ୍ରିୟ କରିଥାଏ!"
 
-#: ../src/daemon/main.c:726
+#: ../src/daemon/main.c:740
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr "ତନ୍ତ୍ର ଧାରାରେ ଚାଲୁଅଛି, ପ୍ରସ୍ଥାନ ସ୍ଥିର ସମୟକୁ ବାଧ୍ଯତାମୁଳକ ଭାବରେ ନିଷ୍କ୍ରିୟ କରିଥାଏ!"
 
-#: ../src/daemon/main.c:753
+#: ../src/daemon/main.c:767
 msgid "Failed to acquire stdio."
 msgstr "stdio କୁ ଅଧିକାର କରିବାରେ ବିଫଳ।"
 
-#: ../src/daemon/main.c:759
+#: ../src/daemon/main.c:773
 #, c-format
 msgid "pipe failed: %s"
 msgstr "ପାଇପ ବିଫଳ ହୋଇଛି: %s"
 
-#: ../src/daemon/main.c:764
+#: ../src/daemon/main.c:778
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() ବିଫଳ ହୋଇଛି: %s"
 
-#: ../src/daemon/main.c:778
+#: ../src/daemon/main.c:792
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() ବିଫଳ ହୋଇଛି: %s"
 
-#: ../src/daemon/main.c:784
+#: ../src/daemon/main.c:798
 msgid "Daemon startup failed."
 msgstr "ଡେମନ ଆରମ୍ଭ ବିଫଳ ହୋଇଛି।"
 
-#: ../src/daemon/main.c:786
+#: ../src/daemon/main.c:800
 msgid "Daemon startup successful."
 msgstr "ଡେମନ ଆରମ୍ଭ ସଫଳ ହୋଇଛି।"
 
-#: ../src/daemon/main.c:856
+#: ../src/daemon/main.c:870
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "ଏହା ହେଉଛି PulseAudio %s"
 
-#: ../src/daemon/main.c:857
+#: ../src/daemon/main.c:871
 #, c-format
 msgid "Compilation host: %s"
 msgstr "ସଂକଳନ ଆଧାର: %s"
 
-#: ../src/daemon/main.c:858
+#: ../src/daemon/main.c:872
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "ସଂକଳନ CFLAGS: %s"
 
-#: ../src/daemon/main.c:861
+#: ../src/daemon/main.c:875
 #, c-format
 msgid "Running on host: %s"
 msgstr "ଆଧାରରେ ଚାଲୁଅଛି: %s"
 
-#: ../src/daemon/main.c:864
+#: ../src/daemon/main.c:878
 #, c-format
 msgid "Found %u CPUs."
 msgstr "%u CPUs ମିଳିଛି।"
 
-#: ../src/daemon/main.c:866
+#: ../src/daemon/main.c:880
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "ପୃଷ୍ଠା ଆକାରଟି ହେଉଛି %lu ବାଇଟ"
 
-#: ../src/daemon/main.c:869
+#: ../src/daemon/main.c:883
 msgid "Compiled with Valgrind support: yes"
 msgstr "Valgrind ସମର୍ଥନ ସହିତ ସଂକଳନ ହୋଇଛି: yes"
 
-#: ../src/daemon/main.c:871
+#: ../src/daemon/main.c:885
 msgid "Compiled with Valgrind support: no"
 msgstr "Valgrind ସମର୍ଥନ ସହିତ ସଂକଳନ ହୋଇଛି: no"
 
-#: ../src/daemon/main.c:874
+#: ../src/daemon/main.c:888
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "valgrind ଧାରାରେ ଚାଲୁଅଛି: %s"
 
-#: ../src/daemon/main.c:877
+#: ../src/daemon/main.c:891
 msgid "Optimized build: yes"
 msgstr "ଉପଯୁକ୍ତ ନିର୍ମାଣ: yes"
 
-#: ../src/daemon/main.c:879
+#: ../src/daemon/main.c:893
 msgid "Optimized build: no"
 msgstr "ଉପଯୁକ୍ତ ନିର୍ମାଣ: no"
 
-#: ../src/daemon/main.c:883
+#: ../src/daemon/main.c:897
 msgid "NDEBUG defined, all asserts disabled."
 msgstr "NDEBUG କୁ ବ୍ୟାଖ୍ୟା କରାଯାଇଛି, ସମସ୍ତ ନିଶ୍ଚୟକୁ ନିଷ୍କ୍ରିୟ କରାଯାଇଛି।"
 
-#: ../src/daemon/main.c:885
+#: ../src/daemon/main.c:899
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr "FASTPATH କୁ ବ୍ୟାଖ୍ୟା କରାଯାଇଛି, କେବଳ ତୀବ୍ର ପଥ ନିଶ୍ଚୟକୁ ନିଷ୍କ୍ରିୟ କରାଯାଇଛି।"
 
-#: ../src/daemon/main.c:887
+#: ../src/daemon/main.c:901
 msgid "All asserts enabled."
 msgstr "ସମସ୍ତ ନିଶ୍ଚୟକୁ ସକ୍ରିୟ କରାଯାଇଛି।"
 
-#: ../src/daemon/main.c:891
+#: ../src/daemon/main.c:905
 msgid "Failed to get machine ID"
 msgstr "ଯନ୍ତ୍ର ID ପାଇବାରେ ବିଫଳ"
 
-#: ../src/daemon/main.c:894
+#: ../src/daemon/main.c:908
 #, c-format
 msgid "Machine ID is %s."
 msgstr "ଯନ୍ତ୍ର ID ଟି ହେଉଛି %s।"
 
-#: ../src/daemon/main.c:899
+#: ../src/daemon/main.c:912
+#, fuzzy, c-format
+msgid "Session ID is %s."
+msgstr "ଯନ୍ତ୍ର ID ଟି ହେଉଛି %s।"
+
+#: ../src/daemon/main.c:918
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "ପ୍ରଚଳିତ ଡିରେକ୍ଟୋରୀ %s କୁ ବ୍ୟବହାର କରୁଅଛି।"
 
-#: ../src/daemon/main.c:904
+#: ../src/daemon/main.c:923
 #, c-format
 msgid "Using state directory %s."
 msgstr "ସ୍ଥିତି ଡିରେକ୍ଟୋରୀ %s କୁ ବ୍ୟବହାର କରି।"
 
-#: ../src/daemon/main.c:907
+#: ../src/daemon/main.c:926
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "ତନ୍ତ୍ର ଧାରାରେ ଚାଲୁଅଛି: %s"
 
-#: ../src/daemon/main.c:922
+#: ../src/daemon/main.c:941
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() ବିଫଳ ହୋଇଛି।"
 
-#: ../src/daemon/main.c:934
+#: ../src/daemon/main.c:953
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "ସତେଜ ଉଚ୍ଚ-ବିଭେଦନ ସମୟ ମାପକ ଉପଲବ୍ଧ! Bon appetit!"
 
-#: ../src/daemon/main.c:936
+#: ../src/daemon/main.c:955
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -494,27 +502,27 @@ msgstr ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 
-#: ../src/daemon/main.c:948
+#: ../src/daemon/main.c:967
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() ବିଫଳ ହୋଇଛି।"
 
-#: ../src/daemon/main.c:1010
+#: ../src/daemon/main.c:1029
 msgid "Failed to initialize daemon."
 msgstr "ଡେମନକୁ ଆରମ୍ଭ କରିବାରେ ବିଫଳ।"
 
-#: ../src/daemon/main.c:1015
+#: ../src/daemon/main.c:1034
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "ଧାରଣ ହୋଇଥିବା ଏକକାଂଶଗୁଡ଼ିକ ବିନା ଡେମନ ଆରମ୍ଭ ହୋଇଛି, କାର୍ଯ୍ୟ କରିବାକୁ ବାରଣ କରୁଅଛି।"
 
-#: ../src/daemon/main.c:1032
+#: ../src/daemon/main.c:1051
 msgid "Daemon startup complete."
 msgstr "ଡେମନ ଆରମ୍ଭ ସମ୍ପୂର୍ଣ୍ଣ ହୋଇଛି।"
 
-#: ../src/daemon/main.c:1038
+#: ../src/daemon/main.c:1057
 msgid "Daemon shutdown initiated."
 msgstr "ଡେମନ ବନ୍ଦକୁ ଆରମ୍ଭ କରାଯାଇଛି।"
 
-#: ../src/daemon/main.c:1056
+#: ../src/daemon/main.c:1079
 msgid "Daemon terminated."
 msgstr "ଡେମନକୁ ସମାପ୍ତ କରାଯାଇଛି।"
 
@@ -835,8 +843,8 @@ msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
 msgstr ""
-"ନିର୍ଦ୍ଦିଷ୍ଟିତ ପୂର୍ବନିର୍ଦ୍ଧାରିତ ଚ୍ୟାନେଲ ମ୍ୟାପରେ ପୂର୍ବନିର୍ଦ୍ଧାରିତ ସଂଖ୍ୟକ ଚ୍ୟାନେଲ ବ୍ୟତିତ "
-"ଭିନ୍ନ ସଂଖ୍ୟକ ଚ୍ୟାନେଲ ଉଲ୍ଲେଖ ଅଛି।"
+"ନିର୍ଦ୍ଦିଷ୍ଟିତ ପୂର୍ବନିର୍ଦ୍ଧାରିତ ଚ୍ୟାନେଲ ମ୍ୟାପରେ ପୂର୍ବନିର୍ଦ୍ଧାରିତ ସଂଖ୍ୟକ ଚ୍ୟାନେଲ ବ୍ୟତିତ ଭିନ୍ନ ସଂଖ୍ୟକ "
+"ଚ୍ୟାନେଲ ଉଲ୍ଲେଖ ଅଛି।"
 
 #: ../src/daemon/daemon-conf.c:616
 #, c-format
@@ -860,7 +868,8 @@ msgid "Start the PulseAudio Sound System"
 msgstr "PulseAudio ଧ୍ୱନି ତନ୍ତ୍ରକୁ ଆରମ୍ଭ କରନ୍ତୁ"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:1
-msgid "High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
+msgid ""
+"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
 msgstr "PulseAudio ଡେମନ ପାଇଁ ଉଚ୍ଚ-ପ୍ରାଥମିକତା ଯୋଜନା (ଋଣାତ୍ମକ Unix ସୁନ୍ଦର ସ୍ତର)"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:2
@@ -868,7 +877,8 @@ msgid "Real-time scheduling for the PulseAudio daemon"
 msgstr "PulseAudio ଡେମନ ପାଇଁ ପ୍ରକୃତ-ସମୟ ଯୋଜନା"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:3
-msgid "System policy prevents PulseAudio from acquiring high-priority scheduling."
+msgid ""
+"System policy prevents PulseAudio from acquiring high-priority scheduling."
 msgstr "ତନ୍ତ୍ର ନୀତି PulseAudio କୁ ଉଚ୍ଚ-ପ୍ରାଥମିକ ଯୋଜନାକୁ ଗ୍ରହଣ କରିବାରୁ ଅଟକାଇଥାଏ।"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:4
@@ -1238,30 +1248,30 @@ msgstr "%u B"
 msgid "XOpenDisplay() failed"
 msgstr "XOpenDisplay() ବିଫଳ ହୋଇଛି"
 
-#: ../src/pulse/client-conf-x11.c:78
+#: ../src/pulse/client-conf-x11.c:93
 msgid "Failed to parse cookie data"
 msgstr "କୁକି ତଥ୍ୟକୁ ବିଶ୍ଳେଷଣ କରିବାରେ ବିଫଳ"
 
-#: ../src/pulse/client-conf.c:120
+#: ../src/pulse/client-conf.c:110
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
 msgstr "ବିନ୍ୟାସ ଫାଇଲ '%s' କୁ ଖୋଲିବାରେ ବିଫଳ: %s"
 
-#: ../src/pulse/context.c:539
+#: ../src/pulse/context.c:546
 msgid "No cookie loaded. Attempting to connect without."
 msgstr "କୌଣସି କୁକି ଧାରଣ କରାଯାଇନାହିଁ। ତାହା ବିନା ସଂଯୋଗ କରିବାକୁ ପ୍ରଚେଷ୍ଚା କରୁଅଛି।"
 
-#: ../src/pulse/context.c:669
+#: ../src/pulse/context.c:676
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:722
+#: ../src/pulse/context.c:729
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1387
+#: ../src/pulse/context.c:1402
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "ଅଜଣା ଅନୁଲଗ୍ନ '%s' ପାଇଁ ସନ୍ଦେଶ ଗ୍ରହଣ କରିଅଛି"
@@ -1489,7 +1499,8 @@ msgstr ""
 "      --version                         ସଂସ୍କରଣ ଦର୍ଶାନ୍ତୁ\n"
 "\n"
 "  -r, --record                          ଲେଖିବା ପାଇଁ ସଂଯୋଗ ନିର୍ମାଣ କରନ୍ତୁ\n"
-"  -p, --playback                        ପଛକୁ ଚଲାଇବା ପାଇଁ ଗୋଟିଏ ସଂଯୋଗ ନିର୍ମାଣ କରନ୍ତୁ\n"
+"  -p, --playback                        ପଛକୁ ଚଲାଇବା ପାଇଁ ଗୋଟିଏ ସଂଯୋଗ ନିର୍ମାଣ "
+"କରନ୍ତୁ\n"
 "\n"
 "  -v, --verbose                         verbose ପ୍ରକ୍ରିୟାଗୁଡ଼ିକୁ ସକ୍ରିୟ କରନ୍ତୁ\n"
 "\n"
@@ -1497,7 +1508,8 @@ msgstr ""
 "  -d, --device=DEVICE                   ସଂଯୋଗ କରିବା ପାଇଁ ସିଙ୍କ/ଉତ୍ସର ନାମ\n"
 "  -n, --client-name=NAME                ସର୍ଭରରେ ଏହି ଗ୍ରାହକଙ୍କୁ କିପରି ଡାକିବେ\n"
 "      --stream-name=NAME                ସର୍ଭରରେ ଏହି ଧାରାକୁ କିପରି ଡାକିବେ\n"
-"      --volume=VOLUME                   ପ୍ରାରମ୍ଭିକ (ସିଧା) ଭଲ୍ୟୁମକୁ ସୀମା 0...65536 ମଧ୍ଯରେଉଲ୍ଲେଖ କରନ୍ତୁ\n"
+"      --volume=VOLUME                   ପ୍ରାରମ୍ଭିକ (ସିଧା) ଭଲ୍ୟୁମକୁ ସୀମା 0...65536 "
+"ମଧ୍ଯରେଉଲ୍ଲେଖ କରନ୍ତୁ\n"
 "      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
 "44100)\n"
 "      --format=SAMPLEFORMAT             The sample type, one of s16le, "
@@ -2139,8 +2151,8 @@ msgid ""
 "You may not specify more than one sink. You have to specify a boolean "
 "value.\n"
 msgstr ""
-"ଆପଣଙ୍କୁ ଗୋଟିଏରୁ ଅଧିକ ସିଙ୍କ ଉଲ୍ଲେଖ କରିବାକୁ ପଡ଼ିନପାରେ। ଆପଣଙ୍କୁ "
-"ଗୋଟିଏ ବୁଲିଆନ ମୂଲ୍ୟ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ।\n"
+"ଆପଣଙ୍କୁ ଗୋଟିଏରୁ ଅଧିକ ସିଙ୍କ ଉଲ୍ଲେଖ କରିବାକୁ ପଡ଼ିନପାରେ। ଆପଣଙ୍କୁ ଗୋଟିଏ ବୁଲିଆନ ମୂଲ୍ୟ ଉଲ୍ଲେଖ କରିବାକୁ "
+"ହେବ।\n"
 
 #: ../src/utils/pactl.c:985
 #, c-format
@@ -2148,8 +2160,8 @@ msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value.\n"
 msgstr ""
-"ଆପଣଙ୍କୁ ଗୋଟିଏରୁ ଅଧିକ ଉତ୍ସ ଉଲ୍ଲେଖ କରିବାକୁ ପଡ଼ିନପାରେ। ଆପଣଙ୍କୁ ଗୋଟିଏ "
-"ବୁଲିଆନ ମୂଲ୍ୟ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ।\n"
+"ଆପଣଙ୍କୁ ଗୋଟିଏରୁ ଅଧିକ ଉତ୍ସ ଉଲ୍ଲେଖ କରିବାକୁ ପଡ଼ିନପାରେ। ଆପଣଙ୍କୁ ଗୋଟିଏ ବୁଲିଆନ ମୂଲ୍ୟ ଉଲ୍ଲେଖ କରିବାକୁ "
+"ହେବ।\n"
 
 #: ../src/utils/pactl.c:997
 #, c-format
@@ -2319,7 +2331,8 @@ msgstr ""
 "  -d, --device=DEVICE                   ସଂଯୋଗ କରିବା ପାଇଁ ସିଙ୍କର ନାମ\n"
 "  -n, --client-name=NAME                ସର୍ଭର ଉପରେ ଏହି ଗ୍ରାହକଙ୍କୁ କିପରି ଡ଼ାକିବେ\n"
 "      --stream-name=NAME                ସର୍ଭର ଉପରେ ଏହି ଧାରାକୁ କିପରି ଡ଼ାକିବେ\n"
-"      --volume=VOLUME                   ପ୍ରାରମ୍ଭିକ (ସିଧା) ଆକାରକୁ ସୀମା 0...65536 ମଧ୍ଯରେ ଉଲ୍ଲେଖ କରନ୍ତୁ\n"
+"      --volume=VOLUME                   ପ୍ରାରମ୍ଭିକ (ସିଧା) ଆକାରକୁ ସୀମା 0...65536 "
+"ମଧ୍ଯରେ ଉଲ୍ଲେଖ କରନ୍ତୁ\n"
 "      --channel-map=CHANNELMAP          ବ୍ୟବହାର ପାଇଁ ଚ୍ୟାନେଲ ମ୍ୟାପକୁ ସେଟ କରନ୍ତୁ\n"
 
 #: ../src/utils/paplay.c:255
@@ -2357,7 +2370,7 @@ msgstr "ନମୁନା spec '%s' ବ୍ୟବହାର କରି\n"
 msgid "Cannot access autospawn lock."
 msgstr "autospawn ଅପରିବର୍ତ୍ତନୀୟତାକୁ ଅଭିଗମ୍ୟ କରିହେଉ ନାହିଁ"
 
-#: ../src/modules/alsa/alsa-sink.c:393 ../src/modules/alsa/alsa-sink.c:535
+#: ../src/modules/alsa/alsa-sink.c:393 ../src/modules/alsa/alsa-sink.c:541
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2374,7 +2387,7 @@ msgstr ""
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:510
+#: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:516
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2407,19 +2420,18 @@ msgid "Input %s"
 msgstr "ନିବେଶ %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:170
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1864
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2001
 msgid "Off"
 msgstr "ଅଫ"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1834
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1971
 msgid "High Fidelity Playback (A2DP)"
 msgstr "ଉଚ୍ଚ ଫିଡିଲିଟି ପଛଚଲା (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1849
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1986
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr "ଟେଲିଫୋନି ଡ୍ୟୁପ୍ଲେକ୍ସ (HSP/HFP)"
 
-#: ../src/modules/reserve-wrap.c:125
+#: ../src/modules/reserve-wrap.c:127
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio ଧ୍ୱନି ସର୍ଭର"
-

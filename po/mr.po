@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-05 08:27+0000\n"
+"POT-Creation-Date: 2009-04-13 23:08+0200\n"
 "PO-Revision-Date: 2009-04-06 13:43+0530\n"
 "Last-Translator: Sandeep Shedmake <sandeep.shedmake@gmail.com>\n"
 "Language-Team: marathi\n"
@@ -21,47 +21,47 @@ msgstr ""
 msgid "Analog Mono"
 msgstr "ऍनलॉग मोनो"
 
-#: ../src/modules/alsa/alsa-util.c:536
+#: ../src/modules/alsa/alsa-util.c:538
 msgid "Analog Stereo"
 msgstr "ऍनलॉग स्टिरीओ"
 
-#: ../src/modules/alsa/alsa-util.c:542
+#: ../src/modules/alsa/alsa-util.c:546
 msgid "Digital Stereo (IEC958)"
 msgstr "डिजीटल स्टिरीओ (IEC958)"
 
-#: ../src/modules/alsa/alsa-util.c:548
+#: ../src/modules/alsa/alsa-util.c:554
 msgid "Digital Stereo (HDMI)"
 msgstr "डिजीटल स्टिरीओ (HDMI)"
 
-#: ../src/modules/alsa/alsa-util.c:555
+#: ../src/modules/alsa/alsa-util.c:563
 msgid "Analog Surround 4.0"
 msgstr "ऍनलॉग सराऊन्ड 4.0"
 
-#: ../src/modules/alsa/alsa-util.c:562
+#: ../src/modules/alsa/alsa-util.c:572
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr "डिजीटल सराऊन्ड 4.0 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-util.c:570
+#: ../src/modules/alsa/alsa-util.c:582
 msgid "Analog Surround 4.1"
 msgstr "ऍनलॉग सराऊन्ड 4.1"
 
-#: ../src/modules/alsa/alsa-util.c:578
+#: ../src/modules/alsa/alsa-util.c:592
 msgid "Analog Surround 5.0"
 msgstr "ऍनलॉग सराऊन्ड 5.0"
 
-#: ../src/modules/alsa/alsa-util.c:586
+#: ../src/modules/alsa/alsa-util.c:602
 msgid "Analog Surround 5.1"
 msgstr "ऍनलॉग सराऊन्ड 5.1"
 
-#: ../src/modules/alsa/alsa-util.c:594
+#: ../src/modules/alsa/alsa-util.c:612
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "डिजीटल सराऊन्ड 5.1 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-util.c:603
+#: ../src/modules/alsa/alsa-util.c:623
 msgid "Analog Surround 7.1"
 msgstr "ऍनलॉग सराऊन्ड 7.1"
 
-#: ../src/modules/alsa/alsa-util.c:1609
+#: ../src/modules/alsa/alsa-util.c:1644
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -69,11 +69,11 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_avail() ने अपेक्षा पेक्षा मोठे मूल्य पूरवले: %lu बाईटस् (%lu "
-"ms).\n"
-"हे सहसा ALSA ड्राइवर '%s' अंतर्गत बग अशू शकते. कृपया या अडचणीस ALSA डेव्हलपर करीता कळवा."
+"snd_pcm_avail() ने अपेक्षा पेक्षा मोठे मूल्य पूरवले: %lu बाईटस् (%lu ms).\n"
+"हे सहसा ALSA ड्राइवर '%s' अंतर्गत बग अशू शकते. कृपया या अडचणीस ALSA डेव्हलपर करीता "
+"कळवा."
 
-#: ../src/modules/alsa/alsa-util.c:1649
+#: ../src/modules/alsa/alsa-util.c:1685
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -81,11 +81,11 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_delay() ने अपेक्षा पेक्षा मोठे मूल्य पूरवले: %li बाईटस् (%s% "
-"lu ms).\n"
-"हे सहसा ALSA ड्राइवर '%s' अंतर्गत बग अशू शकते. कृपया या अडचणीस ALSA डेव्हलपर करीता कळवा."
+"snd_pcm_delay() ने अपेक्षा पेक्षा मोठे मूल्य पूरवले: %li बाईटस् (%s% lu ms).\n"
+"हे सहसा ALSA ड्राइवर '%s' अंतर्गत बग अशू शकते. कृपया या अडचणीस ALSA डेव्हलपर करीता "
+"कळवा."
 
-#: ../src/modules/alsa/alsa-util.c:1695
+#: ../src/modules/alsa/alsa-util.c:1732
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -93,15 +93,15 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_nmap_begin() ने अपेक्षा पेक्षा मोठे मूल्य पूरवले: %lu बाईटस् (%lu "
-"ms).\n"
-"हे सहसा ALSA ड्राइवर '%s' अंतर्गत बग अशू शकते. कृपया या अडचणीस ALSA डेव्हलपर करीता कळवा."
+"snd_pcm_nmap_begin() ने अपेक्षा पेक्षा मोठे मूल्य पूरवले: %lu बाईटस् (%lu ms).\n"
+"हे सहसा ALSA ड्राइवर '%s' अंतर्गत बग अशू शकते. कृपया या अडचणीस ALSA डेव्हलपर करीता "
+"कळवा."
 
-#: ../src/pulsecore/sink.c:2061
+#: ../src/pulsecore/sink.c:2141
 msgid "Internal Audio"
 msgstr "आंतरीक ऑडिओ"
 
-#: ../src/pulsecore/sink.c:2067
+#: ../src/pulsecore/sink.c:2147
 msgid "Modem"
 msgstr "मोडेम"
 
@@ -238,37 +238,37 @@ msgstr "प्रणाली भर पद्धत या प्लॅटफ�
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) अपयशी: %s"
 
-#: ../src/daemon/main.c:462
+#: ../src/daemon/main.c:476
 msgid "Failed to parse command line."
 msgstr "आदेश ओळ वाचण्यास अपयशी."
 
-#: ../src/daemon/main.c:486
+#: ../src/daemon/main.c:500
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
 msgstr "आपण गट '%s' अंतर्गत आहोत, उच्च-प्राधन्यक्रम वेळपत्रक करीता परवानगी देते."
 
-#: ../src/daemon/main.c:493
+#: ../src/daemon/main.c:507
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
 msgstr "आपण गट '%s' अंतर्गत आहोत, रियल-टाईम वेळपत्रक करीता परवानगी देते."
 
-#: ../src/daemon/main.c:501
+#: ../src/daemon/main.c:515
 msgid "PolicyKit grants us acquire-high-priority privilege."
 msgstr "PolicyKit आपल्याला acquire-high-priority परवानगी देतो."
 
-#: ../src/daemon/main.c:504
+#: ../src/daemon/main.c:518
 msgid "PolicyKit refuses acquire-high-priority privilege."
 msgstr "PolicyKit acquire-high-priority परवानगी नकारतो."
 
-#: ../src/daemon/main.c:509
+#: ../src/daemon/main.c:523
 msgid "PolicyKit grants us acquire-real-time privilege."
 msgstr "PolicyKit acquire-real-time परवानगी पुरवितो."
 
-#: ../src/daemon/main.c:512
+#: ../src/daemon/main.c:526
 msgid "PolicyKit refuses acquire-real-time privilege."
 msgstr "PolicyKit acquire-real-time परवानगी नकारतो."
 
-#: ../src/daemon/main.c:541
+#: ../src/daemon/main.c:555
 #, c-format
 msgid ""
 "Called SUID root and real-time and/or high-priority scheduling was requested "
@@ -280,203 +280,212 @@ msgid ""
 "appropriate PolicyKit privileges, or become a member of '%s', or increase "
 "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 msgstr ""
-"SUID रूटला कॉल केले व वास्तविक-वेळ व/किंवा संयोजना "
-"अंतर्गत उच्च-प्राधान्यक्रम वेळपत्रक विनंतीकृत केले. तरी, आमच्याकडे आवश्यक परवानगी नाही:\n"
+"SUID रूटला कॉल केले व वास्तविक-वेळ व/किंवा संयोजना अंतर्गत उच्च-प्राधान्यक्रम वेळपत्रक "
+"विनंतीकृत केले. तरी, आमच्याकडे आवश्यक परवानगी नाही:\n"
 "आम्ही गट '%s' अंतर्गत नाही, PolicyKit ने विनंतीकृत परवानगी देण्यास नकार दिला व "
-"RLIMIT_NICE/RLIMIT_RTPRIO स्त्रोत "
-"मर्यादा वाढविणे आवश्यक आहे.\n"
-"रियल-टाइम/उच्च-प्राधान्यक्रम वेळपत्रक कार्यान्वीत करण्याकरीता कृपया"
-"योग्य PolicyKit परवानगी प्राप्त करा, किंवा '%s' चे सदस्य बनवा, किंवा या वापरकर्ता करीता"
-"RLIMIT_NICE/RLIMIT_RTPRIO स्त्रोत मर्यादा वाढवा."
+"RLIMIT_NICE/RLIMIT_RTPRIO स्त्रोत मर्यादा वाढविणे आवश्यक आहे.\n"
+"रियल-टाइम/उच्च-प्राधान्यक्रम वेळपत्रक कार्यान्वीत करण्याकरीता कृपयायोग्य PolicyKit "
+"परवानगी प्राप्त करा, किंवा '%s' चे सदस्य बनवा, किंवा या वापरकर्ता करीताRLIMIT_NICE/"
+"RLIMIT_RTPRIO स्त्रोत मर्यादा वाढवा."
 
-#: ../src/daemon/main.c:566
-msgid "High-priority scheduling enabled in configuration but not allowed by policy."
-msgstr "संयोजना अंतर्गत उच्च-प्राधान्यक्रम वेळपत्रक कार्यान्वीत केले करार द्वारे स्वीकार्य नाही."
+#: ../src/daemon/main.c:580
+msgid ""
+"High-priority scheduling enabled in configuration but not allowed by policy."
+msgstr ""
+"संयोजना अंतर्गत उच्च-प्राधान्यक्रम वेळपत्रक कार्यान्वीत केले करार द्वारे स्वीकार्य नाही."
 
-#: ../src/daemon/main.c:595
+#: ../src/daemon/main.c:609
 msgid "Successfully increased RLIMIT_RTPRIO"
 msgstr "यशस्वीरित्या RLIMIT_RTPRIO वाढवले"
 
-#: ../src/daemon/main.c:598
+#: ../src/daemon/main.c:612
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
 msgstr "RLIMIT_RTPRIO अपयशी: %s"
 
-#: ../src/daemon/main.c:605
+#: ../src/daemon/main.c:619
 msgid "Giving up CAP_NICE"
 msgstr "CAP_NICE करीता प्रयत्न बंद केले"
 
-#: ../src/daemon/main.c:612
-msgid "Real-time scheduling enabled in configuration but not allowed by policy."
-msgstr "संयोजना अंतर्गत रियल-टाईम वेळपत्र कार्यान्वीत करत आहे परंतु करार द्वारे स्वीकार्य नाही."
+#: ../src/daemon/main.c:626
+msgid ""
+"Real-time scheduling enabled in configuration but not allowed by policy."
+msgstr ""
+"संयोजना अंतर्गत रियल-टाईम वेळपत्र कार्यान्वीत करत आहे परंतु करार द्वारे स्वीकार्य नाही."
 
-#: ../src/daemon/main.c:673
+#: ../src/daemon/main.c:687
 msgid "Daemon not running"
 msgstr "डिमन कार्यरत नाही"
 
-#: ../src/daemon/main.c:675
+#: ../src/daemon/main.c:689
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "डिमन PID %u नुरूप कार्यरत आहे"
 
-#: ../src/daemon/main.c:685
+#: ../src/daemon/main.c:699
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "डिमन नष्ट करण्यास अपयशी: %s"
 
-#: ../src/daemon/main.c:703
+#: ../src/daemon/main.c:717
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
 msgstr "हा कार्यक्रम रूट नुरूप चालविण्याकरीता नाही (जोपर्यंत --system निश्चित नाही)."
 
-#: ../src/daemon/main.c:705
+#: ../src/daemon/main.c:719
 msgid "Root privileges required."
 msgstr "रूट परवानगी आवश्यक."
 
-#: ../src/daemon/main.c:710
+#: ../src/daemon/main.c:724
 msgid "--start not supported for system instances."
 msgstr "प्रणाली घटनांकरीता --start समर्थीत नाही."
 
-#: ../src/daemon/main.c:715
+#: ../src/daemon/main.c:729
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr "प्रणाली पद्धती अंतर्गत कार्यरत, परंतु --disallow-exit निश्चित केले नाही!"
 
-#: ../src/daemon/main.c:718
+#: ../src/daemon/main.c:732
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr "प्रणाली पद्धती अंतर्गत कार्यरत, परंतु --disallow-module-loading निश्चित केले नाही!"
+msgstr ""
+"प्रणाली पद्धती अंतर्गत कार्यरत, परंतु --disallow-module-loading निश्चित केले नाही!"
 
-#: ../src/daemon/main.c:721
+#: ../src/daemon/main.c:735
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "प्रणाली पद्धती अंतर्गत कार्यरत, SHM पद्धत जबरनरित्या अकार्यान्वीत करत आहे!"
 
-#: ../src/daemon/main.c:726
+#: ../src/daemon/main.c:740
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr "प्रणाली पद्धती अंतर्गत कार्यरत, रिकामे वेळ जबरनरित्या अकार्यान्वीत करत आहे!"
 
-#: ../src/daemon/main.c:753
+#: ../src/daemon/main.c:767
 msgid "Failed to acquire stdio."
 msgstr "stdio प्राप्त करण्यास अपयशी."
 
-#: ../src/daemon/main.c:759
+#: ../src/daemon/main.c:773
 #, c-format
 msgid "pipe failed: %s"
 msgstr "पाइप अपयशी: %s"
 
-#: ../src/daemon/main.c:764
+#: ../src/daemon/main.c:778
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() अपयशी: %s"
 
-#: ../src/daemon/main.c:778
+#: ../src/daemon/main.c:792
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() अपयशी: %s"
 
-#: ../src/daemon/main.c:784
+#: ../src/daemon/main.c:798
 msgid "Daemon startup failed."
 msgstr "डिमन स्टार्टअप अपयशी."
 
-#: ../src/daemon/main.c:786
+#: ../src/daemon/main.c:800
 msgid "Daemon startup successful."
 msgstr "डिमन स्टार्टअप यशस्वी."
 
-#: ../src/daemon/main.c:856
+#: ../src/daemon/main.c:870
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "हे PulseAudio %s आहे"
 
-#: ../src/daemon/main.c:857
+#: ../src/daemon/main.c:871
 #, c-format
 msgid "Compilation host: %s"
 msgstr "कंपाइलेशन यजमान: %s"
 
-#: ../src/daemon/main.c:858
+#: ../src/daemon/main.c:872
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "कंपाइलेशन CFLAGS: %s"
 
-#: ../src/daemon/main.c:861
+#: ../src/daemon/main.c:875
 #, c-format
 msgid "Running on host: %s"
 msgstr "यजमान वर कार्यरत: %s"
 
-#: ../src/daemon/main.c:864
+#: ../src/daemon/main.c:878
 #, c-format
 msgid "Found %u CPUs."
 msgstr "%u CPUs आढळले."
 
-#: ../src/daemon/main.c:866
+#: ../src/daemon/main.c:880
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "पान आकार %lu बाईटस् आहे"
 
-#: ../src/daemon/main.c:869
+#: ../src/daemon/main.c:883
 msgid "Compiled with Valgrind support: yes"
 msgstr "Valgrind समर्थनशी कंपाईल केले: होय"
 
-#: ../src/daemon/main.c:871
+#: ../src/daemon/main.c:885
 msgid "Compiled with Valgrind support: no"
 msgstr "Valgrind समर्थनशी कंपाईल केले: नाही"
 
-#: ../src/daemon/main.c:874
+#: ../src/daemon/main.c:888
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "valgrind पद्धतीत कार्यरत: %s"
 
-#: ../src/daemon/main.c:877
+#: ../src/daemon/main.c:891
 msgid "Optimized build: yes"
 msgstr "अनुकूल बिल्ड: होय"
 
-#: ../src/daemon/main.c:879
+#: ../src/daemon/main.c:893
 msgid "Optimized build: no"
 msgstr "अनुकूल बिल्ड: नाही"
 
-#: ../src/daemon/main.c:883
+#: ../src/daemon/main.c:897
 msgid "NDEBUG defined, all asserts disabled."
 msgstr "NDEBUG वर्णीकृत, सर्व asserts अकार्यान्वीत."
 
-#: ../src/daemon/main.c:885
+#: ../src/daemon/main.c:899
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr "FASTPATH वर्णीकृत, फक्त जलद मार्गीय asserts अकार्यान्वीत केले."
 
-#: ../src/daemon/main.c:887
+#: ../src/daemon/main.c:901
 msgid "All asserts enabled."
 msgstr "सर्व asserts कार्यान्वीत केले."
 
-#: ../src/daemon/main.c:891
+#: ../src/daemon/main.c:905
 msgid "Failed to get machine ID"
 msgstr "मशीन ID प्राप्त करण्यास अपयशी"
 
-#: ../src/daemon/main.c:894
+#: ../src/daemon/main.c:908
 #, c-format
 msgid "Machine ID is %s."
 msgstr "मशीन ID %s आहे."
 
-#: ../src/daemon/main.c:899
+#: ../src/daemon/main.c:912
+#, fuzzy, c-format
+msgid "Session ID is %s."
+msgstr "मशीन ID %s आहे."
+
+#: ../src/daemon/main.c:918
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "रनटाईम डिरेक्ट्री %s वापरत आहे."
 
-#: ../src/daemon/main.c:904
+#: ../src/daemon/main.c:923
 #, c-format
 msgid "Using state directory %s."
 msgstr "स्थिती डिरेक्ट्री %s वापरत आहे."
 
-#: ../src/daemon/main.c:907
+#: ../src/daemon/main.c:926
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "प्रणाली पद्धतीत कार्यरत: %s"
 
-#: ../src/daemon/main.c:922
+#: ../src/daemon/main.c:941
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() अपयशी."
 
-#: ../src/daemon/main.c:934
+#: ../src/daemon/main.c:953
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "नवीन उच्च-बिंदूता टाइमर उपलब्ध! Bon appetit!"
 
-#: ../src/daemon/main.c:936
+#: ../src/daemon/main.c:955
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -484,27 +493,27 @@ msgstr ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 
-#: ../src/daemon/main.c:948
+#: ../src/daemon/main.c:967
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() अपयशी."
 
-#: ../src/daemon/main.c:1010
+#: ../src/daemon/main.c:1029
 msgid "Failed to initialize daemon."
 msgstr "डिमन प्रारंभ करण्यास अपयशी."
 
-#: ../src/daemon/main.c:1015
+#: ../src/daemon/main.c:1034
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "विना विभाग दाखल केल्यास डिमन प्रारंभ झाले, कार्य करण्यास नकार."
 
-#: ../src/daemon/main.c:1032
+#: ../src/daemon/main.c:1051
 msgid "Daemon startup complete."
 msgstr "डिमन स्टार्टअप पूर्ण झाले."
 
-#: ../src/daemon/main.c:1038
+#: ../src/daemon/main.c:1057
 msgid "Daemon shutdown initiated."
 msgstr "डिमन पूर्णपणे बंद करण्यास प्रारंभ केले."
 
-#: ../src/daemon/main.c:1056
+#: ../src/daemon/main.c:1079
 msgid "Daemon terminated."
 msgstr "डिमन नष्ट केले."
 
@@ -663,7 +672,9 @@ msgstr "--fail यास बूलीयन बाब अपेक्षीत �
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
-msgstr "--log-level यास लॉग स्तरीय बाब अपेक्षीत आहे (एकतर क्षेत्र 0..4 अंतर्गत संख्यायी किंवा debug, info, notice, warn, error पैकी एक)."
+msgstr ""
+"--log-level यास लॉग स्तरीय बाब अपेक्षीत आहे (एकतर क्षेत्र 0..4 अंतर्गत संख्यायी किंवा "
+"debug, info, notice, warn, error पैकी एक)."
 
 #: ../src/daemon/cmdline.c:281
 msgid "--high-priority expects boolean argument"
@@ -823,7 +834,9 @@ msgstr "संयोजना फाइल उघडण्यास अपयश
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
-msgstr "निश्चित मुलभूत वाहिनी मॅपकडे निश्चित एकूण मुलभूत वाहिनी पेक्षा वेगळे वाहिनी संख्या समाविष्टीत आहे."
+msgstr ""
+"निश्चित मुलभूत वाहिनी मॅपकडे निश्चित एकूण मुलभूत वाहिनी पेक्षा वेगळे वाहिनी संख्या "
+"समाविष्टीत आहे."
 
 #: ../src/daemon/daemon-conf.c:616
 #, c-format
@@ -847,7 +860,8 @@ msgid "Start the PulseAudio Sound System"
 msgstr "PulseAudio आवाज प्रणाली सुरू करा"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:1
-msgid "High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
+msgid ""
+"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
 msgstr "PulseAudio डिमन करीता उच्च-प्राधान्यक्रम वेळपत्रक (नकारात्मक Unix nice स्तर)"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:2
@@ -855,7 +869,8 @@ msgid "Real-time scheduling for the PulseAudio daemon"
 msgstr "PulseAudio डिमन करीता रियल-टाइम वेळपत्रक"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:3
-msgid "System policy prevents PulseAudio from acquiring high-priority scheduling."
+msgid ""
+"System policy prevents PulseAudio from acquiring high-priority scheduling."
 msgstr "प्रणाली करार PulseAudio ला उच्च-प्राधान्यक्रम वेळपत्रक प्राप्त करण्यापासून रोखते."
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:4
@@ -1225,30 +1240,30 @@ msgstr "%u B"
 msgid "XOpenDisplay() failed"
 msgstr "XOpenDisplay() अपयशी"
 
-#: ../src/pulse/client-conf-x11.c:78
+#: ../src/pulse/client-conf-x11.c:93
 msgid "Failed to parse cookie data"
 msgstr "कुकी डेटा वाचण्यास अपयशी"
 
-#: ../src/pulse/client-conf.c:120
+#: ../src/pulse/client-conf.c:110
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
 msgstr "संयोजना फाइल '%s' उघडण्यास अपयशी: %s"
 
-#: ../src/pulse/context.c:539
+#: ../src/pulse/context.c:546
 msgid "No cookie loaded. Attempting to connect without."
 msgstr "कुकी दाखल केले नाही. जुळवणीचा प्रयत्न करत आहे."
 
-#: ../src/pulse/context.c:669
+#: ../src/pulse/context.c:676
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:722
+#: ../src/pulse/context.c:729
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1387
+#: ../src/pulse/context.c:1402
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "अपरिचीत वाढ '%s' करीता संदेश प्राप्त झाले"
@@ -2131,14 +2146,18 @@ msgstr "तुम्हाला विभाग निर्देशांक 
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean "
 "value.\n"
-msgstr "तुम्ही एकापेक्षा जास्त सिंक निश्चित करू शकत नाही. तुम्हाला बूलीयन मूल्य निश्चित करावे लागेल.\n"
+msgstr ""
+"तुम्ही एकापेक्षा जास्त सिंक निश्चित करू शकत नाही. तुम्हाला बूलीयन मूल्य निश्चित करावे "
+"लागेल.\n"
 
 #: ../src/utils/pactl.c:985
 #, c-format
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value.\n"
-msgstr "तुम्ही एकापेक्षा जास्त स्त्रोत निश्चित करू शकत नाही. तुम्हाला बूलीयन मूल्य निश्चित करावे लागेल.\n"
+msgstr ""
+"तुम्ही एकापेक्षा जास्त स्त्रोत निश्चित करू शकत नाही. तुम्हाला बूलीयन मूल्य निश्चित करावे "
+"लागेल.\n"
 
 #: ../src/utils/pactl.c:997
 #, c-format
@@ -2351,7 +2370,7 @@ msgstr "तात्पूर्ते spec '%s' वापरत आहे\n"
 msgid "Cannot access autospawn lock."
 msgstr "autospawn कुलूप करीता प्रवेश प्राप्य अशक्य."
 
-#: ../src/modules/alsa/alsa-sink.c:393 ../src/modules/alsa/alsa-sink.c:535
+#: ../src/modules/alsa/alsa-sink.c:393 ../src/modules/alsa/alsa-sink.c:541
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2363,10 +2382,10 @@ msgid ""
 msgstr ""
 "ALSA साधनवर नवीन डेटा लिहण्याकरीता सज्ज झाले, परंतु लिहण्याकरीता काहीच आढळले नाही!\n"
 "हे सहसा ALSA ड्राइवर '%s' अंतर्गत बग आहे. कृपया ही अडचण ALSA डेव्हलपर करीता कळवा.\n"
-"POLLOUT द्वारे सज्ज होणे शक्य आहे -- तरी परस्पर snd_pcm_avail() ने 0 पूरविले किंवा "
-"इतर मूल्य < min_avail असावे."
+"POLLOUT द्वारे सज्ज होणे शक्य आहे -- तरी परस्पर snd_pcm_avail() ने 0 पूरविले किंवा इतर "
+"मूल्य < min_avail असावे."
 
-#: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:510
+#: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:516
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2378,8 +2397,8 @@ msgid ""
 msgstr ""
 "ALSA साधनवर नवीन डेटा लिहण्याकरीता सज्ज झाले, परंतु लिहण्याकरीता काहीच आढळले नाही!\n"
 "हे सहसा ALSA ड्राइवर '%s' अंतर्गत बग आहे. कृपया ही अडचण ALSA डेव्हलपर करीता कळवा.\n"
-"POLLIN द्वारे सज्ज होणे शक्य आहे -- तरी परस्पर snd_pcm_avail() ने 0 पूरविले किंवा "
-"इतर मूल्य < min_avail असावे."
+"POLLIN द्वारे सज्ज होणे शक्य आहे -- तरी परस्पर snd_pcm_avail() ने 0 पूरविले किंवा इतर "
+"मूल्य < min_avail असावे."
 
 #: ../src/modules/alsa/module-alsa-card.c:114
 #, c-format
@@ -2397,19 +2416,18 @@ msgid "Input %s"
 msgstr "इनपुट %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:170
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1864
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2001
 msgid "Off"
 msgstr "बंद करा"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1834
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1971
 msgid "High Fidelity Playback (A2DP)"
 msgstr "High Fidelity Playback (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1849
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1986
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr "Telephony Duplex (HSP/HFP)"
 
-#: ../src/modules/reserve-wrap.c:125
+#: ../src/modules/reserve-wrap.c:127
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio आवाज सर्वर"
-
