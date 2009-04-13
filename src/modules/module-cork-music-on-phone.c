@@ -143,7 +143,6 @@ static pa_hook_result_t sink_input_put_cb(pa_core *core, pa_sink_input *i, struc
 }
 
 static pa_hook_result_t sink_input_unlink_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
-    pa_core_assert_ref(core);
     pa_sink_input_assert_ref(i);
 
     return process(u, i, FALSE);
