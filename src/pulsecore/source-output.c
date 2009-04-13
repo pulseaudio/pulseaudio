@@ -440,6 +440,25 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
 
     limit = o->process_rewind ? 0 : o->source->thread_info.max_rewind;
 
+    if (limit > 0 && o->source->monitor_of) {
+        pa_usec_t latency;
+        size_t n;
+
+        /* Hmm, check the latency for knowing how much of the buffered
+         * data is actually still unplayed and might hence still
+         * change. This is suboptimal. Ideally we'd have a call like
+         * pa_sink_get_changeable_size() or so that tells us how much
+         * of the queued data is actually still changeable. Hence
+         * FIXME! */
+
+        latency = pa_sink_get_latency_within_thread(o->source->monitor_of);
+
+        n = pa_usec_to_bytes(latency, &o->source->sample_spec);
+
+        if (n < limit)
+            limit = n;
+    }
+
     /* Implement the delay queue */
     while ((length = pa_memblockq_get_length(o->thread_info.delay_memblockq)) > limit) {
         pa_memchunk qchunk;
