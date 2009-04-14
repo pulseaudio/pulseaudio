@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-13 23:08+0200\n"
-"PO-Revision-Date: 2009-04-05 16:11+0200\n"
+"POT-Creation-Date: 2009-04-14 16:35+0200\n"
+"PO-Revision-Date: 2009-04-14 16:45+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -466,9 +466,9 @@ msgid "Machine ID is %s."
 msgstr "Identyfikator komputera to %s."
 
 #: ../src/daemon/main.c:912
-#, fuzzy, c-format
+#, c-format
 msgid "Session ID is %s."
-msgstr "Identyfikator komputera to %s."
+msgstr "Identyfikator sesji to %s."
 
 #: ../src/daemon/main.c:918
 #, c-format
@@ -1637,11 +1637,10 @@ msgstr "io_new() nie powiodło się.\n"
 msgid "pa_context_new() failed.\n"
 msgstr "pa_context_new() nie powiodło się.\n"
 
-#: ../src/utils/pacat.c:799 ../src/utils/pactl.c:1037
-#: ../src/utils/paplay.c:404
+#: ../src/utils/pacat.c:799
 #, c-format
-msgid "pa_context_connect() failed: %s"
-msgstr "pa_context_connect() nie powiodło się: %s"
+msgid "pa_context_connect() failed: %s\n"
+msgstr "pa_context_connect() nie powiodło się: %s\n"
 
 #: ../src/utils/pacat.c:810
 #, c-format
@@ -2188,6 +2187,11 @@ msgstr "Należy podać nazwę karty/indeks i nazwę profilu\n"
 #, c-format
 msgid "No valid command specified.\n"
 msgstr "Nie podano prawidłowego polecenia.\n"
+
+#: ../src/utils/pactl.c:1037 ../src/utils/paplay.c:404
+#, c-format
+msgid "pa_context_connect() failed: %s"
+msgstr "pa_context_connect() nie powiodło się: %s"
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
