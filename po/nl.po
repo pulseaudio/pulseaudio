@@ -3,14 +3,14 @@
 # This file is distributed under the same license as the pulseaudio.master-tx package.
 # Geert Warrink <geert.warrink@onsnet.nu>, 2009.
 # , fuzzy
-# 
-# 
+#
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-04-05 08:27+0000\n"
-"PO-Revision-Date: 2009-04-14 19:33+0200\n"
+"PO-Revision-Date: 2009-04-15 21:04+0200\n"
 "Last-Translator: Geert Warrink <geert.warrink@onsnet.nu>\n"
 "Language-Team: Dutch <nl@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -68,9 +68,11 @@ msgid ""
 "ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
-msgstr "snd_pcm_avail() gaf een waarde terug die uitzonderlijk groot is: %lu bytes (%lu ms).\n"
-"Waarschijnlijk is dit een bug in de ALSA driver '%s'. Rapporteer dit probleem a.u.b. aan "
-"de ALSA ontwikkelaars."
+msgstr ""
+"snd_pcm_avail() gaf een waarde terug die uitzonderlijk groot is: %lu bytes (%"
+"lu ms).\n"
+"Waarschijnlijk is dit een bug in de ALSA driver '%s'. Rapporteer dit "
+"probleem a.u.b. aan de ALSA ontwikkelaars."
 
 #: ../src/modules/alsa/alsa-util.c:1649
 #, c-format
@@ -79,9 +81,11 @@ msgid ""
 "lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
-msgstr "snd_pcm_delay() gaf een waarde terug die uitzonderlijk groot is: %li bytes (%s%lu ms).\n"
-"Waarschijnlijk is  dit een bug in de ALSA driver '%s'. Rapporteer dit probleem a.u.b. aan "
-"de ALSA ontwikkelaars."
+msgstr ""
+"snd_pcm_delay() gaf een waarde terug die uitzonderlijk groot is: %li bytes (%"
+"s%lu ms).\n"
+"Waarschijnlijk is  dit een bug in de ALSA driver '%s'. Rapporteer dit "
+"probleem a.u.b. aan de ALSA ontwikkelaars."
 
 #: ../src/modules/alsa/alsa-util.c:1695
 #, c-format
@@ -90,9 +94,11 @@ msgid ""
 "(%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
-msgstr "snd_pcm_mmap_begin() gaf een waarde terug die uitzonderlijk groot is: %lu bytes (%lu ms).\n"
-"Waarschijnlijk is dit een bug in de ALSA driver '%s'. Rapporteer dit probleem a.u.b aan "
-"de ALSA ontwikkelaars."
+msgstr ""
+"snd_pcm_mmap_begin() gaf een waarde terug die uitzonderlijk groot is: %lu "
+"bytes (%lu ms).\n"
+"Waarschijnlijk is dit een bug in de ALSA driver '%s'. Rapporteer dit "
+"probleem a.u.b aan de ALSA ontwikkelaars."
 
 #: ../src/pulsecore/sink.c:2061
 msgid "Internal Audio"
@@ -276,226 +282,234 @@ msgid ""
 "For enabling real-time/high-priority scheduling please acquire the "
 "appropriate PolicyKit privileges, or become a member of '%s', or increase "
 "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
-msgstr ""
+msgstr "Aangeroepen met SUID root en real-time en/of high-priority inplannen was verzocht "
+"in de configuratie. Echter de nodige rechten ontbreken:\n"
+"We zijn niet in groep '%s', PolicyKit weigert om ons de gevraagde rechten te geven "
+"en we hebben geen rect om de RLIMIT_NICE/RLIMIT_RTPRIO limieten te verhogen.\n"
+"Voor het aanzetten van real-time/high-priority inplannen mort je juiste PolicyKit privileges "
+"hebben, of lid van '%s\" worden, of de RLIMIT_NICE/RLIMIT_RTPRIO limieten voor deze "
+"gebruiker verhogen."
 
 #: ../src/daemon/main.c:566
 msgid ""
 "High-priority scheduling enabled in configuration but not allowed by policy."
-msgstr ""
+msgstr "Hoge prioriteit inplannen is aangezet in de configuratie maar niet toegestaan door de richtlijnen."
 
 #: ../src/daemon/main.c:595
 msgid "Successfully increased RLIMIT_RTPRIO"
-msgstr ""
+msgstr "RLIMIT_RTPRIO met succes verhoogd"
 
 #: ../src/daemon/main.c:598
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
-msgstr ""
+msgstr "RLIMIT_RTPRIO mislukte: %s"
 
 #: ../src/daemon/main.c:605
 msgid "Giving up CAP_NICE"
-msgstr ""
+msgstr "Opgeven CAP_NICE"
 
 #: ../src/daemon/main.c:612
 msgid ""
 "Real-time scheduling enabled in configuration but not allowed by policy."
-msgstr ""
+msgstr "Real-time inplannen is aangezet in de configuratie maar niet toegestaan door de richtlijnen."
 
 #: ../src/daemon/main.c:673
 msgid "Daemon not running"
-msgstr ""
+msgstr "Daemon draait niet"
 
 #: ../src/daemon/main.c:675
 #, c-format
 msgid "Daemon running as PID %u"
-msgstr ""
+msgstr "Daemon draait met PID %u"
 
 #: ../src/daemon/main.c:685
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr ""
+msgstr "Afschieten mislukt van daemon: '%s'"
 
 #: ../src/daemon/main.c:703
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr ""
+msgstr "Dit programma is niet bedoeld om als root gedraaid te worden (behalve als --system "
+"is opgegeven)."
 
 #: ../src/daemon/main.c:705
 msgid "Root privileges required."
-msgstr ""
+msgstr "Root rechten vereisd"
 
 #: ../src/daemon/main.c:710
 msgid "--start not supported for system instances."
-msgstr ""
+msgstr "--start wordt niet ondersteund voor systeem instances"
 
 #: ../src/daemon/main.c:715
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr ""
+msgstr "Draaiend in systeem mode, maar --disallow-exit is niet gezet!"
 
 #: ../src/daemon/main.c:718
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr ""
+msgstr "Draaiend in systeem mode, maar --disallow-module-loading is niet gezet!"
 
 #: ../src/daemon/main.c:721
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr ""
+msgstr "Draaiend in systeem mode, geforceerd uitzetten van SHM mode!"
 
 #: ../src/daemon/main.c:726
 msgid "Running in system mode, forcibly disabling exit idle time!"
-msgstr ""
+msgstr "Draaiend in systeem mode, geforceerd uitzetten van exit idle time!"
 
 #: ../src/daemon/main.c:753
 msgid "Failed to acquire stdio."
-msgstr ""
+msgstr "Verkrijgen van stdio mislukte."
 
 #: ../src/daemon/main.c:759
 #, c-format
 msgid "pipe failed: %s"
-msgstr ""
+msgstr "pipe mislukte: %s"
 
 #: ../src/daemon/main.c:764
 #, c-format
 msgid "fork() failed: %s"
-msgstr ""
+msgstr "fork() mislukte: %s"
 
 #: ../src/daemon/main.c:778
 #, c-format
 msgid "read() failed: %s"
-msgstr ""
+msgstr "read() mislukte: %s"
 
 #: ../src/daemon/main.c:784
 msgid "Daemon startup failed."
-msgstr ""
+msgstr "Daemon opstarten mislukte."
 
 #: ../src/daemon/main.c:786
 msgid "Daemon startup successful."
-msgstr ""
+msgstr "Daemon met succes opgestart."
 
 #: ../src/daemon/main.c:856
 #, c-format
 msgid "This is PulseAudio %s"
-msgstr ""
+msgstr "Dit is PulseAudio %s"
 
 #: ../src/daemon/main.c:857
 #, c-format
 msgid "Compilation host: %s"
-msgstr ""
+msgstr "Compilatie host: %s"
 
 #: ../src/daemon/main.c:858
 #, c-format
 msgid "Compilation CFLAGS: %s"
-msgstr ""
+msgstr "Compilatie CFLAGS: %s"
 
 #: ../src/daemon/main.c:861
 #, c-format
 msgid "Running on host: %s"
-msgstr ""
+msgstr "Draaiend op host: %s"
 
 #: ../src/daemon/main.c:864
 #, c-format
 msgid "Found %u CPUs."
-msgstr ""
+msgstr "%u CPU's gevonden."
 
 #: ../src/daemon/main.c:866
 #, c-format
 msgid "Page size is %lu bytes"
-msgstr ""
+msgstr "Pagina grootte is %lu bytes"
 
 #: ../src/daemon/main.c:869
 msgid "Compiled with Valgrind support: yes"
-msgstr ""
+msgstr "Gecompileerd met Valgrind ondersteuning: ja"
 
 #: ../src/daemon/main.c:871
 msgid "Compiled with Valgrind support: no"
-msgstr ""
+msgstr "Gecompileerd met Valgrind ondersteuning: nee"
 
 #: ../src/daemon/main.c:874
 #, c-format
 msgid "Running in valgrind mode: %s"
-msgstr ""
+msgstr "Draaiend in valgrind mode: %s"
 
 #: ../src/daemon/main.c:877
 msgid "Optimized build: yes"
-msgstr ""
+msgstr "Optimaal gebouwd: ja"
 
 #: ../src/daemon/main.c:879
 msgid "Optimized build: no"
-msgstr ""
+msgstr "Optimaak gebouwd: nee"
 
 #: ../src/daemon/main.c:883
 msgid "NDEBUG defined, all asserts disabled."
-msgstr ""
+msgstr "NDEBUG gedefinieerd, alle verklaringen uitgezet."
 
 #: ../src/daemon/main.c:885
 msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr ""
+msgstr "FASTPATH gedefinieerd, alleen snel pad verklaringen uitgezet."
 
 #: ../src/daemon/main.c:887
 msgid "All asserts enabled."
-msgstr ""
+msgstr "Alle verklaringen aangezet."
 
 #: ../src/daemon/main.c:891
 msgid "Failed to get machine ID"
-msgstr ""
+msgstr "Machine ID verkrijgen mislukte"
 
 #: ../src/daemon/main.c:894
 #, c-format
 msgid "Machine ID is %s."
-msgstr ""
+msgstr "Machine ID is: %s."
 
 #: ../src/daemon/main.c:899
 #, c-format
 msgid "Using runtime directory %s."
-msgstr ""
+msgstr "Gebruik van runtime map %s."
 
 #: ../src/daemon/main.c:904
 #, c-format
 msgid "Using state directory %s."
-msgstr ""
+msgstr "Verbruik van state map %s."
 
 #: ../src/daemon/main.c:907
 #, c-format
 msgid "Running in system mode: %s"
-msgstr ""
+msgstr "Draaiend in systeem mode: %s"
 
 #: ../src/daemon/main.c:922
 msgid "pa_pid_file_create() failed."
-msgstr ""
+msgstr "pa_pid_file_create() mislukte."
 
 #: ../src/daemon/main.c:934
 msgid "Fresh high-resolution timers available! Bon appetit!"
-msgstr ""
+msgstr "Verse high-resolution timers beschikbaar! Smakelijk eten!"
 
 #: ../src/daemon/main.c:936
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
-msgstr ""
+msgstr "Kerel, je kernel stinkt! De aanbeveling van de chef is vandaag Linux met aangezette "
+"high-resolution timers!"
 
 #: ../src/daemon/main.c:948
 msgid "pa_core_new() failed."
-msgstr ""
+msgstr "pa_core_new() mislukte."
 
 #: ../src/daemon/main.c:1010
 msgid "Failed to initialize daemon."
-msgstr ""
+msgstr "Initialiseren van de daemon mislukte."
 
 #: ../src/daemon/main.c:1015
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr ""
+msgstr "Daemon opgestart zonder geladen modules, dat werkt niet."
 
 #: ../src/daemon/main.c:1032
 msgid "Daemon startup complete."
-msgstr ""
+msgstr "Daemon opstarten is klaar."
 
 #: ../src/daemon/main.c:1038
 msgid "Daemon shutdown initiated."
-msgstr ""
+msgstr "Daemon afsluiten is begonnen."
 
 #: ../src/daemon/main.c:1056
 msgid "Daemon terminated."
-msgstr ""
+msgstr "Daemon is afgesloten."
 
 #: ../src/daemon/cmdline.c:121
 #, c-format
@@ -578,158 +592,181 @@ msgstr ""
 "      --dump-conf                       Dump standaard configuratie\n"
 "      --dump-modules                    Dump lijst van beschikbare modules\n"
 "      --dump-resample-methods           Dump beschikbare resample methodes\n"
-"      --cleanup-shm                     Schoon oud gedeelde geheugen segmenten op\n"
-"      --start                           Start de daemon als deze niet draait\n"
+"      --cleanup-shm                     Schoon oud gedeelde geheugen "
+"segmenten op\n"
+"      --start                           Start de daemon als deze niet "
+"draait\n"
 "  -k  --kill                            Schiet een draaiende daemon af\n"
-"      --check                           Controleer voor een draaiende daemon (geeft alleen "
-"uitgangs code terug)\n"
+"      --check                           Controleer voor een draaiende daemon "
+"(geeft alleen uitgangs code terug)\n"
 "\n"
 "OPTIES:\n"
 "      --system[=BOOL]                   Draaieals systeem-brede instance\n"
 "  -D, --daemonize[=BOOL]                Maak daemon na opstarten\n"
 "      --fail[=BOOL]                     Verlaat als opstarten mislukt\n"
-"      --high-priority[=BOOL]            Probeer een hoog nice nivo in te stellen\n"
+"      --high-priority[=BOOL]            Probeer een hoog nice nivo in te "
+"stellen\n"
 "                                        (only beschikbaar voor, als SUID of\n"
 "                                        met verhoogde RLIMIT_NICE)\n"
-"      --realtime[=BOOL]                 Probeer realtime scheduling aan te zetten \n"
-"                                        (alleen beschikbaar voor root, als SUID of\n"
+"      --realtime[=BOOL]                 Probeer realtime scheduling aan te "
+"zetten \n"
+"                                        (alleen beschikbaar voor root, als "
+"SUID of\n"
 "                                        met verhoogde RLIMIT_RTPRIO)\n"
-"      --disallow-module-loading[=BOOL]  Sta de module gebruiker niet toe om de gevraagde\n"
-"                                        module te laden/verwijderen na opstarten\n"
-"      --disallow-exit[=BOOL]            Sta de gebruiker het gevraagde vertrek niet toe\n"
-"      --exit-idle-time=SECS             Sluit de daemon af deze niets doet en deze tijd\n"
+"      --disallow-module-loading[=BOOL]  Sta de module gebruiker niet toe om "
+"de gevraagde\n"
+"                                        module te laden/verwijderen na "
+"opstarten\n"
+"      --disallow-exit[=BOOL]            Sta de gebruiker het gevraagde "
+"vertrek niet toe\n"
+"      --exit-idle-time=SECS             Sluit de daemon af deze niets doet "
+"en deze tijd\n"
 "                                        verstreken is\n"
-"      --module-idle-time=SECS           Verwijder automatisch geladen modules als deze niets\n"
+"      --module-idle-time=SECS           Verwijder automatisch geladen "
+"modules als deze niets\n"
 "                                        doen en deze tijd verstreken is\n"
-"      --scache-idle-time=SECS           Verwijder automatisch geladen samples als deze niets\n"
+"      --scache-idle-time=SECS           Verwijder automatisch geladen "
+"samples als deze niets\n"
 "                                        doen en deze tijd verstreken is\n"
-"      --log-level[=LEVEL]               Verhoog of instellen van breedsprakigheids nivo\n"
+"      --log-level[=LEVEL]               Verhoog of instellen van "
+"breedsprakigheids nivo\n"
 "  -v                                    Verhoog breedsprakigheids nivo\n"
 "      --log-target={auto,syslog,stderr} Specificeer het log doel\n"
-"      --log-meta[=BOOL]                 Voeg code locatie toe aan log boodschappen\n"
-"      --log-time[=BOOL]                 Voeg tijdstempels toe aan log boodschappen\n"
-"      --log-backtrace=FRAMES            Voeg een backtrace toe aan log boodscvhappen\n"
-"  -p, --dl-search-path=PATH             Stel het zoek pad voor dynamisch gedeelde\n"
+"      --log-meta[=BOOL]                 Voeg code locatie toe aan log "
+"boodschappen\n"
+"      --log-time[=BOOL]                 Voeg tijdstempels toe aan log "
+"boodschappen\n"
+"      --log-backtrace=FRAMES            Voeg een backtrace toe aan log "
+"boodscvhappen\n"
+"  -p, --dl-search-path=PATH             Stel het zoek pad voor dynamisch "
+"gedeelde\n"
 "                                        objecten in (plugins)\n"
-"      --resample-method=METHOD          Gebruik de opgegeven resampling methode\n"
+"      --resample-method=METHOD          Gebruik de opgegeven resampling "
+"methode\n"
 "                                        (Zie --dump-resample-methods voor\n"
 "                                        mogelijke waardes)\n"
 "      --use-pid-file[=BOOL]             Maak een PID bestand\n"
-"      --no-cpu-limit[=BOOL]             Installeer geen CPU load begrenzer op\n"
+"      --no-cpu-limit[=BOOL]             Installeer geen CPU load begrenzer "
+"op\n"
 "                                        platforms die dat ondersteunen.\n"
-"      --disable-shm[=BOOL]              Zet gedeeld heugen ondersteuning uit.\n"
+"      --disable-shm[=BOOL]              Zet gedeeld heugen ondersteuning "
+"uit.\n"
 "\n"
 "OPSTART SCRIPT:\n"
-"  -L, --load=\"MODULE ARGUMENTS\"         Laad de opgegeven plugin module met\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Laad de opgegeven plugin module "
+"met\n"
 "                                        de opgegeven argumenten\n"
 "  -F, --file=FILENAME                   Draai het opgegeven script\n"
-"  -C                                    Open een commandoregel op de draaiende TTY\n"
+"  -C                                    Open een commandoregel op de "
+"draaiende TTY\n"
 "                                        na het opstarten\n"
 "\n"
-"  -n                                    Laad het standaard script bestand niet\n"
+"  -n                                    Laad het standaard script bestand "
+"niet\n"
 
 #: ../src/daemon/cmdline.c:252
 msgid "--daemonize expects boolean argument"
-msgstr ""
+msgstr "--daemonize verwacht een boolean argument"
 
 #: ../src/daemon/cmdline.c:259
 msgid "--fail expects boolean argument"
-msgstr ""
+msgstr "--fail verwacht een boolean argument"
 
 #: ../src/daemon/cmdline.c:269
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
-msgstr ""
+msgstr "--log-level verwacht een log level argument (numeriek uit de reeks 0..4 of een "
+"van type debug, info, notice, warn, error)."
 
 #: ../src/daemon/cmdline.c:281
 msgid "--high-priority expects boolean argument"
-msgstr ""
+msgstr "--high-priority verwacht een boolean argument"
 
 #: ../src/daemon/cmdline.c:288
 msgid "--realtime expects boolean argument"
-msgstr ""
+msgstr "--realtime verwacht een boolean argument"
 
 #: ../src/daemon/cmdline.c:295
 msgid "--disallow-module-loading expects boolean argument"
-msgstr ""
+msgstr "--disallow-module-loading verwacht een boolean argument"
 
 #: ../src/daemon/cmdline.c:302
 msgid "--disallow-exit expects boolean argument"
-msgstr ""
+msgstr "--disallow-exit verwacht een bolean argument"
 
 #: ../src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
-msgstr ""
+msgstr "--use-pid-file verwacht een boolean argument"
 
 #: ../src/daemon/cmdline.c:326
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
-msgstr ""
+msgstr "Ongeldig log doel: gebruik een van 'syslog', 'stderr', 'auto'."
 
 #: ../src/daemon/cmdline.c:333
 msgid "--log-time expects boolean argument"
-msgstr ""
+msgstr "--log-time verwacht een boolean argument"
 
 #: ../src/daemon/cmdline.c:340
 msgid "--log-meta expects boolean argument"
-msgstr ""
+msgstr "--log-meta verwacht een boolean argument"
 
 #: ../src/daemon/cmdline.c:359
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr ""
+msgstr "Ongeldige resample methode '%s'."
 
 #: ../src/daemon/cmdline.c:366
 msgid "--system expects boolean argument"
-msgstr ""
+msgstr "--system verwacht een boolean argument"
 
 #: ../src/daemon/cmdline.c:373
 msgid "--no-cpu-limit expects boolean argument"
-msgstr ""
+msgstr "--no-cpu-limit verwacht een boolean argument"
 
 #: ../src/daemon/cmdline.c:380
 msgid "--disable-shm expects boolean argument"
-msgstr ""
+msgstr "--disable-shm verwacht een boolean argument"
 
 #: ../src/daemon/dumpmodules.c:60
 #, c-format
 msgid "Name: %s\n"
-msgstr ""
+msgstr "Naam: %s\n"
 
 #: ../src/daemon/dumpmodules.c:63
 #, c-format
 msgid "No module information available\n"
-msgstr ""
+msgstr "Geen module informatie beschikbaar\n"
 
 #: ../src/daemon/dumpmodules.c:66
 #, c-format
 msgid "Version: %s\n"
-msgstr ""
+msgstr "Versie: %s\n"
 
 #: ../src/daemon/dumpmodules.c:68
 #, c-format
 msgid "Description: %s\n"
-msgstr ""
+msgstr "Beschrijving: %s\n"
 
 #: ../src/daemon/dumpmodules.c:70
 #, c-format
 msgid "Author: %s\n"
-msgstr ""
+msgstr "Auteur: %s\n"
 
 #: ../src/daemon/dumpmodules.c:72
 #, c-format
 msgid "Usage: %s\n"
-msgstr ""
+msgstr "Gebruik: %s\n"
 
 #: ../src/daemon/dumpmodules.c:73
 #, c-format
 msgid "Load Once: %s\n"
-msgstr ""
+msgstr "Laad eenmaal: %s\n"
 
 #: ../src/daemon/dumpmodules.c:77
 #, c-format
 msgid "Path: %s\n"
-msgstr ""
+msgstr "Pad: %s\n"
 
 #: ../src/daemon/daemon-conf.c:215
 #, c-format
