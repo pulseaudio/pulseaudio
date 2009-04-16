@@ -1315,7 +1315,7 @@ module_oss_la_LIBADD = $(AM_LIBADD) liboss-util.la libpulsecore-@PA_MAJORMINORMI
 
 # ALSA
 
-libalsa_util_la_SOURCES = modules/alsa/alsa-util.c modules/alsa/alsa-util.h modules/alsa/alsa-sink.c modules/alsa/alsa-sink.h modules/alsa/alsa-source.c modules/alsa/alsa-source.h
+libalsa_util_la_SOURCES = modules/alsa/alsa-util.c modules/alsa/alsa-util.h modules/alsa/alsa-sink.c modules/alsa/alsa-sink.h modules/alsa/alsa-source.c modules/alsa/alsa-source.h modules/reserve-wrap.c modules/reserve-wrap.h
 libalsa_util_la_LDFLAGS = -avoid-version
 libalsa_util_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
@@ -1333,7 +1333,7 @@ libalsa_util_la_CFLAGS += $(UDEV_CFLAGS)
 endif
 
 if HAVE_DBUS
-libalsa_util_la_SOURCES += modules/reserve.h modules/reserve.c modules/reserve-wrap.c modules/reserve-wrap.h
+libalsa_util_la_SOURCES += modules/reserve.h modules/reserve.c
 libalsa_util_la_LIBADD += $(DBUS_LIBS)
 libalsa_util_la_CFLAGS += $(DBUS_CFLAGS)
 endif

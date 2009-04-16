@@ -31,30 +31,37 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/shared.h>
-#include <pulsecore/dbus-shared.h>
 
+#ifdef HAVE_DBUS
+#include <pulsecore/dbus-shared.h>
 #include "reserve.h"
+#endif
+
 #include "reserve-wrap.h"
 
 struct pa_reserve_wrapper {
     PA_REFCNT_DECLARE;
     pa_core *core;
-    pa_dbus_connection *connection;
     pa_hook hook;
-    struct rd_device *device;
     char *shared_name;
+#ifdef HAVE_DBUS
+    pa_dbus_connection *connection;
+    struct rd_device *device;
+#endif
 };
 
 static void reserve_wrapper_free(pa_reserve_wrapper *r) {
     pa_assert(r);
 
+#ifdef HAVE_DBUS
     if (r->device)
         rd_release(r->device);
 
-    pa_hook_done(&r->hook);
-
     if (r->connection)
         pa_dbus_connection_unref(r->connection);
+#endif
+
+    pa_hook_done(&r->hook);
 
     if (r->shared_name) {
         pa_assert_se(pa_shared_remove(r->core, r->shared_name) >= 0);
@@ -64,6 +71,7 @@ static void reserve_wrapper_free(pa_reserve_wrapper *r) {
     pa_xfree(r);
 }
 
+#ifdef HAVE_DBUS
 static int request_cb(rd_device *d, int forced) {
     pa_reserve_wrapper *r;
     int k;
@@ -81,14 +89,17 @@ static int request_cb(rd_device *d, int forced) {
 
     return k < 0 ? -1 : 1;
 }
+#endif
 
 pa_reserve_wrapper* pa_reserve_wrapper_get(pa_core *c, const char *device_name) {
     pa_reserve_wrapper *r;
-    DBusError error;
     int k;
     char *t;
+#ifdef HAVE_DBUS
+    DBusError error;
 
     dbus_error_init(&error);
+#endif
 
     pa_assert(c);
     pa_assert(device_name);
@@ -112,6 +123,7 @@ pa_reserve_wrapper* pa_reserve_wrapper_get(pa_core *c, const char *device_name) 
 
     pa_assert_se(pa_shared_set(c, r->shared_name, r) >= 0);
 
+#ifdef HAVE_DBUS
     if (!(r->connection = pa_dbus_bus_get(c, DBUS_BUS_SESSION, &error)) || dbus_error_is_set(&error)) {
         pa_log_warn("Unable to contact D-Bus session bus: %s: %s", error.name, error.message);
 
@@ -143,13 +155,15 @@ pa_reserve_wrapper* pa_reserve_wrapper_get(pa_core *c, const char *device_name) 
     rd_set_userdata(r->device, r);
 
     return r;
-
 fail:
     dbus_error_free(&error);
 
     reserve_wrapper_free(r);
 
     return NULL;
+#else
+    return r;
+#endif
 }
 
 void pa_reserve_wrapper_unref(pa_reserve_wrapper *r) {
@@ -173,5 +187,7 @@ void pa_reserve_wrapper_set_application_device_name(pa_reserve_wrapper *r, const
     pa_assert(r);
     pa_assert(PA_REFCNT_VALUE(r) >= 1);
 
+#ifdef HAVE_DBUS
     rd_set_application_device_name(r->device, name);
+#endif
 }
