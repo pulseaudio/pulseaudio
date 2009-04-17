@@ -794,7 +794,7 @@ static void sig_callback(pa_mainloop_api *api, pa_signal_event*e, int sig, void 
     pa_log_debug("caught signal");
 
     if (u->sink) {
-        pa_sink_get_volume(u->sink, TRUE);
+        pa_sink_get_volume(u->sink, TRUE, FALSE);
         pa_sink_get_mute(u->sink, TRUE);
     }
 
