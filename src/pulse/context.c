@@ -902,7 +902,8 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
         /* The system wide instance via PF_LOCAL */
         c->server_list = pa_strlist_prepend(c->server_list, PA_SYSTEM_RUNTIME_PATH PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET);
 
-    try_next_connection(c);
+    if (!c->client)
+        try_next_connection(c);
 
 finish:
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
