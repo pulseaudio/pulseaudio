@@ -24,6 +24,8 @@
 #include <config.h>
 #endif
 
+#include <pulsecore/core-util.h>
+
 #include "object.h"
 
 pa_object *pa_object_new_internal(size_t size, const char *type_name, int (*check_type)(const char *type_name)) {
@@ -57,14 +59,15 @@ pa_object *pa_object_ref(pa_object *o) {
 void pa_object_unref(pa_object *o) {
     pa_object_assert_ref(o);
 
-    if (PA_REFCNT_DEC(o) <= 0) {
+    if (PA_REFCNT_VALUE(o) == 1) {
         pa_assert(o->free);
         o->free(o);
-    }
+    } else
+        pa_assert_se(PA_REFCNT_DEC(o) == 0);
 }
 
 int pa_object_check_type(const char *type_name) {
     pa_assert(type_name);
 
-    return strcmp(type_name, "pa_object") == 0;
+    return pa_streq(type_name, "pa_object");
 }
