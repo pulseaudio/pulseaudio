@@ -296,7 +296,15 @@ ssize_t pa_read(int fd, void *buf, size_t count, int *type) {
 
 #endif
 
-    return read(fd, buf, count);
+    for (;;) {
+        ssize_t r;
+
+        if ((r = read(fd, buf, count)) < 0)
+            if (errno == EINTR)
+                continue;
+
+        return r;
+    }
 }
 
 /** Similar to pa_read(), but handles writes */
@@ -305,8 +313,17 @@ ssize_t pa_write(int fd, const void *buf, size_t count, int *type) {
     if (!type || *type == 0) {
         ssize_t r;
 
-        if ((r = send(fd, buf, count, MSG_NOSIGNAL)) >= 0)
+        for (;;) {
+            if ((r = send(fd, buf, count, MSG_NOSIGNAL)) < 0) {
+
+                if (errno == EINTR)
+                    continue;
+
+                break;
+            }
+
             return r;
+        }
 
 #ifdef OS_IS_WIN32
         if (WSAGetLastError() != WSAENOTSOCK) {
@@ -322,7 +339,15 @@ ssize_t pa_write(int fd, const void *buf, size_t count, int *type) {
             *type = 1;
     }
 
-    return write(fd, buf, count);
+    for (;;) {
+        ssize_t r;
+
+        if ((r = write(fd, buf, count)) < 0)
+            if (errno == EINTR)
+                continue;
+
+        return r;
+    }
 }
 
 /** Calls read() in a loop. Makes sure that as much as 'size' bytes,
@@ -407,11 +432,11 @@ int pa_close(int fd) {
     for (;;) {
         int r;
 
-        if ((r = close(fd)) >= 0)
-            return r;
+        if ((r = close(fd)) < 0)
+            if (errno == EINTR)
+                continue;
 
-        if (errno != EINTR)
-            return r;
+        return r;
     }
 }
 
