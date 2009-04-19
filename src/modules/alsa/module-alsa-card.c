@@ -304,7 +304,7 @@ int pa__init(pa_module *m) {
     u->modargs = ma;
 
     if ((alsa_card_index = snd_card_get_index(u->device_id)) < 0) {
-        pa_log("Card '%s' doesn't exist: %s", u->device_id, snd_strerror(alsa_card_index));
+        pa_log("Card '%s' doesn't exist: %s", u->device_id, pa_alsa_strerror(alsa_card_index));
         goto fail;
     }
 

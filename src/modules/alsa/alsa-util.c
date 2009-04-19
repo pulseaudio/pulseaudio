@@ -33,6 +33,7 @@
 #include <pulse/timeval.h>
 #include <pulse/util.h>
 #include <pulse/i18n.h>
+#include <pulse/utf8.h>
 
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
@@ -40,6 +41,7 @@
 #include <pulsecore/atomic.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/once.h>
+#include <pulsecore/thread.h>
 
 #include "alsa-util.h"
 
@@ -106,7 +108,7 @@ static void io_cb(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags_t
     pa_assert(i != fdl->num_fds);
 
     if ((err = snd_mixer_poll_descriptors_revents(fdl->mixer, fdl->work_fds, fdl->num_fds, &revents)) < 0) {
-        pa_log_error("Unable to get poll revent: %s", snd_strerror(err));
+        pa_log_error("Unable to get poll revent: %s", pa_alsa_strerror(err));
         return;
     }
 
@@ -129,7 +131,7 @@ static void defer_cb(pa_mainloop_api*a, pa_defer_event* e, void *userdata) {
     a->defer_enable(fdl->defer, 0);
 
     if ((n = snd_mixer_poll_descriptors_count(fdl->mixer)) < 0) {
-        pa_log("snd_mixer_poll_descriptors_count() failed: %s", snd_strerror(n));
+        pa_log("snd_mixer_poll_descriptors_count() failed: %s", pa_alsa_strerror(n));
         return;
     }
     num_fds = (unsigned) n;
@@ -146,7 +148,7 @@ static void defer_cb(pa_mainloop_api*a, pa_defer_event* e, void *userdata) {
     memset(fdl->work_fds, 0, sizeof(struct pollfd) * num_fds);
 
     if ((err = snd_mixer_poll_descriptors(fdl->mixer, fdl->work_fds, num_fds)) < 0) {
-        pa_log_error("Unable to get poll descriptors: %s", snd_strerror(err));
+        pa_log_error("Unable to get poll descriptors: %s", pa_alsa_strerror(err));
         return;
     }
 
@@ -518,42 +520,42 @@ int pa_alsa_set_sw_params(snd_pcm_t *pcm, snd_pcm_uframes_t avail_min) {
     snd_pcm_sw_params_alloca(&swparams);
 
     if ((err = snd_pcm_sw_params_current(pcm, swparams) < 0)) {
-        pa_log_warn("Unable to determine current swparams: %s\n", snd_strerror(err));
+        pa_log_warn("Unable to determine current swparams: %s\n", pa_alsa_strerror(err));
         return err;
     }
 
     if ((err = snd_pcm_sw_params_set_period_event(pcm, swparams, 0)) < 0) {
-        pa_log_warn("Unable to disable period event: %s\n", snd_strerror(err));
+        pa_log_warn("Unable to disable period event: %s\n", pa_alsa_strerror(err));
         return err;
     }
 
     if ((err = snd_pcm_sw_params_set_tstamp_mode(pcm, swparams, SND_PCM_TSTAMP_ENABLE)) < 0) {
-        pa_log_warn("Unable to enable time stamping: %s\n", snd_strerror(err));
+        pa_log_warn("Unable to enable time stamping: %s\n", pa_alsa_strerror(err));
         return err;
     }
 
     if ((err = snd_pcm_sw_params_get_boundary(swparams, &boundary)) < 0) {
-        pa_log_warn("Unable to get boundary: %s\n", snd_strerror(err));
+        pa_log_warn("Unable to get boundary: %s\n", pa_alsa_strerror(err));
         return err;
     }
 
     if ((err = snd_pcm_sw_params_set_stop_threshold(pcm, swparams, boundary)) < 0) {
-        pa_log_warn("Unable to set stop threshold: %s\n", snd_strerror(err));
+        pa_log_warn("Unable to set stop threshold: %s\n", pa_alsa_strerror(err));
         return err;
     }
 
     if ((err = snd_pcm_sw_params_set_start_threshold(pcm, swparams, (snd_pcm_uframes_t) -1)) < 0) {
-        pa_log_warn("Unable to set start threshold: %s\n", snd_strerror(err));
+        pa_log_warn("Unable to set start threshold: %s\n", pa_alsa_strerror(err));
         return err;
     }
 
     if ((err = snd_pcm_sw_params_set_avail_min(pcm, swparams, avail_min)) < 0) {
-        pa_log_error("snd_pcm_sw_params_set_avail_min() failed: %s", snd_strerror(err));
+        pa_log_error("snd_pcm_sw_params_set_avail_min() failed: %s", pa_alsa_strerror(err));
         return err;
     }
 
     if ((err = snd_pcm_sw_params(pcm, swparams)) < 0) {
-        pa_log_warn("Unable to set sw params: %s\n", snd_strerror(err));
+        pa_log_warn("Unable to set sw params: %s\n", pa_alsa_strerror(err));
         return err;
     }
 
@@ -942,7 +944,7 @@ snd_pcm_t *pa_alsa_open_by_device_string(
                                 SND_PCM_NO_AUTO_RESAMPLE|
                                 SND_PCM_NO_AUTO_CHANNELS|
                                 (reformat ? 0 : SND_PCM_NO_AUTO_FORMAT))) < 0) {
-            pa_log_info("Error opening PCM device %s: %s", d, snd_strerror(err));
+            pa_log_info("Error opening PCM device %s: %s", d, pa_alsa_strerror(err));
             goto fail;
         }
 
@@ -972,7 +974,7 @@ snd_pcm_t *pa_alsa_open_by_device_string(
                 continue;
             }
 
-            pa_log_info("Failed to set hardware parameters on %s: %s", d, snd_strerror(err));
+            pa_log_info("Failed to set hardware parameters on %s: %s", d, pa_alsa_strerror(err));
             snd_pcm_close(pcm_handle);
 
             goto fail;
@@ -1088,17 +1090,17 @@ int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev) {
     pa_assert(dev);
 
     if ((err = snd_mixer_attach(mixer, dev)) < 0) {
-        pa_log_info("Unable to attach to mixer %s: %s", dev, snd_strerror(err));
+        pa_log_info("Unable to attach to mixer %s: %s", dev, pa_alsa_strerror(err));
         return -1;
     }
 
     if ((err = snd_mixer_selem_register(mixer, NULL, NULL)) < 0) {
-        pa_log_warn("Unable to register mixer: %s", snd_strerror(err));
+        pa_log_warn("Unable to register mixer: %s", pa_alsa_strerror(err));
         return -1;
     }
 
     if ((err = snd_mixer_load(mixer)) < 0) {
-        pa_log_warn("Unable to load mixer: %s", snd_strerror(err));
+        pa_log_warn("Unable to load mixer: %s", pa_alsa_strerror(err));
         return -1;
     }
 
@@ -1224,7 +1226,7 @@ int pa_alsa_find_mixer_and_elem(
     }
 
     if ((err = snd_mixer_open(&m, 0)) < 0) {
-        pa_log("Error opening mixer: %s", snd_strerror(err));
+        pa_log("Error opening mixer: %s", pa_alsa_strerror(err));
         return -1;
     }
 
@@ -1426,7 +1428,7 @@ void pa_alsa_dump(pa_log_level_t level, snd_pcm_t *pcm) {
     pa_assert_se(snd_output_buffer_open(&out) == 0);
 
     if ((err = snd_pcm_dump(pcm, out)) < 0)
-        pa_logl(level, "snd_pcm_dump(): %s", snd_strerror(err));
+        pa_logl(level, "snd_pcm_dump(): %s", pa_alsa_strerror(err));
     else {
         char *s = NULL;
         snd_output_buffer_string(out, &s);
@@ -1450,7 +1452,7 @@ void pa_alsa_dump_status(snd_pcm_t *pcm) {
     pa_assert_se(snd_pcm_status(pcm, status) == 0);
 
     if ((err = snd_pcm_status_dump(status, out)) < 0)
-        pa_log_debug("snd_pcm_dump(): %s", snd_strerror(err));
+        pa_log_debug("snd_pcm_dump(): %s", pa_alsa_strerror(err));
     else {
         char *s = NULL;
         snd_output_buffer_string(out, &s);
@@ -1612,7 +1614,7 @@ void pa_alsa_init_proplist_pcm(pa_core *c, pa_proplist *p, snd_pcm_t *pcm, snd_m
     snd_pcm_info_alloca(&info);
 
     if ((err = snd_pcm_hw_params_current(pcm, hwparams)) < 0)
-        pa_log_warn("Error fetching hardware parameter info: %s", snd_strerror(err));
+        pa_log_warn("Error fetching hardware parameter info: %s", pa_alsa_strerror(err));
     else {
 
         if ((bits = snd_pcm_hw_params_get_sbits(hwparams)) >= 0)
@@ -1623,7 +1625,7 @@ void pa_alsa_init_proplist_pcm(pa_core *c, pa_proplist *p, snd_pcm_t *pcm, snd_m
         pa_proplist_sets(p, "alsa.mixer_element", snd_mixer_selem_get_name(elem));
 
     if ((err = snd_pcm_info(pcm, info)) < 0)
-        pa_log_warn("Error fetching PCM info: %s", snd_strerror(err));
+        pa_log_warn("Error fetching PCM info: %s", pa_alsa_strerror(err));
     else
         pa_alsa_init_proplist_pcm_info(c, p, info);
 }
@@ -1656,14 +1658,14 @@ int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents) {
 
         case SND_PCM_STATE_XRUN:
             if ((err = snd_pcm_recover(pcm, -EPIPE, 1)) != 0) {
-                pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP and XRUN: %s", snd_strerror(err));
+                pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP and XRUN: %s", pa_alsa_strerror(err));
                 return -1;
             }
             break;
 
         case SND_PCM_STATE_SUSPENDED:
             if ((err = snd_pcm_recover(pcm, -ESTRPIPE, 1)) != 0) {
-                pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP and SUSPENDED: %s", snd_strerror(err));
+                pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP and SUSPENDED: %s", pa_alsa_strerror(err));
                 return -1;
             }
             break;
@@ -1673,7 +1675,7 @@ int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents) {
             snd_pcm_drop(pcm);
 
             if ((err = snd_pcm_prepare(pcm)) < 0) {
-                pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP with snd_pcm_prepare(): %s", snd_strerror(err));
+                pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP with snd_pcm_prepare(): %s", pa_alsa_strerror(err));
                 return -1;
             }
             break;
@@ -1690,7 +1692,7 @@ pa_rtpoll_item* pa_alsa_build_pollfd(snd_pcm_t *pcm, pa_rtpoll *rtpoll) {
     pa_assert(pcm);
 
     if ((n = snd_pcm_poll_descriptors_count(pcm)) < 0) {
-        pa_log("snd_pcm_poll_descriptors_count() failed: %s", snd_strerror(n));
+        pa_log("snd_pcm_poll_descriptors_count() failed: %s", pa_alsa_strerror(n));
         return NULL;
     }
 
@@ -1698,7 +1700,7 @@ pa_rtpoll_item* pa_alsa_build_pollfd(snd_pcm_t *pcm, pa_rtpoll *rtpoll) {
     pollfd = pa_rtpoll_item_get_pollfd(item, NULL);
 
     if ((err = snd_pcm_poll_descriptors(pcm, pollfd, (unsigned) n)) < 0) {
-        pa_log("snd_pcm_poll_descriptors() failed: %s", snd_strerror(err));
+        pa_log("snd_pcm_poll_descriptors() failed: %s", pa_alsa_strerror(err));
         pa_rtpoll_item_free(item);
         return NULL;
     }
@@ -1906,4 +1908,33 @@ pa_bool_t pa_alsa_pcm_is_modem(snd_pcm_t *pcm) {
         return FALSE;
 
     return snd_pcm_info_get_class(info) == SND_PCM_CLASS_MODEM;
+}
+
+PA_STATIC_TLS_DECLARE(cstrerror, pa_xfree);
+
+const char* pa_alsa_strerror(int errnum) {
+    const char *original = NULL;
+    char *translated, *t;
+    char errbuf[128];
+
+    if ((t = PA_STATIC_TLS_GET(cstrerror)))
+        pa_xfree(t);
+
+    errnum = EINVAL;
+    PA_DEBUG_TRAP;
+    original = snd_strerror(errnum);
+
+    if (!original) {
+        pa_snprintf(errbuf, sizeof(errbuf), "Unknown error %i", errnum);
+        original = errbuf;
+    }
+
+    if (!(translated = pa_locale_to_utf8(original))) {
+        pa_log_warn("Unable to convert error string to locale, filtering.");
+        translated = pa_utf8_filter(original);
+    }
+
+    PA_STATIC_TLS_SET(cstrerror, translated);
+
+    return translated;
 }
