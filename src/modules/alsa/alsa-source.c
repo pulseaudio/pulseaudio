@@ -278,7 +278,7 @@ static int try_recover(struct userdata *u, const char *call, int err) {
     pa_assert(call);
     pa_assert(err < 0);
 
-    pa_log_debug("%s: %s", call, snd_strerror(err));
+    pa_log_debug("%s: %s", call, pa_alsa_strerror(err));
 
     pa_assert(err != -EAGAIN);
 
@@ -286,7 +286,7 @@ static int try_recover(struct userdata *u, const char *call, int err) {
         pa_log_debug("%s: Buffer overrun!", call);
 
     if ((err = snd_pcm_recover(u->pcm_handle, err, 1)) < 0) {
-        pa_log("%s: %s", call, snd_strerror(err));
+        pa_log("%s: %s", call, pa_alsa_strerror(err));
         return -1;
     }
 
@@ -606,12 +606,12 @@ static void update_smoother(struct userdata *u) {
     /* Let's update the time smoother */
 
     if (PA_UNLIKELY((err = pa_alsa_safe_delay(u->pcm_handle, &delay, u->hwbuf_size, &u->source->sample_spec)) < 0)) {
-        pa_log_warn("Failed to get delay: %s", snd_strerror(err));
+        pa_log_warn("Failed to get delay: %s", pa_alsa_strerror(err));
         return;
     }
 
     if (PA_UNLIKELY((err = snd_pcm_status(u->pcm_handle, status)) < 0))
-        pa_log_warn("Failed to get timestamp: %s", snd_strerror(err));
+        pa_log_warn("Failed to get timestamp: %s", pa_alsa_strerror(err));
     else {
         snd_htimestamp_t htstamp = { 0, 0 };
         snd_pcm_status_get_htstamp(status, &htstamp);
@@ -721,7 +721,7 @@ static int update_sw_params(struct userdata *u) {
     pa_log_debug("setting avail_min=%lu", (unsigned long) avail_min);
 
     if ((err = pa_alsa_set_sw_params(u->pcm_handle, avail_min)) < 0) {
-        pa_log("Failed to set software parameters: %s", snd_strerror(err));
+        pa_log("Failed to set software parameters: %s", pa_alsa_strerror(err));
         return err;
     }
 
@@ -747,7 +747,7 @@ static int unsuspend(struct userdata *u) {
                             SND_PCM_NO_AUTO_RESAMPLE|
                             SND_PCM_NO_AUTO_CHANNELS|
                             SND_PCM_NO_AUTO_FORMAT)) < 0) {
-        pa_log("Error opening PCM device %s: %s", u->device_name, snd_strerror(err));
+        pa_log("Error opening PCM device %s: %s", u->device_name, pa_alsa_strerror(err));
         goto fail;
     }
 
@@ -758,7 +758,7 @@ static int unsuspend(struct userdata *u) {
     d = u->use_tsched;
 
     if ((err = pa_alsa_set_hw_params(u->pcm_handle, &ss, &nfrags, &period_size, u->hwbuf_size / u->frame_size, &b, &d, TRUE)) < 0) {
-        pa_log("Failed to set hardware parameters: %s", snd_strerror(err));
+        pa_log("Failed to set hardware parameters: %s", pa_alsa_strerror(err));
         goto fail;
     }
 
@@ -988,7 +988,7 @@ static void source_get_volume_cb(pa_source *s) {
     return;
 
 fail:
-    pa_log_error("Unable to read volume: %s", snd_strerror(err));
+    pa_log_error("Unable to read volume: %s", pa_alsa_strerror(err));
 }
 
 static void source_set_volume_cb(pa_source *s) {
@@ -1100,7 +1100,7 @@ static void source_set_volume_cb(pa_source *s) {
     return;
 
 fail:
-    pa_log_error("Unable to set volume: %s", snd_strerror(err));
+    pa_log_error("Unable to set volume: %s", pa_alsa_strerror(err));
 }
 
 static void source_get_mute_cb(pa_source *s) {
@@ -1111,7 +1111,7 @@ static void source_get_mute_cb(pa_source *s) {
     pa_assert(u->mixer_elem);
 
     if ((err = snd_mixer_selem_get_capture_switch(u->mixer_elem, 0, &sw)) < 0) {
-        pa_log_error("Unable to get switch: %s", snd_strerror(err));
+        pa_log_error("Unable to get switch: %s", pa_alsa_strerror(err));
         return;
     }
 
@@ -1126,7 +1126,7 @@ static void source_set_mute_cb(pa_source *s) {
     pa_assert(u->mixer_elem);
 
     if ((err = snd_mixer_selem_set_capture_switch_all(u->mixer_elem, !s->muted)) < 0) {
-        pa_log_error("Unable to set switch: %s", snd_strerror(err));
+        pa_log_error("Unable to set switch: %s", pa_alsa_strerror(err));
         return;
     }
 }
@@ -1218,7 +1218,7 @@ static void thread_func(void *userdata) {
             pollfd = pa_rtpoll_item_get_pollfd(u->alsa_rtpoll_item, &n);
 
             if ((err = snd_pcm_poll_descriptors_revents(u->pcm_handle, pollfd, n, &revents)) < 0) {
-                pa_log("snd_pcm_poll_descriptors_revents() failed: %s", snd_strerror(err));
+                pa_log("snd_pcm_poll_descriptors_revents() failed: %s", pa_alsa_strerror(err));
                 goto fail;
             }
 

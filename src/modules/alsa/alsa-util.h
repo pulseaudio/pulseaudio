@@ -146,4 +146,6 @@ pa_bool_t pa_alsa_pcm_is_hw(snd_pcm_t *pcm);
 
 pa_bool_t pa_alsa_pcm_is_modem(snd_pcm_t *pcm);
 
+const char* pa_alsa_strerror(int errnum);
+
 #endif
