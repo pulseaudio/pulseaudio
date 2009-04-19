@@ -1920,8 +1920,6 @@ const char* pa_alsa_strerror(int errnum) {
     if ((t = PA_STATIC_TLS_GET(cstrerror)))
         pa_xfree(t);
 
-    errnum = EINVAL;
-    PA_DEBUG_TRAP;
     original = snd_strerror(errnum);
 
     if (!original) {
