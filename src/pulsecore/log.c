@@ -323,7 +323,7 @@ void pa_log_levelv_meta(
 #endif
 
     if (!pa_utf8_valid(text))
-        pa_log_level(level, __FILE__": invalid UTF-8 string following below:");
+        pa_logl(level, "Invalid UTF-8 string following below:");
 
     for (t = text; t; t = n) {
         if ((n = strchr(t, '\n'))) {
