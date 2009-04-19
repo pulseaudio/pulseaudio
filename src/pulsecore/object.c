@@ -59,10 +59,9 @@ pa_object *pa_object_ref(pa_object *o) {
 void pa_object_unref(pa_object *o) {
     pa_object_assert_ref(o);
 
-    if (PA_REFCNT_VALUE(o) == 1) {
+    if (PA_REFCNT_DEC(o) <= 0) {
         pa_assert(o->free);
         o->free(o);
-        pa_assert_se(PA_REFCNT_DEC(o) == 0);
     }
 }
 
