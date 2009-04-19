@@ -51,7 +51,7 @@ char *pa_get_home_dir(char *s, size_t l);
 char *pa_get_binary_name(char *s, size_t l);
 
 /** Return a pointer to the filename inside a path (which is the last
- * component). */
+ * component). If passed NULL will return NULL. */
 char *pa_path_get_filename(const char *p);
 
 /** Wait t milliseconds */
