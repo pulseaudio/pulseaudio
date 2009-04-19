@@ -285,7 +285,7 @@ void pa_log_levelv_meta(
 
     if ((_flags & PA_LOG_PRINT_META) && file && line > 0 && func)
         pa_snprintf(location, sizeof(location), "[%s:%i %s()] ", file, line, func);
-    else if (_flags & (PA_LOG_PRINT_META|PA_LOG_PRINT_FILE))
+    else if ((_flags & (PA_LOG_PRINT_META|PA_LOG_PRINT_FILE)) && file)
         pa_snprintf(location, sizeof(location), "%s: ", pa_path_get_filename(file));
     else
         location[0] = 0;
