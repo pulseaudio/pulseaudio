@@ -62,8 +62,8 @@ void pa_object_unref(pa_object *o) {
     if (PA_REFCNT_VALUE(o) == 1) {
         pa_assert(o->free);
         o->free(o);
-    } else
         pa_assert_se(PA_REFCNT_DEC(o) == 0);
+    }
 }
 
 int pa_object_check_type(const char *type_name) {
