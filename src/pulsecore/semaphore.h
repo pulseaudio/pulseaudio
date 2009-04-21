@@ -22,6 +22,9 @@
   USA.
 ***/
 
+#include <pulsecore/macro.h>
+#include <pulsecore/atomic.h>
+
 typedef struct pa_semaphore pa_semaphore;
 
 pa_semaphore* pa_semaphore_new(unsigned value);
@@ -29,5 +32,17 @@ void pa_semaphore_free(pa_semaphore *m);
 
 void pa_semaphore_post(pa_semaphore *m);
 void pa_semaphore_wait(pa_semaphore *m);
+
+/* Static semaphores are basically just atomically updated pointers to
+ * pa_semaphore objects */
+
+typedef struct pa_static_semaphore {
+    pa_atomic_ptr_t ptr;
+} pa_static_semaphore;
+
+#define PA_STATIC_SEMAPHORE_INIT { PA_ATOMIC_PTR_INIT(NULL) }
+
+/* When you call this make sure to pass always the same value parameter! */
+pa_semaphore* pa_static_semaphore_get(pa_static_semaphore *m, unsigned value);
 
 #endif
