@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-13 23:08+0200\n"
+"POT-Creation-Date: 2009-04-21 23:02+0200\n"
 "PO-Revision-Date: 2009-04-07 23:02+0100\n"
 "Last-Translator: Miloš Komarčević <kmilos@gmail.com>\n"
 "Language-Team: Serbian <fedora-trans-sr@redhat.com>\n"
@@ -19,52 +19,52 @@ msgstr ""
 "10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Generator: Lokalize 0.3\n"
 
-#: ../src/modules/alsa/alsa-util.c:530
+#: ../src/modules/alsa/alsa-util.c:532
 msgid "Analog Mono"
 msgstr "Аналогни моно"
 
-#: ../src/modules/alsa/alsa-util.c:538
+#: ../src/modules/alsa/alsa-util.c:540
 msgid "Analog Stereo"
 msgstr "Аналогни стерео"
 
-#: ../src/modules/alsa/alsa-util.c:546
+#: ../src/modules/alsa/alsa-util.c:548
 msgid "Digital Stereo (IEC958)"
 msgstr "Дигитални стерео (IEC958)"
 
-#: ../src/modules/alsa/alsa-util.c:554
+#: ../src/modules/alsa/alsa-util.c:556
 msgid "Digital Stereo (HDMI)"
 msgstr "Дигитални стерео (HDMI)"
 
-#: ../src/modules/alsa/alsa-util.c:563
+#: ../src/modules/alsa/alsa-util.c:565
 msgid "Analog Surround 4.0"
 msgstr "Аналогни окружујући 4.0"
 
-#: ../src/modules/alsa/alsa-util.c:572
+#: ../src/modules/alsa/alsa-util.c:574
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr "Дигитални окружујући 4.0 (IEC958/AC3)"
 
 # Surround можемо превести амбијентални или окружни или можда чак и сараунд? -- Игор
-#: ../src/modules/alsa/alsa-util.c:582
+#: ../src/modules/alsa/alsa-util.c:584
 msgid "Analog Surround 4.1"
 msgstr "Аналогни окружујући 4.1"
 
-#: ../src/modules/alsa/alsa-util.c:592
+#: ../src/modules/alsa/alsa-util.c:594
 msgid "Analog Surround 5.0"
 msgstr "Аналогни окружујући 5.0"
 
-#: ../src/modules/alsa/alsa-util.c:602
+#: ../src/modules/alsa/alsa-util.c:604
 msgid "Analog Surround 5.1"
 msgstr "Аналогни окружујући 5.1"
 
-#: ../src/modules/alsa/alsa-util.c:612
+#: ../src/modules/alsa/alsa-util.c:614
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "Дигитални окружујући 5.1 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-util.c:623
+#: ../src/modules/alsa/alsa-util.c:625
 msgid "Analog Surround 7.1"
 msgstr "Аналогни окружујући 7.1"
 
-#: ../src/modules/alsa/alsa-util.c:1644
+#: ../src/modules/alsa/alsa-util.c:1646
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -77,7 +77,7 @@ msgstr ""
 "Ово је највероватније грешка у „%s“ ALSA управљачком програму. Пријавите "
 "овај проблем ALSA програмерима."
 
-#: ../src/modules/alsa/alsa-util.c:1685
+#: ../src/modules/alsa/alsa-util.c:1687
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -90,7 +90,7 @@ msgstr ""
 "Ово је највероватније грешка у „%s“ ALSA управљачком програму. Пријавите "
 "овај проблем ALSA програмерима."
 
-#: ../src/modules/alsa/alsa-util.c:1732
+#: ../src/modules/alsa/alsa-util.c:1734
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -177,107 +177,107 @@ msgstr "Не могу добити овлашћење: %s"
 msgid "PolicyKit responded with '%s'"
 msgstr "PolicyKit је одговорио са „%s“"
 
-#: ../src/daemon/main.c:137
+#: ../src/daemon/main.c:138
 #, c-format
 msgid "Got signal %s."
 msgstr "Добих сигнал %s."
 
-#: ../src/daemon/main.c:164
+#: ../src/daemon/main.c:165
 msgid "Exiting."
 msgstr "Напуштам."
 
-#: ../src/daemon/main.c:182
+#: ../src/daemon/main.c:183
 #, c-format
 msgid "Failed to find user '%s'."
 msgstr "Не могу наћи корисника „%s“."
 
-#: ../src/daemon/main.c:187
+#: ../src/daemon/main.c:188
 #, c-format
 msgid "Failed to find group '%s'."
 msgstr "Не могу наћи групу „%s“."
 
-#: ../src/daemon/main.c:191
+#: ../src/daemon/main.c:192
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
 msgstr "Нађени су корисник „%s“ (UID %lu) и група „%s“ (GID %lu)."
 
-#: ../src/daemon/main.c:196
+#: ../src/daemon/main.c:197
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
 msgstr "GID корисника „%s“ се не поклапа са групом „%s“."
 
-#: ../src/daemon/main.c:201
+#: ../src/daemon/main.c:202
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "Лични директоријум корисника „%s“ није „%s“, занемарујем."
 
-#: ../src/daemon/main.c:204 ../src/daemon/main.c:209
+#: ../src/daemon/main.c:205 ../src/daemon/main.c:210
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "Неуспешно прављење „%s“: %s"
 
-#: ../src/daemon/main.c:216
+#: ../src/daemon/main.c:217
 #, c-format
 msgid "Failed to change group list: %s"
 msgstr "Неуспешна промена групног списка: %s"
 
-#: ../src/daemon/main.c:232
+#: ../src/daemon/main.c:233
 #, c-format
 msgid "Failed to change GID: %s"
 msgstr "Неуспешна промена GID-а: %s"
 
-#: ../src/daemon/main.c:248
+#: ../src/daemon/main.c:249
 #, c-format
 msgid "Failed to change UID: %s"
 msgstr "Неуспешна промена UID-а: %s"
 
-#: ../src/daemon/main.c:262
+#: ../src/daemon/main.c:263
 msgid "Successfully dropped root privileges."
 msgstr "Успешно одбачена root овлашћења."
 
-#: ../src/daemon/main.c:270
+#: ../src/daemon/main.c:271
 msgid "System wide mode unsupported on this platform."
 msgstr "Режим за читав систем није подржан на овој платформи."
 
-#: ../src/daemon/main.c:288
+#: ../src/daemon/main.c:289
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) није успело: %s"
 
-#: ../src/daemon/main.c:476
+#: ../src/daemon/main.c:477
 msgid "Failed to parse command line."
 msgstr "Неуспешно тумачење командне линије."
 
-#: ../src/daemon/main.c:500
+#: ../src/daemon/main.c:501
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
 msgstr ""
 "Налазимо се у групи „%s“ која дозвољава високоприоритетно распоређивање."
 
-#: ../src/daemon/main.c:507
+#: ../src/daemon/main.c:508
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
 msgstr ""
 "Налазимо се у групи „%s“ која дозвољава стварновременско распоређивање."
 
-#: ../src/daemon/main.c:515
+#: ../src/daemon/main.c:516
 msgid "PolicyKit grants us acquire-high-priority privilege."
 msgstr "PolicyKit нам је дао овлашћење за добијање високог приоритета."
 
-#: ../src/daemon/main.c:518
+#: ../src/daemon/main.c:519
 msgid "PolicyKit refuses acquire-high-priority privilege."
 msgstr "PolicyKit одбија овлашћење за добијање високог приоритета."
 
-#: ../src/daemon/main.c:523
+#: ../src/daemon/main.c:524
 msgid "PolicyKit grants us acquire-real-time privilege."
 msgstr "PolicyKit нам је дао овлашћење за добијање рада у стварном времену."
 
-#: ../src/daemon/main.c:526
+#: ../src/daemon/main.c:527
 msgid "PolicyKit refuses acquire-real-time privilege."
 msgstr "PolicyKit одбија овлашћење за добијање рада у стварном времену."
 
 #
-#: ../src/daemon/main.c:555
+#: ../src/daemon/main.c:556
 #, c-format
 msgid ""
 "Called SUID root and real-time and/or high-priority scheduling was requested "
@@ -297,48 +297,48 @@ msgstr ""
 "или повећати ограничења за RLIMIT_NICE/RLIMIT_RTPRIO средства овог корисника "
 "како би омогућили стварновременско или високоприоритетно распоређивање."
 
-#: ../src/daemon/main.c:580
+#: ../src/daemon/main.c:581
 msgid ""
 "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 "Високоприоритетно распоређивање је омогућено у подешавањима, али политика то "
 "не дозвољава."
 
-#: ../src/daemon/main.c:609
+#: ../src/daemon/main.c:610
 msgid "Successfully increased RLIMIT_RTPRIO"
 msgstr "Успешно повећано RLIMIT_RTPRIO ограничење"
 
-#: ../src/daemon/main.c:612
+#: ../src/daemon/main.c:613
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
 msgstr "Неуспешно постављање RLIMIT_RTPRIO-а:%s"
 
-#: ../src/daemon/main.c:619
+#: ../src/daemon/main.c:620
 msgid "Giving up CAP_NICE"
 msgstr "Одустајем од CAP_NICE"
 
-#: ../src/daemon/main.c:626
+#: ../src/daemon/main.c:627
 msgid ""
 "Real-time scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 "Стварновременско распоређивање је омогућено у подешавањима, али политика то "
 "не дозвољава."
 
-#: ../src/daemon/main.c:687
+#: ../src/daemon/main.c:688
 msgid "Daemon not running"
 msgstr "Демон није покренут"
 
-#: ../src/daemon/main.c:689
+#: ../src/daemon/main.c:690
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "Демон је покренут са PID-ом %u"
 
-#: ../src/daemon/main.c:699
+#: ../src/daemon/main.c:700
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Неуспешно убијање демона: %s"
 
-#: ../src/daemon/main.c:717
+#: ../src/daemon/main.c:718
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -346,161 +346,161 @@ msgstr ""
 "Није намеравано да се овај програм покреће из root налога (осим у случају "
 "када је --system наведено)"
 
-#: ../src/daemon/main.c:719
+#: ../src/daemon/main.c:720
 msgid "Root privileges required."
 msgstr "Потребна су root овлашћења."
 
-#: ../src/daemon/main.c:724
+#: ../src/daemon/main.c:725
 msgid "--start not supported for system instances."
 msgstr "--start није подржано за системске примерке."
 
-#: ../src/daemon/main.c:729
+#: ../src/daemon/main.c:730
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr "Покренуто у системском режиму, али --disallow-exit није постављено!"
 
-#: ../src/daemon/main.c:732
+#: ../src/daemon/main.c:733
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 "Покренуто у системском режиму, али --disallow-module-loading није постављено!"
 
-#: ../src/daemon/main.c:735
+#: ../src/daemon/main.c:736
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "Покренуто у системском режиму, присилно онемогућујем SHM режим!"
 
-#: ../src/daemon/main.c:740
+#: ../src/daemon/main.c:741
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "Покренуто у системском режиму, присилно онемогућујем гашење после одређеног "
 "времена мировања!"
 
-#: ../src/daemon/main.c:767
+#: ../src/daemon/main.c:768
 msgid "Failed to acquire stdio."
 msgstr "Неуспешно проналажење стандардног улаза/излаза."
 
-#: ../src/daemon/main.c:773
+#: ../src/daemon/main.c:774
 #, c-format
 msgid "pipe failed: %s"
 msgstr "Неуспешно пуштање података кроз цев: %s"
 
-#: ../src/daemon/main.c:778
+#: ../src/daemon/main.c:779
 #, c-format
 msgid "fork() failed: %s"
 msgstr "Неуспела функција fork(): %s"
 
-#: ../src/daemon/main.c:792
+#: ../src/daemon/main.c:793
 #, c-format
 msgid "read() failed: %s"
 msgstr "Неуспела функција read(): %s"
 
-#: ../src/daemon/main.c:798
+#: ../src/daemon/main.c:799
 msgid "Daemon startup failed."
 msgstr "Неуспешно покретање демона."
 
-#: ../src/daemon/main.c:800
+#: ../src/daemon/main.c:801
 msgid "Daemon startup successful."
 msgstr "Демон успешно покренут."
 
-#: ../src/daemon/main.c:870
+#: ../src/daemon/main.c:871
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Ово је PulseAudio %s"
 
-#: ../src/daemon/main.c:871
+#: ../src/daemon/main.c:872
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Домаћин компајлирања: %s"
 
-#: ../src/daemon/main.c:872
+#: ../src/daemon/main.c:873
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "CFLAGS компајлирања: %s"
 
-#: ../src/daemon/main.c:875
+#: ../src/daemon/main.c:876
 #, c-format
 msgid "Running on host: %s"
 msgstr "Покренут на домаћину: %s"
 
-#: ../src/daemon/main.c:878
+#: ../src/daemon/main.c:879
 #, c-format
 msgid "Found %u CPUs."
 msgstr "Нашао %u процесор(а)"
 
-#: ../src/daemon/main.c:880
+#: ../src/daemon/main.c:881
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "Величина странице је %lu бајтова"
 
-#: ../src/daemon/main.c:883
+#: ../src/daemon/main.c:884
 msgid "Compiled with Valgrind support: yes"
 msgstr "Компајлирано са подршком за Valgrind: да"
 
-#: ../src/daemon/main.c:885
+#: ../src/daemon/main.c:886
 msgid "Compiled with Valgrind support: no"
 msgstr "Компајлирано са подршком за Valgrind: не"
 
-#: ../src/daemon/main.c:888
+#: ../src/daemon/main.c:889
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "Покренут у Valgrind режиму: %s"
 
-#: ../src/daemon/main.c:891
+#: ../src/daemon/main.c:892
 msgid "Optimized build: yes"
 msgstr "Оптимизована изградња: да"
 
-#: ../src/daemon/main.c:893
+#: ../src/daemon/main.c:894
 msgid "Optimized build: no"
 msgstr "Оптимизована изградња: не"
 
-#: ../src/daemon/main.c:897
+#: ../src/daemon/main.c:898
 msgid "NDEBUG defined, all asserts disabled."
 msgstr "NDEBUG дефинисан, сва обавештења искључена."
 
-#: ../src/daemon/main.c:899
+#: ../src/daemon/main.c:900
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr "FASTPATH дефинисан, само обавештења брзе путање искључена."
 
-#: ../src/daemon/main.c:901
+#: ../src/daemon/main.c:902
 msgid "All asserts enabled."
 msgstr "Сва обавештења омогућена."
 
-#: ../src/daemon/main.c:905
+#: ../src/daemon/main.c:906
 msgid "Failed to get machine ID"
 msgstr "Неуспешно добављање ИБ машине"
 
-#: ../src/daemon/main.c:908
+#: ../src/daemon/main.c:909
 #, c-format
 msgid "Machine ID is %s."
 msgstr "ИБ машине је %s."
 
-#: ../src/daemon/main.c:912
+#: ../src/daemon/main.c:913
 #, fuzzy, c-format
 msgid "Session ID is %s."
 msgstr "ИБ машине је %s."
 
-#: ../src/daemon/main.c:918
+#: ../src/daemon/main.c:919
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Користи се %s извршни директоријум."
 
-#: ../src/daemon/main.c:923
+#: ../src/daemon/main.c:924
 #, c-format
 msgid "Using state directory %s."
 msgstr "Користи се %s директоријум стања."
 
-#: ../src/daemon/main.c:926
+#: ../src/daemon/main.c:927
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Покренуто у системском режиму: %s"
 
-#: ../src/daemon/main.c:941
+#: ../src/daemon/main.c:942
 msgid "pa_pid_file_create() failed."
 msgstr "Неуспела функција pa_pid_file_create()."
 
-#: ../src/daemon/main.c:953
+#: ../src/daemon/main.c:954
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Доступни су нови бројачи високе резолуције! Пријатно!"
 
-#: ../src/daemon/main.c:955
+#: ../src/daemon/main.c:956
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -508,27 +508,27 @@ msgstr ""
 "Ваше језгро није добро подешено за pulseaudio! Препоручује Вам се да "
 "користите Linux језгро са омогућеним бројачима високе резолуције."
 
-#: ../src/daemon/main.c:967
+#: ../src/daemon/main.c:970
 msgid "pa_core_new() failed."
 msgstr "Неуспела функција pa_core_new()."
 
-#: ../src/daemon/main.c:1029
+#: ../src/daemon/main.c:1032
 msgid "Failed to initialize daemon."
 msgstr "Неуспешно покретање демона."
 
-#: ../src/daemon/main.c:1034
+#: ../src/daemon/main.c:1037
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "Демон је покренут без иједног учитаног модула, одбија да ради."
 
-#: ../src/daemon/main.c:1051
+#: ../src/daemon/main.c:1054
 msgid "Daemon startup complete."
 msgstr "Покретање демона успешно."
 
-#: ../src/daemon/main.c:1057
+#: ../src/daemon/main.c:1060
 msgid "Daemon shutdown initiated."
 msgstr "Покренуто гашење демона."
 
-#: ../src/daemon/main.c:1079
+#: ../src/daemon/main.c:1082
 msgid "Daemon terminated."
 msgstr "Рад демона је прекинут."
 
@@ -1294,7 +1294,7 @@ msgstr "fork(): %s"
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1402
+#: ../src/pulse/context.c:1403
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Примио поруку за непознати локал „%s“"
@@ -1643,10 +1643,9 @@ msgstr "Неуспела функција io_new() \n"
 msgid "pa_context_new() failed.\n"
 msgstr "Неуспела функција pa_context_new().\n"
 
-#: ../src/utils/pacat.c:799 ../src/utils/pactl.c:1037
-#: ../src/utils/paplay.c:404
-#, c-format
-msgid "pa_context_connect() failed: %s"
+#: ../src/utils/pacat.c:799
+#, fuzzy, c-format
+msgid "pa_context_connect() failed: %s\n"
 msgstr "Неуспела функција pa_context_connect(): %s"
 
 #: ../src/utils/pacat.c:810
@@ -2192,6 +2191,11 @@ msgstr "Морате навести име/индекс картице и име
 msgid "No valid command specified.\n"
 msgstr "Ни једна исправна наредба није наведена.\n"
 
+#: ../src/utils/pactl.c:1037 ../src/utils/paplay.c:404
+#, c-format
+msgid "pa_context_connect() failed: %s"
+msgstr "Неуспела функција pa_context_connect(): %s"
+
 #: ../src/utils/pax11publish.c:61
 #, c-format
 msgid ""
@@ -2445,18 +2449,18 @@ msgid "Input %s"
 msgstr "Улаз %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:170
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2001
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2006
 msgid "Off"
 msgstr "Искључено"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1971
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1976
 msgid "High Fidelity Playback (A2DP)"
 msgstr "Репродукција високе тачности (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1986
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1991
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr "Двострано телефонирање (HSP/HFP)"
 
-#: ../src/modules/reserve-wrap.c:127
+#: ../src/modules/reserve-wrap.c:139
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio звучни систем"

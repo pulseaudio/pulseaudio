@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-13 23:08+0200\n"
+"POT-Creation-Date: 2009-04-21 23:02+0200\n"
 "PO-Revision-Date: 2008-10-19 22:31+0200\n"
 "Last-Translator: Petr Kovar <pknbe@volny.cz>\n"
 "Language-Team: Czech <translation-team-cs@lists.sourceforge.net>\n"
@@ -17,51 +17,51 @@ msgstr ""
 "X-Generator: KBabel 1.11.4\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 
-#: ../src/modules/alsa/alsa-util.c:530
+#: ../src/modules/alsa/alsa-util.c:532
 msgid "Analog Mono"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:538
+#: ../src/modules/alsa/alsa-util.c:540
 msgid "Analog Stereo"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:546
+#: ../src/modules/alsa/alsa-util.c:548
 msgid "Digital Stereo (IEC958)"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:554
+#: ../src/modules/alsa/alsa-util.c:556
 msgid "Digital Stereo (HDMI)"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:563
+#: ../src/modules/alsa/alsa-util.c:565
 msgid "Analog Surround 4.0"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:572
+#: ../src/modules/alsa/alsa-util.c:574
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:582
+#: ../src/modules/alsa/alsa-util.c:584
 msgid "Analog Surround 4.1"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:592
+#: ../src/modules/alsa/alsa-util.c:594
 msgid "Analog Surround 5.0"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:602
+#: ../src/modules/alsa/alsa-util.c:604
 msgid "Analog Surround 5.1"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:612
+#: ../src/modules/alsa/alsa-util.c:614
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:623
+#: ../src/modules/alsa/alsa-util.c:625
 msgid "Analog Surround 7.1"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1644
+#: ../src/modules/alsa/alsa-util.c:1646
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -70,7 +70,7 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1685
+#: ../src/modules/alsa/alsa-util.c:1687
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -79,7 +79,7 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1732
+#: ../src/modules/alsa/alsa-util.c:1734
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -165,105 +165,105 @@ msgstr "Nezdařilo se získat oprávnění: %s"
 msgid "PolicyKit responded with '%s'"
 msgstr "PolicyKit odpověděl s \"%s\""
 
-#: ../src/daemon/main.c:137
+#: ../src/daemon/main.c:138
 #, c-format
 msgid "Got signal %s."
 msgstr "Získán signál %s."
 
-#: ../src/daemon/main.c:164
+#: ../src/daemon/main.c:165
 msgid "Exiting."
 msgstr "Ukončování."
 
-#: ../src/daemon/main.c:182
+#: ../src/daemon/main.c:183
 #, c-format
 msgid "Failed to find user '%s'."
 msgstr "Nezdařilo se nalézt uživatele \"%s\"."
 
-#: ../src/daemon/main.c:187
+#: ../src/daemon/main.c:188
 #, c-format
 msgid "Failed to find group '%s'."
 msgstr "Nezdařilo se nalézt skupinu \"%s\"."
 
-#: ../src/daemon/main.c:191
+#: ../src/daemon/main.c:192
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
 msgstr "Nalezen uživatel \"%s\" (UID %lu) a skupina \"%s\" (GID %lu)."
 
-#: ../src/daemon/main.c:196
+#: ../src/daemon/main.c:197
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
 msgstr "GID uživatele \"%s\" a skupiny \"%s\" nesouhlasí."
 
-#: ../src/daemon/main.c:201
+#: ../src/daemon/main.c:202
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "Domovský adresář uživatele \"%s\" není \"%s\", bude ignorováno."
 
-#: ../src/daemon/main.c:204 ../src/daemon/main.c:209
+#: ../src/daemon/main.c:205 ../src/daemon/main.c:210
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "Nezdařilo se vytvořit \"%s\": %s"
 
-#: ../src/daemon/main.c:216
+#: ../src/daemon/main.c:217
 #, c-format
 msgid "Failed to change group list: %s"
 msgstr "Nezdařilo se změnit seznam skupin: %s"
 
-#: ../src/daemon/main.c:232
+#: ../src/daemon/main.c:233
 #, c-format
 msgid "Failed to change GID: %s"
 msgstr "Nezdařilo se změnit GID: %s"
 
-#: ../src/daemon/main.c:248
+#: ../src/daemon/main.c:249
 #, c-format
 msgid "Failed to change UID: %s"
 msgstr "Nezdařilo se změnit UID: %s"
 
-#: ../src/daemon/main.c:262
+#: ../src/daemon/main.c:263
 msgid "Successfully dropped root privileges."
 msgstr "Oprávnění superuživatele úspěšně zrušena."
 
-#: ../src/daemon/main.c:270
+#: ../src/daemon/main.c:271
 msgid "System wide mode unsupported on this platform."
 msgstr "Režim celého systému není na této platformě podporován."
 
-#: ../src/daemon/main.c:288
+#: ../src/daemon/main.c:289
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) selhalo: %s"
 
-#: ../src/daemon/main.c:476
+#: ../src/daemon/main.c:477
 msgid "Failed to parse command line."
 msgstr "Nezdařila se analýza příkazového řádku."
 
-#: ../src/daemon/main.c:500
+#: ../src/daemon/main.c:501
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
 msgstr ""
 "Nacházíme se ve skupině \"%s\", což umožňuje plánování o vysoké prioritě."
 
-#: ../src/daemon/main.c:507
+#: ../src/daemon/main.c:508
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
 msgstr "Nacházíme se ve skupině \"%s\", což umožňuje plánování v reálném čase."
 
-#: ../src/daemon/main.c:515
+#: ../src/daemon/main.c:516
 msgid "PolicyKit grants us acquire-high-priority privilege."
 msgstr "PolicyKit nám udělil oprávnění acquire-high-priority."
 
-#: ../src/daemon/main.c:518
+#: ../src/daemon/main.c:519
 msgid "PolicyKit refuses acquire-high-priority privilege."
 msgstr "PolicyKit nám neudělil oprávnění acquire-high-priority."
 
-#: ../src/daemon/main.c:523
+#: ../src/daemon/main.c:524
 msgid "PolicyKit grants us acquire-real-time privilege."
 msgstr "PolicyKit nám udělil oprávnění acquire-real-time."
 
-#: ../src/daemon/main.c:526
+#: ../src/daemon/main.c:527
 msgid "PolicyKit refuses acquire-real-time privilege."
 msgstr "PolicyKit nám neudělil oprávnění acquire-real-time."
 
-#: ../src/daemon/main.c:555
+#: ../src/daemon/main.c:556
 #, c-format
 msgid ""
 "Called SUID root and real-time and/or high-priority scheduling was requested "
@@ -276,46 +276,46 @@ msgid ""
 "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 msgstr ""
 
-#: ../src/daemon/main.c:580
+#: ../src/daemon/main.c:581
 msgid ""
 "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 "Plánování o vysoké prioritě v konfiguraci zapnuto, ale nepovoleno pravidly."
 
-#: ../src/daemon/main.c:609
+#: ../src/daemon/main.c:610
 msgid "Successfully increased RLIMIT_RTPRIO"
 msgstr "Úspěšně zvýšeno RLIMIT_RTPRIO"
 
-#: ../src/daemon/main.c:612
+#: ../src/daemon/main.c:613
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
 msgstr "RLIMIT_RTPRIO selhalo: %s"
 
-#: ../src/daemon/main.c:619
+#: ../src/daemon/main.c:620
 msgid "Giving up CAP_NICE"
 msgstr "Vzdávání se CAP_NICE"
 
-#: ../src/daemon/main.c:626
+#: ../src/daemon/main.c:627
 msgid ""
 "Real-time scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 "Plánování v reálném čase v konfiguraci zapnuto, ale nepovoleno pravidly."
 
-#: ../src/daemon/main.c:687
+#: ../src/daemon/main.c:688
 msgid "Daemon not running"
 msgstr "Démon neběží"
 
-#: ../src/daemon/main.c:689
+#: ../src/daemon/main.c:690
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "Démon běží jako PID %u"
 
-#: ../src/daemon/main.c:699
+#: ../src/daemon/main.c:700
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Zabití démona se nezdařilo: %s"
 
-#: ../src/daemon/main.c:717
+#: ../src/daemon/main.c:718
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -323,160 +323,160 @@ msgstr ""
 "Tento program není určen ke spuštění pod superuživatelem (není-li zadáno --"
 "system)."
 
-#: ../src/daemon/main.c:719
+#: ../src/daemon/main.c:720
 #, fuzzy
 msgid "Root privileges required."
 msgstr "Jsou vyžadována oprávnění superuživatele."
 
-#: ../src/daemon/main.c:724
+#: ../src/daemon/main.c:725
 msgid "--start not supported for system instances."
 msgstr "--start nepodporováno u systémových instancí."
 
-#: ../src/daemon/main.c:729
+#: ../src/daemon/main.c:730
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr "Běží v systémovém režimu, ale nenastaveno --disallow-exit!"
 
-#: ../src/daemon/main.c:732
+#: ../src/daemon/main.c:733
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr "Běží v systémovém režimu, ale nenastaveno --disallow-module-loading!"
 
-#: ../src/daemon/main.c:735
+#: ../src/daemon/main.c:736
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "Běží v systémovém režimu, vynuceně se vypíná režim SHM!"
 
-#: ../src/daemon/main.c:740
+#: ../src/daemon/main.c:741
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr "Běží v systémovém režimu, vynuceně se vypíná čas nečinnosti ukončení!"
 
-#: ../src/daemon/main.c:767
+#: ../src/daemon/main.c:768
 msgid "Failed to acquire stdio."
 msgstr "Nezdařilo se získání stdio."
 
-#: ../src/daemon/main.c:773
+#: ../src/daemon/main.c:774
 #, c-format
 msgid "pipe failed: %s"
 msgstr "pipe selhalo: %s"
 
-#: ../src/daemon/main.c:778
+#: ../src/daemon/main.c:779
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() selhalo: %s"
 
-#: ../src/daemon/main.c:792
+#: ../src/daemon/main.c:793
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() selhalo: %s"
 
-#: ../src/daemon/main.c:798
+#: ../src/daemon/main.c:799
 msgid "Daemon startup failed."
 msgstr "Spuštění démona selhalo."
 
-#: ../src/daemon/main.c:800
+#: ../src/daemon/main.c:801
 msgid "Daemon startup successful."
 msgstr "Spuštění démona bylo úspěšné."
 
-#: ../src/daemon/main.c:870
+#: ../src/daemon/main.c:871
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Toto je PulseAudio %s"
 
-#: ../src/daemon/main.c:871
+#: ../src/daemon/main.c:872
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Překladový počítač: %s"
 
-#: ../src/daemon/main.c:872
+#: ../src/daemon/main.c:873
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "Překladové CFLAGS: %s"
 
-#: ../src/daemon/main.c:875
+#: ../src/daemon/main.c:876
 #, c-format
 msgid "Running on host: %s"
 msgstr "Běží na počítači: %s"
 
-#: ../src/daemon/main.c:878
+#: ../src/daemon/main.c:879
 #, c-format
 msgid "Found %u CPUs."
 msgstr ""
 
-#: ../src/daemon/main.c:880
+#: ../src/daemon/main.c:881
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "Velikost stránky je %lu bajtů"
 
-#: ../src/daemon/main.c:883
+#: ../src/daemon/main.c:884
 msgid "Compiled with Valgrind support: yes"
 msgstr "Přeloženo s podporou Valgrind: ano"
 
-#: ../src/daemon/main.c:885
+#: ../src/daemon/main.c:886
 msgid "Compiled with Valgrind support: no"
 msgstr "Přeloženo s podporou Valgrind: ne"
 
-#: ../src/daemon/main.c:888
+#: ../src/daemon/main.c:889
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "Běží v režimu valgrind: %s"
 
-#: ../src/daemon/main.c:891
+#: ../src/daemon/main.c:892
 msgid "Optimized build: yes"
 msgstr "Optimalizované sestavení: ano"
 
-#: ../src/daemon/main.c:893
+#: ../src/daemon/main.c:894
 msgid "Optimized build: no"
 msgstr "Optimalizované sestavení: ne"
 
-#: ../src/daemon/main.c:897
+#: ../src/daemon/main.c:898
 msgid "NDEBUG defined, all asserts disabled."
 msgstr ""
 
-#: ../src/daemon/main.c:899
+#: ../src/daemon/main.c:900
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr ""
 
-#: ../src/daemon/main.c:901
+#: ../src/daemon/main.c:902
 msgid "All asserts enabled."
 msgstr ""
 
-#: ../src/daemon/main.c:905
+#: ../src/daemon/main.c:906
 msgid "Failed to get machine ID"
 msgstr "Nezdařilo se získání ID počítače"
 
-#: ../src/daemon/main.c:908
+#: ../src/daemon/main.c:909
 #, c-format
 msgid "Machine ID is %s."
 msgstr "ID počítače je %s."
 
-#: ../src/daemon/main.c:912
+#: ../src/daemon/main.c:913
 #, fuzzy, c-format
 msgid "Session ID is %s."
 msgstr "ID počítače je %s."
 
-#: ../src/daemon/main.c:918
+#: ../src/daemon/main.c:919
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Používán běhový adresář %s."
 
-#: ../src/daemon/main.c:923
+#: ../src/daemon/main.c:924
 #, c-format
 msgid "Using state directory %s."
 msgstr "Používán stavový adresář %s."
 
-#: ../src/daemon/main.c:926
+#: ../src/daemon/main.c:927
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Běží v systémovém režimu: %s"
 
-#: ../src/daemon/main.c:941
+#: ../src/daemon/main.c:942
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() selhalo."
 
-#: ../src/daemon/main.c:953
+#: ../src/daemon/main.c:954
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr ""
 "Jsou dostupné výtečné časovače o vysokém rozlišení. Tak s chutí do toho!"
 
-#: ../src/daemon/main.c:955
+#: ../src/daemon/main.c:956
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -484,27 +484,27 @@ msgstr ""
 "Sorry, vole, kernel error! Tip šéfkuchaře na dnešní den zní: Linux se "
 "zapnutými časovači o vysokém rozlišení."
 
-#: ../src/daemon/main.c:967
+#: ../src/daemon/main.c:970
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() selhalo."
 
-#: ../src/daemon/main.c:1029
+#: ../src/daemon/main.c:1032
 msgid "Failed to initialize daemon."
 msgstr "Selhalo spuštění démona."
 
-#: ../src/daemon/main.c:1034
+#: ../src/daemon/main.c:1037
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "Spuštění démona bez jakýchkoliv nahraných modulů, běh bude odmítnut."
 
-#: ../src/daemon/main.c:1051
+#: ../src/daemon/main.c:1054
 msgid "Daemon startup complete."
 msgstr "Spuštění démona dokončeno."
 
-#: ../src/daemon/main.c:1057
+#: ../src/daemon/main.c:1060
 msgid "Daemon shutdown initiated."
 msgstr "Vypínání démona spuštěno."
 
-#: ../src/daemon/main.c:1079
+#: ../src/daemon/main.c:1082
 msgid "Daemon terminated."
 msgstr "Démon ukončen."
 
@@ -1238,7 +1238,7 @@ msgstr "fork(): %s"
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1402
+#: ../src/pulse/context.c:1403
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Přijata zpráva pro neznámé rozšíření \"%s\""
@@ -1570,10 +1570,9 @@ msgstr "io_new() selhalo.\n"
 msgid "pa_context_new() failed.\n"
 msgstr "pa_context_new() selhalo.\n"
 
-#: ../src/utils/pacat.c:799 ../src/utils/pactl.c:1037
-#: ../src/utils/paplay.c:404
-#, c-format
-msgid "pa_context_connect() failed: %s"
+#: ../src/utils/pacat.c:799
+#, fuzzy, c-format
+msgid "pa_context_connect() failed: %s\n"
 msgstr "pa_context_connect() selhalo: %s"
 
 #: ../src/utils/pacat.c:810
@@ -2049,6 +2048,11 @@ msgstr "Vy až a cíl rejstřík a a cíl n"
 msgid "No valid command specified.\n"
 msgstr "Nezadán žádný platný příkaz.\n"
 
+#: ../src/utils/pactl.c:1037 ../src/utils/paplay.c:404
+#, c-format
+msgid "pa_context_connect() failed: %s"
+msgstr "pa_context_connect() selhalo: %s"
+
 #: ../src/utils/pax11publish.c:61
 #, fuzzy, c-format
 msgid ""
@@ -2280,19 +2284,19 @@ msgid "Input %s"
 msgstr ""
 
 #: ../src/modules/alsa/module-alsa-card.c:170
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2001
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2006
 msgid "Off"
 msgstr ""
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1971
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1976
 msgid "High Fidelity Playback (A2DP)"
 msgstr ""
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1986
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1991
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr ""
 
-#: ../src/modules/reserve-wrap.c:127
+#: ../src/modules/reserve-wrap.c:139
 msgid "PulseAudio Sound Server"
 msgstr ""
 
