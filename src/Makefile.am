@@ -259,7 +259,8 @@ TESTS = \
 		envelope-test \
 		proplist-test \
 		lock-autospawn-test \
-		prioq-test
+		prioq-test \
+		sigbus-test
 
 TESTS_BINARIES = \
 		mainloop-test \
@@ -296,7 +297,8 @@ TESTS_BINARIES = \
 		rtstutter \
 		stripnul \
 		lock-autospawn-test \
-		prioq-test
+		prioq-test \
+		sigbus-test
 
 if HAVE_SIGXCPU
 #TESTS += \
@@ -519,6 +521,11 @@ prioq_test_SOURCES = tests/prioq-test.c
 prioq_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la
 prioq_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
 prioq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
+
+sigbus_test_SOURCES = tests/sigbus-test.c
+sigbus_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la
+sigbus_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+sigbus_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
 
 gtk_test_SOURCES = tests/gtk-test.c
 gtk_test_LDADD = $(AM_LDADD) libpulse.la libpulse-mainloop-glib.la
@@ -797,6 +804,7 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/sconv-s16le.c pulsecore/sconv-s16le.h \
 		pulsecore/sconv.c pulsecore/sconv.h \
 		pulsecore/shared.c pulsecore/shared.h \
+		pulsecore/memtrap.c pulsecore/memtrap.h \
 		pulsecore/shm.c pulsecore/shm.h \
 		pulsecore/sink-input.c pulsecore/sink-input.h \
 		pulsecore/sink.c pulsecore/sink.h \
