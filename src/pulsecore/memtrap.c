@@ -102,6 +102,7 @@ static void signal_handler(int sig, siginfo_t* si, void *data) {
     return;
 
 fail:
+    sigsafe_error("Failed to handle SIGBUS.\n");
     pa_atomic_dec(&read_lock);
     abort();
 }
