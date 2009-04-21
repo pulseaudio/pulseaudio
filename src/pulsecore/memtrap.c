@@ -129,7 +129,7 @@ static void memtrap_link(pa_memtrap *m, unsigned j) {
     memtraps[j] = m;
 }
 
-static void memtrap_unlink(pa_memtrap *m, int j) {
+static void memtrap_unlink(pa_memtrap *m, unsigned j) {
     pa_assert(m);
 
     if (m->next[j])
