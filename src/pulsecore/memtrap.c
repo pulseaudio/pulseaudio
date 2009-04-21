@@ -154,21 +154,6 @@ pa_memtrap* pa_memtrap_add(const void *start, size_t size) {
     lock = pa_static_mutex_get(&write_lock, FALSE, FALSE);
     pa_mutex_lock(lock);
 
-    if (!memtraps[0]) {
-        struct sigaction sa;
-
-        /* Before we install the signal handler, make sure the
-         * semaphore is valid so that the initialization of the
-         * semaphore doesn't have to happen from the signal handler */
-        pa_static_semaphore_get(&semaphore, 0);
-
-        memset(&sa, 0, sizeof(sa));
-        sa.sa_sigaction = signal_handler;
-        sa.sa_flags = SA_RESTART|SA_SIGINFO;
-
-        pa_assert_se(sigaction(SIGBUS, &sa, NULL) == 0);
-    }
-
     n = (unsigned) pa_atomic_load(&read_lock);
     j = WHICH(n);
 
@@ -203,14 +188,6 @@ void pa_memtrap_remove(pa_memtrap *m) {
     memtrap_unlink(m, j);
 
     pa_xfree(m);
-
-    if (!memtraps[0]) {
-        struct sigaction sa;
-
-        memset(&sa, 0, sizeof(sa));
-        sa.sa_handler = SIG_DFL;
-        pa_assert_se(sigaction(SIGBUS, &sa, NULL) == 0);
-    }
 
     pa_mutex_unlock(lock);
 }
@@ -254,4 +231,19 @@ unlock:
     pa_mutex_unlock(lock);
 
     return m;
+}
+
+void pa_memtrap_install(void) {
+    struct sigaction sa;
+
+    /* Before we install the signal handler, make sure the semaphore
+     * is valid so that the initialization of the semaphore
+     * doesn't have to happen from the signal handler */
+    pa_static_semaphore_get(&semaphore, 0);
+
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_sigaction = signal_handler;
+    sa.sa_flags = SA_RESTART|SA_SIGINFO;
+
+    pa_assert_se(sigaction(SIGBUS, &sa, NULL) == 0);
 }

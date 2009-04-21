@@ -35,4 +35,6 @@ void pa_memtrap_remove(pa_memtrap *m);
 
 pa_bool_t pa_memtrap_is_good(pa_memtrap *m);
 
+void pa_memtrap_install(void);
+
 #endif

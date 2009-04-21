@@ -35,6 +35,7 @@ int main(int argc, char *argv[]) {
     pa_memtrap *m;
 
     pa_log_set_level(PA_LOG_DEBUG);
+    pa_memtrap_install();
 
     /* Create the memory map */
     pa_assert_se((fd = open("sigbus-test-map", O_RDWR|O_TRUNC|O_CREAT, 0660)) >= 0);
