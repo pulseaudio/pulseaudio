@@ -26,6 +26,17 @@
 
 #include <pulsecore/macro.h>
 
+/* This subsystem will trap SIGBUS on specific memory regions. The
+ * regions will be remapped to anonymous memory (i.e. writable NUL
+ * bytes) on SIGBUS, so that execution of the main program can
+ * continue though with memory having changed beneath its hands. With
+ * pa_memtrap_is_good() it is possible to query if a memory region is
+ * still 'good' i.e. no SIGBUS has happened yet for it.
+ *
+ * Intended usage is to handle memory mapped in which is controlled by
+ * other processes that might execute ftruncate() or when mapping in
+ * hardware resources that might get invalidated when unplugged. */
+
 typedef struct pa_memtrap pa_memtrap;
 
 pa_memtrap* pa_memtrap_add(const void *start, size_t size);
