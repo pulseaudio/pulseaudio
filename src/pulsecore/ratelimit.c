@@ -29,7 +29,7 @@
 
 #include "ratelimit.h"
 
-static pa_static_mutex mutex;
+static pa_static_mutex mutex = PA_STATIC_MUTEX_INIT;
 
 /* Modelled after Linux' lib/ratelimit.c by Dave Young
  * <hidave.darkstar@gmail.com>, which is licensed GPLv2. */
