@@ -87,6 +87,7 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/once.h>
 #include <pulsecore/shm.h>
+#include <pulsecore/memtrap.h>
 #ifdef HAVE_DBUS
 #include <pulsecore/dbus-shared.h>
 #endif
@@ -960,6 +961,8 @@ int main(int argc, char *argv[]) {
     /* Valgrind uses SIGRTMAX. To easy debugging we don't use it here */
     pa_rtsig_configure(SIGRTMIN, SIGRTMAX-1);
 #endif
+
+    pa_memtrap_install();
 
     pa_assert_se(mainloop = pa_mainloop_new());
 

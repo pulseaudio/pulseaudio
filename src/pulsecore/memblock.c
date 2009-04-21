@@ -45,6 +45,7 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/flist.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/memtrap.h>
 
 #include "memblock.h"
 
@@ -91,6 +92,7 @@ struct pa_memblock {
 struct pa_memimport_segment {
     pa_memimport *import;
     pa_shm memory;
+    pa_memtrap *trap;
     unsigned n_blocks;
 };
 
@@ -892,6 +894,7 @@ static pa_memimport_segment* segment_attach(pa_memimport *i, uint32_t shm_id) {
 
     seg->import = i;
     seg->n_blocks = 0;
+    seg->trap = pa_memtrap_add(seg->memory.ptr, seg->memory.size);
 
     pa_hashmap_put(i->segments, PA_UINT32_TO_PTR(shm_id), seg);
     return seg;
@@ -903,6 +906,10 @@ static void segment_detach(pa_memimport_segment *seg) {
 
     pa_hashmap_remove(seg->import->segments, PA_UINT32_TO_PTR(seg->memory.id));
     pa_shm_free(&seg->memory);
+
+    if (seg->trap)
+        pa_memtrap_remove(seg->trap);
+
     pa_xfree(seg);
 }
 

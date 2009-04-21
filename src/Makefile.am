@@ -582,6 +582,7 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/pipe.c pulsecore/pipe.h \
 		pulsecore/poll.c pulsecore/poll.h \
 		pulsecore/prioq.c pulsecore/prioq.h \
+		pulsecore/memtrap.c pulsecore/memtrap.h \
 		pulsecore/proplist-util.c pulsecore/proplist-util.h \
 		pulsecore/pstream-util.c pulsecore/pstream-util.h \
 		pulsecore/pstream.c pulsecore/pstream.h \
@@ -804,7 +805,6 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/sconv-s16le.c pulsecore/sconv-s16le.h \
 		pulsecore/sconv.c pulsecore/sconv.h \
 		pulsecore/shared.c pulsecore/shared.h \
-		pulsecore/memtrap.c pulsecore/memtrap.h \
 		pulsecore/shm.c pulsecore/shm.h \
 		pulsecore/sink-input.c pulsecore/sink-input.h \
 		pulsecore/sink.c pulsecore/sink.h \
