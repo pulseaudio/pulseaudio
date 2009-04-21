@@ -153,6 +153,8 @@ pa_mutex* pa_static_mutex_get(pa_static_mutex *s, pa_bool_t recursive, pa_bool_t
     if ((pa_atomic_ptr_cmpxchg(&s->ptr, NULL, m)))
         return m;
 
+    pa_mutex_free(m);
+
     /* Him, filling in failed, so someone else must have filled in
      * already */
     pa_assert_se(m = pa_atomic_ptr_load(&s->ptr));
