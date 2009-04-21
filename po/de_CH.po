@@ -3,21 +3,20 @@
 # This file is distributed under the same license as the pulseaudio package.
 #
 # Fabian Affolter <fab@fedoraproject.org>, 2008-2009.
-# Micha Pietsch <barney@fedoraproject.org>, 2008
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-04-05 08:27+0000\n"
-"PO-Revision-Date: 2009-04-18 12:43+0100\n"
+"PO-Revision-Date: 2009-04-18 12:55+0100\n"
 "Last-Translator: Fabian Affolter <fab@fedoraproject.org>\n"
 "Language-Team: German <fedora-trans-de@redhat.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Poedit-Language: German\n"
+"X-Poedit-Language: Swiss German\n"
 
 #: ../src/modules/alsa/alsa-util.c:530
 msgid "Analog Mono"
@@ -69,7 +68,7 @@ msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."
 msgstr ""
-"snd_pcm_avail() gibt einen Wert zurück, welche außerordentlich groß ist: %lu bytes (%lu ms).\n"
+"snd_pcm_avail() gibt einen Wert zurück, welche ausserordentlich gross ist: %lu bytes (%lu ms).\n"
 "Dies ist wahrscheinlich ein Fehler im ALSA-Treiber '%s'. Bitte melden Sie diesen Punkt den ALSA-Entwicklern."
 
 #: ../src/modules/alsa/alsa-util.c:1649
@@ -78,7 +77,7 @@ msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."
 msgstr ""
-"snd_pcm_delay() gibt einen Wert zurück, welche außerordentlich groß ist: %li bytes (%s%lu ms).\n"
+"snd_pcm_delay() gibt einen Wert zurück, welche ausserordentlich gross ist: %li bytes (%s%lu ms).\n"
 "Dies ist wahrscheinlich ein Fehler im ALSA-Treiber '%s'. Bitte melden Sie diesen Punkt den ALSA-Entwicklern."
 
 #: ../src/modules/alsa/alsa-util.c:1695
@@ -87,7 +86,7 @@ msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."
 msgstr ""
-"snd_pcm_mmap_begin() gibt einen Wert zurück, welche außerordentlich groß ist: %lu bytes (%lu ms).\n"
+"snd_pcm_mmap_begin() gibt einen Wert zurück, welche ausserordentlich gross ist: %lu bytes (%lu ms).\n"
 "Dies ist wahrscheinlich ein Fehler im ALSA-Treiber '%s'. Bitte melden Sie diesen Punkt den ALSA-Entwicklern."
 
 #: ../src/pulsecore/sink.c:2061
@@ -329,11 +328,11 @@ msgstr "System-Modus aktiv, jedoch --disallow-module-loading nicht gesetzt!"
 
 #: ../src/daemon/main.c:721
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr "System-Modus aktiv, SHM-Modus gezwungenermaßen deaktiviert!"
+msgstr "System-Modus aktiv, SHM-Modus gezwungenermassen deaktiviert!"
 
 #: ../src/daemon/main.c:726
 msgid "Running in system mode, forcibly disabling exit idle time!"
-msgstr "System-Modus aktiv, Exit-Idle-Time gezwungenermaßen deaktiviert!"
+msgstr "System-Modus aktiv, Exit-Idle-Time gezwungenermassen deaktiviert!"
 
 #: ../src/daemon/main.c:753
 msgid "Failed to acquire stdio."
@@ -390,7 +389,7 @@ msgstr "%u CPUs gefunden."
 #: ../src/daemon/main.c:866
 #, c-format
 msgid "Page size is %lu bytes"
-msgstr "Seitengröße ist %lu Bytes."
+msgstr "Seitengrösse ist %lu Bytes."
 
 #: ../src/daemon/main.c:869
 msgid "Compiled with Valgrind support: yes"
@@ -755,7 +754,7 @@ msgstr "[%s:%u] Ungültige Anzahl von Fragmenten '%s'."
 #: ../src/daemon/daemon-conf.c:389
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr "[%s:%u] Ungültige Fragmentgröße '%s'."
+msgstr "[%s:%u] Ungültige Fragmentgrösse '%s'."
 
 #: ../src/daemon/daemon-conf.c:407
 #, c-format
@@ -794,8 +793,9 @@ msgid "Start the PulseAudio Sound System"
 msgstr "Das PulseAudio Sound System starten"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:1
+#, fuzzy
 msgid "High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr ""
+msgstr "High-priority scheduling (verkleinere Unix nice-Stufe) für den PulseAudio-Daemon"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:2
 #, fuzzy
@@ -1124,7 +1124,7 @@ msgstr "Inkompatible Protokollversion"
 
 #: ../src/pulse/error.c:61
 msgid "Too large"
-msgstr "Zu groß"
+msgstr "Zu gross"
 
 #: ../src/pulse/error.c:62
 msgid "Not supported"
@@ -1147,8 +1147,9 @@ msgid "Missing implementation"
 msgstr "Fehlende Implementation"
 
 #: ../src/pulse/error.c:67
+#, fuzzy
 msgid "Client forked"
-msgstr ""
+msgstr "Client geforket"
 
 #: ../src/pulse/sample.c:169
 #, c-format
@@ -2286,6 +2287,9 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.\n"
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail."
 msgstr ""
+"ALSA ist aufgewacht zum Schreiben von neuen Daten auf das Gerät, aber es gibt nicht zum schreiben!\n"
+"Dies ist wahrscheinlich ein Fehler im ALSA-Treiber '%s'. Bitte melden Sie diesen Punkt den ALSA-Entwicklern.\n"
+"Wir wachen auf mit einem POLLOUT-Satz -- wie auch immer, eine Untersequenz von snd_pcm_avail() liefert 0 oder einen anderen Wert zurück, der < min_avail ist."
 
 #: ../src/modules/alsa/alsa-source.c:377
 #: ../src/modules/alsa/alsa-source.c:510
@@ -2295,6 +2299,9 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.\n"
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail."
 msgstr ""
+"ALSA ist aufgewacht zum Lesen von neuen Daten vom Gerät, aber es gibt nicht zum Lesen!\n"
+"Dies ist wahrscheinlich ein Fehler im ALSA-Treiber '%s'. Bitte melden Sie diesen Punkt den ALSA-Entwicklern.\n"
+"Wir wachen auf mit einem POLLIN-Satz -- wie auch immer, eine Untersequenz von snd_pcm_avail() liefert 0 oder einen anderen Wert zurück, der < min_avail ist."
 
 #: ../src/modules/alsa/module-alsa-card.c:114
 #, c-format

@@ -1,66 +1,69 @@
 # Italian translation for PulseAudio.
 # Copyright (C) 2008, 2009 The Free Software Foundation, Inc
 # This file is distributed under the same license as the pulseaudio package.
-# Luca Ferretti <elle.uca@libero.it>, 2008, 2009.
-# Milo Casagrande <milo@ubuntu.com>, 2009
 #
+# Luca Ferretti <elle.uca@libero.it>, 2008, 2009.
+# Milo Casagrande <milo@ubuntu.com>, 2009.
+# mario_santagiuliana <mario at marionline.it>, 2009.
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-13 23:08+0200\n"
-"PO-Revision-Date: 2009-04-01 19:18+0200\n"
-"Last-Translator: Milo Casagrande <milo@ubuntu.com>\n"
-"Language-Team: Italiano <tp@lists.linux.it>\n"
+"POT-Creation-Date: 2009-04-05 08:27+0000\n"
+"PO-Revision-Date: 2009-04-20 22:34+0200\n"
+"Last-Translator: mario_santagiuliana <mario at marionline.it>\n"
+"Language-Team: Italian <fedora-trans-it at redhat.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 0.3\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../src/modules/alsa/alsa-util.c:530
 msgid "Analog Mono"
 msgstr "Mono analogico"
 
-#: ../src/modules/alsa/alsa-util.c:538
+#: ../src/modules/alsa/alsa-util.c:536
 msgid "Analog Stereo"
 msgstr "Stereo analogico"
 
-#: ../src/modules/alsa/alsa-util.c:546
+#: ../src/modules/alsa/alsa-util.c:542
 msgid "Digital Stereo (IEC958)"
 msgstr "Stereo digitale (IEC958)"
 
-#: ../src/modules/alsa/alsa-util.c:554
+#: ../src/modules/alsa/alsa-util.c:548
 msgid "Digital Stereo (HDMI)"
 msgstr "Stereo digitale (HDMI)"
 
-#: ../src/modules/alsa/alsa-util.c:563
+#: ../src/modules/alsa/alsa-util.c:555
 msgid "Analog Surround 4.0"
 msgstr "Surround analogico 4.0"
 
-#: ../src/modules/alsa/alsa-util.c:572
+#: ../src/modules/alsa/alsa-util.c:562
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr "Surround digitale 4.0 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-util.c:582
+#: ../src/modules/alsa/alsa-util.c:570
 msgid "Analog Surround 4.1"
 msgstr "Surround analogico 4.1"
 
-#: ../src/modules/alsa/alsa-util.c:592
+#: ../src/modules/alsa/alsa-util.c:578
 msgid "Analog Surround 5.0"
 msgstr "Surround analogico 5.0"
 
-#: ../src/modules/alsa/alsa-util.c:602
+#: ../src/modules/alsa/alsa-util.c:586
 msgid "Analog Surround 5.1"
 msgstr "Surround analogico 5.1"
 
-#: ../src/modules/alsa/alsa-util.c:612
+#: ../src/modules/alsa/alsa-util.c:594
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "Surround digitale 5.1 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-util.c:623
+#: ../src/modules/alsa/alsa-util.c:603
 msgid "Analog Surround 7.1"
 msgstr "Surround analogico 7.1"
 
-#: ../src/modules/alsa/alsa-util.c:1644
+#: ../src/modules/alsa/alsa-util.c:1609
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -72,7 +75,7 @@ msgstr ""
 "Molto probabilmente si tratta di un bug nel driver ALSA «%s». Segnalare "
 "questo problema agli sviluppatori ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1685
+#: ../src/modules/alsa/alsa-util.c:1649
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -84,7 +87,7 @@ msgstr ""
 "Molto probabilmente si tratta di un bug nel driver ALSA «%s». Segnalare "
 "questo problema agli sviluppatori ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1732
+#: ../src/modules/alsa/alsa-util.c:1695
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -97,11 +100,11 @@ msgstr ""
 "Molto probabilmente si tratta di un bug nel driver ALSA «%s». Segnalare "
 "questo problema agli sviluppatori ALSA."
 
-#: ../src/pulsecore/sink.c:2141
+#: ../src/pulsecore/sink.c:2061
 msgid "Internal Audio"
 msgstr "Audio interno"
 
-#: ../src/pulsecore/sink.c:2147
+#: ../src/pulsecore/sink.c:2067
 msgid "Modem"
 msgstr "Modem"
 
@@ -239,37 +242,37 @@ msgstr "Modalità \"system wide\" non supportata su questa piattaforma."
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) non riuscita: %s"
 
-#: ../src/daemon/main.c:476
+#: ../src/daemon/main.c:462
 msgid "Failed to parse command line."
 msgstr "Analisi della riga di comando non riuscita."
 
-#: ../src/daemon/main.c:500
+#: ../src/daemon/main.c:486
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
 msgstr "Attualmente nel gruppo \"%s\", che consente scheduling high-priority."
 
-#: ../src/daemon/main.c:507
+#: ../src/daemon/main.c:493
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
 msgstr "Attualmente nel gruppo \"%s\", che consente scheduling real-time."
 
-#: ../src/daemon/main.c:515
+#: ../src/daemon/main.c:501
 msgid "PolicyKit grants us acquire-high-priority privilege."
 msgstr "Privilegi acquire-high-priority assegnati da PolicyKit."
 
-#: ../src/daemon/main.c:518
+#: ../src/daemon/main.c:504
 msgid "PolicyKit refuses acquire-high-priority privilege."
 msgstr "Privilegi acquire-high-priority rifiutati da PolicyKit."
 
-#: ../src/daemon/main.c:523
+#: ../src/daemon/main.c:509
 msgid "PolicyKit grants us acquire-real-time privilege."
 msgstr "Privilegi acquire-real-time assegnati da PolicyKit."
 
-#: ../src/daemon/main.c:526
+#: ../src/daemon/main.c:512
 msgid "PolicyKit refuses acquire-real-time privilege."
 msgstr "Privilegi acquire-real-time rifiutati da PolicyKit."
 
-#: ../src/daemon/main.c:555
+#: ../src/daemon/main.c:541
 #, c-format
 msgid ""
 "Called SUID root and real-time and/or high-priority scheduling was requested "
@@ -290,49 +293,49 @@ msgstr ""
 "PolicyKit appropriati, diventare un membro di «%s» oppure incrementare i "
 "limiti RLIMIT_NICE/RLIMIT_RTPRIO della risorsa per questo utente."
 
-#: ../src/daemon/main.c:580
+#: ../src/daemon/main.c:566
 msgid ""
 "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 "Scheduling high-priority abilitato nella configurazione, ma non ammesso "
 "dalla politica."
 
-#: ../src/daemon/main.c:609
+#: ../src/daemon/main.c:595
 msgid "Successfully increased RLIMIT_RTPRIO"
 msgstr "Incremento di RLIMIT_RTPRIO riuscito"
 
-#: ../src/daemon/main.c:612
+#: ../src/daemon/main.c:598
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
 msgstr "RLIMIT_RTPRIO non riuscito: %s"
 
 # abbandono??
-#: ../src/daemon/main.c:619
+#: ../src/daemon/main.c:605
 msgid "Giving up CAP_NICE"
 msgstr "Abbandono del CAP_NICE"
 
-#: ../src/daemon/main.c:626
+#: ../src/daemon/main.c:612
 msgid ""
 "Real-time scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 "Scheduling real-time abilitato nella configurazione, ma non ammesso dalla "
 "politica."
 
-#: ../src/daemon/main.c:687
+#: ../src/daemon/main.c:673
 msgid "Daemon not running"
 msgstr "Demone non in esecuzione"
 
-#: ../src/daemon/main.c:689
+#: ../src/daemon/main.c:675
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "Demone in esecuzione con PID %u"
 
-#: ../src/daemon/main.c:699
+#: ../src/daemon/main.c:685
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Terminazione del demone non riuscita: %s"
 
-#: ../src/daemon/main.c:717
+#: ../src/daemon/main.c:703
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -340,167 +343,163 @@ msgstr ""
 "Questo programma non è pensato per essere eseguito come root (a meno di "
 "specificare --system)."
 
-#: ../src/daemon/main.c:719
+#: ../src/daemon/main.c:705
 msgid "Root privileges required."
 msgstr "Richiesti privilegi di root."
 
-#: ../src/daemon/main.c:724
+#: ../src/daemon/main.c:710
 msgid "--start not supported for system instances."
 msgstr "--start non supportato per le istanze di sistema."
 
-#: ../src/daemon/main.c:729
+#: ../src/daemon/main.c:715
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr "In esecuzione in modalità sistema, ma --disallow-exit non impostato."
 
-#: ../src/daemon/main.c:732
+#: ../src/daemon/main.c:718
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 "In esecuzione in modalità sistema, ma --disallow-module-loading non "
 "impostato."
 
-#: ../src/daemon/main.c:735
+#: ../src/daemon/main.c:721
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr ""
 "In esecuzione in modalità sistema, disabilitata in modo forzoso la modalità "
 "SHM."
 
-#: ../src/daemon/main.c:740
+#: ../src/daemon/main.c:726
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "In esecuzione in modalità sistema, disabilitato in modo forzoso il tempo di "
 "uscita per inattività."
 
-#: ../src/daemon/main.c:767
+#: ../src/daemon/main.c:753
 msgid "Failed to acquire stdio."
 msgstr "Acquisizione di STDIO non riuscita."
 
-#: ../src/daemon/main.c:773
+#: ../src/daemon/main.c:759
 #, c-format
 msgid "pipe failed: %s"
 msgstr "pipe non riuscita: %s"
 
-#: ../src/daemon/main.c:778
+#: ../src/daemon/main.c:764
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() non riuscita: %s"
 
-#: ../src/daemon/main.c:792
+#: ../src/daemon/main.c:778
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() non riuscita: %s"
 
-#: ../src/daemon/main.c:798
+#: ../src/daemon/main.c:784
 msgid "Daemon startup failed."
 msgstr "Avvio del demone non riuscito."
 
-#: ../src/daemon/main.c:800
+#: ../src/daemon/main.c:786
 msgid "Daemon startup successful."
 msgstr "Avvio del demone riuscito."
 
-#: ../src/daemon/main.c:870
+#: ../src/daemon/main.c:856
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Questo è PulseAudio %s"
 
-#: ../src/daemon/main.c:871
+#: ../src/daemon/main.c:857
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Host di compilazione: %s"
 
-#: ../src/daemon/main.c:872
+#: ../src/daemon/main.c:858
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "CFLAGS di compilazione: %s"
 
-#: ../src/daemon/main.c:875
+#: ../src/daemon/main.c:861
 #, c-format
 msgid "Running on host: %s"
 msgstr "In esecuzione sull'host: %s"
 
 # evviva il rispetto della l10n!!!
-#: ../src/daemon/main.c:878
+#: ../src/daemon/main.c:864
 #, c-format
 msgid "Found %u CPUs."
 msgstr "Trovate %u CPU."
 
-#: ../src/daemon/main.c:880
+#: ../src/daemon/main.c:866
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "La dimensione di pagina è %lu byte"
 
-#: ../src/daemon/main.c:883
+#: ../src/daemon/main.c:869
 msgid "Compiled with Valgrind support: yes"
 msgstr "Compilato con supporto a Valgrind: sì"
 
-#: ../src/daemon/main.c:885
+#: ../src/daemon/main.c:871
 msgid "Compiled with Valgrind support: no"
 msgstr "Compilato con supporto a Valgrind: no"
 
-#: ../src/daemon/main.c:888
+#: ../src/daemon/main.c:874
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "In esecuzione in modalità valgrind: %s"
 
-#: ../src/daemon/main.c:891
+#: ../src/daemon/main.c:877
 msgid "Optimized build: yes"
 msgstr "Build ottimizzata: sì"
 
-#: ../src/daemon/main.c:893
+#: ../src/daemon/main.c:879
 msgid "Optimized build: no"
 msgstr "Build ottimizzata: no"
 
-#: ../src/daemon/main.c:897
+#: ../src/daemon/main.c:883
 msgid "NDEBUG defined, all asserts disabled."
-msgstr ""
+msgstr "NDEBUG definito, tutte le dichiarazioni sono disabilitate."
 
-#: ../src/daemon/main.c:899
+#: ../src/daemon/main.c:885
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr ""
+"FASTPATH definito, solo le dichiarazioni veloci di path sono disabilitate."
 
-#: ../src/daemon/main.c:901
+#: ../src/daemon/main.c:887
 msgid "All asserts enabled."
-msgstr ""
+msgstr "Tutte le dichiarazioni sono abilitate."
 
-#: ../src/daemon/main.c:905
+#: ../src/daemon/main.c:891
 msgid "Failed to get machine ID"
 msgstr "Recupero dell'ID della macchina non riuscito"
 
-#: ../src/daemon/main.c:908
+#: ../src/daemon/main.c:894
 #, c-format
 msgid "Machine ID is %s."
 msgstr "L'ID della macchina è %s"
 
-#: ../src/daemon/main.c:912
-#, fuzzy, c-format
-msgid "Session ID is %s."
-msgstr "L'ID della macchina è %s"
-
-#: ../src/daemon/main.c:918
+#: ../src/daemon/main.c:899
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "In uso directory di runtime %s."
 
-#: ../src/daemon/main.c:923
+#: ../src/daemon/main.c:904
 #, c-format
 msgid "Using state directory %s."
 msgstr "In uso directory di stato %s."
 
-#: ../src/daemon/main.c:926
+#: ../src/daemon/main.c:907
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "In esecuzione in modalità sistema: %s"
 
-#: ../src/daemon/main.c:941
+#: ../src/daemon/main.c:922
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() non riuscita."
 
 # io mi domando e dico..... mah!
-#: ../src/daemon/main.c:953
+#: ../src/daemon/main.c:934
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Disponibili timer high-resolution freschi freschi! Buon appetito!"
 
 # $REPEAT_PREVIOUS_COMMENT_HERE
-#: ../src/daemon/main.c:955
+#: ../src/daemon/main.c:936
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -508,27 +507,27 @@ msgstr ""
 "Hey, questo kernel è andato a male! Lo chef oggi raccomanda Linux con i "
 "timer high-resolution abilitati!"
 
-#: ../src/daemon/main.c:967
+#: ../src/daemon/main.c:948
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() non riuscita."
 
-#: ../src/daemon/main.c:1029
+#: ../src/daemon/main.c:1010
 msgid "Failed to initialize daemon."
 msgstr "Inizializzazione del demone non riuscita."
 
-#: ../src/daemon/main.c:1034
+#: ../src/daemon/main.c:1015
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "Avvio del demone senza alcun modulo caricato, rifiuta di lavorare."
 
-#: ../src/daemon/main.c:1051
+#: ../src/daemon/main.c:1032
 msgid "Daemon startup complete."
 msgstr "Completato l'avvio del demone."
 
-#: ../src/daemon/main.c:1057
+#: ../src/daemon/main.c:1038
 msgid "Daemon shutdown initiated."
 msgstr "Iniziato l'arresto del demone."
 
-#: ../src/daemon/main.c:1079
+#: ../src/daemon/main.c:1056
 msgid "Daemon terminated."
 msgstr "Demone terminato."
 
@@ -1298,30 +1297,30 @@ msgstr "%u B"
 msgid "XOpenDisplay() failed"
 msgstr "XOpenDisplay() non riuscita"
 
-#: ../src/pulse/client-conf-x11.c:93
+#: ../src/pulse/client-conf-x11.c:78
 msgid "Failed to parse cookie data"
 msgstr "Analisi dei dati cookie non riuscita"
 
-#: ../src/pulse/client-conf.c:110
+#: ../src/pulse/client-conf.c:120
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
 msgstr "Apertura del file di configurazione \"%s\" non riuscita: %s"
 
-#: ../src/pulse/context.c:546
+#: ../src/pulse/context.c:539
 msgid "No cookie loaded. Attempting to connect without."
 msgstr "Nessun cookie caricato. Tentativo di connettersi senza."
 
-#: ../src/pulse/context.c:676
+#: ../src/pulse/context.c:669
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:729
+#: ../src/pulse/context.c:722
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1402
+#: ../src/pulse/context.c:1387
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Ricevuto messaggio per l'estensione sconosciuta \"%s\""
@@ -1407,10 +1406,9 @@ msgstr "Stream spostato sul device %s (%u, %ssospeso).%s \n"
 msgid "not "
 msgstr "non "
 
-#: ../src/utils/pacat.c:245
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:245, c-format
 msgid "Stream buffer attributes changed.%s \n"
-msgstr "Underrun dello stream.%s\n"
+msgstr "Attributi del buffer di stream cambiati.%s \n"
 
 #: ../src/utils/pacat.c:278
 #, c-format
@@ -2464,7 +2462,7 @@ msgstr "In uso la specifica di campionamento \"%s\"\n"
 msgid "Cannot access autospawn lock."
 msgstr "Impossibile accedere al lock di autospawn."
 
-#: ../src/modules/alsa/alsa-sink.c:393 ../src/modules/alsa/alsa-sink.c:541
+#: ../src/modules/alsa/alsa-sink.c:393 ../src/modules/alsa/alsa-sink.c:535
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2474,8 +2472,16 @@ msgid ""
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
+"ALSA si è svegliato per scrivere nuovi dati sul dispositivo ma non c'era "
+"niente "
+"da scrivere!\n"
+"Molto probabilmente questo è un bug dei driver ALSA '%s'. Riportare questo "
+"problema agli sviluppatori di ALSA.\n"
+"Ci si è alzati con impostato POLLOUT -- come sempre un subsequent "
+"snd_pcm_avail() "
+"ritorna 0 o un altro valore < min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:516
+#: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:510
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2485,36 +2491,47 @@ msgid ""
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
+"ALSA si è svegliato per leggere nuovi dati dal dispositivo ma non c'era "
+"niente "
+"da leggere!\n"
+"Molto probabilmente questo è un bug dei driver ALSA '%s'. Riportare questo "
+"problema agli sviluppatori di ALSA.\n"
+"Ci si è alzati con impostato POLLIN -- come sempre un subsequent "
+"snd_pcm_avail() "
+"ritorna 0 o un altro valore < min_avail."
 
 #: ../src/modules/alsa/module-alsa-card.c:114
 #, c-format
 msgid "Output %s + Input %s"
-msgstr ""
+msgstr "Output %s + Input %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:117
 #, c-format
 msgid "Output %s"
-msgstr ""
+msgstr "Output %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:121
 #, c-format
 msgid "Input %s"
-msgstr ""
+msgstr "Input %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:170
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2001
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1864
 msgid "Off"
-msgstr ""
+msgstr "Spento"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1971
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1834
 msgid "High Fidelity Playback (A2DP)"
-msgstr ""
+msgstr "Playback ad alta fidabilità (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1986
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1849
 msgid "Telephony Duplex (HSP/HFP)"
-msgstr ""
+msgstr "Doppino Telefonico (HSP/HFP)"
 
-#: ../src/modules/reserve-wrap.c:127
-#, fuzzy
+#: ../src/modules/reserve-wrap.c:125
 msgid "PulseAudio Sound Server"
-msgstr "Sistema sonoro PulseAudio"
+msgstr "Server sonoro PulseAudio"
+
+#, fuzzy
+#~ msgid "Session ID is %s."
+#~ msgstr "L'ID della macchina è %s"

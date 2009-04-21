@@ -1,0 +1,2372 @@
+# Copyright (C) 2009 Free Software Foundation, Inc.
+# This file is distributed under the same license as the pulseaudio.master-tx package.
+#
+# Yuri Chornoivan <yurchor@ukr.net>, 2009.
+msgid ""
+msgstr ""
+"Project-Id-Version: pulseaudio.master-tx\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-03-27 09:43+0000\n"
+"PO-Revision-Date: 2009-04-18 11:13+0300\n"
+"Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
+"Language-Team: Ukrainian <translation@linux.org.ua>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 0.3\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: ../src/modules/alsa/alsa-util.c:530
+msgid "Analog Mono"
+msgstr "Аналоговий моно"
+
+#: ../src/modules/alsa/alsa-util.c:536
+msgid "Analog Stereo"
+msgstr "Аналоговий стерео"
+
+#: ../src/modules/alsa/alsa-util.c:542
+msgid "Digital Stereo (IEC958)"
+msgstr "Цифровий стерео (IEC958)"
+
+#: ../src/modules/alsa/alsa-util.c:548
+msgid "Digital Stereo (HDMI)"
+msgstr "Цифровий стерео (HDMI)"
+
+#: ../src/modules/alsa/alsa-util.c:555
+msgid "Analog Surround 4.0"
+msgstr "Аналоговий об’ємний 4.0"
+
+#: ../src/modules/alsa/alsa-util.c:562
+msgid "Digital Surround 4.0 (IEC958/AC3)"
+msgstr "Цифровий об’ємний 4.0 (IEC958/AC3)"
+
+#: ../src/modules/alsa/alsa-util.c:570
+msgid "Analog Surround 4.1"
+msgstr "Аналоговий об’ємний 4.1"
+
+#: ../src/modules/alsa/alsa-util.c:578
+msgid "Analog Surround 5.0"
+msgstr "Аналоговий об’ємний 5.0"
+
+#: ../src/modules/alsa/alsa-util.c:586
+msgid "Analog Surround 5.1"
+msgstr "Аналоговий об’ємний 5.1"
+
+#: ../src/modules/alsa/alsa-util.c:594
+msgid "Digital Surround 5.1 (IEC958/AC3)"
+msgstr "Цифровий об’ємний 5.1 (IEC958/AC3)"
+
+#: ../src/modules/alsa/alsa-util.c:603
+msgid "Analog Surround 7.1"
+msgstr "Аналоговий об’ємний 7.1"
+
+#: ../src/modules/alsa/alsa-util.c:1602
+#, c-format
+msgid ""
+"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
+"ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+"Функція snd_pcm_avail() повернула винятково велике значення: %lu байтів (%lu "
+"мс).\n"
+"Ймовірно, ви натрапили на ваду у драйвері ALSA «%s». Будь ласка, повідомте "
+"про цю ваду розробникам ALSA."
+
+#: ../src/modules/alsa/alsa-util.c:1642
+#, c-format
+msgid ""
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
+"lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+"Функція snd_pcm_delay() повернула винятково велике значення: %li байтів "
+"(%s%lu "
+"мс).\n"
+"Ймовірно, ви натрапили на ваду у драйвері ALSA «%s». Будь ласка, повідомте "
+"про цю ваду розробникам ALSA."
+
+#: ../src/modules/alsa/alsa-util.c:1688
+#, c-format
+msgid ""
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
+"(%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+"Функція snd_pcm_mmap_begin() повернула винятково велике значення: %lu байтів "
+"(%lu "
+"мс).\n"
+"Ймовірно, ви натрапили на ваду у драйвері ALSA «%s». Будь ласка, повідомте "
+"про цю ваду розробникам ALSA."
+
+#: ../src/pulsecore/sink.c:1965
+msgid "Internal Audio"
+msgstr "Вбудоване аудіо"
+
+#: ../src/pulsecore/sink.c:1971
+msgid "Modem"
+msgstr "Модем"
+
+#: ../src/daemon/ltdl-bind-now.c:124
+msgid "Failed to find original lt_dlopen loader."
+msgstr ""
+"Спроба знайти початковий інструмент завантаження lt_dlopen зазнала невдачі."
+
+#: ../src/daemon/ltdl-bind-now.c:129
+msgid "Failed to allocate new dl loader."
+msgstr ""
+"Спроба виділення пам’яті для нового інструменту завантаження dl зазнала "
+"невдачі."
+
+#: ../src/daemon/ltdl-bind-now.c:142
+msgid "Failed to add bind-now-loader."
+msgstr "Не вдалося додати bind-now-loader."
+
+#: ../src/daemon/polkit.c:55
+#, c-format
+msgid "Cannot connect to system bus: %s"
+msgstr "Не вдалося з’єднатися з шиною системи: %s"
+
+#: ../src/daemon/polkit.c:65
+#, c-format
+msgid "Cannot get caller from PID: %s"
+msgstr "Не вдалося отримати джерело виклику від PID: %s"
+
+#: ../src/daemon/polkit.c:77
+msgid "Cannot set UID on caller object."
+msgstr "Не вдалося встановити UID для об’єкта джерела виклику."
+
+#: ../src/daemon/polkit.c:82
+msgid "Failed to get CK session."
+msgstr "Не вдалося отримати CK сеансу."
+
+#: ../src/daemon/polkit.c:90
+msgid "Cannot set UID on session object."
+msgstr "Не вдалося встановити UID для об’єкта сеансу."
+
+#: ../src/daemon/polkit.c:95
+msgid "Cannot allocate PolKitAction."
+msgstr "Не вдалося розмістити PolKitAction."
+
+#: ../src/daemon/polkit.c:100
+msgid "Cannot set action_id"
+msgstr "Не вдалося встановити action_id"
+
+#: ../src/daemon/polkit.c:105
+msgid "Cannot allocate PolKitContext."
+msgstr "Не вдалося розмістити PolKitContext."
+
+#: ../src/daemon/polkit.c:110
+#, c-format
+msgid "Cannot initialize PolKitContext: %s"
+msgstr "Не вдалося ініціалізувати PolKitContext: %s"
+
+#: ../src/daemon/polkit.c:119
+#, c-format
+msgid "Could not determine whether caller is authorized: %s"
+msgstr "Не вдалося визначити чи уповноважено джерело виклику: %s"
+
+#: ../src/daemon/polkit.c:139
+#, c-format
+msgid "Cannot obtain auth: %s"
+msgstr "Не вдалося отримати уповноваження: %s"
+
+#: ../src/daemon/polkit.c:148
+#, c-format
+msgid "PolicyKit responded with '%s'"
+msgstr "PolicyKit надіслала відповідь: «%s»"
+
+#: ../src/daemon/main.c:134
+#, c-format
+msgid "Got signal %s."
+msgstr "Отримано сигнал %s."
+
+#: ../src/daemon/main.c:161
+msgid "Exiting."
+msgstr "Завершення роботи."
+
+#: ../src/daemon/main.c:179, c-format
+msgid "Failed to find user '%s'."
+msgstr "Не вдалося знайти користувача «%s»."
+
+#: ../src/daemon/main.c:184
+#, c-format
+msgid "Failed to find group '%s'."
+msgstr "Не вдалося знайти групу «%s»."
+
+#: ../src/daemon/main.c:188
+#, c-format
+msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
+msgstr "Знайдено користувача «%s» (UID %lu) і групу «%s» (GID %lu)."
+
+#: ../src/daemon/main.c:193
+#, c-format
+msgid "GID of user '%s' and of group '%s' don't match."
+msgstr "GID користувача «%s» і групи «%s» не збігаються."
+
+#: ../src/daemon/main.c:198
+#, c-format
+msgid "Home directory of user '%s' is not '%s', ignoring."
+msgstr "Домашнім каталогом користувача «%s» не є «%s», дані проігноровано."
+
+#: ../src/daemon/main.c:201 ../src/daemon/main.c:206
+#, c-format
+msgid "Failed to create '%s': %s"
+msgstr "Не вдалося створити «%s»: %s"
+
+#: ../src/daemon/main.c:213
+#, c-format
+msgid "Failed to change group list: %s"
+msgstr "Не вдалося змінити список груп: %s"
+
+#: ../src/daemon/main.c:229
+#, c-format
+msgid "Failed to change GID: %s"
+msgstr "Не вдалося змінити GID: %s"
+
+#: ../src/daemon/main.c:245
+#, c-format
+msgid "Failed to change UID: %s"
+msgstr "Не вдалося змінити UID: %s"
+
+#: ../src/daemon/main.c:259
+msgid "Successfully dropped root privileges."
+msgstr "Програма успішно позбулася прав доступу користувача root."
+
+#: ../src/daemon/main.c:267
+msgid "System wide mode unsupported on this platform."
+msgstr "Загальносистемний режим не підтримується на цій платформі."
+
+#: ../src/daemon/main.c:285
+#, c-format
+msgid "setrlimit(%s, (%u, %u)) failed: %s"
+msgstr "Спроба виконати setrlimit(%s, (%u, %u)) була невдалою: %s"
+
+#: ../src/daemon/main.c:434
+msgid "Failed to parse command line."
+msgstr "Не вдалося обробити рядок команди."
+
+#: ../src/daemon/main.c:458
+#, c-format
+msgid "We're in the group '%s', allowing high-priority scheduling."
+msgstr ""
+"Ми перебуваємо у групі «%s», що надає змогу планування з високим пріоритетом."
+
+#: ../src/daemon/main.c:465
+#, c-format
+msgid "We're in the group '%s', allowing real-time scheduling."
+msgstr ""
+"Ми перебуваємо у групі «%s», що надає змогу планування у режимі реального "
+"часу."
+
+#: ../src/daemon/main.c:473
+msgid "PolicyKit grants us acquire-high-priority privilege."
+msgstr "PolicyKit надала нам права доступу acquire-high-priority."
+
+#: ../src/daemon/main.c:476
+msgid "PolicyKit refuses acquire-high-priority privilege."
+msgstr "PolicyKit відмовила у наданні прав доступу acquire-high-priority."
+
+#: ../src/daemon/main.c:481
+msgid "PolicyKit grants us acquire-real-time privilege."
+msgstr "PolicyKit надала нам права доступу acquire-real-time."
+
+#: ../src/daemon/main.c:484
+msgid "PolicyKit refuses acquire-real-time privilege."
+msgstr "PolicyKit відмовила у наданні прав доступу acquire-real-time."
+
+#: ../src/daemon/main.c:513
+#, c-format
+msgid ""
+"Called SUID root and real-time and/or high-priority scheduling was requested "
+"in the configuration. However, we lack the necessary privileges:\n"
+"We are not in group '%s', PolicyKit refuse to grant us the requested "
+"privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
+"limits.\n"
+"For enabling real-time/high-priority scheduling please acquire the "
+"appropriate PolicyKit privileges, or become a member of '%s', or increase "
+"the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
+msgstr ""
+"У налаштуваннях було вказано виклик SUID root і планування режиму реального "
+"часу і/або режиму високого пріоритету. Але у нас немає потрібних прав "
+"доступу:\n"
+"Ваш користувач не є учасником групи «%s», PolicyKit відмовила у наданні нам "
+"потрібних прав доступу, тому зняття обмежень ресурсу "
+"RLIMIT_NICE/RLIMIT_RTPRIO не можливе.\n"
+"Щоб увімкнути планування режиму реального часу і/або режиму високого "
+"пріоритету, будь ласка, отримайте відповідні права доступу у PolicyKit або "
+"станьте учасником групи «%s» або збільшіть діапазон ресурсу "
+"RLIMIT_NICE/RLIMIT_RTPRIO для цього користувача."
+
+#: ../src/daemon/main.c:538
+msgid ""
+"High-priority scheduling enabled in configuration but not allowed by policy."
+msgstr ""
+"Планування з високим пріоритетом увімкнено у налаштуваннях, але не дозволене "
+"правилами безпеки."
+
+#: ../src/daemon/main.c:567
+msgid "Successfully increased RLIMIT_RTPRIO"
+msgstr "Успішно підвищено RLIMIT_RTPRIO"
+
+#: ../src/daemon/main.c:570
+#, c-format
+msgid "RLIMIT_RTPRIO failed: %s"
+msgstr "Помилка під час спроби підвищити RLIMIT_RTPRIO: %s"
+
+#: ../src/daemon/main.c:577
+msgid "Giving up CAP_NICE"
+msgstr "Позбуваємося CAP_NICE"
+
+#: ../src/daemon/main.c:584
+msgid ""
+"Real-time scheduling enabled in configuration but not allowed by policy."
+msgstr ""
+"Планування у режимі реального часу увімкнено у налаштуваннях, але не "
+"дозволене правилами безпеки."
+
+#: ../src/daemon/main.c:645
+msgid "Daemon not running"
+msgstr "Фонову службу не запущено"
+
+#: ../src/daemon/main.c:647
+#, c-format
+msgid "Daemon running as PID %u"
+msgstr "Фонову службу запущено як PID %u"
+
+#: ../src/daemon/main.c:657
+#, c-format
+msgid "Failed to kill daemon: %s"
+msgstr "Не вдалося завершити роботу фонової служби: %s"
+
+#: ../src/daemon/main.c:675
+msgid ""
+"This program is not intended to be run as root (unless --system is "
+"specified)."
+msgstr ""
+"Цю програму не призначено для запуску від імені користувача root (якщо не "
+"вказано параметра --system)."
+
+#: ../src/daemon/main.c:677
+msgid "Root privileges required."
+msgstr "Потрібні права доступу користувача root."
+
+#: ../src/daemon/main.c:682
+msgid "--start not supported for system instances."
+msgstr ""
+"Параметр --start не підтримується для загальносистемних екземплярів програми."
+
+#: ../src/daemon/main.c:687
+msgid "Running in system mode, but --disallow-exit not set!"
+msgstr ""
+"Запуск у загальносистемному режимі, але не встановлено --disallow-exit!"
+
+#: ../src/daemon/main.c:690
+msgid "Running in system mode, but --disallow-module-loading not set!"
+msgstr ""
+"Запуск у загальносистемному режимі, але не встановлено "
+"--disallow-module-loading!"
+
+#: ../src/daemon/main.c:693
+msgid "Running in system mode, forcibly disabling SHM mode!"
+msgstr "Запуск у загальносистемному режимі, примусове вимикання режиму SHM!"
+
+#: ../src/daemon/main.c:698
+msgid "Running in system mode, forcibly disabling exit idle time!"
+msgstr ""
+"Запуск у загальносистемному режимі, примусове вимикання режиму параметрів "
+"часу виходу за відсутності активності!"
+
+#: ../src/daemon/main.c:725
+msgid "Failed to acquire stdio."
+msgstr "Не вдалося отримати stdio."
+
+#: ../src/daemon/main.c:731
+#, c-format
+msgid "pipe failed: %s"
+msgstr "Спроба створення каналу завершилася невдало: %s"
+
+#: ../src/daemon/main.c:736
+#, c-format
+msgid "fork() failed: %s"
+msgstr "Спроба виконання fork() завершилася невдало: %s"
+
+#: ../src/daemon/main.c:750
+#, c-format
+msgid "read() failed: %s"
+msgstr "Спроба виконання read() завершилася невдало: %s"
+
+#: ../src/daemon/main.c:756
+msgid "Daemon startup failed."
+msgstr "Спроба запуску фонової служби завершилася невдало."
+
+#: ../src/daemon/main.c:758
+msgid "Daemon startup successful."
+msgstr "Фонову службу успішно запущено."
+
+#: ../src/daemon/main.c:828
+#, c-format
+msgid "This is PulseAudio %s"
+msgstr "Це PulseAudio %s"
+
+#: ../src/daemon/main.c:829
+#, c-format
+msgid "Compilation host: %s"
+msgstr "Вузол збирання: %s"
+
+#: ../src/daemon/main.c:830
+#, c-format
+msgid "Compilation CFLAGS: %s"
+msgstr "CFLAGS збирання: %s"
+
+#: ../src/daemon/main.c:833
+#, c-format
+msgid "Running on host: %s"
+msgstr "Запущено на вузлі: %s"
+
+#: ../src/daemon/main.c:836, c-format
+msgid "Found %u CPUs."
+msgstr "Знайдено %u процесорів."
+
+#: ../src/daemon/main.c:838, c-format
+msgid "Page size is %lu bytes"
+msgstr "Розмір сторінки дорівнює %lu байтам"
+
+#: ../src/daemon/main.c:841
+msgid "Compiled with Valgrind support: yes"
+msgstr "Зібрано з підтримкою Valgrind: так"
+
+#: ../src/daemon/main.c:843
+msgid "Compiled with Valgrind support: no"
+msgstr "Зібрано з підтримкою Valgrind: ні"
+
+#: ../src/daemon/main.c:846
+#, c-format
+msgid "Running in valgrind mode: %s"
+msgstr "Запуск у режимі valgrind: %s"
+
+#: ../src/daemon/main.c:849
+msgid "Optimized build: yes"
+msgstr "Зібрано з оптимізацією: так"
+
+#: ../src/daemon/main.c:851
+msgid "Optimized build: no"
+msgstr "Зібрано з оптимізацією: ні"
+
+#: ../src/daemon/main.c:855
+msgid "Failed to get machine ID"
+msgstr "Спроба отримати ідентифікатор системи завершилася невдало"
+
+#: ../src/daemon/main.c:858
+#, c-format
+msgid "Machine ID is %s."
+msgstr "Ідентифікатор системи %s."
+
+#: ../src/daemon/main.c:863
+#, c-format
+msgid "Using runtime directory %s."
+msgstr "Каталог запуску: %s."
+
+#: ../src/daemon/main.c:868
+#, c-format
+msgid "Using state directory %s."
+msgstr "Каталог стану: %s."
+
+#: ../src/daemon/main.c:871
+#, c-format
+msgid "Running in system mode: %s"
+msgstr "Запуску у загальносистемному режимі: %s"
+
+#: ../src/daemon/main.c:886
+msgid "pa_pid_file_create() failed."
+msgstr "Спроба виконання pa_pid_file_create() зазнала невдачі."
+
+#: ../src/daemon/main.c:898
+msgid "Fresh high-resolution timers available! Bon appetit!"
+msgstr "Доступні свіжі високоточні таймери! Смачного!"
+
+#: ../src/daemon/main.c:900
+msgid ""
+"Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
+"resolution timers enabled!"
+msgstr ""
+"Чувак, твоє ядро — лайно! Круті пацани рекомендують Linux з увімкненими "
+"високоточними таймерами!"
+
+#: ../src/daemon/main.c:912
+msgid "pa_core_new() failed."
+msgstr "Спроба виконання pa_core_new() зазнала невдачі."
+
+#: ../src/daemon/main.c:974
+msgid "Failed to initialize daemon."
+msgstr "Не вдалося ініціалізувати фонову службу."
+
+#: ../src/daemon/main.c:979
+msgid "Daemon startup without any loaded modules, refusing to work."
+msgstr ""
+"Запуск фонової служби без жодного завантаженого модуля, служба не буде "
+"працездатною."
+
+#: ../src/daemon/main.c:992
+msgid "Daemon startup complete."
+msgstr "Запуск фонової служби завершено."
+
+#: ../src/daemon/main.c:998
+msgid "Daemon shutdown initiated."
+msgstr "Ініційовано завершення роботи фонової служби."
+
+#: ../src/daemon/main.c:1016
+msgid "Daemon terminated."
+msgstr "Виконання фонової служби перервано."
+
+#: ../src/daemon/cmdline.c:121
+#, c-format
+msgid ""
+"%s [options]\n"
+"\n"
+"COMMANDS:\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"      --dump-conf                       Dump default configuration\n"
+"      --dump-modules                    Dump list of available modules\n"
+"      --dump-resample-methods           Dump available resample methods\n"
+"      --cleanup-shm                     Cleanup stale shared memory "
+"segments\n"
+"      --start                           Start the daemon if it is not "
+"running\n"
+"  -k  --kill                            Kill a running daemon\n"
+"      --check                           Check for a running daemon (only "
+"returns exit code)\n"
+"\n"
+"OPTIONS:\n"
+"      --system[=BOOL]                   Run as system-wide instance\n"
+"  -D, --daemonize[=BOOL]                Daemonize after startup\n"
+"      --fail[=BOOL]                     Quit when startup fails\n"
+"      --high-priority[=BOOL]            Try to set high nice level\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_NICE)\n"
+"      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_RTPRIO)\n"
+"      --disallow-module-loading[=BOOL]  Disallow module user requested "
+"module\n"
+"                                        loading/unloading after startup\n"
+"      --disallow-exit[=BOOL]            Disallow user requested exit\n"
+"      --exit-idle-time=SECS             Terminate the daemon when idle and "
+"this\n"
+"                                        time passed\n"
+"      --module-idle-time=SECS           Unload autoloaded modules when idle "
+"and\n"
+"                                        this time passed\n"
+"      --scache-idle-time=SECS           Unload autoloaded samples when idle "
+"and\n"
+"                                        this time passed\n"
+"      --log-level[=LEVEL]               Increase or set verbosity level\n"
+"  -v                                    Increase the verbosity level\n"
+"      --log-target={auto,syslog,stderr} Specify the log target\n"
+"      --log-meta[=BOOL]                 Include code location in log "
+"messages\n"
+"      --log-time[=BOOL]                 Include timestamps in log messages\n"
+"      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
+"  -p, --dl-search-path=PATH             Set the search path for dynamic "
+"shared\n"
+"                                        objects (plugins)\n"
+"      --resample-method=METHOD          Use the specified resampling method\n"
+"                                        (See --dump-resample-methods for\n"
+"                                        possible values)\n"
+"      --use-pid-file[=BOOL]             Create a PID file\n"
+"      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
+"                                        platforms that support it.\n"
+"      --disable-shm[=BOOL]              Disable shared memory support.\n"
+"\n"
+"STARTUP SCRIPT:\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
+"with\n"
+"                                        the specified argument\n"
+"  -F, --file=FILENAME                   Run the specified script\n"
+"  -C                                    Open a command line on the running "
+"TTY\n"
+"                                        after startup\n"
+"\n"
+"  -n                                    Don't load default script file\n"
+msgstr ""
+"%s [параметри]\n"
+"\n"
+"COMMANDS:\n"
+"  -h, --help                            Показати цю довідку\n"
+"      --version                         Показати дані щодо версії\n"
+"      --dump-conf                       Створити знімок поточних "
+"налаштувань\n"
+"      --dump-modules                    Створити перелік можливих модулів\n"
+"      --dump-resample-methods           Створити перелік можливих методів "
+"зміни частотних характеристик\n"
+"      --cleanup-shm                     Спорожнити непотрібні сегменти "
+"пам’яті спільного використання\n"
+"      --start                           Запустити фонову службу, якщо її ще "
+"не запущено\n"
+"  -k  --kill                            Завершити роботу запущеної фонової "
+"служби\n"
+"      --check                           Перевірити, чи запущено фонову "
+"службу (буде повернуто лише код виходу)\n"
+"\n"
+"ПАРАМЕТРИ:\n"
+"      --system[=BOOL]                   Загальносистемний режим\n"
+"  -D, --daemonize[=BOOL]                Перетворити на фонову службу після "
+"запуску\n"
+"      --fail[=BOOL]                     Завершити роботу, якщо запуск був "
+"невдалим\n"
+"      --high-priority[=BOOL]            Спробувати встановити вищий рівень "
+"nice\n"
+"                                        (доступне лише для root, з SUID або\n"
+"                                        підвищеним RLIMIT_NICE)\n"
+"      --realtime[=BOOL]                 Спробувати увімкнути планування у "
+"режимі реального часу\n"
+"                                        (доступне лише для root, з SUID або\n"
+"                                        підвищеним RLIMIT_RTPRIO)\n"
+"      --disallow-module-loading[=BOOL]  Заборонити для вказаного "
+"користувачем модуля\n"
+"                                        завантаження/вивантаження після "
+"запуску\n"
+"      --disallow-exit[=BOOL]            Заборонити завершення роботи "
+"користувачем\n"
+"      --exit-idle-time=СЕК.             Перервати виконання фонової служби, "
+"якщо не спостерігатиметься\n"
+"                                        активності протягом вказаного часу\n"
+"      --module-idle-time=СЕК.           Вивантажити автоматично завантажені "
+"модулі, якщо не спостерігатиметься\n"
+"                                        активності протягом вказаного часу\n"
+"      --scache-idle-time=СЕК.           Вивантажити автоматично завантажені "
+"фрагменти, якщо не спостерігатиметься\n"
+"                                        активності протягом вказаного часу\n"
+"      --log-level[=РІВЕНЬ]              Підвищити або встановити рівень "
+"докладності виводу\n"
+"  -v                                    Підвищити рівень докладності виводу\n"
+"      --log-target={auto,syslog,stderr} Вказати журнал\n"
+"      --log-meta[=BOOL]                 Додати повідомлення про місце у коді "
+"до повідомлень журналу\n"
+"      --log-time[=BOOL]                 Додати час до повідомлень журналу\n"
+"      --log-backtrace=FRAMES            Додати зворотне трасування до "
+"повідомлень журналу\n"
+"  -p, --dl-search-path=ШЛЯХ             Встановити шлях пошуку для об’єктів "
+"динамічного\n"
+"                                        спільного використання (додатків)\n"
+"      --resample-method=МЕТОД           Використовувати вказаний метод зміни "
+"частотних характеристик\n"
+"                                        (Про можливі варіанти можна "
+"дізнатися за допомогою\n"
+"                                        параметра --dump-resample-methods)\n"
+"      --use-pid-file[=BOOL]             Створювати файл PID\n"
+"      --no-cpu-limit[=BOOL]             Не встановлювати обмеження на "
+"використання процесора\n"
+"                                        на платформах, які його підтримують."
+"\n"
+"      --disable-shm[=BOOL]              Вимкнути підтримку спільного "
+"використання пам’яті.\n"
+"\n"
+"СКРИПТ ЗАПУСКУ:\n"
+"  -L, --load=\"ПАРАМЕТРИ МОДУЛЯ\"         Завантажити вказаний модуль "
+"додатка з\n"
+"                                        вказаними параметрами\n"
+"  -F, --file=НАЗВА_ФАЙЛА                Виконати вказаний скрипт\n"
+"  -C                                    Відкрити командний рядок на "
+"запущеному TTY\n"
+"                                        після запуску\n"
+"\n"
+"  -n                                    Не завантажувати типовий файл "
+"скрипту\n"
+
+#: ../src/daemon/cmdline.c:252
+msgid "--daemonize expects boolean argument"
+msgstr "Для параметра --daemonize слід вказувати булівський аргумент"
+
+#: ../src/daemon/cmdline.c:259
+msgid "--fail expects boolean argument"
+msgstr "Для параметра --fail слід вказувати булівський аргумент"
+
+#: ../src/daemon/cmdline.c:269
+msgid ""
+"--log-level expects log level argument (either numeric in range 0..4 or one "
+"of debug, info, notice, warn, error)."
+msgstr ""
+"Для параметра --log-level слід вказувати значення рівня журналювання "
+"(числове у діапазоні 0..4 або одне зі значень debug, info, notice, warn, "
+"error)."
+
+#: ../src/daemon/cmdline.c:281
+msgid "--high-priority expects boolean argument"
+msgstr "Для параметра --high-priority слід вказувати булівський аргумент"
+
+#: ../src/daemon/cmdline.c:288
+msgid "--realtime expects boolean argument"
+msgstr "Для параметра --realtime слід вказувати булівський аргумент"
+
+#: ../src/daemon/cmdline.c:295
+msgid "--disallow-module-loading expects boolean argument"
+msgstr ""
+"Для параметра --disallow-module-loading слід вказувати булівський аргумент"
+
+#: ../src/daemon/cmdline.c:302
+msgid "--disallow-exit expects boolean argument"
+msgstr "Для параметра --disallow-exit слід вказувати булівський аргумент"
+
+#: ../src/daemon/cmdline.c:309
+msgid "--use-pid-file expects boolean argument"
+msgstr "Для параметра --use-pid-file слід вказувати булівський аргумент"
+
+#: ../src/daemon/cmdline.c:326
+msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
+msgstr ""
+"Журнал вказано неправильно: можливі варіанти «syslog», «stderr» і «auto»."
+
+#: ../src/daemon/cmdline.c:333
+msgid "--log-time expects boolean argument"
+msgstr "Для параметра --log-time слід вказувати булівський аргумент"
+
+#: ../src/daemon/cmdline.c:340
+msgid "--log-meta expects boolean argument"
+msgstr "Для параметра --log-meta слід вказувати булівський аргумент"
+
+#: ../src/daemon/cmdline.c:359
+#, c-format
+msgid "Invalid resample method '%s'."
+msgstr "Некоректний метод зміни частотних характеристик «%s»."
+
+#: ../src/daemon/cmdline.c:366
+msgid "--system expects boolean argument"
+msgstr "Для параметра --system слід вказувати булівський аргумент"
+
+#: ../src/daemon/cmdline.c:373
+msgid "--no-cpu-limit expects boolean argument"
+msgstr "Для параметра --no-cpu-limit слід вказувати булівський аргумент"
+
+#: ../src/daemon/cmdline.c:380
+msgid "--disable-shm expects boolean argument"
+msgstr "Для параметра --disable-shm слід вказувати булівський аргумент"
+
+#: ../src/daemon/dumpmodules.c:60
+#, c-format
+msgid "Name: %s\n"
+msgstr "Назва: %s\n"
+
+#: ../src/daemon/dumpmodules.c:63
+#, c-format
+msgid "No module information available\n"
+msgstr "Дані щодо модуля недоступні\n"
+
+#: ../src/daemon/dumpmodules.c:66
+#, c-format
+msgid "Version: %s\n"
+msgstr "Версія: %s\n"
+
+#: ../src/daemon/dumpmodules.c:68
+#, c-format
+msgid "Description: %s\n"
+msgstr "Опис: %s\n"
+
+#: ../src/daemon/dumpmodules.c:70
+#, c-format
+msgid "Author: %s\n"
+msgstr "Автор: %s\n"
+
+#: ../src/daemon/dumpmodules.c:72
+#, c-format
+msgid "Usage: %s\n"
+msgstr "Використання: %s\n"
+
+#: ../src/daemon/dumpmodules.c:73
+#, c-format
+msgid "Load Once: %s\n"
+msgstr "Завантаження при: %s\n"
+
+#: ../src/daemon/dumpmodules.c:77
+#, c-format
+msgid "Path: %s\n"
+msgstr "Шлях: %s\n"
+
+#: ../src/daemon/daemon-conf.c:215
+#, c-format
+msgid "[%s:%u] Invalid log target '%s'."
+msgstr "[%s:%u] Некоректний журнал «%s»."
+
+#: ../src/daemon/daemon-conf.c:231
+#, c-format
+msgid "[%s:%u] Invalid log level '%s'."
+msgstr "[%s:%u] Некоректний рівень журналювання «%s»."
+
+#: ../src/daemon/daemon-conf.c:247
+#, c-format
+msgid "[%s:%u] Invalid resample method '%s'."
+msgstr "[%s:%u] Некоректний метод зміни частотних характеристик «%s»."
+
+#: ../src/daemon/daemon-conf.c:270
+#, c-format
+msgid "[%s:%u] Invalid rlimit '%s'."
+msgstr "[%s:%u] Некоректне значення rlimit «%s»."
+
+#: ../src/daemon/daemon-conf.c:277
+#, c-format
+msgid "[%s:%u] rlimit not supported on this platform."
+msgstr "[%s:%u] rlimit не підтримується на цій платформі."
+
+#: ../src/daemon/daemon-conf.c:293
+#, c-format
+msgid "[%s:%u] Invalid sample format '%s'."
+msgstr "[%s:%u] Некоректний формат фрагмента «%s»."
+
+#: ../src/daemon/daemon-conf.c:311
+#, c-format
+msgid "[%s:%u] Invalid sample rate '%s'."
+msgstr "[%s:%u] Некоректна частота вибірки «%s»."
+
+#: ../src/daemon/daemon-conf.c:335
+#, c-format
+msgid "[%s:%u] Invalid sample channels '%s'."
+msgstr "[%s:%u] Некоректні канали фрагмента «%s»."
+
+#: ../src/daemon/daemon-conf.c:353
+#, c-format
+msgid "[%s:%u] Invalid channel map '%s'."
+msgstr "[%s:%u] Некоректна карта каналів «%s»'."
+
+#: ../src/daemon/daemon-conf.c:371
+#, c-format
+msgid "[%s:%u] Invalid number of fragments '%s'."
+msgstr "[%s:%u] Некоректна кількість фрагментів «%s»."
+
+#: ../src/daemon/daemon-conf.c:389
+#, c-format
+msgid "[%s:%u] Invalid fragment size '%s'."
+msgstr "[%s:%u] Некоректний розмір фрагмента «%s»."
+
+#: ../src/daemon/daemon-conf.c:407
+#, c-format
+msgid "[%s:%u] Invalid nice level '%s'."
+msgstr "[%s:%u] Некоректний рівень nice «%s»."
+
+#: ../src/daemon/daemon-conf.c:522
+#, c-format
+msgid "Failed to open configuration file: %s"
+msgstr "Не вдалося відкрити файл налаштувань: %s"
+
+#: ../src/daemon/daemon-conf.c:538
+msgid ""
+"The specified default channel map has a different number of channels than "
+"the specified default number of channels."
+msgstr ""
+"У вказаній типовій карті каналів визначається інша кількість каналів, ніж "
+"типова кількість каналів."
+
+#: ../src/daemon/daemon-conf.c:616
+#, c-format
+msgid "### Read from configuration file: %s ###\n"
+msgstr "### Прочитано з файла налаштувань: %s ###\n"
+
+#: ../src/daemon/caps.c:63
+msgid "Dropping root privileges."
+msgstr "Позбуваємося прав доступу root."
+
+#: ../src/daemon/caps.c:103
+msgid "Limited capabilities successfully to CAP_SYS_NICE."
+msgstr "Успішно обмежено можливості до CAP_SYS_NICE."
+
+#: ../src/daemon/pulseaudio.desktop.in.h:1
+msgid "PulseAudio Sound System"
+msgstr "Звукова система PulseAudio"
+
+#: ../src/daemon/pulseaudio.desktop.in.h:2
+msgid "Start the PulseAudio Sound System"
+msgstr "Запустити звукову систему PulseAudio"
+
+#: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:804
+msgid "Mono"
+msgstr "Моно"
+
+#: ../src/pulse/channelmap.c:105
+msgid "Front Center"
+msgstr "Передній центральний"
+
+#: ../src/pulse/channelmap.c:106
+msgid "Front Left"
+msgstr "Передній лівий"
+
+#: ../src/pulse/channelmap.c:107
+msgid "Front Right"
+msgstr "Передній правий"
+
+#: ../src/pulse/channelmap.c:109
+msgid "Rear Center"
+msgstr "Задній центральний"
+
+#: ../src/pulse/channelmap.c:110
+msgid "Rear Left"
+msgstr "Задній лівий"
+
+#: ../src/pulse/channelmap.c:111
+msgid "Rear Right"
+msgstr "Задній правий"
+
+#: ../src/pulse/channelmap.c:113
+msgid "Low Frequency Emmiter"
+msgstr "Джерело низьких частот"
+
+#: ../src/pulse/channelmap.c:115
+msgid "Front Left-of-center"
+msgstr "Передній лівоцентральний"
+
+#: ../src/pulse/channelmap.c:116
+msgid "Front Right-of-center"
+msgstr "Передній правоцентральний"
+
+#: ../src/pulse/channelmap.c:118
+msgid "Side Left"
+msgstr "Боковий лівий"
+
+#: ../src/pulse/channelmap.c:119
+msgid "Side Right"
+msgstr "Боковий правий"
+
+#: ../src/pulse/channelmap.c:121
+msgid "Auxiliary 0"
+msgstr "Допоміжний 0"
+
+#: ../src/pulse/channelmap.c:122
+msgid "Auxiliary 1"
+msgstr "Допоміжний 1"
+
+#: ../src/pulse/channelmap.c:123
+msgid "Auxiliary 2"
+msgstr "Допоміжний 2"
+
+#: ../src/pulse/channelmap.c:124
+msgid "Auxiliary 3"
+msgstr "Допоміжний 3"
+
+#: ../src/pulse/channelmap.c:125
+msgid "Auxiliary 4"
+msgstr "Допоміжний 4"
+
+#: ../src/pulse/channelmap.c:126
+msgid "Auxiliary 5"
+msgstr "Допоміжний 5"
+
+#: ../src/pulse/channelmap.c:127
+msgid "Auxiliary 6"
+msgstr "Допоміжний 6"
+
+#: ../src/pulse/channelmap.c:128
+msgid "Auxiliary 7"
+msgstr "Допоміжний 7"
+
+#: ../src/pulse/channelmap.c:129
+msgid "Auxiliary 8"
+msgstr "Допоміжний 8"
+
+#: ../src/pulse/channelmap.c:130
+msgid "Auxiliary 9"
+msgstr "Допоміжний 9"
+
+#: ../src/pulse/channelmap.c:131
+msgid "Auxiliary 10"
+msgstr "Допоміжний 10"
+
+#: ../src/pulse/channelmap.c:132
+msgid "Auxiliary 11"
+msgstr "Допоміжний 11"
+
+#: ../src/pulse/channelmap.c:133
+msgid "Auxiliary 12"
+msgstr "Допоміжний 12"
+
+#: ../src/pulse/channelmap.c:134
+msgid "Auxiliary 13"
+msgstr "Допоміжний 13"
+
+#: ../src/pulse/channelmap.c:135
+msgid "Auxiliary 14"
+msgstr "Допоміжний 14"
+
+#: ../src/pulse/channelmap.c:136
+msgid "Auxiliary 15"
+msgstr "Допоміжний 15"
+
+#: ../src/pulse/channelmap.c:137
+msgid "Auxiliary 16"
+msgstr "Допоміжний 16"
+
+#: ../src/pulse/channelmap.c:138
+msgid "Auxiliary 17"
+msgstr "Допоміжний 17"
+
+#: ../src/pulse/channelmap.c:139
+msgid "Auxiliary 18"
+msgstr "Допоміжний 18"
+
+#: ../src/pulse/channelmap.c:140
+msgid "Auxiliary 19"
+msgstr "Допоміжний 19"
+
+#: ../src/pulse/channelmap.c:141
+msgid "Auxiliary 20"
+msgstr "Допоміжний 20"
+
+#: ../src/pulse/channelmap.c:142
+msgid "Auxiliary 21"
+msgstr "Допоміжний 21"
+
+#: ../src/pulse/channelmap.c:143
+msgid "Auxiliary 22"
+msgstr "Допоміжний 22"
+
+#: ../src/pulse/channelmap.c:144
+msgid "Auxiliary 23"
+msgstr "Допоміжний 23"
+
+#: ../src/pulse/channelmap.c:145
+msgid "Auxiliary 24"
+msgstr "Допоміжний 24"
+
+#: ../src/pulse/channelmap.c:146
+msgid "Auxiliary 25"
+msgstr "Допоміжний 25"
+
+#: ../src/pulse/channelmap.c:147
+msgid "Auxiliary 26"
+msgstr "Допоміжний 26"
+
+#: ../src/pulse/channelmap.c:148
+msgid "Auxiliary 27"
+msgstr "Допоміжний 27"
+
+#: ../src/pulse/channelmap.c:149
+msgid "Auxiliary 28"
+msgstr "Допоміжний 28"
+
+#: ../src/pulse/channelmap.c:150
+msgid "Auxiliary 29"
+msgstr "Допоміжний 29"
+
+#: ../src/pulse/channelmap.c:151
+msgid "Auxiliary 30"
+msgstr "Допоміжний 30"
+
+#: ../src/pulse/channelmap.c:152
+msgid "Auxiliary 31"
+msgstr "Допоміжний 31"
+
+#: ../src/pulse/channelmap.c:154
+msgid "Top Center"
+msgstr "Верхній центральний"
+
+#: ../src/pulse/channelmap.c:156
+msgid "Top Front Center"
+msgstr "Верхній передній центральний"
+
+#: ../src/pulse/channelmap.c:157
+msgid "Top Front Left"
+msgstr "Верхній передній лівий"
+
+#: ../src/pulse/channelmap.c:158
+msgid "Top Front Right"
+msgstr "Верхній передній правий"
+
+#: ../src/pulse/channelmap.c:160
+msgid "Top Rear Center"
+msgstr "Верхній задній центральний"
+
+#: ../src/pulse/channelmap.c:161
+msgid "Top Rear Left"
+msgstr "Верхній задній лівий"
+
+#: ../src/pulse/channelmap.c:162
+msgid "Top Rear Right"
+msgstr "Верхній задній правий"
+
+#: ../src/pulse/channelmap.c:476 ../src/pulse/sample.c:167
+#: ../src/pulse/volume.c:170 ../src/pulse/volume.c:196
+#: ../src/pulse/volume.c:216 ../src/pulse/volume.c:246
+msgid "(invalid)"
+msgstr "(некоректний)"
+
+#: ../src/pulse/channelmap.c:808
+msgid "Stereo"
+msgstr "Стерео"
+
+#: ../src/pulse/channelmap.c:813
+msgid "Surround 4.0"
+msgstr "Об'ємний 4.0"
+
+#: ../src/pulse/channelmap.c:819
+msgid "Surround 4.1"
+msgstr "Об'ємний 4.1"
+
+#: ../src/pulse/channelmap.c:825
+msgid "Surround 5.0"
+msgstr "Об'ємний 5.0"
+
+#: ../src/pulse/channelmap.c:831
+msgid "Surround 5.1"
+msgstr "Об'ємний 5.1"
+
+#: ../src/pulse/channelmap.c:838
+msgid "Surround 7.1"
+msgstr "Об'ємний 7.1"
+
+#: ../src/pulse/error.c:43
+msgid "OK"
+msgstr "Гаразд"
+
+#: ../src/pulse/error.c:44
+msgid "Access denied"
+msgstr "Доступ заборонено"
+
+#: ../src/pulse/error.c:45
+msgid "Unknown command"
+msgstr "Невідома команда"
+
+#: ../src/pulse/error.c:46
+msgid "Invalid argument"
+msgstr "Некоректний аргумент"
+
+#: ../src/pulse/error.c:47
+msgid "Entity exists"
+msgstr "Об’єкт існує"
+
+#: ../src/pulse/error.c:48
+msgid "No such entity"
+msgstr "Такого об’єкта не існує"
+
+#: ../src/pulse/error.c:49
+msgid "Connection refused"
+msgstr "У з'єднанні відмовлено"
+
+#: ../src/pulse/error.c:50
+msgid "Protocol error"
+msgstr "Помилка протоколу"
+
+#: ../src/pulse/error.c:51
+msgid "Timeout"
+msgstr "Перевищення часу очікування"
+
+#: ../src/pulse/error.c:52
+msgid "No authorization key"
+msgstr "Не вказано ключа розпізнавання"
+
+#: ../src/pulse/error.c:53
+msgid "Internal error"
+msgstr "Внутрішня помилка"
+
+#: ../src/pulse/error.c:54
+msgid "Connection terminated"
+msgstr "З’єднання перервано"
+
+#: ../src/pulse/error.c:55
+msgid "Entity killed"
+msgstr "Об’єкт вилучено"
+
+#: ../src/pulse/error.c:56
+msgid "Invalid server"
+msgstr "Некоректний сервер"
+
+#: ../src/pulse/error.c:57
+msgid "Module initalization failed"
+msgstr "Спроба ініціалізації модуля завершилася невдало"
+
+#: ../src/pulse/error.c:58
+msgid "Bad state"
+msgstr "Стан помилки"
+
+#: ../src/pulse/error.c:59
+msgid "No data"
+msgstr "Немає даних"
+
+#: ../src/pulse/error.c:60
+msgid "Incompatible protocol version"
+msgstr "Несумісна версія протоколу"
+
+#: ../src/pulse/error.c:61
+msgid "Too large"
+msgstr "Завеликий"
+
+#: ../src/pulse/error.c:62
+msgid "Not supported"
+msgstr "Не підтримується"
+
+#: ../src/pulse/error.c:63
+msgid "Unknown error code"
+msgstr "Помилка з невідомим кодом"
+
+#: ../src/pulse/error.c:64
+msgid "No such extension"
+msgstr "Такого додатка немає"
+
+#: ../src/pulse/error.c:65
+msgid "Obsolete functionality"
+msgstr "Застарілі функціональні можливості"
+
+#: ../src/pulse/error.c:66
+msgid "Missing implementation"
+msgstr "Відсутня реалізація"
+
+#: ../src/pulse/error.c:67
+msgid "Client forked"
+msgstr "Клієнт розгалужено"
+
+#: ../src/pulse/sample.c:169, c-format
+msgid "%s %uch %uHz"
+msgstr "%s %uкан. %uГц"
+
+#: ../src/pulse/sample.c:181, c-format
+msgid "%0.1f GiB"
+msgstr "%0.1f ГБ"
+
+#: ../src/pulse/sample.c:183, c-format
+msgid "%0.1f MiB"
+msgstr "%0.1f МБ"
+
+#: ../src/pulse/sample.c:185, c-format
+msgid "%0.1f KiB"
+msgstr "%0.1f кБ"
+
+#: ../src/pulse/sample.c:187, c-format
+msgid "%u B"
+msgstr "%u Б"
+
+#: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
+msgid "XOpenDisplay() failed"
+msgstr "Спроба виконання XOpenDisplay() завершилася невдало"
+
+#: ../src/pulse/client-conf-x11.c:78
+msgid "Failed to parse cookie data"
+msgstr "Не вдалося обробити дані куки"
+
+#: ../src/pulse/client-conf.c:120
+#, c-format
+msgid "Failed to open configuration file '%s': %s"
+msgstr "Не вдалося відкрити файл налаштування «%s»: %s"
+
+#: ../src/pulse/context.c:523
+msgid "No cookie loaded. Attempting to connect without."
+msgstr ""
+"Куків не завантажено. Буде виконано спробу з’єднання за їх відсутності."
+
+#: ../src/pulse/context.c:653
+#, c-format
+msgid "fork(): %s"
+msgstr "fork(): %s"
+
+#: ../src/pulse/context.c:706
+#, c-format
+msgid "waitpid(): %s"
+msgstr "waitpid(): %s"
+
+#: ../src/pulse/context.c:1304
+#, c-format
+msgid "Received message for unknown extension '%s'"
+msgstr "Отримано повідомлення про невідомий додаток «%s»"
+
+#: ../src/utils/pacat.c:94
+#, c-format
+msgid "pa_stream_write() failed: %s\n"
+msgstr "Спроба виконання pa_stream_write() завершилася невдало: %s\n"
+
+#: ../src/utils/pacat.c:133
+#, c-format
+msgid "pa_stream_peek() failed: %s\n"
+msgstr "Спроба виконання pa_stream_peek() завершилася невдало: %s\n"
+
+#: ../src/utils/pacat.c:169
+#, c-format
+msgid "Stream successfully created.\n"
+msgstr "Потік було успішно створено.\n"
+
+#: ../src/utils/pacat.c:172
+#, c-format
+msgid "pa_stream_get_buffer_attr() failed: %s\n"
+msgstr "Спроба виконання pa_stream_get_buffer_attr() завершилася невдало: %s\n"
+
+#: ../src/utils/pacat.c:176
+#, c-format
+msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
+msgstr "Метрика буфера: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
+
+#: ../src/utils/pacat.c:179
+#, c-format
+msgid "Buffer metrics: maxlength=%u, fragsize=%u\n"
+msgstr "Метрика буфера: maxlength=%u, fragsize=%u\n"
+
+#: ../src/utils/pacat.c:183
+#, c-format
+msgid "Using sample spec '%s', channel map '%s'.\n"
+msgstr "Використання частотної специфікації «%s», карта каналів «%s».\n"
+
+#: ../src/utils/pacat.c:187
+#, c-format
+msgid "Connected to device %s (%u, %ssuspended).\n"
+msgstr "З’єднано з пристроєм %s (%u, %s призупинено).\n"
+
+#: ../src/utils/pacat.c:197
+#, c-format
+msgid "Stream error: %s\n"
+msgstr "Помилка потоку: %s\n"
+
+#: ../src/utils/pacat.c:207
+#, c-format
+msgid "Stream device suspended.%s \n"
+msgstr "Призупинено пристрій потоку. %s \n"
+
+#: ../src/utils/pacat.c:209
+#, c-format
+msgid "Stream device resumed.%s \n"
+msgstr "Відновлено пристрій потоку. %s \n"
+
+#: ../src/utils/pacat.c:217
+#, c-format
+msgid "Stream underrun.%s \n"
+msgstr "Недовантаження потоку. %s \n"
+
+#: ../src/utils/pacat.c:224
+#, c-format
+msgid "Stream overrun.%s \n"
+msgstr "Перевантаження потоку. %s \n"
+
+#: ../src/utils/pacat.c:231
+#, c-format
+msgid "Stream started.%s \n"
+msgstr "Потік запущено. %s \n"
+
+#: ../src/utils/pacat.c:238
+#, c-format
+msgid "Stream moved to device %s (%u, %ssuspended).%s \n"
+msgstr "Потік пересунуто на пристрій %s (%u, %s призупинено). %s \n"
+
+#: ../src/utils/pacat.c:238
+msgid "not "
+msgstr "не "
+
+#: ../src/utils/pacat.c:271
+#, c-format
+msgid "Connection established.%s \n"
+msgstr "Встановлено з’єднання. %s \n"
+
+#: ../src/utils/pacat.c:274
+#, c-format
+msgid "pa_stream_new() failed: %s\n"
+msgstr "Спроба виконання pa_stream_new() зазнала невдачі: %s\n"
+
+#: ../src/utils/pacat.c:301
+#, c-format
+msgid "pa_stream_connect_playback() failed: %s\n"
+msgstr "Спроба виконання pa_stream_connect_playback() зазнала невдачі: %s\n"
+
+#: ../src/utils/pacat.c:307
+#, c-format
+msgid "pa_stream_connect_record() failed: %s\n"
+msgstr "Спроба виконання pa_stream_connect_record() зазнала невдачі: %s\n"
+
+#: ../src/utils/pacat.c:321 ../src/utils/pasuspender.c:159
+#: ../src/utils/pactl.c:762 ../src/utils/paplay.c:183
+#, c-format
+msgid "Connection failure: %s\n"
+msgstr "Спроба встановлення з’єднання зазнала невдачі: %s\n"
+
+#: ../src/utils/pacat.c:341 ../src/utils/paplay.c:75
+#, c-format
+msgid "Failed to drain stream: %s\n"
+msgstr "Не вдалося створити тунель для потоку: %s\n"
+
+#: ../src/utils/pacat.c:346 ../src/utils/paplay.c:80
+#, c-format
+msgid "Playback stream drained.\n"
+msgstr "Потік відтворення тунельовано.\n"
+
+#: ../src/utils/pacat.c:356 ../src/utils/paplay.c:92
+#, c-format
+msgid "Draining connection to server.\n"
+msgstr "Тунельне з’єднання з сервером.\n"
+
+#: ../src/utils/pacat.c:382
+#, c-format
+msgid "Got EOF.\n"
+msgstr "Отримано EOF.\n"
+
+#: ../src/utils/pacat.c:388
+#, c-format
+msgid "pa_stream_drain(): %s\n"
+msgstr "pa_stream_drain(): %s\n"
+
+#: ../src/utils/pacat.c:398
+#, c-format
+msgid "read() failed: %s\n"
+msgstr "Спроба виконання read() завершилася невдало: %s\n"
+
+#: ../src/utils/pacat.c:430
+#, c-format
+msgid "write() failed: %s\n"
+msgstr "Спроба виконання write() завершилася невдало: %s\n"
+
+#: ../src/utils/pacat.c:451
+#, c-format
+msgid "Got signal, exiting.\n"
+msgstr "Отримано сигнал, завершення роботи.\n"
+
+#: ../src/utils/pacat.c:465
+#, c-format
+msgid "Failed to get latency: %s\n"
+msgstr "Не вдалося отримати латентність: %s\n"
+
+#: ../src/utils/pacat.c:470
+#, c-format
+msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
+msgstr "Час: %0.3f сек.; Латентність: %0.0f мкс.  \r"
+
+#: ../src/utils/pacat.c:490
+#, c-format
+msgid "pa_stream_update_timing_info() failed: %s\n"
+msgstr ""
+"Спроба виконання pa_stream_update_timing_info() завершилася невдало: %s\n"
+
+#: ../src/utils/pacat.c:503
+#, c-format
+msgid ""
+"%s [options]\n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -r, --record                          Create a connection for recording\n"
+"  -p, --playback                        Create a connection for playback\n"
+"\n"
+"  -v, --verbose                         Enable verbose operations\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -d, --device=DEVICE                   The name of the sink/source to "
+"connect to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
+"44100)\n"
+"      --format=SAMPLEFORMAT             The sample type, one of s16le, "
+"s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be "
+"(defaults to s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, "
+"2 for stereo\n"
+"                                        (defaults to 2)\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the "
+"default\n"
+"      --fix-format                      Take the sample format from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-rate                        Take the sampling rate from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-channels                    Take the number of channels and the "
+"channel map\n"
+"                                        from the sink the stream is being "
+"connected to.\n"
+"      --no-remix                        Don't upmix or downmix channels.\n"
+"      --no-remap                        Map channels by index instead of "
+"name.\n"
+"      --latency=BYTES                   Request the specified latency in "
+"bytes.\n"
+"      --process-time=BYTES              Request the specified process time "
+"per request in bytes.\n"
+msgstr ""
+"%s [параметри]\n"
+"\n"
+"  -h, --help                            Показати цю довідку\n"
+"      --version                         Показати дані щодо версії\n"
+"\n"
+"  -r, --record                          Створити з’єднання для запису\n"
+"  -p, --playback                        Створити з’єднання для відтворення\n"
+"\n"
+"  -v, --verbose                         Увімкнути докладні повідомлення\n"
+"\n"
+"  -s, --server=СЕРВЕР                   Назва сервера, з яким слід "
+"встановити з’єднання\n"
+"  -d, --device=ПРИСТРІЙ                  Назва пристрою приймача/джерела, з "
+"яким слід встановити з’єднання\n"
+"  -n, --client-name=НАЗВА               Спосіб виклику клієнта на сервері\n"
+"      --stream-name=НАЗВА               Спосіб виклику потоку на сервері\n"
+"      --volume=ГУЧНІСТЬ                 Вказати початкову (лінійну) гучність "
+"у діапазоні 0..65536\n"
+"      --rate=ЧАСТОТА_ВИБІРКИ             Частота вибірки у Гц (типовим є "
+"значення 44100)\n"
+"      --format=ФОРМАТ                   Тип вибірки, можливі значення: "
+"s16le, s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be "
+"(типовим є значення s16ne)\n"
+"      --channels=КАНАЛИ              Кількість каналів, 1 — моно, 2 — "
+"стерео\n"
+"                                        (типовим є значення 2)\n"
+"      --channel-map=КАРТА_КАНАЛІВ       Карта каналів, яку слід "
+"використовувати замість типової\n"
+"      --fix-format                      Визначити формат за даними приймача, "
+"з яким буде з’єднано\n"
+"                                        потік.\n"
+"      --fix-rate                        Визначити частоту вибірки за даними "
+"з приймача, з яким буде\n"
+"                                        з’єднано потік.\n"
+"      --fix-channels                    Визначити кількість каналів і карту "
+"каналів\n"
+"                                        за даними з приймача, з яким буде "
+"з’єднано потік.\n"
+"      --no-remix                        Не мікшувати канали.\n"
+"      --no-remap                        Розподіляти канали за індексом, а не "
+"за назвою.\n"
+"      --latency=БАЙТИ                   Надіслати запит на вказану "
+"латентність у байтах.\n"
+"      --process-time=БАЙТИ              Надіслати запит щодо вказаного часу "
+"обробки на запит у байтах.\n"
+
+#: ../src/utils/pacat.c:604
+#, c-format
+msgid ""
+"pacat %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pacat %s\n"
+"Зібрано з libpulse %s\n"
+"З’єднано з libpulse %s\n"
+
+#: ../src/utils/pacat.c:661
+#, c-format
+msgid "Invalid channel map '%s'\n"
+msgstr "Некоректна карта каналів «%s»\n"
+
+#: ../src/utils/pacat.c:690
+#, c-format
+msgid "Invalid latency specification '%s'\n"
+msgstr "Некоректна специфікація латентності «%s»\n"
+
+#: ../src/utils/pacat.c:697
+#, c-format
+msgid "Invalid process time specification '%s'\n"
+msgstr "Некоректна часова специфікація «%s»\n"
+
+#: ../src/utils/pacat.c:708
+#, c-format
+msgid "Invalid sample specification\n"
+msgstr "Некоректна частотна специфікація\n"
+
+#: ../src/utils/pacat.c:713
+#, c-format
+msgid "Channel map doesn't match sample specification\n"
+msgstr "Карта каналі не відповідає частотній специфікації\n"
+
+#: ../src/utils/pacat.c:720
+#, c-format
+msgid "Opening a %s stream with sample specification '%s'.\n"
+msgstr "Відкриття потоку %s з частотною специфікацією «%s».\n"
+
+#: ../src/utils/pacat.c:720
+msgid "recording"
+msgstr "запис"
+
+#: ../src/utils/pacat.c:720
+msgid "playback"
+msgstr "відтворення"
+
+#: ../src/utils/pacat.c:728
+#, c-format
+msgid "open(): %s\n"
+msgstr "open(): %s\n"
+
+#: ../src/utils/pacat.c:733
+#, c-format
+msgid "dup2(): %s\n"
+msgstr "dup2(): %s\n"
+
+#: ../src/utils/pacat.c:743
+#, c-format
+msgid "Too many arguments.\n"
+msgstr "Забагато аргументів.\n"
+
+#: ../src/utils/pacat.c:756 ../src/utils/pasuspender.c:280
+#: ../src/utils/pactl.c:1017 ../src/utils/paplay.c:381
+#, c-format
+msgid "pa_mainloop_new() failed.\n"
+msgstr "Спроба виконання pa_mainloop_new() завершилася невдало.\n"
+
+#: ../src/utils/pacat.c:777
+#, c-format
+msgid "io_new() failed.\n"
+msgstr "Спроба виконання io_new() завершилася невдало.\n"
+
+#: ../src/utils/pacat.c:783 ../src/utils/pasuspender.c:293
+#: ../src/utils/pactl.c:1031 ../src/utils/paplay.c:396
+#, c-format
+msgid "pa_context_new() failed.\n"
+msgstr "Спроба виконання pa_context_new() завершилася невдало.\n"
+
+#: ../src/utils/pacat.c:791 ../src/utils/pactl.c:1037
+#: ../src/utils/paplay.c:404
+#, c-format
+msgid "pa_context_connect() failed: %s"
+msgstr "Спроба виконання pa_context_connect() завершилася невдало: %s"
+
+#: ../src/utils/pacat.c:802
+#, c-format
+msgid "time_new() failed.\n"
+msgstr "Спроба виконання time_new() завершилася невдало.\n"
+
+#: ../src/utils/pacat.c:809 ../src/utils/pasuspender.c:301
+#: ../src/utils/pactl.c:1042 ../src/utils/paplay.c:410
+#, c-format
+msgid "pa_mainloop_run() failed.\n"
+msgstr "Спроба виконання pa_mainloop_run() завершилася невдало.\n"
+
+#: ../src/utils/pasuspender.c:81
+#, c-format
+msgid "fork(): %s\n"
+msgstr "fork(): %s\n"
+
+#: ../src/utils/pasuspender.c:92
+#, c-format
+msgid "execvp(): %s\n"
+msgstr "execvp(): %s\n"
+
+#: ../src/utils/pasuspender.c:109
+#, c-format
+msgid "Failure to suspend: %s\n"
+msgstr "Невдала спроба призупинки: %s\n"
+
+#: ../src/utils/pasuspender.c:124
+#, c-format
+msgid "Failure to resume: %s\n"
+msgstr "Невдала спроба відновлення: %s\n"
+
+#: ../src/utils/pasuspender.c:147
+#, c-format
+msgid "WARNING: Sound server is not local, not suspending.\n"
+msgstr ""
+"ПОПЕРЕДЖЕННЯ: звуковий сервер не є локальним, його не можна призупинити.\n"
+
+#: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:768
+#: ../src/utils/paplay.c:191
+#, c-format
+msgid "Got SIGINT, exiting.\n"
+msgstr "Отримано сигнал SIGINT, завершення роботи.\n"
+
+#: ../src/utils/pasuspender.c:194
+#, c-format
+msgid "WARNING: Child process terminated by signal %u\n"
+msgstr ""
+"ПОПЕРЕДЖЕННЯ: виконання дочірнього процесу було перервано з сигналом %u\n"
+
+#: ../src/utils/pasuspender.c:212
+#, c-format
+msgid ""
+"%s [options] ... \n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"\n"
+msgstr ""
+"%s [параметри] ... \n"
+"\n"
+"  -h, --help                            Показати цю довідку\n"
+"      --version                         Показати відомості щодо версії\n"
+"  -s, --server=СЕРВЕР                   Назва сервера, з яким слід "
+"з’єднатися\n"
+"\n"
+
+#: ../src/utils/pasuspender.c:251
+#, c-format
+msgid ""
+"pasuspender %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pasuspender %s\n"
+"Зібрано з libpulse %s\n"
+"З’єднано з libpulse %s\n"
+
+#: ../src/utils/pactl.c:108
+#, c-format
+msgid "Failed to get statistics: %s\n"
+msgstr "Не вдалося отримати статистичні дані: %s\n"
+
+#: ../src/utils/pactl.c:114
+#, c-format
+msgid "Currently in use: %u blocks containing %s bytes total.\n"
+msgstr "Зараз використано: %u блоків, що містять загалом %s байтів.\n"
+
+#: ../src/utils/pactl.c:117
+#, c-format
+msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
+msgstr ""
+"Виділено протягом виконання загалом: %u блоків, що містять %s байтів.\n"
+
+#: ../src/utils/pactl.c:120
+#, c-format
+msgid "Sample cache size: %s\n"
+msgstr "Розмір кешу фрагментів: %s\n"
+
+#: ../src/utils/pactl.c:129
+#, c-format
+msgid "Failed to get server information: %s\n"
+msgstr "Не вдалося отримати дані щодо сервера: %s\n"
+
+#: ../src/utils/pactl.c:137
+#, c-format
+msgid ""
+"User name: %s\n"
+"Host Name: %s\n"
+"Server Name: %s\n"
+"Server Version: %s\n"
+"Default Sample Specification: %s\n"
+"Default Channel Map: %s\n"
+"Default Sink: %s\n"
+"Default Source: %s\n"
+"Cookie: %08x\n"
+msgstr ""
+"Користувач: %s\n"
+"Назва вузла: %s\n"
+"Назва сервера: %s\n"
+"Версія сервера: %s\n"
+"Типова частотна специфікація: %s\n"
+"Типова карта каналів: %s\n"
+"Типовий приймач: %s\n"
+"Типове джерело: %s\n"
+"Кука: %08x\n"
+
+#: ../src/utils/pactl.c:178
+#, c-format
+msgid "Failed to get sink information: %s\n"
+msgstr "Не вдалося отримати дані щодо приймача: %s\n"
+
+#: ../src/utils/pactl.c:194
+#, c-format
+msgid ""
+"Sink #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s%s%s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s%s%s\n"
+"\tMonitor Source: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Приймач даних №%u\n"
+"\tСтан: %s\n"
+"\tНазва: %s\n"
+"\tОпис: %s\n"
+"\tДрайвер: %s\n"
+"\tЧастотна специфікація: %s\n"
+"\tКарта каналів: %s\n"
+"\tМодуль власника: %u\n"
+"\tСтан вимикання: %s\n"
+"\tГучність: %s%s%s\n"
+"\t        баланс %0.2f\n"
+"\tБазова гучність: %s%s%s\n"
+"\tСпостереження: %s\n"
+"\tЛатентність: %0.0f мкс, налаштовано %0.0f мкс\n"
+"\tПрапорці: %s%s%s%s%s%s\n"
+"\tВластивості:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:258
+#, c-format
+msgid "Failed to get source information: %s\n"
+msgstr "Не вдалося отримати дані щодо джерела: %s\n"
+
+#: ../src/utils/pactl.c:274
+#, c-format
+msgid ""
+"Source #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s%s%s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s%s%s\n"
+"\tMonitor of Sink: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Джерело №%u\n"
+"\tСтан: %s\n"
+"\tНазва: %s\n"
+"\tОпис: %s\n"
+"\tДрайвер: %s\n"
+"\tЧастотна специфікація: %s\n"
+"\tКарта каналів: %s\n"
+"\tМодуль власника: %u\n"
+"\tСтан вимикання: %s\n"
+"\tГучність: %s%s%s\n"
+"\t        баланс %0.2f\n"
+"\tБазова гучність: %s%s%s\n"
+"\tСпостереження: %s\n"
+"\tЛатентність: %0.0f мкс, налаштовано %0.0f мкс\n"
+"\tПрапорці: %s%s%s%s%s%s\n"
+"\tВластивості:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:306 ../src/utils/pactl.c:350 ../src/utils/pactl.c:385
+#: ../src/utils/pactl.c:422 ../src/utils/pactl.c:481 ../src/utils/pactl.c:482
+#: ../src/utils/pactl.c:492 ../src/utils/pactl.c:536 ../src/utils/pactl.c:537
+#: ../src/utils/pactl.c:543 ../src/utils/pactl.c:586 ../src/utils/pactl.c:587
+#: ../src/utils/pactl.c:594
+msgid "n/a"
+msgstr "н/д"
+
+#: ../src/utils/pactl.c:324
+#, c-format
+msgid "Failed to get module information: %s\n"
+msgstr "Не вдалося отримати дані щодо модуля: %s\n"
+
+#: ../src/utils/pactl.c:342
+#, c-format
+msgid ""
+"Module #%u\n"
+"\tName: %s\n"
+"\tArgument: %s\n"
+"\tUsage counter: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Модуль №%u\n"
+"\tНазва: %s\n"
+"\tАргумент: %s\n"
+"\tЛічильник використання: %s\n"
+"\tВластивості:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:361
+#, c-format
+msgid "Failed to get client information: %s\n"
+msgstr "Не вдалося отримати дані щодо клієнта: %s\n"
+
+#: ../src/utils/pactl.c:379
+#, c-format
+msgid ""
+"Client #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Клієнт №%u\n"
+"\tДрайвер: %s\n"
+"\tМодуль власника: %s\n"
+"\tВластивості:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:396
+#, c-format
+msgid "Failed to get card information: %s\n"
+msgstr "Не вдалося отримати дані щодо карти: %s\n"
+
+#: ../src/utils/pactl.c:414
+#, c-format
+msgid ""
+"Card #%u\n"
+"\tName: %s\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Карта №%u\n"
+"\tНазва: %s\n"
+"\tДрайвер: %s\n"
+"\tМодуль власника: %s\n"
+"\tВластивості:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:428, c-format
+msgid "\tProfiles:\n"
+msgstr "\tПрофілі:\n"
+
+#: ../src/utils/pactl.c:434
+#, c-format
+msgid "\tActive Profile: %s\n"
+msgstr "\tАктивний профіль: %s\n"
+
+#: ../src/utils/pactl.c:445
+#, c-format
+msgid "Failed to get sink input information: %s\n"
+msgstr "Не вдалося отримати відомостей щодо приймача: %s\n"
+
+#: ../src/utils/pactl.c:464
+#, c-format
+msgid ""
+"Sink Input #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSink: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        %s\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSink Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Приймач даних №%u\n"
+"\tДрайвер: %s\n"
+"\tМодуль власника: %s\n"
+"\tКлієнт: %s\n"
+"\tПриймач: %u\n"
+"\tЧастотна специфікація: %s\n"
+"\tКарта каналів: %s\n"
+"\tСтан вимикання: %s\n"
+"\tГучність: %s\n"
+"\t        %s\n"
+"\t        баланс %0.2f\n"
+"\tЛатентність буфера: %0.0f мкс\n"
+"\tЛатентність приймача: %0.0f мкс\n"
+"\tМетод зміни частоти: %s\n"
+"\tВластивості:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:503
+#, c-format
+msgid "Failed to get source output information: %s\n"
+msgstr "Не вдалося отримати дані щодо відтворення джерела: %s\n"
+
+#: ../src/utils/pactl.c:523
+#, c-format
+msgid ""
+"Source Output #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSource: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSource Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Відтворення джерела #%u\n"
+"\tДрайвер: %s\n"
+"\tМодуль власника: %s\n"
+"\tКлієнт: %s\n"
+"\tДжерело: %u\n"
+"\tЧастотна специфікація: %s\n"
+"\tКарта каналів: %s\n"
+"\tЛатентність буфера: %0.0f мкс\n"
+"\tЛатентність джерела: %0.0f мкс\n"
+"\tСпосіб зміни частоти: %s\n"
+"\tВластивості:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:554
+#, c-format
+msgid "Failed to get sample information: %s\n"
+msgstr "Не вдалося отримати дані щодо фрагмента: %s\n"
+
+#: ../src/utils/pactl.c:572
+#, c-format
+msgid ""
+"Sample #%u\n"
+"\tName: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tVolume: %s\n"
+"\t        %s\n"
+"\t        balance %0.2f\n"
+"\tDuration: %0.1fs\n"
+"\tSize: %s\n"
+"\tLazy: %s\n"
+"\tFilename: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Фрагмент №%u\n"
+"\tНазва: %s\n"
+"\tЧастотна специфікація: %s\n"
+"\tКарта каналів: %s\n"
+"\tГучність: %s\n"
+"\t        %s\n"
+"\t        баланс %0.2f\n"
+"\tТривалість: %0.1fs\n"
+"\tРозмір: %s\n"
+"\tЛінивість: %s\n"
+"\tНазва файла: %s\n"
+"\tВластивості:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:602 ../src/utils/pactl.c:612
+#, c-format
+msgid "Failure: %s\n"
+msgstr "Помилка: %s\n"
+
+#: ../src/utils/pactl.c:636
+#, c-format
+msgid "Failed to upload sample: %s\n"
+msgstr "Не вдалося вивантажити зразок: %s\n"
+
+#: ../src/utils/pactl.c:653
+#, c-format
+msgid "Premature end of file\n"
+msgstr "Передчасне завершення файла\n"
+
+#: ../src/utils/pactl.c:774
+#, c-format
+msgid ""
+"%s [options] stat\n"
+"%s [options] list\n"
+"%s [options] exit\n"
+"%s [options] upload-sample FILENAME [NAME]\n"
+"%s [options] play-sample NAME [SINK]\n"
+"%s [options] remove-sample NAME\n"
+"%s [options] move-sink-input ID SINK\n"
+"%s [options] move-source-output ID SOURCE\n"
+"%s [options] load-module NAME [ARGS ...]\n"
+"%s [options] unload-module ID\n"
+"%s [options] suspend-sink [SINK] 1|0\n"
+"%s [options] suspend-source [SOURCE] 1|0\n"
+"%s [options] set-card-profile [CARD] [PROFILE] \n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+msgstr ""
+"%s [параметри] stat\n"
+"%s [параметри] list\n"
+"%s [параметри] exit\n"
+"%s [параметри] upload-sample НАЗВА_ФАЙЛА [НАЗВА]\n"
+"%s [параметри] play-sample НАЗВА [ПРИЙМАЧ]\n"
+"%s [параметри] remove-sample НАЗВА\n"
+"%s [параметри] move-sink-input ІДЕНТИФІКАТОР ПРИЙМАЧ\n"
+"%s [параметри] move-source-output ІДЕНТИФІКАТОР ДЖЕРЕЛО\n"
+"%s [параметри] load-module НАЗВА [АРГУМЕНТИ ...]\n"
+"%s [параметри] unload-module ІДЕНТИФІКАТОР\n"
+"%s [параметри] suspend-sink [ПРИЙМАЧ] 1|0\n"
+"%s [параметри] suspend-source [ДЖЕРЕЛО] 1|0\n"
+"%s [параметри] set-card-profile [КАРТА] [ПРОФІЛЬ] \n"
+"\n"
+"  -h, --help                            Показати цю довідку\n"
+"      --version                         Показати дані щодо версії\n"
+"\n"
+"  -s, --server=СЕРВЕР                   Назва сервера, з яким слід "
+"з’єднатися\n"
+"  -n, --client-name=НАЗВА               Спосіб виклику клієнта на сервері\n"
+
+#: ../src/utils/pactl.c:826
+#, c-format
+msgid ""
+"pactl %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pactl %s\n"
+"Зібрано з libpulse %s\n"
+"З’єднано з libpulse %s\n"
+
+#: ../src/utils/pactl.c:865
+#, c-format
+msgid "Please specify a sample file to load\n"
+msgstr "Будь ласка, вкажіть зразковий файл для завантаження\n"
+
+#: ../src/utils/pactl.c:887
+#, c-format
+msgid "Failed to open sound file.\n"
+msgstr "Не вдалося відкрити звуковий файл.\n"
+
+#: ../src/utils/pactl.c:899
+#, c-format
+msgid "You have to specify a sample name to play\n"
+msgstr "Вам слід вказати назву зразкового файла, який слід відтворити\n"
+
+#: ../src/utils/pactl.c:911
+#, c-format
+msgid "You have to specify a sample name to remove\n"
+msgstr "Вам слід вказати назву зразкового файла, який слід вилучити\n"
+
+#: ../src/utils/pactl.c:919
+#, c-format
+msgid "You have to specify a sink input index and a sink\n"
+msgstr "Вам слід вказати індекс приймача даних і приймач\n"
+
+#: ../src/utils/pactl.c:928
+#, c-format
+msgid "You have to specify a source output index and a source\n"
+msgstr "Вам слід вказати індекс джерела відтворення і джерело\n"
+
+#: ../src/utils/pactl.c:942
+#, c-format
+msgid "You have to specify a module name and arguments.\n"
+msgstr "Вам слід вказати назву модуля і аргументи.\n"
+
+#: ../src/utils/pactl.c:962
+#, c-format
+msgid "You have to specify a module index\n"
+msgstr "Вам слід вказати індекс модуля\n"
+
+#: ../src/utils/pactl.c:972
+#, c-format
+msgid ""
+"You may not specify more than one sink. You have to specify a boolean "
+"value.\n"
+msgstr ""
+"Не можна вказувати більше одного приймача. Вам слід вказати булівське "
+"значення.\n"
+
+#: ../src/utils/pactl.c:985
+#, c-format
+msgid ""
+"You may not specify more than one source. You have to specify a boolean "
+"value.\n"
+msgstr ""
+"Не можна вказувати більше одного джерела. Вам слід вказати булівське "
+"значення.\n"
+
+#: ../src/utils/pactl.c:997
+#, c-format
+msgid "You have to specify a card name/index and a profile name\n"
+msgstr "Вам слід вказати назву/індекс карти і назву профілю\n"
+
+#: ../src/utils/pactl.c:1012
+#, c-format
+msgid "No valid command specified.\n"
+msgstr "Не вказано коректної команди.\n"
+
+#: ../src/utils/pax11publish.c:61
+#, c-format
+msgid ""
+"%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n"
+"\n"
+" -d    Show current PulseAudio data attached to X11 display (default)\n"
+" -e    Export local PulseAudio data to X11 display\n"
+" -i    Import PulseAudio data from X11 display to local environment "
+"variables and cookie file.\n"
+" -r    Remove PulseAudio data from X11 display\n"
+msgstr ""
+"%s [-D клієнт] [-S сервер] [-O приймач] [-I джерело] [-c файл]  "
+"[-d|-e|-i|-r]\n"
+"\n"
+" -d    Показати поточні дані PulseAudio, приєднаного до клієнта X11 "
+"(типово)\n"
+" -e    Експортувати локальні дані PulseAudio на клієнт X11\n"
+" -i    Імпортувати дані PulseAudio з клієнта X11 до локальних змінних і "
+"файла кук.\n"
+" -r    Вилучити дані PulseAudio з клієнта X11\n"
+
+#: ../src/utils/pax11publish.c:94
+#, c-format
+msgid "Failed to parse command line.\n"
+msgstr "Не вдалося обробити рядок команди.\n"
+
+#: ../src/utils/pax11publish.c:108
+#, c-format
+msgid "Server: %s\n"
+msgstr "Сервер: %s\n"
+
+#: ../src/utils/pax11publish.c:110, c-format
+msgid "Source: %s\n"
+msgstr "Джерело: %s\n"
+
+#: ../src/utils/pax11publish.c:112
+#, c-format
+msgid "Sink: %s\n"
+msgstr "Приймач: %s\n"
+
+#: ../src/utils/pax11publish.c:114
+#, c-format
+msgid "Cookie: %s\n"
+msgstr "Кука: %s\n"
+
+#: ../src/utils/pax11publish.c:132
+#, c-format
+msgid "Failed to parse cookie data\n"
+msgstr "Не вдалося обробити дані куки\n"
+
+#: ../src/utils/pax11publish.c:137
+#, c-format
+msgid "Failed to save cookie data\n"
+msgstr "Не вдалося зберегти дані куки\n"
+
+#: ../src/utils/pax11publish.c:152
+#, c-format
+msgid "Failed to load client configuration file.\n"
+msgstr "Не вдалося завантажити файл налаштувань клієнта.\n"
+
+#: ../src/utils/pax11publish.c:157
+#, c-format
+msgid "Failed to read environment configuration data.\n"
+msgstr "Не вдалося прочитати дані налаштування середовища.\n"
+
+#: ../src/utils/pax11publish.c:174
+#, c-format
+msgid "Failed to get FQDN.\n"
+msgstr "Не вдалося отримати FQDN.\n"
+
+#: ../src/utils/pax11publish.c:194
+#, c-format
+msgid "Failed to load cookie data\n"
+msgstr "Не вдалося завантажити дані куки\n"
+
+#: ../src/utils/pax11publish.c:211
+#, c-format
+msgid "Not yet implemented.\n"
+msgstr "Ще не реалізовано.\n"
+
+#: ../src/utils/pacmd.c:64
+#, c-format
+msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
+msgstr "socket(PF_UNIX, SOCK_STREAM, 0): %s"
+
+#: ../src/utils/pacmd.c:81
+#, c-format
+msgid "connect(): %s"
+msgstr "connect(): %s"
+
+#: ../src/utils/pacmd.c:89
+msgid "Failed to kill PulseAudio daemon."
+msgstr ""
+"Спроба завершення роботи фонової служби PulseAudio завершилася невдало."
+
+#: ../src/utils/pacmd.c:97
+msgid "Daemon not responding."
+msgstr "Фонова служба не відповідає."
+
+#: ../src/utils/pacmd.c:144
+#, c-format
+msgid "select(): %s"
+msgstr "select(): %s"
+
+#: ../src/utils/pacmd.c:154 ../src/utils/pacmd.c:171
+#, c-format
+msgid "read(): %s"
+msgstr "read(): %s"
+
+#: ../src/utils/pacmd.c:187 ../src/utils/pacmd.c:201
+#, c-format
+msgid "write(): %s"
+msgstr "write(): %s"
+
+#: ../src/utils/paplay.c:139
+#, c-format
+msgid "Stream successfully created\n"
+msgstr "Потік було успішно створено\n"
+
+#: ../src/utils/paplay.c:144
+#, c-format
+msgid "Stream errror: %s\n"
+msgstr "Помилка потоку: %s\n"
+
+#: ../src/utils/paplay.c:165
+#, c-format
+msgid "Connection established.\n"
+msgstr "З’єднання встановлено.\n"
+
+#: ../src/utils/paplay.c:198
+#, c-format
+msgid ""
+"%s [options] [FILE]\n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -v, --verbose                         Enable verbose operation\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -d, --device=DEVICE                   The name of the sink to connect to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
+"      --channel-map=CHANNELMAP          Set the channel map to the use\n"
+msgstr ""
+"%s [параметри] [ФАЙЛ]\n"
+"\n"
+"  -h, --help                            Показати цю довідку\n"
+"      --version                         Показати дані щодо версії\n"
+"\n"
+"  -v, --verbose                         Увімкнути докладний режим дій\n"
+"\n"
+"  -s, --server=СЕРВЕР                   Назва сервера, з яким слід "
+"встановити з’єднання "
+"to\n"
+"  -d, --device=ПРИСТРІЙ                  Назва приймача, з яким слід "
+"з’єднатися\n"
+"  -n, --client-name=НАЗВА               Спосіб виклику клієнта на сервері\n"
+"      --stream-name=НАЗВА               Спосіб виклику потоку на сервері\n"
+"      --volume=ГУЧНІСТЬ                 Значення початкової (лінійної) "
+"гучності у діапазоні 0..65536\n"
+"      --channel-map=КАРТА_КАНАЛІВ       Визначення карти каналів, якою слід "
+"скористатися\n"
+
+#: ../src/utils/paplay.c:255
+#, c-format
+msgid ""
+"paplay %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"paplay %s\n"
+"Зібрано з libpulse %s\n"
+"З’єднано з libpulse %s\n"
+
+#: ../src/utils/paplay.c:292
+#, c-format
+msgid "Invalid channel map\n"
+msgstr "Некоректна карта каналів\n"
+
+#: ../src/utils/paplay.c:314
+#, c-format
+msgid "Failed to open file '%s'\n"
+msgstr "Не вдалося відкрити файл «%s»\n"
+
+#: ../src/utils/paplay.c:350
+#, c-format
+msgid "Channel map doesn't match file.\n"
+msgstr "Карта каналів не відповідає файлові.\n"
+
+#: ../src/utils/paplay.c:376
+#, c-format
+msgid "Using sample spec '%s'\n"
+msgstr "Використання частотної специфікації «%s»\n"
+
+#: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
+msgid "Cannot access autospawn lock."
+msgstr "Не вдалося зняти блокування автоматичного розгалуження."
+
+
