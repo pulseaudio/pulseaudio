@@ -28,10 +28,10 @@
 
 #include <pulse/xmalloc.h>
 
-#include <pulsecore/semaphore.h>
-#include <pulsecore/macro.h>
-#include <pulsecore/mutex.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/aupdate.h>
+#include <pulsecore/atomic.h>
+#include <pulsecore/once.h>
 
 #include "memtrap.h"
 
@@ -43,13 +43,13 @@ struct pa_memtrap {
 };
 
 static pa_memtrap *memtraps[2] = { NULL, NULL };
-static pa_atomic_t read_lock = PA_ATOMIC_INIT(0);
-static pa_static_semaphore semaphore = PA_STATIC_SEMAPHORE_INIT;
-static pa_static_mutex write_lock = PA_STATIC_MUTEX_INIT;
+static pa_aupdate *aupdate;
 
-#define MSB (1U << (sizeof(unsigned)*8U-1))
-#define WHICH(n) (!!((n) & MSB))
-#define COUNTER(n) ((n) & ~MSB)
+static void allocate_aupdate(void) {
+    PA_ONCE_BEGIN {
+        aupdate = pa_aupdate_new();
+    } PA_ONCE_END;
+}
 
 pa_bool_t pa_memtrap_is_good(pa_memtrap *m) {
     pa_assert(m);
@@ -62,19 +62,11 @@ static void sigsafe_error(const char *s) {
 }
 
 static void signal_handler(int sig, siginfo_t* si, void *data) {
-    unsigned n, j;
+    unsigned j;
     pa_memtrap *m;
     void *r;
 
-    /* Increase the lock counter */
-    n = (unsigned) pa_atomic_inc(&read_lock);
-
-    /* The uppermost bit tells us which list to look at */
-    j = WHICH(n);
-
-    /* When n is 0 we have about 2^31 threads running that
-     * all got a sigbus at the same time, oh my! */
-    pa_assert(COUNTER(n)+1 > 0);
+    j = pa_aupdate_read_begin(aupdate);
 
     for (m = memtraps[j]; m; m = m->next[j])
         if (si->si_addr >= m->start &&
@@ -94,31 +86,14 @@ static void signal_handler(int sig, siginfo_t* si, void *data) {
 
     pa_assert(r == m->start);
 
-    pa_atomic_dec(&read_lock);
-
-    /* Post the semaphore */
-    pa_semaphore_post(pa_static_semaphore_get(&semaphore, 0));
-
+    pa_aupdate_read_end(aupdate);
     return;
 
 fail:
+    pa_aupdate_read_end(aupdate);
+
     sigsafe_error("Failed to handle SIGBUS.\n");
-    pa_atomic_dec(&read_lock);
     abort();
-}
-
-static void memtrap_swap(unsigned n) {
-
-    for (;;) {
-
-        /* If the read counter is > 0 wait; if it is 0 try to swap the lists */
-        if (COUNTER(n) > 0)
-            pa_semaphore_wait(pa_static_semaphore_get(&semaphore, 0));
-        else if (pa_atomic_cmpxchg(&read_lock, (int) n, (int) (n ^ MSB)))
-            break;
-
-        n = (unsigned) pa_atomic_load(&read_lock);
-    }
 }
 
 static void memtrap_link(pa_memtrap *m, unsigned j) {
@@ -143,58 +118,47 @@ static void memtrap_unlink(pa_memtrap *m, unsigned j) {
 
 pa_memtrap* pa_memtrap_add(const void *start, size_t size) {
     pa_memtrap *m = NULL;
-    pa_mutex *lock;
-    unsigned n, j;
+    unsigned j;
 
     pa_assert(start);
     pa_assert(size > 0);
     pa_assert(PA_PAGE_ALIGN_PTR(start) == start);
     pa_assert(PA_PAGE_ALIGN(size) == size);
-
-    lock = pa_static_mutex_get(&write_lock, FALSE, FALSE);
-    pa_mutex_lock(lock);
-
-    n = (unsigned) pa_atomic_load(&read_lock);
-    j = WHICH(n);
 
     m = pa_xnew(pa_memtrap, 1);
     m->start = (void*) start;
     m->size = size;
     pa_atomic_store(&m->bad, 0);
 
-    memtrap_link(m, !j);
-    memtrap_swap(n);
-    memtrap_link(m, j);
+    allocate_aupdate();
 
-    pa_mutex_unlock(lock);
+    j = pa_aupdate_write_begin(aupdate);
+    memtrap_link(m, j);
+    j = pa_aupdate_write_swap(aupdate);
+    memtrap_link(m, j);
+    pa_aupdate_write_end(aupdate);
 
     return m;
 }
 
 void pa_memtrap_remove(pa_memtrap *m) {
-    unsigned n, j;
-    pa_mutex *lock;
+    unsigned j;
 
     pa_assert(m);
 
-    lock = pa_static_mutex_get(&write_lock, FALSE, FALSE);
-    pa_mutex_lock(lock);
+    allocate_aupdate();
 
-    n = (unsigned) pa_atomic_load(&read_lock);
-    j = WHICH(n);
-
-    memtrap_unlink(m, !j);
-    memtrap_swap(n);
+    j = pa_aupdate_write_begin(aupdate);
     memtrap_unlink(m, j);
+    j = pa_aupdate_write_swap(aupdate);
+    memtrap_unlink(m, j);
+    pa_aupdate_write_end(aupdate);
 
     pa_xfree(m);
-
-    pa_mutex_unlock(lock);
 }
 
 pa_memtrap *pa_memtrap_update(pa_memtrap *m, const void *start, size_t size) {
-    unsigned n, j;
-    pa_mutex *lock;
+    unsigned j;
 
     pa_assert(m);
 
@@ -203,32 +167,25 @@ pa_memtrap *pa_memtrap_update(pa_memtrap *m, const void *start, size_t size) {
     pa_assert(PA_PAGE_ALIGN_PTR(start) == start);
     pa_assert(PA_PAGE_ALIGN(size) == size);
 
-    lock = pa_static_mutex_get(&write_lock, FALSE, FALSE);
-    pa_mutex_lock(lock);
+    allocate_aupdate();
+
+    j = pa_aupdate_write_begin(aupdate);
 
     if (m->start == start && m->size == size)
         goto unlock;
 
-    n = (unsigned) pa_atomic_load(&read_lock);
-    j = WHICH(n);
-
-    memtrap_unlink(m, !j);
-    memtrap_swap(n);
     memtrap_unlink(m, j);
+    j = pa_aupdate_write_swap(aupdate);
 
     m->start = (void*) start;
     m->size = size;
     pa_atomic_store(&m->bad, 0);
 
-    n = (unsigned) pa_atomic_load(&read_lock);
-    j = WHICH(n);
-
-    memtrap_link(m, !j);
-    memtrap_swap(n);
+    j = pa_aupdate_write_swap(aupdate);
     memtrap_link(m, j);
 
 unlock:
-    pa_mutex_unlock(lock);
+    pa_aupdate_write_end(aupdate);
 
     return m;
 }
@@ -236,10 +193,7 @@ unlock:
 void pa_memtrap_install(void) {
     struct sigaction sa;
 
-    /* Before we install the signal handler, make sure the semaphore
-     * is valid so that the initialization of the semaphore
-     * doesn't have to happen from the signal handler */
-    pa_static_semaphore_get(&semaphore, 0);
+    allocate_aupdate();
 
     memset(&sa, 0, sizeof(sa));
     sa.sa_sigaction = signal_handler;

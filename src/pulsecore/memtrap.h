@@ -34,7 +34,7 @@
  * still 'good' i.e. no SIGBUS has happened yet for it.
  *
  * Intended usage is to handle memory mapped in which is controlled by
- * other processes that might execute ftruncate() or when mapping in
+ * other processes that might execute ftruncate() or when mapping inb
  * hardware resources that might get invalidated when unplugged. */
 
 typedef struct pa_memtrap pa_memtrap;

@@ -583,6 +583,7 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/poll.c pulsecore/poll.h \
 		pulsecore/prioq.c pulsecore/prioq.h \
 		pulsecore/memtrap.c pulsecore/memtrap.h \
+		pulsecore/aupdate.c pulsecore/aupdate.h \
 		pulsecore/proplist-util.c pulsecore/proplist-util.h \
 		pulsecore/pstream-util.c pulsecore/pstream-util.h \
 		pulsecore/pstream.c pulsecore/pstream.h \
