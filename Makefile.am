@@ -52,7 +52,7 @@ untabify:
 	find \( -name '*.c' -o -name '*.h' \) -exec perl -i -pe 's/\t/        /g;' \{\} \;
 
 fedora-snapshot: dist
-	cp $(distdir).tar.gz $$HOME/cvs.fedora/pulseaudio/devel/$(distdir).git`date +%Y%m%d`.tar.gz
+	cp $(distdir).tar.gz $$HOME/cvs.fedora/pulseaudio/devel/$(distdir).tar.gz
 
 dist-hook:
 	if test -d .git ; then \
@@ -60,6 +60,7 @@ dist-hook:
 		chmod u+w ${distdir}/ChangeLog || true ; \
 		( git-changelog.perl || echo "git-changelog.perl failed." ) > ${distdir}/ChangeLog 2>&1 ; \
 	fi
+	echo $(VERSION) > $(distdir)/.tarball-version
 
 update-shave:
 	for i in shave.in shave.m4 shave-libtool.in; do \
@@ -68,6 +69,11 @@ update-shave:
 	mv shave.m4 m4/
 
 .PHONY: homepage distcleancheck doxygen
+
+# see git-version-gen
+BUILT_SOURCES = $(top_srcdir)/.version
+$(top_srcdir)/.version:
+	echo $(VERSION) > $@-t && mv $@-t $@
 
 DISTCLEANFILES = \
         po/.intltool-merge-cache

@@ -22,15 +22,16 @@
 
 AC_PREREQ(2.63)
 
-m4_define(pa_major, [0])
-m4_define(pa_minor, [9])
-m4_define(pa_micro, [15])
-
-AC_INIT([pulseaudio],[pa_major.pa_minor.pa_micro],[mzchyfrnhqvb (at) 0pointer (dot) net])
+AC_INIT([pulseaudio], m4_esyscmd([./git-version-gen .tarball-version]),
+	[mzchyfrnhqvb (at) 0pointer (dot) net])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign 1.10 -Wall -Wno-portability])
+
+m4_define(pa_major, `echo $VERSION |  cut -d. -f 1`)
+m4_define(pa_minor, `echo $VERSION |  cut -d. -f 2`)
+m4_define(pa_micro, `echo $VERSION |  cut -d. -f 3`)
 
 AC_SUBST(PA_MAJOR, pa_major)
 AC_SUBST(PA_MINOR, pa_minor)
