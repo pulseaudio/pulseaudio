@@ -1323,7 +1323,6 @@ po/Makefile.in
 
 SHAVE_INIT
 AC_OUTPUT
-SHAVE_OUTPUT
 
 # ==========================================================================
 ENABLE_X11=no
