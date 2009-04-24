@@ -1,4 +1,5 @@
 dnl Make automake/libtool output more friendly to humans
+dnl  Damien Lespiau <damien.lespiau@gmail.com>
 dnl
 dnl SHAVE_INIT([shavedir],[default_mode])
 dnl
@@ -53,14 +54,17 @@ AC_DEFUN([SHAVE_INIT],
     SHAVE_SAVED_CXX=$CXX
     SHAVE_SAVED_FC=$FC
     SHAVE_SAVED_F77=$F77
+    SHAVE_SAVED_OBJC=$OBJC
     CC="${SHELL} ${shavedir}/shave cc ${SHAVE_SAVED_CC}"
     CXX="${SHELL} ${shavedir}/shave cxx ${SHAVE_SAVED_CXX}"
     FC="${SHELL} ${shavedir}/shave fc ${SHAVE_SAVED_FC}"
     F77="${SHELL} ${shavedir}/shave f77 ${SHAVE_SAVED_F77}"
+    OBJC="${SHELL} ${shavedir}/shave objc ${SHAVE_SAVED_OBJC}"
     AC_SUBST(CC)
     AC_SUBST(CXX)
     AC_SUBST(FC)
     AC_SUBST(F77)
+    AC_SUBST(OBJC)
 
     V=@
   else
