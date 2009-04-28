@@ -3182,10 +3182,10 @@ static void command_get_info_list(pa_pdispatch *pd, uint32_t command, uint32_t t
 static void command_get_server_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
     pa_tagstruct *reply;
-    char txt[256];
     pa_sink *def_sink;
     pa_source *def_source;
     pa_sample_spec fixed_ss;
+    char *h, *u;
 
     pa_native_connection_assert_ref(c);
     pa_assert(t);
@@ -3200,8 +3200,14 @@ static void command_get_server_info(pa_pdispatch *pd, uint32_t command, uint32_t
     reply = reply_new(tag);
     pa_tagstruct_puts(reply, PACKAGE_NAME);
     pa_tagstruct_puts(reply, PACKAGE_VERSION);
-    pa_tagstruct_puts(reply, pa_get_user_name(txt, sizeof(txt)));
-    pa_tagstruct_puts(reply, pa_get_host_name(txt, sizeof(txt)));
+
+    u = pa_get_user_name_malloc();
+    pa_tagstruct_puts(reply, u);
+    pa_xfree(u);
+
+    h = pa_get_host_name_malloc();
+    pa_tagstruct_puts(reply, h);
+    pa_xfree(h);
 
     fixup_sample_spec(c, &fixed_ss, &c->protocol->core->default_sample_spec);
     pa_tagstruct_put_sample_spec(reply, &fixed_ss);
