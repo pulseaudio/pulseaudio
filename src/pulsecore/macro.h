@@ -75,8 +75,9 @@ static inline void* pa_page_align_ptr(const void *p) {
 }
 #define PA_PAGE_ALIGN_PTR(x) (pa_page_align_ptr(x))
 
+/* Rounds up */
 static inline size_t pa_page_align(size_t l) {
-    return l & ~(PA_PAGE_SIZE-1);
+    return ((l + PA_PAGE_SIZE - 1) / PA_PAGE_SIZE) * PA_PAGE_SIZE;
 }
 #define PA_PAGE_ALIGN(x) (pa_page_align(x))
 
