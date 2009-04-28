@@ -122,8 +122,9 @@ pa_memtrap* pa_memtrap_add(const void *start, size_t size) {
 
     pa_assert(start);
     pa_assert(size > 0);
-    pa_assert(PA_PAGE_ALIGN_PTR(start) == start);
-    pa_assert(PA_PAGE_ALIGN(size) == size);
+
+    start = PA_PAGE_ALIGN_PTR(start);
+    size = PA_PAGE_ALIGN(size);
 
     m = pa_xnew(pa_memtrap, 1);
     m->start = (void*) start;
@@ -164,8 +165,9 @@ pa_memtrap *pa_memtrap_update(pa_memtrap *m, const void *start, size_t size) {
 
     pa_assert(start);
     pa_assert(size > 0);
-    pa_assert(PA_PAGE_ALIGN_PTR(start) == start);
-    pa_assert(PA_PAGE_ALIGN(size) == size);
+
+    start = PA_PAGE_ALIGN_PTR(start);
+    size = PA_PAGE_ALIGN(size);
 
     allocate_aupdate();
 
