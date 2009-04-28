@@ -103,4 +103,8 @@ unsigned pa_idxset_size(pa_idxset*s);
 /* Return TRUE of the idxset is empty */
 pa_bool_t pa_idxset_isempty(pa_idxset *s);
 
+
+#define PA_IDXSET_FOREACH(e, s, idx) \
+    for ((e) = pa_idxset_first((s), &(idx)); (e); (e) = pa_idxset_next((s), &(idx)))
+
 #endif
