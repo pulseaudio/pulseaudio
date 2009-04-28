@@ -57,11 +57,19 @@
 #define PA_PAGE_SIZE ((size_t) 4096)
 #endif
 
+/* Rounds down */
+static inline void* pa_align_ptr(const void *p) {
+    return (void*) (((size_t) p) & ~(sizeof(void*)-1));
+}
+#define PA_ALIGN_PTR(x) (pa_align_ptr(x))
+
+/* Rounds up */
 static inline size_t pa_align(size_t l) {
     return (((l + sizeof(void*) - 1) / sizeof(void*)) * sizeof(void*));
 }
 #define PA_ALIGN(x) (pa_align(x))
 
+/* Rounds down */
 static inline void* pa_page_align_ptr(const void *p) {
     return (void*) (((size_t) p) & ~(PA_PAGE_SIZE-1));
 }
