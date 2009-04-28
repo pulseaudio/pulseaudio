@@ -56,6 +56,7 @@ int pa_alsa_set_sw_params(snd_pcm_t *pcm, snd_pcm_uframes_t avail_min);
 typedef struct pa_alsa_profile_info {
     pa_channel_map map;
     const char *alsa_name;
+    const char *alsa_name_fallback;
     const char *description; /* internationalized */
     const char *name;
     unsigned priority;

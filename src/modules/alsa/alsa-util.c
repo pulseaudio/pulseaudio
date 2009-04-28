@@ -528,7 +528,7 @@ int pa_alsa_set_sw_params(snd_pcm_t *pcm, snd_pcm_uframes_t avail_min) {
 
 static const struct pa_alsa_profile_info device_table[] = {
     {{ 1, { PA_CHANNEL_POSITION_MONO }},
-     "hw",
+     "hw", NULL,
      N_("Analog Mono"),
      "analog-mono",
      1,
@@ -536,7 +536,7 @@ static const struct pa_alsa_profile_info device_table[] = {
      "Capture", "Mic" },
 
     {{ 2, { PA_CHANNEL_POSITION_LEFT, PA_CHANNEL_POSITION_RIGHT }},
-     "front",
+     "front", "hw",
      N_("Analog Stereo"),
      "analog-stereo",
      10,
@@ -544,7 +544,7 @@ static const struct pa_alsa_profile_info device_table[] = {
      "Capture", "Mic" },
 
     {{ 2, { PA_CHANNEL_POSITION_LEFT, PA_CHANNEL_POSITION_RIGHT }},
-     "iec958",
+     "iec958", NULL,
      N_("Digital Stereo (IEC958)"),
      "iec958-stereo",
      5,
@@ -552,7 +552,7 @@ static const struct pa_alsa_profile_info device_table[] = {
      "IEC958 In", NULL },
 
     {{ 2, { PA_CHANNEL_POSITION_LEFT, PA_CHANNEL_POSITION_RIGHT }},
-     "hdmi",
+     "hdmi", NULL,
      N_("Digital Stereo (HDMI)"),
      "hdmi-stereo",
      4,
@@ -561,7 +561,7 @@ static const struct pa_alsa_profile_info device_table[] = {
 
     {{ 4, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT }},
-     "surround40",
+     "surround40", NULL,
      N_("Analog Surround 4.0"),
      "analog-surround-40",
      7,
@@ -570,7 +570,7 @@ static const struct pa_alsa_profile_info device_table[] = {
 
     {{ 4, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT }},
-     "a52",
+     "a52", NULL,
      N_("Digital Surround 4.0 (IEC958/AC3)"),
      "iec958-ac3-surround-40",
      2,
@@ -580,7 +580,7 @@ static const struct pa_alsa_profile_info device_table[] = {
     {{ 5, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT,
             PA_CHANNEL_POSITION_LFE }},
-     "surround41",
+     "surround41", NULL,
      N_("Analog Surround 4.1"),
      "analog-surround-41",
      7,
@@ -590,7 +590,7 @@ static const struct pa_alsa_profile_info device_table[] = {
     {{ 5, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT,
             PA_CHANNEL_POSITION_CENTER }},
-     "surround50",
+     "surround50", NULL,
      N_("Analog Surround 5.0"),
      "analog-surround-50",
      7,
@@ -600,7 +600,7 @@ static const struct pa_alsa_profile_info device_table[] = {
     {{ 6, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT,
             PA_CHANNEL_POSITION_CENTER, PA_CHANNEL_POSITION_LFE }},
-     "surround51",
+     "surround51", NULL,
      N_("Analog Surround 5.1"),
      "analog-surround-51",
      8,
@@ -610,7 +610,7 @@ static const struct pa_alsa_profile_info device_table[] = {
     {{ 6, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT,
             PA_CHANNEL_POSITION_FRONT_CENTER, PA_CHANNEL_POSITION_LFE}},
-     "a52",
+     "a52", NULL,
      N_("Digital Surround 5.1 (IEC958/AC3)"),
      "iec958-ac3-surround-51",
      3,
@@ -621,15 +621,71 @@ static const struct pa_alsa_profile_info device_table[] = {
             PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT,
             PA_CHANNEL_POSITION_CENTER, PA_CHANNEL_POSITION_LFE,
             PA_CHANNEL_POSITION_SIDE_LEFT, PA_CHANNEL_POSITION_SIDE_RIGHT }},
-     "surround71",
+     "surround71", NULL,
      N_("Analog Surround 7.1"),
      "analog-surround-71",
      7,
      "Master", "PCM",
      "Capture", "Mic" },
 
-    {{ 0, { 0 }}, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL }
+    {{ 0, { 0 }}, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL }
 };
+
+static snd_pcm_t *open_by_device_string_with_fallback(
+        const char *prefix,
+        const char *prefix_fallback,
+        const char *dev_id,
+        char **dev,
+        pa_sample_spec *ss,
+        pa_channel_map* map,
+        int mode,
+        uint32_t *nfrags,
+        snd_pcm_uframes_t *period_size,
+        snd_pcm_uframes_t tsched_size,
+        pa_bool_t *use_mmap,
+        pa_bool_t *use_tsched,
+        pa_bool_t require_exact_channel_number) {
+
+    snd_pcm_t *pcm_handle;
+    char *d;
+
+    d = pa_sprintf_malloc("%s:%s", prefix, dev_id);
+
+    pcm_handle = pa_alsa_open_by_device_string(
+            d,
+            dev,
+            ss,
+            map,
+            mode,
+            nfrags,
+            period_size,
+            tsched_size,
+            use_mmap,
+            use_tsched,
+            require_exact_channel_number);
+    pa_xfree(d);
+
+    if (!pcm_handle && prefix_fallback) {
+
+        d = pa_sprintf_malloc("%s:%s", prefix_fallback, dev_id);
+
+        pcm_handle = pa_alsa_open_by_device_string(
+                d,
+                dev,
+                ss,
+                map,
+                mode,
+                nfrags,
+                period_size,
+                tsched_size,
+                use_mmap,
+                use_tsched,
+                require_exact_channel_number);
+        pa_xfree(d);
+    }
+
+    return pcm_handle;
+}
 
 snd_pcm_t *pa_alsa_open_by_device_id_auto(
         const char *dev_id,
@@ -671,14 +727,14 @@ snd_pcm_t *pa_alsa_open_by_device_id_auto(
 
             pa_log_debug("Checking for %s (%s)", device_table[i].name, device_table[i].alsa_name);
 
-            d = pa_sprintf_malloc("%s:%s", device_table[i].alsa_name, dev_id);
-
             try_ss.channels = device_table[i].map.channels;
             try_ss.rate = ss->rate;
             try_ss.format = ss->format;
 
-            pcm_handle = pa_alsa_open_by_device_string(
-                    d,
+            pcm_handle = open_by_device_string_with_fallback(
+                    device_table[i].alsa_name,
+                    device_table[i].alsa_name_fallback,
+                    dev_id,
                     dev,
                     &try_ss,
                     map,
@@ -689,8 +745,6 @@ snd_pcm_t *pa_alsa_open_by_device_id_auto(
                     use_mmap,
                     use_tsched,
                     TRUE);
-
-            pa_xfree(d);
 
             if (pcm_handle) {
 
@@ -703,6 +757,7 @@ snd_pcm_t *pa_alsa_open_by_device_id_auto(
 
                 return pcm_handle;
             }
+
         }
 
         if (direction > 0) {
@@ -775,7 +830,6 @@ snd_pcm_t *pa_alsa_open_by_device_id_profile(
         pa_bool_t *use_tsched,
         const pa_alsa_profile_info *profile) {
 
-    char *d;
     snd_pcm_t *pcm_handle;
     pa_sample_spec try_ss;
 
@@ -787,14 +841,14 @@ snd_pcm_t *pa_alsa_open_by_device_id_profile(
     pa_assert(period_size);
     pa_assert(profile);
 
-    d = pa_sprintf_malloc("%s:%s", profile->alsa_name, dev_id);
-
     try_ss.channels = profile->map.channels;
     try_ss.rate = ss->rate;
     try_ss.format = ss->format;
 
-    pcm_handle = pa_alsa_open_by_device_string(
-            d,
+    pcm_handle = open_by_device_string_with_fallback(
+            profile->alsa_name,
+            profile->alsa_name_fallback,
+            dev_id,
             dev,
             &try_ss,
             map,
@@ -805,8 +859,6 @@ snd_pcm_t *pa_alsa_open_by_device_id_profile(
             use_mmap,
             use_tsched,
             TRUE);
-
-    pa_xfree(d);
 
     if (!pcm_handle)
         return NULL;
@@ -859,6 +911,8 @@ snd_pcm_t *pa_alsa_open_by_device_string(
             pa_log_info("Error opening PCM device %s: %s", d, pa_alsa_strerror(err));
             goto fail;
         }
+
+        pa_log_debug("Managed to open %s", d);
 
         if ((err = pa_alsa_set_hw_params(pcm_handle, ss, nfrags, period_size, tsched_size, use_mmap, use_tsched, require_exact_channel_number)) < 0) {
 
@@ -928,25 +982,24 @@ int pa_alsa_probe_profiles(
         snd_pcm_t *pcm_i = NULL;
 
         if (i->alsa_name) {
-            char *id;
             pa_sample_spec try_ss;
             pa_channel_map try_map;
 
             pa_log_debug("Checking for playback on %s (%s)", i->name, i->alsa_name);
-            id = pa_sprintf_malloc("%s:%s", i->alsa_name, dev_id);
 
             try_ss = *ss;
             try_ss.channels = i->map.channels;
             try_map = i->map;
 
-            pcm_i = pa_alsa_open_by_device_string(
-                    id, NULL,
+            pcm_i = open_by_device_string_with_fallback(
+                    i->alsa_name,
+                    i->alsa_name_fallback,
+                    dev_id,
+                    NULL,
                     &try_ss, &try_map,
                     SND_PCM_STREAM_PLAYBACK,
                     NULL, NULL, 0, NULL, NULL,
                     TRUE);
-
-            pa_xfree(id);
 
             if (!pcm_i)
                 continue;
@@ -956,25 +1009,24 @@ int pa_alsa_probe_profiles(
             snd_pcm_t *pcm_j = NULL;
 
             if (j->alsa_name) {
-                char *jd;
                 pa_sample_spec try_ss;
                 pa_channel_map try_map;
 
                 pa_log_debug("Checking for capture on %s (%s)", j->name, j->alsa_name);
-                jd = pa_sprintf_malloc("%s:%s", j->alsa_name, dev_id);
 
                 try_ss = *ss;
                 try_ss.channels = j->map.channels;
                 try_map = j->map;
 
-                pcm_j = pa_alsa_open_by_device_string(
-                        jd, NULL,
+                pcm_j = open_by_device_string_with_fallback(
+                        j->alsa_name,
+                        j->alsa_name_fallback,
+                        dev_id,
+                        NULL,
                         &try_ss, &try_map,
                         SND_PCM_STREAM_CAPTURE,
                         NULL, NULL, 0, NULL, NULL,
                         TRUE);
-
-                pa_xfree(jd);
 
                 if (!pcm_j)
                     continue;
