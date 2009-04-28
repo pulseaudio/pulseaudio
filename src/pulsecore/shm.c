@@ -154,7 +154,7 @@ int pa_shm_create_rw(pa_shm *m, size_t size, pa_bool_t shared, mode_t mode) {
         pa_atomic_store(&marker->pid, (int) getpid());
         pa_atomic_store(&marker->marker, SHM_MARKER);
 
-        pa_assert_se(close(fd) == 0);
+        pa_assert_se(pa_close(fd) == 0);
         m->do_unlink = TRUE;
 #else
         return -1;
@@ -296,8 +296,8 @@ int pa_shm_attach_ro(pa_shm *m, unsigned id) {
         goto fail;
     }
 
-    m->do_unlink = 0;
-    m->shared = 1;
+    m->do_unlink = FALSE;
+    m->shared = TRUE;
 
     pa_assert_se(pa_close(fd) == 0);
 
