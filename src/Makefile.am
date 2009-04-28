@@ -1115,10 +1115,10 @@ SYMDEF_FILES = \
 		modules/module-mmkbd-evdev-symdef.h \
 		modules/module-http-protocol-tcp-symdef.h \
 		modules/module-http-protocol-unix-symdef.h \
-		modules/module-x11-bell-symdef.h \
-		modules/module-x11-publish-symdef.h \
-		modules/module-x11-xsmp-symdef.h \
-		modules/module-x11-cork-request-symdef.h \
+		modules/x11/module-x11-bell-symdef.h \
+		modules/x11/module-x11-publish-symdef.h \
+		modules/x11/module-x11-xsmp-symdef.h \
+		modules/x11/module-x11-cork-request-symdef.h \
 		modules/oss/module-oss-symdef.h \
 		modules/alsa/module-alsa-sink-symdef.h \
 		modules/alsa/module-alsa-source-symdef.h \
@@ -1128,8 +1128,8 @@ SYMDEF_FILES = \
 		modules/module-detect-symdef.h \
 		modules/rtp/module-rtp-send-symdef.h \
 		modules/rtp/module-rtp-recv-symdef.h \
-		modules/module-jack-sink-symdef.h \
-		modules/module-jack-source-symdef.h \
+		modules/jack/module-jack-sink-symdef.h \
+		modules/jack/module-jack-source-symdef.h \
 		modules/module-volume-restore-symdef.h \
 		modules/module-device-restore-symdef.h \
 		modules/module-stream-restore-symdef.h \
@@ -1292,22 +1292,22 @@ module_tunnel_source_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.
 
 # X11
 
-module_x11_bell_la_SOURCES = modules/module-x11-bell.c
+module_x11_bell_la_SOURCES = modules/x11/module-x11-bell.c
 module_x11_bell_la_CFLAGS = $(AM_CFLAGS) $(X11_CFLAGS)
 module_x11_bell_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X11_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
-module_x11_publish_la_SOURCES = modules/module-x11-publish.c
+module_x11_publish_la_SOURCES = modules/x11/module-x11-publish.c
 module_x11_publish_la_CFLAGS = $(AM_CFLAGS) $(X11_CFLAGS)
 module_x11_publish_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X11_LIBS) libprotocol-native.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
-module_x11_xsmp_la_SOURCES = modules/module-x11-xsmp.c
+module_x11_xsmp_la_SOURCES = modules/x11/module-x11-xsmp.c
 module_x11_xsmp_la_CFLAGS = $(AM_CFLAGS) $(X11_CFLAGS)
 module_x11_xsmp_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_x11_xsmp_la_LIBADD = $(AM_LIBADD) $(X11_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
-module_x11_cork_request_la_SOURCES = modules/module-x11-cork-request.c
+module_x11_cork_request_la_SOURCES = modules/x11/module-x11-cork-request.c
 module_x11_cork_request_la_CFLAGS = $(AM_CFLAGS) $(X11_CFLAGS)
 module_x11_cork_request_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_x11_cork_request_la_LIBADD = $(AM_LIBADD) $(X11_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
@@ -1487,12 +1487,12 @@ module_rtp_recv_la_CFLAGS = $(AM_CFLAGS)
 
 # JACK
 
-module_jack_sink_la_SOURCES = modules/module-jack-sink.c
+module_jack_sink_la_SOURCES = modules/jack/module-jack-sink.c
 module_jack_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_jack_sink_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la $(JACK_LIBS) libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_jack_sink_la_CFLAGS = $(AM_CFLAGS) $(JACK_CFLAGS)
 
-module_jack_source_la_SOURCES = modules/module-jack-source.c
+module_jack_source_la_SOURCES = modules/jack/module-jack-source.c
 module_jack_source_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_jack_source_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la $(JACK_LIBS) libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_jack_source_la_CFLAGS = $(AM_CFLAGS) $(JACK_CFLAGS)
