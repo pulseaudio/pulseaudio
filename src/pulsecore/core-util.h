@@ -201,6 +201,9 @@ pa_bool_t pa_in_system_mode(void);
 
 #define pa_streq(a,b) (!strcmp((a),(b)))
 
+char *pa_get_host_name_malloc(void);
+char *pa_get_user_name_malloc(void);
+
 char *pa_machine_id(void);
 char *pa_session_id(void);
 char *pa_uname_string(void);

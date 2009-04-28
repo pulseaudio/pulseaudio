@@ -2467,31 +2467,29 @@ pa_bool_t pa_in_system_mode(void) {
     return !!atoi(e);
 }
 
-char *pa_machine_id(void) {
-    FILE *f;
-    size_t l;
+char *pa_get_user_name_malloc(void) {
+    ssize_t k;
+    char *u;
 
-    /* The returned value is supposed be some kind of ascii identifier
-     * that is unique and stable across reboots. */
+#ifdef _SC_LOGIN_NAME_MAX
+    k = (ssize_t) sysconf(_SC_LOGIN_NAME_MAX);
 
-    /* First we try the D-Bus UUID, which is the best option we have,
-     * since it fits perfectly our needs and is not as volatile as the
-     * hostname which might be set from dhcp. */
+    if (k <= 0)
+#endif
+        k = 32;
 
-    if ((f = fopen(PA_MACHINE_ID, "r"))) {
-        char ln[34] = "", *r;
+    u = pa_xnew(char, k+1);
 
-        r = fgets(ln, sizeof(ln)-1, f);
-        fclose(f);
-
-        pa_strip_nl(ln);
-
-        if (r && ln[0])
-            return pa_utf8_filter(ln);
+    if (!(pa_get_user_name(u, k))) {
+        pa_xfree(u);
+        return NULL;
     }
 
-    /* The we fall back to the host name. It supposed to be somewhat
-     * unique, at least in a network, but may change. */
+    return u;
+}
+
+char *pa_get_host_name_malloc(void) {
+    size_t l;
 
     l = 100;
     for (;;) {
@@ -2524,6 +2522,35 @@ char *pa_machine_id(void) {
         pa_xfree(c);
         l *= 2;
     }
+
+    return NULL;
+}
+
+char *pa_machine_id(void) {
+    FILE *f;
+    char *h;
+
+    /* The returned value is supposed be some kind of ascii identifier
+     * that is unique and stable across reboots. */
+
+    /* First we try the D-Bus UUID, which is the best option we have,
+     * since it fits perfectly our needs and is not as volatile as the
+     * hostname which might be set from dhcp. */
+
+    if ((f = fopen(PA_MACHINE_ID, "r"))) {
+        char ln[34] = "", *r;
+
+        r = fgets(ln, sizeof(ln)-1, f);
+        fclose(f);
+
+        pa_strip_nl(ln);
+
+        if (r && ln[0])
+            return pa_utf8_filter(ln);
+    }
+
+    if ((h = pa_get_host_name_malloc()))
+        return h;
 
     /* If no hostname was set we use the POSIX hostid. It's usually
      * the IPv4 address.  Might not be that stable. */
