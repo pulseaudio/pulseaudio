@@ -47,4 +47,10 @@ pa_strlist* pa_strlist_parse(const char *s);
 /* Reverse string list */
 pa_strlist *pa_strlist_reverse(pa_strlist *l);
 
+/* Return the next item in the list */
+pa_strlist *pa_strlist_next(pa_strlist *s);
+
+/* Return the string associated to the current item */
+const char *pa_strlist_data(pa_strlist *s);
+
 #endif
