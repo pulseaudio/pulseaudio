@@ -47,6 +47,8 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/mime-type.h>
 #include <pulsecore/strbuf.h>
+#include <pulsecore/protocol-http.h>
+#include <pulsecore/parseaddr.h>
 
 #include "module-rygel-media-server-symdef.h"
 
@@ -158,6 +160,8 @@ struct userdata {
     char *display_name;
 
     pa_hook_slot *source_new_slot, *source_unlink_slot;
+
+    pa_http_protocol *http;
 };
 
 static void send_signal(struct userdata *u, pa_source *s, const char *name) {
@@ -285,6 +289,45 @@ static DBusHandlerResult root_handler(DBusConnection *c, DBusMessage *m, void *u
     }
 
     return DBUS_HANDLER_RESULT_HANDLED;
+}
+
+static char *compute_url(struct userdata *u, const char *name) {
+    pa_strlist *i;
+
+    pa_assert(u);
+    pa_assert(name);
+
+    for (i = pa_http_protocol_servers(u->http); i; i = pa_strlist_next(i)) {
+        pa_parsed_address a;
+
+        PA_DEBUG_TRAP;
+
+        if (pa_parse_address(pa_strlist_data(i), &a) >= 0 &&
+            (a.type == PA_PARSED_ADDRESS_TCP4 ||
+             a.type == PA_PARSED_ADDRESS_TCP6 ||
+             a.type == PA_PARSED_ADDRESS_TCP_AUTO)) {
+
+            const char *address;
+            char *s;
+
+            if (pa_is_ip_address(a.path_or_host))
+                address = a.path_or_host;
+            else
+                address = "@ADDRESS@";
+
+            if (a.port <= 0)
+                a.port = 4714;
+
+            s = pa_sprintf_malloc("http://%s:%u/listen/source/%s", address, a.port, name);
+
+            pa_xfree(a.path_or_host);
+            return s;
+        }
+
+        pa_xfree(a.path_or_host);
+    }
+
+    return pa_sprintf_malloc("http://@ADDRESS@:4714/listen/source/%s", name);
 }
 
 static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessage *m, void *userdata) {
@@ -431,8 +474,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
 
             pa_assert_se(r = dbus_message_new_method_return(m));
 
-            array[0] = pa_sprintf_malloc("http://@ADDRESS@:4714/listen/source/%s",
-                                         sink ? sink->monitor_source->name : source->name);
+            array[0] = compute_url(u, sink ? sink->monitor_source->name : source->name);
 
             pa_assert_se(dbus_message_append_args(
                                  r,
@@ -487,6 +529,7 @@ int pa__init(pa_module *m) {
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
+    u->http = pa_http_protocol_get(u->core);
 
     if ((t = pa_modargs_get_value(ma, "display_name", NULL)))
         u->display_name = pa_utf8_filter(t);
@@ -564,6 +607,9 @@ void pa__done(pa_module*m) {
     }
 
     pa_xfree(u->display_name);
+
+    if (u->http)
+        pa_http_protocol_unref(u->http);
 
     pa_xfree(u);
 }
