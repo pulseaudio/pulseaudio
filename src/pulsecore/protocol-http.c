@@ -97,6 +97,8 @@ struct pa_http_protocol {
 
     pa_core *core;
     pa_idxset *connections;
+
+    pa_strlist *servers;
 };
 
 enum {
@@ -698,7 +700,7 @@ static pa_http_protocol* http_protocol_new(pa_core *c) {
 
     pa_assert(c);
 
-    p = pa_xnew(pa_http_protocol, 1);
+    p = pa_xnew0(pa_http_protocol, 1);
     PA_REFCNT_INIT(p);
     p->core = c;
     p->connections = pa_idxset_new(NULL, NULL);
@@ -740,7 +742,32 @@ void pa_http_protocol_unref(pa_http_protocol *p) {
 
     pa_idxset_free(p->connections, NULL, NULL);
 
+    pa_strlist_free(p->servers);
+
     pa_assert_se(pa_shared_remove(p->core, "http-protocol") >= 0);
 
     pa_xfree(p);
+}
+
+void pa_http_protocol_add_server_string(pa_http_protocol *p, const char *name) {
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) >= 1);
+    pa_assert(name);
+
+    p->servers = pa_strlist_prepend(p->servers, name);
+}
+
+void pa_http_protocol_remove_server_string(pa_http_protocol *p, const char *name) {
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) >= 1);
+    pa_assert(name);
+
+    p->servers = pa_strlist_remove(p->servers, name);
+}
+
+pa_strlist *pa_http_protocol_servers(pa_http_protocol *p) {
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) >= 1);
+
+    return p->servers;
 }
