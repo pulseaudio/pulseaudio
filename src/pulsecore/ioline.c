@@ -57,6 +57,9 @@ struct pa_ioline {
     pa_ioline_cb_t callback;
     void *userdata;
 
+    pa_ioline_drain_cb_t drain_callback;
+    void *drain_userdata;
+
     pa_bool_t dead:1;
     pa_bool_t defer_close:1;
 };
@@ -80,6 +83,9 @@ pa_ioline* pa_ioline_new(pa_iochannel *io) {
 
     l->callback = NULL;
     l->userdata = NULL;
+
+    l->drain_callback = NULL;
+    l->drain_userdata = NULL;
 
     l->mainloop = pa_iochannel_get_mainloop_api(io);
 
@@ -200,6 +206,17 @@ void pa_ioline_set_callback(pa_ioline*l, pa_ioline_cb_t callback, void *userdata
 
     l->callback = callback;
     l->userdata = userdata;
+}
+
+void pa_ioline_set_drain_callback(pa_ioline*l, pa_ioline_drain_cb_t callback, void *userdata) {
+    pa_assert(l);
+    pa_assert(PA_REFCNT_VALUE(l) >= 1);
+
+    if (l->dead)
+        return;
+
+    l->drain_callback = callback;
+    l->drain_userdata = userdata;
 }
 
 static void failure(pa_ioline *l, pa_bool_t process_leftover) {
@@ -336,7 +353,7 @@ static int do_write(pa_ioline *l) {
         if ((r = pa_iochannel_write(l->io, l->wbuf+l->wbuf_index, l->wbuf_valid_length)) <= 0) {
 
             if (r < 0 && errno == EAGAIN)
-                return 0;
+                break;
 
             if (r < 0 && errno != EPIPE)
                 pa_log("write(): %s", pa_cstrerror(errno));
@@ -353,6 +370,9 @@ static int do_write(pa_ioline *l) {
         if (l->wbuf_valid_length == 0)
             l->wbuf_index = 0;
     }
+
+    if (l->wbuf_valid_length <= 0 && l->drain_callback)
+        l->drain_callback(l, l->drain_userdata);
 
     return 0;
 }

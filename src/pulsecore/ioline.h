@@ -32,6 +32,7 @@
 typedef struct pa_ioline pa_ioline;
 
 typedef void (*pa_ioline_cb_t)(pa_ioline*io, const char *s, void *userdata);
+typedef void (*pa_ioline_drain_cb_t)(pa_ioline *io, void *userdata);
 
 pa_ioline* pa_ioline_new(pa_iochannel *io);
 void pa_ioline_unref(pa_ioline *l);
@@ -46,6 +47,9 @@ void pa_ioline_printf(pa_ioline *s, const char *format, ...) PA_GCC_PRINTF_ATTR(
 
 /* Set the callback function that is called for every recieved line */
 void pa_ioline_set_callback(pa_ioline*io, pa_ioline_cb_t callback, void *userdata);
+
+/* Set the callback function that is called when everything has been written */
+void pa_ioline_set_drain_callback(pa_ioline*io, pa_ioline_drain_cb_t callback, void *userdata);
 
 /* Make sure to close the ioline object as soon as the send buffer is emptied */
 void pa_ioline_defer_close(pa_ioline *io);
