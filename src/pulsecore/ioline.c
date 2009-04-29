@@ -283,7 +283,7 @@ static int do_read(pa_ioline *l) {
     pa_assert(l);
     pa_assert(PA_REFCNT_VALUE(l) >= 1);
 
-    while (!l->dead && pa_iochannel_is_readable(l->io)) {
+    while (l->io && !l->dead && pa_iochannel_is_readable(l->io)) {
         ssize_t r;
         size_t len;
 
@@ -348,7 +348,7 @@ static int do_write(pa_ioline *l) {
     pa_assert(l);
     pa_assert(PA_REFCNT_VALUE(l) >= 1);
 
-    while (!l->dead && pa_iochannel_is_writable(l->io) && l->wbuf_valid_length) {
+    while (l->io && !l->dead && pa_iochannel_is_writable(l->io) && l->wbuf_valid_length > 0) {
 
         if ((r = pa_iochannel_write(l->io, l->wbuf+l->wbuf_index, l->wbuf_valid_length)) <= 0) {
 
@@ -442,4 +442,26 @@ void pa_ioline_printf(pa_ioline *l, const char *format, ...) {
 
     pa_ioline_puts(l, t);
     pa_xfree(t);
+}
+
+pa_iochannel* pa_ioline_detach_iochannel(pa_ioline *l) {
+    pa_iochannel *r;
+
+    pa_assert(l);
+
+    if (!l->io)
+        return NULL;
+
+    r = l->io;
+    l->io = NULL;
+
+    pa_iochannel_set_callback(r, NULL, NULL);
+
+    return r;
+}
+
+pa_bool_t pa_ioline_is_drained(pa_ioline *l) {
+    pa_assert(l);
+
+    return l->wbuf_valid_length <= 0;
 }

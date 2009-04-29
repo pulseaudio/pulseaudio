@@ -54,4 +54,11 @@ void pa_ioline_set_drain_callback(pa_ioline*io, pa_ioline_drain_cb_t callback, v
 /* Make sure to close the ioline object as soon as the send buffer is emptied */
 void pa_ioline_defer_close(pa_ioline *io);
 
+/* Returns TRUE when everything was written */
+pa_bool_t pa_ioline_is_drained(pa_ioline *io);
+
+/* Detaches from the iochannel and returns it. Data that has already
+ * been read will not be available in the detached iochannel */
+pa_iochannel* pa_ioline_detach_iochannel(pa_ioline *l);
+
 #endif
