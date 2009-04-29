@@ -1060,6 +1060,11 @@ modlibexec_LTLIBRARIES += \
 		module-hal-detect.la
 endif
 
+if HAVE_DBUS
+modlibexec_LTLIBRARIES += \
+		module-rygel-media-server.la
+endif
+
 if HAVE_BLUEZ
 modlibexec_LTLIBRARIES += \
 		libbluetooth-util.la \
@@ -1115,6 +1120,7 @@ SYMDEF_FILES = \
 		modules/module-mmkbd-evdev-symdef.h \
 		modules/module-http-protocol-tcp-symdef.h \
 		modules/module-http-protocol-unix-symdef.h \
+		modules/module-rygel-media-server-symdef.h \
 		modules/x11/module-x11-bell-symdef.h \
 		modules/x11/module-x11-publish-symdef.h \
 		modules/x11/module-x11-xsmp-symdef.h \
@@ -1567,6 +1573,11 @@ module_raop_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_raop_discover_la_LIBADD = $(AM_LIBADD) $(AVAHI_LIBS) libavahi-wrap.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_raop_discover_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
 
+# Rygel
+module_rygel_media_server_la_SOURCES = modules/module-rygel-media-server.c
+module_rygel_media_server_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_rygel_media_server_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la libprotocol-http.la
+module_rygel_media_server_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 ###################################
 #        Some minor stuff         #
