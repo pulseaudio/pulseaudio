@@ -35,6 +35,7 @@
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
 #include <pulse/i18n.h>
+#include <pulse/utf8.h>
 
 #include <pulsecore/sink.h>
 #include <pulsecore/source.h>
@@ -53,6 +54,8 @@ PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("UPnP MediaServer Plugin for Rygel");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_USAGE(
+        "display_name=<UPnP Media Server name>");
 
 /* This implements http://live.gnome.org/action/edit/Rygel/MediaProviderSpec */
 
@@ -141,6 +144,7 @@ PA_MODULE_LOAD_ONCE(TRUE);
 
 
 static const char* const valid_modargs[] = {
+    "display_name",
     NULL
 };
 
@@ -150,6 +154,8 @@ struct userdata {
 
     pa_dbus_connection *bus;
     pa_bool_t got_name:1;
+
+    char *display_name;
 
     pa_hook_slot *source_new_slot, *source_unlink_slot;
 };
@@ -260,7 +266,7 @@ static DBusHandlerResult root_handler(DBusConnection *c, DBusMessage *m, void *u
 
     } else if (message_is_property_get(m, "org.Rygel.MediaObject1", "display-name")) {
         pa_assert_se(r = dbus_message_new_method_return(m));
-        append_variant_string(r, "PulseAudio");
+        append_variant_string(r, u->display_name);
     } else if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
         const char *xml = ROOT_INTROSPECT_XML;
 
@@ -462,6 +468,8 @@ int pa__init(pa_module *m) {
     struct userdata *u;
     pa_modargs *ma = NULL;
     DBusError error;
+    const char *t;
+
     static const DBusObjectPathVTable vtable_root = {
         .message_function = root_handler,
     };
@@ -479,6 +487,16 @@ int pa__init(pa_module *m) {
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
+
+    if ((t = pa_modargs_get_value(ma, "display_name", NULL)))
+        u->display_name = pa_utf8_filter(t);
+    else {
+        char *h;
+
+        h = pa_get_host_name_malloc();
+        u->display_name = pa_sprintf_malloc(_("Audio on %s"), h);
+        pa_xfree(h);
+    }
 
     u->source_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE, (pa_hook_cb_t) source_new_cb, u);
     u->source_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) source_unlink_cb, u);
@@ -544,6 +562,8 @@ void pa__done(pa_module*m) {
 
         pa_dbus_connection_unref(u->bus);
     }
+
+    pa_xfree(u->display_name);
 
     pa_xfree(u);
 }
