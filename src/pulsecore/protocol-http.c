@@ -40,6 +40,7 @@
 #include <pulsecore/cli-text.h>
 #include <pulsecore/shared.h>
 #include <pulsecore/core-error.h>
+#include <pulsecore/mime-type.h>
 
 #include "protocol-http.h"
 
@@ -256,156 +257,6 @@ static void io_callback(pa_iochannel*io, void *userdata) {
     do_work(c);
 }
 
-static pa_bool_t is_mime_sample_spec(const pa_sample_spec *ss, const pa_channel_map *cm) {
-
-    pa_assert(pa_channel_map_compatible(cm, ss));
-
-    switch (ss->format) {
-        case PA_SAMPLE_S16BE:
-        case PA_SAMPLE_S24BE:
-        case PA_SAMPLE_U8:
-
-            if (ss->rate != 8000 &&
-                ss->rate != 11025 &&
-                ss->rate != 16000 &&
-                ss->rate != 22050 &&
-                ss->rate != 24000 &&
-                ss->rate != 32000 &&
-                ss->rate != 44100 &&
-                ss->rate != 48000)
-                return FALSE;
-
-            if (ss->channels != 1 &&
-                ss->channels != 2)
-                return FALSE;
-
-            if ((cm->channels == 1 && cm->map[0] != PA_CHANNEL_POSITION_MONO) ||
-                (cm->channels == 2 && (cm->map[0] != PA_CHANNEL_POSITION_LEFT || cm->map[1] != PA_CHANNEL_POSITION_RIGHT)))
-                return FALSE;
-
-            return TRUE;
-
-        case PA_SAMPLE_ULAW:
-
-            if (ss->rate != 8000)
-                return FALSE;
-
-            if (ss->channels != 1)
-                return FALSE;
-
-            if (cm->map[0] != PA_CHANNEL_POSITION_MONO)
-                return FALSE;
-
-            return TRUE;
-
-        default:
-            return FALSE;
-    }
-}
-
-static void mimefy_sample_spec(pa_sample_spec *ss, pa_channel_map *cm) {
-
-    pa_assert(pa_channel_map_compatible(cm, ss));
-
-    /* Turns the sample type passed in into the next 'better' one that
-     * can be encoded for HTTP. If there is no 'better' one we pick
-     * the 'best' one that is 'worse'. */
-
-    if (ss->channels > 2)
-        ss->channels = 2;
-
-    if (ss->rate > 44100)
-        ss->rate = 48000;
-    else if (ss->rate > 32000)
-        ss->rate = 44100;
-    else if (ss->rate > 24000)
-        ss->rate = 32000;
-    else if (ss->rate > 22050)
-        ss->rate = 24000;
-    else if (ss->rate > 16000)
-        ss->rate = 22050;
-    else if (ss->rate > 11025)
-        ss->rate = 16000;
-    else if (ss->rate > 8000)
-        ss->rate = 11025;
-    else
-        ss->rate = 8000;
-
-    switch (ss->format) {
-        case PA_SAMPLE_S24BE:
-        case PA_SAMPLE_S24LE:
-        case PA_SAMPLE_S24_32LE:
-        case PA_SAMPLE_S24_32BE:
-        case PA_SAMPLE_S32LE:
-        case PA_SAMPLE_S32BE:
-        case PA_SAMPLE_FLOAT32LE:
-        case PA_SAMPLE_FLOAT32BE:
-            ss->format = PA_SAMPLE_S24BE;
-            break;
-
-        case PA_SAMPLE_S16BE:
-        case PA_SAMPLE_S16LE:
-            ss->format = PA_SAMPLE_S16BE;
-            break;
-
-        case PA_SAMPLE_ULAW:
-        case PA_SAMPLE_ALAW:
-
-            if (ss->rate == 8000 && ss->channels == 1)
-                ss->format = PA_SAMPLE_ULAW;
-            else
-                ss->format = PA_SAMPLE_S16BE;
-            break;
-
-        case PA_SAMPLE_U8:
-            ss->format = PA_SAMPLE_U8;
-            break;
-
-        case PA_SAMPLE_MAX:
-        case PA_SAMPLE_INVALID:
-            pa_assert_not_reached();
-    }
-
-    pa_channel_map_init_auto(cm, ss->channels, PA_CHANNEL_MAP_DEFAULT);
-
-    pa_assert(is_mime_sample_spec(ss, cm));
-}
-
-static char *sample_spec_to_mime_type(const pa_sample_spec *ss, const pa_channel_map *cm) {
-    pa_assert(pa_channel_map_compatible(cm, ss));
-
-    if (!is_mime_sample_spec(ss, cm))
-        return NULL;
-
-    switch (ss->format) {
-
-        case PA_SAMPLE_S16BE:
-        case PA_SAMPLE_S24BE:
-        case PA_SAMPLE_U8:
-            return pa_sprintf_malloc("audio/%s; rate=%u; channels=%u",
-                                     ss->format == PA_SAMPLE_S16BE ? "L16" :
-                                     (ss->format == PA_SAMPLE_S24BE ? "L24" : "L8"),
-                                     ss->rate, ss->channels);
-
-        case PA_SAMPLE_ULAW:
-            return pa_xstrdup("audio/basic");
-
-        default:
-            pa_assert_not_reached();
-    }
-
-    pa_assert(pa_sample_spec_valid(ss));
-}
-
-static char *mimefy_and_stringify_sample_spec(const pa_sample_spec *_ss, const pa_channel_map *_cm) {
-    pa_sample_spec ss = *_ss;
-    pa_channel_map cm = *_cm;
-
-    mimefy_sample_spec(&ss, &cm);
-
-    return sample_spec_to_mime_type(&ss, &cm);
-}
-
 static char *escape_html(const char *t) {
     pa_strbuf *sb;
     const char *p, *e;
@@ -587,7 +438,7 @@ static void handle_listen(struct connection *c) {
         char *t, *m;
 
         t = escape_html(pa_strna(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
-        m = mimefy_and_stringify_sample_spec(&sink->sample_spec, &sink->channel_map);
+        m = pa_sample_spec_to_mime_type_mimefy(&sink->sample_spec, &sink->channel_map);
 
         pa_ioline_printf(c->line,
                          "<a href=\"" URL_LISTEN_SOURCE "%s\" title=\"%s\">%s</a><br/>\n",
@@ -609,7 +460,7 @@ static void handle_listen(struct connection *c) {
             continue;
 
         t = escape_html(pa_strna(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
-        m = mimefy_and_stringify_sample_spec(&source->sample_spec, &source->channel_map);
+        m = pa_sample_spec_to_mime_type_mimefy(&source->sample_spec, &source->channel_map);
 
         pa_ioline_printf(c->line,
                          "<a href=\"" URL_LISTEN_SOURCE "%s\" title=\"%s\">%s</a><br/>\n",
@@ -666,7 +517,7 @@ static void handle_listen_prefix(struct connection *c, const char *source_name) 
     ss = source->sample_spec;
     cm = source->channel_map;
 
-    mimefy_sample_spec(&ss, &cm);
+    pa_sample_spec_mimefy(&ss, &cm);
 
     pa_source_output_new_data_init(&data);
     data.driver = __FILE__;
@@ -706,7 +557,7 @@ static void handle_listen_prefix(struct connection *c, const char *source_name) 
 
     pa_source_output_put(c->source_output);
 
-    t = sample_spec_to_mime_type(&ss, &cm);
+    t = pa_sample_spec_to_mime_type(&ss, &cm);
     http_response(c, 200, "OK", t);
     pa_xfree(t);
 
