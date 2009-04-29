@@ -300,8 +300,6 @@ static char *compute_url(struct userdata *u, const char *name) {
     for (i = pa_http_protocol_servers(u->http); i; i = pa_strlist_next(i)) {
         pa_parsed_address a;
 
-        PA_DEBUG_TRAP;
-
         if (pa_parse_address(pa_strlist_data(i), &a) >= 0 &&
             (a.type == PA_PARSED_ADDRESS_TCP4 ||
              a.type == PA_PARSED_ADDRESS_TCP6 ||
