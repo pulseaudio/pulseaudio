@@ -102,10 +102,10 @@ struct userdata {
     pa_native_protocol *native;
 };
 
-static void get_service_data(struct service *s, pa_sample_spec *ret_ss, pa_channel_map *ret_map, const char **ret_name, const char **ret_description, enum service_subtype *ret_subtype) {
+static void get_service_data(struct service *s, pa_sample_spec *ret_ss, pa_channel_map *ret_map, const char **ret_name, pa_proplist **ret_proplist, enum service_subtype *ret_subtype) {
     pa_assert(s);
     pa_assert(ret_ss);
-    pa_assert(ret_description);
+    pa_assert(ret_proplist);
     pa_assert(ret_subtype);
 
     if (pa_sink_isinstance(s->device)) {
@@ -114,7 +114,7 @@ static void get_service_data(struct service *s, pa_sample_spec *ret_ss, pa_chann
         *ret_ss = sink->sample_spec;
         *ret_map = sink->channel_map;
         *ret_name = sink->name;
-        *ret_description = pa_strnull(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION));
+        *ret_proplist = sink->proplist;
         *ret_subtype = sink->flags & PA_SINK_HARDWARE ? SUBTYPE_HARDWARE : SUBTYPE_VIRTUAL;
 
     } else if (pa_source_isinstance(s->device)) {
@@ -123,7 +123,7 @@ static void get_service_data(struct service *s, pa_sample_spec *ret_ss, pa_chann
         *ret_ss = source->sample_spec;
         *ret_map = source->channel_map;
         *ret_name = source->name;
-        *ret_description = pa_strnull(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION));
+        *ret_proplist = source->proplist;
         *ret_subtype = source->monitor_of ? SUBTYPE_MONITOR : (source->flags & PA_SOURCE_HARDWARE ? SUBTYPE_HARDWARE : SUBTYPE_VIRTUAL);
 
     } else
@@ -132,11 +132,24 @@ static void get_service_data(struct service *s, pa_sample_spec *ret_ss, pa_chann
 
 static AvahiStringList* txt_record_server_data(pa_core *c, AvahiStringList *l) {
     char s[128];
+    char *t;
 
     pa_assert(c);
 
     l = avahi_string_list_add_pair(l, "server-version", PACKAGE_NAME" "PACKAGE_VERSION);
-    l = avahi_string_list_add_pair(l, "user-name", pa_get_user_name(s, sizeof(s)));
+
+    t = pa_get_user_name_malloc();
+    l = avahi_string_list_add_pair(l, "user-name", t);
+    pa_xfree(t);
+
+    t = pa_machine_id();
+    l = avahi_string_list_add_pair(l, "machine-id", t);
+    pa_xfree(t);
+
+    t = pa_uname_string();
+    l = avahi_string_list_add_pair(l, "uname", t);
+    pa_xfree(t);
+
     l = avahi_string_list_add_pair(l, "fqdn", pa_get_fqdn(s, sizeof(s)));
     l = avahi_string_list_add_printf(l, "cookie=0x%08x", c->cookie);
 
@@ -212,7 +225,8 @@ static uint16_t compute_port(struct userdata *u) {
 static int publish_service(struct service *s) {
     int r = -1;
     AvahiStringList *txt = NULL;
-    const char *description = NULL, *name = NULL;
+    const char *name = NULL, *t;
+    pa_proplist *proplist = NULL;
     pa_sample_spec ss;
     pa_channel_map map;
     char cm[PA_CHANNEL_MAP_SNPRINT_MAX];
@@ -239,13 +253,26 @@ static int publish_service(struct service *s) {
 
     txt = txt_record_server_data(s->userdata->core, txt);
 
-    get_service_data(s, &ss, &map, &name, &description, &subtype);
+    get_service_data(s, &ss, &map, &name, &proplist, &subtype);
     txt = avahi_string_list_add_pair(txt, "device", name);
     txt = avahi_string_list_add_printf(txt, "rate=%u", ss.rate);
     txt = avahi_string_list_add_printf(txt, "channels=%u", ss.channels);
     txt = avahi_string_list_add_pair(txt, "format", pa_sample_format_to_string(ss.format));
     txt = avahi_string_list_add_pair(txt, "channel_map", pa_channel_map_snprint(cm, sizeof(cm), &map));
     txt = avahi_string_list_add_pair(txt, "subtype", subtype_text[subtype]);
+
+    if ((t = pa_proplist_gets(proplist, PA_PROP_DEVICE_DESCRIPTION)))
+        txt = avahi_string_list_add_pair(txt, "description", t);
+    if ((t = pa_proplist_gets(proplist, PA_PROP_DEVICE_ICON_NAME)))
+        txt = avahi_string_list_add_pair(txt, "icon-name", t);
+    if ((t = pa_proplist_gets(proplist, PA_PROP_DEVICE_VENDOR_NAME)))
+        txt = avahi_string_list_add_pair(txt, "vendor-name", t);
+    if ((t = pa_proplist_gets(proplist, PA_PROP_DEVICE_PRODUCT_NAME)))
+        txt = avahi_string_list_add_pair(txt, "product-name", t);
+    if ((t = pa_proplist_gets(proplist, PA_PROP_DEVICE_CLASS)))
+        txt = avahi_string_list_add_pair(txt, "class", t);
+    if ((t = pa_proplist_gets(proplist, PA_PROP_DEVICE_FORM_FACTOR)))
+        txt = avahi_string_list_add_pair(txt, "form-factor", t);
 
     if (avahi_entry_group_add_service_strlst(
                 s->entry_group,
