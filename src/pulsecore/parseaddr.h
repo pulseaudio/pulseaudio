@@ -1,5 +1,5 @@
-#ifndef fooparseaddrhfoo
-#define fooparseaddrhfoo
+#ifndef foopulsecoreparseaddrhfoo
+#define foopulsecoreparseaddrhfoo
 
 /***
   This file is part of PulseAudio.
@@ -23,6 +23,8 @@
 ***/
 
 #include <inttypes.h>
+
+#include <pulsecore/macro.h>
 
 typedef enum pa_parsed_address_type {
     PA_PARSED_ADDRESS_UNIX,
