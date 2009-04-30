@@ -339,7 +339,7 @@ finish:
 
 static struct service *get_service(struct userdata *u, pa_object *device) {
     struct service *s;
-    char hn[64], un[64];
+    char *hn, *un;
     const char *n;
 
     pa_assert(u);
@@ -361,11 +361,13 @@ static struct service *get_service(struct userdata *u, pa_object *device) {
             n = PA_SOURCE(device)->name;
     }
 
-    s->service_name = pa_truncate_utf8(pa_sprintf_malloc("%s@%s: %s",
-                                                         pa_get_user_name(un, sizeof(un)),
-                                                         pa_get_host_name(hn, sizeof(hn)),
-                                                         n),
-                                       AVAHI_LABEL_MAX-1);
+    hn = pa_get_host_name_malloc();
+    un = pa_get_user_name_malloc();
+
+    s->service_name = pa_truncate_utf8(pa_sprintf_malloc("%s@%s: %s", un, hn, n), AVAHI_LABEL_MAX-1);
+
+    pa_xfree(un);
+    pa_xfree(hn);
 
     pa_hashmap_put(u->services, s->device, s);
 
@@ -605,7 +607,7 @@ int pa__init(pa_module*m) {
 
     struct userdata *u;
     pa_modargs *ma = NULL;
-    char hn[256], un[256];
+    char *hn, *un;
     int error;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -631,7 +633,11 @@ int pa__init(pa_module*m) {
 
     u->main_entry_group = NULL;
 
-    u->service_name = pa_truncate_utf8(pa_sprintf_malloc("%s@%s", pa_get_user_name(un, sizeof(un)), pa_get_host_name(hn, sizeof(hn))), AVAHI_LABEL_MAX);
+    un = pa_get_user_name_malloc();
+    hn = pa_get_host_name_malloc();
+    u->service_name = pa_truncate_utf8(pa_sprintf_malloc("%s@%s", un, hn), AVAHI_LABEL_MAX-1);
+    pa_xfree(un);
+    pa_xfree(hn);
 
     if (!(u->client = avahi_client_new(u->avahi_poll, AVAHI_CLIENT_NO_FAIL, client_callback, u, &error))) {
         pa_log("avahi_client_new() failed: %s", avahi_strerror(error));
