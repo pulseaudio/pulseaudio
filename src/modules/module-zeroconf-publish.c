@@ -37,6 +37,7 @@
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
 
+#include <pulsecore/parseaddr.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/source.h>
 #include <pulsecore/native-common.h>
@@ -47,6 +48,7 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/avahi-wrap.h>
 #include <pulsecore/endianmacros.h>
+#include <pulsecore/protocol-native.h>
 
 #include "module-zeroconf-publish-symdef.h"
 
@@ -54,7 +56,6 @@ PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("mDNS/DNS-SD Service Publisher");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
-PA_MODULE_USAGE("port=<IP port number>");
 
 #define SERVICE_TYPE_SINK "_pulse-sink._tcp"
 #define SERVICE_TYPE_SOURCE "_pulse-source._tcp"
@@ -67,7 +68,6 @@ PA_MODULE_USAGE("port=<IP port number>");
 #define SERVICE_SUBTYPE_SOURCE_NON_MONITOR "_non-monitor._sub."SERVICE_TYPE_SOURCE
 
 static const char* const valid_modargs[] = {
-    "port",
     NULL
 };
 
@@ -88,6 +88,7 @@ struct service {
 struct userdata {
     pa_core *core;
     pa_module *module;
+
     AvahiPoll *avahi_poll;
     AvahiClient *client;
 
@@ -96,9 +97,9 @@ struct userdata {
 
     AvahiEntryGroup *main_entry_group;
 
-    uint16_t port;
-
     pa_hook_slot *sink_new_slot, *source_new_slot, *sink_unlink_slot, *source_unlink_slot, *sink_changed_slot, *source_changed_slot;
+
+    pa_native_protocol *native;
 };
 
 static void get_service_data(struct service *s, pa_sample_spec *ret_ss, pa_channel_map *ret_map, const char **ret_name, const char **ret_description, enum service_subtype *ret_subtype) {
@@ -184,6 +185,30 @@ static void service_entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupStat
 
 static void service_free(struct service *s);
 
+static uint16_t compute_port(struct userdata *u) {
+    pa_strlist *i;
+
+    pa_assert(u);
+
+    for (i = pa_native_protocol_servers(u->native); i; i = pa_strlist_next(i)) {
+        pa_parsed_address a;
+
+        if (pa_parse_address(pa_strlist_data(i), &a) >= 0 &&
+            (a.type == PA_PARSED_ADDRESS_TCP4 ||
+             a.type == PA_PARSED_ADDRESS_TCP6 ||
+             a.type == PA_PARSED_ADDRESS_TCP_AUTO) &&
+            a.port > 0) {
+
+            pa_xfree(a.path_or_host);
+            return a.port;
+        }
+
+        pa_xfree(a.path_or_host);
+    }
+
+    return PA_NATIVE_DEFAULT_PORT;
+}
+
 static int publish_service(struct service *s) {
     int r = -1;
     AvahiStringList *txt = NULL;
@@ -230,7 +255,7 @@ static int publish_service(struct service *s) {
                 pa_sink_isinstance(s->device) ? SERVICE_TYPE_SINK : SERVICE_TYPE_SOURCE,
                 NULL,
                 NULL,
-                s->userdata->port,
+                compute_port(s->userdata),
                 txt) < 0) {
 
         pa_log("avahi_entry_group_add_service_strlst(): %s", avahi_strerror(avahi_client_errno(s->userdata->client)));
@@ -430,7 +455,7 @@ static int publish_main_service(struct userdata *u) {
                 SERVICE_TYPE_SERVER,
                 NULL,
                 NULL,
-                u->port,
+                compute_port(u),
                 txt) < 0) {
 
         pa_log("avahi_entry_group_add_service_strlst() failed: %s", avahi_strerror(avahi_client_errno(u->client)));
@@ -552,7 +577,6 @@ static void client_callback(AvahiClient *c, AvahiClientState state, void *userda
 int pa__init(pa_module*m) {
 
     struct userdata *u;
-    uint32_t port = PA_NATIVE_DEFAULT_PORT;
     pa_modargs *ma = NULL;
     char hn[256], un[256];
     int error;
@@ -562,15 +586,10 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port <= 0 || port > 0xFFFF) {
-        pa_log("Invalid port specified.");
-        goto fail;
-    }
-
     m->userdata = u = pa_xnew(struct userdata, 1);
     u->core = m->core;
     u->module = m;
-    u->port = (uint16_t) port;
+    u->native = pa_native_protocol_get(u->core);
 
     u->avahi_poll = pa_avahi_poll_new(m->core->mainloop);
 
