@@ -332,7 +332,6 @@ int pa_alsa_set_hw_params(
     int ret = -1;
     snd_pcm_uframes_t _period_size = period_size ? *period_size : 0;
     unsigned int _periods = periods ? *periods : 0;
-    snd_pcm_uframes_t buffer_size;
     unsigned int r = ss->rate;
     unsigned int c = ss->channels;
     pa_sample_format_t f = ss->format;
@@ -388,39 +387,47 @@ int pa_alsa_set_hw_params(
         goto finish;
 
     if (_period_size && tsched_size && _periods) {
+
         /* Adjust the buffer sizes, if we didn't get the rate we were asking for */
         _period_size = (snd_pcm_uframes_t) (((uint64_t) _period_size * r) / ss->rate);
         tsched_size = (snd_pcm_uframes_t) (((uint64_t) tsched_size * r) / ss->rate);
 
         if (_use_tsched) {
-            _period_size = tsched_size;
-            _periods = 1;
+            snd_pcm_uframes_t buffer_size;
 
             pa_assert_se(snd_pcm_hw_params_get_buffer_size_max(hwparams, &buffer_size) == 0);
             pa_log_debug("Maximum hw buffer size is %u ms", (unsigned) buffer_size * 1000 / r);
+
+            _period_size = tsched_size;
+            _periods = 1;
         }
 
-        buffer_size = _periods * _period_size;
+        if (_period_size > 0 && _periods > 0) {
+            snd_pcm_uframes_t buffer_size;
+
+            buffer_size = _periods * _period_size;
+
+            if ((ret = snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &buffer_size)) < 0)
+                pa_log_info("snd_pcm_hw_params_set_buffer_size_near() failed: %s", pa_alsa_strerror(ret));
+        }
 
         if (_periods > 0) {
 
-            /* First we pass 0 as direction to get exactly what we asked
-             * for. That this is necessary is presumably a bug in ALSA */
+            /* First we pass 0 as direction to get exactly what we
+             * asked for. That this is necessary is presumably a bug
+             * in ALSA. All in all this is mostly a hint to ALSA, so
+             * we don't care if this fails. */
 
             dir = 0;
-            if ((ret = snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &_periods, &dir)) < 0) {
+            if (snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &_periods, &dir) < 0) {
                 dir = 1;
-                if ((ret = snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &_periods, &dir)) < 0) {
+                if (snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &_periods, &dir) < 0) {
                     dir = -1;
                     if ((ret = snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &_periods, &dir)) < 0)
-                        goto finish;
+                        pa_log_info("snd_pcm_hw_params_set_periods_near() failed: %s", pa_alsa_strerror(ret));
                 }
             }
         }
-
-        if (_period_size > 0)
-            if ((ret = snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &buffer_size)) < 0)
-                goto finish;
     }
 
     if  ((ret = snd_pcm_hw_params(pcm_handle, hwparams)) < 0)
