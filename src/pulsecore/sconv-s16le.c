@@ -370,7 +370,7 @@ void pa_sconv_s24_32le_to_s16ne(unsigned n, const uint32_t *a, int16_t *b) {
     pa_assert(b);
 
     for (; n > 0; n--) {
-        *b = (int16_t) ((int32_t) (UINT32_FROM(*a) << 8) >> 16);
+        *b = (int16_t) (((int32_t) (UINT32_FROM(*a) << 8)) >> 16);
         a++;
         b++;
     }
@@ -416,8 +416,8 @@ void pa_sconv_s24_32le_to_float32ne(unsigned n, const uint32_t *a, float *b) {
     pa_assert(b);
 
     for (; n > 0; n--) {
-        int32_t s = (int16_t) ((int32_t) (UINT32_FROM(*a) << 8));
-        *b = ((float) s) / 0x7FFFFFFF;
+        int32_t s = (int32_t) (UINT32_FROM(*a) << 8);
+        *b = (float) s / (float) 0x7FFFFFFF;
         a ++;
         b ++;
     }
@@ -428,8 +428,8 @@ void pa_sconv_s24_32le_to_float32re(unsigned n, const uint32_t *a, float *b) {
     pa_assert(b);
 
     for (; n > 0; n--) {
-        int32_t s = (int16_t) ((int32_t) (UINT32_FROM(*a) << 8));
-        float k = ((float) s) / 0x7FFFFFFF;
+        int32_t s = (int32_t) (UINT32_FROM(*a) << 8);
+        float k = (float) s / (float) 0x7FFFFFFF;
         *b = PA_FLOAT32_SWAP(k);
         a ++;
         b ++;
