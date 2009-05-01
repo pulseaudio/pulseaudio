@@ -34,12 +34,6 @@
 
 #include <liboil/liboil.h>
 
-static float swap_float(float a) {
-    uint32_t *b = (uint32_t*) &a;
-    *b = PA_UINT32_SWAP(*b);
-    return a;
-}
-
 static void dump_block(const pa_sample_spec *ss, const pa_memchunk *chunk) {
     void *d;
     unsigned i;
@@ -84,7 +78,7 @@ static void dump_block(const pa_sample_spec *ss, const pa_memchunk *chunk) {
             float *u = d;
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
-                printf("%1.3g ",  ss->format == PA_SAMPLE_FLOAT32NE ? *u : swap_float(*u));
+                printf("%4.3g ", ss->format == PA_SAMPLE_FLOAT32NE ? *u : PA_FLOAT32_SWAP(*u));
                 u++;
             }
 
@@ -179,7 +173,7 @@ static pa_memblock* generate_block(pa_mempool *pool, const pa_sample_spec *ss) {
 
             if (ss->format == PA_SAMPLE_FLOAT32RE)
                 for (i = 0; i < 10; i++)
-                    u[i] = swap_float(u[i]);
+                    u[i] = PA_FLOAT32_SWAP(u[i]);
 
             break;
         }
