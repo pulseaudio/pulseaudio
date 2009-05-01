@@ -1181,6 +1181,8 @@ pa_memchunk* pa_silence_memchunk_get(pa_silence_cache *cache, pa_mempool *pool, 
             case PA_SAMPLE_S32BE:
             case PA_SAMPLE_S24LE:
             case PA_SAMPLE_S24BE:
+            case PA_SAMPLE_S24_32LE:
+            case PA_SAMPLE_S24_32RE:
             case PA_SAMPLE_FLOAT32LE:
             case PA_SAMPLE_FLOAT32BE:
                 cache->blocks[PA_SAMPLE_S16LE] = b = silence_memblock_new(pool, 0);
@@ -1189,6 +1191,8 @@ pa_memchunk* pa_silence_memchunk_get(pa_silence_cache *cache, pa_mempool *pool, 
                 cache->blocks[PA_SAMPLE_S32BE] = pa_memblock_ref(b);
                 cache->blocks[PA_SAMPLE_S24LE] = pa_memblock_ref(b);
                 cache->blocks[PA_SAMPLE_S24BE] = pa_memblock_ref(b);
+                cache->blocks[PA_SAMPLE_S24_32LE] = pa_memblock_ref(b);
+                cache->blocks[PA_SAMPLE_S24_32BE] = pa_memblock_ref(b);
                 cache->blocks[PA_SAMPLE_FLOAT32LE] = pa_memblock_ref(b);
                 cache->blocks[PA_SAMPLE_FLOAT32BE] = pa_memblock_ref(b);
                 break;
