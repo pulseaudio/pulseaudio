@@ -231,13 +231,13 @@ pa_sample_format_t pa_parse_sample_format(const char *format) {
     else if (strcasecmp(format, "s24re") == 0)
         return PA_SAMPLE_S24RE;
     else if (strcasecmp(format, "s24-32le") == 0)
-        return PA_SAMPLE_S24LE;
+        return PA_SAMPLE_S24_32LE;
     else if (strcasecmp(format, "s24-32be") == 0)
-        return PA_SAMPLE_S24BE;
+        return PA_SAMPLE_S24_32BE;
     else if (strcasecmp(format, "s24-32ne") == 0 || strcasecmp(format, "s24-32") == 0)
-        return PA_SAMPLE_S24NE;
+        return PA_SAMPLE_S24_32NE;
     else if (strcasecmp(format, "s24-32re") == 0)
-        return PA_SAMPLE_S24RE;
+        return PA_SAMPLE_S24_32RE;
 
     return -1;
 }
