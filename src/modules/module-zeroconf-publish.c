@@ -695,6 +695,9 @@ void pa__done(pa_module*m) {
     if (u->avahi_poll)
         pa_avahi_poll_free(u->avahi_poll);
 
+    if (u->native)
+        pa_native_protocol_unref(u->native);
+
     pa_xfree(u->service_name);
     pa_xfree(u);
 }
