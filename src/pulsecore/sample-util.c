@@ -831,9 +831,9 @@ void pa_volume_memchunk(
 
             calc_linear_integer_volume(linear, volume);
 
-            e = (uint8_t*) ptr + c->length/3;
+            e = (uint8_t*) ptr + c->length;
 
-            for (channel = 0, d = ptr; d < e; d++) {
+            for (channel = 0, d = ptr; d < e; d += 3) {
                 int64_t t;
 
                 t = (int64_t)((int32_t) (PA_READ24NE(d) << 8));
@@ -854,9 +854,9 @@ void pa_volume_memchunk(
 
             calc_linear_integer_volume(linear, volume);
 
-            e = (uint8_t*) ptr + c->length/3;
+            e = (uint8_t*) ptr + c->length;
 
-            for (channel = 0, d = ptr; d < e; d++) {
+            for (channel = 0, d = ptr; d < e; d += 3) {
                 int64_t t;
 
                 t = (int64_t)((int32_t) (PA_READ24RE(d) << 8));
