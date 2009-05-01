@@ -1770,7 +1770,8 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
 
 fail:
 
-    userdata_free(u);
+    if (u)
+        userdata_free(u);
 
     return NULL;
 }
