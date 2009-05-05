@@ -1230,7 +1230,7 @@ msgstr "Implantation manquante"
 
 #: ../src/pulse/error.c:67
 msgid "Client forked"
-msgstr "Le client s'est détaché"
+msgstr "Le client s'est divisé (Client forked)"
 
 #: ../src/pulse/sample.c:169
 #, c-format
