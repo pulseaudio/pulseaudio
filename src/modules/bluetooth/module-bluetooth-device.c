@@ -1608,9 +1608,9 @@ static int add_sink(struct userdata *u) {
         u->sink->parent.process_msg = sink_process_msg;
 
         pa_sink_set_max_request(u->sink, u->block_size);
-        u->sink->fixed_latency =
-            (u->profile == PROFILE_A2DP ? FIXED_LATENCY_PLAYBACK_A2DP : FIXED_LATENCY_PLAYBACK_HSP) +
-            pa_bytes_to_usec(u->block_size, &u->sample_spec);
+        pa_sink_set_fixed_latency(u->sink,
+                                  (u->profile == PROFILE_A2DP ? FIXED_LATENCY_PLAYBACK_A2DP : FIXED_LATENCY_PLAYBACK_HSP) +
+                                  pa_bytes_to_usec(u->block_size, &u->sample_spec));
     }
 
     if (u->profile == PROFILE_HSP) {
@@ -1659,9 +1659,9 @@ static int add_source(struct userdata *u) {
         u->source->userdata = u;
         u->source->parent.process_msg = source_process_msg;
 
-        u->source->fixed_latency =
-            (/* u->profile == PROFILE_A2DP ? FIXED_LATENCY_RECORD_A2DP : */ FIXED_LATENCY_RECORD_HSP) +
-            pa_bytes_to_usec(u->block_size, &u->sample_spec);
+        pa_source_set_fixed_latency(u->source,
+                                    (/* u->profile == PROFILE_A2DP ? FIXED_LATENCY_RECORD_A2DP : */ FIXED_LATENCY_RECORD_HSP) +
+                                    pa_bytes_to_usec(u->block_size, &u->sample_spec));
     }
 
     if (u->profile == PROFILE_HSP) {

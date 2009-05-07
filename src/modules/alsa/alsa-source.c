@@ -455,7 +455,7 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
             u->read_count += frames * u->frame_size;
 
 #ifdef DEBUG_TIMING
-            pa_log_debug("Read %lu bytes", (unsigned long) (frames * u->frame_size));
+            pa_log_debug("Read %lu bytes (of possible %lu bytes)", (unsigned long) (frames * u->frame_size), (unsigned long) n_bytes);
 #endif
 
             if ((size_t) frames * u->frame_size >= n_bytes)
@@ -1582,7 +1582,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         pa_log_info("Time scheduling watermark is %0.2fms",
                     (double) pa_bytes_to_usec(u->tsched_watermark, &ss) / PA_USEC_PER_MSEC);
     } else
-        u->source->fixed_latency = pa_bytes_to_usec(u->hwbuf_size, &ss);
+        pa_source_set_fixed_latency(u->source, pa_bytes_to_usec(u->hwbuf_size, &ss));
 
     reserve_update(u);
 

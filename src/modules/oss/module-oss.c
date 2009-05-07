@@ -1325,8 +1325,8 @@ int pa__init(pa_module*m) {
 
         pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
         pa_source_set_rtpoll(u->source, u->rtpoll);
+        pa_source_set_fixed_latency(u->source, pa_bytes_to_usec(u->in_hwbuf_size, &u->source->sample_spec));
         u->source->refresh_volume = TRUE;
-        u->source->fixed_latency = pa_bytes_to_usec(u->in_hwbuf_size, &u->source->sample_spec);
 
         if (use_mmap)
             u->in_mmap_memblocks = pa_xnew0(pa_memblock*, u->in_nfrags);
@@ -1387,8 +1387,8 @@ int pa__init(pa_module*m) {
 
         pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
         pa_sink_set_rtpoll(u->sink, u->rtpoll);
+        pa_sink_set_fixed_latency(u->sink, pa_bytes_to_usec(u->out_hwbuf_size, &u->sink->sample_spec));
         u->sink->refresh_volume = TRUE;
-        u->sink->fixed_latency = pa_bytes_to_usec(u->out_hwbuf_size, &u->sink->sample_spec);
 
         pa_sink_set_max_request(u->sink, u->out_hwbuf_size);
 

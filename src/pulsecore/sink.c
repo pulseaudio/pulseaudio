@@ -2050,6 +2050,22 @@ void pa_sink_set_latency_range_within_thread(pa_sink *s, pa_usec_t min_latency, 
     pa_source_set_latency_range_within_thread(s->monitor_source, min_latency, max_latency);
 }
 
+/* Called from main thread, before the sink is put */
+void pa_sink_set_fixed_latency(pa_sink *s, pa_usec_t latency) {
+    pa_sink_assert_ref(s);
+
+    pa_assert(pa_sink_get_state(s) == PA_SINK_INIT);
+
+    if (latency < ABSOLUTE_MIN_LATENCY)
+        latency = ABSOLUTE_MIN_LATENCY;
+
+    if (latency > ABSOLUTE_MAX_LATENCY)
+        latency = ABSOLUTE_MAX_LATENCY;
+
+    s->fixed_latency = latency;
+    pa_source_set_fixed_latency(s->monitor_source, latency);
+}
+
 /* Called from main context */
 size_t pa_sink_get_max_rewind(pa_sink *s) {
     size_t r;
