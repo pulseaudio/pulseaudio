@@ -1280,6 +1280,21 @@ void pa_source_set_latency_range_within_thread(pa_source *s, pa_usec_t min_laten
     pa_source_invalidate_requested_latency(s);
 }
 
+/* Called from main thread, before the source is put */
+void pa_source_set_fixed_latency(pa_source *s, pa_usec_t latency) {
+    pa_source_assert_ref(s);
+
+    pa_assert(pa_source_get_state(s) == PA_SOURCE_INIT);
+
+    if (latency < ABSOLUTE_MIN_LATENCY)
+        latency = ABSOLUTE_MIN_LATENCY;
+
+    if (latency > ABSOLUTE_MAX_LATENCY)
+        latency = ABSOLUTE_MAX_LATENCY;
+
+    s->fixed_latency = latency;
+}
+
 /* Called from main thread */
 size_t pa_source_get_max_rewind(pa_source *s) {
     size_t r;

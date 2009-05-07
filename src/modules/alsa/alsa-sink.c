@@ -473,7 +473,7 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
             u->since_start += frames * u->frame_size;
 
 #ifdef DEBUG_TIMING
-            pa_log_debug("Wrote %lu bytes", (unsigned long) (frames * u->frame_size));
+            pa_log_debug("Wrote %lu bytes (of possible %lu bytes)", (unsigned long) (frames * u->frame_size), (unsigned long) n_bytes);
 #endif
 
             if ((size_t) frames * u->frame_size >= n_bytes)
@@ -1730,7 +1730,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         pa_log_info("Time scheduling watermark is %0.2fms",
                     (double) pa_bytes_to_usec(u->tsched_watermark, &ss) / PA_USEC_PER_MSEC);
     } else
-        u->sink->fixed_latency = pa_bytes_to_usec(u->hwbuf_size, &ss);
+        pa_sink_set_fixed_latency(u->sink, pa_bytes_to_usec(u->hwbuf_size, &ss));
 
     reserve_update(u);
 

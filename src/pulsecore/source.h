@@ -210,6 +210,7 @@ void pa_source_set_rtpoll(pa_source *s, pa_rtpoll *p);
 
 void pa_source_set_max_rewind(pa_source *s, size_t max_rewind);
 void pa_source_set_latency_range(pa_source *s, pa_usec_t min_latency, pa_usec_t max_latency);
+void pa_source_set_fixed_latency(pa_source *s, pa_usec_t latency);
 
 void pa_source_detach(pa_source *s);
 void pa_source_attach(pa_source *s);
