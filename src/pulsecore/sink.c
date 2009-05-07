@@ -932,22 +932,90 @@ void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target) {
 
 /* Called from IO thread context */
 void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
+    pa_mix_info info[MAX_MIX_CHANNELS];
+    size_t length1st = length;
+    unsigned n;
+
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
     pa_assert(length > 0);
     pa_assert(pa_frame_aligned(length, &s->sample_spec));
     pa_assert(result);
 
+    pa_sink_ref(s);
+
     pa_assert(!s->thread_info.rewind_requested);
     pa_assert(s->thread_info.rewind_nbytes == 0);
 
-    /*** This needs optimization ***/
+    pa_assert(length > 0);
 
-    result->index = 0;
-    result->length = length;
-    result->memblock = pa_memblock_new(s->core->mempool, length);
+    n = fill_mix_info(s, &length1st, info, MAX_MIX_CHANNELS);
 
-    pa_sink_render_into_full(s, result);
+    if (n == 0) {
+	pa_silence_memchunk_get(&s->core->silence_cache,
+				s->core->mempool,
+				result,
+				&s->sample_spec,
+				length1st);
+    } else if (n == 1) {
+	pa_cvolume volume;
+
+	*result = info[0].chunk;
+	pa_memblock_ref(result->memblock);
+
+	if (result->length > length)
+	    result->length = length;
+
+	pa_sw_cvolume_multiply(&volume, &s->thread_info.soft_volume, &info[0].volume);
+
+	if (s->thread_info.soft_muted || !pa_cvolume_is_norm(&volume)) {
+            pa_memchunk_make_writable(result, length);
+            if (s->thread_info.soft_muted || pa_cvolume_is_muted(&volume))
+                pa_silence_memchunk(result, &s->sample_spec);
+            else
+                pa_volume_memchunk(result, &s->sample_spec, &volume);
+	}
+    } else {
+        void *ptr;
+
+	result->index = 0;
+	result->memblock = pa_memblock_new(s->core->mempool, length);
+
+	ptr = pa_memblock_acquire(result->memblock);
+
+        result->length = pa_mix(info, n,
+                                (uint8_t*) ptr + result->index, length1st,
+                                &s->sample_spec,
+                                &s->thread_info.soft_volume,
+                                s->thread_info.soft_muted);
+
+        pa_memblock_release(result->memblock);
+    }
+
+    inputs_drop(s, info, n, result);
+
+    if (result->length < length) {
+	pa_memchunk chunk;
+	size_t l, d;
+	pa_memchunk_make_writable(result, length);
+	result->length = length;
+
+	l = length - result->length;
+	d = result->index + result->length;
+	while (l > 0) {
+	    chunk = *result;
+	    chunk.index += d;
+	    chunk.length -= d - result->index;
+
+	    pa_sink_render_into(s, &chunk);
+
+	    d += chunk.length;
+	    l -= chunk.length;
+	}
+	result->length = length;
+    }
+
+    pa_sink_unref(s);
 }
 
 /* Called from main thread */
