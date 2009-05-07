@@ -261,6 +261,9 @@ typedef int pa_bool_t;
 #define PA_DEBUG_TRAP raise(SIGTRAP)
 #endif
 
+#define pa_memzero(x,l) (memset((x), 0, (l)))
+#define pa_zero(x) (pa_memzero(&(x), sizeof(x)))
+
 /* We include this at the very last place */
 #include <pulsecore/log.h>
 
