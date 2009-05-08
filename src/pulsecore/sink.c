@@ -1867,8 +1867,11 @@ pa_usec_t pa_sink_get_requested_latency_within_thread(pa_sink *s) {
     if (result != (pa_usec_t) -1)
         result = PA_CLAMP(result, s->thread_info.min_latency, s->thread_info.max_latency);
 
-    s->thread_info.requested_latency = result;
-    s->thread_info.requested_latency_valid = TRUE;
+    if (PA_SINK_IS_LINKED(s->thread_info.state)) {
+        /* Only cache if properly initialized */
+        s->thread_info.requested_latency = result;
+        s->thread_info.requested_latency_valid = TRUE;
+    }
 
     return result;
 }

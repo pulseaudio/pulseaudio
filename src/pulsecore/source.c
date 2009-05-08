@@ -1122,8 +1122,11 @@ pa_usec_t pa_source_get_requested_latency_within_thread(pa_source *s) {
     if (result != (pa_usec_t) -1)
         result = PA_CLAMP(result, s->thread_info.min_latency, s->thread_info.max_latency);
 
-    s->thread_info.requested_latency = result;
-    s->thread_info.requested_latency_valid = TRUE;
+    if (PA_SOURCE_IS_LINKED(s->thread_info.state)) {
+        /* Only cache this if we are fully set up */
+        s->thread_info.requested_latency = result;
+        s->thread_info.requested_latency_valid = TRUE;
+    }
 
     return result;
 }
