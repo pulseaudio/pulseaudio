@@ -819,7 +819,7 @@ pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa
         usec = i->sink->fixed_latency;
 
     if (usec != (pa_usec_t) -1)
-        usec =  PA_CLAMP(usec, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
+        usec = PA_CLAMP(usec, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
 
     i->thread_info.requested_sink_latency = usec;
     pa_sink_invalidate_requested_latency(i->sink);

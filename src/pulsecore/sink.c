@@ -184,6 +184,12 @@ pa_sink* pa_sink_new(
         return NULL;
     }
 
+    if (!(flags & PA_SINK_HW_VOLUME_CTRL))
+        flags |= PA_SINK_DECIBEL_VOLUME;
+
+    if ((flags & PA_SINK_DECIBEL_VOLUME) && core->flat_volumes)
+        flags |= PA_SINK_FLAT_VOLUME;
+
     s->parent.parent.free = sink_free;
     s->parent.process_msg = pa_sink_process_msg;
 
@@ -263,7 +269,9 @@ pa_sink* pa_sink_new(
     pa_proplist_setf(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Monitor of %s", dn ? dn : s->name);
     pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_CLASS, "monitor");
 
-    s->monitor_source = pa_source_new(core, &source_data, 0);
+    s->monitor_source = pa_source_new(core, &source_data,
+                                      ((flags & PA_SINK_LATENCY) ? PA_SOURCE_LATENCY : 0) |
+                                      ((flags & PA_SINK_DYNAMIC_LATENCY) ? PA_SOURCE_DYNAMIC_LATENCY : 0));
 
     pa_source_new_data_done(&source_data);
 
@@ -349,31 +357,18 @@ void pa_sink_put(pa_sink* s) {
     pa_assert(s->rtpoll);
     pa_assert(s->thread_info.min_latency <= s->thread_info.max_latency);
 
-    if (!(s->flags & PA_SINK_HW_VOLUME_CTRL)) {
-        s->flags |= PA_SINK_DECIBEL_VOLUME;
-        s->base_volume = PA_VOLUME_NORM;
-    }
-
     s->thread_info.soft_volume = s->soft_volume;
     s->thread_info.soft_muted = s->muted;
 
-    if (s->flags & PA_SINK_DECIBEL_VOLUME)
-        s->n_volume_steps = PA_VOLUME_NORM+1;
+    pa_assert((s->flags & PA_SINK_HW_VOLUME_CTRL) || (s->base_volume == PA_VOLUME_NORM && s->flags & PA_SINK_DECIBEL_VOLUME));
+    pa_assert(!(s->flags & PA_SINK_DECIBEL_VOLUME) || s->n_volume_steps == PA_VOLUME_NORM+1);
+    pa_assert(!(s->flags & PA_SINK_DYNAMIC_LATENCY) == (s->fixed_latency != 0));
+    pa_assert(!(s->flags & PA_SINK_LATENCY) == !(s->monitor_source->flags & PA_SOURCE_LATENCY));
+    pa_assert(!(s->flags & PA_SINK_DYNAMIC_LATENCY) == !(s->monitor_source->flags & PA_SOURCE_DYNAMIC_LATENCY));
 
-    if (s->core->flat_volumes)
-        if (s->flags & PA_SINK_DECIBEL_VOLUME)
-            s->flags |= PA_SINK_FLAT_VOLUME;
-
-    if (s->flags & PA_SINK_LATENCY)
-        s->monitor_source->flags |= PA_SOURCE_LATENCY;
-
-    if (s->flags & PA_SINK_DYNAMIC_LATENCY) {
-        s->monitor_source->flags |= PA_SOURCE_DYNAMIC_LATENCY;
-        s->fixed_latency = 0;
-    } else if (s->fixed_latency <= 0)
-        s->fixed_latency = DEFAULT_FIXED_LATENCY;
-
-    s->monitor_source->fixed_latency = s->fixed_latency;
+    pa_assert(s->monitor_source->fixed_latency == s->fixed_latency);
+    pa_assert(s->monitor_source->thread_info.min_latency == s->thread_info.min_latency);
+    pa_assert(s->monitor_source->thread_info.max_latency == s->thread_info.max_latency);
 
     pa_assert_se(sink_set_state(s, PA_SINK_IDLE) == 0);
 
