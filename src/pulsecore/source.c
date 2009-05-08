@@ -174,9 +174,6 @@ pa_source* pa_source_new(
         return NULL;
     }
 
-    if (!(flags & PA_SOURCE_HW_VOLUME_CTRL))
-        flags |= PA_SOURCE_DECIBEL_VOLUME;
-
     s->parent.parent.free = source_free;
     s->parent.process_msg = pa_source_process_msg;
 
@@ -310,6 +307,13 @@ void pa_source_put(pa_source *s) {
     pa_assert(s->asyncmsgq);
     pa_assert(s->rtpoll);
     pa_assert(s->thread_info.min_latency <= s->thread_info.max_latency);
+
+    /* Generally, flags should be initialized via pa_source_new(). As
+     * a special exception we allow volume related flags to be set
+     * between _new() and _put(). */
+
+    if (!(s->flags & PA_SOURCE_HW_VOLUME_CTRL))
+        s->flags |= PA_SOURCE_DECIBEL_VOLUME;
 
     s->thread_info.soft_volume = s->soft_volume;
     s->thread_info.soft_muted = s->muted;

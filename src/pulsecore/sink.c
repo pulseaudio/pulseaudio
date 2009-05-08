@@ -184,12 +184,6 @@ pa_sink* pa_sink_new(
         return NULL;
     }
 
-    if (!(flags & PA_SINK_HW_VOLUME_CTRL))
-        flags |= PA_SINK_DECIBEL_VOLUME;
-
-    if ((flags & PA_SINK_DECIBEL_VOLUME) && core->flat_volumes)
-        flags |= PA_SINK_FLAT_VOLUME;
-
     s->parent.parent.free = sink_free;
     s->parent.process_msg = pa_sink_process_msg;
 
@@ -356,6 +350,16 @@ void pa_sink_put(pa_sink* s) {
     pa_assert(s->asyncmsgq);
     pa_assert(s->rtpoll);
     pa_assert(s->thread_info.min_latency <= s->thread_info.max_latency);
+
+    /* Generally, flags should be initialized via pa_sink_new(). As a
+     * special exception we allow volume related flags to be set
+     * between _new() and _put(). */
+
+    if (!(s->flags & PA_SINK_HW_VOLUME_CTRL))
+        s->flags |= PA_SINK_DECIBEL_VOLUME;
+
+    if ((s->flags & PA_SINK_DECIBEL_VOLUME) && s->core->flat_volumes)
+        s->flags |= PA_SINK_FLAT_VOLUME;
 
     s->thread_info.soft_volume = s->soft_volume;
     s->thread_info.soft_muted = s->muted;
