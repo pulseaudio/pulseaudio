@@ -174,6 +174,8 @@ struct userdata {
 #define FIXED_LATENCY_PLAYBACK_HSP (125*PA_USEC_PER_MSEC)
 #define FIXED_LATENCY_RECORD_HSP (25*PA_USEC_PER_MSEC)
 
+#define MAX_PLAYBACK_CATCH_UP_USEC (100*PA_USEC_PER_MSEC)
+
 #ifdef NOKIA
 #define USE_SCO_OVER_PCM(u) (u->profile == PROFILE_HSP && (u->hsp.sco_sink && u->hsp.sco_source))
 #endif
@@ -1296,15 +1298,37 @@ static void thread_func(void *userdata) {
 
                 if ((!u->source || !PA_SOURCE_IS_LINKED(u->source->thread_info.state)) && do_write <= 0 && writable) {
                     pa_usec_t time_passed;
-                    uint64_t should_have_written;
+                    pa_usec_t audio_sent;
 
                     /* Hmm, there is no input stream we could synchronize
                      * to. So let's do things by time */
 
                     time_passed = pa_rtclock_usec() - u->started_at;
-                    should_have_written = pa_usec_to_bytes(time_passed, &u->sample_spec);
+                    audio_sent = pa_bytes_to_usec(u->write_index, &u->sample_spec);
 
-                    do_write = u->write_index <= should_have_written;
+                    if (audio_sent <= time_passed) {
+                        pa_usec_t audio_to_send = time_passed - audio_sent;
+
+                        /* Never try to catch up for more than 100ms */
+                        if (u->write_index > 0 && audio_to_send > MAX_PLAYBACK_CATCH_UP_USEC) {
+                            pa_usec_t skip_usec;
+                            uint64_t skip_bytes;
+                            pa_memchunk tmp;
+
+                            skip_usec = audio_to_send - MAX_PLAYBACK_CATCH_UP_USEC;
+                            skip_bytes = pa_usec_to_bytes(skip_usec, &u->sample_spec);
+
+                            pa_log_warn("Skipping %llu us (= %llu bytes) in audio stream",
+                                        (unsigned long long) skip_usec,
+                                        (unsigned long long) skip_bytes);
+
+                            pa_sink_render_full(u->sink, skip_bytes, &tmp);
+                            pa_memblock_unref(tmp.memblock);
+                            u->write_index += skip_bytes;
+                        }
+
+                        do_write = 1;
+                    }
                 }
 
                 if (writable && do_write > 0) {
