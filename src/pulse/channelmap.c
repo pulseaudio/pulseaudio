@@ -839,3 +839,16 @@ const char* pa_channel_map_to_pretty_name(const pa_channel_map *map) {
 
     return NULL;
 }
+
+int pa_channel_map_has_position(const pa_channel_map *map, pa_channel_position_t p) {
+    unsigned c;
+
+    pa_return_val_if_fail(pa_channel_map_valid(map), 0);
+    pa_return_val_if_fail(p < PA_CHANNEL_POSITION_MAX, 0);
+
+    for (c = 0; c < map->channels; c++)
+        if (map->map[c] == p)
+            return 1;
+
+    return 0;
+}
