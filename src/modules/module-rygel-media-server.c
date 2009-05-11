@@ -59,7 +59,7 @@ PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_USAGE(
         "display_name=<UPnP Media Server name>");
 
-/* This implements http://live.gnome.org/action/edit/Rygel/MediaProviderSpec */
+/* This implements http://live.gnome.org/action/edit/Rygel/MediaServerSpec */
 
 #define SERVICE_NAME "org.Rygel.MediaServer1.PulseAudio"
 
@@ -71,7 +71,7 @@ PA_MODULE_USAGE(
     DBUS_INTROSPECT_1_0_XML_DOCTYPE_DECL_NODE                           \
     "<node>"                                                            \
     " <!-- If you are looking for documentation make sure to check out" \
-    "      http://live.gnome.org/Rygel/MediaProviderSpec -->"           \
+    "      http://live.gnome.org/Rygel/MediaServerSpec -->"             \
     " <interface name=\"org.Rygel.MediaContainer1\">"                   \
     "  <method name=\"GetContainers\">"                                 \
     "   <arg name=\"children\" type=\"ao\" direction=\"out\"/>"         \
