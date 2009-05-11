@@ -516,13 +516,8 @@ int pa__init(pa_module *m) {
 
     if ((t = pa_modargs_get_value(ma, "display_name", NULL)))
         u->display_name = pa_utf8_filter(t);
-    else {
-        char *h;
-
-        h = pa_get_host_name_malloc();
-        u->display_name = pa_sprintf_malloc(_("Audio on %s"), h);
-        pa_xfree(h);
-    }
+    else
+        u->display_name = pa_xstrdup(_("Audio on @HOSTNAME@"));
 
     u->source_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE, (pa_hook_cb_t) source_new_or_unlink_cb, u);
     u->source_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) source_new_or_unlink_cb, u);
