@@ -415,7 +415,8 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
                                  DBUS_TYPE_INVALID));
 
             pa_xfree(xml);
-        }
+        } else
+            return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
     } else {
         pa_sink *sink = NULL;
