@@ -27,6 +27,7 @@
 #include <pulse/timeval.h>
 
 #include <pulsecore/core.h>
+#include <pulsecore/core-util.h>
 #include <pulsecore/sink-input.h>
 #include <pulsecore/source-output.h>
 #include <pulsecore/modargs.h>
@@ -98,17 +99,26 @@ static void timeout_cb(pa_mainloop_api*a, pa_time_event* e, const struct timeval
 
 static void restart(struct device_info *d) {
     struct timeval tv;
+    const char *s;
+    uint32_t timeout;
     pa_assert(d);
+    pa_assert(d->sink || d->source);
 
     pa_gettimeofday(&tv);
     d->last_use = tv;
-    pa_timeval_add(&tv, d->userdata->timeout*1000000);
+
+    s = pa_proplist_gets(d->sink ? d->sink->proplist : d->source->proplist, "module-suspend-on-idle.timeout");
+    if (!s || pa_atou(s, &timeout) < 0)
+      timeout = d->userdata->timeout;
+
+    pa_timeval_add(&tv, timeout * PA_USEC_PER_SEC);
+
     d->userdata->core->mainloop->time_restart(d->time_event, &tv);
 
     if (d->sink)
-        pa_log_debug("Sink %s becomes idle.", d->sink->name);
+        pa_log_debug("Sink %s becomes idle, timeout in %u seconds.", d->sink->name, timeout);
     if (d->source)
-        pa_log_debug("Source %s becomes idle.", d->source->name);
+        pa_log_debug("Source %s becomes idle, timeout in %u seconds.", d->source->name, timeout);
 }
 
 static void resume(struct device_info *d) {
