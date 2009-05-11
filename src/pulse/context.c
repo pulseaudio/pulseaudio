@@ -811,10 +811,10 @@ static int try_next_connection(pa_context *c) {
 
 #ifdef HAVE_DBUS
             if (c->no_fail && !c->server_specified) {
-                if (!c->system_bus)
-                    track_pulseaudio_on_dbus(c, DBUS_BUS_SYSTEM, &c->system_bus);
                 if (!c->session_bus)
                     track_pulseaudio_on_dbus(c, DBUS_BUS_SESSION, &c->session_bus);
+                if (!c->system_bus)
+                    track_pulseaudio_on_dbus(c, DBUS_BUS_SYSTEM, &c->system_bus);
             } else
 #endif
                 pa_context_fail(c, PA_ERR_CONNECTIONREFUSED);
@@ -892,7 +892,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
 
     /* FIXME: We probably should check if this is actually the NameOwnerChanged we were looking for */
 
-    is_session = bus == pa_dbus_wrap_connection_get(c->session_bus);
+    is_session = c->session_bus && bus == pa_dbus_wrap_connection_get(c->session_bus);
     pa_log_debug("Rock!! PulseAudio is back on %s bus", is_session ? "session" : "system");
 
     if (is_session)
