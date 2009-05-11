@@ -84,6 +84,7 @@ PA_MODULE_USAGE(
     "  </signal>"                                                       \
     " </interface>"                                                     \
     " <interface name=\"org.Rygel.MediaObject1\">"                      \
+    "  <property name=\"icon-name\" type=\"s\" access=\"read\"/>"       \
     "  <property name=\"display-name\" type=\"s\" access=\"read\"/>"    \
     " </interface>"                                                     \
     " <interface name=\"org.freedesktop.DBus.Properties\">"             \
@@ -91,6 +92,10 @@ PA_MODULE_USAGE(
     "   <arg name=\"interface\" direction=\"in\" type=\"s\"/>"          \
     "   <arg name=\"property\" direction=\"in\" type=\"s\"/>"           \
     "   <arg name=\"value\" direction=\"out\" type=\"v\"/>"             \
+    "  </method>"                                                       \
+    "  <method name=\"GetAll\">"                                        \
+    "   <arg name=\"interface\" direction=\"in\" type=\"s\"/>"          \
+    "   <arg name=\"properties\" direction=\"out\" type=\"a{sv}\"/>"    \
     "  </method>"                                                       \
     " </interface>"                                                     \
     " <interface name=\"org.freedesktop.DBus.Introspectable\">"         \
@@ -126,6 +131,10 @@ PA_MODULE_USAGE(
     "   <arg name=\"interface\" direction=\"in\" type=\"s\"/>"          \
     "   <arg name=\"property\" direction=\"in\" type=\"s\"/>"           \
     "   <arg name=\"value\" direction=\"out\" type=\"v\"/>"             \
+    "  </method>"                                                       \
+    "  <method name=\"GetAll\">"                                        \
+    "   <arg name=\"interface\" direction=\"in\" type=\"s\"/>"          \
+    "   <arg name=\"properties\" direction=\"out\" type=\"a{sv}\"/>"    \
     "  </method>"                                                       \
     " </interface>"                                                     \
     " <interface name=\"org.freedesktop.DBus.Introspectable\">"         \
@@ -185,18 +194,8 @@ static pa_hook_result_t source_new_or_unlink_cb(pa_core *c, pa_source *s, struct
     return PA_HOOK_OK;
 }
 
-
-static pa_hook_result_t source_unlink_cb(pa_core *c, pa_source *s, struct userdata *u) {
-    pa_assert(c);
-    pa_source_assert_ref(s);
-
-    send_signal(u, s, "ItemRemoved");
-
-    return PA_HOOK_OK;
-}
-
 static pa_bool_t message_is_property_get(DBusMessage *m, const char *interface, const char *property) {
-    char *i, *p;
+    const char *i, *p;
     DBusError error;
 
     dbus_error_init(&error);
@@ -214,16 +213,50 @@ static pa_bool_t message_is_property_get(DBusMessage *m, const char *interface, 
     return pa_streq(i, interface) && pa_streq(p, property);
 }
 
-static void append_variant_string(DBusMessage *m, const char *s) {
-    DBusMessageIter iter, sub;
+static pa_bool_t message_is_property_get_all(DBusMessage *m, const char *interface) {
+    const char *i;
+    DBusError error;
+
+    dbus_error_init(&error);
+
+    pa_assert(m);
+
+    if (!dbus_message_is_method_call(m, "org.freedesktop.DBus.Properties", "GetAll"))
+        return FALSE;
+
+    if (!dbus_message_get_args(m, &error, DBUS_TYPE_STRING, &i, DBUS_TYPE_INVALID) || dbus_error_is_set(&error)) {
+        dbus_error_free(&error);
+        return FALSE;
+    }
+
+    return pa_streq(i, interface);
+}
+
+static void append_variant_string(DBusMessage *m, DBusMessageIter *iter, const char *s) {
+    DBusMessageIter _iter, sub;
 
     pa_assert(m);
     pa_assert(s);
 
-    dbus_message_iter_init_append(m, &iter);
-    pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_VARIANT, "s", &sub));
+    if (!iter) {
+        dbus_message_iter_init_append(m, &_iter);
+        iter = &_iter;
+    }
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, "s", &sub));
     pa_assert_se(dbus_message_iter_append_basic(&sub, DBUS_TYPE_STRING, &s));
-    pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
+    pa_assert_se(dbus_message_iter_close_container(iter, &sub));
+}
+
+static void append_property_dict_entry(DBusMessage *m, DBusMessageIter *iter, const char *name, const char *value) {
+    DBusMessageIter sub;
+
+    pa_assert(iter);
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_DICT_ENTRY, NULL, &sub));
+    pa_assert_se(dbus_message_iter_append_basic(&sub, DBUS_TYPE_STRING, &name));
+    append_variant_string(m, &sub, value);
+    pa_assert_se(dbus_message_iter_close_container(iter, &sub));
 }
 
 static DBusHandlerResult root_handler(DBusConnection *c, DBusMessage *m, void *userdata) {
@@ -254,7 +287,23 @@ static DBusHandlerResult root_handler(DBusConnection *c, DBusMessage *m, void *u
 
     } else if (message_is_property_get(m, "org.Rygel.MediaObject1", "display-name")) {
         pa_assert_se(r = dbus_message_new_method_return(m));
-        append_variant_string(r, u->display_name);
+        append_variant_string(r, NULL, u->display_name);
+
+    } else if (message_is_property_get(m, "org.Rygel.MediaObject1", "icon-name")) {
+        pa_assert_se(r = dbus_message_new_method_return(m));
+        append_variant_string(r, NULL, "audio-card");
+
+    } else if (message_is_property_get_all(m, "org.Rygel.MediaObject1")) {
+        DBusMessageIter iter, sub;
+
+        pa_assert_se(r = dbus_message_new_method_return(m));
+        dbus_message_iter_init_append(r, &iter);
+
+        pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
+        append_property_dict_entry(r, &sub, "display-name", u->display_name);
+        append_property_dict_entry(r, &sub, "icon-name", "audio-card");
+        pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
+
     } else if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
         const char *xml = ROOT_INTROSPECT_XML;
 
@@ -376,13 +425,27 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
 
         } else if (message_is_property_get(m, "org.Rygel.MediaObject1", "display-name")) {
 
-            if (pa_streq(path, OBJECT_SINKS)) {
-                pa_assert_se(r = dbus_message_new_method_return(m));
-                append_variant_string(r, _("Output Devices"));
-            } else {
-                pa_assert_se(r = dbus_message_new_method_return(m));
-                append_variant_string(r, _("Input Devices"));
-            }
+            pa_assert_se(r = dbus_message_new_method_return(m));
+
+            append_variant_string(r,
+                                  NULL,
+                                  pa_streq(path, OBJECT_SINKS) ?
+                                  _("Output Devices") :
+                                  _("Input Devices"));
+
+        } else if (message_is_property_get_all(m, "org.Rygel.MediaObject1")) {
+            DBusMessageIter iter, sub;
+
+            pa_assert_se(r = dbus_message_new_method_return(m));
+
+            dbus_message_iter_init_append(r, &iter);
+
+            pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
+            append_property_dict_entry(m, &sub, "display-name",
+                                       pa_streq(path, OBJECT_SINKS) ?
+                                       _("Output Devices") :
+                                       _("Input Devices"));
+            pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
         } else if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
             pa_strbuf *sb;
@@ -434,11 +497,11 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
 
         if (message_is_property_get(m, "org.Rygel.MediaObject1", "display-name")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
-            append_variant_string(r, pa_strna(pa_proplist_gets(sink ? sink->proplist : source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+            append_variant_string(r, NULL, pa_strna(pa_proplist_gets(sink ? sink->proplist : source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
 
         } else if (message_is_property_get(m, "org.Rygel.MediaItem1", "type")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
-            append_variant_string(r, "audio");
+            append_variant_string(r, NULL, "audio");
 
         } else if (message_is_property_get(m, "org.Rygel.MediaItem1", "mime-type")) {
             char *t;
@@ -449,22 +512,71 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
                 t = pa_sample_spec_to_mime_type_mimefy(&source->sample_spec, &source->channel_map);
 
             pa_assert_se(r = dbus_message_new_method_return(m));
-            append_variant_string(r, t);
+            append_variant_string(r, NULL, t);
+            pa_xfree(t);
 
         } else if (message_is_property_get(m, "org.Rygel.MediaItem1", "urls")) {
-            char * array[1];
-            char ** parray = array;
+            DBusMessageIter iter, sub, array;
+            char *url;
 
             pa_assert_se(r = dbus_message_new_method_return(m));
 
-            array[0] = compute_url(u, sink ? sink->monitor_source->name : source->name);
+            dbus_message_iter_init_append(r, &iter);
 
-            pa_assert_se(dbus_message_append_args(
-                                 r,
-                                 DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &parray, 1,
-                                 DBUS_TYPE_INVALID));
+            url = compute_url(u, sink ? sink->monitor_source->name : source->name);
 
-            pa_xfree(array[0]);
+            pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_VARIANT, "as", &sub));
+            pa_assert_se(dbus_message_iter_open_container(&sub, DBUS_TYPE_ARRAY, "s", &array));
+            pa_assert_se(dbus_message_iter_append_basic(&array, DBUS_TYPE_STRING, &url));
+            pa_assert_se(dbus_message_iter_close_container(&sub, &array));
+            pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
+
+            pa_xfree(url);
+
+        } else if (message_is_property_get_all(m, "org.Rygel.MediaObject1")) {
+            DBusMessageIter iter, sub;
+
+            pa_assert_se(r = dbus_message_new_method_return(m));
+            dbus_message_iter_init_append(r, &iter);
+
+            pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
+            append_property_dict_entry(r, &sub, "display-name", pa_strna(pa_proplist_gets(sink ? sink->proplist : source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+            pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
+
+        } else if (message_is_property_get_all(m, "org.Rygel.MediaItem1")) {
+            DBusMessageIter iter, sub, dict, variant, array;
+            char *url, *t;
+            const char *un = "urls";
+
+            pa_assert_se(r = dbus_message_new_method_return(m));
+            dbus_message_iter_init_append(r, &iter);
+
+            pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
+            append_property_dict_entry(r, &sub, "type", "audio");
+
+            if (sink)
+                t = pa_sample_spec_to_mime_type_mimefy(&sink->sample_spec, &sink->channel_map);
+            else
+                t = pa_sample_spec_to_mime_type_mimefy(&source->sample_spec, &source->channel_map);
+
+            append_property_dict_entry(r, &sub, "mime-type", t);
+            pa_xfree(t);
+
+            pa_assert_se(dbus_message_iter_open_container(&sub, DBUS_TYPE_DICT_ENTRY, NULL, &dict));
+            pa_assert_se(dbus_message_iter_append_basic(&dict, DBUS_TYPE_STRING, &un));
+
+            url = compute_url(u, sink ? sink->monitor_source->name : source->name);
+
+            pa_assert_se(dbus_message_iter_open_container(&dict, DBUS_TYPE_VARIANT, "as", &variant));
+            pa_assert_se(dbus_message_iter_open_container(&variant, DBUS_TYPE_ARRAY, "s", &array));
+            pa_assert_se(dbus_message_iter_append_basic(&array, DBUS_TYPE_STRING, &url));
+            pa_assert_se(dbus_message_iter_close_container(&variant, &array));
+            pa_assert_se(dbus_message_iter_close_container(&dict, &variant));
+            pa_assert_se(dbus_message_iter_close_container(&sub, &dict));
+
+            pa_xfree(url);
+
+            pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
         } else if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
             const char *xml =
