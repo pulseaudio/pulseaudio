@@ -79,16 +79,7 @@ PA_MODULE_USAGE(
     "  <method name=\"GetItems\">"                                      \
     "   <arg name=\"children\" type=\"ao\" direction=\"out\"/>"         \
     "  </method>"                                                       \
-    "  <signal name=\"ItemAdded\">"                                     \
-    "   <arg name=\"path\" type=\"o\"/>"                                \
-    "  </signal>"                                                       \
-    "  <signal name=\"ItemRemoved\">"                                   \
-    "   <arg name=\"path\" type=\"o\"/>"                                \
-    "  </signal>"                                                       \
-    "  <signal name=\"ContainerAdded\">"                                \
-    "   <arg name=\"path\" type=\"o\"/>"                                \
-    "  </signal>"                                                       \
-    "  <signal name=\"ContainerRemoved\">"                              \
+    "  <signal name=\"Updated\">"                                       \
     "   <arg name=\"path\" type=\"o\"/>"                                \
     "  </signal>"                                                       \
     " </interface>"                                                     \
@@ -164,9 +155,8 @@ struct userdata {
     pa_http_protocol *http;
 };
 
-static void send_signal(struct userdata *u, pa_source *s, const char *name) {
+static void send_signal(struct userdata *u, pa_source *s) {
     DBusMessage *m;
-    char *child;
     const char *parent;
 
     pa_assert(u);
@@ -175,28 +165,22 @@ static void send_signal(struct userdata *u, pa_source *s, const char *name) {
     if (u->core->state == PA_CORE_SHUTDOWN)
         return;
 
-    if (s->monitor_of) {
+    if (s->monitor_of)
         parent = OBJECT_SINKS;
-        child = pa_sprintf_malloc(OBJECT_SINKS "/%s", s->monitor_of->name);
-    } else {
+    else
         parent = OBJECT_SOURCES;
-        child = pa_sprintf_malloc(OBJECT_SOURCES "/%s", s->name);
-    }
 
-    pa_assert_se(m = dbus_message_new_signal(parent, "org.Rygel.MediaContainer1", name));
-    pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_OBJECT_PATH, &child, DBUS_TYPE_INVALID));
+    pa_assert_se(m = dbus_message_new_signal(parent, "org.Rygel.MediaContainer1", "Updated"));
     pa_assert_se(dbus_connection_send(pa_dbus_connection_get(u->bus), m, NULL));
-
-    pa_xfree(child);
 
     dbus_message_unref(m);
 }
 
-static pa_hook_result_t source_new_cb(pa_core *c, pa_source *s, struct userdata *u) {
+static pa_hook_result_t source_new_or_unlink_cb(pa_core *c, pa_source *s, struct userdata *u) {
     pa_assert(c);
     pa_source_assert_ref(s);
 
-    send_signal(u, s, "ItemAdded");
+    send_signal(u, s);
 
     return PA_HOOK_OK;
 }
@@ -539,8 +523,8 @@ int pa__init(pa_module *m) {
         pa_xfree(h);
     }
 
-    u->source_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE, (pa_hook_cb_t) source_new_cb, u);
-    u->source_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) source_unlink_cb, u);
+    u->source_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE, (pa_hook_cb_t) source_new_or_unlink_cb, u);
+    u->source_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) source_new_or_unlink_cb, u);
 
     if (!(u->bus = pa_dbus_bus_get(m->core, DBUS_BUS_SESSION, &error))) {
         pa_log("Failed to get session bus connection: %s", error.message);
