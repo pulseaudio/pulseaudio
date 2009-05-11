@@ -40,6 +40,12 @@ run_versioned() {
 
 set -ex
 
+if [ -f .git/hooks/pre-commit.sample -a ! -f .git/hooks/pre-commit ] ; then
+    echo "Activating pre-commit hook."
+    cp -av .git/hooks/pre-commit.sample .git/hooks/pre-commit
+    chmod -c +x  .git/hooks/pre-commit
+fi
+
 # We check for this here, because if pkg-config is not found in the
 # system, it's likely that the pkg.m4 macro file is also not present,
 # which will make PKG_PROG_PKG_CONFIG be undefined and the generated
