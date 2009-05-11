@@ -154,7 +154,10 @@ char *pa_sample_spec_to_mime_type(const pa_sample_spec *ss, const pa_channel_map
         case PA_SAMPLE_S16BE:
         case PA_SAMPLE_S24BE:
         case PA_SAMPLE_U8:
-            return pa_sprintf_malloc("audio/%s; rate=%u; channels=%u",
+            /* Stupid UPnP implementations (PS3...) choke on spaces in
+             * the mime type, that's why we write only ';' here,
+             * instead of '; '. */
+            return pa_sprintf_malloc("audio/%s;rate=%u;channels=%u",
                                      ss->format == PA_SAMPLE_S16BE ? "L16" :
                                      (ss->format == PA_SAMPLE_S24BE ? "L24" : "L8"),
                                      ss->rate, ss->channels);
