@@ -111,6 +111,7 @@ static void connection_unlink(struct connection *c) {
 
     if (c->source_output) {
         pa_source_output_unlink(c->source_output);
+        c->source_output->userdata = NULL;
         pa_source_output_unref(c->source_output);
     }
 
@@ -190,7 +191,9 @@ static int source_output_process_msg(pa_msgobject *m, int code, void *userdata, 
     struct connection *c;
 
     pa_source_output_assert_ref(o);
-    pa_assert_se(c = o->userdata);
+
+    if (!(c = o->userdata))
+        return -1;
 
     switch (code) {
 
