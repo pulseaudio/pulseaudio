@@ -189,15 +189,6 @@ struct pa_alsa_fdlist *pa_alsa_fdlist_new(void) {
 
     fdl = pa_xnew0(struct pa_alsa_fdlist, 1);
 
-    fdl->num_fds = 0;
-    fdl->fds = NULL;
-    fdl->work_fds = NULL;
-    fdl->mixer = NULL;
-    fdl->m = NULL;
-    fdl->defer = NULL;
-    fdl->ios = NULL;
-    fdl->polled = FALSE;
-
     return fdl;
 }
 
@@ -1176,6 +1167,7 @@ success:
 
 int pa_alsa_find_mixer_and_elem(
         snd_pcm_t *pcm,
+        char **ctl_device,
         snd_mixer_t **_m,
         snd_mixer_elem_t **_e,
         const char *control_name,
@@ -1203,8 +1195,12 @@ int pa_alsa_find_mixer_and_elem(
 
     /* First, try by name */
     if ((dev = snd_pcm_name(pcm)))
-        if (pa_alsa_prepare_mixer(m, dev) >= 0)
+        if (pa_alsa_prepare_mixer(m, dev) >= 0) {
             found = TRUE;
+
+            if (ctl_device)
+                *ctl_device = pa_xstrdup(dev);
+        }
 
     /* Then, try by card index */
     if (!found) {
@@ -1220,8 +1216,14 @@ int pa_alsa_find_mixer_and_elem(
                 md = pa_sprintf_malloc("hw:%i", card_idx);
 
                 if (!dev || !pa_streq(dev, md))
-                    if (pa_alsa_prepare_mixer(m, md) >= 0)
+                    if (pa_alsa_prepare_mixer(m, md) >= 0) {
                         found = TRUE;
+
+                        if (ctl_device) {
+                            *ctl_device = md;
+                            md = NULL;
+                        }
+                    }
 
                 pa_xfree(md);
             }
@@ -1258,6 +1260,9 @@ int pa_alsa_find_mixer_and_elem(
     }
 
     if (!e) {
+        if (ctl_device)
+            pa_xfree(*ctl_device);
+
         snd_mixer_close(m);
         return -1;
     }
@@ -1599,6 +1604,36 @@ void pa_alsa_init_proplist_pcm(pa_core *c, pa_proplist *p, snd_pcm_t *pcm, snd_m
         pa_log_warn("Error fetching PCM info: %s", pa_alsa_strerror(err));
     else
         pa_alsa_init_proplist_pcm_info(c, p, info);
+}
+
+void pa_alsa_init_proplist_ctl(pa_proplist *p, const char *name) {
+    int err;
+    snd_ctl_t *ctl;
+    snd_ctl_card_info_t *info;
+    const char *t;
+
+    pa_assert(p);
+
+    snd_ctl_card_info_alloca(&info);
+
+    if ((err = snd_ctl_open(&ctl, name, 0)) < 0) {
+        pa_log_warn("Error opening low-level control device '%s'", name);
+        return;
+    }
+
+    if ((err = snd_ctl_card_info(ctl, info)) < 0) {
+        pa_log_warn("Control device %s card info: %s", name, snd_strerror(err));
+        snd_ctl_close(ctl);
+        return;
+    }
+
+    if ((t = snd_ctl_card_info_get_mixername(info)))
+        pa_proplist_sets(p, "alsa.mixer_name", t);
+
+    if ((t = snd_ctl_card_info_get_components(info)))
+        pa_proplist_sets(p, "alsa.components", t);
+
+    snd_ctl_close(ctl);
 }
 
 int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents) {

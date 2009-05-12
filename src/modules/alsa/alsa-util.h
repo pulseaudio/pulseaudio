@@ -66,7 +66,9 @@ typedef struct pa_alsa_profile_info {
 
 int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev);
 snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const char *fallback, pa_bool_t playback);
-int pa_alsa_find_mixer_and_elem(snd_pcm_t *pcm, snd_mixer_t **_m, snd_mixer_elem_t **_e, const char *control_name, const pa_alsa_profile_info*profile);
+int pa_alsa_find_mixer_and_elem(snd_pcm_t *pcm, char **ctl_device, snd_mixer_t **_m, snd_mixer_elem_t **_e, const char *control_name, const pa_alsa_profile_info*profile);
+
+void pa_alsa_init_proplist_ctl(pa_proplist *p, const char *name);
 
 /* Picks a working profile based on the specified ss/map */
 snd_pcm_t *pa_alsa_open_by_device_id_auto(

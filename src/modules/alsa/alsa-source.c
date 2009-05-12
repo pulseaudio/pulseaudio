@@ -1366,6 +1366,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     size_t frame_size;
     pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE;
     pa_source_new_data data;
+    char *control_device = NULL;
 
     pa_assert(m);
     pa_assert(ma);
@@ -1519,7 +1520,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     /* ALSA might tweak the sample spec, so recalculate the frame size */
     frame_size = pa_frame_size(&ss);
 
-    pa_alsa_find_mixer_and_elem(u->pcm_handle, &u->mixer_handle, &u->mixer_elem, pa_modargs_get_value(ma, "control", NULL), profile);
+    pa_alsa_find_mixer_and_elem(u->pcm_handle, &control_device, &u->mixer_handle, &u->mixer_elem, pa_modargs_get_value(ma, "control", NULL), profile);
 
     pa_source_new_data_init(&data);
     data.driver = driver;
@@ -1541,6 +1542,11 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     }
 
     pa_alsa_init_description(data.proplist);
+
+    if (control_device) {
+        pa_alsa_init_proplist_ctl(data.proplist, control_device);
+        pa_xfree(control_device);
+    }
 
     u->source = pa_source_new(m->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY|(u->use_tsched ? PA_SOURCE_DYNAMIC_LATENCY : 0));
     pa_source_new_data_done(&data);
