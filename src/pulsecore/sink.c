@@ -2197,6 +2197,21 @@ pa_bool_t pa_device_init_icon(pa_proplist *p, pa_bool_t is_sink) {
             t = "multimedia-player";
         else if (pa_streq(ff, "tv"))
             t = "video-display";
+
+        /*
+         * The following icons are not part of the icon naming spec,
+         * because Rodney Dawes sucks as the maintainer of that spec.
+         *
+         * http://lists.freedesktop.org/archives/xdg/2009-May/010397.html
+         */
+        else if (pa_streq(ff, "headset"))
+            t = "audio-headset";
+        else if (pa_streq(ff, "headphone"))
+            t = "audio-headphones";
+        else if (pa_streq(ff, "speaker"))
+            t = "audio-speakers";
+        else if (pa_streq(ff, "hands-free"))
+            t = "audio-handsfree";
     }
 
     if (!t)
