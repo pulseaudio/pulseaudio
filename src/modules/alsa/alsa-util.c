@@ -279,6 +279,11 @@ static int set_format(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams, pa_s
     if ((ret = snd_pcm_hw_params_set_format(pcm_handle, hwparams, format_trans[*f])) >= 0)
         return ret;
 
+    pa_log_debug("snd_pcm_hw_params_set_format(%s) failed: %s",
+                 snd_pcm_format_description(format_trans[*f]),
+                 pa_alsa_strerror(ret));
+
+
     if (*f == PA_SAMPLE_FLOAT32BE)
         *f = PA_SAMPLE_FLOAT32LE;
     else if (*f == PA_SAMPLE_FLOAT32LE)
@@ -305,6 +310,10 @@ static int set_format(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams, pa_s
     if ((ret = snd_pcm_hw_params_set_format(pcm_handle, hwparams, format_trans[*f])) >= 0)
         return ret;
 
+    pa_log_debug("snd_pcm_hw_params_set_format(%s) failed: %s",
+                 snd_pcm_format_description(format_trans[*f]),
+                 pa_alsa_strerror(ret));
+
 try_auto:
 
     for (i = 0; try_order[i] != PA_SAMPLE_INVALID; i++) {
@@ -312,6 +321,10 @@ try_auto:
 
         if ((ret = snd_pcm_hw_params_set_format(pcm_handle, hwparams, format_trans[*f])) >= 0)
             return ret;
+
+        pa_log_debug("snd_pcm_hw_params_set_format(%s) failed: %s",
+                     snd_pcm_format_description(format_trans[*f]),
+                     pa_alsa_strerror(ret));
     }
 
     return -1;
@@ -345,11 +358,15 @@ int pa_alsa_set_hw_params(
 
     snd_pcm_hw_params_alloca(&hwparams);
 
-    if ((ret = snd_pcm_hw_params_any(pcm_handle, hwparams)) < 0)
+    if ((ret = snd_pcm_hw_params_any(pcm_handle, hwparams)) < 0) {
+        pa_log_debug("snd_pcm_hw_params_any() failed: %s", pa_alsa_strerror(ret));
         goto finish;
+    }
 
-    if ((ret = snd_pcm_hw_params_set_rate_resample(pcm_handle, hwparams, 0)) < 0)
+    if ((ret = snd_pcm_hw_params_set_rate_resample(pcm_handle, hwparams, 0)) < 0) {
+        pa_log_debug("snd_pcm_hw_params_set_rate_resample() failed: %s", pa_alsa_strerror(ret));
         goto finish;
+    }
 
     if (_use_mmap) {
 
@@ -357,14 +374,18 @@ int pa_alsa_set_hw_params(
 
             /* mmap() didn't work, fall back to interleaved */
 
-            if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
+            if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
+                pa_log_debug("snd_pcm_hw_params_set_access() failed: %s", pa_alsa_strerror(ret));
                 goto finish;
+            }
 
             _use_mmap = FALSE;
         }
 
-    } else if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
+    } else if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
+        pa_log_debug("snd_pcm_hw_params_set_access() failed: %s", pa_alsa_strerror(ret));
         goto finish;
+    }
 
     if (!_use_mmap)
         _use_tsched = FALSE;
@@ -372,19 +393,27 @@ int pa_alsa_set_hw_params(
     if ((ret = set_format(pcm_handle, hwparams, &f)) < 0)
         goto finish;
 
-    if ((ret = snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, &r, NULL)) < 0)
+    if ((ret = snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, &r, NULL)) < 0) {
+        pa_log_debug("snd_pcm_hw_params_set_rate_near() failed: %s", pa_alsa_strerror(ret));
         goto finish;
-
-    if (require_exact_channel_number) {
-        if ((ret = snd_pcm_hw_params_set_channels(pcm_handle, hwparams, c)) < 0)
-            goto finish;
-    } else {
-        if ((ret = snd_pcm_hw_params_set_channels_near(pcm_handle, hwparams, &c)) < 0)
-            goto finish;
     }
 
-    if ((ret = snd_pcm_hw_params_set_periods_integer(pcm_handle, hwparams)) < 0)
+    if (require_exact_channel_number) {
+        if ((ret = snd_pcm_hw_params_set_channels(pcm_handle, hwparams, c)) < 0) {
+            pa_log_debug("snd_pcm_hw_params_set_channels() failed: %s", pa_alsa_strerror(ret));
+            goto finish;
+        }
+    } else {
+        if ((ret = snd_pcm_hw_params_set_channels_near(pcm_handle, hwparams, &c)) < 0) {
+            pa_log_debug("snd_pcm_hw_params_set_channels_near() failed: %s", pa_alsa_strerror(ret));
+            goto finish;
+        }
+    }
+
+    if ((ret = snd_pcm_hw_params_set_periods_integer(pcm_handle, hwparams)) < 0) {
+        pa_log_debug("snd_pcm_hw_params_set_periods_integer() failed: %s", pa_alsa_strerror(ret));
         goto finish;
+    }
 
     if (_period_size && tsched_size && _periods) {
 
