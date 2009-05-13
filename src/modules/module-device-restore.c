@@ -30,7 +30,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <gdbm.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/volume.h>
@@ -46,6 +45,7 @@
 #include <pulsecore/sink-input.h>
 #include <pulsecore/source-output.h>
 #include <pulsecore/namereg.h>
+#include <pulsecore/database.h>
 
 #include "module-device-restore-symdef.h"
 
@@ -73,7 +73,7 @@ struct userdata {
         *sink_fixate_hook_slot,
         *source_fixate_hook_slot;
     pa_time_event *save_time_event;
-    GDBM_FILE gdbm_file;
+    pa_database *database;
 
     pa_bool_t restore_volume:1;
     pa_bool_t restore_muted:1;
@@ -100,31 +100,31 @@ static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct
     u->core->mainloop->time_free(u->save_time_event);
     u->save_time_event = NULL;
 
-    gdbm_sync(u->gdbm_file);
+    pa_database_sync(u->database);
     pa_log_info("Synced.");
 }
 
 static struct entry* read_entry(struct userdata *u, const char *name) {
-    datum key, data;
+    pa_datum key, data;
     struct entry *e;
 
     pa_assert(u);
     pa_assert(name);
 
-    key.dptr = (char*) name;
-    key.dsize = (int) strlen(name);
+    key.data = (char*) name;
+    key.size = strlen(name);
 
-    data = gdbm_fetch(u->gdbm_file, key);
+    pa_zero(data);
 
-    if (!data.dptr)
+    if (!pa_database_get(u->database, &key, &data))
         goto fail;
 
-    if (data.dsize != sizeof(struct entry)) {
-        pa_log_debug("Database contains entry for device %s of wrong size %lu != %lu. Probably due to upgrade, ignoring.", name, (unsigned long) data.dsize, (unsigned long) sizeof(struct entry));
+    if (data.size != sizeof(struct entry)) {
+        pa_log_debug("Database contains entry for device %s of wrong size %lu != %lu. Probably due to upgrade, ignoring.", name, (unsigned long) data.size, (unsigned long) sizeof(struct entry));
         goto fail;
     }
 
-    e = (struct entry*) data.dptr;
+    e = (struct entry*) data.data;
 
     if (e->version != ENTRY_VERSION) {
         pa_log_debug("Version of database entry for device %s doesn't match our version. Probably due to upgrade, ignoring.", name);
@@ -150,7 +150,7 @@ static struct entry* read_entry(struct userdata *u, const char *name) {
 
 fail:
 
-    pa_xfree(data.dptr);
+    pa_datum_free(&data);
     return NULL;
 }
 
@@ -169,7 +169,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     struct userdata *u = userdata;
     struct entry entry, *old;
     char *name;
-    datum key, data;
+    pa_datum key, data;
 
     pa_assert(c);
     pa_assert(u);
@@ -180,7 +180,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         t != (PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE))
         return;
 
-    memset(&entry, 0, sizeof(entry));
+    pa_zero(entry);
     entry.version = ENTRY_VERSION;
 
     if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK) {
@@ -221,15 +221,15 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         pa_xfree(old);
     }
 
-    key.dptr = name;
-    key.dsize = (int) strlen(name);
+    key.data = name;
+    key.size = strlen(name);
 
-    data.dptr = (void*) &entry;
-    data.dsize = sizeof(entry);
+    data.data = &entry;
+    data.size = sizeof(entry);
 
     pa_log_info("Storing volume/mute for device %s.", name);
 
-    gdbm_store(u->gdbm_file, key, data, GDBM_REPLACE);
+    pa_database_set(u->database, &key, &data, TRUE);
 
     pa_xfree(name);
 
@@ -312,12 +312,11 @@ static pa_hook_result_t source_fixate_hook_callback(pa_core *c, pa_source_new_da
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
-    char *fname, *fn;
+    char *fname;
     pa_sink *sink;
     pa_source *source;
     uint32_t idx;
     pa_bool_t restore_volume = TRUE, restore_muted = TRUE;
-    int gdbm_cache_size;
 
     pa_assert(m);
 
@@ -341,7 +340,7 @@ int pa__init(pa_module*m) {
     u->save_time_event = NULL;
     u->restore_volume = restore_volume;
     u->restore_muted = restore_muted;
-    u->gdbm_file = NULL;
+    u->database = NULL;
 
     u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK|PA_SUBSCRIPTION_MASK_SOURCE, subscribe_callback, u);
 
@@ -350,26 +349,14 @@ int pa__init(pa_module*m) {
         u->source_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_FIXATE], PA_HOOK_EARLY, (pa_hook_cb_t) source_fixate_hook_callback, u);
     }
 
-    /* We include the host identifier in the file name because gdbm
-     * files are CPU dependant, and we don't want things to go wrong
-     * if we are on a multiarch system. */
-
-    fn = pa_sprintf_malloc("device-volumes."CANONICAL_HOST".gdbm");
-    fname = pa_state_path(fn, TRUE);
-    pa_xfree(fn);
-
-    if (!fname)
+    if (!(fname = pa_state_path("device-volumes", TRUE)))
         goto fail;
 
-    if (!(u->gdbm_file = gdbm_open(fname, 0, GDBM_WRCREAT|GDBM_NOLOCK, 0600, NULL))) {
-        pa_log("Failed to open volume database '%s': %s", fname, gdbm_strerror(gdbm_errno));
+    if (!(u->database = pa_database_open(fname, TRUE))) {
+        pa_log("Failed to open volume database '%s': %s", fname, pa_cstrerror(errno));
         pa_xfree(fname);
         goto fail;
     }
-
-    /* By default the cache of gdbm is rather large, let's reduce it a bit to save memory */
-    gdbm_cache_size = 10;
-    gdbm_setopt(u->gdbm_file, GDBM_CACHESIZE, &gdbm_cache_size, sizeof(gdbm_cache_size));
 
     pa_log_info("Sucessfully opened database file '%s'.", fname);
     pa_xfree(fname);
@@ -411,8 +398,8 @@ void pa__done(pa_module*m) {
     if (u->save_time_event)
         u->core->mainloop->time_free(u->save_time_event);
 
-    if (u->gdbm_file)
-        gdbm_close(u->gdbm_file);
+    if (u->database)
+        pa_database_close(u->database);
 
     pa_xfree(u);
 }

@@ -392,9 +392,6 @@ AC_SEARCH_LIBS([connect], [socket])
 # build, disabling its ability to make dlls.
 AC_CHECK_FUNCS([getopt_long], [], [AC_CHECK_LIB([iberty], [getopt_long])])
 
-AC_CHECK_LIB(gdbm, gdbm_open)
-AC_CHECK_HEADERS(gdbm.h, [], [AC_MSG_ERROR([gdbm.h not found])])
-
 #### Check for functions ####
 
 # ISO
@@ -601,6 +598,65 @@ AC_SUBST(LIBSAMPLERATE_CFLAGS)
 AC_SUBST(LIBSAMPLERATE_LIBS)
 AC_SUBST(HAVE_LIBSAMPLERATE)
 AM_CONDITIONAL([HAVE_LIBSAMPLERATE], [test "x$HAVE_LIBSAMPLERATE" = x1])
+
+#### Database support ####
+
+HAVE_TDB=0
+HAVE_GDBM=0
+
+AC_ARG_WITH(
+        [database],
+        AS_HELP_STRING([--with-database=auto|tdb|gdbm],[Choose database backend.]),[],[with_database=auto])
+
+if test "x${with_database}" == "xauto" -o "x${with_database}" == "xtdb" ; then
+    PKG_CHECK_MODULES(TDB, [ tdb ],
+        [
+            HAVE_TDB=1
+            with_database=tdb
+        ], [
+            if test "x${with_database}" == "xtdb" ; then
+                AC_MSG_ERROR([*** tdb not found])
+            fi
+        ])
+fi
+
+if test "x${with_database}" == "xauto" -o "x${with_database}" == "xgdbm" ; then
+   have_gdbm=yes
+
+   AC_CHECK_LIB(gdbm, gdbm_open, [], [have_gdbm=no])
+   AC_CHECK_HEADERS(gdbm.h, [], [have_gdbm=no])
+
+   if test "x${have_gdbm}" == "xyes" ; then
+       HAVE_GDBM=1
+       GDBM_CFLAGS=
+       GDBM_LIBS=-lgdbm
+       with_database=gdbm
+   elif test "x${with_database}" == "xgdbm"; then
+       AC_MSG_ERROR([*** gdbm not found])
+   fi
+fi
+
+if test "x${HAVE_TDB}" != x1 -a "x${HAVE_GDBM}" != x1; then
+   AC_MSG_ERROR([*** missing database backend])
+fi
+
+if test "x${HAVE_TDB}" = x1 ; then
+   AC_DEFINE([HAVE_TDB], 1, [Have tdb?])
+fi
+
+if test "x${HAVE_GDBM}" = x1 ; then
+   AC_DEFINE([HAVE_GDBM], 1, [Have gdbm?])
+fi
+
+AC_SUBST(TDB_CFLAGS)
+AC_SUBST(TDB_LIBS)
+AC_SUBST(HAVE_TDB)
+AM_CONDITIONAL([HAVE_TDB], [test "x$HAVE_TDB" = x1])
+
+AC_SUBST(GDBM_CFLAGS)
+AC_SUBST(GDBM_LIBS)
+AC_SUBST(HAVE_GDBM)
+AM_CONDITIONAL([HAVE_GDBM], [test "x$HAVE_GDBM" = x1])
 
 #### OSS support (optional) ####
 
@@ -1410,6 +1466,16 @@ if test "x${HAVE_POLKIT}" = "x1" ; then
    ENABLE_POLKIT=yes
 fi
 
+ENABLE_GDBM=no
+if test "x${HAVE_GDBM}" = "x1" ; then
+   ENABLE_GDBM=yes
+fi
+
+ENABLE_TDB=no
+if test "x${HAVE_TDB}" = "x1" ; then
+   ENABLE_TDB=yes
+fi
+
 ENABLE_OPENSSL=no
 if test "x${HAVE_OPENSSL}" = "x1" ; then
    ENABLE_OPENSSL=yes
@@ -1456,6 +1522,8 @@ echo "
     Enable PolicyKit:              ${ENABLE_POLKIT}
     Enable IPv6:                   ${ENABLE_IPV6}
     Enable OpenSSL (for Airtunes): ${ENABLE_OPENSSL}
+    Enable tdb:                    ${ENABLE_TDB}
+    Enable gdbm:                   ${ENABLE_GDBM}
 
     System User:                   ${PA_SYSTEM_USER}
     System Group:                  ${PA_SYSTEM_GROUP}

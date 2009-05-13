@@ -816,7 +816,8 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/source.c pulsecore/source.h \
 		pulsecore/start-child.c pulsecore/start-child.h \
 		pulsecore/thread-mq.c pulsecore/thread-mq.h \
-		pulsecore/time-smoother.c pulsecore/time-smoother.h
+		pulsecore/time-smoother.c pulsecore/time-smoother.h \
+		pulsecore/database.h
 
 libpulsecore_@PA_MAJORMINORMICRO@_la_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
 libpulsecore_@PA_MAJORMINORMICRO@_la_LDFLAGS = -avoid-version
@@ -828,12 +829,24 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_CFLAGS += $(X11_CFLAGS)
 libpulsecore_@PA_MAJORMINORMICRO@_la_LDFLAGS += $(X11_LIBS)
 endif
 
-
 if HAVE_DBUS
 libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/dbus-shared.c pulsecore/dbus-shared.h
 libpulsecore_@PA_MAJORMINORMICRO@_la_CFLAGS += $(DBUS_CFLAGS)
 libpulsecore_@PA_MAJORMINORMICRO@_la_LIBADD += $(DBUS_LIBS)
 endif
+
+if HAVE_GDBM
+libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/database-gdbm.c
+libpulsecore_@PA_MAJORMINORMICRO@_la_CFLAGS += $(GDBM_CFLAGS)
+libpulsecore_@PA_MAJORMINORMICRO@_la_LIBADD += $(GDBM_LIBS)
+endif
+
+if HAVE_TDB
+libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/database-tdb.c
+libpulsecore_@PA_MAJORMINORMICRO@_la_CFLAGS += $(TDB_CFLAGS)
+libpulsecore_@PA_MAJORMINORMICRO@_la_LIBADD += $(TDB_LIBS)
+endif
+
 
 # We split the foreign code off to not be annoyed by warnings we don't care about
 noinst_LTLIBRARIES = libpulsecore-foreign.la
@@ -1441,19 +1454,19 @@ module_cork_music_on_phone_la_CFLAGS = $(AM_CFLAGS)
 # Device volume/muted restore module
 module_device_restore_la_SOURCES = modules/module-device-restore.c
 module_device_restore_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_device_restore_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la -lgdbm libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_device_restore_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_device_restore_la_CFLAGS = $(AM_CFLAGS)
 
 # Stream volume/muted/device restore module
 module_stream_restore_la_SOURCES = modules/module-stream-restore.c
 module_stream_restore_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_stream_restore_la_LIBADD = $(AM_LIBADD) libprotocol-native.la libpulsecore-@PA_MAJORMINORMICRO@.la -lgdbm libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_stream_restore_la_LIBADD = $(AM_LIBADD) libprotocol-native.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_stream_restore_la_CFLAGS = $(AM_CFLAGS)
 
 # Card profile restore module
 module_card_restore_la_SOURCES = modules/module-card-restore.c
 module_card_restore_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_card_restore_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la -lgdbm libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_card_restore_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_card_restore_la_CFLAGS = $(AM_CFLAGS)
 
 # Default sink/source restore module
