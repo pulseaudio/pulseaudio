@@ -82,6 +82,8 @@ PA_MODULE_USAGE(
     "  <signal name=\"Updated\">"                                       \
     "   <arg name=\"path\" type=\"o\"/>"                                \
     "  </signal>"                                                       \
+    "  <property name=\"item-count\" type=\"u\" access=\"read\"/>"      \
+    "  <property name=\"container-count\" type=\"u\" access=\"read\"/>" \
     " </interface>"                                                     \
     " <interface name=\"org.Rygel.MediaObject1\">"                      \
     "  <property name=\"icon-name\" type=\"s\" access=\"read\"/>"       \
@@ -248,7 +250,22 @@ static void append_variant_string(DBusMessage *m, DBusMessageIter *iter, const c
     pa_assert_se(dbus_message_iter_close_container(iter, &sub));
 }
 
-static void append_property_dict_entry(DBusMessage *m, DBusMessageIter *iter, const char *name, const char *value) {
+static void append_variant_unsigned(DBusMessage *m, DBusMessageIter *iter, unsigned u) {
+    DBusMessageIter _iter, sub;
+
+    pa_assert(m);
+
+    if (!iter) {
+        dbus_message_iter_init_append(m, &_iter);
+        iter = &_iter;
+    }
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, "u", &sub));
+    pa_assert_se(dbus_message_iter_append_basic(&sub, DBUS_TYPE_UINT32, &u));
+    pa_assert_se(dbus_message_iter_close_container(iter, &sub));
+}
+
+static void append_property_dict_entry_string(DBusMessage *m, DBusMessageIter *iter, const char *name, const char *value) {
     DBusMessageIter sub;
 
     pa_assert(iter);
@@ -256,6 +273,17 @@ static void append_property_dict_entry(DBusMessage *m, DBusMessageIter *iter, co
     pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_DICT_ENTRY, NULL, &sub));
     pa_assert_se(dbus_message_iter_append_basic(&sub, DBUS_TYPE_STRING, &name));
     append_variant_string(m, &sub, value);
+    pa_assert_se(dbus_message_iter_close_container(iter, &sub));
+}
+
+static void append_property_dict_entry_unsigned(DBusMessage *m, DBusMessageIter *iter, const char *name, unsigned u) {
+    DBusMessageIter sub;
+
+    pa_assert(iter);
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_DICT_ENTRY, NULL, &sub));
+    pa_assert_se(dbus_message_iter_append_basic(&sub, DBUS_TYPE_STRING, &name));
+    append_variant_unsigned(m, &sub, u);
     pa_assert_se(dbus_message_iter_close_container(iter, &sub));
 }
 
@@ -300,8 +328,27 @@ static DBusHandlerResult root_handler(DBusConnection *c, DBusMessage *m, void *u
         dbus_message_iter_init_append(r, &iter);
 
         pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
-        append_property_dict_entry(r, &sub, "display-name", u->display_name);
-        append_property_dict_entry(r, &sub, "icon-name", "audio-card");
+        append_property_dict_entry_string(r, &sub, "display-name", u->display_name);
+        append_property_dict_entry_string(r, &sub, "icon-name", "audio-card");
+        pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
+
+    } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "item-count")) {
+        pa_assert_se(r = dbus_message_new_method_return(m));
+        append_variant_unsigned(r, NULL, 0);
+
+    } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "container-count")) {
+        pa_assert_se(r = dbus_message_new_method_return(m));
+        append_variant_unsigned(r, NULL, 2);
+
+    } else if (message_is_property_get_all(m, "org.Rygel.MediaContainer1")) {
+        DBusMessageIter iter, sub;
+
+        pa_assert_se(r = dbus_message_new_method_return(m));
+        dbus_message_iter_init_append(r, &iter);
+
+        pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
+        append_property_dict_entry_unsigned(r, &sub, "item-count", 0);
+        append_property_dict_entry_unsigned(r, &sub, "container-count", 2);
         pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
     } else if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
@@ -441,12 +488,37 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
             dbus_message_iter_init_append(r, &iter);
 
             pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
-            append_property_dict_entry(m, &sub, "display-name",
-                                       pa_streq(path, OBJECT_SINKS) ?
-                                       _("Output Devices") :
-                                       _("Input Devices"));
+            append_property_dict_entry_string(m, &sub, "display-name",
+                                              pa_streq(path, OBJECT_SINKS) ?
+                                              _("Output Devices") :
+                                              _("Input Devices"));
             pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
+        } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "item-count")) {
+            pa_assert_se(r = dbus_message_new_method_return(m));
+
+            append_variant_unsigned(r, NULL,
+                                    pa_streq(path, OBJECT_SINKS) ?
+                                    pa_idxset_size(u->core->sinks) :
+                                    pa_idxset_size(u->core->sources));
+
+        } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "container-count")) {
+            pa_assert_se(r = dbus_message_new_method_return(m));
+            append_variant_unsigned(r, NULL, 0);
+
+        } else if (message_is_property_get_all(m, "org.Rygel.MediaContainer1")) {
+            DBusMessageIter iter, sub;
+
+            pa_assert_se(r = dbus_message_new_method_return(m));
+            dbus_message_iter_init_append(r, &iter);
+
+            pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
+            append_property_dict_entry_unsigned(r, &sub, "item-count",
+                                                pa_streq(path, OBJECT_SINKS) ?
+                                                pa_idxset_size(u->core->sinks) :
+                                                pa_idxset_size(u->core->sources));
+            append_property_dict_entry_unsigned(r, &sub, "container-count", 0);
+            pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
         } else if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
             pa_strbuf *sb;
             char *xml;
@@ -540,7 +612,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
             dbus_message_iter_init_append(r, &iter);
 
             pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
-            append_property_dict_entry(r, &sub, "display-name", pa_strna(pa_proplist_gets(sink ? sink->proplist : source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+            append_property_dict_entry_string(r, &sub, "display-name", pa_strna(pa_proplist_gets(sink ? sink->proplist : source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
             pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
         } else if (message_is_property_get_all(m, "org.Rygel.MediaItem1")) {
@@ -552,14 +624,14 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
             dbus_message_iter_init_append(r, &iter);
 
             pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
-            append_property_dict_entry(r, &sub, "type", "audio");
+            append_property_dict_entry_string(r, &sub, "type", "audio");
 
             if (sink)
                 t = pa_sample_spec_to_mime_type_mimefy(&sink->sample_spec, &sink->channel_map);
             else
                 t = pa_sample_spec_to_mime_type_mimefy(&source->sample_spec, &source->channel_map);
 
-            append_property_dict_entry(r, &sub, "mime-type", t);
+            append_property_dict_entry_string(r, &sub, "mime-type", t);
             pa_xfree(t);
 
             pa_assert_se(dbus_message_iter_open_container(&sub, DBUS_TYPE_DICT_ENTRY, NULL, &dict));
