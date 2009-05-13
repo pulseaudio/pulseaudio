@@ -685,3 +685,49 @@ pa_cvolume* pa_cvolume_set_fade(pa_cvolume *v, const pa_channel_map *map, float 
 
     return v;
 }
+
+pa_cvolume* pa_cvolume_set_position(
+        pa_cvolume *cv,
+        const pa_channel_map *map,
+        pa_channel_position_t t,
+        pa_volume_t v) {
+
+    unsigned c;
+    pa_bool_t good = FALSE;
+
+    pa_assert(cv);
+    pa_assert(map);
+
+    pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(cv, map), NULL);
+    pa_return_val_if_fail(t < PA_CHANNEL_POSITION_MAX, NULL);
+
+    for (c = 0; c < map->channels; c++)
+        if (map->map[c] == t) {
+            cv->values[c] = v;
+            good = TRUE;
+        }
+
+    return good ? cv : NULL;
+}
+
+pa_volume_t pa_cvolume_get_position(
+        pa_cvolume *cv,
+        const pa_channel_map *map,
+        pa_channel_position_t t) {
+
+    unsigned c;
+    pa_volume_t v = PA_VOLUME_MUTED;
+
+    pa_assert(cv);
+    pa_assert(map);
+
+    pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(cv, map), PA_VOLUME_MUTED);
+    pa_return_val_if_fail(t < PA_CHANNEL_POSITION_MAX, PA_VOLUME_MUTED);
+
+    for (c = 0; c < map->channels; c++)
+        if (map->map[c] == t)
+            if (cv->values[c] > v)
+                v = cv->values[c];
+
+    return v;
+}

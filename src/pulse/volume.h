@@ -283,6 +283,19 @@ pa_cvolume* pa_cvolume_set_fade(pa_cvolume *v, const pa_channel_map *map, float 
  * volumes are kept. \since 0.9.15 */
 pa_cvolume* pa_cvolume_scale(pa_cvolume *v, pa_volume_t max);
 
+/** Set the passed volume to all channels at the specified channel
+ * position. Will return the updated volume struct, or NULL if there
+ * is no channel at the position specified. You can check if a channel
+ * map includes a specific position by calling
+ * pa_channel_map_has_position(). \since 0.9.16 */
+pa_cvolume* pa_cvolume_set_position(pa_cvolume *cv, const pa_channel_map *map, pa_channel_position_t t, pa_volume_t v);
+
+/** Get the maximum volume of all channels at the specified channel
+ * position. Will return 0 if there is no channel at the position
+ * specified. You can check if a channel map includes a specific
+ * position by calling pa_channel_map_has_position(). \since 0.9.16 */
+pa_volume_t pa_cvolume_get_position(pa_cvolume *cv, const pa_channel_map *map, pa_channel_position_t t);
+
 PA_C_DECL_END
 
 #endif
