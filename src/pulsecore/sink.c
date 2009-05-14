@@ -1025,14 +1025,13 @@ void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
 	pa_memchunk chunk;
 	size_t l, d;
 	pa_memchunk_make_writable(result, length);
-	result->length = length;
 
 	l = length - result->length;
 	d = result->index + result->length;
 	while (l > 0) {
 	    chunk = *result;
-	    chunk.index += d;
-	    chunk.length -= d - result->index;
+	    chunk.index = d;
+	    chunk.length = l;
 
 	    pa_sink_render_into(s, &chunk);
 
