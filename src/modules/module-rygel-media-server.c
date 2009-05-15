@@ -23,10 +23,6 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -59,7 +55,7 @@ PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_USAGE(
         "display_name=<UPnP Media Server name>");
 
-/* This implements http://live.gnome.org/action/edit/Rygel/MediaServerSpec */
+/* This implements http://live.gnome.org/Rygel/MediaServerSpec */
 
 #define SERVICE_NAME "org.Rygel.MediaServer1.PulseAudio"
 
@@ -73,20 +69,16 @@ PA_MODULE_USAGE(
     " <!-- If you are looking for documentation make sure to check out" \
     "      http://live.gnome.org/Rygel/MediaServerSpec -->"             \
     " <interface name=\"org.Rygel.MediaContainer1\">"                   \
-    "  <method name=\"GetContainers\">"                                 \
-    "   <arg name=\"children\" type=\"ao\" direction=\"out\"/>"         \
-    "  </method>"                                                       \
-    "  <method name=\"GetItems\">"                                      \
-    "   <arg name=\"children\" type=\"ao\" direction=\"out\"/>"         \
-    "  </method>"                                                       \
     "  <signal name=\"Updated\">"                                       \
     "   <arg name=\"path\" type=\"o\"/>"                                \
     "  </signal>"                                                       \
+    "  <property name=\"Items\" type=\"ao\" access=\"read\"/>"          \
     "  <property name=\"ItemCount\" type=\"u\" access=\"read\"/>"       \
+    "  <property name=\"Containers\" type=\"ao\" access=\"read\"/>"     \
     "  <property name=\"ContainerCount\" type=\"u\" access=\"read\"/>"  \
     " </interface>"                                                     \
     " <interface name=\"org.Rygel.MediaObject1\">"                      \
-    "  <property name=\"IconName\" type=\"s\" access=\"read\"/>"        \
+    "  <property name=\"Parent\" type=\"s\" access=\"read\"/>"          \
     "  <property name=\"DisplayName\" type=\"s\" access=\"read\"/>"     \
     " </interface>"                                                     \
     " <interface name=\"org.freedesktop.DBus.Properties\">"             \
@@ -121,11 +113,12 @@ PA_MODULE_USAGE(
     " <!-- If you are looking for documentation make sure to check out" \
     "      http://live.gnome.org/Rygel/MediaProviderSpec -->"           \
     " <interface name=\"org.Rygel.MediaItem1\">"                        \
-    "  <property name=\"Urls\" type=\"as\" access=\"read\"/>"           \
-    "  <property name=\"MimeType\" type=\"s\" access=\"read\"/>"        \
+    "  <property name=\"URLs\" type=\"as\" access=\"read\"/>"           \
+    "  <property name=\"MIMEType\" type=\"s\" access=\"read\"/>"        \
     "  <property name=\"Type\" type=\"s\" access=\"read\"/>"            \
     " </interface>"                                                     \
     " <interface name=\"org.Rygel.MediaObject1\">"                      \
+    "  <property name=\"Parent\" type=\"s\" access=\"read\"/>"          \
     "  <property name=\"DisplayName\" type=\"s\" access=\"read\"/>"     \
     " </interface>"                                                     \
     " <interface name=\"org.freedesktop.DBus.Properties\">"             \
@@ -234,6 +227,28 @@ static pa_bool_t message_is_property_get_all(DBusMessage *m, const char *interfa
     return pa_streq(i, interface);
 }
 
+static void append_variant_object_array(DBusMessage *m, DBusMessageIter *iter, const char *path[], unsigned n) {
+    DBusMessageIter _iter, variant, array;
+    unsigned c;
+
+    pa_assert(m);
+    pa_assert(path);
+
+    if (!iter) {
+        dbus_message_iter_init_append(m, &_iter);
+        iter = &_iter;
+    }
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, "ao", &variant));
+    pa_assert_se(dbus_message_iter_open_container(&variant, DBUS_TYPE_ARRAY, "o", &array));
+
+    for (c = 0; c < n; c++)
+        pa_assert_se(dbus_message_iter_append_basic(&array, DBUS_TYPE_OBJECT_PATH, path + c));
+
+    pa_assert_se(dbus_message_iter_close_container(&variant, &array));
+    pa_assert_se(dbus_message_iter_close_container(iter, &variant));
+}
+
 static void append_variant_string(DBusMessage *m, DBusMessageIter *iter, const char *s) {
     DBusMessageIter _iter, sub;
 
@@ -247,6 +262,22 @@ static void append_variant_string(DBusMessage *m, DBusMessageIter *iter, const c
 
     pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, "s", &sub));
     pa_assert_se(dbus_message_iter_append_basic(&sub, DBUS_TYPE_STRING, &s));
+    pa_assert_se(dbus_message_iter_close_container(iter, &sub));
+}
+
+static void append_variant_object(DBusMessage *m, DBusMessageIter *iter, const char *s) {
+    DBusMessageIter _iter, sub;
+
+    pa_assert(m);
+    pa_assert(s);
+
+    if (!iter) {
+        dbus_message_iter_init_append(m, &_iter);
+        iter = &_iter;
+    }
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, "o", &sub));
+    pa_assert_se(dbus_message_iter_append_basic(&sub, DBUS_TYPE_OBJECT_PATH, &s));
     pa_assert_se(dbus_message_iter_close_container(iter, &sub));
 }
 
@@ -265,6 +296,17 @@ static void append_variant_unsigned(DBusMessage *m, DBusMessageIter *iter, unsig
     pa_assert_se(dbus_message_iter_close_container(iter, &sub));
 }
 
+static void append_property_dict_entry_object_array(DBusMessage *m, DBusMessageIter *iter, const char *name, const char *path[], unsigned n) {
+    DBusMessageIter sub;
+
+    pa_assert(iter);
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_DICT_ENTRY, NULL, &sub));
+    pa_assert_se(dbus_message_iter_append_basic(&sub, DBUS_TYPE_STRING, &name));
+    append_variant_object_array(m, &sub, path, n);
+    pa_assert_se(dbus_message_iter_close_container(iter, &sub));
+}
+
 static void append_property_dict_entry_string(DBusMessage *m, DBusMessageIter *iter, const char *name, const char *value) {
     DBusMessageIter sub;
 
@@ -273,6 +315,17 @@ static void append_property_dict_entry_string(DBusMessage *m, DBusMessageIter *i
     pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_DICT_ENTRY, NULL, &sub));
     pa_assert_se(dbus_message_iter_append_basic(&sub, DBUS_TYPE_STRING, &name));
     append_variant_string(m, &sub, value);
+    pa_assert_se(dbus_message_iter_close_container(iter, &sub));
+}
+
+static void append_property_dict_entry_object(DBusMessage *m, DBusMessageIter *iter, const char *name, const char *value) {
+    DBusMessageIter sub;
+
+    pa_assert(iter);
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_DICT_ENTRY, NULL, &sub));
+    pa_assert_se(dbus_message_iter_append_basic(&sub, DBUS_TYPE_STRING, &name));
+    append_variant_object(m, &sub, value);
     pa_assert_se(dbus_message_iter_close_container(iter, &sub));
 }
 
@@ -287,39 +340,51 @@ static void append_property_dict_entry_unsigned(DBusMessage *m, DBusMessageIter 
     pa_assert_se(dbus_message_iter_close_container(iter, &sub));
 }
 
+static const char *array_root_containers[] = { OBJECT_SINKS, OBJECT_SOURCES };
+static const char *array_no_children[] = { };
+
 static DBusHandlerResult root_handler(DBusConnection *c, DBusMessage *m, void *userdata) {
     struct userdata *u = userdata;
     DBusMessage *r = NULL;
 
     pa_assert(u);
 
-    if (dbus_message_is_method_call(m, "org.Rygel.MediaContainer1", "GetContainers")) {
-        const char * array[] = { OBJECT_SINKS, OBJECT_SOURCES };
-        const char ** parray = array;
+    if (message_is_property_get(m, "org.Rygel.MediaContainer1", "Containers")) {
+        pa_assert_se(r = dbus_message_new_method_return(m));
+        append_variant_object_array(r, NULL, (const char**) array_root_containers, PA_ELEMENTSOF(array_root_containers));
+
+    } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "ContainerCount")) {
+        pa_assert_se(r = dbus_message_new_method_return(m));
+        append_variant_unsigned(r, NULL, PA_ELEMENTSOF(array_root_containers));
+
+    } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "Items")) {
+        pa_assert_se(r = dbus_message_new_method_return(m));
+        append_variant_object_array(r, NULL, array_no_children, PA_ELEMENTSOF(array_no_children));
+
+    } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "ItemCount")) {
+        pa_assert_se(r = dbus_message_new_method_return(m));
+        append_variant_unsigned(r, NULL, PA_ELEMENTSOF(array_no_children));
+
+    } else if (message_is_property_get_all(m, "org.Rygel.MediaContainer1")) {
+        DBusMessageIter iter, sub;
 
         pa_assert_se(r = dbus_message_new_method_return(m));
-        pa_assert_se(dbus_message_append_args(
-                             r,
-                             DBUS_TYPE_ARRAY, DBUS_TYPE_OBJECT_PATH, &parray, 2,
-                             DBUS_TYPE_INVALID));
+        dbus_message_iter_init_append(r, &iter);
 
-    } else if (dbus_message_is_method_call(m, "org.Rygel.MediaContainer1", "GetItems")) {
-        const char * array[] = { };
-        const char **  parray = array;
+        pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
+        append_property_dict_entry_object_array(r, &sub, "Containers", array_root_containers, PA_ELEMENTSOF(array_root_containers));
+        append_property_dict_entry_unsigned(r, &sub, "ContainerCount", PA_ELEMENTSOF(array_root_containers));
+        append_property_dict_entry_object_array(r, &sub, "Items", array_no_children, PA_ELEMENTSOF(array_no_children));
+        append_property_dict_entry_unsigned(r, &sub, "ItemCount", PA_ELEMENTSOF(array_no_children));
+        pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
+    } else if (message_is_property_get(m, "org.Rygel.MediaObject1", "Parent")) {
         pa_assert_se(r = dbus_message_new_method_return(m));
-        pa_assert_se(dbus_message_append_args(
-                             r,
-                             DBUS_TYPE_ARRAY, DBUS_TYPE_OBJECT_PATH, &parray, 0,
-                             DBUS_TYPE_INVALID));
+        append_variant_object(r, NULL, OBJECT_ROOT);
 
     } else if (message_is_property_get(m, "org.Rygel.MediaObject1", "DisplayName")) {
         pa_assert_se(r = dbus_message_new_method_return(m));
         append_variant_string(r, NULL, u->display_name);
-
-    } else if (message_is_property_get(m, "org.Rygel.MediaObject1", "IconName")) {
-        pa_assert_se(r = dbus_message_new_method_return(m));
-        append_variant_string(r, NULL, "audio-card");
 
     } else if (message_is_property_get_all(m, "org.Rygel.MediaObject1")) {
         DBusMessageIter iter, sub;
@@ -329,26 +394,6 @@ static DBusHandlerResult root_handler(DBusConnection *c, DBusMessage *m, void *u
 
         pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
         append_property_dict_entry_string(r, &sub, "DisplayName", u->display_name);
-        append_property_dict_entry_string(r, &sub, "IconName", "audio-card");
-        pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
-
-    } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "ItemCount")) {
-        pa_assert_se(r = dbus_message_new_method_return(m));
-        append_variant_unsigned(r, NULL, 0);
-
-    } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "ContainerCount")) {
-        pa_assert_se(r = dbus_message_new_method_return(m));
-        append_variant_unsigned(r, NULL, 2);
-
-    } else if (message_is_property_get_all(m, "org.Rygel.MediaContainer1")) {
-        DBusMessageIter iter, sub;
-
-        pa_assert_se(r = dbus_message_new_method_return(m));
-        dbus_message_iter_init_append(r, &iter);
-
-        pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
-        append_property_dict_entry_unsigned(r, &sub, "ItemCount", 0);
-        append_property_dict_entry_unsigned(r, &sub, "ContainerCount", 2);
         pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
     } else if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
@@ -408,6 +453,49 @@ static char *compute_url(struct userdata *u, const char *name) {
     return pa_sprintf_malloc("http://@ADDRESS@:4714/listen/source/%s", name);
 }
 
+static char **child_array(struct userdata *u, const char *path, unsigned *n) {
+    unsigned m;
+    uint32_t idx;
+    char **array;
+
+    pa_assert(u);
+    pa_assert(path);
+    pa_assert(n);
+
+    if (pa_streq(path, OBJECT_SINKS))
+        m = pa_idxset_size(u->core->sinks);
+    else
+        m = pa_idxset_size(u->core->sources);
+
+    array = pa_xnew(char*, m);
+    *n = 0;
+
+    if (pa_streq(path, OBJECT_SINKS)) {
+        pa_sink *sink;
+
+        PA_IDXSET_FOREACH(sink, u->core->sinks, idx)
+            array[(*n)++] = pa_sprintf_malloc(OBJECT_SINKS "/%u", sink->index);
+    } else {
+        pa_source *source;
+
+        PA_IDXSET_FOREACH(source, u->core->sources, idx)
+            if (!source->monitor_of)
+                array[(*n)++] = pa_sprintf_malloc(OBJECT_SOURCES "/%u", source->index);
+    }
+
+    pa_assert((*n) <= m);
+
+    return array;
+}
+
+static void free_child_array(char **array, unsigned n) {
+
+    for (; n >= 1; n--)
+        pa_xfree(array[n-1]);
+
+    pa_xfree(array);
+}
+
 static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessage *m, void *userdata) {
     struct userdata *u = userdata;
     DBusMessage *r = NULL;
@@ -421,59 +509,60 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
 
         /* Container nodes */
 
-        if (dbus_message_is_method_call(m, "org.Rygel.MediaContainer1", "GetContainers")) {
-
-            const char * array[] = { };
-            const char ** parray = array;
-
+        if (message_is_property_get(m, "org.Rygel.MediaContainer1", "Containers")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
-            pa_assert_se(dbus_message_append_args(
-                                 r,
-                                 DBUS_TYPE_ARRAY, DBUS_TYPE_OBJECT_PATH, &parray, 0,
-                                 DBUS_TYPE_INVALID));
+            append_variant_object_array(r, NULL, array_no_children, PA_ELEMENTSOF(array_no_children));
 
-        } else if (dbus_message_is_method_call(m, "org.Rygel.MediaContainer1", "GetItems")) {
-            unsigned n, i = 0;
+        } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "ContainerCount")) {
+            pa_assert_se(r = dbus_message_new_method_return(m));
+            append_variant_unsigned(r, NULL, PA_ELEMENTSOF(array_no_children));
+
+        } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "Items")) {
             char ** array;
-            uint32_t idx;
+            unsigned n;
 
-            if (pa_streq(path, OBJECT_SINKS))
-                n = pa_idxset_size(u->core->sinks);
-            else
-                n = pa_idxset_size(u->core->sources);
-
-            array = pa_xnew(char*, n);
-
-            if (pa_streq(path, OBJECT_SINKS)) {
-                pa_sink *sink;
-
-                PA_IDXSET_FOREACH(sink, u->core->sinks, idx)
-                    array[i++] = pa_sprintf_malloc(OBJECT_SINKS "/%u", sink->index);
-            } else {
-                pa_source *source;
-
-                PA_IDXSET_FOREACH(source, u->core->sources, idx)
-                    if (!source->monitor_of)
-                        array[i++] = pa_sprintf_malloc(OBJECT_SOURCES "/%u", source->index);
-            }
-
-            pa_assert(i <= n);
+            array = child_array(u, path, &n);
 
             pa_assert_se(r = dbus_message_new_method_return(m));
-            pa_assert_se(dbus_message_append_args(
-                                 r,
-                                 DBUS_TYPE_ARRAY, DBUS_TYPE_OBJECT_PATH, &array, i,
-                                 DBUS_TYPE_INVALID));
+            append_variant_object_array(r, NULL, (const char**) array, n);
 
-            for (; i >= 1; i--)
-                pa_xfree(array[i-1]);
+            free_child_array(array, n);
 
-            pa_xfree(array);
+        } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "ItemCount")) {
+            pa_assert_se(r = dbus_message_new_method_return(m));
+            append_variant_unsigned(r, NULL,
+                                    pa_streq(path, OBJECT_SINKS) ?
+                                    pa_idxset_size(u->core->sinks) :
+                                    pa_idxset_size(u->core->sources));
+
+        } else if (message_is_property_get_all(m, "org.Rygel.MediaContainer1")) {
+            DBusMessageIter iter, sub;
+            char **array;
+            unsigned n;
+
+            pa_assert_se(r = dbus_message_new_method_return(m));
+            dbus_message_iter_init_append(r, &iter);
+
+            pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
+            append_property_dict_entry_object_array(r, &sub, "Containers", array_no_children, PA_ELEMENTSOF(array_no_children));
+            append_property_dict_entry_unsigned(r, &sub, "ContainerCount", 0);
+
+            array = child_array(u, path, &n);
+            append_property_dict_entry_object_array(r, &sub, "Items", (const char**) array, n);
+            free_child_array(array, n);
+            append_property_dict_entry_unsigned(r, &sub, "ItemCount",
+                                                pa_streq(path, OBJECT_SINKS) ?
+                                                pa_idxset_size(u->core->sinks) :
+                                                pa_idxset_size(u->core->sources));
+
+            pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
+
+        } else if (message_is_property_get(m, "org.Rygel.MediaObject1", "Parent")) {
+            pa_assert_se(r = dbus_message_new_method_return(m));
+            append_variant_object(r, NULL, OBJECT_ROOT);
 
         } else if (message_is_property_get(m, "org.Rygel.MediaObject1", "DisplayName")) {
-
             pa_assert_se(r = dbus_message_new_method_return(m));
-
             append_variant_string(r,
                                   NULL,
                                   pa_streq(path, OBJECT_SINKS) ?
@@ -488,37 +577,13 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
             dbus_message_iter_init_append(r, &iter);
 
             pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
+            append_property_dict_entry_object(m, &sub, "Parent", OBJECT_ROOT);
             append_property_dict_entry_string(m, &sub, "DisplayName",
                                               pa_streq(path, OBJECT_SINKS) ?
                                               _("Output Devices") :
                                               _("Input Devices"));
             pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
-        } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "ItemCount")) {
-            pa_assert_se(r = dbus_message_new_method_return(m));
-
-            append_variant_unsigned(r, NULL,
-                                    pa_streq(path, OBJECT_SINKS) ?
-                                    pa_idxset_size(u->core->sinks) :
-                                    pa_idxset_size(u->core->sources));
-
-        } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "ContainerCount")) {
-            pa_assert_se(r = dbus_message_new_method_return(m));
-            append_variant_unsigned(r, NULL, 0);
-
-        } else if (message_is_property_get_all(m, "org.Rygel.MediaContainer1")) {
-            DBusMessageIter iter, sub;
-
-            pa_assert_se(r = dbus_message_new_method_return(m));
-            dbus_message_iter_init_append(r, &iter);
-
-            pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
-            append_property_dict_entry_unsigned(r, &sub, "ItemCount",
-                                                pa_streq(path, OBJECT_SINKS) ?
-                                                pa_idxset_size(u->core->sinks) :
-                                                pa_idxset_size(u->core->sources));
-            append_property_dict_entry_unsigned(r, &sub, "ContainerCount", 0);
-            pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
         } else if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
             pa_strbuf *sb;
             char *xml;
@@ -567,15 +632,30 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
         if (!sink && !source)
             return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
-        if (message_is_property_get(m, "org.Rygel.MediaObject1", "DisplayName")) {
+        if (message_is_property_get(m, "org.Rygel.MediaObject1", "Parent")) {
+            pa_assert_se(r = dbus_message_new_method_return(m));
+            append_variant_object(r, NULL, sink ? OBJECT_SINKS : OBJECT_SOURCES);
+
+        } else if (message_is_property_get(m, "org.Rygel.MediaObject1", "DisplayName")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
             append_variant_string(r, NULL, pa_strna(pa_proplist_gets(sink ? sink->proplist : source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+
+        } else if (message_is_property_get_all(m, "org.Rygel.MediaObject1")) {
+            DBusMessageIter iter, sub;
+
+            pa_assert_se(r = dbus_message_new_method_return(m));
+            dbus_message_iter_init_append(r, &iter);
+
+            pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
+            append_property_dict_entry_object(r, &sub, "Parent", sink ? OBJECT_SINKS : OBJECT_SOURCES);
+            append_property_dict_entry_string(r, &sub, "DisplayName", pa_strna(pa_proplist_gets(sink ? sink->proplist : source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+            pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
         } else if (message_is_property_get(m, "org.Rygel.MediaItem1", "Type")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
             append_variant_string(r, NULL, "audio");
 
-        } else if (message_is_property_get(m, "org.Rygel.MediaItem1", "MimeType")) {
+        } else if (message_is_property_get(m, "org.Rygel.MediaItem1", "MIMEType")) {
             char *t;
 
             if (sink)
@@ -587,7 +667,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
             append_variant_string(r, NULL, t);
             pa_xfree(t);
 
-        } else if (message_is_property_get(m, "org.Rygel.MediaItem1", "Urls")) {
+        } else if (message_is_property_get(m, "org.Rygel.MediaItem1", "URLs")) {
             DBusMessageIter iter, sub, array;
             char *url;
 
@@ -605,16 +685,6 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
 
             pa_xfree(url);
 
-        } else if (message_is_property_get_all(m, "org.Rygel.MediaObject1")) {
-            DBusMessageIter iter, sub;
-
-            pa_assert_se(r = dbus_message_new_method_return(m));
-            dbus_message_iter_init_append(r, &iter);
-
-            pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub));
-            append_property_dict_entry_string(r, &sub, "DisplayName", pa_strna(pa_proplist_gets(sink ? sink->proplist : source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
-            pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
-
         } else if (message_is_property_get_all(m, "org.Rygel.MediaItem1")) {
             DBusMessageIter iter, sub, dict, variant, array;
             char *url, *t;
@@ -631,7 +701,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
             else
                 t = pa_sample_spec_to_mime_type_mimefy(&source->sample_spec, &source->channel_map);
 
-            append_property_dict_entry_string(r, &sub, "MimeType", t);
+            append_property_dict_entry_string(r, &sub, "MIMEType", t);
             pa_xfree(t);
 
             pa_assert_se(dbus_message_iter_open_container(&sub, DBUS_TYPE_DICT_ENTRY, NULL, &dict));
