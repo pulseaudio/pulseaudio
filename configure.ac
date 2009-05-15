@@ -608,30 +608,30 @@ AC_ARG_WITH(
         [database],
         AS_HELP_STRING([--with-database=auto|tdb|gdbm],[Choose database backend.]),[],[with_database=auto])
 
-if test "x${with_database}" == "xauto" -o "x${with_database}" == "xtdb" ; then
+if test "x${with_database}" = "xauto" -o "x${with_database}" = "xtdb" ; then
     PKG_CHECK_MODULES(TDB, [ tdb ],
         [
             HAVE_TDB=1
             with_database=tdb
         ], [
-            if test "x${with_database}" == "xtdb" ; then
+            if test "x${with_database}" = "xtdb" ; then
                 AC_MSG_ERROR([*** tdb not found])
             fi
         ])
 fi
 
-if test "x${with_database}" == "xauto" -o "x${with_database}" == "xgdbm" ; then
+if test "x${with_database}" = "xauto" -o "x${with_database}" = "xgdbm" ; then
    have_gdbm=yes
 
    AC_CHECK_LIB(gdbm, gdbm_open, [], [have_gdbm=no])
    AC_CHECK_HEADERS(gdbm.h, [], [have_gdbm=no])
 
-   if test "x${have_gdbm}" == "xyes" ; then
+   if test "x${have_gdbm}" = "xyes" ; then
        HAVE_GDBM=1
        GDBM_CFLAGS=
        GDBM_LIBS=-lgdbm
        with_database=gdbm
-   elif test "x${with_database}" == "xgdbm"; then
+   elif test "x${with_database}" = "xgdbm"; then
        AC_MSG_ERROR([*** gdbm not found])
    fi
 fi
