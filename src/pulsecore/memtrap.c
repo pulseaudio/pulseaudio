@@ -26,6 +26,11 @@
 #include <signal.h>
 #include <sys/mman.h>
 
+/* This is deprecated on glibc but is still used by FreeBSD */
+#if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
+# define MAP_ANONYMOUS MAP_ANON
+#endif
+
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/core-util.h>
