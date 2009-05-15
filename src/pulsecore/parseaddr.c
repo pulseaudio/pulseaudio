@@ -26,6 +26,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
+#include <sys/socket.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
