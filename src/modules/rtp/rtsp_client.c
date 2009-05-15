@@ -30,6 +30,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
+#include <netinet/in.h>
 
 #ifdef HAVE_SYS_FILIO_H
 #include <sys/filio.h>
