@@ -688,7 +688,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
         } else if (message_is_property_get_all(m, "org.Rygel.MediaItem1")) {
             DBusMessageIter iter, sub, dict, variant, array;
             char *url, *t;
-            const char *un = "urls";
+            const char *un = "URLs";
 
             pa_assert_se(r = dbus_message_new_method_return(m));
             dbus_message_iter_init_append(r, &iter);
