@@ -111,6 +111,10 @@ class CVolume(Structure):
     _set_fade.restype = c_void_p
     _set_fade.argtypes = [c_void_p, c_void_p, c_float]
 
+    _to_dB = libpulse.pa_sw_volume_to_dB
+    _to_dB.restype = c_double
+    _to_dB.argytpes = [c_uint32]
+
     def snprint(this):
         s = create_string_buffer(320)
         r = this._snprint(s, len(s), byref(this))
@@ -138,6 +142,12 @@ class CVolume(Structure):
     def set_fade(this, cm, f):
         return this._set_fade(byref(this), byref(cm), f)
 
+    def to_dB(this, channel = None):
+        if channel is None:
+            return this._to_dB(this.max())
+
+        return this._to_dB(this.values[channel])
+
 cm = ChannelMap()
 
 if len(sys.argv) > 1:
@@ -149,7 +159,7 @@ v = CVolume()
 v.channels = cm.channels
 
 for i in range(cm.channels):
-    v.values[i] = 65536/2
+    v.values[i] = 65536
 
 title = cm.to_pretty_name()
 if title is None:
@@ -163,6 +173,7 @@ vbox = gtk.VBox(spacing=6)
 
 channel_labels = {}
 channel_scales = {}
+channel_dB_labels = {}
 
 def update_volume(update_channels = True, update_fade = True, update_balance = True, update_scale = True):
     if update_channels:
@@ -177,6 +188,11 @@ def update_volume(update_channels = True, update_fade = True, update_balance = T
 
     if update_fade:
         fade_scale.set_value(v.get_fade(cm))
+
+    for i in range(cm.channels):
+        channel_dB_labels[i].set_label("%0.2f dB" % v.to_dB(i))
+
+    value_dB_label.set_label("%0.2f dB" % v.to_dB())
 
 def fade_value_changed(fs):
     v.set_fade(cm, fade_scale.get_value())
@@ -200,19 +216,26 @@ for i in range(cm.channels):
     vbox.pack_start(channel_labels[i], expand=False, fill=True)
 
     channel_scales[i] = gtk.HScale()
-    channel_scales[i].set_range(0, 65536)
+    channel_scales[i].set_range(0, 65536*3/2)
     channel_scales[i].set_digits(0)
     channel_scales[i].set_value_pos(gtk.POS_RIGHT)
     vbox.pack_start(channel_scales[i], expand=False, fill=True)
+
+    channel_dB_labels[i] = gtk.Label("-xxx dB")
+    channel_dB_labels[i].set_alignment(1, 1)
+    vbox.pack_start(channel_dB_labels[i], expand=False, fill=True)
 
 value_label = gtk.Label("Value")
 value_label.set_alignment(0, .5)
 vbox.pack_start(value_label, expand=False, fill=True)
 value_scale = gtk.HScale()
-value_scale.set_range(0, 65536)
+value_scale.set_range(0, 65536*3/2)
 value_scale.set_value_pos(gtk.POS_RIGHT)
 value_scale.set_digits(0)
 vbox.pack_start(value_scale, expand=False, fill=True)
+value_dB_label = gtk.Label("-xxx dB")
+value_dB_label.set_alignment(1, 1)
+vbox.pack_start(value_dB_label, expand=False, fill=True)
 
 balance_label = gtk.Label("Balance")
 balance_label.set_alignment(0, .5)
