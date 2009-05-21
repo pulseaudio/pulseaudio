@@ -2235,7 +2235,7 @@ int pa_close_all(int except_fd, ...) {
 
 int pa_close_allv(const int except_fds[]) {
     struct rlimit rl;
-    int fd;
+    int maxfd, fd;
     int saved_errno;
 
 #ifdef __linux__
@@ -2302,10 +2302,12 @@ int pa_close_allv(const int except_fds[]) {
 
 #endif
 
-    if (getrlimit(RLIMIT_NOFILE, &rl) < 0)
-        return -1;
+    if (getrlimit(RLIMIT_NOFILE, &rl) >= 0)
+        maxfd = (int) rl.rlim_max;
+    else
+        maxfd = sysconf(_SC_OPEN_MAX);
 
-    for (fd = 3; fd < (int) rl.rlim_max; fd++) {
+    for (fd = 3; fd < maxfd; fd++) {
         int i;
         pa_bool_t found;
 
