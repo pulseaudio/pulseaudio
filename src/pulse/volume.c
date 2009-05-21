@@ -120,20 +120,28 @@ pa_volume_t pa_sw_volume_divide(pa_volume_t a, pa_volume_t b) {
     return pa_sw_volume_from_linear(pa_sw_volume_to_linear(a) / v);
 }
 
-#define USER_DECIBEL_RANGE 90
+/* Amplitude, not power */
+static double linear_to_dB(double v) {
+    return 20.0 * log10(v);
+}
+
+static double dB_to_linear(double v) {
+    return pow(10.0, v / 20.0);
+}
 
 pa_volume_t pa_sw_volume_from_dB(double dB) {
-    if (isinf(dB) < 0 || dB <= -USER_DECIBEL_RANGE)
+    if (isinf(dB) < 0 || dB <= PA_DECIBEL_MININFTY)
         return PA_VOLUME_MUTED;
 
-    return (pa_volume_t) lrint(ceil((dB/USER_DECIBEL_RANGE+1.0)*PA_VOLUME_NORM));
+    return pa_sw_volume_from_linear(dB_to_linear(dB));
 }
 
 double pa_sw_volume_to_dB(pa_volume_t v) {
-    if (v == PA_VOLUME_MUTED)
+
+    if (v <= PA_VOLUME_MUTED)
         return PA_DECIBEL_MININFTY;
 
-    return ((double) v/PA_VOLUME_NORM-1)*USER_DECIBEL_RANGE;
+    return linear_to_dB(pa_sw_volume_to_linear(v));
 }
 
 pa_volume_t pa_sw_volume_from_linear(double v) {
@@ -141,18 +149,28 @@ pa_volume_t pa_sw_volume_from_linear(double v) {
     if (v <= 0.0)
         return PA_VOLUME_MUTED;
 
-    if (v > .999 && v < 1.001)
-        return PA_VOLUME_NORM;
+    /*
+     * We use a cubic mapping here, as suggested and discussed here:
+     *
+     * http://www.robotplanet.dk/audio/audio_gui_design/
+     * http://lists.linuxaudio.org/pipermail/linux-audio-dev/2009-May/thread.html#23151
+     */
 
-    return pa_sw_volume_from_dB(20.0*log10(v));
+    return (pa_volume_t) (cbrt(v) * PA_VOLUME_NORM);
 }
 
 double pa_sw_volume_to_linear(pa_volume_t v) {
+    double f;
 
-    if (v == PA_VOLUME_MUTED)
+    if (v <= PA_VOLUME_MUTED)
         return 0.0;
 
-    return pow(10.0, pa_sw_volume_to_dB(v)/20.0);
+    if (v == PA_VOLUME_NORM)
+        return 1.0;
+
+    f = ((double) v / PA_VOLUME_NORM);
+
+    return f*f*f;
 }
 
 char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c) {
@@ -225,7 +243,7 @@ char *pa_sw_cvolume_snprint_dB(char *s, size_t l, const pa_cvolume *c) {
         l -= pa_snprintf(e, l, "%s%u: %0.2f dB",
                          first ? "" : " ",
                          channel,
-                         isinf(f) < 0 || f <= -USER_DECIBEL_RANGE ? -INFINITY : f);
+                         isinf(f) < 0 || f <= PA_DECIBEL_MININFTY ? -INFINITY : f);
 
         e = strchr(e, 0);
         first = FALSE;
@@ -249,7 +267,7 @@ char *pa_sw_volume_snprint_dB(char *s, size_t l, pa_volume_t v) {
 
     f = pa_sw_volume_to_dB(v);
     pa_snprintf(s, l, "%0.2f dB",
-                isinf(f) < 0 || f <= -USER_DECIBEL_RANGE ?  -INFINITY : f);
+                isinf(f) < 0 || f <= PA_DECIBEL_MININFTY ?  -INFINITY : f);
 
     return s;
 }
