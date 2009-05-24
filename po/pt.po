@@ -232,12 +232,12 @@ msgstr "Não foi possível processar linha de comando."
 #: ../src/daemon/main.c:486
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
-msgstr ""
+msgstr "Estamos no grupo '%s', permitindo escalonamento de alta-prioridade."
 
 #: ../src/daemon/main.c:493
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
-msgstr ""
+msgstr "Estamos no grupo '%s', permitindo escalonamento em tempo real."
 
 #: ../src/daemon/main.c:501
 msgid "PolicyKit grants us acquire-high-priority privilege."
@@ -265,11 +265,11 @@ msgstr ""
 
 #: ../src/daemon/main.c:566
 msgid "High-priority scheduling enabled in configuration but not allowed by policy."
-msgstr ""
+msgstr "Escalonamento de alta prioridade activo na configuração, mas não permitido pela politica."
 
 #: ../src/daemon/main.c:595
 msgid "Successfully increased RLIMIT_RTPRIO"
-msgstr ""
+msgstr "RLIMIT_RTPRIO aumentado com sucesso"
 
 #: ../src/daemon/main.c:598
 #, c-format
@@ -282,7 +282,7 @@ msgstr "A desistir de CAP_NICE"
 
 #: ../src/daemon/main.c:612
 msgid "Real-time scheduling enabled in configuration but not allowed by policy."
-msgstr ""
+msgstr "Escalonamento em tempo real activo na configuração, mas não permitido pela politica."
 
 #: ../src/daemon/main.c:673
 msgid "Daemon not running"
@@ -312,19 +312,19 @@ msgstr "--start não é suportado para instâncias do sistema."
 
 #: ../src/daemon/main.c:715
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr ""
+msgstr "A executar em modo de sistema, mas --disallow-exit não está definido!"
 
 #: ../src/daemon/main.c:718
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr ""
+msgstr "A executar em modo de sistema, mas --disallow-module-loading não está definido!"
 
 #: ../src/daemon/main.c:721
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr ""
+msgstr "A executar em modo de sistema, a forçar a desactivação do modo SHM!"
 
 #: ../src/daemon/main.c:726
 msgid "Running in system mode, forcibly disabling exit idle time!"
-msgstr ""
+msgstr "A executar em modo de sistema, a forçar a desactivação da saída por inactividade!"
 
 #: ../src/daemon/main.c:753
 msgid "Failed to acquire stdio."
@@ -398,7 +398,7 @@ msgstr "A executar em modo \"valgrind\": %s"
 
 #: ../src/daemon/main.c:877
 msgid "Optimized build: yes"
-msgstr ""
+msgstr "Optimizado: sim"
 
 #: ../src/daemon/main.c:879
 msgid "Optimized build: no"
@@ -450,7 +450,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:936
 msgid "Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!"
-msgstr ""
+msgstr "Oh pá, o teu kernel não presta! O prato do dia recomendado é Linux com timers de alta resolução activos!"
 
 #: ../src/daemon/main.c:948
 msgid "pa_core_new() failed."
@@ -462,15 +462,15 @@ msgstr "Falha ao inicializar serviço."
 
 #: ../src/daemon/main.c:1015
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr ""
+msgstr "Serviço arrancou sem módulos carregados. A recusar trabalhar."
 
 #: ../src/daemon/main.c:1032
 msgid "Daemon startup complete."
-msgstr ""
+msgstr "Arranque do serviço completo."
 
 #: ../src/daemon/main.c:1038
 msgid "Daemon shutdown initiated."
-msgstr ""
+msgstr "Encerramento do serviço iniciado."
 
 #: ../src/daemon/main.c:1056
 msgid "Daemon terminated."
@@ -539,11 +539,11 @@ msgstr ""
 
 #: ../src/daemon/cmdline.c:252
 msgid "--daemonize expects boolean argument"
-msgstr ""
+msgstr "--daemonize espera argumento booleano"
 
 #: ../src/daemon/cmdline.c:259
 msgid "--fail expects boolean argument"
-msgstr ""
+msgstr "--fail espera argumento booleano"
 
 #: ../src/daemon/cmdline.c:269
 msgid "--log-level expects log level argument (either numeric in range 0..4 or one of debug, info, notice, warn, error)."
@@ -551,35 +551,35 @@ msgstr ""
 
 #: ../src/daemon/cmdline.c:281
 msgid "--high-priority expects boolean argument"
-msgstr ""
+msgstr "--high-priority espera argumento booleano"
 
 #: ../src/daemon/cmdline.c:288
 msgid "--realtime expects boolean argument"
-msgstr ""
+msgstr "--realtime espera argumento booleano"
 
 #: ../src/daemon/cmdline.c:295
 msgid "--disallow-module-loading expects boolean argument"
-msgstr ""
+msgstr "--disallow-module-loading espera argumento booleano"
 
 #: ../src/daemon/cmdline.c:302
 msgid "--disallow-exit expects boolean argument"
-msgstr ""
+msgstr "--disallow-exit espera argumento booleano"
 
 #: ../src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
-msgstr ""
+msgstr "--use-pid-file espera argumento booleano"
 
 #: ../src/daemon/cmdline.c:326
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
-msgstr ""
+msgstr "Destino de ficheiro de registo inválido: utilize 'syslog', 'stderr' ou 'auto'."
 
 #: ../src/daemon/cmdline.c:333
 msgid "--log-time expects boolean argument"
-msgstr ""
+msgstr "--log-time espera argumento booleano"
 
 #: ../src/daemon/cmdline.c:340
 msgid "--log-meta expects boolean argument"
-msgstr ""
+msgstr "--log-meta espera argumento booleano"
 
 #: ../src/daemon/cmdline.c:359
 #, c-format
@@ -588,15 +588,15 @@ msgstr ""
 
 #: ../src/daemon/cmdline.c:366
 msgid "--system expects boolean argument"
-msgstr ""
+msgstr "--system espera argumento booleano"
 
 #: ../src/daemon/cmdline.c:373
 msgid "--no-cpu-limit expects boolean argument"
-msgstr ""
+msgstr "--no-cpu-limit espera argumento booleano"
 
 #: ../src/daemon/cmdline.c:380
 msgid "--disable-shm expects boolean argument"
-msgstr ""
+msgstr "--disable-shm espera argumento booleano"
 
 #: ../src/daemon/dumpmodules.c:60
 #, c-format
@@ -714,7 +714,7 @@ msgstr "### Ler configuração a partir do ficheiro: %s ###\n"
 
 #: ../src/daemon/caps.c:63
 msgid "Dropping root privileges."
-msgstr ""
+msgstr "A largar privilégios de root."
 
 #: ../src/daemon/caps.c:103
 msgid "Limited capabilities successfully to CAP_SYS_NICE."
@@ -1788,6 +1788,9 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pactl %s\n"
+"Compilado com libpulse %s\n"
+"Linkado com libpulse %s\n"
 
 #: ../src/utils/pactl.c:865
 #, c-format
@@ -1995,6 +1998,9 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"paplay %s\n"
+"Compilado com libpulse %s\n"
+"Linkado com libpulse %s\n"
 
 #: ../src/utils/paplay.c:292
 #, c-format
@@ -2014,7 +2020,7 @@ msgstr ""
 #: ../src/utils/paplay.c:376
 #, c-format
 msgid "Using sample spec '%s'\n"
-msgstr ""
+msgstr "Utilizando especificação da amostra '%s'\n"
 
 #: ../src/pulsecore/lock-autospawn.c:126
 #: ../src/pulsecore/lock-autospawn.c:207
@@ -2029,6 +2035,9 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.\n"
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail."
 msgstr ""
+"ALSA acordou-nos para escrever novos dados para o dispositivo, mas não havia nada para escrever!\n"
+"Provavelmente isto é um erro no driver ALSA '%s'. Por favor, reporte este problema aos programadores do ALSA.\n"
+"Fomos acordados pelo conjunto POLLOUT -- contudo uma chamada a seguir de snd_pcm_avail() retornou 0 ou outro valor < min_avail."
 
 #: ../src/modules/alsa/alsa-source.c:377
 #: ../src/modules/alsa/alsa-source.c:510
@@ -2038,6 +2047,9 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.\n"
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail."
 msgstr ""
+"ALSA acordou-nos para ler novos dados do dispositivo, mas não havia nada para ler!\n"
+"Provavelmente isto é um erro no driver ALSA '%s'. Por favor, reporte este problema aos programadores do ALSA.\n"
+"Fomos acordados pelo conjunto POLLIN -- contudo uma chamada a seguir de snd_pcm_avail() retornou 0 ou outro valor < min_avail."
 
 #: ../src/modules/alsa/module-alsa-card.c:114
 #, c-format
