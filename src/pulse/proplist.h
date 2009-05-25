@@ -39,6 +39,12 @@ PA_C_DECL_BEGIN
 /** For streams: localized media artist if applicable, formatted as UTF-8. e.g. "Guns'N'Roses" */
 #define PA_PROP_MEDIA_ARTIST                   "media.artist"
 
+/** For streams: localized media copyright string if applicable, formatted as UTF-8. e.g. "Evil Record Corp." */
+#define PA_PROP_MEDIA_COPYRIGHT                "media.copyright"
+
+/** For streams: localized media generator software string if applicable, formatted as UTF-8. e.g. "Foocrop AudioFrobnicator" */
+#define PA_PROP_MEDIA_SOFTWARE                 "media.software"
+
 /** For streams: media language if applicable, in standard POSIX format. e.g. "de_DE" */
 #define PA_PROP_MEDIA_LANGUAGE                 "media.language"
 
