@@ -41,6 +41,7 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/sample-util.h>
+#include <pulsecore/sndfile-util.h>
 
 #include "sound-file-stream.h"
 
@@ -234,10 +235,11 @@ int pa_play_file(
         const pa_cvolume *volume) {
 
     file_stream *u = NULL;
-    SF_INFO sfinfo;
     pa_sample_spec ss;
+    pa_channel_map cm;
     pa_sink_input_new_data data;
     int fd;
+    SF_INFO sfi;
 
     pa_assert(sink);
     pa_assert(fname);
@@ -250,8 +252,6 @@ int pa_play_file(
     u->sndfile = NULL;
     u->readf_function = NULL;
     u->memblockq = NULL;
-
-    memset(&sfinfo, 0, sizeof(sfinfo));
 
     if ((fd = open(fname, O_RDONLY
 #ifdef O_NOCTTY
@@ -281,50 +281,36 @@ int pa_play_file(
         pa_log_debug("POSIX_FADV_WILLNEED succeeded.");
 #endif
 
-    if (!(u->sndfile = sf_open_fd(fd, SFM_READ, &sfinfo, 1))) {
+    pa_zero(sfi);
+    if (!(u->sndfile = sf_open_fd(fd, SFM_READ, &sfi, 1))) {
         pa_log("Failed to open file %s", fname);
-        pa_close(fd);
         goto fail;
     }
 
-    switch (sfinfo.format & 0xFF) {
-        case SF_FORMAT_PCM_16:
-        case SF_FORMAT_PCM_U8:
-        case SF_FORMAT_PCM_S8:
-            ss.format = PA_SAMPLE_S16NE;
-            u->readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_short;
-            break;
+    fd = -1;
 
-        case SF_FORMAT_ULAW:
-            ss.format = PA_SAMPLE_ULAW;
-            break;
-
-        case SF_FORMAT_ALAW:
-            ss.format = PA_SAMPLE_ALAW;
-            break;
-
-        case SF_FORMAT_FLOAT:
-        default:
-            ss.format = PA_SAMPLE_FLOAT32NE;
-            u->readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_float;
-            break;
-    }
-
-    ss.rate = (uint32_t) sfinfo.samplerate;
-    ss.channels = (uint8_t) sfinfo.channels;
-
-    if (!pa_sample_spec_valid(&ss)) {
-        pa_log("Unsupported sample format in file %s", fname);
+    if (pa_sndfile_read_sample_spec(u->sndfile, &ss) < 0) {
+        pa_log("Failed to determine file sample format.");
         goto fail;
     }
+
+    if (pa_sndfile_read_channel_map(u->sndfile, &cm) < 0) {
+        if (ss.channels > 2)
+            pa_log_info("Failed to determine file channel map, synthesizing one.");
+        pa_channel_map_init_extend(&cm, ss.channels, PA_CHANNEL_MAP_DEFAULT);
+    }
+
+    u->readf_function = pa_sndfile_readf_function(&ss);
 
     pa_sink_input_new_data_init(&data);
     data.sink = sink;
     data.driver = __FILE__;
     pa_sink_input_new_data_set_sample_spec(&data, &ss);
+    pa_sink_input_new_data_set_channel_map(&data, &cm);
     pa_sink_input_new_data_set_volume(&data, volume);
     pa_proplist_sets(data.proplist, PA_PROP_MEDIA_NAME, pa_path_get_filename(fname));
     pa_proplist_sets(data.proplist, PA_PROP_MEDIA_FILENAME, fname);
+    pa_sndfile_init_proplist(u->sndfile, data.proplist);
 
     pa_sink_input_new(&u->sink_input, sink->core, &data, 0);
     pa_sink_input_new_data_done(&data);
@@ -351,6 +337,9 @@ int pa_play_file(
 fail:
     if (u)
         file_stream_unref(u);
+
+    if (fd >= 0)
+        pa_close(fd);
 
     return -1;
 }

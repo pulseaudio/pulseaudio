@@ -38,11 +38,13 @@
 #include <pulse/xmalloc.h>
 #include <pulse/i18n.h>
 
+#include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/pid.h>
 
 int main(int argc, char*argv[]) {
+
     pid_t pid ;
     int fd = -1;
     int ret = 1, i;
@@ -56,7 +58,7 @@ int main(int argc, char*argv[]) {
     bindtextdomain(GETTEXT_PACKAGE, PULSE_LOCALEDIR);
 
     if (pa_pid_file_check_running(&pid, "pulseaudio") < 0) {
-        pa_log("No PulseAudio daemon running, or not running as session daemon.");
+        pa_log(_("No PulseAudio daemon running, or not running as session daemon."));
         goto fail;
     }
 
@@ -65,7 +67,7 @@ int main(int argc, char*argv[]) {
         goto fail;
     }
 
-    memset(&sa, 0, sizeof(sa));
+    pa_zero(sa);
     sa.sun_family = AF_UNIX;
 
     if (!(cli = pa_runtime_path("cli")))
@@ -147,9 +149,9 @@ int main(int argc, char*argv[]) {
 
         if (FD_ISSET(0, &ifds)) {
             ssize_t r;
-            assert(!ibuf_length);
+            pa_assert(!ibuf_length);
 
-            if ((r = read(0, ibuf, sizeof(ibuf))) <= 0) {
+            if ((r = pa_read(0, ibuf, sizeof(ibuf), NULL)) <= 0) {
                 if (r < 0) {
                     pa_log(_("read(): %s"), strerror(errno));
                     goto fail;
@@ -164,9 +166,9 @@ int main(int argc, char*argv[]) {
 
         if (FD_ISSET(fd, &ifds)) {
             ssize_t r;
-            assert(!obuf_length);
+            pa_assert(!obuf_length);
 
-            if ((r = read(fd, obuf, sizeof(obuf))) <= 0) {
+            if ((r = pa_read(fd, obuf, sizeof(obuf), NULL)) <= 0) {
                 if (r < 0) {
                     pa_log(_("read(): %s"), strerror(errno));
                     goto fail;
@@ -181,9 +183,9 @@ int main(int argc, char*argv[]) {
 
         if (FD_ISSET(1, &ofds)) {
             ssize_t r;
-            assert(obuf_length);
+            pa_assert(obuf_length);
 
-            if ((r = write(1, obuf + obuf_index, obuf_length)) < 0) {
+            if ((r = pa_write(1, obuf + obuf_index, obuf_length, NULL)) < 0) {
                 pa_log(_("write(): %s"), strerror(errno));
                 goto fail;
             }
@@ -195,9 +197,9 @@ int main(int argc, char*argv[]) {
 
         if (FD_ISSET(fd, &ofds)) {
             ssize_t r;
-            assert(ibuf_length);
+            pa_assert(ibuf_length);
 
-            if ((r = write(fd, ibuf + ibuf_index, ibuf_length)) < 0) {
+            if ((r = pa_write(fd, ibuf + ibuf_index, ibuf_length, NULL)) < 0) {
                 pa_log(_("write(): %s"), strerror(errno));
                 goto fail;
             }
@@ -207,14 +209,14 @@ int main(int argc, char*argv[]) {
         }
 
         if (ibuf_length <= 0 && ibuf_eof && !ibuf_closed) {
-            close(0);
+            pa_close(0);
             shutdown(fd, SHUT_WR);
             ibuf_closed = TRUE;
         }
 
         if (obuf_length <= 0 && obuf_eof && !obuf_closed) {
             shutdown(fd, SHUT_RD);
-            close(1);
+            pa_close(1);
             obuf_closed = TRUE;
         }
     }

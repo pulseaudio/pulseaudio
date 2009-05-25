@@ -177,7 +177,6 @@ endif
 bin_PROGRAMS += \
 		pacat \
 		pactl \
-		paplay \
 		pasuspender
 
 if HAVE_AF_UNIX
@@ -195,14 +194,9 @@ endif
 bin_SCRIPTS = esdcompat start-pulseaudio-x11
 
 pacat_SOURCES = utils/pacat.c
-pacat_LDADD = $(AM_LDADD) libpulse.la
-pacat_CFLAGS = $(AM_CFLAGS)
+pacat_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@.la $(LIBSNDFILE_LIBS)
+pacat_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
 pacat_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
-
-paplay_SOURCES = utils/paplay.c
-paplay_LDADD = $(AM_LDADD) libpulse.la $(LIBSNDFILE_LIBS)
-paplay_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
-paplay_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pactl_SOURCES = utils/pactl.c
 pactl_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@.la $(LIBSNDFILE_LIBS)
@@ -210,8 +204,8 @@ pactl_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
 pactl_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pasuspender_SOURCES = utils/pasuspender.c
-pasuspender_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@.la $(LIBSNDFILE_LIBS)
-pasuspender_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
+pasuspender_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@.la
+pasuspender_CFLAGS = $(AM_CFLAGS)
 pasuspender_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pacmd_SOURCES = utils/pacmd.c
@@ -225,7 +219,7 @@ pax11publish_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@
 pax11publish_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pabrowse_SOURCES = utils/pabrowse.c
-pabrowse_LDADD = $(AM_LDADD) libpulse.la libpulse-browse.la
+pabrowse_LDADD = $(AM_LDADD) libpulse.la libpulse-browse.la libpulsecommon-@PA_MAJORMINORMICRO@.la
 pabrowse_CFLAGS = $(AM_CFLAGS)
 pabrowse_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
@@ -603,11 +597,12 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/tagstruct.c pulsecore/tagstruct.h \
 		pulsecore/time-smoother.c pulsecore/time-smoother.h \
 		pulsecore/tokenizer.c pulsecore/tokenizer.h \
+		pulsecore/sndfile-util.c pulsecore/sndfile-util.h \
 		pulsecore/winsock.h
 
 libpulsecommon_@PA_MAJORMINORMICRO@_la_CFLAGS = $(AM_CFLAGS)
 libpulsecommon_@PA_MAJORMINORMICRO@_la_LDFLAGS = $(AM_LDFLAGS) -avoid-version
-libpulsecommon_@PA_MAJORMINORMICRO@_la_LIBADD = $(AM_LIBADD) $(LIBWRAP_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV)
+libpulsecommon_@PA_MAJORMINORMICRO@_la_LIBADD = $(AM_LIBADD) $(LIBWRAP_LIBS) $(WINSOCK_LIBS) $(LTLIBICONV) $(LIBSNDFILE_LIBS)
 
 # proplist-util.h uses these header files, but not the library itself!
 libpulsecommon_@PA_MAJORMINORMICRO@_la_CFLAGS += $(GLIB20_CFLAGS) $(GTK20_CFLAGS)
@@ -821,9 +816,9 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/time-smoother.c pulsecore/time-smoother.h \
 		pulsecore/database.h
 
-libpulsecore_@PA_MAJORMINORMICRO@_la_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+libpulsecore_@PA_MAJORMINORMICRO@_la_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSPEEX_CFLAGS) $(WINSOCK_CFLAGS) $(LIBOIL_CFLAGS)
 libpulsecore_@PA_MAJORMINORMICRO@_la_LDFLAGS = -avoid-version
-libpulsecore_@PA_MAJORMINORMICRO@_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(LIBSPEEX_LIBS) $(WINSOCK_LIBS) $(LIBOIL_LIBS) $(LTLIBICONV) libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la libpulsecore-foreign.la
+libpulsecore_@PA_MAJORMINORMICRO@_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSPEEX_LIBS) $(WINSOCK_LIBS) $(LIBOIL_LIBS) $(LTLIBICONV) libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la libpulsecore-foreign.la
 
 if HAVE_X11
 libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/x11wrap.c pulsecore/x11wrap.h
@@ -1643,11 +1638,17 @@ install-exec-hook:
 	chmod u+s $(DESTDIR)$(bindir)/pulseaudio
 	-chmod u+s $(DESTDIR)$(pulselibexecdir)/proximity-helper
 	ln -sf pacat $(DESTDIR)$(bindir)/parec
+	ln -sf pacat $(DESTDIR)$(bindir)/pamon
+	ln -sf pacat $(DESTDIR)$(bindir)/paplay
+	ln -sf pacat $(DESTDIR)$(bindir)/parecord
 	rm -f $(DESTDIR)$(libdir)/libpulsedsp.la
 	rm -f $(DESTDIR)$(modlibexecdir)/*.la
 
 uninstall-hook:
 	rm -f $(DESTDIR)$(bindir)/parec
+	rm -f $(DESTDIR)$(bindir)/pamon
+	rm -f $(DESTDIR)$(bindir)/paplay
+	rm -f $(DESTDIR)$(bindir)/parecord
 	rm -f $(DESTDIR)$(libdir)/libpulsedsp.*
 	rm -f $(DESTDIR)$(modlibexecdir)/*.so
 
