@@ -852,3 +852,15 @@ int pa_channel_map_has_position(const pa_channel_map *map, pa_channel_position_t
 
     return 0;
 }
+
+pa_channel_position_mask_t pa_channel_map_mask(const pa_channel_map *map) {
+    unsigned c;
+    pa_channel_position_mask_t r = 0;
+
+    pa_return_val_if_fail(pa_channel_map_valid(map), 0);
+
+    for (c = 0; c < map->channels; c++)
+        r |= PA_CHANNEL_POSITION_MASK(map->map[c]);
+
+    return r;
+}

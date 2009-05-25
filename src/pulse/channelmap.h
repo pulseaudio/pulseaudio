@@ -205,6 +205,12 @@ typedef enum pa_channel_position {
 #define PA_CHANNEL_POSITION_MAX PA_CHANNEL_POSITION_MAX
 /** \endcond */
 
+/** A mask of channel positions. \since 0.9.16 */
+typedef uint64_t pa_channel_position_mask_t;
+
+/** Makes a bit mask from a channel position. \since 0.9.16 */
+#define PA_CHANNEL_POSITION_MASK(f) ((pa_channel_position_mask_t) (1 << (f)))
+
 /** A list of channel mapping definitions for pa_channel_map_init_auto() */
 typedef enum pa_channel_map_def {
     PA_CHANNEL_MAP_AIFF,
@@ -332,6 +338,9 @@ const char* pa_channel_map_to_pretty_name(const pa_channel_map *map) PA_GCC_PURE
 /** Returns TRUE if the specified channel position is available at
  * least once in the channel map. \since 0.9.16 */
 int pa_channel_map_has_position(const pa_channel_map *map, pa_channel_position_t p) PA_GCC_PURE;
+
+/** Generates a bit mask from a channel map. \since 0.9.16 */
+pa_channel_position_mask_t pa_channel_map_mask(const pa_channel_map *map) PA_GCC_PURE;
 
 PA_C_DECL_END
 
