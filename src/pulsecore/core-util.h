@@ -227,4 +227,6 @@ char *pa_unescape(char *p);
 
 char *pa_realpath(const char *path);
 
+void pa_disable_sigpipe(void);
+
 #endif

@@ -946,9 +946,7 @@ int main(int argc, char *argv[]) {
         valid_pid_file = TRUE;
     }
 
-#ifdef SIGPIPE
-    signal(SIGPIPE, SIG_IGN);
-#endif
+    pa_disable_sigpipe();
 
     if (pa_rtclock_hrtimer())
         pa_log_info(_("Fresh high-resolution timers available! Bon appetit!"));

@@ -30,6 +30,8 @@
 #include <pulse/pulseaudio.h>
 #include <pulse/browser.h>
 
+#include <pulsecore/core-util.h>
+
 static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
     fprintf(stderr, "Got signal, exiting\n");
     m->quit(m, 0);
@@ -127,7 +129,7 @@ int main(int argc, char *argv[]) {
     assert(r == 0);
     pa_signal_new(SIGINT, exit_signal_callback, NULL);
     pa_signal_new(SIGTERM, exit_signal_callback, NULL);
-    signal(SIGPIPE, SIG_IGN);
+    pa_disable_sigpipe();
 
     if (!(browser = pa_browser_new_full(pa_mainloop_get_api(mainloop), PA_BROWSE_FOR_SERVERS|PA_BROWSE_FOR_SINKS|PA_BROWSE_FOR_SOURCES, &s))) {
         fprintf(stderr, "pa_browse_new_full(): %s\n", s);

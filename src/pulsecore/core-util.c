@@ -2711,3 +2711,24 @@ char *pa_realpath(const char *path) {
 
     return t;
 }
+
+void pa_disable_sigpipe(void) {
+
+#ifdef SIGPIPE
+    struct sigaction sa;
+
+    pa_zero(sa);
+
+    if (sigaction(SIGPIPE, NULL, &sa) < 0) {
+        pa_log("sigaction(): %s", pa_cstrerror(errno));
+        return;
+    }
+
+    sa.sa_handler = SIG_IGN;
+
+    if (sigaction(SIGPIPE, &sa, NULL) < 0) {
+        pa_log("sigaction(): %s", pa_cstrerror(errno));
+        return;
+    }
+#endif
+}
