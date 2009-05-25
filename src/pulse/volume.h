@@ -178,8 +178,22 @@ char *pa_sw_volume_snprint_dB(char *s, size_t l, pa_volume_t v);
 /** Return the average volume of all channels */
 pa_volume_t pa_cvolume_avg(const pa_cvolume *a) PA_GCC_PURE;
 
+/** Return the average volume of all channels that are included in the
+ * specified channel map with the specified channel position mask. If
+ * cm is NULL this call is identical to pa_cvolume_avg(). If no
+ * channel is selected the returned value will be
+ * PA_VOLUME_MUTED. \since 0.9.16 */
+pa_volume_t pa_cvolume_avg_mask(const pa_cvolume *a, const pa_channel_map *cm, pa_channel_position_mask_t mask) PA_GCC_PURE;
+
 /** Return the maximum volume of all channels. \since 0.9.12 */
 pa_volume_t pa_cvolume_max(const pa_cvolume *a) PA_GCC_PURE;
+
+/** Return the maximum volume of all channels that are included in the
+ * specified channel map with the specified channel position mask. If
+ * cm is NULL this call is identical to pa_cvolume_max(). If no
+ * channel is selected the returned value will be PA_VOLUME_MUTED.
+ * \since 0.9.16 */
+pa_volume_t pa_cvolume_max_mask(const pa_cvolume *a, const pa_channel_map *cm, pa_channel_position_mask_t mask) PA_GCC_PURE;
 
 /** Return TRUE when the passed cvolume structure is valid, FALSE otherwise */
 int pa_cvolume_valid(const pa_cvolume *v) PA_GCC_PURE;
@@ -283,6 +297,12 @@ pa_cvolume* pa_cvolume_set_fade(pa_cvolume *v, const pa_channel_map *map, float 
  * volumes are kept. \since 0.9.15 */
 pa_cvolume* pa_cvolume_scale(pa_cvolume *v, pa_volume_t max);
 
+/** Scale the passed pa_cvolume structure so that the maximum volume
+ * of all channels selected via cm/mask equals max. This also modifies
+ * the volume of those channels that are unmasked. The proportions
+ * between the channel volumes are kept. \since 0.9.16 */
+pa_cvolume* pa_cvolume_scale_mask(pa_cvolume *v, pa_volume_t max, pa_channel_map *cm, pa_channel_position_mask_t mask);
+
 /** Set the passed volume to all channels at the specified channel
  * position. Will return the updated volume struct, or NULL if there
  * is no channel at the position specified. You can check if a channel
@@ -294,7 +314,7 @@ pa_cvolume* pa_cvolume_set_position(pa_cvolume *cv, const pa_channel_map *map, p
  * position. Will return 0 if there is no channel at the position
  * specified. You can check if a channel map includes a specific
  * position by calling pa_channel_map_has_position(). \since 0.9.16 */
-pa_volume_t pa_cvolume_get_position(pa_cvolume *cv, const pa_channel_map *map, pa_channel_position_t t);
+pa_volume_t pa_cvolume_get_position(pa_cvolume *cv, const pa_channel_map *map, pa_channel_position_t t) PA_GCC_PURE;
 
 PA_C_DECL_END
 

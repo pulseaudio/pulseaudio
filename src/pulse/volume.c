@@ -80,29 +80,78 @@ pa_cvolume* pa_cvolume_set(pa_cvolume *a, unsigned channels, pa_volume_t v) {
 
 pa_volume_t pa_cvolume_avg(const pa_cvolume *a) {
     uint64_t sum = 0;
-    int i;
+    unsigned c;
 
     pa_assert(a);
     pa_return_val_if_fail(pa_cvolume_valid(a), PA_VOLUME_MUTED);
 
-    for (i = 0; i < a->channels; i++)
-        sum += a->values[i];
+    for (c = 0; c < a->channels; c++)
+        sum += a->values[c];
 
     sum /= a->channels;
 
     return (pa_volume_t) sum;
 }
 
+pa_volume_t pa_cvolume_avg_mask(const pa_cvolume *a, const pa_channel_map *cm, pa_channel_position_mask_t mask) {
+    uint64_t sum = 0;
+    unsigned c, n;
+
+    pa_assert(a);
+
+    if (!cm)
+        return pa_cvolume_avg(a);
+
+    pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(a, cm), PA_VOLUME_MUTED);
+
+    for (c = n = 0; c < a->channels; c++) {
+
+        if (!(PA_CHANNEL_POSITION_MASK(cm->map[c]) & mask))
+            continue;
+
+        sum += a->values[c];
+        n ++;
+    }
+
+    if (n > 0)
+        sum /= n;
+
+    return (pa_volume_t) sum;
+}
+
 pa_volume_t pa_cvolume_max(const pa_cvolume *a) {
     pa_volume_t m = 0;
-    int i;
+    unsigned c;
 
     pa_assert(a);
     pa_return_val_if_fail(pa_cvolume_valid(a), PA_VOLUME_MUTED);
 
-    for (i = 0; i < a->channels; i++)
-        if (a->values[i] > m)
-            m = a->values[i];
+    for (c = 0; c < a->channels; c++)
+        if (a->values[c] > m)
+            m = a->values[c];
+
+    return m;
+}
+
+pa_volume_t pa_cvolume_max_mask(const pa_cvolume *a, const pa_channel_map *cm, pa_channel_position_mask_t mask) {
+    pa_volume_t m = 0;
+    unsigned c, n;
+
+    pa_assert(a);
+
+    if (!cm)
+        return pa_cvolume_max(a);
+
+    pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(a, cm), PA_VOLUME_MUTED);
+
+    for (c = n = 0; c < a->channels; c++) {
+
+        if (!(PA_CHANNEL_POSITION_MASK(cm->map[c]) & mask))
+            continue;
+
+        if (a->values[c] > m)
+            m = a->values[c];
+    }
 
     return m;
 }
@@ -590,11 +639,29 @@ pa_cvolume* pa_cvolume_scale(pa_cvolume *v, pa_volume_t max) {
     pa_return_val_if_fail(pa_cvolume_valid(v), NULL);
     pa_return_val_if_fail(max != (pa_volume_t) -1, NULL);
 
-    for (c = 0; c < v->channels; c++)
-        if (v->values[c] > t)
-            t = v->values[c];
+    t = pa_cvolume_max(v);
 
-    if (t <= 0)
+    if (t <= PA_VOLUME_MUTED)
+        return pa_cvolume_set(v, v->channels, max);
+
+    for (c = 0; c < v->channels; c++)
+        v->values[c] = (pa_volume_t) (((uint64_t)  v->values[c] * (uint64_t) max) / (uint64_t) t);
+
+    return v;
+}
+
+pa_cvolume* pa_cvolume_scale_mask(pa_cvolume *v, pa_volume_t max, pa_channel_map *cm, pa_channel_position_mask_t mask) {
+    unsigned c;
+    pa_volume_t t = 0;
+
+    pa_assert(v);
+
+    pa_return_val_if_fail(pa_cvolume_valid(v), NULL);
+    pa_return_val_if_fail(max != (pa_volume_t) -1, NULL);
+
+    t = pa_cvolume_max_mask(v, cm, mask);
+
+    if (t <= PA_VOLUME_MUTED)
         return pa_cvolume_set(v, v->channels, max);
 
     for (c = 0; c < v->channels; c++)
