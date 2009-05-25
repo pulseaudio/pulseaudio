@@ -57,18 +57,18 @@ PA_MODULE_USAGE(
 
 /* This implements http://live.gnome.org/Rygel/MediaServerSpec */
 
-#define SERVICE_NAME "org.Rygel.MediaServer1.PulseAudio"
+#define SERVICE_NAME "org.gnome.UPnP.MediaServer1.PulseAudio"
 
-#define OBJECT_ROOT "/org/Rygel/MediaServer1/PulseAudio"
-#define OBJECT_SINKS "/org/Rygel/MediaServer1/PulseAudio/Sinks"
-#define OBJECT_SOURCES "/org/Rygel/MediaServer1/PulseAudio/Sources"
+#define OBJECT_ROOT "/org/gnome/UPnP/MediaServer1/PulseAudio"
+#define OBJECT_SINKS "/org/gnome/UPnP/MediaServer1/PulseAudio/Sinks"
+#define OBJECT_SOURCES "/org/gnome/UPnP/MediaServer1/PulseAudio/Sources"
 
 #define CONTAINER_INTROSPECT_XML_PREFIX                                 \
     DBUS_INTROSPECT_1_0_XML_DOCTYPE_DECL_NODE                           \
     "<node>"                                                            \
     " <!-- If you are looking for documentation make sure to check out" \
     "      http://live.gnome.org/Rygel/MediaServerSpec -->"             \
-    " <interface name=\"org.Rygel.MediaContainer1\">"                   \
+    " <interface name=\"org.gnome.UPnP.MediaContainer1\">"              \
     "  <signal name=\"Updated\">"                                       \
     "   <arg name=\"path\" type=\"o\"/>"                                \
     "  </signal>"                                                       \
@@ -77,7 +77,7 @@ PA_MODULE_USAGE(
     "  <property name=\"Containers\" type=\"ao\" access=\"read\"/>"     \
     "  <property name=\"ContainerCount\" type=\"u\" access=\"read\"/>"  \
     " </interface>"                                                     \
-    " <interface name=\"org.Rygel.MediaObject1\">"                      \
+    " <interface name=\"org.gnome.UPnP.MediaObject1\">"                 \
     "  <property name=\"Parent\" type=\"s\" access=\"read\"/>"          \
     "  <property name=\"DisplayName\" type=\"s\" access=\"read\"/>"     \
     " </interface>"                                                     \
@@ -112,12 +112,12 @@ PA_MODULE_USAGE(
     "<node>"                                                            \
     " <!-- If you are looking for documentation make sure to check out" \
     "      http://live.gnome.org/Rygel/MediaProviderSpec -->"           \
-    " <interface name=\"org.Rygel.MediaItem1\">"                        \
+    " <interface name=\"org.gnome.UPnP.MediaItem1\">"                   \
     "  <property name=\"URLs\" type=\"as\" access=\"read\"/>"           \
     "  <property name=\"MIMEType\" type=\"s\" access=\"read\"/>"        \
     "  <property name=\"Type\" type=\"s\" access=\"read\"/>"            \
     " </interface>"                                                     \
-    " <interface name=\"org.Rygel.MediaObject1\">"                      \
+    " <interface name=\"org.gnome.UPnP.MediaObject1\">"                 \
     "  <property name=\"Parent\" type=\"s\" access=\"read\"/>"          \
     "  <property name=\"DisplayName\" type=\"s\" access=\"read\"/>"     \
     " </interface>"                                                     \
@@ -174,7 +174,7 @@ static void send_signal(struct userdata *u, pa_source *s) {
     else
         parent = OBJECT_SOURCES;
 
-    pa_assert_se(m = dbus_message_new_signal(parent, "org.Rygel.MediaContainer1", "Updated"));
+    pa_assert_se(m = dbus_message_new_signal(parent, "org.gnome.UPnP.MediaContainer1", "Updated"));
     pa_assert_se(dbus_connection_send(pa_dbus_connection_get(u->bus), m, NULL));
 
     dbus_message_unref(m);
@@ -349,23 +349,23 @@ static DBusHandlerResult root_handler(DBusConnection *c, DBusMessage *m, void *u
 
     pa_assert(u);
 
-    if (message_is_property_get(m, "org.Rygel.MediaContainer1", "Containers")) {
+    if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer1", "Containers")) {
         pa_assert_se(r = dbus_message_new_method_return(m));
         append_variant_object_array(r, NULL, (const char**) array_root_containers, PA_ELEMENTSOF(array_root_containers));
 
-    } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "ContainerCount")) {
+    } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer1", "ContainerCount")) {
         pa_assert_se(r = dbus_message_new_method_return(m));
         append_variant_unsigned(r, NULL, PA_ELEMENTSOF(array_root_containers));
 
-    } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "Items")) {
+    } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer1", "Items")) {
         pa_assert_se(r = dbus_message_new_method_return(m));
         append_variant_object_array(r, NULL, array_no_children, PA_ELEMENTSOF(array_no_children));
 
-    } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "ItemCount")) {
+    } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer1", "ItemCount")) {
         pa_assert_se(r = dbus_message_new_method_return(m));
         append_variant_unsigned(r, NULL, PA_ELEMENTSOF(array_no_children));
 
-    } else if (message_is_property_get_all(m, "org.Rygel.MediaContainer1")) {
+    } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaContainer1")) {
         DBusMessageIter iter, sub;
 
         pa_assert_se(r = dbus_message_new_method_return(m));
@@ -378,15 +378,15 @@ static DBusHandlerResult root_handler(DBusConnection *c, DBusMessage *m, void *u
         append_property_dict_entry_unsigned(r, &sub, "ItemCount", PA_ELEMENTSOF(array_no_children));
         pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
-    } else if (message_is_property_get(m, "org.Rygel.MediaObject1", "Parent")) {
+    } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject1", "Parent")) {
         pa_assert_se(r = dbus_message_new_method_return(m));
         append_variant_object(r, NULL, OBJECT_ROOT);
 
-    } else if (message_is_property_get(m, "org.Rygel.MediaObject1", "DisplayName")) {
+    } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject1", "DisplayName")) {
         pa_assert_se(r = dbus_message_new_method_return(m));
         append_variant_string(r, NULL, u->display_name);
 
-    } else if (message_is_property_get_all(m, "org.Rygel.MediaObject1")) {
+    } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaObject1")) {
         DBusMessageIter iter, sub;
 
         pa_assert_se(r = dbus_message_new_method_return(m));
@@ -509,15 +509,15 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
 
         /* Container nodes */
 
-        if (message_is_property_get(m, "org.Rygel.MediaContainer1", "Containers")) {
+        if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer1", "Containers")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
             append_variant_object_array(r, NULL, array_no_children, PA_ELEMENTSOF(array_no_children));
 
-        } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "ContainerCount")) {
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer1", "ContainerCount")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
             append_variant_unsigned(r, NULL, PA_ELEMENTSOF(array_no_children));
 
-        } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "Items")) {
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer1", "Items")) {
             char ** array;
             unsigned n;
 
@@ -528,14 +528,14 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
 
             free_child_array(array, n);
 
-        } else if (message_is_property_get(m, "org.Rygel.MediaContainer1", "ItemCount")) {
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer1", "ItemCount")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
             append_variant_unsigned(r, NULL,
                                     pa_streq(path, OBJECT_SINKS) ?
                                     pa_idxset_size(u->core->sinks) :
                                     pa_idxset_size(u->core->sources));
 
-        } else if (message_is_property_get_all(m, "org.Rygel.MediaContainer1")) {
+        } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaContainer1")) {
             DBusMessageIter iter, sub;
             char **array;
             unsigned n;
@@ -557,11 +557,11 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
 
             pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
-        } else if (message_is_property_get(m, "org.Rygel.MediaObject1", "Parent")) {
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject1", "Parent")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
             append_variant_object(r, NULL, OBJECT_ROOT);
 
-        } else if (message_is_property_get(m, "org.Rygel.MediaObject1", "DisplayName")) {
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject1", "DisplayName")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
             append_variant_string(r,
                                   NULL,
@@ -569,7 +569,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
                                   _("Output Devices") :
                                   _("Input Devices"));
 
-        } else if (message_is_property_get_all(m, "org.Rygel.MediaObject1")) {
+        } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaObject1")) {
             DBusMessageIter iter, sub;
 
             pa_assert_se(r = dbus_message_new_method_return(m));
@@ -632,15 +632,15 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
         if (!sink && !source)
             return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
-        if (message_is_property_get(m, "org.Rygel.MediaObject1", "Parent")) {
+        if (message_is_property_get(m, "org.gnome.UPnP.MediaObject1", "Parent")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
             append_variant_object(r, NULL, sink ? OBJECT_SINKS : OBJECT_SOURCES);
 
-        } else if (message_is_property_get(m, "org.Rygel.MediaObject1", "DisplayName")) {
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaObject1", "DisplayName")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
             append_variant_string(r, NULL, pa_strna(pa_proplist_gets(sink ? sink->proplist : source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
 
-        } else if (message_is_property_get_all(m, "org.Rygel.MediaObject1")) {
+        } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaObject1")) {
             DBusMessageIter iter, sub;
 
             pa_assert_se(r = dbus_message_new_method_return(m));
@@ -651,11 +651,11 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
             append_property_dict_entry_string(r, &sub, "DisplayName", pa_strna(pa_proplist_gets(sink ? sink->proplist : source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
             pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
-        } else if (message_is_property_get(m, "org.Rygel.MediaItem1", "Type")) {
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaItem1", "Type")) {
             pa_assert_se(r = dbus_message_new_method_return(m));
             append_variant_string(r, NULL, "audio");
 
-        } else if (message_is_property_get(m, "org.Rygel.MediaItem1", "MIMEType")) {
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaItem1", "MIMEType")) {
             char *t;
 
             if (sink)
@@ -667,7 +667,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
             append_variant_string(r, NULL, t);
             pa_xfree(t);
 
-        } else if (message_is_property_get(m, "org.Rygel.MediaItem1", "URLs")) {
+        } else if (message_is_property_get(m, "org.gnome.UPnP.MediaItem1", "URLs")) {
             DBusMessageIter iter, sub, array;
             char *url;
 
@@ -685,7 +685,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
 
             pa_xfree(url);
 
-        } else if (message_is_property_get_all(m, "org.Rygel.MediaItem1")) {
+        } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaItem1")) {
             DBusMessageIter iter, sub, dict, variant, array;
             char *url, *t;
             const char *un = "URLs";
