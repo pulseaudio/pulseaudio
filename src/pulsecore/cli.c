@@ -59,6 +59,8 @@ struct pa_cli {
 
     pa_bool_t fail, kill_requested;
     int defer_kill;
+
+    char *last_line;
 };
 
 static void line_callback(pa_ioline *line, const char *s, void *userdata);
@@ -101,6 +103,8 @@ pa_cli* pa_cli_new(pa_core *core, pa_iochannel *io, pa_module *m) {
     c->fail = c->kill_requested = FALSE;
     c->defer_kill = 0;
 
+    c->last_line = NULL;
+
     return c;
 }
 
@@ -110,6 +114,7 @@ void pa_cli_free(pa_cli *c) {
     pa_ioline_close(c->line);
     pa_ioline_unref(c->line);
     pa_client_free(c->client);
+    pa_xfree(c->last_line);
     pa_xfree(c);
 }
 
@@ -142,6 +147,14 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
             c->eof_callback(c, c->userdata);
 
         return;
+    }
+
+    /* Magic command, like they had in AT Hayes Modems! Those were the good days! */
+    if (pa_streq(s, "/"))
+        s = c->last_line;
+    else if (s[0]) {
+        pa_xfree(c->last_line);
+        c->last_line = pa_xstrdup(s);
     }
 
     pa_assert_se(buf = pa_strbuf_new());
