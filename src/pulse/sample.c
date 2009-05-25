@@ -241,3 +241,36 @@ pa_sample_format_t pa_parse_sample_format(const char *format) {
 
     return -1;
 }
+
+int pa_sample_format_is_le(pa_sample_format_t f) {
+    pa_assert(f >= PA_SAMPLE_U8);
+    pa_assert(f < PA_SAMPLE_MAX);
+
+    switch (f) {
+        case PA_SAMPLE_S16LE:
+        case PA_SAMPLE_S24LE:
+        case PA_SAMPLE_S32LE:
+        case PA_SAMPLE_S24_32LE:
+        case PA_SAMPLE_FLOAT32LE:
+            return 1;
+
+        case PA_SAMPLE_S16BE:
+        case PA_SAMPLE_S24BE:
+        case PA_SAMPLE_S32BE:
+        case PA_SAMPLE_S24_32BE:
+        case PA_SAMPLE_FLOAT32BE:
+            return 0;
+
+        default:
+            return -1;
+    }
+}
+
+int pa_sample_format_is_be(pa_sample_format_t f) {
+    int r;
+
+    if ((r = pa_sample_format_is_le(f)) < 0)
+        return r;
+
+    return !r;
+}

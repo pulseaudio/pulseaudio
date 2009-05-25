@@ -305,6 +305,26 @@ char* pa_sample_spec_snprint(char *s, size_t l, const pa_sample_spec *spec);
 /** Pretty print a byte size value. (i.e. "2.5 MiB") */
 char* pa_bytes_snprint(char *s, size_t l, unsigned v);
 
+/** Return 1 when the specified format is little endian, return -1
+ * when endianess does not apply to this format. \since 0.9.16 */
+int pa_sample_format_is_le(pa_sample_format_t f) PA_GCC_PURE;
+
+/** Return 1 when the specified format is big endian, return -1 when
+ * endianess does not apply to this format. \since 0.9.16 */
+int pa_sample_format_is_be(pa_sample_format_t f) PA_GCC_PURE;
+
+#ifdef WORDS_BIGENDIAN
+#define pa_sample_format_is_ne(f) pa_sample_format_is_be(f)
+#define pa_sample_format_is_re(f) pa_sample_format_is_le(f)
+#else
+/** Return 1 when the specified format is native endian, return -1
+ * when endianess does not apply to this format. \since 0.9.16 */
+#define pa_sample_format_is_ne(f) pa_sample_format_is_le(f)
+/** Return 1 when the specified format is reverse endian, return -1
+ * when endianess does not apply to this format. \since 0.9.16 */
+#define pa_sample_format_is_re(f) pa_sample_format_is_be(f)
+#endif
+
 PA_C_DECL_END
 
 #endif
