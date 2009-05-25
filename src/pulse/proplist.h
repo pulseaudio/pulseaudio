@@ -234,6 +234,14 @@ int pa_proplist_sets(pa_proplist *p, const char *key, const char *value);
 /** Append a new string entry to the property list, possibly
  * overwriting an already existing entry with the same key. An
  * internal copy of the data passed is made. Will accept only valid
+ * UTF-8. The string passed in must contain a '='. Left hand side of
+ * the '=' is used as key name, the right hand side as string
+ * data. \since 0.9.16 */
+int pa_proplist_setp(pa_proplist *p, const char *pair);
+
+/** Append a new string entry to the property list, possibly
+ * overwriting an already existing entry with the same key. An
+ * internal copy of the data passed is made. Will accept only valid
  * UTF-8. The data can be passed as printf()-style format string with
  * arguments. \since 0.9.11 */
 int pa_proplist_setf(pa_proplist *p, const char *key, const char *format, ...) PA_GCC_PRINTF_ATTR(3,4);

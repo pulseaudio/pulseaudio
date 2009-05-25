@@ -175,6 +175,7 @@ pa_proplist_iterate;
 pa_proplist_new;
 pa_proplist_set;
 pa_proplist_setf;
+pa_proplist_setp;
 pa_proplist_sets;
 pa_proplist_size;
 pa_proplist_to_string;
