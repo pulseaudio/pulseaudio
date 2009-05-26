@@ -135,7 +135,7 @@ static void enumerate_cb(
             bonus += 20000;
     }
 
-    pa_log_info("Found output profile '%s'", t);
+    pa_log_info("Found profile '%s'", t);
 
     p = pa_card_profile_new(n, t, sizeof(struct profile_data));
 
