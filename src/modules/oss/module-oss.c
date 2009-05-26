@@ -477,6 +477,7 @@ static void build_pollfd(struct userdata *u) {
     pollfd->revents = 0;
 }
 
+/* Called from IO context */
 static int suspend(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->fd >= 0);
@@ -526,6 +527,7 @@ static int suspend(struct userdata *u) {
     return 0;
 }
 
+/* Called from IO context */
 static int unsuspend(struct userdata *u) {
     int m;
     pa_sample_spec ss, *ss_original;
@@ -616,10 +618,10 @@ static int unsuspend(struct userdata *u) {
 
     build_pollfd(u);
 
-    if (u->sink)
-        pa_sink_get_volume(u->sink, TRUE, FALSE);
-    if (u->source)
-        pa_source_get_volume(u->source, TRUE);
+    if (u->sink && u->sink->get_volume)
+        u->sink->get_volume(u->sink);
+    if (u->source && u->source->get_volume)
+        u->source->get_volume(u->source);
 
     pa_log_info("Resumed successfully...");
 
@@ -631,6 +633,7 @@ fail:
     return -1;
 }
 
+/* Called from IO context */
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
     int ret;
