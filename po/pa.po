@@ -1,67 +1,68 @@
-# translation of pulseaudio.master-tx.po to Punjabi
+# translation of pulseaudio.master-tx.pa.po to Punjabi
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Amanpreet Singh Alam <aalam@users.sf.net>, 2008.
+# Jaswinder Singh <jsingh@redhat.com>, 2009.
 msgid ""
 msgstr ""
-"Project-Id-Version: pulseaudio.master-tx\n"
+"Project-Id-Version: pulseaudio.master-tx.pa\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-21 23:02+0200\n"
-"PO-Revision-Date: 2008-12-24 09:37+0530\n"
-"Last-Translator: Amanpreet Singh Alam <aalam@users.sf.net>\n"
-"Language-Team: Punjabi <punjabi-l10n@users.sf.net>\n"
+"POT-Creation-Date: 2009-04-05 08:27+0000\n"
+"PO-Revision-Date: 2009-05-26 16:20+0530\n"
+"Last-Translator: Jaswinder Singh <jsingh@redhat.com>\n"
+"Language-Team: Punjabi <Punjabi-users@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
-#: ../src/modules/alsa/alsa-util.c:532
+#: ../src/modules/alsa/alsa-util.c:530
 msgid "Analog Mono"
-msgstr ""
+msgstr "ਐਨਾਲਾਗ ਮੋਨੋ"
 
-#: ../src/modules/alsa/alsa-util.c:540
+#: ../src/modules/alsa/alsa-util.c:536
 msgid "Analog Stereo"
-msgstr ""
+msgstr "ਐਨਾਲਾਗ ਸਟੀਰੀਓ"
+
+#: ../src/modules/alsa/alsa-util.c:542
+msgid "Digital Stereo (IEC958)"
+msgstr "ਡਿਜ਼ੀਟਲ ਸਟੀਰੀਓ (IEC958)"
 
 #: ../src/modules/alsa/alsa-util.c:548
-msgid "Digital Stereo (IEC958)"
-msgstr ""
-
-#: ../src/modules/alsa/alsa-util.c:556
 msgid "Digital Stereo (HDMI)"
-msgstr ""
+msgstr "ਡਿਜ਼ੀਟਲ ਸਟੀਰੀਓ (HDMI)"
 
-#: ../src/modules/alsa/alsa-util.c:565
+#: ../src/modules/alsa/alsa-util.c:555
 msgid "Analog Surround 4.0"
-msgstr ""
+msgstr "ਐਨਾਲਾਗ ਆਲਾ-ਦੁਆਲਾ 4.0"
 
-#: ../src/modules/alsa/alsa-util.c:574
+#: ../src/modules/alsa/alsa-util.c:562
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr ""
+msgstr "ਡਿਜ਼ੀਟਲ ਆਲਾ-ਦੁਆਲਾ 4.0 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-util.c:584
+#: ../src/modules/alsa/alsa-util.c:570
 msgid "Analog Surround 4.1"
-msgstr ""
+msgstr "ਆਨਾਲਾਗ ਆਲਾ-ਦੁਆਲਾ 4.1"
+
+#: ../src/modules/alsa/alsa-util.c:578
+msgid "Analog Surround 5.0"
+msgstr "ਐਨਾਲਾਗ ਆਲਾ-ਦੁਆਲਾ 5.0"
+
+#: ../src/modules/alsa/alsa-util.c:586
+msgid "Analog Surround 5.1"
+msgstr "ਐਨਾਲਾਗ ਆਲਾ-ਦੁਆਲਾ 5.1"
 
 #: ../src/modules/alsa/alsa-util.c:594
-msgid "Analog Surround 5.0"
-msgstr ""
-
-#: ../src/modules/alsa/alsa-util.c:604
-msgid "Analog Surround 5.1"
-msgstr ""
-
-#: ../src/modules/alsa/alsa-util.c:614
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr ""
+msgstr "ਡਿਜ਼ੀਟਲ ਆਲਾ-ਦੁਆਲਾ 5.1 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-util.c:625
+#: ../src/modules/alsa/alsa-util.c:603
 msgid "Analog Surround 7.1"
-msgstr ""
+msgstr "ਐਨਾਲਾਗ ਆਲਾ-ਦੁਆਲਾ 7.1"
 
-#: ../src/modules/alsa/alsa-util.c:1646
+#: ../src/modules/alsa/alsa-util.c:1609
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -69,8 +70,11 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_avail() ਤੋਂ ਇੱਕ ਮੁੱਲ ਮਿਲਿਆ ਹੈ ਜੋ ਬਹੁਤ ਵੱਡਾ ਹੈ: %lu ਬਾਈਟ (%lu "
+"ms)।\n"
+"ਇਹ ALSA ਡਰਾਈਵਰ '%s' ਵਿਚਲਾ ਬੱਗ ਲੱਗਦਾ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਇਸ ਮੁੱਦੇ ਦੀ ALSA ਵਿਕਾਸਵਾਦੀਆਂ ਨੂੰ ਰਿਪੋਰਟ ਕਰੋ।"
 
-#: ../src/modules/alsa/alsa-util.c:1687
+#: ../src/modules/alsa/alsa-util.c:1649
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -78,8 +82,11 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_delay() ਤੋਂ ਇੱਕ ਮੁੱਲ ਮਿਲਿਆ ਹੈ ਜੋ ਬਹੁਤ ਵੱਡਾ ਹੈ: %li ਬਾਈਟ (%s%"
+"lu ms)।\n"
+"ਇਹ ALSA ਡਰਾਈਵਰ '%s' ਵਿਚਲਾ ਬੱਗ ਲੱਗਦਾ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਇਸ ਮੁੱਦੇ ਦੀ ALSA ਵਿਕਾਸਵਾਦੀਆਂ ਨੂੰ ਰਿਪੋਰਟ ਕਰੋ।"
 
-#: ../src/modules/alsa/alsa-util.c:1734
+#: ../src/modules/alsa/alsa-util.c:1695
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -87,181 +94,181 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_mmap_begin() ਤੋਂ ਇੱਕ ਮੁੱਲ ਮਿਲਿਆ ਹੈ ਜੋ ਬਹੁਤ ਵੱਡਾ ਹੈ: %lu ਬਾਈਟ (%lu ms)।\n"
+"ਇਹ ALSA ਡਰਾਈਵਰ '%s' ਵਿਚਲਾ ਬੱਗ ਲੱਗਦਾ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਇਸ ਮੁੱਦੇ ਦੀ ALSA ਵਿਕਾਸਵਾਦੀਆਂ ਨੂੰ ਰਿਪੋਰਟ ਕਰੋ।"
 
-#: ../src/pulsecore/sink.c:2141
-#, fuzzy
+#: ../src/pulsecore/sink.c:2061
 msgid "Internal Audio"
-msgstr "ਅੰਦਰੂਨੀ ਗਲਤੀ"
+msgstr "ਅੰਦਰੂਨੀ ਆਡੀਓ"
 
-#: ../src/pulsecore/sink.c:2147
+#: ../src/pulsecore/sink.c:2067
 msgid "Modem"
-msgstr ""
+msgstr "ਮਾਡਮ"
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
-msgstr ""
+msgstr "ਅਸਲੀ lt_dlopen ਲੋਡਰ ਲੱਭਣ ਵਿੱਚ ਫੇਲ ਹੋਇਆ।"
 
 #: ../src/daemon/ltdl-bind-now.c:129
-#, fuzzy
 msgid "Failed to allocate new dl loader."
-msgstr "ਸਾਊਂਡ ਫਾਇਲ ਖੋਲ੍ਹਣ ਲਈ ਫੇਲ੍ਹ ਹੈ।\n"
+msgstr "ਨਵਾਂ dl ਲੋਡਰ ਨਿਰਧਾਰਤ ਕਰਨ ਵਿੱਚ ਫੇਲ ਹੋਇਆ।"
 
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
-msgstr ""
+msgstr "ਬਾਈਂਡ-ਨਾਓ-ਲੋਡਰ ਜੋੜਨ ਵਿੱਚ ਫੇਲ ਹੋਇਆ।"
 
 #: ../src/daemon/polkit.c:55
 #, c-format
 msgid "Cannot connect to system bus: %s"
-msgstr ""
+msgstr "ਸਿਸਟਮ ਬੱਸ ਨਾਲ ਜੁੜਨ ਨਹੀਂ ਸਕਿਆ: %s"
 
 #: ../src/daemon/polkit.c:65
 #, c-format
 msgid "Cannot get caller from PID: %s"
-msgstr ""
+msgstr "PID ਤੋਂ ਕਾਲਰ ਪ੍ਰਾਪਤ ਨਹੀਂ ਕਰ ਸਕਿਆ: %s"
 
 #: ../src/daemon/polkit.c:77
 msgid "Cannot set UID on caller object."
-msgstr ""
+msgstr "ਕਾਲਰ ਐਬਜੈਕਟ ਤੇ UID ਸੈੱਟ ਨਹੀਂ ਕਰ ਸਕਿਆ।"
 
 #: ../src/daemon/polkit.c:82
 msgid "Failed to get CK session."
-msgstr ""
+msgstr "CK ਸ਼ੈਸ਼ਨ ਪ੍ਰਾਪਤ ਕਰਨ ਵਿੱਚ ਫੇਲ।"
 
 #: ../src/daemon/polkit.c:90
 msgid "Cannot set UID on session object."
-msgstr ""
+msgstr "ਸ਼ੈਸ਼ਨ ਆਬਜੈਕਟ ਤੇ UID ਸੈੱਟ ਨਹੀਂ ਕਰ ਸਕਿਆ।"
 
 #: ../src/daemon/polkit.c:95
 msgid "Cannot allocate PolKitAction."
-msgstr ""
+msgstr "PolKitAction ਨਿਰਧਾਰਤ ਨਹੀਂ ਕਰ ਸਕਿਆ।"
 
 #: ../src/daemon/polkit.c:100
 msgid "Cannot set action_id"
-msgstr ""
+msgstr "action_id ਨਿਰਧਾਰਤ ਨਹੀਂ ਕਰ ਸਕਿਆ।"
 
 #: ../src/daemon/polkit.c:105
 msgid "Cannot allocate PolKitContext."
-msgstr ""
+msgstr "PolKitContext ਨਿਰਧਾਰਤ ਨਹੀਂ ਕਰ ਸਕਿਆ।"
 
 #: ../src/daemon/polkit.c:110
 #, c-format
 msgid "Cannot initialize PolKitContext: %s"
-msgstr ""
+msgstr "PolKitContext ਨੂੰ ਸ਼ੁਰੂ ਨਹੀਂ ਕਰ ਸਕਿਆ: %s"
 
 #: ../src/daemon/polkit.c:119
 #, c-format
 msgid "Could not determine whether caller is authorized: %s"
-msgstr ""
+msgstr "ਪਤਾ ਨਹੀਂ ਕਰ ਸਕਿਆ ਕਿ ਕੀ ਕਾਲਰ ਅਧਿਕਾਰਤ ਹੈ: %s"
 
 #: ../src/daemon/polkit.c:139
 #, c-format
 msgid "Cannot obtain auth: %s"
-msgstr ""
+msgstr "ਅਧਿਕਾਰ ਨਹੀਂ ਪਤਾ ਕਰ ਸਕਿਆ: %s"
 
 #: ../src/daemon/polkit.c:148
 #, c-format
 msgid "PolicyKit responded with '%s'"
-msgstr ""
+msgstr "PolicyKit ਦੇ ਜਵਾਬ ਵਜੋਂ '%s' ਮਿਲਿਆ ਹੈ"
 
-#: ../src/daemon/main.c:138
+#: ../src/daemon/main.c:137
 #, c-format
 msgid "Got signal %s."
-msgstr ""
+msgstr "%s ਸਿਗਨਲ ਮਿਲਿਆ ਹੈ।"
 
-#: ../src/daemon/main.c:165
+#: ../src/daemon/main.c:164
 msgid "Exiting."
 msgstr "ਬੰਦ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ।"
 
-#: ../src/daemon/main.c:183
+#: ../src/daemon/main.c:182
 #, c-format
 msgid "Failed to find user '%s'."
-msgstr ""
+msgstr "'%s' ਉਪਭੋਗੀ ਲੱਭਣ ਵਿੱਚ ਫੇਲ ਹੋਇਆ ਹੈ।"
 
-#: ../src/daemon/main.c:188
+#: ../src/daemon/main.c:187
 #, c-format
 msgid "Failed to find group '%s'."
-msgstr ""
+msgstr "'%s' ਗਰੁੱਪ ਲੱਭਣ ਵਿੱਚ ਫੇਲ ਹੋਇਆ ਹੈ।"
 
-#: ../src/daemon/main.c:192
+#: ../src/daemon/main.c:191
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
-msgstr ""
+msgstr "ਉਪਭੋਗੀ '%s' (UID %lu) ਅਤੇ ਗਰੁੱਪ '%s' (GID %lu) ਲੱਭੇ ਹਨ।"
 
-#: ../src/daemon/main.c:197
+#: ../src/daemon/main.c:196
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
-msgstr ""
+msgstr "ਉਪਭੋਗੀ '%s' ਅਤੇ ਗਰੁੱਪ '%s' ਦਾ GID ਮੇਲ ਨਹੀਂ ਖਾਂਦੇ।"
 
-#: ../src/daemon/main.c:202
+#: ../src/daemon/main.c:201
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr ""
+msgstr "ਉਪਭੋਗੀ '%s' ਦੀ ਘਰੇਲੂ ਡਾਇਰੈਕਟਰੀ '%s' ਨਹੀਂ, ਅਣਡਿੱਠਾ ਕਰ ਰਿਹਾ।"
 
-#: ../src/daemon/main.c:205 ../src/daemon/main.c:210
+#: ../src/daemon/main.c:204 ../src/daemon/main.c:209
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr ""
+msgstr "'%s' ਬਣਾਉਣ ਵਿੱਚ ਫੇਲ: %s"
 
-#: ../src/daemon/main.c:217
+#: ../src/daemon/main.c:216
 #, c-format
 msgid "Failed to change group list: %s"
-msgstr ""
+msgstr "ਗਰੁੱਪ ਸੂਚੀ ਤਬਦੀਲ ਕਰਨ ਵਿੱਚ ਫੇਲ: %s"
 
-#: ../src/daemon/main.c:233
+#: ../src/daemon/main.c:232
 #, c-format
 msgid "Failed to change GID: %s"
-msgstr ""
+msgstr "GID ਤਬਦੀਲ ਕਰਨ ਵਿੱਚ ਫੇਲ: %s"
 
-#: ../src/daemon/main.c:249
+#: ../src/daemon/main.c:248
 #, c-format
 msgid "Failed to change UID: %s"
-msgstr ""
+msgstr "UID ਤਬਦੀਲ ਕਰਨ ਵਿੱਚ ਫੇਲ: %s"
 
-#: ../src/daemon/main.c:263
+#: ../src/daemon/main.c:262
 msgid "Successfully dropped root privileges."
-msgstr ""
+msgstr "ਰੂਟ ਅਧਿਕਾਰ ਸਫਲਤਾਪੂਰਕ ਹਟਾਏ ਗਏ।"
 
-#: ../src/daemon/main.c:271
+#: ../src/daemon/main.c:270
 msgid "System wide mode unsupported on this platform."
-msgstr ""
+msgstr "ਇਸ ਪਲੇਟਫਾਰਮ ਤੇ ਸਿਸਟਮ ਸੰਬੰਧੀ ਮੋਡ ਨੂੰ ਸਹਿਯੋਗ ਨਹੀਂ ਹੈ।"
 
-#: ../src/daemon/main.c:289
+#: ../src/daemon/main.c:288
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
-msgstr ""
+msgstr "setrlimit(%s, (%u, %u)) ਫੇਲ ਹੋਇਆ: %s"
 
-#: ../src/daemon/main.c:477
+#: ../src/daemon/main.c:462
 msgid "Failed to parse command line."
-msgstr ""
+msgstr "ਕਮਾਂਡ ਲਾਈਨ ਪਾਰਸ ਕਰਨ ਵਿੱਚ ਫੇਲ।"
 
-#: ../src/daemon/main.c:501
+#: ../src/daemon/main.c:486
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
-msgstr ""
+msgstr "ਅਸੀਂ ਗਰੁੱਪ '%s' ਵਿੱਚ ਹਾਂ, ਜਿਸ ਨੂੰ ਵਧੇਰੇ-ਤਰਜੀਹ ਤਹਿ ਕੀਤਾ ਗਿਆ ਹੈ।"
 
-#: ../src/daemon/main.c:508
+#: ../src/daemon/main.c:493
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
-msgstr ""
+msgstr "ਅਸੀਂ ਗਰੁੱਪ '%s' ਵਿੱਚ ਹਾਂ, ਜਿਸ ਨੂੰ ਰੀਅਲ-ਟਾਈਮ ਤਹਿ ਕੀਤਾ ਗਿਆ ਹੈ।"
 
-#: ../src/daemon/main.c:516
+#: ../src/daemon/main.c:501
 msgid "PolicyKit grants us acquire-high-priority privilege."
-msgstr ""
+msgstr "PolicyKit ਸਾਨੂੰ ਵਧੇਰੇ-ਤਰਜੀਹ-ਪ੍ਰਾਪਤੀ ਅਧਿਕਾਰ ਦਿੰਦੀ ਹੈ।"
 
-#: ../src/daemon/main.c:519
+#: ../src/daemon/main.c:504
 msgid "PolicyKit refuses acquire-high-priority privilege."
-msgstr ""
+msgstr "PolicyKit ਵਧੇਰੇ-ਤਰਜੀਹ-ਪ੍ਰਾਪਤੀ ਅਧਿਕਾਰ ਹਟਾਉਂਦੀ ਹੈ।"
 
-#: ../src/daemon/main.c:524
+#: ../src/daemon/main.c:509
 msgid "PolicyKit grants us acquire-real-time privilege."
-msgstr ""
+msgstr "PolicyKit ਸਾਨੂੰ ਰੀਅਲ-ਟਾਈਮ-ਪ੍ਰਾਪਤੀ ਅਧਿਕਾਰ ਦਿੰਦੀ ਹੈ।"
 
-#: ../src/daemon/main.c:527
+#: ../src/daemon/main.c:512
 msgid "PolicyKit refuses acquire-real-time privilege."
-msgstr ""
+msgstr "PolicyKit ਰੀਅਲ-ਟਾਈਮ-ਪ੍ਰਾਪਤੀ ਅਧਿਕਾਰ ਹਟਾਉਂਦੀ ਹੈ।"
 
-#: ../src/daemon/main.c:556
+#: ../src/daemon/main.c:541
 #, c-format
 msgid ""
 "Called SUID root and real-time and/or high-priority scheduling was requested "
@@ -273,229 +280,229 @@ msgid ""
 "appropriate PolicyKit privileges, or become a member of '%s', or increase "
 "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 msgstr ""
+"Called SUID root and real-time and/or high-priority scheduling was requested "
+"in the configuration. However, we lack the necessary privileges:\n"
+"We are not in group '%s', PolicyKit refuse to grant us the requested "
+"privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
+"limits.\n"
+"For enabling real-time/high-priority scheduling please acquire the "
+"appropriate PolicyKit privileges, or become a member of '%s', or increase "
+"the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 
-#: ../src/daemon/main.c:581
-msgid ""
-"High-priority scheduling enabled in configuration but not allowed by policy."
+#: ../src/daemon/main.c:566
+msgid "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 
-#: ../src/daemon/main.c:610
+#: ../src/daemon/main.c:595
 msgid "Successfully increased RLIMIT_RTPRIO"
-msgstr ""
+msgstr "RLIMIT_RTPRIO ਨੂੰ ਸਫਲਤਾਪੂਰਕ ਵਧਾਇਆ ਗਿਆ"
 
-#: ../src/daemon/main.c:613
+#: ../src/daemon/main.c:598
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
-msgstr "RLIMIT_RTPRIO failed: %s"
+msgstr "RLIMIT_RTPRIO ਫੇਲ ਹੋਇਆ: %s"
 
-#: ../src/daemon/main.c:620
+#: ../src/daemon/main.c:605
 msgid "Giving up CAP_NICE"
+msgstr "CAP_NICE ਨੂੰ ਹਟਾ ਰਿਹਾ ਹੈ"
+
+#: ../src/daemon/main.c:612
+msgid "Real-time scheduling enabled in configuration but not allowed by policy."
 msgstr ""
 
-#: ../src/daemon/main.c:627
-msgid ""
-"Real-time scheduling enabled in configuration but not allowed by policy."
-msgstr ""
-
-#: ../src/daemon/main.c:688
+#: ../src/daemon/main.c:673
 msgid "Daemon not running"
-msgstr ""
+msgstr "ਡੈਮਨ ਚੱਲ ਨਹੀਂ ਰਿਹਾ"
 
-#: ../src/daemon/main.c:690
+#: ../src/daemon/main.c:675
 #, c-format
 msgid "Daemon running as PID %u"
-msgstr ""
+msgstr "ਡੈਮਨ PID %u ਤੌਰ ਤੇ ਚੱਲ ਰਿਹਾ ਹੈ"
 
-#: ../src/daemon/main.c:700
+#: ../src/daemon/main.c:685
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr ""
+msgstr "ਡੈਮਨ ਖਤਮ ਕਰਨ ਵਿੱਚ ਫੇਲ: %s"
 
-#: ../src/daemon/main.c:718
+#: ../src/daemon/main.c:703
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
 msgstr ""
 
-#: ../src/daemon/main.c:720
-#, fuzzy
+#: ../src/daemon/main.c:705
 msgid "Root privileges required."
 msgstr "ਰੂਟ ਅਧਿਕਾਰਾਂ ਦੀ ਲੋੜ ਹੈ।"
 
-#: ../src/daemon/main.c:725
+#: ../src/daemon/main.c:710
 msgid "--start not supported for system instances."
-msgstr ""
+msgstr "--start ਨੂੰ ਸਿਸਟਮ ਇਕਾਈਆਂ ਲਈ ਸਹਿਯੋਗ ਨਹੀਂ ਹੈ।"
 
-#: ../src/daemon/main.c:730
+#: ../src/daemon/main.c:715
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr ""
+msgstr "ਸਿਸਟਮ ਮੋਡ ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ, ਪਰ --disallow-exit ਨਿਰਧਾਰਤ ਨਹੀਂ ਕੀਤਾ!"
 
-#: ../src/daemon/main.c:733
+#: ../src/daemon/main.c:718
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr ""
+msgstr "ਸਿਸਟਮ ਮੋਡ ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ, ਪਰ --disallow-module-loading ਨਿਰਧਾਰਤ ਨਹੀਂ ਕੀਤਾ!"
 
-#: ../src/daemon/main.c:736
+#: ../src/daemon/main.c:721
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr ""
+msgstr "ਸਿਸਟਮ ਮੋਡ ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ, ਜਬਰਦਸਤੀ SHM ਮੋਡ ਨੂੰ ਅਯੋਗ ਕਰ ਰਿਹਾ ਹੈ!"
 
-#: ../src/daemon/main.c:741
+#: ../src/daemon/main.c:726
 msgid "Running in system mode, forcibly disabling exit idle time!"
-msgstr ""
+msgstr "ਸਿਸਟਮ ਮੋਡ ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ, ਜਬਰਦਸਤੀ idle ਟਾਈਲ ਬੰਦ ਨੂੰ ਅਯੋਗ ਕਰ ਰਿਹਾ ਹੈ!"
 
-#: ../src/daemon/main.c:768
+#: ../src/daemon/main.c:753
 msgid "Failed to acquire stdio."
-msgstr ""
+msgstr "ਸਟੂਡੀਓ ਪ੍ਰਾਪਤ ਕਰਨ ਵਿੱਚ ਫੇਲ।"
 
-#: ../src/daemon/main.c:774
+#: ../src/daemon/main.c:759
 #, c-format
 msgid "pipe failed: %s"
-msgstr "pipe failed: %s"
+msgstr "pipe ਫੇਲ: %s"
 
-#: ../src/daemon/main.c:779
+#: ../src/daemon/main.c:764
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() ਫੇਲ੍ਹ ਹੈ: %s"
 
-#: ../src/daemon/main.c:793
+#: ../src/daemon/main.c:778
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() ਫੇਲ੍ਹ ਹੈ: %s"
 
-#: ../src/daemon/main.c:799
+#: ../src/daemon/main.c:784
 msgid "Daemon startup failed."
-msgstr ""
+msgstr "ਡੈਮਨ ਸ਼ੁਰੂਆਤੀ ਫੇਲ ਹੋਈ।"
 
-#: ../src/daemon/main.c:801
+#: ../src/daemon/main.c:786
 msgid "Daemon startup successful."
-msgstr ""
+msgstr "ਡੈਮਨ ਸ਼ੁਰੂਆਤੀ ਸਫਲ ਹੋਈ।"
 
-#: ../src/daemon/main.c:871
+#: ../src/daemon/main.c:856
 #, c-format
 msgid "This is PulseAudio %s"
-msgstr ""
+msgstr "ਇਹ ਪੱਲਸਆਡੀਓ %s ਹੈ"
 
-#: ../src/daemon/main.c:872
+#: ../src/daemon/main.c:857
 #, c-format
 msgid "Compilation host: %s"
-msgstr ""
+msgstr "ਕੰਪਾਈਲੇਸ਼ਨ ਹੋਸਟ: %s"
 
-#: ../src/daemon/main.c:873
+#: ../src/daemon/main.c:858
 #, c-format
 msgid "Compilation CFLAGS: %s"
-msgstr ""
+msgstr "ਕੰਪਾਈਲੇਸ਼ਨ CFLAGS: %s"
 
-#: ../src/daemon/main.c:876
+#: ../src/daemon/main.c:861
 #, c-format
 msgid "Running on host: %s"
-msgstr ""
+msgstr "ਹੋਸਟ ਤੇ ਚੱਲ ਰਿਹਾ ਹੈ: %s"
 
-#: ../src/daemon/main.c:879
+#: ../src/daemon/main.c:864
 #, c-format
 msgid "Found %u CPUs."
-msgstr ""
+msgstr "%u CPUs ਲੱਭੇ।"
 
-#: ../src/daemon/main.c:881
+#: ../src/daemon/main.c:866
 #, c-format
 msgid "Page size is %lu bytes"
-msgstr ""
+msgstr "ਸਫਾ ਅਕਾਰ %lu ਬਾਈਟ ਹੈ"
 
-#: ../src/daemon/main.c:884
+#: ../src/daemon/main.c:869
 msgid "Compiled with Valgrind support: yes"
-msgstr ""
+msgstr "Valgrind ਸਹਿਯੋਗ ਨਾਲ ਕੰਪਾਈਲ: ਹਾਂ"
 
-#: ../src/daemon/main.c:886
+#: ../src/daemon/main.c:871
 msgid "Compiled with Valgrind support: no"
-msgstr ""
+msgstr "Valgrind ਸਹਿਯੋਗ ਨਾਲ ਕੰਪਾਈਲ: ਨਹੀਂ"
 
-#: ../src/daemon/main.c:889
+#: ../src/daemon/main.c:874
 #, c-format
 msgid "Running in valgrind mode: %s"
-msgstr ""
+msgstr "Valgrind ਮੋਡ ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ: %s"
 
-#: ../src/daemon/main.c:892
+#: ../src/daemon/main.c:877
 msgid "Optimized build: yes"
-msgstr ""
+msgstr "ਓਪਟੀਮਾਈਜ਼ਡ ਬਿਲਡ: ਹਾਂ"
 
-#: ../src/daemon/main.c:894
+#: ../src/daemon/main.c:879
 msgid "Optimized build: no"
-msgstr ""
+msgstr "ਓਪਟੀਮਾਈਜ਼ਡ ਬਿਲਡ: ਨਹੀਂ"
 
-#: ../src/daemon/main.c:898
+#: ../src/daemon/main.c:883
 msgid "NDEBUG defined, all asserts disabled."
-msgstr ""
+msgstr "NDEBUG ਪਰਿਭਾਸ਼ਤ, ਸਭ asserts ਅਯੋਗ ਹਨ।"
 
-#: ../src/daemon/main.c:900
+#: ../src/daemon/main.c:885
 msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr ""
+msgstr "FASTPATH ਪਰਿਭਾਸ਼ਤ, ਸਿਰਫ ਫਾਸਟ ਪਾਥ asserts ਅਯੋਗ ਹਨ।"
 
-#: ../src/daemon/main.c:902
+#: ../src/daemon/main.c:887
 msgid "All asserts enabled."
-msgstr ""
+msgstr "ਸਭ asserts ਯੋਗ ਕੀਤੇ ਹਨ।"
 
-#: ../src/daemon/main.c:906
+#: ../src/daemon/main.c:891
 msgid "Failed to get machine ID"
 msgstr ""
 
-#: ../src/daemon/main.c:909
+#: ../src/daemon/main.c:894
 #, c-format
 msgid "Machine ID is %s."
 msgstr ""
 
-#: ../src/daemon/main.c:913
-#, c-format
-msgid "Session ID is %s."
-msgstr ""
-
-#: ../src/daemon/main.c:919
+#: ../src/daemon/main.c:899
 #, c-format
 msgid "Using runtime directory %s."
 msgstr ""
 
-#: ../src/daemon/main.c:924
+#: ../src/daemon/main.c:904
 #, c-format
 msgid "Using state directory %s."
 msgstr ""
 
-#: ../src/daemon/main.c:927
+#: ../src/daemon/main.c:907
 #, c-format
 msgid "Running in system mode: %s"
 msgstr ""
 
-#: ../src/daemon/main.c:942
+#: ../src/daemon/main.c:922
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() ਫੇਲ੍ਹ ਹੈ।"
 
-#: ../src/daemon/main.c:954
+#: ../src/daemon/main.c:934
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr ""
 
-#: ../src/daemon/main.c:956
+#: ../src/daemon/main.c:936
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 msgstr ""
 
-#: ../src/daemon/main.c:970
+#: ../src/daemon/main.c:948
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() ਫੇਲ੍ਹ ਹੈ।"
 
-#: ../src/daemon/main.c:1032
+#: ../src/daemon/main.c:1010
 msgid "Failed to initialize daemon."
 msgstr ""
 
-#: ../src/daemon/main.c:1037
+#: ../src/daemon/main.c:1015
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 
-#: ../src/daemon/main.c:1054
+#: ../src/daemon/main.c:1032
 msgid "Daemon startup complete."
 msgstr ""
 
-#: ../src/daemon/main.c:1060
+#: ../src/daemon/main.c:1038
 msgid "Daemon shutdown initiated."
 msgstr ""
 
-#: ../src/daemon/main.c:1082
+#: ../src/daemon/main.c:1056
 msgid "Daemon terminated."
 msgstr ""
 
@@ -572,6 +579,75 @@ msgid ""
 "\n"
 "  -n                                    Don't load default script file\n"
 msgstr ""
+"%s [options]\n"
+"\n"
+"COMMANDS:\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"      --dump-conf                       Dump default configuration\n"
+"      --dump-modules                    Dump list of available modules\n"
+"      --dump-resample-methods           Dump available resample methods\n"
+"      --cleanup-shm                     Cleanup stale shared memory "
+"segments\n"
+"      --start                           Start the daemon if it is not "
+"running\n"
+"  -k  --kill                            Kill a running daemon\n"
+"      --check                           Check for a running daemon (only "
+"returns exit code)\n"
+"\n"
+"OPTIONS:\n"
+"      --system[=BOOL]                   Run as system-wide instance\n"
+"  -D, --daemonize[=BOOL]                Daemonize after startup\n"
+"      --fail[=BOOL]                     Quit when startup fails\n"
+"      --high-priority[=BOOL]            Try to set high nice level\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_NICE)\n"
+"      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_RTPRIO)\n"
+"      --disallow-module-loading[=BOOL]  Disallow module user requested "
+"module\n"
+"                                        loading/unloading after startup\n"
+"      --disallow-exit[=BOOL]            Disallow user requested exit\n"
+"      --exit-idle-time=SECS             Terminate the daemon when idle and "
+"this\n"
+"                                        time passed\n"
+"      --module-idle-time=SECS           Unload autoloaded modules when idle "
+"and\n"
+"                                        this time passed\n"
+"      --scache-idle-time=SECS           Unload autoloaded samples when idle "
+"and\n"
+"                                        this time passed\n"
+"      --log-level[=LEVEL]               Increase or set verbosity level\n"
+"  -v                                    Increase the verbosity level\n"
+"      --log-target={auto,syslog,stderr} Specify the log target\n"
+"      --log-meta[=BOOL]                 Include code location in log "
+"messages\n"
+"      --log-time[=BOOL]                 Include timestamps in log messages\n"
+"      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
+"  -p, --dl-search-path=PATH             Set the search path for dynamic "
+"shared\n"
+"                                        objects (plugins)\n"
+"      --resample-method=METHOD          Use the specified resampling method\n"
+"                                        (See --dump-resample-methods for\n"
+"                                        possible values)\n"
+"      --use-pid-file[=BOOL]             Create a PID file\n"
+"      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
+"                                        platforms that support it.\n"
+"      --disable-shm[=BOOL]              Disable shared memory support.\n"
+"\n"
+"STARTUP SCRIPT:\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
+"with\n"
+"                                        the specified argument\n"
+"  -F, --file=FILENAME                   Run the specified script\n"
+"  -C                                    Open a command line on the running "
+"TTY\n"
+"                                        after startup\n"
+"\n"
+"  -n                                    Don't load default script file\n"
 
 #: ../src/daemon/cmdline.c:252
 msgid "--daemonize expects boolean argument"
@@ -717,9 +793,9 @@ msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr ""
 
 #: ../src/daemon/daemon-conf.c:353
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr "ਗਲਤ ਚੈਨਲ ਮੈਪ\n"
+msgstr "[%s:%u] ਗਲਤ ਚੈਨਲ ਮੈਪ '%s'।"
 
 #: ../src/daemon/daemon-conf.c:371
 #, c-format
@@ -769,8 +845,7 @@ msgid "Start the PulseAudio Sound System"
 msgstr ""
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:1
-msgid ""
-"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
+msgid "High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
 msgstr ""
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:2
@@ -778,8 +853,7 @@ msgid "Real-time scheduling for the PulseAudio daemon"
 msgstr ""
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:3
-msgid ""
-"System policy prevents PulseAudio from acquiring high-priority scheduling."
+msgid "System policy prevents PulseAudio from acquiring high-priority scheduling."
 msgstr ""
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:4
@@ -1149,30 +1223,30 @@ msgstr ""
 msgid "XOpenDisplay() failed"
 msgstr "XOpenDisplay() ਫੇਲ੍ਹ ਹੈ"
 
-#: ../src/pulse/client-conf-x11.c:93
+#: ../src/pulse/client-conf-x11.c:78
 msgid "Failed to parse cookie data"
 msgstr ""
 
-#: ../src/pulse/client-conf.c:110
+#: ../src/pulse/client-conf.c:120
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
 msgstr ""
 
-#: ../src/pulse/context.c:546
+#: ../src/pulse/context.c:539
 msgid "No cookie loaded. Attempting to connect without."
 msgstr ""
 
-#: ../src/pulse/context.c:676
+#: ../src/pulse/context.c:669
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:729
+#: ../src/pulse/context.c:722
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1403
+#: ../src/pulse/context.c:1387
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr ""
@@ -1257,9 +1331,9 @@ msgid "not "
 msgstr "ਨਹੀਂ "
 
 #: ../src/utils/pacat.c:245
-#, fuzzy, c-format
+#, c-format
 msgid "Stream buffer attributes changed.%s \n"
-msgstr "ਸਟਰੀਮ ਸ਼ੁਰੂ। %s\n"
+msgstr "ਸਟਰੀਮ ਬਫਰ ਐਟਰੀਬਿਊਟ ਤਬਦੀਲ ਕੀਤੇ ਗਏ।%s \n"
 
 #: ../src/utils/pacat.c:278
 #, c-format
@@ -1394,6 +1468,54 @@ msgid ""
 "      --process-time=BYTES              Request the specified process time "
 "per request in bytes.\n"
 msgstr ""
+"%s [options]\n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -r, --record                          Create a connection for recording\n"
+"  -p, --playback                        Create a connection for playback\n"
+"\n"
+"  -v, --verbose                         Enable verbose operations\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -d, --device=DEVICE                   The name of the sink/source to "
+"connect to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
+"44100)\n"
+"      --format=SAMPLEFORMAT             The sample type, one of s16le, "
+"s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be "
+"(defaults to s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, "
+"2 for stereo\n"
+"                                        (defaults to 2)\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the "
+"default\n"
+"      --fix-format                      Take the sample format from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-rate                        Take the sampling rate from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-channels                    Take the number of channels and the "
+"channel map\n"
+"                                        from the sink the stream is being "
+"connected to.\n"
+"      --no-remix                        Don't upmix or downmix channels.\n"
+"      --no-remap                        Map channels by index instead of "
+"name.\n"
+"      --latency=BYTES                   Request the specified latency in "
+"bytes.\n"
+"      --process-time=BYTES              Request the specified process time "
+"per request in bytes.\n"
 
 #: ../src/utils/pacat.c:612
 #, c-format
@@ -1473,9 +1595,10 @@ msgstr "io_new() ਫੇਲ੍ਹ ਹੈ।\n"
 msgid "pa_context_new() failed.\n"
 msgstr "pa_context_new() ਫੇਲ੍ਹ ਹੈ।\n"
 
-#: ../src/utils/pacat.c:799
-#, fuzzy, c-format
-msgid "pa_context_connect() failed: %s\n"
+#: ../src/utils/pacat.c:799 ../src/utils/pactl.c:1037
+#: ../src/utils/paplay.c:404
+#, c-format
+msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() ਫੇਲ੍ਹ ਹੈ: %s"
 
 #: ../src/utils/pacat.c:810
@@ -1536,6 +1659,13 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
+"%s [options] ... \n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"\n"
 
 #: ../src/utils/pasuspender.c:251
 #, c-format
@@ -1583,6 +1713,15 @@ msgid ""
 "Default Source: %s\n"
 "Cookie: %08x\n"
 msgstr ""
+"User name: %s\n"
+"Host Name: %s\n"
+"Server Name: %s\n"
+"Server Version: %s\n"
+"Default Sample Specification: %s\n"
+"Default Channel Map: %s\n"
+"Default Sink: %s\n"
+"Default Source: %s\n"
+"Cookie: %08x\n"
 
 #: ../src/utils/pactl.c:178
 #, c-format
@@ -1610,6 +1749,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Sink #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s%s%s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s%s%s\n"
+"\tMonitor Source: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:258
 #, c-format
@@ -1637,6 +1793,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Source #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s%s%s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s%s%s\n"
+"\tMonitor of Sink: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:306 ../src/utils/pactl.c:350 ../src/utils/pactl.c:385
 #: ../src/utils/pactl.c:422 ../src/utils/pactl.c:481 ../src/utils/pactl.c:482
@@ -1661,6 +1834,12 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Module #%u\n"
+"\tName: %s\n"
+"\tArgument: %s\n"
+"\tUsage counter: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:361
 #, c-format
@@ -1676,6 +1855,11 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Client #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:396
 #, c-format
@@ -1692,6 +1876,12 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Card #%u\n"
+"\tName: %s\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:428
 #, c-format
@@ -1699,9 +1889,9 @@ msgid "\tProfiles:\n"
 msgstr ""
 
 #: ../src/utils/pactl.c:434
-#, fuzzy, c-format
+#, c-format
 msgid "\tActive Profile: %s\n"
-msgstr "pipe failed: %s"
+msgstr "\tਸਰਗਰਮ ਪਰੋਫਾਈਲ: %s\n"
 
 #: ../src/utils/pactl.c:445
 #, c-format
@@ -1728,6 +1918,22 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Sink Input #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSink: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        %s\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSink Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:503
 #, c-format
@@ -1750,6 +1956,18 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Source Output #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSource: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSource Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:554
 #, c-format
@@ -1773,6 +1991,19 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Sample #%u\n"
+"\tName: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tVolume: %s\n"
+"\t        %s\n"
+"\t        balance %0.2f\n"
+"\tDuration: %0.1fs\n"
+"\tSize: %s\n"
+"\tLazy: %s\n"
+"\tFilename: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:602 ../src/utils/pactl.c:612
 #, c-format
@@ -1814,6 +2045,27 @@ msgid ""
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 msgstr ""
+"%s [options] stat\n"
+"%s [options] list\n"
+"%s [options] exit\n"
+"%s [options] upload-sample FILENAME [NAME]\n"
+"%s [options] play-sample NAME [SINK]\n"
+"%s [options] remove-sample NAME\n"
+"%s [options] move-sink-input ID SINK\n"
+"%s [options] move-source-output ID SOURCE\n"
+"%s [options] load-module NAME [ARGS ...]\n"
+"%s [options] unload-module ID\n"
+"%s [options] suspend-sink [SINK] 1|0\n"
+"%s [options] suspend-source [SOURCE] 1|0\n"
+"%s [options] set-card-profile [CARD] [PROFILE] \n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
 
 #: ../src/utils/pactl.c:826
 #, c-format
@@ -1887,11 +2139,6 @@ msgstr ""
 msgid "No valid command specified.\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:1037 ../src/utils/paplay.c:404
-#, c-format
-msgid "pa_context_connect() failed: %s"
-msgstr "pa_context_connect() ਫੇਲ੍ਹ ਹੈ: %s"
-
 #: ../src/utils/pax11publish.c:61
 #, c-format
 msgid ""
@@ -1903,6 +2150,13 @@ msgid ""
 "variables and cookie file.\n"
 " -r    Remove PulseAudio data from X11 display\n"
 msgstr ""
+"%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n"
+"\n"
+" -d    Show current PulseAudio data attached to X11 display (default)\n"
+" -e    Export local PulseAudio data to X11 display\n"
+" -i    Import PulseAudio data from X11 display to local environment "
+"variables and cookie file.\n"
+" -r    Remove PulseAudio data from X11 display\n"
 
 #: ../src/utils/pax11publish.c:94
 #, c-format
@@ -2033,6 +2287,23 @@ msgid ""
 "in range 0...65536\n"
 "      --channel-map=CHANNELMAP          Set the channel map to the use\n"
 msgstr ""
+"%s [options] [FILE]\n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -v, --verbose                         Enable verbose operation\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -d, --device=DEVICE                   The name of the sink to connect to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
+"      --channel-map=CHANNELMAP          Set the channel map to the use\n"
 
 #: ../src/utils/paplay.c:255
 #, c-format
@@ -2066,7 +2337,7 @@ msgstr ""
 msgid "Cannot access autospawn lock."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-sink.c:393 ../src/modules/alsa/alsa-sink.c:541
+#: ../src/modules/alsa/alsa-sink.c:393 ../src/modules/alsa/alsa-sink.c:535
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2077,7 +2348,7 @@ msgid ""
 "returned 0 or another value < min_avail."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:516
+#: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:510
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2104,27 +2375,19 @@ msgid "Input %s"
 msgstr ""
 
 #: ../src/modules/alsa/module-alsa-card.c:170
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2006
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1864
 msgid "Off"
 msgstr ""
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1976
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1834
 msgid "High Fidelity Playback (A2DP)"
 msgstr ""
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1991
+#: ../src/modules/bluetooth/module-bluetooth-device.c:1849
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr ""
 
-#: ../src/modules/reserve-wrap.c:139
+#: ../src/modules/reserve-wrap.c:125
 msgid "PulseAudio Sound Server"
 msgstr ""
 
-#~ msgid "pa_stream_drop() failed: %s\n"
-#~ msgstr "pa_stream_drop() ਫੇਲ੍ਹ ਹੈ: %s\n"
-
-#~ msgid "muted"
-#~ msgstr "ਚੁੱਪ"
-
-#~ msgid "source"
-#~ msgstr "ਸਰੋਤ"
