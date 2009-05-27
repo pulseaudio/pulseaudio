@@ -54,12 +54,12 @@ PA_MODULE_DESCRIPTION("Clocked NULL sink");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
-        "format=<sample format> "
-        "channels=<number of channels> "
-        "rate=<sample rate> "
         "sink_name=<name of sink> "
-        "channel_map=<channel map> "
-        "description=<description for the sink>");
+        "sink_properties=<properties for the sink> "
+        "format=<sample format> "
+        "rate=<sample rate> "
+        "channels=<number of channels> "
+        "channel_map=<channel map>");
 
 #define DEFAULT_SINK_NAME "null"
 #define BLOCK_USEC (PA_USEC_PER_SEC * 2)
@@ -78,12 +78,13 @@ struct userdata {
 };
 
 static const char* const valid_modargs[] = {
-    "rate",
-    "format",
-    "channels",
     "sink_name",
+    "sink_properties",
+    "format",
+    "rate",
+    "channels",
     "channel_map",
-    "description",
+    "description", /* supported for compatibility reasons, made redundant by sink_properties= */
     NULL
 };
 
@@ -288,6 +289,12 @@ int pa__init(pa_module*m) {
     pa_sink_new_data_set_channel_map(&data, &map);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, pa_modargs_get_value(ma, "description", "Null Output"));
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_CLASS, "abstract");
+
+    if (pa_modargs_get_proplist(ma, "sink_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties.");
+        pa_sink_new_data_done(&data);
+        goto fail;
+    }
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY);
     pa_sink_new_data_done(&data);
