@@ -50,35 +50,38 @@ struct pa_simple {
     int operation_success;
 };
 
-#define CHECK_VALIDITY_RETURN_ANY(rerror, expression, error, ret) do { \
-if (!(expression)) { \
-    if (rerror) \
-        *(rerror) = error; \
-    return (ret); \
-    }  \
-} while(0);
+#define CHECK_VALIDITY_RETURN_ANY(rerror, expression, error, ret)       \
+    do {                                                                \
+        if (!(expression)) {                                            \
+            if (rerror)                                                 \
+                *(rerror) = error;                                      \
+            return (ret);                                               \
+        }                                                               \
+    } while(FALSE);
 
-#define CHECK_SUCCESS_GOTO(p, rerror, expression, label) do { \
-if (!(expression)) { \
-    if (rerror) \
-        *(rerror) = pa_context_errno((p)->context); \
-    goto label; \
-    }  \
-} while(0);
+#define CHECK_SUCCESS_GOTO(p, rerror, expression, label)        \
+    do {                                                        \
+        if (!(expression)) {                                    \
+            if (rerror)                                         \
+                *(rerror) = pa_context_errno((p)->context);     \
+            goto label;                                         \
+        }                                                       \
+    } while(FALSE);
 
-#define CHECK_DEAD_GOTO(p, rerror, label) do { \
-if (!(p)->context || pa_context_get_state((p)->context) != PA_CONTEXT_READY || \
-    !(p)->stream || pa_stream_get_state((p)->stream) != PA_STREAM_READY) { \
-        if (((p)->context && pa_context_get_state((p)->context) == PA_CONTEXT_FAILED) || \
-            ((p)->stream && pa_stream_get_state((p)->stream) == PA_STREAM_FAILED)) { \
-            if (rerror) \
-                *(rerror) = pa_context_errno((p)->context); \
-        } else \
-            if (rerror) \
-                *(rerror) = PA_ERR_BADSTATE; \
-        goto label; \
-    } \
-} while(0);
+#define CHECK_DEAD_GOTO(p, rerror, label)                               \
+    do {                                                                \
+        if (!(p)->context || pa_context_get_state((p)->context) != PA_CONTEXT_READY || \
+            !(p)->stream || pa_stream_get_state((p)->stream) != PA_STREAM_READY) { \
+            if (((p)->context && pa_context_get_state((p)->context) == PA_CONTEXT_FAILED) || \
+                ((p)->stream && pa_stream_get_state((p)->stream) == PA_STREAM_FAILED)) { \
+                if (rerror)                                             \
+                    *(rerror) = pa_context_errno((p)->context);         \
+            } else                                                      \
+                if (rerror)                                             \
+                    *(rerror) = PA_ERR_BADSTATE;                        \
+            goto label;                                                 \
+        }                                                               \
+    } while(FALSE);
 
 static void context_state_cb(pa_context *c, void *userdata) {
     pa_simple *p = userdata;
@@ -198,9 +201,15 @@ pa_simple* pa_simple_new(
     pa_stream_set_latency_update_callback(p->stream, stream_latency_update_cb, p);
 
     if (dir == PA_STREAM_PLAYBACK)
-        r = pa_stream_connect_playback(p->stream, dev, attr, PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE, NULL, NULL);
+        r = pa_stream_connect_playback(p->stream, dev, attr,
+                                       PA_STREAM_INTERPOLATE_TIMING
+                                       |PA_STREAM_ADJUST_LATENCY
+                                       |PA_STREAM_AUTO_TIMING_UPDATE, NULL, NULL);
     else
-        r = pa_stream_connect_record(p->stream, dev, attr, PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE);
+        r = pa_stream_connect_record(p->stream, dev, attr,
+                                     PA_STREAM_INTERPOLATE_TIMING
+                                     |PA_STREAM_ADJUST_LATENCY
+                                     |PA_STREAM_AUTO_TIMING_UPDATE);
 
     if (r < 0) {
         error = pa_context_errno(p->context);
