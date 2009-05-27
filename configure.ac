@@ -301,7 +301,7 @@ AM_CONDITIONAL(OS_IS_WIN32, test "x$os_is_win32" = "x1")
 AC_HEADER_STDC
 
 # POSIX
-AC_CHECK_HEADERS([arpa/inet.h glob.h grp.h netdb.h netinet/in.h \
+AC_CHECK_HEADERS_ONCE([arpa/inet.h glob.h grp.h netdb.h netinet/in.h \
     netinet/in_systm.h netinet/tcp.h poll.h pwd.h sched.h \
     sys/mman.h sys/resource.h sys/select.h sys/socket.h sys/wait.h \
     sys/uio.h syslog.h sys/dl.h dlfcn.h linux/sockios.h])
@@ -325,23 +325,23 @@ AC_CHECK_HEADERS([linux/input.h], [HAVE_EVDEV=1], [HAVE_EVDEV=0])
 
 AM_CONDITIONAL([HAVE_EVDEV], [test "x$HAVE_EVDEV" = "x1"])
 
-AC_CHECK_HEADERS([sys/prctl.h])
+AC_CHECK_HEADERS_ONCE([sys/prctl.h])
 
 # Solaris
-AC_CHECK_HEADERS([sys/filio.h])
+AC_CHECK_HEADERS_ONCE([sys/filio.h])
 
 # Windows
-AC_CHECK_HEADERS([windows.h winsock2.h ws2tcpip.h])
+AC_CHECK_HEADERS_ONCE([windows.h winsock2.h ws2tcpip.h])
 
 # NetBSD
-AC_CHECK_HEADERS([sys/atomic.h])
+AC_CHECK_HEADERS_ONCE([sys/atomic.h])
 
 # Other
-AC_CHECK_HEADERS([sys/ioctl.h])
-AC_CHECK_HEADERS([byteswap.h])
-AC_CHECK_HEADERS([sys/syscall.h])
-AC_CHECK_HEADERS([sys/eventfd.h])
-AC_CHECK_HEADERS([execinfo.h])
+AC_CHECK_HEADERS_ONCE([sys/ioctl.h])
+AC_CHECK_HEADERS_ONCE([byteswap.h])
+AC_CHECK_HEADERS_ONCE([sys/syscall.h])
+AC_CHECK_HEADERS_ONCE([sys/eventfd.h])
+AC_CHECK_HEADERS_ONCE([execinfo.h])
 
 #### Typdefs, structures, etc. ####
 
@@ -395,13 +395,13 @@ AC_CHECK_FUNCS([getopt_long], [], [AC_CHECK_LIB([iberty], [getopt_long])])
 #### Check for functions ####
 
 # ISO
-AC_CHECK_FUNCS([lrintf strtof])
+AC_CHECK_FUNCS_ONCE([lrintf strtof])
 
 # POSIX
 AC_FUNC_FORK
 AC_FUNC_GETGROUPS
 AC_FUNC_SELECT_ARGTYPES
-AC_CHECK_FUNCS([chmod chown clock_gettime getaddrinfo getgrgid_r getgrnam_r \
+AC_CHECK_FUNCS_ONCE([chmod chown clock_gettime getaddrinfo getgrgid_r getgrnam_r \
     getpwnam_r getpwuid_r gettimeofday getuid inet_ntop inet_pton mlock nanosleep \
     pipe posix_fadvise posix_madvise posix_memalign setpgid setsid shm_open \
     sigaction sleep sysconf pthread_setaffinity_np])
@@ -410,20 +410,20 @@ AC_CHECK_FUNCS([mkfifo], [HAVE_MKFIFO=1], [HAVE_MKFIFO=0])
 AM_CONDITIONAL(HAVE_MKFIFO, test "x$HAVE_MKFIFO" = "x1")
 
 # X/OPEN
-AC_CHECK_FUNCS([readlink])
+AC_CHECK_FUNCS_ONCE([readlink])
 
 # SUSv2
-AC_CHECK_FUNCS([ctime_r usleep])
+AC_CHECK_FUNCS_ONCE([ctime_r usleep])
 
 # SUSv3
-AC_CHECK_FUNCS([strerror_r])
+AC_CHECK_FUNCS_ONCE([strerror_r])
 
 # BSD
-AC_CHECK_FUNCS([lstat])
+AC_CHECK_FUNCS_ONCE([lstat])
 
 # Non-standard
 
-AC_CHECK_FUNCS([setresuid setresgid setreuid setregid seteuid setegid ppoll strsignal sig2str strtof_l])
+AC_CHECK_FUNCS_ONCE([setresuid setresgid setreuid setregid seteuid setegid ppoll strsignal sig2str strtof_l])
 
 AC_FUNC_ALLOCA
 
@@ -456,7 +456,7 @@ AC_DEFINE_UNQUOTED(PA_CFLAGS,"$CFLAGS", [The CFLAGS used during compilation])
 AC_SYS_LARGEFILE
 
 # Check for open64 to know if the current system does have open64() and similar functions
-AC_CHECK_FUNCS([open64])
+AC_CHECK_FUNCS_ONCE([open64])
 
 #### [lib]iconv ####
 
@@ -535,7 +535,7 @@ fi
 
 #### Valgrind (optional) ####
 
-AC_CHECK_HEADERS([valgrind/memcheck.h])
+AC_CHECK_HEADERS_ONCE([valgrind/memcheck.h])
 
 #### Sound file ####
 
