@@ -58,4 +58,6 @@ structure if no channel_map is found, using pa_channel_map_init_auto() */
 
 int pa_modargs_get_sample_spec_and_channel_map(pa_modargs *ma, pa_sample_spec *ss, pa_channel_map *map, pa_channel_map_def_t def);
 
+int pa_modargs_get_proplist(pa_modargs *ma, const char *name, pa_proplist *p, pa_update_mode_t m);
+
 #endif
