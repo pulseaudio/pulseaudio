@@ -50,10 +50,11 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
+        "sink_properties=<properties for the sink> "
         "master=<name of sink to remap> "
         "format=<sample format> "
-        "channels=<number of channels> "
         "rate=<sample rate> "
+        "channels=<number of channels> "
         "channel_map=<channel map> "
         "plugin=<ladspa plugin name> "
         "label=<ladspa plugin label> "
@@ -85,10 +86,11 @@ struct userdata {
 
 static const char* const valid_modargs[] = {
     "sink_name",
+    "sink_properties",
     "master",
     "format",
-    "channels",
     "rate",
+    "channels",
     "channel_map",
     "plugin",
     "label",
@@ -704,6 +706,12 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(sink_data.proplist, "device.ladspa.maker", d->Maker);
     pa_proplist_sets(sink_data.proplist, "device.ladspa.copyright", d->Copyright);
     pa_proplist_setf(sink_data.proplist, "device.ladspa.unique_id", "%lu", (unsigned long) d->UniqueID);
+
+    if (pa_modargs_get_proplist(ma, "sink_properties", sink_data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties");
+        pa_sink_new_data_done(&sink_data);
+        goto fail;
+    }
 
     u->sink = pa_sink_new(m->core, &sink_data, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY);
     pa_sink_new_data_done(&sink_data);

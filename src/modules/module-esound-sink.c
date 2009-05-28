@@ -68,10 +68,11 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
+        "sink_properties=<properties for the sink> "
         "server=<address> cookie=<filename>  "
         "format=<sample format> "
-        "channels=<number of channels> "
-        "rate=<sample rate>");
+        "rate=<sample rate> "
+        "channels=<number of channels>");
 
 #define DEFAULT_SINK_NAME "esound_out"
 
@@ -118,12 +119,13 @@ struct userdata {
 };
 
 static const char* const valid_modargs[] = {
+    "sink_name",
+    "sink_properties",
     "server",
     "cookie",
-    "rate",
     "format",
+    "rate",
     "channels",
-    "sink_name",
     NULL
 };
 
@@ -585,6 +587,12 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, espeaker);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "esd");
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "EsounD Output on %s", espeaker);
+
+    if (pa_modargs_get_proplist(ma, "sink_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties");
+        pa_sink_new_data_done(&data);
+        goto fail;
+    }
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY|PA_SINK_NETWORK);
     pa_sink_new_data_done(&data);

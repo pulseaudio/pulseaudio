@@ -1693,6 +1693,12 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         pa_xfree(control_device);
     }
 
+    if (pa_modargs_get_proplist(ma, "sink_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties");
+        pa_sink_new_data_done(&data);
+        goto fail;
+    }
+
     u->sink = pa_sink_new(m->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY|(u->use_tsched ? PA_SINK_DYNAMIC_LATENCY : 0));
     pa_sink_new_data_done(&data);
 

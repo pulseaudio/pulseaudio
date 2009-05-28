@@ -44,6 +44,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
+        "sink_properties=<properties for the sink> "
         "master=<name of sink to remap> "
         "master_channel_map=<channel map> "
         "format=<sample format> "
@@ -62,10 +63,11 @@ struct userdata {
 
 static const char* const valid_modargs[] = {
     "sink_name",
+    "sink_properties",
     "master",
     "master_channel_map",
-    "rate",
     "format",
+    "rate",
     "channels",
     "channel_map",
     "remix",
@@ -353,6 +355,12 @@ int pa__init(pa_module*m) {
     pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Remapped %s", k ? k : master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
+
+    if (pa_modargs_get_proplist(ma, "sink_properties", sink_data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties");
+        pa_sink_new_data_done(&sink_data);
+        goto fail;
+    }
 
     u->sink = pa_sink_new(m->core, &sink_data, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY);
     pa_sink_new_data_done(&sink_data);

@@ -64,6 +64,7 @@ PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "name=<name for the source, to be prefixed> "
         "source_name=<name for the source> "
+        "source_properties=<properties for the source> "
         "device=<ALSA device> "
         "device_id=<ALSA card index> "
         "format=<sample format> "
@@ -82,6 +83,7 @@ PA_MODULE_USAGE(
 static const char* const valid_modargs[] = {
     "name",
     "source_name",
+    "source_properties",
     "device",
     "device_id",
     "format",

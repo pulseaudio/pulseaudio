@@ -85,16 +85,18 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
+        "sink_properties=<properties for the sink> "
         "source_name=<name for the source> "
+        "source_properties=<properties for the source> "
         "device=<OSS device> "
         "record=<enable source?> "
         "playback=<enable sink?> "
         "format=<sample format> "
-        "channels=<number of channels> "
         "rate=<sample rate> "
+        "channels=<number of channels> "
+        "channel_map=<channel map> "
         "fragments=<number of fragments> "
         "fragment_size=<fragment size> "
-        "channel_map=<channel map> "
         "mmap=<enable memory mapping?>");
 
 #define DEFAULT_DEVICE "/dev/dsp"
@@ -140,7 +142,9 @@ struct userdata {
 
 static const char* const valid_modargs[] = {
     "sink_name",
+    "sink_properties",
     "source_name",
+    "source_properties",
     "device",
     "record",
     "playback",
@@ -1314,6 +1318,12 @@ int pa__init(pa_module*m) {
         pa_proplist_setf(source_new_data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (u->in_hwbuf_size));
         pa_proplist_setf(source_new_data.proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%lu", (unsigned long) (u->in_fragment_size));
 
+        if (pa_modargs_get_proplist(ma, "source_properties", source_new_data.proplist, PA_UPDATE_REPLACE) < 0) {
+            pa_log("Invalid properties");
+            pa_source_new_data_done(&source_new_data);
+            goto fail;
+        }
+
         u->source = pa_source_new(m->core, &source_new_data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
         pa_source_new_data_done(&source_new_data);
         pa_xfree(name_buf);
@@ -1375,6 +1385,12 @@ int pa__init(pa_module*m) {
         pa_proplist_sets(sink_new_data.proplist, PA_PROP_DEVICE_ACCESS_MODE, use_mmap ? "mmap" : "serial");
         pa_proplist_setf(sink_new_data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (u->out_hwbuf_size));
         pa_proplist_setf(sink_new_data.proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%lu", (unsigned long) (u->out_fragment_size));
+
+        if (pa_modargs_get_proplist(ma, "sink_properties", sink_new_data.proplist, PA_UPDATE_REPLACE) < 0) {
+            pa_log("Invalid properties");
+            pa_sink_new_data_done(&sink_new_data);
+            goto fail;
+        }
 
         u->sink = pa_sink_new(m->core, &sink_new_data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
         pa_sink_new_data_done(&sink_new_data);

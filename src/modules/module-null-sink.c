@@ -291,7 +291,7 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_CLASS, "abstract");
 
     if (pa_modargs_get_proplist(ma, "sink_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
-        pa_log("Invalid properties.");
+        pa_log("Invalid properties");
         pa_sink_new_data_done(&data);
         goto fail;
     }

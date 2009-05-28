@@ -55,12 +55,13 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
+        "sink_properties=<properties for the sink> "
         "slaves=<slave sinks> "
         "adjust_time=<seconds> "
         "resample_method=<method> "
         "format=<sample format> "
-        "channels=<number of channels> "
         "rate=<sample rate> "
+        "channels=<number of channels> "
         "channel_map=<channel map>");
 
 #define DEFAULT_SINK_NAME "combined"
@@ -73,12 +74,13 @@ PA_MODULE_USAGE(
 
 static const char* const valid_modargs[] = {
     "sink_name",
+    "sink_properties",
     "slaves",
     "adjust_time",
     "resample_method",
     "format",
-    "channels",
     "rate",
+    "channels",
     "channel_map",
     NULL
 };
@@ -1079,6 +1081,12 @@ int pa__init(pa_module*m) {
 
     if (slaves)
         pa_proplist_sets(data.proplist, "combine.slaves", slaves);
+
+    if (pa_modargs_get_proplist(ma, "sink_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties");
+        pa_sink_new_data_done(&data);
+        goto fail;
+    }
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY);
     pa_sink_new_data_done(&data);

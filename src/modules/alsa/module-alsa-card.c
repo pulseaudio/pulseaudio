@@ -43,9 +43,12 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "name=<name for the card/sink/source, to be prefixed> "
-        "card_name=<name for card> "
-        "sink_name=<name for sink> "
-        "source_name=<name for source> "
+        "card_name=<name for the card> "
+        "card_properties=<properties for the card> "
+        "sink_name=<name for the sink> "
+        "sink_properties=<properties for the sink> "
+        "source_name=<name for the source> "
+        "source_properties=<properties for the source> "
         "device_id=<ALSA card index> "
         "format=<sample format> "
         "rate=<sample rate> "
@@ -61,8 +64,11 @@ PA_MODULE_USAGE(
 static const char* const valid_modargs[] = {
     "name",
     "card_name",
+    "card_properties",
     "sink_name",
+    "sink_properties",
     "source_name",
+    "source_properties",
     "device_id",
     "format",
     "rate",
@@ -339,6 +345,12 @@ int pa__init(pa_module *m) {
     }
 
     add_disabled_profile(data.profiles);
+
+    if (pa_modargs_get_proplist(ma, "card_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties");
+        pa_card_new_data_done(&data);
+        goto fail;
+    }
 
     u->card = pa_card_new(m->core, &data);
     pa_card_new_data_done(&data);

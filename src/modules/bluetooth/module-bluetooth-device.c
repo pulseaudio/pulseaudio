@@ -64,8 +64,11 @@ PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "name=<name for the card/sink/source, to be prefixed> "
         "card_name=<name for the card> "
+        "card_properties=<properties for the card> "
         "sink_name=<name for the sink> "
+        "sink_properties=<properties for the sink> "
         "source_name=<name for the source> "
+        "source_properties=<properties for the source> "
         "address=<address of the device> "
         "profile=<a2dp|hsp> "
         "rate=<sample rate> "
@@ -84,8 +87,11 @@ PA_MODULE_USAGE(
 static const char* const valid_modargs[] = {
     "name",
     "card_name",
+    "card_properties",
     "sink_name",
+    "sink_properties",
     "source_name",
+    "source_properties",
     "address",
     "profile",
     "rate",
@@ -1620,6 +1626,12 @@ static int add_sink(struct userdata *u) {
         data.name = get_name("sink", u->modargs, u->address, &b);
         data.namereg_fail = b;
 
+        if (pa_modargs_get_proplist(u->modargs, "sink_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
+            pa_log("Invalid properties");
+            pa_sink_new_data_done(&data);
+            return -1;
+        }
+
         u->sink = pa_sink_new(u->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY | (u->profile == PROFILE_HSP ? PA_SINK_HW_VOLUME_CTRL : 0));
         pa_sink_new_data_done(&data);
 
@@ -1671,6 +1683,12 @@ static int add_source(struct userdata *u) {
         data.card = u->card;
         data.name = get_name("source", u->modargs, u->address, &b);
         data.namereg_fail = b;
+
+        if (pa_modargs_get_proplist(u->modargs, "source_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
+            pa_log("Invalid properties");
+            pa_source_new_data_done(&data);
+            return -1;
+        }
 
         u->source = pa_source_new(u->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY | (u->profile == PROFILE_HSP ? PA_SOURCE_HW_VOLUME_CTRL : 0));
         pa_source_new_data_done(&data);
@@ -1963,13 +1981,17 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 }
 
 /* Run from main thread */
-static int add_card(struct userdata *u, const char *default_profile, const pa_bluetooth_device *device) {
+static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
     pa_card_new_data data;
     pa_bool_t b;
     pa_card_profile *p;
     enum profile *d;
     const char *ff;
     char *n;
+    const char *default_profile;
+
+    pa_assert(u);
+    pa_assert(device);
 
     pa_card_new_data_init(&data);
     data.driver = __FILE__;
@@ -1989,6 +2011,12 @@ static int add_card(struct userdata *u, const char *default_profile, const pa_bl
     pa_proplist_sets(data.proplist, "bluez.name", device->name);
     data.name = get_name("card", u->modargs, device->address, &b);
     data.namereg_fail = b;
+
+    if (pa_modargs_get_proplist(u->modargs, "card_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties");
+        pa_card_new_data_done(&data);
+        return -1;
+    }
 
     data.profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
@@ -2032,7 +2060,7 @@ static int add_card(struct userdata *u, const char *default_profile, const pa_bl
     *d = PROFILE_OFF;
     pa_hashmap_put(data.profiles, p->name, p);
 
-    if (default_profile) {
+    if ((default_profile = pa_modargs_get_value(u->modargs, "profile", NULL))) {
         if (pa_hashmap_get(data.profiles, default_profile))
             pa_card_new_data_set_profile(&data, default_profile);
         else
@@ -2178,7 +2206,7 @@ int pa__init(pa_module* m) {
         goto fail;
 
     /* Add the card structure. This will also initialize the default profile */
-    if (add_card(u, pa_modargs_get_value(ma, "profile", NULL), device) < 0)
+    if (add_card(u, device) < 0)
         goto fail;
 
     /* Connect to the BT service and query capabilities */

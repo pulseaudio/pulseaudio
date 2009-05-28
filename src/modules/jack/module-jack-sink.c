@@ -67,12 +67,13 @@ PA_MODULE_DESCRIPTION("JACK Sink");
 PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_USAGE(
-        "sink_name=<name of sink> "
+        "sink_name=<name for the sink> "
+        "sink_properties=<properties  for the card> "
         "server_name=<jack server name> "
         "client_name=<jack client name> "
         "channels=<number of channels> "
-        "connect=<connect ports?> "
-        "channel_map=<channel map>");
+        "channel_map=<channel map> "
+        "connect=<connect ports?>");
 
 #define DEFAULT_SINK_NAME "jack_out"
 
@@ -102,11 +103,12 @@ struct userdata {
 
 static const char* const valid_modargs[] = {
     "sink_name",
+    "sink_properties",
     "server_name",
     "client_name",
     "channels",
-    "connect",
     "channel_map",
+    "connect",
     NULL
 };
 
@@ -385,6 +387,12 @@ int pa__init(pa_module*m) {
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, server_name);
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Jack sink (%s)", jack_get_client_name(u->client));
     pa_proplist_sets(data.proplist, "jack.client_name", jack_get_client_name(u->client));
+
+    if (pa_modargs_get_proplist(ma, "sink_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties");
+        pa_sink_new_data_done(&data);
+        goto fail;
+    }
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY);
     pa_sink_new_data_done(&data);

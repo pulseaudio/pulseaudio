@@ -57,12 +57,13 @@ PA_MODULE_DESCRIPTION("JACK Source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_USAGE(
-        "source_name=<name of source> "
+        "source_name=<name for the source> "
+        "source_properties=<properties for the source> "
         "server_name=<jack server name> "
         "client_name=<jack client name> "
         "channels=<number of channels> "
-        "connect=<connect ports?>"
-        "channel_map=<channel map>");
+        "channel_map=<channel map> "
+        "connect=<connect ports?>");
 
 #define DEFAULT_SOURCE_NAME "jack_in"
 
@@ -89,11 +90,12 @@ struct userdata {
 
 static const char* const valid_modargs[] = {
     "source_name",
+    "source_properties",
     "server_name",
     "client_name",
     "channels",
-    "connect",
     "channel_map",
+    "connect",
     NULL
 };
 
@@ -337,6 +339,12 @@ int pa__init(pa_module*m) {
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, server_name);
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Jack source (%s)", jack_get_client_name(u->client));
     pa_proplist_sets(data.proplist, "jack.client_name", jack_get_client_name(u->client));
+
+    if (pa_modargs_get_proplist(ma, "source_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties");
+        pa_source_new_data_done(&data);
+        goto fail;
+    }
 
     u->source = pa_source_new(m->core, &data, PA_SOURCE_LATENCY);
     pa_source_new_data_done(&data);

@@ -55,8 +55,9 @@ PA_MODULE_DESCRIPTION("Sine wave generator source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
-        "rate=<sample rate> "
         "source_name=<name for the source> "
+        "source_properties=<properties for the source> "
+        "rate=<sample rate> "
         "frequency=<frequency in Hz>");
 
 #define DEFAULT_SOURCE_NAME "sine_input"
@@ -79,8 +80,9 @@ struct userdata {
 };
 
 static const char* const valid_modargs[] = {
-    "rate",
     "source_name",
+    "source_properties",
+    "rate",
     "frequency",
     NULL
 };
@@ -247,6 +249,12 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_CLASS, "abstract");
     pa_proplist_setf(data.proplist, "sine.hz", "%u", frequency);
     pa_source_new_data_set_sample_spec(&data, &ss);
+
+    if (pa_modargs_get_proplist(ma, "source_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties");
+        pa_source_new_data_done(&data);
+        goto fail;
+    }
 
     u->source = pa_source_new(m->core, &data, PA_SOURCE_LATENCY);
     pa_source_new_data_done(&data);

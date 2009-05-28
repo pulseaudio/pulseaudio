@@ -64,24 +64,26 @@
 #ifdef TUNNEL_SINK
 PA_MODULE_DESCRIPTION("Tunnel module for sinks");
 PA_MODULE_USAGE(
+        "sink_name=<name for the local sink> "
+        "sink_properties=<properties for the local sink> "
         "server=<address> "
         "sink=<remote sink name> "
         "cookie=<filename> "
         "format=<sample format> "
         "channels=<number of channels> "
         "rate=<sample rate> "
-        "sink_name=<name for the local sink> "
         "channel_map=<channel map>");
 #else
 PA_MODULE_DESCRIPTION("Tunnel module for sources");
 PA_MODULE_USAGE(
+        "source_name=<name for the local source> "
+        "source_properties=<properties for the local source> "
         "server=<address> "
         "source=<remote source name> "
         "cookie=<filename> "
         "format=<sample format> "
         "channels=<number of channels> "
         "rate=<sample rate> "
-        "source_name=<name for the local source> "
         "channel_map=<channel map>");
 #endif
 
@@ -97,9 +99,11 @@ static const char* const valid_modargs[] = {
     "rate",
 #ifdef TUNNEL_SINK
     "sink_name",
+    "sink_properties",
     "sink",
 #else
     "source_name",
+    "source_properties",
     "source",
 #endif
     "channel_map",
@@ -1873,6 +1877,12 @@ int pa__init(pa_module*m) {
     if (u->sink_name)
         pa_proplist_sets(data.proplist, "tunnel.remote.sink", u->sink_name);
 
+    if (pa_modargs_get_proplist(ma, "sink_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties");
+        pa_sink_new_data_done(&data);
+        goto fail;
+    }
+
     u->sink = pa_sink_new(m->core, &data, PA_SINK_NETWORK|PA_SINK_LATENCY|PA_SINK_HW_VOLUME_CTRL|PA_SINK_HW_MUTE_CTRL);
     pa_sink_new_data_done(&data);
 
@@ -1910,6 +1920,12 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(data.proplist, "tunnel.remote.server", u->server_name);
     if (u->source_name)
         pa_proplist_sets(data.proplist, "tunnel.remote.source", u->source_name);
+
+    if (pa_modargs_get_proplist(ma, "source_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties");
+        pa_source_new_data_done(&data);
+        goto fail;
+    }
 
     u->source = pa_source_new(m->core, &data, PA_SOURCE_NETWORK|PA_SOURCE_LATENCY);
     pa_source_new_data_done(&data);
