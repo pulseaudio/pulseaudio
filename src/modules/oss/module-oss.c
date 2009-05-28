@@ -98,6 +98,9 @@ PA_MODULE_USAGE(
         "fragments=<number of fragments> "
         "fragment_size=<fragment size> "
         "mmap=<enable memory mapping?>");
+#ifdef __linux__
+PA_MODULE_DEPRECATED("Please use module-alsa-card instead of module-oss!");
+#endif
 
 #define DEFAULT_DEVICE "/dev/dsp"
 

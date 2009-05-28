@@ -483,6 +483,8 @@ static int pa_cli_command_describe(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, 
             if (i->usage)
                 pa_strbuf_printf(buf, "Usage: %s\n", i->usage);
             pa_strbuf_printf(buf, "Load Once: %s\n", pa_yes_no(i->load_once));
+            if (i->deprecated)
+                pa_strbuf_printf(buf, "Warning, deprecated: %s\n", i->deprecated);
         }
 
         pa_modinfo_free(i);

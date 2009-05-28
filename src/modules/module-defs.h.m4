@@ -17,6 +17,7 @@ gen_symbol(pa__get_author)
 gen_symbol(pa__get_description)
 gen_symbol(pa__get_usage)
 gen_symbol(pa__get_version)
+gen_symbol(pa__get_deprecated)
 gen_symbol(pa__load_once)
 gen_symbol(pa__get_n_used)
 
@@ -28,6 +29,7 @@ const char* pa__get_author(void);
 const char* pa__get_description(void);
 const char* pa__get_usage(void);
 const char* pa__get_version(void);
+const char* pa__get_deprecated(void);
 pa_bool_t pa__load_once(void);
 
 #endif

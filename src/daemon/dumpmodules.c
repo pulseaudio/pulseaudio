@@ -71,6 +71,8 @@ static void long_info(const char *name, const char *path, pa_modinfo *i) {
         if (i->usage)
             printf(_("Usage: %s\n"), i->usage);
         printf(_("Load Once: %s\n"), pa_yes_no(i->load_once));
+        if (i->deprecated)
+            printf(_("DEPRECATION WARNING: %s\n"), i->deprecated);
     }
 
     if (path)

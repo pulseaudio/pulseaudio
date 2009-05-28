@@ -36,6 +36,7 @@ PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Compatibility module");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_DEPRECATED("Please use module-stream-restore instead of module-volume-restore!");
 
 static const char* const valid_modargs[] = {
     "table",
@@ -62,7 +63,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    pa_log_warn("module-volume-restore is obsolete. It has been replaced by module-stream-restore. We will now load the latter but please make sure to remove module-volume-restore from your configuration.");
+    pa_log_warn("We will now load module-stream-restore. Please make sure to remove module-volume-restore from your configuration.");
 
     t = pa_sprintf_malloc("restore_volume=%s restore_device=%s", pa_yes_no(restore_volume), pa_yes_no(restore_device));
     pa_module_load(m->core, "module-stream-restore", t);

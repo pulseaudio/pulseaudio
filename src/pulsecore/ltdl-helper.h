@@ -29,4 +29,3 @@ typedef void (*pa_void_func_t)(void);
 pa_void_func_t pa_load_sym(lt_dlhandle handle, const char*module, const char *symbol);
 
 #endif
-
