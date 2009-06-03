@@ -1072,7 +1072,8 @@ endif
 
 if HAVE_DBUS
 modlibexec_LTLIBRARIES += \
-		module-rygel-media-server.la
+		module-rygel-media-server.la \
+		module-dbus-protocol.la
 endif
 
 if HAVE_BLUEZ
@@ -1164,7 +1165,8 @@ SYMDEF_FILES = \
 		modules/module-position-event-sounds-symdef.h \
 		modules/module-augment-properties-symdef.h \
 		modules/module-cork-music-on-phone-symdef.h \
-		modules/module-console-kit-symdef.h
+		modules/module-console-kit-symdef.h \
+		modules/module-dbus-protocol-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
@@ -1212,6 +1214,13 @@ module_http_protocol_unix_la_SOURCES = modules/module-protocol-stub.c
 module_http_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_HTTP $(AM_CFLAGS)
 module_http_protocol_unix_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_http_protocol_unix_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libprotocol-http.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+
+# D-Bus protocol
+
+module_dbus_protocol_la_SOURCES = modules/module-dbus-protocol.c
+module_dbus_protocol_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
+module_dbus_protocol_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_dbus_protocol_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
 # Native protocol
 
