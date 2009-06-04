@@ -26,6 +26,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+
+/* Some versions of tdb lack inclusion of signal.h in the header files but use sigatomic_t */
+#include <signal.h>
 #include <tdb.h>
 
 #include <pulse/xmalloc.h>
