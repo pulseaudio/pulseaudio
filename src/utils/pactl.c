@@ -802,7 +802,6 @@ enum {
 
 int main(int argc, char *argv[]) {
     pa_mainloop* m = NULL;
-    char tmp[PATH_MAX];
     int ret = 1, c;
     char *server = NULL, *bn;
 
@@ -882,17 +881,8 @@ int main(int argc, char *argv[]) {
             if (optind+2 < argc)
                 sample_name = pa_xstrdup(argv[optind+2]);
             else {
-                char *f = strrchr(argv[optind+1], '/');
-                size_t n;
-                if (f)
-                    f++;
-                else
-                    f = argv[optind];
-
-                n = strcspn(f, ".");
-                strncpy(tmp, f, n);
-                tmp[n] = 0;
-                sample_name = pa_xstrdup(tmp);
+                char *f = pa_path_get_filename(argv[optind+1]);
+                sample_name = pa_xstrndup(f, strcspn(f, "."));
             }
 
             pa_zero(sfi);
