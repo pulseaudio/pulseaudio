@@ -116,6 +116,8 @@ struct userdata {
 
     pa_reserve_wrapper *reserve;
     pa_hook_slot *reserve_slot;
+    pa_reserve_monitor_wrapper *monitor;
+    pa_hook_slot *monitor_slot;
 };
 
 static void userdata_free(struct userdata *u);
@@ -181,6 +183,57 @@ static int reserve_init(struct userdata *u, const char *dname) {
 
     pa_assert(!u->reserve_slot);
     u->reserve_slot = pa_hook_connect(pa_reserve_wrapper_hook(u->reserve), PA_HOOK_NORMAL, (pa_hook_cb_t) reserve_cb, u);
+
+    return 0;
+}
+
+static pa_hook_result_t monitor_cb(pa_reserve_monitor_wrapper *w, void* busy, struct userdata *u) {
+    pa_bool_t b;
+
+    pa_assert(w);
+    pa_assert(u);
+
+    b = PA_PTR_TO_UINT(busy) && !u->reserve;
+
+    pa_sink_suspend(u->sink, b, PA_SUSPEND_APPLICATION);
+    return PA_HOOK_OK;
+}
+
+static void monitor_done(struct userdata *u) {
+    pa_assert(u);
+
+    if (u->monitor_slot) {
+        pa_hook_slot_free(u->monitor_slot);
+        u->monitor_slot = NULL;
+    }
+
+    if (u->monitor) {
+        pa_reserve_monitor_wrapper_unref(u->monitor);
+        u->monitor = NULL;
+    }
+}
+
+static int reserve_monitor_init(struct userdata *u, const char *dname) {
+    char *rname;
+
+    pa_assert(u);
+    pa_assert(dname);
+
+    if (pa_in_system_mode())
+        return 0;
+
+    /* We are resuming, try to lock the device */
+    if (!(rname = pa_alsa_get_reserve_name(dname)))
+        return 0;
+
+    u->monitor = pa_reserve_monitor_wrapper_get(u->core, rname);
+    pa_xfree(rname);
+
+    if (!(u->monitor))
+        return -1;
+
+    pa_assert(!u->monitor_slot);
+    u->monitor_slot = pa_hook_connect(pa_reserve_monitor_wrapper_hook(u->monitor), PA_HOOK_NORMAL, (pa_hook_cb_t) monitor_cb, u);
 
     return 0;
 }
@@ -1580,9 +1633,14 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
             pa_rtclock_usec(),
             TRUE);
 
-    if (reserve_init(u, pa_modargs_get_value(
-                             ma, "device_id",
-                             pa_modargs_get_value(ma, "device", DEFAULT_DEVICE))) < 0)
+    dev_id = pa_modargs_get_value(
+            ma, "device_id",
+            pa_modargs_get_value(ma, "device", DEFAULT_DEVICE));
+
+    if (reserve_init(u, dev_id) < 0)
+        goto fail;
+
+    if (reserve_monitor_init(u, dev_id) < 0)
         goto fail;
 
     b = use_mmap;
@@ -1828,6 +1886,7 @@ static void userdata_free(struct userdata *u) {
         pa_smoother_free(u->smoother);
 
     reserve_done(u);
+    monitor_done(u);
 
     pa_xfree(u->device_name);
     pa_xfree(u);
