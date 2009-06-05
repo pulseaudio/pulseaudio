@@ -1358,7 +1358,7 @@ libalsa_util_la_CFLAGS += $(UDEV_CFLAGS)
 endif
 
 if HAVE_DBUS
-libalsa_util_la_SOURCES += modules/reserve.h modules/reserve.c
+libalsa_util_la_SOURCES += modules/reserve.h modules/reserve.c modules/reserve-monitor.h modules/reserve-monitor.c
 libalsa_util_la_LIBADD += $(DBUS_LIBS)
 libalsa_util_la_CFLAGS += $(DBUS_CFLAGS)
 endif
@@ -1670,7 +1670,7 @@ update-sbc:
 	done
 
 update-reserve:
-	for i in reserve.c reserve.h ; do \
+	for i in reserve.c reserve.h reserve-monitor.c reserve-monitor.h ; do \
 		wget -O modules/$$i http://git.0pointer.de/\?p=reserve.git\;a=blob_plain\;f=$$i\;hb=master ; \
 	done
 
