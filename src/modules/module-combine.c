@@ -593,7 +593,7 @@ static void unsuspend(struct userdata *u) {
     /* Let's resume */
     for (o = pa_idxset_first(u->outputs, &idx); o; o = pa_idxset_next(u->outputs, &idx)) {
 
-        pa_sink_suspend(o->sink, FALSE);
+        pa_sink_suspend(o->sink, FALSE, PA_SUSPEND_IDLE);
 
         if (PA_SINK_IS_OPENED(pa_sink_get_state(o->sink)))
             enable_output(o);
@@ -873,7 +873,7 @@ static struct output *output_new(struct userdata *u, pa_sink *sink) {
     }
 
     if (PA_SINK_IS_OPENED(state) || state == PA_SINK_INIT) {
-        pa_sink_suspend(sink, FALSE);
+        pa_sink_suspend(sink, FALSE, PA_SUSPEND_IDLE);
 
         if (PA_SINK_IS_OPENED(pa_sink_get_state(sink)))
             if (output_create_sink_input(o) < 0)

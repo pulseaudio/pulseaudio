@@ -27,6 +27,16 @@
 
 typedef struct pa_core pa_core;
 
+/* This is a bitmask that encodes the cause why a sink/source is
+ * suspended. */
+typedef enum pa_suspend_cause {
+    PA_SUSPEND_USER = 1,         /* Exposed to the user via some protocol */
+    PA_SUSPEND_APPLICATION = 2,  /* Used by the device reservation logic */
+    PA_SUSPEND_IDLE = 4,         /* Used by module-suspend-on-idle */
+    PA_SUSPEND_SESSION = 8,      /* Used by module-hal for mark inactive sessions */
+    PA_SUSPEND_ALL = 0xFFFF      /* Magic cause that can be used to resume forcibly */
+} pa_suspend_cause_t;
+
 #include <pulsecore/idxset.h>
 #include <pulsecore/hashmap.h>
 #include <pulsecore/memblock.h>

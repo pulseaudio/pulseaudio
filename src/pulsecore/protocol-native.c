@@ -4098,7 +4098,7 @@ static void command_suspend(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa
 
             pa_log_debug("%s all sinks", b ? "Suspending" : "Resuming");
 
-            if (pa_sink_suspend_all(c->protocol->core, b) < 0) {
+            if (pa_sink_suspend_all(c->protocol->core, b, PA_SUSPEND_USER) < 0) {
                 pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
                 return;
             }
@@ -4112,7 +4112,7 @@ static void command_suspend(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa
 
             CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);
 
-            if (pa_sink_suspend(sink, b) < 0) {
+            if (pa_sink_suspend(sink, b, PA_SUSPEND_USER) < 0) {
                 pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
                 return;
             }
@@ -4125,7 +4125,7 @@ static void command_suspend(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa
 
             pa_log_debug("%s all sources", b ? "Suspending" : "Resuming");
 
-            if (pa_source_suspend_all(c->protocol->core, b) < 0) {
+            if (pa_source_suspend_all(c->protocol->core, b, PA_SUSPEND_USER) < 0) {
                 pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
                 return;
             }
@@ -4140,7 +4140,7 @@ static void command_suspend(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa
 
             CHECK_VALIDITY(c->pstream, source, tag, PA_ERR_NOENTITY);
 
-            if (pa_source_suspend(source, b) < 0) {
+            if (pa_source_suspend(source, b, PA_SUSPEND_USER) < 0) {
                 pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
                 return;
             }

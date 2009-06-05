@@ -180,6 +180,7 @@ pa_source* pa_source_new(
     s->core = core;
     s->state = PA_SOURCE_INIT;
     s->flags = flags;
+    s->suspend_cause = 0;
     s->name = pa_xstrdup(name);
     s->proplist = pa_proplist_copy(data->proplist);
     s->driver = pa_xstrdup(pa_path_get_filename(data->driver));
@@ -427,12 +428,20 @@ int pa_source_update_status(pa_source*s) {
 }
 
 /* Called from main context */
-int pa_source_suspend(pa_source *s, pa_bool_t suspend) {
+int pa_source_suspend(pa_source *s, pa_bool_t suspend, pa_suspend_cause_t cause) {
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
+    pa_assert(cause != 0);
 
     if (s->monitor_of)
         return -PA_ERR_NOTSUPPORTED;
+
+    if (suspend)
+        s->suspend_cause |= cause;
+    else
+        s->suspend_cause &= ~cause;
+
+    pa_log_debug("Suspend cause of source %s is 0x%04x, %s", s->name, s->suspend_cause, s->suspend_cause ? "suspending" : "resuming");
 
     if (suspend)
         return source_set_state(s, PA_SOURCE_SUSPENDED);
@@ -1032,12 +1041,13 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 }
 
 /* Called from main thread */
-int pa_source_suspend_all(pa_core *c, pa_bool_t suspend) {
+int pa_source_suspend_all(pa_core *c, pa_bool_t suspend, pa_suspend_cause_t cause) {
     uint32_t idx;
     pa_source *source;
     int ret = 0;
 
     pa_core_assert_ref(c);
+    pa_assert(cause != 0);
 
     for (source = PA_SOURCE(pa_idxset_first(c->sources, &idx)); source; source = PA_SOURCE(pa_idxset_next(c->sources, &idx))) {
         int r;
@@ -1045,7 +1055,7 @@ int pa_source_suspend_all(pa_core *c, pa_bool_t suspend) {
         if (source->monitor_of)
             continue;
 
-        if ((r = pa_source_suspend(source, suspend)) < 0)
+        if ((r = pa_source_suspend(source, suspend, cause)) < 0)
             ret = r;
     }
 

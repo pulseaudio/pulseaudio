@@ -99,6 +99,6 @@ void pa_card_free(pa_card *c);
 
 int pa_card_set_profile(pa_card *c, const char *name, pa_bool_t save);
 
-int pa_card_suspend(pa_card *c, pa_bool_t suspend);
+int pa_card_suspend(pa_card *c, pa_bool_t suspend, pa_suspend_cause_t cause);
 
 #endif

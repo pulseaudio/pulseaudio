@@ -56,6 +56,7 @@ struct pa_sink {
     pa_core *core;
     pa_sink_state_t state;
     pa_sink_flags_t flags;
+    pa_suspend_cause_t suspend_cause;
 
     char *name;
     char *driver;                           /* may be NULL */
@@ -252,8 +253,8 @@ size_t pa_sink_get_max_rewind(pa_sink *s);
 size_t pa_sink_get_max_request(pa_sink *s);
 
 int pa_sink_update_status(pa_sink*s);
-int pa_sink_suspend(pa_sink *s, pa_bool_t suspend);
-int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend);
+int pa_sink_suspend(pa_sink *s, pa_bool_t suspend, pa_suspend_cause_t cause);
+int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend, pa_suspend_cause_t cause);
 
 void pa_sink_update_flat_volume(pa_sink *s, pa_cvolume *new_volume);
 void pa_sink_propagate_flat_volume(pa_sink *s);

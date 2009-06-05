@@ -86,14 +86,14 @@ static void timeout_cb(pa_mainloop_api*a, pa_time_event* e, const struct timeval
 
     d->userdata->core->mainloop->time_restart(d->time_event, NULL);
 
-    if (d->sink && pa_sink_check_suspend(d->sink) <= 0 && pa_sink_get_state(d->sink) != PA_SINK_SUSPENDED) {
+    if (d->sink && pa_sink_check_suspend(d->sink) <= 0 && !(d->sink->suspend_cause & PA_SUSPEND_IDLE)) {
         pa_log_info("Sink %s idle for too long, suspending ...", d->sink->name);
-        pa_sink_suspend(d->sink, TRUE);
+        pa_sink_suspend(d->sink, TRUE, PA_SUSPEND_IDLE);
     }
 
-    if (d->source && pa_source_check_suspend(d->source) <= 0 && pa_source_get_state(d->source) != PA_SOURCE_SUSPENDED) {
+    if (d->source && pa_source_check_suspend(d->source) <= 0 && !(d->source->suspend_cause & PA_SUSPEND_IDLE)) {
         pa_log_info("Source %s idle for too long, suspending ...", d->source->name);
-        pa_source_suspend(d->source, TRUE);
+        pa_source_suspend(d->source, TRUE, PA_SUSPEND_IDLE);
     }
 }
 
@@ -127,13 +127,13 @@ static void resume(struct device_info *d) {
     d->userdata->core->mainloop->time_restart(d->time_event, NULL);
 
     if (d->sink) {
-        pa_sink_suspend(d->sink, FALSE);
+        pa_sink_suspend(d->sink, FALSE, PA_SUSPEND_IDLE);
 
         pa_log_debug("Sink %s becomes busy.", d->sink->name);
     }
 
     if (d->source) {
-        pa_source_suspend(d->source, FALSE);
+        pa_source_suspend(d->source, FALSE, PA_SUSPEND_IDLE);
 
         pa_log_debug("Source %s becomes busy.", d->source->name);
     }

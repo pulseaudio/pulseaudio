@@ -190,6 +190,7 @@ pa_sink* pa_sink_new(
     s->core = core;
     s->state = PA_SINK_INIT;
     s->flags = flags;
+    s->suspend_cause = 0;
     s->name = pa_xstrdup(name);
     s->proplist = pa_proplist_copy(data->proplist);
     s->driver = pa_xstrdup(pa_path_get_filename(data->driver));
@@ -499,11 +500,19 @@ int pa_sink_update_status(pa_sink*s) {
 }
 
 /* Called from main context */
-int pa_sink_suspend(pa_sink *s, pa_bool_t suspend) {
+int pa_sink_suspend(pa_sink *s, pa_bool_t suspend, pa_suspend_cause_t cause) {
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_IS_LINKED(s->state));
+    pa_assert(cause != 0);
 
     if (suspend)
+        s->suspend_cause |= cause;
+    else
+        s->suspend_cause &= ~cause;
+
+    pa_log_debug("Suspend cause of sink %s is 0x%04x, %s", s->name, s->suspend_cause, s->suspend_cause ? "suspending" : "resuming");
+
+    if (s->suspend_cause)
         return sink_set_state(s, PA_SINK_SUSPENDED);
     else
         return sink_set_state(s, pa_sink_used_by(s) ? PA_SINK_RUNNING : PA_SINK_IDLE);
@@ -1823,17 +1832,18 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 }
 
 /* Called from main thread */
-int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend) {
+int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend, pa_suspend_cause_t cause) {
     pa_sink *sink;
     uint32_t idx;
     int ret = 0;
 
     pa_core_assert_ref(c);
+    pa_assert(cause != 0);
 
     for (sink = PA_SINK(pa_idxset_first(c->sinks, &idx)); sink; sink = PA_SINK(pa_idxset_next(c->sinks, &idx))) {
         int r;
 
-        if ((r = pa_sink_suspend(sink, suspend)) < 0)
+        if ((r = pa_sink_suspend(sink, suspend, cause)) < 0)
             ret = r;
     }
 

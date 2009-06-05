@@ -58,6 +58,7 @@ struct pa_source {
     pa_core *core;
     pa_source_state_t state;
     pa_source_flags_t flags;
+    pa_suspend_cause_t suspend_cause;
 
     char *name;
     char *driver;                             /* may be NULL */
@@ -231,8 +232,8 @@ void pa_source_get_latency_range(pa_source *s, pa_usec_t *min_latency, pa_usec_t
 size_t pa_source_get_max_rewind(pa_source *s);
 
 int pa_source_update_status(pa_source*s);
-int pa_source_suspend(pa_source *s, pa_bool_t suspend);
-int pa_source_suspend_all(pa_core *c, pa_bool_t suspend);
+int pa_source_suspend(pa_source *s, pa_bool_t suspend, pa_suspend_cause_t cause);
+int pa_source_suspend_all(pa_core *c, pa_bool_t suspend, pa_suspend_cause_t cause);
 
 void pa_source_set_volume(pa_source *source, const pa_cvolume *volume);
 const pa_cvolume *pa_source_get_volume(pa_source *source, pa_bool_t force_refresh);

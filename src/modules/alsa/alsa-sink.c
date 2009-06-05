@@ -124,7 +124,7 @@ static pa_hook_result_t reserve_cb(pa_reserve_wrapper *r, void *forced, struct u
     pa_assert(r);
     pa_assert(u);
 
-    if (pa_sink_suspend(u->sink, TRUE) < 0)
+    if (pa_sink_suspend(u->sink, TRUE, PA_SUSPEND_APPLICATION) < 0)
         return PA_HOOK_CANCEL;
 
     return PA_HOOK_OK;
