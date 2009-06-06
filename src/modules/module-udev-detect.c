@@ -24,6 +24,7 @@
 #endif
 
 #include <errno.h>
+#include <limits.h>
 #include <sys/inotify.h>
 #include <libudev.h>
 
@@ -41,6 +42,7 @@ PA_MODULE_LOAD_ONCE(TRUE);
 
 struct device {
     char *path;
+    pa_bool_t accessible;
     char *card_name;
     uint32_t module;
 };
@@ -49,9 +51,13 @@ struct userdata {
     pa_core *core;
     pa_hashmap *devices;
     pa_bool_t use_tsched;
+
     struct udev* udev;
     struct udev_monitor *monitor;
-    pa_io_event *io;
+    pa_io_event *udev_io;
+
+    int inotify_fd;
+    pa_io_event *inotify_io;
 };
 
 static const char* const valid_modargs[] = {
@@ -84,19 +90,20 @@ static const char *path_get_card_id(const char *path) {
 
 static void verify_access(struct userdata *u, struct device *d) {
     char *cd;
-    int r;
     pa_card *card;
 
     pa_assert(u);
     pa_assert(d);
 
-    cd = pa_sprintf_malloc("%s/controlC%s", d->path, path_get_card_id(d->path));
-    r = access(cd, W_OK);
-    pa_log_info("%s is accessible: %s", cd, pa_yes_no(r >= 0));
+    if (!(card = pa_namereg_get(u->core, d->card_name, PA_NAMEREG_CARD)))
+        return;
+
+    cd = pa_sprintf_malloc("%s/snd/controlC%s", udev_get_dev_path(u->udev), path_get_card_id(d->path));
+    d->accessible = access(cd, W_OK) >= 0;
+    pa_log_info("%s is accessible: %s", cd, pa_yes_no(d->accessible));
     pa_xfree(cd);
 
-    if ((card = pa_namereg_get(u->core, d->card_name, PA_NAMEREG_CARD)))
-        pa_card_suspend(card, r < 0, PA_SUSPEND_SESSION);
+    pa_card_suspend(card, !d->accessible, PA_SUSPEND_SESSION);
 }
 
 static void card_changed(struct userdata *u, struct udev_device *dev) {
@@ -146,6 +153,7 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
         d->path = pa_xstrdup(path);
         d->card_name = card_name;
         d->module = m->index;
+        d->accessible = TRUE;
 
         pa_hashmap_put(u->devices, d->path, d);
     } else
@@ -175,13 +183,13 @@ static void process_device(struct userdata *u, struct udev_device *dev) {
     pa_assert(dev);
 
     if (udev_device_get_property_value(dev, "PULSE_IGNORE")) {
-        pa_log_info("Ignoring %s, because marked so.", udev_device_get_devpath(dev));
+        pa_log_debug("Ignoring %s, because marked so.", udev_device_get_devpath(dev));
         return;
     }
 
     if ((ff = udev_device_get_property_value(dev, "SOUND_FORM_FACTOR")) &&
         pa_streq(ff, "modem")) {
-        pa_log_info("Ignoring %s, because it is a modem.", udev_device_get_devpath(dev));
+        pa_log_debug("Ignoring %s, because it is a modem.", udev_device_get_devpath(dev));
         return;
     }
 
@@ -212,7 +220,13 @@ static void process_path(struct userdata *u, const char *path) {
     udev_device_unref(dev);
 }
 
-static void monitor_cb(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags_t events, void *userdata) {
+static void monitor_cb(
+        pa_mainloop_api*a,
+        pa_io_event* e,
+        int fd,
+        pa_io_event_flags_t events,
+        void *userdata) {
+
     struct userdata *u = userdata;
     struct udev_device *dev;
 
@@ -220,7 +234,7 @@ static void monitor_cb(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_fl
 
     if (!(dev = udev_monitor_receive_device(u->monitor))) {
         pa_log("Failed to get udev device object from monitor.");
-        return;
+        goto fail;
     }
 
     if (!path_get_card_id(udev_device_get_devpath(dev)))
@@ -228,6 +242,88 @@ static void monitor_cb(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_fl
 
     process_device(u, dev);
     udev_device_unref(dev);
+    return;
+
+fail:
+    a->io_free(u->udev_io);
+    u->udev_io = NULL;
+}
+
+static void inotify_cb(
+        pa_mainloop_api*a,
+        pa_io_event* e,
+        int fd,
+        pa_io_event_flags_t events,
+        void *userdata) {
+
+    struct {
+        struct inotify_event e;
+        char name[NAME_MAX];
+    } buf;
+    struct userdata *u = userdata;
+    static int type = 0;
+    pa_bool_t verify = FALSE;
+
+    for (;;) {
+        ssize_t r;
+
+        pa_zero(buf);
+        if ((r = pa_read(fd, &buf, sizeof(buf), &type)) <= 0) {
+
+            if (r < 0 && errno == EAGAIN)
+                break;
+
+            pa_log("read() from inotify failed: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
+            goto fail;
+        }
+
+        if ((buf.e.mask & IN_CLOSE_WRITE) && pa_startswith(buf.e.name, "pcmC"))
+            verify = TRUE;
+    }
+
+    if (verify) {
+        struct device *d;
+        void *state;
+
+        pa_log_debug("Verifying access.");
+
+        PA_HASHMAP_FOREACH(d, u->devices, state)
+            verify_access(u, d);
+    }
+
+    return;
+
+fail:
+    a->io_free(u->inotify_io);
+    u->inotify_io = NULL;
+
+    if (u->inotify_fd >= 0) {
+        pa_close(u->inotify_fd);
+        u->inotify_fd = -1;
+    }
+}
+
+static int setup_inotify(struct userdata *u) {
+    char *dev_snd;
+    int r;
+
+    if ((u->inotify_fd = inotify_init1(IN_CLOEXEC|IN_NONBLOCK)) < 0) {
+        pa_log("inotify_init1() failed: %s", pa_cstrerror(errno));
+        return -1;
+    }
+
+    dev_snd = pa_sprintf_malloc("%s/snd", udev_get_dev_path(u->udev));
+    r = inotify_add_watch(u->inotify_fd, dev_snd, IN_CLOSE_WRITE);
+    pa_xfree(dev_snd);
+
+    if (r < 0) {
+        pa_log("inotify_add_watch() failed: %s", pa_cstrerror(errno));
+        return -1;
+    }
+
+    pa_assert_se(u->inotify_io = u->core->mainloop->io_new(u->core->mainloop, u->inotify_fd, PA_IO_EVENT_INPUT, inotify_cb, u));
+
+    return 0;
 }
 
 int pa__init(pa_module *m) {
@@ -248,6 +344,7 @@ int pa__init(pa_module *m) {
     u->core = m->core;
     u->devices = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     u->use_tsched = TRUE;
+    u->inotify_fd = -1;
 
     if (pa_modargs_get_value_boolean(ma, "tsched", &u->use_tsched) < 0) {
         pa_log("Failed to parse tsched argument.");
@@ -258,6 +355,9 @@ int pa__init(pa_module *m) {
         pa_log("Failed to initialize udev library.");
         goto fail;
     }
+
+    if (setup_inotify(u) < 0)
+        goto fail;
 
     if (!(u->monitor = udev_monitor_new_from_netlink(u->udev, "udev"))) {
         pa_log("Failed to initialize monitor.");
@@ -279,7 +379,7 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    pa_assert_se(u->io = u->core->mainloop->io_new(u->core->mainloop, fd, PA_IO_EVENT_INPUT, monitor_cb, u));
+    pa_assert_se(u->udev_io = u->core->mainloop->io_new(u->core->mainloop, fd, PA_IO_EVENT_INPUT, monitor_cb, u));
 
     if (!(enumerate = udev_enumerate_new(u->udev))) {
         pa_log("Failed to initialize udev enumerator.");
@@ -329,11 +429,20 @@ void pa__done(pa_module *m) {
     if (!(u = m->userdata))
         return;
 
+    if (u->udev_io)
+        m->core->mainloop->io_free(u->udev_io);
+
     if (u->monitor)
         udev_monitor_unref(u->monitor);
 
     if (u->udev)
         udev_unref(u->udev);
+
+    if (u->inotify_io)
+        m->core->mainloop->io_free(u->inotify_io);
+
+    if (u->inotify_fd >= 0)
+        pa_close(u->inotify_fd);
 
     if (u->devices) {
         struct device *d;
