@@ -413,7 +413,8 @@ USA.
     these buffer metrics for machines with high scheduling
     latencies. Not all possible values that may be configured here are
     available in all hardware. The driver will to find the nearest
-    setting supported.</p>
+    setting supported. Modern drivers that support timer-based
+    scheduling ignore these options.</p>
 
     <option>
       <p><opt>default-fragments=</opt> The default number of
