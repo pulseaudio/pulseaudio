@@ -164,6 +164,14 @@ USA.
     </option>
 
     <option>
+      <p><opt>lock-memory=</opt> Locks the entire PulseAudio process
+      into memory. While this might increase drop-out safety when used
+      in conjunction with real-time scheduling this takes away a lot
+      of memory from other processes and might hence considerably slow
+      down your system. Defaults to <opt>no</opt>.</p>
+    </option>
+
+    <option>
       <p><opt>flat-volumes=</opt> Enable 'flat' volumes, i.e. where
       possible let the sink volume equal the maximum of the volumes of
       the inputs connected to it. Takes a boolean argument, defaults

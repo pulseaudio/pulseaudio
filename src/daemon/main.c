@@ -40,6 +40,10 @@
 
 #include <liboil/liboil.h>
 
+#ifdef HAVE_SYS_MMAN_H
+#include <sys/mman.h>
+#endif
+
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
 #endif
@@ -959,6 +963,17 @@ int main(int argc, char *argv[]) {
     /* Valgrind uses SIGRTMAX. To easy debugging we don't use it here */
     pa_rtsig_configure(SIGRTMIN, SIGRTMAX-1);
 #endif
+
+    if (conf->lock_memory) {
+#ifdef HAVE_SYS_MMAN_H
+        if (mlockall(MCL_FUTURE) < 0)
+            pa_log_warn("mlockall() failed: %s", pa_cstrerror(errno));
+        else
+            pa_log_info("Sucessfully locked process into memory.");
+#else
+        pa_log_warn("Memory locking requested but not supported on platform.");
+#endif
+    }
 
     pa_memtrap_install();
 
