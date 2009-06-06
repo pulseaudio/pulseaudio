@@ -1070,6 +1070,11 @@ modlibexec_LTLIBRARIES += \
 		module-hal-detect.la
 endif
 
+if HAVE_UDEV
+modlibexec_LTLIBRARIES += \
+		module-udev-detect.la
+endif
+
 if HAVE_DBUS
 modlibexec_LTLIBRARIES += \
 		module-rygel-media-server.la
@@ -1155,6 +1160,7 @@ SYMDEF_FILES = \
 		modules/module-rescue-streams-symdef.h \
 		modules/module-suspend-on-idle-symdef.h \
 		modules/module-hal-detect-symdef.h \
+		modules/module-udev-detect-symdef.h \
 		modules/bluetooth/module-bluetooth-proximity-symdef.h \
 		modules/bluetooth/module-bluetooth-discover-symdef.h \
 		modules/bluetooth/module-bluetooth-device-symdef.h \
@@ -1517,6 +1523,11 @@ module_hal_detect_la_SOURCES = modules/module-hal-detect.c
 module_hal_detect_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_hal_detect_la_LIBADD = $(AM_LIBADD) $(HAL_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_hal_detect_la_CFLAGS = $(AM_CFLAGS) $(HAL_CFLAGS)
+
+module_udev_detect_la_SOURCES = modules/module-udev-detect.c
+module_udev_detect_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_udev_detect_la_LIBADD = $(AM_LIBADD) $(UDEV_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_udev_detect_la_CFLAGS = $(AM_CFLAGS) $(UDEV_CFLAGS)
 
 module_console_kit_la_SOURCES = modules/module-console-kit.c
 module_console_kit_la_LDFLAGS = $(MODULE_LDFLAGS)
