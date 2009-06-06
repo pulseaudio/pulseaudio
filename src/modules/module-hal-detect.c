@@ -64,6 +64,7 @@ PA_MODULE_USAGE("api=<alsa> "
 #elif defined(HAVE_OSS)
 PA_MODULE_USAGE("api=<oss>");
 #endif
+PA_MODULE_DEPRECATED("Please use module-udev-detect instead of module-hal-detect!");
 
 struct device {
     char *udi, *originating_udi;
@@ -232,7 +233,7 @@ static int hal_device_load_alsa(struct userdata *u, const char *udi, struct devi
         goto fail;
 
     card_name = pa_sprintf_malloc("alsa_card.%s", strip_udi(originating_udi));
-    args = pa_sprintf_malloc("device_id=%u name=%s card_name=%s tsched=%i", card, strip_udi(originating_udi), card_name, (int) u->use_tsched);
+    args = pa_sprintf_malloc("device_id=%u name=\"%s\" card_name=\"%s\" tsched=%i card_properties=\"module-hal-detect.discovered=1\"", card, strip_udi(originating_udi), card_name, (int) u->use_tsched);
 
     pa_log_debug("Loading module-alsa-card with arguments '%s'", args);
     m = pa_module_load(u->core, "module-alsa-card", args);
