@@ -441,6 +441,9 @@ int pa_source_suspend(pa_source *s, pa_bool_t suspend, pa_suspend_cause_t cause)
     else
         s->suspend_cause &= ~cause;
 
+    if ((pa_source_get_state(s) == PA_SOURCE_SUSPENDED) == !!s->suspend_cause)
+        return 0;
+
     pa_log_debug("Suspend cause of source %s is 0x%04x, %s", s->name, s->suspend_cause, s->suspend_cause ? "suspending" : "resuming");
 
     if (suspend)

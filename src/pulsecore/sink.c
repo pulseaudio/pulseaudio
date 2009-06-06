@@ -510,6 +510,9 @@ int pa_sink_suspend(pa_sink *s, pa_bool_t suspend, pa_suspend_cause_t cause) {
     else
         s->suspend_cause &= ~cause;
 
+    if ((pa_sink_get_state(s) == PA_SINK_SUSPENDED) == !!s->suspend_cause)
+        return 0;
+
     pa_log_debug("Suspend cause of sink %s is 0x%04x, %s", s->name, s->suspend_cause, s->suspend_cause ? "suspending" : "resuming");
 
     if (s->suspend_cause)
