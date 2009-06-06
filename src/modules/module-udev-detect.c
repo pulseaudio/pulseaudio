@@ -340,7 +340,7 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    m->userdata = u = pa_xnew(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->devices = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     u->use_tsched = TRUE;
