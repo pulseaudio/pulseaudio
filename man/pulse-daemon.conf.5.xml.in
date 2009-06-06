@@ -260,9 +260,9 @@ USA.
     </option>
 
     <option>
-      <p><opt>default-script-file=</opt> Load the default
+      <p><opt>load-default-script-file=</opt> Load the default
       configuration script file as specified
-      in <opt>default-script-file=</opt>. Defaults to "yes".</p>
+      in <opt>default-script-file=</opt>. Defaults to <opt>yes</opt>.</p>
     </option>
 
   </section>
@@ -287,6 +287,23 @@ USA.
       <opt>notice</opt>. The <opt>--log-level</opt> command line
       option takes precedence. The <opt>-v</opt> command line option
       might alter this setting.</p>
+    </option>
+
+    <option>
+      <p><opt>log-meta=</opt> With each logged message log the code
+      location the message was generated from. Defaults to
+      <opt>no</opt>.</p>
+    </option>
+
+    <option>
+      <p><opt>log-time=</opt> With each logged messages log the
+      relative time since startup. Defaults to <opt>no</opt>.</p>
+    </option>
+
+    <option>
+      <p><opt>log-backtrace=</opt> When greater than 0, with each
+      logged message log a code stack trace up the the specified
+      number of stack frames. Defaults to <opt>0</opt>.</p>
     </option>
 
   </section>
