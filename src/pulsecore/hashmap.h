@@ -65,4 +65,8 @@ void *pa_hashmap_steal_first(pa_hashmap *h);
 /* Return the oldest entry in the hashmap */
 void* pa_hashmap_first(pa_hashmap *h);
 
+/* A macro to ease iteration through all entries */
+#define PA_HASHMAP_FOREACH(e, h, state) \
+    for ((state) = NULL, (e) = pa_hashmap_iterate((h), &(state), NULL); (e); (e) = pa_hashmap_iterate((h), &(state), NULL))
+
 #endif
