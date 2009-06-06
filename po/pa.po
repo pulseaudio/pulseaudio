@@ -4,14 +4,15 @@
 #
 # Amanpreet Singh Alam <aalam@users.sf.net>, 2008.
 # Jaswinder Singh <jsingh@redhat.com>, 2009.
+# A S Alam <aalam@users.sf.net>, 2009.
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.pa\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-04-05 08:27+0000\n"
-"PO-Revision-Date: 2009-05-27 16:06+0000\n"
-"Last-Translator: Jaswinder Singh <jsingh@redhat.com>\n"
-"Language-Team: American English <kde-i18n-doc@kde.org>\n"
+"PO-Revision-Date: 2009-06-06 07:38+0530\n"
+"Last-Translator: A S Alam <aalam@users.sf.net>\n"
+"Language-Team: American English <punjabi-users@lists.sf.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -32,35 +33,35 @@ msgstr "ਡਿਜ਼ੀਟਲ ਸਟੀਰੀਓ (IEC958)"
 
 #: ../src/modules/alsa/alsa-util.c:548
 msgid "Digital Stereo (HDMI)"
-msgstr "ਡਿਜ਼ੀਟਲ ਸਟੀਰੀਓ (HDMI)"
+msgstr "ਡਿਜ਼ਿਟਲ ਸਟੀਰੀਓ (HDMI)"
 
 #: ../src/modules/alsa/alsa-util.c:555
 msgid "Analog Surround 4.0"
-msgstr "ਐਨਾਲਾਗ ਆਲਾ-ਦੁਆਲਾ 4.0"
+msgstr "ਐਨਾਲਾਗ ਸਰਾਊਂਡਿੰਗ 4.0"
 
 #: ../src/modules/alsa/alsa-util.c:562
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr "ਡਿਜ਼ੀਟਲ ਆਲਾ-ਦੁਆਲਾ 4.0 (IEC958/AC3)"
+msgstr "ਡਿਜ਼ਿਟਲ ਸਰਾਊਂਡਿੰਗ 4.0 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-util.c:570
 msgid "Analog Surround 4.1"
-msgstr "ਆਨਾਲਾਗ ਆਲਾ-ਦੁਆਲਾ 4.1"
+msgstr "ਐਨਾਲਾਗ ਸਰਾਊਂਡਿੰਗ 4.1"
 
 #: ../src/modules/alsa/alsa-util.c:578
 msgid "Analog Surround 5.0"
-msgstr "ਐਨਾਲਾਗ ਆਲਾ-ਦੁਆਲਾ 5.0"
+msgstr "ਐਨਾਲਾਗ ਸਰਾਊਂਡਿੰਗ 5.0"
 
 #: ../src/modules/alsa/alsa-util.c:586
 msgid "Analog Surround 5.1"
-msgstr "ਐਨਾਲਾਗ ਆਲਾ-ਦੁਆਲਾ 5.1"
+msgstr "ਐਨਾਲਾਗ ਸਰਾਊਂਡਿੰਗ 5.1"
 
 #: ../src/modules/alsa/alsa-util.c:594
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr "ਡਿਜ਼ੀਟਲ ਆਲਾ-ਦੁਆਲਾ 5.1 (IEC958/AC3)"
+msgstr "ਡਿਜ਼ਿਟਲ ਸਰਾਊਂਡਿੰਗ 5.1 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-util.c:603
 msgid "Analog Surround 7.1"
-msgstr "ਐਨਾਲਾਗ ਆਲਾ-ਦੁਆਲਾ 7.1"
+msgstr "ਐਨਾਲਾਗ ਸਰਾਊਂਡਿੰਗ 7.1"
 
 #: ../src/modules/alsa/alsa-util.c:1609
 #, c-format
@@ -70,9 +71,9 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_avail() ਤੋਂ ਇੱਕ ਮੁੱਲ ਮਿਲਿਆ ਹੈ ਜੋ ਬਹੁਤ ਵੱਡਾ ਹੈ: %lu ਬਾਈਟ (%lu ms)।\n"
-"ਇਹ ALSA ਡਰਾਈਵਰ '%s' ਵਿਚਲਾ ਬੱਗ ਲੱਗਦਾ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਇਸ ਮੁੱਦੇ ਦੀ ALSA ਵਿਕਾਸਵਾਦੀਆਂ ਨੂੰ "
-"ਰਿਪੋਰਟ ਕਰੋ।"
+"snd_pcm_avail() ਤੋਂ ਇੱਕ ਮੁੱਲ ਮਿਲਿਆ ਹੈ, ਜੋ ਬਹੁਤ ਵੱਡਾ ਹੈ: %lu ਬਾਈਟ (%lu ms)।\n"
+"ਇਹ ALSA ਡਰਾਈਵਰ '%s' ਵਿਚਲਾ ਬੱਗ ਲੱਗਦਾ ਹੈ। ਇਸ ਮੁੱਦੇ ਦੀ ALSA ਡਿਵੈਲਪਰਾਂ ਨੂੰ "
+"ਰਿਪੋਰਟ ਦਿਓ ਜੀ।"
 
 #: ../src/modules/alsa/alsa-util.c:1649
 #, c-format
@@ -82,9 +83,9 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_delay() ਤੋਂ ਇੱਕ ਮੁੱਲ ਮਿਲਿਆ ਹੈ ਜੋ ਬਹੁਤ ਵੱਡਾ ਹੈ: %li ਬਾਈਟ (%s%lu ms)।\n"
-"ਇਹ ALSA ਡਰਾਈਵਰ '%s' ਵਿਚਲਾ ਬੱਗ ਲੱਗਦਾ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਇਸ ਮੁੱਦੇ ਦੀ ALSA ਵਿਕਾਸਵਾਦੀਆਂ ਨੂੰ "
-"ਰਿਪੋਰਟ ਕਰੋ।"
+"snd_pcm_delay() ਤੋਂ ਇੱਕ ਮੁੱਲ ਮਿਲਿਆ ਹੈ, ਜੋ ਬਹੁਤ ਵੱਡਾ ਹੈ: %li ਬਾਈਟ (%s%lu ms)।\n"
+"ਇਹ ALSA ਡਰਾਈਵਰ '%s' ਵਿਚਲਾ ਬੱਗ ਲੱਗਦਾ ਹੈ। ਇਸ ਮੁੱਦੇ ਦੀ ALSA ਡਿਵੈਲਪਰਾਂ ਨੂੰ "
+"ਰਿਪੋਰਟ ਦਿਓ ਜੀ।"
 
 #: ../src/modules/alsa/alsa-util.c:1695
 #, c-format
@@ -94,9 +95,9 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_mmap_begin() ਤੋਂ ਇੱਕ ਮੁੱਲ ਮਿਲਿਆ ਹੈ ਜੋ ਬਹੁਤ ਵੱਡਾ ਹੈ: %lu ਬਾਈਟ (%lu ms)।\n"
-"ਇਹ ALSA ਡਰਾਈਵਰ '%s' ਵਿਚਲਾ ਬੱਗ ਲੱਗਦਾ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਇਸ ਮੁੱਦੇ ਦੀ ALSA ਵਿਕਾਸਵਾਦੀਆਂ ਨੂੰ "
-"ਰਿਪੋਰਟ ਕਰੋ।"
+"snd_pcm_mmap_begin() ਤੋਂ ਇੱਕ ਮੁੱਲ ਮਿਲਿਆ ਹੈ, ਜੋ ਬਹੁਤ ਵੱਡਾ ਹੈ: %lu ਬਾਈਟ (%lu ms)।\n"
+"ਇਹ ALSA ਡਰਾਈਵਰ '%s' ਵਿਚਲਾ ਬੱਗ ਲੱਗਦਾ ਹੈ। ਇਸ ਮੁੱਦੇ ਦੀ ALSA ਡਿਵੈਲਪਰਾਂ ਨੂੰ "
+"ਰਿਪੋਰਟ ਦਿਓ ਜੀ।"
 
 #: ../src/pulsecore/sink.c:2061
 msgid "Internal Audio"
@@ -108,15 +109,15 @@ msgstr "ਮਾਡਮ"
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
-msgstr "ਅਸਲੀ lt_dlopen ਲੋਡਰ ਲੱਭਣ ਵਿੱਚ ਫੇਲ ਹੋਇਆ।"
+msgstr "ਅਸਲੀ lt_dlopen ਲੋਡਰ ਲੱਭਣ ਵਿੱਚ ਫੇਲ੍ਹ ਹੋਇਆ।"
 
 #: ../src/daemon/ltdl-bind-now.c:129
 msgid "Failed to allocate new dl loader."
-msgstr "ਨਵਾਂ dl ਲੋਡਰ ਨਿਰਧਾਰਤ ਕਰਨ ਵਿੱਚ ਫੇਲ ਹੋਇਆ।"
+msgstr "ਨਵਾਂ dl ਲੋਡਰ ਦੇਣ ਲਈ ਫੇਲ੍ਹ।"
 
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
-msgstr "ਬਾਈਂਡ-ਨਾਓ-ਲੋਡਰ ਜੋੜਨ ਵਿੱਚ ਫੇਲ ਹੋਇਆ।"
+msgstr "ਬਾਈਂਡ-ਨਾਓ-ਲੋਡਰ ਜੋੜਨ ਵਿੱਚ ਫੇਲ੍ਹ ਹੋਇਆ।"
 
 #: ../src/daemon/polkit.c:55
 #, c-format
@@ -142,15 +143,15 @@ msgstr "ਸ਼ੈਸ਼ਨ ਆਬਜੈਕਟ ਤੇ UID ਸੈੱਟ ਨਹੀਂ ਕ
 
 #: ../src/daemon/polkit.c:95
 msgid "Cannot allocate PolKitAction."
-msgstr "PolKitAction ਨਿਰਧਾਰਤ ਨਹੀਂ ਕਰ ਸਕਿਆ।"
+msgstr "PolKitAction ਨਹੀਂ ਦੇ ਸਕਿਆ।"
 
 #: ../src/daemon/polkit.c:100
 msgid "Cannot set action_id"
-msgstr "action_id ਨਿਰਧਾਰਤ ਨਹੀਂ ਕਰ ਸਕਿਆ।"
+msgstr "action_id ਸੈੱਟ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ।"
 
 #: ../src/daemon/polkit.c:105
 msgid "Cannot allocate PolKitContext."
-msgstr "PolKitContext ਨਿਰਧਾਰਤ ਨਹੀਂ ਕਰ ਸਕਿਆ।"
+msgstr "PolKitContext ਜਾਰੀ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ।"
 
 #: ../src/daemon/polkit.c:110
 #, c-format
@@ -160,12 +161,12 @@ msgstr "PolKitContext ਨੂੰ ਸ਼ੁਰੂ ਨਹੀਂ ਕਰ ਸਕਿਆ: %
 #: ../src/daemon/polkit.c:119
 #, c-format
 msgid "Could not determine whether caller is authorized: %s"
-msgstr "ਪਤਾ ਨਹੀਂ ਕਰ ਸਕਿਆ ਕਿ ਕੀ ਕਾਲਰ ਅਧਿਕਾਰਤ ਹੈ: %s"
+msgstr "ਪਤਾ ਨਹੀਂ ਕਰ ਸਕਿਆ ਕਿ ਕੀ ਕਾਲਰ ਪਰਮਾਣਿਤ ਹੈ: %s"
 
 #: ../src/daemon/polkit.c:139
 #, c-format
 msgid "Cannot obtain auth: %s"
-msgstr "ਅਧਿਕਾਰ ਨਹੀਂ ਪਤਾ ਕਰ ਸਕਿਆ: %s"
+msgstr "ਪਰਮਾਣਕਿਤਾ ਨਹੀਂ ਲੈ ਸਕਦਾ: %s"
 
 #: ../src/daemon/polkit.c:148
 #, c-format
@@ -184,7 +185,7 @@ msgstr "ਬੰਦ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ।"
 #: ../src/daemon/main.c:182
 #, c-format
 msgid "Failed to find user '%s'."
-msgstr "'%s' ਉਪਭੋਗੀ ਲੱਭਣ ਵਿੱਚ ਫੇਲ ਹੋਇਆ ਹੈ।"
+msgstr "'%s' ਯੂਜ਼ਰ ਲੱਭਣ ਵਿੱਚ ਫੇਲ੍ਹ ਹੋਇਆ ਹੈ।"
 
 #: ../src/daemon/main.c:187
 #, c-format
@@ -194,37 +195,37 @@ msgstr "'%s' ਗਰੁੱਪ ਲੱਭਣ ਵਿੱਚ ਫੇਲ ਹੋਇਆ �
 #: ../src/daemon/main.c:191
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
-msgstr "ਉਪਭੋਗੀ '%s' (UID %lu) ਅਤੇ ਗਰੁੱਪ '%s' (GID %lu) ਲੱਭੇ ਹਨ।"
+msgstr "ਯੂਜ਼ਰ '%s' (UID %lu) ਅਤੇ ਗਰੁੱਪ '%s' (GID %lu) ਲੱਭੇ ਹਨ।"
 
 #: ../src/daemon/main.c:196
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
-msgstr "ਉਪਭੋਗੀ '%s' ਅਤੇ ਗਰੁੱਪ '%s' ਦਾ GID ਮੇਲ ਨਹੀਂ ਖਾਂਦੇ।"
+msgstr "ਯੂਜ਼ੂ '%s' ਅਤੇ ਗਰੁੱਪ '%s' ਦਾ GID ਮੇਲ ਨਹੀਂ ਖਾਂਦੇ।"
 
 #: ../src/daemon/main.c:201
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr "ਉਪਭੋਗੀ '%s' ਦੀ ਘਰੇਲੂ ਡਾਇਰੈਕਟਰੀ '%s' ਨਹੀਂ, ਅਣਡਿੱਠਾ ਕਰ ਰਿਹਾ।"
+msgstr "ਯੂਜ਼ੂ '%s' ਦੀ ਘਰ ਡਾਇਰੈਕਟਰੀ '%s' ਨਹੀਂ, ਅਣਡਿੱਠਾ ਕਰ ਰਿਹਾ।"
 
 #: ../src/daemon/main.c:204 ../src/daemon/main.c:209
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr "'%s' ਬਣਾਉਣ ਵਿੱਚ ਫੇਲ: %s"
+msgstr "'%s' ਬਣਾਉਣ ਵਿੱਚ ਫੇਲ੍ਹ: %s"
 
 #: ../src/daemon/main.c:216
 #, c-format
 msgid "Failed to change group list: %s"
-msgstr "ਗਰੁੱਪ ਸੂਚੀ ਤਬਦੀਲ ਕਰਨ ਵਿੱਚ ਫੇਲ: %s"
+msgstr "ਗਰੁੱਪ ਲਿਸਟ ਬਦਲਣ ਲਈ ਫੇਲ੍ਹ: %s"
 
 #: ../src/daemon/main.c:232
 #, c-format
 msgid "Failed to change GID: %s"
-msgstr "GID ਤਬਦੀਲ ਕਰਨ ਵਿੱਚ ਫੇਲ: %s"
+msgstr "GID ਬਦਲਣ ਲਈ ਫੇਲ੍ਹ: %s"
 
 #: ../src/daemon/main.c:248
 #, c-format
 msgid "Failed to change UID: %s"
-msgstr "UID ਤਬਦੀਲ ਕਰਨ ਵਿੱਚ ਫੇਲ: %s"
+msgstr "UID ਬਦਲਣ ਲਈ ਫੇਲ੍ਹ: %s"
 
 #: ../src/daemon/main.c:262
 msgid "Successfully dropped root privileges."
@@ -237,11 +238,11 @@ msgstr "ਇਸ ਪਲੇਟਫਾਰਮ ਤੇ ਸਿਸਟਮ ਸੰਬੰਧ�
 #: ../src/daemon/main.c:288
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
-msgstr "setrlimit(%s, (%u, %u)) ਫੇਲ ਹੋਇਆ: %s"
+msgstr "setrlimit(%s, (%u, %u)) ਫੇਲ੍ਹ ਹੋਇਆ: %s"
 
 #: ../src/daemon/main.c:462
 msgid "Failed to parse command line."
-msgstr "ਕਮਾਂਡ ਲਾਈਨ ਪਾਰਸ ਕਰਨ ਵਿੱਚ ਫੇਲ।"
+msgstr "ਕਮਾਂਡ ਲਾਈਨ ਪਾਰਸ ਕਰਨ ਵਿੱਚ ਫੇਲ੍ਹ।"
 
 #: ../src/daemon/main.c:486
 #, c-format
@@ -292,7 +293,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:566
 msgid "High-priority scheduling enabled in configuration but not allowed by policy."
-msgstr "ਸੰਰਚਨਾ ਵਿੱਚ ਵਧੇਰੇ-ਤਰਜੀਹ ਯੋਗ ਕੀਤੀ ਗਈ ਹੈ ਪਰ ਪਾਲਿਸੀ ਦੁਆਰਾ ਮਨਜੂਰ ਨਹੀਂ ਕੀਤੀ।"
+msgstr "ਸੰਰਚਨਾ ਵਿੱਚ ਵਧੇਰੇ-ਤਰਜੀਹ ਯੋਗ ਕੀਤੀ ਗਈ ਹੈ, ਪਰ ਪਾਲਸੀ ਵਲੋਂ ਮਨਜ਼ੂਰ ਨਹੀਂ ਕੀਤੀ।"
 
 #: ../src/daemon/main.c:595
 msgid "Successfully increased RLIMIT_RTPRIO"
@@ -301,7 +302,7 @@ msgstr "RLIMIT_RTPRIO ਨੂੰ ਸਫਲਤਾਪੂਰਕ ਵਧਾਇਆ ਗ�
 #: ../src/daemon/main.c:598
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
-msgstr "RLIMIT_RTPRIO ਫੇਲ ਹੋਇਆ: %s"
+msgstr "RLIMIT_RTPRIO ਫੇਲ੍ਹ: %s"
 
 #: ../src/daemon/main.c:605
 msgid "Giving up CAP_NICE"
@@ -309,7 +310,7 @@ msgstr "CAP_NICE ਨੂੰ ਹਟਾ ਰਿਹਾ ਹੈ"
 
 #: ../src/daemon/main.c:612
 msgid "Real-time scheduling enabled in configuration but not allowed by policy."
-msgstr "ਰੀਅਲ-ਟਾਈਮ ਤਹਿ ਨੂੰ ਸੰਰਚਨਾ ਵਿੱਚ ਯੋਗ ਕਰਨ ਨਾਲ ਪਰ ਪਾਲਿਸੀ ਦੁਆਰਾ ਮਨਜੂਰ ਨਹੀਂ ਕੀਤੀ।"
+msgstr "ਰੀਅਲ-ਟਾਈਮ ਤਹਿ ਨੂੰ ਸੰਰਚਨਾ ਵਿੱਚ ਯੋਗ ਕਰਨ ਨਾਲ, ਪਰ ਪਾਲਸੀ ਵਲੋਂ ਮਨਜੂਰ ਨਹੀਂ ਕੀਤੀ।"
 
 #: ../src/daemon/main.c:673
 msgid "Daemon not running"
@@ -323,15 +324,13 @@ msgstr "ਡੈਮਨ PID %u ਤੌਰ ਤੇ ਚੱਲ ਰਿਹਾ ਹੈ"
 #: ../src/daemon/main.c:685
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr "ਡੈਮਨ ਖਤਮ ਕਰਨ ਵਿੱਚ ਫੇਲ: %s"
+msgstr "ਡੈਮਨ ਖਤਮ ਕਰਨ ਵਿੱਚ ਫੇਲ੍ਹ: %s"
 
 #: ../src/daemon/main.c:703
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr ""
-"ਇਹ ਪਰੋਗਰਾਮ ਰੂਟ ਦੇ ਤੌਰ ਤੇ ਚਲਾਉਣ ਲਈ ਨਹੀਂ ਹੈ (ਜਦੋਂ ਤੱਕ --system ਨਿਰਧਾਰਤ ਨਹੀਂ ਕੀਤਾ "
-"ਜਾਂਦਾ)।"
+msgstr "ਇਹ ਪਰੋਗਰਾਮ ਰੂਟ ਦੇ ਤੌਰ ਤੇ ਚਲਾਉਣ ਲਈ ਨਹੀਂ ਹੈ (ਜਦੋਂ ਤੱਕ --system ਦਿੱਤਾ ਨਹੀਂ ਜਾਂਦਾ)।"
 
 #: ../src/daemon/main.c:705
 msgid "Root privileges required."
@@ -339,32 +338,32 @@ msgstr "ਰੂਟ ਅਧਿਕਾਰਾਂ ਦੀ ਲੋੜ ਹੈ।"
 
 #: ../src/daemon/main.c:710
 msgid "--start not supported for system instances."
-msgstr "--start ਨੂੰ ਸਿਸਟਮ ਇਕਾਈਆਂ ਲਈ ਸਹਿਯੋਗ ਨਹੀਂ ਹੈ।"
+msgstr "--start ਨੂੰ ਸਿਸਟਮ ਮੌਕਿਆਂ ਲਈ ਸਹਿਯੋਗ ਨਹੀਂ ਹੈ।"
 
 #: ../src/daemon/main.c:715
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr "ਸਿਸਟਮ ਮੋਡ ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ, ਪਰ --disallow-exit ਨਿਰਧਾਰਤ ਨਹੀਂ ਕੀਤਾ!"
+msgstr "ਸਿਸਟਮ ਮੋਡ ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ, ਪਰ --disallow-exit ਸੈੱਟ ਨਹੀਂ ਕੀਤਾ!"
 
 #: ../src/daemon/main.c:718
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr "ਸਿਸਟਮ ਮੋਡ ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ, ਪਰ --disallow-module-loading ਨਿਰਧਾਰਤ ਨਹੀਂ ਕੀਤਾ!"
+msgstr "ਸਿਸਟਮ ਮੋਡ ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ, ਪਰ --disallow-module-loading ਸੈੱਟ ਨਹੀਂ ਕੀਤਾ!"
 
 #: ../src/daemon/main.c:721
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr "ਸਿਸਟਮ ਮੋਡ ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ, ਜਬਰਦਸਤੀ SHM ਮੋਡ ਨੂੰ ਅਯੋਗ ਕਰ ਰਿਹਾ ਹੈ!"
+msgstr "ਸਿਸਟਮ ਮੋਡ ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ, ਜ਼ਬਰਦਸਤੀ SHM ਮੋਡ ਨੂੰ ਅਯੋਗ ਕਰ ਰਿਹਾ ਹੈ!"
 
 #: ../src/daemon/main.c:726
 msgid "Running in system mode, forcibly disabling exit idle time!"
-msgstr "ਸਿਸਟਮ ਮੋਡ ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ, ਜਬਰਦਸਤੀ idle ਟਾਈਲ ਬੰਦ ਨੂੰ ਅਯੋਗ ਕਰ ਰਿਹਾ ਹੈ!"
+msgstr "ਸਿਸਟਮ ਮੋਡ ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ, ਜ਼ਬਰਦਸਤੀ idle ਟਾਈਲ ਬੰਦ ਨੂੰ ਅਯੋਗ ਕਰ ਰਿਹਾ ਹੈ!"
 
 #: ../src/daemon/main.c:753
 msgid "Failed to acquire stdio."
-msgstr "ਸਟੂਡੀਓ ਪ੍ਰਾਪਤ ਕਰਨ ਵਿੱਚ ਫੇਲ।"
+msgstr "ਸਟੂਡੀਓ ਪ੍ਰਾਪਤ ਕਰਨ ਵਿੱਚ ਫੇਲ੍ਹ।"
 
 #: ../src/daemon/main.c:759
 #, c-format
 msgid "pipe failed: %s"
-msgstr "pipe ਫੇਲ: %s"
+msgstr "pipe ਫੇਲ੍ਹ: %s"
 
 #: ../src/daemon/main.c:764
 #, c-format
@@ -378,16 +377,16 @@ msgstr "read() ਫੇਲ੍ਹ ਹੈ: %s"
 
 #: ../src/daemon/main.c:784
 msgid "Daemon startup failed."
-msgstr "ਡੈਮਨ ਸ਼ੁਰੂਆਤੀ ਫੇਲ ਹੋਈ।"
+msgstr "ਡੈਮਨ ਸ਼ੁਰੂਆਤੀ ਫੇਲ੍ਹ ਹੋਈ।"
 
 #: ../src/daemon/main.c:786
 msgid "Daemon startup successful."
-msgstr "ਡੈਮਨ ਸ਼ੁਰੂਆਤੀ ਸਫਲ ਹੋਈ।"
+msgstr "ਡੈਮਨ ਸ਼ੁਰੂਆਤੀ ਸਫ਼ਲ ਹੋਈ।"
 
 #: ../src/daemon/main.c:856
 #, c-format
 msgid "This is PulseAudio %s"
-msgstr "ਇਹ ਪੱਲਸਆਡੀਓ %s ਹੈ"
+msgstr "ਇਹ ਪਲਸਆਡੀਓ %s ਹੈ"
 
 #: ../src/daemon/main.c:857
 #, c-format
@@ -412,7 +411,7 @@ msgstr "%u CPUs ਲੱਭੇ।"
 #: ../src/daemon/main.c:866
 #, c-format
 msgid "Page size is %lu bytes"
-msgstr "ਸਫਾ ਅਕਾਰ %lu ਬਾਈਟ ਹੈ"
+msgstr "ਪੇਜ਼ ਸਾਈਜ਼ %lu ਬਾਈਟ ਹੈ"
 
 #: ../src/daemon/main.c:869
 msgid "Compiled with Valgrind support: yes"
@@ -449,7 +448,7 @@ msgstr "ਸਭ asserts ਯੋਗ ਕੀਤੇ ਹਨ।"
 
 #: ../src/daemon/main.c:891
 msgid "Failed to get machine ID"
-msgstr "ਮਸ਼ੀਨ ID ਪ੍ਰਾਪਤ ਕਰਨ ਵਿੱਚ ਫੇਲ"
+msgstr "ਮਸ਼ੀਨ ID ਪ੍ਰਾਪਤ ਕਰਨ ਵਿੱਚ ਫੇਲ੍ਹ"
 
 #: ../src/daemon/main.c:894
 #, c-format
@@ -459,7 +458,7 @@ msgstr "ਮਸ਼ੀਨ ID %s ਹੈ।"
 #: ../src/daemon/main.c:899
 #, c-format
 msgid "Using runtime directory %s."
-msgstr "ਰੰਨਟਾਈਮ ਡਾਇਰੈਕਟਰੀ %s ਦੀ ਵਰਤੋਂ।"
+msgstr "ਰਨਟਾਈਮ ਡਾਇਰੈਕਟਰੀ %s ਦੀ ਵਰਤੋਂ।"
 
 #: ../src/daemon/main.c:904
 #, c-format
@@ -484,8 +483,7 @@ msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 msgstr ""
-"ਡਿਊਡ, ਤੁਹਾਡਾ ਕਰਨਲ ਪੁਰਾਣਾ ਹੈ! ਚੀਫ ਦੀ ਅੱਜ ਦੀ ਸਿਫਾਰਸ਼ ਹਾਈ-ਰੈਜ਼ੋਲੂਸ਼ਨ ਟਾਈਮਰ ਯੋਗ ਨਾਲ ਲੀਨਕਸ "
-"ਹੈ!"
+"ਮਿੱਤਰਾ, ਤੇਰਾ ਕਰਨਲ ਪੁਰਾਣਾ ਹੈ! ਚੀਫ ਦੀ ਅੱਜ ਦੀ ਸਿਫਾਰਸ਼ ਹਾਈ-ਰੈਜ਼ੋਲੂਸ਼ਨ ਟਾਈਮਰ ਯੋਗ ਨਾਲ ਲੀਨਕਸ ਹੈ!"
 
 #: ../src/daemon/main.c:948
 msgid "pa_core_new() failed."
@@ -493,7 +491,7 @@ msgstr "pa_core_new() ਫੇਲ੍ਹ ਹੈ।"
 
 #: ../src/daemon/main.c:1010
 msgid "Failed to initialize daemon."
-msgstr "ਡੈਮਨ ਸ਼ੁਰੂ ਕਰਨ ਵਿੱਚ ਫੇਲ।"
+msgstr "ਡੈਮਨ ਸ਼ੁਰੂ ਕਰਨ ਵਿੱਚ ਫੇਲ੍ਹ।"
 
 #: ../src/daemon/main.c:1015
 msgid "Daemon startup without any loaded modules, refusing to work."
@@ -505,7 +503,7 @@ msgstr "ਡੈਮਨ ਸ਼ੁਰੂਆਤੀ ਮੁਕੰਮਲ।"
 
 #: ../src/daemon/main.c:1038
 msgid "Daemon shutdown initiated."
-msgstr "ਡੈਮਨ ਸ਼ੱਟਡਾਊਨ ਸ਼ੁਰੂ ਹੋ ਗਿਆ।"
+msgstr "ਡੈਮਨ ਬੰਦ ਕਰਨਾ ਸ਼ੁਰੂ ਹੋ ਗਿਆ।"
 
 #: ../src/daemon/main.c:1056
 msgid "Daemon terminated."
@@ -656,68 +654,68 @@ msgstr ""
 
 #: ../src/daemon/cmdline.c:252
 msgid "--daemonize expects boolean argument"
-msgstr "--daemonize ਨੂੰ ਬੂਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
+msgstr "--daemonize ਨੂੰ ਬੁਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
 
 #: ../src/daemon/cmdline.c:259
 msgid "--fail expects boolean argument"
-msgstr "--fail ਨੂੰ ਬੂਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
+msgstr "--fail ਨੂੰ ਬੁਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
 
 #: ../src/daemon/cmdline.c:269
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
 msgstr ""
-"--log-level ਨੂੰ ਲਾਗ ਲੈਵਲ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ (ਜਾਂ ਤਾਂ ਅੰਕੀ ਰੇਂਜ 0..4 ਜਾਂ debug, "
-"info, notice, warn, error ਵਿੱਚੋਂ ਇੱਕ)।"
+"--log-level ਨੂੰ ਲਾਗ ਲੈਵਲ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ (ਜਾਂ ਤਾਂ ਅੰਕੀ ਰੇਂਜ 0..4 ਜਾਂ debug, info, "
+"notice, warn, error ਵਿੱਚੋਂ ਇੱਕ)।"
 
 #: ../src/daemon/cmdline.c:281
 msgid "--high-priority expects boolean argument"
-msgstr "--high-priority ਨੂੰ ਬੂਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
+msgstr "--high-priority ਨੂੰ ਬੁਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
 
 #: ../src/daemon/cmdline.c:288
 msgid "--realtime expects boolean argument"
-msgstr "--realtime ਨੂੰ ਬੂਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
+msgstr "--realtime ਨੂੰ ਬੁਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
 
 #: ../src/daemon/cmdline.c:295
 msgid "--disallow-module-loading expects boolean argument"
-msgstr "--disallow-module-loading ਨੂੰ ਬੂਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
+msgstr "--disallow-module-loading ਨੂੰ ਬੁਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
 
 #: ../src/daemon/cmdline.c:302
 msgid "--disallow-exit expects boolean argument"
-msgstr "--disallow-exit ਨੂੰ ਬੂਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
+msgstr "--disallow-exit ਨੂੰ ਬੁਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
 
 #: ../src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
-msgstr "--use-pid-file ਨੂੰ ਬੂਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
+msgstr "--use-pid-file ਨੂੰ ਬੁਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
 
 #: ../src/daemon/cmdline.c:326
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
-msgstr "ਗਲਤ ਲਾਗ ਟਾਰਗਿਟ: 'syslog', 'stderr' ਜਾਂ 'auto' ਵਰਤੋ।"
+msgstr "ਗਲਤ ਲਾਗ ਟਾਰਗੇਟ: 'syslog', 'stderr' ਜਾਂ 'auto' ਵਰਤੋਂ।"
 
 #: ../src/daemon/cmdline.c:333
 msgid "--log-time expects boolean argument"
-msgstr "--log-time ਨੂੰ ਬੂਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
+msgstr "--log-time ਨੂੰ ਬੁਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
 
 #: ../src/daemon/cmdline.c:340
 msgid "--log-meta expects boolean argument"
-msgstr "--log-meta ਨੂੰ ਬੂਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
+msgstr "--log-meta ਨੂੰ ਬੁਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
 
 #: ../src/daemon/cmdline.c:359
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr "ਗਲਤ ਰੀਸੈਂਪਲ ਵਿਧੀ '%s'।"
+msgstr "ਅਢੁੱਕਵਾਂ ਰੀਸੈਂਪਲ ਢੰਗ '%s'।"
 
 #: ../src/daemon/cmdline.c:366
 msgid "--system expects boolean argument"
-msgstr "--system ਨੂੰ ਬੂਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
+msgstr "--system ਨੂੰ ਬੁਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
 
 #: ../src/daemon/cmdline.c:373
 msgid "--no-cpu-limit expects boolean argument"
-msgstr "--no-cpu-limit ਨੂੰ ਬੂਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
+msgstr "--no-cpu-limit ਨੂੰ ਬੁਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
 
 #: ../src/daemon/cmdline.c:380
 msgid "--disable-shm expects boolean argument"
-msgstr "--disable-shm ਨੂੰ ਬੂਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
+msgstr "--disable-shm ਨੂੰ ਬੁਲੀਅਨ ਆਰਗੂਮੈਂਟ ਦੀ ਲੋੜ ਹੈ"
 
 #: ../src/daemon/dumpmodules.c:60
 #, c-format
@@ -727,7 +725,7 @@ msgstr "ਨਾਂ: %s\n"
 #: ../src/daemon/dumpmodules.c:63
 #, c-format
 msgid "No module information available\n"
-msgstr "ਕੋਈ ਮੈਡਿਊਲ ਜਾਣਕਾਰੀ ਉਪਲੱਬਧ ਨਹੀਂ\n"
+msgstr "ਕੋਈ ਮੋਡੀਊਲ ਜਾਣਕਾਰੀ ਉਪਲੱਬਧ ਨਹੀਂ\n"
 
 #: ../src/daemon/dumpmodules.c:66
 #, c-format
@@ -762,7 +760,7 @@ msgstr "ਪਾਥ: %s\n"
 #: ../src/daemon/daemon-conf.c:215
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr "[%s:%u] ਗਲਤ ਲਾਗ ਟਾਰਗਿਟ '%s'।"
+msgstr "[%s:%u] ਗਲਤ ਲਾਗ ਟਾਰਗੇਟ '%s'।"
 
 #: ../src/daemon/daemon-conf.c:231
 #, c-format
@@ -772,12 +770,12 @@ msgstr "[%s:%u] ਗਲਤੀ ਲਾਗ ਲੈਵਲ '%s'।"
 #: ../src/daemon/daemon-conf.c:247
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr "[%s:%u] ਗਲਤ ਰੀਸੈਂਪਲ ਵਿਧੀ '%s'।"
+msgstr "[%s:%u] ਅਢੁੱਕਵੀਂ ਰੀਸੈਂਪਲ ਢੰਗ '%s'।"
 
 #: ../src/daemon/daemon-conf.c:270
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
-msgstr "[%s:%u] ਗਲਤ rlimit '%s'।"
+msgstr "[%s:%u] ਅਢੁੱਕਵੀਂ rlimit '%s'।"
 
 #: ../src/daemon/daemon-conf.c:277
 #, c-format
@@ -787,53 +785,53 @@ msgstr "[%s:%u] rlimit ਨੂੰ ਇਸ ਪਲੇਟਫਾਰਮ ਤੇ ਸਹ�
 #: ../src/daemon/daemon-conf.c:293
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
-msgstr "[%s:%u] ਗਲਤ ਸੈਂਪਲ ਫਾਰਮੈਟ '%s'।"
+msgstr "[%s:%u] ਅਢੁੱਕਵਾਂ ਸੈਂਪਲ ਫਾਰਮੈਟ '%s'।"
 
 #: ../src/daemon/daemon-conf.c:311
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr "[%s:%u] ਗਲਤ ਸੈਂਪਲ ਰੇਟ '%s'।"
+msgstr "[%s:%u] ਅਢੁੱਕਵਾਂ ਸੈਂਪਲ ਰੇਟ '%s'।"
 
 #: ../src/daemon/daemon-conf.c:335
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
-msgstr "[%s:%u] ਗਲਤ ਸੈਂਪਲ ਚੈਨਲ '%s'।"
+msgstr "[%s:%u] ਅਢੁੱਕਵਾਂ ਸੈਂਪਲ ਚੈਨਲ '%s'।"
 
 #: ../src/daemon/daemon-conf.c:353
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr "[%s:%u] ਗਲਤ ਚੈਨਲ ਮੈਪ '%s'।"
+msgstr "[%s:%u] ਅਢੁੱਕਵਾਂ ਚੈਨਲ ਮੈਪ '%s'।"
 
 #: ../src/daemon/daemon-conf.c:371
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr "[%s:%u] ਫਰੈਗਮੈਂਟਾਂ ਦਾ ਗਲਤ ਨੰਬਰ '%s'।"
+msgstr "[%s:%u] ਫਰੈਗਮੈਂਟਾਂ ਦਾ ਅਢੁੱਕਵਾਂ ਨੰਬਰ '%s'।"
 
 #: ../src/daemon/daemon-conf.c:389
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr "[%s:%u] ਗਲਤ ਫਰੈਗਮੈਂਟ ਅਕਾਰ '%s'।"
+msgstr "[%s:%u] ਅਢੁੱਕਵਾਂ ਫਰੈਗਮੈਂਟ ਅਕਾਰ '%s'।"
 
 #: ../src/daemon/daemon-conf.c:407
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr "[%s:%u] ਗਲਤ nice ਲੈਵਲ '%s'।"
+msgstr "[%s:%u] ਅਢੁੱਕਵਾਂ nice ਲੈਵਲ '%s'।"
 
 #: ../src/daemon/daemon-conf.c:522
 #, c-format
 msgid "Failed to open configuration file: %s"
-msgstr "ਸੰਰਚਨਾ ਫਾਇਲ ਖੋਲਣ ਵਿੱਚ ਫੇਲ: %s"
+msgstr "ਸੰਰਚਨਾ ਫਾਇਲ ਖੋਲ੍ਹਣ ਵਿੱਚ ਫੇਲ੍ਹ: %s"
 
 #: ../src/daemon/daemon-conf.c:538
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
-msgstr "ਨਿਰਧਾਰਤ ਮੂਲ ਚੈਨਲ ਮੈਪ ਦੀ ਨਿਰਧਾਰਤ ਚੈਨਲ ਗਿਣਤੀ ਨਾਲੋਂ ਇੱਕ ਵੱਖਰੀ ਚੈਨਲ ਗਿਣਤੀ ਹੈ।"
+msgstr "ਦਿੱਤੇ ਡਿਫਾਲਟ ਚੈਨਲ ਮੈਪ ਦੀ ਦਿੱਤੇਤ ਚੈਨਲ ਗਿਣਤੀ ਨਾਲੋਂ ਇੱਕ ਵੱਖਰੀ ਚੈਨਲ ਗਿਣਤੀ ਹੈ।"
 
 #: ../src/daemon/daemon-conf.c:616
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
-msgstr "### ਸੰਰਚਨਾ ਫਾਇਲ ਵਿੱਚੋਂ ਪੜੋ: %s ###\n"
+msgstr "### ਸੰਰਚਨਾ ਫਾਇਲ ਵਿੱਚੋਂ ਪੜਿਆ: %s ###\n"
 
 #: ../src/daemon/caps.c:63
 msgid "Dropping root privileges."
@@ -841,31 +839,31 @@ msgstr "ਰੂਟ ਅਧਿਕਾਰ ਹਟਾ ਰਿਹਾ ਹੈ।"
 
 #: ../src/daemon/caps.c:103
 msgid "Limited capabilities successfully to CAP_SYS_NICE."
-msgstr "CAP_SYS_NICE ਨੂੰ ਸਫਲਤਾਪੂਰਕ ਸੀਮਿਤ ਯੋਗਤਾਵਾਂ।"
+msgstr "CAP_SYS_NICE ਨੂੰ ਸਫਲਤਾਪੂਰਕ ਸੀਮਿਤ ਸਮੱਰਥਾ।"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
-msgstr "ਪੱਲਸਆਡੀਓ ਸਾਊਂਡ ਸਿਸਟਮ"
+msgstr "ਪਲਸਆਡੀਓ ਸਾਊਂਡ ਸਿਸਟਮ"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
-msgstr "ਪੱਲਸਆਡੀਓ ਸਾਊਂਡ ਸਿਸਟਮ ਚਲਾਓ"
+msgstr "ਪਲਸਆਡੀਓ ਸਾਊਂਡ ਸਿਸਟਮ ਚਲਾਓ"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:1
 msgid "High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr "ਪੱਲਸਆਡੀਓ ਡੈਮਨ ਲਈ ਵਧੇਰੇ-ਤਰਜੀਹ ਸਮਾਂ-ਤਹਿ (ਨਾਂ-ਵਾਚਕ ਯੂਨਿਕਸ ਨਾਈਸ ਲੈਵਲ)"
+msgstr "ਪਲਸਆਡੀਓ ਡੈਮਨ ਲਈ ਵਧੇਰੇ-ਤਰਜੀਹ ਸੈਡਿਊਲ (ਨਾਂ-ਵਾਚਕ ਯੂਨੈਕਸ ਨਾਈਸ ਲੈਵਲ)"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:2
 msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr "ਪੱਲਸਆਡੀਓ ਡੈਮਨ ਰੀਅਲ-ਟਾਈਮ ਸਮਾਂ-ਤਹਿ"
+msgstr "ਪਲਸਆਡੀਓ ਡੈਮਨ ਰੀਅਲ-ਟਾਈਮ ਸੈਡਿਊਲ"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:3
 msgid "System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr "ਸਿਸਟਮ ਪਾਲਿਸੀ ਪੱਲਸਆਡੀਓ ਨੂੰ ਵਧੇਰੇ-ਤਰਜੀਹ ਸਮਾਂ-ਤਹਿ ਪ੍ਰਾਪਤ ਕਰਨ ਤੋਂ ਰੋਕਦੀ ਹੈ।"
+msgstr "ਸਿਸਟਮ ਪਾਲਸੀ ਪਲਸਆਡੀਓ ਨੂੰ ਵਧੇਰੇ-ਤਰਜੀਹ ਸੈਡਿਊਲ ਪ੍ਰਾਪਤ ਕਰਨ ਤੋਂ ਰੋਕਦੀ ਹੈ।"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:4
 msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr "ਸਿਸਟਮ ਪਾਲਿਸੀ ਪੱਲਸਆਡੀਓ ਨੂੰ ਵਧੇਰੇ-ਤਰਜੀਹ ਰੀਅਲ-ਟਾਈਮ ਪ੍ਰਾਪਤ ਕਰਨ ਤੋਂ ਰੋਕਦੀ ਹੈ।"
+msgstr "ਸਿਸਟਮ ਪਾਲਸੀ ਪਲਸਆਡੀਓ ਨੂੰ ਵਧੇਰੇ-ਤਰਜੀਹ ਰੀਅਲ-ਟਾਈਮ ਪ੍ਰਾਪਤ ਕਰਨ ਤੋਂ ਰੋਕਦੀ ਹੈ।"
 
 #: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:804
 msgid "Mono"
@@ -873,47 +871,47 @@ msgstr "ਮੋਨੋ"
 
 #: ../src/pulse/channelmap.c:105
 msgid "Front Center"
-msgstr "ਫਰੰਟ ਸੈਂਟਰ"
+msgstr "ਅੱਗੇ ਸੈਂਟਰ"
 
 #: ../src/pulse/channelmap.c:106
 msgid "Front Left"
-msgstr "ਫਰੰਟ ਲਿਫਟ"
+msgstr "ਅੱਗੇ ਖੱਬੇ"
 
 #: ../src/pulse/channelmap.c:107
 msgid "Front Right"
-msgstr "ਫਰੰਟ ਰਾਈਟ"
+msgstr "ਅੱਗੇ ਸੱਜਾ"
 
 #: ../src/pulse/channelmap.c:109
 msgid "Rear Center"
-msgstr "ਰੇਅਰ ਸੈਂਟਰ"
+msgstr "ਪਿੱਛੇ ਸੈਂਟਰ"
 
 #: ../src/pulse/channelmap.c:110
 msgid "Rear Left"
-msgstr "ਰੇਅਰ ਲਿਫਟ"
+msgstr "ਪਿੱਛੇ ਖੱਬਾ"
 
 #: ../src/pulse/channelmap.c:111
 msgid "Rear Right"
-msgstr "ਰੇਅਰ ਰਾਈਟ"
+msgstr "ਪਿੱਛੇ ਸੱਜਾ"
 
 #: ../src/pulse/channelmap.c:113
 msgid "Low Frequency Emmiter"
-msgstr "ਘੱਟ ਫਰੀਕੁਇੰਸੀ ਈਮਿੱਟਰ"
+msgstr "ਘੱਟ ਫਰੀਕਿਊਂਸੀ ਇੱਮਟਰ"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Front Left-of-center"
-msgstr "ਫਰੰਟ ਲਿਫਟ-ਆਫ-ਸੈਂਟਰ"
+msgstr "ਅੱਗੇ ਸੈਂਟਰ ਦਾ ਖੱਬੇ"
 
 #: ../src/pulse/channelmap.c:116
 msgid "Front Right-of-center"
-msgstr "ਫਰੰਟ ਰਾਈਟ-ਆਫ-ਸੈਂਟਰ"
+msgstr "ਅੱਗੇ ਸੈਂਟਰ ਦਾ ਸੱਜਾ"
 
 #: ../src/pulse/channelmap.c:118
 msgid "Side Left"
-msgstr "ਸਾਈਡ ਲਿਫਟ"
+msgstr "ਖੱਬੇ ਪਾਸੇ"
 
 #: ../src/pulse/channelmap.c:119
 msgid "Side Right"
-msgstr "ਸਾਈਡ ਰਾਈਟ"
+msgstr "ਸੱਜੇ ਪਾਸੇ"
 
 #: ../src/pulse/channelmap.c:121
 msgid "Auxiliary 0"
@@ -1049,33 +1047,33 @@ msgstr "ਉੱਤੇ ਕੇਂਦਰੀ"
 
 #: ../src/pulse/channelmap.c:156
 msgid "Top Front Center"
-msgstr "ਟਾਪ ਫਰੰਟ ਸੈਂਟਰ"
+msgstr "ਉੱਤੇ ਅੱਗੇ ਸੈਂਟਰ"
 
 #: ../src/pulse/channelmap.c:157
 msgid "Top Front Left"
-msgstr "ਟਾਪ ਫਰੰਟ ਲਿਫਟ"
+msgstr "ਉੱਤੇ ਅੱਗੇ ਖੱਬੇ"
 
 #: ../src/pulse/channelmap.c:158
 msgid "Top Front Right"
-msgstr "ਟਾਪ ਫਰੰਟ ਰਾਈਟ"
+msgstr "ਉੱਤੇ ਅੱਗੇ ਸੱਜੇ"
 
 #: ../src/pulse/channelmap.c:160
 msgid "Top Rear Center"
-msgstr "ਟਾਪ ਰੇਅਰ ਸੈਂਟਰ"
+msgstr "ਉੱਤੇ ਪਿੱਛੇ ਸੈਂਟਰ"
 
 #: ../src/pulse/channelmap.c:161
 msgid "Top Rear Left"
-msgstr "ਟਾਪ ਰੇਅਰ ਲਿਫਟ"
+msgstr "ਉੱਤੇ ਪਿੱਛੇ ਖੱਬੇ"
 
 #: ../src/pulse/channelmap.c:162
 msgid "Top Rear Right"
-msgstr "ਟਾਪ ਰੇਅਰ ਰਾਈਟ"
+msgstr "ਉੱਤੇ ਪਿੱਛੇ ਸੱਜੇ"
 
 #: ../src/pulse/channelmap.c:476 ../src/pulse/sample.c:167
 #: ../src/pulse/volume.c:170 ../src/pulse/volume.c:196
 #: ../src/pulse/volume.c:216 ../src/pulse/volume.c:246
 msgid "(invalid)"
-msgstr "(ਗਲਤ)"
+msgstr "(ਅਢੁੱਕਵਾਂ)"
 
 #: ../src/pulse/channelmap.c:808
 msgid "Stereo"
@@ -1083,23 +1081,23 @@ msgstr "ਸਟੀਰੀਓ"
 
 #: ../src/pulse/channelmap.c:813
 msgid "Surround 4.0"
-msgstr "ਆਲਾ-ਦੁਆਲਾ 4.0"
+msgstr "ਸਰਾਊਂਡਿੰਗ 4.0"
 
 #: ../src/pulse/channelmap.c:819
 msgid "Surround 4.1"
-msgstr "ਆਲਾ-ਦੁਆਲਾ 4.1"
+msgstr "ਸਰਾਊਂਡਿੰਗ 4.1"
 
 #: ../src/pulse/channelmap.c:825
 msgid "Surround 5.0"
-msgstr "ਆਲਾ-ਦੁਆਲਾ 5.0"
+msgstr "ਸਰਾਊਂਡਿੰਗ 5.0"
 
 #: ../src/pulse/channelmap.c:831
 msgid "Surround 5.1"
-msgstr "ਆਲਾ-ਦੁਆਲਾ 5.1"
+msgstr "ਸਰਾਊਂਡਿੰਗ 5.1"
 
 #: ../src/pulse/channelmap.c:838
 msgid "Surround 7.1"
-msgstr "ਆਲਾ-ਦੁਆਲਾ 7.1"
+msgstr "ਸਰਾਊਂਡਿੰਗ 7.1"
 
 #: ../src/pulse/error.c:43
 msgid "OK"
@@ -1115,15 +1113,15 @@ msgstr "ਅਣਜਾਣ ਕਮਾਂਡ"
 
 #: ../src/pulse/error.c:46
 msgid "Invalid argument"
-msgstr "ਗਲਤ ਆਰਗੂਮੈਂਟ"
+msgstr "ਅਢੁੱਕਵਾਂ ਆਰਗੂਮੈਂਟ"
 
 #: ../src/pulse/error.c:47
 msgid "Entity exists"
-msgstr "ਇਕਾਈ ਮੌਜੂਦ ਹੈ"
+msgstr "ਐਂਟਟੀ ਮੌਜੂਦ ਹੈ"
 
 #: ../src/pulse/error.c:48
 msgid "No such entity"
-msgstr "ਕੋਈ ਅਜਿਹੀ ਇਕਾਈ ਨਹੀਂ"
+msgstr "ਕੋਈ ਐਂਟਟੀ ਨਹੀਂ"
 
 #: ../src/pulse/error.c:49
 msgid "Connection refused"
@@ -1135,7 +1133,7 @@ msgstr "ਪਰੋਟੋਕਾਲ ਗਲਤੀ"
 
 #: ../src/pulse/error.c:51
 msgid "Timeout"
-msgstr "ਸਮਾਂ ਅੰਤਰਾਲ"
+msgstr "ਸਮਾਂ-ਸਮਾਪਤ"
 
 #: ../src/pulse/error.c:52
 msgid "No authorization key"
@@ -1147,19 +1145,19 @@ msgstr "ਅੰਦਰੂਨੀ ਗਲਤੀ"
 
 #: ../src/pulse/error.c:54
 msgid "Connection terminated"
-msgstr "ਕੁਨੈਕਸ਼ਨ ਟੁੱਟ ਗਿਆ"
+msgstr "ਕੁਨੈਕਸ਼ਨ ਖਤਮ ਕੀਤਾ"
 
 #: ../src/pulse/error.c:55
 msgid "Entity killed"
-msgstr "ਇਕਾਈ ਖਤਮ ਹੋ ਗਈ"
+msgstr "ਐਂਟਟੀ ਖਤਮ ਹੋ ਗਈ"
 
 #: ../src/pulse/error.c:56
 msgid "Invalid server"
-msgstr "ਗਲਤ ਸਰਵਰ"
+msgstr "ਅਢੁੱਕਵਾਂ ਸਰਵਰ"
 
 #: ../src/pulse/error.c:57
 msgid "Module initalization failed"
-msgstr "ਮੈਡਿਊਲ ਸ਼ੁਰੂਆਤੀ ਫੇਲ"
+msgstr "ਮੋਡੀਊਲ ਸ਼ੁਰੂ ਕਰਨਾ ਫੇਲ੍ਹ"
 
 #: ../src/pulse/error.c:58
 msgid "Bad state"
@@ -1187,7 +1185,7 @@ msgstr "ਅਣਜਾਣ ਗਲਤੀ ਕੋਡ"
 
 #: ../src/pulse/error.c:64
 msgid "No such extension"
-msgstr "ਕੋਈ ਅਜਿਹੀ ਐਕਸਟੈਂਸ਼ਨ ਨਹੀਂ"
+msgstr "ਕੋਈ ਅਜਿਹੀ ਇਕਸਟੈਂਸ਼ਨ ਨਹੀਂ"
 
 #: ../src/pulse/error.c:65
 msgid "Obsolete functionality"
@@ -1199,7 +1197,7 @@ msgstr "ਗੈਰ-ਮੌਜੂਦ ਨਿਰਧਾਰਨ"
 
 #: ../src/pulse/error.c:67
 msgid "Client forked"
-msgstr "ਕਲਾਂਈਟ ਫੋਰਕਡ"
+msgstr "ਕਲਾਇਟ ਅੱਡ ਕੀਤਾ"
 
 #: ../src/pulse/sample.c:169
 #, c-format
@@ -1232,16 +1230,16 @@ msgstr "XOpenDisplay() ਫੇਲ੍ਹ ਹੈ"
 
 #: ../src/pulse/client-conf-x11.c:78
 msgid "Failed to parse cookie data"
-msgstr "ਕੂਕੀ ਡਾਟਾ ਪਾਰਸ ਕਰਨ ਵਿੱਚ ਫੇਲ"
+msgstr "ਕੂਕੀ ਡਾਟਾ ਪਾਰਸ ਕਰਨ ਵਿੱਚ ਫੇਲ੍ਹ"
 
 #: ../src/pulse/client-conf.c:120
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
-msgstr "ਸੰਰਚਨਾ ਫਾਇਲ '%s' ਨੂੰ ਖੋਲਣ ਵਿੱਚ ਫੇਲ: %s"
+msgstr "ਸੰਰਚਨਾ ਫਾਇਲ '%s' ਨੂੰ ਖੋਲ੍ਹਣ ਵਿੱਚ ਫੇਲ੍ਹ: %s"
 
 #: ../src/pulse/context.c:539
 msgid "No cookie loaded. Attempting to connect without."
-msgstr "ਕੋਈ ਕੂਕੀ ਲੋਡ ਨਹੀਂ ਕੀਤੀ। ਇਸਤੋਂ ਬਿਨਾਂ ਜੁੜ ਰਿਹਾ ਹੈ।"
+msgstr "ਕੋਈ ਕੂਕੀ ਲੋਡ ਨਹੀਂ ਕੀਤੀ। ਇਸ ਤੋਂ ਬਿਨਾਂ ਕੁਨੈਕਟ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ।"
 
 #: ../src/pulse/context.c:669
 #, c-format
@@ -1256,7 +1254,7 @@ msgstr "waitpid(): %s"
 #: ../src/pulse/context.c:1387
 #, c-format
 msgid "Received message for unknown extension '%s'"
-msgstr "ਅਣਜਾਣੀ ਐਕਸਟੈਂਸ਼ਨ '%s' ਲਈ ਸੁਨੇਹਾ ਮਿਲਿਆ ਹੈ"
+msgstr "ਅਣਜਾਣੀ ਇਕਸਟੈਂਸ਼ਨ '%s' ਲਈ ਸੁਨੇਹਾ ਮਿਲਿਆ ਹੈ"
 
 #: ../src/utils/pacat.c:94
 #, c-format
@@ -1296,7 +1294,7 @@ msgstr "ਸਧਾਰਨ spec '%s', ਚੈਨਲ ਮੈਪ '%s' ਦੀ ਵਰਤ�
 #: ../src/utils/pacat.c:187
 #, c-format
 msgid "Connected to device %s (%u, %ssuspended).\n"
-msgstr "%s ਜੰਤਰ ਨਾਲ ਜੁੜੋ (%u, %ssuspended)।\n"
+msgstr "%s ਜੰਤਰ ਨਾਲ ਕੁਨਕੈਟ ਕੀਤਾ (%u, %ssuspended)।\n"
 
 #: ../src/utils/pacat.c:197
 #, c-format
@@ -1316,22 +1314,22 @@ msgstr "ਸਟਰੀਮ ਜੰਤਰ ਮੁੜ-ਪ੍ਰਾਪਤ ਕੀਤਾ�
 #: ../src/utils/pacat.c:217
 #, c-format
 msgid "Stream underrun.%s \n"
-msgstr "ਸਟਰੀਮ ਅੰਡਰਰੰਨ।%s \n"
+msgstr "ਸਟਰੀਮ ਅੰਡਰਰਨ।%s \n"
 
 #: ../src/utils/pacat.c:224
 #, c-format
 msgid "Stream overrun.%s \n"
-msgstr "ਸਟਰੀਮ ਓਵਰਰੰਨ।%s \n"
+msgstr "ਸਟਰੀਮ ਓਵਰਰਨ।%s \n"
 
 #: ../src/utils/pacat.c:231
 #, c-format
 msgid "Stream started.%s \n"
-msgstr "ਸਟਰੀਮ ਸ਼ੁਰੂ। %s\n"
+msgstr "ਸਟਰੀਮ ਸ਼ੁਰੂ ਕੀਤੀ। %s\n"
 
 #: ../src/utils/pacat.c:238
 #, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s \n"
-msgstr "ਸਟਰੀਮ ਨੂੰ ਜੰਤਰ %s ਤੋ ਤਬਦੀਲ ਕੀਤਾ ਗਿਆ ਹੈ (%u, %ssuspended)।%s \n"
+msgstr "ਸਟਰੀਮ ਨੂੰ ਜੰਤਰ %s ਤੋਂ ਤਬਦੀਲ ਕੀਤਾ ਗਿਆ ਹੈ (%u, %ssuspended)।%s \n"
 
 #: ../src/utils/pacat.c:238
 msgid "not "
@@ -1371,17 +1369,17 @@ msgstr "ਕੁਨੈਕਸ਼ਨ ਫੇਲ: %s\n"
 #: ../src/utils/pacat.c:349 ../src/utils/paplay.c:75
 #, c-format
 msgid "Failed to drain stream: %s\n"
-msgstr "ਸਟਰੀਮ ਨਿਕਾਸ ਫੇਲ ਹੋਇਆ: %s\n"
+msgstr "ਸਟਰੀਮ ਡਰੇਨ ਫੇਲ੍ਹ ਹੋਇਆ: %s\n"
 
 #: ../src/utils/pacat.c:354 ../src/utils/paplay.c:80
 #, c-format
 msgid "Playback stream drained.\n"
-msgstr "ਪਲੇਬੈਕ ਸਟਰੀਮ ਨਿਕਾਸ ਕੀਤਾ ਗਿਆ।\n"
+msgstr "ਪਲੇਬੈਕ ਸਟਰੀਮ ਡਰੇਨ ਕੀਤੀ।\n"
 
 #: ../src/utils/pacat.c:364 ../src/utils/paplay.c:92
 #, c-format
 msgid "Draining connection to server.\n"
-msgstr "ਸਰਵਰ ਨਾਲ ਕੁਨੈਕਸ਼ਨ ਨਿਕਾਸ ਹੋ ਰਿਹਾ ਹੈ।\n"
+msgstr "ਸਰਵਰ ਨਾਲ ਕੁਨੈਕਸ਼ਨ ਡਰੇਨ ਹੋ ਰਿਹਾ ਹੈ।\n"
 
 #: ../src/utils/pacat.c:390
 #, c-format
@@ -1406,7 +1404,7 @@ msgstr "write() ਫੇਲ੍ਹ ਹੈ: %s\n"
 #: ../src/utils/pacat.c:459
 #, c-format
 msgid "Got signal, exiting.\n"
-msgstr "ਸਿਗਨਲ ਮਿਲ ਗਿਆ, ਬੰਦ ਹੋ ਰਿਹਾ ਹੈ।\n"
+msgstr "ਸਿਗਨਲ ਮਿਲਿਆ, ਬੰਦ ਹੋ ਰਿਹਾ ਹੈ।\n"
 
 #: ../src/utils/pacat.c:473
 #, c-format
@@ -1532,38 +1530,38 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 "pacat %s\n"
-"libpulse %s ਦੇ ਅਨੁਕੂਲ\n"
-"libpulse %s ਨਾਲ ਸੰਬੰਧਿਤ\n"
+"libpulse %s ਦੇ ਕੰਪਾਇਲ\n"
+"libpulse %s ਨਾਲ ਲਿੰਕ ਕੀਤਾ\n"
 
 #: ../src/utils/pacat.c:669
 #, c-format
 msgid "Invalid channel map '%s'\n"
-msgstr "ਗਲਤ ਚੈਨਲ ਮੈਪ '%s'\n"
+msgstr "ਅਢੁੱਕਵਾਂ ਚੈਨਲ ਮੈਪ '%s'\n"
 
 #: ../src/utils/pacat.c:698
 #, c-format
 msgid "Invalid latency specification '%s'\n"
-msgstr "ਗਲਤੀ ਵਰਫਾ ਨਿਰਧਾਰਨ '%s'\n"
+msgstr "ਅਢੁੱਕਵਾਂ ਵਕਫਾ ਹਦਾਇਤ '%s'\n"
 
 #: ../src/utils/pacat.c:705
 #, c-format
 msgid "Invalid process time specification '%s'\n"
-msgstr "ਗਲਤ ਕਾਰਜ ਸਮਾਂ ਨਿਰਧਾਰਨ '%s'\n"
+msgstr "ਅਢੁੱਕਵਾਂ ਪਰੋਸੈੱਸ ਟਾਈਮ ਹਦਾਇਤ '%s'\n"
 
 #: ../src/utils/pacat.c:716
 #, c-format
 msgid "Invalid sample specification\n"
-msgstr "ਗਲਤ ਸੈਂਪਲ ਨਿਰਧਾਰਨ\n"
+msgstr "ਅਢੁੱਕਵਾਂ ਸੈਂਪਲ ਹਦਾਇਤ\n"
 
 #: ../src/utils/pacat.c:721
 #, c-format
 msgid "Channel map doesn't match sample specification\n"
-msgstr "ਚੈਨਲ ਮੈਪ ਸੈਂਪਲ ਨਿਰਧਾਰਨ ਨਾਲ ਨਹੀਂ ਮਿਲਦਾ\n"
+msgstr "ਚੈਨਲ ਮੈਪ ਸੈਂਪਲ ਹਦਾਇਤ ਨਾਲ ਨਹੀਂ ਮਿਲਦਾ\n"
 
 #: ../src/utils/pacat.c:728
 #, c-format
 msgid "Opening a %s stream with sample specification '%s'.\n"
-msgstr "ਇੱਕ %s ਸਟਰੀਮ ਨੂੰ ਸੈਂਪਲ ਨਿਰਧਾਰਨ '%s' ਨਾਲ ਖੋਲ ਰਿਹਾ ਹੈ।\n"
+msgstr "ਇੱਕ %s ਸਟਰੀਮ ਨੂੰ ਸੈਂਪਲ ਹਦਾਇਤ '%s' ਨਾਲ ਖੋਲ੍ਹਿਆ ਜਾ ਰਿਹਾ ਹੈ।\n"
 
 #: ../src/utils/pacat.c:728
 msgid "recording"
@@ -1586,7 +1584,7 @@ msgstr "dup2(): %s\n"
 #: ../src/utils/pacat.c:751
 #, c-format
 msgid "Too many arguments.\n"
-msgstr "ਬਹੁਤ ਜਿਆਦਾ ਆਰਗੂਮੈਂਟ।\n"
+msgstr "ਬਹੁਤ ਵੱਧ ਆਰਗੂਮੈਂਟ।\n"
 
 #: ../src/utils/pacat.c:764 ../src/utils/pasuspender.c:280
 #: ../src/utils/pactl.c:1017 ../src/utils/paplay.c:381
@@ -1656,7 +1654,7 @@ msgstr "SIGINT ਮਿਲਿਆ, ਬੰਦ ਹੋ ਰਿਹਾ ਹੈ।\n"
 #: ../src/utils/pasuspender.c:194
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr "ਚੇਤਾਵਨੀ: ਅਧੀਨ ਕਾਰਜ ਨੂੰ ਸਿਗਨਲ %u ਦੁਆਰਾ ਬੰਦ ਕੀਤਾ ਗਿਆ ਹੈ\n"
+msgstr "ਚੇਤਾਵਨੀ: ਚਲਾਈਡ ਪਰੋਸੈੱਸ ਨੂੰ ਸਿਗਨਲ %u ਵਲੋਂ ਬੰਦ ਕੀਤਾ ਗਿਆ ਹੈ\n"
 
 #: ../src/utils/pasuspender.c:212
 #, c-format
@@ -1685,13 +1683,13 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 "pasuspender %s\n"
-"Compiled with libpulse %s\n"
-"Linked with libpulse %s\n"
+"libpulse %s ਨਾਲ ਕੰਪਾਇਲ\n"
+"libpulse %s ਨਾਲ ਲਿੰਕ\n"
 
 #: ../src/utils/pactl.c:108
 #, c-format
 msgid "Failed to get statistics: %s\n"
-msgstr "ਅੰਕੜੇ ਪ੍ਰਾਪਤੀ ਫੇਲ: %s\n"
+msgstr "ਅੰਕੜੇ ਪ੍ਰਾਪਤੀ ਫੇਲ੍ਹ: %s\n"
 
 #: ../src/utils/pactl.c:114
 #, c-format
@@ -1701,7 +1699,7 @@ msgstr "ਹੁਣ ਵਰਤੋਂ ਵਿੱਚ ਹੈ: %u ਬਲਾਕ ਵਿੱ
 #: ../src/utils/pactl.c:117
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr "ਪੁਰੇ ਲਾਈਫਟਾਈਮ ਵਿੱਚ ਨਿਰਧਾਰਨ ਕੀਤਾ ਗਿਆ: %u ਬਲਾਕ ਵਿੱਚ ਕੁੱਲ %s ਬਾਈਟ ਹਨ।\n"
+msgstr "ਪੂਰੇ ਲਾਈਫਟਾਈਮ ਵਿੱਚ ਜਾਰੀ ਕੀਤਾ ਗਿਆ: %u ਬਲਾਕ ਵਿੱਚ ਕੁੱਲ %s ਬਾਈਟ ਹਨ।\n"
 
 #: ../src/utils/pactl.c:120
 #, c-format
@@ -1739,7 +1737,7 @@ msgstr ""
 #: ../src/utils/pactl.c:178
 #, c-format
 msgid "Failed to get sink information: %s\n"
-msgstr "ਸਿੰਕ ਜਾਣਕਾਰੀ ਲੈਣ ਵਿੱਚ ਫੇਲ: %s\n"
+msgstr "ਸਿੰਕ ਜਾਣਕਾਰੀ ਲੈਣ ਵਿੱਚ ਫੇਲ੍ਹ: %s\n"
 
 #: ../src/utils/pactl.c:194
 #, c-format
@@ -1830,12 +1828,12 @@ msgstr ""
 #: ../src/utils/pactl.c:543 ../src/utils/pactl.c:586 ../src/utils/pactl.c:587
 #: ../src/utils/pactl.c:594
 msgid "n/a"
-msgstr "n/a"
+msgstr "ਉਪਲੱਬਧ ਨਹੀਂ"
 
 #: ../src/utils/pactl.c:324
 #, c-format
 msgid "Failed to get module information: %s\n"
-msgstr "ਮੈਡਿਊਲ ਜਾਣਕਾਰੀ ਲੈਣ ਵਿੱਚ ਫੇਲ: %s\n"
+msgstr "ਮੋਡੀਊਲ ਜਾਣਕਾਰੀ ਲੈਣ ਵਿੱਚ ਫੇਲ: %s\n"
 
 #: ../src/utils/pactl.c:342
 #, c-format
@@ -1857,7 +1855,7 @@ msgstr ""
 #: ../src/utils/pactl.c:361
 #, c-format
 msgid "Failed to get client information: %s\n"
-msgstr "ਕਲਾਂਈਟ ਜਾਣਕਾਰੀ ਲੈਣ ਵਿੱਚ ਫੇਲ: %s\n"
+msgstr "ਕਲਾਇਟ ਜਾਣਕਾਰੀ ਲੈਣ ਵਿੱਚ ਫੇਲ: %s\n"
 
 #: ../src/utils/pactl.c:379
 #, c-format
@@ -1909,7 +1907,7 @@ msgstr "\tਸਰਗਰਮ ਪਰੋਫਾਈਲ: %s\n"
 #: ../src/utils/pactl.c:445
 #, c-format
 msgid "Failed to get sink input information: %s\n"
-msgstr "ਇੰਪੁੱਟ ਜਾਣਕਾਰੀ ਲੈਣ ਵਿੱਚ ਫੇਲ: %s\n"
+msgstr "ਇੰਪੁੱਟ ਜਾਣਕਾਰੀ ਲੈਣ ਵਿੱਚ ਫੇਲ੍ਹ: %s\n"
 
 #: ../src/utils/pactl.c:464
 #, c-format
@@ -1951,7 +1949,7 @@ msgstr ""
 #: ../src/utils/pactl.c:503
 #, c-format
 msgid "Failed to get source output information: %s\n"
-msgstr "ਸਰੋਤ ਆਊਟਪੁੱਟ ਜਾਣਕਾਰੀ ਲੈਣ ਵਿੱਚ ਫੇਲ: %s\n"
+msgstr "ਸਰੋਤ ਆਉਟਪੁੱਟ ਜਾਣਕਾਰੀ ਲੈਣ ਵਿੱਚ ਫੇਲ: %s\n"
 
 #: ../src/utils/pactl.c:523
 #, c-format
@@ -2031,7 +2029,7 @@ msgstr "ਸੈਂਪਲ ਅੱਪਲੋਡ ਕਰਨ ਵਿੱਚ ਫੇਲ: %s\
 #: ../src/utils/pactl.c:653
 #, c-format
 msgid "Premature end of file\n"
-msgstr "ਫਾਇਲ ਦਾ ਸਮੇਂ ਤੋਂ ਪਿਹਲਾਂ ਅੰਤ\n"
+msgstr "ਫਾਇਲ ਦਾ ਸਮੇਂ ਤੋਂ ਪਹਿਲਾਂ ਅੰਤ\n"
 
 #: ../src/utils/pactl.c:774
 #, c-format
@@ -2104,51 +2102,51 @@ msgstr "ਸਾਊਂਡ ਫਾਇਲ ਖੋਲ੍ਹਣ ਲਈ ਫੇਲ੍ਹ �
 #: ../src/utils/pactl.c:899
 #, c-format
 msgid "You have to specify a sample name to play\n"
-msgstr "ਖੇਡਣ ਲਈ ਤੁਹਾਨੂੰ ਸੈਂਪਲ ਨਾਂ ਨਿਰਧਾਰਤ ਕਰਨਾ ਪਵੇਗਾ\n"
+msgstr "ਖੇਡਣ ਲਈ ਤੁਹਾਨੂੰ ਸੈਂਪਲ ਨਾਂ ਦੇਣਾ ਪਵੇਗਾ\n"
 
 #: ../src/utils/pactl.c:911
 #, c-format
 msgid "You have to specify a sample name to remove\n"
-msgstr "ਹਟਾਉਣ ਲਈ ਤੁਹਾਨੂੰ ਸੈਂਪਲ ਨਾਂ ਨਿਰਧਾਰਤ ਕਰਨਾ ਪਵੇਗਾ\n"
+msgstr "ਹਟਾਉਣ ਲਈ ਤੁਹਾਨੂੰ ਸੈਂਪਲ ਨਾਂ ਦੇਣਾ ਪਵੇਗਾ\n"
 
 #: ../src/utils/pactl.c:919
 #, c-format
 msgid "You have to specify a sink input index and a sink\n"
-msgstr "ਤੁਹਾਨੂੰ ਇੰਪੁੱਟ ਸੂਚੀ ਅਤੇ ਇੱਕ ਸਿੰਕ ਨੂੰ ਸਿੰਕ ਕਰਨਾ ਪਵੇਗਾ\n"
+msgstr "ਤੁਹਾਨੂੰ ਇੰਪੁੱਟ ਲਿਸਟ ਅਤੇ ਇੱਕ ਸਿੰਕ ਨੂੰ ਸਿੰਕ ਕਰਨਾ ਪਵੇਗਾ\n"
 
 #: ../src/utils/pactl.c:928
 #, c-format
 msgid "You have to specify a source output index and a source\n"
-msgstr "ਤੁਹਾਨੂੰ ਇੱਕ ਸਰੋਤ ਆਊਟਪੁੱਟ ਸੂਚੀ ਅਤੇ ਇੱਕ ਸਰੋਤ ਨਿਰਧਾਰਤ ਕਰਨਾ ਪਵੇਗਾ\n"
+msgstr "ਤੁਹਾਨੂੰ ਇੱਕ ਸਰੋਤ ਆਉਟਪੁੱਟ ਲਿਸਟ ਅਤੇ ਇੱਕ ਸਰੋਤ ਦੇਣਾ ਪਵੇਗਾ\n"
 
 #: ../src/utils/pactl.c:942
 #, c-format
 msgid "You have to specify a module name and arguments.\n"
-msgstr "ਤੁਹਾਨੂੰ ਇੱਕ ਮੈਡਿਊਲ ਨਾਂ ਅਤੇ ਆਰਗੂਮੈਂਟ ਦੇਣਾ ਪਵੇਗਾ।\n"
+msgstr "ਤੁਹਾਨੂੰ ਇੱਕ ਮੋਡੀਊਲ ਨਾਂ ਅਤੇ ਆਰਗੂਮੈਂਟ ਦੇਣਾ ਪਵੇਗਾ।\n"
 
 #: ../src/utils/pactl.c:962
 #, c-format
 msgid "You have to specify a module index\n"
-msgstr "ਤੁਹਾਨੂੰ ਇੱਕ ਮੈਡਿਊਲ ਸੂਚੀ ਦੇਣਾ ਪਵੇਗਾ\n"
+msgstr "ਤੁਹਾਨੂੰ ਇੱਕ ਮੈਡੀਊਲ ਲਿਸਟ ਦੇਣੀ ਪਵੇਗੀ\n"
 
 #: ../src/utils/pactl.c:972
 #, c-format
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean "
 "value.\n"
-msgstr "ਤੁਸੀਂ ਇੱਕ ਤੋਂ ਜਿਆਦਾ ਸਿੰਕ ਨਹੀਂ ਦੇ ਸਕਦੇ। ਤੁਹਾਨੂੰ ਇੱਕ ਬੂਲੀਅਨ ਮੁੱਲ ਦੇਣਾ ਪਵੇਗਾ।\n"
+msgstr "ਤੁਸੀਂ ਇੱਕ ਤੋਂ ਵੱਧ ਸਿੰਕ ਨਹੀਂ ਦੇ ਸਕਦੇ। ਤੁਹਾਨੂੰ ਇੱਕ ਬੁਲੀਅਨ ਮੁੱਲ ਦੇਣਾ ਪਵੇਗਾ।\n"
 
 #: ../src/utils/pactl.c:985
 #, c-format
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value.\n"
-msgstr "ਤੁਸੀਂ ਇੱਕ ਤੋਂ ਜਿਆਦਾ ਸਰੋਤ ਨਹੀਂ ਦੇ ਸਕਦੇ। ਤੁਹਾਨੂੰ ਬੂਲੀਅਨ ਮੁੱਲ ਦੇਣਾ ਪਵੇਗਾ।\n"
+msgstr "ਤੁਸੀਂ ਇੱਕ ਤੋਂ ਵੱਧ ਸਰੋਤ ਨਹੀਂ ਦੇ ਸਕਦੇ। ਤੁਹਾਨੂੰ ਬੁਲੀਅਨ ਮੁੱਲ ਦੇਣਾ ਪਵੇਗਾ।\n"
 
 #: ../src/utils/pactl.c:997
 #, c-format
 msgid "You have to specify a card name/index and a profile name\n"
-msgstr "ਤੁਹਾਨੂੰ ਇੱਕ ਕਾਰਡ ਨਾਂ/ਸੂਚੀ ਅਤੇ ਪਰੋਫਾਈਲ ਨਾਂ ਦੇਣਾ ਪਵੇਗਾ\n"
+msgstr "ਤੁਹਾਨੂੰ ਇੱਕ ਕਾਰਡ ਨਾਂ/ਲਿਸਟ ਅਤੇ ਪਰੋਫਾਈਲ ਨਾਂ ਦੇਣਾ ਪਵੇਗਾ\n"
 
 #: ../src/utils/pactl.c:1012
 #, c-format
@@ -2177,7 +2175,7 @@ msgstr ""
 #: ../src/utils/pax11publish.c:94
 #, c-format
 msgid "Failed to parse command line.\n"
-msgstr "ਕਮਾਂਡ ਲਾਈਨ ਪਾਰਸ ਕਰਨ ਵਿੱਚ ਫੇਲ।\n"
+msgstr "ਕਮਾਂਡ ਲਾਈਨ ਪਾਰਸ ਕਰਨ ਵਿੱਚ ਫੇਲ੍ਹ।\n"
 
 #: ../src/utils/pax11publish.c:108
 #, c-format
@@ -2212,12 +2210,12 @@ msgstr "ਕੂਕੀ ਡਾਟਾ ਸੰਭਾਲਣ ਵਿੱਚ ਫੇਲ\n"
 #: ../src/utils/pax11publish.c:152
 #, c-format
 msgid "Failed to load client configuration file.\n"
-msgstr "ਕਲਾਂਈਟ ਸੰਰਚਨਾ ਫਾਇਲ ਲੋਡ ਕਰਨ ਵਿੱਚ ਫੇਲ।\n"
+msgstr "ਕਲਾਇਟ ਸੰਰਚਨਾ ਫਾਇਲ ਲੋਡ ਕਰਨ ਵਿੱਚ ਫੇਲ।\n"
 
 #: ../src/utils/pax11publish.c:157
 #, c-format
 msgid "Failed to read environment configuration data.\n"
-msgstr "ਵਾਤਾਵਰਨ ਸੰਰਚਨਾ ਡਾਟਾ ਪੜਨ ਵਿੱਚ ਫੇਲ।\n"
+msgstr "ਇੰਵਾਇਰਨਮੈਂਟ ਸੰਰਚਨਾ ਡਾਟਾ ਪੜ੍ਹਨ ਵਿੱਚ ਫੇਲ੍ਹ।\n"
 
 #: ../src/utils/pax11publish.c:174
 #, c-format
@@ -2246,7 +2244,7 @@ msgstr "connect(): %s"
 
 #: ../src/utils/pacmd.c:89
 msgid "Failed to kill PulseAudio daemon."
-msgstr "ਪੱਲਸਆਡੀਓ ਡੈਮਨ ਬੰਦ ਕਰਨ ਵਿੱਚ ਫੇਲ।"
+msgstr "ਪਲਸਆਡੀਓ ਡੈਮਨ ਬੰਦ ਕਰਨ ਵਿੱਚ ਫੇਲ।"
 
 #: ../src/utils/pacmd.c:97
 msgid "Daemon not responding."
@@ -2340,7 +2338,7 @@ msgstr "ਗਲਤ ਚੈਨਲ ਮੈਪ\n"
 #: ../src/utils/paplay.c:314
 #, c-format
 msgid "Failed to open file '%s'\n"
-msgstr "ਫਾਇਲ '%s' ਖੋਲਣ ਵਿੱਚ ਫੇਲ\n"
+msgstr "ਫਾਇਲ '%s' ਖੋਲ੍ਹਣ ਲਈ ਫੇਲ\n"
 
 #: ../src/utils/paplay.c:350
 #, c-format
@@ -2393,12 +2391,12 @@ msgstr ""
 #: ../src/modules/alsa/module-alsa-card.c:114
 #, c-format
 msgid "Output %s + Input %s"
-msgstr "ਆਊਟਪੁੱਟ %s + ਇੰਪੁੱਟ %s"
+msgstr "ਆਉਟਪੁੱਟ %s + ਇੰਪੁੱਟ %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:117
 #, c-format
 msgid "Output %s"
-msgstr "ਆਊਟਪੁੱਟ %s"
+msgstr "ਆਉਟਪੁੱਟ %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:121
 #, c-format
@@ -2412,7 +2410,7 @@ msgstr "ਬੰਦ"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1834
 msgid "High Fidelity Playback (A2DP)"
-msgstr "ਹਾਈ ਫਡੈਲਿਟੀ ਪਲੇਬੈਕ (A2DP)"
+msgstr "ਹਾਈ ਫਡੈਲਿਟੀ ਪਲੇਅਬੈਕ (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1849
 msgid "Telephony Duplex (HSP/HFP)"
@@ -2420,5 +2418,5 @@ msgstr "ਟੈਲੀਫੋਨੀ ਡੁਪਲੈਕਸ (HSP/HFP)"
 
 #: ../src/modules/reserve-wrap.c:125
 msgid "PulseAudio Sound Server"
-msgstr "ਪੱਲਸਆਡੀਓ ਸਾਊਂਡ ਡਰਾਈਵਰ"
+msgstr "ਪਲਸਆਡੀਓ ਸਾਊਂਡ ਡਰਾਇਵਰ"
 
