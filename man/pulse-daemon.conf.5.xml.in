@@ -236,13 +236,6 @@ USA.
     </option>
 
     <option>
-      <p><opt>module-idle-time=</opt> Unload autoloaded modules after
-      being idle for this time in seconds. Defaults to 20. The
-      <opt>--module-idle-time</opt> command line option takes
-      precedence.</p>
-    </option>
-
-    <option>
       <p><opt>scache-idle-time=</opt> Unload autoloaded sample cache
       entries after being idle for this time in seconds. Defaults to
       20. The <opt>--scache-idle-time</opt> command line option takes
