@@ -505,10 +505,13 @@ int pa_sink_suspend(pa_sink *s, pa_bool_t suspend, pa_suspend_cause_t cause) {
     pa_assert(PA_SINK_IS_LINKED(s->state));
     pa_assert(cause != 0);
 
-    if (suspend)
+    if (suspend) {
         s->suspend_cause |= cause;
-    else
+        s->monitor_source->suspend_cause |= cause;
+    } else {
         s->suspend_cause &= ~cause;
+        s->monitor_source->suspend_cause &= ~cause;
+    }
 
     if ((pa_sink_get_state(s) == PA_SINK_SUSPENDED) == !!s->suspend_cause)
         return 0;
