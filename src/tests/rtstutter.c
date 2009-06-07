@@ -93,6 +93,8 @@ static void* work(void *p) {
 int main(int argc, char*argv[]) {
     unsigned n;
 
+    pa_log_set_level(PA_LOG_DEBUG);
+
     srand((unsigned) time(NULL));
 
     if (argc >= 3) {
