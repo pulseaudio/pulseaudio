@@ -973,21 +973,21 @@ void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
     n = fill_mix_info(s, &length1st, info, MAX_MIX_CHANNELS);
 
     if (n == 0) {
-	pa_silence_memchunk_get(&s->core->silence_cache,
-				s->core->mempool,
-				result,
-				&s->sample_spec,
-				length1st);
+        pa_silence_memchunk_get(&s->core->silence_cache,
+                                s->core->mempool,
+                                result,
+                                &s->sample_spec,
+                                length1st);
     } else if (n == 1) {
-	pa_cvolume volume;
+        pa_cvolume volume;
 
-	*result = info[0].chunk;
-	pa_memblock_ref(result->memblock);
+        *result = info[0].chunk;
+        pa_memblock_ref(result->memblock);
 
-	if (result->length > length)
-	    result->length = length;
+        if (result->length > length)
+            result->length = length;
 
-	pa_sw_cvolume_multiply(&volume, &s->thread_info.soft_volume, &info[0].volume);
+        pa_sw_cvolume_multiply(&volume, &s->thread_info.soft_volume, &info[0].volume);
 
         if (s->thread_info.soft_muted || !pa_cvolume_is_norm(&volume)) {
             if (s->thread_info.soft_muted || pa_cvolume_is_muted(&volume)) {
@@ -1005,10 +1005,10 @@ void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
     } else {
         void *ptr;
 
-	result->index = 0;
-	result->memblock = pa_memblock_new(s->core->mempool, length);
+        result->index = 0;
+        result->memblock = pa_memblock_new(s->core->mempool, length);
 
-	ptr = pa_memblock_acquire(result->memblock);
+        ptr = pa_memblock_acquire(result->memblock);
 
         result->length = pa_mix(info, n,
                                 (uint8_t*) ptr + result->index, length1st,
@@ -1022,23 +1022,23 @@ void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
     inputs_drop(s, info, n, result);
 
     if (result->length < length) {
-	pa_memchunk chunk;
-	size_t l, d;
-	pa_memchunk_make_writable(result, length);
+        pa_memchunk chunk;
+        size_t l, d;
+        pa_memchunk_make_writable(result, length);
 
-	l = length - result->length;
-	d = result->index + result->length;
-	while (l > 0) {
-	    chunk = *result;
-	    chunk.index = d;
-	    chunk.length = l;
+        l = length - result->length;
+        d = result->index + result->length;
+        while (l > 0) {
+            chunk = *result;
+            chunk.index = d;
+            chunk.length = l;
 
-	    pa_sink_render_into(s, &chunk);
+            pa_sink_render_into(s, &chunk);
 
-	    d += chunk.length;
-	    l -= chunk.length;
-	}
-	result->length = length;
+            d += chunk.length;
+            l -= chunk.length;
+        }
+        result->length = length;
     }
 
     pa_sink_unref(s);
