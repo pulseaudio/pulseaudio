@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.te\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-21 23:02+0200\n"
+"POT-Creation-Date: 2009-06-08 00:29+0200\n"
 "PO-Revision-Date: 2009-04-08 18:21+0530\n"
 "Last-Translator: Krishna Babu K <kkrothap@redhat.com>\n"
 "Language-Team: Telugu <en@li.org>\n"
@@ -21,51 +21,51 @@ msgstr ""
 "\n"
 "\n"
 
-#: ../src/modules/alsa/alsa-util.c:532
+#: ../src/modules/alsa/alsa-util.c:559
 msgid "Analog Mono"
 msgstr "ఎనలాగ్ మోనో"
 
-#: ../src/modules/alsa/alsa-util.c:540
+#: ../src/modules/alsa/alsa-util.c:567
 msgid "Analog Stereo"
 msgstr "ఎనలాగ్ స్టీరియో"
 
-#: ../src/modules/alsa/alsa-util.c:548
+#: ../src/modules/alsa/alsa-util.c:575
 msgid "Digital Stereo (IEC958)"
 msgstr "డిజటల్ స్టీరియో (IEC958)"
 
-#: ../src/modules/alsa/alsa-util.c:556
+#: ../src/modules/alsa/alsa-util.c:583
 msgid "Digital Stereo (HDMI)"
 msgstr "డిజిటల్ స్టీరియో (HDMI)"
 
-#: ../src/modules/alsa/alsa-util.c:565
+#: ../src/modules/alsa/alsa-util.c:592
 msgid "Analog Surround 4.0"
 msgstr "ఎనలాగ్ సరౌండ్ 4.0"
 
-#: ../src/modules/alsa/alsa-util.c:574
+#: ../src/modules/alsa/alsa-util.c:601
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr "డిజిటల్ సరౌండ్ 4.0 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-util.c:584
+#: ../src/modules/alsa/alsa-util.c:611
 msgid "Analog Surround 4.1"
 msgstr "ఎనలాగ్ సరౌండ్ 4.1"
 
-#: ../src/modules/alsa/alsa-util.c:594
+#: ../src/modules/alsa/alsa-util.c:621
 msgid "Analog Surround 5.0"
 msgstr "ఎనలాగ్ సరౌండ్ 5.0"
 
-#: ../src/modules/alsa/alsa-util.c:604
+#: ../src/modules/alsa/alsa-util.c:631
 msgid "Analog Surround 5.1"
 msgstr "ఎనలాగ్ సరౌండ్ 5.1"
 
-#: ../src/modules/alsa/alsa-util.c:614
+#: ../src/modules/alsa/alsa-util.c:641
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "డిజిటల్ సరౌండ్ 5.1 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-util.c:625
+#: ../src/modules/alsa/alsa-util.c:652
 msgid "Analog Surround 7.1"
 msgstr "ఎనలాగ్ సరౌండ్ 7.1"
 
-#: ../src/modules/alsa/alsa-util.c:1646
+#: ../src/modules/alsa/alsa-util.c:1769
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -77,7 +77,7 @@ msgstr ""
 "సాదారణంగా యిది ALSA డ్రైవర్ '%s' నందలి బగ్ కావచ్చును. దయచేసి దీనిని ALSA అభివృద్ది కారులకు "
 "నివేదించుము."
 
-#: ../src/modules/alsa/alsa-util.c:1687
+#: ../src/modules/alsa/alsa-util.c:1810
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -89,7 +89,7 @@ msgstr ""
 "సాదారణంగా యిది ALSA డ్రైవర్ '%s' నందు బగ్ కావచ్చును . దయచేసి దీనిని ALSA అభివృద్దికారులక "
 "నివేదించుము."
 
-#: ../src/modules/alsa/alsa-util.c:1734
+#: ../src/modules/alsa/alsa-util.c:1857
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -100,11 +100,11 @@ msgstr ""
 "snd_pcm_mmap_begin() అనునది పెద్ద విలువను యిచ్చినది: %lu bytes (%lu ms).\n"
 "సాదారణంగా యిది ALSA డ్రైవర్ '%s'నందలి బగ్ కావచ్చును. దయచేసి దీనిని ALSA అభివృద్దికారులను నివేదించండి."
 
-#: ../src/pulsecore/sink.c:2141
+#: ../src/pulsecore/sink.c:2273
 msgid "Internal Audio"
 msgstr "అంతర్గత ఆడియో"
 
-#: ../src/pulsecore/sink.c:2147
+#: ../src/pulsecore/sink.c:2279
 msgid "Modem"
 msgstr "మోడెమ్"
 
@@ -174,104 +174,104 @@ msgstr "దృవీకరణ పొందలేక పోయింది: %s"
 msgid "PolicyKit responded with '%s'"
 msgstr "PolicyKit స్పందిచినది దీనితో '%s'"
 
-#: ../src/daemon/main.c:138
+#: ../src/daemon/main.c:142
 #, c-format
 msgid "Got signal %s."
 msgstr "సంకేతము %s పొందినది."
 
-#: ../src/daemon/main.c:165
+#: ../src/daemon/main.c:169
 msgid "Exiting."
 msgstr "నిష్క్రమించుచున్నది."
 
-#: ../src/daemon/main.c:183
+#: ../src/daemon/main.c:187
 #, c-format
 msgid "Failed to find user '%s'."
 msgstr "వినియోగదారి '%s'ను కనుగొనుటకు విఫలమైంది."
 
-#: ../src/daemon/main.c:188
+#: ../src/daemon/main.c:192
 #, c-format
 msgid "Failed to find group '%s'."
 msgstr "సమూహం '%s' కనుగొనుటకు విఫలమైంది."
 
-#: ../src/daemon/main.c:192
+#: ../src/daemon/main.c:196
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
 msgstr "వినియోగదారి '%s' (UID %lu) మరియు సమూహము '%s' (GID %lu) కనబడినవి."
 
-#: ../src/daemon/main.c:197
+#: ../src/daemon/main.c:201
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
 msgstr "వినియోగదారి '%s' మరియు సమూహము '%s' యొక్క GID సరితూగలేదు."
 
-#: ../src/daemon/main.c:202
+#: ../src/daemon/main.c:206
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "వినియోగదారి '%s' యొక్క నివాస డైరెక్టరీ '%s' కాదు, వదిలివేయుచున్నది."
 
-#: ../src/daemon/main.c:205 ../src/daemon/main.c:210
+#: ../src/daemon/main.c:209 ../src/daemon/main.c:214
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "'%s' సృష్టించుటకు విఫలమైంది: %s"
 
-#: ../src/daemon/main.c:217
+#: ../src/daemon/main.c:221
 #, c-format
 msgid "Failed to change group list: %s"
 msgstr "సమూహ జాబితా మార్చుటకు విఫలమైంది: %s"
 
-#: ../src/daemon/main.c:233
+#: ../src/daemon/main.c:237
 #, c-format
 msgid "Failed to change GID: %s"
 msgstr "GID మార్చుటకు విఫలమైంది: %s"
 
-#: ../src/daemon/main.c:249
+#: ../src/daemon/main.c:253
 #, c-format
 msgid "Failed to change UID: %s"
 msgstr "UID మార్చటకు విఫలమైంది: %s"
 
-#: ../src/daemon/main.c:263
+#: ../src/daemon/main.c:267
 msgid "Successfully dropped root privileges."
 msgstr "root అనుమతులు విజయవంతంగా తిసివేయబడినాయి."
 
-#: ../src/daemon/main.c:271
+#: ../src/daemon/main.c:275
 msgid "System wide mode unsupported on this platform."
 msgstr "ఈ ప్లాట్‌ఫాం నందు సిస్టమ్ తరహా రీతి మద్దతీయబడదు."
 
-#: ../src/daemon/main.c:289
+#: ../src/daemon/main.c:293
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) విఫలమైంది: %s"
 
-#: ../src/daemon/main.c:477
+#: ../src/daemon/main.c:481
 msgid "Failed to parse command line."
 msgstr "ఆదేశ వరుసను పార్శ్ చేయుటకు విఫలమైంది."
 
-#: ../src/daemon/main.c:501
+#: ../src/daemon/main.c:505
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
 msgstr "మనము సమూహము '%s' నందు వున్నాము, అదిక-ప్రాముఖ్యతా పణాళికను అనుమతించుచున్నది."
 
-#: ../src/daemon/main.c:508
+#: ../src/daemon/main.c:512
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
 msgstr "మనము సమూహము '%s' నందు వున్నాము, వాస్తవ-సమయ ప్రణాళికను అనుమతించుచున్నది."
 
-#: ../src/daemon/main.c:516
+#: ../src/daemon/main.c:520
 msgid "PolicyKit grants us acquire-high-priority privilege."
 msgstr "PolicyKit మనకు acquire-high-priority అనుమతిని యిచ్చుచున్నది."
 
-#: ../src/daemon/main.c:519
+#: ../src/daemon/main.c:523
 msgid "PolicyKit refuses acquire-high-priority privilege."
 msgstr "PolicyKit అనునది acquire-high-priority అనుమతిని తిరస్కరించుచున్నది."
 
-#: ../src/daemon/main.c:524
+#: ../src/daemon/main.c:528
 msgid "PolicyKit grants us acquire-real-time privilege."
 msgstr "PolicyKit మనకు acquire-real-time అనుమతిని యిచ్చుచున్నది."
 
-#: ../src/daemon/main.c:527
+#: ../src/daemon/main.c:531
 msgid "PolicyKit refuses acquire-real-time privilege."
 msgstr "PolicyKit acquire-real-time అనుమతిని తిరస్కరించుచున్నది."
 
-#: ../src/daemon/main.c:556
+#: ../src/daemon/main.c:560
 #, c-format
 msgid ""
 "Called SUID root and real-time and/or high-priority scheduling was requested "
@@ -291,231 +291,231 @@ msgstr ""
 "లేదా '%s' యొక్క సభ్యునివి కమ్ము, లేదా ఈ వినియోగదారికి RLIMIT_NICE/RLIMIT_RTPRIO వనరు "
 "పరిమితులను పెంచుము."
 
-#: ../src/daemon/main.c:581
+#: ../src/daemon/main.c:585
 msgid ""
 "High-priority scheduling enabled in configuration but not allowed by policy."
 msgstr "అధిక-ప్రాముఖ్యతా ప్రణాళిక ఆకృతీకరణనందు చేతనముచేయబడింది కాని విధానము ద్వారా అనుమతించబడింది."
 
-#: ../src/daemon/main.c:610
+#: ../src/daemon/main.c:614
 msgid "Successfully increased RLIMIT_RTPRIO"
 msgstr "సమర్ధవంతంగా RLIMIT_RTPRIOను పెంచినది"
 
-#: ../src/daemon/main.c:613
+#: ../src/daemon/main.c:617
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
 msgstr "RLIMIT_RTPRIO విఫలమైంది: %s"
 
-#: ../src/daemon/main.c:620
+#: ../src/daemon/main.c:624
 msgid "Giving up CAP_NICE"
 msgstr "CAP_NICE యిస్తోంది"
 
-#: ../src/daemon/main.c:627
+#: ../src/daemon/main.c:631
 msgid ""
 "Real-time scheduling enabled in configuration but not allowed by policy."
 msgstr "వాస్తవ-సమయ ప్రణాళిక ఆకృతీకరణనందు చేతనంచేయబడింది కాని విధానము ద్వారా అనుమతించబడలేదు."
 
-#: ../src/daemon/main.c:688
+#: ../src/daemon/main.c:692
 msgid "Daemon not running"
 msgstr "డెమోన్ నడుచుట లేదు"
 
-#: ../src/daemon/main.c:690
+#: ../src/daemon/main.c:694
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "డెమోన్ PID %u వలె నడుచుచున్నది"
 
-#: ../src/daemon/main.c:700
+#: ../src/daemon/main.c:704
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "డెమోన్ చంపుటకు విఫలమైంది: %s"
 
-#: ../src/daemon/main.c:718
+#: ../src/daemon/main.c:722
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
 msgstr "ఈ ప్రోగ్రామ్ root లా నడుపవలసింది కాదు (--system తెలిపితే తప్ప)"
 
-#: ../src/daemon/main.c:720
+#: ../src/daemon/main.c:724
 msgid "Root privileges required."
 msgstr "Root అనుమతులు అవసరము."
 
-#: ../src/daemon/main.c:725
+#: ../src/daemon/main.c:729
 msgid "--start not supported for system instances."
 msgstr "--start సిస్టమ్ సంభవాల ద్వారా మద్దతీయబడదు."
 
-#: ../src/daemon/main.c:730
+#: ../src/daemon/main.c:734
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr "సిస్టమ్ మోడ్ నందు నడుపుతోంది, అయితే --disallow-exit అమర్చలేదు!"
 
-#: ../src/daemon/main.c:733
+#: ../src/daemon/main.c:737
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr "సిస్టమ్ రీతినందు నడుచుచున్నది, అయితే --disallow-module-loading అమర్చలేదు!"
 
-#: ../src/daemon/main.c:736
+#: ../src/daemon/main.c:740
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "సిస్టమ్ రీతినందు నడుపుచున్నది, బలవంతంగా SHM రీతిని అచేతనము చేస్తోంది!"
 
-#: ../src/daemon/main.c:741
+#: ../src/daemon/main.c:745
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr "సిస్టమ్ రీతినందు నడుచుచున్నది, బలవంతంగా నిష్క్రమణ వృధా సమయాన్ని అచేతనము చేయుచున్నది!"
 
-#: ../src/daemon/main.c:768
+#: ../src/daemon/main.c:772
 msgid "Failed to acquire stdio."
 msgstr "stdio పొందుటకు విఫలమైంది."
 
-#: ../src/daemon/main.c:774
+#: ../src/daemon/main.c:778
 #, c-format
 msgid "pipe failed: %s"
 msgstr "పైర్ విఫలమైంది: %s"
 
-#: ../src/daemon/main.c:779
+#: ../src/daemon/main.c:783
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() విఫలమైంది: %s"
 
-#: ../src/daemon/main.c:793
+#: ../src/daemon/main.c:797
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() విఫలమైంది: %s"
 
-#: ../src/daemon/main.c:799
+#: ../src/daemon/main.c:803
 msgid "Daemon startup failed."
 msgstr "డెమోన్ ప్రారంభం విఫలమైంది."
 
-#: ../src/daemon/main.c:801
+#: ../src/daemon/main.c:805
 msgid "Daemon startup successful."
 msgstr "డెమోన్ ప్రారంభము సఫలమైంది."
 
-#: ../src/daemon/main.c:871
+#: ../src/daemon/main.c:875
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "ఇది PulseAudio %s"
 
-#: ../src/daemon/main.c:872
+#: ../src/daemon/main.c:876
 #, c-format
 msgid "Compilation host: %s"
 msgstr "నిర్వర్తన హోస్టు: %s"
 
-#: ../src/daemon/main.c:873
+#: ../src/daemon/main.c:877
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "నిర్వర్తన CFLAGS: %s"
 
-#: ../src/daemon/main.c:876
+#: ../src/daemon/main.c:880
 #, c-format
 msgid "Running on host: %s"
 msgstr "హోస్టును నడుపుచున్నది: %s"
 
-#: ../src/daemon/main.c:879
+#: ../src/daemon/main.c:883
 #, c-format
 msgid "Found %u CPUs."
 msgstr "%u CPUలను కనుగొన్నది."
 
-#: ../src/daemon/main.c:881
+#: ../src/daemon/main.c:885
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "పేజీ పరిమాణము %lu బైట్లు"
 
-#: ../src/daemon/main.c:884
+#: ../src/daemon/main.c:888
 msgid "Compiled with Valgrind support: yes"
 msgstr "Valgrind మద్దతుతో నిర్వర్తించబడింది: అవును"
 
-#: ../src/daemon/main.c:886
+#: ../src/daemon/main.c:890
 msgid "Compiled with Valgrind support: no"
 msgstr "Valgrind మద్దతుతో నిర్వర్తించబడింది: లేదు"
 
-#: ../src/daemon/main.c:889
+#: ../src/daemon/main.c:893
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "valgrind రీతినందు నడుపుచున్నది: %s"
 
-#: ../src/daemon/main.c:892
+#: ../src/daemon/main.c:896
 msgid "Optimized build: yes"
 msgstr "ఆప్టిమైజ్డు బుల్డు: అవును"
 
-#: ../src/daemon/main.c:894
+#: ../src/daemon/main.c:898
 msgid "Optimized build: no"
 msgstr "ఆప్టిమైజ్డు బుల్డు: కాదు"
 
-#: ../src/daemon/main.c:898
+#: ../src/daemon/main.c:902
 msgid "NDEBUG defined, all asserts disabled."
 msgstr "NDEBUG నిర్వచించబడింది, అన్ని స్థిరరాశులు అచేతనమైనవి."
 
-#: ../src/daemon/main.c:900
+#: ../src/daemon/main.c:904
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr "FASTPATH నిర్వచించబడింది, ఫాస్ట్ పాత్ స్థిరరాశులు మాత్రమే అచేతనమైనవి."
 
-#: ../src/daemon/main.c:902
+#: ../src/daemon/main.c:906
 msgid "All asserts enabled."
 msgstr "అన్ని స్థిరరాశులు చేతనమైనవి."
 
-#: ../src/daemon/main.c:906
+#: ../src/daemon/main.c:910
 msgid "Failed to get machine ID"
 msgstr "మిషన్ ID పొందుటకు విఫలమైంది"
 
-#: ../src/daemon/main.c:909
+#: ../src/daemon/main.c:913
 #, c-format
 msgid "Machine ID is %s."
 msgstr "మిషన్ ID %s."
 
-#: ../src/daemon/main.c:913
+#: ../src/daemon/main.c:917
 #, fuzzy, c-format
 msgid "Session ID is %s."
 msgstr "మిషన్ ID %s."
 
-#: ../src/daemon/main.c:919
+#: ../src/daemon/main.c:923
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "రన్‌టైమ్ డైరెక్టరీను వుపయోగించుచున్నది %s."
 
-#: ../src/daemon/main.c:924
+#: ../src/daemon/main.c:928
 #, c-format
 msgid "Using state directory %s."
 msgstr "స్థితి డైరెక్టరీను వుపయోగించుచున్నది %s."
 
-#: ../src/daemon/main.c:927
+#: ../src/daemon/main.c:931
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "సిస్టమ్ రీతినందు వుపయోగించుచున్నది: %s"
 
-#: ../src/daemon/main.c:942
+#: ../src/daemon/main.c:946
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() విఫలమైంది."
 
-#: ../src/daemon/main.c:954
+#: ../src/daemon/main.c:956
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "తాజా అధిక-తీవ్రత కాలసూచికలు అందుబాటులో వున్నాయి! బాన్ ఎపటైట్!"
 
-#: ../src/daemon/main.c:956
+#: ../src/daemon/main.c:958
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 msgstr "మిత్రమా, నీ కెర్నల్ చెడిపోయింది! అధిక-తీవ్రత కాలసూచకిలను చేతనము చేయమని సూచించడమైనది!"
 
-#: ../src/daemon/main.c:970
+#: ../src/daemon/main.c:983
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() విఫలమైంది."
 
-#: ../src/daemon/main.c:1032
+#: ../src/daemon/main.c:1045
 msgid "Failed to initialize daemon."
 msgstr "డెమోన్ సిద్దముచేయుటకు విఫలమైంది."
 
-#: ../src/daemon/main.c:1037
+#: ../src/daemon/main.c:1050
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "ఏవిధమైన మాడ్యూళ్ళు లోడవకుండా డెమోన్ ప్రారంభము, పనిచేయుటకు తిరస్కరించబడింది."
 
-#: ../src/daemon/main.c:1054
+#: ../src/daemon/main.c:1067
 msgid "Daemon startup complete."
 msgstr "డెమోన్ ప్రారంభము పూర్తైనది."
 
-#: ../src/daemon/main.c:1060
+#: ../src/daemon/main.c:1073
 msgid "Daemon shutdown initiated."
 msgstr "డెమోన్ మూసివేత సిద్దముచేయబడింది."
 
-#: ../src/daemon/main.c:1082
+#: ../src/daemon/main.c:1095
 msgid "Daemon terminated."
 msgstr "డెమోన్ అంతముచేయబడింది."
 
-#: ../src/daemon/cmdline.c:121
+#: ../src/daemon/cmdline.c:115
 #, c-format
 msgid ""
 "%s [options]\n"
@@ -658,15 +658,15 @@ msgstr ""
 "\n"
 "  -n                                    Don't load default script file\n"
 
-#: ../src/daemon/cmdline.c:252
+#: ../src/daemon/cmdline.c:247
 msgid "--daemonize expects boolean argument"
 msgstr "--daemonize బూలియన్ ఆర్గుమెంటును కోరుకుంటుంది"
 
-#: ../src/daemon/cmdline.c:259
+#: ../src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
 msgstr "--fail బూలియన్ ఆర్గుమెంటును కోరుకుంటుంది"
 
-#: ../src/daemon/cmdline.c:269
+#: ../src/daemon/cmdline.c:264
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
@@ -674,52 +674,52 @@ msgstr ""
 "--log-level లాగ్ స్థాయి ఆర్గుమెంట్‌ను కోరుకుంటోంది (సహజసంఖ్యను 0..4 విస్తృతిలో కాని లేదా డీబగ్‌, "
 "సమాచారము, నోటీసు, హెచ్చరిక, దోషము వీటిలో వొకటికాని)."
 
-#: ../src/daemon/cmdline.c:281
+#: ../src/daemon/cmdline.c:276
 msgid "--high-priority expects boolean argument"
 msgstr "--high-priority బూలియన్ ఆర్గుమెంటును కోరుకుంటుంది"
 
-#: ../src/daemon/cmdline.c:288
+#: ../src/daemon/cmdline.c:283
 msgid "--realtime expects boolean argument"
 msgstr "--realtime బూలియన్ ఆర్గుమెంటును కోరుకుంటుంది"
 
-#: ../src/daemon/cmdline.c:295
+#: ../src/daemon/cmdline.c:290
 msgid "--disallow-module-loading expects boolean argument"
 msgstr "--disallow-module-loading బూలియన్ ఆర్గుమెంటును కోరుకుంటుంది"
 
-#: ../src/daemon/cmdline.c:302
+#: ../src/daemon/cmdline.c:297
 msgid "--disallow-exit expects boolean argument"
 msgstr "--disallow-exit బూలియన్ ఆర్గుమెంటును కోరుకుంటుంది"
 
-#: ../src/daemon/cmdline.c:309
+#: ../src/daemon/cmdline.c:304
 msgid "--use-pid-file expects boolean argument"
 msgstr "--use-pid-file బూలియన్ ఆర్గుమెంటును కోరుకుంటుంది"
 
-#: ../src/daemon/cmdline.c:326
+#: ../src/daemon/cmdline.c:321
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
 msgstr "చెల్లని లాగ్ టార్గెట్: 'syslog', 'stderr' లేదా 'auto' వుపయోగించుము."
 
-#: ../src/daemon/cmdline.c:333
+#: ../src/daemon/cmdline.c:328
 msgid "--log-time expects boolean argument"
 msgstr "--log-time బూలియన్ ఆర్గుమెంటును కోరుకుంటుంది"
 
-#: ../src/daemon/cmdline.c:340
+#: ../src/daemon/cmdline.c:335
 msgid "--log-meta expects boolean argument"
 msgstr "--log-meta బూలియన్ ఆర్గుమెంటును కోరుకుంటుంది"
 
-#: ../src/daemon/cmdline.c:359
+#: ../src/daemon/cmdline.c:354
 #, c-format
 msgid "Invalid resample method '%s'."
 msgstr "చెల్లని పునఃవుదాహరణ పద్దతి '%s'."
 
-#: ../src/daemon/cmdline.c:366
+#: ../src/daemon/cmdline.c:361
 msgid "--system expects boolean argument"
 msgstr "--system బూలియన్ ఆర్గుమెంటును కోరుకుంటుంది"
 
-#: ../src/daemon/cmdline.c:373
+#: ../src/daemon/cmdline.c:368
 msgid "--no-cpu-limit expects boolean argument"
 msgstr "--no-cpu-limit బూలియన్ ఆర్గుమెంటును కోరుకుంటుంది"
 
-#: ../src/daemon/cmdline.c:380
+#: ../src/daemon/cmdline.c:375
 msgid "--disable-shm expects boolean argument"
 msgstr "--disable-shm బూలియన్ ఆర్గుమెంటును కోరుకుంటుంది"
 
@@ -758,77 +758,82 @@ msgstr "వాడుక: %s\n"
 msgid "Load Once: %s\n"
 msgstr "ఒకసారి లోడుచేయుము: %s\n"
 
-#: ../src/daemon/dumpmodules.c:77
+#: ../src/daemon/dumpmodules.c:75
+#, c-format
+msgid "DEPRECATION WARNING: %s\n"
+msgstr ""
+
+#: ../src/daemon/dumpmodules.c:79
 #, c-format
 msgid "Path: %s\n"
 msgstr "పాత్: %s\n"
 
-#: ../src/daemon/daemon-conf.c:215
+#: ../src/daemon/daemon-conf.c:216
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
 msgstr "[%s:%u] చెల్లని లాగ్ లక్ష్యము '%s'."
 
-#: ../src/daemon/daemon-conf.c:231
+#: ../src/daemon/daemon-conf.c:232
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
 msgstr "[%s:%u] చెల్లని లాగ్ స్థాయి '%s'."
 
-#: ../src/daemon/daemon-conf.c:247
+#: ../src/daemon/daemon-conf.c:248
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
 msgstr "[%s:%u] చెల్లని పునఃవుదాహరణ పద్దతి '%s'."
 
-#: ../src/daemon/daemon-conf.c:270
+#: ../src/daemon/daemon-conf.c:271
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
 msgstr "[%s:%u] చెల్లని rlimit '%s'."
 
-#: ../src/daemon/daemon-conf.c:277
+#: ../src/daemon/daemon-conf.c:278
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
 msgstr "[%s:%u] rlimit అనునది ఈ ప్లాట్‌ఫాం నందు మద్దతివ్వబడదు."
 
-#: ../src/daemon/daemon-conf.c:293
+#: ../src/daemon/daemon-conf.c:294
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
 msgstr "[%s:%u] చెల్లని మాదిరి ఫార్మాట్ '%s'."
 
-#: ../src/daemon/daemon-conf.c:311
+#: ../src/daemon/daemon-conf.c:312
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
 msgstr "[%s:%u] చెల్లని మాదిరి రేటు '%s'."
 
-#: ../src/daemon/daemon-conf.c:335
+#: ../src/daemon/daemon-conf.c:336
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "[%s:%u] చెల్లని మాదిరి చానళ్ళు '%s'."
 
-#: ../src/daemon/daemon-conf.c:353
+#: ../src/daemon/daemon-conf.c:354
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
 msgstr "[%s:%u] చెల్లని ఛానల్ మాప్ '%s'."
 
-#: ../src/daemon/daemon-conf.c:371
+#: ../src/daemon/daemon-conf.c:372
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
 msgstr "[%s:%u] చెల్లని ముక్కలు సంఖ్య '%s'."
 
-#: ../src/daemon/daemon-conf.c:389
+#: ../src/daemon/daemon-conf.c:390
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
 msgstr "[%s:%u] చెల్లని ముక్క పరిమాణము '%s'."
 
-#: ../src/daemon/daemon-conf.c:407
+#: ../src/daemon/daemon-conf.c:408
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] చెల్లని సాదా స్థాయి '%s'."
 
-#: ../src/daemon/daemon-conf.c:522
+#: ../src/daemon/daemon-conf.c:524
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "ఆకృతీకరణ దస్త్రమును తెరుచుటకు విఫలమైంది: %s"
 
-#: ../src/daemon/daemon-conf.c:538
+#: ../src/daemon/daemon-conf.c:540
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
@@ -1080,8 +1085,8 @@ msgid "Top Rear Right"
 msgstr "పైన వెనుక కుడివైపున"
 
 #: ../src/pulse/channelmap.c:476 ../src/pulse/sample.c:167
-#: ../src/pulse/volume.c:170 ../src/pulse/volume.c:196
-#: ../src/pulse/volume.c:216 ../src/pulse/volume.c:246
+#: ../src/pulse/volume.c:237 ../src/pulse/volume.c:263
+#: ../src/pulse/volume.c:283 ../src/pulse/volume.c:313
 msgid "(invalid)"
 msgstr "(చెల్లని)"
 
@@ -1266,173 +1271,168 @@ msgstr "waitpid(): %s"
 msgid "Received message for unknown extension '%s'"
 msgstr "తెలియని పొడిగింపు కొరకు సందేశము స్వీకరించింది '%s'"
 
-#: ../src/utils/pacat.c:94
-#, c-format
-msgid "pa_stream_write() failed: %s\n"
-msgstr "pa_stream_write() విఫలమైంది: %s\n"
-
-#: ../src/utils/pacat.c:133
-#, c-format
-msgid "pa_stream_peek() failed: %s\n"
-msgstr "pa_stream_peek() విఫలమైంది: %s\n"
-
-#: ../src/utils/pacat.c:169
-#, c-format
-msgid "Stream successfully created.\n"
-msgstr "స్ట్రీమ్ సమర్ధవంతంగా సృష్టించబడింది.\n"
-
-#: ../src/utils/pacat.c:172
-#, c-format
-msgid "pa_stream_get_buffer_attr() failed: %s\n"
-msgstr "pa_stream_get_buffer_attr() విఫలమైంది: %s\n"
-
-#: ../src/utils/pacat.c:176
-#, c-format
-msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
-msgstr "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
-
-#: ../src/utils/pacat.c:179
-#, c-format
-msgid "Buffer metrics: maxlength=%u, fragsize=%u\n"
-msgstr "Buffer metrics: maxlength=%u, fragsize=%u\n"
-
-#: ../src/utils/pacat.c:183
-#, c-format
-msgid "Using sample spec '%s', channel map '%s'.\n"
-msgstr "సాదారణ విశదీకరణ(స్పెక్) '%s' వుపయోగిస్తోంది, ప్రసారమార్గం మాప్ '%s'.\n"
-
-#: ../src/utils/pacat.c:187
-#, c-format
-msgid "Connected to device %s (%u, %ssuspended).\n"
-msgstr "పరికరము %s (%u, %ssuspended) కు అనుసంధానించబడింది.\n"
-
-#: ../src/utils/pacat.c:197
-#, c-format
-msgid "Stream error: %s\n"
-msgstr "స్ట్రీమ్ దోషము: %s\n"
-
-#: ../src/utils/pacat.c:207
-#, c-format
-msgid "Stream device suspended.%s \n"
-msgstr "స్ట్రీమ్ పరికరము అర్దాంతరముగా నిలిపివేయి.%s \n"
-
-#: ../src/utils/pacat.c:209
-#, c-format
-msgid "Stream device resumed.%s \n"
-msgstr "స్ట్రీమ్ పరికరము తిరిగికొనసాగించబడింది.%s \n"
-
-#: ../src/utils/pacat.c:217
-#, c-format
-msgid "Stream underrun.%s \n"
-msgstr "స్ట్రీమ్ తక్కువగానడుచుచున్నది.%s \n"
-
-#: ../src/utils/pacat.c:224
-#, c-format
-msgid "Stream overrun.%s \n"
-msgstr "స్ట్రీమ్ మించినడుచుచున్నది.%s \n"
-
-#: ../src/utils/pacat.c:231
-#, c-format
-msgid "Stream started.%s \n"
-msgstr "స్ట్రీమ్ ప్రారంభమైంది.%s \n"
-
-#: ../src/utils/pacat.c:238
-#, c-format
-msgid "Stream moved to device %s (%u, %ssuspended).%s \n"
-msgstr "స్ట్రీమ్ పరికరము %s (%u, %ssuspended) కు కదుపబడింది.%s \n"
-
-#: ../src/utils/pacat.c:238
-msgid "not "
-msgstr "కాదు "
-
-#: ../src/utils/pacat.c:245
-#, c-format
-msgid "Stream buffer attributes changed.%s \n"
-msgstr "స్ట్రీమ్ బఫర్ యాట్రిబ్యూట్లు మార్చబడినవి.%s \n"
-
-#: ../src/utils/pacat.c:278
-#, c-format
-msgid "Connection established.%s \n"
-msgstr "అనుసంధానము ఏర్పడినది.%s \n"
-
-#: ../src/utils/pacat.c:281
-#, c-format
-msgid "pa_stream_new() failed: %s\n"
-msgstr "pa_stream_new() విఫలమైంది: %s\n"
-
-#: ../src/utils/pacat.c:309
-#, c-format
-msgid "pa_stream_connect_playback() failed: %s\n"
-msgstr "pa_stream_connect_playback() విఫలమైంది: %s\n"
-
-#: ../src/utils/pacat.c:315
-#, c-format
-msgid "pa_stream_connect_record() failed: %s\n"
-msgstr "pa_stream_connect_record() విఫలమైంది: %s\n"
-
-#: ../src/utils/pacat.c:329 ../src/utils/pasuspender.c:159
-#: ../src/utils/pactl.c:762 ../src/utils/paplay.c:183
-#, c-format
-msgid "Connection failure: %s\n"
-msgstr "అనుసంధానము వైఫల్యము: %s\n"
-
-#: ../src/utils/pacat.c:349 ../src/utils/paplay.c:75
+#: ../src/utils/pacat.c:107
 #, c-format
 msgid "Failed to drain stream: %s\n"
 msgstr "స్ట్రీమ్ ఎండగట్టుటకు విఫలమైంది: %s\n"
 
-#: ../src/utils/pacat.c:354 ../src/utils/paplay.c:80
-#, c-format
+#: ../src/utils/pacat.c:112
 msgid "Playback stream drained.\n"
 msgstr "ప్లేబ్యాక్ స్ట్రీమ్ ఎండగట్టినది.\n"
 
-#: ../src/utils/pacat.c:364 ../src/utils/paplay.c:92
-#, c-format
+#: ../src/utils/pacat.c:122
 msgid "Draining connection to server.\n"
 msgstr "సేవికకు అనుసంధానమును నశింపచేస్తోంది.\n"
 
-#: ../src/utils/pacat.c:390
-#, c-format
-msgid "Got EOF.\n"
-msgstr "EOF పొందింది.\n"
-
-#: ../src/utils/pacat.c:396
+#: ../src/utils/pacat.c:135
 #, c-format
 msgid "pa_stream_drain(): %s\n"
 msgstr "pa_stream_drain(): %s\n"
 
-#: ../src/utils/pacat.c:406
+#: ../src/utils/pacat.c:158
+#, c-format
+msgid "pa_stream_write() failed: %s\n"
+msgstr "pa_stream_write() విఫలమైంది: %s\n"
+
+#: ../src/utils/pacat.c:233 ../src/utils/pacat.c:262
+#, c-format
+msgid "pa_stream_peek() failed: %s\n"
+msgstr "pa_stream_peek() విఫలమైంది: %s\n"
+
+#: ../src/utils/pacat.c:302
+msgid "Stream successfully created.\n"
+msgstr "స్ట్రీమ్ సమర్ధవంతంగా సృష్టించబడింది.\n"
+
+#: ../src/utils/pacat.c:305
+#, c-format
+msgid "pa_stream_get_buffer_attr() failed: %s\n"
+msgstr "pa_stream_get_buffer_attr() విఫలమైంది: %s\n"
+
+#: ../src/utils/pacat.c:309
+#, c-format
+msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
+msgstr "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
+
+#: ../src/utils/pacat.c:312
+#, c-format
+msgid "Buffer metrics: maxlength=%u, fragsize=%u\n"
+msgstr "Buffer metrics: maxlength=%u, fragsize=%u\n"
+
+#: ../src/utils/pacat.c:316
+#, c-format
+msgid "Using sample spec '%s', channel map '%s'.\n"
+msgstr "సాదారణ విశదీకరణ(స్పెక్) '%s' వుపయోగిస్తోంది, ప్రసారమార్గం మాప్ '%s'.\n"
+
+#: ../src/utils/pacat.c:320
+#, c-format
+msgid "Connected to device %s (%u, %ssuspended).\n"
+msgstr "పరికరము %s (%u, %ssuspended) కు అనుసంధానించబడింది.\n"
+
+#: ../src/utils/pacat.c:330
+#, c-format
+msgid "Stream error: %s\n"
+msgstr "స్ట్రీమ్ దోషము: %s\n"
+
+#: ../src/utils/pacat.c:340
+#, c-format
+msgid "Stream device suspended.%s \n"
+msgstr "స్ట్రీమ్ పరికరము అర్దాంతరముగా నిలిపివేయి.%s \n"
+
+#: ../src/utils/pacat.c:342
+#, c-format
+msgid "Stream device resumed.%s \n"
+msgstr "స్ట్రీమ్ పరికరము తిరిగికొనసాగించబడింది.%s \n"
+
+#: ../src/utils/pacat.c:350
+#, c-format
+msgid "Stream underrun.%s \n"
+msgstr "స్ట్రీమ్ తక్కువగానడుచుచున్నది.%s \n"
+
+#: ../src/utils/pacat.c:357
+#, c-format
+msgid "Stream overrun.%s \n"
+msgstr "స్ట్రీమ్ మించినడుచుచున్నది.%s \n"
+
+#: ../src/utils/pacat.c:364
+#, c-format
+msgid "Stream started.%s \n"
+msgstr "స్ట్రీమ్ ప్రారంభమైంది.%s \n"
+
+#: ../src/utils/pacat.c:371
+#, c-format
+msgid "Stream moved to device %s (%u, %ssuspended).%s \n"
+msgstr "స్ట్రీమ్ పరికరము %s (%u, %ssuspended) కు కదుపబడింది.%s \n"
+
+#: ../src/utils/pacat.c:371
+msgid "not "
+msgstr "కాదు "
+
+#: ../src/utils/pacat.c:378
+#, c-format
+msgid "Stream buffer attributes changed.%s \n"
+msgstr "స్ట్రీమ్ బఫర్ యాట్రిబ్యూట్లు మార్చబడినవి.%s \n"
+
+#: ../src/utils/pacat.c:411
+#, c-format
+msgid "Connection established.%s \n"
+msgstr "అనుసంధానము ఏర్పడినది.%s \n"
+
+#: ../src/utils/pacat.c:414
+#, c-format
+msgid "pa_stream_new() failed: %s\n"
+msgstr "pa_stream_new() విఫలమైంది: %s\n"
+
+#: ../src/utils/pacat.c:442
+#, c-format
+msgid "pa_stream_connect_playback() failed: %s\n"
+msgstr "pa_stream_connect_playback() విఫలమైంది: %s\n"
+
+#: ../src/utils/pacat.c:448
+#, c-format
+msgid "pa_stream_connect_record() failed: %s\n"
+msgstr "pa_stream_connect_record() విఫలమైంది: %s\n"
+
+#: ../src/utils/pacat.c:462 ../src/utils/pasuspender.c:159
+#: ../src/utils/pactl.c:767
+#, c-format
+msgid "Connection failure: %s\n"
+msgstr "అనుసంధానము వైఫల్యము: %s\n"
+
+#: ../src/utils/pacat.c:495
+msgid "Got EOF.\n"
+msgstr "EOF పొందింది.\n"
+
+#: ../src/utils/pacat.c:500
 #, c-format
 msgid "read() failed: %s\n"
 msgstr "read() విఫలమైంది: %s\n"
 
-#: ../src/utils/pacat.c:438
+#: ../src/utils/pacat.c:532
 #, c-format
 msgid "write() failed: %s\n"
 msgstr "write() విఫలమైంది: %s\n"
 
-#: ../src/utils/pacat.c:459
-#, c-format
+#: ../src/utils/pacat.c:553
 msgid "Got signal, exiting.\n"
 msgstr "సంకేతము పొందినది, నిష్క్రమించుచున్నది.\n"
 
-#: ../src/utils/pacat.c:473
+#: ../src/utils/pacat.c:567
 #, c-format
 msgid "Failed to get latency: %s\n"
 msgstr "క్రియాహీనతను పొందుటలో విఫలమైంది: %s\n"
 
-#: ../src/utils/pacat.c:478
+#: ../src/utils/pacat.c:572
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr "సమయం: %0.3f sec; క్రియాహీనత: %0.0f usec.  \r"
 
-#: ../src/utils/pacat.c:498
+#: ../src/utils/pacat.c:592
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s\n"
 msgstr "pa_stream_update_timing_info() విఫలమైంది: %s\n"
 
-#: ../src/utils/pacat.c:511
-#, c-format
+#: ../src/utils/pacat.c:605
+#, fuzzy, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1458,8 +1458,10 @@ msgid ""
 "44100)\n"
 "      --format=SAMPLEFORMAT             The sample type, one of s16le, "
 "s16be, u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be "
-"(defaults to s16ne)\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, "
+"s24le, s24be,\n"
+"                                        s24-32le, s24-32be (defaults to "
+"s16ne)\n"
 "      --channels=CHANNELS               The number of channels, 1 for mono, "
 "2 for stereo\n"
 "                                        (defaults to 2)\n"
@@ -1482,6 +1484,11 @@ msgid ""
 "bytes.\n"
 "      --process-time=BYTES              Request the specified process time "
 "per request in bytes.\n"
+"      --property=PROPERTY=VALUE         Set the specified property to the "
+"specified value.\n"
+"      --raw                             Record/play raw PCM data.\n"
+"      --file-format=FFORMAT             Record/play formatted PCM data.\n"
+"      --list-file-formats               List available file formats.\n"
 msgstr ""
 "%s [options]\n"
 "\n"
@@ -1532,7 +1539,7 @@ msgstr ""
 "      --process-time=BYTES              Request the specified process time "
 "per request in bytes.\n"
 
-#: ../src/utils/pacat.c:612
+#: ../src/utils/pacat.c:727
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1543,88 +1550,133 @@ msgstr ""
 "libpulse తో నిర్వర్తించబడింది %s\n"
 "libpulse లింకైనది %s\n"
 
-#: ../src/utils/pacat.c:669
+#: ../src/utils/pacat.c:760 ../src/utils/pactl.c:851
+#, fuzzy, c-format
+msgid "Invalid client name '%s'\n"
+msgstr "చెల్లని ప్రసారమార్గ మాప్ '%s'\n"
+
+#: ../src/utils/pacat.c:776
+#, fuzzy, c-format
+msgid "Invalid stream name '%s'\n"
+msgstr "చెల్లని పునఃవుదాహరణ పద్దతి '%s'."
+
+#: ../src/utils/pacat.c:813
 #, c-format
 msgid "Invalid channel map '%s'\n"
 msgstr "చెల్లని ప్రసారమార్గ మాప్ '%s'\n"
 
-#: ../src/utils/pacat.c:698
+#: ../src/utils/pacat.c:842
 #, c-format
 msgid "Invalid latency specification '%s'\n"
 msgstr "చెల్లని క్రియాహీన విశదీకరణము '%s'\n"
 
-#: ../src/utils/pacat.c:705
+#: ../src/utils/pacat.c:849
 #, c-format
 msgid "Invalid process time specification '%s'\n"
 msgstr "చెల్లని కార్యక్రమము సమయ విశదీకరణ '%s'\n"
 
-#: ../src/utils/pacat.c:716
+#: ../src/utils/pacat.c:861
+#, fuzzy, c-format
+msgid "Invalid property '%s'\n"
+msgstr "చెల్లని పునఃవుదాహరణ పద్దతి '%s'."
+
+#: ../src/utils/pacat.c:878
 #, c-format
+msgid "Unknown file format %s."
+msgstr ""
+
+#: ../src/utils/pacat.c:897
 msgid "Invalid sample specification\n"
 msgstr "చెల్లనటువంటి మాదిరి విశదీకరణ\n"
 
-#: ../src/utils/pacat.c:721
-#, c-format
-msgid "Channel map doesn't match sample specification\n"
-msgstr "ప్రసారమార్గ మాప్ మాదిరి విశదీకరణితో సరిపోలుటలేదు\n"
-
-#: ../src/utils/pacat.c:728
-#, c-format
-msgid "Opening a %s stream with sample specification '%s'.\n"
-msgstr "%s స్ట్రీమ్‌ను మాదిరి విశదీకరణి '%s'తో తెరుచుచున్నది.\n"
-
-#: ../src/utils/pacat.c:728
-msgid "recording"
-msgstr "రికార్డింగు"
-
-#: ../src/utils/pacat.c:728
-msgid "playback"
-msgstr "ప్లేబాక్"
-
-#: ../src/utils/pacat.c:736
+#: ../src/utils/pacat.c:907
 #, c-format
 msgid "open(): %s\n"
 msgstr "open(): %s\n"
 
-#: ../src/utils/pacat.c:741
+#: ../src/utils/pacat.c:912
 #, c-format
 msgid "dup2(): %s\n"
 msgstr "dup2(): %s\n"
 
-#: ../src/utils/pacat.c:751
-#, c-format
+#: ../src/utils/pacat.c:919
 msgid "Too many arguments.\n"
 msgstr "చాలా యెక్కువ ఆర్గుమెంట్లు.\n"
 
-#: ../src/utils/pacat.c:764 ../src/utils/pasuspender.c:280
-#: ../src/utils/pactl.c:1017 ../src/utils/paplay.c:381
+#: ../src/utils/pacat.c:930
+#, fuzzy
+msgid "Failed to generate sample specification for file.\n"
+msgstr "మాదిరి సమాచారము పొందుటకు విఫలమైంది: %s\n"
+
+#: ../src/utils/pacat.c:950
+#, fuzzy
+msgid "Failed to open audio file.\n"
+msgstr "శబ్దపు దస్త్రమును తెరువుటకు విఫలమైంది.\n"
+
+#: ../src/utils/pacat.c:956
+msgid ""
+"Warning: specified sample specification will be overwritten with "
+"specification from file.\n"
+msgstr ""
+
+#: ../src/utils/pacat.c:959 ../src/utils/pactl.c:895
+#, fuzzy
+msgid "Failed to determine sample specification from file.\n"
+msgstr "మాదిరి సమాచారము పొందుటకు విఫలమైంది: %s\n"
+
+#: ../src/utils/pacat.c:968
+msgid "Warning: Failed to determine channel map from file.\n"
+msgstr ""
+
+#: ../src/utils/pacat.c:979
+msgid "Channel map doesn't match sample specification\n"
+msgstr "ప్రసారమార్గ మాప్ మాదిరి విశదీకరణితో సరిపోలుటలేదు\n"
+
+#: ../src/utils/pacat.c:990
+msgid "Warning: failed to write channel map to file.\n"
+msgstr ""
+
+#: ../src/utils/pacat.c:1005
+#, fuzzy, c-format
+msgid ""
+"Opening a %s stream with sample specification '%s' and channel map '%s'.\n"
+msgstr "%s స్ట్రీమ్‌ను మాదిరి విశదీకరణి '%s'తో తెరుచుచున్నది.\n"
+
+#: ../src/utils/pacat.c:1006
+msgid "recording"
+msgstr "రికార్డింగు"
+
+#: ../src/utils/pacat.c:1006
+msgid "playback"
+msgstr "ప్లేబాక్"
+
+#: ../src/utils/pacat.c:1032 ../src/utils/pasuspender.c:277
+#: ../src/utils/pactl.c:1033
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
 msgstr "pa_mainloop_new() విఫలమైంది.\n"
 
-#: ../src/utils/pacat.c:785
-#, c-format
+#: ../src/utils/pacat.c:1051
 msgid "io_new() failed.\n"
 msgstr "io_new() విఫలమైంది.\n"
 
-#: ../src/utils/pacat.c:791 ../src/utils/pasuspender.c:293
-#: ../src/utils/pactl.c:1031 ../src/utils/paplay.c:396
+#: ../src/utils/pacat.c:1058 ../src/utils/pasuspender.c:290
+#: ../src/utils/pactl.c:1045
 #, c-format
 msgid "pa_context_new() failed.\n"
 msgstr "pa_context_new() విఫలమైంది.\n"
 
-#: ../src/utils/pacat.c:799
+#: ../src/utils/pacat.c:1066
 #, fuzzy, c-format
 msgid "pa_context_connect() failed: %s\n"
 msgstr "pa_context_connect() విఫలమైంది: %s"
 
-#: ../src/utils/pacat.c:810
-#, c-format
+#: ../src/utils/pacat.c:1077
 msgid "time_new() failed.\n"
 msgstr "time_new() విఫలమైంది.\n"
 
-#: ../src/utils/pacat.c:817 ../src/utils/pasuspender.c:301
-#: ../src/utils/pactl.c:1042 ../src/utils/paplay.c:410
+#: ../src/utils/pacat.c:1084 ../src/utils/pasuspender.c:298
+#: ../src/utils/pactl.c:1056
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
 msgstr "pa_mainloop_run() విఫలమైంది.\n"
@@ -1654,8 +1706,7 @@ msgstr "తిరిగికొనసాగింపు వైఫల్యమ�
 msgid "WARNING: Sound server is not local, not suspending.\n"
 msgstr "హెచ్చరిక: శబ్ధపు సేవిక స్థానికం కాదు, అర్ధాంతరనిలుపుదల కావడంలేదు.\n"
 
-#: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:768
-#: ../src/utils/paplay.c:191
+#: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:773
 #, c-format
 msgid "Got SIGINT, exiting.\n"
 msgstr "SIGINT పొందింది, నిష్క్రమించుచున్నది.\n"
@@ -1684,7 +1735,7 @@ msgstr ""
 "to\n"
 "\n"
 
-#: ../src/utils/pasuspender.c:251
+#: ../src/utils/pasuspender.c:248
 #, c-format
 msgid ""
 "pasuspender %s\n"
@@ -1695,32 +1746,32 @@ msgstr ""
 "libpulse తో నిర్వర్తించబడింది %s\n"
 "libpulse తో నిర్వర్తించబడింది %s\n"
 
-#: ../src/utils/pactl.c:108
+#: ../src/utils/pactl.c:113
 #, c-format
 msgid "Failed to get statistics: %s\n"
 msgstr "గణాంకాలను పొందుటకు విఫలమైంది: %s\n"
 
-#: ../src/utils/pactl.c:114
+#: ../src/utils/pactl.c:119
 #, c-format
 msgid "Currently in use: %u blocks containing %s bytes total.\n"
 msgstr "ప్రస్తుతం వుపయోగంలోవుంది: %u బ్లాక్‌లు %s బైట్లను మొత్తంగా కలిగి వున్నాయి.\n"
 
-#: ../src/utils/pactl.c:117
+#: ../src/utils/pactl.c:122
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
 msgstr "మొత్తం లైఫ్‌టైములో కేటాయించబడింది: %u బ్లాకులు %s బైట్లను మొత్తంగా కలిగివున్నాయి.\n"
 
-#: ../src/utils/pactl.c:120
+#: ../src/utils/pactl.c:125
 #, c-format
 msgid "Sample cache size: %s\n"
 msgstr "మాదిరి క్యాచి పరిమాణము: %s\n"
 
-#: ../src/utils/pactl.c:129
+#: ../src/utils/pactl.c:134
 #, c-format
 msgid "Failed to get server information: %s\n"
 msgstr "సేవిక సమాచారమును పొందుటకు విఫలమైంది: %s\n"
 
-#: ../src/utils/pactl.c:137
+#: ../src/utils/pactl.c:142
 #, c-format
 msgid ""
 "User name: %s\n"
@@ -1743,12 +1794,12 @@ msgstr ""
 "అప్రమేయ మూలము: %s\n"
 "కుకీ: %08x\n"
 
-#: ../src/utils/pactl.c:178
+#: ../src/utils/pactl.c:183
 #, c-format
 msgid "Failed to get sink information: %s\n"
 msgstr "సింక్ సమాచారమును పొందుటకు విఫలమైంది: %s\n"
 
-#: ../src/utils/pactl.c:194
+#: ../src/utils/pactl.c:199
 #, c-format
 msgid ""
 "Sink #%u\n"
@@ -1787,12 +1838,12 @@ msgstr ""
 "\tలక్షణాలు:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:258
+#: ../src/utils/pactl.c:263
 #, c-format
 msgid "Failed to get source information: %s\n"
 msgstr "మూలము సమాచారము పొందుటకు విఫలమైంది: %s\n"
 
-#: ../src/utils/pactl.c:274
+#: ../src/utils/pactl.c:279
 #, c-format
 msgid ""
 "Source #%u\n"
@@ -1831,20 +1882,20 @@ msgstr ""
 "\tలక్షణాలు:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:306 ../src/utils/pactl.c:350 ../src/utils/pactl.c:385
-#: ../src/utils/pactl.c:422 ../src/utils/pactl.c:481 ../src/utils/pactl.c:482
-#: ../src/utils/pactl.c:492 ../src/utils/pactl.c:536 ../src/utils/pactl.c:537
-#: ../src/utils/pactl.c:543 ../src/utils/pactl.c:586 ../src/utils/pactl.c:587
-#: ../src/utils/pactl.c:594
+#: ../src/utils/pactl.c:311 ../src/utils/pactl.c:355 ../src/utils/pactl.c:390
+#: ../src/utils/pactl.c:427 ../src/utils/pactl.c:486 ../src/utils/pactl.c:487
+#: ../src/utils/pactl.c:497 ../src/utils/pactl.c:541 ../src/utils/pactl.c:542
+#: ../src/utils/pactl.c:548 ../src/utils/pactl.c:591 ../src/utils/pactl.c:592
+#: ../src/utils/pactl.c:599
 msgid "n/a"
 msgstr "వర్తించదు"
 
-#: ../src/utils/pactl.c:324
+#: ../src/utils/pactl.c:329
 #, c-format
 msgid "Failed to get module information: %s\n"
 msgstr "మాడ్యూల్ సమాచారము పొందుటకు విఫలమైంది: %s\n"
 
-#: ../src/utils/pactl.c:342
+#: ../src/utils/pactl.c:347
 #, c-format
 msgid ""
 "Module #%u\n"
@@ -1861,12 +1912,12 @@ msgstr ""
 "\tలక్షణాలు:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:361
+#: ../src/utils/pactl.c:366
 #, c-format
 msgid "Failed to get client information: %s\n"
 msgstr "కక్షిదారి సమాచారము పొందుటలో విఫలమైంది: %s\n"
 
-#: ../src/utils/pactl.c:379
+#: ../src/utils/pactl.c:384
 #, c-format
 msgid ""
 "Client #%u\n"
@@ -1881,12 +1932,12 @@ msgstr ""
 "\tలక్షణాలు:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:396
+#: ../src/utils/pactl.c:401
 #, c-format
 msgid "Failed to get card information: %s\n"
 msgstr "కార్డు సమాచారము పొందుటకు విఫలమైంది: %s\n"
 
-#: ../src/utils/pactl.c:414
+#: ../src/utils/pactl.c:419
 #, c-format
 msgid ""
 "Card #%u\n"
@@ -1903,22 +1954,22 @@ msgstr ""
 "\tలక్షణాలు:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:428
+#: ../src/utils/pactl.c:433
 #, c-format
 msgid "\tProfiles:\n"
 msgstr "\tప్రోఫైల్సు:\n"
 
-#: ../src/utils/pactl.c:434
+#: ../src/utils/pactl.c:439
 #, c-format
 msgid "\tActive Profile: %s\n"
 msgstr "\tక్రియాశీల ప్రొఫైల్: %s\n"
 
-#: ../src/utils/pactl.c:445
+#: ../src/utils/pactl.c:450
 #, c-format
 msgid "Failed to get sink input information: %s\n"
 msgstr "సింక్ ఇన్పుట్ సమాచారము పొందుటకు విఫలమైంది: %s\n"
 
-#: ../src/utils/pactl.c:464
+#: ../src/utils/pactl.c:469
 #, c-format
 msgid ""
 "Sink Input #%u\n"
@@ -1955,12 +2006,12 @@ msgstr ""
 "\tలక్షణాలు:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:503
+#: ../src/utils/pactl.c:508
 #, c-format
 msgid "Failed to get source output information: %s\n"
 msgstr "మూలపు అవుట్పుట్ సమాచారము పొందుటకు విఫలమైంది: %s\n"
 
-#: ../src/utils/pactl.c:523
+#: ../src/utils/pactl.c:528
 #, c-format
 msgid ""
 "Source Output #%u\n"
@@ -1989,12 +2040,12 @@ msgstr ""
 "\tలక్షణాలు:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:554
+#: ../src/utils/pactl.c:559
 #, c-format
 msgid "Failed to get sample information: %s\n"
 msgstr "మాదిరి సమాచారము పొందుటకు విఫలమైంది: %s\n"
 
-#: ../src/utils/pactl.c:572
+#: ../src/utils/pactl.c:577
 #, c-format
 msgid ""
 "Sample #%u\n"
@@ -2025,22 +2076,21 @@ msgstr ""
 "\tలక్షణాలు:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:602 ../src/utils/pactl.c:612
+#: ../src/utils/pactl.c:607 ../src/utils/pactl.c:617
 #, c-format
 msgid "Failure: %s\n"
 msgstr "విఫైల్యము: %s\n"
 
-#: ../src/utils/pactl.c:636
+#: ../src/utils/pactl.c:641
 #, c-format
 msgid "Failed to upload sample: %s\n"
 msgstr "మాదిరి అప్‌లోడు చేయుటకు విఫలమైంది: %s\n"
 
-#: ../src/utils/pactl.c:653
-#, c-format
+#: ../src/utils/pactl.c:658
 msgid "Premature end of file\n"
 msgstr "దస్త్రము యొక్క అపరిపక్వ ముగింపు\n"
 
-#: ../src/utils/pactl.c:774
+#: ../src/utils/pactl.c:779
 #, c-format
 msgid ""
 "%s [options] stat\n"
@@ -2087,7 +2137,7 @@ msgstr ""
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 
-#: ../src/utils/pactl.c:826
+#: ../src/utils/pactl.c:831
 #, c-format
 msgid ""
 "pactl %s\n"
@@ -2098,73 +2148,66 @@ msgstr ""
 "libpulse తో నిర్వర్తించబడింది%s\n"
 "libpulse తో లింకుచేయబడింది %s\n"
 
-#: ../src/utils/pactl.c:865
-#, c-format
+#: ../src/utils/pactl.c:877
 msgid "Please specify a sample file to load\n"
 msgstr "లోడువ్వుటకు దయచేసి మాదిరి దస్త్రమును తెలుపుము\n"
 
-#: ../src/utils/pactl.c:887
-#, c-format
+#: ../src/utils/pactl.c:890
 msgid "Failed to open sound file.\n"
 msgstr "శబ్దపు దస్త్రమును తెరువుటకు విఫలమైంది.\n"
 
-#: ../src/utils/pactl.c:899
-#, c-format
+#: ../src/utils/pactl.c:902
+#, fuzzy
+msgid "Warning: Failed to determine sample specification from file.\n"
+msgstr "%s స్ట్రీమ్‌ను మాదిరి విశదీకరణి '%s'తో తెరుచుచున్నది.\n"
+
+#: ../src/utils/pactl.c:912
 msgid "You have to specify a sample name to play\n"
 msgstr "ప్లే చేయుటకు మీరు మాదిరి నామమును తెలుపవలసి వుంది\n"
 
-#: ../src/utils/pactl.c:911
-#, c-format
+#: ../src/utils/pactl.c:924
 msgid "You have to specify a sample name to remove\n"
 msgstr "తొలగించుటకు మీరు మాదిరి నామమును తెలుపవలసి వుంది\n"
 
-#: ../src/utils/pactl.c:919
-#, c-format
+#: ../src/utils/pactl.c:933
 msgid "You have to specify a sink input index and a sink\n"
 msgstr "మీరు సింక్ ఇన్పుట్ విషయసూచిక మరియు సింక్ తెలుపవలసి వుంది\n"
 
-#: ../src/utils/pactl.c:928
-#, c-format
+#: ../src/utils/pactl.c:943
 msgid "You have to specify a source output index and a source\n"
 msgstr "మీరు మూలము అవుట్పుట్ విషయసూచిక మరియు మూలము తెలుపవలసి వుంది\n"
 
-#: ../src/utils/pactl.c:942
-#, c-format
+#: ../src/utils/pactl.c:958
 msgid "You have to specify a module name and arguments.\n"
 msgstr "మీరు మాడ్యూల్ నామము మరియు ఆర్గుమెంట్లు తెలుపవలసి వుంది.\n"
 
-#: ../src/utils/pactl.c:962
-#, c-format
+#: ../src/utils/pactl.c:978
 msgid "You have to specify a module index\n"
 msgstr "మీరు మాడ్యూల్ విషయసూచిక తెలుపవలసి వుంది\n"
 
-#: ../src/utils/pactl.c:972
-#, c-format
+#: ../src/utils/pactl.c:988
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean "
 "value.\n"
 msgstr ""
 "మీరు వొక సింకు కన్నా యెక్కువ తెలుపవలసి వుండకపోవచ్చు. మీరు బూలియన్ విలువను తెలుపవలసి వుంది.\n"
 
-#: ../src/utils/pactl.c:985
-#, c-format
+#: ../src/utils/pactl.c:1001
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value.\n"
 msgstr ""
 "మీరు వొక మూలము కన్నా యెక్కువ తెలుపవలసి వుండకపోవచ్చు. మీరు బూలియన్ విలువను తెలుపవలసి వుంది.\n"
 
-#: ../src/utils/pactl.c:997
-#, c-format
+#: ../src/utils/pactl.c:1013
 msgid "You have to specify a card name/index and a profile name\n"
 msgstr "మీరు కార్డ్ నామము/విషయసూచిక మరియు ప్రొఫైల్ నామము తెలుపవలసి వుంది\n"
 
-#: ../src/utils/pactl.c:1012
-#, c-format
+#: ../src/utils/pactl.c:1028
 msgid "No valid command specified.\n"
 msgstr "ఎటువంటి విలువైన ఆదేశము తెలుపలేదు.\n"
 
-#: ../src/utils/pactl.c:1037 ../src/utils/paplay.c:404
+#: ../src/utils/pactl.c:1051
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() విఫలమైంది: %s"
@@ -2248,129 +2291,48 @@ msgstr "కుకీ డాటా లోడు చేయుటకు విఫ�
 msgid "Not yet implemented.\n"
 msgstr "ఇంకా యింప్లిమెంట్ చేయలేదు\n"
 
-#: ../src/utils/pacmd.c:64
+#: ../src/utils/pacmd.c:61
+msgid "No PulseAudio daemon running, or not running as session daemon."
+msgstr ""
+
+#: ../src/utils/pacmd.c:66
 #, c-format
 msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
 msgstr "socket(PF_UNIX, SOCK_STREAM, 0): %s"
 
-#: ../src/utils/pacmd.c:81
+#: ../src/utils/pacmd.c:83
 #, c-format
 msgid "connect(): %s"
 msgstr "connect(): %s"
 
-#: ../src/utils/pacmd.c:89
+#: ../src/utils/pacmd.c:91
 msgid "Failed to kill PulseAudio daemon."
 msgstr "PulseAudio డెమోన్ నాశనం చేయుటలో విఫలమైంది."
 
-#: ../src/utils/pacmd.c:97
+#: ../src/utils/pacmd.c:99
 msgid "Daemon not responding."
 msgstr "డెమోన్ స్పందించుటలేదు."
 
-#: ../src/utils/pacmd.c:144
+#: ../src/utils/pacmd.c:146
 #, c-format
 msgid "select(): %s"
 msgstr "select(): %s"
 
-#: ../src/utils/pacmd.c:154 ../src/utils/pacmd.c:171
+#: ../src/utils/pacmd.c:156 ../src/utils/pacmd.c:173
 #, c-format
 msgid "read(): %s"
 msgstr "read(): %s"
 
-#: ../src/utils/pacmd.c:187 ../src/utils/pacmd.c:201
+#: ../src/utils/pacmd.c:189 ../src/utils/pacmd.c:203
 #, c-format
 msgid "write(): %s"
 msgstr "write(): %s"
-
-#: ../src/utils/paplay.c:139
-#, c-format
-msgid "Stream successfully created\n"
-msgstr "స్ట్రీమ్ సమర్దవంతంగా సృష్టించబడింది\n"
-
-#: ../src/utils/paplay.c:144
-#, c-format
-msgid "Stream errror: %s\n"
-msgstr "స్ట్రీమ్ దోషము: %s\n"
-
-#: ../src/utils/paplay.c:165
-#, c-format
-msgid "Connection established.\n"
-msgstr "అనుసంధానము ఏర్పడలేదు.\n"
-
-#: ../src/utils/paplay.c:198
-#, c-format
-msgid ""
-"%s [options] [FILE]\n"
-"\n"
-"  -h, --help                            Show this help\n"
-"      --version                         Show version\n"
-"\n"
-"  -v, --verbose                         Enable verbose operation\n"
-"\n"
-"  -s, --server=SERVER                   The name of the server to connect "
-"to\n"
-"  -d, --device=DEVICE                   The name of the sink to connect to\n"
-"  -n, --client-name=NAME                How to call this client on the "
-"server\n"
-"      --stream-name=NAME                How to call this stream on the "
-"server\n"
-"      --volume=VOLUME                   Specify the initial (linear) volume "
-"in range 0...65536\n"
-"      --channel-map=CHANNELMAP          Set the channel map to the use\n"
-msgstr ""
-"%s [options] [FILE]\n"
-"\n"
-"  -h, --help                            Show this help\n"
-"      --version                         Show version\n"
-"\n"
-"  -v, --verbose                         Enable verbose operation\n"
-"\n"
-"  -s, --server=SERVER                   The name of the server to connect "
-"to\n"
-"  -d, --device=DEVICE                   The name of the sink to connect to\n"
-"  -n, --client-name=NAME                How to call this client on the "
-"server\n"
-"      --stream-name=NAME                How to call this stream on the "
-"server\n"
-"      --volume=VOLUME                   Specify the initial (linear) volume "
-"in range 0...65536\n"
-"      --channel-map=CHANNELMAP          Set the channel map to the use\n"
-
-#: ../src/utils/paplay.c:255
-#, c-format
-msgid ""
-"paplay %s\n"
-"Compiled with libpulse %s\n"
-"Linked with libpulse %s\n"
-msgstr ""
-"paplay %s\n"
-"libpulse తో నిర్వర్తించబడింది%s\n"
-"libpulse తో లింకైనది %s\n"
-
-#: ../src/utils/paplay.c:292
-#, c-format
-msgid "Invalid channel map\n"
-msgstr "చెల్లని ప్రసార మార్గము\n"
-
-#: ../src/utils/paplay.c:314
-#, c-format
-msgid "Failed to open file '%s'\n"
-msgstr "దస్త్రము '%s' తెరుచుటకు విఫలమైంది\n"
-
-#: ../src/utils/paplay.c:350
-#, c-format
-msgid "Channel map doesn't match file.\n"
-msgstr "ప్రసారమార్గం మాప్ అనునది దస్త్రముతో సరిపోల్చడంలేదు.\n"
-
-#: ../src/utils/paplay.c:376
-#, c-format
-msgid "Using sample spec '%s'\n"
-msgstr "మాదిరి విశదీకరణను వుపయోగిస్తోంది '%s'\n"
 
 #: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
 msgid "Cannot access autospawn lock."
 msgstr "ఆటోస్పాన్ తాళంను యాక్సిస్ చేయలేదు."
 
-#: ../src/modules/alsa/alsa-sink.c:393 ../src/modules/alsa/alsa-sink.c:541
+#: ../src/modules/alsa/alsa-sink.c:446 ../src/modules/alsa/alsa-sink.c:594
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2386,7 +2348,7 @@ msgstr ""
 "మనము POLLOUT అమర్పు ద్వారా జాగరూక పరచబడినాము -- ఏమైనప్పటికి snd_pcm_avail() అనునది 0 ను "
 "యిస్తుంది లేదా వేరొక విలువ < min_avail యిస్తుంది."
 
-#: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:516
+#: ../src/modules/alsa/alsa-source.c:430 ../src/modules/alsa/alsa-source.c:569
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2402,34 +2364,103 @@ msgstr ""
 "మనము POLLOUT అమర్పు ద్వారా జాగరూక పరచబడినాము -- ఏమైనప్పటికి snd_pcm_avail() అనునది 0 ను "
 "యిస్తుంది లేదా వేరొక విలువ < min_avail యిస్తుంది."
 
-#: ../src/modules/alsa/module-alsa-card.c:114
+#: ../src/modules/alsa/module-alsa-card.c:120
 #, c-format
 msgid "Output %s + Input %s"
 msgstr "అవుట్పుట్ %s + ఇన్పుట్ %s"
 
-#: ../src/modules/alsa/module-alsa-card.c:117
+#: ../src/modules/alsa/module-alsa-card.c:123
 #, c-format
 msgid "Output %s"
 msgstr "అవుట్పుట్ %s"
 
-#: ../src/modules/alsa/module-alsa-card.c:121
+#: ../src/modules/alsa/module-alsa-card.c:127
 #, c-format
 msgid "Input %s"
 msgstr "ఇన్పుట్ %s"
 
-#: ../src/modules/alsa/module-alsa-card.c:170
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2006
+#: ../src/modules/alsa/module-alsa-card.c:176
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2058
 msgid "Off"
 msgstr "ఆఫ్"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1976
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2028
 msgid "High Fidelity Playback (A2DP)"
 msgstr "హై ఫెడిలిటి ప్లేబ్యాక్ (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:1991
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2043
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr "టెలిఫోనీ డూప్లెక్స్ (HSP/HFP)"
 
-#: ../src/modules/reserve-wrap.c:139
+#: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "పల్స్ ఆడియో సౌండ్ సేవిక"
+
+#~ msgid "Stream successfully created\n"
+#~ msgstr "స్ట్రీమ్ సమర్దవంతంగా సృష్టించబడింది\n"
+
+#~ msgid "Stream errror: %s\n"
+#~ msgstr "స్ట్రీమ్ దోషము: %s\n"
+
+#~ msgid "Connection established.\n"
+#~ msgstr "అనుసంధానము ఏర్పడలేదు.\n"
+
+#~ msgid ""
+#~ "%s [options] [FILE]\n"
+#~ "\n"
+#~ "  -h, --help                            Show this help\n"
+#~ "      --version                         Show version\n"
+#~ "\n"
+#~ "  -v, --verbose                         Enable verbose operation\n"
+#~ "\n"
+#~ "  -s, --server=SERVER                   The name of the server to connect "
+#~ "to\n"
+#~ "  -d, --device=DEVICE                   The name of the sink to connect "
+#~ "to\n"
+#~ "  -n, --client-name=NAME                How to call this client on the "
+#~ "server\n"
+#~ "      --stream-name=NAME                How to call this stream on the "
+#~ "server\n"
+#~ "      --volume=VOLUME                   Specify the initial (linear) "
+#~ "volume in range 0...65536\n"
+#~ "      --channel-map=CHANNELMAP          Set the channel map to the use\n"
+#~ msgstr ""
+#~ "%s [options] [FILE]\n"
+#~ "\n"
+#~ "  -h, --help                            Show this help\n"
+#~ "      --version                         Show version\n"
+#~ "\n"
+#~ "  -v, --verbose                         Enable verbose operation\n"
+#~ "\n"
+#~ "  -s, --server=SERVER                   The name of the server to connect "
+#~ "to\n"
+#~ "  -d, --device=DEVICE                   The name of the sink to connect "
+#~ "to\n"
+#~ "  -n, --client-name=NAME                How to call this client on the "
+#~ "server\n"
+#~ "      --stream-name=NAME                How to call this stream on the "
+#~ "server\n"
+#~ "      --volume=VOLUME                   Specify the initial (linear) "
+#~ "volume in range 0...65536\n"
+#~ "      --channel-map=CHANNELMAP          Set the channel map to the use\n"
+
+#~ msgid ""
+#~ "paplay %s\n"
+#~ "Compiled with libpulse %s\n"
+#~ "Linked with libpulse %s\n"
+#~ msgstr ""
+#~ "paplay %s\n"
+#~ "libpulse తో నిర్వర్తించబడింది%s\n"
+#~ "libpulse తో లింకైనది %s\n"
+
+#~ msgid "Invalid channel map\n"
+#~ msgstr "చెల్లని ప్రసార మార్గము\n"
+
+#~ msgid "Failed to open file '%s'\n"
+#~ msgstr "దస్త్రము '%s' తెరుచుటకు విఫలమైంది\n"
+
+#~ msgid "Channel map doesn't match file.\n"
+#~ msgstr "ప్రసారమార్గం మాప్ అనునది దస్త్రముతో సరిపోల్చడంలేదు.\n"
+
+#~ msgid "Using sample spec '%s'\n"
+#~ msgstr "మాదిరి విశదీకరణను వుపయోగిస్తోంది '%s'\n"
