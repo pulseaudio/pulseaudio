@@ -757,8 +757,12 @@ pa_bool_t pa_source_get_mute(pa_source *s, pa_bool_t force_refresh) {
 
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_MUTE, NULL, 0, NULL) == 0);
 
-        if (old_muted != s->muted)
+        if (old_muted != s->muted) {
             pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+
+            /* Make sure the soft mute status stays in sync */
+            pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_MUTE, NULL, 0, NULL) == 0);
+        }
     }
 
     return s->muted;
