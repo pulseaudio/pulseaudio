@@ -1199,7 +1199,7 @@ fail:
 
 static void sink_get_mute_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
-    int err, sw;
+    int err, sw = 0;
 
     pa_assert(u);
     pa_assert(u->mixer_elem);
