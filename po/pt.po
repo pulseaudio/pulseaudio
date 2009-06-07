@@ -93,15 +93,15 @@ msgstr "Modem"
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
-msgstr ""
+msgstr "Não foi possível encontrar o carregador \"lt_dlopen\"."
 
 #: ../src/daemon/ltdl-bind-now.c:129
 msgid "Failed to allocate new dl loader."
-msgstr ""
+msgstr "Não foi possível alocar o novo carregador \"dl\"."
 
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
-msgstr ""
+msgstr "Não foi possível adicionar \"bind-now-loader\"."
 
 #: ../src/daemon/polkit.c:55
 #, c-format
@@ -241,19 +241,19 @@ msgstr "Estamos no grupo '%s', permitindo escalonamento em tempo real."
 
 #: ../src/daemon/main.c:501
 msgid "PolicyKit grants us acquire-high-priority privilege."
-msgstr ""
+msgstr "O PolicyKit permite-nos o privilégio \"acquire-high-priority\" (adquirir alta prioridade)."
 
 #: ../src/daemon/main.c:504
 msgid "PolicyKit refuses acquire-high-priority privilege."
-msgstr ""
+msgstr "O PolicyKit recusa-nos o privilégio \"acquire-high-priority\" (adquirir alta prioridade)."
 
 #: ../src/daemon/main.c:509
 msgid "PolicyKit grants us acquire-real-time privilege."
-msgstr ""
+msgstr "O PolicyKit permite-nos o privilégio \"acquire-real-time\" (adquirir tempo real)."
 
 #: ../src/daemon/main.c:512
 msgid "PolicyKit refuses acquire-real-time privilege."
-msgstr ""
+msgstr "O PolicyKit recusa-nos o privilégio \"acquire-real-time\" (adquirir tempo real)."
 
 #: ../src/daemon/main.c:541
 #, c-format
@@ -406,15 +406,15 @@ msgstr "Compilação optimizada: não"
 
 #: ../src/daemon/main.c:883
 msgid "NDEBUG defined, all asserts disabled."
-msgstr ""
+msgstr "NDEBUG definido, todas as declarações desactivadas."
 
 #: ../src/daemon/main.c:885
 msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr ""
+msgstr "FASTPATH definido, apenas as declarações \"fast path\" desactivadas."
 
 #: ../src/daemon/main.c:887
 msgid "All asserts enabled."
-msgstr ""
+msgstr "Todas as declarações desactivadas."
 
 #: ../src/daemon/main.c:891
 msgid "Failed to get machine ID"
@@ -446,7 +446,7 @@ msgstr "pa_pid_file_create() falhou."
 
 #: ../src/daemon/main.c:934
 msgid "Fresh high-resolution timers available! Bon appetit!"
-msgstr ""
+msgstr "Timer \"frescos\" de alta resolução disponíveis. Bom apetite!"
 
 #: ../src/daemon/main.c:936
 msgid "Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!"
@@ -477,7 +477,7 @@ msgid "Daemon terminated."
 msgstr "Serviço terminado."
 
 #: ../src/daemon/cmdline.c:121
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -536,6 +536,61 @@ msgid ""
 "\n"
 "  -n                                    Don't load default script file\n"
 msgstr ""
+"%s [opções]\n"
+"\n"
+"COMANDOS:\n"
+"  -h, --help                            Mostra esta ajuda\n"
+"      --version                         Mostra versão\n"
+"      --dump-conf                       Despeja configuração por omissão\n"
+"      --dump-modules                    Despeja lista de módulos disponíveis\n"
+"      --dump-resample-methods           Despeja métodos \"resample\" disponíveis\n"
+"      --cleanup-shm                     Limpar segmentos de memória partilhados encravados\n"
+"      --start                           Inicia o serviço, se ainda não estiver a executar\n"
+"  -k  --kill                            Termina o serviço, se estiver a executar \n"
+"      --check                           Verifica se o serviço está a executar (apenas retorna um código de saída)\n"
+"\n"
+"OPTIONS:\n"
+"      --system[=BOOL]                   Executa em modo de sistema\n"
+"  -D, --daemonize[=BOOL]                Passa serviço depois de executar\n"
+"      --fail[=BOOL]                     Termina quando o arranque falha\n"
+"      --high-priority[=BOOL]            Tenta definir um alto nível de execução\n"
+"                                        (apenas disponível como root, quando é SUID ou\n"
+"                                        com níveis elevados de RLIMIT_NICE)\n"
+"      --realtime[=BOOL]                 Tenta activar escalonamento em tempo real\n"
+"                                        (apenas disponível como root, quando é SUID ou\n"
+"                                        com níveis elevados de RLIMIT_RTPRIO)\n"
+"      --disallow-module-loading[=BOOL]  Desautoriza o carregamento/descarregamento\n"
+"                                        de módulos, pelo utilizador, depois do arranque\n"
+"      --disallow-exit[=BOOL]            Desautoriza pedidos de saída do utilizador\n"
+"      --exit-idle-time=SECS             Termina o serviço quando inactivo e já passou\n"
+"                                        este tempo\n"
+"      --module-idle-time=SECS           Descarregar módulos de carregamento automático quando inactivo e\n"
+"                                        passou este tempo\n"
+"      --scache-idle-time=SECS           Descarregar amostras de carregamento automático quando inactivas e\n"
+"                                        passou este tempo\n"
+"      --log-level[=LEVEL]               Aumenta ou define o nível de verbosidade\n"
+"  -v                                    Aumenta o nível de verbosidade\n"
+"      --log-target={auto,syslog,stderr} Especifica o ficheiro de registo\n"
+"      --log-meta[=BOOL]                 Inclui código de localização na mensagem de registo\n"
+"      --log-time[=BOOL]                 Inclui tempo na mensagem de registo\n"
+"      --log-backtrace=FRAMES            Inclui informação de tracagem na mensagem de registo\n"
+"  -p, --dl-search-path=PATH             Define o caminho de procura para os plugins partilhados dinâmicos\n"
+"      --resample-method=METHOD          Utilizar o método de \"resampling\" especificado\n"
+"                                        (Ver --dump-resample-methods para\n"
+"                                        possíveis valores)\n"
+"      --use-pid-file[=BOOL]             Criar um ficheiro com o PID\n"
+"      --no-cpu-limit[=BOOL]             Não instala limitadores de load no CPU em\n"
+"                                        plataformas que o suportam.\n"
+"      --disable-shm[=BOOL]              Desactivar suporte para memória partilhada.\n"
+"\n"
+"STARTUP SCRIPT:\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module with\n"
+"                                        the specified argument\n"
+"  -F, --file=FILENAME                   Run the specified script\n"
+"  -C                                    Open a command line on the running TTY\n"
+"                                        after startup\n"
+"\n"
+"  -n                                    Don't load default script file\n"
 
 #: ../src/daemon/cmdline.c:252
 msgid "--daemonize expects boolean argument"
@@ -547,7 +602,7 @@ msgstr "--fail espera argumento booleano"
 
 #: ../src/daemon/cmdline.c:269
 msgid "--log-level expects log level argument (either numeric in range 0..4 or one of debug, info, notice, warn, error)."
-msgstr ""
+msgstr "--log-level espera um argumento para o nível de log (numérico no intervalo 0..4 ou um dos seguintes: debug, info, notice, warn, error)."
 
 #: ../src/daemon/cmdline.c:281
 msgid "--high-priority expects boolean argument"
@@ -584,7 +639,7 @@ msgstr "--log-meta espera argumento booleano"
 #: ../src/daemon/cmdline.c:359
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr ""
+msgstr "Método de resample inválido '%s'."
 
 #: ../src/daemon/cmdline.c:366
 msgid "--system expects boolean argument"
