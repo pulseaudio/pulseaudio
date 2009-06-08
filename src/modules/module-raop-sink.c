@@ -583,6 +583,7 @@ int pa__init(pa_module*m) {
     pa_sink_new_data_set_name(&data, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME));
     pa_sink_new_data_set_sample_spec(&data, &ss);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, server);
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "music");
     if ((desc = pa_modargs_get_value(ma, "description", NULL)))
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, desc);
     else

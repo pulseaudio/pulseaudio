@@ -177,6 +177,7 @@ pa_sink* pa_sink_new(
 
     pa_device_init_description(data->proplist);
     pa_device_init_icon(data->proplist, TRUE);
+    pa_device_init_intended_roles(data->proplist);
 
     if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_FIXATE], data) < 0) {
         pa_xfree(s);
@@ -2284,6 +2285,22 @@ pa_bool_t pa_device_init_description(pa_proplist *p) {
         pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, s);
         return TRUE;
     }
+
+    return FALSE;
+}
+
+pa_bool_t pa_device_init_intended_roles(pa_proplist *p) {
+    const char *s;
+    pa_assert(p);
+
+    if (pa_proplist_contains(p, PA_PROP_DEVICE_INTENDED_ROLES))
+        return TRUE;
+
+    if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_FORM_FACTOR)))
+        if (pa_streq(s, "handset") || pa_streq(s, "hands-free")) {
+            pa_proplist_sets(p, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
+            return TRUE;
+        }
 
     return FALSE;
 }

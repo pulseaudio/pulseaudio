@@ -167,6 +167,7 @@ pa_source* pa_source_new(
 
     pa_device_init_description(data->proplist);
     pa_device_init_icon(data->proplist, FALSE);
+    pa_device_init_intended_roles(data->proplist);
 
     if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_FIXATE], data) < 0) {
         pa_xfree(s);

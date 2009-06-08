@@ -1622,6 +1622,8 @@ static int add_sink(struct userdata *u) {
         data.module = u->module;
         pa_sink_new_data_set_sample_spec(&data, &u->sample_spec);
         pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP ? "a2dp" : "sco");
+        if (u->profile == PROFILE_HSP)
+            pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
         data.card = u->card;
         data.name = get_name("sink", u->modargs, u->address, &b);
         data.namereg_fail = b;
@@ -1680,6 +1682,8 @@ static int add_source(struct userdata *u) {
         data.module = u->module;
         pa_source_new_data_set_sample_spec(&data, &u->sample_spec);
         pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP ? "a2dp" : "hsp");
+        if (u->profile == PROFILE_HSP)
+            pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
         data.card = u->card;
         data.name = get_name("source", u->modargs, u->address, &b);
         data.namereg_fail = b;

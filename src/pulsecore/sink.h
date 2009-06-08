@@ -241,6 +241,7 @@ void pa_sink_mute_changed(pa_sink *s, pa_bool_t new_muted);
 
 pa_bool_t pa_device_init_description(pa_proplist *p);
 pa_bool_t pa_device_init_icon(pa_proplist *p, pa_bool_t is_sink);
+pa_bool_t pa_device_init_intended_roles(pa_proplist *p);
 
 /**** May be called by everyone, from main context */
 
