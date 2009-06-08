@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-06-08 00:29+0200\n"
-"PO-Revision-Date: 2009-04-14 16:45+0200\n"
+"PO-Revision-Date: 2009-06-09 00:03+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -780,7 +780,7 @@ msgstr "Wczytanie jednorazowe: %s\n"
 #: ../src/daemon/dumpmodules.c:75
 #, c-format
 msgid "DEPRECATION WARNING: %s\n"
-msgstr ""
+msgstr "OSTRZEŻENIE O PRZESTARZAŁOŚCI: %s\n"
 
 #: ../src/daemon/dumpmodules.c:79
 #, c-format
@@ -1457,7 +1457,7 @@ msgid "pa_stream_update_timing_info() failed: %s\n"
 msgstr "pa_stream_update_timing_info() nie powiodło się: %s\n"
 
 #: ../src/utils/pacat.c:605
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1523,45 +1523,53 @@ msgstr ""
 "  -r, --record                          Tworzy połączenie do nagrywania\n"
 "  -p, --playback                        Tworzy połączenie do odtwarzania\n"
 "\n"
-"  -v, --verbose                         Wyświetla więcej informacji o "
-"działaniu\n"
+"  -v, --verbose                         Wyświetla więcej informacji o\n"
+"                                        działaniu\n"
 "\n"
 "  -s, --server=SERWER                   Nazwa serwera do połączenia się\n"
-"  -d, --device=URZĄDZENIE               Nazwa odpływu/źródła do połączenia "
-"się z\n"
-"  -n, --client-name=NAZWA               Jak nazywać tego klienta na "
-"serwerze\n"
+"  -d, --device=URZĄDZENIE               Nazwa odpływu/źródła do połączenia\n"
+"                                        się\n"
+"  -n, --client-name=NAZWA               Jak nazywać tego klienta na\n"
+"                                        serwerze\n"
 "      --stream-name=NAZWA               Jak nazwać ten strumień na serwerze\n"
-"      --volume=POZIOMGŁOŚNOŚCI          Określa początkowy (liniowy) poziom "
-"głośności z zakresie 0...65536\n"
-"      --rate=CZĘSTOTLIWOŚĆPRÓBKI        Częstotliwość próbki w Hz (domyślnie "
-"44100)\n"
-"      --format=FORMATPRÓBKI             Typ próbki, jeden z s16le, s16be, "
-"u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be "
-"(domyślnie s16ne)\n"
-"      --channels=KANAŁY                 Liczba kanałów, 1 dla mono, 2 dla "
-"stereo\n"
+"      --volume=POZIOMGŁOŚNOŚCI          Określa początkowy (liniowy)\n"
+"                                        poziom głośności z zakresie\n"
+"                                        0...65536\n"
+"      --rate=CZĘSTOTLIWOŚĆPRÓBKI        Częstotliwość próbki w Hz\n"
+"                                        (domyślnie 44100)\n"
+"      --format=FORMATPRÓBKI             Typ próbki, jeden z s16le, s16be,\n"
+"                                        u8, float32le, float32be, ulaw,\n"
+"                                        alaw, s32le, s32be, s24le, s24be,\n"
+"                                        s24-32le, s24-32be (domyślnie\n"
+"                                        s16ne)\n"
+"      --channels=KANAŁY                 Liczba kanałów, 1 dla mono, 2 dla\n"
+"                                        stereo\n"
 "                                        (domyślnie 2)\n"
-"      --channel-map=MAPAKANAŁÓW         Mapa kanałów używa zamiast "
-"domyślnej\n"
-"      --fix-format                      Pobiera format próbki z odpływu, z "
-"jakim\n"
-"                                        połączony jest strumień.\n"
-"      --fix-rate                        Pobiera częstotliwość sampli z "
-"odpływu, z\n"
+"      --channel-map=MAPAKANAŁÓW         Mapa kanałów używa zamiast\n"
+"                                        domyślnej\n"
+"      --fix-format                      Pobiera format próbki z odpływu, z\n"
 "                                        jakim połączony jest strumień.\n"
-"      --fix-channels                    Pobiera liczbę kanałów i mapę "
-"kanałów z odpływu,\n"
-"                                        z jakim połączony jest strumień.\n"
-"      --no-remix                        Nie miesza kanałów w górę lub w "
-"dół.\n"
-"      --no-remap                        Mapuje kanały przez indeks zamiast "
-"przez nazwę.\n"
-"      --latency=BAJTY                   Żąda określonego opóźnienia w "
-"bajtach.\n"
-"      --process-time=BAJTY              Żąda określonego czasu procesu na "
-"żądanie w bajtach.\n"
+"      --fix-rate                        Pobiera częstotliwość sampli z\n"
+"                                        odpływu, z jakim połączony jest\n"
+"                                        strumień.\n"
+"      --fix-channels                    Pobiera liczbę kanałów i mapę\n"
+"                                        kanałów z odpływu, z jakim\n"
+"                                        połączony jest strumień.\n"
+"      --no-remix                        Nie miesza kanałów w górę lub w\n"
+"                                        dół.\n"
+"      --no-remap                        Mapuje kanały przez indeks zamiast\n"
+"                                        przez nazwę.\n"
+"      --latency=BAJTY                   Żąda określonego opóźnienia w\n"
+"                                        bajtach.\n"
+"      --process-time=BAJTY              Żąda określonego czasu procesu na\n"
+"                                        żądanie w bajtach.\n"
+"      --property=WŁASNOŚĆ=WARTOŚĆ       Ustawia podaną własność na podaną\n"
+"                                        wartość.\n"
+"      --raw                             Nagrywa/odtwarza surowe dane PCM.\n"
+"      --file-format=FFORMAT             Nagrywa/odtwarza sformatowane dane\n"
+"                                        PCM.\n"
+"      --list-file-formats               Wyświetla listę dostępnych formatów\n"
+"                                        plików.\n"
 
 #: ../src/utils/pacat.c:727
 #, c-format
@@ -1575,14 +1583,14 @@ msgstr ""
 "Skonsolidowane za pomocą libpulse %s\n"
 
 #: ../src/utils/pacat.c:760 ../src/utils/pactl.c:851
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid client name '%s'\n"
-msgstr "Nieprawidłowa mapa kanałów \"%s\"\n"
+msgstr "Nieprawidłowa nazwa klienta \"%s\"\n"
 
 #: ../src/utils/pacat.c:776
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid stream name '%s'\n"
-msgstr "Nieprawidłowa metoda resamplingu \"%s\"."
+msgstr "Nieprawidłowa nazwa strumienia \"%s\"\n"
 
 #: ../src/utils/pacat.c:813
 #, c-format
@@ -1600,14 +1608,14 @@ msgid "Invalid process time specification '%s'\n"
 msgstr "Nieprawidłowe określenie czasu procesu \"%s\"\n"
 
 #: ../src/utils/pacat.c:861
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid property '%s'\n"
-msgstr "Nieprawidłowa metoda resamplingu \"%s\"."
+msgstr "Nieprawidłowa własność \"%s\"\n"
 
 #: ../src/utils/pacat.c:878
 #, c-format
 msgid "Unknown file format %s."
-msgstr ""
+msgstr "Nieznany format pliku %s."
 
 #: ../src/utils/pacat.c:897
 msgid "Invalid sample specification\n"
@@ -1628,12 +1636,10 @@ msgid "Too many arguments.\n"
 msgstr "Za dużo parametrów.\n"
 
 #: ../src/utils/pacat.c:930
-#, fuzzy
 msgid "Failed to generate sample specification for file.\n"
-msgstr "Uzyskanie informacji o przykładzie nie powiodło się: %s\n"
+msgstr "Utworzenie określenia próbki dla pliku nie powiodło się.\n"
 
 #: ../src/utils/pacat.c:950
-#, fuzzy
 msgid "Failed to open audio file.\n"
 msgstr "Otwarcie pliku dźwiękowego nie powiodło się.\n"
 
@@ -1642,15 +1648,16 @@ msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file.\n"
 msgstr ""
+"Ostrzeżenie: podane określenie próbki zostanie zastąpione przez określenie z "
+"pliku.\n"
 
 #: ../src/utils/pacat.c:959 ../src/utils/pactl.c:895
-#, fuzzy
 msgid "Failed to determine sample specification from file.\n"
-msgstr "Uzyskanie informacji o przykładzie nie powiodło się: %s\n"
+msgstr "Ustalenie określenia próbki z pliku nie powiodło się.\n"
 
 #: ../src/utils/pacat.c:968
 msgid "Warning: Failed to determine channel map from file.\n"
-msgstr ""
+msgstr "Ostrzeżenie: ustalenie mapy kanałów z pliku nie powiodło się.\n"
 
 #: ../src/utils/pacat.c:979
 msgid "Channel map doesn't match sample specification\n"
@@ -1658,13 +1665,15 @@ msgstr "Mapa kanałów nie zgadza się z określeniem próbki\n"
 
 #: ../src/utils/pacat.c:990
 msgid "Warning: failed to write channel map to file.\n"
-msgstr ""
+msgstr "Ostrzeżenie: zapisanie mapy kanałów do pliku nie powiodło się.\n"
 
 #: ../src/utils/pacat.c:1005
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'.\n"
-msgstr "Otwieranie strumienia %s za pomocą określenie próbki \"%s\".\n"
+msgstr ""
+"Otwieranie strumienia %s za pomocą określenie próbki \"%s\" i mapy kanałów "
+"\"%s\".\n"
 
 #: ../src/utils/pacat.c:1006
 msgid "recording"
@@ -2069,7 +2078,7 @@ msgstr ""
 #: ../src/utils/pactl.c:559
 #, c-format
 msgid "Failed to get sample information: %s\n"
-msgstr "Uzyskanie informacji o przykładzie nie powiodło się: %s\n"
+msgstr "Uzyskanie informacji o próbce nie powiodło się: %s\n"
 
 #: ../src/utils/pactl.c:577
 #, c-format
@@ -2181,9 +2190,8 @@ msgid "Failed to open sound file.\n"
 msgstr "Otwarcie pliku dźwiękowego nie powiodło się.\n"
 
 #: ../src/utils/pactl.c:902
-#, fuzzy
 msgid "Warning: Failed to determine sample specification from file.\n"
-msgstr "Otwieranie strumienia %s za pomocą określenie próbki \"%s\".\n"
+msgstr "Ostrzeżenie: ustalenie określenia próbki z pliku nie powiodło się.\n"
 
 #: ../src/utils/pactl.c:912
 msgid "You have to specify a sample name to play\n"
@@ -2251,8 +2259,8 @@ msgstr ""
 "\n"
 " -d    Wyświetla dane PulseAudio dołączone do ekranu X11 (domyślne)\n"
 " -e    Eksportuje lokalne dane PulseAudio na ekran X11\n"
-" -i    Importuje dane PulseAudio z ekranu X11 do lokalnych zmiennych "
-"środowiskowych i pliku ciasteczka.\n"
+" -i    Importuje dane PulseAudio z ekranu X11 do lokalnych zmiennych\n"
+"       środowiskowych i pliku ciasteczka.\n"
 " -r    Usuwa dane PulseAudio z ekranu X11\n"
 
 #: ../src/utils/pax11publish.c:94
@@ -2318,6 +2326,8 @@ msgstr "Niezaimplementowane.\n"
 #: ../src/utils/pacmd.c:61
 msgid "No PulseAudio daemon running, or not running as session daemon."
 msgstr ""
+"Demon PulseAudio nie jest uruchomiony, lub nie jest uruchomiony jako demon "
+"sesji."
 
 #: ../src/utils/pacmd.c:66
 #, c-format
@@ -2421,71 +2431,3 @@ msgstr "Duplex telefoniczny (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "Serwer dźwięku PulseAudio"
-
-#~ msgid "Stream successfully created\n"
-#~ msgstr "Pomyślnie utworzono strumień\n"
-
-#~ msgid "Stream errror: %s\n"
-#~ msgstr "Błąd strumienia: %s\n"
-
-#~ msgid "Connection established.\n"
-#~ msgstr "Ustanowiono połączenie.\n"
-
-#~ msgid ""
-#~ "%s [options] [FILE]\n"
-#~ "\n"
-#~ "  -h, --help                            Show this help\n"
-#~ "      --version                         Show version\n"
-#~ "\n"
-#~ "  -v, --verbose                         Enable verbose operation\n"
-#~ "\n"
-#~ "  -s, --server=SERVER                   The name of the server to connect "
-#~ "to\n"
-#~ "  -d, --device=DEVICE                   The name of the sink to connect "
-#~ "to\n"
-#~ "  -n, --client-name=NAME                How to call this client on the "
-#~ "server\n"
-#~ "      --stream-name=NAME                How to call this stream on the "
-#~ "server\n"
-#~ "      --volume=VOLUME                   Specify the initial (linear) "
-#~ "volume in range 0...65536\n"
-#~ "      --channel-map=CHANNELMAP          Set the channel map to the use\n"
-#~ msgstr ""
-#~ "%s [opcje] [PLIK]\n"
-#~ "\n"
-#~ "  -h, --help                            Wyświetla tę pomoc\n"
-#~ "      --version                         Wyświetla wersję\n"
-#~ "\n"
-#~ "  -v, --verbose                         Wyświetla więcej informacji o "
-#~ "działaniach\n"
-#~ "\n"
-#~ "  -s, --server=SERWER                   Nazwa serwera do połączenia się\n"
-#~ "  -d, --device=URZĄDZENIE               Nazwa odpływu do połączenia się\n"
-#~ "  -n, --client-name=NAZWA               Jak nazwać tego klienta na "
-#~ "serwerze\n"
-#~ "      --stream-name=NAZWA               Jak nazwać ten strumień na "
-#~ "serwerze\n"
-#~ "      --volume=POZIOMGŁOŚNOŚCI          Określa początkowy (liniowy) "
-#~ "poziom głośności w zakresie 0...65536\n"
-#~ "      --channel-map=MAPAKANAŁÓW         Ustawia używaną mapę kanałów\n"
-
-#~ msgid ""
-#~ "paplay %s\n"
-#~ "Compiled with libpulse %s\n"
-#~ "Linked with libpulse %s\n"
-#~ msgstr ""
-#~ "paplay %s\n"
-#~ "Skompilowane za pomocą libpulse %s\n"
-#~ "Skonsolidowane za pomocą libpulse %s\n"
-
-#~ msgid "Invalid channel map\n"
-#~ msgstr "Nieprawidłowa mapa kanałów\n"
-
-#~ msgid "Failed to open file '%s'\n"
-#~ msgstr "Otwarcie pliku \"%s\" nie powiodło się\n"
-
-#~ msgid "Channel map doesn't match file.\n"
-#~ msgstr "Mapa kanałów nie zgadza się z plikiem.\n"
-
-#~ msgid "Using sample spec '%s'\n"
-#~ msgstr "Używanie przykładowej specyfikacji \"%s\"\n"
