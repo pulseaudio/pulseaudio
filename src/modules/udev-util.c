@@ -84,6 +84,19 @@ int pa_udev_get_info(pa_core *core, pa_proplist *p, int card_idx) {
         goto finish;
     }
 
+    if (!pa_proplist_contains(p, PA_PROP_DEVICE_BUS_PATH))
+        if (((v = udev_device_get_property_value(card, "ID_PATH")) && *v) ||
+            (v = udev_device_get_devpath(card)))
+            pa_proplist_sets(p, PA_PROP_DEVICE_BUS_PATH, v);
+
+    if (!pa_proplist_contains(p, "sysfs.path"))
+        if ((v = udev_device_get_devpath(card)))
+            pa_proplist_sets(p, "sysfs.path", v);
+
+    if (!pa_proplist_contains(p, "udev.id"))
+        if ((v = udev_device_get_property_value(card, "ID_ID")) && *v)
+            pa_proplist_sets(p, "udev.id", v);
+
     if (!pa_proplist_contains(p, PA_PROP_DEVICE_BUS))
         if ((v = udev_device_get_property_value(card, "ID_BUS")) && *v)
             pa_proplist_sets(p, PA_PROP_DEVICE_BUS, v);
@@ -114,15 +127,15 @@ int pa_udev_get_info(pa_core *core, pa_proplist *p, int card_idx) {
         if ((v = udev_device_get_property_value(card, "ID_SERIAL")) && *v)
             pa_proplist_sets(p, PA_PROP_DEVICE_SERIAL, v);
 
+    if (!pa_proplist_contains(p, PA_PROP_DEVICE_CLASS))
+        if ((v = udev_device_get_property_value(card, "SOUND_CLASS")) && *v)
+            pa_proplist_sets(p, PA_PROP_DEVICE_CLASS, v);
+
     if (!pa_proplist_contains(p, PA_PROP_DEVICE_FORM_FACTOR))
         if ((v = udev_device_get_property_value(card, "SOUND_FORM_FACTOR")) && *v)
             pa_proplist_sets(p, PA_PROP_DEVICE_FORM_FACTOR, v);
 
-    if (!pa_proplist_contains(p, PA_PROP_DEVICE_BUS_PATH))
-        if ((v = udev_device_get_devpath(card)))
-            pa_proplist_sets(p, PA_PROP_DEVICE_BUS_PATH, v);
-
-    /* This is normaly not set by th udev rules but may be useful to
+    /* This is normaly not set by the udev rules but may be useful to
      * allow administrators to overwrite the device description.*/
     if (!pa_proplist_contains(p, PA_PROP_DEVICE_DESCRIPTION))
         if ((v = udev_device_get_property_value(card, "SOUND_DESCRIPTION")) && *v)
