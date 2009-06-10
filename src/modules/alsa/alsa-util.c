@@ -1289,8 +1289,10 @@ int pa_alsa_find_mixer_and_elem(
     }
 
     if (!e) {
-        if (ctl_device)
+        if (ctl_device) {
             pa_xfree(*ctl_device);
+            *ctl_device = NULL;
+        }
 
         snd_mixer_close(m);
         return -1;
