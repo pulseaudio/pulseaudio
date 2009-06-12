@@ -135,13 +135,14 @@ BUILT_SOURCES = \
 bin_PROGRAMS = pulseaudio
 
 pulseaudio_SOURCES = \
-		daemon/caps.h daemon/caps.c \
+		daemon/caps.c daemon/caps.h \
 		daemon/cmdline.c daemon/cmdline.h \
 		daemon/cpulimit.c daemon/cpulimit.h \
 		daemon/daemon-conf.c daemon/daemon-conf.h \
 		daemon/dumpmodules.c daemon/dumpmodules.h \
 		daemon/ltdl-bind-now.c daemon/ltdl-bind-now.h \
-		daemon/main.c
+		daemon/main.c \
+		daemon/server-lookup.c daemon/server-lookup.h
 
 pulseaudio_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSPEEX_CFLAGS) $(LIBSNDFILE_CFLAGS) $(CAP_CFLAGS) $(LIBOIL_CFLAGS) $(DBUS_CFLAGS)
 pulseaudio_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSPEEX_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS) $(LIBOIL_LIBS) $(DBUS_LIBS)

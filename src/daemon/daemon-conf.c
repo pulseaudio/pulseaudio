@@ -83,6 +83,9 @@ static const pa_daemon_conf default_conf = {
     .config_file = NULL,
     .use_pid_file = TRUE,
     .system_instance = FALSE,
+#ifdef HAVE_DBUS
+    .local_server_type = PA_SERVER_TYPE_UNSET, /* The actual default is _USER, but we have to detect when the user doesn't specify this option. */
+#endif
     .no_cpu_limit = FALSE,
     .disable_shm = FALSE,
     .default_n_fragments = 4,
@@ -200,6 +203,22 @@ int pa_daemon_conf_set_resample_method(pa_daemon_conf *c, const char *string) {
         return -1;
 
     c->resample_method = m;
+    return 0;
+}
+
+int pa_daemon_conf_set_local_server_type(pa_daemon_conf *c, const char *string) {
+    pa_assert(c);
+    pa_assert(string);
+
+    if (!strcmp(string, "user"))
+        c->local_server_type = PA_SERVER_TYPE_USER;
+    else if (!strcmp(string, "system")) {
+        c->local_server_type = PA_SERVER_TYPE_SYSTEM;
+    } else if (!strcmp(string, "none")) {
+        c->local_server_type = PA_SERVER_TYPE_NONE;
+    } else
+        return -1;
+
     return 0;
 }
 
@@ -430,6 +449,22 @@ static int parse_rtprio(const char *filename, unsigned line, const char *section
     return 0;
 }
 
+static int parse_server_type(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+    pa_daemon_conf *c = data;
+
+    pa_assert(filename);
+    pa_assert(lvalue);
+    pa_assert(rvalue);
+    pa_assert(data);
+
+    if (pa_daemon_conf_set_local_server_type(c, rvalue) < 0) {
+        pa_log(_("[%s:%u] Invalid server type '%s'."), filename, line, rvalue);
+        return -1;
+    }
+
+    return 0;
+}
+
 int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     int r = -1;
     FILE *f = NULL;
@@ -443,6 +478,9 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "disallow-exit",              pa_config_parse_bool,     &c->disallow_exit, NULL },
         { "use-pid-file",               pa_config_parse_bool,     &c->use_pid_file, NULL },
         { "system-instance",            pa_config_parse_bool,     &c->system_instance, NULL },
+#ifdef HAVE_DBUS
+        { "local-server-type",          parse_server_type,        c, NULL },
+#endif
         { "no-cpu-limit",               pa_config_parse_bool,     &c->no_cpu_limit, NULL },
         { "disable-shm",                pa_config_parse_bool,     &c->disable_shm, NULL },
         { "flat-volumes",               pa_config_parse_bool,     &c->flat_volumes, NULL },
@@ -604,6 +642,13 @@ static const char* const log_level_to_string[] = {
     [PA_LOG_ERROR] = "error"
 };
 
+static const char* const server_type_to_string[] = {
+    [PA_SERVER_TYPE_UNSET] = "!!UNSET!!",
+    [PA_SERVER_TYPE_USER] = "user",
+    [PA_SERVER_TYPE_SYSTEM] = "system",
+    [PA_SERVER_TYPE_NONE] = "none"
+};
+
 char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf *s;
     char cm[PA_CHANNEL_MAP_SNPRINT_MAX];
@@ -627,6 +672,9 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "disallow-exit = %s\n", pa_yes_no(c->disallow_exit));
     pa_strbuf_printf(s, "use-pid-file = %s\n", pa_yes_no(c->use_pid_file));
     pa_strbuf_printf(s, "system-instance = %s\n", pa_yes_no(c->system_instance));
+#ifdef HAVE_DBUS
+    pa_strbuf_printf(s, "local-server-type = %s\n", server_type_to_string[c->local_server_type]);
+#endif
     pa_strbuf_printf(s, "no-cpu-limit = %s\n", pa_yes_no(c->no_cpu_limit));
     pa_strbuf_printf(s, "disable-shm = %s\n", pa_yes_no(c->disable_shm));
     pa_strbuf_printf(s, "flat-volumes = %s\n", pa_yes_no(c->flat_volumes));

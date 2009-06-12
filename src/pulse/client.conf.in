@@ -22,6 +22,7 @@
 ; default-sink =
 ; default-source =
 ; default-server =
+; default-dbus-server =
 
 ; autospawn = yes
 ; daemon-binary = @PA_BINARY@

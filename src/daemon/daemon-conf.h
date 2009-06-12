@@ -48,6 +48,13 @@ typedef enum pa_daemon_conf_cmd {
     PA_CMD_CLEANUP_SHM
 } pa_daemon_conf_cmd_t;
 
+typedef enum pa_daemon_conf_server_type {
+    PA_SERVER_TYPE_UNSET,
+    PA_SERVER_TYPE_USER,
+    PA_SERVER_TYPE_SYSTEM,
+    PA_SERVER_TYPE_NONE
+} pa_daemon_conf_server_type_t;
+
 #ifdef HAVE_SYS_RESOURCE_H
 typedef struct pa_rlimit {
     rlim_t value;
@@ -74,6 +81,7 @@ typedef struct pa_daemon_conf {
         log_meta,
         log_time,
         flat_volumes;
+    pa_daemon_conf_server_type_t local_server_type;
     int exit_idle_time,
         scache_idle_time,
         auto_log_target,
@@ -151,6 +159,7 @@ int pa_daemon_conf_env(pa_daemon_conf *c);
 int pa_daemon_conf_set_log_target(pa_daemon_conf *c, const char *string);
 int pa_daemon_conf_set_log_level(pa_daemon_conf *c, const char *string);
 int pa_daemon_conf_set_resample_method(pa_daemon_conf *c, const char *string);
+int pa_daemon_conf_set_local_server_type(pa_daemon_conf *c, const char *string);
 
 const char *pa_daemon_conf_get_default_script_file(pa_daemon_conf *c);
 FILE *pa_daemon_conf_open_default_script_file(pa_daemon_conf *c);

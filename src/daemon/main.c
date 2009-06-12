@@ -99,6 +99,7 @@
 #include "caps.h"
 #include "ltdl-bind-now.h"
 #include "polkit.h"
+#include "server-lookup.h"
 
 #ifdef HAVE_LIBWRAP
 /* Only one instance of these variables */
@@ -335,33 +336,31 @@ static void set_all_rlimits(const pa_daemon_conf *conf) {
 #endif
 
 #ifdef HAVE_DBUS
-static pa_dbus_connection *register_dbus(pa_core *c) {
+static pa_dbus_connection *register_dbus_name(pa_core *c, DBusBusType bus, const char* name) {
     DBusError error;
     pa_dbus_connection *conn;
 
     dbus_error_init(&error);
 
-    if (!(conn = pa_dbus_bus_get(c, pa_in_system_mode() ? DBUS_BUS_SYSTEM : DBUS_BUS_SESSION, &error)) || dbus_error_is_set(&error)) {
+    if (!(conn = pa_dbus_bus_get(c, bus, &error)) || dbus_error_is_set(&error)) {
         pa_log_warn("Unable to contact D-Bus: %s: %s", error.name, error.message);
         goto fail;
     }
 
-    if (dbus_bus_request_name(pa_dbus_connection_get(conn), "org.pulseaudio.Server", DBUS_NAME_FLAG_DO_NOT_QUEUE, &error) == DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
-        pa_log_debug("Got org.pulseaudio.Server!");
+    if (dbus_bus_request_name(pa_dbus_connection_get(conn), name, DBUS_NAME_FLAG_DO_NOT_QUEUE, &error) == DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
+        pa_log_debug("Got %s!", name);
         return conn;
     }
 
     if (dbus_error_is_set(&error))
-        pa_log_warn("Failed to acquire org.pulseaudio.Server: %s: %s", error.name, error.message);
+        pa_log_error("Failed to acquire %s: %s: %s", name, error.name, error.message);
     else
-        pa_log_warn("D-Bus name org.pulseaudio.Server already taken. Weird shit!");
+        pa_log_error("D-Bus name %s already taken. Weird shit!", name);
 
     /* PA cannot be started twice by the same user and hence we can
-     * ignore mostly the case that org.pulseaudio.Server is already
-     * taken. */
+     * ignore mostly the case that a name is already taken. */
 
 fail:
-
     if (conn)
         pa_dbus_connection_unref(conn);
 
@@ -393,7 +392,10 @@ int main(int argc, char *argv[]) {
     int autospawn_fd = -1;
     pa_bool_t autospawn_locked = FALSE;
 #ifdef HAVE_DBUS
-    pa_dbus_connection *dbus = NULL;
+    pa_dbusobj_server_lookup *server_lookup = NULL; /* /org/pulseaudio/server_lookup */
+    pa_dbus_connection *lookup_service_bus = NULL; /* Always the user bus. */
+    pa_dbus_connection *server_bus = NULL; /* The bus where we reserve org.pulseaudio.Server, either the user or the system bus. */
+    pa_bool_t start_server;
 #endif
 
     pa_log_set_ident("pulseaudio");
@@ -486,7 +488,44 @@ int main(int argc, char *argv[]) {
         pa_log_set_flags(PA_LOG_PRINT_TIME, PA_LOG_SET);
     pa_log_set_show_backtrace(conf->log_backtrace);
 
+#ifdef HAVE_DBUS
+    /* conf->system_instance and conf->local_server_type control almost the
+     * same thing; make them agree about what is requested. */
+    switch (conf->local_server_type) {
+        case PA_SERVER_TYPE_UNSET:
+            conf->local_server_type = conf->system_instance ? PA_SERVER_TYPE_SYSTEM : PA_SERVER_TYPE_USER;
+            break;
+        case PA_SERVER_TYPE_USER:
+        case PA_SERVER_TYPE_NONE:
+            conf->system_instance = FALSE;
+            break;
+        case PA_SERVER_TYPE_SYSTEM:
+            conf->system_instance = TRUE;
+            break;
+        default:
+            pa_assert_not_reached();
+    }
+
+    start_server = conf->local_server_type == PA_SERVER_TYPE_USER || (real_root && conf->local_server_type == PA_SERVER_TYPE_SYSTEM);
+
+    if (!start_server && conf->local_server_type == PA_SERVER_TYPE_SYSTEM) {
+        pa_log_notice(_("System mode refused for non-root user. Only starting the D-Bus server lookup service."));
+        conf->system_instance = FALSE;
+    }
+#endif
+
     pa_log_debug("Started as real root: %s, suid root: %s", pa_yes_no(real_root), pa_yes_no(suid_root));
+
+#ifdef HAVE_DBUS
+    /* XXX: Uhh, goto programming... as if this wasn't hard enough to follow
+     * already. But if we won't start the full server, we want to just skip all
+     * the capability stuff. */
+    if (!start_server) {
+        if (!real_root && pa_have_caps())
+            pa_drop_caps();
+        goto after_caps_setup;
+    }
+#endif
 
     if (!real_root && pa_have_caps()) {
 #ifdef HAVE_SYS_RESOURCE_H
@@ -628,6 +667,10 @@ int main(int argc, char *argv[]) {
         conf->realtime_scheduling = FALSE;
     }
 
+#ifdef HAVE_DBUS
+after_caps_setup:
+#endif
+
     pa_log_debug("Can realtime: %s, can high-priority: %s", pa_yes_no(pa_can_realtime()), pa_yes_no(pa_can_high_priority()));
 
     LTDL_SET_PRELOADED_SYMBOLS();
@@ -716,10 +759,12 @@ int main(int argc, char *argv[]) {
 
     if (real_root && !conf->system_instance)
         pa_log_warn(_("This program is not intended to be run as root (unless --system is specified)."));
+#ifndef HAVE_DBUS /* A similar, only a notice worthy check was done earlier, if D-Bus is enabled. */
     else if (!real_root && conf->system_instance) {
         pa_log(_("Root privileges required."));
         goto finish;
     }
+#endif
 
     if (conf->cmd == PA_CMD_START && conf->system_instance) {
         pa_log(_("--start not supported for system instances."));
@@ -1007,34 +1052,47 @@ int main(int argc, char *argv[]) {
         pa_assert_se(pa_cpu_limit_init(pa_mainloop_get_api(mainloop)) == 0);
 
     buf = pa_strbuf_new();
-    if (conf->load_default_script_file) {
-        FILE *f;
 
-        if ((f = pa_daemon_conf_open_default_script_file(conf))) {
-            r = pa_cli_command_execute_file_stream(c, f, buf, &conf->fail);
-            fclose(f);
+#ifdef HAVE_DBUS
+    if (start_server) {
+#endif
+        if (conf->load_default_script_file) {
+            FILE *f;
+
+            if ((f = pa_daemon_conf_open_default_script_file(conf))) {
+                r = pa_cli_command_execute_file_stream(c, f, buf, &conf->fail);
+                fclose(f);
+            }
         }
+
+        if (r >= 0)
+            r = pa_cli_command_execute(c, conf->script_commands, buf, &conf->fail);
+
+        pa_log_error("%s", s = pa_strbuf_tostring_free(buf));
+        pa_xfree(s);
+
+        if (r < 0 && conf->fail) {
+            pa_log(_("Failed to initialize daemon."));
+            goto finish;
+        }
+
+        if (!c->modules || pa_idxset_size(c->modules) == 0) {
+            pa_log(_("Daemon startup without any loaded modules, refusing to work."));
+            goto finish;
+        }
+#ifdef HAVE_DBUS
+    } else {
+        /* When we just provide the D-Bus server lookup service, we don't want
+         * any modules to be loaded. We haven't loaded any so far, so one might
+         * think there's no way to contact the server, but receiving certain
+         * signals could still cause modules to load. */
+        conf->disallow_module_loading = TRUE;
     }
-
-    if (r >= 0)
-        r = pa_cli_command_execute(c, conf->script_commands, buf, &conf->fail);
-
-    pa_log_error("%s", s = pa_strbuf_tostring_free(buf));
-    pa_xfree(s);
+#endif
 
     /* We completed the initial module loading, so let's disable it
      * from now on, if requested */
     c->disallow_module_loading = !!conf->disallow_module_loading;
-
-    if (r < 0 && conf->fail) {
-        pa_log(_("Failed to initialize daemon."));
-        goto finish;
-    }
-
-    if (!c->modules || pa_idxset_size(c->modules) == 0) {
-        pa_log(_("Daemon startup without any loaded modules, refusing to work."));
-        goto finish;
-    }
 
 #ifdef HAVE_FORK
     if (daemon_pipe[1] >= 0) {
@@ -1046,7 +1104,15 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef HAVE_DBUS
-    dbus = register_dbus(c);
+    if (!conf->system_instance) {
+        if (!(server_lookup = pa_dbusobj_server_lookup_new(c, conf->local_server_type)))
+            goto finish;
+        if (!(lookup_service_bus = register_dbus_name(c, DBUS_BUS_SESSION, "org.pulseaudio.PulseAudio")))
+            goto finish;
+    }
+
+    if (start_server && !(server_bus = register_dbus_name(c, conf->system_instance ? DBUS_BUS_SYSTEM : DBUS_BUS_SESSION, "org.pulseaudio.Server")))
+        goto finish;
 #endif
 
     pa_log_info(_("Daemon startup complete."));
@@ -1059,8 +1125,12 @@ int main(int argc, char *argv[]) {
 
 finish:
 #ifdef HAVE_DBUS
-    if (dbus)
-        pa_dbus_connection_unref(dbus);
+    if (server_bus)
+        pa_dbus_connection_unref(server_bus);
+    if (lookup_service_bus)
+        pa_dbus_connection_unref(lookup_service_bus);
+    if (server_lookup)
+        pa_dbusobj_server_lookup_free(server_lookup);
 #endif
 
     if (autospawn_fd >= 0) {
