@@ -277,7 +277,7 @@ AC_CHECK_HEADER([ltdl.h],
     [LIBLTDL=])
 
 AS_IF([test "x$LIBLTDL" = "x"],
-    [AC_MSG_ERROR([Unable to find libltdl.])])
+    [AC_MSG_ERROR([Unable to find libltdl version 2. Makes sure you have libtool 2.2 or later installed.])])
 AC_SUBST([LIBLTDL])
 
 #### Determine build environment ####
