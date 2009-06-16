@@ -783,6 +783,7 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/core-scache.c pulsecore/core-scache.h \
 		pulsecore/core-subscribe.c pulsecore/core-subscribe.h \
 		pulsecore/core.c pulsecore/core.h \
+        pulsecore/dbus-common.c pulsecore/dbus-common.h \
 		pulsecore/envelope.c pulsecore/envelope.h \
 		pulsecore/fdsem.c pulsecore/fdsem.h \
 		pulsecore/g711.c pulsecore/g711.h \
@@ -796,6 +797,7 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/object.c pulsecore/object.h \
 		pulsecore/play-memblockq.c pulsecore/play-memblockq.h \
 		pulsecore/play-memchunk.c pulsecore/play-memchunk.h \
+		pulsecore/protocol-dbus.h \
 		pulsecore/resampler.c pulsecore/resampler.h \
 		pulsecore/rtpoll.c pulsecore/rtpoll.h \
 		pulsecore/rtsig.c pulsecore/rtsig.h \

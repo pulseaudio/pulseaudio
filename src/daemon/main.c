@@ -1028,6 +1028,7 @@ after_caps_setup:
     c->running_as_daemon = !!conf->daemonize;
     c->disallow_exit = conf->disallow_exit;
     c->flat_volumes = conf->flat_volumes;
+    c->server_type = conf->local_server_type;
 
     pa_assert_se(pa_signal_init(pa_mainloop_get_api(mainloop)) == 0);
     pa_signal_new(SIGINT, signal_callback, c);
@@ -1105,7 +1106,7 @@ after_caps_setup:
 
 #ifdef HAVE_DBUS
     if (!conf->system_instance) {
-        if (!(server_lookup = pa_dbusobj_server_lookup_new(c, conf->local_server_type)))
+        if (!(server_lookup = pa_dbusobj_server_lookup_new(c)))
             goto finish;
         if (!(lookup_service_bus = register_dbus_name(c, DBUS_BUS_SESSION, "org.pulseaudio.PulseAudio")))
             goto finish;

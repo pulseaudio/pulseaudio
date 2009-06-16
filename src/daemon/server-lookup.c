@@ -28,16 +28,18 @@
 #include <pulse/client-conf.h>
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/core.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/dbus-common.h>
 #include <pulsecore/dbus-shared.h>
 #include <pulsecore/macro.h>
 
 #include "server-lookup.h"
 
 struct pa_dbusobj_server_lookup {
+    pa_core *core;
     pa_dbus_connection *conn;
     pa_bool_t path_registered;
-    pa_daemon_conf_server_type_t server_type;
 };
 
 static const char introspection[] =
@@ -46,7 +48,7 @@ static const char introspection[] =
     " <!-- If you are looking for documentation make sure to check out\n"
     "      http://pulseaudio.org/wiki/DBusInterface -->\n"
     " <interface name=\"org.pulseaudio.ServerLookup\">"
-    "  <method name=\"GetDBusServers\">"
+    "  <method name=\"GetDBusAddress\">"
     "   <arg name=\"result\" type=\"s\" direction=\"out\"/>"
     "  </method>"
     " </interface>"
@@ -99,40 +101,10 @@ oom:
     return DBUS_HANDLER_RESULT_NEED_MEMORY;
 }
 
-/* Caller frees the string. */
-static char *get_dbus_server_from_type(pa_daemon_conf_server_type_t server_type) {
-    char *server_string = NULL;
-    char *runtime_dir = NULL;
-
-    switch (server_type) {
-        case PA_SERVER_TYPE_USER:
-            runtime_dir = pa_get_runtime_dir();
-
-            if (!runtime_dir)
-                return NULL;
-
-            server_string = pa_sprintf_malloc("unix:path=%s/dbus_socket", runtime_dir);
-            break;
-
-        case PA_SERVER_TYPE_SYSTEM:
-            server_string = pa_xstrdup("unix:path=/var/run/pulse/dbus_socket");
-            break;
-
-        case PA_SERVER_TYPE_NONE:
-            server_string = pa_xnew0(char, 1);
-            break;
-
-        default:
-            pa_assert_not_reached();
-    }
-
-    return server_string;
-}
-
-static DBusHandlerResult handle_get_dbus_servers(DBusConnection *conn, DBusMessage *msg, pa_dbusobj_server_lookup *sl) {
+static DBusHandlerResult handle_get_dbus_address(DBusConnection *conn, DBusMessage *msg, pa_dbusobj_server_lookup *sl) {
     DBusMessage *reply = NULL;
     pa_client_conf *conf = NULL;
-    char *server_string = NULL;
+    char *address = NULL;
 
     pa_assert(conn);
     pa_assert(msg);
@@ -148,12 +120,13 @@ static DBusHandlerResult handle_get_dbus_servers(DBusConnection *conn, DBusMessa
         return DBUS_HANDLER_RESULT_HANDLED;
     }
 
-    server_string = pa_xstrdup(conf->default_dbus_server);
-
     pa_client_conf_free(conf);
 
-    if (!server_string) {
-        if (!(server_string = get_dbus_server_from_type(sl->server_type))) {
+    if (conf->default_dbus_server) {
+        if (!(address = dbus_address_escape_value(conf->default_dbus_server)))
+            goto oom;
+    } else {
+        if (!(address = pa_get_dbus_address_from_server_type(sl->core->server_type))) {
             if (!(reply = dbus_message_new_error(msg, DBUS_ERROR_FAILED, "get_dbus_server_from_type() failed.")))
                 goto fail;
             if (!dbus_connection_send(conn, reply, NULL))
@@ -165,15 +138,15 @@ static DBusHandlerResult handle_get_dbus_servers(DBusConnection *conn, DBusMessa
     if (!(reply = dbus_message_new_method_return(msg)))
         goto oom;
 
-    if (!dbus_message_append_args(reply, DBUS_TYPE_STRING, &server_string, DBUS_TYPE_INVALID))
+    if (!dbus_message_append_args(reply, DBUS_TYPE_STRING, &address, DBUS_TYPE_INVALID))
         goto fail;
 
     if (!dbus_connection_send(conn, reply, NULL))
         goto oom;
 
-    pa_log("Sent reply with server_string '%s'.", server_string);
+    pa_log_debug("handle_get_dbus_address(): Sent reply with address '%s'.", address);
 
-    pa_xfree(server_string);
+    pa_xfree(address);
 
     dbus_message_unref(reply);
 
@@ -183,7 +156,7 @@ fail:
     if (conf)
         pa_client_conf_free(conf);
 
-    pa_xfree(server_string);
+    pa_xfree(address);
 
     if (reply)
         dbus_message_unref(reply);
@@ -194,7 +167,7 @@ oom:
     if (conf)
         pa_client_conf_free(conf);
 
-    pa_xfree(server_string);
+    pa_xfree(address);
 
     if (reply)
         dbus_message_unref(reply);
@@ -214,8 +187,8 @@ static DBusHandlerResult message_cb(DBusConnection *conn, DBusMessage *msg, void
     if (dbus_message_is_method_call(msg, "org.freedesktop.DBus.Introspectable", "Introspect"))
         return handle_introspect(conn, msg, sl);
 
-    if (dbus_message_is_method_call(msg, "org.pulseaudio.ServerLookup", "GetDBusServers"))
-        return handle_get_dbus_servers(conn, msg, sl);
+    if (dbus_message_is_method_call(msg, "org.pulseaudio.ServerLookup", "GetDBusAddress"))
+        return handle_get_dbus_address(conn, msg, sl);
 
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
@@ -229,15 +202,15 @@ static DBusObjectPathVTable vtable = {
     .dbus_internal_pad4 = NULL
 };
 
-pa_dbusobj_server_lookup *pa_dbusobj_server_lookup_new(pa_core *c, pa_daemon_conf_server_type_t server_type) {
+pa_dbusobj_server_lookup *pa_dbusobj_server_lookup_new(pa_core *c) {
     pa_dbusobj_server_lookup *sl;
     DBusError error;
 
     dbus_error_init(&error);
 
     sl = pa_xnew(pa_dbusobj_server_lookup, 1);
+    sl->core = c;
     sl->path_registered = FALSE;
-    sl->server_type = server_type;
 
     if (!(sl->conn = pa_dbus_bus_get(c, DBUS_BUS_SESSION, &error)) || dbus_error_is_set(&error)) {
         pa_log("Unable to contact D-Bus: %s: %s", error.name, error.message);

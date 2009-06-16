@@ -276,6 +276,27 @@ pa_dbus_wrap_connection* pa_dbus_wrap_connection_new(pa_mainloop_api *m, DBusBus
     return pconn;
 }
 
+pa_dbus_wrap_connection* pa_dbus_wrap_connection_new_from_existing(pa_mainloop_api *m, DBusConnection *conn) {
+    pa_dbus_wrap_connection *pconn;
+
+    pa_assert(m);
+    pa_assert(conn);
+
+    pconn = pa_xnew(pa_dbus_wrap_connection, 1);
+    pconn->mainloop = m;
+    pconn->connection = dbus_connection_ref(conn);
+
+    dbus_connection_set_exit_on_disconnect(conn, FALSE);
+    dbus_connection_set_dispatch_status_function(conn, dispatch_status, pconn, NULL);
+    dbus_connection_set_watch_functions(conn, add_watch, remove_watch, toggle_watch, pconn, NULL);
+    dbus_connection_set_timeout_functions(conn, add_timeout, remove_timeout, toggle_timeout, pconn, NULL);
+    dbus_connection_set_wakeup_main_function(conn, wakeup_main, pconn, NULL);
+
+    pconn->dispatch_event = pconn->mainloop->defer_new(pconn->mainloop, dispatch_cb, conn);
+
+    return pconn;
+}
+
 void pa_dbus_wrap_connection_free(pa_dbus_wrap_connection* c) {
     pa_assert(c);
 

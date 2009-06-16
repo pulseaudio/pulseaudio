@@ -1,5 +1,5 @@
-#ifndef fooserverlookuphfoo
-#define fooserverlookuphfoo
+#ifndef foodbuscommonhfoo
+#define foodbuscommonhfoo
 
 /***
   This file is part of PulseAudio.
@@ -22,19 +22,18 @@
   USA.
 ***/
 
-/* This object implements the D-Bus object at path
- * /org/pulseaudio/server_lookup. Implemented interfaces
- * are org.pulseaudio.ServerLookup and org.freedesktop.DBus.Introspectable.
- *
- * See http://pulseaudio.org/wiki/DBusInterface for the ServerLookup interface
- * documentation.
- */
-
 #include <pulsecore/core.h>
+#include <pulsecore/macro.h>
 
-typedef struct pa_dbusobj_server_lookup pa_dbusobj_server_lookup;
+#define PA_DBUS_DEFAULT_PORT 24883
+#define PA_DBUS_SOCKET_NAME "dbus_socket"
 
-pa_dbusobj_server_lookup *pa_dbusobj_server_lookup_new(pa_core *c);
-void pa_dbusobj_server_lookup_free(pa_dbusobj_server_lookup *sl);
+#define PA_DBUS_SYSTEM_SOCKET_PATH PA_SYSTEM_RUNTIME_PATH PA_PATH_SEP PA_DBUS_SOCKET_NAME
+
+/* Returns the default address of the server type in the escaped form. For
+ * PA_SERVER_TYPE_NONE an empty string is returned. The caller frees the
+ * string. This function may fail in some rare cases, in which case NULL is
+ * returned. */
+char *pa_get_dbus_address_from_server_type(pa_server_type_t server_type);
 
 #endif

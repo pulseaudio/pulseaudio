@@ -31,6 +31,7 @@
 typedef struct pa_dbus_wrap_connection pa_dbus_wrap_connection;
 
 pa_dbus_wrap_connection* pa_dbus_wrap_connection_new(pa_mainloop_api *mainloop, DBusBusType type, DBusError *error);
+pa_dbus_wrap_connection* pa_dbus_wrap_connection_new_from_existing(pa_mainloop_api *mainloop, DBusConnection *conn);
 void pa_dbus_wrap_connection_free(pa_dbus_wrap_connection* conn);
 
 DBusConnection* pa_dbus_wrap_connection_get(pa_dbus_wrap_connection *conn);

@@ -28,6 +28,7 @@
 
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/core.h>
 #include <pulsecore/core-util.h>
 
 #ifdef HAVE_SYS_RESOURCE_H
@@ -47,13 +48,6 @@ typedef enum pa_daemon_conf_cmd {
     PA_CMD_DUMP_RESAMPLE_METHODS,
     PA_CMD_CLEANUP_SHM
 } pa_daemon_conf_cmd_t;
-
-typedef enum pa_daemon_conf_server_type {
-    PA_SERVER_TYPE_UNSET,
-    PA_SERVER_TYPE_USER,
-    PA_SERVER_TYPE_SYSTEM,
-    PA_SERVER_TYPE_NONE
-} pa_daemon_conf_server_type_t;
 
 #ifdef HAVE_SYS_RESOURCE_H
 typedef struct pa_rlimit {
@@ -81,7 +75,7 @@ typedef struct pa_daemon_conf {
         log_meta,
         log_time,
         flat_volumes;
-    pa_daemon_conf_server_type_t local_server_type;
+    pa_server_type_t local_server_type;
     int exit_idle_time,
         scache_idle_time,
         auto_log_target,
