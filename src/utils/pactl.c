@@ -254,6 +254,18 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
            pl = pa_proplist_to_string_sep(i->proplist, "\n\t\t"));
 
     pa_xfree(pl);
+
+    if (i->ports) {
+        pa_sink_port_info **p;
+
+        printf(_("\tPorts:\n"));
+        for (p = i->ports; *p; p++)
+            printf("\t\t%s: %s (priority. %u)\n", (*p)->name, (*p)->description, (*p)->priority);
+    }
+
+    if (i->active_port)
+        printf(_("\tActive Port: %s\n"),
+               i->active_port->name);
 }
 
 static void get_source_info_callback(pa_context *c, const pa_source_info *i, int is_last, void *userdata) {
@@ -334,6 +346,18 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
            pl = pa_proplist_to_string_sep(i->proplist, "\n\t\t"));
 
     pa_xfree(pl);
+
+    if (i->ports) {
+        pa_source_port_info **p;
+
+        printf(_("\tPorts:\n"));
+        for (p = i->ports; *p; p++)
+            printf("\t\t%s: %s (priority. %u)\n", (*p)->name, (*p)->description, (*p)->priority);
+    }
+
+    if (i->active_port)
+        printf(_("\tActive Port: %s\n"),
+               i->active_port->name);
 }
 
 static void get_module_info_callback(pa_context *c, const pa_module_info *i, int is_last, void *userdata) {
