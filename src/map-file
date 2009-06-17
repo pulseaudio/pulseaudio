@@ -28,6 +28,7 @@ pa_channel_map_superset;
 pa_channel_map_to_name;
 pa_channel_map_to_pretty_name;
 pa_channel_map_valid;
+pa_channel_position_from_string;
 pa_channel_position_to_pretty_string;
 pa_channel_position_to_string;
 pa_context_add_autoload;

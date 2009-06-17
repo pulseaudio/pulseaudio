@@ -491,6 +491,27 @@ char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map) {
     return s;
 }
 
+pa_channel_position_t pa_channel_position_from_string(const char *p) {
+    pa_channel_position_t i;
+    pa_assert(p);
+
+    /* Some special aliases */
+    if (pa_streq(p, "left"))
+        return PA_CHANNEL_POSITION_LEFT;
+    else if (pa_streq(p, "right"))
+        return PA_CHANNEL_POSITION_RIGHT;
+    else if (pa_streq(p, "center"))
+        return PA_CHANNEL_POSITION_CENTER;
+    else if (pa_streq(p, "subwoofer"))
+        return PA_CHANNEL_POSITION_SUBWOOFER;
+
+    for (i = 0; i < PA_CHANNEL_POSITION_MAX; i++)
+        if (pa_streq(p, table[i]))
+            return i;
+
+    return PA_CHANNEL_POSITION_INVALID;
+}
+
 pa_channel_map *pa_channel_map_parse(pa_channel_map *rmap, const char *s) {
     const char *state;
     pa_channel_map map;
@@ -559,36 +580,19 @@ pa_channel_map *pa_channel_map_parse(pa_channel_map *rmap, const char *s) {
     map.channels = 0;
 
     while ((p = pa_split(s, ",", &state))) {
+        pa_channel_position_t f;
 
         if (map.channels >= PA_CHANNELS_MAX) {
             pa_xfree(p);
             return NULL;
         }
 
-        /* Some special aliases */
-        if (pa_streq(p, "left"))
-            map.map[map.channels++] = PA_CHANNEL_POSITION_LEFT;
-        else if (pa_streq(p, "right"))
-            map.map[map.channels++] = PA_CHANNEL_POSITION_RIGHT;
-        else if (pa_streq(p, "center"))
-            map.map[map.channels++] = PA_CHANNEL_POSITION_CENTER;
-        else if (pa_streq(p, "subwoofer"))
-            map.map[map.channels++] = PA_CHANNEL_POSITION_SUBWOOFER;
-        else {
-            pa_channel_position_t i;
-
-            for (i = 0; i < PA_CHANNEL_POSITION_MAX; i++)
-                if (strcmp(p, table[i]) == 0) {
-                    map.map[map.channels++] = i;
-                    break;
-                }
-
-            if (i >= PA_CHANNEL_POSITION_MAX) {
-                pa_xfree(p);
-                return NULL;
-            }
+        if ((f = pa_channel_position_from_string(p)) == PA_CHANNEL_POSITION_INVALID) {
+            pa_xfree(p);
+            return NULL;
         }
 
+        map.map[map.channels++] = f;
         pa_xfree(p);
     }
 

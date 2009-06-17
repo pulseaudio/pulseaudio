@@ -282,6 +282,9 @@ pa_channel_map* pa_channel_map_init_extend(pa_channel_map *m, unsigned channels,
 /** Return a text label for the specified channel position */
 const char* pa_channel_position_to_string(pa_channel_position_t pos) PA_GCC_PURE;
 
+/* The inverse of pa_channel_position_to_string(). \since 0.9.16 */
+pa_channel_position_t pa_channel_position_from_string(const char *s) PA_GCC_PURE;
+
 /** Return a human readable text label for the specified channel position. \since 0.9.7 */
 const char* pa_channel_position_to_pretty_string(pa_channel_position_t pos);
 
