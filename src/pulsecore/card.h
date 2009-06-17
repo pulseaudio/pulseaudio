@@ -72,9 +72,8 @@ struct pa_card {
 
 typedef struct pa_card_new_data {
     char *name;
-    char *description;
-
     pa_proplist *proplist;
+
     const char *driver;
     pa_module *module;
 
