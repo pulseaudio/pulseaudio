@@ -1,79 +1,67 @@
-# Catalan translation of pulseaudio by Softcatalà
-# Copyright (C) 2008 Free Software Foundation
-# This file is distributed under the same license as the pulseaudio package.
+# translation of pulseaudio.master-tx.pulseaudio.po to Hindi
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
 #
-# Xavier Conde Rueda <xavi.conde@gmail.com>, 2008.
-# Agustí Grau <fletxa@gmail.com>, 2009.
-# Judith Pintó Subirada <judithp@gmail.com>
-#
-# This file is translated according to the glossary and style guide of
-# Softcatalà. If you plan to modify this file, please read first the page
-# of the Catalan translation team for the Fedora project at:
-# http://www.softcatala.org/projectes/fedora/
-# and contact the previous translator.
-#
-# Aquest fitxer s'ha de traduir d'acord amb el recull de termes i la guia
-# d'estil de Softcatalà. Si voleu modificar aquest fitxer, llegiu si
-# us plau la pàgina de catalanització del projecte Fedora a:
-# http://www.softcatala.org/projectes/fedora/
-# i contacteu l'anterior traductor/a.
-# 
-# 
+# Rajesh Ranjan <rajesh672@gmail.com>, 2009.
 msgid ""
 msgstr ""
-"Project-Id-Version: pulseaudio\n"
+"Project-Id-Version: pulseaudio.master-tx.pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-04-05 08:27+0000\n"
-"PO-Revision-Date: 2009-06-10 18:47+0200\n"
-"Last-Translator: Judith Pintó Subirada <judithp@gmail.com>\n"
-"Language-Team: \n"
+"PO-Revision-Date: 2009-06-08 12:01+0530\n"
+"Last-Translator: Rajesh Ranjan <rajesh672@gmail.com>\n"
+"Language-Team: Hindi <hindi.sf.net>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n\n"
+"\n"
+"\n"
 
 #: ../src/modules/alsa/alsa-util.c:530
 msgid "Analog Mono"
-msgstr "Mono analògic"
+msgstr "एनालॉग मोनो"
 
 #: ../src/modules/alsa/alsa-util.c:536
 msgid "Analog Stereo"
-msgstr "Estèreo analògic"
+msgstr "एनालॉग स्टीरियो"
 
 #: ../src/modules/alsa/alsa-util.c:542
 msgid "Digital Stereo (IEC958)"
-msgstr "Estèreo digital (IEC958)"
+msgstr "डिजिटल स्टीरियो (IEC958)"
 
 #: ../src/modules/alsa/alsa-util.c:548
 msgid "Digital Stereo (HDMI)"
-msgstr "Estèreo digital (HDMI)"
+msgstr "डिजिटल स्टीरियो (HDMI)"
 
 #: ../src/modules/alsa/alsa-util.c:555
 msgid "Analog Surround 4.0"
-msgstr "Envolvent analògic 4.0 "
+msgstr "एनालॉग सर्राउंड 4.0"
 
 #: ../src/modules/alsa/alsa-util.c:562
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr "Envolvent digital 4.0 (IEC958/AC3)"
+msgstr "डिजिटल सर्राउंड 4.0 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-util.c:570
 msgid "Analog Surround 4.1"
-msgstr "Envolvent analògic 4.1 "
+msgstr "एनालॉग सर्राउंड 4.1"
 
 #: ../src/modules/alsa/alsa-util.c:578
 msgid "Analog Surround 5.0"
-msgstr "Envolvent analògic 5.0"
+msgstr "एनालॉग सर्राउंड 5.0"
 
 #: ../src/modules/alsa/alsa-util.c:586
 msgid "Analog Surround 5.1"
-msgstr "Envolvent analògic 5.1"
+msgstr "एनालॉग सर्राउंड 5.1"
 
 #: ../src/modules/alsa/alsa-util.c:594
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr "Envolvent digital 5.1 (IEC958/AC3)"
+msgstr "डिजिटल सर्राउंड 5.1 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-util.c:603
 msgid "Analog Surround 7.1"
-msgstr "Envolvent analògic 7.1"
+msgstr "एनालॉग सर्राउंड 7.1"
 
 #: ../src/modules/alsa/alsa-util.c:1609
 #, c-format
@@ -83,8 +71,9 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_avail() ha retornat un valor excepcionalment gran: %lu bytes (%lu ms).\n"
-"Probablement es tracta d'un error del controlador de l'ALSA '%s'. Informeu d'aquest incident als desenvolupadors de l'ALSA."
+"snd_pcm_avail() ने एक मान दिया जो अप्रत्याशित रूप से बड़ा है: %lu बाइट (%lu "
+"ms).\n"
+"अधिक संभव है कि यह ALSA ड्राइवर '%s' में एक बग है. इस मुद्दे को ALSA डेवलेपर को रिपोर्ट करें."
 
 #: ../src/modules/alsa/alsa-util.c:1649
 #, c-format
@@ -94,8 +83,9 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_delay() ha retornat un valor excepcionalment gran: %li bytes (%s%lu ms).\n"
-"Probablement es tracta d'un error del controlador de l'ALSA '%s'. Informeu d'aquest incident als desenvolupadors de l'ALSA."
+"snd_pcm_delay() ने एक मान दिया जो अप्रत्याशित रूप से बड़ा है: %li बाइट (%s%"
+"lu ms).\n"
+"अधिक संभव है कि यह ALSA ड्राइवर '%s' में एक बग है. इस मुद्दे को ALSA डेवलेपर को रिपोर्ट करें."
 
 #: ../src/modules/alsa/alsa-util.c:1695
 #, c-format
@@ -105,179 +95,179 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_mmap_begin() ha retornat un valor excepcionalment gran: %lu bytes (%lu ms).\n"
-"Probablement es tracta d'un error del controlador de l'ALSA '%s'. Informeu d'aquest incident als desenvolupadors de l'ALSA."
+"snd_pcm_mmap_begin() ने एक मान दिया जो अप्रत्याशित रूप से बड़ा है: %lu बाइट (%lu ms).\n"
+"अधिक संभव है कि यह ALSA ड्राइवर '%s' में एक बग है. इस मुद्दे को ALSA डेवलेपर को रिपोर्ट करें."
 
 #: ../src/pulsecore/sink.c:2061
 msgid "Internal Audio"
-msgstr "Audio intern"
+msgstr "आंतरिक ऑडियो"
 
 #: ../src/pulsecore/sink.c:2067
 msgid "Modem"
-msgstr "Mòdem"
+msgstr "मॉडेम"
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
-msgstr "No s'ha trobat el carregador lt_dlopen original."
+msgstr "मौलिक ltdlopen लोडर ढूँढ़ने में विफल (_d)."
 
 #: ../src/daemon/ltdl-bind-now.c:129
 msgid "Failed to allocate new dl loader."
-msgstr "No s'ha pogut allotjar el nou carregador dl."
+msgstr "नया dl लोडर आबंटित करने में विफल."
 
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
-msgstr "No s'ha pogut afegir bind-now-loader."
+msgstr "bind-now-loader जोड़ने में विफल."
 
 #: ../src/daemon/polkit.c:55
 #, c-format
 msgid "Cannot connect to system bus: %s"
-msgstr "No s'ha pogut connectar al bus del sistema: %s"
+msgstr "तंत्र बस से कनेक्ट नहीं हो सकता है: %s"
 
 #: ../src/daemon/polkit.c:65
 #, c-format
 msgid "Cannot get caller from PID: %s"
-msgstr "No s'ha pogut obtenir una crida del PID: %s"
+msgstr "PID से कॉलर पाने में विफल: %s"
 
 #: ../src/daemon/polkit.c:77
 msgid "Cannot set UID on caller object."
-msgstr "No s'ha pogut especificar l'UID en l'objecte crida."
+msgstr "UID को कॉलर वस्तु पर सेट नहीं कर सकता है."
 
 #: ../src/daemon/polkit.c:82
 msgid "Failed to get CK session."
-msgstr "No s'ha pogut obtenir la sessió CK."
+msgstr "CK सत्र पाने में विफल."
 
 #: ../src/daemon/polkit.c:90
 msgid "Cannot set UID on session object."
-msgstr "No s'ha pogut definir l'UID en l'objecte sessió."
+msgstr "UID को सत्र वस्तु पर सेट नहीं कर सकता है."
 
 #: ../src/daemon/polkit.c:95
 msgid "Cannot allocate PolKitAction."
-msgstr "No s'ha pogut assignar PolKitAction."
+msgstr "PolKitAction आबंटित नहीं कर सकता है."
 
 #: ../src/daemon/polkit.c:100
 msgid "Cannot set action_id"
-msgstr "No s'ha pogut definir action_id"
+msgstr "action_id सेट नहीं कर सकता है"
 
 #: ../src/daemon/polkit.c:105
 msgid "Cannot allocate PolKitContext."
-msgstr "No s'ha pogut assignar PolKitContext."
+msgstr "PolKitContext आबंटित नहीं कर सकता है."
 
 #: ../src/daemon/polkit.c:110
 #, c-format
 msgid "Cannot initialize PolKitContext: %s"
-msgstr "No s'ha pogut inicialitzar PolKitContext: %s"
+msgstr "PolKitContext आरंभ नहीं कर सकता है.: %s"
 
 #: ../src/daemon/polkit.c:119
 #, c-format
 msgid "Could not determine whether caller is authorized: %s"
-msgstr "No s'ha pogut determinar si la crida està autoritzada: %s"
+msgstr "निर्धारित नहीं कर सकता है कि क्या कॉलर अधिकृत है: %s"
 
 #: ../src/daemon/polkit.c:139
 #, c-format
 msgid "Cannot obtain auth: %s"
-msgstr "No s'ha pogut obtenir l'autorització: %s"
+msgstr "अधिकार प्राप्त नहीं कर सकता है: %s"
 
 #: ../src/daemon/polkit.c:148
 #, c-format
 msgid "PolicyKit responded with '%s'"
-msgstr "PolicyKit ha respós '%s'"
+msgstr "PolicyKit ने '%s' के साथ अनुक्रिया किया"
 
 #: ../src/daemon/main.c:137
 #, c-format
 msgid "Got signal %s."
-msgstr "S'ha obtingut la senyal %s."
+msgstr "%s संकेत पाया."
 
 #: ../src/daemon/main.c:164
 msgid "Exiting."
-msgstr "S'està sortint."
+msgstr "बाहर हो रहा है."
 
 #: ../src/daemon/main.c:182
 #, c-format
 msgid "Failed to find user '%s'."
-msgstr "No s'ha trobat l'usuari '%s'."
+msgstr "'%s' उपयोक्ता ढूंढ़ने में विफल."
 
 #: ../src/daemon/main.c:187
 #, c-format
 msgid "Failed to find group '%s'."
-msgstr "No s'ha trobat el grup '%s'."
+msgstr "'%s' समूह ढूंढ़ने में विफल."
 
 #: ../src/daemon/main.c:191
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
-msgstr "S'han trobat l'usuari '%s' (UID %lu) i el grup '%s' (GID %lu)."
+msgstr "'%s' (UID %lu) उपयोक्ता व '%s' (GID %lu) समूह पाया."
 
 #: ../src/daemon/main.c:196
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
-msgstr "El GID de l'usuari '%s' i del grup '%s' no coincideixen."
+msgstr "'%s' उपयोक्ता और '%s' समूह का GID मेल नहीं खाता है"
 
 #: ../src/daemon/main.c:201
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr "El directori arrel de l'usuari '%s' no és '%s', s'ignorarà."
+msgstr "'%s' उपयोक्ता की घर निर्देशिका '%s' नहीं है, अनदेखा कर रहा है."
 
 #: ../src/daemon/main.c:204 ../src/daemon/main.c:209
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr "No s'ha pogut crear '%s': %s"
+msgstr "'%s' बनाने में विफल: %s"
 
 #: ../src/daemon/main.c:216
 #, c-format
 msgid "Failed to change group list: %s"
-msgstr "No s'ha pogut canviar la llista del grup :%s"
+msgstr "समूह सूची पाने में विफल: %s"
 
 #: ../src/daemon/main.c:232
 #, c-format
 msgid "Failed to change GID: %s"
-msgstr "No s'ha pogut canviar el GID: %s"
+msgstr "GID बदलने में विफल: %s"
 
 #: ../src/daemon/main.c:248
 #, c-format
 msgid "Failed to change UID: %s"
-msgstr "No s'ha pogut canviar l'UID: %s"
+msgstr "UID बदलने में विफल: %s"
 
 #: ../src/daemon/main.c:262
 msgid "Successfully dropped root privileges."
-msgstr "S'han alliberat els permisos de root."
+msgstr "रूट अधिकार सफलतापूर्वक छोड़ा."
 
 #: ../src/daemon/main.c:270
 msgid "System wide mode unsupported on this platform."
-msgstr "El mode de sistema global no és compatible amb aquesta plataforma."
+msgstr "इस प्लैटफॉर्म पर असमर्थित तंत्र व्यापक विधि."
 
 #: ../src/daemon/main.c:288
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
-msgstr "S'ha produït un error en setrlimit(%s, (%u, %u)): %s"
+msgstr "setrlimit(%s, (%u, %u)) विफल: %s"
 
 #: ../src/daemon/main.c:462
 msgid "Failed to parse command line."
-msgstr "No s'ha pogut interpretar la línia d'ordres."
+msgstr "कमांड लाइन विश्लेषण में विफल."
 
 #: ../src/daemon/main.c:486
 #, c-format
 msgid "We're in the group '%s', allowing high-priority scheduling."
-msgstr "Aquesta aplicació està en el grup '%s', s'està establint la prioritat alta."
+msgstr "हम '%s' समूह में हैं, उच्च प्राथमिकता नियोजन की अनुमति के साथ."
 
 #: ../src/daemon/main.c:493
 #, c-format
 msgid "We're in the group '%s', allowing real-time scheduling."
-msgstr "Aquesta aplicació està en el grup '%s', s'està establint la prioritat en temps real."
+msgstr "हम '%s' समूह में हैं, वास्तविक समय नियोजन को अनुमति देते हुए."
 
 #: ../src/daemon/main.c:501
 msgid "PolicyKit grants us acquire-high-priority privilege."
-msgstr "PolicyKit ha permés el privilegi acquire-high-priority."
+msgstr "PolicyKit उच्च प्राथमिकता अधिकार अधिग्रहण हमें देती है."
 
 #: ../src/daemon/main.c:504
 msgid "PolicyKit refuses acquire-high-priority privilege."
-msgstr "PolicyKit ha rebutjat el privilegi acquire-high-priority."
+msgstr "PolicyKit उच्च प्राथमिकता अधिकार अधिग्रहण अस्वीकृत करती है."
 
 #: ../src/daemon/main.c:509
 msgid "PolicyKit grants us acquire-real-time privilege."
-msgstr "PolicyKit ha permés el privilegi acquire-real-time."
+msgstr "PolicyKit हमें देती है वास्तविक समय अधिकार अधिग्रहण."
 
 #: ../src/daemon/main.c:512
 msgid "PolicyKit refuses acquire-real-time privilege."
-msgstr "PolicyKit ha rebutjat el privilegi acquire-real-time."
+msgstr "PolicyKit स्वीकृत करती है वास्तविक समय अधिकार अधिग्रहण."
 
 #: ../src/daemon/main.c:541
 #, c-format
@@ -291,247 +281,228 @@ msgid ""
 "appropriate PolicyKit privileges, or become a member of '%s', or increase "
 "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
 msgstr ""
-"S'ha demanat SUID de root i una planificació de temps real i/o d'alta "
-"prioritat. De totes formes, falten els privilegis necessaris:\n"
-"No es pertany al grup '%s'. PolicyKit no atorga els privilegis demanats i no "
-"s'ha incrementat els límits de recursos RLIMIT_NICE/RLIMIT_RTPRIO.\n"
-"Per habilitar la planificació en temps real o d'alta prioritat, heu "
-"d'obtenir els privilegis de PolicyKits adequats, o pertànyer al grup '%s', o "
-"incrementar els límits de recursos de RLIMIT_NICE/RLIMIT_RTPRIO per a aquest "
-"usuari."
+"SUID रूट को आह्वान किया और वास्तविक समय/या उच्च प्राथमिकता नियोजन को इस विन्यास में निवेदन किया गया था. हालांकि, हमें जरूरी अधिकार कम है:\n"
+"हम '%s' समूह में नहीं है, PolicyKit निवेदित अधिकार हमें देने से मना करता है और हम RLIMIT_NICE/RLIMIT_RTPRIO संसाधन सीमा को बढ़ाना नहीं है.\n"
+"वास्तविक समय/या उच्च प्राथमिकता नियोजन को सक्रिय करने के लिए कृपया उचित PolicyKit अधिकार अधिग्रहित करें, या '%s' का सदस्य बनें, RLIMIT_NICE/RLIMIT_RTPRIO संसाधन सीमा को इस उपयोक्ता के लिए बढ़ाएँ."
 
 #: ../src/daemon/main.c:566
-msgid ""
-"High-priority scheduling enabled in configuration but not allowed by policy."
-msgstr ""
-"La prioritat alta està habilitada en la configuració però no està permesa "
-"per la política."
+msgid "High-priority scheduling enabled in configuration but not allowed by policy."
+msgstr "विन्यास में उच्च प्राथमिकता नियोजन सक्रिय है लेकिन नीति के द्वारा अनुमति प्राप्त नहीं है."
 
 #: ../src/daemon/main.c:595
 msgid "Successfully increased RLIMIT_RTPRIO"
-msgstr "S'ha incrementat el valor de RLIMIT_RTPRIO amb éxit."
+msgstr "सफलतापूर्वक बढ़ा हुआ RLIMIT_RTPRIO"
 
 #: ../src/daemon/main.c:598
 #, c-format
 msgid "RLIMIT_RTPRIO failed: %s"
-msgstr "S'ha produït un error amb RLIMIT_RTPRIO: %s"
+msgstr "RLIMIT_RTPRIO विफल: %s"
 
 #: ../src/daemon/main.c:605
 msgid "Giving up CAP_NICE"
-msgstr "S'abandona CAP_NICE"
+msgstr "CAP_NICE छोड़ रहा है"
 
 #: ../src/daemon/main.c:612
-msgid ""
-"Real-time scheduling enabled in configuration but not allowed by policy."
-msgstr ""
-"La prioritat de temps real està habilitada en la configuració però no està "
-"permesa per la política."
+msgid "Real-time scheduling enabled in configuration but not allowed by policy."
+msgstr "विन्यास में वास्तविक समय नियोजन लेकिन नीति के द्वारा अनुमति प्राप्त नहीं."
 
 #: ../src/daemon/main.c:673
 msgid "Daemon not running"
-msgstr "El dimoni no s'està executant"
+msgstr "डेमॉन नहीं कार्यशील"
 
 #: ../src/daemon/main.c:675
 #, c-format
 msgid "Daemon running as PID %u"
-msgstr "El dimoni s'està executant amb PID %u"
+msgstr "डेमॉन बतौर PID %u चल रहा है"
 
 #: ../src/daemon/main.c:685
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr "S'ha produït un error en matar el dimoni: %s"
+msgstr "डेमॉन हटाने में विफल: %s"
 
 #: ../src/daemon/main.c:703
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
 msgstr ""
-"No és necessari executar aquesta aplicació com a root (excepte si "
-"s'especifica --system)"
+"यह प्रोग्राम बतौर रूट चलाने के लिए इच्छित नहीं है (unless --system is "
+"specified)."
 
 #: ../src/daemon/main.c:705
 msgid "Root privileges required."
-msgstr "Es requereixen privilegis de root."
+msgstr "रूट अधिकार जरूरी."
 
 #: ../src/daemon/main.c:710
 msgid "--start not supported for system instances."
-msgstr "La opció --start no està suportada per a instàncies de sistema."
+msgstr "--start not supported for system instances."
 
 #: ../src/daemon/main.c:715
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr ""
-"S'està executant en mode sistema, però no s'ha especificat l'opció --"
-"disallow-exit."
+msgstr "तंत्र मोड में चल रहा है, लेकिन --disallow-exit सेट नहीं!"
 
 #: ../src/daemon/main.c:718
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr ""
-"S'està executant en mode sistema, però no s'ha especificat l'opció --"
-"disallow-module-loading."
+msgstr "तंत्र मोड में चल रहा है, लेकिन --disallow-module-loading सेट नहीं!"
 
 #: ../src/daemon/main.c:721
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr ""
-"S'està executant en mode sistema, es deshabilitarà el mode SHM forçosament."
+msgstr "तंत्र मोड में चल रहा है, SHM मोड बाध्य रूप से निष्क्रिय!"
 
 #: ../src/daemon/main.c:726
 msgid "Running in system mode, forcibly disabling exit idle time!"
-msgstr ""
-"S'està executant en mode sistema, la sortida per temps d'inactivitat es "
-"deshabilita."
+msgstr "तंत्र मोड में चल रहा है, निकास निष्क्रिय समय बाध्य रूप से निष्क्रिय!"
 
 #: ../src/daemon/main.c:753
 msgid "Failed to acquire stdio."
-msgstr "S'ha produït un error en adquirir stdio."
+msgstr "stdio पाने में विफल."
 
 #: ../src/daemon/main.c:759
 #, c-format
 msgid "pipe failed: %s"
-msgstr "Ha fallat la canonada: %s"
+msgstr "पाइप विफल: %s"
 
 #: ../src/daemon/main.c:764
 #, c-format
 msgid "fork() failed: %s"
-msgstr "Ha fallat fork(): %s"
+msgstr "fork() विफल: %s"
 
 #: ../src/daemon/main.c:778
 #, c-format
 msgid "read() failed: %s"
-msgstr "Ha fallat read(): %s"
+msgstr "read() विफल: %s"
 
 #: ../src/daemon/main.c:784
 msgid "Daemon startup failed."
-msgstr "S'ha produït un error en iniciar el dimoni."
+msgstr "डेमॉन आरंभ विफल."
 
 #: ../src/daemon/main.c:786
 msgid "Daemon startup successful."
-msgstr "S'ha iniciat el dimoni."
+msgstr "डेमॉन आरंभ सफल."
 
 #: ../src/daemon/main.c:856
 #, c-format
 msgid "This is PulseAudio %s"
-msgstr "Aquest és el PulseAudio %s"
+msgstr "यह पल्सऑडियो %s है."
 
 #: ../src/daemon/main.c:857
 #, c-format
 msgid "Compilation host: %s"
-msgstr "Host de compilació: %s"
+msgstr "Compilation host: %s"
 
 #: ../src/daemon/main.c:858
 #, c-format
 msgid "Compilation CFLAGS: %s"
-msgstr "CFLAGS de compilació: %s"
+msgstr "Compilation CFLAGS: %s"
 
 #: ../src/daemon/main.c:861
 #, c-format
 msgid "Running on host: %s"
-msgstr "S'està executant en el host: %s"
+msgstr "मेजबान पर चल रहा है: %s"
 
 #: ../src/daemon/main.c:864
 #, c-format
 msgid "Found %u CPUs."
-msgstr "S'han trobat %u CPU's"
+msgstr "%u CPU पाया."
 
 #: ../src/daemon/main.c:866
 #, c-format
 msgid "Page size is %lu bytes"
-msgstr "La mida de pàgina és de %lu bytes."
+msgstr "पृष्ठ आकार %lu बाइट है."
 
 #: ../src/daemon/main.c:869
 msgid "Compiled with Valgrind support: yes"
-msgstr "Compilat amb suport per a Valgrind: sí"
+msgstr "वेलग्रिंड समर्थन से कंपाइल: हाँ"
 
 #: ../src/daemon/main.c:871
 msgid "Compiled with Valgrind support: no"
-msgstr "Compilat amb suport per a Valgrind: no"
+msgstr "वेलग्रिंड समर्थन से कंपाइल: नहीं"
 
 #: ../src/daemon/main.c:874
 #, c-format
 msgid "Running in valgrind mode: %s"
-msgstr "S'està executant amb el mode valgrind: %s"
+msgstr "वेलग्रिंड विधि में चल रहा है: %s"
 
 #: ../src/daemon/main.c:877
 msgid "Optimized build: yes"
-msgstr "Construcció optimitzada: sí"
+msgstr "अनुकूलित बिल्ड: हाँ"
 
 #: ../src/daemon/main.c:879
 msgid "Optimized build: no"
-msgstr "Construcció optmitzada: no"
+msgstr "अनुकूलित बिल्ड: नहीं"
 
 #: ../src/daemon/main.c:883
 msgid "NDEBUG defined, all asserts disabled."
-msgstr "NDEBUG està definit, s'han desactivat totes les assercions."
+msgstr "NDEBUG परिभाषित, सभी निष्क्रिय."
 
 #: ../src/daemon/main.c:885
 msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr "FASTPATH està definit, només s'ha deshabilitat les assercions de camí ràpid."
+msgstr "FASTPATH परिभाषित, केव तेज पथ एसर्ट निष्क्रिय."
 
 #: ../src/daemon/main.c:887
 msgid "All asserts enabled."
-msgstr "S'han habilitat totes les assercions."
+msgstr "सभी एसर्ट सक्षम."
 
 #: ../src/daemon/main.c:891
 msgid "Failed to get machine ID"
-msgstr "No s'ha pogut obtenir l'ID de la màquina"
+msgstr "मशीन ID पाने में विफल"
 
 #: ../src/daemon/main.c:894
 #, c-format
 msgid "Machine ID is %s."
-msgstr "L'ID de la màquina és %s."
+msgstr "मशीन ID %s है."
 
 #: ../src/daemon/main.c:899
 #, c-format
 msgid "Using runtime directory %s."
-msgstr "S'està utilitzant el directori d'execució %s."
+msgstr "रनटाइम निर्देशिका %s का प्रयोग कर रहा है."
 
 #: ../src/daemon/main.c:904
 #, c-format
 msgid "Using state directory %s."
-msgstr "S'està utilitzant el directori d'estat %s."
+msgstr "स्टेट निर्देशिका %s का प्रयोग कर रहा है."
 
 #: ../src/daemon/main.c:907
 #, c-format
 msgid "Running in system mode: %s"
-msgstr "S'està executant en mode sistema: %s"
+msgstr "तंत्र मोड में चल रहा है: %s"
 
 #: ../src/daemon/main.c:922
 msgid "pa_pid_file_create() failed."
-msgstr "S'ha produït un error en pa_pid_file_create()."
+msgstr "pa_pid_file_create() विफल."
 
 #: ../src/daemon/main.c:934
 msgid "Fresh high-resolution timers available! Bon appetit!"
-msgstr "Estan disponibles els temporitzadors frescos d'alta resolució."
+msgstr "ताज़ा उच्च विभेदन टाइमर उपलब्ध! आनंद लें!"
 
 #: ../src/daemon/main.c:936
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
-msgstr ""
-"Es recomana la utilització d'un nucli amb els temporitzadors d'alta resolució habilitats."
+msgstr "आपका कर्नेल बुरी स्थिति में है! सलाह है कि उच्च विभेदन युक्त लिनक्स सक्रिय किया जाना चाहिए!"
 
 #: ../src/daemon/main.c:948
 msgid "pa_core_new() failed."
-msgstr "S'ha produït un error en pa_core_new()."
+msgstr "pa_core_new() विफल."
 
 #: ../src/daemon/main.c:1010
 msgid "Failed to initialize daemon."
-msgstr "S'ha produït un error en inicialitzar el dimoni."
+msgstr "डेमॉन आरंभ करने में विफल."
 
 #: ../src/daemon/main.c:1015
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr "El dimoni s'ha iniciat sense cap mòdul carregat, no funcionarà."
+msgstr "बिना लोड मॉड्यूल के डेमॉन आरंभ, काम करने से अस्वीकार कर रहा है."
 
 #: ../src/daemon/main.c:1032
 msgid "Daemon startup complete."
-msgstr "S'ha completat la inicialització del dimoni."
+msgstr "डेमॉन आरंभन पूर्ण."
 
 #: ../src/daemon/main.c:1038
 msgid "Daemon shutdown initiated."
-msgstr "S'ha iniciat l'aturada del dimoni."
+msgstr "डेमॉन बन्द किया जाना आरंभ."
 
 #: ../src/daemon/main.c:1056
 msgid "Daemon terminated."
-msgstr "S'ha aturat el dimoni."
+msgstr "डेमॉन अवरोधित."
 
 #: ../src/daemon/cmdline.c:121
 #, c-format
@@ -606,635 +577,622 @@ msgid ""
 "\n"
 "  -n                                    Don't load default script file\n"
 msgstr ""
-"%s [opcions]\n"
+"%s [options]\n"
 "\n"
-"COMANDES:\n"
-"  -h, --help                            Mostra aquesta ajuda\n"
-"      --version                         Mostra la versió\n"
-"      --dump-conf                       Volca la configuració per omissió\n"
-"      --dump-modules                    Volca la llista de mòduls\n"
-"      --dump-resample-methods           Volca els mètodes disponibles de remostratge\n"
-"      --cleanup-shm                     Neteja els segments de memòria compartida sense emprar\n"
-"      --start                           Inicia el dimoni si aquest no s'està executant\n"
-"  -k  --kill                            Mata el dimoni en execució\n"
-"      --check                           Comprova l'execució del dimoni\n"
+"COMMANDS:\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"      --dump-conf                       Dump default configuration\n"
+"      --dump-modules                    Dump list of available modules\n"
+"      --dump-resample-methods           Dump available resample methods\n"
+"      --cleanup-shm                     Cleanup stale shared memory "
+"segments\n"
+"      --start                           Start the daemon if it is not "
+"running\n"
+"  -k  --kill                            Kill a running daemon\n"
+"      --check                           Check for a running daemon (only "
+"returns exit code)\n"
 "\n"
-"OPCIONS:\n"
-"      --system[=BOOL]                   Executa com una instància de sistema\n"
-"  -D, --daemonize[=BOOL]                Converteix en dimoni després de la inicialització\n"
-"      --fail[=BOOL]                     Surt quan falli la inicialització\n"
-"      --high-priority[=BOOL]            Prova d'establir un nivell de \n"
-"                                        prioritat alt (només disponible com "
-"a root,\n"
-"                                        amb SUID o amb un RLIMIT_NICE "
-"elevat)\n"
-"      --realtime[=BOOL]                 Intenta habilitar la programació en\n"
-"                                        en temps real (només disponible com "
-"a root,\n"
-"                                        amb SUID o amb un RLIMIT_RTPRIO "
-"elevat)\n"
-"      --disallow-module-loading[=BOOL]  Inhabilita el mòdul de carrega/"
-"descarrega \n"
-"                                        de mòduls demanats per l'usuari "
-"després de l'inici\n"
-"      --disallow-exit[=BOOL]            Inhabilita la petició de l'usuari de "
-"sortida\n"
-"      --exit-idle-time=SEGS             Mata el dimoni quan estigui inactiu "
-"i hagi passat\n"
-"                                        aquest temps\n"
-"      --module-idle-time=SEGS           Descarrega els mòduls carregats "
-"automàticament\n"
-"                                        quan estigui inactiu o hagi passat "
-"aquest temps\n"
-"      --scache-idle-time=SEGS           Descarrega les mostres carregades "
-"automàticament\n"
-"                                        després que hagi passat aquest "
-"temps\n"
-"      --log-level[=NIVELL]              Incrementa o especifica el nivell de "
-"detall\n"
-"  -v                                    Incrementa el nivell de detall\n"
-"      --log-target={auto,syslog,stderr} Especifica el destí del registre\n"
-"      --log-meta[=BOOL]                 Inclou codi de localització en els "
-"missatges de registre\n"
-"      --log-time[=BOOL]                 Inclou marques de temps en els "
-"missatges de registre\n"
-"      --log-backtrace=FRAMES            Inclou una traça en els missatges de "
-"registre\n"
-"  -p, --dl-search-path=CAMI             Estableix el camí de cerca "
-"d'objectes dinàmics\n"
-"                                        compartits (plugins)\n"
-"      --resample-method=METODE          Utilitza el mètode de remostreig\n"
-"                                        (Per veure els valors possibles "
-"utilitza                                        --dump-resample-methods)\n"
-"      --use-pid-file[=BOOL]             Crea un fitxer PID\n"
-"      --no-cpu-limit[=BOOL]             No instal·lis un limitador de "
-"càrrega de CPU\n"
-"                                        en plataformes que ho suportin.\n"
-"      --disable-shm[=BOOL]              Inhabilita el suport de memòria "
-"compartida.\n"
+"OPTIONS:\n"
+"      --system[=BOOL]                   Run as system-wide instance\n"
+"  -D, --daemonize[=BOOL]                Daemonize after startup\n"
+"      --fail[=BOOL]                     Quit when startup fails\n"
+"      --high-priority[=BOOL]            Try to set high nice level\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_NICE)\n"
+"      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_RTPRIO)\n"
+"      --disallow-module-loading[=BOOL]  Disallow module user requested "
+"module\n"
+"                                        loading/unloading after startup\n"
+"      --disallow-exit[=BOOL]            Disallow user requested exit\n"
+"      --exit-idle-time=SECS             Terminate the daemon when idle and "
+"this\n"
+"                                        time passed\n"
+"      --module-idle-time=SECS           Unload autoloaded modules when idle "
+"and\n"
+"                                        this time passed\n"
+"      --scache-idle-time=SECS           Unload autoloaded samples when idle "
+"and\n"
+"                                        this time passed\n"
+"      --log-level[=LEVEL]               Increase or set verbosity level\n"
+"  -v                                    Increase the verbosity level\n"
+"      --log-target={auto,syslog,stderr} Specify the log target\n"
+"      --log-meta[=BOOL]                 Include code location in log "
+"messages\n"
+"      --log-time[=BOOL]                 Include timestamps in log messages\n"
+"      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
+"  -p, --dl-search-path=PATH             Set the search path for dynamic "
+"shared\n"
+"                                        objects (plugins)\n"
+"      --resample-method=METHOD          Use the specified resampling method\n"
+"                                        (See --dump-resample-methods for\n"
+"                                        possible values)\n"
+"      --use-pid-file[=BOOL]             Create a PID file\n"
+"      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
+"                                        platforms that support it.\n"
+"      --disable-shm[=BOOL]              Disable shared memory support.\n"
 "\n"
-"SCRIPT D'INICI:\n"
-"  -L, --load=\"ARGUMENTS MODUL\"        Carrega el mòdul especificat amb\n"
-"                                        els arguments especificats\n"
-"  -F, --file=NOMFITXER                  Executa l'script especificat\n"
-"  -C                                    Obre una línia d'ordres en la TTY "
-"actual després\n"
-"                                        de l'inici\n"
+"STARTUP SCRIPT:\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
+"with\n"
+"                                        the specified argument\n"
+"  -F, --file=FILENAME                   Run the specified script\n"
+"  -C                                    Open a command line on the running "
+"TTY\n"
+"                                        after startup\n"
 "\n"
-"  -n                                    No carreguis el fitxer de "
-"configuració per omissió\n"
+"  -n                                    Don't load default script file\n"
 
 #: ../src/daemon/cmdline.c:252
 msgid "--daemonize expects boolean argument"
-msgstr "--daemonize necessita un argument booleà"
+msgstr "--daemonize के लिए बुलियन तर्क की आशा है"
 
 #: ../src/daemon/cmdline.c:259
 msgid "--fail expects boolean argument"
-msgstr "--fail necessita un argument booleà"
+msgstr "--fail के लिए बुलियन तर्क की आशा है"
 
 #: ../src/daemon/cmdline.c:269
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
 msgstr ""
-"--log-level necessita un argument de nivell de log (valor númeric 0..4 o "
-"debug, info, notice, warn, error)."
+"--log-level expects log level argument (either numeric in range 0..4 or one "
+"of debug, info, notice, warn, error)."
 
 #: ../src/daemon/cmdline.c:281
 msgid "--high-priority expects boolean argument"
-msgstr "--high-priority necessita un argument booleà"
+msgstr "--high-priority के लिए बुलियन तर्क की आशा है"
 
 #: ../src/daemon/cmdline.c:288
 msgid "--realtime expects boolean argument"
-msgstr "--realtime necessita un argument booleà"
+msgstr "--realtime के लिए बुलियन तर्क की आशा है"
 
 #: ../src/daemon/cmdline.c:295
 msgid "--disallow-module-loading expects boolean argument"
-msgstr "--disallow-module-loading necessita un argument booleà"
+msgstr "--disallow-module-loading के लिए बुलियन तर्क की आशा है"
 
 #: ../src/daemon/cmdline.c:302
 msgid "--disallow-exit expects boolean argument"
-msgstr "--disallow-exit necessita un argument booleà"
+msgstr "--disallow-exit के लिए बुलियन तर्क की आशा है"
 
 #: ../src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
-msgstr "--use-pid-file necessita un argument booleà"
+msgstr "--use-pid-file के लिए बुलियन तर्क की आशा है"
 
 #: ../src/daemon/cmdline.c:326
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
-msgstr "Objectiu de log invàlid: utilitzeu 'syslog', 'stderr' o 'auto'."
+msgstr "अवैध लॉग लक्ष्य: use either 'syslog', 'stderr' or 'auto'."
 
 #: ../src/daemon/cmdline.c:333
 msgid "--log-time expects boolean argument"
-msgstr "--logtime necessita un argument booleà"
+msgstr "--log-time के लिए बुलियन तर्क की आशा है"
 
 #: ../src/daemon/cmdline.c:340
 msgid "--log-meta expects boolean argument"
-msgstr "--log-meta necessita un argument booleà"
+msgstr "--log-meta के लिए बुलियन तर्क की आशा है"
 
 #: ../src/daemon/cmdline.c:359
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr "Mètode de remostratge invàlid '%s'."
+msgstr "अवैध पुनः प्रतिदर्श विधि '%s'."
 
 #: ../src/daemon/cmdline.c:366
 msgid "--system expects boolean argument"
-msgstr "--system necessita un argument booleà"
+msgstr "--system के लिए बुलियन तर्क की आशा है"
 
 #: ../src/daemon/cmdline.c:373
 msgid "--no-cpu-limit expects boolean argument"
-msgstr "--no-cpu-limit necessita un argument booleà"
+msgstr "--no-cpu-limit के लिए बुलियन तर्क की आशा है"
 
 #: ../src/daemon/cmdline.c:380
 msgid "--disable-shm expects boolean argument"
-msgstr "--disable-shm necessita un argument booleà"
+msgstr "--disable-shm के लिए बुलियन तर्क की आशा है"
 
 #: ../src/daemon/dumpmodules.c:60
 #, c-format
 msgid "Name: %s\n"
-msgstr "Nom: %s\n"
+msgstr "नाम: %s\n"
 
 #: ../src/daemon/dumpmodules.c:63
 #, c-format
 msgid "No module information available\n"
-msgstr "No hi ha informació del módul disponible\n"
+msgstr "कोई मॉड्यूल सूचना उपलब्ध नहीं\n"
 
 #: ../src/daemon/dumpmodules.c:66
 #, c-format
 msgid "Version: %s\n"
-msgstr "Versió: %s\n"
+msgstr "संस्करण: %s\n"
 
 #: ../src/daemon/dumpmodules.c:68
 #, c-format
 msgid "Description: %s\n"
-msgstr "Descripció: %s\n"
+msgstr "विवरण: %s\n"
 
 #: ../src/daemon/dumpmodules.c:70
 #, c-format
 msgid "Author: %s\n"
-msgstr "Autor: %s\n"
+msgstr "लेखक: %s\n"
 
 #: ../src/daemon/dumpmodules.c:72
 #, c-format
 msgid "Usage: %s\n"
-msgstr "Utilització: %s\n"
+msgstr "उपयोग: %s\n"
 
 #: ../src/daemon/dumpmodules.c:73
 #, c-format
 msgid "Load Once: %s\n"
-msgstr "Càrrega: %s\n"
+msgstr "एक बार लोड करें: %s\n"
 
 #: ../src/daemon/dumpmodules.c:77
 #, c-format
 msgid "Path: %s\n"
-msgstr "Ruta: %s\n"
+msgstr "पथ: %s\n"
 
 #: ../src/daemon/daemon-conf.c:215
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr "[%s:%u] Destí de registre incorrecte '%s'"
+msgstr "[%s:%u] अवैध लॉग लक्ष्य '%s'."
 
 #: ../src/daemon/daemon-conf.c:231
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
-msgstr "[%s:%u] Nivell de registre incorrecte '%s'."
+msgstr "[%s:%u] अवैध लॉग स्तर '%s'."
 
 #: ../src/daemon/daemon-conf.c:247
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr "[%s:%u] Mètode de remostreig incorrecte '%s'."
+msgstr "[%s:%u] अवैध पुनः नमूना विधि '%s'."
 
 #: ../src/daemon/daemon-conf.c:270
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
-msgstr "[%s:%u] rlimit incorrecte '%s'."
+msgstr "[%s:%u] अवैध rlimit '%s'."
 
 #: ../src/daemon/daemon-conf.c:277
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
-msgstr "[%s:%u] rlimit no disponible en aquesta plataforma."
+msgstr "[%s:%u] rlimit इस प्लेटफॉर्म पर समर्थित नहीं."
 
 #: ../src/daemon/daemon-conf.c:293
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
-msgstr "[%s:%u] Format de mostra incorrecte '%s'."
+msgstr "[%s:%u] अवैध प्रतिदर्श प्रारूप '%s'."
 
 #: ../src/daemon/daemon-conf.c:311
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr "[%s:%u] Velocitat de mostreig '%s'."
+msgstr "[%s:%u] अवैध प्रतिदर्श दर '%s'."
 
 #: ../src/daemon/daemon-conf.c:335
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
-msgstr "[%s:%u] Canals de mostreig incorrectes '%s'."
+msgstr "[%s:%u] अवैध प्रतिदर्श चैनल '%s'."
 
 #: ../src/daemon/daemon-conf.c:353
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr "[%s:%u] Mapa de canals incorrecte '%s'."
+msgstr "[%s:%u] अवैध चैनल मानचित्र '%s'."
 
 #: ../src/daemon/daemon-conf.c:371
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr "[%s:%u] Nombre de fragments incorrecte '%s'."
+msgstr "[%s:%u] टुकड़े '%s' की अवैध संख्या."
 
 #: ../src/daemon/daemon-conf.c:389
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr "[%s:%u] Mida de fragment incorrecta '%s'."
+msgstr "[%s:%u] अवैध खंड आकार '%s'."
 
 #: ../src/daemon/daemon-conf.c:407
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr "[%s:%u] Nivell de prioritat incorrecte '%s'."
+msgstr "[%s:%u] अवैध नाइस स्तर '%s'."
 
 #: ../src/daemon/daemon-conf.c:522
 #, c-format
 msgid "Failed to open configuration file: %s"
-msgstr "Error en obrir el fitxer de configuració: %s"
+msgstr "विन्यास फ़ाइल खोलने में विफल: %s"
 
 #: ../src/daemon/daemon-conf.c:538
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
-msgstr ""
-"El mapa de canals especificat per omissió té un número de canals diferent "
-"del número de canals especificat per omissió."
+msgstr "निर्दिष्ट तयशुदा चैनल मानचित्र के पास चैनल की भिन्न संख्या है चैनल की तयशुदा निर्दिष्ट संख्या के बनिस्पत."
 
 #: ../src/daemon/daemon-conf.c:616
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
-msgstr "### Lectura del fitxer de configuració: %s ###\n"
+msgstr "### विन्यास फ़ाइल से पढ़ें: %s ###\n"
 
 #: ../src/daemon/caps.c:63
 msgid "Dropping root privileges."
-msgstr "Alliberant els privilegis de root."
+msgstr "रूट अधिकार छोड़ रहा है."
 
 #: ../src/daemon/caps.c:103
 msgid "Limited capabilities successfully to CAP_SYS_NICE."
-msgstr "S'han limitat les capacitats cap a CAP_SYS_NICE."
+msgstr "CAP_SYS_NICE में सीमित क्षमता सफलतापूर्वक."
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
-msgstr "Sistema de so PulseAudio"
+msgstr "पल्सऑडियो ध्वनि तंत्र"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
-msgstr "Inicialitza el sistema de so PulseAudio"
+msgstr "पल्सऑडियो ध्वनि तंत्र प्रारंभ करें"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:1
-msgid ""
-"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr "Programació d'alta prioritat (nivell Unix nice negatiu) per al dimoni PulseAudio"
+msgid "High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
+msgstr "उच्च प्राथमिकता अनुसूचन (negative Unix nice level) PulseAudio डेमॉन के लिए"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:2
 msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr "Programació en temps real per al dimoni PulseAudio"
+msgstr "पल्सऑडियो डेमॉन के लिए वास्तविक समय नियोजन"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:3
-msgid ""
-"System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr ""
-"Les normes d'ús del sistema no permeten PulseAudio adquirir programació d'alta prioritat."
+msgid "System policy prevents PulseAudio from acquiring high-priority scheduling."
+msgstr "तंत्र नीति PulseAudio को रोकती है उच्च प्राथमिकता अनुसूचन के लिए."
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:4
 msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr "Les normes d'ús del sistema no permeten la programació en temps real de PulseAudio."
+msgstr "तंत्र नीति PulseAudio को वास्तविक समय अनुसूचन पाने से रोकती है."
 
 #: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:804
 msgid "Mono"
-msgstr "Mono"
+msgstr "मोनो"
 
 #: ../src/pulse/channelmap.c:105
 msgid "Front Center"
-msgstr "Frontal central"
+msgstr "अग्र केंद्र"
 
 #: ../src/pulse/channelmap.c:106
 msgid "Front Left"
-msgstr "Frontal esquerra"
+msgstr "अग्र बायाँ"
 
 #: ../src/pulse/channelmap.c:107
 msgid "Front Right"
-msgstr "Frontal dreta"
+msgstr "अग्र दाहिना"
 
 #: ../src/pulse/channelmap.c:109
 msgid "Rear Center"
-msgstr "Posterior central"
+msgstr "पश्च केंद्र"
 
 #: ../src/pulse/channelmap.c:110
 msgid "Rear Left"
-msgstr "Posterior esquerra"
+msgstr "पश्च बायां"
 
 #: ../src/pulse/channelmap.c:111
 msgid "Rear Right"
-msgstr "Posterior dreta"
+msgstr "पश्च दाहिना"
 
 #: ../src/pulse/channelmap.c:113
 msgid "Low Frequency Emmiter"
-msgstr "Emissor de baixa freqüència"
+msgstr "निम्न आवृत्ति निकासकर्ता"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Front Left-of-center"
-msgstr "Frontal central part esquerra"
+msgstr "केंद्र का अग्र वाम"
 
 #: ../src/pulse/channelmap.c:116
 msgid "Front Right-of-center"
-msgstr "Frontal central part dreta"
+msgstr "केंद्र का अग्र दक्षिण"
 
 #: ../src/pulse/channelmap.c:118
 msgid "Side Left"
-msgstr "Lateral esquerra"
+msgstr "किनारा वाम"
 
 #: ../src/pulse/channelmap.c:119
 msgid "Side Right"
-msgstr "Lateral dreta"
+msgstr "किनारा दायाँ"
 
 #: ../src/pulse/channelmap.c:121
 msgid "Auxiliary 0"
-msgstr "Auxiliar 0"
+msgstr "सहायक 0"
 
 #: ../src/pulse/channelmap.c:122
 msgid "Auxiliary 1"
-msgstr "Auxiliar 1"
+msgstr "सहायक 1"
 
 #: ../src/pulse/channelmap.c:123
 msgid "Auxiliary 2"
-msgstr "Auxiliar 2"
+msgstr "सहायक 2"
 
 #: ../src/pulse/channelmap.c:124
 msgid "Auxiliary 3"
-msgstr "Auxiliar 3"
+msgstr "सहायक 3"
 
 #: ../src/pulse/channelmap.c:125
 msgid "Auxiliary 4"
-msgstr "Auxiliar 4"
+msgstr "सहायक 4"
 
 #: ../src/pulse/channelmap.c:126
 msgid "Auxiliary 5"
-msgstr "Auxiliar 5"
+msgstr "सहायक 5"
 
 #: ../src/pulse/channelmap.c:127
 msgid "Auxiliary 6"
-msgstr "Auxiliar 6"
+msgstr "सहायक 6"
 
 #: ../src/pulse/channelmap.c:128
 msgid "Auxiliary 7"
-msgstr "Auxiliar 7"
+msgstr "सहायक 7"
 
 #: ../src/pulse/channelmap.c:129
 msgid "Auxiliary 8"
-msgstr "Auxiliar 8"
+msgstr "सहायक 8"
 
 #: ../src/pulse/channelmap.c:130
 msgid "Auxiliary 9"
-msgstr "Auxiliar 9"
+msgstr "सहायक 9"
 
 #: ../src/pulse/channelmap.c:131
 msgid "Auxiliary 10"
-msgstr "Auxiliar 10"
+msgstr "सहायक 10"
 
 #: ../src/pulse/channelmap.c:132
 msgid "Auxiliary 11"
-msgstr "Auxiliar 11"
+msgstr "सहायक 11"
 
 #: ../src/pulse/channelmap.c:133
 msgid "Auxiliary 12"
-msgstr "Auxiliar 12"
+msgstr "सहायक 12"
 
 #: ../src/pulse/channelmap.c:134
 msgid "Auxiliary 13"
-msgstr "Auxiliar 13"
+msgstr "सहायक 13"
 
 #: ../src/pulse/channelmap.c:135
 msgid "Auxiliary 14"
-msgstr "Auxiliar 14"
+msgstr "सहायक 14"
 
 #: ../src/pulse/channelmap.c:136
 msgid "Auxiliary 15"
-msgstr "Auxiliar 15"
+msgstr "सहायक 15"
 
 #: ../src/pulse/channelmap.c:137
 msgid "Auxiliary 16"
-msgstr "Auxiliar 16"
+msgstr "सहायक 16"
 
 #: ../src/pulse/channelmap.c:138
 msgid "Auxiliary 17"
-msgstr "Auxiliar 17"
+msgstr "सहायक 17"
 
 #: ../src/pulse/channelmap.c:139
 msgid "Auxiliary 18"
-msgstr "Auxiliar 18"
+msgstr "सहायक 18"
 
 #: ../src/pulse/channelmap.c:140
 msgid "Auxiliary 19"
-msgstr "Auxiliar 19"
+msgstr "सहायक 19"
 
 #: ../src/pulse/channelmap.c:141
 msgid "Auxiliary 20"
-msgstr "Auxiliar 20"
+msgstr "सहायक 20"
 
 #: ../src/pulse/channelmap.c:142
 msgid "Auxiliary 21"
-msgstr "Auxiliar 21"
+msgstr "सहायक 21"
 
 #: ../src/pulse/channelmap.c:143
 msgid "Auxiliary 22"
-msgstr "Auxiliar 22"
+msgstr "सहायक 22"
 
 #: ../src/pulse/channelmap.c:144
 msgid "Auxiliary 23"
-msgstr "Auxiliar 23"
+msgstr "सहायक 23"
 
 #: ../src/pulse/channelmap.c:145
 msgid "Auxiliary 24"
-msgstr "Auxiliar 24"
+msgstr "सहायक 24"
 
 #: ../src/pulse/channelmap.c:146
 msgid "Auxiliary 25"
-msgstr "Auxiliar 25"
+msgstr "सहायक 25"
 
 #: ../src/pulse/channelmap.c:147
 msgid "Auxiliary 26"
-msgstr "Auxiliar 26"
+msgstr "सहायक 26"
 
 #: ../src/pulse/channelmap.c:148
 msgid "Auxiliary 27"
-msgstr "Auxiliar 27"
+msgstr "सहायक 27"
 
 #: ../src/pulse/channelmap.c:149
 msgid "Auxiliary 28"
-msgstr "Auxiliar 28"
+msgstr "सहायक 28"
 
 #: ../src/pulse/channelmap.c:150
 msgid "Auxiliary 29"
-msgstr "Auxiliar 31"
+msgstr "सहायक 29"
 
 #: ../src/pulse/channelmap.c:151
 msgid "Auxiliary 30"
-msgstr "Auxiliar 30"
+msgstr "सहायक 30"
 
 #: ../src/pulse/channelmap.c:152
 msgid "Auxiliary 31"
-msgstr "Auxiliar 31"
+msgstr "सहायक 31"
 
 #: ../src/pulse/channelmap.c:154
 msgid "Top Center"
-msgstr "Superior central"
+msgstr "शीर्ष केंद्र"
 
 #: ../src/pulse/channelmap.c:156
 msgid "Top Front Center"
-msgstr "Superior frontal central"
+msgstr "शीर्ष अग्र केंद्र"
 
 #: ../src/pulse/channelmap.c:157
 msgid "Top Front Left"
-msgstr "Superior frontal esquerra"
+msgstr "शीर्ष अग्र वाम"
 
 #: ../src/pulse/channelmap.c:158
 msgid "Top Front Right"
-msgstr "Superior frontal dreta"
+msgstr "ऊपर अग्र दायाँ"
 
 #: ../src/pulse/channelmap.c:160
 msgid "Top Rear Center"
-msgstr "Superior posterior central"
+msgstr "ऊपर पश्च केंद्र"
 
 #: ../src/pulse/channelmap.c:161
 msgid "Top Rear Left"
-msgstr "Superior posterior esquerra"
+msgstr "ऊपर पश्च बायाँ"
 
 #: ../src/pulse/channelmap.c:162
 msgid "Top Rear Right"
-msgstr "Superior posterior dreta"
+msgstr "ऊपर पश्च दायाँ"
 
 #: ../src/pulse/channelmap.c:476 ../src/pulse/sample.c:167
 #: ../src/pulse/volume.c:170 ../src/pulse/volume.c:196
 #: ../src/pulse/volume.c:216 ../src/pulse/volume.c:246
 msgid "(invalid)"
-msgstr "(incorrecte)"
+msgstr "(अवैध)"
 
 #: ../src/pulse/channelmap.c:808
 msgid "Stereo"
-msgstr "Estèreo"
+msgstr "स्टीरियो"
 
 #: ../src/pulse/channelmap.c:813
 msgid "Surround 4.0"
-msgstr "Envolvent 4.0"
+msgstr "सर्राउंड 4.0"
 
 #: ../src/pulse/channelmap.c:819
 msgid "Surround 4.1"
-msgstr "Envolvent 4.1"
+msgstr "सर्राउंड 4.1"
 
 #: ../src/pulse/channelmap.c:825
 msgid "Surround 5.0"
-msgstr "Envolvent 5.0"
+msgstr "सर्राउंड 5.0"
 
 #: ../src/pulse/channelmap.c:831
 msgid "Surround 5.1"
-msgstr "Envolvent 5.1"
+msgstr "सर्राउंड 5.1"
 
 #: ../src/pulse/channelmap.c:838
 msgid "Surround 7.1"
-msgstr "Envolvent 7.1"
+msgstr "सर्राउंड 7.1"
 
 #: ../src/pulse/error.c:43
 msgid "OK"
-msgstr "D'acord"
+msgstr "ठीक"
 
 #: ../src/pulse/error.c:44
 msgid "Access denied"
-msgstr "S'ha denegat l'accès"
+msgstr "पहुँच मनाही"
 
 #: ../src/pulse/error.c:45
 msgid "Unknown command"
-msgstr "Ordre desconeguda"
+msgstr "अनजान कमांड"
 
 #: ../src/pulse/error.c:46
 msgid "Invalid argument"
-msgstr "Argument incorrecte"
+msgstr "अवैध तर्क"
 
 #: ../src/pulse/error.c:47
 msgid "Entity exists"
-msgstr "L'entitat existeix"
+msgstr "एंटिटी मौजूद"
 
 #: ../src/pulse/error.c:48
 msgid "No such entity"
-msgstr "No existeix l'entitat"
+msgstr "कोई ऐसी एंटिटी नहीं"
 
 #: ../src/pulse/error.c:49
 msgid "Connection refused"
-msgstr "S'ha refusat la connexió"
+msgstr "कनेक्शन अस्वीकृत"
 
 #: ../src/pulse/error.c:50
 msgid "Protocol error"
-msgstr "S'ha produït un error de protocol"
+msgstr "प्रोटोकाल त्रुटि"
 
 #: ../src/pulse/error.c:51
 msgid "Timeout"
-msgstr "S'ha esgotat el temps"
+msgstr "समय ख़त्म"
 
 #: ../src/pulse/error.c:52
 msgid "No authorization key"
-msgstr "No s'ha trobat la clau d'autorització"
+msgstr "कोई प्राधिकरण कुंजी नहीं"
 
 #: ../src/pulse/error.c:53
 msgid "Internal error"
-msgstr "S'ha produït un error intern"
+msgstr "आंतरिक त्रुटि"
 
 #: ../src/pulse/error.c:54
 msgid "Connection terminated"
-msgstr "S'ha finalitzat la connexió"
+msgstr "कनेक्शन समाप्त"
 
 #: ../src/pulse/error.c:55
 msgid "Entity killed"
-msgstr "S'ha matat l'entitat"
+msgstr "एंटिटी मृत"
 
 #: ../src/pulse/error.c:56
 msgid "Invalid server"
-msgstr "Servidor incorrecte"
+msgstr "अवैध सर्वर"
 
 #: ../src/pulse/error.c:57
 msgid "Module initalization failed"
-msgstr "Ha fallat la inicialització del mòdul"
+msgstr "मॉडयूल आरंभीकरण असफल"
 
 #: ../src/pulse/error.c:58
 msgid "Bad state"
-msgstr "Estat incorrecte"
+msgstr "बुरी स्थिति"
 
 #: ../src/pulse/error.c:59
 msgid "No data"
-msgstr "Sense dades"
+msgstr "कोई आँकड़ा नहीं"
 
 #: ../src/pulse/error.c:60
 msgid "Incompatible protocol version"
-msgstr "Versió de protocol incorrecta"
+msgstr "बेमेल प्रोटोकॉल संस्करण"
 
 #: ../src/pulse/error.c:61
 msgid "Too large"
-msgstr "Massa gran"
+msgstr "काफी बड़ा"
 
 #: ../src/pulse/error.c:62
 msgid "Not supported"
-msgstr "No suportat"
+msgstr "समर्थित नहीं है"
 
 #: ../src/pulse/error.c:63
 msgid "Unknown error code"
-msgstr "Codi d'error desconegut"
+msgstr "अज्ञात त्रुटि कोड"
 
 #: ../src/pulse/error.c:64
 msgid "No such extension"
-msgstr "No existeix l'extensió"
+msgstr "कोई ऐसा विस्तार नहीं"
 
 #: ../src/pulse/error.c:65
 msgid "Obsolete functionality"
-msgstr "Funcionalitat obsoleta"
+msgstr "पुरानी प्रकार्यात्मकता"
 
 #: ../src/pulse/error.c:66
 msgid "Missing implementation"
-msgstr "Manca la implementació"
+msgstr "अनुपस्थित कार्यान्वयन"
 
 #: ../src/pulse/error.c:67
 msgid "Client forked"
-msgstr "Client bifurcat"
+msgstr "क्लाएंट विभाजित"
 
 #: ../src/pulse/sample.c:169
 #, c-format
@@ -1244,17 +1202,17 @@ msgstr "%s %uch %uHz"
 #: ../src/pulse/sample.c:181
 #, c-format
 msgid "%0.1f GiB"
-msgstr "%0.1f GB"
+msgstr "%0.1f GiB"
 
 #: ../src/pulse/sample.c:183
 #, c-format
 msgid "%0.1f MiB"
-msgstr "%0.1f MB"
+msgstr "%0.1f MiB"
 
 #: ../src/pulse/sample.c:185
 #, c-format
 msgid "%0.1f KiB"
-msgstr "%0.1f KB"
+msgstr "%0.1f KiB"
 
 #: ../src/pulse/sample.c:187
 #, c-format
@@ -1263,20 +1221,20 @@ msgstr "%u B"
 
 #: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
 msgid "XOpenDisplay() failed"
-msgstr "Ha fallat XOpenDisplay()"
+msgstr "XOpenDisplay() विफल"
 
 #: ../src/pulse/client-conf-x11.c:78
 msgid "Failed to parse cookie data"
-msgstr "Ha fallat el parseig de les dades de la cookie"
+msgstr "कुकी आंकड़ा के विश्लेषण में विफल"
 
 #: ../src/pulse/client-conf.c:120
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
-msgstr "S'ha produït un error en obrir el fitxer de configuració '%s': %s"
+msgstr "विन्यास फ़ाइल '%s' खोलने में विफल: %s"
 
 #: ../src/pulse/context.c:539
 msgid "No cookie loaded. Attempting to connect without."
-msgstr "No s'ha carregat cap cookie. S'està intentant connectar sense aquesta."
+msgstr "कोई कुकी नहीं लोड किया गया. इसके बिना कनेक्ट करने की कोशिश कर रहा हूँ."
 
 #: ../src/pulse/context.c:669
 #, c-format
@@ -1291,138 +1249,137 @@ msgstr "waitpid(): %s"
 #: ../src/pulse/context.c:1387
 #, c-format
 msgid "Received message for unknown extension '%s'"
-msgstr "S'ha rebut un missatge per a una extensió desconeguda '%s'"
+msgstr "अज्ञात विस्तार '%s' के लिए संदेश प्राप्त"
 
 #: ../src/utils/pacat.c:94
 #, c-format
 msgid "pa_stream_write() failed: %s\n"
-msgstr "Ha fallat pa_stream_write(): %s\n"
+msgstr "pa_stream_write() विफल: %s\n"
 
 #: ../src/utils/pacat.c:133
 #, c-format
 msgid "pa_stream_peek() failed: %s\n"
-msgstr "Ha fallat pa_stream_peek(): %s\n"
+msgstr "pa_stream_peek() विफल: %s\n"
 
 #: ../src/utils/pacat.c:169
 #, c-format
 msgid "Stream successfully created.\n"
-msgstr "Flux creat correctament.\n"
+msgstr "स्ट्रीम सफलतापूर्वक निर्मित.\n"
 
 #: ../src/utils/pacat.c:172
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s\n"
-msgstr "Ha fallat pa_stream_get_buffer_attr(): %s\n"
+msgstr "pa_stream_get_buffer_attr() विफल: %s\n"
 
 #: ../src/utils/pacat.c:176
 #, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
-msgstr "Mètriques del búffer: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
+msgstr "बफ़र मेट्रिक्स: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
 
 #: ../src/utils/pacat.c:179
 #, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u\n"
-msgstr "Mètriques del búffer: maxlength=%u, fragsize=%u\n"
+msgstr "बफ़र मेट्रिक्स: maxlength=%u, fragsize=%u\n"
 
 #: ../src/utils/pacat.c:183
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'.\n"
-msgstr ""
-"S'estan utilitzant les especificacions de mostreig '%s', mapejat del canal '%s'.\n"
+msgstr "नमूना स्पेक '%s' का प्रयोग, चैनल मैप '%s'.\n"
 
 #: ../src/utils/pacat.c:187
 #, c-format
 msgid "Connected to device %s (%u, %ssuspended).\n"
-msgstr "S'ha connectat al dispositiu %s (%u, %ssuspés).\n"
+msgstr "युक्ति %s (%u, %ssuspended) से कनेक्टेड.\n"
 
 #: ../src/utils/pacat.c:197
 #, c-format
 msgid "Stream error: %s\n"
-msgstr "S'ha produït un error en l'stream: %s\n"
+msgstr "स्ट्रीम त्रुटि: %s\n"
 
 #: ../src/utils/pacat.c:207
 #, c-format
 msgid "Stream device suspended.%s \n"
-msgstr "Flux del dispositiu suspés.%s\n"
+msgstr "स्ट्रीम युक्ति स्थगित.%s \n"
 
 #: ../src/utils/pacat.c:209
 #, c-format
 msgid "Stream device resumed.%s \n"
-msgstr "Flux del dispositiu représ.%s\n"
+msgstr "स्ट्रीम युक्ति पुनर्बहाल.%s \n"
 
 #: ../src/utils/pacat.c:217
 #, c-format
 msgid "Stream underrun.%s \n"
-msgstr "Dades insuficients al flux .%s\n"
+msgstr "स्ट्रीम अंडररन.%s \n"
 
 #: ../src/utils/pacat.c:224
 #, c-format
 msgid "Stream overrun.%s \n"
-msgstr "Desbordament de flux.%s\n"
+msgstr "स्ट्रीम ओवररन.%s \n"
 
 #: ../src/utils/pacat.c:231
 #, c-format
 msgid "Stream started.%s \n"
-msgstr "S'ha iniciat el flux.%s\n"
+msgstr "स्ट्रीम आरंभ.%s \n"
 
 #: ../src/utils/pacat.c:238
 #, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s \n"
-msgstr "S'ha mogut el flux al dispositiu %s (%u, %ssuspés).%s\n"
+msgstr "स्ट्रीम युक्ति %s (%u, %ssuspended).%s में खिसकाया गया \n"
 
 #: ../src/utils/pacat.c:238
 msgid "not "
-msgstr "no"
+msgstr "नहीं "
 
 #: ../src/utils/pacat.c:245
 #, c-format
 msgid "Stream buffer attributes changed.%s \n"
-msgstr "Atributs del fluxe de la memòria intermèdia canviats.%s \n"
+msgstr "स्ट्रीम बफ़र गुण परिवर्तित.%s \n"
 
 #: ../src/utils/pacat.c:278
 #, c-format
 msgid "Connection established.%s \n"
-msgstr "S'ha establert la connexió.%s\n"
+msgstr "कनेक्शन स्थापित.%s \n"
 
 #: ../src/utils/pacat.c:281
 #, c-format
 msgid "pa_stream_new() failed: %s\n"
-msgstr "Ha fallat pa_stream_new(): %s\n"
+msgstr "pa_stream_new() विफल: %s\n"
 
 #: ../src/utils/pacat.c:309
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s\n"
-msgstr "Ha fallat pa_stream_connect_playback(): %s\n"
+msgstr "pa_stream_connect_playback() विफल: %s\n"
 
 #: ../src/utils/pacat.c:315
 #, c-format
 msgid "pa_stream_connect_record() failed: %s\n"
-msgstr "Ha fallat pa_stream_connect_record(): %s\n"
+msgstr "pa_stream_connect_record() विफल: %s\n"
 
 #: ../src/utils/pacat.c:329 ../src/utils/pasuspender.c:159
 #: ../src/utils/pactl.c:762 ../src/utils/paplay.c:183
 #, c-format
 msgid "Connection failure: %s\n"
-msgstr "Ha fallat la connexió: %s\n"
+msgstr "कनेक्शन विफल.%s \n"
 
 #: ../src/utils/pacat.c:349 ../src/utils/paplay.c:75
 #, c-format
 msgid "Failed to drain stream: %s\n"
-msgstr "S'ha produït un error en drenar el fluxe: %s\n"
+msgstr "Failed to drain stream: %s\n"
 
 #: ../src/utils/pacat.c:354 ../src/utils/paplay.c:80
 #, c-format
 msgid "Playback stream drained.\n"
-msgstr "Flux de reproducció drenat.\n"
+msgstr "प्लेबैक स्ट्रीम खत्म.\n"
 
 #: ../src/utils/pacat.c:364 ../src/utils/paplay.c:92
 #, c-format
 msgid "Draining connection to server.\n"
-msgstr "S'està drenant la connexió amb el servidor.\n"
+msgstr "सर्वर में कनेक्शन ले जा रहा है.\n"
 
 #: ../src/utils/pacat.c:390
 #, c-format
 msgid "Got EOF.\n"
-msgstr "S'ha llegit EOF.\n"
+msgstr "EOF पाया.\n"
 
 #: ../src/utils/pacat.c:396
 #, c-format
@@ -1432,32 +1389,32 @@ msgstr "pa_stream_drain(): %s\n"
 #: ../src/utils/pacat.c:406
 #, c-format
 msgid "read() failed: %s\n"
-msgstr "Ha fallat read(): %s\n"
+msgstr "read() विफल: %s\n"
 
 #: ../src/utils/pacat.c:438
 #, c-format
 msgid "write() failed: %s\n"
-msgstr "Ha fallat write(): %s\n"
+msgstr "write() विफल: %s\n"
 
 #: ../src/utils/pacat.c:459
 #, c-format
 msgid "Got signal, exiting.\n"
-msgstr "S'ha rebut un senyal, s'està sortint.\n"
+msgstr "संकेत पाया, निकल रहा है.\n"
 
 #: ../src/utils/pacat.c:473
 #, c-format
 msgid "Failed to get latency: %s\n"
-msgstr "No s'ha pogut obtenir la latència: %s\n"
+msgstr "Failed to get latency: %s\n"
 
 #: ../src/utils/pacat.c:478
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
-msgstr "Temps: %0.3f segs; Latència: %0.0f microsegs.\r"
+msgstr "समय: %0.3f sec; लैटेंसी: %0.0f usec.  \r"
 
 #: ../src/utils/pacat.c:498
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s\n"
-msgstr "Ha fallat pa_stream_update_timing_info(): %s\n"
+msgstr "pa_stream_update_timing_info() विफल: %s\n"
 
 #: ../src/utils/pacat.c:511
 #, c-format
@@ -1511,47 +1468,54 @@ msgid ""
 "      --process-time=BYTES              Request the specified process time "
 "per request in bytes.\n"
 msgstr ""
-"%s [opcions]\n"
+"%s [options]\n"
 "\n"
-"  -h, --help                            Mostra aquesta ajuda\n"
-"      --version                         Mostra la versió\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
 "\n"
-"  -r, --record                          Crea una connexió per a l'enregistrament\n"
-"  -p, --playback                        Crea una connexió per a la reproducció\n"
+"  -r, --record                          Create a connection for recording\n"
+"  -p, --playback                        Create a connection for playback\n"
 "\n"
-"  -v, --verbose                         Habilita les operacions detallades\n"
+"  -v, --verbose                         Enable verbose operations\n"
 "\n"
-"  -s, --server=SERVIDOR                 Nom del servidor al qual connectar-se\n"
-"  -d, --device=DISPOSITIU               Nom del conducte/font al qual connectar-se\n"
-"  -n, --client-name=NOM                 Com cridar aquest client al servidor\n"
-"      --stream-name=NOM                 Com cridar aquest flux al servidor\n"
-"      --volume=VOLUM                    Especifica el volum inicial lineal dins el rang 0...65536\n"
-"      --rate=VELOCITATMOSTREIG          La velocitat de mostreig en Hz (per "
-"omissió, 44100)\n"
-"      --format=FORMATMOSTRA             El tipus de mostra, una de s16le, "
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -d, --device=DEVICE                   The name of the sink/source to "
+"connect to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
+"44100)\n"
+"      --format=SAMPLEFORMAT             The sample type, one of s16le, "
 "s16be, u8, float32le,\n"
 "                                        float32be, ulaw, alaw, s32le, s32be "
-"(per omissió, s16ne)\n"
-"      --channels=CANALS                 Número de canals, 1 per a mono, 2 "
-"per a estèreo\n"
-"                                        (per omissió, 2)\n"
-"      --channel-map=MAPACANAL           Mapa de canals a utilitzar\n"
-"      --fix-format                      Pren el format de mostra del "
-"conducte al qual s'està connectant\n"
-"                                        el flux.\n"
-"      --fix-rate                        Pren la velocitat de mostreig del "
-"conducte al qual\n"
-"                                        s'està connectant el flux.\n"
-"      --fix-channels                    Pren el número de canals i el mapa "
-"de canals del\n"
-"                                        conducte al qual s'està connectant "
-"el flux.\n"
-"      --no-remix                        No barregis els canals.\n"
-"      --no-remap                        Mapeja els canals per índex en comptes "
-"de per nom .\n"
-"      --latency=BYTES                   Sol·licita la latència en bytes.\n"
-"      --process-time=BYTES              Sol·licita el temps de procés per "
-"petició en bytes.\n"
+"(defaults to s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, "
+"2 for stereo\n"
+"                                        (defaults to 2)\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the "
+"default\n"
+"      --fix-format                      Take the sample format from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-rate                        Take the sampling rate from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-channels                    Take the number of channels and the "
+"channel map\n"
+"                                        from the sink the stream is being "
+"connected to.\n"
+"      --no-remix                        Don't upmix or downmix channels.\n"
+"      --no-remap                        Map channels by index instead of "
+"name.\n"
+"      --latency=BYTES                   Request the specified latency in "
+"bytes.\n"
+"      --process-time=BYTES              Request the specified process time "
+"per request in bytes.\n"
 
 #: ../src/utils/pacat.c:612
 #, c-format
@@ -1561,46 +1525,46 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 "pacat %s\n"
-"Compilat amb libpulse %s\n"
-"Enllaçat amb libpulse %s\n"
+"लिबपल्स %s के साथ कंपाइल\n"
+"लिबपल्स %s के साथ लिंक\n"
 
 #: ../src/utils/pacat.c:669
 #, c-format
 msgid "Invalid channel map '%s'\n"
-msgstr "Mapa de canals invàlid '%s'\n"
+msgstr "अवैध चैनल मानचित्र '%s'\n"
 
 #: ../src/utils/pacat.c:698
 #, c-format
 msgid "Invalid latency specification '%s'\n"
-msgstr "Especificació de latència invàlida '%s'\n"
+msgstr "अवैध लैटेंसी विनिर्दिष्टता '%s'\n"
 
 #: ../src/utils/pacat.c:705
 #, c-format
 msgid "Invalid process time specification '%s'\n"
-msgstr "Especificació de temps de procés invàlida '%s'\n"
+msgstr "अवैध प्रक्रिया समय विनिर्दिष्टता '%s'\n"
 
 #: ../src/utils/pacat.c:716
 #, c-format
 msgid "Invalid sample specification\n"
-msgstr "Especificació de mostra invàlida\n"
+msgstr "अवैध नमूना विनिर्दिष्टता\n"
 
 #: ../src/utils/pacat.c:721
 #, c-format
 msgid "Channel map doesn't match sample specification\n"
-msgstr "El mapa de canals no coincideix amb l'especificació de mostra\n"
+msgstr "चैनल मानचित्र नमूना विनिर्दिष्टता के मेल नहीं खाता\n"
 
 #: ../src/utils/pacat.c:728
 #, c-format
 msgid "Opening a %s stream with sample specification '%s'.\n"
-msgstr "S'està obrint un flux %s amb especificació de mostra '%s'.\n"
+msgstr "%s स्ट्रीम को किसी नमूना विनिर्दिष्टता '%s' के साथ खोल रहा है.\n"
 
 #: ../src/utils/pacat.c:728
 msgid "recording"
-msgstr "enregistrant"
+msgstr "रिकार्डिंग"
 
 #: ../src/utils/pacat.c:728
 msgid "playback"
-msgstr "reproducció"
+msgstr "प्लेबैक"
 
 #: ../src/utils/pacat.c:736
 #, c-format
@@ -1615,41 +1579,41 @@ msgstr "dup2(): %s\n"
 #: ../src/utils/pacat.c:751
 #, c-format
 msgid "Too many arguments.\n"
-msgstr "Hi han massa arguments.\n"
+msgstr "कई वितर्क.\n"
 
 #: ../src/utils/pacat.c:764 ../src/utils/pasuspender.c:280
 #: ../src/utils/pactl.c:1017 ../src/utils/paplay.c:381
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
-msgstr "Ha fallat pa_mainloop_new().\n"
+msgstr "pa_mainloop_new() विफल.\n"
 
 #: ../src/utils/pacat.c:785
 #, c-format
 msgid "io_new() failed.\n"
-msgstr "Ha fallat io_new().\n"
+msgstr "io_new() विफल.\n"
 
 #: ../src/utils/pacat.c:791 ../src/utils/pasuspender.c:293
 #: ../src/utils/pactl.c:1031 ../src/utils/paplay.c:396
 #, c-format
 msgid "pa_context_new() failed.\n"
-msgstr "Ha fallat pa_context_new().\n"
+msgstr "pa_context_new() विफल.\n"
 
 #: ../src/utils/pacat.c:799 ../src/utils/pactl.c:1037
 #: ../src/utils/paplay.c:404
 #, c-format
 msgid "pa_context_connect() failed: %s"
-msgstr "Ha fallat pa_context_connect(): %s"
+msgstr "pa_context_connect() विफल: %s"
 
 #: ../src/utils/pacat.c:810
 #, c-format
 msgid "time_new() failed.\n"
-msgstr "Ha fallat time_new().\n"
+msgstr "time_new() विफल.\n"
 
 #: ../src/utils/pacat.c:817 ../src/utils/pasuspender.c:301
 #: ../src/utils/pactl.c:1042 ../src/utils/paplay.c:410
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
-msgstr "Ha fallat pa_mainloop_run().\n"
+msgstr "pa_mainloop_run() विफल.\n"
 
 #: ../src/utils/pasuspender.c:81
 #, c-format
@@ -1664,28 +1628,28 @@ msgstr "execvp(): %s\n"
 #: ../src/utils/pasuspender.c:109
 #, c-format
 msgid "Failure to suspend: %s\n"
-msgstr "No s'ha pogut suspendre: %s\n"
+msgstr "स्थगन में विफल: %s\n"
 
 #: ../src/utils/pasuspender.c:124
 #, c-format
 msgid "Failure to resume: %s\n"
-msgstr "No s'ha pogut en rependre: %s\n"
+msgstr "पुनर्बहाली में विफल: %s\n"
 
 #: ../src/utils/pasuspender.c:147
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
-msgstr "ADVERTÈNCIA: el sevidor de so no és local, no s'està suspenent.\n"
+msgstr "चेतावनी: ध्वनि सर्वर स्थानीय नहीं है, स्थगित नहीं कर रहा है.\n"
 
 #: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:768
 #: ../src/utils/paplay.c:191
 #, c-format
 msgid "Got SIGINT, exiting.\n"
-msgstr "S'ha rebut SIGINT, s'està sortint.\n"
+msgstr "SIGINT पाया, निकल रहा है.\n"
 
 #: ../src/utils/pasuspender.c:194
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr "ADVERTÈNCIA: procés fill acabat pel senyal %u\n"
+msgstr "चेतावनी: संतति प्रक्रिया %u संकेत से रूका\n"
 
 #: ../src/utils/pasuspender.c:212
 #, c-format
@@ -1698,12 +1662,12 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [opcions] ... \n"
+"%s [options] ... \n"
 "\n"
-"  -h, --help                            Mostra aquesta ajuda\n"
-"      --version                         Mostra la versió\n"
-"  -s, --server=SERVIDOR                 Nom del servidor al qual connectar-"
-"se\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
 "\n"
 
 #: ../src/utils/pasuspender.c:251
@@ -1714,34 +1678,33 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 "pasuspender %s\n"
-"Compilat amb libpulse %s\n"
-"Enllaçat amb libpulse %s\n"
+"लिबपल्स %s से कंपाइल\n"
+"लिबपल्स %s से कड़ीबद्ध\n"
 
 #: ../src/utils/pactl.c:108
 #, c-format
 msgid "Failed to get statistics: %s\n"
-msgstr "No s'han pogut obtenir les estadístiques: %s\n"
+msgstr "आंकड़े पाने में विफल: %s\n"
 
 #: ../src/utils/pactl.c:114
 #, c-format
 msgid "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr "Actualment s'estan utilitzant: %u blocs que contenen %s bytes en total.\n"
+msgstr "प्रयोग में मुद्रा: %u ब्लॉक %s बाइट कुल समाहित करता है.\n"
 
 #: ../src/utils/pactl.c:117
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr ""
-"Allotjats durant el temps de vida: %u blocs que contenen %s bytes en total.\n"
+msgstr "संपूर्ण जीवनचक्र के दौरान आबंटित: %u ब्लॉक %s बाइट कुल को समाहित करता है.\n"
 
 #: ../src/utils/pactl.c:120
 #, c-format
 msgid "Sample cache size: %s\n"
-msgstr "Mida de la memòria cau de mostres: %s\n"
+msgstr "नमूना कैश आकार: %s\n"
 
 #: ../src/utils/pactl.c:129
 #, c-format
 msgid "Failed to get server information: %s\n"
-msgstr "No s'ha pogut obtenir la informació del servidor: %s\n"
+msgstr "सर्वर सूचना पाने में विफल: %s\n"
 
 #: ../src/utils/pactl.c:137
 #, c-format
@@ -1756,20 +1719,20 @@ msgid ""
 "Default Source: %s\n"
 "Cookie: %08x\n"
 msgstr ""
-"Nom d'usuari: %s\n"
-"Nom del host: %s\n"
-"Nom del servidor: %s\n"
-"Versió del servidor: %s\n"
-"Especificació per omissió de la mostra: %s\n"
-"Mapa de canals per omissió: %s\n"
-"Conducte per omissió: %s\n"
-"Font per omissió: %s\n"
-"Galeta: %08x\n"
+"उपयोक्ता नाम: %s\n"
+"मेजबान नाम: %s\n"
+"सर्वर नाम: %s\n"
+"सर्वर संस्करण: %s\n"
+"तयशुदा नमूना विनिर्दिष्टता: %s\n"
+"तयशुदा चैनल मानचित्र: %s\n"
+"तयशुदा सिंक: %s\n"
+"तयशुदा स्रोत: %s\n"
+"कुकी: %08x\n"
 
 #: ../src/utils/pactl.c:178
 #, c-format
 msgid "Failed to get sink information: %s\n"
-msgstr "No s'ha pogut obtenir la informació del conducte: %s\n"
+msgstr "सिंक सूचना पाने में विफल: %s\n"
 
 #: ../src/utils/pactl.c:194
 #, c-format
@@ -1792,28 +1755,28 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Conducte #%u\n"
-"\tEstat: %s\n"
-"\tNom: %s\n"
-"\tDescripció: %s\n"
-"\tControlador: %s\n"
-"\tEspecificació de mostra: %s\n"
-"\tMapa de canals: %s\n"
-"\tPropietari del mòdul: %u\n"
-"\tSilenciat: %s\n"
-"\tVolum: %s%s%s\n"
-"\t        balanceig %0.2f\n"
-"\tVolum bàsic: %s%s%s\n"
-"\tFont del monitor: %s\n"
-"\tLatència: %0.0f microsegs., configurat %0.0f microsegs\n"
-"\tModificadors: %s%s%s%s%s%s\n"
-"\tPropietats:\n"
+"Sink #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s%s%s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s%s%s\n"
+"\tMonitor Source: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:258
 #, c-format
 msgid "Failed to get source information: %s\n"
-msgstr "No s'ha pogut obtenir la informació de la font: %s\n"
+msgstr "स्रोत सूचना पाने में विफल: %s\n"
 
 #: ../src/utils/pactl.c:274
 #, c-format
@@ -1836,22 +1799,22 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Font #%u\n"
-"\tEstat: %s\n"
-"\tNom: %s\n"
-"\tDescripció: %s\n"
-"\tControlador: %s\n"
-"\tEspecificació de mostra: %s\n"
-"\tMapa de canals: %s\n"
-"\tPropietari del mòdul: %u\n"
-"\tSilenciat: %s\n"
-"\tVolum: %s%s%s\n"
-"\t        balanceig %0.2f\n"
-"\tVolum bàsic: %s%s%s\n"
-"\tMonitor del conducte: %s\n"
-"\tLatència: %0.0f microsegs., configurat %0.0f microsegs.\n"
+"Source #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s%s%s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s%s%s\n"
+"\tMonitor of Sink: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
 "\tFlags: %s%s%s%s%s%s\n"
-"\tPropietats:\n"
+"\tProperties:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:306 ../src/utils/pactl.c:350 ../src/utils/pactl.c:385
@@ -1860,12 +1823,12 @@ msgstr ""
 #: ../src/utils/pactl.c:543 ../src/utils/pactl.c:586 ../src/utils/pactl.c:587
 #: ../src/utils/pactl.c:594
 msgid "n/a"
-msgstr "n/d"
+msgstr "n/a"
 
 #: ../src/utils/pactl.c:324
 #, c-format
 msgid "Failed to get module information: %s\n"
-msgstr "No s'ha pogut obtenir informació del mòdul: %s\n"
+msgstr "मॉड्यूल सूचना पाने में विफल: %s\n"
 
 #: ../src/utils/pactl.c:342
 #, c-format
@@ -1877,17 +1840,17 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Mòdul #%u\n"
-"\tNom: %s\n"
-"\tArguments: %s\n"
-"\tContador d'utilització: %s\n"
-"\tPropietats:\n"
+"Module #%u\n"
+"\tName: %s\n"
+"\tArgument: %s\n"
+"\tUsage counter: %s\n"
+"\tProperties:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:361
 #, c-format
 msgid "Failed to get client information: %s\n"
-msgstr "No s'ha pogut obtenir informació del client: %s\n"
+msgstr "क्लाइंट सूचना पाने में विफल: %s\n"
 
 #: ../src/utils/pactl.c:379
 #, c-format
@@ -1899,15 +1862,15 @@ msgid ""
 "\t\t%s\n"
 msgstr ""
 "Client #%u\n"
-"\tControlador: %s\n"
-"\tPropietari del mòdul: %s\n"
-"\tPropietats:\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:396
 #, c-format
 msgid "Failed to get card information: %s\n"
-msgstr "No s'ha pogut obtenir la informació de la targeta: %s\n"
+msgstr "कार्ड सूचना पाने में विफल: %s\n"
 
 #: ../src/utils/pactl.c:414
 #, c-format
@@ -1919,27 +1882,27 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Targeta #%u\n"
-"\tNom: %s\n"
-"\tControlador: %s\n"
-"\tPropietari del mòdul: %s\n"
-"\tPropietats:\n"
+"Card #%u\n"
+"\tName: %s\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:428
 #, c-format
 msgid "\tProfiles:\n"
-msgstr "\tPerfils:\n"
+msgstr "\tProfiles:\n"
 
 #: ../src/utils/pactl.c:434
 #, c-format
 msgid "\tActive Profile: %s\n"
-msgstr "\tPerfil actiu: %s\n"
+msgstr "\tActive Profile: %s\n"
 
 #: ../src/utils/pactl.c:445
 #, c-format
 msgid "Failed to get sink input information: %s\n"
-msgstr "No s'ha pogut obtenir informació del conducte d'entrada: %s\n"
+msgstr "सिंक इनपुट सूचना पाने में विफल: %s\n"
 
 #: ../src/utils/pactl.c:464
 #, c-format
@@ -1961,27 +1924,27 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Conducte d'entrada #%u\n"
-"\tControlador: %s\n"
-"\tPropietari del mòdul: %s\n"
+"Sink Input #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
 "\tClient: %s\n"
-"\tConducte: %u\n"
-"\tEspecificació de mostra: %s\n"
-"\tMapa de canals: %s\n"
-"\tSilenciat: %s\n"
-"\tVolum: %s\n"
+"\tSink: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
 "\t        %s\n"
-"\t        balanç %0.2f\n"
-"\tLatència de búffer: %0.0f microsegs.\n"
-"\tLatència del conducte: %0.0f microsegs.\n"
-"\tMètode de remostreig: %s\n"
-"\tPropietats:\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSink Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:503
 #, c-format
 msgid "Failed to get source output information: %s\n"
-msgstr "No s'ha pogut obtenir la informació del conducte de sortida: %s\n"
+msgstr "स्रोत आउटपुट सूचना पाने में विफल: %s\n"
 
 #: ../src/utils/pactl.c:523
 #, c-format
@@ -1999,23 +1962,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Sortida de la font #%u\n"
-"\tControladr: %s\n"
-"\tPropietari del mòdul: %s\n"
+"Source Output #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
 "\tClient: %s\n"
-"\tFont: %u\n"
-"\tEspecificació de mostra: %s\n"
-"\tMapa de canals: %s\n"
-"\tLatència de búffer: %0.0f microsegs.\n"
-"\tLatència de la font: %0.0f microsegs.\n"
-"\tMètode de remostreig: %s\n"
-"\tPropietats:\n"
+"\tSource: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSource Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:554
 #, c-format
 msgid "Failed to get sample information: %s\n"
-msgstr "No s'ha pogut obtenir informació de la mostra: %s\n"
+msgstr "नमूना सूचना पाने में विफल: %s\n"
 
 #: ../src/utils/pactl.c:572
 #, c-format
@@ -2034,34 +1997,34 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Mostra #%u\n"
-"\tNom: %s\n"
-"\ttEspecificació de mostra: %s\n"
-"\tMapa de canals: %s\n"
-"\tVolum: %s\n"
-"\t         %s\n"
-"\t         balanceig %0.2f\n"
-"\tDuració: %0.1fs\n"
-"\tMida: %s\n"
+"Sample #%u\n"
+"\tName: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tVolume: %s\n"
+"\t        %s\n"
+"\t        balance %0.2f\n"
+"\tDuration: %0.1fs\n"
+"\tSize: %s\n"
 "\tLazy: %s\n"
-"\tNom de fitxer: %s\n"
-"\tPropietats:\n"
+"\tFilename: %s\n"
+"\tProperties:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:602 ../src/utils/pactl.c:612
 #, c-format
 msgid "Failure: %s\n"
-msgstr "Ha fallat: %s\n"
+msgstr "विफलता: %s\n"
 
 #: ../src/utils/pactl.c:636
 #, c-format
 msgid "Failed to upload sample: %s\n"
-msgstr "No s'ha pogut pujar la mostra: %s\n"
+msgstr "नमूना अफलोड करने में विफल: %s\n"
 
 #: ../src/utils/pactl.c:653
 #, c-format
 msgid "Premature end of file\n"
-msgstr "S'ha trobat un fi de fitxer prematurament\n"
+msgstr "फ़ाइल का असामयिक अंत\n"
 
 #: ../src/utils/pactl.c:774
 #, c-format
@@ -2088,27 +2051,27 @@ msgid ""
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 msgstr ""
-"%s [opcions] stat\n"
-"%s [opcions] list\n"
-"%s [opcions] exit\n"
-"%s [opcions] upload-sample NOMFITXER [NOM]\n"
-"%s [opcions] play-sample NOM [CONDUCTE]\n"
-"%s [opcions] remove-sample NOM\n"
-"%s [opcions] move-sink-input ID CONDUCTE\n"
-"%s [opcions] move-source-output ID FONT\n"
-"%s [opcions] load-module NOM [ARGS ...]\n"
-"%s [opcions] unload-module ID\n"
-"%s [opcions] suspend-sink [CONDUCTE] 1|0\n"
-"%s [opcions] suspend-source [FONT] 1|0\n"
-"%s [opcions] set-card-profile [TARGETA] [PERFIL] \n"
+"%s [options] stat\n"
+"%s [options] list\n"
+"%s [options] exit\n"
+"%s [options] upload-sample FILENAME [NAME]\n"
+"%s [options] play-sample NAME [SINK]\n"
+"%s [options] remove-sample NAME\n"
+"%s [options] move-sink-input ID SINK\n"
+"%s [options] move-source-output ID SOURCE\n"
+"%s [options] load-module NAME [ARGS ...]\n"
+"%s [options] unload-module ID\n"
+"%s [options] suspend-sink [SINK] 1|0\n"
+"%s [options] suspend-source [SOURCE] 1|0\n"
+"%s [options] set-card-profile [CARD] [PROFILE] \n"
 "\n"
-"  -h, --help                            Mostra aquesta ajuda\n"
-"      --version                         Mostra la versió\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
 "\n"
-"  -s, --server=SERVIDOR                 Nom del servidor al qual connectar-"
-"se\n"
-"  -n, --client-name=NOM                 Com cridar aquest client al "
-"servidor\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
 
 #: ../src/utils/pactl.c:826
 #, c-format
@@ -2118,75 +2081,72 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 "pactl %s\n"
-"Compilat amb libpulse %s\n"
-"Enllaçat amb libpulse %s\n"
+"लिबपल्स %s से कंपाइल\n"
+"लिबपल्स %s से कड़ीबद्ध\n"
 
 #: ../src/utils/pactl.c:865
 #, c-format
 msgid "Please specify a sample file to load\n"
-msgstr "Especifiqueu un fitxer de mostra per a carregar\n"
+msgstr "लोड करने के लिए किसी नमूना फ़ाइल निर्दिष्ट करें\n"
 
 #: ../src/utils/pactl.c:887
 #, c-format
 msgid "Failed to open sound file.\n"
-msgstr "No s'ha pogut obrir el fitxer de so.\n"
+msgstr "ध्वनि फ़ाइल खोलने में विफल.\n"
 
 #: ../src/utils/pactl.c:899
 #, c-format
 msgid "You have to specify a sample name to play\n"
-msgstr "Heu d'especificar un nom de mostra a reproduir\n"
+msgstr "आपने किसी नमूना नाम को बजाने के लिए निर्दिष्ट किया है\n"
 
 #: ../src/utils/pactl.c:911
 #, c-format
 msgid "You have to specify a sample name to remove\n"
-msgstr "Heu d'especificar un nom de mostra a esborrar\n"
+msgstr "आपने किसी नमूना नाम को हटाने के लिए निर्दिष्ट किया है\n"
 
 #: ../src/utils/pactl.c:919
 #, c-format
 msgid "You have to specify a sink input index and a sink\n"
-msgstr "Heu d'especificar una entrada del conducte i un conducte\n"
+msgstr "आपने किसी सिंक इनपुट सूची और सिंक को निर्दिष्ट किया है\n"
 
 #: ../src/utils/pactl.c:928
 #, c-format
 msgid "You have to specify a source output index and a source\n"
-msgstr "Heu d'especificar un índex de la font de sortida i una font\n"
+msgstr "आपने किसी सिंक स्रोत आउटपुट और स्रोत को निर्दिष्ट किया है\n"
 
 #: ../src/utils/pactl.c:942
 #, c-format
 msgid "You have to specify a module name and arguments.\n"
-msgstr "Heu d'especificar un nom de mòdul i els seus arguments.\n"
+msgstr "आपने किसी मॉड्यूल नाम और वितर्क को निर्दिष्ट किया है\n"
 
 #: ../src/utils/pactl.c:962
 #, c-format
 msgid "You have to specify a module index\n"
-msgstr "Heu d'especificar un índex de mòdul\n"
+msgstr "आपने किसी मॉड्यूल सूची को निर्दिष्ट किया है\n"
 
 #: ../src/utils/pactl.c:972
 #, c-format
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean "
 "value.\n"
-msgstr ""
-"No haríeu d'especificar més d'un conducte. Heu d'especifcar un valor "
-"booleà.\n"
+msgstr "आप एक सिंक से अधिक निर्दिष्ट नहीं कर सकते हैं. आपको किसी बुलियन मान को निर्दिष्ट करना है.\n"
 
 #: ../src/utils/pactl.c:985
 #, c-format
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value.\n"
-msgstr ""
-"No haríeu d'especificar més d'una font. Heu d'especificar un valor booleà.\n"
+msgstr "आप एक स्रोत से अधिक निर्दिष्ट नहीं कर सकते हैं. आपको किसी बुलियन मान को निर्दिष्ट करना है.\n"
 
 #: ../src/utils/pactl.c:997
 #, c-format
 msgid "You have to specify a card name/index and a profile name\n"
-msgstr "Heu d'especificar un nom o un índex de targeta i un nom de perfil\n"
+msgstr "आपको किसी कार्ड नाम/सूची और प्रोफ़ाइल नाम को निर्दिष्ट करना है.\n"
 
 #: ../src/utils/pactl.c:1012
 #, c-format
 msgid "No valid command specified.\n"
-msgstr "S'ha especificat una ordre invàlida.\n"
+msgstr "कोई वैध कमांड निर्दिष्ट नहीं.\n"
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2199,75 +2159,73 @@ msgid ""
 "variables and cookie file.\n"
 " -r    Remove PulseAudio data from X11 display\n"
 msgstr ""
-"%s [-D pantalla] [-S servidor] [-O conducte] [-I font] [-c fitxer]  [-d|-e|-"
-"i|-r]\n"
+"%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n"
 "\n"
-" -d    Mostra les dades actuals de PulseAudio vinculat a una pantalla X11 "
-"(per omissió)\n"
-" -e    Exporta les dades locals de PulseAudio a una pantalla X11\n"
-" -i    Importa les dades de PulseAudio d'una pantalla X11 a les variables "
-"d'entorn locals i a un fitxer cookie\n"
-" -r    Esborra les dades de PulseAudio d'una pantalla X11\n"
+" -d    Show current PulseAudio data attached to X11 display (default)\n"
+" -e    Export local PulseAudio data to X11 display\n"
+" -i    Import PulseAudio data from X11 display to local environment "
+"variables and cookie file.\n"
+" -r    Remove PulseAudio data from X11 display\n"
 
 #: ../src/utils/pax11publish.c:94
 #, c-format
 msgid "Failed to parse command line.\n"
-msgstr "No s'ha pogut parsejar la línia d'ordres.\n"
+msgstr "कमांड लाइन के विश्लेषण में असमर्थ.\n"
 
 #: ../src/utils/pax11publish.c:108
 #, c-format
 msgid "Server: %s\n"
-msgstr "Servidor: %s\n"
+msgstr "सर्वर: %s\n"
 
 #: ../src/utils/pax11publish.c:110
 #, c-format
 msgid "Source: %s\n"
-msgstr "Font: %s\n"
+msgstr "स्रोत: %s\n"
 
 #: ../src/utils/pax11publish.c:112
 #, c-format
 msgid "Sink: %s\n"
-msgstr "Conducte: %s\n"
+msgstr "सिंक: %s\n"
 
 #: ../src/utils/pax11publish.c:114
 #, c-format
 msgid "Cookie: %s\n"
-msgstr "Galeta: %s\n"
+msgstr "कुकी: %s\n"
 
 #: ../src/utils/pax11publish.c:132
 #, c-format
 msgid "Failed to parse cookie data\n"
-msgstr "No s'han pogut parsejar les dades de la galeta\n"
+msgstr "कुकी आंकड़ा के विश्लेषण में विफल\n"
 
 #: ../src/utils/pax11publish.c:137
 #, c-format
 msgid "Failed to save cookie data\n"
-msgstr "No s'han pogut desar les dades de la galeta\n"
+msgstr "कुकी आंकड़ा के सहेजने में विफल\n"
 
 #: ../src/utils/pax11publish.c:152
 #, c-format
 msgid "Failed to load client configuration file.\n"
-msgstr "No s'ha pogut carregar el fitxer de configuració del client.\n"
+msgstr "क्लाइंट विन्यास फ़ाइल लोड करने में विफल\n"
 
 #: ../src/utils/pax11publish.c:157
 #, c-format
 msgid "Failed to read environment configuration data.\n"
-msgstr "No s'han pogut llegir les dades de configuració de l'entorn.\n"
+msgstr "वातावरण विन्यास आंकड़ा को पढ़ने में विफल.\n"
 
 #: ../src/utils/pax11publish.c:174
 #, c-format
 msgid "Failed to get FQDN.\n"
-msgstr "No s'ha pogut obtenir el nom de domini qualificat complet.\n"
+msgstr "FQDN पाने में विफल.\n"
 
 #: ../src/utils/pax11publish.c:194
 #, c-format
 msgid "Failed to load cookie data\n"
-msgstr "No s'han pogut carregar les dades de la galeta\n"
+msgstr "कुकी आंकड़ा लोड करने में विफल\n"
 
 #: ../src/utils/pax11publish.c:211
 #, c-format
 msgid "Not yet implemented.\n"
-msgstr "Encara no s'ha implementat.\n"
+msgstr "अभी तक कार्यान्वित नहीं.\n"
 
 #: ../src/utils/pacmd.c:64
 #, c-format
@@ -2281,11 +2239,11 @@ msgstr "connect(): %s"
 
 #: ../src/utils/pacmd.c:89
 msgid "Failed to kill PulseAudio daemon."
-msgstr "No s'ha pogut matar el dimoni PulseAudio."
+msgstr "PulseAudio डेमॉन को मारने में विफल."
 
 #: ../src/utils/pacmd.c:97
 msgid "Daemon not responding."
-msgstr "El dimoni no respon."
+msgstr "डेमॉन प्रतिक्रिया नहीं दे रहा है."
 
 #: ../src/utils/pacmd.c:144
 #, c-format
@@ -2305,17 +2263,17 @@ msgstr "write(): %s"
 #: ../src/utils/paplay.c:139
 #, c-format
 msgid "Stream successfully created\n"
-msgstr "Flux creat amb èxit\n"
+msgstr "स्ट्रीम सफलतापूर्वक बनाया गया\n"
 
 #: ../src/utils/paplay.c:144
 #, c-format
 msgid "Stream errror: %s\n"
-msgstr "S'ha produït un error en el flux: %s\n"
+msgstr "स्ट्रीम त्रुटि: %s\n"
 
 #: ../src/utils/paplay.c:165
 #, c-format
 msgid "Connection established.\n"
-msgstr "S'ha establert la connexió.\n"
+msgstr "कनेक्शन स्थापित.\n"
 
 #: ../src/utils/paplay.c:198
 #, c-format
@@ -2338,47 +2296,23 @@ msgid ""
 "in range 0...65536\n"
 "      --channel-map=CHANNELMAP          Set the channel map to the use\n"
 msgstr ""
-"%s [opcions] [FITXER]\n"
+"%s [options] [FILE]\n"
 "\n"
-"  -h, --help                            Mostra aquesta ajuda\n"
-"      --version                         Mostra la versió\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
 "\n"
-"  -v, --verbose                         Habilita les operacions detallades\n"
+"  -v, --verbose                         Enable verbose operation\n"
 "\n"
-"  -s, --server=SERVIDOR                 Nom del servidor al qual connectar-"
-"se\n"
-"  -d, --device=DISPOSITIU               Nom del conducte al qual connectar-se\n"
-"  -n, --client-name=NOM                 Com cridar aquest client al "
-"servidor\n"
-"      --stream-name=NOM                 Com cridar aquest flux al servidor\n"
-"      --volume=VOLUM                    Especifica el volum inicial (lineal) "
-"dins el rang 0...65536\n"
-"      --rate=VELOCITATMOSTREIG          La velocitat de mostreig en Hz (per "
-"omissió, 44100)\n"
-"      --format=FORMATMOSTRA             El tipus de mostra, una de s16le, "
-"s16be, u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be "
-"(per omissió, s16ne)\n"
-"      --channels=CANALS                 Número de canals, 1 per a mono, 2 "
-"per a estèreo\n"
-"                                        (per omissió, 2)\n"
-"      --channel-map=MAPACANAL           Mapa de canals a utilitzar\n"
-"      --fix-format                      Pren el format de mostra del "
-"conducte al qual s'està connectant\n"
-"                                        el flux.\n"
-"      --fix-rate                        Pren la velocitat de mostreig del "
-"conducte al qual\n"
-"                                        s'està connectant el flux.\n"
-"      --fix-channels                    Pren el número de canals i el mapa "
-"de canals del\n"
-"                                        conducte al qual s'està connectant "
-"el flux.\n"
-"      --no-remix                        No mesclar els canals.\n"
-"      --no-remap                        Mapeja els canals per índex enlloc "
-"de per nom .\n"
-"      --latency=BYTES                   Especifica la latència en bytes.\n"
-"      --process-time=BYTES              Especifica el temps de procés per "
-"petició en bytes.\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -d, --device=DEVICE                   The name of the sink to connect to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
+"      --channel-map=CHANNELMAP          Set the channel map to the use\n"
 
 #: ../src/utils/paplay.c:255
 #, c-format
@@ -2388,32 +2322,32 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 "paplay %s\n"
-"Compilat amb libpulse %s\n"
-"Enllaçat amb libpulse %s\n"
+"लिबपल्स %s से कंपाइल\n"
+"लिबपल्स %s से कड़ीबद्ध\n"
 
 #: ../src/utils/paplay.c:292
 #, c-format
 msgid "Invalid channel map\n"
-msgstr "Mapa de canals invàlid\n"
+msgstr "अवैध चैनल मानचित्र\n"
 
 #: ../src/utils/paplay.c:314
 #, c-format
 msgid "Failed to open file '%s'\n"
-msgstr "No s'ha pogut obrir el fitxer '%s'\n"
+msgstr "फ़ाइल '%s' खोलने में विफल\n"
 
 #: ../src/utils/paplay.c:350
 #, c-format
 msgid "Channel map doesn't match file.\n"
-msgstr "El mapa de canals no coincideix amb el fitxer.\n"
+msgstr "चैनल मानचित्र फ़ाइल से मेल नहीं खाता है.\n"
 
 #: ../src/utils/paplay.c:376
 #, c-format
 msgid "Using sample spec '%s'\n"
-msgstr "S'estan utilitzant les especificacions de mostra '%s'\n"
+msgstr "नमूना स्पेक '%s' का प्रयोग कर रहा है\n"
 
 #: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
 msgid "Cannot access autospawn lock."
-msgstr "No s'ha pogut accedir al bloqueig d'autospawn."
+msgstr "autospawn लॉक की पहुँच नहीं ले सकता है."
 
 #: ../src/modules/alsa/alsa-sink.c:393 ../src/modules/alsa/alsa-sink.c:535
 #, c-format
@@ -2424,9 +2358,11 @@ msgid ""
 "to the ALSA developers.\n"
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
-msgstr "ALSA ens ha despertat per a escriure dades noves al dispositiu però no hi havia res a escriure!\n"
-"Probablement es tracta d'un error del controlador de l'ALSA '%s'. Informeu d'aquest problema als desenvolupadors de l'ALSA.\n"
-"Ens han cridat mitjançant POLLOUT set -- tammateix una crida posterior de snd_pcm_avail() ha retornat 0 o un altre valor < min_avail."
+msgstr ""
+"ALSA ने युक्ति में नया आंकड़ा लिखने के लिए हमें तैयार किया, लेकिन वहाँ वास्तव में लिखने के लिए कुछ नहीं था!\n"
+"अधिक संभव है कि यह ALSA ड्राइवर '%s' में एक बग है. कृपया इस मुद्दे को ALSA डेवलेपर को रिपोर्ट करें.\n"
+"हमें POLLOUT सेट के साथ तैयार किया गया है  -- हालांकि परवर्ती snd_pcm_avail() "
+"ने 0 या दूसरा मान < min_avail दिया."
 
 #: ../src/modules/alsa/alsa-source.c:377 ../src/modules/alsa/alsa-source.c:510
 #, c-format
@@ -2437,97 +2373,41 @@ msgid ""
 "to the ALSA developers.\n"
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
-msgstr "Alsa ens ha cridat per a llegir dades noves del dispositiu, però no hi ha res a llegir!\n"
-"Probablement es tracta d'un error de la controladora '%s' de l'ALSA. Reporteu aquest problema als desenvolupadors de l'ALSA.\n"
-"Ens ha cridat mitjançant POLLIN set -- tammateix una ordre posterior snd_pcm_avail() ha retornat 0 o un altre valor < min_avail."
+msgstr ""
+"ALSA ने युक्ति में नया आंकड़ा पढ़ने के लिए हमें तैयार किया, लेकिन वहाँ वास्तव में पढ़ने के लिए कुछ नहीं था!\n"
+"अधिक संभव है कि यह ALSA ड्राइवर '%s' में एक बग है. कृपया इस मुद्दे को ALSA डेवलेपर को रिपोर्ट करें.\n"
+"हमें POLLIN सेट के साथ तैयार किया गया है  -- हालांकि परवर्ती snd_pcm_avail() "
+"ने 0 या दूसरा मान < min_avail दिया."
 
 #: ../src/modules/alsa/module-alsa-card.c:114
 #, c-format
 msgid "Output %s + Input %s"
-msgstr "Sortida %s + Entrada %s"
+msgstr "आउटपुट %s + इनपुट %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:117
 #, c-format
 msgid "Output %s"
-msgstr "Sortida %s"
+msgstr "आउटपुट %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:121
 #, c-format
 msgid "Input %s"
-msgstr "Entrada %s"
+msgstr "इनपुट %s"
 
 #: ../src/modules/alsa/module-alsa-card.c:170
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1864
 msgid "Off"
-msgstr "Inactiu"
+msgstr "बंद"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1834
 msgid "High Fidelity Playback (A2DP)"
-msgstr "Reproducció d'alta fidelitat (A2DP)"
+msgstr "उच्च विश्वसनीयतायुक्ति प्लेबैक (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:1849
 msgid "Telephony Duplex (HSP/HFP)"
-msgstr "Dúplex de telefonia (HSP/HFP)"
+msgstr "टेलिफोनी ड्यूप्लेक्स (HSP/HFP)"
 
 #: ../src/modules/reserve-wrap.c:125
 msgid "PulseAudio Sound Server"
-msgstr "Servidor de so PulseAudio"
+msgstr "पल्सऑडियो ध्वनि सर्वर"
 
-
-#~ msgid ""
-#~ "Called SUID root and real-time/high-priority scheduling was requested in "
-#~ "the configuration. However, we lack the necessary priviliges:\n"
-#~ "We are not in group '"
-#~ msgstr ""
-#~ "La crida de la SUID de root i la prioritat alta/temps real estàn "
-#~ "especificades en la configuració, però no té els permissos necessaris:\n"
-#~ "No es pertany al grup '"
-
-#~ msgid ""
-#~ "' and PolicyKit refuse to grant us priviliges. Dropping SUID again.\n"
-#~ "For enabling real-time scheduling please acquire the appropriate "
-#~ "PolicyKit priviliges, or become a member of '"
-#~ msgstr ""
-#~ "' i PolicyKit ha denegat els permísos. S'està lliberant SUID. \n"
-#~ "Per habilitar la prioritat en temps real, s'ha de adquirir els permissos "
-#~ "de PolicyKit, o pertanyer a '"
-
-#~ msgid ""
-#~ "', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this "
-#~ "user."
-#~ msgstr ""
-#~ "', o incremetar els límits de recursos RLIMIT_NICE/RLIMIT_RTPRIO per "
-#~ "aquest usuari."
-
-#~ msgid "Default sink name (%s) does not exist in name register."
-#~ msgstr "El nom sink per omissió  (%s) no existeix en el registre de noms."
-
-#~ msgid "Buffer overrun, dropping incoming data\n"
-#~ msgstr ""
-#~ "S'ha sobrepassat la memòria intermitja, s'estan descartant les dades "
-#~ "entrants\n"
-
-#~ msgid "pa_stream_drop() failed: %s\n"
-#~ msgstr "Ha fallat pa_stream_drop(): %s\n"
-
-#~ msgid "muted"
-#~ msgstr "silenciat"
-
-#~ msgid ""
-#~ "*** Autoload Entry #%u ***\n"
-#~ "Name: %s\n"
-#~ "Type: %s\n"
-#~ "Module: %s\n"
-#~ "Argument: %s\n"
-#~ msgstr ""
-#~ "*** Entrada de càrrega automàtica #%u ***\n"
-#~ "Nom: %s\n"
-#~ "Tipus: %s\n"
-#~ "Mòdul: %s\n"
-#~ "Arguments: %s\n"
-
-#~ msgid "sink"
-#~ msgstr "conducte"
-
-#~ msgid "source"
-#~ msgstr "font"
