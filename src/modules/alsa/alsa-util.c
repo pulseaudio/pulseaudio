@@ -514,7 +514,7 @@ snd_pcm_t *pa_alsa_open_by_device_id_mapping(
     try_ss.format = ss->format;
     try_map = m->channel_map;
 
-    pcm_handle = pa_alsa_open_by_device_string_strv(
+    pcm_handle = pa_alsa_open_by_template(
             m->device_strings,
             dev_id,
             dev,
@@ -622,8 +622,8 @@ fail:
     return NULL;
 }
 
-snd_pcm_t *pa_alsa_open_by_device_string_strv(
-        char **prefix,
+snd_pcm_t *pa_alsa_open_by_template(
+        char **template,
         const char *dev_id,
         char **dev,
         pa_sample_spec *ss,
@@ -639,10 +639,10 @@ snd_pcm_t *pa_alsa_open_by_device_string_strv(
     snd_pcm_t *pcm_handle;
     char **i;
 
-    for (i = prefix; *i; i++) {
+    for (i = template; *i; i++) {
         char *d;
 
-        d = pa_sprintf_malloc("%s:%s", *i, dev_id);
+        d = pa_replace(*i, "%f", dev_id);
 
         pcm_handle = pa_alsa_open_by_device_string(
                 d,

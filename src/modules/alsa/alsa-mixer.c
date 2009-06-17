@@ -3179,7 +3179,7 @@ void pa_alsa_profile_set_probe(pa_alsa_profile_set *ps, const char *dev_id, cons
                 try_ss = *ss;
                 try_ss.channels = try_map.channels;
 
-                if (!(m ->output_pcm = pa_alsa_open_by_device_string_strv(
+                if (!(m ->output_pcm = pa_alsa_open_by_template(
                               m->device_strings,
                               dev_id,
                               NULL,
@@ -3203,7 +3203,7 @@ void pa_alsa_profile_set_probe(pa_alsa_profile_set *ps, const char *dev_id, cons
                 try_ss = *ss;
                 try_ss.channels = try_map.channels;
 
-                if (!(m ->input_pcm = pa_alsa_open_by_device_string_strv(
+                if (!(m ->input_pcm = pa_alsa_open_by_template(
                               m->device_strings,
                               dev_id,
                               NULL,

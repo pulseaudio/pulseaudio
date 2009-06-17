@@ -84,7 +84,7 @@ snd_pcm_t *pa_alsa_open_by_device_id_mapping(
 
 /* Opens the explicit ALSA device */
 snd_pcm_t *pa_alsa_open_by_device_string(
-        const char *device,
+        const char *dir,
         char **dev,                       /* modified at return */
         pa_sample_spec *ss,               /* modified at return */
         pa_channel_map* map,              /* modified at return */
@@ -97,8 +97,8 @@ snd_pcm_t *pa_alsa_open_by_device_string(
         pa_bool_t require_exact_channel_number);
 
 /* Opens the explicit ALSA device with a fallback list */
-snd_pcm_t *pa_alsa_open_by_device_string_strv(
-        char **device,
+snd_pcm_t *pa_alsa_open_by_template(
+        char **template,
         const char *dev_id,
         char **dev,                       /* modified at return */
         pa_sample_spec *ss,               /* modified at return */
