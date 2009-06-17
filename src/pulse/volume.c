@@ -27,8 +27,10 @@
 #include <string.h>
 
 #include <pulse/i18n.h>
+
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/sample-util.h>
 
 #include "volume.h"
 
@@ -418,65 +420,27 @@ int pa_cvolume_valid(const pa_cvolume *v) {
 }
 
 static pa_bool_t on_left(pa_channel_position_t p) {
-
-    return
-        p == PA_CHANNEL_POSITION_FRONT_LEFT ||
-        p == PA_CHANNEL_POSITION_REAR_LEFT ||
-        p == PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER ||
-        p == PA_CHANNEL_POSITION_SIDE_LEFT ||
-        p == PA_CHANNEL_POSITION_TOP_FRONT_LEFT ||
-        p == PA_CHANNEL_POSITION_TOP_REAR_LEFT;
+    return !!(PA_CHANNEL_POSITION_MASK(p) & PA_CHANNEL_POSITION_MASK_LEFT);
 }
 
 static pa_bool_t on_right(pa_channel_position_t p) {
-
-    return
-        p == PA_CHANNEL_POSITION_FRONT_RIGHT ||
-        p == PA_CHANNEL_POSITION_REAR_RIGHT ||
-        p == PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER ||
-        p == PA_CHANNEL_POSITION_SIDE_RIGHT ||
-        p == PA_CHANNEL_POSITION_TOP_FRONT_RIGHT ||
-        p == PA_CHANNEL_POSITION_TOP_REAR_RIGHT;
+    return !!(PA_CHANNEL_POSITION_MASK(p) & PA_CHANNEL_POSITION_MASK_RIGHT);
 }
 
 static pa_bool_t on_center(pa_channel_position_t p) {
-
-    return
-        p == PA_CHANNEL_POSITION_FRONT_CENTER ||
-        p == PA_CHANNEL_POSITION_REAR_CENTER ||
-        p == PA_CHANNEL_POSITION_TOP_CENTER ||
-        p == PA_CHANNEL_POSITION_TOP_FRONT_CENTER ||
-        p == PA_CHANNEL_POSITION_TOP_REAR_CENTER;
+    return !!(PA_CHANNEL_POSITION_MASK(p) & PA_CHANNEL_POSITION_MASK_CENTER);
 }
 
 static pa_bool_t on_lfe(pa_channel_position_t p) {
-
-    return
-        p == PA_CHANNEL_POSITION_LFE;
+    return p == PA_CHANNEL_POSITION_LFE;
 }
 
 static pa_bool_t on_front(pa_channel_position_t p) {
-
-    return
-        p == PA_CHANNEL_POSITION_FRONT_LEFT ||
-        p == PA_CHANNEL_POSITION_FRONT_RIGHT ||
-        p == PA_CHANNEL_POSITION_FRONT_CENTER ||
-        p == PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER ||
-        p == PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER ||
-        p == PA_CHANNEL_POSITION_TOP_FRONT_LEFT ||
-        p == PA_CHANNEL_POSITION_TOP_FRONT_RIGHT ||
-        p == PA_CHANNEL_POSITION_TOP_FRONT_CENTER;
+    return !!(PA_CHANNEL_POSITION_MASK(p) & PA_CHANNEL_POSITION_MASK_FRONT);
 }
 
 static pa_bool_t on_rear(pa_channel_position_t p) {
-
-    return
-        p == PA_CHANNEL_POSITION_REAR_LEFT ||
-        p == PA_CHANNEL_POSITION_REAR_RIGHT ||
-        p == PA_CHANNEL_POSITION_REAR_CENTER ||
-        p == PA_CHANNEL_POSITION_TOP_REAR_LEFT ||
-        p == PA_CHANNEL_POSITION_TOP_REAR_RIGHT ||
-        p == PA_CHANNEL_POSITION_TOP_REAR_CENTER;
+    return !!(PA_CHANNEL_POSITION_MASK(p) & PA_CHANNEL_POSITION_MASK_REAR);
 }
 
 pa_cvolume *pa_cvolume_remap(pa_cvolume *v, const pa_channel_map *from, const pa_channel_map *to) {
