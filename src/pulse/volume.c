@@ -344,8 +344,24 @@ pa_cvolume *pa_sw_cvolume_multiply(pa_cvolume *dest, const pa_cvolume *a, const 
     pa_return_val_if_fail(pa_cvolume_valid(a), NULL);
     pa_return_val_if_fail(pa_cvolume_valid(b), NULL);
 
-    for (i = 0; i < a->channels && i < b->channels && i < PA_CHANNELS_MAX; i++)
+    for (i = 0; i < a->channels && i < b->channels; i++)
         dest->values[i] = pa_sw_volume_multiply(a->values[i], b->values[i]);
+
+    dest->channels = (uint8_t) i;
+
+    return dest;
+}
+
+pa_cvolume *pa_sw_cvolume_multiply_scalar(pa_cvolume *dest, const pa_cvolume *a, pa_volume_t b) {
+    unsigned i;
+
+    pa_assert(dest);
+    pa_assert(a);
+
+    pa_return_val_if_fail(pa_cvolume_valid(a), NULL);
+
+    for (i = 0; i < a->channels; i++)
+        dest->values[i] = pa_sw_volume_multiply(a->values[i], b);
 
     dest->channels = (uint8_t) i;
 
@@ -362,8 +378,24 @@ pa_cvolume *pa_sw_cvolume_divide(pa_cvolume *dest, const pa_cvolume *a, const pa
     pa_return_val_if_fail(pa_cvolume_valid(a), NULL);
     pa_return_val_if_fail(pa_cvolume_valid(b), NULL);
 
-    for (i = 0; i < a->channels && i < b->channels && i < PA_CHANNELS_MAX; i++)
+    for (i = 0; i < a->channels && i < b->channels; i++)
         dest->values[i] = pa_sw_volume_divide(a->values[i], b->values[i]);
+
+    dest->channels = (uint8_t) i;
+
+    return dest;
+}
+
+pa_cvolume *pa_sw_cvolume_divide_scalar(pa_cvolume *dest, const pa_cvolume *a, pa_volume_t b) {
+    unsigned i;
+
+    pa_assert(dest);
+    pa_assert(a);
+
+    pa_return_val_if_fail(pa_cvolume_valid(a), NULL);
+
+    for (i = 0; i < a->channels; i++)
+        dest->values[i] = pa_sw_volume_divide(a->values[i], b);
 
     dest->channels = (uint8_t) i;
 
