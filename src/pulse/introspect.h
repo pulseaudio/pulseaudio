@@ -193,6 +193,15 @@ PA_C_DECL_BEGIN
 
 /** @{ \name Sinks */
 
+/** Stores information about a specific port of a sink.  Please
+ * note that this structure can be extended as part of evolutionary
+ * API updates at any time in any new release. \since 0.9.16 */
+typedef struct pa_sink_port_info {
+    const char *name;                   /**< Name of this port */
+    const char *description;            /**< Description of this port */
+    uint32_t priority;                  /**< The higher this value is the more useful this port is as a default */
+} pa_sink_port_info;
+
 /** Stores information about sinks. Please note that this structure
  * can be extended as part of evolutionary API updates at any time in
  * any new release. */
@@ -216,6 +225,9 @@ typedef struct pa_sink_info {
     pa_sink_state_t state;             /**< State \since 0.9.15 */
     uint32_t n_volume_steps;           /**< Number of volume steps for sinks which do not support arbitrary volumes. \since 0.9.15 */
     uint32_t card;                     /**< Card index, or PA_INVALID_INDEX. \since 0.9.15 */
+    uint32_t n_ports;                  /**< Number of entries in port array \since 0.9.16 */
+    pa_sink_port_info** ports;         /**< Array of available ports, or NULL. Array is terminated by an entry set to NULL. The number of entries is stored in n_ports \since 0.9.16 */
+    pa_sink_port_info* active_port;    /**< Pointer to active port in the array, or NULL \since 0.9.16 */
 } pa_sink_info;
 
 /** Callback prototype for pa_context_get_sink_info_by_name() and friends */
@@ -258,6 +270,15 @@ pa_operation* pa_context_set_sink_port_by_name(pa_context *c, const char*name, c
 
 /** @{ \name Sources */
 
+/** Stores information about a specific port of a source.  Please
+ * note that this structure can be extended as part of evolutionary
+ * API updates at any time in any new release. \since 0.9.16 */
+typedef struct pa_source_port_info {
+    const char *name;                   /**< Name of this port */
+    const char *description;            /**< Description of this port */
+    uint32_t priority;                  /**< The higher this value is the more useful this port is as a default */
+} pa_source_port_info;
+
 /** Stores information about sources. Please note that this structure
  * can be extended as part of evolutionary API updates at any time in
  * any new release. */
@@ -281,6 +302,9 @@ typedef struct pa_source_info {
     pa_source_state_t state;            /**< State \since 0.9.15 */
     uint32_t n_volume_steps;            /**< Number of volume steps for sources which do not support arbitrary volumes. \since 0.9.15 */
     uint32_t card;                      /**< Card index, or PA_INVALID_INDEX. \since 0.9.15 */
+    uint32_t n_ports;                   /**< Number of entries in port array \since 0.9.16 */
+    pa_source_port_info** ports;        /**< Array of available ports, or NULL. Array is terminated by an entry set to NULL. The number of entries is stored in n_ports \since 0.9.16  */
+    pa_source_port_info* active_port;   /**< Pointer to active port in the array, or NULL \since 0.9.16  */
 } pa_source_info;
 
 /** Callback prototype for pa_context_get_source_info_by_name() and friends */

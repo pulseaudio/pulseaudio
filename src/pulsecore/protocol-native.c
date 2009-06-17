@@ -2845,6 +2845,23 @@ static void sink_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_sin
         pa_tagstruct_putu32(t, sink->n_volume_steps);
         pa_tagstruct_putu32(t, sink->card ? sink->card->index : PA_INVALID_INDEX);
     }
+
+    if (c->version >= 16) {
+        pa_tagstruct_putu32(t, sink->ports ? pa_hashmap_size(sink->ports) : 0);
+
+        if (sink->ports) {
+            void *state;
+            pa_device_port *p;
+
+            PA_HASHMAP_FOREACH(p, sink->ports, state) {
+                pa_tagstruct_puts(t, p->name);
+                pa_tagstruct_puts(t, p->description);
+                pa_tagstruct_putu32(t, p->priority);
+            }
+        }
+
+        pa_tagstruct_puts(t, sink->active_port ? sink->active_port->name : NULL);
+    }
 }
 
 static void source_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_source *source) {
@@ -2884,6 +2901,24 @@ static void source_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_s
         pa_tagstruct_putu32(t, pa_source_get_state(source));
         pa_tagstruct_putu32(t, source->n_volume_steps);
         pa_tagstruct_putu32(t, source->card ? source->card->index : PA_INVALID_INDEX);
+    }
+
+    if (c->version >= 16) {
+
+        pa_tagstruct_putu32(t, source->ports ? pa_hashmap_size(source->ports) : 0);
+
+        if (source->ports) {
+            void *state;
+            pa_device_port *p;
+
+            PA_HASHMAP_FOREACH(p, source->ports, state) {
+                pa_tagstruct_puts(t, p->name);
+                pa_tagstruct_puts(t, p->description);
+                pa_tagstruct_putu32(t, p->priority);
+            }
+        }
+
+        pa_tagstruct_puts(t, source->active_port ? source->active_port->name : NULL);
     }
 }
 
