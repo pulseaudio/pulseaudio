@@ -362,9 +362,9 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
         return PA_HOOK_OK;
 
     if ((e = read_entry(u, name))) {
-        pa_sink *s;
 
         if (e->device_valid) {
+            pa_sink *s;
 
             if ((s = pa_namereg_get(c, e->device, PA_NAMEREG_SINK))) {
                 if (!new_data->sink) {
@@ -372,7 +372,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
                     new_data->sink = s;
                     new_data->save_sink = FALSE;
                 } else
-                    pa_log_info("Not restore device for stream %s, because already set.", name);
+                    pa_log_info("Not restoring device for stream %s, because already set.", name);
             }
         }
 
@@ -404,6 +404,7 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
                 pa_cvolume v;
 
                 pa_log_info("Restoring volume for sink input %s.", name);
+
                 v = e->volume;
                 pa_cvolume_remap(&v, &e->channel_map, &new_data->channel_map);
                 pa_sink_input_new_data_set_volume(new_data, &v);
@@ -793,14 +794,12 @@ int pa__init(pa_module*m) {
     if (!restore_muted && !restore_volume && !restore_device)
         pa_log_warn("Neither restoring volume, nor restoring muted, nor restoring device enabled!");
 
-    m->userdata = u = pa_xnew(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
-    u->save_time_event = NULL;
     u->restore_device = restore_device;
     u->restore_volume = restore_volume;
     u->restore_muted = restore_muted;
-    u->database = NULL;
     u->subscribed = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
     u->protocol = pa_native_protocol_get(m->core);
@@ -818,10 +817,7 @@ int pa__init(pa_module*m) {
     if (restore_volume || restore_muted)
         u->sink_input_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], PA_HOOK_EARLY, (pa_hook_cb_t) sink_input_fixate_hook_callback, u);
 
-
-    fname = pa_state_path("stream-volumes", TRUE);
-
-    if (!fname)
+    if (!(fname = pa_state_path("stream-volumes", TRUE)))
         goto fail;
 
     if (!(u->database = pa_database_open(fname, TRUE))) {

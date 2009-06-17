@@ -223,11 +223,9 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    m->userdata = u = pa_xnew(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
-    u->save_time_event = NULL;
-    u->database = NULL;
 
     u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_CARD, subscribe_callback, u);
 
