@@ -370,7 +370,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
                 if (!new_data->sink) {
                     pa_log_info("Restoring device for stream %s.", name);
                     new_data->sink = s;
-                    new_data->save_sink = TRUE;
+                    new_data->save_sink = FALSE;
                 } else
                     pa_log_info("Not restore device for stream %s, because already set.", name);
             }
@@ -419,7 +419,7 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
             if (!new_data->muted_is_set) {
                 pa_log_info("Restoring mute state for sink input %s.", name);
                 pa_sink_input_new_data_set_muted(new_data, e->muted);
-                new_data->save_muted = TRUE;
+                new_data->save_muted = FALSE;
             } else
                 pa_log_debug("Not restoring mute state for sink input %s, because already set.", name);
         }
@@ -455,7 +455,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
                 if (!new_data->source) {
                     pa_log_info("Restoring device for stream %s.", name);
                     new_data->source = s;
-                    new_data->save_source = TRUE;
+                    new_data->save_source = FALSE;
                 } else
                     pa_log_info("Not restoring device for stream %s, because already set", name);
             }
@@ -503,7 +503,7 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
 
         if (u->restore_muted && e->muted_valid) {
             pa_log_info("Restoring mute state for sink input %s.", name);
-            pa_sink_input_set_mute(si, e->muted, TRUE);
+            pa_sink_input_set_mute(si, e->muted, FALSE);
         }
 
         if (u->restore_device &&
@@ -511,7 +511,7 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
             (s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SINK))) {
 
             pa_log_info("Restoring device for stream %s.", name);
-            pa_sink_input_move_to(si, s, TRUE);
+            pa_sink_input_move_to(si, s, FALSE);
         }
     }
 
@@ -533,7 +533,7 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
             (s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SOURCE))) {
 
             pa_log_info("Restoring device for stream %s.", name);
-            pa_source_output_move_to(so, s, TRUE);
+            pa_source_output_move_to(so, s, FALSE);
         }
     }
 }
