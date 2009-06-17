@@ -1920,7 +1920,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 
     if (!(device = pa_bluetooth_discovery_get_by_path(u->discovery, u->path))) {
         pa_log_error("Failed to get device object.");
-        return -1;
+        return -PA_ERR_IO;
     }
 
     /* The state signal is sent by bluez, so it is racy to check
@@ -1930,11 +1930,11 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
        module will be unloaded. */
     if (device->headset_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HSP) {
         pa_log_warn("HSP is not connected, refused to switch profile");
-        return -1;
+        return -PA_ERR_IO;
     }
     else if (device->audio_sink_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP) {
         pa_log_warn("A2DP is not connected, refused to switch profile");
-        return -1;
+        return -PA_ERR_IO;
     }
 
     if (u->sink) {
