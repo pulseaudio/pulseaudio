@@ -284,6 +284,7 @@ static void command_update_proplist(pa_pdispatch *pd, uint32_t command, uint32_t
 static void command_remove_proplist(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_set_card_profile(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+static void command_set_sink_or_source_port(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = NULL,
@@ -379,6 +380,9 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REMOVE_CLIENT_PROPLIST] = command_remove_proplist,
 
     [PA_COMMAND_SET_CARD_PROFILE] = command_set_card_profile,
+
+    [PA_COMMAND_SET_SINK_PORT] = command_set_sink_or_source_port,
+    [PA_COMMAND_SET_SOURCE_PORT] = command_set_sink_or_source_port,
 
     [PA_COMMAND_EXTENSION] = command_extension
 };
@@ -4195,6 +4199,7 @@ static void command_set_card_profile(pa_pdispatch *pd, uint32_t command, uint32_
     uint32_t idx = PA_INVALID_INDEX;
     const char *name = NULL, *profile = NULL;
     pa_card *card = NULL;
+    int ret;
 
     pa_native_connection_assert_ref(c);
     pa_assert(t);
@@ -4220,9 +4225,67 @@ static void command_set_card_profile(pa_pdispatch *pd, uint32_t command, uint32_
 
     CHECK_VALIDITY(c->pstream, card, tag, PA_ERR_NOENTITY);
 
-    if (pa_card_set_profile(card, profile, TRUE) < 0) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
+    if ((ret = pa_card_set_profile(card, profile, TRUE)) < 0) {
+        pa_pstream_send_error(c->pstream, tag, -ret);
         return;
+    }
+
+    pa_pstream_send_simple_ack(c->pstream, tag);
+}
+
+static void command_set_sink_or_source_port(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
+    uint32_t idx = PA_INVALID_INDEX;
+    const char *name = NULL, *port = NULL;
+    int ret;
+
+    pa_native_connection_assert_ref(c);
+    pa_assert(t);
+
+    if (pa_tagstruct_getu32(t, &idx) < 0 ||
+        pa_tagstruct_gets(t, &name) < 0 ||
+        pa_tagstruct_gets(t, &port) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, !name || pa_namereg_is_valid_name(name), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, idx == PA_INVALID_INDEX || !name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !name || idx == PA_INVALID_INDEX, tag, PA_ERR_INVALID);
+
+    if (command == PA_COMMAND_SET_SINK_PORT) {
+        pa_sink *sink;
+
+        if (idx != PA_INVALID_INDEX)
+            sink = pa_idxset_get_by_index(c->protocol->core->sinks, idx);
+        else
+            sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK);
+
+        CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);
+
+        if ((ret = pa_sink_set_port(sink, port, TRUE)) < 0) {
+            pa_pstream_send_error(c->pstream, tag, -ret);
+            return;
+        }
+    } else {
+        pa_source *source;
+
+        pa_assert(command = PA_COMMAND_SET_SOURCE_PORT);
+
+        if (idx != PA_INVALID_INDEX)
+            source = pa_idxset_get_by_index(c->protocol->core->sources, idx);
+        else
+            source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE);
+
+        CHECK_VALIDITY(c->pstream, source, tag, PA_ERR_NOENTITY);
+
+        if ((ret = pa_source_set_port(source, port, TRUE)) < 0) {
+            pa_pstream_send_error(c->pstream, tag, -ret);
+            return;
+        }
     }
 
     pa_pstream_send_simple_ack(c->pstream, tag);
