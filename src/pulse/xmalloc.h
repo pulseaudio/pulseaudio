@@ -88,8 +88,19 @@ static inline void* _pa_xnewdup_internal(const void *p, size_t n, size_t k) {
     return pa_xmemdup(p, n*k);
 }
 
-/** Same as pa_xnew() but set the memory to zero */
+/** Same as pa_xnew() but duplicate the specified data */
 #define pa_xnewdup(type, p, n) ((type*) _pa_xnewdup_internal((p), (n), sizeof(type)))
+
+/** Internal helper for pa_xrenew() */
+static void* _pa_xrenew_internal(void *p, size_t n, size_t k) PA_GCC_MALLOC PA_GCC_ALLOC_SIZE2(2,3);
+
+static inline void* _pa_xrenew_internal(void *p, size_t n, size_t k) {
+    assert(n < INT_MAX/k);
+    return pa_xrealloc(p, n*k);
+}
+
+/** Reallocate n new structures of the specified type. */
+#define pa_xrenew(type, p, n) ((type*) _pa_xrenew_internal(p, (n), sizeof(type)))
 
 PA_C_DECL_END
 
