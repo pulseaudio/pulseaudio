@@ -235,4 +235,6 @@ static inline void pa_xstrfreev(char **a) {
     pa_xfreev((void**) a);
 }
 
+char **pa_split_spaces_strv(const char *s);
+
 #endif

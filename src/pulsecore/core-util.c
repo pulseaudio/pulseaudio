@@ -2744,3 +2744,27 @@ void pa_xfreev(void**a) {
 
     pa_xfree(a);
 }
+
+char **pa_split_spaces_strv(const char *s) {
+    char **t, *e;
+    unsigned i = 0, n = 8;
+    const char *state = NULL;
+
+    t = pa_xnew(char*, n);
+    while ((e = pa_split_spaces(s, &state))) {
+        t[i++] = e;
+
+        if (i >= n) {
+            n *= 2;
+            t = pa_xrenew(char*, t, n);
+        }
+    }
+
+    if (i <= 0) {
+        pa_xfree(t);
+        return NULL;
+    }
+
+    t[i] = NULL;
+    return t;
+}
