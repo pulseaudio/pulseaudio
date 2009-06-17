@@ -197,8 +197,9 @@ static pa_hook_result_t card_new_hook_callback(pa_core *c, pa_card_new_data *new
     if ((e = read_entry(u, new_data->name)) && e->profile[0]) {
 
         if (!new_data->active_profile) {
-            pa_card_new_data_set_profile(new_data, e->profile);
             pa_log_info("Restoring profile for card %s.", new_data->name);
+            pa_card_new_data_set_profile(new_data, e->profile);
+            new_data->save_profile = FALSE;
         } else
             pa_log_debug("Not restoring profile for card %s, because already set.", new_data->name);
 
