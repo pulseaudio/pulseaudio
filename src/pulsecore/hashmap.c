@@ -279,6 +279,15 @@ void* pa_hashmap_first(pa_hashmap *h) {
     return h->iterate_list_head->value;
 }
 
+void* pa_hashmap_last(pa_hashmap *h) {
+    pa_assert(h);
+
+    if (!h->iterate_list_tail)
+        return NULL;
+
+    return h->iterate_list_tail->value;
+}
+
 void* pa_hashmap_steal_first(pa_hashmap *h) {
     void *data;
 
