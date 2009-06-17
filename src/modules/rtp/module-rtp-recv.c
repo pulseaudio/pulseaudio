@@ -62,7 +62,7 @@
 #include "sap.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");
-PA_MODULE_DESCRIPTION("Recieve data from a network via RTP/SAP/SDP");
+PA_MODULE_DESCRIPTION("Receive data from a network via RTP/SAP/SDP");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
