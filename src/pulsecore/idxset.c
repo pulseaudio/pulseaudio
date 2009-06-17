@@ -453,3 +453,17 @@ pa_bool_t pa_idxset_isempty(pa_idxset *s) {
 
     return s->n_entries == 0;
 }
+
+pa_idxset *pa_idxset_copy(pa_idxset *s) {
+    pa_idxset *copy;
+    struct idxset_entry *i;
+
+    pa_assert(s);
+
+    copy = pa_idxset_new(s->hash_func, s->compare_func);
+
+    for (i = s->iterate_list_head; i; i = i->iterate_next)
+        pa_idxset_put(copy, i->data, NULL);
+
+    return copy;
+}
