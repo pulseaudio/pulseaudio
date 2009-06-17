@@ -1205,8 +1205,8 @@ SYMDEF_FILES = \
 		modules/bluetooth/module-bluetooth-proximity-symdef.h \
 		modules/bluetooth/module-bluetooth-discover-symdef.h \
 		modules/bluetooth/module-bluetooth-device-symdef.h \
-		modules/module-raop-sink-symdef.h \
-		modules/module-raop-discover-symdef.h \
+		modules/raop/module-raop-sink-symdef.h \
+		modules/raop/module-raop-discover-symdef.h \
 		modules/gconf/module-gconf-symdef.h \
 		modules/module-position-event-sounds-symdef.h \
 		modules/module-augment-properties-symdef.h \
@@ -1626,11 +1626,11 @@ module_bluetooth_device_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_M
 module_bluetooth_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 # Apple Airtunes/RAOP
-module_raop_sink_la_SOURCES = modules/module-raop-sink.c
+module_raop_sink_la_SOURCES = modules/raop/module-raop-sink.c
 module_raop_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_raop_sink_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la librtp.la libraop.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
-module_raop_discover_la_SOURCES = modules/module-raop-discover.c
+module_raop_discover_la_SOURCES = modules/raop/module-raop-discover.c
 module_raop_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_raop_discover_la_LIBADD = $(AM_LIBADD) $(AVAHI_LIBS) libavahi-wrap.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_raop_discover_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
