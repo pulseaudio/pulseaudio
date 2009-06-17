@@ -1,0 +1,40 @@
+# Common part of all paths
+
+# [General]
+# priority = ...
+# description = ...
+#
+# [Option ...:...]
+# name = ...
+# priority = ...
+#
+# [Element ...]
+# required = ignore | switch | volume | enumeration | any
+# required-absent = ignore | switch | volume
+#
+# switch = ignore | mute | off | on | select
+# volume = ignore | merge | off | zero
+# enumeration = ignore | select
+#
+# direction = playback | capture
+# direction-try-other = no | yes
+#
+# override-map.1 = ...
+# override-map.2 = ...
+
+[Element PCM]
+switch = mute
+volume = merge
+override-map.1 = all
+override-map.2 = all-left,all-right
+
+[Element External Amplifier]
+switch = select
+
+[Option External Amplifier:on]
+name = output-amplifier-on
+priority = 0
+
+[Option External Amplifier:off]
+name = output-amplifier-off
+priority = 10

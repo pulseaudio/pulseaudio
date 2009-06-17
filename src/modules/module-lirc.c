@@ -112,7 +112,7 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
                 volchange = RESET;
 
             if (volchange == INVALID)
-                pa_log_warn("Recieved unknown IR code '%s'", name);
+                pa_log_warn("Received unknown IR code '%s'", name);
             else {
                 pa_sink *s;
 
@@ -133,7 +133,7 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
                                     cv.values[i] = PA_VOLUME_MAX;
                             }
 
-                            pa_sink_set_volume(s, &cv, TRUE, TRUE, TRUE);
+                            pa_sink_set_volume(s, &cv, TRUE, TRUE, TRUE, TRUE);
                             break;
 
                         case DOWN:
@@ -144,20 +144,20 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
                                     cv.values[i] = PA_VOLUME_MUTED;
                             }
 
-                            pa_sink_set_volume(s, &cv, TRUE, TRUE, TRUE);
+                            pa_sink_set_volume(s, &cv, TRUE, TRUE, TRUE, TRUE);
                             break;
 
                         case MUTE:
-                            pa_sink_set_mute(s, TRUE);
+                            pa_sink_set_mute(s, TRUE, TRUE);
                             break;
 
                         case RESET:
-                            pa_sink_set_mute(s, FALSE);
+                            pa_sink_set_mute(s, FALSE, TRUE);
                             break;
 
                         case MUTE_TOGGLE:
 
-                            pa_sink_set_mute(s, !pa_sink_get_mute(s, FALSE));
+                            pa_sink_set_mute(s, !pa_sink_get_mute(s, FALSE), TRUE);
                             break;
 
                         case INVALID:

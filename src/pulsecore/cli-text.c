@@ -139,11 +139,10 @@ char *pa_card_list_to_string(pa_core *c) {
 
         if (card->profiles) {
             pa_card_profile *p;
-            void *state = NULL;
+            void *state;
 
             pa_strbuf_puts(s, "\tprofiles:\n");
-
-            while ((p = pa_hashmap_iterate(card->profiles, &state, NULL)))
+            PA_HASHMAP_FOREACH(p, card->profiles, state)
                 pa_strbuf_printf(s, "\t\t%s: %s (priority %u)\n", p->name, p->description, p->priority);
         }
 
@@ -307,6 +306,22 @@ char *pa_sink_list_to_string(pa_core *c) {
         t = pa_proplist_to_string_sep(sink->proplist, "\n\t\t");
         pa_strbuf_printf(s, "\tproperties:\n\t\t%s\n", t);
         pa_xfree(t);
+
+        if (sink->ports) {
+            pa_device_port *p;
+            void *state;
+
+            pa_strbuf_puts(s, "\tports:\n");
+            PA_HASHMAP_FOREACH(p, sink->ports, state)
+                pa_strbuf_printf(s, "\t\t%s: %s (priority %u)\n", p->name, p->description, p->priority);
+        }
+
+
+        if (sink->active_port)
+            pa_strbuf_printf(
+                    s,
+                    "\tactive port: <%s>\n",
+                    sink->active_port->name);
     }
 
     return pa_strbuf_tostring_free(s);
@@ -412,6 +427,21 @@ char *pa_source_list_to_string(pa_core *c) {
         t = pa_proplist_to_string_sep(source->proplist, "\n\t\t");
         pa_strbuf_printf(s, "\tproperties:\n\t\t%s\n", t);
         pa_xfree(t);
+
+        if (source->ports) {
+            pa_device_port *p;
+            void *state;
+
+            pa_strbuf_puts(s, "\tports:\n");
+            PA_HASHMAP_FOREACH(p, source->ports, state)
+                pa_strbuf_printf(s, "\t\t%s: %s (priority %u)\n", p->name, p->description, p->priority);
+        }
+
+        if (source->active_port)
+            pa_strbuf_printf(
+                    s,
+                    "\tactive port: <%s>\n",
+                    source->active_port->name);
     }
 
     return pa_strbuf_tostring_free(s);

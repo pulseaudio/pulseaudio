@@ -32,6 +32,10 @@
 
 #include <modules/reserve-wrap.h>
 
+#ifdef HAVE_UDEV
+#include <modules/udev-util.h>
+#endif
+
 #include "alsa-util.h"
 #include "alsa-sink.h"
 #include "alsa-source.h"
@@ -92,81 +96,53 @@ struct userdata {
     char *device_id;
 
     pa_card *card;
-    pa_sink *sink;
-    pa_source *source;
 
     pa_modargs *modargs;
 
-    pa_hashmap *profiles;
+    pa_alsa_profile_set *profile_set;
 };
 
 struct profile_data {
-    const pa_alsa_profile_info *sink_profile, *source_profile;
+    pa_alsa_profile *profile;
 };
 
-static void enumerate_cb(
-        const pa_alsa_profile_info *sink,
-        const pa_alsa_profile_info *source,
-        void *userdata) {
+static void add_profiles(struct userdata *u, pa_hashmap *h) {
+    pa_alsa_profile *ap;
+    void *state;
 
-    struct userdata *u = userdata;
-    char *t, *n;
-    pa_card_profile *p;
-    struct profile_data *d;
-    unsigned bonus = 0;
+    pa_assert(u);
+    pa_assert(h);
 
-    if (sink && source) {
-        n = pa_sprintf_malloc("output-%s+input-%s", sink->name, source->name);
-        t = pa_sprintf_malloc(_("Output %s + Input %s"), sink->description, _(source->description));
-    } else if (sink) {
-        n = pa_sprintf_malloc("output-%s", sink->name);
-        t = pa_sprintf_malloc(_("Output %s"), _(sink->description));
-    } else {
-        pa_assert(source);
-        n = pa_sprintf_malloc("input-%s", source->name);
-        t = pa_sprintf_malloc(_("Input %s"), _(source->description));
+    PA_HASHMAP_FOREACH(ap, u->profile_set->profiles, state) {
+        struct profile_data *d;
+        pa_card_profile *cp;
+        pa_alsa_mapping *m;
+        uint32_t idx;
+
+        cp = pa_card_profile_new(ap->name, ap->description, sizeof(struct profile_data));
+        cp->priority = ap->priority;
+
+        if (ap->output_mappings) {
+            cp->n_sinks = pa_idxset_size(ap->output_mappings);
+
+            PA_IDXSET_FOREACH(m, ap->output_mappings, idx)
+                if (m->channel_map.channels > cp->max_sink_channels)
+                    cp->max_sink_channels = m->channel_map.channels;
+        }
+
+        if (ap->input_mappings) {
+            cp->n_sources = pa_idxset_size(ap->input_mappings);
+
+            PA_IDXSET_FOREACH(m, ap->input_mappings, idx)
+                if (m->channel_map.channels > cp->max_source_channels)
+                    cp->max_source_channels = m->channel_map.channels;
+        }
+
+        d = PA_CARD_PROFILE_DATA(cp);
+        d->profile = ap;
+
+        pa_hashmap_put(h, cp->name, cp);
     }
-
-    if (sink) {
-        if (pa_channel_map_equal(&sink->map, &u->core->default_channel_map))
-            bonus += 50000;
-        else if (sink->map.channels == u->core->default_channel_map.channels)
-            bonus += 40000;
-    }
-
-    if (source) {
-        if (pa_channel_map_equal(&source->map, &u->core->default_channel_map))
-            bonus += 30000;
-        else if (source->map.channels == u->core->default_channel_map.channels)
-            bonus += 20000;
-    }
-
-    pa_log_info("Found profile '%s'", t);
-
-    p = pa_card_profile_new(n, t, sizeof(struct profile_data));
-
-    pa_xfree(t);
-    pa_xfree(n);
-
-    p->priority =
-        (sink ? sink->priority : 0) * 100 +
-        (source ? source->priority : 0) +
-        bonus;
-
-    p->n_sinks = !!sink;
-    p->n_sources = !!source;
-
-    if (sink)
-        p->max_sink_channels = sink->map.channels;
-    if (source)
-        p->max_source_channels = source->map.channels;
-
-    d = PA_CARD_PROFILE_DATA(p);
-
-    d->sink_profile = sink;
-    d->source_profile = source;
-
-    pa_hashmap_put(u->profiles, p->name, p);
 }
 
 static void add_disabled_profile(pa_hashmap *profiles) {
@@ -176,7 +152,7 @@ static void add_disabled_profile(pa_hashmap *profiles) {
     p = pa_card_profile_new("off", _("Off"), sizeof(struct profile_data));
 
     d = PA_CARD_PROFILE_DATA(p);
-    d->sink_profile = d->source_profile = NULL;
+    d->profile = NULL;
 
     pa_hashmap_put(profiles, p->name, p);
 }
@@ -184,6 +160,9 @@ static void add_disabled_profile(pa_hashmap *profiles) {
 static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     struct userdata *u;
     struct profile_data *nd, *od;
+    uint32_t idx;
+    pa_alsa_mapping *am;
+    pa_queue *sink_inputs = NULL, *source_outputs = NULL;
 
     pa_assert(c);
     pa_assert(new_profile);
@@ -192,67 +171,85 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     nd = PA_CARD_PROFILE_DATA(new_profile);
     od = PA_CARD_PROFILE_DATA(c->active_profile);
 
-    if (od->sink_profile != nd->sink_profile) {
-        pa_queue *inputs = NULL;
+    if (od->profile && od->profile->output_mappings)
+        PA_IDXSET_FOREACH(am, od->profile->output_mappings, idx) {
+            if (!am->sink)
+                continue;
 
-        if (u->sink) {
-            if (nd->sink_profile)
-                inputs = pa_sink_move_all_start(u->sink);
+            if (nd->profile &&
+                nd->profile->output_mappings &&
+                pa_idxset_get_by_data(nd->profile->output_mappings, am, NULL))
+                continue;
 
-            pa_alsa_sink_free(u->sink);
-            u->sink = NULL;
+            sink_inputs = pa_sink_move_all_start(am->sink, sink_inputs);
+            pa_alsa_sink_free(am->sink);
+            am->sink = NULL;
         }
 
-        if (nd->sink_profile) {
-            u->sink = pa_alsa_sink_new(c->module, u->modargs, __FILE__, c, nd->sink_profile);
+    if (od->profile && od->profile->input_mappings)
+        PA_IDXSET_FOREACH(am, od->profile->input_mappings, idx) {
+            if (!am->source)
+                continue;
 
-            if (inputs) {
-                if (u->sink)
-                    pa_sink_move_all_finish(u->sink, inputs, FALSE);
-                else
-                    pa_sink_move_all_fail(inputs);
+            if (nd->profile &&
+                nd->profile->input_mappings &&
+                pa_idxset_get_by_data(nd->profile->input_mappings, am, NULL))
+                continue;
+
+            source_outputs = pa_source_move_all_start(am->source, source_outputs);
+            pa_alsa_source_free(am->source);
+            am->source = NULL;
+        }
+
+    if (nd->profile && nd->profile->output_mappings)
+        PA_IDXSET_FOREACH(am, nd->profile->output_mappings, idx) {
+
+            if (!am->sink)
+                am->sink = pa_alsa_sink_new(c->module, u->modargs, __FILE__, c, am);
+
+            if (sink_inputs && am->sink) {
+                pa_sink_move_all_finish(am->sink, sink_inputs, FALSE);
+                sink_inputs = NULL;
             }
         }
-    }
 
-    if (od->source_profile != nd->source_profile) {
-        pa_queue *outputs = NULL;
+    if (nd->profile && nd->profile->input_mappings)
+        PA_IDXSET_FOREACH(am, nd->profile->input_mappings, idx) {
 
-        if (u->source) {
-            if (nd->source_profile)
-                outputs = pa_source_move_all_start(u->source);
+            if (!am->source)
+                am->source = pa_alsa_source_new(c->module, u->modargs, __FILE__, c, am);
 
-            pa_alsa_source_free(u->source);
-            u->source = NULL;
-        }
-
-        if (nd->source_profile) {
-            u->source = pa_alsa_source_new(c->module, u->modargs, __FILE__, c, nd->source_profile);
-
-            if (outputs) {
-                if (u->source)
-                    pa_source_move_all_finish(u->source, outputs, FALSE);
-                else
-                    pa_source_move_all_fail(outputs);
+            if (source_outputs && am->source) {
+                pa_source_move_all_finish(am->source, source_outputs, FALSE);
+                source_outputs = NULL;
             }
         }
-    }
+
+    if (sink_inputs)
+        pa_sink_move_all_fail(sink_inputs);
+
+    if (source_outputs)
+        pa_source_move_all_fail(source_outputs);
 
     return 0;
 }
 
 static void init_profile(struct userdata *u) {
+    uint32_t idx;
+    pa_alsa_mapping *am;
     struct profile_data *d;
 
     pa_assert(u);
 
     d = PA_CARD_PROFILE_DATA(u->card->active_profile);
 
-    if (d->sink_profile)
-        u->sink = pa_alsa_sink_new(u->module, u->modargs, __FILE__, u->card, d->sink_profile);
+    if (d->profile && d->profile->output_mappings)
+        PA_IDXSET_FOREACH(am, d->profile->output_mappings, idx)
+            am->sink = pa_alsa_sink_new(u->module, u->modargs, __FILE__, u->card, am);
 
-    if (d->source_profile)
-        u->source = pa_alsa_source_new(u->module, u->modargs, __FILE__, u->card, d->source_profile);
+    if (d->profile && d->profile->input_mappings)
+        PA_IDXSET_FOREACH(am, d->profile->input_mappings, idx)
+            am->source = pa_alsa_source_new(u->module, u->modargs, __FILE__, u->card, am);
 }
 
 static void set_card_name(pa_card_new_data *data, pa_modargs *ma, const char *device_id) {
@@ -286,9 +283,9 @@ int pa__init(pa_module *m) {
     pa_modargs *ma;
     int alsa_card_index;
     struct userdata *u;
-    char rname[32];
     pa_reserve_wrapper *reserve = NULL;
     const char *description;
+    char *fn = NULL;
 
     pa_alsa_redirect_errors_inc();
     snd_config_update_free_global();
@@ -300,13 +297,10 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    m->userdata = u = pa_xnew(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
     u->device_id = pa_xstrdup(pa_modargs_get_value(ma, "device_id", DEFAULT_DEVICE_ID));
-    u->card = NULL;
-    u->sink = NULL;
-    u->source = NULL;
     u->modargs = ma;
 
     if ((alsa_card_index = snd_card_get_index(u->device_id)) < 0) {
@@ -314,16 +308,36 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    pa_snprintf(rname, sizeof(rname), "Audio%i", alsa_card_index);
+    if (!pa_in_system_mode()) {
+        char *rname;
 
-    if (!pa_in_system_mode())
-        if (!(reserve = pa_reserve_wrapper_get(m->core, rname)))
-            goto fail;
+        if ((rname = pa_alsa_get_reserve_name(u->device_id))) {
+            reserve = pa_reserve_wrapper_get(m->core, rname);
+            pa_xfree(rname);
+
+            if (!reserve)
+                goto fail;
+        }
+    }
+
+#ifdef HAVE_UDEV
+    fn = pa_udev_get_property(alsa_card_index, "PULSE_PROFILE_SET");
+#endif
+
+    u->profile_set = pa_alsa_profile_set_new(fn, &u->core->default_channel_map);
+    pa_xfree(fn);
+
+    if (!u->profile_set)
+        goto fail;
+
+    pa_alsa_profile_set_probe(u->profile_set, u->device_id, &m->core->default_sample_spec);
 
     pa_card_new_data_init(&data);
     data.driver = __FILE__;
     data.module = m;
+
     pa_alsa_init_proplist_card(m->core, data.proplist, alsa_card_index);
+
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_id);
     pa_alsa_init_description(data.proplist);
     set_card_name(&data, ma, u->device_id);
@@ -332,11 +346,8 @@ int pa__init(pa_module *m) {
         if ((description = pa_proplist_gets(data.proplist, PA_PROP_DEVICE_DESCRIPTION)))
             pa_reserve_wrapper_set_application_device_name(reserve, description);
 
-    u->profiles = data.profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    if (pa_alsa_probe_profiles(u->device_id, &m->core->default_sample_spec, enumerate_cb, u) < 0) {
-        pa_card_new_data_done(&data);
-        goto fail;
-    }
+    data.profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    add_profiles(u, data.profiles);
 
     if (pa_hashmap_isempty(data.profiles)) {
         pa_log("Failed to find a working profile.");
@@ -379,13 +390,22 @@ fail:
 
 int pa__get_n_used(pa_module *m) {
     struct userdata *u;
+    int n = 0;
+    uint32_t idx;
+    pa_sink *sink;
+    pa_source *source;
 
     pa_assert(m);
     pa_assert_se(u = m->userdata);
+    pa_assert(u->card);
 
-    return
-        (u->sink ? pa_sink_linked_by(u->sink) : 0) +
-        (u->source ? pa_source_linked_by(u->source) : 0);
+    PA_IDXSET_FOREACH(sink, u->card->sinks, idx)
+        n += pa_sink_linked_by(sink);
+
+    PA_IDXSET_FOREACH(source, u->card->sources, idx)
+        n += pa_source_linked_by(source);
+
+    return n;
 }
 
 void pa__done(pa_module*m) {
@@ -396,17 +416,28 @@ void pa__done(pa_module*m) {
     if (!(u = m->userdata))
         goto finish;
 
-    if (u->sink)
-        pa_alsa_sink_free(u->sink);
+    if (u->card && u->card->sinks) {
+        pa_sink *s;
 
-    if (u->source)
-        pa_alsa_source_free(u->source);
+        while ((s = pa_idxset_steal_first(u->card->sinks, NULL)))
+            pa_alsa_sink_free(s);
+    }
+
+    if (u->card && u->card->sources) {
+        pa_source *s;
+
+        while ((s = pa_idxset_steal_first(u->card->sources, NULL)))
+            pa_alsa_source_free(s);
+    }
 
     if (u->card)
         pa_card_free(u->card);
 
     if (u->modargs)
         pa_modargs_free(u->modargs);
+
+    if (u->profile_set)
+        pa_alsa_profile_set_free(u->profile_set);
 
     pa_xfree(u->device_id);
     pa_xfree(u);

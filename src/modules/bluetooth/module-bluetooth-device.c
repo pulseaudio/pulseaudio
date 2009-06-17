@@ -1443,12 +1443,12 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             if (u->sink && dbus_message_is_signal(m, "org.bluez.Headset", "SpeakerGainChanged")) {
 
                 pa_cvolume_set(&v, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
-                pa_sink_volume_changed(u->sink, &v);
+                pa_sink_volume_changed(u->sink, &v, TRUE);
 
             } else if (u->source && dbus_message_is_signal(m, "org.bluez.Headset", "MicrophoneGainChanged")) {
 
                 pa_cvolume_set(&v, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
-                pa_source_volume_changed(u->source, &v);
+                pa_source_volume_changed(u->source, &v, TRUE);
             }
         }
     }
@@ -1938,7 +1938,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     }
 
     if (u->sink) {
-        inputs = pa_sink_move_all_start(u->sink);
+        inputs = pa_sink_move_all_start(u->sink, NULL);
 #ifdef NOKIA
         if (!USE_SCO_OVER_PCM(u))
 #endif
@@ -1946,7 +1946,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     }
 
     if (u->source) {
-        outputs = pa_source_move_all_start(u->source);
+        outputs = pa_source_move_all_start(u->source, NULL);
 #ifdef NOKIA
         if (!USE_SCO_OVER_PCM(u))
 #endif

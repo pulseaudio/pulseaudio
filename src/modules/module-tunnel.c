@@ -730,7 +730,7 @@ static void command_request(pa_pdispatch *pd, uint32_t command,  uint32_t tag, p
     }
 
     if (channel != u->channel) {
-        pa_log("Recieved data for invalid channel");
+        pa_log("Received data for invalid channel");
         goto fail;
     }
 
@@ -1157,10 +1157,10 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag
         pa_cvolume_equal(&volume, &u->sink->virtual_volume))
         return;
 
-    pa_sink_volume_changed(u->sink, &volume);
+    pa_sink_volume_changed(u->sink, &volume, FALSE);
 
     if (u->version >= 11)
-        pa_sink_mute_changed(u->sink, mute);
+        pa_sink_mute_changed(u->sink, mute, FALSE);
 
     return;
 
@@ -1675,7 +1675,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     pa_assert(u);
 
     if (channel != u->channel) {
-        pa_log("Recieved memory block on bad channel.");
+        pa_log("Received memory block on bad channel.");
         pa_module_unload_request(u->module, TRUE);
         return;
     }

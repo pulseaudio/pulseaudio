@@ -58,7 +58,7 @@ static int read_id(struct udev_device *d, const char *n) {
     return u;
 }
 
-int pa_udev_get_info(pa_core *core, pa_proplist *p, int card_idx) {
+int pa_udev_get_info(int card_idx, pa_proplist *p) {
     int r = -1;
     struct udev *udev;
     struct udev_device *card = NULL;
@@ -66,7 +66,6 @@ int pa_udev_get_info(pa_core *core, pa_proplist *p, int card_idx) {
     const char *v;
     int id;
 
-    pa_assert(core);
     pa_assert(p);
     pa_assert(card_idx >= 0);
 
@@ -142,6 +141,43 @@ int pa_udev_get_info(pa_core *core, pa_proplist *p, int card_idx) {
             pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, v);
 
     r = 0;
+
+finish:
+
+    if (card)
+        udev_device_unref(card);
+
+    if (udev)
+        udev_unref(udev);
+
+    return r;
+}
+
+char* pa_udev_get_property(int card_idx, const char *name) {
+    struct udev *udev;
+    struct udev_device *card = NULL;
+    char *t, *r = NULL;
+    const char *v;
+
+    pa_assert(card_idx >= 0);
+    pa_assert(name);
+
+    if (!(udev = udev_new())) {
+        pa_log_error("Failed to allocate udev context.");
+        goto finish;
+    }
+
+    t = pa_sprintf_malloc("%s/class/sound/card%i", udev_get_sys_path(udev), card_idx);
+    card = udev_device_new_from_syspath(udev, t);
+    pa_xfree(t);
+
+    if (!card) {
+        pa_log_error("Failed to get card object.");
+        goto finish;
+    }
+
+    if ((v = udev_device_get_property_value(card, name)) && *v)
+        r = pa_xstrdup(v);
 
 finish:
 

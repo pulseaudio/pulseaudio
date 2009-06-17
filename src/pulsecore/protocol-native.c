@@ -3328,9 +3328,9 @@ static void command_set_volume(
     CHECK_VALIDITY(c->pstream, si || sink || source, tag, PA_ERR_NOENTITY);
 
     if (sink)
-        pa_sink_set_volume(sink, &volume, TRUE, TRUE, TRUE);
+        pa_sink_set_volume(sink, &volume, TRUE, TRUE, TRUE, TRUE);
     else if (source)
-        pa_source_set_volume(source, &volume);
+        pa_source_set_volume(source, &volume, TRUE);
     else if (si)
         pa_sink_input_set_volume(si, &volume, TRUE, TRUE);
 
@@ -3400,9 +3400,9 @@ static void command_set_mute(
     CHECK_VALIDITY(c->pstream, si || sink || source, tag, PA_ERR_NOENTITY);
 
     if (sink)
-        pa_sink_set_mute(sink, mute);
+        pa_sink_set_mute(sink, mute, TRUE);
     else if (source)
-        pa_source_set_mute(source, mute);
+        pa_source_set_mute(source, mute, TRUE);
     else if (si)
         pa_sink_input_set_mute(si, mute, TRUE);
 

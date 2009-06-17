@@ -442,7 +442,7 @@ void pa_sink_input_unlink(pa_sink_input *i) {
         if (i->sink->flags & PA_SINK_FLAT_VOLUME) {
             pa_cvolume new_volume;
             pa_sink_update_flat_volume(i->sink, &new_volume);
-            pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE, FALSE);
+            pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE, FALSE, FALSE);
         }
 
         if (i->sink->asyncmsgq)
@@ -520,7 +520,7 @@ void pa_sink_input_put(pa_sink_input *i) {
     if (i->sink->flags & PA_SINK_FLAT_VOLUME) {
         pa_cvolume new_volume;
         pa_sink_update_flat_volume(i->sink, &new_volume);
-        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE, FALSE);
+        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE, FALSE, FALSE);
     } else
         pa_sink_input_set_relative_volume(i, &i->virtual_volume);
 
@@ -900,7 +900,7 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_boo
          * volumes and update the flat volume of the sink */
 
         pa_sink_update_flat_volume(i->sink, &new_volume);
-        pa_sink_set_volume(i->sink, &new_volume, FALSE, TRUE, FALSE);
+        pa_sink_set_volume(i->sink, &new_volume, FALSE, TRUE, FALSE, FALSE);
 
     } else {
 
@@ -1159,7 +1159,7 @@ int pa_sink_input_start_move(pa_sink_input *i) {
         /* We might need to update the sink's volume if we are in flat
          * volume mode. */
         pa_sink_update_flat_volume(i->sink, &new_volume);
-        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE, FALSE);
+        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE, FALSE, FALSE);
     }
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_START_MOVE, i, 0, NULL) == 0);
@@ -1252,7 +1252,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
 
         /* We might need to update the sink's volume if we are in flat volume mode. */
         pa_sink_update_flat_volume(i->sink, &new_volume);
-        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE, FALSE);
+        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE, FALSE, FALSE);
     }
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_FINISH_MOVE, i, 0, NULL) == 0);
