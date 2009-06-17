@@ -237,4 +237,6 @@ static inline void pa_xstrfreev(char **a) {
 
 char **pa_split_spaces_strv(const char *s);
 
+char* pa_maybe_prefix_path(const char *path, const char *prefix);
+
 #endif

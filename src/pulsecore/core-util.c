@@ -2768,3 +2768,12 @@ char **pa_split_spaces_strv(const char *s) {
     t[i] = NULL;
     return t;
 }
+
+char* pa_maybe_prefix_path(const char *path, const char *prefix) {
+    pa_assert(path);
+
+    if (pa_is_path_absolute(path))
+        return pa_xstrdup(path);
+
+    return pa_sprintf_malloc("%s" PA_PATH_SEP "%s", prefix, path);
+}
