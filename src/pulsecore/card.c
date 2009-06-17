@@ -148,15 +148,12 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
             c->save_profile = data->save_profile;
 
     if (!c->active_profile && c->profiles) {
-        void *state = NULL;
+        void *state;
         pa_card_profile *p;
 
-        while ((p = pa_hashmap_iterate(c->profiles, &state, NULL))) {
-            if (!c->active_profile ||
-                p->priority > c->active_profile->priority)
-
+        PA_HASHMAP_FOREACH(p, c->profiles, state)
+            if (!c->active_profile || p->priority > c->active_profile->priority)
                 c->active_profile = p;
-        }
     }
 
     c->userdata = NULL;
@@ -177,7 +174,6 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
 
 void pa_card_free(pa_card *c) {
     pa_core *core;
-    pa_card_profile *profile;
 
     pa_assert(c);
     pa_assert(c->core);
@@ -200,8 +196,10 @@ void pa_card_free(pa_card *c) {
     pa_idxset_free(c->sources, NULL, NULL);
 
     if (c->profiles) {
-        while ((profile = pa_hashmap_steal_first(c->profiles)))
-            pa_card_profile_free(profile);
+        pa_card_profile *p;
+
+        while ((p = pa_hashmap_steal_first(c->profiles)))
+            pa_card_profile_free(p);
 
         pa_hashmap_free(c->profiles, NULL, NULL);
     }
