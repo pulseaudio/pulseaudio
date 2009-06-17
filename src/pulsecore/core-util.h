@@ -229,4 +229,10 @@ char *pa_realpath(const char *path);
 
 void pa_disable_sigpipe(void);
 
+void pa_xfreev(void**a);
+
+static inline void pa_xstrfreev(char **a) {
+    pa_xfreev((void**) a);
+}
+
 #endif

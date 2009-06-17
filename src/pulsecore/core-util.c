@@ -2732,3 +2732,15 @@ void pa_disable_sigpipe(void) {
     }
 #endif
 }
+
+void pa_xfreev(void**a) {
+    void **p;
+
+    if (!a)
+        return;
+
+    for (p = a; *p; p++)
+        pa_xfree(*p);
+
+    pa_xfree(a);
+}
