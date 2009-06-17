@@ -209,7 +209,7 @@ typedef enum pa_channel_position {
 typedef uint64_t pa_channel_position_mask_t;
 
 /** Makes a bit mask from a channel position. \since 0.9.16 */
-#define PA_CHANNEL_POSITION_MASK(f) ((pa_channel_position_mask_t) (1 << (f)))
+#define PA_CHANNEL_POSITION_MASK(f) ((pa_channel_position_mask_t) (1ULL << (f)))
 
 /** A list of channel mapping definitions for pa_channel_map_init_auto() */
 typedef enum pa_channel_map_def {
