@@ -930,6 +930,11 @@ int main(int argc, char *argv[]) {
 
     pa_log_info(_("Running in system mode: %s"), pa_yes_no(pa_in_system_mode()));
 
+    if (pa_in_system_mode())
+        pa_log_warn(_("OK, so you are running PA in system mode. Please note that you most likely shouldn't be doing that.\n"
+                      "If you do it nonetheless then it's your own fault if things don't work as expected.\n"
+                      "Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an explanation why system mode is usually a bad idea."));
+
     if (conf->use_pid_file) {
         int z;
 

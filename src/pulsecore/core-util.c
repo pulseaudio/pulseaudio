@@ -2732,3 +2732,48 @@ void pa_disable_sigpipe(void) {
     }
 #endif
 }
+
+void pa_xfreev(void**a) {
+    void **p;
+
+    if (!a)
+        return;
+
+    for (p = a; *p; p++)
+        pa_xfree(*p);
+
+    pa_xfree(a);
+}
+
+char **pa_split_spaces_strv(const char *s) {
+    char **t, *e;
+    unsigned i = 0, n = 8;
+    const char *state = NULL;
+
+    t = pa_xnew(char*, n);
+    while ((e = pa_split_spaces(s, &state))) {
+        t[i++] = e;
+
+        if (i >= n) {
+            n *= 2;
+            t = pa_xrenew(char*, t, n);
+        }
+    }
+
+    if (i <= 0) {
+        pa_xfree(t);
+        return NULL;
+    }
+
+    t[i] = NULL;
+    return t;
+}
+
+char* pa_maybe_prefix_path(const char *path, const char *prefix) {
+    pa_assert(path);
+
+    if (pa_is_path_absolute(path))
+        return pa_xstrdup(path);
+
+    return pa_sprintf_malloc("%s" PA_PATH_SEP "%s", prefix, path);
+}

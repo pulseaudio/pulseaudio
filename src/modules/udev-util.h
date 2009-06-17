@@ -25,6 +25,7 @@
 
 #include <pulsecore/core.h>
 
-int pa_udev_get_info(pa_core *core, pa_proplist *p, int card);
+int pa_udev_get_info(int card_idx, pa_proplist *p);
+char* pa_udev_get_property(int card_idx, const char *name);
 
 #endif

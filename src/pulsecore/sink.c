@@ -100,11 +100,51 @@ void pa_sink_new_data_set_muted(pa_sink_new_data *data, pa_bool_t mute) {
     data->muted = !!mute;
 }
 
+void pa_sink_new_data_set_port(pa_sink_new_data *data, const char *port) {
+    pa_assert(data);
+
+    pa_xfree(data->active_port);
+    data->active_port = pa_xstrdup(port);
+}
+
 void pa_sink_new_data_done(pa_sink_new_data *data) {
     pa_assert(data);
 
-    pa_xfree(data->name);
     pa_proplist_free(data->proplist);
+
+    if (data->ports) {
+        pa_device_port *p;
+
+        while ((p = pa_hashmap_steal_first(data->ports)))
+            pa_device_port_free(p);
+
+        pa_hashmap_free(data->ports, NULL, NULL);
+    }
+
+    pa_xfree(data->name);
+    pa_xfree(data->active_port);
+}
+
+pa_device_port *pa_device_port_new(const char *name, const char *description, size_t extra) {
+    pa_device_port *p;
+
+    pa_assert(name);
+
+    p = pa_xmalloc(PA_ALIGN(sizeof(pa_device_port)) + extra);
+    p->name = pa_xstrdup(name);
+    p->description = pa_xstrdup(description);
+
+    p->priority = 0;
+
+    return p;
+}
+
+void pa_device_port_free(pa_device_port *p) {
+    pa_assert(p);
+
+    pa_xfree(p->name);
+    pa_xfree(p->description);
+    pa_xfree(p);
 }
 
 /* Called from main context */
@@ -118,6 +158,7 @@ static void reset_callbacks(pa_sink *s) {
     s->set_mute = NULL;
     s->request_rewind = NULL;
     s->update_requested_latency = NULL;
+    s->set_port = NULL;
 }
 
 /* Called from main context */
@@ -152,6 +193,8 @@ pa_sink* pa_sink_new(
         return NULL;
     }
 
+    /* FIXME, need to free s here on failure */
+
     pa_return_null_if_fail(!data->driver || pa_utf8_valid(data->driver));
     pa_return_null_if_fail(data->name && pa_utf8_valid(data->name) && data->name[0]);
 
@@ -177,6 +220,7 @@ pa_sink* pa_sink_new(
 
     pa_device_init_description(data->proplist);
     pa_device_init_icon(data->proplist, TRUE);
+    pa_device_init_intended_roles(data->proplist);
 
     if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_FIXATE], data) < 0) {
         pa_xfree(s);
@@ -217,6 +261,30 @@ pa_sink* pa_sink_new(
 
     s->asyncmsgq = NULL;
     s->rtpoll = NULL;
+
+    /* As a minor optimization we just steal the list instead of
+     * copying it here */
+    s->ports = data->ports;
+    data->ports = NULL;
+
+    s->active_port = NULL;
+    s->save_port = FALSE;
+
+    if (data->active_port && s->ports)
+        if ((s->active_port = pa_hashmap_get(s->ports, data->active_port)))
+            s->save_port = data->save_port;
+
+    if (!s->active_port && s->ports) {
+        void *state;
+        pa_device_port *p;
+
+        PA_HASHMAP_FOREACH(p, s->ports, state)
+            if (!s->active_port || p->priority > s->active_port->priority)
+                s->active_port = p;
+    }
+
+    s->save_volume = data->save_volume;
+    s->save_muted = data->save_muted;
 
     pa_silence_memchunk_get(
             &core->silence_cache,
@@ -466,6 +534,15 @@ static void sink_free(pa_object *o) {
     if (s->proplist)
         pa_proplist_free(s->proplist);
 
+    if (s->ports) {
+        pa_device_port *p;
+
+        while ((p = pa_hashmap_steal_first(s->ports)))
+            pa_device_port_free(p);
+
+        pa_hashmap_free(s->ports, NULL, NULL);
+    }
+
     pa_xfree(s);
 }
 
@@ -484,6 +561,7 @@ void pa_sink_set_rtpoll(pa_sink *s, pa_rtpoll *p) {
     pa_sink_assert_ref(s);
 
     s->rtpoll = p;
+
     if (s->monitor_source)
         pa_source_set_rtpoll(s->monitor_source, p);
 }
@@ -525,15 +603,15 @@ int pa_sink_suspend(pa_sink *s, pa_bool_t suspend, pa_suspend_cause_t cause) {
 }
 
 /* Called from main context */
-pa_queue *pa_sink_move_all_start(pa_sink *s) {
-    pa_queue *q;
+pa_queue *pa_sink_move_all_start(pa_sink *s, pa_queue *q) {
     pa_sink_input *i, *n;
     uint32_t idx;
 
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_IS_LINKED(s->state));
 
-    q = pa_queue_new();
+    if (!q)
+        q = pa_queue_new();
 
     for (i = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); i; i = n) {
         n = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx));
@@ -1236,7 +1314,7 @@ void pa_sink_propagate_flat_volume(pa_sink *s) {
 }
 
 /* Called from main thread */
-void pa_sink_set_volume(pa_sink *s, const pa_cvolume *volume, pa_bool_t propagate, pa_bool_t sendmsg, pa_bool_t become_reference) {
+void pa_sink_set_volume(pa_sink *s, const pa_cvolume *volume, pa_bool_t propagate, pa_bool_t sendmsg, pa_bool_t become_reference, pa_bool_t save) {
     pa_bool_t virtual_volume_changed;
 
     pa_sink_assert_ref(s);
@@ -1247,6 +1325,7 @@ void pa_sink_set_volume(pa_sink *s, const pa_cvolume *volume, pa_bool_t propagat
 
     virtual_volume_changed = !pa_cvolume_equal(volume, &s->virtual_volume);
     s->virtual_volume = *volume;
+    s->save_volume = (!virtual_volume_changed && s->save_volume) || save;
 
     if (become_reference)
         s->reference_volume = s->virtual_volume;
@@ -1317,15 +1396,17 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *s, pa_bool_t force_refresh, pa_boo
 }
 
 /* Called from main thread */
-void pa_sink_volume_changed(pa_sink *s, const pa_cvolume *new_volume) {
+void pa_sink_volume_changed(pa_sink *s, const pa_cvolume *new_volume, pa_bool_t save) {
     pa_sink_assert_ref(s);
 
     /* The sink implementor may call this if the volume changed to make sure everyone is notified */
-
-    if (pa_cvolume_equal(&s->virtual_volume, new_volume))
+    if (pa_cvolume_equal(&s->virtual_volume, new_volume)) {
+        s->save_volume = s->save_volume || save;
         return;
+    }
 
     s->reference_volume = s->virtual_volume = *new_volume;
+    s->save_volume = save;
 
     if (s->flags & PA_SINK_FLAT_VOLUME)
         pa_sink_propagate_flat_volume(s);
@@ -1334,7 +1415,7 @@ void pa_sink_volume_changed(pa_sink *s, const pa_cvolume *new_volume) {
 }
 
 /* Called from main thread */
-void pa_sink_set_mute(pa_sink *s, pa_bool_t mute) {
+void pa_sink_set_mute(pa_sink *s, pa_bool_t mute, pa_bool_t save) {
     pa_bool_t old_muted;
 
     pa_sink_assert_ref(s);
@@ -1342,6 +1423,7 @@ void pa_sink_set_mute(pa_sink *s, pa_bool_t mute) {
 
     old_muted = s->muted;
     s->muted = mute;
+    s->save_muted = (old_muted == s->muted && s->save_muted) || save;
 
     if (s->set_mute)
         s->set_mute(s);
@@ -1377,15 +1459,19 @@ pa_bool_t pa_sink_get_mute(pa_sink *s, pa_bool_t force_refresh) {
 }
 
 /* Called from main thread */
-void pa_sink_mute_changed(pa_sink *s, pa_bool_t new_muted) {
+void pa_sink_mute_changed(pa_sink *s, pa_bool_t new_muted, pa_bool_t save) {
     pa_sink_assert_ref(s);
 
     /* The sink implementor may call this if the volume changed to make sure everyone is notified */
 
-    if (s->muted == new_muted)
+    if (s->muted == new_muted) {
+        s->save_muted = s->save_muted || save;
         return;
+    }
 
     s->muted = new_muted;
+    s->save_muted = save;
+
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
@@ -1483,7 +1569,7 @@ unsigned pa_sink_check_suspend(pa_sink *s) {
 
     ret = 0;
 
-    for (i = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); i; i = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx))) {
+    PA_IDXSET_FOREACH(i, s->inputs, idx) {
         pa_sink_input_state_t st;
 
         st = pa_sink_input_get_state(i);
@@ -2194,6 +2280,41 @@ size_t pa_sink_get_max_request(pa_sink *s) {
 }
 
 /* Called from main context */
+int pa_sink_set_port(pa_sink *s, const char *name, pa_bool_t save) {
+    pa_device_port *port;
+
+    pa_assert(s);
+
+    if (!s->set_port) {
+        pa_log_debug("set_port() operation not implemented for sink %u \"%s\"", s->index, s->name);
+        return -PA_ERR_NOTIMPLEMENTED;
+    }
+
+    if (!s->ports)
+        return -PA_ERR_NOENTITY;
+
+    if (!(port = pa_hashmap_get(s->ports, name)))
+        return -PA_ERR_NOENTITY;
+
+    if (s->active_port == port) {
+        s->save_port = s->save_port || save;
+        return 0;
+    }
+
+    if ((s->set_port(s, port)) < 0)
+        return -PA_ERR_NOENTITY;
+
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+
+    pa_log_info("Changed port of sink %u \"%s\" to %s", s->index, s->name, port->name);
+
+    s->active_port = port;
+    s->save_port = save;
+
+    return 0;
+}
+
+/* Called from main context */
 pa_bool_t pa_device_init_icon(pa_proplist *p, pa_bool_t is_sink) {
     const char *ff, *c, *t = NULL, *s = "", *profile, *bus;
 
@@ -2284,6 +2405,22 @@ pa_bool_t pa_device_init_description(pa_proplist *p) {
         pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, s);
         return TRUE;
     }
+
+    return FALSE;
+}
+
+pa_bool_t pa_device_init_intended_roles(pa_proplist *p) {
+    const char *s;
+    pa_assert(p);
+
+    if (pa_proplist_contains(p, PA_PROP_DEVICE_INTENDED_ROLES))
+        return TRUE;
+
+    if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_FORM_FACTOR)))
+        if (pa_streq(s, "handset") || pa_streq(s, "hands-free")) {
+            pa_proplist_sets(p, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
+            return TRUE;
+        }
 
     return FALSE;
 }

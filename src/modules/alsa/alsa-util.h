@@ -30,95 +30,86 @@
 #include <pulse/mainloop-api.h>
 #include <pulse/channelmap.h>
 #include <pulse/proplist.h>
+#include <pulse/volume.h>
 
+#include <pulsecore/llist.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/core.h>
 #include <pulsecore/log.h>
 
-typedef struct pa_alsa_fdlist pa_alsa_fdlist;
-
-struct pa_alsa_fdlist *pa_alsa_fdlist_new(void);
-void pa_alsa_fdlist_free(struct pa_alsa_fdlist *fdl);
-int pa_alsa_fdlist_set_mixer(struct pa_alsa_fdlist *fdl, snd_mixer_t *mixer_handle, pa_mainloop_api* m);
+#include "alsa-mixer.h"
 
 int pa_alsa_set_hw_params(
         snd_pcm_t *pcm_handle,
-        pa_sample_spec *ss,
-        uint32_t *periods,
-        snd_pcm_uframes_t *period_size,
+        pa_sample_spec *ss,                /* modified at return */
+        uint32_t *periods,                 /* modified at return */
+        snd_pcm_uframes_t *period_size,    /* modified at return */
         snd_pcm_uframes_t tsched_size,
-        pa_bool_t *use_mmap,
-        pa_bool_t *use_tsched,
+        pa_bool_t *use_mmap,               /* modified at return */
+        pa_bool_t *use_tsched,             /* modified at return */
         pa_bool_t require_exact_channel_number);
 
-int pa_alsa_set_sw_params(snd_pcm_t *pcm, snd_pcm_uframes_t avail_min);
+int pa_alsa_set_sw_params(
+        snd_pcm_t *pcm,
+        snd_pcm_uframes_t avail_min);
 
-typedef struct pa_alsa_profile_info {
-    pa_channel_map map;
-    const char *alsa_name;
-    const char *alsa_name_fallback;
-    const char *description; /* internationalized */
-    const char *name;
-    unsigned priority;
-    const char *playback_control_name, *playback_control_fallback;
-    const char *record_control_name, *record_control_fallback;
-} pa_alsa_profile_info;
-
-int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev);
-snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const char *fallback, pa_bool_t playback);
-int pa_alsa_find_mixer_and_elem(snd_pcm_t *pcm, char **ctl_device, snd_mixer_t **_m, snd_mixer_elem_t **_e, const char *control_name, const pa_alsa_profile_info*profile);
-
-void pa_alsa_init_proplist_ctl(pa_proplist *p, const char *name);
-
-/* Picks a working profile based on the specified ss/map */
+/* Picks a working mapping from the profile set based on the specified ss/map */
 snd_pcm_t *pa_alsa_open_by_device_id_auto(
         const char *dev_id,
-        char **dev,
-        pa_sample_spec *ss,
-        pa_channel_map* map,
+        char **dev,                       /* modified at return */
+        pa_sample_spec *ss,               /* modified at return */
+        pa_channel_map* map,              /* modified at return */
         int mode,
-        uint32_t *nfrags,
-        snd_pcm_uframes_t *period_size,
+        uint32_t *nfrags,                 /* modified at return */
+        snd_pcm_uframes_t *period_size,   /* modified at return */
         snd_pcm_uframes_t tsched_size,
-        pa_bool_t *use_mmap,
-        pa_bool_t *use_tsched,
-        const pa_alsa_profile_info **profile);
+        pa_bool_t *use_mmap,              /* modified at return */
+        pa_bool_t *use_tsched,            /* modified at return */
+        pa_alsa_profile_set *ps,
+        pa_alsa_mapping **mapping);       /* modified at return */
 
-/* Uses the specified profile */
-snd_pcm_t *pa_alsa_open_by_device_id_profile(
+/* Uses the specified mapping */
+snd_pcm_t *pa_alsa_open_by_device_id_mapping(
         const char *dev_id,
-        char **dev,
-        pa_sample_spec *ss,
-        pa_channel_map* map,
+        char **dev,                       /* modified at return */
+        pa_sample_spec *ss,               /* modified at return */
+        pa_channel_map* map,              /* modified at return */
         int mode,
-        uint32_t *nfrags,
-        snd_pcm_uframes_t *period_size,
+        uint32_t *nfrags,                 /* modified at return */
+        snd_pcm_uframes_t *period_size,   /* modified at return */
         snd_pcm_uframes_t tsched_size,
-        pa_bool_t *use_mmap,
-        pa_bool_t *use_tsched,
-        const pa_alsa_profile_info *profile);
+        pa_bool_t *use_mmap,              /* modified at return */
+        pa_bool_t *use_tsched,            /* modified at return */
+        pa_alsa_mapping *mapping);
 
 /* Opens the explicit ALSA device */
 snd_pcm_t *pa_alsa_open_by_device_string(
-        const char *device,
-        char **dev,
-        pa_sample_spec *ss,
-        pa_channel_map* map,
+        const char *dir,
+        char **dev,                       /* modified at return */
+        pa_sample_spec *ss,               /* modified at return */
+        pa_channel_map* map,              /* modified at return */
         int mode,
-        uint32_t *nfrags,
-        snd_pcm_uframes_t *period_size,
+        uint32_t *nfrags,                 /* modified at return */
+        snd_pcm_uframes_t *period_size,   /* modified at return */
         snd_pcm_uframes_t tsched_size,
-        pa_bool_t *use_mmap,
-        pa_bool_t *use_tsched,
+        pa_bool_t *use_mmap,              /* modified at return */
+        pa_bool_t *use_tsched,            /* modified at return */
         pa_bool_t require_exact_channel_number);
 
-int pa_alsa_probe_profiles(
+/* Opens the explicit ALSA device with a fallback list */
+snd_pcm_t *pa_alsa_open_by_template(
+        char **template,
         const char *dev_id,
-        const pa_sample_spec *ss,
-        void (*cb)(const pa_alsa_profile_info *sink, const pa_alsa_profile_info *source, void *userdata),
-        void *userdata);
-
-int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel_map, snd_mixer_selem_channel_id_t mixer_map[], pa_bool_t playback);
+        char **dev,                       /* modified at return */
+        pa_sample_spec *ss,               /* modified at return */
+        pa_channel_map* map,              /* modified at return */
+        int mode,
+        uint32_t *nfrags,                 /* modified at return */
+        snd_pcm_uframes_t *period_size,   /* modified at return */
+        snd_pcm_uframes_t tsched_size,
+        pa_bool_t *use_mmap,              /* modified at return */
+        pa_bool_t *use_tsched,            /* modified at return */
+        pa_bool_t require_exact_channel_number);
 
 void pa_alsa_dump(pa_log_level_t level, snd_pcm_t *pcm);
 void pa_alsa_dump_status(snd_pcm_t *pcm);
@@ -128,7 +119,8 @@ void pa_alsa_redirect_errors_dec(void);
 
 void pa_alsa_init_proplist_pcm_info(pa_core *c, pa_proplist *p, snd_pcm_info_t *pcm_info);
 void pa_alsa_init_proplist_card(pa_core *c, pa_proplist *p, int card);
-void pa_alsa_init_proplist_pcm(pa_core *c, pa_proplist *p, snd_pcm_t *pcm, snd_mixer_elem_t *elem);
+void pa_alsa_init_proplist_pcm(pa_core *c, pa_proplist *p, snd_pcm_t *pcm);
+void pa_alsa_init_proplist_ctl(pa_proplist *p, const char *name);
 pa_bool_t pa_alsa_init_description(pa_proplist *p);
 
 int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents);
@@ -140,13 +132,11 @@ int pa_alsa_safe_delay(snd_pcm_t *pcm, snd_pcm_sframes_t *delay, size_t hwbuf_si
 int pa_alsa_safe_mmap_begin(snd_pcm_t *pcm, const snd_pcm_channel_area_t **areas, snd_pcm_uframes_t *offset, snd_pcm_uframes_t *frames, size_t hwbuf_size, const pa_sample_spec *ss);
 
 char *pa_alsa_get_driver_name(int card);
-
 char *pa_alsa_get_driver_name_by_pcm(snd_pcm_t *pcm);
 
 char *pa_alsa_get_reserve_name(const char *device);
 
 pa_bool_t pa_alsa_pcm_is_hw(snd_pcm_t *pcm);
-
 pa_bool_t pa_alsa_pcm_is_modem(snd_pcm_t *pcm);
 
 const char* pa_alsa_strerror(int errnum);

@@ -1443,12 +1443,12 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             if (u->sink && dbus_message_is_signal(m, "org.bluez.Headset", "SpeakerGainChanged")) {
 
                 pa_cvolume_set(&v, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
-                pa_sink_volume_changed(u->sink, &v);
+                pa_sink_volume_changed(u->sink, &v, TRUE);
 
             } else if (u->source && dbus_message_is_signal(m, "org.bluez.Headset", "MicrophoneGainChanged")) {
 
                 pa_cvolume_set(&v, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
-                pa_source_volume_changed(u->source, &v);
+                pa_source_volume_changed(u->source, &v, TRUE);
             }
         }
     }
@@ -1622,6 +1622,8 @@ static int add_sink(struct userdata *u) {
         data.module = u->module;
         pa_sink_new_data_set_sample_spec(&data, &u->sample_spec);
         pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP ? "a2dp" : "sco");
+        if (u->profile == PROFILE_HSP)
+            pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
         data.card = u->card;
         data.name = get_name("sink", u->modargs, u->address, &b);
         data.namereg_fail = b;
@@ -1680,6 +1682,8 @@ static int add_source(struct userdata *u) {
         data.module = u->module;
         pa_source_new_data_set_sample_spec(&data, &u->sample_spec);
         pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP ? "a2dp" : "hsp");
+        if (u->profile == PROFILE_HSP)
+            pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
         data.card = u->card;
         data.name = get_name("source", u->modargs, u->address, &b);
         data.namereg_fail = b;
@@ -1916,7 +1920,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 
     if (!(device = pa_bluetooth_discovery_get_by_path(u->discovery, u->path))) {
         pa_log_error("Failed to get device object.");
-        return -1;
+        return -PA_ERR_IO;
     }
 
     /* The state signal is sent by bluez, so it is racy to check
@@ -1926,15 +1930,15 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
        module will be unloaded. */
     if (device->headset_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HSP) {
         pa_log_warn("HSP is not connected, refused to switch profile");
-        return -1;
+        return -PA_ERR_IO;
     }
     else if (device->audio_sink_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP) {
         pa_log_warn("A2DP is not connected, refused to switch profile");
-        return -1;
+        return -PA_ERR_IO;
     }
 
     if (u->sink) {
-        inputs = pa_sink_move_all_start(u->sink);
+        inputs = pa_sink_move_all_start(u->sink, NULL);
 #ifdef NOKIA
         if (!USE_SCO_OVER_PCM(u))
 #endif
@@ -1942,7 +1946,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
     }
 
     if (u->source) {
-        outputs = pa_source_move_all_start(u->source);
+        outputs = pa_source_move_all_start(u->source, NULL);
 #ifdef NOKIA
         if (!USE_SCO_OVER_PCM(u))
 #endif

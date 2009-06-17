@@ -684,7 +684,7 @@ static int do_read(pa_pstream *p) {
         flags = ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_FLAGS]);
 
         if (!p->use_shm && (flags & PA_FLAG_SHMMASK) != 0) {
-            pa_log_warn("Recieved SHM frame on a socket where SHM is disabled.");
+            pa_log_warn("Received SHM frame on a socket where SHM is disabled.");
             return -1;
         }
 
@@ -714,7 +714,7 @@ static int do_read(pa_pstream *p) {
         length = ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]);
 
         if (length > FRAME_SIZE_MAX_ALLOW || length <= 0) {
-            pa_log_warn("Recieved invalid frame size: %lu", (unsigned long) length);
+            pa_log_warn("Received invalid frame size: %lu", (unsigned long) length);
             return -1;
         }
 
@@ -743,7 +743,7 @@ static int do_read(pa_pstream *p) {
             if ((flags & PA_FLAG_SHMMASK) == PA_FLAG_SHMDATA) {
 
                 if (length != sizeof(p->read.shm_info)) {
-                    pa_log_warn("Recieved SHM memblock frame with Invalid frame length.");
+                    pa_log_warn("Received SHM memblock frame with Invalid frame length.");
                     return -1;
                 }
 
@@ -758,7 +758,7 @@ static int do_read(pa_pstream *p) {
                 p->read.data = NULL;
             } else {
 
-                pa_log_warn("Recieved memblock frame with invalid flags value.");
+                pa_log_warn("Received memblock frame with invalid flags value.");
                 return -1;
             }
         }

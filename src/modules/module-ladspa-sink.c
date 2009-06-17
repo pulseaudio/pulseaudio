@@ -27,6 +27,7 @@
 #endif
 
 #include <pulse/xmalloc.h>
+#include <pulse/i18n.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/namereg.h>
@@ -45,20 +46,20 @@
 #include "ladspa.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");
-PA_MODULE_DESCRIPTION("Virtual LADSPA sink");
+PA_MODULE_DESCRIPTION(_("Virtual LADSPA sink"));
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
-        "sink_name=<name for the sink> "
-        "sink_properties=<properties for the sink> "
-        "master=<name of sink to remap> "
-        "format=<sample format> "
-        "rate=<sample rate> "
-        "channels=<number of channels> "
-        "channel_map=<channel map> "
-        "plugin=<ladspa plugin name> "
-        "label=<ladspa plugin label> "
-        "control=<comma seperated list of input control values>");
+        _("sink_name=<name for the sink> "
+          "sink_properties=<properties for the sink> "
+          "master=<name of sink to filter> "
+          "format=<sample format> "
+          "rate=<sample rate> "
+          "channels=<number of channels> "
+          "channel_map=<channel map> "
+          "plugin=<ladspa plugin name> "
+          "label=<ladspa plugin label> "
+          "control=<comma seperated list of input control values>"));
 
 #define MEMBLOCKQ_MAXLENGTH (16*1024*1024)
 

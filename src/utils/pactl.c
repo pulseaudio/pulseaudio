@@ -49,8 +49,21 @@
 static pa_context *context = NULL;
 static pa_mainloop_api *mainloop_api = NULL;
 
-static char *device = NULL, *sample_name = NULL, *sink_name = NULL, *source_name = NULL, *module_name = NULL, *module_args = NULL, *card_name = NULL, *profile_name = NULL;
-static uint32_t sink_input_idx = PA_INVALID_INDEX, source_output_idx = PA_INVALID_INDEX;
+static char
+    *device = NULL,
+    *sample_name = NULL,
+    *sink_name = NULL,
+    *source_name = NULL,
+    *module_name = NULL,
+    *module_args = NULL,
+    *card_name = NULL,
+    *profile_name = NULL,
+    *port_name = NULL;
+
+static uint32_t
+    sink_input_idx = PA_INVALID_INDEX,
+    source_output_idx = PA_INVALID_INDEX;
+
 static uint32_t module_index;
 static pa_bool_t suspend;
 
@@ -80,7 +93,9 @@ static enum {
     UNLOAD_MODULE,
     SUSPEND_SINK,
     SUSPEND_SOURCE,
-    SET_CARD_PROFILE
+    SET_CARD_PROFILE,
+    SET_SINK_PORT,
+    SET_SOURCE_PORT
 } action = NONE;
 
 static void quit(int ret) {
@@ -239,6 +254,18 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
            pl = pa_proplist_to_string_sep(i->proplist, "\n\t\t"));
 
     pa_xfree(pl);
+
+    if (i->ports) {
+        pa_sink_port_info **p;
+
+        printf(_("\tPorts:\n"));
+        for (p = i->ports; *p; p++)
+            printf("\t\t%s: %s (priority. %u)\n", (*p)->name, (*p)->description, (*p)->priority);
+    }
+
+    if (i->active_port)
+        printf(_("\tActive Port: %s\n"),
+               i->active_port->name);
 }
 
 static void get_source_info_callback(pa_context *c, const pa_source_info *i, int is_last, void *userdata) {
@@ -319,6 +346,18 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
            pl = pa_proplist_to_string_sep(i->proplist, "\n\t\t"));
 
     pa_xfree(pl);
+
+    if (i->ports) {
+        pa_source_port_info **p;
+
+        printf(_("\tPorts:\n"));
+        for (p = i->ports; *p; p++)
+            printf("\t\t%s: %s (priority. %u)\n", (*p)->name, (*p)->description, (*p)->priority);
+    }
+
+    if (i->active_port)
+        printf(_("\tActive Port: %s\n"),
+               i->active_port->name);
 }
 
 static void get_module_info_callback(pa_context *c, const pa_module_info *i, int is_last, void *userdata) {
@@ -753,6 +792,14 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     pa_operation_unref(pa_context_set_card_profile_by_name(c, card_name, profile_name, simple_callback, NULL));
                     break;
 
+                case SET_SINK_PORT:
+                    pa_operation_unref(pa_context_set_sink_port_by_name(c, sink_name, port_name, simple_callback, NULL));
+                    break;
+
+                case SET_SOURCE_PORT:
+                    pa_operation_unref(pa_context_set_source_port_by_name(c, source_name, port_name, simple_callback, NULL));
+                    break;
+
                 default:
                     pa_assert_not_reached();
             }
@@ -788,12 +835,14 @@ static void help(const char *argv0) {
              "%s [options] unload-module ID\n"
              "%s [options] suspend-sink [SINK] 1|0\n"
              "%s [options] suspend-source [SOURCE] 1|0\n"
-             "%s [options] set-card-profile [CARD] [PROFILE] \n\n"
+             "%s [options] set-card-profile [CARD] [PROFILE] \n"
+             "%s [options] set-sink-port [SINK] [PORT] \n"
+             "%s [options] set-source-port [SOURCE] [PORT] \n\n"
              "  -h, --help                            Show this help\n"
              "      --version                         Show version\n\n"
              "  -s, --server=SERVER                   The name of the server to connect to\n"
              "  -n, --client-name=NAME                How to call this client on the server\n"),
-           argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0);
+           argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0);
 }
 
 enum {
@@ -1016,6 +1065,28 @@ int main(int argc, char *argv[]) {
 
             card_name = pa_xstrdup(argv[optind+1]);
             profile_name = pa_xstrdup(argv[optind+2]);
+
+        } else if (pa_streq(argv[optind], "set-sink-port")) {
+            action = SET_SINK_PORT;
+
+            if (argc != optind+3) {
+                pa_log(_("You have to specify a sink name/index and a port name\n"));
+                goto quit;
+            }
+
+            sink_name = pa_xstrdup(argv[optind+1]);
+            port_name = pa_xstrdup(argv[optind+2]);
+
+        } else if (pa_streq(argv[optind], "set-source-port")) {
+            action = SET_SOURCE_PORT;
+
+            if (argc != optind+3) {
+                pa_log(_("You have to specify a source name/index and a port name\n"));
+                goto quit;
+            }
+
+            source_name = pa_xstrdup(argv[optind+1]);
+            port_name = pa_xstrdup(argv[optind+2]);
 
         } else if (pa_streq(argv[optind], "help")) {
             help(bn);

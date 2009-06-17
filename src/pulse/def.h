@@ -393,6 +393,7 @@ enum {
     PA_ERR_OBSOLETE,               /**< Obsolete functionality. \since 0.9.15 */
     PA_ERR_NOTIMPLEMENTED,         /**< Missing implementation. \since 0.9.15 */
     PA_ERR_FORKED,                 /**< The caller forked without calling execve() and tried to reuse the context. \since 0.9.15 */
+    PA_ERR_IO,                     /**< An IO error happened. \since 0.9.16 */
     PA_ERR_MAX                     /**< Not really an error but the first invalid error code */
 };
 
