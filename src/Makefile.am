@@ -29,8 +29,8 @@ pulsecoreincludedir=$(includedir)/pulsecore
 pulseconfdir=$(sysconfdir)/pulse
 pulselibexecdir=$(libexecdir)/pulse
 xdgautostartdir=$(sysconfdir)/xdg/autostart
-alsaprofilesetsdir=$(datadir)/alsa-mixer/profile-sets
-alsapathsdir=$(datadir)/alsa-mixer/paths
+alsaprofilesetsdir=$(datadir)/pulseaudio/alsa-mixer/profile-sets
+alsapathsdir=$(datadir)/pulseaudio/alsa-mixer/paths
 udevrulesdir=/lib/udev/rules.d
 
 ###################################
