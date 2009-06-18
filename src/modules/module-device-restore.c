@@ -226,7 +226,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
             entry.volume_valid = TRUE;
         }
 
-        if (sink->save_volume) {
+        if (sink->save_muted) {
             entry.muted = pa_sink_get_mute(sink, FALSE);
             entry.muted_valid = TRUE;
         }
