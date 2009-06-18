@@ -2945,6 +2945,9 @@ static int profile_verify(pa_alsa_profile *p) {
             }
 
             pa_idxset_put(p->output_mappings, m, NULL);
+
+            if (p->supported)
+                m->supported++;
         }
 
         pa_xstrfreev(p->output_mapping_names);
@@ -2978,6 +2981,9 @@ static int profile_verify(pa_alsa_profile *p) {
             }
 
             pa_idxset_put(p->input_mappings, m, NULL);
+
+            if (p->supported)
+                m->supported++;
         }
 
         pa_xstrfreev(p->input_mapping_names);
