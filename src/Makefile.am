@@ -118,7 +118,7 @@ EXTRA_DIST = \
 		modules/alsa/mixer/profile-sets/default.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio4dj.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf \
-		modules/alsa/mixer/profile-sets/78-pulseaudio.rules \
+		modules/alsa/mixer/profile-sets/90-pulseaudio.rules \
 		modules/alsa/mixer/paths/analog-input-aux.conf \
 		modules/alsa/mixer/paths/analog-input.conf \
 		modules/alsa/mixer/paths/analog-input.conf.common \
@@ -1054,7 +1054,7 @@ alsaprofilesets_DATA = \
 		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf
 
 udevrules_DATA = \
-		modules/alsa/mixer/profile-sets/78-pulseaudio.rules
+		modules/alsa/mixer/profile-sets/90-pulseaudio.rules
 
 alsapaths_DATA = \
 		modules/alsa/mixer/paths/analog-input-aux.conf \
