@@ -116,6 +116,7 @@ EXTRA_DIST = \
 		map-file \
 		daemon/org.pulseaudio.policy.in \
 		modules/alsa/mixer/profile-sets/default.conf \
+		modules/alsa/mixer/profile-sets/native-instruments-audio4dj.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf \
 		modules/alsa/mixer/profile-sets/78-pulseaudio.rules \
 		modules/alsa/mixer/paths/analog-input-aux.conf \
@@ -1049,6 +1050,7 @@ modlibexec_LTLIBRARIES += \
 
 alsaprofilesets_DATA = \
 		modules/alsa/mixer/profile-sets/default.conf \
+		modules/alsa/mixer/profile-sets/native-instruments-audio4dj.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf
 
 udevrules_DATA = \
