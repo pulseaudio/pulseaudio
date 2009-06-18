@@ -31,6 +31,7 @@ pulselibexecdir=$(libexecdir)/pulse
 xdgautostartdir=$(sysconfdir)/xdg/autostart
 alsaprofilesetsdir=$(datadir)/alsa-mixer/profile-sets
 alsapathsdir=$(datadir)/alsa-mixer/paths
+udevrulesdir=/lib/udev/rules.d
 
 ###################################
 #            Defines              #
@@ -115,6 +116,8 @@ EXTRA_DIST = \
 		map-file \
 		daemon/org.pulseaudio.policy.in \
 		modules/alsa/mixer/profile-sets/default.conf \
+		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf \
+		modules/alsa/mixer/profile-sets/78-pulseaudio.rules \
 		modules/alsa/mixer/paths/analog-input-aux.conf \
 		modules/alsa/mixer/paths/analog-input.conf \
 		modules/alsa/mixer/paths/analog-input.conf.common \
@@ -1045,7 +1048,11 @@ modlibexec_LTLIBRARIES += \
 		module-alsa-card.la
 
 alsaprofilesets_DATA = \
-		modules/alsa/mixer/profile-sets/default.conf
+		modules/alsa/mixer/profile-sets/default.conf \
+		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf
+
+udevrules_DATA = \
+		modules/alsa/mixer/profile-sets/78-pulseaudio.rules
 
 alsapaths_DATA = \
 		modules/alsa/mixer/paths/analog-input-aux.conf \
