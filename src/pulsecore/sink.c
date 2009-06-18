@@ -181,6 +181,7 @@ pa_sink* pa_sink_new(
     s = pa_msgobject_new(pa_sink);
 
     if (!(name = pa_namereg_register(core, data->name, PA_NAMEREG_SINK, s, data->namereg_fail))) {
+        pa_log_debug("Failed to register name %s.", data->name);
         pa_xfree(s);
         return NULL;
     }
