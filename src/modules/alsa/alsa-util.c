@@ -735,20 +735,22 @@ static void alsa_error_handler(const char *file, int line, const char *function,
 
 static pa_atomic_t n_error_handler_installed = PA_ATOMIC_INIT(0);
 
-void pa_alsa_redirect_errors_inc(void) {
+void pa_alsa_refcnt_inc(void) {
     /* This is not really thread safe, but we do our best */
 
     if (pa_atomic_inc(&n_error_handler_installed) == 0)
         snd_lib_error_set_handler(alsa_error_handler);
 }
 
-void pa_alsa_redirect_errors_dec(void) {
+void pa_alsa_refcnt_dec(void) {
     int r;
 
     pa_assert_se((r = pa_atomic_dec(&n_error_handler_installed)) >= 1);
 
-    if (r == 1)
+    if (r == 1) {
         snd_lib_error_set_handler(NULL);
+        snd_config_update_free_global();
+    }
 }
 
 pa_bool_t pa_alsa_init_description(pa_proplist *p) {
