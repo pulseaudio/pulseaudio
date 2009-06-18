@@ -2384,30 +2384,35 @@ pa_bool_t pa_device_init_icon(pa_proplist *p, pa_bool_t is_sink) {
 }
 
 pa_bool_t pa_device_init_description(pa_proplist *p) {
-    const char *s;
+    const char *s, *d = NULL, *k;
     pa_assert(p);
 
     if (pa_proplist_contains(p, PA_PROP_DEVICE_DESCRIPTION))
         return TRUE;
 
     if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_FORM_FACTOR)))
-        if (pa_streq(s, "internal")) {
-            pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, _("Internal Audio"));
-            return TRUE;
-        }
+        if (pa_streq(s, "internal"))
+            d = _("Internal Audio");
 
-    if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_CLASS)))
-        if (pa_streq(s, "modem")) {
-            pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, _("Modem"));
-            return TRUE;
-        }
+    if (!d)
+        if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_CLASS)))
+            if (pa_streq(s, "modem"))
+                d = _("Modem");
 
-    if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_PRODUCT_NAME))) {
-        pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, s);
-        return TRUE;
-    }
+    if (!d)
+        d = pa_proplist_gets(p, PA_PROP_DEVICE_PRODUCT_NAME);
 
-    return FALSE;
+    if (!d)
+        return FALSE;
+
+    k = pa_proplist_gets(p, PA_PROP_DEVICE_PROFILE_DESCRIPTION);
+
+    if (d && k)
+        pa_proplist_setf(p, PA_PROP_DEVICE_DESCRIPTION, _("%s %s"), d, k);
+    else if (d)
+        pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, d);
+
+    return TRUE;
 }
 
 pa_bool_t pa_device_init_intended_roles(pa_proplist *p) {

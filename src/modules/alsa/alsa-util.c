@@ -752,21 +752,24 @@ void pa_alsa_redirect_errors_dec(void) {
 }
 
 pa_bool_t pa_alsa_init_description(pa_proplist *p) {
-    const char *s;
+    const char *d, *k;
     pa_assert(p);
 
     if (pa_device_init_description(p))
         return TRUE;
 
-    if ((s = pa_proplist_gets(p, "alsa.card_name"))) {
-        pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, s);
-        return TRUE;
-    }
+    if (!(d = pa_proplist_gets(p, "alsa.card_name")))
+        d = pa_proplist_gets(p, "alsa.name");
 
-    if ((s = pa_proplist_gets(p, "alsa.name"))) {
-        pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, s);
-        return TRUE;
-    }
+    if (!d)
+        return FALSE;
+
+    k = pa_proplist_gets(p, PA_PROP_DEVICE_PROFILE_DESCRIPTION);
+
+    if (d && k)
+        pa_proplist_setf(p, PA_PROP_DEVICE_DESCRIPTION, _("%s %s"), d, k);
+    else if (d)
+        pa_proplist_sets(p, PA_PROP_DEVICE_DESCRIPTION, d);
 
     return FALSE;
 }
