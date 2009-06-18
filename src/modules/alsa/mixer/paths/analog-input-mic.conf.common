@@ -15,6 +15,7 @@ priority = 19
 
 [Element Mic Boost (+20dB)]
 switch = select
+volume = merge
 
 [Option Mic Boost (+20dB):on]
 name = input-boost-on
@@ -24,6 +25,7 @@ name = input-boost-off
 
 [Element Mic Boost]
 switch = select
+volume = merge
 
 [Option Mic Boost:on]
 name = input-boost-on
