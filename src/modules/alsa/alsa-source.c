@@ -1187,7 +1187,7 @@ finish:
     pa_log_debug("Thread shutting down");
 }
 
-static void set_source_name(pa_source_new_data *data, pa_modargs *ma, const char *device_id, const char *device_name) {
+static void set_source_name(pa_source_new_data *data, pa_modargs *ma, const char *device_id, const char *device_name, pa_alsa_mapping *mapping) {
     const char *n;
     char *t;
 
@@ -1208,7 +1208,11 @@ static void set_source_name(pa_source_new_data *data, pa_modargs *ma, const char
         data->namereg_fail = FALSE;
     }
 
-    t = pa_sprintf_malloc("alsa_input.%s", n);
+    if (mapping)
+        t = pa_sprintf_malloc("alsa_input.%s.%s", n, mapping->name);
+    else
+        t = pa_sprintf_malloc("alsa_input.%s", n);
+
     pa_source_new_data_set_name(data, t);
     pa_xfree(t);
 }
@@ -1528,7 +1532,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     data.driver = driver;
     data.module = m;
     data.card = card;
-    set_source_name(&data, ma, dev_id, u->device_name);
+    set_source_name(&data, ma, dev_id, u->device_name, mapping);
     pa_source_new_data_set_sample_spec(&data, &ss);
     pa_source_new_data_set_channel_map(&data, &map);
 

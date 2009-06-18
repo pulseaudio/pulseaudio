@@ -1335,7 +1335,7 @@ finish:
     pa_log_debug("Thread shutting down");
 }
 
-static void set_sink_name(pa_sink_new_data *data, pa_modargs *ma, const char *device_id, const char *device_name) {
+static void set_sink_name(pa_sink_new_data *data, pa_modargs *ma, const char *device_id, const char *device_name, pa_alsa_mapping *mapping) {
     const char *n;
     char *t;
 
@@ -1356,7 +1356,11 @@ static void set_sink_name(pa_sink_new_data *data, pa_modargs *ma, const char *de
         data->namereg_fail = FALSE;
     }
 
-    t = pa_sprintf_malloc("alsa_output.%s", n);
+    if (mapping)
+        t = pa_sprintf_malloc("alsa_output.%s.%s", n, mapping->name);
+    else
+        t = pa_sprintf_malloc("alsa_output.%s", n);
+
     pa_sink_new_data_set_name(data, t);
     pa_xfree(t);
 }
@@ -1679,7 +1683,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     data.driver = driver;
     data.module = m;
     data.card = card;
-    set_sink_name(&data, ma, dev_id, u->device_name);
+    set_sink_name(&data, ma, dev_id, u->device_name, mapping);
     pa_sink_new_data_set_sample_spec(&data, &ss);
     pa_sink_new_data_set_channel_map(&data, &map);
 
