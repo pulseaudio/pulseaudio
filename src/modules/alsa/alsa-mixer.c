@@ -2930,7 +2930,7 @@ static int profile_verify(pa_alsa_profile *p) {
             char **in;
             pa_bool_t duplicate = FALSE;
 
-            for (in = p->output_mapping_names; *in; in++)
+            for (in = name + 1; *in; in++)
                 if (pa_streq(*name, *in)) {
                     duplicate = TRUE;
                     break;
@@ -2963,7 +2963,7 @@ static int profile_verify(pa_alsa_profile *p) {
             char **in;
             pa_bool_t duplicate = FALSE;
 
-            for (in = p->input_mapping_names; *in; in++)
+            for (in = name + 1; *in; in++)
                 if (pa_streq(*name, *in)) {
                     duplicate = TRUE;
                     break;
