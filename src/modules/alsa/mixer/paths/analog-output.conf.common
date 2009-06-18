@@ -48,6 +48,10 @@
 ; combined and made into a "port". So make sure you don't list too
 ; many switches/enums for exposing, because the number of ports might
 ; rise exponentially.
+;
+; Only one path can be selected at a time. All paths that are valid
+; for an audio device will be exposed as "port" for the sink/source.
+
 
 ; [General]
 ; priority = ...                         # Priority for this path
@@ -84,6 +88,10 @@
 ;
 ; override-map.1 = ...                   # Override the channel mask of the mixer control if the control only exposes a single channel
 ; override-map.2 = ...                   # Override the channel masks of the mixer control if the control only exposes two channels
+;                                        # Override maps should list for each element channel which high-level channels it controls via a
+;                                        # channel mask. A channel mask may either be the name of a single channel, or the words "all-left",
+;                                        # "all-right", "all-center", "all-front", "all-rear", and "all" to encode a specific subset of
+;                                        # channels in a mask
 
 [Element PCM]
 switch = mute
