@@ -84,7 +84,6 @@
 #include <pulsecore/pid.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/random.h>
-#include <pulsecore/rtsig.h>
 #include <pulsecore/rtclock.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/mutex.h>
@@ -796,11 +795,6 @@ int main(int argc, char *argv[]) {
         pa_log_info(_("Fresh high-resolution timers available! Bon appetit!"));
     else
         pa_log_info(_("Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!"));
-
-#ifdef SIGRTMIN
-    /* Valgrind uses SIGRTMAX. To easy debugging we don't use it here */
-    pa_rtsig_configure(SIGRTMIN, SIGRTMAX-1);
-#endif
 
     if (conf->lock_memory) {
 #ifdef HAVE_SYS_MMAN_H

@@ -1265,7 +1265,6 @@ static void thread_func(void *userdata) {
         goto fail;
 
     pa_thread_mq_install(&u->thread_mq);
-    pa_rtpoll_install(u->rtpoll);
 
     for (;;) {
         struct pollfd *pollfd;

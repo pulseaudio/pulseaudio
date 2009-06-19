@@ -811,7 +811,6 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/play-memchunk.c pulsecore/play-memchunk.h \
 		pulsecore/resampler.c pulsecore/resampler.h \
 		pulsecore/rtpoll.c pulsecore/rtpoll.h \
-		pulsecore/rtsig.c pulsecore/rtsig.h \
 		pulsecore/sample-util.c pulsecore/sample-util.h \
 		pulsecore/sconv-s16be.c pulsecore/sconv-s16be.h \
 		pulsecore/sconv-s16le.c pulsecore/sconv-s16le.h \
