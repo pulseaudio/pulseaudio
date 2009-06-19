@@ -54,6 +54,11 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 
 #define CLEANUP_INTERVAL 10 /* seconds */
 
+enum server_type {
+    SERVER_TYPE_LOCAL,
+    SERVER_TYPE_TCP
+};
+
 struct server;
 struct connection;
 
@@ -75,6 +80,7 @@ struct userdata {
 
 struct server {
     struct userdata *userdata;
+    enum server_type type;
     DBusServer *dbus_server;
 };
 
@@ -114,6 +120,12 @@ static void client_kill_cb(pa_client *c) {
     pa_log_info("Connection killed.");
 }
 
+static dbus_bool_t user_check_cb(DBusConnection *connection, unsigned long uid, void *data) {
+    pa_log_debug("Allowing connection by user %lu.", uid);
+
+    return TRUE;
+}
+
 /* Called by D-Bus when a new client connection is received. */
 static void connection_new_cb(DBusServer *dbus_server, DBusConnection *new_connection, void *data) {
     struct server *s = data;
@@ -131,8 +143,17 @@ static void connection_new_cb(DBusServer *dbus_server, DBusConnection *new_conne
     client = pa_client_new(s->userdata->module->core, &new_data);
     pa_client_new_data_done(&new_data);
 
-    if (!client)
+    if (!client) {
+        dbus_connection_close(new_connection);
         return;
+    }
+
+    if (s->type == SERVER_TYPE_TCP) {
+        /* FIXME: Here we allow anyone from anywhere to access the server,
+         * anonymously. Access control should be configurable. */
+        dbus_connection_set_unix_user_function(new_connection, user_check_cb, NULL, NULL);
+        dbus_connection_set_allow_anonymous(new_connection, TRUE);
+    }
 
     c = pa_xnew(struct connection, 1);
     c->server = s;
@@ -334,7 +355,7 @@ static void server_free(struct server *s) {
     pa_xfree(s);
 }
 
-static struct server *start_server(struct userdata *u, const char *address) {
+static struct server *start_server(struct userdata *u, const char *address, enum server_type type) {
     /* XXX: We assume that when we unref the DBusServer instance at module
      * shutdown, nobody else holds any references to it. If we stop assuming
      * that someday, dbus_server_set_new_connection_function,
@@ -390,7 +411,7 @@ static struct server *start_local_server(struct userdata *u) {
 
     address = pa_get_dbus_address_from_server_type(u->module->core->server_type);
 
-    s = start_server(u, address); /* May return NULL */
+    s = start_server(u, address, SERVER_TYPE_LOCAL); /* May return NULL */
 
     pa_xfree(address);
 
@@ -398,8 +419,18 @@ static struct server *start_local_server(struct userdata *u) {
 }
 
 static struct server *start_tcp_server(struct userdata *u) {
-    pa_log("start_tcp_server(): Not implemented!");
-    return NULL;
+    struct server *s = NULL;
+    char *address = NULL;
+
+    pa_assert(u);
+
+    address = pa_sprintf_malloc("tcp:host=127.0.0.1,port=%u", u->tcp_port);
+
+    s = start_server(u, address, SERVER_TYPE_TCP); /* May return NULL */
+
+    pa_xfree(address);
+
+    return s;
 }
 
 static int get_access_arg(pa_modargs *ma, pa_bool_t *local_access, pa_bool_t *remote_access) {
@@ -420,7 +451,7 @@ static int get_access_arg(pa_modargs *ma, pa_bool_t *local_access, pa_bool_t *re
         *remote_access = TRUE;
     } else if (!strcmp(value, "local,remote")) {
         *local_access = TRUE;
-        *local_access = TRUE;
+        *remote_access = TRUE;
     } else
         return -1;
 

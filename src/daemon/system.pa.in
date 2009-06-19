@@ -33,7 +33,8 @@ load-module module-detect
 load-module module-esound-protocol-unix
 .endif
 .ifexists module-dbus-protocol@PA_SOEXT@
-load-module module-dbus-protocol
+### If you want to allow TCP connections, set access to "remote" or "local,remote".
+load-module module-dbus-protocol access=local
 .endif
 load-module module-native-protocol-unix
 

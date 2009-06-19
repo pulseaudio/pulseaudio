@@ -120,14 +120,11 @@ static DBusHandlerResult handle_get_address(DBusConnection *conn, DBusMessage *m
         return DBUS_HANDLER_RESULT_HANDLED;
     }
 
-    pa_client_conf_free(conf);
-
     if (conf->default_dbus_server) {
-        if (!(address = dbus_address_escape_value(conf->default_dbus_server)))
-            goto oom;
+        address = pa_xstrdup(conf->default_dbus_server);
     } else {
         if (!(address = pa_get_dbus_address_from_server_type(sl->core->server_type))) {
-            if (!(reply = dbus_message_new_error(msg, DBUS_ERROR_FAILED, "get_dbus_server_from_type() failed.")))
+            if (!(reply = dbus_message_new_error(msg, DBUS_ERROR_FAILED, "PulseAudio internal error: get_dbus_server_from_type() failed.")))
                 goto fail;
             if (!dbus_connection_send(conn, reply, NULL))
                 goto oom;
@@ -144,10 +141,8 @@ static DBusHandlerResult handle_get_address(DBusConnection *conn, DBusMessage *m
     if (!dbus_connection_send(conn, reply, NULL))
         goto oom;
 
-    pa_log_debug("handle_get_dbus_address(): Sent reply with address '%s'.", address);
-
+    pa_client_conf_free(conf);
     pa_xfree(address);
-
     dbus_message_unref(reply);
 
     return DBUS_HANDLER_RESULT_HANDLED;
