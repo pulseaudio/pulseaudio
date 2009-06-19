@@ -617,40 +617,20 @@ static int set_scheduler(int rtprio) {
 int pa_make_realtime(int rtprio) {
 
 #ifdef _POSIX_PRIORITY_SCHEDULING
-    int r, policy;
-    struct sched_param sp;
-    int rtprio_try;
-
-    pa_zero(sp);
-    policy = 0;
-
-    if ((r = pthread_getschedparam(pthread_self(), &policy, &sp)) != 0) {
-        pa_log("pthread_getschedgetparam(): %s", pa_cstrerror(r));
-        return -1;
-    }
-
-#ifdef SCHED_RESET_ON_FORK
-    policy &= ~SCHED_RESET_ON_FORK;
-#endif
-
-    if ((policy == SCHED_FIFO || policy == SCHED_RR) && sp.sched_priority >= rtprio) {
-        pa_log_info("Thread already being scheduled with SCHED_FIFO/SCHED_RR with priority %i.", sp.sched_priority);
-        return 0;
-    }
+    int p;
 
     if (set_scheduler(rtprio) >= 0) {
         pa_log_info("Successfully enabled SCHED_RR scheduling for thread, with priority %i.", rtprio);
         return 0;
     }
 
-    for (rtprio_try = rtprio-1; rtprio_try >= 1; rtprio_try--) {
-        if (set_scheduler(rtprio_try)) {
-            pa_log_info("Successfully enabled SCHED_RR scheduling for thread, with priority %i, which is lower than the requested %i.", rtprio_try, rtprio);
+    for (p = rtprio-1; p >= 1; p--)
+        if (set_scheduler(p)) {
+            pa_log_info("Successfully enabled SCHED_RR scheduling for thread, with priority %i, which is lower than the requested %i.", p, rtprio);
             return 0;
         }
-    }
 
-    pa_log_warn("Failed to acquire real-time scheduling: %s", pa_cstrerror(r));
+    pa_log_info("Failed to acquire real-time scheduling: %s", pa_cstrerror(errno));
     return -1;
 #else
 
@@ -659,80 +639,42 @@ int pa_make_realtime(int rtprio) {
 #endif
 }
 
-/* This is merely used for giving the user a hint. This is not correct
- * for anything security related */
-pa_bool_t pa_can_realtime(void) {
+static int set_nice(int nice_level) {
+#ifdef HAVE_DBUS
+    DBusError error;
+    DBusConnection *bus;
+    int r;
 
-    if (geteuid() == 0)
-        return TRUE;
-
-#if defined(HAVE_SYS_RESOURCE_H) && defined(RLIMIT_RTPRIO)
-    {
-        struct rlimit rl;
-
-        if (getrlimit(RLIMIT_RTPRIO, &rl) >= 0)
-            if (rl.rlim_cur > 0 || rl.rlim_cur == RLIM_INFINITY)
-                return TRUE;
-    }
+    dbus_error_init(&error);
 #endif
 
-#if defined(HAVE_SYS_CAPABILITY_H) && defined(CAP_SYS_NICE)
-    {
-        cap_t cap;
-
-        if ((cap = cap_get_proc())) {
-            cap_flag_value_t flag = CAP_CLEAR;
-
-            if (cap_get_flag(cap, CAP_SYS_NICE, CAP_EFFECTIVE, &flag) >= 0)
-                if (flag == CAP_SET) {
-                    cap_free(cap);
-                    return TRUE;
-                }
-
-            cap_free(cap);
-        }
+    if (setpriority(PRIO_PROCESS, 0, nice_level) >= 0) {
+        pa_log_debug("setpriority() worked.");
+        return 0;
     }
+
+#ifdef HAVE_DBUS
+    /* Try to talk to RealtimeKit */
+
+    if (!(bus = dbus_bus_get(DBUS_BUS_SYSTEM, &error))) {
+        pa_log("Failed to connect to system bus: %s\n", error.message);
+        dbus_error_free(&error);
+        errno = -EIO;
+        return -1;
+    }
+
+    r = rtkit_make_high_priority(bus, 0, nice_level);
+    dbus_connection_unref(bus);
+
+    if (r >= 0) {
+        pa_log_debug("RealtimeKit worked.");
+        return 0;
+    }
+
+    errno = -r;
 #endif
 
-    return FALSE;
-}
-
-/* This is merely used for giving the user a hint. This is not correct
- * for anything security related */
-pa_bool_t pa_can_high_priority(void) {
-
-    if (geteuid() == 0)
-        return TRUE;
-
-#if defined(HAVE_SYS_RESOURCE_H) && defined(RLIMIT_RTPRIO)
-    {
-        struct rlimit rl;
-
-        if (getrlimit(RLIMIT_NICE, &rl) >= 0)
-            if (rl.rlim_cur >= 21 || rl.rlim_cur == RLIM_INFINITY)
-                return TRUE;
-    }
-#endif
-
-#if defined(HAVE_SYS_CAPABILITY_H) && defined(CAP_SYS_NICE)
-    {
-        cap_t cap;
-
-        if ((cap = cap_get_proc())) {
-            cap_flag_value_t flag = CAP_CLEAR;
-
-            if (cap_get_flag(cap, CAP_SYS_NICE, CAP_EFFECTIVE, &flag) >= 0)
-                if (flag == CAP_SET) {
-                    cap_free(cap);
-                    return TRUE;
-                }
-
-            cap_free(cap);
-        }
-    }
-#endif
-
-    return FALSE;
+    return -1;
 }
 
 /* Raise the priority of the current process as much as possible that
@@ -740,22 +682,21 @@ pa_bool_t pa_can_high_priority(void) {
 int pa_raise_priority(int nice_level) {
 
 #ifdef HAVE_SYS_RESOURCE_H
-    if (setpriority(PRIO_PROCESS, 0, nice_level) < 0) {
-        int n;
+    int n;
 
-        for (n = nice_level+1; n < 0; n++) {
-
-            if (setpriority(PRIO_PROCESS, 0, n) == 0) {
-                pa_log_info("Successfully acquired nice level %i, which is lower than the requested %i.", n, nice_level);
-                return 0;
-            }
-        }
-
-        pa_log_warn("setpriority(): %s", pa_cstrerror(errno));
-        return -1;
+    if (set_nice(nice_level) >= 0) {
+        pa_log_info("Successfully gained nice level %i.", nice_level);
+        return 0;
     }
 
-    pa_log_info("Successfully gained nice level %i.", nice_level);
+    for (n = nice_level+1; n < 0; n++)
+        if (set_nice(n) > 0) {
+            pa_log_info("Successfully acquired nice level %i, which is lower than the requested %i.", n, nice_level);
+            return 0;
+        }
+
+    pa_log_info("Failed to acquire high-priority scheduling: %s", pa_cstrerror(errno));
+    return -1;
 #endif
 
 #ifdef OS_IS_WIN32
@@ -763,9 +704,10 @@ int pa_raise_priority(int nice_level) {
         if (!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS)) {
             pa_log_warn("SetPriorityClass() failed: 0x%08X", GetLastError());
             errno = EPERM;
-            return .-1;
-        } else
-            pa_log_info("Successfully gained high priority class.");
+            return -1;
+        }
+
+        pa_log_info("Successfully gained high priority class.");
     }
 #endif
 
@@ -780,8 +722,8 @@ void pa_reset_priority(void) {
 
     setpriority(PRIO_PROCESS, 0, 0);
 
-    memset(&sp, 0, sizeof(sp));
-    pa_assert_se(pthread_setschedparam(pthread_self(), SCHED_OTHER, &sp) == 0);
+    pa_zero(sp);
+    pthread_setschedparam(pthread_self(), SCHED_OTHER, &sp);
 #endif
 
 #ifdef OS_IS_WIN32
