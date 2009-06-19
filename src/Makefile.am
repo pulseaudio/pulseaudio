@@ -114,7 +114,6 @@ EXTRA_DIST = \
 		modules/module-defs.h.m4 \
 		daemon/pulseaudio.desktop.in \
 		map-file \
-		daemon/org.pulseaudio.policy.in \
 		modules/alsa/mixer/profile-sets/default.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio4dj.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf \
@@ -182,16 +181,6 @@ if FORCE_PREOPEN
 pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) -dlpreopen force $(foreach f,$(PREOPEN_LIBS),-dlpreopen $(f))
 else
 pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) -dlopen force $(foreach f,$(PREOPEN_LIBS),-dlopen $(f))
-endif
-
-if HAVE_POLKIT
-policy_in_files = daemon/org.pulseaudio.policy.in
-policy_DATA = $(policy_in_files:.policy.in=.policy)
-@INTLTOOL_POLICY_RULE@
-
-pulseaudio_SOURCES += daemon/polkit.c daemon/polkit.h
-pulseaudio_CFLAGS += $(POLKIT_CFLAGS)
-pulseaudio_LDADD += $(POLKIT_LIBS)
 endif
 
 ###################################
@@ -1655,11 +1644,7 @@ module_rygel_media_server_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 #        Some minor stuff         #
 ###################################
 
-suid: pulseaudio .libs/lt-pulseaudio
-	chown root $^
-	chmod u+s $^
-
-CLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 daemon/pulseaudio.desktop daemon/org.pulseaudio.policy
+CLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 daemon/pulseaudio.desktop
 
 esdcompat: daemon/esdcompat.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \

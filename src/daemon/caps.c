@@ -39,6 +39,7 @@
 #ifdef HAVE_SYS_CAPABILITY_H
 #include <sys/capability.h>
 #endif
+
 #ifdef HAVE_SYS_PRCTL_H
 #include <sys/prctl.h>
 #endif
@@ -51,12 +52,13 @@ int setresgid(gid_t r, gid_t e, gid_t s);
 int setresuid(uid_t r, uid_t e, uid_t s);
 #endif
 
-#ifdef HAVE_GETUID
-
 /* Drop root rights when called SUID root */
 void pa_drop_root(void) {
-    uid_t uid = getuid();
 
+#ifdef HAVE_GETUID
+    uid_t uid;
+
+    uid = getuid();
     if (uid == 0 || geteuid() != 0)
         return;
 
@@ -73,90 +75,19 @@ void pa_drop_root(void) {
 
     pa_assert_se(getuid() == uid);
     pa_assert_se(geteuid() == uid);
-}
-
-#else
-
-void pa_drop_root(void) {
-}
-
 #endif
 
-#if defined(HAVE_SYS_CAPABILITY_H) && defined(HAVE_SYS_PRCTL_H)
-
-/* Limit permitted capabilities set to CAPSYS_NICE */
-void pa_limit_caps(void) {
-    cap_t caps;
-    cap_value_t nice_cap = CAP_SYS_NICE;
-
-    pa_assert_se(caps = cap_init());
-    pa_assert_se(cap_clear(caps) == 0);
-    pa_assert_se(cap_set_flag(caps, CAP_EFFECTIVE, 1, &nice_cap, CAP_SET) == 0);
-    pa_assert_se(cap_set_flag(caps, CAP_PERMITTED, 1, &nice_cap, CAP_SET) == 0);
-
-    if (cap_set_proc(caps) < 0)
-        /* Hmm, so we couldn't limit our caps, which probably means we
-         * hadn't any in the first place, so let's just make sure of
-         * that */
-        pa_drop_caps();
-    else
-        pa_log_info(_("Limited capabilities successfully to CAP_SYS_NICE."));
-
-    pa_assert_se(cap_free(caps) == 0);
-
-    pa_assert_se(prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) == 0);
-}
-
-/* Drop all capabilities, effectively becoming a normal user */
-void pa_drop_caps(void) {
-    cap_t caps;
-
-#ifndef __OPTIMIZE__
-    /* Valgrind doesn't not know set_caps, so we bypass it here -- but
-     * only in development builds.*/
-
-    if (pa_in_valgrind() && !pa_have_caps())
-        return;
-#endif
-
+#ifdef HAVE_SYS_PRCTL_H
     pa_assert_se(prctl(PR_SET_KEEPCAPS, 0, 0, 0, 0) == 0);
-
-    pa_assert_se(caps = cap_init());
-    pa_assert_se(cap_clear(caps) == 0);
-    pa_assert_se(cap_set_proc(caps) == 0);
-    pa_assert_se(cap_free(caps) == 0);
-
-    pa_assert_se(!pa_have_caps());
-}
-
-pa_bool_t pa_have_caps(void) {
-    cap_t caps;
-    cap_flag_value_t flag = CAP_CLEAR;
-
-#ifdef __OPTIMIZE__
-    pa_assert_se(caps = cap_get_proc());
-#else
-    if (!(caps = cap_get_proc()))
-        return FALSE;
 #endif
-    pa_assert_se(cap_get_flag(caps, CAP_SYS_NICE, CAP_EFFECTIVE, &flag) >= 0);
-    pa_assert_se(cap_free(caps) == 0);
 
-    return flag == CAP_SET;
-}
-
-#else
-
-/* NOOPs in case capabilities are not available. */
-void pa_limit_caps(void) {
-}
-
-void pa_drop_caps(void) {
-    pa_drop_root();
-}
-
-pa_bool_t pa_have_caps(void) {
-    return FALSE;
-}
-
+#ifdef HAVE_SYS_CAPABILITY_H
+    {
+        cap_t caps;
+        pa_assert_se(caps = cap_init());
+        pa_assert_se(cap_clear(caps) == 0);
+        pa_assert_se(cap_set_proc(caps) == 0);
+        pa_assert_se(cap_free(caps) == 0);
+    }
 #endif
+}
