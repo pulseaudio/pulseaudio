@@ -33,7 +33,7 @@
 ; high-priority = yes
 ; nice-level = -11
 
-; realtime-scheduling = no
+; realtime-scheduling = yes
 ; realtime-priority = 5
 
 ; exit-idle-time = 20
