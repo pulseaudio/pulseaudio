@@ -1152,44 +1152,6 @@ AC_SUBST(DBUS_LIBS)
 AC_SUBST(HAVE_DBUS)
 AM_CONDITIONAL([HAVE_DBUS], [test "x$HAVE_DBUS" = x1])
 
-#### PolicyKit support (optional) ####
-
-AC_ARG_ENABLE([polkit],
-    AS_HELP_STRING([--disable-polkit],[Disable optional PolicyKit support]),
-        [
-            case "${enableval}" in
-                yes) polkit=yes ;;
-                no) polkit=no ;;
-                *) AC_MSG_ERROR(bad value ${enableval} for --disable-polkit) ;;
-            esac
-        ],
-        [polkit=auto])
-
-if test "x${polkit}" != xno ; then
-
-    PKG_CHECK_MODULES(POLKIT, [ polkit-dbus >= 0.7 ],
-        [
-            HAVE_POLKIT=1
-            AC_DEFINE([HAVE_POLKIT], 1, [Have PolicyKit])
-            policydir=`pkg-config polkit-dbus --variable prefix`/share/PolicyKit/policy/
-            AC_SUBST(policydir)
-        ],
-        [
-            HAVE_POLKIT=0
-            if test "x$polkit" = xyes ; then
-                AC_MSG_ERROR([*** PolicyKit support not found])
-            fi
-        ])
-else
-    HAVE_POLKIT=0
-fi
-
-AC_SUBST(POLKIT_CFLAGS)
-AC_SUBST(POLKIT_LIBS)
-AC_SUBST(HAVE_POLKIT)
-AM_CONDITIONAL([HAVE_POLKIT], [test "x$HAVE_POLKIT" = x1])
-
-
 ### IPv6 connection support (optional) ###
 
 AC_ARG_ENABLE([ipv6],
@@ -1275,15 +1237,6 @@ else
 fi
 AC_SUBST(PA_SYSTEM_GROUP)
 AC_DEFINE_UNQUOTED(PA_SYSTEM_GROUP,"$PA_SYSTEM_GROUP", [Group for the PulseAudio system daemon])
-
-AC_ARG_WITH(realtime_group,AS_HELP_STRING([--with-realtime-group=<group>],[Group for users that are allowed to start the PulseAudio daemon with realtime scheduling (realtime)]))
-if test -z "$with_realtime_group" ; then
-    PA_REALTIME_GROUP=pulse-rt
-else
-    PA_REALTIME_GROUP=$with_realtime_group
-fi
-AC_SUBST(PA_REALTIME_GROUP)
-AC_DEFINE_UNQUOTED(PA_REALTIME_GROUP,"$PA_REALTIME_GROUP", [Realtime group])
 
 AC_ARG_WITH(access_group,AS_HELP_STRING([--with-access-group=<group>],[Group which is allowed access to a system-wide PulseAudio daemon (pulse-access)]))
 if test -z "$with_access_group" ; then
@@ -1461,11 +1414,6 @@ if test "x${HAVE_BLUEZ}" = "x1" ; then
    ENABLE_BLUEZ=yes
 fi
 
-ENABLE_POLKIT=no
-if test "x${HAVE_POLKIT}" = "x1" ; then
-   ENABLE_POLKIT=yes
-fi
-
 ENABLE_GDBM=no
 if test "x${HAVE_GDBM}" = "x1" ; then
    ENABLE_GDBM=yes
@@ -1519,7 +1467,6 @@ echo "
     Enable BlueZ:                  ${ENABLE_BLUEZ}
     Enable TCP Wrappers:           ${ENABLE_TCPWRAP}
     Enable libsamplerate:          ${ENABLE_LIBSAMPLERATE}
-    Enable PolicyKit:              ${ENABLE_POLKIT}
     Enable IPv6:                   ${ENABLE_IPV6}
     Enable OpenSSL (for Airtunes): ${ENABLE_OPENSSL}
     Enable tdb:                    ${ENABLE_TDB}
@@ -1527,7 +1474,6 @@ echo "
 
     System User:                   ${PA_SYSTEM_USER}
     System Group:                  ${PA_SYSTEM_GROUP}
-    Realtime Group:                ${PA_REALTIME_GROUP}
     Access Group:                  ${PA_ACCESS_GROUP}
     Enable per-user EsounD socket: ${ENABLE_PER_USER_ESOUND_SOCKET}
     Force preopen:                 ${FORCE_PREOPEN}
