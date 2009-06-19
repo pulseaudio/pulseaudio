@@ -573,6 +573,7 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/conf-parser.c pulsecore/conf-parser.h \
 		pulsecore/core-error.c pulsecore/core-error.h \
 		pulsecore/core-util.c pulsecore/core-util.h \
+		pulsecore/rtkit.c pulsecore/rtkit.h \
 		pulsecore/creds.h \
 		pulsecore/dynarray.c pulsecore/dynarray.h \
 		pulsecore/endianmacros.h \
@@ -1733,6 +1734,11 @@ update-sbc:
 update-reserve:
 	for i in reserve.c reserve.h reserve-monitor.c reserve-monitor.h ; do \
 		wget -O modules/$$i http://git.0pointer.de/\?p=reserve.git\;a=blob_plain\;f=$$i\;hb=master ; \
+	done
+
+update-rtkit:
+	for i in rtkit.c rtkit.h ; do \
+		wget -O pulsecore/$$i http://git.0pointer.de/\?p=rtkit.git\;a=blob_plain\;f=$$i\;hb=master ; \
 	done
 
 # Automatically generate linker version script. We use the same one for all public .sos
