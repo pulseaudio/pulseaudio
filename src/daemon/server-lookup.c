@@ -48,7 +48,7 @@ static const char introspection[] =
     " <!-- If you are looking for documentation make sure to check out\n"
     "      http://pulseaudio.org/wiki/DBusInterface -->\n"
     " <interface name=\"org.pulseaudio.ServerLookup\">"
-    "  <method name=\"GetDBusAddress\">"
+    "  <method name=\"GetAddress\">"
     "   <arg name=\"result\" type=\"s\" direction=\"out\"/>"
     "  </method>"
     " </interface>"
@@ -101,7 +101,7 @@ oom:
     return DBUS_HANDLER_RESULT_NEED_MEMORY;
 }
 
-static DBusHandlerResult handle_get_dbus_address(DBusConnection *conn, DBusMessage *msg, pa_dbusobj_server_lookup *sl) {
+static DBusHandlerResult handle_get_address(DBusConnection *conn, DBusMessage *msg, pa_dbusobj_server_lookup *sl) {
     DBusMessage *reply = NULL;
     pa_client_conf *conf = NULL;
     char *address = NULL;
@@ -187,8 +187,8 @@ static DBusHandlerResult message_cb(DBusConnection *conn, DBusMessage *msg, void
     if (dbus_message_is_method_call(msg, "org.freedesktop.DBus.Introspectable", "Introspect"))
         return handle_introspect(conn, msg, sl);
 
-    if (dbus_message_is_method_call(msg, "org.pulseaudio.ServerLookup", "GetDBusAddress"))
-        return handle_get_dbus_address(conn, msg, sl);
+    if (dbus_message_is_method_call(msg, "org.pulseaudio.ServerLookup", "GetAddress"))
+        return handle_get_address(conn, msg, sl);
 
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }

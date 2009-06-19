@@ -40,6 +40,8 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/module.h>
 
+#include <pulsecore/dbus-objs/core.h>
+
 #include "module-dbus-protocol-symdef.h"
 
 PA_MODULE_DESCRIPTION("D-Bus interface");
@@ -67,6 +69,8 @@ struct userdata {
     pa_idxset *connections;
 
     pa_time_event *cleanup_event;
+
+    pa_dbusobj_core *core_object;
 };
 
 struct server {
@@ -89,12 +93,15 @@ static const char* const valid_modargs[] = {
 static void connection_free(struct connection *c) {
     pa_assert(c);
 
+    pa_assert_se(pa_dbus_unregister_connection(c->server->userdata->module->core, pa_dbus_wrap_connection_get(c->wrap_conn)) >= 0);
+
     pa_client_free(c->client);
     pa_assert_se(pa_idxset_remove_by_data(c->server->userdata->connections, c, NULL));
     pa_dbus_wrap_connection_free(c->wrap_conn);
     pa_xfree(c);
 }
 
+/* Called from pa_client_kill(). */
 static void client_kill_cb(pa_client *c) {
     struct connection *conn;
 
@@ -120,7 +127,7 @@ static void connection_new_cb(DBusServer *dbus_server, DBusConnection *new_conne
     pa_client_new_data_init(&new_data);
     new_data.module = s->userdata->module;
     new_data.driver = __FILE__;
-    pa_proplist_sets(new_data.proplist, PA_PROP_APPLICATION_NAME, "D-Bus client"); /* TODO: Fancier name. */
+    pa_proplist_sets(new_data.proplist, PA_PROP_APPLICATION_NAME, "D-Bus client"); /* TODO: It's probably possible to generate a fancier name. Other props? */
     client = pa_client_new(s->userdata->module->core, &new_data);
     pa_client_new_data_done(&new_data);
 
@@ -133,10 +140,12 @@ static void connection_new_cb(DBusServer *dbus_server, DBusConnection *new_conne
     c->client = client;
 
     c->client->kill = client_kill_cb;
-    c->client->send_event = NULL;
+    c->client->send_event = NULL; /* TODO: Implement this. */
     c->client->userdata = c;
 
     pa_idxset_put(s->userdata->connections, c, NULL);
+
+    pa_assert_se(pa_dbus_register_connection(s->userdata->module->core, new_connection) >= 0);
 }
 
 /* Called by PA mainloop when a D-Bus fd watch event needs handling. */
@@ -485,6 +494,8 @@ int pa__init(pa_module *m) {
     cleanup_timeval.tv_sec += CLEANUP_INTERVAL;
     u->cleanup_event = m->core->mainloop->time_new(m->core->mainloop, &cleanup_timeval, cleanup_cb, u);
 
+    u->core_object = pa_dbusobj_core_new(m->core);
+
     return 0;
 
 fail:
@@ -512,6 +523,9 @@ void pa__done(pa_module *m) {
 
     if (!(u = m->userdata))
         return;
+
+    if (u->core_object)
+        pa_dbusobj_core_free(u->core_object);
 
     if (u->cleanup_event)
         m->core->mainloop->time_free(u->cleanup_event);

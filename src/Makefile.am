@@ -783,7 +783,6 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/core-scache.c pulsecore/core-scache.h \
 		pulsecore/core-subscribe.c pulsecore/core-subscribe.h \
 		pulsecore/core.c pulsecore/core.h \
-        pulsecore/dbus-common.c pulsecore/dbus-common.h \
 		pulsecore/envelope.c pulsecore/envelope.h \
 		pulsecore/fdsem.c pulsecore/fdsem.h \
 		pulsecore/g711.c pulsecore/g711.h \
@@ -830,7 +829,9 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_LDFLAGS += $(X11_LIBS)
 endif
 
 if HAVE_DBUS
-libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/dbus-shared.c pulsecore/dbus-shared.h
+libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES += \
+		pulsecore/dbus-shared.c pulsecore/dbus-shared.h \
+		pulsecore/dbus-common.c pulsecore/dbus-common.h
 libpulsecore_@PA_MAJORMINORMICRO@_la_CFLAGS += $(DBUS_CFLAGS)
 libpulsecore_@PA_MAJORMINORMICRO@_la_LIBADD += $(DBUS_LIBS)
 endif
@@ -1220,7 +1221,9 @@ module_http_protocol_unix_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMI
 
 # D-Bus protocol
 
-module_dbus_protocol_la_SOURCES = modules/module-dbus-protocol.c
+module_dbus_protocol_la_SOURCES = \
+		pulsecore/dbus-objs/core.c pulsecore/dbus-objs/core.h \
+		modules/module-dbus-protocol.c
 module_dbus_protocol_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 module_dbus_protocol_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_dbus_protocol_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
