@@ -148,7 +148,7 @@ static void connection_new_cb(DBusServer *dbus_server, DBusConnection *new_conne
         return;
     }
 
-    if (s->type == SERVER_TYPE_TCP) {
+    if (s->type == SERVER_TYPE_TCP || s->userdata->module->core->server_type == PA_SERVER_TYPE_SYSTEM) {
         /* FIXME: Here we allow anyone from anywhere to access the server,
          * anonymously. Access control should be configurable. */
         dbus_connection_set_unix_user_function(new_connection, user_check_cb, NULL, NULL);
