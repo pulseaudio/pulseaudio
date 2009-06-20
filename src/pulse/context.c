@@ -54,6 +54,8 @@
 #include <pulse/utf8.h>
 #include <pulse/util.h>
 #include <pulse/i18n.h>
+#include <pulse/mainloop.h>
+#include <pulse/timeval.h>
 
 #include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
@@ -1451,6 +1453,9 @@ pa_time_event* pa_context_rttime_new(pa_context *c, pa_usec_t usec, pa_time_even
     pa_assert(c);
     pa_assert(c->mainloop);
 
+    if (usec == PA_USEC_INVALID)
+        return c->mainloop->time_new(c->mainloop, NULL, cb, userdata);
+
     pa_timeval_rtstore(&tv, usec, c->use_rtclock);
 
     return c->mainloop->time_new(c->mainloop, &tv, cb, userdata);
@@ -1462,7 +1467,10 @@ void pa_context_rttime_restart(pa_context *c, pa_time_event *e, pa_usec_t usec) 
     pa_assert(c);
     pa_assert(c->mainloop);
 
-    pa_timeval_rtstore(&tv, usec, c->use_rtclock);
-
-    c->mainloop->time_restart(e, &tv);
+    if (usec == PA_USEC_INVALID)
+        c->mainloop->time_restart(e, NULL);
+    else {
+        pa_timeval_rtstore(&tv, usec, c->use_rtclock);
+        c->mainloop->time_restart(e, &tv);
+    }
 }

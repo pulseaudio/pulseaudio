@@ -319,19 +319,21 @@ static void mainloop_defer_set_destroy(pa_defer_event *e, pa_defer_event_destroy
 }
 
 /* Time events */
-static pa_usec_t timeval_load(struct timeval *tv) {
+static pa_usec_t timeval_load(const struct timeval *tv) {
     pa_bool_t is_rtclock;
+    struct timeval ttv;
 
     if (!tv)
         return PA_USEC_INVALID;
 
-    is_rtclock = !!(tv->tv_usec & PA_TIMEVAL_RTCLOCK);
-    tv->tv_usec &= ~PA_TIMEVAL_RTCLOCK;
+    ttv = *tv;
+    is_rtclock = !!(ttv.tv_usec & PA_TIMEVAL_RTCLOCK);
+    ttv.tv_usec &= ~PA_TIMEVAL_RTCLOCK;
 
     if (!is_rtclock)
-        pa_rtclock_from_wallclock(tv);
+        pa_rtclock_from_wallclock(&ttv);
 
-    return pa_timeval_load(tv);
+    return pa_timeval_load(&ttv);
 }
 
 static pa_time_event* mainloop_time_new(
@@ -343,13 +345,13 @@ static pa_time_event* mainloop_time_new(
     pa_mainloop *m;
     pa_time_event *e;
     pa_usec_t t;
-    struct timeval ttv;
 
     pa_assert(a);
     pa_assert(a->userdata);
     pa_assert(callback);
 
-    t = timeval_load(tv? ttv = *tv, &ttv : NULL);
+    t = timeval_load(tv);
+
     m = a->userdata;
     pa_assert(a == &m->api);
 
@@ -385,12 +387,12 @@ static pa_time_event* mainloop_time_new(
 static void mainloop_time_restart(pa_time_event *e, const struct timeval *tv) {
     pa_bool_t valid;
     pa_usec_t t;
-    struct timeval ttv;
 
     pa_assert(e);
     pa_assert(!e->dead);
 
-    t = timeval_load(tv? ttv = *tv, &ttv : NULL);
+    t = timeval_load(tv);
+
     valid = (t != PA_USEC_INVALID);
     if (e->enabled && !valid) {
         pa_assert(e->mainloop->n_enabled_time_events > 0);

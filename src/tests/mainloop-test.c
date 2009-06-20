@@ -31,6 +31,7 @@
 #include <pulse/gccmacro.h>
 
 #include <pulsecore/core-util.h>
+#include <pulsecore/core-rtclock.h>
 
 #ifdef GLIB_MAIN_LOOP
 

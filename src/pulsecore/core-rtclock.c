@@ -176,6 +176,9 @@ static struct timeval* wallclock_from_rtclock(struct timeval *tv) {
 struct timeval* pa_timeval_rtstore(struct timeval *tv, pa_usec_t v, pa_bool_t rtclock) {
     pa_assert(tv);
 
+    if (v == PA_USEC_INVALID)
+        return NULL;
+
     pa_timeval_store(tv, v);
 
     if (rtclock)
