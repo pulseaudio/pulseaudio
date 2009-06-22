@@ -1059,7 +1059,7 @@ AC_ARG_ENABLE([udev],
         ],
         [udev=auto])
 if test "x${udev}" != xno -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x1" \) ; then
-    PKG_CHECK_MODULES(UDEV, [ libudev >= 137 ],
+    PKG_CHECK_MODULES(UDEV, [ libudev >= 143 ],
         [
             HAVE_UDEV=1
             AC_DEFINE([HAVE_UDEV], 1, [Have UDEV.])
