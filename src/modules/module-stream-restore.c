@@ -353,10 +353,10 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
     char *name;
     struct entry *e;
 
+    pa_assert(c);
     pa_assert(new_data);
-
-    if (!u->restore_device)
-        return PA_HOOK_OK;
+    pa_assert(u);
+    pa_assert(u->restore_device);
 
     if (!(name = get_name(new_data->proplist, "sink-input")))
         return PA_HOOK_OK;
@@ -370,9 +370,9 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
                 if (!new_data->sink) {
                     pa_log_info("Restoring device for stream %s.", name);
                     new_data->sink = s;
-                    new_data->save_sink = FALSE;
+                    new_data->save_sink = TRUE;
                 } else
-                    pa_log_info("Not restoring device for stream %s, because already set.", name);
+                    pa_log_debug("Not restoring device for stream %s, because already set.", name);
             }
         }
 
@@ -388,10 +388,10 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
     char *name;
     struct entry *e;
 
+    pa_assert(c);
     pa_assert(new_data);
-
-    if (!u->restore_volume && !u->restore_muted)
-        return PA_HOOK_OK;
+    pa_assert(u);
+    pa_assert(u->restore_volume || u->restore_muted);
 
     if (!(name = get_name(new_data->proplist, "sink-input")))
         return PA_HOOK_OK;
@@ -410,7 +410,7 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
                 pa_sink_input_new_data_set_volume(new_data, &v);
 
                 new_data->volume_is_absolute = FALSE;
-                new_data->save_volume = FALSE;
+                new_data->save_volume = TRUE;
             } else
                 pa_log_debug("Not restoring volume for sink input %s, because already set.", name);
         }
@@ -420,7 +420,7 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
             if (!new_data->muted_is_set) {
                 pa_log_info("Restoring mute state for sink input %s.", name);
                 pa_sink_input_new_data_set_muted(new_data, e->muted);
-                new_data->save_muted = FALSE;
+                new_data->save_muted = TRUE;
             } else
                 pa_log_debug("Not restoring mute state for sink input %s, because already set.", name);
         }
@@ -437,10 +437,10 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
     char *name;
     struct entry *e;
 
+    pa_assert(c);
     pa_assert(new_data);
-
-    if (!u->restore_device)
-        return PA_HOOK_OK;
+    pa_assert(u);
+    pa_assert(u->restore_device);
 
     if (new_data->direct_on_input)
         return PA_HOOK_OK;
@@ -456,9 +456,9 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
                 if (!new_data->source) {
                     pa_log_info("Restoring device for stream %s.", name);
                     new_data->source = s;
-                    new_data->save_source = FALSE;
+                    new_data->save_source = TRUE;
                 } else
-                    pa_log_info("Not restoring device for stream %s, because already set", name);
+                    pa_log_debug("Not restoring device for stream %s, because already set", name);
             }
         }
 
@@ -829,10 +829,10 @@ int pa__init(pa_module*m) {
     pa_log_info("Sucessfully opened database file '%s'.", fname);
     pa_xfree(fname);
 
-    for (si = pa_idxset_first(m->core->sink_inputs, &idx); si; si = pa_idxset_next(m->core->sink_inputs, &idx))
+    PA_IDXSET_FOREACH(si, m->core->sink_inputs, idx)
         subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, si->index, u);
 
-    for (so = pa_idxset_first(m->core->source_outputs, &idx); so; so = pa_idxset_next(m->core->source_outputs, &idx))
+    PA_IDXSET_FOREACH(so, m->core->source_outputs, idx)
         subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, so->index, u);
 
     pa_modargs_free(ma);

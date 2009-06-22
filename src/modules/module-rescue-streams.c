@@ -65,14 +65,14 @@ static pa_hook_result_t sink_hook_callback(pa_core *c, pa_sink *sink, void* user
         return PA_HOOK_OK;
     }
 
-    if (!(target = pa_namereg_get(c, NULL, PA_NAMEREG_SINK)) || target == sink) {
+    if (!(target = pa_namereg_get_default_sink(c)) || target == sink) {
 
         PA_IDXSET_FOREACH(target, c->sinks, idx)
             if (target != sink)
                 break;
 
         if (!target) {
-            pa_log_info("No evacuation sink found.");
+            pa_log_debug("No evacuation sink found.");
             return PA_HOOK_OK;
         }
     }
@@ -108,7 +108,7 @@ static pa_hook_result_t source_hook_callback(pa_core *c, pa_source *source, void
         return PA_HOOK_OK;
     }
 
-    if (!(target = pa_namereg_get(c, NULL, PA_NAMEREG_SOURCE)) || target == source) {
+    if (!(target = pa_namereg_get_default_source(c)) || target == source) {
 
         PA_IDXSET_FOREACH(target, c->sources, idx)
             if (target != source && !target->monitor_of == !source->monitor_of)

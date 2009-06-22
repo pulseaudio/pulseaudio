@@ -296,10 +296,10 @@ static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new
     char *name;
     struct entry *e;
 
+    pa_assert(c);
     pa_assert(new_data);
-
-    if (!u->restore_port)
-        return PA_HOOK_OK;
+    pa_assert(u);
+    pa_assert(u->restore_port);
 
     name = pa_sprintf_malloc("sink:%s", new_data->name);
 
@@ -309,7 +309,7 @@ static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new
             if (!new_data->active_port) {
                 pa_log_info("Restoring port for sink %s.", name);
                 pa_sink_new_data_set_port(new_data, e->port);
-                new_data->save_port = FALSE;
+                new_data->save_port = TRUE;
             } else
                 pa_log_debug("Not restoring port for sink %s, because already set.", name);
         }
@@ -326,7 +326,10 @@ static pa_hook_result_t sink_fixate_hook_callback(pa_core *c, pa_sink_new_data *
     char *name;
     struct entry *e;
 
+    pa_assert(c);
     pa_assert(new_data);
+    pa_assert(u);
+    pa_assert(u->restore_volume || u->restore_muted);
 
     name = pa_sprintf_malloc("sink:%s", new_data->name);
 
@@ -343,7 +346,7 @@ static pa_hook_result_t sink_fixate_hook_callback(pa_core *c, pa_sink_new_data *
                 pa_cvolume_remap(&v, &e->channel_map, &new_data->channel_map);
                 pa_sink_new_data_set_volume(new_data, &v);
 
-                new_data->save_volume = FALSE;
+                new_data->save_volume = TRUE;
             } else
                 pa_log_debug("Not restoring volume for sink %s, because already set.", new_data->name);
         }
@@ -353,7 +356,7 @@ static pa_hook_result_t sink_fixate_hook_callback(pa_core *c, pa_sink_new_data *
             if (!new_data->muted_is_set) {
                 pa_log_info("Restoring mute state for sink %s.", new_data->name);
                 pa_sink_new_data_set_muted(new_data, e->muted);
-                new_data->save_muted = FALSE;
+                new_data->save_muted = TRUE;
             } else
                 pa_log_debug("Not restoring mute state for sink %s, because already set.", new_data->name);
         }
@@ -370,10 +373,10 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
     char *name;
     struct entry *e;
 
+    pa_assert(c);
     pa_assert(new_data);
-
-    if (!u->restore_port)
-        return PA_HOOK_OK;
+    pa_assert(u);
+    pa_assert(u->restore_port);
 
     name = pa_sprintf_malloc("source:%s", new_data->name);
 
@@ -383,7 +386,7 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
             if (!new_data->active_port) {
                 pa_log_info("Restoring port for source %s.", name);
                 pa_source_new_data_set_port(new_data, e->port);
-                new_data->save_port = FALSE;
+                new_data->save_port = TRUE;
             } else
                 pa_log_debug("Not restoring port for source %s, because already set.", name);
         }
@@ -400,7 +403,10 @@ static pa_hook_result_t source_fixate_hook_callback(pa_core *c, pa_source_new_da
     char *name;
     struct entry *e;
 
+    pa_assert(c);
     pa_assert(new_data);
+    pa_assert(u);
+    pa_assert(u->restore_volume || u->restore_muted);
 
     name = pa_sprintf_malloc("source:%s", new_data->name);
 
@@ -417,7 +423,7 @@ static pa_hook_result_t source_fixate_hook_callback(pa_core *c, pa_source_new_da
                 pa_cvolume_remap(&v, &e->channel_map, &new_data->channel_map);
                 pa_source_new_data_set_volume(new_data, &v);
 
-                new_data->save_volume = FALSE;
+                new_data->save_volume = TRUE;
             } else
                 pa_log_debug("Not restoring volume for source %s, because already set.", new_data->name);
         }
@@ -427,7 +433,7 @@ static pa_hook_result_t source_fixate_hook_callback(pa_core *c, pa_source_new_da
             if (!new_data->muted_is_set) {
                 pa_log_info("Restoring mute state for source %s.", new_data->name);
                 pa_source_new_data_set_muted(new_data, e->muted);
-                new_data->save_muted = FALSE;
+                new_data->save_muted = TRUE;
             } else
                 pa_log_debug("Not restoring mute state for source %s, because already set.", new_data->name);
         }
