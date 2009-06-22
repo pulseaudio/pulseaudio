@@ -974,6 +974,7 @@ modlibexec_LTLIBRARIES += \
 		module-default-device-restore.la \
 		module-always-sink.la \
 		module-rescue-streams.la \
+		module-intended-roles.la \
 		module-suspend-on-idle.la \
 		module-http-protocol-tcp.la \
 		module-sine.la \
@@ -1206,6 +1207,7 @@ SYMDEF_FILES = \
 		modules/module-default-device-restore-symdef.h \
 		modules/module-always-sink-symdef.h \
 		modules/module-rescue-streams-symdef.h \
+		modules/module-intended-roles-symdef.h \
 		modules/module-suspend-on-idle-symdef.h \
 		modules/module-hal-detect-symdef.h \
 		modules/module-udev-detect-symdef.h \
@@ -1537,6 +1539,12 @@ module_rescue_streams_la_SOURCES = modules/module-rescue-streams.c
 module_rescue_streams_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_rescue_streams_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_rescue_streams_la_CFLAGS = $(AM_CFLAGS)
+
+# Automatically move streams to devices that are intended for their roles
+module_intended_roles_la_SOURCES = modules/module-intended-roles.c
+module_intended_roles_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_intended_roles_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_intended_roles_la_CFLAGS = $(AM_CFLAGS)
 
 # Suspend-on-idle module
 module_suspend_on_idle_la_SOURCES = modules/module-suspend-on-idle.c
