@@ -27,11 +27,13 @@
 #include <pulse/gccmacro.h>
 
 /** \file
- *  Monotonic clock utility. */
+ *  Monotonic clock utilities. */
 
 PA_C_DECL_BEGIN
 
-/** Return the current CLOCK_MONOTONIC time in usec.  \since 0.9.16 */
+/** Return the current monotonic system time in usec, if such a clock
+ * is available.  If it is not available this will return the
+ * wallclock time instead.  \since 0.9.16 */
 pa_usec_t pa_rtclock_now(void);
 
 PA_C_DECL_END
