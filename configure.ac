@@ -27,7 +27,7 @@ AC_INIT([pulseaudio], m4_esyscmd([./git-version-gen .tarball-version]),
 AC_CONFIG_SRCDIR([src/daemon/main.c])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE([foreign 1.10 -Wall -Wno-portability])
+AM_INIT_AUTOMAKE([foreign 1.11 -Wall -Wno-portability silent-rules])
 
 m4_define(pa_major, `echo $VERSION |  cut -d. -f 1`)
 m4_define(pa_minor, `echo $VERSION |  cut -d. -f 2`)
@@ -75,6 +75,8 @@ case $host in
       AC_DEFINE(__EXTENSIONS__,         1, Needed to get declarations for msg_control and msg_controllen on Solaris)
       ;;
 esac
+
+AM_SILENT_RULES([yes])
 
 #### Checks for programs. ####
 
@@ -1316,8 +1318,6 @@ AM_CONDITIONAL([FORCE_PREOPEN], [test "x$FORCE_PREOPEN" = "xyes"])
 
 AC_CONFIG_FILES([
 Makefile
-shave
-shave-libtool
 src/Makefile
 man/Makefile
 libpulse.pc
@@ -1330,7 +1330,6 @@ src/pulse/version.h
 po/Makefile.in
 ])
 
-SHAVE_INIT
 AC_OUTPUT
 
 # ==========================================================================

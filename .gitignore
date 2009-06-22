@@ -1,6 +1,4 @@
 .version
-shave
-shave-libtool
 .*.swp
 ABOUT-NLS
 intltool-extract.in
