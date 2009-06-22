@@ -39,7 +39,7 @@ void pa_rtclock_hrtimer_enable(void);
 #define PA_HRTIMER_THRESHOLD_USEC 10
 
 /* bit to set in tv.tv_usec to mark that the timeval is in monotonic time */
-#define PA_TIMEVAL_RTCLOCK (1 << 30)
+#define PA_TIMEVAL_RTCLOCK ((time_t) (1LU << 30))
 
 struct timeval* pa_rtclock_from_wallclock(struct timeval *tv);
 
