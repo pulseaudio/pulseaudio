@@ -80,9 +80,6 @@ int pa_make_realtime(int rtprio);
 int pa_raise_priority(int nice_level);
 void pa_reset_priority(void);
 
-pa_bool_t pa_can_realtime(void);
-pa_bool_t pa_can_high_priority(void);
-
 int pa_parse_boolean(const char *s) PA_GCC_PURE;
 
 static inline const char *pa_yes_no(pa_bool_t b) {

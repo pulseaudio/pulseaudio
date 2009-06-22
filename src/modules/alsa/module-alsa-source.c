@@ -106,8 +106,7 @@ int pa__init(pa_module*m) {
 
     pa_assert(m);
 
-    pa_alsa_redirect_errors_inc();
-    snd_config_update_free_global();
+    pa_alsa_refcnt_inc();
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
@@ -148,6 +147,5 @@ void pa__done(pa_module*m) {
     if ((source = m->userdata))
         pa_alsa_source_free(source);
 
-    snd_config_update_free_global();
-    pa_alsa_redirect_errors_dec();
+    pa_alsa_refcnt_dec();
 }

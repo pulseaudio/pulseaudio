@@ -29,8 +29,8 @@ pulsecoreincludedir=$(includedir)/pulsecore
 pulseconfdir=$(sysconfdir)/pulse
 pulselibexecdir=$(libexecdir)/pulse
 xdgautostartdir=$(sysconfdir)/xdg/autostart
-alsaprofilesetsdir=$(datadir)/alsa-mixer/profile-sets
-alsapathsdir=$(datadir)/alsa-mixer/paths
+alsaprofilesetsdir=$(datadir)/pulseaudio/alsa-mixer/profile-sets
+alsapathsdir=$(datadir)/pulseaudio/alsa-mixer/paths
 udevrulesdir=/lib/udev/rules.d
 
 ###################################
@@ -114,10 +114,10 @@ EXTRA_DIST = \
 		modules/module-defs.h.m4 \
 		daemon/pulseaudio.desktop.in \
 		map-file \
-		daemon/org.pulseaudio.policy.in \
 		modules/alsa/mixer/profile-sets/default.conf \
+		modules/alsa/mixer/profile-sets/native-instruments-audio4dj.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf \
-		modules/alsa/mixer/profile-sets/78-pulseaudio.rules \
+		modules/alsa/mixer/profile-sets/90-pulseaudio.rules \
 		modules/alsa/mixer/paths/analog-input-aux.conf \
 		modules/alsa/mixer/paths/analog-input.conf \
 		modules/alsa/mixer/paths/analog-input.conf.common \
@@ -181,16 +181,6 @@ if FORCE_PREOPEN
 pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) -dlpreopen force $(foreach f,$(PREOPEN_LIBS),-dlpreopen $(f))
 else
 pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) -dlopen force $(foreach f,$(PREOPEN_LIBS),-dlopen $(f))
-endif
-
-if HAVE_POLKIT
-policy_in_files = daemon/org.pulseaudio.policy.in
-policy_DATA = $(policy_in_files:.policy.in=.policy)
-@INTLTOOL_POLICY_RULE@
-
-pulseaudio_SOURCES += daemon/polkit.c daemon/polkit.h
-pulseaudio_CFLAGS += $(POLKIT_CFLAGS)
-pulseaudio_LDADD += $(POLKIT_LIBS)
 endif
 
 ###################################
@@ -572,6 +562,7 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/conf-parser.c pulsecore/conf-parser.h \
 		pulsecore/core-error.c pulsecore/core-error.h \
 		pulsecore/core-util.c pulsecore/core-util.h \
+		pulsecore/rtkit.c pulsecore/rtkit.h \
 		pulsecore/creds.h \
 		pulsecore/dynarray.c pulsecore/dynarray.h \
 		pulsecore/endianmacros.h \
@@ -820,7 +811,6 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/play-memchunk.c pulsecore/play-memchunk.h \
 		pulsecore/resampler.c pulsecore/resampler.h \
 		pulsecore/rtpoll.c pulsecore/rtpoll.h \
-		pulsecore/rtsig.c pulsecore/rtsig.h \
 		pulsecore/sample-util.c pulsecore/sample-util.h \
 		pulsecore/sconv-s16be.c pulsecore/sconv-s16be.h \
 		pulsecore/sconv-s16le.c pulsecore/sconv-s16le.h \
@@ -1050,10 +1040,11 @@ modlibexec_LTLIBRARIES += \
 
 alsaprofilesets_DATA = \
 		modules/alsa/mixer/profile-sets/default.conf \
+		modules/alsa/mixer/profile-sets/native-instruments-audio4dj.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf
 
 udevrules_DATA = \
-		modules/alsa/mixer/profile-sets/78-pulseaudio.rules
+		modules/alsa/mixer/profile-sets/90-pulseaudio.rules
 
 alsapaths_DATA = \
 		modules/alsa/mixer/paths/analog-input-aux.conf \
@@ -1660,11 +1651,7 @@ module_rygel_media_server_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 #        Some minor stuff         #
 ###################################
 
-suid: pulseaudio .libs/lt-pulseaudio
-	chown root $^
-	chmod u+s $^
-
-CLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 daemon/pulseaudio.desktop daemon/org.pulseaudio.policy
+CLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 daemon/pulseaudio.desktop
 
 esdcompat: daemon/esdcompat.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
@@ -1739,6 +1726,11 @@ update-sbc:
 update-reserve:
 	for i in reserve.c reserve.h reserve-monitor.c reserve-monitor.h ; do \
 		wget -O modules/$$i http://git.0pointer.de/\?p=reserve.git\;a=blob_plain\;f=$$i\;hb=master ; \
+	done
+
+update-rtkit:
+	for i in rtkit.c rtkit.h ; do \
+		wget -O pulsecore/$$i http://git.0pointer.de/\?p=rtkit.git\;a=blob_plain\;f=$$i\;hb=master ; \
 	done
 
 # Automatically generate linker version script. We use the same one for all public .sos

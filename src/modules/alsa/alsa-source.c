@@ -787,8 +787,6 @@ static int unsuspend(struct userdata *u) {
 
     pa_log_info("Trying resume...");
 
-    snd_config_update_free_global();
-
     if ((err = snd_pcm_open(&u->pcm_handle, u->device_name, SND_PCM_STREAM_CAPTURE,
                             /*SND_PCM_NONBLOCK|*/
                             SND_PCM_NO_AUTO_RESAMPLE|
@@ -1096,7 +1094,6 @@ static void thread_func(void *userdata) {
         pa_make_realtime(u->core->realtime_priority);
 
     pa_thread_mq_install(&u->thread_mq);
-    pa_rtpoll_install(u->rtpoll);
 
     for (;;) {
         int ret;

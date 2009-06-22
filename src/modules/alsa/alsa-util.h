@@ -114,8 +114,8 @@ snd_pcm_t *pa_alsa_open_by_template(
 void pa_alsa_dump(pa_log_level_t level, snd_pcm_t *pcm);
 void pa_alsa_dump_status(snd_pcm_t *pcm);
 
-void pa_alsa_redirect_errors_inc(void);
-void pa_alsa_redirect_errors_dec(void);
+void pa_alsa_refcnt_inc(void);
+void pa_alsa_refcnt_dec(void);
 
 void pa_alsa_init_proplist_pcm_info(pa_core *c, pa_proplist *p, snd_pcm_info_t *pcm_info);
 void pa_alsa_init_proplist_card(pa_core *c, pa_proplist *p, int card);

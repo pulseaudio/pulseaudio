@@ -280,7 +280,6 @@ static void thread_func(void *userdata) {
         pa_make_realtime(u->core->realtime_priority+1);
 
     pa_thread_mq_install(&u->thread_mq);
-    pa_rtpoll_install(u->rtpoll);
 
     u->thread_info.timestamp = pa_rtclock_usec();
     u->thread_info.in_null_mode = FALSE;
