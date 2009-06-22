@@ -59,7 +59,9 @@ PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_USAGE(
         "restore_device=<Save/restore sinks/sources?> "
         "restore_volume=<Save/restore volumes?> "
-        "restore_muted=<Save/restore muted states?>");
+        "restore_muted=<Save/restore muted states?> "
+        "on_hotplug=<When new device becomes available, recheck streams?> "
+        "on_rescue=<When device becomes unavailable, recheck streams?>");
 
 #define SAVE_INTERVAL 10
 #define IDENTIFICATION_PROPERTY "module-stream-restore.id"
@@ -68,6 +70,8 @@ static const char* const valid_modargs[] = {
     "restore_device",
     "restore_volume",
     "restore_muted",
+    "on_hotplug",
+    "on_rescue",
     NULL
 };
 
@@ -79,6 +83,10 @@ struct userdata {
         *sink_input_new_hook_slot,
         *sink_input_fixate_hook_slot,
         *source_output_new_hook_slot,
+        *sink_put_hook_slot,
+        *source_put_hook_slot,
+        *sink_unlink_hook_slot,
+        *source_unlink_hook_slot,
         *connection_unlink_hook_slot;
     pa_time_event *save_time_event;
     pa_database* database;
@@ -86,6 +94,8 @@ struct userdata {
     pa_bool_t restore_device:1;
     pa_bool_t restore_volume:1;
     pa_bool_t restore_muted:1;
+    pa_bool_t on_hotplug:1;
+    pa_bool_t on_rescue:1;
 
     pa_native_protocol *protocol;
     pa_idxset *subscribed;
@@ -470,6 +480,155 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
     return PA_HOOK_OK;
 }
 
+static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, struct userdata *u) {
+    pa_sink_input *si;
+    uint32_t idx;
+
+    pa_assert(c);
+    pa_assert(sink);
+    pa_assert(u);
+    pa_assert(u->on_hotplug && u->restore_device);
+
+    PA_IDXSET_FOREACH(si, c->sink_inputs, idx) {
+        char *name;
+        struct entry *e;
+
+        if (si->sink == sink)
+            continue;
+
+        if (si->save_sink)
+            continue;
+
+        if (!(name = get_name(si->proplist, "sink-input")))
+            continue;
+
+        if ((e = read_entry(u, name))) {
+            if (e->device_valid && pa_streq(e->device, sink->name))
+                pa_sink_input_move_to(si, sink, TRUE);
+
+            pa_xfree(e);
+        }
+
+        pa_xfree(name);
+    }
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, struct userdata *u) {
+    pa_source_output *so;
+    uint32_t idx;
+
+    pa_assert(c);
+    pa_assert(source);
+    pa_assert(u);
+    pa_assert(u->on_hotplug && u->restore_device);
+
+    PA_IDXSET_FOREACH(so, c->source_outputs, idx) {
+        char *name;
+        struct entry *e;
+
+        if (so->source == source)
+            continue;
+
+        if (so->save_source)
+            continue;
+
+        if (so->direct_on_input)
+            continue;
+
+        if (!(name = get_name(so->proplist, "source-input")))
+            continue;
+
+        if ((e = read_entry(u, name))) {
+            if (e->device_valid && pa_streq(e->device, source->name))
+                pa_source_output_move_to(so, source, TRUE);
+
+            pa_xfree(e);
+        }
+
+        pa_xfree(name);
+    }
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, struct userdata *u) {
+    pa_sink_input *si;
+    uint32_t idx;
+
+    pa_assert(c);
+    pa_assert(sink);
+    pa_assert(u);
+    pa_assert(u->on_rescue && u->restore_device);
+
+    /* There's no point in doing anything if the core is shut down anyway */
+    if (c->state == PA_CORE_SHUTDOWN)
+        return PA_HOOK_OK;
+
+    PA_IDXSET_FOREACH(si, sink->inputs, idx) {
+        char *name;
+        struct entry *e;
+
+        if (!(name = get_name(si->proplist, "sink-input")))
+            continue;
+
+        if ((e = read_entry(u, name))) {
+
+            if (e->device_valid) {
+                pa_sink *d;
+
+                if ((d = pa_namereg_get(c, e->device, PA_NAMEREG_SINK)) && d != sink)
+                    pa_sink_input_move_to(si, d, TRUE);
+            }
+
+            pa_xfree(e);
+        }
+
+        pa_xfree(name);
+    }
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *source, struct userdata *u) {
+    pa_source_output *so;
+    uint32_t idx;
+
+    pa_assert(c);
+    pa_assert(source);
+    pa_assert(u);
+    pa_assert(u->on_rescue && u->restore_device);
+
+    /* There's no point in doing anything if the core is shut down anyway */
+    if (c->state == PA_CORE_SHUTDOWN)
+        return PA_HOOK_OK;
+
+    PA_IDXSET_FOREACH(so, source->outputs, idx) {
+        char *name;
+        struct entry *e;
+
+        if (!(name = get_name(so->proplist, "source-output")))
+            continue;
+
+        if ((e = read_entry(u, name))) {
+
+            if (e->device_valid) {
+                pa_source *d;
+
+                if ((d = pa_namereg_get(c, e->device, PA_NAMEREG_SOURCE)) && d != source)
+                    pa_source_output_move_to(so, d, TRUE);
+            }
+
+            pa_xfree(e);
+        }
+
+        pa_xfree(name);
+    }
+
+    return PA_HOOK_OK;
+}
+
 #define EXT_VERSION 1
 
 static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
@@ -775,7 +934,7 @@ int pa__init(pa_module*m) {
     pa_sink_input *si;
     pa_source_output *so;
     uint32_t idx;
-    pa_bool_t restore_device = TRUE, restore_volume = TRUE, restore_muted = TRUE;
+    pa_bool_t restore_device = TRUE, restore_volume = TRUE, restore_muted = TRUE, on_hotplug = TRUE, on_rescue = TRUE;
 
     pa_assert(m);
 
@@ -786,8 +945,10 @@ int pa__init(pa_module*m) {
 
     if (pa_modargs_get_value_boolean(ma, "restore_device", &restore_device) < 0 ||
         pa_modargs_get_value_boolean(ma, "restore_volume", &restore_volume) < 0 ||
-        pa_modargs_get_value_boolean(ma, "restore_muted", &restore_muted) < 0) {
-        pa_log("restore_device=, restore_volume= and restore_muted= expect boolean arguments");
+        pa_modargs_get_value_boolean(ma, "restore_muted", &restore_muted) < 0 ||
+        pa_modargs_get_value_boolean(ma, "on_hotplug", &on_hotplug) < 0 ||
+        pa_modargs_get_value_boolean(ma, "on_rescue", &on_rescue) < 0) {
+        pa_log("restore_device=, restore_volume=, restore_muted=, on_hotplug= and on_rescue= expect boolean arguments");
         goto fail;
     }
 
@@ -800,6 +961,8 @@ int pa__init(pa_module*m) {
     u->restore_device = restore_device;
     u->restore_volume = restore_volume;
     u->restore_muted = restore_muted;
+    u->on_hotplug = on_hotplug;
+    u->on_rescue = on_rescue;
     u->subscribed = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
     u->protocol = pa_native_protocol_get(m->core);
@@ -810,8 +973,21 @@ int pa__init(pa_module*m) {
     u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK_INPUT|PA_SUBSCRIPTION_MASK_SOURCE_OUTPUT, subscribe_callback, u);
 
     if (restore_device) {
+        /* A little bit earlier than module-intended-roles ... */
         u->sink_input_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) sink_input_new_hook_callback, u);
         u->source_output_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) source_output_new_hook_callback, u);
+    }
+
+    if (restore_device && on_hotplug) {
+        /* A little bit earlier than module-intended-roles ... */
+        u->sink_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE, (pa_hook_cb_t) sink_put_hook_callback, u);
+        u->source_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE, (pa_hook_cb_t) source_put_hook_callback, u);
+    }
+
+    if (restore_device && on_rescue) {
+        /* A little bit earlier than module-intended-roles, module-rescue-streams, ... */
+        u->sink_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) sink_unlink_hook_callback, NULL);
+        u->source_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) source_unlink_hook_callback, NULL);
     }
 
     if (restore_volume || restore_muted)
@@ -864,6 +1040,16 @@ void pa__done(pa_module*m) {
         pa_hook_slot_free(u->sink_input_fixate_hook_slot);
     if (u->source_output_new_hook_slot)
         pa_hook_slot_free(u->source_output_new_hook_slot);
+
+    if (u->sink_put_hook_slot)
+        pa_hook_slot_free(u->sink_put_hook_slot);
+    if (u->source_put_hook_slot)
+        pa_hook_slot_free(u->source_put_hook_slot);
+
+    if (u->sink_unlink_hook_slot)
+        pa_hook_slot_free(u->sink_unlink_hook_slot);
+    if (u->source_unlink_hook_slot)
+        pa_hook_slot_free(u->source_unlink_hook_slot);
 
     if (u->connection_unlink_hook_slot)
         pa_hook_slot_free(u->connection_unlink_hook_slot);
