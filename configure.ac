@@ -1305,8 +1305,8 @@ fi
 
 AC_ARG_WITH(
         [module-dir],
-        AS_HELP_STRING([--with-module-dir],[Directory where to install the modules to (defaults to ${libdir}/pulse-${PA_MAJORMINORMICRO}/modules/]),
-        [modlibexecdir=$withval], [modlibexecdir="${libdir}/pulse-${PA_MAJORMINORMICRO}/modules/"])
+        AS_HELP_STRING([--with-module-dir],[Directory where to install the modules to (defaults to ${libdir}/pulse-${PA_MAJORMINORMICRO}/modules]),
+        [modlibexecdir=$withval], [modlibexecdir="${libdir}/pulse-${PA_MAJORMINORMICRO}/modules"])
 
 AC_SUBST(modlibexecdir)
 
