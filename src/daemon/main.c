@@ -73,6 +73,7 @@
 #include <pulsecore/lock-autospawn.h>
 #include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core.h>
 #include <pulsecore/memblock.h>
 #include <pulsecore/module.h>
@@ -131,7 +132,7 @@ static void message_cb(pa_mainloop_api*a, pa_time_event*e, const struct timeval 
     }
 
     pa_timeval_add(pa_gettimeofday(&tvnext), 100000);
-    a->time_restart(e, &tvnext);
+    a->rtclock_time_restart(e, &tvnext);
 }
 
 #endif
@@ -845,7 +846,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef OS_IS_WIN32
-    win32_timer = pa_mainloop_get_api(mainloop)->time_new(pa_mainloop_get_api(mainloop), pa_gettimeofday(&win32_tv), message_cb, NULL);
+    win32_timer = pa_mainloop_get_api(mainloop)->rtclock_time_new(pa_mainloop_get_api(mainloop), pa_gettimeofday(&win32_tv), message_cb, NULL);
 #endif
 
     oil_init();

@@ -47,6 +47,7 @@
 #include <pulse/util.h>
 #include <pulse/volume.h>
 #include <pulse/xmalloc.h>
+#include <pulse/rtclock.h>
 
 #include <pulsecore/sink-input.h>
 #include <pulsecore/sample-util.h>
@@ -54,6 +55,7 @@
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/sound-file.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-error.h>
@@ -61,11 +63,10 @@
 
 #include "core-scache.h"
 
-#define UNLOAD_POLL_TIME 60
+#define UNLOAD_POLL_TIME (60 * PA_USEC_PER_SEC)
 
-static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, const struct timeval *tv, void *userdata) {
+static void timeout_callback(pa_mainloop_api *m, pa_time_event *e, const struct timeval *t, void *userdata) {
     pa_core *c = userdata;
-    struct timeval ntv;
 
     pa_assert(c);
     pa_assert(c->mainloop == m);
@@ -73,9 +74,7 @@ static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, const struct t
 
     pa_scache_unload_unused(c);
 
-    pa_gettimeofday(&ntv);
-    ntv.tv_sec += UNLOAD_POLL_TIME;
-    m->time_restart(e, &ntv);
+    pa_core_rttime_restart(c, e, pa_rtclock_now() + UNLOAD_POLL_TIME);
 }
 
 static void free_entry(pa_scache_entry *e) {
@@ -256,12 +255,8 @@ int pa_scache_add_file_lazy(pa_core *c, const char *name, const char *filename, 
 
     pa_proplist_sets(e->proplist, PA_PROP_MEDIA_FILENAME, filename);
 
-    if (!c->scache_auto_unload_event) {
-        struct timeval ntv;
-        pa_gettimeofday(&ntv);
-        ntv.tv_sec += UNLOAD_POLL_TIME;
-        c->scache_auto_unload_event = c->mainloop->time_new(c->mainloop, &ntv, timeout_callback, c);
-    }
+    if (!c->scache_auto_unload_event)
+        c->scache_auto_unload_event = pa_core_rttime_new(c, pa_rtclock_now() + UNLOAD_POLL_TIME, timeout_callback, c);
 
     if (idx)
         *idx = e->index;

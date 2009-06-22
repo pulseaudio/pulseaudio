@@ -37,7 +37,7 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/core-error.h>
 
-#include "rtclock.h"
+#include "core-rtclock.h"
 
 pa_usec_t pa_rtclock_age(const struct timeval *tv) {
     struct timeval now;
@@ -122,12 +122,6 @@ void pa_rtclock_hrtimer_enable(void) {
 #endif
 }
 
-pa_usec_t pa_rtclock_usec(void) {
-    struct timeval tv;
-
-    return pa_timeval_load(pa_rtclock_get(&tv));
-}
-
 struct timeval* pa_rtclock_from_wallclock(struct timeval *tv) {
 
 #ifdef HAVE_CLOCK_GETTIME
@@ -155,4 +149,42 @@ pa_usec_t pa_timespec_load(const struct timespec *ts) {
     return
         (pa_usec_t) ts->tv_sec * PA_USEC_PER_SEC +
         (pa_usec_t) ts->tv_nsec / PA_NSEC_PER_USEC;
+}
+
+
+static struct timeval* wallclock_from_rtclock(struct timeval *tv) {
+
+#ifdef HAVE_CLOCK_GETTIME
+    struct timeval wc_now, rt_now;
+
+    pa_gettimeofday(&wc_now);
+    pa_rtclock_get(&rt_now);
+
+    pa_assert(tv);
+
+    if (pa_timeval_cmp(&rt_now, tv) < 0)
+        pa_timeval_add(&wc_now, pa_timeval_diff(tv, &rt_now));
+    else
+        pa_timeval_sub(&wc_now, pa_timeval_diff(&rt_now, tv));
+
+    *tv = wc_now;
+#endif
+
+    return tv;
+}
+
+struct timeval* pa_timeval_rtstore(struct timeval *tv, pa_usec_t v, pa_bool_t rtclock) {
+    pa_assert(tv);
+
+    if (v == PA_USEC_INVALID)
+        return NULL;
+
+    pa_timeval_store(tv, v);
+
+    if (rtclock)
+        tv->tv_usec |= PA_TIMEVAL_RTCLOCK;
+    else
+        wallclock_from_rtclock(tv);
+
+    return tv;
 }

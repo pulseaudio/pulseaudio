@@ -30,13 +30,15 @@
 #include <linux/sockios.h>
 #include <arpa/inet.h>
 
-#include <pulse/xmalloc.h>
-#include <pulse/timeval.h>
-#include <pulse/sample.h>
 #include <pulse/i18n.h>
+#include <pulse/rtclock.h>
+#include <pulse/sample.h>
+#include <pulse/timeval.h>
+#include <pulse/xmalloc.h>
 
 #include <pulsecore/module.h>
 #include <pulsecore/modargs.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/socket-util.h>
@@ -44,7 +46,6 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/time-smoother.h>
-#include <pulsecore/rtclock.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/dbus-shared.h>
 
@@ -773,7 +774,7 @@ static int start_stream_fd(struct userdata *u) {
                 TRUE,
                 TRUE,
                 10,
-                pa_rtclock_usec(),
+                pa_rtclock_now(),
                 TRUE);
 
     return 0;
@@ -867,14 +868,14 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             if (u->read_smoother) {
                 pa_usec_t wi, ri;
 
-                ri = pa_smoother_get(u->read_smoother, pa_rtclock_usec());
+                ri = pa_smoother_get(u->read_smoother, pa_rtclock_now());
                 wi = pa_bytes_to_usec(u->write_index + u->block_size, &u->sample_spec);
 
                 *((pa_usec_t*) data) = wi > ri ? wi - ri : 0;
             } else {
                 pa_usec_t ri, wi;
 
-                ri = pa_rtclock_usec() - u->started_at;
+                ri = pa_rtclock_now() - u->started_at;
                 wi = pa_bytes_to_usec(u->write_index, &u->sample_spec);
 
                 *((pa_usec_t*) data) = wi > ri ? wi - ri : 0;
@@ -912,7 +913,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                         stop_stream_fd(u);
 
                     if (u->read_smoother)
-                        pa_smoother_pause(u->read_smoother, pa_rtclock_usec());
+                        pa_smoother_pause(u->read_smoother, pa_rtclock_now());
                     break;
 
                 case PA_SOURCE_IDLE:
@@ -939,7 +940,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
         case PA_SOURCE_MESSAGE_GET_LATENCY: {
             pa_usec_t wi, ri;
 
-            wi = pa_smoother_get(u->read_smoother, pa_rtclock_usec());
+            wi = pa_smoother_get(u->read_smoother, pa_rtclock_now());
             ri = pa_bytes_to_usec(u->read_index, &u->sample_spec);
 
             *((pa_usec_t*) data) = (wi > ri ? wi - ri : 0) + u->source->fixed_latency;
@@ -1086,7 +1087,7 @@ static int hsp_process_push(struct userdata *u) {
 
         if (!found_tstamp) {
             pa_log_warn("Couldn't find SO_TIMESTAMP data in auxiliary recvmsg() data!");
-            tstamp = pa_rtclock_usec();
+            tstamp = pa_rtclock_now();
         }
 
         pa_smoother_put(u->read_smoother, tstamp, pa_bytes_to_usec(u->read_index, &u->sample_spec));
@@ -1308,7 +1309,7 @@ static void thread_func(void *userdata) {
                     /* Hmm, there is no input stream we could synchronize
                      * to. So let's do things by time */
 
-                    time_passed = pa_rtclock_usec() - u->started_at;
+                    time_passed = pa_rtclock_now() - u->started_at;
                     audio_sent = pa_bytes_to_usec(u->write_index, &u->sample_spec);
 
                     if (audio_sent <= time_passed) {
@@ -1340,7 +1341,7 @@ static void thread_func(void *userdata) {
                     int n_written;
 
                     if (u->write_index <= 0)
-                        u->started_at = pa_rtclock_usec();
+                        u->started_at = pa_rtclock_now();
 
                     if (u->profile == PROFILE_A2DP) {
                         if ((n_written = a2dp_process_render(u)) < 0)
@@ -1360,7 +1361,7 @@ static void thread_func(void *userdata) {
                     /* Hmm, there is no input stream we could synchronize
                      * to. So let's estimate when we need to wake up the latest */
 
-                    time_passed = pa_rtclock_usec() - u->started_at;
+                    time_passed = pa_rtclock_now() - u->started_at;
                     next_write_at = pa_bytes_to_usec(u->write_index, &u->sample_spec);
                     sleep_for = time_passed < next_write_at ? next_write_at - time_passed : 0;
 

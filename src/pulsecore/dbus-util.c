@@ -26,9 +26,11 @@
 
 #include <stdarg.h>
 
-#include <pulse/xmalloc.h>
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
+#include <pulse/xmalloc.h>
 
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 
@@ -38,6 +40,12 @@ struct pa_dbus_wrap_connection {
     pa_mainloop_api *mainloop;
     DBusConnection *connection;
     pa_defer_event* dispatch_event;
+    pa_bool_t use_rtclock:1;
+};
+
+struct timeout_data {
+    pa_dbus_wrap_connection *c;
+    DBusTimeout *timeout;
 };
 
 static void dispatch_cb(pa_mainloop_api *ea, pa_defer_event *ev, void *userdata) {
@@ -118,16 +126,18 @@ static void handle_io_event(pa_mainloop_api *ea, pa_io_event *e, int fd, pa_io_e
 }
 
 /* pa_time_event_cb_t timer event handler */
-static void handle_time_event(pa_mainloop_api *ea, pa_time_event* e, const struct timeval *tv, void *userdata) {
-    DBusTimeout *timeout = userdata;
+static void handle_time_event(pa_mainloop_api *ea, pa_time_event* e, const struct timeval *t, void *userdata) {
+    struct timeval tv;
+    struct timeout_data *d = userdata;
 
-    if (dbus_timeout_get_enabled(timeout)) {
-        struct timeval next = *tv;
-        dbus_timeout_handle(timeout);
+    pa_assert(d);
+    pa_assert(d->c);
+
+    if (dbus_timeout_get_enabled(d->timeout)) {
+        dbus_timeout_handle(d->timeout);
 
         /* restart it for the next scheduled time */
-        pa_timeval_add(&next, (pa_usec_t) dbus_timeout_get_interval(timeout) * 1000);
-        ea->time_restart(e, &next);
+        ea->time_restart(e, pa_timeval_rtstore(&tv, pa_timeval_load(t) + dbus_timeout_get_interval(d->timeout) * PA_USEC_PER_MSEC, d->c->use_rtclock));
     }
 }
 
@@ -179,11 +189,16 @@ static void toggle_watch(DBusWatch *watch, void *data) {
     c->mainloop->io_enable(ev, get_watch_flags(watch));
 }
 
+static void time_event_destroy_cb(pa_mainloop_api *a, pa_time_event *e, void *userdata) {
+    pa_xfree(userdata);
+}
+
 /* DBusAddTimeoutFunction callback for pa mainloop */
 static dbus_bool_t add_timeout(DBusTimeout *timeout, void *data) {
     pa_dbus_wrap_connection *c = data;
     pa_time_event *ev;
     struct timeval tv;
+    struct timeout_data *d;
 
     pa_assert(timeout);
     pa_assert(c);
@@ -191,10 +206,11 @@ static dbus_bool_t add_timeout(DBusTimeout *timeout, void *data) {
     if (!dbus_timeout_get_enabled(timeout))
         return FALSE;
 
-    pa_gettimeofday(&tv);
-    pa_timeval_add(&tv, (pa_usec_t) dbus_timeout_get_interval(timeout) * 1000);
-
-    ev = c->mainloop->time_new(c->mainloop, &tv, handle_time_event, timeout);
+    d = pa_xnew(struct timeout_data, 1);
+    d->c = c;
+    d->timeout = timeout;
+    ev = c->mainloop->time_new(c->mainloop, pa_timeval_rtstore(&tv, pa_rtclock_now() + dbus_timeout_get_interval(timeout) * PA_USEC_PER_MSEC, c->use_rtclock), handle_time_event, d);
+    c->mainloop->time_set_destroy(ev, time_event_destroy_cb);
 
     dbus_timeout_set_data(timeout, ev, NULL);
 
@@ -215,23 +231,20 @@ static void remove_timeout(DBusTimeout *timeout, void *data) {
 
 /* DBusTimeoutToggledFunction callback for pa mainloop */
 static void toggle_timeout(DBusTimeout *timeout, void *data) {
-    pa_dbus_wrap_connection *c = data;
+    struct timeout_data *d = data;
     pa_time_event *ev;
+    struct timeval tv;
 
+    pa_assert(d);
+    pa_assert(d->c);
     pa_assert(timeout);
-    pa_assert(c);
 
     pa_assert_se(ev = dbus_timeout_get_data(timeout));
 
     if (dbus_timeout_get_enabled(timeout)) {
-        struct timeval tv;
-
-        pa_gettimeofday(&tv);
-        pa_timeval_add(&tv, (pa_usec_t) dbus_timeout_get_interval(timeout) * 1000);
-
-        c->mainloop->time_restart(ev, &tv);
+        d->c->mainloop->time_restart(ev, pa_timeval_rtstore(&tv, pa_rtclock_now() + dbus_timeout_get_interval(timeout) * PA_USEC_PER_MSEC, d->c->use_rtclock));
     } else
-        c->mainloop->time_restart(ev, NULL);
+        d->c->mainloop->time_restart(ev, pa_timeval_rtstore(&tv, PA_USEC_INVALID, d->c->use_rtclock));
 }
 
 static void wakeup_main(void *userdata) {
@@ -244,7 +257,7 @@ static void wakeup_main(void *userdata) {
     c->mainloop->defer_enable(c->dispatch_event, 1);
 }
 
-pa_dbus_wrap_connection* pa_dbus_wrap_connection_new(pa_mainloop_api *m, DBusBusType type, DBusError *error) {
+pa_dbus_wrap_connection* pa_dbus_wrap_connection_new(pa_mainloop_api *m, pa_bool_t use_rtclock, DBusBusType type, DBusError *error) {
     DBusConnection *conn;
     pa_dbus_wrap_connection *pconn;
     char *id;
@@ -257,6 +270,7 @@ pa_dbus_wrap_connection* pa_dbus_wrap_connection_new(pa_mainloop_api *m, DBusBus
     pconn = pa_xnew(pa_dbus_wrap_connection, 1);
     pconn->mainloop = m;
     pconn->connection = conn;
+    pconn->use_rtclock = use_rtclock;
 
     dbus_connection_set_exit_on_disconnect(conn, FALSE);
     dbus_connection_set_dispatch_status_function(conn, dispatch_status, pconn, NULL);

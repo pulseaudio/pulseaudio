@@ -35,6 +35,7 @@
 #include <pulse/volume.h>
 #include <pulse/timeval.h>
 #include <pulse/util.h>
+#include <pulse/rtclock.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/module.h>
@@ -58,7 +59,7 @@ PA_MODULE_USAGE(
         "restore_volume=<Save/restore volumes?> "
         "restore_muted=<Save/restore muted states?>");
 
-#define SAVE_INTERVAL 10
+#define SAVE_INTERVAL (10 * PA_USEC_PER_SEC)
 
 static const char* const valid_modargs[] = {
     "restore_volume",
@@ -95,12 +96,11 @@ struct entry {
     char port[PA_NAME_MAX];
 } PA_GCC_PACKED;
 
-static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *tv, void *userdata) {
+static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *t, void *userdata) {
     struct userdata *u = userdata;
 
     pa_assert(a);
     pa_assert(e);
-    pa_assert(tv);
     pa_assert(u);
 
     pa_assert(e == u->save_time_event);
@@ -162,14 +162,10 @@ fail:
 }
 
 static void trigger_save(struct userdata *u) {
-    struct timeval tv;
-
     if (u->save_time_event)
         return;
 
-    pa_gettimeofday(&tv);
-    tv.tv_sec += SAVE_INTERVAL;
-    u->save_time_event = u->core->mainloop->time_new(u->core->mainloop, &tv, save_time_callback, u);
+    u->save_time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + SAVE_INTERVAL, save_time_callback, u);
 }
 
 static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {

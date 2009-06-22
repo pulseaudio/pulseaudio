@@ -51,6 +51,9 @@ PA_C_DECL_BEGIN
 /** The number of nanoseconds in a microsecond */
 #define PA_NSEC_PER_USEC ((pa_usec_t) 1000ULL)
 
+/** Invalid time in usec */
+#define PA_USEC_INVALID ((pa_usec_t) -1)
+
 struct timeval;
 
 /** Return the current timestamp, just like UNIX gettimeofday() */

@@ -38,6 +38,7 @@
 #include <syslog.h>
 #endif
 
+#include <pulse/rtclock.h>
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
@@ -45,7 +46,7 @@
 
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
-#include <pulsecore/rtclock.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/once.h>
 #include <pulsecore/ratelimit.h>
 
@@ -294,7 +295,7 @@ void pa_log_levelv_meta(
         static pa_usec_t start, last;
         pa_usec_t u, a, r;
 
-        u = pa_rtclock_usec();
+        u = pa_rtclock_now();
 
         PA_ONCE_BEGIN {
             start = u;

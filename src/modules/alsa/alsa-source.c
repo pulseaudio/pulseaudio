@@ -28,10 +28,11 @@
 
 #include <asoundlib.h>
 
-#include <pulse/xmalloc.h>
-#include <pulse/util.h>
-#include <pulse/timeval.h>
 #include <pulse/i18n.h>
+#include <pulse/rtclock.h>
+#include <pulse/timeval.h>
+#include <pulse/util.h>
+#include <pulse/xmalloc.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core.h>
@@ -39,6 +40,7 @@
 #include <pulsecore/memchunk.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/modargs.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/sample-util.h>
 #include <pulsecore/log.h>
@@ -48,7 +50,6 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/time-smoother.h>
-#include <pulsecore/rtclock.h>
 
 #include <modules/reserve-wrap.h>
 
@@ -669,7 +670,7 @@ static void update_smoother(struct userdata *u) {
 
     /* Hmm, if the timestamp is 0, then it wasn't set and we take the current time */
     if (now1 <= 0)
-        now1 = pa_rtclock_usec();
+        now1 = pa_rtclock_now();
 
     now2 = pa_bytes_to_usec(position, &u->source->sample_spec);
 
@@ -682,7 +683,7 @@ static pa_usec_t source_get_latency(struct userdata *u) {
 
     pa_assert(u);
 
-    now1 = pa_rtclock_usec();
+    now1 = pa_rtclock_now();
     now2 = pa_smoother_get(u->smoother, now1);
 
     delay = (int64_t) now2 - (int64_t) pa_bytes_to_usec(u->read_count, &u->source->sample_spec);
@@ -707,7 +708,7 @@ static int suspend(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->pcm_handle);
 
-    pa_smoother_pause(u->smoother, pa_rtclock_usec());
+    pa_smoother_pause(u->smoother, pa_rtclock_now());
 
     /* Let's suspend */
     snd_pcm_close(u->pcm_handle);
@@ -833,7 +834,7 @@ static int unsuspend(struct userdata *u) {
     /* FIXME: We need to reload the volume somehow */
 
     snd_pcm_start(u->pcm_handle);
-    pa_smoother_resume(u->smoother, pa_rtclock_usec(), TRUE);
+    pa_smoother_resume(u->smoother, pa_rtclock_now(), TRUE);
 
     pa_log_info("Resumed successfully...");
 
@@ -1130,7 +1131,7 @@ static void thread_func(void *userdata) {
 
                 /* Convert from the sound card time domain to the
                  * system time domain */
-                cusec = pa_smoother_translate(u->smoother, pa_rtclock_usec(), sleep_usec);
+                cusec = pa_smoother_translate(u->smoother, pa_rtclock_now(), sleep_usec);
 
 /*                 pa_log_debug("Waking up in %0.2fms (system clock).", (double) cusec / PA_USEC_PER_MSEC); */
 
@@ -1430,7 +1431,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
             TRUE,
             TRUE,
             5,
-            pa_rtclock_usec(),
+            pa_rtclock_now(),
             FALSE);
 
     dev_id = pa_modargs_get_value(

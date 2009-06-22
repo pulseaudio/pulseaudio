@@ -37,6 +37,7 @@
 #include <pulse/timeval.h>
 
 #include <pulsecore/core-error.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core.h>
 #include <pulsecore/module.h>
 #include <pulsecore/memchunk.h>
@@ -51,7 +52,6 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/time-smoother.h>
-#include <pulsecore/rtclock.h>
 
 #include "alsa-util.h"
 #include "alsa-source.h"

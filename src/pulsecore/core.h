@@ -183,4 +183,8 @@ int pa_core_exit(pa_core *c, pa_bool_t force, int retval);
 
 void pa_core_maybe_vacuum(pa_core *c);
 
+/* wrapper for c->mainloop->time_*() RT time events */
+pa_time_event* pa_core_rttime_new(pa_core *c, pa_usec_t usec, pa_time_event_cb_t cb, void *userdata);
+void pa_core_rttime_restart(pa_core *c, pa_time_event *e, pa_usec_t usec);
+
 #endif
