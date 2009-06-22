@@ -56,6 +56,7 @@
 #include <pulsecore/macro.h>
 
 #include "mainloop.h"
+#include "internal.h"
 
 struct pa_io_event {
     pa_mainloop *mainloop;
@@ -456,10 +457,10 @@ static void mainloop_quit(pa_mainloop_api*a, int retval) {
 static const pa_mainloop_api vtable = {
     .userdata = NULL,
 
-    .io_new= mainloop_io_new,
-    .io_enable= mainloop_io_enable,
-    .io_free= mainloop_io_free,
-    .io_set_destroy= mainloop_io_set_destroy,
+    .io_new = mainloop_io_new,
+    .io_enable = mainloop_io_enable,
+    .io_free = mainloop_io_free,
+    .io_set_destroy = mainloop_io_set_destroy,
 
     .time_new = mainloop_time_new,
     .time_restart = mainloop_time_restart,
@@ -993,4 +994,10 @@ void pa_mainloop_set_poll_func(pa_mainloop *m, pa_poll_func poll_func, void *use
 
     m->poll_func = poll_func;
     m->poll_func_userdata = userdata;
+}
+
+pa_bool_t pa_mainloop_is_our_api(pa_mainloop_api*m) {
+    pa_assert(m);
+
+    return m->io_new == mainloop_io_new;
 }

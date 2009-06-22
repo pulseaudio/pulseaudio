@@ -160,6 +160,7 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     c->playback_streams = pa_dynarray_new();
     c->record_streams = pa_dynarray_new();
     c->client_index = PA_INVALID_INDEX;
+    c->use_rtclock = pa_mainloop_is_our_api(mainloop);
 
     PA_LLIST_HEAD_INIT(pa_stream, c->streams);
     PA_LLIST_HEAD_INIT(pa_operation, c->operations);
