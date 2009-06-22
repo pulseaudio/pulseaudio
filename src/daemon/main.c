@@ -85,7 +85,6 @@
 #include <pulsecore/pid.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/random.h>
-#include <pulsecore/rtclock.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/mutex.h>
 #include <pulsecore/thread.h>

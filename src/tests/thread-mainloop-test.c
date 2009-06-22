@@ -32,6 +32,7 @@
 #include <pulse/gccmacro.h>
 
 #include <pulsecore/macro.h>
+#include <pulsecore/core-rtclock.h>
 
 static void tcb(pa_mainloop_api *a, pa_time_event *e, const struct timeval *tv, void *userdata) {
     pa_assert_se(pa_threaded_mainloop_in_thread(userdata));
