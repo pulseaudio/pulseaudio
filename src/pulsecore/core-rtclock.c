@@ -65,7 +65,7 @@ struct timeval *pa_rtclock_get(struct timeval *tv) {
     pa_assert(tv);
 
     tv->tv_sec = ts.tv_sec;
-    tv->tv_usec = ts.tv_nsec / 1000;
+    tv->tv_usec = ts.tv_nsec / PA_NSEC_PER_USEC;
 
     return tv;
 
@@ -82,11 +82,11 @@ pa_bool_t pa_rtclock_hrtimer(void) {
 
 #ifdef CLOCK_MONOTONIC
     if (clock_getres(CLOCK_MONOTONIC, &ts) >= 0)
-        return ts.tv_sec == 0 && ts.tv_nsec <= PA_HRTIMER_THRESHOLD_USEC*1000;
+        return ts.tv_sec == 0 && ts.tv_nsec <= (long) (PA_HRTIMER_THRESHOLD_USEC*PA_NSEC_PER_USEC);
 #endif
 
     pa_assert_se(clock_getres(CLOCK_REALTIME, &ts) == 0);
-    return ts.tv_sec == 0 && ts.tv_nsec <= PA_HRTIMER_THRESHOLD_USEC*1000;
+    return ts.tv_sec == 0 && ts.tv_nsec <= (long) (PA_HRTIMER_THRESHOLD_USEC*PA_NSEC_PER_USEC);
 
 #else /* HAVE_CLOCK_GETTIME */
 
