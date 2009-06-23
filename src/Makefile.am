@@ -1696,7 +1696,6 @@ daemon.conf: daemon/daemon.conf.in Makefile
 
 install-exec-hook:
 	chown root $(DESTDIR)$(bindir)/pulseaudio ; true
-	chmod u+s $(DESTDIR)$(bindir)/pulseaudio
 	-chmod u+s $(DESTDIR)$(pulselibexecdir)/proximity-helper
 	ln -sf pacat $(DESTDIR)$(bindir)/parec
 	ln -sf pacat $(DESTDIR)$(bindir)/pamon
