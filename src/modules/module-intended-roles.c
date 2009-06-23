@@ -50,7 +50,7 @@
 #include <pulsecore/pstream-util.h>
 #include <pulsecore/database.h>
 
-#include "module-stream-restore-symdef.h"
+#include "module-intended-roles-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Automatically set device of streams based of intended roles of devices");
