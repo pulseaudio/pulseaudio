@@ -121,7 +121,8 @@ then
 
     # Change the first '-' to a '.', so version-comparing tools work properly.
     # Remove the "g" in git describe's output string, to save a byte.
-    v=`echo "$v" | sed 's/-/./;s/\(.*\)-g/\1-/'`;
+#    v=`echo "$v" | sed 's/-/./;s/\(.*\)-g/\1-/'`;
+    :
 else
     v=UNKNOWN
 fi
