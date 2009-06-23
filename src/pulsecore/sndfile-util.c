@@ -113,7 +113,7 @@ int pa_sndfile_write_sample_spec(SF_INFO *sfi, pa_sample_spec *ss) {
             break;
 
         case PA_SAMPLE_S32LE:
-        case PA_SAMPLE_S32RE:
+        case PA_SAMPLE_S32BE:
             ss->format = PA_SAMPLE_S32NE;
             sfi->format |= SF_FORMAT_PCM_32;
             break;
