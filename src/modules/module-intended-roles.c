@@ -84,7 +84,7 @@ struct userdata {
 static pa_bool_t role_match(pa_proplist *proplist, const char *role) {
     const char *ir;
     char *r;
-    const char *state;
+    const char *state = NULL;
 
     if (!(ir = pa_proplist_gets(proplist, PA_PROP_DEVICE_INTENDED_ROLES)))
         return FALSE;
