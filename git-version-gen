@@ -106,18 +106,18 @@ then
     # tag or the previous older version that did not?
     #   Newer: v6.10-77-g0f8faeb
     #   Older: v6.10-g0f8faeb
-    case $v in
-	*-*-*) : git describe is okay three part flavor ;;
-	*-*)
-	    : git describe is older two part flavor
-	    # Recreate the number of commits and rewrite such that the
-	    # result is the same as if we were using the newer version
-	    # of git describe.
-	    vtag=`echo "$v" | sed 's/-.*//'`
-	    numcommits=`git rev-list "$vtag"..HEAD | wc -l`
-	    v=`echo "$v" | sed "s/\(.*\)-\(.*\)/\1-$numcommits-\2/"`;
-	    ;;
-    esac
+#    case $v in
+#	*-*-*) : git describe is okay three part flavor ;;
+#	*-*)
+#	    : git describe is older two part flavor
+#	    # Recreate the number of commits and rewrite such that the
+#	    # result is the same as if we were using the newer version
+#	    # of git describe.
+#	    vtag=`echo "$v" | sed 's/-.*//'`
+#	    numcommits=`git rev-list "$vtag"..HEAD | wc -l`
+#	    v=`echo "$v" | sed "s/\(.*\)-\(.*\)/\1-$numcommits-\2/"`;
+#	    ;;
+#    esac
 
     # Change the first '-' to a '.', so version-comparing tools work properly.
     # Remove the "g" in git describe's output string, to save a byte.
