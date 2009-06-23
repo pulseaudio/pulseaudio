@@ -23,14 +23,6 @@
 #include <config.h>
 #endif
 
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-
 #include <pulse/xmalloc.h>
 #include <pulse/volume.h>
 #include <pulse/timeval.h>
@@ -45,10 +37,6 @@
 #include <pulsecore/sink-input.h>
 #include <pulsecore/source-output.h>
 #include <pulsecore/namereg.h>
-#include <pulsecore/protocol-native.h>
-#include <pulsecore/pstream.h>
-#include <pulsecore/pstream-util.h>
-#include <pulsecore/database.h>
 
 #include "module-intended-roles-symdef.h"
 
@@ -69,6 +57,7 @@ static const char* const valid_modargs[] = {
 struct userdata {
     pa_core *core;
     pa_module *module;
+
     pa_hook_slot
         *sink_input_new_hook_slot,
         *source_output_new_hook_slot,
