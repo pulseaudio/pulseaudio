@@ -99,7 +99,7 @@ WINSOCK_LIBS=-lwsock32 -lws2_32 -lwininet
 endif
 
 FOREIGN_CFLAGS = -w
-MODULE_LDFLAGS = -module -disable-static -avoid-version
+MODULE_LDFLAGS = -module -disable-static -avoid-version $(LDFLAGS_NOUNDEFINED)
 
 ###################################
 #          Extra files            #
