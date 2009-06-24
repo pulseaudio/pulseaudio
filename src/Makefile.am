@@ -568,7 +568,6 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/core-error.c pulsecore/core-error.h \
 		pulsecore/core-rtclock.c pulsecore/core-rtclock.h \
 		pulsecore/core-util.c pulsecore/core-util.h \
-		pulsecore/rtkit.c pulsecore/rtkit.h \
 		pulsecore/creds.h \
 		pulsecore/dynarray.c pulsecore/dynarray.h \
 		pulsecore/endianmacros.h \
@@ -659,7 +658,9 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/dllmain.c
 endif
 
 if HAVE_DBUS
-libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/dbus-util.c pulsecore/dbus-util.h
+libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += \
+		pulsecore/dbus-util.c pulsecore/dbus-util.h \
+		pulsecore/rtkit.c pulsecore/rtkit.h
 libpulsecommon_@PA_MAJORMINORMICRO@_la_CFLAGS += $(DBUS_CFLAGS)
 libpulsecommon_@PA_MAJORMINORMICRO@_la_LIBADD += $(DBUS_LIBS)
 endif
