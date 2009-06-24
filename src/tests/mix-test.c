@@ -79,6 +79,16 @@ static void dump_block(const pa_sample_spec *ss, const pa_memchunk *chunk) {
             break;
         }
 
+        case PA_SAMPLE_S24NE:
+        case PA_SAMPLE_S24RE: {
+            uint8_t *u = d;
+
+            for (i = 0; i < chunk->length / pa_frame_size(ss); i++)
+	        printf("0x%02x%02x%02xx ", *(u++), *(u++), *(u++));
+
+            break;
+        }
+
         case PA_SAMPLE_FLOAT32NE:
         case PA_SAMPLE_FLOAT32RE: {
             float *u = d;
@@ -138,6 +148,25 @@ static pa_memblock* generate_block(pa_mempool *pool, const pa_sample_spec *ss) {
 		0x3fff0006, 0x00010007, 0xF0000008, 0x00200009, 0x0021000A };
 
 	    memcpy(d, &u32_samples[0], sizeof(u32_samples));
+            break;
+        }
+
+        case PA_SAMPLE_S24NE:
+        case PA_SAMPLE_S24RE: {
+	    /* Need to be on a byte array because they are not aligned */
+	    static const uint8_t u24_samples[] =
+	      { 0x00, 0x00, 0x01,
+		0xFF, 0xFF, 0x02,
+		0x7F, 0xFF, 0x03,
+		0x80, 0x00, 0x04,
+		0x9f, 0xff, 0x05,
+		0x3f, 0xff, 0x06,
+		0x01, 0x00, 0x07,
+		0xF0, 0x00, 0x08,
+		0x20, 0x00, 0x09,
+		0x21, 0x00, 0x0A };
+
+	    memcpy(d, &u24_samples[0], sizeof(u24_samples));
             break;
         }
 
