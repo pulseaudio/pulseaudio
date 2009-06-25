@@ -46,6 +46,7 @@
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 #include <pulse/util.h>
+#include <pulse/rtclock.h>
 
 #include <pulsecore/iochannel.h>
 #include <pulsecore/sink.h>
@@ -59,7 +60,6 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/thread.h>
-#include <pulsecore/rtclock.h>
 
 #include "module-solaris-symdef.h"
 
