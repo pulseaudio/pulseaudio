@@ -24,6 +24,10 @@
 #include <config.h>
 #endif
 
+#ifndef OS_IS_WIN32
+#include <pthread.h>
+#endif
+
 #include <signal.h>
 #include <stdio.h>
 

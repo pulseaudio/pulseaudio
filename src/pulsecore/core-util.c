@@ -43,6 +43,7 @@
 #include <regex.h>
 #include <langinfo.h>
 #include <sys/utsname.h>
+#include <sys/socket.h>
 
 #ifdef HAVE_STRTOF_L
 #include <locale.h>
