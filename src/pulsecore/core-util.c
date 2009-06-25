@@ -1193,22 +1193,22 @@ int pa_check_in_group(gid_t g) {
   (advisory on UNIX, mandatory on Windows) */
 int pa_lock_fd(int fd, int b) {
 #ifdef F_SETLKW
-    struct flock flock;
+    struct flock f_lock;
 
     /* Try a R/W lock first */
 
-    flock.l_type = (short) (b ? F_WRLCK : F_UNLCK);
-    flock.l_whence = SEEK_SET;
-    flock.l_start = 0;
-    flock.l_len = 0;
+    f_lock.l_type = (short) (b ? F_WRLCK : F_UNLCK);
+    f_lock.l_whence = SEEK_SET;
+    f_lock.l_start = 0;
+    f_lock.l_len = 0;
 
-    if (fcntl(fd, F_SETLKW, &flock) >= 0)
+    if (fcntl(fd, F_SETLKW, &f_lock) >= 0)
         return 0;
 
     /* Perhaps the file descriptor qas opened for read only, than try again with a read lock. */
     if (b && errno == EBADF) {
-        flock.l_type = F_RDLCK;
-        if (fcntl(fd, F_SETLKW, &flock) >= 0)
+        f_lock.l_type = F_RDLCK;
+        if (fcntl(fd, F_SETLKW, &f_lock) >= 0)
             return 0;
     }
 
