@@ -131,7 +131,7 @@ void pa_asyncq_free(pa_asyncq *l, pa_free_cb_t free_cb) {
     pa_xfree(l);
 }
 
-static int push(pa_asyncq*l, void *p, pa_bool_t wait) {
+static int push(pa_asyncq*l, void *p, pa_bool_t wait_op) {
     unsigned idx;
     pa_atomic_ptr_t *cells;
 
@@ -145,7 +145,7 @@ static int push(pa_asyncq*l, void *p, pa_bool_t wait) {
 
     if (!pa_atomic_ptr_cmpxchg(&cells[idx], NULL, p)) {
 
-        if (!wait)
+        if (!wait_op)
             return -1;
 
 /*         pa_log("sleeping on push"); */
@@ -163,14 +163,14 @@ static int push(pa_asyncq*l, void *p, pa_bool_t wait) {
     return 0;
 }
 
-static pa_bool_t flush_postq(pa_asyncq *l, pa_bool_t wait) {
+static pa_bool_t flush_postq(pa_asyncq *l, pa_bool_t wait_op) {
     struct localq *q;
 
     pa_assert(l);
 
     while ((q = l->last_localq)) {
 
-        if (push(l, q->data, wait) < 0)
+        if (push(l, q->data, wait_op) < 0)
             return FALSE;
 
         l->last_localq = q->prev;
@@ -184,13 +184,13 @@ static pa_bool_t flush_postq(pa_asyncq *l, pa_bool_t wait) {
     return TRUE;
 }
 
-int pa_asyncq_push(pa_asyncq*l, void *p, pa_bool_t wait) {
+int pa_asyncq_push(pa_asyncq*l, void *p, pa_bool_t wait_op) {
     pa_assert(l);
 
-    if (!flush_postq(l, wait))
+    if (!flush_postq(l, wait_op))
         return -1;
 
-    return push(l, p, wait);
+    return push(l, p, wait_op);
 }
 
 void pa_asyncq_post(pa_asyncq*l, void *p) {
@@ -221,7 +221,7 @@ void pa_asyncq_post(pa_asyncq*l, void *p) {
     return;
 }
 
-void* pa_asyncq_pop(pa_asyncq*l, pa_bool_t wait) {
+void* pa_asyncq_pop(pa_asyncq*l, pa_bool_t wait_op) {
     unsigned idx;
     void *ret;
     pa_atomic_ptr_t *cells;
@@ -235,7 +235,7 @@ void* pa_asyncq_pop(pa_asyncq*l, pa_bool_t wait) {
 
     if (!(ret = pa_atomic_ptr_load(&cells[idx]))) {
 
-        if (!wait)
+        if (!wait_op)
             return NULL;
 
 /*         pa_log("sleeping on pop"); */
