@@ -2238,10 +2238,9 @@ int pa_close_all(int except_fd, ...) {
 int pa_close_allv(const int except_fds[]) {
     struct rlimit rl;
     int maxfd, fd;
-    int saved_errno;
 
 #ifdef __linux__
-
+    int saved_errno;
     DIR *d;
 
     if ((d = opendir("/proc/self/fd"))) {
