@@ -605,7 +605,6 @@ static void thread_func(void *userdata) {
         pa_make_realtime(u->core->realtime_priority);
 
     pa_thread_mq_install(&u->thread_mq);
-    pa_rtpoll_install(u->rtpoll);
 
     for (;;) {
         /* Render some data and write it to the dsp */
