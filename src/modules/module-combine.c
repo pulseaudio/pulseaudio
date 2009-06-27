@@ -119,6 +119,7 @@ struct userdata {
     uint32_t adjust_time;
 
     pa_bool_t automatic;
+    pa_bool_t auto_desc;
 
     pa_hook_slot *sink_put_slot, *sink_unlink_slot, *sink_state_changed_slot;
 
@@ -756,6 +757,9 @@ static void update_description(struct userdata *u) {
 
     pa_assert(u);
 
+    if (!u->auto_desc)
+        return;
+
     if (pa_idxset_isempty(u->outputs)) {
         pa_sink_set_description(u->sink, "Simultaneous output");
         return;
@@ -1073,7 +1077,6 @@ int pa__init(pa_module*m) {
     pa_sink_new_data_set_name(&data, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME));
     pa_sink_new_data_set_sample_spec(&data, &ss);
     pa_sink_new_data_set_channel_map(&data, &map);
-    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Simultaneous Output");
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_CLASS, "filter");
 
     if (slaves)
@@ -1084,6 +1087,14 @@ int pa__init(pa_module*m) {
         pa_sink_new_data_done(&data);
         goto fail;
     }
+
+    /* Check proplist for a description & fill in a default value if not */
+    u->auto_desc = FALSE;
+    if (NULL == pa_proplist_gets(data.proplist, PA_PROP_DEVICE_DESCRIPTION)) {
+        u->auto_desc = TRUE;
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Simultaneous Output");
+    }
+
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY);
     pa_sink_new_data_done(&data);
