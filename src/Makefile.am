@@ -1051,8 +1051,10 @@ alsaprofilesets_DATA = \
 		modules/alsa/mixer/profile-sets/native-instruments-audio4dj.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf
 
+if HAVE_UDEV
 udevrules_DATA = \
 		modules/alsa/mixer/profile-sets/90-pulseaudio.rules
+endif
 
 alsapaths_DATA = \
 		modules/alsa/mixer/paths/analog-input-aux.conf \
