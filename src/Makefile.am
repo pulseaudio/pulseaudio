@@ -992,8 +992,8 @@ modlibexec_LTLIBRARIES += \
 		module-sine-source.la \
 		module-detect.la \
 		module-volume-restore.la \
-    module-device-manager.la \
-    module-device-restore.la \
+		module-device-manager.la \
+		module-device-restore.la \
 		module-stream-restore.la \
 		module-card-restore.la \
 		module-default-device-restore.la \
@@ -1234,8 +1234,8 @@ SYMDEF_FILES = \
 		modules/jack/module-jack-sink-symdef.h \
 		modules/jack/module-jack-source-symdef.h \
 		modules/module-volume-restore-symdef.h \
-    modules/module-device-manager-symdef.h \
-    modules/module-device-restore-symdef.h \
+		modules/module-device-manager-symdef.h \
+		modules/module-device-restore-symdef.h \
 		modules/module-stream-restore-symdef.h \
 		modules/module-card-restore-symdef.h \
 		modules/module-default-device-restore-symdef.h \
