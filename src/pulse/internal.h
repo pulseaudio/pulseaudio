@@ -28,6 +28,7 @@
 #include <pulse/stream.h>
 #include <pulse/operation.h>
 #include <pulse/subscribe.h>
+#include <pulse/ext-device-manager.h>
 #include <pulse/ext-stream-restore.h>
 
 #include <pulsecore/socket-client.h>
@@ -101,6 +102,10 @@ struct pa_context {
     uint32_t client_index;
 
     /* Extension specific data */
+    struct {
+        pa_ext_device_manager_subscribe_cb_t callback;
+        void *userdata;
+    } ext_device_manager;
     struct {
         pa_ext_stream_restore_subscribe_cb_t callback;
         void *userdata;
@@ -283,6 +288,7 @@ pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *ta
 #define PA_FAIL_RETURN_NULL(context, error)     \
     PA_FAIL_RETURN_ANY(context, error, NULL)
 
+void pa_ext_device_manager_command(pa_context *c, uint32_t tag, pa_tagstruct *t);
 void pa_ext_stream_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t);
 
 pa_bool_t pa_mainloop_is_our_api(pa_mainloop_api*m);

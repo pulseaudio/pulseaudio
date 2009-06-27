@@ -47,6 +47,9 @@
 #include <pulsecore/sink-input.h>
 #include <pulsecore/source-output.h>
 #include <pulsecore/namereg.h>
+#include <pulsecore/protocol-native.h>
+#include <pulsecore/pstream.h>
+#include <pulsecore/pstream-util.h>
 #include <pulsecore/database.h>
 
 #include "module-device-manager-symdef.h"
@@ -69,9 +72,13 @@ struct userdata {
     pa_subscription *subscription;
     pa_hook_slot
         *sink_new_hook_slot,
-        *source_new_hook_slot;
+        *source_new_hook_slot,
+        *connection_unlink_hook_slot;
     pa_time_event *save_time_event;
     pa_database *database;
+
+    pa_native_protocol *protocol;
+    pa_idxset *subscribed;
 };
 
 #define ENTRY_VERSION 1
@@ -80,6 +87,15 @@ struct entry {
     uint8_t version;
     char description[PA_NAME_MAX];
 } PA_GCC_PACKED;
+
+enum {
+    SUBCOMMAND_TEST,
+    SUBCOMMAND_READ,
+    SUBCOMMAND_WRITE,
+    SUBCOMMAND_DELETE,
+    SUBCOMMAND_SUBSCRIBE,
+    SUBCOMMAND_EVENT
+};
 
 static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *t, void *userdata) {
     struct userdata *u = userdata;
@@ -272,6 +288,230 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
     return PA_HOOK_OK;
 }
 
+static char *get_name(const char *key, const char *prefix) {
+  char *t;
+
+  if (strncmp(key, prefix, sizeof(prefix)))
+    return NULL;
+
+  t = pa_xstrdup(key + sizeof(prefix));
+  return t;
+}
+
+static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
+  pa_sink *sink;
+  pa_source *source;
+  uint32_t idx;
+
+  pa_assert(u);
+  pa_assert(name);
+  pa_assert(e);
+
+  for (sink = pa_idxset_first(u->core->sinks, &idx); sink; sink = pa_idxset_next(u->core->sinks, &idx)) {
+    char *n;
+
+    if (!(n = get_name(name, "sink")))
+      continue;
+
+    if (!pa_streq(sink->name, n)) {
+      pa_xfree(n);
+      continue;
+    }
+    pa_xfree(n);
+
+    pa_log_info("Restoring description for sink %s.", sink->name);
+    pa_proplist_sets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION, e->description);
+  }
+
+  for (source = pa_idxset_first(u->core->sources, &idx); source; source = pa_idxset_next(u->core->sources, &idx)) {
+    char *n;
+
+    if (!(n = get_name(name, "source")))
+      continue;
+
+    if (!pa_streq(source->name, n)) {
+      pa_xfree(n);
+      continue;
+    }
+    pa_xfree(n);
+
+    pa_log_info("Restoring description for source %s.", source->name);
+    pa_proplist_sets(source->proplist, PA_PROP_DEVICE_DESCRIPTION, e->description);
+  }
+}
+
+#define EXT_VERSION 1
+
+static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connection *c, uint32_t tag, pa_tagstruct *t) {
+  struct userdata *u;
+  uint32_t command;
+  pa_tagstruct *reply = NULL;
+
+  pa_assert(p);
+  pa_assert(m);
+  pa_assert(c);
+  pa_assert(t);
+
+  u = m->userdata;
+
+  if (pa_tagstruct_getu32(t, &command) < 0)
+    goto fail;
+
+  reply = pa_tagstruct_new(NULL, 0);
+  pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
+  pa_tagstruct_putu32(reply, tag);
+
+  switch (command) {
+    case SUBCOMMAND_TEST: {
+      if (!pa_tagstruct_eof(t))
+        goto fail;
+
+      pa_tagstruct_putu32(reply, EXT_VERSION);
+      break;
+    }
+
+    case SUBCOMMAND_READ: {
+      pa_datum key;
+      pa_bool_t done;
+
+      if (!pa_tagstruct_eof(t))
+        goto fail;
+
+      done = !pa_database_first(u->database, &key, NULL);
+
+      while (!done) {
+        pa_datum next_key;
+        struct entry *e;
+        char *name;
+
+        done = !pa_database_next(u->database, &key, &next_key, NULL);
+
+        name = pa_xstrndup(key.data, key.size);
+        pa_datum_free(&key);
+
+        if ((e = read_entry(u, name))) {
+          pa_tagstruct_puts(reply, name);
+          pa_tagstruct_puts(reply, e->description);
+
+          pa_xfree(e);
+        }
+
+        pa_xfree(name);
+
+        key = next_key;
+      }
+
+      break;
+    }
+
+    case SUBCOMMAND_WRITE: {
+      uint32_t mode;
+      pa_bool_t apply_immediately = FALSE;
+
+      if (pa_tagstruct_getu32(t, &mode) < 0 ||
+        pa_tagstruct_get_boolean(t, &apply_immediately) < 0)
+        goto fail;
+
+      if (mode != PA_UPDATE_MERGE &&
+        mode != PA_UPDATE_REPLACE &&
+        mode != PA_UPDATE_SET)
+        goto fail;
+
+      if (mode == PA_UPDATE_SET)
+        pa_database_clear(u->database);
+
+      while (!pa_tagstruct_eof(t)) {
+        const char *name, *description;
+        struct entry entry;
+        pa_datum key, data;
+
+        pa_zero(entry);
+        entry.version = ENTRY_VERSION;
+
+        if (pa_tagstruct_gets(t, &name) < 0 ||
+          pa_tagstruct_gets(reply, &description) < 0)
+          goto fail;
+
+        if (!name || !*name)
+          goto fail;
+
+        pa_strlcpy(entry.description, description, sizeof(entry.description));
+
+        key.data = (char*) name;
+        key.size = strlen(name);
+
+        data.data = &entry;
+        data.size = sizeof(entry);
+
+        if (pa_database_set(u->database, &key, &data, mode == PA_UPDATE_REPLACE) == 0)
+          if (apply_immediately)
+            apply_entry(u, name, &entry);
+      }
+
+      trigger_save(u);
+
+      break;
+    }
+
+    case SUBCOMMAND_DELETE:
+
+      while (!pa_tagstruct_eof(t)) {
+        const char *name;
+        pa_datum key;
+
+        if (pa_tagstruct_gets(t, &name) < 0)
+          goto fail;
+
+        key.data = (char*) name;
+        key.size = strlen(name);
+
+        pa_database_unset(u->database, &key);
+      }
+
+      trigger_save(u);
+
+      break;
+
+    case SUBCOMMAND_SUBSCRIBE: {
+
+      pa_bool_t enabled;
+
+      if (pa_tagstruct_get_boolean(t, &enabled) < 0 ||
+        !pa_tagstruct_eof(t))
+        goto fail;
+
+      if (enabled)
+        pa_idxset_put(u->subscribed, c, NULL);
+      else
+        pa_idxset_remove_by_data(u->subscribed, c, NULL);
+
+      break;
+    }
+
+    default:
+      goto fail;
+  }
+
+  pa_pstream_send_tagstruct(pa_native_connection_get_pstream(c), reply);
+  return 0;
+
+  fail:
+
+  if (reply)
+    pa_tagstruct_free(reply);
+
+  return -1;
+}
+
+static pa_hook_result_t connection_unlink_hook_cb(pa_native_protocol *p, pa_native_connection *c, struct userdata *u) {
+    pa_assert(p);
+    pa_assert(c);
+    pa_assert(u);
+
+    pa_idxset_remove_by_data(u->subscribed, c, NULL);
+    return PA_HOOK_OK;
+}
+
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
@@ -290,6 +530,12 @@ int pa__init(pa_module*m) {
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
+    u->subscribed = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+
+    u->protocol = pa_native_protocol_get(m->core);
+    pa_native_protocol_install_ext(u->protocol, m, extension_cb);
+
+    u->connection_unlink_hook_slot = pa_hook_connect(&pa_native_protocol_hooks(u->protocol)[PA_NATIVE_HOOK_CONNECTION_UNLINK], PA_HOOK_NORMAL, (pa_hook_cb_t) connection_unlink_hook_cb, u);
 
     u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK|PA_SUBSCRIPTION_MASK_SOURCE, subscribe_callback, u);
 
@@ -347,6 +593,14 @@ void pa__done(pa_module*m) {
 
     if (u->database)
         pa_database_close(u->database);
+
+    if (u->protocol) {
+        pa_native_protocol_remove_ext(u->protocol, m);
+        pa_native_protocol_unref(u->protocol);
+    }
+
+    if (u->subscribed)
+        pa_idxset_free(u->subscribed, NULL, NULL);
 
     pa_xfree(u);
 }
