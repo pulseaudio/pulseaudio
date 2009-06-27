@@ -691,6 +691,7 @@ pulseinclude_HEADERS = \
 		pulse/context.h \
 		pulse/def.h \
 		pulse/error.h \
+		pulse/ext-device-manager.h \
 		pulse/ext-stream-restore.h \
 		pulse/gccmacro.h \
 		pulse/introspect.h \
@@ -741,6 +742,7 @@ libpulse_la_SOURCES = \
 		pulse/context.c pulse/context.h \
 		pulse/def.h \
 		pulse/error.c pulse/error.h \
+		pulse/ext-device-manager.c pulse/ext-device-manager.h \
 		pulse/ext-stream-restore.c pulse/ext-stream-restore.h \
 		pulse/gccmacro.h \
 		pulse/internal.h \
