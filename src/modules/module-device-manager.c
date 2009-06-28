@@ -289,55 +289,47 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
 }
 
 static char *get_name(const char *key, const char *prefix) {
-  char *t;
+    char *t;
 
-  if (strncmp(key, prefix, sizeof(prefix)))
-    return NULL;
+    if (strncmp(key, prefix, strlen(prefix)))
+        return NULL;
 
-  t = pa_xstrdup(key + sizeof(prefix));
-  return t;
+    t = pa_xstrdup(key + strlen(prefix));
+    return t;
 }
 
 static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
-  pa_sink *sink;
-  pa_source *source;
-  uint32_t idx;
-
-  pa_assert(u);
-  pa_assert(name);
-  pa_assert(e);
-
-  for (sink = pa_idxset_first(u->core->sinks, &idx); sink; sink = pa_idxset_next(u->core->sinks, &idx)) {
+    pa_sink *sink;
+    pa_source *source;
+    uint32_t idx;
     char *n;
 
-    if (!(n = get_name(name, "sink")))
-      continue;
+    pa_assert(u);
+    pa_assert(name);
+    pa_assert(e);
 
-    if (!pa_streq(sink->name, n)) {
-      pa_xfree(n);
-      continue;
+    if ((n = get_name(name, "sink:"))) {
+        for (sink = pa_idxset_first(u->core->sinks, &idx); sink; sink = pa_idxset_next(u->core->sinks, &idx)) {
+            if (!pa_streq(sink->name, n)) {
+                continue;
+            }
+
+            pa_log_info("Setting description for sink %s.", sink->name);
+            pa_sink_set_description(sink, e->description);
+        }
+        pa_xfree(n);
     }
-    pa_xfree(n);
+    else if ((n = get_name(name, "source:"))) {
+        for (source = pa_idxset_first(u->core->sources, &idx); source; source = pa_idxset_next(u->core->sources, &idx)) {
+            if (!pa_streq(source->name, n)) {
+                continue;
+            }
 
-    pa_log_info("Restoring description for sink %s.", sink->name);
-    pa_proplist_sets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION, e->description);
-  }
-
-  for (source = pa_idxset_first(u->core->sources, &idx); source; source = pa_idxset_next(u->core->sources, &idx)) {
-    char *n;
-
-    if (!(n = get_name(name, "source")))
-      continue;
-
-    if (!pa_streq(source->name, n)) {
-      pa_xfree(n);
-      continue;
+            pa_log_info("Setting description for source %s.", source->name);
+            pa_source_set_description(source, e->description);
+        }
+        pa_xfree(n);
     }
-    pa_xfree(n);
-
-    pa_log_info("Restoring description for source %s.", source->name);
-    pa_proplist_sets(source->proplist, PA_PROP_DEVICE_DESCRIPTION, e->description);
-  }
 }
 
 #define EXT_VERSION 1
