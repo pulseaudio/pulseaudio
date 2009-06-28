@@ -17,7 +17,7 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-EXTRA_DIST = bootstrap.sh LICENSE GPL LGPL doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in README todo
+EXTRA_DIST = bootstrap.sh git-version-gen LICENSE GPL LGPL doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in README todo
 SUBDIRS = src doxygen man po
 
 MAINTAINERCLEANFILES =
