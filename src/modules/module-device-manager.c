@@ -429,7 +429,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         entry.version = ENTRY_VERSION;
 
         if (pa_tagstruct_gets(t, &name) < 0 ||
-          pa_tagstruct_gets(reply, &description) < 0)
+          pa_tagstruct_gets(t, &description) < 0)
           goto fail;
 
         if (!name || !*name)
