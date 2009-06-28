@@ -1546,7 +1546,7 @@ module_cork_music_on_phone_la_CFLAGS = $(AM_CFLAGS)
 # Device description restore module
 module_device_manager_la_SOURCES = modules/module-device-manager.c
 module_device_manager_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_device_manager_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_device_manager_la_LIBADD = $(AM_LIBADD) libprotocol-native.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_device_manager_la_CFLAGS = $(AM_CFLAGS)
 
 # Device volume/muted restore module
