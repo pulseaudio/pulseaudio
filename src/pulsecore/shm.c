@@ -39,6 +39,11 @@
 #include <sys/mman.h>
 #endif
 
+/* This is deprecated on glibc but is still used by FreeBSD */
+#if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
+# define MAP_ANONYMOUS MAP_ANON
+#endif
+
 #include <pulse/xmalloc.h>
 #include <pulse/gccmacro.h>
 

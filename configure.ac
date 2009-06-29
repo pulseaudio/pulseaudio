@@ -99,11 +99,7 @@ if test "x$M4" = xno ; then
 fi
 
 dnl Compiler flags
-DESIRED_FLAGS="-Wall -W -Wextra -pipe -Wno-long-long -Winline -Wvla -Wno-overlength-strings -Wunsafe-loop-optimizations -Wundef -Wformat=2 -Wlogical-op -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wcast-align -Wstrict-aliasing=2 -Wwrite-strings -Wno-unused-parameter -ffast-math -Wp,-D_FORTIFY_SOURCE=2 -fno-common -fdiagnostics-show-option"
-
-for flag in $DESIRED_FLAGS ; do
-  CC_CHECK_CFLAGS([$flag], [CFLAGS="$CFLAGS $flag"])
-done
+CC_CHECK_CFLAGS_APPEND([-Wall -W -Wextra -pipe -Wno-long-long -Winline -Wvla -Wno-overlength-strings -Wunsafe-loop-optimizations -Wundef -Wformat=2 -Wlogical-op -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wcast-align -Wstrict-aliasing=2 -Wwrite-strings -Wno-unused-parameter -ffast-math -Wp,-D_FORTIFY_SOURCE=2 -fno-common -fdiagnostics-show-option])
 
 dnl Linker flags.
 dnl Check whether the linker supports the -version-script option.
@@ -115,6 +111,11 @@ tmp_ldflag="-Wl,-version-script=${srcdir}/src/map-file"
 CC_CHECK_LDFLAGS([${tmp_ldflag}],
     [VERSIONING_LDFLAGS='-Wl,-version-script=$(srcdir)/map-file'])
 AC_SUBST([VERSIONING_LDFLAGS])
+
+dnl Check for the proper way to build libraries that have no undefined
+dnl symbols; on some hosts this needs to be avoided but the macro
+dnl takes care of it.
+CC_NOUNDEFINED
 
 dnl Check whether to build tests by default (as compile-test) or not
 AC_ARG_ENABLE([default-build-tests],
@@ -276,7 +277,7 @@ AC_CHECK_HEADER([ltdl.h],
     [LIBLTDL=])
 
 AS_IF([test "x$LIBLTDL" = "x"],
-    [AC_MSG_ERROR([Unable to find libltdl.])])
+    [AC_MSG_ERROR([Unable to find libltdl version 2. Makes sure you have libtool 2.2 or later installed.])])
 AC_SUBST([LIBLTDL])
 
 #### Determine build environment ####

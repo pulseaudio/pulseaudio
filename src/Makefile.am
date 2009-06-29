@@ -99,7 +99,7 @@ WINSOCK_LIBS=-lwsock32 -lws2_32 -lwininet
 endif
 
 FOREIGN_CFLAGS = -w
-MODULE_LDFLAGS = -module -disable-static -avoid-version
+MODULE_LDFLAGS = -module -disable-static -avoid-version $(LDFLAGS_NOUNDEFINED)
 
 ###################################
 #          Extra files            #
@@ -569,7 +569,6 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/core-error.c pulsecore/core-error.h \
 		pulsecore/core-rtclock.c pulsecore/core-rtclock.h \
 		pulsecore/core-util.c pulsecore/core-util.h \
-		pulsecore/rtkit.c pulsecore/rtkit.h \
 		pulsecore/creds.h \
 		pulsecore/dynarray.c pulsecore/dynarray.h \
 		pulsecore/endianmacros.h \
@@ -660,7 +659,9 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/dllmain.c
 endif
 
 if HAVE_DBUS
-libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/dbus-util.c pulsecore/dbus-util.h
+libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += \
+		pulsecore/dbus-util.c pulsecore/dbus-util.h \
+		pulsecore/rtkit.c pulsecore/rtkit.h
 libpulsecommon_@PA_MAJORMINORMICRO@_la_CFLAGS += $(DBUS_CFLAGS)
 libpulsecommon_@PA_MAJORMINORMICRO@_la_LIBADD += $(DBUS_LIBS)
 endif
@@ -1457,7 +1458,7 @@ module_solaris_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la lib
 
 module_zeroconf_publish_la_SOURCES = modules/module-zeroconf-publish.c
 module_zeroconf_publish_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_zeroconf_publish_la_LIBADD = $(AM_LIBADD) $(AVAHI_LIBS) libavahi-wrap.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_zeroconf_publish_la_LIBADD = $(AM_LIBADD) $(AVAHI_LIBS) libavahi-wrap.la libprotocol-native.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_zeroconf_publish_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
 
 module_zeroconf_discover_la_SOURCES = modules/module-zeroconf-discover.c

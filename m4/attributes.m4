@@ -1,6 +1,6 @@
 dnl Macros to check the presence of generic (non-typed) symbols.
-dnl Copyright (c) 2006-2007 Diego Pettenò <flameeyes@gmail.com>
-dnl Copyright (c) 2006-2007 xine project
+dnl Copyright (c) 2006-2008 Diego Pettenò <flameeyes@gmail.com>
+dnl Copyright (c) 2006-2008 xine project
 dnl
 dnl This program is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -32,6 +32,9 @@ dnl distribute a modified version of the Autoconf Macro, you may extend
 dnl this special exception to the GPL to apply to your modified version as
 dnl well.
 
+dnl Check if the flag is supported by compiler
+dnl CC_CHECK_CFLAGS_SILENT([FLAG], [ACTION-IF-FOUND],[ACTION-IF-NOT-FOUND])
+
 AC_DEFUN([CC_CHECK_CFLAGS_SILENT], [
   AC_CACHE_VAL(AS_TR_SH([cc_cv_cflags_$1]),
     [ac_save_CFLAGS="$CFLAGS"
@@ -46,6 +49,9 @@ AC_DEFUN([CC_CHECK_CFLAGS_SILENT], [
     [$2], [$3])
 ])
 
+dnl Check if the flag is supported by compiler (cacheable)
+dnl CC_CHECK_CFLAGS([FLAG], [ACTION-IF-FOUND],[ACTION-IF-NOT-FOUND])
+
 AC_DEFUN([CC_CHECK_CFLAGS], [
   AC_CACHE_CHECK([if $CC supports $1 flag],
     AS_TR_SH([cc_cv_cflags_$1]),
@@ -56,6 +62,28 @@ AC_DEFUN([CC_CHECK_CFLAGS], [
     [$2], [$3])
 ])
 
+dnl CC_CHECK_CFLAG_APPEND(FLAG, [action-if-found], [action-if-not-found])
+dnl Check for CFLAG and appends them to CFLAGS if supported
+AC_DEFUN([CC_CHECK_CFLAG_APPEND], [
+  AC_CACHE_CHECK([if $CC supports $1 flag],
+    AS_TR_SH([cc_cv_cflags_$1]),
+    CC_CHECK_CFLAGS_SILENT([$1]) dnl Don't execute actions here!
+  )
+
+  AS_IF([eval test x$]AS_TR_SH([cc_cv_cflags_$1])[ = xyes],
+    [CFLAGS="$CFLAGS $1"; DEBUG_CFLAGS="$DEBUG_CFLAGS $1"; $2], [$3])
+])
+
+dnl CC_CHECK_CFLAGS_APPEND([FLAG1 FLAG2], [action-if-found], [action-if-not])
+AC_DEFUN([CC_CHECK_CFLAGS_APPEND], [
+  for flag in $1; do
+    CC_CHECK_CFLAG_APPEND($flag, [$2], [$3])
+  done
+])
+
+dnl Check if the flag is supported by linker (cacheable)
+dnl CC_CHECK_LDFLAGS([FLAG], [ACTION-IF-FOUND],[ACTION-IF-NOT-FOUND])
+
 AC_DEFUN([CC_CHECK_LDFLAGS], [
   AC_CACHE_CHECK([if $CC supports $1 flag],
     AS_TR_SH([cc_cv_ldflags_$1]),
@@ -63,12 +91,37 @@ AC_DEFUN([CC_CHECK_LDFLAGS], [
      LDFLAGS="$LDFLAGS $1"
      AC_LINK_IFELSE([int main() { return 1; }],
        [eval "AS_TR_SH([cc_cv_ldflags_$1])='yes'"],
-       [eval "AS_TR_SH([cc_cv_ldflags_$1])='no'"])
+       [eval "AS_TR_SH([cc_cv_ldflags_$1])="])
      LDFLAGS="$ac_save_LDFLAGS"
     ])
 
   AS_IF([eval test x$]AS_TR_SH([cc_cv_ldflags_$1])[ = xyes],
     [$2], [$3])
+])
+
+dnl define the LDFLAGS_NOUNDEFINED variable with the correct value for
+dnl the current linker to avoid undefined references in a shared object.
+AC_DEFUN([CC_NOUNDEFINED], [
+  dnl We check $host for which systems to enable this for.
+  AC_REQUIRE([AC_CANONICAL_HOST])
+
+  case $host in
+     dnl FreeBSD (et al.) does not complete linking for shared objects when pthreads
+     dnl are requested, as different implementations are present; to avoid problems
+     dnl use -Wl,-z,defs only for those platform not behaving this way.
+     *-freebsd* | *-openbsd*) ;;
+     *)
+        dnl First of all check for the --no-undefined variant of GNU ld. This allows
+        dnl for a much more readable commandline, so that people can understand what
+        dnl it does without going to look for what the heck -z defs does.
+        for possible_flags in "-Wl,--no-undefined" "-Wl,-z,defs"; do
+          CC_CHECK_LDFLAGS([$possible_flags], [LDFLAGS_NOUNDEFINED="$possible_flags"])
+	  break
+        done
+	;;
+  esac
+
+  AC_SUBST([LDFLAGS_NOUNDEFINED])
 ])
 
 dnl Check for a -Werror flag or equivalent. -Werror is the GCC
