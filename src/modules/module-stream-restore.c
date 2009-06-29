@@ -35,6 +35,7 @@
 #include <pulse/volume.h>
 #include <pulse/timeval.h>
 #include <pulse/util.h>
+#include <pulse/rtclock.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/module.h>
@@ -59,15 +60,19 @@ PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_USAGE(
         "restore_device=<Save/restore sinks/sources?> "
         "restore_volume=<Save/restore volumes?> "
-        "restore_muted=<Save/restore muted states?>");
+        "restore_muted=<Save/restore muted states?> "
+        "on_hotplug=<When new device becomes available, recheck streams?> "
+        "on_rescue=<When device becomes unavailable, recheck streams?>");
 
-#define SAVE_INTERVAL 10
+#define SAVE_INTERVAL (10 * PA_USEC_PER_SEC)
 #define IDENTIFICATION_PROPERTY "module-stream-restore.id"
 
 static const char* const valid_modargs[] = {
     "restore_device",
     "restore_volume",
     "restore_muted",
+    "on_hotplug",
+    "on_rescue",
     NULL
 };
 
@@ -79,6 +84,10 @@ struct userdata {
         *sink_input_new_hook_slot,
         *sink_input_fixate_hook_slot,
         *source_output_new_hook_slot,
+        *sink_put_hook_slot,
+        *source_put_hook_slot,
+        *sink_unlink_hook_slot,
+        *source_unlink_hook_slot,
         *connection_unlink_hook_slot;
     pa_time_event *save_time_event;
     pa_database* database;
@@ -86,6 +95,8 @@ struct userdata {
     pa_bool_t restore_device:1;
     pa_bool_t restore_volume:1;
     pa_bool_t restore_muted:1;
+    pa_bool_t on_hotplug:1;
+    pa_bool_t on_rescue:1;
 
     pa_native_protocol *protocol;
     pa_idxset *subscribed;
@@ -111,12 +122,11 @@ enum {
     SUBCOMMAND_EVENT
 };
 
-static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *tv, void *userdata) {
+static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *t, void *userdata) {
     struct userdata *u = userdata;
 
     pa_assert(a);
     pa_assert(e);
-    pa_assert(tv);
     pa_assert(u);
 
     pa_assert(e == u->save_time_event);
@@ -210,7 +220,6 @@ fail:
 }
 
 static void trigger_save(struct userdata *u) {
-    struct timeval tv;
     pa_native_connection *c;
     uint32_t idx;
 
@@ -230,9 +239,7 @@ static void trigger_save(struct userdata *u) {
     if (u->save_time_event)
         return;
 
-    pa_gettimeofday(&tv);
-    tv.tv_sec += SAVE_INTERVAL;
-    u->save_time_event = u->core->mainloop->time_new(u->core->mainloop, &tv, save_time_callback, u);
+    u->save_time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + SAVE_INTERVAL, save_time_callback, u);
 }
 
 static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
@@ -353,18 +360,18 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
     char *name;
     struct entry *e;
 
+    pa_assert(c);
     pa_assert(new_data);
-
-    if (!u->restore_device)
-        return PA_HOOK_OK;
+    pa_assert(u);
+    pa_assert(u->restore_device);
 
     if (!(name = get_name(new_data->proplist, "sink-input")))
         return PA_HOOK_OK;
 
     if ((e = read_entry(u, name))) {
-        pa_sink *s;
 
         if (e->device_valid) {
+            pa_sink *s;
 
             if ((s = pa_namereg_get(c, e->device, PA_NAMEREG_SINK))) {
                 if (!new_data->sink) {
@@ -372,7 +379,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
                     new_data->sink = s;
                     new_data->save_sink = TRUE;
                 } else
-                    pa_log_info("Not restore device for stream %s, because already set.", name);
+                    pa_log_debug("Not restoring device for stream %s, because already set.", name);
             }
         }
 
@@ -388,10 +395,10 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
     char *name;
     struct entry *e;
 
+    pa_assert(c);
     pa_assert(new_data);
-
-    if (!u->restore_volume && !u->restore_muted)
-        return PA_HOOK_OK;
+    pa_assert(u);
+    pa_assert(u->restore_volume || u->restore_muted);
 
     if (!(name = get_name(new_data->proplist, "sink-input")))
         return PA_HOOK_OK;
@@ -404,12 +411,13 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_inpu
                 pa_cvolume v;
 
                 pa_log_info("Restoring volume for sink input %s.", name);
+
                 v = e->volume;
                 pa_cvolume_remap(&v, &e->channel_map, &new_data->channel_map);
                 pa_sink_input_new_data_set_volume(new_data, &v);
 
                 new_data->volume_is_absolute = FALSE;
-                new_data->save_volume = FALSE;
+                new_data->save_volume = TRUE;
             } else
                 pa_log_debug("Not restoring volume for sink input %s, because already set.", name);
         }
@@ -436,10 +444,10 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
     char *name;
     struct entry *e;
 
+    pa_assert(c);
     pa_assert(new_data);
-
-    if (!u->restore_device)
-        return PA_HOOK_OK;
+    pa_assert(u);
+    pa_assert(u->restore_device);
 
     if (new_data->direct_on_input)
         return PA_HOOK_OK;
@@ -457,7 +465,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
                     new_data->source = s;
                     new_data->save_source = TRUE;
                 } else
-                    pa_log_info("Not restoring device for stream %s, because already set", name);
+                    pa_log_debug("Not restoring device for stream %s, because already set", name);
             }
         }
 
@@ -465,6 +473,155 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
     }
 
     pa_xfree(name);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, struct userdata *u) {
+    pa_sink_input *si;
+    uint32_t idx;
+
+    pa_assert(c);
+    pa_assert(sink);
+    pa_assert(u);
+    pa_assert(u->on_hotplug && u->restore_device);
+
+    PA_IDXSET_FOREACH(si, c->sink_inputs, idx) {
+        char *name;
+        struct entry *e;
+
+        if (si->sink == sink)
+            continue;
+
+        if (si->save_sink)
+            continue;
+
+        if (!(name = get_name(si->proplist, "sink-input")))
+            continue;
+
+        if ((e = read_entry(u, name))) {
+            if (e->device_valid && pa_streq(e->device, sink->name))
+                pa_sink_input_move_to(si, sink, TRUE);
+
+            pa_xfree(e);
+        }
+
+        pa_xfree(name);
+    }
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, struct userdata *u) {
+    pa_source_output *so;
+    uint32_t idx;
+
+    pa_assert(c);
+    pa_assert(source);
+    pa_assert(u);
+    pa_assert(u->on_hotplug && u->restore_device);
+
+    PA_IDXSET_FOREACH(so, c->source_outputs, idx) {
+        char *name;
+        struct entry *e;
+
+        if (so->source == source)
+            continue;
+
+        if (so->save_source)
+            continue;
+
+        if (so->direct_on_input)
+            continue;
+
+        if (!(name = get_name(so->proplist, "source-input")))
+            continue;
+
+        if ((e = read_entry(u, name))) {
+            if (e->device_valid && pa_streq(e->device, source->name))
+                pa_source_output_move_to(so, source, TRUE);
+
+            pa_xfree(e);
+        }
+
+        pa_xfree(name);
+    }
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, struct userdata *u) {
+    pa_sink_input *si;
+    uint32_t idx;
+
+    pa_assert(c);
+    pa_assert(sink);
+    pa_assert(u);
+    pa_assert(u->on_rescue && u->restore_device);
+
+    /* There's no point in doing anything if the core is shut down anyway */
+    if (c->state == PA_CORE_SHUTDOWN)
+        return PA_HOOK_OK;
+
+    PA_IDXSET_FOREACH(si, sink->inputs, idx) {
+        char *name;
+        struct entry *e;
+
+        if (!(name = get_name(si->proplist, "sink-input")))
+            continue;
+
+        if ((e = read_entry(u, name))) {
+
+            if (e->device_valid) {
+                pa_sink *d;
+
+                if ((d = pa_namereg_get(c, e->device, PA_NAMEREG_SINK)) && d != sink)
+                    pa_sink_input_move_to(si, d, TRUE);
+            }
+
+            pa_xfree(e);
+        }
+
+        pa_xfree(name);
+    }
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *source, struct userdata *u) {
+    pa_source_output *so;
+    uint32_t idx;
+
+    pa_assert(c);
+    pa_assert(source);
+    pa_assert(u);
+    pa_assert(u->on_rescue && u->restore_device);
+
+    /* There's no point in doing anything if the core is shut down anyway */
+    if (c->state == PA_CORE_SHUTDOWN)
+        return PA_HOOK_OK;
+
+    PA_IDXSET_FOREACH(so, source->outputs, idx) {
+        char *name;
+        struct entry *e;
+
+        if (!(name = get_name(so->proplist, "source-output")))
+            continue;
+
+        if ((e = read_entry(u, name))) {
+
+            if (e->device_valid) {
+                pa_source *d;
+
+                if ((d = pa_namereg_get(c, e->device, PA_NAMEREG_SOURCE)) && d != source)
+                    pa_source_output_move_to(so, d, TRUE);
+            }
+
+            pa_xfree(e);
+        }
+
+        pa_xfree(name);
+    }
 
     return PA_HOOK_OK;
 }
@@ -503,7 +660,7 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
 
         if (u->restore_muted && e->muted_valid) {
             pa_log_info("Restoring mute state for sink input %s.", name);
-            pa_sink_input_set_mute(si, e->muted, TRUE);
+            pa_sink_input_set_mute(si, e->muted, FALSE);
         }
 
         if (u->restore_device &&
@@ -511,7 +668,7 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
             (s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SINK))) {
 
             pa_log_info("Restoring device for stream %s.", name);
-            pa_sink_input_move_to(si, s, TRUE);
+            pa_sink_input_move_to(si, s, FALSE);
         }
     }
 
@@ -533,7 +690,7 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
             (s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SOURCE))) {
 
             pa_log_info("Restoring device for stream %s.", name);
-            pa_source_output_move_to(so, s, TRUE);
+            pa_source_output_move_to(so, s, FALSE);
         }
     }
 }
@@ -774,7 +931,7 @@ int pa__init(pa_module*m) {
     pa_sink_input *si;
     pa_source_output *so;
     uint32_t idx;
-    pa_bool_t restore_device = TRUE, restore_volume = TRUE, restore_muted = TRUE;
+    pa_bool_t restore_device = TRUE, restore_volume = TRUE, restore_muted = TRUE, on_hotplug = TRUE, on_rescue = TRUE;
 
     pa_assert(m);
 
@@ -785,22 +942,24 @@ int pa__init(pa_module*m) {
 
     if (pa_modargs_get_value_boolean(ma, "restore_device", &restore_device) < 0 ||
         pa_modargs_get_value_boolean(ma, "restore_volume", &restore_volume) < 0 ||
-        pa_modargs_get_value_boolean(ma, "restore_muted", &restore_muted) < 0) {
-        pa_log("restore_device=, restore_volume= and restore_muted= expect boolean arguments");
+        pa_modargs_get_value_boolean(ma, "restore_muted", &restore_muted) < 0 ||
+        pa_modargs_get_value_boolean(ma, "on_hotplug", &on_hotplug) < 0 ||
+        pa_modargs_get_value_boolean(ma, "on_rescue", &on_rescue) < 0) {
+        pa_log("restore_device=, restore_volume=, restore_muted=, on_hotplug= and on_rescue= expect boolean arguments");
         goto fail;
     }
 
     if (!restore_muted && !restore_volume && !restore_device)
         pa_log_warn("Neither restoring volume, nor restoring muted, nor restoring device enabled!");
 
-    m->userdata = u = pa_xnew(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
-    u->save_time_event = NULL;
     u->restore_device = restore_device;
     u->restore_volume = restore_volume;
     u->restore_muted = restore_muted;
-    u->database = NULL;
+    u->on_hotplug = on_hotplug;
+    u->on_rescue = on_rescue;
     u->subscribed = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
     u->protocol = pa_native_protocol_get(m->core);
@@ -811,17 +970,27 @@ int pa__init(pa_module*m) {
     u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK_INPUT|PA_SUBSCRIPTION_MASK_SOURCE_OUTPUT, subscribe_callback, u);
 
     if (restore_device) {
+        /* A little bit earlier than module-intended-roles ... */
         u->sink_input_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) sink_input_new_hook_callback, u);
         u->source_output_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) source_output_new_hook_callback, u);
+    }
+
+    if (restore_device && on_hotplug) {
+        /* A little bit earlier than module-intended-roles ... */
+        u->sink_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE, (pa_hook_cb_t) sink_put_hook_callback, u);
+        u->source_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE, (pa_hook_cb_t) source_put_hook_callback, u);
+    }
+
+    if (restore_device && on_rescue) {
+        /* A little bit earlier than module-intended-roles, module-rescue-streams, ... */
+        u->sink_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) sink_unlink_hook_callback, u);
+        u->source_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) source_unlink_hook_callback, u);
     }
 
     if (restore_volume || restore_muted)
         u->sink_input_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], PA_HOOK_EARLY, (pa_hook_cb_t) sink_input_fixate_hook_callback, u);
 
-
-    fname = pa_state_path("stream-volumes", TRUE);
-
-    if (!fname)
+    if (!(fname = pa_state_path("stream-volumes", TRUE)))
         goto fail;
 
     if (!(u->database = pa_database_open(fname, TRUE))) {
@@ -833,10 +1002,10 @@ int pa__init(pa_module*m) {
     pa_log_info("Sucessfully opened database file '%s'.", fname);
     pa_xfree(fname);
 
-    for (si = pa_idxset_first(m->core->sink_inputs, &idx); si; si = pa_idxset_next(m->core->sink_inputs, &idx))
+    PA_IDXSET_FOREACH(si, m->core->sink_inputs, idx)
         subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, si->index, u);
 
-    for (so = pa_idxset_first(m->core->source_outputs, &idx); so; so = pa_idxset_next(m->core->source_outputs, &idx))
+    PA_IDXSET_FOREACH(so, m->core->source_outputs, idx)
         subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, so->index, u);
 
     pa_modargs_free(ma);
@@ -868,6 +1037,16 @@ void pa__done(pa_module*m) {
         pa_hook_slot_free(u->sink_input_fixate_hook_slot);
     if (u->source_output_new_hook_slot)
         pa_hook_slot_free(u->source_output_new_hook_slot);
+
+    if (u->sink_put_hook_slot)
+        pa_hook_slot_free(u->sink_put_hook_slot);
+    if (u->source_put_hook_slot)
+        pa_hook_slot_free(u->source_put_hook_slot);
+
+    if (u->sink_unlink_hook_slot)
+        pa_hook_slot_free(u->sink_unlink_hook_slot);
+    if (u->source_unlink_hook_slot)
+        pa_hook_slot_free(u->source_unlink_hook_slot);
 
     if (u->connection_unlink_hook_slot)
         pa_hook_slot_free(u->connection_unlink_hook_slot);

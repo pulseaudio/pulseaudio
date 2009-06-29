@@ -209,7 +209,7 @@ typedef enum pa_channel_position {
 typedef uint64_t pa_channel_position_mask_t;
 
 /** Makes a bit mask from a channel position. \since 0.9.16 */
-#define PA_CHANNEL_POSITION_MASK(f) ((pa_channel_position_mask_t) (1 << (f)))
+#define PA_CHANNEL_POSITION_MASK(f) ((pa_channel_position_mask_t) (1ULL << (f)))
 
 /** A list of channel mapping definitions for pa_channel_map_init_auto() */
 typedef enum pa_channel_map_def {
@@ -281,6 +281,9 @@ pa_channel_map* pa_channel_map_init_extend(pa_channel_map *m, unsigned channels,
 
 /** Return a text label for the specified channel position */
 const char* pa_channel_position_to_string(pa_channel_position_t pos) PA_GCC_PURE;
+
+/* The inverse of pa_channel_position_to_string(). \since 0.9.16 */
+pa_channel_position_t pa_channel_position_from_string(const char *s) PA_GCC_PURE;
 
 /** Return a human readable text label for the specified channel position. \since 0.9.7 */
 const char* pa_channel_position_to_pretty_string(pa_channel_position_t pos);

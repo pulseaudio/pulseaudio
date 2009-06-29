@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <errno.h>
 
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
@@ -36,6 +37,7 @@
 #include <pulsecore/sink-input.h>
 #include <pulsecore/memblockq.h>
 #include <pulsecore/log.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/namereg.h>
@@ -43,7 +45,6 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
-#include <pulsecore/rtclock.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/time-smoother.h>
 
@@ -224,9 +225,8 @@ static void adjust_rates(struct userdata *u) {
     pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_UPDATE_LATENCY, NULL, (int64_t) avg_total_latency, NULL);
 }
 
-static void time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *tv, void *userdata) {
+static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct timeval *t, void *userdata) {
     struct userdata *u = userdata;
-    struct timeval n;
 
     pa_assert(u);
     pa_assert(a);
@@ -234,9 +234,7 @@ static void time_callback(pa_mainloop_api*a, pa_time_event* e, const struct time
 
     adjust_rates(u);
 
-    pa_gettimeofday(&n);
-    n.tv_sec += (time_t) u->adjust_time;
-    u->sink->core->mainloop->time_restart(e, &n);
+    pa_core_rttime_restart(u->core, e, pa_rtclock_now() + u->adjust_time * PA_USEC_PER_SEC);
 }
 
 static void process_render_null(struct userdata *u, pa_usec_t now) {
@@ -280,9 +278,8 @@ static void thread_func(void *userdata) {
         pa_make_realtime(u->core->realtime_priority+1);
 
     pa_thread_mq_install(&u->thread_mq);
-    pa_rtpoll_install(u->rtpoll);
 
-    u->thread_info.timestamp = pa_rtclock_usec();
+    u->thread_info.timestamp = pa_rtclock_now();
     u->thread_info.in_null_mode = FALSE;
 
     for (;;) {
@@ -296,7 +293,7 @@ static void thread_func(void *userdata) {
         if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && !u->thread_info.active_outputs) {
             pa_usec_t now;
 
-            now = pa_rtclock_usec();
+            now = pa_rtclock_now();
 
             if (!u->thread_info.in_null_mode || u->thread_info.timestamp <= now)
                 process_render_null(u, now);
@@ -593,7 +590,7 @@ static void unsuspend(struct userdata *u) {
     /* Let's resume */
     for (o = pa_idxset_first(u->outputs, &idx); o; o = pa_idxset_next(u->outputs, &idx)) {
 
-        pa_sink_suspend(o->sink, FALSE);
+        pa_sink_suspend(o->sink, FALSE, PA_SUSPEND_IDLE);
 
         if (PA_SINK_IS_OPENED(pa_sink_get_state(o->sink)))
             enable_output(o);
@@ -664,16 +661,16 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             pa_atomic_store(&u->thread_info.running, PA_PTR_TO_UINT(data) == PA_SINK_RUNNING);
 
             if (PA_PTR_TO_UINT(data) == PA_SINK_SUSPENDED)
-                pa_smoother_pause(u->thread_info.smoother, pa_rtclock_usec());
+                pa_smoother_pause(u->thread_info.smoother, pa_rtclock_now());
             else
-                pa_smoother_resume(u->thread_info.smoother, pa_rtclock_usec(), TRUE);
+                pa_smoother_resume(u->thread_info.smoother, pa_rtclock_now(), TRUE);
 
             break;
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
             pa_usec_t x, y, c, *delay = data;
 
-            x = pa_rtclock_usec();
+            x = pa_rtclock_now();
             y = pa_smoother_get(u->thread_info.smoother, x);
 
             c = pa_bytes_to_usec(u->thread_info.counter, &u->sink->sample_spec);
@@ -730,7 +727,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         case SINK_MESSAGE_UPDATE_LATENCY: {
             pa_usec_t x, y, latency = (pa_usec_t) offset;
 
-            x = pa_rtclock_usec();
+            x = pa_rtclock_now();
             y = pa_bytes_to_usec(u->thread_info.counter, &u->sink->sample_spec);
 
             if (y > latency)
@@ -873,7 +870,7 @@ static struct output *output_new(struct userdata *u, pa_sink *sink) {
     }
 
     if (PA_SINK_IS_OPENED(state) || state == PA_SINK_INIT) {
-        pa_sink_suspend(sink, FALSE);
+        pa_sink_suspend(sink, FALSE, PA_SUSPEND_IDLE);
 
         if (PA_SINK_IS_OPENED(pa_sink_get_state(sink)))
             if (output_create_sink_input(o) < 0)
@@ -1170,12 +1167,8 @@ int pa__init(pa_module*m) {
         if (o->sink_input)
             pa_sink_input_put(o->sink_input);
 
-    if (u->adjust_time > 0) {
-        struct timeval tv;
-        pa_gettimeofday(&tv);
-        tv.tv_sec += (time_t) u->adjust_time;
-        u->time_event = m->core->mainloop->time_new(m->core->mainloop, &tv, time_callback, u);
-    }
+    if (u->adjust_time > 0)
+        u->time_event = pa_core_rttime_new(m->core, pa_rtclock_now() + u->adjust_time * PA_USEC_PER_SEC, time_callback, u);
 
     pa_modargs_free(ma);
 

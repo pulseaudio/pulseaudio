@@ -71,10 +71,13 @@ pa_database* pa_database_open(const char *fn, pa_bool_t for_write) {
     /* We include the host identifier in the file name because gdbm
      * files are CPU dependant, and we don't want things to go wrong
      * if we are on a multiarch system. */
-
     path = pa_sprintf_malloc("%s."CANONICAL_HOST".gdbm", fn);
     errno = 0;
-    f = gdbm_open((char*) path, 0, GDBM_NOLOCK | (for_write ? GDBM_WRCREAT : GDBM_READER), 0644, NULL);
+
+    /* We need to set the block size explicitly here, since otherwise
+     * gdbm takes the native block size of the underlying file system
+     * which might be incredibly large. */
+    f = gdbm_open((char*) path, 1024, GDBM_NOLOCK | (for_write ? GDBM_WRCREAT : GDBM_READER), 0644, NULL);
 
     if (f)
         pa_log_debug("Opened GDBM database '%s'", path);

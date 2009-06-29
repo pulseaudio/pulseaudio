@@ -1,10 +1,10 @@
-#ifndef foopulsertsighfoo
-#define foopulsertsighfoo
+#ifndef foortclockfoo
+#define foortclockfoo
 
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
+  Copyright 2004-2009 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -22,18 +22,20 @@
   USA.
 ***/
 
-/* Return the next unused POSIX Realtime signals */
-int pa_rtsig_get(void);
+#include <pulse/cdecl.h>
+#include <pulse/def.h>
+#include <pulse/gccmacro.h>
 
-/* If not called before in the current thread, return the next unused
- * rtsig, and install it in a TLS region and give it up automatically
- * when the thread shuts down */
-int pa_rtsig_get_for_thread(void);
+/** \file
+ *  Monotonic clock utilities. */
 
-/* Give an rtsig back. */
-void pa_rtsig_put(int sig);
+PA_C_DECL_BEGIN
 
-/* Block all RT signals */
-void pa_rtsig_configure(int start, int end);
+/** Return the current monotonic system time in usec, if such a clock
+ * is available.  If it is not available this will return the
+ * wallclock time instead.  \since 0.9.16 */
+pa_usec_t pa_rtclock_now(void);
+
+PA_C_DECL_END
 
 #endif

@@ -54,6 +54,8 @@
 #include <pulse/utf8.h>
 #include <pulse/util.h>
 #include <pulse/i18n.h>
+#include <pulse/mainloop.h>
+#include <pulse/timeval.h>
 
 #include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
@@ -64,6 +66,7 @@
 #include <pulsecore/dynarray.h>
 #include <pulsecore/socket-client.h>
 #include <pulsecore/pstream-util.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/socket-util.h>
@@ -157,6 +160,7 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     c->playback_streams = pa_dynarray_new();
     c->record_streams = pa_dynarray_new();
     c->client_index = PA_INVALID_INDEX;
+    c->use_rtclock = pa_mainloop_is_our_api(mainloop);
 
     PA_LLIST_HEAD_INIT(pa_stream, c->streams);
     PA_LLIST_HEAD_INIT(pa_operation, c->operations);
@@ -540,7 +544,7 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     pa_pstream_set_recieve_memblock_callback(c->pstream, pstream_memblock_callback, c);
 
     pa_assert(!c->pdispatch);
-    c->pdispatch = pa_pdispatch_new(c->mainloop, command_table, PA_COMMAND_MAX);
+    c->pdispatch = pa_pdispatch_new(c->mainloop, c->use_rtclock, command_table, PA_COMMAND_MAX);
 
     if (!c->conf->cookie_valid)
         pa_log_info(_("No cookie loaded. Attempting to connect without."));
@@ -757,7 +761,7 @@ static void track_pulseaudio_on_dbus(pa_context *c, DBusBusType type, pa_dbus_wr
     pa_assert(conn);
 
     dbus_error_init(&error);
-    if (!(*conn = pa_dbus_wrap_connection_new(c->mainloop, type, &error)) || dbus_error_is_set(&error)) {
+    if (!(*conn = pa_dbus_wrap_connection_new(c->mainloop, c->use_rtclock, type, &error)) || dbus_error_is_set(&error)) {
         pa_log_warn("Unable to contact DBUS: %s: %s", error.name, error.message);
         goto finish;
     }
@@ -827,7 +831,7 @@ static int try_next_connection(pa_context *c) {
         pa_xfree(c->server);
         c->server = pa_xstrdup(u);
 
-        if (!(c->client = pa_socket_client_new_string(c->mainloop, u, PA_NATIVE_DEFAULT_PORT)))
+        if (!(c->client = pa_socket_client_new_string(c->mainloop, c->use_rtclock, u, PA_NATIVE_DEFAULT_PORT)))
             continue;
 
         c->is_local = !!pa_socket_client_is_local(c->client);
@@ -1442,4 +1446,32 @@ finish:
 
     if (pl)
         pa_proplist_free(pl);
+}
+
+pa_time_event* pa_context_rttime_new(pa_context *c, pa_usec_t usec, pa_time_event_cb_t cb, void *userdata) {
+    struct timeval tv;
+
+    pa_assert(c);
+    pa_assert(c->mainloop);
+
+    if (usec == PA_USEC_INVALID)
+        return c->mainloop->time_new(c->mainloop, NULL, cb, userdata);
+
+    pa_timeval_rtstore(&tv, usec, c->use_rtclock);
+
+    return c->mainloop->time_new(c->mainloop, &tv, cb, userdata);
+}
+
+void pa_context_rttime_restart(pa_context *c, pa_time_event *e, pa_usec_t usec) {
+    struct timeval tv;
+
+    pa_assert(c);
+    pa_assert(c->mainloop);
+
+    if (usec == PA_USEC_INVALID)
+        c->mainloop->time_restart(e, NULL);
+    else {
+        pa_timeval_rtstore(&tv, usec, c->use_rtclock);
+        c->mainloop->time_restart(e, &tv);
+    }
 }

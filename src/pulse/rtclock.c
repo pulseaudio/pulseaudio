@@ -1,6 +1,3 @@
-#ifndef foopulsertclockhfoo
-#define foopulsertclockhfoo
-
 /***
   This file is part of PulseAudio.
 
@@ -22,26 +19,17 @@
   USA.
 ***/
 
-#include <pulsecore/macro.h>
-#include <pulse/sample.h>
-
-struct timeval;
-
-/* Something like pulse/timeval.h but based on CLOCK_MONOTONIC */
-
-struct timeval *pa_rtclock_get(struct timeval *ts);
-
-pa_usec_t pa_rtclock_usec(void);
-
-pa_usec_t pa_rtclock_age(const struct timeval *tv);
-pa_bool_t pa_rtclock_hrtimer(void);
-void pa_rtclock_hrtimer_enable(void);
-
-/* timer with a resolution better than this are considered high-resolution */
-#define PA_HRTIMER_THRESHOLD_USEC 10
-
-struct timeval* pa_rtclock_from_wallclock(struct timeval *tv);
-
-pa_usec_t pa_timespec_load(const struct timespec *ts);
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
 #endif
+
+#include <pulsecore/core-rtclock.h>
+
+#include "rtclock.h"
+#include "timeval.h"
+
+pa_usec_t pa_rtclock_now(void) {
+    struct timeval tv;
+
+    return pa_timeval_load(pa_rtclock_get(&tv));
+}

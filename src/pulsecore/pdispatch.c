@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
@@ -37,6 +38,7 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/refcnt.h>
 #include <pulsecore/flist.h>
+#include <pulsecore/core-rtclock.h>
 
 #include "pdispatch.h"
 
@@ -204,6 +206,7 @@ struct pa_pdispatch {
     pa_pdispatch_drain_callback drain_callback;
     void *drain_userdata;
     const pa_creds *creds;
+    pa_bool_t use_rtclock:1;
 };
 
 static void reply_info_free(struct reply_info *r) {
@@ -220,7 +223,7 @@ static void reply_info_free(struct reply_info *r) {
         pa_xfree(r);
 }
 
-pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *mainloop, const pa_pdispatch_cb_t*table, unsigned entries) {
+pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *mainloop, pa_bool_t use_rtclock, const pa_pdispatch_cb_t *table, unsigned entries) {
     pa_pdispatch *pd;
     pa_assert(mainloop);
 
@@ -235,6 +238,7 @@ pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *mainloop, const pa_pdispatch_cb_
     pd->drain_callback = NULL;
     pd->drain_userdata = NULL;
     pd->creds = NULL;
+    pd->use_rtclock = use_rtclock;
 
     return pd;
 }
@@ -304,7 +308,7 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const pa_creds *creds, 
     if (command >= PA_COMMAND_MAX || !(p = command_names[command]))
         pa_snprintf((char*) (p = t), sizeof(t), "%u", command);
 
-    pa_log("[%p] Recieved opcode <%s>", pd, p);
+    pa_log("[%p] Received opcode <%s>", pd, p);
 }
 #endif
 
@@ -325,7 +329,7 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const pa_creds *creds, 
 
         (*c)(pd, command, tag, ts, userdata);
     } else {
-        pa_log("Recieved unsupported command %u", command);
+        pa_log("Received unsupported command %u", command);
         goto finish;
     }
 
@@ -342,7 +346,7 @@ finish:
     return ret;
 }
 
-static void timeout_callback(pa_mainloop_api*m, pa_time_event*e, const struct timeval *tv, void *userdata) {
+static void timeout_callback(pa_mainloop_api*m, pa_time_event*e, const struct timeval *t, void *userdata) {
     struct reply_info*r = userdata;
 
     pa_assert(r);
@@ -371,10 +375,7 @@ void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa
     r->free_cb = free_cb;
     r->tag = tag;
 
-    pa_gettimeofday(&tv);
-    tv.tv_sec += timeout;
-
-    pa_assert_se(r->time_event = pd->mainloop->time_new(pd->mainloop, &tv, timeout_callback, r));
+    pa_assert_se(r->time_event = pd->mainloop->time_new(pd->mainloop, pa_timeval_rtstore(&tv, pa_rtclock_now() + timeout * PA_USEC_PER_SEC, pd->use_rtclock), timeout_callback, r));
 
     PA_LLIST_PREPEND(struct reply_info, pd->replies, r);
 }

@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#include <pulse/rtclock.h>
 #include <pulse/sample.h>
 #include <pulse/timeval.h>
 #include <pulse/utf8.h>
@@ -63,7 +64,7 @@
 #define MAX_CONNECTIONS 64
 
 /* Kick a client if it doesn't authenticate within this time */
-#define AUTH_TIMEOUT 5
+#define AUTH_TIMEOUT (5*PA_USEC_PER_SEC)
 
 #define DEFAULT_COOKIE_FILE ".esd_auth"
 
@@ -947,10 +948,10 @@ static int esd_proto_standby_or_resume(connection *c, esd_proto_t request, const
     connection_write(c, &ok, sizeof(int32_t));
 
     if (request == ESD_PROTO_STANDBY)
-        ok = pa_sink_suspend_all(c->protocol->core, TRUE) >= 0;
+        ok = pa_sink_suspend_all(c->protocol->core, TRUE, PA_SUSPEND_USER) >= 0;
     else {
         pa_assert(request == ESD_PROTO_RESUME);
-        ok = pa_sink_suspend_all(c->protocol->core, FALSE) >= 0;
+        ok = pa_sink_suspend_all(c->protocol->core, FALSE, PA_SUSPEND_USER) >= 0;
     }
 
     connection_write(c, &ok, sizeof(int32_t));
@@ -1459,11 +1460,10 @@ static pa_usec_t source_output_get_latency_cb(pa_source_output *o) {
 
 /*** entry points ***/
 
-static void auth_timeout(pa_mainloop_api*m, pa_time_event *e, const struct timeval *tv, void *userdata) {
+static void auth_timeout(pa_mainloop_api *m, pa_time_event *e, const struct timeval *t, void *userdata) {
     connection *c = CONNECTION(userdata);
 
     pa_assert(m);
-    pa_assert(tv);
     connection_assert_ref(c);
     pa_assert(c->auth_timeout_event == e);
 
@@ -1553,12 +1553,9 @@ void pa_esound_protocol_connect(pa_esound_protocol *p, pa_iochannel *io, pa_esou
         c->authorized = TRUE;
     }
 
-    if (!c->authorized) {
-        struct timeval tv;
-        pa_gettimeofday(&tv);
-        tv.tv_sec += AUTH_TIMEOUT;
-        c->auth_timeout_event = p->core->mainloop->time_new(p->core->mainloop, &tv, auth_timeout, c);
-    } else
+    if (!c->authorized)
+        c->auth_timeout_event = pa_core_rttime_new(p->core, pa_rtclock_now() + AUTH_TIMEOUT, auth_timeout, c);
+    else
         c->auth_timeout_event = NULL;
 
     c->defer_event = p->core->mainloop->defer_new(p->core->mainloop, defer_callback, c);

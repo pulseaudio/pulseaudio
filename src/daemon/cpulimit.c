@@ -24,13 +24,14 @@
 #endif
 
 #include <pulse/error.h>
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
-#include <pulsecore/rtclock.h>
 
 #include "cpulimit.h"
 
@@ -125,7 +126,7 @@ static void signal_handler(int sig) {
         char t[256];
 #endif
 
-        now = pa_rtclock_usec();
+        now = pa_rtclock_now();
         elapsed = now - last_time;
 
 #ifdef PRINT_CPU_LOAD
@@ -184,7 +185,7 @@ int pa_cpu_limit_init(pa_mainloop_api *m) {
     pa_assert(the_pipe[1] == -1);
     pa_assert(!installed);
 
-    last_time = pa_rtclock_usec();
+    last_time = pa_rtclock_now();
 
     /* Prepare the main loop pipe */
     if (pipe(the_pipe) < 0) {

@@ -29,6 +29,9 @@ pulsecoreincludedir=$(includedir)/pulsecore
 pulseconfdir=$(sysconfdir)/pulse
 pulselibexecdir=$(libexecdir)/pulse
 xdgautostartdir=$(sysconfdir)/xdg/autostart
+alsaprofilesetsdir=$(datadir)/pulseaudio/alsa-mixer/profile-sets
+alsapathsdir=$(datadir)/pulseaudio/alsa-mixer/paths
+udevrulesdir=/lib/udev/rules.d
 
 ###################################
 #            Defines              #
@@ -61,6 +64,11 @@ AM_CFLAGS = \
 	-I$(top_srcdir)/src/modules/alsa \
 	-I$(top_builddir)/src/modules/alsa \
 	-I$(top_srcdir)/src/modules/raop \
+	-I$(top_builddir)/src/modules/raop \
+	-I$(top_srcdir)/src/modules/x11 \
+	-I$(top_builddir)/src/modules/x11 \
+	-I$(top_srcdir)/src/modules/jack \
+	-I$(top_builddir)/src/modules/jack \
 	$(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS \
 	$(LIBSAMPLERATE_CFLAGS) \
 	$(LIBSNDFILE_CFLAGS) \
@@ -73,7 +81,9 @@ AM_CFLAGS = \
 	-DPA_SYSTEM_STATE_PATH=\"$(PA_SYSTEM_STATE_PATH)\" \
 	-DAO_REQUIRE_CAS \
 	-DPULSE_LOCALEDIR=\"$(pulselocaledir)\" \
-	-DPA_MACHINE_ID=\"$(localstatedir)/lib/dbus/machine-id\"
+	-DPA_MACHINE_ID=\"$(localstatedir)/lib/dbus/machine-id\" \
+	-DPA_ALSA_PATHS_DIR=\"$(alsapathsdir)\" \
+	-DPA_ALSA_PROFILE_SETS_DIR=\"$(alsaprofilesetsdir)\"
 
 AM_LIBADD = $(PTHREAD_LIBS) $(INTLLIBS)
 AM_LDADD = $(PTHREAD_LIBS) $(INTLLIBS)
@@ -109,7 +119,25 @@ EXTRA_DIST = \
 		modules/module-defs.h.m4 \
 		daemon/pulseaudio.desktop.in \
 		map-file \
-		daemon/org.pulseaudio.policy.in
+		modules/alsa/mixer/profile-sets/default.conf \
+		modules/alsa/mixer/profile-sets/native-instruments-audio4dj.conf \
+		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf \
+		modules/alsa/mixer/profile-sets/90-pulseaudio.rules \
+		modules/alsa/mixer/paths/analog-input-aux.conf \
+		modules/alsa/mixer/paths/analog-input.conf \
+		modules/alsa/mixer/paths/analog-input.conf.common \
+		modules/alsa/mixer/paths/analog-input-fm.conf \
+		modules/alsa/mixer/paths/analog-input-linein.conf \
+		modules/alsa/mixer/paths/analog-input-mic.conf \
+		modules/alsa/mixer/paths/analog-input-mic.conf.common \
+		modules/alsa/mixer/paths/analog-input-mic-line.conf \
+		modules/alsa/mixer/paths/analog-input-tvtuner.conf \
+		modules/alsa/mixer/paths/analog-input-video.conf \
+		modules/alsa/mixer/paths/analog-output.conf \
+		modules/alsa/mixer/paths/analog-output.conf.common \
+		modules/alsa/mixer/paths/analog-output-headphones.conf \
+		modules/alsa/mixer/paths/analog-output-lfe-on-mono.conf \
+		modules/alsa/mixer/paths/analog-output-mono.conf
 
 pulseconf_DATA = \
 		default.pa \
@@ -159,16 +187,6 @@ if FORCE_PREOPEN
 pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) -dlpreopen force $(foreach f,$(PREOPEN_LIBS),-dlpreopen $(f))
 else
 pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) -dlopen force $(foreach f,$(PREOPEN_LIBS),-dlopen $(f))
-endif
-
-if HAVE_POLKIT
-policy_in_files = daemon/org.pulseaudio.policy.in
-policy_DATA = $(policy_in_files:.policy.in=.policy)
-@INTLTOOL_POLICY_RULE@
-
-pulseaudio_SOURCES += daemon/polkit.c daemon/polkit.h
-pulseaudio_CFLAGS += $(POLKIT_CFLAGS)
-pulseaudio_LDADD += $(POLKIT_LIBS)
 endif
 
 ###################################
@@ -549,7 +567,9 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/authkey.c pulsecore/authkey.h \
 		pulsecore/conf-parser.c pulsecore/conf-parser.h \
 		pulsecore/core-error.c pulsecore/core-error.h \
+		pulsecore/core-rtclock.c pulsecore/core-rtclock.h \
 		pulsecore/core-util.c pulsecore/core-util.h \
+		pulsecore/rtkit.c pulsecore/rtkit.h \
 		pulsecore/creds.h \
 		pulsecore/dynarray.c pulsecore/dynarray.h \
 		pulsecore/endianmacros.h \
@@ -587,7 +607,6 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/queue.c pulsecore/queue.h \
 		pulsecore/random.c pulsecore/random.h \
 		pulsecore/refcnt.h \
-		pulsecore/rtclock.c pulsecore/rtclock.h \
 		pulsecore/shm.c pulsecore/shm.h \
 		pulsecore/bitset.c pulsecore/bitset.h \
 		pulsecore/socket-client.c pulsecore/socket-client.h \
@@ -665,6 +684,7 @@ pulseinclude_HEADERS = \
 		pulse/operation.h \
 		pulse/proplist.h \
 		pulse/pulseaudio.h \
+		pulse/rtclock.h \
 		pulse/sample.h \
 		pulse/scache.h \
 		pulse/simple.h \
@@ -715,6 +735,7 @@ libpulse_la_SOURCES = \
 		pulse/operation.c pulse/operation.h \
 		pulse/proplist.c pulse/proplist.h \
 		pulse/pulseaudio.h \
+		pulse/rtclock.c pulse/rtclock.h \
 		pulse/sample.c pulse/sample.h \
 		pulse/scache.c pulse/scache.h \
 		pulse/stream.c pulse/stream.h \
@@ -799,7 +820,6 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/protocol-dbus.h \
 		pulsecore/resampler.c pulsecore/resampler.h \
 		pulsecore/rtpoll.c pulsecore/rtpoll.h \
-		pulsecore/rtsig.c pulsecore/rtsig.h \
 		pulsecore/sample-util.c pulsecore/sample-util.h \
 		pulsecore/sconv-s16be.c pulsecore/sconv-s16be.h \
 		pulsecore/sconv-s16le.c pulsecore/sconv-s16le.h \
@@ -955,6 +975,7 @@ modlibexec_LTLIBRARIES += \
 		module-default-device-restore.la \
 		module-always-sink.la \
 		module-rescue-streams.la \
+		module-intended-roles.la \
 		module-suspend-on-idle.la \
 		module-http-protocol-tcp.la \
 		module-sine.la \
@@ -1027,6 +1048,32 @@ modlibexec_LTLIBRARIES += \
 		module-alsa-sink.la \
 		module-alsa-source.la \
 		module-alsa-card.la
+
+alsaprofilesets_DATA = \
+		modules/alsa/mixer/profile-sets/default.conf \
+		modules/alsa/mixer/profile-sets/native-instruments-audio4dj.conf \
+		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf
+
+udevrules_DATA = \
+		modules/alsa/mixer/profile-sets/90-pulseaudio.rules
+
+alsapaths_DATA = \
+		modules/alsa/mixer/paths/analog-input-aux.conf \
+		modules/alsa/mixer/paths/analog-input.conf \
+		modules/alsa/mixer/paths/analog-input.conf.common \
+		modules/alsa/mixer/paths/analog-input-fm.conf \
+		modules/alsa/mixer/paths/analog-input-linein.conf \
+		modules/alsa/mixer/paths/analog-input-mic.conf \
+		modules/alsa/mixer/paths/analog-input-mic.conf.common \
+		modules/alsa/mixer/paths/analog-input-mic-line.conf \
+		modules/alsa/mixer/paths/analog-input-tvtuner.conf \
+		modules/alsa/mixer/paths/analog-input-video.conf \
+		modules/alsa/mixer/paths/analog-output.conf \
+		modules/alsa/mixer/paths/analog-output.conf.common \
+		modules/alsa/mixer/paths/analog-output-headphones.conf \
+		modules/alsa/mixer/paths/analog-output-lfe-on-mono.conf \
+		modules/alsa/mixer/paths/analog-output-mono.conf
+
 endif
 
 if HAVE_SOLARIS
@@ -1072,6 +1119,11 @@ endif
 if HAVE_HAL
 modlibexec_LTLIBRARIES += \
 		module-hal-detect.la
+endif
+
+if HAVE_UDEV
+modlibexec_LTLIBRARIES += \
+		module-udev-detect.la
 endif
 
 if HAVE_DBUS
@@ -1158,13 +1210,15 @@ SYMDEF_FILES = \
 		modules/module-default-device-restore-symdef.h \
 		modules/module-always-sink-symdef.h \
 		modules/module-rescue-streams-symdef.h \
+		modules/module-intended-roles-symdef.h \
 		modules/module-suspend-on-idle-symdef.h \
 		modules/module-hal-detect-symdef.h \
+		modules/module-udev-detect-symdef.h \
 		modules/bluetooth/module-bluetooth-proximity-symdef.h \
 		modules/bluetooth/module-bluetooth-discover-symdef.h \
 		modules/bluetooth/module-bluetooth-device-symdef.h \
-		modules/module-raop-sink-symdef.h \
-		modules/module-raop-discover-symdef.h \
+		modules/raop/module-raop-sink-symdef.h \
+		modules/raop/module-raop-discover-symdef.h \
 		modules/gconf/module-gconf-symdef.h \
 		modules/module-position-event-sounds-symdef.h \
 		modules/module-augment-properties-symdef.h \
@@ -1355,7 +1409,7 @@ module_oss_la_LIBADD = $(AM_LIBADD) liboss-util.la libpulsecore-@PA_MAJORMINORMI
 
 # ALSA
 
-libalsa_util_la_SOURCES = modules/alsa/alsa-util.c modules/alsa/alsa-util.h modules/alsa/alsa-sink.c modules/alsa/alsa-sink.h modules/alsa/alsa-source.c modules/alsa/alsa-source.h modules/reserve-wrap.c modules/reserve-wrap.h
+libalsa_util_la_SOURCES = modules/alsa/alsa-util.c modules/alsa/alsa-util.h modules/alsa/alsa-mixer.c modules/alsa/alsa-mixer.h modules/alsa/alsa-sink.c modules/alsa/alsa-sink.h modules/alsa/alsa-source.c modules/alsa/alsa-source.h modules/reserve-wrap.c modules/reserve-wrap.h
 libalsa_util_la_LDFLAGS = -avoid-version
 libalsa_util_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
@@ -1373,7 +1427,7 @@ libalsa_util_la_CFLAGS += $(UDEV_CFLAGS)
 endif
 
 if HAVE_DBUS
-libalsa_util_la_SOURCES += modules/reserve.h modules/reserve.c
+libalsa_util_la_SOURCES += modules/reserve.h modules/reserve.c modules/reserve-monitor.h modules/reserve-monitor.c
 libalsa_util_la_LIBADD += $(DBUS_LIBS)
 libalsa_util_la_CFLAGS += $(DBUS_CFLAGS)
 endif
@@ -1499,6 +1553,12 @@ module_rescue_streams_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_rescue_streams_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_rescue_streams_la_CFLAGS = $(AM_CFLAGS)
 
+# Automatically move streams to devices that are intended for their roles
+module_intended_roles_la_SOURCES = modules/module-intended-roles.c
+module_intended_roles_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_intended_roles_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_intended_roles_la_CFLAGS = $(AM_CFLAGS)
+
 # Suspend-on-idle module
 module_suspend_on_idle_la_SOURCES = modules/module-suspend-on-idle.c
 module_suspend_on_idle_la_LDFLAGS = $(MODULE_LDFLAGS)
@@ -1532,6 +1592,11 @@ module_hal_detect_la_SOURCES = modules/module-hal-detect.c
 module_hal_detect_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_hal_detect_la_LIBADD = $(AM_LIBADD) $(HAL_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_hal_detect_la_CFLAGS = $(AM_CFLAGS) $(HAL_CFLAGS)
+
+module_udev_detect_la_SOURCES = modules/module-udev-detect.c
+module_udev_detect_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_udev_detect_la_LIBADD = $(AM_LIBADD) $(UDEV_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_udev_detect_la_CFLAGS = $(AM_CFLAGS) $(UDEV_CFLAGS)
 
 module_console_kit_la_SOURCES = modules/module-console-kit.c
 module_console_kit_la_LDFLAGS = $(MODULE_LDFLAGS)
@@ -1589,11 +1654,11 @@ module_bluetooth_device_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_M
 module_bluetooth_device_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 # Apple Airtunes/RAOP
-module_raop_sink_la_SOURCES = modules/module-raop-sink.c
+module_raop_sink_la_SOURCES = modules/raop/module-raop-sink.c
 module_raop_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_raop_sink_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la librtp.la libraop.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
-module_raop_discover_la_SOURCES = modules/module-raop-discover.c
+module_raop_discover_la_SOURCES = modules/raop/module-raop-discover.c
 module_raop_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_raop_discover_la_LIBADD = $(AM_LIBADD) $(AVAHI_LIBS) libavahi-wrap.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_raop_discover_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
@@ -1608,11 +1673,7 @@ module_rygel_media_server_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 #        Some minor stuff         #
 ###################################
 
-suid: pulseaudio .libs/lt-pulseaudio
-	chown root $^
-	chmod u+s $^
-
-CLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 daemon/pulseaudio.desktop daemon/org.pulseaudio.policy
+CLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 daemon/pulseaudio.desktop
 
 esdcompat: daemon/esdcompat.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
@@ -1650,7 +1711,6 @@ daemon.conf: daemon/daemon.conf.in Makefile
 
 install-exec-hook:
 	chown root $(DESTDIR)$(bindir)/pulseaudio ; true
-	chmod u+s $(DESTDIR)$(bindir)/pulseaudio
 	-chmod u+s $(DESTDIR)$(pulselibexecdir)/proximity-helper
 	ln -sf pacat $(DESTDIR)$(bindir)/parec
 	ln -sf pacat $(DESTDIR)$(bindir)/pamon
@@ -1685,8 +1745,13 @@ update-sbc:
 	done
 
 update-reserve:
-	for i in reserve.c reserve.h ; do \
+	for i in reserve.c reserve.h reserve-monitor.c reserve-monitor.h ; do \
 		wget -O modules/$$i http://git.0pointer.de/\?p=reserve.git\;a=blob_plain\;f=$$i\;hb=master ; \
+	done
+
+update-rtkit:
+	for i in rtkit.c rtkit.h ; do \
+		wget -O pulsecore/$$i http://git.0pointer.de/\?p=rtkit.git\;a=blob_plain\;f=$$i\;hb=master ; \
 	done
 
 # Automatically generate linker version script. We use the same one for all public .sos

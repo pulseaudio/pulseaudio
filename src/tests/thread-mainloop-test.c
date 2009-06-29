@@ -25,14 +25,16 @@
 #include <unistd.h>
 #include <stdio.h>
 
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/util.h>
 #include <pulse/thread-mainloop.h>
 #include <pulse/gccmacro.h>
 
 #include <pulsecore/macro.h>
+#include <pulsecore/core-rtclock.h>
 
-static void tcb(pa_mainloop_api*a, pa_time_event *e, const struct timeval *tv, void *userdata) {
+static void tcb(pa_mainloop_api *a, pa_time_event *e, const struct timeval *tv, void *userdata) {
     pa_assert_se(pa_threaded_mainloop_in_thread(userdata));
     fprintf(stderr, "TIME EVENT START\n");
     pa_threaded_mainloop_signal(userdata, 1);
@@ -53,9 +55,7 @@ int main(int argc, char *argv[]) {
 
     pa_assert_se(!pa_threaded_mainloop_in_thread(m));
 
-    pa_gettimeofday(&tv);
-    tv.tv_sec += 5;
-    a->time_new(a, &tv, tcb, m);
+    a->time_new(a, pa_timeval_rtstore(&tv, pa_rtclock_now() + 5 * PA_USEC_PER_SEC, TRUE), tcb, m);
 
     fprintf(stderr, "waiting 5s (signal)\n");
     pa_threaded_mainloop_wait(m);

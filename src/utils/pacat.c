@@ -39,6 +39,7 @@
 
 #include <pulse/i18n.h>
 #include <pulse/pulseaudio.h>
+#include <pulse/rtclock.h>
 
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
@@ -583,9 +584,7 @@ static void sigusr1_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int s
     pa_operation_unref(pa_stream_update_timing_info(stream, stream_update_timing_callback, NULL));
 }
 
-static void time_event_callback(pa_mainloop_api*m, pa_time_event *e, const struct timeval *tv, void *userdata) {
-    struct timeval next;
-
+static void time_event_callback(pa_mainloop_api *m, pa_time_event *e, const struct timeval *t, void *userdata) {
     if (stream && pa_stream_get_state(stream) == PA_STREAM_READY) {
         pa_operation *o;
         if (!(o = pa_stream_update_timing_info(stream, stream_update_timing_callback, NULL)))
@@ -594,10 +593,7 @@ static void time_event_callback(pa_mainloop_api*m, pa_time_event *e, const struc
             pa_operation_unref(o);
     }
 
-    pa_gettimeofday(&next);
-    pa_timeval_add(&next, TIME_EVENT_USEC);
-
-    m->time_restart(e, &next);
+    pa_context_rttime_restart(context, e, pa_rtclock_now() + TIME_EVENT_USEC);
 }
 
 static void help(const char *argv0) {
@@ -1068,13 +1064,8 @@ int main(int argc, char *argv[]) {
     }
 
     if (verbose) {
-        struct timeval tv;
-
-        pa_gettimeofday(&tv);
-        pa_timeval_add(&tv, TIME_EVENT_USEC);
-
-        if (!(time_event = mainloop_api->time_new(mainloop_api, &tv, time_event_callback, NULL))) {
-            pa_log(_("time_new() failed.\n"));
+        if (!(time_event = pa_context_rttime_new(context, pa_rtclock_now() + TIME_EVENT_USEC, time_event_callback, NULL))) {
+            pa_log(_("pa_context_rttime_new() failed.\n"));
             goto quit;
         }
     }

@@ -62,12 +62,6 @@ dist-hook:
 	fi
 	echo $(VERSION) > $(distdir)/.tarball-version
 
-update-shave:
-	for i in shave.in shave.m4 shave-libtool.in; do \
-		wget -O $$i http://git.lespiau.name/cgit/shave/blob/\?path=shave/$$i ; \
-	done
-	mv shave.m4 m4/
-
 .PHONY: homepage distcleancheck doxygen
 
 # see git-version-gen

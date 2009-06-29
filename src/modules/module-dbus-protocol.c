@@ -157,7 +157,7 @@ static void connection_new_cb(DBusServer *dbus_server, DBusConnection *new_conne
 
     c = pa_xnew(struct connection, 1);
     c->server = s;
-    c->wrap_conn = pa_dbus_wrap_connection_new_from_existing(s->userdata->module->core->mainloop, new_connection);
+    c->wrap_conn = pa_dbus_wrap_connection_new_from_existing(s->userdata->module->core->mainloop, TRUE, new_connection);
     c->client = client;
 
     c->client->kill = client_kill_cb;

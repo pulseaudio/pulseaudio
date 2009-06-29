@@ -1,0 +1,111 @@
+# This file is part of PulseAudio.
+#
+# PulseAudio is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 2.1 of the
+# License, or (at your option) any later version.
+#
+# PulseAudio is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with PulseAudio; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+
+; Common part of all paths
+
+; So here's generally how mixer paths are used by PA: PA goes through
+; a mixer path file from top to bottom and checks if a mixer element
+; described therein exists. If so it is added to the list of mixer
+; elements PA will control, keeping the order it read them in. If a
+; mixer element described here has set the required= or
+; required-absent= directives a path might not be accepted as valid
+; and is ignored in its entirety (see below). However usually if a
+; element listed here is missing this one element is ignored but not
+; the entire path.
+;
+; When a device shall be muted/unmuted *all* elements listed in a path
+; file with "switch = mute" will be toggled.
+;
+; When a device shall change its volume, PA will got through the list
+; of all elements with "volume = merge" and set the volume on the
+; first element. If that element does not support dB volumes, this is
+; where the story ends. If it does support dB volumes, PA divides the
+; requested volume by the volume that was set on this element, and
+; then go on to the next element with "volume = merge" and then set
+; that there, and so on.  That way the first volume element in the
+; path will be the one that does the 'biggest' part of the overall
+; volume adjustment, with the remaining elements usually being set to
+; some value next to 0dB. This logic makes sure we get the full range
+; over all volume sliders and a very high granularity of volumes
+; already in hardware.
+;
+; All switches and enumerations set to "select" are exposed via the
+; "port" functionality of sinks/sources. Basically every possible
+; switch setting and every possible enumeration setting will be
+; combined and made into a "port". So make sure you don't list too
+; many switches/enums for exposing, because the number of ports might
+; rise exponentially.
+;
+; Only one path can be selected at a time. All paths that are valid
+; for an audio device will be exposed as "port" for the sink/source.
+
+
+; [General]
+; priority = ...                         # Priority for this path
+; description = ...
+;
+; [Option ...:...]                       # For each option of an enumeration or switch element
+;                                        # that shall be exposed as a sink/source port. Needs to
+;                                        # be named after the Element, followed by a colon, followed
+;                                        # by the option name, resp. on/off if the element is a switch.
+; name = ...                             # Logical name to use in the path identifier
+; priority = ...                         # Priority if this is made into a device port
+;
+; [Element ...]                          # For each element that we shall control
+; required = ignore | switch | volume | enumeration | any     # If set, require this element to be of this kind and available,
+;                                                             # otherwise don't consider this path valid for the card
+; required-absent = ignore | switch | volume                  # If set, require this element to not be of this kind and not
+;                                                             # available, otherwise don't consider this path valid for the card
+;
+; switch = ignore | mute | off | on | select                  # What to do with this switch: ignore it, make it follow mute status,
+;                                                             # always set it to off, always to on, or make it selectable as port.
+;                                                             # If set to 'select' you need to define an Option section for on
+;                                                             # and off
+; volume = ignore | merge | off | zero   # What to do with this volume: ignore it, merge it into the device
+;                                        # volume slider, always set it to the lowest value possible, or always
+;                                        # set it to 0 dB (for whatever that means)
+; enumeration = ignore | select          # What to do with this enumeration, ignore it or make it selectable
+;                                        # via device ports. If set to 'select' you need to define an Option section
+;                                        # for each of the items you want to expose
+; direction = playback | capture         # Is this relevant only for playback or capture? If not set this will implicitly be
+;                                        # set the direction of the PCM device is opened as. Generally this doesn't need to be set
+;                                        # unless you have a broken driver that has playback controls marked for capture or vice
+;                                        # versa
+; direction-try-other = no | yes         # If the element does not supported what is requested, try the other direction, too?
+;
+; override-map.1 = ...                   # Override the channel mask of the mixer control if the control only exposes a single channel
+; override-map.2 = ...                   # Override the channel masks of the mixer control if the control only exposes two channels
+;                                        # Override maps should list for each element channel which high-level channels it controls via a
+;                                        # channel mask. A channel mask may either be the name of a single channel, or the words "all-left",
+;                                        # "all-right", "all-center", "all-front", "all-rear", and "all" to encode a specific subset of
+;                                        # channels in a mask
+
+[Element PCM]
+switch = mute
+volume = merge
+override-map.1 = all
+override-map.2 = all-left,all-right
+
+[Element External Amplifier]
+switch = select
+
+[Option External Amplifier:on]
+name = output-amplifier-on
+priority = 0
+
+[Option External Amplifier:off]
+name = output-amplifier-off
+priority = 10

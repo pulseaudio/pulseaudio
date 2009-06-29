@@ -93,11 +93,29 @@ void pa_source_new_data_set_muted(pa_source_new_data *data, pa_bool_t mute) {
     data->muted = !!mute;
 }
 
+void pa_source_new_data_set_port(pa_source_new_data *data, const char *port) {
+    pa_assert(data);
+
+    pa_xfree(data->active_port);
+    data->active_port = pa_xstrdup(port);
+}
+
 void pa_source_new_data_done(pa_source_new_data *data) {
     pa_assert(data);
 
-    pa_xfree(data->name);
     pa_proplist_free(data->proplist);
+
+    if (data->ports) {
+        pa_device_port *p;
+
+        while ((p = pa_hashmap_steal_first(data->ports)))
+            pa_device_port_free(p);
+
+        pa_hashmap_free(data->ports, NULL, NULL);
+    }
+
+    pa_xfree(data->name);
+    pa_xfree(data->active_port);
 }
 
 /* Called from main context */
@@ -110,6 +128,7 @@ static void reset_callbacks(pa_source *s) {
     s->get_mute = NULL;
     s->set_mute = NULL;
     s->update_requested_latency = NULL;
+    s->set_port = NULL;
 }
 
 /* Called from main context */
@@ -130,6 +149,7 @@ pa_source* pa_source_new(
     s = pa_msgobject_new(pa_source);
 
     if (!(name = pa_namereg_register(core, data->name, PA_NAMEREG_SOURCE, s, data->namereg_fail))) {
+        pa_log_debug("Failed to register name %s.", data->name);
         pa_xfree(s);
         return NULL;
     }
@@ -141,6 +161,8 @@ pa_source* pa_source_new(
         pa_namereg_unregister(core, name);
         return NULL;
     }
+
+    /* FIXME, need to free s here on failure */
 
     pa_return_null_if_fail(!data->driver || pa_utf8_valid(data->driver));
     pa_return_null_if_fail(data->name && pa_utf8_valid(data->name) && data->name[0]);
@@ -167,6 +189,7 @@ pa_source* pa_source_new(
 
     pa_device_init_description(data->proplist);
     pa_device_init_icon(data->proplist, FALSE);
+    pa_device_init_intended_roles(data->proplist);
 
     if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_FIXATE], data) < 0) {
         pa_xfree(s);
@@ -180,6 +203,7 @@ pa_source* pa_source_new(
     s->core = core;
     s->state = PA_SOURCE_INIT;
     s->flags = flags;
+    s->suspend_cause = 0;
     s->name = pa_xstrdup(name);
     s->proplist = pa_proplist_copy(data->proplist);
     s->driver = pa_xstrdup(pa_path_get_filename(data->driver));
@@ -207,6 +231,30 @@ pa_source* pa_source_new(
 
     s->asyncmsgq = NULL;
     s->rtpoll = NULL;
+
+    /* As a minor optimization we just steal the list instead of
+     * copying it here */
+    s->ports = data->ports;
+    data->ports = NULL;
+
+    s->active_port = NULL;
+    s->save_port = FALSE;
+
+    if (data->active_port && s->ports)
+        if ((s->active_port = pa_hashmap_get(s->ports, data->active_port)))
+            s->save_port = data->save_port;
+
+    if (!s->active_port && s->ports) {
+        void *state;
+        pa_device_port *p;
+
+        PA_HASHMAP_FOREACH(p, s->ports, state)
+            if (!s->active_port || p->priority > s->active_port->priority)
+                s->active_port = p;
+    }
+
+    s->save_volume = data->save_volume;
+    s->save_muted = data->save_muted;
 
     pa_silence_memchunk_get(
             &core->silence_cache,
@@ -398,6 +446,15 @@ static void source_free(pa_object *o) {
     if (s->proplist)
         pa_proplist_free(s->proplist);
 
+    if (s->ports) {
+        pa_device_port *p;
+
+        while ((p = pa_hashmap_steal_first(s->ports)))
+            pa_device_port_free(p);
+
+        pa_hashmap_free(s->ports, NULL, NULL);
+    }
+
     pa_xfree(s);
 }
 
@@ -427,12 +484,23 @@ int pa_source_update_status(pa_source*s) {
 }
 
 /* Called from main context */
-int pa_source_suspend(pa_source *s, pa_bool_t suspend) {
+int pa_source_suspend(pa_source *s, pa_bool_t suspend, pa_suspend_cause_t cause) {
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
+    pa_assert(cause != 0);
 
     if (s->monitor_of)
         return -PA_ERR_NOTSUPPORTED;
+
+    if (suspend)
+        s->suspend_cause |= cause;
+    else
+        s->suspend_cause &= ~cause;
+
+    if ((pa_source_get_state(s) == PA_SOURCE_SUSPENDED) == !!s->suspend_cause)
+        return 0;
+
+    pa_log_debug("Suspend cause of source %s is 0x%04x, %s", s->name, s->suspend_cause, s->suspend_cause ? "suspending" : "resuming");
 
     if (suspend)
         return source_set_state(s, PA_SOURCE_SUSPENDED);
@@ -459,15 +527,15 @@ int pa_source_sync_suspend(pa_source *s) {
 }
 
 /* Called from main context */
-pa_queue *pa_source_move_all_start(pa_source *s) {
-    pa_queue *q;
+pa_queue *pa_source_move_all_start(pa_source *s, pa_queue *q) {
     pa_source_output *o, *n;
     uint32_t idx;
 
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
 
-    q = pa_queue_new();
+    if (!q)
+        q = pa_queue_new();
 
     for (o = PA_SOURCE_OUTPUT(pa_idxset_first(s->outputs, &idx)); o; o = n) {
         n = PA_SOURCE_OUTPUT(pa_idxset_next(s->outputs, &idx));
@@ -654,7 +722,7 @@ pa_usec_t pa_source_get_latency_within_thread(pa_source *s) {
 }
 
 /* Called from main thread */
-void pa_source_set_volume(pa_source *s, const pa_cvolume *volume) {
+void pa_source_set_volume(pa_source *s, const pa_cvolume *volume, pa_bool_t save) {
     pa_cvolume old_virtual_volume;
     pa_bool_t virtual_volume_changed;
 
@@ -667,6 +735,7 @@ void pa_source_set_volume(pa_source *s, const pa_cvolume *volume) {
     old_virtual_volume = s->virtual_volume;
     s->virtual_volume = *volume;
     virtual_volume_changed = !pa_cvolume_equal(&old_virtual_volume, &s->virtual_volume);
+    s->save_volume = (!virtual_volume_changed && s->save_volume) || save;
 
     if (s->set_volume) {
         pa_cvolume_reset(&s->soft_volume, s->sample_spec.channels);
@@ -712,20 +781,24 @@ const pa_cvolume *pa_source_get_volume(pa_source *s, pa_bool_t force_refresh) {
 }
 
 /* Called from main thread */
-void pa_source_volume_changed(pa_source *s, const pa_cvolume *new_volume) {
+void pa_source_volume_changed(pa_source *s, const pa_cvolume *new_volume, pa_bool_t save) {
     pa_source_assert_ref(s);
 
     /* The source implementor may call this if the volume changed to make sure everyone is notified */
 
-    if (pa_cvolume_equal(&s->virtual_volume, new_volume))
+    if (pa_cvolume_equal(&s->virtual_volume, new_volume)) {
+        s->save_volume = s->save_volume || save;
         return;
+    }
 
     s->virtual_volume = *new_volume;
+    s->save_volume = save;
+
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
 /* Called from main thread */
-void pa_source_set_mute(pa_source *s, pa_bool_t mute) {
+void pa_source_set_mute(pa_source *s, pa_bool_t mute, pa_bool_t save) {
     pa_bool_t old_muted;
 
     pa_source_assert_ref(s);
@@ -733,6 +806,7 @@ void pa_source_set_mute(pa_source *s, pa_bool_t mute) {
 
     old_muted = s->muted;
     s->muted = mute;
+    s->save_muted = (old_muted == s->muted && s->save_muted) || save;
 
     if (s->set_mute)
         s->set_mute(s);
@@ -756,23 +830,31 @@ pa_bool_t pa_source_get_mute(pa_source *s, pa_bool_t force_refresh) {
 
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_MUTE, NULL, 0, NULL) == 0);
 
-        if (old_muted != s->muted)
+        if (old_muted != s->muted) {
             pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+
+            /* Make sure the soft mute status stays in sync */
+            pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_MUTE, NULL, 0, NULL) == 0);
+        }
     }
 
     return s->muted;
 }
 
 /* Called from main thread */
-void pa_source_mute_changed(pa_source *s, pa_bool_t new_muted) {
+void pa_source_mute_changed(pa_source *s, pa_bool_t new_muted, pa_bool_t save) {
     pa_source_assert_ref(s);
 
     /* The source implementor may call this if the mute state changed to make sure everyone is notified */
 
-    if (s->muted == new_muted)
+    if (s->muted == new_muted) {
+        s->save_muted = s->save_muted || save;
         return;
+    }
 
     s->muted = new_muted;
+    s->save_muted = save;
+
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
@@ -849,7 +931,7 @@ unsigned pa_source_check_suspend(pa_source *s) {
 
     ret = 0;
 
-    for (o = PA_SOURCE_OUTPUT(pa_idxset_first(s->outputs, &idx)); o; o = PA_SOURCE_OUTPUT(pa_idxset_next(s->outputs, &idx))) {
+    PA_IDXSET_FOREACH(o, s->outputs, idx) {
         pa_source_output_state_t st;
 
         st = pa_source_output_get_state(o);
@@ -1032,12 +1114,13 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 }
 
 /* Called from main thread */
-int pa_source_suspend_all(pa_core *c, pa_bool_t suspend) {
+int pa_source_suspend_all(pa_core *c, pa_bool_t suspend, pa_suspend_cause_t cause) {
     uint32_t idx;
     pa_source *source;
     int ret = 0;
 
     pa_core_assert_ref(c);
+    pa_assert(cause != 0);
 
     for (source = PA_SOURCE(pa_idxset_first(c->sources, &idx)); source; source = PA_SOURCE(pa_idxset_next(c->sources, &idx))) {
         int r;
@@ -1045,7 +1128,7 @@ int pa_source_suspend_all(pa_core *c, pa_bool_t suspend) {
         if (source->monitor_of)
             continue;
 
-        if ((r = pa_source_suspend(source, suspend)) < 0)
+        if ((r = pa_source_suspend(source, suspend, cause)) < 0)
             ret = r;
     }
 
@@ -1304,4 +1387,39 @@ size_t pa_source_get_max_rewind(pa_source *s) {
     pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_MAX_REWIND, &r, 0, NULL) == 0);
 
     return r;
+}
+
+/* Called from main context */
+int pa_source_set_port(pa_source *s, const char *name, pa_bool_t save) {
+    pa_device_port *port;
+
+    pa_assert(s);
+
+    if (!s->set_port) {
+        pa_log_debug("set_port() operation not implemented for sink %u \"%s\"", s->index, s->name);
+        return -PA_ERR_NOTIMPLEMENTED;
+    }
+
+    if (!s->ports)
+        return -PA_ERR_NOENTITY;
+
+    if (!(port = pa_hashmap_get(s->ports, name)))
+        return -PA_ERR_NOENTITY;
+
+    if (s->active_port == port) {
+        s->save_port = s->save_port || save;
+        return 0;
+    }
+
+    if ((s->set_port(s, port)) < 0)
+        return -PA_ERR_NOENTITY;
+
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+
+    pa_log_info("Changed port of source %u \"%s\" to %s", s->index, s->name, port->name);
+
+    s->active_port = port;
+    s->save_port = save;
+
+    return 0;
 }

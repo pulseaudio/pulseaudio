@@ -31,6 +31,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/util.h>
 #include <pulse/xmalloc.h>
@@ -77,7 +78,7 @@ PA_MODULE_USAGE(
 #define DEFAULT_DESTINATION "224.0.0.56"
 #define MEMBLOCKQ_MAXLENGTH (1024*170)
 #define DEFAULT_MTU 1280
-#define SAP_INTERVAL 5
+#define SAP_INTERVAL (5*PA_USEC_PER_SEC)
 
 static const char* const valid_modargs[] = {
     "source",
@@ -151,18 +152,14 @@ static void source_output_kill(pa_source_output* o) {
 
 static void sap_event_cb(pa_mainloop_api *m, pa_time_event *t, const struct timeval *tv, void *userdata) {
     struct userdata *u = userdata;
-    struct timeval next;
 
     pa_assert(m);
     pa_assert(t);
-    pa_assert(tv);
     pa_assert(u);
 
     pa_sap_send(&u->sap_context, 0);
 
-    pa_gettimeofday(&next);
-    pa_timeval_add(&next, SAP_INTERVAL * PA_USEC_PER_SEC);
-    m->time_restart(t, &next);
+    pa_core_rttime_restart(u->module->core, t, pa_rtclock_now() + SAP_INTERVAL);
 }
 
 int pa__init(pa_module*m) {
@@ -186,7 +183,6 @@ int pa__init(pa_module*m) {
     char *p;
     int r, j;
     socklen_t k;
-    struct timeval tv;
     char hn[128], *n;
     pa_bool_t loop = FALSE;
     pa_source_output_new_data data;
@@ -347,8 +343,8 @@ int pa__init(pa_module*m) {
     o->push = source_output_push;
     o->kill = source_output_kill;
 
-    pa_log_info("Configured source latency of %lu ms.",
-                pa_source_output_set_requested_latency(o, pa_bytes_to_usec(mtu, &o->sample_spec)) / PA_USEC_PER_MSEC);
+    pa_log_info("Configured source latency of %llu ms.",
+                (unsigned long long) pa_source_output_set_requested_latency(o, pa_bytes_to_usec(mtu, &o->sample_spec)) / PA_USEC_PER_MSEC);
 
     m->userdata = o->userdata = u = pa_xnew(struct userdata, 1);
     u->module = m;
@@ -395,9 +391,7 @@ int pa__init(pa_module*m) {
 
     pa_sap_send(&u->sap_context, 0);
 
-    pa_gettimeofday(&tv);
-    pa_timeval_add(&tv, SAP_INTERVAL * PA_USEC_PER_SEC);
-    u->sap_event = m->core->mainloop->time_new(m->core->mainloop, &tv, sap_event_cb, u);
+    u->sap_event = pa_core_rttime_new(m->core, pa_rtclock_now() + SAP_INTERVAL, sap_event_cb, u);
 
     pa_source_output_put(u->source_output);
 

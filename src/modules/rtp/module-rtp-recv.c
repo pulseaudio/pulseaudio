@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <poll.h>
 
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
@@ -43,13 +44,13 @@
 #include <pulsecore/sink-input.h>
 #include <pulsecore/memblockq.h>
 #include <pulsecore/log.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/sample-util.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/atomic.h>
-#include <pulsecore/rtclock.h>
 #include <pulsecore/atomic.h>
 #include <pulsecore/time-smoother.h>
 #include <pulsecore/socket-util.h>
@@ -62,7 +63,7 @@
 #include "sap.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");
-PA_MODULE_DESCRIPTION("Recieve data from a network via RTP/SAP/SDP");
+PA_MODULE_DESCRIPTION("Receive data from a network via RTP/SAP/SDP");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
@@ -112,6 +113,7 @@ struct session {
 
 struct userdata {
     pa_module *module;
+    pa_core *core;
 
     pa_sap_context sap_context;
     pa_io_event* sap_event;
@@ -193,7 +195,7 @@ static void sink_input_suspend_within_thread(pa_sink_input* i, pa_bool_t b) {
     pa_assert_se(s = i->userdata);
 
     if (b) {
-        pa_smoother_pause(s->smoother, pa_rtclock_usec());
+        pa_smoother_pause(s->smoother, pa_rtclock_now());
         pa_memblockq_flush_read(s->memblockq);
     } else
         s->first_packet = FALSE;
@@ -621,15 +623,13 @@ static void sap_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
     }
 }
 
-static void check_death_event_cb(pa_mainloop_api *m, pa_time_event *t, const struct timeval *ptv, void *userdata) {
+static void check_death_event_cb(pa_mainloop_api *m, pa_time_event *t, const struct timeval *tv, void *userdata) {
     struct session *s, *n;
     struct userdata *u = userdata;
     struct timeval now;
-    struct timeval tv;
 
     pa_assert(m);
     pa_assert(t);
-    pa_assert(ptv);
     pa_assert(u);
 
     pa_rtclock_get(&now);
@@ -647,9 +647,7 @@ static void check_death_event_cb(pa_mainloop_api *m, pa_time_event *t, const str
     }
 
     /* Restart timer */
-    pa_gettimeofday(&tv);
-    pa_timeval_add(&tv, DEATH_TIMEOUT*PA_USEC_PER_SEC);
-    m->time_restart(t, &tv);
+    pa_core_rttime_restart(u->module->core, t, pa_rtclock_now() + DEATH_TIMEOUT * PA_USEC_PER_SEC);
 }
 
 int pa__init(pa_module*m) {
@@ -663,7 +661,6 @@ int pa__init(pa_module*m) {
     socklen_t salen;
     const char *sap_address;
     int fd = -1;
-    struct timeval tv;
 
     pa_assert(m);
 
@@ -696,6 +693,7 @@ int pa__init(pa_module*m) {
 
     m->userdata = u = pa_xnew(struct userdata, 1);
     u->module = m;
+    u->core = m->core;
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
 
     u->sap_event = m->core->mainloop->io_new(m->core->mainloop, fd, PA_IO_EVENT_INPUT, sap_event_cb, u);
@@ -705,9 +703,7 @@ int pa__init(pa_module*m) {
     u->n_sessions = 0;
     u->by_origin = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
-    pa_gettimeofday(&tv);
-    pa_timeval_add(&tv, DEATH_TIMEOUT * PA_USEC_PER_SEC);
-    u->check_death_event = m->core->mainloop->time_new(m->core->mainloop, &tv, check_death_event_cb, u);
+    u->check_death_event = pa_core_rttime_new(m->core, pa_rtclock_now() + DEATH_TIMEOUT * PA_USEC_PER_SEC, check_death_event_cb, u);
 
     pa_modargs_free(ma);
 

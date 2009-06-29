@@ -42,10 +42,12 @@
 #include <pulsecore/pipe.h>
 #endif
 
+#include <pulse/i18n.h>
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
-#include <pulse/i18n.h>
 
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/llist.h>
 #include <pulsecore/log.h>
@@ -54,6 +56,7 @@
 #include <pulsecore/macro.h>
 
 #include "mainloop.h"
+#include "internal.h"
 
 struct pa_io_event {
     pa_mainloop *mainloop;
@@ -75,7 +78,7 @@ struct pa_time_event {
     pa_bool_t dead:1;
 
     pa_bool_t enabled:1;
-    struct timeval timeval;
+    pa_usec_t time;
 
     pa_time_event_cb_t callback;
     void *userdata;
@@ -317,6 +320,23 @@ static void mainloop_defer_set_destroy(pa_defer_event *e, pa_defer_event_destroy
 }
 
 /* Time events */
+static pa_usec_t timeval_load(const struct timeval *tv) {
+    pa_bool_t is_rtclock;
+    struct timeval ttv;
+
+    if (!tv)
+        return PA_USEC_INVALID;
+
+    ttv = *tv;
+    is_rtclock = !!(ttv.tv_usec & PA_TIMEVAL_RTCLOCK);
+    ttv.tv_usec &= ~PA_TIMEVAL_RTCLOCK;
+
+    if (!is_rtclock)
+        pa_rtclock_from_wallclock(&ttv);
+
+    return pa_timeval_load(&ttv);
+}
+
 static pa_time_event* mainloop_time_new(
         pa_mainloop_api*a,
         const struct timeval *tv,
@@ -325,10 +345,13 @@ static pa_time_event* mainloop_time_new(
 
     pa_mainloop *m;
     pa_time_event *e;
+    pa_usec_t t;
 
     pa_assert(a);
     pa_assert(a->userdata);
     pa_assert(callback);
+
+    t = timeval_load(tv);
 
     m = a->userdata;
     pa_assert(a == &m->api);
@@ -337,15 +360,15 @@ static pa_time_event* mainloop_time_new(
     e->mainloop = m;
     e->dead = FALSE;
 
-    if ((e->enabled = !!tv)) {
-        e->timeval = *tv;
+    if ((e->enabled = (t != PA_USEC_INVALID))) {
+        e->time = t;
 
         m->n_enabled_time_events++;
 
         if (m->cached_next_time_event) {
             pa_assert(m->cached_next_time_event->enabled);
 
-            if (pa_timeval_cmp(tv, &m->cached_next_time_event->timeval) < 0)
+            if (t < m->cached_next_time_event->time)
                 m->cached_next_time_event = e;
         }
     }
@@ -363,24 +386,30 @@ static pa_time_event* mainloop_time_new(
 }
 
 static void mainloop_time_restart(pa_time_event *e, const struct timeval *tv) {
+    pa_bool_t valid;
+    pa_usec_t t;
+
     pa_assert(e);
     pa_assert(!e->dead);
 
-    if (e->enabled && !tv) {
+    t = timeval_load(tv);
+
+    valid = (t != PA_USEC_INVALID);
+    if (e->enabled && !valid) {
         pa_assert(e->mainloop->n_enabled_time_events > 0);
         e->mainloop->n_enabled_time_events--;
-    } else if (!e->enabled && tv)
+    } else if (!e->enabled && valid)
         e->mainloop->n_enabled_time_events++;
 
-    if ((e->enabled = !!tv)) {
-        e->timeval = *tv;
+    if ((e->enabled = valid)) {
+        e->time = t;
         pa_mainloop_wakeup(e->mainloop);
     }
 
     if (e->mainloop->cached_next_time_event && e->enabled) {
         pa_assert(e->mainloop->cached_next_time_event->enabled);
 
-        if (pa_timeval_cmp(tv, &e->mainloop->cached_next_time_event->timeval) < 0)
+        if (t < e->mainloop->cached_next_time_event->time)
             e->mainloop->cached_next_time_event = e;
     } else if (e->mainloop->cached_next_time_event == e)
         e->mainloop->cached_next_time_event = NULL;
@@ -428,10 +457,10 @@ static void mainloop_quit(pa_mainloop_api*a, int retval) {
 static const pa_mainloop_api vtable = {
     .userdata = NULL,
 
-    .io_new= mainloop_io_new,
-    .io_enable= mainloop_io_enable,
-    .io_free= mainloop_io_free,
-    .io_set_destroy= mainloop_io_set_destroy,
+    .io_new = mainloop_io_new,
+    .io_enable = mainloop_io_enable,
+    .io_free = mainloop_io_free,
+    .io_set_destroy = mainloop_io_set_destroy,
 
     .time_new = mainloop_time_new,
     .time_restart = mainloop_time_restart,
@@ -721,11 +750,11 @@ static pa_time_event* find_next_time_event(pa_mainloop *m) {
         if (t->dead || !t->enabled)
             continue;
 
-        if (!n || pa_timeval_cmp(&t->timeval, &n->timeval) < 0) {
+        if (!n || t->time < n->time) {
             n = t;
 
-            /* Shortcut for tv = { 0, 0 } */
-            if (n->timeval.tv_sec <= 0)
+            /* Shortcut for time == 0 */
+            if (n->time == 0)
                 break;
         }
     }
@@ -736,7 +765,6 @@ static pa_time_event* find_next_time_event(pa_mainloop *m) {
 
 static int calc_next_timeout(pa_mainloop *m) {
     pa_time_event *t;
-    struct timeval now;
     pa_usec_t usec;
 
     if (!m->n_enabled_time_events)
@@ -745,41 +773,41 @@ static int calc_next_timeout(pa_mainloop *m) {
     t = find_next_time_event(m);
     pa_assert(t);
 
-    if (t->timeval.tv_sec <= 0)
+    if (t->time == 0)
         return 0;
 
-    pa_gettimeofday(&now);
+    usec = t->time - pa_rtclock_now();
 
-    if (pa_timeval_cmp(&t->timeval, &now) <= 0)
+    if (usec <= 0)
         return 0;
 
-    usec = pa_timeval_diff(&t->timeval, &now);
-    return (int) (usec / 1000);
+    return (int) (usec / 1000); /* in milliseconds */
 }
 
 static int dispatch_timeout(pa_mainloop *m) {
     pa_time_event *e;
-    struct timeval now;
+    pa_usec_t now;
     int r = 0;
     pa_assert(m);
 
     if (m->n_enabled_time_events <= 0)
         return 0;
 
-    pa_gettimeofday(&now);
+    now = pa_rtclock_now();
 
     for (e = m->time_events; e && !m->quit; e = e->next) {
 
         if (e->dead || !e->enabled)
             continue;
 
-        if (pa_timeval_cmp(&e->timeval, &now) <= 0) {
+        if (e->time <= now) {
+            struct timeval tv;
             pa_assert(e->callback);
 
             /* Disable time event */
             mainloop_time_restart(e, NULL);
 
-            e->callback(&m->api, e, &e->timeval, e->userdata);
+            e->callback(&m->api, e, pa_timeval_rtstore(&tv, e->time, TRUE), e->userdata);
 
             r++;
         }
@@ -966,4 +994,10 @@ void pa_mainloop_set_poll_func(pa_mainloop *m, pa_poll_func poll_func, void *use
 
     m->poll_func = poll_func;
     m->poll_func_userdata = userdata;
+}
+
+pa_bool_t pa_mainloop_is_our_api(pa_mainloop_api*m) {
+    pa_assert(m);
+
+    return m->io_new == mainloop_io_new;
 }

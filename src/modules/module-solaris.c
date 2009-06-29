@@ -641,7 +641,7 @@ static void thread_func(void *userdata) {
                  * Since we cannot modify the size of the output buffer we fake it
                  * by not filling it more than u->buffer_size.
                  */
-                xtime0 = pa_rtclock_usec();
+                xtime0 = pa_rtclock_now();
                 buffered_bytes = get_playback_buffered_bytes(u);
                 if (buffered_bytes >= (uint64_t)u->buffer_size)
                     break;

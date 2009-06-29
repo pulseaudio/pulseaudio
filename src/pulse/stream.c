@@ -30,13 +30,14 @@
 
 #include <pulse/def.h>
 #include <pulse/timeval.h>
+#include <pulse/rtclock.h>
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/pstream-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/hashmap.h>
 #include <pulsecore/macro.h>
-#include <pulsecore/rtclock.h>
+#include <pulsecore/core-rtclock.h>
 
 #include "fork-detect.h"
 #include "internal.h"
@@ -319,14 +320,10 @@ static void request_auto_timing_update(pa_stream *s, pa_bool_t force) {
     }
 
     if (s->auto_timing_update_event) {
-        struct timeval next;
-
         if (force)
             s->auto_timing_interval_usec = AUTO_TIMING_INTERVAL_START_USEC;
 
-        pa_gettimeofday(&next);
-        pa_timeval_add(&next, s->auto_timing_interval_usec);
-        s->mainloop->time_restart(s->auto_timing_update_event, &next);
+        pa_context_rttime_restart(s->context, s->auto_timing_update_event, pa_rtclock_now() + s->auto_timing_interval_usec);
 
         s->auto_timing_interval_usec = PA_MIN(AUTO_TIMING_INTERVAL_END_USEC, s->auto_timing_interval_usec*2);
     }
@@ -373,7 +370,7 @@ static void check_smoother_status(pa_stream *s, pa_bool_t aposteriori, pa_bool_t
     if (!s->smoother)
         return;
 
-    x = pa_rtclock_usec();
+    x = pa_rtclock_now();
 
     if (s->timing_info_valid) {
         if (aposteriori)
@@ -800,7 +797,7 @@ static void invalidate_indexes(pa_stream *s, pa_bool_t r, pa_bool_t w) {
     request_auto_timing_update(s, TRUE);
 }
 
-static void auto_timing_update_callback(pa_mainloop_api *m, pa_time_event *e, const struct timeval *tv, void *userdata) {
+static void auto_timing_update_callback(pa_mainloop_api *m, pa_time_event *e, const struct timeval *t, void *userdata) {
     pa_stream *s = userdata;
 
     pa_assert(s);
@@ -822,12 +819,9 @@ static void create_stream_complete(pa_stream *s) {
         s->write_callback(s, (size_t) s->requested_bytes, s->write_userdata);
 
     if (s->flags & PA_STREAM_AUTO_TIMING_UPDATE) {
-        struct timeval tv;
-        pa_gettimeofday(&tv);
         s->auto_timing_interval_usec = AUTO_TIMING_INTERVAL_START_USEC;
-        pa_timeval_add(&tv, s->auto_timing_interval_usec);
         pa_assert(!s->auto_timing_update_event);
-        s->auto_timing_update_event = s->mainloop->time_new(s->mainloop, &tv, &auto_timing_update_callback, s);
+	s->auto_timing_update_event = pa_context_rttime_new(s->context, pa_rtclock_now() + s->auto_timing_interval_usec, &auto_timing_update_callback, s);
 
         request_auto_timing_update(s, TRUE);
     }
@@ -1057,7 +1051,7 @@ static int create_stream(
     if (flags & PA_STREAM_INTERPOLATE_TIMING) {
         pa_usec_t x;
 
-        x = pa_rtclock_usec();
+        x = pa_rtclock_now();
 
         pa_assert(!s->smoother);
         s->smoother = pa_smoother_new(
@@ -1594,7 +1588,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
         if (o->stream->smoother) {
             pa_usec_t u, x;
 
-            u = x = pa_rtclock_usec() - i->transport_usec;
+            u = x = pa_rtclock_now() - i->transport_usec;
 
             if (o->stream->direction == PA_STREAM_PLAYBACK && o->context->version >= 13) {
                 pa_usec_t su;
@@ -2103,7 +2097,7 @@ int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec) {
     PA_CHECK_VALIDITY(s->context, s->direction != PA_STREAM_RECORD || !s->timing_info.write_index_corrupt, PA_ERR_NODATA);
 
     if (s->smoother)
-        usec = pa_smoother_get(s->smoother, pa_rtclock_usec());
+        usec = pa_smoother_get(s->smoother, pa_rtclock_now());
     else
         usec = calc_time(s, FALSE);
 

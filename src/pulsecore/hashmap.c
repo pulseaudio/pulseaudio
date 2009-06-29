@@ -237,6 +237,39 @@ at_end:
     return NULL;
 }
 
+void *pa_hashmap_iterate_backwards(pa_hashmap *h, void **state, const void **key) {
+    struct hashmap_entry *e;
+
+    pa_assert(h);
+    pa_assert(state);
+
+    if (*state == (void*) -1)
+        goto at_beginning;
+
+    if (!*state && !h->iterate_list_tail)
+        goto at_beginning;
+
+    e = *state ? *state : h->iterate_list_tail;
+
+    if (e->iterate_previous)
+        *state = e->iterate_previous;
+    else
+        *state = (void*) -1;
+
+    if (key)
+        *key = e->key;
+
+    return e->value;
+
+at_beginning:
+    *state = (void *) -1;
+
+    if (key)
+        *key = NULL;
+
+    return NULL;
+}
+
 void* pa_hashmap_first(pa_hashmap *h) {
     pa_assert(h);
 
@@ -244,6 +277,15 @@ void* pa_hashmap_first(pa_hashmap *h) {
         return NULL;
 
     return h->iterate_list_head->value;
+}
+
+void* pa_hashmap_last(pa_hashmap *h) {
+    pa_assert(h);
+
+    if (!h->iterate_list_tail)
+        return NULL;
+
+    return h->iterate_list_tail->value;
 }
 
 void* pa_hashmap_steal_first(pa_hashmap *h) {

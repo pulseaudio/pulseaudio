@@ -89,6 +89,7 @@ struct pa_context {
     pa_bool_t server_specified:1;
     pa_bool_t no_fail:1;
     pa_bool_t do_autospawn:1;
+    pa_bool_t use_rtclock:1;
     pa_spawn_api spawn_api;
 
     pa_strlist *server_list;
@@ -278,5 +279,7 @@ pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *ta
     PA_FAIL_RETURN_ANY(context, error, NULL)
 
 void pa_ext_stream_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t);
+
+pa_bool_t pa_mainloop_is_our_api(pa_mainloop_api*m);
 
 #endif

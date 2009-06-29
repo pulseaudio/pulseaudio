@@ -64,6 +64,7 @@ PA_MODULE_USAGE("api=<alsa> "
 #elif defined(HAVE_OSS)
 PA_MODULE_USAGE("api=<oss>");
 #endif
+PA_MODULE_DEPRECATED("Please use module-udev-detect instead of module-hal-detect!");
 
 struct device {
     char *udi, *originating_udi;
@@ -232,7 +233,7 @@ static int hal_device_load_alsa(struct userdata *u, const char *udi, struct devi
         goto fail;
 
     card_name = pa_sprintf_malloc("alsa_card.%s", strip_udi(originating_udi));
-    args = pa_sprintf_malloc("device_id=%u name=%s card_name=%s tsched=%i", card, strip_udi(originating_udi), card_name, (int) u->use_tsched);
+    args = pa_sprintf_malloc("device_id=%u name=\"%s\" card_name=\"%s\" tsched=%i card_properties=\"module-hal-detect.discovered=1\"", card, strip_udi(originating_udi), card_name, (int) u->use_tsched);
 
     pa_log_debug("Loading module-alsa-card with arguments '%s'", args);
     m = pa_module_load(u->core, "module-alsa-card", args);
@@ -567,7 +568,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                     pa_sink *sink;
 
                     if ((sink = pa_namereg_get(u->core, d->sink_name, PA_NAMEREG_SINK))) {
-                        pa_bool_t success = pa_sink_suspend(sink, suspend) >= 0;
+                        pa_bool_t success = pa_sink_suspend(sink, suspend, PA_SUSPEND_SESSION) >= 0;
 
                         if (!success && !suspend)
                             d->acl_race_fix = TRUE; /* resume failed, let's try again */
@@ -580,7 +581,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                     pa_source *source;
 
                     if ((source = pa_namereg_get(u->core, d->source_name, PA_NAMEREG_SOURCE))) {
-                        pa_bool_t success = pa_source_suspend(source, suspend) >= 0;
+                        pa_bool_t success = pa_source_suspend(source, suspend, PA_SUSPEND_SESSION) >= 0;
 
                         if (!success && !suspend)
                             d->acl_race_fix = TRUE; /* resume failed, let's try again */
@@ -593,7 +594,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                     pa_card *card;
 
                     if ((card = pa_namereg_get(u->core, d->card_name, PA_NAMEREG_CARD))) {
-                        pa_bool_t success = pa_card_suspend(card, suspend) >= 0;
+                        pa_bool_t success = pa_card_suspend(card, suspend, PA_SUSPEND_SESSION) >= 0;
 
                         if (!success && !suspend)
                             d->acl_race_fix = TRUE; /* resume failed, let's try again */
@@ -637,21 +638,21 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                     pa_sink *sink;
 
                     if ((sink = pa_namereg_get(u->core, d->sink_name, PA_NAMEREG_SINK)))
-                        pa_sink_suspend(sink, FALSE);
+                        pa_sink_suspend(sink, FALSE, PA_SUSPEND_SESSION);
                 }
 
                 if (d->source_name) {
                     pa_source *source;
 
                     if ((source = pa_namereg_get(u->core, d->source_name, PA_NAMEREG_SOURCE)))
-                        pa_source_suspend(source, FALSE);
+                        pa_source_suspend(source, FALSE, PA_SUSPEND_SESSION);
                 }
 
                 if (d->card_name) {
                     pa_card *card;
 
                     if ((card = pa_namereg_get(u->core, d->source_name, PA_NAMEREG_CARD)))
-                        pa_card_suspend(card, FALSE);
+                        pa_card_suspend(card, FALSE, PA_SUSPEND_SESSION);
                 }
             }
 

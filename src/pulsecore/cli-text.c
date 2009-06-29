@@ -139,11 +139,10 @@ char *pa_card_list_to_string(pa_core *c) {
 
         if (card->profiles) {
             pa_card_profile *p;
-            void *state = NULL;
+            void *state;
 
             pa_strbuf_puts(s, "\tprofiles:\n");
-
-            while ((p = pa_hashmap_iterate(card->profiles, &state, NULL)))
+            PA_HASHMAP_FOREACH(p, card->profiles, state)
                 pa_strbuf_printf(s, "\t\t%s: %s (priority %u)\n", p->name, p->description, p->priority);
         }
 
@@ -232,6 +231,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             "\tdriver: <%s>\n"
             "\tflags: %s%s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
+            "\tsuspend cause: %s%s%s%s\n"
             "\tvolume: %s%s%s\n"
             "\t        balance %0.2f\n"
             "\tbase volume: %s%s%s\n"
@@ -258,6 +258,10 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->flags & PA_SINK_FLAT_VOLUME ? "FLAT_VOLUME " : "",
             sink->flags & PA_SINK_DYNAMIC_LATENCY ? "DYNAMIC_LATENCY" : "",
             sink_state_to_string(pa_sink_get_state(sink)),
+            sink->suspend_cause & PA_SUSPEND_USER ? "USER " : "",
+            sink->suspend_cause & PA_SUSPEND_APPLICATION ? "APPLICATION " : "",
+            sink->suspend_cause & PA_SUSPEND_IDLE ? "IDLE " : "",
+            sink->suspend_cause & PA_SUSPEND_SESSION ? "SESSION" : "",
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink, FALSE, FALSE)),
             sink->flags & PA_SINK_DECIBEL_VOLUME ? "\n\t        " : "",
             sink->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_sink_get_volume(sink, FALSE, FALSE)) : "",
@@ -302,6 +306,22 @@ char *pa_sink_list_to_string(pa_core *c) {
         t = pa_proplist_to_string_sep(sink->proplist, "\n\t\t");
         pa_strbuf_printf(s, "\tproperties:\n\t\t%s\n", t);
         pa_xfree(t);
+
+        if (sink->ports) {
+            pa_device_port *p;
+            void *state;
+
+            pa_strbuf_puts(s, "\tports:\n");
+            PA_HASHMAP_FOREACH(p, sink->ports, state)
+                pa_strbuf_printf(s, "\t\t%s: %s (priority %u)\n", p->name, p->description, p->priority);
+        }
+
+
+        if (sink->active_port)
+            pa_strbuf_printf(
+                    s,
+                    "\tactive port: <%s>\n",
+                    sink->active_port->name);
     }
 
     return pa_strbuf_tostring_free(s);
@@ -335,6 +355,7 @@ char *pa_source_list_to_string(pa_core *c) {
             "\tdriver: <%s>\n"
             "\tflags: %s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
+            "\tsuspend cause: %s%s%s%s\n"
             "\tvolume: %s%s%s\n"
             "\t        balance %0.2f\n"
             "\tbase volume: %s%s%s\n"
@@ -358,6 +379,10 @@ char *pa_source_list_to_string(pa_core *c) {
             source->flags & PA_SOURCE_LATENCY ? "LATENCY " : "",
             source->flags & PA_SOURCE_DYNAMIC_LATENCY ? "DYNAMIC_LATENCY" : "",
             source_state_to_string(pa_source_get_state(source)),
+            source->suspend_cause & PA_SUSPEND_USER ? "USER " : "",
+            source->suspend_cause & PA_SUSPEND_APPLICATION ? "APPLICATION " : "",
+            source->suspend_cause & PA_SUSPEND_IDLE ? "IDLE " : "",
+            source->suspend_cause & PA_SUSPEND_SESSION ? "SESSION" : "",
             pa_cvolume_snprint(cv, sizeof(cv), pa_source_get_volume(source, FALSE)),
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? "\n\t        " : "",
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_source_get_volume(source, FALSE)) : "",
@@ -402,6 +427,21 @@ char *pa_source_list_to_string(pa_core *c) {
         t = pa_proplist_to_string_sep(source->proplist, "\n\t\t");
         pa_strbuf_printf(s, "\tproperties:\n\t\t%s\n", t);
         pa_xfree(t);
+
+        if (source->ports) {
+            pa_device_port *p;
+            void *state;
+
+            pa_strbuf_puts(s, "\tports:\n");
+            PA_HASHMAP_FOREACH(p, source->ports, state)
+                pa_strbuf_printf(s, "\t\t%s: %s (priority %u)\n", p->name, p->description, p->priority);
+        }
+
+        if (source->active_port)
+            pa_strbuf_printf(
+                    s,
+                    "\tactive port: <%s>\n",
+                    source->active_port->name);
     }
 
     return pa_strbuf_tostring_free(s);
