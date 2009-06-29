@@ -2086,6 +2086,15 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
     u->card->set_profile = card_set_profile;
 
     d = PA_CARD_PROFILE_DATA(u->card->active_profile);
+
+    if ((device->headset_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HSP) ||
+        (device->audio_sink_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP)) {
+        pa_log_warn("Default profile not connected, selecting off profile");
+        u->card->active_profile = pa_hashmap_get(u->card->profiles, "off");
+        u->card->save_profile = FALSE;
+    }
+
+    d = PA_CARD_PROFILE_DATA(u->card->active_profile);
     u->profile = *d;
 
     return 0;
