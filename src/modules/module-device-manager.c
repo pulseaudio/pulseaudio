@@ -168,8 +168,8 @@ static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
 
 static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     struct userdata *u = userdata;
-    struct entry entry, *old;
-    char *name;
+    struct entry entry, *old = NULL;
+    char *name = NULL;
     pa_datum key, data;
 
     pa_assert(c);
@@ -203,6 +203,9 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         pa_assert((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE);
 
         if (!(source = pa_idxset_get_by_index(c->sources, idx)))
+            return;
+
+        if (source->monitor_of)
             return;
 
         name = pa_sprintf_malloc("source:%s", source->name);
@@ -251,7 +254,7 @@ static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new
 
     if ((e = read_entry(u, name))) {
         if (strncmp(e->description, pa_proplist_gets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION), sizeof(e->description)) != 0) {
-            pa_log_info("Restoring description for sink %s.", name);
+            pa_log_info("Restoring description for sink %s.", new_data->name);
             pa_proplist_sets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION, e->description);
         }
 
@@ -276,7 +279,8 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
     if ((e = read_entry(u, name))) {
 
         if (strncmp(e->description, pa_proplist_gets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION), sizeof(e->description)) != 0) {
-            pa_log_info("Restoring description for sink %s.", name);
+            /* NB, We cannot detect if we are a monitor here... this could mess things up a bit... */
+            pa_log_info("Restoring description for sink %s.", new_data->name);
             pa_proplist_sets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION, e->description);
         }
 
@@ -322,6 +326,11 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
     else if ((n = get_name(name, "source:"))) {
         for (source = pa_idxset_first(u->core->sources, &idx); source; source = pa_idxset_next(u->core->sources, &idx)) {
             if (!pa_streq(source->name, n)) {
+                continue;
+            }
+
+            if (source->monitor_of) {
+                pa_log_warn("Cowardly refusing to set the description for monitor source %s.", source->name);
                 continue;
             }
 
