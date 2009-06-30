@@ -299,7 +299,9 @@ void pa_threaded_mainloop_accept(pa_threaded_mainloop *m);
 /** Return the return value as specified with the main loop's quit() routine. */
 int pa_threaded_mainloop_get_retval(pa_threaded_mainloop *m);
 
-/** Return the abstract main loop abstraction layer vtable for this main loop. */
+/** Return the abstract main loop abstraction layer vtable for this
+    main loop. No need of freeing the API as it is owned by the loop
+    and it is destroyed when this dies */
 pa_mainloop_api* pa_threaded_mainloop_get_api(pa_threaded_mainloop*m);
 
 /** Returns non-zero when called from withing the event loop thread. \since 0.9.7 */
