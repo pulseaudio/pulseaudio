@@ -36,6 +36,9 @@
 
 #include "server-lookup.h"
 
+#define OBJECT_PATH "/org/pulseaudio1/server_lookup"
+#define INTERFACE "org.pulseaudio.ServerLookup1"
+
 struct pa_dbusobj_server_lookup {
     pa_core *core;
     pa_dbus_connection *conn;
@@ -47,7 +50,7 @@ static const char introspection[] =
     "<node>"
     " <!-- If you are looking for documentation make sure to check out\n"
     "      http://pulseaudio.org/wiki/DBusInterface -->\n"
-    " <interface name=\"org.pulseaudio.ServerLookup\">"
+    " <interface name=\"" INTERFACE "\">"
     "  <method name=\"GetAddress\">"
     "   <arg name=\"result\" type=\"s\" direction=\"out\"/>"
     "  </method>"
@@ -182,7 +185,7 @@ static DBusHandlerResult message_cb(DBusConnection *conn, DBusMessage *msg, void
     if (dbus_message_is_method_call(msg, "org.freedesktop.DBus.Introspectable", "Introspect"))
         return handle_introspect(conn, msg, sl);
 
-    if (dbus_message_is_method_call(msg, "org.pulseaudio.ServerLookup", "GetAddress"))
+    if (dbus_message_is_method_call(msg, INTERFACE, "GetAddress"))
         return handle_get_address(conn, msg, sl);
 
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
@@ -212,8 +215,8 @@ pa_dbusobj_server_lookup *pa_dbusobj_server_lookup_new(pa_core *c) {
         goto fail;
     }
 
-    if (!dbus_connection_register_object_path(pa_dbus_connection_get(sl->conn), "/org/pulseaudio/server_lookup", &vtable, sl)) {
-        pa_log("dbus_connection_register_object_path() failed for /org/pulseaudio/server_lookup.");
+    if (!dbus_connection_register_object_path(pa_dbus_connection_get(sl->conn), OBJECT_PATH, &vtable, sl)) {
+        pa_log("dbus_connection_register_object_path() failed for " OBJECT_PATH ".");
         goto fail;
     }
 
@@ -234,8 +237,8 @@ void pa_dbusobj_server_lookup_free(pa_dbusobj_server_lookup *sl) {
 
     if (sl->path_registered) {
         pa_assert(sl->conn);
-        if (!dbus_connection_unregister_object_path(pa_dbus_connection_get(sl->conn), "/org/pulseaudio/server_lookup"))
-            pa_log_debug("dbus_connection_unregister_object_path() failed for /org/pulseaudio/server_lookup.");
+        if (!dbus_connection_unregister_object_path(pa_dbus_connection_get(sl->conn), OBJECT_PATH))
+            pa_log_debug("dbus_connection_unregister_object_path() failed for " OBJECT_PATH ".");
     }
 
     if (sl->conn)

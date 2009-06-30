@@ -943,7 +943,7 @@ int main(int argc, char *argv[]) {
     if (!conf->system_instance) {
         if (!(server_lookup = pa_dbusobj_server_lookup_new(c)))
             goto finish;
-        if (!(lookup_service_bus = register_dbus_name(c, DBUS_BUS_SESSION, "org.pulseaudio.PulseAudio")))
+        if (!(lookup_service_bus = register_dbus_name(c, DBUS_BUS_SESSION, "org.pulseaudio.PulseAudio1")))
             goto finish;
     }
 
