@@ -336,5 +336,9 @@ pa_bool_t pa_reserve_monitor_wrapper_busy(pa_reserve_monitor_wrapper *w) {
 
     pa_assert(PA_REFCNT_VALUE(w) >= 1);
 
+#ifdef HAVE_DBUS
     return rm_busy(w->monitor) > 0;
+#else
+    return FALSE;
+#endif
 }
