@@ -1250,7 +1250,7 @@ module_simple_protocol_unix_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR
 
 module_cli_la_SOURCES = modules/module-cli.c
 module_cli_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_cli_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libcli.la
+module_cli_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libcli.la libpulsecommon-@PA_MAJORMINORMICRO@.la
 
 module_cli_protocol_tcp_la_SOURCES = modules/module-protocol-stub.c
 module_cli_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_CLI $(AM_CFLAGS)
