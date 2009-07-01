@@ -1355,7 +1355,7 @@ static void thread_func(void *userdata) {
                     writable = FALSE;
                 }
 
-                if ((!u->source || !PA_SOURCE_IS_LINKED(u->source->thread_info.state)) && do_write <= 0) {
+                if ((!u->source || !PA_SOURCE_IS_LINKED(u->source->thread_info.state)) && do_write <= 0 && writable) {
                     pa_usec_t time_passed, next_write_at, sleep_for;
 
                     /* Hmm, there is no input stream we could synchronize
