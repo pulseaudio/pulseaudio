@@ -1351,6 +1351,9 @@ static void thread_func(void *userdata) {
                             goto fail;
                     }
 
+                    if (n_written == 0)
+                        pa_log("Broken kernel: we got EAGAIN on write() after POLLOUT!");
+
                     do_write -= n_written;
                     writable = FALSE;
                 }
