@@ -2689,7 +2689,9 @@ static void command_finish_upload_stream(pa_pdispatch *pd, uint32_t command, uin
     CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
     CHECK_VALIDITY(c->pstream, upload_stream_isinstance(s), tag, PA_ERR_NOENTITY);
 
-    if (pa_scache_add_item(c->protocol->core, s->name, &s->sample_spec, &s->channel_map, &s->memchunk, s->proplist, &idx) < 0)
+    if (!s->memchunk.memblock)
+        pa_pstream_send_error(c->pstream, tag, PA_ERR_TOOLARGE);
+    else if (pa_scache_add_item(c->protocol->core, s->name, &s->sample_spec, &s->channel_map, &s->memchunk, s->proplist, &idx) < 0)
         pa_pstream_send_error(c->pstream, tag, PA_ERR_INTERNAL);
     else
         pa_pstream_send_simple_ack(c->pstream, tag);
