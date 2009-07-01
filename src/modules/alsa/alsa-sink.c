@@ -169,10 +169,10 @@ static int reserve_init(struct userdata *u, const char *dname) {
     if (pa_in_system_mode())
         return 0;
 
-    /* We are resuming, try to lock the device */
     if (!(rname = pa_alsa_get_reserve_name(dname)))
         return 0;
 
+    /* We are resuming, try to lock the device */
     u->reserve = pa_reserve_wrapper_get(u->core, rname);
     pa_xfree(rname);
 
@@ -222,7 +222,6 @@ static int reserve_monitor_init(struct userdata *u, const char *dname) {
     if (pa_in_system_mode())
         return 0;
 
-    /* We are resuming, try to lock the device */
     if (!(rname = pa_alsa_get_reserve_name(dname)))
         return 0;
 
