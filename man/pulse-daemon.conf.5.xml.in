@@ -230,7 +230,7 @@ USA.
     <option>
       <p><opt>exit-idle-time=</opt> Terminate the daemon after the
       last client quit and this time in seconds passed. Use a negative value to
-      disable this feature. Defaults to -1. The
+      disable this feature. Defaults to 20. The
       <opt>--exit-idle-time</opt> command line option takes
       precedence.</p>
     </option>
