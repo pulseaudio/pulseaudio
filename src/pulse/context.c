@@ -761,22 +761,33 @@ static void track_pulseaudio_on_dbus(pa_context *c, DBusBusType type, pa_dbus_wr
     pa_assert(conn);
 
     dbus_error_init(&error);
+
     if (!(*conn = pa_dbus_wrap_connection_new(c->mainloop, c->use_rtclock, type, &error)) || dbus_error_is_set(&error)) {
         pa_log_warn("Unable to contact DBUS: %s: %s", error.name, error.message);
-        goto finish;
+        goto fail;
     }
 
     if (!dbus_connection_add_filter(pa_dbus_wrap_connection_get(*conn), filter_cb, c, NULL)) {
         pa_log_warn("Failed to add filter function");
-        goto finish;
+        goto fail;
     }
 
     if (pa_dbus_add_matches(
                 pa_dbus_wrap_connection_get(*conn), &error,
-                "type='signal',sender='" DBUS_SERVICE_DBUS "',interface='" DBUS_INTERFACE_DBUS "',member='NameOwnerChanged',arg0='org.pulseaudio.Server',arg1=''", NULL) < 0)
-        pa_log_warn("Unable to track org.pulseaudio.Server: %s: %s", error.name, error.message);
+                "type='signal',sender='" DBUS_SERVICE_DBUS "',interface='" DBUS_INTERFACE_DBUS "',member='NameOwnerChanged',arg0='org.pulseaudio.Server',arg1=''", NULL) < 0) {
 
- finish:
+        pa_log_warn("Unable to track org.pulseaudio.Server: %s: %s", error.name, error.message);
+        goto fail;
+    }
+
+    return;
+
+fail:
+    if (*conn) {
+        pa_dbus_wrap_connection_free(*conn);
+        *conn = NULL;
+    }
+
     dbus_error_free(&error);
 }
 #endif
@@ -861,7 +872,7 @@ static void on_connection(pa_socket_client *client, pa_iochannel*io, void *userd
     c->client = NULL;
 
     if (!io) {
-        /* Try the item in the list */
+        /* Try the next item in the list */
         if (saved_errno == ECONNREFUSED ||
             saved_errno == ETIMEDOUT ||
             saved_errno == EHOSTUNREACH) {
@@ -897,7 +908,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
     /* FIXME: We probably should check if this is actually the NameOwnerChanged we were looking for */
 
     is_session = c->session_bus && bus == pa_dbus_wrap_connection_get(c->session_bus);
-    pa_log_debug("Rock!! PulseAudio is back on %s bus", is_session ? "session" : "system");
+    pa_log_debug("Rock!! PulseAudio might be back on %s bus", is_session ? "session" : "system");
 
     if (is_session)
         /* The user instance via PF_LOCAL */
@@ -937,7 +948,7 @@ int pa_context_connect(
 
     pa_context_ref(c);
 
-    c->no_fail = flags & PA_CONTEXT_NOFAIL;
+    c->no_fail = !!(flags & PA_CONTEXT_NOFAIL);
     c->server_specified = !!server;
     pa_assert(!c->server_list);
 
@@ -954,10 +965,7 @@ int pa_context_connect(
 
         /* Follow the X display */
         if ((d = getenv("DISPLAY"))) {
-            char *e;
-            d = pa_xstrdup(d);
-            if ((e = strchr(d, ':')))
-                *e = 0;
+            d = pa_xstrndup(d, strcspn(d, ":"));
 
             if (*d)
                 c->server_list = pa_strlist_prepend(c->server_list, d);
