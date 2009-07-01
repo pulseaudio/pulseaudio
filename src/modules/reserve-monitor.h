@@ -1,3 +1,5 @@
+/*-*- Mode: C; c-basic-offset: 8; indent-tabs-mode: t -*-*/
+
 #ifndef fooreservemonitorhfoo
 #define fooreservemonitorhfoo
 
@@ -27,6 +29,10 @@
 
 #include <dbus/dbus.h>
 #include <inttypes.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct rm_monitor rm_monitor;
 
@@ -58,5 +64,9 @@ void rm_set_userdata(rm_monitor *m, void *userdata);
 /* Query the userdata pointer from an rm_monitor. Returns NULL if no
  * userdata was set. */
 void* rm_get_userdata(rm_monitor *m);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -1,3 +1,5 @@
+/*-*- Mode: C; c-basic-offset: 8; indent-tabs-mode: t -*-*/
+
 #ifndef fooreservehfoo
 #define fooreservehfoo
 
@@ -27,6 +29,10 @@
 
 #include <dbus/dbus.h>
 #include <inttypes.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct rd_device rd_device;
 
@@ -65,5 +71,9 @@ void rd_set_userdata(rd_device *d, void *userdata);
 /* Query the userdata pointer from an rd_device. Returns NULL if no
  * userdata was set. */
 void* rd_get_userdata(rd_device *d);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
