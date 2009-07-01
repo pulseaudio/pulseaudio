@@ -637,7 +637,7 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
     pa_assert(name);
     pa_assert(e);
 
-    for (si = pa_idxset_first(u->core->sink_inputs, &idx); si; si = pa_idxset_next(u->core->sink_inputs, &idx)) {
+    PA_IDXSET_FOREACH(si, u->core->sink_inputs, idx) {
         char *n;
         pa_sink *s;
 
@@ -655,12 +655,13 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
 
             v = e->volume;
             pa_log_info("Restoring volume for sink input %s.", name);
-            pa_sink_input_set_volume(si, pa_cvolume_remap(&v, &e->channel_map, &si->channel_map), FALSE, FALSE);
+            pa_cvolume_remap(&v, &e->channel_map, &si->channel_map);
+            pa_sink_input_set_volume(si, &v, TRUE, FALSE);
         }
 
         if (u->restore_muted && e->muted_valid) {
             pa_log_info("Restoring mute state for sink input %s.", name);
-            pa_sink_input_set_mute(si, e->muted, FALSE);
+            pa_sink_input_set_mute(si, e->muted, TRUE);
         }
 
         if (u->restore_device &&
@@ -668,11 +669,11 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
             (s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SINK))) {
 
             pa_log_info("Restoring device for stream %s.", name);
-            pa_sink_input_move_to(si, s, FALSE);
+            pa_sink_input_move_to(si, s, TRUE);
         }
     }
 
-    for (so = pa_idxset_first(u->core->source_outputs, &idx); so; so = pa_idxset_next(u->core->source_outputs, &idx)) {
+    PA_IDXSET_FOREACH(so, u->core->source_outputs, idx) {
         char *n;
         pa_source *s;
 
@@ -690,7 +691,7 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
             (s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SOURCE))) {
 
             pa_log_info("Restoring device for stream %s.", name);
-            pa_source_output_move_to(so, s, FALSE);
+            pa_source_output_move_to(so, s, TRUE);
         }
     }
 }
