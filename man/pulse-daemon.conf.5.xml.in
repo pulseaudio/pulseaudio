@@ -204,7 +204,7 @@ USA.
       real-time. The controlling thread is left a normally scheduled
       thread. Thus enabling the high-priority option is orthogonal.
       See <manref section="1" name="pulseaudio"/> for more
-      information. Takes a boolean argument, defaults to "no". The
+      information. Takes a boolean argument, defaults to "yes". The
       <opt>--realtime</opt> command line option takes precedence.</p>
     </option>
 
