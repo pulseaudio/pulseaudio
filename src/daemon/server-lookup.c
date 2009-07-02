@@ -37,7 +37,7 @@
 #include "server-lookup.h"
 
 #define OBJECT_PATH "/org/pulseaudio1/server_lookup"
-#define INTERFACE "org.pulseaudio.ServerLookup1"
+#define INTERFACE "org.PulseAudio.ServerLookup1"
 
 struct pa_dbusobj_server_lookup {
     pa_core *core;
@@ -50,17 +50,31 @@ static const char introspection[] =
     "<node>"
     " <!-- If you are looking for documentation make sure to check out\n"
     "      http://pulseaudio.org/wiki/DBusInterface -->\n"
-    " <interface name=\"" INTERFACE "\">"
-    "  <method name=\"GetAddress\">"
-    "   <arg name=\"result\" type=\"s\" direction=\"out\"/>"
-    "  </method>"
-    " </interface>"
-    " <interface name=\"org.freedesktop.DBus.Introspectable\">"
-    "  <method name=\"Introspect\">"
-    "   <arg name=\"data\" type=\"s\" direction=\"out\"/>"
-    "  </method>"
-    " </interface>"
-    "</node>";
+    " <interface name=\"" INTERFACE "\">\n"
+    "  <property name=\"Address\" type=\"s\" access=\"read\"/>\n"
+    " </interface>\n"
+    " <interface name=\"" DBUS_INTERFACE_INTROSPECTABLE "\">\n"
+    "  <method name=\"Introspect\">\n"
+    "   <arg name=\"data\" type=\"s\" direction=\"out\"/>\n"
+    "  </method>\n"
+    " </interface>\n"
+    " <interface name=\"" DBUS_INTERFACE_PROPERTIES "\">\n"
+    "  <method name=\"Get\">\n"
+    "   <arg name=\"interface_name\" type=\"s\" direction=\"in\"/>\n"
+    "   <arg name=\"property_name\" type=\"s\" direction=\"in\"/>\n"
+    "   <arg name=\"value\" type=\"v\" direction=\"out\"/>\n"
+    "  </method>\n"
+    "  <method name=\"Set\">\n"
+    "   <arg name=\"interface_name\" type=\"s\" direction=\"in\"/>\n"
+    "   <arg name=\"property_name\" type=\"s\" direction=\"in\"/>\n"
+    "   <arg name=\"value\" type=\"v\" direction=\"in\"/>\n"
+    "  </method>\n"
+    "  <method name=\"GetAll\">\n"
+    "   <arg name=\"interface_name\" type=\"s\" direction=\"in\"/>\n"
+    "   <arg name=\"props\" type=\"a{sv}\" direction=\"out\"/>\n"
+    "  </method>\n"
+    " </interface>\n"
+    "</node>\n";
 
 static void unregister_cb(DBusConnection *conn, void *user_data) {
     pa_dbusobj_server_lookup *sl = user_data;
@@ -72,105 +86,352 @@ static void unregister_cb(DBusConnection *conn, void *user_data) {
 }
 
 static DBusHandlerResult handle_introspect(DBusConnection *conn, DBusMessage *msg, pa_dbusobj_server_lookup *sl) {
+    DBusHandlerResult r = DBUS_HANDLER_RESULT_HANDLED;
     const char *i = introspection;
     DBusMessage *reply = NULL;
 
     pa_assert(conn);
     pa_assert(msg);
 
-    if (!(reply = dbus_message_new_method_return(msg)))
-        goto fail;
+    if (!(reply = dbus_message_new_method_return(msg))) {
+        r = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+        goto finish;
+    }
+    if (!dbus_message_append_args(reply, DBUS_TYPE_STRING, &i, DBUS_TYPE_INVALID)) {
+        r = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+        goto finish;
+    }
+    if (!dbus_connection_send(conn, reply, NULL)) {
+        r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+        goto finish;
+    }
 
-    if (!dbus_message_append_args(reply, DBUS_TYPE_STRING, &i, DBUS_TYPE_INVALID))
-        goto fail;
-
-    if (!dbus_connection_send(conn, reply, NULL))
-        goto oom;
-
-    dbus_message_unref(reply);
-
-    return DBUS_HANDLER_RESULT_HANDLED;
-
-fail:
+finish:
     if (reply)
         dbus_message_unref(reply);
 
-    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+    return r;
+}
 
-oom:
-    if (reply)
-        dbus_message_unref(reply);
+enum get_address_result_t {
+    SUCCESS,
+    FAILED_TO_LOAD_CLIENT_CONF,
+    SERVER_FROM_TYPE_FAILED
+};
 
-    return DBUS_HANDLER_RESULT_NEED_MEMORY;
+/* Caller frees the returned address. */
+static enum get_address_result_t get_address(pa_server_type_t server_type, char **address) {
+    enum get_address_result_t r = SUCCESS;
+    pa_client_conf *conf = pa_client_conf_new();
+
+    *address = NULL;
+
+    if (pa_client_conf_load(conf, NULL) < 0) {
+        r = FAILED_TO_LOAD_CLIENT_CONF;
+        goto finish;
+    }
+
+    if (conf->default_dbus_server)
+        *address = pa_xstrdup(conf->default_dbus_server);
+    else if (!(*address = pa_get_dbus_address_from_server_type(server_type))) {
+        r = SERVER_FROM_TYPE_FAILED;
+        goto finish;
+    }
+
+finish:
+    pa_client_conf_free(conf);
+    return r;
 }
 
 static DBusHandlerResult handle_get_address(DBusConnection *conn, DBusMessage *msg, pa_dbusobj_server_lookup *sl) {
+    DBusHandlerResult r = DBUS_HANDLER_RESULT_HANDLED;
     DBusMessage *reply = NULL;
-    pa_client_conf *conf = NULL;
     char *address = NULL;
+    DBusMessageIter msg_iter;
+    DBusMessageIter variant_iter;
 
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(sl);
 
-    conf = pa_client_conf_new();
+    switch (get_address(sl->core->server_type, &address)) {
+        case SUCCESS:
+            if (!(reply = dbus_message_new_method_return(msg))) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            dbus_message_iter_init_append(reply, &msg_iter);
+            if (!dbus_message_iter_open_container(&msg_iter, DBUS_TYPE_VARIANT, "s", &variant_iter)) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            if (!dbus_message_iter_append_basic(&variant_iter, DBUS_TYPE_STRING, &address)) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            if (!dbus_message_iter_close_container(&msg_iter, &variant_iter)) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            if (!dbus_connection_send(conn, reply, NULL)) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            r = DBUS_HANDLER_RESULT_HANDLED;
+            goto finish;
 
-    if (pa_client_conf_load(conf, NULL) < 0) {
-        if (!(reply = dbus_message_new_error(msg, "org.pulseaudio.ClientConfLoadError", "Failed to load client.conf.")))
-            goto fail;
-        if (!dbus_connection_send(conn, reply, NULL))
-            goto oom;
-        return DBUS_HANDLER_RESULT_HANDLED;
+        case FAILED_TO_LOAD_CLIENT_CONF:
+            if (!(reply = dbus_message_new_error(msg, "org.pulseaudio.ClientConfLoadError", "Failed to load client.conf."))) {
+                r = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+                goto finish;
+            }
+            if (!dbus_connection_send(conn, reply, NULL)) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            r = DBUS_HANDLER_RESULT_HANDLED;
+            goto finish;
+
+        case SERVER_FROM_TYPE_FAILED:
+            if (!(reply = dbus_message_new_error(msg, DBUS_ERROR_FAILED, "PulseAudio internal error: get_dbus_server_from_type() failed."))) {
+                r = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+                goto finish;
+            }
+            if (!dbus_connection_send(conn, reply, NULL)) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            r = DBUS_HANDLER_RESULT_HANDLED;
+            goto finish;
+
+        default:
+            pa_assert_not_reached();
     }
 
-    if (conf->default_dbus_server) {
-        address = pa_xstrdup(conf->default_dbus_server);
-    } else {
-        if (!(address = pa_get_dbus_address_from_server_type(sl->core->server_type))) {
-            if (!(reply = dbus_message_new_error(msg, DBUS_ERROR_FAILED, "PulseAudio internal error: get_dbus_server_from_type() failed.")))
-                goto fail;
-            if (!dbus_connection_send(conn, reply, NULL))
-                goto oom;
-            return DBUS_HANDLER_RESULT_HANDLED;
+finish:
+    pa_xfree(address);
+    if (reply)
+        dbus_message_unref(reply);
+
+    return r;
+}
+
+static DBusHandlerResult handle_get(DBusConnection *conn, DBusMessage *msg, pa_dbusobj_server_lookup *sl) {
+    DBusHandlerResult r = DBUS_HANDLER_RESULT_HANDLED;
+    const char* interface;
+    const char* property;
+    DBusMessage *reply = NULL;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(sl);
+
+    if (!dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &interface, DBUS_TYPE_STRING, &property, DBUS_TYPE_INVALID)) {
+        if (!(reply = dbus_message_new_error(msg, DBUS_ERROR_INVALID_ARGS, "Invalid arguments"))) {
+            r = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+            goto finish;
         }
+        if (!dbus_connection_send(conn, reply, NULL)) {
+            r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+            goto finish;
+        }
+        r = DBUS_HANDLER_RESULT_HANDLED;
+        goto finish;
     }
 
-    if (!(reply = dbus_message_new_method_return(msg)))
-        goto oom;
+    if (*interface && !pa_streq(interface, INTERFACE)) {
+        r = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+        goto finish;
+    }
 
-    if (!dbus_message_append_args(reply, DBUS_TYPE_STRING, &address, DBUS_TYPE_INVALID))
-        goto fail;
+    if (!pa_streq(property, "Address")) {
+        if (!(reply = dbus_message_new_error_printf(msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "%s: No such property", property))) {
+            r = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+            goto finish;
+        }
+        if (!dbus_connection_send(conn, reply, NULL)) {
+            r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+            goto finish;
+        }
+        r = DBUS_HANDLER_RESULT_HANDLED;
+        goto finish;
+    }
 
-    if (!dbus_connection_send(conn, reply, NULL))
-        goto oom;
+    r = handle_get_address(conn, msg, sl);
 
-    pa_client_conf_free(conf);
-    pa_xfree(address);
-    dbus_message_unref(reply);
-
-    return DBUS_HANDLER_RESULT_HANDLED;
-
-fail:
-    if (conf)
-        pa_client_conf_free(conf);
-
-    pa_xfree(address);
-
+finish:
     if (reply)
         dbus_message_unref(reply);
 
-    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+    return r;
+}
 
-oom:
-    if (conf)
-        pa_client_conf_free(conf);
+static DBusHandlerResult handle_set(DBusConnection *conn, DBusMessage *msg, pa_dbusobj_server_lookup *sl) {
+    DBusHandlerResult r = DBUS_HANDLER_RESULT_HANDLED;
+    const char* interface;
+    const char* property;
+    DBusMessage *reply = NULL;
 
-    pa_xfree(address);
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(sl);
 
+    if (!dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &interface, DBUS_TYPE_STRING, &property, DBUS_TYPE_INVALID)) {
+        if (!(reply = dbus_message_new_error(msg, DBUS_ERROR_INVALID_ARGS, "Invalid arguments"))) {
+            r = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+            goto finish;
+        }
+        if (!dbus_connection_send(conn, reply, NULL)) {
+            r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+            goto finish;
+        }
+        r = DBUS_HANDLER_RESULT_HANDLED;
+        goto finish;
+    }
+
+    if (*interface && !pa_streq(interface, INTERFACE)) {
+        r = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+        goto finish;
+    }
+
+    if (!pa_streq(property, "Address")) {
+        if (!(reply = dbus_message_new_error_printf(msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "%s: No such property", property))) {
+            r = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+            goto finish;
+        }
+        if (!dbus_connection_send(conn, reply, NULL)) {
+            r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+            goto finish;
+        }
+        r = DBUS_HANDLER_RESULT_HANDLED;
+        goto finish;
+    }
+
+    if (!(reply = dbus_message_new_error_printf(msg, DBUS_ERROR_ACCESS_DENIED, "%s: Property not settable", property))) {
+        r = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+        goto finish;
+    }
+    if (!dbus_connection_send(conn, reply, NULL)) {
+        r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+        goto finish;
+    }
+    r = DBUS_HANDLER_RESULT_HANDLED;
+
+finish:
     if (reply)
         dbus_message_unref(reply);
 
-    return DBUS_HANDLER_RESULT_NEED_MEMORY;
+    return r;
+}
+
+static DBusHandlerResult handle_get_all(DBusConnection *conn, DBusMessage *msg, pa_dbusobj_server_lookup *sl) {
+    DBusHandlerResult r = DBUS_HANDLER_RESULT_HANDLED;
+    DBusMessage *reply = NULL;
+    const char *property = "Address";
+    char *interface = NULL;
+    char *address = NULL;
+    DBusMessageIter msg_iter;
+    DBusMessageIter dict_iter;
+    DBusMessageIter dict_entry_iter;
+    DBusMessageIter variant_iter;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(sl);
+
+    if (!dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &interface, DBUS_TYPE_INVALID)) {
+        if (!(reply = dbus_message_new_error(msg, DBUS_ERROR_INVALID_ARGS, "Invalid arguments"))) {
+            r = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+            goto finish;
+        }
+        if (!dbus_connection_send(conn, reply, NULL)) {
+            r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+            goto finish;
+        }
+        r = DBUS_HANDLER_RESULT_HANDLED;
+        goto finish;
+    }
+
+    switch (get_address(sl->core->server_type, &address)) {
+        case SUCCESS:
+            if (!(reply = dbus_message_new_method_return(msg))) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            dbus_message_iter_init_append(reply, &msg_iter);
+            if (!dbus_message_iter_open_container(&msg_iter, DBUS_TYPE_ARRAY, "{sv}", &dict_iter)) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            if (!dbus_message_iter_open_container(&dict_iter, DBUS_TYPE_DICT_ENTRY, NULL, &dict_entry_iter)) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            if (!dbus_message_iter_append_basic(&dict_entry_iter, DBUS_TYPE_STRING, &property)) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            if (!dbus_message_iter_open_container(&dict_entry_iter, DBUS_TYPE_VARIANT, "s", &variant_iter)) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            if (!dbus_message_iter_append_basic(&variant_iter, DBUS_TYPE_STRING, &address)) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            if (!dbus_message_iter_close_container(&dict_entry_iter, &variant_iter)) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            if (!dbus_message_iter_close_container(&dict_iter, &dict_entry_iter)) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            if (!dbus_message_iter_close_container(&msg_iter, &dict_iter)) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            if (!dbus_connection_send(conn, reply, NULL)) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            r = DBUS_HANDLER_RESULT_HANDLED;
+            goto finish;
+
+        case FAILED_TO_LOAD_CLIENT_CONF:
+            if (!(reply = dbus_message_new_error(msg, "org.pulseaudio.ClientConfLoadError", "Failed to load client.conf."))) {
+                r = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+                goto finish;
+            }
+            if (!dbus_connection_send(conn, reply, NULL)) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            r = DBUS_HANDLER_RESULT_HANDLED;
+            goto finish;
+
+        case SERVER_FROM_TYPE_FAILED:
+            if (!(reply = dbus_message_new_error(msg, DBUS_ERROR_FAILED, "PulseAudio internal error: get_dbus_server_from_type() failed."))) {
+                r = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+                goto finish;
+            }
+            if (!dbus_connection_send(conn, reply, NULL)) {
+                r = DBUS_HANDLER_RESULT_NEED_MEMORY;
+                goto finish;
+            }
+            r = DBUS_HANDLER_RESULT_HANDLED;
+            goto finish;
+
+        default:
+            pa_assert_not_reached();
+    }
+
+finish:
+    pa_xfree(address);
+    if (reply)
+        dbus_message_unref(reply);
+
+    return r;
 }
 
 static DBusHandlerResult message_cb(DBusConnection *conn, DBusMessage *msg, void *user_data) {
@@ -182,11 +443,24 @@ static DBusHandlerResult message_cb(DBusConnection *conn, DBusMessage *msg, void
 
     /* pa_log("Got message! type = %s   path = %s   iface = %s   member = %s   dest = %s", dbus_message_type_to_string(dbus_message_get_type(msg)), dbus_message_get_path(msg), dbus_message_get_interface(msg), dbus_message_get_member(msg), dbus_message_get_destination(msg)); */
 
-    if (dbus_message_is_method_call(msg, "org.freedesktop.DBus.Introspectable", "Introspect"))
+    if (dbus_message_get_type(msg) != DBUS_MESSAGE_TYPE_METHOD_CALL)
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+
+    if (dbus_message_is_method_call(msg, DBUS_INTERFACE_INTROSPECTABLE, "Introspect") ||
+        (!dbus_message_get_interface(msg) && dbus_message_has_member(msg, "Introspect")))
         return handle_introspect(conn, msg, sl);
 
-    if (dbus_message_is_method_call(msg, INTERFACE, "GetAddress"))
-        return handle_get_address(conn, msg, sl);
+    if (dbus_message_is_method_call(msg, DBUS_INTERFACE_PROPERTIES, "Get") ||
+        (!dbus_message_get_interface(msg) && dbus_message_has_member(msg, "Get")))
+        return handle_get(conn, msg, sl);
+
+    if (dbus_message_is_method_call(msg, DBUS_INTERFACE_PROPERTIES, "Set") ||
+        (!dbus_message_get_interface(msg) && dbus_message_has_member(msg, "Set")))
+        return handle_set(conn, msg, sl);
+
+    if (dbus_message_is_method_call(msg, DBUS_INTERFACE_PROPERTIES, "GetAll") ||
+        (!dbus_message_get_interface(msg) && dbus_message_has_member(msg, "GetAll")))
+        return handle_get_all(conn, msg, sl);
 
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }

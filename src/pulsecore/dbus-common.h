@@ -28,9 +28,11 @@
 #include <pulsecore/macro.h>
 
 #define PA_DBUS_DEFAULT_PORT 24883
-#define PA_DBUS_SOCKET_NAME "dbus_socket"
+#define PA_DBUS_SOCKET_NAME "dbus-socket"
 
 #define PA_DBUS_SYSTEM_SOCKET_PATH PA_SYSTEM_RUNTIME_PATH PA_PATH_SEP PA_DBUS_SOCKET_NAME
+
+#define PA_DBUS_ERROR_NO_SUCH_PROPERTY "org.PulseAudio.Core1.NoSuchPropertyError"
 
 /* NOTE: These functions may only be called from the main thread. */
 
@@ -47,17 +49,27 @@ char *pa_get_dbus_address_from_server_type(pa_server_type_t server_type);
  * Introspection requests are handled automatically. For that to work, the
  * caller gives an XML snippet containing the interface introspection element.
  * All interface snippets are automatically combined to provide the final
- * introspection string.
+ * introspection string for the object.
  *
- * The introspection snippet contains the interface name and the methods, but
- * since this function doesn't do XML parsing, the interface name and the set
- * of method names have to be supplied separately. If the interface doesn't
- * contain any methods, NULL may be given as the methods parameter, otherwise
- * the methods parameter must be a NULL-terminated array of strings.
+ * The introspection snippet contains the interface name, the property names
+ * and the method namess, but since this function doesn't do XML parsing, the
+ * information needs to be given separately. Property and method names are
+ * given as a NULL-terminated array of strings. The interface name is used for
+ * message routing, and so are the property and method names too in case the
+ * client doesn't tell which interface he's trying to access; in absence of
+ * interface information from the client, the correct interface is searched
+ * based on the property or method name.
  *
  * Fails and returns a negative number if the object already has the interface
  * registered. */
-int pa_dbus_add_interface(pa_core *c, const char* path, const char* interface, const char * const *methods, const char* introspection_snippet, DBusObjectPathMessageFunction receive_cb, void *userdata);
+int pa_dbus_add_interface(pa_core *c,
+                          const char* path,
+                          const char* interface,
+                          const char * const *properties,
+                          const char * const *methods,
+                          const char* introspection_snippet,
+                          DBusObjectPathMessageFunction receive_cb,
+                          void *userdata);
 
 /* Returns a negative number if the given object doesn't have the given
  * interface registered. */

@@ -48,6 +48,7 @@ struct object_entry {
 
 struct interface_entry {
     char *name;
+    char **properties;
     char **methods;
     char *introspection_snippet;
     DBusObjectPathMessageFunction receive;
@@ -106,48 +107,152 @@ static void update_introspection(struct object_entry *oe) {
 
     buf = pa_strbuf_new();
     pa_strbuf_puts(buf, DBUS_INTROSPECT_1_0_XML_DOCTYPE_DECL_NODE);
-    pa_strbuf_puts(buf, "<node>");
+    pa_strbuf_puts(buf, "<node>\n");
 
     while ((iface_entry = pa_hashmap_iterate(oe->interfaces, &state, NULL)))
         pa_strbuf_puts(buf, iface_entry->introspection_snippet);
 
-    pa_strbuf_puts(buf, " <interface name=\"org.freedesktop.DBus.Introspectable\">"
-                        "  <method name=\"Introspect\">"
-                        "   <arg name=\"data\" type=\"s\" direction=\"out\"/>"
-                        "  </method>"
-                        " </interface>");
+    pa_strbuf_puts(buf, " <interface name=\"" DBUS_INTERFACE_INTROSPECTABLE "\">\n"
+                        "  <method name=\"Introspect\">\n"
+                        "   <arg name=\"data\" type=\"s\" direction=\"out\"/>\n"
+                        "  </method>\n"
+                        " </interface>\n"
+                        " <interface name=\"" DBUS_INTERFACE_PROPERTIES "\">\n"
+                        "  <method name=\"Get\">\n"
+                        "   <arg name=\"interface_name\" type=\"s\" direction=\"in\"/>\n"
+                        "   <arg name=\"property_name\" type=\"s\" direction=\"in\"/>\n"
+                        "   <arg name=\"value\" type=\"v\" direction=\"out\"/>\n"
+                        "  </method>\n"
+                        "  <method name=\"Set\">\n"
+                        "   <arg name=\"interface_name\" type=\"s\" direction=\"in\"/>\n"
+                        "   <arg name=\"property_name\" type=\"s\" direction=\"in\"/>\n"
+                        "   <arg name=\"value\" type=\"v\" direction=\"in\"/>\n"
+                        "  </method>\n"
+                        "  <method name=\"GetAll\">\n"
+                        "   <arg name=\"interface_name\" type=\"s\" direction=\"in\"/>\n"
+                        "   <arg name=\"props\" type=\"a{sv}\" direction=\"out\"/>\n"
+                        "  </method>\n"
+                        " </interface>\n");
 
-    pa_strbuf_puts(buf, "</node>");
+    pa_strbuf_puts(buf, "</node>\n");
 
     pa_xfree(oe->introspection);
     oe->introspection = pa_strbuf_tostring_free(buf);
 }
 
-static struct interface_entry *find_interface(struct object_entry *obj_entry, DBusMessage *msg) {
-    const char *interface;
-    struct interface_entry *iface_entry;
+enum find_result_t {
+    SUCCESS,
+    NO_SUCH_PROPERTY,
+    NO_SUCH_METHOD,
+    INVALID_MESSAGE_ARGUMENTS
+};
+
+static enum find_result_t find_interface_by_property(struct object_entry *obj_entry, const char *property, struct interface_entry **entry) {
     void *state = NULL;
 
     pa_assert(obj_entry);
-    pa_assert(msg);
+    pa_assert(property);
+    pa_assert(entry);
 
-    if ((interface = dbus_message_get_interface(msg)))
-        return pa_hashmap_get(obj_entry->interfaces, interface);
+    while ((*entry = pa_hashmap_iterate(obj_entry->interfaces, &state, NULL))) {
+        char *iface_property;
+        char **pos = (*entry)->properties;
 
-    /* NULL interface, we'll have to search for an interface that contains the
-     * method. */
-
-    while ((iface_entry = pa_hashmap_iterate(obj_entry->interfaces, &state, NULL))) {
-        char *method;
-        char **pos = iface_entry->methods;
-
-        while ((method = *pos++)) {
-            if (!strcmp(dbus_message_get_member(msg), method))
-                return iface_entry;
+        while ((iface_property = *pos++)) {
+            if (pa_streq(iface_property, property))
+                return SUCCESS;
         }
     }
 
-    return NULL;
+    return NO_SUCH_PROPERTY;
+}
+
+static enum find_result_t find_interface_by_method(struct object_entry *obj_entry, const char *method, struct interface_entry **entry) {
+    void *state = NULL;
+
+    pa_assert(obj_entry);
+    pa_assert(method);
+    pa_assert(entry);
+
+    while ((*entry = pa_hashmap_iterate(obj_entry->interfaces, &state, NULL))) {
+        char *iface_method;
+        char **pos = (*entry)->methods;
+
+        while ((iface_method = *pos++)) {
+            if (pa_streq(iface_method, method))
+                return SUCCESS;
+        }
+    }
+
+    return NO_SUCH_METHOD;
+}
+
+static enum find_result_t find_interface_from_properties_call(struct object_entry *obj_entry, DBusMessage *msg, struct interface_entry **entry) {
+    const char *interface;
+    const char *property;
+
+    pa_assert(obj_entry);
+    pa_assert(msg);
+    pa_assert(entry);
+
+    if (dbus_message_has_member(msg, "GetAll")) {
+        if (!dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &interface, DBUS_TYPE_INVALID))
+            return INVALID_MESSAGE_ARGUMENTS;
+
+        if (*interface) {
+            if ((*entry = pa_hashmap_get(obj_entry->interfaces, interface)))
+                return SUCCESS;
+            else
+                return NO_SUCH_METHOD;
+        } else {
+            pa_assert_se((*entry = pa_hashmap_first(obj_entry->interfaces)));
+            return SUCCESS;
+        }
+    } else {
+        pa_assert(dbus_message_has_member(msg, "Get") || dbus_message_has_member(msg, "Set"));
+
+        if (!dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &interface, DBUS_TYPE_STRING, &property, DBUS_TYPE_INVALID))
+            return INVALID_MESSAGE_ARGUMENTS;
+
+        if (*interface) {
+            if ((*entry = pa_hashmap_get(obj_entry->interfaces, interface)))
+                return SUCCESS;
+            else
+                return NO_SUCH_METHOD;
+        } else
+            return find_interface_by_property(obj_entry, property, entry);
+    }
+}
+
+static enum find_result_t find_interface(struct object_entry *obj_entry, DBusMessage *msg, struct interface_entry **entry) {
+    const char *interface;
+
+    pa_assert(obj_entry);
+    pa_assert(msg);
+    pa_assert(entry);
+
+    *entry = NULL;
+
+    if (dbus_message_has_interface(msg, DBUS_INTERFACE_PROPERTIES))
+        return find_interface_from_properties_call(obj_entry, msg, entry);
+
+    else if ((interface = dbus_message_get_interface(msg))) {
+        if ((*entry = pa_hashmap_get(obj_entry->interfaces, interface)))
+            return SUCCESS;
+        else
+            return NO_SUCH_METHOD;
+
+    } else { /* The method call doesn't contain an interface. */
+        if (dbus_message_has_member(msg, "Get") || dbus_message_has_member(msg, "Set") || dbus_message_has_member(msg, "GetAll")) {
+            if (find_interface_by_method(obj_entry, dbus_message_get_member(msg), entry) == SUCCESS)
+                return SUCCESS; /* The object has a method named Get, Set or GetAll in some other interface than .Properties. */
+            else
+                /* Assume this is a .Properties call. */
+                return find_interface_from_properties_call(obj_entry, msg, entry);
+
+        } else /* This is not a .Properties call. */
+            return find_interface_by_method(obj_entry, dbus_message_get_member(msg), entry);
+    }
 }
 
 static DBusHandlerResult handle_message_cb(DBusConnection *connection, DBusMessage *message, void *user_data) {
@@ -166,7 +271,8 @@ static DBusHandlerResult handle_message_cb(DBusConnection *connection, DBusMessa
 
     pa_assert_se((obj_entry = pa_hashmap_get(dbus_state->objects, dbus_message_get_path(message))));
 
-    if (dbus_message_is_method_call(message, "org.freedesktop.DBus.Introspectable", "Introspect")) {
+    if (dbus_message_is_method_call(message, "org.freedesktop.DBus.Introspectable", "Introspect") ||
+        (!dbus_message_get_interface(message) && dbus_message_has_member(message, "Introspect"))) {
         if (!(reply = dbus_message_new_method_return(message)))
             goto oom;
 
@@ -183,10 +289,38 @@ static DBusHandlerResult handle_message_cb(DBusConnection *connection, DBusMessa
         return DBUS_HANDLER_RESULT_HANDLED;
     }
 
-    if (!(iface_entry = find_interface(obj_entry, message)))
-        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+    switch (find_interface(obj_entry, message, &iface_entry)) {
+        case SUCCESS:
+            return iface_entry->receive(connection, message, iface_entry->userdata);
 
-    return iface_entry->receive(connection, message, iface_entry->userdata);
+        case NO_SUCH_PROPERTY:
+            if (!(reply = dbus_message_new_error(message, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "No such property")))
+                goto fail;
+
+            if (!dbus_connection_send(connection, reply, NULL))
+                goto oom;
+
+            dbus_message_unref(reply);
+
+            return DBUS_HANDLER_RESULT_HANDLED;
+
+        case NO_SUCH_METHOD:
+            return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+
+        case INVALID_MESSAGE_ARGUMENTS:
+            if (!(reply = dbus_message_new_error(message, DBUS_ERROR_INVALID_ARGS, "Invalid arguments")))
+                goto fail;
+
+            if (!dbus_connection_send(connection, reply, NULL))
+                goto oom;
+
+            dbus_message_unref(reply);
+
+            return DBUS_HANDLER_RESULT_HANDLED;
+
+        default:
+            pa_assert_not_reached();
+    }
 
 fail:
     if (reply)
@@ -226,23 +360,30 @@ static void register_object(struct dbus_state *dbus_state, struct object_entry *
     }
 }
 
-static char **copy_methods(const char * const *methods) {
+static char **copy_strarray(const char * const *array) {
     unsigned n = 0;
     char **copy;
     unsigned i;
 
-    while (methods[n++])
+    while (array[n++])
         ;
 
     copy = pa_xnew0(char *, n);
 
     for (i = 0; i < n - 1; ++i)
-        copy[i] = pa_xstrdup(methods[i]);
+        copy[i] = pa_xstrdup(array[i]);
 
     return copy;
 }
 
-int pa_dbus_add_interface(pa_core *c, const char* path, const char* interface, const char * const *methods, const char* introspection_snippet, DBusObjectPathMessageFunction receive_cb, void *userdata) {
+int pa_dbus_add_interface(pa_core *c,
+                          const char* path,
+                          const char* interface,
+                          const char * const *properties,
+                          const char * const *methods,
+                          const char* introspection_snippet,
+                          DBusObjectPathMessageFunction receive_cb,
+                          void *userdata) {
     struct dbus_state *dbus_state;
     pa_hashmap *objects;
     struct object_entry *obj_entry;
@@ -283,7 +424,8 @@ int pa_dbus_add_interface(pa_core *c, const char* path, const char* interface, c
 
     iface_entry = pa_xnew(struct interface_entry, 1);
     iface_entry->name = pa_xstrdup(interface);
-    iface_entry->methods = copy_methods(methods);
+    iface_entry->properties = copy_strarray(properties);
+    iface_entry->methods = copy_strarray(methods);
     iface_entry->introspection_snippet = pa_xstrdup(introspection_snippet);
     iface_entry->receive = receive_cb;
     iface_entry->userdata = userdata;
@@ -331,13 +473,13 @@ static void unregister_object(struct dbus_state *dbus_state, struct object_entry
     }
 }
 
-static void free_methods(char **methods) {
-    char **pos = methods;
+static void free_strarray(char **array) {
+    char **pos = array;
 
     while (*pos++)
         pa_xfree(*pos);
 
-    pa_xfree(methods);
+    pa_xfree(array);
 }
 
 int pa_dbus_remove_interface(pa_core *c, const char* path, const char* interface) {
@@ -365,7 +507,8 @@ int pa_dbus_remove_interface(pa_core *c, const char* path, const char* interface
     update_introspection(obj_entry);
 
     pa_xfree(iface_entry->name);
-    free_methods(iface_entry->methods);
+    free_strarray(iface_entry->properties);
+    free_strarray(iface_entry->methods);
     pa_xfree(iface_entry->introspection_snippet);
     pa_xfree(iface_entry);
 
