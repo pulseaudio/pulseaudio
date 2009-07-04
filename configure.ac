@@ -388,6 +388,7 @@ AC_SEARCH_LIBS([timer_create], [rt])
 
 # BSD
 AC_SEARCH_LIBS([connect], [socket])
+AC_SEARCH_LIBS([backtrace], [execinfo])
 
 # Non-standard
 
