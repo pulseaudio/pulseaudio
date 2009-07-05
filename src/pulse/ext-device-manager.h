@@ -28,7 +28,7 @@
 
 /** \file
  *
- * Routines for controlling module-stream-restore
+ * Routines for controlling module-device-manager
  */
 
 PA_C_DECL_BEGIN
