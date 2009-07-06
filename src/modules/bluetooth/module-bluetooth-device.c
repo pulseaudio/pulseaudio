@@ -1319,18 +1319,21 @@ static void thread_func(void *userdata) {
                         if (u->write_index > 0 && audio_to_send > MAX_PLAYBACK_CATCH_UP_USEC) {
                             pa_usec_t skip_usec;
                             uint64_t skip_bytes;
-                            pa_memchunk tmp;
 
                             skip_usec = audio_to_send - MAX_PLAYBACK_CATCH_UP_USEC;
                             skip_bytes = pa_usec_to_bytes(skip_usec, &u->sample_spec);
 
-                            pa_log_warn("Skipping %llu us (= %llu bytes) in audio stream",
-                                        (unsigned long long) skip_usec,
-                                        (unsigned long long) skip_bytes);
+                            if (skip_bytes > 0) {
+                                pa_memchunk tmp;
 
-                            pa_sink_render_full(u->sink, skip_bytes, &tmp);
-                            pa_memblock_unref(tmp.memblock);
-                            u->write_index += skip_bytes;
+                                pa_log_warn("Skipping %llu us (= %llu bytes) in audio stream",
+                                            (unsigned long long) skip_usec,
+                                            (unsigned long long) skip_bytes);
+
+                                pa_sink_render_full(u->sink, skip_bytes, &tmp);
+                                pa_memblock_unref(tmp.memblock);
+                                u->write_index += skip_bytes;
+                            }
                         }
 
                         do_write = 1;
