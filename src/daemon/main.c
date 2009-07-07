@@ -401,28 +401,6 @@ int main(int argc, char *argv[]) {
     pa_log_set_level(PA_LOG_NOTICE);
     pa_log_set_flags(PA_LOG_COLORS|PA_LOG_PRINT_FILE|PA_LOG_PRINT_LEVEL, PA_LOG_RESET);
 
-#if defined(__linux__) && defined(__OPTIMIZE__)
-    /*
-       Disable lazy relocations to make usage of external libraries
-       more deterministic for our RT threads. We abuse __OPTIMIZE__ as
-       a check whether we are a debug build or not.
-    */
-
-    if (!getenv("LD_BIND_NOW")) {
-        char *rp;
-
-        /* We have to execute ourselves, because the libc caches the
-         * value of $LD_BIND_NOW on initialization. */
-
-        pa_set_env("LD_BIND_NOW", "1");
-
-        if ((rp = pa_readlink("/proc/self/exe")))
-            pa_assert_se(execv(rp, argv) == 0);
-        else
-            pa_log_warn("Couldn't read /proc/self/exe, cannot self execute. Running in a chroot()?");
-    }
-#endif
-
     if ((e = getenv("PULSE_PASSED_FD"))) {
         passed_fd = atoi(e);
 

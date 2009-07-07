@@ -113,6 +113,12 @@ CC_CHECK_LDFLAGS([${tmp_ldflag}],
     [VERSIONING_LDFLAGS='-Wl,-version-script=$(srcdir)/map-file'])
 AC_SUBST([VERSIONING_LDFLAGS])
 
+dnl Use immediate (now) bindings; avoids the funky re-call in itself
+dnl  the -z now syntax is lifted from Sun's linker and works with GNU's too
+dnl  other linkes might be added later
+CC_CHECK_LDFLAGS([-Wl,-z,now], [IMMEDIATE_LDFLAGS="-Wl,-z,now"])
+AC_SUBST([IMMEDIATE_LDFLAGS])
+
 dnl Check for the proper way to build libraries that have no undefined
 dnl symbols; on some hosts this needs to be avoided but the macro
 dnl takes care of it.
