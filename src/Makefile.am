@@ -1804,7 +1804,7 @@ BLUETOOTH_SBC_FILES = $(subst modules/bluetooth/,,$(libbluetooth_sbc_la_SOURCES)
 
 libbluetooth_ipc_la_SOURCES = modules/bluetooth/ipc.c modules/bluetooth/ipc.h
 libbluetooth_ipc_la_LDFLAGS = -avoid-version
-libbluetooth_ipc_la_LIBADD = $(AM_LIBADD)libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
+libbluetooth_ipc_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
 libbluetooth_ipc_la_CFLAGS = $(AM_CFLAGS)
 BLUETOOTH_IPC_FILES = $(subst modules/bluetooth/,,$(libbluetooth_ipc_la_SOURCES)) rtp.h
 
