@@ -212,8 +212,8 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                             pa_tagstruct_getu32(t, &i.ports[0][j].priority) < 0) {
 
                             pa_context_fail(o->context, PA_ERR_PROTOCOL);
-                            pa_xfree(i.ports);
                             pa_xfree(i.ports[0]);
+                            pa_xfree(i.ports);
                             pa_proplist_free(i.proplist);
                             goto finish;
                         }
@@ -250,6 +250,10 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                 cb(o->context, &i, 0, o->userdata);
             }
 
+            if (i.ports) {
+                pa_xfree(i.ports[0]);
+                pa_xfree(i.ports);
+            }
             pa_proplist_free(i.proplist);
         }
     }
@@ -479,6 +483,10 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                 cb(o->context, &i, 0, o->userdata);
             }
 
+            if (i.ports) {
+                pa_xfree(i.ports[0]);
+                pa_xfree(i.ports);
+            }
             pa_proplist_free(i.proplist);
         }
     }
