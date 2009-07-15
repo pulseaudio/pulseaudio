@@ -1,4 +1,29 @@
+/***
+This file is part of PulseAudio.
 
+This module is based off Lennart Poettering's LADSPA sink and swaps out
+LADSPA functionality for a STFT OLA based digital equalizer.  All new work
+is published under Pulseaudio's original license.
+Copyright 2009 Jason Newton <nevion@gmail.com>
+
+Original Author:
+Copyright 2004-2008 Lennart Poettering
+
+PulseAudio is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published
+by the Free Software Foundation; either version 2.1 of the License,
+or (at your option) any later version.
+
+PulseAudio is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with PulseAudio; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+USA.
+***/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -25,9 +50,6 @@
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/sample-util.h>
 #include <pulsecore/ltdl-helper.h>
-#include <liboil/liboilfuncs.h>
-#include <liboil/liboil.h>
-
 
 #include <stdint.h>
 #include <time.h>
@@ -50,9 +72,15 @@ struct userdata {
     pa_sink_input *sink_input;
 
     size_t channels;
-    size_t fft_size; //length (res) of fft
-    size_t window_size;//even!
-    size_t overlap_size;
+    size_t fft_size;//length (res) of fft
+    size_t window_size;/*
+                        *sliding window size
+                        *effectively chooses R
+                        */
+    size_t R;/* the hop size between overlapping windows
+              * the latency of the filter, calculated from window_size
+              * based on constraints of COLA and window function
+              */
     size_t samples_gathered;
     size_t n_buffered_output;
     size_t max_output;
@@ -61,6 +89,7 @@ struct userdata {
     float *work_buffer,**input,**overlap_accum,**output_buffer;
     fftwf_complex *output_window;
     fftwf_plan forward_plan,inverse_plan;
+    //size_t samplings;
 
     pa_memblockq *memblockq;
 };
@@ -106,8 +135,9 @@ void hamming_window(float *W,size_t window_size){
         m/=(window_size-1);
         W[i]=.54-.46*cos(2*M_PI*m);
     }
-    W[0]/=2;
-    W[window_size-1]/=2;
+    W[window_size-1]=0;
+    //W[0]/=2;
+    //W[window_size-1]/=2;
 }
 void blackman_window(float *W,size_t window_size){
     //h=.42-.5*cos(2*pi*m)+.08*cos(4*pi*m), m=(0:W-1)/(W-1)
@@ -132,6 +162,10 @@ void sin_window(float *W,size_t window_size){
 
 void array_out(const char *name,float *a,size_t length){
     FILE *p=fopen(name,"w");
+    if(!p){
+        pa_log("opening %s failed!",name);
+        return;
+    }
     for(size_t i=0;i<length;++i){
         fprintf(p,"%e,",a[i]);
         //if(i%1000==0){
@@ -213,7 +247,6 @@ static void sink_update_requested_latency(pa_sink *s) {
 static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk) {
     struct userdata *u;
     float *src, *dst;
-    size_t c;
     pa_memchunk tchunk;
     pa_sink_input_assert_ref(i);
     pa_assert(chunk);
@@ -229,7 +262,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     if(u->n_buffered_output>0){
         //pa_log("outputing %ld buffered samples",u->n_buffered_output);
         chunk->index = 0;
-        size_t n_outputable=PA_MIN(u->n_buffered_output,nbytes/fs);
+        size_t n_outputable=PA_MIN(u->n_buffered_output,u->max_output);
         chunk->length = n_outputable*fs;
         chunk->memblock = pa_memblock_new(i->sink->core->mempool, chunk->length);
         pa_memblockq_drop(u->memblockq, chunk->length);
@@ -245,10 +278,11 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     pa_assert_se(u->n_buffered_output==0);
 
     //collect the minimum number of samples
-    while(u->samples_gathered < (u->window_size-u->overlap_size)){
+    //TODO figure out a better way of buffering the needed
+    //number of samples, this doesn't seem to work correctly
+    while(u->samples_gathered < u->R){
         //render some new fragments to our memblockq
-        //size_t desired_samples=PA_MIN(u->min_input-samples_gathered,u->max_output);
-        size_t desired_samples=PA_MIN((u->window_size-u->overlap_size)-u->samples_gathered,u->max_output);
+        size_t desired_samples=PA_MIN(u->R-u->samples_gathered,u->max_output);
         while (pa_memblockq_peek(u->memblockq, &tchunk) < 0) {
             pa_memchunk nchunk;
 
@@ -259,137 +293,80 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
         if(tchunk.length/fs!=desired_samples){
             pa_log("got %ld samples, asked for %ld",tchunk.length/fs,desired_samples);
         }
-        size_t n_samples=PA_MIN(tchunk.length/fs,u->window_size-u->overlap_size-u->samples_gathered);
+        size_t n_samples=PA_MIN(tchunk.length/fs,u->R-u->samples_gathered);
         //TODO: figure out what to do with rest of the samples when there's too many (rare?)
         src = (float*) ((uint8_t*) pa_memblock_acquire(tchunk.memblock) + tchunk.index);
         for (size_t c=0;c<u->channels;c++) {
-            pa_sample_clamp(PA_SAMPLE_FLOAT32NE,u->input[c]+u->overlap_size+u->samples_gathered,sizeof(float), src+c, fs, n_samples);
+            pa_sample_clamp(PA_SAMPLE_FLOAT32NE,u->input[c]+(u->window_size-u->R)+u->samples_gathered,sizeof(float), src+c, fs, n_samples);
         }
-
         u->samples_gathered+=n_samples;
         pa_memblock_release(tchunk.memblock);
         pa_memblock_unref(tchunk.memblock);
     }
     //IT should be this guy if we're buffering like how its supposed to
-    //size_t n_outputable=PA_MIN(u->window_size-u->overlap_size,nbytes/fs);
+    //size_t n_outputable=PA_MIN(u->window_size-u->R,u->max_output);
     //This one takes into account the actual data gathered but then the dsp
     //stuff is wrong when the buffer "underruns"
-    size_t n_outputable=PA_MIN(u->samples_gathered,nbytes/fs);
-    /*
-    //debugging: tests if immediate release of freshly buffered data
-    //plays ok and prevents any other processing
-    chunk->index=0;
-    chunk->length=n_outputable*fs;
-    chunk->memblock = pa_memblock_new(i->sink->core->mempool, chunk->length);
-    pa_memblockq_drop(u->memblockq, chunk->length);
-    dst = (float*) pa_memblock_acquire(chunk->memblock);;
-    for (size_t c=0;c<u->channels;c++) {
-        pa_sample_clamp(PA_SAMPLE_FLOAT32NE, dst+c, fs, u->input[c]+u->overlap_size, sizeof(float),n_outputable);
-    }
-    u->samples_gathered=0;
-    pa_memblock_release(chunk->memblock);
-    return 0;
-    */
+    size_t n_outputable=PA_MIN(u->R,u->max_output);
 
-    //pa_log("%ld dequed samples",u->samples_gathered);
 
     chunk->index=0;
     chunk->length=n_outputable*fs;
     chunk->memblock = pa_memblock_new(i->sink->core->mempool, chunk->length);
     pa_memblockq_drop(u->memblockq, chunk->length);
     dst = (float*) pa_memblock_acquire(chunk->memblock);
-    //pa_sample_clamp(PA_SAMPLE_FLOAT32NE, u->input, sizeof(float), src+c, fs, samples);
-    //pa_sample_clamp(PA_SAMPLE_FLOAT32NE, dst+c,fs, u->input, sizeof(float), samples);
-
-    /*
-    struct timespec start, end;
-    uint64_t elapsed;
-    clock_gettime(CLOCK_MONOTONIC, &start);
-    */
-    //use a zero-phase sliding dft and overlap-add method
 
     pa_assert_se(u->fft_size>=u->window_size);
-    //pa_assert_se(u->window_size%2==0);
-    pa_assert_se(u->overlap_size<u->window_size);
-    pa_assert_se(u->samples_gathered>=u->window_size-u->overlap_size);
-    size_t sample_rem=u->window_size-u->overlap_size-n_outputable;
-    //size_t w_mid=u->window_size/2;
-    //pa_log("hello world a");
-    for (c=0;c<u->channels;c++) {
-        //center the data for zero phase
-        //zero-pad TODO: optimization if sure these zeros aren't overwritten
-        //memset(u->work_buffer+w_mid,0,(u->fft_size-u->window_size)*sizeof(float));
+    pa_assert_se(u->R<u->window_size);
+    pa_assert_se(u->samples_gathered>=u->R);
+    size_t sample_rem=u->R-n_outputable;
+    //use a linear-phase sliding STFT and overlap-add method (for each channel)
+    for (size_t c=0;c<u->channels;c++) {
+        ////zero padd the data
         //memset(u->work_buffer,0,u->fft_size*sizeof(float));
-        /*
-        for(size_t j=0;j<u->window_size;++j){
-            u->work_buffer[j]=u->W[j]*u->input[c][j];
-            u->work_buffer[j]=u->input[c][j];
-        }
-        */
-        //zero padd the data, don't worry about zerophase, shouldn't really matter
-        memset(u->work_buffer+u->overlap_size,0,(u->fft_size-u->overlap_size)*sizeof(float));
-        //window the data
+        memset(u->work_buffer+u->window_size,0,(u->fft_size-u->window_size)*sizeof(float));
+        ////window the data
         for(size_t j=0;j<u->window_size;++j){
             u->work_buffer[j]=u->W[j]*u->input[c][j];
         }
-        /*
-        //recenter for zero phase
-        for(size_t j=0;j<w_mid;++j){
-            float tmp=u->work_buffer[j];
-            u->work_buffer[j]=u->input[c][j+w_mid];
-            u->work_buffer[j+u->fft_size-w_mid]=tmp;
-        }
-        */
-        //pa_log("hello world b");
-
-        /*
-        //window and zero phase shift
-        for(size_t j=0;j<w_mid;++j){
-            //u->work_buffer[j]=u->input[c][j+w_mid];
-            //u->work_buffer[j+u->fft_size-w_mid]=u->input[c][j];
-            u->work_buffer[j]=u->W[j+w_mid]*u->input[c][j+w_mid];
-            u->work_buffer[j+u->fft_size-w_mid]=u->W[j]*u->input[c][j];
-        }*/
         //Processing is done here!
         //do fft
+        //char fname[1024];
+        //if(u->samplings==200){
+        //    pa_assert_se(0);
+        //}
+
+        //this iterations input
+        //sprintf(fname,"/home/jason/input%ld-%ld.txt",u->samplings+1,c);
+        //array_out(fname,u->input[c]+(u->window_size-u->R),u->R);
+
         fftwf_execute_dft_r2c(u->forward_plan,u->work_buffer,u->output_window);
         //perform filtering
         for(size_t j=0;j<u->fft_size/2+1;++j){
-            ////identity transform (fft size)
-            //u->output_window[j][0]/=u->fft_size;
-            //u->output_window[j][1]/=u->fft_size;
-            ////identity transform (window size)
-            //u->output_window[j][0]/=u->window_size;
-            //u->output_window[j][1]/=u->window_size;
-            //filtered
             u->output_window[j][0]*=u->H[j];
             u->output_window[j][1]*=u->H[j];
         }
-        //inverse fft
+        ////inverse fft
         fftwf_execute_dft_c2r(u->inverse_plan,u->output_window,u->work_buffer);
+        //the output for the previous iteration's input
+        //sprintf(fname,"/home/jason/output%ld-%ld.txt",u->samplings,c);
+        //array_out(fname,u->work_buffer,u->window_size);
 
-        /*
-        //uncenter the data
-        for(size_t j=0;j<w_mid;++j){
-            const float tmp=u->work_buffer[j];
-            u->work_buffer[j]=u->work_buffer[j+u->fft_size-w_mid];
-            u->work_buffer[j+w_mid]=tmp;
+
+        ////debug: tests overlaping add
+        ////and negates ALL PREVIOUS processing
+        ////yields a perfect reconstruction if COLA is held
+        //for(size_t j=0;j<u->window_size;++j){
+        //    u->work_buffer[j]=u->W[j]*u->input[c][j];
+        //}
+
+        //overlap add and preserve overlap component from this window (linear phase)
+        for(size_t j=0;j<u->R;++j){
+            u->work_buffer[j]+=u->overlap_accum[c][j];
+            u->overlap_accum[c][j]=u->work_buffer[u->window_size-u->R+j];
         }
-        */
-        /*
-        //divide out fft gain (more stable here?)
-        for(size_t j=0;j<u->window_size;++j){
-            u->work_buffer[j]/=u->fft_size;
-        }
-        */
-        /*
-        //debug: tests overlaping add
-        //and negates ALL PREVIOUS processing
-        //yields a perfect reconstruction if COLA is held
-        for(size_t j=0;j<u->window_size;++j){
-            u->work_buffer[j]=u->W[j]*u->input[c][j];
-        }
-        */
+
+
         /*
         //debug: tests if basic buffering works
         //shouldn't modify the signal AT ALL
@@ -398,40 +375,20 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
         }
         */
 
-        /*
-        //overlap add and preserve overlap component from this window (zero phase)
-        for(size_t j=0;j<u->overlap_size;++j){
-            u->work_buffer[j]+=u->overlap_accum[c][j];
-            u->overlap_accum[c][j]=u->work_buffer[u->window_size-u->overlap_size+j];
-        }
-        */
-        //overlap add and preserve overlap component from this window (linear phase)
-        for(size_t j=0;j<u->overlap_size;++j){
-            u->work_buffer[j]+=u->overlap_accum[c][j];
-            u->overlap_accum[c][j]=u->work_buffer[u->window_size-u->overlap_size+j];
-        }
-
         //preseve the needed input for the next windows overlap
-        memmove(u->input[c],u->input[c]+u->overlap_size,(u->window_size-u->overlap_size)*sizeof(float));
+        memmove(u->input[c],u->input[c]+u->R,
+            (u->window_size-u->R)*sizeof(float)
+        );
         //output the samples that are outputable now
         pa_sample_clamp(PA_SAMPLE_FLOAT32NE, dst+c, fs, u->work_buffer, sizeof(float),n_outputable);
         //buffer the rest of them
         memcpy(u->output_buffer[c]+u->n_buffered_output,u->work_buffer+n_outputable,sample_rem*sizeof(float));
+
     }
-    /*
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    elapsed=time_diff(&end, &start);
-    pa_log("processed: %ld, time: %ld",u->samples_gathered,elapsed);
-    */
+    //u->samplings++;
     u->n_buffered_output+=sample_rem;
     u->samples_gathered=0;
-
-
-    //pa_log("%ld samples queued",u->n_buffered_output);
-
     pa_memblock_release(chunk->memblock);
-
-
     return 0;
 }
 
@@ -456,6 +413,8 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
         if (amount > 0) {
             pa_memblockq_seek(u->memblockq, - (int64_t) amount, PA_SEEK_RELATIVE, TRUE);
             pa_log_debug("Resetting equalizer");
+            u->n_buffered_output=0;
+            u->samples_gathered=0;
         }
     }
 
@@ -621,18 +580,12 @@ int pa__init(pa_module*m) {
     u->sink_input = NULL;
     u->memblockq = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH, 0, fs, 1, 1, 0, NULL);
 
-    //u->fft_size=44100;
-    //u->fft_size=48000;
-    //u->fft_size=1024;
+    //u->samplings=0;
     u->channels=ss.channels;
     u->fft_size=pow(2,ceil(log(ss.rate)/log(2)));
-    //u->fft_size=ss.rate;
-    //u->fft_size=65536;
     pa_log("fft size: %ld",u->fft_size);
-    u->window_size=8001;
-    u->overlap_size=(u->window_size+1)/2;
-    //u->overlap_size=u->window_size/2;
-    //u->overlap_size=0;
+    u->window_size=7999;
+    u->R=(u->window_size+1)/2;
     u->samples_gathered=0;
     u->n_buffered_output=0;
     u->max_output=pa_frame_align(pa_mempool_block_size_max(m->core->mempool), &ss)/pa_frame_size(&ss);
@@ -645,34 +598,26 @@ int pa__init(pa_module*m) {
     for(size_t c=0;c<u->channels;++c){
         u->input[c]=(float*) fftwf_malloc(u->window_size*sizeof(float));
         memset(u->input[c],0,u->window_size*sizeof(float));
-        u->overlap_accum[c]=(float*) fftwf_malloc(u->overlap_size*sizeof(float));
-        memset(u->overlap_accum[c],0,u->overlap_size*sizeof(float));
+        u->overlap_accum[c]=(float*) fftwf_malloc(u->R*sizeof(float));
+        memset(u->overlap_accum[c],0,u->R*sizeof(float));
         u->output_buffer[c]=(float*) fftwf_malloc(u->window_size*sizeof(float));
     }
     u->output_window = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex) * (u->fft_size/2+1));
     u->forward_plan=fftwf_plan_dft_r2c_1d(u->fft_size, u->work_buffer, u->output_window, FFTW_ESTIMATE);
     u->inverse_plan=fftwf_plan_dft_c2r_1d(u->fft_size, u->output_window, u->work_buffer, FFTW_ESTIMATE);
-
     /*
-    //rectangular window
     for(size_t j=0;j<u->window_size;++j){
-        u->W[j]=1.0;
+        u->W[j]=.5;
     }
     */
-    //hanning_normalized_window(u->W,u->window_size);
     hanning_window(u->W,u->window_size);
-    //sin_window(u->W,u->window_size);
-    array_out("/home/jason/window.txt",u->W,u->window_size);
-    //u->forward_plan=fftwf_plan_dft_r2c_1d(u->fft_size, u->input, u->output_window, FFTW_ESTIMATE);
-    //u->inverse_plan=fftwf_plan_dft_c2r_1d(u->fft_size, u->output_window, u->work_buffer, FFTW_ESTIMATE);
-    //u->forward_plan=fftwf_plan_dft_r2c_1d(u->fft_size, u->input, u->output, FFTW_MEASURE);
-    //u->inverse_plan=fftwf_plan_dft_c2r_1d(u->fft_size, u->output, u->input, FFTW_MEASURE);
+
     const int freqs[]={0,25,50,100,200,300,400,800,1500,
         2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,
         13000,14000,15000,16000,17000,18000,19000,20000,21000,22000,23000,24000,INT_MAX};
-    const float coefficients[]={1,1,1,1,1,1,1,1,1,1,
-        1,1,1,1,1,1,1,1,
-        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+    const float coefficients[]={.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,
+        .1,.1,.1,.1,.1,.1,.1,.1,
+        .1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1};
     const size_t ncoefficients=sizeof(coefficients)/sizeof(float);
     pa_assert_se(sizeof(freqs)/sizeof(int)==sizeof(coefficients)/sizeof(float));
     float *freq_translated=(float *) malloc(sizeof(float)*(ncoefficients));
@@ -683,13 +628,13 @@ int pa__init(pa_module*m) {
         //pa_log("i: %ld: %d , %g",i,freqs[i],freq_translated[i]);
         pa_assert_se(freq_translated[i]>=freq_translated[i-1]);
     }
-    freq_translated[ncoefficients-1]=DBL_MAX;
+    freq_translated[ncoefficients-1]=FLT_MAX;
     //Interpolate the specified frequency band values
     u->H[0]=1;
     for(size_t i=1,j=0;i<(u->fft_size/2+1);++i){
         pa_assert_se(j<ncoefficients);
         //max frequency range passed, consider the rest as one band
-        if(freq_translated[j+1]>=DBL_MAX){
+        if(freq_translated[j+1]>=FLT_MAX){
             for(;i<(u->fft_size/2+1);++i){
                 u->H[i]=coefficients[j];
             }
@@ -709,9 +654,8 @@ int pa__init(pa_module*m) {
             j++;
         }
     }
-    array_out("/home/jason/coffs.txt",u->H,u->fft_size/2+1);
     //divide out the fft gain
-    for(int i=0;i<(u->fft_size/2+1);++i){
+    for(size_t i=0;i<(u->fft_size/2+1);++i){
         u->H[i]/=u->fft_size;
     }
     free(freq_translated);
