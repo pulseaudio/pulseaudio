@@ -49,5 +49,8 @@ pa_envelope_item *pa_envelope_replace(pa_envelope *e, pa_envelope_item *i, const
 void pa_envelope_remove(pa_envelope *e, pa_envelope_item *i);
 void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk);
 void pa_envelope_rewind(pa_envelope *e, size_t n_bytes);
+void pa_envelope_restart(pa_envelope* e);
+pa_bool_t pa_envelope_is_finished(pa_envelope* e);
+int32_t pa_envelope_length(pa_envelope *e);
 
 #endif
