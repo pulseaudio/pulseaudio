@@ -1599,10 +1599,14 @@ static void sync_input_volumes_within_thread(pa_sink *s) {
     pa_sink_assert_ref(s);
 
     while ((i = PA_SINK_INPUT(pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)))) {
+        if (pa_atomic_load(&i->before_ramping_v))
+            i->thread_info.future_soft_volume = i->soft_volume;
+
         if (pa_cvolume_equal(&i->thread_info.soft_volume, &i->soft_volume))
             continue;
 
-        i->thread_info.soft_volume = i->soft_volume;
+        if (!pa_atomic_load(&i->before_ramping_v))
+            i->thread_info.soft_volume = i->soft_volume;
         pa_sink_input_request_rewind(i, 0, TRUE, FALSE, FALSE);
     }
 }
