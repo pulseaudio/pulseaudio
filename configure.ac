@@ -119,6 +119,15 @@ dnl  other linkes might be added later
 CC_CHECK_LDFLAGS([-Wl,-z,now], [IMMEDIATE_LDFLAGS="-Wl,-z,now"])
 AC_SUBST([IMMEDIATE_LDFLAGS])
 
+dnl On ELF systems we don't want the libraries to be unloaded since we
+dnl don't clean them up properly, so we request the nodelete flag to be
+dnl enabled.
+dnl
+dnl On other systems, we don't really know how to do that, but it's
+dnl welcome if somebody can tell.
+CC_CHECK_LDFLAGS([-Wl,-z,nodelete], [NODELETE_LDFLAGS="-Wl,-z,nodelete"])
+AC_SUBST([NODELETE_LDFLAGS])
+
 dnl Check for the proper way to build libraries that have no undefined
 dnl symbols; on some hosts this needs to be avoided but the macro
 dnl takes care of it.
