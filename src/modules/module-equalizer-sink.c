@@ -259,6 +259,33 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
         return -1;
 
+    //collect the minimum number of samples
+    //TODO figure out a better way of buffering the needed
+    //number of samples, this doesn't seem to work correctly
+    //most of the itme
+    if(u->samples_gathered < u->R){
+        //render some new fragments to our memblockq
+        size_t desired_samples=PA_MIN(u->R-u->samples_gathered,u->max_output);
+        while (pa_memblockq_peek(u->memblockq, &tchunk) < 0) {
+            pa_memchunk nchunk;
+
+            pa_sink_render(u->sink, desired_samples*fs, &nchunk);
+            pa_memblockq_push(u->memblockq, &nchunk);
+            pa_memblock_unref(nchunk.memblock);
+        }
+        if(tchunk.length/fs!=desired_samples){
+            pa_log("got %ld samples, asked for %ld",tchunk.length/fs,desired_samples);
+        }
+        size_t n_samples=PA_MIN(tchunk.length/fs,u->R-u->samples_gathered);
+        pa_assert_se(n_samples<=u->R-u->samples_gathered);
+        src = (float*) ((uint8_t*) pa_memblock_acquire(tchunk.memblock) + tchunk.index);
+        for (size_t c=0;c<u->channels;c++) {
+            pa_sample_clamp(PA_SAMPLE_FLOAT32NE,u->input[c]+(u->window_size-u->R)+u->samples_gathered,sizeof(float), src+c, fs, n_samples);
+        }
+        u->samples_gathered+=n_samples;
+        pa_memblock_release(tchunk.memblock);
+        pa_memblock_unref(tchunk.memblock);
+    }
     //output any buffered outputs first
     if(u->n_buffered_output>0){
         //pa_log("outputing %ld buffered samples",u->n_buffered_output);
@@ -278,38 +305,14 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     }
     pa_assert_se(u->n_buffered_output==0);
 
-    //collect the minimum number of samples
-    //TODO figure out a better way of buffering the needed
-    //number of samples, this doesn't seem to work correctly
-    while(u->samples_gathered < u->R){
-        //render some new fragments to our memblockq
-        size_t desired_samples=PA_MIN(u->R-u->samples_gathered,u->max_output);
-        while (pa_memblockq_peek(u->memblockq, &tchunk) < 0) {
-            pa_memchunk nchunk;
-
-            pa_sink_render(u->sink, desired_samples*fs, &nchunk);
-            pa_memblockq_push(u->memblockq, &nchunk);
-            pa_memblock_unref(nchunk.memblock);
-        }
-        if(tchunk.length/fs!=desired_samples){
-            pa_log("got %ld samples, asked for %ld",tchunk.length/fs,desired_samples);
-        }
-        size_t n_samples=PA_MIN(tchunk.length/fs,u->R-u->samples_gathered);
-        //TODO: figure out what to do with rest of the samples when there's too many (rare?)
-        src = (float*) ((uint8_t*) pa_memblock_acquire(tchunk.memblock) + tchunk.index);
-        for (size_t c=0;c<u->channels;c++) {
-            pa_sample_clamp(PA_SAMPLE_FLOAT32NE,u->input[c]+(u->window_size-u->R)+u->samples_gathered,sizeof(float), src+c, fs, n_samples);
-        }
-        u->samples_gathered+=n_samples;
-        pa_memblock_release(tchunk.memblock);
-        pa_memblock_unref(tchunk.memblock);
+    if(u->samples_gathered<u->R){
+        return -1;
     }
     //IT should be this guy if we're buffering like how its supposed to
     //size_t n_outputable=PA_MIN(u->window_size-u->R,u->max_output);
     //This one takes into account the actual data gathered but then the dsp
     //stuff is wrong when the buffer "underruns"
-    size_t n_outputable=PA_MIN(u->R,u->max_output);
-
+    size_t n_outputable=PA_MIN(u->R,u->max_output)*(u->R==u->samples_gathered);
 
     chunk->index=0;
     chunk->length=n_outputable*fs;
@@ -319,7 +322,6 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
 
     pa_assert_se(u->fft_size>=u->window_size);
     pa_assert_se(u->R<u->window_size);
-    pa_assert_se(u->samples_gathered>=u->R);
     size_t sample_rem=u->R-n_outputable;
     //use a linear-phase sliding STFT and overlap-add method (for each channel)
     for (size_t c=0;c<u->channels;c++) {
@@ -389,6 +391,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     //u->samplings++;
     u->n_buffered_output+=sample_rem;
     u->samples_gathered=0;
+end:
     pa_memblock_release(chunk->memblock);
     return 0;
 }
