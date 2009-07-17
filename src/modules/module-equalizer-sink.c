@@ -251,8 +251,9 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     pa_sink_input_assert_ref(i);
     pa_assert(chunk);
     pa_assert_se(u = i->userdata);
-    size_t fs = pa_frame_size(&u->sink->sample_spec);
-    size_t ss=pa_sample_size(&u->sink->sample_spec);
+    pa_assert_se(u->sink);
+    size_t fs = pa_frame_size(&(u->sink->sample_spec));
+    size_t ss=pa_sample_size(&(u->sink->sample_spec));
     size_t fe = fs/ss;
 
     if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
@@ -597,10 +598,14 @@ int pa__init(pa_module*m) {
     u->output_buffer=(float **)malloc(sizeof(float *)*u->channels);
     for(size_t c=0;c<u->channels;++c){
         u->input[c]=(float*) fftwf_malloc(u->window_size*sizeof(float));
+        pa_assert_se(u->input[c]);
         memset(u->input[c],0,u->window_size*sizeof(float));
+        pa_assert_se(u->input[c]);
         u->overlap_accum[c]=(float*) fftwf_malloc(u->R*sizeof(float));
+        pa_assert_se(u->overlap_accum[c]);
         memset(u->overlap_accum[c],0,u->R*sizeof(float));
         u->output_buffer[c]=(float*) fftwf_malloc(u->window_size*sizeof(float));
+        pa_assert_se(u->output_buffer[c]);
     }
     u->output_window = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex) * (u->fft_size/2+1));
     u->forward_plan=fftwf_plan_dft_r2c_1d(u->fft_size, u->work_buffer, u->output_window, FFTW_ESTIMATE);
@@ -615,9 +620,9 @@ int pa__init(pa_module*m) {
     const int freqs[]={0,25,50,100,200,300,400,800,1500,
         2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,
         13000,14000,15000,16000,17000,18000,19000,20000,21000,22000,23000,24000,INT_MAX};
-    const float coefficients[]={.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,
-        .1,.1,.1,.1,.1,.1,.1,.1,
-        .1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1,.1};
+    const float coefficients[]={1,1,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
     const size_t ncoefficients=sizeof(coefficients)/sizeof(float);
     pa_assert_se(sizeof(freqs)/sizeof(int)==sizeof(coefficients)/sizeof(float));
     float *freq_translated=(float *) malloc(sizeof(float)*(ncoefficients));
