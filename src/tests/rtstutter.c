@@ -67,7 +67,9 @@ static void* work(void *p) {
         pa_log_notice("CPU%i: Sleeping for 1s", PA_PTR_TO_UINT(p));
         sleep(1);
 
+#ifdef CLOCK_REALTIME
         pa_assert_se(clock_gettime(CLOCK_REALTIME, &end) == 0);
+#endif
 
         nsec =
             (uint64_t) ((((double) rand())*(double)(msec_upper-msec_lower)*PA_NSEC_PER_MSEC)/RAND_MAX) +
@@ -84,7 +86,9 @@ static void* work(void *p) {
         }
 
         do {
+#ifdef CLOCK_REALTIME
             pa_assert_se(clock_gettime(CLOCK_REALTIME, &now) == 0);
+#endif
         } while (now.tv_sec < end.tv_sec ||
                  (now.tv_sec == end.tv_sec && now.tv_nsec < end.tv_nsec));
     }
