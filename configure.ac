@@ -74,6 +74,9 @@ case $host in
       AC_DEFINE(_XOPEN_SOURCE,        600, Needed to get declarations for msg_control and msg_controllen on Solaris)
       AC_DEFINE(__EXTENSIONS__,         1, Needed to get declarations for msg_control and msg_controllen on Solaris)
       ;;
+   *-*-darwin* )
+      AC_DEFINE([_POSIX_C_SOURCE], [200112L], [Needed to get clock_gettime on Mac OS X])
+      ;;
 esac
 
 AM_SILENT_RULES([yes])
