@@ -76,6 +76,7 @@ case $host in
       ;;
    *-*-darwin* )
       AC_DEFINE([_POSIX_C_SOURCE], [200112L], [Needed to get clock_gettime on Mac OS X])
+      AC_DEFINE([_DARWIN_C_SOURCE], [200112L], [Needed to get NSIG on Mac OS X])
       ;;
 esac
 
