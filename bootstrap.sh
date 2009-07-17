@@ -42,20 +42,14 @@ set -ex
 
 case $(uname) in
 	*Darwin*)
-		CP_OPTS="-R"
-		CHMOD_OPTS=""
 		LIBTOOLIZE="glibtoolize"
-		;;
-	*)
-		CP_OPTS="-av"
-		CHMOD_OPTS="-c"
 		;;
 esac
 
 if [ -f .git/hooks/pre-commit.sample -a ! -f .git/hooks/pre-commit ] ; then
     echo "Activating pre-commit hook."
-    cp ${CP_OPTS}  .git/hooks/pre-commit.sample .git/hooks/pre-commit
-    chmod ${CHMOD_OPTS} +x  .git/hooks/pre-commit
+    cp -pv  .git/hooks/pre-commit.sample .git/hooks/pre-commit
+    chmod -v +x  .git/hooks/pre-commit
 fi
 
 if [ -f .tarball-version ]; then
