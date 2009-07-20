@@ -867,7 +867,7 @@ static void automatic_buffer_attr(pa_stream *s, pa_buffer_attr *attr, const pa_s
 
 void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_stream *s = userdata;
-    uint32_t requested_bytes;
+    uint32_t requested_bytes = 0;
 
     pa_assert(pd);
     pa_assert(s);
