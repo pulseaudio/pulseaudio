@@ -54,10 +54,11 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
+        "sink_properties=<properties for the sink> "
         "file=<path of the FIFO> "
         "format=<sample format> "
-        "channels=<number of channels> "
         "rate=<sample rate>"
+        "channels=<number of channels> "
         "channel_map=<channel map>");
 
 #define DEFAULT_FILE_NAME "fifo_output"
@@ -83,11 +84,12 @@ struct userdata {
 };
 
 static const char* const valid_modargs[] = {
-    "file",
-    "rate",
-    "format",
-    "channels",
     "sink_name",
+    "sink_properties",
+    "file",
+    "format",
+    "rate",
+    "channels",
     "channel_map",
     NULL
 };
@@ -168,7 +170,6 @@ static void thread_func(void *userdata) {
     pa_log_debug("Thread starting up");
 
     pa_thread_mq_install(&u->thread_mq);
-    pa_rtpoll_install(u->rtpoll);
 
     for (;;) {
         struct pollfd *pollfd;
@@ -279,6 +280,12 @@ int pa__init(pa_module*m) {
     pa_sink_new_data_set_sample_spec(&data, &ss);
     pa_sink_new_data_set_channel_map(&data, &map);
 
+    if (pa_modargs_get_proplist(ma, "sink_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties");
+        pa_sink_new_data_done(&data);
+        goto fail;
+    }
+
     u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY);
     pa_sink_new_data_done(&data);
 
@@ -292,6 +299,8 @@ int pa__init(pa_module*m) {
 
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
+    pa_sink_set_max_request(u->sink, PIPE_BUF);
+    pa_sink_set_fixed_latency(u->sink, pa_bytes_to_usec(PIPE_BUF, &u->sink->sample_spec));
 
     u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
     pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);

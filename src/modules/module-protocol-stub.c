@@ -251,7 +251,7 @@ int pa__init(pa_module*m) {
     int r;
 #endif
 
-#if defined(USE_PROTOCOL_NATIVE)
+#if defined(USE_PROTOCOL_NATIVE) || defined(USE_PROTOCOL_HTTP)
     char t[256];
 #endif
 
@@ -382,6 +382,24 @@ int pa__init(pa_module*m) {
 #  endif
 #endif
 
+#if defined(USE_PROTOCOL_HTTP)
+#if defined(USE_TCP_SOCKETS)
+    if (u->socket_server_ipv4)
+        if (pa_socket_server_get_address(u->socket_server_ipv4, t, sizeof(t)))
+            pa_http_protocol_add_server_string(u->http_protocol, t);
+
+#ifdef HAVE_IPV6
+    if (u->socket_server_ipv6)
+        if (pa_socket_server_get_address(u->socket_server_ipv6, t, sizeof(t)))
+            pa_http_protocol_add_server_string(u->http_protocol, t);
+#endif /* HAVE_IPV6 */
+#else /* USE_TCP_SOCKETS */
+    if (pa_socket_server_get_address(u->socket_server_unix, t, sizeof(t)))
+        pa_http_protocol_add_server_string(u->http_protocol, t);
+
+#endif /* USE_TCP_SOCKETS */
+#endif /* USE_PROTOCOL_HTTP */
+
     if (ma)
         pa_modargs_free(ma);
 
@@ -419,6 +437,24 @@ void pa__done(pa_module*m) {
     }
 #elif defined(USE_PROTOCOL_HTTP)
     if (u->http_protocol) {
+        char t[256];
+
+#if defined(USE_TCP_SOCKETS)
+        if (u->socket_server_ipv4)
+            if (pa_socket_server_get_address(u->socket_server_ipv4, t, sizeof(t)))
+                pa_http_protocol_remove_server_string(u->http_protocol, t);
+
+#ifdef HAVE_IPV6
+        if (u->socket_server_ipv6)
+            if (pa_socket_server_get_address(u->socket_server_ipv6, t, sizeof(t)))
+                pa_http_protocol_remove_server_string(u->http_protocol, t);
+#endif /* HAVE_IPV6 */
+#else /* USE_TCP_SOCKETS */
+        if (u->socket_server_unix)
+            if (pa_socket_server_get_address(u->socket_server_unix, t, sizeof(t)))
+                pa_http_protocol_remove_server_string(u->http_protocol, t);
+#endif /* USE_PROTOCOL_HTTP */
+
         pa_http_protocol_disconnect(u->http_protocol, u->module);
         pa_http_protocol_unref(u->http_protocol);
     }

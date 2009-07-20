@@ -831,9 +831,9 @@ void pa_volume_memchunk(
 
             calc_linear_integer_volume(linear, volume);
 
-            e = (uint8_t*) ptr + c->length/3;
+            e = (uint8_t*) ptr + c->length;
 
-            for (channel = 0, d = ptr; d < e; d++) {
+            for (channel = 0, d = ptr; d < e; d += 3) {
                 int64_t t;
 
                 t = (int64_t)((int32_t) (PA_READ24NE(d) << 8));
@@ -854,9 +854,9 @@ void pa_volume_memchunk(
 
             calc_linear_integer_volume(linear, volume);
 
-            e = (uint8_t*) ptr + c->length/3;
+            e = (uint8_t*) ptr + c->length;
 
-            for (channel = 0, d = ptr; d < e; d++) {
+            for (channel = 0, d = ptr; d < e; d += 3) {
                 int64_t t;
 
                 t = (int64_t)((int32_t) (PA_READ24RE(d) << 8));
@@ -1181,6 +1181,8 @@ pa_memchunk* pa_silence_memchunk_get(pa_silence_cache *cache, pa_mempool *pool, 
             case PA_SAMPLE_S32BE:
             case PA_SAMPLE_S24LE:
             case PA_SAMPLE_S24BE:
+            case PA_SAMPLE_S24_32LE:
+            case PA_SAMPLE_S24_32BE:
             case PA_SAMPLE_FLOAT32LE:
             case PA_SAMPLE_FLOAT32BE:
                 cache->blocks[PA_SAMPLE_S16LE] = b = silence_memblock_new(pool, 0);
@@ -1189,6 +1191,8 @@ pa_memchunk* pa_silence_memchunk_get(pa_silence_cache *cache, pa_mempool *pool, 
                 cache->blocks[PA_SAMPLE_S32BE] = pa_memblock_ref(b);
                 cache->blocks[PA_SAMPLE_S24LE] = pa_memblock_ref(b);
                 cache->blocks[PA_SAMPLE_S24BE] = pa_memblock_ref(b);
+                cache->blocks[PA_SAMPLE_S24_32LE] = pa_memblock_ref(b);
+                cache->blocks[PA_SAMPLE_S24_32BE] = pa_memblock_ref(b);
                 cache->blocks[PA_SAMPLE_FLOAT32LE] = pa_memblock_ref(b);
                 cache->blocks[PA_SAMPLE_FLOAT32BE] = pa_memblock_ref(b);
                 break;

@@ -85,7 +85,7 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *chunk);
 int pa_memblockq_push_align(pa_memblockq* bq, const pa_memchunk *chunk);
 
 /* Manipulate the write pointer */
-void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek);
+void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek, pa_bool_t account);
 
 /* Return a copy of the next memory chunk in the queue. It is not
  * removed from the queue. There are two reasons this function might
@@ -158,6 +158,10 @@ void pa_memblockq_set_minreq(pa_memblockq *memblockq, size_t minreq);
 void pa_memblockq_set_maxrewind(pa_memblockq *memblockq, size_t maxrewind); /* Set the maximum history size */
 void pa_memblockq_set_silence(pa_memblockq *memblockq, pa_memchunk *silence);
 
+/* Apply the data from pa_buffer_attr */
+void pa_memblockq_apply_attr(pa_memblockq *memblockq, const pa_buffer_attr *a);
+void pa_memblockq_get_attr(pa_memblockq *bq, pa_buffer_attr *a);
+
 /* Call pa_memchunk_willneed() for every chunk in the queue from the current read pointer to the end */
 void pa_memblockq_willneed(pa_memblockq *bq);
 
@@ -174,6 +178,5 @@ pa_bool_t pa_memblockq_prebuf_active(pa_memblockq *bq);
 
 /* Return how many items are currently stored in the queue */
 unsigned pa_memblockq_get_nblocks(pa_memblockq *bq);
-
 
 #endif

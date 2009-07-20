@@ -46,6 +46,7 @@
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 #include <pulse/util.h>
+#include <pulse/rtclock.h>
 
 #include <pulsecore/iochannel.h>
 #include <pulsecore/sink.h>
@@ -59,7 +60,6 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/thread.h>
-#include <pulsecore/rtclock.h>
 
 #include "module-solaris-symdef.h"
 
@@ -68,14 +68,16 @@ PA_MODULE_DESCRIPTION("Solaris Sink/Source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_USAGE(
     "sink_name=<name for the sink> "
+    "sink_properties=<properties for the sink> "
     "source_name=<name for the source> "
+    "source_properties=<properties for the source> "
     "device=<audio device file name> "
     "record=<enable source?> "
     "playback=<enable sink?> "
     "format=<sample format> "
     "channels=<number of channels> "
     "rate=<sample rate> "
-    "buffer_size=<record buffer size> "
+    "buffer_length=<milliseconds> "
     "channel_map=<channel map>");
 PA_MODULE_LOAD_ONCE(FALSE);
 
@@ -94,8 +96,7 @@ struct userdata {
 
     uint32_t frame_size;
     int32_t buffer_size;
-    volatile uint64_t written_bytes, read_bytes;
-    pa_mutex *written_bytes_lock;
+    uint64_t written_bytes, read_bytes;
 
     char *device_name;
     int mode;
@@ -107,18 +108,19 @@ struct userdata {
 
     uint32_t play_samples_msw, record_samples_msw;
     uint32_t prev_playback_samples, prev_record_samples;
-    pa_mutex *sample_counter_lock;
 
-    size_t min_request;
+    int32_t minimum_request;
 };
 
 static const char* const valid_modargs[] = {
     "sink_name",
+    "sink_properties",
     "source_name",
+    "source_properties",
     "device",
     "record",
     "playback",
-    "buffer_size",
+    "buffer_length",
     "format",
     "rate",
     "channels",
@@ -127,13 +129,9 @@ static const char* const valid_modargs[] = {
 };
 
 #define DEFAULT_DEVICE "/dev/audio"
-#define MIN_BUFFER_SIZE (640)
-#define MAX_RENDER_HZ   (300)
 
-/* This render rate limit implies a minimum latency,  but without it we waste too much CPU time in the
- * IO thread. The maximum render rate and minimum latency (or minimum buffer size) are unachievable on
- * common hardware anyway. Note that MIN_BUFFER_SIZE * MAX_RENDER_HZ >= 4 * 48000 Bps.
- */
+#define MAX_RENDER_HZ   (300)
+/* This render rate limit imposes a minimum latency, but without it we waste too much CPU time. */
 
 static uint64_t get_playback_buffered_bytes(struct userdata *u) {
     audio_info_t info;
@@ -141,8 +139,6 @@ static uint64_t get_playback_buffered_bytes(struct userdata *u) {
     int err;
 
     pa_assert(u->sink);
-
-    pa_mutex_lock(u->sample_counter_lock);
 
     err = ioctl(u->fd, AUDIO_GETINFO, &info);
     pa_assert(err >= 0);
@@ -159,8 +155,6 @@ static uint64_t get_playback_buffered_bytes(struct userdata *u) {
     u->prev_playback_samples = info.play.samples;
     played_bytes = (((uint64_t)u->play_samples_msw << 32) + info.play.samples) * u->frame_size;
 
-    pa_mutex_unlock(u->sample_counter_lock);
-
     return u->written_bytes - played_bytes;
 }
 
@@ -171,11 +165,9 @@ static pa_usec_t sink_get_latency(struct userdata *u, pa_sample_spec *ss) {
     pa_assert(ss);
 
     if (u->fd >= 0) {
-        pa_mutex_lock(u->written_bytes_lock);
         r = pa_bytes_to_usec(get_playback_buffered_bytes(u), ss);
         if (u->memchunk.memblock)
             r += pa_bytes_to_usec(u->memchunk.length, ss);
-        pa_mutex_unlock(u->written_bytes_lock);
     }
     return r;
 }
@@ -487,7 +479,7 @@ static void sink_set_volume(pa_sink *s) {
     if (u->fd >= 0) {
         AUDIO_INITINFO(&info);
 
-        info.play.gain = pa_cvolume_avg(&s->virtual_volume) * AUDIO_MAX_GAIN / PA_VOLUME_NORM;
+        info.play.gain = pa_cvolume_max(&s->virtual_volume) * AUDIO_MAX_GAIN / PA_VOLUME_NORM;
         assert(info.play.gain <= AUDIO_MAX_GAIN);
 
         if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0) {
@@ -523,7 +515,7 @@ static void source_set_volume(pa_source *s) {
     if (u->fd >= 0) {
         AUDIO_INITINFO(&info);
 
-        info.play.gain = pa_cvolume_avg(&s->virtual_volume) * AUDIO_MAX_GAIN / PA_VOLUME_NORM;
+        info.play.gain = pa_cvolume_max(&s->virtual_volume) * AUDIO_MAX_GAIN / PA_VOLUME_NORM;
         assert(info.play.gain <= AUDIO_MAX_GAIN);
 
         if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0) {
@@ -580,6 +572,25 @@ static void sink_get_mute(pa_sink *s) {
     }
 }
 
+static void process_rewind(struct userdata *u) {
+    size_t rewind_nbytes;
+
+    pa_assert(u);
+
+    /* Figure out how much we shall rewind and reset the counter */
+    rewind_nbytes = u->sink->thread_info.rewind_nbytes;
+    u->sink->thread_info.rewind_nbytes = 0;
+
+    if (rewind_nbytes > 0) {
+        pa_log_debug("Requested to rewind %lu bytes.", (unsigned long) rewind_nbytes);
+        rewind_nbytes = PA_MIN(u->memchunk.length, rewind_nbytes);
+        u->memchunk.length -= rewind_nbytes;
+        pa_log_debug("Rewound %lu bytes.", (unsigned long) rewind_nbytes);
+    }
+
+    pa_sink_process_rewind(u->sink, rewind_nbytes);
+}
+
 static void thread_func(void *userdata) {
     struct userdata *u = userdata;
     unsigned short revents = 0;
@@ -594,7 +605,6 @@ static void thread_func(void *userdata) {
         pa_make_realtime(u->core->realtime_priority);
 
     pa_thread_mq_install(&u->thread_mq);
-    pa_rtpoll_install(u->rtpoll);
 
     for (;;) {
         /* Render some data and write it to the dsp */
@@ -604,10 +614,13 @@ static void thread_func(void *userdata) {
             uint64_t buffered_bytes;
 
             if (u->sink->thread_info.rewind_requested)
-                pa_sink_process_rewind(u->sink, 0);
+                process_rewind(u);
 
             err = ioctl(u->fd, AUDIO_GETINFO, &info);
-            pa_assert(err >= 0);
+            if (err < 0) {
+                pa_log("AUDIO_GETINFO ioctl failed: %s", pa_cstrerror(errno));
+                goto fail;
+            }
 
             if (info.play.error) {
                 pa_log_debug("buffer under-run!");
@@ -627,7 +640,7 @@ static void thread_func(void *userdata) {
                  * Since we cannot modify the size of the output buffer we fake it
                  * by not filling it more than u->buffer_size.
                  */
-                xtime0 = pa_rtclock_usec();
+                xtime0 = pa_rtclock_now();
                 buffered_bytes = get_playback_buffered_bytes(u);
                 if (buffered_bytes >= (uint64_t)u->buffer_size)
                     break;
@@ -635,7 +648,7 @@ static void thread_func(void *userdata) {
                 len = u->buffer_size - buffered_bytes;
                 len -= len % u->frame_size;
 
-                if (len < u->min_request)
+                if (len < (size_t) u->minimum_request)
                     break;
 
                 if (u->memchunk.length < len)
@@ -648,12 +661,16 @@ static void thread_func(void *userdata) {
                 if (w <= 0) {
                     switch (errno) {
                         case EINTR:
-                            break;
+                            continue;
                         case EAGAIN:
+                            /* If the buffer_size is too big, we get EAGAIN. Avoiding that limit by trial and error
+                             * is not ideal, but I don't know how to get the system to tell me what the limit is.
+                             */
                             u->buffer_size = u->buffer_size * 18 / 25;
                             u->buffer_size -= u->buffer_size % u->frame_size;
-                            u->buffer_size = PA_MAX(u->buffer_size, (int32_t)MIN_BUFFER_SIZE);
-                            pa_sink_set_max_request(u->sink, u->buffer_size);
+                            u->buffer_size = PA_MAX(u->buffer_size, 2 * u->minimum_request);
+                            pa_sink_set_max_request_within_thread(u->sink, u->buffer_size);
+                            pa_sink_set_max_rewind_within_thread(u->sink, u->buffer_size);
                             pa_log("EAGAIN. Buffer size is now %u bytes (%llu buffered)", u->buffer_size, buffered_bytes);
                             break;
                         default:
@@ -663,10 +680,8 @@ static void thread_func(void *userdata) {
                 } else {
                     pa_assert(w % u->frame_size == 0);
 
-                    pa_mutex_lock(u->written_bytes_lock);
                     u->written_bytes += w;
                     u->memchunk.length -= w;
-                    pa_mutex_unlock(u->written_bytes_lock);
 
                     u->memchunk.index += w;
                     if (u->memchunk.length <= 0) {
@@ -677,9 +692,8 @@ static void thread_func(void *userdata) {
             }
 
             pa_rtpoll_set_timer_absolute(u->rtpoll, xtime0 + pa_bytes_to_usec(buffered_bytes / 2, &u->sink->sample_spec));
-        } else {
+        } else
             pa_rtpoll_set_timer_disabled(u->rtpoll);
-        }
 
         /* Try to read some data and pass it on to the source driver */
 
@@ -783,7 +797,7 @@ static void sig_callback(pa_mainloop_api *api, pa_signal_event*e, int sig, void 
     pa_log_debug("caught signal");
 
     if (u->sink) {
-        pa_sink_get_volume(u->sink, TRUE);
+        pa_sink_get_volume(u->sink, TRUE, FALSE);
         pa_sink_get_mute(u->sink, TRUE);
     }
 
@@ -797,6 +811,7 @@ int pa__init(pa_module *m) {
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;
+    uint32_t buffer_length_msec;
     int fd;
     pa_sink_new_data sink_new_data;
     pa_source_new_data source_new_data;
@@ -822,8 +837,6 @@ int pa__init(pa_module *m) {
     }
 
     u = pa_xnew0(struct userdata, 1);
-    u->sample_counter_lock = pa_mutex_new(FALSE, FALSE);
-    u->written_bytes_lock = pa_mutex_new(FALSE, FALSE);
 
     /*
      * For a process (or several processes) to use the same audio device for both
@@ -839,13 +852,15 @@ int pa__init(pa_module *m) {
     }
     u->frame_size = pa_frame_size(&ss);
 
-    u->buffer_size = 16384;
-    if (pa_modargs_get_value_s32(ma, "buffer_size", &u->buffer_size) < 0) {
-        pa_log("failed to parse buffer size argument");
+    u->minimum_request = pa_usec_to_bytes(PA_USEC_PER_SEC / MAX_RENDER_HZ, &ss);
+
+    buffer_length_msec = 100;
+    if (pa_modargs_get_value_u32(ma, "buffer_length", &buffer_length_msec) < 0) {
+        pa_log("failed to parse buffer_length argument");
         goto fail;
     }
-    u->buffer_size -= u->buffer_size % u->frame_size;
-    if (u->buffer_size < (int32_t)MIN_BUFFER_SIZE) {
+    u->buffer_size = pa_usec_to_bytes(1000 * buffer_length_msec, &ss);
+    if (u->buffer_size < 2 * u->minimum_request) {
         pa_log("supplied buffer size argument is too small");
         goto fail;
     }
@@ -885,9 +900,15 @@ int pa__init(pa_module *m) {
         pa_source_new_data_set_channel_map(&source_new_data, &map);
         pa_proplist_sets(source_new_data.proplist, PA_PROP_DEVICE_STRING, u->device_name);
         pa_proplist_sets(source_new_data.proplist, PA_PROP_DEVICE_API, "solaris");
-        pa_proplist_setf(source_new_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Solaris PCM source");
+        pa_proplist_sets(source_new_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Solaris PCM source");
         pa_proplist_sets(source_new_data.proplist, PA_PROP_DEVICE_ACCESS_MODE, "serial");
         pa_proplist_setf(source_new_data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) u->buffer_size);
+
+        if (pa_modargs_get_proplist(ma, "source_properties", source_new_data.proplist, PA_UPDATE_REPLACE) < 0) {
+            pa_log("Invalid properties");
+            pa_source_new_data_done(&source_new_data);
+            goto fail;
+        }
 
         u->source = pa_source_new(m->core, &source_new_data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY|PA_SOURCE_HW_VOLUME_CTRL);
         pa_source_new_data_done(&source_new_data);
@@ -927,8 +948,14 @@ int pa__init(pa_module *m) {
         pa_sink_new_data_set_channel_map(&sink_new_data, &map);
         pa_proplist_sets(sink_new_data.proplist, PA_PROP_DEVICE_STRING, u->device_name);
         pa_proplist_sets(sink_new_data.proplist, PA_PROP_DEVICE_API, "solaris");
-        pa_proplist_setf(sink_new_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Solaris PCM sink");
+        pa_proplist_sets(sink_new_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Solaris PCM sink");
         pa_proplist_sets(sink_new_data.proplist, PA_PROP_DEVICE_ACCESS_MODE, "serial");
+
+        if (pa_modargs_get_proplist(ma, "sink_properties", sink_new_data.proplist, PA_UPDATE_REPLACE) < 0) {
+            pa_log("Invalid properties");
+            pa_sink_new_data_done(&sink_new_data);
+            goto fail;
+        }
 
         u->sink = pa_sink_new(m->core, &sink_new_data, PA_SINK_HARDWARE|PA_SINK_LATENCY|PA_SINK_HW_VOLUME_CTRL|PA_SINK_HW_MUTE_CTRL);
         pa_sink_new_data_done(&sink_new_data);
@@ -946,16 +973,18 @@ int pa__init(pa_module *m) {
         u->sink->set_mute = sink_set_mute;
         u->sink->refresh_volume = u->sink->refresh_muted = TRUE;
 
-        u->sink->thread_info.max_request = u->buffer_size;
-        u->min_request = pa_usec_to_bytes(PA_USEC_PER_SEC / MAX_RENDER_HZ, &ss);
+        pa_sink_set_max_request(u->sink, u->buffer_size);
+        pa_sink_set_max_rewind(u->sink, u->buffer_size);
     } else
         u->sink = NULL;
 
     pa_assert(u->source || u->sink);
 
     u->sig = pa_signal_new(SIGPOLL, sig_callback, u);
-    pa_assert(u->sig);
-    ioctl(u->fd, I_SETSIG, S_MSG);
+    if (u->sig)
+        ioctl(u->fd, I_SETSIG, S_MSG);
+    else
+        pa_log_warn("Could not register SIGPOLL handler");
 
     if (!(u->thread = pa_thread_new(thread_func, u))) {
         pa_log("Failed to create thread.");
@@ -1010,8 +1039,10 @@ void pa__done(pa_module *m) {
     if (!(u = m->userdata))
         return;
 
-    ioctl(u->fd, I_SETSIG, 0);
-    pa_signal_free(u->sig);
+    if (u->sig) {
+        ioctl(u->fd, I_SETSIG, 0);
+        pa_signal_free(u->sig);
+    }
 
     if (u->sink)
         pa_sink_unlink(u->sink);
@@ -1043,9 +1074,6 @@ void pa__done(pa_module *m) {
 
     if (u->fd >= 0)
         close(u->fd);
-
-    pa_mutex_free(u->written_bytes_lock);
-    pa_mutex_free(u->sample_counter_lock);
 
     pa_xfree(u->device_name);
 

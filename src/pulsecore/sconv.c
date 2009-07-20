@@ -75,7 +75,7 @@ static void u8_from_s16ne(unsigned n, const int16_t *a, uint8_t *b) {
     pa_assert(b);
 
     for (; n > 0; n--, a++, b++)
-        *b = (uint8_t) (*a / 0x100 + 0x80);
+        *b = (uint8_t) ((uint16_t) *a >> 8) + (uint8_t) 0x80U;
 }
 
 /* float32 */

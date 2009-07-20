@@ -38,6 +38,7 @@
 #define PA_SYMBOL_DESCRIPTION "pa__get_description"
 #define PA_SYMBOL_USAGE "pa__get_usage"
 #define PA_SYMBOL_VERSION "pa__get_version"
+#define PA_SYMBOL_DEPRECATED "pa__get_deprecated"
 #define PA_SYMBOL_LOAD_ONCE "pa__load_once"
 
 pa_modinfo *pa_modinfo_get_by_handle(lt_dlhandle dl, const char *module_name) {
@@ -60,6 +61,9 @@ pa_modinfo *pa_modinfo_get_by_handle(lt_dlhandle dl, const char *module_name) {
 
     if ((func = (const char* (*)(void)) pa_load_sym(dl, module_name, PA_SYMBOL_VERSION)))
         i->version = pa_xstrdup(func());
+
+    if ((func = (const char* (*)(void)) pa_load_sym(dl, module_name, PA_SYMBOL_DEPRECATED)))
+        i->deprecated = pa_xstrdup(func());
 
     if ((func2 = (pa_bool_t (*)(void)) pa_load_sym(dl, module_name, PA_SYMBOL_LOAD_ONCE)))
         i->load_once = func2();
@@ -91,5 +95,6 @@ void pa_modinfo_free(pa_modinfo *i) {
     pa_xfree(i->description);
     pa_xfree(i->usage);
     pa_xfree(i->version);
+    pa_xfree(i->deprecated);
     pa_xfree(i);
 }

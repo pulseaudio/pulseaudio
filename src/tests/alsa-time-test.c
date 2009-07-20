@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
     int dir = 1;
     struct timespec start, last_timestamp = { 0, 0 };
     uint64_t start_us;
-    snd_pcm_sframes_t last_avail, last_delay;
+    snd_pcm_sframes_t last_avail = 0, last_delay = 0;
     struct pollfd *pollfds;
     int n_pollfd;
     int64_t sample_count = 0;

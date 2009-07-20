@@ -162,13 +162,16 @@ pa_rtp_context* pa_rtp_context_init_recv(pa_rtp_context *c, int fd, size_t frame
     return c;
 }
 
-int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
+int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, struct timeval *tstamp) {
     int size;
     struct msghdr m;
+    struct cmsghdr *cm;
     struct iovec iov;
     uint32_t header;
     unsigned cc;
     ssize_t r;
+    uint8_t aux[1024];
+    pa_bool_t found_tstamp = FALSE;
 
     pa_assert(c);
     pa_assert(chunk);
@@ -208,8 +211,8 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     m.msg_namelen = 0;
     m.msg_iov = &iov;
     m.msg_iovlen = 1;
-    m.msg_control = NULL;
-    m.msg_controllen = 0;
+    m.msg_control = aux;
+    m.msg_controllen = sizeof(aux);
     m.msg_flags = 0;
 
     r = recvmsg(c->fd, &m, 0);
@@ -273,6 +276,18 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     if (c->memchunk.length <= 0) {
         pa_memblock_unref(c->memchunk.memblock);
         pa_memchunk_reset(&c->memchunk);
+    }
+
+    for (cm = CMSG_FIRSTHDR(&m); cm; cm = CMSG_NXTHDR(&m, cm)) {
+        if (cm->cmsg_level == SOL_SOCKET && cm->cmsg_type == SO_TIMESTAMP)
+            memcpy(tstamp, CMSG_DATA(cm), sizeof(struct timeval));
+            found_tstamp = TRUE;
+            break;
+        }
+
+    if (!found_tstamp) {
+        pa_log_warn("Couldn't find SO_TIMESTAMP data in auxiliary recvmsg() data!");
+        memset(tstamp, 0, sizeof(tstamp));
     }
 
     return 0;

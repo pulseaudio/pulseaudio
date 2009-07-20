@@ -103,4 +103,11 @@ unsigned pa_idxset_size(pa_idxset*s);
 /* Return TRUE of the idxset is empty */
 pa_bool_t pa_idxset_isempty(pa_idxset *s);
 
+/* Duplicate the idxset. This will not copy the actual indexes */
+pa_idxset *pa_idxset_copy(pa_idxset *s);
+
+/* A macro to ease iteration through all entries */
+#define PA_IDXSET_FOREACH(e, s, idx) \
+    for ((e) = pa_idxset_first((s), &(idx)); (e); (e) = pa_idxset_next((s), &(idx)))
+
 #endif

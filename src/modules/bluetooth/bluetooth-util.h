@@ -28,6 +28,20 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 
+/* UUID copied from bluez/audio/device.h */
+#define GENERIC_AUDIO_UUID      "00001203-0000-1000-8000-00805F9B34FB"
+
+#define HSP_HS_UUID             "00001108-0000-1000-8000-00805F9B34FB"
+#define HSP_AG_UUID             "00001112-0000-1000-8000-00805F9B34FB"
+
+#define HFP_HS_UUID             "0000111E-0000-1000-8000-00805F9B34FB"
+#define HFP_AG_UUID             "0000111F-0000-1000-8000-00805F9B34FB"
+
+#define ADVANCED_AUDIO_UUID     "0000110D-0000-1000-8000-00805F9B34FB"
+
+#define A2DP_SOURCE_UUID        "0000110A-0000-1000-8000-00805F9B34FB"
+#define A2DP_SINK_UUID          "0000110B-0000-1000-8000-00805F9B34FB"
+
 typedef struct pa_bluetooth_uuid pa_bluetooth_uuid;
 typedef struct pa_bluetooth_device pa_bluetooth_device;
 typedef struct pa_bluetooth_discovery pa_bluetooth_discovery;
@@ -39,12 +53,20 @@ struct pa_bluetooth_uuid {
     PA_LLIST_FIELDS(pa_bluetooth_uuid);
 };
 
+/* This enum is shared among Audio, Headset, and AudioSink, although not all values are acceptable in all profiles */
+typedef enum pa_bt_audio_state {
+    PA_BT_AUDIO_STATE_INVALID = -1,
+    PA_BT_AUDIO_STATE_DISCONNECTED,
+    PA_BT_AUDIO_STATE_CONNECTING,
+    PA_BT_AUDIO_STATE_CONNECTED,
+    PA_BT_AUDIO_STATE_PLAYING,
+    PA_BT_AUDIO_STATE_LAST
+} pa_bt_audio_state_t;
+
 struct pa_bluetooth_device {
-    void *data; /* arbitrary information for the one owning the discovery object */
+    pa_bool_t dead;
 
     int device_info_valid;      /* 0: no results yet; 1: good results; -1: bad results ... */
-    int audio_sink_info_valid;  /* ... same here ... */
-    int headset_info_valid;     /* ... and here */
 
     /* Device information */
     char *name;
@@ -57,25 +79,31 @@ struct pa_bluetooth_device {
     int class;
     int trusted;
 
-    /* AudioSink information */
-    int audio_sink_connected;
+    /* Audio state */
+    pa_bt_audio_state_t audio_state;
 
-    /* Headset information */
-    int headset_connected;
+    /* AudioSink state */
+    pa_bt_audio_state_t audio_sink_state;
+
+    /* Headset state */
+    pa_bt_audio_state_t headset_state;
 };
 
-void pa_bluetooth_device_free(pa_bluetooth_device *d);
+pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *core);
+pa_bluetooth_discovery* pa_bluetooth_discovery_ref(pa_bluetooth_discovery *y);
+void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *d);
 
-pa_bluetooth_device* pa_bluetooth_get_device(DBusConnection *c, const char* path);
-pa_bluetooth_device* pa_bluetooth_find_device(DBusConnection *c, const char* address);
-
-typedef void (*pa_bluetooth_device_callback_t)(struct userdata *u, pa_bluetooth_device *d, pa_bool_t good);
-pa_bluetooth_discovery* pa_bluetooth_discovery_new(DBusConnection *c, pa_bluetooth_device_callback_t cb, struct userdata *u);
-void pa_bluetooth_discovery_free(pa_bluetooth_discovery *d);
 void pa_bluetooth_discovery_sync(pa_bluetooth_discovery *d);
 
-const char*pa_bluetooth_get_form_factor(uint32_t class);
+const pa_bluetooth_device* pa_bluetooth_discovery_get_by_path(pa_bluetooth_discovery *d, const char* path);
+const pa_bluetooth_device* pa_bluetooth_discovery_get_by_address(pa_bluetooth_discovery *d, const char* address);
+
+pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *d);
+
+const char* pa_bluetooth_get_form_factor(uint32_t class);
 
 char *pa_bluetooth_cleanup_name(const char *name);
+
+pa_bool_t pa_bluetooth_uuid_has(pa_bluetooth_uuid *uuids, const char *uuid);
 
 #endif

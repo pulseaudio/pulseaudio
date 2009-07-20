@@ -26,7 +26,7 @@
 #include <pulse/channelmap.h>
 #include <pulsecore/memchunk.h>
 
-int pa_sound_file_load(pa_mempool *pool, const char *fname, pa_sample_spec *ss, pa_channel_map *map, pa_memchunk *chunk);
+int pa_sound_file_load(pa_mempool *pool, const char *fname, pa_sample_spec *ss, pa_channel_map *map, pa_memchunk *chunk, pa_proplist *p);
 
 int pa_sound_file_too_big_to_cache(const char *fname);
 

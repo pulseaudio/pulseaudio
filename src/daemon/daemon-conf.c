@@ -60,7 +60,7 @@ static const pa_daemon_conf default_conf = {
     .fail = TRUE,
     .high_priority = TRUE,
     .nice_level = -11,
-    .realtime_scheduling = FALSE,
+    .realtime_scheduling = TRUE,
     .realtime_priority = 5,  /* Half of JACK's default rtprio */
     .disallow_module_loading = FALSE,
     .disallow_exit = FALSE,
@@ -85,6 +85,7 @@ static const pa_daemon_conf default_conf = {
     .system_instance = FALSE,
     .no_cpu_limit = FALSE,
     .disable_shm = FALSE,
+    .lock_memory = FALSE,
     .default_n_fragments = 4,
     .default_fragment_size_msec = 25,
     .default_sample_spec = { .format = PA_SAMPLE_S16NE, .rate = 44100, .channels = 2 },
@@ -446,6 +447,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "no-cpu-limit",               pa_config_parse_bool,     &c->no_cpu_limit, NULL },
         { "disable-shm",                pa_config_parse_bool,     &c->disable_shm, NULL },
         { "flat-volumes",               pa_config_parse_bool,     &c->flat_volumes, NULL },
+        { "lock-memory",                pa_config_parse_bool,     &c->lock_memory, NULL },
         { "exit-idle-time",             pa_config_parse_int,      &c->exit_idle_time, NULL },
         { "scache-idle-time",           pa_config_parse_int,      &c->scache_idle_time, NULL },
         { "realtime-priority",          parse_rtprio,             c, NULL },
@@ -595,16 +597,14 @@ FILE *pa_daemon_conf_open_default_script_file(pa_daemon_conf *c) {
     return f;
 }
 
-
-static const char* const log_level_to_string[] = {
-    [PA_LOG_DEBUG] = "debug",
-    [PA_LOG_INFO] = "info",
-    [PA_LOG_NOTICE] = "notice",
-    [PA_LOG_WARN] = "warning",
-    [PA_LOG_ERROR] = "error"
-};
-
 char *pa_daemon_conf_dump(pa_daemon_conf *c) {
+    static const char* const log_level_to_string[] = {
+        [PA_LOG_DEBUG] = "debug",
+        [PA_LOG_INFO] = "info",
+        [PA_LOG_NOTICE] = "notice",
+        [PA_LOG_WARN] = "warning",
+        [PA_LOG_ERROR] = "error"
+    };
     pa_strbuf *s;
     char cm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
@@ -630,6 +630,7 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "no-cpu-limit = %s\n", pa_yes_no(c->no_cpu_limit));
     pa_strbuf_printf(s, "disable-shm = %s\n", pa_yes_no(c->disable_shm));
     pa_strbuf_printf(s, "flat-volumes = %s\n", pa_yes_no(c->flat_volumes));
+    pa_strbuf_printf(s, "lock-memory = %s\n", pa_yes_no(c->lock_memory));
     pa_strbuf_printf(s, "exit-idle-time = %i\n", c->exit_idle_time);
     pa_strbuf_printf(s, "scache-idle-time = %i\n", c->scache_idle_time);
     pa_strbuf_printf(s, "dl-search-path = %s\n", pa_strempty(c->dl_search_path));

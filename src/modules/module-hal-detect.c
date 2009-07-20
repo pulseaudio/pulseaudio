@@ -45,10 +45,10 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/core-scache.h>
 #include <pulsecore/modargs.h>
+#include <pulsecore/dbus-shared.h>
 
 #include <hal/libhal.h>
 
-#include "dbus-util.h"
 #include "module-hal-detect-symdef.h"
 
 PA_MODULE_AUTHOR("Shahms King");
@@ -64,6 +64,7 @@ PA_MODULE_USAGE("api=<alsa> "
 #elif defined(HAVE_OSS)
 PA_MODULE_USAGE("api=<oss>");
 #endif
+PA_MODULE_DEPRECATED("Please use module-udev-detect instead of module-hal-detect!");
 
 struct device {
     char *udi, *originating_udi;
@@ -121,6 +122,7 @@ static const char *strip_udi(const char *udi) {
 enum alsa_type {
     ALSA_TYPE_PLAYBACK,
     ALSA_TYPE_CAPTURE,
+    ALSA_TYPE_CONTROL,
     ALSA_TYPE_OTHER
 };
 
@@ -141,6 +143,8 @@ static enum alsa_type hal_alsa_device_get_type(LibHalContext *context, const cha
         t = ALSA_TYPE_PLAYBACK;
     else if (pa_streq(type, "capture"))
         t = ALSA_TYPE_CAPTURE;
+    else if (pa_streq(type, "control"))
+        t = ALSA_TYPE_CONTROL;
 
     libhal_free_string(type);
 
@@ -171,7 +175,8 @@ static pa_bool_t hal_alsa_device_is_modem(LibHalContext *context, const char *ud
 
 finish:
     if (dbus_error_is_set(&error)) {
-        pa_log_error("D-Bus error while parsing HAL ALSA data: %s: %s", error.name, error.message);
+        if (!dbus_error_has_name(&error, "org.freedesktop.Hal.NoSuchProperty"))
+            pa_log_error("D-Bus error while parsing HAL ALSA data: %s: %s", error.name, error.message);
         dbus_error_free(&error);
     }
 
@@ -193,10 +198,23 @@ static int hal_device_load_alsa(struct userdata *u, const char *udi, struct devi
 
     /* We only care for PCM devices */
     type = hal_alsa_device_get_type(u->context, udi);
-    if (type == ALSA_TYPE_OTHER)
+
+    /* For each ALSA card that appears the control device will be the
+     * last one to be created, this is considered part of the ALSA
+     * usperspace API. We rely on this and load our modules only when
+     * the control device is available assuming that *all* device
+     * nodes have been properly created and assigned the right ACLs at
+     * that time. Also see:
+     *
+     * http://mailman.alsa-project.org/pipermail/alsa-devel/2009-April/015958.html
+     *
+     * and the associated thread.*/
+
+    if (type != ALSA_TYPE_CONTROL)
         goto fail;
 
-    /* We don't care for modems */
+    /* We don't care for modems -- this is most likely not set for
+     * control devices, so kind of pointless here. */
     if (hal_alsa_device_is_modem(u->context, udi))
         goto fail;
 
@@ -215,7 +233,7 @@ static int hal_device_load_alsa(struct userdata *u, const char *udi, struct devi
         goto fail;
 
     card_name = pa_sprintf_malloc("alsa_card.%s", strip_udi(originating_udi));
-    args = pa_sprintf_malloc("device_id=%u name=%s card_name=%s tsched=%i", card, strip_udi(originating_udi), card_name, (int) u->use_tsched);
+    args = pa_sprintf_malloc("device_id=%u name=\"%s\" card_name=\"%s\" tsched=%i card_properties=\"module-hal-detect.discovered=1\"", card, strip_udi(originating_udi), card_name, (int) u->use_tsched);
 
     pa_log_debug("Loading module-alsa-card with arguments '%s'", args);
     m = pa_module_load(u->core, "module-alsa-card", args);
@@ -411,9 +429,10 @@ static int hal_device_add_all(struct userdata *u) {
         for (i = 0; i < n; i++) {
             struct device *d;
 
-            if ((d = hal_device_add(u, udis[i])))
+            if ((d = hal_device_add(u, udis[i]))) {
                 count++;
-            else
+                pa_log_debug("Loaded device %s", udis[i]);
+            } else
                 pa_log_debug("Not loaded device %s", udis[i]);
         }
     }
@@ -449,6 +468,8 @@ static void device_added_cb(LibHalContext *context, const char *udi) {
 
     if (!hal_device_add(u, udi))
         pa_log_debug("Not loaded device %s", udi);
+    else
+        pa_log_debug("Loaded device %s", udi);
 
 finish:
     if (dbus_error_is_set(&error)) {
@@ -547,7 +568,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                     pa_sink *sink;
 
                     if ((sink = pa_namereg_get(u->core, d->sink_name, PA_NAMEREG_SINK))) {
-                        pa_bool_t success = pa_sink_suspend(sink, suspend) >= 0;
+                        pa_bool_t success = pa_sink_suspend(sink, suspend, PA_SUSPEND_SESSION) >= 0;
 
                         if (!success && !suspend)
                             d->acl_race_fix = TRUE; /* resume failed, let's try again */
@@ -560,7 +581,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                     pa_source *source;
 
                     if ((source = pa_namereg_get(u->core, d->source_name, PA_NAMEREG_SOURCE))) {
-                        pa_bool_t success = pa_source_suspend(source, suspend) >= 0;
+                        pa_bool_t success = pa_source_suspend(source, suspend, PA_SUSPEND_SESSION) >= 0;
 
                         if (!success && !suspend)
                             d->acl_race_fix = TRUE; /* resume failed, let's try again */
@@ -573,7 +594,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                     pa_card *card;
 
                     if ((card = pa_namereg_get(u->core, d->card_name, PA_NAMEREG_CARD))) {
-                        pa_bool_t success = pa_card_suspend(card, suspend) >= 0;
+                        pa_bool_t success = pa_card_suspend(card, suspend, PA_SUSPEND_SESSION) >= 0;
 
                         if (!success && !suspend)
                             d->acl_race_fix = TRUE; /* resume failed, let's try again */
@@ -617,21 +638,21 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                     pa_sink *sink;
 
                     if ((sink = pa_namereg_get(u->core, d->sink_name, PA_NAMEREG_SINK)))
-                        pa_sink_suspend(sink, FALSE);
+                        pa_sink_suspend(sink, FALSE, PA_SUSPEND_SESSION);
                 }
 
                 if (d->source_name) {
                     pa_source *source;
 
                     if ((source = pa_namereg_get(u->core, d->source_name, PA_NAMEREG_SOURCE)))
-                        pa_source_suspend(source, FALSE);
+                        pa_source_suspend(source, FALSE, PA_SUSPEND_SESSION);
                 }
 
                 if (d->card_name) {
                     pa_card *card;
 
                     if ((card = pa_namereg_get(u->core, d->source_name, PA_NAMEREG_CARD)))
-                        pa_card_suspend(card, FALSE);
+                        pa_card_suspend(card, FALSE, PA_SUSPEND_SESSION);
                 }
             }
 

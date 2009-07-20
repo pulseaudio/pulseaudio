@@ -30,9 +30,11 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/i18n.h>
+
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/bitset.h>
+#include <pulsecore/sample-util.h>
 
 #include "channelmap.h"
 
@@ -491,6 +493,27 @@ char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map) {
     return s;
 }
 
+pa_channel_position_t pa_channel_position_from_string(const char *p) {
+    pa_channel_position_t i;
+    pa_assert(p);
+
+    /* Some special aliases */
+    if (pa_streq(p, "left"))
+        return PA_CHANNEL_POSITION_LEFT;
+    else if (pa_streq(p, "right"))
+        return PA_CHANNEL_POSITION_RIGHT;
+    else if (pa_streq(p, "center"))
+        return PA_CHANNEL_POSITION_CENTER;
+    else if (pa_streq(p, "subwoofer"))
+        return PA_CHANNEL_POSITION_SUBWOOFER;
+
+    for (i = 0; i < PA_CHANNEL_POSITION_MAX; i++)
+        if (pa_streq(p, table[i]))
+            return i;
+
+    return PA_CHANNEL_POSITION_INVALID;
+}
+
 pa_channel_map *pa_channel_map_parse(pa_channel_map *rmap, const char *s) {
     const char *state;
     pa_channel_map map;
@@ -559,36 +582,19 @@ pa_channel_map *pa_channel_map_parse(pa_channel_map *rmap, const char *s) {
     map.channels = 0;
 
     while ((p = pa_split(s, ",", &state))) {
+        pa_channel_position_t f;
 
         if (map.channels >= PA_CHANNELS_MAX) {
             pa_xfree(p);
             return NULL;
         }
 
-        /* Some special aliases */
-        if (pa_streq(p, "left"))
-            map.map[map.channels++] = PA_CHANNEL_POSITION_LEFT;
-        else if (pa_streq(p, "right"))
-            map.map[map.channels++] = PA_CHANNEL_POSITION_RIGHT;
-        else if (pa_streq(p, "center"))
-            map.map[map.channels++] = PA_CHANNEL_POSITION_CENTER;
-        else if (pa_streq(p, "subwoofer"))
-            map.map[map.channels++] = PA_CHANNEL_POSITION_SUBWOOFER;
-        else {
-            pa_channel_position_t i;
-
-            for (i = 0; i < PA_CHANNEL_POSITION_MAX; i++)
-                if (strcmp(p, table[i]) == 0) {
-                    map.map[map.channels++] = i;
-                    break;
-                }
-
-            if (i >= PA_CHANNEL_POSITION_MAX) {
-                pa_xfree(p);
-                return NULL;
-            }
+        if ((f = pa_channel_position_from_string(p)) == PA_CHANNEL_POSITION_INVALID) {
+            pa_xfree(p);
+            return NULL;
         }
 
+        map.map[map.channels++] = f;
         pa_xfree(p);
     }
 
@@ -627,8 +633,7 @@ int pa_channel_map_compatible(const pa_channel_map *map, const pa_sample_spec *s
 }
 
 int pa_channel_map_superset(const pa_channel_map *a, const pa_channel_map *b) {
-    pa_bitset_t in_a[PA_BITSET_ELEMENTS(PA_CHANNEL_POSITION_MAX)];
-    unsigned i;
+    pa_channel_position_mask_t am, bm;
 
     pa_assert(a);
     pa_assert(b);
@@ -636,98 +641,36 @@ int pa_channel_map_superset(const pa_channel_map *a, const pa_channel_map *b) {
     pa_return_val_if_fail(pa_channel_map_valid(a), 0);
     pa_return_val_if_fail(pa_channel_map_valid(b), 0);
 
-    memset(in_a, 0, sizeof(in_a));
+    am = pa_channel_map_mask(a);
+    bm = pa_channel_map_mask(b);
 
-    for (i = 0; i < a->channels; i++)
-        pa_bitset_set(in_a, a->map[i], TRUE);
-
-    for (i = 0; i < b->channels; i++)
-        if (!pa_bitset_get(in_a, b->map[i]))
-            return 0;
-
-    return 1;
+    return (bm & am) == bm;
 }
 
 int pa_channel_map_can_balance(const pa_channel_map *map) {
-    unsigned c;
-    pa_bool_t left = FALSE, right = FALSE;
+    pa_channel_position_mask_t m;
 
     pa_assert(map);
-
     pa_return_val_if_fail(pa_channel_map_valid(map), 0);
 
-    for (c = 0; c < map->channels; c++) {
+    m = pa_channel_map_mask(map);
 
-        switch (map->map[c]) {
-            case PA_CHANNEL_POSITION_LEFT:
-            case PA_CHANNEL_POSITION_REAR_LEFT:
-            case PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER:
-            case PA_CHANNEL_POSITION_SIDE_LEFT:
-            case PA_CHANNEL_POSITION_TOP_FRONT_LEFT:
-            case PA_CHANNEL_POSITION_TOP_REAR_LEFT:
-                left = TRUE;
-                break;
-
-            case PA_CHANNEL_POSITION_RIGHT:
-            case PA_CHANNEL_POSITION_REAR_RIGHT:
-            case PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER:
-            case PA_CHANNEL_POSITION_SIDE_RIGHT:
-            case PA_CHANNEL_POSITION_TOP_FRONT_RIGHT:
-            case PA_CHANNEL_POSITION_TOP_REAR_RIGHT:
-                right = TRUE;
-                break;
-
-            default:
-                ;
-        }
-
-        if (left && right)
-            return 1;
-    }
-
-    return 0;
+    return
+        (PA_CHANNEL_POSITION_MASK_LEFT & m) &&
+        (PA_CHANNEL_POSITION_MASK_RIGHT & m);
 }
 
 int pa_channel_map_can_fade(const pa_channel_map *map) {
-    unsigned c;
-    pa_bool_t front = FALSE, rear = FALSE;
+    pa_channel_position_mask_t m;
 
     pa_assert(map);
-
     pa_return_val_if_fail(pa_channel_map_valid(map), 0);
 
-    for (c = 0; c < map->channels; c++) {
+    m = pa_channel_map_mask(map);
 
-        switch (map->map[c]) {
-            case PA_CHANNEL_POSITION_FRONT_LEFT:
-            case PA_CHANNEL_POSITION_FRONT_RIGHT:
-            case PA_CHANNEL_POSITION_FRONT_CENTER:
-            case PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER:
-            case PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER:
-            case PA_CHANNEL_POSITION_TOP_FRONT_LEFT:
-            case PA_CHANNEL_POSITION_TOP_FRONT_RIGHT:
-            case PA_CHANNEL_POSITION_TOP_FRONT_CENTER:
-                front = TRUE;
-                break;
-
-            case PA_CHANNEL_POSITION_REAR_LEFT:
-            case PA_CHANNEL_POSITION_REAR_RIGHT:
-            case PA_CHANNEL_POSITION_REAR_CENTER:
-            case PA_CHANNEL_POSITION_TOP_REAR_LEFT:
-            case PA_CHANNEL_POSITION_TOP_REAR_RIGHT:
-            case PA_CHANNEL_POSITION_TOP_REAR_CENTER:
-                rear = TRUE;
-                break;
-
-            default:
-                ;
-        }
-
-        if (front && rear)
-            return 1;
-    }
-
-    return 0;
+    return
+        (PA_CHANNEL_POSITION_MASK_FRONT & m) &&
+        (PA_CHANNEL_POSITION_MASK_REAR & m);
 }
 
 const char* pa_channel_map_to_name(const pa_channel_map *map) {
@@ -838,4 +781,29 @@ const char* pa_channel_map_to_pretty_name(const pa_channel_map *map) {
         return _("Surround 7.1");
 
     return NULL;
+}
+
+int pa_channel_map_has_position(const pa_channel_map *map, pa_channel_position_t p) {
+    unsigned c;
+
+    pa_return_val_if_fail(pa_channel_map_valid(map), 0);
+    pa_return_val_if_fail(p < PA_CHANNEL_POSITION_MAX, 0);
+
+    for (c = 0; c < map->channels; c++)
+        if (map->map[c] == p)
+            return 1;
+
+    return 0;
+}
+
+pa_channel_position_mask_t pa_channel_map_mask(const pa_channel_map *map) {
+    unsigned c;
+    pa_channel_position_mask_t r = 0;
+
+    pa_return_val_if_fail(pa_channel_map_valid(map), 0);
+
+    for (c = 0; c < map->channels; c++)
+        r |= PA_CHANNEL_POSITION_MASK(map->map[c]);
+
+    return r;
 }

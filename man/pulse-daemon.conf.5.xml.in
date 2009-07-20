@@ -164,6 +164,14 @@ USA.
     </option>
 
     <option>
+      <p><opt>lock-memory=</opt> Locks the entire PulseAudio process
+      into memory. While this might increase drop-out safety when used
+      in conjunction with real-time scheduling this takes away a lot
+      of memory from other processes and might hence considerably slow
+      down your system. Defaults to <opt>no</opt>.</p>
+    </option>
+
+    <option>
       <p><opt>flat-volumes=</opt> Enable 'flat' volumes, i.e. where
       possible let the sink volume equal the maximum of the volumes of
       the inputs connected to it. Takes a boolean argument, defaults
@@ -228,13 +236,6 @@ USA.
     </option>
 
     <option>
-      <p><opt>module-idle-time=</opt> Unload autoloaded modules after
-      being idle for this time in seconds. Defaults to 20. The
-      <opt>--module-idle-time</opt> command line option takes
-      precedence.</p>
-    </option>
-
-    <option>
       <p><opt>scache-idle-time=</opt> Unload autoloaded sample cache
       entries after being idle for this time in seconds. Defaults to
       20. The <opt>--scache-idle-time</opt> command line option takes
@@ -267,9 +268,9 @@ USA.
     </option>
 
     <option>
-      <p><opt>default-script-file=</opt> Load the default
+      <p><opt>load-default-script-file=</opt> Load the default
       configuration script file as specified
-      in <opt>default-script-file=</opt>. Defaults to "yes".</p>
+      in <opt>default-script-file=</opt>. Defaults to <opt>yes</opt>.</p>
     </option>
 
   </section>
@@ -294,6 +295,23 @@ USA.
       <opt>notice</opt>. The <opt>--log-level</opt> command line
       option takes precedence. The <opt>-v</opt> command line option
       might alter this setting.</p>
+    </option>
+
+    <option>
+      <p><opt>log-meta=</opt> With each logged message log the code
+      location the message was generated from. Defaults to
+      <opt>no</opt>.</p>
+    </option>
+
+    <option>
+      <p><opt>log-time=</opt> With each logged messages log the
+      relative time since startup. Defaults to <opt>no</opt>.</p>
+    </option>
+
+    <option>
+      <p><opt>log-backtrace=</opt> When greater than 0, with each
+      logged message log a code stack trace up the the specified
+      number of stack frames. Defaults to <opt>0</opt>.</p>
     </option>
 
   </section>
@@ -371,11 +389,13 @@ USA.
     <option>
       <p><opt>default-sample-format=</opt> The default sampling
       format. Specify one of <opt>u8</opt>, <opt>s16le</opt>,
-      <opt>s16be</opt>, <opt>s32le</opt>,
-      <opt>s32be</opt>, <opt>float32le</opt>, <opt>float32be</opt>,
+      <opt>s16be</opt>, <opt>s24le</opt>, <opt>s24be</opt>,
+      <opt>s24-32le</opt>, <opt>s24-32be</opt>, <opt>s32le</opt>,
+      <opt>s32be</opt> <opt>float32le</opt>, <opt>float32be</opt>,
       <opt>ulaw</opt>, <opt>alaw</opt>. Depending on the endianess of
-      the CPU the
-      formats <opt>s16ne</opt>, <opt>s16re</opt>, <opt>s32ne</opt>, <opt>s32re</opt>,
+      the CPU the formats <opt>s16ne</opt>, <opt>s16re</opt>,
+      <opt>s24ne</opt>, <opt>s24re</opt>, <opt>s24-32ne</opt>,
+      <opt>s24-32re</opt>, <opt>s32ne</opt>, <opt>s32re</opt>,
       <opt>float32ne</opt>, <opt>float32re</opt> (for native,
       resp. reverse endian) are available as aliases.</p>
     </option>
@@ -401,7 +421,8 @@ USA.
     these buffer metrics for machines with high scheduling
     latencies. Not all possible values that may be configured here are
     available in all hardware. The driver will to find the nearest
-    setting supported.</p>
+    setting supported. Modern drivers that support timer-based
+    scheduling ignore these options.</p>
 
     <option>
       <p><opt>default-fragments=</opt> The default number of

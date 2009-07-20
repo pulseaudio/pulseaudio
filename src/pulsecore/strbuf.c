@@ -113,6 +113,13 @@ void pa_strbuf_puts(pa_strbuf *sb, const char *t) {
     pa_strbuf_putsn(sb, t, strlen(t));
 }
 
+/* Append a character to the string buffer */
+void pa_strbuf_putc(pa_strbuf *sb, char c) {
+    pa_assert(sb);
+
+    pa_strbuf_putsn(sb, &c, 1);
+}
+
 /* Append a new chunk to the linked list */
 static void append(pa_strbuf *sb, struct chunk *c) {
     pa_assert(sb);

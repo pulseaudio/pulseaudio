@@ -82,15 +82,15 @@ typedef struct sbc_struct sbc_t;
 
 int sbc_init(sbc_t *sbc, unsigned long flags);
 int sbc_reinit(sbc_t *sbc, unsigned long flags);
-int sbc_parse(sbc_t *sbc, void *input, int input_len);
-int sbc_decode(sbc_t *sbc, void *input, int input_len, void *output,
-		int output_len, int *len);
+
+ssize_t sbc_parse(sbc_t *sbc, const void *input, size_t input_len);
+
+ssize_t sbc_decode(sbc_t *sbc, const void *input, size_t input_len,
+			void *output, size_t output_len, size_t *written);
 
 /* Encodes ONE input block into ONE output block */
-ssize_t sbc_encode(sbc_t *sbc,
-               const void *input, size_t input_len,
-               void *output, size_t output_len,
-               size_t *written);
+ssize_t sbc_encode(sbc_t *sbc, const void *input, size_t input_len,
+			void *output, size_t output_len, size_t *written);
 
 /* Returns the output block size in bytes */
 size_t sbc_get_frame_length(sbc_t *sbc);

@@ -49,18 +49,18 @@ load-module module-augment-properties
 #load-module module-pipe-sink
 
 ### Automatically load driver modules depending on the hardware available
-.ifexists module-hal-detect@PA_SOEXT@
-load-module module-hal-detect
+.ifexists module-udev-detect@PA_SOEXT@
+load-module module-udev-detect
 .else
 ### Alternatively use the static hardware detection module (for systems that
-### lack HAL support)
+### lack udev support)
 load-module module-detect
 .endif
 
 ### Automatically load driver modules for Bluetooth hardware
-#.ifexists module-bluetooth-discover@PA_SOEXT@
-#load-module module-bluetooth-discover
-#.endif
+.ifexists module-bluetooth-discover@PA_SOEXT@
+load-module module-bluetooth-discover
+.endif
 
 ### Load several protocols
 .ifexists module-esound-protocol-unix@PA_SOEXT@
@@ -99,6 +99,9 @@ load-module module-rescue-streams
 
 ### Make sure we always have a sink around, even if it is a null sink.
 load-module module-always-sink
+
+### Honour intended role device property
+load-module module-intended-roles
 
 ### Automatically suspend sinks/sources that become idle for too long
 load-module module-suspend-on-idle

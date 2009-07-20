@@ -28,11 +28,18 @@
 typedef struct pa_reserve_wrapper pa_reserve_wrapper;
 
 pa_reserve_wrapper* pa_reserve_wrapper_get(pa_core *c, const char *device_name);
-
 void pa_reserve_wrapper_unref(pa_reserve_wrapper *r);
 
 pa_hook* pa_reserve_wrapper_hook(pa_reserve_wrapper *r);
 
 void pa_reserve_wrapper_set_application_device_name(pa_reserve_wrapper *r, const char *name);
+
+typedef struct pa_reserve_monitor_wrapper pa_reserve_monitor_wrapper;
+
+pa_reserve_monitor_wrapper* pa_reserve_monitor_wrapper_get(pa_core *c, const char *device_name);
+void pa_reserve_monitor_wrapper_unref(pa_reserve_monitor_wrapper *m);
+
+pa_hook* pa_reserve_monitor_wrapper_hook(pa_reserve_monitor_wrapper *m);
+pa_bool_t pa_reserve_monitor_wrapper_busy(pa_reserve_monitor_wrapper *m);
 
 #endif

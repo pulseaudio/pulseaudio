@@ -50,7 +50,7 @@
  * \li pa_channel_map_init_stereo() - Create a standard stereo mapping.
  * \li pa_channel_map_init_auto() - Create a standard channel map for a specific number of channels
  * \li pa_channel_map_init_extend() - Similar to
- * pa_channel_map_init_auto() but synthesize a channel map if noone
+ * pa_channel_map_init_auto() but synthesize a channel map if no
  * predefined one is known for the specified number of channels.
  *
  * \section conv_sec Convenience Functions
@@ -74,26 +74,30 @@ typedef enum pa_channel_position {
     PA_CHANNEL_POSITION_INVALID = -1,
     PA_CHANNEL_POSITION_MONO = 0,
 
-    PA_CHANNEL_POSITION_LEFT,
-    PA_CHANNEL_POSITION_RIGHT,
-    PA_CHANNEL_POSITION_CENTER,
+    PA_CHANNEL_POSITION_FRONT_LEFT,               /* Apple calls this 'Left' */
+    PA_CHANNEL_POSITION_FRONT_RIGHT,              /* Apple calls this 'Right' */
+    PA_CHANNEL_POSITION_FRONT_CENTER,             /* Apple calls this 'Center' */
 
-    PA_CHANNEL_POSITION_FRONT_LEFT = PA_CHANNEL_POSITION_LEFT,
-    PA_CHANNEL_POSITION_FRONT_RIGHT = PA_CHANNEL_POSITION_RIGHT,
-    PA_CHANNEL_POSITION_FRONT_CENTER = PA_CHANNEL_POSITION_CENTER,
+/** \cond fulldocs */
+    PA_CHANNEL_POSITION_LEFT = PA_CHANNEL_POSITION_FRONT_LEFT,
+    PA_CHANNEL_POSITION_RIGHT = PA_CHANNEL_POSITION_FRONT_RIGHT,
+    PA_CHANNEL_POSITION_CENTER = PA_CHANNEL_POSITION_FRONT_CENTER,
+/** \endcond */
 
-    PA_CHANNEL_POSITION_REAR_CENTER,
-    PA_CHANNEL_POSITION_REAR_LEFT,
-    PA_CHANNEL_POSITION_REAR_RIGHT,
+    PA_CHANNEL_POSITION_REAR_CENTER,              /* Microsoft calls this 'Back Center', Apple calls this 'Center Surround' */
+    PA_CHANNEL_POSITION_REAR_LEFT,                /* Microsoft calls this 'Back Left', Apple calls this 'Left Surround' */
+    PA_CHANNEL_POSITION_REAR_RIGHT,               /* Microsoft calls this 'Back Right', Apple calls this 'Right Surround' */
 
-    PA_CHANNEL_POSITION_LFE,
+    PA_CHANNEL_POSITION_LFE,                      /* Microsoft calls this 'Low Frequency', Apple calls this 'LFEScreen' */
+/** \cond fulldocs */
     PA_CHANNEL_POSITION_SUBWOOFER = PA_CHANNEL_POSITION_LFE,
+/** \endcond */
 
-    PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER,
-    PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER,
+    PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER,     /* Apple calls this 'Left Center' */
+    PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER,    /* Apple calls this 'Right Center */
 
-    PA_CHANNEL_POSITION_SIDE_LEFT,
-    PA_CHANNEL_POSITION_SIDE_RIGHT,
+    PA_CHANNEL_POSITION_SIDE_LEFT,                /* Apple calls this 'Left Surround Direct' */
+    PA_CHANNEL_POSITION_SIDE_RIGHT,               /* Apple calls this 'Right Surround Direct' */
 
     PA_CHANNEL_POSITION_AUX0,
     PA_CHANNEL_POSITION_AUX1,
@@ -128,15 +132,15 @@ typedef enum pa_channel_position {
     PA_CHANNEL_POSITION_AUX30,
     PA_CHANNEL_POSITION_AUX31,
 
-    PA_CHANNEL_POSITION_TOP_CENTER,
+    PA_CHANNEL_POSITION_TOP_CENTER,               /* Apple calls this 'Top Center Surround' */
 
-    PA_CHANNEL_POSITION_TOP_FRONT_LEFT,
-    PA_CHANNEL_POSITION_TOP_FRONT_RIGHT,
-    PA_CHANNEL_POSITION_TOP_FRONT_CENTER,
+    PA_CHANNEL_POSITION_TOP_FRONT_LEFT,           /* Apple calls this 'Vertical Height Left' */
+    PA_CHANNEL_POSITION_TOP_FRONT_RIGHT,          /* Apple calls this 'Vertical Height Right' */
+    PA_CHANNEL_POSITION_TOP_FRONT_CENTER,         /* Apple calls this 'Vertical Height Center' */
 
-    PA_CHANNEL_POSITION_TOP_REAR_LEFT,
-    PA_CHANNEL_POSITION_TOP_REAR_RIGHT,
-    PA_CHANNEL_POSITION_TOP_REAR_CENTER,
+    PA_CHANNEL_POSITION_TOP_REAR_LEFT,            /* Microsoft and Apple call this 'Top Back Left' */
+    PA_CHANNEL_POSITION_TOP_REAR_RIGHT,           /* Microsoft and Apple call this 'Top Back Right' */
+    PA_CHANNEL_POSITION_TOP_REAR_CENTER,          /* Microsoft and Apple call this 'Top Back Center' */
 
     PA_CHANNEL_POSITION_MAX
 } pa_channel_position_t;
@@ -201,6 +205,12 @@ typedef enum pa_channel_position {
 #define PA_CHANNEL_POSITION_MAX PA_CHANNEL_POSITION_MAX
 /** \endcond */
 
+/** A mask of channel positions. \since 0.9.16 */
+typedef uint64_t pa_channel_position_mask_t;
+
+/** Makes a bit mask from a channel position. \since 0.9.16 */
+#define PA_CHANNEL_POSITION_MASK(f) ((pa_channel_position_mask_t) (1ULL << (f)))
+
 /** A list of channel mapping definitions for pa_channel_map_init_auto() */
 typedef enum pa_channel_map_def {
     PA_CHANNEL_MAP_AIFF,
@@ -251,7 +261,7 @@ typedef struct pa_channel_map {
  * pa_channel_map_valid() will fail for it. */
 pa_channel_map* pa_channel_map_init(pa_channel_map *m);
 
-/** Initialize the specified channel map for monoaural audio and return a pointer to it */
+/** Initialize the specified channel map for monaural audio and return a pointer to it */
 pa_channel_map* pa_channel_map_init_mono(pa_channel_map *m);
 
 /** Initialize the specified channel map for stereophonic audio and return a pointer to it */
@@ -272,6 +282,9 @@ pa_channel_map* pa_channel_map_init_extend(pa_channel_map *m, unsigned channels,
 /** Return a text label for the specified channel position */
 const char* pa_channel_position_to_string(pa_channel_position_t pos) PA_GCC_PURE;
 
+/* The inverse of pa_channel_position_to_string(). \since 0.9.16 */
+pa_channel_position_t pa_channel_position_from_string(const char *s) PA_GCC_PURE;
+
 /** Return a human readable text label for the specified channel position. \since 0.9.7 */
 const char* pa_channel_position_to_pretty_string(pa_channel_position_t pos);
 
@@ -282,7 +295,7 @@ const char* pa_channel_position_to_pretty_string(pa_channel_position_t pos);
  * it might become part of an ABI. */
 #define PA_CHANNEL_MAP_SNPRINT_MAX 336
 
-/** Make a humand readable string from the specified channel map */
+/** Make a human readable string from the specified channel map */
 char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map);
 
 /** Parse a channel position list or well-known mapping name into a
@@ -324,6 +337,13 @@ const char* pa_channel_map_to_name(const pa_channel_map *map) PA_GCC_PURE;
 mapping. I.e. "Stereo", "Surround 7.1" and so on. If the channel
 mapping is unknown NULL will be returned. \since 0.9.15 */
 const char* pa_channel_map_to_pretty_name(const pa_channel_map *map) PA_GCC_PURE;
+
+/** Returns TRUE if the specified channel position is available at
+ * least once in the channel map. \since 0.9.16 */
+int pa_channel_map_has_position(const pa_channel_map *map, pa_channel_position_t p) PA_GCC_PURE;
+
+/** Generates a bit mask from a channel map. \since 0.9.16 */
+pa_channel_position_mask_t pa_channel_map_mask(const pa_channel_map *map) PA_GCC_PURE;
 
 PA_C_DECL_END
 

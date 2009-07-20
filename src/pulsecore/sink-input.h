@@ -91,7 +91,11 @@ struct pa_sink_input {
 
     pa_sink_input *sync_prev, *sync_next;
 
-    pa_cvolume virtual_volume, soft_volume, volume_factor;
+    /* Also see http://pulseaudio.org/wiki/InternalVolumes */
+    pa_cvolume virtual_volume;  /* The volume clients are informed about */
+    pa_cvolume volume_factor;   /* An internally used volume factor that can be used by modules to apply effects and suchlike without having that visible to the outside */
+    double relative_volume[PA_CHANNELS_MAX]; /* The calculated volume relative to the sink volume as linear factors. */
+    pa_cvolume soft_volume;     /* The internal software volume we apply to all PCM data while it passes through. Usually calculated as relative_volume * volume_factor  */
     pa_bool_t muted:1;
 
     /* if TRUE then the source we are connected to and/or the volume
@@ -121,7 +125,7 @@ struct pa_sink_input {
      * changes. Called from IO context. */
     void (*update_max_rewind) (pa_sink_input *i, size_t nbytes); /* may be NULL */
 
-    /* Called whenever the maxiumum request size of the sink
+    /* Called whenever the maximum request size of the sink
      * changes. Called from IO context. */
     void (*update_max_request) (pa_sink_input *i, size_t nbytes); /* may be NULL */
 
@@ -144,13 +148,19 @@ struct pa_sink_input {
      * disconnected from its sink. Called from IO thread context */
     void (*detach) (pa_sink_input *i);           /* may be NULL */
 
-    /* If non-NULL called whenever the the sink this input is attached
+    /* If non-NULL called whenever the sink this input is attached
      * to suspends or resumes. Called from main context */
     void (*suspend) (pa_sink_input *i, pa_bool_t b);   /* may be NULL */
 
-    /* If non-NULL called whenever the the sink this input is attached
-     * to changes. Called from main context */
-    void (*moved) (pa_sink_input *i);   /* may be NULL */
+    /* If non-NULL called whenever the sink this input is attached
+     * to suspends or resumes. Called from IO context */
+    void (*suspend_within_thread) (pa_sink_input *i, pa_bool_t b);   /* may be NULL */
+
+    /* If non-NULL called whenever the sink input is moved to a new
+     * sink. Called from main context after the sink input has been
+     * detached from the old sink and before it has been attached to
+     * the new sink. */
+    void (*moving) (pa_sink_input *i, pa_sink *dest);   /* may be NULL */
 
     /* Supposed to unlink and destroy this stream. Called from main
      * context. */
@@ -300,10 +310,14 @@ void pa_sink_input_kill(pa_sink_input*i);
 
 pa_usec_t pa_sink_input_get_latency(pa_sink_input *i, pa_usec_t *sink_latency);
 
-void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_bool_t save);
-const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i);
+void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_bool_t save, pa_bool_t absolute);
+pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i, pa_cvolume *volume, pa_bool_t absolute);
+
+pa_cvolume *pa_sink_input_get_relative_volume(pa_sink_input *i, pa_cvolume *v);
+
 void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute, pa_bool_t save);
 pa_bool_t pa_sink_input_get_mute(pa_sink_input *i);
+
 void pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode, pa_proplist *p);
 
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i);
@@ -341,5 +355,8 @@ pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa
 pa_bool_t pa_sink_input_safe_to_remove(pa_sink_input *i);
 
 pa_memchunk* pa_sink_input_get_silence(pa_sink_input *i, pa_memchunk *ret);
+
+/* To be used by sink.c only */
+void pa_sink_input_set_relative_volume(pa_sink_input *i, const pa_cvolume *v);
 
 #endif

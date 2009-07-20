@@ -37,8 +37,13 @@
 #include <unistd.h>
 #include <locale.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 
 #include <liboil/liboil.h>
+
+#ifdef HAVE_SYS_MMAN_H
+#include <sys/mman.h>
+#endif
 
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
@@ -69,6 +74,7 @@
 #include <pulsecore/lock-autospawn.h>
 #include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core.h>
 #include <pulsecore/memblock.h>
 #include <pulsecore/module.h>
@@ -80,13 +86,15 @@
 #include <pulsecore/pid.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/random.h>
-#include <pulsecore/rtsig.h>
-#include <pulsecore/rtclock.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/mutex.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/once.h>
 #include <pulsecore/shm.h>
+#include <pulsecore/memtrap.h>
+#ifdef HAVE_DBUS
+#include <pulsecore/dbus-shared.h>
+#endif
 
 #include "cmdline.h"
 #include "cpulimit.h"
@@ -94,7 +102,6 @@
 #include "dumpmodules.h"
 #include "caps.h"
 #include "ltdl-bind-now.h"
-#include "polkit.h"
 
 #ifdef HAVE_LIBWRAP
 /* Only one instance of these variables */
@@ -125,7 +132,7 @@ static void message_cb(pa_mainloop_api*a, pa_time_event*e, const struct timeval 
     }
 
     pa_timeval_add(pa_gettimeofday(&tvnext), 100000);
-    a->time_restart(e, &tvnext);
+    a->rtclock_time_restart(e, &tvnext);
 }
 
 #endif
@@ -330,6 +337,42 @@ static void set_all_rlimits(const pa_daemon_conf *conf) {
 }
 #endif
 
+#ifdef HAVE_DBUS
+static pa_dbus_connection *register_dbus(pa_core *c) {
+    DBusError error;
+    pa_dbus_connection *conn;
+
+    dbus_error_init(&error);
+
+    if (!(conn = pa_dbus_bus_get(c, pa_in_system_mode() ? DBUS_BUS_SYSTEM : DBUS_BUS_SESSION, &error)) || dbus_error_is_set(&error)) {
+        pa_log_warn("Unable to contact D-Bus: %s: %s", error.name, error.message);
+        goto fail;
+    }
+
+    if (dbus_bus_request_name(pa_dbus_connection_get(conn), "org.pulseaudio.Server", DBUS_NAME_FLAG_DO_NOT_QUEUE, &error) == DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
+        pa_log_debug("Got org.pulseaudio.Server!");
+        return conn;
+    }
+
+    if (dbus_error_is_set(&error))
+        pa_log_warn("Failed to acquire org.pulseaudio.Server: %s: %s", error.name, error.message);
+    else
+        pa_log_warn("D-Bus name org.pulseaudio.Server already taken. Weird shit!");
+
+    /* PA cannot be started twice by the same user and hence we can
+     * ignore mostly the case that org.pulseaudio.Server is already
+     * taken. */
+
+fail:
+
+    if (conn)
+        pa_dbus_connection_unref(conn);
+
+    dbus_error_free(&error);
+    return NULL;
+}
+#endif
+
 int main(int argc, char *argv[]) {
     pa_core *c = NULL;
     pa_strbuf *buf = NULL;
@@ -337,9 +380,7 @@ int main(int argc, char *argv[]) {
     pa_mainloop *mainloop = NULL;
     char *s;
     int r = 0, retval = 1, d = 0;
-    pa_bool_t suid_root, real_root;
     pa_bool_t valid_pid_file = FALSE;
-    gid_t gid = (gid_t) -1;
     pa_bool_t ltdl_init = FALSE;
     int passed_fd = -1;
     const char *e;
@@ -352,16 +393,20 @@ int main(int argc, char *argv[]) {
 #endif
     int autospawn_fd = -1;
     pa_bool_t autospawn_locked = FALSE;
+#ifdef HAVE_DBUS
+    pa_dbus_connection *dbus = NULL;
+#endif
 
     pa_log_set_ident("pulseaudio");
-    pa_log_set_level(PA_LOG_INFO);
+    pa_log_set_level(PA_LOG_NOTICE);
     pa_log_set_flags(PA_LOG_COLORS|PA_LOG_PRINT_FILE|PA_LOG_PRINT_LEVEL, PA_LOG_RESET);
 
 #if defined(__linux__) && defined(__OPTIMIZE__)
     /*
        Disable lazy relocations to make usage of external libraries
        more deterministic for our RT threads. We abuse __OPTIMIZE__ as
-       a check whether we are a debug build or not.
+       a check whether we are a debug build or not. This all is
+       admittedly a bit snake-oilish.
     */
 
     if (!getenv("LD_BIND_NOW")) {
@@ -372,36 +417,19 @@ int main(int argc, char *argv[]) {
 
         pa_set_env("LD_BIND_NOW", "1");
 
-        if ((rp = pa_readlink("/proc/self/exe")))
-            pa_assert_se(execv(rp, argv) == 0);
-        else
+        if ((rp = pa_readlink("/proc/self/exe"))) {
+
+            if (pa_streq(rp, PA_BINARY))
+                pa_assert_se(execv(rp, argv) == 0);
+            else
+                pa_log_warn("/proc/self/exe does not point to " PA_BINARY ", cannot self execute. Are you playing games?");
+
+            pa_xfree(rp);
+
+        } else
             pa_log_warn("Couldn't read /proc/self/exe, cannot self execute. Running in a chroot()?");
     }
 #endif
-
-#ifdef HAVE_GETUID
-    real_root = getuid() == 0;
-    suid_root = !real_root && geteuid() == 0;
-#else
-    real_root = FALSE;
-    suid_root = FALSE;
-#endif
-
-    if (!real_root) {
-        /* Drop all capabilities except CAP_SYS_NICE  */
-        pa_limit_caps();
-
-        /* Drop privileges, but keep CAP_SYS_NICE */
-        pa_drop_root();
-
-        /* After dropping root, the effective set is reset, hence,
-         * let's raise it again */
-        pa_limit_caps();
-
-        /* When capabilities are not supported we will not be able to
-         * aquire RT sched anymore. But yes, that's the way it is. It
-         * is just too risky tun let PA run as root all the time. */
-    }
 
     if ((e = getenv("PULSE_PASSED_FD"))) {
         passed_fd = atoi(e);
@@ -410,14 +438,13 @@ int main(int argc, char *argv[]) {
             passed_fd = -1;
     }
 
+    /* We might be autospawned, in which case have no idea in which
+     * context we have been started. Let's cleanup our execution
+     * context as good as possible */
+    pa_drop_root();
     pa_close_all(passed_fd, -1);
-
     pa_reset_sigs(-1);
     pa_unblock_sigs(-1);
-
-    /* At this point, we are a normal user, possibly with CAP_NICE if
-     * we were started SUID. If we are started as normal root, than we
-     * still are normal root. */
 
     setlocale(LC_ALL, "");
     pa_init_i18n();
@@ -442,150 +469,6 @@ int main(int argc, char *argv[]) {
     if (conf->log_time)
         pa_log_set_flags(PA_LOG_PRINT_TIME, PA_LOG_SET);
     pa_log_set_show_backtrace(conf->log_backtrace);
-
-    pa_log_debug("Started as real root: %s, suid root: %s", pa_yes_no(real_root), pa_yes_no(suid_root));
-
-    if (!real_root && pa_have_caps()) {
-#ifdef HAVE_SYS_RESOURCE_H
-        struct rlimit rl;
-#endif
-        pa_bool_t allow_high_priority = FALSE, allow_realtime = FALSE;
-
-        /* Let's better not enable high prio or RT by default */
-
-        if (conf->high_priority && !allow_high_priority) {
-            if (pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) > 0) {
-                pa_log_info(_("We're in the group '%s', allowing high-priority scheduling."), PA_REALTIME_GROUP);
-                allow_high_priority = TRUE;
-            }
-        }
-
-        if (conf->realtime_scheduling && !allow_realtime) {
-            if (pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) > 0) {
-                pa_log_info(_("We're in the group '%s', allowing real-time scheduling."), PA_REALTIME_GROUP);
-                allow_realtime = TRUE;
-            }
-        }
-
-#ifdef HAVE_POLKIT
-        if (conf->high_priority && !allow_high_priority) {
-            if (pa_polkit_check("org.pulseaudio.acquire-high-priority") > 0) {
-                pa_log_info(_("PolicyKit grants us acquire-high-priority privilege."));
-                allow_high_priority = TRUE;
-            } else
-                pa_log_info(_("PolicyKit refuses acquire-high-priority privilege."));
-        }
-
-        if (conf->realtime_scheduling && !allow_realtime) {
-            if (pa_polkit_check("org.pulseaudio.acquire-real-time") > 0) {
-                pa_log_info(_("PolicyKit grants us acquire-real-time privilege."));
-                allow_realtime = TRUE;
-            } else
-                pa_log_info(_("PolicyKit refuses acquire-real-time privilege."));
-        }
-#endif
-
-        if (!allow_high_priority && !allow_realtime) {
-
-            /* OK, there's no further need to keep CAP_NICE. Hence
-             * let's give it up early */
-
-            pa_drop_caps();
-        }
-
-#ifdef RLIMIT_RTPRIO
-        if (getrlimit(RLIMIT_RTPRIO, &rl) >= 0)
-            if (rl.rlim_cur > 0) {
-                pa_log_info("RLIMIT_RTPRIO is set to %u, allowing real-time scheduling.", (unsigned) rl.rlim_cur);
-                allow_realtime = TRUE;
-            }
-#endif
-#ifdef RLIMIT_NICE
-        if (getrlimit(RLIMIT_NICE, &rl) >= 0)
-            if (rl.rlim_cur > 20 ) {
-                pa_log_info("RLIMIT_NICE is set to %u, allowing high-priority scheduling.", (unsigned) rl.rlim_cur);
-                allow_high_priority = TRUE;
-            }
-#endif
-
-        if ((conf->high_priority && !allow_high_priority) ||
-            (conf->realtime_scheduling && !allow_realtime))
-            pa_log_notice(_("Called SUID root and real-time and/or high-priority scheduling was requested in the configuration. However, we lack the necessary privileges:\n"
-                            "We are not in group '%s', PolicyKit refuse to grant us the requested privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource limits.\n"
-                            "For enabling real-time/high-priority scheduling please acquire the appropriate PolicyKit privileges, or become a member of '%s', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."),
-                          PA_REALTIME_GROUP, PA_REALTIME_GROUP);
-
-
-        if (!allow_realtime)
-            conf->realtime_scheduling = FALSE;
-
-        if (!allow_high_priority)
-            conf->high_priority = FALSE;
-    }
-
-#ifdef HAVE_SYS_RESOURCE_H
-    /* Reset resource limits. If we are run as root (for system mode)
-     * this might end up increasing the limits, which is intended
-     * behaviour. For all other cases, i.e. started as normal user, or
-     * SUID root at this point we should have no CAP_SYS_RESOURCE and
-     * increasing the limits thus should fail. Which is, too, intended
-     * behaviour */
-
-    set_all_rlimits(conf);
-#endif
-
-    if (conf->high_priority && !pa_can_high_priority()) {
-        pa_log_warn(_("High-priority scheduling enabled in configuration but not allowed by policy."));
-        conf->high_priority = FALSE;
-    }
-
-    if (conf->high_priority && (conf->cmd == PA_CMD_DAEMON || conf->cmd == PA_CMD_START))
-        pa_raise_priority(conf->nice_level);
-
-    pa_log_debug("Can realtime: %s, can high-priority: %s", pa_yes_no(pa_can_realtime()), pa_yes_no(pa_can_high_priority()));
-
-    if (!real_root && pa_have_caps()) {
-        pa_bool_t drop;
-
-        drop = (conf->cmd != PA_CMD_DAEMON && conf->cmd != PA_CMD_START) || !conf->realtime_scheduling;
-
-#ifdef RLIMIT_RTPRIO
-        if (!drop) {
-            struct rlimit rl;
-            /* At this point we still have CAP_NICE if we were loaded
-             * SUID root. If possible let's acquire RLIMIT_RTPRIO
-             * instead and give CAP_NICE up. */
-
-            if (getrlimit(RLIMIT_RTPRIO, &rl) >= 0) {
-
-                if (rl.rlim_cur >= 9)
-                    drop = TRUE;
-                else {
-                    rl.rlim_max = rl.rlim_cur = 9;
-
-                    if (setrlimit(RLIMIT_RTPRIO, &rl) >= 0) {
-                        pa_log_info(_("Successfully increased RLIMIT_RTPRIO"));
-                        drop = TRUE;
-                    } else
-                        pa_log_warn(_("RLIMIT_RTPRIO failed: %s"), pa_cstrerror(errno));
-                }
-            }
-        }
-#endif
-
-        if (drop)  {
-            pa_log_info(_("Giving up CAP_NICE"));
-            pa_drop_caps();
-            suid_root = FALSE;
-        }
-    }
-
-    if (conf->realtime_scheduling && !pa_can_realtime()) {
-        pa_log_warn(_("Real-time scheduling enabled in configuration but not allowed by policy."));
-        conf->realtime_scheduling = FALSE;
-    }
-
-    pa_log_debug("Can realtime: %s, can high-priority: %s", pa_yes_no(pa_can_realtime()), pa_yes_no(pa_can_high_priority()));
 
     LTDL_SET_PRELOADED_SYMBOLS();
     pa_ltdl_init();
@@ -671,9 +554,9 @@ int main(int argc, char *argv[]) {
             pa_assert(conf->cmd == PA_CMD_DAEMON || conf->cmd == PA_CMD_START);
     }
 
-    if (real_root && !conf->system_instance)
+    if (getuid() == 0 && !conf->system_instance)
         pa_log_warn(_("This program is not intended to be run as root (unless --system is specified)."));
-    else if (!real_root && conf->system_instance) {
+    else if (getuid() != 0 && conf->system_instance) {
         pa_log(_("Root privileges required."));
         goto finish;
     }
@@ -819,6 +702,13 @@ int main(int argc, char *argv[]) {
     pa_assert_se(chdir("/") == 0);
     umask(0022);
 
+#ifdef HAVE_SYS_RESOURCE_H
+    set_all_rlimits(conf);
+#endif
+    pa_rtclock_hrtimer_enable();
+
+    pa_raise_priority(conf->nice_level);
+
     if (conf->system_instance)
         if (change_user() < 0)
             goto finish;
@@ -851,12 +741,25 @@ int main(int argc, char *argv[]) {
     pa_log_debug(_("Optimized build: no"));
 #endif
 
+#ifdef NDEBUG
+    pa_log_debug(_("NDEBUG defined, all asserts disabled."));
+#elif defined(FASTPATH)
+    pa_log_debug(_("FASTPATH defined, only fast path asserts disabled."));
+#else
+    pa_log_debug(_("All asserts enabled."));
+#endif
+
     if (!(s = pa_machine_id())) {
         pa_log(_("Failed to get machine ID"));
         goto finish;
     }
     pa_log_info(_("Machine ID is %s."), s);
     pa_xfree(s);
+
+    if ((s = pa_session_id())) {
+        pa_log_info(_("Session ID is %s."), s);
+        pa_xfree(s);
+    }
 
     if (!(s = pa_get_runtime_dir()))
         goto finish;
@@ -869,6 +772,11 @@ int main(int argc, char *argv[]) {
     pa_xfree(s);
 
     pa_log_info(_("Running in system mode: %s"), pa_yes_no(pa_in_system_mode()));
+
+    if (pa_in_system_mode())
+        pa_log_warn(_("OK, so you are running PA in system mode. Please note that you most likely shouldn't be doing that.\n"
+                      "If you do it nonetheless then it's your own fault if things don't work as expected.\n"
+                      "Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an explanation why system mode is usually a bad idea."));
 
     if (conf->use_pid_file) {
         int z;
@@ -890,21 +798,25 @@ int main(int argc, char *argv[]) {
         valid_pid_file = TRUE;
     }
 
-#ifdef SIGPIPE
-    signal(SIGPIPE, SIG_IGN);
-#endif
+    pa_disable_sigpipe();
 
     if (pa_rtclock_hrtimer())
         pa_log_info(_("Fresh high-resolution timers available! Bon appetit!"));
     else
         pa_log_info(_("Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!"));
 
-    pa_rtclock_hrtimer_enable();
-
-#ifdef SIGRTMIN
-    /* Valgrind uses SIGRTMAX. To easy debugging we don't use it here */
-    pa_rtsig_configure(SIGRTMIN, SIGRTMAX-1);
+    if (conf->lock_memory) {
+#ifdef HAVE_SYS_MMAN_H
+        if (mlockall(MCL_FUTURE) < 0)
+            pa_log_warn("mlockall() failed: %s", pa_cstrerror(errno));
+        else
+            pa_log_info("Sucessfully locked process into memory.");
+#else
+        pa_log_warn("Memory locking requested but not supported on platform.");
 #endif
+    }
+
+    pa_memtrap_install();
 
     pa_assert_se(mainloop = pa_mainloop_new());
 
@@ -942,7 +854,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef OS_IS_WIN32
-    win32_timer = pa_mainloop_get_api(mainloop)->time_new(pa_mainloop_get_api(mainloop), pa_gettimeofday(&win32_tv), message_cb, NULL);
+    win32_timer = pa_mainloop_get_api(mainloop)->rtclock_time_new(pa_mainloop_get_api(mainloop), pa_gettimeofday(&win32_tv), message_cb, NULL);
 #endif
 
     oil_init();
@@ -989,6 +901,10 @@ int main(int argc, char *argv[]) {
     }
 #endif
 
+#ifdef HAVE_DBUS
+    dbus = register_dbus(c);
+#endif
+
     pa_log_info(_("Daemon startup complete."));
 
     retval = 0;
@@ -998,6 +914,10 @@ int main(int argc, char *argv[]) {
     pa_log_info(_("Daemon shutdown initiated."));
 
 finish:
+#ifdef HAVE_DBUS
+    if (dbus)
+        pa_dbus_connection_unref(dbus);
+#endif
 
     if (autospawn_fd >= 0) {
         if (autospawn_locked)

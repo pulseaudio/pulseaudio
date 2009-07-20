@@ -30,10 +30,6 @@
 #include <string.h>
 #include <errno.h>
 
-#ifdef __linux__
-#include <sys/utsname.h>
-#endif
-
 #ifdef HAVE_POLL_H
 #include <poll.h>
 #else
@@ -42,12 +38,12 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
+#include <pulse/rtclock.h>
 
 #include <pulsecore/core-error.h>
-#include <pulsecore/rtclock.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/llist.h>
-#include <pulsecore/rtsig.h>
 #include <pulsecore/flist.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/winsock.h>
@@ -59,6 +55,8 @@
 /* #define DEBUG_TIMING */
 
 struct pa_rtpoll {
+    void *userdata;
+
     struct pollfd *pollfd, *pollfd2;
     unsigned n_pollfd_alloc, n_pollfd_used;
 
@@ -67,23 +65,10 @@ struct pa_rtpoll {
     pa_usec_t elapse;
     pa_bool_t timer_enabled:1;
 
-    pa_bool_t scan_for_dead:1;
     pa_bool_t running:1;
-    pa_bool_t installed:1;
+    pa_bool_t scan_for_dead:1;
     pa_bool_t rebuild_needed:1;
     pa_bool_t quit:1;
-
-#if defined(HAVE_PPOLL) && defined(__linux__)
-    pa_bool_t use_ppoll:1;
-    pa_bool_t use_signals:1;
-
-    pa_bool_t timer_armed:1;
-    int rtsig;
-    sigset_t sigset_unblocked;
-    timer_t timer;
-#endif
-
-    void *userdata;
 
 #ifdef DEBUG_TIMING
     pa_usec_t timestamp;
@@ -117,8 +102,6 @@ struct pa_rtpoll_item {
 
 PA_STATIC_FLIST_DECLARE(items, 0, pa_xfree);
 
-static void signal_handler_noop(int s) { /* write(2, "signal\n", 7); */ }
-
 static int item_compare(const void *_a, const void *_b) {
     const pa_rtpoll_item *a = _a, *b = _b;
 
@@ -140,21 +123,6 @@ pa_rtpoll *pa_rtpoll_new(void) {
 
     p->userdata = NULL;
 
-#if defined(HAVE_PPOLL) && defined(__linux__)
-    /* ppoll() is broken on Linux < 2.6.16. Don't use it. */
-    p->use_ppoll = pa_linux_newer_than(2, 6, 16);
-
-    /* Starting with Linux 2.6.28 ppoll() does no longer round up
-     * timeouts to multiple of HZ, hence using signal based timers is
-     * no longer necessary. */
-    p->use_signals = p->use_ppoll && !pa_linux_newer_than(2, 6, 28);
-
-    p->rtsig = -1;
-    sigemptyset(&p->sigset_unblocked);
-    p->timer = (timer_t) -1;
-    p->timer_armed = FALSE;
-#endif
-
     p->n_pollfd_alloc = 32;
     p->pollfd = pa_xnew(struct pollfd, p->n_pollfd_alloc);
     p->pollfd2 = pa_xnew(struct pollfd, p->n_pollfd_alloc);
@@ -166,58 +134,18 @@ pa_rtpoll *pa_rtpoll_new(void) {
     p->timer_enabled = FALSE;
 
     p->running = FALSE;
-    p->installed = FALSE;
     p->scan_for_dead = FALSE;
     p->rebuild_needed = FALSE;
     p->quit = FALSE;
 
-    PA_LLIST_HEAD_INIT(pa_rtpoll_item, p->items);
-
 #ifdef DEBUG_TIMING
-    p->timestamp = pa_rtclock_usec();
+    p->timestamp = pa_rtclock_now();
     p->slept = p->awake = 0;
 #endif
 
+    PA_LLIST_HEAD_INIT(pa_rtpoll_item, p->items);
+
     return p;
-}
-
-void pa_rtpoll_install(pa_rtpoll *p) {
-    pa_assert(p);
-    pa_assert(!p->installed);
-
-    p->installed = TRUE;
-
-#if defined(HAVE_PPOLL) && defined(__linux__)
-
-    if (!p->use_signals)
-        return;
-
-    if ((p->rtsig = pa_rtsig_get_for_thread()) < 0) {
-        pa_log_warn("Failed to reserve POSIX realtime signal.");
-        return;
-    }
-
-    pa_log_debug("Acquired POSIX realtime signal %s", pa_sig2str(p->rtsig));
-
-    {
-        sigset_t ss;
-        struct sigaction sa;
-
-        pa_assert_se(sigemptyset(&ss) == 0);
-        pa_assert_se(sigaddset(&ss, p->rtsig) == 0);
-        pa_assert_se(pthread_sigmask(SIG_BLOCK, &ss, &p->sigset_unblocked) == 0);
-        pa_assert_se(sigdelset(&p->sigset_unblocked, p->rtsig) == 0);
-
-        memset(&sa, 0, sizeof(sa));
-        sa.sa_handler = signal_handler_noop;
-        pa_assert_se(sigemptyset(&sa.sa_mask) == 0);
-
-        pa_assert_se(sigaction(p->rtsig, &sa, NULL) == 0);
-
-        /* We never reset the signal handler. Why should we? */
-    }
-
-#endif
 }
 
 static void rtpoll_rebuild(pa_rtpoll *p) {
@@ -295,11 +223,6 @@ void pa_rtpoll_free(pa_rtpoll *p) {
     pa_xfree(p->pollfd);
     pa_xfree(p->pollfd2);
 
-#if defined(HAVE_PPOLL) && defined(__linux__)
-    if (p->timer != (timer_t) -1)
-        timer_delete(p->timer);
-#endif
-
     if (p->prioq)
         pa_prioq_free(p->prioq, NULL, NULL);
 
@@ -358,7 +281,7 @@ static pa_bool_t next_elapse(pa_rtpoll *p, pa_usec_t *usec) {
     return FALSE;
 }
 
-int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
+int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait_op) {
     pa_rtpoll_item *i;
     int r = 0;
     pa_usec_t timeout;
@@ -366,13 +289,15 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
 
     pa_assert(p);
     pa_assert(!p->running);
-    pa_assert(p->installed);
 
     p->running = TRUE;
 
     /* First, let's do some work */
-    for (i = p->items; i && i->priority < PA_RTPOLL_NEVER; i = i->next) {
+    PA_LLIST_FOREACH(i, p->items) {
         int k;
+
+        if (i->priority >= PA_RTPOLL_NEVER)
+            break;
 
         if (i->dead)
             continue;
@@ -392,8 +317,11 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
     }
 
     /* Now let's prepare for entering the sleep */
-    for (i = p->items; i && i->priority < PA_RTPOLL_NEVER; i = i->next) {
+    PA_LLIST_FOREACH(i, p->items) {
         int k = 0;
+
+        if (i->priority >= PA_RTPOLL_NEVER)
+            break;
 
         if (i->dead)
             continue;
@@ -430,13 +358,13 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
     timeout_valid = FALSE;
 
     /* Calculate timeout */
-    if (wait && !p->quit) {
+    if (wait_op && !p->quit) {
         pa_usec_t elapse;
 
         if (next_elapse(p, &elapse)) {
             pa_usec_t now;
 
-            now = pa_rtclock_usec();
+            now = pa_rtclock_now();
             timeout = now >= elapse ? 0 : elapse - now;
             timeout_valid = TRUE;
         }
@@ -444,36 +372,29 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
 
 #ifdef DEBUG_TIMING
     {
-        pa_usec_t now = pa_rtclock_usec();
+        pa_usec_t now = pa_rtclock_now();
         p->awake = now - p->timestamp;
         p->timestamp = now;
     }
 #endif
 
     /* OK, now let's sleep */
-#ifdef HAVE_PPOLL
-
-#ifdef __linux__
-    if (p->use_ppoll)
-#endif
     {
+#ifdef HAVE_PPOLL
         struct timespec ts;
-        pa_timespec_store(&ts, timeout);
         r = ppoll(p->pollfd, p->n_pollfd_used,
-                  (!wait || p->quit || timeout_valid) ? &ts : NULL,
-                  p->rtsig < 0 ? NULL : &p->sigset_unblocked);
-    }
-#ifdef __linux__
-    else
-#endif
-
-#endif
+                  (!wait_op || p->quit || timeout_valid) ?
+                  pa_timespec_store(&ts, timeout) : NULL, NULL);
+#else
         r = poll(p->pollfd, p->n_pollfd_used,
-                 (!wait || p->quit || timeout_valid) ? (int) (timeout / PA_USEC_PER_MSEC) : -1);
+                 (!wait_op || p->quit || timeout_valid) ?
+                 (int) (timeout / PA_USEC_PER_MSEC) : -1);
+#endif
+    }
 
 #ifdef DEBUG_TIMING
     {
-        pa_usec_t now = pa_rtclock_usec();
+        pa_usec_t now = pa_rtclock_now();
         p->slept = now - p->timestamp;
         p->timestamp = now;
 
@@ -493,7 +414,9 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
     }
 
     /* Let's tell everyone that we left the sleep */
-    for (i = p->items; i && i->priority < PA_RTPOLL_NEVER; i = i->next) {
+    PA_LLIST_FOREACH(i, p->items) {
+        if (i->priority >= PA_RTPOLL_NEVER)
+            break;
 
         if (i->dead)
             continue;
@@ -513,86 +436,22 @@ finish:
 
         p->scan_for_dead = FALSE;
 
-        for (i = p->items; i; i = n) {
-            n = i->next;
-
+        PA_LLIST_FOREACH_FOR_DELETE(i, n, p->items)
             if (i->dead)
                 rtpoll_item_destroy(i);
-        }
     }
 
     return r < 0 ? r : !p->quit;
-}
-
-static void update_timer(pa_rtpoll *p) {
-    pa_assert(p);
-
-#if defined(HAVE_PPOLL) && defined(__linux__)
-
-    if (!p->use_signals)
-        return;
-
-    if (p->timer == (timer_t) -1) {
-        struct sigevent se;
-
-        memset(&se, 0, sizeof(se));
-        se.sigev_notify = SIGEV_SIGNAL;
-        se.sigev_signo = p->rtsig;
-
-        if (timer_create(CLOCK_MONOTONIC, &se, &p->timer) < 0)
-            if (timer_create(CLOCK_REALTIME, &se, &p->timer) < 0) {
-                pa_log_warn("Failed to allocate POSIX timer: %s", pa_cstrerror(errno));
-                p->timer = (timer_t) -1;
-            }
-    }
-
-    if (p->timer != (timer_t) -1) {
-        struct itimerspec its;
-        struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
-        sigset_t ss;
-        pa_usec_t elapse;
-
-        if (p->timer_armed) {
-            /* First disarm timer */
-            memset(&its, 0, sizeof(its));
-            pa_assert_se(timer_settime(p->timer, TIMER_ABSTIME, &its, NULL) == 0);
-
-            /* Remove a signal that might be waiting in the signal q */
-            pa_assert_se(sigemptyset(&ss) == 0);
-            pa_assert_se(sigaddset(&ss, p->rtsig) == 0);
-            sigtimedwait(&ss, NULL, &ts);
-        }
-
-        /* And install the new timer */
-        if (next_elapse(p, &elapse)) {
-            memset(&its, 0, sizeof(its));
-
-            pa_timespec_store(&its.it_value, elapse);
-
-            /* Make sure that 0,0 is not understood as
-             * "disarming" */
-            if (its.it_value.tv_sec == 0 && its.it_value.tv_nsec == 0)
-                its.it_value.tv_nsec = 1;
-
-            pa_assert_se(timer_settime(p->timer, TIMER_ABSTIME, &its, NULL) == 0);
-        }
-
-        p->timer_armed = p->timer_enabled;
-    }
-
-#endif
 }
 
 void pa_rtpoll_set_timer_absolute(pa_rtpoll *p, pa_usec_t usec) {
     pa_assert(p);
 
     if (p->timer_enabled && p->elapse == usec)
-        return
+        return;
 
     p->elapse = usec;
     p->timer_enabled = TRUE;
-
-    update_timer(p);
 }
 
 void pa_rtpoll_set_timer_relative(pa_rtpoll *p, pa_usec_t usec) {
@@ -601,7 +460,7 @@ void pa_rtpoll_set_timer_relative(pa_rtpoll *p, pa_usec_t usec) {
     /* Scheduling a timeout for more than an hour is very very suspicious */
     pa_assert(usec <= PA_USEC_PER_SEC*60ULL*60ULL);
 
-    pa_rtpoll_set_timer_absolute(p, pa_rtclock_usec() + usec);
+    pa_rtpoll_set_timer_absolute(p, pa_rtclock_now() + usec);
 }
 
 void pa_rtpoll_disable_timer(pa_rtpoll *p) {
@@ -612,10 +471,7 @@ void pa_rtpoll_disable_timer(pa_rtpoll *p) {
 
     p->elapse = 0;
     p->timer_enabled = FALSE;
-
-    update_timer(p);
 }
-
 
 void pa_rtpoll_set_userdata(pa_rtpoll *p, void *userdata) {
     pa_assert(p);
@@ -651,7 +507,7 @@ pa_rtpoll_item *pa_rtpoll_item_new(pa_rtpoll *p, pa_rtpoll_priority_t prio, unsi
     i->after_cb = NULL;
     i->work_cb = NULL;
 
-    for (j = p->items; j; j = j->next) {
+    PA_LLIST_FOREACH(j, p->items) {
         if (prio <= j->priority)
             break;
 
@@ -720,8 +576,6 @@ void pa_rtpoll_item_set_timer_absolute(pa_rtpoll_item *i, pa_usec_t usec){
         pa_prioq_reshuffle(i->rtpoll->prioq, i->prioq_item);
     else
         i->prioq_item = pa_prioq_put(i->rtpoll->prioq, i);
-
-    update_timer(i->rtpoll);
 }
 
 void pa_rtpoll_item_set_timer_relative(pa_rtpoll_item *i, pa_usec_t usec) {
@@ -730,7 +584,7 @@ void pa_rtpoll_item_set_timer_relative(pa_rtpoll_item *i, pa_usec_t usec) {
     /* Scheduling a timeout for more than an hour is very very suspicious */
     pa_assert(usec <= PA_USEC_PER_SEC*60ULL*60ULL);
 
-    pa_rtpoll_item_set_timer_absolute(i, pa_rtclock_usec() + usec);
+    pa_rtpoll_item_set_timer_absolute(i, pa_rtclock_now() + usec);
 }
 
 void pa_rtpoll_item_disable_timer(pa_rtpoll_item *i) {
@@ -746,8 +600,6 @@ void pa_rtpoll_item_disable_timer(pa_rtpoll_item *i) {
         pa_prioq_remove(i->rtpoll->prioq, i->prioq_item);
         i->prioq_item = NULL;
     }
-
-    update_timer(i->rtpoll);
 }
 
 void pa_rtpoll_item_set_before_callback(pa_rtpoll_item *i, int (*before_cb)(pa_rtpoll_item *i)) {

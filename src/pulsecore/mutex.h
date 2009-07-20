@@ -46,9 +46,13 @@ void pa_cond_free(pa_cond *c);
 void pa_cond_signal(pa_cond *c, int broadcast);
 int pa_cond_wait(pa_cond *c, pa_mutex *m);
 
+/* Static mutexes are basically just atomically updated pointers to pa_mutex objects */
+
 typedef struct pa_static_mutex {
     pa_atomic_ptr_t ptr;
 } pa_static_mutex;
+
+#define PA_STATIC_MUTEX_INIT { PA_ATOMIC_PTR_INIT(NULL) }
 
 pa_mutex* pa_static_mutex_get(pa_static_mutex *m, pa_bool_t recursive, pa_bool_t inherit_priority);
 

@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <poll.h>
 
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
@@ -43,15 +44,17 @@
 #include <pulsecore/sink-input.h>
 #include <pulsecore/memblockq.h>
 #include <pulsecore/log.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/sample-util.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/atomic.h>
-#include <pulsecore/rtclock.h>
 #include <pulsecore/atomic.h>
 #include <pulsecore/time-smoother.h>
+#include <pulsecore/socket-util.h>
+#include <pulsecore/once.h>
 
 #include "module-rtp-recv-symdef.h"
 
@@ -60,7 +63,7 @@
 #include "sap.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");
-PA_MODULE_DESCRIPTION("Recieve data from a network via RTP/SAP/SDP");
+PA_MODULE_DESCRIPTION("Receive data from a network via RTP/SAP/SDP");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
@@ -110,6 +113,7 @@ struct session {
 
 struct userdata {
     pa_module *module;
+    pa_core *core;
 
     pa_sap_context sap_context;
     pa_io_event* sap_event;
@@ -165,7 +169,7 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     pa_memblockq_rewind(s->memblockq, nbytes);
 }
 
-/* Called from thread context */
+/* Called from I/O thread context */
 static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     struct session *s;
 
@@ -184,11 +188,24 @@ static void sink_input_kill(pa_sink_input* i) {
     session_free(s);
 }
 
+/* Called from IO context */
+static void sink_input_suspend_within_thread(pa_sink_input* i, pa_bool_t b) {
+    struct session *s;
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(s = i->userdata);
+
+    if (b) {
+        pa_smoother_pause(s->smoother, pa_rtclock_now());
+        pa_memblockq_flush_read(s->memblockq);
+    } else
+        s->first_packet = FALSE;
+}
+
 /* Called from I/O thread context */
 static int rtpoll_work_cb(pa_rtpoll_item *i) {
     pa_memchunk chunk;
     int64_t k, j, delta;
-    struct timeval now;
+    struct timeval now = { 0, 0 };
     struct session *s;
     struct pollfd *p;
 
@@ -206,10 +223,11 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
 
     p->revents = 0;
 
-    if (pa_rtp_recv(&s->rtp_context, &chunk, s->userdata->module->core->mempool) < 0)
+    if (pa_rtp_recv(&s->rtp_context, &chunk, s->userdata->module->core->mempool, &now) < 0)
         return 0;
 
-    if (s->sdp_info.payload != s->rtp_context.payload) {
+    if (s->sdp_info.payload != s->rtp_context.payload ||
+        !PA_SINK_IS_OPENED(s->sink_input->sink->thread_info.state)) {
         pa_memblock_unref(chunk.memblock);
         return 0;
     }
@@ -229,7 +247,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
         }
     }
 
-    /* Check wheter there was a timestamp overflow */
+    /* Check whether there was a timestamp overflow */
     k = (int64_t) s->rtp_context.timestamp - (int64_t) s->offset;
     j = (int64_t) 0x100000000LL - (int64_t) s->offset + (int64_t) s->rtp_context.timestamp;
 
@@ -238,15 +256,24 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
     else
         delta = j;
 
-    pa_memblockq_seek(s->memblockq, delta * (int64_t) s->rtp_context.frame_size, PA_SEEK_RELATIVE);
+    pa_memblockq_seek(s->memblockq, delta * (int64_t) s->rtp_context.frame_size, PA_SEEK_RELATIVE, TRUE);
 
-    pa_rtclock_get(&now);
+    if (now.tv_sec == 0) {
+        PA_ONCE_BEGIN {
+            pa_log_warn("Using artificial time instead of timestamp");
+        } PA_ONCE_END;
+        pa_rtclock_get(&now);
+    } else
+        pa_rtclock_from_wallclock(&now);
 
     pa_smoother_put(s->smoother, pa_timeval_load(&now), pa_bytes_to_usec((uint64_t) pa_memblockq_get_write_index(s->memblockq), &s->sink_input->sample_spec));
 
+    /* Tell the smoother that we are rolling now, in case it is still paused */
+    pa_smoother_resume(s->smoother, pa_timeval_load(&now), TRUE);
+
     if (pa_memblockq_push(s->memblockq, &chunk) < 0) {
         pa_log_warn("Queue overrun");
-        pa_memblockq_seek(s->memblockq, (int64_t) chunk.length, PA_SEEK_RELATIVE);
+        pa_memblockq_seek(s->memblockq, (int64_t) chunk.length, PA_SEEK_RELATIVE, TRUE);
     }
 
 /*     pa_log("blocks in q: %u", pa_memblockq_get_nblocks(s->memblockq)); */
@@ -262,14 +289,14 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
         pa_usec_t wi, ri, render_delay, sink_delay = 0, latency, fix;
         unsigned fix_samples;
 
-        pa_log("Updating sample rate");
+        pa_log_debug("Updating sample rate");
 
         wi = pa_smoother_get(s->smoother, pa_timeval_load(&now));
         ri = pa_bytes_to_usec((uint64_t) pa_memblockq_get_read_index(s->memblockq), &s->sink_input->sample_spec);
 
-        if (PA_MSGOBJECT(s->sink_input->sink)->process_msg(PA_MSGOBJECT(s->sink_input->sink), PA_SINK_MESSAGE_GET_LATENCY, &sink_delay, 0, NULL) < 0)
-            sink_delay = 0;
+        pa_log_debug("wi=%lu ri=%lu", (unsigned long) wi, (unsigned long) ri);
 
+        sink_delay = pa_sink_get_latency_within_thread(s->sink_input->sink);
         render_delay = pa_bytes_to_usec(pa_memblockq_get_length(s->sink_input->thread_info.render_memblockq), &s->sink_input->sink->sample_spec);
 
         if (ri > render_delay+sink_delay)
@@ -294,14 +321,20 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
         fix_samples = (unsigned) (fix * (pa_usec_t) s->sink_input->thread_info.sample_spec.rate / (pa_usec_t) RATE_UPDATE_INTERVAL);
 
         /* Check if deviation is in bounds */
-        if (fix_samples > s->sink_input->sample_spec.rate*.20)
+        if (fix_samples > s->sink_input->sample_spec.rate*.50)
             pa_log_debug("Hmmm, rate fix is too large (%lu Hz), not applying.", (unsigned long) fix_samples);
+        else {
+            /* Fix up rate */
+            if (latency < s->intended_latency)
+                s->sink_input->sample_spec.rate -= fix_samples;
+            else
+                s->sink_input->sample_spec.rate += fix_samples;
 
-        /* Fix up rate */
-        if (latency < s->intended_latency)
-            s->sink_input->sample_spec.rate -= fix_samples;
-        else
-            s->sink_input->sample_spec.rate += fix_samples;
+            if (s->sink_input->sample_spec.rate > PA_RATE_MAX)
+                s->sink_input->sample_spec.rate = PA_RATE_MAX;
+        }
+
+        pa_assert(pa_sample_spec_valid(&s->sink_input->sample_spec));
 
         pa_resampler_set_input_rate(s->sink_input->thread_info.resampler, s->sink_input->sample_spec.rate);
 
@@ -359,6 +392,14 @@ static int mcast_socket(const struct sockaddr* sa, socklen_t salen) {
     af = sa->sa_family;
     if ((fd = socket(af, SOCK_DGRAM, 0)) < 0) {
         pa_log("Failed to create socket: %s", pa_cstrerror(errno));
+        goto fail;
+    }
+
+    pa_make_udp_socket_low_delay(fd);
+
+    one = 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_TIMESTAMP, &one, sizeof(one)) < 0) {
+        pa_log("SO_TIMESTAMP failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -430,8 +471,14 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     s->sdp_info = *sdp_info;
     s->rtpoll_item = NULL;
     s->intended_latency = LATENCY_USEC;
-    s->smoother = pa_smoother_new(PA_USEC_PER_SEC*5, PA_USEC_PER_SEC*2, TRUE, 10);
-    pa_smoother_set_time_offset(s->smoother, pa_timeval_load(&now));
+    s->smoother = pa_smoother_new(
+            PA_USEC_PER_SEC*5,
+            PA_USEC_PER_SEC*2,
+            TRUE,
+            TRUE,
+            10,
+            pa_timeval_load(&now),
+            TRUE);
     s->last_rate_update = pa_timeval_load(&now);
     pa_atomic_store(&s->timestamp, (int) now.tv_sec);
 
@@ -472,6 +519,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     s->sink_input->kill = sink_input_kill;
     s->sink_input->attach = sink_input_attach;
     s->sink_input->detach = sink_input_detach;
+    s->sink_input->suspend_within_thread = sink_input_suspend_within_thread;
 
     pa_sink_input_get_silence(s->sink_input, &silence);
 
@@ -575,15 +623,13 @@ static void sap_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
     }
 }
 
-static void check_death_event_cb(pa_mainloop_api *m, pa_time_event *t, const struct timeval *ptv, void *userdata) {
+static void check_death_event_cb(pa_mainloop_api *m, pa_time_event *t, const struct timeval *tv, void *userdata) {
     struct session *s, *n;
     struct userdata *u = userdata;
     struct timeval now;
-    struct timeval tv;
 
     pa_assert(m);
     pa_assert(t);
-    pa_assert(ptv);
     pa_assert(u);
 
     pa_rtclock_get(&now);
@@ -601,9 +647,7 @@ static void check_death_event_cb(pa_mainloop_api *m, pa_time_event *t, const str
     }
 
     /* Restart timer */
-    pa_gettimeofday(&tv);
-    pa_timeval_add(&tv, DEATH_TIMEOUT*PA_USEC_PER_SEC);
-    m->time_restart(t, &tv);
+    pa_core_rttime_restart(u->module->core, t, pa_rtclock_now() + DEATH_TIMEOUT * PA_USEC_PER_SEC);
 }
 
 int pa__init(pa_module*m) {
@@ -617,7 +661,6 @@ int pa__init(pa_module*m) {
     socklen_t salen;
     const char *sap_address;
     int fd = -1;
-    struct timeval tv;
 
     pa_assert(m);
 
@@ -648,9 +691,9 @@ int pa__init(pa_module*m) {
     if ((fd = mcast_socket(sa, salen)) < 0)
         goto fail;
 
-    u = pa_xnew(struct userdata, 1);
-    m->userdata = u;
+    m->userdata = u = pa_xnew(struct userdata, 1);
     u->module = m;
+    u->core = m->core;
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
 
     u->sap_event = m->core->mainloop->io_new(m->core->mainloop, fd, PA_IO_EVENT_INPUT, sap_event_cb, u);
@@ -660,9 +703,7 @@ int pa__init(pa_module*m) {
     u->n_sessions = 0;
     u->by_origin = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
-    pa_gettimeofday(&tv);
-    pa_timeval_add(&tv, DEATH_TIMEOUT * PA_USEC_PER_SEC);
-    u->check_death_event = m->core->mainloop->time_new(m->core->mainloop, &tv, check_death_event_cb, u);
+    u->check_death_event = pa_core_rttime_new(m->core, pa_rtclock_now() + DEATH_TIMEOUT * PA_USEC_PER_SEC, check_death_event_cb, u);
 
     pa_modargs_free(ma);
 

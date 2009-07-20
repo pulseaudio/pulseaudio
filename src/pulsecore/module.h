@@ -78,6 +78,10 @@ int pa_module_get_n_used(pa_module*m);
     const char * pa__get_version(void) { return s; }            \
     struct __stupid_useless_struct_to_allow_trailing_semicolon
 
+#define PA_MODULE_DEPRECATED(s)                                 \
+    const char * pa__get_deprecated(void) { return s; }         \
+    struct __stupid_useless_struct_to_allow_trailing_semicolon
+
 #define PA_MODULE_LOAD_ONCE(b)                                  \
     pa_bool_t pa__load_once(void) { return b; }                 \
     struct __stupid_useless_struct_to_allow_trailing_semicolon

@@ -65,3 +65,25 @@ void pa_semaphore_wait(pa_semaphore *s) {
 
     pa_assert(ret == 0);
 }
+
+pa_semaphore* pa_static_semaphore_get(pa_static_semaphore *s, unsigned value) {
+    pa_semaphore *m;
+
+    pa_assert(s);
+
+    /* First, check if already initialized and short cut */
+    if ((m = pa_atomic_ptr_load(&s->ptr)))
+        return m;
+
+    /* OK, not initialized, so let's allocate, and fill in */
+    m = pa_semaphore_new(value);
+    if ((pa_atomic_ptr_cmpxchg(&s->ptr, NULL, m)))
+        return m;
+
+    pa_semaphore_free(m);
+
+    /* Him, filling in failed, so someone else must have filled in
+     * already */
+    pa_assert_se(m = pa_atomic_ptr_load(&s->ptr));
+    return m;
+}

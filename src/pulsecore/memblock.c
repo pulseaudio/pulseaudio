@@ -45,6 +45,7 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/flist.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/memtrap.h>
 
 #include "memblock.h"
 
@@ -91,6 +92,7 @@ struct pa_memblock {
 struct pa_memimport_segment {
     pa_memimport *import;
     pa_shm memory;
+    pa_memtrap *trap;
     unsigned n_blocks;
 };
 
@@ -255,7 +257,7 @@ static struct mempool_slot* mempool_allocate_slot(pa_mempool *p) {
             slot = (struct mempool_slot*) ((uint8_t*) p->memory.ptr + (p->block_size * (size_t) idx));
 
         if (!slot) {
-            pa_log_info("Pool full");
+            pa_log_debug("Pool full");
             pa_atomic_inc(&p->stat.n_pool_full);
             return NULL;
         }
@@ -507,13 +509,16 @@ static void memblock_free(pa_memblock *b) {
 
             /* FIXME! This should be implemented lock-free */
 
-            segment = b->per_type.imported.segment;
-            pa_assert(segment);
-            import = segment->import;
-            pa_assert(import);
+            pa_assert_se(segment = b->per_type.imported.segment);
+            pa_assert_se(import = segment->import);
 
             pa_mutex_lock(import->mutex);
-            pa_hashmap_remove(import->blocks, PA_UINT32_TO_PTR(b->per_type.imported.id));
+
+            pa_hashmap_remove(
+                    import->blocks,
+                    PA_UINT32_TO_PTR(b->per_type.imported.id));
+
+            pa_assert(segment->n_blocks >= 1);
             if (-- segment->n_blocks <= 0)
                 segment_detach(segment);
 
@@ -523,6 +528,7 @@ static void memblock_free(pa_memblock *b) {
 
             if (pa_flist_push(PA_STATIC_FLIST_GET(unused_memblocks), b) < 0)
                 pa_xfree(b);
+
             break;
         }
 
@@ -655,7 +661,8 @@ pa_memblock *pa_memblock_will_need(pa_memblock *b) {
 
 /* Self-locked. This function is not multiple-caller safe */
 static void memblock_replace_import(pa_memblock *b) {
-    pa_memimport_segment *seg;
+    pa_memimport_segment *segment;
+    pa_memimport *import;
 
     pa_assert(b);
     pa_assert(b->type == PA_MEMBLOCK_IMPORTED);
@@ -665,23 +672,22 @@ static void memblock_replace_import(pa_memblock *b) {
     pa_atomic_dec(&b->pool->stat.n_imported);
     pa_atomic_sub(&b->pool->stat.imported_size, (int) b->length);
 
-    seg = b->per_type.imported.segment;
-    pa_assert(seg);
-    pa_assert(seg->import);
+    pa_assert_se(segment = b->per_type.imported.segment);
+    pa_assert_se(import = segment->import);
 
-    pa_mutex_lock(seg->import->mutex);
+    pa_mutex_lock(import->mutex);
 
     pa_hashmap_remove(
-            seg->import->blocks,
+            import->blocks,
             PA_UINT32_TO_PTR(b->per_type.imported.id));
 
     memblock_make_local(b);
 
-    if (-- seg->n_blocks <= 0) {
-        pa_mutex_unlock(seg->import->mutex);
-        segment_detach(seg);
-    } else
-        pa_mutex_unlock(seg->import->mutex);
+    pa_assert(segment->n_blocks >= 1);
+    if (-- segment->n_blocks <= 0)
+        segment_detach(segment);
+
+    pa_mutex_unlock(import->mutex);
 }
 
 pa_mempool* pa_mempool_new(pa_bool_t shared, size_t size) {
@@ -745,8 +751,47 @@ void pa_mempool_free(pa_mempool *p) {
     pa_flist_free(p->free_slots, NULL);
 
     if (pa_atomic_load(&p->stat.n_allocated) > 0) {
-/*         raise(SIGTRAP);  */
-        pa_log_warn("Memory pool destroyed but not all memory blocks freed! %u remain.", pa_atomic_load(&p->stat.n_allocated));
+
+        /* Ouch, somebody is retaining a memory block reference! */
+
+#ifdef DEBUG_REF
+        unsigned i;
+        pa_flist *list;
+
+        /* Let's try to find at least one of those leaked memory blocks */
+
+        list = pa_flist_new(p->n_blocks);
+
+        for (i = 0; i < (unsigned) pa_atomic_load(&p->n_init); i++) {
+            struct mempool_slot *slot;
+            pa_memblock *b, *k;
+
+            slot = (struct mempool_slot*) ((uint8_t*) p->memory.ptr + (p->block_size * (size_t) i));
+            b = mempool_slot_data(slot);
+
+            while ((k = pa_flist_pop(p->free_slots))) {
+                while (pa_flist_push(list, k) < 0)
+                    ;
+
+                if (b == k)
+                    break;
+            }
+
+            if (!k)
+                pa_log("REF: Leaked memory block %p", b);
+
+            while ((k = pa_flist_pop(list)))
+                while (pa_flist_push(p->free_slots, k) < 0)
+                    ;
+        }
+
+        pa_flist_free(list, NULL);
+
+#endif
+
+        pa_log_error("Memory pool destroyed but not all memory blocks freed! %u remain.", pa_atomic_load(&p->stat.n_allocated));
+
+/*         PA_DEBUG_TRAP; */
     }
 
     pa_shm_free(&p->memory);
@@ -853,6 +898,7 @@ static pa_memimport_segment* segment_attach(pa_memimport *i, uint32_t shm_id) {
 
     seg->import = i;
     seg->n_blocks = 0;
+    seg->trap = pa_memtrap_add(seg->memory.ptr, seg->memory.size);
 
     pa_hashmap_put(i->segments, PA_UINT32_TO_PTR(shm_id), seg);
     return seg;
@@ -864,6 +910,10 @@ static void segment_detach(pa_memimport_segment *seg) {
 
     pa_hashmap_remove(seg->import->segments, PA_UINT32_TO_PTR(seg->memory.id));
     pa_shm_free(&seg->memory);
+
+    if (seg->trap)
+        pa_memtrap_remove(seg->trap);
+
     pa_xfree(seg);
 }
 

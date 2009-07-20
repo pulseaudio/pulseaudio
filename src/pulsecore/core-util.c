@@ -43,6 +43,7 @@
 #include <regex.h>
 #include <langinfo.h>
 #include <sys/utsname.h>
+#include <sys/socket.h>
 
 #ifdef HAVE_STRTOF_L
 #include <locale.h>
@@ -50,6 +51,10 @@
 
 #ifdef HAVE_SCHED_H
 #include <sched.h>
+
+#if defined(__linux__) && !defined(SCHED_RESET_ON_FORK)
+#define SCHED_RESET_ON_FORK 0x40000000
+#endif
 #endif
 
 #ifdef HAVE_SYS_RESOURCE_H
@@ -90,6 +95,10 @@
 
 #ifdef __APPLE__
 #include <xlocale.h>
+#endif
+
+#ifdef HAVE_DBUS
+#include "rtkit.h"
 #endif
 
 #include <pulse/xmalloc.h>
@@ -296,7 +305,15 @@ ssize_t pa_read(int fd, void *buf, size_t count, int *type) {
 
 #endif
 
-    return read(fd, buf, count);
+    for (;;) {
+        ssize_t r;
+
+        if ((r = read(fd, buf, count)) < 0)
+            if (errno == EINTR)
+                continue;
+
+        return r;
+    }
 }
 
 /** Similar to pa_read(), but handles writes */
@@ -305,8 +322,17 @@ ssize_t pa_write(int fd, const void *buf, size_t count, int *type) {
     if (!type || *type == 0) {
         ssize_t r;
 
-        if ((r = send(fd, buf, count, MSG_NOSIGNAL)) >= 0)
+        for (;;) {
+            if ((r = send(fd, buf, count, MSG_NOSIGNAL)) < 0) {
+
+                if (errno == EINTR)
+                    continue;
+
+                break;
+            }
+
             return r;
+        }
 
 #ifdef OS_IS_WIN32
         if (WSAGetLastError() != WSAENOTSOCK) {
@@ -322,11 +348,19 @@ ssize_t pa_write(int fd, const void *buf, size_t count, int *type) {
             *type = 1;
     }
 
-    return write(fd, buf, count);
+    for (;;) {
+        ssize_t r;
+
+        if ((r = write(fd, buf, count)) < 0)
+            if (errno == EINTR)
+                continue;
+
+        return r;
+    }
 }
 
 /** Calls read() in a loop. Makes sure that as much as 'size' bytes,
- * unless EOF is reached or an error occured */
+ * unless EOF is reached or an error occurred */
 ssize_t pa_loop_read(int fd, void*data, size_t size, int *type) {
     ssize_t ret = 0;
     int _type;
@@ -407,11 +441,11 @@ int pa_close(int fd) {
     for (;;) {
         int r;
 
-        if ((r = close(fd)) >= 0)
-            return r;
+        if ((r = close(fd)) < 0)
+            if (errno == EINTR)
+                continue;
 
-        if (errno != EINTR)
-            return r;
+        return r;
     }
 }
 
@@ -527,46 +561,78 @@ char *pa_strlcpy(char *b, const char *s, size_t l) {
     return b;
 }
 
+static int set_scheduler(int rtprio) {
+    struct sched_param sp;
+    int r;
+#ifdef HAVE_DBUS
+    DBusError error;
+    DBusConnection *bus;
+
+    dbus_error_init(&error);
+#endif
+
+    pa_zero(sp);
+    sp.sched_priority = rtprio;
+
+#ifdef SCHED_RESET_ON_FORK
+    if ((r = pthread_setschedparam(pthread_self(), SCHED_RR|SCHED_RESET_ON_FORK, &sp)) == 0) {
+        pa_log_debug("SCHED_RR|SCHED_RESET_ON_FORK worked.");
+        return 0;
+    }
+#endif
+
+    if ((r = pthread_setschedparam(pthread_self(), SCHED_RR, &sp)) == 0) {
+        pa_log_debug("SCHED_RR worked.");
+        return 0;
+    }
+
+#ifdef HAVE_DBUS
+    /* Try to talk to RealtimeKit */
+
+    if (!(bus = dbus_bus_get(DBUS_BUS_SYSTEM, &error))) {
+        pa_log("Failed to connect to system bus: %s\n", error.message);
+        dbus_error_free(&error);
+        errno = -EIO;
+        return -1;
+    }
+
+    r = rtkit_make_realtime(bus, 0, rtprio);
+    dbus_connection_unref(bus);
+
+    if (r >= 0) {
+        pa_log_debug("RealtimeKit worked.");
+        return 0;
+    }
+
+    errno = -r;
+#else
+    errno = r;
+#endif
+
+    return -1;
+}
+
 /* Make the current thread a realtime thread, and acquire the highest
  * rtprio we can get that is less or equal the specified parameter. If
  * the thread is already realtime, don't do anything. */
 int pa_make_realtime(int rtprio) {
 
 #ifdef _POSIX_PRIORITY_SCHEDULING
-    struct sched_param sp;
-    int r, policy;
+    int p;
 
-    memset(&sp, 0, sizeof(sp));
-    policy = 0;
-
-    if ((r = pthread_getschedparam(pthread_self(), &policy, &sp)) != 0) {
-        pa_log("pthread_getschedgetparam(): %s", pa_cstrerror(r));
-        return -1;
-    }
-
-    if (policy == SCHED_FIFO && sp.sched_priority >= rtprio) {
-        pa_log_info("Thread already being scheduled with SCHED_FIFO with priority %i.", sp.sched_priority);
+    if (set_scheduler(rtprio) >= 0) {
+        pa_log_info("Successfully enabled SCHED_RR scheduling for thread, with priority %i.", rtprio);
         return 0;
     }
 
-    sp.sched_priority = rtprio;
-    if ((r = pthread_setschedparam(pthread_self(), SCHED_FIFO, &sp)) != 0) {
-
-        while (sp.sched_priority > 1) {
-            sp.sched_priority --;
-
-            if ((r = pthread_setschedparam(pthread_self(), SCHED_FIFO, &sp)) == 0) {
-                pa_log_info("Successfully enabled SCHED_FIFO scheduling for thread, with priority %i, which is lower than the requested %i.", sp.sched_priority, rtprio);
-                return 0;
-            }
+    for (p = rtprio-1; p >= 1; p--)
+        if (set_scheduler(p)) {
+            pa_log_info("Successfully enabled SCHED_RR scheduling for thread, with priority %i, which is lower than the requested %i.", p, rtprio);
+            return 0;
         }
 
-        pa_log_warn("pthread_setschedparam(): %s", pa_cstrerror(r));
-        return -1;
-    }
-
-    pa_log_info("Successfully enabled SCHED_FIFO scheduling for thread, with priority %i.", sp.sched_priority);
-    return 0;
+    pa_log_info("Failed to acquire real-time scheduling: %s", pa_cstrerror(errno));
+    return -1;
 #else
 
     errno = ENOTSUP;
@@ -574,80 +640,42 @@ int pa_make_realtime(int rtprio) {
 #endif
 }
 
-/* This is merely used for giving the user a hint. This is not correct
- * for anything security related */
-pa_bool_t pa_can_realtime(void) {
+static int set_nice(int nice_level) {
+#ifdef HAVE_DBUS
+    DBusError error;
+    DBusConnection *bus;
+    int r;
 
-    if (geteuid() == 0)
-        return TRUE;
-
-#if defined(HAVE_SYS_RESOURCE_H) && defined(RLIMIT_RTPRIO)
-    {
-        struct rlimit rl;
-
-        if (getrlimit(RLIMIT_RTPRIO, &rl) >= 0)
-            if (rl.rlim_cur > 0 || rl.rlim_cur == RLIM_INFINITY)
-                return TRUE;
-    }
+    dbus_error_init(&error);
 #endif
 
-#if defined(HAVE_SYS_CAPABILITY_H) && defined(CAP_SYS_NICE)
-    {
-        cap_t cap;
-
-        if ((cap = cap_get_proc())) {
-            cap_flag_value_t flag = CAP_CLEAR;
-
-            if (cap_get_flag(cap, CAP_SYS_NICE, CAP_EFFECTIVE, &flag) >= 0)
-                if (flag == CAP_SET) {
-                    cap_free(cap);
-                    return TRUE;
-                }
-
-            cap_free(cap);
-        }
+    if (setpriority(PRIO_PROCESS, 0, nice_level) >= 0) {
+        pa_log_debug("setpriority() worked.");
+        return 0;
     }
+
+#ifdef HAVE_DBUS
+    /* Try to talk to RealtimeKit */
+
+    if (!(bus = dbus_bus_get(DBUS_BUS_SYSTEM, &error))) {
+        pa_log("Failed to connect to system bus: %s\n", error.message);
+        dbus_error_free(&error);
+        errno = -EIO;
+        return -1;
+    }
+
+    r = rtkit_make_high_priority(bus, 0, nice_level);
+    dbus_connection_unref(bus);
+
+    if (r >= 0) {
+        pa_log_debug("RealtimeKit worked.");
+        return 0;
+    }
+
+    errno = -r;
 #endif
 
-    return FALSE;
-}
-
-/* This is merely used for giving the user a hint. This is not correct
- * for anything security related */
-pa_bool_t pa_can_high_priority(void) {
-
-    if (geteuid() == 0)
-        return TRUE;
-
-#if defined(HAVE_SYS_RESOURCE_H) && defined(RLIMIT_RTPRIO)
-    {
-        struct rlimit rl;
-
-        if (getrlimit(RLIMIT_NICE, &rl) >= 0)
-            if (rl.rlim_cur >= 21 || rl.rlim_cur == RLIM_INFINITY)
-                return TRUE;
-    }
-#endif
-
-#if defined(HAVE_SYS_CAPABILITY_H) && defined(CAP_SYS_NICE)
-    {
-        cap_t cap;
-
-        if ((cap = cap_get_proc())) {
-            cap_flag_value_t flag = CAP_CLEAR;
-
-            if (cap_get_flag(cap, CAP_SYS_NICE, CAP_EFFECTIVE, &flag) >= 0)
-                if (flag == CAP_SET) {
-                    cap_free(cap);
-                    return TRUE;
-                }
-
-            cap_free(cap);
-        }
-    }
-#endif
-
-    return FALSE;
+    return -1;
 }
 
 /* Raise the priority of the current process as much as possible that
@@ -655,22 +683,21 @@ pa_bool_t pa_can_high_priority(void) {
 int pa_raise_priority(int nice_level) {
 
 #ifdef HAVE_SYS_RESOURCE_H
-    if (setpriority(PRIO_PROCESS, 0, nice_level) < 0) {
-        int n;
+    int n;
 
-        for (n = nice_level+1; n < 0; n++) {
-
-            if (setpriority(PRIO_PROCESS, 0, n) == 0) {
-                pa_log_info("Successfully acquired nice level %i, which is lower than the requested %i.", n, nice_level);
-                return 0;
-            }
-        }
-
-        pa_log_warn("setpriority(): %s", pa_cstrerror(errno));
-        return -1;
+    if (set_nice(nice_level) >= 0) {
+        pa_log_info("Successfully gained nice level %i.", nice_level);
+        return 0;
     }
 
-    pa_log_info("Successfully gained nice level %i.", nice_level);
+    for (n = nice_level+1; n < 0; n++)
+        if (set_nice(n) > 0) {
+            pa_log_info("Successfully acquired nice level %i, which is lower than the requested %i.", n, nice_level);
+            return 0;
+        }
+
+    pa_log_info("Failed to acquire high-priority scheduling: %s", pa_cstrerror(errno));
+    return -1;
 #endif
 
 #ifdef OS_IS_WIN32
@@ -678,9 +705,10 @@ int pa_raise_priority(int nice_level) {
         if (!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS)) {
             pa_log_warn("SetPriorityClass() failed: 0x%08X", GetLastError());
             errno = EPERM;
-            return .-1;
-        } else
-            pa_log_info("Successfully gained high priority class.");
+            return -1;
+        }
+
+        pa_log_info("Successfully gained high priority class.");
     }
 #endif
 
@@ -695,8 +723,8 @@ void pa_reset_priority(void) {
 
     setpriority(PRIO_PROCESS, 0, 0);
 
-    memset(&sp, 0, sizeof(sp));
-    pa_assert_se(pthread_setschedparam(pthread_self(), SCHED_OTHER, &sp) == 0);
+    pa_zero(sp);
+    pthread_setschedparam(pthread_self(), SCHED_OTHER, &sp);
 #endif
 
 #ifdef OS_IS_WIN32
@@ -1166,22 +1194,22 @@ int pa_check_in_group(gid_t g) {
   (advisory on UNIX, mandatory on Windows) */
 int pa_lock_fd(int fd, int b) {
 #ifdef F_SETLKW
-    struct flock flock;
+    struct flock f_lock;
 
     /* Try a R/W lock first */
 
-    flock.l_type = (short) (b ? F_WRLCK : F_UNLCK);
-    flock.l_whence = SEEK_SET;
-    flock.l_start = 0;
-    flock.l_len = 0;
+    f_lock.l_type = (short) (b ? F_WRLCK : F_UNLCK);
+    f_lock.l_whence = SEEK_SET;
+    f_lock.l_start = 0;
+    f_lock.l_len = 0;
 
-    if (fcntl(fd, F_SETLKW, &flock) >= 0)
+    if (fcntl(fd, F_SETLKW, &f_lock) >= 0)
         return 0;
 
     /* Perhaps the file descriptor qas opened for read only, than try again with a read lock. */
     if (b && errno == EBADF) {
-        flock.l_type = F_RDLCK;
-        if (fcntl(fd, F_SETLKW, &flock) >= 0)
+        f_lock.l_type = F_RDLCK;
+        if (fcntl(fd, F_SETLKW, &f_lock) >= 0)
             return 0;
     }
 
@@ -1242,7 +1270,7 @@ int pa_lock_lockfile(const char *fn) {
             goto fail;
         }
 
-        /* Check wheter the file has been removed meanwhile. When yes,
+        /* Check whether the file has been removed meanwhile. When yes,
          * restart this loop, otherwise, we're done */
         if (st.st_nlink >= 1)
             break;
@@ -2210,11 +2238,10 @@ int pa_close_all(int except_fd, ...) {
 
 int pa_close_allv(const int except_fds[]) {
     struct rlimit rl;
-    int fd;
-    int saved_errno;
+    int maxfd, fd;
 
 #ifdef __linux__
-
+    int saved_errno;
     DIR *d;
 
     if ((d = opendir("/proc/self/fd"))) {
@@ -2277,10 +2304,12 @@ int pa_close_allv(const int except_fds[]) {
 
 #endif
 
-    if (getrlimit(RLIMIT_NOFILE, &rl) < 0)
-        return -1;
+    if (getrlimit(RLIMIT_NOFILE, &rl) >= 0)
+        maxfd = (int) rl.rlim_max;
+    else
+        maxfd = sysconf(_SC_OPEN_MAX);
 
-    for (fd = 3; fd < (int) rl.rlim_max; fd++) {
+    for (fd = 3; fd < maxfd; fd++) {
         int i;
         pa_bool_t found;
 
@@ -2442,9 +2471,68 @@ pa_bool_t pa_in_system_mode(void) {
     return !!atoi(e);
 }
 
+char *pa_get_user_name_malloc(void) {
+    ssize_t k;
+    char *u;
+
+#ifdef _SC_LOGIN_NAME_MAX
+    k = (ssize_t) sysconf(_SC_LOGIN_NAME_MAX);
+
+    if (k <= 0)
+#endif
+        k = 32;
+
+    u = pa_xnew(char, k+1);
+
+    if (!(pa_get_user_name(u, k))) {
+        pa_xfree(u);
+        return NULL;
+    }
+
+    return u;
+}
+
+char *pa_get_host_name_malloc(void) {
+    size_t l;
+
+    l = 100;
+    for (;;) {
+        char *c;
+
+        c = pa_xmalloc(l);
+
+        if (!pa_get_host_name(c, l)) {
+
+            if (errno != EINVAL && errno != ENAMETOOLONG)
+                break;
+
+        } else if (strlen(c) < l-1) {
+            char *u;
+
+            if (*c == 0) {
+                pa_xfree(c);
+                break;
+            }
+
+            u = pa_utf8_filter(c);
+            pa_xfree(c);
+            return u;
+        }
+
+        /* Hmm, the hostname is as long the space we offered the
+         * function, we cannot know if it fully fit in, so let's play
+         * safe and retry. */
+
+        pa_xfree(c);
+        l *= 2;
+    }
+
+    return NULL;
+}
+
 char *pa_machine_id(void) {
     FILE *f;
-    size_t l;
+    char *h;
 
     /* The returned value is supposed be some kind of ascii identifier
      * that is unique and stable across reboots. */
@@ -2462,44 +2550,24 @@ char *pa_machine_id(void) {
         pa_strip_nl(ln);
 
         if (r && ln[0])
-            return pa_xstrdup(ln);
+            return pa_utf8_filter(ln);
     }
 
-    /* The we fall back to the host name. It supposed to be somewhat
-     * unique, at least in a network, but may change. */
-
-    l = 100;
-    for (;;) {
-        char *c;
-
-        c = pa_xmalloc(l);
-
-        if (!pa_get_host_name(c, l)) {
-
-            if (errno != EINVAL && errno != ENAMETOOLONG)
-                break;
-
-        } else if (strlen(c) < l-1) {
-
-            if (*c == 0) {
-                pa_xfree(c);
-                break;
-            }
-
-            return c;
-        }
-
-        /* Hmm, the hostname is as long the space we offered the
-         * function, we cannot know if it fully fit in, so let's play
-         * safe and retry. */
-
-        pa_xfree(c);
-        l *= 2;
-    }
+    if ((h = pa_get_host_name_malloc()))
+        return h;
 
     /* If no hostname was set we use the POSIX hostid. It's usually
-     * the IPv4 address.  Mit not be that stable. */
+     * the IPv4 address.  Might not be that stable. */
     return pa_sprintf_malloc("%08lx", (unsigned long) gethostid);
+}
+
+char *pa_session_id(void) {
+    const char *e;
+
+    if (!(e = getenv("XDG_SESSION_COOKIE")))
+        return NULL;
+
+    return pa_utf8_filter(e);
 }
 
 char *pa_uname_string(void) {
@@ -2608,7 +2676,7 @@ char *pa_unescape(char *p) {
 }
 
 char *pa_realpath(const char *path) {
-    char *r, *t;
+    char *t;
     pa_assert(path);
 
     /* We want only abolsute paths */
@@ -2617,18 +2685,89 @@ char *pa_realpath(const char *path) {
         return NULL;
     }
 
-#ifndef __GLIBC__
+#if defined(__GLIBC__) || defined(__APPLE__)
+    {
+        char *r;
+
+        if (!(r = realpath(path, NULL)))
+            return NULL;
+
+        /* We copy this here in case our pa_xmalloc() is not
+         * implemented on top of libc malloc() */
+        t = pa_xstrdup(r);
+        pa_xfree(r);
+    }
+#elif defined(PATH_MAX)
+    {
+        char *path_buf;
+        path_buf = pa_xmalloc(PATH_MAX);
+
+        if (!(t = realpath(path, path_buf))) {
+            pa_xfree(path_buf);
+            return NULL;
+        }
+    }
+#else
 #error "It's not clear whether this system supports realpath(..., NULL) like GNU libc does. If it doesn't we need a private version of realpath() here."
 #endif
 
-    if (!(r = realpath(path, NULL)))
+    return t;
+}
+
+void pa_disable_sigpipe(void) {
+
+#ifdef SIGPIPE
+    struct sigaction sa;
+
+    pa_zero(sa);
+
+    if (sigaction(SIGPIPE, NULL, &sa) < 0) {
+        pa_log("sigaction(): %s", pa_cstrerror(errno));
+        return;
+    }
+
+    sa.sa_handler = SIG_IGN;
+
+    if (sigaction(SIGPIPE, &sa, NULL) < 0) {
+        pa_log("sigaction(): %s", pa_cstrerror(errno));
+        return;
+    }
+#endif
+}
+
+void pa_xfreev(void**a) {
+    void **p;
+
+    if (!a)
+        return;
+
+    for (p = a; *p; p++)
+        pa_xfree(*p);
+
+    pa_xfree(a);
+}
+
+char **pa_split_spaces_strv(const char *s) {
+    char **t, *e;
+    unsigned i = 0, n = 8;
+    const char *state = NULL;
+
+    t = pa_xnew(char*, n);
+    while ((e = pa_split_spaces(s, &state))) {
+        t[i++] = e;
+
+        if (i >= n) {
+            n *= 2;
+            t = pa_xrenew(char*, t, n);
+        }
+    }
+
+    if (i <= 0) {
+        pa_xfree(t);
         return NULL;
+    }
 
-    /* We copy this here in case our pa_xmalloc() is not implemented
-     * on top of libc malloc() */
-    t = pa_xstrdup(r);
-    pa_xfree(r);
-
+    t[i] = NULL;
     return t;
 }
 
@@ -2651,4 +2790,13 @@ pa_bool_t pa_linux_newer_than(unsigned major, unsigned minor, unsigned micro) {
 #endif
 
     return FALSE;
+}
+
+char* pa_maybe_prefix_path(const char *path, const char *prefix) {
+    pa_assert(path);
+
+    if (pa_is_path_absolute(path))
+        return pa_xstrdup(path);
+
+    return pa_sprintf_malloc("%s" PA_PATH_SEP "%s", prefix, path);
 }

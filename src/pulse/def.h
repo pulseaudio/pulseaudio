@@ -71,7 +71,7 @@ typedef enum pa_stream_state {
     PA_STREAM_UNCONNECTED,  /**< The stream is not yet connected to any sink or source */
     PA_STREAM_CREATING,     /**< The stream is being created */
     PA_STREAM_READY,        /**< The stream is established, you may pass audio data to it now */
-    PA_STREAM_FAILED,       /**< An error occured that made the stream invalid */
+    PA_STREAM_FAILED,       /**< An error occurred that made the stream invalid */
     PA_STREAM_TERMINATED    /**< The stream has been terminated cleanly */
 } pa_stream_state_t;
 
@@ -109,13 +109,16 @@ typedef enum pa_operation_state {
 
 /** Some special flags for contexts. */
 typedef enum pa_context_flags {
-    PA_CONTEXT_NOAUTOSPAWN = 1
+    PA_CONTEXT_NOAUTOSPAWN = 0x0001U,
     /**< Disabled autospawning of the PulseAudio daemon if required */
+    PA_CONTEXT_NOFAIL = 0x0002U
+    /**< Don't fail if the daemon is not available when pa_context_connect() is called, instead enter PA_CONTEXT_CONNECTING state and wait for the daemon to appear.  \since 0.9.15 */
 } pa_context_flags_t;
 
 /** \cond fulldocs */
 /* Allow clients to check with #ifdef for those flags */
 #define PA_CONTEXT_NOAUTOSPAWN PA_CONTEXT_NOAUTOSPAWN
+#define PA_CONTEXT_NOFAIL PA_CONTEXT_NOFAIL
 /** \endcond */
 
 /** The direction of a pa_stream object */
@@ -213,7 +216,7 @@ typedef enum pa_stream_flags {
      * sink/device. Useful if you use any of the PA_STREAM_FIX_ flags
      * and want to make sure that resampling never takes place --
      * which might happen if the stream is moved to another
-     * sink/source whith a different sample spec/channel map. Only
+     * sink/source with a different sample spec/channel map. Only
      * supported when the server is at least PA 0.9.8. It is ignored
      * on older servers. \since 0.9.8 */
 
@@ -247,7 +250,7 @@ typedef enum pa_stream_flags {
      * asking for less new data than this value will be made to the
      * client it will also guarantee that requests are generated as
      * early as this limit is reached. This flag should only be set in
-     * very few situations where compatiblity with a fragment-based
+     * very few situations where compatibility with a fragment-based
      * playback model needs to be kept and the client applications
      * cannot deal with data requests that are delayed to the latest
      * moment possible. (Usually these are programs that use usleep()
@@ -323,12 +326,12 @@ typedef struct pa_buffer_attr {
      * plus the playback buffer size is configured to this value. Set
      * PA_STREAM_ADJUST_LATENCY if you are interested in adjusting the
      * overall latency. Don't set it if you are interested in
-     * configuring the server-sider per-stream playback buffer
+     * configuring the server-side per-stream playback buffer
      * size. */
 
     uint32_t prebuf;
     /**< Playback only: pre-buffering. The server does not start with
-     * playback before at least prebug bytes are available in the
+     * playback before at least prebuf bytes are available in the
      * buffer. It is recommended to set this to (uint32_t) -1, which
      * will initialize this to the same value as tlength, whatever
      * that may be. Initialize to 0 to enable manual start/stop
@@ -349,7 +352,7 @@ typedef struct pa_buffer_attr {
 
     uint32_t fragsize;
     /**< Recording only: fragment size. The server sends data in
-     * blocks of fragsize bytes size. Large values deminish
+     * blocks of fragsize bytes size. Large values diminish
      * interactivity with other operations on the connection context
      * but decrease control overhead. It is recommended to set this to
      * (uint32_t) -1, which will initialize this to a value that is
@@ -389,7 +392,8 @@ enum {
     PA_ERR_NOEXTENSION,            /**< Extension does not exist. \since 0.9.12 */
     PA_ERR_OBSOLETE,               /**< Obsolete functionality. \since 0.9.15 */
     PA_ERR_NOTIMPLEMENTED,         /**< Missing implementation. \since 0.9.15 */
-    PA_ERR_FORKED,                 /**< The caler forked without calling execve() and tried to reuse the context. \since 0.9.15 */
+    PA_ERR_FORKED,                 /**< The caller forked without calling execve() and tried to reuse the context. \since 0.9.15 */
+    PA_ERR_IO,                     /**< An IO error happened. \since 0.9.16 */
     PA_ERR_MAX                     /**< Not really an error but the first invalid error code */
 };
 
@@ -487,7 +491,7 @@ typedef enum pa_subscription_event_type {
     /**< Event type: Sample cache item */
 
     PA_SUBSCRIPTION_EVENT_SERVER = 0x0007U,
-    /**< Event type: Global server change, only occuring with PA_SUBSCRIPTION_EVENT_CHANGE. */
+    /**< Event type: Global server change, only occurring with PA_SUBSCRIPTION_EVENT_CHANGE. */
 
 /** \cond fulldocs */
     PA_SUBSCRIPTION_EVENT_AUTOLOAD = 0x0008U,
@@ -573,7 +577,7 @@ typedef struct pa_timing_info {
     /**< Non-zero if the local and the remote machine have
      * synchronized clocks. If synchronized clocks are detected
      * transport_usec becomes much more reliable. However, the code
-     * that detects synchronized clocks is very limited und unreliable
+     * that detects synchronized clocks is very limited and unreliable
      * itself. */
 
     pa_usec_t sink_usec;
@@ -624,7 +628,7 @@ typedef struct pa_timing_info {
     /**< The configured latency for the sink. \since 0.9.11 */
 
     pa_usec_t configured_source_usec;
-    /**< The configured latency for * the source. \since 0.9.11 */
+    /**< The configured latency for the source. \since 0.9.11 */
 
     int64_t since_underrun;
     /**< Bytes that were handed to the sink since the last underrun
@@ -702,9 +706,13 @@ typedef enum pa_sink_flags {
     /**< Volume can be translated to dB with pa_sw_volume_to_dB()
      * \since 0.9.11 */
 
-    PA_SINK_FLAT_VOLUME = 0x0040U
+    PA_SINK_FLAT_VOLUME = 0x0040U,
     /**< This sink is in flat volume mode, i.e. always the maximum of
      * the volume of all connected inputs. \since 0.9.15 */
+
+    PA_SINK_DYNAMIC_LATENCY = 0x0080U
+    /**< The latency can be adjusted dynamically depending on the
+     * needs of the connected streams. \since 0.9.15 */
 } pa_sink_flags_t;
 
 /** \cond fulldocs */
@@ -715,6 +723,7 @@ typedef enum pa_sink_flags {
 #define PA_SINK_HW_MUTE_CTRL PA_SINK_HW_MUTE_CTRL
 #define PA_SINK_DECIBEL_VOLUME PA_SINK_DECIBEL_VOLUME
 #define PA_SINK_FLAT_VOLUME PA_SINK_FLAT_VOLUME
+#define PA_SINK_DYNAMIC_LATENCY PA_SINK_DYNAMIC_LATENCY
 /** \endcond */
 
 /** Sink state. \since 0.9.15 */
@@ -780,9 +789,13 @@ typedef enum pa_source_flags {
     PA_SOURCE_HW_MUTE_CTRL = 0x0010U,
     /**< Supports hardware mute control \since 0.9.11 */
 
-    PA_SOURCE_DECIBEL_VOLUME = 0x0020U
+    PA_SOURCE_DECIBEL_VOLUME = 0x0020U,
     /**< Volume can be translated to dB with pa_sw_volume_to_dB()
      * \since 0.9.11 */
+
+    PA_SOURCE_DYNAMIC_LATENCY = 0x0040U
+    /**< The latency can be adjusted dynamically depending on the
+     * needs of the connected streams. \since 0.9.15 */
 } pa_source_flags_t;
 
 /** \cond fulldocs */
@@ -792,6 +805,7 @@ typedef enum pa_source_flags {
 #define PA_SOURCE_NETWORK PA_SOURCE_NETWORK
 #define PA_SOURCE_HW_MUTE_CTRL PA_SOURCE_HW_MUTE_CTRL
 #define PA_SOURCE_DECIBEL_VOLUME PA_SOURCE_DECIBEL_VOLUME
+#define PA_SOURCE_DYNAMIC_LATENCY PA_SOURCE_DYNAMIC_LATENCY
 /** \endcond */
 
 /** Source state. \since 0.9.15 */

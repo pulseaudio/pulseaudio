@@ -78,17 +78,26 @@ struct pa_smoother {
 
     /* Cached parameters for our interpolation polynomial y=ax^3+b^2+cx */
     double a, b, c;
-    pa_bool_t abc_valid;
+    pa_bool_t abc_valid:1;
 
     pa_bool_t monotonic:1;
     pa_bool_t paused:1;
+    pa_bool_t smoothing:1; /* If FALSE we skip the polonyomial interpolation step */
 
     pa_usec_t pause_time;
 
     unsigned min_history;
 };
 
-pa_smoother* pa_smoother_new(pa_usec_t adjust_time, pa_usec_t history_time, pa_bool_t monotonic, unsigned min_history) {
+pa_smoother* pa_smoother_new(
+        pa_usec_t adjust_time,
+        pa_usec_t history_time,
+        pa_bool_t monotonic,
+        pa_bool_t smoothing,
+        unsigned min_history,
+        pa_usec_t time_offset,
+        pa_bool_t paused) {
+
     pa_smoother *s;
 
     pa_assert(adjust_time > 0);
@@ -116,8 +125,12 @@ pa_smoother* pa_smoother_new(pa_usec_t adjust_time, pa_usec_t history_time, pa_b
     s->abc_valid = FALSE;
 
     s->paused = FALSE;
+    s->smoothing = smoothing;
 
     s->min_history = min_history;
+
+    s->paused = paused;
+    s->time_offset = s->pause_time = time_offset;
 
     return s;
 }
@@ -279,6 +292,7 @@ static void estimate(pa_smoother *s, pa_usec_t x, pa_usec_t *y, double *deriv) {
     pa_assert(y);
 
     if (x >= s->px) {
+        /* Linear interpolation right from px */
         int64_t t;
 
         /* The requested point is right of the point where we wanted
@@ -294,7 +308,22 @@ static void estimate(pa_smoother *s, pa_usec_t x, pa_usec_t *y, double *deriv) {
         if (deriv)
             *deriv = s->dp;
 
+    } else if (x <= s->ex) {
+        /* Linear interpolation left from ex */
+        int64_t t;
+
+        t = (int64_t) s->ey - (int64_t) llrint(s->de * (double) (s->ex - x));
+
+        if (t < 0)
+            t = 0;
+
+        *y = (pa_usec_t) t;
+
+        if (deriv)
+            *deriv = s->de;
+
     } else {
+        /* Spline interpolation between ex and px */
         double tx, ty;
 
         /* Ok, we're not yet on track, thus let's interpolate, and
@@ -348,7 +377,6 @@ void pa_smoother_put(pa_smoother *s, pa_usec_t x, pa_usec_t y) {
          * we can adjust our position smoothly from this one */
         estimate(s, x, &ney, &nde);
         s->ex = x; s->ey = ney; s->de = nde;
-
         s->ry = y;
     }
 
@@ -359,12 +387,19 @@ void pa_smoother_put(pa_smoother *s, pa_usec_t x, pa_usec_t y) {
     s->dp = avg_gradient(s, x);
 
     /* And calculate when we want to be on track again */
-    s->px = s->ex + s->adjust_time;
-    s->py = s->ry + (pa_usec_t) llrint(s->dp * (double) s->adjust_time);
+    if (s->smoothing) {
+        s->px = s->ex + s->adjust_time;
+        s->py = s->ry + (pa_usec_t) llrint(s->dp * (double) s->adjust_time);
+    } else {
+        s->px = s->ex;
+        s->py = s->ry;
+    }
 
     s->abc_valid = FALSE;
 
-/*     pa_log_debug("put(%llu | %llu) = %llu", (unsigned long long)  (x + s->time_offset), (unsigned long long) x, (unsigned long long) y); */
+#ifdef DEBUG_DATA
+    pa_log_debug("%p, put(%llu | %llu) = %llu", s, (unsigned long long)  (x + s->time_offset), (unsigned long long) x, (unsigned long long) y);
+#endif
 }
 
 pa_usec_t pa_smoother_get(pa_smoother *s, pa_usec_t x) {
@@ -395,7 +430,9 @@ pa_usec_t pa_smoother_get(pa_smoother *s, pa_usec_t x) {
             s->last_y = y;
     }
 
-/*     pa_log_debug("get(%llu | %llu) = %llu", (unsigned long long) (x + s->time_offset), (unsigned long long) x, (unsigned long long) y); */
+#ifdef DEBUG_DATA
+    pa_log_debug("%p, get(%llu | %llu) = %llu", s, (unsigned long long) (x + s->time_offset), (unsigned long long) x, (unsigned long long) y);
+#endif
 
     return y;
 }
@@ -405,7 +442,9 @@ void pa_smoother_set_time_offset(pa_smoother *s, pa_usec_t offset) {
 
     s->time_offset = offset;
 
-/*     pa_log_debug("offset(%llu)", (unsigned long long) offset); */
+#ifdef DEBUG_DATA
+    pa_log_debug("offset(%llu)", (unsigned long long) offset);
+#endif
 }
 
 void pa_smoother_pause(pa_smoother *s, pa_usec_t x) {
@@ -414,13 +453,15 @@ void pa_smoother_pause(pa_smoother *s, pa_usec_t x) {
     if (s->paused)
         return;
 
-/*     pa_log_debug("pause(%llu)", (unsigned long long)  x); */
+#ifdef DEBUG_DATA
+    pa_log_debug("pause(%llu)", (unsigned long long)  x);
+#endif
 
     s->paused = TRUE;
     s->pause_time = x;
 }
 
-void pa_smoother_resume(pa_smoother *s, pa_usec_t x) {
+void pa_smoother_resume(pa_smoother *s, pa_usec_t x, pa_bool_t fix_now) {
     pa_assert(s);
 
     if (!s->paused)
@@ -429,10 +470,22 @@ void pa_smoother_resume(pa_smoother *s, pa_usec_t x) {
     if (x < s->pause_time)
         x = s->pause_time;
 
-/*     pa_log_debug("resume(%llu)", (unsigned long long) x); */
+#ifdef DEBUG_DATA
+    pa_log_debug("resume(%llu)", (unsigned long long) x);
+#endif
 
     s->paused = FALSE;
     s->time_offset += x - s->pause_time;
+
+    if (fix_now)
+        pa_smoother_fix_now(s);
+}
+
+void pa_smoother_fix_now(pa_smoother *s) {
+    pa_assert(s);
+
+    s->px = s->ex;
+    s->py = s->ry;
 }
 
 pa_usec_t pa_smoother_translate(pa_smoother *s, pa_usec_t x, pa_usec_t y_delay) {
@@ -454,7 +507,9 @@ pa_usec_t pa_smoother_translate(pa_smoother *s, pa_usec_t x, pa_usec_t y_delay) 
     if (s->dp > nde)
         nde = s->dp;
 
-/*     pa_log_debug("translate(%llu) = %llu (%0.2f)", (unsigned long long) y_delay, (unsigned long long) ((double) y_delay / nde), nde); */
+#ifdef DEBUG_DATA
+    pa_log_debug("translate(%llu) = %llu (%0.2f)", (unsigned long long) y_delay, (unsigned long long) ((double) y_delay / nde), nde);
+#endif
 
     return (pa_usec_t) llrint((double) y_delay / nde);
 }

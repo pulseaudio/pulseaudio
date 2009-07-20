@@ -159,3 +159,15 @@ pa_strlist *pa_strlist_reverse(pa_strlist *l) {
 
     return r;
 }
+
+pa_strlist *pa_strlist_next(pa_strlist *s) {
+    pa_assert(s);
+
+    return s->next;
+}
+
+const char *pa_strlist_data(pa_strlist *s) {
+    pa_assert(s);
+
+    return ITEM_TO_TEXT(s);
+}

@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#include <pulse/rtclock.h>
 #include <pulse/sample.h>
 #include <pulse/timeval.h>
 #include <pulse/utf8.h>
@@ -63,7 +64,7 @@
 #define MAX_CONNECTIONS 64
 
 /* Kick a client if it doesn't authenticate within this time */
-#define AUTH_TIMEOUT 5
+#define AUTH_TIMEOUT (5*PA_USEC_PER_SEC)
 
 #define DEFAULT_COOKIE_FILE ".esd_auth"
 
@@ -562,7 +563,7 @@ static int esd_proto_get_latency(connection *c, esd_proto_t request, const void 
     pa_sink *sink;
     int32_t latency;
 
-    connection_ref(c);
+    connection_assert_ref(c);
     pa_assert(!data);
     pa_assert(length == 0);
 
@@ -575,6 +576,7 @@ static int esd_proto_get_latency(connection *c, esd_proto_t request, const void 
 
     latency = PA_MAYBE_INT32_SWAP(c->swap_byte_order, latency);
     connection_write(c, &latency, sizeof(int32_t));
+
     return 0;
 }
 
@@ -583,7 +585,7 @@ static int esd_proto_server_info(connection *c, esd_proto_t request, const void 
     int32_t response;
     pa_sink *sink;
 
-    connection_ref(c);
+    connection_assert_ref(c);
     pa_assert(data);
     pa_assert(length == sizeof(int32_t));
 
@@ -611,7 +613,7 @@ static int esd_proto_all_info(connection *c, esd_proto_t request, const void *da
     unsigned nsamples;
     char terminator[sizeof(int32_t)*6+ESD_NAME_MAX];
 
-    connection_ref(c);
+    connection_assert_ref(c);
     pa_assert(data);
     pa_assert(length == sizeof(int32_t));
 
@@ -637,7 +639,8 @@ static int esd_proto_all_info(connection *c, esd_proto_t request, const void *da
         pa_assert(t >= k*2+s);
 
         if (conn->sink_input) {
-            pa_cvolume volume = *pa_sink_input_get_volume(conn->sink_input);
+            pa_cvolume volume;
+            pa_sink_input_get_volume(conn->sink_input, &volume, TRUE);
             rate = (int32_t) conn->sink_input->sample_spec.rate;
             lvolume = (int32_t) ((volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
             rvolume = (int32_t) ((volume.values[volume.channels == 2 ? 1 : 0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
@@ -777,7 +780,7 @@ static int esd_proto_stream_pan(connection *c, esd_proto_t request, const void *
         volume.values[1] = (rvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
         volume.channels = conn->sink_input->sample_spec.channels;
 
-        pa_sink_input_set_volume(conn->sink_input, &volume, TRUE);
+        pa_sink_input_set_volume(conn->sink_input, &volume, TRUE, TRUE);
         ok = 1;
     } else
         ok = 0;
@@ -945,10 +948,10 @@ static int esd_proto_standby_or_resume(connection *c, esd_proto_t request, const
     connection_write(c, &ok, sizeof(int32_t));
 
     if (request == ESD_PROTO_STANDBY)
-        ok = pa_sink_suspend_all(c->protocol->core, TRUE) >= 0;
+        ok = pa_sink_suspend_all(c->protocol->core, TRUE, PA_SUSPEND_USER) >= 0;
     else {
         pa_assert(request == ESD_PROTO_RESUME);
-        ok = pa_sink_suspend_all(c->protocol->core, FALSE) >= 0;
+        ok = pa_sink_suspend_all(c->protocol->core, FALSE, PA_SUSPEND_USER) >= 0;
     }
 
     connection_write(c, &ok, sizeof(int32_t));
@@ -1105,8 +1108,7 @@ static int do_read(connection *c) {
             pa_scache_add_item(c->protocol->core, c->scache.name, &c->scache.sample_spec, NULL, &c->scache.memchunk, c->client->proplist, &idx);
 
             pa_memblock_unref(c->scache.memchunk.memblock);
-            c->scache.memchunk.memblock = NULL;
-            c->scache.memchunk.index = c->scache.memchunk.length = 0;
+            pa_memchunk_reset(&c->scache.memchunk);
 
             pa_xfree(c->scache.name);
             c->scache.name = NULL;
@@ -1458,11 +1460,10 @@ static pa_usec_t source_output_get_latency_cb(pa_source_output *o) {
 
 /*** entry points ***/
 
-static void auth_timeout(pa_mainloop_api*m, pa_time_event *e, const struct timeval *tv, void *userdata) {
+static void auth_timeout(pa_mainloop_api *m, pa_time_event *e, const struct timeval *t, void *userdata) {
     connection *c = CONNECTION(userdata);
 
     pa_assert(m);
-    pa_assert(tv);
     connection_assert_ref(c);
     pa_assert(c->auth_timeout_event == e);
 
@@ -1552,12 +1553,9 @@ void pa_esound_protocol_connect(pa_esound_protocol *p, pa_iochannel *io, pa_esou
         c->authorized = TRUE;
     }
 
-    if (!c->authorized) {
-        struct timeval tv;
-        pa_gettimeofday(&tv);
-        tv.tv_sec += AUTH_TIMEOUT;
-        c->auth_timeout_event = p->core->mainloop->time_new(p->core->mainloop, &tv, auth_timeout, c);
-    } else
+    if (!c->authorized)
+        c->auth_timeout_event = pa_core_rttime_new(p->core, pa_rtclock_now() + AUTH_TIMEOUT, auth_timeout, c);
+    else
         c->auth_timeout_event = NULL;
 
     c->defer_event = p->core->mainloop->defer_new(p->core->mainloop, defer_callback, c);

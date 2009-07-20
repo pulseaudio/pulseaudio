@@ -90,8 +90,8 @@ pa_memblockq* pa_memblockq_new(
 
     pa_memblockq_set_maxlength(bq, maxlength);
     pa_memblockq_set_tlength(bq, tlength);
-    pa_memblockq_set_prebuf(bq, prebuf);
     pa_memblockq_set_minreq(bq, minreq);
+    pa_memblockq_set_prebuf(bq, prebuf);
     pa_memblockq_set_maxrewind(bq, maxrewind);
 
     pa_log_debug("memblockq sanitized: maxlength=%lu, tlength=%lu, base=%lu, prebuf=%lu, minreq=%lu maxrewind=%lu",
@@ -601,7 +601,7 @@ size_t pa_memblockq_missing(pa_memblockq *bq) {
     return l >= bq->minreq ? l : 0;
 }
 
-void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek) {
+void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek, pa_bool_t account) {
     int64_t old, delta;
     pa_assert(bq);
 
@@ -628,12 +628,14 @@ void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek) {
 
     delta = bq->write_index - old;
 
-    if (delta >= (int64_t) bq->requested) {
-        delta -= (int64_t) bq->requested;
-        bq->requested = 0;
-    } else if (delta >= 0) {
-        bq->requested -= (size_t) delta;
-        delta = 0;
+    if (account) {
+        if (delta >= (int64_t) bq->requested) {
+            delta -= (int64_t) bq->requested;
+            bq->requested = 0;
+        } else if (delta >= 0) {
+            bq->requested -= (size_t) delta;
+            delta = 0;
+        }
     }
 
     bq->missing -= delta;
@@ -782,16 +784,13 @@ void pa_memblockq_set_maxlength(pa_memblockq *bq, size_t maxlength) {
 
     if (bq->tlength > bq->maxlength)
         pa_memblockq_set_tlength(bq, bq->maxlength);
-
-    if (bq->prebuf > bq->maxlength)
-        pa_memblockq_set_prebuf(bq, bq->maxlength);
 }
 
 void pa_memblockq_set_tlength(pa_memblockq *bq, size_t tlength) {
     size_t old_tlength;
     pa_assert(bq);
 
-    if (tlength <= 0)
+    if (tlength <= 0 || tlength == (size_t) -1)
         tlength = bq->maxlength;
 
     old_tlength = bq->tlength;
@@ -800,34 +799,13 @@ void pa_memblockq_set_tlength(pa_memblockq *bq, size_t tlength) {
     if (bq->tlength > bq->maxlength)
         bq->tlength = bq->maxlength;
 
-    if (bq->prebuf > bq->tlength)
-        pa_memblockq_set_prebuf(bq, bq->tlength);
-
     if (bq->minreq > bq->tlength)
         pa_memblockq_set_minreq(bq, bq->tlength);
 
+    if (bq->prebuf > bq->tlength+bq->base-bq->minreq)
+        pa_memblockq_set_prebuf(bq, bq->tlength+bq->base-bq->minreq);
+
     bq->missing += (int64_t) bq->tlength - (int64_t) old_tlength;
-}
-
-void pa_memblockq_set_prebuf(pa_memblockq *bq, size_t prebuf) {
-    pa_assert(bq);
-
-    if (prebuf == (size_t) -1)
-        prebuf = bq->tlength;
-
-    bq->prebuf = ((prebuf+bq->base-1)/bq->base)*bq->base;
-
-    if (prebuf > 0 && bq->prebuf < bq->base)
-        bq->prebuf = bq->base;
-
-    if (bq->prebuf > bq->tlength)
-        bq->prebuf = bq->tlength;
-
-    if (bq->prebuf <= 0 || pa_memblockq_get_length(bq) >= bq->prebuf)
-        bq->in_prebuf = FALSE;
-
-    if (bq->minreq > bq->prebuf)
-        pa_memblockq_set_minreq(bq, bq->prebuf);
 }
 
 void pa_memblockq_set_minreq(pa_memblockq *bq, size_t minreq) {
@@ -838,17 +816,55 @@ void pa_memblockq_set_minreq(pa_memblockq *bq, size_t minreq) {
     if (bq->minreq > bq->tlength)
         bq->minreq = bq->tlength;
 
-    if (bq->minreq > bq->prebuf)
-        bq->minreq = bq->prebuf;
-
     if (bq->minreq < bq->base)
         bq->minreq = bq->base;
+
+    if (bq->prebuf > bq->tlength+bq->base-bq->minreq)
+        pa_memblockq_set_prebuf(bq, bq->tlength+bq->base-bq->minreq);
+}
+
+void pa_memblockq_set_prebuf(pa_memblockq *bq, size_t prebuf) {
+    pa_assert(bq);
+
+    if (prebuf == (size_t) -1)
+        prebuf = bq->tlength+bq->base-bq->minreq;
+
+    bq->prebuf = ((prebuf+bq->base-1)/bq->base)*bq->base;
+
+    if (prebuf > 0 && bq->prebuf < bq->base)
+        bq->prebuf = bq->base;
+
+    if (bq->prebuf > bq->tlength+bq->base-bq->minreq)
+        bq->prebuf = bq->tlength+bq->base-bq->minreq;
+
+    if (bq->prebuf <= 0 || pa_memblockq_get_length(bq) >= bq->prebuf)
+        bq->in_prebuf = FALSE;
 }
 
 void pa_memblockq_set_maxrewind(pa_memblockq *bq, size_t maxrewind) {
     pa_assert(bq);
 
     bq->maxrewind = (maxrewind/bq->base)*bq->base;
+}
+
+void pa_memblockq_apply_attr(pa_memblockq *bq, const pa_buffer_attr *a) {
+    pa_assert(bq);
+    pa_assert(a);
+
+    pa_memblockq_set_maxlength(bq, a->maxlength);
+    pa_memblockq_set_tlength(bq, a->tlength);
+    pa_memblockq_set_prebuf(bq, a->prebuf);
+    pa_memblockq_set_minreq(bq, a->minreq);
+}
+
+void pa_memblockq_get_attr(pa_memblockq *bq, pa_buffer_attr *a) {
+    pa_assert(bq);
+    pa_assert(a);
+
+    a->maxlength = (uint32_t) pa_memblockq_get_maxlength(bq);
+    a->tlength = (uint32_t) pa_memblockq_get_tlength(bq);
+    a->prebuf = (uint32_t) pa_memblockq_get_prebuf(bq);
+    a->minreq = (uint32_t) pa_memblockq_get_minreq(bq);
 }
 
 int pa_memblockq_splice(pa_memblockq *bq, pa_memblockq *source) {
@@ -875,7 +891,7 @@ int pa_memblockq_splice(pa_memblockq *bq, pa_memblockq *source) {
 
             pa_memblock_unref(chunk.memblock);
         } else
-            pa_memblockq_seek(bq, (int64_t) chunk.length, PA_SEEK_RELATIVE);
+            pa_memblockq_seek(bq, (int64_t) chunk.length, PA_SEEK_RELATIVE, TRUE);
 
         pa_memblockq_drop(bq, chunk.length);
     }

@@ -139,11 +139,10 @@ char *pa_card_list_to_string(pa_core *c) {
 
         if (card->profiles) {
             pa_card_profile *p;
-            void *state = NULL;
+            void *state;
 
             pa_strbuf_puts(s, "\tprofiles:\n");
-
-            while ((p = pa_hashmap_iterate(card->profiles, &state, NULL)))
+            PA_HASHMAP_FOREACH(p, card->profiles, state)
                 pa_strbuf_printf(s, "\t\t%s: %s (priority %u)\n", p->name, p->description, p->priority);
         }
 
@@ -220,27 +219,25 @@ char *pa_sink_list_to_string(pa_core *c) {
             v[PA_VOLUME_SNPRINT_MAX],
             vdb[PA_SW_VOLUME_SNPRINT_DB_MAX],
             cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t;
-        pa_usec_t min_latency, max_latency;
         const char *cmn;
 
         cmn = pa_channel_map_to_pretty_name(&sink->channel_map);
 
-        pa_sink_get_latency_range(sink, &min_latency, &max_latency);
 
         pa_strbuf_printf(
             s,
             "  %c index: %u\n"
             "\tname: <%s>\n"
             "\tdriver: <%s>\n"
-            "\tflags: %s%s%s%s%s%s%s\n"
+            "\tflags: %s%s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
+            "\tsuspend cause: %s%s%s%s\n"
             "\tvolume: %s%s%s\n"
             "\t        balance %0.2f\n"
             "\tbase volume: %s%s%s\n"
             "\tvolume steps: %u\n"
             "\tmuted: %s\n"
             "\tcurrent latency: %0.2f ms\n"
-            "\tconfigured latency: %0.2f ms; range is %0.2f .. %0.2f ms\n"
             "\tmax request: %lu KiB\n"
             "\tmax rewind: %lu KiB\n"
             "\tmonitor source: %u\n"
@@ -258,21 +255,23 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->flags & PA_SINK_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
             sink->flags & PA_SINK_DECIBEL_VOLUME ? "DECIBEL_VOLUME " : "",
             sink->flags & PA_SINK_LATENCY ? "LATENCY " : "",
-            sink->flags & PA_SINK_FLAT_VOLUME ? "FLAT_VOLUME" : "",
+            sink->flags & PA_SINK_FLAT_VOLUME ? "FLAT_VOLUME " : "",
+            sink->flags & PA_SINK_DYNAMIC_LATENCY ? "DYNAMIC_LATENCY" : "",
             sink_state_to_string(pa_sink_get_state(sink)),
-            pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink, FALSE)),
+            sink->suspend_cause & PA_SUSPEND_USER ? "USER " : "",
+            sink->suspend_cause & PA_SUSPEND_APPLICATION ? "APPLICATION " : "",
+            sink->suspend_cause & PA_SUSPEND_IDLE ? "IDLE " : "",
+            sink->suspend_cause & PA_SUSPEND_SESSION ? "SESSION" : "",
+            pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink, FALSE, FALSE)),
             sink->flags & PA_SINK_DECIBEL_VOLUME ? "\n\t        " : "",
-            sink->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_sink_get_volume(sink, FALSE)) : "",
-            pa_cvolume_get_balance(pa_sink_get_volume(sink, FALSE), &sink->channel_map),
+            sink->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_sink_get_volume(sink, FALSE, FALSE)) : "",
+            pa_cvolume_get_balance(pa_sink_get_volume(sink, FALSE, FALSE), &sink->channel_map),
             pa_volume_snprint(v, sizeof(v), sink->base_volume),
             sink->flags & PA_SINK_DECIBEL_VOLUME ? "\n\t             " : "",
             sink->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_volume_snprint_dB(vdb, sizeof(vdb), sink->base_volume) : "",
             sink->n_volume_steps,
             pa_yes_no(pa_sink_get_mute(sink, FALSE)),
             (double) pa_sink_get_latency(sink) / (double) PA_USEC_PER_MSEC,
-            (double) pa_sink_get_requested_latency(sink) / (double) PA_USEC_PER_MSEC,
-            (double) min_latency / PA_USEC_PER_MSEC,
-            (double) max_latency / PA_USEC_PER_MSEC,
             (unsigned long) pa_sink_get_max_request(sink) / 1024,
             (unsigned long) pa_sink_get_max_rewind(sink) / 1024,
             sink->monitor_source ? sink->monitor_source->index : PA_INVALID_INDEX,
@@ -283,6 +282,22 @@ char *pa_sink_list_to_string(pa_core *c) {
             pa_sink_used_by(sink),
             pa_sink_linked_by(sink));
 
+        if (sink->flags & PA_SINK_DYNAMIC_LATENCY) {
+            pa_usec_t min_latency, max_latency;
+            pa_sink_get_latency_range(sink, &min_latency, &max_latency);
+
+            pa_strbuf_printf(
+                    s,
+                    "\tconfigured latency: %0.2f ms; range is %0.2f .. %0.2f ms\n",
+                    (double) pa_sink_get_requested_latency(sink) / (double) PA_USEC_PER_MSEC,
+                    (double) min_latency / PA_USEC_PER_MSEC,
+                    (double) max_latency / PA_USEC_PER_MSEC);
+        } else
+            pa_strbuf_printf(
+                    s,
+                    "\tfixed latency: %0.2f ms\n",
+                    (double) pa_sink_get_requested_latency(sink) / PA_USEC_PER_MSEC);
+
         if (sink->card)
             pa_strbuf_printf(s, "\tcard: %u <%s>\n", sink->card->index, sink->card->name);
         if (sink->module)
@@ -291,6 +306,22 @@ char *pa_sink_list_to_string(pa_core *c) {
         t = pa_proplist_to_string_sep(sink->proplist, "\n\t\t");
         pa_strbuf_printf(s, "\tproperties:\n\t\t%s\n", t);
         pa_xfree(t);
+
+        if (sink->ports) {
+            pa_device_port *p;
+            void *state;
+
+            pa_strbuf_puts(s, "\tports:\n");
+            PA_HASHMAP_FOREACH(p, sink->ports, state)
+                pa_strbuf_printf(s, "\t\t%s: %s (priority %u)\n", p->name, p->description, p->priority);
+        }
+
+
+        if (sink->active_port)
+            pa_strbuf_printf(
+                    s,
+                    "\tactive port: <%s>\n",
+                    sink->active_port->name);
     }
 
     return pa_strbuf_tostring_free(s);
@@ -313,27 +344,24 @@ char *pa_source_list_to_string(pa_core *c) {
             v[PA_VOLUME_SNPRINT_MAX],
             vdb[PA_SW_VOLUME_SNPRINT_DB_MAX],
             cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t;
-        pa_usec_t min_latency, max_latency;
         const char *cmn;
 
         cmn = pa_channel_map_to_pretty_name(&source->channel_map);
-
-        pa_source_get_latency_range(source, &min_latency, &max_latency);
 
         pa_strbuf_printf(
             s,
             "  %c index: %u\n"
             "\tname: <%s>\n"
             "\tdriver: <%s>\n"
-            "\tflags: %s%s%s%s%s%s\n"
+            "\tflags: %s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
+            "\tsuspend cause: %s%s%s%s\n"
             "\tvolume: %s%s%s\n"
             "\t        balance %0.2f\n"
             "\tbase volume: %s%s%s\n"
             "\tvolume steps: %u\n"
             "\tmuted: %s\n"
             "\tcurrent latency: %0.2f ms\n"
-            "\tconfigured latency: %0.2f ms; range is %0.2f .. %0.2f ms\n"
             "\tmax rewind: %lu KiB\n"
             "\tsample spec: %s\n"
             "\tchannel map: %s%s%s\n"
@@ -349,7 +377,12 @@ char *pa_source_list_to_string(pa_core *c) {
             source->flags & PA_SOURCE_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? "DECIBEL_VOLUME " : "",
             source->flags & PA_SOURCE_LATENCY ? "LATENCY " : "",
+            source->flags & PA_SOURCE_DYNAMIC_LATENCY ? "DYNAMIC_LATENCY" : "",
             source_state_to_string(pa_source_get_state(source)),
+            source->suspend_cause & PA_SUSPEND_USER ? "USER " : "",
+            source->suspend_cause & PA_SUSPEND_APPLICATION ? "APPLICATION " : "",
+            source->suspend_cause & PA_SUSPEND_IDLE ? "IDLE " : "",
+            source->suspend_cause & PA_SUSPEND_SESSION ? "SESSION" : "",
             pa_cvolume_snprint(cv, sizeof(cv), pa_source_get_volume(source, FALSE)),
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? "\n\t        " : "",
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_source_get_volume(source, FALSE)) : "",
@@ -360,9 +393,6 @@ char *pa_source_list_to_string(pa_core *c) {
             source->n_volume_steps,
             pa_yes_no(pa_source_get_mute(source, FALSE)),
             (double) pa_source_get_latency(source) / PA_USEC_PER_MSEC,
-            (double) pa_source_get_requested_latency(source) / PA_USEC_PER_MSEC,
-            (double) min_latency / PA_USEC_PER_MSEC,
-            (double) max_latency / PA_USEC_PER_MSEC,
             (unsigned long) pa_source_get_max_rewind(source) / 1024,
             pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &source->channel_map),
@@ -370,6 +400,22 @@ char *pa_source_list_to_string(pa_core *c) {
             cmn ? cmn : "",
             pa_source_used_by(source),
             pa_source_linked_by(source));
+
+        if (source->flags & PA_SOURCE_DYNAMIC_LATENCY) {
+            pa_usec_t min_latency, max_latency;
+            pa_source_get_latency_range(source, &min_latency, &max_latency);
+
+            pa_strbuf_printf(
+                    s,
+                    "\tconfigured latency: %0.2f ms; range is %0.2f .. %0.2f ms\n",
+                    (double) pa_source_get_requested_latency(source) / PA_USEC_PER_MSEC,
+                    (double) min_latency / PA_USEC_PER_MSEC,
+                    (double) max_latency / PA_USEC_PER_MSEC);
+        } else
+            pa_strbuf_printf(
+                    s,
+                    "\tfixed latency: %0.2f ms\n",
+                    (double) pa_source_get_requested_latency(source) / PA_USEC_PER_MSEC);
 
         if (source->monitor_of)
             pa_strbuf_printf(s, "\tmonitor_of: %u\n", source->monitor_of->index);
@@ -381,6 +427,21 @@ char *pa_source_list_to_string(pa_core *c) {
         t = pa_proplist_to_string_sep(source->proplist, "\n\t\t");
         pa_strbuf_printf(s, "\tproperties:\n\t\t%s\n", t);
         pa_xfree(t);
+
+        if (source->ports) {
+            pa_device_port *p;
+            void *state;
+
+            pa_strbuf_puts(s, "\tports:\n");
+            PA_HASHMAP_FOREACH(p, source->ports, state)
+                pa_strbuf_printf(s, "\t\t%s: %s (priority %u)\n", p->name, p->description, p->priority);
+        }
+
+        if (source->active_port)
+            pa_strbuf_printf(
+                    s,
+                    "\tactive port: <%s>\n",
+                    source->active_port->name);
     }
 
     return pa_strbuf_tostring_free(s);
@@ -486,6 +547,9 @@ char *pa_sink_input_list_to_string(pa_core *c) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t, clt[28];
         pa_usec_t cl;
         const char *cmn;
+        pa_cvolume v;
+
+        pa_sink_input_get_volume(i, &v, TRUE);
 
         cmn = pa_channel_map_to_pretty_name(&i->channel_map);
 
@@ -526,9 +590,9 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             i->flags & PA_SINK_INPUT_FAIL_ON_SUSPEND ? "FAIL_ON_SUSPEND " : "",
             state_table[pa_sink_input_get_state(i)],
             i->sink->index, i->sink->name,
-            pa_cvolume_snprint(cv, sizeof(cv), pa_sink_input_get_volume(i)),
-            pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_sink_input_get_volume(i)),
-            pa_cvolume_get_balance(pa_sink_input_get_volume(i), &i->channel_map),
+            pa_cvolume_snprint(cv, sizeof(cv), &v),
+            pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), &v),
+            pa_cvolume_get_balance(&v, &i->channel_map),
             pa_yes_no(pa_sink_input_get_mute(i)),
             (double) pa_sink_input_get_latency(i, NULL) / PA_USEC_PER_MSEC,
             clt,

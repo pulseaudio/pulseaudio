@@ -50,7 +50,7 @@ struct pollfd;
  *
  * -# Prepare - Build a list of file descriptors
  *               that need to be monitored and calculate the next timeout.
- * -# Poll - Execute the actuall poll() system call.
+ * -# Poll - Execute the actual poll() system call.
  * -# Dispatch - Dispatch any events that have fired.
  *
  * When using the main loop, the application can either execute each

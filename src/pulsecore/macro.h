@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <pulse/gccmacro.h>
 
@@ -57,18 +58,27 @@
 #define PA_PAGE_SIZE ((size_t) 4096)
 #endif
 
+/* Rounds down */
+static inline void* pa_align_ptr(const void *p) {
+    return (void*) (((size_t) p) & ~(sizeof(void*)-1));
+}
+#define PA_ALIGN_PTR(x) (pa_align_ptr(x))
+
+/* Rounds up */
 static inline size_t pa_align(size_t l) {
     return (((l + sizeof(void*) - 1) / sizeof(void*)) * sizeof(void*));
 }
 #define PA_ALIGN(x) (pa_align(x))
 
+/* Rounds down */
 static inline void* pa_page_align_ptr(const void *p) {
     return (void*) (((size_t) p) & ~(PA_PAGE_SIZE-1));
 }
 #define PA_PAGE_ALIGN_PTR(x) (pa_page_align_ptr(x))
 
+/* Rounds up */
 static inline size_t pa_page_align(size_t l) {
-    return l & ~(PA_PAGE_SIZE-1);
+    return ((l + PA_PAGE_SIZE - 1) / PA_PAGE_SIZE) * PA_PAGE_SIZE;
 }
 #define PA_PAGE_ALIGN(x) (pa_page_align(x))
 
@@ -164,8 +174,8 @@ typedef int pa_bool_t;
 
 #define pa_return_null_if_fail(expr) pa_return_val_if_fail(expr, NULL)
 
-/* An assert which guarantees side effects of x, i.e. is never
- * optimized away */
+/* pa_assert_se() is an assert which guarantees side effects of x,
+ * i.e. is never optimized away, regardless of NDEBUG or FASTPATH. */
 #define pa_assert_se(expr)                                              \
     do {                                                                \
         if (PA_UNLIKELY(!(expr))) {                                     \
@@ -174,17 +184,43 @@ typedef int pa_bool_t;
         }                                                               \
     } while (FALSE)
 
-/* An assert that may be optimized away by defining NDEBUG */
+/* Does exactly nothing */
+#define pa_nop() do {} while (FALSE)
+
+/* pa_assert() is an assert that may be optimized away by defining
+ * NDEBUG. pa_assert_fp() is an assert that may be optimized away by
+ * defining FASTPATH. It is supposed to be used in inner loops. It's
+ * there for extra paranoia checking and should probably be removed in
+ * production builds. */
 #ifdef NDEBUG
-#define pa_assert(expr) do {} while (FALSE)
+#define pa_assert(expr) pa_nop()
+#define pa_assert_fp(expr) pa_nop()
+#elif defined (FASTPATH)
+#define pa_assert(expr) pa_assert_se(expr)
+#define pa_assert_fp(expr) pa_nop()
 #else
 #define pa_assert(expr) pa_assert_se(expr)
+#define pa_assert_fp(expr) pa_assert_se(expr)
 #endif
 
+#ifdef NDEBUG
+#define pa_assert_not_reached() pa_nop()
+#else
 #define pa_assert_not_reached()                                         \
     do {                                                                \
         pa_log_error("Code should not be reached at %s:%u, function %s(). Aborting.", __FILE__, __LINE__, PA_PRETTY_FUNCTION); \
         abort();                                                        \
+    } while (FALSE)
+#endif
+
+/* A compile time assertion */
+#define pa_assert_cc(expr)                         \
+    do {                                           \
+        switch (0) {                               \
+            case 0:                                \
+            case !!(expr):                         \
+                ;                                  \
+        }                                          \
     } while (FALSE)
 
 #define PA_PTR_TO_UINT(p) ((unsigned int) ((uintptr_t) (p)))
@@ -226,7 +262,10 @@ typedef int pa_bool_t;
 #define PA_DEBUG_TRAP raise(SIGTRAP)
 #endif
 
-typedef void (*pa_function_t) (...);
+typedef void (*pa_function_t) (void);
+
+#define pa_memzero(x,l) (memset((x), 0, (l)))
+#define pa_zero(x) (pa_memzero(&(x), sizeof(x)))
 
 /* We include this at the very last place */
 #include <pulsecore/log.h>

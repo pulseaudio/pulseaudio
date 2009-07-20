@@ -1,3 +1,5 @@
+/*-*- Mode: C; c-basic-offset: 8; indent-tabs-mode: t -*-*/
+
 #ifndef fooreservehfoo
 #define fooreservehfoo
 
@@ -28,6 +30,10 @@
 #include <dbus/dbus.h>
 #include <inttypes.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct rd_device rd_device;
 
 /* Prototype for a function that is called whenever someone else wants
@@ -45,7 +51,7 @@ typedef int (*rd_request_cb_t)(
  * the error was caused D-Bus. */
 int rd_acquire(
 	rd_device **d,                /* On success a pointer to the newly allocated rd_device object will be filled in here */
-	DBusConnection *connection,
+	DBusConnection *connection,   /* Session bus (when D-Bus learns about user busses we should switchg to user busses) */
 	const char *device_name,      /* The device to lock, e.g. "Audio0" */
 	const char *application_name, /* A human readable name of the application, e.g. "PulseAudio Sound Server" */
 	int32_t priority,             /* The priority for this application. If unsure use 0 */
@@ -65,5 +71,9 @@ void rd_set_userdata(rd_device *d, void *userdata);
 /* Query the userdata pointer from an rd_device. Returns NULL if no
  * userdata was set. */
 void* rd_get_userdata(rd_device *d);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

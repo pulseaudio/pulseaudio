@@ -467,11 +467,13 @@ char *pa_socket_server_get_address(pa_socket_server *s, char *c, size_t l) {
                 pa_snprintf(c, l, "tcp6:%s:%u", fqdn, (unsigned) ntohs(sa.sin6_port));
 
             } else if (memcmp(&in6addr_loopback, &sa.sin6_addr, sizeof(in6addr_loopback)) == 0) {
-                char hn[256];
-                if (!pa_get_host_name(hn, sizeof(hn)))
+                char *id;
+
+                if (!(id = pa_machine_id()))
                     return NULL;
 
-                pa_snprintf(c, l, "{%s}tcp6:localhost:%u", hn, (unsigned) ntohs(sa.sin6_port));
+                pa_snprintf(c, l, "{%s}tcp6:localhost:%u", id, (unsigned) ntohs(sa.sin6_port));
+                pa_xfree(id);
             } else {
                 char ip[INET6_ADDRSTRLEN];
 
@@ -503,11 +505,13 @@ char *pa_socket_server_get_address(pa_socket_server *s, char *c, size_t l) {
 
                 pa_snprintf(c, l, "tcp:%s:%u", fqdn, (unsigned) ntohs(sa.sin_port));
             } else if (sa.sin_addr.s_addr == INADDR_LOOPBACK) {
-                char hn[256];
-                if (!pa_get_host_name(hn, sizeof(hn)))
+                char *id;
+
+                if (!(id = pa_machine_id()))
                     return NULL;
 
-                pa_snprintf(c, l, "{%s}tcp:localhost:%u", hn, (unsigned) ntohs(sa.sin_port));
+                pa_snprintf(c, l, "{%s}tcp:localhost:%u", id, (unsigned) ntohs(sa.sin_port));
+                pa_xfree(id);
             } else {
                 char ip[INET_ADDRSTRLEN];
 
@@ -523,15 +527,16 @@ char *pa_socket_server_get_address(pa_socket_server *s, char *c, size_t l) {
         }
 
         case SOCKET_SERVER_UNIX: {
-            char hn[256];
+            char *id;
 
             if (!s->filename)
                 return NULL;
 
-            if (!pa_get_host_name(hn, sizeof(hn)))
+            if (!(id = pa_machine_id()))
                 return NULL;
 
-            pa_snprintf(c, l, "{%s}unix:%s", hn, s->filename);
+            pa_snprintf(c, l, "{%s}unix:%s", id, s->filename);
+            pa_xfree(id);
             return c;
         }
 

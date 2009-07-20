@@ -42,6 +42,9 @@
 #include <pulsecore/hashmap.h>
 #include <pulsecore/refcnt.h>
 #include <pulsecore/time-smoother.h>
+#ifdef HAVE_DBUS
+#include <pulsecore/dbus-util.h>
+#endif
 
 #include "client-conf.h"
 
@@ -49,6 +52,11 @@
 
 struct pa_context {
     PA_REFCNT_DECLARE;
+
+#ifdef HAVE_DBUS
+    pa_dbus_wrap_connection *system_bus;
+    pa_dbus_wrap_connection *session_bus;
+#endif
 
     pa_proplist *proplist;
     pa_mainloop_api* mainloop;
@@ -78,8 +86,10 @@ struct pa_context {
 
     pa_bool_t is_local:1;
     pa_bool_t do_shm:1;
-
+    pa_bool_t server_specified:1;
+    pa_bool_t no_fail:1;
     pa_bool_t do_autospawn:1;
+    pa_bool_t use_rtclock:1;
     pa_spawn_api spawn_api;
 
     pa_strlist *server_list;
@@ -135,12 +145,17 @@ struct pa_stream {
     uint32_t syncid;
     uint32_t stream_index;
 
-    uint32_t requested_bytes;
+    int64_t requested_bytes;
     pa_buffer_attr buffer_attr;
 
     uint32_t device_index;
     char *device_name;
 
+    /* playback */
+    pa_memblock *write_memblock;
+    void *write_data;
+
+    /* recording */
     pa_memchunk peek_memchunk;
     void *peek_data;
     pa_memblockq *record_memblockq;
@@ -155,12 +170,13 @@ struct pa_stream {
     uint32_t write_index_not_before;
     uint32_t read_index_not_before;
 
-    /* Data about individual timing update correctoins */
+    /* Data about individual timing update corrections */
     pa_index_correction write_index_corrections[PA_MAX_WRITE_INDEX_CORRECTIONS];
     int current_write_index_correction;
 
     /* Latency interpolation stuff */
     pa_time_event *auto_timing_update_event;
+    pa_usec_t auto_timing_interval_usec;
 
     pa_smoother *smoother;
 
@@ -185,6 +201,8 @@ struct pa_stream {
     void *started_userdata;
     pa_stream_event_cb_t event_callback;
     void *event_userdata;
+    pa_stream_notify_cb_t buffer_attr_callback;
+    void *buffer_attr_userdata;
 };
 
 typedef void (*pa_operation_cb_t)(void);
@@ -213,6 +231,7 @@ void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
 void pa_command_stream_started(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 void pa_command_stream_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 void pa_command_client_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+void pa_command_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 pa_operation *pa_operation_new(pa_context *c, pa_stream *s, pa_operation_cb_t callback, void *userdata);
 void pa_operation_done(pa_operation *o);
@@ -265,5 +284,7 @@ pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *ta
     PA_FAIL_RETURN_ANY(context, error, NULL)
 
 void pa_ext_stream_restore_command(pa_context *c, uint32_t tag, pa_tagstruct *t);
+
+pa_bool_t pa_mainloop_is_our_api(pa_mainloop_api*m);
 
 #endif

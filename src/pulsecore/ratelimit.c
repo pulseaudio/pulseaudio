@@ -23,13 +23,14 @@
 #include <config.h>
 #endif
 
-#include <pulsecore/rtclock.h>
+#include <pulse/rtclock.h>
+
 #include <pulsecore/log.h>
 #include <pulsecore/mutex.h>
 
 #include "ratelimit.h"
 
-static pa_static_mutex mutex;
+static pa_static_mutex mutex = PA_STATIC_MUTEX_INIT;
 
 /* Modelled after Linux' lib/ratelimit.c by Dave Young
  * <hidave.darkstar@gmail.com>, which is licensed GPLv2. */
@@ -38,7 +39,7 @@ pa_bool_t pa_ratelimit_test(pa_ratelimit *r) {
     pa_usec_t now;
     pa_mutex *m;
 
-    now = pa_rtclock_usec();
+    now = pa_rtclock_now();
 
     m = pa_static_mutex_get(&mutex, FALSE, FALSE);
     pa_mutex_lock(m);

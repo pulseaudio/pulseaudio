@@ -279,7 +279,7 @@ static void browser_cb(
                 pa_log("avahi_service_resolver_new() failed: %s", avahi_strerror(avahi_client_errno(u->client)));
 
         /* We ignore the returned resolver object here, since the we don't
-         * need to attach any special data to it, and we can still destory
+         * need to attach any special data to it, and we can still destroy
          * it from the callback */
 
     } else if (event == AVAHI_BROWSER_REMOVE) {

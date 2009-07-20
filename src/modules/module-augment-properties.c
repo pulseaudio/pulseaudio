@@ -58,6 +58,7 @@ struct rule {
     char *process_name;
     char *application_name;
     char *icon_name;
+    char *role;
     pa_proplist *proplist;
 };
 
@@ -72,12 +73,21 @@ static void rule_free(struct rule *r) {
     pa_xfree(r->process_name);
     pa_xfree(r->application_name);
     pa_xfree(r->icon_name);
+    pa_xfree(r->role);
     if (r->proplist)
         pa_proplist_free(r->proplist);
     pa_xfree(r);
 }
 
-static int parse_properties(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+static int parse_properties(
+        const char *filename,
+        unsigned line,
+        const char *section,
+        const char *lvalue,
+        const char *rvalue,
+        void *data,
+        void *userdata) {
+
     struct rule *r = userdata;
     pa_proplist *n;
 
@@ -93,11 +103,56 @@ static int parse_properties(const char *filename, unsigned line, const char *sec
     return 0;
 }
 
-static int check_type(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+static int parse_categories(
+        const char *filename,
+        unsigned line,
+        const char *section,
+        const char *lvalue,
+        const char *rvalue,
+        void *data,
+        void *userdata) {
+
+    struct rule *r = userdata;
+    const char *state = NULL;
+    char *c;
+
+    while ((c = pa_split(rvalue, ";", &state))) {
+
+        if (pa_streq(c, "Game")) {
+            pa_xfree(r->role);
+            r->role = pa_xstrdup("game");
+        } else if (pa_streq(c, "Telephony")) {
+            pa_xfree(r->role);
+            r->role = pa_xstrdup("phone");
+        }
+
+        pa_xfree(c);
+    }
+
+    return 0;
+}
+
+static int check_type(
+        const char *filename,
+        unsigned line,
+        const char *section,
+        const char *lvalue,
+        const char *rvalue,
+        void *data,
+        void *userdata) {
+
     return pa_streq(rvalue, "Application") ? 0 : -1;
 }
 
-static int catch_all(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+static int catch_all(
+        const char *filename,
+        unsigned line,
+        const char *section,
+        const char *lvalue,
+        const char *rvalue,
+        void *data,
+        void *userdata) {
+
     return 0;
 }
 
@@ -109,6 +164,7 @@ static void update_rule(struct rule *r) {
         { "Icon", pa_config_parse_string,              NULL, "Desktop Entry" },
         { "Type", check_type,                          NULL, "Desktop Entry" },
         { "X-PulseAudio-Properties", parse_properties, NULL, "Desktop Entry" },
+        { "Categories", parse_categories,              NULL, "Desktop Entry" },
         { NULL,  catch_all, NULL, NULL },
         { NULL, NULL, NULL, NULL },
     };
@@ -131,7 +187,8 @@ static void update_rule(struct rule *r) {
     r->mtime = st.st_mtime;
     pa_xfree(r->application_name);
     pa_xfree(r->icon_name);
-    r->application_name = r->icon_name = NULL;
+    pa_xfree(r->role);
+    r->application_name = r->icon_name = r->role = NULL;
     if (r->proplist)
         pa_proplist_clear(r->proplist);
 
@@ -151,6 +208,9 @@ static void apply_rule(struct rule *r, pa_proplist *p) {
     if (!r->good)
         return;
 
+    if (r->proplist)
+        pa_proplist_update(p, PA_UPDATE_MERGE, r->proplist);
+
     if (r->icon_name)
         if (!pa_proplist_contains(p, PA_PROP_APPLICATION_ICON_NAME))
             pa_proplist_sets(p, PA_PROP_APPLICATION_ICON_NAME, r->icon_name);
@@ -164,8 +224,9 @@ static void apply_rule(struct rule *r, pa_proplist *p) {
             pa_proplist_sets(p, PA_PROP_APPLICATION_NAME, r->application_name);
     }
 
-    if (r->proplist)
-        pa_proplist_update(p, PA_UPDATE_MERGE, r->proplist);
+    if (r->role)
+        if (!pa_proplist_contains(p, PA_PROP_MEDIA_ROLE))
+            pa_proplist_sets(p, PA_PROP_MEDIA_ROLE, r->role);
 }
 
 static void make_room(pa_hashmap *cache) {

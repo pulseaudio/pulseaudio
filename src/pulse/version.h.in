@@ -60,6 +60,13 @@ const char* pa_get_library_version(void);
 /** The micro version of PA. \since 0.9.15 */
 #define PA_MICRO @PA_MICRO@
 
+/** Evaluates to TRUE if the PulseAudio library version is equal or
+ * newer than the specified. \since 0.9.16 */
+#define PA_CHECK_VERSION(major,minor,micro)                             \
+    ((PA_MAJOR > (major)) ||                                            \
+     (PA_MAJOR == (major) && PA_MINOR > (minor)) ||                     \
+     (PA_MAJOR == (major) && PA_MINOR == (minor) && PA_MICRO >= (micro)))
+
 PA_C_DECL_END
 
 #endif

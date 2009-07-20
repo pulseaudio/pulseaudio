@@ -63,8 +63,6 @@ struct userdata {
     float mute_toggle_save;
 };
 
-static int lirc_in_use = 0;
-
 static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event_flags_t events, void*userdata) {
     struct userdata *u = userdata;
     char *name = NULL, *code = NULL;
@@ -114,7 +112,7 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
                 volchange = RESET;
 
             if (volchange == INVALID)
-                pa_log_warn("Recieved unknown IR code '%s'", name);
+                pa_log_warn("Received unknown IR code '%s'", name);
             else {
                 pa_sink *s;
 
@@ -122,48 +120,48 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
                     pa_log("Failed to get sink '%s'", u->sink_name);
                 else {
                     int i;
-                    pa_cvolume cv = *pa_sink_get_volume(s, FALSE);
+                    pa_cvolume cv = *pa_sink_get_volume(s, FALSE, FALSE);
 
 #define DELTA (PA_VOLUME_NORM/20)
 
                     switch (volchange) {
                         case UP:
                             for (i = 0; i < cv.channels; i++) {
-                                cv.values[i] += DELTA;
-
-                                if (cv.values[i] > PA_VOLUME_NORM)
-                                    cv.values[i] = PA_VOLUME_NORM;
+                                if (cv.values[i] < PA_VOLUME_MAX - DELTA)
+                                    cv.values[i] += DELTA;
+                                else
+                                    cv.values[i] = PA_VOLUME_MAX;
                             }
 
-                            pa_sink_set_volume(s, &cv, TRUE, TRUE);
+                            pa_sink_set_volume(s, &cv, TRUE, TRUE, TRUE, TRUE);
                             break;
 
                         case DOWN:
                             for (i = 0; i < cv.channels; i++) {
-                                if (cv.values[i] >= DELTA)
+                                if (cv.values[i] > DELTA)
                                     cv.values[i] -= DELTA;
                                 else
                                     cv.values[i] = PA_VOLUME_MUTED;
                             }
 
-                            pa_sink_set_volume(s, &cv, TRUE, TRUE);
+                            pa_sink_set_volume(s, &cv, TRUE, TRUE, TRUE, TRUE);
                             break;
 
                         case MUTE:
-                            pa_sink_set_mute(s, 0);
+                            pa_sink_set_mute(s, TRUE, TRUE);
                             break;
 
                         case RESET:
-                            pa_sink_set_mute(s, 1);
+                            pa_sink_set_mute(s, FALSE, TRUE);
                             break;
 
                         case MUTE_TOGGLE:
 
-                            pa_sink_set_mute(s, !pa_sink_get_mute(s, FALSE));
+                            pa_sink_set_mute(s, !pa_sink_get_mute(s, FALSE), TRUE);
                             break;
 
                         case INVALID:
-                            ;
+                            pa_assert_not_reached();
                     }
                 }
             }
@@ -189,11 +187,6 @@ int pa__init(pa_module*m) {
 
     pa_assert(m);
 
-    if (lirc_in_use) {
-        pa_log("module-lirc may no be loaded twice.");
-        return -1;
-    }
-
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
         goto fail;
@@ -218,8 +211,6 @@ int pa__init(pa_module*m) {
     }
 
     u->io = m->core->mainloop->io_new(m->core->mainloop, u->lirc_fd, PA_IO_EVENT_INPUT|PA_IO_EVENT_HANGUP, io_callback, u);
-
-    lirc_in_use = 1;
 
     pa_modargs_free(ma);
 
@@ -252,6 +243,4 @@ void pa__done(pa_module*m) {
 
     pa_xfree(u->sink_name);
     pa_xfree(u);
-
-    lirc_in_use = 0;
 }

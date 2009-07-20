@@ -26,7 +26,8 @@
 
 /* Simple Implementation of a hash table. Memory management is the
  * user's job. It's a good idea to have the key pointer point to a
- * string in the value data. */
+ * string in the value data. The insertion order is preserved when
+ * iterating. */
 
 typedef struct pa_hashmap pa_hashmap;
 
@@ -59,10 +60,24 @@ pa_bool_t pa_hashmap_isempty(pa_hashmap *h);
    returned. */
 void *pa_hashmap_iterate(pa_hashmap *h, void **state, const void**key);
 
+/* Same as pa_hashmap_iterate() but goes backwards */
+void *pa_hashmap_iterate_backwards(pa_hashmap *h, void **state, const void**key);
+
 /* Remove the oldest entry in the hashmap and return it */
 void *pa_hashmap_steal_first(pa_hashmap *h);
 
 /* Return the oldest entry in the hashmap */
 void* pa_hashmap_first(pa_hashmap *h);
+
+/* Return the newest entry in the hashmap */
+void* pa_hashmap_last(pa_hashmap *h);
+
+/* A macro to ease iteration through all entries */
+#define PA_HASHMAP_FOREACH(e, h, state) \
+    for ((state) = NULL, (e) = pa_hashmap_iterate((h), &(state), NULL); (e); (e) = pa_hashmap_iterate((h), &(state), NULL))
+
+/* A macro to ease iteration through all entries, backwards */
+#define PA_HASHMAP_FOREACH_BACKWARDS(e, h, state) \
+    for ((state) = NULL, (e) = pa_hashmap_iterate_backwards((h), &(state), NULL); (e); (e) = pa_hashmap_iterate_backwards((h), &(state), NULL))
 
 #endif

@@ -92,27 +92,17 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
 
     /* Prepare the configuration parse table */
     pa_config_item table[] = {
-        { "daemon-binary",          pa_config_parse_string,  NULL, NULL },
-        { "extra-arguments",        pa_config_parse_string,  NULL, NULL },
-        { "default-sink",           pa_config_parse_string,  NULL, NULL },
-        { "default-source",         pa_config_parse_string,  NULL, NULL },
-        { "default-server",         pa_config_parse_string,  NULL, NULL },
-        { "autospawn",              pa_config_parse_bool,    NULL, NULL },
-        { "cookie-file",            pa_config_parse_string,  NULL, NULL },
-        { "disable-shm",            pa_config_parse_bool,    NULL, NULL },
-        { "shm-size-bytes",         pa_config_parse_size,    NULL, NULL },
+        { "daemon-binary",          pa_config_parse_string,  &c->daemon_binary, NULL },
+        { "extra-arguments",        pa_config_parse_string,  &c->extra_arguments, NULL },
+        { "default-sink",           pa_config_parse_string,  &c->default_sink, NULL },
+        { "default-source",         pa_config_parse_string,  &c->default_source, NULL },
+        { "default-server",         pa_config_parse_string,  &c->default_server, NULL },
+        { "autospawn",              pa_config_parse_bool,    &c->autospawn, NULL },
+        { "cookie-file",            pa_config_parse_string,  &c->cookie_file, NULL },
+        { "disable-shm",            pa_config_parse_bool,    &c->disable_shm, NULL },
+        { "shm-size-bytes",         pa_config_parse_size,    &c->shm_size, NULL },
         { NULL,                     NULL,                    NULL, NULL },
     };
-
-    table[0].data = &c->daemon_binary;
-    table[1].data = &c->extra_arguments;
-    table[2].data = &c->default_sink;
-    table[3].data = &c->default_source;
-    table[4].data = &c->default_server;
-    table[5].data = &c->autospawn;
-    table[6].data = &c->cookie_file;
-    table[7].data = &c->disable_shm;
-    table[8].data = &c->shm_size;
 
     if (filename) {
 
@@ -160,6 +150,9 @@ int pa_client_conf_env(pa_client_conf *c) {
     if ((e = getenv(ENV_DEFAULT_SERVER))) {
         pa_xfree(c->default_server);
         c->default_server = pa_xstrdup(e);
+
+        /* We disable autospawning automatically if a specific server was set */
+        c->autospawn = FALSE;
     }
 
     if ((e = getenv(ENV_DAEMON_BINARY))) {

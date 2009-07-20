@@ -40,19 +40,35 @@
 #define COMMENTS "#;\n"
 
 /* Run the user supplied parser for an assignment */
-static int next_assignment(const char *filename, unsigned line, const char *section, const pa_config_item *t, const char *lvalue, const char *rvalue, void *userdata) {
+static int next_assignment(
+        const char *filename,
+        unsigned line,
+        const char *section,
+        const pa_config_item *t,
+        const char *lvalue,
+        const char *rvalue,
+        void *userdata) {
+
     pa_assert(filename);
     pa_assert(t);
     pa_assert(lvalue);
     pa_assert(rvalue);
 
-    for (; t->parse; t++)
-        if (!t->lvalue ||
-            (pa_streq(lvalue, t->lvalue) &&
-             ((!section && !t->section) || pa_streq(section, t->section))))
-            return t->parse(filename, line, section, lvalue, rvalue, t->data, userdata);
+    for (; t->parse; t++) {
 
-    pa_log("[%s:%u] Unknown lvalue '%s' in section '%s'.", filename, line, lvalue, pa_strnull(section));
+        if (t->lvalue && !pa_streq(lvalue, t->lvalue))
+            continue;
+
+        if (t->section && !section)
+            continue;
+
+        if (t->section && !pa_streq(section, t->section))
+            continue;
+
+        return t->parse(filename, line, section, lvalue, rvalue, t->data, userdata);
+    }
+
+    pa_log("[%s:%u] Unknown lvalue '%s' in section '%s'.", filename, line, lvalue, pa_strna(section));
 
     return -1;
 }
@@ -96,6 +112,25 @@ static int parse_line(const char *filename, unsigned line, char **section, const
     if (!*b)
         return 0;
 
+    if (pa_startswith(b, ".include ")) {
+        char *path, *fn;
+        int r;
+
+        fn = strip(b+9);
+        if (!pa_is_path_absolute(fn)) {
+            const char *k;
+            if ((k = strrchr(filename, '/'))) {
+                char *dir = pa_xstrndup(filename, k-filename);
+                fn = path = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", dir, fn);
+                pa_xfree(dir);
+            }
+        }
+
+        r = pa_config_parse(fn, NULL, t, userdata);
+        pa_xfree(path);
+        return r;
+    }
+
     if (*b == '[') {
         size_t k;
 
@@ -135,6 +170,7 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
 
     if (!f && !(f = fopen(filename, "r"))) {
         if (errno == ENOENT) {
+            pa_log_debug("Failed to open configuration file '%s': %s", filename, pa_cstrerror(errno));
             r = 0;
             goto finish;
         }

@@ -9,6 +9,9 @@ int main(int argc, char *argv[]) {
     float b;
     pa_channel_map map;
 
+    printf("Attenuation of sample 1 against 32767: %g dB\n", 20.0*log10(1.0/32767.0));
+    printf("Smallest possible attenutation > 0 applied to 32767: %li\n", lrint(32767.0*pa_sw_volume_to_linear(1)));
+
     for (v = PA_VOLUME_MUTED; v <= PA_VOLUME_NORM*2; v += 256) {
 
         double dB = pa_sw_volume_to_dB(v);

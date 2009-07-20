@@ -16,7 +16,7 @@
 # along with PulseAudio; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
-VERSION=1.10
+VERSION=1.11
 
 run_versioned() {
     local P
@@ -39,6 +39,17 @@ run_versioned() {
 }
 
 set -ex
+
+if [ -f .git/hooks/pre-commit.sample -a ! -f .git/hooks/pre-commit ] ; then
+    echo "Activating pre-commit hook."
+    cp -av .git/hooks/pre-commit.sample .git/hooks/pre-commit
+    chmod -c +x  .git/hooks/pre-commit
+fi
+
+if [ -f .tarball-version ]; then
+    echo "Marking tarball version as modified."
+    echo -n `cat .tarball-version | sed 's/-rebootstrapped$//'`-rebootstrapped >.tarball-version
+fi
 
 # We check for this here, because if pkg-config is not found in the
 # system, it's likely that the pkg.m4 macro file is also not present,
@@ -77,7 +88,7 @@ else
     run_versioned automake "$VERSION" --copy --foreign --add-missing
 
     if test "x$NOCONFIGURE" = "x"; then
-        CFLAGS="-g -O0" ./configure --sysconfdir=/etc --localstatedir=/var --enable-force-preopen --enable-shave "$@"
+        CFLAGS="-g -O0" ./configure --sysconfdir=/etc --localstatedir=/var --enable-force-preopen "$@"
         make clean
     fi
 fi

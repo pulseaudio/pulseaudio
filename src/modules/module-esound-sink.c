@@ -41,13 +41,15 @@
 #include <linux/sockios.h>
 #endif
 
-#include <pulse/xmalloc.h>
+#include <pulse/rtclock.h>
 #include <pulse/timeval.h>
+#include <pulse/xmalloc.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/iochannel.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/module.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
@@ -57,7 +59,6 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/time-smoother.h>
-#include <pulsecore/rtclock.h>
 #include <pulsecore/socket-util.h>
 
 #include "module-esound-sink-symdef.h"
@@ -68,10 +69,11 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
+        "sink_properties=<properties for the sink> "
         "server=<address> cookie=<filename>  "
         "format=<sample format> "
-        "channels=<number of channels> "
-        "rate=<sample rate>");
+        "rate=<sample rate> "
+        "channels=<number of channels>");
 
 #define DEFAULT_SINK_NAME "esound_out"
 
@@ -118,12 +120,13 @@ struct userdata {
 };
 
 static const char* const valid_modargs[] = {
+    "sink_name",
+    "sink_properties",
     "server",
     "cookie",
-    "rate",
     "format",
+    "rate",
     "channels",
-    "sink_name",
     NULL
 };
 
@@ -143,14 +146,14 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 case PA_SINK_SUSPENDED:
                     pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
 
-                    pa_smoother_pause(u->smoother, pa_rtclock_usec());
+                    pa_smoother_pause(u->smoother, pa_rtclock_now());
                     break;
 
                 case PA_SINK_IDLE:
                 case PA_SINK_RUNNING:
 
                     if (u->sink->thread_info.state == PA_SINK_SUSPENDED)
-                        pa_smoother_resume(u->smoother, pa_rtclock_usec());
+                        pa_smoother_resume(u->smoother, pa_rtclock_now(), TRUE);
 
                     break;
 
@@ -165,7 +168,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         case PA_SINK_MESSAGE_GET_LATENCY: {
             pa_usec_t w, r;
 
-            r = pa_smoother_get(u->smoother, pa_rtclock_usec());
+            r = pa_smoother_get(u->smoother, pa_rtclock_now());
             w = pa_bytes_to_usec((uint64_t) u->offset + u->memchunk.length, &u->sink->sample_spec);
 
             *((pa_usec_t*) data) = w > r ? w - r : 0;
@@ -198,9 +201,8 @@ static void thread_func(void *userdata) {
     pa_log_debug("Thread starting up");
 
     pa_thread_mq_install(&u->thread_mq);
-    pa_rtpoll_install(u->rtpoll);
 
-    pa_smoother_set_time_offset(u->smoother, pa_rtclock_usec());
+    pa_smoother_set_time_offset(u->smoother, pa_rtclock_now());
 
     for (;;) {
         int ret;
@@ -293,7 +295,7 @@ static void thread_func(void *userdata) {
                 else
                     usec = 0;
 
-                pa_smoother_put(u->smoother, pa_rtclock_usec(), usec);
+                pa_smoother_put(u->smoother, pa_rtclock_now(), usec);
             }
 
             /* Hmm, nothing to do. Let's sleep */
@@ -354,6 +356,9 @@ static int do_write(struct userdata *u) {
     }
 
     if (!u->write_data && u->state == STATE_PREPARE) {
+        int so_sndbuf = 0;
+        socklen_t sl = sizeof(int);
+
         /* OK, we're done with sending all control data we need to, so
          * let's hand the socket over to the IO thread now */
 
@@ -365,6 +370,13 @@ static int do_write(struct userdata *u) {
         u->io = NULL;
 
         pa_make_tcp_socket_low_delay(u->fd);
+
+        if (getsockopt(u->fd, SOL_SOCKET, SO_SNDBUF, &so_sndbuf, &sl) < 0)
+            pa_log_warn("getsockopt(SO_SNDBUF) failed: %s", pa_cstrerror(errno));
+        else {
+            pa_log_debug("SO_SNDBUF is %zu.", (size_t) so_sndbuf);
+            pa_sink_set_max_request(u->sink, PA_MAX((size_t) so_sndbuf, u->block_size));
+        }
 
         pa_log_debug("Connection authenticated, handing fd to IO thread...");
 
@@ -535,7 +547,14 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     u->fd = -1;
-    u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC*2, TRUE, 10);
+    u->smoother = pa_smoother_new(
+            PA_USEC_PER_SEC,
+            PA_USEC_PER_SEC*2,
+            TRUE,
+            TRUE,
+            10,
+            0,
+            FALSE);
     pa_memchunk_reset(&u->memchunk);
     u->offset = 0;
 
@@ -566,7 +585,14 @@ int pa__init(pa_module*m) {
     pa_sink_new_data_set_name(&data, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME));
     pa_sink_new_data_set_sample_spec(&data, &ss);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, espeaker);
-    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Esound sink '%s'", espeaker);
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "esd");
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "EsounD Output on %s", espeaker);
+
+    if (pa_modargs_get_proplist(ma, "sink_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties");
+        pa_sink_new_data_done(&data);
+        goto fail;
+    }
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY|PA_SINK_NETWORK);
     pa_sink_new_data_done(&data);
@@ -582,7 +608,7 @@ int pa__init(pa_module*m) {
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
 
-    if (!(u->client = pa_socket_client_new_string(u->core->mainloop, espeaker, ESD_DEFAULT_PORT))) {
+    if (!(u->client = pa_socket_client_new_string(u->core->mainloop, TRUE, espeaker, ESD_DEFAULT_PORT))) {
         pa_log("Failed to connect to server.");
         goto fail;
     }

@@ -44,6 +44,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
+        "sink_properties=<properties for the sink> "
         "master=<name of sink to remap> "
         "master_channel_map=<channel map> "
         "format=<sample format> "
@@ -62,10 +63,11 @@ struct userdata {
 
 static const char* const valid_modargs[] = {
     "sink_name",
+    "sink_properties",
     "master",
     "master_channel_map",
-    "rate",
     "format",
+    "rate",
     "channels",
     "channel_map",
     "remix",
@@ -179,7 +181,7 @@ static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     if (!u->sink || !PA_SINK_IS_LINKED(u->sink->thread_info.state))
         return;
 
-    pa_sink_set_max_rewind(u->sink, nbytes);
+    pa_sink_set_max_rewind_within_thread(u->sink, nbytes);
 }
 
 /* Called from I/O thread context */
@@ -192,7 +194,7 @@ static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
     if (!u->sink || !PA_SINK_IS_LINKED(u->sink->thread_info.state))
         return;
 
-    pa_sink_set_max_request(u->sink, nbytes);
+    pa_sink_set_max_request_within_thread(u->sink, nbytes);
 }
 
 /* Called from I/O thread context */
@@ -205,7 +207,7 @@ static void sink_input_update_sink_latency_range_cb(pa_sink_input *i) {
     if (!u->sink || !PA_SINK_IS_LINKED(u->sink->thread_info.state))
         return;
 
-    pa_sink_update_latency_range(u->sink, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
+    pa_sink_set_latency_range_within_thread(u->sink, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
 }
 
 /* Called from I/O thread context */
@@ -237,7 +239,7 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     pa_sink_set_rtpoll(u->sink, i->sink->rtpoll);
     pa_sink_attach_within_thread(u->sink);
 
-    pa_sink_update_latency_range(u->sink, u->master->thread_info.min_latency, u->master->thread_info.max_latency);
+    pa_sink_set_latency_range_within_thread(u->sink, u->master->thread_info.min_latency, u->master->thread_info.max_latency);
 }
 
 /* Called from main context */
@@ -354,7 +356,13 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
 
-    u->sink = pa_sink_new(m->core, &sink_data, PA_SINK_LATENCY);
+    if (pa_modargs_get_proplist(ma, "sink_properties", sink_data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties");
+        pa_sink_new_data_done(&sink_data);
+        goto fail;
+    }
+
+    u->sink = pa_sink_new(m->core, &sink_data, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY);
     pa_sink_new_data_done(&sink_data);
 
     if (!u->sink) {

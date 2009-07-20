@@ -37,6 +37,7 @@
 #include <pulse/timeval.h>
 
 #include <pulsecore/core-error.h>
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/core.h>
 #include <pulsecore/module.h>
 #include <pulsecore/memchunk.h>
@@ -51,7 +52,6 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/time-smoother.h>
-#include <pulsecore/rtclock.h>
 
 #include "alsa-util.h"
 #include "alsa-source.h"
@@ -64,6 +64,7 @@ PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "name=<name for the source, to be prefixed> "
         "source_name=<name for the source> "
+        "source_properties=<properties for the source> "
         "device=<ALSA device> "
         "device_id=<ALSA card index> "
         "format=<sample format> "
@@ -76,11 +77,13 @@ PA_MODULE_USAGE(
         "tsched=<enable system timer based scheduling mode?> "
         "tsched_buffer_size=<buffer size when using timer based scheduling> "
         "tsched_buffer_watermark=<upper fill watermark> "
-        "ignore_dB=<ignore dB information from the device?>");
+        "ignore_dB=<ignore dB information from the device?> "
+        "control=<name of mixer control>");
 
 static const char* const valid_modargs[] = {
     "name",
     "source_name",
+    "source_properties",
     "device",
     "device_id",
     "format",
@@ -94,6 +97,7 @@ static const char* const valid_modargs[] = {
     "tsched_buffer_size",
     "tsched_buffer_watermark",
     "ignore_dB",
+    "control",
     NULL
 };
 
@@ -102,8 +106,7 @@ int pa__init(pa_module*m) {
 
     pa_assert(m);
 
-    pa_alsa_redirect_errors_inc();
-    snd_config_update_free_global();
+    pa_alsa_refcnt_inc();
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
@@ -144,6 +147,5 @@ void pa__done(pa_module*m) {
     if ((source = m->userdata))
         pa_alsa_source_free(source);
 
-    snd_config_update_free_global();
-    pa_alsa_redirect_errors_dec();
+    pa_alsa_refcnt_dec();
 }

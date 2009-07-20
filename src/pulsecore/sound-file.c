@@ -35,19 +35,21 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/core-scache.h>
+#include <pulsecore/sndfile-util.h>
 
 #include "sound-file.h"
-#include "core-scache.h"
 
 int pa_sound_file_load(
         pa_mempool *pool,
         const char *fname,
         pa_sample_spec *ss,
         pa_channel_map *map,
-        pa_memchunk *chunk) {
+        pa_memchunk *chunk,
+        pa_proplist *p) {
 
     SNDFILE *sf = NULL;
-    SF_INFO sfinfo;
+    SF_INFO sfi;
     int ret = -1;
     size_t l;
     sf_count_t (*readf_function)(SNDFILE *sndfile, void *ptr, sf_count_t frames) = NULL;
@@ -59,7 +61,6 @@ int pa_sound_file_load(
     pa_assert(chunk);
 
     pa_memchunk_reset(chunk);
-    memset(&sfinfo, 0, sizeof(sfinfo));
 
     if ((fd = open(fname, O_RDONLY
 #ifdef O_NOCTTY
@@ -78,48 +79,29 @@ int pa_sound_file_load(
         pa_log_debug("POSIX_FADV_SEQUENTIAL succeeded.");
 #endif
 
-    if (!(sf = sf_open_fd(fd, SFM_READ, &sfinfo, 1))) {
+    pa_zero(sfi);
+    if (!(sf = sf_open_fd(fd, SFM_READ, &sfi, 1))) {
         pa_log("Failed to open file %s", fname);
-        pa_close(fd);
         goto finish;
     }
 
-    switch (sfinfo.format & SF_FORMAT_SUBMASK) {
-        case SF_FORMAT_PCM_16:
-        case SF_FORMAT_PCM_U8:
-        case SF_FORMAT_PCM_S8:
-            ss->format = PA_SAMPLE_S16NE;
-            readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *_ptr, sf_count_t frames)) sf_readf_short;
-            break;
+    fd = -1;
 
-        case SF_FORMAT_ULAW:
-            ss->format = PA_SAMPLE_ULAW;
-            break;
-
-        case SF_FORMAT_ALAW:
-            ss->format = PA_SAMPLE_ALAW;
-            break;
-
-        case SF_FORMAT_FLOAT:
-        case SF_FORMAT_DOUBLE:
-        default:
-            ss->format = PA_SAMPLE_FLOAT32NE;
-            readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *_ptr, sf_count_t frames)) sf_readf_float;
-            break;
-    }
-
-    ss->rate = (uint32_t) sfinfo.samplerate;
-    ss->channels = (uint8_t) sfinfo.channels;
-
-    if (!pa_sample_spec_valid(ss)) {
-        pa_log("Unsupported sample format in file %s", fname);
+    if (pa_sndfile_read_sample_spec(sf, ss) < 0) {
+        pa_log("Failed to determine file sample format.");
         goto finish;
     }
 
-    if (map)
+    if ((map && pa_sndfile_read_channel_map(sf, map) < 0)) {
+        if (ss->channels > 2)
+            pa_log("Failed to determine file channel map, synthesizing one.");
         pa_channel_map_init_extend(map, ss->channels, PA_CHANNEL_MAP_DEFAULT);
+    }
 
-    if ((l = pa_frame_size(ss) * (size_t) sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
+    if (p)
+        pa_sndfile_init_proplist(sf, p);
+
+    if ((l = pa_frame_size(ss) * (size_t) sfi.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
         pa_log("File too large");
         goto finish;
     }
@@ -128,9 +110,11 @@ int pa_sound_file_load(
     chunk->index = 0;
     chunk->length = l;
 
+    readf_function = pa_sndfile_readf_function(ss);
+
     ptr = pa_memblock_acquire(chunk->memblock);
 
-    if ((readf_function && readf_function(sf, ptr, sfinfo.frames) != sfinfo.frames) ||
+    if ((readf_function && readf_function(sf, ptr, sfi.frames) != sfi.frames) ||
         (!readf_function && sf_read_raw(sf, ptr, (sf_count_t) l) != (sf_count_t) l)) {
         pa_log("Premature file end");
         goto finish;
@@ -149,55 +133,35 @@ finish:
     if (ret != 0 && chunk->memblock)
         pa_memblock_unref(chunk->memblock);
 
+    if (fd >= 0)
+        pa_close(fd);
+
     return ret;
 }
 
 int pa_sound_file_too_big_to_cache(const char *fname) {
 
     SNDFILE*sf = NULL;
-    SF_INFO sfinfo;
+    SF_INFO sfi;
     pa_sample_spec ss;
 
     pa_assert(fname);
 
-    if (!(sf = sf_open(fname, SFM_READ, &sfinfo))) {
+    pa_zero(sfi);
+    if (!(sf = sf_open(fname, SFM_READ, &sfi))) {
         pa_log("Failed to open file %s", fname);
+        return -1;
+    }
+
+    if (pa_sndfile_read_sample_spec(sf, &ss) < 0) {
+        pa_log("Failed to determine file sample format.");
+        sf_close(sf);
         return -1;
     }
 
     sf_close(sf);
 
-    switch (sfinfo.format & SF_FORMAT_SUBMASK) {
-        case SF_FORMAT_PCM_16:
-        case SF_FORMAT_PCM_U8:
-        case SF_FORMAT_PCM_S8:
-            ss.format = PA_SAMPLE_S16NE;
-            break;
-
-        case SF_FORMAT_ULAW:
-            ss.format = PA_SAMPLE_ULAW;
-            break;
-
-        case SF_FORMAT_ALAW:
-            ss.format = PA_SAMPLE_ALAW;
-            break;
-
-        case SF_FORMAT_DOUBLE:
-        case SF_FORMAT_FLOAT:
-        default:
-            ss.format = PA_SAMPLE_FLOAT32NE;
-            break;
-    }
-
-    ss.rate = (uint32_t) sfinfo.samplerate;
-    ss.channels = (uint8_t) sfinfo.channels;
-
-    if (!pa_sample_spec_valid(&ss)) {
-        pa_log("Unsupported sample format in file %s", fname);
-        return -1;
-    }
-
-    if ((pa_frame_size(&ss) * (size_t) sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
+    if ((pa_frame_size(&ss) * (size_t) sfi.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
         pa_log("File too large: %s", fname);
         return 1;
     }

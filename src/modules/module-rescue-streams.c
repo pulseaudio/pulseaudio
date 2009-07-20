@@ -31,6 +31,7 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
 #include <pulsecore/namereg.h>
+#include <pulsecore/core-util.h>
 
 #include "module-rescue-streams-symdef.h"
 
@@ -49,6 +50,7 @@ struct userdata {
 
 static pa_hook_result_t sink_hook_callback(pa_core *c, pa_sink *sink, void* userdata) {
     pa_sink_input *i;
+    uint32_t idx;
     pa_sink *target;
 
     pa_assert(c);
@@ -58,33 +60,33 @@ static pa_hook_result_t sink_hook_callback(pa_core *c, pa_sink *sink, void* user
     if (c->state == PA_CORE_SHUTDOWN)
         return PA_HOOK_OK;
 
-    if (!pa_idxset_size(sink->inputs)) {
+    if (pa_idxset_size(sink->inputs) <= 0) {
         pa_log_debug("No sink inputs to move away.");
         return PA_HOOK_OK;
     }
 
-    if (!(target = pa_namereg_get(c, NULL, PA_NAMEREG_SINK)) || target == sink) {
-        uint32_t idx;
+    if (!(target = pa_namereg_get_default_sink(c)) || target == sink) {
 
-        for (target = pa_idxset_first(c->sinks, &idx); target; target = pa_idxset_next(c->sinks, &idx))
+        PA_IDXSET_FOREACH(target, c->sinks, idx)
             if (target != sink)
                 break;
 
         if (!target) {
-            pa_log_info("No evacuation sink found.");
+            pa_log_debug("No evacuation sink found.");
             return PA_HOOK_OK;
         }
     }
 
-    while ((i = pa_idxset_first(sink->inputs, NULL))) {
-        if (pa_sink_input_move_to(i, target, FALSE) < 0) {
-            pa_log_warn("Failed to move sink input %u \"%s\" to %s.", i->index, pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME), target->name);
-            return PA_HOOK_OK;
-        }
+    pa_assert(target != sink);
 
-        pa_log_info("Sucessfully moved sink input %u \"%s\" to %s.", i->index, pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME), target->name);
+    PA_IDXSET_FOREACH(i, sink->inputs, idx) {
+        if (pa_sink_input_move_to(i, target, FALSE) < 0)
+            pa_log_info("Failed to move sink input %u \"%s\" to %s.", i->index,
+                        pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME)), target->name);
+        else
+            pa_log_info("Sucessfully moved sink input %u \"%s\" to %s.", i->index,
+                        pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME)), target->name);
     }
-
 
     return PA_HOOK_OK;
 }
@@ -92,6 +94,7 @@ static pa_hook_result_t sink_hook_callback(pa_core *c, pa_sink *sink, void* user
 static pa_hook_result_t source_hook_callback(pa_core *c, pa_source *source, void* userdata) {
     pa_source_output *o;
     pa_source *target;
+    uint32_t idx;
 
     pa_assert(c);
     pa_assert(source);
@@ -100,15 +103,14 @@ static pa_hook_result_t source_hook_callback(pa_core *c, pa_source *source, void
     if (c->state == PA_CORE_SHUTDOWN)
         return PA_HOOK_OK;
 
-    if (!pa_idxset_size(source->outputs)) {
+    if (pa_idxset_size(source->outputs) <= 0) {
         pa_log_debug("No source outputs to move away.");
         return PA_HOOK_OK;
     }
 
-    if (!(target = pa_namereg_get(c, NULL, PA_NAMEREG_SOURCE)) || target == source) {
-        uint32_t idx;
+    if (!(target = pa_namereg_get_default_source(c)) || target == source) {
 
-        for (target = pa_idxset_first(c->sources, &idx); target; target = pa_idxset_next(c->sources, &idx))
+        PA_IDXSET_FOREACH(target, c->sources, idx)
             if (target != source && !target->monitor_of == !source->monitor_of)
                 break;
 
@@ -120,21 +122,20 @@ static pa_hook_result_t source_hook_callback(pa_core *c, pa_source *source, void
 
     pa_assert(target != source);
 
-    while ((o = pa_idxset_first(source->outputs, NULL))) {
-        if (pa_source_output_move_to(o, target, FALSE) < 0) {
-            pa_log_warn("Failed to move source output %u \"%s\" to %s.", o->index, pa_proplist_gets(o->proplist, PA_PROP_APPLICATION_NAME), target->name);
-            return PA_HOOK_OK;
-        }
-
-        pa_log_info("Sucessfully moved source output %u \"%s\" to %s.", o->index, pa_proplist_gets(o->proplist, PA_PROP_APPLICATION_NAME), target->name);
+    PA_IDXSET_FOREACH(o, source->outputs, idx) {
+        if (pa_source_output_move_to(o, target, FALSE) < 0)
+            pa_log_info("Failed to move source output %u \"%s\" to %s.", o->index,
+                        pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_APPLICATION_NAME)), target->name);
+        else
+            pa_log_info("Sucessfully moved source output %u \"%s\" to %s.", o->index,
+                        pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_APPLICATION_NAME)), target->name);
     }
-
 
     return PA_HOOK_OK;
 }
 
 int pa__init(pa_module*m) {
-    pa_modargs *ma = NULL;
+    pa_modargs *ma;
     struct userdata *u;
 
     pa_assert(m);
@@ -145,8 +146,10 @@ int pa__init(pa_module*m) {
     }
 
     m->userdata = u = pa_xnew(struct userdata, 1);
-    u->sink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) sink_hook_callback, NULL);
-    u->source_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) source_hook_callback, NULL);
+
+    /* A little bit later than module-stream-restore, module-intended-roles... */
+    u->sink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_LATE+20, (pa_hook_cb_t) sink_hook_callback, u);
+    u->source_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE+20, (pa_hook_cb_t) source_hook_callback, u);
 
     pa_modargs_free(ma);
     return 0;
@@ -157,10 +160,9 @@ void pa__done(pa_module*m) {
 
     pa_assert(m);
 
-    if (!m->userdata)
+    if (!(u = m->userdata))
         return;
 
-    u = m->userdata;
     if (u->sink_slot)
         pa_hook_slot_free(u->sink_slot);
     if (u->source_slot)

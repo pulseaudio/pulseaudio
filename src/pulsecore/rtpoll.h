@@ -62,9 +62,6 @@ typedef enum pa_rtpoll_priority {
 pa_rtpoll *pa_rtpoll_new(void);
 void pa_rtpoll_free(pa_rtpoll *p);
 
-/* Install the rtpoll in the current thread */
-void pa_rtpoll_install(pa_rtpoll *p);
-
 /* Sleep on the rtpoll until the time event, or any of the fd events
  * is triggered. If "wait" is 0 we don't sleep but only update the
  * struct pollfd. Returns negative on error, positive if the loop

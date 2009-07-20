@@ -1,0 +1,1555 @@
+execve("/home/lennart/projects/pulseaudio/src/.libs/lt-pulseaudio", ["/home/lennart/projects/pulseaudi"..., "-vvvC"], [/* 58 vars */]) = 0
+brk(0)                                  = 0x99a3000
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb805d000
+access("/etc/ld.so.preload", R_OK)      = -1 ENOENT (No such file or directory)
+open("/home/lennart/projects/pulseaudio/src/.libs/tls/i686/sse2/libcli.so", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/home/lennart/projects/pulseaudio/src/.libs/tls/i686/sse2", 0xbff5c3c4) = -1 ENOENT (No such file or directory)
+open("/home/lennart/projects/pulseaudio/src/.libs/tls/i686/libcli.so", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/home/lennart/projects/pulseaudio/src/.libs/tls/i686", 0xbff5c3c4) = -1 ENOENT (No such file or directory)
+open("/home/lennart/projects/pulseaudio/src/.libs/tls/sse2/libcli.so", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/home/lennart/projects/pulseaudio/src/.libs/tls/sse2", 0xbff5c3c4) = -1 ENOENT (No such file or directory)
+open("/home/lennart/projects/pulseaudio/src/.libs/tls/libcli.so", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/home/lennart/projects/pulseaudio/src/.libs/tls", 0xbff5c3c4) = -1 ENOENT (No such file or directory)
+open("/home/lennart/projects/pulseaudio/src/.libs/i686/sse2/libcli.so", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/home/lennart/projects/pulseaudio/src/.libs/i686/sse2", 0xbff5c3c4) = -1 ENOENT (No such file or directory)
+open("/home/lennart/projects/pulseaudio/src/.libs/i686/libcli.so", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/home/lennart/projects/pulseaudio/src/.libs/i686", 0xbff5c3c4) = -1 ENOENT (No such file or directory)
+open("/home/lennart/projects/pulseaudio/src/.libs/sse2/libcli.so", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/home/lennart/projects/pulseaudio/src/.libs/sse2", 0xbff5c3c4) = -1 ENOENT (No such file or directory)
+open("/home/lennart/projects/pulseaudio/src/.libs/libcli.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0`\n\0\0004\0\0\0\204"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=26302, ...}) = 0
+mmap2(NULL, 10628, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xdd6000
+mmap2(0xdd8000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0xdd8000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libprotocol-cli.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\300\n\0\0004\0\0\0\0"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=27709, ...}) = 0
+mmap2(NULL, 11524, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xec1000
+mmap2(0xec3000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0xec3000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libprotocol-simple.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\220\33\0\0004\0\0\0h"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=61964, ...}) = 0
+mmap2(NULL, 28384, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xc65000
+mmap2(0xc6b000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x5) = 0xc6b000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libprotocol-http.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\360\34\0\0004\0\0\0\234"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=68747, ...}) = 0
+mmap2(NULL, 29480, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xc82000
+mmap2(0xc89000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x7) = 0xc89000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libprotocol-native.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\260I\0\0004\0\0\0\304"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=201988, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb805c000
+mmap2(NULL, 113704, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xa58000
+mmap2(0xa73000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1a) = 0xa73000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libprotocol-esound.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0`$\0\0004\0\0\0\350"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=96425, ...}) = 0
+mmap2(NULL, 50376, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x110000
+mmap2(0x11c000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xb) = 0x11c000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/librtp.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\240\35\0\0004\0\0\0P"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=74195, ...}) = 0
+mmap2(NULL, 42332, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xeb5000
+mmap2(0xebf000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x9) = 0xebf000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libavahi-wrap.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0`\6\0\0004\0\0\0\20"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=17486, ...}) = 0
+mmap2(NULL, 11056, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xaf2000
+mmap2(0xaf4000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0xaf4000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-console-kit.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\20\22\0\0004\0\0\0<"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=35362, ...}) = 0
+mmap2(NULL, 16168, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xbef000
+mmap2(0xbf2000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2) = 0xbf2000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-cli.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\340\t\0\0004\0\0\0\324"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=24618, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb805b000
+mmap2(NULL, 9736, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xf85000
+mmap2(0xf87000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0xf87000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-cli-protocol-tcp.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\20\f\0\0004\0\0\0\20"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=26573, ...}) = 0
+mmap2(NULL, 10760, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2a6000
+mmap2(0x2a8000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x2a8000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-simple-protocol-tcp.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0000\r\0\0004\0\0\0t"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=27592, ...}) = 0
+mmap2(NULL, 11376, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x11d000
+mmap2(0x11f000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x11f000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-null-sink.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\20\23\0\0004\0\0\0\224"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=39380, ...}) = 0
+mmap2(NULL, 17548, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x277000
+mmap2(0x27b000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3) = 0x27b000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-sine-source.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0 \22\0\0004\0\0\0@"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=38279, ...}) = 0
+mmap2(NULL, 17164, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x3e6000
+mmap2(0x3ea000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3) = 0x3ea000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-detect.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0p\n\0\0004\0\0\0\20"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=27041, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb805a000
+mmap2(NULL, 10760, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x120000
+mmap2(0x122000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x122000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-volume-restore.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\240\10\0\0004\0\0\0\360"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=22990, ...}) = 0
+mmap2(NULL, 8792, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x123000
+mmap2(0x125000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x125000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-device-restore.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0P\20\0\0004\0\0\0\200"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=39657, ...}) = 0
+mmap2(NULL, 17680, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x225000
+mmap2(0x229000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3) = 0x229000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-stream-restore.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0000\33\0\0004\0\0\0\4"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=63416, ...}) = 0
+mmap2(NULL, 27684, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x126000
+mmap2(0x12c000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x5) = 0x12c000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-card-restore.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0@\r\0\0004\0\0\0\214"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=33621, ...}) = 0
+mmap2(NULL, 13616, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x3ce000
+mmap2(0x3d1000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2) = 0x3d1000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-default-device-restore.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\360\v\0\0004\0\0\0l"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=30701, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8059000
+mmap2(NULL, 12256, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xcbe000
+mmap2(0xcc0000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0xcc0000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-always-sink.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0@\n\0\0004\0\0\0\350"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=29068, ...}) = 0
+mmap2(NULL, 11464, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xbe0000
+mmap2(0xbe2000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0xbe2000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-rescue-streams.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\20\n\0\0004\0\0\0\250"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=33235, ...}) = 0
+mmap2(NULL, 11608, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xf4b000
+mmap2(0xf4d000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0xf4d000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-suspend-on-idle.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\220\r\0\0004\0\0\0d"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=53693, ...}) = 0
+mmap2(NULL, 22708, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x307000
+mmap2(0x30c000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x4) = 0x30c000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-http-protocol-tcp.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\360\f\0\0004\0\0\0`"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=27326, ...}) = 0
+mmap2(NULL, 11248, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xbc6000
+mmap2(0xbc8000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0xbc8000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-sine.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0P\f\0\0004\0\0\0\330"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=33352, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8058000
+mmap2(NULL, 8744, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xdcc000
+mmap2(0xdce000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2) = 0xdce000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-native-protocol-tcp.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\0\16\0\0004\0\0\0$"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=28434, ...}) = 0
+mmap2(NULL, 11892, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xd5a000
+mmap2(0xd5c000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0xd5c000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-native-protocol-fd.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\300\t\0\0004\0\0\0\\"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=23553, ...}) = 0
+mmap2(NULL, 8864, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x12d000
+mmap2(0x12f000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x12f000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-esound-protocol-tcp.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0000\r\0\0004\0\0\0\10"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=27740, ...}) = 0
+mmap2(NULL, 11440, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x450000
+mmap2(0x452000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x452000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-combine.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0P \0\0004\0\0\0\374"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=78986, ...}) = 0
+mmap2(NULL, 39188, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x81a000
+mmap2(0x823000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x8) = 0x823000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-remap-sink.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\260\24\0\0004\0\0\0\24"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=50001, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8057000
+mmap2(NULL, 21860, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x51b000
+mmap2(0x520000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x4) = 0x520000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-ladspa-sink.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0`\32\0\0004\0\0\0H"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=62718, ...}) = 0
+mmap2(NULL, 31020, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x64d000
+mmap2(0x654000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x6) = 0x654000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-esound-sink.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0 \32\0\0004\0\0\0\204"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=50510, ...}) = 0
+mmap2(NULL, 21288, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x3ec000
+mmap2(0x3f1000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x5) = 0x3f1000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-tunnel-sink.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\360\"\0\0004\0\0\0p"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=88431, ...}) = 0
+mmap2(NULL, 42316, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x930000
+mmap2(0x93a000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xa) = 0x93a000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-tunnel-source.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0000!\0\0004\0\0\0|"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=80181, ...}) = 0
+mmap2(NULL, 40684, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x130000
+mmap2(0x139000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x8) = 0x139000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-position-event-sounds.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0000\n\0\0004\0\0\0\304"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=30412, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8056000
+mmap2(NULL, 10148, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xe35000
+mmap2(0xe37000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0xe37000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-augment-properties.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\260\16\0\0004\0\0\0\350"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=38375, ...}) = 0
+mmap2(NULL, 15512, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xaed000
+mmap2(0xaf0000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2) = 0xaf0000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-cork-music-on-phone.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\220\v\0\0004\0\0\0d"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=35731, ...}) = 0
+mmap2(NULL, 13048, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x13a000
+mmap2(0x13d000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2) = 0x13d000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-rtp-send.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\240\25\0\0004\0\0\0\310"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=48260, ...}) = 0
+mmap2(NULL, 17124, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xb74000
+mmap2(0xb78000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x4) = 0xb78000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-rtp-recv.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\200\34\0\0004\0\0\0<"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=61117, ...}) = 0
+mmap2(NULL, 25412, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xd2a000
+mmap2(0xd30000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x6) = 0xd30000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-cli-protocol-unix.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\0\f\0\0004\0\0\0l"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=26376, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8055000
+mmap2(NULL, 10632, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xb52000
+mmap2(0xb54000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0xb54000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-simple-protocol-unix.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\20\r\0\0004\0\0\0\360"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=27427, ...}) = 0
+mmap2(NULL, 11276, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x857000
+mmap2(0x859000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x859000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-http-protocol-unix.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\340\f\0\0004\0\0\0,"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=26985, ...}) = 0
+mmap2(NULL, 10988, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x13e000
+mmap2(0x140000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x140000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-native-protocol-unix.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\360\r\0\0004\0\0\0004"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=28161, ...}) = 0
+mmap2(NULL, 11700, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x9b5000
+mmap2(0x9b7000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x9b7000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-esound-protocol-unix.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\200\r\0\0004\0\0\0\f"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=27786, ...}) = 0
+mmap2(NULL, 11472, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x141000
+mmap2(0x143000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x143000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-pipe-sink.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\220\25\0\0004\0\0\0p"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=40076, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8054000
+mmap2(NULL, 17948, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x5db000
+mmap2(0x5df000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3) = 0x5df000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-pipe-source.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\260\25\0\0004\0\0\0\210"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=39495, ...}) = 0
+mmap2(NULL, 17788, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x144000
+mmap2(0x148000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3) = 0x148000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-esound-compat-spawnfd.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\360\10\0\0004\0\0\0$"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=22829, ...}) = 0
+mmap2(NULL, 4584, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x338000
+mmap2(0x339000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x339000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-esound-compat-spawnpid.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\260\10\0\0004\0\0\0\34"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=22805, ...}) = 0
+mmap2(NULL, 4580, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xd1c000
+mmap2(0xd1d000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0xd1d000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-match.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\260\16\0\0004\0\0\0\314"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=35019, ...}) = 0
+mmap2(NULL, 13052, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x149000
+mmap2(0x14c000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2) = 0x14c000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-x11-bell.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\340\v\0\0004\0\0\0("..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=38703, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8053000
+mmap2(NULL, 11552, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x4b5000
+mmap2(0x4b7000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x4b7000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-x11-publish.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\200\17\0\0004\0\0\0\\"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=30054, ...}) = 0
+mmap2(NULL, 13040, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x537000
+mmap2(0x53a000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2) = 0x53a000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-x11-xsmp.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0p\16\0\0004\0\0\0\354"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=31212, ...}) = 0
+mmap2(NULL, 8788, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xcc7000
+mmap2(0xcc9000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2) = 0xcc9000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-x11-cork-request.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\360\v\0\0004\0\0\0\310"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=31995, ...}) = 0
+mmap2(NULL, 11352, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x14d000
+mmap2(0x14f000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x14f000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/liboss-util.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\20\f\0\0004\0\0\0\370"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=21591, ...}) = 0
+mmap2(NULL, 15072, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xd18000
+mmap2(0xd1b000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2) = 0xd1b000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-oss.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\240\35\0\0004\0\0\0d"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=72703, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8052000
+mmap2(NULL, 40732, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x731000
+mmap2(0x73a000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x8) = 0x73a000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libalsa-util.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\300i\0\0004\0\0\0\\"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=298093, ...}) = 0
+mmap2(NULL, 159880, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x150000
+mmap2(0x176000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x25) = 0x176000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-alsa-sink.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0P\n\0\0004\0\0\0D"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=24594, ...}) = 0
+mmap2(NULL, 10040, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xef4000
+mmap2(0xef6000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0xef6000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-alsa-source.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0p\n\0\0004\0\0\0X"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=26504, ...}) = 0
+mmap2(NULL, 10424, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x178000
+mmap2(0x17a000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x17a000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-alsa-card.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0`\24\0\0004\0\0\0\30"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=36914, ...}) = 0
+mmap2(NULL, 17536, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x766000
+mmap2(0x76a000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3) = 0x76a000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libasound.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/tls/i686/sse2/libasound.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/tls/i686/sse2", 0xbff5bd50) = -1 ENOENT (No such file or directory)
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/tls/i686/libasound.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/tls/i686", 0xbff5bd50) = -1 ENOENT (No such file or directory)
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/tls/sse2/libasound.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/tls/sse2", 0xbff5bd50) = -1 ENOENT (No such file or directory)
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/tls/libasound.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/tls", 0xbff5bd50) = -1 ENOENT (No such file or directory)
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/i686/sse2/libasound.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/i686/sse2", 0xbff5bd50) = -1 ENOENT (No such file or directory)
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/i686/libasound.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/i686", 0xbff5bd50) = -1 ENOENT (No such file or directory)
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/sse2/libasound.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/sse2", 0xbff5bd50) = -1 ENOENT (No such file or directory)
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/libasound.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules", 0xbff5bd50) = -1 ENOENT (No such file or directory)
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/tls/i686/sse2/libasound.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/tls/i686/sse2", 0xbff5bd50) = -1 ENOENT (No such file or directory)
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/tls/i686/libasound.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/tls/i686", 0xbff5bd50) = -1 ENOENT (No such file or directory)
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/tls/sse2/libasound.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/tls/sse2", 0xbff5bd50) = -1 ENOENT (No such file or directory)
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/tls/libasound.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/tls", 0xbff5bd50) = -1 ENOENT (No such file or directory)
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/i686/sse2/libasound.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/i686/sse2", 0xbff5bd50) = -1 ENOENT (No such file or directory)
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/i686/libasound.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/i686", 0xbff5bd50) = -1 ENOENT (No such file or directory)
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/sse2/libasound.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/sse2", 0xbff5bd50) = -1 ENOENT (No such file or directory)
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/libasound.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat64("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib", 0xbff5bd50) = -1 ENOENT (No such file or directory)
+open("/etc/ld.so.cache", O_RDONLY)      = 3
+fstat64(3, {st_mode=S_IFREG|0644, st_size=123199, ...}) = 0
+mmap2(NULL, 123199, PROT_READ, MAP_PRIVATE, 3, 0) = 0xb8033000
+close(3)                                = 0
+open("/lib/libasound.so.2", O_RDONLY)   = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0@\335H\0034\0\0\0\374"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=923860, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8032000
+mmap2(0x3470000, 920976, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x3470000
+mmap2(0x354d000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xdd) = 0x354d000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-zeroconf-publish.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0`\24\0\0004\0\0\0\4"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=54031, ...}) = 0
+mmap2(NULL, 21168, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xbcb000
+mmap2(0xbd0000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x5) = 0xbd0000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-zeroconf-discover.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0P\21\0\0004\0\0\0\230"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=38877, ...}) = 0
+mmap2(NULL, 16008, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x60d000
+mmap2(0x610000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2) = 0x610000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-lirc.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\300\v\0\0004\0\0\0\230"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=28280, ...}) = 0
+mmap2(NULL, 11848, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x54e000
+mmap2(0x550000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x550000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/liblirc_client.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/liblirc_client.so.0", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0P\215A\0004\0\0\0P"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=24064, ...}) = 0
+mmap2(0x418000, 22084, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x418000
+mmap2(0x41d000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x5) = 0x41d000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-mmkbd-evdev.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\320\v\0\0004\0\0\0\210"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=29250, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8031000
+mmap2(NULL, 8736, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x6b8000
+mmap2(0x6ba000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2) = 0x6ba000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-jack-sink.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0P\32\0\0004\0\0\0d"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=46458, ...}) = 0
+mmap2(NULL, 22128, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x9ac000
+mmap2(0x9b1000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x4) = 0x9b1000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-jack-source.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\20\31\0\0004\0\0\0\354"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=44780, ...}) = 0
+mmap2(NULL, 17180, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x642000
+mmap2(0x646000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x4) = 0x646000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libjack.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libjack.so.0", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\340_\266\0024\0\0\0\214"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=74812, ...}) = 0
+mmap2(0x2b62000, 109020, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2b62000
+mmap2(0x2b73000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x10) = 0x2b73000
+mmap2(0x2b75000, 31196, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x2b75000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libpthread.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/libpthread.so.0", O_RDONLY)  = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0P\351D\0004\0\0\0\350"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=140408, ...}) = 0
+mmap2(0x44a000, 106976, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x17b000
+mprotect(0x191000, 4096, PROT_NONE)     = 0
+mmap2(0x192000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x16) = 0x192000
+mmap2(0x194000, 4576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x194000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-gconf.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\20\f\0\0004\0\0\0\320"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=32282, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8030000
+mmap2(NULL, 14348, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x43f000
+mmap2(0x442000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2) = 0x442000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-hal-detect.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0P\27\0\0004\0\0\0\374"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=50927, ...}) = 0
+mmap2(NULL, 26372, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xac6000
+mmap2(0xacc000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x5) = 0xacc000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libhal.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libhal.so.1", O_RDONLY)  = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\360\326/\0034\0\0\0\270"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=68928, ...}) = 0
+mmap2(0x32fb000, 66060, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x32fb000
+mmap2(0x330b000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x10) = 0x330b000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-udev-detect.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\240\r\0\0004\0\0\0\210"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=27771, ...}) = 0
+mmap2(NULL, 11752, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x1a9000
+mmap2(0x1ab000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x1ab000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libudev.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/libudev.so.0", O_RDONLY)     = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\260|a\0004\0\0\0000"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=49592, ...}) = 0
+mmap2(0x616000, 50920, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x616000
+mmap2(0x622000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xb) = 0x622000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-rygel-media-server.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0@\25\0\0004\0\0\0\274"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=71491, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb802f000
+mmap2(NULL, 42160, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x196000
+mmap2(0x1a0000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x9) = 0x1a0000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libbluetooth-util.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\20\26\0\0004\0\0\0\324"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=60213, ...}) = 0
+mmap2(NULL, 32364, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x5b2000
+mmap2(0x5b9000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x6) = 0x5b9000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-bluetooth-proximity.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\200\23\0\0004\0\0\0p"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=42108, ...}) = 0
+mmap2(NULL, 17056, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x433000
+mmap2(0x437000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x4) = 0x437000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-bluetooth-discover.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\260\r\0\0004\0\0\0<"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=28802, ...}) = 0
+mmap2(NULL, 11720, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x1a1000
+mmap2(0x1a3000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x1a3000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libbluetooth-ipc.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0 \10\0\0004\0\0\0008"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=12484, ...}) = 0
+mmap2(NULL, 4652, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2d1000
+mmap2(0x2d2000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x2d2000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libbluetooth-sbc.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0 \10\0\0004\0\0\0\270"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=89082, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb802e000
+mmap2(NULL, 65272, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x341000
+mmap2(0x350000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xe) = 0x350000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-bluetooth-device.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\360-\0\0004\0\0\0\230"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=103350, ...}) = 0
+mmap2(NULL, 58940, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x1ac000
+mmap2(0x1ba000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xd) = 0x1ba000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libraop.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0 \23\0\0004\0\0\0\260"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=46171, ...}) = 0
+mmap2(NULL, 21436, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xe7b000
+mmap2(0xe80000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x4) = 0xe80000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-raop-sink.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0@\32\0\0004\0\0\0$"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=47967, ...}) = 0
+mmap2(NULL, 23756, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x1bb000
+mmap2(0x1c0000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x4) = 0x1c0000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libssl.so.8", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libssl.so.8", O_RDONLY)  = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0@\362\365\0024\0\0\0\274"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=311404, ...}) = 0
+mmap2(0x2f53000, 308264, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2f53000
+mmap2(0x2f9b000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x48) = 0x2f9b000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libcrypto.so.8", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libcrypto.so.8", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\300h\317\0024\0\0\0\364"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=1473700, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb802d000
+mmap2(0x2cbe000, 1488896, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2cbe000
+mmap2(0x2e10000, 94208, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x151) = 0x2e10000
+mmap2(0x2e27000, 10240, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x2e27000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libz.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/libz.so.1", O_RDONLY)        = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0 \206F\0004\0\0\0\0"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=75440, ...}) = 0
+mmap2(0x467000, 76688, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x467000
+mmap2(0x479000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x11) = 0x479000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/module-raop-discover.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0@\17\0\0004\0\0\0\34"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=36557, ...}) = 0
+mmap2(NULL, 14560, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xeec000
+mmap2(0xeef000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2) = 0xeef000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libavahi-common.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libavahi-common.so.3", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0PU\r\0034\0\0\0\34"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=47268, ...}) = 0
+mmap2(0x30d3000, 48592, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x30d3000
+mmap2(0x30de000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xa) = 0x30de000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libavahi-client.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libavahi-client.so.3", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\3408\f\0034\0\0\0,"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=63964, ...}) = 0
+mmap2(0x30c1000, 64992, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x30c1000
+mmap2(0x30d0000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xe) = 0x30d0000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libpulsecore-0.9.15.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\260\316\0\0004\0\0\0\224"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=1093558, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb802c000
+mmap2(NULL, 537684, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x76b000
+mmap2(0x7ed000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x81) = 0x7ed000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libpulse.so.0", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\240z\0\0004\0\0\0 "..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=535997, ...}) = 0
+mmap2(NULL, 285372, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x1c1000
+mmap2(0x206000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x45) = 0x206000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libtdb.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libtdb.so.1", O_RDONLY)  = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\20kP\0034\0\0\0P"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=54784, ...}) = 0
+mmap2(0x3505000, 56392, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x207000
+mmap2(0x214000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xc) = 0x214000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libpulsecommon-0.9.15.so", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\200\255\0\0004\0\0\0\300"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0775, st_size=718884, ...}) = 0
+mmap2(NULL, 363448, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x351000
+mmap2(0x3a9000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x58) = 0x3a9000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libX11.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libX11.so.6", O_RDONLY)  = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\0\301Y\0004\0\0\0\274"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=1242732, ...}) = 0
+mmap2(0x588000, 1245108, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xf8b000
+mmap2(0x10b7000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x12b) = 0x10b7000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libSM.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libSM.so.6", O_RDONLY)   = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0P\263\251\0024\0\0\0\264"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=30052, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb802b000
+mmap2(0x2a9a000, 31248, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2a9a000
+mmap2(0x2aa1000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x6) = 0x2aa1000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libICE.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libICE.so.6", O_RDONLY)  = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\260u\252\0024\0\0\0@"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=95472, ...}) = 0
+mmap2(0x2aa4000, 104080, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2aa4000
+mmap2(0x2abb000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x16) = 0x2abb000
+mmap2(0x2abc000, 5776, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x2abc000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libXtst.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libXtst.so.6", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\260n\352\0024\0\0\0H"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=20984, ...}) = 0
+mmap2(0x2ea6000, 22096, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2ea6000
+mmap2(0x2eab000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x4) = 0x2eab000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libwrap.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/libwrap.so.0", O_RDONLY)     = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\260>\316\0024\0\0\0H"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=33016, ...}) = 0
+mmap2(0x2ce2000, 36348, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x215000
+mmap2(0x21d000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x7) = 0x21d000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libasyncns.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libasyncns.so.0", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\200M\302\0024\0\0\0`"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=20456, ...}) = 0
+mmap2(0x2c24000, 21676, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2c24000
+mmap2(0x2c29000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x4) = 0x2c29000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libltdl.so.7", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libltdl.so.7", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0000\332H\0034\0\0\0D"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=35316, ...}) = 0
+mmap2(0x348c000, 36568, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x22a000
+mmap2(0x232000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x7) = 0x232000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libsamplerate.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libsamplerate.so.0", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\0\350%\0034\0\0\0\300"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=1483632, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb802a000
+mmap2(0x325e000, 1484828, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x45f2000
+mmap2(0x475c000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x169) = 0x475c000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libspeexdsp.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libspeexdsp.so.1", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\300D\n\0034\0\0\0<"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=67564, ...}) = 0
+mmap2(0x30a3000, 68776, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x30a3000
+mmap2(0x30b3000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xf) = 0x30b3000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libsndfile.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libsndfile.so.1", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\0\2\260\0024\0\0\0\344"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=380604, ...}) = 0
+mmap2(0x2afe000, 399520, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2afe000
+mmap2(0x2b5a000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x5b) = 0x2b5a000
+mmap2(0x2b5c000, 14496, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x2b5c000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/liboil-0.3.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/liboil-0.3.so.0", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\240Tw\0004\0\0\0\4"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=487860, ...}) = 0
+mmap2(0x761000, 499016, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x85a000
+mmap2(0x8ba000, 98304, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x5f) = 0x8ba000
+mmap2(0x8d2000, 7496, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x8d2000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libpolkit-dbus.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libpolkit-dbus.so.2", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\240\226I\0034\0\0\0\260"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=48952, ...}) = 0
+mmap2(0x3497000, 45904, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x233000
+mmap2(0x23e000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xb) = 0x23e000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libpolkit.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libpolkit.so.2", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0`CG\0034\0\0\0P"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=102656, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8029000
+mmap2(0x3470000, 103872, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x23f000
+mmap2(0x258000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x18) = 0x258000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libdbus-1.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/libdbus-1.so.3", O_RDONLY)   = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\320\356\224\0024\0\0\0\314"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=261756, ...}) = 0
+mmap2(0x294a000, 263324, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x294a000
+mmap2(0x2989000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3e) = 0x2989000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libcap.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/libcap.so.2", O_RDONLY)      = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\0-\233\0004\0\0\0\244"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=15956, ...}) = 0
+mmap2(0x9b2000, 17168, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x1a4000
+mmap2(0x1a8000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3) = 0x1a8000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/librt.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/librt.so.1", O_RDONLY)       = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\300\330G\0004\0\0\0T"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=43924, ...}) = 0
+mmap2(0x47c000, 33332, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x47c000
+mmap2(0x483000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x6) = 0x483000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libdl.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/libdl.so.2", O_RDONLY)       = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0`:D\0004\0\0\0("..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=20464, ...}) = 0
+mmap2(0x443000, 16500, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x443000
+mmap2(0x446000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2) = 0x446000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libm.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/libm.so.6", O_RDONLY)        = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0`\264A\0004\0\0\0<"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=210300, ...}) = 0
+mmap2(0x418000, 163968, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2d3000
+mmap2(0x2fa000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x26) = 0x2fa000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libc.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/libc.so.6", O_RDONLY)        = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\300\233+\0004\0\0\0\214"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=1811780, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8028000
+mmap2(0x2a3000, 1517864, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x73de000
+mmap2(0x754b000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x16d) = 0x754b000
+mmap2(0x754e000, 10536, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x754e000
+close(3)                                = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8027000
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8026000
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8025000
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8024000
+open("/home/lennart/projects/pulseaudio/src/.libs/libgssapi_krb5.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libgssapi_krb5.so.2", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0p\375\310\0024\0\0\0\240"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=178336, ...}) = 0
+mmap2(0x2c8c000, 175068, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2c8c000
+mmap2(0x2cb6000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2a) = 0x2cb6000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libkrb5.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libkrb5.so.3", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\340\361\353\0024\0\0\0d"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=642108, ...}) = 0
+mmap2(0x2eaf000, 638952, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2eaf000
+mmap2(0x2f49000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x9a) = 0x2f49000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libcom_err.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/libcom_err.so.2", O_RDONLY)  = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\20\275\337\0004\0\0\0\230"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=10864, ...}) = 0
+mmap2(0xdfb000, 11996, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xdfb000
+mmap2(0xdfd000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0xdfd000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libk5crypto.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libk5crypto.so.3", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\200\206\346\0024\0\0\0\4"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=149212, ...}) = 0
+mmap2(0x2e65000, 146848, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2e65000
+mmap2(0x2e88000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x23) = 0x2e88000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/libresolv.so.2", O_RDONLY)   = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\200\26\250\0024\0\0\0\244"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=102252, ...}) = 0
+mmap2(0x2a7f000, 100424, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2a7f000
+mprotect(0x2a93000, 4096, PROT_NONE)    = 0
+mmap2(0x2a94000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x14) = 0x2a94000
+mmap2(0x2a96000, 6216, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x2a96000
+close(3)                                = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8023000
+open("/home/lennart/projects/pulseaudio/src/.libs/libxcb.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libxcb.so.1", O_RDONLY)  = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0000\16l\0004\0\0\0|"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=114220, ...}) = 0
+mmap2(0x6ba000, 111372, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x259000
+mmap2(0x274000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1b) = 0x274000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libuuid.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/libuuid.so.1", O_RDONLY)     = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0000_\337\0004\0\0\0\370"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=15864, ...}) = 0
+mmap2(0xdf5000, 12820, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0xdf5000
+mmap2(0xdf8000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3) = 0xdf8000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libXext.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libXext.so.6", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\200'r\0004\0\0\0\250"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=66136, ...}) = 0
+mmap2(0x720000, 63488, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x720000
+mmap2(0x72f000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xf) = 0x72f000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libnsl.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/libnsl.so.1", O_RDONLY)      = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\260A$\0034\0\0\0\370"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=117912, ...}) = 0
+mmap2(0x3241000, 108520, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x3241000
+mmap2(0x3258000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x16) = 0x3258000
+mmap2(0x325a000, 6120, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x325a000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libFLAC.so.8", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libFLAC.so.8", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\200\225\254\0024\0\0\0\370"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=244392, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8022000
+mmap2(0x2ac0000, 245576, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2ac0000
+mmap2(0x2afb000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3a) = 0x2afb000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libogg.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libogg.so.0", O_RDONLY)  = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\0\"a\0034\0\0\0l"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=20724, ...}) = 0
+mmap2(0x3611000, 22052, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x3611000
+mmap2(0x3616000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x4) = 0x3616000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libselinux.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/libselinux.so.1", O_RDONLY)  = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0000\261H\0004\0\0\0P"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=118312, ...}) = 0
+mmap2(0x487000, 121836, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x487000
+mmap2(0x4a3000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1b) = 0x4a3000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libexpat.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/libexpat.so.1", O_RDONLY)    = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0@@s\0004\0\0\0\250"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=156720, ...}) = 0
+mmap2(0x732000, 158048, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2a9000
+mmap2(0x2ce000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x24) = 0x2ce000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libattr.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/libattr.so.1", O_RDONLY)     = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\0\36\221\0004\0\0\0\344"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=17812, ...}) = 0
+mmap2(0x911000, 19048, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x911000
+mmap2(0x915000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3) = 0x915000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libkrb5support.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libkrb5support.so.0", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\0X\302\0024\0\0\0\374"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=38868, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8021000
+mmap2(0x2c24000, 39916, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2fc000
+mmap2(0x305000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x8) = 0x305000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libkeyutils.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/libkeyutils.so.1", O_RDONLY) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0`\230\313\0024\0\0\0\240"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=7976, ...}) = 0
+mmap2(0x2cb9000, 9260, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x2cb9000
+mmap2(0x2cbb000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x2cbb000
+close(3)                                = 0
+open("/home/lennart/projects/pulseaudio/src/.libs/libXau.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libXau.so.6", O_RDONLY)  = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\240\211m\0004\0\0\0000"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=9656, ...}) = 0
+mmap2(0x6d8000, 10992, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x6d8000
+mmap2(0x6da000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1) = 0x6da000
+close(3)                                = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8020000
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb801f000
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb801e000
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb801d000
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb801c000
+set_thread_area({entry_number:-1 -> 6, base_addr:0xb801c9a0, limit:1048575, seg_32bit:1, contents:0, read_exec_only:0, limit_in_pages:1, seg_not_present:0, useable:1}) = 0
+mprotect(0x4a3000, 4096, PROT_READ)     = 0
+mprotect(0x3258000, 4096, PROT_READ)    = 0
+mprotect(0x2a94000, 4096, PROT_READ)    = 0
+mprotect(0x754b000, 8192, PROT_READ)    = 0
+mprotect(0x2fa000, 4096, PROT_READ)     = 0
+mprotect(0x446000, 4096, PROT_READ)     = 0
+mprotect(0x483000, 4096, PROT_READ)     = 0
+mprotect(0x2989000, 4096, PROT_READ)    = 0
+mprotect(0x192000, 4096, PROT_READ)     = 0
+mprotect(0x29f000, 4096, PROT_READ)     = 0
+munmap(0xb8033000, 123199)              = 0
+set_tid_address(0xb801ca08)             = 7010
+set_robust_list(0xb801ca10, 0xc)        = 0
+futex(0xbff5c990, FUTEX_WAKE_PRIVATE, 1) = 0
+futex(0xbff5c990, 0x189 /* FUTEX_??? */, 1, NULL, bff5c9a0) = -1 EAGAIN (Resource temporarily unavailable)
+rt_sigaction(SIGRTMIN, {0x17f340, [], SA_SIGINFO}, NULL, 8) = 0
+rt_sigaction(SIGRT_1, {0x17f840, [], SA_RESTART|SA_SIGINFO}, NULL, 8) = 0
+rt_sigprocmask(SIG_UNBLOCK, [RTMIN RT_1], NULL, 8) = 0
+getrlimit(RLIMIT_STACK, {rlim_cur=10240*1024, rlim_max=RLIM_INFINITY}) = 0
+uname({sys="Linux", node="lambda", ...}) = 0
+brk(0)                                  = 0x99a3000
+brk(0x99c4000)                          = 0x99c4000
+open("/etc/selinux/config", O_RDONLY|O_LARGEFILE) = 3
+fstat64(3, {st_mode=S_IFREG|0644, st_size=511, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8051000
+read(3, "# This file controls the state of"..., 4096) = 511
+read(3, ""..., 4096)                    = 0
+close(3)                                = 0
+munmap(0xb8051000, 4096)                = 0
+statfs64("/selinux", 84, {f_type="EXT2_SUPER_MAGIC", f_bsize=4096, f_blocks=253926, f_bfree=124690, f_bavail=111583, f_files=262144, f_ffree=247677, f_fsid={-1122384253, -1786938661}, f_namelen=255, f_frsize=4096}) = 0
+open("/proc/mounts", O_RDONLY|O_LARGEFILE) = 3
+fstat64(3, {st_mode=S_IFREG|0444, st_size=0, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8051000
+read(3, "rootfs / rootfs rw 0 0\n/dev/root "..., 1024) = 1024
+read(3, " rw,relatime,grpid,errors=continu"..., 1024) = 347
+read(3, ""..., 1024)                    = 0
+close(3)                                = 0
+munmap(0xb8051000, 4096)                = 0
+open("/usr/lib/gconv/gconv-modules.cache", O_RDONLY) = 3
+fstat64(3, {st_mode=S_IFREG|0644, st_size=26048, ...}) = 0
+mmap2(NULL, 26048, PROT_READ, MAP_SHARED, 3, 0) = 0xb804b000
+close(3)                                = 0
+futex(0x754da6c, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+getuid32()                              = 1000
+geteuid32()                             = 1000
+capget(0x20080522, 0, NULL)             = -1 EFAULT (Bad address)
+capset(0x20080522, 0, {CAP_SYS_NICE, CAP_SYS_NICE, 0}) = -1 EPERM (Operation not permitted)
+prctl(0x8, 0, 0, 0, 0)                  = 0
+capget(0x20080522, 0, NULL)             = -1 EFAULT (Bad address)
+capset(0x20080522, 0, {0, 0, 0})        = 0
+capget(0x20080522, 0, NULL)             = -1 EFAULT (Bad address)
+capget(0x20080522, 0, {0, 0, 0})        = 0
+prctl(0x8, 0x1, 0, 0, 0)                = 0
+getuid32()                              = 1000
+geteuid32()                             = 1000
+capget(0x20080522, 0, NULL)             = -1 EFAULT (Bad address)
+capset(0x20080522, 0, {CAP_SYS_NICE, CAP_SYS_NICE, 0}) = -1 EPERM (Operation not permitted)
+prctl(0x8, 0, 0, 0, 0)                  = 0
+capget(0x20080522, 0, NULL)             = -1 EFAULT (Bad address)
+capset(0x20080522, 0, {0, 0, 0})        = 0
+capget(0x20080522, 0, NULL)             = -1 EFAULT (Bad address)
+capget(0x20080522, 0, {0, 0, 0})        = 0
+prctl(0x8, 0x1, 0, 0, 0)                = 0
+open("/proc/self/fd", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) = 3
+fcntl64(3, F_GETFD)                     = 0x1 (flags FD_CLOEXEC)
+getdents64(3, /* 6 entries */, 32768)   = 144
+getdents64(3, /* 0 entries */, 32768)   = 0
+close(3)                                = 0
+rt_sigaction(SIGHUP, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGINT, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGQUIT, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGILL, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGTRAP, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGABRT, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGBUS, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGFPE, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGUSR1, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGSEGV, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGUSR2, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGPIPE, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGALRM, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGTERM, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGSTKFLT, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGCHLD, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGCONT, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGTSTP, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGTTIN, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGTTOU, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGURG, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGXCPU, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGXFSZ, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGVTALRM, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGPROF, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGWINCH, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGIO, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGPWR, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGSYS, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_2, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_3, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_4, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_5, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_6, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_7, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_8, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_9, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_10, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_11, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_12, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_13, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_14, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_15, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_16, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_17, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_18, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_19, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_20, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_21, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_22, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_23, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_24, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_25, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_26, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_27, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_28, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_29, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_30, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_31, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGRT_32, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+open("/usr/lib/locale/locale-archive", O_RDONLY|O_LARGEFILE) = 3
+fstat64(3, {st_mode=S_IFREG|0644, st_size=84438064, ...}) = 0
+mmap2(NULL, 2097152, PROT_READ, MAP_PRIVATE, 3, 0) = 0xb7e1c000
+close(3)                                = 0
+open("/home/lennart/.pulse//daemon.conf", O_RDONLY|O_LARGEFILE) = -1 ENOENT (No such file or directory)
+open("/etc/pulse/daemon.conf", O_RDONLY|O_LARGEFILE) = 3
+fstat64(3, {st_mode=S_IFREG|0644, st_size=2149, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb804a000
+read(3, "# This file is part of PulseAudio"..., 4096) = 2149
+read(3, ""..., 4096)                    = 0
+close(3)                                = 0
+munmap(0xb804a000, 4096)                = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "D: main.c: Started as real root: "..., 51) = 51
+capget(0x20080522, 0, NULL)             = -1 EFAULT (Bad address)
+capget(0x20080522, 0, {0, 0, 0})        = 0
+setrlimit(RLIMIT_NOFILE, {rlim_cur=256, rlim_max=256}) = 0
+setrlimit(RLIMIT_NICE, {rlim_cur=31, rlim_max=31}) = -1 EPERM (Operation not permitted)
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: main.c: setrlimit(RLIMIT_NICE,"..., 76) = 76
+setrlimit(RLIMIT_RTPRIO, {rlim_cur=9, rlim_max=9}) = -1 EPERM (Operation not permitted)
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: main.c: setrlimit(RLIMIT_RTPRI"..., 76) = 76
+setrlimit(0xf /* RLIMIT_??? */, {rlim_cur=1000000, rlim_max=1000000}) = 0
+geteuid32()                             = 1000
+getrlimit(RLIMIT_NICE, {rlim_cur=0, rlim_max=0}) = 0
+capget(0x20080522, 0, NULL)             = -1 EFAULT (Bad address)
+capget(0x20080522, 0, {0, 0, 0})        = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: main.c: High-priority scheduli"..., 88) = 88
+geteuid32()                             = 1000
+getrlimit(RLIMIT_NICE, {rlim_cur=0, rlim_max=0}) = 0
+capget(0x20080522, 0, NULL)             = -1 EFAULT (Bad address)
+capget(0x20080522, 0, {0, 0, 0})        = 0
+geteuid32()                             = 1000
+getrlimit(RLIMIT_RTPRIO, {rlim_cur=0, rlim_max=0}) = 0
+capget(0x20080522, 0, NULL)             = -1 EFAULT (Bad address)
+capget(0x20080522, 0, {0, 0, 0})        = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "D: main.c: Can realtime: no, can "..., 51) = 51
+capget(0x20080522, 0, NULL)             = -1 EFAULT (Bad address)
+capget(0x20080522, 0, {0, 0, 0})        = 0
+geteuid32()                             = 1000
+getrlimit(RLIMIT_NICE, {rlim_cur=0, rlim_max=0}) = 0
+capget(0x20080522, 0, NULL)             = -1 EFAULT (Bad address)
+capget(0x20080522, 0, {0, 0, 0})        = 0
+geteuid32()                             = 1000
+getrlimit(RLIMIT_RTPRIO, {rlim_cur=0, rlim_max=0}) = 0
+capget(0x20080522, 0, NULL)             = -1 EFAULT (Bad address)
+capget(0x20080522, 0, {0, 0, 0})        = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "D: main.c: Can realtime: no, can "..., 51) = 51
+open("/dev/urandom", O_RDONLY|O_NOCTTY|O_LARGEFILE) = 3
+read(3, "\201\310\241\2"..., 4)         = 4
+close(3)                                = 0
+chdir("/")                              = 0
+umask(022)                              = 02
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: main.c: This is PulseAudio 0.9"..., 53) = 53
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "D: main.c: Compilation host: i686"..., 47) = 47
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "D: main.c: Compilation CFLAGS: -g"..., 616) = 616
+uname({sys="Linux", node="lambda", ...}) = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "D: main.c: Running on host: Linux"..., 102) = 102
+open("/sys/devices/system/cpu", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) = 3
+getdents64(3, /* 10 entries */, 32768)  = 288
+getdents64(3, /* 0 entries */, 32768)   = 0
+close(3)                                = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "D: main.c: Found 2 CPUs.\n"..., 25) = 25
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: main.c: Page size is 4096 byte"..., 35) = 35
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "D: main.c: Compiled with Valgrind"..., 47) = 47
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "D: main.c: Running in valgrind mo"..., 40) = 40
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "D: main.c: Optimized build: no\n"..., 31) = 31
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "D: main.c: All asserts enabled.\n"..., 32) = 32
+open("/var/lib/dbus/machine-id", O_RDONLY|O_LARGEFILE) = 3
+fstat64(3, {st_mode=S_IFREG|0644, st_size=33, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb804a000
+read(3, "92b15d59fc15e56787599a0046a5564a\n"..., 4096) = 33
+close(3)                                = 0
+munmap(0xb804a000, 4096)                = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: main.c: Machine ID is 92b15d59"..., 59) = 59
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: main.c: Session ID is 92b15d59"..., 88) = 88
+stat64("/home/lennart", {st_mode=S_IFDIR|0755, st_size=12288, ...}) = 0
+getuid32()                              = 1000
+umask(077)                              = 022
+mkdir("/home/lennart/.pulse", 0700)     = -1 EEXIST (File exists)
+umask(022)                              = 077
+getuid32()                              = 1000
+getgid32()                              = 1027
+chown32("/home/lennart/.pulse", 1000, 1027) = 0
+chmod("/home/lennart/.pulse", 0700)     = 0
+lstat64("/home/lennart/.pulse", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+open("/var/lib/dbus/machine-id", O_RDONLY|O_LARGEFILE) = 3
+fstat64(3, {st_mode=S_IFREG|0644, st_size=33, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb804a000
+read(3, "92b15d59fc15e56787599a0046a5564a\n"..., 4096) = 33
+close(3)                                = 0
+munmap(0xb804a000, 4096)                = 0
+readlink("/home/lennart/.pulse/92b15d59fc15e56787599a0046a5564a:runtime", "/tmp/pulse-GbKmmSips9OW"..., 99) = 23
+lstat64("/tmp/pulse-GbKmmSips9OW", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+getuid32()                              = 1000
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: main.c: Using runtime director"..., 98) = 98
+stat64("/home/lennart", {st_mode=S_IFDIR|0755, st_size=12288, ...}) = 0
+getuid32()                              = 1000
+umask(077)                              = 022
+mkdir("/home/lennart/.pulse", 0700)     = -1 EEXIST (File exists)
+umask(022)                              = 077
+getuid32()                              = 1000
+getgid32()                              = 1027
+chown32("/home/lennart/.pulse", 1000, 1027) = 0
+chmod("/home/lennart/.pulse", 0700)     = 0
+lstat64("/home/lennart/.pulse", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: main.c: Using state directory "..., 55) = 55
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: main.c: Running in system mode"..., 38) = 38
+stat64("/home/lennart", {st_mode=S_IFDIR|0755, st_size=12288, ...}) = 0
+getuid32()                              = 1000
+umask(077)                              = 022
+mkdir("/home/lennart/.pulse", 0700)     = -1 EEXIST (File exists)
+umask(022)                              = 077
+getuid32()                              = 1000
+getgid32()                              = 1027
+chown32("/home/lennart/.pulse", 1000, 1027) = 0
+chmod("/home/lennart/.pulse", 0700)     = 0
+lstat64("/home/lennart/.pulse", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+open("/var/lib/dbus/machine-id", O_RDONLY|O_LARGEFILE) = 3
+fstat64(3, {st_mode=S_IFREG|0644, st_size=33, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb804a000
+read(3, "92b15d59fc15e56787599a0046a5564a\n"..., 4096) = 33
+close(3)                                = 0
+munmap(0xb804a000, 4096)                = 0
+readlink("/home/lennart/.pulse/92b15d59fc15e56787599a0046a5564a:runtime", "/tmp/pulse-GbKmmSips9OW"..., 99) = 23
+lstat64("/tmp/pulse-GbKmmSips9OW", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+getuid32()                              = 1000
+open("/home/lennart/.pulse/92b15d59fc15e56787599a0046a5564a:runtime/pid", O_RDWR|O_CREAT|O_NOCTTY|O_LARGEFILE|O_NOFOLLOW, 0600) = 3
+fcntl64(3, F_SETLKW64, {type=F_WRLCK, whence=SEEK_SET, start=0, len=0}, 0xbff5c798) = 0
+fstat64(3, {st_mode=S_IFREG|0600, st_size=0, ...}) = 0
+read(3, ""..., 19)                      = 0
+_llseek(3, 0, [0], SEEK_SET)            = 0
+ftruncate64(3, 0)                       = 0
+send(3, "7010\n"..., 5, MSG_NOSIGNAL)   = -1 ENOTSOCK (Socket operation on non-socket)
+write(3, "7010\n"..., 5)                = 5
+fcntl64(3, F_SETLKW64, {type=F_UNLCK, whence=SEEK_SET, start=0, len=0}, 0xbff5c848) = 0
+close(3)                                = 0
+rt_sigaction(SIGPIPE, NULL, {SIG_DFL, [], 0}, 8) = 0
+rt_sigaction(SIGPIPE, {0x1, [], 0}, NULL, 8) = 0
+clock_getres(CLOCK_MONOTONIC, {0, 1})   = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: main.c: Fresh high-resolution "..., 64) = 64
+prctl(0x1e, 0, 0, 0, 0)                 = 50000
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "D: rtclock.c: Timer slack is set "..., 43) = 43
+rt_sigprocmask(SIG_BLOCK, ~[HUP INT QUIT ILL TRAP ABRT BUS FPE KILL USR1 SEGV USR2 PIPE ALRM TERM STKFLT CHLD CONT STOP TSTP TTIN TTOU URG XCPU XFSZ VTALRM PROF WINCH IO PWR SYS RTMIN RT_1], NULL, 8) = 0
+rt_sigaction(SIGBUS, {0x37dff6, [], SA_RESTART|SA_SIGINFO}, NULL, 8) = 0
+pipe([3, 4])                            = 0
+fcntl64(3, F_GETFL)                     = 0 (flags O_RDONLY)
+fcntl64(3, F_SETFL, O_RDONLY|O_NONBLOCK) = 0
+fcntl64(4, F_GETFL)                     = 0x1 (flags O_WRONLY)
+fcntl64(4, F_SETFL, O_WRONLY|O_NONBLOCK) = 0
+fcntl64(3, F_GETFD)                     = 0
+fcntl64(3, F_SETFD, FD_CLOEXEC)         = 0
+fcntl64(4, F_GETFD)                     = 0
+fcntl64(4, F_SETFD, FD_CLOEXEC)         = 0
+open("/dev/shm/", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) = 5
+getdents64(5, /* 6 entries */, 32768)   = 208
+statfs("/dev/shm/", {f_type=0x1021994, f_bsize=4096, f_blocks=256729, f_bfree=256355, f_bavail=256355, f_files=218849, f_ffree=218844, f_fsid={0, 0}, f_namelen=255, f_frsize=4096}) = 0
+futex(0x4841e0, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+open("/dev/shm/pulse-shm-1732310693", O_RDONLY|O_NOFOLLOW|O_CLOEXEC) = 6
+fcntl64(6, F_GETFD)                     = 0x1 (flags FD_CLOEXEC)
+fstat64(6, {st_mode=S_IFREG|0400, st_size=67108904, ...}) = 0
+mmap2(NULL, 67112960, PROT_READ, MAP_SHARED, 6, 0) = 0xb3e1b000
+close(6)                                = 0
+kill(2814, SIG_0)                       = 0
+munmap(0xb3e1b000, 67112960)            = 0
+open("/dev/shm/pulse-shm-1285363868", O_RDONLY|O_NOFOLLOW|O_CLOEXEC) = 6
+fstat64(6, {st_mode=S_IFREG|0400, st_size=67108904, ...}) = 0
+mmap2(NULL, 67112960, PROT_READ, MAP_SHARED, 6, 0) = 0xb3e1b000
+close(6)                                = 0
+kill(2757, SIG_0)                       = 0
+munmap(0xb3e1b000, 67112960)            = 0
+open("/dev/shm/pulse-shm-2271110333", O_RDONLY|O_NOFOLLOW|O_CLOEXEC) = 6
+fstat64(6, {st_mode=S_IFREG|0400, st_size=67108904, ...}) = 0
+mmap2(NULL, 67112960, PROT_READ, MAP_SHARED, 6, 0) = 0xb3e1b000
+close(6)                                = 0
+kill(2807, SIG_0)                       = 0
+munmap(0xb3e1b000, 67112960)            = 0
+open("/dev/shm/pulse-shm-4204834562", O_RDONLY|O_NOFOLLOW|O_CLOEXEC) = 6
+fstat64(6, {st_mode=S_IFREG|0400, st_size=67108904, ...}) = 0
+mmap2(NULL, 67112960, PROT_READ, MAP_SHARED, 6, 0) = 0xb3e1b000
+close(6)                                = 0
+kill(2748, SIG_0)                       = 0
+munmap(0xb3e1b000, 67112960)            = 0
+getdents64(5, /* 0 entries */, 32768)   = 0
+close(5)                                = 0
+open("/dev/urandom", O_RDONLY|O_NOCTTY|O_LARGEFILE) = 5
+read(5, "\255\317\375\343"..., 4)       = 4
+close(5)                                = 0
+open("/dev/shm/pulse-shm-3825061805", O_RDWR|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC, 0400) = 5
+ftruncate64(5, 67108904)                = 0
+mmap2(NULL, 67112960, PROT_READ|PROT_WRITE, MAP_SHARED, 5, 0) = 0xb3e1b000
+close(5)                                = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "D: memblock.c: Using shared memor"..., 137) = 137
+open("/dev/urandom", O_RDONLY|O_NOCTTY|O_LARGEFILE) = 5
+read(5, "\202\2262\32"..., 4)           = 4
+close(5)                                = 0
+rt_sigprocmask(SIG_SETMASK, NULL, ~[HUP INT QUIT ILL TRAP ABRT BUS FPE KILL USR1 SEGV USR2 PIPE ALRM TERM STKFLT CHLD CONT STOP TSTP TTIN TTOU URG XCPU XFSZ VTALRM PROF WINCH IO PWR SYS RTMIN RT_1], 8) = 0
+rt_sigaction(SIGPIPE, NULL, {0x1, [], 0}, 8) = 0
+pipe([5, 6])                            = 0
+fcntl64(5, F_GETFL)                     = 0 (flags O_RDONLY)
+fcntl64(5, F_SETFL, O_RDONLY|O_NONBLOCK) = 0
+fcntl64(6, F_GETFL)                     = 0x1 (flags O_WRONLY)
+fcntl64(6, F_SETFL, O_WRONLY|O_NONBLOCK) = 0
+fcntl64(5, F_GETFD)                     = 0
+fcntl64(5, F_SETFD, FD_CLOEXEC)         = 0
+fcntl64(6, F_GETFD)                     = 0
+fcntl64(6, F_SETFD, FD_CLOEXEC)         = 0
+rt_sigaction(SIGINT, {0x1db9e3, [], SA_RESTART}, {SIG_DFL, [], 0}, 8) = 0
+rt_sigaction(SIGTERM, {0x1db9e3, [], SA_RESTART}, {SIG_DFL, [], 0}, 8) = 0
+rt_sigaction(SIGUSR1, {0x1db9e3, [], SA_RESTART}, {SIG_DFL, [], 0}, 8) = 0
+rt_sigaction(SIGUSR2, {0x1db9e3, [], SA_RESTART}, {SIG_DFL, [], 0}, 8) = 0
+rt_sigaction(SIGHUP, {0x1db9e3, [], SA_RESTART}, {SIG_DFL, [], 0}, 8) = 0
+time(NULL)                              = 1243956680
+rt_sigaction(SIGILL, {0x86eb20, [], 0}, {SIG_DFL, [], 0}, 8) = 0
+rt_sigaction(SIGILL, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGILL, {0x86eb20, [], 0}, {SIG_DFL, [], 0}, 8) = 0
+rt_sigaction(SIGILL, {SIG_DFL, [], 0}, NULL, 8) = 0
+clock_gettime(CLOCK_MONOTONIC, {5390, 142713364}) = 0
+pipe([7, 8])                            = 0
+fcntl64(7, F_GETFL)                     = 0 (flags O_RDONLY)
+fcntl64(7, F_SETFL, O_RDONLY|O_NONBLOCK) = 0
+fcntl64(8, F_GETFL)                     = 0x1 (flags O_WRONLY)
+fcntl64(8, F_SETFL, O_WRONLY|O_NONBLOCK) = 0
+fcntl64(7, F_GETFD)                     = 0
+fcntl64(7, F_SETFD, FD_CLOEXEC)         = 0
+fcntl64(8, F_GETFD)                     = 0
+fcntl64(8, F_SETFD, FD_CLOEXEC)         = 0
+rt_sigaction(SIGXCPU, {0x805a7e7, [], SA_RESTART}, {SIG_DFL, [], 0}, 8) = 0
+getrusage(RUSAGE_SELF, {ru_utime={0, 66989}, ru_stime={0, 20996}, ...}) = 0
+getrlimit(RLIMIT_CPU, {rlim_cur=RLIM_INFINITY, rlim_max=RLIM_INFINITY}) = 0
+setrlimit(RLIMIT_CPU, {rlim_cur=10, rlim_max=RLIM_INFINITY}) = 0
+open("/home/lennart/.pulse//default.pa", O_RDONLY|O_LARGEFILE) = 9
+fstat64(9, {st_mode=S_IFREG|0664, st_size=31, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb804a000
+read(9, "load-module module-udev-detect\n"..., 4096) = 31
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/module-udev-detect.la", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib64/module-udev-detect.la", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib64/module-udev-detect.la", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/module-udev-detect.la", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/lib/module-udev-detect.la", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("module-udev-detect.la", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/module-udev-detect.so", R_OK) = -1 ENOENT (No such file or directory)
+access("/lib64/module-udev-detect.so", R_OK) = -1 ENOENT (No such file or directory)
+access("/usr/lib64/module-udev-detect.so", R_OK) = -1 ENOENT (No such file or directory)
+access("/lib/module-udev-detect.so", R_OK) = -1 ENOENT (No such file or directory)
+access("/usr/lib/module-udev-detect.so", R_OK) = -1 ENOENT (No such file or directory)
+futex(0x447068, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+open("/etc/udev/udev.conf", O_RDONLY|O_LARGEFILE) = 10
+fstat64(10, {st_mode=S_IFREG|0644, st_size=218, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb8049000
+read(10, "# The initial syslog(3) priority:"..., 4096) = 218
+read(10, ""..., 4096)                   = 0
+close(10)                               = 0
+munmap(0xb8049000, 4096)                = 0
+stat64("/tmp/udevtest", 0xbff5c270)     = -1 ENOENT (No such file or directory)
+socket(PF_FILE, SOCK_DGRAM, 0)          = 10
+fcntl64(10, F_GETFD)                    = 0
+fcntl64(10, F_SETFD, FD_CLOEXEC)        = 0
+bind(10, {sa_family=AF_FILE, path=@"/tmp/udevtest"...}, 16) = 0
+setsockopt(10, SOL_SOCKET, SO_PASSCRED, [1], 4) = 0
+stat64("/sys/subsystem", 0xbff5be6c)    = -1 ENOENT (No such file or directory)
+open("/sys/bus", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) = 11
+getdents64(11, /* 19 entries */, 32768) = 512
+getdents64(11, /* 0 entries */, 32768)  = 0
+close(11)                               = 0
+open("/sys/class", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) = 11
+getdents64(11, /* 44 entries */, 32768) = 1296
+open("/sys/class/sound", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY|O_CLOEXEC) = 12
+getdents64(12, /* 9 entries */, 32768)  = 272
+lstat64("/sys/class/sound/timer", {st_mode=S_IFLNK|0777, st_size=0, ...}) = 0
+readlink("/sys/class/sound/timer", "../../devices/virtual/sound/timer"..., 1024) = 33
+stat64("/sys/devices/virtual/sound/timer/uevent", {st_mode=S_IFREG|0644, st_size=4096, ...}) = 0
+lstat64("/sys/class/sound/card0", {st_mode=S_IFLNK|0777, st_size=0, ...}) = 0
+readlink("/sys/class/sound/card0", "../../devices/pci0000:00/0000:00:1b.0/sound/card0"..., 1024) = 49
+stat64("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0/uevent", {st_mode=S_IFREG|0644, st_size=4096, ...}) = 0
+lstat64("/sys/class/sound/pcmC0D1p", {st_mode=S_IFLNK|0777, st_size=0, ...}) = 0
+readlink("/sys/class/sound/pcmC0D1p", "../../devices/pci0000:00/0000:00:1b.0/sound/card0/pcmC0D1p"..., 1024) = 58
+stat64("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0/pcmC0D1p/uevent", {st_mode=S_IFREG|0644, st_size=4096, ...}) = 0
+lstat64("/sys/class/sound/pcmC0D0p", {st_mode=S_IFLNK|0777, st_size=0, ...}) = 0
+readlink("/sys/class/sound/pcmC0D0p", "../../devices/pci0000:00/0000:00:1b.0/sound/card0/pcmC0D0p"..., 1024) = 58
+stat64("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0/pcmC0D0p/uevent", {st_mode=S_IFREG|0644, st_size=4096, ...}) = 0
+lstat64("/sys/class/sound/pcmC0D0c", {st_mode=S_IFLNK|0777, st_size=0, ...}) = 0
+readlink("/sys/class/sound/pcmC0D0c", "../../devices/pci0000:00/0000:00:1b.0/sound/card0/pcmC0D0c"..., 1024) = 58
+stat64("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0/pcmC0D0c/uevent", {st_mode=S_IFREG|0644, st_size=4096, ...}) = 0
+lstat64("/sys/class/sound/hwC0D0", {st_mode=S_IFLNK|0777, st_size=0, ...}) = 0
+readlink("/sys/class/sound/hwC0D0", "../../devices/pci0000:00/0000:00:1b.0/sound/card0/hwC0D0"..., 1024) = 56
+stat64("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0/hwC0D0/uevent", {st_mode=S_IFREG|0644, st_size=4096, ...}) = 0
+lstat64("/sys/class/sound/controlC0", {st_mode=S_IFLNK|0777, st_size=0, ...}) = 0
+readlink("/sys/class/sound/controlC0", "../../devices/pci0000:00/0000:00:1b.0/sound/card0/controlC0"..., 1024) = 59
+stat64("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0/controlC0/uevent", {st_mode=S_IFREG|0644, st_size=4096, ...}) = 0
+getdents64(12, /* 0 entries */, 32768)  = 0
+close(12)                               = 0
+getdents64(11, /* 0 entries */, 32768)  = 0
+close(11)                               = 0
+stat64("/sys/class/block", {st_mode=S_IFDIR|0755, st_size=0, ...}) = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31m/"..., 85) = 85
+readlink("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0", 0xbff5b1bc, 1024) = -1 EINVAL (Invalid argument)
+stat64("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0/uevent", {st_mode=S_IFREG|0644, st_size=4096, ...}) = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31ms"..., 45) = 45
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31ma"..., 51) = 51
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31m/"..., 95) = 95
+readlink("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0/controlC0", 0xbff5b1bc, 1024) = -1 EINVAL (Invalid argument)
+stat64("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0/controlC0/uevent", {st_mode=S_IFREG|0644, st_size=4096, ...}) = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31ms"..., 45) = 45
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31ma"..., 51) = 51
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31m/"..., 92) = 92
+readlink("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0/hwC0D0", 0xbff5b1bc, 1024) = -1 EINVAL (Invalid argument)
+stat64("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0/hwC0D0/uevent", {st_mode=S_IFREG|0644, st_size=4096, ...}) = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31ms"..., 45) = 45
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31ma"..., 51) = 51
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31m/"..., 94) = 94
+readlink("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0/pcmC0D0c", 0xbff5b1bc, 1024) = -1 EINVAL (Invalid argument)
+stat64("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0/pcmC0D0c/uevent", {st_mode=S_IFREG|0644, st_size=4096, ...}) = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31ms"..., 45) = 45
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31ma"..., 51) = 51
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31m/"..., 94) = 94
+readlink("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0/pcmC0D0p", 0xbff5b1bc, 1024) = -1 EINVAL (Invalid argument)
+stat64("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0/pcmC0D0p/uevent", {st_mode=S_IFREG|0644, st_size=4096, ...}) = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31ms"..., 45) = 45
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31ma"..., 51) = 51
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31m/"..., 94) = 94
+readlink("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0/pcmC0D1p", 0xbff5b1bc, 1024) = -1 EINVAL (Invalid argument)
+stat64("/sys/devices/pci0000:00/0000:00:1b.0/sound/card0/pcmC0D1p/uevent", {st_mode=S_IFREG|0644, st_size=4096, ...}) = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31ms"..., 45) = 45
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31ma"..., 51) = 51
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31m/"..., 69) = 69
+readlink("/sys/devices/virtual/sound/timer", 0xbff5b1bc, 1024) = -1 EINVAL (Invalid argument)
+stat64("/sys/devices/virtual/sound/timer/uevent", {st_mode=S_IFREG|0644, st_size=4096, ...}) = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31ms"..., 45) = 45
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "E: module-udev-detect.c: \33[1;31ma"..., 51) = 51
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: module.c: Loaded \"module-udev-"..., 68) = 68
+read(9, ""..., 4096)                    = 0
+close(9)                                = 0
+munmap(0xb804a000, 4096)                = 0
+open("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/module-cli.la", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib64/module-cli.la", O_RDONLY)  = -1 ENOENT (No such file or directory)
+open("/usr/lib64/module-cli.la", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/module-cli.la", O_RDONLY)    = -1 ENOENT (No such file or directory)
+open("/usr/lib/module-cli.la", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("module-cli.la", O_RDONLY)         = -1 ENOENT (No such file or directory)
+access("/usr/local/stow/pulseaudio-0.9.15.143-8bada-dirty/lib/pulse-0.9.15/modules/module-cli.so", R_OK) = -1 ENOENT (No such file or directory)
+access("/lib64/module-cli.so", R_OK)    = -1 ENOENT (No such file or directory)
+access("/usr/lib64/module-cli.so", R_OK) = -1 ENOENT (No such file or directory)
+access("/lib/module-cli.so", R_OK)      = -1 ENOENT (No such file or directory)
+access("/usr/lib/module-cli.so", R_OK)  = -1 ENOENT (No such file or directory)
+fcntl64(0, F_GETFL)                     = 0x2 (flags O_RDWR)
+fcntl64(0, F_SETFL, O_RDWR|O_NONBLOCK)  = 0
+fcntl64(1, F_GETFL)                     = 0x802 (flags O_RDWR|O_NONBLOCK)
+fstat64(0, {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 4), ...}) = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: client.c: Created 0 \"STDIN/STD"..., 45) = 45
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: module.c: Loaded \"module-cli\" "..., 73) = 73
+socket(PF_FILE, SOCK_STREAM, 0)         = 9
+connect(9, {sa_family=AF_FILE, path=@"/tmp/dbus-UQhE4oRaqn"...}, 23) = 0
+fcntl64(9, F_GETFL)                     = 0x2 (flags O_RDWR)
+fcntl64(9, F_SETFL, O_RDWR|O_NONBLOCK)  = 0
+fcntl64(9, F_GETFD)                     = 0
+fcntl64(9, F_SETFD, FD_CLOEXEC)         = 0
+geteuid32()                             = 1000
+rt_sigaction(SIGPIPE, {0x1, [PIPE], SA_RESTART}, {0x1, [], 0}, 8) = 0
+poll([{fd=9, events=POLLOUT}], 1, 0)    = 1 ([{fd=9, revents=POLLOUT}])
+write(9, "\0"..., 1)                    = 1
+write(9, "AUTH EXTERNAL 31303030\r\n"..., 24) = 24
+poll([{fd=9, events=POLLIN}], 1, -1)    = 1 ([{fd=9, revents=POLLIN}])
+read(9, "OK 2daf0128eb4aa35798dec3624a2531"..., 2048) = 37
+poll([{fd=9, events=POLLOUT}], 1, -1)   = 1 ([{fd=9, revents=POLLOUT}])
+write(9, "BEGIN\r\n"..., 7)             = 7
+poll([{fd=9, events=POLLIN|POLLOUT}], 1, -1) = 1 ([{fd=9, revents=POLLOUT}])
+writev(9, [{"l\1\0\1\0\0\0\0\1\0\0\0n\0\0\0\1\1o\0\25\0\0\0/org/free"..., 128}, {""..., 0}], 2) = 128
+gettimeofday({1243956680, 481709}, NULL) = 0
+poll([{fd=9, events=POLLIN}], 1, 25000) = 1 ([{fd=9, revents=POLLIN}])
+read(9, "l\2\1\1\n\0\0\0\1\0\0\0=\0\0\0\6\1s\0\5\0\0\0:1.76\0\0\0\5"..., 2048) = 260
+read(9, 0x99b45c0, 2048)                = -1 EAGAIN (Resource temporarily unavailable)
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "D: dbus-util.c: Successfully conn"..., 102) = 102
+gettimeofday({1243956680, 482580}, NULL) = 0
+writev(9, [{"l\1\0\1 \0\0\0\2\0\0\0\200\0\0\0\1\1o\0\25\0\0\0/org/free"..., 144}, {"\25\0\0\0org.pulseaudio.Server\0\0\0\4\0\0\0"..., 32}], 2) = 176
+gettimeofday({1243956680, 484257}, NULL) = 0
+poll([{fd=9, events=POLLIN}], 1, 25000) = 1 ([{fd=9, revents=POLLIN}])
+read(9, "l\4\1\1\32\0\0\0\3\0\0\0\215\0\0\0\1\1o\0\25\0\0\0/org/free"..., 2048) = 270
+read(9, 0x99b45c0, 2048)                = -1 EAGAIN (Resource temporarily unavailable)
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "D: main.c: Got org.pulseaudio.Ser"..., 38) = 38
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: main.c: Daemon startup complet"..., 36) = 36
+poll([{fd=3, events=POLLIN}, {fd=9, events=POLLIN|POLLERR|POLLHUP}, {fd=9, events=0}, {fd=1, events=POLLOUT}, {fd=0, events=POLLIN}, {fd=7, events=POLLIN}, {fd=5, events=POLLIN}], 7, -1) = 1 ([{fd=1, revents=POLLOUT}])
+send(1, "Welcome to PulseAudio! Use \"help\""..., 61, MSG_NOSIGNAL) = -1 ENOTSOCK (Socket operation on non-socket)
+write(1, "Welcome to PulseAudio! Use \"help\""..., 61) = 61
+poll([{fd=3, events=POLLIN}, {fd=9, events=POLLIN|POLLERR|POLLHUP}, {fd=9, events=0}, {fd=1, events=POLLOUT}, {fd=0, events=POLLIN}, {fd=7, events=POLLIN}, {fd=5, events=POLLIN}], 7, -1) = 1 ([{fd=1, revents=POLLOUT}])
+poll([{fd=3, events=POLLIN}, {fd=9, events=POLLIN|POLLERR|POLLHUP}, {fd=9, events=0}, {fd=1, events=0}, {fd=0, events=POLLIN}, {fd=7, events=POLLIN}, {fd=5, events=POLLIN}], 7, -1) = ? ERESTART_RESTARTBLOCK (To be restarted)
+--- SIGINT (Interrupt) @ 0 (0) ---
+send(6, "\2\0\0\0"..., 4, MSG_NOSIGNAL) = -1 ENOTSOCK (Socket operation on non-socket)
+write(6, "\2\0\0\0"..., 4)              = 4
+sigreturn()                             = ? (mask now [])
+poll([{fd=3, events=POLLIN}, {fd=9, events=POLLIN|POLLERR|POLLHUP}, {fd=9, events=0}, {fd=1, events=0}, {fd=0, events=POLLIN}, {fd=7, events=POLLIN}, {fd=5, events=POLLIN}], 7, -1) = 1 ([{fd=5, revents=POLLIN}])
+read(5, "\2\0\0\0"..., 4)               = 4
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: main.c: Got signal SIGINT.\n"..., 30) = 30
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: main.c: Exiting.\n"..., 20) = 20
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: main.c: Daemon shutdown initia"..., 38) = 38
+close(9)                                = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: module.c: Unloading \"module-ud"..., 57) = 57
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: module.c: Unloaded \"module-ude"..., 56) = 56
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: module.c: Unloading \"module-cl"..., 49) = 49
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: client.c: Freed 0 \"STDIN/STDOU"..., 43) = 43
+gettimeofday({1243956681, 236441}, NULL) = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: module.c: Unloaded \"module-cli"..., 48) = 48
+munmap(0xb3e1b000, 67112960)            = 0
+unlink("/dev/shm/pulse-shm-3825061805") = 0
+ioctl(2, SNDCTL_TMR_TIMEBASE or TCGETS, {B38400 opost isig icanon echo ...}) = 0
+write(2, "I: main.c: Daemon terminated.\n"..., 30) = 30
+close(7)                                = 0
+close(8)                                = 0
+rt_sigaction(SIGXCPU, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGHUP, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGUSR2, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGUSR1, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGTERM, {SIG_DFL, [], 0}, NULL, 8) = 0
+rt_sigaction(SIGINT, {SIG_DFL, [], 0}, NULL, 8) = 0
+close(5)                                = 0
+close(6)                                = 0
+close(3)                                = 0
+close(4)                                = 0
+stat64("/home/lennart", {st_mode=S_IFDIR|0755, st_size=12288, ...}) = 0
+getuid32()                              = 1000
+umask(077)                              = 022
+mkdir("/home/lennart/.pulse", 0700)     = -1 EEXIST (File exists)
+umask(022)                              = 077
+getuid32()                              = 1000
+getgid32()                              = 1027
+chown32("/home/lennart/.pulse", 1000, 1027) = 0
+chmod("/home/lennart/.pulse", 0700)     = 0
+lstat64("/home/lennart/.pulse", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+open("/var/lib/dbus/machine-id", O_RDONLY|O_LARGEFILE) = 3
+fstat64(3, {st_mode=S_IFREG|0644, st_size=33, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb804a000
+read(3, "92b15d59fc15e56787599a0046a5564a\n"..., 4096) = 33
+close(3)                                = 0
+munmap(0xb804a000, 4096)                = 0
+readlink("/home/lennart/.pulse/92b15d59fc15e56787599a0046a5564a:runtime", "/tmp/pulse-GbKmmSips9OW"..., 99) = 23
+lstat64("/tmp/pulse-GbKmmSips9OW", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+getuid32()                              = 1000
+open("/home/lennart/.pulse/92b15d59fc15e56787599a0046a5564a:runtime/pid", O_RDWR|O_NOCTTY|O_LARGEFILE|O_NOFOLLOW) = 3
+fcntl64(3, F_SETLKW64, {type=F_WRLCK, whence=SEEK_SET, start=0, len=0}, 0xbff5c7b8) = 0
+fstat64(3, {st_mode=S_IFREG|0600, st_size=5, ...}) = 0
+read(3, "7010\n"..., 19)                = 5
+read(3, ""..., 14)                      = 0
+ftruncate64(3, 0)                       = 0
+unlink("/home/lennart/.pulse/92b15d59fc15e56787599a0046a5564a:runtime/pid") = 0
+fcntl64(3, F_SETLKW64, {type=F_UNLCK, whence=SEEK_SET, start=0, len=0}, 0xbff5c868) = 0
+close(3)                                = 0
+exit_group(1)                           = ?

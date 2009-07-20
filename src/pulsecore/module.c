@@ -48,10 +48,12 @@
 #define PA_SYMBOL_DONE "pa__done"
 #define PA_SYMBOL_LOAD_ONCE "pa__load_once"
 #define PA_SYMBOL_GET_N_USED "pa__get_n_used"
+#define PA_SYMBOL_GET_DEPRECATE "pa__get_deprecated"
 
 pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     pa_module *m = NULL;
     pa_bool_t (*load_once)(void);
+    const char* (*get_deprecated)(void);
     pa_modinfo *mi;
 
     pa_assert(c);
@@ -87,6 +89,13 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
                 }
             }
         }
+    }
+
+    if ((get_deprecated = (const char* (*) (void)) pa_load_sym(m->dl, name, PA_SYMBOL_GET_DEPRECATE))) {
+        const char *t;
+
+        if ((t = get_deprecated()))
+            pa_log_warn("%s is deprecated: %s", name, t);
     }
 
     if (!(m->init = (int (*)(pa_module*_m)) pa_load_sym(m->dl, name, PA_SYMBOL_INIT))) {

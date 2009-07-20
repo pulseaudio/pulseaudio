@@ -22,15 +22,16 @@
 
 AC_PREREQ(2.63)
 
-m4_define(pa_major, [0])
-m4_define(pa_minor, [9])
-m4_define(pa_micro, [15])
-
-AC_INIT([pulseaudio],[pa_major.pa_minor.pa_micro-test5],[mzchyfrnhqvb (at) 0pointer (dot) net])
+AC_INIT([pulseaudio], m4_esyscmd([./git-version-gen .tarball-version]),
+	[mzchyfrnhqvb (at) 0pointer (dot) net])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE([foreign 1.10 -Wall -Wno-portability])
+AM_INIT_AUTOMAKE([foreign 1.11 -Wall -Wno-portability silent-rules tar-pax])
+
+m4_define(pa_major, `echo $VERSION | cut -d. -f1 | cut -d- -f1`)
+m4_define(pa_minor, `echo $VERSION | cut -d. -f2 | cut -d- -f1`)
+m4_define(pa_micro, `echo $VERSION | cut -d. -f3 | cut -d- -f1`)
 
 AC_SUBST(PA_MAJOR, pa_major)
 AC_SUBST(PA_MINOR, pa_minor)
@@ -40,7 +41,7 @@ AC_SUBST(PA_MAJORMINORMICRO, pa_major.pa_minor.pa_micro)
 AC_SUBST(PACKAGE_URL, [http://pulseaudio.org/])
 
 AC_SUBST(PA_API_VERSION, 12)
-AC_SUBST(PA_PROTOCOL_VERSION, 15)
+AC_SUBST(PA_PROTOCOL_VERSION, 16)
 
 # The stable ABI for client applications, for the version info x:y:z
 # always will hold y=z
@@ -75,6 +76,8 @@ case $host in
       ;;
 esac
 
+AM_SILENT_RULES([yes])
+
 #### Checks for programs. ####
 
 # mkdir -p
@@ -97,11 +100,7 @@ if test "x$M4" = xno ; then
 fi
 
 dnl Compiler flags
-DESIRED_FLAGS="-Wall -W -Wextra -pipe -Wno-long-long -Winline -Wvla -Wno-overlength-strings -Wunsafe-loop-optimizations -Wundef -Wformat=2 -Wlogical-op -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wcast-align -Wstrict-aliasing=2 -Wwrite-strings -Wno-unused-parameter -ffast-math -Wp,-D_FORTIFY_SOURCE=2 -fno-common -fdiagnostics-show-option"
-
-for flag in $DESIRED_FLAGS ; do
-  CC_CHECK_CFLAGS([$flag], [CFLAGS="$CFLAGS $flag"])
-done
+CC_CHECK_CFLAGS_APPEND([-Wall -W -Wextra -pipe -Wno-long-long -Winline -Wvla -Wno-overlength-strings -Wunsafe-loop-optimizations -Wundef -Wformat=2 -Wlogical-op -Wsign-compare -Wformat-security -Wmissing-include-dirs -Wformat-nonliteral -Wold-style-definition -Wpointer-arith -Winit-self -Wdeclaration-after-statement -Wfloat-equal -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-declarations -Wmissing-noreturn -Wshadow -Wendif-labels -Wcast-align -Wstrict-aliasing=2 -Wwrite-strings -Wno-unused-parameter -ffast-math -Wp,-D_FORTIFY_SOURCE=2 -fno-common -fdiagnostics-show-option])
 
 dnl Linker flags.
 dnl Check whether the linker supports the -version-script option.
@@ -113,6 +112,11 @@ tmp_ldflag="-Wl,-version-script=${srcdir}/src/map-file"
 CC_CHECK_LDFLAGS([${tmp_ldflag}],
     [VERSIONING_LDFLAGS='-Wl,-version-script=$(srcdir)/map-file'])
 AC_SUBST([VERSIONING_LDFLAGS])
+
+dnl Check for the proper way to build libraries that have no undefined
+dnl symbols; on some hosts this needs to be avoided but the macro
+dnl takes care of it.
+CC_NOUNDEFINED
 
 dnl Check whether to build tests by default (as compile-test) or not
 AC_ARG_ENABLE([default-build-tests],
@@ -274,7 +278,7 @@ AC_CHECK_HEADER([ltdl.h],
     [LIBLTDL=])
 
 AS_IF([test "x$LIBLTDL" = "x"],
-    [AC_MSG_ERROR([Unable to find libltdl.])])
+    [AC_MSG_ERROR([Unable to find libltdl version 2. Makes sure you have libtool 2.2 or later installed.])])
 AC_SUBST([LIBLTDL])
 
 #### Determine build environment ####
@@ -300,7 +304,7 @@ AM_CONDITIONAL(OS_IS_WIN32, test "x$os_is_win32" = "x1")
 AC_HEADER_STDC
 
 # POSIX
-AC_CHECK_HEADERS([arpa/inet.h glob.h grp.h netdb.h netinet/in.h \
+AC_CHECK_HEADERS_ONCE([arpa/inet.h glob.h grp.h netdb.h netinet/in.h \
     netinet/in_systm.h netinet/tcp.h poll.h pwd.h sched.h \
     sys/mman.h sys/resource.h sys/select.h sys/socket.h sys/wait.h \
     sys/uio.h syslog.h sys/dl.h dlfcn.h linux/sockios.h])
@@ -324,23 +328,23 @@ AC_CHECK_HEADERS([linux/input.h], [HAVE_EVDEV=1], [HAVE_EVDEV=0])
 
 AM_CONDITIONAL([HAVE_EVDEV], [test "x$HAVE_EVDEV" = "x1"])
 
-AC_CHECK_HEADERS([sys/prctl.h])
+AC_CHECK_HEADERS_ONCE([sys/prctl.h])
 
 # Solaris
-AC_CHECK_HEADERS([sys/filio.h])
+AC_CHECK_HEADERS_ONCE([sys/filio.h])
 
 # Windows
-AC_CHECK_HEADERS([windows.h winsock2.h ws2tcpip.h])
+AC_CHECK_HEADERS_ONCE([windows.h winsock2.h ws2tcpip.h])
 
 # NetBSD
-AC_CHECK_HEADERS([sys/atomic.h])
+AC_CHECK_HEADERS_ONCE([sys/atomic.h])
 
 # Other
-AC_CHECK_HEADERS([sys/ioctl.h])
-AC_CHECK_HEADERS([byteswap.h])
-AC_CHECK_HEADERS([sys/syscall.h])
-AC_CHECK_HEADERS([sys/eventfd.h])
-AC_CHECK_HEADERS([execinfo.h])
+AC_CHECK_HEADERS_ONCE([sys/ioctl.h])
+AC_CHECK_HEADERS_ONCE([byteswap.h])
+AC_CHECK_HEADERS_ONCE([sys/syscall.h])
+AC_CHECK_HEADERS_ONCE([sys/eventfd.h])
+AC_CHECK_HEADERS_ONCE([execinfo.h])
 
 #### Typdefs, structures, etc. ####
 
@@ -391,19 +395,16 @@ AC_SEARCH_LIBS([connect], [socket])
 # build, disabling its ability to make dlls.
 AC_CHECK_FUNCS([getopt_long], [], [AC_CHECK_LIB([iberty], [getopt_long])])
 
-AC_CHECK_LIB(gdbm, gdbm_open)
-AC_CHECK_HEADERS(gdbm.h, [], [AC_MSG_ERROR([gdbm.h not found])])
-
 #### Check for functions ####
 
 # ISO
-AC_CHECK_FUNCS([lrintf strtof])
+AC_CHECK_FUNCS_ONCE([lrintf strtof])
 
 # POSIX
 AC_FUNC_FORK
 AC_FUNC_GETGROUPS
 AC_FUNC_SELECT_ARGTYPES
-AC_CHECK_FUNCS([chmod chown clock_gettime getaddrinfo getgrgid_r getgrnam_r \
+AC_CHECK_FUNCS_ONCE([chmod chown clock_gettime getaddrinfo getgrgid_r getgrnam_r \
     getpwnam_r getpwuid_r gettimeofday getuid inet_ntop inet_pton mlock nanosleep \
     pipe posix_fadvise posix_madvise posix_memalign setpgid setsid shm_open \
     sigaction sleep sysconf pthread_setaffinity_np])
@@ -412,20 +413,20 @@ AC_CHECK_FUNCS([mkfifo], [HAVE_MKFIFO=1], [HAVE_MKFIFO=0])
 AM_CONDITIONAL(HAVE_MKFIFO, test "x$HAVE_MKFIFO" = "x1")
 
 # X/OPEN
-AC_CHECK_FUNCS([readlink])
+AC_CHECK_FUNCS_ONCE([readlink])
 
 # SUSv2
-AC_CHECK_FUNCS([ctime_r usleep])
+AC_CHECK_FUNCS_ONCE([ctime_r usleep])
 
 # SUSv3
-AC_CHECK_FUNCS([strerror_r])
+AC_CHECK_FUNCS_ONCE([strerror_r])
 
 # BSD
-AC_CHECK_FUNCS([lstat])
+AC_CHECK_FUNCS_ONCE([lstat])
 
 # Non-standard
 
-AC_CHECK_FUNCS([setresuid setresgid setreuid setregid seteuid setegid ppoll strsignal sig2str strtof_l])
+AC_CHECK_FUNCS_ONCE([setresuid setresgid setreuid setregid seteuid setegid ppoll strsignal sig2str strtof_l])
 
 AC_FUNC_ALLOCA
 
@@ -458,7 +459,7 @@ AC_DEFINE_UNQUOTED(PA_CFLAGS,"$CFLAGS", [The CFLAGS used during compilation])
 AC_SYS_LARGEFILE
 
 # Check for open64 to know if the current system does have open64() and similar functions
-AC_CHECK_FUNCS([open64])
+AC_CHECK_FUNCS_ONCE([open64])
 
 #### [lib]iconv ####
 
@@ -537,11 +538,11 @@ fi
 
 #### Valgrind (optional) ####
 
-AC_CHECK_HEADERS([valgrind/memcheck.h])
+AC_CHECK_HEADERS_ONCE([valgrind/memcheck.h])
 
 #### Sound file ####
 
-PKG_CHECK_MODULES(LIBSNDFILE, [ sndfile >= 1.0.10 ])
+PKG_CHECK_MODULES(LIBSNDFILE, [ sndfile >= 1.0.20 ])
 AC_SUBST(LIBSNDFILE_CFLAGS)
 AC_SUBST(LIBSNDFILE_LIBS)
 
@@ -600,6 +601,65 @@ AC_SUBST(LIBSAMPLERATE_CFLAGS)
 AC_SUBST(LIBSAMPLERATE_LIBS)
 AC_SUBST(HAVE_LIBSAMPLERATE)
 AM_CONDITIONAL([HAVE_LIBSAMPLERATE], [test "x$HAVE_LIBSAMPLERATE" = x1])
+
+#### Database support ####
+
+HAVE_TDB=0
+HAVE_GDBM=0
+
+AC_ARG_WITH(
+        [database],
+        AS_HELP_STRING([--with-database=auto|tdb|gdbm],[Choose database backend.]),[],[with_database=auto])
+
+if test "x${with_database}" = "xauto" -o "x${with_database}" = "xtdb" ; then
+    PKG_CHECK_MODULES(TDB, [ tdb ],
+        [
+            HAVE_TDB=1
+            with_database=tdb
+        ], [
+            if test "x${with_database}" = "xtdb" ; then
+                AC_MSG_ERROR([*** tdb not found])
+            fi
+        ])
+fi
+
+if test "x${with_database}" = "xauto" -o "x${with_database}" = "xgdbm" ; then
+   have_gdbm=yes
+
+   AC_CHECK_LIB(gdbm, gdbm_open, [], [have_gdbm=no])
+   AC_CHECK_HEADERS(gdbm.h, [], [have_gdbm=no])
+
+   if test "x${have_gdbm}" = "xyes" ; then
+       HAVE_GDBM=1
+       GDBM_CFLAGS=
+       GDBM_LIBS=-lgdbm
+       with_database=gdbm
+   elif test "x${with_database}" = "xgdbm"; then
+       AC_MSG_ERROR([*** gdbm not found])
+   fi
+fi
+
+if test "x${HAVE_TDB}" != x1 -a "x${HAVE_GDBM}" != x1; then
+   AC_MSG_ERROR([*** missing database backend])
+fi
+
+if test "x${HAVE_TDB}" = x1 ; then
+   AC_DEFINE([HAVE_TDB], 1, [Have tdb?])
+fi
+
+if test "x${HAVE_GDBM}" = x1 ; then
+   AC_DEFINE([HAVE_GDBM], 1, [Have gdbm?])
+fi
+
+AC_SUBST(TDB_CFLAGS)
+AC_SUBST(TDB_LIBS)
+AC_SUBST(HAVE_TDB)
+AM_CONDITIONAL([HAVE_TDB], [test "x$HAVE_TDB" = x1])
+
+AC_SUBST(GDBM_CFLAGS)
+AC_SUBST(GDBM_LIBS)
+AC_SUBST(HAVE_GDBM)
+AM_CONDITIONAL([HAVE_GDBM], [test "x$HAVE_GDBM" = x1])
 
 #### OSS support (optional) ####
 
@@ -1000,7 +1060,7 @@ AC_ARG_ENABLE([udev],
         ],
         [udev=auto])
 if test "x${udev}" != xno -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x1" \) ; then
-    PKG_CHECK_MODULES(UDEV, [ libudev >= 137 ],
+    PKG_CHECK_MODULES(UDEV, [ libudev >= 143 ],
         [
             HAVE_UDEV=1
             AC_DEFINE([HAVE_UDEV], 1, [Have UDEV.])
@@ -1095,44 +1155,6 @@ AC_SUBST(DBUS_LIBS)
 AC_SUBST(HAVE_DBUS)
 AM_CONDITIONAL([HAVE_DBUS], [test "x$HAVE_DBUS" = x1])
 
-#### PolicyKit support (optional) ####
-
-AC_ARG_ENABLE([polkit],
-    AS_HELP_STRING([--disable-polkit],[Disable optional PolicyKit support]),
-        [
-            case "${enableval}" in
-                yes) polkit=yes ;;
-                no) polkit=no ;;
-                *) AC_MSG_ERROR(bad value ${enableval} for --disable-polkit) ;;
-            esac
-        ],
-        [polkit=auto])
-
-if test "x${polkit}" != xno ; then
-
-    PKG_CHECK_MODULES(POLKIT, [ polkit-dbus >= 0.7 ],
-        [
-            HAVE_POLKIT=1
-            AC_DEFINE([HAVE_POLKIT], 1, [Have PolicyKit])
-            policydir=`pkg-config polkit-dbus --variable prefix`/share/PolicyKit/policy/
-            AC_SUBST(policydir)
-        ],
-        [
-            HAVE_POLKIT=0
-            if test "x$polkit" = xyes ; then
-                AC_MSG_ERROR([*** PolicyKit support not found])
-            fi
-        ])
-else
-    HAVE_POLKIT=0
-fi
-
-AC_SUBST(POLKIT_CFLAGS)
-AC_SUBST(POLKIT_LIBS)
-AC_SUBST(HAVE_POLKIT)
-AM_CONDITIONAL([HAVE_POLKIT], [test "x$HAVE_POLKIT" = x1])
-
-
 ### IPv6 connection support (optional) ###
 
 AC_ARG_ENABLE([ipv6],
@@ -1219,15 +1241,6 @@ fi
 AC_SUBST(PA_SYSTEM_GROUP)
 AC_DEFINE_UNQUOTED(PA_SYSTEM_GROUP,"$PA_SYSTEM_GROUP", [Group for the PulseAudio system daemon])
 
-AC_ARG_WITH(realtime_group,AS_HELP_STRING([--with-realtime-group=<group>],[Group for users that are allowed to start the PulseAudio daemon with realtime scheduling (realtime)]))
-if test -z "$with_realtime_group" ; then
-    PA_REALTIME_GROUP=pulse-rt
-else
-    PA_REALTIME_GROUP=$with_realtime_group
-fi
-AC_SUBST(PA_REALTIME_GROUP)
-AC_DEFINE_UNQUOTED(PA_REALTIME_GROUP,"$PA_REALTIME_GROUP", [Realtime group])
-
 AC_ARG_WITH(access_group,AS_HELP_STRING([--with-access-group=<group>],[Group which is allowed access to a system-wide PulseAudio daemon (pulse-access)]))
 if test -z "$with_access_group" ; then
     PA_ACCESS_GROUP=pulse-access
@@ -1293,8 +1306,8 @@ fi
 
 AC_ARG_WITH(
         [module-dir],
-        AS_HELP_STRING([--with-module-dir],[Directory where to install the modules to (defaults to ${libdir}/pulse-${PA_MAJORMINORMICRO}/modules/]),
-        [modlibexecdir=$withval], [modlibexecdir="${libdir}/pulse-${PA_MAJORMINORMICRO}/modules/"])
+        AS_HELP_STRING([--with-module-dir],[Directory where to install the modules to (defaults to ${libdir}/pulse-${PA_MAJORMINORMICRO}/modules]),
+        [modlibexecdir=$withval], [modlibexecdir="${libdir}/pulse-${PA_MAJORMINORMICRO}/modules"])
 
 AC_SUBST(modlibexecdir)
 
@@ -1306,8 +1319,6 @@ AM_CONDITIONAL([FORCE_PREOPEN], [test "x$FORCE_PREOPEN" = "xyes"])
 
 AC_CONFIG_FILES([
 Makefile
-shave
-shave-libtool
 src/Makefile
 man/Makefile
 libpulse.pc
@@ -1320,9 +1331,7 @@ src/pulse/version.h
 po/Makefile.in
 ])
 
-SHAVE_INIT
 AC_OUTPUT
-SHAVE_OUTPUT
 
 # ==========================================================================
 ENABLE_X11=no
@@ -1405,9 +1414,14 @@ if test "x${HAVE_BLUEZ}" = "x1" ; then
    ENABLE_BLUEZ=yes
 fi
 
-ENABLE_POLKIT=no
-if test "x${HAVE_POLKIT}" = "x1" ; then
-   ENABLE_POLKIT=yes
+ENABLE_GDBM=no
+if test "x${HAVE_GDBM}" = "x1" ; then
+   ENABLE_GDBM=yes
+fi
+
+ENABLE_TDB=no
+if test "x${HAVE_TDB}" = "x1" ; then
+   ENABLE_TDB=yes
 fi
 
 ENABLE_OPENSSL=no
@@ -1453,13 +1467,13 @@ echo "
     Enable BlueZ:                  ${ENABLE_BLUEZ}
     Enable TCP Wrappers:           ${ENABLE_TCPWRAP}
     Enable libsamplerate:          ${ENABLE_LIBSAMPLERATE}
-    Enable PolicyKit:              ${ENABLE_POLKIT}
     Enable IPv6:                   ${ENABLE_IPV6}
     Enable OpenSSL (for Airtunes): ${ENABLE_OPENSSL}
+    Enable tdb:                    ${ENABLE_TDB}
+    Enable gdbm:                   ${ENABLE_GDBM}
 
     System User:                   ${PA_SYSTEM_USER}
     System Group:                  ${PA_SYSTEM_GROUP}
-    Realtime Group:                ${PA_REALTIME_GROUP}
     Access Group:                  ${PA_ACCESS_GROUP}
     Enable per-user EsounD socket: ${ENABLE_PER_USER_ESOUND_SOCKET}
     Force preopen:                 ${FORCE_PREOPEN}

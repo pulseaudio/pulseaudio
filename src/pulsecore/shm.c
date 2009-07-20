@@ -39,6 +39,11 @@
 #include <sys/mman.h>
 #endif
 
+/* This is deprecated on glibc but is still used by FreeBSD */
+#if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
+# define MAP_ANONYMOUS MAP_ANON
+#endif
+
 #include <pulse/xmalloc.h>
 #include <pulse/gccmacro.h>
 
@@ -69,7 +74,10 @@
 #define SHM_MARKER ((int) 0xbeefcafe)
 
 /* We now put this SHM marker at the end of each segment. It's
- * optional, to not require a reboot when upgrading, though */
+ * optional, to not require a reboot when upgrading, though. Note that
+ * on multiarch systems 32bit and 64bit processes might access this
+ * region simultaneously. The header fields need to be independant
+ * from the process' word with */
 struct shm_marker {
     pa_atomic_t marker; /* 0xbeefcafe */
     pa_atomic_t pid;
@@ -78,6 +86,8 @@ struct shm_marker {
     uint64_t _reserved3;
     uint64_t _reserved4;
 } PA_GCC_PACKED;
+
+#define SHM_MARKER_SIZE PA_ALIGN(sizeof(struct shm_marker))
 
 static char *segment_name(char *fn, size_t l, unsigned id) {
     pa_snprintf(fn, l, "/pulse-shm-%u", id);
@@ -97,8 +107,8 @@ int pa_shm_create_rw(pa_shm *m, size_t size, pa_bool_t shared, mode_t mode) {
      * ones */
     pa_shm_cleanup();
 
-    /* Round up to make it aligned */
-    size = PA_ALIGN(size);
+    /* Round up to make it page aligned */
+    size = PA_PAGE_ALIGN(size);
 
     if (!shared) {
         m->id = 0;
@@ -136,25 +146,25 @@ int pa_shm_create_rw(pa_shm *m, size_t size, pa_bool_t shared, mode_t mode) {
             goto fail;
         }
 
-        m->size = size + PA_ALIGN(sizeof(struct shm_marker));
+        m->size = size + SHM_MARKER_SIZE;
 
         if (ftruncate(fd, (off_t) m->size) < 0) {
             pa_log("ftruncate() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
 
-        if ((m->ptr = mmap(NULL, m->size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, (off_t) 0)) == MAP_FAILED) {
+        if ((m->ptr = mmap(NULL, PA_PAGE_ALIGN(m->size), PROT_READ|PROT_WRITE, MAP_SHARED, fd, (off_t) 0)) == MAP_FAILED) {
             pa_log("mmap() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
 
         /* We store our PID at the end of the shm block, so that we
          * can check for dead shm segments later */
-        marker = (struct shm_marker*) ((uint8_t*) m->ptr + m->size - PA_ALIGN(sizeof(struct shm_marker)));
+        marker = (struct shm_marker*) ((uint8_t*) m->ptr + m->size - SHM_MARKER_SIZE);
         pa_atomic_store(&marker->pid, (int) getpid());
         pa_atomic_store(&marker->marker, SHM_MARKER);
 
-        pa_assert_se(close(fd) == 0);
+        pa_assert_se(pa_close(fd) == 0);
         m->do_unlink = TRUE;
 #else
         return -1;
@@ -197,7 +207,7 @@ void pa_shm_free(pa_shm *m) {
 #endif
     } else {
 #ifdef HAVE_SHM_OPEN
-        if (munmap(m->ptr, m->size) < 0)
+        if (munmap(m->ptr, PA_PAGE_ALIGN(m->size)) < 0)
             pa_log("munmap() failed: %s", pa_cstrerror(errno));
 
         if (m->do_unlink) {
@@ -214,12 +224,12 @@ void pa_shm_free(pa_shm *m) {
 #endif
     }
 
-    memset(m, 0, sizeof(*m));
+    pa_zero(*m);
 }
 
 void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
     void *ptr;
-    size_t o, ps;
+    size_t o;
 
     pa_assert(m);
     pa_assert(m->ptr);
@@ -233,15 +243,18 @@ void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
     /* You're welcome to implement this as NOOP on systems that don't
      * support it */
 
-    /* Align this to multiples of the page size */
+    /* Align the pointer up to multiples of the page size */
     ptr = (uint8_t*) m->ptr + offset;
     o = (size_t) ((uint8_t*) ptr - (uint8_t*) PA_PAGE_ALIGN_PTR(ptr));
 
     if (o > 0) {
-        ps = PA_PAGE_SIZE;
-        ptr = (uint8_t*) ptr + (ps - o);
-        size -= ps - o;
+        size_t delta = PA_PAGE_SIZE - o;
+        ptr = (uint8_t*) ptr + delta;
+        size -= delta;
     }
+
+    /* Align the size down to multiples of page size */
+    size = (size / PA_PAGE_SIZE) * PA_PAGE_SIZE;
 
 #ifdef MADV_REMOVE
     if (madvise(ptr, size, MADV_REMOVE) >= 0)
@@ -254,9 +267,9 @@ void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
 #endif
 
 #ifdef MADV_DONTNEED
-    pa_assert_se(madvise(ptr, size, MADV_DONTNEED) == 0);
+    madvise(ptr, size, MADV_DONTNEED);
 #elif defined(POSIX_MADV_DONTNEED)
-    pa_assert_se(posix_madvise(ptr, size, POSIX_MADV_DONTNEED) == 0);
+    posix_madvise(ptr, size, POSIX_MADV_DONTNEED);
 #endif
 }
 
@@ -283,7 +296,7 @@ int pa_shm_attach_ro(pa_shm *m, unsigned id) {
     }
 
     if (st.st_size <= 0 ||
-        st.st_size > (off_t) (MAX_SHM_SIZE+PA_ALIGN(sizeof(struct shm_marker))) ||
+        st.st_size > (off_t) (MAX_SHM_SIZE+SHM_MARKER_SIZE) ||
         PA_ALIGN((size_t) st.st_size) != (size_t) st.st_size) {
         pa_log("Invalid shared memory segment size");
         goto fail;
@@ -291,13 +304,13 @@ int pa_shm_attach_ro(pa_shm *m, unsigned id) {
 
     m->size = (size_t) st.st_size;
 
-    if ((m->ptr = mmap(NULL, m->size, PROT_READ, MAP_SHARED, fd, (off_t) 0)) == MAP_FAILED) {
+    if ((m->ptr = mmap(NULL, PA_PAGE_ALIGN(m->size), PROT_READ, MAP_SHARED, fd, (off_t) 0)) == MAP_FAILED) {
         pa_log("mmap() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
-    m->do_unlink = 0;
-    m->shared = 1;
+    m->do_unlink = FALSE;
+    m->shared = TRUE;
 
     pa_assert_se(pa_close(fd) == 0);
 
@@ -346,12 +359,12 @@ int pa_shm_cleanup(void) {
         if (pa_shm_attach_ro(&seg, id) < 0)
             continue;
 
-        if (seg.size < PA_ALIGN(sizeof(struct shm_marker))) {
+        if (seg.size < SHM_MARKER_SIZE) {
             pa_shm_free(&seg);
             continue;
         }
 
-        m = (struct shm_marker*) ((uint8_t*) seg.ptr + seg.size - PA_ALIGN(sizeof(struct shm_marker)));
+        m = (struct shm_marker*) ((uint8_t*) seg.ptr + seg.size - SHM_MARKER_SIZE);
 
         if (pa_atomic_load(&m->marker) != SHM_MARKER) {
             pa_shm_free(&seg);

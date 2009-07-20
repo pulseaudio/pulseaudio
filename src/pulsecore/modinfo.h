@@ -30,6 +30,7 @@ typedef struct pa_modinfo {
     char *description;
     char *usage;
     char *version;
+    char *deprecated;
     pa_bool_t load_once;
 } pa_modinfo;
 

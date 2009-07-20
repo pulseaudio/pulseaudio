@@ -104,4 +104,10 @@
         }                                                               \
     } while (0)
 
+#define PA_LLIST_FOREACH(i,head)                                        \
+    for (i = (head); i; i = i->next)
+
+#define PA_LLIST_FOREACH_FOR_DELETE(i,n,head)                           \
+    for (i = (head), n = i ? i->next : NULL; i; i = n, n = i ? i ->next : NULL)
+
 #endif

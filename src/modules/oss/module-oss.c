@@ -85,17 +85,22 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
+        "sink_properties=<properties for the sink> "
         "source_name=<name for the source> "
+        "source_properties=<properties for the source> "
         "device=<OSS device> "
         "record=<enable source?> "
         "playback=<enable sink?> "
         "format=<sample format> "
-        "channels=<number of channels> "
         "rate=<sample rate> "
+        "channels=<number of channels> "
+        "channel_map=<channel map> "
         "fragments=<number of fragments> "
         "fragment_size=<fragment size> "
-        "channel_map=<channel map> "
         "mmap=<enable memory mapping?>");
+#ifdef __linux__
+PA_MODULE_DEPRECATED("Please use module-alsa-card instead of module-oss!");
+#endif
 
 #define DEFAULT_DEVICE "/dev/dsp"
 
@@ -140,7 +145,9 @@ struct userdata {
 
 static const char* const valid_modargs[] = {
     "sink_name",
+    "sink_properties",
     "source_name",
+    "source_properties",
     "device",
     "record",
     "playback",
@@ -477,6 +484,7 @@ static void build_pollfd(struct userdata *u) {
     pollfd->revents = 0;
 }
 
+/* Called from IO context */
 static int suspend(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->fd >= 0);
@@ -526,6 +534,7 @@ static int suspend(struct userdata *u) {
     return 0;
 }
 
+/* Called from IO context */
 static int unsuspend(struct userdata *u) {
     int m;
     pa_sample_spec ss, *ss_original;
@@ -616,10 +625,10 @@ static int unsuspend(struct userdata *u) {
 
     build_pollfd(u);
 
-    if (u->sink)
-        pa_sink_get_volume(u->sink, TRUE);
-    if (u->source)
-        pa_source_get_volume(u->source, TRUE);
+    if (u->sink && u->sink->get_volume)
+        u->sink->get_volume(u->sink);
+    if (u->source && u->source->get_volume)
+        u->source->get_volume(u->source);
 
     pa_log_info("Resumed successfully...");
 
@@ -631,6 +640,7 @@ fail:
     return -1;
 }
 
+/* Called from IO context */
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
     int ret;
@@ -879,7 +889,6 @@ static void thread_func(void *userdata) {
         pa_make_realtime(u->core->realtime_priority);
 
     pa_thread_mq_install(&u->thread_mq);
-    pa_rtpoll_install(u->rtpoll);
 
     for (;;) {
         int ret;
@@ -1311,6 +1320,12 @@ int pa__init(pa_module*m) {
         pa_proplist_setf(source_new_data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (u->in_hwbuf_size));
         pa_proplist_setf(source_new_data.proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%lu", (unsigned long) (u->in_fragment_size));
 
+        if (pa_modargs_get_proplist(ma, "source_properties", source_new_data.proplist, PA_UPDATE_REPLACE) < 0) {
+            pa_log("Invalid properties");
+            pa_source_new_data_done(&source_new_data);
+            goto fail;
+        }
+
         u->source = pa_source_new(m->core, &source_new_data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
         pa_source_new_data_done(&source_new_data);
         pa_xfree(name_buf);
@@ -1325,6 +1340,7 @@ int pa__init(pa_module*m) {
 
         pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
         pa_source_set_rtpoll(u->source, u->rtpoll);
+        pa_source_set_fixed_latency(u->source, pa_bytes_to_usec(u->in_hwbuf_size, &u->source->sample_spec));
         u->source->refresh_volume = TRUE;
 
         if (use_mmap)
@@ -1372,6 +1388,12 @@ int pa__init(pa_module*m) {
         pa_proplist_setf(sink_new_data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (u->out_hwbuf_size));
         pa_proplist_setf(sink_new_data.proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%lu", (unsigned long) (u->out_fragment_size));
 
+        if (pa_modargs_get_proplist(ma, "sink_properties", sink_new_data.proplist, PA_UPDATE_REPLACE) < 0) {
+            pa_log("Invalid properties");
+            pa_sink_new_data_done(&sink_new_data);
+            goto fail;
+        }
+
         u->sink = pa_sink_new(m->core, &sink_new_data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
         pa_sink_new_data_done(&sink_new_data);
         pa_xfree(name_buf);
@@ -1386,9 +1408,10 @@ int pa__init(pa_module*m) {
 
         pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
         pa_sink_set_rtpoll(u->sink, u->rtpoll);
+        pa_sink_set_fixed_latency(u->sink, pa_bytes_to_usec(u->out_hwbuf_size, &u->sink->sample_spec));
         u->sink->refresh_volume = TRUE;
 
-        u->sink->thread_info.max_request = u->out_hwbuf_size;
+        pa_sink_set_max_request(u->sink, u->out_hwbuf_size);
 
         if (use_mmap)
             u->out_mmap_memblocks = pa_xnew0(pa_memblock*, u->out_nfrags);

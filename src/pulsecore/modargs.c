@@ -84,8 +84,11 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
         KEY,
         VALUE_START,
         VALUE_SIMPLE,
+        VALUE_SIMPLE_ESCAPED,
         VALUE_DOUBLE_QUOTES,
-        VALUE_TICKS
+        VALUE_DOUBLE_QUOTES_ESCAPED,
+        VALUE_TICKS,
+        VALUE_TICKS_ESCAPED
     } state;
 
     const char *p, *key = NULL, *value = NULL;
@@ -131,9 +134,16 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
                     value = p+1;
                     value_len = 0;
                 } else if (isspace(*p)) {
-                    if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrdup(""), valid_keys) < 0)
+                    if (add_key_value(map,
+                                      pa_xstrndup(key, key_len),
+                                      pa_xstrdup(""),
+                                      valid_keys) < 0)
                         goto fail;
                     state = WHITESPACE;
+                } else if (*p == '\\') {
+                    state = VALUE_SIMPLE_ESCAPED;
+                    value = p;
+                    value_len = 1;
                 } else {
                     state = VALUE_SIMPLE;
                     value = p;
@@ -143,29 +153,62 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
 
             case VALUE_SIMPLE:
                 if (isspace(*p)) {
-                    if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrndup(value, value_len), valid_keys) < 0)
+                    if (add_key_value(map,
+                                      pa_xstrndup(key, key_len),
+                                      pa_unescape(pa_xstrndup(value, value_len)),
+                                      valid_keys) < 0)
                         goto fail;
                     state = WHITESPACE;
+                } else if (*p == '\\') {
+                    state = VALUE_SIMPLE_ESCAPED;
+                    value_len++;
                 } else
                     value_len++;
+                break;
+
+            case VALUE_SIMPLE_ESCAPED:
+                state = VALUE_SIMPLE;
+                value_len++;
                 break;
 
             case VALUE_DOUBLE_QUOTES:
                 if (*p == '"') {
-                    if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrndup(value, value_len), valid_keys) < 0)
+                    if (add_key_value(map,
+                                      pa_xstrndup(key, key_len),
+                                      pa_unescape(pa_xstrndup(value, value_len)),
+                                      valid_keys) < 0)
                         goto fail;
                     state = WHITESPACE;
+                } else if (*p == '\\') {
+                    state = VALUE_DOUBLE_QUOTES_ESCAPED;
+                    value_len++;
                 } else
                     value_len++;
                 break;
 
+            case VALUE_DOUBLE_QUOTES_ESCAPED:
+                state = VALUE_DOUBLE_QUOTES;
+                value_len++;
+                break;
+
             case VALUE_TICKS:
                 if (*p == '\'') {
-                    if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrndup(value, value_len), valid_keys) < 0)
+                    if (add_key_value(map,
+                                      pa_xstrndup(key, key_len),
+                                      pa_unescape(pa_xstrndup(value, value_len)),
+                                      valid_keys) < 0)
                         goto fail;
                     state = WHITESPACE;
+                } else if (*p == '\\') {
+                    state = VALUE_TICKS_ESCAPED;
+                    value_len++;
                 } else
                     value_len++;
+                break;
+
+            case VALUE_TICKS_ESCAPED:
+                state = VALUE_TICKS;
+                value_len++;
                 break;
         }
     }
@@ -349,6 +392,26 @@ int pa_modargs_get_sample_spec_and_channel_map(
 
     *rmap = map;
     *rss = ss;
+
+    return 0;
+}
+
+int pa_modargs_get_proplist(pa_modargs *ma, const char *name, pa_proplist *p, pa_update_mode_t m) {
+    const char *v;
+    pa_proplist *n;
+
+    pa_assert(ma);
+    pa_assert(name);
+    pa_assert(p);
+
+    if (!(v = pa_modargs_get_value(ma, name, NULL)))
+        return 0;
+
+    if (!(n = pa_proplist_from_string(v)))
+        return -1;
+
+    pa_proplist_update(p, m, n);
+    pa_proplist_free(n);
 
     return 0;
 }

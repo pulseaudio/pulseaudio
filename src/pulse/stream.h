@@ -418,13 +418,71 @@ int pa_stream_connect_record(
 /** Disconnect a stream from a source/sink */
 int pa_stream_disconnect(pa_stream *s);
 
-/** Write some data to the server (for playback sinks), if free_cb is
- * non-NULL this routine is called when all data has been written out
- * and an internal reference to the specified data is kept, the data
- * is not copied. If NULL, the data is copied into an internal
- * buffer. The client my freely seek around in the output buffer. For
+/** Prepare writing data to the server (for playback streams). This
+ * function may be used to optimize the number of memory copies when
+ * doing playback ("zero-copy"). It is recommended to call this
+ * function before each call to pa_stream_write(). Pass in the address
+ * to a pointer and an address of the number of bytes you want to
+ * write. On return the two values will contain a pointer where you
+ * can place the data to write and the maximum number of bytes you can
+ * write. On return *nbytes can be larger or have the same value as
+ * you passed in. You need to be able to handle both cases. Accessing
+ * memory beyond the returned *nbytes value is invalid. Acessing the
+ * memory returned after the following pa_stream_write() or
+ * pa_stream_cancel_write() is invalid. On invocation only *nbytes
+ * needs to be initialized, on return both *data and *nbytes will be
+ * valid. If you place (size_t) -1 in *nbytes on invocation the memory
+ * size will be chosen automatically (which is recommended to
+ * do). After placing your data in the memory area returned call
+ * pa_stream_write() with data set to an address within this memory
+ * area and an nbytes value that is smaller or equal to what was
+ * returned by this function to actually execute the write. An
+ * invocation of pa_stream_write() should follow "quickly" on
+ * pa_stream_begin_write(). It is not recommended letting an unbounded
+ * amount of time pass after calling pa_stream_begin_write() and
+ * before calling pa_stream_write(). If you want to cancel a
+ * previously called pa_stream_begin_write() without calling
+ * pa_stream_write() use pa_stream_cancel_write() instead. Calling
+ * pa_stream_begin_write() twice without calling pa_stream_write() or
+ * pa_stream_cancel_write() in between will return exactly the same
+ * pointer/nbytes values.\since 0.9.16 */
+int pa_stream_begin_write(
+        pa_stream *p,
+        void **data,
+        size_t *nbytes);
+
+/** Reverses the effect of pa_stream_begin_write() dropping all data
+ * that has already been placed in the memory area returned by
+ * pa_stream_begin_write(). Only valid to call if
+ * pa_stream_begin_write() was called before and neither
+ * pa_stream_cancel_write() nor pa_stream_write() have been called
+ * yet. Accessing the memory previously returned by
+ * pa_stream_begin_write() after this call is invalid. Any further
+ * explicit freeing of the memory area is not necessary. \since
+ * 0.9.16 */
+int pa_stream_cancel_write(
+        pa_stream *p);
+
+/** Write some data to the server (for playback streams), if free_cb
+ * is non-NULL this routine is called when all data has been written
+ * out and an internal reference to the specified data is kept, the
+ * data is not copied. If NULL, the data is copied into an internal
+ * buffer. The client may freely seek around in the output buffer. For
  * most applications passing 0 and PA_SEEK_RELATIVE as arguments for
- * offset and seek should be useful.*/
+ * offset and seek should be useful. Afte ther write call succeeded
+ * the write index will be a the position after where this chunk of
+ * data has been written to.
+ *
+ * As an optimization for avoiding needless memory copies you may call
+ * pa_stream_begin_write() before this call and then place your audio
+ * data directly in the memory area returned by that call. Then, pass
+ * a pointer to that memory area to pa_stream_write(). After the
+ * invocation of pa_stream_write() the memory area may no longer be
+ * accessed. Any further explicit freeing of the memory area is not
+ * necessary. It is OK to write the memory area returned by
+ * pa_stream_begin_write() only partially with this call, skipping
+ * bytes both at the end and at the beginning of the reserved memory
+ * area.*/
 int pa_stream_write(
         pa_stream *p             /**< The stream to use */,
         const void *data         /**< The data to write */,
@@ -433,7 +491,7 @@ int pa_stream_write(
         int64_t offset,          /**< Offset for seeking, must be 0 for upload streams */
         pa_seek_mode_t seek      /**< Seek mode, must be PA_SEEK_RELATIVE for upload streams */);
 
-/** Read the next fragment from the buffer (for recording).
+/** Read the next fragment from the buffer (for recording streams).
  * data will point to the actual data and length will contain the size
  * of the data in bytes (which can be less than a complete framgnet).
  * Use pa_stream_drop() to actually remove the data from the
@@ -512,7 +570,23 @@ void pa_stream_set_suspended_callback(pa_stream *p, pa_stream_notify_cb_t cb, vo
  * control event is received.\since 0.9.15 */
 void pa_stream_set_event_callback(pa_stream *p, pa_stream_event_cb_t cb, void *userdata);
 
-/** Pause (or resume) playback of this stream temporarily. Available on both playback and recording streams. */
+/** Set the callback function that is called whenver the buffer
+ * attributes on the server side change. Please note that the buffer
+ * attributes can change when moving a stream to a different
+ * sink/source too, hence if you use this callback you should use
+ * pa_stream_set_moved_callback() as well. \since 0.9.15 */
+void pa_stream_set_buffer_attr_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
+
+/** Pause (or resume) playback of this stream temporarily. Available
+ * on both playback and recording streams. If b is 1 the stream is
+ * paused. If b is 0 the stream is resumed. The pause/resume operation
+ * is executed as quickly as possible. If a cork is very quickly
+ * followed by an uncork or the other way round this might not
+ * actually have any effect on the stream that is output. You can use
+ * pa_stream_is_corked() to find out whether the stream is currently
+ * paused or not. Normally a stream will be created in uncorked
+ * state. If you pass PA_STREAM_START_CORKED as flag during connection
+ * of the stream it will be created in corked state. */
 pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, void *userdata);
 
 /** Flush the playback buffer of this stream. Most of the time you're
@@ -530,42 +604,68 @@ pa_operation* pa_stream_prebuf(pa_stream *s, pa_stream_success_cb_t cb, void *us
  * temporarily. Available for playback streams only. */
 pa_operation* pa_stream_trigger(pa_stream *s, pa_stream_success_cb_t cb, void *userdata);
 
-/** Rename the stream.*/
+/** Rename the stream. */
 pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_success_cb_t cb, void *userdata);
 
 /** Return the current playback/recording time. This is based on the
  * data in the timing info structure returned by
- * pa_stream_get_timing_info(). This function will usually only return
- * new data if a timing info update has been recieved. Only if timing
- * interpolation has been requested (PA_STREAM_INTERPOLATE_TIMING)
- * the data from the last timing update is used for an estimation of
- * the current playback/recording time based on the local time that
- * passed since the timing info structure has been acquired. The time
- * value returned by this function is guaranteed to increase
- * monotonically. (that means: the returned value is always greater or
- * equal to the value returned on the last call) This behaviour can
- * be disabled by using PA_STREAM_NOT_MONOTONIC. This may be
+ * pa_stream_get_timing_info().
+ *
+ * This function will usually only return new data if a timing info
+ * update has been recieved. Only if timing interpolation has been
+ * requested (PA_STREAM_INTERPOLATE_TIMING) the data from the last
+ * timing update is used for an estimation of the current
+ * playback/recording time based on the local time that passed since
+ * the timing info structure has been acquired.
+ *
+ * The time value returned by this function is guaranteed to increase
+ * monotonically.  (that means: the returned value is always greater
+ * or equal to the value returned on the last call). This behaviour
+ * can be disabled by using PA_STREAM_NOT_MONOTONIC. This may be
  * desirable to deal better with bad estimations of transport
  * latencies, but may have strange effects if the application is not
- * able to deal with time going 'backwards'. */
+ * able to deal with time going 'backwards'.
+ *
+ * The time interpolator activated by PA_STREAM_INTERPOLATE_TIMING
+ * favours 'smooth' time graphs over accurate ones to improve the
+ * smoothness of UI operations that are tied to the audio clock. If
+ * accuracy is more important to you you might need to estimate your
+ * timing based on the data from pa_stream_get_timing_info() yourself
+ * or not work with interpolated timing at all and instead always
+ * query on the server side for the most up to date timing with
+ * pa_stream_update_timing_info().
+ *
+ * If no timing information has been
+ * recieved yet this call will return PA_ERR_NODATA. For more details
+ * see pa_stream_get_timing_info(). */
 int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec);
 
 /** Return the total stream latency. This function is based on
- * pa_stream_get_time(). In case the stream is a monitoring stream the
- * result can be negative, i.e. the captured samples are not yet
- * played. In this case *negative is set to 1. */
+ * pa_stream_get_time().
+ *
+ * In case the stream is a monitoring stream the result can be
+ * negative, i.e. the captured samples are not yet played. In this
+ * case *negative is set to 1.
+ *
+ * If no timing information has been recieved yet this call will
+ * return PA_ERR_NODATA. For more details see
+ * pa_stream_get_timing_info() and pa_stream_get_time(). */
 int pa_stream_get_latency(pa_stream *s, pa_usec_t *r_usec, int *negative);
 
 /** Return the latest raw timing data structure. The returned pointer
  * points to an internal read-only instance of the timing
  * structure. The user should make a copy of this structure if he
  * wants to modify it. An in-place update to this data structure may
- * be requested using pa_stream_update_timing_info(). If no
- * pa_stream_update_timing_info() call was issued before, this
- * function will fail with PA_ERR_NODATA. Please note that the
- * write_index member field (and only this field) is updated on each
- * pa_stream_write() call, not just when a timing update has been
- * recieved. */
+ * be requested using pa_stream_update_timing_info().
+ *
+ * If no timing information has been received before (i.e. by
+ * requesting pa_stream_update_timing_info() or by using
+ * PA_STREAM_AUTO_TIMING_UPDATE), this function will fail with
+ * PA_ERR_NODATA.
+ *
+ * Please note that the write_index member field (and only this field)
+ * is updated on each pa_stream_write() call, not just when a timing
+ * update has been recieved. */
 const pa_timing_info* pa_stream_get_timing_info(pa_stream *s);
 
 /** Return a pointer to the stream's sample specification. */

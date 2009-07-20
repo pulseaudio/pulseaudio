@@ -193,6 +193,15 @@ PA_C_DECL_BEGIN
 
 /** @{ \name Sinks */
 
+/** Stores information about a specific port of a sink.  Please
+ * note that this structure can be extended as part of evolutionary
+ * API updates at any time in any new release. \since 0.9.16 */
+typedef struct pa_sink_port_info {
+    const char *name;                   /**< Name of this port */
+    const char *description;            /**< Description of this port */
+    uint32_t priority;                  /**< The higher this value is the more useful this port is as a default */
+} pa_sink_port_info;
+
 /** Stores information about sinks. Please note that this structure
  * can be extended as part of evolutionary API updates at any time in
  * any new release. */
@@ -216,6 +225,9 @@ typedef struct pa_sink_info {
     pa_sink_state_t state;             /**< State \since 0.9.15 */
     uint32_t n_volume_steps;           /**< Number of volume steps for sinks which do not support arbitrary volumes. \since 0.9.15 */
     uint32_t card;                     /**< Card index, or PA_INVALID_INDEX. \since 0.9.15 */
+    uint32_t n_ports;                  /**< Number of entries in port array \since 0.9.16 */
+    pa_sink_port_info** ports;         /**< Array of available ports, or NULL. Array is terminated by an entry set to NULL. The number of entries is stored in n_ports \since 0.9.16 */
+    pa_sink_port_info* active_port;    /**< Pointer to active port in the array, or NULL \since 0.9.16 */
 } pa_sink_info;
 
 /** Callback prototype for pa_context_get_sink_info_by_name() and friends */
@@ -248,9 +260,24 @@ pa_operation* pa_context_suspend_sink_by_name(pa_context *c, const char *sink_na
 /** Suspend/Resume a sink. If idx is PA_INVALID_INDEX all sinks will be suspended. \since 0.9.7 */
 pa_operation* pa_context_suspend_sink_by_index(pa_context *c, uint32_t idx, int suspend,  pa_context_success_cb_t cb, void* userdata);
 
+/** Change the profile of a sink. \since 0.9.16 */
+pa_operation* pa_context_set_sink_port_by_index(pa_context *c, uint32_t idx, const char*port, pa_context_success_cb_t cb, void *userdata);
+
+/** Change the profile of a sink. \since 0.9.15 */
+pa_operation* pa_context_set_sink_port_by_name(pa_context *c, const char*name, const char*port, pa_context_success_cb_t cb, void *userdata);
+
 /** @} */
 
 /** @{ \name Sources */
+
+/** Stores information about a specific port of a source.  Please
+ * note that this structure can be extended as part of evolutionary
+ * API updates at any time in any new release. \since 0.9.16 */
+typedef struct pa_source_port_info {
+    const char *name;                   /**< Name of this port */
+    const char *description;            /**< Description of this port */
+    uint32_t priority;                  /**< The higher this value is the more useful this port is as a default */
+} pa_source_port_info;
 
 /** Stores information about sources. Please note that this structure
  * can be extended as part of evolutionary API updates at any time in
@@ -275,6 +302,9 @@ typedef struct pa_source_info {
     pa_source_state_t state;            /**< State \since 0.9.15 */
     uint32_t n_volume_steps;            /**< Number of volume steps for sources which do not support arbitrary volumes. \since 0.9.15 */
     uint32_t card;                      /**< Card index, or PA_INVALID_INDEX. \since 0.9.15 */
+    uint32_t n_ports;                   /**< Number of entries in port array \since 0.9.16 */
+    pa_source_port_info** ports;        /**< Array of available ports, or NULL. Array is terminated by an entry set to NULL. The number of entries is stored in n_ports \since 0.9.16  */
+    pa_source_port_info* active_port;   /**< Pointer to active port in the array, or NULL \since 0.9.16  */
 } pa_source_info;
 
 /** Callback prototype for pa_context_get_source_info_by_name() and friends */
@@ -300,6 +330,12 @@ pa_operation* pa_context_set_source_mute_by_index(pa_context *c, uint32_t idx, i
 
 /** Set the mute switch of a source device specified by its name */
 pa_operation* pa_context_set_source_mute_by_name(pa_context *c, const char *name, int mute, pa_context_success_cb_t cb, void *userdata);
+
+/** Change the profile of a source. \since 0.9.16 */
+pa_operation* pa_context_set_source_port_by_index(pa_context *c, uint32_t idx, const char*port, pa_context_success_cb_t cb, void *userdata);
+
+/** Change the profile of a source. \since 0.9.15 */
+pa_operation* pa_context_set_source_port_by_name(pa_context *c, const char*name, const char*port, pa_context_success_cb_t cb, void *userdata);
 
 /** @} */
 
@@ -344,7 +380,7 @@ typedef struct pa_module_info {
     pa_proplist *proplist;              /**< Property list \since 0.9.15 */
 } pa_module_info;
 
-/** Callback prototype for pa_context_get_module_info() and firends*/
+/** Callback prototype for pa_context_get_module_info() and friends*/
 typedef void (*pa_module_info_cb_t) (pa_context *c, const pa_module_info*i, int eol, void *userdata);
 
 /** Get some information about a module by its index */
@@ -377,7 +413,7 @@ typedef struct pa_client_info {
     pa_proplist *proplist;               /**< Property list \since 0.9.11 */
 } pa_client_info;
 
-/** Callback prototype for pa_context_get_client_info() and firends*/
+/** Callback prototype for pa_context_get_client_info() and friends*/
 typedef void (*pa_client_info_cb_t) (pa_context *c, const pa_client_info*i, int eol, void *userdata);
 
 /** Get information about a client by its index */
@@ -418,7 +454,7 @@ typedef struct pa_card_info {
     pa_proplist *proplist;               /**< Property list */
 } pa_card_info;
 
-/** Callback prototype for pa_context_get_card_info() and firends \since 0.9.15 */
+/** Callback prototype for pa_context_get_card_info() and friends \since 0.9.15 */
 typedef void (*pa_card_info_cb_t) (pa_context *c, const pa_card_info*i, int eol, void *userdata);
 
 /** Get information about a card by its index \since 0.9.15 */
@@ -454,13 +490,13 @@ typedef struct pa_sink_input_info {
     pa_cvolume volume;                   /**< The volume of this sink input */
     pa_usec_t buffer_usec;               /**< Latency due to buffering in sink input, see pa_latency_info for details */
     pa_usec_t sink_usec;                 /**< Latency of the sink device, see pa_latency_info for details */
-    const char *resample_method;         /**< Thre resampling method used by this sink input. */
+    const char *resample_method;         /**< The resampling method used by this sink input. */
     const char *driver;                  /**< Driver name */
     int mute;                            /**< Stream muted \since 0.9.7 */
     pa_proplist *proplist;               /**< Property list \since 0.9.11 */
 } pa_sink_input_info;
 
-/** Callback prototype for pa_context_get_sink_input_info() and firends*/
+/** Callback prototype for pa_context_get_sink_input_info() and friends*/
 typedef void (*pa_sink_input_info_cb_t) (pa_context *c, const pa_sink_input_info *i, int eol, void *userdata);
 
 /** Get some information about a sink input by its index */
@@ -501,12 +537,12 @@ typedef struct pa_source_output_info {
     pa_channel_map channel_map;          /**< Channel map */
     pa_usec_t buffer_usec;               /**< Latency due to buffering in the source output, see pa_latency_info for details. */
     pa_usec_t source_usec;               /**< Latency of the source device, see pa_latency_info for details. */
-    const char *resample_method;         /**< Thre resampling method used by this source output. */
+    const char *resample_method;         /**< The resampling method used by this source output. */
     const char *driver;                  /**< Driver name */
     pa_proplist *proplist;               /**< Property list \since 0.9.11 */
 } pa_source_output_info;
 
-/** Callback prototype for pa_context_get_source_output_info() and firends*/
+/** Callback prototype for pa_context_get_source_output_info() and friends*/
 typedef void (*pa_source_output_info_cb_t) (pa_context *c, const pa_source_output_info *i, int eol, void *userdata);
 
 /** Get information about a source output by its index */
@@ -539,7 +575,7 @@ pa_operation* pa_context_kill_source_output(pa_context *c, uint32_t idx, pa_cont
  * any new release. */
 typedef struct pa_stat_info {
     uint32_t memblock_total;           /**< Currently allocated memory blocks */
-    uint32_t memblock_total_size;      /**< Currentl total size of allocated memory blocks */
+    uint32_t memblock_total_size;      /**< Current total size of allocated memory blocks */
     uint32_t memblock_allocated;       /**< Allocated memory blocks during the whole lifetime of the daemon */
     uint32_t memblock_allocated_size;  /**< Total size of all memory blocks allocated during the whole lifetime of the daemon */
     uint32_t scache_size;              /**< Total size of all sample cache entries. */
@@ -571,7 +607,7 @@ typedef struct pa_sample_info {
     pa_proplist *proplist;                /**< Property list for this sample. \since 0.9.11 */
 } pa_sample_info;
 
-/** Callback prototype for pa_context_get_sample_info_by_name() and firends */
+/** Callback prototype for pa_context_get_sample_info_by_name() and friends */
 typedef void (*pa_sample_info_cb_t)(pa_context *c, const pa_sample_info *i, int eol, void *userdata);
 
 /** Get information about a sample by its name */
@@ -606,7 +642,7 @@ typedef struct pa_autoload_info {
     const char *argument;         /**< Argument string for module */
 } pa_autoload_info;
 
-/** \deprecated Callback prototype for pa_context_get_autoload_info_by_name() and firends */
+/** \deprecated Callback prototype for pa_context_get_autoload_info_by_name() and friends */
 typedef void (*pa_autoload_info_cb_t)(pa_context *c, const pa_autoload_info *i, int eol, void *userdata);
 
 /** \deprecated Get info about a specific autoload entry. */

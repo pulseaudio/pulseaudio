@@ -77,6 +77,9 @@ void pa_log_set_flags(pa_log_flags_t flags, pa_log_merge_t merge);
 /* Enable backtrace */
 void pa_log_set_show_backtrace(unsigned nlevels);
 
+/* Skip the first backtrace frames */
+void pa_log_set_skip_backtrace(unsigned nlevels);
+
 void pa_log_level_meta(
         pa_log_level_t level,
         const char*file,
@@ -110,6 +113,7 @@ void pa_log_levelv(
 #define pa_log_notice(...) pa_log_level_meta(PA_LOG_NOTICE, __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define pa_log_warn(...)   pa_log_level_meta(PA_LOG_WARN,   __FILE__, __LINE__, __func__, __VA_ARGS__)
 #define pa_log_error(...)  pa_log_level_meta(PA_LOG_ERROR,  __FILE__, __LINE__, __func__, __VA_ARGS__)
+#define pa_logl(level, ...)  pa_log_level_meta(level,  __FILE__, __LINE__, __func__, __VA_ARGS__)
 
 #else
 

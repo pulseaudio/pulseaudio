@@ -17,7 +17,7 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-EXTRA_DIST = bootstrap.sh LICENSE GPL LGPL doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in README todo
+EXTRA_DIST = bootstrap.sh git-version-gen LICENSE GPL LGPL doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in README todo
 SUBDIRS = src doxygen man po
 
 MAINTAINERCLEANFILES =
@@ -52,7 +52,7 @@ untabify:
 	find \( -name '*.c' -o -name '*.h' \) -exec perl -i -pe 's/\t/        /g;' \{\} \;
 
 fedora-snapshot: dist
-	cp $(distdir).tar.gz $$HOME/cvs.fedora/pulseaudio/devel/$(distdir).git`date +%Y%m%d`.tar.gz
+	cp $(distdir).tar.gz $$HOME/cvs.fedora/pulseaudio/devel/$(distdir).tar.gz
 
 dist-hook:
 	if test -d .git ; then \
@@ -60,14 +60,14 @@ dist-hook:
 		chmod u+w ${distdir}/ChangeLog || true ; \
 		( git-changelog.perl || echo "git-changelog.perl failed." ) > ${distdir}/ChangeLog 2>&1 ; \
 	fi
-
-update-shave:
-	for i in shave.in shave.m4 shave-libtool.in; do \
-		wget -O $$i http://git.lespiau.name/cgit/shave/blob/\?path=shave/$$i ; \
-	done
-	mv shave.m4 m4/
+	echo $(VERSION) > $(distdir)/.tarball-version
 
 .PHONY: homepage distcleancheck doxygen
+
+# see git-version-gen
+BUILT_SOURCES = $(top_srcdir)/.version
+$(top_srcdir)/.version:
+	echo $(VERSION) > $@-t && mv $@-t $@
 
 DISTCLEANFILES = \
         po/.intltool-merge-cache

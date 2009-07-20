@@ -30,6 +30,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
+#include <netinet/in.h>
 
 #ifdef HAVE_SYS_FILIO_H
 #include <sys/filio.h>
@@ -211,7 +212,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     }
     if (!strlen(s2)) {
         /* End of headers */
-        /* We will have a header left from our looping itteration, so add it in :) */
+        /* We will have a header left from our looping iteration, so add it in :) */
         if (c->last_header) {
             /* This is not a continuation header so let's dump it into our proplist */
             pa_headerlist_puts(c->response_headers, c->last_header, pa_strbuf_tostring_free(c->header_buffer));
@@ -332,7 +333,7 @@ int pa_rtsp_connect(pa_rtsp_client *c) {
     pa_xfree(c->session);
     c->session = NULL;
 
-    if (!(c->sc = pa_socket_client_new_string(c->mainloop, c->hostname, c->port))) {
+    if (!(c->sc = pa_socket_client_new_string(c->mainloop, TRUE, c->hostname, c->port))) {
         pa_log("failed to connect to server '%s:%d'", c->hostname, c->port);
         return -1;
     }
@@ -488,7 +489,7 @@ int pa_rtsp_record(pa_rtsp_client* c, uint16_t* seq, uint32_t* rtptime) {
 
     pa_assert(c);
     if (!c->session) {
-        /* No seesion in progres */
+        /* No session in progress */
         return -1;
     }
 

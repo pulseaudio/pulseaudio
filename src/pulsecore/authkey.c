@@ -190,7 +190,7 @@ int pa_authkey_load_auto(const char *fn, void *data, size_t length) {
     return pa_authkey_load(p, data, length);
 }
 
-/* Store the specified cookie in the speicified cookie file */
+/* Store the specified cookie in the specified cookie file */
 int pa_authkey_save(const char *fn, const void *data, size_t length) {
     int fd = -1;
     int unlock = 0, ret = -1;

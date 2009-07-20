@@ -39,7 +39,7 @@ int pa_detect_fork(void) {
      * however have to deal with this cleanly, so we try to detect the
      * forks making sure all our calls fail cleanly after the fork. */
 
-    pa_assert(sizeof(pa_atomic_t) >= sizeof(pid_t));
+    pa_assert_cc(sizeof(pa_atomic_t) >= sizeof(pid_t));
 
     for (;;) {
         pid_t stored_pid = (pid_t) pa_atomic_load(&pid);

@@ -152,7 +152,7 @@ enum {
     /* Supported since protocol v14 (0.9.12) */
     PA_COMMAND_EXTENSION,
 
-    /* Supported since protocol v15 (0.9.15*/
+    /* Supported since protocol v15 (0.9.15) */
     PA_COMMAND_GET_CARD_INFO,
     PA_COMMAND_GET_CARD_INFO_LIST,
     PA_COMMAND_SET_CARD_PROFILE,
@@ -160,6 +160,14 @@ enum {
     PA_COMMAND_CLIENT_EVENT,
     PA_COMMAND_PLAYBACK_STREAM_EVENT,
     PA_COMMAND_RECORD_STREAM_EVENT,
+
+    /* SERVER->CLIENT */
+    PA_COMMAND_PLAYBACK_BUFFER_ATTR_CHANGED,
+    PA_COMMAND_RECORD_BUFFER_ATTR_CHANGED,
+
+    /* Supported since protocol v16 (0.9.16) */
+    PA_COMMAND_SET_SINK_PORT,
+    PA_COMMAND_SET_SOURCE_PORT,
 
     PA_COMMAND_MAX
 };

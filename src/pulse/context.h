@@ -207,9 +207,10 @@ pa_context_state_t pa_context_get_state(pa_context *c);
 connect to the default server. This routine may but will not always
 return synchronously on error. Use pa_context_set_state_callback() to
 be notified when the connection is established. If flags doesn't have
-PA_NOAUTOSPAWN set and no specific server is specified or accessible a
-new daemon is spawned. If api is non-NULL, the functions specified in
-the structure are used when forking a new child process. */
+PA_CONTEXT_NOAUTOSPAWN set and no specific server is specified or
+accessible a new daemon is spawned. If api is non-NULL, the functions
+specified in the structure are used when forking a new child
+process. */
 int pa_context_connect(pa_context *c, const char *server, pa_context_flags_t flags, const pa_spawn_api *api);
 
 /** Terminate the context connection immediately */
@@ -258,6 +259,14 @@ pa_operation *pa_context_proplist_remove(pa_context *c, const char *const keys[]
  * identified in the server with. This is useful for usage with the
  * introspection functions, such as pa_context_get_client_info(). \since 0.9.11 */
 uint32_t pa_context_get_index(pa_context *s);
+
+/** Create a new timer event source for the specified time (wrapper
+    for mainloop->time_new). \since 0.9.16 */
+pa_time_event* pa_context_rttime_new(pa_context *c, pa_usec_t usec, pa_time_event_cb_t cb, void *userdata);
+/** Restart a running or expired timer event source (wrapper
+    for mainloop->time_restart). \since 0.9.16 */
+void pa_context_rttime_restart(pa_context *c, pa_time_event *e, pa_usec_t usec);
+
 
 PA_C_DECL_END
 

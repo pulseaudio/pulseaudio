@@ -117,7 +117,8 @@ static void reset_callbacks(pa_sink_input *i) {
     i->attach = NULL;
     i->detach = NULL;
     i->suspend = NULL;
-    i->moved = NULL;
+    i->suspend_within_thread = NULL;
+    i->moving = NULL;
     i->kill = NULL;
     i->get_latency = NULL;
     i->state_change = NULL;
@@ -175,16 +176,8 @@ int pa_sink_input_new(
     pa_return_val_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec), -PA_ERR_INVALID);
 
     if (!data->volume_is_set) {
-
-        if (data->sink->flags & PA_SINK_FLAT_VOLUME) {
-            data->volume = *pa_sink_get_volume(data->sink, FALSE);
-            pa_cvolume_remap(&data->volume, &data->sink->channel_map, &data->channel_map);
-            data->volume_is_absolute = TRUE;
-        } else {
-            pa_cvolume_reset(&data->volume, data->sample_spec.channels);
-            data->volume_is_absolute = FALSE;
-        }
-
+        pa_cvolume_reset(&data->volume, data->sample_spec.channels);
+        data->volume_is_absolute = FALSE;
         data->save_volume = FALSE;
     }
 
@@ -278,15 +271,15 @@ int pa_sink_input_new(
         /* When the 'absolute' bool is not set then we'll treat the volume
          * as relative to the sink volume even in flat volume mode */
 
-        pa_cvolume t = *pa_sink_get_volume(data->sink, FALSE);
-        pa_cvolume_remap(&t, &data->sink->channel_map, &data->channel_map);
-
-        pa_sw_cvolume_multiply(&i->virtual_volume, &data->volume, &t);
+        pa_cvolume v = data->sink->reference_volume;
+        pa_cvolume_remap(&v, &data->sink->channel_map, &data->channel_map);
+        pa_sw_cvolume_multiply(&i->virtual_volume, &data->volume, &v);
     } else
         i->virtual_volume = data->volume;
 
     i->volume_factor = data->volume_factor;
     pa_cvolume_init(&i->soft_volume);
+    memset(i->relative_volume, 0, sizeof(i->relative_volume));
     i->save_volume = data->save_volume;
     i->save_sink = data->save_sink;
     i->save_muted = data->save_muted;
@@ -333,8 +326,8 @@ int pa_sink_input_new(
             0,
             &i->sink->silence);
 
-    pa_assert_se(pa_idxset_put(core->sink_inputs, pa_sink_input_ref(i), &i->index) == 0);
-    pa_assert_se(pa_idxset_put(i->sink->inputs, i, NULL) == 0);
+    pa_assert_se(pa_idxset_put(core->sink_inputs, i, &i->index) == 0);
+    pa_assert_se(pa_idxset_put(i->sink->inputs, pa_sink_input_ref(i), NULL) == 0);
 
     if (i->client)
         pa_assert_se(pa_idxset_put(i->client->sink_inputs, i, NULL) >= 0);
@@ -449,7 +442,7 @@ void pa_sink_input_unlink(pa_sink_input *i) {
         if (i->sink->flags & PA_SINK_FLAT_VOLUME) {
             pa_cvolume new_volume;
             pa_sink_update_flat_volume(i->sink, &new_volume);
-            pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE);
+            pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE, FALSE, FALSE);
         }
 
         if (i->sink->asyncmsgq)
@@ -527,9 +520,9 @@ void pa_sink_input_put(pa_sink_input *i) {
     if (i->sink->flags & PA_SINK_FLAT_VOLUME) {
         pa_cvolume new_volume;
         pa_sink_update_flat_volume(i->sink, &new_volume);
-        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE);
+        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE, FALSE, FALSE);
     } else
-        pa_sw_cvolume_multiply(&i->soft_volume, &i->virtual_volume, &i->volume_factor);
+        pa_sink_input_set_relative_volume(i, &i->virtual_volume);
 
     i->thread_info.soft_volume = i->soft_volume;
     i->thread_info.muted = i->muted;
@@ -631,7 +624,7 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
              * data, so let's just hand out silence */
             pa_atomic_store(&i->thread_info.drained, 1);
 
-            pa_memblockq_seek(i->thread_info.render_memblockq, (int64_t) slength, PA_SEEK_RELATIVE);
+            pa_memblockq_seek(i->thread_info.render_memblockq, (int64_t) slength, PA_SEEK_RELATIVE, TRUE);
             i->thread_info.playing_for = 0;
             if (i->thread_info.underrun_for != (uint64_t) -1)
                 i->thread_info.underrun_for += ilength;
@@ -776,7 +769,7 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
 
             if (amount > 0)
                 /* Ok, now update the write pointer */
-                pa_memblockq_seek(i->thread_info.render_memblockq, - ((int64_t) amount), PA_SEEK_RELATIVE);
+                pa_memblockq_seek(i->thread_info.render_memblockq, - ((int64_t) amount), PA_SEEK_RELATIVE, TRUE);
 
             if (i->thread_info.rewrite_flush)
                 pa_memblockq_silence(i->thread_info.render_memblockq);
@@ -819,26 +812,15 @@ void pa_sink_input_update_max_request(pa_sink_input *i, size_t nbytes  /* in the
 }
 
 /* Called from thread context */
-static pa_usec_t fixup_latency(pa_sink *s, pa_usec_t usec) {
-    pa_sink_assert_ref(s);
-
-    if (usec == (pa_usec_t) -1)
-        return usec;
-
-    if (s->thread_info.max_latency > 0 && usec > s->thread_info.max_latency)
-        usec = s->thread_info.max_latency;
-
-    if (s->thread_info.min_latency > 0 && usec < s->thread_info.min_latency)
-        usec = s->thread_info.min_latency;
-
-    return usec;
-}
-
-/* Called from thread context */
 pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa_usec_t usec) {
     pa_sink_input_assert_ref(i);
 
-    usec = fixup_latency(i->sink, usec);
+    if (!(i->sink->flags & PA_SINK_DYNAMIC_LATENCY))
+        usec = i->sink->fixed_latency;
+
+    if (usec != (pa_usec_t) -1)
+        usec = PA_CLAMP(usec, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
+
     i->thread_info.requested_sink_latency = usec;
     pa_sink_invalidate_requested_latency(i->sink);
 
@@ -849,40 +831,61 @@ pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa
 pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec) {
     pa_sink_input_assert_ref(i);
 
-    if (PA_SINK_INPUT_IS_LINKED(i->state))
+    if (PA_SINK_INPUT_IS_LINKED(i->state) && i->sink) {
         pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_REQUESTED_LATENCY, &usec, 0, NULL) == 0);
-    else
-        /* If this sink input is not realized yet, we have to touch
-         * the thread info data directly */
+        return usec;
+    }
 
-        i->thread_info.requested_sink_latency = usec;
+    /* If this sink input is not realized yet or we are being moved,
+     * we have to touch the thread info data directly */
+
+    if (i->sink) {
+        if (!(i->sink->flags & PA_SINK_DYNAMIC_LATENCY))
+            usec = i->sink->fixed_latency;
+
+        if (usec != (pa_usec_t) -1) {
+            pa_usec_t min_latency, max_latency;
+            pa_sink_get_latency_range(i->sink, &min_latency, &max_latency);
+            usec =  PA_CLAMP(usec, min_latency, max_latency);
+        }
+    }
+
+    i->thread_info.requested_sink_latency = usec;
 
     return usec;
 }
 
 /* Called from main context */
 pa_usec_t pa_sink_input_get_requested_latency(pa_sink_input *i) {
-    pa_usec_t usec = 0;
-
     pa_sink_input_assert_ref(i);
 
-    if (PA_SINK_INPUT_IS_LINKED(i->state))
+    if (PA_SINK_INPUT_IS_LINKED(i->state) && i->sink) {
+        pa_usec_t usec = 0;
         pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_GET_REQUESTED_LATENCY, &usec, 0, NULL) == 0);
-    else
-        /* If this sink input is not realized yet, we have to touch
-         * the thread info data directly */
-        usec = i->thread_info.requested_sink_latency;
+        return usec;
+    }
 
-    return usec;
+    /* If this sink input is not realized yet or we are being moved,
+     * we have to touch the thread info data directly */
+
+    return i->thread_info.requested_sink_latency;
 }
 
 /* Called from main context */
-void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_bool_t save) {
+void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_bool_t save, pa_bool_t absolute) {
+    pa_cvolume v;
+
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_assert(volume);
     pa_assert(pa_cvolume_valid(volume));
     pa_assert(pa_cvolume_compatible(volume, &i->sample_spec));
+
+    if ((i->sink->flags & PA_SINK_FLAT_VOLUME) && !absolute) {
+        v = i->sink->reference_volume;
+        pa_cvolume_remap(&v, &i->sink->channel_map, &i->channel_map);
+        volume = pa_sw_cvolume_multiply(&v, &v, volume);
+    }
 
     if (pa_cvolume_equal(volume, &i->virtual_volume))
         return;
@@ -897,17 +900,18 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_boo
          * volumes and update the flat volume of the sink */
 
         pa_sink_update_flat_volume(i->sink, &new_volume);
-        pa_sink_set_volume(i->sink, &new_volume, FALSE, TRUE);
+        pa_sink_set_volume(i->sink, &new_volume, FALSE, TRUE, FALSE, FALSE);
 
     } else {
 
         /* OK, we are in normal volume mode. The volume only affects
          * ourselves */
-        pa_sw_cvolume_multiply(&i->soft_volume, volume, &i->volume_factor);
+        pa_sink_input_set_relative_volume(i, volume);
 
         /* Hooks have the ability to play games with i->soft_volume */
         pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_SET_VOLUME], i);
 
+        /* Copy the new soft_volume to the thread_info struct */
         pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_SOFT_VOLUME, NULL, 0, NULL) == 0);
     }
 
@@ -916,11 +920,67 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_boo
 }
 
 /* Called from main context */
-const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i) {
+pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i, pa_cvolume *volume, pa_bool_t absolute) {
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
-    return &i->virtual_volume;
+    if ((i->sink->flags & PA_SINK_FLAT_VOLUME) && !absolute) {
+        pa_cvolume v = i->sink->reference_volume;
+        pa_cvolume_remap(&v, &i->sink->channel_map, &i->channel_map);
+        pa_sw_cvolume_divide(volume, &i->virtual_volume, &v);
+    } else
+        *volume = i->virtual_volume;
+
+    return volume;
+}
+
+/* Called from main context */
+pa_cvolume *pa_sink_input_get_relative_volume(pa_sink_input *i, pa_cvolume *v) {
+    unsigned c;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert(v);
+    pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
+
+    /* This always returns the relative volume. Converts the float
+     * version into a pa_cvolume */
+
+    v->channels = i->sample_spec.channels;
+
+    for (c = 0; c < v->channels; c++)
+        v->values[c] = pa_sw_volume_from_linear(i->relative_volume[c]);
+
+    return v;
+}
+
+/* Called from main context */
+void pa_sink_input_set_relative_volume(pa_sink_input *i, const pa_cvolume *v) {
+    unsigned c;
+    pa_cvolume _v;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
+    pa_assert(!v || pa_cvolume_compatible(v, &i->sample_spec));
+
+    if (!v)
+        v = pa_cvolume_reset(&_v, i->sample_spec.channels);
+
+    /* This basically calculates:
+     *
+     * i->relative_volume := v
+     * i->soft_volume := i->relative_volume * i->volume_factor */
+
+    i->soft_volume.channels = i->sample_spec.channels;
+
+    for (c = 0; c < i->sample_spec.channels; c++) {
+        i->relative_volume[c] = pa_sw_volume_to_linear(v->values[c]);
+
+        i->soft_volume.values[c] = pa_sw_volume_from_linear(
+                i->relative_volume[c] *
+                pa_sw_volume_to_linear(i->volume_factor.values[c]));
+    }
+
+    /* We don't copy the data to the thread_info data. That's left for someone else to do */
 }
 
 /* Called from main context */
@@ -1090,20 +1150,24 @@ int pa_sink_input_start_move(pa_sink_input *i) {
     if (i->sink->flags & PA_SINK_FLAT_VOLUME) {
         pa_cvolume new_volume;
 
-        /* Make the absolute volume relative */
-        i->virtual_volume = i->soft_volume;
-        i->soft_volume = i->volume_factor;
+        /* Make the virtual volume relative */
+        pa_sink_input_get_relative_volume(i, &i->virtual_volume);
+
+        /* And reset the the relative volume */
+        pa_sink_input_set_relative_volume(i, NULL);
 
         /* We might need to update the sink's volume if we are in flat
          * volume mode. */
         pa_sink_update_flat_volume(i->sink, &new_volume);
-        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE);
+        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE, FALSE, FALSE);
     }
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_START_MOVE, i, 0, NULL) == 0);
 
     pa_sink_update_status(i->sink);
     i->sink = NULL;
+
+    pa_sink_input_unref(i);
 
     return 0;
 }
@@ -1147,9 +1211,12 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     } else
         new_resampler = NULL;
 
+    if (i->moving)
+        i->moving(i, dest);
+
     i->sink = dest;
     i->save_sink = save;
-    pa_idxset_put(dest->inputs, i, NULL);
+    pa_idxset_put(dest->inputs, pa_sink_input_ref(i), NULL);
 
     if (pa_sink_input_get_state(i) == PA_SINK_INPUT_CORKED)
         i->sink->n_corked++;
@@ -1173,20 +1240,19 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
                 0,
                 &i->sink->silence);
     }
-
     pa_sink_update_status(dest);
 
     if (i->sink->flags & PA_SINK_FLAT_VOLUME) {
         pa_cvolume new_volume;
 
         /* Make relative volume absolute again */
-        pa_cvolume t = dest->virtual_volume;
+        pa_cvolume t = dest->reference_volume;
         pa_cvolume_remap(&t, &dest->channel_map, &i->channel_map);
         pa_sw_cvolume_multiply(&i->virtual_volume, &i->virtual_volume, &t);
 
         /* We might need to update the sink's volume if we are in flat volume mode. */
         pa_sink_update_flat_volume(i->sink, &new_volume);
-        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE);
+        pa_sink_set_volume(i->sink, &new_volume, FALSE, FALSE, FALSE, FALSE);
     }
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_FINISH_MOVE, i, 0, NULL) == 0);
@@ -1194,9 +1260,6 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     pa_log_debug("Successfully moved sink input %i to %s.", i->index, dest->name);
 
     /* Notify everyone */
-    if (i->moved)
-        i->moved(i);
-
     pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FINISH], i);
     pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
 
@@ -1218,11 +1281,19 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     if (!pa_sink_input_may_move_to(i, dest))
         return -PA_ERR_NOTSUPPORTED;
 
-    if ((r = pa_sink_input_start_move(i)) < 0)
-        return r;
+    pa_sink_input_ref(i);
 
-    if ((r = pa_sink_input_finish_move(i, dest, save)) < 0)
+    if ((r = pa_sink_input_start_move(i)) < 0) {
+        pa_sink_input_unref(i);
         return r;
+    }
+
+    if ((r = pa_sink_input_finish_move(i, dest, save)) < 0) {
+        pa_sink_input_unref(i);
+        return r;
+    }
+
+    pa_sink_input_unref(i);
 
     return 0;
 }
@@ -1291,12 +1362,9 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t
 
         case PA_SINK_INPUT_MESSAGE_GET_LATENCY: {
             pa_usec_t *r = userdata;
-            pa_usec_t sink_usec = 0;
 
             r[0] += pa_bytes_to_usec(pa_memblockq_get_length(i->thread_info.render_memblockq), &i->sink->sample_spec);
-
-            if (i->sink->parent.process_msg(PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_GET_LATENCY, &sink_usec, 0, NULL) >= 0)
-                r[1] += sink_usec;
+            r[1] += pa_sink_get_latency_within_thread(i->sink);
 
             return 0;
         }

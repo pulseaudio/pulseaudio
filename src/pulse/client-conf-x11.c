@@ -57,8 +57,23 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
     }
 
     if (pa_x11_get_prop(d, "PULSE_SERVER", t, sizeof(t))) {
+        pa_bool_t disable_autospawn = TRUE;
+
         pa_xfree(c->default_server);
         c->default_server = pa_xstrdup(t);
+
+        if (pa_x11_get_prop(d, "PULSE_SESSION_ID", t, sizeof(t))) {
+            char *id;
+
+            if ((id = pa_session_id())) {
+                if (pa_streq(t, id))
+                    disable_autospawn = FALSE;
+                pa_xfree(id);
+            }
+        }
+
+        if (disable_autospawn)
+            c->autospawn = FALSE;
     }
 
     if (pa_x11_get_prop(d, "PULSE_SINK", t, sizeof(t))) {

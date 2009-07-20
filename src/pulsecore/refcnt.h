@@ -23,15 +23,24 @@
 ***/
 
 #include <pulsecore/atomic.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/log.h>
+
+/* #define DEBUG_REF */
 
 #define PA_REFCNT_DECLARE \
     pa_atomic_t _ref
 
-#define PA_REFCNT_INIT(p) \
-    pa_atomic_store(&(p)->_ref, 1)
+#define PA_REFCNT_VALUE(p) \
+    pa_atomic_load(&(p)->_ref)
 
 #define PA_REFCNT_INIT_ZERO(p) \
     pa_atomic_store(&(p)->_ref, 0)
+
+#ifndef DEBUG_REF
+
+#define PA_REFCNT_INIT(p) \
+    pa_atomic_store(&(p)->_ref, 1)
 
 #define PA_REFCNT_INC(p) \
     pa_atomic_inc(&(p)->_ref)
@@ -39,7 +48,34 @@
 #define PA_REFCNT_DEC(p) \
     (pa_atomic_dec(&(p)->_ref)-1)
 
-#define PA_REFCNT_VALUE(p) \
-    pa_atomic_load(&(p)->_ref)
+#else
+
+/* If you need to debug ref counting problems define DEBUG_REF and
+ * set $PULSE_LOG_BACKTRACE=5 or suchlike in the shell when running
+ * PA */
+
+#define PA_REFCNT_INIT(p)                       \
+    do {                                        \
+        pa_atomic_store(&(p)->_ref, 1);         \
+        pa_log("REF: Init %p", p);              \
+    } while (FALSE)
+
+#define PA_REFCNT_INC(p)                        \
+    do {                                        \
+        pa_atomic_inc(&(p)->_ref);              \
+        pa_log("REF: Inc %p", p);               \
+    } while (FALSE)                             \
+
+#define PA_REFCNT_DEC(p)                        \
+    ({                                          \
+        int _j = (pa_atomic_dec(&(p)->_ref)-1); \
+        if (_j <= 0)                            \
+            pa_log("REF: Done %p", p);          \
+        else                                    \
+            pa_log("REF: Dec %p", p);           \
+        _j;                                     \
+     })
+
+#endif
 
 #endif

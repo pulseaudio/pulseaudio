@@ -27,15 +27,16 @@
 ; system-instance = no
 ; disable-shm = no
 ; shm-size-bytes = 0 # setting this 0 will use the system-default, usually 64 MiB
+; lock-memory = no
+; no-cpu-limit = no
 
 ; high-priority = yes
 ; nice-level = -11
 
-; realtime-scheduling = no
+; realtime-scheduling = yes
 ; realtime-priority = 5
 
 ; exit-idle-time = 20
-; module-idle-time = 20
 ; scache-idle-time = 20
 
 ; dl-search-path = (depends on architecture)
@@ -54,8 +55,6 @@
 ; disable-lfe-remixing = yes
 
 ; flat-volumes = yes
-
-; no-cpu-limit = no
 
 ; rlimit-fsize = -1
 ; rlimit-data = -1

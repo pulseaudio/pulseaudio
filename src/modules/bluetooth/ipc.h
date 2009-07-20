@@ -71,7 +71,7 @@ extern "C" {
 #include <sys/un.h>
 #include <errno.h>
 
-#define BT_SUGGESTED_BUFFER_SIZE   128
+#define BT_SUGGESTED_BUFFER_SIZE   512
 #define BT_IPC_SOCKET_NAME "\0/org/bluez/audio"
 
 /* Generic message header definition, except for RESPONSE messages */
@@ -94,10 +94,12 @@ typedef struct {
 
 /* Messages names */
 #define BT_GET_CAPABILITIES		0
-#define BT_SET_CONFIGURATION		1
-#define BT_NEW_STREAM			2
-#define BT_START_STREAM			3
-#define BT_STOP_STREAM			4
+#define BT_OPEN				1
+#define BT_SET_CONFIGURATION		2
+#define BT_NEW_STREAM			3
+#define BT_START_STREAM			4
+#define BT_STOP_STREAM			5
+#define BT_CLOSE			6
 #define BT_CONTROL			7
 
 #define BT_CAPABILITIES_TRANSPORT_A2DP	0
@@ -112,19 +114,31 @@ typedef struct {
 
 struct bt_get_capabilities_req {
 	bt_audio_msg_header_t	h;
-	char			device[18];	/* Address of the remote Device */
+	char			source[18];	/* Address of the local Device */
+	char			destination[18];/* Address of the remote Device */
+	char			object[128];	/* DBus object path */
 	uint8_t			transport;	/* Requested transport */
 	uint8_t			flags;		/* Requested flags */
+	uint8_t			seid;		/* Requested capability configuration */
 } __attribute__ ((packed));
 
 /**
- * SBC Codec parameters as per A2DP profile 1.0 Â§ 4.3
+ * SBC Codec parameters as per A2DP profile 1.0 § 4.3
  */
 
-#define BT_A2DP_CODEC_SBC			0x00
-#define BT_A2DP_CODEC_MPEG12			0x01
-#define BT_A2DP_CODEC_MPEG24			0x02
-#define BT_A2DP_CODEC_ATRAC			0x03
+/* A2DP seid are 6 bytes long so HSP/HFP are assigned to 7-8 bits */
+#define BT_A2DP_SEID_RANGE			(1 << 6) - 1
+
+#define BT_A2DP_SBC_SOURCE			0x00
+#define BT_A2DP_SBC_SINK			0x01
+#define BT_A2DP_MPEG12_SOURCE			0x02
+#define BT_A2DP_MPEG12_SINK			0x03
+#define BT_A2DP_MPEG24_SOURCE			0x04
+#define BT_A2DP_MPEG24_SINK			0x05
+#define BT_A2DP_ATRAC_SOURCE			0x06
+#define BT_A2DP_ATRAC_SINK			0x07
+#define BT_A2DP_UNKNOWN_SOURCE			0x08
+#define BT_A2DP_UNKNOWN_SINK			0x09
 
 #define BT_SBC_SAMPLING_FREQ_16000		(1 << 3)
 #define BT_SBC_SAMPLING_FREQ_32000		(1 << 2)
@@ -163,10 +177,16 @@ struct bt_get_capabilities_req {
 #define BT_PCM_FLAG_NREC			0x01
 #define BT_PCM_FLAG_PCM_ROUTING			0x02
 
+#define BT_WRITE_LOCK				(1 << 1)
+#define BT_READ_LOCK				1
+
 typedef struct {
+	uint8_t seid;
 	uint8_t transport;
 	uint8_t type;
 	uint8_t length;
+	uint8_t configured;
+	uint8_t lock;
 	uint8_t data[0];
 } __attribute__ ((packed)) codec_capabilities_t;
 
@@ -199,20 +219,35 @@ typedef struct {
 
 struct bt_get_capabilities_rsp {
 	bt_audio_msg_header_t	h;
+	char			source[18];	/* Address of the local Device */
+	char			destination[18];/* Address of the remote Device */
+	char			object[128];	/* DBus object path */
 	uint8_t			data[0];	/* First codec_capabilities_t */
+} __attribute__ ((packed));
+
+struct bt_open_req {
+	bt_audio_msg_header_t	h;
+	char			source[18];	/* Address of the local Device */
+	char			destination[18];/* Address of the remote Device */
+	char			object[128];	/* DBus object path */
+	uint8_t			seid;		/* Requested capability configuration to lock */
+	uint8_t			lock;		/* Requested lock */
+} __attribute__ ((packed));
+
+struct bt_open_rsp {
+	bt_audio_msg_header_t	h;
+	char			source[18];	/* Address of the local Device */
+	char			destination[18];/* Address of the remote Device */
+	char			object[128];	/* DBus object path */
 } __attribute__ ((packed));
 
 struct bt_set_configuration_req {
 	bt_audio_msg_header_t	h;
-	char			device[18];	/* Address of the remote Device */
-	uint8_t			access_mode;	/* Requested access mode */
 	codec_capabilities_t	codec;		/* Requested codec */
 } __attribute__ ((packed));
 
 struct bt_set_configuration_rsp {
 	bt_audio_msg_header_t	h;
-	uint8_t			transport;	/* Granted transport */
-	uint8_t			access_mode;	/* Granted access mode */
 	uint16_t		link_mtu;	/* Max length that transport supports */
 } __attribute__ ((packed));
 
@@ -238,6 +273,14 @@ struct bt_stop_stream_req {
 } __attribute__ ((packed));
 
 struct bt_stop_stream_rsp {
+	bt_audio_msg_header_t	h;
+} __attribute__ ((packed));
+
+struct bt_close_req {
+	bt_audio_msg_header_t	h;
+} __attribute__ ((packed));
+
+struct bt_close_rsp {
 	bt_audio_msg_header_t	h;
 } __attribute__ ((packed));
 

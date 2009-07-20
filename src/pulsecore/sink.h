@@ -24,6 +24,7 @@
 ***/
 
 typedef struct pa_sink pa_sink;
+typedef struct pa_device_port pa_device_port;
 
 #include <inttypes.h>
 
@@ -49,13 +50,26 @@ static inline pa_bool_t PA_SINK_IS_LINKED(pa_sink_state_t x) {
     return x == PA_SINK_RUNNING || x == PA_SINK_IDLE || x == PA_SINK_SUSPENDED;
 }
 
+struct pa_device_port {
+    char *name;
+    char *description;
+
+    unsigned priority;
+
+    /* .. followed by some implementation specific data */
+};
+
+#define PA_DEVICE_PORT_DATA(d) ((void*) ((uint8_t*) d + PA_ALIGN(sizeof(pa_device_port))))
+
 struct pa_sink {
     pa_msgobject parent;
 
     uint32_t index;
     pa_core *core;
+
     pa_sink_state_t state;
     pa_sink_flags_t flags;
+    pa_suspend_cause_t suspend_cause;
 
     char *name;
     char *driver;                           /* may be NULL */
@@ -74,16 +88,27 @@ struct pa_sink {
     pa_volume_t base_volume; /* shall be constant */
     unsigned n_volume_steps; /* shall be constant */
 
-    pa_cvolume virtual_volume, soft_volume;
+    /* Also see http://pulseaudio.org/wiki/InternalVolumes */
+    pa_cvolume virtual_volume;   /* The volume clients are informed about */
+    pa_cvolume reference_volume; /* The volume taken as refernce base for relative sink input volumes */
+    pa_cvolume soft_volume;      /* The internal software volume we apply to all PCM data while it passes through */
     pa_bool_t muted:1;
 
     pa_bool_t refresh_volume:1;
     pa_bool_t refresh_muted:1;
+    pa_bool_t save_port:1;
+    pa_bool_t save_volume:1;
+    pa_bool_t save_muted:1;
 
     pa_asyncmsgq *asyncmsgq;
     pa_rtpoll *rtpoll;
 
     pa_memchunk silence;
+
+    pa_usec_t fixed_latency; /* for sinks with PA_SINK_DYNAMIC_LATENCY this is 0 */
+
+    pa_hashmap *ports;
+    pa_device_port *active_port;
 
     /* Called when the main loop requests a state change. Called from
      * main loop context. If returns -1 the state change will be
@@ -119,6 +144,10 @@ struct pa_sink {
     /* Called when a the requested latency is changed. Called from IO
      * thread context. */
     void (*update_requested_latency)(pa_sink *s); /* dito */
+
+    /* Called whenever the port shall be changed. Called from main
+     * thread. */
+    int (*set_port)(pa_sink *s, pa_device_port *port); /* dito */
 
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
@@ -159,6 +188,7 @@ typedef enum pa_sink_message {
     PA_SINK_MESSAGE_REMOVE_INPUT,
     PA_SINK_MESSAGE_GET_VOLUME,
     PA_SINK_MESSAGE_SET_VOLUME,
+    PA_SINK_MESSAGE_SYNC_VOLUMES,
     PA_SINK_MESSAGE_GET_MUTE,
     PA_SINK_MESSAGE_SET_MUTE,
     PA_SINK_MESSAGE_GET_LATENCY,
@@ -172,6 +202,8 @@ typedef enum pa_sink_message {
     PA_SINK_MESSAGE_GET_LATENCY_RANGE,
     PA_SINK_MESSAGE_GET_MAX_REWIND,
     PA_SINK_MESSAGE_GET_MAX_REQUEST,
+    PA_SINK_MESSAGE_SET_MAX_REWIND,
+    PA_SINK_MESSAGE_SET_MAX_REQUEST,
     PA_SINK_MESSAGE_MAX
 } pa_sink_message_t;
 
@@ -182,6 +214,9 @@ typedef struct pa_sink_new_data {
     const char *driver;
     pa_module *module;
     pa_card *card;
+
+    pa_hashmap *ports;
+    char *active_port;
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
@@ -194,6 +229,10 @@ typedef struct pa_sink_new_data {
     pa_bool_t muted_is_set:1;
 
     pa_bool_t namereg_fail:1;
+
+    pa_bool_t save_port:1;
+    pa_bool_t save_volume:1;
+    pa_bool_t save_muted:1;
 } pa_sink_new_data;
 
 pa_sink_new_data* pa_sink_new_data_init(pa_sink_new_data *data);
@@ -202,6 +241,7 @@ void pa_sink_new_data_set_sample_spec(pa_sink_new_data *data, const pa_sample_sp
 void pa_sink_new_data_set_channel_map(pa_sink_new_data *data, const pa_channel_map *map);
 void pa_sink_new_data_set_volume(pa_sink_new_data *data, const pa_cvolume *volume);
 void pa_sink_new_data_set_muted(pa_sink_new_data *data, pa_bool_t mute);
+void pa_sink_new_data_set_port(pa_sink_new_data *data, const char *port);
 void pa_sink_new_data_done(pa_sink_new_data *data);
 
 /*** To be called exclusively by the sink driver, from main context */
@@ -218,15 +258,21 @@ void pa_sink_set_description(pa_sink *s, const char *description);
 void pa_sink_set_asyncmsgq(pa_sink *s, pa_asyncmsgq *q);
 void pa_sink_set_rtpoll(pa_sink *s, pa_rtpoll *p);
 
+void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind);
+void pa_sink_set_max_request(pa_sink *s, size_t max_request);
 void pa_sink_set_latency_range(pa_sink *s, pa_usec_t min_latency, pa_usec_t max_latency);
+void pa_sink_set_fixed_latency(pa_sink *s, pa_usec_t latency);
 
 void pa_sink_detach(pa_sink *s);
 void pa_sink_attach(pa_sink *s);
 
 void pa_sink_set_soft_volume(pa_sink *s, const pa_cvolume *volume);
+void pa_sink_volume_changed(pa_sink *s, const pa_cvolume *new_volume, pa_bool_t save);
+void pa_sink_mute_changed(pa_sink *s, pa_bool_t new_muted, pa_bool_t save);
 
 pa_bool_t pa_device_init_description(pa_proplist *p);
 pa_bool_t pa_device_init_icon(pa_proplist *p, pa_bool_t is_sink);
+pa_bool_t pa_device_init_intended_roles(pa_proplist *p);
 
 /**** May be called by everyone, from main context */
 
@@ -239,18 +285,21 @@ size_t pa_sink_get_max_rewind(pa_sink *s);
 size_t pa_sink_get_max_request(pa_sink *s);
 
 int pa_sink_update_status(pa_sink*s);
-int pa_sink_suspend(pa_sink *s, pa_bool_t suspend);
-int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend);
+int pa_sink_suspend(pa_sink *s, pa_bool_t suspend, pa_suspend_cause_t cause);
+int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend, pa_suspend_cause_t cause);
 
 void pa_sink_update_flat_volume(pa_sink *s, pa_cvolume *new_volume);
-void pa_sink_propagate_flat_volume(pa_sink *s, const pa_cvolume *old_volume);
+void pa_sink_propagate_flat_volume(pa_sink *s);
 
-void pa_sink_set_volume(pa_sink *sink, const pa_cvolume *volume, pa_bool_t propagate, pa_bool_t sendmsg);
-const pa_cvolume *pa_sink_get_volume(pa_sink *sink, pa_bool_t force_refresh);
-void pa_sink_set_mute(pa_sink *sink, pa_bool_t mute);
+void pa_sink_set_volume(pa_sink *sink, const pa_cvolume *volume, pa_bool_t propagate, pa_bool_t sendmsg, pa_bool_t become_reference, pa_bool_t save);
+const pa_cvolume *pa_sink_get_volume(pa_sink *sink, pa_bool_t force_refresh, pa_bool_t reference);
+
+void pa_sink_set_mute(pa_sink *sink, pa_bool_t mute, pa_bool_t save);
 pa_bool_t pa_sink_get_mute(pa_sink *sink, pa_bool_t force_refresh);
 
 pa_bool_t pa_sink_update_proplist(pa_sink *s, pa_update_mode_t mode, pa_proplist *p);
+
+int pa_sink_set_port(pa_sink *s, const char *name, pa_bool_t save);
 
 unsigned pa_sink_linked_by(pa_sink *s); /* Number of connected streams */
 unsigned pa_sink_used_by(pa_sink *s); /* Number of connected streams which are not corked */
@@ -258,7 +307,7 @@ unsigned pa_sink_check_suspend(pa_sink *s); /* Returns how many streams are acti
 #define pa_sink_get_state(s) ((s)->state)
 
 /* Moves all inputs away, and stores them in pa_queue */
-pa_queue *pa_sink_move_all_start(pa_sink *s);
+pa_queue *pa_sink_move_all_start(pa_sink *s, pa_queue *q);
 void pa_sink_move_all_finish(pa_sink *s, pa_queue *q, pa_bool_t save);
 void pa_sink_move_all_fail(pa_queue *q);
 
@@ -278,15 +327,20 @@ void pa_sink_detach_within_thread(pa_sink *s);
 
 pa_usec_t pa_sink_get_requested_latency_within_thread(pa_sink *s);
 
-void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind);
-void pa_sink_set_max_request(pa_sink *s, size_t max_request);
+void pa_sink_set_max_rewind_within_thread(pa_sink *s, size_t max_rewind);
+void pa_sink_set_max_request_within_thread(pa_sink *s, size_t max_request);
 
-void pa_sink_update_latency_range(pa_sink *s, pa_usec_t min_latency, pa_usec_t max_latency);
+void pa_sink_set_latency_range_within_thread(pa_sink *s, pa_usec_t min_latency, pa_usec_t max_latency);
 
 /*** To be called exclusively by sink input drivers, from IO context */
 
 void pa_sink_request_rewind(pa_sink*s, size_t nbytes);
 
 void pa_sink_invalidate_requested_latency(pa_sink *s);
+
+pa_usec_t pa_sink_get_latency_within_thread(pa_sink *s);
+
+pa_device_port *pa_device_port_new(const char *name, const char *description, size_t extra);
+void pa_device_port_free(pa_device_port *p);
 
 #endif
