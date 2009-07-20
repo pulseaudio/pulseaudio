@@ -65,7 +65,7 @@ pa_bool_t pa_memtrap_is_good(pa_memtrap *m) {
 }
 
 static void sigsafe_error(const char *s) {
-    write(STDERR_FILENO, s, strlen(s));
+    (void) write(STDERR_FILENO, s, strlen(s));
 }
 
 static void signal_handler(int sig, siginfo_t* si, void *data) {
