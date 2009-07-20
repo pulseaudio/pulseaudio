@@ -405,7 +405,8 @@ int main(int argc, char *argv[]) {
     /*
        Disable lazy relocations to make usage of external libraries
        more deterministic for our RT threads. We abuse __OPTIMIZE__ as
-       a check whether we are a debug build or not.
+       a check whether we are a debug build or not. This all is
+       admittedly a bit snake-oilish.
     */
 
     if (!getenv("LD_BIND_NOW")) {
@@ -416,9 +417,16 @@ int main(int argc, char *argv[]) {
 
         pa_set_env("LD_BIND_NOW", "1");
 
-        if ((rp = pa_readlink("/proc/self/exe")))
-            pa_assert_se(execv(rp, argv) == 0);
-        else
+        if ((rp = pa_readlink("/proc/self/exe"))) {
+
+            if (pa_streq(rp, PA_BINARY))
+                pa_assert_se(execv(rp, argv) == 0);
+            else
+                pa_log_warn("/proc/self/exe does not point to " PA_BINARY ", cannot self execute. Are you playing games?");
+
+            pa_xfree(rp);
+
+        } else
             pa_log_warn("Couldn't read /proc/self/exe, cannot self execute. Running in a chroot()?");
     }
 #endif

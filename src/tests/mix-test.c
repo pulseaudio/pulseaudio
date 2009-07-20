@@ -83,8 +83,10 @@ static void dump_block(const pa_sample_spec *ss, const pa_memchunk *chunk) {
         case PA_SAMPLE_S24RE: {
             uint8_t *u = d;
 
-            for (i = 0; i < chunk->length / pa_frame_size(ss); i++)
-	        printf("0x%02x%02x%02xx ", *(u++), *(u++), *(u++));
+            for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
+	        printf("0x%02x%02x%02xx ", *u, *(u+1), *(u+2));
+                u += 3;
+            }
 
             break;
         }
