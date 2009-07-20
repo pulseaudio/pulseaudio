@@ -144,11 +144,12 @@ pa_stream *pa_stream_new_with_proplist(
     s->suspended = FALSE;
     s->corked = FALSE;
 
+    s->write_memblock = NULL;
+    s->write_data = NULL;
+
     pa_memchunk_reset(&s->peek_memchunk);
     s->peek_data = NULL;
-
     s->record_memblockq = NULL;
-
 
     memset(&s->timing_info, 0, sizeof(s->timing_info));
     s->timing_info_valid = FALSE;
@@ -220,6 +221,11 @@ static void stream_free(pa_stream *s) {
     pa_assert(s);
 
     stream_unlink(s);
+
+    if (s->write_memblock) {
+        pa_memblock_release(s->write_memblock);
+        pa_memblock_unref(s->write_data);
+    }
 
     if (s->peek_memchunk.memblock) {
         if (s->peek_data)
@@ -1187,19 +1193,59 @@ int pa_stream_connect_record(
     return create_stream(PA_STREAM_RECORD, s, dev, attr, flags, NULL, NULL);
 }
 
+int pa_stream_begin_write(
+        pa_stream *s,
+        void **data,
+        size_t *nbytes) {
+
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+
+    PA_CHECK_VALIDITY(s->context, !pa_detect_fork(), PA_ERR_FORKED);
+    PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY(s->context, s->direction == PA_STREAM_PLAYBACK || s->direction == PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY(s->context, data, PA_ERR_INVALID);
+    PA_CHECK_VALIDITY(s->context, nbytes && *nbytes != 0, PA_ERR_INVALID);
+
+    if (!s->write_memblock) {
+        s->write_memblock = pa_memblock_new(s->context->mempool, *nbytes);
+        s->write_data = pa_memblock_acquire(s->write_memblock);
+    }
+
+    *data = s->write_data;
+    *nbytes = pa_memblock_get_length(s->write_memblock);
+
+    return 0;
+}
+
+int pa_stream_cancel_write(
+        pa_stream *s) {
+
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+
+    PA_CHECK_VALIDITY(s->context, !pa_detect_fork(), PA_ERR_FORKED);
+    PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY(s->context, s->direction == PA_STREAM_PLAYBACK || s->direction == PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY(s->context, s->write_memblock, PA_ERR_BADSTATE);
+
+    pa_assert(s->write_data);
+
+    pa_memblock_release(s->write_memblock);
+    pa_memblock_unref(s->write_memblock);
+    s->write_memblock = NULL;
+    s->write_data = NULL;
+
+    return 0;
+}
+
 int pa_stream_write(
         pa_stream *s,
         const void *data,
         size_t length,
-        void (*free_cb)(void *p),
+        pa_free_cb_t free_cb,
         int64_t offset,
         pa_seek_mode_t seek) {
-
-    pa_memchunk chunk;
-    pa_seek_mode_t t_seek;
-    int64_t t_offset;
-    size_t t_length;
-    const void *t_data;
 
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
@@ -1210,46 +1256,71 @@ int pa_stream_write(
     PA_CHECK_VALIDITY(s->context, s->direction == PA_STREAM_PLAYBACK || s->direction == PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, seek <= PA_SEEK_RELATIVE_END, PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, s->direction == PA_STREAM_PLAYBACK || (seek == PA_SEEK_RELATIVE && offset == 0), PA_ERR_INVALID);
+    PA_CHECK_VALIDITY(s->context,
+                      !s->write_memblock ||
+                      ((data >= s->write_data) &&
+                       ((const char*) data + length <= (const char*) s->write_data + pa_memblock_get_length(s->write_memblock))),
+                      PA_ERR_INVALID);
+    PA_CHECK_VALIDITY(s->context, !free_cb || !s->write_memblock, PA_ERR_INVALID);
 
-    if (length <= 0)
-        return 0;
+    if (s->write_memblock) {
+        pa_memchunk chunk;
 
-    t_seek = seek;
-    t_offset = offset;
-    t_length = length;
-    t_data = data;
+        /* pa_stream_write_begin() was called before */
 
-    while (t_length > 0) {
+        pa_memblock_release(s->write_memblock);
 
-        chunk.index = 0;
+        chunk.memblock = s->write_memblock;
+        chunk.index = (const char *) data - (const char *) s->write_data;
+        chunk.length = length;
 
-        if (free_cb && !pa_pstream_get_shm(s->context->pstream)) {
-            chunk.memblock = pa_memblock_new_user(s->context->mempool, (void*) t_data, t_length, free_cb, 1);
-            chunk.length = t_length;
-        } else {
-            void *d;
+        s->write_memblock = NULL;
+        s->write_data = NULL;
 
-            chunk.length = PA_MIN(t_length, pa_mempool_block_size_max(s->context->mempool));
-            chunk.memblock = pa_memblock_new(s->context->mempool, chunk.length);
+        pa_pstream_send_memblock(s->context->pstream, s->channel, offset, seek, &chunk);
+        pa_memblock_unref(chunk.memblock);
 
-            d = pa_memblock_acquire(chunk.memblock);
-            memcpy(d, t_data, chunk.length);
-            pa_memblock_release(chunk.memblock);
+    } else {
+        pa_seek_mode_t t_seek = seek;
+        int64_t t_offset = offset;
+        size_t t_length = length;
+        const void *t_data = data;
+
+        /* pa_stream_write_begin() was not called before */
+
+        while (t_length > 0) {
+            pa_memchunk chunk;
+
+            chunk.index = 0;
+
+            if (free_cb && !pa_pstream_get_shm(s->context->pstream)) {
+                chunk.memblock = pa_memblock_new_user(s->context->mempool, (void*) t_data, t_length, free_cb, 1);
+                chunk.length = t_length;
+            } else {
+                void *d;
+
+                chunk.length = PA_MIN(t_length, pa_mempool_block_size_max(s->context->mempool));
+                chunk.memblock = pa_memblock_new(s->context->mempool, chunk.length);
+
+                d = pa_memblock_acquire(chunk.memblock);
+                memcpy(d, t_data, chunk.length);
+                pa_memblock_release(chunk.memblock);
+            }
+
+            pa_pstream_send_memblock(s->context->pstream, s->channel, t_offset, t_seek, &chunk);
+
+            t_offset = 0;
+            t_seek = PA_SEEK_RELATIVE;
+
+            t_data = (const uint8_t*) t_data + chunk.length;
+            t_length -= chunk.length;
+
+            pa_memblock_unref(chunk.memblock);
         }
 
-        pa_pstream_send_memblock(s->context->pstream, s->channel, t_offset, t_seek, &chunk);
-
-        t_offset = 0;
-        t_seek = PA_SEEK_RELATIVE;
-
-        t_data = (const uint8_t*) t_data + chunk.length;
-        t_length -= chunk.length;
-
-        pa_memblock_unref(chunk.memblock);
+        if (free_cb && pa_pstream_get_shm(s->context->pstream))
+            free_cb((void*) data);
     }
-
-    if (free_cb && pa_pstream_get_shm(s->context->pstream))
-        free_cb((void*) data);
 
     /* This is obviously wrong since we ignore the seeking index . But
      * that's OK, the server side applies the same error */

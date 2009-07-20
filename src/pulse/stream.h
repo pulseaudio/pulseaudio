@@ -418,15 +418,71 @@ int pa_stream_connect_record(
 /** Disconnect a stream from a source/sink */
 int pa_stream_disconnect(pa_stream *s);
 
-/** Write some data to the server (for playback sinks), if free_cb is
- * non-NULL this routine is called when all data has been written out
- * and an internal reference to the specified data is kept, the data
- * is not copied. If NULL, the data is copied into an internal
- * buffer. The client my freely seek around in the output buffer. For
+/** Prepare writing data to the server (for playback streams). This
+ * function may be used to optimize the number of memory copies when
+ * doing playback ("zero-copy"). It is recommended to call this
+ * function before each call to pa_stream_write(). Pass in the address
+ * to a pointer and an address of the number of bytes you want to
+ * write. On return the two values will contain a pointer where you
+ * can place the data to write and the maximum number of bytes you can
+ * write. On return *nbytes can be larger or have the same value as
+ * you passed in. You need to be able to handle both cases. Accessing
+ * memory beyond the returned *nbytes value is invalid. Acessing the
+ * memory returned after the following pa_stream_write() or
+ * pa_stream_cancel_write() is invalid. On invocation only *nbytes
+ * needs to be initialized, on return both *data and *nbytes will be
+ * valid. If you place (size_t) -1 in *nbytes on invocation the memory
+ * size will be chosen automatically (which is recommended to
+ * do). After placing your data in the memory area returned call
+ * pa_stream_write() with data set to an address within this memory
+ * area and an nbytes value that is smaller or equal to what was
+ * returned by this function to actually execute the write. An
+ * invocation of pa_stream_write() should follow "quickly" on
+ * pa_stream_begin_write(). It is not recommended letting an unbounded
+ * amount of time pass after calling pa_stream_begin_write() and
+ * before calling pa_stream_write(). If you want to cancel a
+ * previously called pa_stream_begin_write() without calling
+ * pa_stream_write() use pa_stream_cancel_write() instead. Calling
+ * pa_stream_begin_write() twice without calling pa_stream_write() or
+ * pa_stream_cancel_write() in between will return exactly the same
+ * pointer/nbytes values.\since 0.9.16 */
+int pa_stream_begin_write(
+        pa_stream *p,
+        void **data,
+        size_t *nbytes);
+
+/** Reverses the effect of pa_stream_begin_write() dropping all data
+ * that has already been placed in the memory area returned by
+ * pa_stream_begin_write(). Only valid to call if
+ * pa_stream_begin_write() was called before and neither
+ * pa_stream_cancel_write() nor pa_stream_write() have been called
+ * yet. Accessing the memory previously returned by
+ * pa_stream_begin_write() after this call is invalid. Any further
+ * explicit freeing of the memory area is not necessary. \since
+ * 0.9.16 */
+int pa_stream_cancel_write(
+        pa_stream *p);
+
+/** Write some data to the server (for playback streams), if free_cb
+ * is non-NULL this routine is called when all data has been written
+ * out and an internal reference to the specified data is kept, the
+ * data is not copied. If NULL, the data is copied into an internal
+ * buffer. The client may freely seek around in the output buffer. For
  * most applications passing 0 and PA_SEEK_RELATIVE as arguments for
  * offset and seek should be useful. Afte ther write call succeeded
  * the write index will be a the position after where this chunk of
- * data has been written to. */
+ * data has been written to.
+ *
+ * As an optimization for avoiding needless memory copies you may call
+ * pa_stream_begin_write() before this call and then place your audio
+ * data directly in the memory area returned by that call. Then, pass
+ * a pointer to that memory area to pa_stream_write(). After the
+ * invocation of pa_stream_write() the memory area may no longer be
+ * accessed. Any further explicit freeing of the memory area is not
+ * necessary. It is OK to write the memory area returned by
+ * pa_stream_begin_write() only partially with this call, skipping
+ * bytes both at the end and at the beginning of the reserved memory
+ * area.*/
 int pa_stream_write(
         pa_stream *p             /**< The stream to use */,
         const void *data         /**< The data to write */,
@@ -435,7 +491,7 @@ int pa_stream_write(
         int64_t offset,          /**< Offset for seeking, must be 0 for upload streams */
         pa_seek_mode_t seek      /**< Seek mode, must be PA_SEEK_RELATIVE for upload streams */);
 
-/** Read the next fragment from the buffer (for recording).
+/** Read the next fragment from the buffer (for recording streams).
  * data will point to the actual data and length will contain the size
  * of the data in bytes (which can be less than a complete framgnet).
  * Use pa_stream_drop() to actually remove the data from the
