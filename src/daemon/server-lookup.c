@@ -30,13 +30,13 @@
 
 #include <pulsecore/core.h>
 #include <pulsecore/core-util.h>
-#include <pulsecore/dbus-common.h>
 #include <pulsecore/dbus-shared.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/protocol-dbus.h>
 
 #include "server-lookup.h"
 
-#define OBJECT_PATH "/org/pulseaudio1/server_lookup"
+#define OBJECT_PATH "/org/pulseaudio/server_lookup1"
 #define INTERFACE "org.PulseAudio.ServerLookup1"
 
 struct pa_dbusobj_server_lookup {

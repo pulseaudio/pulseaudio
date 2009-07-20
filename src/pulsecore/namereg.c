@@ -149,21 +149,48 @@ const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t 
 
     pa_assert_se(pa_hashmap_put(c->namereg, e->name, e) >= 0);
 
+    if (type == PA_NAMEREG_SINK && !c->default_sink)
+        pa_namereg_set_default_sink(c, data);
+    else if (type == PA_NAMEREG_SOURCE && !c->default_source)
+        pa_namereg_set_default_source(c, data);
+
     return e->name;
 }
 
 void pa_namereg_unregister(pa_core *c, const char *name) {
     struct namereg_entry *e;
+    uint32_t idx;
 
     pa_assert(c);
     pa_assert(name);
 
     pa_assert_se(e = pa_hashmap_remove(c->namereg, name));
 
-    if (c->default_sink == e->data)
-        pa_namereg_set_default_sink(c, NULL);
-    else if (c->default_source == e->data)
-        pa_namereg_set_default_source(c, NULL);
+    if (c->default_sink == e->data) {
+        pa_sink *new_default = pa_idxset_first(c->sinks, &idx);
+
+        if (new_default == e->data)
+            new_default = pa_idxset_next(c->sinks, &idx);
+
+        pa_namereg_set_default_sink(c, new_default);
+
+    } else if (c->default_source == e->data) {
+        pa_source *new_default;
+
+        for (new_default = pa_idxset_first(c->sources, &idx); new_default; new_default = pa_idxset_next(c->sources, &idx)) {
+            if (new_default != e->data && !new_default->monitor_of)
+                break;
+        }
+
+        if (!new_default) {
+            new_default = pa_idxset_first(c->sources, &idx);
+
+            if (new_default == e->data)
+                new_default = pa_idxset_next(c->sources, &idx);
+        }
+
+        pa_namereg_set_default_source(c, new_default);
+    }
 
     pa_xfree(e->name);
     pa_xfree(e);
@@ -191,7 +218,6 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type) {
 
         if ((s = pa_namereg_get(c, NULL, PA_NAMEREG_SINK)))
             return s->monitor_source;
-
     }
 
     if (!name)
@@ -242,35 +268,16 @@ pa_source* pa_namereg_set_default_source(pa_core*c, pa_source *s) {
     return s;
 }
 
+/* XXX: After removing old functionality, has this function become useless? */
 pa_sink *pa_namereg_get_default_sink(pa_core *c) {
-    pa_sink *s;
-
     pa_assert(c);
 
-    if (c->default_sink)
-        return c->default_sink;
-
-    if ((s = pa_idxset_first(c->sinks, NULL)))
-        return pa_namereg_set_default_sink(c, s);
-
-    return NULL;
+    return c->default_sink;
 }
 
+/* XXX: After removing old functionality, has this function become useless? */
 pa_source *pa_namereg_get_default_source(pa_core *c) {
-    pa_source *s;
-    uint32_t idx;
-
     pa_assert(c);
 
-    if (c->default_source)
-        return c->default_source;
-
-    for (s = PA_SOURCE(pa_idxset_first(c->sources, &idx)); s; s = PA_SOURCE(pa_idxset_next(c->sources, &idx)))
-        if (!s->monitor_of)
-            return pa_namereg_set_default_source(c, s);
-
-    if ((s = pa_idxset_first(c->sources, NULL)))
-        return pa_namereg_set_default_source(c, s);
-
-    return NULL;
+    return c->default_source;
 }

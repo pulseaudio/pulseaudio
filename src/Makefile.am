@@ -852,7 +852,7 @@ endif
 if HAVE_DBUS
 libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES += \
 		pulsecore/dbus-shared.c pulsecore/dbus-shared.h \
-		pulsecore/dbus-common.c pulsecore/dbus-common.h
+		pulsecore/protocol-dbus.c pulsecore/protocol-dbus.h
 libpulsecore_@PA_MAJORMINORMICRO@_la_CFLAGS += $(DBUS_CFLAGS)
 libpulsecore_@PA_MAJORMINORMICRO@_la_LIBADD += $(DBUS_LIBS)
 endif
@@ -1225,7 +1225,7 @@ SYMDEF_FILES = \
 		modules/module-augment-properties-symdef.h \
 		modules/module-cork-music-on-phone-symdef.h \
 		modules/module-console-kit-symdef.h \
-		modules/module-dbus-protocol-symdef.h
+		modules/dbus/module-dbus-protocol-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
@@ -1277,8 +1277,14 @@ module_http_protocol_unix_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMI
 # D-Bus protocol
 
 module_dbus_protocol_la_SOURCES = \
-		pulsecore/dbus-objs/core.c pulsecore/dbus-objs/core.h \
-		modules/module-dbus-protocol.c
+		modules/dbus/iface-card.c modules/dbus/iface-card.h \
+		modules/dbus/iface-client.c modules/dbus/iface-client.h \
+		modules/dbus/iface-core.c modules/dbus/iface-core.h \
+		modules/dbus/iface-device.c modules/dbus/iface-device.h \
+		modules/dbus/iface-module.c modules/dbus/iface-module.h \
+		modules/dbus/iface-sample.c modules/dbus/iface-sample.h \
+		modules/dbus/iface-stream.c modules/dbus/iface-stream.h \
+		modules/dbus/module-dbus-protocol.c
 module_dbus_protocol_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 module_dbus_protocol_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_dbus_protocol_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
