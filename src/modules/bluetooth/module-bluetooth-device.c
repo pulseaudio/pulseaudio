@@ -1739,7 +1739,8 @@ static void shutdown_bt(struct userdata *u) {
     if (u->service_fd >= 0) {
         pa_close(u->service_fd);
         u->service_fd = -1;
-        u->service_write_type = u->service_write_type = 0;
+        u->service_write_type = 0;
+        u->service_read_type = 0;
     }
 
     if (u->write_memchunk.memblock) {
@@ -1755,7 +1756,8 @@ static int init_bt(struct userdata *u) {
     shutdown_bt(u);
 
     u->stream_write_type = 0;
-    u->service_write_type = u->service_write_type = 0;
+    u->service_write_type = 0;
+    u->service_read_type = 0;
 
     if ((u->service_fd = bt_audio_service_open()) < 0) {
         pa_log_error("Couldn't connect to bluetooth audio service");
