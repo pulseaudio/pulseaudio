@@ -65,6 +65,7 @@ PA_MODULE_USAGE(_("sink=<sink to connect to> "));
 
 #define MEMBLOCKQ_MAXLENGTH (16*1024*1024)
 
+
 struct userdata {
     pa_core *core;
     pa_module *module;
@@ -106,6 +107,21 @@ static const char* const valid_modargs[] = {
     "channel_map",
     NULL
 };
+
+uint64_t time_diff(struct timespec *timeA_p, struct timespec *timeB_p);
+void hanning_normalized_window(float *W,size_t window_size);
+void hanning_window(float *W,size_t window_size);
+void hamming_window(float *W,size_t window_size);
+void blackman_window(float *W,size_t window_size);
+void sin_window(float *W,size_t window_size);
+void array_out(const char *name,float *a,size_t length);
+
+static void dsp_logic(float *dst,struct userdata *u);
+static void process_samples(struct userdata *u);
+void input_buffer(struct userdata *u,pa_memchunk *in);
+
+#define gettime(x) clock_gettime(CLOCK_MONOTONIC,&x)
+#define tdiff(x,y) time_diff(&x,&y)
 
 uint64_t time_diff(struct timespec *timeA_p, struct timespec *timeB_p)
 {
@@ -188,13 +204,14 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         case PA_SINK_MESSAGE_GET_LATENCY: {
             pa_usec_t usec = 0;
             pa_sample_spec *ss=&u->sink->sample_spec;
-            size_t fs=pa_frame_size(ss);
+            size_t fs=pa_frame_size(&(u->sink->sample_spec));
 
             /* Get the latency of the master sink */
             if (PA_MSGOBJECT(u->master)->process_msg(PA_MSGOBJECT(u->master), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
                 usec = 0;
 
-            usec+=pa_bytes_to_usec(u->samples_gathered*fs,ss);
+            usec+=pa_bytes_to_usec(u->R*fs,ss);
+            //usec+=pa_bytes_to_usec(u->samples_gathered*fs,ss);
             usec += pa_bytes_to_usec(pa_memblockq_get_length(u->rendered_q), ss);
             /* Add the latency internal to our sink input on top */
             usec += pa_bytes_to_usec(pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq), &u->master->sample_spec);
@@ -247,6 +264,90 @@ static void sink_update_requested_latency(pa_sink *s) {
             pa_sink_get_requested_latency_within_thread(s));
 }
 
+static void process_samples(struct userdata *u){
+    pa_memchunk tchunk;
+    size_t fs=pa_frame_size(&(u->sink->sample_spec));
+    while(u->samples_gathered>=u->R){
+        float *dst;
+        //pa_log("iter gathered: %ld",u->samples_gathered);
+        //pa_memblockq_drop(u->rendered_q, tchunk.length);
+        tchunk.index=0;
+        tchunk.length=u->R*fs;
+        tchunk.memblock=pa_memblock_new(u->core->mempool,tchunk.length);
+        dst=((float*)pa_memblock_acquire(tchunk.memblock));
+        dsp_logic(dst,u);
+        pa_memblock_release(tchunk.memblock);
+        pa_memblockq_push(u->rendered_q, &tchunk);
+        pa_memblock_unref(tchunk.memblock);
+        u->samples_gathered-=u->R;
+    }
+}
+
+static void dsp_logic(float *dst,struct userdata *u){
+    size_t fs=pa_frame_size(&(u->sink->sample_spec));
+    //use a linear-phase sliding STFT and overlap-add method (for each channel)
+    for (size_t c=0;c<u->channels;c++) {
+        //zero padd the data
+        memset(u->work_buffer+u->window_size,0,(u->fft_size-u->window_size)*sizeof(float));
+        //window the data
+        for(size_t j=0;j<u->window_size;++j){
+            u->work_buffer[j]=u->W[j]*u->input[c][j];
+        }
+        //Processing is done here!
+        //do fft
+        fftwf_execute_dft_r2c(u->forward_plan,u->work_buffer,u->output_window);
+        //perform filtering
+        for(size_t j=0;j<u->fft_size/2+1;++j){
+            u->output_window[j][0]*=u->H[j];
+            u->output_window[j][1]*=u->H[j];
+        }
+        //inverse fft
+        fftwf_execute_dft_c2r(u->inverse_plan,u->output_window,u->work_buffer);
+        ////debug: tests overlaping add
+        ////and negates ALL PREVIOUS processing
+        ////yields a perfect reconstruction if COLA is held
+        //for(size_t j=0;j<u->window_size;++j){
+        //    u->work_buffer[j]=u->W[j]*u->input[c][j];
+        //}
+
+        //overlap add and preserve overlap component from this window (linear phase)
+        for(size_t j=0;j<u->R;++j){
+            u->work_buffer[j]+=u->overlap_accum[c][j];
+            u->overlap_accum[c][j]=u->work_buffer[u->overlap_size+j];
+        }
+
+        //debug: tests if basic buffering works
+        //shouldn't modify the signal AT ALL (beyond roundoff)
+        for(size_t j=0;j<u->window_size;++j){
+            u->work_buffer[j]=u->input[c][j];
+        }
+
+        //preseve the needed input for the next window's overlap
+        memmove(u->input[c],u->input[c]+u->R,
+            (u->samples_gathered+u->overlap_size-u->R)*sizeof(float)
+        );
+        //output the samples that are outputable now
+        pa_sample_clamp(PA_SAMPLE_FLOAT32NE,dst+c,fs,u->work_buffer,sizeof(float),u->R);
+    }
+}
+
+void input_buffer(struct userdata *u,pa_memchunk *in){
+    size_t fs=pa_frame_size(&(u->sink->sample_spec));
+    size_t samples=in->length/fs;
+    pa_assert_se(samples<=u->target_samples-u->samples_gathered);
+    float *src = (float*) ((uint8_t*) pa_memblock_acquire(in->memblock) + in->index);
+    for (size_t c=0;c<u->channels;c++) {
+        //buffer with an offset after the overlap from previous
+        //iterations
+        pa_assert_se(
+            u->input[c]+u->overlap_size+u->samples_gathered+samples<=u->input[c]+u->target_samples+u->overlap_size
+        );
+        pa_sample_clamp(PA_SAMPLE_FLOAT32NE,u->input[c]+u->overlap_size+u->samples_gathered,sizeof(float),src+c,fs,samples);
+    }
+    u->samples_gathered+=samples;
+    pa_memblock_release(in->memblock);
+}
+
 /* Called from I/O thread context */
 static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk) {
     struct userdata *u;
@@ -255,153 +356,98 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     pa_assert_se(u = i->userdata);
     pa_assert_se(u->sink);
     size_t fs=pa_frame_size(&(u->sink->sample_spec));
-    size_t ss=pa_sample_size(&(u->sink->sample_spec));
-    size_t fe = fs/ss;
     size_t samples_requested=nbytes/fs;
+    size_t buffered_samples=pa_memblockq_get_length(u->rendered_q)/fs;
     pa_memchunk tchunk;
     chunk->memblock=NULL;
-    size_t buffered_samples=pa_memblockq_get_length(u->rendered_q)/fs;
-
     if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
         return -1;
 
-    pa_log("start output-buffered %ld, input-buffered %ld",buffered_samples,u->samples_gathered);
-    //collect samples
-    size_t buffered_remaining=pa_memblockq_get_length(u->rendered_q)/fs;
-    size_t buffer_missing=pa_memblockq_missing(u->rendered_q)/fs;
-    size_t desired_samples=(buffer_missing>=u->R)*PA_MIN(u->target_samples-u->samples_gathered,buffer_missing);
-    if(desired_samples>0){
-        u->conv_buffer.index=0;
-        //if we still had buffered output, 
-        //or can gather any more in the buffer
-        //politely request (optimistic)
-        if(buffered_samples>=samples_requested ||
-            (u->samples_gathered/u->R)*u->R>=samples_requested){
-            u->conv_buffer.length=desired_samples*fs;
-            pa_log("trying to buffer %ld samples",desired_samples);
-            pa_sink_render_into(u->sink, &u->conv_buffer);
-        }else{//we need it now! force it
-            //TODO: minimum amount or the whole buffer better?
-            desired_samples=u->R-u->samples_gathered%u->R;
-            u->conv_buffer.length=desired_samples*fs;
-            pa_log("force-buffer %ld samples",desired_samples);
-            pa_sink_render_into_full(u->sink, &u->conv_buffer);
-            pa_assert_se(u->conv_buffer.length==desired_samples*fs);
-        }
-        size_t n_samples=u->conv_buffer.length/fs;
-        float *src;
-        pa_log("received %ld samples",n_samples);
+    pa_log("start output-buffered %ld, input-buffered %ld, requested %ld",buffered_samples,u->samples_gathered,samples_requested);
+    struct timespec start,end;
 
-        pa_assert_se(n_samples<=u->target_samples-u->samples_gathered);
-        src = (float*) ((uint8_t*) pa_memblock_acquire(u->conv_buffer.memblock) + u->conv_buffer.index);
-        for (size_t c=0;c<u->channels;c++) {
-            //buffer with an offset after the overlap from previous
-            //iterations
-            pa_assert_se(
-                u->input[c]+u->overlap_size+u->samples_gathered+n_samples<=u->input[c]+u->target_samples+u->overlap_size
-            );
-            pa_sample_clamp(PA_SAMPLE_FLOAT32NE,u->input[c]+u->overlap_size+u->samples_gathered,sizeof(float), src+c, fs, n_samples);
-        }
-        u->samples_gathered+=n_samples;
-        pa_memblock_release(u->conv_buffer.memblock);
-    }
-    //pa_assert_se(u->samples_gathered>=u->R);
-    pa_assert_se(u->fft_size>=u->window_size);
-    pa_assert_se(u->R<u->window_size);
-    //process every complete block on hand
-    while(u->samples_gathered>=u->R&&buffer_missing>=u->R){
-        float *dst;
-        //pa_log("iter gathered: %ld",u->samples_gathered);
-        tchunk.index=0;
-        tchunk.length=u->R*fs;
-        tchunk.memblock=pa_memblock_new(u->core->mempool,tchunk.length);
-        //pa_memblockq_drop(u->rendered_q, tchunk.length);
-        pa_assert_se(tchunk.length==u->R*fs);
-        dst=(float*)pa_memblock_acquire(tchunk.memblock);
-        //use a linear-phase sliding STFT and overlap-add method (for each channel)
-        for (size_t c=0;c<u->channels;c++) {
-            //zero padd the data
-            memset(u->work_buffer+u->window_size,0,(u->fft_size-u->window_size)*sizeof(float));
-            //window the data
-            for(size_t j=0;j<u->window_size;++j){
-                u->work_buffer[j]=u->W[j]*u->input[c][j];
-            }
-            //Processing is done here!
-            //do fft
-            fftwf_execute_dft_r2c(u->forward_plan,u->work_buffer,u->output_window);
-            //perform filtering
-            for(size_t j=0;j<u->fft_size/2+1;++j){
-                u->output_window[j][0]*=u->H[j];
-                u->output_window[j][1]*=u->H[j];
-            }
-            //inverse fft
-            fftwf_execute_dft_c2r(u->inverse_plan,u->output_window,u->work_buffer);
-            ////debug: tests overlaping add
-            ////and negates ALL PREVIOUS processing
-            ////yields a perfect reconstruction if COLA is held
-            //for(size_t j=0;j<u->window_size;++j){
-            //    u->work_buffer[j]=u->W[j]*u->input[c][j];
-            //}
-
-            //overlap add and preserve overlap component from this window (linear phase)
-            for(size_t j=0;j<u->R;++j){
-                u->work_buffer[j]+=u->overlap_accum[c][j];
-                u->overlap_accum[c][j]=u->work_buffer[u->overlap_size+j];
-            }
-            
-            //debug: tests if basic buffering works
-            //shouldn't modify the signal AT ALL (beyond roundoff)
-            for(size_t j=0;j<u->window_size;++j){
-                u->work_buffer[j]=u->input[c][j];
-            }
-            
-            //preseve the needed input for the next window's overlap
-            memmove(u->input[c],u->input[c]+u->R,
-                (u->samples_gathered+u->overlap_size-u->R)*sizeof(float)
-            );
-            //output the samples that are outputable now
-            pa_sample_clamp(PA_SAMPLE_FLOAT32NE, dst+c, fs, u->work_buffer, sizeof(float),u->R);
-        }
-        pa_memblock_release(tchunk.memblock);
-        pa_memblockq_push(u->rendered_q, &tchunk);
-        pa_memblock_unref(tchunk.memblock);
-        u->samples_gathered-=u->R;
-        buffer_missing-=u->R;
-    }
-    //deque from renderq and output
-    //pa_memblockq_set_prebuf(u->rendered_q,samples_requested*fs);
-    pa_assert_se(pa_memblockq_peek(u->rendered_q,&tchunk)>=0);
-    if(tchunk.length>=nbytes){
+    if(pa_memblockq_peek(u->rendered_q,&tchunk)==0){
         *chunk=tchunk;
-        chunk->length=samples_requested*fs;
-        pa_memblock_ref(chunk->memblock);
-        pa_memblock_unref(tchunk.memblock);
         pa_memblockq_drop(u->rendered_q, chunk->length);
-    }else{
-        size_t copied=0;
-        chunk->length=nbytes;
-        chunk->memblock=pa_memblock_new(u->core->mempool,chunk->length);
-        uint8_t *dst=(uint8_t*)pa_memblock_acquire(chunk->memblock);
-        do{
-            size_t l=PA_MIN(tchunk.length-tchunk.index,nbytes-copied);
-            uint8_t *src=(((uint8_t*)pa_memblock_acquire(tchunk.memblock))+tchunk.index);
-            memmove(dst+copied,src,l);
-            copied+=l;
-            pa_memblock_release(tchunk.memblock);
-            pa_memblock_unref(tchunk.memblock);
-            pa_memblockq_drop(u->rendered_q,l);
-            if(copied<nbytes){
-                if(pa_memblockq_get_length(u->rendered_q)==0){
-                    chunk->length=copied;
-                    break;
-                }
-                pa_memblockq_peek(u->rendered_q,&tchunk);
-            }
-        }while(copied<nbytes);
-        pa_memblock_release(chunk->memblock);
+        return 0;
     }
+    do{
+        pa_memchunk *buffer;
+        size_t input_remaining=u->target_samples-u->samples_gathered;
+        pa_assert(input_remaining>0);
+        //collect samples
+
+        //buffer=&u->conv_buffer;
+        //buffer->length=input_remaining*fs;
+        //buffer->index=0;
+        //pa_memblock_ref(buffer);
+        //pa_sink_render_into(u->sink,buffer);
+
+        if(u->sink->thread_info.rewind_requested)
+            sink_request_rewind(u->sink);
+
+        pa_memchunk p;
+        buffer=&p;
+        pa_sink_render(u->sink,u->R*fs,buffer);
+        buffer->length=PA_MIN(input_remaining*fs,buffer->length);
+
+        //debug block
+        //pa_memblockq_push(u->rendered_q,buffer);
+        //pa_memblock_unref(buffer->memblock);
+        //goto END;
+
+        pa_log("asked for %ld input samples, got %ld samples",input_remaining,buffer->length/fs);
+        //copy new input
+        gettime(start);
+        input_buffer(u,buffer);
+        gettime(end);
+        pa_log("Took %0.5f seconds to setup",tdiff(end,start)*1e-9);
+
+        pa_memblock_unref(buffer->memblock);
+
+        pa_assert_se(u->fft_size>=u->window_size);
+        pa_assert_se(u->R<u->window_size);
+        //process every complete block on hand
+
+        gettime(start);
+        process_samples(u);
+        gettime(end);
+        pa_log("Took %0.5f seconds to process",tdiff(end,start)*1e-9);
+
+        buffered_samples=pa_memblockq_get_length(u->rendered_q)/fs;
+    }while(buffered_samples<u->R);
+
+    //deque from rendered_q and output
+    pa_assert_se(pa_memblockq_peek(u->rendered_q,&tchunk)==0);
+    *chunk=tchunk;
+    pa_memblockq_drop(u->rendered_q, chunk->length);
+    //if(tchunk.length>=nbytes){
+        //chunk->length=PA_MIN(tchunk.length,nbytes);
+    //}else{
+    //    size_t copied=0;
+    //    chunk->index=0;
+    //    chunk->length=PA_MIN(nbytes,pa_memblockq_get_length(u->rendered_q));
+    //    chunk->memblock=pa_memblock_new(u->core->mempool,chunk->length);
+    //    uint8_t *dst=(uint8_t*)pa_memblock_acquire(chunk->memblock);
+    //    for(;;){
+    //        size_t l=PA_MIN(tchunk.length,nbytes-copied);
+    //        pa_assert_se(l>0);
+    //        uint8_t *src=(((uint8_t*)pa_memblock_acquire(tchunk.memblock))+tchunk.index);
+    //        memmove(dst+copied,src,l);
+    //        copied+=l;
+    //        pa_memblock_release(tchunk.memblock);
+    //        pa_memblock_unref(tchunk.memblock);
+    //        pa_memblockq_drop(u->rendered_q,l);
+    //        if(copied<chunk->length){
+    //            pa_assert_se(pa_memblockq_peek(u->rendered_q,&tchunk)==0);
+    //        }else{
+    //            break;
+    //        }
+    //    }
+    //    pa_memblock_release(chunk->memblock);
+    //}
     pa_assert_se(chunk->memblock);
-    pa_log("output requested %ld, gave %ld",nbytes/fs,chunk->length/fs);
+    pa_log("gave %ld",chunk->length/fs);
     //pa_log("end pop");
     return 0;
 }
@@ -411,6 +457,7 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     struct userdata *u;
     size_t amount = 0;
 
+    pa_log_debug("Rewind callback!");
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
@@ -425,6 +472,7 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
         u->sink->thread_info.rewind_nbytes = 0;
 
         if (amount > 0) {
+            //pa_sample_spec *ss=&u->sink->sample_spec;
             pa_memblockq_seek(u->rendered_q, - (int64_t) amount, PA_SEEK_RELATIVE, TRUE);
             pa_log_debug("Resetting equalizer");
             u->samples_gathered=0;
@@ -459,7 +507,8 @@ static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
     if (!u->sink || !PA_SINK_IS_LINKED(u->sink->thread_info.state))
         return;
 
-    pa_sink_set_max_request_within_thread(u->sink, nbytes);
+    size_t fs=pa_frame_size(&(u->sink->sample_spec));
+    pa_sink_set_max_request_within_thread(u->sink, u->R*fs);
 }
 
 /* Called from I/O thread context */
@@ -472,7 +521,9 @@ static void sink_input_update_sink_latency_range_cb(pa_sink_input *i) {
     if (!u->sink || !PA_SINK_IS_LINKED(u->sink->thread_info.state))
         return;
 
-    pa_sink_set_latency_range_within_thread(u->sink, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
+    size_t fs=pa_frame_size(&(u->sink->sample_spec));
+    pa_sink_set_latency_range_within_thread(u->sink,u->R*fs ,u->R*fs );
+    //pa_sink_set_latency_range_within_thread(u->sink, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
 }
 
 /* Called from I/O thread context */
@@ -504,7 +555,9 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     pa_sink_set_rtpoll(u->sink, i->sink->rtpoll);
     pa_sink_attach_within_thread(u->sink);
 
-    pa_sink_set_latency_range_within_thread(u->sink, u->master->thread_info.min_latency, u->master->thread_info.max_latency);
+    size_t fs=pa_frame_size(&(u->sink->sample_spec));
+    pa_sink_set_latency_range_within_thread(u->sink, u->R*fs, u->R*fs);
+    //pa_sink_set_latency_range_within_thread(u->sink, u->master->thread_info.min_latency, u->master->thread_info.max_latency);
 }
 
 /* Called from main context */
@@ -598,7 +651,7 @@ int pa__init(pa_module*m) {
     u->window_size=7999;
     u->R=(u->window_size+1)/2;
     u->overlap_size=u->window_size-u->R;
-    u->target_samples=5*u->R;
+    u->target_samples=1*u->R;
     u->samples_gathered=0;
     u->max_output=pa_frame_align(pa_mempool_block_size_max(m->core->mempool), &ss)/pa_frame_size(&ss);
     u->rendered_q = pa_memblockq_new(0, MEMBLOCKQ_MAXLENGTH,u->target_samples*fs, fs, fs, 0, 0, NULL);
@@ -716,6 +769,8 @@ int pa__init(pa_module*m) {
 
     pa_sink_set_asyncmsgq(u->sink, master->asyncmsgq);
     pa_sink_set_rtpoll(u->sink, master->rtpoll);
+    pa_sink_set_max_request(u->sink,u->R*fs);
+    //pa_sink_set_fixed_latency(u->sink,pa_bytes_to_usec(u->R*fs,&ss));
 
     /* Create sink input */
     pa_sink_input_new_data_init(&sink_input_data);
