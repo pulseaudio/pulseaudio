@@ -473,6 +473,9 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
             if (frames > pa_mempool_block_size_max(u->source->core->mempool)/u->frame_size)
                 frames = pa_mempool_block_size_max(u->source->core->mempool)/u->frame_size;
 
+            if (frames == 0)
+                break;
+
             /* Check these are multiples of 8 bit */
             pa_assert((areas[0].first & 7) == 0);
             pa_assert((areas[0].step & 7)== 0);
@@ -599,7 +602,10 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
             frames = snd_pcm_readi(u->pcm_handle, (uint8_t*) p, (snd_pcm_uframes_t) frames);
             pa_memblock_release(chunk.memblock);
 
-            pa_assert(frames != 0);
+            if (frames == 0) {
+                pa_memblock_unref(chunk.memblock);
+                break;
+            }
 
             if (PA_UNLIKELY(frames < 0)) {
                 pa_memblock_unref(chunk.memblock);
