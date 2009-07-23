@@ -940,7 +940,6 @@ int pa_alsa_path_select(pa_alsa_path *p, snd_mixer_t *m) {
     PA_LLIST_FOREACH(e, p->elements) {
 
         switch (e->switch_use) {
-            case PA_ALSA_SWITCH_MUTE:
             case PA_ALSA_SWITCH_OFF:
                 r = element_set_switch(e, m, FALSE);
                 break;
@@ -949,6 +948,7 @@ int pa_alsa_path_select(pa_alsa_path *p, snd_mixer_t *m) {
                 r = element_set_switch(e, m, TRUE);
                 break;
 
+            case PA_ALSA_SWITCH_MUTE:
             case PA_ALSA_SWITCH_IGNORE:
             case PA_ALSA_SWITCH_SELECT:
                 r = 0;
@@ -960,7 +960,6 @@ int pa_alsa_path_select(pa_alsa_path *p, snd_mixer_t *m) {
 
         switch (e->volume_use) {
             case PA_ALSA_VOLUME_OFF:
-            case PA_ALSA_VOLUME_MERGE:
                 r = element_mute_volume(e, m);
                 break;
 
@@ -968,6 +967,7 @@ int pa_alsa_path_select(pa_alsa_path *p, snd_mixer_t *m) {
                 r = element_zero_volume(e, m);
                 break;
 
+            case PA_ALSA_VOLUME_MERGE:
             case PA_ALSA_VOLUME_IGNORE:
                 r = 0;
                 break;
