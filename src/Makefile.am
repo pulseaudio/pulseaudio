@@ -87,7 +87,7 @@ AM_CFLAGS = \
 
 AM_LIBADD = $(PTHREAD_LIBS) $(INTLLIBS)
 AM_LDADD = $(PTHREAD_LIBS) $(INTLLIBS)
-AM_LDFLAGS = -Wl,-z,nodelete
+AM_LDFLAGS = $(NODELETE_LDFLAGS)
 
 if STATIC_BINS
 BINLDFLAGS = -static
@@ -183,9 +183,9 @@ PREOPEN_LIBS = $(modlibexec_LTLIBRARIES)
 endif
 
 if FORCE_PREOPEN
-pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) -dlpreopen force $(foreach f,$(PREOPEN_LIBS),-dlpreopen $(f))
+pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(IMMEDIATE_LDFLAGS) -dlpreopen force $(foreach f,$(PREOPEN_LIBS),-dlpreopen $(f))
 else
-pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) -dlopen force $(foreach f,$(PREOPEN_LIBS),-dlopen $(f))
+pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(IMMEDIATE_LDFLAGS) -dlopen force $(foreach f,$(PREOPEN_LIBS),-dlopen $(f))
 endif
 
 ###################################

@@ -172,11 +172,11 @@ int pa_asyncmsgq_send(pa_asyncmsgq *a, pa_msgobject *object, int code, const voi
     return i.ret;
 }
 
-int pa_asyncmsgq_get(pa_asyncmsgq *a, pa_msgobject **object, int *code, void **userdata, int64_t *offset, pa_memchunk *chunk, pa_bool_t wait) {
+int pa_asyncmsgq_get(pa_asyncmsgq *a, pa_msgobject **object, int *code, void **userdata, int64_t *offset, pa_memchunk *chunk, pa_bool_t wait_op) {
     pa_assert(PA_REFCNT_VALUE(a) > 0);
     pa_assert(!a->current);
 
-    if (!(a->current = pa_asyncq_pop(a->asyncq, wait))) {
+    if (!(a->current = pa_asyncq_pop(a->asyncq, wait_op))) {
 /*         pa_log("failure"); */
         return -1;
     }

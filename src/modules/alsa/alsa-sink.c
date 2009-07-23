@@ -494,6 +494,9 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
             if (frames > pa_mempool_block_size_max(u->sink->core->mempool)/u->frame_size)
                 frames = pa_mempool_block_size_max(u->sink->core->mempool)/u->frame_size;
 
+            if (frames == 0)
+                break;
+
             /* Check these are multiples of 8 bit */
             pa_assert((areas[0].first & 7) == 0);
             pa_assert((areas[0].step & 7)== 0);
@@ -631,7 +634,8 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
             frames = snd_pcm_writei(u->pcm_handle, (const uint8_t*) p + u->memchunk.index, (snd_pcm_uframes_t) frames);
             pa_memblock_release(u->memchunk.memblock);
 
-            pa_assert(frames != 0);
+            if (frames == 0)
+                break;
 
             if (PA_UNLIKELY(frames < 0)) {
 
