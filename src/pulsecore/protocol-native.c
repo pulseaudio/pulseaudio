@@ -2550,7 +2550,7 @@ static void command_get_playback_latency(pa_pdispatch *pd, uint32_t command, uin
     reply = reply_new(tag);
     pa_tagstruct_put_usec(reply,
                           s->current_sink_latency +
-                          pa_bytes_to_usec(s->render_memblockq_length, &s->sink_input->sample_spec));
+                          pa_bytes_to_usec(s->render_memblockq_length, &s->sink_input->sink->sample_spec));
     pa_tagstruct_put_usec(reply, 0);
     pa_tagstruct_put_boolean(reply,
                              s->playing_for > 0 &&
