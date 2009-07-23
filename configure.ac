@@ -74,6 +74,10 @@ case $host in
       AC_DEFINE(_XOPEN_SOURCE,        600, Needed to get declarations for msg_control and msg_controllen on Solaris)
       AC_DEFINE(__EXTENSIONS__,         1, Needed to get declarations for msg_control and msg_controllen on Solaris)
       ;;
+   *-*-darwin* )
+      AC_DEFINE([_POSIX_C_SOURCE], [200112L], [Needed to get clock_gettime on Mac OS X])
+      AC_DEFINE([_DARWIN_C_SOURCE], [200112L], [Needed to get NSIG on Mac OS X])
+      ;;
 esac
 
 AM_SILENT_RULES([yes])
@@ -118,6 +122,15 @@ dnl  the -z now syntax is lifted from Sun's linker and works with GNU's too
 dnl  other linkes might be added later
 CC_CHECK_LDFLAGS([-Wl,-z,now], [IMMEDIATE_LDFLAGS="-Wl,-z,now"])
 AC_SUBST([IMMEDIATE_LDFLAGS])
+
+dnl On ELF systems we don't want the libraries to be unloaded since we
+dnl don't clean them up properly, so we request the nodelete flag to be
+dnl enabled.
+dnl
+dnl On other systems, we don't really know how to do that, but it's
+dnl welcome if somebody can tell.
+CC_CHECK_LDFLAGS([-Wl,-z,nodelete], [NODELETE_LDFLAGS="-Wl,-z,nodelete"])
+AC_SUBST([NODELETE_LDFLAGS])
 
 dnl Check for the proper way to build libraries that have no undefined
 dnl symbols; on some hosts this needs to be avoided but the macro
