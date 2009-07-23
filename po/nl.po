@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-06-17 23:42+0200\n"
+"POT-Creation-Date: 2009-07-23 15:36+0200\n"
 "PO-Revision-Date: 2009-04-15 21:04+0200\n"
 "Last-Translator: Geert Warrink <geert.warrink@onsnet.nu>\n"
 "Language-Team: Dutch <nl@li.org>\n"
@@ -17,7 +17,12 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/modules/alsa/alsa-util.c:1015
+#: ../src/modules/alsa/alsa-util.c:772 ../src/pulsecore/sink.c:2411
+#, c-format
+msgid "%s %s"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:1020
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -30,7 +35,7 @@ msgstr ""
 "Waarschijnlijk is dit een bug in de ALSA driver '%s'. Rapporteer dit "
 "probleem a.u.b. aan de ALSA ontwikkelaars."
 
-#: ../src/modules/alsa/alsa-util.c:1056
+#: ../src/modules/alsa/alsa-util.c:1061
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -43,7 +48,7 @@ msgstr ""
 "Waarschijnlijk is  dit een bug in de ALSA driver '%s'. Rapporteer dit "
 "probleem a.u.b. aan de ALSA ontwikkelaars."
 
-#: ../src/modules/alsa/alsa-util.c:1103
+#: ../src/modules/alsa/alsa-util.c:1108
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -69,7 +74,7 @@ msgid ""
 "input control values>"
 msgstr ""
 
-#: ../src/pulsecore/sink.c:2394
+#: ../src/pulsecore/sink.c:2395
 msgid "Internal Audio"
 msgstr "Intern geluid"
 
@@ -143,166 +148,92 @@ msgstr "Kan geen authorisatie krijgen: %s"
 msgid "PolicyKit responded with '%s'"
 msgstr "PolicyKit antwoordde met '%s'"
 
-#: ../src/daemon/main.c:142
+#: ../src/daemon/main.c:145
 #, c-format
 msgid "Got signal %s."
 msgstr "Ontving signaal %s."
 
-#: ../src/daemon/main.c:169
+#: ../src/daemon/main.c:172
 msgid "Exiting."
 msgstr "Afsluiten."
 
-#: ../src/daemon/main.c:187
+#: ../src/daemon/main.c:190
 #, c-format
 msgid "Failed to find user '%s'."
 msgstr "Kon gebruiker '%s' niet vinden."
 
-#: ../src/daemon/main.c:192
+#: ../src/daemon/main.c:195
 #, c-format
 msgid "Failed to find group '%s'."
 msgstr "Kon groep '%s' niet vinden."
 
-#: ../src/daemon/main.c:196
+#: ../src/daemon/main.c:199
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
 msgstr "Gebruiker '%s' (UID %lu) en groep '%s' (GID %lu) gevonden."
 
-#: ../src/daemon/main.c:201
+#: ../src/daemon/main.c:204
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
 msgstr "GID van gebruiker '%s' en van groep '%s' passen niet bij elkaar."
 
-#: ../src/daemon/main.c:206
+#: ../src/daemon/main.c:209
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "Persoonlijke map van gebruiker '%s' is niet '%s', negeer het."
 
-#: ../src/daemon/main.c:209 ../src/daemon/main.c:214
+#: ../src/daemon/main.c:212 ../src/daemon/main.c:217
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "Aanmaken van '%s': %s mislukte"
 
-#: ../src/daemon/main.c:221
+#: ../src/daemon/main.c:224
 #, c-format
 msgid "Failed to change group list: %s"
 msgstr "Veranderen van groeps lijst: '%s' mislukte"
 
-#: ../src/daemon/main.c:237
+#: ../src/daemon/main.c:240
 #, c-format
 msgid "Failed to change GID: %s"
 msgstr "Veranderen van GID: %s mislukte"
 
-#: ../src/daemon/main.c:253
+#: ../src/daemon/main.c:256
 #, c-format
 msgid "Failed to change UID: %s"
 msgstr "Veranderen van UID: %s mislukte"
 
-#: ../src/daemon/main.c:267
+#: ../src/daemon/main.c:270
 msgid "Successfully dropped root privileges."
 msgstr "Root rechten met succes laten vervallen."
 
-#: ../src/daemon/main.c:275
+#: ../src/daemon/main.c:278
 msgid "System wide mode unsupported on this platform."
 msgstr "Systeem brede mode wordt op dit platform niet ondersteund."
 
-#: ../src/daemon/main.c:293
+#: ../src/daemon/main.c:296
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) mislukte: %s"
 
-#: ../src/daemon/main.c:481
+#: ../src/daemon/main.c:471
 msgid "Failed to parse command line."
 msgstr "Analyseren van de commandoregel mislukte."
 
-#: ../src/daemon/main.c:505
-#, c-format
-msgid "We're in the group '%s', allowing high-priority scheduling."
-msgstr "Wij zijn in de groep '%s', wat plannen met hoge prioriteit toestaat."
-
-#: ../src/daemon/main.c:512
-#, c-format
-msgid "We're in the group '%s', allowing real-time scheduling."
-msgstr "Wij zijn in de groep '%s', war real-time planning toestaat."
-
-#: ../src/daemon/main.c:520
-msgid "PolicyKit grants us acquire-high-priority privilege."
-msgstr "PolicyKit kent ons acquire-high-priority rechten toe."
-
-#: ../src/daemon/main.c:523
-msgid "PolicyKit refuses acquire-high-priority privilege."
-msgstr "PolicyKit weigert ons acquire-high-priority rechten."
-
-#: ../src/daemon/main.c:528
-msgid "PolicyKit grants us acquire-real-time privilege."
-msgstr "PolicyKit kent ons acquire-real-time rechten toe."
-
-#: ../src/daemon/main.c:531
-msgid "PolicyKit refuses acquire-real-time privilege."
-msgstr "PolicyKit weigert ons acquire-real-time rechten."
-
-#: ../src/daemon/main.c:560
-#, c-format
-msgid ""
-"Called SUID root and real-time and/or high-priority scheduling was requested "
-"in the configuration. However, we lack the necessary privileges:\n"
-"We are not in group '%s', PolicyKit refuse to grant us the requested "
-"privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
-"limits.\n"
-"For enabling real-time/high-priority scheduling please acquire the "
-"appropriate PolicyKit privileges, or become a member of '%s', or increase "
-"the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
-msgstr ""
-"Aangeroepen met SUID root en real-time en/of high-priority inplannen was "
-"verzocht in de configuratie. Echter de nodige rechten ontbreken:\n"
-"We zijn niet in groep '%s', PolicyKit weigert om ons de gevraagde rechten te "
-"geven en we hebben geen rect om de RLIMIT_NICE/RLIMIT_RTPRIO limieten te "
-"verhogen.\n"
-"Voor het aanzetten van real-time/high-priority inplannen mort je juiste "
-"PolicyKit privileges hebben, of lid van '%s\" worden, of de RLIMIT_NICE/"
-"RLIMIT_RTPRIO limieten voor deze gebruiker verhogen."
-
-#: ../src/daemon/main.c:585
-msgid ""
-"High-priority scheduling enabled in configuration but not allowed by policy."
-msgstr ""
-"Hoge prioriteit inplannen is aangezet in de configuratie maar niet "
-"toegestaan door de richtlijnen."
-
-#: ../src/daemon/main.c:614
-msgid "Successfully increased RLIMIT_RTPRIO"
-msgstr "RLIMIT_RTPRIO met succes verhoogd"
-
-#: ../src/daemon/main.c:617
-#, c-format
-msgid "RLIMIT_RTPRIO failed: %s"
-msgstr "RLIMIT_RTPRIO mislukte: %s"
-
-#: ../src/daemon/main.c:624
-msgid "Giving up CAP_NICE"
-msgstr "Opgeven CAP_NICE"
-
-#: ../src/daemon/main.c:631
-msgid ""
-"Real-time scheduling enabled in configuration but not allowed by policy."
-msgstr ""
-"Real-time inplannen is aangezet in de configuratie maar niet toegestaan door "
-"de richtlijnen."
-
-#: ../src/daemon/main.c:692
+#: ../src/daemon/main.c:538
 msgid "Daemon not running"
 msgstr "Daemon draait niet"
 
-#: ../src/daemon/main.c:694
+#: ../src/daemon/main.c:540
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "Daemon draait met PID %u"
 
-#: ../src/daemon/main.c:704
+#: ../src/daemon/main.c:550
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Afschieten mislukt van daemon: '%s'"
 
-#: ../src/daemon/main.c:722
+#: ../src/daemon/main.c:568
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -310,151 +241,151 @@ msgstr ""
 "Dit programma is niet bedoeld om als root gedraaid te worden (behalve als --"
 "system is opgegeven)."
 
-#: ../src/daemon/main.c:724
+#: ../src/daemon/main.c:570
 msgid "Root privileges required."
 msgstr "Root rechten vereisd"
 
-#: ../src/daemon/main.c:729
+#: ../src/daemon/main.c:575
 msgid "--start not supported for system instances."
 msgstr "--start wordt niet ondersteund voor systeem instances"
 
-#: ../src/daemon/main.c:734
+#: ../src/daemon/main.c:580
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr "Draaiend in systeem mode, maar --disallow-exit is niet gezet!"
 
-#: ../src/daemon/main.c:737
+#: ../src/daemon/main.c:583
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 "Draaiend in systeem mode, maar --disallow-module-loading is niet gezet!"
 
-#: ../src/daemon/main.c:740
+#: ../src/daemon/main.c:586
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "Draaiend in systeem mode, geforceerd uitzetten van SHM mode!"
 
-#: ../src/daemon/main.c:745
+#: ../src/daemon/main.c:591
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr "Draaiend in systeem mode, geforceerd uitzetten van exit idle time!"
 
-#: ../src/daemon/main.c:772
+#: ../src/daemon/main.c:618
 msgid "Failed to acquire stdio."
 msgstr "Verkrijgen van stdio mislukte."
 
-#: ../src/daemon/main.c:778
+#: ../src/daemon/main.c:624
 #, c-format
 msgid "pipe failed: %s"
 msgstr "pipe mislukte: %s"
 
-#: ../src/daemon/main.c:783
+#: ../src/daemon/main.c:629
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() mislukte: %s"
 
-#: ../src/daemon/main.c:797
+#: ../src/daemon/main.c:643
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() mislukte: %s"
 
-#: ../src/daemon/main.c:803
+#: ../src/daemon/main.c:649
 msgid "Daemon startup failed."
 msgstr "Daemon opstarten mislukte."
 
-#: ../src/daemon/main.c:805
+#: ../src/daemon/main.c:651
 msgid "Daemon startup successful."
 msgstr "Daemon met succes opgestart."
 
-#: ../src/daemon/main.c:875
+#: ../src/daemon/main.c:728
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Dit is PulseAudio %s"
 
-#: ../src/daemon/main.c:876
+#: ../src/daemon/main.c:729
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Compilatie host: %s"
 
-#: ../src/daemon/main.c:877
+#: ../src/daemon/main.c:730
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "Compilatie CFLAGS: %s"
 
-#: ../src/daemon/main.c:880
+#: ../src/daemon/main.c:733
 #, c-format
 msgid "Running on host: %s"
 msgstr "Draaiend op host: %s"
 
-#: ../src/daemon/main.c:883
+#: ../src/daemon/main.c:736
 #, c-format
 msgid "Found %u CPUs."
 msgstr "%u CPU's gevonden."
 
-#: ../src/daemon/main.c:885
+#: ../src/daemon/main.c:738
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "Pagina grootte is %lu bytes"
 
-#: ../src/daemon/main.c:888
+#: ../src/daemon/main.c:741
 msgid "Compiled with Valgrind support: yes"
 msgstr "Gecompileerd met Valgrind ondersteuning: ja"
 
-#: ../src/daemon/main.c:890
+#: ../src/daemon/main.c:743
 msgid "Compiled with Valgrind support: no"
 msgstr "Gecompileerd met Valgrind ondersteuning: nee"
 
-#: ../src/daemon/main.c:893
+#: ../src/daemon/main.c:746
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "Draaiend in valgrind mode: %s"
 
-#: ../src/daemon/main.c:896
+#: ../src/daemon/main.c:749
 msgid "Optimized build: yes"
 msgstr "Optimaal gebouwd: ja"
 
-#: ../src/daemon/main.c:898
+#: ../src/daemon/main.c:751
 msgid "Optimized build: no"
 msgstr "Optimaak gebouwd: nee"
 
-#: ../src/daemon/main.c:902
+#: ../src/daemon/main.c:755
 msgid "NDEBUG defined, all asserts disabled."
 msgstr "NDEBUG gedefinieerd, alle verklaringen uitgezet."
 
-#: ../src/daemon/main.c:904
+#: ../src/daemon/main.c:757
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr "FASTPATH gedefinieerd, alleen snel pad verklaringen uitgezet."
 
-#: ../src/daemon/main.c:906
+#: ../src/daemon/main.c:759
 msgid "All asserts enabled."
 msgstr "Alle verklaringen aangezet."
 
-#: ../src/daemon/main.c:910
+#: ../src/daemon/main.c:763
 msgid "Failed to get machine ID"
 msgstr "Machine ID verkrijgen mislukte"
 
-#: ../src/daemon/main.c:913
+#: ../src/daemon/main.c:766
 #, c-format
 msgid "Machine ID is %s."
 msgstr "Machine ID is: %s."
 
-#: ../src/daemon/main.c:917
+#: ../src/daemon/main.c:770
 #, fuzzy, c-format
 msgid "Session ID is %s."
 msgstr "Machine ID is: %s."
 
-#: ../src/daemon/main.c:923
+#: ../src/daemon/main.c:776
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Gebruik van runtime map %s."
 
-#: ../src/daemon/main.c:928
+#: ../src/daemon/main.c:781
 #, c-format
 msgid "Using state directory %s."
 msgstr "Verbruik van state map %s."
 
-#: ../src/daemon/main.c:931
+#: ../src/daemon/main.c:784
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Draaiend in systeem mode: %s"
 
-#: ../src/daemon/main.c:934
+#: ../src/daemon/main.c:787
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -464,15 +395,15 @@ msgid ""
 "explanation why system mode is usually a bad idea."
 msgstr ""
 
-#: ../src/daemon/main.c:951
+#: ../src/daemon/main.c:804
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() mislukte."
 
-#: ../src/daemon/main.c:961
+#: ../src/daemon/main.c:814
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Verse high-resolution timers beschikbaar! Smakelijk eten!"
 
-#: ../src/daemon/main.c:963
+#: ../src/daemon/main.c:816
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -480,27 +411,27 @@ msgstr ""
 "Kerel, je kernel stinkt! De aanbeveling van de chef is vandaag Linux met "
 "aangezette high-resolution timers!"
 
-#: ../src/daemon/main.c:988
+#: ../src/daemon/main.c:834
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() mislukte."
 
-#: ../src/daemon/main.c:1050
+#: ../src/daemon/main.c:896
 msgid "Failed to initialize daemon."
 msgstr "Initialiseren van de daemon mislukte."
 
-#: ../src/daemon/main.c:1055
+#: ../src/daemon/main.c:901
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "Daemon opgestart zonder geladen modules, dat werkt niet."
 
-#: ../src/daemon/main.c:1072
+#: ../src/daemon/main.c:918
 msgid "Daemon startup complete."
 msgstr "Daemon opstarten is klaar."
 
-#: ../src/daemon/main.c:1078
+#: ../src/daemon/main.c:924
 msgid "Daemon shutdown initiated."
 msgstr "Daemon afsluiten is begonnen."
 
-#: ../src/daemon/main.c:1100
+#: ../src/daemon/main.c:946
 msgid "Daemon terminated."
 msgstr "Daemon is afgesloten."
 
@@ -843,12 +774,8 @@ msgstr ""
 msgid "### Read from configuration file: %s ###\n"
 msgstr ""
 
-#: ../src/daemon/caps.c:63
+#: ../src/daemon/caps.c:65
 msgid "Dropping root privileges."
-msgstr ""
-
-#: ../src/daemon/caps.c:103
-msgid "Limited capabilities successfully to CAP_SYS_NICE."
 msgstr ""
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
@@ -1249,186 +1176,186 @@ msgstr ""
 msgid "Failed to open configuration file '%s': %s"
 msgstr ""
 
-#: ../src/pulse/context.c:546
+#: ../src/pulse/context.c:550
 msgid "No cookie loaded. Attempting to connect without."
 msgstr ""
 
-#: ../src/pulse/context.c:676
+#: ../src/pulse/context.c:680
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:729
+#: ../src/pulse/context.c:733
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1403
+#: ../src/pulse/context.c:1415
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr ""
 
-#: ../src/utils/pacat.c:107
+#: ../src/utils/pacat.c:108
 #, c-format
 msgid "Failed to drain stream: %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:112
+#: ../src/utils/pacat.c:113
 msgid "Playback stream drained.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:122
+#: ../src/utils/pacat.c:123
 msgid "Draining connection to server.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:135
+#: ../src/utils/pacat.c:136
 #, c-format
 msgid "pa_stream_drain(): %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:158
+#: ../src/utils/pacat.c:159
 #, c-format
 msgid "pa_stream_write() failed: %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:233 ../src/utils/pacat.c:262
+#: ../src/utils/pacat.c:234 ../src/utils/pacat.c:263
 #, c-format
 msgid "pa_stream_peek() failed: %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:302
+#: ../src/utils/pacat.c:303
 msgid "Stream successfully created.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:305
+#: ../src/utils/pacat.c:306
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:309
+#: ../src/utils/pacat.c:310
 #, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:312
+#: ../src/utils/pacat.c:313
 #, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:316
+#: ../src/utils/pacat.c:317
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:320
+#: ../src/utils/pacat.c:321
 #, c-format
 msgid "Connected to device %s (%u, %ssuspended).\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:330
+#: ../src/utils/pacat.c:331
 #, c-format
 msgid "Stream error: %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:340
+#: ../src/utils/pacat.c:341
 #, c-format
 msgid "Stream device suspended.%s \n"
 msgstr ""
 
-#: ../src/utils/pacat.c:342
+#: ../src/utils/pacat.c:343
 #, c-format
 msgid "Stream device resumed.%s \n"
 msgstr ""
 
-#: ../src/utils/pacat.c:350
+#: ../src/utils/pacat.c:351
 #, c-format
 msgid "Stream underrun.%s \n"
 msgstr ""
 
-#: ../src/utils/pacat.c:357
+#: ../src/utils/pacat.c:358
 #, c-format
 msgid "Stream overrun.%s \n"
 msgstr ""
 
-#: ../src/utils/pacat.c:364
+#: ../src/utils/pacat.c:365
 #, c-format
 msgid "Stream started.%s \n"
 msgstr ""
 
-#: ../src/utils/pacat.c:371
+#: ../src/utils/pacat.c:372
 #, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s \n"
 msgstr ""
 
-#: ../src/utils/pacat.c:371
+#: ../src/utils/pacat.c:372
 msgid "not "
 msgstr ""
 
-#: ../src/utils/pacat.c:378
+#: ../src/utils/pacat.c:379
 #, c-format
 msgid "Stream buffer attributes changed.%s \n"
 msgstr ""
 
-#: ../src/utils/pacat.c:411
+#: ../src/utils/pacat.c:412
 #, c-format
 msgid "Connection established.%s \n"
 msgstr ""
 
-#: ../src/utils/pacat.c:414
+#: ../src/utils/pacat.c:415
 #, c-format
 msgid "pa_stream_new() failed: %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:442
+#: ../src/utils/pacat.c:443
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:448
+#: ../src/utils/pacat.c:449
 #, c-format
 msgid "pa_stream_connect_record() failed: %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:462 ../src/utils/pasuspender.c:159
+#: ../src/utils/pacat.c:463 ../src/utils/pasuspender.c:159
 #: ../src/utils/pactl.c:814
 #, c-format
 msgid "Connection failure: %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:495
+#: ../src/utils/pacat.c:496
 msgid "Got EOF.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:500
+#: ../src/utils/pacat.c:501
 #, c-format
 msgid "read() failed: %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:532
+#: ../src/utils/pacat.c:533
 #, c-format
 msgid "write() failed: %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:553
+#: ../src/utils/pacat.c:554
 msgid "Got signal, exiting.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:567
+#: ../src/utils/pacat.c:568
 #, c-format
 msgid "Failed to get latency: %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:572
+#: ../src/utils/pacat.c:573
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr ""
 
-#: ../src/utils/pacat.c:592
+#: ../src/utils/pacat.c:591
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:605
+#: ../src/utils/pacat.c:601
 #, c-format
 msgid ""
 "%s [options]\n"
@@ -1488,7 +1415,7 @@ msgid ""
 "      --list-file-formats               List available file formats.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:727
+#: ../src/utils/pacat.c:723
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1496,130 +1423,131 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:760 ../src/utils/pactl.c:900
+#: ../src/utils/pacat.c:756 ../src/utils/pactl.c:900
 #, fuzzy, c-format
 msgid "Invalid client name '%s'\n"
 msgstr "Ongeldige resample methode '%s'."
 
-#: ../src/utils/pacat.c:776
+#: ../src/utils/pacat.c:772
 #, fuzzy, c-format
 msgid "Invalid stream name '%s'\n"
 msgstr "Ongeldige resample methode '%s'."
 
-#: ../src/utils/pacat.c:813
+#: ../src/utils/pacat.c:809
 #, c-format
 msgid "Invalid channel map '%s'\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:842
+#: ../src/utils/pacat.c:838
 #, c-format
 msgid "Invalid latency specification '%s'\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:849
+#: ../src/utils/pacat.c:845
 #, c-format
 msgid "Invalid process time specification '%s'\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:861
+#: ../src/utils/pacat.c:857
 #, fuzzy, c-format
 msgid "Invalid property '%s'\n"
 msgstr "Ongeldige resample methode '%s'."
 
-#: ../src/utils/pacat.c:878
+#: ../src/utils/pacat.c:874
 #, c-format
 msgid "Unknown file format %s."
 msgstr ""
 
-#: ../src/utils/pacat.c:897
+#: ../src/utils/pacat.c:893
 msgid "Invalid sample specification\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:907
+#: ../src/utils/pacat.c:903
 #, c-format
 msgid "open(): %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:912
+#: ../src/utils/pacat.c:908
 #, c-format
 msgid "dup2(): %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:919
+#: ../src/utils/pacat.c:915
 msgid "Too many arguments.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:930
+#: ../src/utils/pacat.c:926
 msgid "Failed to generate sample specification for file.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:950
+#: ../src/utils/pacat.c:946
 #, fuzzy
 msgid "Failed to open audio file.\n"
 msgstr "Analyseren van de commandoregel mislukte."
 
-#: ../src/utils/pacat.c:956
+#: ../src/utils/pacat.c:952
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:959 ../src/utils/pactl.c:944
+#: ../src/utils/pacat.c:955 ../src/utils/pactl.c:944
 msgid "Failed to determine sample specification from file.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:968
+#: ../src/utils/pacat.c:964
 msgid "Warning: Failed to determine channel map from file.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:979
+#: ../src/utils/pacat.c:975
 msgid "Channel map doesn't match sample specification\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:990
+#: ../src/utils/pacat.c:986
 msgid "Warning: failed to write channel map to file.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:1005
+#: ../src/utils/pacat.c:1001
 #, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:1006
+#: ../src/utils/pacat.c:1002
 msgid "recording"
 msgstr ""
 
-#: ../src/utils/pacat.c:1006
+#: ../src/utils/pacat.c:1002
 msgid "playback"
 msgstr ""
 
-#: ../src/utils/pacat.c:1032 ../src/utils/pasuspender.c:277
+#: ../src/utils/pacat.c:1028 ../src/utils/pasuspender.c:277
 #: ../src/utils/pactl.c:1104
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:1051
+#: ../src/utils/pacat.c:1047
 msgid "io_new() failed.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:1058 ../src/utils/pasuspender.c:290
+#: ../src/utils/pacat.c:1054 ../src/utils/pasuspender.c:290
 #: ../src/utils/pactl.c:1116
 #, c-format
 msgid "pa_context_new() failed.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:1066
+#: ../src/utils/pacat.c:1062
 #, fuzzy, c-format
 msgid "pa_context_connect() failed: %s\n"
 msgstr "pa_core_new() mislukte."
 
-#: ../src/utils/pacat.c:1077
-msgid "time_new() failed.\n"
-msgstr ""
+#: ../src/utils/pacat.c:1068
+#, fuzzy
+msgid "pa_context_rttime_new() failed.\n"
+msgstr "pa_core_new() mislukte."
 
-#: ../src/utils/pacat.c:1084 ../src/utils/pasuspender.c:298
+#: ../src/utils/pacat.c:1075 ../src/utils/pasuspender.c:298
 #: ../src/utils/pactl.c:1127
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
@@ -2151,7 +2079,7 @@ msgstr ""
 msgid "Cannot access autospawn lock."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-sink.c:445 ../src/modules/alsa/alsa-sink.c:593
+#: ../src/modules/alsa/alsa-sink.c:445 ../src/modules/alsa/alsa-sink.c:596
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2162,7 +2090,7 @@ msgid ""
 "returned 0 or another value < min_avail."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-source.c:424 ../src/modules/alsa/alsa-source.c:563
+#: ../src/modules/alsa/alsa-source.c:425 ../src/modules/alsa/alsa-source.c:567
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2174,21 +2102,82 @@ msgid ""
 msgstr ""
 
 #: ../src/modules/alsa/module-alsa-card.c:152
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2062
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2065
 msgid "Off"
 msgstr ""
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2032
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2035
 msgid "High Fidelity Playback (A2DP)"
 msgstr ""
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2047
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2050
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr ""
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr ""
+
+#~ msgid "We're in the group '%s', allowing high-priority scheduling."
+#~ msgstr ""
+#~ "Wij zijn in de groep '%s', wat plannen met hoge prioriteit toestaat."
+
+#~ msgid "We're in the group '%s', allowing real-time scheduling."
+#~ msgstr "Wij zijn in de groep '%s', war real-time planning toestaat."
+
+#~ msgid "PolicyKit grants us acquire-high-priority privilege."
+#~ msgstr "PolicyKit kent ons acquire-high-priority rechten toe."
+
+#~ msgid "PolicyKit refuses acquire-high-priority privilege."
+#~ msgstr "PolicyKit weigert ons acquire-high-priority rechten."
+
+#~ msgid "PolicyKit grants us acquire-real-time privilege."
+#~ msgstr "PolicyKit kent ons acquire-real-time rechten toe."
+
+#~ msgid "PolicyKit refuses acquire-real-time privilege."
+#~ msgstr "PolicyKit weigert ons acquire-real-time rechten."
+
+#~ msgid ""
+#~ "Called SUID root and real-time and/or high-priority scheduling was "
+#~ "requested in the configuration. However, we lack the necessary "
+#~ "privileges:\n"
+#~ "We are not in group '%s', PolicyKit refuse to grant us the requested "
+#~ "privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
+#~ "limits.\n"
+#~ "For enabling real-time/high-priority scheduling please acquire the "
+#~ "appropriate PolicyKit privileges, or become a member of '%s', or increase "
+#~ "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
+#~ msgstr ""
+#~ "Aangeroepen met SUID root en real-time en/of high-priority inplannen was "
+#~ "verzocht in de configuratie. Echter de nodige rechten ontbreken:\n"
+#~ "We zijn niet in groep '%s', PolicyKit weigert om ons de gevraagde rechten "
+#~ "te geven en we hebben geen rect om de RLIMIT_NICE/RLIMIT_RTPRIO limieten "
+#~ "te verhogen.\n"
+#~ "Voor het aanzetten van real-time/high-priority inplannen mort je juiste "
+#~ "PolicyKit privileges hebben, of lid van '%s\" worden, of de RLIMIT_NICE/"
+#~ "RLIMIT_RTPRIO limieten voor deze gebruiker verhogen."
+
+#~ msgid ""
+#~ "High-priority scheduling enabled in configuration but not allowed by "
+#~ "policy."
+#~ msgstr ""
+#~ "Hoge prioriteit inplannen is aangezet in de configuratie maar niet "
+#~ "toegestaan door de richtlijnen."
+
+#~ msgid "Successfully increased RLIMIT_RTPRIO"
+#~ msgstr "RLIMIT_RTPRIO met succes verhoogd"
+
+#~ msgid "RLIMIT_RTPRIO failed: %s"
+#~ msgstr "RLIMIT_RTPRIO mislukte: %s"
+
+#~ msgid "Giving up CAP_NICE"
+#~ msgstr "Opgeven CAP_NICE"
+
+#~ msgid ""
+#~ "Real-time scheduling enabled in configuration but not allowed by policy."
+#~ msgstr ""
+#~ "Real-time inplannen is aangezet in de configuratie maar niet toegestaan "
+#~ "door de richtlijnen."
 
 #~ msgid "Analog Mono"
 #~ msgstr "Analoog mono"

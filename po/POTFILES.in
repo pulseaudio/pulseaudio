@@ -55,7 +55,6 @@ src/pulsecore/queue.c
 src/pulsecore/core.c
 #src/pulsecore/shmasyncq.c
 src/pulsecore/x11wrap.c
-src/pulsecore/rtclock.c
 src/pulsecore/ioline.c
 src/pulsecore/asyncq.c
 src/pulsecore/mutex-posix.c
@@ -99,7 +98,6 @@ src/pulsecore/strlist.c
 src/pulsecore/msgobject.c
 src/pulsecore/mutex-win32.c
 src/pulsecore/dynarray.c
-src/pulsecore/rtsig.c
 src/pulsecore/once.c
 src/pulsecore/source.c
 src/pulsecore/memchunk.c
