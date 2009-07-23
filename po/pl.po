@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-07-23 15:36+0200\n"
-"PO-Revision-Date: 2009-06-18 19:40+0200\n"
+"PO-Revision-Date: 2009-07-23 19:15+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -16,7 +16,7 @@ msgstr ""
 #: ../src/modules/alsa/alsa-util.c:772 ../src/pulsecore/sink.c:2411
 #, c-format
 msgid "%s %s"
-msgstr ""
+msgstr "%s %s"
 
 #: ../src/modules/alsa/alsa-util.c:1020
 #, c-format
@@ -1620,9 +1620,8 @@ msgid "pa_context_connect() failed: %s\n"
 msgstr "pa_context_connect() nie powiodło się: %s\n"
 
 #: ../src/utils/pacat.c:1068
-#, fuzzy
 msgid "pa_context_rttime_new() failed.\n"
-msgstr "pa_context_new() nie powiodło się.\n"
+msgstr "pa_context_rttime_new() nie powiodło się.\n"
 
 #: ../src/utils/pacat.c:1075 ../src/utils/pasuspender.c:298
 #: ../src/utils/pactl.c:1127
@@ -2354,72 +2353,3 @@ msgstr "Duplex telefoniczny (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "Serwer dźwięku PulseAudio"
-
-#~ msgid "We're in the group '%s', allowing high-priority scheduling."
-#~ msgstr ""
-#~ "Jesteśmy w grupie \"%s\", co umożliwia szeregowanie o wysokim priorytecie."
-
-#~ msgid "We're in the group '%s', allowing real-time scheduling."
-#~ msgstr ""
-#~ "Jesteśmy w grupie \"%s\", co umożliwia szeregowanie w czasie rzeczywistym."
-
-#~ msgid "PolicyKit grants us acquire-high-priority privilege."
-#~ msgstr "PolicyKit nadał uprawnienie \"acquire-high-priority\"."
-
-#~ msgid "PolicyKit refuses acquire-high-priority privilege."
-#~ msgstr "PolicyKit odmówił nadania uprawnienia \"acquire-high-priority\"."
-
-#~ msgid "PolicyKit grants us acquire-real-time privilege."
-#~ msgstr "PolicyKit nadał uprawnienie \"acquire-real-time\"."
-
-#~ msgid "PolicyKit refuses acquire-real-time privilege."
-#~ msgstr "PolicyKit odmówił nadania uprawnienia \"acquire-real-time\"."
-
-#~ msgid ""
-#~ "Called SUID root and real-time and/or high-priority scheduling was "
-#~ "requested in the configuration. However, we lack the necessary "
-#~ "privileges:\n"
-#~ "We are not in group '%s', PolicyKit refuse to grant us the requested "
-#~ "privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
-#~ "limits.\n"
-#~ "For enabling real-time/high-priority scheduling please acquire the "
-#~ "appropriate PolicyKit privileges, or become a member of '%s', or increase "
-#~ "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
-#~ msgstr ""
-#~ "W konfiguracji zażądano SUID roota i szeregowanie w czasie rzeczywistym i/"
-#~ "lub o wysokim priorytecie. Brak wymaganych uprawnień:\n"
-#~ "Nie jesteśmy w grupie \"%s\", PolicyKit odmawia przyznania żądanych "
-#~ "uprawnień i brak ograniczeń zwiększania zasobów RLIMIT_NICE/"
-#~ "RLIMIT_RTPRIO.\n"
-#~ "Aby włączyć szeregowanie w czasie rzeczywistym i/lub o wysokim "
-#~ "priorytecie, należy uzyskać odpowiednie uprawnienia PolicyKit, zostać "
-#~ "członkiem grupy \"%s\" lub zwiększyć ograniczenia zasobów RLIMIT_NICE/"
-#~ "RLIMIT_RTPRIO dla tego użytkownika."
-
-#~ msgid ""
-#~ "High-priority scheduling enabled in configuration but not allowed by "
-#~ "policy."
-#~ msgstr ""
-#~ "Szeregowanie o wysokim priorytecie jest włączone w konfiguracji, ale nie "
-#~ "jest zezwolone przez politykę."
-
-#~ msgid "Successfully increased RLIMIT_RTPRIO"
-#~ msgstr "Pomyślnie zwiększono RLIMIT_RTPRIO"
-
-#~ msgid "RLIMIT_RTPRIO failed: %s"
-#~ msgstr "RLIMIT_RTPRIO nie powiodło się: %s"
-
-#~ msgid "Giving up CAP_NICE"
-#~ msgstr "Oddawanie CAP_NICE"
-
-#~ msgid ""
-#~ "Real-time scheduling enabled in configuration but not allowed by policy."
-#~ msgstr ""
-#~ "Szeregowanie w czasie rzeczywistym jest włączone w konfiguracji, ale nie "
-#~ "jest zezwolone przez politykę."
-
-#~ msgid "Limited capabilities successfully to CAP_SYS_NICE."
-#~ msgstr "Pomyślnie ograniczono możliwości do CAP_SYS_NICE."
-
-#~ msgid "time_new() failed.\n"
-#~ msgstr "time_new() nie powiodło się.\n"
