@@ -3,13 +3,13 @@
 # This file is distributed under the same license as the pulseaudio package.
 #
 # Fabian Affolter <fab@fedoraproject.org>, 2008-2009.
-# Micha Pietsch <barney@fedoraproject.org>, 2008
+# Micha Pietsch <barney@fedoraproject.org>, 2008, 2009.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-06-17 23:42+0200\n"
+"POT-Creation-Date: 2009-06-19 08:25+0000\n"
 "PO-Revision-Date: 2009-04-18 12:43+0100\n"
 "Last-Translator: Fabian Affolter <fab@fedoraproject.org>\n"
 "Language-Team: German <fedora-trans-de@redhat.com>\n"
@@ -409,17 +409,14 @@ msgid "Optimized build: no"
 msgstr "Optimiertes Build: nein"
 
 #: ../src/daemon/main.c:902
-#, fuzzy
 msgid "NDEBUG defined, all asserts disabled."
 msgstr "NDEBUG definiert, alle Ansprüche deaktiviert."
 
 #: ../src/daemon/main.c:904
-#, fuzzy
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr "FASTPATH definiert, nur fast-path-Ansprüche deaktiviert."
 
 #: ../src/daemon/main.c:906
-#, fuzzy
 msgid "All asserts enabled."
 msgstr "Alle Ansprüche aktiviert."
 
@@ -433,7 +430,7 @@ msgid "Machine ID is %s."
 msgstr "System- ID ist %s."
 
 #: ../src/daemon/main.c:917
-#, fuzzy, c-format
+#, c-format
 msgid "Session ID is %s."
 msgstr "System- ID ist %s."
 
@@ -816,7 +813,6 @@ msgid "Failed to open configuration file: %s"
 msgstr "Öffnen der Konfigurationsdatei fehlgeschlagen : %s"
 
 #: ../src/daemon/daemon-conf.c:540
-#, fuzzy
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
@@ -846,29 +842,28 @@ msgid "Start the PulseAudio Sound System"
 msgstr "Das PulseAudio Sound System starten"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:1
+#, fuzzy
 msgid ""
 "High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr ""
+msgstr "Hochprioritäts-Terminierung () (negative Unix nice level) "
+"für den PulseAudio-Dienst"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:2
-#, fuzzy
 msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr "Echtzeit-Terminierung des PulseAudio-Daemon fehlgeschlagen"
+msgstr "Echtzeit-Terminierung des PulseAudio-Daemon"
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:3
-#, fuzzy
 msgid ""
 "System policy prevents PulseAudio from acquiring high-priority scheduling."
 msgstr ""
-"System-Richtlinien verhindert PulseAudio beim Erlangen des  high-priority "
+"System-Richtlinien verhindert PulseAudio beim Erlangen des high-priority "
 "scheduling."
 
 #: ../src/daemon/org.pulseaudio.policy.in.h:4
-#, fuzzy
 msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
 msgstr ""
 "System-Richtlinien verhindert PulseAudio beim Erlangen der Echtzeit-"
-"Terminierung.."
+"Terminierung."
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:747
 msgid "Mono"
@@ -1202,7 +1197,7 @@ msgstr "Fehlende Implementation"
 
 #: ../src/pulse/error.c:67
 msgid "Client forked"
-msgstr ""
+msgstr "Client geteilt"
 
 #: ../src/pulse/sample.c:169
 #, c-format
@@ -1532,14 +1527,14 @@ msgstr ""
 "Gelinkt mit libpulse %s\n"
 
 #: ../src/utils/pacat.c:760 ../src/utils/pactl.c:900
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid client name '%s'\n"
-msgstr "Ungültige Kanal-Zuweisung '%s'\n"
+msgstr "Ungültiger Client-Name '%s'\n"
 
 #: ../src/utils/pacat.c:776
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid stream name '%s'\n"
-msgstr "Ungültige Resample-Methode '%s'."
+msgstr "Ungültiger Stream-Name '%s'\n"
 
 #: ../src/utils/pacat.c:813
 #, c-format
@@ -1557,14 +1552,14 @@ msgid "Invalid process time specification '%s'\n"
 msgstr "Ungültige Prozesszeit-Angaben '%s'\n"
 
 #: ../src/utils/pacat.c:861
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid property '%s'\n"
-msgstr "Ungültige Resample-Methode '%s'."
+msgstr "Ungültige Eigenschaft '%s'\n"
 
 #: ../src/utils/pacat.c:878
 #, c-format
 msgid "Unknown file format %s."
-msgstr ""
+msgstr "Unbekanntes Dateiformat %s."
 
 #: ../src/utils/pacat.c:897
 msgid "Invalid sample specification\n"
@@ -1585,12 +1580,10 @@ msgid "Too many arguments.\n"
 msgstr "Zu viele Argumente.\n"
 
 #: ../src/utils/pacat.c:930
-#, fuzzy
 msgid "Failed to generate sample specification for file.\n"
-msgstr "Beziehen der Sample-Informationen fehlgeschlagen: %s\n"
+msgstr "Beziehen der Sample-Informationen für die Datei fehlgeschlagen.\n"
 
 #: ../src/utils/pacat.c:950
-#, fuzzy
 msgid "Failed to open audio file.\n"
 msgstr "Öffnen der Audio-Datei fehlgeschlagen.\n"
 
@@ -1601,13 +1594,12 @@ msgid ""
 msgstr ""
 
 #: ../src/utils/pacat.c:959 ../src/utils/pactl.c:944
-#, fuzzy
 msgid "Failed to determine sample specification from file.\n"
-msgstr "Beziehen der Sample-Informationen fehlgeschlagen: %s\n"
+msgstr "Beziehen der Sample-Informationen der Datei fehlgeschlagen.\n"
 
 #: ../src/utils/pacat.c:968
 msgid "Warning: Failed to determine channel map from file.\n"
-msgstr ""
+msgstr "Warnung: Bestimmung der Kanalzuordnung aus Datei fehlgeschlagen.\n"
 
 #: ../src/utils/pacat.c:979
 msgid "Channel map doesn't match sample specification\n"
@@ -1615,13 +1607,14 @@ msgstr "Kanalzuordnung entspricht nicht Einstellungen des Samples\n"
 
 #: ../src/utils/pacat.c:990
 msgid "Warning: failed to write channel map to file.\n"
-msgstr ""
+msgstr "Warnung: Schreiben der Kanalzuordnung in Datei fehlgeschlagen.\n"
 
 #: ../src/utils/pacat.c:1005
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'.\n"
-msgstr "Öffne eine %s-Stream mit Sample-Angabe '%s'.\n"
+msgstr "Öffnen eines %s-Streams mit Sample-Angabe '%s' und "
+"Kanalzuordnung '%s'.\n"
 
 #: ../src/utils/pacat.c:1006
 msgid "recording"
@@ -1648,9 +1641,9 @@ msgid "pa_context_new() failed.\n"
 msgstr "pa_context_new() fehlgeschlagen.\n"
 
 #: ../src/utils/pacat.c:1066
-#, fuzzy, c-format
+#, c-format
 msgid "pa_context_connect() failed: %s\n"
-msgstr "pa_context_new() fehlgeschlagen: %s"
+msgstr "pa_context_connect() fehlgeschlagen: %s\n"
 
 #: ../src/utils/pacat.c:1077
 msgid "time_new() failed.\n"
@@ -1819,12 +1812,12 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:261 ../src/utils/pactl.c:353
-#, fuzzy, c-format
+#, c-format
 msgid "\tPorts:\n"
 msgstr "\tProfile:\n"
 
 #: ../src/utils/pactl.c:267 ../src/utils/pactl.c:359
-#, fuzzy, c-format
+#, c-format
 msgid "\tActive Port: %s\n"
 msgstr "\tAktive Profile: %s\n"
 
@@ -2147,9 +2140,8 @@ msgid "Failed to open sound file.\n"
 msgstr "Öffnen der Audio-Datei fehlgeschlagen.\n"
 
 #: ../src/utils/pactl.c:951
-#, fuzzy
 msgid "Warning: Failed to determine sample specification from file.\n"
-msgstr "Öffne eine %s-Stream mit Sample-Angabe '%s'.\n"
+msgstr "Warnung: Beziehen der Sample-Angabe aus Datei fehlgeschlagen.\n"
 
 #: ../src/utils/pactl.c:961
 msgid "You have to specify a sample name to play\n"
@@ -2197,14 +2189,12 @@ msgid "You have to specify a card name/index and a profile name\n"
 msgstr "Sie müssen einen Karten-Name/Indexwert und einen Profilnamen angeben\n"
 
 #: ../src/utils/pactl.c:1073
-#, fuzzy
 msgid "You have to specify a sink name/index and a port name\n"
-msgstr "Sie müssen einen Karten-Name/Indexwert und einen Profilnamen angeben\n"
+msgstr "Sie müssen einen Senkennamen/-Indexwert und einen Portnamen angeben\n"
 
 #: ../src/utils/pactl.c:1084
-#, fuzzy
 msgid "You have to specify a source name/index and a port name\n"
-msgstr "Sie müssen einen Karten-Name/Indexwert und einen Profilnamen angeben\n"
+msgstr "Sie müssen einen Quellennamen/-Indexwert und einen Portnamen angeben\n"
 
 #: ../src/utils/pactl.c:1099
 msgid "No valid command specified.\n"
@@ -2296,7 +2286,7 @@ msgstr "Noch nicht implementiert.\n"
 
 #: ../src/utils/pacmd.c:61
 msgid "No PulseAudio daemon running, or not running as session daemon."
-msgstr ""
+msgstr "Es läuft kein PulseAudio-Dienst oder nicht als Sessiondienst."
 
 #: ../src/utils/pacmd.c:66
 #, c-format

@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-06-17 23:42+0200\n"
-"PO-Revision-Date: 2009-06-09 00:03+0200\n"
+"PO-Revision-Date: 2009-06-18 19:40+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -51,7 +51,7 @@ msgstr ""
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
-msgstr ""
+msgstr "Wirtualny odpływ LADSPA"
 
 #: ../src/modules/module-ladspa-sink.c:53
 msgid ""
@@ -61,6 +61,11 @@ msgid ""
 "plugin name> label=<ladspa plugin label> control=<comma seperated list of "
 "input control values>"
 msgstr ""
+"sink_name=<nazwa odpływu> sink_properties=<właściwości odpływu> "
+"master=<nazwa odpływu do filtrowania> format=<format próbki> "
+"rate=<częstotliwość próbki> channels=<liczba kanałów> channel_map=<mapa "
+"kanałów> plugin=<nazwa wtyczki ladspa> label=<etykieta wtyczki ladspa> "
+"control=<lista wartości kontroli wejścia oddzielona przecinkami>"
 
 #: ../src/pulsecore/sink.c:2394
 msgid "Internal Audio"
@@ -463,6 +468,12 @@ msgid ""
 "Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an "
 "explanation why system mode is usually a bad idea."
 msgstr ""
+"OK, więc PA jest uruchomione w trybie systemowym. Proszę zauważyć, że "
+"prawdopodobnie tak nie powinno być.\n"
+"Jeśli mimo to tak jest, to twoja wina, jeśli coś nie działa tak jak "
+"powinno.\n"
+"Proszę przeczytać http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode, "
+"gdzie wyjaśniono, dlaczego tryb systemowy jest zwykle złym pomysłem."
 
 #: ../src/daemon/main.c:951
 msgid "pa_pid_file_create() failed."
@@ -1853,14 +1864,14 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:261 ../src/utils/pactl.c:353
-#, fuzzy, c-format
+#, c-format
 msgid "\tPorts:\n"
-msgstr "\tProfile:\n"
+msgstr "\tPorty:\n"
 
 #: ../src/utils/pactl.c:267 ../src/utils/pactl.c:359
-#, fuzzy, c-format
+#, c-format
 msgid "\tActive Port: %s\n"
-msgstr "\tAktywny profil: %s\n"
+msgstr "\tAktywny port: %s\n"
 
 #: ../src/utils/pactl.c:290
 #, c-format
@@ -2115,7 +2126,7 @@ msgid "Premature end of file\n"
 msgstr "Przedwczesny koniec pliku\n"
 
 #: ../src/utils/pactl.c:826
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -2154,6 +2165,8 @@ msgstr ""
 "%s [opcje] suspend-sink [ODPŁYW] 1|0\n"
 "%s [opcje] suspend-source [ŹRÓDŁO] 1|0\n"
 "%s [opcje] set-card-profile [KARTA] [PROFIL] \n"
+"%s [opcje] set-sink-port [ODPŁYW] [PORT] \n"
+"%s [opcje] set-source-port [ŹRÓDŁO] [PORT] \n"
 "\n"
 "  -h, --help                            Wyświetla tę pomoc\n"
 "      --version                         Wyświetla wersję\n"
@@ -2227,14 +2240,12 @@ msgid "You have to specify a card name/index and a profile name\n"
 msgstr "Należy podać nazwę karty/indeks i nazwę profilu\n"
 
 #: ../src/utils/pactl.c:1073
-#, fuzzy
 msgid "You have to specify a sink name/index and a port name\n"
-msgstr "Należy podać nazwę karty/indeks i nazwę profilu\n"
+msgstr "Należy podać nazwę odpływu/indeks i nazwę portu\n"
 
 #: ../src/utils/pactl.c:1084
-#, fuzzy
 msgid "You have to specify a source name/index and a port name\n"
-msgstr "Należy podać nazwę karty/indeks i nazwę profilu\n"
+msgstr "Należy podać nazwę źródła/indeks i nazwę portu\n"
 
 #: ../src/utils/pactl.c:1099
 msgid "No valid command specified.\n"
@@ -2417,45 +2428,3 @@ msgstr "Duplex telefoniczny (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "Serwer dźwięku PulseAudio"
-
-#~ msgid "Analog Mono"
-#~ msgstr "Analogowe mono"
-
-#~ msgid "Analog Stereo"
-#~ msgstr "Analogowe stereo"
-
-#~ msgid "Digital Stereo (IEC958)"
-#~ msgstr "Cyfrowe stereo (IEC958)"
-
-#~ msgid "Digital Stereo (HDMI)"
-#~ msgstr "Cyfrowe stereo (HDMI)"
-
-#~ msgid "Analog Surround 4.0"
-#~ msgstr "Analogowe surround 4.0"
-
-#~ msgid "Digital Surround 4.0 (IEC958/AC3)"
-#~ msgstr "Cyfrowe surround 4.0 (IEC958/AC3)"
-
-#~ msgid "Analog Surround 4.1"
-#~ msgstr "Analogowe surround 4.1"
-
-#~ msgid "Analog Surround 5.0"
-#~ msgstr "Analogowe surround 5.0"
-
-#~ msgid "Analog Surround 5.1"
-#~ msgstr "Analogowe surround 5.1"
-
-#~ msgid "Digital Surround 5.1 (IEC958/AC3)"
-#~ msgstr "Cyfrowe surround 5.1 (IEC958/AC3)"
-
-#~ msgid "Analog Surround 7.1"
-#~ msgstr "Analogowe surround 7.1"
-
-#~ msgid "Output %s + Input %s"
-#~ msgstr "Wyjście %s + wejście %s"
-
-#~ msgid "Output %s"
-#~ msgstr "Wyjście %s"
-
-#~ msgid "Input %s"
-#~ msgstr "Wejście %s"

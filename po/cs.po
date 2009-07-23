@@ -7,14 +7,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-06-17 23:42+0200\n"
-"PO-Revision-Date: 2009-05-03 23:57+0200\n"
+"POT-Creation-Date: 2009-07-07 13:46+0000\n"
+"PO-Revision-Date: 2009-07-07 20:37+0200\n"
 "Last-Translator: Petr Kovar <pknbe@volny.cz>\n"
 "Language-Team: Czech <translation-team-cs@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: KBabel 1.11.4\n"
+"X-Generator: Lokalize 0.3\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 
 #: ../src/modules/alsa/alsa-util.c:1015
@@ -58,7 +58,7 @@ msgstr ""
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
-msgstr ""
+msgstr "Virtuální cíl LADSPA"
 
 #: ../src/modules/module-ladspa-sink.c:53
 msgid ""
@@ -68,6 +68,12 @@ msgid ""
 "plugin name> label=<ladspa plugin label> control=<comma seperated list of "
 "input control values>"
 msgstr ""
+"sink_name=<název cíle> sink_properties=<vlastnosti cíle> master=<název "
+"filtrovaného cíle> format=<vzorkovací formát> rate=<vzorkovací frekvence> "
+"channels=<počet kanálů> channel_map=<mapa kanálů> plugin=<název zásuvného "
+"modulu ladspa> label=<popisek zásuvného modulu ladspa> control=<čárkou "
+"oddělený "
+"seznam hodnot ovládání vstupu>"
 
 #: ../src/pulsecore/sink.c:2394
 msgid "Internal Audio"
@@ -431,10 +437,9 @@ msgstr "Nezdařilo se získání ID počítače"
 msgid "Machine ID is %s."
 msgstr "ID počítače je %s."
 
-#: ../src/daemon/main.c:917
-#, fuzzy, c-format
+#: ../src/daemon/main.c:917, c-format
 msgid "Session ID is %s."
-msgstr "ID počítače je %s."
+msgstr "ID sezení je %s."
 
 #: ../src/daemon/main.c:923
 #, c-format
@@ -460,6 +465,13 @@ msgid ""
 "Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an "
 "explanation why system mode is usually a bad idea."
 msgstr ""
+"Dobrá, máte tedy PA spuštěn v systémovém režimu. Vemte prosím na vědomí, "
+"že k tomuto by až na výjimečné situace němelo docházet.\n"
+"Pokud v této činnosti přesto budete pokračovat, nesete riziko za možné "
+"špatné "
+"a nepředvídatelné chování systému.\n"
+"Vysvětlení, proč je systémový režim obvykle velmi špatný nápad, si můžete "
+"přečíst na http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode."
 
 #: ../src/daemon/main.c:951
 msgid "pa_pid_file_create() failed."
@@ -749,10 +761,9 @@ msgstr "Použití: %s\n"
 msgid "Load Once: %s\n"
 msgstr "Načíst jednou: %s\n"
 
-#: ../src/daemon/dumpmodules.c:75
-#, c-format
+#: ../src/daemon/dumpmodules.c:75, c-format
 msgid "DEPRECATION WARNING: %s\n"
-msgstr ""
+msgstr "VAROVÁNÍ ZASTARALOSTI: %s\n"
 
 #: ../src/daemon/dumpmodules.c:79
 #, c-format
@@ -1318,7 +1329,7 @@ msgstr "Metrika vyrovnávací paměti: maxlength=%u, fragsize=%u\n"
 #: ../src/utils/pacat.c:316
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'.\n"
-msgstr "Používána vzorkovací specifikace \"%s\", mapa kanálů \"%s\".\n"
+msgstr "Používáno určení vzorku \"%s\", mapa kanálů \"%s\".\n"
 
 #: ../src/utils/pacat.c:320
 #, c-format
@@ -1428,8 +1439,7 @@ msgstr "Čas: %0.3f sekund; latence: %0.0f μs.  \r"
 msgid "pa_stream_update_timing_info() failed: %s\n"
 msgstr "pa_stream_update_timing_info() selhalo: %s\n"
 
-#: ../src/utils/pacat.c:605
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:605, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1531,6 +1541,13 @@ msgstr ""
 "      --latency=BAJTY                   Vyžádá určenou latenci v bajtech.\n"
 "      --process-time=BAJTY              Vyžádá určený čas zpracování na "
 "požadavek v bajtech.\n"
+"      --property=VLASTNOST=HODNOTA      Nastaví určenou vlastnost "
+"na určenou hodnotu.\n"
+"      --raw                             Nahrává/přehrává surová data PCM.\n"
+"      --file-format=FORMÁT              Nahrává/přehrává formátovaná data PCM."
+"\n"
+"      --list-file-formats               Zobrazí seznam dostupných formátů "
+"souborů.\n"
 
 #: ../src/utils/pacat.c:727
 #, c-format
@@ -1543,15 +1560,13 @@ msgstr ""
 "Přeloženo s libpulse %s\n"
 "Propojeno s libpulse %s\n"
 
-#: ../src/utils/pacat.c:760 ../src/utils/pactl.c:900
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:760 ../src/utils/pactl.c:900, c-format
 msgid "Invalid client name '%s'\n"
-msgstr "Neplatná mapa kanálů \"%s\"\n"
+msgstr "Neplatný název klienta \"%s\"\n"
 
-#: ../src/utils/pacat.c:776
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:776, c-format
 msgid "Invalid stream name '%s'\n"
-msgstr "Neplatná metoda převzorkování \"%s\"."
+msgstr "Neplatný název proudu \"%s\"\n"
 
 #: ../src/utils/pacat.c:813
 #, c-format
@@ -1568,19 +1583,18 @@ msgstr "Neplatné upřesnění latence \"%s\"\n"
 msgid "Invalid process time specification '%s'\n"
 msgstr "Neplatné upřesnění času zpracování \"%s\"\n"
 
-#: ../src/utils/pacat.c:861
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:861, c-format
 msgid "Invalid property '%s'\n"
-msgstr "Neplatná metoda převzorkování \"%s\"."
+msgstr "Neplatná vlastnost \"%s\"\n"
 
 #: ../src/utils/pacat.c:878
 #, c-format
 msgid "Unknown file format %s."
-msgstr ""
+msgstr "Neznámý formát souboru %s."
 
 #: ../src/utils/pacat.c:897
 msgid "Invalid sample specification\n"
-msgstr "Neplatné upřesnění vzorkování\n"
+msgstr "Neplatné určení vzorku\n"
 
 #: ../src/utils/pacat.c:907
 #, c-format
@@ -1597,12 +1611,10 @@ msgid "Too many arguments.\n"
 msgstr "Příliš mnoho argumentů.\n"
 
 #: ../src/utils/pacat.c:930
-#, fuzzy
 msgid "Failed to generate sample specification for file.\n"
-msgstr "Selhalo získání informace o vzorku: %s\n"
+msgstr "Selhalo vytvoření určení vzorku souboru.\n"
 
 #: ../src/utils/pacat.c:950
-#, fuzzy
 msgid "Failed to open audio file.\n"
 msgstr "Selhalo otevření zvukového souboru.\n"
 
@@ -1611,29 +1623,29 @@ msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file.\n"
 msgstr ""
+"Varování: zadané určení vzorku bude přepsáno určením získaným "
+"ze souboru.\n"
 
 #: ../src/utils/pacat.c:959 ../src/utils/pactl.c:944
-#, fuzzy
 msgid "Failed to determine sample specification from file.\n"
-msgstr "Selhalo získání informace o vzorku: %s\n"
+msgstr "Selhalo zjištění určení vzorku ze souboru.\n"
 
 #: ../src/utils/pacat.c:968
 msgid "Warning: Failed to determine channel map from file.\n"
-msgstr ""
+msgstr "Varování: Selhalo zjištění mapy kanálů ze souboru.\n"
 
 #: ../src/utils/pacat.c:979
 msgid "Channel map doesn't match sample specification\n"
-msgstr "Mapa kanálů se neshoduje s upřesněním vzorkování\n"
+msgstr "Mapa kanálů se neshoduje s určením vzorku\n"
 
 #: ../src/utils/pacat.c:990
 msgid "Warning: failed to write channel map to file.\n"
-msgstr ""
+msgstr "Varování: selhal zápis mapy kanálů do souboru.\n"
 
-#: ../src/utils/pacat.c:1005
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:1005, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'.\n"
-msgstr "Otevírání proudu %s s upřesněním vzorkování \"%s\".\n"
+msgstr "Otevírání proudu %s s určením vzorku \"%s\" a mapou kanálů \"%s\".\n"
 
 #: ../src/utils/pacat.c:1006
 msgid "recording"
@@ -1659,10 +1671,9 @@ msgstr "io_new() selhalo.\n"
 msgid "pa_context_new() failed.\n"
 msgstr "pa_context_new() selhalo.\n"
 
-#: ../src/utils/pacat.c:1066
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:1066, c-format
 msgid "pa_context_connect() failed: %s\n"
-msgstr "pa_context_connect() selhalo: %s"
+msgstr "pa_context_connect() selhalo: %s\n"
 
 #: ../src/utils/pacat.c:1077
 msgid "time_new() failed.\n"
@@ -1780,7 +1791,7 @@ msgstr ""
 "Název počítače: %s\n"
 "Název serveru: %s\n"
 "Verze serveru: %s\n"
-"Výchozí upřesnění vzorkování: %s\n"
+"Výchozí určení vzorku: %s\n"
 "Výchozí mapa kanálů: %s\n"
 "Výchozí cíl: %s\n"
 "Výchozí zdroj: %s\n"
@@ -1817,7 +1828,7 @@ msgstr ""
 "\tNázev: %s\n"
 "\tPopis: %s\n"
 "\tOvladač: %s\n"
-"\tUpřesnění vzorkování: %s\n"
+"\tUrčení vzorku: %s\n"
 "\tMapa kanálů: %s\n"
 "\tModul vlastníka: %u\n"
 "\tZtlumení: %s\n"
@@ -1830,15 +1841,13 @@ msgstr ""
 "\tVlastnosti:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:261 ../src/utils/pactl.c:353
-#, fuzzy, c-format
+#: ../src/utils/pactl.c:261 ../src/utils/pactl.c:353, c-format
 msgid "\tPorts:\n"
-msgstr "\tProfily:\n"
+msgstr "\tPorty:\n"
 
-#: ../src/utils/pactl.c:267 ../src/utils/pactl.c:359
-#, fuzzy, c-format
+#: ../src/utils/pactl.c:267 ../src/utils/pactl.c:359, c-format
 msgid "\tActive Port: %s\n"
-msgstr "\tAktivní profil: %s\n"
+msgstr "\tAktivní port: %s\n"
 
 #: ../src/utils/pactl.c:290
 #, c-format
@@ -1871,7 +1880,7 @@ msgstr ""
 "\tNázev: %s\n"
 "\tPopis: %s\n"
 "\tOvladač: %s\n"
-"\tUpřesnění vzorkování: %s\n"
+"\tUrčení vzorku: %s\n"
 "\tMapa kanálů: %s\n"
 "\tModul vlastníka: %u\n"
 "\tZtlumení: %s\n"
@@ -1996,7 +2005,7 @@ msgstr ""
 "\tModul vlastníka: %s\n"
 "\tKlient: %s\n"
 "\tCíl: %u\n"
-"\tUpřesnění vzorkování: %s\n"
+"\tUrčení vzorku: %s\n"
 "\tMapa kanálů: %s\n"
 "\tZtlumení: %s\n"
 "\tHlasitost: %s\n"
@@ -2034,7 +2043,7 @@ msgstr ""
 "\tModul vlastníka: %s\n"
 "\tKlient: %s\n"
 "\tZdroj: %u\n"
-"\tUpřesnění vzorkování: %s\n"
+"\tUrčení vzorku: %s\n"
 "\tMapa kanálů: %s\n"
 "\tLatence vyrovnávací paměti: %0.0f μs\n"
 "\tLatence zdroje: %0.0f μs\n"
@@ -2066,7 +2075,7 @@ msgid ""
 msgstr ""
 "Vzorek č. %u\n"
 "\tNázev: %s\n"
-"\tUpřesnění vzorkování: %s\n"
+"\tUrčení vzorku: %s\n"
 "\tMapa kanálů: %s\n"
 "\tHlasitost: %s\n"
 "\t        %s\n"
@@ -2092,8 +2101,7 @@ msgstr "Selhalo nahrání vzorku: %s\n"
 msgid "Premature end of file\n"
 msgstr "Předčasný konec souboru\n"
 
-#: ../src/utils/pactl.c:826
-#, fuzzy, c-format
+#: ../src/utils/pactl.c:826, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -2132,6 +2140,8 @@ msgstr ""
 "%s [přepínače] suspend-sink [CÍL] 1|0\n"
 "%s [přepínače] suspend-source [ZDROJ] 1|0\n"
 "%s [přepínače] set-card-profile [KARTA] [PROFIL] \n"
+"%s [přepínače] set-sink-port [CÍL] [PORT] \n"
+"%s [přepínače] set-source-port [ZDROJ] [PORT] \n"
 "\n"
 "  -h, --help                            Zobrazí tuto nápovědu\n"
 "      --version                         Zobrazí verzi\n"
@@ -2160,9 +2170,8 @@ msgid "Failed to open sound file.\n"
 msgstr "Selhalo otevření zvukového souboru.\n"
 
 #: ../src/utils/pactl.c:951
-#, fuzzy
 msgid "Warning: Failed to determine sample specification from file.\n"
-msgstr "Otevírání proudu %s s upřesněním vzorkování \"%s\".\n"
+msgstr "Varování: Selhalo zjištění určení vzorku ze souboru.\n"
 
 #: ../src/utils/pactl.c:961
 msgid "You have to specify a sample name to play\n"
@@ -2206,14 +2215,12 @@ msgid "You have to specify a card name/index and a profile name\n"
 msgstr "Je nutné upřesnit název karty/indexu a název profilu\n"
 
 #: ../src/utils/pactl.c:1073
-#, fuzzy
 msgid "You have to specify a sink name/index and a port name\n"
-msgstr "Je nutné upřesnit název karty/indexu a název profilu\n"
+msgstr "Je nutné upřesnit název cíle/indexu a název portu\n"
 
 #: ../src/utils/pactl.c:1084
-#, fuzzy
 msgid "You have to specify a source name/index and a port name\n"
-msgstr "Je nutné upřesnit název karty/indexu a název profilu\n"
+msgstr "Je nutné upřesnit název zdroje/indexu a název portu\n"
 
 #: ../src/utils/pactl.c:1099
 msgid "No valid command specified.\n"
@@ -2305,7 +2312,7 @@ msgstr "Doposud neimplementováno.\n"
 
 #: ../src/utils/pacmd.c:61
 msgid "No PulseAudio daemon running, or not running as session daemon."
-msgstr ""
+msgstr "Neběží žádný démon PulseAudio, nebo neběží jako démon sezení."
 
 #: ../src/utils/pacmd.c:66
 #, c-format
