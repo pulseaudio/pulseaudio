@@ -1207,6 +1207,17 @@ int pa_stream_begin_write(
     PA_CHECK_VALIDITY(s->context, data, PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, nbytes && *nbytes != 0, PA_ERR_INVALID);
 
+    if (*nbytes != (size_t) -1) {
+        size_t m, fs;
+
+        m = pa_mempool_block_size_max(s->context->mempool);
+        fs = pa_frame_size(&s->sample_spec);
+
+        m = (m / fs) * fs;
+        if (*nbytes > m)
+            *nbytes = m;
+    }
+
     if (!s->write_memblock) {
         s->write_memblock = pa_memblock_new(s->context->mempool, *nbytes);
         s->write_data = pa_memblock_acquire(s->write_memblock);

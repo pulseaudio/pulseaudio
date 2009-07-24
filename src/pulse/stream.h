@@ -425,7 +425,7 @@ int pa_stream_disconnect(pa_stream *s);
  * to a pointer and an address of the number of bytes you want to
  * write. On return the two values will contain a pointer where you
  * can place the data to write and the maximum number of bytes you can
- * write. On return *nbytes can be larger or have the same value as
+ * write. On return *nbytes can be smaller or have the same value as
  * you passed in. You need to be able to handle both cases. Accessing
  * memory beyond the returned *nbytes value is invalid. Acessing the
  * memory returned after the following pa_stream_write() or
@@ -442,7 +442,7 @@ int pa_stream_disconnect(pa_stream *s);
  * amount of time pass after calling pa_stream_begin_write() and
  * before calling pa_stream_write(). If you want to cancel a
  * previously called pa_stream_begin_write() without calling
- * pa_stream_write() use pa_stream_cancel_write() instead. Calling
+ * pa_stream_write() use pa_stream_cancel_write(). Calling
  * pa_stream_begin_write() twice without calling pa_stream_write() or
  * pa_stream_cancel_write() in between will return exactly the same
  * pointer/nbytes values.\since 0.9.16 */
@@ -492,10 +492,11 @@ int pa_stream_write(
         pa_seek_mode_t seek      /**< Seek mode, must be PA_SEEK_RELATIVE for upload streams */);
 
 /** Read the next fragment from the buffer (for recording streams).
- * data will point to the actual data and length will contain the size
- * of the data in bytes (which can be less than a complete framgnet).
- * Use pa_stream_drop() to actually remove the data from the
- * buffer. If no data is available will return a NULL pointer */
+ * data will point to the actual data and nbytes will contain the size
+ * of the data in bytes (which can be less or more than a complete
+ * fragment).  Use pa_stream_drop() to actually remove the data from
+ * the buffer. If no data is available this will return a NULL
+ * pointer */
 int pa_stream_peek(
         pa_stream *p                 /**< The stream to use */,
         const void **data            /**< Pointer to pointer that will point to data */,
