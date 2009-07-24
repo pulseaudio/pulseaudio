@@ -827,7 +827,7 @@ static void create_stream_complete(pa_stream *s) {
     if (s->flags & PA_STREAM_AUTO_TIMING_UPDATE) {
         s->auto_timing_interval_usec = AUTO_TIMING_INTERVAL_START_USEC;
         pa_assert(!s->auto_timing_update_event);
-	s->auto_timing_update_event = pa_context_rttime_new(s->context, pa_rtclock_now() + s->auto_timing_interval_usec, &auto_timing_update_callback, s);
+        s->auto_timing_update_event = pa_context_rttime_new(s->context, pa_rtclock_now() + s->auto_timing_interval_usec, &auto_timing_update_callback, s);
 
         request_auto_timing_update(s, TRUE);
     }

@@ -52,7 +52,7 @@ void pa_smoother_set_time_offset(pa_smoother *s, pa_usec_t x_offset);
 void pa_smoother_pause(pa_smoother *s, pa_usec_t x);
 void pa_smoother_resume(pa_smoother *s, pa_usec_t x, pa_bool_t abrupt);
 
-void pa_smoother_reset(pa_smoother *s);
+void pa_smoother_reset(pa_smoother *s, pa_usec_t time_offset, pa_bool_t paused);
 
 void pa_smoother_fix_now(pa_smoother *s);
 

@@ -854,7 +854,9 @@ static int unsuspend(struct userdata *u) {
     /* FIXME: We need to reload the volume somehow */
 
     snd_pcm_start(u->pcm_handle);
-    pa_smoother_resume(u->smoother, pa_rtclock_now(), TRUE);
+
+    u->read_count = 0;
+    pa_smoother_reset(u->smoother, pa_rtclock_now(), TRUE);
 
     pa_log_info("Resumed successfully...");
 

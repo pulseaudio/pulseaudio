@@ -899,8 +899,12 @@ static int unsuspend(struct userdata *u) {
     if (build_pollfd(u) < 0)
         goto fail;
 
+    u->write_count = 0;
+    pa_smoother_reset(u->smoother, pa_rtclock_now(), TRUE);
+
     u->first = TRUE;
     u->since_start = 0;
+
 
     pa_log_info("Resumed successfully...");
 
@@ -1204,7 +1208,7 @@ static int process_rewind(struct userdata *u) {
         if (rewind_nbytes <= 0)
             pa_log_info("Tried rewind, but was apparently not possible.");
         else {
-            u->write_count -= out_frames * u->frame_size;
+            u->write_count -= rewind_nbytes;
             pa_log_debug("Rewound %lu bytes.", (unsigned long) rewind_nbytes);
             pa_sink_process_rewind(u->sink, rewind_nbytes);
 
