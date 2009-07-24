@@ -96,6 +96,7 @@ struct pa_memimport_segment {
     unsigned n_blocks;
 };
 
+/* A collection of multiple segments */
 struct pa_memimport {
     pa_mutex *mutex;
 
@@ -514,9 +515,9 @@ static void memblock_free(pa_memblock *b) {
 
             pa_mutex_lock(import->mutex);
 
-            pa_hashmap_remove(
-                    import->blocks,
-                    PA_UINT32_TO_PTR(b->per_type.imported.id));
+            pa_assert_se(pa_hashmap_remove(
+                                 import->blocks,
+                                 PA_UINT32_TO_PTR(b->per_type.imported.id)));
 
             pa_assert(segment->n_blocks >= 1);
             if (-- segment->n_blocks <= 0)
@@ -677,9 +678,9 @@ static void memblock_replace_import(pa_memblock *b) {
 
     pa_mutex_lock(import->mutex);
 
-    pa_hashmap_remove(
-            import->blocks,
-            PA_UINT32_TO_PTR(b->per_type.imported.id));
+    pa_assert_se(pa_hashmap_remove(
+                         import->blocks,
+                         PA_UINT32_TO_PTR(b->per_type.imported.id)));
 
     memblock_make_local(b);
 
@@ -960,6 +961,11 @@ pa_memblock* pa_memimport_get(pa_memimport *i, uint32_t block_id, uint32_t shm_i
 
     pa_mutex_lock(i->mutex);
 
+    if ((b = pa_hashmap_get(i->blocks, PA_UINT32_TO_PTR(block_id)))) {
+        pa_memblock_ref(b);
+        goto finish;
+    }
+
     if (pa_hashmap_size(i->blocks) >= PA_MEMIMPORT_SLOTS_MAX)
         goto finish;
 
@@ -989,11 +995,10 @@ pa_memblock* pa_memimport_get(pa_memimport *i, uint32_t block_id, uint32_t shm_i
 
     seg->n_blocks++;
 
+    stat_add(b);
+
 finish:
     pa_mutex_unlock(i->mutex);
-
-    if (b)
-    stat_add(b);
 
     return b;
 }
