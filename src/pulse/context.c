@@ -668,10 +668,23 @@ static pa_strlist *prepend_per_user(pa_strlist *l) {
 static int context_autospawn(pa_context *c) {
     pid_t pid;
     int status, r;
-
-    pa_log_debug("Trying to autospawn...");
+    struct sigaction sa;
 
     pa_context_ref(c);
+
+    if (sigaction(SIGCHLD, NULL, &sa) < 0) {
+        pa_log_debug("sigaction() failed: %s", pa_cstrerror(errno));
+        pa_context_fail(c, PA_ERR_INTERNAL);
+        goto fail;
+    }
+
+    if ((sa.sa_flags & SA_NOCLDWAIT) || sa.sa_handler == SIG_IGN) {
+        pa_log_debug("Process disabled waitpid(), cannot autospawn.");
+        pa_context_fail(c, PA_ERR_CONNECTIONREFUSED);
+        goto fail;
+    }
+
+    pa_log_debug("Trying to autospawn...");
 
     if (c->spawn_api.prefork)
         c->spawn_api.prefork();
