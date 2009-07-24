@@ -743,9 +743,16 @@ static int context_autospawn(pa_context *c) {
     } while (r < 0 && errno == EINTR);
 
     if (r < 0) {
-        pa_log(_("waitpid(): %s"), pa_cstrerror(errno));
-        pa_context_fail(c, PA_ERR_INTERNAL);
-        goto fail;
+
+        if (errno != ESRCH) {
+            pa_log(_("waitpid(): %s"), pa_cstrerror(errno));
+            pa_context_fail(c, PA_ERR_INTERNAL);
+            goto fail;
+        }
+
+        /* hmm, something already reaped our child, so we assume
+         * startup worked, even if we cannot know */
+
     } else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
         pa_context_fail(c, PA_ERR_CONNECTIONREFUSED);
         goto fail;
