@@ -1172,7 +1172,7 @@ int pa_stream_connect_playback(
         const char *dev,
         const pa_buffer_attr *attr,
         pa_stream_flags_t flags,
-        pa_cvolume *volume,
+        const pa_cvolume *volume,
         pa_stream *sync_stream) {
 
     pa_assert(s);
