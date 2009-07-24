@@ -43,20 +43,37 @@ static pa_context *context = NULL;
 static pa_stream *stream = NULL;
 static pa_mainloop_api *mainloop_api = NULL;
 static pa_bool_t playback = TRUE;
+static pa_usec_t latency = 0;
 
 static void stream_write_cb(pa_stream *p, size_t nbytes, void *userdata) {
     /* Just some silence */
-    pa_assert_se(pa_stream_write(p, pa_xmalloc0(nbytes), nbytes, pa_xfree, 0, PA_SEEK_RELATIVE) == 0);
+
+    for (;;) {
+        void *data;
+
+        pa_assert_se((nbytes = pa_stream_writable_size(p)) != (size_t) -1);
+
+        if (nbytes <= 0)
+            break;
+
+        pa_assert_se(pa_stream_begin_write(p, &data, &nbytes) == 0);
+        pa_memzero(data, nbytes);
+        pa_assert_se(pa_stream_write(p, data, nbytes, NULL, 0, PA_SEEK_RELATIVE) == 0);
+    }
 }
 
 static void stream_read_cb(pa_stream *p, size_t nbytes, void *userdata) {
-    /* We don't care, just drop the data */
+    /* We don't care about the data, just drop it */
 
-    while (pa_stream_readable_size(p) > 0) {
-        const void *d;
-        size_t b;
+    for (;;) {
+        const void *data;
 
-        pa_assert_se(pa_stream_peek(p, &d, &b) == 0);
+        pa_assert_se((nbytes = pa_stream_readable_size(p)) != (size_t) -1);
+
+        if (nbytes <= 0)
+            break;
+
+        pa_assert_se(pa_stream_peek(p, &data, &nbytes) == 0);
         pa_assert_se(pa_stream_drop(p) == 0);
     }
 }
@@ -82,27 +99,36 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
         case PA_CONTEXT_READY: {
             pa_stream_flags_t flags = PA_STREAM_AUTO_TIMING_UPDATE;
-
+            pa_buffer_attr attr;
             static const pa_sample_spec ss = {
                 .format = PA_SAMPLE_S16LE,
                 .rate = 44100,
                 .channels = 2
             };
 
+            pa_zero(attr);
+            attr.maxlength = (uint32_t) -1;
+            attr.tlength = latency > 0 ? (uint32_t) pa_usec_to_bytes(latency, &ss) : (uint32_t) -1;
+            attr.prebuf = (uint32_t) -1;
+            attr.minreq = (uint32_t) -1;
+            attr.fragsize = (uint32_t) -1;
+
 #ifdef INTERPOLATE
             flags |= PA_STREAM_INTERPOLATE_TIMING;
 #endif
 
+            if (latency > 0)
+                flags |= PA_STREAM_ADJUST_LATENCY;
+
             fprintf(stderr, "Connection established.\n");
 
-            stream = pa_stream_new(c, "interpol-test", &ss, NULL);
-            assert(stream);
+            pa_assert_se(stream = pa_stream_new(c, "interpol-test", &ss, NULL));
 
             if (playback) {
-                pa_assert_se(pa_stream_connect_playback(stream, NULL, NULL, flags, NULL, NULL) == 0);
+                pa_assert_se(pa_stream_connect_playback(stream, NULL, &attr, flags, NULL, NULL) == 0);
                 pa_stream_set_write_callback(stream, stream_write_cb, NULL);
             } else {
-                pa_assert_se(pa_stream_connect_record(stream, NULL, NULL, flags) == 0);
+                pa_assert_se(pa_stream_connect_record(stream, NULL, &attr, flags) == 0);
                 pa_stream_set_read_callback(stream, stream_read_cb, NULL);
             }
 
@@ -123,7 +149,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
 int main(int argc, char *argv[]) {
     pa_threaded_mainloop* m = NULL;
-    int k, r;
+    int k;
     struct timeval start, last_info = { 0, 0 };
     pa_usec_t old_t = 0, old_rtc = 0;
 #ifdef CORK
@@ -134,24 +160,22 @@ int main(int argc, char *argv[]) {
 
     playback = argc <= 1 || !pa_streq(argv[1], "-r");
 
+    latency =
+        (argc >= 2 && !pa_streq(argv[1], "-r")) ? atoi(argv[1]) :
+        (argc >= 3 ? atoi(argv[2]) : 0);
+
     /* Set up a new main loop */
-    m = pa_threaded_mainloop_new();
-    assert(m);
-
-    mainloop_api = pa_threaded_mainloop_get_api(m);
-
-    context = pa_context_new(mainloop_api, argv[0]);
-    assert(context);
+    pa_assert_se(m = pa_threaded_mainloop_new());
+    pa_assert_se(mainloop_api = pa_threaded_mainloop_get_api(m));
+    pa_assert_se(context = pa_context_new(mainloop_api, argv[0]));
 
     pa_context_set_state_callback(context, context_state_callback, NULL);
 
-    r = pa_context_connect(context, NULL, 0, NULL);
-    assert(r >= 0);
+    pa_assert_se(pa_context_connect(context, NULL, 0, NULL) >= 0);
 
     pa_gettimeofday(&start);
 
-    r = pa_threaded_mainloop_start(m);
-    assert(r >= 0);
+    pa_assert_se(pa_threaded_mainloop_start(m) >= 0);
 
 /* #ifdef CORK */
     for (k = 0; k < 20000; k++)
@@ -160,7 +184,7 @@ int main(int argc, char *argv[]) {
 /* #endif */
     {
         pa_bool_t success = FALSE, changed = FALSE;
-        pa_usec_t t, rtc;
+        pa_usec_t t, rtc, d;
         struct timeval now, tv;
         pa_bool_t playing = FALSE;
 
@@ -169,7 +193,8 @@ int main(int argc, char *argv[]) {
         if (stream) {
             const pa_timing_info *info;
 
-            if (pa_stream_get_time(stream, &t) >= 0)
+            if (pa_stream_get_time(stream, &t) >= 0 &&
+                pa_stream_get_latency(stream, &d, NULL) >= 0)
                 success = TRUE;
 
             if ((info = pa_stream_get_timing_info(stream))) {
@@ -191,14 +216,16 @@ int main(int argc, char *argv[]) {
             pa_bool_t cork_now;
 #endif
             rtc = pa_timeval_diff(&now, &start);
-            printf("%i\t%llu\t%llu\t%llu\t%llu\t%lli\t%u\t%u\n", k,
+            printf("%i\t%llu\t%llu\t%llu\t%llu\t%lli\t%u\t%u\t%llu\t%llu\n", k,
                    (unsigned long long) rtc,
                    (unsigned long long) t,
                    (unsigned long long) (rtc-old_rtc),
                    (unsigned long long) (t-old_t),
                    (signed long long) rtc - (signed long long) t,
                    changed,
-                   playing);
+                   playing,
+                   (unsigned long long) latency,
+                   (unsigned long long) d);
 
             fflush(stdout);
             old_t = t;
