@@ -4,7 +4,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2008 Joao Paulo Rechi Vita
+  Copyright 2008-2009 Joao Paulo Rechi Vita
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -53,7 +53,7 @@ struct pa_bluetooth_uuid {
     PA_LLIST_FIELDS(pa_bluetooth_uuid);
 };
 
-/* This enum is shared among Audio, Headset, and AudioSink, although not all values are acceptable in all profiles */
+/* This enum is shared among Audio, Headset, AudioSink, and AudioSource, although not all values are acceptable in all profiles */
 typedef enum pa_bt_audio_state {
     PA_BT_AUDIO_STATE_INVALID = -1,
     PA_BT_AUDIO_STATE_DISCONNECTED,
@@ -83,6 +83,9 @@ struct pa_bluetooth_device {
 
     /* AudioSink state */
     pa_bt_audio_state_t audio_sink_state;
+
+    /* AudioSource state */
+    pa_bt_audio_state_t audio_source_state;
 
     /* Headset state */
     pa_bt_audio_state_t headset_state;
