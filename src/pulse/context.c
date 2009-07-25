@@ -701,9 +701,8 @@ static int context_autospawn(pa_context *c) {
         /* Child */
 
         const char *state = NULL;
-#define MAX_ARGS 64
-        const char * argv[MAX_ARGS+1];
-        int n;
+        const char * argv[32];
+        unsigned n = 0;
 
         if (c->spawn_api.atfork)
             c->spawn_api.atfork();
@@ -712,12 +711,10 @@ static int context_autospawn(pa_context *c) {
 
         /* Setup argv */
 
-        n = 0;
-
         argv[n++] = c->conf->daemon_binary;
         argv[n++] = "--start";
 
-        while (n < MAX_ARGS) {
+        while (n < PA_ELEMENTSOF(argv)-1) {
             char *a;
 
             if (!(a = pa_split_spaces(c->conf->extra_arguments, &state)))
@@ -727,10 +724,10 @@ static int context_autospawn(pa_context *c) {
         }
 
         argv[n++] = NULL;
+        pa_assert(n <= PA_ELEMENTSOF(argv));
 
         execv(argv[0], (char * const *) argv);
         _exit(1);
-#undef MAX_ARGS
     }
 
     /* Parent */
