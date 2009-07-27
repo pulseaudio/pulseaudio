@@ -401,6 +401,7 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
         snd_pcm_sframes_t n;
         size_t n_bytes;
         int r;
+        pa_bool_t after_avail = TRUE;
 
         /* First we determine how many samples are missing to fill the
          * buffer up to 100% */
@@ -484,6 +485,9 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
 
             if (PA_UNLIKELY((err = pa_alsa_safe_mmap_begin(u->pcm_handle, &areas, &offset, &frames, u->hwbuf_size, &u->sink->sample_spec)) < 0)) {
 
+                if (!after_avail && err == -EAGAIN)
+                    break;
+
                 if ((r = try_recover(u, "snd_pcm_mmap_begin", err)) == 0)
                     continue;
 
@@ -494,8 +498,11 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
             if (frames > pa_mempool_block_size_max(u->sink->core->mempool)/u->frame_size)
                 frames = pa_mempool_block_size_max(u->sink->core->mempool)/u->frame_size;
 
-            if (frames == 0)
+            if (!after_avail && frames == 0)
                 break;
+
+            pa_assert(frames > 0);
+            after_avail = FALSE;
 
             /* Check these are multiples of 8 bit */
             pa_assert((areas[0].first & 7) == 0);
@@ -617,6 +624,7 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
         for (;;) {
             snd_pcm_sframes_t frames;
             void *p;
+            pa_bool_t after_avail = TRUE;
 
 /*         pa_log_debug("%lu frames to write", (unsigned long) frames); */
 
@@ -634,16 +642,22 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
             frames = snd_pcm_writei(u->pcm_handle, (const uint8_t*) p + u->memchunk.index, (snd_pcm_uframes_t) frames);
             pa_memblock_release(u->memchunk.memblock);
 
-            if (frames == 0)
-                break;
-
             if (PA_UNLIKELY(frames < 0)) {
+
+                if (!after_avail && (int) frames == -EAGAIN)
+                    break;
 
                 if ((r = try_recover(u, "snd_pcm_writei", (int) frames)) == 0)
                     continue;
 
                 return r;
             }
+
+            if (!after_avail && frames == 0)
+                break;
+
+            pa_assert(frames > 0);
+            after_avail = FALSE;
 
             u->memchunk.index += (size_t) frames * u->frame_size;
             u->memchunk.length -= (size_t) frames * u->frame_size;
@@ -885,8 +899,12 @@ static int unsuspend(struct userdata *u) {
     if (build_pollfd(u) < 0)
         goto fail;
 
+    u->write_count = 0;
+    pa_smoother_reset(u->smoother, pa_rtclock_now(), TRUE);
+
     u->first = TRUE;
     u->since_start = 0;
+
 
     pa_log_info("Resumed successfully...");
 
@@ -1190,7 +1208,7 @@ static int process_rewind(struct userdata *u) {
         if (rewind_nbytes <= 0)
             pa_log_info("Tried rewind, but was apparently not possible.");
         else {
-            u->write_count -= out_frames * u->frame_size;
+            u->write_count -= rewind_nbytes;
             pa_log_debug("Rewound %lu bytes.", (unsigned long) rewind_nbytes);
             pa_sink_process_rewind(u->sink, rewind_nbytes);
 

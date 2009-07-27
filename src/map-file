@@ -219,6 +219,8 @@ pa_simple_get_latency;
 pa_simple_new;
 pa_simple_read;
 pa_simple_write;
+pa_stream_begin_write;
+pa_stream_cancel_write;
 pa_stream_connect_playback;
 pa_stream_connect_record;
 pa_stream_connect_upload;

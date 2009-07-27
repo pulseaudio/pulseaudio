@@ -1481,7 +1481,7 @@ char *pa_get_runtime_dir(void) {
         goto fail;
     }
 
-    k = pa_sprintf_malloc("%s" PA_PATH_SEP "%s:runtime", d, mid);
+    k = pa_sprintf_malloc("%s" PA_PATH_SEP "%s-runtime", d, mid);
     pa_xfree(d);
     pa_xfree(mid);
 
@@ -1904,7 +1904,7 @@ static char *get_path(const char *fn, pa_bool_t prependmid, pa_bool_t rt) {
                 return NULL;
             }
 
-            r = pa_sprintf_malloc("%s" PA_PATH_SEP "%s:%s", rtp, mid, fn);
+            r = pa_sprintf_malloc("%s" PA_PATH_SEP "%s-%s", rtp, mid, fn);
             pa_xfree(mid);
         } else
             r = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", rtp, fn);

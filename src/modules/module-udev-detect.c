@@ -336,8 +336,18 @@ static int setup_inotify(struct userdata *u) {
         pa_close(u->inotify_fd);
         u->inotify_fd = -1;
 
-        if (saved_errno == ENOENT)
+        if (saved_errno == ENOENT) {
+            pa_log_debug("/dev/snd/ is apparently not existing yet, retrying to create inotify watch later.");
             return 0;
+        }
+
+        if (saved_errno == ENOSPC) {
+            pa_log("You apparently ran out of inotify watches, probably because Tracker/Beagle took them all away. "
+                   "I wished people would do their homework first and fix inotify before using it for watching whole "
+                   "directory trees which is something the current inotify is certainly not useful for. "
+                   "Please make sure to drop the Tracker/Beagle guys a line complaining about their broken use of inotify.");
+            return 0;
+        }
 
         pa_log("inotify_add_watch() failed: %s", pa_cstrerror(saved_errno));
         return -1;

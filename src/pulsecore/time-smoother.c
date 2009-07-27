@@ -108,29 +108,11 @@ pa_smoother* pa_smoother_new(
     s = pa_xnew(pa_smoother, 1);
     s->adjust_time = adjust_time;
     s->history_time = history_time;
-    s->time_offset = 0;
+    s->min_history = min_history;
     s->monotonic = monotonic;
-
-    s->px = s->py = 0;
-    s->dp = 1;
-
-    s->ex = s->ey = s->ry = 0;
-    s->de = 1;
-
-    s->history_idx = 0;
-    s->n_history = 0;
-
-    s->last_y = s->last_x = 0;
-
-    s->abc_valid = FALSE;
-
-    s->paused = FALSE;
     s->smoothing = smoothing;
 
-    s->min_history = min_history;
-
-    s->paused = paused;
-    s->time_offset = s->pause_time = time_offset;
+    pa_smoother_reset(s, time_offset, paused);
 
     return s;
 }
@@ -514,9 +496,26 @@ pa_usec_t pa_smoother_translate(pa_smoother *s, pa_usec_t x, pa_usec_t y_delay) 
     return (pa_usec_t) llrint((double) y_delay / nde);
 }
 
-void pa_smoother_reset(pa_smoother *s) {
+void pa_smoother_reset(pa_smoother *s, pa_usec_t time_offset, pa_bool_t paused) {
     pa_assert(s);
 
+    s->px = s->py = 0;
+    s->dp = 1;
+
+    s->ex = s->ey = s->ry = 0;
+    s->de = 1;
+
+    s->history_idx = 0;
     s->n_history = 0;
+
+    s->last_y = s->last_x = 0;
+
     s->abc_valid = FALSE;
+
+    s->paused = paused;
+    s->time_offset = s->pause_time = time_offset;
+
+    /* #ifdef DEBUG_DATA */
+    pa_log_debug("reset()");
+/* #endif */
 }

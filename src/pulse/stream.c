@@ -827,7 +827,7 @@ static void create_stream_complete(pa_stream *s) {
     if (s->flags & PA_STREAM_AUTO_TIMING_UPDATE) {
         s->auto_timing_interval_usec = AUTO_TIMING_INTERVAL_START_USEC;
         pa_assert(!s->auto_timing_update_event);
-	s->auto_timing_update_event = pa_context_rttime_new(s->context, pa_rtclock_now() + s->auto_timing_interval_usec, &auto_timing_update_callback, s);
+        s->auto_timing_update_event = pa_context_rttime_new(s->context, pa_rtclock_now() + s->auto_timing_interval_usec, &auto_timing_update_callback, s);
 
         request_auto_timing_update(s, TRUE);
     }
@@ -1172,7 +1172,7 @@ int pa_stream_connect_playback(
         const char *dev,
         const pa_buffer_attr *attr,
         pa_stream_flags_t flags,
-        pa_cvolume *volume,
+        const pa_cvolume *volume,
         pa_stream *sync_stream) {
 
     pa_assert(s);
@@ -1206,6 +1206,17 @@ int pa_stream_begin_write(
     PA_CHECK_VALIDITY(s->context, s->direction == PA_STREAM_PLAYBACK || s->direction == PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, data, PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, nbytes && *nbytes != 0, PA_ERR_INVALID);
+
+    if (*nbytes != (size_t) -1) {
+        size_t m, fs;
+
+        m = pa_mempool_block_size_max(s->context->mempool);
+        fs = pa_frame_size(&s->sample_spec);
+
+        m = (m / fs) * fs;
+        if (*nbytes > m)
+            *nbytes = m;
+    }
 
     if (!s->write_memblock) {
         s->write_memblock = pa_memblock_new(s->context->mempool, *nbytes);
