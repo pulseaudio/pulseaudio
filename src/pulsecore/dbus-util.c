@@ -446,18 +446,25 @@ void pa_dbus_free_pending_list(pa_dbus_pending **p) {
     }
 }
 
-void pa_dbus_send_error(DBusConnection *c, DBusMessage *in_reply_to, const char *name, const char *message) {
+void pa_dbus_send_error(DBusConnection *c, DBusMessage *in_reply_to, const char *name, const char *format, ...) {
+    va_list ap;
+    char *message;
     DBusMessage *reply = NULL;
 
     pa_assert(c);
     pa_assert(in_reply_to);
     pa_assert(name);
-    pa_assert(message);
+    pa_assert(format);
 
+    va_start(ap, format);
+    message = pa_vsprintf_malloc(format, ap);
+    va_end(ap);
     pa_assert_se((reply = dbus_message_new_error(in_reply_to, name, message)));
     pa_assert_se(dbus_connection_send(c, reply, NULL));
 
     dbus_message_unref(reply);
+
+    pa_xfree(message);
 }
 
 void pa_dbus_send_empty_reply(DBusConnection *c, DBusMessage *in_reply_to) {
@@ -655,29 +662,62 @@ int pa_dbus_get_basic_set_property_arg(DBusConnection *c, DBusMessage *msg, int 
 
     dbus_message_iter_recurse(&msg_iter, &variant_iter);
 
-    if (dbus_message_iter_get_arg_type(&variant_iter) != type) {
-        pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Variant has wrong contained type.");
+    if (pa_dbus_get_basic_arg(c, msg, &variant_iter, type, data) < 0)
+        return -1;
+
+    return 0;
+}
+
+int pa_dbus_get_fixed_array_set_property_arg(DBusConnection *c, DBusMessage *msg, int item_type, void *data, unsigned *n) {
+    DBusMessageIter msg_iter;
+    DBusMessageIter variant_iter;
+
+    pa_assert(c);
+    pa_assert(msg);
+    pa_assert(dbus_type_is_fixed(item_type));
+    pa_assert(data);
+    pa_assert(n);
+
+    /* Skip the interface and property name arguments. */
+    if (!dbus_message_iter_init(msg, &msg_iter) || !dbus_message_iter_next(&msg_iter) || !dbus_message_iter_next(&msg_iter)) {
+        pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Too few arguments.");
         return -1;
     }
 
-    dbus_message_iter_get_basic(&variant_iter, data);
+    if (dbus_message_iter_get_arg_type(&msg_iter) != DBUS_TYPE_VARIANT) {
+        pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Message argument isn't a variant.");
+        return -1;
+    }
+
+    dbus_message_iter_recurse(&msg_iter, &variant_iter);
+
+    if (pa_dbus_get_fixed_array_arg(c, msg, &variant_iter, item_type, data, n) < 0)
+        return -1;
 
     return 0;
 }
 
 int pa_dbus_get_basic_arg(DBusConnection *c, DBusMessage *msg, DBusMessageIter *iter, int type, void *data) {
+    int arg_type;
+
     pa_assert(c);
     pa_assert(msg);
     pa_assert(iter);
     pa_assert(dbus_type_is_basic(type));
     pa_assert(data);
 
-    if (dbus_message_iter_get_arg_type(iter) != type) {
-        pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Wrong argument type or too few arguments.");
+    arg_type = dbus_message_iter_get_arg_type(iter);
+    if (arg_type != type) {
+        if (arg_type == DBUS_TYPE_INVALID)
+            pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Too few arguments. D-Bus type '%c' expected.", (char) type);
+        else
+            pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Wrong argument type: '%c'. Expected type '%c'.", (char) arg_type, (char) type);
         return -1;
     }
 
     dbus_message_iter_get_basic(iter, data);
+
+    dbus_message_iter_next(iter);
 
     return 0;
 }
@@ -685,6 +725,8 @@ int pa_dbus_get_basic_arg(DBusConnection *c, DBusMessage *msg, DBusMessageIter *
 int pa_dbus_get_fixed_array_arg(DBusConnection *c, DBusMessage *msg, DBusMessageIter *iter, int item_type, void *array, unsigned *n) {
     DBusMessageIter array_iter;
     int signed_n;
+    int arg_type;
+    int element_type;
 
     pa_assert(c);
     pa_assert(msg);
@@ -693,19 +735,26 @@ int pa_dbus_get_fixed_array_arg(DBusConnection *c, DBusMessage *msg, DBusMessage
     pa_assert(array);
     pa_assert(n);
 
-    if (dbus_message_iter_get_arg_type(iter) != DBUS_TYPE_ARRAY) {
-        pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Wrong argument type or too few arguments. An array was expected.");
+    arg_type = dbus_message_iter_get_arg_type(iter);
+    if (arg_type != DBUS_TYPE_ARRAY) {
+        if (arg_type == DBUS_TYPE_INVALID)
+            pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Too few arguments. An array of type '%c' was expected.", (char) item_type);
+        else
+            pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Wrong argument type: '%c'. An array of type '%c' was expected.", (char) arg_type, (char) item_type);
         return -1;
     }
 
-    if (dbus_message_iter_get_element_type(iter) != item_type) {
-        pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Wrong array element type.");
+    element_type = dbus_message_iter_get_element_type(iter);
+    if (element_type != item_type) {
+        pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Wrong array element type: '%c'. Element type '%c' was expected.", (char) element_type, (char) item_type);
         return -1;
     }
 
     dbus_message_iter_recurse(iter, &array_iter);
 
     dbus_message_iter_get_fixed_array(&array_iter, array, &signed_n);
+
+    dbus_message_iter_next(iter);
 
     pa_assert(signed_n >= 0);
 
@@ -768,6 +817,8 @@ pa_proplist *pa_dbus_get_proplist_arg(DBusConnection *c, DBusMessage *msg, DBusM
 
         pa_assert_se(pa_proplist_set(proplist, key, value, value_length) >= 0);
     }
+
+    dbus_message_iter_next(iter);
 
     return proplist;
 

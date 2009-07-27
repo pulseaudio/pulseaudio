@@ -63,7 +63,7 @@ void pa_dbus_sync_pending_list(pa_dbus_pending **p);
 void pa_dbus_free_pending_list(pa_dbus_pending **p);
 
 /* Sends an error message as the reply to the given message. */
-void pa_dbus_send_error(DBusConnection *c, DBusMessage *in_reply_to, const char *name, const char *message);
+void pa_dbus_send_error(DBusConnection *c, DBusMessage *in_reply_to, const char *name, const char *format, ...) PA_GCC_PRINTF_ATTR(4, 5);
 
 void pa_dbus_send_empty_reply(DBusConnection *c, DBusMessage *in_reply_to);
 void pa_dbus_send_basic_value_reply(DBusConnection *c, DBusMessage *in_reply_to, int type, void *data);
@@ -76,10 +76,11 @@ void pa_dbus_append_basic_variant(DBusMessageIter *iter, int type, void *data);
 void pa_dbus_append_basic_variant_dict_entry(DBusMessageIter *dict_iter, const char *key, int type, void *data);
 void pa_dbus_append_basic_array_variant_dict_entry(DBusMessageIter *dict_iter, const char *key, int item_type, const void *array, unsigned n);
 
-/* Helper function for extracting the value argument of a Set call for a
- * property with a basic type. If the message is invalid, an error reply is
- * sent and a negative number is returned. */
+/* Helper functions for extracting the value argument of a Set call. If the
+ * message is invalid, an error reply is sent and a negative number is
+ * returned. */
 int pa_dbus_get_basic_set_property_arg(DBusConnection *c, DBusMessage *msg, int type, void *data);
+int pa_dbus_get_fixed_array_set_property_arg(DBusConnection *c, DBusMessage *msg, int item_type, void *data, unsigned *n);
 
 /* If the arguments can't be read from the iterator, an error reply is sent and
  * a negative number is returned. */

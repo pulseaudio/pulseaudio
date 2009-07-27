@@ -220,7 +220,7 @@ static pa_dbus_method_handler method_handlers[METHOD_HANDLER_MAX] = {
         .receive_cb = handle_upload_sample },
     [METHOD_HANDLER_LOAD_MODULE] = {
         .method_name = "LoadModule",
-        .arguments = upload_sample_args,
+        .arguments = load_module_args,
         .n_arguments = sizeof(load_module_args) / sizeof(pa_dbus_arg_info),
         .receive_cb = handle_load_module },
     [METHOD_HANDLER_EXIT] = {
@@ -424,11 +424,8 @@ static void handle_get_default_channels(DBusConnection *conn, DBusMessage *msg, 
 static void handle_set_default_channels(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_core *c = userdata;
     pa_channel_map new_channel_map;
-    DBusMessageIter msg_iter;
-    DBusMessageIter variant_iter;
-    DBusMessageIter array_iter;
     dbus_uint32_t *default_channels;
-    int n_channels;
+    unsigned n_channels;
     unsigned i;
 
     pa_assert(conn);
@@ -437,37 +434,16 @@ static void handle_set_default_channels(DBusConnection *conn, DBusMessage *msg, 
 
     pa_channel_map_init(&new_channel_map);
 
-    pa_assert_se(dbus_message_iter_init(msg, &msg_iter));
-
-    /* Skip the interface and property name arguments. */
-    if (!dbus_message_iter_next(&msg_iter) || !dbus_message_iter_next(&msg_iter)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Too few arguments.");
+    if (pa_dbus_get_fixed_array_set_property_arg(conn, msg, DBUS_TYPE_UINT32, &default_channels, &n_channels) < 0)
         return;
-    }
-
-    if (dbus_message_iter_get_arg_type(&msg_iter) != DBUS_TYPE_VARIANT) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Message argument isn't a variant.");
-        return;
-    }
-
-    dbus_message_iter_recurse(&msg_iter, &variant_iter);
-
-    if (dbus_message_iter_get_arg_type(&variant_iter) != DBUS_TYPE_ARRAY) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Variant doesn't contain an array.");
-        return;
-    }
-
-    dbus_message_iter_recurse(&variant_iter, &array_iter);
-
-    if (dbus_message_iter_get_arg_type(&array_iter) != DBUS_TYPE_UINT32) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Array type is not uint32.");
-        return;
-    }
-
-    dbus_message_iter_get_fixed_array(&array_iter, &default_channels, &n_channels);
 
     if (n_channels <= 0) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Empty channel array.");
+        return;
+    }
+
+    if (n_channels > PA_CHANNELS_MAX) {
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Too many channels: %u. The maximum number of channels is %u.", n_channels, PA_CHANNELS_MAX);
         return;
     }
 
@@ -475,7 +451,7 @@ static void handle_set_default_channels(DBusConnection *conn, DBusMessage *msg, 
 
     for (i = 0; i < new_channel_map.channels; ++i) {
         if (default_channels[i] >= PA_CHANNEL_POSITION_MAX) {
-            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid channel position.");
+            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid channel position: %u.", default_channels[i]);
             return;
         }
 
@@ -547,7 +523,7 @@ static void handle_set_default_sample_rate(DBusConnection *conn, DBusMessage *ms
         return;
 
     if (default_sample_rate <= 0 || default_sample_rate > PA_RATE_MAX) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid sample format.");
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid sample rate.");
         return;
     }
 
@@ -1149,7 +1125,7 @@ static void handle_get_card_by_name(DBusConnection *conn, DBusMessage *msg, void
     dbus_error_init(&error);
 
     if (!dbus_message_get_args(msg, &error, DBUS_TYPE_STRING, &card_name, DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, error.message);
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
         dbus_error_free(&error);
         return;
     }
@@ -1181,7 +1157,7 @@ static void handle_get_sink_by_name(DBusConnection *conn, DBusMessage *msg, void
     dbus_error_init(&error);
 
     if (!dbus_message_get_args(msg, &error, DBUS_TYPE_STRING, &sink_name, DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, error.message);
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
         dbus_error_free(&error);
         return;
     }
@@ -1213,7 +1189,7 @@ static void handle_get_source_by_name(DBusConnection *conn, DBusMessage *msg, vo
     dbus_error_init(&error);
 
     if (!dbus_message_get_args(msg, &error, DBUS_TYPE_STRING, &source_name, DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, error.message);
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
         dbus_error_free(&error);
         return;
     }
@@ -1245,7 +1221,7 @@ static void handle_get_sample_by_name(DBusConnection *conn, DBusMessage *msg, vo
     dbus_error_init(&error);
 
     if (!dbus_message_get_args(msg, &error, DBUS_TYPE_STRING, &sample_name, DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, error.message);
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
         dbus_error_free(&error);
         return;
     }
@@ -1433,6 +1409,7 @@ static void handle_load_module(DBusConnection *conn, DBusMessage *msg, void *use
     pa_dbusiface_core *c = userdata;
     DBusMessageIter msg_iter;
     DBusMessageIter dict_iter;
+    DBusMessageIter dict_entry_iter;
     char *name;
     const char *key;
     const char *value;
@@ -1441,6 +1418,7 @@ static void handle_load_module(DBusConnection *conn, DBusMessage *msg, void *use
     pa_module *module;
     pa_dbusiface_module *dbus_module;
     const char *object_path;
+    int arg_type;
 
     pa_assert(conn);
     pa_assert(msg);
@@ -1459,13 +1437,18 @@ static void handle_load_module(DBusConnection *conn, DBusMessage *msg, void *use
     if (pa_dbus_get_basic_arg(conn, msg, &msg_iter, DBUS_TYPE_STRING, &name) < 0)
         return;
 
-    if (dbus_message_iter_get_arg_type(&msg_iter) != DBUS_TYPE_ARRAY) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Wrong argument type or too few arguments. An array was expected.");
+    arg_type = dbus_message_iter_get_arg_type(&msg_iter);
+    if (arg_type != DBUS_TYPE_ARRAY) {
+        if (arg_type == DBUS_TYPE_INVALID)
+            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Too few arguments. A dictionary from strings to strings was expected.");
+        else
+            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Wrong argument type: '%c'. An dictionary from strings to strings was expected.", (char) arg_type);
         return;
     }
 
-    if (dbus_message_iter_get_element_type(&msg_iter) != DBUS_TYPE_DICT_ENTRY) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Wrong array element type. A dict entry was expected.");
+    arg_type = dbus_message_iter_get_element_type(&msg_iter);
+    if (arg_type != DBUS_TYPE_DICT_ENTRY) {
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Wrong array element type: '%c'. A dict entry (string to string) was expected.", (char) arg_type);
         return;
     }
 
@@ -1473,28 +1456,38 @@ static void handle_load_module(DBusConnection *conn, DBusMessage *msg, void *use
 
     dbus_message_iter_recurse(&msg_iter, &dict_iter);
 
-    while (dbus_message_iter_has_next(&dict_iter)) {
+    while (dbus_message_iter_get_arg_type(&dict_iter) != DBUS_TYPE_INVALID) {
         if (!pa_strbuf_isempty(arg_buffer))
             pa_strbuf_putc(arg_buffer, ' ');
 
-        if (dbus_message_iter_get_arg_type(&dict_iter) != DBUS_TYPE_STRING) {
-            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Wrong dict key type. A string was expected.");
+        dbus_message_iter_recurse(&dict_iter, &dict_entry_iter);
+
+        arg_type = dbus_message_iter_get_arg_type(&dict_entry_iter);
+        if (arg_type != DBUS_TYPE_STRING) {
+            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Wrong dict key type: '%c'. A string was expected.", (char) arg_type);
             goto finish;
         }
 
-        dbus_message_iter_get_basic(&dict_iter, &key);
+        dbus_message_iter_get_basic(&dict_entry_iter, &key);
+        dbus_message_iter_next(&dict_entry_iter);
 
         if (strlen(key) <= 0 || !pa_ascii_valid(key) || contains_space(key)) {
-            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid module argument name.");
+            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid module argument name: %s", key);
             goto finish;
         }
 
-        if (dbus_message_iter_get_arg_type(&dict_iter) != DBUS_TYPE_STRING) {
-            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Wrong dict value type. A string was expected.");
+        arg_type = dbus_message_iter_get_arg_type(&dict_entry_iter);
+        if (arg_type != DBUS_TYPE_STRING) {
+            if (arg_type == DBUS_TYPE_INVALID)
+                pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Dict value missing.");
+            else
+                pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Wrong dict value type: '%c'. A string was expected.", (char) arg_type);
             goto finish;
         }
 
-        dbus_message_iter_get_basic(&dict_iter, &value);
+        dbus_message_iter_get_basic(&dict_entry_iter, &value);
+
+        dbus_message_iter_next(&dict_iter);
 
         escaped_value = pa_escape(value, "\"");
         pa_strbuf_printf(arg_buffer, "%s=\"%s\"", key, escaped_value);
@@ -1549,7 +1542,7 @@ static void handle_listen_for_signal(DBusConnection *conn, DBusMessage *msg, voi
     dbus_error_init(&error);
 
     if (!dbus_message_get_args(msg, &error, DBUS_TYPE_STRING, &signal, DBUS_TYPE_ARRAY, DBUS_TYPE_OBJECT_PATH, &objects, &n_objects, DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, error.message);
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
         dbus_error_free(&error);
         goto finish;
     }
@@ -1574,7 +1567,7 @@ static void handle_stop_listening_for_signal(DBusConnection *conn, DBusMessage *
     dbus_error_init(&error);
 
     if (!dbus_message_get_args(msg, &error, DBUS_TYPE_STRING, &signal, DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, error.message);
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
         dbus_error_free(&error);
         return;
     }
