@@ -1383,9 +1383,9 @@ module_ladspa_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_ladspa_sink_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
 module_equalizer_sink_la_SOURCES = modules/module-equalizer-sink.c
-module_equalizer_sink_la_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+module_equalizer_sink_la_CFLAGS = $(AM_CFLAGS)
 module_equalizer_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_equalizer_sink_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBOIL_LIBS) -lfftw3f libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_equalizer_sink_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) -lfftw3f libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
 module_match_la_SOURCES = modules/module-match.c
 module_match_la_LDFLAGS = $(MODULE_LDFLAGS)

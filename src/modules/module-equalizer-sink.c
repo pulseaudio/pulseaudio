@@ -29,11 +29,13 @@ USA.
 #include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <stdio.h>
+#include <float.h>
 #include <math.h>
 #include <fftw3.h>
-#include <float.h>
-
+#include <string.h>
+#include <malloc.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/i18n.h>
@@ -53,6 +55,14 @@ USA.
 
 #include <stdint.h>
 #include <time.h>
+
+
+//#undef __SSE2__
+#ifdef __SSE2__
+#include <xmmintrin.h>
+#include <emmintrin.h>
+#endif
+
 
 
 #include "module-equalizer-sink-symdef.h"
@@ -82,10 +92,12 @@ struct userdata {
               * the latency of the filter, calculated from window_size
               * based on constraints of COLA and window function
               */
-    size_t latency;
+    size_t latency;//Really just R but made into it's own variable
+    //for twiddling with pulseaudio
     size_t overlap_size;//window_size-R
     size_t samples_gathered;
-    size_t max_output;
+    size_t max_output;//max amount of samples outputable in a single
+    //message
     size_t target_samples;
     float *H;//frequency response filter (magnitude based)
     float *W;//windowing function (time domain)
@@ -109,75 +121,38 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-uint64_t time_diff(struct timespec *timeA_p, struct timespec *timeB_p);
-void hanning_normalized_window(float *W,size_t window_size);
-void hanning_window(float *W,size_t window_size);
-void hamming_window(float *W,size_t window_size);
-void blackman_window(float *W,size_t window_size);
-void sin_window(float *W,size_t window_size);
-void array_out(const char *name,float *a,size_t length);
-
-static void dsp_logic(float *dst,struct userdata *u);
+static uint64_t time_diff(struct timespec *timeA_p, struct timespec *timeB_p);
+static void hanning_window(float *W,size_t window_size);
+static void array_out(const char *name,float *a,size_t length);
 static void process_samples(struct userdata *u);
-void input_buffer(struct userdata *u,pa_memchunk *in);
+static void input_buffer(struct userdata *u,pa_memchunk *in);
 
+void dsp_logic(
+    float * __restrict__ dst,
+    float * __restrict__ src,
+    float * __restrict__ overlap,
+    const float * __restrict__ H,
+    const float * __restrict__ W,
+    fftwf_complex * __restrict__ output_window,
+    struct userdata *u);
+
+#define v_size 4
 #define gettime(x) clock_gettime(CLOCK_MONOTONIC,&x)
 #define tdiff(x,y) time_diff(&x,&y)
+#define mround(x,y) (x%y==0?x:(x/y+1)*y)
 
 uint64_t time_diff(struct timespec *timeA_p, struct timespec *timeB_p)
 {
-    return ((timeA_p->tv_sec * 1000000000) + timeA_p->tv_nsec) -
-    ((timeB_p->tv_sec * 1000000000) + timeB_p->tv_nsec);
+    return ((timeA_p->tv_sec * 1000000000ULL) + timeA_p->tv_nsec) -
+    ((timeB_p->tv_sec * 1000000000ULL) + timeB_p->tv_nsec);
 }
 
-void hanning_normalized_window(float *W,size_t window_size){
-    //h = sqrt(2)/2 * (1+cos(t*pi)) ./ sqrt( 1+cos(t*pi).^2 )
-    float c;
-    for(size_t i=0;i<window_size;++i){
-        c=cos(M_PI*i/(window_size-1));
-        W[i]=sqrt(2.0)/2.0*(1.0+c) / sqrt(1.0+c*c);
-    }
-}
 void hanning_window(float *W,size_t window_size){
     //h=.5*(1-cos(2*pi*j/(window_size+1)), COLA for R=(M+1)/2
     for(size_t i=0;i<window_size;++i){
-        W[i]=.5*(1-cos(2*M_PI*i/(window_size+1)));
+        W[i]=(float).5*(1-cos(2*M_PI*i/(window_size+1)));
     }
 }
-void hamming_window(float *W,size_t window_size){
-    //h=.54-.46*cos(2*pi*j/(window_size-1))
-    //COLA for R=(M-1)/2,(M-1)/4 etc when endpoints are divided by 2
-    //or one endpoint is zeroed
-    float m;
-    for(size_t i=0;i<window_size;++i){
-        m=i;
-        m/=(window_size-1);
-        W[i]=.54-.46*cos(2*M_PI*m);
-    }
-    W[window_size-1]=0;
-    //W[0]/=2;
-    //W[window_size-1]/=2;
-}
-void blackman_window(float *W,size_t window_size){
-    //h=.42-.5*cos(2*pi*m)+.08*cos(4*pi*m), m=(0:W-1)/(W-1)
-    //COLA for R=(M-1)/3 when M is odd and R is an integer
-    //R=M/3 when M is even and R is an integer
-    float m;
-    for(size_t i=0;i<window_size;++i){
-        m=i;
-        m/=(window_size-1);
-        W[i]=.42-.5*cos(2*M_PI*m)+.08*cos(4*M_PI*m);
-    }
-}
-
-
-void sin_window(float *W,size_t window_size){
-    //h = (cos(t*pi)+1)/2 .* float(abs(t)<1);
-    for(size_t i=0;i<window_size;++i){
-        W[i]=sin(M_PI*i/(window_size-1));
-    }
-}
-
 
 void array_out(const char *name,float *a,size_t length){
     FILE *p=fopen(name,"w");
@@ -211,9 +186,9 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             if (PA_MSGOBJECT(u->master)->process_msg(PA_MSGOBJECT(u->master), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
                 usec = 0;
 
-            usec+=pa_bytes_to_usec(u->latency*fs,ss);
+            //usec+=pa_bytes_to_usec(u->latency*fs,ss);
             //usec+=pa_bytes_to_usec(u->samples_gathered*fs,ss);
-            //usec += pa_bytes_to_usec(pa_memblockq_get_length(u->rendered_q), ss);
+            usec += pa_bytes_to_usec(pa_memblockq_get_length(u->rendered_q), ss);
             /* Add the latency internal to our sink input on top */
             usec += pa_bytes_to_usec(pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq), &u->master->sample_spec);
             *((pa_usec_t*) data) = usec;
@@ -276,7 +251,18 @@ static void process_samples(struct userdata *u){
         tchunk.length=u->R*fs;
         tchunk.memblock=pa_memblock_new(u->core->mempool,tchunk.length);
         dst=((float*)pa_memblock_acquire(tchunk.memblock));
-        dsp_logic(dst,u);
+        for (size_t c=0;c<u->channels;c++) {
+            dsp_logic(
+                u->work_buffer,
+                u->input[c],
+                u->overlap_accum[c],
+                u->H,
+                u->W,
+                u->output_window,
+                u
+            );
+            pa_sample_clamp(PA_SAMPLE_FLOAT32NE,dst+c,fs,u->work_buffer,sizeof(float),u->R);
+        }
         pa_memblock_release(tchunk.memblock);
         pa_memblockq_push(u->rendered_q, &tchunk);
         pa_memblock_unref(tchunk.memblock);
@@ -284,53 +270,165 @@ static void process_samples(struct userdata *u){
     }
 }
 
-static void dsp_logic(float *dst,struct userdata *u){
-    size_t fs=pa_frame_size(&(u->sink->sample_spec));
-    //use a linear-phase sliding STFT and overlap-add method (for each channel)
-    for (size_t c=0;c<u->channels;c++) {
-        //zero padd the data
-        memset(u->work_buffer+u->window_size,0,(u->fft_size-u->window_size)*sizeof(float));
-        //window the data
-        for(size_t j=0;j<u->window_size;++j){
-            u->work_buffer[j]=u->W[j]*u->input[c][j];
-        }
-        //Processing is done here!
-        //do fft
-        fftwf_execute_dft_r2c(u->forward_plan,u->work_buffer,u->output_window);
-        //perform filtering
-        for(size_t j=0;j<u->fft_size/2+1;++j){
-            u->output_window[j][0]*=u->H[j];
-            u->output_window[j][1]*=u->H[j];
-        }
-        //inverse fft
-        fftwf_execute_dft_c2r(u->inverse_plan,u->output_window,u->work_buffer);
-        ////debug: tests overlaping add
-        ////and negates ALL PREVIOUS processing
-        ////yields a perfect reconstruction if COLA is held
-        //for(size_t j=0;j<u->window_size;++j){
-        //    u->work_buffer[j]=u->W[j]*u->input[c][j];
-        //}
+typedef float v4sf __attribute__ ((__aligned__(v_size*sizeof(float))));
+typedef union float_vector {
+    float f[v_size];
+    v4sf v;
+#ifdef __SSE2__
+    __m128 m;
+#endif
+} float_vector_t;
 
-        //overlap add and preserve overlap component from this window (linear phase)
-        for(size_t j=0;j<u->R;++j){
-            u->work_buffer[j]+=u->overlap_accum[c][j];
-            u->overlap_accum[c][j]=u->work_buffer[u->overlap_size+j];
-        }
+////reference implementation
+//void dsp_logic(
+//    float * __restrict__ dst,//used as a temp array too, needs to be fft_length!
+//    float * __restrict__ src,/*input data w/ overlap at start,
+//                               *automatically cycled in routine
+//                               */
+//    float * __restrict__ overlap,//The size of the overlap
+//    const float * __restrict__ H,//The freq. magnitude scalers filter
+//    const float * __restrict__ W,//The windowing function
+//    fftwf_complex * __restrict__ output_window,//The transformed window'd src
+//    struct userdata *u){
+//    //use a linear-phase sliding STFT and overlap-add method (for each channel)
+//    //zero padd the data
+//    memset(dst+u->window_size,0,(u->fft_size-u->window_size)*sizeof(float));
+//    //window the data
+//    for(size_t j=0;j<u->window_size;++j){
+//        dst[j]=W[j]*src[j];
+//    }
+//    //Processing is done here!
+//    //do fft
+//    fftwf_execute_dft_r2c(u->forward_plan,dst,output_window);
+//    //perform filtering
+//    for(size_t j=0;j<u->fft_size/2+1;++j){
+//        u->output_window[j][0]*=u->H[j];
+//        u->output_window[j][1]*=u->H[j];
+//    }
+//    //inverse fft
+//    fftwf_execute_dft_c2r(u->inverse_plan,output_window,dst);
+//    ////debug: tests overlaping add
+//    ////and negates ALL PREVIOUS processing
+//    ////yields a perfect reconstruction if COLA is held
+//    //for(size_t j=0;j<u->window_size;++j){
+//    //    u->work_buffer[j]=u->W[j]*u->input[c][j];
+//    //}
+//
+//    //overlap add and preserve overlap component from this window (linear phase)
+//    for(size_t j=0;j<u->overlap_size;++j){
+//        u->work_buffer[j]+=overlap[j];
+//        overlap[j]=dst[u->R+j];
+//    }
+//    ////debug: tests if basic buffering works
+//    ////shouldn't modify the signal AT ALL (beyond roundoff)
+//    //for(size_t j=0;j<u->window_size;++j){
+//    //    u->work_buffer[j]=u->input[c][j];
+//    //}
+//
+//    //preseve the needed input for the next window's overlap
+//    memmove(src,src+u->R,
+//        (u->samples_gathered+u->overlap_size-u->R)*sizeof(float)
+//    );
+//}
 
-        ////debug: tests if basic buffering works
-        ////shouldn't modify the signal AT ALL (beyond roundoff)
-        //for(size_t j=0;j<u->window_size;++j){
-        //    u->work_buffer[j]=u->input[c][j];
-        //}
+//regardless of sse enabled, the loops in here assume
+//16 byte aligned addresses and memory allocations divisible by v_size
+void dsp_logic(
+    float * __restrict__ dst,//used as a temp array too, needs to be fft_length!
+    float * __restrict__ src,/*input data w/ overlap at start,
+                               *automatically cycled in routine
+                               */
+    float * __restrict__ overlap,//The size of the overlap
+    const float * __restrict__ H,//The freq. magnitude scalers filter
+    const float * __restrict__ W,//The windowing function
+    fftwf_complex * __restrict__ output_window,//The transformed window'd src
+    struct userdata *u){//Collection of constants
 
-        //preseve the needed input for the next window's overlap
-        memmove(u->input[c],u->input[c]+u->R,
-            (u->samples_gathered+u->overlap_size-u->R)*sizeof(float)
-        );
-        //output the samples that are outputable now
-        pa_sample_clamp(PA_SAMPLE_FLOAT32NE,dst+c,fs,u->work_buffer,sizeof(float),u->R);
+    const size_t window_size=mround(u->window_size,v_size);
+    const size_t fft_h=mround(u->fft_size/2+1,v_size/2);
+    const size_t R=mround(u->R,v_size);
+    const size_t overlap_size=mround(u->overlap_size,v_size);
+
+    //assert(u->samples_gathered>=u->R);
+    //zero out the bit beyond the real overlap so we don't add garbage
+    for(size_t j=overlap_size;j>u->overlap_size;--j){
+       overlap[j-1]=0;
     }
+    //use a linear-phase sliding STFT and overlap-add method
+    //zero padd the data
+    memset(dst+u->window_size,0,(u->fft_size-u->window_size)*sizeof(float));
+    //window the data
+    for(size_t j=0;j<window_size;j+=v_size){
+        //dst[j]=W[j]*src[j];
+        float_vector_t *d=(float_vector_t*)(dst+j);
+        float_vector_t *w=(float_vector_t*)(W+j);
+        float_vector_t *s=(float_vector_t*)(src+j);
+#if __SSE2__
+        d->m=_mm_mul_ps(w->m,s->m);
+#else
+        d->v=w->v*s->v;
+#endif
+    }
+    //Processing is done here!
+    //do fft
+    fftwf_execute_dft_r2c(u->forward_plan,dst,output_window);
+
+
+    //perform filtering - purely magnitude based
+    for(size_t j=0;j<fft_h;j+=v_size/2){
+        //output_window[j][0]*=H[j];
+        //output_window[j][1]*=H[j];
+        float_vector_t *d=(float_vector_t*)(output_window+j);
+        float_vector_t h;
+        h.f[0]=h.f[1]=H[j];
+        h.f[2]=h.f[3]=H[j+1];
+#if __SSE2__
+        d->m=_mm_mul_ps(d->m,h.m);
+#else
+        d->v=d->v*h->v;
+#endif
+    }
+
+
+    //inverse fft
+    fftwf_execute_dft_c2r(u->inverse_plan,output_window,dst);
+
+    ////debug: tests overlaping add
+    ////and negates ALL PREVIOUS processing
+    ////yields a perfect reconstruction if COLA is held
+    //for(size_t j=0;j<u->window_size;++j){
+    //    dst[j]=W[j]*src[j];
+    //}
+
+    //overlap add and preserve overlap component from this window (linear phase)
+    for(size_t j=0;j<overlap_size;j+=v_size){
+        //dst[j]+=overlap[j];
+        //overlap[j]+=dst[j+R];
+        float_vector_t *d=(float_vector_t*)(dst+j);
+        float_vector_t *o=(float_vector_t*)(overlap+j);
+#if __SSE2__
+        d->m=_mm_add_ps(d->m,o->m);
+        o->m=((float_vector_t*)(dst+u->R+j))->m;
+#else
+        d->v=d->v+o->v;
+        o->v=((float_vector_t*)(dst+u->R+j))->v;
+#endif
+    }
+    //memcpy(overlap,dst+u->R,u->overlap_size*sizeof(float));
+
+    //////debug: tests if basic buffering works
+    //////shouldn't modify the signal AT ALL (beyond roundoff)
+    //for(size_t j=0;j<u->window_size;++j){
+    //    dst[j]=src[j];
+    //}
+
+    //preseve the needed input for the next window's overlap
+    memmove(src,src+u->R,
+        (u->overlap_size+u->samples_gathered-u->R)*sizeof(float)
+    );
 }
+
+
 
 void input_buffer(struct userdata *u,pa_memchunk *in){
     size_t fs=pa_frame_size(&(u->sink->sample_spec));
@@ -422,31 +520,6 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     pa_assert_se(pa_memblockq_peek(u->rendered_q,&tchunk)==0);
     *chunk=tchunk;
     pa_memblockq_drop(u->rendered_q, chunk->length);
-    //if(tchunk.length>=nbytes){
-        //chunk->length=PA_MIN(tchunk.length,nbytes);
-    //}else{
-    //    size_t copied=0;
-    //    chunk->index=0;
-    //    chunk->length=PA_MIN(nbytes,pa_memblockq_get_length(u->rendered_q));
-    //    chunk->memblock=pa_memblock_new(u->core->mempool,chunk->length);
-    //    uint8_t *dst=(uint8_t*)pa_memblock_acquire(chunk->memblock);
-    //    for(;;){
-    //        size_t l=PA_MIN(tchunk.length,nbytes-copied);
-    //        pa_assert_se(l>0);
-    //        uint8_t *src=(((uint8_t*)pa_memblock_acquire(tchunk.memblock))+tchunk.index);
-    //        memmove(dst+copied,src,l);
-    //        copied+=l;
-    //        pa_memblock_release(tchunk.memblock);
-    //        pa_memblock_unref(tchunk.memblock);
-    //        pa_memblockq_drop(u->rendered_q,l);
-    //        if(copied<chunk->length){
-    //            pa_assert_se(pa_memblockq_peek(u->rendered_q,&tchunk)==0);
-    //        }else{
-    //            break;
-    //        }
-    //    }
-    //    pa_memblock_release(chunk->memblock);
-    //}
     pa_assert_se(chunk->memblock);
     //pa_log("gave %ld",chunk->length/fs);
     //pa_log("end pop");
@@ -509,7 +582,8 @@ static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
         return;
 
     size_t fs=pa_frame_size(&(u->sink->sample_spec));
-    pa_sink_set_max_request_within_thread(u->sink, u->R*fs);
+    pa_sink_set_max_request_within_thread(u->sink, nbytes);
+    //pa_sink_set_max_request_within_thread(u->sink, u->R*fs);
 }
 
 /* Called from I/O thread context */
@@ -523,7 +597,8 @@ static void sink_input_update_sink_latency_range_cb(pa_sink_input *i) {
         return;
 
     size_t fs=pa_frame_size(&(u->sink->sample_spec));
-    pa_sink_set_latency_range_within_thread(u->sink,u->latency*fs ,u->latency*fs );
+    pa_sink_set_latency_range_within_thread(u->sink, u->master->thread_info.min_latency, u->latency*fs);
+    //pa_sink_set_latency_range_within_thread(u->sink,u->latency*fs ,u->latency*fs );
     //pa_sink_set_latency_range_within_thread(u->sink, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
 }
 
@@ -557,7 +632,12 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     pa_sink_attach_within_thread(u->sink);
 
     size_t fs=pa_frame_size(&(u->sink->sample_spec));
-    pa_sink_set_latency_range_within_thread(u->sink, u->latency*fs, u->latency*fs);
+    //pa_sink_set_latency_range_within_thread(u->sink, u->latency*fs, u->latency*fs);
+    //pa_sink_set_latency_range_within_thread(u->sink,u->latency*fs, u->master->thread_info.max_latency);
+    //TODO: setting this guy minimizes drop outs but doesn't get rid
+    //of them completely, figure out why
+    pa_sink_set_latency_range_within_thread(u->sink, u->master->thread_info.min_latency, u->latency*fs);
+    //TODO: this guy causes dropouts constantly+rewinds, it's unusable
     //pa_sink_set_latency_range_within_thread(u->sink, u->master->thread_info.min_latency, u->master->thread_info.max_latency);
 }
 
@@ -605,6 +685,16 @@ static pa_bool_t sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
     return u->sink != dest;
 }
 
+
+//ensure's memory allocated is a multiple of v_size
+//and aligned
+static void * alloc(size_t x,size_t s){
+    size_t f=mround(x*s,sizeof(float)*v_size);
+    //printf("requested %ld floats=%ld bytes, rem=%ld\n",x,x*sizeof(float),x*sizeof(float)%16);
+    //printf("giving %ld floats=%ld bytes, rem=%ld\n",f,f*sizeof(float),f*sizeof(float)%16);
+    return fftwf_malloc(f*s);
+}
+
 int pa__init(pa_module*m) {
     struct userdata *u;
     pa_sample_spec ss;
@@ -649,7 +739,7 @@ int pa__init(pa_module*m) {
     u->channels=ss.channels;
     u->fft_size=pow(2,ceil(log(ss.rate)/log(2)));
     pa_log("fft size: %ld",u->fft_size);
-    u->window_size=7999;
+    u->window_size=15999;
     u->R=(u->window_size+1)/2;
     u->overlap_size=u->window_size-u->R;
     u->target_samples=1*u->R;
@@ -659,32 +749,28 @@ int pa__init(pa_module*m) {
     u->conv_buffer.memblock=pa_memblock_new(u->core->mempool,u->target_samples*fs);
     u->latency=u->R;
 
-
-    u->H=(float*) fftwf_malloc((u->fft_size/2+1)*sizeof(float));
-    u->W=(float*) fftwf_malloc((u->window_size)*sizeof(float));
-    u->work_buffer=(float*) fftwf_malloc(u->fft_size*sizeof(float));
+    u->H=alloc((u->fft_size/2+1),sizeof(fftwf_complex));
+    u->W=alloc(u->window_size,sizeof(float));
+    u->work_buffer=alloc(u->fft_size,sizeof(float));
+    memset(u->work_buffer,0,u->fft_size*sizeof(float));
     u->input=(float **)malloc(sizeof(float *)*u->channels);
     u->overlap_accum=(float **)malloc(sizeof(float *)*u->channels);
     u->output_buffer=(float **)malloc(sizeof(float *)*u->channels);
     for(size_t c=0;c<u->channels;++c){
-        u->input[c]=(float*) fftwf_malloc((u->target_samples+u->overlap_size)*sizeof(float));
+        u->input[c]=alloc(u->target_samples+u->overlap_size,sizeof(float));
         pa_assert_se(u->input[c]);
         memset(u->input[c],0,(u->target_samples+u->overlap_size)*sizeof(float));
         pa_assert_se(u->input[c]);
-        u->overlap_accum[c]=(float*) fftwf_malloc(u->R*sizeof(float));
+        u->overlap_accum[c]=alloc(u->overlap_size,sizeof(float));
         pa_assert_se(u->overlap_accum[c]);
-        memset(u->overlap_accum[c],0,u->R*sizeof(float));
-        u->output_buffer[c]=(float*) fftwf_malloc(u->window_size*sizeof(float));
+        memset(u->overlap_accum[c],0,u->overlap_size*sizeof(float));
+        u->output_buffer[c]=alloc(u->window_size,sizeof(float));
         pa_assert_se(u->output_buffer[c]);
     }
-    u->output_window = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex) * (u->fft_size/2+1));
+    u->output_window=alloc((u->fft_size/2+1),sizeof(fftwf_complex));
     u->forward_plan=fftwf_plan_dft_r2c_1d(u->fft_size, u->work_buffer, u->output_window, FFTW_MEASURE);
     u->inverse_plan=fftwf_plan_dft_c2r_1d(u->fft_size, u->output_window, u->work_buffer, FFTW_MEASURE);
-    /*
-    for(size_t j=0;j<u->window_size;++j){
-        u->W[j]=.5;
-    }
-    */
+
     hanning_window(u->W,u->window_size);
 
     const int freqs[]={0,25,50,100,200,300,400,800,1500,
@@ -734,6 +820,7 @@ int pa__init(pa_module*m) {
         u->H[i]/=u->fft_size;
     }
     free(freq_translated);
+
 
     /* Create sink */
     pa_sink_new_data_init(&sink_data);
@@ -857,18 +944,18 @@ void pa__done(pa_module*m) {
 
     fftwf_destroy_plan(u->inverse_plan);
     fftwf_destroy_plan(u->forward_plan);
-    fftwf_free(u->output_window);
+    free(u->output_window);
     for(size_t c=0;c<u->channels;++c){
-        fftwf_free(u->output_buffer[c]);
-        fftwf_free(u->overlap_accum[c]);
-        fftwf_free(u->input[c]);
+        free(u->output_buffer[c]);
+        free(u->overlap_accum[c]);
+        free(u->input[c]);
     }
     free(u->output_buffer);
     free(u->overlap_accum);
     free(u->input);
-    fftwf_free(u->work_buffer);
-    fftwf_free(u->W);
-    fftwf_free(u->H);
+    free(u->work_buffer);
+    free(u->W);
+    free(u->H);
 
     pa_xfree(u);
 }
