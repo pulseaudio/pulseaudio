@@ -23,7 +23,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-07-23 15:36+0200\n"
+"POT-Creation-Date: 2009-07-28 01:38+0200\n"
 "PO-Revision-Date: 2009-07-18 11:40+0100\n"
 "Last-Translator: Tomàs Bigordà <t0mynoker@gmail.com>\n"
 "Language-Team: Catalan <fedora@softcatala.net>\n"
@@ -305,7 +305,7 @@ msgstr "Ha fallat la canonada: %s"
 msgid "fork() failed: %s"
 msgstr "Ha fallat fork(): %s"
 
-#: ../src/daemon/main.c:643
+#: ../src/daemon/main.c:643 ../src/utils/pacat.c:505
 #, c-format
 msgid "read() failed: %s"
 msgstr "Ha fallat read(): %s"
@@ -1223,184 +1223,188 @@ msgstr "S'ha produït un error en obrir el fitxer de configuració '%s': %s"
 msgid "No cookie loaded. Attempting to connect without."
 msgstr "No s'ha carregat cap cookie. S'està intentant connectar sense aquesta."
 
-#: ../src/pulse/context.c:680
+#: ../src/pulse/context.c:693
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:733
+#: ../src/pulse/context.c:745
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1415
+#: ../src/pulse/context.c:1432
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "S'ha rebut un missatge per a una extensió desconeguda '%s'"
 
 #: ../src/utils/pacat.c:108
-#, c-format
-msgid "Failed to drain stream: %s\n"
+#, fuzzy, c-format
+msgid "Failed to drain stream: %s"
 msgstr "S'ha produït un error en drenar el fluxe: %s\n"
 
 #: ../src/utils/pacat.c:113
-msgid "Playback stream drained.\n"
+#, fuzzy
+msgid "Playback stream drained."
 msgstr "Flux de reproducció drenat.\n"
 
 #: ../src/utils/pacat.c:123
-msgid "Draining connection to server.\n"
+#, fuzzy
+msgid "Draining connection to server."
 msgstr "S'està drenant la connexió amb el servidor.\n"
 
 #: ../src/utils/pacat.c:136
-#, c-format
-msgid "pa_stream_drain(): %s\n"
+#, fuzzy, c-format
+msgid "pa_stream_drain(): %s"
 msgstr "pa_stream_drain(): %s\n"
 
 #: ../src/utils/pacat.c:159
-#, c-format
-msgid "pa_stream_write() failed: %s\n"
+#, fuzzy, c-format
+msgid "pa_stream_write() failed: %s"
 msgstr "Ha fallat pa_stream_write(): %s\n"
 
-#: ../src/utils/pacat.c:234 ../src/utils/pacat.c:263
-#, c-format
-msgid "pa_stream_peek() failed: %s\n"
+#: ../src/utils/pacat.c:197
+#, fuzzy, c-format
+msgid "pa_stream_begin_write() failed: %s"
+msgstr "Ha fallat pa_stream_write(): %s\n"
+
+#: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267
+#, fuzzy, c-format
+msgid "pa_stream_peek() failed: %s"
 msgstr "Ha fallat pa_stream_peek(): %s\n"
 
-#: ../src/utils/pacat.c:303
-msgid "Stream successfully created.\n"
+#: ../src/utils/pacat.c:307
+#, fuzzy
+msgid "Stream successfully created."
 msgstr "Flux creat correctament.\n"
 
-#: ../src/utils/pacat.c:306
-#, c-format
-msgid "pa_stream_get_buffer_attr() failed: %s\n"
+#: ../src/utils/pacat.c:310
+#, fuzzy, c-format
+msgid "pa_stream_get_buffer_attr() failed: %s"
 msgstr "Ha fallat pa_stream_get_buffer_attr(): %s\n"
 
-#: ../src/utils/pacat.c:310
-#, c-format
-msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
+#: ../src/utils/pacat.c:314
+#, fuzzy, c-format
+msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 msgstr "Mètriques del búffer: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
 
-#: ../src/utils/pacat.c:313
-#, c-format
-msgid "Buffer metrics: maxlength=%u, fragsize=%u\n"
+#: ../src/utils/pacat.c:317
+#, fuzzy, c-format
+msgid "Buffer metrics: maxlength=%u, fragsize=%u"
 msgstr "Mètriques del búffer: maxlength=%u, fragsize=%u\n"
 
-#: ../src/utils/pacat.c:317
-#, c-format
-msgid "Using sample spec '%s', channel map '%s'.\n"
+#: ../src/utils/pacat.c:321
+#, fuzzy, c-format
+msgid "Using sample spec '%s', channel map '%s'."
 msgstr ""
 "S'estan utilitzant les especificacions de mostreig '%s', mapejat del canal '%"
 "s'.\n"
 
-#: ../src/utils/pacat.c:321
-#, c-format
-msgid "Connected to device %s (%u, %ssuspended).\n"
+#: ../src/utils/pacat.c:325
+#, fuzzy, c-format
+msgid "Connected to device %s (%u, %ssuspended)."
 msgstr "S'ha connectat al dispositiu %s (%u, %ssuspés).\n"
 
-#: ../src/utils/pacat.c:331
-#, c-format
-msgid "Stream error: %s\n"
+#: ../src/utils/pacat.c:335
+#, fuzzy, c-format
+msgid "Stream error: %s"
 msgstr "S'ha produït un error en l'stream: %s\n"
 
-#: ../src/utils/pacat.c:341
-#, c-format
-msgid "Stream device suspended.%s \n"
+#: ../src/utils/pacat.c:345
+#, fuzzy, c-format
+msgid "Stream device suspended.%s"
 msgstr "Flux del dispositiu suspés.%s \n"
 
-#: ../src/utils/pacat.c:343
-#, c-format
-msgid "Stream device resumed.%s \n"
+#: ../src/utils/pacat.c:347
+#, fuzzy, c-format
+msgid "Stream device resumed.%s"
 msgstr "Flux del dispositiu représ.%s \n"
 
-#: ../src/utils/pacat.c:351
-#, c-format
-msgid "Stream underrun.%s \n"
+#: ../src/utils/pacat.c:355
+#, fuzzy, c-format
+msgid "Stream underrun.%s"
 msgstr "Dades insuficients al flux.%s \n"
 
-#: ../src/utils/pacat.c:358
-#, c-format
-msgid "Stream overrun.%s \n"
+#: ../src/utils/pacat.c:362
+#, fuzzy, c-format
+msgid "Stream overrun.%s"
 msgstr "Desbordament de flux.%s \n"
 
-#: ../src/utils/pacat.c:365
-#, c-format
-msgid "Stream started.%s \n"
+#: ../src/utils/pacat.c:369
+#, fuzzy, c-format
+msgid "Stream started.%s"
 msgstr "S'ha iniciat el flux.%s \n"
 
-#: ../src/utils/pacat.c:372
-#, c-format
-msgid "Stream moved to device %s (%u, %ssuspended).%s \n"
+#: ../src/utils/pacat.c:376
+#, fuzzy, c-format
+msgid "Stream moved to device %s (%u, %ssuspended).%s"
 msgstr "S'ha mogut el flux al dispositiu %s (%u, %ssuspés).%s \n"
 
-#: ../src/utils/pacat.c:372
+#: ../src/utils/pacat.c:376
 msgid "not "
 msgstr "no "
 
-#: ../src/utils/pacat.c:379
-#, c-format
-msgid "Stream buffer attributes changed.%s \n"
+#: ../src/utils/pacat.c:383
+#, fuzzy, c-format
+msgid "Stream buffer attributes changed.%s"
 msgstr "Els atributs del flux de memòria intermèdia han canviat.%s \n"
 
-#: ../src/utils/pacat.c:412
-#, c-format
-msgid "Connection established.%s \n"
+#: ../src/utils/pacat.c:416
+#, fuzzy, c-format
+msgid "Connection established.%s"
 msgstr "S'ha establert la connexió.%s \n"
 
-#: ../src/utils/pacat.c:415
-#, c-format
-msgid "pa_stream_new() failed: %s\n"
+#: ../src/utils/pacat.c:419
+#, fuzzy, c-format
+msgid "pa_stream_new() failed: %s"
 msgstr "Ha fallat pa_stream_new(): %s\n"
 
-#: ../src/utils/pacat.c:443
-#, c-format
-msgid "pa_stream_connect_playback() failed: %s\n"
+#: ../src/utils/pacat.c:447
+#, fuzzy, c-format
+msgid "pa_stream_connect_playback() failed: %s"
 msgstr "Ha fallat pa_stream_connect_playback(): %s\n"
 
-#: ../src/utils/pacat.c:449
-#, c-format
-msgid "pa_stream_connect_record() failed: %s\n"
+#: ../src/utils/pacat.c:453
+#, fuzzy, c-format
+msgid "pa_stream_connect_record() failed: %s"
 msgstr "Ha fallat pa_stream_connect_record(): %s\n"
 
-#: ../src/utils/pacat.c:463 ../src/utils/pasuspender.c:159
-#: ../src/utils/pactl.c:814
-#, c-format
-msgid "Connection failure: %s\n"
+#: ../src/utils/pacat.c:467
+#, fuzzy, c-format
+msgid "Connection failure: %s"
 msgstr "Ha fallat la connexió: %s\n"
 
-#: ../src/utils/pacat.c:496
-msgid "Got EOF.\n"
+#: ../src/utils/pacat.c:500
+#, fuzzy
+msgid "Got EOF."
 msgstr "S'ha llegit EOF.\n"
 
-#: ../src/utils/pacat.c:501
-#, c-format
-msgid "read() failed: %s\n"
-msgstr "Ha fallat read(): %s\n"
-
-#: ../src/utils/pacat.c:533
-#, c-format
-msgid "write() failed: %s\n"
+#: ../src/utils/pacat.c:537
+#, fuzzy, c-format
+msgid "write() failed: %s"
 msgstr "Ha fallat write(): %s\n"
 
-#: ../src/utils/pacat.c:554
-msgid "Got signal, exiting.\n"
+#: ../src/utils/pacat.c:558
+#, fuzzy
+msgid "Got signal, exiting."
 msgstr "S'ha rebut un senyal, s'està sortint.\n"
 
-#: ../src/utils/pacat.c:568
-#, c-format
-msgid "Failed to get latency: %s\n"
+#: ../src/utils/pacat.c:572
+#, fuzzy, c-format
+msgid "Failed to get latency: %s"
 msgstr "No s'ha pogut obtenir la latència: %s\n"
 
-#: ../src/utils/pacat.c:573
+#: ../src/utils/pacat.c:577
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr "Temps: %0.3f segs; Latència: %0.0f microsegs.  \r"
 
-#: ../src/utils/pacat.c:591
-#, c-format
-msgid "pa_stream_update_timing_info() failed: %s\n"
+#: ../src/utils/pacat.c:595
+#, fuzzy, c-format
+msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "Ha fallat pa_stream_update_timing_info(): %s\n"
 
-#: ../src/utils/pacat.c:601
+#: ../src/utils/pacat.c:605
 #, c-format
 msgid ""
 "%s [options]\n"
@@ -1516,7 +1520,7 @@ msgstr ""
 "      --list-file-formats               Llista disponible de formats de "
 "fitxer.\n"
 
-#: ../src/utils/pacat.c:723
+#: ../src/utils/pacat.c:727
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1527,138 +1531,145 @@ msgstr ""
 "Compilat amb libpulse %s\n"
 "Enllaçat amb libpulse %s\n"
 
-#: ../src/utils/pacat.c:756 ../src/utils/pactl.c:900
-#, c-format
-msgid "Invalid client name '%s'\n"
+#: ../src/utils/pacat.c:760
+#, fuzzy, c-format
+msgid "Invalid client name '%s'"
 msgstr "Nom del client invàlid '%s'\n"
 
-#: ../src/utils/pacat.c:772
-#, c-format
-msgid "Invalid stream name '%s'\n"
+#: ../src/utils/pacat.c:776
+#, fuzzy, c-format
+msgid "Invalid stream name '%s'"
 msgstr "Nom de flux de dades invàlid '%s'\n"
 
-#: ../src/utils/pacat.c:809
-#, c-format
-msgid "Invalid channel map '%s'\n"
+#: ../src/utils/pacat.c:813
+#, fuzzy, c-format
+msgid "Invalid channel map '%s'"
 msgstr "Mapa de canals invàlid '%s'\n"
 
-#: ../src/utils/pacat.c:838
-#, c-format
-msgid "Invalid latency specification '%s'\n"
+#: ../src/utils/pacat.c:842
+#, fuzzy, c-format
+msgid "Invalid latency specification '%s'"
 msgstr "Especificació de latència invàlida '%s'\n"
 
-#: ../src/utils/pacat.c:845
-#, c-format
-msgid "Invalid process time specification '%s'\n"
+#: ../src/utils/pacat.c:849
+#, fuzzy, c-format
+msgid "Invalid process time specification '%s'"
 msgstr "Especificació de temps de procés invàlida '%s'\n"
 
-#: ../src/utils/pacat.c:857
-#, c-format
-msgid "Invalid property '%s'\n"
+#: ../src/utils/pacat.c:861
+#, fuzzy, c-format
+msgid "Invalid property '%s'"
 msgstr "Propietat invàlida '%s'\n"
 
-#: ../src/utils/pacat.c:874
+#: ../src/utils/pacat.c:878
 #, c-format
 msgid "Unknown file format %s."
 msgstr "Format desconegut de fitxer %s."
 
-#: ../src/utils/pacat.c:893
-msgid "Invalid sample specification\n"
+#: ../src/utils/pacat.c:897
+#, fuzzy
+msgid "Invalid sample specification"
 msgstr "Especificació de mostra invàlida\n"
 
-#: ../src/utils/pacat.c:903
-#, c-format
-msgid "open(): %s\n"
+#: ../src/utils/pacat.c:907
+#, fuzzy, c-format
+msgid "open(): %s"
 msgstr "open(): %s\n"
 
-#: ../src/utils/pacat.c:908
-#, c-format
-msgid "dup2(): %s\n"
+#: ../src/utils/pacat.c:912
+#, fuzzy, c-format
+msgid "dup2(): %s"
 msgstr "dup2(): %s\n"
 
-#: ../src/utils/pacat.c:915
-msgid "Too many arguments.\n"
+#: ../src/utils/pacat.c:919
+#, fuzzy
+msgid "Too many arguments."
 msgstr "Massa arguments.\n"
 
-#: ../src/utils/pacat.c:926
-msgid "Failed to generate sample specification for file.\n"
+#: ../src/utils/pacat.c:930
+#, fuzzy
+msgid "Failed to generate sample specification for file."
 msgstr "No s'ha pogut obtenir informació del fitxer.\n"
 
-#: ../src/utils/pacat.c:946
-msgid "Failed to open audio file.\n"
+#: ../src/utils/pacat.c:950
+#, fuzzy
+msgid "Failed to open audio file."
 msgstr "No s'ha pogut obrir el fitxer de so.\n"
 
-#: ../src/utils/pacat.c:952
+#: ../src/utils/pacat.c:956
+#, fuzzy
 msgid ""
 "Warning: specified sample specification will be overwritten with "
-"specification from file.\n"
+"specification from file."
 msgstr ""
 "Advertència: l'especificació de mostra especificada se sobreescriurà amb "
 "l'especificació del fitxer.\n"
 
-#: ../src/utils/pacat.c:955 ../src/utils/pactl.c:944
-msgid "Failed to determine sample specification from file.\n"
+#: ../src/utils/pacat.c:959
+#, fuzzy
+msgid "Failed to determine sample specification from file."
 msgstr "No s'ha pogut determinar l'especificació de mostra del fitxer.\n"
 
-#: ../src/utils/pacat.c:964
-msgid "Warning: Failed to determine channel map from file.\n"
+#: ../src/utils/pacat.c:968
+#, fuzzy
+msgid "Warning: Failed to determine channel map from file."
 msgstr ""
 "Advertència: no s'ha pogut determinar el mapeig de canals des del fitxer.\n"
 
-#: ../src/utils/pacat.c:975
-msgid "Channel map doesn't match sample specification\n"
+#: ../src/utils/pacat.c:979
+#, fuzzy
+msgid "Channel map doesn't match sample specification"
 msgstr "El mapa de canals no coincideix amb l'especificació de mostra\n"
 
-#: ../src/utils/pacat.c:986
-msgid "Warning: failed to write channel map to file.\n"
+#: ../src/utils/pacat.c:990
+#, fuzzy
+msgid "Warning: failed to write channel map to file."
 msgstr "Advertència: no s'ha pogut escriure el mapa de canals en un fitxer.\n"
 
-#: ../src/utils/pacat.c:1001
-#, c-format
+#: ../src/utils/pacat.c:1005
+#, fuzzy, c-format
 msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'.\n"
+"Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
 "S'està obrint un flux de dades %s amb especificació de mostra '%s' i mapa de "
 "canals '%s'.\n"
 
-#: ../src/utils/pacat.c:1002
+#: ../src/utils/pacat.c:1006
 msgid "recording"
 msgstr "enregistrant"
 
-#: ../src/utils/pacat.c:1002
+#: ../src/utils/pacat.c:1006
 msgid "playback"
 msgstr "reproducció"
 
-#: ../src/utils/pacat.c:1028 ../src/utils/pasuspender.c:277
-#: ../src/utils/pactl.c:1104
-#, c-format
-msgid "pa_mainloop_new() failed.\n"
+#: ../src/utils/pacat.c:1032
+#, fuzzy
+msgid "pa_mainloop_new() failed."
 msgstr "Ha fallat el pa_mainloop_new().\n"
 
-#: ../src/utils/pacat.c:1047
-msgid "io_new() failed.\n"
+#: ../src/utils/pacat.c:1051
+#, fuzzy
+msgid "io_new() failed."
 msgstr "Ha fallat el io_new().\n"
 
-#: ../src/utils/pacat.c:1054 ../src/utils/pasuspender.c:290
-#: ../src/utils/pactl.c:1116
-#, c-format
-msgid "pa_context_new() failed.\n"
-msgstr "Ha fallat el pa_context_new().\n"
-
-#: ../src/utils/pacat.c:1062
-#, c-format
-msgid "pa_context_connect() failed: %s\n"
-msgstr "Ha fallat el pa_context_connect(): %s\n"
-
-#: ../src/utils/pacat.c:1068
+#: ../src/utils/pacat.c:1058
 #, fuzzy
-msgid "pa_context_rttime_new() failed.\n"
+msgid "pa_context_new() failed."
 msgstr "Ha fallat el pa_context_new().\n"
 
-#: ../src/utils/pacat.c:1075 ../src/utils/pasuspender.c:298
-#: ../src/utils/pactl.c:1127
+#: ../src/utils/pacat.c:1066 ../src/utils/pactl.c:1122
 #, c-format
-msgid "pa_mainloop_run() failed.\n"
+msgid "pa_context_connect() failed: %s"
+msgstr "Ha fallat pa_context_connect(): %s"
+
+#: ../src/utils/pacat.c:1072
+#, fuzzy
+msgid "pa_context_rttime_new() failed."
+msgstr "Ha fallat el pa_context_new().\n"
+
+#: ../src/utils/pacat.c:1079
+#, fuzzy
+msgid "pa_mainloop_run() failed."
 msgstr "Ha fallat el pa_mainloop_run().\n"
 
 #: ../src/utils/pasuspender.c:81
@@ -1685,6 +1696,11 @@ msgstr "No s'ha pogut en rependre: %s\n"
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
 msgstr "ADVERTÈNCIA: el sevidor de so no és local, no s'està suspenent.\n"
+
+#: ../src/utils/pasuspender.c:159 ../src/utils/pactl.c:814
+#, c-format
+msgid "Connection failure: %s\n"
+msgstr "Ha fallat la connexió: %s\n"
 
 #: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:820
 #, c-format
@@ -1725,6 +1741,21 @@ msgstr ""
 "pasuspender %s\n"
 "Compilat amb libpulse %s\n"
 "Enllaçat amb libpulse %s\n"
+
+#: ../src/utils/pasuspender.c:277 ../src/utils/pactl.c:1104
+#, c-format
+msgid "pa_mainloop_new() failed.\n"
+msgstr "Ha fallat el pa_mainloop_new().\n"
+
+#: ../src/utils/pasuspender.c:290 ../src/utils/pactl.c:1116
+#, c-format
+msgid "pa_context_new() failed.\n"
+msgstr "Ha fallat el pa_context_new().\n"
+
+#: ../src/utils/pasuspender.c:298 ../src/utils/pactl.c:1127
+#, c-format
+msgid "pa_mainloop_run() failed.\n"
+msgstr "Ha fallat el pa_mainloop_run().\n"
 
 #: ../src/utils/pactl.c:128
 #, c-format
@@ -2143,6 +2174,11 @@ msgstr ""
 "Compilat amb libpulse %s\n"
 "Enllaçat amb libpulse %s\n"
 
+#: ../src/utils/pactl.c:900
+#, c-format
+msgid "Invalid client name '%s'\n"
+msgstr "Nom del client invàlid '%s'\n"
+
 #: ../src/utils/pactl.c:926
 msgid "Please specify a sample file to load\n"
 msgstr "Especifiqueu un fitxer de mostra per a carregar\n"
@@ -2150,6 +2186,10 @@ msgstr "Especifiqueu un fitxer de mostra per a carregar\n"
 #: ../src/utils/pactl.c:939
 msgid "Failed to open sound file.\n"
 msgstr "No s'ha pogut obrir el fitxer de so.\n"
+
+#: ../src/utils/pactl.c:944
+msgid "Failed to determine sample specification from file.\n"
+msgstr "No s'ha pogut determinar l'especificació de mostra del fitxer.\n"
 
 #: ../src/utils/pactl.c:951
 msgid "Warning: Failed to determine sample specification from file.\n"
@@ -2211,11 +2251,6 @@ msgstr "Heu d'especificar un nom o un índex de font i un nom de port\n"
 #: ../src/utils/pactl.c:1099
 msgid "No valid command specified.\n"
 msgstr "S'ha especificat una ordre invàlida.\n"
-
-#: ../src/utils/pactl.c:1122
-#, c-format
-msgid "pa_context_connect() failed: %s"
-msgstr "Ha fallat pa_context_connect(): %s"
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2341,7 +2376,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr "No s'ha pogut accedir al bloqueig d'autospawn."
 
-#: ../src/modules/alsa/alsa-sink.c:445 ../src/modules/alsa/alsa-sink.c:596
+#: ../src/modules/alsa/alsa-sink.c:446 ../src/modules/alsa/alsa-sink.c:603
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2358,7 +2393,7 @@ msgstr ""
 "Ens han aixecat amb POLLOUT activat -- tanmateix una crida posterior a "
 "snd_pcm_avail() ha retornat 0 o un altre valor < min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:425 ../src/modules/alsa/alsa-source.c:567
+#: ../src/modules/alsa/alsa-source.c:426 ../src/modules/alsa/alsa-source.c:575
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2391,6 +2426,12 @@ msgstr "Dúplex de telefonia (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "Servidor de so PulseAudio"
+
+#~ msgid "read() failed: %s\n"
+#~ msgstr "Ha fallat read(): %s\n"
+
+#~ msgid "pa_context_connect() failed: %s\n"
+#~ msgstr "Ha fallat el pa_context_connect(): %s\n"
 
 #~ msgid "We're in the group '%s', allowing high-priority scheduling."
 #~ msgstr ""

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-07-23 15:36+0200\n"
+"POT-Creation-Date: 2009-07-28 01:38+0200\n"
 "PO-Revision-Date: 2009-04-08 16:21+0530\n"
 "Last-Translator: Runa Bhattacharjee <runab@fedoraproject.org>\n"
 "Language-Team: Bengali INDIA <fedora-trans-bn_in@redhat.com>\n"
@@ -279,7 +279,7 @@ msgstr "পাইপ বিফল: %s"
 msgid "fork() failed: %s"
 msgstr "fork() বিফল: %s"
 
-#: ../src/daemon/main.c:643
+#: ../src/daemon/main.c:643 ../src/utils/pacat.c:505
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() বিফল: %s"
@@ -1183,186 +1183,190 @@ msgstr "কনফিগারেশন ফাইল '%s' খুলতে ব্�
 msgid "No cookie loaded. Attempting to connect without."
 msgstr "কোনো কুকি লোড করা হয়নি। কুকি বিনা সংযোগের প্রচেষ্টা করা হচ্ছে।"
 
-#: ../src/pulse/context.c:680
+#: ../src/pulse/context.c:693
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:733
+#: ../src/pulse/context.c:745
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1415
+#: ../src/pulse/context.c:1432
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "অজানা এক্সটেনশন '%s'-র জন্য বার্তা প্রাপ্ত হয়েছে"
 
 # drain a stream = যখন স্ট্রিমের মধ্যে উপস্থিত সকল তথ্য আহরণ করা হয় ও স্ট্রিমটি সম্পূর্ণরূপে ফাঁকা হয়ে যায়।
 #: ../src/utils/pacat.c:108
-#, c-format
-msgid "Failed to drain stream: %s\n"
+#, fuzzy, c-format
+msgid "Failed to drain stream: %s"
 msgstr "স্ট্রিম ড্রেইন (অর্থাৎ ফাঁকা) করতে ব্যর্থ: %s\n"
 
 #: ../src/utils/pacat.c:113
-msgid "Playback stream drained.\n"
+#, fuzzy
+msgid "Playback stream drained."
 msgstr "প্লে-ব্যাক স্ট্রিম ফাঁকা করা হয়েছে।\n"
 
 #: ../src/utils/pacat.c:123
-msgid "Draining connection to server.\n"
+#, fuzzy
+msgid "Draining connection to server."
 msgstr "সার্ভারের সাথে স্থাপিত সংযোগ ফাঁকা করা হচ্ছে।\n"
 
 #: ../src/utils/pacat.c:136
-#, c-format
-msgid "pa_stream_drain(): %s\n"
+#, fuzzy, c-format
+msgid "pa_stream_drain(): %s"
 msgstr "pa_stream_drain(): %s\n"
 
 #: ../src/utils/pacat.c:159
-#, c-format
-msgid "pa_stream_write() failed: %s\n"
+#, fuzzy, c-format
+msgid "pa_stream_write() failed: %s"
 msgstr "pa_stream_write() ব্যর্থ: %s\n"
 
-#: ../src/utils/pacat.c:234 ../src/utils/pacat.c:263
-#, c-format
-msgid "pa_stream_peek() failed: %s\n"
+#: ../src/utils/pacat.c:197
+#, fuzzy, c-format
+msgid "pa_stream_begin_write() failed: %s"
+msgstr "pa_stream_write() ব্যর্থ: %s\n"
+
+#: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267
+#, fuzzy, c-format
+msgid "pa_stream_peek() failed: %s"
 msgstr "pa_stream_peek() ব্যর্থ: %s\n"
 
-#: ../src/utils/pacat.c:303
-msgid "Stream successfully created.\n"
+#: ../src/utils/pacat.c:307
+#, fuzzy
+msgid "Stream successfully created."
 msgstr "সাফল্যের সাথে স্ট্রিম নির্মিত হয়েছে।\n"
 
-#: ../src/utils/pacat.c:306
-#, c-format
-msgid "pa_stream_get_buffer_attr() failed: %s\n"
+#: ../src/utils/pacat.c:310
+#, fuzzy, c-format
+msgid "pa_stream_get_buffer_attr() failed: %s"
 msgstr "pa_stream_get_buffer_attr() ব্যর্থ: %s\n"
 
-#: ../src/utils/pacat.c:310
-#, c-format
-msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
+#: ../src/utils/pacat.c:314
+#, fuzzy, c-format
+msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 msgstr "বাফারের মাপ: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
 
-#: ../src/utils/pacat.c:313
-#, c-format
-msgid "Buffer metrics: maxlength=%u, fragsize=%u\n"
+#: ../src/utils/pacat.c:317
+#, fuzzy, c-format
+msgid "Buffer metrics: maxlength=%u, fragsize=%u"
 msgstr "বাফারের মাপ: maxlength=%u, fragsize=%u\n"
 
-#: ../src/utils/pacat.c:317
-#, c-format
-msgid "Using sample spec '%s', channel map '%s'.\n"
+#: ../src/utils/pacat.c:321
+#, fuzzy, c-format
+msgid "Using sample spec '%s', channel map '%s'."
 msgstr "স্যাম্পেলের spec '%s', ও চ্যানেল ম্যাপ '%s' ব্যবহার করা হচ্ছে।\n"
 
-#: ../src/utils/pacat.c:321
-#, c-format
-msgid "Connected to device %s (%u, %ssuspended).\n"
+#: ../src/utils/pacat.c:325
+#, fuzzy, c-format
+msgid "Connected to device %s (%u, %ssuspended)."
 msgstr "ডিভাইস %s-র সাথে সংযোগ করা হয়েছে (%u, %ssuspended)।\n"
 
-#: ../src/utils/pacat.c:331
-#, c-format
-msgid "Stream error: %s\n"
+#: ../src/utils/pacat.c:335
+#, fuzzy, c-format
+msgid "Stream error: %s"
 msgstr "ষ্ট্রিম সংক্রান্ত ত্রুটি: %s\n"
 
-#: ../src/utils/pacat.c:341
-#, c-format
-msgid "Stream device suspended.%s \n"
+#: ../src/utils/pacat.c:345
+#, fuzzy, c-format
+msgid "Stream device suspended.%s"
 msgstr "স্ট্রিম ডিভাইস স্থগিত করা হয়েছে। %s \n"
 
-#: ../src/utils/pacat.c:343
-#, c-format
-msgid "Stream device resumed.%s \n"
+#: ../src/utils/pacat.c:347
+#, fuzzy, c-format
+msgid "Stream device resumed.%s"
 msgstr "স্ট্রিম ডিভাইস পুনরারম্ভ করা হয়েছে। %s \n"
 
 # underrun = ধীর গতির স্ট্রিম
-#: ../src/utils/pacat.c:351
-#, c-format
-msgid "Stream underrun.%s \n"
+#: ../src/utils/pacat.c:355
+#, fuzzy, c-format
+msgid "Stream underrun.%s"
 msgstr "ধীর গতির স্ট্রিম.%s \n"
 
 # overrun=the stream fills up the allocated buffer space and there is no more space for it
-#: ../src/utils/pacat.c:358
-#, c-format
-msgid "Stream overrun.%s \n"
+#: ../src/utils/pacat.c:362
+#, fuzzy, c-format
+msgid "Stream overrun.%s"
 msgstr "স্ট্রিম মাত্রা অতিক্রম করেছে।%s \n"
 
-#: ../src/utils/pacat.c:365
-#, c-format
-msgid "Stream started.%s \n"
+#: ../src/utils/pacat.c:369
+#, fuzzy, c-format
+msgid "Stream started.%s"
 msgstr "স্ট্রিম আরম্ভ করা হয়েছে। %s \n"
 
-#: ../src/utils/pacat.c:372
-#, c-format
-msgid "Stream moved to device %s (%u, %ssuspended).%s \n"
+#: ../src/utils/pacat.c:376
+#, fuzzy, c-format
+msgid "Stream moved to device %s (%u, %ssuspended).%s"
 msgstr "%s ডিভাইসে স্ট্রিম স্থানান্তর করা হয়েছে (%u, %ssuspended)।%s \n"
 
-#: ../src/utils/pacat.c:372
+#: ../src/utils/pacat.c:376
 msgid "not "
 msgstr "না "
 
-#: ../src/utils/pacat.c:379
-#, c-format
-msgid "Stream buffer attributes changed.%s \n"
+#: ../src/utils/pacat.c:383
+#, fuzzy, c-format
+msgid "Stream buffer attributes changed.%s"
 msgstr "স্ট্রিম বাফারের অ্যাট্রিবিউট পরিবর্তিত হয়েছে। %s \n"
 
-#: ../src/utils/pacat.c:412
-#, c-format
-msgid "Connection established.%s \n"
+#: ../src/utils/pacat.c:416
+#, fuzzy, c-format
+msgid "Connection established.%s"
 msgstr "সংযোগ স্থাপিত হয়েছে।%s \n"
 
-#: ../src/utils/pacat.c:415
-#, c-format
-msgid "pa_stream_new() failed: %s\n"
+#: ../src/utils/pacat.c:419
+#, fuzzy, c-format
+msgid "pa_stream_new() failed: %s"
 msgstr "pa_stream_new() ব্যর্থ: %s\n"
 
-#: ../src/utils/pacat.c:443
-#, c-format
-msgid "pa_stream_connect_playback() failed: %s\n"
+#: ../src/utils/pacat.c:447
+#, fuzzy, c-format
+msgid "pa_stream_connect_playback() failed: %s"
 msgstr "pa_stream_connect_playback() ব্যর্থ: %s\n"
 
-#: ../src/utils/pacat.c:449
-#, c-format
-msgid "pa_stream_connect_record() failed: %s\n"
+#: ../src/utils/pacat.c:453
+#, fuzzy, c-format
+msgid "pa_stream_connect_record() failed: %s"
 msgstr "pa_stream_connect_record() ব্যর্থ: %s\n"
 
-#: ../src/utils/pacat.c:463 ../src/utils/pasuspender.c:159
-#: ../src/utils/pactl.c:814
-#, c-format
-msgid "Connection failure: %s\n"
+#: ../src/utils/pacat.c:467
+#, fuzzy, c-format
+msgid "Connection failure: %s"
 msgstr "সংযোগ বিফল: %s\n"
 
-#: ../src/utils/pacat.c:496
-msgid "Got EOF.\n"
+#: ../src/utils/pacat.c:500
+#, fuzzy
+msgid "Got EOF."
 msgstr "ফাইলের সমাপ্তি সনাক্ত হয়েছে। \n"
 
-#: ../src/utils/pacat.c:501
-#, c-format
-msgid "read() failed: %s\n"
-msgstr "read() ব্যর্থ: %s\n"
-
-#: ../src/utils/pacat.c:533
-#, c-format
-msgid "write() failed: %s\n"
+#: ../src/utils/pacat.c:537
+#, fuzzy, c-format
+msgid "write() failed: %s"
 msgstr "write() ব্যর্থ: %s\n"
 
-#: ../src/utils/pacat.c:554
-msgid "Got signal, exiting.\n"
+#: ../src/utils/pacat.c:558
+#, fuzzy
+msgid "Got signal, exiting."
 msgstr "সিগন্যাল প্রাপ্ত হয়েছে, প্রস্থান করা হবে।\n"
 
 # latency here = delay (technical term
-#: ../src/utils/pacat.c:568
-#, c-format
-msgid "Failed to get latency: %s\n"
+#: ../src/utils/pacat.c:572
+#, fuzzy, c-format
+msgid "Failed to get latency: %s"
 msgstr "লেটেন্সির পরিমাণ প্রাপ্ত করতে ব্যর্থ: %s\n"
 
-#: ../src/utils/pacat.c:573
+#: ../src/utils/pacat.c:577
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr "সময়: %0.3f সেকেন্ড; লেটেন্সি: %0.0f usec.  \r"
 
-#: ../src/utils/pacat.c:591
-#, c-format
-msgid "pa_stream_update_timing_info() failed: %s\n"
+#: ../src/utils/pacat.c:595
+#, fuzzy, c-format
+msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() ব্যর্থ: %s\n"
 
-#: ../src/utils/pacat.c:601
+#: ../src/utils/pacat.c:605
 #, fuzzy, c-format
 msgid ""
 "%s [options]\n"
@@ -1467,7 +1471,7 @@ msgstr ""
 "      --process-time=BYTES              বাইট অনুযায়ী, প্রতিটি অনুরোধের জন্য "
 "নির্ধারিত প্রসেস সময় অনুরোধ জানিয়ে দিন।\n"
 
-#: ../src/utils/pacat.c:723
+#: ../src/utils/pacat.c:727
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1478,136 +1482,140 @@ msgstr ""
 "libpulse সহযোগে কম্পাইল করা হয়েছে %s\n"
 "libpulse-র সাথে যুক্ত %s\n"
 
-#: ../src/utils/pacat.c:756 ../src/utils/pactl.c:900
+#: ../src/utils/pacat.c:760
 #, fuzzy, c-format
-msgid "Invalid client name '%s'\n"
+msgid "Invalid client name '%s'"
 msgstr "চ্যানেল ম্যাপ '%s' বৈধ নয়\n"
 
-#: ../src/utils/pacat.c:772
+#: ../src/utils/pacat.c:776
 #, fuzzy, c-format
-msgid "Invalid stream name '%s'\n"
+msgid "Invalid stream name '%s'"
 msgstr "রি-স্যাম্পেল পদ্ধতি '%s' বৈধ নয়।"
 
-#: ../src/utils/pacat.c:809
-#, c-format
-msgid "Invalid channel map '%s'\n"
+#: ../src/utils/pacat.c:813
+#, fuzzy, c-format
+msgid "Invalid channel map '%s'"
 msgstr "চ্যানেল ম্যাপ '%s' বৈধ নয়\n"
 
-#: ../src/utils/pacat.c:838
-#, c-format
-msgid "Invalid latency specification '%s'\n"
+#: ../src/utils/pacat.c:842
+#, fuzzy, c-format
+msgid "Invalid latency specification '%s'"
 msgstr "লেটেন্সির জন্য নির্ধারিত বৈশিষ্ট্য '%s' বৈধ নয়\n"
 
-#: ../src/utils/pacat.c:845
-#, c-format
-msgid "Invalid process time specification '%s'\n"
+#: ../src/utils/pacat.c:849
+#, fuzzy, c-format
+msgid "Invalid process time specification '%s'"
 msgstr "প্রসেসের সময়ের বৈশিষ্ট্য '%s' বৈধ নয়\n"
 
-#: ../src/utils/pacat.c:857
+#: ../src/utils/pacat.c:861
 #, fuzzy, c-format
-msgid "Invalid property '%s'\n"
+msgid "Invalid property '%s'"
 msgstr "রি-স্যাম্পেল পদ্ধতি '%s' বৈধ নয়।"
 
-#: ../src/utils/pacat.c:874
+#: ../src/utils/pacat.c:878
 #, c-format
 msgid "Unknown file format %s."
 msgstr ""
 
-#: ../src/utils/pacat.c:893
-msgid "Invalid sample specification\n"
+#: ../src/utils/pacat.c:897
+#, fuzzy
+msgid "Invalid sample specification"
 msgstr "অবৈধ স্যাম্পেল নির্ধারিত\n"
 
-#: ../src/utils/pacat.c:903
-#, c-format
-msgid "open(): %s\n"
+#: ../src/utils/pacat.c:907
+#, fuzzy, c-format
+msgid "open(): %s"
 msgstr "open(): %s\n"
 
-#: ../src/utils/pacat.c:908
-#, c-format
-msgid "dup2(): %s\n"
+#: ../src/utils/pacat.c:912
+#, fuzzy, c-format
+msgid "dup2(): %s"
 msgstr "dup2(): %s\n"
 
-#: ../src/utils/pacat.c:915
-msgid "Too many arguments.\n"
+#: ../src/utils/pacat.c:919
+#, fuzzy
+msgid "Too many arguments."
 msgstr "অত্যাধিক আর্গুমেন্ট।\n"
 
-#: ../src/utils/pacat.c:926
+#: ../src/utils/pacat.c:930
 #, fuzzy
-msgid "Failed to generate sample specification for file.\n"
+msgid "Failed to generate sample specification for file."
 msgstr "স্যাম্পেল সংক্রান্ত তথ্য প্রাপ্ত করতে ব্যর্থ: %s\n"
 
-#: ../src/utils/pacat.c:946
+#: ../src/utils/pacat.c:950
 #, fuzzy
-msgid "Failed to open audio file.\n"
+msgid "Failed to open audio file."
 msgstr "শব্দের ফাইল খুলতে ব্যর্থ।\n"
 
-#: ../src/utils/pacat.c:952
+#: ../src/utils/pacat.c:956
+#, fuzzy
 msgid ""
 "Warning: specified sample specification will be overwritten with "
-"specification from file.\n"
-msgstr ""
-
-#: ../src/utils/pacat.c:955 ../src/utils/pactl.c:944
-#, fuzzy
-msgid "Failed to determine sample specification from file.\n"
-msgstr "স্যাম্পেল সংক্রান্ত তথ্য প্রাপ্ত করতে ব্যর্থ: %s\n"
-
-#: ../src/utils/pacat.c:964
-msgid "Warning: Failed to determine channel map from file.\n"
-msgstr ""
-
-#: ../src/utils/pacat.c:975
-msgid "Channel map doesn't match sample specification\n"
-msgstr "চ্যানেলের ম্যাপ ও স্যাম্পেলের মাপে গরমিল\n"
-
-#: ../src/utils/pacat.c:986
-msgid "Warning: failed to write channel map to file.\n"
-msgstr ""
-
-#: ../src/utils/pacat.c:1001
-#, fuzzy, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'.\n"
+"specification from file."
 msgstr "একটি %s স্ট্রিম '%s' স্যাম্পেল বৈশিষ্ট্য সহ খোলা হচ্ছে।\n"
 
-#: ../src/utils/pacat.c:1002
+#: ../src/utils/pacat.c:959
+#, fuzzy
+msgid "Failed to determine sample specification from file."
+msgstr "স্যাম্পেল সংক্রান্ত তথ্য প্রাপ্ত করতে ব্যর্থ: %s\n"
+
+#: ../src/utils/pacat.c:968
+#, fuzzy
+msgid "Warning: Failed to determine channel map from file."
+msgstr "একটি %s স্ট্রিম '%s' স্যাম্পেল বৈশিষ্ট্য সহ খোলা হচ্ছে।\n"
+
+#: ../src/utils/pacat.c:979
+#, fuzzy
+msgid "Channel map doesn't match sample specification"
+msgstr "চ্যানেলের ম্যাপ ও স্যাম্পেলের মাপে গরমিল\n"
+
+#: ../src/utils/pacat.c:990
+#, fuzzy
+msgid "Warning: failed to write channel map to file."
+msgstr "একটি %s স্ট্রিম '%s' স্যাম্পেল বৈশিষ্ট্য সহ খোলা হচ্ছে।\n"
+
+#: ../src/utils/pacat.c:1005
+#, fuzzy, c-format
+msgid ""
+"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgstr "একটি %s স্ট্রিম '%s' স্যাম্পেল বৈশিষ্ট্য সহ খোলা হচ্ছে।\n"
+
+#: ../src/utils/pacat.c:1006
 msgid "recording"
 msgstr "রেকর্ড করা হচ্ছে"
 
-#: ../src/utils/pacat.c:1002
+#: ../src/utils/pacat.c:1006
 msgid "playback"
 msgstr "প্লে-ব্যাক"
 
-#: ../src/utils/pacat.c:1028 ../src/utils/pasuspender.c:277
-#: ../src/utils/pactl.c:1104
-#, c-format
-msgid "pa_mainloop_new() failed.\n"
+#: ../src/utils/pacat.c:1032
+#, fuzzy
+msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() ব্যর্থ।\n"
 
-#: ../src/utils/pacat.c:1047
-msgid "io_new() failed.\n"
+#: ../src/utils/pacat.c:1051
+#, fuzzy
+msgid "io_new() failed."
 msgstr "io_new() ব্যর্থ।\n"
 
-#: ../src/utils/pacat.c:1054 ../src/utils/pasuspender.c:290
-#: ../src/utils/pactl.c:1116
-#, c-format
-msgid "pa_context_new() failed.\n"
+#: ../src/utils/pacat.c:1058
+#, fuzzy
+msgid "pa_context_new() failed."
 msgstr "pa_context_new() ব্যর্থ।\n"
 
-#: ../src/utils/pacat.c:1062
-#, fuzzy, c-format
-msgid "pa_context_connect() failed: %s\n"
+#: ../src/utils/pacat.c:1066 ../src/utils/pactl.c:1122
+#, c-format
+msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() ব্যর্থ: %s"
 
-#: ../src/utils/pacat.c:1068
+#: ../src/utils/pacat.c:1072
 #, fuzzy
-msgid "pa_context_rttime_new() failed.\n"
+msgid "pa_context_rttime_new() failed."
 msgstr "pa_context_new() ব্যর্থ।\n"
 
-#: ../src/utils/pacat.c:1075 ../src/utils/pasuspender.c:298
-#: ../src/utils/pactl.c:1127
-#, c-format
-msgid "pa_mainloop_run() failed.\n"
+#: ../src/utils/pacat.c:1079
+#, fuzzy
+msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() ব্যর্থ।\n"
 
 #: ../src/utils/pasuspender.c:81
@@ -1634,6 +1642,11 @@ msgstr "পুনরারম্ভ করতে ব্যর্থ: %s\n"
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
 msgstr "সতর্কবার্তা: শব্দের সার্ভারটি স্থানীয় নয় ও স্থগিত করা হচ্ছে না।\n"
+
+#: ../src/utils/pasuspender.c:159 ../src/utils/pactl.c:814
+#, c-format
+msgid "Connection failure: %s\n"
+msgstr "সংযোগ বিফল: %s\n"
 
 #: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:820
 #, c-format
@@ -1674,6 +1687,21 @@ msgstr ""
 "pasuspender %s\n"
 "libpulse সহযোগে কম্পাইল করা হয়েছে %s\n"
 "libpulse-র সাথে যুক্ত %s\n"
+
+#: ../src/utils/pasuspender.c:277 ../src/utils/pactl.c:1104
+#, c-format
+msgid "pa_mainloop_new() failed.\n"
+msgstr "pa_mainloop_new() ব্যর্থ।\n"
+
+#: ../src/utils/pasuspender.c:290 ../src/utils/pactl.c:1116
+#, c-format
+msgid "pa_context_new() failed.\n"
+msgstr "pa_context_new() ব্যর্থ।\n"
+
+#: ../src/utils/pasuspender.c:298 ../src/utils/pactl.c:1127
+#, c-format
+msgid "pa_mainloop_run() failed.\n"
+msgstr "pa_mainloop_run() ব্যর্থ।\n"
 
 #: ../src/utils/pactl.c:128
 #, c-format
@@ -2089,6 +2117,11 @@ msgstr ""
 "libpulse সহযোগে কম্পাইল করা %s\n"
 "libpulse-র সাথে যুক্ত %s\n"
 
+#: ../src/utils/pactl.c:900
+#, fuzzy, c-format
+msgid "Invalid client name '%s'\n"
+msgstr "চ্যানেল ম্যাপ '%s' বৈধ নয়\n"
+
 #: ../src/utils/pactl.c:926
 msgid "Please specify a sample file to load\n"
 msgstr "লোড করার উদ্দেশ্যে অনুগ্রহ করে একটি স্যাম্পেল ফাইল উল্লেখ করুন\n"
@@ -2096,6 +2129,11 @@ msgstr "লোড করার উদ্দেশ্যে অনুগ্রহ
 #: ../src/utils/pactl.c:939
 msgid "Failed to open sound file.\n"
 msgstr "শব্দের ফাইল খুলতে ব্যর্থ।\n"
+
+#: ../src/utils/pactl.c:944
+#, fuzzy
+msgid "Failed to determine sample specification from file.\n"
+msgstr "স্যাম্পেল সংক্রান্ত তথ্য প্রাপ্ত করতে ব্যর্থ: %s\n"
 
 #: ../src/utils/pactl.c:951
 #, fuzzy
@@ -2155,11 +2193,6 @@ msgstr "কার্ডের নাম/ইন্ডেক্স ও একট�
 #: ../src/utils/pactl.c:1099
 msgid "No valid command specified.\n"
 msgstr "কোনো কমান্ড নির্ধারিত হয়নি।\n"
-
-#: ../src/utils/pactl.c:1122
-#, c-format
-msgid "pa_context_connect() failed: %s"
-msgstr "pa_context_connect() ব্যর্থ: %s"
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2281,7 +2314,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr "autospawn লক প্রয়োগ করতে ব্যর্থ।"
 
-#: ../src/modules/alsa/alsa-sink.c:445 ../src/modules/alsa/alsa-sink.c:596
+#: ../src/modules/alsa/alsa-sink.c:446 ../src/modules/alsa/alsa-sink.c:603
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2298,7 +2331,7 @@ msgstr ""
 "POLLOUT set দ্বারা চেতাবনী সৃষ্টি হয়েছে -- পরবর্তী snd_pcm_avail() থেকে 0 অথবা < "
 "min_avail-র থেকে কম অন্য একটি মান প্রাপ্ত হয়েছে।"
 
-#: ../src/modules/alsa/alsa-source.c:425 ../src/modules/alsa/alsa-source.c:567
+#: ../src/modules/alsa/alsa-source.c:426 ../src/modules/alsa/alsa-source.c:575
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2331,6 +2364,13 @@ msgstr "টেলিফোনি ডুপ্লে (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio শব্দের সার্ভার"
+
+#~ msgid "read() failed: %s\n"
+#~ msgstr "read() ব্যর্থ: %s\n"
+
+#, fuzzy
+#~ msgid "pa_context_connect() failed: %s\n"
+#~ msgstr "pa_context_connect() ব্যর্থ: %s"
 
 #~ msgid "We're in the group '%s', allowing high-priority scheduling."
 #~ msgstr "অধিক গুরুত্বসহ শিডিউলিংয়ের সুবিধা উপলব্ধকারী '%s' দলে আমরা উপস্থিত।"

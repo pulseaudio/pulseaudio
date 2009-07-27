@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-07-23 15:36+0200\n"
+"POT-Creation-Date: 2009-07-28 01:38+0200\n"
 "PO-Revision-Date: 2008-09-05 18:24+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -268,7 +268,7 @@ msgstr "pipe misslyckades: %s"
 msgid "fork() failed: %s"
 msgstr "fork() misslyckades: %s"
 
-#: ../src/daemon/main.c:643
+#: ../src/daemon/main.c:643 ../src/utils/pacat.c:505
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() misslyckades: %s"
@@ -1090,182 +1090,183 @@ msgstr "Misslyckades med att öppna konfigurationsfilen \"%s\": %s"
 msgid "No cookie loaded. Attempting to connect without."
 msgstr ""
 
-#: ../src/pulse/context.c:680
+#: ../src/pulse/context.c:693
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:733
+#: ../src/pulse/context.c:745
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1415
+#: ../src/pulse/context.c:1432
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr ""
 
 #: ../src/utils/pacat.c:108
-#, c-format
-msgid "Failed to drain stream: %s\n"
-msgstr ""
+#, fuzzy, c-format
+msgid "Failed to drain stream: %s"
+msgstr "Misslyckades med att hitta användaren \"%s\"."
 
 #: ../src/utils/pacat.c:113
-msgid "Playback stream drained.\n"
+msgid "Playback stream drained."
 msgstr ""
 
 #: ../src/utils/pacat.c:123
-msgid "Draining connection to server.\n"
+msgid "Draining connection to server."
 msgstr ""
 
 #: ../src/utils/pacat.c:136
-#, c-format
-msgid "pa_stream_drain(): %s\n"
+#, fuzzy, c-format
+msgid "pa_stream_drain(): %s"
 msgstr "pa_stream_drain(): %s\n"
 
 #: ../src/utils/pacat.c:159
-#, c-format
-msgid "pa_stream_write() failed: %s\n"
+#, fuzzy, c-format
+msgid "pa_stream_write() failed: %s"
 msgstr "pa_stream_write() misslyckades: %s\n"
 
-#: ../src/utils/pacat.c:234 ../src/utils/pacat.c:263
-#, c-format
-msgid "pa_stream_peek() failed: %s\n"
+#: ../src/utils/pacat.c:197
+#, fuzzy, c-format
+msgid "pa_stream_begin_write() failed: %s"
+msgstr "pa_stream_write() misslyckades: %s\n"
+
+#: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267
+#, fuzzy, c-format
+msgid "pa_stream_peek() failed: %s"
 msgstr "pa_stream_peek() misslyckades: %s\n"
 
-#: ../src/utils/pacat.c:303
-msgid "Stream successfully created.\n"
+#: ../src/utils/pacat.c:307
+msgid "Stream successfully created."
 msgstr ""
-
-#: ../src/utils/pacat.c:306
-#, c-format
-msgid "pa_stream_get_buffer_attr() failed: %s\n"
-msgstr "pa_stream_get_buffer_attr() misslyckades: %s\n"
 
 #: ../src/utils/pacat.c:310
-#, c-format
-msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
-msgstr ""
+#, fuzzy, c-format
+msgid "pa_stream_get_buffer_attr() failed: %s"
+msgstr "pa_stream_get_buffer_attr() misslyckades: %s\n"
 
-#: ../src/utils/pacat.c:313
+#: ../src/utils/pacat.c:314
 #, c-format
-msgid "Buffer metrics: maxlength=%u, fragsize=%u\n"
+msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 msgstr ""
 
 #: ../src/utils/pacat.c:317
 #, c-format
-msgid "Using sample spec '%s', channel map '%s'.\n"
+msgid "Buffer metrics: maxlength=%u, fragsize=%u"
 msgstr ""
 
 #: ../src/utils/pacat.c:321
 #, c-format
-msgid "Connected to device %s (%u, %ssuspended).\n"
+msgid "Using sample spec '%s', channel map '%s'."
 msgstr ""
 
-#: ../src/utils/pacat.c:331
+#: ../src/utils/pacat.c:325
 #, c-format
-msgid "Stream error: %s\n"
+msgid "Connected to device %s (%u, %ssuspended)."
+msgstr ""
+
+#: ../src/utils/pacat.c:335
+#, fuzzy, c-format
+msgid "Stream error: %s"
 msgstr "Strömfel: %s\n"
 
-#: ../src/utils/pacat.c:341
+#: ../src/utils/pacat.c:345
 #, c-format
-msgid "Stream device suspended.%s \n"
+msgid "Stream device suspended.%s"
 msgstr ""
 
-#: ../src/utils/pacat.c:343
+#: ../src/utils/pacat.c:347
 #, c-format
-msgid "Stream device resumed.%s \n"
+msgid "Stream device resumed.%s"
 msgstr ""
 
-#: ../src/utils/pacat.c:351
+#: ../src/utils/pacat.c:355
+#, fuzzy, c-format
+msgid "Stream underrun.%s"
+msgstr "Strömfel: %s\n"
+
+#: ../src/utils/pacat.c:362
+#, fuzzy, c-format
+msgid "Stream overrun.%s"
+msgstr "Strömfel: %s\n"
+
+#: ../src/utils/pacat.c:369
 #, c-format
-msgid "Stream underrun.%s \n"
+msgid "Stream started.%s"
 msgstr ""
 
-#: ../src/utils/pacat.c:358
+#: ../src/utils/pacat.c:376
 #, c-format
-msgid "Stream overrun.%s \n"
+msgid "Stream moved to device %s (%u, %ssuspended).%s"
 msgstr ""
 
-#: ../src/utils/pacat.c:365
-#, c-format
-msgid "Stream started.%s \n"
-msgstr ""
-
-#: ../src/utils/pacat.c:372
-#, c-format
-msgid "Stream moved to device %s (%u, %ssuspended).%s \n"
-msgstr ""
-
-#: ../src/utils/pacat.c:372
+#: ../src/utils/pacat.c:376
 msgid "not "
 msgstr "inte "
 
-#: ../src/utils/pacat.c:379
+#: ../src/utils/pacat.c:383
 #, c-format
-msgid "Stream buffer attributes changed.%s \n"
+msgid "Stream buffer attributes changed.%s"
 msgstr ""
 
-#: ../src/utils/pacat.c:412
-#, c-format
-msgid "Connection established.%s \n"
-msgstr ""
+#: ../src/utils/pacat.c:416
+#, fuzzy, c-format
+msgid "Connection established.%s"
+msgstr "Anslutning etablerad.\n"
 
-#: ../src/utils/pacat.c:415
-#, c-format
-msgid "pa_stream_new() failed: %s\n"
+#: ../src/utils/pacat.c:419
+#, fuzzy, c-format
+msgid "pa_stream_new() failed: %s"
 msgstr "pa_stream_new() misslyckades: %s\n"
 
-#: ../src/utils/pacat.c:443
-#, c-format
-msgid "pa_stream_connect_playback() failed: %s\n"
+#: ../src/utils/pacat.c:447
+#, fuzzy, c-format
+msgid "pa_stream_connect_playback() failed: %s"
 msgstr "pa_stream_connect_playback() misslyckades: %s\n"
 
-#: ../src/utils/pacat.c:449
-#, c-format
-msgid "pa_stream_connect_record() failed: %s\n"
+#: ../src/utils/pacat.c:453
+#, fuzzy, c-format
+msgid "pa_stream_connect_record() failed: %s"
 msgstr "pa_stream_connect_record() misslyckades: %s\n"
 
-#: ../src/utils/pacat.c:463 ../src/utils/pasuspender.c:159
-#: ../src/utils/pactl.c:814
-#, c-format
-msgid "Connection failure: %s\n"
+#: ../src/utils/pacat.c:467
+#, fuzzy, c-format
+msgid "Connection failure: %s"
 msgstr "Anslutningsfel: %s\n"
 
-#: ../src/utils/pacat.c:496
-msgid "Got EOF.\n"
+#: ../src/utils/pacat.c:500
+#, fuzzy
+msgid "Got EOF."
 msgstr "Fick filslut.\n"
 
-#: ../src/utils/pacat.c:501
-#, c-format
-msgid "read() failed: %s\n"
-msgstr "read() misslyckades: %s\n"
-
-#: ../src/utils/pacat.c:533
-#, c-format
-msgid "write() failed: %s\n"
+#: ../src/utils/pacat.c:537
+#, fuzzy, c-format
+msgid "write() failed: %s"
 msgstr "write() misslyckades: %s\n"
 
-#: ../src/utils/pacat.c:554
-msgid "Got signal, exiting.\n"
-msgstr ""
+#: ../src/utils/pacat.c:558
+#, fuzzy
+msgid "Got signal, exiting."
+msgstr "Fick signal %s."
 
-#: ../src/utils/pacat.c:568
-#, c-format
-msgid "Failed to get latency: %s\n"
-msgstr ""
+#: ../src/utils/pacat.c:572
+#, fuzzy, c-format
+msgid "Failed to get latency: %s"
+msgstr "Misslyckades med att få statistik: %s\n"
 
-#: ../src/utils/pacat.c:573
+#: ../src/utils/pacat.c:577
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr "Tid: %0.3f sec; Latens: %0.0f ms  \r"
 
-#: ../src/utils/pacat.c:591
-#, c-format
-msgid "pa_stream_update_timing_info() failed: %s\n"
+#: ../src/utils/pacat.c:595
+#, fuzzy, c-format
+msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() misslyckades: %s\n"
 
-#: ../src/utils/pacat.c:601
+#: ../src/utils/pacat.c:605
 #, c-format
 msgid ""
 "%s [options]\n"
@@ -1325,7 +1326,7 @@ msgid ""
 "      --list-file-formats               List available file formats.\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:723
+#: ../src/utils/pacat.c:727
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1333,135 +1334,137 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 
-#: ../src/utils/pacat.c:756 ../src/utils/pactl.c:900
-#, c-format
-msgid "Invalid client name '%s'\n"
-msgstr ""
-
-#: ../src/utils/pacat.c:772
-#, c-format
-msgid "Invalid stream name '%s'\n"
-msgstr ""
-
-#: ../src/utils/pacat.c:809
-#, c-format
-msgid "Invalid channel map '%s'\n"
-msgstr ""
-
-#: ../src/utils/pacat.c:838
-#, c-format
-msgid "Invalid latency specification '%s'\n"
-msgstr ""
-
-#: ../src/utils/pacat.c:845
-#, c-format
-msgid "Invalid process time specification '%s'\n"
-msgstr ""
-
-#: ../src/utils/pacat.c:857
+#: ../src/utils/pacat.c:760
 #, fuzzy, c-format
-msgid "Invalid property '%s'\n"
+msgid "Invalid client name '%s'"
 msgstr "Ogiltig server"
 
-#: ../src/utils/pacat.c:874
+#: ../src/utils/pacat.c:776
+#, fuzzy, c-format
+msgid "Invalid stream name '%s'"
+msgstr "Ogiltig server"
+
+#: ../src/utils/pacat.c:813
+#, fuzzy, c-format
+msgid "Invalid channel map '%s'"
+msgstr "Ogiltig server"
+
+#: ../src/utils/pacat.c:842
+#, c-format
+msgid "Invalid latency specification '%s'"
+msgstr ""
+
+#: ../src/utils/pacat.c:849
+#, fuzzy, c-format
+msgid "Invalid process time specification '%s'"
+msgstr "Ogiltig server"
+
+#: ../src/utils/pacat.c:861
+#, fuzzy, c-format
+msgid "Invalid property '%s'"
+msgstr "Ogiltig server"
+
+#: ../src/utils/pacat.c:878
 #, c-format
 msgid "Unknown file format %s."
 msgstr ""
 
-#: ../src/utils/pacat.c:893
-msgid "Invalid sample specification\n"
-msgstr ""
-
-#: ../src/utils/pacat.c:903
-#, c-format
-msgid "open(): %s\n"
-msgstr "open(): %s\n"
-
-#: ../src/utils/pacat.c:908
-#, c-format
-msgid "dup2(): %s\n"
-msgstr "dup2(): %s\n"
-
-#: ../src/utils/pacat.c:915
-msgid "Too many arguments.\n"
-msgstr "För många argument.\n"
-
-#: ../src/utils/pacat.c:926
+#: ../src/utils/pacat.c:897
 #, fuzzy
-msgid "Failed to generate sample specification for file.\n"
+msgid "Invalid sample specification"
 msgstr "Misslyckades med att få modulinformation: %s\n"
 
-#: ../src/utils/pacat.c:946
+#: ../src/utils/pacat.c:907
+#, fuzzy, c-format
+msgid "open(): %s"
+msgstr "open(): %s\n"
+
+#: ../src/utils/pacat.c:912
+#, fuzzy, c-format
+msgid "dup2(): %s"
+msgstr "dup2(): %s\n"
+
+#: ../src/utils/pacat.c:919
 #, fuzzy
-msgid "Failed to open audio file.\n"
+msgid "Too many arguments."
+msgstr "För många argument.\n"
+
+#: ../src/utils/pacat.c:930
+#, fuzzy
+msgid "Failed to generate sample specification for file."
+msgstr "Misslyckades med att få modulinformation: %s\n"
+
+#: ../src/utils/pacat.c:950
+#, fuzzy
+msgid "Failed to open audio file."
 msgstr "Misslyckades med att öppna ljudfil.\n"
 
-#: ../src/utils/pacat.c:952
+#: ../src/utils/pacat.c:956
 msgid ""
 "Warning: specified sample specification will be overwritten with "
-"specification from file.\n"
+"specification from file."
 msgstr ""
 
-#: ../src/utils/pacat.c:955 ../src/utils/pactl.c:944
-msgid "Failed to determine sample specification from file.\n"
+#: ../src/utils/pacat.c:959
+#, fuzzy
+msgid "Failed to determine sample specification from file."
+msgstr "Misslyckades med att få modulinformation: %s\n"
+
+#: ../src/utils/pacat.c:968
+msgid "Warning: Failed to determine channel map from file."
 msgstr ""
 
-#: ../src/utils/pacat.c:964
-msgid "Warning: Failed to determine channel map from file.\n"
+#: ../src/utils/pacat.c:979
+#, fuzzy
+msgid "Channel map doesn't match sample specification"
+msgstr "Misslyckades med att få modulinformation: %s\n"
+
+#: ../src/utils/pacat.c:990
+msgid "Warning: failed to write channel map to file."
 msgstr ""
 
-#: ../src/utils/pacat.c:975
-msgid "Channel map doesn't match sample specification\n"
-msgstr ""
-
-#: ../src/utils/pacat.c:986
-msgid "Warning: failed to write channel map to file.\n"
-msgstr ""
-
-#: ../src/utils/pacat.c:1001
+#: ../src/utils/pacat.c:1005
 #, c-format
 msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'.\n"
+"Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
 
-#: ../src/utils/pacat.c:1002
+#: ../src/utils/pacat.c:1006
 msgid "recording"
 msgstr ""
 
-#: ../src/utils/pacat.c:1002
+#: ../src/utils/pacat.c:1006
 msgid "playback"
 msgstr ""
 
-#: ../src/utils/pacat.c:1028 ../src/utils/pasuspender.c:277
-#: ../src/utils/pactl.c:1104
-#, c-format
-msgid "pa_mainloop_new() failed.\n"
+#: ../src/utils/pacat.c:1032
+#, fuzzy
+msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() misslyckades.\n"
 
-#: ../src/utils/pacat.c:1047
-msgid "io_new() failed.\n"
+#: ../src/utils/pacat.c:1051
+#, fuzzy
+msgid "io_new() failed."
 msgstr "io_new() misslyckades.\n"
 
-#: ../src/utils/pacat.c:1054 ../src/utils/pasuspender.c:290
-#: ../src/utils/pactl.c:1116
-#, c-format
-msgid "pa_context_new() failed.\n"
-msgstr "pa_context_new() misslyckades.\n"
-
-#: ../src/utils/pacat.c:1062
-#, fuzzy, c-format
-msgid "pa_context_connect() failed: %s\n"
-msgstr "pa_context_new() misslyckades.\n"
-
-#: ../src/utils/pacat.c:1068
+#: ../src/utils/pacat.c:1058
 #, fuzzy
-msgid "pa_context_rttime_new() failed.\n"
+msgid "pa_context_new() failed."
 msgstr "pa_context_new() misslyckades.\n"
 
-#: ../src/utils/pacat.c:1075 ../src/utils/pasuspender.c:298
-#: ../src/utils/pactl.c:1127
-#, c-format
-msgid "pa_mainloop_run() failed.\n"
+#: ../src/utils/pacat.c:1066 ../src/utils/pactl.c:1122
+#, fuzzy, c-format
+msgid "pa_context_connect() failed: %s"
+msgstr "pa_context_new() misslyckades.\n"
+
+#: ../src/utils/pacat.c:1072
+#, fuzzy
+msgid "pa_context_rttime_new() failed."
+msgstr "pa_context_new() misslyckades.\n"
+
+#: ../src/utils/pacat.c:1079
+#, fuzzy
+msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() misslyckades.\n"
 
 #: ../src/utils/pasuspender.c:81
@@ -1488,6 +1491,11 @@ msgstr ""
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
 msgstr ""
+
+#: ../src/utils/pasuspender.c:159 ../src/utils/pactl.c:814
+#, c-format
+msgid "Connection failure: %s\n"
+msgstr "Anslutningsfel: %s\n"
 
 #: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:820
 #, c-format
@@ -1521,6 +1529,21 @@ msgstr ""
 "pasuspender %s\n"
 "Kompilerad med libpulse %s\n"
 "Länkad med libpulse %s\n"
+
+#: ../src/utils/pasuspender.c:277 ../src/utils/pactl.c:1104
+#, c-format
+msgid "pa_mainloop_new() failed.\n"
+msgstr "pa_mainloop_new() misslyckades.\n"
+
+#: ../src/utils/pasuspender.c:290 ../src/utils/pactl.c:1116
+#, c-format
+msgid "pa_context_new() failed.\n"
+msgstr "pa_context_new() misslyckades.\n"
+
+#: ../src/utils/pasuspender.c:298 ../src/utils/pactl.c:1127
+#, c-format
+msgid "pa_mainloop_run() failed.\n"
+msgstr "pa_mainloop_run() misslyckades.\n"
 
 #: ../src/utils/pactl.c:128
 #, c-format
@@ -1814,6 +1837,11 @@ msgstr ""
 "Kompilerad med libpulse %s\n"
 "Länkad med libpulse %s\n"
 
+#: ../src/utils/pactl.c:900
+#, c-format
+msgid "Invalid client name '%s'\n"
+msgstr ""
+
 #: ../src/utils/pactl.c:926
 msgid "Please specify a sample file to load\n"
 msgstr ""
@@ -1821,6 +1849,10 @@ msgstr ""
 #: ../src/utils/pactl.c:939
 msgid "Failed to open sound file.\n"
 msgstr "Misslyckades med att öppna ljudfil.\n"
+
+#: ../src/utils/pactl.c:944
+msgid "Failed to determine sample specification from file.\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:951
 msgid "Warning: Failed to determine sample specification from file.\n"
@@ -1877,11 +1909,6 @@ msgstr ""
 #: ../src/utils/pactl.c:1099
 msgid "No valid command specified.\n"
 msgstr ""
-
-#: ../src/utils/pactl.c:1122
-#, fuzzy, c-format
-msgid "pa_context_connect() failed: %s"
-msgstr "pa_context_new() misslyckades.\n"
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -1996,7 +2023,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-sink.c:445 ../src/modules/alsa/alsa-sink.c:596
+#: ../src/modules/alsa/alsa-sink.c:446 ../src/modules/alsa/alsa-sink.c:603
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2007,7 +2034,7 @@ msgid ""
 "returned 0 or another value < min_avail."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-source.c:425 ../src/modules/alsa/alsa-source.c:567
+#: ../src/modules/alsa/alsa-source.c:426 ../src/modules/alsa/alsa-source.c:575
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2035,14 +2062,18 @@ msgstr ""
 msgid "PulseAudio Sound Server"
 msgstr ""
 
+#~ msgid "read() failed: %s\n"
+#~ msgstr "read() misslyckades: %s\n"
+
+#, fuzzy
+#~ msgid "pa_context_connect() failed: %s\n"
+#~ msgstr "pa_context_new() misslyckades.\n"
+
 #~ msgid "RLIMIT_RTPRIO failed: %s"
 #~ msgstr "RLIMIT_RTPRIO misslyckades: %s"
 
 #~ msgid "time_new() failed.\n"
 #~ msgstr "time_new() misslyckades.\n"
-
-#~ msgid "Connection established.\n"
-#~ msgstr "Anslutning etablerad.\n"
 
 #~ msgid ""
 #~ "paplay %s\n"
