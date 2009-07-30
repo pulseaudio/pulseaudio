@@ -51,7 +51,7 @@
 
 struct pa_threaded_mainloop {
     pa_mainloop *real_mainloop;
-    int n_waiting;
+    int n_waiting, n_waiting_for_accept;
 
     pa_thread* thread;
     pa_mutex* mutex;
@@ -190,8 +190,12 @@ void pa_threaded_mainloop_signal(pa_threaded_mainloop *m, int wait_for_accept) {
 
     pa_cond_signal(m->cond, 1);
 
-    if (wait_for_accept && m->n_waiting > 0)
-        pa_cond_wait(m->accept_cond, m->mutex);
+    if (wait_for_accept) {
+        m->n_waiting_for_accept ++;
+
+        while (m->n_waiting_for_accept > 0)
+            pa_cond_wait(m->accept_cond, m->mutex);
+    }
 }
 
 void pa_threaded_mainloop_wait(pa_threaded_mainloop *m) {
@@ -213,6 +217,9 @@ void pa_threaded_mainloop_accept(pa_threaded_mainloop *m) {
 
     /* Make sure that this function is not called from the helper thread */
     pa_assert(!m->thread || !pa_thread_is_running(m->thread) || !in_worker(m));
+
+    pa_assert(m->n_waiting_for_accept > 0);
+    m->n_waiting_for_accept --;
 
     pa_cond_signal(m->accept_cond, 0);
 }

@@ -274,7 +274,9 @@ void pa_threaded_mainloop_unlock(pa_threaded_mainloop *m);
  * inside the event loop thread. Prior to this call the event loop
  * object needs to be locked using pa_threaded_mainloop_lock(). While
  * waiting the lock will be released, immediately before returning it
- * will be acquired again. */
+ * will be acquired again. This function may spuriously wake up even
+ * without _signal() being called. You need to make sure to handle
+ * that! */
 void pa_threaded_mainloop_wait(pa_threaded_mainloop *m);
 
 /** Signal all threads waiting for a signalling event in
