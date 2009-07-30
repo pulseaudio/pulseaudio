@@ -1632,8 +1632,10 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
 
         case PA_SUBSCRIPTION_EVENT_CARD:
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-                card = pa_dbusiface_card_new(pa_idxset_get_by_index(core->cards, idx), OBJECT_PATH);
-                pa_hashmap_put(c->cards, PA_UINT32_TO_PTR(idx), card);
+                if (!(card = pa_hashmap_get(c->cards, PA_UINT32_TO_PTR(idx)))) {
+                    card = pa_dbusiface_card_new(pa_idxset_get_by_index(core->cards, idx), OBJECT_PATH);
+                    pa_hashmap_put(c->cards, PA_UINT32_TO_PTR(idx), card);
+                }
 
                 object_path = pa_dbusiface_card_get_path(card);
 
@@ -1654,11 +1656,13 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
 
         case PA_SUBSCRIPTION_EVENT_SINK:
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-                device = pa_dbusiface_device_new_sink(pa_idxset_get_by_index(core->sinks, idx), OBJECT_PATH);
-                object_path = pa_dbusiface_device_get_path(device);
+                if (!(device = pa_hashmap_get(c->sinks_by_index, PA_UINT32_TO_PTR(idx)))) {
+                    device = pa_dbusiface_device_new_sink(pa_idxset_get_by_index(core->sinks, idx), OBJECT_PATH);
+                    pa_hashmap_put(c->sinks_by_index, PA_UINT32_TO_PTR(idx), device);
+                    pa_hashmap_put(c->sinks_by_path, pa_dbusiface_device_get_path(device), device);
+                }
 
-                pa_hashmap_put(c->sinks_by_index, PA_UINT32_TO_PTR(idx), device);
-                pa_hashmap_put(c->sinks_by_path, object_path, device);
+                object_path = pa_dbusiface_device_get_path(device);
 
                 pa_assert_se((signal = dbus_message_new_signal(OBJECT_PATH, INTERFACE_CORE, signals[SIGNAL_NEW_SINK].name)));
                 pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
@@ -1677,11 +1681,13 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
 
         case PA_SUBSCRIPTION_EVENT_SOURCE:
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-                device = pa_dbusiface_device_new_source(pa_idxset_get_by_index(core->sources, idx), OBJECT_PATH);
-                object_path = pa_dbusiface_device_get_path(device);
+                if (!(device = pa_hashmap_get(c->sources_by_index, PA_UINT32_TO_PTR(idx)))) {
+                    device = pa_dbusiface_device_new_source(pa_idxset_get_by_index(core->sources, idx), OBJECT_PATH);
+                    pa_hashmap_put(c->sources_by_index, PA_UINT32_TO_PTR(idx), device);
+                    pa_hashmap_put(c->sources_by_path, pa_dbusiface_device_get_path(device), device);
+                }
 
-                pa_hashmap_put(c->sources_by_index, PA_UINT32_TO_PTR(idx), device);
-                pa_hashmap_put(c->sources_by_path, object_path, device);
+                object_path = pa_dbusiface_device_get_path(device);
 
                 pa_assert_se((signal = dbus_message_new_signal(OBJECT_PATH, INTERFACE_CORE, signals[SIGNAL_NEW_SOURCE].name)));
                 pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
@@ -1700,8 +1706,10 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
 
         case PA_SUBSCRIPTION_EVENT_SINK_INPUT:
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-                stream = pa_dbusiface_stream_new_playback(pa_idxset_get_by_index(core->sink_inputs, idx), OBJECT_PATH);
-                pa_hashmap_put(c->playback_streams, PA_UINT32_TO_PTR(idx), stream);
+                if (!(stream = pa_hashmap_get(c->playback_streams, PA_UINT32_TO_PTR(idx)))) {
+                    stream = pa_dbusiface_stream_new_playback(pa_idxset_get_by_index(core->sink_inputs, idx), OBJECT_PATH);
+                    pa_hashmap_put(c->playback_streams, PA_UINT32_TO_PTR(idx), stream);
+                }
 
                 object_path = pa_dbusiface_stream_get_path(stream);
 
@@ -1722,8 +1730,10 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
 
         case PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT:
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-                stream = pa_dbusiface_stream_new_record(pa_idxset_get_by_index(core->source_outputs, idx), OBJECT_PATH);
-                pa_hashmap_put(c->record_streams, PA_UINT32_TO_PTR(idx), stream);
+                if (!(stream = pa_hashmap_get(c->record_streams, PA_UINT32_TO_PTR(idx)))) {
+                    stream = pa_dbusiface_stream_new_record(pa_idxset_get_by_index(core->source_outputs, idx), OBJECT_PATH);
+                    pa_hashmap_put(c->record_streams, PA_UINT32_TO_PTR(idx), stream);
+                }
 
                 object_path = pa_dbusiface_stream_get_path(stream);
 
@@ -1744,8 +1754,6 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
 
         case PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE:
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-                /* We may have created the pa_dbusiface_sample object already
-                 * in handle_upload_sample. */
                 if (!(sample = pa_hashmap_get(c->samples, PA_UINT32_TO_PTR(idx)))) {
                     sample = pa_dbusiface_sample_new(pa_idxset_get_by_index(core->scache, idx), OBJECT_PATH);
                     pa_hashmap_put(c->samples, PA_UINT32_TO_PTR(idx), sample);
@@ -1770,8 +1778,6 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
 
         case PA_SUBSCRIPTION_EVENT_MODULE:
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-                /* We may have created the pa_dbusiface_module object already
-                 * in handle_load_module. */
                 if (!(module = pa_hashmap_get(c->modules, PA_UINT32_TO_PTR(idx)))) {
                     module = pa_dbusiface_module_new(pa_idxset_get_by_index(core->modules, idx), OBJECT_PATH);
                     pa_hashmap_put(c->modules, PA_UINT32_TO_PTR(idx), module);
@@ -1796,8 +1802,10 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
 
         case PA_SUBSCRIPTION_EVENT_CLIENT:
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-                client = pa_dbusiface_client_new(pa_idxset_get_by_index(core->clients, idx), OBJECT_PATH);
-                pa_hashmap_put(c->clients, PA_UINT32_TO_PTR(idx), client);
+                if (!(client = pa_hashmap_get(c->clients, PA_UINT32_TO_PTR(idx)))) {
+                    client = pa_dbusiface_client_new(pa_idxset_get_by_index(core->clients, idx), OBJECT_PATH);
+                    pa_hashmap_put(c->clients, PA_UINT32_TO_PTR(idx), client);
+                }
 
                 object_path = pa_dbusiface_client_get_path(client);
 
