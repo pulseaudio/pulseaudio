@@ -112,6 +112,9 @@ struct pa_dbusiface_core {
 
     pa_sink *fallback_sink;
     pa_source *fallback_source;
+
+    pa_hook_slot *extension_registered_slot;
+    pa_hook_slot *extension_unregistered_slot;
 };
 
 enum property_handler_index {
@@ -259,6 +262,8 @@ enum signal_index {
     SIGNAL_MODULE_REMOVED,
     SIGNAL_NEW_CLIENT,
     SIGNAL_CLIENT_REMOVED,
+    SIGNAL_NEW_EXTENSION,
+    SIGNAL_EXTENSION_REMOVED,
     SIGNAL_MAX
 };
 
@@ -280,6 +285,8 @@ static pa_dbus_arg_info new_module_args[] =              { { "module",          
 static pa_dbus_arg_info module_removed_args[] =          { { "module",          "o", NULL } };
 static pa_dbus_arg_info new_client_args[] =              { { "client",          "o", NULL } };
 static pa_dbus_arg_info client_removed_args[] =          { { "client",          "o", NULL } };
+static pa_dbus_arg_info new_extension_args[] =           { { "extension",       "s", NULL } };
+static pa_dbus_arg_info extension_removed_args[] =       { { "extension",       "s", NULL } };
 
 static pa_dbus_signal_info signals[SIGNAL_MAX] = {
     [SIGNAL_NEW_CARD]                = { .name = "NewCard",               .arguments = new_card_args,                .n_arguments = 1 },
@@ -300,6 +307,8 @@ static pa_dbus_signal_info signals[SIGNAL_MAX] = {
     [SIGNAL_MODULE_REMOVED]          = { .name = "ModuleRemoved",         .arguments = module_removed_args,          .n_arguments = 1 },
     [SIGNAL_NEW_CLIENT]              = { .name = "NewClient",             .arguments = new_client_args,              .n_arguments = 1 },
     [SIGNAL_CLIENT_REMOVED]          = { .name = "ClientRemoved",         .arguments = client_removed_args,          .n_arguments = 1 },
+    [SIGNAL_NEW_EXTENSION]           = { .name = "NewExtension",          .arguments = new_extension_args,           .n_arguments = 1 },
+    [SIGNAL_EXTENSION_REMOVED]       = { .name = "ExtensionRemoved",      .arguments = extension_removed_args,       .n_arguments = 1 }
 };
 
 static pa_dbus_interface_info core_interface_info = {
@@ -1831,6 +1840,40 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
     }
 }
 
+static pa_hook_result_t extension_registered_cb(void *hook_data, void *call_data, void *slot_data) {
+    pa_dbusiface_core *c = slot_data;
+    const char *ext_name = call_data;
+    DBusMessage *signal = NULL;
+
+    pa_assert(c);
+    pa_assert(ext_name);
+
+    pa_assert_se((signal = dbus_message_new_signal(OBJECT_PATH, INTERFACE_CORE, signals[SIGNAL_NEW_EXTENSION].name)));
+    pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_STRING, &ext_name, DBUS_TYPE_INVALID));
+
+    pa_dbus_protocol_send_signal(c->dbus_protocol, signal);
+    dbus_message_unref(signal);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t extension_unregistered_cb(void *hook_data, void *call_data, void *slot_data) {
+    pa_dbusiface_core *c = slot_data;
+    const char *ext_name = call_data;
+    DBusMessage *signal = NULL;
+
+    pa_assert(c);
+    pa_assert(ext_name);
+
+    pa_assert_se((signal = dbus_message_new_signal(OBJECT_PATH, INTERFACE_CORE, signals[SIGNAL_EXTENSION_REMOVED].name)));
+    pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_STRING, &ext_name, DBUS_TYPE_INVALID));
+
+    pa_dbus_protocol_send_signal(c->dbus_protocol, signal);
+    dbus_message_unref(signal);
+
+    return PA_HOOK_OK;
+}
+
 pa_dbusiface_core *pa_dbusiface_core_new(pa_core *core) {
     pa_dbusiface_core *c;
     pa_card *card;
@@ -1862,6 +1905,8 @@ pa_dbusiface_core *pa_dbusiface_core_new(pa_core *core) {
     c->clients = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     c->fallback_sink = pa_namereg_get_default_sink(core);
     c->fallback_source = pa_namereg_get_default_source(core);
+    c->extension_registered_slot = pa_dbus_protocol_hook_connect(c->dbus_protocol, PA_DBUS_PROTOCOL_HOOK_EXTENSION_REGISTERED, PA_HOOK_NORMAL, extension_registered_cb, c);
+    c->extension_unregistered_slot = pa_dbus_protocol_hook_connect(c->dbus_protocol, PA_DBUS_PROTOCOL_HOOK_EXTENSION_UNREGISTERED, PA_HOOK_NORMAL, extension_unregistered_cb, c);
 
     for (card = pa_idxset_first(core->cards, &idx); card; card = pa_idxset_next(core->cards, &idx))
         pa_hashmap_put(c->cards, PA_UINT32_TO_PTR(idx), pa_dbusiface_card_new(card, OBJECT_PATH));
@@ -1962,6 +2007,8 @@ void pa_dbusiface_core_free(pa_dbusiface_core *c) {
     pa_hashmap_free(c->samples, free_sample_cb, NULL);
     pa_hashmap_free(c->modules, free_module_cb, NULL);
     pa_hashmap_free(c->clients, free_client_cb, NULL);
+    pa_hook_slot_free(c->extension_registered_slot);
+    pa_hook_slot_free(c->extension_unregistered_slot);
 
     pa_dbus_protocol_unref(c->dbus_protocol);
 
