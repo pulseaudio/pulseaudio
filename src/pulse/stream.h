@@ -512,7 +512,9 @@ size_t pa_stream_writable_size(pa_stream *p);
 /** Return the number of bytes that may be read using pa_stream_peek()*/
 size_t pa_stream_readable_size(pa_stream *p);
 
-/** Drain a playback stream. Use this for notification when the buffer is empty */
+/** Drain a playback stream. Use this for notification when the buffer
+ * is empty. Please note that only one drain operation per stream may
+ * be issued at a time. */
 pa_operation* pa_stream_drain(pa_stream *s, pa_stream_success_cb_t cb, void *userdata);
 
 /** Request a timing info structure update for a stream. Use
