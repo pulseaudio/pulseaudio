@@ -119,8 +119,11 @@ int pa_dbus_protocol_remove_interface(pa_dbus_protocol *p, const char* path, con
  * registered. */
 int pa_dbus_protocol_register_connection(pa_dbus_protocol *p, DBusConnection *conn, pa_client *client);
 
-/* Returns a negative number if the connection wasn't registered. */
+/* Returns a negative number if the connection isn't registered. */
 int pa_dbus_protocol_unregister_connection(pa_dbus_protocol *p, DBusConnection *conn);
+
+/* Returns NULL if the connection isn't registered. */
+pa_client *pa_dbus_protocol_get_client(pa_dbus_protocol *p, DBusConnection *conn);
 
 /* Enables signal receiving for the given connection. The connection must have
  * been registered earlier.
@@ -145,14 +148,42 @@ void pa_dbus_protocol_remove_signal_listener(pa_dbus_protocol *p, DBusConnection
 
 void pa_dbus_protocol_send_signal(pa_dbus_protocol *p, DBusMessage *signal);
 
-/* Returns NULL if the connection isn't registered. */
-pa_client *pa_dbus_protocol_get_client(pa_dbus_protocol *p, DBusConnection *conn);
-
 /* Returns an array of extension identifier strings. The strings pointers point
  * to the internal copies, so don't free the strings. The caller must free the
  * array, however. Also, do not save the returned pointer or any of the string
  * pointers, because the contained strings may be freed at any time. If you
  * need to save the array, copy it. */
 const char **pa_dbus_protocol_get_extensions(pa_dbus_protocol *p, unsigned *n);
+
+/* Modules that want to provide a D-Bus interface for clients should register
+ * an identifier that the clients can use to check whether the additional
+ * functionality is available.
+ *
+ * This function registers the extension with the given name. It is recommended
+ * that the name follows the D-Bus interface naming convention, so that the
+ * names remain unique in case there will be at some point in the future
+ * extensions that aren't included with the main PulseAudio source tree. For
+ * in-tree extensions the convention is to use the org.PulseAudio.Ext
+ * namespace.
+ *
+ * It is suggested that the name contains a version number, and whenever the
+ * extension interface is modified in non-backwards compatible way, the version
+ * number is incremented.
+ *
+ * Fails and returns a negative number if the extension is already registered.
+ */
+int pa_dbus_protocol_register_extension(pa_dbus_protocol *p, const char *name);
+
+/* Returns a negative number if the extension isn't registered. */
+int pa_dbus_protocol_unregister_extension(pa_dbus_protocol *p, const char *name);
+
+/* All hooks have the pa_dbus_protocol object as hook data. */
+typedef enum pa_dbus_protocol_hook {
+    PA_DBUS_PROTOCOL_HOOK_EXTENSION_REGISTERED, /* Extension name as call data. */
+    PA_DBUS_PROTOCOL_HOOK_EXTENSION_UNREGISTERED, /* Extension name as call data. */
+    PA_DBUS_PROTOCOL_HOOK_MAX
+} pa_dbus_protocol_hook_t;
+
+pa_hook_slot *pa_dbus_protocol_hook_connect(pa_dbus_protocol *p, pa_dbus_protocol_hook_t hook, pa_hook_priority_t prio, pa_hook_cb_t cb, void *data);
 
 #endif

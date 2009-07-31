@@ -41,7 +41,9 @@ struct pa_dbus_protocol {
     pa_core *core;
     pa_hashmap *objects; /* Object path -> struct object_entry */
     pa_hashmap *connections; /* DBusConnection -> struct connection_entry */
-    pa_hashmap *extensions; /* String -> anything */
+    pa_idxset *extensions; /* Strings */
+
+    pa_hook hooks[PA_DBUS_PROTOCOL_HOOK_MAX];
 };
 
 struct object_entry {
@@ -109,6 +111,7 @@ char *pa_get_dbus_address_from_server_type(pa_server_type_t server_type) {
 
 static pa_dbus_protocol *dbus_protocol_new(pa_core *c) {
     pa_dbus_protocol *p;
+    unsigned i;
 
     pa_assert(c);
 
@@ -117,7 +120,10 @@ static pa_dbus_protocol *dbus_protocol_new(pa_core *c) {
     p->core = c;
     p->objects = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     p->connections = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
-    p->extensions = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    p->extensions = pa_idxset_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+
+    for (i = 0; i < PA_DBUS_PROTOCOL_HOOK_MAX; ++i)
+        pa_hook_init(&p->hooks[i], p);
 
     pa_assert_se(pa_shared_set(c, "dbus-protocol", p) >= 0);
 
@@ -143,6 +149,8 @@ pa_dbus_protocol* pa_dbus_protocol_ref(pa_dbus_protocol *p) {
 }
 
 void pa_dbus_protocol_unref(pa_dbus_protocol *p) {
+    unsigned i;
+
     pa_assert(p);
     pa_assert(PA_REFCNT_VALUE(p) >= 1);
 
@@ -151,11 +159,14 @@ void pa_dbus_protocol_unref(pa_dbus_protocol *p) {
 
     pa_assert(pa_hashmap_isempty(p->objects));
     pa_assert(pa_hashmap_isempty(p->connections));
-    pa_assert(pa_hashmap_isempty(p->extensions));
+    pa_assert(pa_idxset_isempty(p->extensions));
 
     pa_hashmap_free(p->objects, NULL, NULL);
     pa_hashmap_free(p->connections, NULL, NULL);
-    pa_hashmap_free(p->extensions, NULL, NULL);
+    pa_idxset_free(p->extensions, NULL, NULL);
+
+    for (i = 0; i < PA_DBUS_PROTOCOL_HOOK_MAX; ++i)
+        pa_hook_done(&p->hooks[i]);
 
     pa_assert_se(pa_shared_remove(p->core, "dbus-protocol") >= 0);
 
@@ -660,6 +671,8 @@ static void property_handler_free_cb(void *p, void *userdata) {
 
     pa_xfree((char *) h->property_name);
     pa_xfree((char *) h->type);
+
+    pa_xfree(h);
 }
 
 int pa_dbus_protocol_remove_interface(pa_dbus_protocol *p, const char* path, const char* interface) {
@@ -792,6 +805,18 @@ int pa_dbus_protocol_unregister_connection(pa_dbus_protocol *p, DBusConnection *
     return 0;
 }
 
+pa_client *pa_dbus_protocol_get_client(pa_dbus_protocol *p, DBusConnection *conn) {
+    struct connection_entry *conn_entry;
+
+    pa_assert(p);
+    pa_assert(conn);
+
+    if (!(conn_entry = pa_hashmap_get(p->connections, conn)))
+        return NULL;
+
+    return conn_entry->client;
+}
+
 void pa_dbus_protocol_add_signal_listener(pa_dbus_protocol *p, DBusConnection *conn, const char *signal, char **objects, unsigned n_objects) {
     struct connection_entry *conn_entry;
     pa_idxset *object_set;
@@ -893,18 +918,6 @@ void pa_dbus_protocol_send_signal(pa_dbus_protocol *p, DBusMessage *signal) {
     }
 }
 
-pa_client *pa_dbus_protocol_get_client(pa_dbus_protocol *p, DBusConnection *conn) {
-    struct connection_entry *conn_entry;
-
-    pa_assert(p);
-    pa_assert(conn);
-
-    if (!(conn_entry = pa_hashmap_get(p->connections, conn)))
-        return NULL;
-
-    return conn_entry->client;
-}
-
 const char **pa_dbus_protocol_get_extensions(pa_dbus_protocol *p, unsigned *n) {
     const char **extensions;
     const char *ext_name;
@@ -914,17 +927,59 @@ const char **pa_dbus_protocol_get_extensions(pa_dbus_protocol *p, unsigned *n) {
     pa_assert(p);
     pa_assert(n);
 
-    *n = pa_hashmap_size(p->extensions);
+    *n = pa_idxset_size(p->extensions);
 
     if (*n <= 0)
         return NULL;
 
     extensions = pa_xnew(const char *, *n);
 
-    while (pa_hashmap_iterate(p->extensions, &state, (const void **) &ext_name)) {
+    while ((ext_name = pa_idxset_iterate(p->extensions, &state, NULL))) {
         extensions[i] = ext_name;
         ++i;
     }
 
     return extensions;
+}
+
+int pa_dbus_protocol_register_extension(pa_dbus_protocol *p, const char *name) {
+    char *internal_name;
+
+    pa_assert(p);
+    pa_assert(name);
+
+    internal_name = pa_xstrdup(name);
+
+    if (pa_idxset_put(p->extensions, internal_name, NULL) < 0) {
+        pa_xfree(internal_name);
+        return -1;
+    }
+
+    pa_hook_fire(&p->hooks[PA_DBUS_PROTOCOL_HOOK_EXTENSION_REGISTERED], internal_name);
+
+    return 0;
+}
+
+int pa_dbus_protocol_unregister_extension(pa_dbus_protocol *p, const char *name) {
+    char *internal_name;
+
+    pa_assert(p);
+    pa_assert(name);
+
+    if (!(internal_name = pa_idxset_remove_by_data(p->extensions, name, NULL)))
+        return -1;
+
+    pa_hook_fire(&p->hooks[PA_DBUS_PROTOCOL_HOOK_EXTENSION_UNREGISTERED], internal_name);
+
+    pa_xfree(internal_name);
+
+    return 0;
+}
+
+pa_hook_slot *pa_dbus_protocol_hook_connect(pa_dbus_protocol *p, pa_dbus_protocol_hook_t hook, pa_hook_priority_t prio, pa_hook_cb_t cb, void *data) {
+    pa_assert(p);
+    pa_assert(hook < PA_DBUS_PROTOCOL_HOOK_MAX);
+    pa_assert(cb);
+
+    return pa_hook_connect(&p->hooks[hook], prio, cb, data);
 }
