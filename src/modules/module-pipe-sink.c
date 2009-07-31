@@ -122,7 +122,7 @@ static int process_render(struct userdata *u) {
     pa_assert(u);
 
     if (u->memchunk.length <= 0)
-        pa_sink_render(u->sink, PIPE_BUF, &u->memchunk);
+        pa_sink_render(u->sink, pa_pipe_buf(u->fd), &u->memchunk);
 
     pa_assert(u->memchunk.length > 0);
 
@@ -299,8 +299,8 @@ int pa__init(pa_module*m) {
 
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
-    pa_sink_set_max_request(u->sink, PIPE_BUF);
-    pa_sink_set_fixed_latency(u->sink, pa_bytes_to_usec(PIPE_BUF, &u->sink->sample_spec));
+    pa_sink_set_max_request(u->sink, pa_pipe_buf(u->fd));
+    pa_sink_set_fixed_latency(u->sink, pa_bytes_to_usec(pa_pipe_buf(u->fd), &u->sink->sample_spec));
 
     u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
     pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);

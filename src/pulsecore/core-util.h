@@ -236,4 +236,7 @@ char **pa_split_spaces_strv(const char *s);
 
 char* pa_maybe_prefix_path(const char *path, const char *prefix);
 
+/* Returns size of the specified pipe or 4096 on failure */
+size_t pa_pipe_buf(int fd);
+
 #endif

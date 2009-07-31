@@ -2779,3 +2779,19 @@ char* pa_maybe_prefix_path(const char *path, const char *prefix) {
 
     return pa_sprintf_malloc("%s" PA_PATH_SEP "%s", prefix, path);
 }
+
+size_t pa_pipe_buf(int fd) {
+
+#ifdef _PC_PIPE_BUF
+    long n;
+
+    if ((n = fpathconf(fd, _PC_PIPE_BUF)) >= 0)
+        return (size_t) n;
+#endif
+
+#ifdef PIPE_BUF
+    return PIPE_BUF;
+#else
+    return 4096;
+#endif
+}
