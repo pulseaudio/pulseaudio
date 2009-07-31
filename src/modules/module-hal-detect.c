@@ -57,12 +57,14 @@ PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
 #if defined(HAVE_ALSA) && defined(HAVE_OSS)
 PA_MODULE_USAGE("api=<alsa or oss> "
-                "tsched=<enable system timer based scheduling mode?>");
+                "tsched=<enable system timer based scheduling mode?>"
+                "subdevs=<init all subdevices>");
 #elif defined(HAVE_ALSA)
 PA_MODULE_USAGE("api=<alsa> "
                 "tsched=<enable system timer based scheduling mode?>");
 #elif defined(HAVE_OSS)
-PA_MODULE_USAGE("api=<oss>");
+PA_MODULE_USAGE("api=<oss>"
+                "subdevs=<init all subdevices>");
 #endif
 PA_MODULE_DEPRECATED("Please use module-udev-detect instead of module-hal-detect!");
 
@@ -82,6 +84,9 @@ struct userdata {
 #ifdef HAVE_ALSA
     pa_bool_t use_tsched;
 #endif
+#ifdef HAVE_OSS
+    pa_bool_t init_subdevs;
+#endif
 };
 
 #define CAPABILITY_ALSA "alsa"
@@ -91,6 +96,9 @@ static const char* const valid_modargs[] = {
     "api",
 #ifdef HAVE_ALSA
     "tsched",
+#endif
+#ifdef HAVE_OSS
+    "subdevs",
 #endif
     NULL
 };
@@ -264,7 +272,7 @@ fail:
 
 #ifdef HAVE_OSS
 
-static pa_bool_t hal_oss_device_is_pcm(LibHalContext *context, const char *udi) {
+static pa_bool_t hal_oss_device_is_pcm(LibHalContext *context, const char *udi, pa_bool_t init_subdevices) {
     char *class = NULL, *dev = NULL, *e;
     int device;
     pa_bool_t r = FALSE;
@@ -294,7 +302,7 @@ static pa_bool_t hal_oss_device_is_pcm(LibHalContext *context, const char *udi) 
 
     /* We only care for the main device */
     device = libhal_device_get_property_int(context, udi, "oss.device", &error);
-    if (dbus_error_is_set(&error) || device != 0)
+    if (dbus_error_is_set(&error) || (device != 0 && init_subdevices == FALSE))
         goto finish;
 
     r = TRUE;
@@ -324,7 +332,7 @@ static int hal_device_load_oss(struct userdata *u, const char *udi, struct devic
     pa_assert(d);
 
     /* We only care for OSS PCM devices */
-    if (!hal_oss_device_is_pcm(u->context, udi))
+    if (!hal_oss_device_is_pcm(u->context, udi, u->init_subdevs))
         goto fail;
 
     /* We store only one entry per card, hence we look for the originating device */
@@ -762,6 +770,13 @@ int pa__init(pa_module*m) {
         pa_log_error("Invalid API specification.");
         goto fail;
     }
+
+#ifdef HAVE_OSS
+    if (pa_modargs_get_value_boolean(ma, "subdevs", &u->init_subdevs) < 0) {
+        pa_log("Failed to parse subdevs argument.");
+        goto fail;
+    }
+#endif
 
     if (!(u->connection = pa_dbus_bus_get(m->core, DBUS_BUS_SYSTEM, &error)) || dbus_error_is_set(&error)) {
         pa_log_error("Unable to contact DBUS system bus: %s: %s", error.name, error.message);
