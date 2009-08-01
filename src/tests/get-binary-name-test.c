@@ -23,12 +23,33 @@
 
 #include <limits.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <pulse/util.h>
+#include <pulse/xmalloc.h>
 
 int main(int argc, char *argv[]) {
-    char exename[PATH_MAX];
+    char *exename;
+    size_t allocated = 128;
 
-    printf("%s\n", pa_get_binary_name(exename, sizeof(exename)));
+    for (;;) {
+        exename = pa_xmalloc(allocated);
+
+        if (!pa_get_binary_name(exename, allocated)) {
+            printf("failed to read binary name\n");
+            pa_xfree(exename);
+            break;
+        }
+
+        if (strlen(exename) < allocated - 1) {
+            printf("%s\n", exename);
+            pa_xfree(exename);
+            break;
+        }
+
+        pa_xfree(exename);
+        allocated *= 2;
+    }
+
     return 0;
 }

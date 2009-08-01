@@ -126,6 +126,8 @@ char* pa_find_config_file(const char *global, const char *local, const char *env
 
 char *pa_get_runtime_dir(void);
 char *pa_get_state_dir(void);
+char *pa_get_home_dir_malloc(void);
+char *pa_get_binary_name_malloc(void);
 char *pa_runtime_path(const char *fn);
 char *pa_state_path(const char *fn, pa_bool_t prepend_machine_id);
 

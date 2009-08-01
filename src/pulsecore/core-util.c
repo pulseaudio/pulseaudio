@@ -1336,26 +1336,32 @@ int pa_unlock_lockfile(const char *fn, int fd) {
 }
 
 static char *get_pulse_home(void) {
-    char h[PATH_MAX];
+    char *h;
     struct stat st;
+    char *ret = NULL;
 
-    if (!pa_get_home_dir(h, sizeof(h))) {
+    if (!(h = pa_get_home_dir_malloc())) {
         pa_log_error("Failed to get home directory.");
         return NULL;
     }
 
     if (stat(h, &st) < 0) {
         pa_log_error("Failed to stat home directory %s: %s", h, pa_cstrerror(errno));
-        return NULL;
+        goto finish;
     }
 
     if (st.st_uid != getuid()) {
         pa_log_error("Home directory %s not ours.", h);
         errno = EACCES;
-        return NULL;
+        goto finish;
     }
 
-    return pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse", h);
+    ret = pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse", h);
+
+finish:
+    pa_xfree(h);
+
+    return ret;
 }
 
 char *pa_get_state_dir(void) {
@@ -1378,6 +1384,50 @@ char *pa_get_state_dir(void) {
     }
 
     return d;
+}
+
+char *pa_get_home_dir_malloc(void) {
+    char *homedir;
+    size_t allocated = 128;
+
+    for (;;) {
+        homedir = pa_xmalloc(allocated);
+
+        if (!pa_get_home_dir(homedir, allocated)) {
+            pa_xfree(homedir);
+            return NULL;
+        }
+
+        if (strlen(homedir) < allocated - 1)
+            break;
+
+        pa_xfree(homedir);
+        allocated *= 2;
+    }
+
+    return homedir;
+}
+
+char *pa_get_binary_name_malloc(void) {
+    char *t;
+    size_t allocated = 128;
+
+    for (;;) {
+        t = pa_xmalloc(allocated);
+
+        if (!pa_get_binary_name(t, allocated)) {
+            pa_xfree(t);
+            return NULL;
+        }
+
+        if (strlen(t) < allocated - 1)
+            break;
+
+        pa_xfree(t);
+        allocated *= 2;
+    }
+
+    return t;
 }
 
 static char* make_random_dir(mode_t m) {
@@ -1634,14 +1684,15 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
     if (local) {
         const char *e;
         char *lfn;
-        char h[PATH_MAX];
+        char *h;
         FILE *f;
 
         if ((e = getenv("PULSE_CONFIG_PATH")))
             fn = lfn = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", e, local);
-        else if (pa_get_home_dir(h, sizeof(h)))
+        else if ((h = pa_get_home_dir_malloc())) {
             fn = lfn = pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse" PA_PATH_SEP "%s", h, local);
-        else
+            pa_xfree(h);
+        } else
             return NULL;
 
 #ifdef OS_IS_WIN32
@@ -1721,13 +1772,14 @@ char *pa_find_config_file(const char *global, const char *local, const char *env
     if (local) {
         const char *e;
         char *lfn;
-        char h[PATH_MAX];
+        char *h;
 
         if ((e = getenv("PULSE_CONFIG_PATH")))
             fn = lfn = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", e, local);
-        else if (pa_get_home_dir(h, sizeof(h)))
+        else if ((h = pa_get_home_dir_malloc())) {
             fn = lfn = pa_sprintf_malloc("%s" PA_PATH_SEP ".pulse" PA_PATH_SEP "%s", h, local);
-        else
+            pa_xfree(h);
+        } else
             return NULL;
 
 #ifdef OS_IS_WIN32

@@ -36,6 +36,7 @@
 #include <sys/stat.h>
 
 #include <pulse/util.h>
+#include <pulse/xmalloc.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
@@ -147,47 +148,46 @@ int pa_authkey_load(const char *path, void *data, size_t length) {
 
 /* If the specified file path starts with / return it, otherwise
  * return path prepended with home directory */
-static const char *normalize_path(const char *fn, char *s, size_t l) {
+static char *normalize_path(const char *fn) {
 
     pa_assert(fn);
-    pa_assert(s);
-    pa_assert(l > 0);
 
 #ifndef OS_IS_WIN32
     if (fn[0] != '/') {
 #else
     if (strlen(fn) < 3 || !isalpha(fn[0]) || fn[1] != ':' || fn[2] != '\\') {
 #endif
-        char homedir[PATH_MAX];
+        char *homedir, *s;
 
-        if (!pa_get_home_dir(homedir, sizeof(homedir)))
+        if (!(homedir = pa_get_home_dir_malloc()))
             return NULL;
 
-#ifndef OS_IS_WIN32
-        pa_snprintf(s, l, "%s/%s", homedir, fn);
-#else
-        pa_snprintf(s, l, "%s\\%s", homedir, fn);
-#endif
+        s = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", homedir, fn);
+        pa_xfree(homedir);
+
         return s;
     }
 
-    return fn;
+    return pa_xstrdup(fn);
 }
 
 /* Load a cookie from a file in the home directory. If the specified
  * path starts with /, use it as absolute path instead. */
 int pa_authkey_load_auto(const char *fn, void *data, size_t length) {
-    char path[PATH_MAX];
-    const char *p;
+    char *p;
+    int ret;
 
     pa_assert(fn);
     pa_assert(data);
     pa_assert(length > 0);
 
-    if (!(p = normalize_path(fn, path, sizeof(path))))
+    if (!(p = normalize_path(fn)))
         return -2;
 
-    return pa_authkey_load(p, data, length);
+    ret = pa_authkey_load(p, data, length);
+    pa_xfree(p);
+
+    return ret;
 }
 
 /* Store the specified cookie in the specified cookie file */
@@ -195,14 +195,13 @@ int pa_authkey_save(const char *fn, const void *data, size_t length) {
     int fd = -1;
     int unlock = 0, ret = -1;
     ssize_t r;
-    char path[PATH_MAX];
-    const char *p;
+    char *p;
 
     pa_assert(fn);
     pa_assert(data);
     pa_assert(length > 0);
 
-    if (!(p = normalize_path(fn, path, sizeof(path))))
+    if (!(p = normalize_path(fn)))
         return -2;
 
     if ((fd = open(p, O_RDWR|O_CREAT|O_NOCTTY, S_IRUSR|S_IWUSR)) < 0) {
@@ -231,6 +230,8 @@ finish:
             ret = -1;
         }
     }
+
+    pa_xfree(p);
 
     return ret;
 }
