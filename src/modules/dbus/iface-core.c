@@ -1609,9 +1609,7 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
             if (c->fallback_sink != new_fallback_sink) {
                 c->fallback_sink = new_fallback_sink;
 
-                if (new_fallback_sink) {
-                    pa_assert_se((device = pa_hashmap_get(c->sinks_by_index, PA_UINT32_TO_PTR(new_fallback_sink->index))));
-
+                if (new_fallback_sink && (device = pa_hashmap_get(c->sinks_by_index, PA_UINT32_TO_PTR(new_fallback_sink->index)))) {
                     object_path = pa_dbusiface_device_get_path(device);
 
                     pa_assert_se((signal = dbus_message_new_signal(OBJECT_PATH, INTERFACE_CORE, signals[SIGNAL_FALLBACK_SINK_UPDATED].name)));
@@ -1625,9 +1623,7 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
             if (c->fallback_source != new_fallback_source) {
                 c->fallback_source = new_fallback_source;
 
-                if (new_fallback_source) {
-                    pa_assert_se((device = pa_hashmap_get(c->sources_by_index, PA_UINT32_TO_PTR(new_fallback_source->index))));
-
+                if (new_fallback_source && (device = pa_hashmap_get(c->sources_by_index, PA_UINT32_TO_PTR(new_fallback_source->index)))) {
                     object_path = pa_dbusiface_device_get_path(device);
 
                     pa_assert_se((signal = dbus_message_new_signal(OBJECT_PATH, INTERFACE_CORE, signals[SIGNAL_FALLBACK_SOURCE_UPDATED].name)));
@@ -1665,8 +1661,10 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
 
         case PA_SUBSCRIPTION_EVENT_SINK:
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
+                pa_sink *sink = pa_idxset_get_by_index(core->sinks, idx);
+
                 if (!(device = pa_hashmap_get(c->sinks_by_index, PA_UINT32_TO_PTR(idx)))) {
-                    device = pa_dbusiface_device_new_sink(pa_idxset_get_by_index(core->sinks, idx), OBJECT_PATH);
+                    device = pa_dbusiface_device_new_sink(sink, OBJECT_PATH);
                     pa_hashmap_put(c->sinks_by_index, PA_UINT32_TO_PTR(idx), device);
                     pa_hashmap_put(c->sinks_by_path, pa_dbusiface_device_get_path(device), device);
                 }
@@ -1675,6 +1673,23 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
 
                 pa_assert_se((signal = dbus_message_new_signal(OBJECT_PATH, INTERFACE_CORE, signals[SIGNAL_NEW_SINK].name)));
                 pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
+
+                pa_dbus_protocol_send_signal(c->dbus_protocol, signal);
+                dbus_message_unref(signal);
+                signal = NULL;
+
+                if (c->fallback_sink && pa_streq(c->fallback_sink->name, sink->name)) {
+                    /* We have got default sink change event, but at that point
+                     * the D-Bus sink object wasn't created yet. Now that the
+                     * object is created, let's send the fallback sink change
+                     * signal. */
+                    pa_assert_se((signal = dbus_message_new_signal(OBJECT_PATH, INTERFACE_CORE, signals[SIGNAL_FALLBACK_SINK_UPDATED].name)));
+                    pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
+
+                    pa_dbus_protocol_send_signal(c->dbus_protocol, signal);
+                    dbus_message_unref(signal);
+                    signal = NULL;
+                }
 
             } else if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
                 pa_assert_se((device = pa_hashmap_remove(c->sinks_by_index, PA_UINT32_TO_PTR(idx))));
@@ -1690,8 +1705,10 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
 
         case PA_SUBSCRIPTION_EVENT_SOURCE:
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
+                pa_source *source = pa_idxset_get_by_index(core->sources, idx);
+
                 if (!(device = pa_hashmap_get(c->sources_by_index, PA_UINT32_TO_PTR(idx)))) {
-                    device = pa_dbusiface_device_new_source(pa_idxset_get_by_index(core->sources, idx), OBJECT_PATH);
+                    device = pa_dbusiface_device_new_source(source, OBJECT_PATH);
                     pa_hashmap_put(c->sources_by_index, PA_UINT32_TO_PTR(idx), device);
                     pa_hashmap_put(c->sources_by_path, pa_dbusiface_device_get_path(device), device);
                 }
@@ -1700,6 +1717,23 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
 
                 pa_assert_se((signal = dbus_message_new_signal(OBJECT_PATH, INTERFACE_CORE, signals[SIGNAL_NEW_SOURCE].name)));
                 pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
+
+                pa_dbus_protocol_send_signal(c->dbus_protocol, signal);
+                dbus_message_unref(signal);
+                signal = NULL;
+
+                if (c->fallback_source && pa_streq(c->fallback_source->name, source->name)) {
+                    /* We have got default source change event, but at that
+                     * point the D-Bus source object wasn't created yet. Now
+                     * that the object is created, let's send the fallback
+                     * source change signal. */
+                    pa_assert_se((signal = dbus_message_new_signal(OBJECT_PATH, INTERFACE_CORE, signals[SIGNAL_FALLBACK_SOURCE_UPDATED].name)));
+                    pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
+
+                    pa_dbus_protocol_send_signal(c->dbus_protocol, signal);
+                    dbus_message_unref(signal);
+                    signal = NULL;
+                }
 
             } else if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
                 pa_assert_se((device = pa_hashmap_remove(c->sources_by_index, PA_UINT32_TO_PTR(idx))));
