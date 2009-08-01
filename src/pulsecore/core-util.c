@@ -552,12 +552,20 @@ char *pa_vsprintf_malloc(const char *format, va_list ap) {
 
 /* Similar to OpenBSD's strlcpy() function */
 char *pa_strlcpy(char *b, const char *s, size_t l) {
+    size_t k;
+
     pa_assert(b);
     pa_assert(s);
     pa_assert(l > 0);
 
-    strncpy(b, s, l);
-    b[l-1] = 0;
+    k = strlen(s);
+
+    if (k > l-1)
+        k = l-1;
+
+    memcpy(b, s, k);
+    b[k] = 0;
+
     return b;
 }
 
