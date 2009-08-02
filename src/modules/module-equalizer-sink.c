@@ -50,7 +50,7 @@ USA.
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/sample-util.h>
-#include <pulsecore/ltdl-helper.h>
+#include <pulsecore/database.h>
 #include <pulsecore/protocol-dbus.h>
 #include <pulsecore/dbus-util.h>
 
@@ -114,6 +114,8 @@ struct userdata {
 
     pa_dbus_protocol *dbus_protocol;
     char *dbus_path;
+
+    pa_database *database;
 };
 
 static const char* const valid_modargs[] = {
@@ -145,14 +147,18 @@ void dsp_logic(
 static void dbus_init(struct userdata *u);
 static void dbus_done(struct userdata *u);
 static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *_u);
+void get_sample_rate(DBusConnection *conn, DBusMessage *msg, void *_u);
+void get_filter_rate(DBusConnection *conn, DBusMessage *msg, void *_u);
 static void get_n_coefs(DBusConnection *conn, DBusMessage *msg, void *_u);
 static void get_filter(DBusConnection *conn, DBusMessage *msg, void *_u);
 static void set_filter(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void save_state(struct userdata *u);
 
 #define v_size 4
 #define gettime(x) clock_gettime(CLOCK_MONOTONIC, &x)
 #define tdiff(x, y) time_diff(&x, &y)
 #define mround(x, y) (x % y == 0 ? x : ( x / y + 1) * y)
+#define COEFKEY "coefficients"
 
 uint64_t time_diff(struct timespec *timeA_p, struct timespec *timeB_p)
 {
@@ -321,7 +327,7 @@ void dsp_logic(
     //do fft
     fftwf_execute_dft_r2c(u->forward_plan, dst, output_window);
     //perform filtering
-    for(size_t j = 0;j < u->fft_size / 2 + 1; ++j){
+    for(size_t j = 0; j < u->fft_size / 2 + 1; ++j){
         u->output_window[j][0] *= u->H[j];
         u->output_window[j][1] *= u->H[j];
     }
@@ -702,6 +708,22 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
     }
 }
 
+void save_state(struct userdata *u){
+    const float *H = u->Hs[pa_aupdate_read_begin(u->a_H)];
+    float *H_n = pa_xmalloc((u->fft_size / 2 + 1) * sizeof(float));
+    for(size_t i = 0 ; i <= u->fft_size / 2 + 1; ++i){
+        H_n[i] = H[i] * u->fft_size;
+    }
+    pa_aupdate_read_end(u->a_H);
+    pa_datum key, data;
+    key.data = (char *) COEFKEY;
+    key.size = strlen(key.data);
+    data.data = H_n;
+    data.size = (u->fft_size / 2 + 1) * sizeof(float);
+    pa_database_set(u->database, &key, &data, TRUE);
+    pa_database_sync(u->database);
+}
+
 /* Called from main context */
 static pa_bool_t sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
     struct userdata *u;
@@ -802,62 +824,6 @@ int pa__init(pa_module*m) {
 
     hanning_window(u->W, u->window_size);
 
-    unsigned H_i = pa_aupdate_write_begin(u->a_H);
-    u->H = u->Hs[H_i];
-    for(size_t i = 0; i < u->fft_size / 2 + 1; ++i){
-        u->H[i] = 1.0;
-    }
-
-    //TODO cut this out and leave it for the client side
-    //const int freqs[] = {0,25,50,100,200,300,400,800,1500,
-    //    2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,
-    //    13000,14000,15000,16000,17000,18000,19000,20000,21000,22000,23000,24000,INT_MAX};
-    //const float coefficients[] = {1,1,1,1,1,1,1,1,1,1,
-    //    1,1,1,1,1,1,1,1,
-    //    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-    //const size_t ncoefficients = sizeof(coefficients)/sizeof(float);
-    //pa_assert_se(sizeof(freqs)/sizeof(int)==sizeof(coefficients)/sizeof(float));
-    //float *freq_translated = (float *) pa_xmalloc0(sizeof(float)*(ncoefficients));
-    //freq_translated[0] = 1;
-    ////Translate the frequencies in their natural sampling rate to the new sampling rate frequencies
-    //for(size_t i = 1; i < ncoefficients-1; ++i){
-    //    freq_translated[i] = ((float)freqs[i]*u->fft_size)/ss.rate;
-    //    //pa_log("i: %ld: %d , %g",i, freqs[i], freq_translated[i]);
-    //    pa_assert_se(freq_translated[i] >= freq_translated[i-1]);
-    //}
-    //freq_translated[ncoefficients-1] = FLT_MAX;
-    //
-    ////Interpolate the specified frequency band values
-    //u->H[0] = 1;
-    //for(size_t i = 1, j = 0; i < (u->fft_size / 2 + 1); ++i){
-    //    pa_assert_se(j < ncoefficients);
-    //    //max frequency range passed, consider the rest as one band
-    //    if(freq_translated[j+1] >= FLT_MAX){
-    //        for(; i < (u->fft_size / 2 + 1); ++i){
-    //            u->H[i] = coefficients[j];
-    //        }
-    //        break;
-    //    }
-    //    //pa_log("i: %d, j: %d, freq: %f", i, j, freq_translated[j]);
-    //    //pa_log("interp: %0.4f %0.4f", freq_translated[j], freq_translated[j+1]);
-    //    pa_assert_se(freq_translated[j] < freq_translated[j+1]);
-    //    pa_assert_se(i >= freq_translated[j]);
-    //    pa_assert_se(i <= freq_translated[j+1]);
-    //    //bilinear-inerpolation of coefficients specified
-    //    float c0 = (i-freq_translated[j])/(freq_translated[j+1]-freq_translated[j]);
-    //    pa_assert_se(c0 >= 0&&c0 <= 1.0);
-    //    u->H[i] = ((1.0f-c0)*coefficients[j]+c0*coefficients[j+1]);
-    //    pa_assert_se(u->H[i]>0);
-    //    while(i >= floor(freq_translated[j+1])){
-    //        j++;
-    //    }
-    //}
-    //pa_xfree(freq_translated);
-    fix_filter(u->H, u->fft_size);
-    pa_aupdate_write_swap(u->a_H);
-    pa_aupdate_write_end(u->a_H);
-
-
     /* Create sink */
     pa_sink_new_data_init(&sink_data);
     sink_data.driver = __FILE__;
@@ -932,6 +898,82 @@ int pa__init(pa_module*m) {
 
     pa_xfree(use_default);
 
+    char *dbname;
+    char *pref = pa_sprintf_malloc("equalizer-%s-state", u->sink->name);
+    pa_assert_se(dbname = pa_state_path(pref, TRUE));
+    pa_xfree(pref);
+    pa_assert_se(u->database = pa_database_open(dbname, TRUE));
+    pa_xfree(dbname);
+
+    unsigned H_i = pa_aupdate_write_begin(u->a_H);
+    u->H = u->Hs[H_i];
+    for(size_t i = 0; i < u->fft_size / 2 + 1; ++i){
+        u->H[i] = 1.0;
+    }
+
+    //TODO cut this out and leave it for the client side
+    //const int freqs[] = {0,25,50,100,200,300,400,800,1500,
+    //    2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,
+    //    13000,14000,15000,16000,17000,18000,19000,20000,21000,22000,23000,24000,INT_MAX};
+    //const float coefficients[] = {1,1,1,1,1,1,1,1,1,1,
+    //    1,1,1,1,1,1,1,1,
+    //    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+    //const size_t ncoefficients = sizeof(coefficients)/sizeof(float);
+    //pa_assert_se(sizeof(freqs)/sizeof(int)==sizeof(coefficients)/sizeof(float));
+    //float *freq_translated = (float *) pa_xmalloc0(sizeof(float)*(ncoefficients));
+    //freq_translated[0] = 1;
+    ////Translate the frequencies in their natural sampling rate to the new sampling rate frequencies
+    //for(size_t i = 1; i < ncoefficients-1; ++i){
+    //    freq_translated[i] = ((float)freqs[i]*u->fft_size)/ss.rate;
+    //    //pa_log("i: %ld: %d , %g",i, freqs[i], freq_translated[i]);
+    //    pa_assert_se(freq_translated[i] >= freq_translated[i-1]);
+    //}
+    //freq_translated[ncoefficients-1] = FLT_MAX;
+    //
+    ////Interpolate the specified frequency band values
+    //u->H[0] = 1;
+    //for(size_t i = 1, j = 0; i < (u->fft_size / 2 + 1); ++i){
+    //    pa_assert_se(j < ncoefficients);
+    //    //max frequency range passed, consider the rest as one band
+    //    if(freq_translated[j+1] >= FLT_MAX){
+    //        for(; i < (u->fft_size / 2 + 1); ++i){
+    //            u->H[i] = coefficients[j];
+    //        }
+    //        break;
+    //    }
+    //    //pa_log("i: %d, j: %d, freq: %f", i, j, freq_translated[j]);
+    //    //pa_log("interp: %0.4f %0.4f", freq_translated[j], freq_translated[j+1]);
+    //    pa_assert_se(freq_translated[j] < freq_translated[j+1]);
+    //    pa_assert_se(i >= freq_translated[j]);
+    //    pa_assert_se(i <= freq_translated[j+1]);
+    //    //bilinear-inerpolation of coefficients specified
+    //    float c0 = (i-freq_translated[j])/(freq_translated[j+1]-freq_translated[j]);
+    //    pa_assert_se(c0 >= 0&&c0 <= 1.0);
+    //    u->H[i] = ((1.0f-c0)*coefficients[j]+c0*coefficients[j+1]);
+    //    pa_assert_se(u->H[i]>0);
+    //    while(i >= floor(freq_translated[j+1])){
+    //        j++;
+    //    }
+    //}
+    //pa_xfree(freq_translated);
+
+    //load old parameters
+    pa_datum key,value;
+    key.data = (char *) COEFKEY;
+    key.size = strlen(key.data);
+    if (pa_database_get(u->database, &key, &value) != NULL){
+        if(value.size == (u->fft_size / 2 + 1) * sizeof(float)){
+            memcpy(u->H, value.data, (u->fft_size / 2 + 1) * sizeof(float));
+        }
+        pa_datum_free(&value);
+    }
+
+    fix_filter(u->H, u->fft_size);
+    pa_aupdate_write_swap(u->a_H);
+    pa_aupdate_write_end(u->a_H);
+
+
+
     dbus_init(u);
 
     return 0;
@@ -963,6 +1005,10 @@ void pa__done(pa_module*m) {
 
     if (!(u = m->userdata))
         return;
+
+    save_state(u);
+    pa_database_close(u->database);
+
     dbus_done(u);
 
     if (u->sink) {
@@ -1000,14 +1046,18 @@ void pa__done(pa_module*m) {
 }
 
 enum property_handler_index {
+    PROPERTY_HANDLER_SAMPLERATE,
+    PROPERTY_HANDLER_FILTERSAMPLERATE,
     PROPERTY_HANDLER_N_COEFS,
     PROPERTY_HANDLER_COEFS,
     PROPERTY_HANDLER_MAX
 };
 
 static pa_dbus_property_handler property_handlers[PROPERTY_HANDLER_MAX]={
-    [PROPERTY_HANDLER_N_COEFS]{.property_name="n_filter_coefficients",.type="u",.get_cb=get_n_coefs,.set_cb=NULL},
-    [PROPERTY_HANDLER_COEFS]{.property_name="filter_coefficients",.type="ai",.get_cb=get_filter,.set_cb=set_filter}
+    [PROPERTY_HANDLER_SAMPLERATE]{.property_name="SampleRate",.type="u",.get_cb=get_sample_rate,.set_cb=NULL},
+    [PROPERTY_HANDLER_FILTERSAMPLERATE]{.property_name="FilterSampleRate",.type="u",.get_cb=get_filter_rate,.set_cb=NULL},
+    [PROPERTY_HANDLER_N_COEFS]{.property_name="NFilterCoefficients",.type="u",.get_cb=get_n_coefs,.set_cb=NULL},
+    [PROPERTY_HANDLER_COEFS]{.property_name="FilterCoefficients",.type="ai",.get_cb=get_filter,.set_cb=set_filter}
 };
 
 //static pa_dbus_arg_info new_equalizer_args[] = { { "path","o",NULL} };
@@ -1039,7 +1089,7 @@ void dbus_init(struct userdata *u){
 
 void dbus_done(struct userdata *u){
     pa_dbus_protocol_unregister_extension(u->dbus_protocol, EXTNAME);
-    pa_dbus_protocol_remove_interface(u->dbus_protocol, u->dbus_path, EXTNAME);
+    pa_dbus_protocol_remove_interface(u->dbus_protocol, u->dbus_path, interface_info.name);
     
     pa_xfree(u->dbus_path);
     pa_dbus_protocol_unref(u->dbus_protocol);
@@ -1056,23 +1106,41 @@ void get_n_coefs(DBusConnection *conn, DBusMessage *msg, void *_u){
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &n_coefs);
 }
 
+void get_sample_rate(DBusConnection *conn, DBusMessage *msg, void *_u){
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(_u);
+
+    struct userdata *u=(struct userdata *) _u;
+    uint32_t rate=(uint32_t) u->sink->sample_spec.rate;
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &rate);
+}
+void get_filter_rate(DBusConnection *conn, DBusMessage *msg, void *_u){
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(_u);
+
+    struct userdata *u=(struct userdata *) _u;
+    uint32_t fft_size=(uint32_t) u->fft_size;
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &fft_size);
+}
+
 void get_filter(DBusConnection *conn, DBusMessage *msg, void *_u){
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(_u);
 
-    struct userdata *u=(struct userdata *)_u;
+    struct userdata *u = (struct userdata *)_u;
     
-    unsigned n_coefs=(unsigned)(u->fft_size / 2 + 1);
-    double *H_=(double *)pa_xmalloc0(n_coefs*sizeof(double));
+    unsigned n_coefs = (unsigned) (u->fft_size / 2 + 1);
+    double *H_ = (double *) pa_xmalloc0(n_coefs * sizeof(double));
     
-    unsigned H_i=pa_aupdate_read_begin(u->a_H);
-    float *H=u->Hs[H_i];
+    float *H=u->Hs[pa_aupdate_read_begin(u->a_H)];
     for(size_t i = 0;i < u->fft_size / 2 + 1; ++i){
-        H_[i]=H[i];
+        H_[i] = H[i] * u->fft_size;
     }
     pa_aupdate_read_end(u->a_H);
-    pa_dbus_send_basic_array_variant_reply(conn, msg, DBUS_TYPE_DOUBLE, &H_, n_coefs);
+    pa_dbus_send_basic_array_variant_reply(conn, msg, DBUS_TYPE_DOUBLE, H_, n_coefs);
     pa_xfree(H_);
 }
 
@@ -1089,13 +1157,16 @@ void set_filter(DBusConnection *conn, DBusMessage *msg, void *_u){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "This filter takes exactly %ld coefficients, you gave %d", u->fft_size / 2 + 1, _n_coefs);
         return;
     }
-    unsigned H_i = pa_aupdate_write_begin(u->a_H);
-    float *H = u->Hs[H_i];
+    float *H = u->Hs[pa_aupdate_write_begin(u->a_H)];
     for(size_t i = 0; i < u->fft_size / 2 + 1; ++i){
-        H[i] = (float)H_[i];
+        H[i] = (float) H_[i];
     }
+    fix_filter(H, u->fft_size);
     pa_aupdate_write_swap(u->a_H);
     pa_aupdate_write_end(u->a_H);
+
+    //Stupid for IO reasons?  Add a save signal to dbus instead
+    save_state(u);
 
     pa_dbus_send_empty_reply(conn, msg);
 }
@@ -1109,7 +1180,9 @@ void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *_u){
     DBusMessage *reply = NULL;
     DBusMessageIter msg_iter, dict_iter;
 
-    int n_coefs=(unsigned)(u->fft_size / 2 + 1);
+    uint32_t rate=(uint32_t) u->sink->sample_spec.rate;
+    uint32_t fft_size=(uint32_t) u->fft_size;
+    uint32_t n_coefs=(uint32_t)(u->fft_size / 2 + 1);
     double *H_=(double *)pa_xmalloc0(n_coefs*sizeof(double));
     
     unsigned H_i=pa_aupdate_read_begin(u->a_H);
@@ -1123,6 +1196,8 @@ void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *_u){
     dbus_message_iter_init_append(reply, &msg_iter);
     pa_assert_se(dbus_message_iter_open_container(&msg_iter, DBUS_TYPE_ARRAY, "{sv}", &dict_iter));
 
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_SAMPLERATE].property_name, DBUS_TYPE_UINT32, &rate);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_FILTERSAMPLERATE].property_name, DBUS_TYPE_UINT32, &fft_size);
     pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_N_COEFS].property_name, DBUS_TYPE_UINT32, &n_coefs);
     pa_dbus_append_basic_array_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_COEFS].property_name, DBUS_TYPE_DOUBLE, H_, n_coefs);
 
