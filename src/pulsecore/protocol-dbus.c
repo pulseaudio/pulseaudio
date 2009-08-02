@@ -306,6 +306,7 @@ static enum find_result_t find_handler_by_method(struct object_entry *obj_entry,
             return FOUND_METHOD;
     }
 
+    pa_log("find_handler_by_method() failed.");
     return NO_SUCH_METHOD;
 }
 
@@ -327,8 +328,10 @@ static enum find_result_t find_handler_from_properties_call(struct object_entry 
         if (*interface) {
             if ((*iface_entry = pa_hashmap_get(obj_entry->interfaces, interface)))
                 return FOUND_GET_ALL;
-            else
+            else {
+                pa_log("GetAll message has unknown interface: %s", interface);
                 return NO_SUCH_METHOD; /* XXX: NO_SUCH_INTERFACE or something like that might be more accurate. */
+            }
         } else {
             pa_assert_se((*iface_entry = pa_hashmap_first(obj_entry->interfaces)));
             return FOUND_GET_ALL;
@@ -378,8 +381,10 @@ static enum find_result_t find_handler(struct object_entry *obj_entry,
         if ((*iface_entry = pa_hashmap_get(obj_entry->interfaces, interface)) &&
             (*method_handler = pa_hashmap_get((*iface_entry)->method_handlers, dbus_message_get_member(msg))))
             return FOUND_METHOD;
-        else
+        else {
+            pa_log("Message has unknown interface or there's no method handler.");
             return NO_SUCH_METHOD;
+        }
 
     } else { /* The method call doesn't contain an interface. */
         if (dbus_message_has_member(msg, "Get") || dbus_message_has_member(msg, "Set") || dbus_message_has_member(msg, "GetAll")) {
@@ -410,6 +415,8 @@ static DBusHandlerResult handle_message_cb(DBusConnection *connection, DBusMessa
 
     if (dbus_message_get_type(message) != DBUS_MESSAGE_TYPE_METHOD_CALL)
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+
+    pa_log("Received method call: destination = %s, name = %s, iface = %s", dbus_message_get_path(message), dbus_message_get_member(message), dbus_message_get_interface(message));
 
     pa_assert_se((obj_entry = pa_hashmap_get(p->objects, dbus_message_get_path(message))));
 
@@ -623,6 +630,8 @@ int pa_dbus_protocol_add_interface(pa_dbus_protocol *p,
 
     if (obj_entry_created)
         register_object(p, obj_entry);
+
+    pa_log("Interface %s added for object %s. GetAll callback? %s", iface_entry->name, obj_entry->path, iface_entry->get_all_properties_cb ? "yes" : "no");
 
     return 0;
 
