@@ -340,6 +340,9 @@ static int try_recover(struct userdata *u, const char *call, int err) {
     if (err == -EPIPE)
         pa_log_debug("%s: Buffer underrun!", call);
 
+    if (err == -EBADFD)
+        pa_log_debug("%s: Stream suspended!", call);
+
     if ((err = snd_pcm_recover(u->pcm_handle, err, 1)) < 0) {
         pa_log("%s: %s", call, pa_alsa_strerror(err));
         return -1;
@@ -1199,8 +1202,11 @@ static int process_rewind(struct userdata *u) {
         pa_log_debug("before: %lu", (unsigned long) in_frames);
         if ((out_frames = snd_pcm_rewind(u->pcm_handle, (snd_pcm_uframes_t) in_frames)) < 0) {
             pa_log("snd_pcm_rewind() failed: %s", pa_alsa_strerror((int) out_frames));
-            return -1;
+            if (try_recover(u, "process_rewind", out_frames) < 0)
+                return -1;
+            out_frames = 0;
         }
+
         pa_log_debug("after: %lu", (unsigned long) out_frames);
 
         rewind_nbytes = (size_t) out_frames * u->frame_size;
