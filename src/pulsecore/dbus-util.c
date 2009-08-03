@@ -765,6 +765,8 @@ int pa_dbus_get_fixed_array_arg(DBusConnection *c, DBusMessage *msg, DBusMessage
 
 pa_proplist *pa_dbus_get_proplist_arg(DBusConnection *c, DBusMessage *msg, DBusMessageIter *iter) {
     DBusMessageIter dict_iter;
+    DBusMessageIter dict_entry_iter;
+    int arg_type;
     pa_proplist *proplist = NULL;
     const char *key;
     const uint8_t *value;
@@ -774,13 +776,18 @@ pa_proplist *pa_dbus_get_proplist_arg(DBusConnection *c, DBusMessage *msg, DBusM
     pa_assert(msg);
     pa_assert(iter);
 
-    if (dbus_message_iter_get_arg_type(iter) != DBUS_TYPE_ARRAY) {
-        pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Wrong argument type or too few arguments. An array was expected.");
+    arg_type = dbus_message_iter_get_arg_type(iter);
+    if (arg_type != DBUS_TYPE_ARRAY) {
+        if (arg_type == DBUS_TYPE_INVALID)
+            pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Too few arguments. An array was expected.");
+        else
+            pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Wrong argument type: '%c'. An array was expected.", (char) arg_type);
         return NULL;
     }
 
-    if (dbus_message_iter_get_element_type(iter) != DBUS_TYPE_DICT_ENTRY) {
-        pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Wrong array element type. A dict entry was expected.");
+    arg_type = dbus_message_iter_get_element_type(iter);
+    if (arg_type != DBUS_TYPE_DICT_ENTRY) {
+        pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Wrong array element type: '%c'. A dictionary entry was expected.", (char) arg_type);
         return NULL;
     }
 
@@ -788,34 +795,45 @@ pa_proplist *pa_dbus_get_proplist_arg(DBusConnection *c, DBusMessage *msg, DBusM
 
     dbus_message_iter_recurse(iter, &dict_iter);
 
-    while (dbus_message_iter_has_next(&dict_iter)) {
-        if (dbus_message_iter_get_arg_type(&dict_iter) != DBUS_TYPE_STRING) {
-            pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Wrong dict key type. A string was expected.");
+    while (dbus_message_iter_get_arg_type(&dict_iter) != DBUS_TYPE_INVALID) {
+        dbus_message_iter_recurse(&dict_iter, &dict_entry_iter);
+
+        arg_type = dbus_message_iter_get_arg_type(&dict_entry_iter);
+        if (arg_type != DBUS_TYPE_STRING) {
+            pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Wrong dict key type: '%c'. A string was expected.", (char) arg_type);
             goto fail;
         }
 
-        dbus_message_iter_get_basic(&dict_iter, &key);
+        dbus_message_iter_get_basic(&dict_entry_iter, &key);
+        dbus_message_iter_next(&dict_entry_iter);
 
         if (strlen(key) <= 0 || !pa_ascii_valid(key)) {
             pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Invalid property list key.");
             goto fail;
         }
 
-        if (dbus_message_iter_get_arg_type(&dict_iter) != DBUS_TYPE_ARRAY) {
-            pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Wrong dict value type. An array was expected.");
+        arg_type = dbus_message_iter_get_arg_type(&dict_entry_iter);
+        if (arg_type != DBUS_TYPE_ARRAY) {
+            if (arg_type == DBUS_TYPE_INVALID)
+                pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Dict value missing.");
+            else
+                pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Wrong dict value type: '%c'. An array was expected.", (char) arg_type);
             goto fail;
         }
 
-        if (dbus_message_iter_get_element_type(&dict_iter) != DBUS_TYPE_BYTE) {
-            pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Wrong dict value item type. A byte was expected.");
+        arg_type = dbus_message_iter_get_element_type(&dict_entry_iter);
+        if (arg_type != DBUS_TYPE_BYTE) {
+            pa_dbus_send_error(c, msg, DBUS_ERROR_INVALID_ARGS, "Wrong dict value item type: '%c'. A byte was expected.", (char) arg_type);
             goto fail;
         }
 
-        dbus_message_iter_get_fixed_array(&dict_iter, &value, &value_length);
+        dbus_message_iter_get_fixed_array(&dict_entry_iter, &value, &value_length);
 
         pa_assert(value_length >= 0);
 
         pa_assert_se(pa_proplist_set(proplist, key, value, value_length) >= 0);
+
+        dbus_message_iter_next(&dict_iter);
     }
 
     dbus_message_iter_next(iter);
