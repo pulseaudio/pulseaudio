@@ -333,6 +333,9 @@ static int try_recover(struct userdata *u, const char *call, int err) {
     if (err == -EPIPE)
         pa_log_debug("%s: Buffer overrun!", call);
 
+    if (err == -ESTRPIPE)
+        pa_log_debug("%s: System suspended!", call);
+
     if ((err = snd_pcm_recover(u->pcm_handle, err, 1)) < 0) {
         pa_log("%s: %s", call, pa_alsa_strerror(err));
         return -1;
