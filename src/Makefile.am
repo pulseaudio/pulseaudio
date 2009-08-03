@@ -1536,6 +1536,11 @@ module_stream_restore_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_stream_restore_la_LIBADD = $(AM_LIBADD) libprotocol-native.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_stream_restore_la_CFLAGS = $(AM_CFLAGS)
 
+if HAVE_DBUS
+module_stream_restore_la_LIBADD += $(DBUS_LIBS)
+module_stream_restore_la_CFLAGS += $(DBUS_CFLAGS)
+endif
+
 # Card profile restore module
 module_card_restore_la_SOURCES = modules/module-card-restore.c
 module_card_restore_la_LDFLAGS = $(MODULE_LDFLAGS)
