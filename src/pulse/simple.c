@@ -178,12 +178,21 @@ pa_simple* pa_simple_new(
     if (pa_threaded_mainloop_start(p->mainloop) < 0)
         goto unlock_and_fail;
 
-    /* Wait until the context is ready */
-    pa_threaded_mainloop_wait(p->mainloop);
+    for (;;) {
+        pa_context_state_t state;
 
-    if (pa_context_get_state(p->context) != PA_CONTEXT_READY) {
-        error = pa_context_errno(p->context);
-        goto unlock_and_fail;
+        state = pa_context_get_state(p->context);
+
+        if (state == PA_CONTEXT_READY)
+            break;
+
+        if (!PA_CONTEXT_IS_GOOD(state)) {
+            error = pa_context_errno(p->context);
+            goto unlock_and_fail;
+        }
+
+        /* Wait until the context is ready */
+        pa_threaded_mainloop_wait(p->mainloop);
     }
 
     if (!(p->stream = pa_stream_new(p->context, stream_name, ss, map))) {
@@ -212,13 +221,21 @@ pa_simple* pa_simple_new(
         goto unlock_and_fail;
     }
 
-    /* Wait until the stream is ready */
-    pa_threaded_mainloop_wait(p->mainloop);
+    for (;;) {
+        pa_stream_state_t state;
 
-    /* Wait until the stream is ready */
-    if (pa_stream_get_state(p->stream) != PA_STREAM_READY) {
-        error = pa_context_errno(p->context);
-        goto unlock_and_fail;
+        state = pa_stream_get_state(p->stream);
+
+        if (state == PA_STREAM_READY)
+            break;
+
+        if (!PA_STREAM_IS_GOOD(state)) {
+            error = pa_context_errno(p->context);
+            goto unlock_and_fail;
+        }
+
+        /* Wait until the stream is ready */
+        pa_threaded_mainloop_wait(p->mainloop);
     }
 
     pa_threaded_mainloop_unlock(p->mainloop);
