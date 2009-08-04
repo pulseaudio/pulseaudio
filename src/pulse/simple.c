@@ -70,8 +70,8 @@ struct pa_simple {
 
 #define CHECK_DEAD_GOTO(p, rerror, label)                               \
     do {                                                                \
-        if (!(p)->context || pa_context_get_state((p)->context) != PA_CONTEXT_READY || \
-            !(p)->stream || pa_stream_get_state((p)->stream) != PA_STREAM_READY) { \
+        if (!(p)->context || !PA_CONTEXT_IS_GOOD(pa_context_get_state((p)->context)) || \
+            !(p)->stream || !PA_STREAM_IS_GOOD(pa_stream_get_state((p)->stream))) { \
             if (((p)->context && pa_context_get_state((p)->context) == PA_CONTEXT_FAILED) || \
                 ((p)->stream && pa_stream_get_state((p)->stream) == PA_STREAM_FAILED)) { \
                 if (rerror)                                             \
