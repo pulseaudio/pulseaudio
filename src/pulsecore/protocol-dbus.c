@@ -639,7 +639,6 @@ int pa_dbus_protocol_add_interface(pa_dbus_protocol *p,
 fail:
     if (obj_entry_created) {
         pa_hashmap_remove(p->objects, path);
-        pa_dbus_protocol_unref(p);
         pa_xfree(obj_entry);
     }
 
