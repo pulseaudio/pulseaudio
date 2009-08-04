@@ -30,6 +30,8 @@
 
 #include <pulsecore/core.h>
 
+#define PA_DBUSIFACE_CORE_INTERFACE "org.PulseAudio.Core1"
+
 typedef struct pa_dbusiface_core pa_dbusiface_core;
 
 pa_dbusiface_core *pa_dbusiface_core_new(pa_core *core);
