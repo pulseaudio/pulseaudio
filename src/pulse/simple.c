@@ -392,7 +392,7 @@ int pa_simple_drain(pa_simple *p, int *rerror) {
     CHECK_SUCCESS_GOTO(p, rerror, o, unlock_and_fail);
 
     p->operation_success = 0;
-    while (pa_operation_get_state(o) != PA_OPERATION_DONE) {
+    while (pa_operation_get_state(o) == PA_OPERATION_RUNNING) {
         pa_threaded_mainloop_wait(p->mainloop);
         CHECK_DEAD_GOTO(p, rerror, unlock_and_fail);
     }
@@ -428,7 +428,7 @@ int pa_simple_flush(pa_simple *p, int *rerror) {
     CHECK_SUCCESS_GOTO(p, rerror, o, unlock_and_fail);
 
     p->operation_success = 0;
-    while (pa_operation_get_state(o) != PA_OPERATION_DONE) {
+    while (pa_operation_get_state(o) == PA_OPERATION_RUNNING) {
         pa_threaded_mainloop_wait(p->mainloop);
         CHECK_DEAD_GOTO(p, rerror, unlock_and_fail);
     }
