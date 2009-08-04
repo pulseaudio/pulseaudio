@@ -276,7 +276,8 @@ int pa_simple_write(pa_simple *p, const void*data, size_t length, int *rerror) {
     pa_assert(p);
 
     CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE, -1);
-    CHECK_VALIDITY_RETURN_ANY(rerror, data && length, PA_ERR_INVALID, -1);
+    CHECK_VALIDITY_RETURN_ANY(rerror, data, PA_ERR_INVALID, -1);
+    CHECK_VALIDITY_RETURN_ANY(rerror, length > 0, PA_ERR_INVALID, -1);
 
     pa_threaded_mainloop_lock(p->mainloop);
 
@@ -315,7 +316,8 @@ int pa_simple_read(pa_simple *p, void*data, size_t length, int *rerror) {
     pa_assert(p);
 
     CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_RECORD, PA_ERR_BADSTATE, -1);
-    CHECK_VALIDITY_RETURN_ANY(rerror, data && length, PA_ERR_INVALID, -1);
+    CHECK_VALIDITY_RETURN_ANY(rerror, data, PA_ERR_INVALID, -1);
+    CHECK_VALIDITY_RETURN_ANY(rerror, length > 0, PA_ERR_INVALID, -1);
 
     pa_threaded_mainloop_lock(p->mainloop);
 
