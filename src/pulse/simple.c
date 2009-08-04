@@ -261,8 +261,10 @@ void pa_simple_free(pa_simple *s) {
     if (s->stream)
         pa_stream_unref(s->stream);
 
-    if (s->context)
+    if (s->context) {
+        pa_context_disconnect(s->context);
         pa_context_unref(s->context);
+    }
 
     if (s->mainloop)
         pa_threaded_mainloop_free(s->mainloop);
