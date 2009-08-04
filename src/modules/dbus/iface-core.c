@@ -41,6 +41,7 @@
 #include "iface-card.h"
 #include "iface-client.h"
 #include "iface-device.h"
+#include "iface-memstats.h"
 #include "iface-module.h"
 #include "iface-sample.h"
 #include "iface-stream.h"
@@ -114,6 +115,8 @@ struct pa_dbusiface_core {
 
     pa_hook_slot *extension_registered_slot;
     pa_hook_slot *extension_unregistered_slot;
+
+    pa_dbusiface_memstats *memstats;
 };
 
 enum property_handler_index {
@@ -1940,6 +1943,7 @@ pa_dbusiface_core *pa_dbusiface_core_new(pa_core *core) {
     c->fallback_source = pa_namereg_get_default_source(core);
     c->extension_registered_slot = pa_dbus_protocol_hook_connect(c->dbus_protocol, PA_DBUS_PROTOCOL_HOOK_EXTENSION_REGISTERED, PA_HOOK_NORMAL, extension_registered_cb, c);
     c->extension_unregistered_slot = pa_dbus_protocol_hook_connect(c->dbus_protocol, PA_DBUS_PROTOCOL_HOOK_EXTENSION_UNREGISTERED, PA_HOOK_NORMAL, extension_unregistered_cb, c);
+    c->memstats = pa_dbusiface_memstats_new(core, OBJECT_PATH);
 
     for (card = pa_idxset_first(core->cards, &idx); card; card = pa_idxset_next(core->cards, &idx))
         pa_hashmap_put(c->cards, PA_UINT32_TO_PTR(idx), pa_dbusiface_card_new(card, OBJECT_PATH));
@@ -2042,6 +2046,7 @@ void pa_dbusiface_core_free(pa_dbusiface_core *c) {
     pa_hashmap_free(c->clients, free_client_cb, NULL);
     pa_hook_slot_free(c->extension_registered_slot);
     pa_hook_slot_free(c->extension_unregistered_slot);
+    pa_dbusiface_memstats_free(c->memstats);
 
     pa_dbus_protocol_unref(c->dbus_protocol);
     pa_core_unref(c->core);

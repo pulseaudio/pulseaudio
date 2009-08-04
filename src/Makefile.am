@@ -1281,6 +1281,7 @@ module_dbus_protocol_la_SOURCES = \
 		modules/dbus/iface-client.c modules/dbus/iface-client.h \
 		modules/dbus/iface-core.c modules/dbus/iface-core.h \
 		modules/dbus/iface-device.c modules/dbus/iface-device.h \
+		modules/dbus/iface-memstats.c modules/dbus/iface-memstats.h \
 		modules/dbus/iface-module.c modules/dbus/iface-module.h \
 		modules/dbus/iface-sample.c modules/dbus/iface-sample.h \
 		modules/dbus/iface-stream.c modules/dbus/iface-stream.h \
