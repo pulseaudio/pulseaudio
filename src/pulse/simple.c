@@ -157,12 +157,8 @@ pa_simple* pa_simple_new(
     CHECK_VALIDITY_RETURN_ANY(rerror, ss && pa_sample_spec_valid(ss), PA_ERR_INVALID, NULL);
     CHECK_VALIDITY_RETURN_ANY(rerror, !map || (pa_channel_map_valid(map) && map->channels == ss->channels), PA_ERR_INVALID, NULL)
 
-    p = pa_xnew(pa_simple, 1);
-    p->context = NULL;
-    p->stream = NULL;
+    p = pa_xnew0(pa_simple, 1);
     p->direction = dir;
-    p->read_data = NULL;
-    p->read_index = p->read_length = 0;
 
     if (!(p->mainloop = pa_threaded_mainloop_new()))
         goto fail;
