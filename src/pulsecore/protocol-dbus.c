@@ -308,7 +308,6 @@ static enum find_result_t find_handler_by_method(struct object_entry *obj_entry,
             return FOUND_METHOD;
     }
 
-    pa_log("find_handler_by_method() failed.");
     return NO_SUCH_METHOD;
 }
 
@@ -331,7 +330,6 @@ static enum find_result_t find_handler_from_properties_call(struct object_entry 
             if ((*iface_entry = pa_hashmap_get(obj_entry->interfaces, interface)))
                 return FOUND_GET_ALL;
             else {
-                pa_log("GetAll message has unknown interface: %s", interface);
                 return NO_SUCH_METHOD; /* XXX: NO_SUCH_INTERFACE or something like that might be more accurate. */
             }
         } else {
@@ -418,7 +416,10 @@ static DBusHandlerResult handle_message_cb(DBusConnection *connection, DBusMessa
     if (dbus_message_get_type(message) != DBUS_MESSAGE_TYPE_METHOD_CALL)
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
-    pa_log("Received method call: destination = %s, name = %s, iface = %s", dbus_message_get_path(message), dbus_message_get_member(message), dbus_message_get_interface(message));
+    pa_log_debug("Received message: destination = %s, interface = %s, member = %s",
+                 dbus_message_get_path(message),
+                 dbus_message_get_interface(message),
+                 dbus_message_get_member(message));
 
     pa_assert_se((obj_entry = pa_hashmap_get(p->objects, dbus_message_get_path(message))));
 
@@ -427,8 +428,6 @@ static DBusHandlerResult handle_message_cb(DBusConnection *connection, DBusMessa
         pa_assert_se((reply = dbus_message_new_method_return(message)));
         pa_assert_se(dbus_message_append_args(reply, DBUS_TYPE_STRING, &obj_entry->introspection, DBUS_TYPE_INVALID));
         pa_assert_se(dbus_connection_send(connection, reply, NULL));
-
-        pa_log_debug("%s.Introspect handled.", obj_entry->path);
 
         goto finish;
     }
@@ -633,7 +632,7 @@ int pa_dbus_protocol_add_interface(pa_dbus_protocol *p,
     if (obj_entry_created)
         register_object(p, obj_entry);
 
-    pa_log("Interface %s added for object %s. GetAll callback? %s", iface_entry->name, obj_entry->path, iface_entry->get_all_properties_cb ? "yes" : "no");
+    pa_log_debug("Interface %s added for object %s", iface_entry->name, obj_entry->path);
 
     return 0;
 
