@@ -147,14 +147,12 @@ src/pulsecore/protocol-http.c
 src/pulsecore/semaphore-win32.c
 src/daemon/cpulimit.c
 src/daemon/ltdl-bind-now.c
-src/daemon/polkit.c
 src/daemon/main.c
 src/daemon/cmdline.c
 src/daemon/dumpmodules.c
 src/daemon/daemon-conf.c
 src/daemon/caps.c
 src/daemon/pulseaudio.desktop.in
-src/daemon/org.pulseaudio.policy.in
 src/pulse/channelmap.c
 src/pulse/error.c
 src/pulse/proplist.c
