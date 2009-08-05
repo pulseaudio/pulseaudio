@@ -50,6 +50,8 @@ USA.
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/sample-util.h>
+#include <pulsecore/shared.h>
+#include <pulsecore/idxset.h>
 #include <pulsecore/database.h>
 #include <pulsecore/protocol-dbus.h>
 #include <pulsecore/dbus-util.h>
@@ -82,6 +84,7 @@ struct userdata {
     pa_module *module;
     pa_sink *sink, *master;
     pa_sink_input *sink_input;
+    char *name;
 
     size_t channels;
     size_t fft_size;//length (res) of fft
@@ -131,9 +134,17 @@ static const char* const valid_modargs[] = {
 
 static uint64_t time_diff(struct timespec *timeA_p, struct timespec *timeB_p);
 static void hanning_window(float *W, size_t window_size);
+void fix_filter(float *H, size_t fft_size);
+void interpolate(float *signal, size_t length, uint32_t *xs, float *ys, size_t n_points);
 static void array_out(const char *name, float *a, size_t length);
+static int is_monotonic(uint32_t *xs, size_t length);
 static void process_samples(struct userdata *u);
 static void input_buffer(struct userdata *u, pa_memchunk *in);
+static void save_profile(struct userdata *u,char *name);
+static void save_state(struct userdata *u);
+static void remove_profile(pa_core *u,char *name);
+static const char * load_profile(struct userdata *u,char *name);
+static void load_state(struct userdata *u);
 
 void dsp_logic(
     float * __restrict__ dst,
@@ -144,21 +155,37 @@ void dsp_logic(
     fftwf_complex * __restrict__ output_window,
     struct userdata *u);
 
+
+/*
+ * DBus Routines and Callbacks
+ */
+#define EXTNAME "org.PulseAudio.Ext.Equalizing1"
+#define MANAGER_PATH "/org/pulseaudio/equalizing1"
 static void dbus_init(struct userdata *u);
 static void dbus_done(struct userdata *u);
-static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *_u);
-void get_sample_rate(DBusConnection *conn, DBusMessage *msg, void *_u);
-void get_filter_rate(DBusConnection *conn, DBusMessage *msg, void *_u);
-static void get_n_coefs(DBusConnection *conn, DBusMessage *msg, void *_u);
-static void get_filter(DBusConnection *conn, DBusMessage *msg, void *_u);
-static void set_filter(DBusConnection *conn, DBusMessage *msg, void *_u);
-static void save_state(struct userdata *u);
+static void manager_get_revision(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void manager_get_sinks(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void manager_get_profiles(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void manager_get_all(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void manager_handle_remove_profile(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_get_revision(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_get_sample_rate(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_get_filter_rate(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_get_n_coefs(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_get_filter(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_get_all(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_set_filter(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_handle_get_filter_points(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_handle_save_profile(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void *_u);
 
 #define v_size 4
 #define gettime(x) clock_gettime(CLOCK_MONOTONIC, &x)
 #define tdiff(x, y) time_diff(&x, &y)
 #define mround(x, y) (x % y == 0 ? x : ( x / y + 1) * y)
-#define COEFKEY "coefficients"
+#define SINKLIST "equalized_sinklist"
+#define EQDB "equalizer_db"
 
 uint64_t time_diff(struct timespec *timeA_p, struct timespec *timeB_p)
 {
@@ -166,18 +193,41 @@ uint64_t time_diff(struct timespec *timeA_p, struct timespec *timeB_p)
     ((timeB_p->tv_sec * 1000000000ULL) + timeB_p->tv_nsec);
 }
 
-static void hanning_window(float *W, size_t window_size){
+void hanning_window(float *W, size_t window_size){
     //h=.5*(1-cos(2*pi*j/(window_size+1)), COLA for R=(M+1)/2
     for(size_t i=0; i < window_size;++i){
         W[i] = (float).5*(1-cos(2*M_PI*i/(window_size+1)));
     }
 }
 
-static void fix_filter(float *H, size_t fft_size){
+void fix_filter(float *H, size_t fft_size){
     //divide out the fft gain
-    for(size_t i = 0; i < (fft_size / 2 + 1); ++i){
+    for(size_t i = 0; i < fft_size / 2 + 1; ++i){
         H[i] /= fft_size;
     }
+}
+
+void interpolate(float *signal, size_t length, uint32_t *xs, float *ys, size_t n_points){
+    //Note that xs must be monotonically increasing!
+    pa_assert_se(n_points>=2);
+    pa_assert_se(xs[0] == 0);
+    pa_assert_se(xs[n_points - 1] == length - 1);
+    for(size_t x = 0, x_range_lower_i = 0; x < length-1; ++x){
+        pa_assert(x_range_lower_i < n_points-1);
+        float x_range_lower = (float) (xs[x_range_lower_i]);
+        float x_range_upper = (float) (xs[x_range_lower_i+1]);
+        pa_assert_se(x_range_lower < x_range_upper);
+        pa_assert_se(x >= x_range_lower);
+        pa_assert_se(x <= x_range_upper);
+        //bilinear-interpolation of coefficients specified
+        float c0 = (x-x_range_lower)/(x_range_upper-x_range_lower);
+        pa_assert_se(c0 >= 0&&c0 <= 1.0);
+        signal[x] = ((1.0f - c0) * ys[x_range_lower_i] + c0 * ys[x_range_lower_i + 1]);
+        while(x >= xs[x_range_lower_i + 1]){
+            x_range_lower_i++;
+        }
+    }
+    signal[length-1]=ys[n_points-1];
 }
 
 void array_out(const char *name, float *a, size_t length){
@@ -194,6 +244,17 @@ void array_out(const char *name, float *a, size_t length){
     }
     fprintf(p, "\n");
     fclose(p);
+}
+static int is_monotonic(uint32_t *xs,size_t length){
+    if(length<2){
+        return 1;
+    }
+    for(size_t i = 1; i < length; ++i){
+        if(xs[i]<=xs[i-1]){
+            return 0;
+        }
+    }
+    return 1;
 }
 
 
@@ -708,21 +769,65 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
     }
 }
 
-void save_state(struct userdata *u){
-    const float *H = u->Hs[pa_aupdate_read_begin(u->a_H)];
+void save_profile(struct userdata *u, char *name){
     float *H_n = pa_xmalloc((u->fft_size / 2 + 1) * sizeof(float));
+    const float *H = u->Hs[pa_aupdate_read_begin(u->a_H)];
     for(size_t i = 0 ; i <= u->fft_size / 2 + 1; ++i){
-        H_n[i] = H[i] * u->fft_size;
+        //H_n[i] = H[i] * u->fft_size;
+        H_n[i] = H[i];
     }
     pa_aupdate_read_end(u->a_H);
     pa_datum key, data;
-    key.data = (char *) COEFKEY;
+    key.data=name;
     key.size = strlen(key.data);
     data.data = H_n;
     data.size = (u->fft_size / 2 + 1) * sizeof(float);
     pa_database_set(u->database, &key, &data, TRUE);
     pa_database_sync(u->database);
 }
+
+void save_state(struct userdata *u){
+    char *state_name = pa_sprintf_malloc("%s-previous-state", u->name);
+    save_profile(u, state_name);
+    pa_xfree(state_name);
+}
+
+void remove_profile(pa_core *c,char *name){
+    pa_datum key;
+    key.data = name;
+    key.size = strlen(key.data);
+    pa_database *database;
+    pa_assert_se(database = pa_shared_get(c,EQDB));
+    pa_database_unset(database,&key);
+    pa_database_sync(database);
+}
+
+const char* load_profile(struct userdata *u,char *name){
+    pa_datum key,value;
+    key.data = name;
+    key.size = strlen(key.data);
+    if(pa_database_get(u->database, &key, &value) != NULL){
+        if(value.size == (u->fft_size / 2 + 1) * sizeof(float)){
+            float *H=u->Hs[pa_aupdate_write_begin(u->a_H)];
+            memcpy(H, value.data, value.size);
+            pa_aupdate_write_swap(u->a_H);
+            pa_aupdate_write_end(u->a_H);
+        }else{
+            return "incompatible size";
+        }
+        pa_datum_free(&value);
+    }else{
+        return "profile doesn't exist";
+    }
+    return NULL;
+    //fix_filter(u->H, u->fft_size);
+}
+void load_state(struct userdata *u){
+    char *state_name=pa_sprintf_malloc("%s-previous-state", u->name);
+    load_profile(u,state_name);
+    pa_xfree(state_name);
+}
+
 
 /* Called from main context */
 static pa_bool_t sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
@@ -791,7 +896,7 @@ int pa__init(pa_module*m) {
     u->channels = ss.channels;
     u->fft_size = pow(2, ceil(log(ss.rate)/log(2)));
     pa_log("fft size: %ld", u->fft_size);
-    u->window_size = 7999;
+    u->window_size = 15999;
     u->R = (u->window_size+1)/2;
     u->overlap_size = u->window_size-u->R;
     u->target_samples = 1*u->R;
@@ -851,7 +956,7 @@ int pa__init(pa_module*m) {
         pa_log("Failed to create sink.");
         goto fail;
     }
-
+    u->name=pa_xstrdup(u->sink->name);
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->set_state = sink_set_state;
     u->sink->update_requested_latency = sink_update_requested_latency;
@@ -898,83 +1003,14 @@ int pa__init(pa_module*m) {
 
     pa_xfree(use_default);
 
-    char *dbname;
-    char *pref = pa_sprintf_malloc("equalizer-%s-state", u->sink->name);
-    pa_assert_se(dbname = pa_state_path(pref, TRUE));
-    pa_xfree(pref);
-    pa_assert_se(u->database = pa_database_open(dbname, TRUE));
-    pa_xfree(dbname);
-
-    unsigned H_i = pa_aupdate_write_begin(u->a_H);
-    u->H = u->Hs[H_i];
-    for(size_t i = 0; i < u->fft_size / 2 + 1; ++i){
-        u->H[i] = 1.0;
-    }
-
-    //TODO cut this out and leave it for the client side
-    //const int freqs[] = {0,25,50,100,200,300,400,800,1500,
-    //    2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,
-    //    13000,14000,15000,16000,17000,18000,19000,20000,21000,22000,23000,24000,INT_MAX};
-    //const float coefficients[] = {1,1,1,1,1,1,1,1,1,1,
-    //    1,1,1,1,1,1,1,1,
-    //    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-    //const size_t ncoefficients = sizeof(coefficients)/sizeof(float);
-    //pa_assert_se(sizeof(freqs)/sizeof(int)==sizeof(coefficients)/sizeof(float));
-    //float *freq_translated = (float *) pa_xmalloc0(sizeof(float)*(ncoefficients));
-    //freq_translated[0] = 1;
-    ////Translate the frequencies in their natural sampling rate to the new sampling rate frequencies
-    //for(size_t i = 1; i < ncoefficients-1; ++i){
-    //    freq_translated[i] = ((float)freqs[i]*u->fft_size)/ss.rate;
-    //    //pa_log("i: %ld: %d , %g",i, freqs[i], freq_translated[i]);
-    //    pa_assert_se(freq_translated[i] >= freq_translated[i-1]);
-    //}
-    //freq_translated[ncoefficients-1] = FLT_MAX;
-    //
-    ////Interpolate the specified frequency band values
-    //u->H[0] = 1;
-    //for(size_t i = 1, j = 0; i < (u->fft_size / 2 + 1); ++i){
-    //    pa_assert_se(j < ncoefficients);
-    //    //max frequency range passed, consider the rest as one band
-    //    if(freq_translated[j+1] >= FLT_MAX){
-    //        for(; i < (u->fft_size / 2 + 1); ++i){
-    //            u->H[i] = coefficients[j];
-    //        }
-    //        break;
-    //    }
-    //    //pa_log("i: %d, j: %d, freq: %f", i, j, freq_translated[j]);
-    //    //pa_log("interp: %0.4f %0.4f", freq_translated[j], freq_translated[j+1]);
-    //    pa_assert_se(freq_translated[j] < freq_translated[j+1]);
-    //    pa_assert_se(i >= freq_translated[j]);
-    //    pa_assert_se(i <= freq_translated[j+1]);
-    //    //bilinear-inerpolation of coefficients specified
-    //    float c0 = (i-freq_translated[j])/(freq_translated[j+1]-freq_translated[j]);
-    //    pa_assert_se(c0 >= 0&&c0 <= 1.0);
-    //    u->H[i] = ((1.0f-c0)*coefficients[j]+c0*coefficients[j+1]);
-    //    pa_assert_se(u->H[i]>0);
-    //    while(i >= floor(freq_translated[j+1])){
-    //        j++;
-    //    }
-    //}
-    //pa_xfree(freq_translated);
-
-    //load old parameters
-    pa_datum key,value;
-    key.data = (char *) COEFKEY;
-    key.size = strlen(key.data);
-    if (pa_database_get(u->database, &key, &value) != NULL){
-        if(value.size == (u->fft_size / 2 + 1) * sizeof(float)){
-            memcpy(u->H, value.data, (u->fft_size / 2 + 1) * sizeof(float));
-        }
-        pa_datum_free(&value);
-    }
-
-    fix_filter(u->H, u->fft_size);
-    pa_aupdate_write_swap(u->a_H);
-    pa_aupdate_write_end(u->a_H);
-
-
-
     dbus_init(u);
+
+    //default filter to these
+    for(size_t i = 0; i < u->fft_size / 2 + 1; ++i){
+        u->Hs[1][i]=u->Hs[0][i] = 1.0;
+    }
+    //load old parameters
+    load_state(u);
 
     return 0;
 
@@ -1007,7 +1043,6 @@ void pa__done(pa_module*m) {
         return;
 
     save_state(u);
-    pa_database_close(u->database);
 
     dbus_done(u);
 
@@ -1042,22 +1077,130 @@ void pa__done(pa_module*m) {
         pa_xfree(u->Hs[i]);
     }
 
+    pa_xfree(u->name);
+
     pa_xfree(u);
 }
 
-enum property_handler_index {
-    PROPERTY_HANDLER_SAMPLERATE,
-    PROPERTY_HANDLER_FILTERSAMPLERATE,
-    PROPERTY_HANDLER_N_COEFS,
-    PROPERTY_HANDLER_COEFS,
-    PROPERTY_HANDLER_MAX
+enum manager_method_index {
+    MANAGER_METHOD_REMOVE_PROFILE,
+    MANAGER_METHOD_MAX
 };
 
-static pa_dbus_property_handler property_handlers[PROPERTY_HANDLER_MAX]={
-    [PROPERTY_HANDLER_SAMPLERATE]{.property_name="SampleRate",.type="u",.get_cb=get_sample_rate,.set_cb=NULL},
-    [PROPERTY_HANDLER_FILTERSAMPLERATE]{.property_name="FilterSampleRate",.type="u",.get_cb=get_filter_rate,.set_cb=NULL},
-    [PROPERTY_HANDLER_N_COEFS]{.property_name="NFilterCoefficients",.type="u",.get_cb=get_n_coefs,.set_cb=NULL},
-    [PROPERTY_HANDLER_COEFS]{.property_name="FilterCoefficients",.type="ai",.get_cb=get_filter,.set_cb=set_filter}
+pa_dbus_arg_info remove_profile_args[]={
+    {"name", "s","in"},
+};
+
+static pa_dbus_method_handler manager_methods[MANAGER_METHOD_MAX]={
+    [MANAGER_METHOD_REMOVE_PROFILE]{
+        .method_name="RemoveProfile",
+        .arguments=remove_profile_args,
+        .n_arguments=sizeof(remove_profile_args)/sizeof(pa_dbus_arg_info),
+        .receive_cb=manager_handle_remove_profile}
+};
+
+enum manager_handler_index {
+    MANAGER_HANDLER_REVISION,
+    MANAGER_HANDLER_EQUALIZED_SINKS,
+    MANAGER_HANDLER_PROFILES,
+    MANAGER_HANDLER_MAX
+};
+
+static pa_dbus_property_handler manager_handlers[MANAGER_HANDLER_MAX]={
+    [MANAGER_HANDLER_REVISION]={.property_name="InterfaceRevision",.type="u",.get_cb=manager_get_revision,.set_cb=NULL},
+    [MANAGER_HANDLER_EQUALIZED_SINKS]={.property_name="EqualizedSinks",.type="ao",.get_cb=manager_get_sinks,.set_cb=NULL},
+    [MANAGER_HANDLER_PROFILES]={.property_name="Profiles",.type="as",.get_cb=manager_get_profiles,.set_cb=NULL}
+};
+
+static pa_dbus_interface_info manager_info={
+    .name=EXTNAME ".Manager",
+    .method_handlers=manager_methods,
+    .n_method_handlers=MANAGER_METHOD_MAX,
+    .property_handlers=manager_handlers,
+    .n_property_handlers=MANAGER_HANDLER_MAX,
+    .get_all_properties_cb=manager_get_all,
+    .signals=NULL,
+    .n_signals=0
+};
+
+
+enum equalizer_method_index {
+    EQUALIZER_METHOD_FILTER_POINTS,
+    EQUALIZER_METHOD_SEED_FILTER,
+    EQUALIZER_METHOD_SAVE_PROFILE,
+    EQUALIZER_METHOD_LOAD_PROFILE,
+    EQUALIZER_METHOD_SET_FILTER,
+    EQUALIZER_METHOD_GET_FILTER,
+    EQUALIZER_METHOD_MAX
+};
+
+enum equalizer_handler_index {
+    EQUALIZER_HANDLER_REVISION,
+    EQUALIZER_HANDLER_SAMPLERATE,
+    EQUALIZER_HANDLER_FILTERSAMPLERATE,
+    EQUALIZER_HANDLER_N_COEFS,
+    EQUALIZER_HANDLER_MAX
+};
+
+pa_dbus_arg_info filter_points_args[]={
+    {"xs", "au","in"},
+    {"ys", "ad","out"},
+};
+pa_dbus_arg_info seed_filter_args[]={
+    {"xs", "au","in"},
+    {"ys", "ad","in"},
+};
+pa_dbus_arg_info save_profile_args[]={
+    {"name", "s","in"},
+};
+pa_dbus_arg_info load_profile_args[]={
+    {"name", "s","in"},
+};
+pa_dbus_arg_info set_filter_args[]={
+    {"coefficients", "ad","in"},
+};
+pa_dbus_arg_info get_filter_args[]={
+    {"coefficients", "ad","out"},
+};
+
+static pa_dbus_method_handler equalizer_methods[EQUALIZER_METHOD_MAX]={
+    [EQUALIZER_METHOD_SEED_FILTER]{
+        .method_name="SeedFilter",
+        .arguments=seed_filter_args,
+        .n_arguments=sizeof(seed_filter_args)/sizeof(pa_dbus_arg_info),
+        .receive_cb=equalizer_handle_seed_filter},
+    [EQUALIZER_METHOD_FILTER_POINTS]{
+        .method_name="FilterAtPoints",
+        .arguments=filter_points_args,
+        .n_arguments=sizeof(filter_points_args)/sizeof(pa_dbus_arg_info),
+        .receive_cb=equalizer_handle_get_filter_points},
+    [EQUALIZER_METHOD_SAVE_PROFILE]{
+        .method_name="SaveProfile",
+        .arguments=save_profile_args,
+        .n_arguments=sizeof(save_profile_args)/sizeof(pa_dbus_arg_info),
+        .receive_cb=equalizer_handle_save_profile},
+    [EQUALIZER_METHOD_LOAD_PROFILE]{
+        .method_name="LoadProfile",
+        .arguments=load_profile_args,
+        .n_arguments=sizeof(load_profile_args)/sizeof(pa_dbus_arg_info),
+        .receive_cb=equalizer_handle_load_profile},
+    [EQUALIZER_METHOD_SET_FILTER]{
+        .method_name="SetFilterCoefficients",
+        .arguments=set_filter_args,
+        .n_arguments=sizeof(set_filter_args)/sizeof(pa_dbus_arg_info),
+        .receive_cb=equalizer_set_filter},
+    [EQUALIZER_METHOD_GET_FILTER]{
+        .method_name="GetFilterCoefficients",
+        .arguments=get_filter_args,
+        .n_arguments=sizeof(get_filter_args)/sizeof(pa_dbus_arg_info),
+        .receive_cb=equalizer_get_filter}
+};
+
+static pa_dbus_property_handler equalizer_handlers[EQUALIZER_HANDLER_MAX]={
+    [EQUALIZER_HANDLER_REVISION]={.property_name="InterfaceRevision",.type="u",.get_cb=equalizer_get_revision,.set_cb=NULL},
+    [EQUALIZER_HANDLER_SAMPLERATE]{.property_name="SampleRate",.type="u",.get_cb=equalizer_get_sample_rate,.set_cb=NULL},
+    [EQUALIZER_HANDLER_FILTERSAMPLERATE]{.property_name="FilterSampleRate",.type="u",.get_cb=equalizer_get_filter_rate,.set_cb=NULL},
+    [EQUALIZER_HANDLER_N_COEFS]{.property_name="NFilterCoefficients",.type="u",.get_cb=equalizer_get_n_coefs,.set_cb=NULL},
 };
 
 //static pa_dbus_arg_info new_equalizer_args[] = { { "path","o",NULL} };
@@ -1065,37 +1208,354 @@ static pa_dbus_property_handler property_handlers[PROPERTY_HANDLER_MAX]={
 //    [SIGNAL_NEW_EQUALIZER]={.name="NewEqualizer",.arguments=new_equalizer_args,.n_arguments=1}
 //};
 
-#define EXTNAME "org.PulseAudio.Ext.Equalizing1"
-
-static pa_dbus_interface_info interface_info={
+static pa_dbus_interface_info equalizer_info={
     .name=EXTNAME ".Equalizer",
-    .method_handlers=NULL,
-    .n_method_handlers=0,
-    .property_handlers=property_handlers,
-    .n_property_handlers=PROPERTY_HANDLER_MAX,
-    .get_all_properties_cb=handle_get_all,
+    .method_handlers=equalizer_methods,
+    .n_method_handlers=EQUALIZER_METHOD_MAX,
+    .property_handlers=equalizer_handlers,
+    .n_property_handlers=EQUALIZER_HANDLER_MAX,
+    .get_all_properties_cb=equalizer_get_all,
     .signals=NULL,
     .n_signals=0
 };
-
 
 void dbus_init(struct userdata *u){
     u->dbus_protocol=pa_dbus_protocol_get(u->core);
     u->dbus_path=pa_sprintf_malloc("/org/pulseaudio/core1/sink%d", u->sink->index);
 
-    pa_dbus_protocol_add_interface(u->dbus_protocol, u->dbus_path, &interface_info, u);
-    pa_dbus_protocol_register_extension(u->dbus_protocol, EXTNAME);
+    pa_dbus_protocol_add_interface(u->dbus_protocol, u->dbus_path, &equalizer_info, u);
+    pa_idxset *sink_list=pa_shared_get(u->core,SINKLIST);
+    u->database=pa_shared_get(u->core,EQDB);
+    if(sink_list==NULL){
+        sink_list=pa_idxset_new(&pa_idxset_trivial_hash_func, &pa_idxset_trivial_compare_func);
+        pa_shared_set(u->core, SINKLIST, sink_list);
+        char *dbname;
+        pa_assert_se(dbname = pa_state_path("equalizers", TRUE));
+        pa_assert_se(u->database = pa_database_open(dbname, TRUE));
+        pa_xfree(dbname);
+        pa_shared_set(u->core,EQDB,u->database);
+        pa_dbus_protocol_add_interface(u->dbus_protocol, MANAGER_PATH, &manager_info, u->core);
+        pa_dbus_protocol_register_extension(u->dbus_protocol, EXTNAME);
+    }
+    uint32_t dummy;
+    pa_idxset_put(sink_list,u,&dummy);
 }
 
 void dbus_done(struct userdata *u){
-    pa_dbus_protocol_unregister_extension(u->dbus_protocol, EXTNAME);
-    pa_dbus_protocol_remove_interface(u->dbus_protocol, u->dbus_path, interface_info.name);
-    
+    pa_idxset *sink_list;
+    uint32_t dummy;
+
+    pa_assert_se(sink_list=pa_shared_get(u->core,SINKLIST));
+    pa_idxset_remove_by_data(sink_list,u,&dummy);
+    if(pa_idxset_size(sink_list)==0){
+        pa_dbus_protocol_unregister_extension(u->dbus_protocol, EXTNAME);
+        pa_dbus_protocol_remove_interface(u->dbus_protocol, MANAGER_PATH, manager_info.name);
+        pa_shared_remove(u->core, EQDB);
+        pa_database_close(u->database);
+        pa_shared_remove(u->core, SINKLIST);
+        pa_xfree(sink_list);
+    }
+    pa_dbus_protocol_remove_interface(u->dbus_protocol, u->dbus_path, equalizer_info.name);
     pa_xfree(u->dbus_path);
     pa_dbus_protocol_unref(u->dbus_protocol);
 }
 
-void get_n_coefs(DBusConnection *conn, DBusMessage *msg, void *_u){
+void manager_handle_remove_profile(DBusConnection *conn, DBusMessage *msg, void *_u) {
+    DBusError error;
+    pa_core *c = (pa_core *)_u;
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(c);
+    dbus_error_init(&error);
+    char *name;
+    if(!dbus_message_get_args(msg, &error,
+                 DBUS_TYPE_STRING, &name,
+                DBUS_TYPE_INVALID)){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
+        dbus_error_free(&error);
+        return;
+    }
+    remove_profile(c,name);
+    pa_dbus_send_empty_reply(conn, msg);
+}
+
+void manager_get_revision(DBusConnection *conn, DBusMessage *msg, void *_u){
+    uint32_t rev=1;
+    pa_dbus_send_basic_value_reply(conn, msg, DBUS_TYPE_UINT32, &rev);
+}
+
+void manager_get_sinks(DBusConnection *conn, DBusMessage *msg, void *_u){
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(_u);
+
+    pa_core *c = (pa_core *)_u;
+    pa_idxset *sink_list;
+    uint32_t dummy;
+
+    pa_assert_se(sink_list = pa_shared_get(c, SINKLIST));
+    unsigned n_sinks = (unsigned) pa_idxset_size(sink_list);
+    char **names = NULL;
+    void *iter = NULL;
+    struct userdata *sink_u = NULL;
+    pa_assert_se(names = pa_xnew0(char *,n_sinks));
+    for(uint32_t i = 0; i < n_sinks; ++i){
+        sink_u=(struct userdata *) pa_idxset_iterate(sink_list, &iter, &dummy);
+        names[i] = sink_u->dbus_path;
+    }
+    pa_dbus_send_basic_array_variant_reply(conn, msg, DBUS_TYPE_OBJECT_PATH, names, n_sinks);
+    pa_xfree(names);
+}
+
+void manager_get_profiles(DBusConnection *conn, DBusMessage *msg, void *_u){
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(_u);
+
+    pa_core *core=_u;
+    DBusMessage *reply = NULL;
+    DBusMessageIter msg_iter, array_iter;
+
+    pa_assert_se((reply = dbus_message_new_method_return(msg)));
+    dbus_message_iter_init_append(reply, &msg_iter);
+    pa_assert_se(dbus_message_iter_open_container(&msg_iter, DBUS_TYPE_ARRAY, "s", &array_iter));
+
+    char *name;
+    pa_datum key,next_key;
+    int done;
+    pa_database *database;
+    pa_assert_se(database=pa_shared_get(core, EQDB));
+    done = !pa_database_first(database, &key, NULL);
+
+    while(!done){
+        done = !pa_database_next(database, &key, &next_key, NULL);
+        name=pa_xmalloc(key.size + 1);
+        memcpy(name, key.data, key.size);
+        name[key.size] = '\0';
+        pa_datum_free(&key);
+        dbus_message_iter_append_basic(&array_iter, DBUS_TYPE_STRING, &name);
+        pa_xfree(name);
+        key = next_key;
+    }
+    dbus_message_iter_close_container(&msg_iter, &array_iter);
+    pa_assert_se(dbus_connection_send(conn, reply, NULL));
+    dbus_message_unref(reply);
+}
+
+void manager_get_all(DBusConnection *conn, DBusMessage *msg, void *_u){
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(_u);
+
+    pa_core *u=(pa_core *) _u;
+    DBusMessage *reply = NULL;
+    DBusMessageIter msg_iter, dict_iter, sub_iter, array_iter;
+    pa_assert_se((reply = dbus_message_new_method_return(msg)));
+    dbus_message_iter_init_append(reply, &msg_iter);
+    pa_assert_se(dbus_message_iter_open_container(&msg_iter, DBUS_TYPE_ARRAY, "{sv}", &dict_iter));
+
+    uint32_t rev=1;
+    pa_idxset *sink_list;
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, manager_handlers[MANAGER_HANDLER_REVISION].property_name, DBUS_TYPE_UINT32, &rev);
+
+    pa_assert_se(sink_list = pa_shared_get(u, SINKLIST));
+    unsigned n_sinks = (unsigned) pa_idxset_size(sink_list);
+    char **names = NULL;
+    void *iter = NULL;
+    struct userdata *sink_u = NULL;
+    pa_assert_se(names = pa_xnew0(char *,n_sinks));
+    for(uint32_t i = 0; i < n_sinks; ++i){
+        unsigned dummy;
+        sink_u=(struct userdata *) pa_idxset_iterate(sink_list, &iter, &dummy);
+        names[i] = sink_u->dbus_path;
+    }
+    pa_dbus_append_basic_array_variant_dict_entry(&dict_iter, manager_handlers[MANAGER_HANDLER_EQUALIZED_SINKS].property_name, DBUS_TYPE_OBJECT_PATH, names, n_sinks);
+    pa_xfree(names);
+
+    pa_database *database;
+    pa_assert_se(database=pa_shared_get(u, EQDB));
+
+    pa_datum key,next_key;
+    char *profile_name;
+    int done;
+    done = !pa_database_first(database, &key, NULL);
+    dbus_message_iter_open_container(&dict_iter, DBUS_TYPE_DICT_ENTRY, NULL, &sub_iter);
+    dbus_message_iter_append_basic(&sub_iter, DBUS_TYPE_STRING, &manager_handlers[MANAGER_HANDLER_PROFILES].property_name);
+
+    dbus_message_iter_open_container(&sub_iter, DBUS_TYPE_ARRAY, "s", &array_iter);
+    while(!done){
+        done = !pa_database_next(database, &key, &next_key, NULL);
+        profile_name=pa_xmalloc(key.size + 1);
+        memcpy(profile_name, key.data, key.size);
+        profile_name[key.size] = '\0';
+        pa_datum_free(&key);
+        dbus_message_iter_append_basic(&array_iter, DBUS_TYPE_STRING, &profile_name);
+        pa_xfree(profile_name);
+        key = next_key;
+    }
+    pa_assert_se(dbus_message_iter_close_container(&sub_iter, &array_iter));
+    pa_assert_se(dbus_message_iter_close_container(&dict_iter, &sub_iter));
+    pa_assert_se(dbus_message_iter_close_container(&msg_iter, &dict_iter));
+    pa_assert_se(dbus_connection_send(conn, reply, NULL));
+    dbus_message_unref(reply);
+}
+
+void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg, void *_u) {
+    struct userdata *u=(struct userdata *) _u;
+    DBusError error;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(u);
+    float *ys;
+    uint32_t *xs;
+    double *_ys;
+    unsigned x_npoints,y_npoints;
+
+    dbus_error_init(&error);
+
+    if(!dbus_message_get_args(msg, &error,
+                DBUS_TYPE_ARRAY, DBUS_TYPE_UINT32, &xs, &x_npoints,
+                DBUS_TYPE_ARRAY, DBUS_TYPE_DOUBLE, &_ys, &y_npoints,
+                DBUS_TYPE_INVALID)){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
+        dbus_error_free(&error);
+        return;
+    }
+    int points_good=1;
+    for(size_t i = 0; i < x_npoints; ++i){
+        if(xs[i] >= u->fft_size / 2 + 1){
+            points_good=0;
+            break;
+        }
+    }
+    if(!is_monotonic(xs,x_npoints) || !points_good){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs must be monotonic and 0<x<%ld", u->fft_size / 2);
+        dbus_error_free(&error);
+        return;
+
+    }
+    else if(x_npoints != y_npoints || x_npoints < 2 || x_npoints > u->fft_size / 2 +1  ){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs and ys must be the same length and 2<=l<=%ld!", u->fft_size / 2 + 1);
+        dbus_error_free(&error);
+        return;
+    }
+
+    ys = pa_xmalloc(x_npoints * sizeof(float));
+    for(uint32_t i = 0; i < x_npoints; ++i){
+        ys[i] = (float) _ys[i];
+    }
+
+    float *H = u->Hs[pa_aupdate_write_begin(u->a_H)];
+    interpolate(H, u->fft_size / 2 + 1, xs, ys, x_npoints);
+    fix_filter(H, u->fft_size);
+    pa_aupdate_write_swap(u->a_H);
+    pa_aupdate_write_end(u->a_H);
+    pa_xfree(ys);
+
+    //Stupid for IO reasons?  Add a save signal to dbus instead
+    //save_state(u);
+
+    pa_dbus_send_empty_reply(conn, msg);
+}
+
+void equalizer_handle_get_filter_points(DBusConnection *conn, DBusMessage *msg, void *_u) {
+    struct userdata *u=(struct userdata *) _u;
+    DBusError error;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(u);
+    uint32_t *xs;
+    double *ys;
+    unsigned x_npoints;
+
+    dbus_error_init(&error);
+
+    if(!dbus_message_get_args(msg, &error,
+                DBUS_TYPE_ARRAY, DBUS_TYPE_UINT32, &xs, &x_npoints,
+                DBUS_TYPE_INVALID)){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
+        dbus_error_free(&error);
+        return;
+    }
+    int points_good=1;
+    for(size_t i = 0; i < x_npoints; ++i){
+        if(xs[i] >= u->fft_size / 2 + 1){
+            points_good=0;
+            break;
+        }
+    }
+
+    if(x_npoints > u->fft_size / 2 +1 || !points_good){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs indices/length must be <= %ld!", u->fft_size / 2 + 1);
+        dbus_error_free(&error);
+        return;
+    }
+
+    ys = pa_xmalloc(x_npoints * sizeof(double));
+    float *H = u->Hs[pa_aupdate_read_begin(u->a_H)];
+    for(uint32_t i = 0; i < x_npoints; ++i){
+        ys[i] = H[xs[i]] * u->fft_size;
+    }
+    pa_aupdate_read_end(u->a_H);
+
+    pa_dbus_send_basic_array_variant_reply(conn, msg, DBUS_TYPE_DOUBLE, ys, x_npoints);
+    pa_xfree(ys);
+}
+
+void equalizer_handle_save_profile(DBusConnection *conn, DBusMessage *msg, void *_u) {
+    struct userdata *u=(struct userdata *) _u;
+    DBusError error;
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(u);
+    dbus_error_init(&error);
+    char *name;
+
+    if(!dbus_message_get_args(msg, &error,
+                 DBUS_TYPE_STRING, &name,
+                DBUS_TYPE_INVALID)){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
+        dbus_error_free(&error);
+        return;
+    }
+    save_profile(u,name);
+    pa_dbus_send_empty_reply(conn, msg);
+}
+
+void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void *_u) {
+    struct userdata *u=(struct userdata *) _u;
+    DBusError error;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(u);
+    dbus_error_init(&error);
+    char *name;
+
+    if(!dbus_message_get_args(msg, &error,
+                 DBUS_TYPE_STRING, &name,
+                DBUS_TYPE_INVALID)){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
+        dbus_error_free(&error);
+        return;
+    }
+    const char *err_msg=load_profile(u,name);
+    if(err_msg!=NULL){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_FAILED, "error loading profile %s: %s", name,err_msg);
+        dbus_error_free(&error);
+        return;
+    }
+    pa_dbus_send_empty_reply(conn, msg);
+}
+
+void equalizer_get_revision(DBusConnection *conn, DBusMessage *msg, void *_u){
+    uint32_t rev=1;
+    pa_dbus_send_basic_value_reply(conn, msg, DBUS_TYPE_UINT32, &rev);
+}
+
+void equalizer_get_n_coefs(DBusConnection *conn, DBusMessage *msg, void *_u){
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(_u);
@@ -1106,7 +1566,7 @@ void get_n_coefs(DBusConnection *conn, DBusMessage *msg, void *_u){
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &n_coefs);
 }
 
-void get_sample_rate(DBusConnection *conn, DBusMessage *msg, void *_u){
+void equalizer_get_sample_rate(DBusConnection *conn, DBusMessage *msg, void *_u){
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(_u);
@@ -1115,7 +1575,8 @@ void get_sample_rate(DBusConnection *conn, DBusMessage *msg, void *_u){
     uint32_t rate=(uint32_t) u->sink->sample_spec.rate;
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &rate);
 }
-void get_filter_rate(DBusConnection *conn, DBusMessage *msg, void *_u){
+
+void equalizer_get_filter_rate(DBusConnection *conn, DBusMessage *msg, void *_u){
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(_u);
@@ -1125,7 +1586,34 @@ void get_filter_rate(DBusConnection *conn, DBusMessage *msg, void *_u){
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &fft_size);
 }
 
-void get_filter(DBusConnection *conn, DBusMessage *msg, void *_u){
+void equalizer_get_all(DBusConnection *conn, DBusMessage *msg, void *_u){
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(_u);
+
+    struct userdata *u=(struct userdata *) _u;
+    DBusMessage *reply = NULL;
+    DBusMessageIter msg_iter, dict_iter;
+    uint32_t rev=1;
+    uint32_t n_coefs=(uint32_t)(u->fft_size / 2 + 1);
+    uint32_t rate=(uint32_t) u->sink->sample_spec.rate;
+    uint32_t fft_size=(uint32_t) u->fft_size;
+
+    pa_assert_se((reply = dbus_message_new_method_return(msg)));
+    dbus_message_iter_init_append(reply, &msg_iter);
+    pa_assert_se(dbus_message_iter_open_container(&msg_iter, DBUS_TYPE_ARRAY, "{sv}", &dict_iter));
+
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_REVISION].property_name, DBUS_TYPE_UINT32, &rev);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_SAMPLERATE].property_name, DBUS_TYPE_UINT32, &rate);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_FILTERSAMPLERATE].property_name, DBUS_TYPE_UINT32, &fft_size);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_N_COEFS].property_name, DBUS_TYPE_UINT32, &n_coefs);
+
+    pa_assert_se(dbus_message_iter_close_container(&msg_iter, &dict_iter));
+    pa_assert_se(dbus_connection_send(conn, reply, NULL));
+    dbus_message_unref(reply);
+}
+
+void equalizer_get_filter(DBusConnection *conn, DBusMessage *msg, void *_u){
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(_u);
@@ -1144,7 +1632,7 @@ void get_filter(DBusConnection *conn, DBusMessage *msg, void *_u){
     pa_xfree(H_);
 }
 
-void set_filter(DBusConnection *conn, DBusMessage *msg, void *_u){
+void equalizer_set_filter(DBusConnection *conn, DBusMessage *msg, void *_u){
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(_u);
@@ -1152,7 +1640,9 @@ void set_filter(DBusConnection *conn, DBusMessage *msg, void *_u){
     struct userdata *u=(struct userdata *)_u;
     double *H_;
     unsigned _n_coefs;
-    pa_dbus_get_fixed_array_set_property_arg(conn, msg, DBUS_TYPE_DOUBLE, &H_, &_n_coefs);
+    if(pa_dbus_get_fixed_array_set_property_arg(conn, msg, DBUS_TYPE_DOUBLE, &H_, &_n_coefs)){
+        return;
+    }
     if(_n_coefs!=u->fft_size / 2 + 1){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "This filter takes exactly %ld coefficients, you gave %d", u->fft_size / 2 + 1, _n_coefs);
         return;
@@ -1166,44 +1656,7 @@ void set_filter(DBusConnection *conn, DBusMessage *msg, void *_u){
     pa_aupdate_write_end(u->a_H);
 
     //Stupid for IO reasons?  Add a save signal to dbus instead
-    save_state(u);
+    //save_state(u);
 
     pa_dbus_send_empty_reply(conn, msg);
-}
-
-void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *_u){
-    pa_assert(conn);
-    pa_assert(msg);
-    pa_assert(_u);
-
-    struct userdata *u = (struct userdata *)_u;
-    DBusMessage *reply = NULL;
-    DBusMessageIter msg_iter, dict_iter;
-
-    uint32_t rate=(uint32_t) u->sink->sample_spec.rate;
-    uint32_t fft_size=(uint32_t) u->fft_size;
-    uint32_t n_coefs=(uint32_t)(u->fft_size / 2 + 1);
-    double *H_=(double *)pa_xmalloc0(n_coefs*sizeof(double));
-    
-    unsigned H_i=pa_aupdate_read_begin(u->a_H);
-    float *H=u->Hs[H_i];
-    for(size_t i = 0; i < u->fft_size / 2 + 1; ++i){
-        H_[i] = H[i];
-    }
-    pa_aupdate_read_end(u->a_H);
-
-    pa_assert_se((reply = dbus_message_new_method_return(msg)));
-    dbus_message_iter_init_append(reply, &msg_iter);
-    pa_assert_se(dbus_message_iter_open_container(&msg_iter, DBUS_TYPE_ARRAY, "{sv}", &dict_iter));
-
-    pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_SAMPLERATE].property_name, DBUS_TYPE_UINT32, &rate);
-    pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_FILTERSAMPLERATE].property_name, DBUS_TYPE_UINT32, &fft_size);
-    pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_N_COEFS].property_name, DBUS_TYPE_UINT32, &n_coefs);
-    pa_dbus_append_basic_array_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_COEFS].property_name, DBUS_TYPE_DOUBLE, H_, n_coefs);
-
-    pa_assert_se(dbus_message_iter_close_container(&msg_iter, &dict_iter));
-    pa_assert_se(dbus_connection_send(conn, reply, NULL));
-    dbus_message_unref(reply);
-
-    pa_xfree(H_);
 }
