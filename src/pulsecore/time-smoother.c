@@ -515,7 +515,7 @@ void pa_smoother_reset(pa_smoother *s, pa_usec_t time_offset, pa_bool_t paused) 
     s->paused = paused;
     s->time_offset = s->pause_time = time_offset;
 
-    /* #ifdef DEBUG_DATA */
+#ifdef DEBUG_DATA
     pa_log_debug("reset()");
-/* #endif */
+#endif
 }
