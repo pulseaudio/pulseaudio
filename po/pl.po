@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-07-28 01:38+0200\n"
-"PO-Revision-Date: 2009-07-23 19:15+0200\n"
+"PO-Revision-Date: 2009-07-28 21:54+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -1212,158 +1212,153 @@ msgid "Received message for unknown extension '%s'"
 msgstr "Otrzymano komunikat z nieznanego powodu \"%s\""
 
 #: ../src/utils/pacat.c:108
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to drain stream: %s"
-msgstr "Opróżnienie strumienia nie powiodło się: %s\n"
+msgstr "Opróżnienie strumienia nie powiodło się: %s"
 
 #: ../src/utils/pacat.c:113
-#, fuzzy
 msgid "Playback stream drained."
-msgstr "Opróżniono strumień odtwarzania.\n"
+msgstr "Opróżniono strumień odtwarzania."
 
 #: ../src/utils/pacat.c:123
-#, fuzzy
 msgid "Draining connection to server."
-msgstr "Opróżnianie połączenia z serwerem.\n"
+msgstr "Opróżnianie połączenia z serwerem."
 
 #: ../src/utils/pacat.c:136
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_drain(): %s"
-msgstr "pa_stream_drain(): %s\n"
+msgstr "pa_stream_drain(): %s"
 
 #: ../src/utils/pacat.c:159
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_write() failed: %s"
-msgstr "pa_stream_write() nie powiodło się: %s\n"
+msgstr "pa_stream_write() nie powiodło się: %s"
 
 #: ../src/utils/pacat.c:197
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_begin_write() failed: %s"
-msgstr "pa_stream_write() nie powiodło się: %s\n"
+msgstr "pa_stream_begin_write() nie powiodło się: %s"
 
 #: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_peek() failed: %s"
-msgstr "pa_stream_peek() nie powiodło się: %s\n"
+msgstr "pa_stream_peek() nie powiodło się: %s"
 
 #: ../src/utils/pacat.c:307
-#, fuzzy
 msgid "Stream successfully created."
-msgstr "Pomyślnie utworzono strumień.\n"
+msgstr "Pomyślnie utworzono strumień."
 
 #: ../src/utils/pacat.c:310
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s"
-msgstr "pa_stream_get_buffer_attr() nie powiodło się: %s\n"
+msgstr "pa_stream_get_buffer_attr() nie powiodło się: %s"
 
 #: ../src/utils/pacat.c:314
-#, fuzzy, c-format
+#, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
-msgstr "Metryka bufora: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
+msgstr "Metryka bufora: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 
 #: ../src/utils/pacat.c:317
-#, fuzzy, c-format
+#, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u"
-msgstr "Metryka bufora: maxlength=%u, fragsize=%u\n"
+msgstr "Metryka bufora: maxlength=%u, fragsize=%u"
 
 #: ../src/utils/pacat.c:321
-#, fuzzy, c-format
+#, c-format
 msgid "Using sample spec '%s', channel map '%s'."
-msgstr "Używanie przykładowej specyfikacji \"%s\", mapa kanałów \"%s\".\n"
+msgstr "Używanie przykładowej specyfikacji \"%s\", mapa kanałów \"%s\"."
 
 #: ../src/utils/pacat.c:325
-#, fuzzy, c-format
+#, c-format
 msgid "Connected to device %s (%u, %ssuspended)."
-msgstr "Połączono się z urządzeniem %s (%u, %swstrzymane).\n"
+msgstr "Połączono się z urządzeniem %s (%u, %swstrzymane)."
 
 #: ../src/utils/pacat.c:335
-#, fuzzy, c-format
+#, c-format
 msgid "Stream error: %s"
-msgstr "Błąd strumienia: %s\n"
+msgstr "Błąd strumienia: %s"
 
 #: ../src/utils/pacat.c:345
-#, fuzzy, c-format
+#, c-format
 msgid "Stream device suspended.%s"
-msgstr "Wstrzymano urządzenie strumienia.%s \n"
+msgstr "Wstrzymano urządzenie strumienia.%s"
 
 #: ../src/utils/pacat.c:347
-#, fuzzy, c-format
+#, c-format
 msgid "Stream device resumed.%s"
-msgstr "Wznowiono urządzenie strumienia.%s \n"
+msgstr "Wznowiono urządzenie strumienia.%s"
 
 #: ../src/utils/pacat.c:355
-#, fuzzy, c-format
+#, c-format
 msgid "Stream underrun.%s"
-msgstr "Niedopełniono strumień.%s \n"
+msgstr "Niedopełniono strumień.%s"
 
 #: ../src/utils/pacat.c:362
-#, fuzzy, c-format
+#, c-format
 msgid "Stream overrun.%s"
-msgstr "Przepełniono strumień.%s \n"
+msgstr "Przepełniono strumień.%s"
 
 #: ../src/utils/pacat.c:369
-#, fuzzy, c-format
+#, c-format
 msgid "Stream started.%s"
-msgstr "Utworzono strumień.%s \n"
+msgstr "Utworzono strumień.%s"
 
 #: ../src/utils/pacat.c:376
-#, fuzzy, c-format
+#, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s"
-msgstr "Strumień został przeniesiony do urządzenia %s (%u, %swstrzymane).%s \n"
+msgstr "Strumień został przeniesiony do urządzenia %s (%u, %swstrzymane).%s"
 
 #: ../src/utils/pacat.c:376
 msgid "not "
 msgstr "nie "
 
 #: ../src/utils/pacat.c:383
-#, fuzzy, c-format
+#, c-format
 msgid "Stream buffer attributes changed.%s"
-msgstr "Zmieniono atrybuty bufora strumienia.%s \n"
+msgstr "Zmieniono atrybuty bufora strumienia.%s"
 
 #: ../src/utils/pacat.c:416
-#, fuzzy, c-format
+#, c-format
 msgid "Connection established.%s"
-msgstr "Ustanowiono połączenie.%s \n"
+msgstr "Ustanowiono połączenie.%s"
 
 #: ../src/utils/pacat.c:419
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_new() failed: %s"
-msgstr "pa_stream_new() nie powiodło się: %s\n"
+msgstr "pa_stream_new() nie powiodło się: %s"
 
 #: ../src/utils/pacat.c:447
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_connect_playback() failed: %s"
-msgstr "pa_stream_connect_playback() nie powiodło się: %s\n"
+msgstr "pa_stream_connect_playback() nie powiodło się: %s"
 
 #: ../src/utils/pacat.c:453
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_connect_record() failed: %s"
-msgstr "pa_stream_connect_record() nie powiodło się: %s\n"
+msgstr "pa_stream_connect_record() nie powiodło się: %s"
 
 #: ../src/utils/pacat.c:467
-#, fuzzy, c-format
+#, c-format
 msgid "Connection failure: %s"
-msgstr "Połączenie nie powiodło się: %s\n"
+msgstr "Połączenie nie powiodło się: %s"
 
 #: ../src/utils/pacat.c:500
-#, fuzzy
 msgid "Got EOF."
-msgstr "Otrzymano EOF.\n"
+msgstr "Otrzymano EOF."
 
 #: ../src/utils/pacat.c:537
-#, fuzzy, c-format
+#, c-format
 msgid "write() failed: %s"
-msgstr "write() nie powiodło się: %s\n"
+msgstr "write() nie powiodło się: %s"
 
 #: ../src/utils/pacat.c:558
-#, fuzzy
 msgid "Got signal, exiting."
-msgstr "Otrzymano sygnał, wyłączanie.\n"
+msgstr "Otrzymano sygnał, wyłączanie."
 
 #: ../src/utils/pacat.c:572
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get latency: %s"
-msgstr "Uzyskanie opóźnienia nie powiodło się: %s\n"
+msgstr "Uzyskanie opóźnienia nie powiodło się: %s"
 
 #: ../src/utils/pacat.c:577
 #, c-format
@@ -1371,9 +1366,9 @@ msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr "Czas: %0.3f sekundy; opóźnienie: %0.0f usekundy.  \r"
 
 #: ../src/utils/pacat.c:595
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
-msgstr "pa_stream_update_timing_info() nie powiodło się: %s\n"
+msgstr "pa_stream_update_timing_info() nie powiodło się: %s"
 
 #: ../src/utils/pacat.c:605
 #, c-format
@@ -1502,34 +1497,34 @@ msgstr ""
 "Skonsolidowane za pomocą libpulse %s\n"
 
 #: ../src/utils/pacat.c:760
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid client name '%s'"
-msgstr "Nieprawidłowa nazwa klienta \"%s\"\n"
+msgstr "Nieprawidłowa nazwa klienta \"%s\""
 
 #: ../src/utils/pacat.c:776
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid stream name '%s'"
-msgstr "Nieprawidłowa nazwa strumienia \"%s\"\n"
+msgstr "Nieprawidłowa nazwa strumienia \"%s\""
 
 #: ../src/utils/pacat.c:813
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid channel map '%s'"
-msgstr "Nieprawidłowa mapa kanałów \"%s\"\n"
+msgstr "Nieprawidłowa mapa kanałów \"%s\""
 
 #: ../src/utils/pacat.c:842
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid latency specification '%s'"
-msgstr "Nieprawidłowe określenie opóźnienia \"%s\"\n"
+msgstr "Nieprawidłowe określenie opóźnienia \"%s\""
 
 #: ../src/utils/pacat.c:849
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid process time specification '%s'"
-msgstr "Nieprawidłowe określenie czasu procesu \"%s\"\n"
+msgstr "Nieprawidłowe określenie czasu procesu \"%s\""
 
 #: ../src/utils/pacat.c:861
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid property '%s'"
-msgstr "Nieprawidłowa własność \"%s\"\n"
+msgstr "Nieprawidłowa własność \"%s\""
 
 #: ../src/utils/pacat.c:878
 #, c-format
@@ -1537,71 +1532,62 @@ msgid "Unknown file format %s."
 msgstr "Nieznany format pliku %s."
 
 #: ../src/utils/pacat.c:897
-#, fuzzy
 msgid "Invalid sample specification"
-msgstr "Nieprawidłowe określenie próbki\n"
+msgstr "Nieprawidłowe określenie próbki"
 
 #: ../src/utils/pacat.c:907
-#, fuzzy, c-format
+#, c-format
 msgid "open(): %s"
-msgstr "open(): %s\n"
+msgstr "open(): %s"
 
 #: ../src/utils/pacat.c:912
-#, fuzzy, c-format
+#, c-format
 msgid "dup2(): %s"
-msgstr "dup2(): %s\n"
+msgstr "dup2(): %s"
 
 #: ../src/utils/pacat.c:919
-#, fuzzy
 msgid "Too many arguments."
-msgstr "Za dużo parametrów.\n"
+msgstr "Za dużo parametrów."
 
 #: ../src/utils/pacat.c:930
-#, fuzzy
 msgid "Failed to generate sample specification for file."
-msgstr "Utworzenie określenia próbki dla pliku nie powiodło się.\n"
+msgstr "Utworzenie określenia próbki dla pliku nie powiodło się."
 
 #: ../src/utils/pacat.c:950
-#, fuzzy
 msgid "Failed to open audio file."
-msgstr "Otwarcie pliku dźwiękowego nie powiodło się.\n"
+msgstr "Otwarcie pliku dźwiękowego nie powiodło się."
 
 #: ../src/utils/pacat.c:956
-#, fuzzy
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
 msgstr ""
 "Ostrzeżenie: podane określenie próbki zostanie zastąpione przez określenie z "
-"pliku.\n"
+"pliku."
 
 #: ../src/utils/pacat.c:959
-#, fuzzy
 msgid "Failed to determine sample specification from file."
-msgstr "Ustalenie określenia próbki z pliku nie powiodło się.\n"
+msgstr "Ustalenie określenia próbki z pliku nie powiodło się."
 
 #: ../src/utils/pacat.c:968
-#, fuzzy
 msgid "Warning: Failed to determine channel map from file."
-msgstr "Ostrzeżenie: ustalenie mapy kanałów z pliku nie powiodło się.\n"
+msgstr "Ostrzeżenie: ustalenie mapy kanałów z pliku nie powiodło się."
 
 #: ../src/utils/pacat.c:979
-#, fuzzy
 msgid "Channel map doesn't match sample specification"
-msgstr "Mapa kanałów nie zgadza się z określeniem próbki\n"
+msgstr "Mapa kanałów nie zgadza się z określeniem próbki"
 
 #: ../src/utils/pacat.c:990
-#, fuzzy
 msgid "Warning: failed to write channel map to file."
-msgstr "Ostrzeżenie: zapisanie mapy kanałów do pliku nie powiodło się.\n"
+msgstr "Ostrzeżenie: zapisanie mapy kanałów do pliku nie powiodło się."
 
 #: ../src/utils/pacat.c:1005
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
 "Otwieranie strumienia %s za pomocą określenie próbki \"%s\" i mapy kanałów "
-"\"%s\".\n"
+"\"%s\"."
 
 #: ../src/utils/pacat.c:1006
 msgid "recording"
@@ -1612,19 +1598,16 @@ msgid "playback"
 msgstr "odtwarzanie"
 
 #: ../src/utils/pacat.c:1032
-#, fuzzy
 msgid "pa_mainloop_new() failed."
-msgstr "pa_mainloop_new() nie powiodło się.\n"
+msgstr "pa_mainloop_new() nie powiodło się."
 
 #: ../src/utils/pacat.c:1051
-#, fuzzy
 msgid "io_new() failed."
-msgstr "io_new() nie powiodło się.\n"
+msgstr "io_new() nie powiodło się."
 
 #: ../src/utils/pacat.c:1058
-#, fuzzy
 msgid "pa_context_new() failed."
-msgstr "pa_context_new() nie powiodło się.\n"
+msgstr "pa_context_new() nie powiodło się."
 
 #: ../src/utils/pacat.c:1066 ../src/utils/pactl.c:1122
 #, c-format
@@ -1632,14 +1615,12 @@ msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() nie powiodło się: %s"
 
 #: ../src/utils/pacat.c:1072
-#, fuzzy
 msgid "pa_context_rttime_new() failed."
-msgstr "pa_context_rttime_new() nie powiodło się.\n"
+msgstr "pa_context_rttime_new() nie powiodło się."
 
 #: ../src/utils/pacat.c:1079
-#, fuzzy
 msgid "pa_mainloop_run() failed."
-msgstr "pa_mainloop_run() nie powiodło się.\n"
+msgstr "pa_mainloop_run() nie powiodło się."
 
 #: ../src/utils/pasuspender.c:81
 #, c-format
@@ -2389,9 +2370,3 @@ msgstr "Duplex telefoniczny (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "Serwer dźwięku PulseAudio"
-
-#~ msgid "read() failed: %s\n"
-#~ msgstr "read() nie powiodło się: %s\n"
-
-#~ msgid "pa_context_connect() failed: %s\n"
-#~ msgstr "pa_context_connect() nie powiodło się: %s\n"
