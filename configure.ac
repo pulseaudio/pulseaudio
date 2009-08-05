@@ -49,7 +49,7 @@ AC_SUBST(LIBPULSE_VERSION_INFO, [9:0:9])
 
 # A simplified, synchronous, ABI-stable interface for client
 # applications, for the version info x:y:z always will hold y=z
-AC_SUBST(LIBPULSE_SIMPLE_VERSION_INFO, [0:2:0])
+AC_SUBST(LIBPULSE_SIMPLE_VERSION_INFO, [0:3:0])
 
 # The ABI-stable network browsing interface for client applications,
 # for the version info x:y:z always will hold y=z
