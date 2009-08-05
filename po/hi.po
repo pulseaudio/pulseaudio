@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-07-28 01:38+0200\n"
+"POT-Creation-Date: 2009-08-05 15:09+0200\n"
 "PO-Revision-Date: 2009-06-08 12:01+0530\n"
 "Last-Translator: Rajesh Ranjan <rajesh672@gmail.com>\n"
 "Language-Team: Hindi <hindi.sf.net>\n"
@@ -20,12 +20,12 @@ msgstr ""
 "\n"
 "\n"
 
-#: ../src/modules/alsa/alsa-util.c:772 ../src/pulsecore/sink.c:2411
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2411
 #, c-format
 msgid "%s %s"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1020
+#: ../src/modules/alsa/alsa-util.c:1023
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -37,7 +37,7 @@ msgstr ""
 "अधिक संभव है कि यह ALSA ड्राइवर '%s' में एक बग है. इस मुद्दे को ALSA डेवलेपर को रिपोर्ट "
 "करें."
 
-#: ../src/modules/alsa/alsa-util.c:1061
+#: ../src/modules/alsa/alsa-util.c:1064
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -49,7 +49,7 @@ msgstr ""
 "अधिक संभव है कि यह ALSA ड्राइवर '%s' में एक बग है. इस मुद्दे को ALSA डेवलेपर को रिपोर्ट "
 "करें."
 
-#: ../src/modules/alsa/alsa-util.c:1108
+#: ../src/modules/alsa/alsa-util.c:1111
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -94,60 +94,6 @@ msgstr "नया dl लोडर आबंटित करने में व�
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
 msgstr "bind-now-loader जोड़ने में विफल."
-
-#: ../src/daemon/polkit.c:55
-#, c-format
-msgid "Cannot connect to system bus: %s"
-msgstr "तंत्र बस से कनेक्ट नहीं हो सकता है: %s"
-
-#: ../src/daemon/polkit.c:65
-#, c-format
-msgid "Cannot get caller from PID: %s"
-msgstr "PID से कॉलर पाने में विफल: %s"
-
-#: ../src/daemon/polkit.c:77
-msgid "Cannot set UID on caller object."
-msgstr "UID को कॉलर वस्तु पर सेट नहीं कर सकता है."
-
-#: ../src/daemon/polkit.c:82
-msgid "Failed to get CK session."
-msgstr "CK सत्र पाने में विफल."
-
-#: ../src/daemon/polkit.c:90
-msgid "Cannot set UID on session object."
-msgstr "UID को सत्र वस्तु पर सेट नहीं कर सकता है."
-
-#: ../src/daemon/polkit.c:95
-msgid "Cannot allocate PolKitAction."
-msgstr "PolKitAction आबंटित नहीं कर सकता है."
-
-#: ../src/daemon/polkit.c:100
-msgid "Cannot set action_id"
-msgstr "action_id सेट नहीं कर सकता है"
-
-#: ../src/daemon/polkit.c:105
-msgid "Cannot allocate PolKitContext."
-msgstr "PolKitContext आबंटित नहीं कर सकता है."
-
-#: ../src/daemon/polkit.c:110
-#, c-format
-msgid "Cannot initialize PolKitContext: %s"
-msgstr "PolKitContext आरंभ नहीं कर सकता है.: %s"
-
-#: ../src/daemon/polkit.c:119
-#, c-format
-msgid "Could not determine whether caller is authorized: %s"
-msgstr "निर्धारित नहीं कर सकता है कि क्या कॉलर अधिकृत है: %s"
-
-#: ../src/daemon/polkit.c:139
-#, c-format
-msgid "Cannot obtain auth: %s"
-msgstr "अधिकार प्राप्त नहीं कर सकता है: %s"
-
-#: ../src/daemon/polkit.c:148
-#, c-format
-msgid "PolicyKit responded with '%s'"
-msgstr "PolicyKit ने '%s' के साथ अनुक्रिया किया"
 
 #: ../src/daemon/main.c:145
 #, c-format
@@ -775,24 +721,6 @@ msgstr "पल्सऑडियो ध्वनि तंत्र"
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
 msgstr "पल्सऑडियो ध्वनि तंत्र प्रारंभ करें"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:1
-msgid ""
-"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr "उच्च प्राथमिकता अनुसूचन (negative Unix nice level) PulseAudio डेमॉन के लिए"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:2
-msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr "पल्सऑडियो डेमॉन के लिए वास्तविक समय नियोजन"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:3
-msgid ""
-"System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr "तंत्र नीति PulseAudio को रोकती है उच्च प्राथमिकता अनुसूचन के लिए."
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:4
-msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr "तंत्र नीति PulseAudio को वास्तविक समय अनुसूचन पाने से रोकती है."
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:747
 msgid "Mono"
@@ -2300,11 +2228,11 @@ msgstr "read(): %s"
 msgid "write(): %s"
 msgstr "write(): %s"
 
-#: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
+#: ../src/pulsecore/lock-autospawn.c:136 ../src/pulsecore/lock-autospawn.c:219
 msgid "Cannot access autospawn lock."
 msgstr "autospawn लॉक की पहुँच नहीं ले सकता है."
 
-#: ../src/modules/alsa/alsa-sink.c:446 ../src/modules/alsa/alsa-sink.c:603
+#: ../src/modules/alsa/alsa-sink.c:449 ../src/modules/alsa/alsa-sink.c:606
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2321,7 +2249,7 @@ msgstr ""
 "हमें POLLOUT सेट के साथ तैयार किया गया है  -- हालांकि परवर्ती snd_pcm_avail() ने 0 या "
 "दूसरा मान < min_avail दिया."
 
-#: ../src/modules/alsa/alsa-source.c:426 ../src/modules/alsa/alsa-source.c:575
+#: ../src/modules/alsa/alsa-source.c:429 ../src/modules/alsa/alsa-source.c:578
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2354,6 +2282,59 @@ msgstr "टेलिफोनी ड्यूप्लेक्स (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "पल्सऑडियो ध्वनि सर्वर"
+
+#~ msgid "Cannot connect to system bus: %s"
+#~ msgstr "तंत्र बस से कनेक्ट नहीं हो सकता है: %s"
+
+#~ msgid "Cannot get caller from PID: %s"
+#~ msgstr "PID से कॉलर पाने में विफल: %s"
+
+#~ msgid "Cannot set UID on caller object."
+#~ msgstr "UID को कॉलर वस्तु पर सेट नहीं कर सकता है."
+
+#~ msgid "Failed to get CK session."
+#~ msgstr "CK सत्र पाने में विफल."
+
+#~ msgid "Cannot set UID on session object."
+#~ msgstr "UID को सत्र वस्तु पर सेट नहीं कर सकता है."
+
+#~ msgid "Cannot allocate PolKitAction."
+#~ msgstr "PolKitAction आबंटित नहीं कर सकता है."
+
+#~ msgid "Cannot set action_id"
+#~ msgstr "action_id सेट नहीं कर सकता है"
+
+#~ msgid "Cannot allocate PolKitContext."
+#~ msgstr "PolKitContext आबंटित नहीं कर सकता है."
+
+#~ msgid "Cannot initialize PolKitContext: %s"
+#~ msgstr "PolKitContext आरंभ नहीं कर सकता है.: %s"
+
+#~ msgid "Could not determine whether caller is authorized: %s"
+#~ msgstr "निर्धारित नहीं कर सकता है कि क्या कॉलर अधिकृत है: %s"
+
+#~ msgid "Cannot obtain auth: %s"
+#~ msgstr "अधिकार प्राप्त नहीं कर सकता है: %s"
+
+#~ msgid "PolicyKit responded with '%s'"
+#~ msgstr "PolicyKit ने '%s' के साथ अनुक्रिया किया"
+
+#~ msgid ""
+#~ "High-priority scheduling (negative Unix nice level) for the PulseAudio "
+#~ "daemon"
+#~ msgstr ""
+#~ "उच्च प्राथमिकता अनुसूचन (negative Unix nice level) PulseAudio डेमॉन के लिए"
+
+#~ msgid "Real-time scheduling for the PulseAudio daemon"
+#~ msgstr "पल्सऑडियो डेमॉन के लिए वास्तविक समय नियोजन"
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring high-priority scheduling."
+#~ msgstr "तंत्र नीति PulseAudio को रोकती है उच्च प्राथमिकता अनुसूचन के लिए."
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring real-time scheduling."
+#~ msgstr "तंत्र नीति PulseAudio को वास्तविक समय अनुसूचन पाने से रोकती है."
 
 #~ msgid "read() failed: %s\n"
 #~ msgstr "read() विफल: %s\n"

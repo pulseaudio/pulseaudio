@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-07-28 01:38+0200\n"
+"POT-Creation-Date: 2009-08-05 15:09+0200\n"
 "PO-Revision-Date: 2009-04-07 23:02+0100\n"
 "Last-Translator: Miloš Komarčević <kmilos@gmail.com>\n"
 "Language-Team: Serbian <fedora-trans-sr@redhat.com>\n"
@@ -19,12 +19,12 @@ msgstr ""
 "10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Generator: Lokalize 0.3\n"
 
-#: ../src/modules/alsa/alsa-util.c:772 ../src/pulsecore/sink.c:2411
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2411
 #, c-format
 msgid "%s %s"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1020
+#: ../src/modules/alsa/alsa-util.c:1023
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -37,7 +37,7 @@ msgstr ""
 "Ово је највероватније грешка у „%s“ ALSA управљачком програму. Пријавите "
 "овај проблем ALSA програмерима."
 
-#: ../src/modules/alsa/alsa-util.c:1061
+#: ../src/modules/alsa/alsa-util.c:1064
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -50,7 +50,7 @@ msgstr ""
 "Ово је највероватније грешка у „%s“ ALSA управљачком програму. Пријавите "
 "овај проблем ALSA програмерима."
 
-#: ../src/modules/alsa/alsa-util.c:1108
+#: ../src/modules/alsa/alsa-util.c:1111
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -95,60 +95,6 @@ msgstr "Неуспешно смештање новог dl учитавача."
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
 msgstr "Неуспешно додавање „повежи одмах“ учитавача."
-
-#: ../src/daemon/polkit.c:55
-#, c-format
-msgid "Cannot connect to system bus: %s"
-msgstr "Није се могуће прикључити на системску магистралу: %s"
-
-#: ../src/daemon/polkit.c:65
-#, c-format
-msgid "Cannot get caller from PID: %s"
-msgstr "Не могу добавити позивника из PID-а: %s"
-
-#: ../src/daemon/polkit.c:77
-msgid "Cannot set UID on caller object."
-msgstr "Не могу поставити UID за позивнички објекат."
-
-#: ../src/daemon/polkit.c:82
-msgid "Failed to get CK session."
-msgstr "Неуспешно добављање CK сесије."
-
-#: ../src/daemon/polkit.c:90
-msgid "Cannot set UID on session object."
-msgstr "Не могу поставити UID за објекат сесије."
-
-#: ../src/daemon/polkit.c:95
-msgid "Cannot allocate PolKitAction."
-msgstr "Не могу поставити PolKitAction."
-
-#: ../src/daemon/polkit.c:100
-msgid "Cannot set action_id"
-msgstr "Не могу поставити action_id"
-
-#: ../src/daemon/polkit.c:105
-msgid "Cannot allocate PolKitContext."
-msgstr "Не могу поставити PolKitContext."
-
-#: ../src/daemon/polkit.c:110
-#, c-format
-msgid "Cannot initialize PolKitContext: %s"
-msgstr "Не могу иницијализовати PolKitContex: %s"
-
-#: ../src/daemon/polkit.c:119
-#, c-format
-msgid "Could not determine whether caller is authorized: %s"
-msgstr "Није могуће одредити овлашћење позивника: %s"
-
-#: ../src/daemon/polkit.c:139
-#, c-format
-msgid "Cannot obtain auth: %s"
-msgstr "Не могу добити овлашћење: %s"
-
-#: ../src/daemon/polkit.c:148
-#, c-format
-msgid "PolicyKit responded with '%s'"
-msgstr "PolicyKit је одговорио са „%s“"
 
 #: ../src/daemon/main.c:145
 #, c-format
@@ -790,30 +736,6 @@ msgstr "PulseAudio звучни систем"
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
 msgstr "Покрени PulseAudio звучни систем"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:1
-msgid ""
-"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr ""
-"Високоприоритетно распоређивање (негативни Unix нивои финоће, тј. nice "
-"нивои) за PulseAudio демона"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:2
-msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr "Стварновременско распоређивање за PulseAudio демона"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:3
-msgid ""
-"System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr ""
-"Системска политика спречава PulseAudio-у да добије високоприоритетно "
-"распоређивање."
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:4
-msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr ""
-"Системска политика спречава PulseAudio-у да добије стварновременско "
-"распоређивање."
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:747
 msgid "Mono"
@@ -2317,11 +2239,11 @@ msgid "write(): %s"
 msgstr "write(): %s"
 
 # Како превести autospawn (могућност прављења или покретања процеса из истог) -- Игор
-#: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
+#: ../src/pulsecore/lock-autospawn.c:136 ../src/pulsecore/lock-autospawn.c:219
 msgid "Cannot access autospawn lock."
 msgstr "Није могуће приступити датотеци закључавања за самоумножавање."
 
-#: ../src/modules/alsa/alsa-sink.c:446 ../src/modules/alsa/alsa-sink.c:603
+#: ../src/modules/alsa/alsa-sink.c:449 ../src/modules/alsa/alsa-sink.c:606
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2338,7 +2260,7 @@ msgstr ""
 "Пробуђени смо са постављеним POLLOUT-ом -- али следећи snd_pcm_avail() је "
 "вратио 0 или неку другу вредност мању од min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:426 ../src/modules/alsa/alsa-source.c:575
+#: ../src/modules/alsa/alsa-source.c:429 ../src/modules/alsa/alsa-source.c:578
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2371,6 +2293,64 @@ msgstr "Двострано телефонирање (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio звучни систем"
+
+#~ msgid "Cannot connect to system bus: %s"
+#~ msgstr "Није се могуће прикључити на системску магистралу: %s"
+
+#~ msgid "Cannot get caller from PID: %s"
+#~ msgstr "Не могу добавити позивника из PID-а: %s"
+
+#~ msgid "Cannot set UID on caller object."
+#~ msgstr "Не могу поставити UID за позивнички објекат."
+
+#~ msgid "Failed to get CK session."
+#~ msgstr "Неуспешно добављање CK сесије."
+
+#~ msgid "Cannot set UID on session object."
+#~ msgstr "Не могу поставити UID за објекат сесије."
+
+#~ msgid "Cannot allocate PolKitAction."
+#~ msgstr "Не могу поставити PolKitAction."
+
+#~ msgid "Cannot set action_id"
+#~ msgstr "Не могу поставити action_id"
+
+#~ msgid "Cannot allocate PolKitContext."
+#~ msgstr "Не могу поставити PolKitContext."
+
+#~ msgid "Cannot initialize PolKitContext: %s"
+#~ msgstr "Не могу иницијализовати PolKitContex: %s"
+
+#~ msgid "Could not determine whether caller is authorized: %s"
+#~ msgstr "Није могуће одредити овлашћење позивника: %s"
+
+#~ msgid "Cannot obtain auth: %s"
+#~ msgstr "Не могу добити овлашћење: %s"
+
+#~ msgid "PolicyKit responded with '%s'"
+#~ msgstr "PolicyKit је одговорио са „%s“"
+
+#~ msgid ""
+#~ "High-priority scheduling (negative Unix nice level) for the PulseAudio "
+#~ "daemon"
+#~ msgstr ""
+#~ "Високоприоритетно распоређивање (негативни Unix нивои финоће, тј. nice "
+#~ "нивои) за PulseAudio демона"
+
+#~ msgid "Real-time scheduling for the PulseAudio daemon"
+#~ msgstr "Стварновременско распоређивање за PulseAudio демона"
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring high-priority scheduling."
+#~ msgstr ""
+#~ "Системска политика спречава PulseAudio-у да добије високоприоритетно "
+#~ "распоређивање."
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring real-time scheduling."
+#~ msgstr ""
+#~ "Системска политика спречава PulseAudio-у да добије стварновременско "
+#~ "распоређивање."
 
 #~ msgid "read() failed: %s\n"
 #~ msgstr "Неуспела функција read(): %s\n"

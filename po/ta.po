@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-07-28 01:38+0200\n"
+"POT-Creation-Date: 2009-08-05 15:09+0200\n"
 "PO-Revision-Date: 2009-04-12 05:02+0530\n"
 "Last-Translator: I. Felix <ifelix@redhat.com>\n"
 "Language-Team: Tamil <fedora-trans-ta@redhat.com>\n"
@@ -34,12 +34,12 @@ msgstr ""
 "\n"
 "\n"
 
-#: ../src/modules/alsa/alsa-util.c:772 ../src/pulsecore/sink.c:2411
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2411
 #, c-format
 msgid "%s %s"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1020
+#: ../src/modules/alsa/alsa-util.c:1023
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -52,7 +52,7 @@ msgstr ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 
-#: ../src/modules/alsa/alsa-util.c:1061
+#: ../src/modules/alsa/alsa-util.c:1064
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -65,7 +65,7 @@ msgstr ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 
-#: ../src/modules/alsa/alsa-util.c:1108
+#: ../src/modules/alsa/alsa-util.c:1111
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -110,60 +110,6 @@ msgstr "புதிய dl ஏற்றுபவரை ஒதுக்கிர�
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
 msgstr "இப்போது பிணைக்கும் ஏற்பியை சேர்ப்பதில் தோல்வி."
-
-#: ../src/daemon/polkit.c:55
-#, c-format
-msgid "Cannot connect to system bus: %s"
-msgstr "கணினி பஸ்ஸை இணைக்க முடியவில்லை: %s"
-
-#: ../src/daemon/polkit.c:65
-#, c-format
-msgid "Cannot get caller from PID: %s"
-msgstr "PID லிருந்து அழைப்பாளரை பெற முடியவில்லை: %s"
-
-#: ../src/daemon/polkit.c:77
-msgid "Cannot set UID on caller object."
-msgstr "UID க்கு அழைப்பாளர் பொருளை அமைக்க முடியவில்லை."
-
-#: ../src/daemon/polkit.c:82
-msgid "Failed to get CK session."
-msgstr "CK அமர்வை பெறுவதில் தோல்வி."
-
-#: ../src/daemon/polkit.c:90
-msgid "Cannot set UID on session object."
-msgstr "அமர்வு பொருளில் UIDஐ அமைக்க முடியவில்லை."
-
-#: ../src/daemon/polkit.c:95
-msgid "Cannot allocate PolKitAction."
-msgstr "PolKitActionஐ ஒதுக்க இயலவில்லை."
-
-#: ../src/daemon/polkit.c:100
-msgid "Cannot set action_id"
-msgstr "செயலை அமைக்க முடியவில்லை (_i)"
-
-#: ../src/daemon/polkit.c:105
-msgid "Cannot allocate PolKitContext."
-msgstr "PolKitContextஐ ஒஉக்கிட முடியசவில்லை."
-
-#: ../src/daemon/polkit.c:110
-#, c-format
-msgid "Cannot initialize PolKitContext: %s"
-msgstr "PolKitContextஐ துவக்க முடியவில்லை: %s"
-
-#: ../src/daemon/polkit.c:119
-#, c-format
-msgid "Could not determine whether caller is authorized: %s"
-msgstr "அழைப்பாளர் அங்கீகரிக்கப்பட்டவரா என்பயை நிச்சயிக்க முடியவில்லை: %s"
-
-#: ../src/daemon/polkit.c:139
-#, c-format
-msgid "Cannot obtain auth: %s"
-msgstr "authஐ பெற முடியவில்லை: %s"
-
-#: ../src/daemon/polkit.c:148
-#, c-format
-msgid "PolicyKit responded with '%s'"
-msgstr "'%s'உடன் பாலிஸிகிட் ஒத்துபோகிறது"
 
 #: ../src/daemon/main.c:145
 #, c-format
@@ -792,26 +738,6 @@ msgstr "பள்ஸ் ஆடியோ ஒலி கணினி"
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
 msgstr "பள்ஸ் ஆடியோ ஒலி கணினியை துவக்கவும"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:1
-msgid ""
-"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr ""
-"அதிக முன்னுரிமையுள்ள திட்டமிடுதல் (negative Unix nice level) PulseAudio daemonக்கு"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:2
-msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr "PulseAudio daemonக்கான நிகழ்நேர திட்டமிடுதல்"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:3
-msgid ""
-"System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr ""
-"கணினி கொள்கை PulseAudioஐ அதிக முன்னுரிமை திட்டமிடுதலை பெறுவதிலிருந்து தடுக்கிறது."
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:4
-msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr "கணினி கொள்கை PulseAudio ஐ நிகழ்நேர திட்டமிடுதலை எடுக்கிறது."
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:747
 msgid "Mono"
@@ -2321,11 +2247,11 @@ msgstr "read(): %s"
 msgid "write(): %s"
 msgstr "write(): %s"
 
-#: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
+#: ../src/pulsecore/lock-autospawn.c:136 ../src/pulsecore/lock-autospawn.c:219
 msgid "Cannot access autospawn lock."
 msgstr "autospawn பூட்டை அணுக முடியவில்லை."
 
-#: ../src/modules/alsa/alsa-sink.c:446 ../src/modules/alsa/alsa-sink.c:603
+#: ../src/modules/alsa/alsa-sink.c:449 ../src/modules/alsa/alsa-sink.c:606
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2336,7 +2262,7 @@ msgid ""
 "returned 0 or another value < min_avail."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-source.c:426 ../src/modules/alsa/alsa-source.c:575
+#: ../src/modules/alsa/alsa-source.c:429 ../src/modules/alsa/alsa-source.c:578
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2364,6 +2290,62 @@ msgstr ""
 #, fuzzy
 msgid "PulseAudio Sound Server"
 msgstr "பள்ஸ் ஆடியோ ஒலி கணினி"
+
+#~ msgid "Cannot connect to system bus: %s"
+#~ msgstr "கணினி பஸ்ஸை இணைக்க முடியவில்லை: %s"
+
+#~ msgid "Cannot get caller from PID: %s"
+#~ msgstr "PID லிருந்து அழைப்பாளரை பெற முடியவில்லை: %s"
+
+#~ msgid "Cannot set UID on caller object."
+#~ msgstr "UID க்கு அழைப்பாளர் பொருளை அமைக்க முடியவில்லை."
+
+#~ msgid "Failed to get CK session."
+#~ msgstr "CK அமர்வை பெறுவதில் தோல்வி."
+
+#~ msgid "Cannot set UID on session object."
+#~ msgstr "அமர்வு பொருளில் UIDஐ அமைக்க முடியவில்லை."
+
+#~ msgid "Cannot allocate PolKitAction."
+#~ msgstr "PolKitActionஐ ஒதுக்க இயலவில்லை."
+
+#~ msgid "Cannot set action_id"
+#~ msgstr "செயலை அமைக்க முடியவில்லை (_i)"
+
+#~ msgid "Cannot allocate PolKitContext."
+#~ msgstr "PolKitContextஐ ஒஉக்கிட முடியசவில்லை."
+
+#~ msgid "Cannot initialize PolKitContext: %s"
+#~ msgstr "PolKitContextஐ துவக்க முடியவில்லை: %s"
+
+#~ msgid "Could not determine whether caller is authorized: %s"
+#~ msgstr "அழைப்பாளர் அங்கீகரிக்கப்பட்டவரா என்பயை நிச்சயிக்க முடியவில்லை: %s"
+
+#~ msgid "Cannot obtain auth: %s"
+#~ msgstr "authஐ பெற முடியவில்லை: %s"
+
+#~ msgid "PolicyKit responded with '%s'"
+#~ msgstr "'%s'உடன் பாலிஸிகிட் ஒத்துபோகிறது"
+
+#~ msgid ""
+#~ "High-priority scheduling (negative Unix nice level) for the PulseAudio "
+#~ "daemon"
+#~ msgstr ""
+#~ "அதிக முன்னுரிமையுள்ள திட்டமிடுதல் (negative Unix nice level) PulseAudio "
+#~ "daemonக்கு"
+
+#~ msgid "Real-time scheduling for the PulseAudio daemon"
+#~ msgstr "PulseAudio daemonக்கான நிகழ்நேர திட்டமிடுதல்"
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring high-priority scheduling."
+#~ msgstr ""
+#~ "கணினி கொள்கை PulseAudioஐ அதிக முன்னுரிமை திட்டமிடுதலை பெறுவதிலிருந்து "
+#~ "தடுக்கிறது."
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring real-time scheduling."
+#~ msgstr "கணினி கொள்கை PulseAudio ஐ நிகழ்நேர திட்டமிடுதலை எடுக்கிறது."
 
 #~ msgid "read() failed: %s\n"
 #~ msgstr "வாசிப்பதில் () தோல்வியுற்றது: %s\n"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-07-28 01:38+0200\n"
+"POT-Creation-Date: 2009-08-05 15:09+0200\n"
 "PO-Revision-Date: 2009-04-18 11:13+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation@linux.org.ua>\n"
@@ -17,12 +17,12 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
 "10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: ../src/modules/alsa/alsa-util.c:772 ../src/pulsecore/sink.c:2411
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2411
 #, c-format
 msgid "%s %s"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1020
+#: ../src/modules/alsa/alsa-util.c:1023
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -35,7 +35,7 @@ msgstr ""
 "Ймовірно, ви натрапили на ваду у драйвері ALSA «%s». Будь ласка, повідомте "
 "про цю ваду розробникам ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1061
+#: ../src/modules/alsa/alsa-util.c:1064
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -48,7 +48,7 @@ msgstr ""
 "Ймовірно, ви натрапили на ваду у драйвері ALSA «%s». Будь ласка, повідомте "
 "про цю ваду розробникам ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1108
+#: ../src/modules/alsa/alsa-util.c:1111
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -96,60 +96,6 @@ msgstr ""
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
 msgstr "Не вдалося додати bind-now-loader."
-
-#: ../src/daemon/polkit.c:55
-#, c-format
-msgid "Cannot connect to system bus: %s"
-msgstr "Не вдалося з’єднатися з шиною системи: %s"
-
-#: ../src/daemon/polkit.c:65
-#, c-format
-msgid "Cannot get caller from PID: %s"
-msgstr "Не вдалося отримати джерело виклику від PID: %s"
-
-#: ../src/daemon/polkit.c:77
-msgid "Cannot set UID on caller object."
-msgstr "Не вдалося встановити UID для об’єкта джерела виклику."
-
-#: ../src/daemon/polkit.c:82
-msgid "Failed to get CK session."
-msgstr "Не вдалося отримати CK сеансу."
-
-#: ../src/daemon/polkit.c:90
-msgid "Cannot set UID on session object."
-msgstr "Не вдалося встановити UID для об’єкта сеансу."
-
-#: ../src/daemon/polkit.c:95
-msgid "Cannot allocate PolKitAction."
-msgstr "Не вдалося розмістити PolKitAction."
-
-#: ../src/daemon/polkit.c:100
-msgid "Cannot set action_id"
-msgstr "Не вдалося встановити action_id"
-
-#: ../src/daemon/polkit.c:105
-msgid "Cannot allocate PolKitContext."
-msgstr "Не вдалося розмістити PolKitContext."
-
-#: ../src/daemon/polkit.c:110
-#, c-format
-msgid "Cannot initialize PolKitContext: %s"
-msgstr "Не вдалося ініціалізувати PolKitContext: %s"
-
-#: ../src/daemon/polkit.c:119
-#, c-format
-msgid "Could not determine whether caller is authorized: %s"
-msgstr "Не вдалося визначити чи уповноважено джерело виклику: %s"
-
-#: ../src/daemon/polkit.c:139
-#, c-format
-msgid "Cannot obtain auth: %s"
-msgstr "Не вдалося отримати уповноваження: %s"
-
-#: ../src/daemon/polkit.c:148
-#, c-format
-msgid "PolicyKit responded with '%s'"
-msgstr "PolicyKit надіслала відповідь: «%s»"
 
 #: ../src/daemon/main.c:145
 #, c-format
@@ -804,28 +750,6 @@ msgstr "Звукова система PulseAudio"
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
 msgstr "Запустити звукову систему PulseAudio"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:1
-msgid ""
-"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr ""
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:2
-#, fuzzy
-msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr ""
-"Спроба завершення роботи фонової служби PulseAudio завершилася невдало."
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:3
-#, fuzzy
-msgid ""
-"System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr ""
-"Ми перебуваємо у групі «%s», що надає змогу планування з високим пріоритетом."
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:4
-msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr ""
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:747
 msgid "Mono"
@@ -2338,11 +2262,11 @@ msgstr "read(): %s"
 msgid "write(): %s"
 msgstr "write(): %s"
 
-#: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
+#: ../src/pulsecore/lock-autospawn.c:136 ../src/pulsecore/lock-autospawn.c:219
 msgid "Cannot access autospawn lock."
 msgstr "Не вдалося зняти блокування автоматичного розгалуження."
 
-#: ../src/modules/alsa/alsa-sink.c:446 ../src/modules/alsa/alsa-sink.c:603
+#: ../src/modules/alsa/alsa-sink.c:449 ../src/modules/alsa/alsa-sink.c:606
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2353,7 +2277,7 @@ msgid ""
 "returned 0 or another value < min_avail."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-source.c:426 ../src/modules/alsa/alsa-source.c:575
+#: ../src/modules/alsa/alsa-source.c:429 ../src/modules/alsa/alsa-source.c:578
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2381,6 +2305,54 @@ msgstr ""
 #, fuzzy
 msgid "PulseAudio Sound Server"
 msgstr "Звукова система PulseAudio"
+
+#~ msgid "Cannot connect to system bus: %s"
+#~ msgstr "Не вдалося з’єднатися з шиною системи: %s"
+
+#~ msgid "Cannot get caller from PID: %s"
+#~ msgstr "Не вдалося отримати джерело виклику від PID: %s"
+
+#~ msgid "Cannot set UID on caller object."
+#~ msgstr "Не вдалося встановити UID для об’єкта джерела виклику."
+
+#~ msgid "Failed to get CK session."
+#~ msgstr "Не вдалося отримати CK сеансу."
+
+#~ msgid "Cannot set UID on session object."
+#~ msgstr "Не вдалося встановити UID для об’єкта сеансу."
+
+#~ msgid "Cannot allocate PolKitAction."
+#~ msgstr "Не вдалося розмістити PolKitAction."
+
+#~ msgid "Cannot set action_id"
+#~ msgstr "Не вдалося встановити action_id"
+
+#~ msgid "Cannot allocate PolKitContext."
+#~ msgstr "Не вдалося розмістити PolKitContext."
+
+#~ msgid "Cannot initialize PolKitContext: %s"
+#~ msgstr "Не вдалося ініціалізувати PolKitContext: %s"
+
+#~ msgid "Could not determine whether caller is authorized: %s"
+#~ msgstr "Не вдалося визначити чи уповноважено джерело виклику: %s"
+
+#~ msgid "Cannot obtain auth: %s"
+#~ msgstr "Не вдалося отримати уповноваження: %s"
+
+#~ msgid "PolicyKit responded with '%s'"
+#~ msgstr "PolicyKit надіслала відповідь: «%s»"
+
+#, fuzzy
+#~ msgid "Real-time scheduling for the PulseAudio daemon"
+#~ msgstr ""
+#~ "Спроба завершення роботи фонової служби PulseAudio завершилася невдало."
+
+#, fuzzy
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring high-priority scheduling."
+#~ msgstr ""
+#~ "Ми перебуваємо у групі «%s», що надає змогу планування з високим "
+#~ "пріоритетом."
 
 #~ msgid "read() failed: %s\n"
 #~ msgstr "Спроба виконання read() завершилася невдало: %s\n"

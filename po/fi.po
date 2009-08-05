@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-07-28 01:38+0200\n"
+"POT-Creation-Date: 2009-08-05 15:09+0200\n"
 "PO-Revision-Date: 2009-04-05 16:24+0300\n"
 "Last-Translator: Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>\n"
 "Language-Team: Finnish <laatu@lokalisointi.org>\n"
@@ -16,12 +16,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/modules/alsa/alsa-util.c:772 ../src/pulsecore/sink.c:2411
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2411
 #, c-format
 msgid "%s %s"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1020
+#: ../src/modules/alsa/alsa-util.c:1023
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -33,7 +33,7 @@ msgstr ""
 "Tämä on todennäköisesti ohjelmavirhe ALSA-ajurissa ”%s”. Ilmoita tästä "
 "ongelmasta ALSA-kehittäjille."
 
-#: ../src/modules/alsa/alsa-util.c:1061
+#: ../src/modules/alsa/alsa-util.c:1064
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -46,7 +46,7 @@ msgstr ""
 "Tämä on todennäköisesti ohjelmavirhe ALSA-ajurissa ”%s”. Ilmoita tästä "
 "ongelmasta ALSA-kehittäjille."
 
-#: ../src/modules/alsa/alsa-util.c:1108
+#: ../src/modules/alsa/alsa-util.c:1111
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -91,60 +91,6 @@ msgstr "Uuden dl-lataaminen varaaminen epäonnistui."
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
 msgstr "bind-now-loaderin lisääminen epäonnistui."
-
-#: ../src/daemon/polkit.c:55
-#, c-format
-msgid "Cannot connect to system bus: %s"
-msgstr "Järjestelmäväylään ei voida yhdistää: %s"
-
-#: ../src/daemon/polkit.c:65
-#, c-format
-msgid "Cannot get caller from PID: %s"
-msgstr "Kutsujaa ei saada PID:stä: %s"
-
-#: ../src/daemon/polkit.c:77
-msgid "Cannot set UID on caller object."
-msgstr "UID:tä ei voida asettaa kutsujaobjektille."
-
-#: ../src/daemon/polkit.c:82
-msgid "Failed to get CK session."
-msgstr "CK-istunnon saaminen epäonnistui."
-
-#: ../src/daemon/polkit.c:90
-msgid "Cannot set UID on session object."
-msgstr "UID:tä ei voida asettaa istunto-objektille."
-
-#: ../src/daemon/polkit.c:95
-msgid "Cannot allocate PolKitAction."
-msgstr "Ei voida varata PolKitActionia."
-
-#: ../src/daemon/polkit.c:100
-msgid "Cannot set action_id"
-msgstr "Ei voida asettaa action_id:tä"
-
-#: ../src/daemon/polkit.c:105
-msgid "Cannot allocate PolKitContext."
-msgstr "Ei voida varata PolKitContextia."
-
-#: ../src/daemon/polkit.c:110
-#, c-format
-msgid "Cannot initialize PolKitContext: %s"
-msgstr "Ei voida alustaa PolKitContextia: %s"
-
-#: ../src/daemon/polkit.c:119
-#, c-format
-msgid "Could not determine whether caller is authorized: %s"
-msgstr "Ei voida päätellä onko kutsujalla käyttöoikeus: %s"
-
-#: ../src/daemon/polkit.c:139
-#, c-format
-msgid "Cannot obtain auth: %s"
-msgstr "Tunnistautumista ei saada: %s"
-
-#: ../src/daemon/polkit.c:148
-#, c-format
-msgid "PolicyKit responded with '%s'"
-msgstr "PolicyKit vastasi ”%s”"
 
 #: ../src/daemon/main.c:145
 #, c-format
@@ -796,29 +742,6 @@ msgstr "PulseAudio-äänijärjestelmä"
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
 msgstr "Käynnistä PulseAudio-äänijärjestelmä"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:1
-msgid ""
-"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr ""
-"Korkean prioriteetin ajoitus (negatiivinen Unix-nice-taso) PulseAudio-"
-"taustajärjestelmälle"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:2
-msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr "Reaaliaikainen ajoitus PulseAudio-taustajärjestelmälle"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:3
-msgid ""
-"System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr ""
-"Järjestelmäkäytäntö estää PulseAudiota saamasta korkean prioriteetin "
-"ajoitusta."
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:4
-msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr ""
-"Järjestelmäkäytäntö estää PulseAudiota saamasta reaaliaikaista ajoitusta."
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:747
 msgid "Mono"
@@ -2322,11 +2245,11 @@ msgstr "read(): %s"
 msgid "write(): %s"
 msgstr "write(): %s"
 
-#: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
+#: ../src/pulsecore/lock-autospawn.c:136 ../src/pulsecore/lock-autospawn.c:219
 msgid "Cannot access autospawn lock."
 msgstr "Automaattisen käynnistyksen lukkoa ei voida käyttää."
 
-#: ../src/modules/alsa/alsa-sink.c:446 ../src/modules/alsa/alsa-sink.c:603
+#: ../src/modules/alsa/alsa-sink.c:449 ../src/modules/alsa/alsa-sink.c:606
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2343,7 +2266,7 @@ msgstr ""
 "asetettuna,  snd_pcm_avail() palautti kuitenkin 0 tai jonkin muun arvon, "
 "joka on < min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:426 ../src/modules/alsa/alsa-source.c:575
+#: ../src/modules/alsa/alsa-source.c:429 ../src/modules/alsa/alsa-source.c:578
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2375,6 +2298,63 @@ msgstr ""
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio-äänipalvelin"
+
+#~ msgid "Cannot connect to system bus: %s"
+#~ msgstr "Järjestelmäväylään ei voida yhdistää: %s"
+
+#~ msgid "Cannot get caller from PID: %s"
+#~ msgstr "Kutsujaa ei saada PID:stä: %s"
+
+#~ msgid "Cannot set UID on caller object."
+#~ msgstr "UID:tä ei voida asettaa kutsujaobjektille."
+
+#~ msgid "Failed to get CK session."
+#~ msgstr "CK-istunnon saaminen epäonnistui."
+
+#~ msgid "Cannot set UID on session object."
+#~ msgstr "UID:tä ei voida asettaa istunto-objektille."
+
+#~ msgid "Cannot allocate PolKitAction."
+#~ msgstr "Ei voida varata PolKitActionia."
+
+#~ msgid "Cannot set action_id"
+#~ msgstr "Ei voida asettaa action_id:tä"
+
+#~ msgid "Cannot allocate PolKitContext."
+#~ msgstr "Ei voida varata PolKitContextia."
+
+#~ msgid "Cannot initialize PolKitContext: %s"
+#~ msgstr "Ei voida alustaa PolKitContextia: %s"
+
+#~ msgid "Could not determine whether caller is authorized: %s"
+#~ msgstr "Ei voida päätellä onko kutsujalla käyttöoikeus: %s"
+
+#~ msgid "Cannot obtain auth: %s"
+#~ msgstr "Tunnistautumista ei saada: %s"
+
+#~ msgid "PolicyKit responded with '%s'"
+#~ msgstr "PolicyKit vastasi ”%s”"
+
+#~ msgid ""
+#~ "High-priority scheduling (negative Unix nice level) for the PulseAudio "
+#~ "daemon"
+#~ msgstr ""
+#~ "Korkean prioriteetin ajoitus (negatiivinen Unix-nice-taso) PulseAudio-"
+#~ "taustajärjestelmälle"
+
+#~ msgid "Real-time scheduling for the PulseAudio daemon"
+#~ msgstr "Reaaliaikainen ajoitus PulseAudio-taustajärjestelmälle"
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring high-priority scheduling."
+#~ msgstr ""
+#~ "Järjestelmäkäytäntö estää PulseAudiota saamasta korkean prioriteetin "
+#~ "ajoitusta."
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring real-time scheduling."
+#~ msgstr ""
+#~ "Järjestelmäkäytäntö estää PulseAudiota saamasta reaaliaikaista ajoitusta."
 
 #~ msgid "read() failed: %s\n"
 #~ msgstr "read() epäonnistui: %s\n"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.te\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-07-28 01:38+0200\n"
+"POT-Creation-Date: 2009-08-05 15:09+0200\n"
 "PO-Revision-Date: 2009-04-08 18:21+0530\n"
 "Last-Translator: Krishna Babu K <kkrothap@redhat.com>\n"
 "Language-Team: Telugu <en@li.org>\n"
@@ -21,12 +21,12 @@ msgstr ""
 "\n"
 "\n"
 
-#: ../src/modules/alsa/alsa-util.c:772 ../src/pulsecore/sink.c:2411
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2411
 #, c-format
 msgid "%s %s"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1020
+#: ../src/modules/alsa/alsa-util.c:1023
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -38,7 +38,7 @@ msgstr ""
 "సాదారణంగా యిది ALSA డ్రైవర్ '%s' నందలి బగ్ కావచ్చును. దయచేసి దీనిని ALSA అభివృద్ది కారులకు "
 "నివేదించుము."
 
-#: ../src/modules/alsa/alsa-util.c:1061
+#: ../src/modules/alsa/alsa-util.c:1064
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -50,7 +50,7 @@ msgstr ""
 "సాదారణంగా యిది ALSA డ్రైవర్ '%s' నందు బగ్ కావచ్చును . దయచేసి దీనిని ALSA అభివృద్దికారులక "
 "నివేదించుము."
 
-#: ../src/modules/alsa/alsa-util.c:1108
+#: ../src/modules/alsa/alsa-util.c:1111
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -93,60 +93,6 @@ msgstr "కొత్త dl లోడర్ కేటాయించుటలో 
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
 msgstr "bind-now-loader జతచేయుటకు విఫలమైంది."
-
-#: ../src/daemon/polkit.c:55
-#, c-format
-msgid "Cannot connect to system bus: %s"
-msgstr "సిస్టమ్ బస్‌నకు అనుసంధానము కాలేకపోయింది: %s"
-
-#: ../src/daemon/polkit.c:65
-#, c-format
-msgid "Cannot get caller from PID: %s"
-msgstr "PID నుండి కాలర్‌ను పొందలేక పోయింది: %s"
-
-#: ../src/daemon/polkit.c:77
-msgid "Cannot set UID on caller object."
-msgstr "కాలర్ ఆబ్జక్టునందు UIDను అమర్చలేక పోయింది."
-
-#: ../src/daemon/polkit.c:82
-msgid "Failed to get CK session."
-msgstr "CK సెషన్ పొందుటకు విఫలమైంది."
-
-#: ../src/daemon/polkit.c:90
-msgid "Cannot set UID on session object."
-msgstr "సెషన్ ఆబ్జక్టునందు UIDను అమర్చ లేకపోయింది."
-
-#: ../src/daemon/polkit.c:95
-msgid "Cannot allocate PolKitAction."
-msgstr "PolKitAction చిరునామాను కేటాయించలేక పోయింది."
-
-#: ../src/daemon/polkit.c:100
-msgid "Cannot set action_id"
-msgstr "action_id అమర్చలేక పోయింది"
-
-#: ../src/daemon/polkit.c:105
-msgid "Cannot allocate PolKitContext."
-msgstr "PolKitContext కేటాయించలేక పోయింది."
-
-#: ../src/daemon/polkit.c:110
-#, c-format
-msgid "Cannot initialize PolKitContext: %s"
-msgstr "PolKitContext సిద్దము చేయలేక పోయింది: %s"
-
-#: ../src/daemon/polkit.c:119
-#, c-format
-msgid "Could not determine whether caller is authorized: %s"
-msgstr "కాలర్ అధికారము కలదో లేదో నిర్ణయించలేక పోయింది: %s"
-
-#: ../src/daemon/polkit.c:139
-#, c-format
-msgid "Cannot obtain auth: %s"
-msgstr "దృవీకరణ పొందలేక పోయింది: %s"
-
-#: ../src/daemon/polkit.c:148
-#, c-format
-msgid "PolicyKit responded with '%s'"
-msgstr "PolicyKit స్పందిచినది దీనితో '%s'"
 
 #: ../src/daemon/main.c:145
 #, c-format
@@ -772,24 +718,6 @@ msgstr "PulseAudio శబ్దపు సిస్టమ్"
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
 msgstr "PulseAudio శబ్దపు సిస్టమ్‌ను ప్రారంభించుము"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:1
-msgid ""
-"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr "అధిక-ప్రాముఖ్యతా ప్రణాళిక (ఋణ యునిక్స్ సాదా స్థాయి) PulseAudio డెమోన్‌కు"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:2
-msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr "PulseAudio డెమోన్‌ కొరకు వాస్తవ-సమయ ప్రణాళిక"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:3
-msgid ""
-"System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr "సిస్టమ్ విధానము PulseAudio అధిక-ప్రాముఖ్యతా ప్రణాళికను పొందకుండా నిరోధిస్తున్నది."
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:4
-msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr "సిస్టమ్ విధానము PulseAudio వాస్తవ-సమయ ప్రణాళికను పొందకుండా నిరోధిస్తోంది."
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:747
 msgid "Mono"
@@ -2295,11 +2223,11 @@ msgstr "read(): %s"
 msgid "write(): %s"
 msgstr "write(): %s"
 
-#: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
+#: ../src/pulsecore/lock-autospawn.c:136 ../src/pulsecore/lock-autospawn.c:219
 msgid "Cannot access autospawn lock."
 msgstr "ఆటోస్పాన్ తాళంను యాక్సిస్ చేయలేదు."
 
-#: ../src/modules/alsa/alsa-sink.c:446 ../src/modules/alsa/alsa-sink.c:603
+#: ../src/modules/alsa/alsa-sink.c:449 ../src/modules/alsa/alsa-sink.c:606
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2315,7 +2243,7 @@ msgstr ""
 "మనము POLLOUT అమర్పు ద్వారా జాగరూక పరచబడినాము -- ఏమైనప్పటికి snd_pcm_avail() అనునది 0 ను "
 "యిస్తుంది లేదా వేరొక విలువ < min_avail యిస్తుంది."
 
-#: ../src/modules/alsa/alsa-source.c:426 ../src/modules/alsa/alsa-source.c:575
+#: ../src/modules/alsa/alsa-source.c:429 ../src/modules/alsa/alsa-source.c:578
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2347,6 +2275,58 @@ msgstr "టెలిఫోనీ డూప్లెక్స్ (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "పల్స్ ఆడియో సౌండ్ సేవిక"
+
+#~ msgid "Cannot connect to system bus: %s"
+#~ msgstr "సిస్టమ్ బస్‌నకు అనుసంధానము కాలేకపోయింది: %s"
+
+#~ msgid "Cannot get caller from PID: %s"
+#~ msgstr "PID నుండి కాలర్‌ను పొందలేక పోయింది: %s"
+
+#~ msgid "Cannot set UID on caller object."
+#~ msgstr "కాలర్ ఆబ్జక్టునందు UIDను అమర్చలేక పోయింది."
+
+#~ msgid "Failed to get CK session."
+#~ msgstr "CK సెషన్ పొందుటకు విఫలమైంది."
+
+#~ msgid "Cannot set UID on session object."
+#~ msgstr "సెషన్ ఆబ్జక్టునందు UIDను అమర్చ లేకపోయింది."
+
+#~ msgid "Cannot allocate PolKitAction."
+#~ msgstr "PolKitAction చిరునామాను కేటాయించలేక పోయింది."
+
+#~ msgid "Cannot set action_id"
+#~ msgstr "action_id అమర్చలేక పోయింది"
+
+#~ msgid "Cannot allocate PolKitContext."
+#~ msgstr "PolKitContext కేటాయించలేక పోయింది."
+
+#~ msgid "Cannot initialize PolKitContext: %s"
+#~ msgstr "PolKitContext సిద్దము చేయలేక పోయింది: %s"
+
+#~ msgid "Could not determine whether caller is authorized: %s"
+#~ msgstr "కాలర్ అధికారము కలదో లేదో నిర్ణయించలేక పోయింది: %s"
+
+#~ msgid "Cannot obtain auth: %s"
+#~ msgstr "దృవీకరణ పొందలేక పోయింది: %s"
+
+#~ msgid "PolicyKit responded with '%s'"
+#~ msgstr "PolicyKit స్పందిచినది దీనితో '%s'"
+
+#~ msgid ""
+#~ "High-priority scheduling (negative Unix nice level) for the PulseAudio "
+#~ "daemon"
+#~ msgstr "అధిక-ప్రాముఖ్యతా ప్రణాళిక (ఋణ యునిక్స్ సాదా స్థాయి) PulseAudio డెమోన్‌కు"
+
+#~ msgid "Real-time scheduling for the PulseAudio daemon"
+#~ msgstr "PulseAudio డెమోన్‌ కొరకు వాస్తవ-సమయ ప్రణాళిక"
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring high-priority scheduling."
+#~ msgstr "సిస్టమ్ విధానము PulseAudio అధిక-ప్రాముఖ్యతా ప్రణాళికను పొందకుండా నిరోధిస్తున్నది."
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring real-time scheduling."
+#~ msgstr "సిస్టమ్ విధానము PulseAudio వాస్తవ-సమయ ప్రణాళికను పొందకుండా నిరోధిస్తోంది."
 
 #~ msgid "read() failed: %s\n"
 #~ msgstr "read() విఫలమైంది: %s\n"

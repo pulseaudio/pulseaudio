@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-07-28 01:38+0200\n"
+"POT-Creation-Date: 2009-08-05 15:09+0200\n"
 "PO-Revision-Date: 2009-04-20 22:34+0200\n"
 "Last-Translator: mario_santagiuliana <mario at marionline.it>\n"
 "Language-Team: Italian <fedora-trans-it at redhat.com>\n"
@@ -19,12 +19,12 @@ msgstr ""
 "X-Generator: Lokalize 0.3\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/modules/alsa/alsa-util.c:772 ../src/pulsecore/sink.c:2411
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2411
 #, c-format
 msgid "%s %s"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1020
+#: ../src/modules/alsa/alsa-util.c:1023
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -36,7 +36,7 @@ msgstr ""
 "Molto probabilmente si tratta di un bug nel driver ALSA «%s». Segnalare "
 "questo problema agli sviluppatori ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1061
+#: ../src/modules/alsa/alsa-util.c:1064
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -48,7 +48,7 @@ msgstr ""
 "Molto probabilmente si tratta di un bug nel driver ALSA «%s». Segnalare "
 "questo problema agli sviluppatori ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1108
+#: ../src/modules/alsa/alsa-util.c:1111
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -93,60 +93,6 @@ msgstr "Allocazione del nuovo loader dl non riuscita."
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
 msgstr "Aggiunta di bind-now-loader non riuscita."
-
-#: ../src/daemon/polkit.c:55
-#, c-format
-msgid "Cannot connect to system bus: %s"
-msgstr "Impossibile effettuare la connessione al bus di sistema: %s"
-
-#: ../src/daemon/polkit.c:65
-#, c-format
-msgid "Cannot get caller from PID: %s"
-msgstr "Impossibile ottenere il chiamante dal PID: %s"
-
-#: ../src/daemon/polkit.c:77
-msgid "Cannot set UID on caller object."
-msgstr "Impossibile impostare l'UID sull'oggetto chiamante."
-
-#: ../src/daemon/polkit.c:82
-msgid "Failed to get CK session."
-msgstr "Recupero della sessione CK non riuscito."
-
-#: ../src/daemon/polkit.c:90
-msgid "Cannot set UID on session object."
-msgstr "Impossibile impostare l'UID sull'oggetto sessione."
-
-#: ../src/daemon/polkit.c:95
-msgid "Cannot allocate PolKitAction."
-msgstr "Impossibile allocare PolKitAction."
-
-#: ../src/daemon/polkit.c:100
-msgid "Cannot set action_id"
-msgstr "Impossibile impostare action_id"
-
-#: ../src/daemon/polkit.c:105
-msgid "Cannot allocate PolKitContext."
-msgstr "Impossibile allocare PolKitContext."
-
-#: ../src/daemon/polkit.c:110
-#, c-format
-msgid "Cannot initialize PolKitContext: %s"
-msgstr "Impossibile inizializzare PolKitContext: %s"
-
-#: ../src/daemon/polkit.c:119
-#, c-format
-msgid "Could not determine whether caller is authorized: %s"
-msgstr "Impossibile determinare se il chiamante è autorizzato: %s"
-
-#: ../src/daemon/polkit.c:139
-#, c-format
-msgid "Cannot obtain auth: %s"
-msgstr "Impossibile ottenere l'autorizzazione: %s"
-
-#: ../src/daemon/polkit.c:148
-#, c-format
-msgid "PolicyKit responded with '%s'"
-msgstr "PolicyKit ha risposto con \"%s\""
 
 #: ../src/daemon/main.c:145
 #, c-format
@@ -822,30 +768,6 @@ msgstr "Sistema sonoro PulseAudio"
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
 msgstr "Avvia il sistema sonoro PulseAudio"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:1
-msgid ""
-"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr ""
-"Scheduling high-priority (valori negativi di \"nice\") per il demone "
-"PulseAudio"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:2
-msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr "Scheduling realt-time per il demone PulseAudio"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:3
-msgid ""
-"System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr ""
-"La politica di sistema previene PulseAudio dall'ottenere lo scheduling high-"
-"priority."
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:4
-msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr ""
-"La politica di sistema previene PulseAudio dall'ottenere lo scheduling real-"
-"time."
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:747
 msgid "Mono"
@@ -2391,11 +2313,11 @@ msgstr "read(): %s"
 msgid "write(): %s"
 msgstr "write(): %s"
 
-#: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
+#: ../src/pulsecore/lock-autospawn.c:136 ../src/pulsecore/lock-autospawn.c:219
 msgid "Cannot access autospawn lock."
 msgstr "Impossibile accedere al lock di autospawn."
 
-#: ../src/modules/alsa/alsa-sink.c:446 ../src/modules/alsa/alsa-sink.c:603
+#: ../src/modules/alsa/alsa-sink.c:449 ../src/modules/alsa/alsa-sink.c:606
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2412,7 +2334,7 @@ msgstr ""
 "Ci si è alzati con impostato POLLOUT -- come sempre un subsequent "
 "snd_pcm_avail() ritorna 0 o un altro valore < min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:426 ../src/modules/alsa/alsa-source.c:575
+#: ../src/modules/alsa/alsa-source.c:429 ../src/modules/alsa/alsa-source.c:578
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2445,6 +2367,64 @@ msgstr "Doppino Telefonico (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "Server sonoro PulseAudio"
+
+#~ msgid "Cannot connect to system bus: %s"
+#~ msgstr "Impossibile effettuare la connessione al bus di sistema: %s"
+
+#~ msgid "Cannot get caller from PID: %s"
+#~ msgstr "Impossibile ottenere il chiamante dal PID: %s"
+
+#~ msgid "Cannot set UID on caller object."
+#~ msgstr "Impossibile impostare l'UID sull'oggetto chiamante."
+
+#~ msgid "Failed to get CK session."
+#~ msgstr "Recupero della sessione CK non riuscito."
+
+#~ msgid "Cannot set UID on session object."
+#~ msgstr "Impossibile impostare l'UID sull'oggetto sessione."
+
+#~ msgid "Cannot allocate PolKitAction."
+#~ msgstr "Impossibile allocare PolKitAction."
+
+#~ msgid "Cannot set action_id"
+#~ msgstr "Impossibile impostare action_id"
+
+#~ msgid "Cannot allocate PolKitContext."
+#~ msgstr "Impossibile allocare PolKitContext."
+
+#~ msgid "Cannot initialize PolKitContext: %s"
+#~ msgstr "Impossibile inizializzare PolKitContext: %s"
+
+#~ msgid "Could not determine whether caller is authorized: %s"
+#~ msgstr "Impossibile determinare se il chiamante è autorizzato: %s"
+
+#~ msgid "Cannot obtain auth: %s"
+#~ msgstr "Impossibile ottenere l'autorizzazione: %s"
+
+#~ msgid "PolicyKit responded with '%s'"
+#~ msgstr "PolicyKit ha risposto con \"%s\""
+
+#~ msgid ""
+#~ "High-priority scheduling (negative Unix nice level) for the PulseAudio "
+#~ "daemon"
+#~ msgstr ""
+#~ "Scheduling high-priority (valori negativi di \"nice\") per il demone "
+#~ "PulseAudio"
+
+#~ msgid "Real-time scheduling for the PulseAudio daemon"
+#~ msgstr "Scheduling realt-time per il demone PulseAudio"
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring high-priority scheduling."
+#~ msgstr ""
+#~ "La politica di sistema previene PulseAudio dall'ottenere lo scheduling "
+#~ "high-priority."
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring real-time scheduling."
+#~ msgstr ""
+#~ "La politica di sistema previene PulseAudio dall'ottenere lo scheduling "
+#~ "real-time."
 
 #~ msgid "read() failed: %s\n"
 #~ msgstr "read() non riuscita: %s\n"
