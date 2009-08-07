@@ -55,14 +55,14 @@ PA_MODULE_AUTHOR("Shahms King");
 PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
-#if defined(HAVE_ALSA) && defined(HAVE_OSS)
+#if defined(HAVE_ALSA) && defined(HAVE_OSS_OUTPUT)
 PA_MODULE_USAGE("api=<alsa or oss> "
                 "tsched=<enable system timer based scheduling mode?>"
                 "subdevs=<init all subdevices>");
 #elif defined(HAVE_ALSA)
 PA_MODULE_USAGE("api=<alsa> "
                 "tsched=<enable system timer based scheduling mode?>");
-#elif defined(HAVE_OSS)
+#elif defined(HAVE_OSS_OUTPUT)
 PA_MODULE_USAGE("api=<oss>"
                 "subdevs=<init all subdevices>");
 #endif
@@ -84,7 +84,7 @@ struct userdata {
 #ifdef HAVE_ALSA
     pa_bool_t use_tsched;
 #endif
-#ifdef HAVE_OSS
+#ifdef HAVE_OSS_OUTPUT
     pa_bool_t init_subdevs;
 #endif
 };
@@ -97,7 +97,7 @@ static const char* const valid_modargs[] = {
 #ifdef HAVE_ALSA
     "tsched",
 #endif
-#ifdef HAVE_OSS
+#ifdef HAVE_OSS_OUTPUT
     "subdevs",
 #endif
     NULL
@@ -270,7 +270,7 @@ fail:
 
 #endif
 
-#ifdef HAVE_OSS
+#ifdef HAVE_OSS_OUTPUT
 
 static pa_bool_t hal_oss_device_is_pcm(LibHalContext *context, const char *udi, pa_bool_t init_subdevices) {
     char *class = NULL, *dev = NULL, *e;
@@ -402,7 +402,7 @@ static struct device* hal_device_add(struct userdata *u, const char *udi) {
     if (pa_streq(u->capability, CAPABILITY_ALSA))
         r = hal_device_load_alsa(u, udi,  d);
 #endif
-#ifdef HAVE_OSS
+#ifdef HAVE_OSS_OUTPUT
     if (pa_streq(u->capability, CAPABILITY_OSS))
         r = hal_device_load_oss(u, udi, d);
 #endif
@@ -761,7 +761,7 @@ int pa__init(pa_module*m) {
     api = pa_modargs_get_value(ma, "api", "oss");
 #endif
 
-#ifdef HAVE_OSS
+#ifdef HAVE_OSS_OUTPUT
     if (pa_streq(api, "oss"))
         u->capability = CAPABILITY_OSS;
 #endif
@@ -771,7 +771,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-#ifdef HAVE_OSS
+#ifdef HAVE_OSS_OUTPUT
     if (pa_modargs_get_value_boolean(ma, "subdevs", &u->init_subdevs) < 0) {
         pa_log("Failed to parse subdevs argument.");
         goto fail;

@@ -113,7 +113,7 @@ int allow_severity = LOG_INFO;
 int deny_severity = LOG_WARNING;
 #endif
 
-#ifdef HAVE_OSS
+#ifdef HAVE_OSS_WRAPPER
 /* padsp looks for this symbol in the running process and disables
  * itself if it finds it and it is set to 7 (which is actually a bit
  * mask). For details see padsp. */

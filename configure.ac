@@ -664,26 +664,42 @@ AM_CONDITIONAL([HAVE_GDBM], [test "x$HAVE_GDBM" = x1])
 
 #### OSS support (optional) ####
 
-AC_ARG_ENABLE([oss],
-    AS_HELP_STRING([--disable-oss],[Disable optional OSS support]),
+AC_ARG_ENABLE([oss-output],
+    AS_HELP_STRING([--disable-oss-output],[Disable optional OSS output support]),
         [
             case "${enableval}" in
-                yes) oss=yes ;;
-                no) oss=no ;;
-                *) AC_MSG_ERROR(bad value ${enableval} for --disable-oss) ;;
+                yes) oss_output=yes ;;
+                no) oss_output=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-oss-output) ;;
             esac
         ],
-        [oss=auto])
+        [oss_output=auto])
 
-if test "x${oss}" != xno ; then
+AC_ARG_ENABLE([oss-wrapper],
+    AS_HELP_STRING([--disable-oss-wrapper],[Disable optional OSS wrapper support]),
+        [
+            case "${enableval}" in
+                yes) oss_wrapper=yes ;;
+                no) oss_wrapper=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-oss-wrapper) ;;
+            esac
+        ],
+        [oss_wrapper=auto])
+
+if test "x${oss_output}" != xno || test "x${oss_wrapper}" != "xno"; then
     AC_CHECK_HEADERS([sys/soundcard.h],
         [
+            if test "x${oss_output}" != "xno"; then
+                AC_DEFINE([HAVE_OSS_OUTPUT], 1, [Have OSS output?])
+            fi
+            if test "x${oss_wrapper}" != "xno"; then
+                AC_DEFINE([HAVE_OSS_WRAPPER], 1, [Have OSS wrapper (padsp)?])
+            fi
             HAVE_OSS=1
-            AC_DEFINE([HAVE_OSS], 1, [Have OSS?])
         ],
         [
             HAVE_OSS=0
-            if test "x$oss" = xyes ; then
+            if test "x$oss_output" = xyes || test "x$oss_wrapper" = "xyes"; then
                 AC_MSG_ERROR([*** OSS support not found])
             fi
         ])
@@ -692,8 +708,8 @@ else
 fi
 
 AC_SUBST(HAVE_OSS)
-AM_CONDITIONAL([HAVE_OSS], [test "x$HAVE_OSS" = x1])
-
+AM_CONDITIONAL([HAVE_OSS_OUTPUT], [test "x$HAVE_OSS" = x1 && test "x${oss_output}" != "xno"])
+AM_CONDITIONAL([HAVE_OSS_WRAPPER], [test "x$HAVE_OSS" = x1 && test "x${oss_wrapper}" != "xno"])
 
 #### ALSA support (optional) ####
 

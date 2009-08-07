@@ -776,7 +776,7 @@ libpulse_mainloop_glib_la_LDFLAGS = $(AM_LDFLAGS) $(VERSIONING_LDFLAGS) -version
 #         OSS emulation           #
 ###################################
 
-if HAVE_OSS
+if HAVE_OSS_WRAPPER
 lib_LTLIBRARIES += libpulsedsp.la
 bin_SCRIPTS += utils/padsp
 endif
@@ -1031,7 +1031,7 @@ modlibexec_LTLIBRARIES += \
 		module-x11-cork-request.la
 endif
 
-if HAVE_OSS
+if HAVE_OSS_OUTPUT
 modlibexec_LTLIBRARIES += \
 		liboss-util.la \
 		module-oss.la
