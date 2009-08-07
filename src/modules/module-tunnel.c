@@ -1165,10 +1165,10 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag
         pa_cvolume_equal(&volume, &u->sink->virtual_volume))
         return;
 
-    pa_sink_volume_changed(u->sink, &volume, FALSE);
+    pa_sink_volume_changed(u->sink, &volume);
 
     if (u->version >= 11)
-        pa_sink_mute_changed(u->sink, mute, FALSE);
+        pa_sink_mute_changed(u->sink, mute);
 
     return;
 

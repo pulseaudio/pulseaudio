@@ -773,26 +773,26 @@ const pa_cvolume *pa_source_get_volume(pa_source *s, pa_bool_t force_refresh) {
 
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_VOLUME, NULL, 0, NULL) == 0);
 
-        if (!pa_cvolume_equal(&old_virtual_volume, &s->virtual_volume))
+        if (!pa_cvolume_equal(&old_virtual_volume, &s->virtual_volume)) {
+            s->save_volume = TRUE;
             pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+        }
     }
 
     return &s->virtual_volume;
 }
 
 /* Called from main thread */
-void pa_source_volume_changed(pa_source *s, const pa_cvolume *new_volume, pa_bool_t save) {
+void pa_source_volume_changed(pa_source *s, const pa_cvolume *new_volume) {
     pa_source_assert_ref(s);
 
     /* The source implementor may call this if the volume changed to make sure everyone is notified */
 
-    if (pa_cvolume_equal(&s->virtual_volume, new_volume)) {
-        s->save_volume = s->save_volume || save;
+    if (pa_cvolume_equal(&s->virtual_volume, new_volume))
         return;
-    }
 
     s->virtual_volume = *new_volume;
-    s->save_volume = save;
+    s->save_volume = TRUE;
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
@@ -831,6 +831,8 @@ pa_bool_t pa_source_get_mute(pa_source *s, pa_bool_t force_refresh) {
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_MUTE, NULL, 0, NULL) == 0);
 
         if (old_muted != s->muted) {
+            s->save_muted = TRUE;
+
             pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 
             /* Make sure the soft mute status stays in sync */
@@ -842,18 +844,16 @@ pa_bool_t pa_source_get_mute(pa_source *s, pa_bool_t force_refresh) {
 }
 
 /* Called from main thread */
-void pa_source_mute_changed(pa_source *s, pa_bool_t new_muted, pa_bool_t save) {
+void pa_source_mute_changed(pa_source *s, pa_bool_t new_muted) {
     pa_source_assert_ref(s);
 
     /* The source implementor may call this if the mute state changed to make sure everyone is notified */
 
-    if (s->muted == new_muted) {
-        s->save_muted = s->save_muted || save;
+    if (s->muted == new_muted)
         return;
-    }
 
     s->muted = new_muted;
-    s->save_muted = save;
+    s->save_muted = TRUE;
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }

@@ -1446,12 +1446,12 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             if (u->sink && dbus_message_is_signal(m, "org.bluez.Headset", "SpeakerGainChanged")) {
 
                 pa_cvolume_set(&v, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
-                pa_sink_volume_changed(u->sink, &v, TRUE);
+                pa_sink_volume_changed(u->sink, &v);
 
             } else if (u->source && dbus_message_is_signal(m, "org.bluez.Headset", "MicrophoneGainChanged")) {
 
                 pa_cvolume_set(&v, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
-                pa_source_volume_changed(u->source, &v, TRUE);
+                pa_source_volume_changed(u->source, &v);
             }
         }
     }

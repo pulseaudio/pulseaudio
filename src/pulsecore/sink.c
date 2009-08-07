@@ -1386,6 +1386,12 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *s, pa_bool_t force_refresh, pa_boo
 
             s->reference_volume = s->virtual_volume;
 
+            /* Something got changed in the hardware. It probably
+             * makes sense to save changed hw settings given that hw
+             * volume changes not triggered by PA are almost certainly
+             * done by the user. */
+            s->save_volume = TRUE;
+
             if (s->flags & PA_SINK_FLAT_VOLUME)
                 pa_sink_propagate_flat_volume(s);
 
@@ -1397,17 +1403,15 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *s, pa_bool_t force_refresh, pa_boo
 }
 
 /* Called from main thread */
-void pa_sink_volume_changed(pa_sink *s, const pa_cvolume *new_volume, pa_bool_t save) {
+void pa_sink_volume_changed(pa_sink *s, const pa_cvolume *new_volume) {
     pa_sink_assert_ref(s);
 
     /* The sink implementor may call this if the volume changed to make sure everyone is notified */
-    if (pa_cvolume_equal(&s->virtual_volume, new_volume)) {
-        s->save_volume = s->save_volume || save;
+    if (pa_cvolume_equal(&s->virtual_volume, new_volume))
         return;
-    }
 
     s->reference_volume = s->virtual_volume = *new_volume;
-    s->save_volume = save;
+    s->save_volume = TRUE;
 
     if (s->flags & PA_SINK_FLAT_VOLUME)
         pa_sink_propagate_flat_volume(s);
@@ -1449,6 +1453,8 @@ pa_bool_t pa_sink_get_mute(pa_sink *s, pa_bool_t force_refresh) {
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_MUTE, NULL, 0, NULL) == 0);
 
         if (old_muted != s->muted) {
+            s->save_muted = TRUE;
+
             pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 
             /* Make sure the soft mute status stays in sync */
@@ -1456,22 +1462,21 @@ pa_bool_t pa_sink_get_mute(pa_sink *s, pa_bool_t force_refresh) {
         }
     }
 
+
     return s->muted;
 }
 
 /* Called from main thread */
-void pa_sink_mute_changed(pa_sink *s, pa_bool_t new_muted, pa_bool_t save) {
+void pa_sink_mute_changed(pa_sink *s, pa_bool_t new_muted) {
     pa_sink_assert_ref(s);
 
     /* The sink implementor may call this if the volume changed to make sure everyone is notified */
 
-    if (s->muted == new_muted) {
-        s->save_muted = s->save_muted || save;
+    if (s->muted == new_muted)
         return;
-    }
 
     s->muted = new_muted;
-    s->save_muted = save;
+    s->save_muted = TRUE;
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }

@@ -237,8 +237,8 @@ void pa_source_detach(pa_source *s);
 void pa_source_attach(pa_source *s);
 
 void pa_source_set_soft_volume(pa_source *s, const pa_cvolume *volume);
-void pa_source_volume_changed(pa_source *s, const pa_cvolume *new_volume, pa_bool_t save);
-void pa_source_mute_changed(pa_source *s, pa_bool_t new_muted, pa_bool_t save);
+void pa_source_volume_changed(pa_source *s, const pa_cvolume *new_volume);
+void pa_source_mute_changed(pa_source *s, pa_bool_t new_muted);
 
 int pa_source_sync_suspend(pa_source *s);
 

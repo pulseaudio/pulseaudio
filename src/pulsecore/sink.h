@@ -267,8 +267,8 @@ void pa_sink_detach(pa_sink *s);
 void pa_sink_attach(pa_sink *s);
 
 void pa_sink_set_soft_volume(pa_sink *s, const pa_cvolume *volume);
-void pa_sink_volume_changed(pa_sink *s, const pa_cvolume *new_volume, pa_bool_t save);
-void pa_sink_mute_changed(pa_sink *s, pa_bool_t new_muted, pa_bool_t save);
+void pa_sink_volume_changed(pa_sink *s, const pa_cvolume *new_volume);
+void pa_sink_mute_changed(pa_sink *s, pa_bool_t new_muted);
 
 pa_bool_t pa_device_init_description(pa_proplist *p);
 pa_bool_t pa_device_init_icon(pa_proplist *p, pa_bool_t is_sink);
