@@ -549,6 +549,9 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
         return -1;
 
+    /* Hmm, process any reweind request that might be queued up */
+    pa_sink_process_rewind(u->sink, 0);
+
     //pa_log("start output-buffered %ld, input-buffered %ld, requested %ld",buffered_samples,u->samples_gathered,samples_requested);
     struct timespec start, end;
 
@@ -559,11 +562,11 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     }
 
     /*
-        Set the H filter
-    */
+     *   Set the H filter
+     */
     unsigned H_i = pa_aupdate_read_begin(u->a_H);
     u->H = u->Hs[H_i];
-    
+
     do{
         pa_memchunk *buffer;
         size_t input_remaining = u->target_samples-u->samples_gathered;
@@ -641,14 +644,14 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
 
         if (amount > 0) {
             //pa_sample_spec *ss = &u->sink->sample_spec;
-            pa_memblockq_seek(u->rendered_q, - (int64_t) amount, PA_SEEK_RELATIVE, TRUE);
+            //pa_memblockq_seek(u->rendered_q, - (int64_t) amount, PA_SEEK_RELATIVE, TRUE);
             pa_log_debug("Resetting equalizer");
             u->samples_gathered = 0;
         }
     }
 
     pa_sink_process_rewind(u->sink, amount);
-    pa_memblockq_rewind(u->rendered_q, nbytes);
+    //pa_memblockq_rewind(u->rendered_q, nbytes);
 }
 
 /* Called from I/O thread context */
@@ -677,7 +680,8 @@ static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
 
     size_t fs = pa_frame_size(&(u->sink->sample_spec));
     //pa_sink_set_max_request_within_thread(u->sink, nbytes);
-    pa_sink_set_max_request_within_thread(u->sink, u->R*fs);
+    //pa_sink_set_max_request_within_thread(u->sink, u->R*fs);
+    pa_sink_set_max_request_within_thread(u->sink, ((nbytes+u->R*fs-1)/(u->R*fs))*(u->R*fs));
 }
 
 /* Called from I/O thread context */
@@ -692,8 +696,8 @@ static void sink_input_update_sink_latency_range_cb(pa_sink_input *i) {
 
     size_t fs = pa_frame_size(&(u->sink->sample_spec));
     //pa_sink_set_latency_range_within_thread(u->sink, u->master->thread_info.min_latency, u->latency*fs);
-    pa_sink_set_latency_range_within_thread(u->sink, u->latency*fs, u->latency*fs );
-    //pa_sink_set_latency_range_within_thread(u->sink, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
+    //pa_sink_set_latency_range_within_thread(u->sink, u->latency*fs, u->latency*fs );
+    pa_sink_set_latency_range_within_thread(u->sink, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
 }
 
 /* Called from I/O thread context */
@@ -924,8 +928,8 @@ int pa__init(pa_module*m) {
         memset(u->overlap_accum[c], 0, u->overlap_size*sizeof(float));
     }
     u->output_window = alloc((u->fft_size / 2 + 1), sizeof(fftwf_complex));
-    u->forward_plan = fftwf_plan_dft_r2c_1d(u->fft_size, u->work_buffer, u->output_window, FFTW_MEASURE);
-    u->inverse_plan = fftwf_plan_dft_c2r_1d(u->fft_size, u->output_window, u->work_buffer, FFTW_MEASURE);
+    u->forward_plan = fftwf_plan_dft_r2c_1d(u->fft_size, u->work_buffer, u->output_window, FFTW_ESTIMATE);
+    u->inverse_plan = fftwf_plan_dft_c2r_1d(u->fft_size, u->output_window, u->work_buffer, FFTW_ESTIMATE);
 
     hanning_window(u->W, u->window_size);
 
@@ -965,7 +969,9 @@ int pa__init(pa_module*m) {
 
     pa_sink_set_asyncmsgq(u->sink, master->asyncmsgq);
     pa_sink_set_rtpoll(u->sink, master->rtpoll);
-    pa_sink_set_max_request(u->sink, u->R*fs);
+    pa_sink_set_max_request(u->sink,
+        ((pa_sink_get_max_request(u->sink)+u->R*fs-1)/(u->R*fs))*(u->R*fs)
+    );
     //pa_sink_set_fixed_latency(u->sink, pa_bytes_to_usec(u->R*fs, &ss));
 
     /* Create sink input */
