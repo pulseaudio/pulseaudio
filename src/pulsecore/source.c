@@ -592,15 +592,15 @@ void pa_source_process_rewind(pa_source *s, size_t nbytes) {
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_IS_LINKED(s->thread_info.state));
 
-    if (s->thread_info.state == PA_SOURCE_SUSPENDED)
+    if (nbytes <= 0)
         return;
 
-    if (nbytes <= 0)
+    if (s->thread_info.state == PA_SOURCE_SUSPENDED)
         return;
 
     pa_log_debug("Processing rewind...");
 
-    while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL))) {
+    PA_HASHMAP_FOREACH(o, s->thread_info.outputs, state) {
         pa_source_output_assert_ref(o);
         pa_source_output_process_rewind(o, nbytes);
     }

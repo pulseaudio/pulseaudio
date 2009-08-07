@@ -148,6 +148,9 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
         return -1;
 
+    /* Hmm, process any rewind request that might be queued up */
+    pa_sink_process_rewind(u->sink, 0);
+
     pa_sink_render(u->sink, nbytes, chunk);
     return 0;
 }

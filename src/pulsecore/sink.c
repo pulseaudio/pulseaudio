@@ -665,11 +665,14 @@ void pa_sink_move_all_fail(pa_queue *q) {
 void pa_sink_process_rewind(pa_sink *s, size_t nbytes) {
     pa_sink_input *i;
     void *state = NULL;
+
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_IS_LINKED(s->thread_info.state));
 
     /* If nobody requested this and this is actually no real rewind
-     * then we can short cut this */
+     * then we can short cut this. Please note that this means that
+     * not all rewind requests triggered upstream will always be
+     * translated in actual requests! */
     if (!s->thread_info.rewind_requested && nbytes <= 0)
         return;
 
@@ -682,7 +685,7 @@ void pa_sink_process_rewind(pa_sink *s, size_t nbytes) {
     if (nbytes > 0)
         pa_log_debug("Processing rewind...");
 
-    while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL))) {
+    PA_HASHMAP_FOREACH(i, s->thread_info.inputs, state) {
         pa_sink_input_assert_ref(i);
         pa_sink_input_process_rewind(i, nbytes);
     }
