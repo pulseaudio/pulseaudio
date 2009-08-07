@@ -537,25 +537,6 @@ AC_SUBST(X11_LIBS)
 AC_SUBST(HAVE_X11)
 AM_CONDITIONAL([HAVE_X11], [test "x$HAVE_X11" = x1])
 
-#### Capabilities (optional) ####
-
-CAP_LIBS=''
-
-AC_ARG_WITH(
-        [caps],
-        AS_HELP_STRING([--without-caps],[Omit support for POSIX capabilities.]))
-
-if test "x${with_caps}" != "xno"; then
-    AC_SEARCH_LIBS([cap_init], [cap], [], [
-                    if test "x${with_caps}" = "xyes" ; then
-                        AC_MSG_ERROR([*** POSIX caps libraries not found])
-                    fi])
-    AC_CHECK_HEADERS([sys/capability.h], [], [
-                    if test "x${with_caps}" = "xyes" ; then
-                        AC_MSG_ERROR([*** POSIX caps headers not found])
-                    fi])
-fi
-
 #### Valgrind (optional) ####
 
 AC_CHECK_HEADERS_ONCE([valgrind/memcheck.h])
