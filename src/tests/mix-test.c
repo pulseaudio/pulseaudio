@@ -69,6 +69,8 @@ static void dump_block(const pa_sample_spec *ss, const pa_memchunk *chunk) {
             break;
         }
 
+        case PA_SAMPLE_S24_32NE:
+        case PA_SAMPLE_S24_32RE:
         case PA_SAMPLE_S32NE:
         case PA_SAMPLE_S32RE: {
             uint32_t *u = d;
@@ -84,7 +86,7 @@ static void dump_block(const pa_sample_spec *ss, const pa_memchunk *chunk) {
             uint8_t *u = d;
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
-	        printf("0x%02x%02x%02xx ", *u, *(u+1), *(u+2));
+                printf("0x%02x%02x%02xx ", *u, *(u+1), *(u+2));
                 u += 3;
             }
 
@@ -125,66 +127,72 @@ static pa_memblock* generate_block(pa_mempool *pool, const pa_sample_spec *ss) {
         case PA_SAMPLE_U8:
         case PA_SAMPLE_ULAW:
         case PA_SAMPLE_ALAW: {
-	    static const uint8_t u8_samples[] =
-	      { 0x00, 0xFF, 0x7F, 0x80, 0x9f,
-		0x3f, 0x01, 0xF0, 0x20, 0x21 };
+            static const uint8_t u8_samples[] = {
+                0x00, 0xFF, 0x7F, 0x80, 0x9f,
+                0x3f, 0x01, 0xF0, 0x20, 0x21
+            };
 
-	    memcpy(d, &u8_samples[0], sizeof(u8_samples));
+            memcpy(d, u8_samples, sizeof(u8_samples));
             break;
         }
 
         case PA_SAMPLE_S16NE:
         case PA_SAMPLE_S16RE: {
-	    static const uint16_t u16_samples[] =
-	      { 0x0000, 0xFFFF, 0x7FFF, 0x8000, 0x9fff,
-		0x3fff, 0x0001, 0xF000, 0x0020, 0x0021 };
+            static const uint16_t u16_samples[] = {
+                0x0000, 0xFFFF, 0x7FFF, 0x8000, 0x9fff,
+                0x3fff, 0x0001, 0xF000, 0x0020, 0x0021
+            };
 
-	    memcpy(d, &u16_samples[0], sizeof(u16_samples));
+            memcpy(d, u16_samples, sizeof(u16_samples));
             break;
         }
 
+        case PA_SAMPLE_S24_32NE:
+        case PA_SAMPLE_S24_32RE:
         case PA_SAMPLE_S32NE:
         case PA_SAMPLE_S32RE: {
-	    static const uint32_t u32_samples[] =
-	      { 0x00000001, 0xFFFF0002, 0x7FFF0003, 0x80000004, 0x9fff0005,
-		0x3fff0006, 0x00010007, 0xF0000008, 0x00200009, 0x0021000A };
+            static const uint32_t u32_samples[] = {
+                0x00000001, 0xFFFF0002, 0x7FFF0003, 0x80000004, 0x9fff0005,
+                0x3fff0006, 0x00010007, 0xF0000008, 0x00200009, 0x0021000A
+            };
 
-	    memcpy(d, &u32_samples[0], sizeof(u32_samples));
+            memcpy(d, u32_samples, sizeof(u32_samples));
             break;
         }
 
         case PA_SAMPLE_S24NE:
         case PA_SAMPLE_S24RE: {
-	    /* Need to be on a byte array because they are not aligned */
-	    static const uint8_t u24_samples[] =
-	      { 0x00, 0x00, 0x01,
-		0xFF, 0xFF, 0x02,
-		0x7F, 0xFF, 0x03,
-		0x80, 0x00, 0x04,
-		0x9f, 0xff, 0x05,
-		0x3f, 0xff, 0x06,
-		0x01, 0x00, 0x07,
-		0xF0, 0x00, 0x08,
-		0x20, 0x00, 0x09,
-		0x21, 0x00, 0x0A };
+            /* Need to be on a byte array because they are not aligned */
+            static const uint8_t u24_samples[] = {
+                0x00, 0x00, 0x01,
+                0xFF, 0xFF, 0x02,
+                0x7F, 0xFF, 0x03,
+                0x80, 0x00, 0x04,
+                0x9f, 0xff, 0x05,
+                0x3f, 0xff, 0x06,
+                0x01, 0x00, 0x07,
+                0xF0, 0x00, 0x08,
+                0x20, 0x00, 0x09,
+                0x21, 0x00, 0x0A
+            };
 
-	    memcpy(d, &u24_samples[0], sizeof(u24_samples));
+            memcpy(d, u24_samples, sizeof(u24_samples));
             break;
         }
 
         case PA_SAMPLE_FLOAT32NE:
         case PA_SAMPLE_FLOAT32RE: {
             float *u = d;
-	    static const float float_samples[] =
-	      { 0.0f, -1.0f, 1.0f, 4711.0f, 0.222f,
-		0.33f, -.3f, 99.0f, -0.555f, -.123f };
+            static const float float_samples[] = {
+                0.0f, -1.0f, 1.0f, 4711.0f, 0.222f,
+                0.33f, -.3f, 99.0f, -0.555f, -.123f
+            };
 
             if (ss->format == PA_SAMPLE_FLOAT32RE) {
                 for (i = 0; i < 10; i++)
                     u[i] = swap_float(float_samples[i]);
-	    } else {
-	      memcpy(d, &float_samples[0], sizeof(float_samples));
-	    }
+            } else
+              memcpy(d, float_samples, sizeof(float_samples));
 
             break;
         }
