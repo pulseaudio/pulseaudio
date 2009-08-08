@@ -1356,9 +1356,15 @@ if test "x$HAVE_X11" = "x1" ; then
    ENABLE_X11=yes
 fi
 
-ENABLE_OSS=no
+ENABLE_OSS_OUTPUT=no
+ENABLE_OSS_WRAPPER=no
 if test "x$HAVE_OSS" = "x1" ; then
-   ENABLE_OSS=yes
+   if test "x$enable_oss_output" != "xno"; then
+      ENABLE_OSS_OUTPUT=yes
+   fi
+   if test "x$enable_oss_wrapper" != "xno"; then
+      ENABLE_OSS_WRAPPER=yes
+   fi
 fi
 
 ENABLE_ALSA=no
@@ -1469,7 +1475,8 @@ echo "
     CFLAGS:                        ${CFLAGS}
 
     Have X11:                      ${ENABLE_X11}
-    Enable OSS:                    ${ENABLE_OSS}
+    Enable OSS Output:             ${ENABLE_OSS_OUTPUT}
+    Enable OSS Wrapper:            ${ENABLE_OSS_WRAPPER}
     Enable Alsa:                   ${ENABLE_ALSA}
     Enable Solaris:                ${ENABLE_SOLARIS}
     Enable GLib 2.0:               ${ENABLE_GLIB20}
