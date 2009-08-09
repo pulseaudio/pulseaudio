@@ -30,9 +30,11 @@
 
 #include <pulsecore/module.h>
 
+#include "iface-core.h"
+
 typedef struct pa_dbusiface_module pa_dbusiface_module;
 
-pa_dbusiface_module *pa_dbusiface_module_new(pa_module *module, const char *path_prefix);
+pa_dbusiface_module *pa_dbusiface_module_new(pa_dbusiface_core *core, pa_module *module);
 void pa_dbusiface_module_free(pa_dbusiface_module *m);
 
 const char *pa_dbusiface_module_get_path(pa_dbusiface_module *m);

@@ -30,9 +30,11 @@
 
 #include <pulsecore/client.h>
 
+#include "iface-core.h"
+
 typedef struct pa_dbusiface_client pa_dbusiface_client;
 
-pa_dbusiface_client *pa_dbusiface_client_new(pa_client *client, const char *path_prefix);
+pa_dbusiface_client *pa_dbusiface_client_new(pa_dbusiface_core *core, pa_client *client);
 void pa_dbusiface_client_free(pa_dbusiface_client *c);
 
 const char *pa_dbusiface_client_get_path(pa_dbusiface_client *c);

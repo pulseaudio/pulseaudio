@@ -195,15 +195,15 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     dbus_message_unref(reply);
 }
 
-pa_dbusiface_memstats *pa_dbusiface_memstats_new(pa_core *core, const char *path_prefix) {
+pa_dbusiface_memstats *pa_dbusiface_memstats_new(pa_dbusiface_core *dbus_core, pa_core *core) {
     pa_dbusiface_memstats *m;
 
+    pa_assert(dbus_core);
     pa_assert(core);
-    pa_assert(path_prefix);
 
     m = pa_xnew(pa_dbusiface_memstats, 1);
     m->core = pa_core_ref(core);
-    m->path = pa_sprintf_malloc("%s/%s", path_prefix, OBJECT_NAME);
+    m->path = pa_sprintf_malloc("%s/%s", PA_DBUS_CORE_OBJECT_PATH, OBJECT_NAME);
     m->dbus_protocol = pa_dbus_protocol_get(core);
 
     pa_assert_se(pa_dbus_protocol_add_interface(m->dbus_protocol, m->path, &memstats_interface_info, m) >= 0);

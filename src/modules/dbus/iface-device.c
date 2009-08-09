@@ -24,6 +24,7 @@
 #endif
 
 #include <pulsecore/core-util.h>
+#include <pulsecore/protocol-dbus.h>
 
 #include "iface-device.h"
 
@@ -44,30 +45,30 @@ struct pa_dbusiface_device {
     char *path;
 };
 
-pa_dbusiface_device *pa_dbusiface_device_new_sink(pa_sink *sink, const char *path_prefix) {
+pa_dbusiface_device *pa_dbusiface_device_new_sink(pa_dbusiface_core *core, pa_sink *sink) {
     pa_dbusiface_device *d;
 
+    pa_assert(core);
     pa_assert(sink);
-    pa_assert(path_prefix);
 
     d = pa_xnew(pa_dbusiface_device, 1);
     d->sink = pa_sink_ref(sink);
     d->type = DEVICE_TYPE_SINK;
-    d->path = pa_sprintf_malloc("%s/%s%u", path_prefix, SINK_OBJECT_NAME, sink->index);
+    d->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, SINK_OBJECT_NAME, sink->index);
 
     return d;
 }
 
-pa_dbusiface_device *pa_dbusiface_device_new_source(pa_source *source, const char *path_prefix) {
+pa_dbusiface_device *pa_dbusiface_device_new_source(pa_dbusiface_core *core, pa_source *source) {
     pa_dbusiface_device *d;
 
+    pa_assert(core);
     pa_assert(source);
-    pa_assert(path_prefix);
 
     d = pa_xnew(pa_dbusiface_device, 1);
     d->source = pa_source_ref(source);
     d->type = DEVICE_TYPE_SOURCE;
-    d->path = pa_sprintf_malloc("%s/%s%u", path_prefix, SOURCE_OBJECT_NAME, source->index);
+    d->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, SOURCE_OBJECT_NAME, source->index);
 
     return d;
 }

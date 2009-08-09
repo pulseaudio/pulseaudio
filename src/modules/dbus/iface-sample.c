@@ -24,6 +24,7 @@
 #endif
 
 #include <pulsecore/core-util.h>
+#include <pulsecore/protocol-dbus.h>
 
 #include "iface-sample.h"
 
@@ -34,15 +35,15 @@ struct pa_dbusiface_sample {
     char *path;
 };
 
-pa_dbusiface_sample *pa_dbusiface_sample_new(pa_scache_entry *sample, const char *path_prefix) {
+pa_dbusiface_sample *pa_dbusiface_sample_new(pa_dbusiface_core *core, pa_scache_entry *sample) {
     pa_dbusiface_sample *s;
 
+    pa_assert(core);
     pa_assert(sample);
-    pa_assert(path_prefix);
 
     s = pa_xnew(pa_dbusiface_sample, 1);
     s->sample = sample;
-    s->path = pa_sprintf_malloc("%s/%s%u", path_prefix, OBJECT_NAME, sample->index);
+    s->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, OBJECT_NAME, sample->index);
 
     return s;
 }

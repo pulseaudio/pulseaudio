@@ -24,6 +24,7 @@
 #endif
 
 #include <pulsecore/core-util.h>
+#include <pulsecore/protocol-dbus.h>
 
 #include "iface-stream.h"
 
@@ -44,30 +45,30 @@ struct pa_dbusiface_stream {
     char *path;
 };
 
-pa_dbusiface_stream *pa_dbusiface_stream_new_playback(pa_sink_input *sink_input, const char *path_prefix) {
+pa_dbusiface_stream *pa_dbusiface_stream_new_playback(pa_dbusiface_core *core, pa_sink_input *sink_input) {
     pa_dbusiface_stream *s;
 
+    pa_assert(core);
     pa_assert(sink_input);
-    pa_assert(path_prefix);
 
     s = pa_xnew(pa_dbusiface_stream, 1);
     s->sink_input = pa_sink_input_ref(sink_input);
     s->type = STREAM_TYPE_PLAYBACK;
-    s->path = pa_sprintf_malloc("%s/%s%u", path_prefix, PLAYBACK_OBJECT_NAME, sink_input->index);
+    s->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, PLAYBACK_OBJECT_NAME, sink_input->index);
 
     return s;
 }
 
-pa_dbusiface_stream *pa_dbusiface_stream_new_record(pa_source_output *source_output, const char *path_prefix) {
+pa_dbusiface_stream *pa_dbusiface_stream_new_record(pa_dbusiface_core *core, pa_source_output *source_output) {
     pa_dbusiface_stream *s;
 
+    pa_assert(core);
     pa_assert(source_output);
-    pa_assert(path_prefix);
 
     s = pa_xnew(pa_dbusiface_stream, 1);
     s->source_output = pa_source_output_ref(source_output);
     s->type = STREAM_TYPE_RECORD;
-    s->path = pa_sprintf_malloc("%s/%s%u", path_prefix, RECORD_OBJECT_NAME, source_output->index);
+    s->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, RECORD_OBJECT_NAME, source_output->index);
 
     return s;
 }

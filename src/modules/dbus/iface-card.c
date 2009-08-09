@@ -24,25 +24,30 @@
 #endif
 
 #include <pulsecore/core-util.h>
+#include <pulsecore/protocol-dbus.h>
 
 #include "iface-card.h"
 
 #define OBJECT_NAME "card"
 
 struct pa_dbusiface_card {
+    pa_dbusiface_core *core;
+
     pa_card *card;
     char *path;
 };
 
-pa_dbusiface_card *pa_dbusiface_card_new(pa_card *card, const char *path_prefix) {
-    pa_dbusiface_card *c;
 
+pa_dbusiface_card *pa_dbusiface_card_new(pa_dbusiface_core *core, pa_card *card) {
+    pa_dbusiface_card *c = NULL;
+
+    pa_assert(core);
     pa_assert(card);
-    pa_assert(path_prefix);
 
-    c = pa_xnew(pa_dbusiface_card, 1);
+    c = pa_xnew0(pa_dbusiface_card, 1);
+    c->core = core;
     c->card = card;
-    c->path = pa_sprintf_malloc("%s/%s%u", path_prefix, OBJECT_NAME, card->index);
+    c->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, OBJECT_NAME, card->index);
 
     return c;
 }

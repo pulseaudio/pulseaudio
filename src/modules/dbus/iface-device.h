@@ -32,10 +32,12 @@
 #include <pulsecore/sink.h>
 #include <pulsecore/source.h>
 
+#include "iface-core.h"
+
 typedef struct pa_dbusiface_device pa_dbusiface_device;
 
-pa_dbusiface_device *pa_dbusiface_device_new_sink(pa_sink *sink, const char *path_prefix);
-pa_dbusiface_device *pa_dbusiface_device_new_source(pa_source *source, const char *path_prefix);
+pa_dbusiface_device *pa_dbusiface_device_new_sink(pa_dbusiface_core *core, pa_sink *sink);
+pa_dbusiface_device *pa_dbusiface_device_new_source(pa_dbusiface_core *core, pa_source *source);
 void pa_dbusiface_device_free(pa_dbusiface_device *d);
 
 const char *pa_dbusiface_device_get_path(pa_dbusiface_device *d);

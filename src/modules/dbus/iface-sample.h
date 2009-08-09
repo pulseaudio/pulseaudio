@@ -30,9 +30,11 @@
 
 #include <pulsecore/core-scache.h>
 
+#include "iface-core.h"
+
 typedef struct pa_dbusiface_sample pa_dbusiface_sample;
 
-pa_dbusiface_sample *pa_dbusiface_sample_new(pa_scache_entry *sample, const char *path_prefix);
+pa_dbusiface_sample *pa_dbusiface_sample_new(pa_dbusiface_core *core, pa_scache_entry *sample);
 void pa_dbusiface_sample_free(pa_dbusiface_sample *c);
 
 const char *pa_dbusiface_sample_get_path(pa_dbusiface_sample *c);

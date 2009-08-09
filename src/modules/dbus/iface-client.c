@@ -24,6 +24,7 @@
 #endif
 
 #include <pulsecore/core-util.h>
+#include <pulsecore/protocol-dbus.h>
 
 #include "iface-client.h"
 
@@ -34,15 +35,15 @@ struct pa_dbusiface_client {
     char *path;
 };
 
-pa_dbusiface_client *pa_dbusiface_client_new(pa_client *client, const char *path_prefix) {
+pa_dbusiface_client *pa_dbusiface_client_new(pa_dbusiface_core *core, pa_client *client) {
     pa_dbusiface_client *c;
 
+    pa_assert(core);
     pa_assert(client);
-    pa_assert(path_prefix);
 
     c = pa_xnew(pa_dbusiface_client, 1);
     c->client = client;
-    c->path = pa_sprintf_malloc("%s/%s%u", path_prefix, OBJECT_NAME, client->index);
+    c->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, OBJECT_NAME, client->index);
 
     return c;
 }

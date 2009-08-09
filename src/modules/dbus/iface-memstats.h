@@ -29,14 +29,15 @@
  */
 
 #include <pulsecore/core.h>
+#include <pulsecore/protocol-dbus.h>
 
 #include "iface-core.h"
 
-#define PA_DBUSIFACE_MEMSTATS_INTERFACE PA_DBUSIFACE_CORE_INTERFACE ".Memstats"
+#define PA_DBUSIFACE_MEMSTATS_INTERFACE PA_DBUS_CORE_INTERFACE ".Memstats"
 
 typedef struct pa_dbusiface_memstats pa_dbusiface_memstats;
 
-pa_dbusiface_memstats *pa_dbusiface_memstats_new(pa_core *core, const char *path_prefix);
+pa_dbusiface_memstats *pa_dbusiface_memstats_new(pa_dbusiface_core *dbus_core, pa_core *core);
 void pa_dbusiface_memstats_free(pa_dbusiface_memstats *m);
 
 const char *pa_dbusiface_memstats_get_path(pa_dbusiface_memstats *m);

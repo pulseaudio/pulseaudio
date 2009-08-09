@@ -32,8 +32,11 @@
 
 #define PA_DBUS_SYSTEM_SOCKET_PATH PA_SYSTEM_RUNTIME_PATH PA_PATH_SEP PA_DBUS_SOCKET_NAME
 
-#define PA_DBUS_ERROR_NO_SUCH_PROPERTY "org.PulseAudio.Core1.NoSuchPropertyError"
-#define PA_DBUS_ERROR_NOT_FOUND "org.PulseAudio.Core1.NotFoundError"
+#define PA_DBUS_CORE_INTERFACE "org.PulseAudio.Core1"
+#define PA_DBUS_CORE_OBJECT_PATH "/org/pulseaudio/core1"
+
+#define PA_DBUS_ERROR_NO_SUCH_PROPERTY PA_DBUS_CORE_INTERFACE ".NoSuchPropertyError"
+#define PA_DBUS_ERROR_NOT_FOUND PA_DBUS_CORE_INTERFACE ".NotFoundError"
 
 /* Returns the default address of the server type in the escaped form. For
  * PA_SERVER_TYPE_NONE an empty string is returned. The caller frees the

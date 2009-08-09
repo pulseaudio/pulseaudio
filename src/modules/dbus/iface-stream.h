@@ -31,10 +31,12 @@
 #include <pulsecore/sink-input.h>
 #include <pulsecore/source-output.h>
 
+#include "iface-core.h"
+
 typedef struct pa_dbusiface_stream pa_dbusiface_stream;
 
-pa_dbusiface_stream *pa_dbusiface_stream_new_playback(pa_sink_input *sink_input, const char *path_prefix);
-pa_dbusiface_stream *pa_dbusiface_stream_new_record(pa_source_output *source_output, const char *path_prefix);
+pa_dbusiface_stream *pa_dbusiface_stream_new_playback(pa_dbusiface_core *core, pa_sink_input *sink_input);
+pa_dbusiface_stream *pa_dbusiface_stream_new_record(pa_dbusiface_core *core, pa_source_output *source_output);
 void pa_dbusiface_stream_free(pa_dbusiface_stream *s);
 
 const char *pa_dbusiface_stream_get_path(pa_dbusiface_stream *s);

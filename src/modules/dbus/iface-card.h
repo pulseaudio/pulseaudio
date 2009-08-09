@@ -30,9 +30,13 @@
 
 #include <pulsecore/card.h>
 
+#include "iface-core.h"
+
+#define PA_DBUSIFACE_CARD_INTERFACE PA_DBUS_CORE_INTERFACE ".Card"
+
 typedef struct pa_dbusiface_card pa_dbusiface_card;
 
-pa_dbusiface_card *pa_dbusiface_card_new(pa_card *card, const char *path_prefix);
+pa_dbusiface_card *pa_dbusiface_card_new(pa_dbusiface_core *core, pa_card *card);
 void pa_dbusiface_card_free(pa_dbusiface_card *c);
 
 const char *pa_dbusiface_card_get_path(pa_dbusiface_card *c);
