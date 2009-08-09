@@ -1278,6 +1278,7 @@ module_http_protocol_unix_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMI
 
 module_dbus_protocol_la_SOURCES = \
 		modules/dbus/iface-card.c modules/dbus/iface-card.h \
+		modules/dbus/iface-card-profile.c modules/dbus/iface-card-profile.h \
 		modules/dbus/iface-client.c modules/dbus/iface-client.h \
 		modules/dbus/iface-core.c modules/dbus/iface-core.h \
 		modules/dbus/iface-device.c modules/dbus/iface-device.h \
