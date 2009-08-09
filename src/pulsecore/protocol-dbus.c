@@ -28,6 +28,7 @@
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/core-util.h>
+#include <pulsecore/dbus-util.h>
 #include <pulsecore/hashmap.h>
 #include <pulsecore/idxset.h>
 #include <pulsecore/shared.h>
@@ -408,7 +409,6 @@ static DBusHandlerResult handle_message_cb(DBusConnection *connection, DBusMessa
     pa_dbus_method_handler *method_handler = NULL;
     pa_dbus_property_handler *property_handler = NULL;
     const char *attempted_property = NULL;
-    DBusMessage *reply = NULL;
 
     pa_assert(connection);
     pa_assert(message);
@@ -427,10 +427,7 @@ static DBusHandlerResult handle_message_cb(DBusConnection *connection, DBusMessa
 
     if (dbus_message_is_method_call(message, "org.freedesktop.DBus.Introspectable", "Introspect") ||
         (!dbus_message_get_interface(message) && dbus_message_has_member(message, "Introspect"))) {
-        pa_assert_se((reply = dbus_message_new_method_return(message)));
-        pa_assert_se(dbus_message_append_args(reply, DBUS_TYPE_STRING, &obj_entry->introspection, DBUS_TYPE_INVALID));
-        pa_assert_se(dbus_connection_send(connection, reply, NULL));
-
+        pa_dbus_send_basic_value_reply(connection, message, DBUS_TYPE_STRING, &obj_entry->introspection);
         goto finish;
     }
 
@@ -450,26 +447,23 @@ static DBusHandlerResult handle_message_cb(DBusConnection *connection, DBusMessa
         case FOUND_GET_ALL:
             if (iface_entry->get_all_properties_cb)
                 iface_entry->get_all_properties_cb(connection, message, iface_entry->userdata);
+            /* TODO: Write an else branch where a dummy response is sent. */
             break;
 
         case PROPERTY_ACCESS_DENIED:
-            pa_assert_se((reply = dbus_message_new_error_printf(message, DBUS_ERROR_ACCESS_DENIED, "%s access denied for property %s", dbus_message_get_member(message), attempted_property)));
-            pa_assert_se(dbus_connection_send(connection, reply, NULL));
+            pa_dbus_send_error(connection, message, DBUS_ERROR_ACCESS_DENIED, "%s access denied for property %s", dbus_message_get_member(message), attempted_property);
             break;
 
         case NO_SUCH_METHOD:
-            pa_assert_se((reply = dbus_message_new_error_printf(message, DBUS_ERROR_UNKNOWN_METHOD, "%s: No such method", dbus_message_get_member(message))));
-            pa_assert_se(dbus_connection_send(connection, reply, NULL));
+            pa_dbus_send_error(connection, message, DBUS_ERROR_UNKNOWN_METHOD, "%s: No such method", dbus_message_get_member(message));
             break;
 
         case NO_SUCH_PROPERTY:
-            pa_assert_se((reply = dbus_message_new_error_printf(message, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "%s: No such property", attempted_property)));
-            pa_assert_se(dbus_connection_send(connection, reply, NULL));
+            pa_dbus_send_error(connection, message, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "%s: No such property", attempted_property);
             break;
 
         case INVALID_MESSAGE_ARGUMENTS:
-            pa_assert_se((reply = dbus_message_new_error_printf(message, DBUS_ERROR_INVALID_ARGS, "Invalid arguments for %s", dbus_message_get_member(message))));
-            pa_assert_se(dbus_connection_send(connection, reply, NULL));
+            pa_dbus_send_error(connection, message, DBUS_ERROR_INVALID_ARGS, "Invalid arguments for %s", dbus_message_get_member(message));
             break;
 
         default:
@@ -477,9 +471,6 @@ static DBusHandlerResult handle_message_cb(DBusConnection *connection, DBusMessa
     }
 
 finish:
-    if (reply)
-        dbus_message_unref(reply);
-
     return DBUS_HANDLER_RESULT_HANDLED;
 }
 
