@@ -655,7 +655,7 @@ static void handle_set_fallback_sink(DBusConnection *conn, DBusMessage *msg, voi
         return;
 
     if (!(fallback_sink = pa_hashmap_get(c->sinks_by_path, object_path))) {
-        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "No such sink.");
+        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "%s: No such sink.", object_path);
         return;
     }
 
@@ -741,7 +741,7 @@ static void handle_set_fallback_source(DBusConnection *conn, DBusMessage *msg, v
         return;
 
     if (!(fallback_source = pa_hashmap_get(c->sources_by_path, object_path))) {
-        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "No such source.");
+        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "%s: No such source.", object_path);
         return;
     }
 
@@ -1154,7 +1154,7 @@ static void handle_get_sink_by_name(DBusConnection *conn, DBusMessage *msg, void
     }
 
     if (!(sink = pa_namereg_get(c->core, sink_name, PA_NAMEREG_SINK))) {
-        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "No such sink.");
+        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "%s: No such sink.", sink_name);
         return;
     }
 
@@ -1186,7 +1186,7 @@ static void handle_get_source_by_name(DBusConnection *conn, DBusMessage *msg, vo
     }
 
     if (!(source = pa_namereg_get(c->core, source_name, PA_NAMEREG_SOURCE))) {
-        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "No such source.");
+        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "%s: No such source.", source_name);
         return;
     }
 
