@@ -35,4 +35,8 @@ typedef struct pa_dbusiface_core pa_dbusiface_core;
 pa_dbusiface_core *pa_dbusiface_core_new(pa_core *core);
 void pa_dbusiface_core_free(pa_dbusiface_core *c);
 
+const char *pa_dbusiface_core_get_sink_path(pa_dbusiface_core *c, const pa_sink *sink);
+const char *pa_dbusiface_core_get_source_path(pa_dbusiface_core *c, const pa_source *source);
+const char *pa_dbusiface_core_get_module_path(pa_dbusiface_core *c, const pa_module *module);
+
 #endif

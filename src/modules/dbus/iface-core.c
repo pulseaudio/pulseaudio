@@ -2033,3 +2033,24 @@ void pa_dbusiface_core_free(pa_dbusiface_core *c) {
 
     pa_xfree(c);
 }
+
+const char *pa_dbusiface_core_get_sink_path(pa_dbusiface_core *c, const pa_sink *sink) {
+    pa_assert(c);
+    pa_assert(sink);
+
+    return pa_dbusiface_device_get_path(pa_hashmap_get(c->sinks_by_index, PA_UINT32_TO_PTR(sink->index)));
+}
+
+const char *pa_dbusiface_core_get_source_path(pa_dbusiface_core *c, const pa_source *source) {
+    pa_assert(c);
+    pa_assert(source);
+
+    return pa_dbusiface_device_get_path(pa_hashmap_get(c->sources_by_index, PA_UINT32_TO_PTR(source->index)));
+}
+
+const char *pa_dbusiface_core_get_module_path(pa_dbusiface_core *c, const pa_module *module) {
+    pa_assert(c);
+    pa_assert(module);
+
+    return pa_dbusiface_module_get_path(pa_hashmap_get(c->modules, PA_UINT32_TO_PTR(module->index)));
+}
