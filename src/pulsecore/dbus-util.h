@@ -91,8 +91,8 @@ int pa_dbus_get_fixed_array_set_property_arg(DBusConnection *c, DBusMessage *msg
 int pa_dbus_get_basic_arg(DBusConnection *c, DBusMessage *msg, DBusMessageIter *iter, int type, void *data);
 int pa_dbus_get_fixed_array_arg(DBusConnection *c, DBusMessage *msg, DBusMessageIter *iter, int item_type, void *array, unsigned *n);
 
-/* Returns a new proplist, that the caller has to free. If the proplist can't
- * be read from the iterator, an error reply is sent and NULL is returned. */
+/* Returns a new proplist that the caller has to free. If the proplist can't be
+ * read from the iterator, an error reply is sent and NULL is returned. */
 pa_proplist *pa_dbus_get_proplist_arg(DBusConnection *c, DBusMessage *msg, DBusMessageIter *iter);
 
 #endif
