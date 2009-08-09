@@ -354,6 +354,9 @@ unsigned pa_proplist_size(pa_proplist *t);
 /** Returns 0 when the proplist is empty, positive otherwise \since 0.9.15 */
 int pa_proplist_isempty(pa_proplist *t);
 
+/** Return non-zero when a and b have the same keys and values. */
+int pa_proplist_equal(pa_proplist *a, pa_proplist *b);
+
 PA_C_DECL_END
 
 #endif
