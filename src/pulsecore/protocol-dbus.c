@@ -199,19 +199,21 @@ static void update_introspection(struct object_entry *oe) {
             pa_strbuf_printf(buf, "  <method name=\"%s\">\n", method_handler->method_name);
 
             for (i = 0; i < method_handler->n_arguments; ++i)
-                pa_strbuf_printf(buf, "   <arg name=\"%s\" type=\"%s\" direction=\"%s\"/>\n", method_handler->arguments[i].name,
-                                                                                              method_handler->arguments[i].type,
-                                                                                              method_handler->arguments[i].direction);
+                pa_strbuf_printf(buf, "   <arg name=\"%s\" type=\"%s\" direction=\"%s\"/>\n",
+                                 method_handler->arguments[i].name,
+                                 method_handler->arguments[i].type,
+                                 method_handler->arguments[i].direction);
 
             pa_strbuf_puts(buf, "  </method>\n");
         }
 
         handlers_state = NULL;
 
-        while ((property_handler = pa_hashmap_iterate(iface_entry->property_handlers, &handlers_state, NULL)))
-            pa_strbuf_printf(buf, "  <property name=\"%s\" type=\"%s\" access=\"%s\"/>\n", property_handler->property_name,
-                                                                                           property_handler->type,
-                                                                                           property_handler->get_cb ? (property_handler->set_cb ? "readwrite" : "read") : "write");
+        PA_HASHMAP_FOREACH(property_handler, iface_entry->property_handlers, handlers_state)
+            pa_strbuf_printf(buf, "  <property name=\"%s\" type=\"%s\" access=\"%s\"/>\n",
+                             property_handler->property_name,
+                             property_handler->type,
+                             property_handler->get_cb ? (property_handler->set_cb ? "readwrite" : "read") : "write");
 
         for (i = 0; i < iface_entry->n_signals; ++i) {
             pa_strbuf_printf(buf, "  <signal name=\"%s\">\n", iface_entry->signals[i].name);
