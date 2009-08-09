@@ -186,7 +186,7 @@ static void update_introspection(struct object_entry *oe) {
     pa_strbuf_puts(buf, DBUS_INTROSPECT_1_0_XML_DOCTYPE_DECL_NODE);
     pa_strbuf_puts(buf, "<node>\n");
 
-    while ((iface_entry = pa_hashmap_iterate(oe->interfaces, &interfaces_state, NULL))) {
+    PA_HASHMAP_FOREACH(iface_entry, oe->interfaces, interfaces_state) {
         pa_dbus_method_handler *method_handler;
         pa_dbus_property_handler *property_handler;
         void *handlers_state = NULL;
@@ -195,7 +195,7 @@ static void update_introspection(struct object_entry *oe) {
 
         pa_strbuf_printf(buf, " <interface name=\"%s\">\n", iface_entry->name);
 
-        while ((method_handler = pa_hashmap_iterate(iface_entry->method_handlers, &handlers_state, NULL))) {
+        PA_HASHMAP_FOREACH(method_handler, iface_entry->method_handlers, handlers_state) {
             pa_strbuf_printf(buf, "  <method name=\"%s\">\n", method_handler->method_name);
 
             for (i = 0; i < method_handler->n_arguments; ++i)
@@ -278,7 +278,7 @@ static enum find_result_t find_handler_by_property(struct object_entry *obj_entr
     pa_assert(iface_entry);
     pa_assert(property_handler);
 
-    while ((*iface_entry = pa_hashmap_iterate(obj_entry->interfaces, &state, NULL))) {
+    PA_HASHMAP_FOREACH(*iface_entry, obj_entry->interfaces, state) {
         if ((*property_handler = pa_hashmap_get((*iface_entry)->property_handlers, property))) {
             if (dbus_message_has_member(msg, "Get"))
                 return (*property_handler)->get_cb ? FOUND_GET_PROPERTY : PROPERTY_ACCESS_DENIED;
@@ -303,7 +303,7 @@ static enum find_result_t find_handler_by_method(struct object_entry *obj_entry,
     pa_assert(iface_entry);
     pa_assert(method_handler);
 
-    while ((*iface_entry = pa_hashmap_iterate(obj_entry->interfaces, &state, NULL))) {
+    PA_HASHMAP_FOREACH(*iface_entry, obj_entry->interfaces, state) {
         if ((*method_handler = pa_hashmap_get((*iface_entry)->method_handlers, method)))
             return FOUND_METHOD;
     }
@@ -497,7 +497,7 @@ static void register_object(pa_dbus_protocol *p, struct object_entry *obj_entry)
     pa_assert(p);
     pa_assert(obj_entry);
 
-    while ((conn_entry = pa_hashmap_iterate(p->connections, &state, NULL)))
+    PA_HASHMAP_FOREACH(conn_entry, p->connections, state)
         pa_assert_se(dbus_connection_register_object_path(conn_entry->connection, obj_entry->path, &vtable, p));
 }
 
@@ -652,7 +652,7 @@ static void unregister_object(pa_dbus_protocol *p, struct object_entry *obj_entr
     pa_assert(p);
     pa_assert(obj_entry);
 
-    while ((conn_entry = pa_hashmap_iterate(p->connections, &state, NULL)))
+    PA_HASHMAP_FOREACH(conn_entry, p->connections, state)
         pa_assert_se(dbus_connection_unregister_object_path(conn_entry->connection, obj_entry->path));
 }
 
@@ -742,7 +742,7 @@ static void register_all_objects(pa_dbus_protocol *p, DBusConnection *conn) {
     pa_assert(p);
     pa_assert(conn);
 
-    while ((obj_entry = pa_hashmap_iterate(p->objects, &state, NULL)))
+    PA_HASHMAP_FOREACH(obj_entry, p->objects, state)
         pa_assert_se(dbus_connection_register_object_path(conn, obj_entry->path, &vtable, p));
 }
 
@@ -777,7 +777,7 @@ static void unregister_all_objects(pa_dbus_protocol *p, DBusConnection *conn) {
     pa_assert(p);
     pa_assert(conn);
 
-    while ((obj_entry = pa_hashmap_iterate(p->objects, &state, NULL)))
+    PA_HASHMAP_FOREACH(obj_entry, p->objects, state)
         pa_assert_se(dbus_connection_unregister_object_path(conn, obj_entry->path));
 }
 
@@ -904,13 +904,7 @@ void pa_dbus_protocol_send_signal(pa_dbus_protocol *p, DBusMessage *signal) {
     pa_assert(signal);
     pa_assert(dbus_message_get_type(signal) == DBUS_MESSAGE_TYPE_SIGNAL);
 
-    /* XXX: We have to do some linear searching to find connections that want
-     * to receive the signal. This shouldn't be very significant performance
-     * problem, and adding an (object path, signal name) -> connection mapping
-     * would be likely to create substantial complexity. */
-
-    while ((conn_entry = pa_hashmap_iterate(p->connections, &state, NULL))) {
-
+    PA_HASHMAP_FOREACH(conn_entry, p->connections, state) {
         if ((conn_entry->listening_for_all_signals /* Case 1: listening for all signals */
              && (pa_idxset_get_by_data(conn_entry->all_signals_objects, dbus_message_get_path(signal), NULL)
                  || pa_idxset_isempty(conn_entry->all_signals_objects)))
@@ -943,10 +937,8 @@ const char **pa_dbus_protocol_get_extensions(pa_dbus_protocol *p, unsigned *n) {
 
     extensions = pa_xnew(const char *, *n);
 
-    while ((ext_name = pa_idxset_iterate(p->extensions, &state, NULL))) {
-        extensions[i] = ext_name;
-        ++i;
-    }
+    while ((ext_name = pa_idxset_iterate(p->extensions, &state, NULL)))
+        extensions[i++] = ext_name;
 
     return extensions;
 }

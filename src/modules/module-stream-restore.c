@@ -553,10 +553,8 @@ static const char **get_entries(struct userdata *u, unsigned *n) {
 
     entries = pa_xnew(const char *, *n);
 
-    while ((de = pa_hashmap_iterate(u->dbus_entries, &state, NULL))) {
-        entries[i] = de->object_path;
-        ++i;
-    }
+    PA_HASHMAP_FOREACH(de, u->dbus_entries, state)
+        entries[i++] = de->object_path;
 
     return entries;
 }
@@ -1747,7 +1745,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 struct dbus_entry *de;
                 void *state = NULL;
 
-                while ((de = pa_hashmap_iterate(u->dbus_entries, &state, NULL))) {
+                PA_HASHMAP_FOREACH(de, u->dbus_entries, state) {
                     send_entry_removed_signal(de);
                     dbus_entry_free(pa_hashmap_remove(u->dbus_entries, de->entry_name));
                 }

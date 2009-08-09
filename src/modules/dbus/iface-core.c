@@ -542,7 +542,7 @@ static void handle_set_default_sample_rate(DBusConnection *conn, DBusMessage *ms
 /* The caller frees the array, but not the strings. */
 static const char **get_cards(pa_dbusiface_core *c, unsigned *n) {
     const char **cards;
-    unsigned i;
+    unsigned i = 0;
     void *state = NULL;
     pa_dbusiface_card *card;
 
@@ -556,10 +556,8 @@ static const char **get_cards(pa_dbusiface_core *c, unsigned *n) {
 
     cards = pa_xnew(const char *, *n);
 
-    for (i = 0, card = pa_hashmap_iterate(c->cards, &state, NULL); card; ++i, card = pa_hashmap_iterate(c->cards, &state, NULL))
-        cards[i] = pa_dbusiface_card_get_path(card);
-
-    pa_assert(i == *n);
+    PA_HASHMAP_FOREACH(card, c->cards, state)
+        cards[i++] = pa_dbusiface_card_get_path(card);
 
     return cards;
 }
@@ -583,7 +581,7 @@ static void handle_get_cards(DBusConnection *conn, DBusMessage *msg, void *userd
 /* The caller frees the array, but not the strings. */
 static const char **get_sinks(pa_dbusiface_core *c, unsigned *n) {
     const char **sinks;
-    unsigned i;
+    unsigned i = 0;
     void *state = NULL;
     pa_dbusiface_device *sink;
 
@@ -597,10 +595,8 @@ static const char **get_sinks(pa_dbusiface_core *c, unsigned *n) {
 
     sinks = pa_xnew(const char *, *n);
 
-    for (i = 0, sink = pa_hashmap_iterate(c->sinks_by_index, &state, NULL); sink; ++i, sink = pa_hashmap_iterate(c->sinks_by_index, &state, NULL))
-        sinks[i] = pa_dbusiface_device_get_path(sink);
-
-    pa_assert(i == *n);
+    PA_HASHMAP_FOREACH(sink, c->sinks_by_index, state)
+        sinks[i++] = pa_dbusiface_device_get_path(sink);
 
     return sinks;
 }
@@ -671,7 +667,7 @@ static void handle_set_fallback_sink(DBusConnection *conn, DBusMessage *msg, voi
 /* The caller frees the array, but not the strings. */
 static const char **get_sources(pa_dbusiface_core *c, unsigned *n) {
     const char **sources;
-    unsigned i;
+    unsigned i = 0;
     void *state = NULL;
     pa_dbusiface_device *source;
 
@@ -685,10 +681,8 @@ static const char **get_sources(pa_dbusiface_core *c, unsigned *n) {
 
     sources = pa_xnew(const char *, *n);
 
-    for (i = 0, source = pa_hashmap_iterate(c->sources_by_index, &state, NULL); source; ++i, source = pa_hashmap_iterate(c->sources_by_index, &state, NULL))
-        sources[i] = pa_dbusiface_device_get_path(source);
-
-    pa_assert(i == *n);
+    PA_HASHMAP_FOREACH(source, c->sources_by_index, state)
+        sources[i++] = pa_dbusiface_device_get_path(source);
 
     return sources;
 }
@@ -759,7 +753,7 @@ static void handle_set_fallback_source(DBusConnection *conn, DBusMessage *msg, v
 /* The caller frees the array, but not the strings. */
 static const char **get_playback_streams(pa_dbusiface_core *c, unsigned *n) {
     const char **streams;
-    unsigned i;
+    unsigned i = 0;
     void *state = NULL;
     pa_dbusiface_stream *stream;
 
@@ -773,10 +767,8 @@ static const char **get_playback_streams(pa_dbusiface_core *c, unsigned *n) {
 
     streams = pa_xnew(const char *, *n);
 
-    for (i = 0, stream = pa_hashmap_iterate(c->playback_streams, &state, NULL); stream; ++i, stream = pa_hashmap_iterate(c->playback_streams, &state, NULL))
-        streams[i] = pa_dbusiface_stream_get_path(stream);
-
-    pa_assert(i == *n);
+    PA_HASHMAP_FOREACH(stream, c->playback_streams, state)
+        streams[i++] = pa_dbusiface_stream_get_path(stream);
 
     return streams;
 }
@@ -800,7 +792,7 @@ static void handle_get_playback_streams(DBusConnection *conn, DBusMessage *msg, 
 /* The caller frees the array, but not the strings. */
 static const char **get_record_streams(pa_dbusiface_core *c, unsigned *n) {
     const char **streams;
-    unsigned i;
+    unsigned i = 0;
     void *state = NULL;
     pa_dbusiface_stream *stream;
 
@@ -814,10 +806,8 @@ static const char **get_record_streams(pa_dbusiface_core *c, unsigned *n) {
 
     streams = pa_xnew(const char *, *n);
 
-    for (i = 0, stream = pa_hashmap_iterate(c->record_streams, &state, NULL); stream; ++i, stream = pa_hashmap_iterate(c->record_streams, &state, NULL))
-        streams[i] = pa_dbusiface_stream_get_path(stream);
-
-    pa_assert(i == *n);
+    PA_HASHMAP_FOREACH(stream, c->record_streams, state)
+        streams[i++] = pa_dbusiface_stream_get_path(stream);
 
     return streams;
 }
@@ -841,7 +831,7 @@ static void handle_get_record_streams(DBusConnection *conn, DBusMessage *msg, vo
 /* The caller frees the array, but not the strings. */
 static const char **get_samples(pa_dbusiface_core *c, unsigned *n) {
     const char **samples;
-    unsigned i;
+    unsigned i = 0;
     void *state = NULL;
     pa_dbusiface_sample *sample;
 
@@ -855,10 +845,8 @@ static const char **get_samples(pa_dbusiface_core *c, unsigned *n) {
 
     samples = pa_xnew(const char *, *n);
 
-    for (i = 0, sample = pa_hashmap_iterate(c->samples, &state, NULL); sample; ++i, sample = pa_hashmap_iterate(c->samples, &state, NULL))
-        samples[i] = pa_dbusiface_sample_get_path(sample);
-
-    pa_assert(i == *n);
+    PA_HASHMAP_FOREACH(sample, c->samples, state)
+        samples[i++] = pa_dbusiface_sample_get_path(sample);
 
     return samples;
 }
@@ -882,7 +870,7 @@ static void handle_get_samples(DBusConnection *conn, DBusMessage *msg, void *use
 /* The caller frees the array, but not the strings. */
 static const char **get_modules(pa_dbusiface_core *c, unsigned *n) {
     const char **modules;
-    unsigned i;
+    unsigned i = 0;
     void *state = NULL;
     pa_dbusiface_module *module;
 
@@ -896,10 +884,8 @@ static const char **get_modules(pa_dbusiface_core *c, unsigned *n) {
 
     modules = pa_xnew(const char *, *n);
 
-    for (i = 0, module = pa_hashmap_iterate(c->modules, &state, NULL); module; ++i, module = pa_hashmap_iterate(c->modules, &state, NULL))
-        modules[i] = pa_dbusiface_module_get_path(module);
-
-    pa_assert(i == *n);
+    PA_HASHMAP_FOREACH(module, c->modules, state)
+        modules[i++] = pa_dbusiface_module_get_path(module);
 
     return modules;
 }
@@ -923,7 +909,7 @@ static void handle_get_modules(DBusConnection *conn, DBusMessage *msg, void *use
 /* The caller frees the array, but not the strings. */
 static const char **get_clients(pa_dbusiface_core *c, unsigned *n) {
     const char **clients;
-    unsigned i;
+    unsigned i = 0;
     void *state = NULL;
     pa_dbusiface_client *client;
 
@@ -937,10 +923,8 @@ static const char **get_clients(pa_dbusiface_core *c, unsigned *n) {
 
     clients = pa_xnew(const char *, *n);
 
-    for (i = 0, client = pa_hashmap_iterate(c->clients, &state, NULL); client; ++i, client = pa_hashmap_iterate(c->clients, &state, NULL))
-        clients[i] = pa_dbusiface_client_get_path(client);
-
-    pa_assert(i == *n);
+    PA_HASHMAP_FOREACH(client, c->clients, state)
+        clients[i++] = pa_dbusiface_client_get_path(client);
 
     return clients;
 }
