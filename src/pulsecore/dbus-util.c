@@ -564,6 +564,21 @@ void pa_dbus_send_basic_array_variant_reply(DBusConnection *c, DBusMessage *in_r
     dbus_message_unref(reply);
 }
 
+void pa_dbus_send_proplist_variant_reply(DBusConnection *c, DBusMessage *in_reply_to, pa_proplist *proplist) {
+    DBusMessage *reply = NULL;
+    DBusMessageIter msg_iter;
+
+    pa_assert(c);
+    pa_assert(in_reply_to);
+    pa_assert(proplist);
+
+    pa_assert_se((reply = dbus_message_new_method_return(in_reply_to)));
+    dbus_message_iter_init_append(reply, &msg_iter);
+    pa_dbus_append_proplist_variant(&msg_iter, proplist);
+    pa_assert_se(dbus_connection_send(c, reply, NULL));
+    dbus_message_unref(reply);
+}
+
 void pa_dbus_append_basic_array(DBusMessageIter *iter, int item_type, const void *array, unsigned n) {
     DBusMessageIter array_iter;
     unsigned i;
@@ -637,6 +652,62 @@ void pa_dbus_append_basic_array_variant_dict_entry(DBusMessageIter *dict_iter, c
     pa_assert_se(dbus_message_iter_open_container(dict_iter, DBUS_TYPE_DICT_ENTRY, NULL, &dict_entry_iter));
     pa_assert_se(dbus_message_iter_append_basic(&dict_entry_iter, DBUS_TYPE_STRING, &key));
     pa_dbus_append_basic_array_variant(&dict_entry_iter, item_type, array, n);
+    pa_assert_se(dbus_message_iter_close_container(dict_iter, &dict_entry_iter));
+}
+
+void pa_dbus_append_proplist(DBusMessageIter *iter, pa_proplist *proplist) {
+    DBusMessageIter dict_iter;
+    DBusMessageIter dict_entry_iter;
+    DBusMessageIter array_iter;
+    void *state = NULL;
+    const char *key;
+
+    pa_assert(iter);
+    pa_assert(proplist);
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_ARRAY, "{say}", &dict_iter));
+
+    while ((key = pa_proplist_iterate(proplist, state))) {
+        const void *value = NULL;
+        size_t nbytes;
+
+        pa_assert_se(pa_proplist_get(proplist, key, &value, &nbytes) >= 0);
+
+        pa_assert_se(dbus_message_iter_open_container(&dict_iter, DBUS_TYPE_DICT_ENTRY, NULL, &dict_entry_iter));
+
+        pa_assert_se(dbus_message_iter_append_basic(&dict_entry_iter, DBUS_TYPE_STRING, &key));
+
+        pa_assert_se(dbus_message_iter_open_container(&dict_entry_iter, DBUS_TYPE_ARRAY, "y", &array_iter));
+        pa_assert_se(dbus_message_iter_append_fixed_array(&array_iter, DBUS_TYPE_BYTE, &value, nbytes));
+        pa_assert_se(dbus_message_iter_close_container(&dict_entry_iter, &array_iter));
+
+        pa_assert_se(dbus_message_iter_close_container(&dict_iter, &dict_entry_iter));
+    }
+
+    pa_assert_se(dbus_message_iter_close_container(iter, &dict_iter));
+}
+
+void pa_dbus_append_proplist_variant(DBusMessageIter *iter, pa_proplist *proplist) {
+    DBusMessageIter variant_iter;
+
+    pa_assert(iter);
+    pa_assert(proplist);
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, "a{say}", &variant_iter));
+    pa_dbus_append_proplist(&variant_iter, proplist);
+    pa_assert_se(dbus_message_iter_close_container(iter, &variant_iter));
+}
+
+void pa_dbus_append_proplist_variant_dict_entry(DBusMessageIter *dict_iter, const char *key, pa_proplist *proplist) {
+    DBusMessageIter dict_entry_iter;
+
+    pa_assert(dict_iter);
+    pa_assert(key);
+    pa_assert(proplist);
+
+    pa_assert_se(dbus_message_iter_open_container(dict_iter, DBUS_TYPE_DICT_ENTRY, NULL, &dict_entry_iter));
+    pa_assert_se(dbus_message_iter_append_basic(&dict_entry_iter, DBUS_TYPE_STRING, &key));
+    pa_dbus_append_proplist_variant(&dict_entry_iter, proplist);
     pa_assert_se(dbus_message_iter_close_container(dict_iter, &dict_entry_iter));
 }
 

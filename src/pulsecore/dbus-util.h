@@ -69,12 +69,16 @@ void pa_dbus_send_empty_reply(DBusConnection *c, DBusMessage *in_reply_to);
 void pa_dbus_send_basic_value_reply(DBusConnection *c, DBusMessage *in_reply_to, int type, void *data);
 void pa_dbus_send_basic_variant_reply(DBusConnection *c, DBusMessage *in_reply_to, int type, void *data);
 void pa_dbus_send_basic_array_variant_reply(DBusConnection *c, DBusMessage *in_reply_to, int item_type, void *array, unsigned n);
+void pa_dbus_send_proplist_variant_reply(DBusConnection *c, DBusMessage *in_reply_to, pa_proplist *proplist);
 
 void pa_dbus_append_basic_array(DBusMessageIter *iter, int item_type, const void *array, unsigned n);
 void pa_dbus_append_basic_array_variant(DBusMessageIter *iter, int item_type, const void *array, unsigned n);
 void pa_dbus_append_basic_variant(DBusMessageIter *iter, int type, void *data);
 void pa_dbus_append_basic_variant_dict_entry(DBusMessageIter *dict_iter, const char *key, int type, void *data);
 void pa_dbus_append_basic_array_variant_dict_entry(DBusMessageIter *dict_iter, const char *key, int item_type, const void *array, unsigned n);
+void pa_dbus_append_proplist(DBusMessageIter *iter, pa_proplist *proplist);
+void pa_dbus_append_proplist_variant(DBusMessageIter *iter, pa_proplist *proplist);
+void pa_dbus_append_proplist_variant_dict_entry(DBusMessageIter *dict_iter, const char *key, pa_proplist *proplist);
 
 /* Helper functions for extracting the value argument of a Set call. If the
  * message is invalid, an error reply is sent and a negative number is
