@@ -516,7 +516,7 @@ pa_dbusiface_card *pa_dbusiface_card_new(pa_dbusiface_core *core, pa_card *card)
         void *state = NULL;
 
         PA_HASHMAP_FOREACH(profile, card->profiles, state) {
-            pa_dbusiface_card_profile *p = pa_dbusiface_card_profile_new(c, profile, c->next_profile_index++);
+            pa_dbusiface_card_profile *p = pa_dbusiface_card_profile_new(c, card->core, profile, c->next_profile_index++);
             pa_hashmap_put(c->profiles, pa_dbusiface_card_profile_get_name(p), p);
         }
         pa_assert_se(c->active_profile = card->active_profile);

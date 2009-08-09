@@ -29,6 +29,7 @@
  */
 
 #include <pulsecore/card.h>
+#include <pulsecore/protocol-dbus.h>
 
 #include "iface-core.h"
 
