@@ -848,6 +848,8 @@ void pa_dbus_protocol_add_signal_listener(pa_dbus_protocol *p, DBusConnection *c
         for (i = 0; i < n_objects; ++i)
             pa_idxset_put(object_set, pa_xstrdup(objects[i]), NULL);
 
+        pa_hashmap_put(conn_entry->listening_signals, signal, object_set);
+
     } else {
         conn_entry->listening_for_all_signals = TRUE;
 
@@ -892,10 +894,15 @@ void pa_dbus_protocol_send_signal(pa_dbus_protocol *p, DBusMessage *signal) {
     void *state = NULL;
     pa_idxset *object_set;
     DBusMessage *signal_copy;
+    char *signal_string;
 
     pa_assert(p);
     pa_assert(signal);
     pa_assert(dbus_message_get_type(signal) == DBUS_MESSAGE_TYPE_SIGNAL);
+    pa_assert_se(dbus_message_get_interface(signal));
+    pa_assert_se(dbus_message_get_member(signal));
+
+    signal_string = pa_sprintf_malloc("%s.%s", dbus_message_get_interface(signal), dbus_message_get_member(signal));
 
     PA_HASHMAP_FOREACH(conn_entry, p->connections, state) {
         if ((conn_entry->listening_for_all_signals /* Case 1: listening for all signals */
@@ -903,7 +910,7 @@ void pa_dbus_protocol_send_signal(pa_dbus_protocol *p, DBusMessage *signal) {
                  || pa_idxset_isempty(conn_entry->all_signals_objects)))
 
             || (!conn_entry->listening_for_all_signals /* Case 2: not listening for all signals */
-                && (object_set = pa_hashmap_get(conn_entry->listening_signals, signal))
+                && (object_set = pa_hashmap_get(conn_entry->listening_signals, signal_string))
                 && (pa_idxset_get_by_data(object_set, dbus_message_get_path(signal), NULL)
                     || pa_idxset_isempty(object_set)))) {
 
@@ -912,6 +919,8 @@ void pa_dbus_protocol_send_signal(pa_dbus_protocol *p, DBusMessage *signal) {
             dbus_message_unref(signal_copy);
         }
     }
+
+    pa_xfree(signal_string);
 }
 
 const char **pa_dbus_protocol_get_extensions(pa_dbus_protocol *p, unsigned *n) {

@@ -129,7 +129,8 @@ int pa_dbus_protocol_unregister_connection(pa_dbus_protocol *p, DBusConnection *
 pa_client *pa_dbus_protocol_get_client(pa_dbus_protocol *p, DBusConnection *conn);
 
 /* Enables signal receiving for the given connection. The connection must have
- * been registered earlier.
+ * been registered earlier. The signal string must contain both the signal
+ * interface and the signal name, concatenated using a period as the separator.
  *
  * If the signal argument is NULL, all signals will be sent to the connection,
  * otherwise calling this function only adds the given signal to the list of
