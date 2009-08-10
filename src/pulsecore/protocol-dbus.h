@@ -149,6 +149,10 @@ void pa_dbus_protocol_add_signal_listener(pa_dbus_protocol *p, DBusConnection *c
  * do anything in that case either. */
 void pa_dbus_protocol_remove_signal_listener(pa_dbus_protocol *p, DBusConnection *conn, const char *signal);
 
+/* Sends the given signal to all interested clients. By default no signals are
+ * sent - clients have to explicitly to request signals by calling
+ * .Core1.ListenForSignal. That method's handler then calls
+ * pa_dbus_protocol_add_signal_listener(). */
 void pa_dbus_protocol_send_signal(pa_dbus_protocol *p, DBusMessage *signal);
 
 /* Returns an array of extension identifier strings. The strings pointers point
