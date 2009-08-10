@@ -991,9 +991,13 @@ int pa__init(pa_module*m) {
     dbus_init(u);
 
     //default filter to these
+    float *H=u->Hs[pa_aupdate_write_begin(u->a_H)];
     for(size_t i = 0; i < u->fft_size / 2 + 1; ++i){
-        u->Hs[1][i]=u->Hs[0][i] = 1.0;
+        H[i] = 1.0 / sqrtf(2.0f);
     }
+    fix_filter(H, u->fft_size);
+    pa_aupdate_write_swap(u->a_H);
+    pa_aupdate_write_end(u->a_H);
     //load old parameters
     load_state(u);
 
@@ -1303,7 +1307,7 @@ void get_sinks(pa_core *u, char ***names, unsigned *n_sinks){
     pa_idxset *sink_list;
     pa_assert_se(sink_list = pa_shared_get(u, SINKLIST));
     *n_sinks = (unsigned) pa_idxset_size(sink_list);
-    pa_assert_se(*names = pa_xnew0(char *,*n_sinks));
+    *names = *n_sinks > 0 ? pa_xnew0(char *,*n_sinks) : NULL;
     for(uint32_t i = 0; i < *n_sinks; ++i){
         sink_u = (struct userdata *) pa_idxset_iterate(sink_list, &iter, &dummy);
         (*names)[i] = pa_xstrdup(sink_u->dbus_path);
@@ -1349,7 +1353,7 @@ void get_profiles(pa_core *c, char ***names, unsigned *n){
         key = next_key;
         (*n)++;
     }
-    (*names) = pa_xnew0(char *, *n);
+    (*names) = *n > 0 ? pa_xnew0(char *, *n) : NULL;
     iter=head;
     for(unsigned i = 0; i < *n; ++i){
         (*names)[*n-1-i]=pa_xstrdup(pa_strlist_data(iter));
@@ -1569,6 +1573,11 @@ void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void 
         return;
     }
     pa_dbus_send_empty_reply(conn, msg);
+
+    DBusMessage *signal = NULL;
+    pa_assert_se((signal = dbus_message_new_signal(u->dbus_path, EQUALIZER_IFACE, equalizer_signals[EQUALIZER_SIGNAL_FILTER_CHANGED].name)));
+    pa_dbus_protocol_send_signal(u->dbus_protocol, signal);
+    dbus_message_unref(signal);
 }
 
 void equalizer_get_revision(DBusConnection *conn, DBusMessage *msg, void *_u){
