@@ -2,8 +2,8 @@
 This file is part of PulseAudio.
 
 This module is based off Lennart Poettering's LADSPA sink and swaps out
-LADSPA functionality for a STFT OLA based digital equalizer.  All new work
-is published under Pulseaudio's original license.
+LADSPA functionality for a dbus-aware STFT OLA based digital equalizer.
+All new work is published under Pulseaudio's original license.
 Copyright 2009 Jason Newton <nevion@gmail.com>
 
 Original Author:
@@ -562,11 +562,13 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
         //buffer->index = 0;
         //pa_memblock_ref(buffer->memblock);
         //pa_sink_render_into(u->sink, buffer);
-        while(pa_memblockq_peek(u->input_q, &tchunk) < 0){
+        while(pa_memblockq_peek(u->input_q, &tchunk) < 0 || tchunk.memblock == NULL){
             pa_sink_render(u->sink, input_remaining*fs, &tchunk);
+            pa_assert(tchunk.memblock);
             pa_memblockq_push(u->input_q, &tchunk);
             pa_memblock_unref(tchunk.memblock);
         }
+        pa_assert(tchunk.memblock);
         tchunk.length = PA_MIN(input_remaining*fs, tchunk.length);
         pa_memblockq_drop(u->input_q, tchunk.length);
         //pa_log_debug("asked for %ld input samples, got %ld samples",input_remaining,buffer->length/fs);
@@ -878,7 +880,7 @@ int pa__init(pa_module*m) {
 
     u->channels = ss.channels;
     u->fft_size = pow(2, ceil(log(ss.rate)/log(2)));
-    pa_log("fft size: %ld", u->fft_size);
+    pa_log_debug("fft size: %ld", u->fft_size);
     u->window_size = 15999;
     u->R = (u->window_size+1)/2;
     u->overlap_size = u->window_size-u->R;
@@ -1442,7 +1444,7 @@ void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg, void *
         }
     }
     if(!is_monotonic(xs,x_npoints) || !points_good){
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs must be monotonic and 0<x<%ld", u->fft_size / 2);
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs must be monotonic and 0<=x<=%ld", u->fft_size / 2);
         dbus_error_free(&error);
         return;
 
