@@ -1116,8 +1116,6 @@ AC_SUBST(UDEV_LIBS)
 AC_SUBST(HAVE_UDEV)
 AM_CONDITIONAL([HAVE_UDEV], [test "x$HAVE_UDEV" = x1])
 
-AC_DEFINE([LIBUDEV_I_KNOW_THE_API_IS_SUBJECT_TO_CHANGE], 1, [I know the API is subject to change.])
-
 #### HAL compat support (optional) ####
 
 AC_ARG_ENABLE([hal-compat],
