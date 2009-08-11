@@ -58,13 +58,13 @@ PA_MODULE_LOAD_ONCE(TRUE);
 #if defined(HAVE_ALSA) && defined(HAVE_OSS_OUTPUT)
 PA_MODULE_USAGE("api=<alsa or oss> "
                 "tsched=<enable system timer based scheduling mode?>"
-                "subdevs=<init all subdevices>");
+                "subdevices=<init all subdevices>");
 #elif defined(HAVE_ALSA)
 PA_MODULE_USAGE("api=<alsa> "
                 "tsched=<enable system timer based scheduling mode?>");
 #elif defined(HAVE_OSS_OUTPUT)
 PA_MODULE_USAGE("api=<oss>"
-                "subdevs=<init all subdevices>");
+                "subdevices=<init all subdevices>");
 #endif
 PA_MODULE_DEPRECATED("Please use module-udev-detect instead of module-hal-detect!");
 
@@ -98,7 +98,7 @@ static const char* const valid_modargs[] = {
     "tsched",
 #endif
 #ifdef HAVE_OSS_OUTPUT
-    "subdevs",
+    "subdevices",
 #endif
     NULL
 };
@@ -772,8 +772,8 @@ int pa__init(pa_module*m) {
     }
 
 #ifdef HAVE_OSS_OUTPUT
-    if (pa_modargs_get_value_boolean(ma, "subdevs", &u->init_subdevs) < 0) {
-        pa_log("Failed to parse subdevs argument.");
+    if (pa_modargs_get_value_boolean(ma, "subdevices", &u->init_subdevs) < 0) {
+        pa_log("Failed to parse subdevices= argument.");
         goto fail;
     }
 #endif
