@@ -1118,6 +1118,28 @@ AM_CONDITIONAL([HAVE_UDEV], [test "x$HAVE_UDEV" = x1])
 
 AC_DEFINE([LIBUDEV_I_KNOW_THE_API_IS_SUBJECT_TO_CHANGE], 1, [I know the API is subject to change.])
 
+#### HAL compat support (optional) ####
+
+AC_ARG_ENABLE([hal-compat],
+    AS_HELP_STRING([--disable-hal-compat],[Disable optional HAL->udev transition compatibility support]),
+        [
+            case "${enableval}" in
+                yes) halcompat=yes ;;
+                no) halcompat=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-hal-compat) ;;
+            esac
+        ],
+        [halcompat=auto])
+if test "x${halcompat}" != xno -a "x$HAVE_HAL" = "x0" -a "x$HAVE_UDEV" = "x1" ; then
+    HAVE_HAL_COMPAT=1
+    AC_DEFINE([HAVE_HAL_COMPAT], 1, [Have HAL compatibility.])
+else
+    HAVE_HAL_COMPAT=0
+fi
+
+AC_SUBST(HAVE_HAL_COMPAT)
+AM_CONDITIONAL([HAVE_HAL_COMPAT], [test "x$HAVE_HAL_COMPAT" = x1])
+
 #### BlueZ support (optional) ####
 
 AC_ARG_ENABLE([bluez],
@@ -1441,6 +1463,11 @@ if test "x$HAVE_UDEV" = "x1" ; then
    ENABLE_UDEV=yes
 fi
 
+ENABLE_HAL_COMPAT=no
+if test "x$HAVE_HAL_COMPAT" = "x1" ; then
+   ENABLE_HAL_COMPAT=yes
+fi
+
 ENABLE_TCPWRAP=no
 if test "x${LIBWRAP_LIBS}" != x ; then
    ENABLE_TCPWRAP=yes
@@ -1507,6 +1534,7 @@ echo "
     Enable LIRC:                   ${ENABLE_LIRC}
     Enable HAL:                    ${ENABLE_HAL}
     Enable udev:                   ${ENABLE_UDEV}
+    Enable HAL->udev compat:       ${ENABLE_HAL_COMPAT}
     Enable BlueZ:                  ${ENABLE_BLUEZ}
     Enable TCP Wrappers:           ${ENABLE_TCPWRAP}
     Enable libsamplerate:          ${ENABLE_LIBSAMPLERATE}

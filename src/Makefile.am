@@ -1120,6 +1120,11 @@ modlibexec_LTLIBRARIES += \
 		module-hal-detect.la
 endif
 
+if HAVE_HAL_COMPAT
+modlibexec_LTLIBRARIES += \
+		module-hal-detect.la
+endif
+
 if HAVE_UDEV
 modlibexec_LTLIBRARIES += \
 		module-udev-detect.la
@@ -1576,10 +1581,16 @@ module_jack_source_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_jack_source_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la $(JACK_LIBS) libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_jack_source_la_CFLAGS = $(AM_CFLAGS) $(JACK_CFLAGS)
 
+if HAVE_HAL_COMPAT
+module_hal_detect_la_SOURCES = modules/module-hal-detect-compat.c
+module_hal_detect_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_hal_detect_la_CFLAGS = $(AM_CFLAGS)
+else
 module_hal_detect_la_SOURCES = modules/module-hal-detect.c
-module_hal_detect_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_hal_detect_la_LIBADD = $(AM_LIBADD) $(HAL_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_hal_detect_la_CFLAGS = $(AM_CFLAGS) $(HAL_CFLAGS)
+endif
+module_hal_detect_la_LDFLAGS = $(MODULE_LDFLAGS)
 
 module_udev_detect_la_SOURCES = modules/module-udev-detect.c
 module_udev_detect_la_LDFLAGS = $(MODULE_LDFLAGS)
