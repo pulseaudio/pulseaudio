@@ -2838,9 +2838,9 @@ static int mapping_verify(pa_alsa_mapping *m, const pa_channel_map *bonus) {
 
     if (bonus) {
         if (pa_channel_map_equal(&m->channel_map, bonus))
-            m->priority += 5000;
+            m->priority += 50;
         else if (m->channel_map.channels == bonus->channels)
-            m->priority += 4000;
+            m->priority += 30;
     }
 
     return 0;
