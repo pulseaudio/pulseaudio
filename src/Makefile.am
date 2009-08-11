@@ -32,6 +32,7 @@ xdgautostartdir=$(sysconfdir)/xdg/autostart
 alsaprofilesetsdir=$(datadir)/pulseaudio/alsa-mixer/profile-sets
 alsapathsdir=$(datadir)/pulseaudio/alsa-mixer/paths
 udevrulesdir=/lib/udev/rules.d
+dbuspolicydir=$(sysconfdir)/dbus-1/system.d
 
 ###################################
 #            Defines              #
@@ -119,6 +120,7 @@ EXTRA_DIST = \
 		modules/module-defs.h.m4 \
 		daemon/pulseaudio.desktop.in \
 		map-file \
+		daemon/pulseaudio-system.conf \
 		modules/alsa/mixer/profile-sets/default.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio4dj.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf \
@@ -144,6 +146,9 @@ pulseconf_DATA = \
 		system.pa \
 		daemon.conf \
 		client.conf
+
+dbuspolicy_DATA = \
+		daemon/pulseaudio-system.conf
 
 if HAVE_X11
 xdgautostart_in_files = \
