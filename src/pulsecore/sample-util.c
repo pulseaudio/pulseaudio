@@ -30,9 +30,6 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include <liboil/liboilfuncs.h>
-#include <liboil/liboil.h>
-
 #include <pulse/timeval.h>
 
 #include <pulsecore/log.h>
@@ -977,59 +974,50 @@ pa_volume_s24_32re_c (uint32_t *samples, int32_t *volumes, unsigned channels, un
   }
 }
 
-typedef void (*pa_do_volume_func) (void *samples, void *volumes, unsigned channels, unsigned length);
-typedef void (*pa_calc_volume_func) (void *volumes, const pa_cvolume *volume);
+typedef void (*pa_do_volume_func_t) (void *samples, void *volumes, unsigned channels, unsigned length);
+typedef void (*pa_calc_volume_func_t) (void *volumes, const pa_cvolume *volume);
 
 typedef union {
   float f;
   uint32_t i;
 } volume_val;
 
-static pa_calc_volume_func calc_volume_funcs[] =
-{
-  (pa_calc_volume_func) calc_linear_integer_volume,
-  (pa_calc_volume_func) calc_linear_integer_volume,
-  (pa_calc_volume_func) calc_linear_integer_volume,
-  (pa_calc_volume_func) calc_linear_integer_volume,
-  (pa_calc_volume_func) calc_linear_integer_volume,
-  (pa_calc_volume_func) calc_linear_float_volume,
-  (pa_calc_volume_func) calc_linear_float_volume,
-  (pa_calc_volume_func) calc_linear_integer_volume,
-  (pa_calc_volume_func) calc_linear_integer_volume,
-  (pa_calc_volume_func) calc_linear_integer_volume,
-  (pa_calc_volume_func) calc_linear_integer_volume,
-  (pa_calc_volume_func) calc_linear_integer_volume,
-  (pa_calc_volume_func) calc_linear_integer_volume
+typedef struct pa_sample_func_t {
+  pa_calc_volume_func_t  calc_volume;
+  pa_do_volume_func_t    do_volume;
+} pa_sample_func_t;
+
+static const pa_calc_volume_func_t calc_volume_table[] = {
+  [PA_SAMPLE_U8]        = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_ALAW]      = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_ULAW]      = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_S16LE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_S16BE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_FLOAT32LE] = (pa_calc_volume_func_t) calc_linear_float_volume,
+  [PA_SAMPLE_FLOAT32BE] = (pa_calc_volume_func_t) calc_linear_float_volume,
+  [PA_SAMPLE_S32LE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_S32BE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_S24LE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_S24BE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_S24_32LE]  = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_S24_32BE]  = (pa_calc_volume_func_t) calc_linear_integer_volume
 };
 
-static pa_do_volume_func do_volume_funcs[] =
+static pa_do_volume_func_t do_volume_table[] =
 {
-  (pa_do_volume_func) pa_volume_u8_c,
-  (pa_do_volume_func) pa_volume_alaw_c,
-  (pa_do_volume_func) pa_volume_ulaw_c,
-#ifdef WORDS_BIGENDIAN
-  (pa_do_volume_func) pa_volume_s16re_c,
-  (pa_do_volume_func) pa_volume_s16ne_c,
-  (pa_do_volume_func) pa_volume_float32re_c,
-  (pa_do_volume_func) pa_volume_float32ne_c,
-  (pa_do_volume_func) pa_volume_s32re_c,
-  (pa_do_volume_func) pa_volume_s32ne_c,
-  (pa_do_volume_func) pa_volume_s24re_c,
-  (pa_do_volume_func) pa_volume_s24ne_c,
-  (pa_do_volume_func) pa_volume_s24_32re_c
-  (pa_do_volume_func) pa_volume_s24_32ne_c,
-#else
-  (pa_do_volume_func) pa_volume_s16ne_c,
-  (pa_do_volume_func) pa_volume_s16re_c,
-  (pa_do_volume_func) pa_volume_float32ne_c,
-  (pa_do_volume_func) pa_volume_float32re_c,
-  (pa_do_volume_func) pa_volume_s32ne_c,
-  (pa_do_volume_func) pa_volume_s32re_c,
-  (pa_do_volume_func) pa_volume_s24ne_c,
-  (pa_do_volume_func) pa_volume_s24re_c,
-  (pa_do_volume_func) pa_volume_s24_32ne_c,
-  (pa_do_volume_func) pa_volume_s24_32re_c
-#endif
+  [PA_SAMPLE_U8]        = (pa_do_volume_func_t) pa_volume_u8_c,
+  [PA_SAMPLE_ALAW]      = (pa_do_volume_func_t) pa_volume_alaw_c,
+  [PA_SAMPLE_ULAW]      = (pa_do_volume_func_t) pa_volume_ulaw_c,
+  [PA_SAMPLE_S16NE]     = (pa_do_volume_func_t) pa_volume_s16ne_c,
+  [PA_SAMPLE_S16RE]     = (pa_do_volume_func_t) pa_volume_s16re_c,
+  [PA_SAMPLE_FLOAT32NE] = (pa_do_volume_func_t) pa_volume_float32ne_c,
+  [PA_SAMPLE_FLOAT32RE] = (pa_do_volume_func_t) pa_volume_float32re_c,
+  [PA_SAMPLE_S32NE]     = (pa_do_volume_func_t) pa_volume_s32ne_c,
+  [PA_SAMPLE_S32RE]     = (pa_do_volume_func_t) pa_volume_s32re_c,
+  [PA_SAMPLE_S24NE]     = (pa_do_volume_func_t) pa_volume_s24ne_c,
+  [PA_SAMPLE_S24RE]     = (pa_do_volume_func_t) pa_volume_s24re_c,
+  [PA_SAMPLE_S24_32NE]  = (pa_do_volume_func_t) pa_volume_s24_32ne_c,
+  [PA_SAMPLE_S24_32RE]  = (pa_do_volume_func_t) pa_volume_s24_32re_c
 };
 
 void pa_volume_memchunk(
@@ -1063,8 +1051,8 @@ void pa_volume_memchunk(
 
     ptr = (uint8_t*) pa_memblock_acquire(c->memblock) + c->index;
 
-    calc_volume_funcs[spec->format] ((void *)linear, volume);
-    do_volume_funcs[spec->format] (ptr, (void *)linear, spec->channels, c->length);
+    calc_volume_table[spec->format] ((void *)linear, volume);
+    do_volume_table[spec->format] (ptr, (void *)linear, spec->channels, c->length);
 
     pa_memblock_release(c->memblock);
 }
@@ -1110,7 +1098,7 @@ void pa_interleave(const void *src[], unsigned channels, void *dst, size_t ss, u
         d = (uint8_t*) dst + c * ss;
 
         for (j = 0; j < n; j ++) {
-            oil_memcpy(d, s, (int) ss);
+            memcpy(d, s, (int) ss);
             s = (uint8_t*) s + ss;
             d = (uint8_t*) d + fs;
         }
@@ -1138,7 +1126,7 @@ void pa_deinterleave(const void *src, void *dst[], unsigned channels, size_t ss,
         d = dst[c];
 
         for (j = 0; j < n; j ++) {
-            oil_memcpy(d, s, (int) ss);
+            memcpy(d, s, (int) ss);
             s = (uint8_t*) s + fs;
             d = (uint8_t*) d + ss;
         }
@@ -1247,10 +1235,15 @@ void pa_sample_clamp(pa_sample_format_t format, void *dst, size_t dstr, const vo
     s = src; d = dst;
 
     if (format == PA_SAMPLE_FLOAT32NE) {
+        for (; n > 0; n--) {
+            float f;
 
-        float minus_one = -1.0, plus_one = 1.0;
-        oil_clip_f32(d, (int) dstr, s, (int) sstr, (int) n, &minus_one, &plus_one);
+	    f = *s;
+            *d = PA_CLAMP_UNLIKELY(f, -1.0f, 1.0f);
 
+            s = (const float*) ((const uint8_t*) s + sstr);
+            d = (float*) ((uint8_t*) d + dstr);
+	}
     } else {
         pa_assert(format == PA_SAMPLE_FLOAT32RE);
 
