@@ -104,8 +104,8 @@ switch = select
 
 [Option External Amplifier:on]
 name = output-amplifier-on
-priority = 0
+priority = 10
 
 [Option External Amplifier:off]
 name = output-amplifier-off
-priority = 10
+priority = 0
