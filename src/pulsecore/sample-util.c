@@ -975,33 +975,10 @@ pa_volume_s24_32re_c (uint32_t *samples, int32_t *volumes, unsigned channels, un
 }
 
 typedef void (*pa_do_volume_func_t) (void *samples, void *volumes, unsigned channels, unsigned length);
-typedef void (*pa_calc_volume_func_t) (void *volumes, const pa_cvolume *volume);
-
-typedef union {
-  float f;
-  uint32_t i;
-} volume_val;
 
 typedef struct pa_sample_func_t {
-  pa_calc_volume_func_t  calc_volume;
   pa_do_volume_func_t    do_volume;
 } pa_sample_func_t;
-
-static const pa_calc_volume_func_t calc_volume_table[] = {
-  [PA_SAMPLE_U8]        = (pa_calc_volume_func_t) calc_linear_integer_volume,
-  [PA_SAMPLE_ALAW]      = (pa_calc_volume_func_t) calc_linear_integer_volume,
-  [PA_SAMPLE_ULAW]      = (pa_calc_volume_func_t) calc_linear_integer_volume,
-  [PA_SAMPLE_S16LE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
-  [PA_SAMPLE_S16BE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
-  [PA_SAMPLE_FLOAT32LE] = (pa_calc_volume_func_t) calc_linear_float_volume,
-  [PA_SAMPLE_FLOAT32BE] = (pa_calc_volume_func_t) calc_linear_float_volume,
-  [PA_SAMPLE_S32LE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
-  [PA_SAMPLE_S32BE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
-  [PA_SAMPLE_S24LE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
-  [PA_SAMPLE_S24BE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
-  [PA_SAMPLE_S24_32LE]  = (pa_calc_volume_func_t) calc_linear_integer_volume,
-  [PA_SAMPLE_S24_32BE]  = (pa_calc_volume_func_t) calc_linear_integer_volume
-};
 
 static pa_do_volume_func_t do_volume_table[] =
 {
@@ -1018,6 +995,29 @@ static pa_do_volume_func_t do_volume_table[] =
   [PA_SAMPLE_S24RE]     = (pa_do_volume_func_t) pa_volume_s24re_c,
   [PA_SAMPLE_S24_32NE]  = (pa_do_volume_func_t) pa_volume_s24_32ne_c,
   [PA_SAMPLE_S24_32RE]  = (pa_do_volume_func_t) pa_volume_s24_32re_c
+};
+
+typedef union {
+  float f;
+  uint32_t i;
+} volume_val;
+
+typedef void (*pa_calc_volume_func_t) (void *volumes, const pa_cvolume *volume);
+
+static const pa_calc_volume_func_t calc_volume_table[] = {
+  [PA_SAMPLE_U8]        = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_ALAW]      = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_ULAW]      = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_S16LE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_S16BE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_FLOAT32LE] = (pa_calc_volume_func_t) calc_linear_float_volume,
+  [PA_SAMPLE_FLOAT32BE] = (pa_calc_volume_func_t) calc_linear_float_volume,
+  [PA_SAMPLE_S32LE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_S32BE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_S24LE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_S24BE]     = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_S24_32LE]  = (pa_calc_volume_func_t) calc_linear_integer_volume,
+  [PA_SAMPLE_S24_32BE]  = (pa_calc_volume_func_t) calc_linear_integer_volume
 };
 
 void pa_volume_memchunk(
