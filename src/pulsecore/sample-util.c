@@ -103,24 +103,36 @@ void* pa_silence_memory(void *p, size_t length, const pa_sample_spec *spec) {
     return p;
 }
 
+#define VOLUME_PADDING 32
+
 static void calc_linear_integer_volume(int32_t linear[], const pa_cvolume *volume) {
-    unsigned channel;
+    unsigned channel, nchannels, padding;
 
     pa_assert(linear);
     pa_assert(volume);
 
-    for (channel = 0; channel < volume->channels; channel++)
+    nchannels = volume->channels;
+
+    for (channel = 0; channel < nchannels; channel++)
         linear[channel] = (int32_t) lrint(pa_sw_volume_to_linear(volume->values[channel]) * 0x10000);
+
+    for (padding = 0; padding < VOLUME_PADDING; padding++, channel++)
+        linear[channel] = linear[padding];
 }
 
 static void calc_linear_float_volume(float linear[], const pa_cvolume *volume) {
-    unsigned channel;
+    unsigned channel, nchannels, padding;
 
     pa_assert(linear);
     pa_assert(volume);
 
-    for (channel = 0; channel < volume->channels; channel++)
+    nchannels = volume->channels;
+
+    for (channel = 0; channel < nchannels; channel++)
         linear[channel] = (float) pa_sw_volume_to_linear(volume->values[channel]);
+
+    for (padding = 0; padding < VOLUME_PADDING; padding++, channel++)
+        linear[channel] = linear[padding];
 }
 
 static void calc_linear_integer_stream_volumes(pa_mix_info streams[], unsigned nstreams, const pa_cvolume *volume, const pa_sample_spec *spec) {
@@ -716,7 +728,7 @@ void pa_volume_memchunk(
         const pa_cvolume *volume) {
 
     void *ptr;
-    volume_val linear[PA_CHANNELS_MAX];
+    volume_val linear[PA_CHANNELS_MAX + VOLUME_PADDING];
     pa_do_volume_func_t do_volume;
 
     pa_assert(c);
