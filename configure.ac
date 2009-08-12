@@ -626,10 +626,11 @@ AM_CONDITIONAL([HAVE_LIBSAMPLERATE], [test "x$HAVE_LIBSAMPLERATE" = x1])
 
 HAVE_TDB=0
 HAVE_GDBM=0
+HAVE_SIMPLEDB=0
 
 AC_ARG_WITH(
         [database],
-        AS_HELP_STRING([--with-database=auto|tdb|gdbm],[Choose database backend.]),[],[with_database=auto])
+        AS_HELP_STRING([--with-database=auto|tdb|gdbm|simple],[Choose database backend.]),[],[with_database=auto])
 
 if test "x${with_database}" = "xauto" -o "x${with_database}" = "xtdb" ; then
     PKG_CHECK_MODULES(TDB, [ tdb ],
@@ -659,7 +660,12 @@ if test "x${with_database}" = "xauto" -o "x${with_database}" = "xgdbm" ; then
    fi
 fi
 
-if test "x${HAVE_TDB}" != x1 -a "x${HAVE_GDBM}" != x1; then
+if test "x${with_database}" = "xauto" -o "x${with_database}" = "xsimple" ; then
+    HAVE_SIMPLEDB=1
+    with_database=simple
+fi
+
+if test "x${HAVE_TDB}" != x1 -a "x${HAVE_GDBM}" != x1 -a "x${HAVE_SIMPLEDB}" != x1; then
    AC_MSG_ERROR([*** missing database backend])
 fi
 
@@ -671,6 +677,10 @@ if test "x${HAVE_GDBM}" = x1 ; then
    AC_DEFINE([HAVE_GDBM], 1, [Have gdbm?])
 fi
 
+if test "x${HAVE_SIMPLEDB}" = x1 ; then
+    AC_DEFINE([HAVE_SIMPLEDB], 1, [Have simple?])
+fi
+
 AC_SUBST(TDB_CFLAGS)
 AC_SUBST(TDB_LIBS)
 AC_SUBST(HAVE_TDB)
@@ -680,6 +690,9 @@ AC_SUBST(GDBM_CFLAGS)
 AC_SUBST(GDBM_LIBS)
 AC_SUBST(HAVE_GDBM)
 AM_CONDITIONAL([HAVE_GDBM], [test "x$HAVE_GDBM" = x1])
+
+AC_SUBST(HAVE_SIMPLEDB)
+AM_CONDITIONAL([HAVE_SIMPLEDB], [test "x$HAVE_SIMPLEDB" = x1])
 
 #### OSS support (optional) ####
 
@@ -1491,6 +1504,11 @@ if test "x${HAVE_TDB}" = "x1" ; then
    ENABLE_TDB=yes
 fi
 
+ENABLE_SIMPLEDB=no
+if test "x${HAVE_SIMPLEDB}" = "x1" ; then
+    ENABLE_SIMPLEDB=yes
+fi
+
 ENABLE_OPENSSL=no
 if test "x${HAVE_OPENSSL}" = "x1" ; then
    ENABLE_OPENSSL=yes
@@ -1540,6 +1558,7 @@ echo "
     Enable OpenSSL (for Airtunes): ${ENABLE_OPENSSL}
     Enable tdb:                    ${ENABLE_TDB}
     Enable gdbm:                   ${ENABLE_GDBM}
+    Enable simple database:        ${ENABLE_SIMPLEDB}
 
     System User:                   ${PA_SYSTEM_USER}
     System Group:                  ${PA_SYSTEM_GROUP}

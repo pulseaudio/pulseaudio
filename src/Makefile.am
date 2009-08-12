@@ -870,6 +870,9 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_CFLAGS += $(TDB_CFLAGS)
 libpulsecore_@PA_MAJORMINORMICRO@_la_LIBADD += $(TDB_LIBS)
 endif
 
+if HAVE_SIMPLEDB
+libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/database-simple.c
+endif
 
 # We split the foreign code off to not be annoyed by warnings we don't care about
 noinst_LTLIBRARIES = libpulsecore-foreign.la
