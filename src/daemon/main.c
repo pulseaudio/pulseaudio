@@ -821,6 +821,8 @@ int main(int argc, char *argv[]) {
 
     pa_memtrap_install();
 
+    pa_volume_func_init_mmx();
+
     pa_assert_se(mainloop = pa_mainloop_new());
 
     if (!(c = pa_core_new(pa_mainloop_get_api(mainloop), !conf->disable_shm, conf->shm_size))) {
