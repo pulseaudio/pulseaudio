@@ -92,6 +92,7 @@ pa_do_volume_func_t pa_get_volume_func(pa_sample_format_t f);
 void pa_set_volume_func(pa_sample_format_t f, pa_do_volume_func_t func);
 
 void pa_volume_func_init_mmx(void);
+void pa_volume_func_init_sse(void);
 
 #define PA_CHANNEL_POSITION_MASK_LEFT                                   \
     (PA_CHANNEL_POSITION_MASK(PA_CHANNEL_POSITION_FRONT_LEFT)           \

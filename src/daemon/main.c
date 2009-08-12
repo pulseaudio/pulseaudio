@@ -822,6 +822,7 @@ int main(int argc, char *argv[]) {
     pa_memtrap_install();
 
     pa_volume_func_init_mmx();
+    pa_volume_func_init_sse();
 
     pa_assert_se(mainloop = pa_mainloop_new());
 
