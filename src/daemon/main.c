@@ -447,6 +447,7 @@ int main(int argc, char *argv[]) {
     pa_close_all(passed_fd, -1);
     pa_reset_sigs(-1);
     pa_unblock_sigs(-1);
+    pa_reset_priority();
 
     setlocale(LC_ALL, "");
     pa_init_i18n();
