@@ -58,11 +58,8 @@ void pa_drop_root(void) {
 #ifdef HAVE_GETUID
     uid_t uid;
 
+    pa_log_debug(_("Cleaning up privileges."));
     uid = getuid();
-    if (uid == 0 || geteuid() != 0)
-        return;
-
-    pa_log_info(_("Dropping root privileges."));
 
 #if defined(HAVE_SETRESUID)
     pa_assert_se(setresuid(uid, uid, uid) >= 0);
@@ -82,7 +79,7 @@ void pa_drop_root(void) {
 #endif
 
 #ifdef HAVE_SYS_CAPABILITY_H
-    {
+    if (uid != 0) {
         cap_t caps;
         pa_assert_se(caps = cap_init());
         pa_assert_se(cap_clear(caps) == 0);
