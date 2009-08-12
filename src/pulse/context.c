@@ -707,10 +707,13 @@ static int context_autospawn(pa_context *c) {
         if (c->spawn_api.atfork)
             c->spawn_api.atfork();
 
+        /* We leave most of the cleaning up of the process environment
+         * to the executable. We only clean up the file descriptors to
+         * make sure the executable can actually be loaded
+         * correctly. */
         pa_close_all(-1);
 
         /* Setup argv */
-
         argv[n++] = c->conf->daemon_binary;
         argv[n++] = "--start";
 
