@@ -65,20 +65,21 @@ USA.
     </option>
 
     <option>
-      <p><opt>disallow-module-loading=</opt> Disallow module loading
-      after startup. This is a security feature that makes sure that
-      no further modules may be loaded into the PulseAudio server
-      after startup completed. It is recommended to enable this when
-      <opt>system-instance</opt> is enabled. Please note that certain
-      features like automatic hot-plug support will not work if this
-      option is enabled. Takes a boolean argument, defaults to
-      <opt>no</opt>. The <opt>--disallow-module-loading</opt> command line
-      option takes precedence.</p>
+      <p><opt>allow-module-loading=</opt> Allow/disallow module
+      loading after startup. This is a security feature that if
+      dsabled makes sure that no further modules may be loaded into
+      the PulseAudio server after startup completed. It is recommended
+      to disable this when <opt>system-instance</opt> is
+      enabled. Please note that certain features like automatic
+      hot-plug support will not work if this option is enabled. Takes
+      a boolean argument, defaults to <opt>yes</opt>. The
+      <opt>--disallow-module-loading</opt> command line option takes
+      precedence.</p>
     </option>
 
     <option>
-      <p><opt>disallow-exit=</opt> Disallow exit on user
-      request. Defaults to <opt>no</opt>.</p>
+      <p><opt>allow-exit=</opt> Allow/disallow exit on user
+      request. Defaults to <opt>yes</opt>.</p>
     </option>
 
     <option>
@@ -105,19 +106,19 @@ USA.
     </option>
 
     <option>
-      <p><opt>disable-remixing=</opt> Never upmix or downmix channels
-      to different channel maps. Instead, do a simple name-based
-      matching only.</p>
+      <p><opt>enable-remixing=</opt> If disabled never upmix or
+      downmix channels to different channel maps. Instead, do a simple
+      name-based matching only. Defaults to <opt>yes.</opt></p>
     </option>
 
     <option>
-      <p><opt>disable-lfe-remixing=</opt> When upmixing or downmixing
-      ignore LFE channels. When this option is on the output LFE
-      channel will only get a signal when an input LFE channel is
-      available as well. If no input LFE channel is available the
-      output LFE channel will always be 0. If no output LFE channel is
-      available the signal on the input LFE channel will be
-      ignored. Defaults to "on".</p>
+      <p><opt>enable-lfe-remixing=</opt> if disabeld when upmixing or
+      downmixing ignore LFE channels. When this option is dsabled the
+      output LFE channel will only get a signal when an input LFE
+      channel is available as well. If no input LFE channel is
+      available the output LFE channel will always be 0. If no output
+      LFE channel is available the signal on the input LFE channel
+      will be ignored. Defaults to <opt>no</opt>.</p>
     </option>
 
     <option>
@@ -132,12 +133,12 @@ USA.
     </option>
 
     <option>
-      <p><opt>no-cpu-limit=</opt> Do not install the CPU load limiter,
-      even on platforms where it is supported. This option is useful
-      when debugging/profiling PulseAudio to disable disturbing
-      SIGXCPU signals. Takes a boolean argument, defaults to <opt>no</opt>. The
-      <opt>--no-cpu-limit</opt> command line argument takes
-      precedence.</p>
+      <p><opt>cpu-limit=</opt> If disabled d not install the CPU load
+      limiter, even on platforms where it is supported. This option is
+      useful when debugging/profiling PulseAudio to disable disturbing
+      SIGXCPU signals. Takes a boolean argument, defaults to
+      <opt>yes</opt>. The <opt>--no-cpu-limit</opt> command line
+      argument takes precedence.</p>
     </option>
 
     <option>
@@ -148,9 +149,9 @@ USA.
     </option>
 
     <option>
-      <p><opt>disable-shm=</opt> Disable data transfer via POSIX
+      <p><opt>enable-shm=</opt> Enable data transfer via POSIX
       shared memory. Takes a boolean argument, defaults to
-      <opt>no</opt>. The <opt>--disable-shm</opt> command line
+      <opt>yes</opt>. The <opt>--disable-shm</opt> command line
       argument takes precedence.</p>
     </option>
 

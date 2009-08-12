@@ -21,14 +21,14 @@
 
 ; daemonize = no
 ; fail = yes
-; disallow-module-loading = no
-; disallow-exit = no
+; allow-module-loading = yes
+; allow-exit = yes
 ; use-pid-file = yes
 ; system-instance = no
-; disable-shm = no
+; enable-shm = yes
 ; shm-size-bytes = 0 # setting this 0 will use the system-default, usually 64 MiB
 ; lock-memory = no
-; no-cpu-limit = no
+; cpu-limit = yes
 
 ; high-priority = yes
 ; nice-level = -11
@@ -51,8 +51,8 @@
 ; log-backtrace = 0
 
 ; resample-method = speex-float-3
-; disable-remixing = no
-; disable-lfe-remixing = yes
+; enable-remixing = yes
+; enable-lfe-remixing = no
 
 ; flat-volumes = yes
 
