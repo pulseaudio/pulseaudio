@@ -104,14 +104,15 @@ pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
 {
   int64_t channel, temp;
 
-  /* the max number of samples we process at a time */
+  /* the max number of samples we process at a time, this is also the max amount
+   * we overread the volume array, which should have enough padding. */
   channels = MAX (4, channels);
 
 #define VOLUME_32x16(s,v)                  /* v1_h    | v1_l    | v0_h    | v0_l      */    \
       " pxor %%mm4, %%mm4            \n\t"                                                  \
       " punpcklwd %%mm4, "#s"        \n\t" /* 0       |  p1     | 0       | p0        */    \
       " pcmpgtw "#s", %%mm4          \n\t" /* select sign from sample                 */    \
-      " pand "#v", %%mm4             \n\t" /* extract correction factors              */    \
+      " pand "#v", %%mm4             \n\t" /* extract sign correction factors         */    \
       " movq "#s", %%mm5             \n\t"                                                  \
       " pmulhuw "#v", "#s"           \n\t" /*   0     | p1*v1lh |    0    | p0*v0lh   */    \
       " psubd %%mm4, "#s"            \n\t" /* sign correction                         */    \
@@ -123,8 +124,8 @@ pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
 #define MOD_ADD(a,b) \
       " add "#a", %3                 \n\t" \
       " mov %3, %4                   \n\t" \
-      " sub %5, %4                   \n\t" \
-      " cmp %3, "#b"                 \n\t" \
+      " sub "#b", %4                 \n\t" \
+      " cmp "#b", %3                 \n\t" \
       " cmovae %4, %3                \n\t" 
 
   __asm__ __volatile__ (
@@ -135,14 +136,13 @@ pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
     " je 2f                         \n\t" 
 
     " movd (%1, %3, 4), %%mm0       \n\t" /* do odd samples */
-    " movw (%0), %%ax               \n\t" 
-    " movd %%eax, %%mm1             \n\t" 
+    " movw (%0), %4                 \n\t" 
+    " movd %4, %%mm1                \n\t" 
     VOLUME_32x16 (%%mm1, %%mm0)
-    " movd %%mm0, %%eax             \n\t" 
-    " movw %%ax, (%0)               \n\t" 
+    " movd %%mm0, %4                \n\t" 
+    " movw %4, (%0)                 \n\t" 
     " add $2, %0                    \n\t"
     MOD_ADD ($1, %5)
-    " dec %2                        \n\t"
 
     "2:                             \n\t"
     " sar $1, %2                    \n\t" /* prepare for processing 2 samples at a time */
@@ -156,7 +156,6 @@ pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
     " movd %%mm0, (%0)              \n\t" 
     " add $4, %0                    \n\t"
     MOD_ADD ($2, %5)
-    " dec %2                        \n\t"
 
     "4:                             \n\t"
     " sar $1, %2                    \n\t" /* prepare for processing 4 samples at a time */
@@ -180,9 +179,9 @@ pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
     "6:                             \n\t"
     " emms                          \n\t"
 
-    : "+r" (samples), "+r" (volumes), "+r" (length), "=D" ((int64_t)channel), "=r" (temp)
+    : "+r" (samples), "+r" (volumes), "+r" (length), "=D" ((int64_t)channel), "=&r" (temp)
     : "r" ((int64_t)channels)
-    : "rax", "cc"
+    : "cc"
   );
 }
 
@@ -370,7 +369,7 @@ pa_volume_s24_32re_mmx (uint32_t *samples, int32_t *volumes, unsigned channels, 
 #undef RUN_TEST
 
 #ifdef RUN_TEST
-#define CHANNELS 1
+#define CHANNELS 2
 #define SAMPLES 1021
 #define TIMES 1000
 
@@ -378,25 +377,32 @@ static void run_test (void) {
   int16_t samples[SAMPLES];
   int16_t samples_ref[SAMPLES];
   int16_t samples_orig[SAMPLES];
-  int32_t volumes[CHANNELS];
-  int i, j;
+  int32_t volumes[CHANNELS + 16];
+  int i, j, padding;
   pa_do_volume_func_t func;
 
   func = pa_get_volume_func (PA_SAMPLE_S16NE);
 
-  printf ("checking\n");
+  printf ("checking %d\n", sizeof (samples));
 
   for (j = 0; j < TIMES; j++) {
+    /*
+    for (i = 0; i < SAMPLES; i++) {
+      samples[i] samples_ref[i] = samples_orig[i] = rand() >> 16;
+    }
+    */
+
     pa_random (samples, sizeof (samples));
     memcpy (samples_ref, samples, sizeof (samples));
     memcpy (samples_orig, samples, sizeof (samples));
 
-    for (i = 0; i < CHANNELS; i++) {
+    for (i = 0; i < CHANNELS; i++)
       volumes[i] = rand() >> 15;
-    }
+    for (padding = 0; padding < 16; padding++, i++)
+      volumes[i] = volumes[padding];
 
-    pa_volume_s16ne_mmx (samples, volumes, CHANNELS, SAMPLES * sizeof (int16_t));
-    func (samples_ref, volumes, CHANNELS, SAMPLES * sizeof (int16_t));
+    pa_volume_s16ne_mmx (samples, volumes, CHANNELS, sizeof (samples));
+    func (samples_ref, volumes, CHANNELS, sizeof (samples));
 
     for (i = 0; i < SAMPLES; i++) {
       if (samples[i] != samples_ref[i]) {
