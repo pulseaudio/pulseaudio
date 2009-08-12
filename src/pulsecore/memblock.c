@@ -258,7 +258,8 @@ static struct mempool_slot* mempool_allocate_slot(pa_mempool *p) {
             slot = (struct mempool_slot*) ((uint8_t*) p->memory.ptr + (p->block_size * (size_t) idx));
 
         if (!slot) {
-            pa_log_debug("Pool full");
+            if (pa_log_ratelimit())
+                pa_log_debug("Pool full");
             pa_atomic_inc(&p->stat.n_pool_full);
             return NULL;
         }
