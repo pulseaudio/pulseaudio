@@ -101,6 +101,10 @@
 #include "rtkit.h"
 #endif
 
+#ifdef __linux__
+#include <sys/personality.h>
+#endif
+
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
 #include <pulse/utf8.h>
@@ -2854,4 +2858,13 @@ size_t pa_pipe_buf(int fd) {
 #else
     return 4096;
 #endif
+}
+
+void pa_reset_personality(void) {
+
+#ifdef __linux__
+    if (personality(PER_LINUX) < 0)
+        pa_log_warn("Uh, personality() failed: %s", pa_cstrerror(errno));
+#endif
+
 }

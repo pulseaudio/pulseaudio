@@ -65,10 +65,6 @@
 #include <dbus/dbus.h>
 #endif
 
-#ifdef __linux__
-#include <sys/personality.h>
-#endif
-
 #include <pulse/mainloop.h>
 #include <pulse/mainloop-signal.h>
 #include <pulse/timeval.h>
@@ -446,11 +442,7 @@ int main(int argc, char *argv[]) {
      * context we have been started. Let's cleanup our execution
      * context as good as possible */
 
-#ifdef __linux__
-    if (personality(PER_LINUX) < 0)
-        pa_log_warn("Uh, personality() failed: %s", pa_cstrerror(errno));
-#endif
-
+    pa_reset_personality();
     pa_drop_root();
     pa_close_all(passed_fd, -1);
     pa_reset_sigs(-1);
