@@ -1,3 +1,6 @@
+#ifndef foocpux86hfoo
+#define foocpux86hfoo
+
 /***
   This file is part of PulseAudio.
 
@@ -59,3 +62,5 @@ typedef int64_t pa_reg_x86;
 /* some optimized functions */
 void pa_volume_func_init_mmx(pa_cpu_x86_flag_t flags);
 void pa_volume_func_init_sse(pa_cpu_x86_flag_t flags);
+
+#endif /* foocpux86hfoo */
