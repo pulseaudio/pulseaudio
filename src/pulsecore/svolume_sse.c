@@ -31,6 +31,8 @@
 #include <pulsecore/g711.h>
 #include <pulsecore/core-util.h>
 
+#include "cpu-x86.h"
+
 #include "sample-util.h"
 #include "endianmacros.h"
 
@@ -140,8 +142,7 @@ pa_volume_ulaw_sse (uint8_t *samples, int32_t *volumes, unsigned channels, unsig
 static void
 pa_volume_s16ne_sse (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
-  int64_t channel;
-  int64_t temp;
+  pa_reg_x86 channel, temp;
 
   /* the max number of samples we process at a time, this is also the max amount
    * we overread the volume array, which should have enough padding. */
@@ -210,7 +211,7 @@ pa_volume_s16ne_sse (int16_t *samples, int32_t *volumes, unsigned channels, unsi
     "8:                             \n\t"
 
     : "+r" (samples), "+r" (volumes), "+r" (length), "=D" (channel), "=&r" (temp)
-    : "r" ((int64_t)channels)
+    : "r" ((pa_reg_x86)channels)
     : "cc"
   );
 }
@@ -218,8 +219,7 @@ pa_volume_s16ne_sse (int16_t *samples, int32_t *volumes, unsigned channels, unsi
 static void
 pa_volume_s16re_sse (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
-  int64_t channel;
-  int64_t temp;
+  pa_reg_x86 channel, temp;
 
   /* the max number of samples we process at a time, this is also the max amount
    * we overread the volume array, which should have enough padding. */
@@ -296,7 +296,7 @@ pa_volume_s16re_sse (int16_t *samples, int32_t *volumes, unsigned channels, unsi
     "8:                             \n\t"
 
     : "+r" (samples), "+r" (volumes), "+r" (length), "=D" (channel), "=&r" (temp)
-    : "r" ((int64_t)channels)
+    : "r" ((pa_reg_x86)channels)
     : "cc"
   );
 }
@@ -459,7 +459,7 @@ pa_volume_s24_32re_sse (uint32_t *samples, int32_t *volumes, unsigned channels, 
 }
 #endif
 
-#define RUN_TEST
+#undef RUN_TEST
 
 #ifdef RUN_TEST
 #define CHANNELS 2
@@ -502,7 +502,7 @@ static void run_test (void) {
 }
 #endif
 
-void pa_volume_func_init_sse (void) {
+void pa_volume_func_init_sse (pa_cpu_x86_flag_t flags) {
   pa_log_info("Initialising SSE optimized functions.");
 
 #ifdef RUN_TEST

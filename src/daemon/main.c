@@ -95,6 +95,7 @@
 #ifdef HAVE_DBUS
 #include <pulsecore/dbus-shared.h>
 #endif
+#include <pulsecore/cpu-x86.h>
 
 #include "cmdline.h"
 #include "cpulimit.h"
@@ -821,8 +822,7 @@ int main(int argc, char *argv[]) {
 
     pa_memtrap_install();
 
-    pa_volume_func_init_mmx();
-    pa_volume_func_init_sse();
+    pa_cpu_init_x86();
 
     pa_assert_se(mainloop = pa_mainloop_new());
 
