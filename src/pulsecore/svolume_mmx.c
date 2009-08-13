@@ -99,6 +99,46 @@ pa_volume_ulaw_mmx (uint8_t *samples, int32_t *volumes, unsigned channels, unsig
 }
 #endif
 
+#define VOLUME_32x16(s,v)                  /* .. |   vh  |   vl  | */                   \
+      " pxor  %%mm4, %%mm4           \n\t" /* .. |    0  |    0  | */                   \
+      " punpcklwd %%mm4, "#s"        \n\t" /* .. |    0  |   p0  | */                   \
+      " pcmpgtw "#v", %%mm4          \n\t" /* .. |    0  | s(vl) | */                   \
+      " pand "#s", %%mm4             \n\t" /* .. |    0  |  (p0) |  (vl >> 15) & p */   \
+      " movq %%mm6, %%mm5            \n\t" /* .. |  ffff |   0   | */                   \
+      " pand "#v", %%mm5             \n\t" /* .. |   vh  |   0   | */                   \
+      " por %%mm5, %%mm4             \n\t" /* .. |   vh  |  (p0) | */                   \
+      " pmulhw "#s", "#v"            \n\t" /* .. |    0  | vl*p0 | */                   \
+      " paddw %%mm4, "#v"            \n\t" /* .. |   vh  | vl*p0 | vh + sign correct */ \
+      " pslld $16, "#s"              \n\t" /* .. |   p0  |    0  | */                   \
+      " por %%mm7, "#s"              \n\t" /* .. |   p0  |    1  | */                   \
+      " pmaddwd "#s", "#v"           \n\t" /* .. |    p0 * v0    | */                   \
+      " packssdw "#v", "#v"          \n\t" /* .. | p1*v1 | p0*v0 | */
+
+#define MOD_ADD(a,b) \
+      " add "#a", %3                 \n\t" \
+      " mov %3, %4                   \n\t" \
+      " sub "#b", %4                 \n\t" \
+      " cmp "#b", %3                 \n\t" \
+      " cmovae %4, %3                \n\t" 
+
+/* swap 16 bits */
+#define SWAP_16(s) \
+      " movq "#s", %%mm4             \n\t" /* .. |  h  l |  */ \
+      " psrlw $8, %%mm4              \n\t" /* .. |  0  h |  */ \
+      " psllw $8, "#s"               \n\t" /* .. |  l  0 |  */ \
+      " por %%mm4, "#s"              \n\t" /* .. |  l  h |  */
+
+/* swap 2 registers 16 bits for better pairing */
+#define SWAP_16_2(s1,s2) \
+      " movq "#s1", %%mm4            \n\t" /* .. |  h  l |  */ \
+      " movq "#s2", %%mm5            \n\t"                     \
+      " psrlw $8, %%mm4              \n\t" /* .. |  0  h |  */ \
+      " psrlw $8, %%mm5              \n\t"                     \
+      " psllw $8, "#s1"              \n\t" /* .. |  l  0 |  */ \
+      " psllw $8, "#s2"              \n\t"                     \
+      " por %%mm4, "#s1"             \n\t" /* .. |  l  h |  */ \
+      " por %%mm5, "#s2"             \n\t"
+
 static void
 pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
@@ -108,38 +148,22 @@ pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
    * we overread the volume array, which should have enough padding. */
   channels = MAX (4, channels);
 
-#define VOLUME_32x16(s,v)                  /* v1_h    | v1_l    | v0_h    | v0_l      */    \
-      " pxor %%mm4, %%mm4            \n\t"                                                  \
-      " punpcklwd %%mm4, "#s"        \n\t" /* 0       |  p1     | 0       | p0        */    \
-      " pcmpgtw "#s", %%mm4          \n\t" /* select sign from sample                 */    \
-      " pand "#v", %%mm4             \n\t" /* extract sign correction factors         */    \
-      " movq "#s", %%mm5             \n\t"                                                  \
-      " pmulhuw "#v", "#s"           \n\t" /*   0     | p1*v1lh |    0    | p0*v0lh   */    \
-      " psubd %%mm4, "#s"            \n\t" /* sign correction                         */    \
-      " psrld $16, "#v"              \n\t" /*  0      | v1h     |  0      | v0h       */    \
-      " pmaddwd %%mm5, "#v"          \n\t" /*      p1 * v1h     |      p0 * v0h       */    \
-      " paddd "#s", "#v"             \n\t" /*      p1 * v1      |      p0 * v0        */    \
-      " packssdw "#v", "#v"          \n\t" /* p0*v0   | p1*v1   | p0*v0   | p1*v1     */         
-
-#define MOD_ADD(a,b) \
-      " add "#a", %3                 \n\t" \
-      " mov %3, %4                   \n\t" \
-      " sub "#b", %4                 \n\t" \
-      " cmp "#b", %3                 \n\t" \
-      " cmovae %4, %3                \n\t" 
-
   __asm__ __volatile__ (
     " xor %3, %3                    \n\t"
     " sar $1, %2                    \n\t" /* length /= sizeof (int16_t) */
+    " pcmpeqw %%mm6, %%mm6          \n\t" /* .. |  ffff |  ffff | */
+    " pcmpeqw %%mm7, %%mm7          \n\t" /* .. |  ffff |  ffff | */
+    " pslld  $16, %%mm6             \n\t" /* .. |  ffff |     0 | */
+    " psrld  $31, %%mm7             \n\t" /* .. |     0 |     1 | */
 
     " test $1, %2                   \n\t" /* check for odd samples */
     " je 2f                         \n\t" 
 
-    " movd (%1, %3, 4), %%mm0       \n\t" /* do odd samples */
-    " movw (%0), %4                 \n\t" 
+    " movd (%1, %3, 4), %%mm0       \n\t" /* |  v0h  |  v0l  | */
+    " movw (%0), %4                 \n\t" /*     ..  |  p0   | */
     " movd %4, %%mm1                \n\t" 
     VOLUME_32x16 (%%mm1, %%mm0)
-    " movd %%mm0, %4                \n\t" 
+    " movd %%mm0, %4                \n\t" /*     ..  | p0*v0 | */
     " movw %4, (%0)                 \n\t" 
     " add $2, %0                    \n\t"
     MOD_ADD ($1, %5)
@@ -149,11 +173,11 @@ pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
     " test $1, %2                   \n\t" /* check for odd samples */
     " je 4f                         \n\t" 
 
-    "3:                             \n\t" /* do samples in pairs of 2 */
-    " movq (%1, %3, 4), %%mm0       \n\t" /* v1_h  | v1_l  | v0_h  | v0_l      */
-    " movd (%0), %%mm1              \n\t" /*  X    |  X    |  p1   |  p0       */ 
+    "3:                             \n\t" /* do samples in groups of 2 */
+    " movq (%1, %3, 4), %%mm0       \n\t" /* |  v1h  |  v1l  |  v0h  |  v0l  | */
+    " movd (%0), %%mm1              \n\t" /*              .. |   p1  |  p0   | */ 
     VOLUME_32x16 (%%mm1, %%mm0)
-    " movd %%mm0, (%0)              \n\t" 
+    " movd %%mm0, (%0)              \n\t" /* | p1*v1 | p0*v0 | */
     " add $4, %0                    \n\t"
     MOD_ADD ($2, %5)
 
@@ -162,15 +186,91 @@ pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
     " cmp $0, %2                    \n\t"
     " je 6f                         \n\t"
 
-    "5:                             \n\t" /* do samples in pairs of 4 */
-    " movq (%1, %3, 4), %%mm0       \n\t" /* v1_h  | v1_l  | v0_h  | v0_l      */
-    " movq 8(%1, %3, 4), %%mm2      \n\t" /* v3_h  | v3_l  | v2_h  | v2_l      */
-    " movd (%0), %%mm1              \n\t" /*  X    |  X    |  p1   |  p0       */
-    " movd 4(%0), %%mm3             \n\t" /*  X    |  X    |  p3   |  p2       */
+    "5:                             \n\t" /* do samples in groups of 4 */
+    " movq (%1, %3, 4), %%mm0       \n\t" /* |  v1h  |  v1l  |  v0h  |  v0l  | */ 
+    " movq 8(%1, %3, 4), %%mm2      \n\t" /* |  v3h  |  v3l  |  v2h  |  v2l  | */
+    " movd (%0), %%mm1              \n\t" /*              .. |   p1  |  p0   | */
+    " movd 4(%0), %%mm3             \n\t" /*              .. |   p3  |  p2   | */
     VOLUME_32x16 (%%mm1, %%mm0)
     VOLUME_32x16 (%%mm3, %%mm2)
-    " movd %%mm0, (%0)              \n\t" 
-    " movd %%mm2, 4(%0)              \n\t" 
+    " movd %%mm0, (%0)              \n\t" /* | p1*v1 | p0*v0 | */
+    " movd %%mm2, 4(%0)             \n\t" /* | p3*v3 | p2*v2 | */
+    " add $8, %0                    \n\t"
+    MOD_ADD ($4, %5)
+    " dec %2                        \n\t"
+    " jne 5b                        \n\t"
+
+    "6:                             \n\t"
+    " emms                          \n\t"
+
+    : "+r" (samples), "+r" (volumes), "+r" (length), "=D" ((int64_t)channel), "=&r" (temp)
+    : "r" ((int64_t)channels)
+    : "cc"
+  );
+}
+
+static void
+pa_volume_s16re_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
+{
+  int64_t channel, temp;
+
+  /* the max number of samples we process at a time, this is also the max amount
+   * we overread the volume array, which should have enough padding. */
+  channels = MAX (4, channels);
+
+  __asm__ __volatile__ (
+    " xor %3, %3                    \n\t"
+    " sar $1, %2                    \n\t" /* length /= sizeof (int16_t) */
+    " pcmpeqw %%mm6, %%mm6          \n\t" /* .. |  ffff |  ffff | */
+    " pcmpeqw %%mm7, %%mm7          \n\t" /* .. |  ffff |  ffff | */
+    " pslld  $16, %%mm6             \n\t" /* .. |  ffff |     0 | */
+    " psrld  $31, %%mm7             \n\t" /* .. |     0 |     1 | */
+
+    " test $1, %2                   \n\t" /* check for odd samples */
+    " je 2f                         \n\t" 
+
+    " movd (%1, %3, 4), %%mm0       \n\t" /* |  v0h  |  v0l  | */
+    " movw (%0), %4                 \n\t" /*     ..  |  p0   | */
+    " rorw $8, %4                   \n\t"
+    " movd %4, %%mm1                \n\t" 
+    VOLUME_32x16 (%%mm1, %%mm0)
+    " movd %%mm0, %4                \n\t" /*     ..  | p0*v0 | */
+    " rorw $8, %4                   \n\t"
+    " movw %4, (%0)                 \n\t" 
+    " add $2, %0                    \n\t"
+    MOD_ADD ($1, %5)
+
+    "2:                             \n\t"
+    " sar $1, %2                    \n\t" /* prepare for processing 2 samples at a time */
+    " test $1, %2                   \n\t" /* check for odd samples */
+    " je 4f                         \n\t" 
+
+    "3:                             \n\t" /* do samples in groups of 2 */
+    " movq (%1, %3, 4), %%mm0       \n\t" /* |  v1h  |  v1l  |  v0h  |  v0l  | */
+    " movd (%0), %%mm1              \n\t" /*              .. |   p1  |  p0   | */ 
+    SWAP_16 (%%mm1)
+    VOLUME_32x16 (%%mm1, %%mm0)
+    SWAP_16 (%%mm0)
+    " movd %%mm0, (%0)              \n\t" /* | p1*v1 | p0*v0 | */
+    " add $4, %0                    \n\t"
+    MOD_ADD ($2, %5)
+
+    "4:                             \n\t"
+    " sar $1, %2                    \n\t" /* prepare for processing 4 samples at a time */
+    " cmp $0, %2                    \n\t"
+    " je 6f                         \n\t"
+
+    "5:                             \n\t" /* do samples in groups of 4 */
+    " movq (%1, %3, 4), %%mm0       \n\t" /* |  v1h  |  v1l  |  v0h  |  v0l  | */ 
+    " movq 8(%1, %3, 4), %%mm2      \n\t" /* |  v3h  |  v3l  |  v2h  |  v2l  | */
+    " movd (%0), %%mm1              \n\t" /*              .. |   p1  |  p0   | */
+    " movd 4(%0), %%mm3             \n\t" /*              .. |   p3  |  p2   | */
+    SWAP_16_2 (%%mm1, %%mm3)
+    VOLUME_32x16 (%%mm1, %%mm0)
+    VOLUME_32x16 (%%mm3, %%mm2)
+    SWAP_16_2 (%%mm0, %%mm2)
+    " movd %%mm0, (%0)              \n\t" /* | p1*v1 | p0*v0 | */
+    " movd %%mm2, 4(%0)             \n\t" /* | p3*v3 | p2*v2 | */
     " add $8, %0                    \n\t"
     MOD_ADD ($4, %5)
     " dec %2                        \n\t"
@@ -186,29 +286,6 @@ pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
 }
 
 #if 0
-static void
-pa_volume_s16re_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
-{
-  unsigned channel;
-
-  length /= sizeof (int16_t);
-
-  for (channel = 0; length; length--) {
-    int32_t t, hi, lo;
-
-    hi = volumes[channel] >> 16;
-    lo = volumes[channel] & 0xFFFF;
-
-    t = (int32_t) PA_INT16_SWAP(*samples);
-    t = ((t * lo) >> 16) + (t * hi);
-    t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
-    *samples++ = PA_INT16_SWAP((int16_t) t);
-
-    if (PA_UNLIKELY(++channel >= channels))
-      channel = 0;
-  }
-}
-
 static void
 pa_volume_float32ne_mmx (float *samples, float *volumes, unsigned channels, unsigned length)
 {
@@ -366,42 +443,37 @@ pa_volume_s24_32re_mmx (uint32_t *samples, int32_t *volumes, unsigned channels, 
 }
 #endif
 
-#undef RUN_TEST
+#define RUN_TEST
 
 #ifdef RUN_TEST
 #define CHANNELS 2
 #define SAMPLES 1021
 #define TIMES 1000
+#define PADDING 16
 
 static void run_test (void) {
   int16_t samples[SAMPLES];
   int16_t samples_ref[SAMPLES];
   int16_t samples_orig[SAMPLES];
-  int32_t volumes[CHANNELS + 16];
+  int32_t volumes[CHANNELS + PADDING];
   int i, j, padding;
   pa_do_volume_func_t func;
 
-  func = pa_get_volume_func (PA_SAMPLE_S16NE);
+  func = pa_get_volume_func (PA_SAMPLE_S16RE);
 
-  printf ("checking %d\n", sizeof (samples));
+  printf ("checking MMX %d\n", sizeof (samples));
 
   for (j = 0; j < TIMES; j++) {
-    /*
-    for (i = 0; i < SAMPLES; i++) {
-      samples[i] samples_ref[i] = samples_orig[i] = rand() >> 16;
-    }
-    */
-
     pa_random (samples, sizeof (samples));
     memcpy (samples_ref, samples, sizeof (samples));
     memcpy (samples_orig, samples, sizeof (samples));
 
     for (i = 0; i < CHANNELS; i++)
-      volumes[i] = rand() >> 15;
-    for (padding = 0; padding < 16; padding++, i++)
+      volumes[i] = rand() >> 1;
+    for (padding = 0; padding < PADDING; padding++, i++)
       volumes[i] = volumes[padding];
 
-    pa_volume_s16ne_mmx (samples, volumes, CHANNELS, sizeof (samples));
+    pa_volume_s16re_mmx (samples, volumes, CHANNELS, sizeof (samples));
     func (samples_ref, volumes, CHANNELS, sizeof (samples));
 
     for (i = 0; i < SAMPLES; i++) {
@@ -409,11 +481,6 @@ static void run_test (void) {
         printf ("%d: %04x != %04x (%04x * %04x)\n", i, samples[i], samples_ref[i], 
   		      samples_orig[i], volumes[i % CHANNELS]);
       }
-#if 0
-      else
-        printf ("%d: %04x == %04x (%04x * %04x)\n", i, samples[i], samples_ref[i], 
-  		      samples_orig[i], volumes[i % CHANNELS]);
-#endif
     }
   }
 }
@@ -427,4 +494,5 @@ void pa_volume_func_init_mmx (void) {
 #endif
 
   pa_set_volume_func (PA_SAMPLE_S16NE,     (pa_do_volume_func_t) pa_volume_s16ne_mmx);
+  pa_set_volume_func (PA_SAMPLE_S16RE,     (pa_do_volume_func_t) pa_volume_s16re_mmx);
 }
