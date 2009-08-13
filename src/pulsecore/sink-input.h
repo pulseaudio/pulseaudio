@@ -303,6 +303,10 @@ void pa_sink_input_cork(pa_sink_input *i, pa_bool_t b);
 
 int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate);
 
+/* This returns the sink's fields converted into out sample type */
+size_t pa_sink_input_get_max_rewind(pa_sink_input *i);
+size_t pa_sink_input_get_max_request(pa_sink_input *i);
+
 /* Callable by everyone from main thread*/
 
 /* External code may request disconnection with this function */

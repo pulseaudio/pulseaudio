@@ -803,6 +803,25 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
 }
 
 /* Called from thread context */
+size_t pa_sink_input_get_max_rewind(pa_sink_input *i) {
+    pa_sink_input_assert_ref(i);
+    pa_sink_input_assert_io_context(i);
+
+    return i->thread_info.resampler ? pa_resampler_request(i->thread_info.resampler, i->sink->thread_info.max_rewind) : i->sink->thread_info.max_rewind;
+}
+
+/* Called from thread context */
+size_t pa_sink_input_get_max_request(pa_sink_input *i) {
+    pa_sink_input_assert_ref(i);
+    pa_sink_input_assert_io_context(i);
+
+    /* We're not verifying the status here, to allow this to be called
+     * in the state change handler between _INIT and _RUNNING */
+
+    return i->thread_info.resampler ? pa_resampler_request(i->thread_info.resampler, i->sink->thread_info.max_request) : i->sink->thread_info.max_request;
+}
+
+/* Called from thread context */
 void pa_sink_input_update_max_rewind(pa_sink_input *i, size_t nbytes  /* in the sink's sample spec */) {
     pa_sink_input_assert_ref(i);
     pa_sink_input_assert_io_context(i);

@@ -537,6 +537,14 @@ void pa_source_output_process_rewind(pa_source_output *o, size_t nbytes /* in so
 }
 
 /* Called from thread context */
+size_t pa_source_output_get_max_rewind(pa_source_output *o) {
+    pa_source_output_assert_ref(o);
+    pa_source_output_assert_io_context(o);
+
+    return o->thread_info.resampler ? pa_resampler_request(o->thread_info.resampler, o->source->thread_info.max_rewind) : o->source->thread_info.max_rewind;
+}
+
+/* Called from thread context */
 void pa_source_output_update_max_rewind(pa_source_output *o, size_t nbytes  /* in the source's sample spec */) {
     pa_source_output_assert_ref(o);
     pa_source_output_assert_io_context(o);

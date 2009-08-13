@@ -238,6 +238,8 @@ void pa_source_output_cork(pa_source_output *o, pa_bool_t b);
 
 int pa_source_output_set_rate(pa_source_output *o, uint32_t rate);
 
+size_t pa_source_output_get_max_rewind(pa_source_output *o);
+
 /* Callable by everyone */
 
 /* External code may request disconnection with this funcion */
