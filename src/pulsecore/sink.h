@@ -42,6 +42,7 @@ typedef struct pa_device_port pa_device_port;
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/card.h>
 #include <pulsecore/queue.h>
+#include <pulsecore/thread-mq.h>
 
 #define PA_MAX_INPUTS_PER_SINK 32
 
@@ -342,5 +343,11 @@ pa_usec_t pa_sink_get_latency_within_thread(pa_sink *s);
 
 pa_device_port *pa_device_port_new(const char *name, const char *description, size_t extra);
 void pa_device_port_free(pa_device_port *p);
+
+/* Verify that we called in IO context (aka 'thread context), or that
+ * the sink is not yet set up, i.e. the thread not set up yet. See
+ * pa_assert_io_context() in thread-mq.h for more information. */
+#define pa_sink_assert_io_context(s) \
+    pa_assert(pa_thread_mq_get() || !PA_SINK_IS_LINKED((s)->state))
 
 #endif

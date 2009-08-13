@@ -359,4 +359,7 @@ pa_memchunk* pa_sink_input_get_silence(pa_sink_input *i, pa_memchunk *ret);
 /* To be used by sink.c only */
 void pa_sink_input_set_relative_volume(pa_sink_input *i, const pa_cvolume *v);
 
+#define pa_sink_input_assert_io_context(s) \
+    pa_assert(pa_thread_mq_get() || !PA_SINK_INPUT_IS_LINKED((s)->state))
+
 #endif

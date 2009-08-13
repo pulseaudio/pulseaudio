@@ -277,4 +277,7 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
 
 pa_usec_t pa_source_output_set_requested_latency_within_thread(pa_source_output *o, pa_usec_t usec);
 
+#define pa_source_output_assert_io_context(s) \
+    pa_assert(pa_thread_mq_get() || !PA_SOURCE_OUTPUT_IS_LINKED((s)->state))
+
 #endif

@@ -43,6 +43,7 @@ typedef struct pa_source pa_source;
 #include <pulsecore/source-output.h>
 #include <pulsecore/card.h>
 #include <pulsecore/queue.h>
+#include <pulsecore/thread-mq.h>
 
 #define PA_MAX_OUTPUTS_PER_SOURCE 32
 
@@ -294,5 +295,8 @@ void pa_source_set_latency_range_within_thread(pa_source *s, pa_usec_t min_laten
 
 void pa_source_invalidate_requested_latency(pa_source *s);
 pa_usec_t pa_source_get_latency_within_thread(pa_source *s);
+
+#define pa_source_assert_io_context(s) \
+    pa_assert(pa_thread_mq_get() || !PA_SOURCE_IS_LINKED((s)->state))
 
 #endif

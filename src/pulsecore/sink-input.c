@@ -51,7 +51,7 @@ static void sink_input_free(pa_object *o);
 pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data) {
     pa_assert(data);
 
-    memset(data, 0, sizeof(*data));
+    pa_zero(*data);
     data->resample_method = PA_RESAMPLER_INVALID;
     data->proplist = pa_proplist_new();
 
@@ -142,6 +142,7 @@ int pa_sink_input_new(
     pa_assert(_i);
     pa_assert(core);
     pa_assert(data);
+    pa_assert_ctl_context();
 
     if (data->client)
         pa_proplist_update(data->proplist, PA_UPDATE_MERGE, data->client->proplist);
@@ -348,6 +349,7 @@ int pa_sink_input_new(
 /* Called from main context */
 static void update_n_corked(pa_sink_input *i, pa_sink_input_state_t state) {
     pa_assert(i);
+    pa_assert_ctl_context();
 
     if (!i->sink)
         return;
@@ -362,6 +364,7 @@ static void update_n_corked(pa_sink_input *i, pa_sink_input_state_t state) {
 static void sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) {
     pa_sink_input *ssync;
     pa_assert(i);
+    pa_assert_ctl_context();
 
     if (state == PA_SINK_INPUT_DRAINED)
         state = PA_SINK_INPUT_RUNNING;
@@ -400,7 +403,9 @@ static void sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) 
 void pa_sink_input_unlink(pa_sink_input *i) {
     pa_bool_t linked;
     pa_source_output *o, *p =  NULL;
+
     pa_assert(i);
+    pa_assert_ctl_context();
 
     /* See pa_sink_unlink() for a couple of comments how this function
      * works */
@@ -471,6 +476,7 @@ static void sink_input_free(pa_object *o) {
     pa_sink_input* i = PA_SINK_INPUT(o);
 
     pa_assert(i);
+    pa_assert_ctl_context();
     pa_assert(pa_sink_input_refcnt(i) == 0);
 
     if (PA_SINK_INPUT_IS_LINKED(i->state))
@@ -502,7 +508,9 @@ static void sink_input_free(pa_object *o) {
 /* Called from main context */
 void pa_sink_input_put(pa_sink_input *i) {
     pa_sink_input_state_t state;
+
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
 
     pa_assert(i->state == PA_SINK_INPUT_INIT);
 
@@ -538,6 +546,7 @@ void pa_sink_input_put(pa_sink_input *i) {
 /* Called from main context */
 void pa_sink_input_kill(pa_sink_input*i) {
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
     i->kill(i);
@@ -548,6 +557,7 @@ pa_usec_t pa_sink_input_get_latency(pa_sink_input *i, pa_usec_t *sink_latency) {
     pa_usec_t r[2] = { 0, 0 };
 
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_GET_LATENCY, r, 0, NULL) == 0);
@@ -569,6 +579,7 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
     size_t ilength;
 
     pa_sink_input_assert_ref(i);
+    pa_sink_input_assert_io_context(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->thread_info.state));
     pa_assert(pa_frame_aligned(slength, &i->sink->sample_spec));
     pa_assert(chunk);
@@ -706,8 +717,9 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
 
 /* Called from thread context */
 void pa_sink_input_drop(pa_sink_input *i, size_t nbytes /* in sink sample spec */) {
-    pa_sink_input_assert_ref(i);
 
+    pa_sink_input_assert_ref(i);
+    pa_sink_input_assert_io_context(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->thread_info.state));
     pa_assert(pa_frame_aligned(nbytes, &i->sink->sample_spec));
     pa_assert(nbytes > 0);
@@ -721,8 +733,9 @@ void pa_sink_input_drop(pa_sink_input *i, size_t nbytes /* in sink sample spec *
 void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sample spec */) {
     size_t lbq;
     pa_bool_t called = FALSE;
-    pa_sink_input_assert_ref(i);
 
+    pa_sink_input_assert_ref(i);
+    pa_sink_input_assert_io_context(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->thread_info.state));
     pa_assert(pa_frame_aligned(nbytes, &i->sink->sample_spec));
 
@@ -792,6 +805,7 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
 /* Called from thread context */
 void pa_sink_input_update_max_rewind(pa_sink_input *i, size_t nbytes  /* in the sink's sample spec */) {
     pa_sink_input_assert_ref(i);
+    pa_sink_input_assert_io_context(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->thread_info.state));
     pa_assert(pa_frame_aligned(nbytes, &i->sink->sample_spec));
 
@@ -804,6 +818,7 @@ void pa_sink_input_update_max_rewind(pa_sink_input *i, size_t nbytes  /* in the 
 /* Called from thread context */
 void pa_sink_input_update_max_request(pa_sink_input *i, size_t nbytes  /* in the sink's sample spec */) {
     pa_sink_input_assert_ref(i);
+    pa_sink_input_assert_io_context(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->thread_info.state));
     pa_assert(pa_frame_aligned(nbytes, &i->sink->sample_spec));
 
@@ -814,6 +829,7 @@ void pa_sink_input_update_max_request(pa_sink_input *i, size_t nbytes  /* in the
 /* Called from thread context */
 pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa_usec_t usec) {
     pa_sink_input_assert_ref(i);
+    pa_sink_input_assert_io_context(i);
 
     if (!(i->sink->flags & PA_SINK_DYNAMIC_LATENCY))
         usec = i->sink->fixed_latency;
@@ -830,6 +846,7 @@ pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa
 /* Called from main context */
 pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec) {
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
 
     if (PA_SINK_INPUT_IS_LINKED(i->state) && i->sink) {
         pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_REQUESTED_LATENCY, &usec, 0, NULL) == 0);
@@ -858,6 +875,7 @@ pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec) 
 /* Called from main context */
 pa_usec_t pa_sink_input_get_requested_latency(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
 
     if (PA_SINK_INPUT_IS_LINKED(i->state) && i->sink) {
         pa_usec_t usec = 0;
@@ -876,6 +894,7 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_boo
     pa_cvolume v;
 
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_assert(volume);
     pa_assert(pa_cvolume_valid(volume));
@@ -922,6 +941,7 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_boo
 /* Called from main context */
 pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i, pa_cvolume *volume, pa_bool_t absolute) {
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
     if ((i->sink->flags & PA_SINK_FLAT_VOLUME) && !absolute) {
@@ -939,6 +959,7 @@ pa_cvolume *pa_sink_input_get_relative_volume(pa_sink_input *i, pa_cvolume *v) {
     unsigned c;
 
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
     pa_assert(v);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
@@ -959,6 +980,7 @@ void pa_sink_input_set_relative_volume(pa_sink_input *i, const pa_cvolume *v) {
     pa_cvolume _v;
 
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_assert(!v || pa_cvolume_compatible(v, &i->sample_spec));
 
@@ -985,8 +1007,8 @@ void pa_sink_input_set_relative_volume(pa_sink_input *i, const pa_cvolume *v) {
 
 /* Called from main context */
 void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute, pa_bool_t save) {
-    pa_assert(i);
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
     if (!i->muted == !mute)
@@ -1002,6 +1024,7 @@ void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute, pa_bool_t save) {
 /* Called from main context */
 pa_bool_t pa_sink_input_get_mute(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
     return i->muted;
@@ -1010,6 +1033,7 @@ pa_bool_t pa_sink_input_get_mute(pa_sink_input *i) {
 /* Called from main thread */
 void pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode, pa_proplist *p) {
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
 
     if (p)
         pa_proplist_update(i->proplist, mode, p);
@@ -1023,6 +1047,7 @@ void pa_sink_input_update_proplist(pa_sink_input *i, pa_update_mode_t mode, pa_p
 /* Called from main context */
 void pa_sink_input_cork(pa_sink_input *i, pa_bool_t b) {
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
     sink_input_set_state(i, b ? PA_SINK_INPUT_CORKED : PA_SINK_INPUT_RUNNING);
@@ -1031,6 +1056,7 @@ void pa_sink_input_cork(pa_sink_input *i, pa_bool_t b) {
 /* Called from main context */
 int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate) {
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_return_val_if_fail(i->thread_info.resampler, -PA_ERR_BADSTATE);
 
@@ -1049,13 +1075,14 @@ int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate) {
 void pa_sink_input_set_name(pa_sink_input *i, const char *name) {
     const char *old;
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
 
     if (!name && !pa_proplist_contains(i->proplist, PA_PROP_MEDIA_NAME))
         return;
 
     old = pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME);
 
-    if (old && name && !strcmp(old, name))
+    if (old && name && pa_streq(old, name))
         return;
 
     if (name)
@@ -1072,6 +1099,7 @@ void pa_sink_input_set_name(pa_sink_input *i, const char *name) {
 /* Called from main context */
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
 
     return i->actual_resample_method;
 }
@@ -1079,6 +1107,7 @@ pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i) {
 /* Called from main context */
 pa_bool_t pa_sink_input_may_move(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
 
     if (i->flags & PA_SINK_INPUT_DONT_MOVE)
@@ -1095,6 +1124,7 @@ pa_bool_t pa_sink_input_may_move(pa_sink_input *i) {
 /* Called from main context */
 pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_sink_assert_ref(dest);
 
@@ -1123,6 +1153,7 @@ int pa_sink_input_start_move(pa_sink_input *i) {
     int r;
 
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_assert(i->sink);
 
@@ -1177,6 +1208,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     pa_resampler *new_resampler;
 
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_assert(!i->sink);
     pa_sink_assert_ref(dest);
@@ -1271,6 +1303,7 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     int r;
 
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_assert(i->sink);
     pa_sink_assert_ref(dest);
@@ -1301,7 +1334,9 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
 /* Called from IO thread context */
 void pa_sink_input_set_state_within_thread(pa_sink_input *i, pa_sink_input_state_t state) {
     pa_bool_t corking, uncorking;
+
     pa_sink_input_assert_ref(i);
+    pa_sink_input_assert_io_context(i);
 
     if (state == i->thread_info.state)
         return;
@@ -1411,6 +1446,7 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t
 /* Called from main thread */
 pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
 
     if (i->state == PA_SINK_INPUT_RUNNING || i->state == PA_SINK_INPUT_DRAINED)
         return pa_atomic_load(&i->thread_info.drained) ? PA_SINK_INPUT_DRAINED : PA_SINK_INPUT_RUNNING;
@@ -1421,6 +1457,7 @@ pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i) {
 /* Called from IO context */
 pa_bool_t pa_sink_input_safe_to_remove(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
+    pa_sink_input_assert_io_context(i);
 
     if (PA_SINK_INPUT_IS_LINKED(i->thread_info.state))
         return pa_memblockq_is_empty(i->thread_info.render_memblockq);
@@ -1445,6 +1482,7 @@ void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sam
      * rewound. */
 
     pa_sink_input_assert_ref(i);
+    pa_sink_input_assert_io_context(i);
 
     nbytes = PA_MAX(i->thread_info.rewrite_nbytes, nbytes);
 
@@ -1511,7 +1549,10 @@ void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sam
 /* Called from main context */
 pa_memchunk* pa_sink_input_get_silence(pa_sink_input *i, pa_memchunk *ret) {
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
     pa_assert(ret);
+
+    /* FIXME: Shouldn't access resampler object from main context! */
 
     pa_silence_memchunk_get(
                 &i->core->silence_cache,
@@ -1529,6 +1570,7 @@ void pa_sink_input_send_event(pa_sink_input *i, const char *event, pa_proplist *
     pa_sink_input_send_event_hook_data hook_data;
 
     pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
     pa_assert(event);
 
     if (!i->send_event)
