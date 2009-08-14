@@ -1,7 +1,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2008 Lennart Poettering
+  Copyright 2004-2009 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -48,8 +48,8 @@ PA_MODULE_USAGE(
         "master=<name of sink to remap> "
         "master_channel_map=<channel map> "
         "format=<sample format> "
-        "channels=<number of channels> "
         "rate=<sample rate> "
+        "channels=<number of channels> "
         "channel_map=<channel map> "
         "remix=<remix channels?>");
 
