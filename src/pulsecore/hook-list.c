@@ -97,7 +97,7 @@ pa_hook_result_t pa_hook_fire(pa_hook *hook, void *data) {
 
     hook->n_firing ++;
 
-    for (slot = hook->slots; slot; slot = slot->next) {
+    PA_LLIST_FOREACH(slot, hook->slots) {
         if (slot->dead)
             continue;
 
