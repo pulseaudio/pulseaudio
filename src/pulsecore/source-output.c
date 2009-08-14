@@ -167,7 +167,7 @@ int pa_source_output_new(
     if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_FIXATE], data)) < 0)
         return r;
 
-    if ((flags & PA_SOURCE_OUTPUT_FAIL_ON_SUSPEND) &&
+    if ((flags & PA_SOURCE_OUTPUT_NO_CREATE_ON_SUSPEND) &&
         pa_source_get_state(data->source) == PA_SOURCE_SUSPENDED) {
         pa_log("Failed to create source output: source is suspended.");
         return -PA_ERR_BADSTATE;

@@ -398,9 +398,9 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
 
         /* We're suspending or resuming, tell everyone about it */
 
-        for (i = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); i; i = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx)))
+        PA_IDXSET_FOREACH(i, s->inputs, idx)
             if (s->state == PA_SINK_SUSPENDED &&
-                (i->flags & PA_SINK_INPUT_FAIL_ON_SUSPEND))
+                (i->flags & PA_SINK_INPUT_KILL_ON_SUSPEND))
                 pa_sink_input_kill(i);
             else if (i->suspend)
                 i->suspend(i, state == PA_SINK_SUSPENDED);

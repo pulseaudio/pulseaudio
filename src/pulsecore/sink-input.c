@@ -221,7 +221,7 @@ int pa_sink_input_new(
     if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], data)) < 0)
         return r;
 
-    if ((flags & PA_SINK_INPUT_FAIL_ON_SUSPEND) &&
+    if ((flags & PA_SINK_INPUT_NO_CREATE_ON_SUSPEND) &&
         pa_sink_get_state(data->sink) == PA_SINK_SUSPENDED) {
         pa_log_warn("Failed to create sink input: sink is suspended.");
         return -PA_ERR_BADSTATE;

@@ -336,14 +336,13 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
 
         /* We're suspending or resuming, tell everyone about it */
 
-        for (o = PA_SOURCE_OUTPUT(pa_idxset_first(s->outputs, &idx)); o; o = PA_SOURCE_OUTPUT(pa_idxset_next(s->outputs, &idx)))
+        PA_IDXSET_FOREACH(o, s->outputs, idx)
             if (s->state == PA_SOURCE_SUSPENDED &&
-                (o->flags & PA_SOURCE_OUTPUT_FAIL_ON_SUSPEND))
+                (o->flags & PA_SOURCE_OUTPUT_KILL_ON_SUSPEND))
                 pa_source_output_kill(o);
             else if (o->suspend)
                 o->suspend(o, state == PA_SOURCE_SUSPENDED);
     }
-
 
     return 0;
 }

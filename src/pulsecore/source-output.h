@@ -55,7 +55,8 @@ typedef enum pa_source_output_flags {
     PA_SOURCE_OUTPUT_FIX_RATE = 64,
     PA_SOURCE_OUTPUT_FIX_CHANNELS = 128,
     PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND = 256,
-    PA_SOURCE_OUTPUT_FAIL_ON_SUSPEND = 512
+    PA_SOURCE_OUTPUT_NO_CREATE_ON_SUSPEND = 512,
+    PA_SOURCE_OUTPUT_KILL_ON_SUSPEND = 1024
 } pa_source_output_flags_t;
 
 struct pa_source_output {
