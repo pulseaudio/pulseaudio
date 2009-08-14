@@ -1131,6 +1131,12 @@ static void playback_stream_request_bytes(playback_stream *s) {
 
     m = pa_memblockq_pop_missing(s->memblockq);
 
+    /* pa_log("request_bytes(%lu) (tlength=%lu minreq=%lu length=%lu)", */
+    /*        (unsigned long) m, */
+    /*        pa_memblockq_get_tlength(s->memblockq), */
+    /*        pa_memblockq_get_minreq(s->memblockq), */
+    /*        pa_memblockq_get_length(s->memblockq)); */
+
     if (m <= 0)
         return;
 
@@ -3381,13 +3387,13 @@ static void command_set_volume(
     client_name = pa_strnull(pa_proplist_gets(c->client->proplist, PA_PROP_APPLICATION_PROCESS_BINARY));
 
     if (sink) {
-        pa_log("Client %s changes volume of sink %s.", client_name, sink->name);
+        pa_log_debug("Client %s changes volume of sink %s.", client_name, sink->name);
         pa_sink_set_volume(sink, &volume, TRUE, TRUE, TRUE, TRUE);
     } else if (source) {
-        pa_log("Client %s changes volume of sink %s.", client_name, source->name);
+        pa_log_debug("Client %s changes volume of sink %s.", client_name, source->name);
         pa_source_set_volume(source, &volume, TRUE);
     } else if (si) {
-        pa_log("Client %s changes volume of sink %s.",
+        pa_log_debug("Client %s changes volume of sink %s.",
                      client_name,
                      pa_strnull(pa_proplist_gets(si->proplist, PA_PROP_MEDIA_NAME)));
         pa_sink_input_set_volume(si, &volume, TRUE, TRUE);
