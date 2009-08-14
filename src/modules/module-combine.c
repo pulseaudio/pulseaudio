@@ -1152,6 +1152,55 @@ int pa__init(pa_module*m) {
 
     ss = m->core->default_sample_spec;
     map = m->core->default_channel_map;
+
+    /* Check the specified slave sinks for sample_spec and channel_map to use for the combined sink */
+    if (!u->automatic) {
+        const char*split_state = NULL;
+        char *n = NULL;
+        pa_sample_spec slaves_spec;
+        pa_channel_map slaves_map;
+        pa_bool_t is_first_slave = TRUE;
+
+        while ((n = pa_split(slaves, ",", &split_state))) {
+            pa_sink *slave_sink;
+
+            if (!(slave_sink = pa_namereg_get(m->core, n, PA_NAMEREG_SINK))) {
+                pa_log("Invalid slave sink '%s'", n);
+                pa_xfree(n);
+                goto fail;
+            }
+
+            pa_xfree(n);
+
+            if (is_first_slave) {
+                slaves_spec = slave_sink->sample_spec;
+                slaves_map = slave_sink->channel_map;
+                is_first_slave = FALSE;
+            } else {
+                if (slaves_spec.format != slave_sink->sample_spec.format)
+                    slaves_spec.format = PA_SAMPLE_INVALID;
+
+                if (slaves_spec.rate < slave_sink->sample_spec.rate)
+                    slaves_spec.rate = slave_sink->sample_spec.rate;
+
+                if (!pa_channel_map_equal(&slaves_map, &slave_sink->channel_map))
+                    slaves_spec.channels = 0;
+            }
+        }
+
+        if (!is_first_slave) {
+            if (slaves_spec.format != PA_SAMPLE_INVALID)
+                ss.format = slaves_spec.format;
+
+            ss.rate = slaves_spec.rate;
+
+            if (slaves_spec.channels > 0) {
+                map = slaves_map;
+                ss.channels = slaves_map.channels;
+            }
+        }
+    }
+
     if ((pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_DEFAULT) < 0)) {
         pa_log("Invalid sample specification.");
         goto fail;
