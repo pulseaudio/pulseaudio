@@ -1770,10 +1770,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 size_t sink_nbytes, total_nbytes;
 
                 /* Get the latency of the sink */
-                if (!(s->flags & PA_SINK_LATENCY) ||
-                    PA_MSGOBJECT(s)->process_msg(PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
-                    usec = 0;
-
+                usec = pa_sink_get_latency_within_thread(s);
                 sink_nbytes = pa_usec_to_bytes(usec, &s->sample_spec);
                 total_nbytes = sink_nbytes + pa_memblockq_get_length(i->thread_info.render_memblockq);
 
@@ -1832,10 +1829,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 size_t nbytes;
 
                 /* Get the latency of the sink */
-                if (!(s->flags & PA_SINK_LATENCY) ||
-                    PA_MSGOBJECT(s)->process_msg(PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
-                    usec = 0;
-
+                usec = pa_sink_get_latency_within_thread(s);
                 nbytes = pa_usec_to_bytes(usec, &s->sample_spec);
 
                 if (nbytes > 0)
