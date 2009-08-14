@@ -205,9 +205,12 @@ pa_volume_t pa_sw_volume_from_linear(double v) {
      *
      * http://www.robotplanet.dk/audio/audio_gui_design/
      * http://lists.linuxaudio.org/pipermail/linux-audio-dev/2009-May/thread.html#23151
+     *
+     * We make sure that the conversion to linear and back yields the
+     * same volume value! That's why we need the lround() below!
      */
 
-    return (pa_volume_t) (cbrt(v) * PA_VOLUME_NORM);
+    return (pa_volume_t) lround(cbrt(v) * PA_VOLUME_NORM);
 }
 
 double pa_sw_volume_to_linear(pa_volume_t v) {

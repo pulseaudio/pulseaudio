@@ -1,7 +1,32 @@
+/***
+  This file is part of PulseAudio.
+
+  PulseAudio is free software; you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as published
+  by the Free Software Foundation; either version 2.1 of the License,
+  or (at your option) any later version.
+
+  PulseAudio is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public License
+  along with PulseAudio; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  USA.
+***/
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 
 #include <pulse/volume.h>
 #include <pulse/gccmacro.h>
+
+#include <pulsecore/macro.h>
 
 int main(int argc, char *argv[]) {
     pa_volume_t v;
@@ -59,6 +84,17 @@ int main(int argc, char *argv[]) {
                 k = pa_cvolume_get_balance(&r, &map);
                 printf("After: volume: [%s]; balance: %2.1f (intended: %2.1f) %s\n", pa_cvolume_snprint(s, sizeof(s), &r), k, b, k < b-.05 || k > b+.5 ? "MISMATCH" : "");
             }
+
+    for (v = PA_VOLUME_MUTED; v <= PA_VOLUME_NORM*2; v += 1) {
+
+        double l = pa_sw_volume_to_linear(v);
+        pa_volume_t k = pa_sw_volume_from_linear(l);
+        double db = pa_sw_volume_to_dB(v);
+        pa_volume_t r = pa_sw_volume_from_dB(db);
+
+        pa_assert(k == v);
+        pa_assert(r == v);
+    }
 
     return 0;
 }
