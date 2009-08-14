@@ -125,8 +125,6 @@ struct userdata {
 
     pa_resample_method_t resample_method;
 
-    struct timeval adjust_timestamp;
-
     pa_usec_t block_usec;
 
     pa_idxset* outputs; /* managed in main context */
@@ -833,14 +831,11 @@ static struct output *output_new(struct userdata *u, pa_sink *sink) {
     pa_assert(sink);
     pa_assert(u->sink);
 
-    o = pa_xnew(struct output, 1);
+    o = pa_xnew0(struct output, 1);
     o->userdata = u;
     o->inq = pa_asyncmsgq_new(0);
     o->outq = pa_asyncmsgq_new(0);
-    o->inq_rtpoll_item_write = o->inq_rtpoll_item_read = NULL;
-    o->outq_rtpoll_item_write = o->outq_rtpoll_item_read = NULL;
     o->sink = sink;
-    o->sink_input = NULL;
     o->memblockq = pa_memblockq_new(
             0,
             MEMBLOCKQ_MAXLENGTH,
@@ -1029,18 +1024,14 @@ int pa__init(pa_module*m) {
         }
     }
 
-    m->userdata = u = pa_xnew(struct userdata, 1);
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
-    u->sink = NULL;
-    u->time_event = NULL;
     u->adjust_time = DEFAULT_ADJUST_TIME;
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
-    u->thread = NULL;
     u->resample_method = resample_method;
     u->outputs = pa_idxset_new(NULL, NULL);
-    memset(&u->adjust_timestamp, 0, sizeof(u->adjust_timestamp));
     u->sink_put_slot = u->sink_unlink_slot = u->sink_state_changed_slot = NULL;
     PA_LLIST_HEAD_INIT(struct output, u->thread_info.active_outputs);
     pa_atomic_store(&u->thread_info.running, FALSE);
@@ -1094,7 +1085,6 @@ int pa__init(pa_module*m) {
         u->auto_desc = TRUE;
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Simultaneous Output");
     }
-
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY);
     pa_sink_new_data_done(&data);
