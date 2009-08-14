@@ -455,12 +455,12 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     pa_assert(!o->inq_rtpoll_item_read && !o->outq_rtpoll_item_write);
 
     o->inq_rtpoll_item_read = pa_rtpoll_item_new_asyncmsgq_read(
-            i->sink->rtpoll,
+            i->sink->thread_info.rtpoll,
             PA_RTPOLL_LATE,  /* This one is not that important, since we check for data in _peek() anyway. */
             o->inq);
 
     o->outq_rtpoll_item_write = pa_rtpoll_item_new_asyncmsgq_write(
-            i->sink->rtpoll,
+            i->sink->thread_info.rtpoll,
             PA_RTPOLL_EARLY,
             o->outq);
 }

@@ -262,7 +262,6 @@ pa_sink* pa_sink_new(
     s->userdata = NULL;
 
     s->asyncmsgq = NULL;
-    s->rtpoll = NULL;
 
     /* As a minor optimization we just steal the list instead of
      * copying it here */
@@ -295,6 +294,7 @@ pa_sink* pa_sink_new(
             &s->sample_spec,
             0);
 
+    s->thread_info.rtpoll = NULL;
     s->thread_info.inputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     s->thread_info.soft_volume =  s->soft_volume;
     s->thread_info.soft_muted = s->muted;
@@ -421,7 +421,6 @@ void pa_sink_put(pa_sink* s) {
 
     /* The following fields must be initialized properly when calling _put() */
     pa_assert(s->asyncmsgq);
-    pa_assert(s->rtpoll);
     pa_assert(s->thread_info.min_latency <= s->thread_info.max_latency);
 
     /* Generally, flags should be initialized via pa_sink_new(). As a
@@ -563,12 +562,12 @@ void pa_sink_set_asyncmsgq(pa_sink *s, pa_asyncmsgq *q) {
         pa_source_set_asyncmsgq(s->monitor_source, q);
 }
 
-/* Called from main context */
+/* Called from IO context, or before _put() from main context */
 void pa_sink_set_rtpoll(pa_sink *s, pa_rtpoll *p) {
     pa_sink_assert_ref(s);
-    pa_assert_ctl_context();
+    pa_sink_assert_io_context(s);
 
-    s->rtpoll = p;
+    s->thread_info.rtpoll = p;
 
     if (s->monitor_source)
         pa_source_set_rtpoll(s->monitor_source, p);
@@ -1184,7 +1183,7 @@ pa_usec_t pa_sink_get_latency_within_thread(pa_sink *s) {
 
     o = PA_MSGOBJECT(s);
 
-    /* We probably should make this a proper vtable callback instead of going through process_msg() */
+    /* FIXME: We probably should make this a proper vtable callback instead of going through process_msg() */
 
     if (o->process_msg(o, PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
         return -1;

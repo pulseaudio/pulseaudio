@@ -102,7 +102,6 @@ struct pa_sink {
     pa_bool_t save_muted:1;
 
     pa_asyncmsgq *asyncmsgq;
-    pa_rtpoll *rtpoll;
 
     pa_memchunk silence;
 
@@ -155,6 +154,8 @@ struct pa_sink {
     struct {
         pa_sink_state_t state;
         pa_hashmap *inputs;
+
+        pa_rtpoll *rtpoll;
 
         pa_cvolume soft_volume;
         pa_bool_t soft_muted:1;

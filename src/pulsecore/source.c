@@ -232,7 +232,6 @@ pa_source* pa_source_new(
     s->userdata = NULL;
 
     s->asyncmsgq = NULL;
-    s->rtpoll = NULL;
 
     /* As a minor optimization we just steal the list instead of
      * copying it here */
@@ -265,6 +264,7 @@ pa_source* pa_source_new(
             &s->sample_spec,
             0);
 
+    s->thread_info.rtpoll = NULL;
     s->thread_info.outputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     s->thread_info.soft_volume = s->soft_volume;
     s->thread_info.soft_muted = s->muted;
@@ -356,7 +356,6 @@ void pa_source_put(pa_source *s) {
 
     /* The following fields must be initialized properly when calling _put() */
     pa_assert(s->asyncmsgq);
-    pa_assert(s->rtpoll);
     pa_assert(s->thread_info.min_latency <= s->thread_info.max_latency);
 
     /* Generally, flags should be initialized via pa_source_new(). As
@@ -465,18 +464,18 @@ static void source_free(pa_object *o) {
 
 /* Called from main context */
 void pa_source_set_asyncmsgq(pa_source *s, pa_asyncmsgq *q) {
-    pa_assert_ctl_context();
     pa_source_assert_ref(s);
+    pa_assert_ctl_context();
 
     s->asyncmsgq = q;
 }
 
 /* Called from main context */
 void pa_source_set_rtpoll(pa_source *s, pa_rtpoll *p) {
-    pa_assert_ctl_context();
     pa_source_assert_ref(s);
+    pa_source_assert_io_context(s);
 
-    s->rtpoll = p;
+    s->thread_info.rtpoll = p;
 }
 
 /* Called from main context */

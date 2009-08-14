@@ -90,7 +90,6 @@ struct pa_source {
     pa_bool_t save_muted:1;
 
     pa_asyncmsgq *asyncmsgq;
-    pa_rtpoll *rtpoll;
 
     pa_memchunk silence;
 
@@ -139,6 +138,8 @@ struct pa_source {
     struct {
         pa_source_state_t state;
         pa_hashmap *outputs;
+
+        pa_rtpoll *rtpoll;
 
         pa_cvolume soft_volume;
         pa_bool_t soft_muted:1;

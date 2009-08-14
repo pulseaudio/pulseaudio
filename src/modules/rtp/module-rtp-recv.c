@@ -361,7 +361,7 @@ static void sink_input_attach(pa_sink_input *i) {
     pa_assert_se(s = i->userdata);
 
     pa_assert(!s->rtpoll_item);
-    s->rtpoll_item = pa_rtpoll_item_new(i->sink->rtpoll, PA_RTPOLL_LATE, 1);
+    s->rtpoll_item = pa_rtpoll_item_new(i->sink->thread_info.rtpoll, PA_RTPOLL_LATE, 1);
 
     p = pa_rtpoll_item_get_pollfd(s->rtpoll_item, NULL);
     p->fd = s->rtp_context.fd;
