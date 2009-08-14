@@ -196,7 +196,7 @@ pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
     " movq (%1, %3, 4), %%mm0       \n\t" /* |  v1h  |  v1l  |  v0h  |  v0l  | */
     " movd (%0), %%mm1              \n\t" /*              .. |   p1  |  p0   | */ 
     VOLUME_32x16 (%%mm1, %%mm0)
-    " movd %%mm0, (%0)              \n\t" /* | p1*v1 | p0*v0 | */
+    " movd %%mm0, (%0)              \n\t" /*              .. | p1*v1 | p0*v0 | */
     " add $4, %0                    \n\t"
     MOD_ADD ($2, %5)
 
@@ -212,8 +212,8 @@ pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
     " movd 4(%0), %%mm3             \n\t" /*              .. |   p3  |  p2   | */
     VOLUME_32x16 (%%mm1, %%mm0)
     VOLUME_32x16 (%%mm3, %%mm2)
-    " movd %%mm0, (%0)              \n\t" /* | p1*v1 | p0*v0 | */
-    " movd %%mm2, 4(%0)             \n\t" /* | p3*v3 | p2*v2 | */
+    " movd %%mm0, (%0)              \n\t" /*              .. | p1*v1 | p0*v0 | */
+    " movd %%mm2, 4(%0)             \n\t" /*              .. | p3*v3 | p2*v2 | */
     " add $8, %0                    \n\t"
     MOD_ADD ($4, %5)
     " dec %2                        \n\t"
@@ -270,7 +270,7 @@ pa_volume_s16re_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
     SWAP_16 (%%mm1)
     VOLUME_32x16 (%%mm1, %%mm0)
     SWAP_16 (%%mm0)
-    " movd %%mm0, (%0)              \n\t" /* | p1*v1 | p0*v0 | */
+    " movd %%mm0, (%0)              \n\t" /*              .. | p1*v1 | p0*v0 | */
     " add $4, %0                    \n\t"
     MOD_ADD ($2, %5)
 
@@ -288,8 +288,8 @@ pa_volume_s16re_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
     VOLUME_32x16 (%%mm1, %%mm0)
     VOLUME_32x16 (%%mm3, %%mm2)
     SWAP_16_2 (%%mm0, %%mm2)
-    " movd %%mm0, (%0)              \n\t" /* | p1*v1 | p0*v0 | */
-    " movd %%mm2, 4(%0)             \n\t" /* | p3*v3 | p2*v2 | */
+    " movd %%mm0, (%0)              \n\t" /*              .. | p1*v1 | p0*v0 | */
+    " movd %%mm2, 4(%0)             \n\t" /*              .. | p3*v3 | p2*v2 | */
     " add $8, %0                    \n\t"
     MOD_ADD ($4, %5)
     " dec %2                        \n\t"
