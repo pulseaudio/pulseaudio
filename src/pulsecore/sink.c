@@ -1917,6 +1917,9 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             pa_usec_t *usec = userdata;
             *usec = pa_sink_get_requested_latency_within_thread(s);
 
+            /* Yes, that's right, the IO thread will see -1 when no
+             * explicit requested latency is configured, the main
+             * thread will see max_latency */
             if (*usec == (pa_usec_t) -1)
                 *usec = s->thread_info.max_latency;
 
