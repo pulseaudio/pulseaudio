@@ -109,6 +109,10 @@ struct pa_source_output {
      * from IO context. */
     void (*update_source_latency_range) (pa_source_output *o); /* may be NULL */
 
+    /* Called whenver the fixed latency of the source changes, if there
+     * is one. Called from IO context. */
+    void (*update_source_fixed_latency) (pa_source_output *i); /* may be NULL */
+
     /* If non-NULL this function is called when the output is first
      * connected to a source. Called from IO thread context */
     void (*attach) (pa_source_output *o);           /* may be NULL */

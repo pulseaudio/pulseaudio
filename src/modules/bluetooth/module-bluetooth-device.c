@@ -881,7 +881,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 *((pa_usec_t*) data) = wi > ri ? wi - ri : 0;
             }
 
-            *((pa_usec_t*) data) += u->sink->fixed_latency;
+            *((pa_usec_t*) data) += u->sink->thread_info.fixed_latency;
             return 0;
         }
     }
@@ -943,7 +943,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             wi = pa_smoother_get(u->read_smoother, pa_rtclock_now());
             ri = pa_bytes_to_usec(u->read_index, &u->sample_spec);
 
-            *((pa_usec_t*) data) = (wi > ri ? wi - ri : 0) + u->source->fixed_latency;
+            *((pa_usec_t*) data) = (wi > ri ? wi - ri : 0) + u->source->thread_info.fixed_latency;
             return 0;
         }
 

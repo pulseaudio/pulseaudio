@@ -138,6 +138,10 @@ struct pa_sink_input {
      * from IO context. */
     void (*update_sink_latency_range) (pa_sink_input *i); /* may be NULL */
 
+    /* Called whenver the fixed latency of the sink changes, if there
+     * is one. Called from IO context. */
+    void (*update_sink_fixed_latency) (pa_sink_input *i); /* may be NULL */
+
     /* If non-NULL this function is called when the input is first
      * connected to a sink or when the rtpoll/asyncmsgq fields
      * change. You usually don't need to implement this function

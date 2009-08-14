@@ -114,6 +114,7 @@ static void reset_callbacks(pa_sink_input *i) {
     i->update_max_request = NULL;
     i->update_sink_requested_latency = NULL;
     i->update_sink_latency_range = NULL;
+    i->update_sink_fixed_latency = NULL;
     i->attach = NULL;
     i->detach = NULL;
     i->suspend = NULL;
@@ -851,13 +852,13 @@ pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa
     pa_sink_input_assert_io_context(i);
 
     if (!(i->sink->flags & PA_SINK_DYNAMIC_LATENCY))
-        usec = i->sink->fixed_latency;
+        usec = i->sink->thread_info.fixed_latency;
 
     if (usec != (pa_usec_t) -1)
         usec = PA_CLAMP(usec, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
 
     i->thread_info.requested_sink_latency = usec;
-    pa_sink_invalidate_requested_latency(i->sink);
+    pa_sink_invalidate_requested_latency(i->sink, TRUE);
 
     return usec;
 }
@@ -877,7 +878,7 @@ pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec) 
 
     if (i->sink) {
         if (!(i->sink->flags & PA_SINK_DYNAMIC_LATENCY))
-            usec = i->sink->fixed_latency;
+            usec = pa_sink_get_fixed_latency(i->sink);
 
         if (usec != (pa_usec_t) -1) {
             pa_usec_t min_latency, max_latency;

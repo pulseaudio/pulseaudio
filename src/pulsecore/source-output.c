@@ -84,6 +84,7 @@ static void reset_callbacks(pa_source_output *o) {
     o->update_max_rewind = NULL;
     o->update_source_requested_latency = NULL;
     o->update_source_latency_range = NULL;
+    o->update_source_fixed_latency = NULL;
     o->attach = NULL;
     o->detach = NULL;
     o->suspend = NULL;
@@ -561,13 +562,13 @@ pa_usec_t pa_source_output_set_requested_latency_within_thread(pa_source_output 
     pa_source_output_assert_io_context(o);
 
     if (!(o->source->flags & PA_SOURCE_DYNAMIC_LATENCY))
-        usec = o->source->fixed_latency;
+        usec = o->source->thread_info.fixed_latency;
 
     if (usec != (pa_usec_t) -1)
         usec = PA_CLAMP(usec, o->source->thread_info.min_latency, o->source->thread_info.max_latency);
 
     o->thread_info.requested_source_latency = usec;
-    pa_source_invalidate_requested_latency(o->source);
+    pa_source_invalidate_requested_latency(o->source, TRUE);
 
     return usec;
 }
@@ -587,7 +588,7 @@ pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t 
 
     if (o->source) {
         if (!(o->source->flags & PA_SOURCE_DYNAMIC_LATENCY))
-            usec = o->source->fixed_latency;
+            usec = pa_source_get_fixed_latency(o->source);
 
         if (usec != (pa_usec_t) -1) {
             pa_usec_t min_latency, max_latency;

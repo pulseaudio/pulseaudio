@@ -226,8 +226,6 @@ pa_source* pa_source_new(
     s->muted = data->muted;
     s->refresh_volume = s->refresh_muted = FALSE;
 
-    s->fixed_latency = flags & PA_SOURCE_DYNAMIC_LATENCY ? 0 : DEFAULT_FIXED_LATENCY;
-
     reset_callbacks(s);
     s->userdata = NULL;
 
@@ -274,6 +272,7 @@ pa_source* pa_source_new(
     s->thread_info.requested_latency = 0;
     s->thread_info.min_latency = ABSOLUTE_MIN_LATENCY;
     s->thread_info.max_latency = ABSOLUTE_MAX_LATENCY;
+    s->thread_info.fixed_latency = flags & PA_SOURCE_DYNAMIC_LATENCY ? 0 : DEFAULT_FIXED_LATENCY;
 
     pa_assert_se(pa_idxset_put(core->sources, s, &s->index) >= 0);
 
@@ -370,7 +369,7 @@ void pa_source_put(pa_source *s) {
 
     pa_assert((s->flags & PA_SOURCE_HW_VOLUME_CTRL) || (s->base_volume == PA_VOLUME_NORM && s->flags & PA_SOURCE_DECIBEL_VOLUME));
     pa_assert(!(s->flags & PA_SOURCE_DECIBEL_VOLUME) || s->n_volume_steps == PA_VOLUME_NORM+1);
-    pa_assert(!(s->flags & PA_SOURCE_DYNAMIC_LATENCY) == (s->fixed_latency != 0));
+    pa_assert(!(s->flags & PA_SOURCE_DYNAMIC_LATENCY) == (s->thread_info.fixed_latency != 0));
 
     pa_assert_se(source_set_state(s, PA_SOURCE_IDLE) == 0);
 
@@ -1037,7 +1036,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
             if (pa_hashmap_remove(s->thread_info.outputs, PA_UINT32_TO_PTR(o->index)))
                 pa_source_output_unref(o);
 
-            pa_source_invalidate_requested_latency(s);
+            pa_source_invalidate_requested_latency(s, TRUE);
 
             return 0;
         }
@@ -1116,6 +1115,16 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
             return 0;
         }
+
+        case PA_SOURCE_MESSAGE_GET_FIXED_LATENCY:
+
+            *((pa_usec_t*) userdata) = s->thread_info.fixed_latency;
+            return 0;
+
+        case PA_SOURCE_MESSAGE_SET_FIXED_LATENCY:
+
+            pa_source_set_fixed_latency_within_thread(s, (pa_usec_t) offset);
+            return 0;
 
         case PA_SOURCE_MESSAGE_GET_MAX_REWIND:
 
@@ -1223,13 +1232,12 @@ pa_usec_t pa_source_get_requested_latency_within_thread(pa_source *s) {
     pa_source_assert_io_context(s);
 
     if (!(s->flags & PA_SOURCE_DYNAMIC_LATENCY))
-        return PA_CLAMP(s->fixed_latency, s->thread_info.min_latency, s->thread_info.max_latency);
+        return PA_CLAMP(s->thread_info.fixed_latency, s->thread_info.min_latency, s->thread_info.max_latency);
 
     if (s->thread_info.requested_latency_valid)
         return s->thread_info.requested_latency;
 
-    while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
-
+    PA_HASHMAP_FOREACH(o, s->thread_info.outputs, state)
         if (o->thread_info.requested_source_latency != (pa_usec_t) -1 &&
             (result == (pa_usec_t) -1 || result > o->thread_info.requested_source_latency))
             result = o->thread_info.requested_source_latency;
@@ -1292,17 +1300,17 @@ void pa_source_set_max_rewind(pa_source *s, size_t max_rewind) {
 }
 
 /* Called from IO thread */
-void pa_source_invalidate_requested_latency(pa_source *s) {
+void pa_source_invalidate_requested_latency(pa_source *s, pa_bool_t dynamic) {
     pa_source_output *o;
     void *state = NULL;
 
     pa_source_assert_ref(s);
     pa_source_assert_io_context(s);
 
-    if (!(s->flags & PA_SOURCE_DYNAMIC_LATENCY))
+    if ((s->flags & PA_SOURCE_DYNAMIC_LATENCY))
+        s->thread_info.requested_latency_valid = FALSE;
+    else if (dynamic)
         return;
-
-    s->thread_info.requested_latency_valid = FALSE;
 
     if (PA_SOURCE_IS_LINKED(s->thread_info.state)) {
 
@@ -1315,7 +1323,7 @@ void pa_source_invalidate_requested_latency(pa_source *s) {
     }
 
     if (s->monitor_of)
-        pa_sink_invalidate_requested_latency(s->monitor_of);
+        pa_sink_invalidate_requested_latency(s->monitor_of, dynamic);
 }
 
 /* Called from main thread */
@@ -1375,8 +1383,6 @@ void pa_source_get_latency_range(pa_source *s, pa_usec_t *min_latency, pa_usec_t
 
 /* Called from IO thread, and from main thread before pa_source_put() is called */
 void pa_source_set_latency_range_within_thread(pa_source *s, pa_usec_t min_latency, pa_usec_t max_latency) {
-    void *state = NULL;
-
     pa_source_assert_ref(s);
     pa_source_assert_io_context(s);
 
@@ -1390,18 +1396,23 @@ void pa_source_set_latency_range_within_thread(pa_source *s, pa_usec_t min_laten
               (s->flags & PA_SOURCE_DYNAMIC_LATENCY) ||
               s->monitor_of);
 
+    if (s->thread_info.min_latency == min_latency &&
+        s->thread_info.max_latency == max_latency)
+        return;
+
     s->thread_info.min_latency = min_latency;
     s->thread_info.max_latency = max_latency;
 
     if (PA_SOURCE_IS_LINKED(s->thread_info.state)) {
         pa_source_output *o;
+        void *state = NULL;
 
-        while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
+        PA_HASHMAP_FOREACH(o, s->thread_info.outputs, state)
             if (o->update_source_latency_range)
                 o->update_source_latency_range(o);
     }
 
-    pa_source_invalidate_requested_latency(s);
+    pa_source_invalidate_requested_latency(s, FALSE);
 }
 
 /* Called from main thread, before the source is put */
@@ -1409,7 +1420,10 @@ void pa_source_set_fixed_latency(pa_source *s, pa_usec_t latency) {
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
 
-    pa_assert(pa_source_get_state(s) == PA_SOURCE_INIT);
+    if (s->flags & PA_SOURCE_DYNAMIC_LATENCY) {
+        pa_assert(latency == 0);
+        return;
+    }
 
     if (latency < ABSOLUTE_MIN_LATENCY)
         latency = ABSOLUTE_MIN_LATENCY;
@@ -1417,7 +1431,58 @@ void pa_source_set_fixed_latency(pa_source *s, pa_usec_t latency) {
     if (latency > ABSOLUTE_MAX_LATENCY)
         latency = ABSOLUTE_MAX_LATENCY;
 
-    s->fixed_latency = latency;
+    if (PA_SOURCE_IS_LINKED(s->state))
+        pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_FIXED_LATENCY, NULL, (int64_t) latency, NULL) == 0);
+    else
+        s->thread_info.fixed_latency = latency;
+}
+
+/* Called from main thread */
+pa_usec_t pa_source_get_fixed_latency(pa_source *s) {
+    pa_usec_t latency;
+
+    pa_source_assert_ref(s);
+    pa_assert_ctl_context();
+
+    if (s->flags & PA_SOURCE_DYNAMIC_LATENCY)
+        return 0;
+
+    if (PA_SOURCE_IS_LINKED(s->state))
+        pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_FIXED_LATENCY, &latency, 0, NULL) == 0);
+    else
+        latency = s->thread_info.fixed_latency;
+
+    return latency;
+}
+
+/* Called from IO thread */
+void pa_source_set_fixed_latency_within_thread(pa_source *s, pa_usec_t latency) {
+    pa_source_assert_ref(s);
+    pa_source_assert_io_context(s);
+
+    if (s->flags & PA_SOURCE_DYNAMIC_LATENCY) {
+        pa_assert(latency == 0);
+        return;
+    }
+
+    pa_assert(latency >= ABSOLUTE_MIN_LATENCY);
+    pa_assert(latency <= ABSOLUTE_MAX_LATENCY);
+
+    if (s->thread_info.fixed_latency == latency)
+        return;
+
+    s->thread_info.fixed_latency = latency;
+
+    if (PA_SOURCE_IS_LINKED(s->thread_info.state)) {
+        pa_source_output *o;
+        void *state = NULL;
+
+        PA_HASHMAP_FOREACH(o, s->thread_info.outputs, state)
+            if (o->update_source_fixed_latency)
+                o->update_source_fixed_latency(o);
+    }
+
+    pa_source_invalidate_requested_latency(s, FALSE);
 }
 
 /* Called from main thread */
