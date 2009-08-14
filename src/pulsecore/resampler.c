@@ -347,13 +347,17 @@ void pa_resampler_set_output_rate(pa_resampler *r, uint32_t rate) {
 size_t pa_resampler_request(pa_resampler *r, size_t out_length) {
     pa_assert(r);
 
-    return (((out_length / r->o_fz)*r->i_ss.rate)/r->o_ss.rate) * r->i_fz;
+    /* Let's round up here */
+
+    return (((((out_length + r->o_fz-1) / r->o_fz) * r->i_ss.rate) + r->o_ss.rate-1) / r->o_ss.rate) * r->i_fz;
 }
 
 size_t pa_resampler_result(pa_resampler *r, size_t in_length) {
     pa_assert(r);
 
-    return (((in_length / r->i_fz)*r->o_ss.rate)/r->i_ss.rate) * r->o_fz;
+    /* Let's round up here */
+
+    return (((((in_length + r->i_fz-1) / r->i_fz) * r->o_ss.rate) + r->i_ss.rate-1) / r->i_ss.rate) * r->o_fz;
 }
 
 size_t pa_resampler_max_block_size(pa_resampler *r) {
