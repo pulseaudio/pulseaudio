@@ -24,8 +24,7 @@
 #include <config.h>
 #endif
 
-#include <alloca.h>
-
+#include <pulse/timeval.h>
 #include <pulsecore/random.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/g711.h>
@@ -459,7 +458,7 @@ pa_volume_s24_32re_sse (uint32_t *samples, int32_t *volumes, unsigned channels, 
 }
 #endif
 
-#undef RUN_TEST
+#define RUN_TEST
 
 #ifdef RUN_TEST
 #define CHANNELS 2
@@ -474,31 +473,45 @@ static void run_test (void) {
   int32_t volumes[CHANNELS + PADDING];
   int i, j, padding;
   pa_do_volume_func_t func;
+  struct timeval start, stop;
 
-  func = pa_get_volume_func (PA_SAMPLE_S16RE);
+  func = pa_get_volume_func (PA_SAMPLE_S16NE);
 
-  printf ("checking SSE %d\n", sizeof (samples));
+  printf ("checking SSE %zd\n", sizeof (samples));
 
-  for (j = 0; j < TIMES; j++) {
-    pa_random (samples, sizeof (samples));
-    memcpy (samples_ref, samples, sizeof (samples));
-    memcpy (samples_orig, samples, sizeof (samples));
+  pa_random (samples, sizeof (samples));
+  memcpy (samples_ref, samples, sizeof (samples));
+  memcpy (samples_orig, samples, sizeof (samples));
 
-    for (i = 0; i < CHANNELS; i++)
-      volumes[i] = rand() >> 1;
-    for (padding = 0; padding < PADDING; padding++, i++)
-      volumes[i] = volumes[padding];
+  for (i = 0; i < CHANNELS; i++)
+    volumes[i] = rand() >> 1;
+  for (padding = 0; padding < PADDING; padding++, i++)
+    volumes[i] = volumes[padding];
 
-    pa_volume_s16re_sse (samples, volumes, CHANNELS, SAMPLES * sizeof (int16_t));
-    func (samples_ref, volumes, CHANNELS, SAMPLES * sizeof (int16_t));
-
-    for (i = 0; i < SAMPLES; i++) {
-      if (samples[i] != samples_ref[i]) {
-        printf ("%d: %04x != %04x (%04x * %04x)\n", i, samples[i], samples_ref[i], 
-  		      samples_orig[i], volumes[i % CHANNELS]);
-      }
+  func (samples_ref, volumes, CHANNELS, sizeof (samples));
+  pa_volume_s16ne_sse (samples, volumes, CHANNELS, sizeof (samples));
+  for (i = 0; i < SAMPLES; i++) {
+    if (samples[i] != samples_ref[i]) {
+      printf ("%d: %04x != %04x (%04x * %04x)\n", i, samples[i], samples_ref[i],
+              samples_orig[i], volumes[i % CHANNELS]);
     }
   }
+
+  pa_gettimeofday(&start);
+  for (j = 0; j < TIMES; j++) {
+    memcpy (samples, samples_orig, sizeof (samples));
+    pa_volume_s16ne_sse (samples, volumes, CHANNELS, sizeof (samples));
+  }
+  pa_gettimeofday(&stop);
+  pa_log_info("SSE: %llu usec.", (long long unsigned int)pa_timeval_diff (&stop, &start));
+
+  pa_gettimeofday(&start);
+  for (j = 0; j < TIMES; j++) {
+    memcpy (samples_ref, samples_orig, sizeof (samples));
+    func (samples_ref, volumes, CHANNELS, sizeof (samples));
+  }
+  pa_gettimeofday(&stop);
+  pa_log_info("ref: %llu usec.", (long long unsigned int)pa_timeval_diff (&stop, &start));
 }
 #endif
 
