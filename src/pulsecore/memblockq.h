@@ -141,6 +141,9 @@ size_t pa_memblockq_get_prebuf(pa_memblockq *bq);
 /* Returns the minimal request value */
 size_t pa_memblockq_get_minreq(pa_memblockq *bq);
 
+/* Returns the maximal rewind value */
+size_t pa_memblockq_get_maxrewind(pa_memblockq *bq);
+
 /* Return the base unit in bytes */
 size_t pa_memblockq_get_base(pa_memblockq *bq);
 
