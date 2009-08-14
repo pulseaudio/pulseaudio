@@ -762,6 +762,7 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
         return -1;
 
     switch (code) {
+
         case PLAYBACK_STREAM_MESSAGE_REQUEST_DATA: {
             pa_tagstruct *t;
             int l = 0;
@@ -1142,7 +1143,6 @@ static void playback_stream_request_bytes(playback_stream *s) {
         (previous_missing < (int) minreq && previous_missing + (int) m >= (int) minreq))
         pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
 }
-
 
 /* Called from main context */
 static void playback_stream_send_killed(playback_stream *p) {
@@ -1617,6 +1617,9 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     s = PLAYBACK_STREAM(i->userdata);
     playback_stream_assert_ref(s);
 
+    if (!dest)
+        return;
+
     fix_playback_buffer_attr(s);
     pa_memblockq_apply_attr(s->memblockq, &s->buffer_attr);
     pa_memblockq_get_attr(s->memblockq, &s->buffer_attr);
@@ -1751,6 +1754,9 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     pa_source_output_assert_ref(o);
     s = RECORD_STREAM(o->userdata);
     record_stream_assert_ref(s);
+
+    if (!dest)
+        return;
 
     fix_record_buffer_attr_pre(s);
     pa_memblockq_set_maxlength(s->memblockq, s->buffer_attr.maxlength);
