@@ -197,6 +197,9 @@ static void adjust_rates(struct userdata *u) {
         n++;
 
         pa_log_debug("[%s] total=%0.2fms sink=%0.2fms ", o->sink->name, (double) o->total_latency / PA_USEC_PER_MSEC, (double) sink_latency / PA_USEC_PER_MSEC);
+
+        if (o->total_latency > 10*PA_USEC_PER_SEC)
+            pa_log_warn("[%s] Total latency of output is very high (%0.2fms), most likely the audio timing in one of your drivers is broken.", o->sink->name, (double) o->total_latency / PA_USEC_PER_MSEC);
     }
 
     if (min_total_latency == (pa_usec_t) -1)
