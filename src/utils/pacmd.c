@@ -116,7 +116,7 @@ int main(int argc, char*argv[]) {
             size_t k;
 
             k = PA_MIN(sizeof(ibuf) - ibuf_length, strlen(argv[i]));
-            memcpy(ibuf + ibuf_length, argv[1], k);
+            memcpy(ibuf + ibuf_length, argv[i], k);
             ibuf_length += k;
 
             if (ibuf_length < sizeof(ibuf)) {
