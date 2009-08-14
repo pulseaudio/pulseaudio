@@ -395,7 +395,7 @@ int pa__init(pa_module*m) {
 
     pa_assert(m);
 
-    pa_assert(sizeof(LADSPA_Data) == sizeof(float));
+    pa_assert_cc(sizeof(LADSPA_Data) == sizeof(float));
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments.");
