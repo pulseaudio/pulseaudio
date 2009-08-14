@@ -159,7 +159,9 @@ struct pa_sink_input {
     /* If non-NULL called whenever the sink input is moved to a new
      * sink. Called from main context after the sink input has been
      * detached from the old sink and before it has been attached to
-     * the new sink. */
+     * the new sink. If dest is NULL the move was executed in two
+     * phases and the second one failed; the stream will be destroyed
+     * after this call. */
     void (*moving) (pa_sink_input *i, pa_sink *dest);   /* may be NULL */
 
     /* Supposed to unlink and destroy this stream. Called from main
@@ -337,6 +339,7 @@ pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest); /* may thi
  * new sink */
 int pa_sink_input_start_move(pa_sink_input *i);
 int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save);
+void pa_sink_input_fail_move(pa_sink_input *i);
 
 pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i);
 

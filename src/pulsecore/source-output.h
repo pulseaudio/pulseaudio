@@ -127,7 +127,9 @@ struct pa_source_output {
     /* If non-NULL called whenever the source output is moved to a new
      * source. Called from main context after the stream was detached
      * from the old source and before it is attached to the new
-     * source. */
+     * source. If dest is NULL the move was executed in two
+     * phases and the second one failed; the stream will be destroyed
+     * after this call. */
     void (*moving) (pa_source_output *o, pa_source *dest);   /* may be NULL */
 
     /* Supposed to unlink and destroy this stream. Called from main
@@ -262,6 +264,7 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest, pa_bool_t sav
  * new source */
 int pa_source_output_start_move(pa_source_output *o);
 int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t save);
+void pa_source_output_fail_move(pa_source_output *o);
 
 #define pa_source_output_get_state(o) ((o)->state)
 

@@ -847,6 +847,24 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
 }
 
 /* Called from main context */
+void pa_source_output_fail_move(pa_source_output *o) {
+
+    pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
+    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
+    pa_assert(!o->source);
+
+    /* Check if someone wants this source output? */
+    if (pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_FAIL], o) == PA_HOOK_STOP)
+        return;
+
+    if (o->moving)
+        o->moving(o, NULL);
+
+    pa_source_output_kill(o);
+}
+
+/* Called from main context */
 int pa_source_output_move_to(pa_source_output *o, pa_source *dest, pa_bool_t save) {
     int r;
 
@@ -870,6 +888,7 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest, pa_bool_t sav
     }
 
     if ((r = pa_source_output_finish_move(o, dest, save)) < 0) {
+        pa_source_output_fail_move(o);
         pa_source_output_unref(o);
         return r;
     }

@@ -1318,6 +1318,24 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
 }
 
 /* Called from main context */
+void pa_sink_input_fail_move(pa_sink_input *i) {
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
+    pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
+    pa_assert(!i->sink);
+
+    /* Check if someone wants this sink input? */
+    if (pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FAIL], i) == PA_HOOK_STOP)
+        return;
+
+    if (i->moving)
+        i->moving(i, NULL);
+
+    pa_sink_input_kill(i);
+}
+
+/* Called from main context */
 int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     int r;
 
@@ -1341,6 +1359,7 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     }
 
     if ((r = pa_sink_input_finish_move(i, dest, save)) < 0) {
+        pa_sink_input_fail_move(i);
         pa_sink_input_unref(i);
         return r;
     }
