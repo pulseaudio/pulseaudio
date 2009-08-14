@@ -27,9 +27,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <liboil/liboilfuncs.h>
-#include <liboil/liboil.h>
-
 #include <pulsecore/g711.h>
 #include <pulsecore/macro.h>
 
@@ -41,32 +38,31 @@
 
 /* u8 */
 static void u8_to_float32ne(unsigned n, const uint8_t *a, float *b) {
-    static const double add = -1, factor = 1.0/128.0;
-
     pa_assert(a);
     pa_assert(b);
 
-    oil_scaleconv_f32_u8(b, a, (int) n, &add, &factor);
+    for (; n > 0; n--, a++, b++)
+        *b = (*a * 1.0/128.0) - 1.0;
 }
 
 static void u8_from_float32ne(unsigned n, const float *a, uint8_t *b) {
-    static const double add = 128, factor = 127.0;
-
     pa_assert(a);
     pa_assert(b);
 
-    oil_scaleconv_u8_f32(b, a, (int) n, &add, &factor);
+    for (; n > 0; n--, a++, b++) {
+        float v;
+        v = (*a * 127.0) + 128.0;
+	v = PA_CLAMP_UNLIKELY (v, 0.0, 255.0);
+	*b = rint (v);
+    }
 }
 
 static void u8_to_s16ne(unsigned n, const uint8_t *a, int16_t *b) {
-    static const int16_t add = -0x80, factor = 0x100;
-
     pa_assert(a);
     pa_assert(b);
 
-    oil_conv_s16_u8(b, 2, a, 1, (int) n);
-    oil_scalaradd_s16(b, 2, b, 2, &add, (int) n);
-    oil_scalarmult_s16(b, 2, b, 2, &factor, (int) n);
+    for (; n > 0; n--, a++, b++)
+        *b = (((int16_t)*a) - 128) << 8;
 }
 
 static void u8_from_s16ne(unsigned n, const int16_t *a, uint8_t *b) {
@@ -84,7 +80,7 @@ static void float32ne_to_float32ne(unsigned n, const float *a, float *b) {
     pa_assert(a);
     pa_assert(b);
 
-    oil_memcpy(b, a, (int) (sizeof(float) * n));
+    memcpy(b, a, (int) (sizeof(float) * n));
 }
 
 static void float32re_to_float32ne(unsigned n, const float *a, float *b) {
@@ -101,7 +97,7 @@ static void s16ne_to_s16ne(unsigned n, const int16_t *a, int16_t *b) {
     pa_assert(a);
     pa_assert(b);
 
-    oil_memcpy(b, a, (int) (sizeof(int16_t) * n));
+    memcpy(b, a, (int) (sizeof(int16_t) * n));
 }
 
 static void s16re_to_s16ne(unsigned n, const int16_t *a, int16_t *b) {

@@ -31,9 +31,6 @@
 
 #include <speex/speex_resampler.h>
 
-#include <liboil/liboilfuncs.h>
-#include <liboil/liboil.h>
-
 #include <pulse/xmalloc.h>
 #include <pulsecore/sconv.h>
 #include <pulsecore/log.h>
@@ -1045,33 +1042,46 @@ static pa_memchunk* convert_to_work_format(pa_resampler *r, pa_memchunk *input) 
     return &r->buf1;
 }
 
+static void vectoradd_f32(
+        float *d, int dstr,
+        const float *s, int sstr,
+        int n, float s4) {
+
+    for (; n > 0; n--) {
+        *d = (float) (*d + (s4 * *s));
+
+        s = (const float*) ((const uint8_t*) s + sstr);
+        d = (float*) ((uint8_t*) d + dstr);
+    }
+}
+
+static void vectoradd_s16(
+        int16_t *d, int dstr,
+        const int16_t *s, int sstr,
+        int n) {
+
+    for (; n > 0; n--) {
+        *d = (int16_t) (*d + *s);
+
+        s = (const int16_t*) ((const uint8_t*) s + sstr);
+        d = (int16_t*) ((uint8_t*) d + dstr);
+    }
+}
+
 static void vectoradd_s16_with_fraction(
         int16_t *d, int dstr,
-        const int16_t *s1, int sstr1,
-        const int16_t *s2, int sstr2,
-        int n,
-        float s3, float s4) {
+        const int16_t *s, int sstr,
+        int n, float s4) {
 
-    int32_t i3, i4;
+    int32_t i4;
 
-    i3 = (int32_t) (s3 * 0x10000);
     i4 = (int32_t) (s4 * 0x10000);
 
     for (; n > 0; n--) {
-        int32_t a, b;
+        *d = (int16_t) (*d + (((int32_t)*s * i4) >> 16));
 
-        a = *s1;
-        b = *s2;
-
-        a = (a * i3) / 0x10000;
-        b = (b * i4) / 0x10000;
-
-        *d = (int16_t) (a + b);
-
-        s1 = (const int16_t*) ((const uint8_t*) s1 + sstr1);
-        s2 = (const int16_t*) ((const uint8_t*) s2 + sstr2);
+        s = (const int16_t*) ((const uint8_t*) s + sstr);
         d = (int16_t*) ((uint8_t*) d + dstr);
-
     }
 }
 
@@ -1125,12 +1135,11 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
                     if (r->map_table[oc][ic] <= 0.0)
                         continue;
 
-                    oil_vectoradd_f32(
-                            (float*) dst + oc, o_skip,
+                    vectoradd_f32(
                             (float*) dst + oc, o_skip,
                             (float*) src + ic, i_skip,
                             (int) n_frames,
-                            &one, &r->map_table[oc][ic]);
+                            r->map_table[oc][ic]);
                 }
             }
 
@@ -1147,23 +1156,19 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
                         continue;
 
                     if (r->map_table[oc][ic] >= 1.0) {
-                        static const int16_t one = 1;
 
-                        oil_vectoradd_s16(
-                                (int16_t*) dst + oc, o_skip,
+                        vectoradd_s16(
                                 (int16_t*) dst + oc, o_skip,
                                 (int16_t*) src + ic, i_skip,
-                                (int) n_frames,
-                                &one, &one);
+                                (int) n_frames);
 
                     } else
 
                         vectoradd_s16_with_fraction(
                                 (int16_t*) dst + oc, o_skip,
-                                (int16_t*) dst + oc, o_skip,
                                 (int16_t*) src + ic, i_skip,
                                 (int) n_frames,
-                                1.0f, r->map_table[oc][ic]);
+                                r->map_table[oc][ic]);
                 }
             }
 
@@ -1469,7 +1474,7 @@ static void trivial_resample(pa_resampler *r, const pa_memchunk *input, unsigned
 
         pa_assert(o_index * fz < pa_memblock_get_length(output->memblock));
 
-        oil_memcpy((uint8_t*) dst + fz * o_index,
+        memcpy((uint8_t*) dst + fz * o_index,
                    (uint8_t*) src + fz * j, (int) fz);
     }
 
