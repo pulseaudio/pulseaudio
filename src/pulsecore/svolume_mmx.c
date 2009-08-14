@@ -101,6 +101,22 @@ pa_volume_ulaw_mmx (uint8_t *samples, int32_t *volumes, unsigned channels, unsig
 }
 #endif
 
+/* in s: 2 int16_t samples
+ * in v: 2 int32_t volumes, fixed point 16:16
+ * out s: contains scaled and clamped int16_t samples.
+ *
+ * We calculate the high 32 bits of a 32x16 multiply which we then
+ * clamp to 16 bits. The calulcation is:
+ *
+ *  vl = (v & 0xffff)
+ *  vh = (v >> 16)
+ *  s = ((s * vl) >> 16) + (s * vh);
+ *
+ * For the first multiply we have to do a sign correction as we need to
+ * multiply a signed int with an unsigned int. Hacker's delight 8-3 gives a
+ * simple formula to correct the sign of the high word after the signed
+ * multiply.
+ */
 #define VOLUME_32x16(s,v)                  /* .. |   vh  |   vl  | */                   \
       " pxor  %%mm4, %%mm4           \n\t" /* .. |    0  |    0  | */                   \
       " punpcklwd %%mm4, "#s"        \n\t" /* .. |    0  |   p0  | */                   \
@@ -116,6 +132,8 @@ pa_volume_ulaw_mmx (uint8_t *samples, int32_t *volumes, unsigned channels, unsig
       " pmaddwd "#s", "#v"           \n\t" /* .. |    p0 * v0    | */                   \
       " packssdw "#v", "#v"          \n\t" /* .. | p1*v1 | p0*v0 | */
 
+/* approximately advances %3 = (%3 + a) % b. This function requires that
+ * a <= b. */
 #define MOD_ADD(a,b) \
       " add "#a", %3                 \n\t" \
       " mov %3, %4                   \n\t" \
