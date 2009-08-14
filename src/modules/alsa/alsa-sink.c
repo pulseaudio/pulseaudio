@@ -1292,7 +1292,8 @@ static void thread_func(void *userdata) {
                      * we have filled the buffer at least once
                      * completely.*/
 
-                    pa_log_debug("Cutting sleep time for the initial iterations by half.");
+                    if (pa_log_ratelimit())
+                        pa_log_debug("Cutting sleep time for the initial iterations by half.");
                     sleep_usec /= 2;
                 }
 
