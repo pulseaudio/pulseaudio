@@ -2273,8 +2273,6 @@ void pa_sink_get_latency_range(pa_sink *s, pa_usec_t *min_latency, pa_usec_t *ma
 
 /* Called from IO thread */
 void pa_sink_set_latency_range_within_thread(pa_sink *s, pa_usec_t min_latency, pa_usec_t max_latency) {
-    void *state = NULL;
-
     pa_sink_assert_ref(s);
     pa_sink_assert_io_context(s);
 
@@ -2287,11 +2285,16 @@ void pa_sink_set_latency_range_within_thread(pa_sink *s, pa_usec_t min_latency, 
                max_latency == ABSOLUTE_MAX_LATENCY) ||
               (s->flags & PA_SINK_DYNAMIC_LATENCY));
 
+    if (s->thread_info.min_latency == min_latency &&
+        s->thread_info.max_latency == max_latency)
+        return;
+
     s->thread_info.min_latency = min_latency;
     s->thread_info.max_latency = max_latency;
 
     if (PA_SINK_IS_LINKED(s->thread_info.state)) {
         pa_sink_input *i;
+        void *state = NULL;
 
         PA_HASHMAP_FOREACH(i, s->thread_info.inputs, state)
             if (i->update_sink_latency_range)
