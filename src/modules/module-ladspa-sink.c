@@ -711,11 +711,10 @@ int pa__init(pa_module*m) {
     sink_data.module = m;
     if (!(sink_data.name = pa_xstrdup(pa_modargs_get_value(ma, "sink_name", NULL))))
         sink_data.name = pa_sprintf_malloc("%s.ladspa", master->name);
-    sink_data.namereg_fail = FALSE;
     pa_sink_new_data_set_sample_spec(&sink_data, &ss);
     pa_sink_new_data_set_channel_map(&sink_data, &map);
     z = pa_proplist_gets(master->proplist, PA_PROP_DEVICE_DESCRIPTION);
-    pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "LADSPA Plugin %s on %s", label, z ? z : master->name);
+    pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "LADSPA Plugin %s on %s", d->Name, z ? z : master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
     pa_proplist_sets(sink_data.proplist, "device.ladspa.module", plugin);
