@@ -2034,6 +2034,13 @@ void pa_dbusiface_core_free(pa_dbusiface_core *c) {
     pa_xfree(c);
 }
 
+const char *pa_dbusiface_core_get_card_path(pa_dbusiface_core *c, const pa_card *card) {
+    pa_assert(c);
+    pa_assert(card);
+
+    return pa_dbusiface_card_get_path(pa_hashmap_get(c->cards, PA_UINT32_TO_PTR(card->index)));
+}
+
 const char *pa_dbusiface_core_get_sink_path(pa_dbusiface_core *c, const pa_sink *sink) {
     pa_assert(c);
     pa_assert(sink);
