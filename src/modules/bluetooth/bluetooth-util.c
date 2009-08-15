@@ -226,10 +226,6 @@ static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device 
                     node = uuid_new(value);
                     PA_LLIST_PREPEND(pa_bluetooth_uuid, d->uuids, node);
 
-                    /* this might eventually be racy if .Audio is not there yet, but the State change will come anyway later, so this call is for cold-detection mostly */
-                    pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.Audio", "GetProperties"));
-                    send_and_add_to_pending(y, d, m, get_properties_reply);
-
                     /* Vudentz said the interfaces are here when the UUIDs are announced */
                     if (strcasecmp(HSP_HS_UUID, value) == 0 || strcasecmp(HFP_HS_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.Headset", "GetProperties"));
@@ -238,6 +234,10 @@ static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device 
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.AudioSink", "GetProperties"));
                         send_and_add_to_pending(y, d, m, get_properties_reply);
                     }
+
+                    /* this might eventually be racy if .Audio is not there yet, but the State change will come anyway later, so this call is for cold-detection mostly */
+                    pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.Audio", "GetProperties"));
+                    send_and_add_to_pending(y, d, m, get_properties_reply);
 
                     if (!dbus_message_iter_next(&ai))
                         break;
