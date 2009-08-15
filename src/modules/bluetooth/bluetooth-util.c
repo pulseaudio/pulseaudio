@@ -122,9 +122,9 @@ static pa_bool_t device_is_audio(pa_bluetooth_device *d) {
 
     return
         d->device_info_valid &&
-        (d->audio_state != PA_BT_AUDIO_STATE_INVALID ||
-         d->audio_sink_state != PA_BT_AUDIO_STATE_INVALID ||
-         d->headset_state != PA_BT_AUDIO_STATE_INVALID);
+        (d->audio_state != PA_BT_AUDIO_STATE_INVALID &&
+         (d->audio_sink_state != PA_BT_AUDIO_STATE_INVALID ||
+          d->headset_state != PA_BT_AUDIO_STATE_INVALID));
 }
 
 static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device *d, DBusMessageIter *i) {
