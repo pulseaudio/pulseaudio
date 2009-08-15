@@ -540,6 +540,11 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, struct
         if (si->save_sink)
             continue;
 
+        /* Skip this if it is already in the process of being moved
+         * anyway */
+        if (!si->sink)
+            continue;
+
         /* It might happen that a stream and a sink are set up at the
            same time, in which case we want to make sure we don't
            interfere with that */
@@ -584,6 +589,10 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
         if (so->direct_on_input)
             continue;
 
+        /* Skip this if it is already in the process of being moved anyway */
+        if (!so->source)
+            continue;
+
         /* It might happen that a stream and a sink are set up at the
            same time, in which case we want to make sure we don't
            interfere with that */
@@ -622,6 +631,9 @@ static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, str
     PA_IDXSET_FOREACH(si, sink->inputs, idx) {
         char *name;
         struct entry *e;
+
+        if (!si->sink)
+            continue;
 
         if (!(name = get_name(si->proplist, "sink-input")))
             continue;
@@ -662,6 +674,12 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
     PA_IDXSET_FOREACH(so, source->outputs, idx) {
         char *name;
         struct entry *e;
+
+        if (so->direct_on_input)
+            continue;
+
+        if (!so->source)
+            continue;
 
         if (!(name = get_name(so->proplist, "source-output")))
             continue;

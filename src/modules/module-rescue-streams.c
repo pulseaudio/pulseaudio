@@ -71,6 +71,9 @@ static pa_sink* find_evacuation_sink(pa_core *c, pa_sink_input *i, pa_sink *skip
         if (target == skip)
             continue;
 
+        if (!PA_SINK_IS_LINKED(pa_sink_get_state(target)))
+            continue;
+
         if (pa_sink_input_may_move_to(i, target))
             return target;
     }
@@ -157,6 +160,9 @@ static pa_source* find_evacuation_source(pa_core *c, pa_source_output *o, pa_sou
             continue;
 
         if (!target->monitor_of != !skip->monitor_of)
+            continue;
+
+        if (!PA_SOURCE_IS_LINKED(pa_source_get_state(target)))
             continue;
 
         if (pa_source_output_may_move_to(o, target))

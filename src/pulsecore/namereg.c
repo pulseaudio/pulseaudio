@@ -223,6 +223,9 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type) {
 pa_sink* pa_namereg_set_default_sink(pa_core*c, pa_sink *s) {
     pa_assert(c);
 
+    if (s && !PA_SINK_IS_LINKED(pa_sink_get_state(s)))
+        return NULL;
+
     if (c->default_sink != s) {
         c->default_sink = s;
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SERVER|PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
@@ -234,6 +237,9 @@ pa_sink* pa_namereg_set_default_sink(pa_core*c, pa_sink *s) {
 pa_source* pa_namereg_set_default_source(pa_core*c, pa_source *s) {
     pa_assert(c);
 
+    if (s && !PA_SOURCE_IS_LINKED(pa_source_get_state(s)))
+        return NULL;
+
     if (c->default_source != s) {
         c->default_source = s;
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SERVER|PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
@@ -244,14 +250,19 @@ pa_source* pa_namereg_set_default_source(pa_core*c, pa_source *s) {
 
 pa_sink *pa_namereg_get_default_sink(pa_core *c) {
     pa_sink *s;
+    uint32_t idx;
 
     pa_assert(c);
 
-    if (c->default_sink)
+    if (c->default_sink && PA_SINK_IS_LINKED(pa_sink_get_state(c->default_sink)))
         return c->default_sink;
 
-    if ((s = pa_idxset_first(c->sinks, NULL)))
-        return pa_namereg_set_default_sink(c, s);
+    /* FIXME: the selection here should be based priority values on
+     * the sinks */
+
+    PA_IDXSET_FOREACH(s, c->sinks, idx)
+        if (PA_SINK_IS_LINKED(pa_sink_get_state(s)))
+            return pa_namereg_set_default_sink(c, s);
 
     return NULL;
 }
@@ -262,15 +273,18 @@ pa_source *pa_namereg_get_default_source(pa_core *c) {
 
     pa_assert(c);
 
-    if (c->default_source)
+    if (c->default_source && PA_SOURCE_IS_LINKED(pa_source_get_state(c->default_source)))
         return c->default_source;
 
-    for (s = PA_SOURCE(pa_idxset_first(c->sources, &idx)); s; s = PA_SOURCE(pa_idxset_next(c->sources, &idx)))
-        if (!s->monitor_of)
+    /* First, try to find one that isn't a monitor */
+    PA_IDXSET_FOREACH(s, c->sources, idx)
+        if (!s->monitor_of && PA_SOURCE_IS_LINKED(pa_source_get_state(s)))
             return pa_namereg_set_default_source(c, s);
 
-    if ((s = pa_idxset_first(c->sources, NULL)))
-        return pa_namereg_set_default_source(c, s);
+    /* Then, fallback to a monitor */
+    PA_IDXSET_FOREACH(s, c->sources, idx)
+        if (PA_SOURCE_IS_LINKED(pa_source_get_state(s)))
+            return pa_namereg_set_default_source(c, s);
 
     return NULL;
 }
