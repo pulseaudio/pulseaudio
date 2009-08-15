@@ -1262,10 +1262,10 @@ static void thread_func(void *userdata) {
     if (u->core->realtime_scheduling)
         pa_make_realtime(u->core->realtime_priority);
 
+    pa_thread_mq_install(&u->thread_mq);
+
     if (start_stream_fd(u) < 0)
         goto fail;
-
-    pa_thread_mq_install(&u->thread_mq);
 
     for (;;) {
         struct pollfd *pollfd;
