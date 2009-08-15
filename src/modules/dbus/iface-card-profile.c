@@ -190,6 +190,7 @@ pa_dbusiface_card_profile *pa_dbusiface_card_profile_new(
     pa_dbusiface_card_profile *p = NULL;
 
     pa_assert(card);
+    pa_assert(core);
     pa_assert(profile);
 
     p = pa_xnew(pa_dbusiface_card_profile, 1);
