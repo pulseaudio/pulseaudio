@@ -841,7 +841,7 @@ void pa_dbus_protocol_add_signal_listener(pa_dbus_protocol *p, DBusConnection *c
         conn_entry->listening_for_all_signals = FALSE;
 
         /* Replace the old object list with a new one. */
-        if ((object_set = pa_hashmap_get(conn_entry->listening_signals, signal)))
+        if ((object_set = pa_hashmap_remove(conn_entry->listening_signals, signal)))
             pa_idxset_free(object_set, free_listened_object_name_cb, NULL);
         object_set = pa_idxset_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
