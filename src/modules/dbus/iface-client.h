@@ -22,15 +22,18 @@
   USA.
 ***/
 
-/* This object implements the D-Bus interface org.PulseAudio.Core1.Card.
+/* This object implements the D-Bus interface org.PulseAudio.Core1.Client.
  *
- * See http://pulseaudio.org/wiki/DBusInterface for the Card interface
+ * See http://pulseaudio.org/wiki/DBusInterface for the Client interface
  * documentation.
  */
 
 #include <pulsecore/client.h>
+#include <pulsecore/protocol-dbus.h>
 
 #include "iface-core.h"
+
+#define PA_DBUSIFACE_CLIENT_INTERFACE PA_DBUS_CORE_INTERFACE ".Client"
 
 typedef struct pa_dbusiface_client pa_dbusiface_client;
 

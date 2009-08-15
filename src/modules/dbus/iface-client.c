@@ -118,7 +118,7 @@ static pa_dbus_signal_info signals[SIGNAL_MAX] = {
 };*/
 
 static pa_dbus_interface_info client_interface_info = {
-    .name = OBJECT_NAME,
+    .name = PA_DBUSIFACE_CLIENT_INTERFACE,
     .method_handlers = /*method_handlers*/ NULL,
     .n_method_handlers = /*METHOD_HANDLER_MAX*/ 0,
     .property_handlers = property_handlers,
