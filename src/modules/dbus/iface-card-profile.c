@@ -182,7 +182,11 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     dbus_message_unref(reply);
 }
 
-pa_dbusiface_card_profile *pa_dbusiface_card_profile_new(pa_dbusiface_card *card, pa_core *core, pa_card_profile *profile, uint32_t idx) {
+pa_dbusiface_card_profile *pa_dbusiface_card_profile_new(
+        pa_dbusiface_card *card,
+        pa_core *core,
+        pa_card_profile *profile,
+        uint32_t idx) {
     pa_dbusiface_card_profile *p = NULL;
 
     pa_assert(card);

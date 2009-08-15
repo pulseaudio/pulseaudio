@@ -37,7 +37,11 @@
 
 typedef struct pa_dbusiface_card_profile pa_dbusiface_card_profile;
 
-pa_dbusiface_card_profile *pa_dbusiface_card_profile_new(pa_dbusiface_card *card, pa_core *core, pa_card_profile *profile, uint32_t idx);
+pa_dbusiface_card_profile *pa_dbusiface_card_profile_new(
+        pa_dbusiface_card *card,
+        pa_core *core,
+        pa_card_profile *profile,
+        uint32_t idx);
 void pa_dbusiface_card_profile_free(pa_dbusiface_card_profile *p);
 
 const char *pa_dbusiface_card_profile_get_path(pa_dbusiface_card_profile *p);
