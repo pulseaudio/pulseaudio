@@ -307,6 +307,7 @@ pa_sink* pa_sink_new(
     s->thread_info.max_latency = ABSOLUTE_MAX_LATENCY;
     s->thread_info.fixed_latency = flags & PA_SINK_DYNAMIC_LATENCY ? 0 : DEFAULT_FIXED_LATENCY;
 
+    /* FIXME: This should probably be moved to pa_sink_put() */
     pa_assert_se(pa_idxset_put(core->sinks, s, &s->index) >= 0);
 
     if (s->card)

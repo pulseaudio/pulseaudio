@@ -42,6 +42,7 @@ typedef enum pa_sink_input_state {
     PA_SINK_INPUT_RUNNING,      /*< The stream is alive and kicking */
     PA_SINK_INPUT_CORKED,       /*< The stream was corked on user request */
     PA_SINK_INPUT_UNLINKED      /*< The stream is dead */
+    /* FIXME: we need a state for MOVING here */
 } pa_sink_input_state_t;
 
 static inline pa_bool_t PA_SINK_INPUT_IS_LINKED(pa_sink_input_state_t x) {
