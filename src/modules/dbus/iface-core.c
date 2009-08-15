@@ -2055,6 +2055,20 @@ const char *pa_dbusiface_core_get_source_path(pa_dbusiface_core *c, const pa_sou
     return pa_dbusiface_device_get_path(pa_hashmap_get(c->sources_by_index, PA_UINT32_TO_PTR(source->index)));
 }
 
+const char *pa_dbusiface_core_get_playback_stream_path(pa_dbusiface_core *c, const pa_sink_input *sink_input) {
+    pa_assert(c);
+    pa_assert(sink_input);
+
+    return pa_dbusiface_stream_get_path(pa_hashmap_get(c->playback_streams, PA_UINT32_TO_PTR(sink_input->index)));
+}
+
+const char *pa_dbusiface_core_get_record_stream_path(pa_dbusiface_core *c, const pa_source_output *source_output) {
+    pa_assert(c);
+    pa_assert(source_output);
+
+    return pa_dbusiface_stream_get_path(pa_hashmap_get(c->record_streams, PA_UINT32_TO_PTR(source_output->index)));
+}
+
 const char *pa_dbusiface_core_get_module_path(pa_dbusiface_core *c, const pa_module *module) {
     pa_assert(c);
     pa_assert(module);
