@@ -406,7 +406,7 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_DRIVER].property_name, DBUS_TYPE_STRING, &c->card->driver);
 
     if (owner_module)
-        pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_OWNER_MODULE].property_name, DBUS_TYPE_STRING, &owner_module);
+        pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_OWNER_MODULE].property_name, DBUS_TYPE_OBJECT_PATH, &owner_module);
 
     pa_dbus_append_basic_array_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_SINKS].property_name, DBUS_TYPE_OBJECT_PATH, sinks, n_sinks);
     pa_dbus_append_basic_array_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_SOURCES].property_name, DBUS_TYPE_OBJECT_PATH, sources, n_sources);
