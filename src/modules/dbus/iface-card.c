@@ -336,6 +336,8 @@ static void handle_set_active_profile(DBusConnection *conn, DBusMessage *msg, vo
         return;
 
     if (!c->active_profile) {
+        pa_assert(pa_hashmap_isempty(c->profiles));
+
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
                            "The card %s has no profiles, and therefore there's no active profile either.",
                            c->card->name);
