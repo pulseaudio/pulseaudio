@@ -78,4 +78,6 @@ int pa_asyncmsgq_write_fd(pa_asyncmsgq *q);
 void pa_asyncmsgq_write_before_poll(pa_asyncmsgq *a);
 void pa_asyncmsgq_write_after_poll(pa_asyncmsgq *a);
 
+pa_bool_t pa_asyncmsgq_dispatching(pa_asyncmsgq *a);
+
 #endif

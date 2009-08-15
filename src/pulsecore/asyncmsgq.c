@@ -351,3 +351,9 @@ void pa_asyncmsgq_flush(pa_asyncmsgq *a, pa_bool_t run) {
         pa_asyncmsgq_unref(a);
     }
 }
+
+pa_bool_t pa_asyncmsgq_dispatching(pa_asyncmsgq *a) {
+    pa_assert(PA_REFCNT_VALUE(a) > 0);
+
+    return !!a->current;
+}
