@@ -551,7 +551,7 @@ static void sink_free(pa_object *o) {
     pa_xfree(s);
 }
 
-/* Called from main context */
+/* Called from main context, and not while the IO thread is active, please */
 void pa_sink_set_asyncmsgq(pa_sink *s, pa_asyncmsgq *q) {
     pa_sink_assert_ref(s);
     pa_assert_ctl_context();
@@ -560,6 +560,26 @@ void pa_sink_set_asyncmsgq(pa_sink *s, pa_asyncmsgq *q) {
 
     if (s->monitor_source)
         pa_source_set_asyncmsgq(s->monitor_source, q);
+}
+
+/* Called from main context, and not while the IO thread is active, please */
+void pa_sink_update_flags(pa_sink *s, pa_sink_flags_t mask, pa_sink_flags_t value) {
+    pa_sink_assert_ref(s);
+    pa_assert_ctl_context();
+
+    if (mask == 0)
+        return;
+
+    /* For now, allow only a minimal set of flags to be changed. */
+    pa_assert((mask & ~(PA_SINK_DYNAMIC_LATENCY|PA_SINK_LATENCY)) == 0);
+
+    s->flags = (s->flags & ~mask) | (value & mask);
+
+    pa_source_update_flags(s->monitor_source,
+                           ((mask & PA_SINK_LATENCY) ? PA_SOURCE_LATENCY : 0) |
+                           ((mask & PA_SINK_DYNAMIC_LATENCY) ? PA_SOURCE_DYNAMIC_LATENCY : 0),
+                           ((value & PA_SINK_LATENCY) ? PA_SOURCE_LATENCY : 0) |
+                           ((value & PA_SINK_DYNAMIC_LATENCY) ? PA_SINK_DYNAMIC_LATENCY : 0));
 }
 
 /* Called from IO context, or before _put() from main context */

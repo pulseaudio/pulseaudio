@@ -246,6 +246,8 @@ void pa_source_mute_changed(pa_source *s, pa_bool_t new_muted);
 
 int pa_source_sync_suspend(pa_source *s);
 
+void pa_source_update_flags(pa_source *s, pa_source_flags_t mask, pa_source_flags_t value);
+
 /*** May be called by everyone, from main context */
 
 /* The returned value is supposed to be in the time domain of the sound card! */

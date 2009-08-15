@@ -461,7 +461,7 @@ static void source_free(pa_object *o) {
     pa_xfree(s);
 }
 
-/* Called from main context */
+/* Called from main context, and not while the IO thread is active, please */
 void pa_source_set_asyncmsgq(pa_source *s, pa_asyncmsgq *q) {
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
@@ -469,7 +469,21 @@ void pa_source_set_asyncmsgq(pa_source *s, pa_asyncmsgq *q) {
     s->asyncmsgq = q;
 }
 
-/* Called from main context */
+/* Called from main context, and not while the IO thread is active, please */
+void pa_source_update_flags(pa_source *s, pa_source_flags_t mask, pa_source_flags_t value) {
+    pa_source_assert_ref(s);
+    pa_assert_ctl_context();
+
+    if (mask == 0)
+        return;
+
+    /* For now, allow only a minimal set of flags to be changed. */
+    pa_assert((mask & ~(PA_SOURCE_DYNAMIC_LATENCY|PA_SOURCE_LATENCY)) == 0);
+
+    s->flags = (s->flags & ~mask) | (value & mask);
+}
+
+/* Called from IO context, or before _put() from main context */
 void pa_source_set_rtpoll(pa_source *s, pa_rtpoll *p) {
     pa_source_assert_ref(s);
     pa_source_assert_io_context(s);
