@@ -29,10 +29,15 @@
  * documentation.
  */
 
+#include <pulsecore/protocol-dbus.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/source.h>
 
 #include "iface-core.h"
+
+#define PA_DBUSIFACE_DEVICE_INTERFACE PA_DBUS_CORE_INTERFACE ".Device"
+#define PA_DBUSIFACE_SINK_INTERFACE PA_DBUS_CORE_INTERFACE ".Sink"
+#define PA_DBUSIFACE_SOURCE_INTERFACE PA_DBUS_CORE_INTERFACE ".Source"
 
 typedef struct pa_dbusiface_device pa_dbusiface_device;
 
