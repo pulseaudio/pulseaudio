@@ -279,10 +279,8 @@ static const char **get_profiles(pa_dbusiface_card *c, unsigned *n) {
 
     profiles = pa_xnew(const char *, *n);
 
-    PA_HASHMAP_FOREACH(profile, c->profiles, state) {
-        profiles[i] = pa_dbusiface_card_profile_get_path(profile);
-        ++i;
-    }
+    PA_HASHMAP_FOREACH(profile, c->profiles, state)
+        profiles[i++] = pa_dbusiface_card_profile_get_path(profile);
 
     return profiles;
 }
