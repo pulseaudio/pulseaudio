@@ -81,9 +81,8 @@ PA_MODULE_USAGE(_("sink=<sink to connect to> "));
 
 
 struct userdata {
-    pa_core *core;
     pa_module *module;
-    pa_sink *sink, *master;
+    pa_sink *sink;
     pa_sink_input *sink_input;
     char *name;
 
@@ -101,7 +100,6 @@ struct userdata {
     //for twiddling with pulseaudio
     size_t overlap_size;//window_size-R
     size_t samples_gathered;
-    size_t max_output;//max amount of samples outputable in a single
     //message
     float *H;//frequency response filter (magnitude based)
     float *W;//windowing function (time domain)
@@ -274,20 +272,26 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     switch (code) {
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
-            pa_usec_t usec = 0;
-            pa_sample_spec *ss=&u->sink->sample_spec;
-            size_t fs=pa_frame_size(&(u->sink->sample_spec));
+            size_t fs=pa_frame_size(&u->sink->sample_spec);
 
-            /* Get the latency of the master sink */
-            if (PA_MSGOBJECT(u->master)->process_msg(PA_MSGOBJECT(u->master), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
-                usec = 0;
+            /* The sink is _put() before the sink input is, so let's
+             * make sure we don't access it in that time. Also, the
+             * sink input is first shut down, the sink second. */
+            if (!PA_SINK_IS_LINKED(u->sink->thread_info.state) ||
+                !PA_SINK_INPUT_IS_LINKED(u->sink_input->thread_info.state)) {
+                *((pa_usec_t*) data) = 0;
+                return 0;
+            }
 
-            usec += pa_bytes_to_usec(u->latency * fs, ss);
-            //usec += pa_bytes_to_usec(u->samples_gathered * fs, ss);
-            usec += pa_bytes_to_usec(pa_memblockq_get_length(u->input_q), ss);
-            /* Add the latency internal to our sink input on top */
-            usec += pa_bytes_to_usec(pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq), &u->master->sample_spec);
-            *((pa_usec_t*) data) = usec;
+            *((pa_usec_t*) data) =
+                /* Get the latency of the master sink */
+                pa_sink_get_latency_within_thread(u->sink_input->sink) +
+
+                /* Add the latency internal to our sink input on top */
+                pa_bytes_to_usec(pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq), &u->sink_input->sink->sample_spec) +
+                pa_bytes_to_usec(u->samples_gathered * fs, &u->sink->sample_spec);
+            //+ pa_bytes_to_usec(u->latency * fs, ss)
+            //+ pa_bytes_to_usec(pa_memblockq_get_length(u->input_q), ss);
             return 0;
         }
     }
@@ -303,12 +307,11 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
     pa_sink_assert_ref(s);
     pa_assert_se(u = s->userdata);
 
-    if (PA_SINK_IS_LINKED(state) &&
-        u->sink_input &&
-        PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(u->sink_input)))
+    if (!PA_SINK_IS_LINKED(state) ||
+        !PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(u->sink_input)))
+        return 0;
 
-        pa_sink_input_cork(u->sink_input, state == PA_SINK_SUSPENDED);
-
+    pa_sink_input_cork(u->sink_input, state == PA_SINK_SUSPENDED);
     return 0;
 }
 
@@ -319,7 +322,9 @@ static void sink_request_rewind(pa_sink *s) {
     pa_sink_assert_ref(s);
     pa_assert_se(u = s->userdata);
 
-    //pa_memblockq_drop(u->input_q,pa_memblockq_get_length(u->input_q));
+    if (!PA_SINK_IS_LINKED(u->sink->thread_info.state) ||
+        !PA_SINK_INPUT_IS_LINKED(u->sink_input->thread_info.state))
+        return;
 
     /* Just hand this one over to the master sink */
     pa_sink_input_request_rewind(u->sink_input, s->thread_info.rewind_nbytes+pa_memblockq_get_length(u->input_q), TRUE, FALSE, FALSE);
@@ -331,6 +336,10 @@ static void sink_update_requested_latency(pa_sink *s) {
 
     pa_sink_assert_ref(s);
     pa_assert_se(u = s->userdata);
+
+    if (!PA_SINK_IS_LINKED(u->sink->thread_info.state) ||
+        !PA_SINK_INPUT_IS_LINKED(u->sink_input->thread_info.state))
+        return;
 
     /* Just hand this one over to the master sink */
     pa_sink_input_set_requested_latency_within_thread(
@@ -344,7 +353,7 @@ static void process_samples(struct userdata *u, pa_memchunk *tchunk){
     float *dst;
     tchunk->index = 0;
     tchunk->length = u->R * fs;
-    tchunk->memblock = pa_memblock_new(u->core->mempool, tchunk->length);
+    tchunk->memblock = pa_memblock_new(u->sink->core->mempool, tchunk->length);
     dst = ((float*)pa_memblock_acquire(tchunk->memblock));
     for(size_t c=0;c < u->channels; c++) {
         dsp_logic(
@@ -361,7 +370,7 @@ static void process_samples(struct userdata *u, pa_memchunk *tchunk){
              * undo the windowing (for non-zero window values)
              */
             for(size_t i = 0;i < u->overlap_size; ++i){
-                u->work_buffer[i] = u->W[i] <= FLT_EPSILON ? u->W[i] : u->work_buffer[i] / u->W[i];
+                u->work_buffer[i] = u->W[i] <= FLT_EPSILON ? u->work_buffer[i] : u->work_buffer[i] / u->W[i];
             }
         }
         pa_sample_clamp(PA_SAMPLE_FLOAT32NE, dst + c, fs, u->work_buffer, sizeof(float), u->R);
@@ -529,7 +538,7 @@ void dsp_logic(
 void initialize_buffer(struct userdata *u, pa_memchunk *in){
     size_t fs = pa_frame_size(&(u->sink->sample_spec));
     size_t samples = in->length/fs;
-    pa_assert_se(u->samples_gathered + samples == u->window_size);
+    pa_assert_se(u->samples_gathered + samples <= u->window_size);
     float *src = (float*) ((uint8_t*) pa_memblock_acquire(in->memblock) + in->index);
     for(size_t c = 0; c < u->channels; c++) {
         //buffer with an offset after the overlap from previous
@@ -549,7 +558,7 @@ void input_buffer(struct userdata *u, pa_memchunk *in){
         //buffer with an offset after the overlap from previous
         //iterations
         pa_assert_se(
-            u->input[c]+u->overlap_size+u->samples_gathered+samples <= u->input[c]+u->window_size
+            u->input[c]+u->samples_gathered+samples <= u->input[c]+u->window_size
         );
         pa_sample_clamp(PA_SAMPLE_FLOAT32NE, u->input[c]+u->overlap_size+u->samples_gathered, sizeof(float), src + c, fs, samples);
     }
@@ -561,14 +570,12 @@ void input_buffer(struct userdata *u, pa_memchunk *in){
 static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk) {
     struct userdata *u;
     pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
     pa_assert(chunk);
-    pa_assert(u = i->userdata);
     pa_assert(u->sink);
     size_t fs = pa_frame_size(&(u->sink->sample_spec));
     pa_memchunk tchunk;
     chunk->memblock = NULL;
-    if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
-        return -1;
 
     /* Hmm, process any rewind request that might be queued up */
     pa_sink_process_rewind(u->sink, 0);
@@ -587,13 +594,13 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
         //pa_memblock_ref(buffer->memblock);
         //pa_sink_render_into(u->sink, buffer);
         while(pa_memblockq_peek(u->input_q, &tchunk) < 0 || tchunk.memblock == NULL){
-            pa_sink_render_full(u->sink, input_remaining*fs, &tchunk);
+            pa_sink_render(u->sink, input_remaining*fs, &tchunk);
             pa_assert(tchunk.memblock);
             pa_memblockq_push(u->input_q, &tchunk);
             pa_memblock_unref(tchunk.memblock);
         }
         pa_assert(tchunk.memblock);
-        tchunk.length = PA_MIN(input_remaining*fs, tchunk.length);
+        tchunk.length = PA_MIN(input_remaining * fs, tchunk.length);
         pa_memblockq_drop(u->input_q, tchunk.length);
         //pa_log_debug("asked for %ld input samples, got %ld samples",input_remaining,buffer->length/fs);
         /* copy new input */
@@ -606,7 +613,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
         //gettime(end);
         //pa_log_debug("Took %0.5f seconds to setup", tdiff(end, start)*1e-9);
         pa_memblock_unref(tchunk.memblock);
-    }while(u->samples_gathered <= u->window_size);
+    }while(u->samples_gathered < u->window_size);
     gettime(end);
     pa_log_debug("Took %0.6f seconds to get data", tdiff(end, start)*1e-9);
 
@@ -617,7 +624,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     u->H = u->Hs[H_i];
     gettime(start);
     /* process a block */
-    process_samples(u,chunk);
+    process_samples(u, chunk);
     gettime(end);
     pa_log_debug("Took %0.6f seconds to process", tdiff(end, start)*1e-9);
     pa_aupdate_read_end(u->a_H);
@@ -639,9 +646,6 @@ static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
     pa_log_debug("Rewind callback!");
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
-
-    if (!u->sink || !PA_SINK_IS_OPENED(u->sink->thread_info.state))
-        return;
 
     if (u->sink->thread_info.rewind_nbytes > 0) {
         size_t max_rewrite;
@@ -682,9 +686,6 @@ static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (!u->sink || !PA_SINK_IS_LINKED(u->sink->thread_info.state))
-        return;
-
     pa_memblockq_set_maxrewind(u->input_q, nbytes);
     pa_sink_set_max_rewind_within_thread(u->sink, nbytes);
 }
@@ -695,9 +696,6 @@ static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
-
-    if (!u->sink || !PA_SINK_IS_LINKED(u->sink->thread_info.state))
-        return;
 
     size_t fs = pa_frame_size(&(u->sink->sample_spec));
     //pa_sink_set_max_request_within_thread(u->sink, nbytes);
@@ -712,12 +710,19 @@ static void sink_input_update_sink_latency_range_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (!u->sink || !PA_SINK_IS_LINKED(u->sink->thread_info.state))
-        return;
-
     //pa_sink_set_latency_range_within_thread(u->sink, u->master->thread_info.min_latency, u->latency*fs);
     //pa_sink_set_latency_range_within_thread(u->sink, u->latency*fs, u->latency*fs );
     pa_sink_set_latency_range_within_thread(u->sink, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
+}
+
+/* Called from I/O thread context */
+static void sink_input_update_sink_fixed_latency_cb(pa_sink_input *i) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    pa_sink_set_fixed_latency_within_thread(u->sink, i->sink->thread_info.fixed_latency);
 }
 
 /* Called from I/O thread context */
@@ -727,11 +732,8 @@ static void sink_input_detach_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (!u->sink || !PA_SINK_IS_LINKED(u->sink->thread_info.state))
-        return;
-
     pa_sink_detach_within_thread(u->sink);
-    pa_sink_set_asyncmsgq(u->sink, NULL);
+
     pa_sink_set_rtpoll(u->sink, NULL);
 }
 
@@ -742,11 +744,10 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    if (!u->sink || !PA_SINK_IS_LINKED(u->sink->thread_info.state))
-        return;
+    pa_sink_set_rtpoll(u->sink, i->sink->thread_info.rtpoll);
+    pa_sink_set_latency_range_within_thread(u->sink, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
 
-    pa_sink_set_asyncmsgq(u->sink, i->sink->asyncmsgq);
-    pa_sink_set_rtpoll(u->sink, i->sink->rtpoll);
+    pa_sink_set_fixed_latency_within_thread(u->sink, i->sink->thread_info.fixed_latency);
     pa_sink_attach_within_thread(u->sink);
 
     //size_t fs = pa_frame_size(&(u->sink->sample_spec));
@@ -756,7 +757,8 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     //of them completely, figure out why
     //pa_sink_set_latency_range_within_thread(u->sink, u->master->thread_info.min_latency, u->latency*fs);
     //TODO: this guy causes dropouts constantly+rewinds, it's unusable
-    pa_sink_set_latency_range_within_thread(u->sink, u->master->thread_info.min_latency, u->master->thread_info.max_latency);
+    //pa_sink_set_latency_range_within_thread(u->sink, u->master->thread_info.min_latency, u->master->thread_info.max_latency);
+    pa_sink_attach_within_thread(u->sink);
 }
 
 /* Called from main context */
@@ -766,13 +768,17 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    pa_sink_unlink(u->sink);
+    /* The order here matters! We first kill the sink input, followed
+     * by the sink. That means the sink callbacks must be protected
+     * against an unconnected sink input! */
     pa_sink_input_unlink(u->sink_input);
+    pa_sink_unlink(u->sink);
+
+    pa_sink_input_unref(u->sink_input);
+    u->sink_input = NULL;
 
     pa_sink_unref(u->sink);
     u->sink = NULL;
-    pa_sink_input_unref(u->sink_input);
-    u->sink_input = NULL;
 
     pa_module_unload_request(u->module, TRUE);
 }
@@ -863,6 +869,16 @@ static pa_bool_t sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
     return u->sink != dest;
 }
 
+/* Called from main context */
+static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    pa_sink_set_asyncmsgq(u->sink, dest->asyncmsgq);
+    pa_sink_update_flags(u->sink, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY, dest->flags);
+}
 
 //ensure's memory allocated is a multiple of v_size
 //and aligned
@@ -910,12 +926,8 @@ int pa__init(pa_module*m) {
     fs = pa_frame_size(&ss);
 
     u = pa_xnew0(struct userdata, 1);
-    u->core = m->core;
     u->module = m;
     m->userdata = u;
-    u->master = master;
-    u->sink = NULL;
-    u->sink_input = NULL;
 
     u->channels = ss.channels;
     u->fft_size = pow(2, ceil(log(ss.rate)/log(2)));
@@ -924,7 +936,6 @@ int pa__init(pa_module*m) {
     u->R = (u->window_size + 1) / 2;
     u->overlap_size = u->window_size - u->R;
     u->samples_gathered = 0;
-    u->max_output = pa_frame_align(pa_mempool_block_size_max(m->core->mempool), &ss) / pa_frame_size(&ss);
     u->input_q = pa_memblockq_new(0,  MEMBLOCKQ_MAXLENGTH, 0, fs, 1, 1, 0, NULL);
     u->a_H = pa_aupdate_new();
     u->latency = u->window_size - u->R;
@@ -958,11 +969,10 @@ int pa__init(pa_module*m) {
     sink_data.module = m;
     if (!(sink_data.name = pa_xstrdup(pa_modargs_get_value(ma, "sink_name", NULL))))
         sink_data.name = pa_sprintf_malloc("%s.equalizer", master->name);
-    sink_data.namereg_fail = FALSE;
     pa_sink_new_data_set_sample_spec(&sink_data, &ss);
     pa_sink_new_data_set_channel_map(&sink_data, &map);
     z = pa_proplist_gets(master->proplist, PA_PROP_DEVICE_DESCRIPTION);
-    pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "FFT based equalizer");
+    pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "FFT based equalizer on %s",z? z: master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
 
@@ -972,7 +982,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u->sink = pa_sink_new(m->core, &sink_data, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY);
+    u->sink = pa_sink_new(m->core, &sink_data, master->flags & (PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY));
     pa_sink_new_data_done(&sink_data);
 
     if (!u->sink) {
@@ -987,7 +997,6 @@ int pa__init(pa_module*m) {
     u->sink->userdata = u;
 
     pa_sink_set_asyncmsgq(u->sink, master->asyncmsgq);
-    pa_sink_set_rtpoll(u->sink, master->rtpoll);
     pa_sink_set_max_request(u->sink,
         ((pa_sink_get_max_request(u->sink)+u->R*fs-1)/(u->R*fs))*(u->R*fs)
     );
@@ -997,13 +1006,13 @@ int pa__init(pa_module*m) {
     pa_sink_input_new_data_init(&sink_input_data);
     sink_input_data.driver = __FILE__;
     sink_input_data.module = m;
-    sink_input_data.sink = u->master;
+    sink_input_data.sink = master;
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "Equalized Stream");
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "filter");
     pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
 
-    pa_sink_input_new(&u->sink_input, m->core, &sink_input_data, PA_SINK_INPUT_DONT_MOVE);
+    pa_sink_input_new(&u->sink_input, m->core, &sink_input_data, 0);
     pa_sink_input_new_data_done(&sink_input_data);
 
     if (!u->sink_input)
@@ -1014,11 +1023,13 @@ int pa__init(pa_module*m) {
     u->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;
     u->sink_input->update_max_request = sink_input_update_max_request_cb;
     u->sink_input->update_sink_latency_range = sink_input_update_sink_latency_range_cb;
+    u->sink_input->update_sink_fixed_latency = sink_input_update_sink_fixed_latency_cb;
     u->sink_input->kill = sink_input_kill_cb;
     u->sink_input->attach = sink_input_attach_cb;
     u->sink_input->detach = sink_input_detach_cb;
     u->sink_input->state_change = sink_input_state_change_cb;
     u->sink_input->may_move_to = sink_input_may_move_to_cb;
+    u->sink_input->moving = sink_input_moving_cb;
     u->sink_input->userdata = u;
 
     pa_sink_put(u->sink);
@@ -1075,15 +1086,20 @@ void pa__done(pa_module*m) {
 
     dbus_done(u);
 
-    if (u->sink) {
-        pa_sink_unlink(u->sink);
-        pa_sink_unref(u->sink);
-    }
+    /* See comments in sink_input_kill_cb() above regarding
+     * destruction order! */
 
-    if (u->sink_input) {
+    if (u->sink_input)
         pa_sink_input_unlink(u->sink_input);
+
+    if (u->sink)
+        pa_sink_unlink(u->sink);
+
+    if (u->sink_input)
         pa_sink_input_unref(u->sink_input);
-    }
+
+    if (u->sink)
+        pa_sink_unref(u->sink);
 
     pa_aupdate_free(u->a_H);
     pa_memblockq_free(u->input_q);
@@ -1252,21 +1268,21 @@ static pa_dbus_interface_info equalizer_info={
 };
 
 void dbus_init(struct userdata *u){
-    u->dbus_protocol=pa_dbus_protocol_get(u->core);
+    u->dbus_protocol=pa_dbus_protocol_get(u->sink->core);
     u->dbus_path=pa_sprintf_malloc("/org/pulseaudio/core1/sink%d", u->sink->index);
 
     pa_dbus_protocol_add_interface(u->dbus_protocol, u->dbus_path, &equalizer_info, u);
-    pa_idxset *sink_list=pa_shared_get(u->core, SINKLIST);
-    u->database=pa_shared_get(u->core, EQDB);
+    pa_idxset *sink_list=pa_shared_get(u->sink->core, SINKLIST);
+    u->database=pa_shared_get(u->sink->core, EQDB);
     if(sink_list==NULL){
         sink_list=pa_idxset_new(&pa_idxset_trivial_hash_func, &pa_idxset_trivial_compare_func);
-        pa_shared_set(u->core, SINKLIST, sink_list);
+        pa_shared_set(u->sink->core, SINKLIST, sink_list);
         char *dbname;
         pa_assert_se(dbname = pa_state_path("equalizers", TRUE));
         pa_assert_se(u->database = pa_database_open(dbname, TRUE));
         pa_xfree(dbname);
-        pa_shared_set(u->core,EQDB,u->database);
-        pa_dbus_protocol_add_interface(u->dbus_protocol, MANAGER_PATH, &manager_info, u->core);
+        pa_shared_set(u->sink->core,EQDB,u->database);
+        pa_dbus_protocol_add_interface(u->dbus_protocol, MANAGER_PATH, &manager_info, u->sink->core);
         pa_dbus_protocol_register_extension(u->dbus_protocol, EXTNAME);
     }
     uint32_t dummy;
@@ -1289,14 +1305,14 @@ void dbus_done(struct userdata *u){
     pa_dbus_protocol_send_signal(u->dbus_protocol, signal);
     dbus_message_unref(signal);
 
-    pa_assert_se(sink_list=pa_shared_get(u->core,SINKLIST));
+    pa_assert_se(sink_list=pa_shared_get(u->sink->core,SINKLIST));
     pa_idxset_remove_by_data(sink_list,u,&dummy);
     if(pa_idxset_size(sink_list)==0){
         pa_dbus_protocol_unregister_extension(u->dbus_protocol, EXTNAME);
         pa_dbus_protocol_remove_interface(u->dbus_protocol, MANAGER_PATH, manager_info.name);
-        pa_shared_remove(u->core, EQDB);
+        pa_shared_remove(u->sink->core, EQDB);
         pa_database_close(u->database);
-        pa_shared_remove(u->core, SINKLIST);
+        pa_shared_remove(u->sink->core, SINKLIST);
         pa_xfree(sink_list);
     }
     pa_dbus_protocol_remove_interface(u->dbus_protocol, u->dbus_path, equalizer_info.name);
