@@ -129,16 +129,16 @@ static pa_dbus_interface_info client_interface_info = {
 };
 
 static void handle_get_index(DBusConnection *conn, DBusMessage *msg, void *userdata) {
-  pa_dbusiface_client *c = userdata;
-  dbus_uint32_t idx = 0;
+    pa_dbusiface_client *c = userdata;
+    dbus_uint32_t idx = 0;
 
-  pa_assert(conn);
-  pa_assert(msg);
-  pa_assert(c);
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(c);
 
-  idx = c->client->index;
+    idx = c->client->index;
 
-  pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &idx);
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &idx);
 }
 
 static void handle_get_driver(DBusConnection *conn, DBusMessage *msg, void *userdata) {
