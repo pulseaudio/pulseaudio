@@ -40,6 +40,7 @@ USA.
 #include <pulse/i18n.h>
 #include <pulse/timeval.h>
 
+#include <pulsecore/core-rtclock.h>
 #include <pulsecore/aupdate.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/namereg.h>
@@ -510,7 +511,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     pa_sink_process_rewind(u->sink, 0);
 
     //pa_log_debug("start output-buffered %ld, input-buffered %ld, requested %ld",buffered_samples,u->samples_gathered,samples_requested);
-    pa_timeval_load(&start);
+    pa_rtclock_get(&start);
     do{
         size_t input_remaining = u->window_size - u->samples_gathered;
         pa_assert(input_remaining > 0);
@@ -532,27 +533,27 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
         pa_memblockq_drop(u->input_q, tchunk.length);
         //pa_log_debug("asked for %ld input samples, got %ld samples",input_remaining,buffer->length/fs);
         /* copy new input */
-        //pa_timeval_load(start);
+        //pa_rtclock_get(start);
         if(u->first_iteration){
             initialize_buffer(u, &tchunk);
         }else{
             input_buffer(u, &tchunk);
         }
-        //pa_timeval_load(&end);
+        //pa_rtclock_get(&end);
         //pa_log_debug("Took %0.5f seconds to setup", pa_timeval_diff(end, start) / (double) PA_USEC_PER_SEC);
         pa_memblock_unref(tchunk.memblock);
     }while(u->samples_gathered < u->window_size);
-    pa_timeval_load(&end);
+    pa_rtclock_get(&end);
     pa_log_debug("Took %0.6f seconds to get data", (double) pa_timeval_diff(&end, &start) / PA_USEC_PER_SEC);
 
     pa_assert(u->fft_size >= u->window_size);
     pa_assert(u->R < u->window_size);
     /* set the H filter */
     u->H = u->Hs[pa_aupdate_read_begin(u->a_H)];
-    pa_timeval_load(&start);
+    pa_rtclock_get(&start);
     /* process a block */
     process_samples(u, chunk);
-    pa_timeval_load(&end);
+    pa_rtclock_get(&end);
     pa_log_debug("Took %0.6f seconds to process", (double) pa_timeval_diff(&end, &start) / PA_USEC_PER_SEC);
     pa_aupdate_read_end(u->a_H);
 
