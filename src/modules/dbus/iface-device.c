@@ -1274,6 +1274,7 @@ void pa_dbusiface_device_free(pa_dbusiface_device *d) {
         pa_source_unref(d->source);
     }
     pa_hashmap_free(d->ports, port_free_cb, NULL);
+    pa_proplist_free(d->proplist);
     pa_dbus_protocol_unref(d->dbus_protocol);
     pa_subscription_free(d->subscription);
 
