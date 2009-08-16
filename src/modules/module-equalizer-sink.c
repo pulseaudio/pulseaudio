@@ -677,7 +677,7 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     pa_sink_set_fixed_latency_within_thread(u->sink, i->sink->thread_info.fixed_latency);
     fs = pa_frame_size(&(u->sink->sample_spec));
     pa_sink_attach_within_thread(u->sink);
-    pa_sink_set_max_request_within_thread(u->sink, mround(pa_sink_get_max_request(i->sink), u->R*fs));
+    pa_sink_set_max_request_within_thread(u->sink, mround(pa_sink_input_get_max_request(i), u->R*fs));
 
     //pa_sink_set_latency_range_within_thread(u->sink, u->latency*fs, u->latency*fs);
     //pa_sink_set_latency_range_within_thread(u->sink, u->latency*fs, u->master->thread_info.max_latency);
@@ -811,7 +811,7 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
 static void * alloc(size_t x,size_t s){
     size_t f = mround(x*s, sizeof(float)*v_size);
     float *t;
-    pa_assert_se(f >= x*s);
+    pa_assert(f >= x*s);
     //printf("requested %ld floats=%ld bytes, rem=%ld\n", x, x*sizeof(float), x*sizeof(float)%16);
     //printf("giving %ld floats=%ld bytes, rem=%ld\n", f, f*sizeof(float), f*sizeof(float)%16);
     t = fftwf_malloc(f);
@@ -876,11 +876,8 @@ int pa__init(pa_module*m) {
     u->overlap_accum = pa_xnew0(float *, u->channels);
     for(size_t c = 0; c < u->channels; ++c){
         u->input[c] = alloc(u->window_size, sizeof(float));
-        pa_assert_se(u->input[c]);
         memset(u->input[c], 0, (u->window_size)*sizeof(float));
-        pa_assert_se(u->input[c]);
         u->overlap_accum[c] = alloc(u->overlap_size, sizeof(float));
-        pa_assert_se(u->overlap_accum[c]);
         memset(u->overlap_accum[c], 0, u->overlap_size*sizeof(float));
     }
     u->output_window = alloc((u->fft_size / 2 + 1), sizeof(fftwf_complex));
