@@ -43,6 +43,7 @@ typedef struct pa_source pa_source;
 #include <pulsecore/source-output.h>
 #include <pulsecore/card.h>
 #include <pulsecore/queue.h>
+#include <pulsecore/thread-mq.h>
 
 #define PA_MAX_OUTPUTS_PER_SOURCE 32
 
@@ -89,11 +90,8 @@ struct pa_source {
     pa_bool_t save_muted:1;
 
     pa_asyncmsgq *asyncmsgq;
-    pa_rtpoll *rtpoll;
 
     pa_memchunk silence;
-
-    pa_usec_t fixed_latency; /* for sources with PA_SOURCE_DYNAMIC_LATENCY this is 0 */
 
     pa_hashmap *ports;
     pa_device_port *active_port;
@@ -139,6 +137,8 @@ struct pa_source {
         pa_source_state_t state;
         pa_hashmap *outputs;
 
+        pa_rtpoll *rtpoll;
+
         pa_cvolume soft_volume;
         pa_bool_t soft_muted:1;
 
@@ -151,7 +151,9 @@ struct pa_source {
 
         pa_usec_t min_latency; /* we won't go below this latency */
         pa_usec_t max_latency; /* An upper limit for the latencies */
-    } thread_info;
+
+        pa_usec_t fixed_latency; /* for sources with PA_SOURCE_DYNAMIC_LATENCY this is 0 */
+ } thread_info;
 
     void *userdata;
 };
@@ -173,6 +175,8 @@ typedef enum pa_source_message {
     PA_SOURCE_MESSAGE_DETACH,
     PA_SOURCE_MESSAGE_SET_LATENCY_RANGE,
     PA_SOURCE_MESSAGE_GET_LATENCY_RANGE,
+    PA_SOURCE_MESSAGE_SET_FIXED_LATENCY,
+    PA_SOURCE_MESSAGE_GET_FIXED_LATENCY,
     PA_SOURCE_MESSAGE_GET_MAX_REWIND,
     PA_SOURCE_MESSAGE_SET_MAX_REWIND,
     PA_SOURCE_MESSAGE_MAX
@@ -237,10 +241,12 @@ void pa_source_detach(pa_source *s);
 void pa_source_attach(pa_source *s);
 
 void pa_source_set_soft_volume(pa_source *s, const pa_cvolume *volume);
-void pa_source_volume_changed(pa_source *s, const pa_cvolume *new_volume, pa_bool_t save);
-void pa_source_mute_changed(pa_source *s, pa_bool_t new_muted, pa_bool_t save);
+void pa_source_volume_changed(pa_source *s, const pa_cvolume *new_volume);
+void pa_source_mute_changed(pa_source *s, pa_bool_t new_muted);
 
 int pa_source_sync_suspend(pa_source *s);
+
+void pa_source_update_flags(pa_source *s, pa_source_flags_t mask, pa_source_flags_t value);
 
 /*** May be called by everyone, from main context */
 
@@ -248,6 +254,7 @@ int pa_source_sync_suspend(pa_source *s);
 pa_usec_t pa_source_get_latency(pa_source *s);
 pa_usec_t pa_source_get_requested_latency(pa_source *s);
 void pa_source_get_latency_range(pa_source *s, pa_usec_t *min_latency, pa_usec_t *max_latency);
+pa_usec_t pa_source_get_fixed_latency(pa_source *s);
 
 size_t pa_source_get_max_rewind(pa_source *s);
 
@@ -257,6 +264,7 @@ int pa_source_suspend_all(pa_core *c, pa_bool_t suspend, pa_suspend_cause_t caus
 
 void pa_source_set_volume(pa_source *source, const pa_cvolume *volume, pa_bool_t save);
 const pa_cvolume *pa_source_get_volume(pa_source *source, pa_bool_t force_refresh);
+
 void pa_source_set_mute(pa_source *source, pa_bool_t mute, pa_bool_t save);
 pa_bool_t pa_source_get_mute(pa_source *source, pa_bool_t force_refresh);
 
@@ -288,11 +296,16 @@ void pa_source_detach_within_thread(pa_source *s);
 pa_usec_t pa_source_get_requested_latency_within_thread(pa_source *s);
 
 void pa_source_set_max_rewind_within_thread(pa_source *s, size_t max_rewind);
+
 void pa_source_set_latency_range_within_thread(pa_source *s, pa_usec_t min_latency, pa_usec_t max_latency);
+void pa_source_set_fixed_latency_within_thread(pa_source *s, pa_usec_t latency);
 
 /*** To be called exclusively by source output drivers, from IO context */
 
-void pa_source_invalidate_requested_latency(pa_source *s);
+void pa_source_invalidate_requested_latency(pa_source *s, pa_bool_t dynamic);
 pa_usec_t pa_source_get_latency_within_thread(pa_source *s);
+
+#define pa_source_assert_io_context(s) \
+    pa_assert(pa_thread_mq_get() || !PA_SOURCE_IS_LINKED((s)->state))
 
 #endif

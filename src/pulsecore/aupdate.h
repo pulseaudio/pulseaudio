@@ -93,6 +93,10 @@ unsigned pa_aupdate_write_swap(pa_aupdate *a);
  *    pa_update_write_end(a)
  * }
  *
+ * In some cases keeping both structures up-to-date might not be
+ * necessary, since they are fully rebuilt on each iteration
+ * anyway. In that case you may leave the _write_swap() call out, it
+ * will then be done implicitly in the _write_end() invocation.
  */
 
 #endif

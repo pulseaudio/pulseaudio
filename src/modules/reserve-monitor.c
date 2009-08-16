@@ -1,3 +1,5 @@
+/*-*- Mode: C; c-basic-offset: 8; indent-tabs-mode: t -*-*/
+
 /***
   Copyright 2009 Lennart Poettering
 
@@ -76,8 +78,16 @@ static DBusHandlerResult filter_handler(
 			goto invalid;
 
 		if (strcmp(name, m->service_name) == 0) {
-
 			m->busy = !!(new && *new);
+
+			/* If we ourselves own the device, then don't consider this 'busy' */
+			if (m->busy) {
+				const char *un;
+
+				if ((un = dbus_bus_get_unique_name(c)))
+					if (strcmp(new, un) == 0)
+						m->busy = FALSE;
+			}
 
 			if (m->change_cb) {
 				m->ref++;

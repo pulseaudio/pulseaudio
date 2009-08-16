@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-06-17 23:42+0200\n"
+"POT-Creation-Date: 2009-08-05 15:09+0200\n"
 "PO-Revision-Date: 2009-04-05 16:24+0300\n"
 "Last-Translator: Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>\n"
 "Language-Team: Finnish <laatu@lokalisointi.org>\n"
@@ -16,7 +16,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/modules/alsa/alsa-util.c:1015
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2411
+#, c-format
+msgid "%s %s"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:1023
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -28,7 +33,7 @@ msgstr ""
 "Tämä on todennäköisesti ohjelmavirhe ALSA-ajurissa ”%s”. Ilmoita tästä "
 "ongelmasta ALSA-kehittäjille."
 
-#: ../src/modules/alsa/alsa-util.c:1056
+#: ../src/modules/alsa/alsa-util.c:1064
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -41,7 +46,7 @@ msgstr ""
 "Tämä on todennäköisesti ohjelmavirhe ALSA-ajurissa ”%s”. Ilmoita tästä "
 "ongelmasta ALSA-kehittäjille."
 
-#: ../src/modules/alsa/alsa-util.c:1103
+#: ../src/modules/alsa/alsa-util.c:1111
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -67,7 +72,7 @@ msgid ""
 "input control values>"
 msgstr ""
 
-#: ../src/pulsecore/sink.c:2394
+#: ../src/pulsecore/sink.c:2395
 msgid "Internal Audio"
 msgstr "Sisäinen äänentoisto"
 
@@ -87,220 +92,92 @@ msgstr "Uuden dl-lataaminen varaaminen epäonnistui."
 msgid "Failed to add bind-now-loader."
 msgstr "bind-now-loaderin lisääminen epäonnistui."
 
-#: ../src/daemon/polkit.c:55
-#, c-format
-msgid "Cannot connect to system bus: %s"
-msgstr "Järjestelmäväylään ei voida yhdistää: %s"
-
-#: ../src/daemon/polkit.c:65
-#, c-format
-msgid "Cannot get caller from PID: %s"
-msgstr "Kutsujaa ei saada PID:stä: %s"
-
-#: ../src/daemon/polkit.c:77
-msgid "Cannot set UID on caller object."
-msgstr "UID:tä ei voida asettaa kutsujaobjektille."
-
-#: ../src/daemon/polkit.c:82
-msgid "Failed to get CK session."
-msgstr "CK-istunnon saaminen epäonnistui."
-
-#: ../src/daemon/polkit.c:90
-msgid "Cannot set UID on session object."
-msgstr "UID:tä ei voida asettaa istunto-objektille."
-
-#: ../src/daemon/polkit.c:95
-msgid "Cannot allocate PolKitAction."
-msgstr "Ei voida varata PolKitActionia."
-
-#: ../src/daemon/polkit.c:100
-msgid "Cannot set action_id"
-msgstr "Ei voida asettaa action_id:tä"
-
-#: ../src/daemon/polkit.c:105
-msgid "Cannot allocate PolKitContext."
-msgstr "Ei voida varata PolKitContextia."
-
-#: ../src/daemon/polkit.c:110
-#, c-format
-msgid "Cannot initialize PolKitContext: %s"
-msgstr "Ei voida alustaa PolKitContextia: %s"
-
-#: ../src/daemon/polkit.c:119
-#, c-format
-msgid "Could not determine whether caller is authorized: %s"
-msgstr "Ei voida päätellä onko kutsujalla käyttöoikeus: %s"
-
-#: ../src/daemon/polkit.c:139
-#, c-format
-msgid "Cannot obtain auth: %s"
-msgstr "Tunnistautumista ei saada: %s"
-
-#: ../src/daemon/polkit.c:148
-#, c-format
-msgid "PolicyKit responded with '%s'"
-msgstr "PolicyKit vastasi ”%s”"
-
-#: ../src/daemon/main.c:142
+#: ../src/daemon/main.c:145
 #, c-format
 msgid "Got signal %s."
 msgstr "Saatiin signaali %s."
 
-#: ../src/daemon/main.c:169
+#: ../src/daemon/main.c:172
 msgid "Exiting."
 msgstr "Poistutaan."
 
-#: ../src/daemon/main.c:187
+#: ../src/daemon/main.c:190
 #, c-format
 msgid "Failed to find user '%s'."
 msgstr "Käyttäjää ”%s” ei löydetty."
 
-#: ../src/daemon/main.c:192
+#: ../src/daemon/main.c:195
 #, c-format
 msgid "Failed to find group '%s'."
 msgstr "Ryhmää ”%s” ei löydetty."
 
-#: ../src/daemon/main.c:196
+#: ../src/daemon/main.c:199
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
 msgstr "Löydettiin käyttäjä ”%s” (UID %lu) ja ryhmä ”%s” (GID %lu)."
 
-#: ../src/daemon/main.c:201
+#: ../src/daemon/main.c:204
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
 msgstr "Käyttäjän ”%s” ja ryhmän ”%s” GID:t eivät vastaa toisiaan."
 
-#: ../src/daemon/main.c:206
+#: ../src/daemon/main.c:209
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "Käyttäjän ”%s” kotihakemisto ei ole ”%s”, ohitetaan."
 
-#: ../src/daemon/main.c:209 ../src/daemon/main.c:214
+#: ../src/daemon/main.c:212 ../src/daemon/main.c:217
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "Hakemiston ”%s” luominen epäonnistui: %s"
 
-#: ../src/daemon/main.c:221
+#: ../src/daemon/main.c:224
 #, c-format
 msgid "Failed to change group list: %s"
 msgstr "Ryhmäluettelon vaihtaminen epäonnistui: %s"
 
-#: ../src/daemon/main.c:237
+#: ../src/daemon/main.c:240
 #, c-format
 msgid "Failed to change GID: %s"
 msgstr "GID:n vaihtaminen epäonnistui: %s"
 
-#: ../src/daemon/main.c:253
+#: ../src/daemon/main.c:256
 #, c-format
 msgid "Failed to change UID: %s"
 msgstr "UID:n vaihtaminen epäonnistui: %s"
 
-#: ../src/daemon/main.c:267
+#: ../src/daemon/main.c:270
 msgid "Successfully dropped root privileges."
 msgstr "Root-oikeuksista luopuminen onnistui."
 
-#: ../src/daemon/main.c:275
+#: ../src/daemon/main.c:278
 msgid "System wide mode unsupported on this platform."
 msgstr "Järjestelmänlaajuista tilaa ei tueta tällä alustalla."
 
-#: ../src/daemon/main.c:293
+#: ../src/daemon/main.c:296
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) epäonnistui: %s"
 
-#: ../src/daemon/main.c:481
+#: ../src/daemon/main.c:471
 msgid "Failed to parse command line."
 msgstr "Komentorivin jäsentäminen epäonnistui."
 
-#: ../src/daemon/main.c:505
-#, c-format
-msgid "We're in the group '%s', allowing high-priority scheduling."
-msgstr "Ollaan ryhmässä ”%s”, korkean prioriteetin ajoitus on sallittua."
-
-#: ../src/daemon/main.c:512
-#, c-format
-msgid "We're in the group '%s', allowing real-time scheduling."
-msgstr "Ollaan ryhmässä ”%s”, tosiaikainen vuorottaminen on sallittua."
-
-#: ../src/daemon/main.c:520
-msgid "PolicyKit grants us acquire-high-priority privilege."
-msgstr "PolicyKit myöntää acquire-high-priority-oikeuden."
-
-#: ../src/daemon/main.c:523
-msgid "PolicyKit refuses acquire-high-priority privilege."
-msgstr "PolicyKit ei myönnä acquire-high-priority-oikeutta."
-
-#: ../src/daemon/main.c:528
-msgid "PolicyKit grants us acquire-real-time privilege."
-msgstr "PolicyKit myöntää acquire-real-time-oikeuden."
-
-#: ../src/daemon/main.c:531
-msgid "PolicyKit refuses acquire-real-time privilege."
-msgstr "PolicyKit ei myönnä acquire-real-time-oikeutta."
-
-#: ../src/daemon/main.c:560
-#, c-format
-msgid ""
-"Called SUID root and real-time and/or high-priority scheduling was requested "
-"in the configuration. However, we lack the necessary privileges:\n"
-"We are not in group '%s', PolicyKit refuse to grant us the requested "
-"privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
-"limits.\n"
-"For enabling real-time/high-priority scheduling please acquire the "
-"appropriate PolicyKit privileges, or become a member of '%s', or increase "
-"the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
-msgstr ""
-"Ohjelmaa kutsuttiin SUID-rootina ja reaaliaikaista ja/tai korkean "
-"prioriteetin ajoitusta pyydettiin asetuksissa. Tarvittavat oikeudet "
-"kuitenkin puuttuvat:\n"
-"Ei olla ryhmässä ”%s”, PolicyKit ei myönnä pyydettyjä oikeuksia ja "
-"RLIMIT_NICE/RLIMIT_RTPRIO-resurssirajoja ei ole kasvatettu.\n"
-"Hanki riittävät PolicyKit-oikeudet, liity ryhmään ”%s” tai kasvata tämän "
-"käyttäjän RLIMIT_NICE/RLIMIT_RTPRIO-resurssirajoja reaaliaikaisen ja/tai "
-"korkean prioriteetin ajoituksen ottamiseksi käyttöön."
-
-#: ../src/daemon/main.c:585
-msgid ""
-"High-priority scheduling enabled in configuration but not allowed by policy."
-msgstr ""
-"Korkean prioriteetin ajoitus otettu käyttöön asetuksissa, mutta käytännöt "
-"eivät salli sitä."
-
-#: ../src/daemon/main.c:614
-msgid "Successfully increased RLIMIT_RTPRIO"
-msgstr "RLIMIT_RTPRIO:n kasvatus onnistui"
-
-#: ../src/daemon/main.c:617
-#, c-format
-msgid "RLIMIT_RTPRIO failed: %s"
-msgstr "RLIMIT_RTPRIO epäonnistui: %s"
-
-#: ../src/daemon/main.c:624
-msgid "Giving up CAP_NICE"
-msgstr "Luovutaan CAP_NICE:stä"
-
-#: ../src/daemon/main.c:631
-msgid ""
-"Real-time scheduling enabled in configuration but not allowed by policy."
-msgstr ""
-"Tosiaikainen ajoitus otettu käyttöön asetuksissa, mutta käytännöt eivät "
-"salli sitä."
-
-#: ../src/daemon/main.c:692
+#: ../src/daemon/main.c:538
 msgid "Daemon not running"
 msgstr "Taustaprosessi ei ole käynnissä"
 
-#: ../src/daemon/main.c:694
+#: ../src/daemon/main.c:540
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "Taustaprosessi käynnissä prosessitunnisteella %u"
 
-#: ../src/daemon/main.c:704
+#: ../src/daemon/main.c:550
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Taustaprosessin lopettaminen epäonnistui: %s"
 
-#: ../src/daemon/main.c:722
+#: ../src/daemon/main.c:568
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -308,156 +185,156 @@ msgstr ""
 "Tätä ohjelmaa ei ole tarkoitettu suoritettavaksi pääkäyttäjänä (ellei --"
 "system ole määritelty)."
 
-#: ../src/daemon/main.c:724
+#: ../src/daemon/main.c:570
 msgid "Root privileges required."
 msgstr "Pääkäyttäjän (root) oikeudet vaaditaan."
 
-#: ../src/daemon/main.c:729
+#: ../src/daemon/main.c:575
 msgid "--start not supported for system instances."
 msgstr "--start-valitsinta ei tueta järjestelmätilassa."
 
-#: ../src/daemon/main.c:734
+#: ../src/daemon/main.c:580
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr ""
 "Suoritetaan järjestelmätilassa, mutta --disallow-exit ei ole asetettuna!"
 
-#: ../src/daemon/main.c:737
+#: ../src/daemon/main.c:583
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 "Suoritetaan järjestelmätilassa, mutta -disallow-module-loading ei ole "
 "asetettuna!"
 
-#: ../src/daemon/main.c:740
+#: ../src/daemon/main.c:586
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr ""
 "Suoritetaan järjestelmätilassa, otetaan SHM-tila pakotetusti pois käytöstä."
 
-#: ../src/daemon/main.c:745
+#: ../src/daemon/main.c:591
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "Suoritetaan järjestelmätilassa, otetaan poistumisen joutenoloaika "
 "pakotetusti pois käytöstä."
 
-#: ../src/daemon/main.c:772
+#: ../src/daemon/main.c:618
 msgid "Failed to acquire stdio."
 msgstr "stdio:n saaminen epäonnistui."
 
-#: ../src/daemon/main.c:778
+#: ../src/daemon/main.c:624
 #, c-format
 msgid "pipe failed: %s"
 msgstr "putki epäonnistui: %s"
 
-#: ../src/daemon/main.c:783
+#: ../src/daemon/main.c:629
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() epäonnistui: %s"
 
-#: ../src/daemon/main.c:797
+#: ../src/daemon/main.c:643 ../src/utils/pacat.c:505
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() epäonnistui: %s"
 
-#: ../src/daemon/main.c:803
+#: ../src/daemon/main.c:649
 msgid "Daemon startup failed."
 msgstr "Taustaprosessin käynnistys epäonnistui."
 
-#: ../src/daemon/main.c:805
+#: ../src/daemon/main.c:651
 msgid "Daemon startup successful."
 msgstr "Taustaprosessin käynnistys onnistui."
 
-#: ../src/daemon/main.c:875
+#: ../src/daemon/main.c:728
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Tämä on PulseAudio %s"
 
-#: ../src/daemon/main.c:876
+#: ../src/daemon/main.c:729
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Käännöksen isäntäkone: %s"
 
-#: ../src/daemon/main.c:877
+#: ../src/daemon/main.c:730
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "Käännösaikaiset C-liput (CFLAGS): %s"
 
-#: ../src/daemon/main.c:880
+#: ../src/daemon/main.c:733
 #, c-format
 msgid "Running on host: %s"
 msgstr "Käynnissä isäntäkoneella: %s"
 
-#: ../src/daemon/main.c:883
+#: ../src/daemon/main.c:736
 #, c-format
 msgid "Found %u CPUs."
 msgstr "Löydettiin %u CPU:ta."
 
-#: ../src/daemon/main.c:885
+#: ../src/daemon/main.c:738
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "Sivun koko on %lu tavua"
 
-#: ../src/daemon/main.c:888
+#: ../src/daemon/main.c:741
 msgid "Compiled with Valgrind support: yes"
 msgstr "Käännetty Valgrind-tuella: kyllä"
 
-#: ../src/daemon/main.c:890
+#: ../src/daemon/main.c:743
 msgid "Compiled with Valgrind support: no"
 msgstr "Käännetty Valgrind-tuella: ei"
 
-#: ../src/daemon/main.c:893
+#: ../src/daemon/main.c:746
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "Käynnissä valgrind-tilassa: %s"
 
-#: ../src/daemon/main.c:896
+#: ../src/daemon/main.c:749
 msgid "Optimized build: yes"
 msgstr "Optimoitu rakentaminen: kyllä"
 
-#: ../src/daemon/main.c:898
+#: ../src/daemon/main.c:751
 msgid "Optimized build: no"
 msgstr "Optimoitu rakentaminen: ei"
 
-#: ../src/daemon/main.c:902
+#: ../src/daemon/main.c:755
 msgid "NDEBUG defined, all asserts disabled."
 msgstr "NDEBUG on määritelty, kaikki assertit ovat poissa käytöstä."
 
-#: ../src/daemon/main.c:904
+#: ../src/daemon/main.c:757
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr "FASTPATH on määritelty, vain fast path -assertit ovat poissa käytöstä."
 
-#: ../src/daemon/main.c:906
+#: ../src/daemon/main.c:759
 msgid "All asserts enabled."
 msgstr "Kaikki assertit ovat käytössä."
 
-#: ../src/daemon/main.c:910
+#: ../src/daemon/main.c:763
 msgid "Failed to get machine ID"
 msgstr "Konetunnisteen nouto epäonnistui"
 
-#: ../src/daemon/main.c:913
+#: ../src/daemon/main.c:766
 #, c-format
 msgid "Machine ID is %s."
 msgstr "Konetunniste on %s."
 
-#: ../src/daemon/main.c:917
+#: ../src/daemon/main.c:770
 #, fuzzy, c-format
 msgid "Session ID is %s."
 msgstr "Konetunniste on %s."
 
-#: ../src/daemon/main.c:923
+#: ../src/daemon/main.c:776
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Käytetään ajonaikaista hakemistoa %s."
 
-#: ../src/daemon/main.c:928
+#: ../src/daemon/main.c:781
 #, c-format
 msgid "Using state directory %s."
 msgstr "Käytetään tilahakemistoa %s."
 
-#: ../src/daemon/main.c:931
+#: ../src/daemon/main.c:784
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Suoritetaan järjestelmätilassa: %s"
 
-#: ../src/daemon/main.c:934
+#: ../src/daemon/main.c:787
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -467,15 +344,15 @@ msgid ""
 "explanation why system mode is usually a bad idea."
 msgstr ""
 
-#: ../src/daemon/main.c:951
+#: ../src/daemon/main.c:804
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() epäonnistui."
 
-#: ../src/daemon/main.c:961
+#: ../src/daemon/main.c:814
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Korkean tarkkuuden ajastimet käytettävissä."
 
-#: ../src/daemon/main.c:963
+#: ../src/daemon/main.c:816
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -483,29 +360,29 @@ msgstr ""
 "Hei, ytimesi on kehno! Linux korkean tarkkuuden ajastimien tuella on hyvin "
 "suositeltava!"
 
-#: ../src/daemon/main.c:988
+#: ../src/daemon/main.c:834
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() epäonnistui."
 
-#: ../src/daemon/main.c:1050
+#: ../src/daemon/main.c:896
 msgid "Failed to initialize daemon."
 msgstr "Taustaprosessin alustus epäonnistui."
 
-#: ../src/daemon/main.c:1055
+#: ../src/daemon/main.c:901
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "Taustaprosessin käynnistys ilman ladattavia moduuleita, kieltäydytään "
 "toiminnasta."
 
-#: ../src/daemon/main.c:1072
+#: ../src/daemon/main.c:918
 msgid "Daemon startup complete."
 msgstr "Taustaprosessin käynnistys valmis."
 
-#: ../src/daemon/main.c:1078
+#: ../src/daemon/main.c:924
 msgid "Daemon shutdown initiated."
 msgstr "Taustaprosessin sulkeminen käynnistetty."
 
-#: ../src/daemon/main.c:1100
+#: ../src/daemon/main.c:946
 msgid "Daemon terminated."
 msgstr "Taustaprosessi lopetettu."
 
@@ -854,13 +731,9 @@ msgstr ""
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### Luettu asetustiedostosta: %s ###\n"
 
-#: ../src/daemon/caps.c:63
+#: ../src/daemon/caps.c:65
 msgid "Dropping root privileges."
 msgstr "Luovutaan pääkäyttäjän oikeuksista."
-
-#: ../src/daemon/caps.c:103
-msgid "Limited capabilities successfully to CAP_SYS_NICE."
-msgstr "Oikeuksien rajoittaminen CAP_SYS_NICEen onnistui."
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
@@ -869,29 +742,6 @@ msgstr "PulseAudio-äänijärjestelmä"
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
 msgstr "Käynnistä PulseAudio-äänijärjestelmä"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:1
-msgid ""
-"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr ""
-"Korkean prioriteetin ajoitus (negatiivinen Unix-nice-taso) PulseAudio-"
-"taustajärjestelmälle"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:2
-msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr "Reaaliaikainen ajoitus PulseAudio-taustajärjestelmälle"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:3
-msgid ""
-"System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr ""
-"Järjestelmäkäytäntö estää PulseAudiota saamasta korkean prioriteetin "
-"ajoitusta."
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:4
-msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr ""
-"Järjestelmäkäytäntö estää PulseAudiota saamasta reaaliaikaista ajoitusta."
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:747
 msgid "Mono"
@@ -1265,183 +1115,187 @@ msgstr "Evästetietojen jäsennys epäonnistui"
 msgid "Failed to open configuration file '%s': %s"
 msgstr "Asetustiedoston avaaminen epäonnistui: ”%s”: %s"
 
-#: ../src/pulse/context.c:546
+#: ../src/pulse/context.c:550
 msgid "No cookie loaded. Attempting to connect without."
 msgstr "Ei ladattua evästettä. Yritetään yhdistämistä ilman."
 
-#: ../src/pulse/context.c:676
+#: ../src/pulse/context.c:693
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:729
+#: ../src/pulse/context.c:745
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1403
+#: ../src/pulse/context.c:1432
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Saatiin viesti tuntemattomalle laajennokselle ”%s”"
 
-#: ../src/utils/pacat.c:107
-#, c-format
-msgid "Failed to drain stream: %s\n"
+#: ../src/utils/pacat.c:108
+#, fuzzy, c-format
+msgid "Failed to drain stream: %s"
 msgstr "Virran tyhjentäminen epäonnistui: %s\n"
 
-#: ../src/utils/pacat.c:112
-msgid "Playback stream drained.\n"
+#: ../src/utils/pacat.c:113
+#, fuzzy
+msgid "Playback stream drained."
 msgstr "Toistovirta on tyhjennetty.\n"
 
-#: ../src/utils/pacat.c:122
-msgid "Draining connection to server.\n"
+#: ../src/utils/pacat.c:123
+#, fuzzy
+msgid "Draining connection to server."
 msgstr "Tyhjennetään yhteyttä palvelimelle.\n"
 
-#: ../src/utils/pacat.c:135
-#, c-format
-msgid "pa_stream_drain(): %s\n"
+#: ../src/utils/pacat.c:136
+#, fuzzy, c-format
+msgid "pa_stream_drain(): %s"
 msgstr "pa_stream_drain(): %s\n"
 
-#: ../src/utils/pacat.c:158
-#, c-format
-msgid "pa_stream_write() failed: %s\n"
+#: ../src/utils/pacat.c:159
+#, fuzzy, c-format
+msgid "pa_stream_write() failed: %s"
 msgstr "pa_stream_write() epäonnistui: %s\n"
 
-#: ../src/utils/pacat.c:233 ../src/utils/pacat.c:262
-#, c-format
-msgid "pa_stream_peek() failed: %s\n"
+#: ../src/utils/pacat.c:197
+#, fuzzy, c-format
+msgid "pa_stream_begin_write() failed: %s"
+msgstr "pa_stream_write() epäonnistui: %s\n"
+
+#: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267
+#, fuzzy, c-format
+msgid "pa_stream_peek() failed: %s"
 msgstr "pa_stream_peek() epäonnistui: %s\n"
 
-#: ../src/utils/pacat.c:302
-msgid "Stream successfully created.\n"
+#: ../src/utils/pacat.c:307
+#, fuzzy
+msgid "Stream successfully created."
 msgstr "Virran luonti onnistui.\n"
 
-#: ../src/utils/pacat.c:305
-#, c-format
-msgid "pa_stream_get_buffer_attr() failed: %s\n"
+#: ../src/utils/pacat.c:310
+#, fuzzy, c-format
+msgid "pa_stream_get_buffer_attr() failed: %s"
 msgstr "pa_stream_get_buffer_attr() epäonnistui: %s\n"
 
-#: ../src/utils/pacat.c:309
-#, c-format
-msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
+#: ../src/utils/pacat.c:314
+#, fuzzy, c-format
+msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 msgstr "Puskuritiedot: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
 
-#: ../src/utils/pacat.c:312
-#, c-format
-msgid "Buffer metrics: maxlength=%u, fragsize=%u\n"
+#: ../src/utils/pacat.c:317
+#, fuzzy, c-format
+msgid "Buffer metrics: maxlength=%u, fragsize=%u"
 msgstr "Puskuritiedot: maxlength=%u, fragsize=%u\n"
 
-#: ../src/utils/pacat.c:316
-#, c-format
-msgid "Using sample spec '%s', channel map '%s'.\n"
+#: ../src/utils/pacat.c:321
+#, fuzzy, c-format
+msgid "Using sample spec '%s', channel map '%s'."
 msgstr "Käytetään näytemäärittelyä ”%s”, kanavakarttaa ”%s”.\n"
 
-#: ../src/utils/pacat.c:320
-#, c-format
-msgid "Connected to device %s (%u, %ssuspended).\n"
+#: ../src/utils/pacat.c:325
+#, fuzzy, c-format
+msgid "Connected to device %s (%u, %ssuspended)."
 msgstr "Yhdistetty laitteeseen %s (%u, %ssuspended).\n"
 
-#: ../src/utils/pacat.c:330
-#, c-format
-msgid "Stream error: %s\n"
+#: ../src/utils/pacat.c:335
+#, fuzzy, c-format
+msgid "Stream error: %s"
 msgstr "Virtavirhe: %s\n"
 
-#: ../src/utils/pacat.c:340
-#, c-format
-msgid "Stream device suspended.%s \n"
+#: ../src/utils/pacat.c:345
+#, fuzzy, c-format
+msgid "Stream device suspended.%s"
 msgstr "Virtalaite keskeytetty.%s \n"
 
-#: ../src/utils/pacat.c:342
-#, c-format
-msgid "Stream device resumed.%s \n"
+#: ../src/utils/pacat.c:347
+#, fuzzy, c-format
+msgid "Stream device resumed.%s"
 msgstr "Virtalaite palautettu.%s \n"
 
-#: ../src/utils/pacat.c:350
-#, c-format
-msgid "Stream underrun.%s \n"
+#: ../src/utils/pacat.c:355
+#, fuzzy, c-format
+msgid "Stream underrun.%s"
 msgstr "Virran alivuoto.%s \n"
 
-#: ../src/utils/pacat.c:357
-#, c-format
-msgid "Stream overrun.%s \n"
+#: ../src/utils/pacat.c:362
+#, fuzzy, c-format
+msgid "Stream overrun.%s"
 msgstr "Virran ylivuoto.%s \n"
 
-#: ../src/utils/pacat.c:364
-#, c-format
-msgid "Stream started.%s \n"
+#: ../src/utils/pacat.c:369
+#, fuzzy, c-format
+msgid "Stream started.%s"
 msgstr "Virta käynnistetty.%s \n"
 
-#: ../src/utils/pacat.c:371
-#, c-format
-msgid "Stream moved to device %s (%u, %ssuspended).%s \n"
+#: ../src/utils/pacat.c:376
+#, fuzzy, c-format
+msgid "Stream moved to device %s (%u, %ssuspended).%s"
 msgstr "Virta siirretty laitteelle %s (%u, %ssuspended).%s \n"
 
-#: ../src/utils/pacat.c:371
+#: ../src/utils/pacat.c:376
 msgid "not "
 msgstr "ei "
 
-#: ../src/utils/pacat.c:378
-#, c-format
-msgid "Stream buffer attributes changed.%s \n"
+#: ../src/utils/pacat.c:383
+#, fuzzy, c-format
+msgid "Stream buffer attributes changed.%s"
 msgstr "Virran puskuriattribuutteja muutettu.%s \n"
 
-#: ../src/utils/pacat.c:411
-#, c-format
-msgid "Connection established.%s \n"
+#: ../src/utils/pacat.c:416
+#, fuzzy, c-format
+msgid "Connection established.%s"
 msgstr "Yhteys muodostettu.%s \n"
 
-#: ../src/utils/pacat.c:414
-#, c-format
-msgid "pa_stream_new() failed: %s\n"
+#: ../src/utils/pacat.c:419
+#, fuzzy, c-format
+msgid "pa_stream_new() failed: %s"
 msgstr "pa_stream_new() epäonnistui: %s\n"
 
-#: ../src/utils/pacat.c:442
-#, c-format
-msgid "pa_stream_connect_playback() failed: %s\n"
+#: ../src/utils/pacat.c:447
+#, fuzzy, c-format
+msgid "pa_stream_connect_playback() failed: %s"
 msgstr "pa_stream_connect_playback() epäonnistui: %s\n"
 
-#: ../src/utils/pacat.c:448
-#, c-format
-msgid "pa_stream_connect_record() failed: %s\n"
+#: ../src/utils/pacat.c:453
+#, fuzzy, c-format
+msgid "pa_stream_connect_record() failed: %s"
 msgstr "pa_stream_connect_record() epäonnistui: %s\n"
 
-#: ../src/utils/pacat.c:462 ../src/utils/pasuspender.c:159
-#: ../src/utils/pactl.c:814
-#, c-format
-msgid "Connection failure: %s\n"
+#: ../src/utils/pacat.c:467
+#, fuzzy, c-format
+msgid "Connection failure: %s"
 msgstr "Yhteysvirhe: %s\n"
 
-#: ../src/utils/pacat.c:495
-msgid "Got EOF.\n"
+#: ../src/utils/pacat.c:500
+#, fuzzy
+msgid "Got EOF."
 msgstr "Saatiin EOF.\n"
 
-#: ../src/utils/pacat.c:500
-#, c-format
-msgid "read() failed: %s\n"
-msgstr "read() epäonnistui: %s\n"
-
-#: ../src/utils/pacat.c:532
-#, c-format
-msgid "write() failed: %s\n"
+#: ../src/utils/pacat.c:537
+#, fuzzy, c-format
+msgid "write() failed: %s"
 msgstr "write() epäonnistui: %s\n"
 
-#: ../src/utils/pacat.c:553
-msgid "Got signal, exiting.\n"
+#: ../src/utils/pacat.c:558
+#, fuzzy
+msgid "Got signal, exiting."
 msgstr "Saatiin signaali, lopetetaan.\n"
 
-#: ../src/utils/pacat.c:567
-#, c-format
-msgid "Failed to get latency: %s\n"
+#: ../src/utils/pacat.c:572
+#, fuzzy, c-format
+msgid "Failed to get latency: %s"
 msgstr "Latenssin selvittäminen epäonnistui: %s\n"
 
-#: ../src/utils/pacat.c:572
+#: ../src/utils/pacat.c:577
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr "Aika: %0.3f s; latenssi: %0.0f μs.  \r"
 
-#: ../src/utils/pacat.c:592
-#, c-format
-msgid "pa_stream_update_timing_info() failed: %s\n"
+#: ../src/utils/pacat.c:595
+#, fuzzy, c-format
+msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() epäonnistui: %s\n"
 
 #: ../src/utils/pacat.c:605
@@ -1561,34 +1415,34 @@ msgstr ""
 "Käännetty libpulsen versiolle %s\n"
 "Linkitetty libpulsen versiolle %s\n"
 
-#: ../src/utils/pacat.c:760 ../src/utils/pactl.c:900
+#: ../src/utils/pacat.c:760
 #, fuzzy, c-format
-msgid "Invalid client name '%s'\n"
+msgid "Invalid client name '%s'"
 msgstr "Virheellinen kanavakartta ”%s”\n"
 
 #: ../src/utils/pacat.c:776
 #, fuzzy, c-format
-msgid "Invalid stream name '%s'\n"
+msgid "Invalid stream name '%s'"
 msgstr "Virheellinen uudelleennäytteistyksen tapa ”%s”."
 
 #: ../src/utils/pacat.c:813
-#, c-format
-msgid "Invalid channel map '%s'\n"
+#, fuzzy, c-format
+msgid "Invalid channel map '%s'"
 msgstr "Virheellinen kanavakartta ”%s”\n"
 
 #: ../src/utils/pacat.c:842
-#, c-format
-msgid "Invalid latency specification '%s'\n"
+#, fuzzy, c-format
+msgid "Invalid latency specification '%s'"
 msgstr "Virheellinen latenssimääritys ”%s”\n"
 
 #: ../src/utils/pacat.c:849
-#, c-format
-msgid "Invalid process time specification '%s'\n"
+#, fuzzy, c-format
+msgid "Invalid process time specification '%s'"
 msgstr "Virheellinen prosessiajan määritys ”%s”\n"
 
 #: ../src/utils/pacat.c:861
 #, fuzzy, c-format
-msgid "Invalid property '%s'\n"
+msgid "Invalid property '%s'"
 msgstr "Virheellinen uudelleennäytteistyksen tapa ”%s”."
 
 #: ../src/utils/pacat.c:878
@@ -1597,60 +1451,66 @@ msgid "Unknown file format %s."
 msgstr ""
 
 #: ../src/utils/pacat.c:897
-msgid "Invalid sample specification\n"
+#, fuzzy
+msgid "Invalid sample specification"
 msgstr "Virheellinen näytemääritys\n"
 
 #: ../src/utils/pacat.c:907
-#, c-format
-msgid "open(): %s\n"
+#, fuzzy, c-format
+msgid "open(): %s"
 msgstr "open(): %s\n"
 
 #: ../src/utils/pacat.c:912
-#, c-format
-msgid "dup2(): %s\n"
+#, fuzzy, c-format
+msgid "dup2(): %s"
 msgstr "dup2(): %s\n"
 
 #: ../src/utils/pacat.c:919
-msgid "Too many arguments.\n"
+#, fuzzy
+msgid "Too many arguments."
 msgstr "Liian monta argumenttia.\n"
 
 #: ../src/utils/pacat.c:930
 #, fuzzy
-msgid "Failed to generate sample specification for file.\n"
+msgid "Failed to generate sample specification for file."
 msgstr "Näytetietojen nouto epäonnistui: %s\n"
 
 #: ../src/utils/pacat.c:950
 #, fuzzy
-msgid "Failed to open audio file.\n"
+msgid "Failed to open audio file."
 msgstr "Äänitiedoston avaaminen epäonnistui.\n"
 
 #: ../src/utils/pacat.c:956
+#, fuzzy
 msgid ""
 "Warning: specified sample specification will be overwritten with "
-"specification from file.\n"
-msgstr ""
+"specification from file."
+msgstr "Avataan %svirta näytemäärityksellä ”%s”.\n"
 
-#: ../src/utils/pacat.c:959 ../src/utils/pactl.c:944
+#: ../src/utils/pacat.c:959
 #, fuzzy
-msgid "Failed to determine sample specification from file.\n"
+msgid "Failed to determine sample specification from file."
 msgstr "Näytetietojen nouto epäonnistui: %s\n"
 
 #: ../src/utils/pacat.c:968
-msgid "Warning: Failed to determine channel map from file.\n"
-msgstr ""
+#, fuzzy
+msgid "Warning: Failed to determine channel map from file."
+msgstr "Avataan %svirta näytemäärityksellä ”%s”.\n"
 
 #: ../src/utils/pacat.c:979
-msgid "Channel map doesn't match sample specification\n"
+#, fuzzy
+msgid "Channel map doesn't match sample specification"
 msgstr "Kanavakartta ei vastaa näytemääritystä\n"
 
 #: ../src/utils/pacat.c:990
-msgid "Warning: failed to write channel map to file.\n"
-msgstr ""
+#, fuzzy
+msgid "Warning: failed to write channel map to file."
+msgstr "Avataan %svirta näytemäärityksellä ”%s”.\n"
 
 #: ../src/utils/pacat.c:1005
 #, fuzzy, c-format
 msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'.\n"
+"Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "Avataan %svirta näytemäärityksellä ”%s”.\n"
 
 #: ../src/utils/pacat.c:1006
@@ -1661,35 +1521,34 @@ msgstr "nauhoitus"
 msgid "playback"
 msgstr "toisto"
 
-#: ../src/utils/pacat.c:1032 ../src/utils/pasuspender.c:277
-#: ../src/utils/pactl.c:1104
-#, c-format
-msgid "pa_mainloop_new() failed.\n"
+#: ../src/utils/pacat.c:1032
+#, fuzzy
+msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() epäonnistui.\n"
 
 #: ../src/utils/pacat.c:1051
-msgid "io_new() failed.\n"
+#, fuzzy
+msgid "io_new() failed."
 msgstr "io_new() epäonnistui.\n"
 
-#: ../src/utils/pacat.c:1058 ../src/utils/pasuspender.c:290
-#: ../src/utils/pactl.c:1116
-#, c-format
-msgid "pa_context_new() failed.\n"
+#: ../src/utils/pacat.c:1058
+#, fuzzy
+msgid "pa_context_new() failed."
 msgstr "pa_context_new() epäonnistui.\n"
 
-#: ../src/utils/pacat.c:1066
-#, fuzzy, c-format
-msgid "pa_context_connect() failed: %s\n"
+#: ../src/utils/pacat.c:1066 ../src/utils/pactl.c:1122
+#, c-format
+msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() epäonnistui: %s"
 
-#: ../src/utils/pacat.c:1077
-msgid "time_new() failed.\n"
-msgstr "time_new() epäonnistui.\n"
+#: ../src/utils/pacat.c:1072
+#, fuzzy
+msgid "pa_context_rttime_new() failed."
+msgstr "pa_context_new() epäonnistui.\n"
 
-#: ../src/utils/pacat.c:1084 ../src/utils/pasuspender.c:298
-#: ../src/utils/pactl.c:1127
-#, c-format
-msgid "pa_mainloop_run() failed.\n"
+#: ../src/utils/pacat.c:1079
+#, fuzzy
+msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() epäonnistui.\n"
 
 #: ../src/utils/pasuspender.c:81
@@ -1716,6 +1575,11 @@ msgstr "Palautus epäonnistui: %s\n"
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
 msgstr "VAROITUS: Äänipalvelin ei ole paikallinen, ei keskeytetä.\n"
+
+#: ../src/utils/pasuspender.c:159 ../src/utils/pactl.c:814
+#, c-format
+msgid "Connection failure: %s\n"
+msgstr "Yhteysvirhe: %s\n"
 
 #: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:820
 #, c-format
@@ -1756,6 +1620,21 @@ msgstr ""
 "pasuspender %s\n"
 "Käännetty libpulsen versiolle %s\n"
 "Linkitetty libpulsen versiolle %s\n"
+
+#: ../src/utils/pasuspender.c:277 ../src/utils/pactl.c:1104
+#, c-format
+msgid "pa_mainloop_new() failed.\n"
+msgstr "pa_mainloop_new() epäonnistui.\n"
+
+#: ../src/utils/pasuspender.c:290 ../src/utils/pactl.c:1116
+#, c-format
+msgid "pa_context_new() failed.\n"
+msgstr "pa_context_new() epäonnistui.\n"
+
+#: ../src/utils/pasuspender.c:298 ../src/utils/pactl.c:1127
+#, c-format
+msgid "pa_mainloop_run() failed.\n"
+msgstr "pa_mainloop_run() epäonnistui.\n"
 
 #: ../src/utils/pactl.c:128
 #, c-format
@@ -2171,6 +2050,11 @@ msgstr ""
 "Käännetty libpulsen versiolle %s\n"
 "Linkitetty libpulsen versiolle %s\n"
 
+#: ../src/utils/pactl.c:900
+#, fuzzy, c-format
+msgid "Invalid client name '%s'\n"
+msgstr "Virheellinen kanavakartta ”%s”\n"
+
 #: ../src/utils/pactl.c:926
 msgid "Please specify a sample file to load\n"
 msgstr "Anna ladattava näytetiedosto\n"
@@ -2178,6 +2062,11 @@ msgstr "Anna ladattava näytetiedosto\n"
 #: ../src/utils/pactl.c:939
 msgid "Failed to open sound file.\n"
 msgstr "Äänitiedoston avaaminen epäonnistui.\n"
+
+#: ../src/utils/pactl.c:944
+#, fuzzy
+msgid "Failed to determine sample specification from file.\n"
+msgstr "Näytetietojen nouto epäonnistui: %s\n"
 
 #: ../src/utils/pactl.c:951
 #, fuzzy
@@ -2237,11 +2126,6 @@ msgstr "Kortin nimi/indeksi ja profiilin nimi on annettava\n"
 #: ../src/utils/pactl.c:1099
 msgid "No valid command specified.\n"
 msgstr "Mitään kelvollista komentoa ei annettu.\n"
-
-#: ../src/utils/pactl.c:1122
-#, c-format
-msgid "pa_context_connect() failed: %s"
-msgstr "pa_context_connect() epäonnistui: %s"
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2361,11 +2245,11 @@ msgstr "read(): %s"
 msgid "write(): %s"
 msgstr "write(): %s"
 
-#: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
+#: ../src/pulsecore/lock-autospawn.c:136 ../src/pulsecore/lock-autospawn.c:219
 msgid "Cannot access autospawn lock."
 msgstr "Automaattisen käynnistyksen lukkoa ei voida käyttää."
 
-#: ../src/modules/alsa/alsa-sink.c:445 ../src/modules/alsa/alsa-sink.c:593
+#: ../src/modules/alsa/alsa-sink.c:449 ../src/modules/alsa/alsa-sink.c:606
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2382,7 +2266,7 @@ msgstr ""
 "asetettuna,  snd_pcm_avail() palautti kuitenkin 0 tai jonkin muun arvon, "
 "joka on < min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:424 ../src/modules/alsa/alsa-source.c:563
+#: ../src/modules/alsa/alsa-source.c:429 ../src/modules/alsa/alsa-source.c:578
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2399,21 +2283,151 @@ msgstr ""
 "snd_pcm_avail() palautti kuitenkin 0 tai jonkin muun arvon, on < min_avail."
 
 #: ../src/modules/alsa/module-alsa-card.c:152
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2062
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2065
 msgid "Off"
 msgstr "Poissa"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2032
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2035
 msgid "High Fidelity Playback (A2DP)"
 msgstr "Korkean äänenlaadun toisto (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2047
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2050
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr ""
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio-äänipalvelin"
+
+#~ msgid "Cannot connect to system bus: %s"
+#~ msgstr "Järjestelmäväylään ei voida yhdistää: %s"
+
+#~ msgid "Cannot get caller from PID: %s"
+#~ msgstr "Kutsujaa ei saada PID:stä: %s"
+
+#~ msgid "Cannot set UID on caller object."
+#~ msgstr "UID:tä ei voida asettaa kutsujaobjektille."
+
+#~ msgid "Failed to get CK session."
+#~ msgstr "CK-istunnon saaminen epäonnistui."
+
+#~ msgid "Cannot set UID on session object."
+#~ msgstr "UID:tä ei voida asettaa istunto-objektille."
+
+#~ msgid "Cannot allocate PolKitAction."
+#~ msgstr "Ei voida varata PolKitActionia."
+
+#~ msgid "Cannot set action_id"
+#~ msgstr "Ei voida asettaa action_id:tä"
+
+#~ msgid "Cannot allocate PolKitContext."
+#~ msgstr "Ei voida varata PolKitContextia."
+
+#~ msgid "Cannot initialize PolKitContext: %s"
+#~ msgstr "Ei voida alustaa PolKitContextia: %s"
+
+#~ msgid "Could not determine whether caller is authorized: %s"
+#~ msgstr "Ei voida päätellä onko kutsujalla käyttöoikeus: %s"
+
+#~ msgid "Cannot obtain auth: %s"
+#~ msgstr "Tunnistautumista ei saada: %s"
+
+#~ msgid "PolicyKit responded with '%s'"
+#~ msgstr "PolicyKit vastasi ”%s”"
+
+#~ msgid ""
+#~ "High-priority scheduling (negative Unix nice level) for the PulseAudio "
+#~ "daemon"
+#~ msgstr ""
+#~ "Korkean prioriteetin ajoitus (negatiivinen Unix-nice-taso) PulseAudio-"
+#~ "taustajärjestelmälle"
+
+#~ msgid "Real-time scheduling for the PulseAudio daemon"
+#~ msgstr "Reaaliaikainen ajoitus PulseAudio-taustajärjestelmälle"
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring high-priority scheduling."
+#~ msgstr ""
+#~ "Järjestelmäkäytäntö estää PulseAudiota saamasta korkean prioriteetin "
+#~ "ajoitusta."
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring real-time scheduling."
+#~ msgstr ""
+#~ "Järjestelmäkäytäntö estää PulseAudiota saamasta reaaliaikaista ajoitusta."
+
+#~ msgid "read() failed: %s\n"
+#~ msgstr "read() epäonnistui: %s\n"
+
+#, fuzzy
+#~ msgid "pa_context_connect() failed: %s\n"
+#~ msgstr "pa_context_connect() epäonnistui: %s"
+
+#~ msgid "We're in the group '%s', allowing high-priority scheduling."
+#~ msgstr "Ollaan ryhmässä ”%s”, korkean prioriteetin ajoitus on sallittua."
+
+#~ msgid "We're in the group '%s', allowing real-time scheduling."
+#~ msgstr "Ollaan ryhmässä ”%s”, tosiaikainen vuorottaminen on sallittua."
+
+#~ msgid "PolicyKit grants us acquire-high-priority privilege."
+#~ msgstr "PolicyKit myöntää acquire-high-priority-oikeuden."
+
+#~ msgid "PolicyKit refuses acquire-high-priority privilege."
+#~ msgstr "PolicyKit ei myönnä acquire-high-priority-oikeutta."
+
+#~ msgid "PolicyKit grants us acquire-real-time privilege."
+#~ msgstr "PolicyKit myöntää acquire-real-time-oikeuden."
+
+#~ msgid "PolicyKit refuses acquire-real-time privilege."
+#~ msgstr "PolicyKit ei myönnä acquire-real-time-oikeutta."
+
+#~ msgid ""
+#~ "Called SUID root and real-time and/or high-priority scheduling was "
+#~ "requested in the configuration. However, we lack the necessary "
+#~ "privileges:\n"
+#~ "We are not in group '%s', PolicyKit refuse to grant us the requested "
+#~ "privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
+#~ "limits.\n"
+#~ "For enabling real-time/high-priority scheduling please acquire the "
+#~ "appropriate PolicyKit privileges, or become a member of '%s', or increase "
+#~ "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
+#~ msgstr ""
+#~ "Ohjelmaa kutsuttiin SUID-rootina ja reaaliaikaista ja/tai korkean "
+#~ "prioriteetin ajoitusta pyydettiin asetuksissa. Tarvittavat oikeudet "
+#~ "kuitenkin puuttuvat:\n"
+#~ "Ei olla ryhmässä ”%s”, PolicyKit ei myönnä pyydettyjä oikeuksia ja "
+#~ "RLIMIT_NICE/RLIMIT_RTPRIO-resurssirajoja ei ole kasvatettu.\n"
+#~ "Hanki riittävät PolicyKit-oikeudet, liity ryhmään ”%s” tai kasvata tämän "
+#~ "käyttäjän RLIMIT_NICE/RLIMIT_RTPRIO-resurssirajoja reaaliaikaisen ja/tai "
+#~ "korkean prioriteetin ajoituksen ottamiseksi käyttöön."
+
+#~ msgid ""
+#~ "High-priority scheduling enabled in configuration but not allowed by "
+#~ "policy."
+#~ msgstr ""
+#~ "Korkean prioriteetin ajoitus otettu käyttöön asetuksissa, mutta käytännöt "
+#~ "eivät salli sitä."
+
+#~ msgid "Successfully increased RLIMIT_RTPRIO"
+#~ msgstr "RLIMIT_RTPRIO:n kasvatus onnistui"
+
+#~ msgid "RLIMIT_RTPRIO failed: %s"
+#~ msgstr "RLIMIT_RTPRIO epäonnistui: %s"
+
+#~ msgid "Giving up CAP_NICE"
+#~ msgstr "Luovutaan CAP_NICE:stä"
+
+#~ msgid ""
+#~ "Real-time scheduling enabled in configuration but not allowed by policy."
+#~ msgstr ""
+#~ "Tosiaikainen ajoitus otettu käyttöön asetuksissa, mutta käytännöt eivät "
+#~ "salli sitä."
+
+#~ msgid "Limited capabilities successfully to CAP_SYS_NICE."
+#~ msgstr "Oikeuksien rajoittaminen CAP_SYS_NICEen onnistui."
+
+#~ msgid "time_new() failed.\n"
+#~ msgstr "time_new() epäonnistui.\n"
 
 #~ msgid "Analog Mono"
 #~ msgstr "Analoginen mono"

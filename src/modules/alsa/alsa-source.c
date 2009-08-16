@@ -333,6 +333,9 @@ static int try_recover(struct userdata *u, const char *call, int err) {
     if (err == -EPIPE)
         pa_log_debug("%s: Buffer overrun!", call);
 
+    if (err == -ESTRPIPE)
+        pa_log_debug("%s: System suspended!", call);
+
     if ((err = snd_pcm_recover(u->pcm_handle, err, 1)) < 0) {
         pa_log("%s: %s", call, pa_alsa_strerror(err));
         return -1;
@@ -391,6 +394,7 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
         snd_pcm_sframes_t n;
         size_t n_bytes;
         int r;
+        pa_bool_t after_avail = TRUE;
 
         if (PA_UNLIKELY((n = pa_alsa_safe_avail(u->pcm_handle, u->hwbuf_size, &u->source->sample_spec)) < 0)) {
 
@@ -463,6 +467,9 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
 
             if (PA_UNLIKELY((err = pa_alsa_safe_mmap_begin(u->pcm_handle, &areas, &offset, &frames, u->hwbuf_size, &u->source->sample_spec)) < 0)) {
 
+                if (!after_avail && err == -EAGAIN)
+                    break;
+
                 if ((r = try_recover(u, "snd_pcm_mmap_begin", err)) == 0)
                     continue;
 
@@ -472,6 +479,12 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
             /* Make sure that if these memblocks need to be copied they will fit into one slot */
             if (frames > pa_mempool_block_size_max(u->source->core->mempool)/u->frame_size)
                 frames = pa_mempool_block_size_max(u->source->core->mempool)/u->frame_size;
+
+            if (!after_avail && frames == 0)
+                break;
+
+            pa_assert(frames > 0);
+            after_avail = FALSE;
 
             /* Check these are multiples of 8 bit */
             pa_assert((areas[0].first & 7) == 0);
@@ -539,6 +552,7 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
         snd_pcm_sframes_t n;
         size_t n_bytes;
         int r;
+        pa_bool_t after_avail = TRUE;
 
         if (PA_UNLIKELY((n = pa_alsa_safe_avail(u->pcm_handle, u->hwbuf_size, &u->source->sample_spec)) < 0)) {
 
@@ -599,16 +613,25 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
             frames = snd_pcm_readi(u->pcm_handle, (uint8_t*) p, (snd_pcm_uframes_t) frames);
             pa_memblock_release(chunk.memblock);
 
-            pa_assert(frames != 0);
-
             if (PA_UNLIKELY(frames < 0)) {
                 pa_memblock_unref(chunk.memblock);
 
-                if ((r = try_recover(u, "snd_pcm_readi", (int) (frames))) == 0)
+                if (!after_avail && (int) frames == -EAGAIN)
+                    break;
+
+                if ((r = try_recover(u, "snd_pcm_readi", (int) frames)) == 0)
                     continue;
 
                 return r;
             }
+
+            if (!after_avail && frames == 0) {
+                pa_memblock_unref(chunk.memblock);
+                break;
+            }
+
+            pa_assert(frames > 0);
+            after_avail = FALSE;
 
             chunk.index = 0;
             chunk.length = (size_t) frames * u->frame_size;
@@ -834,7 +857,9 @@ static int unsuspend(struct userdata *u) {
     /* FIXME: We need to reload the volume somehow */
 
     snd_pcm_start(u->pcm_handle);
-    pa_smoother_resume(u->smoother, pa_rtclock_now(), TRUE);
+
+    u->read_count = 0;
+    pa_smoother_reset(u->smoother, pa_rtclock_now(), TRUE);
 
     pa_log_info("Resumed successfully...");
 

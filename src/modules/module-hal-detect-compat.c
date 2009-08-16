@@ -1,7 +1,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2006 Lennart Poettering
+  Copyright 2009 Lennart Poettering
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -30,24 +30,24 @@
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
 
-#include "module-volume-restore-symdef.h"
+#include "module-hal-detect-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Compatibility module");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
-PA_MODULE_DEPRECATED("Please use module-stream-restore instead of module-volume-restore!");
+PA_MODULE_DEPRECATED("Please use module-udev-detect instead of module-hal-detect!");
 
 static const char* const valid_modargs[] = {
-    "table",
-    "restore_device",
-    "restore_volume",
+    "api",
+    "tsched",
+    "subdevices",
     NULL,
 };
 
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
-    pa_bool_t restore_device = TRUE, restore_volume = TRUE;
+    pa_bool_t tsched = TRUE;
     pa_module *n;
     char *t;
 
@@ -58,16 +58,15 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (pa_modargs_get_value_boolean(ma, "restore_device", &restore_device) < 0 ||
-        pa_modargs_get_value_boolean(ma, "restore_volume", &restore_volume) < 0) {
-        pa_log("restore_volume= and restore_device= expect boolean arguments");
+    if (pa_modargs_get_value_boolean(ma, "tsched", &tsched) < 0) {
+        pa_log("tsched= expects boolean arguments");
         goto fail;
     }
 
-    pa_log_warn("We will now load module-stream-restore. Please make sure to remove module-volume-restore from your configuration.");
+    pa_log_warn("We will now load module-udev-detect. Please make sure to remove module-hal-detect from your configuration.");
 
-    t = pa_sprintf_malloc("restore_volume=%s restore_device=%s", pa_yes_no(restore_volume), pa_yes_no(restore_device));
-    n = pa_module_load(m->core, "module-stream-restore", t);
+    t = pa_sprintf_malloc("tsched=%s", pa_yes_no(tsched));
+    n = pa_module_load(m->core, "module-udev-detect", t);
     pa_xfree(t);
 
     if (n)
@@ -81,5 +80,5 @@ fail:
     if (ma)
         pa_modargs_free(ma);
 
-    return  -1;
+    return -1;
 }

@@ -48,7 +48,7 @@ static void source_output_free(pa_object* mo);
 pa_source_output_new_data* pa_source_output_new_data_init(pa_source_output_new_data *data) {
     pa_assert(data);
 
-    memset(data, 0, sizeof(*data));
+    pa_zero(*data);
     data->resample_method = PA_RESAMPLER_INVALID;
     data->proplist = pa_proplist_new();
 
@@ -84,6 +84,7 @@ static void reset_callbacks(pa_source_output *o) {
     o->update_max_rewind = NULL;
     o->update_source_requested_latency = NULL;
     o->update_source_latency_range = NULL;
+    o->update_source_fixed_latency = NULL;
     o->attach = NULL;
     o->detach = NULL;
     o->suspend = NULL;
@@ -111,6 +112,7 @@ int pa_source_output_new(
     pa_assert(_o);
     pa_assert(core);
     pa_assert(data);
+    pa_assert_ctl_context();
 
     if (data->client)
         pa_proplist_update(data->proplist, PA_UPDATE_MERGE, data->client->proplist);
@@ -166,7 +168,7 @@ int pa_source_output_new(
     if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_FIXATE], data)) < 0)
         return r;
 
-    if ((flags & PA_SOURCE_OUTPUT_FAIL_ON_SUSPEND) &&
+    if ((flags & PA_SOURCE_OUTPUT_NO_CREATE_ON_SUSPEND) &&
         pa_source_get_state(data->source) == PA_SOURCE_SUSPENDED) {
         pa_log("Failed to create source output: source is suspended.");
         return -PA_ERR_BADSTATE;
@@ -262,6 +264,7 @@ int pa_source_output_new(
 /* Called from main context */
 static void update_n_corked(pa_source_output *o, pa_source_output_state_t state) {
     pa_assert(o);
+    pa_assert_ctl_context();
 
     if (!o->source)
         return;
@@ -275,6 +278,7 @@ static void update_n_corked(pa_source_output *o, pa_source_output_state_t state)
 /* Called from main context */
 static void source_output_set_state(pa_source_output *o, pa_source_output_state_t state) {
     pa_assert(o);
+    pa_assert_ctl_context();
 
     if (o->state == state)
         return;
@@ -294,6 +298,7 @@ static void source_output_set_state(pa_source_output *o, pa_source_output_state_
 void pa_source_output_unlink(pa_source_output*o) {
     pa_bool_t linked;
     pa_assert(o);
+    pa_assert_ctl_context();
 
     /* See pa_sink_unlink() for a couple of comments how this function
      * works */
@@ -346,6 +351,7 @@ static void source_output_free(pa_object* mo) {
     pa_source_output *o = PA_SOURCE_OUTPUT(mo);
 
     pa_assert(o);
+    pa_assert_ctl_context();
     pa_assert(pa_source_output_refcnt(o) == 0);
 
     if (PA_SOURCE_OUTPUT_IS_LINKED(o->state))
@@ -371,7 +377,9 @@ static void source_output_free(pa_object* mo) {
 /* Called from main context */
 void pa_source_output_put(pa_source_output *o) {
     pa_source_output_state_t state;
+
     pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
 
     pa_assert(o->state == PA_SOURCE_OUTPUT_INIT);
 
@@ -395,6 +403,7 @@ void pa_source_output_put(pa_source_output *o) {
 /* Called from main context */
 void pa_source_output_kill(pa_source_output*o) {
     pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
 
     o->kill(o);
@@ -405,6 +414,7 @@ pa_usec_t pa_source_output_get_latency(pa_source_output *o, pa_usec_t *source_la
     pa_usec_t r[2] = { 0, 0 };
 
     pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
 
     pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_GET_LATENCY, r, 0, NULL) == 0);
@@ -424,6 +434,7 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
     size_t limit, mbs = 0;
 
     pa_source_output_assert_ref(o);
+    pa_source_output_assert_io_context(o);
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->thread_info.state));
     pa_assert(chunk);
     pa_assert(pa_frame_aligned(chunk->length, &o->source->sample_spec));
@@ -499,8 +510,9 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
 
 /* Called from thread context */
 void pa_source_output_process_rewind(pa_source_output *o, size_t nbytes /* in source sample spec */) {
-    pa_source_output_assert_ref(o);
 
+    pa_source_output_assert_ref(o);
+    pa_source_output_assert_io_context(o);
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->thread_info.state));
     pa_assert(pa_frame_aligned(nbytes, &o->source->sample_spec));
 
@@ -526,8 +538,17 @@ void pa_source_output_process_rewind(pa_source_output *o, size_t nbytes /* in so
 }
 
 /* Called from thread context */
+size_t pa_source_output_get_max_rewind(pa_source_output *o) {
+    pa_source_output_assert_ref(o);
+    pa_source_output_assert_io_context(o);
+
+    return o->thread_info.resampler ? pa_resampler_request(o->thread_info.resampler, o->source->thread_info.max_rewind) : o->source->thread_info.max_rewind;
+}
+
+/* Called from thread context */
 void pa_source_output_update_max_rewind(pa_source_output *o, size_t nbytes  /* in the source's sample spec */) {
     pa_source_output_assert_ref(o);
+    pa_source_output_assert_io_context(o);
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->thread_info.state));
     pa_assert(pa_frame_aligned(nbytes, &o->source->sample_spec));
 
@@ -538,15 +559,16 @@ void pa_source_output_update_max_rewind(pa_source_output *o, size_t nbytes  /* i
 /* Called from thread context */
 pa_usec_t pa_source_output_set_requested_latency_within_thread(pa_source_output *o, pa_usec_t usec) {
     pa_source_output_assert_ref(o);
+    pa_source_output_assert_io_context(o);
 
     if (!(o->source->flags & PA_SOURCE_DYNAMIC_LATENCY))
-        usec = o->source->fixed_latency;
+        usec = o->source->thread_info.fixed_latency;
 
     if (usec != (pa_usec_t) -1)
         usec = PA_CLAMP(usec, o->source->thread_info.min_latency, o->source->thread_info.max_latency);
 
     o->thread_info.requested_source_latency = usec;
-    pa_source_invalidate_requested_latency(o->source);
+    pa_source_invalidate_requested_latency(o->source, TRUE);
 
     return usec;
 }
@@ -554,6 +576,7 @@ pa_usec_t pa_source_output_set_requested_latency_within_thread(pa_source_output 
 /* Called from main context */
 pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t usec) {
     pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
 
     if (PA_SOURCE_OUTPUT_IS_LINKED(o->state) && o->source) {
         pa_assert_se(pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_REQUESTED_LATENCY, &usec, 0, NULL) == 0);
@@ -565,7 +588,7 @@ pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t 
 
     if (o->source) {
         if (!(o->source->flags & PA_SOURCE_DYNAMIC_LATENCY))
-            usec = o->source->fixed_latency;
+            usec = pa_source_get_fixed_latency(o->source);
 
         if (usec != (pa_usec_t) -1) {
             pa_usec_t min_latency, max_latency;
@@ -582,6 +605,7 @@ pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t 
 /* Called from main context */
 pa_usec_t pa_source_output_get_requested_latency(pa_source_output *o) {
     pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
 
     if (PA_SOURCE_OUTPUT_IS_LINKED(o->state) && o->source) {
         pa_usec_t usec = 0;
@@ -598,6 +622,7 @@ pa_usec_t pa_source_output_get_requested_latency(pa_source_output *o) {
 /* Called from main context */
 void pa_source_output_cork(pa_source_output *o, pa_bool_t b) {
     pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
 
     source_output_set_state(o, b ? PA_SOURCE_OUTPUT_CORKED : PA_SOURCE_OUTPUT_RUNNING);
@@ -606,6 +631,7 @@ void pa_source_output_cork(pa_source_output *o, pa_bool_t b) {
 /* Called from main context */
 int pa_source_output_set_rate(pa_source_output *o, uint32_t rate) {
     pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
     pa_return_val_if_fail(o->thread_info.resampler, -PA_ERR_BADSTATE);
 
@@ -623,6 +649,7 @@ int pa_source_output_set_rate(pa_source_output *o, uint32_t rate) {
 /* Called from main context */
 void pa_source_output_set_name(pa_source_output *o, const char *name) {
     const char *old;
+    pa_assert_ctl_context();
     pa_source_output_assert_ref(o);
 
     if (!name && !pa_proplist_contains(o->proplist, PA_PROP_MEDIA_NAME))
@@ -647,11 +674,12 @@ void pa_source_output_set_name(pa_source_output *o, const char *name) {
 /* Called from main thread */
 void pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode, pa_proplist *p) {
     pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
 
     if (p)
         pa_proplist_update(o->proplist, mode, p);
 
-    if (PA_SINK_IS_LINKED(o->state)) {
+    if (PA_SOURCE_OUTPUT_IS_LINKED(o->state)) {
         pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], o);
         pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
     }
@@ -660,6 +688,7 @@ void pa_source_output_update_proplist(pa_source_output *o, pa_update_mode_t mode
 /* Called from main context */
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o) {
     pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
 
     return o->actual_resample_method;
 }
@@ -667,6 +696,7 @@ pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o) {
 /* Called from main context */
 pa_bool_t pa_source_output_may_move(pa_source_output *o) {
     pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
 
     if (o->flags & PA_SOURCE_OUTPUT_DONT_MOVE)
@@ -708,6 +738,7 @@ int pa_source_output_start_move(pa_source_output *o) {
     int r;
 
     pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
     pa_assert(o->source);
 
@@ -739,6 +770,7 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
     pa_resampler *new_resampler;
 
     pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
     pa_assert(!o->source);
     pa_source_assert_ref(dest);
@@ -816,10 +848,29 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t
 }
 
 /* Called from main context */
+void pa_source_output_fail_move(pa_source_output *o) {
+
+    pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
+    pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
+    pa_assert(!o->source);
+
+    /* Check if someone wants this source output? */
+    if (pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_FAIL], o) == PA_HOOK_STOP)
+        return;
+
+    if (o->moving)
+        o->moving(o, NULL);
+
+    pa_source_output_kill(o);
+}
+
+/* Called from main context */
 int pa_source_output_move_to(pa_source_output *o, pa_source *dest, pa_bool_t save) {
     int r;
 
     pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
     pa_assert(PA_SOURCE_OUTPUT_IS_LINKED(o->state));
     pa_assert(o->source);
     pa_source_assert_ref(dest);
@@ -838,6 +889,7 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest, pa_bool_t sav
     }
 
     if ((r = pa_source_output_finish_move(o, dest, save)) < 0) {
+        pa_source_output_fail_move(o);
         pa_source_output_unref(o);
         return r;
     }
@@ -850,6 +902,7 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest, pa_bool_t sav
 /* Called from IO thread context */
 void pa_source_output_set_state_within_thread(pa_source_output *o, pa_source_output_state_t state) {
     pa_source_output_assert_ref(o);
+    pa_source_output_assert_io_context(o);
 
     if (state == o->thread_info.state)
         return;
@@ -906,11 +959,13 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
     return -PA_ERR_NOTIMPLEMENTED;
 }
 
+/* Called from main context */
 void pa_source_output_send_event(pa_source_output *o, const char *event, pa_proplist *data) {
     pa_proplist *pl = NULL;
     pa_source_output_send_event_hook_data hook_data;
 
     pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
     pa_assert(event);
 
     if (!o->send_event)

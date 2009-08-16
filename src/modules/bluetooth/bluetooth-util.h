@@ -59,8 +59,7 @@ typedef enum pa_bt_audio_state {
     PA_BT_AUDIO_STATE_DISCONNECTED,
     PA_BT_AUDIO_STATE_CONNECTING,
     PA_BT_AUDIO_STATE_CONNECTED,
-    PA_BT_AUDIO_STATE_PLAYING,
-    PA_BT_AUDIO_STATE_LAST
+    PA_BT_AUDIO_STATE_PLAYING
 } pa_bt_audio_state_t;
 
 struct pa_bluetooth_device {

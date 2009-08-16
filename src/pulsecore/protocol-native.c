@@ -762,6 +762,7 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
         return -1;
 
     switch (code) {
+
         case PLAYBACK_STREAM_MESSAGE_REQUEST_DATA: {
             pa_tagstruct *t;
             int l = 0;
@@ -1130,6 +1131,12 @@ static void playback_stream_request_bytes(playback_stream *s) {
 
     m = pa_memblockq_pop_missing(s->memblockq);
 
+    /* pa_log("request_bytes(%lu) (tlength=%lu minreq=%lu length=%lu)", */
+    /*        (unsigned long) m, */
+    /*        pa_memblockq_get_tlength(s->memblockq), */
+    /*        pa_memblockq_get_minreq(s->memblockq), */
+    /*        pa_memblockq_get_length(s->memblockq)); */
+
     if (m <= 0)
         return;
 
@@ -1142,7 +1149,6 @@ static void playback_stream_request_bytes(playback_stream *s) {
         (previous_missing < (int) minreq && previous_missing + (int) m >= (int) minreq))
         pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
 }
-
 
 /* Called from main context */
 static void playback_stream_send_killed(playback_stream *p) {
@@ -1345,7 +1351,9 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 /*             pa_log("sink input post: %lu %lli", (unsigned long) chunk->length, (long long) windex); */
 
             if (pa_memblockq_push_align(s->memblockq, chunk) < 0) {
-                pa_log_warn("Failed to push data into queue");
+
+                if (pa_log_ratelimit())
+                    pa_log_warn("Failed to push data into queue");
                 pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_OVERFLOW, NULL, 0, NULL, NULL);
                 pa_memblockq_seek(s->memblockq, (int64_t) chunk->length, PA_SEEK_RELATIVE, TRUE);
             }
@@ -1617,6 +1625,9 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     s = PLAYBACK_STREAM(i->userdata);
     playback_stream_assert_ref(s);
 
+    if (!dest)
+        return;
+
     fix_playback_buffer_attr(s);
     pa_memblockq_apply_attr(s->memblockq, &s->buffer_attr);
     pa_memblockq_get_attr(s->memblockq, &s->buffer_attr);
@@ -1751,6 +1762,9 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     pa_source_output_assert_ref(o);
     s = RECORD_STREAM(o->userdata);
     record_stream_assert_ref(s);
+
+    if (!dest)
+        return;
 
     fix_record_buffer_attr_pre(s);
     pa_memblockq_set_maxlength(s->memblockq, s->buffer_attr.maxlength);
@@ -1951,7 +1965,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
         (no_move ?  PA_SINK_INPUT_DONT_MOVE : 0) |
         (variable_rate ?  PA_SINK_INPUT_VARIABLE_RATE : 0) |
         (dont_inhibit_auto_suspend ? PA_SINK_INPUT_DONT_INHIBIT_AUTO_SUSPEND : 0) |
-        (fail_on_suspend ? PA_SINK_INPUT_FAIL_ON_SUSPEND : 0);
+        (fail_on_suspend ? PA_SINK_INPUT_NO_CREATE_ON_SUSPEND|PA_SINK_INPUT_KILL_ON_SUSPEND : 0);
 
     /* Only since protocol version 15 there's a seperate muted_set
      * flag. For older versions we synthesize it here */
@@ -2207,7 +2221,7 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
         (no_move ?  PA_SOURCE_OUTPUT_DONT_MOVE : 0) |
         (variable_rate ?  PA_SOURCE_OUTPUT_VARIABLE_RATE : 0) |
         (dont_inhibit_auto_suspend ? PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND : 0) |
-        (fail_on_suspend ? PA_SOURCE_OUTPUT_FAIL_ON_SUSPEND : 0);
+        (fail_on_suspend ? PA_SOURCE_OUTPUT_NO_CREATE_ON_SUSPEND|PA_SOURCE_OUTPUT_KILL_ON_SUSPEND : 0);
 
     s = record_stream_new(c, source, &ss, &map, peak_detect, &attr, flags, p, adjust_latency, direct_on_input, early_requests, &ret);
     pa_proplist_free(p);
@@ -2550,7 +2564,7 @@ static void command_get_playback_latency(pa_pdispatch *pd, uint32_t command, uin
     reply = reply_new(tag);
     pa_tagstruct_put_usec(reply,
                           s->current_sink_latency +
-                          pa_bytes_to_usec(s->render_memblockq_length, &s->sink_input->sample_spec));
+                          pa_bytes_to_usec(s->render_memblockq_length, &s->sink_input->sink->sample_spec));
     pa_tagstruct_put_usec(reply, 0);
     pa_tagstruct_put_boolean(reply,
                              s->playing_for > 0 &&
@@ -2689,7 +2703,9 @@ static void command_finish_upload_stream(pa_pdispatch *pd, uint32_t command, uin
     CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
     CHECK_VALIDITY(c->pstream, upload_stream_isinstance(s), tag, PA_ERR_NOENTITY);
 
-    if (pa_scache_add_item(c->protocol->core, s->name, &s->sample_spec, &s->channel_map, &s->memchunk, s->proplist, &idx) < 0)
+    if (!s->memchunk.memblock)
+        pa_pstream_send_error(c->pstream, tag, PA_ERR_TOOLARGE);
+    else if (pa_scache_add_item(c->protocol->core, s->name, &s->sample_spec, &s->channel_map, &s->memchunk, s->proplist, &idx) < 0)
         pa_pstream_send_error(c->pstream, tag, PA_ERR_INTERNAL);
     else
         pa_pstream_send_simple_ack(c->pstream, tag);
@@ -3321,6 +3337,7 @@ static void command_set_volume(
     pa_source *source = NULL;
     pa_sink_input *si = NULL;
     const char *name = NULL;
+    const char *client_name;
 
     pa_native_connection_assert_ref(c);
     pa_assert(t);
@@ -3367,12 +3384,20 @@ static void command_set_volume(
 
     CHECK_VALIDITY(c->pstream, si || sink || source, tag, PA_ERR_NOENTITY);
 
-    if (sink)
+    client_name = pa_strnull(pa_proplist_gets(c->client->proplist, PA_PROP_APPLICATION_PROCESS_BINARY));
+
+    if (sink) {
+        pa_log_debug("Client %s changes volume of sink %s.", client_name, sink->name);
         pa_sink_set_volume(sink, &volume, TRUE, TRUE, TRUE, TRUE);
-    else if (source)
+    } else if (source) {
+        pa_log_debug("Client %s changes volume of sink %s.", client_name, source->name);
         pa_source_set_volume(source, &volume, TRUE);
-    else if (si)
+    } else if (si) {
+        pa_log_debug("Client %s changes volume of sink %s.",
+                     client_name,
+                     pa_strnull(pa_proplist_gets(si->proplist, PA_PROP_MEDIA_NAME)));
         pa_sink_input_set_volume(si, &volume, TRUE, TRUE);
+    }
 
     pa_pstream_send_simple_ack(c->pstream, tag);
 }

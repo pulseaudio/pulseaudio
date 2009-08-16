@@ -201,42 +201,44 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                 goto finish;
             }
 
-            if (i.n_ports > 0) {
-                i.ports = pa_xnew(pa_sink_port_info*, i.n_ports+1);
-                i.ports[0] = pa_xnew(pa_sink_port_info, i.n_ports);
+            if (o->context->version >= 16) {
+                if (i.n_ports > 0) {
+                    i.ports = pa_xnew(pa_sink_port_info*, i.n_ports+1);
+                    i.ports[0] = pa_xnew(pa_sink_port_info, i.n_ports);
 
-                for (j = 0; j < i.n_ports; j++) {
-                    if (pa_tagstruct_gets(t, &i.ports[0][j].name) < 0 ||
-                        pa_tagstruct_gets(t, &i.ports[0][j].description) < 0 ||
-                        pa_tagstruct_getu32(t, &i.ports[0][j].priority) < 0) {
+                    for (j = 0; j < i.n_ports; j++) {
+                        if (pa_tagstruct_gets(t, &i.ports[0][j].name) < 0 ||
+                            pa_tagstruct_gets(t, &i.ports[0][j].description) < 0 ||
+                            pa_tagstruct_getu32(t, &i.ports[0][j].priority) < 0) {
 
-                        pa_context_fail(o->context, PA_ERR_PROTOCOL);
-                        pa_xfree(i.ports);
-                        pa_xfree(i.ports[0]);
-                        pa_proplist_free(i.proplist);
-                        goto finish;
+                            pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                            pa_xfree(i.ports[0]);
+                            pa_xfree(i.ports);
+                            pa_proplist_free(i.proplist);
+                            goto finish;
+                        }
+
+                        i.ports[j] = &i.ports[0][j];
                     }
 
-                    i.ports[j] = &i.ports[0][j];
+                    i.ports[j] = NULL;
                 }
 
-                i.ports[j] = NULL;
-            }
+                if (pa_tagstruct_gets(t, &ap) < 0) {
+                    pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                    pa_xfree(i.ports[0]);
+                    pa_xfree(i.ports);
+                    pa_proplist_free(i.proplist);
+                    goto finish;
+                }
 
-            if (pa_tagstruct_gets(t, &ap) < 0) {
-                pa_context_fail(o->context, PA_ERR_PROTOCOL);
-                pa_xfree(i.ports[0]);
-                pa_xfree(i.ports);
-                pa_proplist_free(i.proplist);
-                goto finish;
-            }
-
-            if (ap) {
-                for (j = 0; j < i.n_ports; j++)
-                    if (pa_streq(i.ports[j]->name, ap)) {
-                        i.active_port = i.ports[j];
-                        break;
-                    }
+                if (ap) {
+                    for (j = 0; j < i.n_ports; j++)
+                        if (pa_streq(i.ports[j]->name, ap)) {
+                            i.active_port = i.ports[j];
+                            break;
+                        }
+                }
             }
 
             i.mute = (int) mute;
@@ -248,6 +250,10 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                 cb(o->context, &i, 0, o->userdata);
             }
 
+            if (i.ports) {
+                pa_xfree(i.ports[0]);
+                pa_xfree(i.ports);
+            }
             pa_proplist_free(i.proplist);
         }
     }
@@ -428,42 +434,44 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                 goto finish;
             }
 
-            if (i.n_ports > 0) {
-                i.ports = pa_xnew(pa_source_port_info*, i.n_ports+1);
-                i.ports[0] = pa_xnew(pa_source_port_info, i.n_ports);
+            if (o->context->version >= 16) {
+                if (i.n_ports > 0) {
+                    i.ports = pa_xnew(pa_source_port_info*, i.n_ports+1);
+                    i.ports[0] = pa_xnew(pa_source_port_info, i.n_ports);
 
-                for (j = 0; j < i.n_ports; j++) {
-                    if (pa_tagstruct_gets(t, &i.ports[0][j].name) < 0 ||
-                        pa_tagstruct_gets(t, &i.ports[0][j].description) < 0 ||
-                        pa_tagstruct_getu32(t, &i.ports[0][j].priority) < 0) {
+                    for (j = 0; j < i.n_ports; j++) {
+                        if (pa_tagstruct_gets(t, &i.ports[0][j].name) < 0 ||
+                            pa_tagstruct_gets(t, &i.ports[0][j].description) < 0 ||
+                            pa_tagstruct_getu32(t, &i.ports[0][j].priority) < 0) {
 
-                        pa_context_fail(o->context, PA_ERR_PROTOCOL);
-                        pa_xfree(i.ports[0]);
-                        pa_xfree(i.ports);
-                        pa_proplist_free(i.proplist);
-                        goto finish;
+                            pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                            pa_xfree(i.ports[0]);
+                            pa_xfree(i.ports);
+                            pa_proplist_free(i.proplist);
+                            goto finish;
+                        }
+
+                        i.ports[j] = &i.ports[0][j];
                     }
 
-                    i.ports[j] = &i.ports[0][j];
+                    i.ports[j] = NULL;
                 }
 
-                i.ports[j] = NULL;
-            }
+                if (pa_tagstruct_gets(t, &ap) < 0) {
+                    pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                    pa_xfree(i.ports[0]);
+                    pa_xfree(i.ports);
+                    pa_proplist_free(i.proplist);
+                    goto finish;
+                }
 
-            if (pa_tagstruct_gets(t, &ap) < 0) {
-                pa_context_fail(o->context, PA_ERR_PROTOCOL);
-                pa_xfree(i.ports[0]);
-                pa_xfree(i.ports);
-                pa_proplist_free(i.proplist);
-                goto finish;
-            }
-
-            if (ap) {
-                for (j = 0; j < i.n_ports; j++)
-                    if (pa_streq(i.ports[j]->name, ap)) {
-                        i.active_port = i.ports[j];
-                        break;
-                    }
+                if (ap) {
+                    for (j = 0; j < i.n_ports; j++)
+                        if (pa_streq(i.ports[j]->name, ap)) {
+                            i.active_port = i.ports[j];
+                            break;
+                        }
+                }
             }
 
             i.mute = (int) mute;
@@ -475,6 +483,10 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                 cb(o->context, &i, 0, o->userdata);
             }
 
+            if (i.ports) {
+                pa_xfree(i.ports[0]);
+                pa_xfree(i.ports);
+            }
             pa_proplist_free(i.proplist);
         }
     }

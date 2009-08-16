@@ -42,6 +42,7 @@ typedef struct pa_device_port pa_device_port;
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/card.h>
 #include <pulsecore/queue.h>
+#include <pulsecore/thread-mq.h>
 
 #define PA_MAX_INPUTS_PER_SINK 32
 
@@ -101,11 +102,8 @@ struct pa_sink {
     pa_bool_t save_muted:1;
 
     pa_asyncmsgq *asyncmsgq;
-    pa_rtpoll *rtpoll;
 
     pa_memchunk silence;
-
-    pa_usec_t fixed_latency; /* for sinks with PA_SINK_DYNAMIC_LATENCY this is 0 */
 
     pa_hashmap *ports;
     pa_device_port *active_port;
@@ -155,9 +153,14 @@ struct pa_sink {
         pa_sink_state_t state;
         pa_hashmap *inputs;
 
+        pa_rtpoll *rtpoll;
+
         pa_cvolume soft_volume;
         pa_bool_t soft_muted:1;
 
+        /* The requested latency is used for dynamic latency
+         * sinks. For fixed latency sinks it is always identical to
+         * the fixed_latency. See below. */
         pa_bool_t requested_latency_valid:1;
         pa_usec_t requested_latency;
 
@@ -173,8 +176,15 @@ struct pa_sink {
         size_t rewind_nbytes;
         pa_bool_t rewind_requested;
 
+        /* Both dynamic and fixed latencies will be clamped to this
+         * range. */
         pa_usec_t min_latency; /* we won't go below this latency */
         pa_usec_t max_latency; /* An upper limit for the latencies */
+
+        /* 'Fixed' simply means that the latency is exclusively
+         * decided on by the sink, and the clients have no influence
+         * in changing it */
+        pa_usec_t fixed_latency; /* for sinks with PA_SINK_DYNAMIC_LATENCY this is 0 */
     } thread_info;
 
     void *userdata;
@@ -200,6 +210,8 @@ typedef enum pa_sink_message {
     PA_SINK_MESSAGE_DETACH,
     PA_SINK_MESSAGE_SET_LATENCY_RANGE,
     PA_SINK_MESSAGE_GET_LATENCY_RANGE,
+    PA_SINK_MESSAGE_SET_FIXED_LATENCY,
+    PA_SINK_MESSAGE_GET_FIXED_LATENCY,
     PA_SINK_MESSAGE_GET_MAX_REWIND,
     PA_SINK_MESSAGE_GET_MAX_REQUEST,
     PA_SINK_MESSAGE_SET_MAX_REWIND,
@@ -267,8 +279,10 @@ void pa_sink_detach(pa_sink *s);
 void pa_sink_attach(pa_sink *s);
 
 void pa_sink_set_soft_volume(pa_sink *s, const pa_cvolume *volume);
-void pa_sink_volume_changed(pa_sink *s, const pa_cvolume *new_volume, pa_bool_t save);
-void pa_sink_mute_changed(pa_sink *s, pa_bool_t new_muted, pa_bool_t save);
+void pa_sink_volume_changed(pa_sink *s, const pa_cvolume *new_volume);
+void pa_sink_mute_changed(pa_sink *s, pa_bool_t new_muted);
+
+void pa_sink_update_flags(pa_sink *s, pa_sink_flags_t mask, pa_sink_flags_t value);
 
 pa_bool_t pa_device_init_description(pa_proplist *p);
 pa_bool_t pa_device_init_icon(pa_proplist *p, pa_bool_t is_sink);
@@ -280,6 +294,7 @@ pa_bool_t pa_device_init_intended_roles(pa_proplist *p);
 pa_usec_t pa_sink_get_latency(pa_sink *s);
 pa_usec_t pa_sink_get_requested_latency(pa_sink *s);
 void pa_sink_get_latency_range(pa_sink *s, pa_usec_t *min_latency, pa_usec_t *max_latency);
+pa_usec_t pa_sink_get_fixed_latency(pa_sink *s);
 
 size_t pa_sink_get_max_rewind(pa_sink *s);
 size_t pa_sink_get_max_request(pa_sink *s);
@@ -331,16 +346,23 @@ void pa_sink_set_max_rewind_within_thread(pa_sink *s, size_t max_rewind);
 void pa_sink_set_max_request_within_thread(pa_sink *s, size_t max_request);
 
 void pa_sink_set_latency_range_within_thread(pa_sink *s, pa_usec_t min_latency, pa_usec_t max_latency);
+void pa_sink_set_fixed_latency_within_thread(pa_sink *s, pa_usec_t latency);
 
 /*** To be called exclusively by sink input drivers, from IO context */
 
 void pa_sink_request_rewind(pa_sink*s, size_t nbytes);
 
-void pa_sink_invalidate_requested_latency(pa_sink *s);
+void pa_sink_invalidate_requested_latency(pa_sink *s, pa_bool_t dynamic);
 
 pa_usec_t pa_sink_get_latency_within_thread(pa_sink *s);
 
 pa_device_port *pa_device_port_new(const char *name, const char *description, size_t extra);
 void pa_device_port_free(pa_device_port *p);
+
+/* Verify that we called in IO context (aka 'thread context), or that
+ * the sink is not yet set up, i.e. the thread not set up yet. See
+ * pa_assert_io_context() in thread-mq.h for more information. */
+#define pa_sink_assert_io_context(s) \
+    pa_assert(pa_thread_mq_get() || !PA_SINK_IS_LINKED((s)->state))
 
 #endif

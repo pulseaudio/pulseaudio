@@ -127,6 +127,9 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
         if (s == def)
             continue;
 
+        if (!PA_SINK_IS_LINKED(pa_sink_get_state(s)))
+            continue;
+
         if (role_match(s->proplist, role)) {
             new_data->sink = s;
             new_data->save_sink = FALSE;
@@ -173,6 +176,9 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
         if (s == def)
             continue;
 
+        if (!PA_SOURCE_IS_LINKED(pa_source_get_state(s)))
+            continue;
+
         if (role_match(s->proplist, role)) {
             new_data->source = s;
             new_data->save_source = FALSE;
@@ -199,6 +205,17 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, struct
             continue;
 
         if (si->save_sink)
+            continue;
+
+        /* Skip this if it is already in the process of being moved
+         * anyway */
+        if (!si->sink)
+            continue;
+
+        /* It might happen that a stream and a sink are set up at the
+           same time, in which case we want to make sure we don't
+           interfere with that */
+        if (!PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(si)))
             continue;
 
         if (!(role = pa_proplist_gets(si->proplist, PA_PROP_MEDIA_ROLE)))
@@ -235,6 +252,17 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
             continue;
 
         if (so->direct_on_input)
+            continue;
+
+        /* Skip this if it is already in the process of being moved
+         * anyway */
+        if (!so->source)
+            continue;
+
+        /* It might happen that a stream and a source are set up at the
+           same time, in which case we want to make sure we don't
+           interfere with that */
+        if (!PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(so)))
             continue;
 
         if (!(role = pa_proplist_gets(so->proplist, PA_PROP_MEDIA_ROLE)))
@@ -275,24 +303,28 @@ static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, str
         uint32_t jdx;
         pa_sink *d;
 
+        if (!si->sink)
+            continue;
+
         if (!(role = pa_proplist_gets(si->proplist, PA_PROP_MEDIA_ROLE)))
             continue;
 
         /* Would the default sink fit? If so, let's use it */
-        if (def != sink && role_match(def->proplist, role)) {
-            pa_sink_input_move_to(si, def, FALSE);
-            continue;
-        }
+        if (def != sink && role_match(def->proplist, role))
+            if (pa_sink_input_move_to(si, def, FALSE) >= 0)
+                continue;
 
         /* Try to find some other fitting sink */
         PA_IDXSET_FOREACH(d, c->sinks, jdx) {
             if (d == def || d == sink)
                 continue;
 
-            if (role_match(d->proplist, role)) {
-                pa_sink_input_move_to(si, d, FALSE);
-                break;
-            }
+            if (!PA_SINK_IS_LINKED(pa_sink_get_state(d)))
+                continue;
+
+            if (role_match(d->proplist, role))
+                if (pa_sink_input_move_to(si, d, FALSE) >= 0)
+                    break;
         }
     }
 
@@ -325,6 +357,9 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
         if (so->direct_on_input)
             continue;
 
+        if (!so->source)
+            continue;
+
         if (!(role = pa_proplist_gets(so->proplist, PA_PROP_MEDIA_ROLE)))
             continue;
 
@@ -337,6 +372,9 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
         /* Try to find some other fitting source */
         PA_IDXSET_FOREACH(d, c->sources, jdx) {
             if (d == def || d == source)
+                continue;
+
+            if (!PA_SOURCE_IS_LINKED(pa_source_get_state(d)))
                 continue;
 
             if (role_match(d->proplist, role) && !source->monitor_of == !d->monitor_of) {

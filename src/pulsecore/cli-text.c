@@ -296,7 +296,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             pa_strbuf_printf(
                     s,
                     "\tfixed latency: %0.2f ms\n",
-                    (double) pa_sink_get_requested_latency(sink) / PA_USEC_PER_MSEC);
+                    (double) pa_sink_get_fixed_latency(sink) / PA_USEC_PER_MSEC);
 
         if (sink->card)
             pa_strbuf_printf(s, "\tcard: %u <%s>\n", sink->card->index, sink->card->name);
@@ -415,7 +415,7 @@ char *pa_source_list_to_string(pa_core *c) {
             pa_strbuf_printf(
                     s,
                     "\tfixed latency: %0.2f ms\n",
-                    (double) pa_source_get_requested_latency(source) / PA_USEC_PER_MSEC);
+                    (double) pa_source_get_fixed_latency(source) / PA_USEC_PER_MSEC);
 
         if (source->monitor_of)
             pa_strbuf_printf(s, "\tmonitor_of: %u\n", source->monitor_of->index);
@@ -482,7 +482,7 @@ char *pa_source_output_list_to_string(pa_core *c) {
             s,
             "    index: %u\n"
             "\tdriver: <%s>\n"
-            "\tflags: %s%s%s%s%s%s%s%s%s%s\n"
+            "\tflags: %s%s%s%s%s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
             "\tsource: %u <%s>\n"
             "\tcurrent latency: %0.2f ms\n"
@@ -501,7 +501,8 @@ char *pa_source_output_list_to_string(pa_core *c) {
             o->flags & PA_SOURCE_OUTPUT_FIX_RATE ? "FIX_RATE " : "",
             o->flags & PA_SOURCE_OUTPUT_FIX_CHANNELS ? "FIX_CHANNELS " : "",
             o->flags & PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND ? "DONT_INHIBIT_AUTO_SUSPEND " : "",
-            o->flags & PA_SOURCE_OUTPUT_FAIL_ON_SUSPEND ? "FAIL_ON_SUSPEND " : "",
+            o->flags & PA_SOURCE_OUTPUT_NO_CREATE_ON_SUSPEND ? "NO_CREATE_ON_SUSPEND " : "",
+            o->flags & PA_SOURCE_OUTPUT_KILL_ON_SUSPEND ? "KILL_ON_SUSPEND " : "",
             state_table[pa_source_output_get_state(o)],
             o->source->index, o->source->name,
             (double) pa_source_output_get_latency(o, NULL) / PA_USEC_PER_MSEC,
@@ -564,7 +565,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             s,
             "    index: %u\n"
             "\tdriver: <%s>\n"
-            "\tflags: %s%s%s%s%s%s%s%s%s%s\n"
+            "\tflags: %s%s%s%s%s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
             "\tsink: %u <%s>\n"
             "\tvolume: %s\n"
@@ -587,7 +588,8 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             i->flags & PA_SINK_INPUT_FIX_RATE ? "FIX_RATE " : "",
             i->flags & PA_SINK_INPUT_FIX_CHANNELS ? "FIX_CHANNELS " : "",
             i->flags & PA_SINK_INPUT_DONT_INHIBIT_AUTO_SUSPEND ? "DONT_INHIBIT_AUTO_SUSPEND " : "",
-            i->flags & PA_SINK_INPUT_FAIL_ON_SUSPEND ? "FAIL_ON_SUSPEND " : "",
+            i->flags & PA_SINK_INPUT_NO_CREATE_ON_SUSPEND ? "NO_CREATE_SUSPEND " : "",
+            i->flags & PA_SINK_INPUT_KILL_ON_SUSPEND ? "KILL_ON_SUSPEND " : "",
             state_table[pa_sink_input_get_state(i)],
             i->sink->index, i->sink->name,
             pa_cvolume_snprint(cv, sizeof(cv), &v),

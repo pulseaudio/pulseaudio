@@ -110,7 +110,7 @@ int allow_severity = LOG_INFO;
 int deny_severity = LOG_WARNING;
 #endif
 
-#ifdef HAVE_OSS
+#ifdef HAVE_OSS_WRAPPER
 /* padsp looks for this symbol in the running process and disables
  * itself if it finds it and it is set to 7 (which is actually a bit
  * mask). For details see padsp. */
@@ -407,7 +407,8 @@ int main(int argc, char *argv[]) {
     /*
        Disable lazy relocations to make usage of external libraries
        more deterministic for our RT threads. We abuse __OPTIMIZE__ as
-       a check whether we are a debug build or not.
+       a check whether we are a debug build or not. This all is
+       admittedly a bit snake-oilish.
     */
 
     if (!getenv("LD_BIND_NOW")) {
@@ -418,9 +419,16 @@ int main(int argc, char *argv[]) {
 
         pa_set_env("LD_BIND_NOW", "1");
 
-        if ((rp = pa_readlink("/proc/self/exe")))
-            pa_assert_se(execv(rp, argv) == 0);
-        else
+        if ((rp = pa_readlink("/proc/self/exe"))) {
+
+            if (pa_streq(rp, PA_BINARY))
+                pa_assert_se(execv(rp, argv) == 0);
+            else
+                pa_log_warn("/proc/self/exe does not point to " PA_BINARY ", cannot self execute. Are you playing games?");
+
+            pa_xfree(rp);
+
+        } else
             pa_log_warn("Couldn't read /proc/self/exe, cannot self execute. Running in a chroot()?");
     }
 #endif
@@ -435,10 +443,13 @@ int main(int argc, char *argv[]) {
     /* We might be autospawned, in which case have no idea in which
      * context we have been started. Let's cleanup our execution
      * context as good as possible */
+
+    pa_reset_personality();
     pa_drop_root();
     pa_close_all(passed_fd, -1);
     pa_reset_sigs(-1);
     pa_unblock_sigs(-1);
+    pa_reset_priority();
 
     setlocale(LC_ALL, "");
     pa_init_i18n();

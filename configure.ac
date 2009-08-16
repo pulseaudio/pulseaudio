@@ -44,11 +44,11 @@ AC_SUBST(PA_PROTOCOL_VERSION, 16)
 
 # The stable ABI for client applications, for the version info x:y:z
 # always will hold y=z
-AC_SUBST(LIBPULSE_VERSION_INFO, [8:0:8])
+AC_SUBST(LIBPULSE_VERSION_INFO, [9:0:9])
 
 # A simplified, synchronous, ABI-stable interface for client
 # applications, for the version info x:y:z always will hold y=z
-AC_SUBST(LIBPULSE_SIMPLE_VERSION_INFO, [0:2:0])
+AC_SUBST(LIBPULSE_SIMPLE_VERSION_INFO, [0:3:0])
 
 # The ABI-stable network browsing interface for client applications,
 # for the version info x:y:z always will hold y=z
@@ -72,6 +72,10 @@ case $host in
    *-*-solaris* )
       AC_DEFINE(_XOPEN_SOURCE,        600, Needed to get declarations for msg_control and msg_controllen on Solaris)
       AC_DEFINE(__EXTENSIONS__,         1, Needed to get declarations for msg_control and msg_controllen on Solaris)
+      ;;
+   *-*-darwin* )
+      AC_DEFINE([_POSIX_C_SOURCE], [200112L], [Needed to get clock_gettime on Mac OS X])
+      AC_DEFINE([_DARWIN_C_SOURCE], [200112L], [Needed to get NSIG on Mac OS X])
       ;;
 esac
 
@@ -111,6 +115,21 @@ tmp_ldflag="-Wl,-version-script=${srcdir}/src/map-file"
 CC_CHECK_LDFLAGS([${tmp_ldflag}],
     [VERSIONING_LDFLAGS='-Wl,-version-script=$(srcdir)/map-file'])
 AC_SUBST([VERSIONING_LDFLAGS])
+
+dnl Use immediate (now) bindings; avoids the funky re-call in itself
+dnl  the -z now syntax is lifted from Sun's linker and works with GNU's too
+dnl  other linkes might be added later
+CC_CHECK_LDFLAGS([-Wl,-z,now], [IMMEDIATE_LDFLAGS="-Wl,-z,now"])
+AC_SUBST([IMMEDIATE_LDFLAGS])
+
+dnl On ELF systems we don't want the libraries to be unloaded since we
+dnl don't clean them up properly, so we request the nodelete flag to be
+dnl enabled.
+dnl
+dnl On other systems, we don't really know how to do that, but it's
+dnl welcome if somebody can tell.
+CC_CHECK_LDFLAGS([-Wl,-z,nodelete], [NODELETE_LDFLAGS="-Wl,-z,nodelete"])
+AC_SUBST([NODELETE_LDFLAGS])
 
 dnl Check for the proper way to build libraries that have no undefined
 dnl symbols; on some hosts this needs to be avoided but the macro
@@ -387,6 +406,7 @@ AC_SEARCH_LIBS([timer_create], [rt])
 
 # BSD
 AC_SEARCH_LIBS([connect], [socket])
+AC_SEARCH_LIBS([backtrace], [execinfo])
 
 # Non-standard
 
@@ -605,10 +625,11 @@ AM_CONDITIONAL([HAVE_LIBSAMPLERATE], [test "x$HAVE_LIBSAMPLERATE" = x1])
 
 HAVE_TDB=0
 HAVE_GDBM=0
+HAVE_SIMPLEDB=0
 
 AC_ARG_WITH(
         [database],
-        AS_HELP_STRING([--with-database=auto|tdb|gdbm],[Choose database backend.]),[],[with_database=auto])
+        AS_HELP_STRING([--with-database=auto|tdb|gdbm|simple],[Choose database backend.]),[],[with_database=auto])
 
 if test "x${with_database}" = "xauto" -o "x${with_database}" = "xtdb" ; then
     PKG_CHECK_MODULES(TDB, [ tdb ],
@@ -638,7 +659,12 @@ if test "x${with_database}" = "xauto" -o "x${with_database}" = "xgdbm" ; then
    fi
 fi
 
-if test "x${HAVE_TDB}" != x1 -a "x${HAVE_GDBM}" != x1; then
+if test "x${with_database}" = "xauto" -o "x${with_database}" = "xsimple" ; then
+    HAVE_SIMPLEDB=1
+    with_database=simple
+fi
+
+if test "x${HAVE_TDB}" != x1 -a "x${HAVE_GDBM}" != x1 -a "x${HAVE_SIMPLEDB}" != x1; then
    AC_MSG_ERROR([*** missing database backend])
 fi
 
@@ -648,6 +674,10 @@ fi
 
 if test "x${HAVE_GDBM}" = x1 ; then
    AC_DEFINE([HAVE_GDBM], 1, [Have gdbm?])
+fi
+
+if test "x${HAVE_SIMPLEDB}" = x1 ; then
+    AC_DEFINE([HAVE_SIMPLEDB], 1, [Have simple?])
 fi
 
 AC_SUBST(TDB_CFLAGS)
@@ -660,28 +690,47 @@ AC_SUBST(GDBM_LIBS)
 AC_SUBST(HAVE_GDBM)
 AM_CONDITIONAL([HAVE_GDBM], [test "x$HAVE_GDBM" = x1])
 
+AC_SUBST(HAVE_SIMPLEDB)
+AM_CONDITIONAL([HAVE_SIMPLEDB], [test "x$HAVE_SIMPLEDB" = x1])
+
 #### OSS support (optional) ####
 
-AC_ARG_ENABLE([oss],
-    AS_HELP_STRING([--disable-oss],[Disable optional OSS support]),
+AC_ARG_ENABLE([oss-output],
+    AS_HELP_STRING([--disable-oss-output],[Disable optional OSS output support]),
         [
             case "${enableval}" in
-                yes) oss=yes ;;
-                no) oss=no ;;
-                *) AC_MSG_ERROR(bad value ${enableval} for --disable-oss) ;;
+                yes) oss_output=yes ;;
+                no) oss_output=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-oss-output) ;;
             esac
         ],
-        [oss=auto])
+        [oss_output=auto])
 
-if test "x${oss}" != xno ; then
+AC_ARG_ENABLE([oss-wrapper],
+    AS_HELP_STRING([--disable-oss-wrapper],[Disable optional OSS wrapper support]),
+        [
+            case "${enableval}" in
+                yes) oss_wrapper=yes ;;
+                no) oss_wrapper=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-oss-wrapper) ;;
+            esac
+        ],
+        [oss_wrapper=auto])
+
+if test "x${oss_output}" != xno || test "x${oss_wrapper}" != "xno"; then
     AC_CHECK_HEADERS([sys/soundcard.h],
         [
+            if test "x${oss_output}" != "xno"; then
+                AC_DEFINE([HAVE_OSS_OUTPUT], 1, [Have OSS output?])
+            fi
+            if test "x${oss_wrapper}" != "xno"; then
+                AC_DEFINE([HAVE_OSS_WRAPPER], 1, [Have OSS wrapper (padsp)?])
+            fi
             HAVE_OSS=1
-            AC_DEFINE([HAVE_OSS], 1, [Have OSS?])
         ],
         [
             HAVE_OSS=0
-            if test "x$oss" = xyes ; then
+            if test "x$oss_output" = xyes || test "x$oss_wrapper" = "xyes"; then
                 AC_MSG_ERROR([*** OSS support not found])
             fi
         ])
@@ -690,8 +739,8 @@ else
 fi
 
 AC_SUBST(HAVE_OSS)
-AM_CONDITIONAL([HAVE_OSS], [test "x$HAVE_OSS" = x1])
-
+AM_CONDITIONAL([HAVE_OSS_OUTPUT], [test "x$HAVE_OSS" = x1 && test "x${oss_output}" != "xno"])
+AM_CONDITIONAL([HAVE_OSS_WRAPPER], [test "x$HAVE_OSS" = x1 && test "x${oss_wrapper}" != "xno"])
 
 #### ALSA support (optional) ####
 
@@ -1079,7 +1128,27 @@ AC_SUBST(UDEV_LIBS)
 AC_SUBST(HAVE_UDEV)
 AM_CONDITIONAL([HAVE_UDEV], [test "x$HAVE_UDEV" = x1])
 
-AC_DEFINE([LIBUDEV_I_KNOW_THE_API_IS_SUBJECT_TO_CHANGE], 1, [I know the API is subject to change.])
+#### HAL compat support (optional) ####
+
+AC_ARG_ENABLE([hal-compat],
+    AS_HELP_STRING([--disable-hal-compat],[Disable optional HAL->udev transition compatibility support]),
+        [
+            case "${enableval}" in
+                yes) halcompat=yes ;;
+                no) halcompat=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-hal-compat) ;;
+            esac
+        ],
+        [halcompat=auto])
+if test "x${halcompat}" != xno -a "x$HAVE_HAL" = "x0" -a "x$HAVE_UDEV" = "x1" ; then
+    HAVE_HAL_COMPAT=1
+    AC_DEFINE([HAVE_HAL_COMPAT], 1, [Have HAL compatibility.])
+else
+    HAVE_HAL_COMPAT=0
+fi
+
+AC_SUBST(HAVE_HAL_COMPAT)
+AM_CONDITIONAL([HAVE_HAL_COMPAT], [test "x$HAVE_HAL_COMPAT" = x1])
 
 #### BlueZ support (optional) ####
 
@@ -1338,9 +1407,15 @@ if test "x$HAVE_X11" = "x1" ; then
    ENABLE_X11=yes
 fi
 
-ENABLE_OSS=no
+ENABLE_OSS_OUTPUT=no
+ENABLE_OSS_WRAPPER=no
 if test "x$HAVE_OSS" = "x1" ; then
-   ENABLE_OSS=yes
+   if test "x$enable_oss_output" != "xno"; then
+      ENABLE_OSS_OUTPUT=yes
+   fi
+   if test "x$enable_oss_wrapper" != "xno"; then
+      ENABLE_OSS_WRAPPER=yes
+   fi
 fi
 
 ENABLE_ALSA=no
@@ -1398,6 +1473,11 @@ if test "x$HAVE_UDEV" = "x1" ; then
    ENABLE_UDEV=yes
 fi
 
+ENABLE_HAL_COMPAT=no
+if test "x$HAVE_HAL_COMPAT" = "x1" ; then
+   ENABLE_HAL_COMPAT=yes
+fi
+
 ENABLE_TCPWRAP=no
 if test "x${LIBWRAP_LIBS}" != x ; then
    ENABLE_TCPWRAP=yes
@@ -1421,6 +1501,11 @@ fi
 ENABLE_TDB=no
 if test "x${HAVE_TDB}" = "x1" ; then
    ENABLE_TDB=yes
+fi
+
+ENABLE_SIMPLEDB=no
+if test "x${HAVE_SIMPLEDB}" = "x1" ; then
+    ENABLE_SIMPLEDB=yes
 fi
 
 ENABLE_OPENSSL=no
@@ -1451,7 +1536,8 @@ echo "
     CFLAGS:                        ${CFLAGS}
 
     Have X11:                      ${ENABLE_X11}
-    Enable OSS:                    ${ENABLE_OSS}
+    Enable OSS Output:             ${ENABLE_OSS_OUTPUT}
+    Enable OSS Wrapper:            ${ENABLE_OSS_WRAPPER}
     Enable Alsa:                   ${ENABLE_ALSA}
     Enable Solaris:                ${ENABLE_SOLARIS}
     Enable GLib 2.0:               ${ENABLE_GLIB20}
@@ -1463,6 +1549,7 @@ echo "
     Enable LIRC:                   ${ENABLE_LIRC}
     Enable HAL:                    ${ENABLE_HAL}
     Enable udev:                   ${ENABLE_UDEV}
+    Enable HAL->udev compat:       ${ENABLE_HAL_COMPAT}
     Enable BlueZ:                  ${ENABLE_BLUEZ}
     Enable TCP Wrappers:           ${ENABLE_TCPWRAP}
     Enable libsamplerate:          ${ENABLE_LIBSAMPLERATE}
@@ -1470,6 +1557,7 @@ echo "
     Enable OpenSSL (for Airtunes): ${ENABLE_OPENSSL}
     Enable tdb:                    ${ENABLE_TDB}
     Enable gdbm:                   ${ENABLE_GDBM}
+    Enable simple database:        ${ENABLE_SIMPLEDB}
 
     System User:                   ${PA_SYSTEM_USER}
     System Group:                  ${PA_SYSTEM_GROUP}

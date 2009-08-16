@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-06-17 23:42+0200\n"
+"POT-Creation-Date: 2009-08-05 15:09+0200\n"
 "PO-Revision-Date: 2009-04-18 11:13+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation@linux.org.ua>\n"
@@ -17,7 +17,12 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
 "10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: ../src/modules/alsa/alsa-util.c:1015
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2411
+#, c-format
+msgid "%s %s"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:1023
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -30,7 +35,7 @@ msgstr ""
 "Ймовірно, ви натрапили на ваду у драйвері ALSA «%s». Будь ласка, повідомте "
 "про цю ваду розробникам ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1056
+#: ../src/modules/alsa/alsa-util.c:1064
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -43,7 +48,7 @@ msgstr ""
 "Ймовірно, ви натрапили на ваду у драйвері ALSA «%s». Будь ласка, повідомте "
 "про цю ваду розробникам ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1103
+#: ../src/modules/alsa/alsa-util.c:1111
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -69,7 +74,7 @@ msgid ""
 "input control values>"
 msgstr ""
 
-#: ../src/pulsecore/sink.c:2394
+#: ../src/pulsecore/sink.c:2395
 msgid "Internal Audio"
 msgstr "Вбудоване аудіо"
 
@@ -92,225 +97,92 @@ msgstr ""
 msgid "Failed to add bind-now-loader."
 msgstr "Не вдалося додати bind-now-loader."
 
-#: ../src/daemon/polkit.c:55
-#, c-format
-msgid "Cannot connect to system bus: %s"
-msgstr "Не вдалося з’єднатися з шиною системи: %s"
-
-#: ../src/daemon/polkit.c:65
-#, c-format
-msgid "Cannot get caller from PID: %s"
-msgstr "Не вдалося отримати джерело виклику від PID: %s"
-
-#: ../src/daemon/polkit.c:77
-msgid "Cannot set UID on caller object."
-msgstr "Не вдалося встановити UID для об’єкта джерела виклику."
-
-#: ../src/daemon/polkit.c:82
-msgid "Failed to get CK session."
-msgstr "Не вдалося отримати CK сеансу."
-
-#: ../src/daemon/polkit.c:90
-msgid "Cannot set UID on session object."
-msgstr "Не вдалося встановити UID для об’єкта сеансу."
-
-#: ../src/daemon/polkit.c:95
-msgid "Cannot allocate PolKitAction."
-msgstr "Не вдалося розмістити PolKitAction."
-
-#: ../src/daemon/polkit.c:100
-msgid "Cannot set action_id"
-msgstr "Не вдалося встановити action_id"
-
-#: ../src/daemon/polkit.c:105
-msgid "Cannot allocate PolKitContext."
-msgstr "Не вдалося розмістити PolKitContext."
-
-#: ../src/daemon/polkit.c:110
-#, c-format
-msgid "Cannot initialize PolKitContext: %s"
-msgstr "Не вдалося ініціалізувати PolKitContext: %s"
-
-#: ../src/daemon/polkit.c:119
-#, c-format
-msgid "Could not determine whether caller is authorized: %s"
-msgstr "Не вдалося визначити чи уповноважено джерело виклику: %s"
-
-#: ../src/daemon/polkit.c:139
-#, c-format
-msgid "Cannot obtain auth: %s"
-msgstr "Не вдалося отримати уповноваження: %s"
-
-#: ../src/daemon/polkit.c:148
-#, c-format
-msgid "PolicyKit responded with '%s'"
-msgstr "PolicyKit надіслала відповідь: «%s»"
-
-#: ../src/daemon/main.c:142
+#: ../src/daemon/main.c:145
 #, c-format
 msgid "Got signal %s."
 msgstr "Отримано сигнал %s."
 
-#: ../src/daemon/main.c:169
+#: ../src/daemon/main.c:172
 msgid "Exiting."
 msgstr "Завершення роботи."
 
-#: ../src/daemon/main.c:187
+#: ../src/daemon/main.c:190
 #, c-format
 msgid "Failed to find user '%s'."
 msgstr "Не вдалося знайти користувача «%s»."
 
-#: ../src/daemon/main.c:192
+#: ../src/daemon/main.c:195
 #, c-format
 msgid "Failed to find group '%s'."
 msgstr "Не вдалося знайти групу «%s»."
 
-#: ../src/daemon/main.c:196
+#: ../src/daemon/main.c:199
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
 msgstr "Знайдено користувача «%s» (UID %lu) і групу «%s» (GID %lu)."
 
-#: ../src/daemon/main.c:201
+#: ../src/daemon/main.c:204
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
 msgstr "GID користувача «%s» і групи «%s» не збігаються."
 
-#: ../src/daemon/main.c:206
+#: ../src/daemon/main.c:209
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "Домашнім каталогом користувача «%s» не є «%s», дані проігноровано."
 
-#: ../src/daemon/main.c:209 ../src/daemon/main.c:214
+#: ../src/daemon/main.c:212 ../src/daemon/main.c:217
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "Не вдалося створити «%s»: %s"
 
-#: ../src/daemon/main.c:221
+#: ../src/daemon/main.c:224
 #, c-format
 msgid "Failed to change group list: %s"
 msgstr "Не вдалося змінити список груп: %s"
 
-#: ../src/daemon/main.c:237
+#: ../src/daemon/main.c:240
 #, c-format
 msgid "Failed to change GID: %s"
 msgstr "Не вдалося змінити GID: %s"
 
-#: ../src/daemon/main.c:253
+#: ../src/daemon/main.c:256
 #, c-format
 msgid "Failed to change UID: %s"
 msgstr "Не вдалося змінити UID: %s"
 
-#: ../src/daemon/main.c:267
+#: ../src/daemon/main.c:270
 msgid "Successfully dropped root privileges."
 msgstr "Програма успішно позбулася прав доступу користувача root."
 
-#: ../src/daemon/main.c:275
+#: ../src/daemon/main.c:278
 msgid "System wide mode unsupported on this platform."
 msgstr "Загальносистемний режим не підтримується на цій платформі."
 
-#: ../src/daemon/main.c:293
+#: ../src/daemon/main.c:296
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "Спроба виконати setrlimit(%s, (%u, %u)) була невдалою: %s"
 
-#: ../src/daemon/main.c:481
+#: ../src/daemon/main.c:471
 msgid "Failed to parse command line."
 msgstr "Не вдалося обробити рядок команди."
 
-#: ../src/daemon/main.c:505
-#, c-format
-msgid "We're in the group '%s', allowing high-priority scheduling."
-msgstr ""
-"Ми перебуваємо у групі «%s», що надає змогу планування з високим пріоритетом."
-
-#: ../src/daemon/main.c:512
-#, c-format
-msgid "We're in the group '%s', allowing real-time scheduling."
-msgstr ""
-"Ми перебуваємо у групі «%s», що надає змогу планування у режимі реального "
-"часу."
-
-#: ../src/daemon/main.c:520
-msgid "PolicyKit grants us acquire-high-priority privilege."
-msgstr "PolicyKit надала нам права доступу acquire-high-priority."
-
-#: ../src/daemon/main.c:523
-msgid "PolicyKit refuses acquire-high-priority privilege."
-msgstr "PolicyKit відмовила у наданні прав доступу acquire-high-priority."
-
-#: ../src/daemon/main.c:528
-msgid "PolicyKit grants us acquire-real-time privilege."
-msgstr "PolicyKit надала нам права доступу acquire-real-time."
-
-#: ../src/daemon/main.c:531
-msgid "PolicyKit refuses acquire-real-time privilege."
-msgstr "PolicyKit відмовила у наданні прав доступу acquire-real-time."
-
-#: ../src/daemon/main.c:560
-#, c-format
-msgid ""
-"Called SUID root and real-time and/or high-priority scheduling was requested "
-"in the configuration. However, we lack the necessary privileges:\n"
-"We are not in group '%s', PolicyKit refuse to grant us the requested "
-"privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
-"limits.\n"
-"For enabling real-time/high-priority scheduling please acquire the "
-"appropriate PolicyKit privileges, or become a member of '%s', or increase "
-"the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
-msgstr ""
-"У налаштуваннях було вказано виклик SUID root і планування режиму реального "
-"часу і/або режиму високого пріоритету. Але у нас немає потрібних прав "
-"доступу:\n"
-"Ваш користувач не є учасником групи «%s», PolicyKit відмовила у наданні нам "
-"потрібних прав доступу, тому зняття обмежень ресурсу RLIMIT_NICE/"
-"RLIMIT_RTPRIO не можливе.\n"
-"Щоб увімкнути планування режиму реального часу і/або режиму високого "
-"пріоритету, будь ласка, отримайте відповідні права доступу у PolicyKit або "
-"станьте учасником групи «%s» або збільшіть діапазон ресурсу RLIMIT_NICE/"
-"RLIMIT_RTPRIO для цього користувача."
-
-#: ../src/daemon/main.c:585
-msgid ""
-"High-priority scheduling enabled in configuration but not allowed by policy."
-msgstr ""
-"Планування з високим пріоритетом увімкнено у налаштуваннях, але не дозволене "
-"правилами безпеки."
-
-#: ../src/daemon/main.c:614
-msgid "Successfully increased RLIMIT_RTPRIO"
-msgstr "Успішно підвищено RLIMIT_RTPRIO"
-
-#: ../src/daemon/main.c:617
-#, c-format
-msgid "RLIMIT_RTPRIO failed: %s"
-msgstr "Помилка під час спроби підвищити RLIMIT_RTPRIO: %s"
-
-#: ../src/daemon/main.c:624
-msgid "Giving up CAP_NICE"
-msgstr "Позбуваємося CAP_NICE"
-
-#: ../src/daemon/main.c:631
-msgid ""
-"Real-time scheduling enabled in configuration but not allowed by policy."
-msgstr ""
-"Планування у режимі реального часу увімкнено у налаштуваннях, але не "
-"дозволене правилами безпеки."
-
-#: ../src/daemon/main.c:692
+#: ../src/daemon/main.c:538
 msgid "Daemon not running"
 msgstr "Фонову службу не запущено"
 
-#: ../src/daemon/main.c:694
+#: ../src/daemon/main.c:540
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "Фонову службу запущено як PID %u"
 
-#: ../src/daemon/main.c:704
+#: ../src/daemon/main.c:550
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Не вдалося завершити роботу фонової служби: %s"
 
-#: ../src/daemon/main.c:722
+#: ../src/daemon/main.c:568
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -318,156 +190,156 @@ msgstr ""
 "Цю програму не призначено для запуску від імені користувача root (якщо не "
 "вказано параметра --system)."
 
-#: ../src/daemon/main.c:724
+#: ../src/daemon/main.c:570
 msgid "Root privileges required."
 msgstr "Потрібні права доступу користувача root."
 
-#: ../src/daemon/main.c:729
+#: ../src/daemon/main.c:575
 msgid "--start not supported for system instances."
 msgstr ""
 "Параметр --start не підтримується для загальносистемних екземплярів програми."
 
-#: ../src/daemon/main.c:734
+#: ../src/daemon/main.c:580
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr ""
 "Запуск у загальносистемному режимі, але не встановлено --disallow-exit!"
 
-#: ../src/daemon/main.c:737
+#: ../src/daemon/main.c:583
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 "Запуск у загальносистемному режимі, але не встановлено --disallow-module-"
 "loading!"
 
-#: ../src/daemon/main.c:740
+#: ../src/daemon/main.c:586
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "Запуск у загальносистемному режимі, примусове вимикання режиму SHM!"
 
-#: ../src/daemon/main.c:745
+#: ../src/daemon/main.c:591
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "Запуск у загальносистемному режимі, примусове вимикання режиму параметрів "
 "часу виходу за відсутності активності!"
 
-#: ../src/daemon/main.c:772
+#: ../src/daemon/main.c:618
 msgid "Failed to acquire stdio."
 msgstr "Не вдалося отримати stdio."
 
-#: ../src/daemon/main.c:778
+#: ../src/daemon/main.c:624
 #, c-format
 msgid "pipe failed: %s"
 msgstr "Спроба створення каналу завершилася невдало: %s"
 
-#: ../src/daemon/main.c:783
+#: ../src/daemon/main.c:629
 #, c-format
 msgid "fork() failed: %s"
 msgstr "Спроба виконання fork() завершилася невдало: %s"
 
-#: ../src/daemon/main.c:797
+#: ../src/daemon/main.c:643 ../src/utils/pacat.c:505
 #, c-format
 msgid "read() failed: %s"
 msgstr "Спроба виконання read() завершилася невдало: %s"
 
-#: ../src/daemon/main.c:803
+#: ../src/daemon/main.c:649
 msgid "Daemon startup failed."
 msgstr "Спроба запуску фонової служби завершилася невдало."
 
-#: ../src/daemon/main.c:805
+#: ../src/daemon/main.c:651
 msgid "Daemon startup successful."
 msgstr "Фонову службу успішно запущено."
 
-#: ../src/daemon/main.c:875
+#: ../src/daemon/main.c:728
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Це PulseAudio %s"
 
-#: ../src/daemon/main.c:876
+#: ../src/daemon/main.c:729
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Вузол збирання: %s"
 
-#: ../src/daemon/main.c:877
+#: ../src/daemon/main.c:730
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "CFLAGS збирання: %s"
 
-#: ../src/daemon/main.c:880
+#: ../src/daemon/main.c:733
 #, c-format
 msgid "Running on host: %s"
 msgstr "Запущено на вузлі: %s"
 
-#: ../src/daemon/main.c:883
+#: ../src/daemon/main.c:736
 #, c-format
 msgid "Found %u CPUs."
 msgstr "Знайдено %u процесорів."
 
-#: ../src/daemon/main.c:885
+#: ../src/daemon/main.c:738
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "Розмір сторінки дорівнює %lu байтам"
 
-#: ../src/daemon/main.c:888
+#: ../src/daemon/main.c:741
 msgid "Compiled with Valgrind support: yes"
 msgstr "Зібрано з підтримкою Valgrind: так"
 
-#: ../src/daemon/main.c:890
+#: ../src/daemon/main.c:743
 msgid "Compiled with Valgrind support: no"
 msgstr "Зібрано з підтримкою Valgrind: ні"
 
-#: ../src/daemon/main.c:893
+#: ../src/daemon/main.c:746
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "Запуск у режимі valgrind: %s"
 
-#: ../src/daemon/main.c:896
+#: ../src/daemon/main.c:749
 msgid "Optimized build: yes"
 msgstr "Зібрано з оптимізацією: так"
 
-#: ../src/daemon/main.c:898
+#: ../src/daemon/main.c:751
 msgid "Optimized build: no"
 msgstr "Зібрано з оптимізацією: ні"
 
-#: ../src/daemon/main.c:902
+#: ../src/daemon/main.c:755
 msgid "NDEBUG defined, all asserts disabled."
 msgstr ""
 
-#: ../src/daemon/main.c:904
+#: ../src/daemon/main.c:757
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr ""
 
-#: ../src/daemon/main.c:906
+#: ../src/daemon/main.c:759
 msgid "All asserts enabled."
 msgstr ""
 
-#: ../src/daemon/main.c:910
+#: ../src/daemon/main.c:763
 msgid "Failed to get machine ID"
 msgstr "Спроба отримати ідентифікатор системи завершилася невдало"
 
-#: ../src/daemon/main.c:913
+#: ../src/daemon/main.c:766
 #, c-format
 msgid "Machine ID is %s."
 msgstr "Ідентифікатор системи %s."
 
-#: ../src/daemon/main.c:917
+#: ../src/daemon/main.c:770
 #, fuzzy, c-format
 msgid "Session ID is %s."
 msgstr "Ідентифікатор системи %s."
 
-#: ../src/daemon/main.c:923
+#: ../src/daemon/main.c:776
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Каталог запуску: %s."
 
-#: ../src/daemon/main.c:928
+#: ../src/daemon/main.c:781
 #, c-format
 msgid "Using state directory %s."
 msgstr "Каталог стану: %s."
 
-#: ../src/daemon/main.c:931
+#: ../src/daemon/main.c:784
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Запуску у загальносистемному режимі: %s"
 
-#: ../src/daemon/main.c:934
+#: ../src/daemon/main.c:787
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -477,15 +349,15 @@ msgid ""
 "explanation why system mode is usually a bad idea."
 msgstr ""
 
-#: ../src/daemon/main.c:951
+#: ../src/daemon/main.c:804
 msgid "pa_pid_file_create() failed."
 msgstr "Спроба виконання pa_pid_file_create() зазнала невдачі."
 
-#: ../src/daemon/main.c:961
+#: ../src/daemon/main.c:814
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Доступні свіжі високоточні таймери! Смачного!"
 
-#: ../src/daemon/main.c:963
+#: ../src/daemon/main.c:816
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -493,29 +365,29 @@ msgstr ""
 "Чувак, твоє ядро — лайно! Круті пацани рекомендують Linux з увімкненими "
 "високоточними таймерами!"
 
-#: ../src/daemon/main.c:988
+#: ../src/daemon/main.c:834
 msgid "pa_core_new() failed."
 msgstr "Спроба виконання pa_core_new() зазнала невдачі."
 
-#: ../src/daemon/main.c:1050
+#: ../src/daemon/main.c:896
 msgid "Failed to initialize daemon."
 msgstr "Не вдалося ініціалізувати фонову службу."
 
-#: ../src/daemon/main.c:1055
+#: ../src/daemon/main.c:901
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "Запуск фонової служби без жодного завантаженого модуля, служба не буде "
 "працездатною."
 
-#: ../src/daemon/main.c:1072
+#: ../src/daemon/main.c:918
 msgid "Daemon startup complete."
 msgstr "Запуск фонової служби завершено."
 
-#: ../src/daemon/main.c:1078
+#: ../src/daemon/main.c:924
 msgid "Daemon shutdown initiated."
 msgstr "Ініційовано завершення роботи фонової служби."
 
-#: ../src/daemon/main.c:1100
+#: ../src/daemon/main.c:946
 msgid "Daemon terminated."
 msgstr "Виконання фонової служби перервано."
 
@@ -867,13 +739,9 @@ msgstr ""
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### Прочитано з файла налаштувань: %s ###\n"
 
-#: ../src/daemon/caps.c:63
+#: ../src/daemon/caps.c:65
 msgid "Dropping root privileges."
 msgstr "Позбуваємося прав доступу root."
-
-#: ../src/daemon/caps.c:103
-msgid "Limited capabilities successfully to CAP_SYS_NICE."
-msgstr "Успішно обмежено можливості до CAP_SYS_NICE."
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
@@ -882,28 +750,6 @@ msgstr "Звукова система PulseAudio"
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
 msgstr "Запустити звукову систему PulseAudio"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:1
-msgid ""
-"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr ""
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:2
-#, fuzzy
-msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr ""
-"Спроба завершення роботи фонової служби PulseAudio завершилася невдало."
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:3
-#, fuzzy
-msgid ""
-"System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr ""
-"Ми перебуваємо у групі «%s», що надає змогу планування з високим пріоритетом."
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:4
-msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr ""
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:747
 msgid "Mono"
@@ -1277,184 +1123,188 @@ msgstr "Не вдалося обробити дані куки"
 msgid "Failed to open configuration file '%s': %s"
 msgstr "Не вдалося відкрити файл налаштування «%s»: %s"
 
-#: ../src/pulse/context.c:546
+#: ../src/pulse/context.c:550
 msgid "No cookie loaded. Attempting to connect without."
 msgstr ""
 "Куків не завантажено. Буде виконано спробу з’єднання за їх відсутності."
 
-#: ../src/pulse/context.c:676
+#: ../src/pulse/context.c:693
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:729
+#: ../src/pulse/context.c:745
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1403
+#: ../src/pulse/context.c:1432
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Отримано повідомлення про невідомий додаток «%s»"
 
-#: ../src/utils/pacat.c:107
-#, c-format
-msgid "Failed to drain stream: %s\n"
+#: ../src/utils/pacat.c:108
+#, fuzzy, c-format
+msgid "Failed to drain stream: %s"
 msgstr "Не вдалося створити тунель для потоку: %s\n"
 
-#: ../src/utils/pacat.c:112
-msgid "Playback stream drained.\n"
+#: ../src/utils/pacat.c:113
+#, fuzzy
+msgid "Playback stream drained."
 msgstr "Потік відтворення тунельовано.\n"
 
-#: ../src/utils/pacat.c:122
-msgid "Draining connection to server.\n"
+#: ../src/utils/pacat.c:123
+#, fuzzy
+msgid "Draining connection to server."
 msgstr "Тунельне з’єднання з сервером.\n"
 
-#: ../src/utils/pacat.c:135
-#, c-format
-msgid "pa_stream_drain(): %s\n"
+#: ../src/utils/pacat.c:136
+#, fuzzy, c-format
+msgid "pa_stream_drain(): %s"
 msgstr "pa_stream_drain(): %s\n"
 
-#: ../src/utils/pacat.c:158
-#, c-format
-msgid "pa_stream_write() failed: %s\n"
+#: ../src/utils/pacat.c:159
+#, fuzzy, c-format
+msgid "pa_stream_write() failed: %s"
 msgstr "Спроба виконання pa_stream_write() завершилася невдало: %s\n"
 
-#: ../src/utils/pacat.c:233 ../src/utils/pacat.c:262
-#, c-format
-msgid "pa_stream_peek() failed: %s\n"
+#: ../src/utils/pacat.c:197
+#, fuzzy, c-format
+msgid "pa_stream_begin_write() failed: %s"
+msgstr "Спроба виконання pa_stream_write() завершилася невдало: %s\n"
+
+#: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267
+#, fuzzy, c-format
+msgid "pa_stream_peek() failed: %s"
 msgstr "Спроба виконання pa_stream_peek() завершилася невдало: %s\n"
 
-#: ../src/utils/pacat.c:302
-msgid "Stream successfully created.\n"
+#: ../src/utils/pacat.c:307
+#, fuzzy
+msgid "Stream successfully created."
 msgstr "Потік було успішно створено.\n"
 
-#: ../src/utils/pacat.c:305
-#, c-format
-msgid "pa_stream_get_buffer_attr() failed: %s\n"
+#: ../src/utils/pacat.c:310
+#, fuzzy, c-format
+msgid "pa_stream_get_buffer_attr() failed: %s"
 msgstr "Спроба виконання pa_stream_get_buffer_attr() завершилася невдало: %s\n"
 
-#: ../src/utils/pacat.c:309
-#, c-format
-msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
+#: ../src/utils/pacat.c:314
+#, fuzzy, c-format
+msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 msgstr "Метрика буфера: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
 
-#: ../src/utils/pacat.c:312
-#, c-format
-msgid "Buffer metrics: maxlength=%u, fragsize=%u\n"
+#: ../src/utils/pacat.c:317
+#, fuzzy, c-format
+msgid "Buffer metrics: maxlength=%u, fragsize=%u"
 msgstr "Метрика буфера: maxlength=%u, fragsize=%u\n"
 
-#: ../src/utils/pacat.c:316
-#, c-format
-msgid "Using sample spec '%s', channel map '%s'.\n"
+#: ../src/utils/pacat.c:321
+#, fuzzy, c-format
+msgid "Using sample spec '%s', channel map '%s'."
 msgstr "Використання частотної специфікації «%s», карта каналів «%s».\n"
 
-#: ../src/utils/pacat.c:320
-#, c-format
-msgid "Connected to device %s (%u, %ssuspended).\n"
+#: ../src/utils/pacat.c:325
+#, fuzzy, c-format
+msgid "Connected to device %s (%u, %ssuspended)."
 msgstr "З’єднано з пристроєм %s (%u, %s призупинено).\n"
 
-#: ../src/utils/pacat.c:330
-#, c-format
-msgid "Stream error: %s\n"
+#: ../src/utils/pacat.c:335
+#, fuzzy, c-format
+msgid "Stream error: %s"
 msgstr "Помилка потоку: %s\n"
 
-#: ../src/utils/pacat.c:340
-#, c-format
-msgid "Stream device suspended.%s \n"
+#: ../src/utils/pacat.c:345
+#, fuzzy, c-format
+msgid "Stream device suspended.%s"
 msgstr "Призупинено пристрій потоку. %s \n"
 
-#: ../src/utils/pacat.c:342
-#, c-format
-msgid "Stream device resumed.%s \n"
+#: ../src/utils/pacat.c:347
+#, fuzzy, c-format
+msgid "Stream device resumed.%s"
 msgstr "Відновлено пристрій потоку. %s \n"
 
-#: ../src/utils/pacat.c:350
-#, c-format
-msgid "Stream underrun.%s \n"
+#: ../src/utils/pacat.c:355
+#, fuzzy, c-format
+msgid "Stream underrun.%s"
 msgstr "Недовантаження потоку. %s \n"
 
-#: ../src/utils/pacat.c:357
-#, c-format
-msgid "Stream overrun.%s \n"
+#: ../src/utils/pacat.c:362
+#, fuzzy, c-format
+msgid "Stream overrun.%s"
 msgstr "Перевантаження потоку. %s \n"
 
-#: ../src/utils/pacat.c:364
-#, c-format
-msgid "Stream started.%s \n"
+#: ../src/utils/pacat.c:369
+#, fuzzy, c-format
+msgid "Stream started.%s"
 msgstr "Потік запущено. %s \n"
 
-#: ../src/utils/pacat.c:371
-#, c-format
-msgid "Stream moved to device %s (%u, %ssuspended).%s \n"
+#: ../src/utils/pacat.c:376
+#, fuzzy, c-format
+msgid "Stream moved to device %s (%u, %ssuspended).%s"
 msgstr "Потік пересунуто на пристрій %s (%u, %s призупинено). %s \n"
 
-#: ../src/utils/pacat.c:371
+#: ../src/utils/pacat.c:376
 msgid "not "
 msgstr "не "
 
-#: ../src/utils/pacat.c:378
+#: ../src/utils/pacat.c:383
 #, fuzzy, c-format
-msgid "Stream buffer attributes changed.%s \n"
+msgid "Stream buffer attributes changed.%s"
 msgstr "Недовантаження потоку. %s \n"
 
-#: ../src/utils/pacat.c:411
-#, c-format
-msgid "Connection established.%s \n"
+#: ../src/utils/pacat.c:416
+#, fuzzy, c-format
+msgid "Connection established.%s"
 msgstr "Встановлено з’єднання. %s \n"
 
-#: ../src/utils/pacat.c:414
-#, c-format
-msgid "pa_stream_new() failed: %s\n"
+#: ../src/utils/pacat.c:419
+#, fuzzy, c-format
+msgid "pa_stream_new() failed: %s"
 msgstr "Спроба виконання pa_stream_new() зазнала невдачі: %s\n"
 
-#: ../src/utils/pacat.c:442
-#, c-format
-msgid "pa_stream_connect_playback() failed: %s\n"
+#: ../src/utils/pacat.c:447
+#, fuzzy, c-format
+msgid "pa_stream_connect_playback() failed: %s"
 msgstr "Спроба виконання pa_stream_connect_playback() зазнала невдачі: %s\n"
 
-#: ../src/utils/pacat.c:448
-#, c-format
-msgid "pa_stream_connect_record() failed: %s\n"
+#: ../src/utils/pacat.c:453
+#, fuzzy, c-format
+msgid "pa_stream_connect_record() failed: %s"
 msgstr "Спроба виконання pa_stream_connect_record() зазнала невдачі: %s\n"
 
-#: ../src/utils/pacat.c:462 ../src/utils/pasuspender.c:159
-#: ../src/utils/pactl.c:814
-#, c-format
-msgid "Connection failure: %s\n"
+#: ../src/utils/pacat.c:467
+#, fuzzy, c-format
+msgid "Connection failure: %s"
 msgstr "Спроба встановлення з’єднання зазнала невдачі: %s\n"
 
-#: ../src/utils/pacat.c:495
-msgid "Got EOF.\n"
+#: ../src/utils/pacat.c:500
+#, fuzzy
+msgid "Got EOF."
 msgstr "Отримано EOF.\n"
 
-#: ../src/utils/pacat.c:500
-#, c-format
-msgid "read() failed: %s\n"
-msgstr "Спроба виконання read() завершилася невдало: %s\n"
-
-#: ../src/utils/pacat.c:532
-#, c-format
-msgid "write() failed: %s\n"
+#: ../src/utils/pacat.c:537
+#, fuzzy, c-format
+msgid "write() failed: %s"
 msgstr "Спроба виконання write() завершилася невдало: %s\n"
 
-#: ../src/utils/pacat.c:553
-msgid "Got signal, exiting.\n"
+#: ../src/utils/pacat.c:558
+#, fuzzy
+msgid "Got signal, exiting."
 msgstr "Отримано сигнал, завершення роботи.\n"
 
-#: ../src/utils/pacat.c:567
-#, c-format
-msgid "Failed to get latency: %s\n"
+#: ../src/utils/pacat.c:572
+#, fuzzy, c-format
+msgid "Failed to get latency: %s"
 msgstr "Не вдалося отримати латентність: %s\n"
 
-#: ../src/utils/pacat.c:572
+#: ../src/utils/pacat.c:577
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr "Час: %0.3f сек.; Латентність: %0.0f мкс.  \r"
 
-#: ../src/utils/pacat.c:592
-#, c-format
-msgid "pa_stream_update_timing_info() failed: %s\n"
+#: ../src/utils/pacat.c:595
+#, fuzzy, c-format
+msgid "pa_stream_update_timing_info() failed: %s"
 msgstr ""
 "Спроба виконання pa_stream_update_timing_info() завершилася невдало: %s\n"
 
@@ -1575,34 +1425,34 @@ msgstr ""
 "Зібрано з libpulse %s\n"
 "З’єднано з libpulse %s\n"
 
-#: ../src/utils/pacat.c:760 ../src/utils/pactl.c:900
+#: ../src/utils/pacat.c:760
 #, fuzzy, c-format
-msgid "Invalid client name '%s'\n"
+msgid "Invalid client name '%s'"
 msgstr "Некоректна карта каналів «%s»\n"
 
 #: ../src/utils/pacat.c:776
 #, fuzzy, c-format
-msgid "Invalid stream name '%s'\n"
+msgid "Invalid stream name '%s'"
 msgstr "Некоректний метод зміни частотних характеристик «%s»."
 
 #: ../src/utils/pacat.c:813
-#, c-format
-msgid "Invalid channel map '%s'\n"
+#, fuzzy, c-format
+msgid "Invalid channel map '%s'"
 msgstr "Некоректна карта каналів «%s»\n"
 
 #: ../src/utils/pacat.c:842
-#, c-format
-msgid "Invalid latency specification '%s'\n"
+#, fuzzy, c-format
+msgid "Invalid latency specification '%s'"
 msgstr "Некоректна специфікація латентності «%s»\n"
 
 #: ../src/utils/pacat.c:849
-#, c-format
-msgid "Invalid process time specification '%s'\n"
+#, fuzzy, c-format
+msgid "Invalid process time specification '%s'"
 msgstr "Некоректна часова специфікація «%s»\n"
 
 #: ../src/utils/pacat.c:861
 #, fuzzy, c-format
-msgid "Invalid property '%s'\n"
+msgid "Invalid property '%s'"
 msgstr "Некоректний метод зміни частотних характеристик «%s»."
 
 #: ../src/utils/pacat.c:878
@@ -1611,60 +1461,66 @@ msgid "Unknown file format %s."
 msgstr ""
 
 #: ../src/utils/pacat.c:897
-msgid "Invalid sample specification\n"
+#, fuzzy
+msgid "Invalid sample specification"
 msgstr "Некоректна частотна специфікація\n"
 
 #: ../src/utils/pacat.c:907
-#, c-format
-msgid "open(): %s\n"
+#, fuzzy, c-format
+msgid "open(): %s"
 msgstr "open(): %s\n"
 
 #: ../src/utils/pacat.c:912
-#, c-format
-msgid "dup2(): %s\n"
+#, fuzzy, c-format
+msgid "dup2(): %s"
 msgstr "dup2(): %s\n"
 
 #: ../src/utils/pacat.c:919
-msgid "Too many arguments.\n"
+#, fuzzy
+msgid "Too many arguments."
 msgstr "Забагато аргументів.\n"
 
 #: ../src/utils/pacat.c:930
 #, fuzzy
-msgid "Failed to generate sample specification for file.\n"
+msgid "Failed to generate sample specification for file."
 msgstr "Не вдалося отримати дані щодо фрагмента: %s\n"
 
 #: ../src/utils/pacat.c:950
 #, fuzzy
-msgid "Failed to open audio file.\n"
+msgid "Failed to open audio file."
 msgstr "Не вдалося відкрити звуковий файл.\n"
 
 #: ../src/utils/pacat.c:956
+#, fuzzy
 msgid ""
 "Warning: specified sample specification will be overwritten with "
-"specification from file.\n"
-msgstr ""
+"specification from file."
+msgstr "Відкриття потоку %s з частотною специфікацією «%s».\n"
 
-#: ../src/utils/pacat.c:959 ../src/utils/pactl.c:944
+#: ../src/utils/pacat.c:959
 #, fuzzy
-msgid "Failed to determine sample specification from file.\n"
+msgid "Failed to determine sample specification from file."
 msgstr "Не вдалося отримати дані щодо фрагмента: %s\n"
 
 #: ../src/utils/pacat.c:968
-msgid "Warning: Failed to determine channel map from file.\n"
-msgstr ""
+#, fuzzy
+msgid "Warning: Failed to determine channel map from file."
+msgstr "Відкриття потоку %s з частотною специфікацією «%s».\n"
 
 #: ../src/utils/pacat.c:979
-msgid "Channel map doesn't match sample specification\n"
+#, fuzzy
+msgid "Channel map doesn't match sample specification"
 msgstr "Карта каналі не відповідає частотній специфікації\n"
 
 #: ../src/utils/pacat.c:990
-msgid "Warning: failed to write channel map to file.\n"
-msgstr ""
+#, fuzzy
+msgid "Warning: failed to write channel map to file."
+msgstr "Відкриття потоку %s з частотною специфікацією «%s».\n"
 
 #: ../src/utils/pacat.c:1005
 #, fuzzy, c-format
 msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'.\n"
+"Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "Відкриття потоку %s з частотною специфікацією «%s».\n"
 
 #: ../src/utils/pacat.c:1006
@@ -1675,35 +1531,34 @@ msgstr "запис"
 msgid "playback"
 msgstr "відтворення"
 
-#: ../src/utils/pacat.c:1032 ../src/utils/pasuspender.c:277
-#: ../src/utils/pactl.c:1104
-#, c-format
-msgid "pa_mainloop_new() failed.\n"
+#: ../src/utils/pacat.c:1032
+#, fuzzy
+msgid "pa_mainloop_new() failed."
 msgstr "Спроба виконання pa_mainloop_new() завершилася невдало.\n"
 
 #: ../src/utils/pacat.c:1051
-msgid "io_new() failed.\n"
+#, fuzzy
+msgid "io_new() failed."
 msgstr "Спроба виконання io_new() завершилася невдало.\n"
 
-#: ../src/utils/pacat.c:1058 ../src/utils/pasuspender.c:290
-#: ../src/utils/pactl.c:1116
-#, c-format
-msgid "pa_context_new() failed.\n"
+#: ../src/utils/pacat.c:1058
+#, fuzzy
+msgid "pa_context_new() failed."
 msgstr "Спроба виконання pa_context_new() завершилася невдало.\n"
 
-#: ../src/utils/pacat.c:1066
-#, fuzzy, c-format
-msgid "pa_context_connect() failed: %s\n"
+#: ../src/utils/pacat.c:1066 ../src/utils/pactl.c:1122
+#, c-format
+msgid "pa_context_connect() failed: %s"
 msgstr "Спроба виконання pa_context_connect() завершилася невдало: %s"
 
-#: ../src/utils/pacat.c:1077
-msgid "time_new() failed.\n"
-msgstr "Спроба виконання time_new() завершилася невдало.\n"
+#: ../src/utils/pacat.c:1072
+#, fuzzy
+msgid "pa_context_rttime_new() failed."
+msgstr "Спроба виконання pa_context_new() завершилася невдало.\n"
 
-#: ../src/utils/pacat.c:1084 ../src/utils/pasuspender.c:298
-#: ../src/utils/pactl.c:1127
-#, c-format
-msgid "pa_mainloop_run() failed.\n"
+#: ../src/utils/pacat.c:1079
+#, fuzzy
+msgid "pa_mainloop_run() failed."
 msgstr "Спроба виконання pa_mainloop_run() завершилася невдало.\n"
 
 #: ../src/utils/pasuspender.c:81
@@ -1731,6 +1586,11 @@ msgstr "Невдала спроба відновлення: %s\n"
 msgid "WARNING: Sound server is not local, not suspending.\n"
 msgstr ""
 "ПОПЕРЕДЖЕННЯ: звуковий сервер не є локальним, його не можна призупинити.\n"
+
+#: ../src/utils/pasuspender.c:159 ../src/utils/pactl.c:814
+#, c-format
+msgid "Connection failure: %s\n"
+msgstr "Спроба встановлення з’єднання зазнала невдачі: %s\n"
 
 #: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:820
 #, c-format
@@ -1772,6 +1632,21 @@ msgstr ""
 "pasuspender %s\n"
 "Зібрано з libpulse %s\n"
 "З’єднано з libpulse %s\n"
+
+#: ../src/utils/pasuspender.c:277 ../src/utils/pactl.c:1104
+#, c-format
+msgid "pa_mainloop_new() failed.\n"
+msgstr "Спроба виконання pa_mainloop_new() завершилася невдало.\n"
+
+#: ../src/utils/pasuspender.c:290 ../src/utils/pactl.c:1116
+#, c-format
+msgid "pa_context_new() failed.\n"
+msgstr "Спроба виконання pa_context_new() завершилася невдало.\n"
+
+#: ../src/utils/pasuspender.c:298 ../src/utils/pactl.c:1127
+#, c-format
+msgid "pa_mainloop_run() failed.\n"
+msgstr "Спроба виконання pa_mainloop_run() завершилася невдало.\n"
 
 #: ../src/utils/pactl.c:128
 #, c-format
@@ -2187,6 +2062,11 @@ msgstr ""
 "Зібрано з libpulse %s\n"
 "З’єднано з libpulse %s\n"
 
+#: ../src/utils/pactl.c:900
+#, fuzzy, c-format
+msgid "Invalid client name '%s'\n"
+msgstr "Некоректна карта каналів «%s»\n"
+
 #: ../src/utils/pactl.c:926
 msgid "Please specify a sample file to load\n"
 msgstr "Будь ласка, вкажіть зразковий файл для завантаження\n"
@@ -2194,6 +2074,11 @@ msgstr "Будь ласка, вкажіть зразковий файл для �
 #: ../src/utils/pactl.c:939
 msgid "Failed to open sound file.\n"
 msgstr "Не вдалося відкрити звуковий файл.\n"
+
+#: ../src/utils/pactl.c:944
+#, fuzzy
+msgid "Failed to determine sample specification from file.\n"
+msgstr "Не вдалося отримати дані щодо фрагмента: %s\n"
 
 #: ../src/utils/pactl.c:951
 #, fuzzy
@@ -2257,11 +2142,6 @@ msgstr "Вам слід вказати назву/індекс карти і н�
 #: ../src/utils/pactl.c:1099
 msgid "No valid command specified.\n"
 msgstr "Не вказано коректної команди.\n"
-
-#: ../src/utils/pactl.c:1122
-#, c-format
-msgid "pa_context_connect() failed: %s"
-msgstr "Спроба виконання pa_context_connect() завершилася невдало: %s"
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2382,11 +2262,11 @@ msgstr "read(): %s"
 msgid "write(): %s"
 msgstr "write(): %s"
 
-#: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
+#: ../src/pulsecore/lock-autospawn.c:136 ../src/pulsecore/lock-autospawn.c:219
 msgid "Cannot access autospawn lock."
 msgstr "Не вдалося зняти блокування автоматичного розгалуження."
 
-#: ../src/modules/alsa/alsa-sink.c:445 ../src/modules/alsa/alsa-sink.c:593
+#: ../src/modules/alsa/alsa-sink.c:449 ../src/modules/alsa/alsa-sink.c:606
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2397,7 +2277,7 @@ msgid ""
 "returned 0 or another value < min_avail."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-source.c:424 ../src/modules/alsa/alsa-source.c:563
+#: ../src/modules/alsa/alsa-source.c:429 ../src/modules/alsa/alsa-source.c:578
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2409,15 +2289,15 @@ msgid ""
 msgstr ""
 
 #: ../src/modules/alsa/module-alsa-card.c:152
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2062
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2065
 msgid "Off"
 msgstr ""
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2032
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2035
 msgid "High Fidelity Playback (A2DP)"
 msgstr ""
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2047
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2050
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr ""
 
@@ -2425,6 +2305,133 @@ msgstr ""
 #, fuzzy
 msgid "PulseAudio Sound Server"
 msgstr "Звукова система PulseAudio"
+
+#~ msgid "Cannot connect to system bus: %s"
+#~ msgstr "Не вдалося з’єднатися з шиною системи: %s"
+
+#~ msgid "Cannot get caller from PID: %s"
+#~ msgstr "Не вдалося отримати джерело виклику від PID: %s"
+
+#~ msgid "Cannot set UID on caller object."
+#~ msgstr "Не вдалося встановити UID для об’єкта джерела виклику."
+
+#~ msgid "Failed to get CK session."
+#~ msgstr "Не вдалося отримати CK сеансу."
+
+#~ msgid "Cannot set UID on session object."
+#~ msgstr "Не вдалося встановити UID для об’єкта сеансу."
+
+#~ msgid "Cannot allocate PolKitAction."
+#~ msgstr "Не вдалося розмістити PolKitAction."
+
+#~ msgid "Cannot set action_id"
+#~ msgstr "Не вдалося встановити action_id"
+
+#~ msgid "Cannot allocate PolKitContext."
+#~ msgstr "Не вдалося розмістити PolKitContext."
+
+#~ msgid "Cannot initialize PolKitContext: %s"
+#~ msgstr "Не вдалося ініціалізувати PolKitContext: %s"
+
+#~ msgid "Could not determine whether caller is authorized: %s"
+#~ msgstr "Не вдалося визначити чи уповноважено джерело виклику: %s"
+
+#~ msgid "Cannot obtain auth: %s"
+#~ msgstr "Не вдалося отримати уповноваження: %s"
+
+#~ msgid "PolicyKit responded with '%s'"
+#~ msgstr "PolicyKit надіслала відповідь: «%s»"
+
+#, fuzzy
+#~ msgid "Real-time scheduling for the PulseAudio daemon"
+#~ msgstr ""
+#~ "Спроба завершення роботи фонової служби PulseAudio завершилася невдало."
+
+#, fuzzy
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring high-priority scheduling."
+#~ msgstr ""
+#~ "Ми перебуваємо у групі «%s», що надає змогу планування з високим "
+#~ "пріоритетом."
+
+#~ msgid "read() failed: %s\n"
+#~ msgstr "Спроба виконання read() завершилася невдало: %s\n"
+
+#, fuzzy
+#~ msgid "pa_context_connect() failed: %s\n"
+#~ msgstr "Спроба виконання pa_context_connect() завершилася невдало: %s"
+
+#~ msgid "We're in the group '%s', allowing high-priority scheduling."
+#~ msgstr ""
+#~ "Ми перебуваємо у групі «%s», що надає змогу планування з високим "
+#~ "пріоритетом."
+
+#~ msgid "We're in the group '%s', allowing real-time scheduling."
+#~ msgstr ""
+#~ "Ми перебуваємо у групі «%s», що надає змогу планування у режимі реального "
+#~ "часу."
+
+#~ msgid "PolicyKit grants us acquire-high-priority privilege."
+#~ msgstr "PolicyKit надала нам права доступу acquire-high-priority."
+
+#~ msgid "PolicyKit refuses acquire-high-priority privilege."
+#~ msgstr "PolicyKit відмовила у наданні прав доступу acquire-high-priority."
+
+#~ msgid "PolicyKit grants us acquire-real-time privilege."
+#~ msgstr "PolicyKit надала нам права доступу acquire-real-time."
+
+#~ msgid "PolicyKit refuses acquire-real-time privilege."
+#~ msgstr "PolicyKit відмовила у наданні прав доступу acquire-real-time."
+
+#~ msgid ""
+#~ "Called SUID root and real-time and/or high-priority scheduling was "
+#~ "requested in the configuration. However, we lack the necessary "
+#~ "privileges:\n"
+#~ "We are not in group '%s', PolicyKit refuse to grant us the requested "
+#~ "privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
+#~ "limits.\n"
+#~ "For enabling real-time/high-priority scheduling please acquire the "
+#~ "appropriate PolicyKit privileges, or become a member of '%s', or increase "
+#~ "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
+#~ msgstr ""
+#~ "У налаштуваннях було вказано виклик SUID root і планування режиму "
+#~ "реального часу і/або режиму високого пріоритету. Але у нас немає "
+#~ "потрібних прав доступу:\n"
+#~ "Ваш користувач не є учасником групи «%s», PolicyKit відмовила у наданні "
+#~ "нам потрібних прав доступу, тому зняття обмежень ресурсу RLIMIT_NICE/"
+#~ "RLIMIT_RTPRIO не можливе.\n"
+#~ "Щоб увімкнути планування режиму реального часу і/або режиму високого "
+#~ "пріоритету, будь ласка, отримайте відповідні права доступу у PolicyKit "
+#~ "або станьте учасником групи «%s» або збільшіть діапазон ресурсу "
+#~ "RLIMIT_NICE/RLIMIT_RTPRIO для цього користувача."
+
+#~ msgid ""
+#~ "High-priority scheduling enabled in configuration but not allowed by "
+#~ "policy."
+#~ msgstr ""
+#~ "Планування з високим пріоритетом увімкнено у налаштуваннях, але не "
+#~ "дозволене правилами безпеки."
+
+#~ msgid "Successfully increased RLIMIT_RTPRIO"
+#~ msgstr "Успішно підвищено RLIMIT_RTPRIO"
+
+#~ msgid "RLIMIT_RTPRIO failed: %s"
+#~ msgstr "Помилка під час спроби підвищити RLIMIT_RTPRIO: %s"
+
+#~ msgid "Giving up CAP_NICE"
+#~ msgstr "Позбуваємося CAP_NICE"
+
+#~ msgid ""
+#~ "Real-time scheduling enabled in configuration but not allowed by policy."
+#~ msgstr ""
+#~ "Планування у режимі реального часу увімкнено у налаштуваннях, але не "
+#~ "дозволене правилами безпеки."
+
+#~ msgid "Limited capabilities successfully to CAP_SYS_NICE."
+#~ msgstr "Успішно обмежено можливості до CAP_SYS_NICE."
+
+#~ msgid "time_new() failed.\n"
+#~ msgstr "Спроба виконання time_new() завершилася невдало.\n"
 
 #~ msgid "Analog Mono"
 #~ msgstr "Аналоговий моно"

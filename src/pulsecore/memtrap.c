@@ -37,6 +37,7 @@
 #include <pulsecore/aupdate.h>
 #include <pulsecore/atomic.h>
 #include <pulsecore/once.h>
+#include <pulsecore/mutex.h>
 
 #include "memtrap.h"
 
@@ -49,6 +50,7 @@ struct pa_memtrap {
 
 static pa_memtrap *memtraps[2] = { NULL, NULL };
 static pa_aupdate *aupdate;
+static pa_static_mutex mutex = PA_STATIC_MUTEX_INIT; /* only required to serialize access to the write side */
 
 static void allocate_aupdate(void) {
     PA_ONCE_BEGIN {
@@ -63,7 +65,7 @@ pa_bool_t pa_memtrap_is_good(pa_memtrap *m) {
 }
 
 static void sigsafe_error(const char *s) {
-    write(STDERR_FILENO, s, strlen(s));
+    (void) write(STDERR_FILENO, s, strlen(s));
 }
 
 static void signal_handler(int sig, siginfo_t* si, void *data) {
@@ -124,6 +126,7 @@ static void memtrap_unlink(pa_memtrap *m, unsigned j) {
 pa_memtrap* pa_memtrap_add(const void *start, size_t size) {
     pa_memtrap *m = NULL;
     unsigned j;
+    pa_mutex *mx;
 
     pa_assert(start);
     pa_assert(size > 0);
@@ -138,21 +141,30 @@ pa_memtrap* pa_memtrap_add(const void *start, size_t size) {
 
     allocate_aupdate();
 
+    mx = pa_static_mutex_get(&mutex, FALSE, TRUE);
+    pa_mutex_lock(mx);
+
     j = pa_aupdate_write_begin(aupdate);
     memtrap_link(m, j);
     j = pa_aupdate_write_swap(aupdate);
     memtrap_link(m, j);
     pa_aupdate_write_end(aupdate);
+
+    pa_mutex_unlock(mx);
 
     return m;
 }
 
 void pa_memtrap_remove(pa_memtrap *m) {
     unsigned j;
+    pa_mutex *mx;
 
     pa_assert(m);
 
     allocate_aupdate();
+
+    mx = pa_static_mutex_get(&mutex, FALSE, TRUE);
+    pa_mutex_lock(mx);
 
     j = pa_aupdate_write_begin(aupdate);
     memtrap_unlink(m, j);
@@ -160,11 +172,14 @@ void pa_memtrap_remove(pa_memtrap *m) {
     memtrap_unlink(m, j);
     pa_aupdate_write_end(aupdate);
 
+    pa_mutex_unlock(mx);
+
     pa_xfree(m);
 }
 
 pa_memtrap *pa_memtrap_update(pa_memtrap *m, const void *start, size_t size) {
     unsigned j;
+    pa_mutex *mx;
 
     pa_assert(m);
 
@@ -175,6 +190,9 @@ pa_memtrap *pa_memtrap_update(pa_memtrap *m, const void *start, size_t size) {
     size = PA_PAGE_ALIGN(size);
 
     allocate_aupdate();
+
+    mx = pa_static_mutex_get(&mutex, FALSE, TRUE);
+    pa_mutex_lock(mx);
 
     j = pa_aupdate_write_begin(aupdate);
 
@@ -193,6 +211,8 @@ pa_memtrap *pa_memtrap_update(pa_memtrap *m, const void *start, size_t size) {
 
 unlock:
     pa_aupdate_write_end(aupdate);
+
+    pa_mutex_unlock(mx);
 
     return m;
 }

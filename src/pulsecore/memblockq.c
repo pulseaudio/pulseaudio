@@ -692,6 +692,12 @@ size_t pa_memblockq_get_minreq(pa_memblockq *bq) {
     return bq->minreq;
 }
 
+size_t pa_memblockq_get_maxrewind(pa_memblockq *bq) {
+    pa_assert(bq);
+
+    return bq->maxrewind;
+}
+
 int64_t pa_memblockq_get_read_index(pa_memblockq *bq) {
     pa_assert(bq);
 

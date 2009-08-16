@@ -881,7 +881,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 *((pa_usec_t*) data) = wi > ri ? wi - ri : 0;
             }
 
-            *((pa_usec_t*) data) += u->sink->fixed_latency;
+            *((pa_usec_t*) data) += u->sink->thread_info.fixed_latency;
             return 0;
         }
     }
@@ -943,7 +943,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             wi = pa_smoother_get(u->read_smoother, pa_rtclock_now());
             ri = pa_bytes_to_usec(u->read_index, &u->sample_spec);
 
-            *((pa_usec_t*) data) = (wi > ri ? wi - ri : 0) + u->source->fixed_latency;
+            *((pa_usec_t*) data) = (wi > ri ? wi - ri : 0) + u->source->thread_info.fixed_latency;
             return 0;
         }
 
@@ -1262,10 +1262,10 @@ static void thread_func(void *userdata) {
     if (u->core->realtime_scheduling)
         pa_make_realtime(u->core->realtime_priority);
 
+    pa_thread_mq_install(&u->thread_mq);
+
     if (start_stream_fd(u) < 0)
         goto fail;
-
-    pa_thread_mq_install(&u->thread_mq);
 
     for (;;) {
         struct pollfd *pollfd;
@@ -1319,18 +1319,21 @@ static void thread_func(void *userdata) {
                         if (u->write_index > 0 && audio_to_send > MAX_PLAYBACK_CATCH_UP_USEC) {
                             pa_usec_t skip_usec;
                             uint64_t skip_bytes;
-                            pa_memchunk tmp;
 
                             skip_usec = audio_to_send - MAX_PLAYBACK_CATCH_UP_USEC;
                             skip_bytes = pa_usec_to_bytes(skip_usec, &u->sample_spec);
 
-                            pa_log_warn("Skipping %llu us (= %llu bytes) in audio stream",
-                                        (unsigned long long) skip_usec,
-                                        (unsigned long long) skip_bytes);
+                            if (skip_bytes > 0) {
+                                pa_memchunk tmp;
 
-                            pa_sink_render_full(u->sink, skip_bytes, &tmp);
-                            pa_memblock_unref(tmp.memblock);
-                            u->write_index += skip_bytes;
+                                pa_log_warn("Skipping %llu us (= %llu bytes) in audio stream",
+                                            (unsigned long long) skip_usec,
+                                            (unsigned long long) skip_bytes);
+
+                                pa_sink_render_full(u->sink, skip_bytes, &tmp);
+                                pa_memblock_unref(tmp.memblock);
+                                u->write_index += skip_bytes;
+                            }
                         }
 
                         do_write = 1;
@@ -1351,11 +1354,14 @@ static void thread_func(void *userdata) {
                             goto fail;
                     }
 
+                    if (n_written == 0)
+                        pa_log("Broken kernel: we got EAGAIN on write() after POLLOUT!");
+
                     do_write -= n_written;
                     writable = FALSE;
                 }
 
-                if ((!u->source || !PA_SOURCE_IS_LINKED(u->source->thread_info.state)) && do_write <= 0) {
+                if ((!u->source || !PA_SOURCE_IS_LINKED(u->source->thread_info.state)) && do_write <= 0 && writable) {
                     pa_usec_t time_passed, next_write_at, sleep_for;
 
                     /* Hmm, there is no input stream we could synchronize
@@ -1443,12 +1449,12 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
             if (u->sink && dbus_message_is_signal(m, "org.bluez.Headset", "SpeakerGainChanged")) {
 
                 pa_cvolume_set(&v, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
-                pa_sink_volume_changed(u->sink, &v, TRUE);
+                pa_sink_volume_changed(u->sink, &v);
 
             } else if (u->source && dbus_message_is_signal(m, "org.bluez.Headset", "MicrophoneGainChanged")) {
 
                 pa_cvolume_set(&v, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
-                pa_source_volume_changed(u->source, &v, TRUE);
+                pa_source_volume_changed(u->source, &v);
             }
         }
     }
@@ -1733,7 +1739,8 @@ static void shutdown_bt(struct userdata *u) {
     if (u->service_fd >= 0) {
         pa_close(u->service_fd);
         u->service_fd = -1;
-        u->service_write_type = u->service_write_type = 0;
+        u->service_write_type = 0;
+        u->service_read_type = 0;
     }
 
     if (u->write_memchunk.memblock) {
@@ -1749,7 +1756,8 @@ static int init_bt(struct userdata *u) {
     shutdown_bt(u);
 
     u->stream_write_type = 0;
-    u->service_write_type = u->service_write_type = 0;
+    u->service_write_type = 0;
+    u->service_read_type = 0;
 
     if ((u->service_fd = bt_audio_service_open()) < 0) {
         pa_log_error("Couldn't connect to bluetooth audio service");
@@ -2081,6 +2089,15 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
 
     u->card->userdata = u;
     u->card->set_profile = card_set_profile;
+
+    d = PA_CARD_PROFILE_DATA(u->card->active_profile);
+
+    if ((device->headset_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_HSP) ||
+        (device->audio_sink_state < PA_BT_AUDIO_STATE_CONNECTED && *d == PROFILE_A2DP)) {
+        pa_log_warn("Default profile not connected, selecting off profile");
+        u->card->active_profile = pa_hashmap_get(u->card->profiles, "off");
+        u->card->save_profile = FALSE;
+    }
 
     d = PA_CARD_PROFILE_DATA(u->card->active_profile);
     u->profile = *d;

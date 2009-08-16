@@ -68,23 +68,24 @@ int pa_start_child_for_read(const char *name, const char *argv1, pid_t *pid) {
     } else {
         /* child */
 
-        pa_reset_priority();
+        pa_reset_personality();
 
         pa_assert_se(pa_close(pipe_fds[0]) == 0);
-        pa_assert_se(dup2(pipe_fds[1], 1) == 1);
+        pa_assert_se(dup2(pipe_fds[1], STDOUT_FILENO) == STDOUT_FILENO);
 
-        if (pipe_fds[1] != 1)
+        if (pipe_fds[1] != STDOUT_FILENO)
             pa_assert_se(pa_close(pipe_fds[1]) == 0);
 
-        pa_close(0);
-        pa_assert_se(open("/dev/null", O_RDONLY) == 0);
+        pa_close(STDIN_FILENO);
+        pa_assert_se(open("/dev/null", O_RDONLY) == STDIN_FILENO);
 
-        pa_close(2);
-        pa_assert_se(open("/dev/null", O_WRONLY) == 2);
+        pa_close(STDERR_FILENO);
+        pa_assert_se(open("/dev/null", O_WRONLY) == STDERR_FILENO);
 
         pa_close_all(-1);
         pa_reset_sigs(-1);
         pa_unblock_sigs(-1);
+        pa_reset_priority();
 
 #ifdef PR_SET_PDEATHSIG
         /* On Linux we can use PR_SET_PDEATHSIG to have the helper

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-06-17 23:42+0200\n"
+"POT-Creation-Date: 2009-08-05 15:09+0200\n"
 "PO-Revision-Date: 2009-04-06 13:43+0530\n"
 "Last-Translator: Sandeep Shedmake <sandeep.shedmake@gmail.com>\n"
 "Language-Team: marathi\n"
@@ -17,7 +17,12 @@ msgstr ""
 "X-Generator: KBabel 1.11.4\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
 
-#: ../src/modules/alsa/alsa-util.c:1015
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2411
+#, c-format
+msgid "%s %s"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-util.c:1023
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -29,7 +34,7 @@ msgstr ""
 "हे सहसा ALSA ड्राइवर '%s' अंतर्गत बग अशू शकते. कृपया या अडचणीस ALSA डेव्हलपर करीता "
 "कळवा."
 
-#: ../src/modules/alsa/alsa-util.c:1056
+#: ../src/modules/alsa/alsa-util.c:1064
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -41,7 +46,7 @@ msgstr ""
 "हे सहसा ALSA ड्राइवर '%s' अंतर्गत बग अशू शकते. कृपया या अडचणीस ALSA डेव्हलपर करीता "
 "कळवा."
 
-#: ../src/modules/alsa/alsa-util.c:1103
+#: ../src/modules/alsa/alsa-util.c:1111
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -66,7 +71,7 @@ msgid ""
 "input control values>"
 msgstr ""
 
-#: ../src/pulsecore/sink.c:2394
+#: ../src/pulsecore/sink.c:2395
 msgid "Internal Audio"
 msgstr "आंतरीक ऑडिओ"
 
@@ -86,367 +91,242 @@ msgstr "नवीन dl दाखलकर्ता वाटप करण्य
 msgid "Failed to add bind-now-loader."
 msgstr "bind-now-loader समावेष करण्यास अपयशी."
 
-#: ../src/daemon/polkit.c:55
-#, c-format
-msgid "Cannot connect to system bus: %s"
-msgstr "प्रणाली बसशी जुळवणी करण्यास अशक्य: %s"
-
-#: ../src/daemon/polkit.c:65
-#, c-format
-msgid "Cannot get caller from PID: %s"
-msgstr "PID पासून कॉलर प्राप्त करणे अशक्य: %s"
-
-#: ../src/daemon/polkit.c:77
-msgid "Cannot set UID on caller object."
-msgstr "कॉलर ऑबजेक्ट वरील UID निश्चित करणे अशक्य."
-
-#: ../src/daemon/polkit.c:82
-msgid "Failed to get CK session."
-msgstr "CK सत्र प्राप्त करणे अपयशी."
-
-#: ../src/daemon/polkit.c:90
-msgid "Cannot set UID on session object."
-msgstr "सत्र ऑबजेक्ट वरील UID निश्चित करणे अशक्य."
-
-#: ../src/daemon/polkit.c:95
-msgid "Cannot allocate PolKitAction."
-msgstr "PolKitAction वाटप करणे अशक्य."
-
-#: ../src/daemon/polkit.c:100
-msgid "Cannot set action_id"
-msgstr "action_id निश्चित करणे अशक्य"
-
-#: ../src/daemon/polkit.c:105
-msgid "Cannot allocate PolKitContext."
-msgstr "PolKitContext वाटप करणे अशक्य."
-
-#: ../src/daemon/polkit.c:110
-#, c-format
-msgid "Cannot initialize PolKitContext: %s"
-msgstr "PolKitContext प्रारंभ करणे अशक्य: %s"
-
-#: ../src/daemon/polkit.c:119
-#, c-format
-msgid "Could not determine whether caller is authorized: %s"
-msgstr "कॉलर अधिकृत आहे की नाही हे ओळखणे शक्य नाही: %s"
-
-#: ../src/daemon/polkit.c:139
-#, c-format
-msgid "Cannot obtain auth: %s"
-msgstr "परवानगी प्राप्त करणे अशक्य: %s"
-
-#: ../src/daemon/polkit.c:148
-#, c-format
-msgid "PolicyKit responded with '%s'"
-msgstr "PolicyKit ने '%s' सह प्रतिसाद दिला"
-
-#: ../src/daemon/main.c:142
+#: ../src/daemon/main.c:145
 #, c-format
 msgid "Got signal %s."
 msgstr "संकेत %s प्राप्त झाले."
 
-#: ../src/daemon/main.c:169
+#: ../src/daemon/main.c:172
 msgid "Exiting."
 msgstr "बाहेर पडत आहे."
 
-#: ../src/daemon/main.c:187
+#: ../src/daemon/main.c:190
 #, c-format
 msgid "Failed to find user '%s'."
 msgstr "वापरकर्ता '%s' शोधणे अशक्य."
 
-#: ../src/daemon/main.c:192
+#: ../src/daemon/main.c:195
 #, c-format
 msgid "Failed to find group '%s'."
 msgstr "गट '%s' शोधण्यास अपयशी."
 
-#: ../src/daemon/main.c:196
+#: ../src/daemon/main.c:199
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
 msgstr "वापरकर्ता '%s' (UID %lu) व गट '%s' (GID %lu) आढळले."
 
-#: ../src/daemon/main.c:201
+#: ../src/daemon/main.c:204
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
 msgstr "वापरकर्ता '%s' व गट '%s' चे GID जुळत नाही."
 
-#: ../src/daemon/main.c:206
+#: ../src/daemon/main.c:209
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "वापरकर्ता '%s' ची मुख्य डिरेक्ट्री '%s' नाही, दुर्लक्ष करत आहे."
 
-#: ../src/daemon/main.c:209 ../src/daemon/main.c:214
+#: ../src/daemon/main.c:212 ../src/daemon/main.c:217
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "'%s' बनवण्यास अपयशी: %s"
 
-#: ../src/daemon/main.c:221
+#: ../src/daemon/main.c:224
 #, c-format
 msgid "Failed to change group list: %s"
 msgstr "गट यादी बदलवण्यास अपयशी: %s"
 
-#: ../src/daemon/main.c:237
+#: ../src/daemon/main.c:240
 #, c-format
 msgid "Failed to change GID: %s"
 msgstr "GID बदलवण्यास अपयशी: %s"
 
-#: ../src/daemon/main.c:253
+#: ../src/daemon/main.c:256
 #, c-format
 msgid "Failed to change UID: %s"
 msgstr "UID बदलवण्यास अपयशी: %s"
 
-#: ../src/daemon/main.c:267
+#: ../src/daemon/main.c:270
 msgid "Successfully dropped root privileges."
 msgstr "रूट परवानगी यशस्वीरित्या वगळले."
 
-#: ../src/daemon/main.c:275
+#: ../src/daemon/main.c:278
 msgid "System wide mode unsupported on this platform."
 msgstr "प्रणाली भर पद्धत या प्लॅटफॉर्म करीता समर्थीत नाही."
 
-#: ../src/daemon/main.c:293
+#: ../src/daemon/main.c:296
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) अपयशी: %s"
 
-#: ../src/daemon/main.c:481
+#: ../src/daemon/main.c:471
 msgid "Failed to parse command line."
 msgstr "आदेश ओळ वाचण्यास अपयशी."
 
-#: ../src/daemon/main.c:505
-#, c-format
-msgid "We're in the group '%s', allowing high-priority scheduling."
-msgstr "आपण गट '%s' अंतर्गत आहोत, उच्च-प्राधन्यक्रम वेळपत्रक करीता परवानगी देते."
-
-#: ../src/daemon/main.c:512
-#, c-format
-msgid "We're in the group '%s', allowing real-time scheduling."
-msgstr "आपण गट '%s' अंतर्गत आहोत, रियल-टाईम वेळपत्रक करीता परवानगी देते."
-
-#: ../src/daemon/main.c:520
-msgid "PolicyKit grants us acquire-high-priority privilege."
-msgstr "PolicyKit आपल्याला acquire-high-priority परवानगी देतो."
-
-#: ../src/daemon/main.c:523
-msgid "PolicyKit refuses acquire-high-priority privilege."
-msgstr "PolicyKit acquire-high-priority परवानगी नकारतो."
-
-#: ../src/daemon/main.c:528
-msgid "PolicyKit grants us acquire-real-time privilege."
-msgstr "PolicyKit acquire-real-time परवानगी पुरवितो."
-
-#: ../src/daemon/main.c:531
-msgid "PolicyKit refuses acquire-real-time privilege."
-msgstr "PolicyKit acquire-real-time परवानगी नकारतो."
-
-#: ../src/daemon/main.c:560
-#, c-format
-msgid ""
-"Called SUID root and real-time and/or high-priority scheduling was requested "
-"in the configuration. However, we lack the necessary privileges:\n"
-"We are not in group '%s', PolicyKit refuse to grant us the requested "
-"privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
-"limits.\n"
-"For enabling real-time/high-priority scheduling please acquire the "
-"appropriate PolicyKit privileges, or become a member of '%s', or increase "
-"the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
-msgstr ""
-"SUID रूटला कॉल केले व वास्तविक-वेळ व/किंवा संयोजना अंतर्गत उच्च-प्राधान्यक्रम वेळपत्रक "
-"विनंतीकृत केले. तरी, आमच्याकडे आवश्यक परवानगी नाही:\n"
-"आम्ही गट '%s' अंतर्गत नाही, PolicyKit ने विनंतीकृत परवानगी देण्यास नकार दिला व "
-"RLIMIT_NICE/RLIMIT_RTPRIO स्त्रोत मर्यादा वाढविणे आवश्यक आहे.\n"
-"रियल-टाइम/उच्च-प्राधान्यक्रम वेळपत्रक कार्यान्वीत करण्याकरीता कृपयायोग्य PolicyKit "
-"परवानगी प्राप्त करा, किंवा '%s' चे सदस्य बनवा, किंवा या वापरकर्ता करीताRLIMIT_NICE/"
-"RLIMIT_RTPRIO स्त्रोत मर्यादा वाढवा."
-
-#: ../src/daemon/main.c:585
-msgid ""
-"High-priority scheduling enabled in configuration but not allowed by policy."
-msgstr ""
-"संयोजना अंतर्गत उच्च-प्राधान्यक्रम वेळपत्रक कार्यान्वीत केले करार द्वारे स्वीकार्य नाही."
-
-#: ../src/daemon/main.c:614
-msgid "Successfully increased RLIMIT_RTPRIO"
-msgstr "यशस्वीरित्या RLIMIT_RTPRIO वाढवले"
-
-#: ../src/daemon/main.c:617
-#, c-format
-msgid "RLIMIT_RTPRIO failed: %s"
-msgstr "RLIMIT_RTPRIO अपयशी: %s"
-
-#: ../src/daemon/main.c:624
-msgid "Giving up CAP_NICE"
-msgstr "CAP_NICE करीता प्रयत्न बंद केले"
-
-#: ../src/daemon/main.c:631
-msgid ""
-"Real-time scheduling enabled in configuration but not allowed by policy."
-msgstr ""
-"संयोजना अंतर्गत रियल-टाईम वेळपत्र कार्यान्वीत करत आहे परंतु करार द्वारे स्वीकार्य नाही."
-
-#: ../src/daemon/main.c:692
+#: ../src/daemon/main.c:538
 msgid "Daemon not running"
 msgstr "डिमन कार्यरत नाही"
 
-#: ../src/daemon/main.c:694
+#: ../src/daemon/main.c:540
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "डिमन PID %u नुरूप कार्यरत आहे"
 
-#: ../src/daemon/main.c:704
+#: ../src/daemon/main.c:550
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "डिमन नष्ट करण्यास अपयशी: %s"
 
-#: ../src/daemon/main.c:722
+#: ../src/daemon/main.c:568
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
 msgstr "हा कार्यक्रम रूट नुरूप चालविण्याकरीता नाही (जोपर्यंत --system निश्चित नाही)."
 
-#: ../src/daemon/main.c:724
+#: ../src/daemon/main.c:570
 msgid "Root privileges required."
 msgstr "रूट परवानगी आवश्यक."
 
-#: ../src/daemon/main.c:729
+#: ../src/daemon/main.c:575
 msgid "--start not supported for system instances."
 msgstr "प्रणाली घटनांकरीता --start समर्थीत नाही."
 
-#: ../src/daemon/main.c:734
+#: ../src/daemon/main.c:580
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr "प्रणाली पद्धती अंतर्गत कार्यरत, परंतु --disallow-exit निश्चित केले नाही!"
 
-#: ../src/daemon/main.c:737
+#: ../src/daemon/main.c:583
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 "प्रणाली पद्धती अंतर्गत कार्यरत, परंतु --disallow-module-loading निश्चित केले नाही!"
 
-#: ../src/daemon/main.c:740
+#: ../src/daemon/main.c:586
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "प्रणाली पद्धती अंतर्गत कार्यरत, SHM पद्धत जबरनरित्या अकार्यान्वीत करत आहे!"
 
-#: ../src/daemon/main.c:745
+#: ../src/daemon/main.c:591
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr "प्रणाली पद्धती अंतर्गत कार्यरत, रिकामे वेळ जबरनरित्या अकार्यान्वीत करत आहे!"
 
-#: ../src/daemon/main.c:772
+#: ../src/daemon/main.c:618
 msgid "Failed to acquire stdio."
 msgstr "stdio प्राप्त करण्यास अपयशी."
 
-#: ../src/daemon/main.c:778
+#: ../src/daemon/main.c:624
 #, c-format
 msgid "pipe failed: %s"
 msgstr "पाइप अपयशी: %s"
 
-#: ../src/daemon/main.c:783
+#: ../src/daemon/main.c:629
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() अपयशी: %s"
 
-#: ../src/daemon/main.c:797
+#: ../src/daemon/main.c:643 ../src/utils/pacat.c:505
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() अपयशी: %s"
 
-#: ../src/daemon/main.c:803
+#: ../src/daemon/main.c:649
 msgid "Daemon startup failed."
 msgstr "डिमन स्टार्टअप अपयशी."
 
-#: ../src/daemon/main.c:805
+#: ../src/daemon/main.c:651
 msgid "Daemon startup successful."
 msgstr "डिमन स्टार्टअप यशस्वी."
 
-#: ../src/daemon/main.c:875
+#: ../src/daemon/main.c:728
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "हे PulseAudio %s आहे"
 
-#: ../src/daemon/main.c:876
+#: ../src/daemon/main.c:729
 #, c-format
 msgid "Compilation host: %s"
 msgstr "कंपाइलेशन यजमान: %s"
 
-#: ../src/daemon/main.c:877
+#: ../src/daemon/main.c:730
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "कंपाइलेशन CFLAGS: %s"
 
-#: ../src/daemon/main.c:880
+#: ../src/daemon/main.c:733
 #, c-format
 msgid "Running on host: %s"
 msgstr "यजमान वर कार्यरत: %s"
 
-#: ../src/daemon/main.c:883
+#: ../src/daemon/main.c:736
 #, c-format
 msgid "Found %u CPUs."
 msgstr "%u CPUs आढळले."
 
-#: ../src/daemon/main.c:885
+#: ../src/daemon/main.c:738
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "पान आकार %lu बाईटस् आहे"
 
-#: ../src/daemon/main.c:888
+#: ../src/daemon/main.c:741
 msgid "Compiled with Valgrind support: yes"
 msgstr "Valgrind समर्थनशी कंपाईल केले: होय"
 
-#: ../src/daemon/main.c:890
+#: ../src/daemon/main.c:743
 msgid "Compiled with Valgrind support: no"
 msgstr "Valgrind समर्थनशी कंपाईल केले: नाही"
 
-#: ../src/daemon/main.c:893
+#: ../src/daemon/main.c:746
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "valgrind पद्धतीत कार्यरत: %s"
 
-#: ../src/daemon/main.c:896
+#: ../src/daemon/main.c:749
 msgid "Optimized build: yes"
 msgstr "अनुकूल बिल्ड: होय"
 
-#: ../src/daemon/main.c:898
+#: ../src/daemon/main.c:751
 msgid "Optimized build: no"
 msgstr "अनुकूल बिल्ड: नाही"
 
-#: ../src/daemon/main.c:902
+#: ../src/daemon/main.c:755
 msgid "NDEBUG defined, all asserts disabled."
 msgstr "NDEBUG वर्णीकृत, सर्व asserts अकार्यान्वीत."
 
-#: ../src/daemon/main.c:904
+#: ../src/daemon/main.c:757
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr "FASTPATH वर्णीकृत, फक्त जलद मार्गीय asserts अकार्यान्वीत केले."
 
-#: ../src/daemon/main.c:906
+#: ../src/daemon/main.c:759
 msgid "All asserts enabled."
 msgstr "सर्व asserts कार्यान्वीत केले."
 
-#: ../src/daemon/main.c:910
+#: ../src/daemon/main.c:763
 msgid "Failed to get machine ID"
 msgstr "मशीन ID प्राप्त करण्यास अपयशी"
 
-#: ../src/daemon/main.c:913
+#: ../src/daemon/main.c:766
 #, c-format
 msgid "Machine ID is %s."
 msgstr "मशीन ID %s आहे."
 
-#: ../src/daemon/main.c:917
+#: ../src/daemon/main.c:770
 #, fuzzy, c-format
 msgid "Session ID is %s."
 msgstr "मशीन ID %s आहे."
 
-#: ../src/daemon/main.c:923
+#: ../src/daemon/main.c:776
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "रनटाईम डिरेक्ट्री %s वापरत आहे."
 
-#: ../src/daemon/main.c:928
+#: ../src/daemon/main.c:781
 #, c-format
 msgid "Using state directory %s."
 msgstr "स्थिती डिरेक्ट्री %s वापरत आहे."
 
-#: ../src/daemon/main.c:931
+#: ../src/daemon/main.c:784
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "प्रणाली पद्धतीत कार्यरत: %s"
 
-#: ../src/daemon/main.c:934
+#: ../src/daemon/main.c:787
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -456,15 +336,15 @@ msgid ""
 "explanation why system mode is usually a bad idea."
 msgstr ""
 
-#: ../src/daemon/main.c:951
+#: ../src/daemon/main.c:804
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() अपयशी."
 
-#: ../src/daemon/main.c:961
+#: ../src/daemon/main.c:814
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "नवीन उच्च-बिंदूता टाइमर उपलब्ध! Bon appetit!"
 
-#: ../src/daemon/main.c:963
+#: ../src/daemon/main.c:816
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -472,27 +352,27 @@ msgstr ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 
-#: ../src/daemon/main.c:988
+#: ../src/daemon/main.c:834
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() अपयशी."
 
-#: ../src/daemon/main.c:1050
+#: ../src/daemon/main.c:896
 msgid "Failed to initialize daemon."
 msgstr "डिमन प्रारंभ करण्यास अपयशी."
 
-#: ../src/daemon/main.c:1055
+#: ../src/daemon/main.c:901
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "विना विभाग दाखल केल्यास डिमन प्रारंभ झाले, कार्य करण्यास नकार."
 
-#: ../src/daemon/main.c:1072
+#: ../src/daemon/main.c:918
 msgid "Daemon startup complete."
 msgstr "डिमन स्टार्टअप पूर्ण झाले."
 
-#: ../src/daemon/main.c:1078
+#: ../src/daemon/main.c:924
 msgid "Daemon shutdown initiated."
 msgstr "डिमन पूर्णपणे बंद करण्यास प्रारंभ केले."
 
-#: ../src/daemon/main.c:1100
+#: ../src/daemon/main.c:946
 msgid "Daemon terminated."
 msgstr "डिमन नष्ट केले."
 
@@ -827,13 +707,9 @@ msgstr ""
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### संयोजना फाइल: %s पासून वाचा ###\n"
 
-#: ../src/daemon/caps.c:63
+#: ../src/daemon/caps.c:65
 msgid "Dropping root privileges."
 msgstr "रुट परवानगी वगळत आहे."
-
-#: ../src/daemon/caps.c:103
-msgid "Limited capabilities successfully to CAP_SYS_NICE."
-msgstr "क्षमता यशस्वीरित्या CAP_SYS_NICE करीता मर्यादीत केले."
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
@@ -842,24 +718,6 @@ msgstr "PulseAudio आवाज प्रणाली"
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
 msgstr "PulseAudio आवाज प्रणाली सुरू करा"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:1
-msgid ""
-"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr "PulseAudio डिमन करीता उच्च-प्राधान्यक्रम वेळपत्रक (नकारात्मक Unix nice स्तर)"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:2
-msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr "PulseAudio डिमन करीता रियल-टाइम वेळपत्रक"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:3
-msgid ""
-"System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr "प्रणाली करार PulseAudio ला उच्च-प्राधान्यक्रम वेळपत्रक प्राप्त करण्यापासून रोखते."
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:4
-msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr "प्रणाली करार PulseAudio ला रियल-टाइम वेळपत्रक प्राप्त करण्यापासून रोखते."
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:747
 msgid "Mono"
@@ -1233,183 +1091,187 @@ msgstr "कुकी डेटा वाचण्यास अपयशी"
 msgid "Failed to open configuration file '%s': %s"
 msgstr "संयोजना फाइल '%s' उघडण्यास अपयशी: %s"
 
-#: ../src/pulse/context.c:546
+#: ../src/pulse/context.c:550
 msgid "No cookie loaded. Attempting to connect without."
 msgstr "कुकी दाखल केले नाही. जुळवणीचा प्रयत्न करत आहे."
 
-#: ../src/pulse/context.c:676
+#: ../src/pulse/context.c:693
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:729
+#: ../src/pulse/context.c:745
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1403
+#: ../src/pulse/context.c:1432
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "अपरिचीत वाढ '%s' करीता संदेश प्राप्त झाले"
 
-#: ../src/utils/pacat.c:107
-#, c-format
-msgid "Failed to drain stream: %s\n"
+#: ../src/utils/pacat.c:108
+#, fuzzy, c-format
+msgid "Failed to drain stream: %s"
 msgstr "स्ट्रीम रिकामे करण्यास अपयशी: %s\n"
 
-#: ../src/utils/pacat.c:112
-msgid "Playback stream drained.\n"
+#: ../src/utils/pacat.c:113
+#, fuzzy
+msgid "Playback stream drained."
 msgstr "प्लेबॅक स्ट्रीम रिकामे केले.\n"
 
-#: ../src/utils/pacat.c:122
-msgid "Draining connection to server.\n"
+#: ../src/utils/pacat.c:123
+#, fuzzy
+msgid "Draining connection to server."
 msgstr "सर्वर करीता जुळवणी ड्रेन केली.\n"
 
-#: ../src/utils/pacat.c:135
-#, c-format
-msgid "pa_stream_drain(): %s\n"
+#: ../src/utils/pacat.c:136
+#, fuzzy, c-format
+msgid "pa_stream_drain(): %s"
 msgstr "pa_stream_drain(): %s\n"
 
-#: ../src/utils/pacat.c:158
-#, c-format
-msgid "pa_stream_write() failed: %s\n"
+#: ../src/utils/pacat.c:159
+#, fuzzy, c-format
+msgid "pa_stream_write() failed: %s"
 msgstr "pa_stream_write() अपयशी: %s\n"
 
-#: ../src/utils/pacat.c:233 ../src/utils/pacat.c:262
-#, c-format
-msgid "pa_stream_peek() failed: %s\n"
+#: ../src/utils/pacat.c:197
+#, fuzzy, c-format
+msgid "pa_stream_begin_write() failed: %s"
+msgstr "pa_stream_write() अपयशी: %s\n"
+
+#: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267
+#, fuzzy, c-format
+msgid "pa_stream_peek() failed: %s"
 msgstr "pa_stream_peek() अपयशी: %s\n"
 
-#: ../src/utils/pacat.c:302
-msgid "Stream successfully created.\n"
+#: ../src/utils/pacat.c:307
+#, fuzzy
+msgid "Stream successfully created."
 msgstr "स्ट्रीम यशस्वीरित्या बनवले.\n"
 
-#: ../src/utils/pacat.c:305
-#, c-format
-msgid "pa_stream_get_buffer_attr() failed: %s\n"
+#: ../src/utils/pacat.c:310
+#, fuzzy, c-format
+msgid "pa_stream_get_buffer_attr() failed: %s"
 msgstr "pa_stream_get_buffer_attr() अपयशी: %s\n"
 
-#: ../src/utils/pacat.c:309
-#, c-format
-msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
+#: ../src/utils/pacat.c:314
+#, fuzzy, c-format
+msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 msgstr "बफर मेट्रीक: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
 
-#: ../src/utils/pacat.c:312
-#, c-format
-msgid "Buffer metrics: maxlength=%u, fragsize=%u\n"
+#: ../src/utils/pacat.c:317
+#, fuzzy, c-format
+msgid "Buffer metrics: maxlength=%u, fragsize=%u"
 msgstr "बफर मेट्रीक: maxlength=%u, fragsize=%u\n"
 
-#: ../src/utils/pacat.c:316
-#, c-format
-msgid "Using sample spec '%s', channel map '%s'.\n"
+#: ../src/utils/pacat.c:321
+#, fuzzy, c-format
+msgid "Using sample spec '%s', channel map '%s'."
 msgstr "उदाहरणतया spec '%s', वाहिनी नकाशा '%s' वापरत आहे.\n"
 
-#: ../src/utils/pacat.c:320
-#, c-format
-msgid "Connected to device %s (%u, %ssuspended).\n"
+#: ../src/utils/pacat.c:325
+#, fuzzy, c-format
+msgid "Connected to device %s (%u, %ssuspended)."
 msgstr "साधन %s शी जुळले (%u, %s सस्पेंड केले).\n"
 
-#: ../src/utils/pacat.c:330
-#, c-format
-msgid "Stream error: %s\n"
+#: ../src/utils/pacat.c:335
+#, fuzzy, c-format
+msgid "Stream error: %s"
 msgstr "स्ट्रीम त्रुटी: %s\n"
 
-#: ../src/utils/pacat.c:340
-#, c-format
-msgid "Stream device suspended.%s \n"
+#: ../src/utils/pacat.c:345
+#, fuzzy, c-format
+msgid "Stream device suspended.%s"
 msgstr "स्ट्रीम साधन सस्पेंड केले.%s \n"
 
-#: ../src/utils/pacat.c:342
-#, c-format
-msgid "Stream device resumed.%s \n"
+#: ../src/utils/pacat.c:347
+#, fuzzy, c-format
+msgid "Stream device resumed.%s"
 msgstr "स्ट्रीम साधन पुन्हा सुरू केले.%s \n"
 
-#: ../src/utils/pacat.c:350
-#, c-format
-msgid "Stream underrun.%s \n"
+#: ../src/utils/pacat.c:355
+#, fuzzy, c-format
+msgid "Stream underrun.%s"
 msgstr "स्ट्रीम underrun.%s \n"
 
-#: ../src/utils/pacat.c:357
-#, c-format
-msgid "Stream overrun.%s \n"
+#: ../src/utils/pacat.c:362
+#, fuzzy, c-format
+msgid "Stream overrun.%s"
 msgstr "स्ट्रीम overrun.%s \n"
 
-#: ../src/utils/pacat.c:364
-#, c-format
-msgid "Stream started.%s \n"
+#: ../src/utils/pacat.c:369
+#, fuzzy, c-format
+msgid "Stream started.%s"
 msgstr "स्ट्रीम सुरू केले.%s \n"
 
-#: ../src/utils/pacat.c:371
-#, c-format
-msgid "Stream moved to device %s (%u, %ssuspended).%s \n"
+#: ../src/utils/pacat.c:376
+#, fuzzy, c-format
+msgid "Stream moved to device %s (%u, %ssuspended).%s"
 msgstr "स्ट्रीम साधन %s कडे स्थानांतरीत केले (%u, %ssuspended).%s \n"
 
-#: ../src/utils/pacat.c:371
+#: ../src/utils/pacat.c:376
 msgid "not "
 msgstr "नाही "
 
-#: ../src/utils/pacat.c:378
-#, c-format
-msgid "Stream buffer attributes changed.%s \n"
+#: ../src/utils/pacat.c:383
+#, fuzzy, c-format
+msgid "Stream buffer attributes changed.%s"
 msgstr "स्ट्रीम बफर गुणधर्म बदलले.%s \n"
 
-#: ../src/utils/pacat.c:411
-#, c-format
-msgid "Connection established.%s \n"
+#: ../src/utils/pacat.c:416
+#, fuzzy, c-format
+msgid "Connection established.%s"
 msgstr "जुळवणी स्थापीत केली.%s \n"
 
-#: ../src/utils/pacat.c:414
-#, c-format
-msgid "pa_stream_new() failed: %s\n"
+#: ../src/utils/pacat.c:419
+#, fuzzy, c-format
+msgid "pa_stream_new() failed: %s"
 msgstr "pa_stream_new() अपयशी: %s\n"
 
-#: ../src/utils/pacat.c:442
-#, c-format
-msgid "pa_stream_connect_playback() failed: %s\n"
+#: ../src/utils/pacat.c:447
+#, fuzzy, c-format
+msgid "pa_stream_connect_playback() failed: %s"
 msgstr "pa_stream_connect_playback() अपयशी: %s\n"
 
-#: ../src/utils/pacat.c:448
-#, c-format
-msgid "pa_stream_connect_record() failed: %s\n"
+#: ../src/utils/pacat.c:453
+#, fuzzy, c-format
+msgid "pa_stream_connect_record() failed: %s"
 msgstr "pa_stream_connect_record() अपयशी: %s\n"
 
-#: ../src/utils/pacat.c:462 ../src/utils/pasuspender.c:159
-#: ../src/utils/pactl.c:814
-#, c-format
-msgid "Connection failure: %s\n"
+#: ../src/utils/pacat.c:467
+#, fuzzy, c-format
+msgid "Connection failure: %s"
 msgstr "जुळवणी अपयशी: %s\n"
 
-#: ../src/utils/pacat.c:495
-msgid "Got EOF.\n"
+#: ../src/utils/pacat.c:500
+#, fuzzy
+msgid "Got EOF."
 msgstr "EOF प्राप्त झाले.\n"
 
-#: ../src/utils/pacat.c:500
-#, c-format
-msgid "read() failed: %s\n"
-msgstr "read() अपयशी: %s\n"
-
-#: ../src/utils/pacat.c:532
-#, c-format
-msgid "write() failed: %s\n"
+#: ../src/utils/pacat.c:537
+#, fuzzy, c-format
+msgid "write() failed: %s"
 msgstr "write() अपयशी: %s\n"
 
-#: ../src/utils/pacat.c:553
-msgid "Got signal, exiting.\n"
+#: ../src/utils/pacat.c:558
+#, fuzzy
+msgid "Got signal, exiting."
 msgstr "संकेत प्राप्त झाले, बाहेर पडत आहे.\n"
 
-#: ../src/utils/pacat.c:567
-#, c-format
-msgid "Failed to get latency: %s\n"
+#: ../src/utils/pacat.c:572
+#, fuzzy, c-format
+msgid "Failed to get latency: %s"
 msgstr "विलंब प्राप्त करण्यास अपयशी: %s\n"
 
-#: ../src/utils/pacat.c:572
+#: ../src/utils/pacat.c:577
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr "वेळ: %0.3f sec; विलंब: %0.0f usec.  \r"
 
-#: ../src/utils/pacat.c:592
-#, c-format
-msgid "pa_stream_update_timing_info() failed: %s\n"
+#: ../src/utils/pacat.c:595
+#, fuzzy, c-format
+msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() अपयशी: %s\n"
 
 #: ../src/utils/pacat.c:605
@@ -1531,34 +1393,34 @@ msgstr ""
 "libpulse %s शी कंपाई केले\n"
 "libpulse %s शी लिंक केले\n"
 
-#: ../src/utils/pacat.c:760 ../src/utils/pactl.c:900
+#: ../src/utils/pacat.c:760
 #, fuzzy, c-format
-msgid "Invalid client name '%s'\n"
+msgid "Invalid client name '%s'"
 msgstr "अवैध वाहिनी नकाशा '%s'\n"
 
 #: ../src/utils/pacat.c:776
 #, fuzzy, c-format
-msgid "Invalid stream name '%s'\n"
+msgid "Invalid stream name '%s'"
 msgstr "अवैध पुन्ह सॅम्पल पद्धत '%s'."
 
 #: ../src/utils/pacat.c:813
-#, c-format
-msgid "Invalid channel map '%s'\n"
+#, fuzzy, c-format
+msgid "Invalid channel map '%s'"
 msgstr "अवैध वाहिनी नकाशा '%s'\n"
 
 #: ../src/utils/pacat.c:842
-#, c-format
-msgid "Invalid latency specification '%s'\n"
+#, fuzzy, c-format
+msgid "Invalid latency specification '%s'"
 msgstr "अवैध विलंब संयोजना '%s'\n"
 
 #: ../src/utils/pacat.c:849
-#, c-format
-msgid "Invalid process time specification '%s'\n"
+#, fuzzy, c-format
+msgid "Invalid process time specification '%s'"
 msgstr "अवैध कार्य वेळ संयोजना '%s'\n"
 
 #: ../src/utils/pacat.c:861
 #, fuzzy, c-format
-msgid "Invalid property '%s'\n"
+msgid "Invalid property '%s'"
 msgstr "अवैध पुन्ह सॅम्पल पद्धत '%s'."
 
 #: ../src/utils/pacat.c:878
@@ -1567,60 +1429,66 @@ msgid "Unknown file format %s."
 msgstr ""
 
 #: ../src/utils/pacat.c:897
-msgid "Invalid sample specification\n"
+#, fuzzy
+msgid "Invalid sample specification"
 msgstr "अवैध सॅम्पल संयोजना\n"
 
 #: ../src/utils/pacat.c:907
-#, c-format
-msgid "open(): %s\n"
+#, fuzzy, c-format
+msgid "open(): %s"
 msgstr "open(): %s\n"
 
 #: ../src/utils/pacat.c:912
-#, c-format
-msgid "dup2(): %s\n"
+#, fuzzy, c-format
+msgid "dup2(): %s"
 msgstr "dup2(): %s\n"
 
 #: ../src/utils/pacat.c:919
-msgid "Too many arguments.\n"
+#, fuzzy
+msgid "Too many arguments."
 msgstr "खूप जास्त बाब.\n"
 
 #: ../src/utils/pacat.c:930
 #, fuzzy
-msgid "Failed to generate sample specification for file.\n"
+msgid "Failed to generate sample specification for file."
 msgstr "सॅम्पल माहिती प्राप्त करण्यास अपयशी: %s\n"
 
 #: ../src/utils/pacat.c:950
 #, fuzzy
-msgid "Failed to open audio file.\n"
+msgid "Failed to open audio file."
 msgstr "आवाज फाइल उघडण्यास अपयशी.\n"
 
 #: ../src/utils/pacat.c:956
+#, fuzzy
 msgid ""
 "Warning: specified sample specification will be overwritten with "
-"specification from file.\n"
-msgstr ""
+"specification from file."
+msgstr "%s स्ट्रीम सॅम्पल संयोजना '%s' शी उघडत आहे.\n"
 
-#: ../src/utils/pacat.c:959 ../src/utils/pactl.c:944
+#: ../src/utils/pacat.c:959
 #, fuzzy
-msgid "Failed to determine sample specification from file.\n"
+msgid "Failed to determine sample specification from file."
 msgstr "सॅम्पल माहिती प्राप्त करण्यास अपयशी: %s\n"
 
 #: ../src/utils/pacat.c:968
-msgid "Warning: Failed to determine channel map from file.\n"
-msgstr ""
+#, fuzzy
+msgid "Warning: Failed to determine channel map from file."
+msgstr "%s स्ट्रीम सॅम्पल संयोजना '%s' शी उघडत आहे.\n"
 
 #: ../src/utils/pacat.c:979
-msgid "Channel map doesn't match sample specification\n"
+#, fuzzy
+msgid "Channel map doesn't match sample specification"
 msgstr "वाहिनी नकाशा सॅम्पल संयोजनाशी जुळत नाही\n"
 
 #: ../src/utils/pacat.c:990
-msgid "Warning: failed to write channel map to file.\n"
-msgstr ""
+#, fuzzy
+msgid "Warning: failed to write channel map to file."
+msgstr "%s स्ट्रीम सॅम्पल संयोजना '%s' शी उघडत आहे.\n"
 
 #: ../src/utils/pacat.c:1005
 #, fuzzy, c-format
 msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'.\n"
+"Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "%s स्ट्रीम सॅम्पल संयोजना '%s' शी उघडत आहे.\n"
 
 #: ../src/utils/pacat.c:1006
@@ -1631,35 +1499,34 @@ msgstr "रेकॉर्डींग"
 msgid "playback"
 msgstr "प्लेबॅक"
 
-#: ../src/utils/pacat.c:1032 ../src/utils/pasuspender.c:277
-#: ../src/utils/pactl.c:1104
-#, c-format
-msgid "pa_mainloop_new() failed.\n"
+#: ../src/utils/pacat.c:1032
+#, fuzzy
+msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() अपयशी.\n"
 
 #: ../src/utils/pacat.c:1051
-msgid "io_new() failed.\n"
+#, fuzzy
+msgid "io_new() failed."
 msgstr "io_new() अपयशी.\n"
 
-#: ../src/utils/pacat.c:1058 ../src/utils/pasuspender.c:290
-#: ../src/utils/pactl.c:1116
-#, c-format
-msgid "pa_context_new() failed.\n"
+#: ../src/utils/pacat.c:1058
+#, fuzzy
+msgid "pa_context_new() failed."
 msgstr "pa_context_new() अपयशी.\n"
 
-#: ../src/utils/pacat.c:1066
-#, fuzzy, c-format
-msgid "pa_context_connect() failed: %s\n"
+#: ../src/utils/pacat.c:1066 ../src/utils/pactl.c:1122
+#, c-format
+msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() अपयशी: %s"
 
-#: ../src/utils/pacat.c:1077
-msgid "time_new() failed.\n"
-msgstr "time_new() अपयशी.\n"
+#: ../src/utils/pacat.c:1072
+#, fuzzy
+msgid "pa_context_rttime_new() failed."
+msgstr "pa_context_new() अपयशी.\n"
 
-#: ../src/utils/pacat.c:1084 ../src/utils/pasuspender.c:298
-#: ../src/utils/pactl.c:1127
-#, c-format
-msgid "pa_mainloop_run() failed.\n"
+#: ../src/utils/pacat.c:1079
+#, fuzzy
+msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() अपयशी.\n"
 
 #: ../src/utils/pasuspender.c:81
@@ -1686,6 +1553,11 @@ msgstr "पुन्हा चालू करण्यास अपयशी: %
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
 msgstr "सावधानता: आवाज सर्वर स्थानीय नाही, सस्पेंड करत नाही.\n"
+
+#: ../src/utils/pasuspender.c:159 ../src/utils/pactl.c:814
+#, c-format
+msgid "Connection failure: %s\n"
+msgstr "जुळवणी अपयशी: %s\n"
 
 #: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:820
 #, c-format
@@ -1726,6 +1598,21 @@ msgstr ""
 "pasuspender %s\n"
 "libpulse %s शी कंपाई केले\n"
 "libpulse %s शी लिंक केले\n"
+
+#: ../src/utils/pasuspender.c:277 ../src/utils/pactl.c:1104
+#, c-format
+msgid "pa_mainloop_new() failed.\n"
+msgstr "pa_mainloop_new() अपयशी.\n"
+
+#: ../src/utils/pasuspender.c:290 ../src/utils/pactl.c:1116
+#, c-format
+msgid "pa_context_new() failed.\n"
+msgstr "pa_context_new() अपयशी.\n"
+
+#: ../src/utils/pasuspender.c:298 ../src/utils/pactl.c:1127
+#, c-format
+msgid "pa_mainloop_run() failed.\n"
+msgstr "pa_mainloop_run() अपयशी.\n"
 
 #: ../src/utils/pactl.c:128
 #, c-format
@@ -2141,6 +2028,11 @@ msgstr ""
 "libpulse %s सह कंपाईल केले\n"
 "libpulse %s सह जुळले\n"
 
+#: ../src/utils/pactl.c:900
+#, fuzzy, c-format
+msgid "Invalid client name '%s'\n"
+msgstr "अवैध वाहिनी नकाशा '%s'\n"
+
 #: ../src/utils/pactl.c:926
 msgid "Please specify a sample file to load\n"
 msgstr "कृपया दाखल करण्याजोगी तात्पूर्ती फाइल निश्चित करा\n"
@@ -2148,6 +2040,11 @@ msgstr "कृपया दाखल करण्याजोगी तात्
 #: ../src/utils/pactl.c:939
 msgid "Failed to open sound file.\n"
 msgstr "आवाज फाइल उघडण्यास अपयशी.\n"
+
+#: ../src/utils/pactl.c:944
+#, fuzzy
+msgid "Failed to determine sample specification from file.\n"
+msgstr "सॅम्पल माहिती प्राप्त करण्यास अपयशी: %s\n"
 
 #: ../src/utils/pactl.c:951
 #, fuzzy
@@ -2211,11 +2108,6 @@ msgstr "तुम्हाला कार्ड नाव/निर्देश
 #: ../src/utils/pactl.c:1099
 msgid "No valid command specified.\n"
 msgstr "वैध आदेश निश्चित केले नाही.\n"
-
-#: ../src/utils/pactl.c:1122
-#, c-format
-msgid "pa_context_connect() failed: %s"
-msgstr "pa_context_connect() अपयशी: %s"
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2333,11 +2225,11 @@ msgstr "read(): %s"
 msgid "write(): %s"
 msgstr "write(): %s"
 
-#: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
+#: ../src/pulsecore/lock-autospawn.c:136 ../src/pulsecore/lock-autospawn.c:219
 msgid "Cannot access autospawn lock."
 msgstr "autospawn कुलूप करीता प्रवेश प्राप्य अशक्य."
 
-#: ../src/modules/alsa/alsa-sink.c:445 ../src/modules/alsa/alsa-sink.c:593
+#: ../src/modules/alsa/alsa-sink.c:449 ../src/modules/alsa/alsa-sink.c:606
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2352,7 +2244,7 @@ msgstr ""
 "POLLOUT द्वारे सज्ज होणे शक्य आहे -- तरी परस्पर snd_pcm_avail() ने 0 पूरविले किंवा इतर "
 "मूल्य < min_avail असावे."
 
-#: ../src/modules/alsa/alsa-source.c:424 ../src/modules/alsa/alsa-source.c:563
+#: ../src/modules/alsa/alsa-source.c:429 ../src/modules/alsa/alsa-source.c:578
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2368,21 +2260,145 @@ msgstr ""
 "मूल्य < min_avail असावे."
 
 #: ../src/modules/alsa/module-alsa-card.c:152
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2062
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2065
 msgid "Off"
 msgstr "बंद करा"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2032
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2035
 msgid "High Fidelity Playback (A2DP)"
 msgstr "High Fidelity Playback (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2047
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2050
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr "Telephony Duplex (HSP/HFP)"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio आवाज सर्वर"
+
+#~ msgid "Cannot connect to system bus: %s"
+#~ msgstr "प्रणाली बसशी जुळवणी करण्यास अशक्य: %s"
+
+#~ msgid "Cannot get caller from PID: %s"
+#~ msgstr "PID पासून कॉलर प्राप्त करणे अशक्य: %s"
+
+#~ msgid "Cannot set UID on caller object."
+#~ msgstr "कॉलर ऑबजेक्ट वरील UID निश्चित करणे अशक्य."
+
+#~ msgid "Failed to get CK session."
+#~ msgstr "CK सत्र प्राप्त करणे अपयशी."
+
+#~ msgid "Cannot set UID on session object."
+#~ msgstr "सत्र ऑबजेक्ट वरील UID निश्चित करणे अशक्य."
+
+#~ msgid "Cannot allocate PolKitAction."
+#~ msgstr "PolKitAction वाटप करणे अशक्य."
+
+#~ msgid "Cannot set action_id"
+#~ msgstr "action_id निश्चित करणे अशक्य"
+
+#~ msgid "Cannot allocate PolKitContext."
+#~ msgstr "PolKitContext वाटप करणे अशक्य."
+
+#~ msgid "Cannot initialize PolKitContext: %s"
+#~ msgstr "PolKitContext प्रारंभ करणे अशक्य: %s"
+
+#~ msgid "Could not determine whether caller is authorized: %s"
+#~ msgstr "कॉलर अधिकृत आहे की नाही हे ओळखणे शक्य नाही: %s"
+
+#~ msgid "Cannot obtain auth: %s"
+#~ msgstr "परवानगी प्राप्त करणे अशक्य: %s"
+
+#~ msgid "PolicyKit responded with '%s'"
+#~ msgstr "PolicyKit ने '%s' सह प्रतिसाद दिला"
+
+#~ msgid ""
+#~ "High-priority scheduling (negative Unix nice level) for the PulseAudio "
+#~ "daemon"
+#~ msgstr ""
+#~ "PulseAudio डिमन करीता उच्च-प्राधान्यक्रम वेळपत्रक (नकारात्मक Unix nice स्तर)"
+
+#~ msgid "Real-time scheduling for the PulseAudio daemon"
+#~ msgstr "PulseAudio डिमन करीता रियल-टाइम वेळपत्रक"
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring high-priority scheduling."
+#~ msgstr ""
+#~ "प्रणाली करार PulseAudio ला उच्च-प्राधान्यक्रम वेळपत्रक प्राप्त करण्यापासून रोखते."
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring real-time scheduling."
+#~ msgstr "प्रणाली करार PulseAudio ला रियल-टाइम वेळपत्रक प्राप्त करण्यापासून रोखते."
+
+#~ msgid "read() failed: %s\n"
+#~ msgstr "read() अपयशी: %s\n"
+
+#, fuzzy
+#~ msgid "pa_context_connect() failed: %s\n"
+#~ msgstr "pa_context_connect() अपयशी: %s"
+
+#~ msgid "We're in the group '%s', allowing high-priority scheduling."
+#~ msgstr "आपण गट '%s' अंतर्गत आहोत, उच्च-प्राधन्यक्रम वेळपत्रक करीता परवानगी देते."
+
+#~ msgid "We're in the group '%s', allowing real-time scheduling."
+#~ msgstr "आपण गट '%s' अंतर्गत आहोत, रियल-टाईम वेळपत्रक करीता परवानगी देते."
+
+#~ msgid "PolicyKit grants us acquire-high-priority privilege."
+#~ msgstr "PolicyKit आपल्याला acquire-high-priority परवानगी देतो."
+
+#~ msgid "PolicyKit refuses acquire-high-priority privilege."
+#~ msgstr "PolicyKit acquire-high-priority परवानगी नकारतो."
+
+#~ msgid "PolicyKit grants us acquire-real-time privilege."
+#~ msgstr "PolicyKit acquire-real-time परवानगी पुरवितो."
+
+#~ msgid "PolicyKit refuses acquire-real-time privilege."
+#~ msgstr "PolicyKit acquire-real-time परवानगी नकारतो."
+
+#~ msgid ""
+#~ "Called SUID root and real-time and/or high-priority scheduling was "
+#~ "requested in the configuration. However, we lack the necessary "
+#~ "privileges:\n"
+#~ "We are not in group '%s', PolicyKit refuse to grant us the requested "
+#~ "privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
+#~ "limits.\n"
+#~ "For enabling real-time/high-priority scheduling please acquire the "
+#~ "appropriate PolicyKit privileges, or become a member of '%s', or increase "
+#~ "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
+#~ msgstr ""
+#~ "SUID रूटला कॉल केले व वास्तविक-वेळ व/किंवा संयोजना अंतर्गत उच्च-प्राधान्यक्रम वेळपत्रक "
+#~ "विनंतीकृत केले. तरी, आमच्याकडे आवश्यक परवानगी नाही:\n"
+#~ "आम्ही गट '%s' अंतर्गत नाही, PolicyKit ने विनंतीकृत परवानगी देण्यास नकार दिला व "
+#~ "RLIMIT_NICE/RLIMIT_RTPRIO स्त्रोत मर्यादा वाढविणे आवश्यक आहे.\n"
+#~ "रियल-टाइम/उच्च-प्राधान्यक्रम वेळपत्रक कार्यान्वीत करण्याकरीता कृपयायोग्य PolicyKit "
+#~ "परवानगी प्राप्त करा, किंवा '%s' चे सदस्य बनवा, किंवा या वापरकर्ता "
+#~ "करीताRLIMIT_NICE/RLIMIT_RTPRIO स्त्रोत मर्यादा वाढवा."
+
+#~ msgid ""
+#~ "High-priority scheduling enabled in configuration but not allowed by "
+#~ "policy."
+#~ msgstr ""
+#~ "संयोजना अंतर्गत उच्च-प्राधान्यक्रम वेळपत्रक कार्यान्वीत केले करार द्वारे स्वीकार्य नाही."
+
+#~ msgid "Successfully increased RLIMIT_RTPRIO"
+#~ msgstr "यशस्वीरित्या RLIMIT_RTPRIO वाढवले"
+
+#~ msgid "RLIMIT_RTPRIO failed: %s"
+#~ msgstr "RLIMIT_RTPRIO अपयशी: %s"
+
+#~ msgid "Giving up CAP_NICE"
+#~ msgstr "CAP_NICE करीता प्रयत्न बंद केले"
+
+#~ msgid ""
+#~ "Real-time scheduling enabled in configuration but not allowed by policy."
+#~ msgstr ""
+#~ "संयोजना अंतर्गत रियल-टाईम वेळपत्र कार्यान्वीत करत आहे परंतु करार द्वारे स्वीकार्य नाही."
+
+#~ msgid "Limited capabilities successfully to CAP_SYS_NICE."
+#~ msgstr "क्षमता यशस्वीरित्या CAP_SYS_NICE करीता मर्यादीत केले."
+
+#~ msgid "time_new() failed.\n"
+#~ msgstr "time_new() अपयशी.\n"
 
 #~ msgid "Analog Mono"
 #~ msgstr "ऍनलॉग मोनो"

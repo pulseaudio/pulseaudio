@@ -39,6 +39,7 @@ struct pa_aupdate {
     pa_atomic_t read_lock;
     pa_mutex *write_lock;
     pa_semaphore *semaphore;
+    pa_bool_t swapped;
 };
 
 pa_aupdate *pa_aupdate_new(void) {
@@ -101,6 +102,8 @@ unsigned pa_aupdate_write_begin(pa_aupdate *a) {
 
     n = (unsigned) pa_atomic_load(&a->read_lock);
 
+    a->swapped = FALSE;
+
     return !WHICH(n);
 }
 
@@ -119,11 +122,16 @@ unsigned pa_aupdate_write_swap(pa_aupdate *a) {
             break;
     }
 
+    a->swapped = TRUE;
+
     return WHICH(n);
 }
 
 void pa_aupdate_write_end(pa_aupdate *a) {
     pa_assert(a);
+
+    if (!a->swapped)
+        pa_aupdate_write_swap(a);
 
     pa_mutex_unlock(a->write_lock);
 }

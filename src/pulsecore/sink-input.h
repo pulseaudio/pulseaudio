@@ -42,6 +42,7 @@ typedef enum pa_sink_input_state {
     PA_SINK_INPUT_RUNNING,      /*< The stream is alive and kicking */
     PA_SINK_INPUT_CORKED,       /*< The stream was corked on user request */
     PA_SINK_INPUT_UNLINKED      /*< The stream is dead */
+    /* FIXME: we need a state for MOVING here */
 } pa_sink_input_state_t;
 
 static inline pa_bool_t PA_SINK_INPUT_IS_LINKED(pa_sink_input_state_t x) {
@@ -58,7 +59,8 @@ typedef enum pa_sink_input_flags {
     PA_SINK_INPUT_FIX_RATE = 64,
     PA_SINK_INPUT_FIX_CHANNELS = 128,
     PA_SINK_INPUT_DONT_INHIBIT_AUTO_SUSPEND = 256,
-    PA_SINK_INPUT_FAIL_ON_SUSPEND = 512
+    PA_SINK_INPUT_NO_CREATE_ON_SUSPEND = 512,
+    PA_SINK_INPUT_KILL_ON_SUSPEND = 1024
 } pa_sink_input_flags_t;
 
 struct pa_sink_input {
@@ -137,6 +139,10 @@ struct pa_sink_input {
      * from IO context. */
     void (*update_sink_latency_range) (pa_sink_input *i); /* may be NULL */
 
+    /* Called whenver the fixed latency of the sink changes, if there
+     * is one. Called from IO context. */
+    void (*update_sink_fixed_latency) (pa_sink_input *i); /* may be NULL */
+
     /* If non-NULL this function is called when the input is first
      * connected to a sink or when the rtpoll/asyncmsgq fields
      * change. You usually don't need to implement this function
@@ -159,7 +165,9 @@ struct pa_sink_input {
     /* If non-NULL called whenever the sink input is moved to a new
      * sink. Called from main context after the sink input has been
      * detached from the old sink and before it has been attached to
-     * the new sink. */
+     * the new sink. If dest is NULL the move was executed in two
+     * phases and the second one failed; the stream will be destroyed
+     * after this call. */
     void (*moving) (pa_sink_input *i, pa_sink *dest);   /* may be NULL */
 
     /* Supposed to unlink and destroy this stream. Called from main
@@ -303,6 +311,10 @@ void pa_sink_input_cork(pa_sink_input *i, pa_bool_t b);
 
 int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate);
 
+/* This returns the sink's fields converted into out sample type */
+size_t pa_sink_input_get_max_rewind(pa_sink_input *i);
+size_t pa_sink_input_get_max_request(pa_sink_input *i);
+
 /* Callable by everyone from main thread*/
 
 /* External code may request disconnection with this function */
@@ -333,6 +345,7 @@ pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest); /* may thi
  * new sink */
 int pa_sink_input_start_move(pa_sink_input *i);
 int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save);
+void pa_sink_input_fail_move(pa_sink_input *i);
 
 pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i);
 
@@ -358,5 +371,8 @@ pa_memchunk* pa_sink_input_get_silence(pa_sink_input *i, pa_memchunk *ret);
 
 /* To be used by sink.c only */
 void pa_sink_input_set_relative_volume(pa_sink_input *i, const pa_cvolume *v);
+
+#define pa_sink_input_assert_io_context(s) \
+    pa_assert(pa_thread_mq_get() || !PA_SINK_INPUT_IS_LINKED((s)->state))
 
 #endif

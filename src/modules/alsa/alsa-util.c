@@ -233,14 +233,16 @@ int pa_alsa_set_hw_params(
         goto finish;
     }
 
-    if (_period_size && tsched_size && _periods) {
+    if (_period_size > 0 && tsched_size > 0 && _periods > 0) {
+        snd_pcm_uframes_t buffer_size;
+        unsigned int p;
 
         /* Adjust the buffer sizes, if we didn't get the rate we were asking for */
         _period_size = (snd_pcm_uframes_t) (((uint64_t) _period_size * r) / ss->rate);
         tsched_size = (snd_pcm_uframes_t) (((uint64_t) tsched_size * r) / ss->rate);
 
         if (_use_tsched) {
-            snd_pcm_uframes_t buffer_size = 0;
+            buffer_size = 0;
 
             if ((ret = snd_pcm_hw_params_get_buffer_size_max(hwparams, &buffer_size)) < 0)
                 pa_log_warn("snd_pcm_hw_params_get_buffer_size_max() failed: %s", pa_alsa_strerror(ret));
@@ -251,32 +253,33 @@ int pa_alsa_set_hw_params(
             _periods = 1;
         }
 
-        if (_period_size > 0 && _periods > 0) {
-            snd_pcm_uframes_t buffer_size;
+        /* Some ALSA drivers really don't like if we set the buffer
+         * size first and the number of periods second. (which would
+         * make a lot more sense to me) So, follow this rule and
+         * adjust the periods first and the buffer size second */
 
-            buffer_size = _periods * _period_size;
+        /* First we pass 0 as direction to get exactly what we
+         * asked for. That this is necessary is presumably a bug
+         * in ALSA. All in all this is mostly a hint to ALSA, so
+         * we don't care if this fails. */
 
-            if ((ret = snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &buffer_size)) < 0)
-                pa_log_info("snd_pcm_hw_params_set_buffer_size_near() failed: %s", pa_alsa_strerror(ret));
-        }
-
-        if (_periods > 0) {
-
-            /* First we pass 0 as direction to get exactly what we
-             * asked for. That this is necessary is presumably a bug
-             * in ALSA. All in all this is mostly a hint to ALSA, so
-             * we don't care if this fails. */
-
-            dir = 0;
-            if (snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &_periods, &dir) < 0) {
-                dir = 1;
-                if (snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &_periods, &dir) < 0) {
-                    dir = -1;
-                    if ((ret = snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &_periods, &dir)) < 0)
-                        pa_log_info("snd_pcm_hw_params_set_periods_near() failed: %s", pa_alsa_strerror(ret));
-                }
+        p = _periods;
+        dir = 0;
+        if (snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &p, &dir) < 0) {
+            p = _periods;
+            dir = 1;
+            if (snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &p, &dir) < 0) {
+                p = _periods;
+                dir = -1;
+                if ((ret = snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &p, &dir)) < 0)
+                    pa_log_info("snd_pcm_hw_params_set_periods_near() failed: %s", pa_alsa_strerror(ret));
             }
         }
+
+        /* Now set the buffer size */
+        buffer_size = _periods * _period_size;
+        if ((ret = snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &buffer_size)) < 0)
+            pa_log_info("snd_pcm_hw_params_set_buffer_size_near() failed: %s", pa_alsa_strerror(ret));
     }
 
     if  ((ret = snd_pcm_hw_params(pcm_handle, hwparams)) < 0)

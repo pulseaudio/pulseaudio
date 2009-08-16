@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-06-17 23:42+0200\n"
+"POT-Creation-Date: 2009-08-05 15:09+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Rui Gouveia <rui.gouveia@globaltek.pt>\n"
 "Language-Team: pt <fedora-trans-pt@redhat.com>\n"
@@ -12,7 +12,12 @@ msgstr ""
 "X-Poedit-Language: Portuguese\n"
 "X-Poedit-Country: PORTUGAL\n"
 
-#: ../src/modules/alsa/alsa-util.c:1015
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2411
+#, fuzzy, c-format
+msgid "%s %s"
+msgstr "%s %s"
+
+#: ../src/modules/alsa/alsa-util.c:1023
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -25,7 +30,7 @@ msgstr ""
 "Provavelmente isto é um erro no driver ALSA '%s'. Por favor, reporte este "
 "problema aos programadores do ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1056
+#: ../src/modules/alsa/alsa-util.c:1064
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -38,7 +43,7 @@ msgstr ""
 "Provavelmente isto é um erro no driver ALSA '%s'. Por favor, reporte este "
 "problema aos programadores do ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1103
+#: ../src/modules/alsa/alsa-util.c:1111
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -52,8 +57,9 @@ msgstr ""
 "problema aos programadores do ALSA."
 
 #: ../src/modules/module-ladspa-sink.c:49
+#, fuzzy
 msgid "Virtual LADSPA sink"
-msgstr ""
+msgstr "Alarme virtual"
 
 #: ../src/modules/module-ladspa-sink.c:53
 msgid ""
@@ -64,7 +70,7 @@ msgid ""
 "input control values>"
 msgstr ""
 
-#: ../src/pulsecore/sink.c:2394
+#: ../src/pulsecore/sink.c:2395
 msgid "Internal Audio"
 msgstr "Áudio Interno"
 
@@ -84,220 +90,92 @@ msgstr "Não foi possível alocar o novo carregador \"dl\"."
 msgid "Failed to add bind-now-loader."
 msgstr "Não foi possível adicionar \"bind-now-loader\"."
 
-#: ../src/daemon/polkit.c:55
-#, c-format
-msgid "Cannot connect to system bus: %s"
-msgstr "Incapaz de se ligar ao bus de sistema: %s"
-
-#: ../src/daemon/polkit.c:65
-#, c-format
-msgid "Cannot get caller from PID: %s"
-msgstr "Não foi possível obter chamador a partir do PID: %s"
-
-#: ../src/daemon/polkit.c:77
-msgid "Cannot set UID on caller object."
-msgstr "Não foi possível definir o UID no objecto chamador."
-
-#: ../src/daemon/polkit.c:82
-msgid "Failed to get CK session."
-msgstr "Falha ao obter sessão CK."
-
-#: ../src/daemon/polkit.c:90
-msgid "Cannot set UID on session object."
-msgstr "Não foi possível definir o UID no objecto da sessão."
-
-#: ../src/daemon/polkit.c:95
-msgid "Cannot allocate PolKitAction."
-msgstr "Não é possível alocar PolKitAction."
-
-#: ../src/daemon/polkit.c:100
-msgid "Cannot set action_id"
-msgstr "impossível definir action_id"
-
-#: ../src/daemon/polkit.c:105
-msgid "Cannot allocate PolKitContext."
-msgstr "Não é possível alocar contexto PolKitContext."
-
-#: ../src/daemon/polkit.c:110
-#, c-format
-msgid "Cannot initialize PolKitContext: %s"
-msgstr "Incapaz de inicializar o PolKitContext: %s"
-
-#: ../src/daemon/polkit.c:119
-#, c-format
-msgid "Could not determine whether caller is authorized: %s"
-msgstr "Não foi possível determinar se o chamador está autorizado: %s"
-
-#: ../src/daemon/polkit.c:139
-#, c-format
-msgid "Cannot obtain auth: %s"
-msgstr "Não foi possível obter autenticação: %s"
-
-#: ../src/daemon/polkit.c:148
-#, c-format
-msgid "PolicyKit responded with '%s'"
-msgstr "PolicyKit respondeu com '%s'"
-
-#: ../src/daemon/main.c:142
+#: ../src/daemon/main.c:145
 #, c-format
 msgid "Got signal %s."
 msgstr "Foi obtido o sinal %s."
 
-#: ../src/daemon/main.c:169
+#: ../src/daemon/main.c:172
 msgid "Exiting."
 msgstr "A sair."
 
-#: ../src/daemon/main.c:187
+#: ../src/daemon/main.c:190
 #, c-format
 msgid "Failed to find user '%s'."
 msgstr "Falha ao procurar o utilizador '%s'."
 
-#: ../src/daemon/main.c:192
+#: ../src/daemon/main.c:195
 #, c-format
 msgid "Failed to find group '%s'."
 msgstr "Falha ao procurar o grupo '%s'."
 
-#: ../src/daemon/main.c:196
+#: ../src/daemon/main.c:199
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
 msgstr "Foi encontrado utilizador '%s' (UID %lu) e grupo '%s' (GID %lu)."
 
-#: ../src/daemon/main.c:201
+#: ../src/daemon/main.c:204
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
 msgstr "GID do utilizador '%s' e do grupo '%s' não coincidem."
 
-#: ../src/daemon/main.c:206
+#: ../src/daemon/main.c:209
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "Directório pessoal do utilizador '%s' não é '%s'. A ignorar."
 
-#: ../src/daemon/main.c:209 ../src/daemon/main.c:214
+#: ../src/daemon/main.c:212 ../src/daemon/main.c:217
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "Falha ao criar o '%s': %s"
 
-#: ../src/daemon/main.c:221
+#: ../src/daemon/main.c:224
 #, c-format
 msgid "Failed to change group list: %s"
 msgstr "Falhou a alteração da lista de grupos: %s"
 
-#: ../src/daemon/main.c:237
+#: ../src/daemon/main.c:240
 #, c-format
 msgid "Failed to change GID: %s"
 msgstr "Não foi possível mudar o GID: %s"
 
-#: ../src/daemon/main.c:253
+#: ../src/daemon/main.c:256
 #, c-format
 msgid "Failed to change UID: %s"
 msgstr "Não foi possível mudar o UID: %s"
 
-#: ../src/daemon/main.c:267
+#: ../src/daemon/main.c:270
 msgid "Successfully dropped root privileges."
 msgstr "Privilégios de root cedidos com sucesso."
 
-#: ../src/daemon/main.c:275
+#: ../src/daemon/main.c:278
 msgid "System wide mode unsupported on this platform."
 msgstr "Modo de sistema não suportado nesta plataforma."
 
-#: ../src/daemon/main.c:293
+#: ../src/daemon/main.c:296
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) falhou: %s"
 
-#: ../src/daemon/main.c:481
+#: ../src/daemon/main.c:471
 msgid "Failed to parse command line."
 msgstr "Não foi possível processar linha de comando."
 
-#: ../src/daemon/main.c:505
-#, c-format
-msgid "We're in the group '%s', allowing high-priority scheduling."
-msgstr "Estamos no grupo '%s', permitindo escalonamento de alta-prioridade."
-
-#: ../src/daemon/main.c:512
-#, c-format
-msgid "We're in the group '%s', allowing real-time scheduling."
-msgstr "Estamos no grupo '%s', permitindo escalonamento em tempo real."
-
-#: ../src/daemon/main.c:520
-msgid "PolicyKit grants us acquire-high-priority privilege."
-msgstr ""
-"O PolicyKit permite-nos o privilégio \"acquire-high-priority\" (adquirir "
-"alta prioridade)."
-
-#: ../src/daemon/main.c:523
-msgid "PolicyKit refuses acquire-high-priority privilege."
-msgstr ""
-"O PolicyKit recusa-nos o privilégio \"acquire-high-priority\" (adquirir alta "
-"prioridade)."
-
-#: ../src/daemon/main.c:528
-msgid "PolicyKit grants us acquire-real-time privilege."
-msgstr ""
-"O PolicyKit permite-nos o privilégio \"acquire-real-time\" (adquirir tempo "
-"real)."
-
-#: ../src/daemon/main.c:531
-msgid "PolicyKit refuses acquire-real-time privilege."
-msgstr ""
-"O PolicyKit recusa-nos o privilégio \"acquire-real-time\" (adquirir tempo "
-"real)."
-
-#: ../src/daemon/main.c:560
-#, c-format
-msgid ""
-"Called SUID root and real-time and/or high-priority scheduling was requested "
-"in the configuration. However, we lack the necessary privileges:\n"
-"We are not in group '%s', PolicyKit refuse to grant us the requested "
-"privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
-"limits.\n"
-"For enabling real-time/high-priority scheduling please acquire the "
-"appropriate PolicyKit privileges, or become a member of '%s', or increase "
-"the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
-msgstr ""
-
-#: ../src/daemon/main.c:585
-msgid ""
-"High-priority scheduling enabled in configuration but not allowed by policy."
-msgstr ""
-"Escalonamento de alta prioridade activo na configuração, mas não permitido "
-"pela politica."
-
-#: ../src/daemon/main.c:614
-msgid "Successfully increased RLIMIT_RTPRIO"
-msgstr "RLIMIT_RTPRIO aumentado com sucesso"
-
-#: ../src/daemon/main.c:617
-#, c-format
-msgid "RLIMIT_RTPRIO failed: %s"
-msgstr "RLIMIT_RTPRIO falhou: %s"
-
-#: ../src/daemon/main.c:624
-msgid "Giving up CAP_NICE"
-msgstr "A desistir de CAP_NICE"
-
-#: ../src/daemon/main.c:631
-msgid ""
-"Real-time scheduling enabled in configuration but not allowed by policy."
-msgstr ""
-"Escalonamento em tempo real activo na configuração, mas não permitido pela "
-"politica."
-
-#: ../src/daemon/main.c:692
+#: ../src/daemon/main.c:538
 msgid "Daemon not running"
 msgstr "Serviço não está a executar"
 
-#: ../src/daemon/main.c:694
+#: ../src/daemon/main.c:540
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "Serviço a executar como PID %u"
 
-#: ../src/daemon/main.c:704
+#: ../src/daemon/main.c:550
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Tentativa de matar serviço falhou: %s"
 
-#: ../src/daemon/main.c:722
+#: ../src/daemon/main.c:568
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -305,154 +183,154 @@ msgstr ""
 "Este programa não pretende ser executado como root (a não ser que a opção --"
 "system seja especificada)."
 
-#: ../src/daemon/main.c:724
+#: ../src/daemon/main.c:570
 msgid "Root privileges required."
 msgstr "São necessários privilégios de root."
 
-#: ../src/daemon/main.c:729
+#: ../src/daemon/main.c:575
 msgid "--start not supported for system instances."
 msgstr "--start não é suportado para instâncias do sistema."
 
-#: ../src/daemon/main.c:734
+#: ../src/daemon/main.c:580
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr "A executar em modo de sistema, mas --disallow-exit não está definido!"
 
-#: ../src/daemon/main.c:737
+#: ../src/daemon/main.c:583
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 "A executar em modo de sistema, mas --disallow-module-loading não está "
 "definido!"
 
-#: ../src/daemon/main.c:740
+#: ../src/daemon/main.c:586
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "A executar em modo de sistema, a forçar a desactivação do modo SHM!"
 
-#: ../src/daemon/main.c:745
+#: ../src/daemon/main.c:591
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "A executar em modo de sistema, a forçar a desactivação da saída por "
 "inactividade!"
 
-#: ../src/daemon/main.c:772
+#: ../src/daemon/main.c:618
 msgid "Failed to acquire stdio."
 msgstr "Não foi possível adquirir o stdio."
 
-#: ../src/daemon/main.c:778
+#: ../src/daemon/main.c:624
 #, c-format
 msgid "pipe failed: %s"
 msgstr "pipe falhou: %s"
 
-#: ../src/daemon/main.c:783
+#: ../src/daemon/main.c:629
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() falhou: %s"
 
-#: ../src/daemon/main.c:797
+#: ../src/daemon/main.c:643 ../src/utils/pacat.c:505
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() falhou: %s"
 
-#: ../src/daemon/main.c:803
+#: ../src/daemon/main.c:649
 msgid "Daemon startup failed."
 msgstr "Arranque do serviço falhou."
 
-#: ../src/daemon/main.c:805
+#: ../src/daemon/main.c:651
 msgid "Daemon startup successful."
 msgstr "Arranque do serviço sucedeu."
 
-#: ../src/daemon/main.c:875
+#: ../src/daemon/main.c:728
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Isto é PulseAudio %s"
 
-#: ../src/daemon/main.c:876
+#: ../src/daemon/main.c:729
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Máquina de compilação: %s"
 
-#: ../src/daemon/main.c:877
+#: ../src/daemon/main.c:730
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "CFLAGS utilizadas na compilação: %s"
 
-#: ../src/daemon/main.c:880
+#: ../src/daemon/main.c:733
 #, c-format
 msgid "Running on host: %s"
 msgstr "A executar na máquina: %s"
 
-#: ../src/daemon/main.c:883
+#: ../src/daemon/main.c:736
 #, c-format
 msgid "Found %u CPUs."
 msgstr "Foram encontrados %u CPUs."
 
-#: ../src/daemon/main.c:885
+#: ../src/daemon/main.c:738
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "Tamanho da página é %lu bytes"
 
-#: ../src/daemon/main.c:888
+#: ../src/daemon/main.c:741
 msgid "Compiled with Valgrind support: yes"
 msgstr "Compilado com suporte para Valgrind: sim"
 
-#: ../src/daemon/main.c:890
+#: ../src/daemon/main.c:743
 msgid "Compiled with Valgrind support: no"
 msgstr "Compilado com suporte para Valgrind: não"
 
-#: ../src/daemon/main.c:893
+#: ../src/daemon/main.c:746
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "A executar em modo \"valgrind\": %s"
 
-#: ../src/daemon/main.c:896
+#: ../src/daemon/main.c:749
 msgid "Optimized build: yes"
 msgstr "Optimizado: sim"
 
-#: ../src/daemon/main.c:898
+#: ../src/daemon/main.c:751
 msgid "Optimized build: no"
 msgstr "Compilação optimizada: não"
 
-#: ../src/daemon/main.c:902
+#: ../src/daemon/main.c:755
 msgid "NDEBUG defined, all asserts disabled."
 msgstr "NDEBUG definido, todas as declarações desactivadas."
 
-#: ../src/daemon/main.c:904
+#: ../src/daemon/main.c:757
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr "FASTPATH definido, apenas as declarações \"fast path\" desactivadas."
 
-#: ../src/daemon/main.c:906
+#: ../src/daemon/main.c:759
 msgid "All asserts enabled."
 msgstr "Todas as declarações desactivadas."
 
-#: ../src/daemon/main.c:910
+#: ../src/daemon/main.c:763
 msgid "Failed to get machine ID"
 msgstr "A tentativa de ler o ID da máquina falhou"
 
-#: ../src/daemon/main.c:913
+#: ../src/daemon/main.c:766
 #, c-format
 msgid "Machine ID is %s."
 msgstr "O ID da máquina é %s."
 
-#: ../src/daemon/main.c:917
+#: ../src/daemon/main.c:770
 #, fuzzy, c-format
 msgid "Session ID is %s."
-msgstr "O ID da máquina é %s."
+msgstr "A sessão está fechada"
 
-#: ../src/daemon/main.c:923
+#: ../src/daemon/main.c:776
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Execução a utilizar o directório %s"
 
-#: ../src/daemon/main.c:928
+#: ../src/daemon/main.c:781
 #, c-format
 msgid "Using state directory %s."
 msgstr "A manter o estado no directório %s."
 
-#: ../src/daemon/main.c:931
+#: ../src/daemon/main.c:784
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Execução em modo de sistema: %s"
 
-#: ../src/daemon/main.c:934
+#: ../src/daemon/main.c:787
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -462,15 +340,15 @@ msgid ""
 "explanation why system mode is usually a bad idea."
 msgstr ""
 
-#: ../src/daemon/main.c:951
+#: ../src/daemon/main.c:804
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() falhou."
 
-#: ../src/daemon/main.c:961
+#: ../src/daemon/main.c:814
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Timer \"frescos\" de alta resolução disponíveis. Bom apetite!"
 
-#: ../src/daemon/main.c:963
+#: ../src/daemon/main.c:816
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -478,32 +356,32 @@ msgstr ""
 "Oh pá, o teu kernel não presta! O prato do dia recomendado é Linux com "
 "timers de alta resolução activos!"
 
-#: ../src/daemon/main.c:988
+#: ../src/daemon/main.c:834
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() falhou."
 
-#: ../src/daemon/main.c:1050
+#: ../src/daemon/main.c:896
 msgid "Failed to initialize daemon."
 msgstr "Falha ao inicializar serviço."
 
-#: ../src/daemon/main.c:1055
+#: ../src/daemon/main.c:901
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "Serviço arrancou sem módulos carregados. A recusar trabalhar."
 
-#: ../src/daemon/main.c:1072
+#: ../src/daemon/main.c:918
 msgid "Daemon startup complete."
 msgstr "Arranque do serviço completo."
 
-#: ../src/daemon/main.c:1078
+#: ../src/daemon/main.c:924
 msgid "Daemon shutdown initiated."
 msgstr "Encerramento do serviço iniciado."
 
-#: ../src/daemon/main.c:1100
+#: ../src/daemon/main.c:946
 msgid "Daemon terminated."
 msgstr "Serviço terminado."
 
 #: ../src/daemon/cmdline.c:115
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -596,7 +474,7 @@ msgstr ""
 "\n"
 "OPTIONS:\n"
 "      --system[=BOOL]                   Executa em modo de sistema\n"
-"  -D, --daemonize[=BOOL]                Passa serviço depois de executar\n"
+"  -D, --daemonize[=BOOL]                Passa a serviço depois de executar\n"
 "      --fail[=BOOL]                     Termina quando o arranque falha\n"
 "      --high-priority[=BOOL]            Tenta definir um alto nível de "
 "execução\n"
@@ -647,15 +525,14 @@ msgstr ""
 "partilhada.\n"
 "\n"
 "STARTUP SCRIPT:\n"
-"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
-"with\n"
-"                                        the specified argument\n"
-"  -F, --file=FILENAME                   Run the specified script\n"
-"  -C                                    Open a command line on the running "
-"TTY\n"
-"                                        after startup\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Carrega o módulo especificado com\n"
+"                                        o argumento especificado\n"
+"  -F, --file=FILENAME                   Executa o script especificado\n"
+"  -C                                    Abre uma linha de comando no TTY "
+"(consola) em execução\n"
+"                                        depois do arranque\n"
 "\n"
-"  -n                                    Don't load default script file\n"
+"  -n                                    Não carrega o script por omissão\n"
 
 #: ../src/daemon/cmdline.c:247
 msgid "--daemonize expects boolean argument"
@@ -760,9 +637,9 @@ msgid "Load Once: %s\n"
 msgstr "Carregar Uma Vez: %s\n"
 
 #: ../src/daemon/dumpmodules.c:75
-#, c-format
+#, fuzzy, c-format
 msgid "DEPRECATION WARNING: %s\n"
-msgstr ""
+msgstr "Aviso de Impressão"
 
 #: ../src/daemon/dumpmodules.c:79
 #, c-format
@@ -780,9 +657,9 @@ msgid "[%s:%u] Invalid log level '%s'."
 msgstr "[%s:%u] Nível do ficheiro de registo inválido '%s'."
 
 #: ../src/daemon/daemon-conf.c:248
-#, c-format
+#, fuzzy, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr ""
+msgstr "nome do método de acesso"
 
 #: ../src/daemon/daemon-conf.c:271
 #, c-format
@@ -800,19 +677,19 @@ msgid "[%s:%u] Invalid sample format '%s'."
 msgstr "[%s:%u] Formato da amostra inválido '%s'."
 
 #: ../src/daemon/daemon-conf.c:312
-#, c-format
+#, fuzzy, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr ""
+msgstr "Taxa de amostragem em kHz"
 
 #: ../src/daemon/daemon-conf.c:336
-#, c-format
+#, fuzzy, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
-msgstr ""
+msgstr "Número de canais de audio"
 
 #: ../src/daemon/daemon-conf.c:354
-#, c-format
+#, fuzzy, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr ""
+msgstr "Activar mapa de _radar"
 
 #: ../src/daemon/daemon-conf.c:372
 #, c-format
@@ -839,19 +716,17 @@ msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
 msgstr ""
+"O mapa de canais especificado tem um número de canais diferente do número de "
+"canais definido por omissão."
 
 #: ../src/daemon/daemon-conf.c:616
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### Ler configuração a partir do ficheiro: %s ###\n"
 
-#: ../src/daemon/caps.c:63
+#: ../src/daemon/caps.c:65
 msgid "Dropping root privileges."
 msgstr "A largar privilégios de root."
-
-#: ../src/daemon/caps.c:103
-msgid "Limited capabilities successfully to CAP_SYS_NICE."
-msgstr ""
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
@@ -860,24 +735,6 @@ msgstr "Sistema de Som PulseAudio"
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
 msgstr "Inciar o Sistema de Som PulseAudio"
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:1
-msgid ""
-"High-priority scheduling (negative Unix nice level) for the PulseAudio daemon"
-msgstr ""
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:2
-msgid "Real-time scheduling for the PulseAudio daemon"
-msgstr ""
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:3
-msgid ""
-"System policy prevents PulseAudio from acquiring high-priority scheduling."
-msgstr ""
-
-#: ../src/daemon/org.pulseaudio.policy.in.h:4
-msgid "System policy prevents PulseAudio from acquiring real-time scheduling."
-msgstr ""
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:747
 msgid "Mono"
@@ -1251,183 +1108,187 @@ msgstr "Não foi possível processar dados da cookie"
 msgid "Failed to open configuration file '%s': %s"
 msgstr "Falha ao abrir ficheiro de configuração '%s': %s"
 
-#: ../src/pulse/context.c:546
+#: ../src/pulse/context.c:550
 msgid "No cookie loaded. Attempting to connect without."
 msgstr "Nenhuma cookie carregada. A tentar ligar sem cookie."
 
-#: ../src/pulse/context.c:676
+#: ../src/pulse/context.c:693
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:729
+#: ../src/pulse/context.c:745
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1403
+#: ../src/pulse/context.c:1432
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Recebida mensagem para extensão desconhecida '%s'"
 
-#: ../src/utils/pacat.c:107
-#, c-format
-msgid "Failed to drain stream: %s\n"
+#: ../src/utils/pacat.c:108
+#, fuzzy, c-format
+msgid "Failed to drain stream: %s"
 msgstr "Falhou ao esvaziar fluxo: %s\n"
 
-#: ../src/utils/pacat.c:112
-msgid "Playback stream drained.\n"
-msgstr ""
+#: ../src/utils/pacat.c:113
+#, fuzzy
+msgid "Playback stream drained."
+msgstr "O álbum do fluxo actual."
 
-#: ../src/utils/pacat.c:122
-msgid "Draining connection to server.\n"
-msgstr ""
+#: ../src/utils/pacat.c:123
+#, fuzzy
+msgid "Draining connection to server."
+msgstr "Ligação ao Servidor Recusada"
 
-#: ../src/utils/pacat.c:135
-#, c-format
-msgid "pa_stream_drain(): %s\n"
+#: ../src/utils/pacat.c:136
+#, fuzzy, c-format
+msgid "pa_stream_drain(): %s"
 msgstr "pa_stream_drain(): %s\n"
 
-#: ../src/utils/pacat.c:158
-#, c-format
-msgid "pa_stream_write() failed: %s\n"
+#: ../src/utils/pacat.c:159
+#, fuzzy, c-format
+msgid "pa_stream_write() failed: %s"
 msgstr "pa_stream_write() falhou: %s\n"
 
-#: ../src/utils/pacat.c:233 ../src/utils/pacat.c:262
-#, c-format
-msgid "pa_stream_peek() failed: %s\n"
+#: ../src/utils/pacat.c:197
+#, fuzzy, c-format
+msgid "pa_stream_begin_write() failed: %s"
+msgstr "pa_stream_write() falhou: %s\n"
+
+#: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267
+#, fuzzy, c-format
+msgid "pa_stream_peek() failed: %s"
 msgstr "pa_stream_peek() falhou: %s\n"
 
-#: ../src/utils/pacat.c:302
-msgid "Stream successfully created.\n"
+#: ../src/utils/pacat.c:307
+#, fuzzy
+msgid "Stream successfully created."
 msgstr "Fluxo criado com sucesso.\n"
 
-#: ../src/utils/pacat.c:305
-#, c-format
-msgid "pa_stream_get_buffer_attr() failed: %s\n"
+#: ../src/utils/pacat.c:310
+#, fuzzy, c-format
+msgid "pa_stream_get_buffer_attr() failed: %s"
 msgstr "pa_stream_get_buffer_attr() falhou: %s\n"
 
-#: ../src/utils/pacat.c:309
-#, c-format
-msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
+#: ../src/utils/pacat.c:314
+#, fuzzy, c-format
+msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 msgstr "Métricas do Buffer: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
 
-#: ../src/utils/pacat.c:312
-#, c-format
-msgid "Buffer metrics: maxlength=%u, fragsize=%u\n"
+#: ../src/utils/pacat.c:317
+#, fuzzy, c-format
+msgid "Buffer metrics: maxlength=%u, fragsize=%u"
 msgstr "Métricas do Buffer: maxlength=%u, fragsize=%u\n"
 
-#: ../src/utils/pacat.c:316
-#, c-format
-msgid "Using sample spec '%s', channel map '%s'.\n"
-msgstr ""
+#: ../src/utils/pacat.c:321
+#, fuzzy, c-format
+msgid "Using sample spec '%s', channel map '%s'."
+msgstr "Utilizando especificação da amostra '%s'\n"
 
-#: ../src/utils/pacat.c:320
-#, c-format
-msgid "Connected to device %s (%u, %ssuspended).\n"
+#: ../src/utils/pacat.c:325
+#, fuzzy, c-format
+msgid "Connected to device %s (%u, %ssuspended)."
 msgstr "Ligado ao dispositivo %s (%u, %ssuspended).\n"
 
-#: ../src/utils/pacat.c:330
-#, c-format
-msgid "Stream error: %s\n"
+#: ../src/utils/pacat.c:335
+#, fuzzy, c-format
+msgid "Stream error: %s"
 msgstr "Erro de fluxo: %s\n"
 
-#: ../src/utils/pacat.c:340
-#, c-format
-msgid "Stream device suspended.%s \n"
-msgstr ""
+#: ../src/utils/pacat.c:345
+#, fuzzy, c-format
+msgid "Stream device suspended.%s"
+msgstr "Nenhum dispositivo configurado"
 
-#: ../src/utils/pacat.c:342
-#, c-format
-msgid "Stream device resumed.%s \n"
-msgstr ""
+#: ../src/utils/pacat.c:347
+#, fuzzy, c-format
+msgid "Stream device resumed.%s"
+msgstr "Nenhum dispositivo configurado"
 
-#: ../src/utils/pacat.c:350
-#, c-format
-msgid "Stream underrun.%s \n"
+#: ../src/utils/pacat.c:355
+#, fuzzy, c-format
+msgid "Stream underrun.%s"
 msgstr "Fluxo com falta de dados.%s \n"
 
-#: ../src/utils/pacat.c:357
-#, c-format
-msgid "Stream overrun.%s \n"
+#: ../src/utils/pacat.c:362
+#, fuzzy, c-format
+msgid "Stream overrun.%s"
 msgstr "Fluxo com excesso de dados.%s \n"
 
-#: ../src/utils/pacat.c:364
-#, c-format
-msgid "Stream started.%s \n"
+#: ../src/utils/pacat.c:369
+#, fuzzy, c-format
+msgid "Stream started.%s"
 msgstr "Fluxo iniciado.%s \n"
 
-#: ../src/utils/pacat.c:371
-#, c-format
-msgid "Stream moved to device %s (%u, %ssuspended).%s \n"
-msgstr ""
+#: ../src/utils/pacat.c:376
+#, fuzzy, c-format
+msgid "Stream moved to device %s (%u, %ssuspended).%s"
+msgstr "Ligado ao dispositivo %s (%u, %ssuspended).\n"
 
-#: ../src/utils/pacat.c:371
+#: ../src/utils/pacat.c:376
 msgid "not "
 msgstr "negação"
 
-#: ../src/utils/pacat.c:378
+#: ../src/utils/pacat.c:383
 #, c-format
-msgid "Stream buffer attributes changed.%s \n"
+msgid "Stream buffer attributes changed.%s"
 msgstr ""
 
-#: ../src/utils/pacat.c:411
-#, c-format
-msgid "Connection established.%s \n"
+#: ../src/utils/pacat.c:416
+#, fuzzy, c-format
+msgid "Connection established.%s"
 msgstr "Ligação Estabelecida.%s \n"
 
-#: ../src/utils/pacat.c:414
-#, c-format
-msgid "pa_stream_new() failed: %s\n"
+#: ../src/utils/pacat.c:419
+#, fuzzy, c-format
+msgid "pa_stream_new() failed: %s"
 msgstr "pa_stream_new() falhou: %s\n"
 
-#: ../src/utils/pacat.c:442
-#, c-format
-msgid "pa_stream_connect_playback() failed: %s\n"
+#: ../src/utils/pacat.c:447
+#, fuzzy, c-format
+msgid "pa_stream_connect_playback() failed: %s"
 msgstr "pa_stream_connect_playback() falhou: %s\n"
 
-#: ../src/utils/pacat.c:448
-#, c-format
-msgid "pa_stream_connect_record() failed: %s\n"
+#: ../src/utils/pacat.c:453
+#, fuzzy, c-format
+msgid "pa_stream_connect_record() failed: %s"
 msgstr "pa_stream_connect_record() falhou: %s\n"
 
-#: ../src/utils/pacat.c:462 ../src/utils/pasuspender.c:159
-#: ../src/utils/pactl.c:814
-#, c-format
-msgid "Connection failure: %s\n"
+#: ../src/utils/pacat.c:467
+#, fuzzy, c-format
+msgid "Connection failure: %s"
 msgstr "Ligação falhou: %s\n"
 
-#: ../src/utils/pacat.c:495
-msgid "Got EOF.\n"
+#: ../src/utils/pacat.c:500
+#, fuzzy
+msgid "Got EOF."
 msgstr "Obtive EOF.\n"
 
-#: ../src/utils/pacat.c:500
-#, c-format
-msgid "read() failed: %s\n"
-msgstr "read() falhou: %s\n"
-
-#: ../src/utils/pacat.c:532
-#, c-format
-msgid "write() failed: %s\n"
+#: ../src/utils/pacat.c:537
+#, fuzzy, c-format
+msgid "write() failed: %s"
 msgstr "write() falhou: %s\n"
 
-#: ../src/utils/pacat.c:553
-msgid "Got signal, exiting.\n"
+#: ../src/utils/pacat.c:558
+#, fuzzy
+msgid "Got signal, exiting."
 msgstr "Recebido sinal, a sair.\n"
 
-#: ../src/utils/pacat.c:567
-#, c-format
-msgid "Failed to get latency: %s\n"
+#: ../src/utils/pacat.c:572
+#, fuzzy, c-format
+msgid "Failed to get latency: %s"
 msgstr "Falhou a obtenção da latência: %s\n"
 
-#: ../src/utils/pacat.c:572
+#: ../src/utils/pacat.c:577
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr "Tempo: %0.3f sec; Latency: %0.0f usec.  \r"
 
-#: ../src/utils/pacat.c:592
-#, c-format
-msgid "pa_stream_update_timing_info() failed: %s\n"
+#: ../src/utils/pacat.c:595
+#, fuzzy, c-format
+msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() falhou: %s\n"
 
 #: ../src/utils/pacat.c:605
@@ -1497,97 +1358,104 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pacat %s\n"
+"Compilado com libpulse %s\n"
+"Ligado com libpulse %s\n"
 
-#: ../src/utils/pacat.c:760 ../src/utils/pactl.c:900
+#: ../src/utils/pacat.c:760
 #, fuzzy, c-format
-msgid "Invalid client name '%s'\n"
-msgstr "Método de resample inválido '%s'."
+msgid "Invalid client name '%s'"
+msgstr "Nome de máquina inválido"
 
 #: ../src/utils/pacat.c:776
 #, fuzzy, c-format
-msgid "Invalid stream name '%s'\n"
-msgstr "Método de resample inválido '%s'."
+msgid "Invalid stream name '%s'"
+msgstr "Nome de máquina inválido"
 
 #: ../src/utils/pacat.c:813
-#, c-format
-msgid "Invalid channel map '%s'\n"
-msgstr ""
+#, fuzzy, c-format
+msgid "Invalid channel map '%s'"
+msgstr "Mapa de canais inválido '%s'\n"
 
 #: ../src/utils/pacat.c:842
-#, c-format
-msgid "Invalid latency specification '%s'\n"
+#, fuzzy, c-format
+msgid "Invalid latency specification '%s'"
 msgstr "Especificação da latência inválida '%s'\n"
 
 #: ../src/utils/pacat.c:849
-#, c-format
-msgid "Invalid process time specification '%s'\n"
-msgstr ""
+#, fuzzy, c-format
+msgid "Invalid process time specification '%s'"
+msgstr "Especificação da infra-estrutura da impressora inválida: %1"
 
 #: ../src/utils/pacat.c:861
 #, fuzzy, c-format
-msgid "Invalid property '%s'\n"
-msgstr "Método de resample inválido '%s'."
+msgid "Invalid property '%s'"
+msgstr "Tipo de propriedade inválido %s para propriedade %s"
 
 #: ../src/utils/pacat.c:878
-#, c-format
+#, fuzzy, c-format
 msgid "Unknown file format %s."
-msgstr ""
+msgstr "Formato de ficheiro desconhecido"
 
 #: ../src/utils/pacat.c:897
-msgid "Invalid sample specification\n"
+#, fuzzy
+msgid "Invalid sample specification"
 msgstr "Especificação da amostra inválida\n"
 
 #: ../src/utils/pacat.c:907
-#, c-format
-msgid "open(): %s\n"
+#, fuzzy, c-format
+msgid "open(): %s"
 msgstr "open(): %s\n"
 
 #: ../src/utils/pacat.c:912
-#, c-format
-msgid "dup2(): %s\n"
+#, fuzzy, c-format
+msgid "dup2(): %s"
 msgstr "dup2(): %s\n"
 
 #: ../src/utils/pacat.c:919
-msgid "Too many arguments.\n"
+#, fuzzy
+msgid "Too many arguments."
 msgstr "demasiados argumentos.\n"
 
 #: ../src/utils/pacat.c:930
 #, fuzzy
-msgid "Failed to generate sample specification for file.\n"
+msgid "Failed to generate sample specification for file."
 msgstr "não foi possível obter informações da amostra: %s\n"
 
 #: ../src/utils/pacat.c:950
 #, fuzzy
-msgid "Failed to open audio file.\n"
-msgstr "Falha ao abrir ficheiro de som.\n"
+msgid "Failed to open audio file."
+msgstr "Falha ao abrir ficheiro temporário"
 
 #: ../src/utils/pacat.c:956
 msgid ""
 "Warning: specified sample specification will be overwritten with "
-"specification from file.\n"
+"specification from file."
 msgstr ""
 
-#: ../src/utils/pacat.c:959 ../src/utils/pactl.c:944
+#: ../src/utils/pacat.c:959
 #, fuzzy
-msgid "Failed to determine sample specification from file.\n"
+msgid "Failed to determine sample specification from file."
 msgstr "não foi possível obter informações da amostra: %s\n"
 
 #: ../src/utils/pacat.c:968
-msgid "Warning: Failed to determine channel map from file.\n"
-msgstr ""
+#, fuzzy
+msgid "Warning: Failed to determine channel map from file."
+msgstr "não foi possível obter informações da amostra: %s\n"
 
 #: ../src/utils/pacat.c:979
-msgid "Channel map doesn't match sample specification\n"
-msgstr ""
+#, fuzzy
+msgid "Channel map doesn't match sample specification"
+msgstr "Mapa de canais não corresponde com ficheiro.\n"
 
 #: ../src/utils/pacat.c:990
-msgid "Warning: failed to write channel map to file.\n"
+msgid "Warning: failed to write channel map to file."
 msgstr ""
 
 #: ../src/utils/pacat.c:1005
 #, c-format
 msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'.\n"
+"Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
 
 #: ../src/utils/pacat.c:1006
@@ -1598,35 +1466,34 @@ msgstr "a gravar"
 msgid "playback"
 msgstr "reprodução"
 
-#: ../src/utils/pacat.c:1032 ../src/utils/pasuspender.c:277
-#: ../src/utils/pactl.c:1104
-#, c-format
-msgid "pa_mainloop_new() failed.\n"
+#: ../src/utils/pacat.c:1032
+#, fuzzy
+msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() falhou.\n"
 
 #: ../src/utils/pacat.c:1051
-msgid "io_new() failed.\n"
+#, fuzzy
+msgid "io_new() failed."
 msgstr "io_new() falhou.\n"
 
-#: ../src/utils/pacat.c:1058 ../src/utils/pasuspender.c:290
-#: ../src/utils/pactl.c:1116
-#, c-format
-msgid "pa_context_new() failed.\n"
+#: ../src/utils/pacat.c:1058
+#, fuzzy
+msgid "pa_context_new() failed."
 msgstr "pa_context_new() falhou.\n"
 
-#: ../src/utils/pacat.c:1066
-#, fuzzy, c-format
-msgid "pa_context_connect() failed: %s\n"
+#: ../src/utils/pacat.c:1066 ../src/utils/pactl.c:1122
+#, c-format
+msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() falhou: %s"
 
-#: ../src/utils/pacat.c:1077
-msgid "time_new() failed.\n"
-msgstr "time_new() falhou.\n"
+#: ../src/utils/pacat.c:1072
+#, fuzzy
+msgid "pa_context_rttime_new() failed."
+msgstr "não foi possível obter o novo contexto.\n"
 
-#: ../src/utils/pacat.c:1084 ../src/utils/pasuspender.c:298
-#: ../src/utils/pactl.c:1127
-#, c-format
-msgid "pa_mainloop_run() failed.\n"
+#: ../src/utils/pacat.c:1079
+#, fuzzy
+msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() falhou.\n"
 
 #: ../src/utils/pasuspender.c:81
@@ -1653,6 +1520,11 @@ msgstr "Falhou ao restaurar: %s\n"
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
 msgstr "Atenção: Servidor de Som não local, suspender ignorado.\n"
+
+#: ../src/utils/pasuspender.c:159 ../src/utils/pactl.c:814
+#, c-format
+msgid "Connection failure: %s\n"
+msgstr "Ligação falhou: %s\n"
 
 #: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:820
 #, c-format
@@ -1683,6 +1555,21 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+
+#: ../src/utils/pasuspender.c:277 ../src/utils/pactl.c:1104
+#, c-format
+msgid "pa_mainloop_new() failed.\n"
+msgstr "pa_mainloop_new() falhou.\n"
+
+#: ../src/utils/pasuspender.c:290 ../src/utils/pactl.c:1116
+#, c-format
+msgid "pa_context_new() failed.\n"
+msgstr "pa_context_new() falhou.\n"
+
+#: ../src/utils/pasuspender.c:298 ../src/utils/pactl.c:1127
+#, c-format
+msgid "pa_mainloop_run() failed.\n"
+msgstr "pa_mainloop_run() falhou.\n"
 
 #: ../src/utils/pactl.c:128
 #, c-format
@@ -1758,7 +1645,7 @@ msgstr "\tPrefis:\n"
 #: ../src/utils/pactl.c:267 ../src/utils/pactl.c:359
 #, fuzzy, c-format
 msgid "\tActive Port: %s\n"
-msgstr "\tPerfil Activo: %s\n"
+msgstr "MÁQUINA:PORTO"
 
 #: ../src/utils/pactl.c:290
 #, c-format
@@ -1853,9 +1740,10 @@ msgid "\tActive Profile: %s\n"
 msgstr "\tPerfil Activo: %s\n"
 
 #: ../src/utils/pactl.c:489
-#, c-format
+#, fuzzy, c-format
 msgid "Failed to get sink input information: %s\n"
 msgstr ""
+"Não foi possível obter informações sobre o Método de Introdução de Dados"
 
 #: ../src/utils/pactl.c:508
 #, c-format
@@ -1976,6 +1864,11 @@ msgstr ""
 "Compilado com libpulse %s\n"
 "Linkado com libpulse %s\n"
 
+#: ../src/utils/pactl.c:900
+#, fuzzy, c-format
+msgid "Invalid client name '%s'\n"
+msgstr "Nome de máquina inválido"
+
 #: ../src/utils/pactl.c:926
 msgid "Please specify a sample file to load\n"
 msgstr "Por favor, especifique um ficheiro de amostra para carregar\n"
@@ -1983,6 +1876,11 @@ msgstr "Por favor, especifique um ficheiro de amostra para carregar\n"
 #: ../src/utils/pactl.c:939
 msgid "Failed to open sound file.\n"
 msgstr "Falha ao abrir ficheiro de som.\n"
+
+#: ../src/utils/pactl.c:944
+#, fuzzy
+msgid "Failed to determine sample specification from file.\n"
+msgstr "não foi possível obter informações da amostra: %s\n"
 
 #: ../src/utils/pactl.c:951
 msgid "Warning: Failed to determine sample specification from file.\n"
@@ -2045,11 +1943,6 @@ msgstr "Tem de especificar um nome/índice de carta e um nome de perfil\n"
 #: ../src/utils/pactl.c:1099
 msgid "No valid command specified.\n"
 msgstr "O comando especificado é inválido.\n"
-
-#: ../src/utils/pactl.c:1122
-#, c-format
-msgid "pa_context_connect() failed: %s"
-msgstr "pa_context_connect() falhou: %s"
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2160,11 +2053,11 @@ msgstr "read(): %s"
 msgid "write(): %s"
 msgstr "write(): %s"
 
-#: ../src/pulsecore/lock-autospawn.c:126 ../src/pulsecore/lock-autospawn.c:207
+#: ../src/pulsecore/lock-autospawn.c:136 ../src/pulsecore/lock-autospawn.c:219
 msgid "Cannot access autospawn lock."
 msgstr "Impossível aceder ao lock \"autospawn\"."
 
-#: ../src/modules/alsa/alsa-sink.c:445 ../src/modules/alsa/alsa-sink.c:593
+#: ../src/modules/alsa/alsa-sink.c:449 ../src/modules/alsa/alsa-sink.c:606
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2181,7 +2074,7 @@ msgstr ""
 "Fomos acordados pelo conjunto POLLOUT -- contudo uma chamada a seguir de "
 "snd_pcm_avail() retornou 0 ou outro valor < min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:424 ../src/modules/alsa/alsa-source.c:563
+#: ../src/modules/alsa/alsa-source.c:429 ../src/modules/alsa/alsa-source.c:578
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2199,21 +2092,86 @@ msgstr ""
 "snd_pcm_avail() retornou 0 ou outro valor < min_avail."
 
 #: ../src/modules/alsa/module-alsa-card.c:152
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2062
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2065
 msgid "Off"
 msgstr "Desligado"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2032
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2035
 msgid "High Fidelity Playback (A2DP)"
 msgstr "Reprodução Alta Fidelidade (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2047
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2050
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr "Telefonia Duplex (HSP/HFP)"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "Servidor de Som PulseAudio"
+
+#~ msgid "Cannot connect to system bus: %s"
+#~ msgstr "Incapaz de se ligar ao bus de sistema: %s"
+
+#~ msgid "Cannot get caller from PID: %s"
+#~ msgstr "Não foi possível obter chamador a partir do PID: %s"
+
+#~ msgid "Cannot set UID on caller object."
+#~ msgstr "Não foi possível definir o UID no objecto chamador."
+
+#~ msgid "Failed to get CK session."
+#~ msgstr "Falha ao obter sessão CK."
+
+#~ msgid "Cannot set UID on session object."
+#~ msgstr "Não foi possível definir o UID no objecto da sessão."
+
+#~ msgid "Cannot allocate PolKitAction."
+#~ msgstr "Não é possível alocar PolKitAction."
+
+#~ msgid "Cannot set action_id"
+#~ msgstr "impossível definir action_id"
+
+#~ msgid "Cannot allocate PolKitContext."
+#~ msgstr "Não é possível alocar contexto PolKitContext."
+
+#~ msgid "Cannot initialize PolKitContext: %s"
+#~ msgstr "Incapaz de inicializar o PolKitContext: %s"
+
+#~ msgid "Could not determine whether caller is authorized: %s"
+#~ msgstr "Não foi possível determinar se o chamador está autorizado: %s"
+
+#~ msgid "Cannot obtain auth: %s"
+#~ msgstr "Não foi possível obter autenticação: %s"
+
+#~ msgid "PolicyKit responded with '%s'"
+#~ msgstr "PolicyKit respondeu com '%s'"
+
+#~ msgid ""
+#~ "High-priority scheduling (negative Unix nice level) for the PulseAudio "
+#~ "daemon"
+#~ msgstr ""
+#~ "Escalonamento de alta-prioridade (nível 'nice' negativo em Unix) para o "
+#~ "serviço PulseAudio"
+
+#~ msgid "Real-time scheduling for the PulseAudio daemon"
+#~ msgstr "Escalonamento em tempo-real para o serviço PulseAudio"
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring high-priority scheduling."
+#~ msgstr ""
+#~ "Politica do sistema impede o PulseAudio de obter escalonamento de alta-"
+#~ "prioridade."
+
+#~ msgid ""
+#~ "System policy prevents PulseAudio from acquiring real-time scheduling."
+#~ msgstr ""
+#~ "Politica do sistema impede o PulseAudio de obter escalonamento de tempo-"
+#~ "real."
+
+#~ msgid "read() failed: %s\n"
+#~ msgstr "read() falhou: %s\n"
+
+#, fuzzy
+#~ msgid "pa_context_connect() failed: %s\n"
+#~ msgstr "Impossível ligar ao servidor."
 
 #~ msgid "Analog Mono"
 #~ msgstr "Mono Analógico"
@@ -2248,6 +2206,60 @@ msgstr "Servidor de Som PulseAudio"
 #~ msgid "Analog Surround 7.1"
 #~ msgstr "Analog Surround 7.1"
 
+#~ msgid "We're in the group '%s', allowing high-priority scheduling."
+#~ msgstr "Estamos no grupo '%s', permitindo escalonamento de alta-prioridade."
+
+#~ msgid "We're in the group '%s', allowing real-time scheduling."
+#~ msgstr "Estamos no grupo '%s', permitindo escalonamento em tempo real."
+
+#~ msgid "PolicyKit grants us acquire-high-priority privilege."
+#~ msgstr ""
+#~ "O PolicyKit permite-nos o privilégio \"acquire-high-priority\" (adquirir "
+#~ "alta prioridade)."
+
+#~ msgid "PolicyKit refuses acquire-high-priority privilege."
+#~ msgstr ""
+#~ "O PolicyKit recusa-nos o privilégio \"acquire-high-priority\" (adquirir "
+#~ "alta prioridade)."
+
+#~ msgid "PolicyKit grants us acquire-real-time privilege."
+#~ msgstr ""
+#~ "O PolicyKit permite-nos o privilégio \"acquire-real-time\" (adquirir "
+#~ "tempo real)."
+
+#~ msgid "PolicyKit refuses acquire-real-time privilege."
+#~ msgstr ""
+#~ "O PolicyKit recusa-nos o privilégio \"acquire-real-time\" (adquirir tempo "
+#~ "real)."
+
+#~ msgid ""
+#~ "High-priority scheduling enabled in configuration but not allowed by "
+#~ "policy."
+#~ msgstr ""
+#~ "Escalonamento de alta prioridade activo na configuração, mas não "
+#~ "permitido pela politica."
+
+#~ msgid "Successfully increased RLIMIT_RTPRIO"
+#~ msgstr "RLIMIT_RTPRIO aumentado com sucesso"
+
+#~ msgid "RLIMIT_RTPRIO failed: %s"
+#~ msgstr "RLIMIT_RTPRIO falhou: %s"
+
+#~ msgid "Giving up CAP_NICE"
+#~ msgstr "A desistir de CAP_NICE"
+
+#~ msgid ""
+#~ "Real-time scheduling enabled in configuration but not allowed by policy."
+#~ msgstr ""
+#~ "Escalonamento em tempo real activo na configuração, mas não permitido "
+#~ "pela politica."
+
+#~ msgid "Limited capabilities successfully to CAP_SYS_NICE."
+#~ msgstr "Capacidades limitadas com sucesso em CAP_SYS_NICE."
+
+#~ msgid "time_new() failed.\n"
+#~ msgstr "time_new() falhou.\n"
+
 #~ msgid "Stream successfully created\n"
 #~ msgstr "Fluxo criado com sucesso\n"
 
@@ -2266,11 +2278,11 @@ msgstr "Servidor de Som PulseAudio"
 #~ "Compilado com libpulse %s\n"
 #~ "Linkado com libpulse %s\n"
 
+#~ msgid "Invalid channel map\n"
+#~ msgstr "Mapa de canais inválido\n"
+
 #~ msgid "Failed to open file '%s'\n"
 #~ msgstr "Falha ao abrir o ficheiro '%s'\n"
-
-#~ msgid "Using sample spec '%s'\n"
-#~ msgstr "Utilizando especificação da amostra '%s'\n"
 
 #~ msgid "Output %s + Input %s"
 #~ msgstr "Saída %s + Entrada %s"

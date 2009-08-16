@@ -55,7 +55,8 @@ typedef enum pa_source_output_flags {
     PA_SOURCE_OUTPUT_FIX_RATE = 64,
     PA_SOURCE_OUTPUT_FIX_CHANNELS = 128,
     PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND = 256,
-    PA_SOURCE_OUTPUT_FAIL_ON_SUSPEND = 512
+    PA_SOURCE_OUTPUT_NO_CREATE_ON_SUSPEND = 512,
+    PA_SOURCE_OUTPUT_KILL_ON_SUSPEND = 1024
 } pa_source_output_flags_t;
 
 struct pa_source_output {
@@ -108,6 +109,10 @@ struct pa_source_output {
      * from IO context. */
     void (*update_source_latency_range) (pa_source_output *o); /* may be NULL */
 
+    /* Called whenver the fixed latency of the source changes, if there
+     * is one. Called from IO context. */
+    void (*update_source_fixed_latency) (pa_source_output *i); /* may be NULL */
+
     /* If non-NULL this function is called when the output is first
      * connected to a source. Called from IO thread context */
     void (*attach) (pa_source_output *o);           /* may be NULL */
@@ -127,7 +132,9 @@ struct pa_source_output {
     /* If non-NULL called whenever the source output is moved to a new
      * source. Called from main context after the stream was detached
      * from the old source and before it is attached to the new
-     * source. */
+     * source. If dest is NULL the move was executed in two
+     * phases and the second one failed; the stream will be destroyed
+     * after this call. */
     void (*moving) (pa_source_output *o, pa_source *dest);   /* may be NULL */
 
     /* Supposed to unlink and destroy this stream. Called from main
@@ -238,6 +245,8 @@ void pa_source_output_cork(pa_source_output *o, pa_bool_t b);
 
 int pa_source_output_set_rate(pa_source_output *o, uint32_t rate);
 
+size_t pa_source_output_get_max_rewind(pa_source_output *o);
+
 /* Callable by everyone */
 
 /* External code may request disconnection with this funcion */
@@ -260,6 +269,7 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest, pa_bool_t sav
  * new source */
 int pa_source_output_start_move(pa_source_output *o);
 int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, pa_bool_t save);
+void pa_source_output_fail_move(pa_source_output *o);
 
 #define pa_source_output_get_state(o) ((o)->state)
 
@@ -276,5 +286,8 @@ void pa_source_output_set_state_within_thread(pa_source_output *o, pa_source_out
 int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
 
 pa_usec_t pa_source_output_set_requested_latency_within_thread(pa_source_output *o, pa_usec_t usec);
+
+#define pa_source_output_assert_io_context(s) \
+    pa_assert(pa_thread_mq_get() || !PA_SOURCE_OUTPUT_IS_LINKED((s)->state))
 
 #endif

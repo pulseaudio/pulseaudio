@@ -65,6 +65,8 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
+static int setup_inotify(struct userdata *u);
+
 static void device_free(struct device *d) {
     pa_assert(d);
 
@@ -116,6 +118,9 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
 
     pa_assert(u);
     pa_assert(dev);
+
+    /* Maybe /dev/snd is now available? */
+    setup_inotify(u);
 
     path = udev_device_get_devpath(dev);
 
@@ -262,7 +267,7 @@ static void inotify_cb(
     } buf;
     struct userdata *u = userdata;
     static int type = 0;
-    pa_bool_t verify = FALSE;
+    pa_bool_t verify = FALSE, deleted = FALSE;
 
     for (;;) {
         ssize_t r;
@@ -279,6 +284,9 @@ static void inotify_cb(
 
         if ((buf.e.mask & IN_CLOSE_WRITE) && pa_startswith(buf.e.name, "pcmC"))
             verify = TRUE;
+
+        if ((buf.e.mask & (IN_DELETE_SELF|IN_MOVE_SELF)))
+            deleted = TRUE;
     }
 
     if (verify) {
@@ -291,11 +299,14 @@ static void inotify_cb(
             verify_access(u, d);
     }
 
-    return;
+    if (!deleted)
+        return;
 
 fail:
-    a->io_free(u->inotify_io);
-    u->inotify_io = NULL;
+    if (u->inotify_io) {
+        a->io_free(u->inotify_io);
+        u->inotify_io = NULL;
+    }
 
     if (u->inotify_fd >= 0) {
         pa_close(u->inotify_fd);
@@ -307,17 +318,38 @@ static int setup_inotify(struct userdata *u) {
     char *dev_snd;
     int r;
 
+    if (u->inotify_fd >= 0)
+        return 0;
+
     if ((u->inotify_fd = inotify_init1(IN_CLOEXEC|IN_NONBLOCK)) < 0) {
         pa_log("inotify_init1() failed: %s", pa_cstrerror(errno));
         return -1;
     }
 
     dev_snd = pa_sprintf_malloc("%s/snd", udev_get_dev_path(u->udev));
-    r = inotify_add_watch(u->inotify_fd, dev_snd, IN_CLOSE_WRITE);
+    r = inotify_add_watch(u->inotify_fd, dev_snd, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF);
     pa_xfree(dev_snd);
 
     if (r < 0) {
-        pa_log("inotify_add_watch() failed: %s", pa_cstrerror(errno));
+        int saved_errno = errno;
+
+        pa_close(u->inotify_fd);
+        u->inotify_fd = -1;
+
+        if (saved_errno == ENOENT) {
+            pa_log_debug("/dev/snd/ is apparently not existing yet, retrying to create inotify watch later.");
+            return 0;
+        }
+
+        if (saved_errno == ENOSPC) {
+            pa_log("You apparently ran out of inotify watches, probably because Tracker/Beagle took them all away. "
+                   "I wished people would do their homework first and fix inotify before using it for watching whole "
+                   "directory trees which is something the current inotify is certainly not useful for. "
+                   "Please make sure to drop the Tracker/Beagle guys a line complaining about their broken use of inotify.");
+            return 0;
+        }
+
+        pa_log("inotify_add_watch() failed: %s", pa_cstrerror(saved_errno));
         return -1;
     }
 

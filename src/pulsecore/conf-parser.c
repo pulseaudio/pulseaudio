@@ -278,6 +278,30 @@ int pa_config_parse_bool(const char *filename, unsigned line, const char *sectio
     return 0;
 }
 
+int pa_config_parse_not_bool(
+        const char *filename, unsigned line,
+        const char *section,
+        const char *lvalue, const char *rvalue,
+        void *data, void *userdata) {
+
+    int k;
+    pa_bool_t *b = data;
+
+    pa_assert(filename);
+    pa_assert(lvalue);
+    pa_assert(rvalue);
+    pa_assert(data);
+
+    if ((k = pa_parse_boolean(rvalue)) < 0) {
+        pa_log("[%s:%u] Failed to parse boolean value: %s", filename, line, rvalue);
+        return -1;
+    }
+
+    *b = !k;
+
+    return 0;
+}
+
 int pa_config_parse_string(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     char **s = data;
 

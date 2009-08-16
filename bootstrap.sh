@@ -40,10 +40,21 @@ run_versioned() {
 
 set -ex
 
+case $(uname) in
+	*Darwin*)
+		LIBTOOLIZE="glibtoolize"
+		;;
+esac
+
 if [ -f .git/hooks/pre-commit.sample -a ! -f .git/hooks/pre-commit ] ; then
     echo "Activating pre-commit hook."
-    cp -av .git/hooks/pre-commit.sample .git/hooks/pre-commit
-    chmod -c +x  .git/hooks/pre-commit
+    cp -pv  .git/hooks/pre-commit.sample .git/hooks/pre-commit
+    chmod -v +x  .git/hooks/pre-commit
+fi
+
+if [ -f .tarball-version ]; then
+    echo "Marking tarball version as modified."
+    echo -n `cat .tarball-version | sed 's/-rebootstrapped$//'`-rebootstrapped >.tarball-version
 fi
 
 # We check for this here, because if pkg-config is not found in the
@@ -83,7 +94,7 @@ else
     run_versioned automake "$VERSION" --copy --foreign --add-missing
 
     if test "x$NOCONFIGURE" = "x"; then
-        CFLAGS="-g -O0" ./configure --sysconfdir=/etc --localstatedir=/var --enable-force-preopen "$@"
+        CFLAGS="$CFLAGS -g -O0" ./configure --sysconfdir=/etc --localstatedir=/var --enable-force-preopen "$@"
         make clean
     fi
 fi

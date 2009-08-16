@@ -668,10 +668,23 @@ static pa_strlist *prepend_per_user(pa_strlist *l) {
 static int context_autospawn(pa_context *c) {
     pid_t pid;
     int status, r;
-
-    pa_log_debug("Trying to autospawn...");
+    struct sigaction sa;
 
     pa_context_ref(c);
+
+    if (sigaction(SIGCHLD, NULL, &sa) < 0) {
+        pa_log_debug("sigaction() failed: %s", pa_cstrerror(errno));
+        pa_context_fail(c, PA_ERR_INTERNAL);
+        goto fail;
+    }
+
+    if ((sa.sa_flags & SA_NOCLDWAIT) || sa.sa_handler == SIG_IGN) {
+        pa_log_debug("Process disabled waitpid(), cannot autospawn.");
+        pa_context_fail(c, PA_ERR_CONNECTIONREFUSED);
+        goto fail;
+    }
+
+    pa_log_debug("Trying to autospawn...");
 
     if (c->spawn_api.prefork)
         c->spawn_api.prefork();
@@ -688,23 +701,23 @@ static int context_autospawn(pa_context *c) {
         /* Child */
 
         const char *state = NULL;
-#define MAX_ARGS 64
-        const char * argv[MAX_ARGS+1];
-        int n;
+        const char * argv[32];
+        unsigned n = 0;
 
         if (c->spawn_api.atfork)
             c->spawn_api.atfork();
 
+        /* We leave most of the cleaning up of the process environment
+         * to the executable. We only clean up the file descriptors to
+         * make sure the executable can actually be loaded
+         * correctly. */
         pa_close_all(-1);
 
         /* Setup argv */
-
-        n = 0;
-
         argv[n++] = c->conf->daemon_binary;
         argv[n++] = "--start";
 
-        while (n < MAX_ARGS) {
+        while (n < PA_ELEMENTSOF(argv)-1) {
             char *a;
 
             if (!(a = pa_split_spaces(c->conf->extra_arguments, &state)))
@@ -714,10 +727,10 @@ static int context_autospawn(pa_context *c) {
         }
 
         argv[n++] = NULL;
+        pa_assert(n <= PA_ELEMENTSOF(argv));
 
         execv(argv[0], (char * const *) argv);
         _exit(1);
-#undef MAX_ARGS
     }
 
     /* Parent */
@@ -730,9 +743,16 @@ static int context_autospawn(pa_context *c) {
     } while (r < 0 && errno == EINTR);
 
     if (r < 0) {
-        pa_log(_("waitpid(): %s"), pa_cstrerror(errno));
-        pa_context_fail(c, PA_ERR_INTERNAL);
-        goto fail;
+
+        if (errno != ESRCH) {
+            pa_log(_("waitpid(): %s"), pa_cstrerror(errno));
+            pa_context_fail(c, PA_ERR_INTERNAL);
+            goto fail;
+        }
+
+        /* hmm, something already reaped our child, so we assume
+         * startup worked, even if we cannot know */
+
     } else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
         pa_context_fail(c, PA_ERR_CONNECTIONREFUSED);
         goto fail;
@@ -761,22 +781,33 @@ static void track_pulseaudio_on_dbus(pa_context *c, DBusBusType type, pa_dbus_wr
     pa_assert(conn);
 
     dbus_error_init(&error);
+
     if (!(*conn = pa_dbus_wrap_connection_new(c->mainloop, c->use_rtclock, type, &error)) || dbus_error_is_set(&error)) {
         pa_log_warn("Unable to contact DBUS: %s: %s", error.name, error.message);
-        goto finish;
+        goto fail;
     }
 
     if (!dbus_connection_add_filter(pa_dbus_wrap_connection_get(*conn), filter_cb, c, NULL)) {
         pa_log_warn("Failed to add filter function");
-        goto finish;
+        goto fail;
     }
 
     if (pa_dbus_add_matches(
                 pa_dbus_wrap_connection_get(*conn), &error,
-                "type='signal',sender='" DBUS_SERVICE_DBUS "',interface='" DBUS_INTERFACE_DBUS "',member='NameOwnerChanged',arg0='org.pulseaudio.Server',arg1=''", NULL) < 0)
-        pa_log_warn("Unable to track org.pulseaudio.Server: %s: %s", error.name, error.message);
+                "type='signal',sender='" DBUS_SERVICE_DBUS "',interface='" DBUS_INTERFACE_DBUS "',member='NameOwnerChanged',arg0='org.pulseaudio.Server',arg1=''", NULL) < 0) {
 
- finish:
+        pa_log_warn("Unable to track org.pulseaudio.Server: %s: %s", error.name, error.message);
+        goto fail;
+    }
+
+    return;
+
+fail:
+    if (*conn) {
+        pa_dbus_wrap_connection_free(*conn);
+        *conn = NULL;
+    }
+
     dbus_error_free(&error);
 }
 #endif
@@ -861,7 +892,7 @@ static void on_connection(pa_socket_client *client, pa_iochannel*io, void *userd
     c->client = NULL;
 
     if (!io) {
-        /* Try the item in the list */
+        /* Try the next item in the list */
         if (saved_errno == ECONNREFUSED ||
             saved_errno == ETIMEDOUT ||
             saved_errno == EHOSTUNREACH) {
@@ -897,7 +928,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
     /* FIXME: We probably should check if this is actually the NameOwnerChanged we were looking for */
 
     is_session = c->session_bus && bus == pa_dbus_wrap_connection_get(c->session_bus);
-    pa_log_debug("Rock!! PulseAudio is back on %s bus", is_session ? "session" : "system");
+    pa_log_debug("Rock!! PulseAudio might be back on %s bus", is_session ? "session" : "system");
 
     if (is_session)
         /* The user instance via PF_LOCAL */
@@ -937,7 +968,7 @@ int pa_context_connect(
 
     pa_context_ref(c);
 
-    c->no_fail = flags & PA_CONTEXT_NOFAIL;
+    c->no_fail = !!(flags & PA_CONTEXT_NOFAIL);
     c->server_specified = !!server;
     pa_assert(!c->server_list);
 
@@ -954,10 +985,7 @@ int pa_context_connect(
 
         /* Follow the X display */
         if ((d = getenv("DISPLAY"))) {
-            char *e;
-            d = pa_xstrdup(d);
-            if ((e = strchr(d, ':')))
-                *e = 0;
+            d = pa_xstrndup(d, strcspn(d, ":"));
 
             if (*d)
                 c->server_list = pa_strlist_prepend(c->server_list, d);

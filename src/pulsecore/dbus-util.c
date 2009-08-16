@@ -667,7 +667,7 @@ void pa_dbus_append_proplist(DBusMessageIter *iter, pa_proplist *proplist) {
 
     pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_ARRAY, "{say}", &dict_iter));
 
-    while ((key = pa_proplist_iterate(proplist, state))) {
+    while ((key = pa_proplist_iterate(proplist, &state))) {
         const void *value = NULL;
         size_t nbytes;
 

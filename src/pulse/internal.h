@@ -151,6 +151,11 @@ struct pa_stream {
     uint32_t device_index;
     char *device_name;
 
+    /* playback */
+    pa_memblock *write_memblock;
+    void *write_data;
+
+    /* recording */
     pa_memchunk peek_memchunk;
     void *peek_data;
     pa_memblockq *record_memblockq;
