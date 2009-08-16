@@ -28,10 +28,13 @@
  * documentation.
  */
 
+#include <pulsecore/protocol-dbus.h>
 #include <pulsecore/sink-input.h>
 #include <pulsecore/source-output.h>
 
 #include "iface-core.h"
+
+#define PA_DBUSIFACE_STREAM_INTERFACE PA_DBUS_CORE_INTERFACE ".Stream"
 
 typedef struct pa_dbusiface_stream pa_dbusiface_stream;
 
