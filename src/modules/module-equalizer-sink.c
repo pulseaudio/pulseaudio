@@ -543,7 +543,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
         pa_memblock_unref(tchunk.memblock);
     }while(u->samples_gathered < u->window_size);
     pa_timeval_load(&end);
-    pa_log_debug("Took %0.6f seconds to get data", pa_timeval_diff(&end, &start) / (double) PA_USEC_PER_SEC);
+    pa_log_debug("Took %0.6f seconds to get data", (double) pa_timeval_diff(&end, &start) / PA_USEC_PER_SEC);
 
     pa_assert(u->fft_size >= u->window_size);
     pa_assert(u->R < u->window_size);
@@ -553,7 +553,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     /* process a block */
     process_samples(u, chunk);
     pa_timeval_load(&end);
-    pa_log_debug("Took %0.6f seconds to process", pa_timeval_diff(&end, &start) / (double) PA_USEC_PER_SEC);
+    pa_log_debug("Took %0.6f seconds to process", (double) pa_timeval_diff(&end, &start) / PA_USEC_PER_SEC);
     pa_aupdate_read_end(u->a_H);
 
     pa_assert(chunk->memblock);
@@ -676,7 +676,6 @@ static void sink_input_attach_cb(pa_sink_input *i) {
 
     pa_sink_set_fixed_latency_within_thread(u->sink, i->sink->thread_info.fixed_latency);
     fs = pa_frame_size(&(u->sink->sample_spec));
-    pa_sink_attach_within_thread(u->sink);
     pa_sink_set_max_request_within_thread(u->sink, mround(pa_sink_input_get_max_request(i), u->R*fs));
 
     //pa_sink_set_latency_range_within_thread(u->sink, u->latency*fs, u->latency*fs);
@@ -686,6 +685,7 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     //pa_sink_set_latency_range_within_thread(u->sink, u->master->thread_info.min_latency, u->latency*fs);
     //TODO: this guy causes dropouts constantly+rewinds, it's unusable
     //pa_sink_set_latency_range_within_thread(u->sink, u->master->thread_info.min_latency, u->master->thread_info.max_latency);
+    pa_sink_attach_within_thread(u->sink);
 }
 
 /* Called from main context */
