@@ -149,55 +149,21 @@ const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t 
 
     pa_assert_se(pa_hashmap_put(c->namereg, e->name, e) >= 0);
 
-    if (type == PA_NAMEREG_SINK && !c->default_sink)
-        pa_namereg_set_default_sink(c, data);
-    else if (type == PA_NAMEREG_SOURCE && !c->default_source)
-        pa_namereg_set_default_source(c, data);
-
     return e->name;
 }
 
 void pa_namereg_unregister(pa_core *c, const char *name) {
     struct namereg_entry *e;
-    uint32_t idx;
 
     pa_assert(c);
     pa_assert(name);
 
     pa_assert_se(e = pa_hashmap_remove(c->namereg, name));
 
-    if (c->default_sink == e->data) {
-        pa_sink *new_default = NULL;
-
-        /* FIXME: the selection here should be based priority values on
-         * the sinks */
-
-        PA_IDXSET_FOREACH(new_default, c->sinks, idx) {
-            if (new_default != e->data && PA_SINK_IS_LINKED(pa_sink_get_state(new_default)))
-                break;
-        }
-
-        pa_namereg_set_default_sink(c, new_default);
-
-    } else if (c->default_source == e->data) {
-        pa_source *new_default = NULL;
-
-        /* First, try to find one that isn't a monitor */
-        PA_IDXSET_FOREACH(new_default, c->sources, idx) {
-            if (new_default != e->data && !new_default->monitor_of && PA_SOURCE_IS_LINKED(pa_source_get_state(new_default)))
-                break;
-        }
-
-        if (!new_default) {
-            /* Then, fallback to a monitor */
-            PA_IDXSET_FOREACH(new_default, c->sources, idx) {
-                if (new_default != e->data && PA_SOURCE_IS_LINKED(pa_source_get_state(new_default)))
-                    break;
-            }
-        }
-
-        pa_namereg_set_default_source(c, new_default);
-    }
+    if (c->default_sink == e->data)
+        pa_namereg_set_default_sink(c, NULL);
+    else if (c->default_source == e->data)
+        pa_namereg_set_default_source(c, NULL);
 
     pa_xfree(e->name);
     pa_xfree(e);
@@ -225,6 +191,7 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type) {
 
         if ((s = pa_namereg_get(c, NULL, PA_NAMEREG_SINK)))
             return s->monitor_source;
+
     }
 
     if (!name)
@@ -281,17 +248,14 @@ pa_source* pa_namereg_set_default_source(pa_core*c, pa_source *s) {
     return s;
 }
 
-/* XXX: After removing old functionality, has this function become useless? */
 pa_sink *pa_namereg_get_default_sink(pa_core *c) {
     pa_sink *s;
     uint32_t idx;
 
     pa_assert(c);
 
-    if (!c->default_sink || PA_SINK_IS_LINKED(pa_sink_get_state(c->default_sink)))
+    if (c->default_sink && PA_SINK_IS_LINKED(pa_sink_get_state(c->default_sink)))
         return c->default_sink;
-
-    /* The old default sink has become unlinked, set a new one. */
 
     /* FIXME: the selection here should be based priority values on
      * the sinks */
@@ -300,20 +264,17 @@ pa_sink *pa_namereg_get_default_sink(pa_core *c) {
         if (PA_SINK_IS_LINKED(pa_sink_get_state(s)))
             return pa_namereg_set_default_sink(c, s);
 
-    return pa_namereg_set_default_sink(c, NULL);
+    return NULL;
 }
 
-/* XXX: After removing old functionality, has this function become useless? */
 pa_source *pa_namereg_get_default_source(pa_core *c) {
     pa_source *s;
     uint32_t idx;
 
     pa_assert(c);
 
-    if (!c->default_source || PA_SOURCE_IS_LINKED(pa_source_get_state(c->default_source)))
+    if (c->default_source && PA_SOURCE_IS_LINKED(pa_source_get_state(c->default_source)))
         return c->default_source;
-
-    /* The old default source has become unlinked, set a new one. */
 
     /* First, try to find one that isn't a monitor */
     PA_IDXSET_FOREACH(s, c->sources, idx)
@@ -325,5 +286,5 @@ pa_source *pa_namereg_get_default_source(pa_core *c) {
         if (PA_SOURCE_IS_LINKED(pa_source_get_state(s)))
             return pa_namereg_set_default_source(c, s);
 
-    return pa_namereg_set_default_source(c, NULL);
+    return NULL;
 }
