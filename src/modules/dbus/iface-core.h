@@ -43,4 +43,10 @@ const char *pa_dbusiface_core_get_record_stream_path(pa_dbusiface_core *c, const
 const char *pa_dbusiface_core_get_module_path(pa_dbusiface_core *c, const pa_module *module);
 const char *pa_dbusiface_core_get_client_path(pa_dbusiface_core *c, const pa_client *client);
 
+/* Returns NULL if there's no sink with the given path. */
+pa_sink *pa_dbusiface_core_get_sink(pa_dbusiface_core *c, const char *object_path);
+
+/* Returns NULL if there's no source with the given path. */
+pa_source *pa_dbusiface_core_get_source(pa_dbusiface_core *c, const char *object_path);
+
 #endif

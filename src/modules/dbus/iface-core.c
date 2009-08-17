@@ -2082,3 +2082,31 @@ const char *pa_dbusiface_core_get_client_path(pa_dbusiface_core *c, const pa_cli
 
     return pa_dbusiface_client_get_path(pa_hashmap_get(c->clients, PA_UINT32_TO_PTR(client->index)));
 }
+
+pa_sink *pa_dbusiface_core_get_sink(pa_dbusiface_core *c, const char *object_path) {
+    pa_dbusiface_device *device = NULL;
+
+    pa_assert(c);
+    pa_assert(object_path);
+
+    device = pa_hashmap_get(c->sinks_by_path, object_path);
+
+    if (device)
+        return pa_dbusiface_device_get_sink(device);
+    else
+        return NULL;
+}
+
+pa_source *pa_dbusiface_core_get_source(pa_dbusiface_core *c, const char *object_path) {
+    pa_dbusiface_device *device = NULL;
+
+    pa_assert(c);
+    pa_assert(object_path);
+
+    device = pa_hashmap_get(c->sources_by_path, object_path);
+
+    if (device)
+        return pa_dbusiface_device_get_source(device);
+    else
+        return NULL;
+}
