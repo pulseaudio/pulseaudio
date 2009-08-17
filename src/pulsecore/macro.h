@@ -59,28 +59,24 @@
 #endif
 
 /* Rounds down */
-static inline void* pa_align_ptr(const void *p) {
-    return (void*) (((size_t) p) & ~(sizeof(void*)-1));
+static inline void* PA_ALIGN_PTR(const void *p) {
+    return (void*) (((size_t) p) & ~(sizeof(void*) - 1));
 }
-#define PA_ALIGN_PTR(x) (pa_align_ptr(x))
 
 /* Rounds up */
-static inline size_t pa_align(size_t l) {
-    return (((l + sizeof(void*) - 1) / sizeof(void*)) * sizeof(void*));
+static inline size_t PA_ALIGN(size_t l) {
+    return ((l + sizeof(void*) - 1) & ~(sizeof(void*) - 1));
 }
-#define PA_ALIGN(x) (pa_align(x))
 
 /* Rounds down */
-static inline void* pa_page_align_ptr(const void *p) {
-    return (void*) (((size_t) p) & ~(PA_PAGE_SIZE-1));
+static inline void* PA_PAGE_ALIGN_PTR(const void *p) {
+    return (void*) (((size_t) p) & ~(PA_PAGE_SIZE - 1));
 }
-#define PA_PAGE_ALIGN_PTR(x) (pa_page_align_ptr(x))
 
 /* Rounds up */
-static inline size_t pa_page_align(size_t l) {
-    return ((l + PA_PAGE_SIZE - 1) / PA_PAGE_SIZE) * PA_PAGE_SIZE;
+static inline size_t PA_PAGE_ALIGN(size_t l) {
+    return (l + PA_PAGE_SIZE - 1) & ~(PA_PAGE_SIZE - 1);
 }
-#define PA_PAGE_ALIGN(x) (pa_page_align(x))
 
 #define PA_ELEMENTSOF(x) (sizeof(x)/sizeof((x)[0]))
 
