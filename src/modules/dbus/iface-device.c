@@ -310,9 +310,11 @@ static void handle_get_owner_module(DBusConnection *conn, DBusMessage *msg, void
 
     if (!owner_module) {
         if (d->type == DEVICE_TYPE_SINK)
-            pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "Sink %s doesn't have an owner module.", d->sink->name);
+            pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
+                               "Sink %s doesn't have an owner module.", d->sink->name);
         else
-            pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "Source %s doesn't have an owner module.", d->source->name);
+            pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
+                               "Source %s doesn't have an owner module.", d->source->name);
         return;
     }
 
@@ -334,9 +336,11 @@ static void handle_get_card(DBusConnection *conn, DBusMessage *msg, void *userda
 
     if (!card) {
         if (d->type == DEVICE_TYPE_SINK)
-            pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "Sink %s doesn't belong to any card.", d->sink->name);
+            pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
+                               "Sink %s doesn't belong to any card.", d->sink->name);
         else
-            pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "Source %s doesn't belong to any card.", d->source->name);
+            pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
+                               "Source %s doesn't belong to any card.", d->source->name);
         return;
     }
 
@@ -426,7 +430,8 @@ static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, void *user
         return;
 
     if (n_volume_entries != device_channels) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Expected %u volume entries, got %u.", device_channels, n_volume_entries);
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS,
+                           "Expected %u volume entries, got %u.", device_channels, n_volume_entries);
         return;
     }
 
@@ -598,9 +603,11 @@ static void handle_get_latency(DBusConnection *conn, DBusMessage *msg, void *use
     pa_assert(d);
 
     if (d->type == DEVICE_TYPE_SINK && !(d->sink->flags & PA_SINK_LATENCY))
-        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "Sink %s doesn't support latency querying.", d->sink->name);
+        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
+                           "Sink %s doesn't support latency querying.", d->sink->name);
     else if (d->type == DEVICE_TYPE_SOURCE && !(d->source->flags & PA_SOURCE_LATENCY))
-        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "Source %s doesn't support latency querying.", d->source->name);
+        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY,
+                           "Source %s doesn't support latency querying.", d->source->name);
     return;
 
     latency = (d->type == DEVICE_TYPE_SINK) ? pa_sink_get_latency(d->sink) : pa_source_get_latency(d->source);
