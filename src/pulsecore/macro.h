@@ -91,7 +91,8 @@ static inline size_t pa_page_align(size_t l) {
 
 #ifdef __GNUC__
 #define PA_MAX(a,b)                             \
-    __extension__ ({ typeof(a) _a = (a);        \
+    __extension__ ({                            \
+            typeof(a) _a = (a);                 \
             typeof(b) _b = (b);                 \
             _a > _b ? _a : _b;                  \
         })
@@ -101,7 +102,8 @@ static inline size_t pa_page_align(size_t l) {
 
 #ifdef __GNUC__
 #define PA_MIN(a,b)                             \
-    __extension__ ({ typeof(a) _a = (a);        \
+    __extension__ ({                            \
+            typeof(a) _a = (a);                 \
             typeof(b) _b = (b);                 \
             _a < _b ? _a : _b;                  \
         })
@@ -111,7 +113,8 @@ static inline size_t pa_page_align(size_t l) {
 
 #ifdef __GNUC__
 #define PA_CLAMP(x, low, high)                                          \
-    __extension__ ({ typeof(x) _x = (x);                                \
+    __extension__ ({                                                    \
+            typeof(x) _x = (x);                                         \
             typeof(low) _low = (low);                                   \
             typeof(high) _high = (high);                                \
             ((_x > _high) ? _high : ((_x < _low) ? _low : _x));         \
@@ -122,7 +125,8 @@ static inline size_t pa_page_align(size_t l) {
 
 #ifdef __GNUC__
 #define PA_CLAMP_UNLIKELY(x, low, high)                                 \
-    __extension__ ({ typeof(x) _x = (x);                                \
+    __extension__ ({                                                    \
+            typeof(x) _x = (x);                                         \
             typeof(low) _low = (low);                                   \
             typeof(high) _high = (high);                                \
             (PA_UNLIKELY(_x > _high) ? _high : (PA_UNLIKELY(_x < _low) ? _low : _x)); \
@@ -134,6 +138,28 @@ static inline size_t pa_page_align(size_t l) {
 /* We don't define a PA_CLAMP_LIKELY here, because it doesn't really
  * make sense: we cannot know if it is more likely that the values is
  * lower or greater than the boundaries.*/
+
+#ifdef __GNUC__
+#define PA_ROUND_UP(a, b)                       \
+    __extension__ ({                            \
+            typeof(a) _a = (a);                 \
+            typeof(b) _b = (b);                 \
+            ((_a + _b - 1) / _b) * _b;          \
+        })
+#else
+#define PA_ROUND_UP(a, b) ((((a) + (b) - 1) / (b)) * (b))
+#endif
+
+#ifdef __GNUC__
+#define PA_ROUND_DOWN(a, b)                     \
+    __extension__ ({                            \
+            typeof(a) _a = (a);                 \
+            typeof(b) _b = (b);                 \
+            (_a / _b) * _b;                     \
+        })
+#else
+#define PA_ROUND_DOWN(a, b) (((a) / (b)) * (b))
+#endif
 
 /* This type is not intended to be used in exported APIs! Use classic "int" there! */
 #ifdef HAVE_STD_BOOL
