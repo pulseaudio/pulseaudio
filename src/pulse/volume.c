@@ -40,6 +40,10 @@ int pa_cvolume_equal(const pa_cvolume *a, const pa_cvolume *b) {
     pa_assert(b);
 
     pa_return_val_if_fail(pa_cvolume_valid(a), 0);
+
+    if (PA_UNLIKELY(a == b))
+        return 1;
+
     pa_return_val_if_fail(pa_cvolume_valid(b), 0);
 
     if (a->channels != b->channels)

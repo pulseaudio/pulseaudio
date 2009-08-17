@@ -453,6 +453,10 @@ int pa_channel_map_equal(const pa_channel_map *a, const pa_channel_map *b) {
     pa_assert(b);
 
     pa_return_val_if_fail(pa_channel_map_valid(a), 0);
+
+    if (PA_UNLIKELY(a == b))
+        return 1;
+
     pa_return_val_if_fail(pa_channel_map_valid(b), 0);
 
     if (a->channels != b->channels)
@@ -641,6 +645,10 @@ int pa_channel_map_superset(const pa_channel_map *a, const pa_channel_map *b) {
     pa_assert(b);
 
     pa_return_val_if_fail(pa_channel_map_valid(a), 0);
+
+    if (PA_UNLIKELY(a == b))
+        return 1;
+
     pa_return_val_if_fail(pa_channel_map_valid(b), 0);
 
     am = pa_channel_map_mask(a);

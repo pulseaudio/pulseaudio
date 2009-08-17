@@ -125,6 +125,10 @@ int pa_sample_spec_equal(const pa_sample_spec*a, const pa_sample_spec*b) {
     pa_assert(b);
 
     pa_return_val_if_fail(pa_sample_spec_valid(a), 0);
+
+    if (PA_UNLIKELY(a == b))
+        return 1;
+
     pa_return_val_if_fail(pa_sample_spec_valid(b), 0);
 
     return
