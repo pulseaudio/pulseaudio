@@ -2075,3 +2075,10 @@ const char *pa_dbusiface_core_get_module_path(pa_dbusiface_core *c, const pa_mod
 
     return pa_dbusiface_module_get_path(pa_hashmap_get(c->modules, PA_UINT32_TO_PTR(module->index)));
 }
+
+const char *pa_dbusiface_core_get_client_path(pa_dbusiface_core *c, const pa_client *client) {
+    pa_assert(c);
+    pa_assert(client);
+
+    return pa_dbusiface_client_get_path(pa_hashmap_get(c->clients, PA_UINT32_TO_PTR(client->index)));
+}

@@ -41,5 +41,6 @@ const char *pa_dbusiface_core_get_source_path(pa_dbusiface_core *c, const pa_sou
 const char *pa_dbusiface_core_get_playback_stream_path(pa_dbusiface_core *c, const pa_sink_input *sink_input);
 const char *pa_dbusiface_core_get_record_stream_path(pa_dbusiface_core *c, const pa_source_output *source_output);
 const char *pa_dbusiface_core_get_module_path(pa_dbusiface_core *c, const pa_module *module);
+const char *pa_dbusiface_core_get_client_path(pa_dbusiface_core *c, const pa_client *client);
 
 #endif
