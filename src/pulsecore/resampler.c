@@ -61,7 +61,8 @@ struct pa_resampler {
     pa_convert_func_t to_work_format_func;
     pa_convert_func_t from_work_format_func;
 
-    float map_table[PA_CHANNELS_MAX][PA_CHANNELS_MAX];
+    float map_table_f[PA_CHANNELS_MAX][PA_CHANNELS_MAX];
+    int32_t map_table_i[PA_CHANNELS_MAX][PA_CHANNELS_MAX];
     pa_bool_t map_required;
 
     void (*impl_free)(pa_resampler *r);
@@ -587,7 +588,8 @@ static void calc_map_table(pa_resampler *r) {
     if (!(r->map_required = (r->i_ss.channels != r->o_ss.channels || (!(r->flags & PA_RESAMPLER_NO_REMAP) && !pa_channel_map_equal(&r->i_cm, &r->o_cm)))))
         return;
 
-    memset(r->map_table, 0, sizeof(r->map_table));
+    memset(r->map_table_f, 0, sizeof(r->map_table_f));
+    memset(r->map_table_i, 0, sizeof(r->map_table_i));
     memset(ic_connected, 0, sizeof(ic_connected));
     remix = (r->flags & (PA_RESAMPLER_NO_REMAP|PA_RESAMPLER_NO_REMIX)) == 0;
 
@@ -602,7 +604,7 @@ static void calc_map_table(pa_resampler *r) {
                 /* We shall not do any remapping. Hence, just check by index */
 
                 if (ic == oc)
-                    r->map_table[oc][ic] = 1.0;
+                    r->map_table_f[oc][ic] = 1.0;
 
                 continue;
             }
@@ -611,7 +613,7 @@ static void calc_map_table(pa_resampler *r) {
                 /* We shall not do any remixing. Hence, just check by name */
 
                 if (a == b)
-                    r->map_table[oc][ic] = 1.0;
+                    r->map_table_f[oc][ic] = 1.0;
 
                 continue;
             }
@@ -686,7 +688,7 @@ static void calc_map_table(pa_resampler *r) {
              */
 
             if (a == b || a == PA_CHANNEL_POSITION_MONO || b == PA_CHANNEL_POSITION_MONO) {
-                r->map_table[oc][ic] = 1.0;
+                r->map_table_f[oc][ic] = 1.0;
 
                 oc_connected = TRUE;
                 ic_connected[ic] = TRUE;
@@ -711,7 +713,7 @@ static void calc_map_table(pa_resampler *r) {
                 if (n > 0)
                     for (ic = 0; ic < r->i_ss.channels; ic++)
                         if (on_left(r->i_cm.map[ic])) {
-                            r->map_table[oc][ic] = 1.0f / (float) n;
+                            r->map_table_f[oc][ic] = 1.0f / (float) n;
                             ic_connected[ic] = TRUE;
                         }
 
@@ -732,7 +734,7 @@ static void calc_map_table(pa_resampler *r) {
                 if (n > 0)
                     for (ic = 0; ic < r->i_ss.channels; ic++)
                         if (on_right(r->i_cm.map[ic])) {
-                            r->map_table[oc][ic] = 1.0f / (float) n;
+                            r->map_table_f[oc][ic] = 1.0f / (float) n;
                             ic_connected[ic] = TRUE;
                         }
 
@@ -753,7 +755,7 @@ static void calc_map_table(pa_resampler *r) {
                 if (n > 0) {
                     for (ic = 0; ic < r->i_ss.channels; ic++)
                         if (on_center(r->i_cm.map[ic])) {
-                            r->map_table[oc][ic] = 1.0f / (float) n;
+                            r->map_table_f[oc][ic] = 1.0f / (float) n;
                             ic_connected[ic] = TRUE;
                         }
                 } else {
@@ -770,7 +772,7 @@ static void calc_map_table(pa_resampler *r) {
                     if (n > 0)
                         for (ic = 0; ic < r->i_ss.channels; ic++)
                             if (on_left(r->i_cm.map[ic]) || on_right(r->i_cm.map[ic])) {
-                                r->map_table[oc][ic] = 1.0f / (float) n;
+                                r->map_table_f[oc][ic] = 1.0f / (float) n;
                                 ic_connected[ic] = TRUE;
                             }
 
@@ -787,9 +789,9 @@ static void calc_map_table(pa_resampler *r) {
                 for (ic = 0; ic < r->i_ss.channels; ic++) {
 
                     if (!(r->flags & PA_RESAMPLER_NO_LFE))
-                        r->map_table[oc][ic] = 1.0f / (float) r->i_ss.channels;
+                        r->map_table_f[oc][ic] = 1.0f / (float) r->i_ss.channels;
                     else
-                        r->map_table[oc][ic] = 0;
+                        r->map_table_f[oc][ic] = 0;
 
                     /* Please note that a channel connected to LFE
                      * doesn't really count as connected. */
@@ -836,12 +838,12 @@ static void calc_map_table(pa_resampler *r) {
                 for (ic = 0; ic < r->i_ss.channels; ic++) {
 
                     if (ic_connected[ic]) {
-                        r->map_table[oc][ic] *= .9f;
+                        r->map_table_f[oc][ic] *= .9f;
                         continue;
                     }
 
                     if (on_left(r->i_cm.map[ic]))
-                        r->map_table[oc][ic] = .1f / (float) ic_unconnected_left;
+                        r->map_table_f[oc][ic] = .1f / (float) ic_unconnected_left;
                 }
             }
         }
@@ -861,12 +863,12 @@ static void calc_map_table(pa_resampler *r) {
                 for (ic = 0; ic < r->i_ss.channels; ic++) {
 
                     if (ic_connected[ic]) {
-                        r->map_table[oc][ic] *= .9f;
+                        r->map_table_f[oc][ic] *= .9f;
                         continue;
                     }
 
                     if (on_right(r->i_cm.map[ic]))
-                        r->map_table[oc][ic] = .1f / (float) ic_unconnected_right;
+                        r->map_table_f[oc][ic] = .1f / (float) ic_unconnected_right;
                 }
             }
         }
@@ -887,12 +889,12 @@ static void calc_map_table(pa_resampler *r) {
                 for (ic = 0; ic < r->i_ss.channels; ic++)  {
 
                     if (ic_connected[ic]) {
-                        r->map_table[oc][ic] *= .9f;
+                        r->map_table_f[oc][ic] *= .9f;
                         continue;
                     }
 
                     if (on_center(r->i_cm.map[ic])) {
-                        r->map_table[oc][ic] = .1f / (float) ic_unconnected_center;
+                        r->map_table_f[oc][ic] = .1f / (float) ic_unconnected_center;
                         mixed_in = TRUE;
                     }
                 }
@@ -950,7 +952,7 @@ static void calc_map_table(pa_resampler *r) {
                     for (ic = 0; ic < r->i_ss.channels; ic++)  {
 
                         if (ic_connected[ic]) {
-                            r->map_table[oc][ic] *= .75f;
+                            r->map_table_f[oc][ic] *= .75f;
                             continue;
                         }
 
@@ -958,7 +960,7 @@ static void calc_map_table(pa_resampler *r) {
                             continue;
 
                         if (!found_frs[ic] || front_rear_side(r->i_cm.map[ic]) == front_rear_side(r->o_cm.map[oc]))
-                            r->map_table[oc][ic] = .375f / (float) ncenter[oc];
+                            r->map_table_f[oc][ic] = .375f / (float) ncenter[oc];
                     }
                 }
             }
@@ -975,11 +977,14 @@ static void calc_map_table(pa_resampler *r) {
                     continue;
 
                 for (oc = 0; oc < r->o_ss.channels; oc++)
-                    r->map_table[oc][ic] = 0.375f / (float) ic_unconnected_lfe;
+                    r->map_table_f[oc][ic] = 0.375f / (float) ic_unconnected_lfe;
             }
         }
     }
-
+    /* make an 16:16 int version of the matrix */
+    for (oc = 0; oc < r->o_ss.channels; oc++)
+        for (ic = 0; ic < r->i_ss.channels; ic++)
+            r->map_table_i[oc][ic] = (int32_t) (r->map_table_f[oc][ic] * 0x10000);
 
     s = pa_strbuf_new();
 
@@ -996,7 +1001,7 @@ static void calc_map_table(pa_resampler *r) {
         pa_strbuf_printf(s, "O%02u |", oc);
 
         for (ic = 0; ic < r->i_ss.channels; ic++)
-            pa_strbuf_printf(s, " %1.3f", r->map_table[oc][ic]);
+            pa_strbuf_printf(s, " %1.3f", r->map_table_f[oc][ic]);
 
         pa_strbuf_puts(s, "\n");
     }
@@ -1071,11 +1076,7 @@ static void vectoradd_s16(
 static void vectoradd_s16_with_fraction(
         int16_t *d, int dstr,
         const int16_t *s, int sstr,
-        int n, float s4) {
-
-    int32_t i4;
-
-    i4 = (int32_t) (s4 * 0x10000);
+        int n, int32_t i4) {
 
     for (; n > 0; n--) {
         *d = (int16_t) (*d + (((int32_t)*s * i4) >> 16));
@@ -1128,18 +1129,17 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
 
             for (oc = 0; oc < r->o_ss.channels; oc++) {
                 unsigned ic;
-                static const float one = 1.0;
 
                 for (ic = 0; ic < r->i_ss.channels; ic++) {
 
-                    if (r->map_table[oc][ic] <= 0.0)
+                    if (r->map_table_f[oc][ic] <= 0.0)
                         continue;
 
                     vectoradd_f32(
                             (float*) dst + oc, o_skip,
                             (float*) src + ic, i_skip,
                             (int) n_frames,
-                            r->map_table[oc][ic]);
+                            r->map_table_f[oc][ic]);
                 }
             }
 
@@ -1152,10 +1152,10 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
 
                 for (ic = 0; ic < r->i_ss.channels; ic++) {
 
-                    if (r->map_table[oc][ic] <= 0.0)
+                    if (r->map_table_f[oc][ic] <= 0.0)
                         continue;
 
-                    if (r->map_table[oc][ic] >= 1.0) {
+                    if (r->map_table_f[oc][ic] >= 1.0) {
 
                         vectoradd_s16(
                                 (int16_t*) dst + oc, o_skip,
@@ -1168,7 +1168,7 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
                                 (int16_t*) dst + oc, o_skip,
                                 (int16_t*) src + ic, i_skip,
                                 (int) n_frames,
-                                r->map_table[oc][ic]);
+                                r->map_table_i[oc][ic]);
                 }
             }
 
