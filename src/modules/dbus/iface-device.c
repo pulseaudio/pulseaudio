@@ -817,48 +817,57 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     pa_assert(msg);
     pa_assert(d);
 
-    idx = (d->type == DEVICE_TYPE_SINK) ? d->sink->index : d->source->index;
-    name = (d->type == DEVICE_TYPE_SINK) ? d->sink->name : d->source->name;
-    driver = (d->type == DEVICE_TYPE_SINK) ? d->sink->driver : d->source->driver;
-    owner_module = (d->type == DEVICE_TYPE_SINK) ? d->sink->module : d->source->module;
+    if (d->type == DEVICE_TYPE_SINK) {
+        idx = d->sink->index;
+        name = d->sink->name;
+        driver = d->sink->driver;
+        owner_module = d->sink->module;
+        card = d->sink->card;
+        sample_format = d->sink->sample_spec.format;
+        sample_rate = d->sink->sample_spec.rate;
+        channel_map = &d->sink->channel_map;
+        has_flat_volume = d->sink->flags & PA_SINK_FLAT_VOLUME;
+        has_convertible_to_decibel_volume = d->sink->flags & PA_SINK_DECIBEL_VOLUME;
+        base_volume = d->sink->base_volume;
+        volume_steps = d->sink->n_volume_steps;
+        has_hardware_volume = d->sink->flags & PA_SINK_HW_VOLUME_CTRL;
+        has_hardware_mute = d->sink->flags & PA_SINK_HW_MUTE_CTRL;
+        configured_latency = pa_sink_get_requested_latency(d->sink);
+        has_dynamic_latency = d->sink->flags & PA_SINK_DYNAMIC_LATENCY;
+        latency = pa_sink_get_latency(d->sink);
+        is_hardware_device = d->sink->flags & PA_SINK_HARDWARE;
+        is_network_device = d->sink->flags & PA_SINK_NETWORK;
+        state = pa_sink_get_state(d->sink);
+    } else {
+        idx = d->source->index;
+        name = d->source->name;
+        driver = d->source->driver;
+        owner_module = d->source->module;
+        card = d->source->card;
+        sample_format = d->source->sample_spec.format;
+        sample_rate = d->source->sample_spec.rate;
+        channel_map = &d->source->channel_map;
+        has_flat_volume = FALSE;
+        has_convertible_to_decibel_volume = d->source->flags & PA_SOURCE_DECIBEL_VOLUME;
+        base_volume = d->source->base_volume;
+        volume_steps = d->source->n_volume_steps;
+        has_hardware_volume = d->source->flags & PA_SOURCE_HW_VOLUME_CTRL;
+        has_hardware_mute = d->source->flags & PA_SOURCE_HW_MUTE_CTRL;
+        configured_latency = pa_source_get_requested_latency(d->source);
+        has_dynamic_latency = d->source->flags & PA_SOURCE_DYNAMIC_LATENCY;
+        latency = pa_source_get_latency(d->source);
+        is_hardware_device = d->source->flags & PA_SOURCE_HARDWARE;
+        is_network_device = d->source->flags & PA_SOURCE_NETWORK;
+        state = pa_source_get_state(d->source);
+    }
     if (owner_module)
         owner_module_path = pa_dbusiface_core_get_module_path(d->core, owner_module);
-    card = (d->type == DEVICE_TYPE_SINK) ? d->sink->card : d->source->card;
     if (card)
         card_path = pa_dbusiface_core_get_card_path(d->core, card);
-    sample_format = (d->type == DEVICE_TYPE_SINK) ? d->sink->sample_spec.format : d->source->sample_spec.format;
-    sample_rate = (d->type == DEVICE_TYPE_SINK) ? d->sink->sample_spec.rate : d->source->sample_spec.rate;
-    channel_map = (d->type == DEVICE_TYPE_SINK) ? &d->sink->channel_map : &d->source->channel_map;
     for (i = 0; i < channel_map->channels; ++i)
         channels[i] = channel_map->map[i];
     for (i = 0; i < d->volume.channels; ++i)
         volume[i] = d->volume.values[i];
-    has_flat_volume = (d->type == DEVICE_TYPE_SINK) ? (d->sink->flags & PA_SINK_FLAT_VOLUME) : FALSE;
-    has_convertible_to_decibel_volume = (d->type == DEVICE_TYPE_SINK)
-                                        ? (d->sink->flags & PA_SINK_DECIBEL_VOLUME)
-                                        : (d->source->flags & PA_SOURCE_DECIBEL_VOLUME);
-    base_volume = (d->type == DEVICE_TYPE_SINK) ? d->sink->base_volume : d->source->base_volume;
-    volume_steps = (d->type == DEVICE_TYPE_SINK) ? d->sink->n_volume_steps : d->source->n_volume_steps;
-    has_hardware_volume = (d->type == DEVICE_TYPE_SINK)
-                          ? (d->sink->flags & PA_SINK_HW_VOLUME_CTRL)
-                          : (d->source->flags & PA_SOURCE_HW_VOLUME_CTRL);
-    has_hardware_mute = (d->type == DEVICE_TYPE_SINK)
-                        ? (d->sink->flags & PA_SINK_HW_MUTE_CTRL)
-                        : (d->source->flags & PA_SOURCE_HW_MUTE_CTRL);
-    configured_latency = (d->type == DEVICE_TYPE_SINK)
-                         ? pa_sink_get_requested_latency(d->sink)
-                         : pa_source_get_requested_latency(d->source);
-    has_dynamic_latency = (d->type == DEVICE_TYPE_SINK)
-                          ? (d->sink->flags & PA_SINK_DYNAMIC_LATENCY)
-                          : (d->source->flags & PA_SOURCE_DYNAMIC_LATENCY);
-    latency = (d->type == DEVICE_TYPE_SINK) ? pa_sink_get_latency(d->sink) : pa_source_get_latency(d->source);
-    is_hardware_device = (d->type == DEVICE_TYPE_SINK)
-                         ? (d->sink->flags & PA_SINK_HARDWARE)
-                         : (d->source->flags & PA_SOURCE_HARDWARE);
-    is_network_device = (d->type == DEVICE_TYPE_SINK)
-                        ? (d->sink->flags & PA_SINK_NETWORK)
-                        : (d->source->flags & PA_SOURCE_NETWORK);
-    state = (d->type == DEVICE_TYPE_SINK) ? pa_sink_get_state(d->sink) : pa_source_get_state(d->source);
     ports = get_ports(d, &n_ports);
     if (d->active_port)
         active_port = pa_dbusiface_device_port_get_path(pa_hashmap_get(d->ports, d->active_port->name));
