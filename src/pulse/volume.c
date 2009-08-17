@@ -815,3 +815,21 @@ pa_volume_t pa_cvolume_get_position(
 
     return v;
 }
+
+pa_cvolume* pa_cvolume_merge(pa_cvolume *dest, const pa_cvolume *a, const pa_cvolume *b) {
+    unsigned i;
+
+    pa_assert(dest);
+    pa_assert(a);
+    pa_assert(b);
+
+    pa_return_val_if_fail(pa_cvolume_valid(a), NULL);
+    pa_return_val_if_fail(pa_cvolume_valid(b), NULL);
+
+    for (i = 0; i < a->channels && i < b->channels; i++)
+        dest->values[i] = PA_MAX(a->values[i], b->values[i]);
+
+    dest->channels = (uint8_t) i;
+
+    return dest;
+}

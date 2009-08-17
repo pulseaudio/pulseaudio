@@ -130,6 +130,7 @@ pa_cvolume_get_position;
 pa_cvolume_init;
 pa_cvolume_max;
 pa_cvolume_max_mask;
+pa_cvolume_merge;
 pa_cvolume_remap;
 pa_cvolume_scale;
 pa_cvolume_scale_mask;

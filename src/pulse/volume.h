@@ -326,6 +326,11 @@ pa_cvolume* pa_cvolume_set_position(pa_cvolume *cv, const pa_channel_map *map, p
  * position by calling pa_channel_map_has_position(). \since 0.9.16 */
 pa_volume_t pa_cvolume_get_position(pa_cvolume *cv, const pa_channel_map *map, pa_channel_position_t t) PA_GCC_PURE;
 
+/** This goes through all channels in a and b and sets the
+ * corresponding channel in dest to the greater volume of both. a, b
+ * and dest may point to the same structure. \since 0.9.16 */
+pa_cvolume* pa_cvolume_merge(pa_cvolume *dest, const pa_cvolume *a, const pa_cvolume *b);
+
 PA_C_DECL_END
 
 #endif
