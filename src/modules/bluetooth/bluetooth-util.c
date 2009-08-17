@@ -758,7 +758,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
 
     if (pa_dbus_add_matches(
                 pa_dbus_connection_get(y->connection), &err,
-                "type='signal',sender='org.freedesktop.DBus',interface='org.freedesktop.DBus',member='NameOwnerChanged'",
+                "type='signal',sender='org.freedesktop.DBus',interface='org.freedesktop.DBus',member='NameOwnerChanged',arg='org.bluez'",
                 "type='signal',sender='org.bluez',interface='org.bluez.Manager',member='AdapterAdded'",
                 "type='signal',sender='org.bluez',interface='org.bluez.Adapter',member='DeviceRemoved'",
                 "type='signal',sender='org.bluez',interface='org.bluez.Adapter',member='DeviceCreated'",
@@ -809,7 +809,7 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
 
     if (y->connection) {
         pa_dbus_remove_matches(pa_dbus_connection_get(y->connection),
-                               "type='signal',sender='org.freedesktop.DBus',interface='org.freedesktop.DBus',member='NameOwnerChanged'",
+                               "type='signal',sender='org.freedesktop.DBus',interface='org.freedesktop.DBus',member='NameOwnerChanged',arg='org.bluez'",
                                "type='signal',sender='org.bluez',interface='org.bluez.Manager',member='AdapterAdded'",
                                "type='signal',sender='org.bluez',interface='org.bluez.Manager',member='AdapterRemoved'",
                                "type='signal',sender='org.bluez',interface='org.bluez.Adapter',member='DeviceRemoved'",
