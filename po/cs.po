@@ -2,25 +2,23 @@
 # Copyright (C) 2008, 2009 the author(s) of pulseaudio.
 # This file is distributed under the same license as the pulseaudio package.
 # Petr Kovar <pknbe@volny.cz>, 2008, 2009.
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-05 15:09+0200\n"
-"PO-Revision-Date: 2009-07-07 20:37+0200\n"
+"POT-Creation-Date: 2009-08-16 15:08+0000\n"
+"PO-Revision-Date: 2009-08-17 01:58+0200\n"
 "Last-Translator: Petr Kovar <pknbe@volny.cz>\n"
 "Language-Team: Czech <translation-team-cs@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 0.3\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 
-#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2411
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2419
 #, c-format
 msgid "%s %s"
-msgstr ""
+msgstr "%s %s"
 
 #: ../src/modules/alsa/alsa-util.c:1023
 #, c-format
@@ -79,11 +77,11 @@ msgstr ""
 "modulu ladspa> label=<popisek zásuvného modulu ladspa> control=<čárkou "
 "oddělený seznam hodnot ovládání vstupu>"
 
-#: ../src/pulsecore/sink.c:2395
+#: ../src/pulsecore/sink.c:2403
 msgid "Internal Audio"
 msgstr "Vnitřní zvukový systém"
 
-#: ../src/pulsecore/sink.c:2400
+#: ../src/pulsecore/sink.c:2408
 msgid "Modem"
 msgstr "Modem"
 
@@ -1130,170 +1128,139 @@ msgstr "waitpid(): %s"
 msgid "Received message for unknown extension '%s'"
 msgstr "Přijata zpráva pro neznámé rozšíření \"%s\""
 
-#: ../src/utils/pacat.c:108
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:108, c-format
 msgid "Failed to drain stream: %s"
-msgstr "Nezdařilo se vyprázdnit proud: %s\n"
+msgstr "Nezdařilo se vyprázdnit proud: %s"
 
 #: ../src/utils/pacat.c:113
-#, fuzzy
 msgid "Playback stream drained."
-msgstr "Proud přehrávání vyprázdněn.\n"
+msgstr "Proud přehrávání vyprázdněn."
 
 #: ../src/utils/pacat.c:123
-#, fuzzy
 msgid "Draining connection to server."
-msgstr "Vyprazdňování spojení se serverem.\n"
+msgstr "Vyprazdňování spojení se serverem."
 
-#: ../src/utils/pacat.c:136
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:136, c-format
 msgid "pa_stream_drain(): %s"
-msgstr "pa_stream_drain(): %s\n"
+msgstr "pa_stream_drain(): %s"
 
-#: ../src/utils/pacat.c:159
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:159, c-format
 msgid "pa_stream_write() failed: %s"
-msgstr "pa_stream_write() selhalo: %s\n"
+msgstr "pa_stream_write() selhalo: %s"
 
-#: ../src/utils/pacat.c:197
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:197, c-format
 msgid "pa_stream_begin_write() failed: %s"
-msgstr "pa_stream_write() selhalo: %s\n"
+msgstr "pa_stream_begin_write() selhalo: %s"
 
-#: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267, c-format
 msgid "pa_stream_peek() failed: %s"
-msgstr "pa_stream_peek() selhalo: %s\n"
+msgstr "pa_stream_peek() selhalo: %s"
 
 #: ../src/utils/pacat.c:307
-#, fuzzy
 msgid "Stream successfully created."
-msgstr "Proud úspěšně vytvořen.\n"
+msgstr "Proud úspěšně vytvořen."
 
-#: ../src/utils/pacat.c:310
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:310, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s"
-msgstr "pa_stream_get_buffer_attr() selhalo: %s\n"
+msgstr "pa_stream_get_buffer_attr() selhalo: %s"
 
-#: ../src/utils/pacat.c:314
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:314, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 msgstr ""
-"Metrika vyrovnávací paměti: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
+"Metrika vyrovnávací paměti: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 
-#: ../src/utils/pacat.c:317
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:317, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u"
-msgstr "Metrika vyrovnávací paměti: maxlength=%u, fragsize=%u\n"
+msgstr "Metrika vyrovnávací paměti: maxlength=%u, fragsize=%u"
 
-#: ../src/utils/pacat.c:321
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:321, c-format
 msgid "Using sample spec '%s', channel map '%s'."
-msgstr "Používáno určení vzorku \"%s\", mapa kanálů \"%s\".\n"
+msgstr "Používáno určení vzorku \"%s\", mapa kanálů \"%s\"."
 
-#: ../src/utils/pacat.c:325
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:325, c-format
 msgid "Connected to device %s (%u, %ssuspended)."
-msgstr "Připojeno k zařízení %s (%u, %ssuspended).\n"
+msgstr "Připojeno k zařízení %s (%u, %ssuspended)."
 
-#: ../src/utils/pacat.c:335
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:335, c-format
 msgid "Stream error: %s"
-msgstr "Chyba proudu: %s\n"
+msgstr "Chyba proudu: %s"
 
-#: ../src/utils/pacat.c:345
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:345, c-format
 msgid "Stream device suspended.%s"
-msgstr "Proudové zařízení pozastaveno.%s \n"
+msgstr "Proudové zařízení pozastaveno.%s"
 
-#: ../src/utils/pacat.c:347
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:347, c-format
 msgid "Stream device resumed.%s"
-msgstr "Proudové zařízení obnoveno.%s \n"
+msgstr "Proudové zařízení obnoveno.%s"
 
-#: ../src/utils/pacat.c:355
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:355, c-format
 msgid "Stream underrun.%s"
-msgstr "Podběhnutí proudu.%s \n"
+msgstr "Podběhnutí proudu.%s"
 
-#: ../src/utils/pacat.c:362
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:362, c-format
 msgid "Stream overrun.%s"
-msgstr "Přeběhnutí proudu.%s \n"
+msgstr "Přeběhnutí proudu.%s"
 
-#: ../src/utils/pacat.c:369
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:369, c-format
 msgid "Stream started.%s"
-msgstr "Proud spuštěn.%s \n"
+msgstr "Proud spuštěn.%s"
 
-#: ../src/utils/pacat.c:376
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:376, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s"
-msgstr "Proud přesunut na zařízení %s (%u, %ssuspended).%s \n"
+msgstr "Proud přesunut na zařízení %s (%u, %ssuspended).%s"
 
 #: ../src/utils/pacat.c:376
 msgid "not "
 msgstr "nikoliv "
 
-#: ../src/utils/pacat.c:383
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:383, c-format
 msgid "Stream buffer attributes changed.%s"
-msgstr "Změněny atributy vyrovnávací paměti proudu.%s \n"
+msgstr "Změněny atributy vyrovnávací paměti proudu.%s"
 
-#: ../src/utils/pacat.c:416
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:416, c-format
 msgid "Connection established.%s"
-msgstr "Spojení navázáno.%s \n"
+msgstr "Spojení navázáno.%s"
 
-#: ../src/utils/pacat.c:419
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:419, c-format
 msgid "pa_stream_new() failed: %s"
-msgstr "pa_stream_new() selhalo: %s\n"
+msgstr "pa_stream_new() selhalo: %s"
 
-#: ../src/utils/pacat.c:447
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:447, c-format
 msgid "pa_stream_connect_playback() failed: %s"
-msgstr "pa_stream_connect_playback() selhalo: %s\n"
+msgstr "pa_stream_connect_playback() selhalo: %s"
 
-#: ../src/utils/pacat.c:453
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:453, c-format
 msgid "pa_stream_connect_record() failed: %s"
-msgstr "pa_stream_connect_record() selhalo: %s\n"
+msgstr "pa_stream_connect_record() selhalo: %s"
 
-#: ../src/utils/pacat.c:467
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:467, c-format
 msgid "Connection failure: %s"
-msgstr "Spojení selhalo: %s\n"
+msgstr "Spojení selhalo: %s"
 
 #: ../src/utils/pacat.c:500
-#, fuzzy
 msgid "Got EOF."
-msgstr "Získáno EOF.\n"
+msgstr "Získáno EOF."
 
-#: ../src/utils/pacat.c:537
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:537, c-format
 msgid "write() failed: %s"
-msgstr "write() selhalo: %s\n"
+msgstr "write() selhalo: %s"
 
 #: ../src/utils/pacat.c:558
-#, fuzzy
 msgid "Got signal, exiting."
-msgstr "Získán signál, ukončování.\n"
+msgstr "Získán signál, ukončování."
 
-#: ../src/utils/pacat.c:572
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:572, c-format
 msgid "Failed to get latency: %s"
-msgstr "Nezdařilo se získat latenci: %s\n"
+msgstr "Nezdařilo se získat latenci: %s"
 
 #: ../src/utils/pacat.c:577
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr "Čas: %0.3f sekund; latence: %0.0f μs.  \r"
 
-#: ../src/utils/pacat.c:595
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:595, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
-msgstr "pa_stream_update_timing_info() selhalo: %s\n"
+msgstr "pa_stream_update_timing_info() selhalo: %s"
 
 #: ../src/utils/pacat.c:605
 #, c-format
@@ -1417,35 +1384,29 @@ msgstr ""
 "Přeloženo s libpulse %s\n"
 "Propojeno s libpulse %s\n"
 
-#: ../src/utils/pacat.c:760
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:760, c-format
 msgid "Invalid client name '%s'"
-msgstr "Neplatný název klienta \"%s\"\n"
+msgstr "Neplatný název klienta \"%s\""
 
-#: ../src/utils/pacat.c:776
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:776, c-format
 msgid "Invalid stream name '%s'"
-msgstr "Neplatný název proudu \"%s\"\n"
+msgstr "Neplatný název proudu \"%s\""
 
-#: ../src/utils/pacat.c:813
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:813, c-format
 msgid "Invalid channel map '%s'"
-msgstr "Neplatná mapa kanálů \"%s\"\n"
+msgstr "Neplatná mapa kanálů \"%s\""
 
-#: ../src/utils/pacat.c:842
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:842, c-format
 msgid "Invalid latency specification '%s'"
-msgstr "Neplatné upřesnění latence \"%s\"\n"
+msgstr "Neplatné upřesnění latence \"%s\""
 
-#: ../src/utils/pacat.c:849
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:849, c-format
 msgid "Invalid process time specification '%s'"
-msgstr "Neplatné upřesnění času zpracování \"%s\"\n"
+msgstr "Neplatné upřesnění času zpracování \"%s\""
 
-#: ../src/utils/pacat.c:861
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:861, c-format
 msgid "Invalid property '%s'"
-msgstr "Neplatná vlastnost \"%s\"\n"
+msgstr "Neplatná vlastnost \"%s\""
 
 #: ../src/utils/pacat.c:878
 #, c-format
@@ -1453,68 +1414,57 @@ msgid "Unknown file format %s."
 msgstr "Neznámý formát souboru %s."
 
 #: ../src/utils/pacat.c:897
-#, fuzzy
 msgid "Invalid sample specification"
-msgstr "Neplatné určení vzorku\n"
+msgstr "Neplatné určení vzorku"
 
-#: ../src/utils/pacat.c:907
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:907, c-format
 msgid "open(): %s"
-msgstr "open(): %s\n"
+msgstr "open(): %s"
 
-#: ../src/utils/pacat.c:912
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:912, c-format
 msgid "dup2(): %s"
-msgstr "dup2(): %s\n"
+msgstr "dup2(): %s"
 
 #: ../src/utils/pacat.c:919
-#, fuzzy
 msgid "Too many arguments."
-msgstr "Příliš mnoho argumentů.\n"
+msgstr "Příliš mnoho argumentů."
 
 #: ../src/utils/pacat.c:930
-#, fuzzy
 msgid "Failed to generate sample specification for file."
-msgstr "Selhalo vytvoření určení vzorku souboru.\n"
+msgstr "Selhalo vytvoření určení vzorku souboru."
 
 #: ../src/utils/pacat.c:950
-#, fuzzy
 msgid "Failed to open audio file."
-msgstr "Selhalo otevření zvukového souboru.\n"
+msgstr "Selhalo otevření zvukového souboru."
 
 #: ../src/utils/pacat.c:956
-#, fuzzy
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
 msgstr ""
-"Varování: zadané určení vzorku bude přepsáno určením získaným ze souboru.\n"
+"Varování: zadané určení vzorku bude přepsáno určením získaným "
+"ze souboru."
 
 #: ../src/utils/pacat.c:959
-#, fuzzy
 msgid "Failed to determine sample specification from file."
-msgstr "Selhalo zjištění určení vzorku ze souboru.\n"
+msgstr "Selhalo zjištění určení vzorku ze souboru."
 
 #: ../src/utils/pacat.c:968
-#, fuzzy
 msgid "Warning: Failed to determine channel map from file."
-msgstr "Varování: Selhalo zjištění mapy kanálů ze souboru.\n"
+msgstr "Varování: Selhalo zjištění mapy kanálů ze souboru."
 
 #: ../src/utils/pacat.c:979
-#, fuzzy
 msgid "Channel map doesn't match sample specification"
-msgstr "Mapa kanálů se neshoduje s určením vzorku\n"
+msgstr "Mapa kanálů se neshoduje s určením vzorku"
 
 #: ../src/utils/pacat.c:990
-#, fuzzy
 msgid "Warning: failed to write channel map to file."
-msgstr "Varování: selhal zápis mapy kanálů do souboru.\n"
+msgstr "Varování: selhal zápis mapy kanálů do souboru."
 
-#: ../src/utils/pacat.c:1005
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:1005, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
-msgstr "Otevírání proudu %s s určením vzorku \"%s\" a mapou kanálů \"%s\".\n"
+msgstr "Otevírání proudu %s s určením vzorku \"%s\" a mapou kanálů \"%s\"."
 
 #: ../src/utils/pacat.c:1006
 msgid "recording"
@@ -1525,19 +1475,16 @@ msgid "playback"
 msgstr "přehrávání"
 
 #: ../src/utils/pacat.c:1032
-#, fuzzy
 msgid "pa_mainloop_new() failed."
-msgstr "pa_mainloop_new() selhalo.\n"
+msgstr "pa_mainloop_new() selhalo."
 
 #: ../src/utils/pacat.c:1051
-#, fuzzy
 msgid "io_new() failed."
-msgstr "io_new() selhalo.\n"
+msgstr "io_new() selhalo."
 
 #: ../src/utils/pacat.c:1058
-#, fuzzy
 msgid "pa_context_new() failed."
-msgstr "pa_context_new() selhalo.\n"
+msgstr "pa_context_new() selhalo."
 
 #: ../src/utils/pacat.c:1066 ../src/utils/pactl.c:1122
 #, c-format
@@ -1545,14 +1492,12 @@ msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() selhalo: %s"
 
 #: ../src/utils/pacat.c:1072
-#, fuzzy
 msgid "pa_context_rttime_new() failed."
-msgstr "pa_context_new() selhalo.\n"
+msgstr "pa_context_rttime_new() selhalo."
 
 #: ../src/utils/pacat.c:1079
-#, fuzzy
 msgid "pa_mainloop_run() failed."
-msgstr "pa_mainloop_run() selhalo.\n"
+msgstr "pa_mainloop_run() selhalo."
 
 #: ../src/utils/pasuspender.c:81
 #, c-format
