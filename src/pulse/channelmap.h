@@ -216,17 +216,27 @@ typedef enum pa_channel_map_def {
     PA_CHANNEL_MAP_AIFF,
     /**< The mapping from RFC3551, which is based on AIFF-C */
 
+/** \cond fulldocs */
     PA_CHANNEL_MAP_ALSA,
-    /**< The default mapping used by ALSA */
+    /**< The default mapping used by ALSA. This mapping is probably
+     * not too useful since ALSA's default channel mapping depends on
+     * the device string used. */
+/** \endcond */
 
     PA_CHANNEL_MAP_AUX,
     /**< Only aux channels */
 
     PA_CHANNEL_MAP_WAVEEX,
-    /**< Microsoft's WAVEFORMATEXTENSIBLE mapping */
+    /**< Microsoft's WAVEFORMATEXTENSIBLE mapping. This mapping works
+     * as if all LSBs of dwChannelMask are set.  */
 
+/** \cond fulldocs */
     PA_CHANNEL_MAP_OSS,
-    /**< The default channel mapping used by OSS as defined in the OSS 4.0 API specs */
+    /**< The default channel mapping used by OSS as defined in the OSS
+     * 4.0 API specs. This mapping is probably not too useful since
+     * the OSS API has changed in this respect and no longer knows a
+     * default channel mapping based on the number of channels. */
+/** \endcond */
 
     /**< Upper limit of valid channel mapping definitions */
     PA_CHANNEL_MAP_DEF_MAX,
@@ -282,7 +292,7 @@ pa_channel_map* pa_channel_map_init_extend(pa_channel_map *m, unsigned channels,
 /** Return a text label for the specified channel position */
 const char* pa_channel_position_to_string(pa_channel_position_t pos) PA_GCC_PURE;
 
-/* The inverse of pa_channel_position_to_string(). \since 0.9.16 */
+/** The inverse of pa_channel_position_to_string(). \since 0.9.16 */
 pa_channel_position_t pa_channel_position_from_string(const char *s) PA_GCC_PURE;
 
 /** Return a human readable text label for the specified channel position. \since 0.9.7 */
