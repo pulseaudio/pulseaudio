@@ -923,13 +923,19 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
 static void handle_suspend(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_device *d = userdata;
     dbus_bool_t suspend = FALSE;
+    DBusError error;
 
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(d);
 
-    if (pa_dbus_get_basic_set_property_arg(conn, msg, DBUS_TYPE_BOOLEAN, &suspend) < 0)
+    dbus_error_init(&error);
+
+    if (!dbus_message_get_args(msg, &error, DBUS_TYPE_BOOLEAN, &suspend, DBUS_TYPE_INVALID)) {
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
+        dbus_error_free(&error);
         return;
+    }
 
     if ((d->type == DEVICE_TYPE_SINK) && (pa_sink_suspend(d->sink, suspend, PA_SUSPEND_USER) < 0)) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_FAILED, "Internal error in PulseAudio: pa_sink_suspend() failed.");
