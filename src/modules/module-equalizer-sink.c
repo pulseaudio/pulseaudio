@@ -136,7 +136,6 @@ static const char* const valid_modargs[] = {
 
 
 #define v_size 4
-#define mround(x, y) ((x + y - 1) / y) * y
 #define SINKLIST "equalized_sinklist"
 #define EQDB "equalizer_db"
 static void dbus_init(struct userdata *u);
@@ -349,10 +348,10 @@ static void dsp_logic(
 //    fftwf_complex * restrict output_window,//The transformed window'd src
 //    struct userdata *u){//Collection of constants
 //
-//    const size_t window_size = mround(u->window_size,v_size);
-//    const size_t fft_h = mround(u->fft_size / 2 + 1, v_size / 2);
-//    //const size_t R = mround(u->R, v_size);
-//    const size_t overlap_size = mround(u->overlap_size, v_size);
+//    const size_t window_size = PA_ROUND_UP(u->window_size,v_size);
+//    const size_t fft_h = PA_ROUND_UP(u->fft_size / 2 + 1, v_size / 2);
+//    //const size_t R = PA_ROUND_UP(u->R, v_size);
+//    const size_t overlap_size = PA_ROUND_UP(u->overlap_size, v_size);
 //
 //    //assert(u->samples_gathered >= u->R);
 //    //zero out the bit beyond the real overlap so we don't add garbage
@@ -677,7 +676,7 @@ static void sink_input_attach_cb(pa_sink_input *i) {
 
     pa_sink_set_fixed_latency_within_thread(u->sink, i->sink->thread_info.fixed_latency);
     fs = pa_frame_size(&(u->sink->sample_spec));
-    pa_sink_set_max_request_within_thread(u->sink, mround(pa_sink_input_get_max_request(i), u->R*fs));
+    pa_sink_set_max_request_within_thread(u->sink, PA_ROUND_UP(pa_sink_input_get_max_request(i), u->R*fs));
 
     //pa_sink_set_latency_range_within_thread(u->sink, u->latency*fs, u->latency*fs);
     //pa_sink_set_latency_range_within_thread(u->sink, u->latency*fs, u->master->thread_info.max_latency);
@@ -810,7 +809,7 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
 //ensure's memory allocated is a multiple of v_size
 //and aligned
 static void * alloc(size_t x,size_t s){
-    size_t f = mround(x*s, sizeof(float)*v_size);
+    size_t f = PA_ROUND_UP(x*s, sizeof(float)*v_size);
     float *t;
     pa_assert(f >= x*s);
     //printf("requested %ld floats=%ld bytes, rem=%ld\n", x, x*sizeof(float), x*sizeof(float)%16);
