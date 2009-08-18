@@ -79,7 +79,7 @@ struct pa_source {
     pa_volume_t base_volume; /* shall be constant */
     unsigned n_volume_steps; /* shall be constant */
 
-    pa_cvolume virtual_volume, soft_volume;
+    pa_cvolume volume, soft_volume;
     pa_bool_t muted:1;
 
     pa_bool_t refresh_volume:1;
