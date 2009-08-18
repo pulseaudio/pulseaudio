@@ -195,6 +195,16 @@ pa_volume_t pa_cvolume_max(const pa_cvolume *a) PA_GCC_PURE;
  * \since 0.9.16 */
 pa_volume_t pa_cvolume_max_mask(const pa_cvolume *a, const pa_channel_map *cm, pa_channel_position_mask_t mask) PA_GCC_PURE;
 
+/** Return the minimum volume of all channels. \since 0.9.16 */
+pa_volume_t pa_cvolume_min(const pa_cvolume *a) PA_GCC_PURE;
+
+/** Return the minimum volume of all channels that are included in the
+ * specified channel map with the specified channel position mask. If
+ * cm is NULL this call is identical to pa_cvolume_min(). If no
+ * channel is selected the returned value will be PA_VOLUME_MUTED.
+ * \since 0.9.16 */
+pa_volume_t pa_cvolume_min_mask(const pa_cvolume *a, const pa_channel_map *cm, pa_channel_position_mask_t mask) PA_GCC_PURE;
+
 /** Return TRUE when the passed cvolume structure is valid, FALSE otherwise */
 int pa_cvolume_valid(const pa_cvolume *v) PA_GCC_PURE;
 

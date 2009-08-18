@@ -131,6 +131,8 @@ pa_cvolume_init;
 pa_cvolume_max;
 pa_cvolume_max_mask;
 pa_cvolume_merge;
+pa_cvolume_min;
+pa_cvolume_min_mask;
 pa_cvolume_remap;
 pa_cvolume_scale;
 pa_cvolume_scale_mask;

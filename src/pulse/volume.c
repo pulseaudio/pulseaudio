@@ -126,7 +126,7 @@ pa_volume_t pa_cvolume_avg_mask(const pa_cvolume *a, const pa_channel_map *cm, p
 }
 
 pa_volume_t pa_cvolume_max(const pa_cvolume *a) {
-    pa_volume_t m = 0;
+    pa_volume_t m = PA_VOLUME_MUTED;
     unsigned c;
 
     pa_assert(a);
@@ -139,8 +139,22 @@ pa_volume_t pa_cvolume_max(const pa_cvolume *a) {
     return m;
 }
 
+pa_volume_t pa_cvolume_min(const pa_cvolume *a) {
+    pa_volume_t m = (pa_volume_t) -1;
+    unsigned c;
+
+    pa_assert(a);
+    pa_return_val_if_fail(pa_cvolume_valid(a), PA_VOLUME_MUTED);
+
+    for (c = 0; c < a->channels; c++)
+        if (m == (pa_volume_t) -1 || a->values[c] < m)
+            m = a->values[c];
+
+    return m;
+}
+
 pa_volume_t pa_cvolume_max_mask(const pa_cvolume *a, const pa_channel_map *cm, pa_channel_position_mask_t mask) {
-    pa_volume_t m = 0;
+    pa_volume_t m = PA_VOLUME_MUTED;
     unsigned c, n;
 
     pa_assert(a);
@@ -156,6 +170,29 @@ pa_volume_t pa_cvolume_max_mask(const pa_cvolume *a, const pa_channel_map *cm, p
             continue;
 
         if (a->values[c] > m)
+            m = a->values[c];
+    }
+
+    return m;
+}
+
+pa_volume_t pa_cvolume_min_mask(const pa_cvolume *a, const pa_channel_map *cm, pa_channel_position_mask_t mask) {
+    pa_volume_t m = (pa_volume_t) -1;
+    unsigned c, n;
+
+    pa_assert(a);
+
+    if (!cm)
+        return pa_cvolume_min(a);
+
+    pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(a, cm), PA_VOLUME_MUTED);
+
+    for (c = n = 0; c < a->channels; c++) {
+
+        if (!(PA_CHANNEL_POSITION_MASK(cm->map[c]) & mask))
+            continue;
+
+        if (m == (pa_volume_t) -1 || a->values[c] < m)
             m = a->values[c];
     }
 
