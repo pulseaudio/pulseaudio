@@ -33,6 +33,8 @@ int main(int argc, char *argv[]) {
     pa_cvolume cv;
     float b;
     pa_channel_map map;
+    pa_volume_t md = 0;
+    unsigned mdn = 0;
 
     printf("Attenuation of sample 1 against 32767: %g dB\n", 20.0*log10(1.0/32767.0));
     printf("Smallest possible attenutation > 0 applied to 32767: %li\n", lrint(32767.0*pa_sw_volume_to_linear(1)));
@@ -85,16 +87,48 @@ int main(int argc, char *argv[]) {
                 printf("After: volume: [%s]; balance: %2.1f (intended: %2.1f) %s\n", pa_cvolume_snprint(s, sizeof(s), &r), k, b, k < b-.05 || k > b+.5 ? "MISMATCH" : "");
             }
 
-    for (v = PA_VOLUME_MUTED; v <= PA_VOLUME_NORM*2; v += 1) {
+    for (v = PA_VOLUME_MUTED; v <= PA_VOLUME_NORM*2; v += 51) {
 
         double l = pa_sw_volume_to_linear(v);
         pa_volume_t k = pa_sw_volume_from_linear(l);
         double db = pa_sw_volume_to_dB(v);
         pa_volume_t r = pa_sw_volume_from_dB(db);
+        pa_volume_t w;
 
         pa_assert(k == v);
         pa_assert(r == v);
+
+        for (w = PA_VOLUME_MUTED; w < PA_VOLUME_NORM*2; w += 37) {
+
+            double t = pa_sw_volume_to_linear(w);
+            double db2 = pa_sw_volume_to_dB(w);
+            pa_volume_t p, p1, p2;
+            double q, qq;
+
+            p = pa_sw_volume_multiply(v, w);
+            qq = db + db2;
+            p2 = pa_sw_volume_from_dB(qq);
+            q = l*t;
+            p1 = pa_sw_volume_from_linear(q);
+
+            if (p2 > p && p2 - p > md)
+                md = p2 - p;
+            if (p2 < p && p - p2 > md)
+                md = p - p2;
+            if (p1 > p && p1 - p > md)
+                md = p1 - p;
+            if (p1 < p && p - p1 > md)
+                md = p - p1;
+
+            if (p1 != p || p2 != p)
+                mdn++;
+        }
     }
+
+    printf("max deviation: %lu n=%lu\n", (unsigned long) md, (unsigned long) mdn);
+
+    pa_assert(md <= 1);
+    pa_assert(mdn <= 251);
 
     return 0;
 }
