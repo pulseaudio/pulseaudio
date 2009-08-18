@@ -292,7 +292,7 @@ char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c) {
         l -= pa_snprintf(e, l, "%s%u: %3u%%",
                       first ? "" : " ",
                       channel,
-                      (c->values[channel]*100)/PA_VOLUME_NORM);
+                      (c->values[channel]*100+PA_VOLUME_NORM/2)/PA_VOLUME_NORM);
 
         e = strchr(e, 0);
         first = FALSE;
@@ -312,7 +312,7 @@ char *pa_volume_snprint(char *s, size_t l, pa_volume_t v) {
         return s;
     }
 
-    pa_snprintf(s, l, "%3u%%", (v*100)/PA_VOLUME_NORM);
+    pa_snprintf(s, l, "%3u%%", (v*100+PA_VOLUME_NORM/2)/PA_VOLUME_NORM);
     return s;
 }
 
