@@ -80,10 +80,10 @@ static inline size_t PA_PAGE_ALIGN(size_t l) {
 
 #define PA_ELEMENTSOF(x) (sizeof(x)/sizeof((x)[0]))
 
-/* The users of PA_MIN and PA_MAX should be aware that these macros on
- * non-GCC executed code with side effects twice. It is thus
- * considered misuse to use code with side effects as arguments to MIN
- * and MAX. */
+/* The users of PA_MIN and PA_MAX, PA_CLAMP, PA_ROUND_UP should be
+ * aware that these macros on non-GCC executed code with side effects
+ * twice. It is thus considered misuse to use code with side effects
+ * as arguments to MIN and MAX. */
 
 #ifdef __GNUC__
 #define PA_MAX(a,b)                             \
