@@ -200,16 +200,18 @@ pa_volume_t pa_cvolume_min_mask(const pa_cvolume *a, const pa_channel_map *cm, p
 }
 
 pa_volume_t pa_sw_volume_multiply(pa_volume_t a, pa_volume_t b) {
-    return pa_sw_volume_from_linear(pa_sw_volume_to_linear(a) * pa_sw_volume_to_linear(b));
+
+    /* cbrt((a/PA_VOLUME_NORM)^3*(b/PA_VOLUME_NORM)^3)*PA_VOLUME_NORM = a*b/PA_VOLUME_NORM */
+
+    return (pa_volume_t) (((uint64_t) a * (uint64_t) b + (uint64_t) PA_VOLUME_NORM / 2ULL) / (uint64_t) PA_VOLUME_NORM);
 }
 
 pa_volume_t pa_sw_volume_divide(pa_volume_t a, pa_volume_t b) {
-    double v = pa_sw_volume_to_linear(b);
 
-    if (v <= 0)
+    if (b <= PA_VOLUME_MUTED)
         return 0;
 
-    return pa_sw_volume_from_linear(pa_sw_volume_to_linear(a) / v);
+    return (pa_volume_t) (((uint64_t) a * (uint64_t) PA_VOLUME_NORM + (uint64_t) b / 2ULL) / (uint64_t) b);
 }
 
 /* Amplitude, not power */
