@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-08-19 04:16+0200\n"
-"PO-Revision-Date: 2009-07-28 21:54+0200\n"
+"PO-Revision-Date: 2009-08-19 22:52+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -731,9 +731,8 @@ msgid "### Read from configuration file: %s ###\n"
 msgstr "### Odczytano z pliku konfiguracji: %s ###\n"
 
 #: ../src/daemon/caps.c:62
-#, fuzzy
 msgid "Cleaning up privileges."
-msgstr "Porzucanie uprawnień roota."
+msgstr "Czyszczenie uprawnień."
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
@@ -2225,9 +2224,9 @@ msgid "Daemon not responding."
 msgstr "Demon nie odpowiada."
 
 #: ../src/utils/pacmd.c:161
-#, fuzzy, c-format
+#, c-format
 msgid "poll(): %s"
-msgstr "fork(): %s"
+msgstr "poll(): %s"
 
 #: ../src/utils/pacmd.c:171 ../src/utils/pacmd.c:188
 #, c-format
@@ -2293,64 +2292,3 @@ msgstr "Duplex telefoniczny (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "Serwer dźwięku PulseAudio"
-
-#~ msgid "select(): %s"
-#~ msgstr "select(): %s"
-
-#~ msgid "Cannot connect to system bus: %s"
-#~ msgstr "Nie można połączyć się z magistralą systemową: %s"
-
-#~ msgid "Cannot get caller from PID: %s"
-#~ msgstr "Nie można uzyskać obiektu caller z PID: %s"
-
-#~ msgid "Cannot set UID on caller object."
-#~ msgstr "Nie można ustawić UID obiektu caller."
-
-#~ msgid "Failed to get CK session."
-#~ msgstr "Uzyskanie sesji CK nie powiodło się."
-
-#~ msgid "Cannot set UID on session object."
-#~ msgstr "Nie można ustawić UID obiektowi sesji."
-
-#~ msgid "Cannot allocate PolKitAction."
-#~ msgstr "Nie można przydzielić PolKitAction."
-
-#~ msgid "Cannot set action_id"
-#~ msgstr "Nie można ustawić action_id"
-
-#~ msgid "Cannot allocate PolKitContext."
-#~ msgstr "Nie można przydzielić PolKitContext."
-
-#~ msgid "Cannot initialize PolKitContext: %s"
-#~ msgstr "Nie można zainicjować PolKitContext: %s"
-
-#~ msgid "Could not determine whether caller is authorized: %s"
-#~ msgstr "Nie można ustalić, czy obiekt caller jest upoważniony: %s"
-
-#~ msgid "Cannot obtain auth: %s"
-#~ msgstr "Nie można uzyskać upoważnienia: %s"
-
-#~ msgid "PolicyKit responded with '%s'"
-#~ msgstr "PolicyKit zwróciło \"%s\""
-
-#~ msgid ""
-#~ "High-priority scheduling (negative Unix nice level) for the PulseAudio "
-#~ "daemon"
-#~ msgstr ""
-#~ "Szeregowanie o wysokim priorytecie (ujemny poziom nice Uniksa) dla demona "
-#~ "PulseAudio"
-
-#~ msgid "Real-time scheduling for the PulseAudio daemon"
-#~ msgstr "Szeregowanie w czasie rzeczywistym dla demona PulseAudio"
-
-#~ msgid ""
-#~ "System policy prevents PulseAudio from acquiring high-priority scheduling."
-#~ msgstr ""
-#~ "Polityka systemu uniemożliwia PulseAudio uzyskanie szeregowania o wysokim "
-#~ "priorytecie."
-
-#~ msgid ""
-#~ "System policy prevents PulseAudio from acquiring real-time scheduling."
-#~ msgstr ""
-#~ "Polityka systemu uniemożliwia PulseAudio uzyskanie szeregowania w czasie "
-#~ "rzeczywistym."
