@@ -283,15 +283,15 @@ static void sink_set_volume_cb(pa_sink *s) {
     /* Calculate the max volume of all channels.
        We'll use this as our (single) volume on the APEX device and emulate
        any variation in channel volumes in software */
-    v = pa_cvolume_max(&s->virtual_volume);
+    v = pa_cvolume_max(&s->real_volume);
 
     /* Create a pa_cvolume version of our single value */
     pa_cvolume_set(&hw, s->sample_spec.channels, v);
 
     /* Perform any software manipulation of the volume needed */
-    pa_sw_cvolume_divide(&s->soft_volume, &s->virtual_volume, &hw);
+    pa_sw_cvolume_divide(&s->soft_volume, &s->real_volume, &hw);
 
-    pa_log_debug("Requested volume: %s", pa_cvolume_snprint(t, sizeof(t), &s->virtual_volume));
+    pa_log_debug("Requested volume: %s", pa_cvolume_snprint(t, sizeof(t), &s->real_volume));
     pa_log_debug("Got hardware volume: %s", pa_cvolume_snprint(t, sizeof(t), &hw));
     pa_log_debug("Calculated software volume: %s", pa_cvolume_snprint(t, sizeof(t), &s->soft_volume));
 

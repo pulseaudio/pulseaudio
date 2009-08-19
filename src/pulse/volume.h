@@ -195,6 +195,16 @@ pa_volume_t pa_cvolume_max(const pa_cvolume *a) PA_GCC_PURE;
  * \since 0.9.16 */
 pa_volume_t pa_cvolume_max_mask(const pa_cvolume *a, const pa_channel_map *cm, pa_channel_position_mask_t mask) PA_GCC_PURE;
 
+/** Return the minimum volume of all channels. \since 0.9.16 */
+pa_volume_t pa_cvolume_min(const pa_cvolume *a) PA_GCC_PURE;
+
+/** Return the minimum volume of all channels that are included in the
+ * specified channel map with the specified channel position mask. If
+ * cm is NULL this call is identical to pa_cvolume_min(). If no
+ * channel is selected the returned value will be PA_VOLUME_MUTED.
+ * \since 0.9.16 */
+pa_volume_t pa_cvolume_min_mask(const pa_cvolume *a, const pa_channel_map *cm, pa_channel_position_mask_t mask) PA_GCC_PURE;
+
 /** Return TRUE when the passed cvolume structure is valid, FALSE otherwise */
 int pa_cvolume_valid(const pa_cvolume *v) PA_GCC_PURE;
 
@@ -213,11 +223,13 @@ int pa_cvolume_channels_equal_to(const pa_cvolume *a, pa_volume_t v) PA_GCC_PURE
 pa_volume_t pa_sw_volume_multiply(pa_volume_t a, pa_volume_t b) PA_GCC_CONST;
 
 /** Multiply two per-channel volumes and return the result in
- * *dest. This is only valid for software volumes! */
+ * *dest. This is only valid for software volumes! a, b and dest may
+ * point to the same structure. */
 pa_cvolume *pa_sw_cvolume_multiply(pa_cvolume *dest, const pa_cvolume *a, const pa_cvolume *b);
 
 /** Multiply a per-channel volume with a scalar volume and return the
- * result in *dest. This is only valid for software volumes! \since
+ * result in *dest. This is only valid for software volumes! a
+ * and dest may point to the same structure. \since
  * 0.9.16 */
 pa_cvolume *pa_sw_cvolume_multiply_scalar(pa_cvolume *dest, const pa_cvolume *a, pa_volume_t b);
 
@@ -228,11 +240,13 @@ pa_cvolume *pa_sw_cvolume_multiply_scalar(pa_cvolume *dest, const pa_cvolume *a,
 pa_volume_t pa_sw_volume_divide(pa_volume_t a, pa_volume_t b) PA_GCC_CONST;
 
 /** Divide two per-channel volumes and return the result in
- * *dest. This is only valid for software volumes! \since 0.9.13 */
+ * *dest. This is only valid for software volumes! a, b
+ * and dest may point to the same structure. \since 0.9.13 */
 pa_cvolume *pa_sw_cvolume_divide(pa_cvolume *dest, const pa_cvolume *a, const pa_cvolume *b);
 
 /** Divide a per-channel volume by a scalar volume and return the
- * result in *dest. This is only valid for software volumes! \since
+ * result in *dest. This is only valid for software volumes! a
+ * and dest may point to the same structure. \since
  * 0.9.16 */
 pa_cvolume *pa_sw_cvolume_divide_scalar(pa_cvolume *dest, const pa_cvolume *a, pa_volume_t b);
 
@@ -325,6 +339,19 @@ pa_cvolume* pa_cvolume_set_position(pa_cvolume *cv, const pa_channel_map *map, p
  * specified. You can check if a channel map includes a specific
  * position by calling pa_channel_map_has_position(). \since 0.9.16 */
 pa_volume_t pa_cvolume_get_position(pa_cvolume *cv, const pa_channel_map *map, pa_channel_position_t t) PA_GCC_PURE;
+
+/** This goes through all channels in a and b and sets the
+ * corresponding channel in dest to the greater volume of both. a, b
+ * and dest may point to the same structure. \since 0.9.16 */
+pa_cvolume* pa_cvolume_merge(pa_cvolume *dest, const pa_cvolume *a, const pa_cvolume *b);
+
+/** Increase the volume passed in by 'inc'. The proportions between
+ * the channels are kept. \since 0.9.16 */
+pa_cvolume* pa_cvolume_inc(pa_cvolume *v, pa_volume_t inc);
+
+/** Increase the volume passed in by 'inc'. The proportions between
+ * the channels are kept. \since 0.9.16 */
+pa_cvolume* pa_cvolume_dec(pa_cvolume *v, pa_volume_t dec);
 
 PA_C_DECL_END
 

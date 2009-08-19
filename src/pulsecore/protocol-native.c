@@ -2840,7 +2840,7 @@ static void sink_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_sin
         PA_TAG_SAMPLE_SPEC, &fixed_ss,
         PA_TAG_CHANNEL_MAP, &sink->channel_map,
         PA_TAG_U32, sink->module ? sink->module->index : PA_INVALID_INDEX,
-        PA_TAG_CVOLUME, pa_sink_get_volume(sink, FALSE, FALSE),
+        PA_TAG_CVOLUME, pa_sink_get_volume(sink, FALSE),
         PA_TAG_BOOLEAN, pa_sink_get_mute(sink, FALSE),
         PA_TAG_U32, sink->monitor_source ? sink->monitor_source->index : PA_INVALID_INDEX,
         PA_TAG_STRING, sink->monitor_source ? sink->monitor_source->name : NULL,
@@ -3388,7 +3388,7 @@ static void command_set_volume(
 
     if (sink) {
         pa_log_debug("Client %s changes volume of sink %s.", client_name, sink->name);
-        pa_sink_set_volume(sink, &volume, TRUE, TRUE, TRUE, TRUE);
+        pa_sink_set_volume(sink, &volume, TRUE, TRUE);
     } else if (source) {
         pa_log_debug("Client %s changes volume of sink %s.", client_name, source->name);
         pa_source_set_volume(source, &volume, TRUE);

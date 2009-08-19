@@ -181,7 +181,7 @@ pa_source* pa_source_new(
         pa_cvolume_reset(&data->volume, data->sample_spec.channels);
 
     pa_return_null_if_fail(pa_cvolume_valid(&data->volume));
-    pa_return_null_if_fail(data->volume.channels == data->sample_spec.channels);
+    pa_return_null_if_fail(pa_cvolume_compatible(&data->volume, &data->sample_spec));
 
     if (!data->muted_is_set)
         data->muted = FALSE;
@@ -219,7 +219,7 @@ pa_source* pa_source_new(
     s->n_corked = 0;
     s->monitor_of = NULL;
 
-    s->virtual_volume = data->volume;
+    s->volume = data->volume;
     pa_cvolume_reset(&s->soft_volume, s->sample_spec.channels);
     s->base_volume = PA_VOLUME_NORM;
     s->n_volume_steps = PA_VOLUME_NORM+1;
@@ -751,31 +751,32 @@ pa_usec_t pa_source_get_latency_within_thread(pa_source *s) {
 }
 
 /* Called from main thread */
-void pa_source_set_volume(pa_source *s, const pa_cvolume *volume, pa_bool_t save) {
-    pa_cvolume old_virtual_volume;
-    pa_bool_t virtual_volume_changed;
+void pa_source_set_volume(
+        pa_source *s,
+        const pa_cvolume *volume,
+        pa_bool_t save) {
+
+    pa_bool_t real_changed;
 
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
-    pa_assert(volume);
     pa_assert(pa_cvolume_valid(volume));
     pa_assert(pa_cvolume_compatible(volume, &s->sample_spec));
 
-    old_virtual_volume = s->virtual_volume;
-    s->virtual_volume = *volume;
-    virtual_volume_changed = !pa_cvolume_equal(&old_virtual_volume, &s->virtual_volume);
-    s->save_volume = (!virtual_volume_changed && s->save_volume) || save;
+    real_changed = !pa_cvolume_equal(volume, &s->volume);
+    s->volume = *volume;
+    s->save_volume = (!real_changed && s->save_volume) || save;
 
     if (s->set_volume) {
         pa_cvolume_reset(&s->soft_volume, s->sample_spec.channels);
         s->set_volume(s);
     } else
-        s->soft_volume = s->virtual_volume;
+        s->soft_volume = s->volume;
 
     pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_VOLUME, NULL, 0, NULL) == 0);
 
-    if (virtual_volume_changed)
+    if (real_changed)
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
@@ -783,12 +784,16 @@ void pa_source_set_volume(pa_source *s, const pa_cvolume *volume, pa_bool_t save
 void pa_source_set_soft_volume(pa_source *s, const pa_cvolume *volume) {
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
-    pa_assert(volume);
+
+    if (!volume)
+        pa_cvolume_reset(&s->soft_volume, s->sample_spec.channels);
+    else
+        s->soft_volume = *volume;
 
     if (PA_SOURCE_IS_LINKED(s->state))
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_VOLUME, NULL, 0, NULL) == 0);
     else
-        s->thread_info.soft_volume = *volume;
+        s->thread_info.soft_volume = s->soft_volume;
 }
 
 /* Called from main thread */
@@ -798,20 +803,22 @@ const pa_cvolume *pa_source_get_volume(pa_source *s, pa_bool_t force_refresh) {
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
 
     if (s->refresh_volume || force_refresh) {
-        pa_cvolume old_virtual_volume = s->virtual_volume;
+        pa_cvolume old_volume;
+
+        old_volume = s->volume;
 
         if (s->get_volume)
             s->get_volume(s);
 
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_VOLUME, NULL, 0, NULL) == 0);
 
-        if (!pa_cvolume_equal(&old_virtual_volume, &s->virtual_volume)) {
+        if (!pa_cvolume_equal(&old_volume, &s->volume)) {
             s->save_volume = TRUE;
             pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
         }
     }
 
-    return &s->virtual_volume;
+    return &s->volume;
 }
 
 /* Called from main thread */
@@ -822,10 +829,10 @@ void pa_source_volume_changed(pa_source *s, const pa_cvolume *new_volume) {
 
     /* The source implementor may call this if the volume changed to make sure everyone is notified */
 
-    if (pa_cvolume_equal(&s->virtual_volume, new_volume))
+    if (pa_cvolume_equal(&s->volume, new_volume))
         return;
 
-    s->virtual_volume = *new_volume;
+    s->volume = *new_volume;
     s->save_volume = TRUE;
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);

@@ -1162,7 +1162,7 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag
     pa_assert(u->sink);
 
     if ((u->version < 11 || !!mute == !!u->sink->muted) &&
-        pa_cvolume_equal(&volume, &u->sink->virtual_volume))
+        pa_cvolume_equal(&volume, &u->sink->real_volume))
         return;
 
     pa_sink_volume_changed(u->sink, &volume);
@@ -1763,7 +1763,7 @@ static void sink_set_volume(pa_sink *sink) {
     pa_tagstruct_putu32(t, PA_COMMAND_SET_SINK_INPUT_VOLUME);
     pa_tagstruct_putu32(t, tag = u->ctag++);
     pa_tagstruct_putu32(t, u->device_index);
-    pa_tagstruct_put_cvolume(t, &sink->virtual_volume);
+    pa_tagstruct_put_cvolume(t, &sink->real_volume);
     pa_pstream_send_tagstruct(u->pstream, t);
 }
 

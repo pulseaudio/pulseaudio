@@ -59,39 +59,36 @@
 #endif
 
 /* Rounds down */
-static inline void* pa_align_ptr(const void *p) {
-    return (void*) (((size_t) p) & ~(sizeof(void*)-1));
+static inline void* PA_ALIGN_PTR(const void *p) {
+    return (void*) (((size_t) p) & ~(sizeof(void*) - 1));
 }
-#define PA_ALIGN_PTR(x) (pa_align_ptr(x))
 
 /* Rounds up */
-static inline size_t pa_align(size_t l) {
-    return (((l + sizeof(void*) - 1) / sizeof(void*)) * sizeof(void*));
+static inline size_t PA_ALIGN(size_t l) {
+    return ((l + sizeof(void*) - 1) & ~(sizeof(void*) - 1));
 }
-#define PA_ALIGN(x) (pa_align(x))
 
 /* Rounds down */
-static inline void* pa_page_align_ptr(const void *p) {
-    return (void*) (((size_t) p) & ~(PA_PAGE_SIZE-1));
+static inline void* PA_PAGE_ALIGN_PTR(const void *p) {
+    return (void*) (((size_t) p) & ~(PA_PAGE_SIZE - 1));
 }
-#define PA_PAGE_ALIGN_PTR(x) (pa_page_align_ptr(x))
 
 /* Rounds up */
-static inline size_t pa_page_align(size_t l) {
-    return ((l + PA_PAGE_SIZE - 1) / PA_PAGE_SIZE) * PA_PAGE_SIZE;
+static inline size_t PA_PAGE_ALIGN(size_t l) {
+    return (l + PA_PAGE_SIZE - 1) & ~(PA_PAGE_SIZE - 1);
 }
-#define PA_PAGE_ALIGN(x) (pa_page_align(x))
 
 #define PA_ELEMENTSOF(x) (sizeof(x)/sizeof((x)[0]))
 
-/* The users of PA_MIN and PA_MAX should be aware that these macros on
- * non-GCC executed code with side effects twice. It is thus
- * considered misuse to use code with side effects as arguments to MIN
- * and MAX. */
+/* The users of PA_MIN and PA_MAX, PA_CLAMP, PA_ROUND_UP should be
+ * aware that these macros on non-GCC executed code with side effects
+ * twice. It is thus considered misuse to use code with side effects
+ * as arguments to MIN and MAX. */
 
 #ifdef __GNUC__
 #define PA_MAX(a,b)                             \
-    __extension__ ({ typeof(a) _a = (a);        \
+    __extension__ ({                            \
+            typeof(a) _a = (a);                 \
             typeof(b) _b = (b);                 \
             _a > _b ? _a : _b;                  \
         })
@@ -101,7 +98,8 @@ static inline size_t pa_page_align(size_t l) {
 
 #ifdef __GNUC__
 #define PA_MIN(a,b)                             \
-    __extension__ ({ typeof(a) _a = (a);        \
+    __extension__ ({                            \
+            typeof(a) _a = (a);                 \
             typeof(b) _b = (b);                 \
             _a < _b ? _a : _b;                  \
         })
@@ -111,7 +109,8 @@ static inline size_t pa_page_align(size_t l) {
 
 #ifdef __GNUC__
 #define PA_CLAMP(x, low, high)                                          \
-    __extension__ ({ typeof(x) _x = (x);                                \
+    __extension__ ({                                                    \
+            typeof(x) _x = (x);                                         \
             typeof(low) _low = (low);                                   \
             typeof(high) _high = (high);                                \
             ((_x > _high) ? _high : ((_x < _low) ? _low : _x));         \
@@ -122,7 +121,8 @@ static inline size_t pa_page_align(size_t l) {
 
 #ifdef __GNUC__
 #define PA_CLAMP_UNLIKELY(x, low, high)                                 \
-    __extension__ ({ typeof(x) _x = (x);                                \
+    __extension__ ({                                                    \
+            typeof(x) _x = (x);                                         \
             typeof(low) _low = (low);                                   \
             typeof(high) _high = (high);                                \
             (PA_UNLIKELY(_x > _high) ? _high : (PA_UNLIKELY(_x < _low) ? _low : _x)); \
@@ -134,6 +134,28 @@ static inline size_t pa_page_align(size_t l) {
 /* We don't define a PA_CLAMP_LIKELY here, because it doesn't really
  * make sense: we cannot know if it is more likely that the values is
  * lower or greater than the boundaries.*/
+
+#ifdef __GNUC__
+#define PA_ROUND_UP(a, b)                       \
+    __extension__ ({                            \
+            typeof(a) _a = (a);                 \
+            typeof(b) _b = (b);                 \
+            ((_a + _b - 1) / _b) * _b;          \
+        })
+#else
+#define PA_ROUND_UP(a, b) ((((a) + (b) - 1) / (b)) * (b))
+#endif
+
+#ifdef __GNUC__
+#define PA_ROUND_DOWN(a, b)                     \
+    __extension__ ({                            \
+            typeof(a) _a = (a);                 \
+            typeof(b) _b = (b);                 \
+            (_a / _b) * _b;                     \
+        })
+#else
+#define PA_ROUND_DOWN(a, b) (((a) / (b)) * (b))
+#endif
 
 /* This type is not intended to be used in exported APIs! Use classic "int" there! */
 #ifdef HAVE_STD_BOOL

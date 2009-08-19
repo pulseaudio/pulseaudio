@@ -291,7 +291,6 @@ static DBusHandlerResult filter_handler(
 	DBusMessage *m,
 	void *userdata) {
 
-	DBusMessage *reply;
 	rd_device *d;
 	DBusError error;
 
@@ -323,35 +322,13 @@ static DBusHandlerResult filter_handler(
 				rd_release(d);
 			}
 
-			return DBUS_HANDLER_RESULT_HANDLED;
 		}
 	}
 
-	return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
-
 invalid:
-	if (!(reply = dbus_message_new_error(
-		      m,
-		      DBUS_ERROR_INVALID_ARGS,
-		      "Invalid arguments")))
-		goto oom;
-
-	if (!dbus_connection_send(c, reply, NULL))
-		goto oom;
-
-	dbus_message_unref(reply);
-
 	dbus_error_free(&error);
 
-	return DBUS_HANDLER_RESULT_HANDLED;
-
-oom:
-	if (reply)
-		dbus_message_unref(reply);
-
-	dbus_error_free(&error);
-
-	return DBUS_HANDLER_RESULT_NEED_MEMORY;
+	return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
 

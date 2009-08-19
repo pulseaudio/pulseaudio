@@ -1476,12 +1476,12 @@ static void sink_set_volume_cb(pa_sink *s) {
     if (u->profile != PROFILE_HSP)
         return;
 
-    gain = (pa_cvolume_max(&s->virtual_volume) * 15) / PA_VOLUME_NORM;
+    gain = (pa_cvolume_max(&s->real_volume) * 15) / PA_VOLUME_NORM;
 
     if (gain > 15)
         gain = 15;
 
-    pa_cvolume_set(&s->virtual_volume, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
+    pa_cvolume_set(&s->real_volume, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
 
     pa_assert_se(m = dbus_message_new_method_call("org.bluez", u->path, "org.bluez.Headset", "SetSpeakerGain"));
     pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_UINT16, &gain, DBUS_TYPE_INVALID));
@@ -1500,12 +1500,12 @@ static void source_set_volume_cb(pa_source *s) {
     if (u->profile != PROFILE_HSP)
         return;
 
-    gain = (pa_cvolume_max(&s->virtual_volume) * 15) / PA_VOLUME_NORM;
+    gain = (pa_cvolume_max(&s->volume) * 15) / PA_VOLUME_NORM;
 
     if (gain > 15)
         gain = 15;
 
-    pa_cvolume_set(&s->virtual_volume, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
+    pa_cvolume_set(&s->volume, u->sample_spec.channels, (pa_volume_t) (gain * PA_VOLUME_NORM / 15));
 
     pa_assert_se(m = dbus_message_new_method_call("org.bluez", u->path, "org.bluez.Headset", "SetMicrophoneGain"));
     pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_UINT16, &gain, DBUS_TYPE_INVALID));
