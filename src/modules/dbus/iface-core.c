@@ -2001,34 +2001,34 @@ pa_dbusiface_core *pa_dbusiface_core_new(pa_core *core) {
                                                                    c);
     c->memstats = pa_dbusiface_memstats_new(c, core);
 
-    for (card = pa_idxset_first(core->cards, &idx); card; card = pa_idxset_next(core->cards, &idx))
+    PA_IDXSET_FOREACH(card, core->cards, idx)
         pa_hashmap_put(c->cards, PA_UINT32_TO_PTR(idx), pa_dbusiface_card_new(c, card));
 
-    for (sink = pa_idxset_first(core->sinks, &idx); sink; sink = pa_idxset_next(core->sinks, &idx)) {
+    PA_IDXSET_FOREACH(sink, core->sinks, idx) {
         device = pa_dbusiface_device_new_sink(c, sink);
         pa_hashmap_put(c->sinks_by_index, PA_UINT32_TO_PTR(idx), device);
         pa_hashmap_put(c->sinks_by_path, pa_dbusiface_device_get_path(device), device);
     }
 
-    for (source = pa_idxset_first(core->sources, &idx); source; source = pa_idxset_next(core->sources, &idx)) {
+    PA_IDXSET_FOREACH(source, core->sources, idx) {
         device = pa_dbusiface_device_new_source(c, source);
         pa_hashmap_put(c->sources_by_index, PA_UINT32_TO_PTR(idx), device);
         pa_hashmap_put(c->sources_by_path, pa_dbusiface_device_get_path(device), device);
     }
 
-    for (sink_input = pa_idxset_first(core->sink_inputs, &idx); sink_input; sink_input = pa_idxset_next(core->sink_inputs, &idx))
+    PA_IDXSET_FOREACH(sink_input, core->sink_inputs, idx)
         pa_hashmap_put(c->playback_streams, PA_UINT32_TO_PTR(idx), pa_dbusiface_stream_new_playback(c, sink_input));
 
-    for (source_output = pa_idxset_first(core->source_outputs, &idx); source_output; source_output = pa_idxset_next(core->source_outputs, &idx))
+    PA_IDXSET_FOREACH(source_output, core->source_outputs, idx)
         pa_hashmap_put(c->record_streams, PA_UINT32_TO_PTR(idx), pa_dbusiface_stream_new_record(c, source_output));
 
-    for (sample = pa_idxset_first(core->scache, &idx); sample; sample = pa_idxset_next(core->scache, &idx))
+    PA_IDXSET_FOREACH(sample, core->scache, idx)
         pa_hashmap_put(c->samples, PA_UINT32_TO_PTR(idx), pa_dbusiface_sample_new(c, sample));
 
-    for (module = pa_idxset_first(core->modules, &idx); module; module = pa_idxset_next(core->modules, &idx))
+    PA_IDXSET_FOREACH(module, core->modules, idx)
         pa_hashmap_put(c->modules, PA_UINT32_TO_PTR(idx), pa_dbusiface_module_new(c, module));
 
-    for (client = pa_idxset_first(core->clients, &idx); client; client = pa_idxset_next(core->clients, &idx))
+    PA_IDXSET_FOREACH(client, core->clients, idx)
         pa_hashmap_put(c->clients, PA_UINT32_TO_PTR(idx), pa_dbusiface_client_new(c, client));
 
     pa_dbus_protocol_add_interface(c->dbus_protocol, PA_DBUS_CORE_OBJECT_PATH, &core_interface_info, c);
