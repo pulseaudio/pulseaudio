@@ -104,6 +104,7 @@ struct userdata {
     size_t overlap_size;//window_size-R
     size_t samples_gathered;
     //message
+    float X;
     float *H;//frequency response filter (magnitude based)
     float *W;//windowing function (time domain)
     float *work_buffer, **input, **overlap_accum;
@@ -111,6 +112,7 @@ struct userdata {
     fftwf_plan forward_plan, inverse_plan;
     //size_t samplings;
 
+    float Xs[2];
     float *Hs[2];//thread updatable copies
     pa_aupdate *a_H;
     pa_memchunk conv_buffer;
@@ -138,6 +140,8 @@ static const char* const valid_modargs[] = {
 #define v_size 4
 #define SINKLIST "equalized_sinklist"
 #define EQDB "equalizer_db"
+#define FILTER_SIZE (u->fft_size / 2 + 1)
+#define PROFILE_SIZE (FILTER_SIZE + 1)
 static void dbus_init(struct userdata *u);
 static void dbus_done(struct userdata *u);
 
@@ -199,7 +203,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     switch (code) {
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
-            size_t fs=pa_frame_size(&u->sink->sample_spec);
+            //size_t fs=pa_frame_size(&u->sink->sample_spec);
 
             /* The sink is _put() before the sink input is, so let's
              * make sure we don't access it in that time. Also, the
@@ -215,8 +219,8 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 pa_sink_get_latency_within_thread(u->sink_input->sink) +
 
                 /* Add the latency internal to our sink input on top */
-                pa_bytes_to_usec(pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq), &u->sink_input->sink->sample_spec) +
-                pa_bytes_to_usec(u->samples_gathered * fs, &u->sink->sample_spec);
+                pa_bytes_to_usec(pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq), &u->sink_input->sink->sample_spec);
+            //    pa_bytes_to_usec(u->samples_gathered * fs, &u->sink->sample_spec);
             //+ pa_bytes_to_usec(u->latency * fs, ss)
             //+ pa_bytes_to_usec(pa_memblockq_get_length(u->input_q), ss);
             return 0;
@@ -274,15 +278,6 @@ static void sink_update_requested_latency(pa_sink *s) {
             pa_sink_get_requested_latency_within_thread(s));
 }
 
-typedef float v4sf __attribute__ ((__aligned__(v_size * sizeof(float))));
-typedef union float_vector {
-    float f[v_size];
-    v4sf v;
-#ifdef __SSE2__
-    __m128 m;
-#endif
-} float_vector_t;
-
 //reference implementation
 static void dsp_logic(
     float * restrict dst,//used as a temp array too, needs to be fft_length!
@@ -299,13 +294,13 @@ static void dsp_logic(
     memset(dst + u->window_size, 0, (u->fft_size - u->window_size) * sizeof(float));
     //window the data
     for(size_t j = 0;j < u->window_size; ++j){
-        dst[j] = W[j] * src[j];
+        dst[j] = u->X * W[j] * src[j];
     }
     //Processing is done here!
     //do fft
     fftwf_execute_dft_r2c(u->forward_plan, dst, output_window);
     //perform filtering
-    for(size_t j = 0; j < u->fft_size / 2 + 1; ++j){
+    for(size_t j = 0; j < FILTER_SIZE; ++j){
         u->output_window[j][0] *= u->H[j];
         u->output_window[j][1] *= u->H[j];
     }
@@ -335,6 +330,15 @@ static void dsp_logic(
     );
 }
 
+typedef float v4sf __attribute__ ((__aligned__(v_size * sizeof(float))));
+typedef union float_vector {
+    float f[v_size];
+    v4sf v;
+#ifdef __SSE2__
+    __m128 m;
+#endif
+} float_vector_t;
+
 ////regardless of sse enabled, the loops in here assume
 ////16 byte aligned addresses and memory allocations divisible by v_size
 //void dsp_logic(
@@ -347,11 +351,12 @@ static void dsp_logic(
 //    const float * restrict W,//The windowing function
 //    fftwf_complex * restrict output_window,//The transformed window'd src
 //    struct userdata *u){//Collection of constants
-//
+      //float_vector_t x = {u->X, u->X, u->X, u->X};
 //    const size_t window_size = PA_ROUND_UP(u->window_size,v_size);
-//    const size_t fft_h = PA_ROUND_UP(u->fft_size / 2 + 1, v_size / 2);
+//    const size_t fft_h = PA_ROUND_UP(FILTER_SIZE, v_size / 2);
 //    //const size_t R = PA_ROUND_UP(u->R, v_size);
 //    const size_t overlap_size = PA_ROUND_UP(u->overlap_size, v_size);
+//     overlap_size = PA_ROUND_UP(u->overlap_size, v_size);
 //
 //    //assert(u->samples_gathered >= u->R);
 //    //zero out the bit beyond the real overlap so we don't add garbage
@@ -368,9 +373,9 @@ static void dsp_logic(
 //        float_vector_t *w = (float_vector_t*) (W+j);
 //        float_vector_t *s = (float_vector_t*) (src+j);
 //#if __SSE2__
-//        d->m = _mm_mul_ps(w->m, s->m);
+//        d->m = _mm_mul_ps(x->m, _mm_mul_ps(w->m, s->m));
 //#else
-//        d->v = w->v * s->v;
+//        d->v = x->v * w->v * s->v;
 //#endif
 //    }
 //    //Processing is done here!
@@ -498,6 +503,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     struct userdata *u;
     size_t fs;
     struct timeval start, end;
+    unsigned a_i;
     pa_memchunk tchunk;
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
@@ -548,7 +554,9 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     pa_assert(u->fft_size >= u->window_size);
     pa_assert(u->R < u->window_size);
     /* set the H filter */
-    u->H = u->Hs[pa_aupdate_read_begin(u->a_H)];
+    a_i = pa_aupdate_read_begin(u->a_H);
+    u->X = u->Xs[a_i];
+    u->H = u->Hs[a_i];
     pa_rtclock_get(&start);
     /* process a block */
     process_samples(u, chunk);
@@ -727,18 +735,25 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
 }
 
 static void save_profile(struct userdata *u, char *name){
-    float *H_n = pa_xmalloc((u->fft_size / 2 + 1) * sizeof(float));
-    const float *H = u->Hs[pa_aupdate_read_begin(u->a_H)];
+    unsigned a_i;
+    const size_t profile_size = PROFILE_SIZE * sizeof(float);
+    float *H_n, *profile;
+    const float *H;
     pa_datum key, data;
-    for(size_t i = 0 ; i <= u->fft_size / 2 + 1; ++i){
+    profile = pa_xnew0(float, profile_size);
+    a_i = pa_aupdate_read_begin(u->a_H);
+    H_n = profile + 1;
+    H = u->Hs[a_i];
+    profile[0] = u->Xs[a_i];
+    for(size_t i = 0 ; i <= FILTER_SIZE; ++i){
         //H_n[i] = H[i] * u->fft_size;
         H_n[i] = H[i];
     }
     pa_aupdate_read_end(u->a_H);
     key.data=name;
     key.size = strlen(key.data);
-    data.data = H_n;
-    data.size = (u->fft_size / 2 + 1) * sizeof(float);
+    data.data = profile;
+    data.size = profile_size;
     pa_database_set(u->database, &key, &data, TRUE);
     pa_database_sync(u->database);
 }
@@ -760,13 +775,17 @@ static void remove_profile(pa_core *c, char *name){
 }
 
 static const char* load_profile(struct userdata *u, char *name){
-    pa_datum key,value;
+    unsigned a_i;
+    pa_datum key, value;
+    const size_t profile_size = PROFILE_SIZE * sizeof(float);
     key.data = name;
     key.size = strlen(key.data);
     if(pa_database_get(u->database, &key, &value) != NULL){
-        if(value.size == (u->fft_size / 2 + 1) * sizeof(float)){
-            float *H=u->Hs[pa_aupdate_write_begin(u->a_H)];
-            memcpy(H, value.data, value.size);
+        if(value.size == profile_size){
+            float *H = (float *) value.data;
+            a_i = pa_aupdate_write_begin(u->a_H);
+            u->Xs[a_i] = H[0];
+            memcpy(u->Hs[a_i], H + 1, (FILTER_SIZE) * sizeof(float));
             pa_aupdate_write_end(u->a_H);
         }else{
             return "incompatible size";
@@ -831,6 +850,7 @@ int pa__init(pa_module*m) {
     pa_bool_t *use_default = NULL;
     size_t fs;
     float *H;
+    unsigned a_i;
 
     pa_assert(m);
 
@@ -867,7 +887,7 @@ int pa__init(pa_module*m) {
     u->a_H = pa_aupdate_new();
     u->latency = u->window_size - u->R;
     for(size_t i = 0; i < 2; ++i){
-        u->Hs[i] = alloc((u->fft_size / 2 + 1), sizeof(float));
+        u->Hs[i] = alloc((FILTER_SIZE), sizeof(float));
     }
     u->W = alloc(u->window_size, sizeof(float));
     u->work_buffer = alloc(u->fft_size, sizeof(float));
@@ -880,7 +900,7 @@ int pa__init(pa_module*m) {
         u->overlap_accum[c] = alloc(u->overlap_size, sizeof(float));
         memset(u->overlap_accum[c], 0, u->overlap_size*sizeof(float));
     }
-    u->output_window = alloc((u->fft_size / 2 + 1), sizeof(fftwf_complex));
+    u->output_window = alloc((FILTER_SIZE), sizeof(fftwf_complex));
     u->forward_plan = fftwf_plan_dft_r2c_1d(u->fft_size, u->work_buffer, u->output_window, FFTW_ESTIMATE);
     u->inverse_plan = fftwf_plan_dft_c2r_1d(u->fft_size, u->output_window, u->work_buffer, FFTW_ESTIMATE);
 
@@ -964,8 +984,10 @@ int pa__init(pa_module*m) {
     dbus_init(u);
 
     //default filter to these
-    H=u->Hs[pa_aupdate_write_begin(u->a_H)];
-    for(size_t i = 0; i < u->fft_size / 2 + 1; ++i){
+    a_i = pa_aupdate_write_begin(u->a_H);
+    H = u->Hs[a_i];
+    u->Xs[a_i] = 1.0f;
+    for(size_t i = 0; i < FILTER_SIZE; ++i){
         H[i] = 1.0 / sqrtf(2.0f);
     }
     fix_filter(H, u->fft_size);
@@ -1053,9 +1075,7 @@ void pa__done(pa_module*m) {
 #define MANAGER_IFACE EXTNAME ".Manager"
 #define EQUALIZER_IFACE EXTNAME ".Equalizer"
 static void manager_get_revision(DBusConnection *conn, DBusMessage *msg, void *_u);
-static void get_sinks(pa_core *u, char ***names, unsigned *n_sinks);
 static void manager_get_sinks(DBusConnection *conn, DBusMessage *msg, void *_u);
-static void get_profiles(pa_core *u, char ***names, unsigned *n_sinks);
 static void manager_get_profiles(DBusConnection *conn, DBusMessage *msg, void *_u);
 static void manager_get_all(DBusConnection *conn, DBusMessage *msg, void *_u);
 static void manager_handle_remove_profile(DBusConnection *conn, DBusMessage *msg, void *_u);
@@ -1064,14 +1084,12 @@ static void equalizer_get_sample_rate(DBusConnection *conn, DBusMessage *msg, vo
 static void equalizer_get_filter_rate(DBusConnection *conn, DBusMessage *msg, void *_u);
 static void equalizer_get_n_coefs(DBusConnection *conn, DBusMessage *msg, void *_u);
 static void equalizer_get_filter(DBusConnection *conn, DBusMessage *msg, void *_u);
-static void equalizer_get_all(DBusConnection *conn, DBusMessage *msg, void *_u);
 static void equalizer_set_filter(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_get_all(DBusConnection *conn, DBusMessage *msg, void *_u);
 static void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg, void *_u);
 static void equalizer_handle_get_filter_points(DBusConnection *conn, DBusMessage *msg, void *_u);
 static void equalizer_handle_save_profile(DBusConnection *conn, DBusMessage *msg, void *_u);
 static void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void *_u);
-static void get_filter(struct userdata *u, double **H_);
-static void set_filter(struct userdata *u, double **H_);
 enum manager_method_index {
     MANAGER_METHOD_REMOVE_PROFILE,
     MANAGER_METHOD_MAX
@@ -1144,16 +1162,19 @@ enum equalizer_handler_index {
     EQUALIZER_HANDLER_FILTERSAMPLERATE,
     EQUALIZER_HANDLER_N_COEFS,
     EQUALIZER_HANDLER_FILTER,
+    EQUALIZER_HANDLER_PREAMP,
     EQUALIZER_HANDLER_MAX
 };
 
 pa_dbus_arg_info filter_points_args[]={
     {"xs", "au","in"},
     {"ys", "ad","out"},
+    {"preamp", "d","out"},
 };
 pa_dbus_arg_info seed_filter_args[]={
     {"xs", "au","in"},
     {"ys", "ad","in"},
+    {"preamp", "d","in"},
 };
 pa_dbus_arg_info save_profile_args[]={
     {"name", "s","in"},
@@ -1190,7 +1211,7 @@ static pa_dbus_property_handler equalizer_handlers[EQUALIZER_HANDLER_MAX]={
     [EQUALIZER_HANDLER_SAMPLERATE]{.property_name="SampleRate",.type="u",.get_cb=equalizer_get_sample_rate,.set_cb=NULL},
     [EQUALIZER_HANDLER_FILTERSAMPLERATE]{.property_name="FilterSampleRate",.type="u",.get_cb=equalizer_get_filter_rate,.set_cb=NULL},
     [EQUALIZER_HANDLER_N_COEFS]{.property_name="NFilterCoefficients",.type="u",.get_cb=equalizer_get_n_coefs,.set_cb=NULL},
-    [EQUALIZER_HANDLER_FILTER]{.property_name="Filter",.type="ad",.get_cb=equalizer_get_filter,.set_cb=equalizer_set_filter},
+    [EQUALIZER_HANDLER_FILTER]{.property_name="Filter",.type="ad",.get_cb=equalizer_get_filter,.set_cb=equalizer_set_filter}
 };
 
 enum equalizer_signal_index{
@@ -1215,7 +1236,7 @@ static pa_dbus_interface_info equalizer_info={
     .n_signals=EQUALIZER_SIGNAL_MAX
 };
 
-static void dbus_init(struct userdata *u){
+void dbus_init(struct userdata *u){
     uint32_t dummy;
     DBusMessage *signal = NULL;
     pa_idxset *sink_list = NULL;
@@ -1244,7 +1265,7 @@ static void dbus_init(struct userdata *u){
     dbus_message_unref(signal);
 }
 
-static void dbus_done(struct userdata *u){
+void dbus_done(struct userdata *u){
     pa_idxset *sink_list;
     uint32_t dummy;
 
@@ -1269,7 +1290,7 @@ static void dbus_done(struct userdata *u){
     pa_dbus_protocol_unref(u->dbus_protocol);
 }
 
-static void manager_handle_remove_profile(DBusConnection *conn, DBusMessage *msg, void *_u) {
+void manager_handle_remove_profile(DBusConnection *conn, DBusMessage *msg, void *_u) {
     DBusError error;
     pa_core *c = (pa_core *)_u;
     DBusMessage *signal = NULL;
@@ -1296,7 +1317,7 @@ static void manager_handle_remove_profile(DBusConnection *conn, DBusMessage *msg
     dbus_message_unref(signal);
 }
 
-static void manager_get_revision(DBusConnection *conn, DBusMessage *msg, void *_u){
+void manager_get_revision(DBusConnection *conn, DBusMessage *msg, void *_u){
     uint32_t rev=1;
     pa_dbus_send_basic_value_reply(conn, msg, DBUS_TYPE_UINT32, &rev);
 }
@@ -1319,7 +1340,7 @@ static void get_sinks(pa_core *u, char ***names, unsigned *n_sinks){
     }
 }
 
-static void manager_get_sinks(DBusConnection *conn, DBusMessage *msg, void *_u){
+void manager_get_sinks(DBusConnection *conn, DBusMessage *msg, void *_u){
     unsigned n;
     char **names = NULL;
     pa_assert(conn);
@@ -1367,7 +1388,7 @@ static void get_profiles(pa_core *c, char ***names, unsigned *n){
     pa_strlist_free(head);
 }
 
-static void manager_get_profiles(DBusConnection *conn, DBusMessage *msg, void *_u){
+void manager_get_profiles(DBusConnection *conn, DBusMessage *msg, void *_u){
     char **names;
     unsigned n;
     pa_assert(conn);
@@ -1382,7 +1403,7 @@ static void manager_get_profiles(DBusConnection *conn, DBusMessage *msg, void *_
     pa_xfree(names);
 }
 
-static void manager_get_all(DBusConnection *conn, DBusMessage *msg, void *_u){
+void manager_get_all(DBusConnection *conn, DBusMessage *msg, void *_u){
     pa_core *c;
     char **names = NULL;
     unsigned n;
@@ -1418,14 +1439,14 @@ static void manager_get_all(DBusConnection *conn, DBusMessage *msg, void *_u){
     dbus_message_unref(reply);
 }
 
-static void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg, void *_u) {
+void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg, void *_u) {
     struct userdata *u=(struct userdata *) _u;
     DBusError error;
     DBusMessage *signal = NULL;
     float *ys;
     uint32_t *xs;
-    double *_ys;
-    unsigned x_npoints, y_npoints;
+    double *_ys, preamp;
+    unsigned x_npoints, y_npoints, a_i;
     float *H;
     pa_bool_t points_good = TRUE;
     pa_assert(conn);
@@ -1437,13 +1458,14 @@ static void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg,
     if(!dbus_message_get_args(msg, &error,
                 DBUS_TYPE_ARRAY, DBUS_TYPE_UINT32, &xs, &x_npoints,
                 DBUS_TYPE_ARRAY, DBUS_TYPE_DOUBLE, &_ys, &y_npoints,
+                DBUS_TYPE_DOUBLE, &preamp,
                 DBUS_TYPE_INVALID)){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
         dbus_error_free(&error);
         return;
     }
     for(size_t i = 0; i < x_npoints; ++i){
-        if(xs[i] >= u->fft_size / 2 + 1){
+        if(xs[i] >= FILTER_SIZE){
             points_good = FALSE;
             break;
         }
@@ -1453,8 +1475,8 @@ static void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg,
         dbus_error_free(&error);
         return;
 
-    }else if(x_npoints != y_npoints || x_npoints < 2 || x_npoints > u->fft_size / 2 +1  ){
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs and ys must be the same length and 2<=l<=%ld!", u->fft_size / 2 + 1);
+    }else if(x_npoints != y_npoints || x_npoints < 2 || x_npoints > FILTER_SIZE  ){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs and ys must be the same length and 2<=l<=%ld!", FILTER_SIZE);
         dbus_error_free(&error);
         return;
     }else if(xs[0] != 0 || xs[x_npoints - 1] != u->fft_size / 2){
@@ -1467,9 +1489,10 @@ static void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg,
     for(uint32_t i = 0; i < x_npoints; ++i){
         ys[i] = (float) _ys[i];
     }
-
-    H = u->Hs[pa_aupdate_write_begin(u->a_H)];
-    interpolate(H, u->fft_size / 2 + 1, xs, ys, x_npoints);
+    a_i = pa_aupdate_write_begin(u->a_H);
+    H = u->Hs[a_i];
+    u->Xs[a_i] = preamp;
+    interpolate(H, FILTER_SIZE, xs, ys, x_npoints);
     fix_filter(H, u->fft_size);
     pa_aupdate_write_end(u->a_H);
     pa_xfree(ys);
@@ -1484,14 +1507,16 @@ static void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg,
     dbus_message_unref(signal);
 }
 
-static void equalizer_handle_get_filter_points(DBusConnection *conn, DBusMessage *msg, void *_u) {
+void equalizer_handle_get_filter_points(DBusConnection *conn, DBusMessage *msg, void *_u) {
     struct userdata *u = (struct userdata *) _u;
     DBusError error;
     uint32_t *xs;
-    double *ys;
-    unsigned x_npoints;
+    double *ys, preamp;
+    unsigned x_npoints, a_i;
     float *H;
     pa_bool_t points_good=TRUE;
+    DBusMessage *reply = NULL;
+    DBusMessageIter msg_iter;
 
     pa_assert(conn);
     pa_assert(msg);
@@ -1507,30 +1532,39 @@ static void equalizer_handle_get_filter_points(DBusConnection *conn, DBusMessage
         return;
     }
     for(size_t i = 0; i < x_npoints; ++i){
-        if(xs[i] >= u->fft_size / 2 + 1){
+        if(xs[i] >= FILTER_SIZE){
             points_good=FALSE;
             break;
         }
     }
 
-    if(x_npoints > u->fft_size / 2 +1 || !points_good){
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs indices/length must be <= %ld!", u->fft_size / 2 + 1);
+    if(x_npoints > FILTER_SIZE || !points_good){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs indices/length must be <= %ld!", FILTER_SIZE);
         dbus_error_free(&error);
         return;
     }
 
     ys = pa_xmalloc(x_npoints * sizeof(double));
-    H = u->Hs[pa_aupdate_read_begin(u->a_H)];
+    a_i = pa_aupdate_read_begin(u->a_H);
+    H = u->Hs[a_i];
+    preamp = u->Xs[a_i];
     for(uint32_t i = 0; i < x_npoints; ++i){
         ys[i] = H[xs[i]] * u->fft_size;
     }
     pa_aupdate_read_end(u->a_H);
 
-    pa_dbus_send_basic_array_variant_reply(conn, msg, DBUS_TYPE_DOUBLE, ys, x_npoints);
+    pa_assert_se((reply = dbus_message_new_method_return(msg)));
+    dbus_message_iter_init_append(reply, &msg_iter);
+
+    pa_dbus_append_basic_array(&msg_iter, DBUS_TYPE_DOUBLE, ys, x_npoints);
+    pa_dbus_append_basic_variant(&msg_iter, DBUS_TYPE_DOUBLE, &preamp);
+
+    pa_assert_se(dbus_connection_send(conn, reply, NULL));
+    dbus_message_unref(reply);
     pa_xfree(ys);
 }
 
-static void equalizer_handle_save_profile(DBusConnection *conn, DBusMessage *msg, void *_u) {
+void equalizer_handle_save_profile(DBusConnection *conn, DBusMessage *msg, void *_u) {
     struct userdata *u = (struct userdata *) _u;
     char *name;
     DBusMessage *signal = NULL;
@@ -1555,7 +1589,7 @@ static void equalizer_handle_save_profile(DBusConnection *conn, DBusMessage *msg
     dbus_message_unref(signal);
 }
 
-static void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void *_u) {
+void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void *_u) {
     struct userdata *u=(struct userdata *) _u;
     char *name;
     DBusError error;
@@ -1574,7 +1608,7 @@ static void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg
         dbus_error_free(&error);
         return;
     }
-    err_msg = load_profile(u,name);
+    err_msg = load_profile(u, name);
     if(err_msg != NULL){
         pa_dbus_send_error(conn, msg, DBUS_ERROR_FAILED, "error loading profile %s: %s", name, err_msg);
         dbus_error_free(&error);
@@ -1587,23 +1621,23 @@ static void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg
     dbus_message_unref(signal);
 }
 
-static void equalizer_get_revision(DBusConnection *conn, DBusMessage *msg, void *_u){
+void equalizer_get_revision(DBusConnection *conn, DBusMessage *msg, void *_u){
     uint32_t rev=1;
     pa_dbus_send_basic_value_reply(conn, msg, DBUS_TYPE_UINT32, &rev);
 }
 
-static void equalizer_get_n_coefs(DBusConnection *conn, DBusMessage *msg, void *_u){
+void equalizer_get_n_coefs(DBusConnection *conn, DBusMessage *msg, void *_u){
     struct userdata *u;
     uint32_t n_coefs;
     pa_assert_se(u = (struct userdata *) _u);
     pa_assert(conn);
     pa_assert(msg);
 
-    n_coefs = (uint32_t) (u->fft_size / 2 + 1);
+    n_coefs = (uint32_t) PROFILE_SIZE;
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &n_coefs);
 }
 
-static void equalizer_get_sample_rate(DBusConnection *conn, DBusMessage *msg, void *_u){
+void equalizer_get_sample_rate(DBusConnection *conn, DBusMessage *msg, void *_u){
     struct userdata *u;
     uint32_t rate;
     pa_assert_se(u = (struct userdata *) _u);
@@ -1614,7 +1648,7 @@ static void equalizer_get_sample_rate(DBusConnection *conn, DBusMessage *msg, vo
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &rate);
 }
 
-static void equalizer_get_filter_rate(DBusConnection *conn, DBusMessage *msg, void *_u){
+void equalizer_get_filter_rate(DBusConnection *conn, DBusMessage *msg, void *_u){
     struct userdata *u;
     uint32_t fft_size;
     pa_assert_se(u = (struct userdata *) _u);
@@ -1625,71 +1659,47 @@ static void equalizer_get_filter_rate(DBusConnection *conn, DBusMessage *msg, vo
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &fft_size);
 }
 
-static void get_filter(struct userdata *u, double **H_){
+static double * get_filter(struct userdata *u){
     float *H;
-    *H_ = pa_xnew0(double, u->fft_size / 2 + 1);
-    H = u->Hs[pa_aupdate_read_begin(u->a_H)];
-    for(size_t i = 0;i < u->fft_size / 2 + 1; ++i){
-        (*H_)[i] = H[i] * u->fft_size;
+    double *H_;
+    unsigned a_i;
+    H_ = pa_xnew0(double, PROFILE_SIZE);
+    a_i = pa_aupdate_read_begin(u->a_H);
+    H = u->Hs[a_i];
+    H_[0] = u->Xs[a_i];
+    for(size_t i = 0;i < FILTER_SIZE; ++i){
+        H_[i + 1] = H[i] * u->fft_size;
     }
     pa_aupdate_read_end(u->a_H);
+    return H_;
 }
 
-static void equalizer_get_all(DBusConnection *conn, DBusMessage *msg, void *_u){
-    struct userdata *u;
-    DBusMessage *reply = NULL;
-    DBusMessageIter msg_iter, dict_iter;
-    uint32_t rev, n_coefs, rate, fft_size;
-    double *H;
-    pa_assert_se(u = (struct userdata *) _u);
-    pa_assert(msg);
-
-    rev = 1;
-    n_coefs = (uint32_t) (u->fft_size / 2 + 1);
-    rate = (uint32_t) u->sink->sample_spec.rate;
-    fft_size = (uint32_t) u->fft_size;
-
-    pa_assert_se((reply = dbus_message_new_method_return(msg)));
-    dbus_message_iter_init_append(reply, &msg_iter);
-    pa_assert_se(dbus_message_iter_open_container(&msg_iter, DBUS_TYPE_ARRAY, "{sv}", &dict_iter));
-
-    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_REVISION].property_name, DBUS_TYPE_UINT32, &rev);
-    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_SAMPLERATE].property_name, DBUS_TYPE_UINT32, &rate);
-    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_FILTERSAMPLERATE].property_name, DBUS_TYPE_UINT32, &fft_size);
-    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_N_COEFS].property_name, DBUS_TYPE_UINT32, &n_coefs);
-    get_filter(u, &H);
-    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_FILTER].property_name, DBUS_TYPE_UINT32, &H);
-    pa_xfree(H);
-
-    pa_assert_se(dbus_message_iter_close_container(&msg_iter, &dict_iter));
-    pa_assert_se(dbus_connection_send(conn, reply, NULL));
-    dbus_message_unref(reply);
-}
-
-static void equalizer_get_filter(DBusConnection *conn, DBusMessage *msg, void *_u){
+void equalizer_get_filter(DBusConnection *conn, DBusMessage *msg, void *_u){
     struct userdata *u;
     unsigned n_coefs;
     double *H_;
     pa_assert_se(u = (struct userdata *) _u);
 
-    n_coefs = u->fft_size / 2 + 1;
+    n_coefs = PROFILE_SIZE;
     pa_assert(conn);
     pa_assert(msg);
-    get_filter(u, &H_);
+    H_ = get_filter(u);
     pa_dbus_send_basic_array_variant_reply(conn, msg, DBUS_TYPE_DOUBLE, H_, n_coefs);
     pa_xfree(H_);
 }
 
-static void set_filter(struct userdata *u, double **H_){
-    float *H = u->Hs[pa_aupdate_write_begin(u->a_H)];
-    for(size_t i = 0; i < u->fft_size / 2 + 1; ++i){
-        H[i] = (float) (*H_)[i];
+static void set_filter(struct userdata *u, double *H_){
+    unsigned a_i= pa_aupdate_write_begin(u->a_H);
+    float *H = u->Hs[a_i];
+    u->Xs[a_i] = H_[0];
+    for(size_t i = 0; i < FILTER_SIZE; ++i){
+        H[i] = (float) H_[i + 1];
     }
-    fix_filter(H, u->fft_size);
+    fix_filter(H + 1, u->fft_size);
     pa_aupdate_write_end(u->a_H);
 }
 
-static void equalizer_set_filter(DBusConnection *conn, DBusMessage *msg, void *_u){
+void equalizer_set_filter(DBusConnection *conn, DBusMessage *msg, void *_u){
     struct userdata *u;
     double *H;
     unsigned _n_coefs;
@@ -1701,17 +1711,46 @@ static void equalizer_set_filter(DBusConnection *conn, DBusMessage *msg, void *_
     if(pa_dbus_get_fixed_array_set_property_arg(conn, msg, DBUS_TYPE_DOUBLE, &H, &_n_coefs)){
         return;
     }
-    if(_n_coefs!=u->fft_size / 2 + 1){
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "This filter takes exactly %ld coefficients, you gave %d", u->fft_size / 2 + 1, _n_coefs);
+    if(_n_coefs != PROFILE_SIZE){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "This filter takes exactly %ld coefficients, you gave %d", PROFILE_SIZE, _n_coefs);
         return;
     }
-    set_filter(u, &H);
-    //Stupid for IO reasons?  Add a save signal to dbus instead
-    //save_state(u);
+    set_filter(u, H);
 
     pa_dbus_send_empty_reply(conn, msg);
 
     pa_assert_se((signal = dbus_message_new_signal(u->dbus_path, EQUALIZER_IFACE, equalizer_signals[EQUALIZER_SIGNAL_FILTER_CHANGED].name)));
     pa_dbus_protocol_send_signal(u->dbus_protocol, signal);
     dbus_message_unref(signal);
+}
+
+void equalizer_get_all(DBusConnection *conn, DBusMessage *msg, void *_u){
+    struct userdata *u;
+    DBusMessage *reply = NULL;
+    DBusMessageIter msg_iter, dict_iter;
+    uint32_t rev, n_coefs, rate, fft_size;
+    double *H;
+    pa_assert_se(u = (struct userdata *) _u);
+    pa_assert(msg);
+
+    rev = 1;
+    n_coefs = (uint32_t) PROFILE_SIZE;
+    rate = (uint32_t) u->sink->sample_spec.rate;
+    fft_size = (uint32_t) u->fft_size;
+
+    pa_assert_se((reply = dbus_message_new_method_return(msg)));
+    dbus_message_iter_init_append(reply, &msg_iter);
+    pa_assert_se(dbus_message_iter_open_container(&msg_iter, DBUS_TYPE_ARRAY, "{sv}", &dict_iter));
+
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_REVISION].property_name, DBUS_TYPE_UINT32, &rev);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_SAMPLERATE].property_name, DBUS_TYPE_UINT32, &rate);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_FILTERSAMPLERATE].property_name, DBUS_TYPE_UINT32, &fft_size);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_N_COEFS].property_name, DBUS_TYPE_UINT32, &n_coefs);
+    H = get_filter(u);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_FILTER].property_name, DBUS_TYPE_UINT32, &H);
+    pa_xfree(H);
+
+    pa_assert_se(dbus_message_iter_close_container(&msg_iter, &dict_iter));
+    pa_assert_se(dbus_connection_send(conn, reply, NULL));
+    dbus_message_unref(reply);
 }
