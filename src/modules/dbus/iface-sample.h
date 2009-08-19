@@ -29,8 +29,11 @@
  */
 
 #include <pulsecore/core-scache.h>
+#include <pulsecore/protocol-dbus.h>
 
 #include "iface-core.h"
+
+#define PA_DBUSIFACE_SAMPLE_INTERFACE PA_DBUS_CORE_INTERFACE ".Sample"
 
 typedef struct pa_dbusiface_sample pa_dbusiface_sample;
 
