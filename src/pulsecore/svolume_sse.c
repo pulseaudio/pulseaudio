@@ -52,8 +52,7 @@
       " add "#a", %3                 \n\t" /* channel += inc           */ \
       " mov %3, %4                   \n\t"                                \
       " sub "#b", %4                 \n\t" /* tmp = channel - channels */ \
-      " cmp "#b", %3                 \n\t" /* if (channel >= channels) */ \
-      " cmovae %4, %3                \n\t" /*   channel = tmp          */
+      " cmovae %4, %3                \n\t" /* if (tmp >= 0) channel = tmp  */
 
 /* swap 16 bits */
 #define SWAP_16(s) \

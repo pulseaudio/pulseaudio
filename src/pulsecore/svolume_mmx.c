@@ -72,7 +72,6 @@
       " add "#a", %3                 \n\t" \
       " mov %3, %4                   \n\t" \
       " sub "#b", %4                 \n\t" \
-      " cmp "#b", %3                 \n\t" \
       " cmovae %4, %3                \n\t" 
 
 /* swap 16 bits */
