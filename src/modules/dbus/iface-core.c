@@ -2031,7 +2031,7 @@ pa_dbusiface_core *pa_dbusiface_core_new(pa_core *core) {
     PA_IDXSET_FOREACH(client, core->clients, idx)
         pa_hashmap_put(c->clients, PA_UINT32_TO_PTR(idx), pa_dbusiface_client_new(c, client));
 
-    pa_dbus_protocol_add_interface(c->dbus_protocol, PA_DBUS_CORE_OBJECT_PATH, &core_interface_info, c);
+    pa_assert_se(pa_dbus_protocol_add_interface(c->dbus_protocol, PA_DBUS_CORE_OBJECT_PATH, &core_interface_info, c) >= 0);
 
     return c;
 }
@@ -2087,7 +2087,7 @@ static void free_client_cb(void *p, void *userdata) {
 void pa_dbusiface_core_free(pa_dbusiface_core *c) {
     pa_assert(c);
 
-    pa_dbus_protocol_remove_interface(c->dbus_protocol, PA_DBUS_CORE_OBJECT_PATH, core_interface_info.name);
+    pa_assert_se(pa_dbus_protocol_remove_interface(c->dbus_protocol, PA_DBUS_CORE_OBJECT_PATH, core_interface_info.name) >= 0);
 
     pa_subscription_free(c->subscription);
     pa_hashmap_free(c->cards, free_card_cb, NULL);
