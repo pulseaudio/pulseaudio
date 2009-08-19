@@ -94,10 +94,12 @@ struct pa_sink_input {
     pa_sink_input *sync_prev, *sync_next;
 
     /* Also see http://pulseaudio.org/wiki/InternalVolumes */
-    pa_cvolume virtual_volume;  /* The volume clients are informed about */
-    pa_cvolume volume_factor;   /* An internally used volume factor that can be used by modules to apply effects and suchlike without having that visible to the outside */
-    double relative_volume[PA_CHANNELS_MAX]; /* The calculated volume relative to the sink volume as linear factors. */
-    pa_cvolume soft_volume;     /* The internal software volume we apply to all PCM data while it passes through. Usually calculated as relative_volume * volume_factor  */
+    pa_cvolume volume;             /* The volume clients are informed about */
+    pa_cvolume reference_ratio;    /* The ratio of the stream's volume to the sink's reference volume */
+    pa_cvolume real_ratio;         /* The ratio of the stream's volume to the sink's real volume */
+    pa_cvolume volume_factor;      /* An internally used volume factor that can be used by modules to apply effects and suchlike without having that visible to the outside */
+    pa_cvolume soft_volume;        /* The internal software volume we apply to all PCM data while it passes through. Usually calculated as real_ratio * volume_factor */
+
     pa_bool_t muted:1;
 
     /* if TRUE then the source we are connected to and/or the volume
@@ -325,8 +327,6 @@ pa_usec_t pa_sink_input_get_latency(pa_sink_input *i, pa_usec_t *sink_latency);
 void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_bool_t save, pa_bool_t absolute);
 pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i, pa_cvolume *volume, pa_bool_t absolute);
 
-pa_cvolume *pa_sink_input_get_relative_volume(pa_sink_input *i, pa_cvolume *v);
-
 void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute, pa_bool_t save);
 pa_bool_t pa_sink_input_get_mute(pa_sink_input *i);
 
@@ -368,9 +368,6 @@ pa_usec_t pa_sink_input_set_requested_latency_within_thread(pa_sink_input *i, pa
 pa_bool_t pa_sink_input_safe_to_remove(pa_sink_input *i);
 
 pa_memchunk* pa_sink_input_get_silence(pa_sink_input *i, pa_memchunk *ret);
-
-/* To be used by sink.c only */
-void pa_sink_input_set_relative_volume(pa_sink_input *i, const pa_cvolume *v);
 
 #define pa_sink_input_assert_io_context(s) \
     pa_assert(pa_thread_mq_get() || !PA_SINK_INPUT_IS_LINKED((s)->state))
