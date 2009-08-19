@@ -44,6 +44,11 @@
 /* Number of samples of extra space we allow the resamplers to return */
 #define EXTRA_FRAMES 128
 
+typedef void (*pa_do_remap_func_t) (pa_resampler *r, void *d, const void *s, unsigned n);
+
+static void remap_channels_matrix (pa_resampler *r, void *dst, const void *src, unsigned n);
+static void remap_mono_to_stereo(pa_resampler *r, void *dst, const void *src, unsigned n);
+
 struct pa_resampler {
     pa_resample_method_t method;
     pa_resample_flags_t flags;
@@ -64,6 +69,7 @@ struct pa_resampler {
     float map_table_f[PA_CHANNELS_MAX][PA_CHANNELS_MAX];
     int32_t map_table_i[PA_CHANNELS_MAX][PA_CHANNELS_MAX];
     pa_bool_t map_required;
+    pa_do_remap_func_t do_remap;
 
     void (*impl_free)(pa_resampler *r);
     void (*impl_update_rates)(pa_resampler *r);
@@ -1008,6 +1014,17 @@ static void calc_map_table(pa_resampler *r) {
 
     pa_log_debug("Channel matrix:\n%s", t = pa_strbuf_tostring_free(s));
     pa_xfree(t);
+
+    /* find some common channel remappings, fall back to full matrix operation. */
+    if (r->i_ss.channels == 1 && r->o_ss.channels == 2 &&
+            r->map_table_i[0][0] == 1.0 && r->map_table_i[1][0] == 1.0) {
+        r->do_remap = (pa_do_remap_func_t) remap_mono_to_stereo;;
+        pa_log_debug("Using mono to stereo remapping");
+    } else {
+        r->do_remap = (pa_do_remap_func_t) remap_channels_matrix;
+        pa_log_debug("Using generic matrix remapping");
+    }
+
 }
 
 static pa_memchunk* convert_to_work_format(pa_resampler *r, pa_memchunk *input) {
@@ -1047,49 +1064,111 @@ static pa_memchunk* convert_to_work_format(pa_resampler *r, pa_memchunk *input) 
     return &r->buf1;
 }
 
-static void vectoradd_f32(
-        float *d, int dstr,
-        const float *s, int sstr,
-        int n, float s4) {
+static void remap_mono_to_stereo(pa_resampler *r, void *dst, const void *src, unsigned n) {
+  
+    switch (r->work_format) {
+        case PA_SAMPLE_FLOAT32NE:
+        {
+            float *d, *s;
 
-    for (; n > 0; n--) {
-        *d = (float) (*d + (s4 * *s));
+	    d = (float *) dst;
+	    s = (float *) src;
 
-        s = (const float*) ((const uint8_t*) s + sstr);
-        d = (float*) ((uint8_t*) d + dstr);
+            for (; n > 0; n--) {
+                *d++ = *s;
+                *d++ = *s++;
+            }
+	    break;
+	}
+        case PA_SAMPLE_S16NE:
+        {
+            int16_t *d, *s;
+
+	    d = (int16_t *) dst;
+	    s = (int16_t *) src;
+
+            for (; n > 0; n--) {
+                *d++ = *s;
+                *d++ = *s++;
+            }
+	    break;
+	}
+        default:
+            pa_assert_not_reached();
     }
 }
 
-static void vectoradd_s16(
-        int16_t *d, int dstr,
-        const int16_t *s, int sstr,
-        int n) {
+static void remap_channels_matrix (pa_resampler *r, void *dst, const void *src, unsigned n) {
+    unsigned oc;
+    unsigned n_ic, n_oc;
 
-    for (; n > 0; n--) {
-        *d = (int16_t) (*d + *s);
+    n_ic = r->i_ss.channels;
+    n_oc = r->o_ss.channels;
 
-        s = (const int16_t*) ((const uint8_t*) s + sstr);
-        d = (int16_t*) ((uint8_t*) d + dstr);
-    }
-}
+    memset(dst, 0, r->buf2.length);
 
-static void vectoradd_s16_with_fraction(
-        int16_t *d, int dstr,
-        const int16_t *s, int sstr,
-        int n, int32_t i4) {
+    switch (r->work_format) {
+        case PA_SAMPLE_FLOAT32NE:
+        {
+            float *d, *s;
 
-    for (; n > 0; n--) {
-        *d = (int16_t) (*d + (((int32_t)*s * i4) >> 16));
+            for (oc = 0; oc < n_oc; oc++) {
+                unsigned ic;
 
-        s = (const int16_t*) ((const uint8_t*) s + sstr);
-        d = (int16_t*) ((uint8_t*) d + dstr);
+                for (ic = 0; ic < n_ic; ic++) {
+                    float vol;
+
+		    vol = r->map_table_f[oc][ic];
+
+                    if (vol <= 0.0)
+                        continue;
+
+                    d = (float *)dst + oc;
+                    s = (float *)src + ic;
+
+                    for (; n > 0; n--, s += n_ic, d += n_oc)
+                        *d += *s * vol;
+                }
+            }
+
+            break;
+	}
+        case PA_SAMPLE_S16NE:
+        {
+            int16_t *d, *s;
+
+            for (oc = 0; oc < n_oc; oc++) {
+                unsigned ic;
+
+                for (ic = 0; ic < n_ic; ic++) {
+                    int32_t vol;
+
+		    vol = r->map_table_i[oc][ic];
+
+                    if (vol <= 0)
+                        continue;
+
+                    d = (int16_t *)dst + oc;
+                    s = (int16_t *)src + ic;
+
+                    if (vol >= 0x10000) {
+                        for (; n > 0; n--, s += n_ic, d += n_oc)
+                            *d += *s;
+                    } else {
+                        for (; n > 0; n--, s += n_ic, d += n_oc)
+                            *d = (int16_t) (*d + (((int32_t)*s * vol) >> 16));
+		    }
+                }
+            }
+            break;
+	}
+        default:
+            pa_assert_not_reached();
     }
 }
 
 static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
     unsigned in_n_samples, out_n_samples, n_frames;
-    int i_skip, o_skip;
-    unsigned oc;
     void *src, *dst;
 
     pa_assert(r);
@@ -1119,69 +1198,11 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
     src = ((uint8_t*) pa_memblock_acquire(input->memblock) + input->index);
     dst = pa_memblock_acquire(r->buf2.memblock);
 
-    memset(dst, 0, r->buf2.length);
-
-    o_skip = (int) (r->w_sz * r->o_ss.channels);
-    i_skip = (int) (r->w_sz * r->i_ss.channels);
-
-    switch (r->work_format) {
-        case PA_SAMPLE_FLOAT32NE:
-
-            for (oc = 0; oc < r->o_ss.channels; oc++) {
-                unsigned ic;
-
-                for (ic = 0; ic < r->i_ss.channels; ic++) {
-
-                    if (r->map_table_f[oc][ic] <= 0.0)
-                        continue;
-
-                    vectoradd_f32(
-                            (float*) dst + oc, o_skip,
-                            (float*) src + ic, i_skip,
-                            (int) n_frames,
-                            r->map_table_f[oc][ic]);
-                }
-            }
-
-            break;
-
-        case PA_SAMPLE_S16NE:
-
-            for (oc = 0; oc < r->o_ss.channels; oc++) {
-                unsigned ic;
-
-                for (ic = 0; ic < r->i_ss.channels; ic++) {
-
-                    if (r->map_table_f[oc][ic] <= 0.0)
-                        continue;
-
-                    if (r->map_table_f[oc][ic] >= 1.0) {
-
-                        vectoradd_s16(
-                                (int16_t*) dst + oc, o_skip,
-                                (int16_t*) src + ic, i_skip,
-                                (int) n_frames);
-
-                    } else
-
-                        vectoradd_s16_with_fraction(
-                                (int16_t*) dst + oc, o_skip,
-                                (int16_t*) src + ic, i_skip,
-                                (int) n_frames,
-                                r->map_table_i[oc][ic]);
-                }
-            }
-
-            break;
-
-        default:
-            pa_assert_not_reached();
-    }
+    pa_assert (r->do_remap);
+    r->do_remap (r, dst, src, n_frames);
 
     pa_memblock_release(input->memblock);
     pa_memblock_release(r->buf2.memblock);
-
-    r->buf2.length = out_n_samples * r->w_sz;
 
     return &r->buf2;
 }
