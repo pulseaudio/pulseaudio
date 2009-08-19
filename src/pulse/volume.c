@@ -876,3 +876,37 @@ pa_cvolume* pa_cvolume_merge(pa_cvolume *dest, const pa_cvolume *a, const pa_cvo
 
     return dest;
 }
+
+pa_cvolume* pa_cvolume_inc(pa_cvolume *v, pa_volume_t inc) {
+    pa_volume_t m;
+
+    pa_assert(v);
+
+    pa_return_val_if_fail(pa_cvolume_valid(v), NULL);
+
+    m = pa_cvolume_max(v);
+
+    if (m >= PA_VOLUME_MAX - inc)
+        m = PA_VOLUME_MAX;
+    else
+        m += inc;
+
+    return pa_cvolume_scale(v, m);
+}
+
+pa_cvolume* pa_cvolume_dec(pa_cvolume *v, pa_volume_t dec) {
+    pa_volume_t m;
+
+    pa_assert(v);
+
+    pa_return_val_if_fail(pa_cvolume_valid(v), NULL);
+
+    m = pa_cvolume_max(v);
+
+    if (m <= PA_VOLUME_MUTED + dec)
+        m = PA_VOLUME_MUTED;
+    else
+        m -= dec;
+
+    return pa_cvolume_scale(v, m);
+}
