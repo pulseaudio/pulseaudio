@@ -1099,7 +1099,7 @@ static void remap_mono_to_stereo(pa_resampler *r, void *dst, const void *src, un
 }
 
 static void remap_channels_matrix (pa_resampler *r, void *dst, const void *src, unsigned n) {
-    unsigned oc;
+    unsigned oc, i;
     unsigned n_ic, n_oc;
 
     n_ic = r->i_ss.channels;
@@ -1126,7 +1126,7 @@ static void remap_channels_matrix (pa_resampler *r, void *dst, const void *src, 
                     d = (float *)dst + oc;
                     s = (float *)src + ic;
 
-                    for (; n > 0; n--, s += n_ic, d += n_oc)
+                    for (i = n; i > 0; i--, s += n_ic, d += n_oc)
                         *d += *s * vol;
                 }
             }
@@ -1152,10 +1152,10 @@ static void remap_channels_matrix (pa_resampler *r, void *dst, const void *src, 
                     s = (int16_t *)src + ic;
 
                     if (vol >= 0x10000) {
-                        for (; n > 0; n--, s += n_ic, d += n_oc)
+                        for (i = n; i > 0; i--, s += n_ic, d += n_oc)
                             *d += *s;
                     } else {
-                        for (; n > 0; n--, s += n_ic, d += n_oc)
+                        for (i = n; i > 0; i--, s += n_ic, d += n_oc)
                             *d = (int16_t) (*d + (((int32_t)*s * vol) >> 16));
 		    }
                 }
