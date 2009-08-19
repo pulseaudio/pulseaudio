@@ -444,7 +444,7 @@ static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, void *user
     }
 
     if (d->type == DEVICE_TYPE_SINK)
-        pa_sink_set_volume(d->sink, &new_vol, TRUE, TRUE, TRUE, TRUE);
+        pa_sink_set_volume(d->sink, &new_vol, TRUE, TRUE);
     else
         pa_source_set_volume(d->source, &new_vol, TRUE);
 
@@ -1099,7 +1099,7 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
                    && ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE)));
 
     new_volume = (d->type == DEVICE_TYPE_SINK)
-                 ? pa_sink_get_volume(d->sink, FALSE, FALSE)
+                 ? pa_sink_get_volume(d->sink, FALSE)
                  : pa_source_get_volume(d->source, FALSE);
 
     if (!pa_cvolume_equal(&d->volume, new_volume)) {
@@ -1212,7 +1212,7 @@ pa_dbusiface_device *pa_dbusiface_device_new_sink(pa_dbusiface_core *core, pa_si
     d->sink = pa_sink_ref(sink);
     d->type = DEVICE_TYPE_SINK;
     d->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, SINK_OBJECT_NAME, sink->index);
-    d->volume = *pa_sink_get_volume(sink, FALSE, FALSE);
+    d->volume = *pa_sink_get_volume(sink, FALSE);
     d->is_muted = pa_sink_get_mute(sink, FALSE);
     d->sink_state = pa_sink_get_state(sink);
     d->ports = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
