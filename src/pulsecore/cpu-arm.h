@@ -27,8 +27,11 @@
 
 typedef enum pa_cpu_arm_flag {
     PA_CPU_ARM_V6       = (1 << 0),
-    PA_CPU_ARM_NEON     = (1 << 1),
-    PA_CPU_ARM_VFP      = (1 << 2)
+    PA_CPU_ARM_V7       = (1 << 1),
+    PA_CPU_ARM_VFP      = (1 << 2),
+    PA_CPU_ARM_EDSP     = (1 << 3),
+    PA_CPU_ARM_NEON     = (1 << 4),
+    PA_CPU_ARM_VFPV3    = (1 << 5)
 } pa_cpu_arm_flag_t;
 
 void pa_cpu_init_arm (void);
