@@ -117,6 +117,9 @@ pa_volume_s16ne_sse (int16_t *samples, int32_t *volumes, unsigned channels, unsi
     " test $1, %2                   \n\t" 
     " je 6f                         \n\t" 
 
+    /* FIXME, we can do aligned access of the volume values if we can guarantee
+     * that the array is 16 bytes aligned, we probably have to do the odd values
+     * after this then. */
     "5:                             \n\t" /* do samples in groups of 4 */
     " movdqu (%1, %3, 4), %%xmm0    \n\t" /* |  v3h  |  v3l  ..  v0h  |  v0l  | */
     " movq (%0), %%xmm1             \n\t" /*              .. |   p3  ..  p0   | */
