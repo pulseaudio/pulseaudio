@@ -1017,7 +1017,7 @@ static void calc_map_table(pa_resampler *r) {
 
     /* find some common channel remappings, fall back to full matrix operation. */
     if (r->i_ss.channels == 1 && r->o_ss.channels == 2 &&
-            r->map_table_i[0][0] == 1.0 && r->map_table_i[1][0] == 1.0) {
+            r->map_table_f[0][0] >= 1.0 && r->map_table_f[1][0] >= 1.0) {
         r->do_remap = (pa_do_remap_func_t) remap_mono_to_stereo;;
         pa_log_debug("Using mono to stereo remapping");
     } else {
@@ -1074,10 +1074,8 @@ static void remap_mono_to_stereo(pa_resampler *r, void *dst, const void *src, un
 	    d = (float *) dst;
 	    s = (float *) src;
 
-            for (; n > 0; n--) {
-                *d++ = *s;
-                *d++ = *s++;
-            }
+            for (; n > 0; n--, s++, d += 2)
+                d[0] = d[1] = *s;
 	    break;
 	}
         case PA_SAMPLE_S16NE:
@@ -1087,10 +1085,8 @@ static void remap_mono_to_stereo(pa_resampler *r, void *dst, const void *src, un
 	    d = (int16_t *) dst;
 	    s = (int16_t *) src;
 
-            for (; n > 0; n--) {
-                *d++ = *s;
-                *d++ = *s++;
-            }
+            for (; n > 0; n--, s++, d += 2)
+                d[0] = d[1] = *s;
 	    break;
 	}
         default:
@@ -1156,7 +1152,7 @@ static void remap_channels_matrix (pa_resampler *r, void *dst, const void *src, 
                             *d += *s;
                     } else {
                         for (i = n; i > 0; i--, s += n_ic, d += n_oc)
-                            *d = (int16_t) (*d + (((int32_t)*s * vol) >> 16));
+                            *d += (int16_t) (((int32_t)*s * vol) >> 16);
 		    }
                 }
             }
