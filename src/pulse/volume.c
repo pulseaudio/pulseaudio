@@ -140,14 +140,14 @@ pa_volume_t pa_cvolume_max(const pa_cvolume *a) {
 }
 
 pa_volume_t pa_cvolume_min(const pa_cvolume *a) {
-    pa_volume_t m = (pa_volume_t) -1;
+    pa_volume_t m = PA_VOLUME_MAX;
     unsigned c;
 
     pa_assert(a);
     pa_return_val_if_fail(pa_cvolume_valid(a), PA_VOLUME_MUTED);
 
     for (c = 0; c < a->channels; c++)
-        if (m == (pa_volume_t) -1 || a->values[c] < m)
+        if (a->values[c] < m)
             m = a->values[c];
 
     return m;
@@ -177,7 +177,7 @@ pa_volume_t pa_cvolume_max_mask(const pa_cvolume *a, const pa_channel_map *cm, p
 }
 
 pa_volume_t pa_cvolume_min_mask(const pa_cvolume *a, const pa_channel_map *cm, pa_channel_position_mask_t mask) {
-    pa_volume_t m = (pa_volume_t) -1;
+    pa_volume_t m = PA_VOLUME_MAX;
     unsigned c, n;
 
     pa_assert(a);
@@ -192,7 +192,7 @@ pa_volume_t pa_cvolume_min_mask(const pa_cvolume *a, const pa_channel_map *cm, p
         if (!(PA_CHANNEL_POSITION_MASK(cm->map[c]) & mask))
             continue;
 
-        if (m == (pa_volume_t) -1 || a->values[c] < m)
+        if (a->values[c] < m)
             m = a->values[c];
     }
 
