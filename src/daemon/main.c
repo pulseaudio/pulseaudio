@@ -93,6 +93,7 @@
 #ifdef HAVE_DBUS
 #include <pulsecore/dbus-shared.h>
 #endif
+#include <pulsecore/cpu-arm.h>
 #include <pulsecore/cpu-x86.h>
 
 #include "cmdline.h"
@@ -821,6 +822,7 @@ int main(int argc, char *argv[]) {
     pa_memtrap_install();
 
     pa_cpu_init_x86();
+    pa_cpu_init_arm();
 
     pa_assert_se(mainloop = pa_mainloop_new());
 
