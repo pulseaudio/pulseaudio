@@ -243,6 +243,9 @@ int pa__init(pa_module*m) {
     if (load_rules(u, pa_modargs_get_value(ma, "table", NULL)) < 0)
         goto fail;
 
+    /* FIXME: Doing this asynchronously is just broken. This needs to
+     * use a hook! */
+
     u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK_INPUT, callback, u);
 
     pa_modargs_free(ma);
