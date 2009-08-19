@@ -1122,8 +1122,13 @@ static void remap_channels_matrix (pa_resampler *r, void *dst, const void *src, 
                     d = (float *)dst + oc;
                     s = (float *)src + ic;
 
-                    for (i = n; i > 0; i--, s += n_ic, d += n_oc)
-                        *d += *s * vol;
+		    if (vol >= 1.0) {
+                        for (i = n; i > 0; i--, s += n_ic, d += n_oc)
+                            *d += *s;
+		    } else { 
+                        for (i = n; i > 0; i--, s += n_ic, d += n_oc)
+                            *d += *s * vol;
+		    }
                 }
             }
 
