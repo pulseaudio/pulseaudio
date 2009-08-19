@@ -1,24 +1,25 @@
-# Czech translation of pulseaudio.
-# Copyright (C) 2008, 2009 the author(s) of pulseaudio.
-# This file is distributed under the same license as the pulseaudio package.
-# Petr Kovar <pknbe@volny.cz>, 2008, 2009.
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: pulseaudio.master-tx\n"
+"Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-16 15:08+0000\n"
-"PO-Revision-Date: 2009-08-17 01:58+0200\n"
-"Last-Translator: Petr Kovar <pknbe@volny.cz>\n"
-"Language-Team: Czech <translation-team-cs@lists.sourceforge.net>\n"
+"POT-Creation-Date: 2009-08-13 08:37+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 
 #: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2419
 #, c-format
 msgid "%s %s"
-msgstr "%s %s"
+msgstr ""
 
 #: ../src/modules/alsa/alsa-util.c:1023
 #, c-format
@@ -28,10 +29,6 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_avail() navrátil hodnotu, která je nezvykle vysoká: %lu bajtů (%lu "
-"ms).\n"
-"S největší pravděpodobností se jedná o chybu v ovladači ALSA \"%s\". "
-"Nahlaste prosím tento problém vývojářům ALSA."
 
 #: ../src/modules/alsa/alsa-util.c:1064
 #, c-format
@@ -41,10 +38,6 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_delay() navrátil hodnotu, která je nezvykle vysoká: %li bajtů (%s%lu "
-"ms).\n"
-"S největší pravděpodobností se jedná o chybu v ovladači ALSA \"%s\". "
-"Nahlaste prosím tento problém vývojářům ALSA."
 
 #: ../src/modules/alsa/alsa-util.c:1111
 #, c-format
@@ -54,14 +47,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_mmap_begin() navrátil hodnotu, která je nezvykle vysoká: %lu bajtů (%"
-"lu ms).\n"
-"S největší pravděpodobností se jedná o chybu v ovladači ALSA \"%s\". "
-"Nahlaste prosím tento problém vývojářům ALSA."
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
-msgstr "Virtuální cíl LADSPA"
+msgstr ""
 
 #: ../src/modules/module-ladspa-sink.c:53
 msgid ""
@@ -71,267 +60,260 @@ msgid ""
 "plugin name> label=<ladspa plugin label> control=<comma seperated list of "
 "input control values>"
 msgstr ""
-"sink_name=<název cíle> sink_properties=<vlastnosti cíle> master=<název "
-"filtrovaného cíle> format=<vzorkovací formát> rate=<vzorkovací frekvence> "
-"channels=<počet kanálů> channel_map=<mapa kanálů> plugin=<název zásuvného "
-"modulu ladspa> label=<popisek zásuvného modulu ladspa> control=<čárkou "
-"oddělený seznam hodnot ovládání vstupu>"
 
 #: ../src/pulsecore/sink.c:2403
 msgid "Internal Audio"
-msgstr "Vnitřní zvukový systém"
+msgstr ""
 
 #: ../src/pulsecore/sink.c:2408
 msgid "Modem"
-msgstr "Modem"
+msgstr ""
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
-msgstr "Nezdařilo se nalézt původní nahrávací program lt_dlopen."
+msgstr ""
 
 #: ../src/daemon/ltdl-bind-now.c:129
 msgid "Failed to allocate new dl loader."
-msgstr "Nezdařilo se přidělení nového nahrávacího programu dl."
+msgstr ""
 
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
-msgstr "Nezdařilo se přidat bind-now-loader."
+msgstr ""
 
 #: ../src/daemon/main.c:145
 #, c-format
 msgid "Got signal %s."
-msgstr "Získán signál %s."
+msgstr ""
 
 #: ../src/daemon/main.c:172
 msgid "Exiting."
-msgstr "Ukončování."
+msgstr ""
 
 #: ../src/daemon/main.c:190
 #, c-format
 msgid "Failed to find user '%s'."
-msgstr "Nezdařilo se nalézt uživatele \"%s\"."
+msgstr ""
 
 #: ../src/daemon/main.c:195
 #, c-format
 msgid "Failed to find group '%s'."
-msgstr "Nezdařilo se nalézt skupinu \"%s\"."
+msgstr ""
 
 #: ../src/daemon/main.c:199
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
-msgstr "Nalezen uživatel \"%s\" (UID %lu) a skupina \"%s\" (GID %lu)."
+msgstr ""
 
 #: ../src/daemon/main.c:204
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
-msgstr "GID uživatele \"%s\" a skupiny \"%s\" nesouhlasí."
+msgstr ""
 
 #: ../src/daemon/main.c:209
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr "Domovský adresář uživatele \"%s\" není \"%s\", bude ignorováno."
+msgstr ""
 
 #: ../src/daemon/main.c:212 ../src/daemon/main.c:217
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr "Nezdařilo se vytvořit \"%s\": %s"
+msgstr ""
 
 #: ../src/daemon/main.c:224
 #, c-format
 msgid "Failed to change group list: %s"
-msgstr "Nezdařilo se změnit seznam skupin: %s"
+msgstr ""
 
 #: ../src/daemon/main.c:240
 #, c-format
 msgid "Failed to change GID: %s"
-msgstr "Nezdařilo se změnit GID: %s"
+msgstr ""
 
 #: ../src/daemon/main.c:256
 #, c-format
 msgid "Failed to change UID: %s"
-msgstr "Nezdařilo se změnit UID: %s"
+msgstr ""
 
 #: ../src/daemon/main.c:270
 msgid "Successfully dropped root privileges."
-msgstr "Oprávnění superuživatele úspěšně zrušena."
+msgstr ""
 
 #: ../src/daemon/main.c:278
 msgid "System wide mode unsupported on this platform."
-msgstr "Režim celého systému není na této platformě podporován."
+msgstr ""
 
 #: ../src/daemon/main.c:296
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
-msgstr "setrlimit(%s, (%u, %u)) selhalo: %s"
+msgstr ""
 
 #: ../src/daemon/main.c:471
 msgid "Failed to parse command line."
-msgstr "Nezdařila se analýza příkazového řádku."
+msgstr ""
 
 #: ../src/daemon/main.c:538
 msgid "Daemon not running"
-msgstr "Démon neběží"
+msgstr ""
 
 #: ../src/daemon/main.c:540
 #, c-format
 msgid "Daemon running as PID %u"
-msgstr "Démon běží jako PID %u"
+msgstr ""
 
 #: ../src/daemon/main.c:550
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr "Zabití démona se nezdařilo: %s"
+msgstr ""
 
 #: ../src/daemon/main.c:568
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
 msgstr ""
-"Tento program není určen ke spuštění pod superuživatelem (není-li zadáno --"
-"system)."
 
 #: ../src/daemon/main.c:570
 msgid "Root privileges required."
-msgstr "Jsou vyžadována oprávnění superuživatele."
+msgstr ""
 
 #: ../src/daemon/main.c:575
 msgid "--start not supported for system instances."
-msgstr "--start nepodporováno u systémových instancí."
+msgstr ""
 
 #: ../src/daemon/main.c:580
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr "Běží v systémovém režimu, ale nenastaveno --disallow-exit!"
+msgstr ""
 
 #: ../src/daemon/main.c:583
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr "Běží v systémovém režimu, ale nenastaveno --disallow-module-loading!"
+msgstr ""
 
 #: ../src/daemon/main.c:586
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr "Běží v systémovém režimu, vynuceně se vypíná režim SHM!"
+msgstr ""
 
 #: ../src/daemon/main.c:591
 msgid "Running in system mode, forcibly disabling exit idle time!"
-msgstr "Běží v systémovém režimu, vynuceně se vypíná čas nečinnosti ukončení!"
+msgstr ""
 
 #: ../src/daemon/main.c:618
 msgid "Failed to acquire stdio."
-msgstr "Nezdařilo se získání stdio."
+msgstr ""
 
 #: ../src/daemon/main.c:624
 #, c-format
 msgid "pipe failed: %s"
-msgstr "pipe selhalo: %s"
+msgstr ""
 
 #: ../src/daemon/main.c:629
 #, c-format
 msgid "fork() failed: %s"
-msgstr "fork() selhalo: %s"
+msgstr ""
 
 #: ../src/daemon/main.c:643 ../src/utils/pacat.c:505
 #, c-format
 msgid "read() failed: %s"
-msgstr "read() selhalo: %s"
+msgstr ""
 
 #: ../src/daemon/main.c:649
 msgid "Daemon startup failed."
-msgstr "Spuštění démona selhalo."
+msgstr ""
 
 #: ../src/daemon/main.c:651
 msgid "Daemon startup successful."
-msgstr "Spuštění démona bylo úspěšné."
+msgstr ""
 
 #: ../src/daemon/main.c:728
 #, c-format
 msgid "This is PulseAudio %s"
-msgstr "Toto je PulseAudio %s"
+msgstr ""
 
 #: ../src/daemon/main.c:729
 #, c-format
 msgid "Compilation host: %s"
-msgstr "Překladový počítač: %s"
+msgstr ""
 
 #: ../src/daemon/main.c:730
 #, c-format
 msgid "Compilation CFLAGS: %s"
-msgstr "Překladové CFLAGS: %s"
+msgstr ""
 
 #: ../src/daemon/main.c:733
 #, c-format
 msgid "Running on host: %s"
-msgstr "Běží na počítači: %s"
+msgstr ""
 
 #: ../src/daemon/main.c:736
 #, c-format
 msgid "Found %u CPUs."
-msgstr "Nalezen následující počet CPU: %u."
+msgstr ""
 
 #: ../src/daemon/main.c:738
 #, c-format
 msgid "Page size is %lu bytes"
-msgstr "Velikost stránky je %lu bajtů"
+msgstr ""
 
 #: ../src/daemon/main.c:741
 msgid "Compiled with Valgrind support: yes"
-msgstr "Přeloženo s podporou Valgrind: ano"
+msgstr ""
 
 #: ../src/daemon/main.c:743
 msgid "Compiled with Valgrind support: no"
-msgstr "Přeloženo s podporou Valgrind: ne"
+msgstr ""
 
 #: ../src/daemon/main.c:746
 #, c-format
 msgid "Running in valgrind mode: %s"
-msgstr "Běží v režimu valgrind: %s"
+msgstr ""
 
 #: ../src/daemon/main.c:749
 msgid "Optimized build: yes"
-msgstr "Optimalizované sestavení: ano"
+msgstr ""
 
 #: ../src/daemon/main.c:751
 msgid "Optimized build: no"
-msgstr "Optimalizované sestavení: ne"
+msgstr ""
 
 #: ../src/daemon/main.c:755
 msgid "NDEBUG defined, all asserts disabled."
-msgstr "NDEBUG definováno, všechny výrazy zakázány."
+msgstr ""
 
 #: ../src/daemon/main.c:757
 msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr "FASTPATH definováno, zakázány pouze výrazy rychlých cest."
+msgstr ""
 
 #: ../src/daemon/main.c:759
 msgid "All asserts enabled."
-msgstr "Všechny výrazy povoleny."
+msgstr ""
 
 #: ../src/daemon/main.c:763
 msgid "Failed to get machine ID"
-msgstr "Nezdařilo se získání ID počítače"
+msgstr ""
 
 #: ../src/daemon/main.c:766
 #, c-format
 msgid "Machine ID is %s."
-msgstr "ID počítače je %s."
+msgstr ""
 
 #: ../src/daemon/main.c:770
 #, c-format
 msgid "Session ID is %s."
-msgstr "ID sezení je %s."
+msgstr ""
 
 #: ../src/daemon/main.c:776
 #, c-format
 msgid "Using runtime directory %s."
-msgstr "Používán běhový adresář %s."
+msgstr ""
 
 #: ../src/daemon/main.c:781
 #, c-format
 msgid "Using state directory %s."
-msgstr "Používán stavový adresář %s."
+msgstr ""
 
 #: ../src/daemon/main.c:784
 #, c-format
 msgid "Running in system mode: %s"
-msgstr "Běží v systémovém režimu: %s"
+msgstr ""
 
 #: ../src/daemon/main.c:787
 msgid ""
@@ -342,53 +324,44 @@ msgid ""
 "Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an "
 "explanation why system mode is usually a bad idea."
 msgstr ""
-"Dobrá, máte tedy PA spuštěn v systémovém režimu. Vemte prosím na vědomí, že "
-"k tomuto by až na výjimečné situace němelo docházet.\n"
-"Pokud v této činnosti přesto budete pokračovat, nesete riziko za možné "
-"špatné a nepředvídatelné chování systému.\n"
-"Vysvětlení, proč je systémový režim obvykle velmi špatný nápad, si můžete "
-"přečíst na http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode."
 
 #: ../src/daemon/main.c:804
 msgid "pa_pid_file_create() failed."
-msgstr "pa_pid_file_create() selhalo."
+msgstr ""
 
 #: ../src/daemon/main.c:814
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr ""
-"Jsou dostupné výtečné časovače o vysokém rozlišení. Tak s chutí do toho!"
 
 #: ../src/daemon/main.c:816
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 msgstr ""
-"Sorry, vole, kernel error! Tip šéfkuchaře na dnešní den zní: Linux se "
-"zapnutými časovači o vysokém rozlišení."
 
 #: ../src/daemon/main.c:834
 msgid "pa_core_new() failed."
-msgstr "pa_core_new() selhalo."
+msgstr ""
 
 #: ../src/daemon/main.c:896
 msgid "Failed to initialize daemon."
-msgstr "Selhalo spuštění démona."
+msgstr ""
 
 #: ../src/daemon/main.c:901
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr "Spuštění démona bez jakýchkoliv nahraných modulů, běh bude odmítnut."
+msgstr ""
 
 #: ../src/daemon/main.c:918
 msgid "Daemon startup complete."
-msgstr "Spuštění démona dokončeno."
+msgstr ""
 
 #: ../src/daemon/main.c:924
 msgid "Daemon shutdown initiated."
-msgstr "Vypínání démona spuštěno."
+msgstr ""
 
 #: ../src/daemon/main.c:946
 msgid "Daemon terminated."
-msgstr "Démon ukončen."
+msgstr ""
 
 #: ../src/daemon/cmdline.c:115
 #, c-format
@@ -463,804 +436,752 @@ msgid ""
 "\n"
 "  -n                                    Don't load default script file\n"
 msgstr ""
-"%s [přepínače]\n"
-"\n"
-"PŘÍKAZY:\n"
-"  -h, --help                            Zobrazí tuto nápovědu\n"
-"      --version                         Zobrazí verzi\n"
-"      --dump-conf                       Vypíše výchozí nastavení\n"
-"      --dump-modules                    Vypíše seznam dostupných modulů\n"
-"      --dump-resample-methods           Vypíše dostupné metody "
-"převzorkování\n"
-"      --cleanup-shm                     Vyprázdní zastaralé části sdílené "
-"paměti\n"
-"      --start                           Spustí démona, pokud neběží\n"
-"  -k  --kill                            Zabije běžícího démona\n"
-"      --check                           Zjistí, zda démon běží (vrací pouze "
-"ukončovací kód)\n"
-"\n"
-"PŘEPÍNAČE:\n"
-"      --system[=BOOLEOVSKÁ]             Poběží jako celosystémová instance\n"
-"  -D, --daemonize[=BOOLEOVSKÁ]          Stane se démonem po spuštění\n"
-"      --fail[=BOOLEOVSKÁ]               Ukončí se v případě selhání "
-"spuštění\n"
-"      --high-priority[=BOOLEOVSKÁ]      Pokusí se nastavit vysokou úroveň "
-"nice\n"
-"                                        (dostupné pouze u superuživatele, v "
-"případě SUID nebo\n"
-"                                        se zvýšeným RLIMIT_NICE)\n"
-"      --realtime[=BOOLEOVSKÁ]           Pokusí se zapnout plánování v "
-"reálném čase\n"
-"                                        (dostupné pouze u superuživatele, v "
-"případě SUID nebo\n"
-"                                        se zvýšeným RLIMIT_RTPRIO)\n"
-"      --disallow-module-loading[=BOOLEOVSKÁ]  Nepovolí nahrání či zrušení "
-"nahrání modulu po spuštění\n"
-"                                        vyžádané uživatelem modulu\n"
-"      --disallow-exit[=BOOLEOVSKÁ]      Nepovolí ukončení vyžádané "
-"uživatelem\n"
-"      --exit-idle-time=SEKUNDY          Ukončí démona v případě nečinnosti a "
-"po\n"
-"                                        této době\n"
-"      --module-idle-time=SEKUNDY        Zruší nahrání automaticky nahraných "
-"modulů v případě nečinnosti\n"
-"                                        a po této době\n"
-"      --scache-idle-time=SEKUNDY        Zruší nahrání automaticky nahraných "
-"vzorků v případě nečinnosti a\n"
-"                                        po této době\n"
-"      --log-level[=ÚROVEŇ]              Zvýší nebo nastaví úroveň "
-"podrobností\n"
-"  -v                                    Zvýší úroveň podrobností\n"
-"      --log-target={auto,syslog,stderr} Určí cíl záznamů\n"
-"      --log-meta[=BOOLEOVSKÁ]           Do záznamů zahrne umístění kódu\n"
-"      --log-time[=BOOLEOVSKÁ]           Do záznamů zahrne určení času\n"
-"      --log-backtrace=RÁMCE             Do záznamů zahrne backtrace\n"
-"  -p, --dl-search-path=CESTA            Nastaví cestu hledání z důvodu "
-"dynamického sdílení\n"
-"                                        objektů (zásuvných modulů)\n"
-"      --resample-method=METODA          Použije zadanou metodu "
-"převzorkování\n"
-"                                        (Možné hodnoty viz\n"
-"                                        --dump-resample-methods)\n"
-"      --use-pid-file[=BOOLEOVSKÁ]       Vytvoří soubor PID\n"
-"      --no-cpu-limit[=BOOLEOVSKÁ]       Nenainstaluje omezovač zátěže CPU\n"
-"                                        na platformách, které ho podporují.\n"
-"      --disable-shm[=BOOLEOVSKÁ]        Vypne podporu sdílené paměti.\n"
-"\n"
-"SPOUŠTĚCÍ SKRIPT:\n"
-"  -L, --load=\"ARGUMENTY MODULU\"       Nahraje zadaný zásuvný modul\n"
-"                                        s určeným argumentem\n"
-"  -F, --file=NÁZEVSOUBORU               Spustí zadaný skript\n"
-"  -C                                    Po spuštění otevře příkazový řádek\n"
-"                                        na běžícím TTY\n"
-"\n"
-"  -n                                    Nenahraje výchozí soubor skriptu\n"
 
 #: ../src/daemon/cmdline.c:247
 msgid "--daemonize expects boolean argument"
-msgstr "--daemonize předpokládá booleovský argument"
+msgstr ""
 
 #: ../src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
-msgstr "--fail předpokládá booleovský argument"
+msgstr ""
 
 #: ../src/daemon/cmdline.c:264
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
 msgstr ""
-"--log-level předpokládá argument protokolovací úrovně (buď číselný v rozmezí "
-"0..4, nebo jeden z debug, info, notice, warn, error)."
 
 #: ../src/daemon/cmdline.c:276
 msgid "--high-priority expects boolean argument"
-msgstr "--high-priority předpokládá booleovský argument"
+msgstr ""
 
 #: ../src/daemon/cmdline.c:283
 msgid "--realtime expects boolean argument"
-msgstr "--realtime předpokládá booleovský argument"
+msgstr ""
 
 #: ../src/daemon/cmdline.c:290
 msgid "--disallow-module-loading expects boolean argument"
-msgstr "--disallow-module-loading předpokládá booleovský argument"
+msgstr ""
 
 #: ../src/daemon/cmdline.c:297
 msgid "--disallow-exit expects boolean argument"
-msgstr "--disallow-exit předpokládá booleovský argument"
+msgstr ""
 
 #: ../src/daemon/cmdline.c:304
 msgid "--use-pid-file expects boolean argument"
-msgstr "--use-pid-file předpokládá booleovský argument"
+msgstr ""
 
 #: ../src/daemon/cmdline.c:321
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
 msgstr ""
-"Neplatný cíl protokolu: použijte buďto \"syslog\", \"stderr\" nebo \"auto\"."
 
 #: ../src/daemon/cmdline.c:328
 msgid "--log-time expects boolean argument"
-msgstr "--log-time předpokládá booleovský argument"
+msgstr ""
 
 #: ../src/daemon/cmdline.c:335
 msgid "--log-meta expects boolean argument"
-msgstr "--log-meta předpokládá booleovský argument"
+msgstr ""
 
 #: ../src/daemon/cmdline.c:354
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr "Neplatná metoda převzorkování \"%s\"."
+msgstr ""
 
 #: ../src/daemon/cmdline.c:361
 msgid "--system expects boolean argument"
-msgstr "--system předpokládá booleovský argument"
+msgstr ""
 
 #: ../src/daemon/cmdline.c:368
 msgid "--no-cpu-limit expects boolean argument"
-msgstr "--no-cpu-limit předpokládá booleovský argument"
+msgstr ""
 
 #: ../src/daemon/cmdline.c:375
 msgid "--disable-shm expects boolean argument"
-msgstr "--disable-shm předpokládá booleovský argument"
+msgstr ""
 
 #: ../src/daemon/dumpmodules.c:60
 #, c-format
 msgid "Name: %s\n"
-msgstr "Název: %s\n"
+msgstr ""
 
 #: ../src/daemon/dumpmodules.c:63
 #, c-format
 msgid "No module information available\n"
-msgstr "O modulu nejsou dostupné žádné informace\n"
+msgstr ""
 
 #: ../src/daemon/dumpmodules.c:66
 #, c-format
 msgid "Version: %s\n"
-msgstr "Verze: %s\n"
+msgstr ""
 
 #: ../src/daemon/dumpmodules.c:68
 #, c-format
 msgid "Description: %s\n"
-msgstr "Popis: %s\n"
+msgstr ""
 
 #: ../src/daemon/dumpmodules.c:70
 #, c-format
 msgid "Author: %s\n"
-msgstr "Autor: %s\n"
+msgstr ""
 
 #: ../src/daemon/dumpmodules.c:72
 #, c-format
 msgid "Usage: %s\n"
-msgstr "Použití: %s\n"
+msgstr ""
 
 #: ../src/daemon/dumpmodules.c:73
 #, c-format
 msgid "Load Once: %s\n"
-msgstr "Načíst jednou: %s\n"
+msgstr ""
 
 #: ../src/daemon/dumpmodules.c:75
 #, c-format
 msgid "DEPRECATION WARNING: %s\n"
-msgstr "VAROVÁNÍ ZASTARALOSTI: %s\n"
+msgstr ""
 
 #: ../src/daemon/dumpmodules.c:79
 #, c-format
 msgid "Path: %s\n"
-msgstr "Cesta: %s\n"
+msgstr ""
 
 #: ../src/daemon/daemon-conf.c:216
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr "[%s:%u] Neplatný protokolovací cíl \"%s\"."
+msgstr ""
 
 #: ../src/daemon/daemon-conf.c:232
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
-msgstr "[%s:%u] Neplatná protokolovací úroveň \"%s\"."
+msgstr ""
 
 #: ../src/daemon/daemon-conf.c:248
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr "[%s:%u] Neplatná metoda převzorkování \"%s\"."
+msgstr ""
 
 #: ../src/daemon/daemon-conf.c:271
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
-msgstr "[%s:%u] Neplatné rlimit \"%s\"."
+msgstr ""
 
 #: ../src/daemon/daemon-conf.c:278
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
-msgstr "[%s:%u] rlimit na této platformě není podporováno."
+msgstr ""
 
 #: ../src/daemon/daemon-conf.c:294
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
-msgstr "[%s:%u] Neplatný vzorkovací formát \"%s\"."
+msgstr ""
 
 #: ../src/daemon/daemon-conf.c:312
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr "[%s:%u] Neplatná vzorkovací frekvence \"%s\"."
+msgstr ""
 
 #: ../src/daemon/daemon-conf.c:336
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
-msgstr "[%s:%u] Neplatné vzorkovací kanály \"%s\"."
+msgstr ""
 
 #: ../src/daemon/daemon-conf.c:354
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr "[%s:%u] Neplatná mapa kanálů \"%s\"."
+msgstr ""
 
 #: ../src/daemon/daemon-conf.c:372
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr "[%s:%u] Neplatný počet fragmentů \"%s\"."
+msgstr ""
 
 #: ../src/daemon/daemon-conf.c:390
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr "[%s:%u] Neplatná velikost fragmentu \"%s\"."
+msgstr ""
 
 #: ../src/daemon/daemon-conf.c:408
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr "[%s:%u] Neplatná úroveň nice \"%s\"."
+msgstr ""
 
 #: ../src/daemon/daemon-conf.c:524
 #, c-format
 msgid "Failed to open configuration file: %s"
-msgstr "Nezdařilo se otevřít konfigurační soubor: %s"
+msgstr ""
 
 #: ../src/daemon/daemon-conf.c:540
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
 msgstr ""
-"Zadaná výchozí mapa kanálů obsahuje odlišný počet kanálů než je zadaný "
-"výchozí počet kanálů."
 
 #: ../src/daemon/daemon-conf.c:616
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
-msgstr "### Čtení z konfiguračního souboru: %s ###\n"
+msgstr ""
 
 #: ../src/daemon/caps.c:65
 msgid "Dropping root privileges."
-msgstr "Rušení superuživatelských oprávnění."
+msgstr ""
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
-msgstr "Zvukový systém PulseAudio"
+msgstr ""
 
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
-msgstr "Spustit zvukový systém PulseAudio"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:747
 msgid "Mono"
-msgstr "Mono"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:107
 msgid "Front Center"
-msgstr "Přední středový"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:108
 msgid "Front Left"
-msgstr "Přední levý"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:109
 msgid "Front Right"
-msgstr "Přední pravý"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:111
 msgid "Rear Center"
-msgstr "Zadní středový"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:112
 msgid "Rear Left"
-msgstr "Zadní levý"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:113
 msgid "Rear Right"
-msgstr "Zadní pravý"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:115
 msgid "Low Frequency Emmiter"
-msgstr "Nízkofrekvenční zářič"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
-msgstr "Přední levý středový"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:118
 msgid "Front Right-of-center"
-msgstr "Přední pravý středový"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:120
 msgid "Side Left"
-msgstr "Boční levý"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:121
 msgid "Side Right"
-msgstr "Boční pravý"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:123
 msgid "Auxiliary 0"
-msgstr "Aux 0"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:124
 msgid "Auxiliary 1"
-msgstr "Aux 1"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:125
 msgid "Auxiliary 2"
-msgstr "Aux 2"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:126
 msgid "Auxiliary 3"
-msgstr "Aux 3"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:127
 msgid "Auxiliary 4"
-msgstr "Aux 4"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:128
 msgid "Auxiliary 5"
-msgstr "Aux 5"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:129
 msgid "Auxiliary 6"
-msgstr "Aux 6"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:130
 msgid "Auxiliary 7"
-msgstr "Aux 7"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:131
 msgid "Auxiliary 8"
-msgstr "Aux 8"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:132
 msgid "Auxiliary 9"
-msgstr "Aux 9"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:133
 msgid "Auxiliary 10"
-msgstr "Aux 10"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:134
 msgid "Auxiliary 11"
-msgstr "Aux 11"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:135
 msgid "Auxiliary 12"
-msgstr "Aux 12"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:136
 msgid "Auxiliary 13"
-msgstr "Aux 13"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:137
 msgid "Auxiliary 14"
-msgstr "Aux 14"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:138
 msgid "Auxiliary 15"
-msgstr "Aux 15"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:139
 msgid "Auxiliary 16"
-msgstr "Aux 16"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:140
 msgid "Auxiliary 17"
-msgstr "Aux 17"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:141
 msgid "Auxiliary 18"
-msgstr "Aux 18"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:142
 msgid "Auxiliary 19"
-msgstr "Aux 19"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:143
 msgid "Auxiliary 20"
-msgstr "Aux 20"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:144
 msgid "Auxiliary 21"
-msgstr "Aux 21"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:145
 msgid "Auxiliary 22"
-msgstr "Aux 22"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:146
 msgid "Auxiliary 23"
-msgstr "Aux 23"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:147
 msgid "Auxiliary 24"
-msgstr "Aux 24"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:148
 msgid "Auxiliary 25"
-msgstr "Aux 25"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:149
 msgid "Auxiliary 26"
-msgstr "Aux 26"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:150
 msgid "Auxiliary 27"
-msgstr "Aux 27"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:151
 msgid "Auxiliary 28"
-msgstr "Aux 28"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:152
 msgid "Auxiliary 29"
-msgstr "Aux 29"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:153
 msgid "Auxiliary 30"
-msgstr "Aux 30"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:154
 msgid "Auxiliary 31"
-msgstr "Aux 31"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:156
 msgid "Top Center"
-msgstr "Horní středový"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:158
 msgid "Top Front Center"
-msgstr "Horní přední středový"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:159
 msgid "Top Front Left"
-msgstr "Horní přední levý"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:160
 msgid "Top Front Right"
-msgstr "Horní přední pravý"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:162
 msgid "Top Rear Center"
-msgstr "Horní zadní středový"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:163
 msgid "Top Rear Left"
-msgstr "Horní zadní levý"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:164
 msgid "Top Rear Right"
-msgstr "Horní zadní pravý"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:478 ../src/pulse/sample.c:167
 #: ../src/pulse/volume.c:239 ../src/pulse/volume.c:265
 #: ../src/pulse/volume.c:285 ../src/pulse/volume.c:315
 msgid "(invalid)"
-msgstr "(neplatné)"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:751
 msgid "Stereo"
-msgstr "Stereo"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:756
 msgid "Surround 4.0"
-msgstr "Surround 4.0"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:762
 msgid "Surround 4.1"
-msgstr "Surround 4.1"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:768
 msgid "Surround 5.0"
-msgstr "Surround 5.0"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:774
 msgid "Surround 5.1"
-msgstr "Surround 5.1"
+msgstr ""
 
 #: ../src/pulse/channelmap.c:781
 msgid "Surround 7.1"
-msgstr "Surround 7.1"
+msgstr ""
 
 #: ../src/pulse/error.c:43
 msgid "OK"
-msgstr "Budiž"
+msgstr ""
 
 #: ../src/pulse/error.c:44
 msgid "Access denied"
-msgstr "Přístup odepřen"
+msgstr ""
 
 #: ../src/pulse/error.c:45
 msgid "Unknown command"
-msgstr "Neznámý příkaz"
+msgstr ""
 
 #: ../src/pulse/error.c:46
 msgid "Invalid argument"
-msgstr "Neplatný argument"
+msgstr ""
 
 #: ../src/pulse/error.c:47
 msgid "Entity exists"
-msgstr "Entita existuje"
+msgstr ""
 
 #: ../src/pulse/error.c:48
 msgid "No such entity"
-msgstr "Taková entita neexistuje"
+msgstr ""
 
 #: ../src/pulse/error.c:49
 msgid "Connection refused"
-msgstr "Spojení odmítnuto"
+msgstr ""
 
 #: ../src/pulse/error.c:50
 msgid "Protocol error"
-msgstr "Chyba protokolu"
+msgstr ""
 
 #: ../src/pulse/error.c:51
 msgid "Timeout"
-msgstr "Časový limit"
+msgstr ""
 
 #: ../src/pulse/error.c:52
 msgid "No authorization key"
-msgstr "Bez autorizačního klíče"
+msgstr ""
 
 #: ../src/pulse/error.c:53
 msgid "Internal error"
-msgstr "Vnitřní chyba"
+msgstr ""
 
 #: ../src/pulse/error.c:54
 msgid "Connection terminated"
-msgstr "Spojení přerušeno"
+msgstr ""
 
 #: ../src/pulse/error.c:55
 msgid "Entity killed"
-msgstr "Entita zabita"
+msgstr ""
 
 #: ../src/pulse/error.c:56
 msgid "Invalid server"
-msgstr "Neplatný server"
+msgstr ""
 
 #: ../src/pulse/error.c:57
 msgid "Module initalization failed"
-msgstr "Spuštění modulu selhalo"
+msgstr ""
 
 #: ../src/pulse/error.c:58
 msgid "Bad state"
-msgstr "Chybný stav"
+msgstr ""
 
 #: ../src/pulse/error.c:59
 msgid "No data"
-msgstr "Žádná data"
+msgstr ""
 
 #: ../src/pulse/error.c:60
 msgid "Incompatible protocol version"
-msgstr "Nekompatibilní verze protokolu"
+msgstr ""
 
 #: ../src/pulse/error.c:61
 msgid "Too large"
-msgstr "Příliš velké"
+msgstr ""
 
 #: ../src/pulse/error.c:62
 msgid "Not supported"
-msgstr "Nepodporováno"
+msgstr ""
 
 #: ../src/pulse/error.c:63
 msgid "Unknown error code"
-msgstr "Neznámý chybový kód"
+msgstr ""
 
 #: ../src/pulse/error.c:64
 msgid "No such extension"
-msgstr "Takové rozšíření neexistuje"
+msgstr ""
 
 #: ../src/pulse/error.c:65
 msgid "Obsolete functionality"
-msgstr "Zastaralá vlastnost"
+msgstr ""
 
 #: ../src/pulse/error.c:66
 msgid "Missing implementation"
-msgstr "Scházející implementace"
+msgstr ""
 
 #: ../src/pulse/error.c:67
 msgid "Client forked"
-msgstr "Klient rozvětven"
+msgstr ""
 
 #: ../src/pulse/sample.c:169
 #, c-format
 msgid "%s %uch %uHz"
-msgstr "%s %uch %uHz"
+msgstr ""
 
 #: ../src/pulse/sample.c:181
 #, c-format
 msgid "%0.1f GiB"
-msgstr "%0.1f GiB"
+msgstr ""
 
 #: ../src/pulse/sample.c:183
 #, c-format
 msgid "%0.1f MiB"
-msgstr "%0.1f MiB"
+msgstr ""
 
 #: ../src/pulse/sample.c:185
 #, c-format
 msgid "%0.1f KiB"
-msgstr "%0.1f KiB"
+msgstr ""
 
 #: ../src/pulse/sample.c:187
 #, c-format
 msgid "%u B"
-msgstr "%u B"
+msgstr ""
 
 #: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
 msgid "XOpenDisplay() failed"
-msgstr "XOpenDisplay() selhalo"
+msgstr ""
 
 #: ../src/pulse/client-conf-x11.c:93
 msgid "Failed to parse cookie data"
-msgstr "Selhala analýza dat cookie"
+msgstr ""
 
 #: ../src/pulse/client-conf.c:110
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
-msgstr "Selhalo otevření konfiguračního souboru \"%s\": %s"
+msgstr ""
 
 #: ../src/pulse/context.c:550
 msgid "No cookie loaded. Attempting to connect without."
-msgstr "Žádný soubor cookie nenahrán. Pokus o spojení bez tohoto kroku."
+msgstr ""
 
 #: ../src/pulse/context.c:693
 #, c-format
 msgid "fork(): %s"
-msgstr "fork(): %s"
+msgstr ""
 
 #: ../src/pulse/context.c:745
 #, c-format
 msgid "waitpid(): %s"
-msgstr "waitpid(): %s"
+msgstr ""
 
 #: ../src/pulse/context.c:1432
 #, c-format
 msgid "Received message for unknown extension '%s'"
-msgstr "Přijata zpráva pro neznámé rozšíření \"%s\""
+msgstr ""
 
-#: ../src/utils/pacat.c:108, c-format
+#: ../src/utils/pacat.c:108
+#, c-format
 msgid "Failed to drain stream: %s"
-msgstr "Nezdařilo se vyprázdnit proud: %s"
+msgstr ""
 
 #: ../src/utils/pacat.c:113
 msgid "Playback stream drained."
-msgstr "Proud přehrávání vyprázdněn."
+msgstr ""
 
 #: ../src/utils/pacat.c:123
 msgid "Draining connection to server."
-msgstr "Vyprazdňování spojení se serverem."
+msgstr ""
 
-#: ../src/utils/pacat.c:136, c-format
+#: ../src/utils/pacat.c:136
+#, c-format
 msgid "pa_stream_drain(): %s"
-msgstr "pa_stream_drain(): %s"
+msgstr ""
 
-#: ../src/utils/pacat.c:159, c-format
+#: ../src/utils/pacat.c:159
+#, c-format
 msgid "pa_stream_write() failed: %s"
-msgstr "pa_stream_write() selhalo: %s"
+msgstr ""
 
-#: ../src/utils/pacat.c:197, c-format
+#: ../src/utils/pacat.c:197
+#, c-format
 msgid "pa_stream_begin_write() failed: %s"
-msgstr "pa_stream_begin_write() selhalo: %s"
+msgstr ""
 
-#: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267, c-format
+#: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267
+#, c-format
 msgid "pa_stream_peek() failed: %s"
-msgstr "pa_stream_peek() selhalo: %s"
+msgstr ""
 
 #: ../src/utils/pacat.c:307
 msgid "Stream successfully created."
-msgstr "Proud úspěšně vytvořen."
+msgstr ""
 
-#: ../src/utils/pacat.c:310, c-format
+#: ../src/utils/pacat.c:310
+#, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s"
-msgstr "pa_stream_get_buffer_attr() selhalo: %s"
+msgstr ""
 
-#: ../src/utils/pacat.c:314, c-format
+#: ../src/utils/pacat.c:314
+#, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 msgstr ""
-"Metrika vyrovnávací paměti: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 
-#: ../src/utils/pacat.c:317, c-format
+#: ../src/utils/pacat.c:317
+#, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u"
-msgstr "Metrika vyrovnávací paměti: maxlength=%u, fragsize=%u"
+msgstr ""
 
-#: ../src/utils/pacat.c:321, c-format
+#: ../src/utils/pacat.c:321
+#, c-format
 msgid "Using sample spec '%s', channel map '%s'."
-msgstr "Používáno určení vzorku \"%s\", mapa kanálů \"%s\"."
+msgstr ""
 
-#: ../src/utils/pacat.c:325, c-format
+#: ../src/utils/pacat.c:325
+#, c-format
 msgid "Connected to device %s (%u, %ssuspended)."
-msgstr "Připojeno k zařízení %s (%u, %ssuspended)."
+msgstr ""
 
-#: ../src/utils/pacat.c:335, c-format
+#: ../src/utils/pacat.c:335
+#, c-format
 msgid "Stream error: %s"
-msgstr "Chyba proudu: %s"
+msgstr ""
 
-#: ../src/utils/pacat.c:345, c-format
+#: ../src/utils/pacat.c:345
+#, c-format
 msgid "Stream device suspended.%s"
-msgstr "Proudové zařízení pozastaveno.%s"
+msgstr ""
 
-#: ../src/utils/pacat.c:347, c-format
+#: ../src/utils/pacat.c:347
+#, c-format
 msgid "Stream device resumed.%s"
-msgstr "Proudové zařízení obnoveno.%s"
+msgstr ""
 
-#: ../src/utils/pacat.c:355, c-format
+#: ../src/utils/pacat.c:355
+#, c-format
 msgid "Stream underrun.%s"
-msgstr "Podběhnutí proudu.%s"
+msgstr ""
 
-#: ../src/utils/pacat.c:362, c-format
+#: ../src/utils/pacat.c:362
+#, c-format
 msgid "Stream overrun.%s"
-msgstr "Přeběhnutí proudu.%s"
+msgstr ""
 
-#: ../src/utils/pacat.c:369, c-format
+#: ../src/utils/pacat.c:369
+#, c-format
 msgid "Stream started.%s"
-msgstr "Proud spuštěn.%s"
+msgstr ""
 
-#: ../src/utils/pacat.c:376, c-format
+#: ../src/utils/pacat.c:376
+#, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s"
-msgstr "Proud přesunut na zařízení %s (%u, %ssuspended).%s"
+msgstr ""
 
 #: ../src/utils/pacat.c:376
 msgid "not "
-msgstr "nikoliv "
+msgstr ""
 
-#: ../src/utils/pacat.c:383, c-format
+#: ../src/utils/pacat.c:383
+#, c-format
 msgid "Stream buffer attributes changed.%s"
-msgstr "Změněny atributy vyrovnávací paměti proudu.%s"
+msgstr ""
 
-#: ../src/utils/pacat.c:416, c-format
+#: ../src/utils/pacat.c:416
+#, c-format
 msgid "Connection established.%s"
-msgstr "Spojení navázáno.%s"
+msgstr ""
 
-#: ../src/utils/pacat.c:419, c-format
+#: ../src/utils/pacat.c:419
+#, c-format
 msgid "pa_stream_new() failed: %s"
-msgstr "pa_stream_new() selhalo: %s"
+msgstr ""
 
-#: ../src/utils/pacat.c:447, c-format
+#: ../src/utils/pacat.c:447
+#, c-format
 msgid "pa_stream_connect_playback() failed: %s"
-msgstr "pa_stream_connect_playback() selhalo: %s"
+msgstr ""
 
-#: ../src/utils/pacat.c:453, c-format
+#: ../src/utils/pacat.c:453
+#, c-format
 msgid "pa_stream_connect_record() failed: %s"
-msgstr "pa_stream_connect_record() selhalo: %s"
+msgstr ""
 
-#: ../src/utils/pacat.c:467, c-format
+#: ../src/utils/pacat.c:467
+#, c-format
 msgid "Connection failure: %s"
-msgstr "Spojení selhalo: %s"
+msgstr ""
 
 #: ../src/utils/pacat.c:500
 msgid "Got EOF."
-msgstr "Získáno EOF."
+msgstr ""
 
-#: ../src/utils/pacat.c:537, c-format
+#: ../src/utils/pacat.c:537
+#, c-format
 msgid "write() failed: %s"
-msgstr "write() selhalo: %s"
+msgstr ""
 
 #: ../src/utils/pacat.c:558
 msgid "Got signal, exiting."
-msgstr "Získán signál, ukončování."
+msgstr ""
 
-#: ../src/utils/pacat.c:572, c-format
+#: ../src/utils/pacat.c:572
+#, c-format
 msgid "Failed to get latency: %s"
-msgstr "Nezdařilo se získat latenci: %s"
+msgstr ""
 
 #: ../src/utils/pacat.c:577
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
-msgstr "Čas: %0.3f sekund; latence: %0.0f μs.  \r"
+msgstr ""
 
-#: ../src/utils/pacat.c:595, c-format
+#: ../src/utils/pacat.c:595
+#, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
-msgstr "pa_stream_update_timing_info() selhalo: %s"
+msgstr ""
 
 #: ../src/utils/pacat.c:605
 #, c-format
@@ -1321,57 +1242,6 @@ msgid ""
 "      --file-format=FFORMAT             Record/play formatted PCM data.\n"
 "      --list-file-formats               List available file formats.\n"
 msgstr ""
-"%s [přepínače]\n"
-"\n"
-"  -h, --help                            Zobrazí tuto nápovědu\n"
-"      --version                         Zobrazí verzi\n"
-"\n"
-"  -r, --record                          Vytvoří spojení z důvodu nahrávání\n"
-"  -p, --playback                        Vytvoří spojení z důvodu přehrávání\n"
-"\n"
-"  -v, --verbose                         Zapne nakládání s úrovní "
-"podrobností\n"
-"\n"
-"  -s, --server=SERVER                   Název připojovaného serveru\n"
-"  -d, --device=ZAŘÍZENÍ                 Název připojovaného cíle či zdroje\n"
-"  -n, --client-name=NÁZEV               Způsob volání tohoto klienta na "
-"serveru\n"
-"      --stream-name=NÁZEV               Způsob volání tohoto proudu na "
-"serveru\n"
-"      --volume=HLASITOST                Určí počáteční (lineární) hlasitost "
-"v rozmezí 0...65536\n"
-"      --rate=VZORKOVACÍFREKVENCE        Vzorkovací frekvence v Hz (výchozí "
-"je 44100)\n"
-"      --format=FORMÁTVZORKU             Typ vzorku, jeden z s16le, s16be, "
-"u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be "
-"(výchozí je s16ne)\n"
-"      --channels=KANÁLY                 Počet kanálů, u mono 1, u sterea 2\n"
-"                                        (výchozí je 2)\n"
-"      --channel-map=MAPAKANÁLŮ          Mapa kanálů určená k použití namísto "
-"výchozí\n"
-"      --fix-format                      Získá formát vzorku z cíle, ke "
-"kterému se\n"
-"                                        připojuje proud.\n"
-"      --fix-rate                        Získá vzorkovací frekvenci z cíle, "
-"ke kterému se\n"
-"                                        připojuje proud.\n"
-"      --fix-channels                    Získá počet kanálů a mapu kanálů z "
-"cíle, ke kterému se\n"
-"                                        připojuje proud.\n"
-"      --no-remix                        Nesměšuje kanály.\n"
-"      --no-remap                        Mapuje kanály dle indexu namísto "
-"názvu.\n"
-"      --latency=BAJTY                   Vyžádá určenou latenci v bajtech.\n"
-"      --process-time=BAJTY              Vyžádá určený čas zpracování na "
-"požadavek v bajtech.\n"
-"      --property=VLASTNOST=HODNOTA      Nastaví určenou vlastnost na určenou "
-"hodnotu.\n"
-"      --raw                             Nahrává/přehrává surová data PCM.\n"
-"      --file-format=FORMÁT              Nahrává/přehrává formátovaná data "
-"PCM.\n"
-"      --list-file-formats               Zobrazí seznam dostupných formátů "
-"souborů.\n"
 
 #: ../src/utils/pacat.c:727
 #, c-format
@@ -1380,164 +1250,168 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
-"pacat %s\n"
-"Přeloženo s libpulse %s\n"
-"Propojeno s libpulse %s\n"
 
-#: ../src/utils/pacat.c:760, c-format
+#: ../src/utils/pacat.c:760
+#, c-format
 msgid "Invalid client name '%s'"
-msgstr "Neplatný název klienta \"%s\""
+msgstr ""
 
-#: ../src/utils/pacat.c:776, c-format
+#: ../src/utils/pacat.c:776
+#, c-format
 msgid "Invalid stream name '%s'"
-msgstr "Neplatný název proudu \"%s\""
+msgstr ""
 
-#: ../src/utils/pacat.c:813, c-format
+#: ../src/utils/pacat.c:813
+#, c-format
 msgid "Invalid channel map '%s'"
-msgstr "Neplatná mapa kanálů \"%s\""
+msgstr ""
 
-#: ../src/utils/pacat.c:842, c-format
+#: ../src/utils/pacat.c:842
+#, c-format
 msgid "Invalid latency specification '%s'"
-msgstr "Neplatné upřesnění latence \"%s\""
+msgstr ""
 
-#: ../src/utils/pacat.c:849, c-format
+#: ../src/utils/pacat.c:849
+#, c-format
 msgid "Invalid process time specification '%s'"
-msgstr "Neplatné upřesnění času zpracování \"%s\""
+msgstr ""
 
-#: ../src/utils/pacat.c:861, c-format
+#: ../src/utils/pacat.c:861
+#, c-format
 msgid "Invalid property '%s'"
-msgstr "Neplatná vlastnost \"%s\""
+msgstr ""
 
 #: ../src/utils/pacat.c:878
 #, c-format
 msgid "Unknown file format %s."
-msgstr "Neznámý formát souboru %s."
+msgstr ""
 
 #: ../src/utils/pacat.c:897
 msgid "Invalid sample specification"
-msgstr "Neplatné určení vzorku"
+msgstr ""
 
-#: ../src/utils/pacat.c:907, c-format
+#: ../src/utils/pacat.c:907
+#, c-format
 msgid "open(): %s"
-msgstr "open(): %s"
+msgstr ""
 
-#: ../src/utils/pacat.c:912, c-format
+#: ../src/utils/pacat.c:912
+#, c-format
 msgid "dup2(): %s"
-msgstr "dup2(): %s"
+msgstr ""
 
 #: ../src/utils/pacat.c:919
 msgid "Too many arguments."
-msgstr "Příliš mnoho argumentů."
+msgstr ""
 
 #: ../src/utils/pacat.c:930
 msgid "Failed to generate sample specification for file."
-msgstr "Selhalo vytvoření určení vzorku souboru."
+msgstr ""
 
 #: ../src/utils/pacat.c:950
 msgid "Failed to open audio file."
-msgstr "Selhalo otevření zvukového souboru."
+msgstr ""
 
 #: ../src/utils/pacat.c:956
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
 msgstr ""
-"Varování: zadané určení vzorku bude přepsáno určením získaným "
-"ze souboru."
 
 #: ../src/utils/pacat.c:959
 msgid "Failed to determine sample specification from file."
-msgstr "Selhalo zjištění určení vzorku ze souboru."
+msgstr ""
 
 #: ../src/utils/pacat.c:968
 msgid "Warning: Failed to determine channel map from file."
-msgstr "Varování: Selhalo zjištění mapy kanálů ze souboru."
+msgstr ""
 
 #: ../src/utils/pacat.c:979
 msgid "Channel map doesn't match sample specification"
-msgstr "Mapa kanálů se neshoduje s určením vzorku"
+msgstr ""
 
 #: ../src/utils/pacat.c:990
 msgid "Warning: failed to write channel map to file."
-msgstr "Varování: selhal zápis mapy kanálů do souboru."
+msgstr ""
 
-#: ../src/utils/pacat.c:1005, c-format
+#: ../src/utils/pacat.c:1005
+#, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
-msgstr "Otevírání proudu %s s určením vzorku \"%s\" a mapou kanálů \"%s\"."
+msgstr ""
 
 #: ../src/utils/pacat.c:1006
 msgid "recording"
-msgstr "nahrávání"
+msgstr ""
 
 #: ../src/utils/pacat.c:1006
 msgid "playback"
-msgstr "přehrávání"
+msgstr ""
 
 #: ../src/utils/pacat.c:1032
 msgid "pa_mainloop_new() failed."
-msgstr "pa_mainloop_new() selhalo."
+msgstr ""
 
 #: ../src/utils/pacat.c:1051
 msgid "io_new() failed."
-msgstr "io_new() selhalo."
+msgstr ""
 
 #: ../src/utils/pacat.c:1058
 msgid "pa_context_new() failed."
-msgstr "pa_context_new() selhalo."
+msgstr ""
 
 #: ../src/utils/pacat.c:1066 ../src/utils/pactl.c:1122
 #, c-format
 msgid "pa_context_connect() failed: %s"
-msgstr "pa_context_connect() selhalo: %s"
+msgstr ""
 
 #: ../src/utils/pacat.c:1072
 msgid "pa_context_rttime_new() failed."
-msgstr "pa_context_rttime_new() selhalo."
+msgstr ""
 
 #: ../src/utils/pacat.c:1079
 msgid "pa_mainloop_run() failed."
-msgstr "pa_mainloop_run() selhalo."
+msgstr ""
 
 #: ../src/utils/pasuspender.c:81
 #, c-format
 msgid "fork(): %s\n"
-msgstr "fork(): %s\n"
+msgstr ""
 
 #: ../src/utils/pasuspender.c:92
 #, c-format
 msgid "execvp(): %s\n"
-msgstr "execvp(): %s\n"
+msgstr ""
 
 #: ../src/utils/pasuspender.c:109
 #, c-format
 msgid "Failure to suspend: %s\n"
-msgstr "Nezdařilo se pozastavení: %s\n"
+msgstr ""
 
 #: ../src/utils/pasuspender.c:124
 #, c-format
 msgid "Failure to resume: %s\n"
-msgstr "Nezdařilo se obnovení: %s\n"
+msgstr ""
 
 #: ../src/utils/pasuspender.c:147
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
-msgstr "VAROVÁNÍ: Zvukový server není místní, nedojde k pozastavení.\n"
+msgstr ""
 
 #: ../src/utils/pasuspender.c:159 ../src/utils/pactl.c:814
 #, c-format
 msgid "Connection failure: %s\n"
-msgstr "Spojení selhalo: %s\n"
+msgstr ""
 
 #: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:820
 #, c-format
 msgid "Got SIGINT, exiting.\n"
-msgstr "Získáno SIGINT, ukončování.\n"
+msgstr ""
 
 #: ../src/utils/pasuspender.c:194
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr "VAROVÁNÍ: Proces potomka ukončen signálem %u\n"
+msgstr ""
 
 #: ../src/utils/pasuspender.c:212
 #, c-format
@@ -1550,12 +1424,6 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [přepínače] ... \n"
-"\n"
-"  -h, --help                            Zobrazí tuto nápovědu\n"
-"      --version                         Zobrazí verzi\n"
-"  -s, --server=SERVER                   Název připojovaného serveru\n"
-"\n"
 
 #: ../src/utils/pasuspender.c:248
 #, c-format
@@ -1564,49 +1432,46 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
-"pasuspender %s\n"
-"Přeloženo s libpulse %s\n"
-"Propojeno s libpulse %s\n"
 
 #: ../src/utils/pasuspender.c:277 ../src/utils/pactl.c:1104
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
-msgstr "pa_mainloop_new() selhalo.\n"
+msgstr ""
 
 #: ../src/utils/pasuspender.c:290 ../src/utils/pactl.c:1116
 #, c-format
 msgid "pa_context_new() failed.\n"
-msgstr "pa_context_new() selhalo.\n"
+msgstr ""
 
 #: ../src/utils/pasuspender.c:298 ../src/utils/pactl.c:1127
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
-msgstr "pa_mainloop_run() selhalo.\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:128
 #, c-format
 msgid "Failed to get statistics: %s\n"
-msgstr "Selhalo získání statistik: %s\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:134
 #, c-format
 msgid "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr "Právě používáno: %u bloků obsahujících celkem %s bajtů.\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:137
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr "Alokováno během celého běhu: %u bloků obsahujících celkem %s bajtů.\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:140
 #, c-format
 msgid "Sample cache size: %s\n"
-msgstr "Velikost vzorkovací vyrovnávací paměti: %s\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:149
 #, c-format
 msgid "Failed to get server information: %s\n"
-msgstr "Nezdařilo se získání informací o serveru: %s\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:157
 #, c-format
@@ -1621,20 +1486,11 @@ msgid ""
 "Default Source: %s\n"
 "Cookie: %08x\n"
 msgstr ""
-"Uživatelské jméno: %s\n"
-"Název počítače: %s\n"
-"Název serveru: %s\n"
-"Verze serveru: %s\n"
-"Výchozí určení vzorku: %s\n"
-"Výchozí mapa kanálů: %s\n"
-"Výchozí cíl: %s\n"
-"Výchozí zdroj: %s\n"
-"Cookie: %08x\n"
 
 #: ../src/utils/pactl.c:198
 #, c-format
 msgid "Failed to get sink information: %s\n"
-msgstr "Nezdařilo se získání informací o cíli: %s\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:214
 #, c-format
@@ -1657,38 +1513,21 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Cíl č. %u\n"
-"\tStav: %s\n"
-"\tNázev: %s\n"
-"\tPopis: %s\n"
-"\tOvladač: %s\n"
-"\tUrčení vzorku: %s\n"
-"\tMapa kanálů: %s\n"
-"\tModul vlastníka: %u\n"
-"\tZtlumení: %s\n"
-"\tHlasitost: %s%s%s\n"
-"\t        vyvážení %0.2f\n"
-"\tZákladní hlasitost %s%s%s\n"
-"\tZdroj monitoru: %s\n"
-"\tLatence: %0.0f μs, konfigurováno %0.0f μs\n"
-"\tPříznaky: %s%s%s%s%s%s\n"
-"\tVlastnosti:\n"
-"\t\t%s\n"
 
 #: ../src/utils/pactl.c:261 ../src/utils/pactl.c:353
 #, c-format
 msgid "\tPorts:\n"
-msgstr "\tPorty:\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:267 ../src/utils/pactl.c:359
 #, c-format
 msgid "\tActive Port: %s\n"
-msgstr "\tAktivní port: %s\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:290
 #, c-format
 msgid "Failed to get source information: %s\n"
-msgstr "Nezdařilo se získání informací o zdroji: %s\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:306
 #, c-format
@@ -1711,23 +1550,6 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Zdroj č. %u\n"
-"\tStav: %s\n"
-"\tNázev: %s\n"
-"\tPopis: %s\n"
-"\tOvladač: %s\n"
-"\tUrčení vzorku: %s\n"
-"\tMapa kanálů: %s\n"
-"\tModul vlastníka: %u\n"
-"\tZtlumení: %s\n"
-"\tHlasitost: %s%s%s\n"
-"\t        vyvážení %0.2f\n"
-"\tZákladní hlasitost %s%s%s\n"
-"\tMonitor zdroje: %s\n"
-"\tLatence: %0.0f μs, konfigurováno %0.0f μs\n"
-"\tPříznaky: %s%s%s%s%s%s\n"
-"\tVlastnosti:\n"
-"\t\t%s\n"
 
 #: ../src/utils/pactl.c:338 ../src/utils/pactl.c:394 ../src/utils/pactl.c:429
 #: ../src/utils/pactl.c:466 ../src/utils/pactl.c:525 ../src/utils/pactl.c:526
@@ -1735,12 +1557,12 @@ msgstr ""
 #: ../src/utils/pactl.c:587 ../src/utils/pactl.c:630 ../src/utils/pactl.c:631
 #: ../src/utils/pactl.c:638
 msgid "n/a"
-msgstr "nic"
+msgstr ""
 
 #: ../src/utils/pactl.c:368
 #, c-format
 msgid "Failed to get module information: %s\n"
-msgstr "Selhalo získání informací o modulu: %s\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:386
 #, c-format
@@ -1752,17 +1574,11 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Modul č. %u\n"
-"\tNázev: %s\n"
-"\tArgument: %s\n"
-"\tPočet použití %s\n"
-"\tVlastnosti:\n"
-"\t\t%s\n"
 
 #: ../src/utils/pactl.c:405
 #, c-format
 msgid "Failed to get client information: %s\n"
-msgstr "Selhalo získání informací o klientu: %s\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:423
 #, c-format
@@ -1773,16 +1589,11 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Klient č. %u\n"
-"\tOvladač: %s\n"
-"\tModul vlastníka: %s\n"
-"\tVlastnosti:\n"
-"\t\t%s\n"
 
 #: ../src/utils/pactl.c:440
 #, c-format
 msgid "Failed to get card information: %s\n"
-msgstr "Selhalo získání informací o kartě: %s\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:458
 #, c-format
@@ -1794,27 +1605,21 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Karta č. %u\n"
-"\tNázev: %s\n"
-"\tOvladač: %s\n"
-"\tModul vlastníka: %s\n"
-"\tVlastnosti:\n"
-"\t\t%s\n"
 
 #: ../src/utils/pactl.c:472
 #, c-format
 msgid "\tProfiles:\n"
-msgstr "\tProfily:\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:478
 #, c-format
 msgid "\tActive Profile: %s\n"
-msgstr "\tAktivní profil: %s\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:489
 #, c-format
 msgid "Failed to get sink input information: %s\n"
-msgstr "Nezdařilo se získání cílových vstupních informací: %s\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:508
 #, c-format
@@ -1836,27 +1641,11 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Vstup cíle č. %u\n"
-"\tOvladač: %s\n"
-"\tModul vlastníka: %s\n"
-"\tKlient: %s\n"
-"\tCíl: %u\n"
-"\tUrčení vzorku: %s\n"
-"\tMapa kanálů: %s\n"
-"\tZtlumení: %s\n"
-"\tHlasitost: %s\n"
-"\t        %s\n"
-"\t        vyvážení %0.2f\n"
-"\tLatence vyrovnávací paměti: %0.0f μs\n"
-"\tLatence cíle: %0.0f μs\n"
-"\tMetoda převzorkování: %s\n"
-"\tVlastnosti:\n"
-"\t\t%s\n"
 
 #: ../src/utils/pactl.c:547
 #, c-format
 msgid "Failed to get source output information: %s\n"
-msgstr "Selhalo získání informace o výstupu zdroje: %s\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:567
 #, c-format
@@ -1874,23 +1663,11 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Výstup zdroje č. %u\n"
-"\tOvladač: %s\n"
-"\tModul vlastníka: %s\n"
-"\tKlient: %s\n"
-"\tZdroj: %u\n"
-"\tUrčení vzorku: %s\n"
-"\tMapa kanálů: %s\n"
-"\tLatence vyrovnávací paměti: %0.0f μs\n"
-"\tLatence zdroje: %0.0f μs\n"
-"\tMetoda převzorkování: %s\n"
-"\tVlastnosti:\n"
-"\t\t%s\n"
 
 #: ../src/utils/pactl.c:598
 #, c-format
 msgid "Failed to get sample information: %s\n"
-msgstr "Selhalo získání informace o vzorku: %s\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:616
 #, c-format
@@ -1909,33 +1686,20 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Vzorek č. %u\n"
-"\tNázev: %s\n"
-"\tUrčení vzorku: %s\n"
-"\tMapa kanálů: %s\n"
-"\tHlasitost: %s\n"
-"\t        %s\n"
-"\t        vyvážení %0.2f\n"
-"\tDélka: %0.1fs\n"
-"\tVelikost: %s\n"
-"\tOpoždění: %s\n"
-"\tNázev souboru: %s\n"
-"\tVlastnosti:\n"
-"\t\t%s\n"
 
 #: ../src/utils/pactl.c:646 ../src/utils/pactl.c:656
 #, c-format
 msgid "Failure: %s\n"
-msgstr "Selhání: %s\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:680
 #, c-format
 msgid "Failed to upload sample: %s\n"
-msgstr "Selhalo nahrání vzorku: %s\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:697
 msgid "Premature end of file\n"
-msgstr "Předčasný konec souboru\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:826
 #, c-format
@@ -1964,28 +1728,6 @@ msgid ""
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 msgstr ""
-"%s [přepínače] stat\n"
-"%s [přepínače] list\n"
-"%s [přepínače] exit\n"
-"%s [přepínače] upload-sample NÁZEVSOUBORU [NÁZEV]\n"
-"%s [přepínače] play-sample NÁZEV [CÍL]\n"
-"%s [přepínače] remove-sample NÁZEV\n"
-"%s [přepínače] move-sink-input ID CÍL\n"
-"%s [přepínače] move-source-output ID ZDROJ\n"
-"%s [přepínače] load-module NÁZEV [ARG ...]\n"
-"%s [přepínače] unload-module ID\n"
-"%s [přepínače] suspend-sink [CÍL] 1|0\n"
-"%s [přepínače] suspend-source [ZDROJ] 1|0\n"
-"%s [přepínače] set-card-profile [KARTA] [PROFIL] \n"
-"%s [přepínače] set-sink-port [CÍL] [PORT] \n"
-"%s [přepínače] set-source-port [ZDROJ] [PORT] \n"
-"\n"
-"  -h, --help                            Zobrazí tuto nápovědu\n"
-"      --version                         Zobrazí verzi\n"
-"\n"
-"  -s, --server=SERVER                   Název připojovaného serveru\n"
-"  -n, --client-name=NÁZEV               Způsob volání tohoto klienta na "
-"serveru\n"
 
 #: ../src/utils/pactl.c:880
 #, c-format
@@ -1994,83 +1736,79 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
-"pactl %s\n"
-"Přeloženo s libpulse %s\n"
-"Propojeno s libpulse %s\n"
 
 #: ../src/utils/pactl.c:900
 #, c-format
 msgid "Invalid client name '%s'\n"
-msgstr "Neplatný název klienta \"%s\"\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:926
 msgid "Please specify a sample file to load\n"
-msgstr "Zadejte prosím soubor se vzorkem určeným k nahrání\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:939
 msgid "Failed to open sound file.\n"
-msgstr "Selhalo otevření zvukového souboru.\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:944
 msgid "Failed to determine sample specification from file.\n"
-msgstr "Selhalo zjištění určení vzorku ze souboru.\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:951
 msgid "Warning: Failed to determine sample specification from file.\n"
-msgstr "Varování: Selhalo zjištění určení vzorku ze souboru.\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:961
 msgid "You have to specify a sample name to play\n"
-msgstr "Je nutné zadat název vzorku určeného k přehrání\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:973
 msgid "You have to specify a sample name to remove\n"
-msgstr "Je nutné zadat název vzorku určeného k odstranění\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:982
 msgid "You have to specify a sink input index and a sink\n"
-msgstr "Je nutné zadat vstup cíle a cíl\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:992
 msgid "You have to specify a source output index and a source\n"
-msgstr "Je nutné zadat index výstupu zdroje a zdroj\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:1007
 msgid "You have to specify a module name and arguments.\n"
-msgstr "Je nutné zadat název modulu a argumenty.\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:1027
 msgid "You have to specify a module index\n"
-msgstr "Je nutné zadat index modulu\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:1037
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean "
 "value.\n"
-msgstr "Nelze zadat více než jeden cíl. Je nutné zadat booleovskou hodnotu.\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:1050
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value.\n"
 msgstr ""
-"Nelze zadat více než jeden zdroj. Je nutné zadat booleovskou hodnotu.\n"
 
 #: ../src/utils/pactl.c:1062
 msgid "You have to specify a card name/index and a profile name\n"
-msgstr "Je nutné upřesnit název karty/indexu a název profilu\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:1073
 msgid "You have to specify a sink name/index and a port name\n"
-msgstr "Je nutné upřesnit název cíle/indexu a název portu\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:1084
 msgid "You have to specify a source name/index and a port name\n"
-msgstr "Je nutné upřesnit název zdroje/indexu a název portu\n"
+msgstr ""
 
 #: ../src/utils/pactl.c:1099
 msgid "No valid command specified.\n"
-msgstr "Nezadán žádný platný příkaz.\n"
+msgstr ""
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2083,114 +1821,107 @@ msgid ""
 "variables and cookie file.\n"
 " -r    Remove PulseAudio data from X11 display\n"
 msgstr ""
-"%s [-D displej] [-S server] [-O cíl] [-I zdroj] [-c soubor]  [-d|-e|-i|-r]\n"
-"\n"
-" -d    Zobrazí aktuální data PulseAudio přiřazená k displeji X11 (výchozí)\n"
-" -e    Exportuje místní data PulseAudio na displej X11\n"
-" -i    Importuje data PulseAudio z displeje X11 mezi místní proměnné "
-"prostředí a soubor cookie.\n"
-" -r    Odstraní data PulseAudio z displeje X11\n"
 
 #: ../src/utils/pax11publish.c:94
 #, c-format
 msgid "Failed to parse command line.\n"
-msgstr "Selhala analýza příkazového řádku.\n"
+msgstr ""
 
 #: ../src/utils/pax11publish.c:108
 #, c-format
 msgid "Server: %s\n"
-msgstr "Server: %s\n"
+msgstr ""
 
 #: ../src/utils/pax11publish.c:110
 #, c-format
 msgid "Source: %s\n"
-msgstr "Zdroj: %s\n"
+msgstr ""
 
 #: ../src/utils/pax11publish.c:112
 #, c-format
 msgid "Sink: %s\n"
-msgstr "Cíl: %s\n"
+msgstr ""
 
 #: ../src/utils/pax11publish.c:114
 #, c-format
 msgid "Cookie: %s\n"
-msgstr "Cookie: %s\n"
+msgstr ""
 
 #: ../src/utils/pax11publish.c:132
 #, c-format
 msgid "Failed to parse cookie data\n"
-msgstr "Nezdařilo se analyzovat data cookie\n"
+msgstr ""
 
 #: ../src/utils/pax11publish.c:137
 #, c-format
 msgid "Failed to save cookie data\n"
-msgstr "Nezdařilo se uložit data cookie\n"
+msgstr ""
 
 #: ../src/utils/pax11publish.c:152
 #, c-format
 msgid "Failed to load client configuration file.\n"
-msgstr "Nezdařilo se nahrát konfigurační soubor klienta.\n"
+msgstr ""
 
 #: ../src/utils/pax11publish.c:157
 #, c-format
 msgid "Failed to read environment configuration data.\n"
-msgstr "Nezdařilo se přečtení konfiguračních dat prostředí.\n"
+msgstr ""
 
 #: ../src/utils/pax11publish.c:174
 #, c-format
 msgid "Failed to get FQDN.\n"
-msgstr "Nezdařilo se získání FQDN.\n"
+msgstr ""
 
 #: ../src/utils/pax11publish.c:194
 #, c-format
 msgid "Failed to load cookie data\n"
-msgstr "Nezdařilo se nahrát data cookie\n"
+msgstr ""
 
 #: ../src/utils/pax11publish.c:211
 #, c-format
 msgid "Not yet implemented.\n"
-msgstr "Doposud neimplementováno.\n"
+msgstr ""
 
 #: ../src/utils/pacmd.c:61
 msgid "No PulseAudio daemon running, or not running as session daemon."
-msgstr "Neběží žádný démon PulseAudio, nebo neběží jako démon sezení."
+msgstr ""
 
 #: ../src/utils/pacmd.c:66
 #, c-format
 msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
-msgstr "socket(PF_UNIX, SOCK_STREAM, 0): %s"
+msgstr ""
 
 #: ../src/utils/pacmd.c:83
 #, c-format
 msgid "connect(): %s"
-msgstr "connect(): %s"
+msgstr ""
 
 #: ../src/utils/pacmd.c:91
 msgid "Failed to kill PulseAudio daemon."
-msgstr "Nezdařilo se zabít démona PulseAudio."
+msgstr ""
 
 #: ../src/utils/pacmd.c:99
 msgid "Daemon not responding."
-msgstr "Démon neodpovídá."
+msgstr ""
 
 #: ../src/utils/pacmd.c:146
 #, c-format
 msgid "select(): %s"
-msgstr "select(): %s"
+msgstr ""
 
 #: ../src/utils/pacmd.c:156 ../src/utils/pacmd.c:173
 #, c-format
 msgid "read(): %s"
-msgstr "read(): %s"
+msgstr ""
 
 #: ../src/utils/pacmd.c:189 ../src/utils/pacmd.c:203
 #, c-format
 msgid "write(): %s"
-msgstr "write(): %s"
+msgstr ""
 
 #: ../src/pulsecore/lock-autospawn.c:136 ../src/pulsecore/lock-autospawn.c:219
 msgid "Cannot access autospawn lock."
-msgstr "Nelze přistoupit k zámku automatického spouštění."
+msgstr ""
 
 #: ../src/modules/alsa/alsa-sink.c:449 ../src/modules/alsa/alsa-sink.c:606
 #, c-format
@@ -2202,12 +1933,6 @@ msgid ""
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
-"ALSA nás probudila z důvodu zápisu nových dat na zařízení, ale ve "
-"skutečnosti nebylo co zapisovat.\n"
-"S největší pravděpodobností se jedná o chybu v ovladači ALSA \"%s\". "
-"Nahlaste prosím tento problém vývojářům ALSA.\n"
-"Probudilo nás nastavení POLLOUT - nicméně následné snd_pcm_avail() vrátilo 0 "
-"či jinou hodnotu < min_avail."
 
 #: ../src/modules/alsa/alsa-source.c:429 ../src/modules/alsa/alsa-source.c:578
 #, c-format
@@ -2219,267 +1944,20 @@ msgid ""
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
-"ALSA nás probudila z důvodu čtení nových dat ze zařízení, ale ve skutečnosti "
-"nebylo co číst.\n"
-"S největší pravděpodobností se jedná o chybu v ovladači ALSA \"%s\". "
-"Nahlaste prosím tento problém vývojářům ALSA.\n"
-"Probudilo nás nastavení POLLIN - nicméně následné snd_pcm_avail() vrátilo 0 "
-"či jinou hodnotu < min_avail."
 
 #: ../src/modules/alsa/module-alsa-card.c:152
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2065
 msgid "Off"
-msgstr "Vypnuto"
+msgstr ""
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2035
 msgid "High Fidelity Playback (A2DP)"
-msgstr "Přehrávání s velmi věrnou reprodukcí (A2DP)"
+msgstr ""
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2050
 msgid "Telephony Duplex (HSP/HFP)"
-msgstr "Duplexní telefonie (HSP/HFP)"
+msgstr ""
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
-msgstr "Zvukový server PulseAudio"
-
-#~ msgid "Cannot connect to system bus: %s"
-#~ msgstr "Nelze se spojit se systémovou sběrnicí: %s"
-
-#~ msgid "Cannot get caller from PID: %s"
-#~ msgstr "Nelze získat volajícího z PID: %s"
-
-#~ msgid "Cannot set UID on caller object."
-#~ msgstr "Nelze nastavit UID na objekt volajícího."
-
-#~ msgid "Failed to get CK session."
-#~ msgstr "Nezdařilo se získání sezení CK."
-
-#~ msgid "Cannot set UID on session object."
-#~ msgstr "Nelze nastavit UID na objekt sezení."
-
-#~ msgid "Cannot allocate PolKitAction."
-#~ msgstr "Nelze alokovat PolKitAction."
-
-#~ msgid "Cannot set action_id"
-#~ msgstr "Nelze nastavit action_id"
-
-#~ msgid "Cannot allocate PolKitContext."
-#~ msgstr "Nelze alokovat PolKitContext."
-
-#~ msgid "Cannot initialize PolKitContext: %s"
-#~ msgstr "Nelze spustit PolKitContext: %s"
-
-#~ msgid "Could not determine whether caller is authorized: %s"
-#~ msgstr "Nezdařilo se určit, zda je volající oprávněn: %s"
-
-#~ msgid "Cannot obtain auth: %s"
-#~ msgstr "Nezdařilo se získat oprávnění: %s"
-
-#~ msgid "PolicyKit responded with '%s'"
-#~ msgstr "PolicyKit odpověděl s \"%s\""
-
-#~ msgid ""
-#~ "High-priority scheduling (negative Unix nice level) for the PulseAudio "
-#~ "daemon"
-#~ msgstr ""
-#~ "Plánování o vysoké prioritě (záporná úroveň nice v Unixu) démona "
-#~ "PulseAudio"
-
-#~ msgid "Real-time scheduling for the PulseAudio daemon"
-#~ msgstr "Plánování v reálném čase démona PulseAudio"
-
-#~ msgid ""
-#~ "System policy prevents PulseAudio from acquiring high-priority scheduling."
-#~ msgstr ""
-#~ "Systémová pravidla znemožňují technologii PulseAudio získat přístup k "
-#~ "plánování o vysoké prioritě."
-
-#~ msgid ""
-#~ "System policy prevents PulseAudio from acquiring real-time scheduling."
-#~ msgstr ""
-#~ "Systémová pravidla znemožňují technologii PulseAudio získat přístup k "
-#~ "plánování v reálném čase."
-
-#~ msgid "read() failed: %s\n"
-#~ msgstr "read() selhalo: %s\n"
-
-#~ msgid "pa_context_connect() failed: %s\n"
-#~ msgstr "pa_context_connect() selhalo: %s\n"
-
-#~ msgid "We're in the group '%s', allowing high-priority scheduling."
-#~ msgstr ""
-#~ "Nacházíme se ve skupině \"%s\", což umožňuje plánování o vysoké prioritě."
-
-#~ msgid "We're in the group '%s', allowing real-time scheduling."
-#~ msgstr ""
-#~ "Nacházíme se ve skupině \"%s\", což umožňuje plánování v reálném čase."
-
-#~ msgid "PolicyKit grants us acquire-high-priority privilege."
-#~ msgstr "PolicyKit nám udělil oprávnění acquire-high-priority."
-
-#~ msgid "PolicyKit refuses acquire-high-priority privilege."
-#~ msgstr "PolicyKit nám neudělil oprávnění acquire-high-priority."
-
-#~ msgid "PolicyKit grants us acquire-real-time privilege."
-#~ msgstr "PolicyKit nám udělil oprávnění acquire-real-time."
-
-#~ msgid "PolicyKit refuses acquire-real-time privilege."
-#~ msgstr "PolicyKit nám neudělil oprávnění acquire-real-time."
-
-#~ msgid ""
-#~ "Called SUID root and real-time and/or high-priority scheduling was "
-#~ "requested in the configuration. However, we lack the necessary "
-#~ "privileges:\n"
-#~ "We are not in group '%s', PolicyKit refuse to grant us the requested "
-#~ "privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
-#~ "limits.\n"
-#~ "For enabling real-time/high-priority scheduling please acquire the "
-#~ "appropriate PolicyKit privileges, or become a member of '%s', or increase "
-#~ "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
-#~ msgstr ""
-#~ "Voláno SUID root a v nastavení bylo požádáno o plánování v reálném čase "
-#~ "či o vysoké prioritě. Schází nám ovšem potřebná oprávnění.\n"
-#~ "Nejsme ve skupině \"%s\", PolicyKit nám odmítá přidělit požadovaná "
-#~ "oprávnění a je nutné zvýšit omezení zdroje RLIMIT_NICE/RLIMIT_RTPRIO.\n"
-#~ "Plánování v reálném čase či o vysoké prioritě zapnete získáním "
-#~ "příslušných oprávnění PolicyKit, nebo tím, že se stanete členy \"%s\", "
-#~ "nebo uživateli zvýšíte omezení zdroje RLIMIT_NICE/RLIMIT_RTPRIO."
-
-#~ msgid ""
-#~ "High-priority scheduling enabled in configuration but not allowed by "
-#~ "policy."
-#~ msgstr ""
-#~ "Plánování o vysoké prioritě v konfiguraci zapnuto, ale nepovoleno "
-#~ "pravidly."
-
-#~ msgid "Successfully increased RLIMIT_RTPRIO"
-#~ msgstr "Úspěšně zvýšeno RLIMIT_RTPRIO"
-
-#~ msgid "RLIMIT_RTPRIO failed: %s"
-#~ msgstr "RLIMIT_RTPRIO selhalo: %s"
-
-#~ msgid "Giving up CAP_NICE"
-#~ msgstr "Vzdávání se CAP_NICE"
-
-#~ msgid ""
-#~ "Real-time scheduling enabled in configuration but not allowed by policy."
-#~ msgstr ""
-#~ "Plánování v reálném čase v konfiguraci zapnuto, ale nepovoleno pravidly."
-
-#~ msgid "Limited capabilities successfully to CAP_SYS_NICE."
-#~ msgstr "Schopnosti úspěšně omezeny na CAP_SYS_NICE."
-
-#~ msgid "time_new() failed.\n"
-#~ msgstr "time_new() selhalo.\n"
-
-#~ msgid "Analog Mono"
-#~ msgstr "Analogové mono"
-
-#~ msgid "Analog Stereo"
-#~ msgstr "Analogové stereo"
-
-#~ msgid "Digital Stereo (IEC958)"
-#~ msgstr "Digitální stereo (IEC958)"
-
-#~ msgid "Digital Stereo (HDMI)"
-#~ msgstr "Digitální stereo (HDMI)"
-
-#~ msgid "Analog Surround 4.0"
-#~ msgstr "Analogový Surround 4.0"
-
-#~ msgid "Digital Surround 4.0 (IEC958/AC3)"
-#~ msgstr "Digitální Surround 4.0 (IEC958/AC3)"
-
-#~ msgid "Analog Surround 4.1"
-#~ msgstr "Analogový Surround 4.1"
-
-#~ msgid "Analog Surround 5.0"
-#~ msgstr "Analogový Surround 5.0"
-
-#~ msgid "Analog Surround 5.1"
-#~ msgstr "Analogový Surround 5.1"
-
-#~ msgid "Digital Surround 5.1 (IEC958/AC3)"
-#~ msgstr "Digitální Surround 5.1 (IEC958/AC3)"
-
-#~ msgid "Analog Surround 7.1"
-#~ msgstr "Analogový Surround 7.1"
-
-#~ msgid "Output %s + Input %s"
-#~ msgstr "Výstup %s + vstup %s"
-
-#~ msgid "Output %s"
-#~ msgstr "Výstup %s"
-
-#~ msgid "Input %s"
-#~ msgstr "Vstup %s"
-
-#~ msgid "Stream successfully created\n"
-#~ msgstr "Proud úspěšně vytvořen\n"
-
-#~ msgid "Stream errror: %s\n"
-#~ msgstr "Chyba proudu: %s\n"
-
-#~ msgid "Connection established.\n"
-#~ msgstr "Spojení navázáno.\n"
-
-#~ msgid ""
-#~ "%s [options] [FILE]\n"
-#~ "\n"
-#~ "  -h, --help                            Show this help\n"
-#~ "      --version                         Show version\n"
-#~ "\n"
-#~ "  -v, --verbose                         Enable verbose operation\n"
-#~ "\n"
-#~ "  -s, --server=SERVER                   The name of the server to connect "
-#~ "to\n"
-#~ "  -d, --device=DEVICE                   The name of the sink to connect "
-#~ "to\n"
-#~ "  -n, --client-name=NAME                How to call this client on the "
-#~ "server\n"
-#~ "      --stream-name=NAME                How to call this stream on the "
-#~ "server\n"
-#~ "      --volume=VOLUME                   Specify the initial (linear) "
-#~ "volume in range 0...65536\n"
-#~ "      --channel-map=CHANNELMAP          Set the channel map to the use\n"
-#~ msgstr ""
-#~ "%s [přepínače] [SOUBOR]\n"
-#~ "\n"
-#~ "  -h, --help                            Zobrazí tuto nápovědu\n"
-#~ "      --version                         Zobrazí verzi\n"
-#~ "\n"
-#~ "  -v, --verbose                         Zapne nakládání s úrovní "
-#~ "podrobností\n"
-#~ "\n"
-#~ "  -s, --server=SERVER                   Název připojovaného serveru\n"
-#~ "  -d, --device=ZAŘÍZENÍ                 Název připojovaného cíle\n"
-#~ "  -n, --client-name=NÁZEV               Způsob volání tohoto klienta na "
-#~ "serveru\n"
-#~ "      --stream-name=NÁZEV               Způsob volání tohoto proudu na "
-#~ "serveru\n"
-#~ "      --volume=HLASITOST                Určí počáteční (lineární) "
-#~ "hlasitost v rozmezí 0...65536\n"
-#~ "      --channel-map=MAPAKANÁLŮ          Nastaví mapu kanálů určenou k "
-#~ "použití\n"
-
-#~ msgid ""
-#~ "paplay %s\n"
-#~ "Compiled with libpulse %s\n"
-#~ "Linked with libpulse %s\n"
-#~ msgstr ""
-#~ "paplay %s\n"
-#~ "Přeloženo s libpulse %s\n"
-#~ "Propojeno s libpulse %s\n"
-
-#~ msgid "Invalid channel map\n"
-#~ msgstr "Neplatná mapa kanálů\n"
-
-#~ msgid "Failed to open file '%s'\n"
-#~ msgstr "Selhalo otevření souboru \"%s\"\n"
-
-#~ msgid "Channel map doesn't match file.\n"
-#~ msgstr "Mapa kanálů neodpovídá souboru.\n"
-
-#~ msgid "Using sample spec '%s'\n"
-#~ msgstr "Používá se vzorkovací specifikace \"%s\"\n"
+msgstr ""
