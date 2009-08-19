@@ -975,6 +975,7 @@ static int is_group(gid_t gid, const char *name) {
     int r = -1;
 
 #ifdef HAVE_GETGRGID_R
+
 #ifdef _SC_GETGR_R_SIZE_MAX
     n = sysconf(_SC_GETGR_R_SIZE_MAX);
 #else
@@ -985,38 +986,25 @@ static int is_group(gid_t gid, const char *name) {
 
     data = pa_xmalloc((size_t) n);
 
+    if ((errno = getgrgid_r(gid, &group, data, (size_t) n, &result)) || !result)
+#else
     errno = 0;
-    if (getgrgid_r(gid, &group, data, (size_t) n, &result) < 0 || !result) {
-        pa_log("getgrgid_r(%u): %s", (unsigned) gid, pa_cstrerror(errno));
-
+    if (!(result = getgrgid(gid)))
+#endif
+    {
         if (!errno)
             errno = ENOENT;
 
-        goto finish;
-    }
-
-    r = strcmp(name, result->gr_name) == 0;
-
-finish:
-    pa_xfree(data);
-#else
-    /* XXX Not thread-safe, but needed on OSes (e.g. FreeBSD 4.X) that do not
-     * support getgrgid_r. */
-
-    errno = 0;
-    if (!(result = getgrgid(gid))) {
         pa_log("getgrgid(%u): %s", gid, pa_cstrerror(errno));
 
-        if (!errno)
-            errno = ENOENT;
-
         goto finish;
     }
 
     r = strcmp(name, result->gr_name) == 0;
 
 finish:
-#endif
+
+    pa_xfree(data);
 
     return r;
 }
@@ -1065,11 +1053,13 @@ finish:
 
 /* Check whether the specifc user id is a member of the specified group */
 int pa_uid_in_group(uid_t uid, const char *name) {
-    char *g_buf, *p_buf;
+    char *g_buf = NULL, *p_buf = NULL;
     long g_n, p_n;
-    struct group grbuf, *gr;
+    struct group grbuf, *gr = NULL;
     char **i;
     int r = -1;
+
+#ifdef HAVE_GETGRNAM_R
 
 #ifdef _SC_GETGR_R_SIZE_MAX
     g_n = sysconf(_SC_GETGR_R_SIZE_MAX);
@@ -1081,6 +1071,19 @@ int pa_uid_in_group(uid_t uid, const char *name) {
 
     g_buf = pa_xmalloc((size_t) g_n);
 
+    if ((errno = getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr)) != 0 || !gr)
+#else
+    errno = 0;
+    if (!(gr = getgrnam(name)))
+#endif
+    {
+        if (!errno)
+            errno = ENOENT;
+        goto finish;
+    }
+
+#ifdef HAVE_GETPWNAM_R
+
 #ifdef _SC_GETPW_R_SIZE_MAX
     p_n = sysconf(_SC_GETPW_R_SIZE_MAX);
 #else
@@ -1090,26 +1093,16 @@ int pa_uid_in_group(uid_t uid, const char *name) {
         p_n = 512;
 
     p_buf = pa_xmalloc((size_t) p_n);
-
-    errno = 0;
-#ifdef HAVE_GETGRNAM_R
-    if (getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr) != 0 || !gr)
-#else
-    if (!(gr = getgrnam(name)))
 #endif
-    {
-        if (!errno)
-            errno = ENOENT;
-        goto finish;
-    }
 
     r = 0;
     for (i = gr->gr_mem; *i; i++) {
-        struct passwd pwbuf, *pw;
+        struct passwd pwbuf, *pw = NULL;
 
 #ifdef HAVE_GETPWNAM_R
-        if (getpwnam_r(*i, &pwbuf, p_buf, (size_t) p_n, &pw) != 0 || !pw)
+        if ((errno = getpwnam_r(*i, &pwbuf, p_buf, (size_t) p_n, &pw)) != 0 || !pw)
 #else
+        errno = 0;
         if (!(pw = getpwnam(*i)))
 #endif
             continue;
@@ -1130,9 +1123,11 @@ finish:
 /* Get the GID of a gfiven group, return (gid_t) -1 on failure. */
 gid_t pa_get_gid_of_group(const char *name) {
     gid_t ret = (gid_t) -1;
-    char *g_buf;
+    char *g_buf = NULL;
     long g_n;
-    struct group grbuf, *gr;
+    struct group grbuf, *gr = NULL;
+
+#ifdef HAVE_GETGRNAM_R
 
 #ifdef _SC_GETGR_R_SIZE_MAX
     g_n = sysconf(_SC_GETGR_R_SIZE_MAX);
@@ -1144,10 +1139,9 @@ gid_t pa_get_gid_of_group(const char *name) {
 
     g_buf = pa_xmalloc((size_t) g_n);
 
-    errno = 0;
-#ifdef HAVE_GETGRNAM_R
-    if (getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr) != 0 || !gr)
+    if ((errno = getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr)) != 0 || !gr)
 #else
+    errno = 0;
     if (!(gr = getgrnam(name)))
 #endif
     {
