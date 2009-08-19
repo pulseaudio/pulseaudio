@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-05 15:09+0200\n"
+"POT-Creation-Date: 2009-08-19 04:16+0200\n"
 "PO-Revision-Date: 2009-04-07 14:27+0530\n"
 "Last-Translator: Sweta Kothari <swkothar@redhat.com>\n"
 "Language-Team: Gujarati\n"
@@ -17,7 +17,7 @@ msgstr ""
 "X-Generator: KBabel 1.11.4\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
 
-#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2411
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2666
 #, c-format
 msgid "%s %s"
 msgstr ""
@@ -73,11 +73,11 @@ msgid ""
 "input control values>"
 msgstr ""
 
-#: ../src/pulsecore/sink.c:2395
+#: ../src/pulsecore/sink.c:2650
 msgid "Internal Audio"
 msgstr "આંતરિક ઓડિયો"
 
-#: ../src/pulsecore/sink.c:2400
+#: ../src/pulsecore/sink.c:2655
 msgid "Modem"
 msgstr "મોડેમ"
 
@@ -93,244 +93,244 @@ msgstr "નવા dl લોડરને ફાળવવાનું નિષ્
 msgid "Failed to add bind-now-loader."
 msgstr "bind-now-loader ને ઉમેરવાનું નિષ્ફળ."
 
-#: ../src/daemon/main.c:145
+#: ../src/daemon/main.c:141
 #, c-format
 msgid "Got signal %s."
 msgstr "સંકેત %s મળ્યુ."
 
-#: ../src/daemon/main.c:172
+#: ../src/daemon/main.c:168
 msgid "Exiting."
 msgstr "બહાર નીકળી રહ્યા છે."
 
-#: ../src/daemon/main.c:190
+#: ../src/daemon/main.c:186
 #, c-format
 msgid "Failed to find user '%s'."
 msgstr "વપરાશકર્તા '%s' ને શોધવામાં નિષ્ફળ."
 
-#: ../src/daemon/main.c:195
+#: ../src/daemon/main.c:191
 #, c-format
 msgid "Failed to find group '%s'."
 msgstr "જૂથ '%s' ને શોધવામાં નિષ્ફળ."
 
-#: ../src/daemon/main.c:199
+#: ../src/daemon/main.c:195
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
 msgstr "વપરાશકર્તા '%s' (UID %lu) અને જૂથ '%s' (GID %lu) શોધાયુ."
 
-#: ../src/daemon/main.c:204
+#: ../src/daemon/main.c:200
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
 msgstr "વપરાશકર્તા '%s' અને જૂથ '%s' ની GID બંધબેસતુ નથી."
 
-#: ../src/daemon/main.c:209
+#: ../src/daemon/main.c:205
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "વપરાશકર્તાઓ '%s' ની ઘર ડિરેક્ટરી '%s' નથી, અવગણી રહ્યા છે."
 
-#: ../src/daemon/main.c:212 ../src/daemon/main.c:217
+#: ../src/daemon/main.c:208 ../src/daemon/main.c:213
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "'%s' ને બનાવવામાં નિષ્ફળ: %s"
 
-#: ../src/daemon/main.c:224
+#: ../src/daemon/main.c:220
 #, c-format
 msgid "Failed to change group list: %s"
 msgstr "જૂથ યાદીને બદલવામાં નિષ્ફળ: %s"
 
-#: ../src/daemon/main.c:240
+#: ../src/daemon/main.c:236
 #, c-format
 msgid "Failed to change GID: %s"
 msgstr "GID ને બદલવામાં નિષ્ફળ: %s"
 
-#: ../src/daemon/main.c:256
+#: ../src/daemon/main.c:252
 #, c-format
 msgid "Failed to change UID: %s"
 msgstr "UID ને બદલવામાં નિષ્ફળ: %s"
 
-#: ../src/daemon/main.c:270
+#: ../src/daemon/main.c:266
 msgid "Successfully dropped root privileges."
 msgstr "સફળતાપૂર્વક છોડી દીધેલ રુટ અધિકારો."
 
-#: ../src/daemon/main.c:278
+#: ../src/daemon/main.c:274
 msgid "System wide mode unsupported on this platform."
 msgstr "આ પ્લેટફોર્મ પર બિનઆધારભૂત સિસ્ટમ વિશાળ સ્થિતિ."
 
-#: ../src/daemon/main.c:296
+#: ../src/daemon/main.c:292
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) નિષ્ફળ: %s"
 
-#: ../src/daemon/main.c:471
+#: ../src/daemon/main.c:464
 msgid "Failed to parse command line."
 msgstr "આદેશ વાક્યને પદચ્છેદન કરવામાં નિષ્ફળ."
 
-#: ../src/daemon/main.c:538
+#: ../src/daemon/main.c:531
 msgid "Daemon not running"
 msgstr "ડિમન ચાલી રહ્યુ નથી"
 
-#: ../src/daemon/main.c:540
+#: ../src/daemon/main.c:533
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "PID %u તરીકે ડિમન ચાલી રહ્યુ છે"
 
-#: ../src/daemon/main.c:550
+#: ../src/daemon/main.c:543
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "ડિમનને મારવાનું નિષ્ફળ: %s"
 
-#: ../src/daemon/main.c:568
+#: ../src/daemon/main.c:561
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
 msgstr ""
 "આ પ્રક્રિયાને રુટ તરીકે ચલાવવા માટે વિચાર થયેલ નથી (નહિં તો --system એ સ્પષ્ટ થયેલ છે)."
 
-#: ../src/daemon/main.c:570
+#: ../src/daemon/main.c:563
 msgid "Root privileges required."
 msgstr "રુટ અધિકારો જરૂરી છે."
 
-#: ../src/daemon/main.c:575
+#: ../src/daemon/main.c:568
 msgid "--start not supported for system instances."
 msgstr "--start એ સિસ્ટમ ઉદાહરણો માટે આધારભૂત નથી."
 
-#: ../src/daemon/main.c:580
+#: ../src/daemon/main.c:573
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr "સિસ્ટમ સ્થિતિમાં ચાલી રહ્યુ છે, પરંતુ --disallow-exit સુયોજિત નથી!"
 
-#: ../src/daemon/main.c:583
+#: ../src/daemon/main.c:576
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr "સિસ્ટમ સ્થિતિમાં ચાલી રહ્યુ છે, પરંતુ --disallow-module-loading એ સુયોજિત નથી!"
 
-#: ../src/daemon/main.c:586
+#: ../src/daemon/main.c:579
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "સિસ્ટમ સ્થિતિમાં ચાલી રહ્યુ છે, SHM સ્થિતિને દબાણપૂર્વક નિષ્ક્રિય કરી રહ્યા છે!"
 
-#: ../src/daemon/main.c:591
+#: ../src/daemon/main.c:584
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "સિસ્ટમ સ્થિતિમાં ચાલી રહ્યુ છે, બહાર નીકળવનાં નિષ્કાર્ય સમયને દબાણપૂર્વક નિષ્ક્રિય કરી "
 "રહ્યા છે!"
 
-#: ../src/daemon/main.c:618
+#: ../src/daemon/main.c:611
 msgid "Failed to acquire stdio."
 msgstr "stdio ને મેળવવામાં નિષ્ફળ."
 
-#: ../src/daemon/main.c:624
+#: ../src/daemon/main.c:617
 #, c-format
 msgid "pipe failed: %s"
 msgstr "પાઇપ નિષ્ફળ: %s"
 
-#: ../src/daemon/main.c:629
+#: ../src/daemon/main.c:622
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() નિષ્ફળ: %s"
 
-#: ../src/daemon/main.c:643 ../src/utils/pacat.c:505
+#: ../src/daemon/main.c:636 ../src/utils/pacat.c:505
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() નિષ્ફળ: %s"
 
-#: ../src/daemon/main.c:649
+#: ../src/daemon/main.c:642
 msgid "Daemon startup failed."
 msgstr "ડિમન શરૂઆત નિષ્ફળ."
 
-#: ../src/daemon/main.c:651
+#: ../src/daemon/main.c:644
 msgid "Daemon startup successful."
 msgstr "ડિમન શરૂઆત કરવુ સફળ છે."
 
-#: ../src/daemon/main.c:728
+#: ../src/daemon/main.c:721
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "આ PulseAudio %s છે"
 
-#: ../src/daemon/main.c:729
+#: ../src/daemon/main.c:722
 #, c-format
 msgid "Compilation host: %s"
 msgstr "કમ્પાઇલેશન યજમાન: %s"
 
-#: ../src/daemon/main.c:730
+#: ../src/daemon/main.c:723
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "કમ્પાઇલેશન CFLAGS: %s"
 
-#: ../src/daemon/main.c:733
+#: ../src/daemon/main.c:726
 #, c-format
 msgid "Running on host: %s"
 msgstr "યજમાન પર ચાલી રહ્યુ છે: %s"
 
-#: ../src/daemon/main.c:736
+#: ../src/daemon/main.c:729
 #, c-format
 msgid "Found %u CPUs."
 msgstr "%u CPUs શોધાયુ."
 
-#: ../src/daemon/main.c:738
+#: ../src/daemon/main.c:731
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "પાનાંનુ માપ %lu બાઇટો છે"
 
-#: ../src/daemon/main.c:741
+#: ../src/daemon/main.c:734
 msgid "Compiled with Valgrind support: yes"
 msgstr "Valgrind આધાર સાથે કમ્પાઇલ થયેલ છે: હા"
 
-#: ../src/daemon/main.c:743
+#: ../src/daemon/main.c:736
 msgid "Compiled with Valgrind support: no"
 msgstr "Valgrind આધાર સાથે કમ્પાઇલ થયેલ છે: ના"
 
-#: ../src/daemon/main.c:746
+#: ../src/daemon/main.c:739
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "valgrind સ્થિતિમાં ચાલી રહ્યુ છે: %s"
 
-#: ../src/daemon/main.c:749
+#: ../src/daemon/main.c:742
 msgid "Optimized build: yes"
 msgstr "શ્રેષ્ટ થયેલ બિલ્ડ: હા"
 
-#: ../src/daemon/main.c:751
+#: ../src/daemon/main.c:744
 msgid "Optimized build: no"
 msgstr "શ્રેષ્ટ થયેલ બિલ્ડ: ના"
 
-#: ../src/daemon/main.c:755
+#: ../src/daemon/main.c:748
 msgid "NDEBUG defined, all asserts disabled."
 msgstr "NDEBUG વ્યાખ્યાયિત થયેલ છે, બધા હકો નિષ્ક્રિય થયેલ છે."
 
-#: ../src/daemon/main.c:757
+#: ../src/daemon/main.c:750
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr "FASTPATH વ્યાખ્યાયિત થયેલ છે, ફક્ત ઝડપી પાથનાં હકો નિષ્ક્રિય થયેલ છે."
 
-#: ../src/daemon/main.c:759
+#: ../src/daemon/main.c:752
 msgid "All asserts enabled."
 msgstr "બધા હકો સક્રિય થયેલ છે."
 
-#: ../src/daemon/main.c:763
+#: ../src/daemon/main.c:756
 msgid "Failed to get machine ID"
 msgstr "મશીન ID ને મેળવવામાં નિષ્ફળ"
 
-#: ../src/daemon/main.c:766
+#: ../src/daemon/main.c:759
 #, c-format
 msgid "Machine ID is %s."
 msgstr "મશીન ID %s છે."
 
-#: ../src/daemon/main.c:770
+#: ../src/daemon/main.c:763
 #, fuzzy, c-format
 msgid "Session ID is %s."
 msgstr "મશીન ID %s છે."
 
-#: ../src/daemon/main.c:776
+#: ../src/daemon/main.c:769
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "રનટાઇમ ડિરેક્ટરી %s ને વાપરી રહ્યા છે."
 
-#: ../src/daemon/main.c:781
+#: ../src/daemon/main.c:774
 #, c-format
 msgid "Using state directory %s."
 msgstr "સ્થિતિ ડિરેક્ટરી %s ને વાપરી રહ્યા છે."
 
-#: ../src/daemon/main.c:784
+#: ../src/daemon/main.c:777
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "સિસ્ટમ સ્થિતિમાં ચાલી રહ્યુ છે: %s"
 
-#: ../src/daemon/main.c:787
+#: ../src/daemon/main.c:780
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -340,15 +340,15 @@ msgid ""
 "explanation why system mode is usually a bad idea."
 msgstr ""
 
-#: ../src/daemon/main.c:804
+#: ../src/daemon/main.c:797
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() નિષ્ફળ."
 
-#: ../src/daemon/main.c:814
+#: ../src/daemon/main.c:807
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "તાજુ high-resolution ટાઇમરો ઉપલ્બધ છે! બોન એપેટાઇટ!"
 
-#: ../src/daemon/main.c:816
+#: ../src/daemon/main.c:809
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -356,27 +356,27 @@ msgstr ""
 "મિત્ર, તમારુ કર્નલમાં ગડબડ છે! રસોઇયાનું આજે ભલામણ એ સક્રિય થયેલ high-resolution "
 "ટાઇમરો સાથે Linux નું છે!"
 
-#: ../src/daemon/main.c:834
+#: ../src/daemon/main.c:827
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() નિષ્ફળ."
 
-#: ../src/daemon/main.c:896
+#: ../src/daemon/main.c:889
 msgid "Failed to initialize daemon."
 msgstr "ડિમનને શરૂ કરવામાં નિષ્ફળ."
 
-#: ../src/daemon/main.c:901
+#: ../src/daemon/main.c:894
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "કોઇપણ લોડ થયેલ મોડ્યુલો વગર ડિમનને શરૂ કરો, કામ કરવા માટે ફરી શરૂ કરી રહ્યા છે."
 
-#: ../src/daemon/main.c:918
+#: ../src/daemon/main.c:911
 msgid "Daemon startup complete."
 msgstr "ડિમન પારંભ કરવાનું સમાપ્ત છે."
 
-#: ../src/daemon/main.c:924
+#: ../src/daemon/main.c:917
 msgid "Daemon shutdown initiated."
 msgstr "ડિમનને બંધ કરવાનું પ્રારંભ થયેલ છે."
 
-#: ../src/daemon/main.c:946
+#: ../src/daemon/main.c:939
 msgid "Daemon terminated."
 msgstr "ડિમનનો અંત આવેલ છે."
 
@@ -692,25 +692,26 @@ msgstr "[%s:%u] અયોગ્ય ફ્રેગમેન્ટ માપ '%s'
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] અયોગ્ય સારુ સ્તર '%s'."
 
-#: ../src/daemon/daemon-conf.c:524
+#: ../src/daemon/daemon-conf.c:530
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "રૂપરેખાંકન ફાઇલને ખોલવાનું નિષ્ફળ: %s"
 
-#: ../src/daemon/daemon-conf.c:540
+#: ../src/daemon/daemon-conf.c:546
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
 msgstr ""
 "સ્પષ્ટ થયેલ મૂળભૂત ચેનલ મેપ પાસે સ્પષ્ટ થયેલ ચેનલોની મૂળભૂત સંખ્યા કરતા વિવિધ ચેનલોની સંખ્યા છે."
 
-#: ../src/daemon/daemon-conf.c:616
+#: ../src/daemon/daemon-conf.c:622
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### રૂપરેખાંકન ફાઇલમાંથી વાંચો: %s ###\n"
 
-#: ../src/daemon/caps.c:65
-msgid "Dropping root privileges."
+#: ../src/daemon/caps.c:62
+#, fuzzy
+msgid "Cleaning up privileges."
 msgstr "રુટ અધિકારોને છોડી રહ્યા છે."
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
@@ -721,7 +722,7 @@ msgstr "PulseAudio સાઉન્ડ સિસ્ટમ"
 msgid "Start the PulseAudio Sound System"
 msgstr "PulseAudio સાઉન્ડ સિસ્ટમને શરૂ કરો"
 
-#: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:747
+#: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:757
 msgid "Mono"
 msgstr "મોનો"
 
@@ -925,33 +926,33 @@ msgstr "ઉપર રિઅર ડાબે"
 msgid "Top Rear Right"
 msgstr "ઉપર રિઅર જમણે"
 
-#: ../src/pulse/channelmap.c:478 ../src/pulse/sample.c:167
-#: ../src/pulse/volume.c:239 ../src/pulse/volume.c:265
-#: ../src/pulse/volume.c:285 ../src/pulse/volume.c:315
+#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:171
+#: ../src/pulse/volume.c:285 ../src/pulse/volume.c:311
+#: ../src/pulse/volume.c:331 ../src/pulse/volume.c:361
 msgid "(invalid)"
 msgstr "(અયોગ્ય)"
 
-#: ../src/pulse/channelmap.c:751
+#: ../src/pulse/channelmap.c:761
 msgid "Stereo"
 msgstr "સ્ટેરિઓ"
 
-#: ../src/pulse/channelmap.c:756
+#: ../src/pulse/channelmap.c:766
 msgid "Surround 4.0"
 msgstr "સરાઉન્ડ 4.0"
 
-#: ../src/pulse/channelmap.c:762
+#: ../src/pulse/channelmap.c:772
 msgid "Surround 4.1"
 msgstr "સરાઉન્ડ 4.1"
 
-#: ../src/pulse/channelmap.c:768
+#: ../src/pulse/channelmap.c:778
 msgid "Surround 5.0"
 msgstr "સરાઉન્ડ 5.0"
 
-#: ../src/pulse/channelmap.c:774
+#: ../src/pulse/channelmap.c:784
 msgid "Surround 5.1"
 msgstr "સરાઉન્ડ 5.1"
 
-#: ../src/pulse/channelmap.c:781
+#: ../src/pulse/channelmap.c:791
 msgid "Surround 7.1"
 msgstr "સરાઉન્ડ 7.1"
 
@@ -1055,27 +1056,27 @@ msgstr "ગુમ થયેલ અમલીકરણ"
 msgid "Client forked"
 msgstr "ક્લાઇન્ટમાં ફાટા પડેલ છે"
 
-#: ../src/pulse/sample.c:169
+#: ../src/pulse/sample.c:173
 #, c-format
 msgid "%s %uch %uHz"
 msgstr "%s %uch %uHz"
 
-#: ../src/pulse/sample.c:181
+#: ../src/pulse/sample.c:185
 #, c-format
 msgid "%0.1f GiB"
 msgstr "%0.1f GiB"
 
-#: ../src/pulse/sample.c:183
+#: ../src/pulse/sample.c:187
 #, c-format
 msgid "%0.1f MiB"
 msgstr "%0.1f MiB"
 
-#: ../src/pulse/sample.c:185
+#: ../src/pulse/sample.c:189
 #, c-format
 msgid "%0.1f KiB"
 msgstr "%0.1f KiB"
 
-#: ../src/pulse/sample.c:187
+#: ../src/pulse/sample.c:191
 #, c-format
 msgid "%u B"
 msgstr "%u B"
@@ -1088,7 +1089,7 @@ msgstr "XOpenDisplay() નિષ્ફળ"
 msgid "Failed to parse cookie data"
 msgstr "કુકીની માહિતીને પદચ્છેદન કરવામાં નિષ્ફળ"
 
-#: ../src/pulse/client-conf.c:110
+#: ../src/pulse/client-conf.c:111
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
 msgstr "રૂપરેખાંકન ફાઇલ '%s' ને ખોલવામાં નિષ્ફળ: %s"
@@ -1102,12 +1103,12 @@ msgstr "કુકી લોડ થયેલ નથી. તેનાં વગર
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:745
+#: ../src/pulse/context.c:748
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1432
+#: ../src/pulse/context.c:1435
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "અજ્ઞાત એક્સટેન્શન '%s' માટે મળેલ સંદેશ"
@@ -2185,39 +2186,39 @@ msgstr "કુકી માહિતીને લોડ કરવામાં �
 msgid "Not yet implemented.\n"
 msgstr "હજુ અમલીકરણ થયેલ નથી.\n"
 
-#: ../src/utils/pacmd.c:61
+#: ../src/utils/pacmd.c:69
 msgid "No PulseAudio daemon running, or not running as session daemon."
 msgstr ""
 
-#: ../src/utils/pacmd.c:66
+#: ../src/utils/pacmd.c:74
 #, c-format
 msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
 msgstr "socket(PF_UNIX, SOCK_STREAM, 0): %s"
 
-#: ../src/utils/pacmd.c:83
+#: ../src/utils/pacmd.c:91
 #, c-format
 msgid "connect(): %s"
 msgstr "connect(): %s"
 
-#: ../src/utils/pacmd.c:91
+#: ../src/utils/pacmd.c:99
 msgid "Failed to kill PulseAudio daemon."
 msgstr "PulseAudio ડિમનને મારવામાં નિષ્ફળ."
 
-#: ../src/utils/pacmd.c:99
+#: ../src/utils/pacmd.c:107
 msgid "Daemon not responding."
 msgstr "ડિમન એ જવાબ આપતુ નથી."
 
-#: ../src/utils/pacmd.c:146
-#, c-format
-msgid "select(): %s"
-msgstr "select(): %s"
+#: ../src/utils/pacmd.c:161
+#, fuzzy, c-format
+msgid "poll(): %s"
+msgstr "fork(): %s"
 
-#: ../src/utils/pacmd.c:156 ../src/utils/pacmd.c:173
+#: ../src/utils/pacmd.c:171 ../src/utils/pacmd.c:188
 #, c-format
 msgid "read(): %s"
 msgstr "read(): %s"
 
-#: ../src/utils/pacmd.c:189 ../src/utils/pacmd.c:203
+#: ../src/utils/pacmd.c:207 ../src/utils/pacmd.c:223
 #, c-format
 msgid "write(): %s"
 msgstr "write(): %s"
@@ -2226,7 +2227,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr "autospawn તાળાને દાખલ કરી શકાતુ નથી."
 
-#: ../src/modules/alsa/alsa-sink.c:449 ../src/modules/alsa/alsa-sink.c:606
+#: ../src/modules/alsa/alsa-sink.c:451 ../src/modules/alsa/alsa-sink.c:608
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2243,7 +2244,7 @@ msgstr ""
 "POLLOUT સુયોજન સાથે આપણે જાગેલ હતા -- છતાંપણ ના પછીનું snd_pcm_avail() ને 0 પાછો મળે "
 "છે અથવા બીજી કિંમત < min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:429 ../src/modules/alsa/alsa-source.c:578
+#: ../src/modules/alsa/alsa-source.c:431 ../src/modules/alsa/alsa-source.c:580
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2261,21 +2262,24 @@ msgstr ""
 "છે અથવા બીજી કિંમત < min_avail."
 
 #: ../src/modules/alsa/module-alsa-card.c:152
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2065
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2070
 msgid "Off"
 msgstr "બંધ"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2035
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2040
 msgid "High Fidelity Playback (A2DP)"
 msgstr "High Fidelity Playback (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2050
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2055
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr "Telephony Duplex (HSP/HFP)"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio સાઉન્ડ સર્વર"
+
+#~ msgid "select(): %s"
+#~ msgstr "select(): %s"
 
 #~ msgid "Cannot connect to system bus: %s"
 #~ msgstr "સિસ્ટમ બસને જોડી શકાતુ નથી: %s"

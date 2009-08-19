@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-05 15:09+0200\n"
+"POT-Creation-Date: 2009-08-19 04:16+0200\n"
 "PO-Revision-Date: 2009-04-06 10:26+1000\n"
 "Last-Translator: Leah Liu <lliu@redhat.com>\n"
 "Language-Team: Simplified Chinese <zh@li.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
 
-#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2411
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2666
 #, c-format
 msgid "%s %s"
 msgstr ""
@@ -71,11 +71,11 @@ msgid ""
 "input control values>"
 msgstr ""
 
-#: ../src/pulsecore/sink.c:2395
+#: ../src/pulsecore/sink.c:2650
 msgid "Internal Audio"
 msgstr "内部音频"
 
-#: ../src/pulsecore/sink.c:2400
+#: ../src/pulsecore/sink.c:2655
 msgid "Modem"
 msgstr "调制解调器"
 
@@ -91,241 +91,241 @@ msgstr "分配新的 dl 加载器失败。"
 msgid "Failed to add bind-now-loader."
 msgstr "添加 bind-now-loader 失败。"
 
-#: ../src/daemon/main.c:145
+#: ../src/daemon/main.c:141
 #, c-format
 msgid "Got signal %s."
 msgstr "获得信号%s"
 
-#: ../src/daemon/main.c:172
+#: ../src/daemon/main.c:168
 msgid "Exiting."
 msgstr "退出"
 
-#: ../src/daemon/main.c:190
+#: ../src/daemon/main.c:186
 #, c-format
 msgid "Failed to find user '%s'."
 msgstr "找不到用户 `%s' "
 
-#: ../src/daemon/main.c:195
+#: ../src/daemon/main.c:191
 #, c-format
 msgid "Failed to find group '%s'."
 msgstr "找不到用户组 `%s'"
 
-#: ../src/daemon/main.c:199
+#: ../src/daemon/main.c:195
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
 msgstr "发现用户'%s' (UID %lu)和组'%s' (GID %lu)."
 
-#: ../src/daemon/main.c:204
+#: ../src/daemon/main.c:200
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
 msgstr "用户'%s'与组'%s'的GID不匹配."
 
-#: ../src/daemon/main.c:209
+#: ../src/daemon/main.c:205
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "用户'%s'的主文件夹不是'%s'，忽略。"
 
-#: ../src/daemon/main.c:212 ../src/daemon/main.c:217
+#: ../src/daemon/main.c:208 ../src/daemon/main.c:213
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "创建'%s'失败： %s"
 
-#: ../src/daemon/main.c:224
+#: ../src/daemon/main.c:220
 #, c-format
 msgid "Failed to change group list: %s"
 msgstr "更改组列表失败：%s"
 
-#: ../src/daemon/main.c:240
+#: ../src/daemon/main.c:236
 #, c-format
 msgid "Failed to change GID: %s"
 msgstr "更改GID失败：%s"
 
-#: ../src/daemon/main.c:256
+#: ../src/daemon/main.c:252
 #, c-format
 msgid "Failed to change UID: %s"
 msgstr "更改UID失败：%s"
 
-#: ../src/daemon/main.c:270
+#: ../src/daemon/main.c:266
 msgid "Successfully dropped root privileges."
 msgstr "成功放弃root权限。"
 
-#: ../src/daemon/main.c:278
+#: ../src/daemon/main.c:274
 msgid "System wide mode unsupported on this platform."
 msgstr "此平台不支持system-wide模式。"
 
-#: ../src/daemon/main.c:296
+#: ../src/daemon/main.c:292
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) 失败：%s"
 
-#: ../src/daemon/main.c:471
+#: ../src/daemon/main.c:464
 msgid "Failed to parse command line."
 msgstr "分析命令行失败。"
 
-#: ../src/daemon/main.c:538
+#: ../src/daemon/main.c:531
 msgid "Daemon not running"
 msgstr "后台程序没有运行"
 
-#: ../src/daemon/main.c:540
+#: ../src/daemon/main.c:533
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "后台程序正在运行，PID %u"
 
-#: ../src/daemon/main.c:550
+#: ../src/daemon/main.c:543
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "杀死后台程序失败：%s"
 
-#: ../src/daemon/main.c:568
+#: ../src/daemon/main.c:561
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
 msgstr "不应以root身份运行本程序（除非指定 --system）。"
 
-#: ../src/daemon/main.c:570
+#: ../src/daemon/main.c:563
 msgid "Root privileges required."
 msgstr "需要 root 权限。"
 
-#: ../src/daemon/main.c:575
+#: ../src/daemon/main.c:568
 msgid "--start not supported for system instances."
 msgstr "系统实例不支持 --start。"
 
-#: ../src/daemon/main.c:580
+#: ../src/daemon/main.c:573
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr "正在以系统模式运行，但是 --disallow-exit 未设定！"
 
-#: ../src/daemon/main.c:583
+#: ../src/daemon/main.c:576
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr "正在以系统模式运行，但是 --disallow-module-loading 未设定！"
 
-#: ../src/daemon/main.c:586
+#: ../src/daemon/main.c:579
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "正在以系统模式运行，强制禁用SHM模式！"
 
-#: ../src/daemon/main.c:591
+#: ../src/daemon/main.c:584
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr "正在以系统模式运行，强制禁用退出空闲时间！"
 
-#: ../src/daemon/main.c:618
+#: ../src/daemon/main.c:611
 msgid "Failed to acquire stdio."
 msgstr "获取stdio失败。"
 
-#: ../src/daemon/main.c:624
+#: ../src/daemon/main.c:617
 #, c-format
 msgid "pipe failed: %s"
 msgstr "管道失败：%s"
 
-#: ../src/daemon/main.c:629
+#: ../src/daemon/main.c:622
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork()失败：%s"
 
-#: ../src/daemon/main.c:643 ../src/utils/pacat.c:505
+#: ../src/daemon/main.c:636 ../src/utils/pacat.c:505
 #, c-format
 msgid "read() failed: %s"
 msgstr "read()失败：%s"
 
-#: ../src/daemon/main.c:649
+#: ../src/daemon/main.c:642
 msgid "Daemon startup failed."
 msgstr "后台程序启动失败。"
 
-#: ../src/daemon/main.c:651
+#: ../src/daemon/main.c:644
 msgid "Daemon startup successful."
 msgstr "后台程序启动成功。"
 
-#: ../src/daemon/main.c:728
+#: ../src/daemon/main.c:721
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "这是 PulseAudio %s"
 
-#: ../src/daemon/main.c:729
+#: ../src/daemon/main.c:722
 #, c-format
 msgid "Compilation host: %s"
 msgstr "编译主机：%s"
 
-#: ../src/daemon/main.c:730
+#: ../src/daemon/main.c:723
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "编译CFLAGS：%s"
 
-#: ../src/daemon/main.c:733
+#: ../src/daemon/main.c:726
 #, c-format
 msgid "Running on host: %s"
 msgstr "正在主机上运行：%s"
 
-#: ../src/daemon/main.c:736
+#: ../src/daemon/main.c:729
 #, c-format
 msgid "Found %u CPUs."
 msgstr "找到 %u CPU。"
 
-#: ../src/daemon/main.c:738
+#: ../src/daemon/main.c:731
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "页面大小为%lu字节"
 
-#: ../src/daemon/main.c:741
+#: ../src/daemon/main.c:734
 msgid "Compiled with Valgrind support: yes"
 msgstr "编译启用Valgrind支持：是"
 
-#: ../src/daemon/main.c:743
+#: ../src/daemon/main.c:736
 msgid "Compiled with Valgrind support: no"
 msgstr "编译启用Valgrind支持：否"
 
-#: ../src/daemon/main.c:746
+#: ../src/daemon/main.c:739
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "正在以valgrind模式运行：%s"
 
-#: ../src/daemon/main.c:749
+#: ../src/daemon/main.c:742
 msgid "Optimized build: yes"
 msgstr "优化生成：是"
 
-#: ../src/daemon/main.c:751
+#: ../src/daemon/main.c:744
 msgid "Optimized build: no"
 msgstr "优化生成：否"
 
-#: ../src/daemon/main.c:755
+#: ../src/daemon/main.c:748
 msgid "NDEBUG defined, all asserts disabled."
 msgstr "拒绝 NDEBUG，禁用所有 assert"
 
-#: ../src/daemon/main.c:757
+#: ../src/daemon/main.c:750
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr "拒绝 FASTPATH，只禁用快速路径 assert。"
 
-#: ../src/daemon/main.c:759
+#: ../src/daemon/main.c:752
 msgid "All asserts enabled."
 msgstr "启用所有 assert。"
 
-#: ../src/daemon/main.c:763
+#: ../src/daemon/main.c:756
 msgid "Failed to get machine ID"
 msgstr "获取machine ID失败"
 
-#: ../src/daemon/main.c:766
+#: ../src/daemon/main.c:759
 #, c-format
 msgid "Machine ID is %s."
 msgstr "machine ID是%s。"
 
-#: ../src/daemon/main.c:770
+#: ../src/daemon/main.c:763
 #, fuzzy, c-format
 msgid "Session ID is %s."
 msgstr "machine ID是%s。"
 
-#: ../src/daemon/main.c:776
+#: ../src/daemon/main.c:769
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "正在使用运行时文件夹%s。"
 
-#: ../src/daemon/main.c:781
+#: ../src/daemon/main.c:774
 #, c-format
 msgid "Using state directory %s."
 msgstr "正在使用状态文件夹%s。"
 
-#: ../src/daemon/main.c:784
+#: ../src/daemon/main.c:777
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "正在以系统模式运行：%s"
 
-#: ../src/daemon/main.c:787
+#: ../src/daemon/main.c:780
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -335,41 +335,41 @@ msgid ""
 "explanation why system mode is usually a bad idea."
 msgstr ""
 
-#: ../src/daemon/main.c:804
+#: ../src/daemon/main.c:797
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create()失败。"
 
-#: ../src/daemon/main.c:814
+#: ../src/daemon/main.c:807
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "新鲜的高分辨率计时器开锅了！吃个饱！"
 
-#: ../src/daemon/main.c:816
+#: ../src/daemon/main.c:809
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 msgstr "老兄，你的内核真臭！现在流行的是启用了高分辩率计分器的Linux！"
 
-#: ../src/daemon/main.c:834
+#: ../src/daemon/main.c:827
 msgid "pa_core_new() failed."
 msgstr "pa_core_new()失败。"
 
-#: ../src/daemon/main.c:896
+#: ../src/daemon/main.c:889
 msgid "Failed to initialize daemon."
 msgstr "后台程序初始化失败。"
 
-#: ../src/daemon/main.c:901
+#: ../src/daemon/main.c:894
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "后台程序启动未加载任何模块，拒绝工作。"
 
-#: ../src/daemon/main.c:918
+#: ../src/daemon/main.c:911
 msgid "Daemon startup complete."
 msgstr "后台程序启动完成。"
 
-#: ../src/daemon/main.c:924
+#: ../src/daemon/main.c:917
 msgid "Daemon shutdown initiated."
 msgstr "开始关闭后台程序。"
 
-#: ../src/daemon/main.c:946
+#: ../src/daemon/main.c:939
 msgid "Daemon terminated."
 msgstr "后台程序已终止。"
 
@@ -670,24 +670,25 @@ msgstr "[%s:%u] 无效的分段大小'%s'。"
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] 无效的nice level '%s'。"
 
-#: ../src/daemon/daemon-conf.c:524
+#: ../src/daemon/daemon-conf.c:530
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "打开配置文件失败：%s"
 
-#: ../src/daemon/daemon-conf.c:540
+#: ../src/daemon/daemon-conf.c:546
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
 msgstr "指定的默认频道地图的频道数与指定的默认频道数不同。"
 
-#: ../src/daemon/daemon-conf.c:616
+#: ../src/daemon/daemon-conf.c:622
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### 从配置文件读取：%s ###\n"
 
-#: ../src/daemon/caps.c:65
-msgid "Dropping root privileges."
+#: ../src/daemon/caps.c:62
+#, fuzzy
+msgid "Cleaning up privileges."
 msgstr "正在取消 root 特权。"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
@@ -698,7 +699,7 @@ msgstr "PulseAudio 声音系统"
 msgid "Start the PulseAudio Sound System"
 msgstr "启动 PulseAudio 声音系统"
 
-#: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:747
+#: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:757
 msgid "Mono"
 msgstr "单声道"
 
@@ -902,33 +903,33 @@ msgstr "上左后"
 msgid "Top Rear Right"
 msgstr "上右后"
 
-#: ../src/pulse/channelmap.c:478 ../src/pulse/sample.c:167
-#: ../src/pulse/volume.c:239 ../src/pulse/volume.c:265
-#: ../src/pulse/volume.c:285 ../src/pulse/volume.c:315
+#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:171
+#: ../src/pulse/volume.c:285 ../src/pulse/volume.c:311
+#: ../src/pulse/volume.c:331 ../src/pulse/volume.c:361
 msgid "(invalid)"
 msgstr "（无效）"
 
-#: ../src/pulse/channelmap.c:751
+#: ../src/pulse/channelmap.c:761
 msgid "Stereo"
 msgstr "立体声"
 
-#: ../src/pulse/channelmap.c:756
+#: ../src/pulse/channelmap.c:766
 msgid "Surround 4.0"
 msgstr "环绕 4.0 "
 
-#: ../src/pulse/channelmap.c:762
+#: ../src/pulse/channelmap.c:772
 msgid "Surround 4.1"
 msgstr "环绕 4.1"
 
-#: ../src/pulse/channelmap.c:768
+#: ../src/pulse/channelmap.c:778
 msgid "Surround 5.0"
 msgstr "环绕 5.0"
 
-#: ../src/pulse/channelmap.c:774
+#: ../src/pulse/channelmap.c:784
 msgid "Surround 5.1"
 msgstr "环绕 5.1"
 
-#: ../src/pulse/channelmap.c:781
+#: ../src/pulse/channelmap.c:791
 msgid "Surround 7.1"
 msgstr "环绕 7.1"
 
@@ -1032,27 +1033,27 @@ msgstr "缺少部署"
 msgid "Client forked"
 msgstr "客户端分支"
 
-#: ../src/pulse/sample.c:169
+#: ../src/pulse/sample.c:173
 #, c-format
 msgid "%s %uch %uHz"
 msgstr "%s %uch %uHz"
 
-#: ../src/pulse/sample.c:181
+#: ../src/pulse/sample.c:185
 #, c-format
 msgid "%0.1f GiB"
 msgstr "%0.1f GiB"
 
-#: ../src/pulse/sample.c:183
+#: ../src/pulse/sample.c:187
 #, c-format
 msgid "%0.1f MiB"
 msgstr "%0.1f MiB"
 
-#: ../src/pulse/sample.c:185
+#: ../src/pulse/sample.c:189
 #, c-format
 msgid "%0.1f KiB"
 msgstr "%0.1f KiB"
 
-#: ../src/pulse/sample.c:187
+#: ../src/pulse/sample.c:191
 #, c-format
 msgid "%u B"
 msgstr "%u B"
@@ -1065,7 +1066,7 @@ msgstr "XOpenDisplay()失败"
 msgid "Failed to parse cookie data"
 msgstr "cookie数据分析失败"
 
-#: ../src/pulse/client-conf.c:110
+#: ../src/pulse/client-conf.c:111
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
 msgstr "打开配置文件'%s'失败：%s"
@@ -1079,12 +1080,12 @@ msgstr "没有加载cookie。尝试不加载cookie进行连接。"
 msgid "fork(): %s"
 msgstr "fork()：%s"
 
-#: ../src/pulse/context.c:745
+#: ../src/pulse/context.c:748
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid()：%s"
 
-#: ../src/pulse/context.c:1432
+#: ../src/pulse/context.c:1435
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "收到未知扩展'%s'的信息"
@@ -2145,39 +2146,39 @@ msgstr "加载cookie数据失败\n"
 msgid "Not yet implemented.\n"
 msgstr "尚未实现。\n"
 
-#: ../src/utils/pacmd.c:61
+#: ../src/utils/pacmd.c:69
 msgid "No PulseAudio daemon running, or not running as session daemon."
 msgstr ""
 
-#: ../src/utils/pacmd.c:66
+#: ../src/utils/pacmd.c:74
 #, c-format
 msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
 msgstr "socket(PF_UNIX, SOCK_STREAM, 0)：%s"
 
-#: ../src/utils/pacmd.c:83
+#: ../src/utils/pacmd.c:91
 #, c-format
 msgid "connect(): %s"
 msgstr "connect()：%s"
 
-#: ../src/utils/pacmd.c:91
+#: ../src/utils/pacmd.c:99
 msgid "Failed to kill PulseAudio daemon."
 msgstr "杀死PulseAudio后台程序失败。"
 
-#: ../src/utils/pacmd.c:99
+#: ../src/utils/pacmd.c:107
 msgid "Daemon not responding."
 msgstr "后台程序未响应。"
 
-#: ../src/utils/pacmd.c:146
-#, c-format
-msgid "select(): %s"
-msgstr "select()：%s"
+#: ../src/utils/pacmd.c:161
+#, fuzzy, c-format
+msgid "poll(): %s"
+msgstr "fork()：%s"
 
-#: ../src/utils/pacmd.c:156 ../src/utils/pacmd.c:173
+#: ../src/utils/pacmd.c:171 ../src/utils/pacmd.c:188
 #, c-format
 msgid "read(): %s"
 msgstr "read()：%s"
 
-#: ../src/utils/pacmd.c:189 ../src/utils/pacmd.c:203
+#: ../src/utils/pacmd.c:207 ../src/utils/pacmd.c:223
 #, c-format
 msgid "write(): %s"
 msgstr "write()：%s"
@@ -2186,7 +2187,7 @@ msgstr "write()：%s"
 msgid "Cannot access autospawn lock."
 msgstr "不能访问autospawn锁。"
 
-#: ../src/modules/alsa/alsa-sink.c:449 ../src/modules/alsa/alsa-sink.c:606
+#: ../src/modules/alsa/alsa-sink.c:451 ../src/modules/alsa/alsa-sink.c:608
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2202,7 +2203,7 @@ msgstr ""
 "提醒我们设置 POLLOUT -- 但结果是 snd_pcm_avail() 返回 0 或者另一个小于最小可"
 "用值的数值。"
 
-#: ../src/modules/alsa/alsa-source.c:429 ../src/modules/alsa/alsa-source.c:578
+#: ../src/modules/alsa/alsa-source.c:431 ../src/modules/alsa/alsa-source.c:580
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2219,21 +2220,24 @@ msgstr ""
 "用值的数值。"
 
 #: ../src/modules/alsa/module-alsa-card.c:152
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2065
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2070
 msgid "Off"
 msgstr "关闭"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2035
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2040
 msgid "High Fidelity Playback (A2DP)"
 msgstr "高保真回放（A2DP）"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2050
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2055
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr "双工电话（HSP/HFP）"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio 声音服务器"
+
+#~ msgid "select(): %s"
+#~ msgstr "select()：%s"
 
 #~ msgid "Cannot connect to system bus: %s"
 #~ msgstr "无法连接到系统总线：%s"
