@@ -104,8 +104,6 @@ struct userdata {
     size_t overlap_size;//window_size-R
     size_t samples_gathered;
     //message
-    float X;
-    float *H;//frequency response filter (magnitude based)
     float *W;//windowing function (time domain)
     float *work_buffer, **input, **overlap_accum;
     fftwf_complex *output_window;
@@ -113,7 +111,7 @@ struct userdata {
     //size_t samplings;
 
     float Xs[2];
-    float *Hs[2];//thread updatable copies
+    float *Hs[2];//thread updatable copies of the freq response filters (magintude based)
     pa_aupdate *a_H;
     pa_memchunk conv_buffer;
     pa_memblockq *input_q;
@@ -284,7 +282,8 @@ static void dsp_logic(
     float * restrict src,/*input data w/ overlap at start,
                                *automatically cycled in routine
                                */
-    float * restrict overlap,//The size of the overlap
+    float * restrict overlap,
+    const float X,//multipliar
     const float * restrict H,//The freq. magnitude scalers filter
     const float * restrict W,//The windowing function
     fftwf_complex * restrict output_window,//The transformed window'd src
@@ -293,16 +292,16 @@ static void dsp_logic(
     //zero padd the data
     memset(dst + u->window_size, 0, (u->fft_size - u->window_size) * sizeof(float));
     //window the data
-    for(size_t j = 0;j < u->window_size; ++j){
-        dst[j] = u->X * W[j] * src[j];
+    for(size_t j = 0; j < u->window_size; ++j){
+        dst[j] = X * W[j] * src[j];
     }
     //Processing is done here!
     //do fft
     fftwf_execute_dft_r2c(u->forward_plan, dst, output_window);
     //perform filtering
     for(size_t j = 0; j < FILTER_SIZE; ++j){
-        u->output_window[j][0] *= u->H[j];
-        u->output_window[j][1] *= u->H[j];
+        u->output_window[j][0] *= H[j];
+        u->output_window[j][1] *= H[j];
     }
     //inverse fft
     fftwf_execute_dft_c2r(u->inverse_plan, output_window, dst);
@@ -314,9 +313,9 @@ static void dsp_logic(
     //}
 
     //overlap add and preserve overlap component from this window (linear phase)
-    for(size_t j = 0;j < u->overlap_size; ++j){
+    for(size_t j = 0; j < u->overlap_size; ++j){
         u->work_buffer[j] += overlap[j];
-        overlap[j] = dst[u->R+j];
+        overlap[j] = dst[u->R + j];
     }
     ////debug: tests if basic buffering works
     ////shouldn't modify the signal AT ALL (beyond roundoff)
@@ -325,8 +324,8 @@ static void dsp_logic(
     //}
 
     //preseve the needed input for the next window's overlap
-    memmove(src, src+u->R,
-        ((u->overlap_size + u->samples_gathered) - u->R)*sizeof(float)
+    memmove(src, src + u->R,
+        u->overlap_size * sizeof(float)
     );
 }
 
@@ -347,11 +346,12 @@ typedef union float_vector {
 //                               *automatically cycled in routine
 //                               */
 //    float * restrict overlap,//The size of the overlap
+//    const float X,//multipliar
 //    const float * restrict H,//The freq. magnitude scalers filter
 //    const float * restrict W,//The windowing function
 //    fftwf_complex * restrict output_window,//The transformed window'd src
 //    struct userdata *u){//Collection of constants
-      //float_vector_t x = {u->X, u->X, u->X, u->X};
+      //float_vector_t x = {X, X, X, X};
 //    const size_t window_size = PA_ROUND_UP(u->window_size,v_size);
 //    const size_t fft_h = PA_ROUND_UP(FILTER_SIZE, v_size / 2);
 //    //const size_t R = PA_ROUND_UP(u->R, v_size);
@@ -430,25 +430,33 @@ typedef union float_vector {
 //    //}
 //
 //    //preseve the needed input for the next window's overlap
-//    memmove(src, src+u->R,
-//        ((u->overlap_size+u->samples_gathered)+-u->R)*sizeof(float)
+//    memmove(src, src + u->R,
+//        u->overlap_size * sizeof(float)
 //    );
 //}
 
 static void process_samples(struct userdata *u, pa_memchunk *tchunk){
     size_t fs=pa_frame_size(&(u->sink->sample_spec));
     float *dst;
+    unsigned a_i;
+    float *H, X;
     pa_assert(u->samples_gathered >= u->R);
     tchunk->index = 0;
     tchunk->length = u->R * fs;
     tchunk->memblock = pa_memblock_new(u->sink->core->mempool, tchunk->length);
     dst = ((float*)pa_memblock_acquire(tchunk->memblock));
+    /* set the H filter */
+    a_i = pa_aupdate_read_begin(u->a_H);
+    X = u->Xs[a_i];
+    H = u->Hs[a_i];
+
     for(size_t c=0;c < u->channels; c++) {
         dsp_logic(
             u->work_buffer,
             u->input[c],
             u->overlap_accum[c],
-            u->H,
+            X,
+            H,
             u->W,
             u->output_window,
             u
@@ -465,6 +473,8 @@ static void process_samples(struct userdata *u, pa_memchunk *tchunk){
     }
     pa_memblock_release(tchunk->memblock);
     u->samples_gathered -= u->R;
+
+    pa_aupdate_read_end(u->a_H);
 }
 
 static void initialize_buffer(struct userdata *u, pa_memchunk *in){
@@ -492,7 +502,7 @@ static void input_buffer(struct userdata *u, pa_memchunk *in){
         pa_assert_se(
             u->input[c]+u->samples_gathered+samples <= u->input[c]+u->window_size
         );
-        pa_sample_clamp(PA_SAMPLE_FLOAT32NE, u->input[c]+u->overlap_size+u->samples_gathered, sizeof(float), src + c, fs, samples);
+        pa_sample_clamp(PA_SAMPLE_FLOAT32NE, u->input[c]+u->samples_gathered, sizeof(float), src + c, fs, samples);
     }
     u->samples_gathered += samples;
     pa_memblock_release(in->memblock);
@@ -503,7 +513,6 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     struct userdata *u;
     size_t fs;
     struct timeval start, end;
-    unsigned a_i;
     pa_memchunk tchunk;
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
@@ -554,15 +563,11 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     pa_assert(u->fft_size >= u->window_size);
     pa_assert(u->R < u->window_size);
     /* set the H filter */
-    a_i = pa_aupdate_read_begin(u->a_H);
-    u->X = u->Xs[a_i];
-    u->H = u->Hs[a_i];
     pa_rtclock_get(&start);
     /* process a block */
     process_samples(u, chunk);
     pa_rtclock_get(&end);
     pa_log_debug("Took %0.6f seconds to process", (double) pa_timeval_diff(&end, &start) / PA_USEC_PER_SEC);
-    pa_aupdate_read_end(u->a_H);
 
     pa_assert(chunk->memblock);
     //pa_log_debug("gave %ld", chunk->length/fs);
@@ -1162,7 +1167,6 @@ enum equalizer_handler_index {
     EQUALIZER_HANDLER_FILTERSAMPLERATE,
     EQUALIZER_HANDLER_N_COEFS,
     EQUALIZER_HANDLER_FILTER,
-    EQUALIZER_HANDLER_PREAMP,
     EQUALIZER_HANDLER_MAX
 };
 
