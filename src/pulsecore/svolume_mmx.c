@@ -114,11 +114,11 @@ pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
     " je 2f                         \n\t" 
 
     " movd (%1, %3, 4), %%mm0       \n\t" /* |  v0h  |  v0l  | */
-    " movw (%0), %4                 \n\t" /*     ..  |  p0   | */
+    " movw (%0), %w4                \n\t" /*     ..  |  p0   | */
     " movd %4, %%mm1                \n\t" 
     VOLUME_32x16 (%%mm1, %%mm0)
     " movd %%mm0, %4                \n\t" /*     ..  | p0*v0 | */
-    " movw %4, (%0)                 \n\t" 
+    " movw %w4, (%0)                \n\t" 
     " add $2, %0                    \n\t"
     MOD_ADD ($1, %5)
 
@@ -184,13 +184,13 @@ pa_volume_s16re_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
     " je 2f                         \n\t" 
 
     " movd (%1, %3, 4), %%mm0       \n\t" /* |  v0h  |  v0l  | */
-    " movw (%0), %4                 \n\t" /*     ..  |  p0   | */
-    " rorw $8, %4                   \n\t"
+    " movw (%0), %w4                \n\t" /*     ..  |  p0   | */
+    " rorw $8, %w4                  \n\t"
     " movd %4, %%mm1                \n\t" 
     VOLUME_32x16 (%%mm1, %%mm0)
     " movd %%mm0, %4                \n\t" /*     ..  | p0*v0 | */
-    " rorw $8, %4                   \n\t"
-    " movw %4, (%0)                 \n\t" 
+    " rorw $8, %w4                  \n\t"
+    " movw %w4, (%0)                \n\t" 
     " add $2, %0                    \n\t"
     MOD_ADD ($1, %5)
 
