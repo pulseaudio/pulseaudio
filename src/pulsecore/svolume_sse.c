@@ -35,6 +35,8 @@
 #include "sample-util.h"
 #include "endianmacros.h"
 
+#if defined (__i386__) || defined (__amd64__)
+
 #define VOLUME_32x16(s,v)                  /* .. |   vh  |   vl  | */                   \
       " pxor %%xmm4, %%xmm4          \n\t" /* .. |    0  |    0  | */                   \
       " punpcklwd %%xmm4, "#s"       \n\t" /* .. |    0  |   p0  | */                   \
@@ -293,8 +295,10 @@ static void run_test (void) {
   pa_log_info("ref: %llu usec.", (long long unsigned int)pa_timeval_diff (&stop, &start));
 }
 #endif
+#endif /* defined (__i386__) || defined (__amd64__) */
 
 void pa_volume_func_init_sse (pa_cpu_x86_flag_t flags) {
+#if defined (__i386__) || defined (__amd64__)
   pa_log_info("Initialising SSE optimized functions.");
 
 #ifdef RUN_TEST
@@ -303,4 +307,5 @@ void pa_volume_func_init_sse (pa_cpu_x86_flag_t flags) {
 
   pa_set_volume_func (PA_SAMPLE_S16NE,     (pa_do_volume_func_t) pa_volume_s16ne_sse);
   pa_set_volume_func (PA_SAMPLE_S16RE,     (pa_do_volume_func_t) pa_volume_s16re_sse);
+#endif /* defined (__i386__) || defined (__amd64__) */
 }

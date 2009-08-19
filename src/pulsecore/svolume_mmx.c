@@ -35,6 +35,7 @@
 #include "sample-util.h"
 #include "endianmacros.h"
 
+#if defined (__i386__) || defined (__amd64__)
 /* in s: 2 int16_t samples
  * in v: 2 int32_t volumes, fixed point 16:16
  * out s: contains scaled and clamped int16_t samples.
@@ -295,7 +296,11 @@ static void run_test (void) {
 }
 #endif
 
+#endif /* defined (__i386__) || defined (__amd64__) */
+
+
 void pa_volume_func_init_mmx (pa_cpu_x86_flag_t flags) {
+#if defined (__i386__) || defined (__amd64__)
   pa_log_info("Initialising MMX optimized functions.");
 
 #ifdef RUN_TEST
@@ -304,4 +309,5 @@ void pa_volume_func_init_mmx (pa_cpu_x86_flag_t flags) {
 
   pa_set_volume_func (PA_SAMPLE_S16NE,     (pa_do_volume_func_t) pa_volume_s16ne_mmx);
   pa_set_volume_func (PA_SAMPLE_S16RE,     (pa_do_volume_func_t) pa_volume_s16re_mmx);
+#endif /* defined (__i386__) || defined (__amd64__) */
 }
