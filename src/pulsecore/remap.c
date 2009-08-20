@@ -184,11 +184,13 @@ static pa_init_remap_func_t remap_func = init_remap_c;
 void pa_init_remap (pa_remap_t *m) {
     pa_assert (remap_func);
 
-    /* just call the installed remap init functions */
+    m->do_remap = NULL;
+
+    /* call the installed remap init function */
     remap_func (m);
 
     if (m->do_remap == NULL) {
-        /* nothing was installed, fallback to C versions */
+        /* nothing was installed, fallback to C version */
         init_remap_c (m);
     }
 }
