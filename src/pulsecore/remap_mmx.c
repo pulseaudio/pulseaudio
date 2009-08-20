@@ -73,6 +73,28 @@
                 " add $4, %1                    \n\t"  \
                 " add $8, %0                    \n\t"
 
+#define MONO_TO_STEREO(s)                               \
+                " mov %3, %2                    \n\t"   \
+                " sar $3, %2                    \n\t"   \
+                " cmp $0, %2                    \n\t"   \
+                " je 2f                         \n\t"   \
+                "1:                             \n\t"   \
+                LOAD_SAMPLES                            \
+                UNPACK_SAMPLES(s)                       \
+                STORE_SAMPLES                           \
+                " dec %2                        \n\t"   \
+                " jne 1b                        \n\t"   \
+                "2:                             \n\t"   \
+                " mov %3, %2                    \n\t"   \
+                " and $7, %2                    \n\t"   \
+                " je 4f                         \n\t"   \
+                "3:                             \n\t"   \
+                HANDLE_SINGLE(s)                        \
+                " dec %2                        \n\t"   \
+                " jne 3b                        \n\t"   \
+                "4:                             \n\t"   \
+                " emms                          \n\t"
+
 static void remap_mono_to_stereo_mmx (pa_remap_t *m, void *dst, const void *src, unsigned n) {
     pa_reg_x86 temp;
 
@@ -80,31 +102,7 @@ static void remap_mono_to_stereo_mmx (pa_remap_t *m, void *dst, const void *src,
         case PA_SAMPLE_FLOAT32NE:
         {
             __asm__ __volatile__ (
-                " mov %3, %2                    \n\t"
-                " sar $3, %2                    \n\t" /* prepare for processing 8 samples at a time */
-                " cmp $0, %2                    \n\t"
-                " je 2f                         \n\t"
-
-                "1:                             \n\t" /* do samples in groups of 8 */
-                LOAD_SAMPLES
-                UNPACK_SAMPLES(dq)
-                STORE_SAMPLES
-                " dec %2                        \n\t"
-                " jne 1b                        \n\t"
-
-                "2:                             \n\t"
-                " mov %3, %2                    \n\t"
-                " and $7, %2                    \n\t" /* prepare for processing the remaining samples */
-                " je 4f                         \n\t"
-
-                "3:                             \n\t"
-                HANDLE_SINGLE(dq)
-                " dec %2                        \n\t"
-                " jne 3b                        \n\t"
-
-                "4:                             \n\t"
-                " emms                          \n\t"
-
+                MONO_TO_STEREO(dq) /* do doubles to quads */
                 : "+r" (dst), "+r" (src), "=&r" (temp)
                 : "r" ((pa_reg_x86)n)
                 : "cc"
@@ -114,31 +112,7 @@ static void remap_mono_to_stereo_mmx (pa_remap_t *m, void *dst, const void *src,
         case PA_SAMPLE_S16NE:
         {
             __asm__ __volatile__ (
-                " mov %3, %2                    \n\t"
-                " sar $3, %2                    \n\t" /* prepare for processing 8 samples at a time */
-                " cmp $0, %2                    \n\t"
-                " je 2f                         \n\t"
-
-                "1:                             \n\t" /* do samples in groups of 16 */
-                LOAD_SAMPLES
-                UNPACK_SAMPLES(wd)
-                STORE_SAMPLES
-                " dec %2                        \n\t"
-                " jne 1b                        \n\t"
-
-                "2:                             \n\t"
-                " mov %3, %2                    \n\t"
-                " and $7, %2                    \n\t" /* prepare for processing the remaining samples */
-                " je 4f                         \n\t"
-
-                "3:                             \n\t"
-                HANDLE_SINGLE(wd)
-                " dec %2                        \n\t"
-                " jne 3b                        \n\t"
-
-                "4:                             \n\t"
-                " emms                          \n\t"
-
+                MONO_TO_STEREO(wd) /* do words to doubles */
                 : "+r" (dst), "+r" (src), "=&r" (temp)
                 : "r" ((pa_reg_x86)n)
                 : "cc"
