@@ -1065,30 +1065,53 @@ static pa_memchunk* convert_to_work_format(pa_resampler *r, pa_memchunk *input) 
 }
 
 static void remap_mono_to_stereo(pa_resampler *r, void *dst, const void *src, unsigned n) {
-  
+    unsigned i;
+
     switch (r->work_format) {
         case PA_SAMPLE_FLOAT32NE:
         {
             float *d, *s;
 
-	    d = (float *) dst;
-	    s = (float *) src;
+            d = (float *) dst;
+            s = (float *) src;
 
-            for (; n > 0; n--, s++, d += 2)
-                d[0] = d[1] = *s;
-	    break;
-	}
+            for (i = n >> 2; i; i--) {
+                d[0] = d[1] = s[0];
+                d[2] = d[3] = s[1];
+                d[4] = d[5] = s[2];
+                d[6] = d[7] = s[3];
+                s += 4;
+                d += 8;
+            }
+            for (i = n & 3; i; i--) {
+                d[0] = d[1] = s[0];
+                s++;
+                d += 2;
+            }
+            break;
+        }
         case PA_SAMPLE_S16NE:
         {
             int16_t *d, *s;
 
-	    d = (int16_t *) dst;
-	    s = (int16_t *) src;
+            d = (int16_t *) dst;
+            s = (int16_t *) src;
 
-            for (; n > 0; n--, s++, d += 2)
-                d[0] = d[1] = *s;
-	    break;
-	}
+            for (i = n >> 2; i; i--) {
+                d[0] = d[1] = s[0];
+                d[2] = d[3] = s[1];
+                d[4] = d[5] = s[2];
+                d[6] = d[7] = s[3];
+                s += 4;
+                d += 8;
+            }
+            for (i = n & 3; i; i--) {
+                d[0] = d[1] = s[0];
+                s++;
+                d += 2;
+            }
+            break;
+        }
         default:
             pa_assert_not_reached();
     }
@@ -1114,7 +1137,7 @@ static void remap_channels_matrix (pa_resampler *r, void *dst, const void *src, 
                 for (ic = 0; ic < n_ic; ic++) {
                     float vol;
 
-		    vol = r->map_table_f[oc][ic];
+                    vol = r->map_table_f[oc][ic];
 
                     if (vol <= 0.0)
                         continue;
@@ -1122,18 +1145,18 @@ static void remap_channels_matrix (pa_resampler *r, void *dst, const void *src, 
                     d = (float *)dst + oc;
                     s = (float *)src + ic;
 
-		    if (vol >= 1.0) {
+                    if (vol >= 1.0) {
                         for (i = n; i > 0; i--, s += n_ic, d += n_oc)
                             *d += *s;
-		    } else { 
+                    } else {
                         for (i = n; i > 0; i--, s += n_ic, d += n_oc)
                             *d += *s * vol;
-		    }
+                    }
                 }
             }
 
             break;
-	}
+        }
         case PA_SAMPLE_S16NE:
         {
             int16_t *d, *s;
@@ -1144,7 +1167,7 @@ static void remap_channels_matrix (pa_resampler *r, void *dst, const void *src, 
                 for (ic = 0; ic < n_ic; ic++) {
                     int32_t vol;
 
-		    vol = r->map_table_i[oc][ic];
+		                vol = r->map_table_i[oc][ic];
 
                     if (vol <= 0)
                         continue;
@@ -1158,11 +1181,11 @@ static void remap_channels_matrix (pa_resampler *r, void *dst, const void *src, 
                     } else {
                         for (i = n; i > 0; i--, s += n_ic, d += n_oc)
                             *d += (int16_t) (((int32_t)*s * vol) >> 16);
-		    }
+		                }
                 }
             }
             break;
-	}
+        }
         default:
             pa_assert_not_reached();
     }

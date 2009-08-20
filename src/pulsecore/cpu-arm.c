@@ -36,14 +36,14 @@
 
 #if defined (__arm__) && defined (__linux__)
 
-#define MAX_BUFFER	4096
+#define MAX_BUFFER  4096
 static char *
 get_cpuinfo_line (char *cpuinfo, const char *tag) {
     char *line, *end, *colon;
 
     if (!(line = strstr (cpuinfo, tag)))
         return NULL;
-     
+
     if (!(end = strchr (line, '\n')))
         return NULL;
 
@@ -106,20 +106,20 @@ void pa_cpu_init_arm (void) {
     }
     /* get the CPU features */
     if ((line = get_cpuinfo_line (cpuinfo, "Features"))) {
-	  char *state = NULL, *current;
+        char *state = NULL, *current;
 
-	  while ((current = pa_split_spaces (line, &state))) {
-              if (!strcmp (current, "vfp")) 
-                  flags |= PA_CPU_ARM_VFP;
-	      else if (!strcmp (current, "edsp")) 
-                  flags |= PA_CPU_ARM_EDSP;
-	      else if (!strcmp (current, "neon")) 
-                  flags |= PA_CPU_ARM_NEON;
-	      else if (!strcmp (current, "vfpv3")) 
-                  flags |= PA_CPU_ARM_VFPV3;
+        while ((current = pa_split_spaces (line, &state))) {
+            if (!strcmp (current, "vfp"))
+                flags |= PA_CPU_ARM_VFP;
+            else if (!strcmp (current, "edsp"))
+                flags |= PA_CPU_ARM_EDSP;
+            else if (!strcmp (current, "neon"))
+                flags |= PA_CPU_ARM_NEON;
+            else if (!strcmp (current, "vfpv3"))
+                flags |= PA_CPU_ARM_VFPV3;
 
-              free (current);
-	  }
+            free (current);
+        }
     }
     free (cpuinfo);
 

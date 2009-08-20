@@ -35,289 +35,289 @@
 static void
 pa_volume_u8_c (uint8_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
-  unsigned channel;
+    unsigned channel;
 
-  for (channel = 0; length; length--) {
-    int32_t t, hi, lo;
+    for (channel = 0; length; length--) {
+        int32_t t, hi, lo;
 
-    hi = volumes[channel] >> 16;
-    lo = volumes[channel] & 0xFFFF;
+        hi = volumes[channel] >> 16;
+        lo = volumes[channel] & 0xFFFF;
 
-    t = (int32_t) *samples - 0x80;
-    t = ((t * lo) >> 16) + (t * hi);
-    t = PA_CLAMP_UNLIKELY(t, -0x80, 0x7F);
-    *samples++ = (uint8_t) (t + 0x80);
+        t = (int32_t) *samples - 0x80;
+        t = ((t * lo) >> 16) + (t * hi);
+        t = PA_CLAMP_UNLIKELY(t, -0x80, 0x7F);
+        *samples++ = (uint8_t) (t + 0x80);
 
-    if (PA_UNLIKELY(++channel >= channels))
-      channel = 0;
-  }
+        if (PA_UNLIKELY(++channel >= channels))
+            channel = 0;
+    }
 }
 
 static void
 pa_volume_alaw_c (uint8_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
-  unsigned channel;
+    unsigned channel;
 
-  for (channel = 0; length; length--) {
-    int32_t t, hi, lo;
+    for (channel = 0; length; length--) {
+        int32_t t, hi, lo;
 
-    hi = volumes[channel] >> 16;
-    lo = volumes[channel] & 0xFFFF;
+        hi = volumes[channel] >> 16;
+        lo = volumes[channel] & 0xFFFF;
 
-    t = (int32_t) st_alaw2linear16(*samples);
-    t = ((t * lo) >> 16) + (t * hi);
-    t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
-    *samples++ = (uint8_t) st_13linear2alaw((int16_t) t >> 3);
+        t = (int32_t) st_alaw2linear16(*samples);
+        t = ((t * lo) >> 16) + (t * hi);
+        t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
+        *samples++ = (uint8_t) st_13linear2alaw((int16_t) t >> 3);
 
-    if (PA_UNLIKELY(++channel >= channels))
-      channel = 0;
-  }
+        if (PA_UNLIKELY(++channel >= channels))
+            channel = 0;
+    }
 }
 
 static void
 pa_volume_ulaw_c (uint8_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
-  unsigned channel;
+    unsigned channel;
 
-  for (channel = 0; length; length--) {
-    int32_t t, hi, lo;
+    for (channel = 0; length; length--) {
+        int32_t t, hi, lo;
 
-    hi = volumes[channel] >> 16;
-    lo = volumes[channel] & 0xFFFF;
+        hi = volumes[channel] >> 16;
+        lo = volumes[channel] & 0xFFFF;
 
-    t = (int32_t) st_ulaw2linear16(*samples);
-    t = ((t * lo) >> 16) + (t * hi);
-    t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
-    *samples++ = (uint8_t) st_14linear2ulaw((int16_t) t >> 2);
+        t = (int32_t) st_ulaw2linear16(*samples);
+        t = ((t * lo) >> 16) + (t * hi);
+        t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
+        *samples++ = (uint8_t) st_14linear2ulaw((int16_t) t >> 2);
 
-    if (PA_UNLIKELY(++channel >= channels))
-      channel = 0;
-  }
+        if (PA_UNLIKELY(++channel >= channels))
+            channel = 0;
+    }
 }
 
 static void
 pa_volume_s16ne_c (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
-  unsigned channel;
+    unsigned channel;
 
-  length /= sizeof (int16_t);
+    length /= sizeof (int16_t);
 
-  for (channel = 0; length; length--) {
-    int32_t t, hi, lo;
+    for (channel = 0; length; length--) {
+        int32_t t, hi, lo;
 
-    /* Multiplying the 32bit volume factor with the 16bit
-     * sample might result in an 48bit value. We want to
-     * do without 64 bit integers and hence do the
-     * multiplication independantly for the HI and LO part
-     * of the volume. */
+        /* Multiplying the 32bit volume factor with the 16bit
+         * sample might result in an 48bit value. We want to
+         * do without 64 bit integers and hence do the
+         * multiplication independantly for the HI and LO part
+         * of the volume. */
 
-    hi = volumes[channel] >> 16;
-    lo = volumes[channel] & 0xFFFF;
+        hi = volumes[channel] >> 16;
+        lo = volumes[channel] & 0xFFFF;
 
-    t = (int32_t)(*samples);
-    t = ((t * lo) >> 16) + (t * hi);
-    t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
-    *samples++ = (int16_t) t;
+        t = (int32_t)(*samples);
+        t = ((t * lo) >> 16) + (t * hi);
+        t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
+        *samples++ = (int16_t) t;
 
-    if (PA_UNLIKELY(++channel >= channels))
-      channel = 0;
-  }
+        if (PA_UNLIKELY(++channel >= channels))
+            channel = 0;
+    }
 }
 
 static void
 pa_volume_s16re_c (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
-  unsigned channel;
+    unsigned channel;
 
-  length /= sizeof (int16_t);
+    length /= sizeof (int16_t);
 
-  for (channel = 0; length; length--) {
-    int32_t t, hi, lo;
+    for (channel = 0; length; length--) {
+        int32_t t, hi, lo;
 
-    hi = volumes[channel] >> 16;
-    lo = volumes[channel] & 0xFFFF;
+        hi = volumes[channel] >> 16;
+        lo = volumes[channel] & 0xFFFF;
 
-    t = (int32_t) PA_INT16_SWAP(*samples);
-    t = ((t * lo) >> 16) + (t * hi);
-    t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
-    *samples++ = PA_INT16_SWAP((int16_t) t);
+        t = (int32_t) PA_INT16_SWAP(*samples);
+        t = ((t * lo) >> 16) + (t * hi);
+        t = PA_CLAMP_UNLIKELY(t, -0x8000, 0x7FFF);
+        *samples++ = PA_INT16_SWAP((int16_t) t);
 
-    if (PA_UNLIKELY(++channel >= channels))
-      channel = 0;
-  }
+        if (PA_UNLIKELY(++channel >= channels))
+            channel = 0;
+    }
 }
 
 static void
 pa_volume_float32ne_c (float *samples, float *volumes, unsigned channels, unsigned length)
 {
-  unsigned channel;
+    unsigned channel;
 
-  length /= sizeof (float);
+    length /= sizeof (float);
 
-  for (channel = 0; length; length--) {
-    *samples++ *= volumes[channel];
+    for (channel = 0; length; length--) {
+        *samples++ *= volumes[channel];
 
-    if (PA_UNLIKELY(++channel >= channels))
-      channel = 0;
-  }
+        if (PA_UNLIKELY(++channel >= channels))
+            channel = 0;
+    }
 }
 
 static void
 pa_volume_float32re_c (float *samples, float *volumes, unsigned channels, unsigned length)
 {
-  unsigned channel;
+    unsigned channel;
 
-  length /= sizeof (float);
+    length /= sizeof (float);
 
-  for (channel = 0; length; length--) {
-    float t;
+    for (channel = 0; length; length--) {
+        float t;
 
-    t = PA_FLOAT32_SWAP(*samples);
-    t *= volumes[channel];
-    *samples++ = PA_FLOAT32_SWAP(t);
+        t = PA_FLOAT32_SWAP(*samples);
+        t *= volumes[channel];
+        *samples++ = PA_FLOAT32_SWAP(t);
 
-    if (PA_UNLIKELY(++channel >= channels))
-      channel = 0;
-  }
+        if (PA_UNLIKELY(++channel >= channels))
+            channel = 0;
+    }
 }
 
 static void
 pa_volume_s32ne_c (int32_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
-  unsigned channel;
+    unsigned channel;
 
-  length /= sizeof (int32_t);
+    length /= sizeof (int32_t);
 
-  for (channel = 0; length; length--) {
-    int64_t t;
+    for (channel = 0; length; length--) {
+        int64_t t;
 
-    t = (int64_t)(*samples);
-    t = (t * volumes[channel]) >> 16;
-    t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
-    *samples++ = (int32_t) t;
+        t = (int64_t)(*samples);
+        t = (t * volumes[channel]) >> 16;
+        t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
+        *samples++ = (int32_t) t;
 
-    if (PA_UNLIKELY(++channel >= channels))
-      channel = 0;
-  }
+        if (PA_UNLIKELY(++channel >= channels))
+            channel = 0;
+    }
 }
 
 static void
 pa_volume_s32re_c (int32_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
-  unsigned channel;
+    unsigned channel;
 
-  length /= sizeof (int32_t);
+    length /= sizeof (int32_t);
 
-  for (channel = 0; length; length--) {
-    int64_t t;
+    for (channel = 0; length; length--) {
+        int64_t t;
 
-    t = (int64_t) PA_INT32_SWAP(*samples);
-    t = (t * volumes[channel]) >> 16;
-    t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
-    *samples++ = PA_INT32_SWAP((int32_t) t);
+        t = (int64_t) PA_INT32_SWAP(*samples);
+        t = (t * volumes[channel]) >> 16;
+        t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
+        *samples++ = PA_INT32_SWAP((int32_t) t);
 
-    if (PA_UNLIKELY(++channel >= channels))
-      channel = 0;
-  }
+        if (PA_UNLIKELY(++channel >= channels))
+            channel = 0;
+    }
 }
 
 static void
 pa_volume_s24ne_c (uint8_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
-  unsigned channel;
-  uint8_t *e;
+    unsigned channel;
+    uint8_t *e;
 
-  e = samples + length;
+    e = samples + length;
 
-  for (channel = 0; samples < e; samples += 3) {
-    int64_t t;
+    for (channel = 0; samples < e; samples += 3) {
+        int64_t t;
 
-    t = (int64_t)((int32_t) (PA_READ24NE(samples) << 8));
-    t = (t * volumes[channel]) >> 16;
-    t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
-    PA_WRITE24NE(samples, ((uint32_t) (int32_t) t) >> 8);
+        t = (int64_t)((int32_t) (PA_READ24NE(samples) << 8));
+        t = (t * volumes[channel]) >> 16;
+        t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
+        PA_WRITE24NE(samples, ((uint32_t) (int32_t) t) >> 8);
 
-    if (PA_UNLIKELY(++channel >= channels))
-      channel = 0;
-  }
+        if (PA_UNLIKELY(++channel >= channels))
+            channel = 0;
+    }
 }
 
 static void
 pa_volume_s24re_c (uint8_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
-  unsigned channel;
-  uint8_t *e;
+    unsigned channel;
+    uint8_t *e;
 
-  e = samples + length;
+    e = samples + length;
 
-  for (channel = 0; samples < e; samples += 3) {
-    int64_t t;
+    for (channel = 0; samples < e; samples += 3) {
+        int64_t t;
 
-    t = (int64_t)((int32_t) (PA_READ24RE(samples) << 8));
-    t = (t * volumes[channel]) >> 16;
-    t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
-    PA_WRITE24RE(samples, ((uint32_t) (int32_t) t) >> 8);
+        t = (int64_t)((int32_t) (PA_READ24RE(samples) << 8));
+        t = (t * volumes[channel]) >> 16;
+        t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
+        PA_WRITE24RE(samples, ((uint32_t) (int32_t) t) >> 8);
 
-    if (PA_UNLIKELY(++channel >= channels))
-      channel = 0;
-  }
+        if (PA_UNLIKELY(++channel >= channels))
+            channel = 0;
+    }
 }
 
 static void
 pa_volume_s24_32ne_c (uint32_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
-  unsigned channel;
+    unsigned channel;
 
-  length /= sizeof (uint32_t);
+    length /= sizeof (uint32_t);
 
-  for (channel = 0; length; length--) {
-    int64_t t;
+    for (channel = 0; length; length--) {
+        int64_t t;
 
-    t = (int64_t) ((int32_t) (*samples << 8));
-    t = (t * volumes[channel]) >> 16;
-    t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
-    *samples++ = ((uint32_t) ((int32_t) t)) >> 8;
+        t = (int64_t) ((int32_t) (*samples << 8));
+        t = (t * volumes[channel]) >> 16;
+        t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
+        *samples++ = ((uint32_t) ((int32_t) t)) >> 8;
 
-    if (PA_UNLIKELY(++channel >= channels))
-      channel = 0;
-  }
+        if (PA_UNLIKELY(++channel >= channels))
+            channel = 0;
+    }
 }
 
 static void
 pa_volume_s24_32re_c (uint32_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
-  unsigned channel;
+    unsigned channel;
 
-  length /= sizeof (uint32_t);
+    length /= sizeof (uint32_t);
 
-  for (channel = 0; length; length--) {
-    int64_t t;
+    for (channel = 0; length; length--) {
+        int64_t t;
 
-    t = (int64_t) ((int32_t) (PA_UINT32_SWAP(*samples) << 8));
-    t = (t * volumes[channel]) >> 16;
-    t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
-    *samples++ = PA_UINT32_SWAP(((uint32_t) ((int32_t) t)) >> 8);
+        t = (int64_t) ((int32_t) (PA_UINT32_SWAP(*samples) << 8));
+        t = (t * volumes[channel]) >> 16;
+        t = PA_CLAMP_UNLIKELY(t, -0x80000000LL, 0x7FFFFFFFLL);
+        *samples++ = PA_UINT32_SWAP(((uint32_t) ((int32_t) t)) >> 8);
 
-    if (PA_UNLIKELY(++channel >= channels))
-      channel = 0;
-  }
+        if (PA_UNLIKELY(++channel >= channels))
+            channel = 0;
+    }
 }
 
 static pa_do_volume_func_t do_volume_table[] =
 {
-  [PA_SAMPLE_U8]        = (pa_do_volume_func_t) pa_volume_u8_c,
-  [PA_SAMPLE_ALAW]      = (pa_do_volume_func_t) pa_volume_alaw_c,
-  [PA_SAMPLE_ULAW]      = (pa_do_volume_func_t) pa_volume_ulaw_c,
-  [PA_SAMPLE_S16NE]     = (pa_do_volume_func_t) pa_volume_s16ne_c,
-  [PA_SAMPLE_S16RE]     = (pa_do_volume_func_t) pa_volume_s16re_c,
-  [PA_SAMPLE_FLOAT32NE] = (pa_do_volume_func_t) pa_volume_float32ne_c,
-  [PA_SAMPLE_FLOAT32RE] = (pa_do_volume_func_t) pa_volume_float32re_c,
-  [PA_SAMPLE_S32NE]     = (pa_do_volume_func_t) pa_volume_s32ne_c,
-  [PA_SAMPLE_S32RE]     = (pa_do_volume_func_t) pa_volume_s32re_c,
-  [PA_SAMPLE_S24NE]     = (pa_do_volume_func_t) pa_volume_s24ne_c,
-  [PA_SAMPLE_S24RE]     = (pa_do_volume_func_t) pa_volume_s24re_c,
-  [PA_SAMPLE_S24_32NE]  = (pa_do_volume_func_t) pa_volume_s24_32ne_c,
-  [PA_SAMPLE_S24_32RE]  = (pa_do_volume_func_t) pa_volume_s24_32re_c
+    [PA_SAMPLE_U8]        = (pa_do_volume_func_t) pa_volume_u8_c,
+    [PA_SAMPLE_ALAW]      = (pa_do_volume_func_t) pa_volume_alaw_c,
+    [PA_SAMPLE_ULAW]      = (pa_do_volume_func_t) pa_volume_ulaw_c,
+    [PA_SAMPLE_S16NE]     = (pa_do_volume_func_t) pa_volume_s16ne_c,
+    [PA_SAMPLE_S16RE]     = (pa_do_volume_func_t) pa_volume_s16re_c,
+    [PA_SAMPLE_FLOAT32NE] = (pa_do_volume_func_t) pa_volume_float32ne_c,
+    [PA_SAMPLE_FLOAT32RE] = (pa_do_volume_func_t) pa_volume_float32re_c,
+    [PA_SAMPLE_S32NE]     = (pa_do_volume_func_t) pa_volume_s32ne_c,
+    [PA_SAMPLE_S32RE]     = (pa_do_volume_func_t) pa_volume_s32re_c,
+    [PA_SAMPLE_S24NE]     = (pa_do_volume_func_t) pa_volume_s24ne_c,
+    [PA_SAMPLE_S24RE]     = (pa_do_volume_func_t) pa_volume_s24re_c,
+    [PA_SAMPLE_S24_32NE]  = (pa_do_volume_func_t) pa_volume_s24_32ne_c,
+    [PA_SAMPLE_S24_32RE]  = (pa_do_volume_func_t) pa_volume_s24_32re_c
 };
 
 pa_do_volume_func_t pa_get_volume_func(pa_sample_format_t f) {

@@ -752,12 +752,13 @@ void pa_volume_memchunk(
       return;
     }
 
-    ptr = (uint8_t*) pa_memblock_acquire(c->memblock) + c->index;
-
     do_volume = pa_get_volume_func (spec->format);
     pa_assert(do_volume);
-    
+
     calc_volume_table[spec->format] ((void *)linear, volume);
+
+    ptr = (uint8_t*) pa_memblock_acquire(c->memblock) + c->index;
+
     do_volume (ptr, (void *)linear, spec->channels, c->length);
 
     pa_memblock_release(c->memblock);
@@ -944,12 +945,12 @@ void pa_sample_clamp(pa_sample_format_t format, void *dst, size_t dstr, const vo
         for (; n > 0; n--) {
             float f;
 
-	    f = *s;
+            f = *s;
             *d = PA_CLAMP_UNLIKELY(f, -1.0f, 1.0f);
 
             s = (const float*) ((const uint8_t*) s + sstr);
             d = (float*) ((uint8_t*) d + dstr);
-	}
+        }
     } else {
         pa_assert(format == PA_SAMPLE_FLOAT32RE);
 
