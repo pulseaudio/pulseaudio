@@ -47,7 +47,7 @@ pa_volume_s16ne_arm (int16_t *samples, int32_t *volumes, unsigned channels, unsi
 {
     int32_t *ve;
 
-    channels = MAX (4, channels);
+    channels = PA_MAX (4U, channels);
     ve = volumes + channels;
 
     __asm__ __volatile__ (
@@ -137,7 +137,7 @@ static void run_test (void) {
     int32_t volumes[CHANNELS + PADDING];
     int i, j, padding;
     pa_do_volume_func_t func;
-    struct timeval start, stop;
+    pa_usec_t start, stop;
 
     func = pa_get_volume_func (PA_SAMPLE_S16NE);
 
@@ -161,21 +161,21 @@ static void run_test (void) {
         }
     }
 
-    pa_gettimeofday(&start);
+    start = pa_rtclock_now();
     for (j = 0; j < TIMES; j++) {
         memcpy (samples, samples_orig, sizeof (samples));
         pa_volume_s16ne_arm (samples, volumes, CHANNELS, sizeof (samples));
     }
-    pa_gettimeofday(&stop);
-    pa_log_info("ARM: %llu usec.", (long long unsigned int)pa_timeval_diff (&stop, &start));
+    stop = pa_rtclock_now();
+    pa_log_info("ARM: %llu usec.", (long long unsigned int) (stop - start));
 
-    pa_gettimeofday(&start);
+    start = pa_rtclock_now();
     for (j = 0; j < TIMES; j++) {
         memcpy (samples_ref, samples_orig, sizeof (samples));
         func (samples_ref, volumes, CHANNELS, sizeof (samples));
     }
-    pa_gettimeofday(&stop);
-    pa_log_info("ref: %llu usec.", (long long unsigned int)pa_timeval_diff (&stop, &start));
+    stop = pa_rtclock_now();
+    pa_log_info("ref: %llu usec.", (long long unsigned int) (stop - start));
 }
 #endif
 

@@ -100,7 +100,7 @@ pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
 
     /* the max number of samples we process at a time, this is also the max amount
      * we overread the volume array, which should have enough padding. */
-    channels = MAX (4, channels);
+    channels = PA_MAX (4U, channels);
 
     __asm__ __volatile__ (
         " xor %3, %3                    \n\t"
@@ -170,7 +170,7 @@ pa_volume_s16re_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
 
     /* the max number of samples we process at a time, this is also the max amount
      * we overread the volume array, which should have enough padding. */
-    channels = MAX (4, channels);
+    channels = PA_MAX (4U, channels);
 
     __asm__ __volatile__ (
         " xor %3, %3                    \n\t"
@@ -254,7 +254,7 @@ static void run_test (void) {
     int32_t volumes[CHANNELS + PADDING];
     int i, j, padding;
     pa_do_volume_func_t func;
-    struct timeval start, stop;
+    pa_usec_t start, stop;
 
     func = pa_get_volume_func (PA_SAMPLE_S16NE);
 
@@ -278,21 +278,21 @@ static void run_test (void) {
         }
     }
 
-    pa_gettimeofday(&start);
+    start = pa_rtclock_now();
     for (j = 0; j < TIMES; j++) {
         memcpy (samples, samples_orig, sizeof (samples));
         pa_volume_s16ne_mmx (samples, volumes, CHANNELS, sizeof (samples));
     }
-    pa_gettimeofday(&stop);
-    pa_log_info("MMX: %llu usec.", (long long unsigned int)pa_timeval_diff (&stop, &start));
+    stop = pa_rtclock_now();
+    pa_log_info("MMX: %llu usec.", (long long unsigned int)(stop - start));
 
-    pa_gettimeofday(&start);
+    start = pa_rtclock_now();
     for (j = 0; j < TIMES; j++) {
         memcpy (samples_ref, samples_orig, sizeof (samples));
         func (samples_ref, volumes, CHANNELS, sizeof (samples));
     }
-    pa_gettimeofday(&stop);
-    pa_log_info("ref: %llu usec.", (long long unsigned int)pa_timeval_diff (&stop, &start));
+    stop = pa_rtclock_now();
+    pa_log_info("ref: %llu usec.", (long long unsigned int)(stop - start));
 }
 #endif
 
