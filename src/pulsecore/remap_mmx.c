@@ -1,0 +1,174 @@
+/***
+  This file is part of PulseAudio.
+
+  Copyright 2004-2006 Lennart Poettering
+  Copyright 2009 Wim Taymans <wim.taymans@collabora.co.uk.com>
+
+  PulseAudio is free software; you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as published
+  by the Free Software Foundation; either version 2.1 of the License,
+  or (at your option) any later version.
+
+  PulseAudio is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public License
+  along with PulseAudio; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  USA.
+***/
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <string.h>
+
+#include <pulse/sample.h>
+#include <pulsecore/log.h>
+#include <pulsecore/macro.h>
+
+#include "cpu-x86.h"
+#include "remap.h"
+
+#define LOAD_SAMPLES                                   \
+                " movq (%1), %%mm0              \n\t"  \
+                " movq 8(%1), %%mm2             \n\t"  \
+                " movq 16(%1), %%mm4            \n\t"  \
+                " movq 24(%1), %%mm6            \n\t"  \
+                " movq %%mm0, %%mm1             \n\t"  \
+                " movq %%mm2, %%mm3             \n\t"  \
+                " movq %%mm4, %%mm5             \n\t"  \
+                " movq %%mm6, %%mm7             \n\t"
+
+#define UNPACK_SAMPLES(s)                              \
+                " punpckl"#s" %%mm0, %%mm0      \n\t"  \
+                " punpckh"#s" %%mm1, %%mm1      \n\t"  \
+                " punpckl"#s" %%mm2, %%mm2      \n\t"  \
+                " punpckh"#s" %%mm3, %%mm3      \n\t"  \
+                " punpckl"#s" %%mm4, %%mm4      \n\t"  \
+                " punpckh"#s" %%mm5, %%mm5      \n\t"  \
+                " punpckl"#s" %%mm6, %%mm6      \n\t"  \
+                " punpckh"#s" %%mm7, %%mm7      \n\t"  \
+
+#define STORE_SAMPLES                                  \
+                " movq %%mm0, (%0)              \n\t"  \
+                " movq %%mm1, 8(%0)             \n\t"  \
+                " movq %%mm2, 16(%0)            \n\t"  \
+                " movq %%mm3, 24(%0)            \n\t"  \
+                " movq %%mm4, 32(%0)            \n\t"  \
+                " movq %%mm5, 40(%0)            \n\t"  \
+                " movq %%mm6, 48(%0)            \n\t"  \
+                " movq %%mm7, 56(%0)            \n\t"  \
+                " add $32, %1                   \n\t"  \
+                " add $64, %0                   \n\t"
+
+#define HANDLE_SINGLE(s)                               \
+                " movd (%1), %%mm0              \n\t"  \
+                " movq %%mm0, %%mm1             \n\t"  \
+                " punpckl"#s" %%mm0, %%mm0      \n\t"  \
+                " movq %%mm0, (%0)              \n\t"  \
+                " add $4, %1                    \n\t"  \
+                " add $8, %0                    \n\t"
+
+static void remap_mono_to_stereo_mmx (pa_remap_t *m, void *dst, const void *src, unsigned n) {
+    pa_reg_x86 temp;
+
+    switch (*m->format) {
+        case PA_SAMPLE_FLOAT32NE:
+        {
+            __asm__ __volatile__ (
+                " mov %3, %2                    \n\t"
+                " sar $3, %2                    \n\t" /* prepare for processing 8 samples at a time */
+                " cmp $0, %2                    \n\t"
+                " je 2f                         \n\t"
+
+                "1:                             \n\t" /* do samples in groups of 8 */
+                LOAD_SAMPLES
+                UNPACK_SAMPLES(dq)
+                STORE_SAMPLES
+                " dec %2                        \n\t"
+                " jne 1b                        \n\t"
+
+                "2:                             \n\t"
+                " mov %3, %2                    \n\t"
+                " and $7, %2                    \n\t" /* prepare for processing the remaining samples */
+                " je 4f                         \n\t"
+
+                "3:                             \n\t"
+                HANDLE_SINGLE(dq)
+                " dec %2                        \n\t"
+                " jne 3b                        \n\t"
+
+                "4:                             \n\t"
+                " emms                          \n\t"
+
+                : "+r" (dst), "+r" (src), "=&r" (temp)
+                : "r" ((pa_reg_x86)n)
+                : "cc"
+            );
+            break;
+        }
+        case PA_SAMPLE_S16NE:
+        {
+            __asm__ __volatile__ (
+                " mov %3, %2                    \n\t"
+                " sar $3, %2                    \n\t" /* prepare for processing 8 samples at a time */
+                " cmp $0, %2                    \n\t"
+                " je 2f                         \n\t"
+
+                "1:                             \n\t" /* do samples in groups of 16 */
+                LOAD_SAMPLES
+                UNPACK_SAMPLES(wd)
+                STORE_SAMPLES
+                " dec %2                        \n\t"
+                " jne 1b                        \n\t"
+
+                "2:                             \n\t"
+                " mov %3, %2                    \n\t"
+                " and $7, %2                    \n\t" /* prepare for processing the remaining samples */
+                " je 4f                         \n\t"
+
+                "3:                             \n\t"
+                HANDLE_SINGLE(wd)
+                " dec %2                        \n\t"
+                " jne 3b                        \n\t"
+
+                "4:                             \n\t"
+                " emms                          \n\t"
+
+                : "+r" (dst), "+r" (src), "=&r" (temp)
+                : "r" ((pa_reg_x86)n)
+                : "cc"
+            );
+            break;
+        }
+        default:
+            pa_assert_not_reached();
+    }
+}
+
+/* set the function that will execute the remapping based on the matrices */
+static void init_remap_mmx (pa_remap_t *m) {
+    unsigned n_oc, n_ic;
+
+    n_oc = m->o_ss->channels;
+    n_ic = m->i_ss->channels;
+
+    /* find some common channel remappings, fall back to full matrix operation. */
+    if (n_ic == 1 && n_oc == 2 &&
+            m->map_table_f[0][0] >= 1.0 && m->map_table_f[1][0] >= 1.0) {
+        m->do_remap = (pa_do_remap_func_t) remap_mono_to_stereo_mmx;
+        pa_log_info("Using MMX mono to stereo remapping");
+    }
+}
+
+void pa_remap_func_init_mmx (pa_cpu_x86_flag_t flags) {
+#if defined (__i386__) || defined (__amd64__)
+    pa_log_info("Initialising MMX optimized remappers.");
+
+    pa_set_init_remap_func ((pa_init_remap_func_t) init_remap_mmx);
+#endif /* defined (__i386__) || defined (__amd64__) */
+}

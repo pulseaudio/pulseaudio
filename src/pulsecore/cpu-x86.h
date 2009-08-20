@@ -63,4 +63,6 @@ typedef int64_t pa_reg_x86;
 void pa_volume_func_init_mmx(pa_cpu_x86_flag_t flags);
 void pa_volume_func_init_sse(pa_cpu_x86_flag_t flags);
 
+void pa_remap_func_init_mmx(pa_cpu_x86_flag_t flags);
+
 #endif /* foocpux86hfoo */

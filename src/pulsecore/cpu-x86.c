@@ -110,8 +110,10 @@ void pa_cpu_init_x86 (void) {
     (flags & PA_CPU_X86_3DNOWEXT) ? "3DNOWEXT " : "");
 
     /* activate various optimisations */
-    if (flags & PA_CPU_X86_MMX)
+    if (flags & PA_CPU_X86_MMX) {
         pa_volume_func_init_mmx (flags);
+        pa_remap_func_init_mmx (flags);
+    }
 
     if (flags & PA_CPU_X86_SSE)
         pa_volume_func_init_sse (flags);
