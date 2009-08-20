@@ -186,6 +186,11 @@ void pa_init_remap (pa_remap_t *m) {
 
     /* just call the installed remap init functions */
     remap_func (m);
+
+    if (m->do_remap == NULL) {
+        /* nothing was installed, fallback to C versions */
+        init_remap_c (m);
+    }
 }
 
 pa_init_remap_func_t pa_get_init_remap_func(void) {
