@@ -753,6 +753,7 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     //pa_sink_set_latency_range_within_thread(u->sink, u->master->thread_info.min_latency, u->master->thread_info.max_latency);
     pa_sink_attach_within_thread(u->sink);
     if(u->set_default){
+        pa_log("Setting default sink to %s", u->sink->name);
         pa_namereg_set_default_sink(u->module->core, u->sink);
     }
 }
@@ -1056,7 +1057,7 @@ int pa__init(pa_module*m) {
     m->userdata = u;
 
     u->set_default = TRUE;
-    u->set_default = pa_modargs_get_value_boolean(ma, "set_default", &u->set_default);
+    pa_modargs_get_value_boolean(ma, "set_default", &u->set_default);
 
     u->channels = ss.channels;
     u->fft_size = pow(2, ceil(log(ss.rate)/log(2)));
