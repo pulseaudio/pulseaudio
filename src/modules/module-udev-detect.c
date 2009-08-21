@@ -47,6 +47,7 @@ struct device {
     char *path;
     pa_bool_t accessible;
     char *card_name;
+    char *args;
     uint32_t module;
 };
 
@@ -78,6 +79,7 @@ static void device_free(struct device *d) {
 
     pa_xfree(d->path);
     pa_xfree(d->card_name);
+    pa_xfree(d->args);
     pa_xfree(d);
 }
 
@@ -103,22 +105,43 @@ static void verify_access(struct userdata *u, struct device *d) {
     pa_assert(u);
     pa_assert(d);
 
-    if (!(card = pa_namereg_get(u->core, d->card_name, PA_NAMEREG_CARD)))
-        return;
-
     cd = pa_sprintf_malloc("%s/snd/controlC%s", udev_get_dev_path(u->udev), path_get_card_id(d->path));
-    d->accessible = access(cd, W_OK) >= 0;
-    pa_log_info("%s is accessible: %s", cd, pa_yes_no(d->accessible));
+    d->accessible = access(cd, R_OK|W_OK) >= 0;
     pa_xfree(cd);
 
-    pa_card_suspend(card, !d->accessible, PA_SUSPEND_SESSION);
+    pa_log_info("%s is accessible: %s", cd, pa_yes_no(d->accessible));
+
+    if (d->module == PA_INVALID_INDEX) {
+
+        /* If we not loaded, try to load */
+
+        if (d->accessible) {
+            pa_module *m;
+
+            pa_log_debug("Loading module-alsa-card with arguments '%s'", d->args);
+            m = pa_module_load(u->core, "module-alsa-card", d->args);
+
+            if (m) {
+                d->module = m->index;
+                pa_log_info("Card %s (%s) module loaded.", d->path, d->card_name);
+            } else
+                pa_log_info("Card %s (%s) failed to load module.", d->path, d->card_name);
+        }
+
+    } else {
+
+        /* If we are already loaded update suspend status with
+         * accessible boolean */
+
+        if ((card = pa_namereg_get(u->core, d->card_name, PA_NAMEREG_CARD)))
+            pa_card_suspend(card, !d->accessible, PA_SUSPEND_SESSION);
+    }
 }
 
 static void card_changed(struct userdata *u, struct udev_device *dev) {
     struct device *d;
     const char *path;
     const char *t;
-    char *card_name, *args;
     pa_module *m;
     char *n;
 
@@ -135,44 +158,41 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
         return;
     }
 
+    d = pa_xnew0(struct device, 1);
+    d->path = pa_xstrdup(path);
+    d->accessible = TRUE;
+    d->module = PA_INVALID_INDEX;
+
     if (!(t = udev_device_get_property_value(dev, "PULSE_NAME")))
         if (!(t = udev_device_get_property_value(dev, "ID_ID")))
             if (!(t = udev_device_get_property_value(dev, "ID_PATH")))
                 t = path_get_card_id(path);
 
     n = pa_namereg_make_valid_name(t);
+    d->card_name = pa_sprintf_malloc("alsa_card.%s", n);
+    d->args = pa_sprintf_malloc("device_id=\"%s\" "
+                                "name=\"%s\" "
+                                "card_name=\"%s\" "
+                                "tsched=%s "
+                                "ignore_dB=%s "
+                                "card_properties=\"module-udev-detect.discovered=1\"",
+                                path_get_card_id(path),
+                                n,
+                                d->card_name,
+                                pa_yes_no(u->use_tsched),
+                                pa_yes_no(u->ignore_dB));
+    pa_xfree(n);
 
-    card_name = pa_sprintf_malloc("alsa_card.%s", n);
-    args = pa_sprintf_malloc("device_id=\"%s\" "
-                             "name=\"%s\" "
-                             "card_name=\"%s\" "
-                             "tsched=%s "
-                             "ignore_dB=%s "
-                             "card_properties=\"module-udev-detect.discovered=1\"",
-                             path_get_card_id(path),
-                             n,
-                             card_name,
-                             pa_yes_no(u->use_tsched),
-                             pa_yes_no(u->ignore_dB));
-
-    pa_log_debug("Loading module-alsa-card with arguments '%s'", args);
-    m = pa_module_load(u->core, "module-alsa-card", args);
-    pa_xfree(args);
+    pa_log_debug("Loading module-alsa-card with arguments '%s'", d->args);
+    m = pa_module_load(u->core, "module-alsa-card", d->args);
 
     if (m) {
-        pa_log_info("Card %s (%s) added.", path, n);
-
-        d = pa_xnew(struct device, 1);
-        d->path = pa_xstrdup(path);
-        d->card_name = card_name;
         d->module = m->index;
-        d->accessible = TRUE;
-
-        pa_hashmap_put(u->devices, d->path, d);
+        pa_log_info("Card %s (%s) added and module loaded.", path, d->card_name);
     } else
-        pa_xfree(card_name);
+        pa_log_info("Card %s (%s) added but failed to load module.", path, d->card_name);
 
-    pa_xfree(n);
+    pa_hashmap_put(u->devices, d->path, d);
 }
 
 static void remove_card(struct userdata *u, struct udev_device *dev) {
@@ -185,7 +205,10 @@ static void remove_card(struct userdata *u, struct udev_device *dev) {
         return;
 
     pa_log_info("Card %s removed.", d->path);
-    pa_module_unload_request_by_index(u->core, d->module, TRUE);
+
+    if (d->module != PA_INVALID_INDEX)
+        pa_module_unload_request_by_index(u->core, d->module, TRUE);
+
     device_free(d);
 }
 
