@@ -52,9 +52,6 @@ PA_MODULE_LOAD_ONCE(TRUE);
 #define MAX_MODULES 10
 #define BUF_MAX 2048
 
-/* #undef PA_GCONF_HELPER */
-/* #define PA_GCONF_HELPER "/home/lennart/projects/pulseaudio/src/gconf-helper" */
-
 struct module_item {
     char *name;
     char *args;
@@ -343,7 +340,11 @@ int pa__init(pa_module*m) {
     u->io_event = NULL;
     u->buf_fill = 0;
 
-    if ((u->fd = pa_start_child_for_read(PA_GCONF_HELPER, NULL, &u->pid)) < 0)
+    if ((u->fd = pa_start_child_for_read(
+#if defined(__linux__) && !defined(__OPTIMIZE__)
+                              pa_run_from_build_tree() ? PA_BUILDDIR "/.libs/gconf-helper" :
+#endif
+                 PA_GCONF_HELPER, NULL, &u->pid)) < 0)
         goto fail;
 
     u->io_event = m->core->mainloop->io_new(
