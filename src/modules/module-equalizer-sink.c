@@ -122,6 +122,7 @@ struct userdata {
     pa_bool_t set_default;
 
     pa_database *database;
+    char **base_profiles;
 };
 
 static const char* const valid_modargs[] = {
@@ -143,7 +144,7 @@ static const char* const valid_modargs[] = {
 #define EQ_STATE_DB "equalizer-state"
 #define FILTER_SIZE (u->fft_size / 2 + 1)
 #define CHANNEL_PROFILE_SIZE (FILTER_SIZE + 1)
-#define STATE_SIZE (CHANNEL_PROFILE_SIZE * u->channels)
+#define FILTER_STATE_SIZE (CHANNEL_PROFILE_SIZE * u->channels)
 static void dbus_init(struct userdata *u);
 static void dbus_done(struct userdata *u);
 
@@ -199,7 +200,7 @@ static int is_monotonic(const uint32_t *xs,size_t length){
 
 
 /* Called from I/O thread context */
-static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
+static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
 
     switch (code) {
@@ -234,7 +235,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
 
 /* Called from main context */
-static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
+static int sink_set_state_cb(pa_sink *s, pa_sink_state_t state) {
     struct userdata *u;
 
     pa_sink_assert_ref(s);
@@ -249,7 +250,7 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
 }
 
 /* Called from I/O thread context */
-static void sink_request_rewind(pa_sink *s) {
+static void sink_request_rewind_cb(pa_sink *s) {
     struct userdata *u;
 
     pa_sink_assert_ref(s);
@@ -264,7 +265,7 @@ static void sink_request_rewind(pa_sink *s) {
 }
 
 /* Called from I/O thread context */
-static void sink_update_requested_latency(pa_sink *s) {
+static void sink_update_requested_latency_cb(pa_sink *s) {
     struct userdata *u;
 
     pa_sink_assert_ref(s);
@@ -279,6 +280,35 @@ static void sink_update_requested_latency(pa_sink *s) {
             u->sink_input,
             pa_sink_get_requested_latency_within_thread(s));
 }
+
+/* Called from main context */
+static void sink_set_volume_cb(pa_sink *s) {
+    struct userdata *u;
+
+    pa_sink_assert_ref(s);
+    pa_assert_se(u = s->userdata);
+
+    if (!PA_SINK_IS_LINKED(pa_sink_get_state(s)) ||
+        !PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(u->sink_input)))
+        return;
+
+    pa_sink_input_set_volume(u->sink_input, &s->real_volume, s->save_volume, TRUE);
+}
+
+/* Called from main context */
+static void sink_set_mute_cb(pa_sink *s) {
+    struct userdata *u;
+
+    pa_sink_assert_ref(s);
+    pa_assert_se(u = s->userdata);
+
+    if (!PA_SINK_IS_LINKED(pa_sink_get_state(s)) ||
+        !PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(u->sink_input)))
+        return;
+
+    pa_sink_input_set_mute(u->sink_input, s->muted, s->save_muted);
+}
+
 
 //reference implementation
 static void dsp_logic(
@@ -581,6 +611,26 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     return 0;
 }
 
+/* Called from main context */
+static void sink_input_volume_changed_cb(pa_sink_input *i) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    pa_sink_volume_changed(u->sink, &i->volume);
+}
+
+/* Called from main context */
+static void sink_input_mute_changed_cb(pa_sink_input *i) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    pa_sink_mute_changed(u->sink, i->muted);
+}
+
 static void reset_filter(struct userdata *u){
     u->samples_gathered = 0;
     for(size_t i = 0;i < u->channels; ++i){
@@ -745,6 +795,41 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
     }
 }
 
+static void pack(char **strs, size_t len, char **packed, size_t *length){
+    size_t t_len = 0;
+    size_t headers = (1+len) * sizeof(uint16_t);
+    size_t offset = sizeof(uint16_t);
+    for(size_t i = 0; i < len; ++i){
+        t_len += strlen(strs[i]);
+    }
+    *length = headers + t_len;
+    *packed = pa_xmalloc0(*length);
+    ((uint16_t *) *packed)[0] = (uint16_t) len;
+    for(size_t i = 0; i < len; ++i){
+        uint16_t l = strlen(strs[i]);
+        *((uint16_t *)(*packed + offset)) = l;
+        offset += sizeof(uint16_t);
+        memcpy(*packed + offset, strs[i], l);
+        offset += l;
+    }
+}
+static void unpack(char *str, size_t length, char ***strs, size_t *len){
+    size_t offset = sizeof(uint16_t);
+    *len = ((uint16_t *)str)[0];
+    *strs = pa_xnew(char *, *len);
+    for(size_t i = 0; i < *len; ++i){
+        size_t l = *((uint16_t *)(str+offset));
+        size_t e = PA_MIN(offset + l, length) - offset;
+        offset = PA_MIN(offset + sizeof(uint16_t), length);
+        if(e > 0){
+            (*strs)[i] = pa_xnew(char, e + 1);
+            memcpy((*strs)[i], strs + offset, e);
+            (*strs)[i][e] = '\0';
+        }else{
+            (*strs)[i]=NULL;
+        }
+    }
+}
 static void save_profile(struct userdata *u, size_t channel, char *name){
     unsigned a_i;
     const size_t profile_size = CHANNEL_PROFILE_SIZE * sizeof(float);
@@ -767,18 +852,26 @@ static void save_profile(struct userdata *u, size_t channel, char *name){
     data.size = profile_size;
     pa_database_set(u->database, &key, &data, TRUE);
     pa_database_sync(u->database);
+    if(u->base_profiles[channel]){
+        pa_xfree(u->base_profiles[channel]);
+    }
+    u->base_profiles[channel] = pa_xstrdup(name);
 }
 
 static void save_state(struct userdata *u){
     unsigned a_i;
-    const size_t state_size = STATE_SIZE * sizeof(float);
+    const size_t filter_state_size = FILTER_STATE_SIZE * sizeof(float);
     float *H_n, *state;
     float *H;
     pa_datum key, data;
     pa_database *database;
     char *dbname;
     char *state_name = u->name;
-    state = pa_xnew0(float, STATE_SIZE);
+    char *packed;
+    size_t packed_length;
+
+    pack(u->base_profiles, u->channels, &packed, &packed_length);
+    state = (float *) pa_xmalloc0(filter_state_size + packed_length);
 
     for(size_t c = 0; c < u->channels; ++c){
         a_i = pa_aupdate_read_begin(u->a_H[c]);
@@ -788,11 +881,13 @@ static void save_state(struct userdata *u){
         memcpy(H_n, H, FILTER_SIZE * sizeof(float));
         pa_aupdate_read_end(u->a_H[c]);
     }
+    memcpy(((char *)state) + filter_state_size, packed, packed_length);
+    pa_xfree(packed);
 
     key.data = state_name;
     key.size = strlen(key.data);
     data.data = state;
-    data.size = state_size;
+    data.size = filter_state_size + packed_length;
     //thread safety for 0.9.17?
     pa_assert_se(dbname = pa_state_path(EQ_STATE_DB, TRUE));
     pa_assert_se(database = pa_database_open(dbname, TRUE));
@@ -828,6 +923,10 @@ static const char* load_profile(struct userdata *u, size_t channel, char *name){
             memcpy(u->Hs[channel][a_i], profile + 1, CHANNEL_PROFILE_SIZE * sizeof(float));
             fix_filter(u->Hs[channel][a_i], u->fft_size);
             pa_aupdate_write_end(u->a_H[channel]);
+            if(u->base_profiles[channel]){
+                pa_xfree(u->base_profiles[channel]);
+            }
+            u->base_profiles[channel] = pa_xstrdup(name);
         }else{
             return "incompatible size";
         }
@@ -845,7 +944,6 @@ static void load_state(struct userdata *u){
     pa_database *database;
     char *dbname;
     char *state_name = u->name;
-
     pa_assert_se(dbname = pa_state_path(EQ_STATE_DB, FALSE));
     database = pa_database_open(dbname, FALSE);
     pa_xfree(dbname);
@@ -857,14 +955,26 @@ static void load_state(struct userdata *u){
     key.size = strlen(key.data);
 
     if(pa_database_get(database, &key, &value) != NULL){
-        size_t states = PA_MIN(value.size / (CHANNEL_PROFILE_SIZE * sizeof(float)), u->channels);
-        float *state = (float *) value.data;
-        for(size_t c = 0; c < states; ++c){
-            a_i = pa_aupdate_write_begin(u->a_H[c]);
-            H = state + c * CHANNEL_PROFILE_SIZE + 1;
-            u->Xs[c][a_i] = state[c * CHANNEL_PROFILE_SIZE];
-            memcpy(u->Hs[c][a_i], H, FILTER_SIZE * sizeof(float));
-            pa_aupdate_write_end(u->a_H[c]);
+        if(value.size > FILTER_STATE_SIZE * sizeof(float) + sizeof(uint16_t)){
+            float *state = (float *) value.data;
+            size_t n_profs;
+            char **names;
+            for(size_t c = 0; c < u->channels; ++c){
+                a_i = pa_aupdate_write_begin(u->a_H[c]);
+                H = state + c * CHANNEL_PROFILE_SIZE + 1;
+                u->Xs[c][a_i] = state[c * CHANNEL_PROFILE_SIZE];
+                memcpy(u->Hs[c][a_i], H, FILTER_SIZE * sizeof(float));
+                pa_aupdate_write_end(u->a_H[c]);
+            }
+            unpack(((char *)value.data) + FILTER_STATE_SIZE, value.size - FILTER_STATE_SIZE, &names, &n_profs);
+            n_profs = PA_MIN(n_profs, u->channels);
+            for(size_t c = 0; c < n_profs; ++c){
+                if(u->base_profiles[c]){
+                    pa_xfree(u->base_profiles[c]);
+                }
+                u->base_profiles[c] = names[c];
+            }
+            pa_xfree(names);
         }
         pa_datum_free(&value);
     }
@@ -898,8 +1008,6 @@ static void * alloc(size_t x,size_t s){
     size_t f = PA_ROUND_UP(x*s, sizeof(float)*v_size);
     float *t;
     pa_assert(f >= x*s);
-    //printf("requested %ld floats=%ld bytes, rem=%ld\n", x, x*sizeof(float), x*sizeof(float)%16);
-    //printf("giving %ld floats=%ld bytes, rem=%ld\n", f, f*sizeof(float), f*sizeof(float)%16);
     t = fftwf_malloc(f);
     memset(t, 0, f);
     return t;
@@ -914,7 +1022,6 @@ int pa__init(pa_module*m) {
     pa_sink *master;
     pa_sink_input_new_data sink_input_data;
     pa_sink_new_data sink_data;
-    pa_bool_t *use_default = NULL;
     size_t fs;
     float *H;
     unsigned a_i;
@@ -988,6 +1095,8 @@ int pa__init(pa_module*m) {
     hanning_window(u->W, u->window_size);
     u->first_iteration = TRUE;
 
+    u->base_profiles = pa_xnew0(char *, u->channels);
+
     /* Create sink */
     pa_sink_new_data_init(&sink_data);
     sink_data.driver = __FILE__;
@@ -1007,7 +1116,9 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u->sink = pa_sink_new(m->core, &sink_data, master->flags & (PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY));
+    u->sink = pa_sink_new(m->core, &sink_data,
+                          PA_SINK_HW_MUTE_CTRL|PA_SINK_HW_VOLUME_CTRL|PA_SINK_DECIBEL_VOLUME|
+                          (master->flags & (PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY)));
     pa_sink_new_data_done(&sink_data);
 
     if (!u->sink) {
@@ -1015,10 +1126,12 @@ int pa__init(pa_module*m) {
         goto fail;
     }
     u->name=pa_xstrdup(u->sink->name);
-    u->sink->parent.process_msg = sink_process_msg;
-    u->sink->set_state = sink_set_state;
-    u->sink->update_requested_latency = sink_update_requested_latency;
-    u->sink->request_rewind = sink_request_rewind;
+    u->sink->parent.process_msg = sink_process_msg_cb;
+    u->sink->set_state = sink_set_state_cb;
+    u->sink->update_requested_latency = sink_update_requested_latency_cb;
+    u->sink->request_rewind = sink_request_rewind_cb;
+    u->sink->set_volume = sink_set_volume_cb;
+    u->sink->set_mute = sink_set_mute_cb;
     u->sink->userdata = u;
     u->input_q = pa_memblockq_new(0,  MEMBLOCKQ_MAXLENGTH, 0, fs, 1, 1, 0, &u->sink->silence);
 
@@ -1053,6 +1166,9 @@ int pa__init(pa_module*m) {
     u->sink_input->state_change = sink_input_state_change_cb;
     u->sink_input->may_move_to = sink_input_may_move_to_cb;
     u->sink_input->moving = sink_input_moving_cb;
+    u->sink_input->volume_changed = sink_input_volume_changed_cb;
+    u->sink_input->mute_changed = sink_input_mute_changed_cb;
+
     u->sink_input->userdata = u;
 
     pa_sink_put(u->sink);
@@ -1060,7 +1176,6 @@ int pa__init(pa_module*m) {
 
     pa_modargs_free(ma);
 
-    pa_xfree(use_default);
 
     dbus_init(u);
 
@@ -1084,7 +1199,6 @@ fail:
     if (ma)
         pa_modargs_free(ma);
 
-    pa_xfree(use_default);
 
     pa__done(m);
 
@@ -1111,6 +1225,13 @@ void pa__done(pa_module*m) {
     save_state(u);
 
     dbus_done(u);
+
+    for(size_t c = 0; c < u->channels; ++c){
+        if(u->base_profiles[c]){
+            pa_xfree(u->base_profiles[c]);
+        }
+    }
+    pa_xfree(u->base_profiles);
 
     /* See comments in sink_input_kill_cb() above regarding
      * destruction order! */
@@ -1181,6 +1302,7 @@ static void equalizer_handle_get_filter(DBusConnection *conn, DBusMessage *msg, 
 static void equalizer_handle_set_filter(DBusConnection *conn, DBusMessage *msg, void *_u);
 static void equalizer_handle_save_profile(DBusConnection *conn, DBusMessage *msg, void *_u);
 static void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_handle_get_profile_name(DBusConnection *conn, DBusMessage *msg, void *_u);
 enum manager_method_index {
     MANAGER_METHOD_REMOVE_PROFILE,
     MANAGER_METHOD_MAX
@@ -1246,6 +1368,7 @@ enum equalizer_method_index {
     EQUALIZER_METHOD_LOAD_PROFILE,
     EQUALIZER_METHOD_SET_FILTER,
     EQUALIZER_METHOD_GET_FILTER,
+    EQUALIZER_METHOD_GET_PROFILE_NAME,
     EQUALIZER_METHOD_MAX
 };
 
@@ -1290,6 +1413,10 @@ pa_dbus_arg_info load_profile_args[]={
     {"channel", "u","in"},
     {"name", "s","in"}
 };
+pa_dbus_arg_info base_profile_name_args[]={
+    {"channel", "u","in"},
+    {"name", "s","out"}
+};
 
 static pa_dbus_method_handler equalizer_methods[EQUALIZER_METHOD_MAX]={
     [EQUALIZER_METHOD_SEED_FILTER]{
@@ -1321,7 +1448,12 @@ static pa_dbus_method_handler equalizer_methods[EQUALIZER_METHOD_MAX]={
         .method_name="LoadProfile",
         .arguments=load_profile_args,
         .n_arguments=sizeof(load_profile_args)/sizeof(pa_dbus_arg_info),
-        .receive_cb=equalizer_handle_load_profile}
+        .receive_cb=equalizer_handle_load_profile},
+    [EQUALIZER_METHOD_GET_PROFILE_NAME]{
+        .method_name="BaseProfile",
+        .arguments=base_profile_name_args,
+        .n_arguments=sizeof(base_profile_name_args)/sizeof(pa_dbus_arg_info),
+        .receive_cb=equalizer_handle_get_profile_name}
 };
 
 static pa_dbus_property_handler equalizer_handlers[EQUALIZER_HANDLER_MAX]={
@@ -1631,9 +1763,6 @@ void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg, void *
     pa_xfree(ys);
 
 
-    //Stupid for IO reasons?  Add a save signal to dbus instead
-    //save_state(u);
-
     pa_dbus_send_empty_reply(conn, msg);
 
     pa_assert_se((signal = dbus_message_new_signal(u->dbus_path, EQUALIZER_IFACE, equalizer_signals[EQUALIZER_SIGNAL_FILTER_CHANGED].name)));
@@ -1900,6 +2029,36 @@ void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void 
     pa_assert_se((signal = dbus_message_new_signal(u->dbus_path, EQUALIZER_IFACE, equalizer_signals[EQUALIZER_SIGNAL_FILTER_CHANGED].name)));
     pa_dbus_protocol_send_signal(u->dbus_protocol, signal);
     dbus_message_unref(signal);
+}
+
+void equalizer_handle_get_profile_name(DBusConnection *conn, DBusMessage *msg, void *_u){
+    struct userdata *u = (struct userdata *) _u;
+    DBusError error;
+    uint32_t channel, r_channel;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(u);
+    dbus_error_init(&error);
+
+    if(!dbus_message_get_args(msg, &error,
+                DBUS_TYPE_UINT32, &channel,
+                DBUS_TYPE_INVALID)){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
+        dbus_error_free(&error);
+        return;
+    }
+    if(channel > u->channels){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "invalid channel: %d", channel);
+        dbus_error_free(&error);
+        return;
+    }
+    r_channel = channel == u->channels ? 0 : channel;
+    if(u->base_profiles[r_channel]){
+        pa_dbus_send_basic_value_reply(conn,msg, DBUS_TYPE_STRING, &u->base_profiles[r_channel]);
+    }else{
+        pa_dbus_send_empty_reply(conn, msg);
+    }
 }
 
 void equalizer_get_revision(DBusConnection *conn, DBusMessage *msg, void *_u){
