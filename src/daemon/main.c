@@ -774,6 +774,8 @@ int main(int argc, char *argv[]) {
     pa_log_info(_("Using state directory %s."), s);
     pa_xfree(s);
 
+    pa_log_info(_("Using modules directory %s."), conf->dl_search_path);
+
     pa_log_info(_("Running in system mode: %s"), pa_yes_no(pa_in_system_mode()));
 
     if (pa_in_system_mode())

@@ -74,6 +74,7 @@ AM_CFLAGS = \
 	$(LIBSAMPLERATE_CFLAGS) \
 	$(LIBSNDFILE_CFLAGS) \
 	$(LIBSPEEX_CFLAGS) \
+	-DPA_BUILDDIR=\"$(abs_builddir)\" \
 	-DPA_DLSEARCHPATH=\"$(modlibexecdir)\" \
 	-DPA_DEFAULT_CONFIG_DIR=\"$(PA_DEFAULT_CONFIG_DIR)\" \
 	-DPA_BINARY=\"$(PA_BINARY)\" \
@@ -83,8 +84,8 @@ AM_CFLAGS = \
 	-DAO_REQUIRE_CAS \
 	-DPULSE_LOCALEDIR=\"$(pulselocaledir)\" \
 	-DPA_MACHINE_ID=\"$(localstatedir)/lib/dbus/machine-id\" \
-	-DPA_ALSA_PATHS_DIR=\"$(alsapathsdir)\" \
-	-DPA_ALSA_PROFILE_SETS_DIR=\"$(alsaprofilesetsdir)\"
+        -DPA_ALSA_PATHS_DIR=\"$(alsapathsdir)\" \
+        -DPA_ALSA_PROFILE_SETS_DIR=\"$(alsaprofilesetsdir)\"
 
 AM_LIBADD = $(PTHREAD_LIBS) $(INTLLIBS)
 AM_LDADD = $(PTHREAD_LIBS) $(INTLLIBS)
