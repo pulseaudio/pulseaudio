@@ -60,6 +60,7 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/thread.h>
+#include <pulsecore/time-smoother.h>
 
 #include "module-solaris-symdef.h"
 
@@ -110,6 +111,8 @@ struct userdata {
     uint32_t prev_playback_samples, prev_record_samples;
 
     int32_t minimum_request;
+
+    pa_smoother *smoother;
 };
 
 static const char* const valid_modargs[] = {
@@ -145,7 +148,12 @@ static uint64_t get_playback_buffered_bytes(struct userdata *u) {
 
     /* Handle wrap-around of the device's sample counter, which is a uint_32. */
     if (u->prev_playback_samples > info.play.samples) {
-        /* Unfortunately info.play.samples can sometimes go backwards, even before it wraps! */
+        /*
+         * Unfortunately info.play.samples can sometimes go backwards, even before it wraps!
+         * The bug seems to be absent on Solaris x86 nv117 with audio810 driver, at least on this (UP) machine.
+         * The bug is present on a different (SMP) machine running Solaris x86 nv103 with audioens driver.
+         * An earlier revision of this file mentions the same bug independently (unknown configuration).
+         */
         if (u->prev_playback_samples + info.play.samples < 240000) {
             ++u->play_samples_msw;
         } else {
@@ -154,6 +162,8 @@ static uint64_t get_playback_buffered_bytes(struct userdata *u) {
     }
     u->prev_playback_samples = info.play.samples;
     played_bytes = (((uint64_t)u->play_samples_msw << 32) + info.play.samples) * u->frame_size;
+
+    pa_smoother_put(u->smoother, pa_rtclock_now(), pa_bytes_to_usec(played_bytes, &u->sink->sample_spec));
 
     return u->written_bytes - played_bytes;
 }
@@ -387,6 +397,8 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
                     pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
 
+                    pa_smoother_pause(u->smoother, pa_rtclock_now());
+
                     if (!u->source || u->source_suspended) {
                         if (suspend(u) < 0)
                             return -1;
@@ -398,6 +410,8 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 case PA_SINK_RUNNING:
 
                     if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
+                        pa_smoother_resume(u->smoother, pa_rtclock_now(), TRUE);
+
                         if (!u->source || u->source_suspended) {
                             if (unsuspend(u) < 0)
                                 return -1;
@@ -604,11 +618,13 @@ static void thread_func(void *userdata) {
 
     pa_thread_mq_install(&u->thread_mq);
 
+    pa_smoother_set_time_offset(u->smoother, pa_rtclock_now());
+
     for (;;) {
         /* Render some data and write it to the dsp */
 
         if (u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
-            pa_usec_t xtime0;
+            pa_usec_t xtime0, ysleep_interval, xsleep_interval;
             uint64_t buffered_bytes;
 
             if (u->sink->thread_info.rewind_requested)
@@ -627,6 +643,8 @@ static void thread_func(void *userdata) {
                 info.play.error = 0;
                 if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0)
                     pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
+
+                pa_smoother_reset(u->smoother, pa_rtclock_now(), TRUE);
             }
 
             for (;;) {
@@ -689,7 +707,9 @@ static void thread_func(void *userdata) {
                 }
             }
 
-            pa_rtpoll_set_timer_absolute(u->rtpoll, xtime0 + pa_bytes_to_usec(buffered_bytes / 2, &u->sink->sample_spec));
+            ysleep_interval = pa_bytes_to_usec(buffered_bytes / 2, &u->sink->sample_spec);
+            xsleep_interval = pa_smoother_translate(u->smoother, xtime0, ysleep_interval);
+            pa_rtpoll_set_timer_absolute(u->rtpoll, xtime0 + PA_MIN(xsleep_interval, ysleep_interval));
         } else
             pa_rtpoll_set_timer_disabled(u->rtpoll);
 
@@ -835,6 +855,9 @@ int pa__init(pa_module *m) {
     }
 
     u = pa_xnew0(struct userdata, 1);
+
+    if (!(u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC * 2, TRUE, TRUE, 10, pa_rtclock_now(), TRUE)))
+        goto fail;
 
     /*
      * For a process (or several processes) to use the same audio device for both
@@ -1072,6 +1095,9 @@ void pa__done(pa_module *m) {
 
     if (u->fd >= 0)
         close(u->fd);
+
+    if (u->smoother)
+        pa_smoother_free(u->smoother);
 
     pa_xfree(u->device_name);
 
