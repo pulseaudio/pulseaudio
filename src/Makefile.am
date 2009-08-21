@@ -280,7 +280,8 @@ TESTS = \
 		proplist-test \
 		lock-autospawn-test \
 		prioq-test \
-		sigbus-test
+		sigbus-test \
+		usergroup-test
 
 TESTS_BINARIES = \
 		mainloop-test \
@@ -318,7 +319,8 @@ TESTS_BINARIES = \
 		stripnul \
 		lock-autospawn-test \
 		prioq-test \
-		sigbus-test
+		sigbus-test \
+		usergroup-test
 
 if HAVE_SIGXCPU
 #TESTS += \
@@ -557,6 +559,11 @@ alsa_time_test_LDADD = $(AM_LDADD)
 alsa_time_test_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 alsa_time_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(ASOUNDLIB_LIBS)
 
+usergroup_test_SOURCES = tests/usergroup-test.c
+usergroup_test_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINORMICRO@.la
+usergroup_test_CFLAGS = $(AM_CFLAGS)
+usergroup_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
 ###################################
 #         Common library          #
 ###################################
@@ -621,6 +628,7 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/tagstruct.c pulsecore/tagstruct.h \
 		pulsecore/time-smoother.c pulsecore/time-smoother.h \
 		pulsecore/tokenizer.c pulsecore/tokenizer.h \
+		pulsecore/usergroup.c pulsecore/usergroup.h \
 		pulsecore/sndfile-util.c pulsecore/sndfile-util.h \
 		pulsecore/winsock.h
 
