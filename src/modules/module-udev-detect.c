@@ -389,7 +389,7 @@ static int setup_inotify(struct userdata *u) {
     }
 
     dev_snd = pa_sprintf_malloc("%s/snd", udev_get_dev_path(u->udev));
-    r = inotify_add_watch(u->inotify_fd, dev_snd, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF);
+    r = inotify_add_watch(u->inotify_fd, dev_snd, IN_ATTRIB|IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF);
     pa_xfree(dev_snd);
 
     if (r < 0) {
