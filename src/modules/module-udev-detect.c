@@ -142,7 +142,6 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
     struct device *d;
     const char *path;
     const char *t;
-    pa_module *m;
     char *n;
 
     pa_assert(u);
@@ -183,16 +182,9 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
                                 pa_yes_no(u->ignore_dB));
     pa_xfree(n);
 
-    pa_log_debug("Loading module-alsa-card with arguments '%s'", d->args);
-    m = pa_module_load(u->core, "module-alsa-card", d->args);
-
-    if (m) {
-        d->module = m->index;
-        pa_log_info("Card %s (%s) added and module loaded.", path, d->card_name);
-    } else
-        pa_log_info("Card %s (%s) added but failed to load module.", path, d->card_name);
-
     pa_hashmap_put(u->devices, d->path, d);
+
+    verify_access(u, d);
 }
 
 static void remove_card(struct userdata *u, struct udev_device *dev) {
@@ -472,7 +464,7 @@ int pa__init(pa_module *m) {
 
     udev_enumerate_unref(enumerate);
 
-    pa_log_info("Loaded %u modules.", pa_hashmap_size(u->devices));
+    pa_log_info("Found %u cards.", pa_hashmap_size(u->devices));
 
     pa_modargs_free(ma);
 
