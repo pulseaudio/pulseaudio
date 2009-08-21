@@ -165,7 +165,7 @@ struct pa_core {
     pa_hook hooks[PA_CORE_HOOK_MAX];
 };
 
-PA_DECLARE_CLASS(pa_core);
+PA_DECLARE_PUBLIC_CLASS(pa_core);
 #define PA_CORE(o) pa_core_cast(o)
 
 enum {

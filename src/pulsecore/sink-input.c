@@ -44,7 +44,7 @@
 #define MEMBLOCKQ_MAXLENGTH (32*1024*1024)
 #define CONVERT_BUFFER_LENGTH (PA_PAGE_SIZE)
 
-static PA_DEFINE_CHECK_TYPE(pa_sink_input, pa_msgobject);
+PA_DEFINE_PUBLIC_CLASS(pa_sink_input, pa_msgobject);
 
 static void sink_input_free(pa_object *o);
 static void set_real_ratio(pa_sink_input *i, const pa_cvolume *v);

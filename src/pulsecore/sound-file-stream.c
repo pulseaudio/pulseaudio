@@ -64,9 +64,8 @@ enum {
     FILE_STREAM_MESSAGE_UNLINK
 };
 
-PA_DECLARE_CLASS(file_stream);
+PA_DEFINE_PRIVATE_CLASS(file_stream, pa_msgobject);
 #define FILE_STREAM(o) (file_stream_cast(o))
-static PA_DEFINE_CHECK_TYPE(file_stream, pa_msgobject);
 
 /* Called from main context */
 static void file_stream_unlink(file_stream *u) {

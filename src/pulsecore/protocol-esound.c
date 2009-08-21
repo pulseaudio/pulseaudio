@@ -120,9 +120,8 @@ typedef struct connection {
     pa_time_event *auth_timeout_event;
 } connection;
 
-PA_DECLARE_CLASS(connection);
+PA_DEFINE_PRIVATE_CLASS(connection, pa_msgobject);
 #define CONNECTION(o) (connection_cast(o))
-static PA_DEFINE_CHECK_TYPE(connection, pa_msgobject);
 
 struct pa_esound_protocol {
     PA_REFCNT_DECLARE;

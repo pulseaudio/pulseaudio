@@ -41,7 +41,7 @@
 
 #define MEMBLOCKQ_MAXLENGTH (32*1024*1024)
 
-static PA_DEFINE_CHECK_TYPE(pa_source_output, pa_msgobject);
+PA_DEFINE_PUBLIC_CLASS(pa_source_output, pa_msgobject);
 
 static void source_output_free(pa_object* mo);
 

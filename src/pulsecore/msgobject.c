@@ -26,22 +26,22 @@
 
 #include "msgobject.h"
 
-PA_DEFINE_CHECK_TYPE(pa_msgobject, pa_object);
+PA_DEFINE_PUBLIC_CLASS(pa_msgobject, pa_object);
 
-pa_msgobject *pa_msgobject_new_internal(size_t size, const char *type_name, int (*check_type)(const char *type_name)) {
+pa_msgobject *pa_msgobject_new_internal(size_t size, const char *type_id, pa_bool_t (*check_type)(const char *type_name)) {
     pa_msgobject *o;
 
     pa_assert(size > sizeof(pa_msgobject));
-    pa_assert(type_name);
+    pa_assert(type_id);
 
     if (!check_type)
         check_type = pa_msgobject_check_type;
 
-    pa_assert(check_type(type_name));
-    pa_assert(check_type("pa_object"));
-    pa_assert(check_type("pa_msgobject"));
+    pa_assert(check_type(type_id));
+    pa_assert(check_type(pa_object_type_id));
+    pa_assert(check_type(pa_msgobject_type_id));
 
-    o = PA_MSGOBJECT(pa_object_new_internal(size, type_name, check_type));
+    o = PA_MSGOBJECT(pa_object_new_internal(size, type_id, check_type));
     o->process_msg = NULL;
     return o;
 }

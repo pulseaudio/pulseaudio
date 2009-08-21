@@ -47,9 +47,8 @@ enum {
     MEMBLOCKQ_STREAM_MESSAGE_UNLINK,
 };
 
-PA_DECLARE_CLASS(memblockq_stream);
+PA_DEFINE_PRIVATE_CLASS(memblockq_stream, pa_msgobject);
 #define MEMBLOCKQ_STREAM(o) (memblockq_stream_cast(o))
-static PA_DEFINE_CHECK_TYPE(memblockq_stream, pa_msgobject);
 
 static void memblockq_stream_unlink(memblockq_stream *u) {
     pa_assert(u);

@@ -235,7 +235,7 @@ struct pa_sink_input {
     void *userdata;
 };
 
-PA_DECLARE_CLASS(pa_sink_input);
+PA_DECLARE_PUBLIC_CLASS(pa_sink_input);
 #define PA_SINK_INPUT(o) pa_sink_input_cast(o)
 
 enum {
