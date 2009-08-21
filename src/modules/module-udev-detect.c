@@ -45,7 +45,8 @@ PA_MODULE_USAGE(
 
 struct device {
     char *path;
-    pa_bool_t accessible;
+    pa_bool_t accessible:1;
+    pa_bool_t need_verify:1;
     char *card_name;
     char *args;
     uint32_t module;
@@ -277,6 +278,34 @@ fail:
     u->udev_io = NULL;
 }
 
+static pa_bool_t pcm_node_belongs_to_device(
+        struct device *d,
+        const char *node) {
+
+    char *cd;
+    pa_bool_t b;
+
+    cd = pa_sprintf_malloc("pcmC%sD", path_get_card_id(d->path));
+    b = pa_startswith(node, cd);
+    pa_xfree(cd);
+
+    return b;
+}
+
+static pa_bool_t control_node_belongs_to_device(
+        struct device *d,
+        const char *node) {
+
+    char *cd;
+    pa_bool_t b;
+
+    cd = pa_sprintf_malloc("controlC%s", path_get_card_id(d->path));
+    b = pa_streq(node, cd);
+    pa_xfree(cd);
+
+    return b;
+}
+
 static void inotify_cb(
         pa_mainloop_api*a,
         pa_io_event* e,
@@ -290,7 +319,9 @@ static void inotify_cb(
     } buf;
     struct userdata *u = userdata;
     static int type = 0;
-    pa_bool_t verify = FALSE, deleted = FALSE;
+    pa_bool_t deleted = FALSE;
+    struct device *d;
+    void *state;
 
     for (;;) {
         ssize_t r;
@@ -305,22 +336,30 @@ static void inotify_cb(
             goto fail;
         }
 
-        if ((buf.e.mask & IN_CLOSE_WRITE) && pa_startswith(buf.e.name, "pcmC"))
-            verify = TRUE;
+        /* From udev we get the guarantee that the control
+         * device's ACL is changes last. To avoid races when ACLs
+         * are changed we hence watch only the control device */
+        if (((buf.e.mask & IN_ATTRIB) && pa_startswith(buf.e.name, "controlC")))
+            PA_HASHMAP_FOREACH(d, u->devices, state)
+                if (control_node_belongs_to_device(d, buf.e.name))
+                    d->need_verify = TRUE;
+
+        /* ALSA doesn't really give us any guarantee on the closing
+         * order, so let's simply hope */
+        if (((buf.e.mask & IN_CLOSE_WRITE) && pa_startswith(buf.e.name, "pcmC")))
+            PA_HASHMAP_FOREACH(d, u->devices, state)
+                if (pcm_node_belongs_to_device(d, buf.e.name))
+                    d->need_verify = TRUE;
 
         if ((buf.e.mask & (IN_DELETE_SELF|IN_MOVE_SELF)))
             deleted = TRUE;
     }
 
-    if (verify) {
-        struct device *d;
-        void *state;
-
-        pa_log_debug("Verifying access.");
-
-        PA_HASHMAP_FOREACH(d, u->devices, state)
+    PA_HASHMAP_FOREACH(d, u->devices, state)
+        if (d->need_verify) {
+            d->need_verify = FALSE;
             verify_access(u, d);
-    }
+        }
 
     if (!deleted)
         return;
