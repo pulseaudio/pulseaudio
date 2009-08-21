@@ -128,7 +128,6 @@ static int expand_buffer_trashcontents(void **bufptr, size_t *buflenptr) {
 
    API is the same as getgrgid(), errors are indicated by a NULL return;
    consult errno for the error cause (zero it before calling).
-   The returned value must be freed using pa_xfree().
  */
 struct group *pa_getgrgid_malloc(gid_t gid) {
     size_t buflen, getgr_buflen;
@@ -190,7 +189,6 @@ void pa_getgrgid_free(struct group *grp) {
 
    API is the same as getgrnam(), errors are indicated by a NULL return;
    consult errno for the error cause (zero it before calling).
-   The returned value must be freed using pa_xfree().
  */
 struct group *pa_getgrnam_malloc(const char *name) {
     size_t buflen, getgr_buflen;
@@ -256,7 +254,6 @@ void pa_getgrnam_free(struct group *group) {
 
    API is the same as getpwnam(), errors are indicated by a NULL return;
    consult errno for the error cause (zero it before calling).
-   The returned value must be freed using pa_xfree().
  */
 struct passwd *pa_getpwnam_malloc(const char *name) {
     size_t buflen, getpw_buflen;
@@ -318,7 +315,6 @@ void pa_getpwnam_free(struct passwd *passwd) {
 
    API is the same as getpwuid(), errors are indicated by a NULL return;
    consult errno for the error cause (zero it before calling).
-   The returned value must be freed using pa_xfree().
  */
 struct passwd *pa_getpwuid_malloc(uid_t uid) {
     size_t buflen, getpw_buflen;
