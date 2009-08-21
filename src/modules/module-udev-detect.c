@@ -107,9 +107,9 @@ static void verify_access(struct userdata *u, struct device *d) {
 
     cd = pa_sprintf_malloc("%s/snd/controlC%s", udev_get_dev_path(u->udev), path_get_card_id(d->path));
     d->accessible = access(cd, R_OK|W_OK) >= 0;
-    pa_xfree(cd);
 
     pa_log_info("%s is accessible: %s", cd, pa_yes_no(d->accessible));
+    pa_xfree(cd);
 
     if (d->module == PA_INVALID_INDEX) {
 
