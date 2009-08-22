@@ -359,8 +359,6 @@ static void source_output_free(pa_object* mo) {
 
     pa_log_info("Freeing output %u \"%s\"", o->index, pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_MEDIA_NAME)));
 
-    pa_assert(!o->thread_info.attached);
-
     if (o->thread_info.delay_memblockq)
         pa_memblockq_free(o->thread_info.delay_memblockq);
 

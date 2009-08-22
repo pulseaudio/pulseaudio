@@ -487,7 +487,10 @@ static void sink_input_free(pa_object *o) {
 
     pa_log_info("Freeing input %u \"%s\"", i->index, pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME)));
 
-    pa_assert(!i->thread_info.attached);
+    /* Side note: this function must be able to destruct properly any
+     * kind of sink input in any state, even those which are
+     * "half-moved" or are connected to sinks that have no asyncmsgq
+     * and are hence half-destructed themselves! */
 
     if (i->thread_info.render_memblockq)
         pa_memblockq_free(i->thread_info.render_memblockq);
