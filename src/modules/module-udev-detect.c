@@ -325,6 +325,7 @@ static void inotify_cb(
 
     for (;;) {
         ssize_t r;
+        struct inotify_event *event;
 
         pa_zero(buf);
         if ((r = pa_read(fd, &buf, sizeof(buf), &type)) <= 0) {
@@ -336,23 +337,44 @@ static void inotify_cb(
             goto fail;
         }
 
-        /* From udev we get the guarantee that the control
-         * device's ACL is changes last. To avoid races when ACLs
-         * are changed we hence watch only the control device */
-        if (((buf.e.mask & IN_ATTRIB) && pa_startswith(buf.e.name, "controlC")))
-            PA_HASHMAP_FOREACH(d, u->devices, state)
-                if (control_node_belongs_to_device(d, buf.e.name))
-                    d->need_verify = TRUE;
+        event = &buf.e;
+        while (r > 0) {
+            size_t len;
 
-        /* ALSA doesn't really give us any guarantee on the closing
-         * order, so let's simply hope */
-        if (((buf.e.mask & IN_CLOSE_WRITE) && pa_startswith(buf.e.name, "pcmC")))
-            PA_HASHMAP_FOREACH(d, u->devices, state)
-                if (pcm_node_belongs_to_device(d, buf.e.name))
-                    d->need_verify = TRUE;
+            if ((size_t) r < sizeof(struct inotify_event)) {
+                pa_log("read() too short.");
+                goto fail;
+            }
 
-        if ((buf.e.mask & (IN_DELETE_SELF|IN_MOVE_SELF)))
-            deleted = TRUE;
+            len = sizeof(struct inotify_event) + event->len;
+
+            if ((size_t) r < len) {
+                pa_log("Payload missing.");
+                goto fail;
+            }
+
+            /* From udev we get the guarantee that the control
+             * device's ACL is changed last. To avoid races when ACLs
+             * are changed we hence watch only the control device */
+            if (((event->mask & IN_ATTRIB) && pa_startswith(event->name, "controlC")))
+                PA_HASHMAP_FOREACH(d, u->devices, state)
+                    if (control_node_belongs_to_device(d, event->name))
+                        d->need_verify = TRUE;
+
+            /* ALSA doesn't really give us any guarantee on the closing
+             * order, so let's simply hope */
+            if (((event->mask & IN_CLOSE_WRITE) && pa_startswith(event->name, "pcmC")))
+                PA_HASHMAP_FOREACH(d, u->devices, state)
+                    if (pcm_node_belongs_to_device(d, event->name))
+                        d->need_verify = TRUE;
+
+            /* /dev/snd/ might have been removed */
+            if ((event->mask & (IN_DELETE_SELF|IN_MOVE_SELF)))
+                deleted = TRUE;
+
+            event = (struct inotify_event*) ((uint8_t*) event + len);
+            r -= len;
+        }
     }
 
     PA_HASHMAP_FOREACH(d, u->devices, state)
