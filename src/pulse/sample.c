@@ -36,28 +36,27 @@
 
 #include "sample.h"
 
+static const size_t size_table[] = {
+    [PA_SAMPLE_U8] = 1,
+    [PA_SAMPLE_ULAW] = 1,
+    [PA_SAMPLE_ALAW] = 1,
+    [PA_SAMPLE_S16LE] = 2,
+    [PA_SAMPLE_S16BE] = 2,
+    [PA_SAMPLE_FLOAT32LE] = 4,
+    [PA_SAMPLE_FLOAT32BE] = 4,
+    [PA_SAMPLE_S32LE] = 4,
+    [PA_SAMPLE_S32BE] = 4,
+    [PA_SAMPLE_S24LE] = 3,
+    [PA_SAMPLE_S24BE] = 3,
+    [PA_SAMPLE_S24_32LE] = 4,
+    [PA_SAMPLE_S24_32BE] = 4
+};
+
 size_t pa_sample_size_of_format(pa_sample_format_t f) {
-
-    static const size_t table[] = {
-        [PA_SAMPLE_U8] = 1,
-        [PA_SAMPLE_ULAW] = 1,
-        [PA_SAMPLE_ALAW] = 1,
-        [PA_SAMPLE_S16LE] = 2,
-        [PA_SAMPLE_S16BE] = 2,
-        [PA_SAMPLE_FLOAT32LE] = 4,
-        [PA_SAMPLE_FLOAT32BE] = 4,
-        [PA_SAMPLE_S32LE] = 4,
-        [PA_SAMPLE_S32BE] = 4,
-        [PA_SAMPLE_S24LE] = 3,
-        [PA_SAMPLE_S24BE] = 3,
-        [PA_SAMPLE_S24_32LE] = 4,
-        [PA_SAMPLE_S24_32BE] = 4
-    };
-
     pa_assert(f >= 0);
     pa_assert(f < PA_SAMPLE_MAX);
 
-    return table[f];
+    return size_table[f];
 }
 
 size_t pa_sample_size(const pa_sample_spec *spec) {
@@ -65,35 +64,35 @@ size_t pa_sample_size(const pa_sample_spec *spec) {
     pa_assert(spec);
     pa_return_val_if_fail(pa_sample_spec_valid(spec), 0);
 
-    return pa_sample_size_of_format(spec->format);
+    return size_table[spec->format];
 }
 
 size_t pa_frame_size(const pa_sample_spec *spec) {
     pa_assert(spec);
     pa_return_val_if_fail(pa_sample_spec_valid(spec), 0);
 
-    return pa_sample_size(spec) * spec->channels;
+    return size_table[spec->format] * spec->channels;
 }
 
 size_t pa_bytes_per_second(const pa_sample_spec *spec) {
     pa_assert(spec);
     pa_return_val_if_fail(pa_sample_spec_valid(spec), 0);
 
-    return spec->rate*pa_frame_size(spec);
+    return spec->rate * size_table[spec->format] * spec->channels;
 }
 
 pa_usec_t pa_bytes_to_usec(uint64_t length, const pa_sample_spec *spec) {
     pa_assert(spec);
     pa_return_val_if_fail(pa_sample_spec_valid(spec), 0);
 
-    return (((pa_usec_t) (length / pa_frame_size(spec)) * PA_USEC_PER_SEC) / spec->rate);
+    return (((pa_usec_t) (length / (size_table[spec->format] * spec->channels)) * PA_USEC_PER_SEC) / spec->rate);
 }
 
 size_t pa_usec_to_bytes(pa_usec_t t, const pa_sample_spec *spec) {
     pa_assert(spec);
     pa_return_val_if_fail(pa_sample_spec_valid(spec), 0);
 
-    return (size_t) (((t * spec->rate) / PA_USEC_PER_SEC)) * pa_frame_size(spec);
+    return (size_t) (((t * spec->rate) / PA_USEC_PER_SEC)) * (size_table[spec->format] * spec->channels);
 }
 
 pa_sample_spec* pa_sample_spec_init(pa_sample_spec *spec) {
@@ -109,12 +108,12 @@ pa_sample_spec* pa_sample_spec_init(pa_sample_spec *spec) {
 int pa_sample_spec_valid(const pa_sample_spec *spec) {
     pa_assert(spec);
 
-    if (spec->rate <= 0 ||
+    if (PA_UNLIKELY (spec->rate <= 0 ||
         spec->rate > PA_RATE_MAX ||
         spec->channels <= 0 ||
         spec->channels > PA_CHANNELS_MAX ||
         spec->format >= PA_SAMPLE_MAX ||
-        spec->format < 0)
+        spec->format < 0))
         return 0;
 
     return 1;

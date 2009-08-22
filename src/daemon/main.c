@@ -39,8 +39,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <liboil/liboil.h>
-
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #endif
@@ -95,6 +93,8 @@
 #ifdef HAVE_DBUS
 #include <pulsecore/dbus-shared.h>
 #endif
+#include <pulsecore/cpu-arm.h>
+#include <pulsecore/cpu-x86.h>
 
 #include "cmdline.h"
 #include "cpulimit.h"
@@ -823,6 +823,9 @@ int main(int argc, char *argv[]) {
 
     pa_memtrap_install();
 
+    pa_cpu_init_x86();
+    pa_cpu_init_arm();
+
     pa_assert_se(mainloop = pa_mainloop_new());
 
     if (!(c = pa_core_new(pa_mainloop_get_api(mainloop), !conf->disable_shm, conf->shm_size))) {
@@ -861,8 +864,6 @@ int main(int argc, char *argv[]) {
 #ifdef OS_IS_WIN32
     win32_timer = pa_mainloop_get_api(mainloop)->rtclock_time_new(pa_mainloop_get_api(mainloop), pa_gettimeofday(&win32_tv), message_cb, NULL);
 #endif
-
-    oil_init();
 
     if (!conf->no_cpu_limit)
         pa_assert_se(pa_cpu_limit_init(pa_mainloop_get_api(mainloop)) == 0);

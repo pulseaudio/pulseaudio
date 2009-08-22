@@ -68,6 +68,9 @@
 #define TSCHED_MIN_SLEEP_USEC (10*PA_USEC_PER_MSEC)               /* 10ms -- Sleep at least 10ms on each iteration */
 #define TSCHED_MIN_WAKEUP_USEC (4*PA_USEC_PER_MSEC)               /* 4ms  -- Wakeup at least this long before the buffer runs empty*/
 
+#define SMOOTHER_MIN_INTERVAL (2*PA_USEC_PER_MSEC)                /* 2ms -- min smoother update interval */
+#define SMOOTHER_MAX_INTERVAL (200*PA_USEC_PER_MSEC)              /* 200ms -- max smoother update inteval */
+
 #define VOLUME_ACCURACY (PA_VOLUME_NORM/100)  /* don't require volume adjustments to be perfectly correct. don't necessarily extend granularity in software unless the differences get greater than this level */
 
 struct userdata {
@@ -115,6 +118,8 @@ struct userdata {
     pa_smoother *smoother;
     uint64_t write_count;
     uint64_t since_start;
+    pa_usec_t smoother_interval;
+    pa_usec_t last_smoother_update;
 
     pa_reserve_wrapper *reserve;
     pa_hook_slot *reserve_slot;
@@ -723,16 +728,26 @@ static void update_smoother(struct userdata *u) {
         now1 = pa_timespec_load(&htstamp);
     }
 
+    /* Hmm, if the timestamp is 0, then it wasn't set and we take the current time */
+    if (now1 <= 0)
+        now1 = pa_rtclock_now();
+
+    /* check if the time since the last update is bigger than the interval */
+    if (u->last_smoother_update > 0) {
+        if (u->last_smoother_update + u->smoother_interval > now1)
+            return;
+    }
+
     position = (int64_t) u->write_count - ((int64_t) delay * (int64_t) u->frame_size);
 
     if (PA_UNLIKELY(position < 0))
         position = 0;
 
-    /* Hmm, if the timestamp is 0, then it wasn't set and we take the current time */
-    if (now1 <= 0)
-        now1 = pa_rtclock_now();
-
     now2 = pa_bytes_to_usec((uint64_t) position, &u->sink->sample_spec);
+
+    u->last_smoother_update = now1;
+    /* exponentially increase the update interval up to the MAX limit */
+    u->smoother_interval = PA_MIN (u->smoother_interval * 2, SMOOTHER_MAX_INTERVAL);
 
     pa_smoother_put(u->smoother, now1, now2);
 }
@@ -906,6 +921,8 @@ static int unsuspend(struct userdata *u) {
 
     u->write_count = 0;
     pa_smoother_reset(u->smoother, pa_rtclock_now(), TRUE);
+    u->smoother_interval = SMOOTHER_MIN_INTERVAL;
+    u->last_smoother_update = 0;
 
     u->first = TRUE;
     u->since_start = 0;
@@ -1622,6 +1639,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
             5,
             pa_rtclock_now(),
             TRUE);
+    u->smoother_interval = SMOOTHER_MIN_INTERVAL;
 
     dev_id = pa_modargs_get_value(
             ma, "device_id",

@@ -831,9 +831,14 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/object.c pulsecore/object.h \
 		pulsecore/play-memblockq.c pulsecore/play-memblockq.h \
 		pulsecore/play-memchunk.c pulsecore/play-memchunk.h \
+		pulsecore/remap.c pulsecore/remap.h \
+		pulsecore/remap_mmx.c \
 		pulsecore/resampler.c pulsecore/resampler.h \
 		pulsecore/rtpoll.c pulsecore/rtpoll.h \
 		pulsecore/sample-util.c pulsecore/sample-util.h \
+		pulsecore/cpu-arm.c pulsecore/cpu-x86.c \
+		pulsecore/svolume_c.c pulsecore/svolume_arm.c\
+		pulsecore/svolume_mmx.c pulsecore/svolume_sse.c \
 		pulsecore/sconv-s16be.c pulsecore/sconv-s16be.h \
 		pulsecore/sconv-s16le.c pulsecore/sconv-s16le.h \
 		pulsecore/sconv.c pulsecore/sconv.h \
