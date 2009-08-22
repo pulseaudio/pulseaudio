@@ -25,6 +25,7 @@
 
 #include <errno.h>
 #include <limits.h>
+#include <dirent.h>
 #include <sys/inotify.h>
 #include <libudev.h>
 
@@ -45,8 +46,7 @@ PA_MODULE_USAGE(
 
 struct device {
     char *path;
-    pa_bool_t accessible:1;
-    pa_bool_t need_verify:1;
+    pa_bool_t need_verify;
     char *card_name;
     char *args;
     uint32_t module;
@@ -99,34 +99,150 @@ static const char *path_get_card_id(const char *path) {
     return e + 5;
 }
 
+static pa_bool_t is_card_busy(const char *id) {
+    char *card_path = NULL, *pcm_path = NULL, *sub_status = NULL;
+    DIR *card_dir = NULL, *pcm_dir = NULL;
+    FILE *status_file = NULL;
+    size_t len;
+    struct dirent *space = NULL, *de;
+    pa_bool_t busy = FALSE;
+    int r;
+
+    pa_assert(id);
+
+    card_path = pa_sprintf_malloc("/proc/asound/card%s", id);
+
+    if (!(card_dir = opendir(card_path))) {
+        pa_log_warn("Failed to open %s: %s", card_path, pa_cstrerror(errno));
+        goto fail;
+    }
+
+    len = offsetof(struct dirent, d_name) + fpathconf(dirfd(card_dir), _PC_NAME_MAX) + 1;
+    space = pa_xmalloc(len);
+
+    for (;;) {
+        de = NULL;
+
+        if ((r = readdir_r(card_dir, space, &de)) != 0) {
+            pa_log_warn("readdir_r() failed: %s", pa_cstrerror(r));
+            goto fail;
+        }
+
+        if (!de)
+            break;
+
+        if (!pa_startswith(de->d_name, "pcm"))
+            continue;
+
+        pa_xfree(pcm_path);
+        pcm_path = pa_sprintf_malloc("%s/%s", card_path, de->d_name);
+
+        if (pcm_dir)
+            closedir(pcm_dir);
+
+        if (!(pcm_dir = opendir(pcm_path))) {
+            pa_log_warn("Failed to open %s: %s", pcm_path, pa_cstrerror(errno));
+            continue;
+        }
+
+        for (;;) {
+            char line[32];
+
+            if ((r = readdir_r(pcm_dir, space, &de)) != 0) {
+                pa_log_warn("readdir_r() failed: %s", pa_cstrerror(r));
+                goto fail;
+            }
+
+            if (!de)
+                break;
+
+            if (!pa_startswith(de->d_name, "sub"))
+                continue;
+
+            pa_xfree(sub_status);
+            sub_status = pa_sprintf_malloc("%s/%s/status", pcm_path, de->d_name);
+
+            if (status_file)
+                fclose(status_file);
+
+            if (!(status_file = fopen(sub_status, "r"))) {
+                pa_log_warn("Failed to open %s: %s", sub_status, pa_cstrerror(errno));
+                continue;
+            }
+
+            if (!(fgets(line, sizeof(line)-1, status_file))) {
+                pa_log_warn("Failed to read from %s: %s", sub_status, pa_cstrerror(errno));
+                continue;
+            }
+
+            if (!pa_streq(line, "closed\n")) {
+                busy = TRUE;
+                break;
+            }
+        }
+    }
+
+fail:
+
+    pa_xfree(card_path);
+    pa_xfree(pcm_path);
+    pa_xfree(sub_status);
+    pa_xfree(space);
+
+    if (card_dir)
+        closedir(card_dir);
+
+    if (pcm_dir)
+        closedir(pcm_dir);
+
+    if (status_file)
+        fclose(status_file);
+
+    return busy;
+}
+
 static void verify_access(struct userdata *u, struct device *d) {
     char *cd;
     pa_card *card;
+    pa_bool_t accessible;
 
     pa_assert(u);
     pa_assert(d);
 
     cd = pa_sprintf_malloc("%s/snd/controlC%s", udev_get_dev_path(u->udev), path_get_card_id(d->path));
-    d->accessible = access(cd, R_OK|W_OK) >= 0;
+    accessible = access(cd, R_OK|W_OK) >= 0;
+    pa_log_debug("%s is accessible: %s", cd, pa_yes_no(accessible));
 
-    pa_log_info("%s is accessible: %s", cd, pa_yes_no(d->accessible));
     pa_xfree(cd);
 
     if (d->module == PA_INVALID_INDEX) {
 
-        /* If we not loaded, try to load */
+        /* If we are not loaded, try to load */
 
-        if (d->accessible) {
+        if (accessible) {
             pa_module *m;
+            pa_bool_t busy;
 
-            pa_log_debug("Loading module-alsa-card with arguments '%s'", d->args);
-            m = pa_module_load(u->core, "module-alsa-card", d->args);
+            /* Check if any of the PCM devices that belong to this
+             * card are currently busy. If they are, don't try to load
+             * right now, to make sure the probing phase can
+             * successfully complete. When the current user of the
+             * device closes it we will get another notification via
+             * inotify and can then recheck. */
 
-            if (m) {
-                d->module = m->index;
-                pa_log_info("Card %s (%s) module loaded.", d->path, d->card_name);
-            } else
-                pa_log_info("Card %s (%s) failed to load module.", d->path, d->card_name);
+            busy = is_card_busy(path_get_card_id(d->path));
+            pa_log_debug("%s is busy: %s", d->path, pa_yes_no(busy));
+
+            if (!busy) {
+                pa_log_debug("Loading module-alsa-card with arguments '%s'", d->args);
+                m = pa_module_load(u->core, "module-alsa-card", d->args);
+
+                if (m) {
+                    d->module = m->index;
+                    pa_log_info("Card %s (%s) module loaded.", d->path, d->card_name);
+                } else
+                    pa_log_info("Card %s (%s) failed to load module.", d->path, d->card_name);
+            }
         }
 
     } else {
@@ -135,7 +251,7 @@ static void verify_access(struct userdata *u, struct device *d) {
          * accessible boolean */
 
         if ((card = pa_namereg_get(u->core, d->card_name, PA_NAMEREG_CARD)))
-            pa_card_suspend(card, !d->accessible, PA_SUSPEND_SESSION);
+            pa_card_suspend(card, !accessible, PA_SUSPEND_SESSION);
     }
 }
 
@@ -160,7 +276,6 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
 
     d = pa_xnew0(struct device, 1);
     d->path = pa_xstrdup(path);
-    d->accessible = TRUE;
     d->module = PA_INVALID_INDEX;
 
     if (!(t = udev_device_get_property_value(dev, "PULSE_NAME")))
