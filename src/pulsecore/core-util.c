@@ -2223,7 +2223,7 @@ int pa_close_all(int except_fd, ...) {
     va_end(ap);
 
     r = pa_close_allv(p);
-    free(p);
+    pa_xfree(p);
 
     return r;
 }

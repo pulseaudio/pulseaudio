@@ -2,7 +2,7 @@
   This file is part of PulseAudio.
 
   Copyright 2004-2006 Lennart Poettering
-  Copyright 2009 Wim Taymans <wim.taymans@collabora.co.uk> 
+  Copyright 2009 Wim Taymans <wim.taymans@collabora.co.uk>
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -60,21 +60,20 @@ static char *get_cpuinfo(void) {
     char *cpuinfo;
     int n, fd;
 
-    if (!(cpuinfo = malloc(MAX_BUFFER)))
-         return NULL;
+    cpuinfo = pa_xmalloc(MAX_BUFFER);
 
     if ((fd = open("/proc/cpuinfo", O_RDONLY)) < 0) {
-        free (cpuinfo);
+        pa_xfree(cpuinfo);
         return NULL;
     }
 
-    if ((n = read(fd, cpuinfo, MAX_BUFFER-1)) < 0) {
-        free (cpuinfo);
-        close (fd);
+    if ((n = pa_read(fd, cpuinfo, MAX_BUFFER-1)) < 0) {
+        pa_xfree(cpuinfo);
+        pa_close(fd);
         return NULL;
     }
     cpuinfo[n] = 0;
-    close (fd);
+    pa_close(fd);
 
     return cpuinfo;
 }
@@ -102,7 +101,7 @@ void pa_cpu_init_arm (void) {
         if (arch >= 7)
             flags |= PA_CPU_ARM_V7;
 
-        free (line);
+        pa_xfree(line);
     }
     /* get the CPU features */
     if ((line = get_cpuinfo_line (cpuinfo, "Features"))) {
@@ -118,10 +117,10 @@ void pa_cpu_init_arm (void) {
             else if (!strcmp (current, "vfpv3"))
                 flags |= PA_CPU_ARM_VFPV3;
 
-            free (current);
+            pa_xfree(current);
         }
     }
-    free (cpuinfo);
+    pa_xfree(cpuinfo);
 
     pa_log_info ("CPU flags: %s%s%s%s%s%s",
           (flags & PA_CPU_ARM_V6) ? "V6 " : "",
