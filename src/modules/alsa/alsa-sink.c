@@ -733,10 +733,9 @@ static void update_smoother(struct userdata *u) {
         now1 = pa_rtclock_now();
 
     /* check if the time since the last update is bigger than the interval */
-    if (u->last_smoother_update > 0) {
+    if (u->last_smoother_update > 0)
         if (u->last_smoother_update + u->smoother_interval > now1)
             return;
-    }
 
     position = (int64_t) u->write_count - ((int64_t) delay * (int64_t) u->frame_size);
 
@@ -745,11 +744,11 @@ static void update_smoother(struct userdata *u) {
 
     now2 = pa_bytes_to_usec((uint64_t) position, &u->sink->sample_spec);
 
+    pa_smoother_put(u->smoother, now1, now2);
+
     u->last_smoother_update = now1;
     /* exponentially increase the update interval up to the MAX limit */
     u->smoother_interval = PA_MIN (u->smoother_interval * 2, SMOOTHER_MAX_INTERVAL);
-
-    pa_smoother_put(u->smoother, now1, now2);
 }
 
 static pa_usec_t sink_get_latency(struct userdata *u) {
@@ -926,7 +925,6 @@ static int unsuspend(struct userdata *u) {
 
     u->first = TRUE;
     u->since_start = 0;
-
 
     pa_log_info("Resumed successfully...");
 
