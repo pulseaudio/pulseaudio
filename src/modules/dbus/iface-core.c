@@ -1509,7 +1509,7 @@ static void handle_load_module(DBusConnection *conn, DBusMessage *msg, void *use
         goto finish;
     }
 
-    dbus_module = pa_dbusiface_module_new(c, module);
+    dbus_module = pa_dbusiface_module_new(module);
     pa_hashmap_put(c->modules, PA_UINT32_TO_PTR(module->index), dbus_module);
 
     object_path = pa_dbusiface_module_get_path(dbus_module);
@@ -1860,7 +1860,7 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
         case PA_SUBSCRIPTION_EVENT_MODULE:
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
                 if (!(module = pa_hashmap_get(c->modules, PA_UINT32_TO_PTR(idx)))) {
-                    module = pa_dbusiface_module_new(c, pa_idxset_get_by_index(core->modules, idx));
+                    module = pa_dbusiface_module_new(pa_idxset_get_by_index(core->modules, idx));
                     pa_hashmap_put(c->modules, PA_UINT32_TO_PTR(idx), module);
                 }
 
@@ -2026,7 +2026,7 @@ pa_dbusiface_core *pa_dbusiface_core_new(pa_core *core) {
         pa_hashmap_put(c->samples, PA_UINT32_TO_PTR(idx), pa_dbusiface_sample_new(c, sample));
 
     PA_IDXSET_FOREACH(module, core->modules, idx)
-        pa_hashmap_put(c->modules, PA_UINT32_TO_PTR(idx), pa_dbusiface_module_new(c, module));
+        pa_hashmap_put(c->modules, PA_UINT32_TO_PTR(idx), pa_dbusiface_module_new(module));
 
     PA_IDXSET_FOREACH(client, core->clients, idx)
         pa_hashmap_put(c->clients, PA_UINT32_TO_PTR(idx), pa_dbusiface_client_new(c, client));
