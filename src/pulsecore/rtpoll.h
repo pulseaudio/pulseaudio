@@ -73,6 +73,10 @@ void pa_rtpoll_set_timer_absolute(pa_rtpoll *p, pa_usec_t usec);
 void pa_rtpoll_set_timer_relative(pa_rtpoll *p, pa_usec_t usec);
 void pa_rtpoll_set_timer_disabled(pa_rtpoll *p);
 
+/* Return TRUE when the elapsed timer was the reason for
+ * the last pa_rtpoll_run() invocation to finish */
+pa_bool_t pa_rtpoll_timer_elapsed(pa_rtpoll *p);
+
 /* A new fd wakeup item for pa_rtpoll */
 pa_rtpoll_item *pa_rtpoll_item_new(pa_rtpoll *p, pa_rtpoll_priority_t prio, unsigned n_fds);
 void pa_rtpoll_item_free(pa_rtpoll_item *i);
