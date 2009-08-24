@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-22 00:08+0200\n"
+"POT-Creation-Date: 2009-08-24 03:31+0200\n"
 "PO-Revision-Date: 2009-04-05 16:24+0300\n"
 "Last-Translator: Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>\n"
 "Language-Team: Finnish <laatu@lokalisointi.org>\n"
@@ -365,29 +365,29 @@ msgstr ""
 "Hei, ytimesi on kehno! Linux korkean tarkkuuden ajastimien tuella on hyvin "
 "suositeltava!"
 
-#: ../src/daemon/main.c:829
+#: ../src/daemon/main.c:832
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() epäonnistui."
 
-#: ../src/daemon/main.c:891
+#: ../src/daemon/main.c:892
 msgid "Failed to initialize daemon."
 msgstr "Taustaprosessin alustus epäonnistui."
 
-#: ../src/daemon/main.c:896
+#: ../src/daemon/main.c:897
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "Taustaprosessin käynnistys ilman ladattavia moduuleita, kieltäydytään "
 "toiminnasta."
 
-#: ../src/daemon/main.c:913
+#: ../src/daemon/main.c:914
 msgid "Daemon startup complete."
 msgstr "Taustaprosessin käynnistys valmis."
 
-#: ../src/daemon/main.c:919
+#: ../src/daemon/main.c:920
 msgid "Daemon shutdown initiated."
 msgstr "Taustaprosessin sulkeminen käynnistetty."
 
-#: ../src/daemon/main.c:941
+#: ../src/daemon/main.c:942
 msgid "Daemon terminated."
 msgstr "Taustaprosessi lopetettu."
 
@@ -953,7 +953,7 @@ msgstr "Vasen ylä taka"
 msgid "Top Rear Right"
 msgstr "Oikea ylä taka"
 
-#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:171
+#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
 #: ../src/pulse/volume.c:285 ../src/pulse/volume.c:311
 #: ../src/pulse/volume.c:331 ../src/pulse/volume.c:361
 msgid "(invalid)"
@@ -1083,27 +1083,27 @@ msgstr "Puuttuva toteutus"
 msgid "Client forked"
 msgstr "Asiakasohjelma haarautui"
 
-#: ../src/pulse/sample.c:173
+#: ../src/pulse/sample.c:172
 #, c-format
 msgid "%s %uch %uHz"
 msgstr "%s %u kan. %uHz"
 
-#: ../src/pulse/sample.c:185
+#: ../src/pulse/sample.c:184
 #, c-format
 msgid "%0.1f GiB"
 msgstr "%0.1f GiB"
 
-#: ../src/pulse/sample.c:187
+#: ../src/pulse/sample.c:186
 #, c-format
 msgid "%0.1f MiB"
 msgstr "%0.1f MiB"
 
-#: ../src/pulse/sample.c:189
+#: ../src/pulse/sample.c:188
 #, c-format
 msgid "%0.1f KiB"
 msgstr "%0.1f KiB"
 
-#: ../src/pulse/sample.c:191
+#: ../src/pulse/sample.c:190
 #, c-format
 msgid "%u B"
 msgstr "%u B"
@@ -2255,7 +2255,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr "Automaattisen käynnistyksen lukkoa ei voida käyttää."
 
-#: ../src/modules/alsa/alsa-sink.c:451 ../src/modules/alsa/alsa-sink.c:608
+#: ../src/modules/alsa/alsa-sink.c:526 ../src/modules/alsa/alsa-sink.c:684
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2272,7 +2272,7 @@ msgstr ""
 "asetettuna,  snd_pcm_avail() palautti kuitenkin 0 tai jonkin muun arvon, "
 "joka on < min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:431 ../src/modules/alsa/alsa-source.c:580
+#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "

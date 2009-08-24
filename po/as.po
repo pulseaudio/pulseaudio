@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.pulseaudio.as\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-22 00:08+0200\n"
+"POT-Creation-Date: 2009-08-24 03:31+0200\n"
 "PO-Revision-Date: 2009-04-08 12:35+0530\n"
 "Last-Translator: Amitakhya Phukan <aphukan@fedoraproject.org>\n"
 "Language-Team: Assamese <fedora-trans-as@redhat.com>\n"
@@ -357,28 +357,28 @@ msgstr ""
 "শ্ৰীমান, আপোনাৰ কাৰ্ণেল পূৰণি! high-resolution timer সক্ৰিয় থকা Linux ক আজি "
 "উপদেশ দিয়া হয়!"
 
-#: ../src/daemon/main.c:829
+#: ../src/daemon/main.c:832
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() ব্যৰ্থ ।"
 
-#: ../src/daemon/main.c:891
+#: ../src/daemon/main.c:892
 msgid "Failed to initialize daemon."
 msgstr "ডেমন আৰম্ভ কৰিবলৈ ব্যৰ্থ ।"
 
-#: ../src/daemon/main.c:896
+#: ../src/daemon/main.c:897
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "তুলি লোৱা মডিউল নোহোৱাকে ডেমন আৰম্ভ কৰা হৈছে, কোনো কাম সঞ্চালন কৰা সম্ভৱ নহয় ।"
 
-#: ../src/daemon/main.c:913
+#: ../src/daemon/main.c:914
 msgid "Daemon startup complete."
 msgstr "ডেমন আৰম্ভ কৰা সম্পূৰ্ণ ।"
 
-#: ../src/daemon/main.c:919
+#: ../src/daemon/main.c:920
 msgid "Daemon shutdown initiated."
 msgstr "ডেমন বন্ধ কৰাৰ প্ৰক্ৰিয়া আৰম্ভ কৰা হৈছে ।"
 
-#: ../src/daemon/main.c:941
+#: ../src/daemon/main.c:942
 msgid "Daemon terminated."
 msgstr "ডেমন বন্ধ কৰা হৈছে ।"
 
@@ -930,7 +930,7 @@ msgstr "ওপৰত পিছত বাওঁফালে"
 msgid "Top Rear Right"
 msgstr "ওপৰত পিছত সোঁফালে"
 
-#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:171
+#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
 #: ../src/pulse/volume.c:285 ../src/pulse/volume.c:311
 #: ../src/pulse/volume.c:331 ../src/pulse/volume.c:361
 msgid "(invalid)"
@@ -1060,27 +1060,27 @@ msgstr "অনুপস্থিত বাস্তবায়ন"
 msgid "Client forked"
 msgstr "গ্ৰাহক ফৰ্ক কৰা হৈছে"
 
-#: ../src/pulse/sample.c:173
+#: ../src/pulse/sample.c:172
 #, c-format
 msgid "%s %uch %uHz"
 msgstr "%s %uch %uHz"
 
-#: ../src/pulse/sample.c:185
+#: ../src/pulse/sample.c:184
 #, c-format
 msgid "%0.1f GiB"
 msgstr "%0.1f GiB"
 
-#: ../src/pulse/sample.c:187
+#: ../src/pulse/sample.c:186
 #, c-format
 msgid "%0.1f MiB"
 msgstr "%0.1f MiB"
 
-#: ../src/pulse/sample.c:189
+#: ../src/pulse/sample.c:188
 #, c-format
 msgid "%0.1f KiB"
 msgstr "%0.1f KiB"
 
-#: ../src/pulse/sample.c:191
+#: ../src/pulse/sample.c:190
 #, c-format
 msgid "%u B"
 msgstr "%u B"
@@ -2232,7 +2232,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr "autospawn লক প্ৰয়োগ কৰিবলৈ ব্যৰ্থ ।"
 
-#: ../src/modules/alsa/alsa-sink.c:451 ../src/modules/alsa/alsa-sink.c:608
+#: ../src/modules/alsa/alsa-sink.c:526 ../src/modules/alsa/alsa-sink.c:684
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2248,7 +2248,7 @@ msgstr ""
 "POLLOUT নিৰ্ধাৰিত হোৱাৰি পিছতো আমি উথিলো -- কিন্তু তাৰ পিছৰ snd_pcm_avail() এ ০ "
 "দিলে বা অন্য এটা মান < min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:431 ../src/modules/alsa/alsa-source.c:580
+#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "

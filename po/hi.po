@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-22 00:08+0200\n"
+"POT-Creation-Date: 2009-08-24 03:31+0200\n"
 "PO-Revision-Date: 2009-06-08 12:01+0530\n"
 "Last-Translator: Rajesh Ranjan <rajesh672@gmail.com>\n"
 "Language-Team: Hindi <hindi.sf.net>\n"
@@ -360,27 +360,27 @@ msgid ""
 msgstr ""
 "आपका कर्नेल बुरी स्थिति में है! सलाह है कि उच्च विभेदन युक्त लिनक्स सक्रिय किया जाना चाहिए!"
 
-#: ../src/daemon/main.c:829
+#: ../src/daemon/main.c:832
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() विफल."
 
-#: ../src/daemon/main.c:891
+#: ../src/daemon/main.c:892
 msgid "Failed to initialize daemon."
 msgstr "डेमॉन आरंभ करने में विफल."
 
-#: ../src/daemon/main.c:896
+#: ../src/daemon/main.c:897
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "बिना लोड मॉड्यूल के डेमॉन आरंभ, काम करने से अस्वीकार कर रहा है."
 
-#: ../src/daemon/main.c:913
+#: ../src/daemon/main.c:914
 msgid "Daemon startup complete."
 msgstr "डेमॉन आरंभन पूर्ण."
 
-#: ../src/daemon/main.c:919
+#: ../src/daemon/main.c:920
 msgid "Daemon shutdown initiated."
 msgstr "डेमॉन बन्द किया जाना आरंभ."
 
-#: ../src/daemon/main.c:941
+#: ../src/daemon/main.c:942
 msgid "Daemon terminated."
 msgstr "डेमॉन अवरोधित."
 
@@ -932,7 +932,7 @@ msgstr "ऊपर पश्च बायाँ"
 msgid "Top Rear Right"
 msgstr "ऊपर पश्च दायाँ"
 
-#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:171
+#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
 #: ../src/pulse/volume.c:285 ../src/pulse/volume.c:311
 #: ../src/pulse/volume.c:331 ../src/pulse/volume.c:361
 msgid "(invalid)"
@@ -1062,27 +1062,27 @@ msgstr "अनुपस्थित कार्यान्वयन"
 msgid "Client forked"
 msgstr "क्लाएंट विभाजित"
 
-#: ../src/pulse/sample.c:173
+#: ../src/pulse/sample.c:172
 #, c-format
 msgid "%s %uch %uHz"
 msgstr "%s %uch %uHz"
 
-#: ../src/pulse/sample.c:185
+#: ../src/pulse/sample.c:184
 #, c-format
 msgid "%0.1f GiB"
 msgstr "%0.1f GiB"
 
-#: ../src/pulse/sample.c:187
+#: ../src/pulse/sample.c:186
 #, c-format
 msgid "%0.1f MiB"
 msgstr "%0.1f MiB"
 
-#: ../src/pulse/sample.c:189
+#: ../src/pulse/sample.c:188
 #, c-format
 msgid "%0.1f KiB"
 msgstr "%0.1f KiB"
 
-#: ../src/pulse/sample.c:191
+#: ../src/pulse/sample.c:190
 #, c-format
 msgid "%u B"
 msgstr "%u B"
@@ -2238,7 +2238,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr "autospawn लॉक की पहुँच नहीं ले सकता है."
 
-#: ../src/modules/alsa/alsa-sink.c:451 ../src/modules/alsa/alsa-sink.c:608
+#: ../src/modules/alsa/alsa-sink.c:526 ../src/modules/alsa/alsa-sink.c:684
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2255,7 +2255,7 @@ msgstr ""
 "हमें POLLOUT सेट के साथ तैयार किया गया है  -- हालांकि परवर्ती snd_pcm_avail() ने 0 या "
 "दूसरा मान < min_avail दिया."
 
-#: ../src/modules/alsa/alsa-source.c:431 ../src/modules/alsa/alsa-source.c:580
+#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "

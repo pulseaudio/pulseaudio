@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.te\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-22 00:08+0200\n"
+"POT-Creation-Date: 2009-08-24 03:31+0200\n"
 "PO-Revision-Date: 2009-04-08 18:21+0530\n"
 "Last-Translator: Krishna Babu K <kkrothap@redhat.com>\n"
 "Language-Team: Telugu <en@li.org>\n"
@@ -357,27 +357,27 @@ msgid ""
 "resolution timers enabled!"
 msgstr "మిత్రమా, నీ కెర్నల్ చెడిపోయింది! అధిక-తీవ్రత కాలసూచకిలను చేతనము చేయమని సూచించడమైనది!"
 
-#: ../src/daemon/main.c:829
+#: ../src/daemon/main.c:832
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() విఫలమైంది."
 
-#: ../src/daemon/main.c:891
+#: ../src/daemon/main.c:892
 msgid "Failed to initialize daemon."
 msgstr "డెమోన్ సిద్దముచేయుటకు విఫలమైంది."
 
-#: ../src/daemon/main.c:896
+#: ../src/daemon/main.c:897
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "ఏవిధమైన మాడ్యూళ్ళు లోడవకుండా డెమోన్ ప్రారంభము, పనిచేయుటకు తిరస్కరించబడింది."
 
-#: ../src/daemon/main.c:913
+#: ../src/daemon/main.c:914
 msgid "Daemon startup complete."
 msgstr "డెమోన్ ప్రారంభము పూర్తైనది."
 
-#: ../src/daemon/main.c:919
+#: ../src/daemon/main.c:920
 msgid "Daemon shutdown initiated."
 msgstr "డెమోన్ మూసివేత సిద్దముచేయబడింది."
 
-#: ../src/daemon/main.c:941
+#: ../src/daemon/main.c:942
 msgid "Daemon terminated."
 msgstr "డెమోన్ అంతముచేయబడింది."
 
@@ -929,7 +929,7 @@ msgstr "పైన వెనుక ఎడమవైపు"
 msgid "Top Rear Right"
 msgstr "పైన వెనుక కుడివైపున"
 
-#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:171
+#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
 #: ../src/pulse/volume.c:285 ../src/pulse/volume.c:311
 #: ../src/pulse/volume.c:331 ../src/pulse/volume.c:361
 msgid "(invalid)"
@@ -1059,27 +1059,27 @@ msgstr "తప్పిపోయిన యింప్లిమెంటేష�
 msgid "Client forked"
 msgstr "కక్షిదారి పోర్క్ చేసిన"
 
-#: ../src/pulse/sample.c:173
+#: ../src/pulse/sample.c:172
 #, c-format
 msgid "%s %uch %uHz"
 msgstr "%s %uch %uHz"
 
-#: ../src/pulse/sample.c:185
+#: ../src/pulse/sample.c:184
 #, c-format
 msgid "%0.1f GiB"
 msgstr "%0.1f GiB"
 
-#: ../src/pulse/sample.c:187
+#: ../src/pulse/sample.c:186
 #, c-format
 msgid "%0.1f MiB"
 msgstr "%0.1f MiB"
 
-#: ../src/pulse/sample.c:189
+#: ../src/pulse/sample.c:188
 #, c-format
 msgid "%0.1f KiB"
 msgstr "%0.1f KiB"
 
-#: ../src/pulse/sample.c:191
+#: ../src/pulse/sample.c:190
 #, c-format
 msgid "%u B"
 msgstr "%u B"
@@ -2233,7 +2233,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr "ఆటోస్పాన్ తాళంను యాక్సిస్ చేయలేదు."
 
-#: ../src/modules/alsa/alsa-sink.c:451 ../src/modules/alsa/alsa-sink.c:608
+#: ../src/modules/alsa/alsa-sink.c:526 ../src/modules/alsa/alsa-sink.c:684
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2249,7 +2249,7 @@ msgstr ""
 "మనము POLLOUT అమర్పు ద్వారా జాగరూక పరచబడినాము -- ఏమైనప్పటికి snd_pcm_avail() అనునది 0 ను "
 "యిస్తుంది లేదా వేరొక విలువ < min_avail యిస్తుంది."
 
-#: ../src/modules/alsa/alsa-source.c:431 ../src/modules/alsa/alsa-source.c:580
+#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
