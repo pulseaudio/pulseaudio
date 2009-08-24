@@ -1,7 +1,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2008 Joao Paulo Rechi Vita
+  Copyright 2008-2009 Joao Paulo Rechi Vita
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -129,6 +129,7 @@ struct hsp_info {
 
 enum profile {
     PROFILE_A2DP,
+    PROFILE_A2DP_SOURCE,
     PROFILE_HSP,
     PROFILE_OFF
 };
@@ -178,6 +179,7 @@ struct userdata {
 };
 
 #define FIXED_LATENCY_PLAYBACK_A2DP (25*PA_USEC_PER_MSEC)
+#define FIXED_LATENCY_RECORD_A2DP (25*PA_USEC_PER_MSEC)
 #define FIXED_LATENCY_PLAYBACK_HSP (125*PA_USEC_PER_MSEC)
 #define FIXED_LATENCY_RECORD_HSP (25*PA_USEC_PER_MSEC)
 
@@ -307,7 +309,7 @@ static int parse_caps(struct userdata *u, uint8_t seid, const struct bt_get_capa
 
     pa_log_debug("Payload size is %lu %lu", (unsigned long) bytes_left, (unsigned long) sizeof(*codec));
 
-    if ((u->profile == PROFILE_A2DP && codec->transport != BT_CAPABILITIES_TRANSPORT_A2DP) ||
+    if (((u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE) && codec->transport != BT_CAPABILITIES_TRANSPORT_A2DP) ||
         (u->profile == PROFILE_HSP && codec->transport != BT_CAPABILITIES_TRANSPORT_SCO)) {
         pa_log_error("Got capabilities for wrong codec.");
         return -1;
@@ -344,6 +346,26 @@ static int parse_caps(struct userdata *u, uint8_t seid, const struct bt_get_capa
             return codec->seid;
 
         memcpy(&u->a2dp.sbc_capabilities, codec, sizeof(u->a2dp.sbc_capabilities));
+
+    } else if (u->profile == PROFILE_A2DP_SOURCE) {
+
+        while (bytes_left > 0) {
+            if ((codec->type == BT_A2DP_SBC_SOURCE) && !codec->lock)
+                break;
+
+            bytes_left -= codec->length;
+            codec = (const codec_capabilities_t*) ((const uint8_t*) codec + codec->length);
+        }
+
+        if (bytes_left <= 0 || codec->length != sizeof(u->a2dp.sbc_capabilities))
+            return -1;
+
+        pa_assert(codec->type == BT_A2DP_SBC_SOURCE);
+
+        if (codec->configured && seid == 0)
+            return codec->seid;
+
+        memcpy(&u->a2dp.sbc_capabilities, codec, sizeof(u->a2dp.sbc_capabilities));
     }
 
     return 0;
@@ -368,7 +390,7 @@ static int get_caps(struct userdata *u, uint8_t seid) {
     msg.getcaps_req.seid = seid;
 
     pa_strlcpy(msg.getcaps_req.object, u->path, sizeof(msg.getcaps_req.object));
-    if (u->profile == PROFILE_A2DP)
+    if (u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE)
         msg.getcaps_req.transport = BT_CAPABILITIES_TRANSPORT_A2DP;
     else {
         pa_assert(u->profile == PROFILE_HSP);
@@ -451,7 +473,7 @@ static int setup_a2dp(struct userdata *u) {
     };
 
     pa_assert(u);
-    pa_assert(u->profile == PROFILE_A2DP);
+    pa_assert(u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE);
 
     cap = &u->a2dp.sbc_capabilities;
 
@@ -652,8 +674,8 @@ static int set_conf(struct userdata *u) {
     msg.open_req.h.length = sizeof(msg.open_req);
 
     pa_strlcpy(msg.open_req.object, u->path, sizeof(msg.open_req.object));
-    msg.open_req.seid = u->profile == PROFILE_A2DP ? u->a2dp.sbc_capabilities.capability.seid : BT_A2DP_SEID_RANGE + 1;
-    msg.open_req.lock = u->profile == PROFILE_A2DP ? BT_WRITE_LOCK : BT_READ_LOCK | BT_WRITE_LOCK;
+    msg.open_req.seid = (u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE) ? u->a2dp.sbc_capabilities.capability.seid : BT_A2DP_SEID_RANGE + 1;
+    msg.open_req.lock = (u->profile == PROFILE_A2DP) ? BT_WRITE_LOCK : BT_READ_LOCK | BT_WRITE_LOCK;
 
     if (service_send(u, &msg.open_req.h) < 0)
         return -1;
@@ -661,7 +683,7 @@ static int set_conf(struct userdata *u) {
     if (service_expect(u, &msg.open_rsp.h, sizeof(msg), BT_OPEN, sizeof(msg.open_rsp)) < 0)
         return -1;
 
-    if (u->profile == PROFILE_A2DP ) {
+    if (u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE) {
         u->sample_spec.format = PA_SAMPLE_S16LE;
 
         if (setup_a2dp(u) < 0)
@@ -679,7 +701,7 @@ static int set_conf(struct userdata *u) {
     msg.setconf_req.h.name = BT_SET_CONFIGURATION;
     msg.setconf_req.h.length = sizeof(msg.setconf_req);
 
-    if (u->profile == PROFILE_A2DP) {
+    if (u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE) {
         memcpy(&msg.setconf_req.codec, &u->a2dp.sbc_capabilities, sizeof(u->a2dp.sbc_capabilities));
     } else {
         msg.setconf_req.codec.transport = BT_CAPABILITIES_TRANSPORT_SCO;
@@ -697,7 +719,7 @@ static int set_conf(struct userdata *u) {
     u->link_mtu = msg.setconf_rsp.link_mtu;
 
     /* setup SBC encoder now we agree on parameters */
-    if (u->profile == PROFILE_A2DP) {
+    if (u->profile == PROFILE_A2DP || u->profile == PROFILE_A2DP_SOURCE) {
         setup_sbc(&u->a2dp);
 
         u->block_size =
@@ -1250,6 +1272,119 @@ static int a2dp_process_render(struct userdata *u) {
     return ret;
 }
 
+static int a2dp_process_push(struct userdata *u) {
+    int ret = 0;
+    pa_memchunk memchunk;
+
+    pa_assert(u);
+    pa_assert(u->profile == PROFILE_A2DP_SOURCE);
+    pa_assert(u->source);
+    pa_assert(u->read_smoother);
+
+    memchunk.memblock = pa_memblock_new(u->core->mempool, u->block_size);
+    memchunk.index = memchunk.length = 0;
+
+    for (;;) {
+        pa_bool_t found_tstamp = FALSE;
+        pa_usec_t tstamp;
+        struct a2dp_info *a2dp;
+        struct rtp_header *header;
+        struct rtp_payload *payload;
+        const void *p;
+        void *d;
+        ssize_t l;
+        size_t to_write, to_decode;
+        unsigned frame_count;
+
+        a2dp_prepare_buffer(u);
+
+        a2dp = &u->a2dp;
+        header = a2dp->buffer;
+        payload = (struct rtp_payload*) ((uint8_t*) a2dp->buffer + sizeof(*header));
+
+        l = pa_read(u->stream_fd, a2dp->buffer, a2dp->buffer_size, &u->stream_write_type);
+
+        if (l <= 0) {
+
+            if (l < 0 && errno == EINTR)
+                /* Retry right away if we got interrupted */
+                continue;
+
+            else if (l < 0 && errno == EAGAIN)
+                /* Hmm, apparently the socket was not readable, give up for now. */
+                break;
+
+            pa_log_error("Failed to read data from socket: %s", l < 0 ? pa_cstrerror(errno) : "EOF");
+            ret = -1;
+            break;
+        }
+
+        pa_assert((size_t) l <= a2dp->buffer_size);
+
+        u->read_index += (uint64_t) l;
+
+        /* TODO: get timestamp from rtp */
+        if (!found_tstamp) {
+            /* pa_log_warn("Couldn't find SO_TIMESTAMP data in auxiliary recvmsg() data!"); */
+            tstamp = pa_rtclock_now();
+        }
+
+        pa_smoother_put(u->read_smoother, tstamp, pa_bytes_to_usec(u->read_index, &u->sample_spec));
+        pa_smoother_resume(u->read_smoother, tstamp, TRUE);
+
+        p = (uint8_t*) a2dp->buffer + sizeof(*header) + sizeof(*payload);
+        to_decode = l - sizeof(*header) - sizeof(*payload);
+
+        d = pa_memblock_acquire(memchunk.memblock);
+        to_write = memchunk.length = pa_memblock_get_length(memchunk.memblock);
+
+        while (PA_LIKELY(to_decode > 0 && to_write > 0)) {
+            size_t written;
+            ssize_t decoded;
+
+            decoded = sbc_decode(&a2dp->sbc,
+                                 p, to_decode,
+                                 d, to_write,
+                                 &written);
+
+            if (PA_UNLIKELY(decoded <= 0)) {
+                pa_log_error("SBC decoding error (%li)", (long) decoded);
+                pa_memblock_release(memchunk.memblock);
+                pa_memblock_unref(memchunk.memblock);
+                return -1;
+            }
+
+/*             pa_log_debug("SBC: decoded: %lu; written: %lu", (unsigned long) decoded, (unsigned long) written); */
+/*             pa_log_debug("SBC: frame_length: %lu; codesize: %lu", (unsigned long) a2dp->frame_length, (unsigned long) a2dp->codesize); */
+
+            pa_assert_fp((size_t) decoded <= to_decode);
+            pa_assert_fp((size_t) decoded == a2dp->frame_length);
+
+            pa_assert_fp((size_t) written <= to_write);
+            pa_assert_fp((size_t) written == a2dp->codesize);
+
+            p = (const uint8_t*) p + decoded;
+            to_decode -= decoded;
+
+            d = (uint8_t*) d + written;
+            to_write -= written;
+
+            frame_count++;
+        }
+
+        pa_memblock_release(memchunk.memblock);
+
+        pa_source_post(u->source, &memchunk);
+
+        ret = 1;
+        break;
+    }
+
+    pa_memblock_unref(memchunk.memblock);
+
+    return ret;
+}
+
 static void thread_func(void *userdata) {
     struct userdata *u = userdata;
     unsigned do_write = 0;
@@ -1285,7 +1420,12 @@ static void thread_func(void *userdata) {
             if (pollfd && (pollfd->revents & POLLIN)) {
                 int n_read;
 
-                if ((n_read = hsp_process_push(u)) < 0)
+                if (u->profile == PROFILE_HSP)
+                    n_read = hsp_process_push(u);
+                else
+                    n_read = a2dp_process_push(u);
+
+                if (n_read < 0)
                     goto fail;
 
                 /* We just read something, so we are supposed to write something, too */
@@ -1687,7 +1827,7 @@ static int add_source(struct userdata *u) {
         data.driver = __FILE__;
         data.module = u->module;
         pa_source_new_data_set_sample_spec(&data, &u->sample_spec);
-        pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP ? "a2dp" : "hsp");
+        pa_proplist_sets(data.proplist, "bluetooth.protocol", u->profile == PROFILE_A2DP_SOURCE ? "a2dp_source" : "hsp");
         if (u->profile == PROFILE_HSP)
             pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
         data.card = u->card;
@@ -1712,7 +1852,7 @@ static int add_source(struct userdata *u) {
         u->source->parent.process_msg = source_process_msg;
 
         pa_source_set_fixed_latency(u->source,
-                                    (/* u->profile == PROFILE_A2DP ? FIXED_LATENCY_RECORD_A2DP : */ FIXED_LATENCY_RECORD_HSP) +
+                                    (u->profile == PROFILE_A2DP_SOURCE ? FIXED_LATENCY_RECORD_A2DP : FIXED_LATENCY_RECORD_HSP) +
                                     pa_bytes_to_usec(u->block_size, &u->sample_spec));
     }
 
@@ -1809,7 +1949,8 @@ static int init_profile(struct userdata *u) {
         if (add_sink(u) < 0)
             r = -1;
 
-    if (u->profile == PROFILE_HSP)
+    if (u->profile == PROFILE_HSP ||
+        u->profile == PROFILE_A2DP_SOURCE)
         if (add_source(u) < 0)
             r = -1;
 
@@ -2046,6 +2187,20 @@ static int add_card(struct userdata *u, const pa_bluetooth_device *device) {
 
         d = PA_CARD_PROFILE_DATA(p);
         *d = PROFILE_A2DP;
+
+        pa_hashmap_put(data.profiles, p->name, p);
+    }
+
+    if (pa_bluetooth_uuid_has(device->uuids, A2DP_SOURCE_UUID)) {
+        p = pa_card_profile_new("a2dp_source", _("High Fidelity Capture (A2DP)"), sizeof(enum profile));
+        p->priority = 10;
+        p->n_sinks = 0;
+        p->n_sources = 1;
+        p->max_sink_channels = 0;
+        p->max_source_channels = 2;
+
+        d = PA_CARD_PROFILE_DATA(p);
+        *d = PROFILE_A2DP_SOURCE;
 
         pa_hashmap_put(data.profiles, p->name, p);
     }

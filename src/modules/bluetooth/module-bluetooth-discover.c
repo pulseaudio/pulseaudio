@@ -1,7 +1,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2008 Joao Paulo Rechi Vita
+  Copyright 2008-2009 Joao Paulo Rechi Vita
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -83,8 +83,9 @@ static pa_hook_result_t load_module_for_device(pa_bluetooth_discovery *y, const 
 
     mi = pa_hashmap_get(u->hashmap, d->path);
 
+    pa_log("dead: %d, device_connected: %d, audio_state: %d, audio_source_state: %d", d->dead, d->device_connected, d->audio_state, d->audio_source_state);
     if (!d->dead &&
-        d->device_connected > 0 && d->audio_state >= PA_BT_AUDIO_STATE_CONNECTED) {
+        d->device_connected > 0 && (d->audio_state >= PA_BT_AUDIO_STATE_CONNECTED || d->audio_source_state >= PA_BT_AUDIO_STATE_CONNECTED)) {
 
         if (!mi) {
             pa_module *m = NULL;
@@ -115,6 +116,9 @@ static pa_hook_result_t load_module_for_device(pa_bluetooth_discovery *y, const 
                 args = tmp;
             }
 #endif
+
+            if (d->audio_source_state >= PA_BT_AUDIO_STATE_CONNECTED)
+                args = pa_sprintf_malloc("%s profile=\"a2dp_source\"", args);
 
             pa_log_debug("Loading module-bluetooth-device %s", args);
             m = pa_module_load(u->module->core, "module-bluetooth-device", args);
