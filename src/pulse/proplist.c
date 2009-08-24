@@ -690,6 +690,9 @@ int pa_proplist_equal(pa_proplist *a, pa_proplist *b) {
     pa_assert(a);
     pa_assert(b);
 
+    if (a == b)
+        return 1;
+
     if (pa_proplist_size(a) != pa_proplist_size(b))
         return 0;
 
