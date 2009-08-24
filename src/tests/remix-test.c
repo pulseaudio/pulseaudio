@@ -32,8 +32,6 @@
 #include <pulsecore/memblock.h>
 #include <pulsecore/sample-util.h>
 
-#include <liboil/liboil.h>
-
 int main(int argc, char *argv[]) {
 
     static const pa_channel_map maps[] = {
@@ -55,7 +53,6 @@ int main(int argc, char *argv[]) {
     unsigned i, j;
     pa_mempool *pool;
 
-    oil_init();
     pa_log_set_level(PA_LOG_DEBUG);
 
     pa_assert_se(pool = pa_mempool_new(FALSE, 0));

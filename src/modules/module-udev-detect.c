@@ -25,6 +25,7 @@
 
 #include <errno.h>
 #include <limits.h>
+#include <dirent.h>
 #include <sys/inotify.h>
 #include <libudev.h>
 
@@ -45,8 +46,9 @@ PA_MODULE_USAGE(
 
 struct device {
     char *path;
-    pa_bool_t accessible;
+    pa_bool_t need_verify;
     char *card_name;
+    char *args;
     uint32_t module;
 };
 
@@ -78,6 +80,7 @@ static void device_free(struct device *d) {
 
     pa_xfree(d->path);
     pa_xfree(d->card_name);
+    pa_xfree(d->args);
     pa_xfree(d);
 }
 
@@ -96,30 +99,166 @@ static const char *path_get_card_id(const char *path) {
     return e + 5;
 }
 
+static pa_bool_t is_card_busy(const char *id) {
+    char *card_path = NULL, *pcm_path = NULL, *sub_status = NULL;
+    DIR *card_dir = NULL, *pcm_dir = NULL;
+    FILE *status_file = NULL;
+    size_t len;
+    struct dirent *space = NULL, *de;
+    pa_bool_t busy = FALSE;
+    int r;
+
+    pa_assert(id);
+
+    card_path = pa_sprintf_malloc("/proc/asound/card%s", id);
+
+    if (!(card_dir = opendir(card_path))) {
+        pa_log_warn("Failed to open %s: %s", card_path, pa_cstrerror(errno));
+        goto fail;
+    }
+
+    len = offsetof(struct dirent, d_name) + fpathconf(dirfd(card_dir), _PC_NAME_MAX) + 1;
+    space = pa_xmalloc(len);
+
+    for (;;) {
+        de = NULL;
+
+        if ((r = readdir_r(card_dir, space, &de)) != 0) {
+            pa_log_warn("readdir_r() failed: %s", pa_cstrerror(r));
+            goto fail;
+        }
+
+        if (!de)
+            break;
+
+        if (!pa_startswith(de->d_name, "pcm"))
+            continue;
+
+        pa_xfree(pcm_path);
+        pcm_path = pa_sprintf_malloc("%s/%s", card_path, de->d_name);
+
+        if (pcm_dir)
+            closedir(pcm_dir);
+
+        if (!(pcm_dir = opendir(pcm_path))) {
+            pa_log_warn("Failed to open %s: %s", pcm_path, pa_cstrerror(errno));
+            continue;
+        }
+
+        for (;;) {
+            char line[32];
+
+            if ((r = readdir_r(pcm_dir, space, &de)) != 0) {
+                pa_log_warn("readdir_r() failed: %s", pa_cstrerror(r));
+                goto fail;
+            }
+
+            if (!de)
+                break;
+
+            if (!pa_startswith(de->d_name, "sub"))
+                continue;
+
+            pa_xfree(sub_status);
+            sub_status = pa_sprintf_malloc("%s/%s/status", pcm_path, de->d_name);
+
+            if (status_file)
+                fclose(status_file);
+
+            if (!(status_file = fopen(sub_status, "r"))) {
+                pa_log_warn("Failed to open %s: %s", sub_status, pa_cstrerror(errno));
+                continue;
+            }
+
+            if (!(fgets(line, sizeof(line)-1, status_file))) {
+                pa_log_warn("Failed to read from %s: %s", sub_status, pa_cstrerror(errno));
+                continue;
+            }
+
+            if (!pa_streq(line, "closed\n")) {
+                busy = TRUE;
+                break;
+            }
+        }
+    }
+
+fail:
+
+    pa_xfree(card_path);
+    pa_xfree(pcm_path);
+    pa_xfree(sub_status);
+    pa_xfree(space);
+
+    if (card_dir)
+        closedir(card_dir);
+
+    if (pcm_dir)
+        closedir(pcm_dir);
+
+    if (status_file)
+        fclose(status_file);
+
+    return busy;
+}
+
 static void verify_access(struct userdata *u, struct device *d) {
     char *cd;
     pa_card *card;
+    pa_bool_t accessible;
 
     pa_assert(u);
     pa_assert(d);
 
-    if (!(card = pa_namereg_get(u->core, d->card_name, PA_NAMEREG_CARD)))
-        return;
-
     cd = pa_sprintf_malloc("%s/snd/controlC%s", udev_get_dev_path(u->udev), path_get_card_id(d->path));
-    d->accessible = access(cd, W_OK) >= 0;
-    pa_log_info("%s is accessible: %s", cd, pa_yes_no(d->accessible));
+    accessible = access(cd, R_OK|W_OK) >= 0;
+    pa_log_debug("%s is accessible: %s", cd, pa_yes_no(accessible));
+
     pa_xfree(cd);
 
-    pa_card_suspend(card, !d->accessible, PA_SUSPEND_SESSION);
+    if (d->module == PA_INVALID_INDEX) {
+
+        /* If we are not loaded, try to load */
+
+        if (accessible) {
+            pa_module *m;
+            pa_bool_t busy;
+
+            /* Check if any of the PCM devices that belong to this
+             * card are currently busy. If they are, don't try to load
+             * right now, to make sure the probing phase can
+             * successfully complete. When the current user of the
+             * device closes it we will get another notification via
+             * inotify and can then recheck. */
+
+            busy = is_card_busy(path_get_card_id(d->path));
+            pa_log_debug("%s is busy: %s", d->path, pa_yes_no(busy));
+
+            if (!busy) {
+                pa_log_debug("Loading module-alsa-card with arguments '%s'", d->args);
+                m = pa_module_load(u->core, "module-alsa-card", d->args);
+
+                if (m) {
+                    d->module = m->index;
+                    pa_log_info("Card %s (%s) module loaded.", d->path, d->card_name);
+                } else
+                    pa_log_info("Card %s (%s) failed to load module.", d->path, d->card_name);
+            }
+        }
+
+    } else {
+
+        /* If we are already loaded update suspend status with
+         * accessible boolean */
+
+        if ((card = pa_namereg_get(u->core, d->card_name, PA_NAMEREG_CARD)))
+            pa_card_suspend(card, !accessible, PA_SUSPEND_SESSION);
+    }
 }
 
 static void card_changed(struct userdata *u, struct udev_device *dev) {
     struct device *d;
     const char *path;
     const char *t;
-    char *card_name, *args;
-    pa_module *m;
     char *n;
 
     pa_assert(u);
@@ -135,44 +274,33 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
         return;
     }
 
+    d = pa_xnew0(struct device, 1);
+    d->path = pa_xstrdup(path);
+    d->module = PA_INVALID_INDEX;
+
     if (!(t = udev_device_get_property_value(dev, "PULSE_NAME")))
         if (!(t = udev_device_get_property_value(dev, "ID_ID")))
             if (!(t = udev_device_get_property_value(dev, "ID_PATH")))
                 t = path_get_card_id(path);
 
     n = pa_namereg_make_valid_name(t);
-
-    card_name = pa_sprintf_malloc("alsa_card.%s", n);
-    args = pa_sprintf_malloc("device_id=\"%s\" "
-                             "name=\"%s\" "
-                             "card_name=\"%s\" "
-                             "tsched=%s "
-                             "ignore_dB=%s "
-                             "card_properties=\"module-udev-detect.discovered=1\"",
-                             path_get_card_id(path),
-                             n,
-                             card_name,
-                             pa_yes_no(u->use_tsched),
-                             pa_yes_no(u->ignore_dB));
-
-    pa_log_debug("Loading module-alsa-card with arguments '%s'", args);
-    m = pa_module_load(u->core, "module-alsa-card", args);
-    pa_xfree(args);
-
-    if (m) {
-        pa_log_info("Card %s (%s) added.", path, n);
-
-        d = pa_xnew(struct device, 1);
-        d->path = pa_xstrdup(path);
-        d->card_name = card_name;
-        d->module = m->index;
-        d->accessible = TRUE;
-
-        pa_hashmap_put(u->devices, d->path, d);
-    } else
-        pa_xfree(card_name);
-
+    d->card_name = pa_sprintf_malloc("alsa_card.%s", n);
+    d->args = pa_sprintf_malloc("device_id=\"%s\" "
+                                "name=\"%s\" "
+                                "card_name=\"%s\" "
+                                "tsched=%s "
+                                "ignore_dB=%s "
+                                "card_properties=\"module-udev-detect.discovered=1\"",
+                                path_get_card_id(path),
+                                n,
+                                d->card_name,
+                                pa_yes_no(u->use_tsched),
+                                pa_yes_no(u->ignore_dB));
     pa_xfree(n);
+
+    pa_hashmap_put(u->devices, d->path, d);
+
+    verify_access(u, d);
 }
 
 static void remove_card(struct userdata *u, struct udev_device *dev) {
@@ -185,7 +313,10 @@ static void remove_card(struct userdata *u, struct udev_device *dev) {
         return;
 
     pa_log_info("Card %s removed.", d->path);
-    pa_module_unload_request_by_index(u->core, d->module, TRUE);
+
+    if (d->module != PA_INVALID_INDEX)
+        pa_module_unload_request_by_index(u->core, d->module, TRUE);
+
     device_free(d);
 }
 
@@ -262,6 +393,34 @@ fail:
     u->udev_io = NULL;
 }
 
+static pa_bool_t pcm_node_belongs_to_device(
+        struct device *d,
+        const char *node) {
+
+    char *cd;
+    pa_bool_t b;
+
+    cd = pa_sprintf_malloc("pcmC%sD", path_get_card_id(d->path));
+    b = pa_startswith(node, cd);
+    pa_xfree(cd);
+
+    return b;
+}
+
+static pa_bool_t control_node_belongs_to_device(
+        struct device *d,
+        const char *node) {
+
+    char *cd;
+    pa_bool_t b;
+
+    cd = pa_sprintf_malloc("controlC%s", path_get_card_id(d->path));
+    b = pa_streq(node, cd);
+    pa_xfree(cd);
+
+    return b;
+}
+
 static void inotify_cb(
         pa_mainloop_api*a,
         pa_io_event* e,
@@ -275,10 +434,13 @@ static void inotify_cb(
     } buf;
     struct userdata *u = userdata;
     static int type = 0;
-    pa_bool_t verify = FALSE, deleted = FALSE;
+    pa_bool_t deleted = FALSE;
+    struct device *d;
+    void *state;
 
     for (;;) {
         ssize_t r;
+        struct inotify_event *event;
 
         pa_zero(buf);
         if ((r = pa_read(fd, &buf, sizeof(buf), &type)) <= 0) {
@@ -290,22 +452,51 @@ static void inotify_cb(
             goto fail;
         }
 
-        if ((buf.e.mask & IN_CLOSE_WRITE) && pa_startswith(buf.e.name, "pcmC"))
-            verify = TRUE;
+        event = &buf.e;
+        while (r > 0) {
+            size_t len;
 
-        if ((buf.e.mask & (IN_DELETE_SELF|IN_MOVE_SELF)))
-            deleted = TRUE;
+            if ((size_t) r < sizeof(struct inotify_event)) {
+                pa_log("read() too short.");
+                goto fail;
+            }
+
+            len = sizeof(struct inotify_event) + event->len;
+
+            if ((size_t) r < len) {
+                pa_log("Payload missing.");
+                goto fail;
+            }
+
+            /* From udev we get the guarantee that the control
+             * device's ACL is changed last. To avoid races when ACLs
+             * are changed we hence watch only the control device */
+            if (((event->mask & IN_ATTRIB) && pa_startswith(event->name, "controlC")))
+                PA_HASHMAP_FOREACH(d, u->devices, state)
+                    if (control_node_belongs_to_device(d, event->name))
+                        d->need_verify = TRUE;
+
+            /* ALSA doesn't really give us any guarantee on the closing
+             * order, so let's simply hope */
+            if (((event->mask & IN_CLOSE_WRITE) && pa_startswith(event->name, "pcmC")))
+                PA_HASHMAP_FOREACH(d, u->devices, state)
+                    if (pcm_node_belongs_to_device(d, event->name))
+                        d->need_verify = TRUE;
+
+            /* /dev/snd/ might have been removed */
+            if ((event->mask & (IN_DELETE_SELF|IN_MOVE_SELF)))
+                deleted = TRUE;
+
+            event = (struct inotify_event*) ((uint8_t*) event + len);
+            r -= len;
+        }
     }
 
-    if (verify) {
-        struct device *d;
-        void *state;
-
-        pa_log_debug("Verifying access.");
-
-        PA_HASHMAP_FOREACH(d, u->devices, state)
+    PA_HASHMAP_FOREACH(d, u->devices, state)
+        if (d->need_verify) {
+            d->need_verify = FALSE;
             verify_access(u, d);
-    }
+        }
 
     if (!deleted)
         return;
@@ -335,7 +526,7 @@ static int setup_inotify(struct userdata *u) {
     }
 
     dev_snd = pa_sprintf_malloc("%s/snd", udev_get_dev_path(u->udev));
-    r = inotify_add_watch(u->inotify_fd, dev_snd, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF);
+    r = inotify_add_watch(u->inotify_fd, dev_snd, IN_ATTRIB|IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF);
     pa_xfree(dev_snd);
 
     if (r < 0) {
@@ -449,7 +640,7 @@ int pa__init(pa_module *m) {
 
     udev_enumerate_unref(enumerate);
 
-    pa_log_info("Loaded %u modules.", pa_hashmap_size(u->devices));
+    pa_log_info("Found %u cards.", pa_hashmap_size(u->devices));
 
     pa_modargs_free(ma);
 

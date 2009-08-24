@@ -34,8 +34,6 @@
 #include <pulsecore/memblock.h>
 #include <pulsecore/sample-util.h>
 
-#include <liboil/liboil.h>
-
 const pa_envelope_def ramp_down = {
     .n_points = 2,
     .points_x = { 100*PA_USEC_PER_MSEC, 300*PA_USEC_PER_MSEC },
@@ -202,7 +200,6 @@ int main(int argc, char *argv[]) {
         .values = { PA_VOLUME_NORM, PA_VOLUME_NORM/2 }
     };
 
-    oil_init();
     pa_log_set_level(PA_LOG_DEBUG);
 
     pa_assert_se(pool = pa_mempool_new(FALSE, 0));

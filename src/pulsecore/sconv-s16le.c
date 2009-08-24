@@ -28,8 +28,6 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-#include <liboil/liboilfuncs.h>
-
 #include <pulsecore/sconv.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/log.h>
@@ -86,17 +84,13 @@ void pa_sconv_s16le_to_float32ne(unsigned n, const int16_t *a, float *b) {
     pa_assert(b);
 
 #if SWAP_WORDS == 1
-
     for (; n > 0; n--) {
         int16_t s = *(a++);
         *(b++) = ((float) INT16_FROM(s))/(float) 0x7FFF;
     }
-
 #else
-{
-    static const double add = 0, factor = 1.0/0x7FFF;
-    oil_scaleconv_f32_s16(b, a, (int) n, &add, &factor);
-}
+    for (; n > 0; n--)
+        *(b++) = ((float) (*(a++)))/(float) 0x7FFF;
 #endif
 }
 
@@ -105,17 +99,13 @@ void pa_sconv_s32le_to_float32ne(unsigned n, const int32_t *a, float *b) {
     pa_assert(b);
 
 #if SWAP_WORDS == 1
-
     for (; n > 0; n--) {
         int32_t s = *(a++);
         *(b++) = (float) (((double) INT32_FROM(s))/0x7FFFFFFF);
     }
-
 #else
-{
-    static const double add = 0, factor = 1.0/0x7FFFFFFF;
-    oil_scaleconv_f32_s32(b, a, (int) n, &add, &factor);
-}
+    for (; n > 0; n--)
+        *(b++) = (float) (((double) (*(a++)))/0x7FFFFFFF);
 #endif
 }
 
@@ -124,7 +114,6 @@ void pa_sconv_s16le_from_float32ne(unsigned n, const float *a, int16_t *b) {
     pa_assert(b);
 
 #if SWAP_WORDS == 1
-
     for (; n > 0; n--) {
         int16_t s;
         float v = *(a++);
@@ -133,12 +122,13 @@ void pa_sconv_s16le_from_float32ne(unsigned n, const float *a, int16_t *b) {
         s = (int16_t) lrintf(v * 0x7FFF);
         *(b++) = INT16_TO(s);
     }
-
 #else
-{
-    static const double add = 0, factor = 0x7FFF;
-    oil_scaleconv_s16_f32(b, a, (int) n, &add, &factor);
-}
+    for (; n > 0; n--) {
+        float v = *(a++);
+
+        v = PA_CLAMP_UNLIKELY(v, -1.0f, 1.f);
+        *(b++) = (int16_t) lrintf(v * 0x7FFF);
+    }
 #endif
 }
 
@@ -147,7 +137,6 @@ void pa_sconv_s32le_from_float32ne(unsigned n, const float *a, int32_t *b) {
     pa_assert(b);
 
 #if SWAP_WORDS == 1
-
     for (; n > 0; n--) {
         int32_t s;
         float v = *(a++);
@@ -156,12 +145,13 @@ void pa_sconv_s32le_from_float32ne(unsigned n, const float *a, int32_t *b) {
         s = (int32_t) lrint((double) v * (double) 0x7FFFFFFF);
         *(b++) = INT32_TO(s);
     }
-
 #else
-{
-    static const double add = 0, factor = 0x7FFFFFFF;
-    oil_scaleconv_s32_f32(b, a, (int) n, &add, &factor);
-}
+    for (; n > 0; n--) {
+        float v = *(a++);
+
+        v = PA_CLAMP_UNLIKELY(v, -1.0f, 1.0f);
+        *(b++) = (int32_t) lrint((double) v * (double) 0x7FFFFFFF);
+    }
 #endif
 }
 

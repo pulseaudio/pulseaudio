@@ -1161,6 +1161,8 @@ int pa__init(pa_module*m) {
         pa_channel_map slaves_map;
         pa_bool_t is_first_slave = TRUE;
 
+        pa_sample_spec_init(&slaves_spec);
+
         while ((n = pa_split(slaves, ",", &split_state))) {
             pa_sink *slave_sink;
 

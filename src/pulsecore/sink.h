@@ -191,7 +191,7 @@ struct pa_sink {
     void *userdata;
 };
 
-PA_DECLARE_CLASS(pa_sink);
+PA_DECLARE_PUBLIC_CLASS(pa_sink);
 #define PA_SINK(s) (pa_sink_cast(s))
 
 typedef enum pa_sink_message {

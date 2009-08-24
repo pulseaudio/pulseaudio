@@ -59,11 +59,22 @@
 /* #define DEBUG_TIMING */
 
 #define DEFAULT_DEVICE "default"
-#define DEFAULT_TSCHED_BUFFER_USEC (2*PA_USEC_PER_SEC)       /* 2s */
-#define DEFAULT_TSCHED_WATERMARK_USEC (20*PA_USEC_PER_MSEC)  /* 20ms */
-#define TSCHED_WATERMARK_STEP_USEC (10*PA_USEC_PER_MSEC)     /* 10ms */
-#define TSCHED_MIN_SLEEP_USEC (10*PA_USEC_PER_MSEC)          /* 10ms */
-#define TSCHED_MIN_WAKEUP_USEC (4*PA_USEC_PER_MSEC)          /* 4ms */
+
+#define DEFAULT_TSCHED_BUFFER_USEC (2*PA_USEC_PER_SEC)             /* 2s */
+#define DEFAULT_TSCHED_WATERMARK_USEC (20*PA_USEC_PER_MSEC)        /* 20ms */
+
+#define TSCHED_WATERMARK_INC_STEP_USEC (10*PA_USEC_PER_MSEC)       /* 10ms  */
+#define TSCHED_WATERMARK_DEC_STEP_USEC (5*PA_USEC_PER_MSEC)        /* 5ms */
+#define TSCHED_WATERMARK_VERIFY_AFTER_USEC (20*PA_USEC_PER_SEC)    /* 20s */
+#define TSCHED_WATERMARK_INC_THRESHOLD_USEC (1*PA_USEC_PER_MSEC)   /* 3ms */
+#define TSCHED_WATERMARK_DEC_THRESHOLD_USEC (100*PA_USEC_PER_MSEC) /* 100ms */
+#define TSCHED_WATERMARK_STEP_USEC (10*PA_USEC_PER_MSEC)           /* 10ms */
+
+#define TSCHED_MIN_SLEEP_USEC (10*PA_USEC_PER_MSEC)                /* 10ms */
+#define TSCHED_MIN_WAKEUP_USEC (4*PA_USEC_PER_MSEC)                /* 4ms */
+
+#define SMOOTHER_MIN_INTERVAL (2*PA_USEC_PER_MSEC)                 /* 2ms */
+#define SMOOTHER_MAX_INTERVAL (200*PA_USEC_PER_MSEC)               /* 200ms */
 
 #define VOLUME_ACCURACY (PA_VOLUME_NORM/100)
 
@@ -93,7 +104,12 @@ struct userdata {
         hwbuf_unused,
         min_sleep,
         min_wakeup,
-        watermark_step;
+        watermark_inc_step,
+        watermark_dec_step,
+        watermark_inc_threshold,
+        watermark_dec_threshold;
+
+    pa_usec_t watermark_dec_not_before;
 
     unsigned nfragments;
 
@@ -108,6 +124,8 @@ struct userdata {
 
     pa_smoother *smoother;
     uint64_t read_count;
+    pa_usec_t smoother_interval;
+    pa_usec_t last_smoother_update;
 
     pa_reserve_wrapper *reserve;
     pa_hook_slot *reserve_slot;
@@ -236,6 +254,7 @@ static int reserve_monitor_init(struct userdata *u, const char *dname) {
 static void fix_min_sleep_wakeup(struct userdata *u) {
     size_t max_use, max_use_2;
     pa_assert(u);
+    pa_assert(u->use_tsched);
 
     max_use = u->hwbuf_size - u->hwbuf_unused;
     max_use_2 = pa_frame_align(max_use/2, &u->source->sample_spec);
@@ -250,6 +269,7 @@ static void fix_min_sleep_wakeup(struct userdata *u) {
 static void fix_tsched_watermark(struct userdata *u) {
     size_t max_use;
     pa_assert(u);
+    pa_assert(u->use_tsched);
 
     max_use = u->hwbuf_size - u->hwbuf_unused;
 
@@ -260,7 +280,7 @@ static void fix_tsched_watermark(struct userdata *u) {
         u->tsched_watermark = u->min_wakeup;
 }
 
-static void adjust_after_overrun(struct userdata *u) {
+static void increase_watermark(struct userdata *u) {
     size_t old_watermark;
     pa_usec_t old_min_latency, new_min_latency;
 
@@ -269,36 +289,72 @@ static void adjust_after_overrun(struct userdata *u) {
 
     /* First, just try to increase the watermark */
     old_watermark = u->tsched_watermark;
-    u->tsched_watermark = PA_MIN(u->tsched_watermark * 2, u->tsched_watermark + u->watermark_step);
-
+    u->tsched_watermark = PA_MIN(u->tsched_watermark * 2, u->tsched_watermark + u->watermark_inc_step);
     fix_tsched_watermark(u);
 
     if (old_watermark != u->tsched_watermark) {
-        pa_log_notice("Increasing wakeup watermark to %0.2f ms",
-                      (double) pa_bytes_to_usec(u->tsched_watermark, &u->source->sample_spec) / PA_USEC_PER_MSEC);
+        pa_log_info("Increasing wakeup watermark to %0.2f ms",
+                    (double) pa_bytes_to_usec(u->tsched_watermark, &u->source->sample_spec) / PA_USEC_PER_MSEC);
         return;
     }
 
     /* Hmm, we cannot increase the watermark any further, hence let's raise the latency */
     old_min_latency = u->source->thread_info.min_latency;
-    new_min_latency = PA_MIN(old_min_latency * 2, old_min_latency + TSCHED_WATERMARK_STEP_USEC);
+    new_min_latency = PA_MIN(old_min_latency * 2, old_min_latency + TSCHED_WATERMARK_INC_STEP_USEC);
     new_min_latency = PA_MIN(new_min_latency, u->source->thread_info.max_latency);
 
     if (old_min_latency != new_min_latency) {
-        pa_log_notice("Increasing minimal latency to %0.2f ms",
-                      (double) new_min_latency / PA_USEC_PER_MSEC);
+        pa_log_info("Increasing minimal latency to %0.2f ms",
+                    (double) new_min_latency / PA_USEC_PER_MSEC);
 
         pa_source_set_latency_range_within_thread(u->source, new_min_latency, u->source->thread_info.max_latency);
-        return;
     }
 
     /* When we reach this we're officialy fucked! */
 }
 
+static void decrease_watermark(struct userdata *u) {
+    size_t old_watermark;
+    pa_usec_t now;
+
+    pa_assert(u);
+    pa_assert(u->use_tsched);
+
+    now = pa_rtclock_now();
+
+    if (u->watermark_dec_not_before <= 0)
+        goto restart;
+
+    if (u->watermark_dec_not_before > now)
+        return;
+
+    old_watermark = u->tsched_watermark;
+
+    if (u->tsched_watermark < u->watermark_dec_step)
+        u->tsched_watermark = u->tsched_watermark / 2;
+    else
+        u->tsched_watermark = PA_MAX(u->tsched_watermark / 2, u->tsched_watermark - u->watermark_dec_step);
+
+    fix_tsched_watermark(u);
+
+    if (old_watermark != u->tsched_watermark)
+        pa_log_info("Decreasing wakeup watermark to %0.2f ms",
+                    (double) pa_bytes_to_usec(u->tsched_watermark, &u->source->sample_spec) / PA_USEC_PER_MSEC);
+
+    /* We don't change the latency range*/
+
+restart:
+    u->watermark_dec_not_before = now + TSCHED_WATERMARK_VERIFY_AFTER_USEC;
+}
+
 static pa_usec_t hw_sleep_time(struct userdata *u, pa_usec_t *sleep_usec, pa_usec_t*process_usec) {
     pa_usec_t wm, usec;
 
+    pa_assert(sleep_usec);
+    pa_assert(process_usec);
+
     pa_assert(u);
+    pa_assert(u->use_tsched);
 
     usec = pa_source_get_requested_latency_within_thread(u->source);
 
@@ -347,7 +403,7 @@ static int try_recover(struct userdata *u, const char *call, int err) {
     return 0;
 }
 
-static size_t check_left_to_record(struct userdata *u, size_t n_bytes) {
+static size_t check_left_to_record(struct userdata *u, size_t n_bytes, pa_bool_t on_timeout) {
     size_t left_to_record;
     size_t rec_space = u->hwbuf_size - u->hwbuf_unused;
 
@@ -356,14 +412,11 @@ static size_t check_left_to_record(struct userdata *u, size_t n_bytes) {
      * it is removed from the buffer. This is particularly important
      * when block transfer is used. */
 
-    if (n_bytes <= rec_space) {
+    if (n_bytes <= rec_space)
         left_to_record = rec_space - n_bytes;
+    else {
 
-#ifdef DEBUG_TIMING
-        pa_log_debug("%0.2f ms left to record", (double) pa_bytes_to_usec(left_to_record, &u->source->sample_spec) / PA_USEC_PER_MSEC);
-#endif
-
-    } else {
+        /* We got a dropout. What a mess! */
         left_to_record = 0;
 
 #ifdef DEBUG_TIMING
@@ -372,15 +425,36 @@ static size_t check_left_to_record(struct userdata *u, size_t n_bytes) {
 
         if (pa_log_ratelimit())
             pa_log_info("Overrun!");
+    }
 
-        if (u->use_tsched)
-            adjust_after_overrun(u);
+#ifdef DEBUG_TIMING
+    pa_log_debug("%0.2f ms left to record", (double) pa_bytes_to_usec(left_to_record, &u->source->sample_spec) / PA_USEC_PER_MSEC);
+#endif
+
+    if (u->use_tsched) {
+        pa_bool_t reset_not_before = TRUE;
+
+        if (left_to_record < u->watermark_inc_threshold)
+            increase_watermark(u);
+        else if (left_to_record > u->watermark_dec_threshold) {
+            reset_not_before = FALSE;
+
+            /* We decrease the watermark only if have actually been
+             * woken up by a timeout. If something else woke us up
+             * it's too easy to fulfill the deadlines... */
+
+            if (on_timeout)
+                decrease_watermark(u);
+        }
+
+        if (reset_not_before)
+            u->watermark_dec_not_before = 0;
     }
 
     return left_to_record;
 }
 
-static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled) {
+static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled, pa_bool_t on_timeout) {
     pa_bool_t work_done = FALSE;
     pa_usec_t max_sleep_usec = 0, process_usec = 0;
     size_t left_to_record;
@@ -412,7 +486,8 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
         pa_log_debug("avail: %lu", (unsigned long) n_bytes);
 #endif
 
-        left_to_record = check_left_to_record(u, n_bytes);
+        left_to_record = check_left_to_record(u, n_bytes, on_timeout);
+        on_timeout = FALSE;
 
         if (u->use_tsched)
             if (!polled &&
@@ -538,7 +613,7 @@ static int mmap_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
     return work_done ? 1 : 0;
 }
 
-static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled) {
+static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled, pa_bool_t on_timeout) {
     int work_done = FALSE;
     pa_usec_t max_sleep_usec = 0, process_usec = 0;
     size_t left_to_record;
@@ -565,7 +640,8 @@ static int unix_read(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polled
         }
 
         n_bytes = (size_t) n * u->frame_size;
-        left_to_record = check_left_to_record(u, n_bytes);
+        left_to_record = check_left_to_record(u, n_bytes, on_timeout);
+        on_timeout = FALSE;
 
         if (u->use_tsched)
             if (!polled &&
@@ -691,15 +767,23 @@ static void update_smoother(struct userdata *u) {
         now1 = pa_timespec_load(&htstamp);
     }
 
-    position = u->read_count + ((uint64_t) delay * (uint64_t) u->frame_size);
-
     /* Hmm, if the timestamp is 0, then it wasn't set and we take the current time */
     if (now1 <= 0)
         now1 = pa_rtclock_now();
 
+    /* check if the time since the last update is bigger than the interval */
+    if (u->last_smoother_update > 0)
+        if (u->last_smoother_update + u->smoother_interval > now1)
+            return;
+
+    position = u->read_count + ((uint64_t) delay * (uint64_t) u->frame_size);
     now2 = pa_bytes_to_usec(position, &u->source->sample_spec);
 
     pa_smoother_put(u->smoother, now1, now2);
+
+    u->last_smoother_update = now1;
+    /* exponentially increase the update interval up to the MAX limit */
+    u->smoother_interval = PA_MIN (u->smoother_interval * 2, SMOOTHER_MAX_INTERVAL);
 }
 
 static pa_usec_t source_get_latency(struct userdata *u) {
@@ -862,6 +946,8 @@ static int unsuspend(struct userdata *u) {
 
     u->read_count = 0;
     pa_smoother_reset(u->smoother, pa_rtclock_now(), TRUE);
+    u->smoother_interval = SMOOTHER_MIN_INTERVAL;
+    u->last_smoother_update = 0;
 
     pa_log_info("Resumed successfully...");
 
@@ -1143,11 +1229,12 @@ static void thread_func(void *userdata) {
         if (PA_SOURCE_IS_OPENED(u->source->thread_info.state)) {
             int work_done;
             pa_usec_t sleep_usec = 0;
+            pa_bool_t on_timeout = pa_rtpoll_timer_elapsed(u->rtpoll);
 
             if (u->use_mmap)
-                work_done = mmap_read(u, &sleep_usec, revents & POLLIN);
+                work_done = mmap_read(u, &sleep_usec, revents & POLLIN, on_timeout);
             else
-                work_done = unix_read(u, &sleep_usec, revents & POLLIN);
+                work_done = unix_read(u, &sleep_usec, revents & POLLIN, on_timeout);
 
             if (work_done < 0)
                 goto fail;
@@ -1469,6 +1556,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
             5,
             pa_rtclock_now(),
             FALSE);
+    u->smoother_interval = SMOOTHER_MIN_INTERVAL;
 
     dev_id = pa_modargs_get_value(
             ma, "device_id",
@@ -1616,7 +1704,6 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     u->fragment_size = frag_size = (uint32_t) (period_frames * frame_size);
     u->nfragments = nfrags;
     u->hwbuf_size = u->fragment_size * nfrags;
-    u->tsched_watermark = pa_usec_to_bytes_round_up(pa_bytes_to_usec_round_up(tsched_watermark, &requested_ss), &u->source->sample_spec);
     pa_cvolume_mute(&u->hardware_volume, u->source->sample_spec.channels);
 
     pa_log_info("Using %u fragments of size %lu bytes, buffer time is %0.2fms",
@@ -1624,7 +1711,13 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
                 (double) pa_bytes_to_usec(u->hwbuf_size, &ss) / PA_USEC_PER_MSEC);
 
     if (u->use_tsched) {
-        u->watermark_step = pa_usec_to_bytes(TSCHED_WATERMARK_STEP_USEC, &u->source->sample_spec);
+        u->tsched_watermark = pa_usec_to_bytes_round_up(pa_bytes_to_usec_round_up(tsched_watermark, &requested_ss), &u->source->sample_spec);
+
+        u->watermark_inc_step = pa_usec_to_bytes(TSCHED_WATERMARK_INC_STEP_USEC, &u->source->sample_spec);
+        u->watermark_dec_step = pa_usec_to_bytes(TSCHED_WATERMARK_DEC_STEP_USEC, &u->source->sample_spec);
+
+        u->watermark_inc_threshold = pa_usec_to_bytes_round_up(TSCHED_WATERMARK_INC_THRESHOLD_USEC, &u->source->sample_spec);
+        u->watermark_dec_threshold = pa_usec_to_bytes_round_up(TSCHED_WATERMARK_DEC_THRESHOLD_USEC, &u->source->sample_spec);
 
         fix_min_sleep_wakeup(u);
         fix_tsched_watermark(u);

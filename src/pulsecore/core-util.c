@@ -115,6 +115,7 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/strbuf.h>
+#include <pulsecore/usergroup.h>
 
 #include "core-util.h"
 
@@ -969,54 +970,24 @@ fail:
 
 /* Check whether the specified GID and the group name match */
 static int is_group(gid_t gid, const char *name) {
-    struct group group, *result = NULL;
-    long n;
-    void *data;
+    struct group *group = NULL;
     int r = -1;
 
-#ifdef HAVE_GETGRGID_R
-#ifdef _SC_GETGR_R_SIZE_MAX
-    n = sysconf(_SC_GETGR_R_SIZE_MAX);
-#else
-    n = -1;
-#endif
-    if (n <= 0)
-        n = 512;
-
-    data = pa_xmalloc((size_t) n);
-
     errno = 0;
-    if (getgrgid_r(gid, &group, data, (size_t) n, &result) < 0 || !result) {
-        pa_log("getgrgid_r(%u): %s", (unsigned) gid, pa_cstrerror(errno));
-
+    if (!(group = pa_getgrgid_malloc(gid)))
+    {
         if (!errno)
             errno = ENOENT;
+
+        pa_log("pa_getgrgid_malloc(%u): %s", gid, pa_cstrerror(errno));
 
         goto finish;
     }
 
-    r = strcmp(name, result->gr_name) == 0;
+    r = strcmp(name, group->gr_name) == 0;
 
 finish:
-    pa_xfree(data);
-#else
-    /* XXX Not thread-safe, but needed on OSes (e.g. FreeBSD 4.X) that do not
-     * support getgrgid_r. */
-
-    errno = 0;
-    if (!(result = getgrgid(gid))) {
-        pa_log("getgrgid(%u): %s", gid, pa_cstrerror(errno));
-
-        if (!errno)
-            errno = ENOENT;
-
-        goto finish;
-    }
-
-    r = strcmp(name, result->gr_name) == 0;
-
-finish:
-#endif
+    pa_getgrgid_free(group);
 
     return r;
 }
@@ -1065,38 +1036,12 @@ finish:
 
 /* Check whether the specifc user id is a member of the specified group */
 int pa_uid_in_group(uid_t uid, const char *name) {
-    char *g_buf, *p_buf;
-    long g_n, p_n;
-    struct group grbuf, *gr;
+    struct group *group = NULL;
     char **i;
     int r = -1;
 
-#ifdef _SC_GETGR_R_SIZE_MAX
-    g_n = sysconf(_SC_GETGR_R_SIZE_MAX);
-#else
-    g_n = -1;
-#endif
-    if (g_n <= 0)
-        g_n = 512;
-
-    g_buf = pa_xmalloc((size_t) g_n);
-
-#ifdef _SC_GETPW_R_SIZE_MAX
-    p_n = sysconf(_SC_GETPW_R_SIZE_MAX);
-#else
-    p_n = -1;
-#endif
-    if (p_n <= 0)
-        p_n = 512;
-
-    p_buf = pa_xmalloc((size_t) p_n);
-
     errno = 0;
-#ifdef HAVE_GETGRNAM_R
-    if (getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr) != 0 || !gr)
-#else
-    if (!(gr = getgrnam(name)))
-#endif
+    if (!(group = pa_getgrnam_malloc(name)))
     {
         if (!errno)
             errno = ENOENT;
@@ -1104,25 +1049,24 @@ int pa_uid_in_group(uid_t uid, const char *name) {
     }
 
     r = 0;
-    for (i = gr->gr_mem; *i; i++) {
-        struct passwd pwbuf, *pw;
+    for (i = group->gr_mem; *i; i++) {
+        struct passwd *pw = NULL;
 
-#ifdef HAVE_GETPWNAM_R
-        if (getpwnam_r(*i, &pwbuf, p_buf, (size_t) p_n, &pw) != 0 || !pw)
-#else
-        if (!(pw = getpwnam(*i)))
-#endif
+        errno = 0;
+        if (!(pw = pa_getpwnam_malloc(*i)))
             continue;
 
-        if (pw->pw_uid == uid) {
+        if (pw->pw_uid == uid)
             r = 1;
+
+        pa_getpwnam_free(pw);
+
+        if (r == 1)
             break;
-        }
     }
 
 finish:
-    pa_xfree(g_buf);
-    pa_xfree(p_buf);
+    pa_getgrnam_free(group);
 
     return r;
 }
@@ -1130,26 +1074,10 @@ finish:
 /* Get the GID of a gfiven group, return (gid_t) -1 on failure. */
 gid_t pa_get_gid_of_group(const char *name) {
     gid_t ret = (gid_t) -1;
-    char *g_buf;
-    long g_n;
-    struct group grbuf, *gr;
-
-#ifdef _SC_GETGR_R_SIZE_MAX
-    g_n = sysconf(_SC_GETGR_R_SIZE_MAX);
-#else
-    g_n = -1;
-#endif
-    if (g_n <= 0)
-        g_n = 512;
-
-    g_buf = pa_xmalloc((size_t) g_n);
+    struct group *gr = NULL;
 
     errno = 0;
-#ifdef HAVE_GETGRNAM_R
-    if (getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr) != 0 || !gr)
-#else
-    if (!(gr = getgrnam(name)))
-#endif
+    if (!(gr = pa_getgrnam_malloc(name)))
     {
         if (!errno)
             errno = ENOENT;
@@ -1159,7 +1087,7 @@ gid_t pa_get_gid_of_group(const char *name) {
     ret = gr->gr_gid;
 
 finish:
-    pa_xfree(g_buf);
+    pa_getgrnam_free(gr);
     return ret;
 }
 
@@ -2295,7 +2223,7 @@ int pa_close_all(int except_fd, ...) {
     va_end(ap);
 
     r = pa_close_allv(p);
-    free(p);
+    pa_xfree(p);
 
     return r;
 }
@@ -2890,3 +2818,22 @@ void pa_reset_personality(void) {
 #endif
 
 }
+
+#if defined(__linux__) && !defined(__OPTIMIZE__)
+
+pa_bool_t pa_run_from_build_tree(void) {
+    char *rp;
+    pa_bool_t b = FALSE;
+
+    /* We abuse __OPTIMIZE__ as a check whether we are a debug build
+     * or not. */
+
+    if ((rp = pa_readlink("/proc/self/exe"))) {
+        b = pa_startswith(rp, PA_BUILDDIR);
+        pa_xfree(rp);
+    }
+
+    return b;
+}
+
+#endif

@@ -38,15 +38,13 @@ struct pa_msgobject {
     int (*process_msg)(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
 };
 
-pa_msgobject *pa_msgobject_new_internal(size_t size, const char *type_name, int (*check_type)(const char *type_name));
+pa_msgobject *pa_msgobject_new_internal(size_t size, const char *type_id, pa_bool_t (*check_type)(const char *type_name));
 
-int pa_msgobject_check_type(const char *type);
-
-#define pa_msgobject_new(type) ((type*) pa_msgobject_new_internal(sizeof(type), #type, type##_check_type))
+#define pa_msgobject_new(type) ((type*) pa_msgobject_new_internal(sizeof(type), type##_type_id, type##_check_type))
 #define pa_msgobject_free ((void (*) (pa_msgobject* o)) pa_object_free)
 
 #define PA_MSGOBJECT(o) pa_msgobject_cast(o)
 
-PA_DECLARE_CLASS(pa_msgobject);
+PA_DECLARE_PUBLIC_CLASS(pa_msgobject);
 
 #endif

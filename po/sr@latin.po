@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-19 04:16+0200\n"
+"POT-Creation-Date: 2009-08-24 03:31+0200\n"
 "PO-Revision-Date: 2009-04-07 23:02+0100\n"
 "Last-Translator: Miloš Komarčević <kmilos@gmail.com>\n"
 "Language-Team: Serbian <fedora-trans-sr@redhat.com>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Generator: Lokalize 0.3\n"
 
-#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2666
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2676
 #, c-format
 msgid "%s %s"
 msgstr ""
@@ -76,11 +76,11 @@ msgid ""
 "input control values>"
 msgstr ""
 
-#: ../src/pulsecore/sink.c:2650
+#: ../src/pulsecore/sink.c:2660
 msgid "Internal Audio"
 msgstr "Unutrašnji zvuk"
 
-#: ../src/pulsecore/sink.c:2655
+#: ../src/pulsecore/sink.c:2665
 msgid "Modem"
 msgstr "Modem"
 
@@ -332,11 +332,16 @@ msgid "Using state directory %s."
 msgstr "Koristi se %s direktorijum stanja."
 
 #: ../src/daemon/main.c:777
+#, fuzzy, c-format
+msgid "Using modules directory %s."
+msgstr "Koristi se %s izvršni direktorijum."
+
+#: ../src/daemon/main.c:779
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Pokrenuto u sistemskom režimu: %s"
 
-#: ../src/daemon/main.c:780
+#: ../src/daemon/main.c:782
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -346,15 +351,15 @@ msgid ""
 "explanation why system mode is usually a bad idea."
 msgstr ""
 
-#: ../src/daemon/main.c:797
+#: ../src/daemon/main.c:799
 msgid "pa_pid_file_create() failed."
 msgstr "Neuspela funkcija pa_pid_file_create()."
 
-#: ../src/daemon/main.c:807
+#: ../src/daemon/main.c:809
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Dostupni su novi brojači visoke rezolucije! Prijatno!"
 
-#: ../src/daemon/main.c:809
+#: ../src/daemon/main.c:811
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -362,27 +367,27 @@ msgstr ""
 "Vaše jezgro nije dobro podešeno za pulseaudio! Preporučuje Vam se da "
 "koristite Linux jezgro sa omogućenim brojačima visoke rezolucije."
 
-#: ../src/daemon/main.c:827
+#: ../src/daemon/main.c:832
 msgid "pa_core_new() failed."
 msgstr "Neuspela funkcija pa_core_new()."
 
-#: ../src/daemon/main.c:889
+#: ../src/daemon/main.c:892
 msgid "Failed to initialize daemon."
 msgstr "Neuspešno pokretanje demona."
 
-#: ../src/daemon/main.c:894
+#: ../src/daemon/main.c:897
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "Demon je pokrenut bez ijednog učitanog modula, odbija da radi."
 
-#: ../src/daemon/main.c:911
+#: ../src/daemon/main.c:914
 msgid "Daemon startup complete."
 msgstr "Pokretanje demona uspešno."
 
-#: ../src/daemon/main.c:917
+#: ../src/daemon/main.c:920
 msgid "Daemon shutdown initiated."
 msgstr "Pokrenuto gašenje demona."
 
-#: ../src/daemon/main.c:939
+#: ../src/daemon/main.c:942
 msgid "Daemon terminated."
 msgstr "Rad demona je prekinut."
 
@@ -648,72 +653,72 @@ msgstr ""
 msgid "Path: %s\n"
 msgstr "Putanja: %s\n"
 
-#: ../src/daemon/daemon-conf.c:216
+#: ../src/daemon/daemon-conf.c:232
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
 msgstr "[%s:%u] Neispravan ciljni dnevnik „%s“."
 
-#: ../src/daemon/daemon-conf.c:232
+#: ../src/daemon/daemon-conf.c:248
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
 msgstr "[%s:%u] Neispravan nivo opširnosti u dnevniku „%s“."
 
-#: ../src/daemon/daemon-conf.c:248
+#: ../src/daemon/daemon-conf.c:264
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
 msgstr "[%s:%u] Neispravan način diskretizacije „%s“."
 
-#: ../src/daemon/daemon-conf.c:271
+#: ../src/daemon/daemon-conf.c:287
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
 msgstr "[%s:%u] Neispravan rlimit „%s“."
 
-#: ../src/daemon/daemon-conf.c:278
+#: ../src/daemon/daemon-conf.c:294
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
 msgstr "[%s:%u] rlimit nije podržan na ovoj platformi."
 
-#: ../src/daemon/daemon-conf.c:294
+#: ../src/daemon/daemon-conf.c:310
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
 msgstr "[%s:%u] Neispravan format uzorka „%s“."
 
-#: ../src/daemon/daemon-conf.c:312
+#: ../src/daemon/daemon-conf.c:328
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
 msgstr "[%s:%u] Neispravna učestanost diskretizacije „%s“."
 
-#: ../src/daemon/daemon-conf.c:336
+#: ../src/daemon/daemon-conf.c:352
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "[%s:%u] Neispravni kanali uzorka „%s“."
 
-#: ../src/daemon/daemon-conf.c:354
+#: ../src/daemon/daemon-conf.c:370
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
 msgstr "[%s:%u] Neispravna mapa kanala „%s“."
 
-#: ../src/daemon/daemon-conf.c:372
+#: ../src/daemon/daemon-conf.c:388
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
 msgstr "[%s:%u] Neispravan broj odlomaka „%s“."
 
-#: ../src/daemon/daemon-conf.c:390
+#: ../src/daemon/daemon-conf.c:406
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
 msgstr "[%s:%u] Neispravna veličina odlomka „%s“."
 
-#: ../src/daemon/daemon-conf.c:408
+#: ../src/daemon/daemon-conf.c:424
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Neispravan nivo prioriteta „%s“."
 
-#: ../src/daemon/daemon-conf.c:530
+#: ../src/daemon/daemon-conf.c:546
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "Neuspelo otvaranje datoteke podešavanja: %s"
 
-#: ../src/daemon/daemon-conf.c:546
+#: ../src/daemon/daemon-conf.c:562
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
@@ -721,7 +726,7 @@ msgstr ""
 "Navedena mapa kanala ima nema isti broj kanala kao što je navedeno u "
 "podrazumevanom broju kanala."
 
-#: ../src/daemon/daemon-conf.c:622
+#: ../src/daemon/daemon-conf.c:638
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### Pročitaj iz datoteke podešavanja: %s ###\n"
@@ -943,7 +948,7 @@ msgstr "Gornji pozadinski levi"
 msgid "Top Rear Right"
 msgstr "Gornji pozadinski desni"
 
-#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:171
+#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
 #: ../src/pulse/volume.c:285 ../src/pulse/volume.c:311
 #: ../src/pulse/volume.c:331 ../src/pulse/volume.c:361
 msgid "(invalid)"
@@ -1074,27 +1079,27 @@ msgstr "Nije odrađeno"
 msgid "Client forked"
 msgstr "Klijent izračvan"
 
-#: ../src/pulse/sample.c:173
+#: ../src/pulse/sample.c:172
 #, c-format
 msgid "%s %uch %uHz"
 msgstr "%s %uch %uHz"
 
-#: ../src/pulse/sample.c:185
+#: ../src/pulse/sample.c:184
 #, c-format
 msgid "%0.1f GiB"
 msgstr "%0.1f GiB"
 
-#: ../src/pulse/sample.c:187
+#: ../src/pulse/sample.c:186
 #, c-format
 msgid "%0.1f MiB"
 msgstr "%0.1f MiB"
 
-#: ../src/pulse/sample.c:189
+#: ../src/pulse/sample.c:188
 #, c-format
 msgid "%0.1f KiB"
 msgstr "%0.1f KiB"
 
-#: ../src/pulse/sample.c:191
+#: ../src/pulse/sample.c:190
 #, c-format
 msgid "%u B"
 msgstr "%u B"
@@ -2246,7 +2251,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr "Nije moguće pristupiti datoteci zaključavanja za samoumnožavanje."
 
-#: ../src/modules/alsa/alsa-sink.c:451 ../src/modules/alsa/alsa-sink.c:608
+#: ../src/modules/alsa/alsa-sink.c:526 ../src/modules/alsa/alsa-sink.c:684
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2263,7 +2268,7 @@ msgstr ""
 "Probuđeni smo sa postavljenim POLLOUT-om -- ali sledeći snd_pcm_avail() je "
 "vratio 0 ili neku drugu vrednost manju od min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:431 ../src/modules/alsa/alsa-source.c:580
+#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "

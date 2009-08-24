@@ -192,8 +192,16 @@ struct pa_sink_input {
     pa_bool_t (*may_move_to) (pa_sink_input *i, pa_sink *s); /* may be NULL */
 
     /* If non-NULL this function is used to dispatch asynchronous
-     * control events. */
-    void (*send_event)(pa_sink_input *i, const char *event, pa_proplist* data);
+     * control events. Called from main context. */
+    void (*send_event)(pa_sink_input *i, const char *event, pa_proplist* data); /* may be NULL */
+
+    /* If non-NULL this function is called whenever the sink input
+     * volume changes. Called from main context */
+    void (*volume_changed)(pa_sink_input *i); /* may be NULL */
+
+    /* If non-NULL this function is called whenever the sink input
+     * mute status changes. Called from main context */
+    void (*mute_changed)(pa_sink_input *i); /* may be NULL */
 
     struct {
         pa_sink_input_state_t state;
@@ -227,7 +235,7 @@ struct pa_sink_input {
     void *userdata;
 };
 
-PA_DECLARE_CLASS(pa_sink_input);
+PA_DECLARE_PUBLIC_CLASS(pa_sink_input);
 #define PA_SINK_INPUT(o) pa_sink_input_cast(o)
 
 enum {

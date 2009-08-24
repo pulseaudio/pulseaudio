@@ -63,6 +63,7 @@ struct pa_rtpoll {
     pa_bool_t running:1;
     pa_bool_t rebuild_needed:1;
     pa_bool_t quit:1;
+    pa_bool_t timer_elapsed:1;
 
 #ifdef DEBUG_TIMING
     pa_usec_t timestamp;
@@ -94,26 +95,14 @@ PA_STATIC_FLIST_DECLARE(items, 0, pa_xfree);
 pa_rtpoll *pa_rtpoll_new(void) {
     pa_rtpoll *p;
 
-    p = pa_xnew(pa_rtpoll, 1);
+    p = pa_xnew0(pa_rtpoll, 1);
 
     p->n_pollfd_alloc = 32;
     p->pollfd = pa_xnew(struct pollfd, p->n_pollfd_alloc);
     p->pollfd2 = pa_xnew(struct pollfd, p->n_pollfd_alloc);
-    p->n_pollfd_used = 0;
-
-    pa_zero(p->next_elapse);
-    p->timer_enabled = FALSE;
-
-    p->running = FALSE;
-    p->scan_for_dead = FALSE;
-    p->rebuild_needed = FALSE;
-    p->quit = FALSE;
-
-    PA_LLIST_HEAD_INIT(pa_rtpoll_item, p->items);
 
 #ifdef DEBUG_TIMING
     p->timestamp = pa_rtclock_now();
-    p->slept = p->awake = 0;
 #endif
 
     return p;
@@ -229,6 +218,7 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait_op) {
     pa_assert(!p->running);
 
     p->running = TRUE;
+    p->timer_elapsed = FALSE;
 
     /* First, let's do some work */
     for (i = p->items; i && i->priority < PA_RTPOLL_NEVER; i = i->next) {
@@ -286,7 +276,7 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait_op) {
     if (p->rebuild_needed)
         rtpoll_rebuild(p);
 
-    memset(&timeout, 0, sizeof(timeout));
+    pa_zero(timeout);
 
     /* Calculate timeout */
     if (wait_op && !p->quit && p->timer_enabled) {
@@ -314,8 +304,10 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait_op) {
         r = ppoll(p->pollfd, p->n_pollfd_used, (!wait_op || p->quit || p->timer_enabled) ? &ts : NULL, NULL);
     }
 #else
-        r = poll(p->pollfd, p->n_pollfd_used, (!wait_op || p->quit || p->timer_enabled) ? (int) ((timeout.tv_sec*1000) + (timeout.tv_usec / 1000)) : -1);
+    r = poll(p->pollfd, p->n_pollfd_used, (!wait_op || p->quit || p->timer_enabled) ? (int) ((timeout.tv_sec*1000) + (timeout.tv_usec / 1000)) : -1);
 #endif
+
+    p->timer_elapsed = r == 0;
 
 #ifdef DEBUG_TIMING
     {
@@ -627,4 +619,10 @@ void pa_rtpoll_quit(pa_rtpoll *p) {
     pa_assert(p);
 
     p->quit = TRUE;
+}
+
+pa_bool_t pa_rtpoll_timer_elapsed(pa_rtpoll *p) {
+    pa_assert(p);
+
+    return p->timer_elapsed;
 }

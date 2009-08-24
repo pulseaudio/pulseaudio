@@ -929,7 +929,7 @@ static int element_zero_volume(pa_alsa_element *e, snd_mixer_t *m) {
 
 int pa_alsa_path_select(pa_alsa_path *p, snd_mixer_t *m) {
     pa_alsa_element *e;
-    int r;
+    int r = 0;
 
     pa_assert(m);
     pa_assert(p);
@@ -1849,7 +1849,12 @@ pa_alsa_path* pa_alsa_path_new(const char *fname, pa_alsa_direction_t direction)
     items[1].data = &p->description;
     items[2].data = &p->name;
 
-    fn = pa_maybe_prefix_path(fname, PA_ALSA_PATHS_DIR);
+    fn = pa_maybe_prefix_path(fname,
+#if defined(__linux__) && !defined(__OPTIMIZE__)
+                              pa_run_from_build_tree() ? PA_BUILDDIR "/modules/alsa/mixer/paths/" :
+#endif
+                              PA_ALSA_PATHS_DIR);
+
     r = pa_config_parse(fn, NULL, items, p);
     pa_xfree(fn);
 
@@ -3110,7 +3115,12 @@ pa_alsa_profile_set* pa_alsa_profile_set_new(const char *fname, const pa_channel
     if (!fname)
         fname = "default.conf";
 
-    fn = pa_maybe_prefix_path(fname, PA_ALSA_PROFILE_SETS_DIR);
+    fn = pa_maybe_prefix_path(fname,
+#if defined(__linux__) && !defined(__OPTIMIZE__)
+                              pa_run_from_build_tree() ? PA_BUILDDIR "/modules/alsa/mixer/profile-sets/" :
+#endif
+                              PA_ALSA_PROFILE_SETS_DIR);
+
     r = pa_config_parse(fn, NULL, items, ps);
     pa_xfree(fn);
 

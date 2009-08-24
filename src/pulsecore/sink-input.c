@@ -44,7 +44,7 @@
 #define MEMBLOCKQ_MAXLENGTH (32*1024*1024)
 #define CONVERT_BUFFER_LENGTH (PA_PAGE_SIZE)
 
-static PA_DEFINE_CHECK_TYPE(pa_sink_input, pa_msgobject);
+PA_DEFINE_PUBLIC_CLASS(pa_sink_input, pa_msgobject);
 
 static void sink_input_free(pa_object *o);
 static void set_real_ratio(pa_sink_input *i, const pa_cvolume *v);
@@ -126,6 +126,8 @@ static void reset_callbacks(pa_sink_input *i) {
     i->state_change = NULL;
     i->may_move_to = NULL;
     i->send_event = NULL;
+    i->volume_changed = NULL;
+    i->mute_changed = NULL;
 }
 
 /* Called from main context */
@@ -485,7 +487,10 @@ static void sink_input_free(pa_object *o) {
 
     pa_log_info("Freeing input %u \"%s\"", i->index, pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME)));
 
-    pa_assert(!i->thread_info.attached);
+    /* Side note: this function must be able to destruct properly any
+     * kind of sink input in any state, even those which are
+     * "half-moved" or are connected to sinks that have no asyncmsgq
+     * and are hence half-destructed themselves! */
 
     if (i->thread_info.render_memblockq)
         pa_memblockq_free(i->thread_info.render_memblockq);
@@ -968,7 +973,10 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_boo
         pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_SOFT_VOLUME, NULL, 0, NULL) == 0);
     }
 
-    /* The virtual volume changed, let's tell people so */
+    /* The volume changed, let's tell people so */
+    if (i->volume_changed)
+        i->volume_changed(i);
+
     pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
 }
 
@@ -999,6 +1007,11 @@ void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute, pa_bool_t save) {
     i->save_muted = save;
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_SOFT_MUTE, NULL, 0, NULL) == 0);
+
+    /* The mute status changed, let's tell people so */
+    if (i->mute_changed)
+        i->mute_changed(i);
+
     pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
 }
 
@@ -1263,6 +1276,10 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
 
     /* Notify everyone */
     pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FINISH], i);
+
+    if (i->volume_changed)
+        i->volume_changed(i);
+
     pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
 
     return 0;

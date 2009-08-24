@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-19 04:16+0200\n"
+"POT-Creation-Date: 2009-08-24 03:31+0200\n"
 "PO-Revision-Date: 2009-06-08 12:01+0530\n"
 "Last-Translator: Rajesh Ranjan <rajesh672@gmail.com>\n"
 "Language-Team: Hindi <hindi.sf.net>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "\n"
 "\n"
 
-#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2666
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2676
 #, c-format
 msgid "%s %s"
 msgstr ""
@@ -75,11 +75,11 @@ msgid ""
 "input control values>"
 msgstr ""
 
-#: ../src/pulsecore/sink.c:2650
+#: ../src/pulsecore/sink.c:2660
 msgid "Internal Audio"
 msgstr "आंतरिक ऑडियो"
 
-#: ../src/pulsecore/sink.c:2655
+#: ../src/pulsecore/sink.c:2665
 msgid "Modem"
 msgstr "मॉडेम"
 
@@ -326,11 +326,16 @@ msgid "Using state directory %s."
 msgstr "स्टेट निर्देशिका %s का प्रयोग कर रहा है."
 
 #: ../src/daemon/main.c:777
+#, fuzzy, c-format
+msgid "Using modules directory %s."
+msgstr "रनटाइम निर्देशिका %s का प्रयोग कर रहा है."
+
+#: ../src/daemon/main.c:779
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "तंत्र मोड में चल रहा है: %s"
 
-#: ../src/daemon/main.c:780
+#: ../src/daemon/main.c:782
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -340,42 +345,42 @@ msgid ""
 "explanation why system mode is usually a bad idea."
 msgstr ""
 
-#: ../src/daemon/main.c:797
+#: ../src/daemon/main.c:799
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() विफल."
 
-#: ../src/daemon/main.c:807
+#: ../src/daemon/main.c:809
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "ताज़ा उच्च विभेदन टाइमर उपलब्ध! आनंद लें!"
 
-#: ../src/daemon/main.c:809
+#: ../src/daemon/main.c:811
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 msgstr ""
 "आपका कर्नेल बुरी स्थिति में है! सलाह है कि उच्च विभेदन युक्त लिनक्स सक्रिय किया जाना चाहिए!"
 
-#: ../src/daemon/main.c:827
+#: ../src/daemon/main.c:832
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() विफल."
 
-#: ../src/daemon/main.c:889
+#: ../src/daemon/main.c:892
 msgid "Failed to initialize daemon."
 msgstr "डेमॉन आरंभ करने में विफल."
 
-#: ../src/daemon/main.c:894
+#: ../src/daemon/main.c:897
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "बिना लोड मॉड्यूल के डेमॉन आरंभ, काम करने से अस्वीकार कर रहा है."
 
-#: ../src/daemon/main.c:911
+#: ../src/daemon/main.c:914
 msgid "Daemon startup complete."
 msgstr "डेमॉन आरंभन पूर्ण."
 
-#: ../src/daemon/main.c:917
+#: ../src/daemon/main.c:920
 msgid "Daemon shutdown initiated."
 msgstr "डेमॉन बन्द किया जाना आरंभ."
 
-#: ../src/daemon/main.c:939
+#: ../src/daemon/main.c:942
 msgid "Daemon terminated."
 msgstr "डेमॉन अवरोधित."
 
@@ -632,72 +637,72 @@ msgstr ""
 msgid "Path: %s\n"
 msgstr "पथ: %s\n"
 
-#: ../src/daemon/daemon-conf.c:216
+#: ../src/daemon/daemon-conf.c:232
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
 msgstr "[%s:%u] अवैध लॉग लक्ष्य '%s'."
 
-#: ../src/daemon/daemon-conf.c:232
+#: ../src/daemon/daemon-conf.c:248
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
 msgstr "[%s:%u] अवैध लॉग स्तर '%s'."
 
-#: ../src/daemon/daemon-conf.c:248
+#: ../src/daemon/daemon-conf.c:264
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
 msgstr "[%s:%u] अवैध पुनः नमूना विधि '%s'."
 
-#: ../src/daemon/daemon-conf.c:271
+#: ../src/daemon/daemon-conf.c:287
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
 msgstr "[%s:%u] अवैध rlimit '%s'."
 
-#: ../src/daemon/daemon-conf.c:278
+#: ../src/daemon/daemon-conf.c:294
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
 msgstr "[%s:%u] rlimit इस प्लेटफॉर्म पर समर्थित नहीं."
 
-#: ../src/daemon/daemon-conf.c:294
+#: ../src/daemon/daemon-conf.c:310
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
 msgstr "[%s:%u] अवैध प्रतिदर्श प्रारूप '%s'."
 
-#: ../src/daemon/daemon-conf.c:312
+#: ../src/daemon/daemon-conf.c:328
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
 msgstr "[%s:%u] अवैध प्रतिदर्श दर '%s'."
 
-#: ../src/daemon/daemon-conf.c:336
+#: ../src/daemon/daemon-conf.c:352
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "[%s:%u] अवैध प्रतिदर्श चैनल '%s'."
 
-#: ../src/daemon/daemon-conf.c:354
+#: ../src/daemon/daemon-conf.c:370
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
 msgstr "[%s:%u] अवैध चैनल मानचित्र '%s'."
 
-#: ../src/daemon/daemon-conf.c:372
+#: ../src/daemon/daemon-conf.c:388
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
 msgstr "[%s:%u] टुकड़े '%s' की अवैध संख्या."
 
-#: ../src/daemon/daemon-conf.c:390
+#: ../src/daemon/daemon-conf.c:406
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
 msgstr "[%s:%u] अवैध खंड आकार '%s'."
 
-#: ../src/daemon/daemon-conf.c:408
+#: ../src/daemon/daemon-conf.c:424
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] अवैध नाइस स्तर '%s'."
 
-#: ../src/daemon/daemon-conf.c:530
+#: ../src/daemon/daemon-conf.c:546
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "विन्यास फ़ाइल खोलने में विफल: %s"
 
-#: ../src/daemon/daemon-conf.c:546
+#: ../src/daemon/daemon-conf.c:562
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
@@ -705,7 +710,7 @@ msgstr ""
 "निर्दिष्ट तयशुदा चैनल मानचित्र के पास चैनल की भिन्न संख्या है चैनल की तयशुदा निर्दिष्ट संख्या "
 "के बनिस्पत."
 
-#: ../src/daemon/daemon-conf.c:622
+#: ../src/daemon/daemon-conf.c:638
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### विन्यास फ़ाइल से पढ़ें: %s ###\n"
@@ -927,7 +932,7 @@ msgstr "ऊपर पश्च बायाँ"
 msgid "Top Rear Right"
 msgstr "ऊपर पश्च दायाँ"
 
-#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:171
+#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
 #: ../src/pulse/volume.c:285 ../src/pulse/volume.c:311
 #: ../src/pulse/volume.c:331 ../src/pulse/volume.c:361
 msgid "(invalid)"
@@ -1057,27 +1062,27 @@ msgstr "अनुपस्थित कार्यान्वयन"
 msgid "Client forked"
 msgstr "क्लाएंट विभाजित"
 
-#: ../src/pulse/sample.c:173
+#: ../src/pulse/sample.c:172
 #, c-format
 msgid "%s %uch %uHz"
 msgstr "%s %uch %uHz"
 
-#: ../src/pulse/sample.c:185
+#: ../src/pulse/sample.c:184
 #, c-format
 msgid "%0.1f GiB"
 msgstr "%0.1f GiB"
 
-#: ../src/pulse/sample.c:187
+#: ../src/pulse/sample.c:186
 #, c-format
 msgid "%0.1f MiB"
 msgstr "%0.1f MiB"
 
-#: ../src/pulse/sample.c:189
+#: ../src/pulse/sample.c:188
 #, c-format
 msgid "%0.1f KiB"
 msgstr "%0.1f KiB"
 
-#: ../src/pulse/sample.c:191
+#: ../src/pulse/sample.c:190
 #, c-format
 msgid "%u B"
 msgstr "%u B"
@@ -2233,7 +2238,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr "autospawn लॉक की पहुँच नहीं ले सकता है."
 
-#: ../src/modules/alsa/alsa-sink.c:451 ../src/modules/alsa/alsa-sink.c:608
+#: ../src/modules/alsa/alsa-sink.c:526 ../src/modules/alsa/alsa-sink.c:684
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2250,7 +2255,7 @@ msgstr ""
 "हमें POLLOUT सेट के साथ तैयार किया गया है  -- हालांकि परवर्ती snd_pcm_avail() ने 0 या "
 "दूसरा मान < min_avail दिया."
 
-#: ../src/modules/alsa/alsa-source.c:431 ../src/modules/alsa/alsa-source.c:580
+#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-19 04:16+0200\n"
+"POT-Creation-Date: 2009-08-24 03:31+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Rui Gouveia <rui.gouveia@globaltek.pt>\n"
 "Language-Team: pt <fedora-trans-pt@redhat.com>\n"
@@ -12,7 +12,7 @@ msgstr ""
 "X-Poedit-Language: Portuguese\n"
 "X-Poedit-Country: PORTUGAL\n"
 
-#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2666
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2676
 #, fuzzy, c-format
 msgid "%s %s"
 msgstr "%s %s"
@@ -70,11 +70,11 @@ msgid ""
 "input control values>"
 msgstr ""
 
-#: ../src/pulsecore/sink.c:2650
+#: ../src/pulsecore/sink.c:2660
 msgid "Internal Audio"
 msgstr "Áudio Interno"
 
-#: ../src/pulsecore/sink.c:2655
+#: ../src/pulsecore/sink.c:2665
 msgid "Modem"
 msgstr "Modem"
 
@@ -326,11 +326,16 @@ msgid "Using state directory %s."
 msgstr "A manter o estado no directório %s."
 
 #: ../src/daemon/main.c:777
+#, fuzzy, c-format
+msgid "Using modules directory %s."
+msgstr "Execução a utilizar o directório %s"
+
+#: ../src/daemon/main.c:779
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Execução em modo de sistema: %s"
 
-#: ../src/daemon/main.c:780
+#: ../src/daemon/main.c:782
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -340,15 +345,15 @@ msgid ""
 "explanation why system mode is usually a bad idea."
 msgstr ""
 
-#: ../src/daemon/main.c:797
+#: ../src/daemon/main.c:799
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() falhou."
 
-#: ../src/daemon/main.c:807
+#: ../src/daemon/main.c:809
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Timer \"frescos\" de alta resolução disponíveis. Bom apetite!"
 
-#: ../src/daemon/main.c:809
+#: ../src/daemon/main.c:811
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -356,27 +361,27 @@ msgstr ""
 "Oh pá, o teu kernel não presta! O prato do dia recomendado é Linux com "
 "timers de alta resolução activos!"
 
-#: ../src/daemon/main.c:827
+#: ../src/daemon/main.c:832
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() falhou."
 
-#: ../src/daemon/main.c:889
+#: ../src/daemon/main.c:892
 msgid "Failed to initialize daemon."
 msgstr "Falha ao inicializar serviço."
 
-#: ../src/daemon/main.c:894
+#: ../src/daemon/main.c:897
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "Serviço arrancou sem módulos carregados. A recusar trabalhar."
 
-#: ../src/daemon/main.c:911
+#: ../src/daemon/main.c:914
 msgid "Daemon startup complete."
 msgstr "Arranque do serviço completo."
 
-#: ../src/daemon/main.c:917
+#: ../src/daemon/main.c:920
 msgid "Daemon shutdown initiated."
 msgstr "Encerramento do serviço iniciado."
 
-#: ../src/daemon/main.c:939
+#: ../src/daemon/main.c:942
 msgid "Daemon terminated."
 msgstr "Serviço terminado."
 
@@ -646,72 +651,72 @@ msgstr "Aviso de Impressão"
 msgid "Path: %s\n"
 msgstr "Caminho: %s\n"
 
-#: ../src/daemon/daemon-conf.c:216
+#: ../src/daemon/daemon-conf.c:232
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
 msgstr "[%s:%u] ficheiro registo de destino inválido '%s'."
 
-#: ../src/daemon/daemon-conf.c:232
+#: ../src/daemon/daemon-conf.c:248
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
 msgstr "[%s:%u] Nível do ficheiro de registo inválido '%s'."
 
-#: ../src/daemon/daemon-conf.c:248
+#: ../src/daemon/daemon-conf.c:264
 #, fuzzy, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
 msgstr "nome do método de acesso"
 
-#: ../src/daemon/daemon-conf.c:271
+#: ../src/daemon/daemon-conf.c:287
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
 msgstr "[%s:%u] rlimit inválido '%s'."
 
-#: ../src/daemon/daemon-conf.c:278
+#: ../src/daemon/daemon-conf.c:294
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
 msgstr "[%s:%u] rlimit não é suportado nesta plataforma."
 
-#: ../src/daemon/daemon-conf.c:294
+#: ../src/daemon/daemon-conf.c:310
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
 msgstr "[%s:%u] Formato da amostra inválido '%s'."
 
-#: ../src/daemon/daemon-conf.c:312
+#: ../src/daemon/daemon-conf.c:328
 #, fuzzy, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
 msgstr "Taxa de amostragem em kHz"
 
-#: ../src/daemon/daemon-conf.c:336
+#: ../src/daemon/daemon-conf.c:352
 #, fuzzy, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "Número de canais de audio"
 
-#: ../src/daemon/daemon-conf.c:354
+#: ../src/daemon/daemon-conf.c:370
 #, fuzzy, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
 msgstr "Activar mapa de _radar"
 
-#: ../src/daemon/daemon-conf.c:372
+#: ../src/daemon/daemon-conf.c:388
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
 msgstr "[%s:%u] Número inválido de fragmentos '%s'."
 
-#: ../src/daemon/daemon-conf.c:390
+#: ../src/daemon/daemon-conf.c:406
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
 msgstr "[%s:%u] Tamanho do fragmento inválido '%s'."
 
-#: ../src/daemon/daemon-conf.c:408
+#: ../src/daemon/daemon-conf.c:424
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] nível nice inválido '%s'."
 
-#: ../src/daemon/daemon-conf.c:530
+#: ../src/daemon/daemon-conf.c:546
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "Falha ao abrir ficheiro de configuração: %s"
 
-#: ../src/daemon/daemon-conf.c:546
+#: ../src/daemon/daemon-conf.c:562
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
@@ -719,7 +724,7 @@ msgstr ""
 "O mapa de canais especificado tem um número de canais diferente do número de "
 "canais definido por omissão."
 
-#: ../src/daemon/daemon-conf.c:622
+#: ../src/daemon/daemon-conf.c:638
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### Ler configuração a partir do ficheiro: %s ###\n"
@@ -941,7 +946,7 @@ msgstr "Topo Traseira Esquerda"
 msgid "Top Rear Right"
 msgstr "Topo Traseira Direita"
 
-#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:171
+#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
 #: ../src/pulse/volume.c:285 ../src/pulse/volume.c:311
 #: ../src/pulse/volume.c:331 ../src/pulse/volume.c:361
 msgid "(invalid)"
@@ -1071,27 +1076,27 @@ msgstr "Implementação em falta"
 msgid "Client forked"
 msgstr "Cliente efectuou um fork"
 
-#: ../src/pulse/sample.c:173
+#: ../src/pulse/sample.c:172
 #, c-format
 msgid "%s %uch %uHz"
 msgstr "%s %uch %uHz"
 
-#: ../src/pulse/sample.c:185
+#: ../src/pulse/sample.c:184
 #, c-format
 msgid "%0.1f GiB"
 msgstr "%.1f GiB"
 
-#: ../src/pulse/sample.c:187
+#: ../src/pulse/sample.c:186
 #, c-format
 msgid "%0.1f MiB"
 msgstr "%.1f MiB"
 
-#: ../src/pulse/sample.c:189
+#: ../src/pulse/sample.c:188
 #, c-format
 msgid "%0.1f KiB"
 msgstr "%.1f KiB"
 
-#: ../src/pulse/sample.c:191
+#: ../src/pulse/sample.c:190
 #, c-format
 msgid "%u B"
 msgstr "%u B"
@@ -2058,7 +2063,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr "Impossível aceder ao lock \"autospawn\"."
 
-#: ../src/modules/alsa/alsa-sink.c:451 ../src/modules/alsa/alsa-sink.c:608
+#: ../src/modules/alsa/alsa-sink.c:526 ../src/modules/alsa/alsa-sink.c:684
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2075,7 +2080,7 @@ msgstr ""
 "Fomos acordados pelo conjunto POLLOUT -- contudo uma chamada a seguir de "
 "snd_pcm_avail() retornou 0 ou outro valor < min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:431 ../src/modules/alsa/alsa-source.c:580
+#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "

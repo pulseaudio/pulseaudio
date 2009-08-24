@@ -32,8 +32,6 @@
 #include <pulsecore/memblock.h>
 #include <pulsecore/sample-util.h>
 
-#include <liboil/liboil.h>
-
 static float swap_float(float a) {
     uint32_t *b = (uint32_t*) &a;
     *b = PA_UINT32_SWAP(*b);
@@ -211,7 +209,6 @@ int main(int argc, char *argv[]) {
     pa_sample_spec a;
     pa_cvolume v;
 
-    oil_init();
     pa_log_set_level(PA_LOG_DEBUG);
 
     pa_assert_se(pool = pa_mempool_new(FALSE, 0));

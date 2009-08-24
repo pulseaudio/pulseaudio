@@ -5,15 +5,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-19 04:16+0200\n"
-"PO-Revision-Date: 2009-07-28 21:54+0200\n"
+"POT-Creation-Date: 2009-08-24 03:31+0200\n"
+"PO-Revision-Date: 2009-08-22 12:12+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2666
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2676
 #, c-format
 msgid "%s %s"
 msgstr "%s %s"
@@ -72,11 +72,11 @@ msgstr ""
 "kanałów> plugin=<nazwa wtyczki ladspa> label=<etykieta wtyczki ladspa> "
 "control=<lista wartości kontroli wejścia oddzielona przecinkami>"
 
-#: ../src/pulsecore/sink.c:2650
+#: ../src/pulsecore/sink.c:2660
 msgid "Internal Audio"
 msgstr "Wewnętrzny dźwięk"
 
-#: ../src/pulsecore/sink.c:2655
+#: ../src/pulsecore/sink.c:2665
 msgid "Modem"
 msgstr "Modem"
 
@@ -331,10 +331,15 @@ msgstr "Używanie folderu stanu %s."
 
 #: ../src/daemon/main.c:777
 #, c-format
+msgid "Using modules directory %s."
+msgstr "Używanie folderu modułów %s."
+
+#: ../src/daemon/main.c:779
+#, c-format
 msgid "Running in system mode: %s"
 msgstr "Uruchamianie w trybie systemowym: %s"
 
-#: ../src/daemon/main.c:780
+#: ../src/daemon/main.c:782
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -350,15 +355,15 @@ msgstr ""
 "Proszę przeczytać http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode, "
 "gdzie wyjaśniono, dlaczego tryb systemowy jest zwykle złym pomysłem."
 
-#: ../src/daemon/main.c:797
+#: ../src/daemon/main.c:799
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() nie powiodło się."
 
-#: ../src/daemon/main.c:807
+#: ../src/daemon/main.c:809
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Świeże zegary o wysokiej rozdzielczości! Smacznego!"
 
-#: ../src/daemon/main.c:809
+#: ../src/daemon/main.c:811
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -366,27 +371,27 @@ msgstr ""
 "Koleś, twoje jądro śmierdzi! Szef kuchni poleca dzisiaj Linuksa w włączonymi "
 "zegarami o wysokiej rozdzielczości!"
 
-#: ../src/daemon/main.c:827
+#: ../src/daemon/main.c:832
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() nie powiodło się."
 
-#: ../src/daemon/main.c:889
+#: ../src/daemon/main.c:892
 msgid "Failed to initialize daemon."
 msgstr "Zainicjowanie demona nie powiodło się."
 
-#: ../src/daemon/main.c:894
+#: ../src/daemon/main.c:897
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "Uruchamianie demona bez żadnych wczytanych modułów, odmawianie pracy."
 
-#: ../src/daemon/main.c:911
+#: ../src/daemon/main.c:914
 msgid "Daemon startup complete."
 msgstr "Zakończono uruchamianie demona."
 
-#: ../src/daemon/main.c:917
+#: ../src/daemon/main.c:920
 msgid "Daemon shutdown initiated."
 msgstr "Zainicjowano wyłączenie demona."
 
-#: ../src/daemon/main.c:939
+#: ../src/daemon/main.c:942
 msgid "Daemon terminated."
 msgstr "Demon został zniszczony."
 
@@ -652,72 +657,72 @@ msgstr "OSTRZEŻENIE O PRZESTARZAŁOŚCI: %s\n"
 msgid "Path: %s\n"
 msgstr "Ścieżka: %s\n"
 
-#: ../src/daemon/daemon-conf.c:216
+#: ../src/daemon/daemon-conf.c:232
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
 msgstr "[%s:%u] Nieprawidłowy dziennik docelowy \"%s\"."
 
-#: ../src/daemon/daemon-conf.c:232
+#: ../src/daemon/daemon-conf.c:248
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
 msgstr "[%s:%u] Nieprawidłowy poziom dziennika \"%s\"."
 
-#: ../src/daemon/daemon-conf.c:248
+#: ../src/daemon/daemon-conf.c:264
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
 msgstr "[%s:%u] Nieprawidłowa metoda resamplingu \"%s\"."
 
-#: ../src/daemon/daemon-conf.c:271
+#: ../src/daemon/daemon-conf.c:287
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
 msgstr "[%s:%u] Nieprawidłowy rlimit \"%s\"."
 
-#: ../src/daemon/daemon-conf.c:278
+#: ../src/daemon/daemon-conf.c:294
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
 msgstr "[%s:%u] rlimit nie jest obsługiwany na tej platformie."
 
-#: ../src/daemon/daemon-conf.c:294
+#: ../src/daemon/daemon-conf.c:310
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
 msgstr "[%s:%u] Nieprawidłowy format próbki \"%s\"."
 
-#: ../src/daemon/daemon-conf.c:312
+#: ../src/daemon/daemon-conf.c:328
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
 msgstr "[%s:%u] Nieprawidłowa częstotliwość próbki \"%s\"."
 
-#: ../src/daemon/daemon-conf.c:336
+#: ../src/daemon/daemon-conf.c:352
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "[%s:%u] Nieprawidłowe kanały próbki \"%s\"."
 
-#: ../src/daemon/daemon-conf.c:354
+#: ../src/daemon/daemon-conf.c:370
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
 msgstr "[%s:%u] Nieprawidłowa mapa kanałów \"%s\"."
 
-#: ../src/daemon/daemon-conf.c:372
+#: ../src/daemon/daemon-conf.c:388
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
 msgstr "[%s:%u] Nieprawidłowa liczba fragmentów \"%s\"."
 
-#: ../src/daemon/daemon-conf.c:390
+#: ../src/daemon/daemon-conf.c:406
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
 msgstr "[%s:%u] Nieprawidłowy rozmiar fragmentu \"%s\"."
 
-#: ../src/daemon/daemon-conf.c:408
+#: ../src/daemon/daemon-conf.c:424
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Nieprawidłowy poziom nice \"%s\"."
 
-#: ../src/daemon/daemon-conf.c:530
+#: ../src/daemon/daemon-conf.c:546
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "Otwarcie pliku konfiguracji nie powiodło się: %s"
 
-#: ../src/daemon/daemon-conf.c:546
+#: ../src/daemon/daemon-conf.c:562
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
@@ -725,15 +730,14 @@ msgstr ""
 "Podana domyślna mapa kanałów ma inną liczbę kanałów niż podana domyślna "
 "liczba kanałów."
 
-#: ../src/daemon/daemon-conf.c:622
+#: ../src/daemon/daemon-conf.c:638
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### Odczytano z pliku konfiguracji: %s ###\n"
 
 #: ../src/daemon/caps.c:62
-#, fuzzy
 msgid "Cleaning up privileges."
-msgstr "Porzucanie uprawnień roota."
+msgstr "Czyszczenie uprawnień."
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
@@ -947,7 +951,7 @@ msgstr "Górny tylny lewy"
 msgid "Top Rear Right"
 msgstr "Górny tylny prawy"
 
-#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:171
+#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
 #: ../src/pulse/volume.c:285 ../src/pulse/volume.c:311
 #: ../src/pulse/volume.c:331 ../src/pulse/volume.c:361
 msgid "(invalid)"
@@ -1077,27 +1081,27 @@ msgstr "Brak implementacji"
 msgid "Client forked"
 msgstr "Rozdzielono klienta"
 
-#: ../src/pulse/sample.c:173
+#: ../src/pulse/sample.c:172
 #, c-format
 msgid "%s %uch %uHz"
 msgstr "%s %uch %uHz"
 
-#: ../src/pulse/sample.c:185
+#: ../src/pulse/sample.c:184
 #, c-format
 msgid "%0.1f GiB"
 msgstr "%0.1f GiB"
 
-#: ../src/pulse/sample.c:187
+#: ../src/pulse/sample.c:186
 #, c-format
 msgid "%0.1f MiB"
 msgstr "%0.1f MiB"
 
-#: ../src/pulse/sample.c:189
+#: ../src/pulse/sample.c:188
 #, c-format
 msgid "%0.1f KiB"
 msgstr "%0.1f KiB"
 
-#: ../src/pulse/sample.c:191
+#: ../src/pulse/sample.c:190
 #, c-format
 msgid "%u B"
 msgstr "%u B"
@@ -2225,9 +2229,9 @@ msgid "Daemon not responding."
 msgstr "Demon nie odpowiada."
 
 #: ../src/utils/pacmd.c:161
-#, fuzzy, c-format
+#, c-format
 msgid "poll(): %s"
-msgstr "fork(): %s"
+msgstr "poll(): %s"
 
 #: ../src/utils/pacmd.c:171 ../src/utils/pacmd.c:188
 #, c-format
@@ -2243,7 +2247,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr "Nie można uzyskać dostępu do blokady automatycznego wznawiania."
 
-#: ../src/modules/alsa/alsa-sink.c:451 ../src/modules/alsa/alsa-sink.c:608
+#: ../src/modules/alsa/alsa-sink.c:526 ../src/modules/alsa/alsa-sink.c:684
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2260,7 +2264,7 @@ msgstr ""
 "Wybudzono za pomocą ustawienia POLLOUT - ale jednoczesne wywołanie "
 "snd_pcm_avail() zwróciło zero lub inną wartość < min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:431 ../src/modules/alsa/alsa-source.c:580
+#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2293,64 +2297,3 @@ msgstr "Duplex telefoniczny (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "Serwer dźwięku PulseAudio"
-
-#~ msgid "select(): %s"
-#~ msgstr "select(): %s"
-
-#~ msgid "Cannot connect to system bus: %s"
-#~ msgstr "Nie można połączyć się z magistralą systemową: %s"
-
-#~ msgid "Cannot get caller from PID: %s"
-#~ msgstr "Nie można uzyskać obiektu caller z PID: %s"
-
-#~ msgid "Cannot set UID on caller object."
-#~ msgstr "Nie można ustawić UID obiektu caller."
-
-#~ msgid "Failed to get CK session."
-#~ msgstr "Uzyskanie sesji CK nie powiodło się."
-
-#~ msgid "Cannot set UID on session object."
-#~ msgstr "Nie można ustawić UID obiektowi sesji."
-
-#~ msgid "Cannot allocate PolKitAction."
-#~ msgstr "Nie można przydzielić PolKitAction."
-
-#~ msgid "Cannot set action_id"
-#~ msgstr "Nie można ustawić action_id"
-
-#~ msgid "Cannot allocate PolKitContext."
-#~ msgstr "Nie można przydzielić PolKitContext."
-
-#~ msgid "Cannot initialize PolKitContext: %s"
-#~ msgstr "Nie można zainicjować PolKitContext: %s"
-
-#~ msgid "Could not determine whether caller is authorized: %s"
-#~ msgstr "Nie można ustalić, czy obiekt caller jest upoważniony: %s"
-
-#~ msgid "Cannot obtain auth: %s"
-#~ msgstr "Nie można uzyskać upoważnienia: %s"
-
-#~ msgid "PolicyKit responded with '%s'"
-#~ msgstr "PolicyKit zwróciło \"%s\""
-
-#~ msgid ""
-#~ "High-priority scheduling (negative Unix nice level) for the PulseAudio "
-#~ "daemon"
-#~ msgstr ""
-#~ "Szeregowanie o wysokim priorytecie (ujemny poziom nice Uniksa) dla demona "
-#~ "PulseAudio"
-
-#~ msgid "Real-time scheduling for the PulseAudio daemon"
-#~ msgstr "Szeregowanie w czasie rzeczywistym dla demona PulseAudio"
-
-#~ msgid ""
-#~ "System policy prevents PulseAudio from acquiring high-priority scheduling."
-#~ msgstr ""
-#~ "Polityka systemu uniemożliwia PulseAudio uzyskanie szeregowania o wysokim "
-#~ "priorytecie."
-
-#~ msgid ""
-#~ "System policy prevents PulseAudio from acquiring real-time scheduling."
-#~ msgstr ""
-#~ "Polityka systemu uniemożliwia PulseAudio uzyskanie szeregowania w czasie "
-#~ "rzeczywistym."

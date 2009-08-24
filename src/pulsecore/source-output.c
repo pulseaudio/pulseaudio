@@ -41,7 +41,7 @@
 
 #define MEMBLOCKQ_MAXLENGTH (32*1024*1024)
 
-static PA_DEFINE_CHECK_TYPE(pa_source_output, pa_msgobject);
+PA_DEFINE_PUBLIC_CLASS(pa_source_output, pa_msgobject);
 
 static void source_output_free(pa_object* mo);
 
@@ -358,8 +358,6 @@ static void source_output_free(pa_object* mo) {
         pa_source_output_unlink(o);
 
     pa_log_info("Freeing output %u \"%s\"", o->index, pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_MEDIA_NAME)));
-
-    pa_assert(!o->thread_info.attached);
 
     if (o->thread_info.delay_memblockq)
         pa_memblockq_free(o->thread_info.delay_memblockq);

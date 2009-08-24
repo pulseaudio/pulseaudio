@@ -99,7 +99,7 @@ static const char* const valid_modargs[] = {
 };
 
 /* Called from I/O thread context */
-static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
+static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
 
     switch (code) {
@@ -130,7 +130,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 }
 
 /* Called from main context */
-static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
+static int sink_set_state_cb(pa_sink *s, pa_sink_state_t state) {
     struct userdata *u;
 
     pa_sink_assert_ref(s);
@@ -145,7 +145,7 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
 }
 
 /* Called from I/O thread context */
-static void sink_request_rewind(pa_sink *s) {
+static void sink_request_rewind_cb(pa_sink *s) {
     struct userdata *u;
 
     pa_sink_assert_ref(s);
@@ -160,7 +160,7 @@ static void sink_request_rewind(pa_sink *s) {
 }
 
 /* Called from I/O thread context */
-static void sink_update_requested_latency(pa_sink *s) {
+static void sink_update_requested_latency_cb(pa_sink *s) {
     struct userdata *u;
 
     pa_sink_assert_ref(s);
@@ -174,6 +174,34 @@ static void sink_update_requested_latency(pa_sink *s) {
     pa_sink_input_set_requested_latency_within_thread(
             u->sink_input,
             pa_sink_get_requested_latency_within_thread(s));
+}
+
+/* Called from main context */
+static void sink_set_volume_cb(pa_sink *s) {
+    struct userdata *u;
+
+    pa_sink_assert_ref(s);
+    pa_assert_se(u = s->userdata);
+
+    if (!PA_SINK_IS_LINKED(pa_sink_get_state(s)) ||
+        !PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(u->sink_input)))
+        return;
+
+    pa_sink_input_set_volume(u->sink_input, &s->real_volume, s->save_volume, TRUE);
+}
+
+/* Called from main context */
+static void sink_set_mute_cb(pa_sink *s) {
+    struct userdata *u;
+
+    pa_sink_assert_ref(s);
+    pa_assert_se(u = s->userdata);
+
+    if (!PA_SINK_IS_LINKED(pa_sink_get_state(s)) ||
+        !PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(u->sink_input)))
+        return;
+
+    pa_sink_input_set_mute(u->sink_input, s->muted, s->save_muted);
 }
 
 /* Called from I/O thread context */
@@ -390,8 +418,31 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    pa_sink_set_asyncmsgq(u->sink, dest->asyncmsgq);
-    pa_sink_update_flags(u->sink, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY, dest->flags);
+    if (dest) {
+        pa_sink_set_asyncmsgq(u->sink, dest->asyncmsgq);
+        pa_sink_update_flags(u->sink, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY, dest->flags);
+    } else
+        pa_sink_set_asyncmsgq(u->sink, NULL);
+}
+
+/* Called from main context */
+static void sink_input_volume_changed_cb(pa_sink_input *i) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    pa_sink_volume_changed(u->sink, &i->volume);
+}
+
+/* Called from main context */
+static void sink_input_mute_changed_cb(pa_sink_input *i) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    pa_sink_mute_changed(u->sink, i->muted);
 }
 
 int pa__init(pa_module*m) {
@@ -731,7 +782,9 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u->sink = pa_sink_new(m->core, &sink_data, master->flags & (PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY));
+    u->sink = pa_sink_new(m->core, &sink_data,
+                          PA_SINK_HW_MUTE_CTRL|PA_SINK_HW_VOLUME_CTRL|PA_SINK_DECIBEL_VOLUME|
+                          (master->flags & (PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY)));
     pa_sink_new_data_done(&sink_data);
 
     if (!u->sink) {
@@ -739,10 +792,12 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u->sink->parent.process_msg = sink_process_msg;
-    u->sink->set_state = sink_set_state;
-    u->sink->update_requested_latency = sink_update_requested_latency;
-    u->sink->request_rewind = sink_request_rewind;
+    u->sink->parent.process_msg = sink_process_msg_cb;
+    u->sink->set_state = sink_set_state_cb;
+    u->sink->update_requested_latency = sink_update_requested_latency_cb;
+    u->sink->request_rewind = sink_request_rewind_cb;
+    u->sink->set_volume = sink_set_volume_cb;
+    u->sink->set_mute = sink_set_mute_cb;
     u->sink->userdata = u;
 
     pa_sink_set_asyncmsgq(u->sink, master->asyncmsgq);
@@ -775,6 +830,8 @@ int pa__init(pa_module*m) {
     u->sink_input->state_change = sink_input_state_change_cb;
     u->sink_input->may_move_to = sink_input_may_move_to_cb;
     u->sink_input->moving = sink_input_moving_cb;
+    u->sink_input->volume_changed = sink_input_volume_changed_cb;
+    u->sink_input->mute_changed = sink_input_mute_changed_cb;
     u->sink_input->userdata = u;
 
     pa_sink_put(u->sink);

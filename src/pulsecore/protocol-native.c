@@ -98,17 +98,15 @@ typedef struct record_stream {
     pa_usec_t current_source_latency;
 } record_stream;
 
-PA_DECLARE_CLASS(record_stream);
 #define RECORD_STREAM(o) (record_stream_cast(o))
-static PA_DEFINE_CHECK_TYPE(record_stream, pa_msgobject);
+PA_DEFINE_PRIVATE_CLASS(record_stream, pa_msgobject);
 
 typedef struct output_stream {
     pa_msgobject parent;
 } output_stream;
 
-PA_DECLARE_CLASS(output_stream);
 #define OUTPUT_STREAM(o) (output_stream_cast(o))
-static PA_DEFINE_CHECK_TYPE(output_stream, pa_msgobject);
+PA_DEFINE_PRIVATE_CLASS(output_stream, pa_msgobject);
 
 typedef struct playback_stream {
     output_stream parent;
@@ -138,9 +136,8 @@ typedef struct playback_stream {
     uint64_t playing_for, underrun_for;
 } playback_stream;
 
-PA_DECLARE_CLASS(playback_stream);
 #define PLAYBACK_STREAM(o) (playback_stream_cast(o))
-static PA_DEFINE_CHECK_TYPE(playback_stream, output_stream);
+PA_DEFINE_PRIVATE_CLASS(playback_stream, output_stream);
 
 typedef struct upload_stream {
     output_stream parent;
@@ -156,9 +153,8 @@ typedef struct upload_stream {
     pa_proplist *proplist;
 } upload_stream;
 
-PA_DECLARE_CLASS(upload_stream);
 #define UPLOAD_STREAM(o) (upload_stream_cast(o))
-static PA_DEFINE_CHECK_TYPE(upload_stream, output_stream);
+PA_DEFINE_PRIVATE_CLASS(upload_stream, output_stream);
 
 struct pa_native_connection {
     pa_msgobject parent;
@@ -176,9 +172,8 @@ struct pa_native_connection {
     pa_time_event *auth_timeout_event;
 };
 
-PA_DECLARE_CLASS(pa_native_connection);
 #define PA_NATIVE_CONNECTION(o) (pa_native_connection_cast(o))
-static PA_DEFINE_CHECK_TYPE(pa_native_connection, pa_msgobject);
+PA_DEFINE_PRIVATE_CLASS(pa_native_connection, pa_msgobject);
 
 struct pa_native_protocol {
     PA_REFCNT_DECLARE;

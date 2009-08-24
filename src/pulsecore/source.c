@@ -46,7 +46,7 @@
 #define ABSOLUTE_MAX_LATENCY (10*PA_USEC_PER_SEC)
 #define DEFAULT_FIXED_LATENCY (250*PA_USEC_PER_MSEC)
 
-static PA_DEFINE_CHECK_TYPE(pa_source, pa_msgobject);
+PA_DEFINE_PUBLIC_CLASS(pa_source, pa_msgobject);
 
 static void source_free(pa_object *o);
 

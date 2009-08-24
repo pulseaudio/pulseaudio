@@ -158,7 +158,7 @@ struct pa_source {
     void *userdata;
 };
 
-PA_DECLARE_CLASS(pa_source);
+PA_DECLARE_PUBLIC_CLASS(pa_source);
 #define PA_SOURCE(s) pa_source_cast(s)
 
 typedef enum pa_source_message {

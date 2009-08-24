@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-19 04:16+0200\n"
+"POT-Creation-Date: 2009-08-24 03:31+0200\n"
 "PO-Revision-Date: 2009-04-08 16:21+0530\n"
 "Last-Translator: Runa Bhattacharjee <runab@fedoraproject.org>\n"
 "Language-Team: Bengali INDIA <fedora-trans-bn_in@redhat.com>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "X-Generator: KBabel 1.11.4\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2666
+#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2676
 #, c-format
 msgid "%s %s"
 msgstr ""
@@ -71,11 +71,11 @@ msgid ""
 "input control values>"
 msgstr ""
 
-#: ../src/pulsecore/sink.c:2650
+#: ../src/pulsecore/sink.c:2660
 msgid "Internal Audio"
 msgstr "অভ্যন্তরীণ অডিও"
 
-#: ../src/pulsecore/sink.c:2655
+#: ../src/pulsecore/sink.c:2665
 msgid "Modem"
 msgstr "মোডেম"
 
@@ -326,11 +326,16 @@ msgid "Using state directory %s."
 msgstr "অবস্থাসূচক ডিরেক্টরি %s ব্যবহার করা হচ্ছে।"
 
 #: ../src/daemon/main.c:777
+#, fuzzy, c-format
+msgid "Using modules directory %s."
+msgstr "রান-টাইম ডিরেক্টরি %s ব্যবহার করা হচ্ছে।"
+
+#: ../src/daemon/main.c:779
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "সিস্টেম মোডে চলছে: %s"
 
-#: ../src/daemon/main.c:780
+#: ../src/daemon/main.c:782
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -340,42 +345,42 @@ msgid ""
 "explanation why system mode is usually a bad idea."
 msgstr ""
 
-#: ../src/daemon/main.c:797
+#: ../src/daemon/main.c:799
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() ব্যর্থ।"
 
-#: ../src/daemon/main.c:807
+#: ../src/daemon/main.c:809
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "উচ্চ-রেসোলিউশনের নতুন টাইমার উপলব্ধ রয়েছে! পরীক্ষা করে দেখুন!"
 
-#: ../src/daemon/main.c:809
+#: ../src/daemon/main.c:811
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 msgstr "উচ্চ-রেসোলিউশনের নতুন টাইমার সহ Linux সক্রিয় করা বাঞ্ছনীয়!"
 
-#: ../src/daemon/main.c:827
+#: ../src/daemon/main.c:832
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() ব্যর্থ।"
 
-#: ../src/daemon/main.c:889
+#: ../src/daemon/main.c:892
 msgid "Failed to initialize daemon."
 msgstr "ডেমন আরম্ভ করতে ব্যর্থ।"
 
-#: ../src/daemon/main.c:894
+#: ../src/daemon/main.c:897
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "লোড করা মডিউল বিনা ডেমন আরম্ভ করা হয়েছে এবং কোনো কর্ম সঞ্চালন করা সম্ভব নয়।"
 
-#: ../src/daemon/main.c:911
+#: ../src/daemon/main.c:914
 msgid "Daemon startup complete."
 msgstr "ডেমন আরম্ভ করা হয়েছে।"
 
-#: ../src/daemon/main.c:917
+#: ../src/daemon/main.c:920
 msgid "Daemon shutdown initiated."
 msgstr "ডেমন বন্ধ করার প্রক্রিয়া আরম্ভ করা হয়েছে।"
 
-#: ../src/daemon/main.c:939
+#: ../src/daemon/main.c:942
 msgid "Daemon terminated."
 msgstr "ডেমন বন্ধ করা হয়েছে।"
 
@@ -641,72 +646,72 @@ msgstr ""
 msgid "Path: %s\n"
 msgstr "পাথ: %s\n"
 
-#: ../src/daemon/daemon-conf.c:216
+#: ../src/daemon/daemon-conf.c:232
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
 msgstr "[%s:%u] লগ টার্গেট '%s' বৈধ নয়।"
 
-#: ../src/daemon/daemon-conf.c:232
+#: ../src/daemon/daemon-conf.c:248
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
 msgstr "[%s:%u] লগের স্তর '%s' বৈধ নয়।"
 
-#: ../src/daemon/daemon-conf.c:248
+#: ../src/daemon/daemon-conf.c:264
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
 msgstr "[%s:%u] রি-স্যাম্পেল পদ্ধতি '%s' বৈধ নয়।"
 
-#: ../src/daemon/daemon-conf.c:271
+#: ../src/daemon/daemon-conf.c:287
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
 msgstr "[%s:%u] rlimit '%s' বৈধ নয়।"
 
-#: ../src/daemon/daemon-conf.c:278
+#: ../src/daemon/daemon-conf.c:294
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
 msgstr "[%s:%u] এই প্ল্যাটফর্মে rlimit সমর্থিত নয়।"
 
-#: ../src/daemon/daemon-conf.c:294
+#: ../src/daemon/daemon-conf.c:310
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
 msgstr "[%s:%u] স্যাম্পেলের বিন্যাস '%s' বৈধ নয়।"
 
-#: ../src/daemon/daemon-conf.c:312
+#: ../src/daemon/daemon-conf.c:328
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
 msgstr "[%s:%u] স্যাম্পেলের মাত্রা '%s' বৈধ নয়।"
 
-#: ../src/daemon/daemon-conf.c:336
+#: ../src/daemon/daemon-conf.c:352
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "[%s:%u] স্যাম্পেলের চ্যানেল '%s' বৈধ নয়"
 
-#: ../src/daemon/daemon-conf.c:354
+#: ../src/daemon/daemon-conf.c:370
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
 msgstr "[%s:%u] চ্যানেল ম্যাপ '%s' বৈধ নয়।"
 
-#: ../src/daemon/daemon-conf.c:372
+#: ../src/daemon/daemon-conf.c:388
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
 msgstr "[%s:%u] অংশ সংখ্যা '%s' বৈধ নয়।"
 
-#: ../src/daemon/daemon-conf.c:390
+#: ../src/daemon/daemon-conf.c:406
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
 msgstr "[%s:%u] অংশের মাপ '%s' বৈধ নয়।"
 
-#: ../src/daemon/daemon-conf.c:408
+#: ../src/daemon/daemon-conf.c:424
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] nice স্তর '%s' বৈধ নয়।"
 
-#: ../src/daemon/daemon-conf.c:530
+#: ../src/daemon/daemon-conf.c:546
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "কনফিগারেশন ফাইল খুলতে ব্যর্থ: %s"
 
-#: ../src/daemon/daemon-conf.c:546
+#: ../src/daemon/daemon-conf.c:562
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
@@ -714,7 +719,7 @@ msgstr ""
 "ডিফল্ট চ্যানেল ম্যাপের মধ্যে অন্তর্ভুক্ত চ্যানেলের সংখ্যা ও চ্যানেলের ডিফল্ট সংখ্যার মধ্যে "
 "গরমিল।"
 
-#: ../src/daemon/daemon-conf.c:622
+#: ../src/daemon/daemon-conf.c:638
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### চিহ্নিত কনফিগারেশন ফাইল থেকে পড়া হবে: %s ###\n"
@@ -936,7 +941,7 @@ msgstr "উপরে পিছনে বাঁদিকে"
 msgid "Top Rear Right"
 msgstr "উপরে পিছনে ডানদিকে"
 
-#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:171
+#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
 #: ../src/pulse/volume.c:285 ../src/pulse/volume.c:311
 #: ../src/pulse/volume.c:331 ../src/pulse/volume.c:361
 msgid "(invalid)"
@@ -1066,27 +1071,27 @@ msgstr "অনুপস্থিত বাস্তবায়ন"
 msgid "Client forked"
 msgstr "ক্লায়েন্ট ফর্ক করা হয়েছে"
 
-#: ../src/pulse/sample.c:173
+#: ../src/pulse/sample.c:172
 #, c-format
 msgid "%s %uch %uHz"
 msgstr "%s %uch %uHz"
 
-#: ../src/pulse/sample.c:185
+#: ../src/pulse/sample.c:184
 #, c-format
 msgid "%0.1f GiB"
 msgstr "%0.1f গিবিবাইট"
 
-#: ../src/pulse/sample.c:187
+#: ../src/pulse/sample.c:186
 #, c-format
 msgid "%0.1f MiB"
 msgstr "%0.1f মিবিবাইট"
 
-#: ../src/pulse/sample.c:189
+#: ../src/pulse/sample.c:188
 #, c-format
 msgid "%0.1f KiB"
 msgstr "%0.1f কিবিবাইট"
 
-#: ../src/pulse/sample.c:191
+#: ../src/pulse/sample.c:190
 #, c-format
 msgid "%u B"
 msgstr "%u বাইট"
@@ -2239,7 +2244,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr "autospawn লক প্রয়োগ করতে ব্যর্থ।"
 
-#: ../src/modules/alsa/alsa-sink.c:451 ../src/modules/alsa/alsa-sink.c:608
+#: ../src/modules/alsa/alsa-sink.c:526 ../src/modules/alsa/alsa-sink.c:684
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2256,7 +2261,7 @@ msgstr ""
 "POLLOUT set দ্বারা চেতাবনী সৃষ্টি হয়েছে -- পরবর্তী snd_pcm_avail() থেকে 0 অথবা < "
 "min_avail-র থেকে কম অন্য একটি মান প্রাপ্ত হয়েছে।"
 
-#: ../src/modules/alsa/alsa-source.c:431 ../src/modules/alsa/alsa-source.c:580
+#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "

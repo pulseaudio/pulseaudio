@@ -60,6 +60,7 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/thread.h>
+#include <pulsecore/time-smoother.h>
 
 #include "module-solaris-symdef.h"
 
@@ -110,6 +111,8 @@ struct userdata {
     uint32_t prev_playback_samples, prev_record_samples;
 
     int32_t minimum_request;
+
+    pa_smoother *smoother;
 };
 
 static const char* const valid_modargs[] = {
@@ -133,6 +136,9 @@ static const char* const valid_modargs[] = {
 #define MAX_RENDER_HZ   (300)
 /* This render rate limit imposes a minimum latency, but without it we waste too much CPU time. */
 
+#define MAX_BUFFER_SIZE (128 * 1024)
+/* An attempt to buffer more than 128 KB causes write() to fail with errno == EAGAIN. */
+
 static uint64_t get_playback_buffered_bytes(struct userdata *u) {
     audio_info_t info;
     uint64_t played_bytes;
@@ -145,7 +151,12 @@ static uint64_t get_playback_buffered_bytes(struct userdata *u) {
 
     /* Handle wrap-around of the device's sample counter, which is a uint_32. */
     if (u->prev_playback_samples > info.play.samples) {
-        /* Unfortunately info.play.samples can sometimes go backwards, even before it wraps! */
+        /*
+         * Unfortunately info.play.samples can sometimes go backwards, even before it wraps!
+         * The bug seems to be absent on Solaris x86 nv117 with audio810 driver, at least on this (UP) machine.
+         * The bug is present on a different (SMP) machine running Solaris x86 nv103 with audioens driver.
+         * An earlier revision of this file mentions the same bug independently (unknown configuration).
+         */
         if (u->prev_playback_samples + info.play.samples < 240000) {
             ++u->play_samples_msw;
         } else {
@@ -154,6 +165,8 @@ static uint64_t get_playback_buffered_bytes(struct userdata *u) {
     }
     u->prev_playback_samples = info.play.samples;
     played_bytes = (((uint64_t)u->play_samples_msw << 32) + info.play.samples) * u->frame_size;
+
+    pa_smoother_put(u->smoother, pa_rtclock_now(), pa_bytes_to_usec(played_bytes, &u->sink->sample_spec));
 
     return u->written_bytes - played_bytes;
 }
@@ -387,6 +400,8 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
                     pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
 
+                    pa_smoother_pause(u->smoother, pa_rtclock_now());
+
                     if (!u->source || u->source_suspended) {
                         if (suspend(u) < 0)
                             return -1;
@@ -398,6 +413,8 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 case PA_SINK_RUNNING:
 
                     if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
+                        pa_smoother_resume(u->smoother, pa_rtclock_now(), TRUE);
+
                         if (!u->source || u->source_suspended) {
                             if (unsuspend(u) < 0)
                                 return -1;
@@ -479,7 +496,7 @@ static void sink_set_volume(pa_sink *s) {
     if (u->fd >= 0) {
         AUDIO_INITINFO(&info);
 
-        info.play.gain = pa_cvolume_max(&s->virtual_volume) * AUDIO_MAX_GAIN / PA_VOLUME_NORM;
+        info.play.gain = pa_cvolume_max(&s->real_volume) * AUDIO_MAX_GAIN / PA_VOLUME_NORM;
         assert(info.play.gain <= AUDIO_MAX_GAIN);
 
         if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0) {
@@ -501,8 +518,7 @@ static void sink_get_volume(pa_sink *s) {
         if (ioctl(u->fd, AUDIO_GETINFO, &info) < 0)
             pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
         else
-            pa_cvolume_set(&s->virtual_volume, s->sample_spec.channels,
-                info.play.gain * PA_VOLUME_NORM / AUDIO_MAX_GAIN);
+            pa_cvolume_set(&s->real_volume, s->sample_spec.channels, info.play.gain * PA_VOLUME_NORM / AUDIO_MAX_GAIN);
     }
 }
 
@@ -515,7 +531,7 @@ static void source_set_volume(pa_source *s) {
     if (u->fd >= 0) {
         AUDIO_INITINFO(&info);
 
-        info.play.gain = pa_cvolume_max(&s->virtual_volume) * AUDIO_MAX_GAIN / PA_VOLUME_NORM;
+        info.play.gain = pa_cvolume_max(&s->volume) * AUDIO_MAX_GAIN / PA_VOLUME_NORM;
         assert(info.play.gain <= AUDIO_MAX_GAIN);
 
         if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0) {
@@ -537,8 +553,7 @@ static void source_get_volume(pa_source *s) {
         if (ioctl(u->fd, AUDIO_GETINFO, &info) < 0)
             pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
         else
-            pa_cvolume_set(&s->virtual_volume, s->sample_spec.channels,
-                info.play.gain * PA_VOLUME_NORM / AUDIO_MAX_GAIN);
+            pa_cvolume_set(&s->volume, s->sample_spec.channels, info.play.gain * PA_VOLUME_NORM / AUDIO_MAX_GAIN);
     }
 }
 
@@ -606,11 +621,13 @@ static void thread_func(void *userdata) {
 
     pa_thread_mq_install(&u->thread_mq);
 
+    pa_smoother_set_time_offset(u->smoother, pa_rtclock_now());
+
     for (;;) {
         /* Render some data and write it to the dsp */
 
         if (u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
-            pa_usec_t xtime0;
+            pa_usec_t xtime0, ysleep_interval, xsleep_interval;
             uint64_t buffered_bytes;
 
             if (u->sink->thread_info.rewind_requested)
@@ -629,12 +646,15 @@ static void thread_func(void *userdata) {
                 info.play.error = 0;
                 if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0)
                     pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
+
+                pa_smoother_reset(u->smoother, pa_rtclock_now(), TRUE);
             }
 
             for (;;) {
                 void *p;
                 ssize_t w;
                 size_t len;
+                int write_type = 1;
 
                 /*
                  * Since we cannot modify the size of the output buffer we fake it
@@ -652,38 +672,31 @@ static void thread_func(void *userdata) {
                     break;
 
                 if (u->memchunk.length < len)
-                    pa_sink_render(u->sink, u->sink->thread_info.max_request, &u->memchunk);
+                    pa_sink_render(u->sink, len - u->memchunk.length, &u->memchunk);
+
+                len = PA_MIN(u->memchunk.length, len);
 
                 p = pa_memblock_acquire(u->memchunk.memblock);
-                w = pa_write(u->fd, (uint8_t*) p + u->memchunk.index, u->memchunk.length, NULL);
+                w = pa_write(u->fd, (uint8_t*) p + u->memchunk.index, len, &write_type);
                 pa_memblock_release(u->memchunk.memblock);
 
                 if (w <= 0) {
-                    switch (errno) {
-                        case EINTR:
-                            continue;
-                        case EAGAIN:
-                            /* If the buffer_size is too big, we get EAGAIN. Avoiding that limit by trial and error
-                             * is not ideal, but I don't know how to get the system to tell me what the limit is.
-                             */
-                            u->buffer_size = u->buffer_size * 18 / 25;
-                            u->buffer_size -= u->buffer_size % u->frame_size;
-                            u->buffer_size = PA_MAX(u->buffer_size, 2 * u->minimum_request);
-                            pa_sink_set_max_request_within_thread(u->sink, u->buffer_size);
-                            pa_sink_set_max_rewind_within_thread(u->sink, u->buffer_size);
-                            pa_log("EAGAIN. Buffer size is now %u bytes (%llu buffered)", u->buffer_size, buffered_bytes);
-                            break;
-                        default:
-                            pa_log("Failed to write data to DSP: %s", pa_cstrerror(errno));
-                            goto fail;
+                    if (errno == EINTR) {
+                        continue;
+                    } else if (errno == EAGAIN) {
+                        /* We may have realtime priority so yield the CPU to ensure that fd can become writable again. */
+                        pa_log_debug("EAGAIN with %llu bytes buffered.", buffered_bytes);
+                        break;
+                    } else {
+                        pa_log("Failed to write data to DSP: %s", pa_cstrerror(errno));
+                        goto fail;
                     }
                 } else {
                     pa_assert(w % u->frame_size == 0);
 
                     u->written_bytes += w;
-                    u->memchunk.length -= w;
-
                     u->memchunk.index += w;
+                    u->memchunk.length -= w;
                     if (u->memchunk.length <= 0) {
                         pa_memblock_unref(u->memchunk.memblock);
                         pa_memchunk_reset(&u->memchunk);
@@ -691,7 +704,9 @@ static void thread_func(void *userdata) {
                 }
             }
 
-            pa_rtpoll_set_timer_absolute(u->rtpoll, xtime0 + pa_bytes_to_usec(buffered_bytes / 2, &u->sink->sample_spec));
+            ysleep_interval = pa_bytes_to_usec(buffered_bytes / 2, &u->sink->sample_spec);
+            xsleep_interval = pa_smoother_translate(u->smoother, xtime0, ysleep_interval);
+            pa_rtpoll_set_timer_absolute(u->rtpoll, xtime0 + PA_MIN(xsleep_interval, ysleep_interval));
         } else
             pa_rtpoll_set_timer_disabled(u->rtpoll);
 
@@ -797,7 +812,7 @@ static void sig_callback(pa_mainloop_api *api, pa_signal_event*e, int sig, void 
     pa_log_debug("caught signal");
 
     if (u->sink) {
-        pa_sink_get_volume(u->sink, TRUE, FALSE);
+        pa_sink_get_volume(u->sink, TRUE);
         pa_sink_get_mute(u->sink, TRUE);
     }
 
@@ -812,7 +827,7 @@ int pa__init(pa_module *m) {
     pa_channel_map map;
     pa_modargs *ma = NULL;
     uint32_t buffer_length_msec;
-    int fd;
+    int fd = -1;
     pa_sink_new_data sink_new_data;
     pa_source_new_data source_new_data;
     char const *name;
@@ -838,6 +853,9 @@ int pa__init(pa_module *m) {
 
     u = pa_xnew0(struct userdata, 1);
 
+    if (!(u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC * 2, TRUE, TRUE, 10, pa_rtclock_now(), TRUE)))
+        goto fail;
+
     /*
      * For a process (or several processes) to use the same audio device for both
      * record and playback at the same time, the device's mixer must be enabled.
@@ -861,7 +879,13 @@ int pa__init(pa_module *m) {
     }
     u->buffer_size = pa_usec_to_bytes(1000 * buffer_length_msec, &ss);
     if (u->buffer_size < 2 * u->minimum_request) {
-        pa_log("supplied buffer size argument is too small");
+        pa_log("buffer_length argument cannot be smaller than %u",
+               (unsigned)(pa_bytes_to_usec(2 * u->minimum_request, &ss) / 1000));
+        goto fail;
+    }
+    if (u->buffer_size > MAX_BUFFER_SIZE) {
+        pa_log("buffer_length argument cannot be greater than %u",
+               (unsigned)(pa_bytes_to_usec(MAX_BUFFER_SIZE, &ss) / 1000));
         goto fail;
     }
 
@@ -924,6 +948,7 @@ int pa__init(pa_module *m) {
 
         pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
         pa_source_set_rtpoll(u->source, u->rtpoll);
+        pa_source_set_fixed_latency(u->source, pa_bytes_to_usec(u->buffer_size, &u->source->sample_spec));
 
         u->source->get_volume = source_get_volume;
         u->source->set_volume = source_set_volume;
@@ -966,15 +991,15 @@ int pa__init(pa_module *m) {
 
         pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
         pa_sink_set_rtpoll(u->sink, u->rtpoll);
+        pa_sink_set_fixed_latency(u->sink, pa_bytes_to_usec(u->buffer_size, &u->sink->sample_spec));
+        pa_sink_set_max_request(u->sink, u->buffer_size);
+        pa_sink_set_max_rewind(u->sink, u->buffer_size);
 
         u->sink->get_volume = sink_get_volume;
         u->sink->set_volume = sink_set_volume;
         u->sink->get_mute = sink_get_mute;
         u->sink->set_mute = sink_set_mute;
         u->sink->refresh_volume = u->sink->refresh_muted = TRUE;
-
-        pa_sink_set_max_request(u->sink, u->buffer_size);
-        pa_sink_set_max_rewind(u->sink, u->buffer_size);
     } else
         u->sink = NULL;
 
@@ -1074,6 +1099,9 @@ void pa__done(pa_module *m) {
 
     if (u->fd >= 0)
         close(u->fd);
+
+    if (u->smoother)
+        pa_smoother_free(u->smoother);
 
     pa_xfree(u->device_name);
 

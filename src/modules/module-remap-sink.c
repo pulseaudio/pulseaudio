@@ -302,8 +302,11 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    pa_sink_set_asyncmsgq(u->sink, dest->asyncmsgq);
-    pa_sink_update_flags(u->sink, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY, dest->flags);
+    if (dest) {
+        pa_sink_set_asyncmsgq(u->sink, dest->asyncmsgq);
+        pa_sink_update_flags(u->sink, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY, dest->flags);
+    } else
+        pa_sink_set_asyncmsgq(u->sink, NULL);
 }
 
 int pa__init(pa_module*m) {

@@ -52,7 +52,7 @@
 #define ABSOLUTE_MAX_LATENCY (10*PA_USEC_PER_SEC)
 #define DEFAULT_FIXED_LATENCY (250*PA_USEC_PER_MSEC)
 
-static PA_DEFINE_CHECK_TYPE(pa_sink, pa_msgobject);
+PA_DEFINE_PUBLIC_CLASS(pa_sink, pa_msgobject);
 
 static void sink_free(pa_object *s);
 
@@ -1380,9 +1380,14 @@ static void propagate_reference_volume(pa_sink *s) {
         pa_cvolume_remap(&remapped, &s->channel_map, &i->channel_map);
         pa_sw_cvolume_multiply(&i->volume, &remapped, &i->reference_ratio);
 
-        /* The reference volume changed, let's tell people so */
-        if (!pa_cvolume_equal(&old_volume, &i->volume))
+        /* The volume changed, let's tell people so */
+        if (!pa_cvolume_equal(&old_volume, &i->volume)) {
+
+            if (i->volume_changed)
+                i->volume_changed(i);
+
             pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+        }
     }
 }
 
@@ -1522,8 +1527,13 @@ static void propagate_real_volume(pa_sink *s, const pa_cvolume *old_real_volume)
             pa_sw_cvolume_multiply(&i->volume, &remapped, &i->reference_ratio);
 
             /* Notify if something changed */
-            if (!pa_cvolume_equal(&old_volume, &i->volume))
+            if (!pa_cvolume_equal(&old_volume, &i->volume)) {
+
+                if (i->volume_changed)
+                    i->volume_changed(i);
+
                 pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+            }
         }
     }
 
