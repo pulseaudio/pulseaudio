@@ -58,7 +58,7 @@ PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
         "sink_properties=<properties for the sink> "
         "slaves=<slave sinks> "
-        "adjust_time=<seconds> "
+        "adjust_time=<how often to readjust rates in s> "
         "resample_method=<method> "
         "format=<sample format> "
         "rate=<sample rate> "
@@ -69,7 +69,7 @@ PA_MODULE_USAGE(
 
 #define MEMBLOCKQ_MAXLENGTH (1024*1024*16)
 
-#define DEFAULT_ADJUST_TIME 10
+#define DEFAULT_ADJUST_TIME_USEC (10*PA_USEC_PER_SEC)
 
 #define BLOCK_USEC (PA_USEC_PER_MSEC * 200)
 
@@ -91,7 +91,6 @@ struct output {
 
     pa_sink *sink;
     pa_sink_input *sink_input;
-
     pa_bool_t ignore_state_change;
 
     pa_asyncmsgq *inq,    /* Message queue from the sink thread to this sink input */
@@ -121,7 +120,7 @@ struct userdata {
     pa_rtpoll *rtpoll;
 
     pa_time_event *time_event;
-    uint32_t adjust_time;
+    pa_usec_t adjust_time;
 
     pa_bool_t automatic;
     pa_bool_t auto_desc;
@@ -221,9 +220,9 @@ static void adjust_rates(struct userdata *u) {
             continue;
 
         if (o->total_latency < target_latency)
-            r -= (uint32_t) ((((double) (target_latency - o->total_latency))/(double)u->adjust_time)*(double)r/PA_USEC_PER_SEC);
+            r -= (uint32_t) ((((double) (target_latency - o->total_latency))/(double)u->adjust_time)*(double)r);
         else if (o->total_latency > target_latency)
-            r += (uint32_t) ((((double) (o->total_latency - target_latency))/(double)u->adjust_time)*(double)r/PA_USEC_PER_SEC);
+            r += (uint32_t) ((((double) (o->total_latency - target_latency))/(double)u->adjust_time)*(double)r);
 
         if (r < (uint32_t) (base_rate*0.9) || r > (uint32_t) (base_rate*1.1)) {
             pa_log_warn("[%s] sample rates too different, not adjusting (%u vs. %u).", o->sink_input->sink->name, base_rate, r);
@@ -246,7 +245,7 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
 
     adjust_rates(u);
 
-    pa_core_rttime_restart(u->core, e, pa_rtclock_now() + u->adjust_time * PA_USEC_PER_SEC);
+    pa_core_rttime_restart(u->core, e, pa_rtclock_now() + u->adjust_time);
 }
 
 static void process_render_null(struct userdata *u, pa_usec_t now) {
@@ -1105,6 +1104,7 @@ int pa__init(pa_module*m) {
     struct output *o;
     uint32_t idx;
     pa_sink_new_data data;
+    uint32_t adjust_time_sec;
 
     pa_assert(m);
 
@@ -1123,16 +1123,10 @@ int pa__init(pa_module*m) {
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
-    u->adjust_time = DEFAULT_ADJUST_TIME;
     u->rtpoll = pa_rtpoll_new();
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll);
     u->resample_method = resample_method;
     u->outputs = pa_idxset_new(NULL, NULL);
-    u->sink_put_slot = u->sink_unlink_slot = u->sink_state_changed_slot = NULL;
-    PA_LLIST_HEAD_INIT(struct output, u->thread_info.active_outputs);
-    pa_atomic_store(&u->thread_info.running, FALSE);
-    u->thread_info.in_null_mode = FALSE;
-    u->thread_info.counter = 0;
     u->thread_info.smoother = pa_smoother_new(
             PA_USEC_PER_SEC,
             PA_USEC_PER_SEC*2,
@@ -1142,10 +1136,16 @@ int pa__init(pa_module*m) {
             0,
             FALSE);
 
-    if (pa_modargs_get_value_u32(ma, "adjust_time", &u->adjust_time) < 0) {
+    adjust_time_sec = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
+    if (pa_modargs_get_value_u32(ma, "adjust_time", &adjust_time_sec) < 0) {
         pa_log("Failed to parse adjust_time value");
         goto fail;
     }
+
+    if (adjust_time_sec != DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC)
+        u->adjust_time = adjust_time_sec * PA_USEC_PER_SEC;
+    else
+        u->adjust_time = DEFAULT_ADJUST_TIME_USEC;
 
     slaves = pa_modargs_get_value(ma, "slaves", NULL);
     u->automatic = !slaves;
@@ -1315,7 +1315,7 @@ int pa__init(pa_module*m) {
         output_verify(o);
 
     if (u->adjust_time > 0)
-        u->time_event = pa_core_rttime_new(m->core, pa_rtclock_now() + u->adjust_time * PA_USEC_PER_SEC, time_callback, u);
+        u->time_event = pa_core_rttime_new(m->core, pa_rtclock_now() + u->adjust_time, time_callback, u);
 
     pa_modargs_free(ma);
 
