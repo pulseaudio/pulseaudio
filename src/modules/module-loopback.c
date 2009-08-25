@@ -322,6 +322,17 @@ static void source_output_kill_cb(pa_source_output *o) {
     pa_module_unload_request(u->module, TRUE);
 }
 
+/* Called from main thread */
+static pa_bool_t source_output_may_move_to_cb(pa_source_output *o, pa_source *dest) {
+    struct userdata *u;
+
+    pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
+    pa_assert_se(u = o->userdata);
+
+    return dest != u->sink_input->sink->monitor_source;
+}
+
 /* Called from output thread context */
 static void update_min_memblockq_length(struct userdata *u) {
     size_t length;
@@ -539,6 +550,20 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_module_unload_request(u->module, TRUE);
 }
 
+/* Called from main thread */
+static pa_bool_t sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
+    pa_assert_se(u = i->userdata);
+
+    if (!u->source_output->source->monitor_of)
+        return TRUE;
+
+    return dest != u->source_output->source->monitor_of;
+}
+
 int pa__init(pa_module *m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
@@ -621,6 +646,7 @@ int pa__init(pa_module *m) {
     u->sink_input->detach = sink_input_detach_cb;
     u->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;
     u->sink_input->update_max_request = sink_input_update_max_request_cb;
+    u->sink_input->may_move_to = sink_input_may_move_to_cb;
     u->sink_input->userdata = u;
 
     pa_sink_input_set_requested_latency(u->sink_input, u->latency/3);
@@ -647,6 +673,7 @@ int pa__init(pa_module *m) {
     u->source_output->attach = source_output_attach_cb;
     u->source_output->detach = source_output_detach_cb;
     u->source_output->state_change = source_output_state_change_cb;
+    u->source_output->may_move_to = source_output_may_move_to_cb;
     u->source_output->userdata = u;
 
     pa_source_output_set_requested_latency(u->source_output, u->latency/3);
