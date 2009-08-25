@@ -1010,8 +1010,8 @@ modlibexec_LTLIBRARIES += \
 		module-tunnel-source.la \
 		module-position-event-sounds.la \
 		module-augment-properties.la \
-		module-cork-music-on-phone.la
-
+		module-cork-music-on-phone.la \
+		module-loopback.la
 
 # See comment at librtp.la above
 if !OS_IS_WIN32
@@ -1249,7 +1249,8 @@ SYMDEF_FILES = \
 		modules/module-position-event-sounds-symdef.h \
 		modules/module-augment-properties-symdef.h \
 		modules/module-cork-music-on-phone-symdef.h \
-		modules/module-console-kit-symdef.h
+		modules/module-console-kit-symdef.h \
+		modules/module-loopback-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
@@ -1390,6 +1391,10 @@ module_tunnel_sink_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la
 module_tunnel_source_la_SOURCES = modules/module-tunnel.c
 module_tunnel_source_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_tunnel_source_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+
+module_loopback_la_SOURCES = modules/module-loopback.c
+module_loopback_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_loopback_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
 # X11
 
