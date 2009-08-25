@@ -157,6 +157,17 @@ static inline size_t PA_PAGE_ALIGN(size_t l) {
 #define PA_ROUND_DOWN(a, b) (((a) / (b)) * (b))
 #endif
 
+#ifdef __GNUC__
+#define PA_CLIP_SUB(a, b)                       \
+    __extension__ ({                            \
+            typeof(a) _a = (a);                 \
+            typeof(b) _b = (b);                 \
+            _a > _b ? _a - _b : 0;              \
+        })
+#else
+#define PA_CLIP_SUB(a, b) ((a) > (b) ? (a) - (b) : 0)
+#endif
+
 /* This type is not intended to be used in exported APIs! Use classic "int" there! */
 #ifdef HAVE_STD_BOOL
 typedef _Bool pa_bool_t;
