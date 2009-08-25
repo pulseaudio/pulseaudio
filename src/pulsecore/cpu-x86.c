@@ -115,8 +115,10 @@ void pa_cpu_init_x86 (void) {
         pa_remap_func_init_mmx (flags);
     }
 
-    if (flags & PA_CPU_X86_SSE)
+    if (flags & PA_CPU_X86_SSE) {
         pa_volume_func_init_sse (flags);
+        pa_remap_func_init_sse (flags);
+    }
 
 #endif /* defined (__i386__) || defined (__amd64__) */
 }
