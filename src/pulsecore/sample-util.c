@@ -137,7 +137,7 @@ static void calc_linear_float_volume(float linear[], const pa_cvolume *volume) {
 
 static void calc_linear_integer_stream_volumes(pa_mix_info streams[], unsigned nstreams, const pa_cvolume *volume, const pa_sample_spec *spec) {
     unsigned k, channel;
-    float linear[PA_CHANNELS_MAX];
+    float linear[PA_CHANNELS_MAX + VOLUME_PADDING];
 
     pa_assert(streams);
     pa_assert(spec);
@@ -156,7 +156,7 @@ static void calc_linear_integer_stream_volumes(pa_mix_info streams[], unsigned n
 
 static void calc_linear_float_stream_volumes(pa_mix_info streams[], unsigned nstreams, const pa_cvolume *volume, const pa_sample_spec *spec) {
     unsigned k, channel;
-    float linear[PA_CHANNELS_MAX];
+    float linear[PA_CHANNELS_MAX + VOLUME_PADDING];
 
     pa_assert(streams);
     pa_assert(spec);
