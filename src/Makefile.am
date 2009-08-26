@@ -837,8 +837,9 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/resampler.c pulsecore/resampler.h \
 		pulsecore/rtpoll.c pulsecore/rtpoll.h \
 		pulsecore/sample-util.c pulsecore/sample-util.h \
-		pulsecore/cpu-arm.c pulsecore/cpu-x86.c \
-		pulsecore/svolume_c.c pulsecore/svolume_arm.c\
+		pulsecore/cpu-arm.c pulsecore/cpu-arm.h \
+		pulsecore/cpu-x86.c pulsecore/cpu-x86.h \
+		pulsecore/svolume_c.c pulsecore/svolume_arm.c \
 		pulsecore/svolume_mmx.c pulsecore/svolume_sse.c \
 		pulsecore/sconv-s16be.c pulsecore/sconv-s16be.h \
 		pulsecore/sconv-s16le.c pulsecore/sconv-s16le.h \
@@ -1012,8 +1013,8 @@ modlibexec_LTLIBRARIES += \
 		module-tunnel-source.la \
 		module-position-event-sounds.la \
 		module-augment-properties.la \
-		module-cork-music-on-phone.la
-
+		module-cork-music-on-phone.la \
+		module-loopback.la
 
 # See comment at librtp.la above
 if !OS_IS_WIN32
@@ -1253,7 +1254,8 @@ SYMDEF_FILES = \
 		modules/module-augment-properties-symdef.h \
 		modules/module-cork-music-on-phone-symdef.h \
 		modules/module-console-kit-symdef.h \
-		modules/dbus/module-dbus-protocol-symdef.h
+		modules/dbus/module-dbus-protocol-symdef.h \
+		modules/module-loopback-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
@@ -1412,6 +1414,10 @@ module_tunnel_sink_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la
 module_tunnel_source_la_SOURCES = modules/module-tunnel.c
 module_tunnel_source_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_tunnel_source_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+
+module_loopback_la_SOURCES = modules/module-loopback.c
+module_loopback_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_loopback_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
 # X11
 

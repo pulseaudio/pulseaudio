@@ -95,6 +95,7 @@
                 "4:                             \n\t"   \
                 " emms                          \n\t"
 
+#if defined (__i386__) || defined (__amd64__)
 static void remap_mono_to_stereo_mmx (pa_remap_t *m, void *dst, const void *src, unsigned n) {
     pa_reg_x86 temp;
 
@@ -138,6 +139,7 @@ static void init_remap_mmx (pa_remap_t *m) {
         pa_log_info("Using MMX mono to stereo remapping");
     }
 }
+#endif /* defined (__i386__) || defined (__amd64__) */
 
 void pa_remap_func_init_mmx (pa_cpu_x86_flag_t flags) {
 #if defined (__i386__) || defined (__amd64__)

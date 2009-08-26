@@ -600,6 +600,10 @@ static void process_rewind(struct userdata *u) {
         pa_log_debug("Requested to rewind %lu bytes.", (unsigned long) rewind_nbytes);
         rewind_nbytes = PA_MIN(u->memchunk.length, rewind_nbytes);
         u->memchunk.length -= rewind_nbytes;
+        if (u->memchunk.length <= 0 && u->memchunk.memblock) {
+            pa_memblock_unref(u->memchunk.memblock);
+            pa_memchunk_reset(&u->memchunk);
+        }
         pa_log_debug("Rewound %lu bytes.", (unsigned long) rewind_nbytes);
     }
 
@@ -671,8 +675,8 @@ static void thread_func(void *userdata) {
                 if (len < (size_t) u->minimum_request)
                     break;
 
-                if (u->memchunk.length < len)
-                    pa_sink_render(u->sink, len - u->memchunk.length, &u->memchunk);
+                if (!u->memchunk.length)
+                    pa_sink_render(u->sink, u->sink->thread_info.max_request, &u->memchunk);
 
                 len = PA_MIN(u->memchunk.length, len);
 

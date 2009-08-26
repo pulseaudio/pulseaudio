@@ -1,7 +1,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2008 Joao Paulo Rechi Vita
+  Copyright 2008-2009 Joao Paulo Rechi Vita
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -95,6 +95,7 @@ static pa_bluetooth_device* device_new(const char *path) {
 
     d->audio_state = PA_BT_AUDIO_STATE_INVALID;
     d->audio_sink_state = PA_BT_AUDIO_STATE_INVALID;
+    d->audio_source_state = PA_BT_AUDIO_STATE_INVALID;
     d->headset_state = PA_BT_AUDIO_STATE_INVALID;
 
     return d;
@@ -124,6 +125,7 @@ static pa_bool_t device_is_audio(pa_bluetooth_device *d) {
         d->device_info_valid &&
         (d->audio_state != PA_BT_AUDIO_STATE_INVALID &&
          (d->audio_sink_state != PA_BT_AUDIO_STATE_INVALID ||
+          d->audio_source_state != PA_BT_AUDIO_STATE_INVALID ||
           d->headset_state != PA_BT_AUDIO_STATE_INVALID));
 }
 
@@ -233,6 +235,9 @@ static int parse_device_property(pa_bluetooth_discovery *y, pa_bluetooth_device 
                     } else if (strcasecmp(A2DP_SINK_UUID, value) == 0) {
                         pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.AudioSink", "GetProperties"));
                         send_and_add_to_pending(y, d, m, get_properties_reply);
+                    } else if (strcasecmp(A2DP_SOURCE_UUID, value) == 0) {
+                        pa_assert_se(m = dbus_message_new_method_call("org.bluez", d->path, "org.bluez.AudioSource", "GetProperties"));
+                        send_and_add_to_pending(y, d, m, get_properties_reply);
                     }
 
                     /* this might eventually be racy if .Audio is not there yet, but the State change will come anyway later, so this call is for cold-detection mostly */
@@ -278,7 +283,7 @@ static int parse_audio_property(pa_bluetooth_discovery *u, int *state, DBusMessa
 
     dbus_message_iter_recurse(i, &variant_i);
 
-/*     pa_log_debug("Parsing property org.bluez.{Audio|AudioSink|Headset}.%s", key); */
+/*     pa_log_debug("Parsing property org.bluez.{Audio|AudioSink|AudioSource|Headset}.%s", key); */
 
     switch (dbus_message_iter_get_arg_type(&variant_i)) {
 
@@ -390,6 +395,9 @@ static void get_properties_reply(DBusPendingCall *pending, void *userdata) {
             }  else if (dbus_message_has_interface(p->message, "org.bluez.AudioSink")) {
                 if (parse_audio_property(y, &d->audio_sink_state, &dict_i) < 0)
                     goto finish;
+            }  else if (dbus_message_has_interface(p->message, "org.bluez.AudioSource")) {
+                if (parse_audio_property(y, &d->audio_source_state, &dict_i) < 0)
+                    goto finish;
             }
         }
 
@@ -440,8 +448,8 @@ static void found_device(pa_bluetooth_discovery *y, const char* path) {
     pa_assert_se(m = dbus_message_new_method_call("org.bluez", path, "org.bluez.Device", "GetProperties"));
     send_and_add_to_pending(y, d, m, get_properties_reply);
 
-    /* Before we read the other properties (Audio, AudioSink, Headset) we wait
-     * that the UUID is read */
+    /* Before we read the other properties (Audio, AudioSink, AudioSource,
+     * Headset) we wait that the UUID is read */
 }
 
 static void list_devices_reply(DBusPendingCall *pending, void *userdata) {
@@ -616,6 +624,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
     } else if (dbus_message_is_signal(m, "org.bluez.Audio", "PropertyChanged") ||
                dbus_message_is_signal(m, "org.bluez.Headset", "PropertyChanged") ||
                dbus_message_is_signal(m, "org.bluez.AudioSink", "PropertyChanged") ||
+               dbus_message_is_signal(m, "org.bluez.AudioSource", "PropertyChanged") ||
                dbus_message_is_signal(m, "org.bluez.Device", "PropertyChanged")) {
 
         pa_bluetooth_device *d;
@@ -642,6 +651,9 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
             }  else if (dbus_message_has_interface(m, "org.bluez.AudioSink")) {
                 if (parse_audio_property(y, &d->audio_sink_state, &arg_i) < 0)
+                    goto fail;
+            }  else if (dbus_message_has_interface(m, "org.bluez.AudioSource")) {
+                if (parse_audio_property(y, &d->audio_source_state, &arg_i) < 0)
                     goto fail;
             }
 
@@ -765,7 +777,8 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c) {
                 "type='signal',sender='org.bluez',interface='org.bluez.Device',member='PropertyChanged'",
                 "type='signal',sender='org.bluez',interface='org.bluez.Audio',member='PropertyChanged'",
                 "type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged'",
-                "type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged'", NULL) < 0) {
+                "type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged'",
+                "type='signal',sender='org.bluez',interface='org.bluez.AudioSource',member='PropertyChanged'", NULL) < 0) {
         pa_log("Failed to add D-Bus matches: %s", err.message);
         goto fail;
     }
@@ -817,7 +830,8 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
                                "type='signal',sender='org.bluez',interface='org.bluez.Device',member='PropertyChanged'",
                                "type='signal',sender='org.bluez',interface='org.bluez.Audio',member='PropertyChanged'",
                                "type='signal',sender='org.bluez',interface='org.bluez.Headset',member='PropertyChanged'",
-                               "type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged'", NULL);
+                               "type='signal',sender='org.bluez',interface='org.bluez.AudioSink',member='PropertyChanged'",
+                               "type='signal',sender='org.bluez',interface='org.bluez.AudioSource',member='PropertyChanged'", NULL);
 
         dbus_connection_remove_filter(pa_dbus_connection_get(y->connection), filter_cb, y);
 
