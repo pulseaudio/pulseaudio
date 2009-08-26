@@ -169,7 +169,7 @@ static const char *command_names[PA_COMMAND_MAX] = {
     /* Supported since protocol v14 (0.9.12) */
     [PA_COMMAND_EXTENSION] = "EXTENSION",
 
-
+    /* Supported since protocol v15 (0.9.15) */
     [PA_COMMAND_GET_CARD_INFO] = "GET_CARD_INFO",
     [PA_COMMAND_GET_CARD_INFO_LIST] = "GET_CARD_INFO_LIST",
     [PA_COMMAND_SET_CARD_PROFILE] = "SET_CARD_PROFILE",
@@ -180,7 +180,11 @@ static const char *command_names[PA_COMMAND_MAX] = {
 
     /* SERVER->CLIENT */
     [PA_COMMAND_PLAYBACK_BUFFER_ATTR_CHANGED] = "PLAYBACK_BUFFER_ATTR_CHANGED",
-    [PA_COMMAND_RECORD_BUFFER_ATTR_CHANGED] = "RECORD_BUFFER_ATTR_CHANGED"
+    [PA_COMMAND_RECORD_BUFFER_ATTR_CHANGED] = "RECORD_BUFFER_ATTR_CHANGED",
+
+    /* Supported since protocol v16 (0.9.16) */
+    [PA_COMMAND_SET_SINK_PORT] = "SET_SINK_PORT",
+    [PA_COMMAND_SET_SOURCE_PORT] = "SET_SOURCE_PORT"
 };
 
 #endif
