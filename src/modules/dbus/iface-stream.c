@@ -786,10 +786,16 @@ static pa_hook_result_t send_event_cb(void *hook_data, void *call_data, void *sl
     if (s->type == STREAM_TYPE_PLAYBACK) {
         pa_sink_input_send_event_hook_data *data = call_data;
 
+        if (data->sink_input != s->sink_input)
+            return PA_HOOK_OK;
+
         name = data->event;
         property_list = data->data;
     } else {
         pa_source_output_send_event_hook_data *data = call_data;
+
+        if (data->source_output != s->source_output)
+            return PA_HOOK_OK;
 
         name = data->event;
         property_list = data->data;
