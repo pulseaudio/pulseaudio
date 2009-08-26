@@ -268,29 +268,29 @@ static void handle_unload(DBusConnection *conn, DBusMessage *msg, void *userdata
 
 static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     pa_dbusiface_module *m = userdata;
+    DBusMessage *signal = NULL;
 
     pa_assert(core);
     pa_assert((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_MODULE);
     pa_assert(m);
 
-    if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_CHANGE) {
-        DBusMessage *signal = NULL;
+    if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) != PA_SUBSCRIPTION_EVENT_CHANGE)
+        return;
 
-        if (!pa_proplist_equal(m->proplist, m->module->proplist)) {
-            DBusMessageIter msg_iter;
+    if (!pa_proplist_equal(m->proplist, m->module->proplist)) {
+        DBusMessageIter msg_iter;
 
-            pa_proplist_update(m->proplist, PA_UPDATE_SET, m->module->proplist);
+        pa_proplist_update(m->proplist, PA_UPDATE_SET, m->module->proplist);
 
-            pa_assert_se(signal = dbus_message_new_signal(m->path,
-                                                          PA_DBUSIFACE_MODULE_INTERFACE,
-                                                          signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
-            dbus_message_iter_init_append(signal, &msg_iter);
-            pa_dbus_append_proplist(&msg_iter, m->proplist);
+        pa_assert_se(signal = dbus_message_new_signal(m->path,
+                                                      PA_DBUSIFACE_MODULE_INTERFACE,
+                                                      signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
+        dbus_message_iter_init_append(signal, &msg_iter);
+        pa_dbus_append_proplist(&msg_iter, m->proplist);
 
-            pa_dbus_protocol_send_signal(m->dbus_protocol, signal);
-            dbus_message_unref(signal);
-            signal = NULL;
-        }
+        pa_dbus_protocol_send_signal(m->dbus_protocol, signal);
+        dbus_message_unref(signal);
+        signal = NULL;
     }
 }
 

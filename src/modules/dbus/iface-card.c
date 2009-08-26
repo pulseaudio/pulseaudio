@@ -459,45 +459,46 @@ static void handle_get_profile_by_name(DBusConnection *conn, DBusMessage *msg, v
 
 static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     pa_dbusiface_card *c = userdata;
+    DBusMessage *signal = NULL;
 
     pa_assert(core);
     pa_assert((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_CARD);
     pa_assert(c);
 
-    if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_CHANGE) {
-        DBusMessage *signal = NULL;
 
-        if (c->active_profile != c->card->active_profile) {
-            const char *object_path;
+    if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) != PA_SUBSCRIPTION_EVENT_CHANGE)
+        return;
 
-            c->active_profile = c->card->active_profile;
-            object_path = pa_dbusiface_card_profile_get_path(pa_hashmap_get(c->profiles, c->active_profile->name));
+    if (c->active_profile != c->card->active_profile) {
+        const char *object_path;
 
-            pa_assert_se(signal = dbus_message_new_signal(c->path,
-                                                          PA_DBUSIFACE_CARD_INTERFACE,
-                                                          signals[SIGNAL_ACTIVE_PROFILE_UPDATED].name));
-            pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
+        c->active_profile = c->card->active_profile;
+        object_path = pa_dbusiface_card_profile_get_path(pa_hashmap_get(c->profiles, c->active_profile->name));
 
-            pa_dbus_protocol_send_signal(c->dbus_protocol, signal);
-            dbus_message_unref(signal);
-            signal = NULL;
-        }
+        pa_assert_se(signal = dbus_message_new_signal(c->path,
+                                                      PA_DBUSIFACE_CARD_INTERFACE,
+                                                      signals[SIGNAL_ACTIVE_PROFILE_UPDATED].name));
+        pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
 
-        if (!pa_proplist_equal(c->proplist, c->card->proplist)) {
-            DBusMessageIter msg_iter;
+        pa_dbus_protocol_send_signal(c->dbus_protocol, signal);
+        dbus_message_unref(signal);
+        signal = NULL;
+    }
 
-            pa_proplist_update(c->proplist, PA_UPDATE_SET, c->card->proplist);
+    if (!pa_proplist_equal(c->proplist, c->card->proplist)) {
+        DBusMessageIter msg_iter;
 
-            pa_assert_se(signal = dbus_message_new_signal(c->path,
-                                                          PA_DBUSIFACE_CARD_INTERFACE,
-                                                          signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
-            dbus_message_iter_init_append(signal, &msg_iter);
-            pa_dbus_append_proplist(&msg_iter, c->proplist);
+        pa_proplist_update(c->proplist, PA_UPDATE_SET, c->card->proplist);
 
-            pa_dbus_protocol_send_signal(c->dbus_protocol, signal);
-            dbus_message_unref(signal);
-            signal = NULL;
-        }
+        pa_assert_se(signal = dbus_message_new_signal(c->path,
+                                                      PA_DBUSIFACE_CARD_INTERFACE,
+                                                      signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
+        dbus_message_iter_init_append(signal, &msg_iter);
+        pa_dbus_append_proplist(&msg_iter, c->proplist);
+
+        pa_dbus_protocol_send_signal(c->dbus_protocol, signal);
+        dbus_message_unref(signal);
+        signal = NULL;
     }
 }
 
