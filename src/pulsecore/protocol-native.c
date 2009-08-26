@@ -3386,10 +3386,10 @@ static void command_set_volume(
         pa_log_debug("Client %s changes volume of sink %s.", client_name, sink->name);
         pa_sink_set_volume(sink, &volume, TRUE, TRUE);
     } else if (source) {
-        pa_log_debug("Client %s changes volume of sink %s.", client_name, source->name);
+        pa_log_debug("Client %s changes volume of source %s.", client_name, source->name);
         pa_source_set_volume(source, &volume, TRUE);
     } else if (si) {
-        pa_log_debug("Client %s changes volume of sink %s.",
+        pa_log_debug("Client %s changes volume of sink input %s.",
                      client_name,
                      pa_strnull(pa_proplist_gets(si->proplist, PA_PROP_MEDIA_NAME)));
         pa_sink_input_set_volume(si, &volume, TRUE, TRUE);
@@ -3411,7 +3411,7 @@ static void command_set_mute(
     pa_sink *sink = NULL;
     pa_source *source = NULL;
     pa_sink_input *si = NULL;
-    const char *name = NULL;
+    const char *name = NULL, *client_name;
 
     pa_native_connection_assert_ref(c);
     pa_assert(t);
@@ -3460,12 +3460,20 @@ static void command_set_mute(
 
     CHECK_VALIDITY(c->pstream, si || sink || source, tag, PA_ERR_NOENTITY);
 
-    if (sink)
+    client_name = pa_strnull(pa_proplist_gets(c->client->proplist, PA_PROP_APPLICATION_PROCESS_BINARY));
+
+    if (sink) {
+        pa_log_debug("Client %s changes mute of sink %s.", client_name, sink->name);
         pa_sink_set_mute(sink, mute, TRUE);
-    else if (source)
+    } else if (source) {
+        pa_log_debug("Client %s changes mute of source %s.", client_name, source->name);
         pa_source_set_mute(source, mute, TRUE);
-    else if (si)
+    } else if (si) {
+        pa_log_debug("Client %s changes mute of sink input %s.",
+                     client_name,
+                     pa_strnull(pa_proplist_gets(si->proplist, PA_PROP_MEDIA_NAME)));
         pa_sink_input_set_mute(si, mute, TRUE);
+    }
 
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
@@ -4842,4 +4850,10 @@ pa_pstream* pa_native_connection_get_pstream(pa_native_connection *c) {
     pa_native_connection_assert_ref(c);
 
     return c->pstream;
+}
+
+pa_client* pa_native_connection_get_client(pa_native_connection *c) {
+   pa_native_connection_assert_ref(c);
+
+   return c->client;
 }

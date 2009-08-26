@@ -934,6 +934,10 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 data.data = &entry;
                 data.size = sizeof(entry);
 
+                pa_log_debug("Client %s changes entry %s.",
+                             pa_strnull(pa_proplist_gets(pa_native_connection_get_client(c)->proplist, PA_PROP_APPLICATION_PROCESS_BINARY)),
+                             name);
+
                 if (pa_database_set(u->database, &key, &data, mode == PA_UPDATE_REPLACE) == 0)
                     if (apply_immediately)
                         apply_entry(u, name, &entry);
