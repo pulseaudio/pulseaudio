@@ -1472,7 +1472,13 @@ pa_bool_t pa_sink_input_safe_to_remove(pa_sink_input *i) {
 }
 
 /* Called from IO context */
-void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sample spec */, pa_bool_t rewrite, pa_bool_t flush, pa_bool_t dont_rewind_render) {
+void pa_sink_input_request_rewind(
+        pa_sink_input *i,
+        size_t nbytes  /* in our sample spec */,
+        pa_bool_t rewrite,
+        pa_bool_t flush,
+        pa_bool_t dont_rewind_render) {
+
     size_t lbq;
 
     /* If 'rewrite' is TRUE the sink is rewound as far as requested
@@ -1487,19 +1493,20 @@ void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sam
      * dont_rewind_render is TRUE then the render memblockq is not
      * rewound. */
 
+    /* nbytes = 0 means maximum rewind request */
+
     pa_sink_input_assert_ref(i);
     pa_sink_input_assert_io_context(i);
-
-    nbytes = PA_MAX(i->thread_info.rewrite_nbytes, nbytes);
-
-/*     pa_log_debug("request rewrite %lu", (unsigned long) nbytes); */
+    pa_assert(rewrite || flush);
+    pa_assert(!dont_rewind_render || !rewrite);
 
     /* We don't take rewind requests while we are corked */
     if (i->thread_info.state == PA_SINK_INPUT_CORKED)
         return;
 
-    pa_assert(rewrite || flush);
-    pa_assert(!dont_rewind_render || !rewrite);
+    nbytes = PA_MAX(i->thread_info.rewrite_nbytes, nbytes);
+
+    /* pa_log_debug("request rewrite %zu", nbytes); */
 
     /* Calculate how much we can rewind locally without having to
      * touch the sink */
@@ -1519,6 +1526,7 @@ void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes  /* in our sam
             nbytes = pa_resampler_request(i->thread_info.resampler, nbytes);
     }
 
+    /* Remember how much we actually want to rewrite */
     if (i->thread_info.rewrite_nbytes != (size_t) -1) {
         if (rewrite) {
             /* Make sure to not overwrite over underruns */
