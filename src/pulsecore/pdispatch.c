@@ -207,10 +207,10 @@ struct pa_pdispatch {
     const pa_pdispatch_cb_t *callback_table;
     unsigned n_commands;
     PA_LLIST_HEAD(struct reply_info, replies);
-    pa_pdispatch_drain_callback drain_callback;
+    pa_pdispatch_drain_cb_t drain_callback;
     void *drain_userdata;
     const pa_creds *creds;
-    pa_bool_t use_rtclock:1;
+    pa_bool_t use_rtclock;
 };
 
 static void reply_info_free(struct reply_info *r) {
@@ -229,19 +229,16 @@ static void reply_info_free(struct reply_info *r) {
 
 pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *mainloop, pa_bool_t use_rtclock, const pa_pdispatch_cb_t *table, unsigned entries) {
     pa_pdispatch *pd;
-    pa_assert(mainloop);
 
+    pa_assert(mainloop);
     pa_assert((entries && table) || (!entries && !table));
 
-    pd = pa_xnew(pa_pdispatch, 1);
+    pd = pa_xnew0(pa_pdispatch, 1);
     PA_REFCNT_INIT(pd);
     pd->mainloop = mainloop;
     pd->callback_table = table;
     pd->n_commands = entries;
     PA_LLIST_HEAD_INIT(struct reply_info, pd->replies);
-    pd->drain_callback = NULL;
-    pd->drain_userdata = NULL;
-    pd->creds = NULL;
     pd->use_rtclock = use_rtclock;
 
     return pd;
@@ -321,7 +318,7 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const pa_creds *creds, 
     if (command == PA_COMMAND_ERROR || command == PA_COMMAND_REPLY) {
         struct reply_info *r;
 
-        for (r = pd->replies; r; r = r->next)
+        PA_LLIST_FOREACH(r, pd->replies)
             if (r->tag == tag)
                 break;
 
@@ -329,9 +326,9 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const pa_creds *creds, 
             run_action(pd, r, command, ts);
 
     } else if (pd->callback_table && (command < pd->n_commands) && pd->callback_table[command]) {
-        const pa_pdispatch_cb_t *c = pd->callback_table+command;
+        const pa_pdispatch_cb_t *cb = pd->callback_table+command;
 
-        (*c)(pd, command, tag, ts, userdata);
+        (*cb)(pd, command, tag, ts, userdata);
     } else {
         pa_log("Received unsupported command %u", command);
         goto finish;
@@ -379,7 +376,9 @@ void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa
     r->free_cb = free_cb;
     r->tag = tag;
 
-    pa_assert_se(r->time_event = pd->mainloop->time_new(pd->mainloop, pa_timeval_rtstore(&tv, pa_rtclock_now() + timeout * PA_USEC_PER_SEC, pd->use_rtclock), timeout_callback, r));
+    pa_assert_se(r->time_event = pd->mainloop->time_new(pd->mainloop,
+                                                        pa_timeval_rtstore(&tv, pa_rtclock_now() + timeout * PA_USEC_PER_SEC, pd->use_rtclock),
+                                                        timeout_callback, r));
 
     PA_LLIST_PREPEND(struct reply_info, pd->replies, r);
 }
@@ -391,7 +390,7 @@ int pa_pdispatch_is_pending(pa_pdispatch *pd) {
     return !!pd->replies;
 }
 
-void pa_pdispatch_set_drain_callback(pa_pdispatch *pd, void (*cb)(pa_pdispatch *pd, void *userdata), void *userdata) {
+void pa_pdispatch_set_drain_callback(pa_pdispatch *pd, pa_pdispatch_drain_cb_t cb, void *userdata) {
     pa_assert(pd);
     pa_assert(PA_REFCNT_VALUE(pd) >= 1);
     pa_assert(!cb || pa_pdispatch_is_pending(pd));
@@ -406,12 +405,9 @@ void pa_pdispatch_unregister_reply(pa_pdispatch *pd, void *userdata) {
     pa_assert(pd);
     pa_assert(PA_REFCNT_VALUE(pd) >= 1);
 
-    for (r = pd->replies; r; r = n) {
-        n = r->next;
-
+    PA_LLIST_FOREACH_SAFE(r, n, pd->replies)
         if (r->userdata == userdata)
             reply_info_free(r);
-    }
 }
 
 void pa_pdispatch_unref(pa_pdispatch *pd) {
