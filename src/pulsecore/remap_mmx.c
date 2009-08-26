@@ -51,7 +51,7 @@
                 " punpckl"#s" %%mm4, %%mm4      \n\t"  \
                 " punpckh"#s" %%mm5, %%mm5      \n\t"  \
                 " punpckl"#s" %%mm6, %%mm6      \n\t"  \
-                " punpckh"#s" %%mm7, %%mm7      \n\t"  \
+                " punpckh"#s" %%mm7, %%mm7      \n\t"
 
 #define STORE_SAMPLES                                  \
                 " movq %%mm0, (%0)              \n\t"  \
@@ -67,32 +67,31 @@
 
 #define HANDLE_SINGLE(s)                               \
                 " movd (%1), %%mm0              \n\t"  \
-                " movq %%mm0, %%mm1             \n\t"  \
                 " punpckl"#s" %%mm0, %%mm0      \n\t"  \
                 " movq %%mm0, (%0)              \n\t"  \
                 " add $4, %1                    \n\t"  \
                 " add $8, %0                    \n\t"
 
-#define MONO_TO_STEREO(s)                               \
-                " mov %3, %2                    \n\t"   \
-                " sar $3, %2                    \n\t"   \
-                " cmp $0, %2                    \n\t"   \
-                " je 2f                         \n\t"   \
-                "1:                             \n\t"   \
-                LOAD_SAMPLES                            \
-                UNPACK_SAMPLES(s)                       \
-                STORE_SAMPLES                           \
-                " dec %2                        \n\t"   \
-                " jne 1b                        \n\t"   \
-                "2:                             \n\t"   \
-                " mov %3, %2                    \n\t"   \
-                " and $7, %2                    \n\t"   \
-                " je 4f                         \n\t"   \
-                "3:                             \n\t"   \
-                HANDLE_SINGLE(s)                        \
-                " dec %2                        \n\t"   \
-                " jne 3b                        \n\t"   \
-                "4:                             \n\t"   \
+#define MONO_TO_STEREO(s)                              \
+                " mov %3, %2                    \n\t"  \
+                " sar $3, %2                    \n\t"  \
+                " cmp $0, %2                    \n\t"  \
+                " je 2f                         \n\t"  \
+                "1:                             \n\t"  \
+                LOAD_SAMPLES                           \
+                UNPACK_SAMPLES(s)                      \
+                STORE_SAMPLES                          \
+                " dec %2                        \n\t"  \
+                " jne 1b                        \n\t"  \
+                "2:                             \n\t"  \
+                " mov %3, %2                    \n\t"  \
+                " and $7, %2                    \n\t"  \
+                " je 4f                         \n\t"  \
+                "3:                             \n\t"  \
+                HANDLE_SINGLE(s)                       \
+                " dec %2                        \n\t"  \
+                " jne 3b                        \n\t"  \
+                "4:                             \n\t"  \
                 " emms                          \n\t"
 
 #if defined (__i386__) || defined (__amd64__)

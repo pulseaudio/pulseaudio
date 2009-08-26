@@ -51,7 +51,7 @@
                 " punpckl"#s" %%xmm4, %%xmm4    \n\t"  \
                 " punpckh"#s" %%xmm5, %%xmm5    \n\t"  \
                 " punpckl"#s" %%xmm6, %%xmm6    \n\t"  \
-                " punpckh"#s" %%xmm7, %%xmm7    \n\t"  \
+                " punpckh"#s" %%xmm7, %%xmm7    \n\t"
 
 #define STORE_SAMPLES                                  \
                 " movdqu %%xmm0, (%0)           \n\t"  \
@@ -66,10 +66,9 @@
                 " add $128, %0                  \n\t"
 
 #define HANDLE_SINGLE(s)                               \
-                " movd (%1), %%mm0              \n\t"  \
-                " movq %%mm0, %%mm1             \n\t"  \
-                " punpckl"#s" %%mm0, %%mm0      \n\t"  \
-                " movq %%mm0, (%0)              \n\t"  \
+                " movd (%1), %%xmm0             \n\t"  \
+                " punpckl"#s" %%xmm0, %%xmm0    \n\t"  \
+                " movq %%xmm0, (%0)             \n\t"  \
                 " add $4, %1                    \n\t"  \
                 " add $8, %0                    \n\t"
 
@@ -92,8 +91,7 @@
                 HANDLE_SINGLE(s)                        \
                 " dec %2                        \n\t"   \
                 " jne 3b                        \n\t"   \
-                "4:                             \n\t"   \
-                " emms                          \n\t"
+                "4:                             \n\t"
 
 static void remap_mono_to_stereo_sse (pa_remap_t *m, void *dst, const void *src, unsigned n) {
     pa_reg_x86 temp;
