@@ -172,7 +172,7 @@ static void adjust_rates(struct userdata *u) {
                 (double) u->latency_snapshot.source_latency / PA_USEC_PER_MSEC,
                 ((double) u->latency_snapshot.sink_latency + buffer_latency + u->latency_snapshot.source_latency) / PA_USEC_PER_MSEC);
 
-    pa_log_info("Should buffer %lu bytes, buffered at minimum %lu bytes",
+    pa_log_info("Should buffer %zu bytes, buffered at minimum %zu bytes",
                 u->latency_snapshot.max_request*2,
                 u->latency_snapshot.min_memblockq_length);
 
