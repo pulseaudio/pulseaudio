@@ -39,8 +39,10 @@ struct pa_dbusiface_client {
 
     pa_client *client;
     char *path;
+    pa_proplist *proplist;
 
     pa_dbus_protocol *dbus_protocol;
+    pa_subscription *subscription;
 };
 
 static void handle_get_index(DBusConnection *conn, DBusMessage *msg, void *userdata);
@@ -52,9 +54,9 @@ static void handle_get_property_list(DBusConnection *conn, DBusMessage *msg, voi
 
 static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata);
 
-/*static void handle_kill(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_kill(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_update_properties(DBusConnection *conn, DBusMessage *msg, void *userdata);
-static void handle_remove_properties(DBusConnection *conn, DBusMessage *msg, void *userdata);*/
+static void handle_remove_properties(DBusConnection *conn, DBusMessage *msg, void *userdata);
 
 enum property_handler_index {
     PROPERTY_HANDLER_INDEX,
@@ -75,7 +77,7 @@ static pa_dbus_property_handler property_handlers[PROPERTY_HANDLER_MAX] = {
     [PROPERTY_HANDLER_PROPERTY_LIST]    = { .property_name = "PropertyList",    .type = "a{say}", .get_cb = handle_get_property_list,    .set_cb = NULL }
 };
 
-/*enum method_handler_index {
+enum method_handler_index {
     METHOD_HANDLER_KILL,
     METHOD_HANDLER_UPDATE_PROPERTIES,
     METHOD_HANDLER_REMOVE_PROPERTIES,
@@ -83,7 +85,7 @@ static pa_dbus_property_handler property_handlers[PROPERTY_HANDLER_MAX] = {
 };
 
 static pa_dbus_arg_info update_properties_args[] = { { "property_list", "a{say}", "in" }, { "update_mode", "u", "in" } };
-static pa_dbus_arg_info update_properties_args[] = { { "keys", "as", "in" } };
+static pa_dbus_arg_info remove_properties_args[] = { { "keys", "as", "in" } };
 
 static pa_dbus_method_handler method_handlers[METHOD_HANDLER_MAX] = {
     [METHOD_HANDLER_KILL] = {
@@ -93,14 +95,14 @@ static pa_dbus_method_handler method_handlers[METHOD_HANDLER_MAX] = {
         .receive_cb = handle_kill },
     [METHOD_HANDLER_UPDATE_PROPERTIES] = {
         .method_name = "UpdateProperties",
-        .arguments = update_propertes_args,
+        .arguments = update_properties_args,
         .n_arguments = sizeof(update_properties_args) / sizeof(pa_dbus_arg_info),
         .receive_cb = handle_update_properties },
     [METHOD_HANDLER_REMOVE_PROPERTIES] = {
         .method_name = "RemoveProperties",
-        .arguments = remove_propertes_args,
+        .arguments = remove_properties_args,
         .n_arguments = sizeof(update_properties_args) / sizeof(pa_dbus_arg_info),
-        .receive_cb = handle_update_properties }
+        .receive_cb = handle_remove_properties }
 };
 
 enum signal_index {
@@ -109,23 +111,25 @@ enum signal_index {
     SIGNAL_MAX
 };
 
-static pa_dbus_arg_info active_profile_updated_args[] = { { "profile",       "o",      NULL } };
-static pa_dbus_arg_info property_list_updated_args[]  = { { "property_list", "a{say}", NULL } };
+static pa_dbus_arg_info property_list_updated_args[] = { { "property_list", "a{say}", NULL } };
+static pa_dbus_arg_info client_event_args[]          = { { "name",          "s",      NULL },
+                                                         { "property_list", "a{say}", NULL } };
 
 static pa_dbus_signal_info signals[SIGNAL_MAX] = {
-    [SIGNAL_ACTIVE_PROFILE_UPDATED] = { .name = "ActiveProfileUpdated", .arguments = active_profile_updated_args, .n_arguments = 1 },
-    [SIGNAL_PROPERTY_LIST_UPDATED]  = { .name = "PropertyListUpdated",  .arguments = property_list_updated_args,  .n_arguments = 1 }
-};*/
+    [SIGNAL_PROPERTY_LIST_UPDATED] = { .name = "PropertyListUpdated", .arguments = property_list_updated_args, .n_arguments = 1 },
+    /* ClientEvent is sent from module-dbus-protocol.c. */
+    [SIGNAL_CLIENT_EVENT]          = { .name = "ClientEvent",         .arguments = client_event_args,          .n_arguments = 1 }
+};
 
 static pa_dbus_interface_info client_interface_info = {
     .name = PA_DBUSIFACE_CLIENT_INTERFACE,
-    .method_handlers = /*method_handlers*/ NULL,
-    .n_method_handlers = /*METHOD_HANDLER_MAX*/ 0,
+    .method_handlers = method_handlers,
+    .n_method_handlers = METHOD_HANDLER_MAX,
     .property_handlers = property_handlers,
     .n_property_handlers = PROPERTY_HANDLER_MAX,
     .get_all_properties_cb = handle_get_all,
-    .signals = /*signals*/ NULL,
-    .n_signals = /*SIGNAL_MAX*/ 0
+    .signals = signals,
+    .n_signals = SIGNAL_MAX
 };
 
 static void handle_get_index(DBusConnection *conn, DBusMessage *msg, void *userdata) {
@@ -304,6 +308,131 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
     pa_xfree(record_streams);
 }
 
+static void handle_kill(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    pa_dbusiface_client *c = userdata;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(c);
+
+    dbus_connection_ref(conn);
+
+    pa_client_kill(c->client);
+
+    pa_dbus_send_empty_reply(conn, msg);
+
+    dbus_connection_unref(conn);
+}
+
+static void handle_update_properties(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    pa_dbusiface_client *c = userdata;
+    DBusMessageIter msg_iter;
+    pa_proplist *property_list = NULL;
+    dbus_uint32_t update_mode = 0;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(c);
+
+    if (pa_dbus_protocol_get_client(c->dbus_protocol, conn) != c->client) {
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_ACCESS_DENIED, "Client tried to modify the property list of another client.");
+        return;
+    }
+
+    if (!dbus_message_iter_init(msg, &msg_iter)) {
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Too few arguments.");
+        return;
+    }
+
+    if (!(property_list = pa_dbus_get_proplist_arg(conn, msg, &msg_iter)))
+        return;
+
+    if (pa_dbus_get_basic_arg(conn, msg, &msg_iter, DBUS_TYPE_UINT32, &update_mode) < 0)
+        goto finish;
+
+    if (!(update_mode == PA_UPDATE_SET || update_mode == PA_UPDATE_MERGE || update_mode == PA_UPDATE_REPLACE)) {
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid update mode: %u", update_mode);
+        goto finish;
+    }
+
+    pa_client_update_proplist(c->client, update_mode, property_list);
+
+    pa_dbus_send_empty_reply(conn, msg);
+
+finish:
+    if (property_list)
+        pa_proplist_free(property_list);
+}
+
+static void handle_remove_properties(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    pa_dbusiface_client *c = userdata;
+    char **keys = NULL;
+    int n_keys = 0;
+    DBusError error;
+    pa_bool_t changed = FALSE;
+    int i = 0;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(c);
+
+    dbus_error_init(&error);
+
+    if (pa_dbus_protocol_get_client(c->dbus_protocol, conn) != c->client) {
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_ACCESS_DENIED, "Client tried to modify the property list of another client.");
+        return;
+    }
+
+    if (!dbus_message_get_args(msg, &error, DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &keys, &n_keys, DBUS_TYPE_INVALID)) {
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
+        dbus_error_free(&error);
+        return;
+    }
+
+    for (i = 0; i < n_keys; ++i)
+        changed |= pa_proplist_unset(c->client->proplist, keys[i]) >= 0;
+
+    pa_dbus_send_empty_reply(conn, msg);
+
+    if (changed)
+        pa_subscription_post(c->client->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_CHANGE, c->client->index);
+
+    dbus_free_string_array(keys);
+}
+
+static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
+    pa_dbusiface_client *c = userdata;
+    DBusMessage *signal = NULL;
+
+    pa_assert(core);
+    pa_assert((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_CLIENT);
+    pa_assert(c);
+
+    /* We can't use idx != c->client->index, because the c->client pointer may
+     * be stale at this point. */
+    if (pa_idxset_get_by_index(core->clients, idx) != c->client)
+        return;
+
+    if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) != PA_SUBSCRIPTION_EVENT_CHANGE)
+        return;
+
+    if (!pa_proplist_equal(c->proplist, c->client->proplist)) {
+        DBusMessageIter msg_iter;
+
+        pa_proplist_update(c->proplist, PA_UPDATE_SET, c->client->proplist);
+
+        pa_assert_se(signal = dbus_message_new_signal(c->path,
+                                                      PA_DBUSIFACE_CLIENT_INTERFACE,
+                                                      signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
+        dbus_message_iter_init_append(signal, &msg_iter);
+        pa_dbus_append_proplist(&msg_iter, c->proplist);
+
+        pa_dbus_protocol_send_signal(c->dbus_protocol, signal);
+        dbus_message_unref(signal);
+        signal = NULL;
+    }
+}
+
 pa_dbusiface_client *pa_dbusiface_client_new(pa_dbusiface_core *core, pa_client *client) {
     pa_dbusiface_client *c = NULL;
 
@@ -314,7 +443,9 @@ pa_dbusiface_client *pa_dbusiface_client_new(pa_dbusiface_core *core, pa_client 
     c->core = core;
     c->client = client;
     c->path = pa_sprintf_malloc("%s/%s%u", PA_DBUS_CORE_OBJECT_PATH, OBJECT_NAME, client->index);
+    c->proplist = pa_proplist_copy(client->proplist);
     c->dbus_protocol = pa_dbus_protocol_get(client->core);
+    c->subscription = pa_subscription_new(client->core, PA_SUBSCRIPTION_MASK_CLIENT, subscription_cb, c);
 
     pa_assert_se(pa_dbus_protocol_add_interface(c->dbus_protocol, c->path, &client_interface_info, c) >= 0);
 

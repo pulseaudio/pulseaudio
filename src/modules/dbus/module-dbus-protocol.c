@@ -40,6 +40,7 @@
 #include <pulsecore/module.h>
 #include <pulsecore/protocol-dbus.h>
 
+#include "iface-client.h"
 #include "iface-core.h"
 
 #include "module-dbus-protocol-symdef.h"
@@ -117,10 +118,36 @@ static void client_kill_cb(pa_client *c) {
 
     conn = c->userdata;
     connection_free(conn);
+    c->userdata = NULL;
 
     pa_log_info("Connection killed.");
 }
 
+/* Called from pa_client_send_event(). */
+static void client_send_event_cb(pa_client *c, const char *name, pa_proplist *data) {
+    struct connection *conn = NULL;
+    DBusMessage *signal = NULL;
+    DBusMessageIter msg_iter;
+
+    pa_assert(c);
+    pa_assert(name);
+    pa_assert(data);
+    pa_assert(c->userdata);
+
+    conn = c->userdata;
+
+    pa_assert_se(signal = dbus_message_new_signal(pa_dbusiface_core_get_client_path(conn->server->userdata->core_iface, c),
+                                                  PA_DBUSIFACE_CLIENT_INTERFACE,
+                                                  "ClientEvent"));
+    dbus_message_iter_init_append(signal, &msg_iter);
+    pa_assert_se(dbus_message_iter_append_basic(&msg_iter, DBUS_TYPE_STRING, &name));
+    pa_dbus_append_proplist(&msg_iter, data);
+
+    pa_assert_se(dbus_connection_send(pa_dbus_wrap_connection_get(conn->wrap_conn), signal, NULL));
+    dbus_message_unref(signal);
+}
+
+/* Called by D-Bus at the authentication phase. */
 static dbus_bool_t user_check_cb(DBusConnection *connection, unsigned long uid, void *data) {
     pa_log_debug("Allowing connection by user %lu.", uid);
 
@@ -140,7 +167,7 @@ static void connection_new_cb(DBusServer *dbus_server, DBusConnection *new_conne
     pa_client_new_data_init(&new_data);
     new_data.module = s->userdata->module;
     new_data.driver = __FILE__;
-    pa_proplist_sets(new_data.proplist, PA_PROP_APPLICATION_NAME, "D-Bus client"); /* TODO: It's probably possible to generate a fancier name. Other props? */
+    pa_proplist_sets(new_data.proplist, PA_PROP_APPLICATION_NAME, "D-Bus client");
     client = pa_client_new(s->userdata->module->core, &new_data);
     pa_client_new_data_done(&new_data);
 
@@ -162,7 +189,7 @@ static void connection_new_cb(DBusServer *dbus_server, DBusConnection *new_conne
     c->client = client;
 
     c->client->kill = client_kill_cb;
-    c->client->send_event = NULL; /* TODO: Implement this. */
+    c->client->send_event = client_send_event_cb;
     c->client->userdata = c;
 
     pa_idxset_put(s->userdata->connections, c, NULL);
