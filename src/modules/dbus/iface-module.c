@@ -274,6 +274,11 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
     pa_assert((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_MODULE);
     pa_assert(m);
 
+    /* We can't use idx != m->module->index, because the m->module pointer may
+     * be stale at this point. */
+    if (pa_idxset_get_by_index(core->modules, idx) != m->module)
+        return;
+
     if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) != PA_SUBSCRIPTION_EVENT_CHANGE)
         return;
 

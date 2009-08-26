@@ -463,7 +463,9 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
     pa_assert(c);
     pa_assert(s);
 
-    if (idx != s->sample->index)
+    /* We can't use idx != s->sample->index, because the s->sample pointer may
+     * be stale at this point. */
+    if (pa_idxset_get_by_index(c->scache, idx) != s->sample)
         return;
 
     if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) != PA_SUBSCRIPTION_EVENT_CHANGE)
