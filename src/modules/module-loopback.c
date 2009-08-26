@@ -333,6 +333,26 @@ static pa_bool_t source_output_may_move_to_cb(pa_source_output *o, pa_source *de
     return dest != u->sink_input->sink->monitor_source;
 }
 
+/* Called from main thread */
+static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
+    pa_proplist *p;
+    const char *n;
+    struct userdata *u;
+
+    pa_source_output_assert_ref(o);
+    pa_assert_ctl_context();
+    pa_assert_se(u = o->userdata);
+
+    p = pa_proplist_new();
+    pa_proplist_setf(p, PA_PROP_MEDIA_NAME, "Loopback of %s", pa_strnull(pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+
+    if ((n = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_ICON_NAME)))
+        pa_proplist_sets(p, PA_PROP_MEDIA_ICON_NAME, n);
+
+    pa_sink_input_update_proplist(u->sink_input, PA_UPDATE_REPLACE, p);
+    pa_proplist_free(p);
+}
+
 /* Called from output thread context */
 static void update_min_memblockq_length(struct userdata *u) {
     size_t length;
@@ -551,6 +571,26 @@ static void sink_input_kill_cb(pa_sink_input *i) {
 }
 
 /* Called from main thread */
+static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
+    struct userdata *u;
+    pa_proplist *p;
+    const char *n;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_ctl_context();
+    pa_assert_se(u = i->userdata);
+
+    p = pa_proplist_new();
+    pa_proplist_setf(p, PA_PROP_MEDIA_NAME, "Loopback to %s", pa_strnull(pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+
+    if ((n = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_ICON_NAME)))
+        pa_proplist_sets(p, PA_PROP_MEDIA_ICON_NAME, n);
+
+    pa_source_output_update_proplist(u->source_output, PA_UPDATE_REPLACE, p);
+    pa_proplist_free(p);
+}
+
+/* Called from main thread */
 static pa_bool_t sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
     struct userdata *u;
 
@@ -576,6 +616,7 @@ int pa__init(pa_module *m) {
     pa_channel_map map;
     pa_memchunk silence;
     uint32_t adjust_time_sec;
+    const char *n;
 
     pa_assert(m);
 
@@ -627,7 +668,11 @@ int pa__init(pa_module *m) {
     sink_input_data.driver = __FILE__;
     sink_input_data.module = m;
     sink_input_data.sink = sink;
-    pa_proplist_setf(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "Loopback of %s", pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION));
+
+    pa_proplist_setf(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "Loopback of %s",
+                     pa_strnull(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+    if ((n = pa_proplist_gets(source->proplist, PA_PROP_DEVICE_ICON_NAME)))
+        pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ICON_NAME, n);
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "abstract");
     pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
@@ -647,6 +692,7 @@ int pa__init(pa_module *m) {
     u->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;
     u->sink_input->update_max_request = sink_input_update_max_request_cb;
     u->sink_input->may_move_to = sink_input_may_move_to_cb;
+    u->sink_input->moving = sink_input_moving_cb;
     u->sink_input->userdata = u;
 
     pa_sink_input_set_requested_latency(u->sink_input, u->latency/3);
@@ -655,7 +701,10 @@ int pa__init(pa_module *m) {
     source_output_data.driver = __FILE__;
     source_output_data.module = m;
     source_output_data.source = source;
-    pa_proplist_setf(source_output_data.proplist, PA_PROP_MEDIA_NAME, "Loopback to %s", pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION));
+    pa_proplist_setf(source_output_data.proplist, PA_PROP_MEDIA_NAME, "Loopback to %s",
+                     pa_strnull(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
+    if ((n = pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_ICON_NAME)))
+        pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_ICON_NAME, n);
     pa_proplist_sets(source_output_data.proplist, PA_PROP_MEDIA_ROLE, "abstract");
     pa_source_output_new_data_set_sample_spec(&source_output_data, &ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
@@ -674,6 +723,7 @@ int pa__init(pa_module *m) {
     u->source_output->detach = source_output_detach_cb;
     u->source_output->state_change = source_output_state_change_cb;
     u->source_output->may_move_to = source_output_may_move_to_cb;
+    u->source_output->moving = source_output_moving_cb;
     u->source_output->userdata = u;
 
     pa_source_output_set_requested_latency(u->source_output, u->latency/3);
