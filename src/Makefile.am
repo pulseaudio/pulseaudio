@@ -1738,7 +1738,7 @@ daemon.conf: daemon/daemon.conf.in Makefile
 		-e 's,@PA_DEFAULT_CONFIG_FILE\@,$(DEFAULT_CONFIG_DIR),g' < $< > $@
 
 install-exec-hook:
-	chown root $(DESTDIR)$(bindir)/pulseaudio ; true
+	-chown root $(DESTDIR)$(pulselibexecdir)/proximity-helper
 	-chmod u+s $(DESTDIR)$(pulselibexecdir)/proximity-helper
 	ln -sf pacat $(DESTDIR)$(bindir)/parec
 	ln -sf pacat $(DESTDIR)$(bindir)/pamon
