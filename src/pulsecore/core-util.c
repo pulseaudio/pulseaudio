@@ -1877,16 +1877,16 @@ char *pa_make_path_absolute(const char *p) {
 static char *get_path(const char *fn, pa_bool_t prependmid, pa_bool_t rt) {
     char *rtp;
 
-    if (pa_is_path_absolute(fn))
-        return pa_xstrdup(fn);
-
     rtp = rt ? pa_get_runtime_dir() : pa_get_state_dir();
-
-    if (!rtp)
-        return NULL;
 
     if (fn) {
         char *r;
+
+        if (pa_is_path_absolute(fn))
+            return pa_xstrdup(fn);
+
+        if (!rtp)
+            return NULL;
 
         if (prependmid) {
             char *mid;
