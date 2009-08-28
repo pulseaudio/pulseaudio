@@ -145,6 +145,9 @@ static pa_hook_result_t sink_input_fixate_hook_cb(pa_core *c, pa_sink_input_new_
     pa_assert(data);
     pa_assert(u);
 
+    if (data->flags & PA_SINK_INPUT_START_CORKED)
+        return PA_HOOK_OK;
+
     if ((d = pa_hashmap_get(u->device_infos, data->sink)))
         resume(d);
 
@@ -157,6 +160,9 @@ static pa_hook_result_t source_output_fixate_hook_cb(pa_core *c, pa_source_outpu
     pa_assert(c);
     pa_assert(data);
     pa_assert(u);
+
+    if (data->flags & PA_SOURCE_OUTPUT_START_CORKED)
+        return PA_HOOK_OK;
 
     if (data->source->monitor_of)
         d = pa_hashmap_get(u->device_infos, data->source->monitor_of);
@@ -226,10 +232,15 @@ static pa_hook_result_t sink_input_move_start_hook_cb(pa_core *c, pa_sink_input 
 
 static pa_hook_result_t sink_input_move_finish_hook_cb(pa_core *c, pa_sink_input *s, struct userdata *u) {
     struct device_info *d;
+    pa_sink_input_state_t state;
 
     pa_assert(c);
     pa_sink_input_assert_ref(s);
     pa_assert(u);
+
+    state = pa_sink_input_get_state(s);
+    if (state != PA_SINK_INPUT_RUNNING && state != PA_SINK_INPUT_DRAINED)
+        return PA_HOOK_OK;
 
     if ((d = pa_hashmap_get(u->device_infos, s->sink)))
         resume(d);
@@ -265,6 +276,9 @@ static pa_hook_result_t source_output_move_finish_hook_cb(pa_core *c, pa_source_
     pa_source_output_assert_ref(s);
     pa_assert(u);
 
+    if (pa_source_output_get_state(s) != PA_SOURCE_OUTPUT_RUNNING)
+        return PA_HOOK_OK;
+
     if (s->source->monitor_of)
         d = pa_hashmap_get(u->device_infos, s->source->monitor_of);
     else
@@ -279,6 +293,7 @@ static pa_hook_result_t source_output_move_finish_hook_cb(pa_core *c, pa_source_
 static pa_hook_result_t sink_input_state_changed_hook_cb(pa_core *c, pa_sink_input *s, struct userdata *u) {
     struct device_info *d;
     pa_sink_input_state_t state;
+
     pa_assert(c);
     pa_sink_input_assert_ref(s);
     pa_assert(u);
@@ -292,15 +307,11 @@ static pa_hook_result_t sink_input_state_changed_hook_cb(pa_core *c, pa_sink_inp
 }
 
 static pa_hook_result_t source_output_state_changed_hook_cb(pa_core *c, pa_source_output *s, struct userdata *u) {
-    pa_source_output_state_t state;
-
     pa_assert(c);
     pa_source_output_assert_ref(s);
     pa_assert(u);
 
-    state = pa_source_output_get_state(s);
-
-    if (state == PA_SOURCE_OUTPUT_RUNNING) {
+    if (pa_source_output_get_state(s) == PA_SOURCE_OUTPUT_RUNNING) {
         struct device_info *d;
 
         if (s->source->monitor_of)
@@ -387,22 +398,17 @@ static pa_hook_result_t device_state_changed_hook_cb(pa_core *c, pa_object *o, s
         pa_sink *s = PA_SINK(o);
         pa_sink_state_t state = pa_sink_get_state(s);
 
-        if (pa_sink_check_suspend(s) <= 0) {
-
+        if (pa_sink_check_suspend(s) <= 0)
             if (PA_SINK_IS_OPENED(state))
                 restart(d);
-
-        }
 
     } else if (pa_source_isinstance(o)) {
         pa_source *s = PA_SOURCE(o);
         pa_source_state_t state = pa_source_get_state(s);
 
-        if (pa_source_check_suspend(s) <= 0) {
-
+        if (pa_source_check_suspend(s) <= 0)
             if (PA_SOURCE_IS_OPENED(state))
                 restart(d);
-        }
     }
 
     return PA_HOOK_OK;
