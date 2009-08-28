@@ -201,6 +201,8 @@ typedef struct pa_source_output_send_event_hook_data {
 } pa_source_output_send_event_hook_data;
 
 typedef struct pa_source_output_new_data {
+    pa_source_output_flags_t flags;
+
     pa_proplist *proplist;
     pa_sink_input *direct_on_input;
 
@@ -231,8 +233,7 @@ void pa_source_output_new_data_done(pa_source_output_new_data *data);
 int pa_source_output_new(
         pa_source_output**o,
         pa_core *core,
-        pa_source_output_new_data *data,
-        pa_source_output_flags_t flags);
+        pa_source_output_new_data *data);
 
 void pa_source_output_put(pa_source_output *o);
 void pa_source_output_unlink(pa_source_output*o);

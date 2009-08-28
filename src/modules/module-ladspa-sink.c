@@ -812,7 +812,7 @@ int pa__init(pa_module*m) {
     pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
 
-    pa_sink_input_new(&u->sink_input, m->core, &sink_input_data, 0);
+    pa_sink_input_new(&u->sink_input, m->core, &sink_input_data);
     pa_sink_input_new_data_done(&sink_input_data);
 
     if (!u->sink_input)

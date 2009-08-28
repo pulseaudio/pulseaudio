@@ -406,8 +406,9 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "filter");
     pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &stream_map);
+    sink_input_data.flags = (remix ? 0 : PA_SINK_INPUT_NO_REMIX);
 
-    pa_sink_input_new(&u->sink_input, m->core, &sink_input_data, (remix ? 0 : PA_SINK_INPUT_NO_REMIX));
+    pa_sink_input_new(&u->sink_input, m->core, &sink_input_data);
     pa_sink_input_new_data_done(&sink_input_data);
 
     if (!u->sink_input)

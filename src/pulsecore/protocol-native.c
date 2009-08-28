@@ -648,8 +648,9 @@ static record_stream* record_stream_new(
     pa_source_output_new_data_set_channel_map(&data, map);
     if (peak_detect)
         data.resample_method = PA_RESAMPLER_PEAKS;
+    data.flags = flags;
 
-    *ret = -pa_source_output_new(&source_output, c->protocol->core, &data, flags);
+    *ret = -pa_source_output_new(&source_output, c->protocol->core, &data);
 
     pa_source_output_new_data_done(&data);
 
@@ -1050,8 +1051,9 @@ static playback_stream* playback_stream_new(
     if (muted_set)
         pa_sink_input_new_data_set_muted(&data, muted);
     data.sync_base = ssync ? ssync->sink_input : NULL;
+    data.flags = flags;
 
-    *ret = -pa_sink_input_new(&sink_input, c->protocol->core, &data, flags);
+    *ret = -pa_sink_input_new(&sink_input, c->protocol->core, &data);
 
     pa_sink_input_new_data_done(&data);
 

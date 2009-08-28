@@ -676,8 +676,9 @@ int pa__init(pa_module *m) {
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "abstract");
     pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
+    sink_input_data.flags = PA_SINK_INPUT_VARIABLE_RATE;
 
-    pa_sink_input_new(&u->sink_input, m->core, &sink_input_data, PA_SINK_INPUT_VARIABLE_RATE);
+    pa_sink_input_new(&u->sink_input, m->core, &sink_input_data);
     pa_sink_input_new_data_done(&sink_input_data);
 
     if (!u->sink_input)
@@ -709,7 +710,7 @@ int pa__init(pa_module *m) {
     pa_source_output_new_data_set_sample_spec(&source_output_data, &ss);
     pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
 
-    pa_source_output_new(&u->source_output, m->core, &source_output_data, 0);
+    pa_source_output_new(&u->source_output, m->core, &source_output_data);
     pa_source_output_new_data_done(&source_output_data);
 
     if (!u->source_output)

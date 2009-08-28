@@ -429,7 +429,7 @@ static int esd_proto_stream_play(connection *c, esd_proto_t request, const void 
     sdata.sink = sink;
     pa_sink_input_new_data_set_sample_spec(&sdata, &ss);
 
-    pa_sink_input_new(&c->sink_input, c->protocol->core, &sdata, 0);
+    pa_sink_input_new(&c->sink_input, c->protocol->core, &sdata);
     pa_sink_input_new_data_done(&sdata);
 
     CHECK_VALIDITY(c->sink_input, "Failed to create sink input.");
@@ -525,7 +525,7 @@ static int esd_proto_stream_record(connection *c, esd_proto_t request, const voi
     sdata.source = source;
     pa_source_output_new_data_set_sample_spec(&sdata, &ss);
 
-    pa_source_output_new(&c->source_output, c->protocol->core, &sdata, 0);
+    pa_source_output_new(&c->source_output, c->protocol->core, &sdata);
     pa_source_output_new_data_done(&sdata);
 
     CHECK_VALIDITY(c->source_output, "Failed to create source output.");

@@ -134,8 +134,7 @@ static void reset_callbacks(pa_sink_input *i) {
 int pa_sink_input_new(
         pa_sink_input **_i,
         pa_core *core,
-        pa_sink_input_new_data *data,
-        pa_sink_input_flags_t flags) {
+        pa_sink_input_new_data *data) {
 
     pa_sink_input *i;
     pa_resampler *resampler = NULL;
@@ -198,15 +197,15 @@ int pa_sink_input_new(
     if (!data->muted_is_set)
         data->muted = FALSE;
 
-    if (flags & PA_SINK_INPUT_FIX_FORMAT)
+    if (data->flags & PA_SINK_INPUT_FIX_FORMAT)
         data->sample_spec.format = data->sink->sample_spec.format;
 
-    if (flags & PA_SINK_INPUT_FIX_RATE)
+    if (data->flags & PA_SINK_INPUT_FIX_RATE)
         data->sample_spec.rate = data->sink->sample_spec.rate;
 
     original_cm = data->channel_map;
 
-    if (flags & PA_SINK_INPUT_FIX_CHANNELS) {
+    if (data->flags & PA_SINK_INPUT_FIX_CHANNELS) {
         data->sample_spec.channels = data->sink->sample_spec.channels;
         data->channel_map = data->sink->channel_map;
     }
@@ -225,7 +224,7 @@ int pa_sink_input_new(
     if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], data)) < 0)
         return r;
 
-    if ((flags & PA_SINK_INPUT_NO_CREATE_ON_SUSPEND) &&
+    if ((data->flags & PA_SINK_INPUT_NO_CREATE_ON_SUSPEND) &&
         pa_sink_get_state(data->sink) == PA_SINK_SUSPENDED) {
         pa_log_warn("Failed to create sink input: sink is suspended.");
         return -PA_ERR_BADSTATE;
@@ -236,7 +235,7 @@ int pa_sink_input_new(
         return -PA_ERR_TOOLARGE;
     }
 
-    if ((flags & PA_SINK_INPUT_VARIABLE_RATE) ||
+    if ((data->flags & PA_SINK_INPUT_VARIABLE_RATE) ||
         !pa_sample_spec_equal(&data->sample_spec, &data->sink->sample_spec) ||
         !pa_channel_map_equal(&data->channel_map, &data->sink->channel_map)) {
 
@@ -245,9 +244,9 @@ int pa_sink_input_new(
                       &data->sample_spec, &data->channel_map,
                       &data->sink->sample_spec, &data->sink->channel_map,
                       data->resample_method,
-                      ((flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
-                      ((flags & PA_SINK_INPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
-                      (core->disable_remixing || (flags & PA_SINK_INPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0) |
+                      ((data->flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
+                      ((data->flags & PA_SINK_INPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
+                      (core->disable_remixing || (data->flags & PA_SINK_INPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0) |
                       (core->disable_lfe_remixing ? PA_RESAMPLER_NO_LFE : 0)))) {
             pa_log_warn("Unsupported resampling operation.");
             return -PA_ERR_NOTSUPPORTED;
@@ -260,7 +259,7 @@ int pa_sink_input_new(
 
     i->core = core;
     i->state = PA_SINK_INPUT_INIT;
-    i->flags = flags;
+    i->flags = data->flags;
     i->proplist = pa_proplist_copy(data->proplist);
     i->driver = pa_xstrdup(pa_path_get_filename(data->driver));
     i->module = data->module;
