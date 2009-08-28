@@ -236,6 +236,7 @@ pa_sink* pa_sink_new(
     s->core = core;
     s->state = PA_SINK_INIT;
     s->flags = flags;
+    s->priority = 0;
     s->suspend_cause = 0;
     s->name = pa_xstrdup(name);
     s->proplist = pa_proplist_copy(data->proplist);

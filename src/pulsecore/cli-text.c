@@ -232,6 +232,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             "\tflags: %s%s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
             "\tsuspend cause: %s%s%s%s\n"
+            "\tpriority: %u\n"
             "\tvolume: %s%s%s\n"
             "\t        balance %0.2f\n"
             "\tbase volume: %s%s%s\n"
@@ -262,6 +263,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->suspend_cause & PA_SUSPEND_APPLICATION ? "APPLICATION " : "",
             sink->suspend_cause & PA_SUSPEND_IDLE ? "IDLE " : "",
             sink->suspend_cause & PA_SUSPEND_SESSION ? "SESSION" : "",
+            sink->priority,
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink, FALSE)),
             sink->flags & PA_SINK_DECIBEL_VOLUME ? "\n\t        " : "",
             sink->flags & PA_SINK_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_sink_get_volume(sink, FALSE)) : "",
@@ -356,6 +358,7 @@ char *pa_source_list_to_string(pa_core *c) {
             "\tflags: %s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
             "\tsuspend cause: %s%s%s%s\n"
+            "\tpriority: %u\n"
             "\tvolume: %s%s%s\n"
             "\t        balance %0.2f\n"
             "\tbase volume: %s%s%s\n"
@@ -383,6 +386,7 @@ char *pa_source_list_to_string(pa_core *c) {
             source->suspend_cause & PA_SUSPEND_APPLICATION ? "APPLICATION " : "",
             source->suspend_cause & PA_SUSPEND_IDLE ? "IDLE " : "",
             source->suspend_cause & PA_SUSPEND_SESSION ? "SESSION" : "",
+            source->priority,
             pa_cvolume_snprint(cv, sizeof(cv), pa_source_get_volume(source, FALSE)),
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? "\n\t        " : "",
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? pa_sw_cvolume_snprint_dB(cvdb, sizeof(cvdb), pa_source_get_volume(source, FALSE)) : "",
