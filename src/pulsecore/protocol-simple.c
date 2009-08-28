@@ -627,8 +627,7 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
     return;
 
 fail:
-    if (c)
-        connection_unlink(c);
+    connection_unlink(c);
 }
 
 void pa_simple_protocol_disconnect(pa_simple_protocol *p, pa_module *m) {

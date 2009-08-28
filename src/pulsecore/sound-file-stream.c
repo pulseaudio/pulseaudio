@@ -334,8 +334,7 @@ int pa_play_file(
     return 0;
 
 fail:
-    if (u)
-        file_stream_unref(u);
+    file_stream_unref(u);
 
     if (fd >= 0)
         pa_close(fd);

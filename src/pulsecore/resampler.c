@@ -299,8 +299,7 @@ pa_resampler* pa_resampler_new(
     return r;
 
 fail:
-    if (r)
-        pa_xfree(r);
+    pa_xfree(r);
 
     return NULL;
 }
