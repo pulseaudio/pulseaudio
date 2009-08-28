@@ -35,8 +35,6 @@
 #include "cpu-x86.h"
 #include "sconv.h"
 
-static pa_convert_func_t func;
-
 #if defined (__i386__) || defined (__amd64__)
 
 static const PA_DECLARE_ALIGNED (16, float, one[4]) = { 1.0, 1.0, 1.0, 1.0 };
@@ -178,6 +176,7 @@ static void run_test (void) {
     float floats[SAMPLES];
     int i;
     pa_usec_t start, stop;
+    pa_convert_func_t func;
 
     printf ("checking SSE %zd\n", sizeof (samples));
 
@@ -232,4 +231,3 @@ void pa_convert_func_init_sse (pa_cpu_x86_flag_t flags) {
 
 #endif /* defined (__i386__) || defined (__amd64__) */
 }
-
