@@ -3322,12 +3322,19 @@ static void command_set_volume(
 
     CHECK_VALIDITY(c->pstream, si || sink || source, tag, PA_ERR_NOENTITY);
 
-    if (sink)
+    if (sink) {
+        CHECK_VALIDITY(c->pstream, pa_cvolume_compatible(&volume, &sink->sample_spec), tag, PA_ERR_INVALID);
+
         pa_sink_set_volume(sink, &volume, TRUE, TRUE, TRUE);
-    else if (source)
+    } else if (source) {
+        CHECK_VALIDITY(c->pstream, pa_cvolume_compatible(&volume, &source->sample_spec), tag, PA_ERR_INVALID);
+
         pa_source_set_volume(source, &volume);
-    else if (si)
+    } else if (si) {
+        CHECK_VALIDITY(c->pstream, pa_cvolume_compatible(&volume, &si->sample_spec), tag, PA_ERR_INVALID);
+
         pa_sink_input_set_volume(si, &volume, TRUE, TRUE);
+    }
 
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
@@ -3368,7 +3375,6 @@ static void command_set_mute(
     switch (command) {
 
         case PA_COMMAND_SET_SINK_MUTE:
-
             if (idx != PA_INVALID_INDEX)
                 sink = pa_idxset_get_by_index(c->protocol->core->sinks, idx);
             else
