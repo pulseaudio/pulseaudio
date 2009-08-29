@@ -244,6 +244,8 @@ pa_sink* pa_sink_new(
     s->module = data->module;
     s->card = data->card;
 
+    s->priority = pa_device_init_priority(s->proplist);
+
     s->sample_spec = data->sample_spec;
     s->channel_map = data->channel_map;
 
@@ -2695,4 +2697,49 @@ pa_bool_t pa_device_init_intended_roles(pa_proplist *p) {
         }
 
     return FALSE;
+}
+
+unsigned pa_device_init_priority(pa_proplist *p) {
+    const char *s;
+    unsigned priority = 0;
+
+    pa_assert(p);
+
+    if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_CLASS))) {
+
+        if (pa_streq(s, "sound"))
+            priority += 9000;
+        else if (!pa_streq(s, "modem"))
+            priority += 1000;
+    }
+
+    if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_FORM_FACTOR))) {
+
+        if (pa_streq(s, "internal"))
+            priority += 900;
+        else if (pa_streq(s, "speaker"))
+            priority += 500;
+        else if (pa_streq(s, "headphone"))
+            priority += 400;
+    }
+
+    if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_BUS))) {
+
+        if (pa_streq(s, "pci"))
+            priority += 50;
+        else if (pa_streq(s, "usb"))
+            priority += 40;
+        else if (pa_streq(s, "bluetooth"))
+            priority += 30;
+    }
+
+    if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_PROFILE_NAME))) {
+
+        if (pa_startswith(s, "analog-"))
+            priority += 9;
+        else if (pa_startswith(s, "iec958-"))
+            priority += 8;
+    }
+
+    return priority;
 }

@@ -213,6 +213,8 @@ pa_source* pa_source_new(
     s->module = data->module;
     s->card = data->card;
 
+    s->priority = pa_device_init_priority(s->proplist);
+
     s->sample_spec = data->sample_spec;
     s->channel_map = data->channel_map;
 
