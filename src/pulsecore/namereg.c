@@ -269,7 +269,7 @@ pa_source* pa_namereg_set_default_source(pa_core*c, pa_source *s) {
 }
 
 pa_sink *pa_namereg_get_default_sink(pa_core *c) {
-    pa_sink *s;
+    pa_sink *s, *best = NULL;
     uint32_t idx;
 
     pa_assert(c);
@@ -277,18 +277,19 @@ pa_sink *pa_namereg_get_default_sink(pa_core *c) {
     if (c->default_sink && PA_SINK_IS_LINKED(pa_sink_get_state(c->default_sink)))
         return c->default_sink;
 
-    /* FIXME: the selection here should be based priority values on
-     * the sinks */
-
     PA_IDXSET_FOREACH(s, c->sinks, idx)
         if (PA_SINK_IS_LINKED(pa_sink_get_state(s)))
-            return pa_namereg_set_default_sink(c, s);
+            if (!best || s->priority > best->priority)
+                best = s;
+
+    if (best)
+        return pa_namereg_set_default_sink(c, best);
 
     return NULL;
 }
 
 pa_source *pa_namereg_get_default_source(pa_core *c) {
-    pa_source *s;
+    pa_source *s, *best = NULL;
     uint32_t idx;
 
     pa_assert(c);
@@ -299,12 +300,26 @@ pa_source *pa_namereg_get_default_source(pa_core *c) {
     /* First, try to find one that isn't a monitor */
     PA_IDXSET_FOREACH(s, c->sources, idx)
         if (!s->monitor_of && PA_SOURCE_IS_LINKED(pa_source_get_state(s)))
-            return pa_namereg_set_default_source(c, s);
+            if (!best ||
+                s->priority > best->priority)
+                best = s;
+
+    if (best)
+        return pa_namereg_set_default_source(c, best);
 
     /* Then, fallback to a monitor */
     PA_IDXSET_FOREACH(s, c->sources, idx)
         if (PA_SOURCE_IS_LINKED(pa_source_get_state(s)))
-            return pa_namereg_set_default_source(c, s);
+            if (!best ||
+                s->priority > best->priority ||
+                (s->priority == best->priority &&
+                 s->monitor_of &&
+                 best->monitor_of &&
+                 s->monitor_of->priority > best->monitor_of->priority))
+                best = s;
+
+    if (best)
+        return pa_namereg_set_default_source(c, best);
 
     return NULL;
 }
