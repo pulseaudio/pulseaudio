@@ -57,6 +57,8 @@ static pa_bool_t is_valid_char(char c) {
 pa_bool_t pa_namereg_is_valid_name(const char *name) {
     const char *c;
 
+    pa_assert(name);
+
     if (*name == 0)
         return FALSE;
 
@@ -68,6 +70,25 @@ pa_bool_t pa_namereg_is_valid_name(const char *name) {
         return FALSE;
 
     return TRUE;
+}
+
+pa_bool_t pa_namereg_is_valid_name_or_wildcard(const char *name, pa_namereg_type_t type) {
+
+    pa_assert(name);
+
+    if (pa_namereg_is_valid_name(name))
+        return TRUE;
+
+    if (type == PA_NAMEREG_SINK &&
+        pa_streq(name, "@DEFAULT_SINK@"))
+        return TRUE;
+
+    if (type == PA_NAMEREG_SOURCE &&
+        (pa_streq(name, "@DEFAULT_SOURCE@") ||
+         pa_streq(name, "@DEFAULT_MONITOR@")))
+        return TRUE;
+
+    return FALSE;
 }
 
 char* pa_namereg_make_valid_name(const char *name) {
@@ -191,7 +212,6 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type) {
 
         if ((s = pa_namereg_get(c, NULL, PA_NAMEREG_SINK)))
             return s->monitor_source;
-
     }
 
     if (!name)
