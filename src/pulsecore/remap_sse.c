@@ -65,16 +65,24 @@
                 " add $64, %1                   \n\t"  \
                 " add $128, %0                  \n\t"
 
-#define HANDLE_SINGLE(s)                               \
+#define HANDLE_SINGLE_dq()                             \
                 " movd (%1), %%xmm0             \n\t"  \
-                " punpckl"#s" %%xmm0, %%xmm0    \n\t"  \
+                " punpckldq %%xmm0, %%xmm0      \n\t"  \
                 " movq %%xmm0, (%0)             \n\t"  \
                 " add $4, %1                    \n\t"  \
                 " add $8, %0                    \n\t"
 
-#define MONO_TO_STEREO(s)                               \
-                " mov %3, %2                    \n\t"   \
-                " sar $4, %2                    \n\t"   \
+#define HANDLE_SINGLE_wd()                             \
+                " movw (%1), %w3                \n\t"  \
+                " movd %3, %%xmm0               \n\t"  \
+                " punpcklwd %%xmm0, %%xmm0      \n\t"  \
+                " movd %%xmm0, (%0)             \n\t"  \
+                " add $2, %1                    \n\t"  \
+                " add $4, %0                    \n\t"
+
+#define MONO_TO_STEREO(s,shift,mask)                    \
+                " mov %4, %2                    \n\t"   \
+                " sar $"#shift", %2             \n\t"   \
                 " cmp $0, %2                    \n\t"   \
                 " je 2f                         \n\t"   \
                 "1:                             \n\t"   \
@@ -84,24 +92,24 @@
                 " dec %2                        \n\t"   \
                 " jne 1b                        \n\t"   \
                 "2:                             \n\t"   \
-                " mov %3, %2                    \n\t"   \
-                " and $15, %2                   \n\t"   \
+                " mov %4, %2                    \n\t"   \
+                " and $"#mask", %2              \n\t"   \
                 " je 4f                         \n\t"   \
                 "3:                             \n\t"   \
-                HANDLE_SINGLE(s)                        \
+                HANDLE_SINGLE_##s()                     \
                 " dec %2                        \n\t"   \
                 " jne 3b                        \n\t"   \
                 "4:                             \n\t"
 
 static void remap_mono_to_stereo_sse (pa_remap_t *m, void *dst, const void *src, unsigned n) {
-    pa_reg_x86 temp;
+    pa_reg_x86 temp, temp2;
 
     switch (*m->format) {
         case PA_SAMPLE_FLOAT32NE:
         {
             __asm__ __volatile__ (
-                MONO_TO_STEREO(dq) /* do doubles to quads */
-                : "+r" (dst), "+r" (src), "=&r" (temp)
+                MONO_TO_STEREO(dq,3,7) /* do doubles to quads */
+                : "+r" (dst), "+r" (src), "=&r" (temp), "=&r" (temp2)
                 : "r" ((pa_reg_x86)n)
                 : "cc"
             );
@@ -110,8 +118,8 @@ static void remap_mono_to_stereo_sse (pa_remap_t *m, void *dst, const void *src,
         case PA_SAMPLE_S16NE:
         {
             __asm__ __volatile__ (
-                MONO_TO_STEREO(wd) /* do words to doubles */
-                : "+r" (dst), "+r" (src), "=&r" (temp)
+                MONO_TO_STEREO(wd,4,15) /* do words to doubles */
+                : "+r" (dst), "+r" (src), "=&r" (temp), "=&r" (temp2)
                 : "r" ((pa_reg_x86)n)
                 : "cc"
             );
