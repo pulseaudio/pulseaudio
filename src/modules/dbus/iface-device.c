@@ -43,13 +43,13 @@ static void handle_get_sample_format(DBusConnection *conn, DBusMessage *msg, voi
 static void handle_get_sample_rate(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_channels(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_volume(DBusConnection *conn, DBusMessage *msg, void *userdata);
-static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 static void handle_get_has_flat_volume(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_has_convertible_to_decibel_volume(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_base_volume(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_volume_steps(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_is_muted(DBusConnection *conn, DBusMessage *msg, void *userdata);
-static void handle_set_is_muted(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_set_is_muted(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 static void handle_get_has_hardware_volume(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_has_hardware_mute(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_configured_latency(DBusConnection *conn, DBusMessage *msg, void *userdata);
@@ -60,7 +60,7 @@ static void handle_get_is_network_device(DBusConnection *conn, DBusMessage *msg,
 static void handle_get_state(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_ports(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_active_port(DBusConnection *conn, DBusMessage *msg, void *userdata);
-static void handle_set_active_port(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_set_active_port(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 static void handle_get_property_list(DBusConnection *conn, DBusMessage *msg, void *userdata);
 
 static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata);
@@ -408,16 +408,18 @@ static void handle_get_volume(DBusConnection *conn, DBusMessage *msg, void *user
     pa_dbus_send_basic_array_variant_reply(conn, msg, DBUS_TYPE_UINT32, volume, d->volume.channels);
 }
 
-static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     pa_dbusiface_device *d = userdata;
-    unsigned device_channels = 0;
+    DBusMessageIter array_iter;
+    int device_channels = 0;
     dbus_uint32_t *volume = NULL;
-    unsigned n_volume_entries = 0;
+    int n_volume_entries = 0;
     pa_cvolume new_vol;
-    unsigned i = 0;
+    int i = 0;
 
     pa_assert(conn);
     pa_assert(msg);
+    pa_assert(iter);
     pa_assert(d);
 
     pa_cvolume_init(&new_vol);
@@ -426,12 +428,12 @@ static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, void *user
 
     new_vol.channels = device_channels;
 
-    if (pa_dbus_get_fixed_array_set_property_arg(conn, msg, DBUS_TYPE_UINT32, &volume, &n_volume_entries) < 0)
-        return;
+    dbus_message_iter_recurse(iter, &array_iter);
+    dbus_message_iter_get_fixed_array(&array_iter, &volume, &n_volume_entries);
 
     if (n_volume_entries != device_channels) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS,
-                           "Expected %u volume entries, got %u.", device_channels, n_volume_entries);
+                           "Expected %u volume entries, got %i.", device_channels, n_volume_entries);
         return;
     }
 
@@ -515,16 +517,16 @@ static void handle_get_is_muted(DBusConnection *conn, DBusMessage *msg, void *us
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &d->is_muted);
 }
 
-static void handle_set_is_muted(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+static void handle_set_is_muted(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     pa_dbusiface_device *d = userdata;
     dbus_bool_t is_muted = FALSE;
 
     pa_assert(conn);
     pa_assert(msg);
+    pa_assert(iter);
     pa_assert(d);
 
-    if (pa_dbus_get_basic_set_property_arg(conn, msg, DBUS_TYPE_BOOLEAN, &is_muted) < 0)
-        return;
+    dbus_message_iter_get_basic(iter, &is_muted);
 
     if (d->type == DEVICE_TYPE_SINK)
         pa_sink_set_mute(d->sink, is_muted, TRUE);
@@ -722,7 +724,7 @@ static void handle_get_active_port(DBusConnection *conn, DBusMessage *msg, void 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_OBJECT_PATH, &active_port);
 }
 
-static void handle_set_active_port(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+static void handle_set_active_port(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     pa_dbusiface_device *d = userdata;
     const char *new_active_path;
     pa_dbusiface_device_port *new_active;
@@ -730,10 +732,8 @@ static void handle_set_active_port(DBusConnection *conn, DBusMessage *msg, void 
 
     pa_assert(conn);
     pa_assert(msg);
+    pa_assert(iter);
     pa_assert(d);
-
-    if (pa_dbus_get_basic_set_property_arg(conn, msg, DBUS_TYPE_OBJECT_PATH, &new_active_path) < 0)
-        return;
 
     if (!d->active_port) {
         pa_assert(pa_hashmap_isempty(d->ports));
@@ -747,8 +747,10 @@ static void handle_set_active_port(DBusConnection *conn, DBusMessage *msg, void 
         return;
     }
 
+    dbus_message_iter_get_basic(iter, &new_active_path);
+
     if (!(new_active = pa_hashmap_get(d->ports, new_active_path))) {
-        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "%s: No such port.", new_active_path);
+        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "No such port: %s", new_active_path);
         return;
     }
 
@@ -923,19 +925,12 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
 static void handle_suspend(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_device *d = userdata;
     dbus_bool_t suspend = FALSE;
-    DBusError error;
 
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(d);
 
-    dbus_error_init(&error);
-
-    if (!dbus_message_get_args(msg, &error, DBUS_TYPE_BOOLEAN, &suspend, DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
-        dbus_error_free(&error);
-        return;
-    }
+    pa_assert_se(dbus_message_get_args(msg, NULL, DBUS_TYPE_BOOLEAN, &suspend, DBUS_TYPE_INVALID));
 
     if ((d->type == DEVICE_TYPE_SINK) && (pa_sink_suspend(d->sink, suspend, PA_SUSPEND_USER) < 0)) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_FAILED, "Internal error in PulseAudio: pa_sink_suspend() failed.");
@@ -950,7 +945,6 @@ static void handle_suspend(DBusConnection *conn, DBusMessage *msg, void *userdat
 
 static void handle_get_port_by_name(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_device *d = userdata;
-    DBusError error;
     const char *port_name = NULL;
     pa_dbusiface_device_port *port = NULL;
     const char *port_path = NULL;
@@ -959,13 +953,7 @@ static void handle_get_port_by_name(DBusConnection *conn, DBusMessage *msg, void
     pa_assert(msg);
     pa_assert(d);
 
-    dbus_error_init(&error);
-
-    if (!dbus_message_get_args(msg, &error, DBUS_TYPE_STRING, &port_name, DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
-        dbus_error_free(&error);
-        return;
-    }
+    pa_assert_se(dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &port_name, DBUS_TYPE_INVALID));
 
     if (!(port = pa_hashmap_get(d->ports, port_name))) {
         if (d->type == DEVICE_TYPE_SINK)

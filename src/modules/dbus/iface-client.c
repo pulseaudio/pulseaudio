@@ -339,16 +339,12 @@ static void handle_update_properties(DBusConnection *conn, DBusMessage *msg, voi
         return;
     }
 
-    if (!dbus_message_iter_init(msg, &msg_iter)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Too few arguments.");
-        return;
-    }
+    pa_assert_se(dbus_message_iter_init(msg, &msg_iter));
 
     if (!(property_list = pa_dbus_get_proplist_arg(conn, msg, &msg_iter)))
         return;
 
-    if (pa_dbus_get_basic_arg(conn, msg, &msg_iter, DBUS_TYPE_UINT32, &update_mode) < 0)
-        goto finish;
+    dbus_message_iter_get_basic(&msg_iter, &update_mode);
 
     if (!(update_mode == PA_UPDATE_SET || update_mode == PA_UPDATE_MERGE || update_mode == PA_UPDATE_REPLACE)) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid update mode: %u", update_mode);
@@ -368,7 +364,6 @@ static void handle_remove_properties(DBusConnection *conn, DBusMessage *msg, voi
     pa_dbusiface_client *c = userdata;
     char **keys = NULL;
     int n_keys = 0;
-    DBusError error;
     pa_bool_t changed = FALSE;
     int i = 0;
 
@@ -376,18 +371,12 @@ static void handle_remove_properties(DBusConnection *conn, DBusMessage *msg, voi
     pa_assert(msg);
     pa_assert(c);
 
-    dbus_error_init(&error);
-
     if (pa_dbus_protocol_get_client(c->dbus_protocol, conn) != c->client) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_ACCESS_DENIED, "Client tried to modify the property list of another client.");
         return;
     }
 
-    if (!dbus_message_get_args(msg, &error, DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &keys, &n_keys, DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
-        dbus_error_free(&error);
-        return;
-    }
+    pa_assert_se(dbus_message_get_args(msg, NULL, DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &keys, &n_keys, DBUS_TYPE_INVALID));
 
     for (i = 0; i < n_keys; ++i)
         changed |= pa_proplist_unset(c->client->proplist, keys[i]) >= 0;

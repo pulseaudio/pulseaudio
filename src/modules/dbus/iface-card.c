@@ -43,7 +43,7 @@ static void handle_get_sinks(DBusConnection *conn, DBusMessage *msg, void *userd
 static void handle_get_sources(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_profiles(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_active_profile(DBusConnection *conn, DBusMessage *msg, void *userdata);
-static void handle_set_active_profile(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_set_active_profile(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 static void handle_get_property_list(DBusConnection *conn, DBusMessage *msg, void *userdata);
 
 static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata);
@@ -322,7 +322,7 @@ static void handle_get_active_profile(DBusConnection *conn, DBusMessage *msg, vo
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_OBJECT_PATH, &active_profile);
 }
 
-static void handle_set_active_profile(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+static void handle_set_active_profile(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     pa_dbusiface_card *c = userdata;
     const char *new_active_path;
     pa_dbusiface_card_profile *new_active;
@@ -330,10 +330,8 @@ static void handle_set_active_profile(DBusConnection *conn, DBusMessage *msg, vo
 
     pa_assert(conn);
     pa_assert(msg);
+    pa_assert(iter);
     pa_assert(c);
-
-    if (pa_dbus_get_basic_set_property_arg(conn, msg, DBUS_TYPE_OBJECT_PATH, &new_active_path) < 0)
-        return;
 
     if (!c->active_profile) {
         pa_assert(pa_hashmap_isempty(c->profiles));
@@ -343,6 +341,8 @@ static void handle_set_active_profile(DBusConnection *conn, DBusMessage *msg, vo
                            c->card->name);
         return;
     }
+
+    dbus_message_iter_get_basic(iter, &new_active_path);
 
     if (!(new_active = pa_hashmap_get(c->profiles, new_active_path))) {
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "%s: No such profile.", new_active_path);
@@ -430,7 +430,6 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
 
 static void handle_get_profile_by_name(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_card *c = userdata;
-    DBusError error;
     const char *profile_name = NULL;
     pa_dbusiface_card_profile *profile = NULL;
     const char *profile_path = NULL;
@@ -439,13 +438,7 @@ static void handle_get_profile_by_name(DBusConnection *conn, DBusMessage *msg, v
     pa_assert(msg);
     pa_assert(c);
 
-    dbus_error_init(&error);
-
-    if (!dbus_message_get_args(msg, &error, DBUS_TYPE_STRING, &profile_name, DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
-        dbus_error_free(&error);
-        return;
-    }
+    pa_assert_se(dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &profile_name, DBUS_TYPE_INVALID));
 
     if (!(profile = pa_hashmap_get(c->profiles, profile_name))) {
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "%s: No such profile on card %s.", profile_name, c->card->name);

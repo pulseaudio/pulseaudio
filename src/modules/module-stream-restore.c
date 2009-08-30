@@ -167,11 +167,11 @@ static void handle_get_entry_by_name(DBusConnection *conn, DBusMessage *msg, voi
 static void handle_entry_get_index(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_entry_get_name(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_entry_get_device(DBusConnection *conn, DBusMessage *msg, void *userdata);
-static void handle_entry_set_device(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_entry_set_device(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 static void handle_entry_get_volume(DBusConnection *conn, DBusMessage *msg, void *userdata);
-static void handle_entry_set_volume(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_entry_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 static void handle_entry_get_is_muted(DBusConnection *conn, DBusMessage *msg, void *userdata);
-static void handle_entry_set_is_muted(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_entry_set_is_muted(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 
 static void handle_entry_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata);
 
@@ -326,18 +326,20 @@ static void dbus_entry_free(struct dbus_entry *de) {
 
 /* Reads an array [(UInt32, UInt32)] from the iterator. The struct items are
  * are a channel position and a volume value, respectively. The result is
- * stored in the map and vol arguments. If the volume can't be read from the
- * iterator, an error reply is sent and a negative number is returned. In case
- * of a failure we make no guarantees about the state of map and vol. In case
- * of an empty array the channels field of both map and vol are set to 0. */
+ * stored in the map and vol arguments. The iterator must point to a "a(uu)"
+ * element. If the data is invalid, an error reply is sent and a negative
+ * number is returned. In case of a failure we make no guarantees about the
+ * state of map and vol. In case of an empty array the channels field of both
+ * map and vol are set to 0. This function calls dbus_message_iter_next(iter)
+ * before returning. */
 static int get_volume_arg(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, pa_channel_map *map, pa_cvolume *vol) {
     DBusMessageIter array_iter;
     DBusMessageIter struct_iter;
-    int arg_type;
 
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(iter);
+    pa_assert(pa_streq(dbus_message_iter_get_signature(iter), "a(uu)"));
     pa_assert(map);
     pa_assert(vol);
 
@@ -347,21 +349,6 @@ static int get_volume_arg(DBusConnection *conn, DBusMessage *msg, DBusMessageIte
     map->channels = 0;
     vol->channels = 0;
 
-    arg_type = dbus_message_iter_get_arg_type(iter);
-    if (arg_type != DBUS_TYPE_ARRAY) {
-        if (arg_type == DBUS_TYPE_INVALID)
-            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Too few arguments. An array was expected.");
-        else
-            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Wrong argument type: '%c'. An array was expected.", (char) arg_type);
-        return -1;
-    }
-
-    arg_type = dbus_message_iter_get_element_type(iter);
-    if (arg_type != DBUS_TYPE_STRUCT) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Wrong array element type: '%c'. A struct was expected.", (char) arg_type);
-        return -1;
-    }
-
     dbus_message_iter_recurse(iter, &array_iter);
 
     while (dbus_message_iter_get_arg_type(&array_iter) != DBUS_TYPE_INVALID) {
@@ -370,29 +357,14 @@ static int get_volume_arg(DBusConnection *conn, DBusMessage *msg, DBusMessageIte
 
         dbus_message_iter_recurse(&array_iter, &struct_iter);
 
-        arg_type = dbus_message_iter_get_arg_type(&struct_iter);
-        if (arg_type != DBUS_TYPE_UINT32) {
-            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Wrong channel position type: '%c'. An unsigned 32-bit integer was expected.", (char) arg_type);
-            return -1;
-        }
-
         dbus_message_iter_get_basic(&struct_iter, &chan_pos);
-        dbus_message_iter_next(&struct_iter);
 
         if (chan_pos >= PA_CHANNEL_POSITION_MAX) {
             pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid channel position: %u", chan_pos);
             return -1;
         }
 
-        arg_type = dbus_message_iter_get_arg_type(&struct_iter);
-        if (arg_type != DBUS_TYPE_UINT32) {
-            if (arg_type == DBUS_TYPE_INVALID)
-                pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Channel volume missing.");
-            else
-                pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Wrong volume value type: '%c'. An unsigned 32-bit integer was expected.", (char) arg_type);
-            return -1;
-        }
-
+        pa_assert_se(dbus_message_iter_next(&struct_iter));
         dbus_message_iter_get_basic(&struct_iter, &chan_vol);
 
         if (chan_vol > PA_VOLUME_MAX) {
@@ -612,40 +584,35 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
 static void handle_add_entry(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     struct userdata *u = userdata;
     DBusMessageIter msg_iter;
-    const char *name;
-    const char *device;
+    const char *name = NULL;
+    const char *device = NULL;
     pa_channel_map map;
     pa_cvolume vol;
-    dbus_bool_t muted;
-    dbus_bool_t apply_immediately;
+    dbus_bool_t muted = FALSE;
+    dbus_bool_t apply_immediately = FALSE;
     pa_datum key;
     pa_datum value;
-    struct dbus_entry *dbus_entry;
-    struct entry *e;
+    struct dbus_entry *dbus_entry = NULL;
+    struct entry *e = NULL;
 
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(u);
 
-    if (!dbus_message_iter_init(msg, &msg_iter)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Too few arguments.");
-        return;
-    }
+    pa_assert_se(dbus_message_iter_init(msg, &msg_iter));
+    dbus_message_iter_get_basic(&msg_iter, &name);
 
-    if (pa_dbus_get_basic_arg(conn, msg, &msg_iter, DBUS_TYPE_STRING, &name) < 0)
-        return;
+    pa_assert_se(dbus_message_iter_next(&msg_iter));
+    dbus_message_iter_get_basic(&msg_iter, &device);
 
-    if (pa_dbus_get_basic_arg(conn, msg, &msg_iter, DBUS_TYPE_STRING, &device) < 0)
-        return;
-
+    pa_assert_se(dbus_message_iter_next(&msg_iter));
     if (get_volume_arg(conn, msg, &msg_iter, &map, &vol) < 0)
         return;
 
-    if (pa_dbus_get_basic_arg(conn, msg, &msg_iter, DBUS_TYPE_BOOLEAN, &muted) < 0)
-        return;
+    dbus_message_iter_get_basic(&msg_iter, &muted);
 
-    if (pa_dbus_get_basic_arg(conn, msg, &msg_iter, DBUS_TYPE_BOOLEAN, &apply_immediately) < 0)
-        return;
+    pa_assert_se(dbus_message_iter_next(&msg_iter));
+    dbus_message_iter_get_basic(&msg_iter, &apply_immediately);
 
     if (!*name) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "An empty string was given as the entry name.");
@@ -714,19 +681,12 @@ static void handle_get_entry_by_name(DBusConnection *conn, DBusMessage *msg, voi
     struct userdata *u = userdata;
     const char *name;
     struct dbus_entry *de;
-    DBusError error;
 
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(u);
 
-    dbus_error_init(&error);
-
-    if (!dbus_message_get_args(msg, &error, DBUS_TYPE_STRING, &name, DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
-        dbus_error_free(&error);
-        return;
-    }
+    pa_assert_se(dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &name, DBUS_TYPE_INVALID));
 
     if (!(de = pa_hashmap_get(u->dbus_entries, name))) {
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "No such stream restore entry.");
@@ -774,7 +734,7 @@ static void handle_entry_get_device(DBusConnection *conn, DBusMessage *msg, void
     pa_xfree(e);
 }
 
-static void handle_entry_set_device(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+static void handle_entry_set_device(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     struct dbus_entry *de = userdata;
     const char *device;
     struct entry *e;
@@ -782,10 +742,10 @@ static void handle_entry_set_device(DBusConnection *conn, DBusMessage *msg, void
 
     pa_assert(conn);
     pa_assert(msg);
+    pa_assert(iter);
     pa_assert(de);
 
-    if (pa_dbus_get_basic_set_property_arg(conn, msg, DBUS_TYPE_STRING, &device) < 0)
-        return;
+    dbus_message_iter_get_basic(iter, &device);
 
     pa_assert_se(e = read_entry(de->userdata, de->entry_name));
 
@@ -835,25 +795,19 @@ static void handle_entry_get_volume(DBusConnection *conn, DBusMessage *msg, void
     pa_xfree(e);
 }
 
-static void handle_entry_set_volume(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+static void handle_entry_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     struct dbus_entry *de = userdata;
-    DBusMessageIter msg_iter;
     pa_channel_map map;
     pa_cvolume vol;
-    struct entry *e;
-    pa_bool_t updated;
+    struct entry *e = NULL;
+    pa_bool_t updated = FALSE;
 
     pa_assert(conn);
     pa_assert(msg);
+    pa_assert(iter);
     pa_assert(de);
 
-    /* Skip the interface and property name arguments. */
-    if (!dbus_message_iter_init(msg, &msg_iter) || !dbus_message_iter_next(&msg_iter) || !dbus_message_iter_next(&msg_iter)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Too few arguments.");
-        return;
-    }
-
-    if (get_volume_arg(conn, msg, &msg_iter, &map, &vol) < 0)
+    if (get_volume_arg(conn, msg, iter, &map, &vol) < 0)
         return;
 
     pa_assert_se(e = read_entry(de->userdata, de->entry_name));
@@ -901,7 +855,7 @@ static void handle_entry_get_is_muted(DBusConnection *conn, DBusMessage *msg, vo
     pa_xfree(e);
 }
 
-static void handle_entry_set_is_muted(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+static void handle_entry_set_is_muted(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     struct dbus_entry *de = userdata;
     pa_bool_t muted;
     struct entry *e;
@@ -909,10 +863,10 @@ static void handle_entry_set_is_muted(DBusConnection *conn, DBusMessage *msg, vo
 
     pa_assert(conn);
     pa_assert(msg);
+    pa_assert(iter);
     pa_assert(de);
 
-    if (pa_dbus_get_basic_set_property_arg(conn, msg, DBUS_TYPE_BOOLEAN, &muted) < 0)
-        return;
+    dbus_message_iter_get_basic(iter, &muted);
 
     pa_assert_se(e = read_entry(de->userdata, de->entry_name));
 

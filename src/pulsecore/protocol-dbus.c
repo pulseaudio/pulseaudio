@@ -257,37 +257,90 @@ static void update_introspection(struct object_entry *oe) {
     oe->introspection = pa_strbuf_tostring_free(buf);
 }
 
+/* Return value of find_handler() and its subfunctions. */
 enum find_result_t {
-    FOUND_METHOD,
+    /* The received message is a valid .Get call. */
     FOUND_GET_PROPERTY,
+
+    /* The received message is a valid .Set call. */
     FOUND_SET_PROPERTY,
+
+    /* The received message is a valid .GetAll call. */
     FOUND_GET_ALL,
-    PROPERTY_ACCESS_DENIED,
-    NO_SUCH_METHOD,
+
+    /* The received message is a valid method call. */
+    FOUND_METHOD,
+
+    /* The interface of the received message hasn't been registered for the
+     * destination object. */
+    NO_SUCH_INTERFACE,
+
+    /* No property handler was found for the received .Get or .Set call. */
     NO_SUCH_PROPERTY,
-    INVALID_MESSAGE_ARGUMENTS
+
+    /* The interface argument of a property call didn't match any registered
+     * interface. */
+    NO_SUCH_PROPERTY_INTERFACE,
+
+    /* The received message called .Get or .Set for a property whose access
+     * mode doesn't match the call. */
+    PROPERTY_ACCESS_DENIED,
+
+    /* The new value signature of a .Set call didn't match the expexted
+     * signature. */
+    INVALID_PROPERTY_SIG,
+
+    /* No method handler was found for the received message. */
+    NO_SUCH_METHOD,
+
+    /* The signature of the received message didn't match the expected
+     * signature. Despite the name, this can also be returned for a property
+     * call if its message signature is invalid. */
+    INVALID_METHOD_SIG
 };
 
-static enum find_result_t find_handler_by_property(struct object_entry *obj_entry,
-                                                   DBusMessage *msg,
-                                                   const char *property,
-                                                   struct interface_entry **iface_entry,
-                                                   pa_dbus_property_handler **property_handler) {
+/* Data for resolving the correct reaction to a received message. */
+struct call_info {
+    DBusMessage *message; /* The received message. */
+    struct object_entry *obj_entry;
+    const char *interface; /* Destination interface name (extracted from the message). */
+    struct interface_entry *iface_entry;
+
+    const char *property; /* Property name (extracted from the message). */
+    const char *property_interface; /* The interface argument of a property call is stored here. */
+    pa_dbus_property_handler *property_handler;
+    const char *expected_property_sig; /* Property signature from the introspection data. */
+    const char *property_sig; /* The signature of the new value in the received .Set message. */
+    DBusMessageIter variant_iter; /* Iterator pointing to the beginning of the new value variant of a .Set call. */
+
+    const char *method; /* Method name (extracted from the message). */
+    pa_dbus_method_handler *method_handler;
+    const char *expected_method_sig; /* Method signature from the introspection data. */
+    const char *method_sig; /* The signature of the received message. */
+};
+
+/* Called when call_info->property has been set and the property interface has
+ * not been given. In case of a Set call, call_info->property_sig is also set,
+ * which is checked against the expected value in this function. */
+static enum find_result_t find_handler_by_property(struct call_info *call_info) {
     void *state = NULL;
 
-    pa_assert(obj_entry);
-    pa_assert(msg);
-    pa_assert(property);
-    pa_assert(iface_entry);
-    pa_assert(property_handler);
+    pa_assert(call_info);
 
-    PA_HASHMAP_FOREACH(*iface_entry, obj_entry->interfaces, state) {
-        if ((*property_handler = pa_hashmap_get((*iface_entry)->property_handlers, property))) {
-            if (dbus_message_has_member(msg, "Get"))
-                return (*property_handler)->get_cb ? FOUND_GET_PROPERTY : PROPERTY_ACCESS_DENIED;
-            else if (dbus_message_has_member(msg, "Set"))
-                return (*property_handler)->set_cb ? FOUND_SET_PROPERTY : PROPERTY_ACCESS_DENIED;
-            else
+    PA_HASHMAP_FOREACH(call_info->iface_entry, call_info->obj_entry->interfaces, state) {
+        if ((call_info->property_handler = pa_hashmap_get(call_info->iface_entry->property_handlers, call_info->property))) {
+            if (pa_streq(call_info->method, "Get"))
+                return call_info->property_handler->get_cb ? FOUND_GET_PROPERTY : PROPERTY_ACCESS_DENIED;
+
+            else if (pa_streq(call_info->method, "Set")) {
+                call_info->expected_property_sig = call_info->property_handler->type;
+
+                if (pa_streq(call_info->property_sig, call_info->expected_property_sig))
+                    return call_info->property_handler->set_cb ? FOUND_SET_PROPERTY : PROPERTY_ACCESS_DENIED;
+                else
+                    return INVALID_PROPERTY_SIG;
+
+            } else
                 pa_assert_not_reached();
         }
     }
@@ -295,120 +348,138 @@ static enum find_result_t find_handler_by_property(struct object_entry *obj_entr
     return NO_SUCH_PROPERTY;
 }
 
-static enum find_result_t find_handler_by_method(struct object_entry *obj_entry,
-                                                 const char *method,
-                                                 struct interface_entry **iface_entry,
-                                                 pa_dbus_method_handler **method_handler) {
+static enum find_result_t find_handler_by_method(struct call_info *call_info) {
     void *state = NULL;
 
-    pa_assert(obj_entry);
-    pa_assert(method);
-    pa_assert(iface_entry);
-    pa_assert(method_handler);
+    pa_assert(call_info);
 
-    PA_HASHMAP_FOREACH(*iface_entry, obj_entry->interfaces, state) {
-        if ((*method_handler = pa_hashmap_get((*iface_entry)->method_handlers, method)))
+    PA_HASHMAP_FOREACH(call_info->iface_entry, call_info->obj_entry->interfaces, state) {
+        if ((call_info->method_handler = pa_hashmap_get(call_info->iface_entry->method_handlers, call_info->method)))
             return FOUND_METHOD;
     }
 
     return NO_SUCH_METHOD;
 }
 
-static enum find_result_t find_handler_from_properties_call(struct object_entry *obj_entry,
-                                                            DBusMessage *msg,
-                                                            struct interface_entry **iface_entry,
-                                                            pa_dbus_property_handler **property_handler,
-                                                            const char **attempted_property) {
-    const char *interface;
+static enum find_result_t find_handler_from_properties_call(struct call_info *call_info) {
+    pa_assert(call_info);
 
-    pa_assert(obj_entry);
-    pa_assert(msg);
-    pa_assert(iface_entry);
+    if (pa_streq(call_info->method, "GetAll")) {
+        call_info->expected_method_sig = "s";
+        if (!pa_streq(call_info->method_sig, call_info->expected_method_sig))
+            return INVALID_METHOD_SIG;
 
-    if (dbus_message_has_member(msg, "GetAll")) {
-        if (!dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &interface, DBUS_TYPE_INVALID))
-            return INVALID_MESSAGE_ARGUMENTS;
+        pa_assert_se(dbus_message_get_args(call_info->message, NULL,
+                                           DBUS_TYPE_STRING, &call_info->property_interface,
+                                           DBUS_TYPE_INVALID));
 
-        if (*interface) {
-            if ((*iface_entry = pa_hashmap_get(obj_entry->interfaces, interface)))
+        if (*call_info->property_interface) {
+            if ((call_info->iface_entry = pa_hashmap_get(call_info->obj_entry->interfaces, call_info->property_interface)))
                 return FOUND_GET_ALL;
-            else {
-                return NO_SUCH_METHOD; /* XXX: NO_SUCH_INTERFACE or something like that might be more accurate. */
-            }
+            else
+                return NO_SUCH_PROPERTY_INTERFACE;
+
         } else {
-            pa_assert_se((*iface_entry = pa_hashmap_first(obj_entry->interfaces)));
+            pa_assert_se(call_info->iface_entry = pa_hashmap_first(call_info->obj_entry->interfaces));
             return FOUND_GET_ALL;
         }
-    } else {
-        if (!dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &interface, DBUS_TYPE_STRING, attempted_property, DBUS_TYPE_INVALID))
-            return INVALID_MESSAGE_ARGUMENTS;
 
-        if (*interface) {
-            if ((*iface_entry = pa_hashmap_get(obj_entry->interfaces, interface)) &&
-                (*property_handler = pa_hashmap_get((*iface_entry)->property_handlers, *attempted_property))) {
-                if (dbus_message_has_member(msg, "Get"))
-                    return (*property_handler)->get_cb ? FOUND_GET_PROPERTY : PROPERTY_ACCESS_DENIED;
-                else if (dbus_message_has_member(msg, "Set"))
-                    return (*property_handler)->set_cb ? FOUND_SET_PROPERTY : PROPERTY_ACCESS_DENIED;
+    } else if (pa_streq(call_info->method, "Get")) {
+        call_info->expected_method_sig = "ss";
+        if (!pa_streq(call_info->method_sig, call_info->expected_method_sig))
+            return INVALID_METHOD_SIG;
+
+        pa_assert_se(dbus_message_get_args(call_info->message, NULL,
+                                           DBUS_TYPE_STRING, &call_info->property_interface,
+                                           DBUS_TYPE_STRING, &call_info->property,
+                                           DBUS_TYPE_INVALID));
+
+        if (*call_info->property_interface) {
+            if (!(call_info->iface_entry = pa_hashmap_get(call_info->obj_entry->interfaces, call_info->property_interface)))
+                return NO_SUCH_PROPERTY_INTERFACE;
+            else if ((call_info->property_handler =
+                        pa_hashmap_get(call_info->iface_entry->property_handlers, call_info->property)))
+                return FOUND_GET_PROPERTY;
+            else
+                return NO_SUCH_PROPERTY;
+
+        } else
+            return find_handler_by_property(call_info);
+
+    } else if (pa_streq(call_info->method, "Set")) {
+        DBusMessageIter msg_iter;
+
+        call_info->expected_method_sig = "ssv";
+        if (!pa_streq(call_info->method_sig, call_info->expected_method_sig))
+            return INVALID_METHOD_SIG;
+
+        pa_assert_se(dbus_message_iter_init(call_info->message, &msg_iter));
+
+        dbus_message_iter_get_basic(&msg_iter, &call_info->property_interface);
+        pa_assert_se(dbus_message_iter_next(&msg_iter));
+        dbus_message_iter_get_basic(&msg_iter, &call_info->property);
+        pa_assert_se(dbus_message_iter_next(&msg_iter));
+
+        dbus_message_iter_recurse(&msg_iter, &call_info->variant_iter);
+
+        call_info->property_sig = dbus_message_iter_get_signature(&call_info->variant_iter);
+
+        if (*call_info->property_interface) {
+            if (!(call_info->iface_entry = pa_hashmap_get(call_info->obj_entry->interfaces, call_info->property_interface)))
+                return NO_SUCH_PROPERTY_INTERFACE;
+
+            else if ((call_info->property_handler =
+                        pa_hashmap_get(call_info->iface_entry->property_handlers, call_info->property))) {
+                call_info->expected_property_sig = call_info->property_handler->type;
+
+                if (pa_streq(call_info->property_sig, call_info->expected_property_sig))
+                    return FOUND_SET_PROPERTY;
                 else
-                    pa_assert_not_reached();
+                    return INVALID_PROPERTY_SIG;
+
             } else
                 return NO_SUCH_PROPERTY;
+
         } else
-            return find_handler_by_property(obj_entry, msg, *attempted_property, iface_entry, property_handler);
-    }
+            return find_handler_by_property(call_info);
+
+    } else
+        pa_assert_not_reached();
 }
 
-static enum find_result_t find_handler(struct object_entry *obj_entry,
-                                       DBusMessage *msg,
-                                       struct interface_entry **iface_entry,
-                                       pa_dbus_method_handler **method_handler,
-                                       pa_dbus_property_handler **property_handler,
-                                       const char **attempted_property) {
-    const char *interface;
+static enum find_result_t find_handler(struct call_info *call_info) {
+    pa_assert(call_info);
 
-    pa_assert(obj_entry);
-    pa_assert(msg);
-    pa_assert(iface_entry);
-    pa_assert(method_handler);
-    pa_assert(property_handler);
-    pa_assert(attempted_property);
+    if (call_info->interface) {
+        if (pa_streq(call_info->interface, DBUS_INTERFACE_PROPERTIES))
+            return find_handler_from_properties_call(call_info);
 
-    *iface_entry = NULL;
-    *method_handler = NULL;
+        else if (!(call_info->iface_entry = pa_hashmap_get(call_info->obj_entry->interfaces, call_info->interface)))
+            return NO_SUCH_INTERFACE;
 
-    if (dbus_message_has_interface(msg, DBUS_INTERFACE_PROPERTIES))
-        return find_handler_from_properties_call(obj_entry, msg, iface_entry, property_handler, attempted_property);
-
-    else if ((interface = dbus_message_get_interface(msg))) {
-        if ((*iface_entry = pa_hashmap_get(obj_entry->interfaces, interface)) &&
-            (*method_handler = pa_hashmap_get((*iface_entry)->method_handlers, dbus_message_get_member(msg))))
+        else if ((call_info->method_handler = pa_hashmap_get(call_info->iface_entry->method_handlers, call_info->method)))
             return FOUND_METHOD;
-        else {
-            pa_log("Message has unknown interface or there's no method handler.");
+
+        else
             return NO_SUCH_METHOD;
-        }
 
     } else { /* The method call doesn't contain an interface. */
-        if (dbus_message_has_member(msg, "Get") || dbus_message_has_member(msg, "Set") || dbus_message_has_member(msg, "GetAll")) {
-            if (find_handler_by_method(obj_entry, dbus_message_get_member(msg), iface_entry, method_handler) == FOUND_METHOD)
-                return FOUND_METHOD; /* The object has a method named Get, Set or GetAll in some other interface than .Properties. */
+        if (pa_streq(call_info->method, "Get") || pa_streq(call_info->method, "Set") || pa_streq(call_info->method, "GetAll")) {
+            if (find_handler_by_method(call_info) == FOUND_METHOD)
+                /* The object has a method named Get, Set or GetAll in some other interface than .Properties. */
+                return FOUND_METHOD;
             else
                 /* Assume this is a .Properties call. */
-                return find_handler_from_properties_call(obj_entry, msg, iface_entry, property_handler, attempted_property);
+                return find_handler_from_properties_call(call_info);
 
         } else /* This is not a .Properties call. */
-            return find_handler_by_method(obj_entry, dbus_message_get_member(msg), iface_entry, method_handler);
+            return find_handler_by_method(call_info);
     }
 }
 
 static DBusHandlerResult handle_message_cb(DBusConnection *connection, DBusMessage *message, void *user_data) {
     pa_dbus_protocol *p = user_data;
-    struct object_entry *obj_entry = NULL;
-    struct interface_entry *iface_entry = NULL;
-    pa_dbus_method_handler *method_handler = NULL;
-    pa_dbus_property_handler *property_handler = NULL;
-    const char *attempted_property = NULL;
+    struct call_info call_info;
 
     pa_assert(connection);
     pa_assert(message);
@@ -423,48 +494,71 @@ static DBusHandlerResult handle_message_cb(DBusConnection *connection, DBusMessa
                  dbus_message_get_interface(message),
                  dbus_message_get_member(message));
 
-    pa_assert_se((obj_entry = pa_hashmap_get(p->objects, dbus_message_get_path(message))));
+    call_info.message = message;
+    pa_assert_se(call_info.obj_entry = pa_hashmap_get(p->objects, dbus_message_get_path(message)));
+    call_info.interface = dbus_message_get_interface(message);
+    pa_assert_se(call_info.method = dbus_message_get_member(message));
+    pa_assert_se(call_info.method_sig = dbus_message_get_signature(message));
 
     if (dbus_message_is_method_call(message, "org.freedesktop.DBus.Introspectable", "Introspect") ||
         (!dbus_message_get_interface(message) && dbus_message_has_member(message, "Introspect"))) {
-        pa_dbus_send_basic_value_reply(connection, message, DBUS_TYPE_STRING, &obj_entry->introspection);
+        pa_dbus_send_basic_value_reply(connection, message, DBUS_TYPE_STRING, &call_info.obj_entry->introspection);
         goto finish;
     }
 
-    switch (find_handler(obj_entry, message, &iface_entry, &method_handler, &property_handler, &attempted_property)) {
-        case FOUND_METHOD:
-            method_handler->receive_cb(connection, message, iface_entry->userdata);
-            break;
-
+    switch (find_handler(&call_info)) {
         case FOUND_GET_PROPERTY:
-            property_handler->get_cb(connection, message, iface_entry->userdata);
+            call_info.property_handler->get_cb(connection, message, call_info.iface_entry->userdata);
             break;
 
         case FOUND_SET_PROPERTY:
-            property_handler->set_cb(connection, message, iface_entry->userdata);
+            call_info.property_handler->set_cb(connection, message, &call_info.variant_iter, call_info.iface_entry->userdata);
+            break;
+
+        case FOUND_METHOD:
+            call_info.method_handler->receive_cb(connection, message, call_info.iface_entry->userdata);
             break;
 
         case FOUND_GET_ALL:
-            if (iface_entry->get_all_properties_cb)
-                iface_entry->get_all_properties_cb(connection, message, iface_entry->userdata);
-            /* TODO: Write an else branch where a dummy response is sent. */
+            if (call_info.iface_entry->get_all_properties_cb)
+                call_info.iface_entry->get_all_properties_cb(connection, message, call_info.iface_entry->userdata);
+            else {
+                DBusMessage *dummy_reply = NULL;
+                DBusMessageIter msg_iter;
+                DBusMessageIter dict_iter;
+
+                pa_assert_se(dummy_reply = dbus_message_new_method_return(message));
+                dbus_message_iter_init_append(dummy_reply, &msg_iter);
+                pa_assert_se(dbus_message_iter_open_container(&msg_iter, DBUS_TYPE_ARRAY, "{sv}", &dict_iter));
+                pa_assert_se(dbus_message_iter_close_container(&msg_iter, &dict_iter));
+                pa_assert_se(dbus_connection_send(connection, dummy_reply, NULL));
+                dbus_message_unref(dummy_reply);
+            }
             break;
 
         case PROPERTY_ACCESS_DENIED:
-            pa_dbus_send_error(connection, message, DBUS_ERROR_ACCESS_DENIED, "%s access denied for property %s", dbus_message_get_member(message), attempted_property);
+            pa_dbus_send_error(connection, message, DBUS_ERROR_ACCESS_DENIED,
+                               "%s access denied for property %s", call_info.method, call_info.property);
             break;
 
         case NO_SUCH_METHOD:
-            pa_dbus_send_error(connection, message, DBUS_ERROR_UNKNOWN_METHOD, "%s: No such method", dbus_message_get_member(message));
+            pa_dbus_send_error(connection, message, DBUS_ERROR_UNKNOWN_METHOD, "No such method: %s", call_info.method);
             break;
 
         case NO_SUCH_PROPERTY:
-            pa_dbus_send_error(connection, message, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "%s: No such property", attempted_property);
+            pa_dbus_send_error(connection, message, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "No such property: %s", call_info.property);
             break;
 
-        case INVALID_MESSAGE_ARGUMENTS:
-            pa_dbus_send_error(connection, message, DBUS_ERROR_INVALID_ARGS, "Invalid arguments for %s", dbus_message_get_member(message));
+        case INVALID_METHOD_SIG:
+            pa_dbus_send_error(connection, message, DBUS_ERROR_INVALID_ARGS,
+                               "Invalid signature for method %s: '%s'. Expected '%s'.",
+                               call_info.method, call_info.method_sig, call_info.expected_method_sig);
             break;
+
+        case INVALID_PROPERTY_SIG:
+            pa_dbus_send_error(connection, message, DBUS_ERROR_INVALID_ARGS,
+                               "Invalid signature for property %s: '%s'. Expected '%s'.",
+                               call_info.property, call_info.property_sig, call_info.expected_property_sig);
 
         default:
             pa_assert_not_reached();
@@ -821,7 +915,12 @@ pa_client *pa_dbus_protocol_get_client(pa_dbus_protocol *p, DBusConnection *conn
     return conn_entry->client;
 }
 
-void pa_dbus_protocol_add_signal_listener(pa_dbus_protocol *p, DBusConnection *conn, const char *signal, char **objects, unsigned n_objects) {
+void pa_dbus_protocol_add_signal_listener(
+        pa_dbus_protocol *p,
+        DBusConnection *conn,
+        const char *signal,
+        char **objects,
+        unsigned n_objects) {
     struct connection_entry *conn_entry;
     pa_idxset *object_set;
     char *object_path;
@@ -981,7 +1080,12 @@ int pa_dbus_protocol_unregister_extension(pa_dbus_protocol *p, const char *name)
     return 0;
 }
 
-pa_hook_slot *pa_dbus_protocol_hook_connect(pa_dbus_protocol *p, pa_dbus_protocol_hook_t hook, pa_hook_priority_t prio, pa_hook_cb_t cb, void *data) {
+pa_hook_slot *pa_dbus_protocol_hook_connect(
+        pa_dbus_protocol *p,
+        pa_dbus_protocol_hook_t hook,
+        pa_hook_priority_t prio,
+        pa_hook_cb_t cb,
+        void *data) {
     pa_assert(p);
     pa_assert(hook < PA_DBUS_PROTOCOL_HOOK_MAX);
     pa_assert(cb);

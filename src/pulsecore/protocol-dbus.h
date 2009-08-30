@@ -56,8 +56,18 @@ void pa_dbus_protocol_unref(pa_dbus_protocol *p);
  * message isn't a good idea; if you can't handle the message, reply with an
  * error.
  *
+ * The message signature is already checked against the introspection data, so
+ * you don't have to do that yourself.
+ *
  * All messages are method calls. */
 typedef void (*pa_dbus_receive_cb_t)(DBusConnection *conn, DBusMessage *msg, void *userdata);
+
+/* A specialized version of pa_dbus_receive_cb_t: the additional iterator
+ * argument points to the element inside the new value variant.
+ *
+ * The new value signature is checked against the introspection data, so you
+ * don't have to do that yourself. */
+typedef void (*pa_dbus_set_property_cb_t)(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 
 typedef struct pa_dbus_arg_info {
     const char *name;
@@ -85,7 +95,7 @@ typedef struct pa_dbus_property_handler {
     /* The access mode for the property is determined by checking whether
      * get_cb or set_cb is NULL. */
     pa_dbus_receive_cb_t get_cb;
-    pa_dbus_receive_cb_t set_cb;
+    pa_dbus_set_property_cb_t set_cb;
 } pa_dbus_property_handler;
 
 typedef struct pa_dbus_interface_info {
@@ -140,7 +150,12 @@ pa_client *pa_dbus_protocol_get_client(pa_dbus_protocol *p, DBusConnection *conn
  * only signals from the given objects are delivered. If this function is
  * called multiple time for the same connection and signal, the latest call
  * always replaces the previous object list. */
-void pa_dbus_protocol_add_signal_listener(pa_dbus_protocol *p, DBusConnection *conn, const char *signal, char **objects, unsigned n_objects);
+void pa_dbus_protocol_add_signal_listener(
+        pa_dbus_protocol *p,
+        DBusConnection *conn,
+        const char *signal,
+        char **objects,
+        unsigned n_objects);
 
 /* Disables the delivery of the signal for the given connection. The connection
  * must have been registered. If signal is NULL, all signals are disabled. If
@@ -192,6 +207,11 @@ typedef enum pa_dbus_protocol_hook {
     PA_DBUS_PROTOCOL_HOOK_MAX
 } pa_dbus_protocol_hook_t;
 
-pa_hook_slot *pa_dbus_protocol_hook_connect(pa_dbus_protocol *p, pa_dbus_protocol_hook_t hook, pa_hook_priority_t prio, pa_hook_cb_t cb, void *data);
+pa_hook_slot *pa_dbus_protocol_hook_connect(
+        pa_dbus_protocol *p,
+        pa_dbus_protocol_hook_t hook,
+        pa_hook_priority_t prio,
+        pa_hook_cb_t cb,
+        void *data);
 
 #endif

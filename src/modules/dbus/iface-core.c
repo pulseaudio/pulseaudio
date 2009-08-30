@@ -57,18 +57,18 @@ static void handle_get_is_local(DBusConnection *conn, DBusMessage *msg, void *us
 static void handle_get_username(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_hostname(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_default_channels(DBusConnection *conn, DBusMessage *msg, void *userdata);
-static void handle_set_default_channels(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_set_default_channels(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 static void handle_get_default_sample_format(DBusConnection *conn, DBusMessage *msg, void *userdata);
-static void handle_set_default_sample_format(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_set_default_sample_format(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 static void handle_get_default_sample_rate(DBusConnection *conn, DBusMessage *msg, void *userdata);
-static void handle_set_default_sample_rate(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_set_default_sample_rate(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 static void handle_get_cards(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_sinks(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_fallback_sink(DBusConnection *conn, DBusMessage *msg, void *userdata);
-static void handle_set_fallback_sink(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_set_fallback_sink(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 static void handle_get_sources(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_fallback_source(DBusConnection *conn, DBusMessage *msg, void *userdata);
-static void handle_set_fallback_source(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_set_fallback_source(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 static void handle_get_playback_streams(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_record_streams(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_samples(DBusConnection *conn, DBusMessage *msg, void *userdata);
@@ -428,30 +428,32 @@ static void handle_get_default_channels(DBusConnection *conn, DBusMessage *msg, 
     pa_xfree(default_channels);
 }
 
-static void handle_set_default_channels(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+static void handle_set_default_channels(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     pa_dbusiface_core *c = userdata;
+    DBusMessageIter array_iter;
     pa_channel_map new_channel_map;
-    dbus_uint32_t *default_channels;
-    unsigned n_channels;
+    const dbus_uint32_t *default_channels;
+    int n_channels;
     unsigned i;
 
     pa_assert(conn);
     pa_assert(msg);
+    pa_assert(iter);
     pa_assert(c);
 
     pa_channel_map_init(&new_channel_map);
 
-    if (pa_dbus_get_fixed_array_set_property_arg(conn, msg, DBUS_TYPE_UINT32, &default_channels, &n_channels) < 0)
-        return;
+    dbus_message_iter_recurse(iter, &array_iter);
+    dbus_message_iter_get_fixed_array(&array_iter, &default_channels, &n_channels);
 
     if (n_channels <= 0) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Empty channel array.");
         return;
     }
 
-    if (n_channels > PA_CHANNELS_MAX) {
+    if (n_channels > (int) PA_CHANNELS_MAX) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS,
-                           "Too many channels: %u. The maximum number of channels is %u.", n_channels, PA_CHANNELS_MAX);
+                           "Too many channels: %i. The maximum number of channels is %u.", n_channels, PA_CHANNELS_MAX);
         return;
     }
 
@@ -485,16 +487,16 @@ static void handle_get_default_sample_format(DBusConnection *conn, DBusMessage *
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &default_sample_format);
 }
 
-static void handle_set_default_sample_format(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+static void handle_set_default_sample_format(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     pa_dbusiface_core *c = userdata;
     dbus_uint32_t default_sample_format;
 
     pa_assert(conn);
     pa_assert(msg);
+    pa_assert(iter);
     pa_assert(c);
 
-    if (pa_dbus_get_basic_set_property_arg(conn, msg, DBUS_TYPE_UINT32, &default_sample_format) < 0)
-        return;
+    dbus_message_iter_get_basic(iter, &default_sample_format);
 
     if (default_sample_format >= PA_SAMPLE_MAX) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid sample format.");
@@ -519,16 +521,16 @@ static void handle_get_default_sample_rate(DBusConnection *conn, DBusMessage *ms
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &default_sample_rate);
 }
 
-static void handle_set_default_sample_rate(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+static void handle_set_default_sample_rate(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     pa_dbusiface_core *c = userdata;
     dbus_uint32_t default_sample_rate;
 
     pa_assert(conn);
     pa_assert(msg);
+    pa_assert(iter);
     pa_assert(c);
 
-    if (pa_dbus_get_basic_set_property_arg(conn, msg, DBUS_TYPE_UINT32, &default_sample_rate) < 0)
-        return;
+    dbus_message_iter_get_basic(iter, &default_sample_rate);
 
     if (default_sample_rate <= 0 || default_sample_rate > PA_RATE_MAX) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid sample rate.");
@@ -639,13 +641,14 @@ static void handle_get_fallback_sink(DBusConnection *conn, DBusMessage *msg, voi
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_OBJECT_PATH, &object_path);
 }
 
-static void handle_set_fallback_sink(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+static void handle_set_fallback_sink(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     pa_dbusiface_core *c = userdata;
     pa_dbusiface_device *fallback_sink;
     const char *object_path;
 
     pa_assert(conn);
     pa_assert(msg);
+    pa_assert(iter);
     pa_assert(c);
 
     if (!c->fallback_sink) {
@@ -654,8 +657,7 @@ static void handle_set_fallback_sink(DBusConnection *conn, DBusMessage *msg, voi
         return;
     }
 
-    if (pa_dbus_get_basic_set_property_arg(conn, msg, DBUS_TYPE_OBJECT_PATH, &object_path) < 0)
-        return;
+    dbus_message_iter_get_basic(iter, &object_path);
 
     if (!(fallback_sink = pa_hashmap_get(c->sinks_by_path, object_path))) {
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "%s: No such sink.", object_path);
@@ -727,13 +729,14 @@ static void handle_get_fallback_source(DBusConnection *conn, DBusMessage *msg, v
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_OBJECT_PATH, &object_path);
 }
 
-static void handle_set_fallback_source(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+static void handle_set_fallback_source(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     pa_dbusiface_core *c = userdata;
     pa_dbusiface_device *fallback_source;
     const char *object_path;
 
     pa_assert(conn);
     pa_assert(msg);
+    pa_assert(iter);
     pa_assert(c);
 
     if (!c->fallback_source) {
@@ -742,8 +745,7 @@ static void handle_set_fallback_source(DBusConnection *conn, DBusMessage *msg, v
         return;
     }
 
-    if (pa_dbus_get_basic_set_property_arg(conn, msg, DBUS_TYPE_OBJECT_PATH, &object_path) < 0)
-        return;
+    dbus_message_iter_get_basic(iter, &object_path);
 
     if (!(fallback_source = pa_hashmap_get(c->sources_by_path, object_path))) {
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "%s: No such source.", object_path);
@@ -1117,19 +1119,12 @@ static void handle_get_card_by_name(DBusConnection *conn, DBusMessage *msg, void
     pa_card *card;
     pa_dbusiface_card *dbus_card;
     const char *object_path;
-    DBusError error;
 
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(c);
 
-    dbus_error_init(&error);
-
-    if (!dbus_message_get_args(msg, &error, DBUS_TYPE_STRING, &card_name, DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
-        dbus_error_free(&error);
-        return;
-    }
+    pa_assert_se(dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &card_name, DBUS_TYPE_INVALID));
 
     if (!(card = pa_namereg_get(c->core, card_name, PA_NAMEREG_CARD))) {
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "No such card.");
@@ -1149,19 +1144,12 @@ static void handle_get_sink_by_name(DBusConnection *conn, DBusMessage *msg, void
     pa_sink *sink;
     pa_dbusiface_device *dbus_sink;
     const char *object_path;
-    DBusError error;
 
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(c);
 
-    dbus_error_init(&error);
-
-    if (!dbus_message_get_args(msg, &error, DBUS_TYPE_STRING, &sink_name, DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
-        dbus_error_free(&error);
-        return;
-    }
+    pa_assert_se(dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &sink_name, DBUS_TYPE_INVALID));
 
     if (!(sink = pa_namereg_get(c->core, sink_name, PA_NAMEREG_SINK))) {
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "%s: No such sink.", sink_name);
@@ -1181,19 +1169,12 @@ static void handle_get_source_by_name(DBusConnection *conn, DBusMessage *msg, vo
     pa_source *source;
     pa_dbusiface_device *dbus_source;
     const char *object_path;
-    DBusError error;
 
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(c);
 
-    dbus_error_init(&error);
-
-    if (!dbus_message_get_args(msg, &error, DBUS_TYPE_STRING, &source_name, DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
-        dbus_error_free(&error);
-        return;
-    }
+    pa_assert_se(dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &source_name, DBUS_TYPE_INVALID));
 
     if (!(source = pa_namereg_get(c->core, source_name, PA_NAMEREG_SOURCE))) {
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "%s: No such source.", source_name);
@@ -1213,19 +1194,12 @@ static void handle_get_sample_by_name(DBusConnection *conn, DBusMessage *msg, vo
     pa_scache_entry *sample;
     pa_dbusiface_sample *dbus_sample;
     const char *object_path;
-    DBusError error;
 
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(c);
 
-    dbus_error_init(&error);
-
-    if (!dbus_message_get_args(msg, &error, DBUS_TYPE_STRING, &sample_name, DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
-        dbus_error_free(&error);
-        return;
-    }
+    pa_assert_se(dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &sample_name, DBUS_TYPE_INVALID));
 
     if (!(sample = pa_namereg_get(c->core, sample_name, PA_NAMEREG_SAMPLE))) {
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "No such sample.");
@@ -1242,17 +1216,18 @@ static void handle_get_sample_by_name(DBusConnection *conn, DBusMessage *msg, vo
 static void handle_upload_sample(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_core *c = userdata;
     DBusMessageIter msg_iter;
+    DBusMessageIter array_iter;
     const char *name;
     dbus_uint32_t sample_format;
     dbus_uint32_t sample_rate;
     const dbus_uint32_t *channels;
-    unsigned n_channels;
+    int n_channels;
     const dbus_uint32_t *default_volume;
-    unsigned n_volume_entries;
+    int n_volume_entries;
     pa_proplist *property_list;
     const uint8_t *data;
-    unsigned data_length;
-    unsigned i;
+    int data_length;
+    int i;
     pa_sample_spec ss;
     pa_channel_map map;
     pa_memchunk chunk;
@@ -1267,31 +1242,29 @@ static void handle_upload_sample(DBusConnection *conn, DBusMessage *msg, void *u
 
     chunk.memblock = NULL;
 
-    if (!dbus_message_iter_init(msg, &msg_iter)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Too few arguments.");
-        return;
-    }
+    pa_assert_se(dbus_message_iter_init(msg, &msg_iter));
+    dbus_message_iter_get_basic(&msg_iter, &name);
 
-    if (pa_dbus_get_basic_arg(conn, msg, &msg_iter, DBUS_TYPE_STRING, &name) < 0)
-        return;
+    pa_assert_se(dbus_message_iter_next(&msg_iter));
+    dbus_message_iter_get_basic(&msg_iter, &sample_format);
 
-    if (pa_dbus_get_basic_arg(conn, msg, &msg_iter, DBUS_TYPE_UINT32, &sample_format) < 0)
-        return;
+    pa_assert_se(dbus_message_iter_next(&msg_iter));
+    dbus_message_iter_get_basic(&msg_iter, &sample_rate);
 
-    if (pa_dbus_get_basic_arg(conn, msg, &msg_iter, DBUS_TYPE_UINT32, &sample_rate) < 0)
-        return;
+    pa_assert_se(dbus_message_iter_next(&msg_iter));
+    dbus_message_iter_recurse(&msg_iter, &array_iter);
+    dbus_message_iter_get_fixed_array(&array_iter, &channels, &n_channels);
 
-    if (pa_dbus_get_fixed_array_arg(conn, msg, &msg_iter, DBUS_TYPE_UINT32, &channels, &n_channels) < 0)
-        return;
+    pa_assert_se(dbus_message_iter_next(&msg_iter));
+    dbus_message_iter_recurse(&msg_iter, &array_iter);
+    dbus_message_iter_get_fixed_array(&array_iter, &default_volume, &n_volume_entries);
 
-    if (pa_dbus_get_fixed_array_arg(conn, msg, &msg_iter, DBUS_TYPE_UINT32, &default_volume, &n_volume_entries) < 0)
-        return;
-
+    pa_assert_se(dbus_message_iter_next(&msg_iter));
     if (!(property_list = pa_dbus_get_proplist_arg(conn, msg, &msg_iter)))
         return;
 
-    if (pa_dbus_get_fixed_array_arg(conn, msg, &msg_iter, DBUS_TYPE_BYTE, &data, &data_length) < 0)
-        goto finish;
+    dbus_message_iter_recurse(&msg_iter, &array_iter);
+    dbus_message_iter_get_fixed_array(&array_iter, &data, &data_length);
 
     if (sample_format >= PA_SAMPLE_MAX) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid sample format.");
@@ -1303,14 +1276,14 @@ static void handle_upload_sample(DBusConnection *conn, DBusMessage *msg, void *u
         goto finish;
     }
 
-    if (n_channels == 0) {
+    if (n_channels <= 0) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Empty channel map.");
         goto finish;
     }
 
-    if (n_channels > PA_CHANNELS_MAX) {
+    if (n_channels > (int) PA_CHANNELS_MAX) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS,
-                           "Too many channels: %u. The maximum is %u.", n_channels, PA_CHANNELS_MAX);
+                           "Too many channels: %i. The maximum is %u.", n_channels, PA_CHANNELS_MAX);
         goto finish;
     }
 
@@ -1323,13 +1296,14 @@ static void handle_upload_sample(DBusConnection *conn, DBusMessage *msg, void *u
 
     if (n_volume_entries != 0 && n_volume_entries != n_channels) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS,
-                           "The channels and default_volume arguments have different number of elements.");
+                           "The channels and default_volume arguments have different number of elements (%i and %i, resp).",
+                           n_channels, n_volume_entries);
         goto finish;
     }
 
     for (i = 0; i < n_volume_entries; ++i) {
         if (default_volume[i] > PA_VOLUME_MAX) {
-            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid volume.");
+            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid volume: %u.", default_volume[i]);
             goto finish;
         }
     }
@@ -1340,7 +1314,9 @@ static void handle_upload_sample(DBusConnection *conn, DBusMessage *msg, void *u
     }
 
     if (data_length > PA_SCACHE_ENTRY_SIZE_MAX) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Too big sample.");
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS,
+                           "Too big sample: %i bytes. The maximum sample length is %u bytes.",
+                           data_length, PA_SCACHE_ENTRY_SIZE_MAX);
         goto finish;
     }
 
@@ -1348,9 +1324,13 @@ static void handle_upload_sample(DBusConnection *conn, DBusMessage *msg, void *u
     ss.rate = sample_rate;
     ss.channels = n_channels;
 
+    pa_assert(pa_sample_spec_valid(&ss));
+
     if (!pa_frame_aligned(data_length, &ss)) {
+        char buf[PA_SAMPLE_SPEC_SNPRINT_MAX];
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS,
-                           "The sample length in bytes doesn't align with the sample format and channels.");
+                           "The sample length (%i bytes) doesn't align with the sample format and channels (%s).",
+                           data_length, pa_sample_spec_snprint(buf, sizeof(buf), &ss));
         goto finish;
     }
 
@@ -1414,15 +1394,15 @@ static void handle_load_module(DBusConnection *conn, DBusMessage *msg, void *use
     DBusMessageIter msg_iter;
     DBusMessageIter dict_iter;
     DBusMessageIter dict_entry_iter;
-    char *name;
-    const char *key;
-    const char *value;
-    char *escaped_value;
+    char *name = NULL;
+    const char *key = NULL;
+    const char *value = NULL;
+    char *escaped_value = NULL;
     pa_strbuf *arg_buffer = NULL;
-    pa_module *module;
-    pa_dbusiface_module *dbus_module;
-    const char *object_path;
-    int arg_type;
+    char *arg_string = NULL;
+    pa_module *module = NULL;
+    pa_dbusiface_module *dbus_module = NULL;
+    const char *object_path = NULL;
 
     pa_assert(conn);
     pa_assert(msg);
@@ -1433,35 +1413,12 @@ static void handle_load_module(DBusConnection *conn, DBusMessage *msg, void *use
         return;
     }
 
-    if (!dbus_message_iter_init(msg, &msg_iter)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Too few arguments.");
-        return;
-    }
-
-    if (pa_dbus_get_basic_arg(conn, msg, &msg_iter, DBUS_TYPE_STRING, &name) < 0)
-        return;
-
-    arg_type = dbus_message_iter_get_arg_type(&msg_iter);
-    if (arg_type != DBUS_TYPE_ARRAY) {
-        if (arg_type == DBUS_TYPE_INVALID)
-            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS,
-                               "Too few arguments. A dictionary from strings to strings was expected.");
-        else
-            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS,
-                               "Wrong argument type: '%c'. An dictionary from strings to strings was expected.",
-                               (char) arg_type);
-        return;
-    }
-
-    arg_type = dbus_message_iter_get_element_type(&msg_iter);
-    if (arg_type != DBUS_TYPE_DICT_ENTRY) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS,
-                           "Wrong array element type: '%c'. A dict entry (string to string) was expected.", (char) arg_type);
-        return;
-    }
+    pa_assert_se(dbus_message_iter_init(msg, &msg_iter));
+    dbus_message_iter_get_basic(&msg_iter, &name);
 
     arg_buffer = pa_strbuf_new();
 
+    pa_assert_se(dbus_message_iter_next(&msg_iter));
     dbus_message_iter_recurse(&msg_iter, &dict_iter);
 
     while (dbus_message_iter_get_arg_type(&dict_iter) != DBUS_TYPE_INVALID) {
@@ -1470,41 +1427,26 @@ static void handle_load_module(DBusConnection *conn, DBusMessage *msg, void *use
 
         dbus_message_iter_recurse(&dict_iter, &dict_entry_iter);
 
-        arg_type = dbus_message_iter_get_arg_type(&dict_entry_iter);
-        if (arg_type != DBUS_TYPE_STRING) {
-            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS,
-                               "Wrong dict key type: '%c'. A string was expected.", (char) arg_type);
-            goto finish;
-        }
-
         dbus_message_iter_get_basic(&dict_entry_iter, &key);
-        dbus_message_iter_next(&dict_entry_iter);
 
         if (strlen(key) <= 0 || !pa_ascii_valid(key) || contains_space(key)) {
             pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid module argument name: %s", key);
             goto finish;
         }
 
-        arg_type = dbus_message_iter_get_arg_type(&dict_entry_iter);
-        if (arg_type != DBUS_TYPE_STRING) {
-            if (arg_type == DBUS_TYPE_INVALID)
-                pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Dict value missing.");
-            else
-                pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS,
-                                   "Wrong dict value type: '%c'. A string was expected.", (char) arg_type);
-            goto finish;
-        }
-
+        pa_assert_se(dbus_message_iter_next(&dict_entry_iter));
         dbus_message_iter_get_basic(&dict_entry_iter, &value);
-
-        dbus_message_iter_next(&dict_iter);
 
         escaped_value = pa_escape(value, "\"");
         pa_strbuf_printf(arg_buffer, "%s=\"%s\"", key, escaped_value);
         pa_xfree(escaped_value);
+
+        dbus_message_iter_next(&dict_iter);
     }
 
-    if (!(module = pa_module_load(c->core, name, pa_strbuf_tostring(arg_buffer)))) {
+    arg_string = pa_strbuf_tostring(arg_buffer);
+
+    if (!(module = pa_module_load(c->core, name, arg_string))) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_FAILED, "Failed to load module.");
         goto finish;
     }
@@ -1519,6 +1461,8 @@ static void handle_load_module(DBusConnection *conn, DBusMessage *msg, void *use
 finish:
     if (arg_buffer)
         pa_strbuf_free(arg_buffer);
+
+    pa_xfree(arg_string);
 }
 
 static void handle_exit(DBusConnection *conn, DBusMessage *msg, void *userdata) {
@@ -1543,47 +1487,32 @@ static void handle_listen_for_signal(DBusConnection *conn, DBusMessage *msg, voi
     const char *signal;
     char **objects = NULL;
     int n_objects;
-    DBusError error;
 
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(c);
 
-    dbus_error_init(&error);
-
-    if (!dbus_message_get_args(msg, &error,
-                               DBUS_TYPE_STRING, &signal,
-                               DBUS_TYPE_ARRAY, DBUS_TYPE_OBJECT_PATH, &objects, &n_objects,
-                               DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
-        dbus_error_free(&error);
-        goto finish;
-    }
+    pa_assert_se(dbus_message_get_args(msg, NULL,
+                                       DBUS_TYPE_STRING, &signal,
+                                       DBUS_TYPE_ARRAY, DBUS_TYPE_OBJECT_PATH, &objects, &n_objects,
+                                       DBUS_TYPE_INVALID));
 
     pa_dbus_protocol_add_signal_listener(c->dbus_protocol, conn, *signal ? signal : NULL, objects, n_objects);
 
     pa_dbus_send_empty_reply(conn, msg);
 
-finish:
     dbus_free_string_array(objects);
 }
 
 static void handle_stop_listening_for_signal(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_core *c = userdata;
     const char *signal;
-    DBusError error;
 
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(c);
 
-    dbus_error_init(&error);
-
-    if (!dbus_message_get_args(msg, &error, DBUS_TYPE_STRING, &signal, DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
-        dbus_error_free(&error);
-        return;
-    }
+    pa_assert_se(dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &signal, DBUS_TYPE_INVALID));
 
     pa_dbus_protocol_remove_signal_listener(c->dbus_protocol, conn, *signal ? signal : NULL);
 

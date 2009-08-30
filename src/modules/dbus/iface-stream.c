@@ -70,9 +70,9 @@ static void handle_get_sample_format(DBusConnection *conn, DBusMessage *msg, voi
 static void handle_get_sample_rate(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_channels(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_volume(DBusConnection *conn, DBusMessage *msg, void *userdata);
-static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 static void handle_get_is_muted(DBusConnection *conn, DBusMessage *msg, void *userdata);
-static void handle_set_is_muted(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_set_is_muted(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 static void handle_get_buffer_latency(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_device_latency(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_resample_method(DBusConnection *conn, DBusMessage *msg, void *userdata);
@@ -343,16 +343,18 @@ static void handle_get_volume(DBusConnection *conn, DBusMessage *msg, void *user
     pa_dbus_send_basic_array_variant_reply(conn, msg, DBUS_TYPE_UINT32, volume, s->volume.channels);
 }
 
-static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     pa_dbusiface_stream *s = userdata;
-    unsigned stream_channels = 0;
+    DBusMessageIter array_iter;
+    int stream_channels = 0;
     dbus_uint32_t *volume = NULL;
-    unsigned n_volume_entries = 0;
+    int n_volume_entries = 0;
     pa_cvolume new_vol;
-    unsigned i = 0;
+    int i = 0;
 
     pa_assert(conn);
     pa_assert(msg);
+    pa_assert(iter);
     pa_assert(s);
 
     if (s->type == STREAM_TYPE_RECORD) {
@@ -366,8 +368,8 @@ static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, void *user
 
     new_vol.channels = stream_channels;
 
-    if (pa_dbus_get_fixed_array_set_property_arg(conn, msg, DBUS_TYPE_UINT32, &volume, &n_volume_entries) < 0)
-        return;
+    dbus_message_iter_recurse(iter, &array_iter);
+    dbus_message_iter_get_fixed_array(&array_iter, &volume, &n_volume_entries);
 
     if (n_volume_entries != stream_channels) {
         pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS,
@@ -403,16 +405,16 @@ static void handle_get_is_muted(DBusConnection *conn, DBusMessage *msg, void *us
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &s->is_muted);
 }
 
-static void handle_set_is_muted(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+static void handle_set_is_muted(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     pa_dbusiface_stream *s = userdata;
     dbus_bool_t is_muted = FALSE;
 
     pa_assert(conn);
     pa_assert(msg);
+    pa_assert(iter);
     pa_assert(s);
 
-    if (pa_dbus_get_basic_set_property_arg(conn, msg, DBUS_TYPE_BOOLEAN, &is_muted) < 0)
-        return;
+    dbus_message_iter_get_basic(iter, &is_muted);
 
     if (s->type == STREAM_TYPE_RECORD) {
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "Record streams don't have mute.");
@@ -575,19 +577,12 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
 static void handle_move(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_stream *s = userdata;
     const char *device = NULL;
-    DBusError error;
 
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(s);
 
-    dbus_error_init(&error);
-
-    if (!dbus_message_get_args(msg, &error, DBUS_TYPE_STRING, &device, DBUS_TYPE_INVALID)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
-        dbus_error_free(&error);
-        return;
-    }
+    pa_assert_se(dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &device, DBUS_TYPE_INVALID));
 
     if (s->type == STREAM_TYPE_PLAYBACK) {
         pa_sink *sink = pa_dbusiface_core_get_sink(s->core, device);

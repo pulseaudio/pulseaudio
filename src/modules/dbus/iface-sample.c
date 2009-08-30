@@ -359,14 +359,10 @@ static void handle_play(DBusConnection *conn, DBusMessage *msg, void *userdata) 
     pa_assert(msg);
     pa_assert(s);
 
-    if (!dbus_message_iter_init(msg, &msg_iter)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Too few arguments.");
-        return;
-    }
+    pa_assert_se(dbus_message_iter_init(msg, &msg_iter));
+    dbus_message_iter_get_basic(&msg_iter, &volume);
 
-    if (pa_dbus_get_basic_arg(conn, msg, &msg_iter, DBUS_TYPE_UINT32, &volume) < 0)
-        return;
-
+    pa_assert_se(dbus_message_iter_next(&msg_iter));
     if (!(property_list = pa_dbus_get_proplist_arg(conn, msg, &msg_iter)))
         return;
 
@@ -405,17 +401,13 @@ static void handle_play_to_sink(DBusConnection *conn, DBusMessage *msg, void *us
     pa_assert(msg);
     pa_assert(s);
 
-    if (!dbus_message_iter_init(msg, &msg_iter)) {
-        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Too few arguments.");
-        return;
-    }
+    pa_assert_se(dbus_message_iter_init(msg, &msg_iter));
+    dbus_message_iter_get_basic(&msg_iter, &sink_path);
 
-    if (pa_dbus_get_basic_arg(conn, msg, &msg_iter, DBUS_TYPE_OBJECT_PATH, &sink_path) < 0)
-        return;
+    pa_assert_se(dbus_message_iter_next(&msg_iter));
+    dbus_message_iter_get_basic(&msg_iter, &volume);
 
-    if (pa_dbus_get_basic_arg(conn, msg, &msg_iter, DBUS_TYPE_UINT32, &volume) < 0)
-        return;
-
+    pa_assert_se(dbus_message_iter_next(&msg_iter));
     if (!(property_list = pa_dbus_get_proplist_arg(conn, msg, &msg_iter)))
         return;
 
