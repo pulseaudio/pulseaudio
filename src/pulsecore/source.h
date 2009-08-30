@@ -96,6 +96,8 @@ struct pa_source {
     pa_hashmap *ports;
     pa_device_port *active_port;
 
+    unsigned priority;
+
     /* Called when the main loop requests a state change. Called from
      * main loop context. If returns -1 the state change will be
      * inhibited */

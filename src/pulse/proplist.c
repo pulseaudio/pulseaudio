@@ -251,7 +251,7 @@ int pa_proplist_set(pa_proplist *p, const char *key, const void *data, size_t nb
 
     pa_assert(p);
     pa_assert(key);
-    pa_assert(data);
+    pa_assert(data || nbytes == 0);
 
     if (!property_name_valid(key))
         return -1;
@@ -264,7 +264,8 @@ int pa_proplist_set(pa_proplist *p, const char *key, const void *data, size_t nb
         pa_xfree(prop->value);
 
     prop->value = pa_xmalloc(nbytes+1);
-    memcpy(prop->value, data, nbytes);
+    if (nbytes > 0)
+        memcpy(prop->value, data, nbytes);
     ((char*) prop->value)[nbytes] = 0;
     prop->nbytes = nbytes;
 

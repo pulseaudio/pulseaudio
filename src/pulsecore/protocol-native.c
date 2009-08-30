@@ -648,8 +648,9 @@ static record_stream* record_stream_new(
     pa_source_output_new_data_set_channel_map(&data, map);
     if (peak_detect)
         data.resample_method = PA_RESAMPLER_PEAKS;
+    data.flags = flags;
 
-    *ret = -pa_source_output_new(&source_output, c->protocol->core, &data, flags);
+    *ret = -pa_source_output_new(&source_output, c->protocol->core, &data);
 
     pa_source_output_new_data_done(&data);
 
@@ -1050,8 +1051,9 @@ static playback_stream* playback_stream_new(
     if (muted_set)
         pa_sink_input_new_data_set_muted(&data, muted);
     data.sync_base = ssync ? ssync->sink_input : NULL;
+    data.flags = flags;
 
-    *ret = -pa_sink_input_new(&sink_input, c->protocol->core, &data, flags);
+    *ret = -pa_sink_input_new(&sink_input, c->protocol->core, &data);
 
     pa_sink_input_new_data_done(&data);
 
@@ -1289,7 +1291,8 @@ static void handle_seek(playback_stream *s, int64_t indexw) {
 
             pa_log_debug("Requesting rewind due to end of underrun.");
             pa_sink_input_request_rewind(s->sink_input,
-                                         (size_t) (s->sink_input->thread_info.underrun_for == (size_t) -1 ? 0 : s->sink_input->thread_info.underrun_for),
+                                         (size_t) (s->sink_input->thread_info.underrun_for == (uint64_t) -1 ? 0 :
+                                                   s->sink_input->thread_info.underrun_for),
                                          FALSE, TRUE, FALSE);
         }
 
@@ -1865,7 +1868,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, !sink_name || pa_namereg_is_valid_name(sink_name), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !sink_name || pa_namereg_is_valid_name_or_wildcard(sink_name, PA_NAMEREG_SINK), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, sink_index == PA_INVALID_INDEX || !sink_name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, !sink_name || sink_index == PA_INVALID_INDEX, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, pa_channel_map_valid(&map), tag, PA_ERR_INVALID);
@@ -2114,7 +2117,7 @@ static void command_create_record_stream(pa_pdispatch *pd, uint32_t command, uin
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, !source_name || pa_namereg_is_valid_name(source_name), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !source_name || pa_namereg_is_valid_name_or_wildcard(source_name, PA_NAMEREG_SOURCE), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, source_index == PA_INVALID_INDEX || !source_name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, !source_name || source_index == PA_INVALID_INDEX, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, pa_sample_spec_valid(&ss), tag, PA_ERR_INVALID);
@@ -2460,7 +2463,7 @@ static void command_lookup(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, name && pa_namereg_is_valid_name(name), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, name && pa_namereg_is_valid_name_or_wildcard(name, command == PA_COMMAND_LOOKUP_SINK ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE), tag, PA_ERR_INVALID);
 
     if (command == PA_COMMAND_LOOKUP_SINK) {
         pa_sink *sink;
@@ -2731,7 +2734,7 @@ static void command_play_sample(pa_pdispatch *pd, uint32_t command, uint32_t tag
         return;
     }
 
-    CHECK_VALIDITY(c->pstream, !sink_name || pa_namereg_is_valid_name(sink_name), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !sink_name || pa_namereg_is_valid_name_or_wildcard(sink_name, PA_NAMEREG_SINK), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, sink_index == PA_INVALID_INDEX || !sink_name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, !sink_name || sink_index == PA_INVALID_INDEX, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, name && pa_namereg_is_valid_name(name), tag, PA_ERR_INVALID);
@@ -3105,7 +3108,12 @@ static void command_get_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, !name || pa_namereg_is_valid_name(name), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !name ||
+                   (command == PA_COMMAND_GET_SINK_INFO &&
+                    pa_namereg_is_valid_name_or_wildcard(name, PA_NAMEREG_SINK)) ||
+                   (command == PA_COMMAND_GET_SOURCE_INFO &&
+                    pa_namereg_is_valid_name_or_wildcard(name, PA_NAMEREG_SOURCE)) ||
+                   pa_namereg_is_valid_name(name), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx == PA_INVALID_INDEX || !name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, !name || idx == PA_INVALID_INDEX, tag, PA_ERR_INVALID);
@@ -3347,7 +3355,7 @@ static void command_set_volume(
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, !name || pa_namereg_is_valid_name(name), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !name || pa_namereg_is_valid_name_or_wildcard(name, command == PA_COMMAND_SET_SINK_VOLUME ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx == PA_INVALID_INDEX || !name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, !name || idx == PA_INVALID_INDEX, tag, PA_ERR_INVALID);
@@ -3385,10 +3393,10 @@ static void command_set_volume(
         pa_log_debug("Client %s changes volume of sink %s.", client_name, sink->name);
         pa_sink_set_volume(sink, &volume, TRUE, TRUE);
     } else if (source) {
-        pa_log_debug("Client %s changes volume of sink %s.", client_name, source->name);
+        pa_log_debug("Client %s changes volume of source %s.", client_name, source->name);
         pa_source_set_volume(source, &volume, TRUE);
     } else if (si) {
-        pa_log_debug("Client %s changes volume of sink %s.",
+        pa_log_debug("Client %s changes volume of sink input %s.",
                      client_name,
                      pa_strnull(pa_proplist_gets(si->proplist, PA_PROP_MEDIA_NAME)));
         pa_sink_input_set_volume(si, &volume, TRUE, TRUE);
@@ -3410,7 +3418,7 @@ static void command_set_mute(
     pa_sink *sink = NULL;
     pa_source *source = NULL;
     pa_sink_input *si = NULL;
-    const char *name = NULL;
+    const char *name = NULL, *client_name;
 
     pa_native_connection_assert_ref(c);
     pa_assert(t);
@@ -3425,7 +3433,7 @@ static void command_set_mute(
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, !name || pa_namereg_is_valid_name(name), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !name || pa_namereg_is_valid_name_or_wildcard(name, command == PA_COMMAND_SET_SINK_MUTE ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx == PA_INVALID_INDEX || !name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, !name || idx == PA_INVALID_INDEX, tag, PA_ERR_INVALID);
@@ -3459,12 +3467,20 @@ static void command_set_mute(
 
     CHECK_VALIDITY(c->pstream, si || sink || source, tag, PA_ERR_NOENTITY);
 
-    if (sink)
+    client_name = pa_strnull(pa_proplist_gets(c->client->proplist, PA_PROP_APPLICATION_PROCESS_BINARY));
+
+    if (sink) {
+        pa_log_debug("Client %s changes mute of sink %s.", client_name, sink->name);
         pa_sink_set_mute(sink, mute, TRUE);
-    else if (source)
+    } else if (source) {
+        pa_log_debug("Client %s changes mute of source %s.", client_name, source->name);
         pa_source_set_mute(source, mute, TRUE);
-    else if (si)
+    } else if (si) {
+        pa_log_debug("Client %s changes mute of sink input %s.",
+                     client_name,
+                     pa_strnull(pa_proplist_gets(si->proplist, PA_PROP_MEDIA_NAME)));
         pa_sink_input_set_mute(si, mute, TRUE);
+    }
 
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
@@ -4083,7 +4099,7 @@ static void command_move_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
     CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX, tag, PA_ERR_INVALID);
 
-    CHECK_VALIDITY(c->pstream, !name_device || pa_namereg_is_valid_name(name_device), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !name_device || pa_namereg_is_valid_name_or_wildcard(name_device, command == PA_COMMAND_MOVE_SINK_INPUT ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx_device != PA_INVALID_INDEX || name_device, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx_device == PA_INVALID_INDEX || !name_device, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, !name_device || idx_device == PA_INVALID_INDEX, tag, PA_ERR_INVALID);
@@ -4147,7 +4163,7 @@ static void command_suspend(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, !name || pa_namereg_is_valid_name(name) || *name == 0, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !name || pa_namereg_is_valid_name_or_wildcard(name, command == PA_COMMAND_SUSPEND_SINK ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE) || *name == 0, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx == PA_INVALID_INDEX || !name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, !name || idx == PA_INVALID_INDEX, tag, PA_ERR_INVALID);
@@ -4307,7 +4323,7 @@ static void command_set_sink_or_source_port(pa_pdispatch *pd, uint32_t command, 
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, !name || pa_namereg_is_valid_name(name), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !name || pa_namereg_is_valid_name_or_wildcard(name, command == PA_COMMAND_SET_SINK_PORT ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx == PA_INVALID_INDEX || !name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, !name || idx == PA_INVALID_INDEX, tag, PA_ERR_INVALID);
@@ -4841,4 +4857,10 @@ pa_pstream* pa_native_connection_get_pstream(pa_native_connection *c) {
     pa_native_connection_assert_ref(c);
 
     return c->pstream;
+}
+
+pa_client* pa_native_connection_get_client(pa_native_connection *c) {
+   pa_native_connection_assert_ref(c);
+
+   return c->client;
 }

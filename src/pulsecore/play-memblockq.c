@@ -199,7 +199,7 @@ pa_sink_input* pa_memblockq_sink_input_new(
     pa_sink_input_new_data_set_volume(&data, volume);
     pa_proplist_update(data.proplist, PA_UPDATE_REPLACE, p);
 
-    pa_sink_input_new(&u->sink_input, sink->core, &data, 0);
+    pa_sink_input_new(&u->sink_input, sink->core, &data);
     pa_sink_input_new_data_done(&data);
 
     if (!u->sink_input)

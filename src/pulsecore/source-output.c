@@ -101,8 +101,7 @@ static void reset_callbacks(pa_source_output *o) {
 int pa_source_output_new(
         pa_source_output**_o,
         pa_core *core,
-        pa_source_output_new_data *data,
-        pa_source_output_flags_t flags) {
+        pa_source_output_new_data *data) {
 
     pa_source_output *o;
     pa_resampler *resampler = NULL;
@@ -146,13 +145,13 @@ int pa_source_output_new(
     pa_return_val_if_fail(pa_channel_map_valid(&data->channel_map), -PA_ERR_INVALID);
     pa_return_val_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec), -PA_ERR_INVALID);
 
-    if (flags & PA_SOURCE_OUTPUT_FIX_FORMAT)
+    if (data->flags & PA_SOURCE_OUTPUT_FIX_FORMAT)
         data->sample_spec.format = data->source->sample_spec.format;
 
-    if (flags & PA_SOURCE_OUTPUT_FIX_RATE)
+    if (data->flags & PA_SOURCE_OUTPUT_FIX_RATE)
         data->sample_spec.rate = data->source->sample_spec.rate;
 
-    if (flags & PA_SOURCE_OUTPUT_FIX_CHANNELS) {
+    if (data->flags & PA_SOURCE_OUTPUT_FIX_CHANNELS) {
         data->sample_spec.channels = data->source->sample_spec.channels;
         data->channel_map = data->source->channel_map;
     }
@@ -168,7 +167,7 @@ int pa_source_output_new(
     if ((r = pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_FIXATE], data)) < 0)
         return r;
 
-    if ((flags & PA_SOURCE_OUTPUT_NO_CREATE_ON_SUSPEND) &&
+    if ((data->flags & PA_SOURCE_OUTPUT_NO_CREATE_ON_SUSPEND) &&
         pa_source_get_state(data->source) == PA_SOURCE_SUSPENDED) {
         pa_log("Failed to create source output: source is suspended.");
         return -PA_ERR_BADSTATE;
@@ -179,7 +178,7 @@ int pa_source_output_new(
         return -PA_ERR_TOOLARGE;
     }
 
-    if ((flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ||
+    if ((data->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ||
         !pa_sample_spec_equal(&data->sample_spec, &data->source->sample_spec) ||
         !pa_channel_map_equal(&data->channel_map, &data->source->channel_map)) {
 
@@ -188,9 +187,9 @@ int pa_source_output_new(
                       &data->source->sample_spec, &data->source->channel_map,
                       &data->sample_spec, &data->channel_map,
                       data->resample_method,
-                      ((flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
-                      ((flags & PA_SOURCE_OUTPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
-                      (core->disable_remixing || (flags & PA_SOURCE_OUTPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0) |
+                      ((data->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
+                      ((data->flags & PA_SOURCE_OUTPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
+                      (core->disable_remixing || (data->flags & PA_SOURCE_OUTPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0) |
                       (core->disable_lfe_remixing ? PA_RESAMPLER_NO_LFE : 0)))) {
             pa_log_warn("Unsupported resampling operation.");
             return -PA_ERR_NOTSUPPORTED;
@@ -203,7 +202,7 @@ int pa_source_output_new(
 
     o->core = core;
     o->state = PA_SOURCE_OUTPUT_INIT;
-    o->flags = flags;
+    o->flags = data->flags;
     o->proplist = pa_proplist_copy(data->proplist);
     o->driver = pa_xstrdup(pa_path_get_filename(data->driver));
     o->module = data->module;

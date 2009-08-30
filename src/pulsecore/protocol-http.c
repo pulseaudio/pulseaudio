@@ -533,7 +533,7 @@ static void handle_listen_prefix(struct connection *c, const char *source_name) 
     pa_source_output_new_data_set_sample_spec(&data, &ss);
     pa_source_output_new_data_set_channel_map(&data, &cm);
 
-    pa_source_output_new(&c->source_output, c->protocol->core, &data, 0);
+    pa_source_output_new(&c->source_output, c->protocol->core, &data);
     pa_source_output_new_data_done(&data);
 
     if (!c->source_output) {

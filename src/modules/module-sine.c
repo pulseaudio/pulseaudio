@@ -163,7 +163,7 @@ int pa__init(pa_module*m) {
     pa_proplist_setf(data.proplist, "sine.hz", "%u", frequency);
     pa_sink_input_new_data_set_sample_spec(&data, &ss);
 
-    pa_sink_input_new(&u->sink_input, m->core, &data, 0);
+    pa_sink_input_new(&u->sink_input, m->core, &data);
     pa_sink_input_new_data_done(&data);
 
     if (!u->sink_input)

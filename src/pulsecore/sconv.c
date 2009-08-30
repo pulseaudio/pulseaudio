@@ -52,8 +52,8 @@ static void u8_from_float32ne(unsigned n, const float *a, uint8_t *b) {
     for (; n > 0; n--, a++, b++) {
         float v;
         v = (*a * 127.0) + 128.0;
-	v = PA_CLAMP_UNLIKELY (v, 0.0, 255.0);
-	*b = rint (v);
+        v = PA_CLAMP_UNLIKELY (v, 0.0, 255.0);
+        *b = rint (v);
     }
 }
 

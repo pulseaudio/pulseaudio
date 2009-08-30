@@ -833,7 +833,7 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/play-memblockq.c pulsecore/play-memblockq.h \
 		pulsecore/play-memchunk.c pulsecore/play-memchunk.h \
 		pulsecore/remap.c pulsecore/remap.h \
-		pulsecore/remap_mmx.c \
+		pulsecore/remap_mmx.c pulsecore/remap_sse.c \
 		pulsecore/resampler.c pulsecore/resampler.h \
 		pulsecore/rtpoll.c pulsecore/rtpoll.h \
 		pulsecore/sample-util.c pulsecore/sample-util.h \
@@ -843,6 +843,7 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES = \
 		pulsecore/svolume_mmx.c pulsecore/svolume_sse.c \
 		pulsecore/sconv-s16be.c pulsecore/sconv-s16be.h \
 		pulsecore/sconv-s16le.c pulsecore/sconv-s16le.h \
+		pulsecore/sconv_sse.c \
 		pulsecore/sconv.c pulsecore/sconv.h \
 		pulsecore/shared.c pulsecore/shared.h \
 		pulsecore/shm.c pulsecore/shm.h \
@@ -1765,7 +1766,7 @@ daemon.conf: daemon/daemon.conf.in Makefile
 		-e 's,@PA_DEFAULT_CONFIG_FILE\@,$(DEFAULT_CONFIG_DIR),g' < $< > $@
 
 install-exec-hook:
-	chown root $(DESTDIR)$(bindir)/pulseaudio ; true
+	-chown root $(DESTDIR)$(pulselibexecdir)/proximity-helper
 	-chmod u+s $(DESTDIR)$(pulselibexecdir)/proximity-helper
 	ln -sf pacat $(DESTDIR)$(bindir)/parec
 	ln -sf pacat $(DESTDIR)$(bindir)/pamon

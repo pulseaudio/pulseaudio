@@ -1834,6 +1834,10 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 data.data = &entry;
                 data.size = sizeof(entry);
 
+                pa_log_debug("Client %s changes entry %s.",
+                             pa_strnull(pa_proplist_gets(pa_native_connection_get_client(c)->proplist, PA_PROP_APPLICATION_PROCESS_BINARY)),
+                             name);
+
                 if (pa_database_set(u->database, &key, &data, mode == PA_UPDATE_REPLACE) == 0) {
 #ifdef HAVE_DBUS
                     struct dbus_entry *de;
@@ -1846,8 +1850,8 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                             send_device_updated_signal(de, &entry);
 
                         if ((old->volume_valid != entry.volume_valid)
-                            || (entry.volume_valid
-                                && (!pa_cvolume_equal(&entry.volume, &old->volume) || !pa_channel_map_equal(&entry.channel_map, &old->channel_map))))
+                            || (entry.volume_valid && (!pa_cvolume_equal(&entry.volume, &old->volume)
+                                                       || !pa_channel_map_equal(&entry.channel_map, &old->channel_map))))
                             send_volume_updated_signal(de, &entry);
 
                         if (!old->muted_valid || (entry.muted != old->muted))

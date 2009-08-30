@@ -35,9 +35,9 @@
 typedef struct pa_pdispatch pa_pdispatch;
 
 typedef void (*pa_pdispatch_cb_t)(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
-typedef void (*pa_pdispatch_drain_callback)(pa_pdispatch *pd, void *userdata);
+typedef void (*pa_pdispatch_drain_cb_t)(pa_pdispatch *pd, void *userdata);
 
-pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *m, pa_bool_t use_rtclock, const pa_pdispatch_cb_t*table, unsigned entries);
+pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *m, pa_bool_t use_rtclock, const pa_pdispatch_cb_t *table, unsigned entries);
 void pa_pdispatch_unref(pa_pdispatch *pd);
 pa_pdispatch* pa_pdispatch_ref(pa_pdispatch *pd);
 
@@ -47,7 +47,7 @@ void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa
 
 int pa_pdispatch_is_pending(pa_pdispatch *pd);
 
-void pa_pdispatch_set_drain_callback(pa_pdispatch *pd, pa_pdispatch_drain_callback callback, void *userdata);
+void pa_pdispatch_set_drain_callback(pa_pdispatch *pd, pa_pdispatch_drain_cb_t callback, void *userdata);
 
 /* Remove all reply slots with the give userdata parameter */
 void pa_pdispatch_unregister_reply(pa_pdispatch *pd, void *userdata);

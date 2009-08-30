@@ -844,8 +844,9 @@ static int output_create_sink_input(struct output *o) {
     pa_sink_input_new_data_set_channel_map(&data, &o->userdata->sink->channel_map);
     data.module = o->userdata->module;
     data.resample_method = o->userdata->resample_method;
+    data.flags = PA_SINK_INPUT_VARIABLE_RATE|PA_SINK_INPUT_DONT_MOVE|PA_SINK_INPUT_NO_CREATE_ON_SUSPEND;
 
-    pa_sink_input_new(&o->sink_input, o->userdata->core, &data, PA_SINK_INPUT_VARIABLE_RATE|PA_SINK_INPUT_DONT_MOVE|PA_SINK_INPUT_NO_CREATE_ON_SUSPEND);
+    pa_sink_input_new(&o->sink_input, o->userdata->core, &data);
 
     pa_sink_input_new_data_done(&data);
 

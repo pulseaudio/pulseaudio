@@ -205,12 +205,15 @@ pa_source* pa_source_new(
     s->core = core;
     s->state = PA_SOURCE_INIT;
     s->flags = flags;
+    s->priority = 0;
     s->suspend_cause = 0;
     s->name = pa_xstrdup(name);
     s->proplist = pa_proplist_copy(data->proplist);
     s->driver = pa_xstrdup(pa_path_get_filename(data->driver));
     s->module = data->module;
     s->card = data->card;
+
+    s->priority = pa_device_init_priority(s->proplist);
 
     s->sample_spec = data->sample_spec;
     s->channel_map = data->channel_map;

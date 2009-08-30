@@ -501,8 +501,9 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     pa_proplist_setf(data.proplist, "rtp.payload", "%u", (unsigned) sdp_info->payload);
     data.module = u->module;
     pa_sink_input_new_data_set_sample_spec(&data, &sdp_info->sample_spec);
+    data.flags = PA_SINK_INPUT_VARIABLE_RATE;
 
-    pa_sink_input_new(&s->sink_input, u->module->core, &data, PA_SINK_INPUT_VARIABLE_RATE);
+    pa_sink_input_new(&s->sink_input, u->module->core, &data);
     pa_sink_input_new_data_done(&data);
 
     if (!s->sink_input) {
