@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-08-30 10:49+0000\n"
-"PO-Revision-Date: 2009-08-30 20:10+0300\n"
+"PO-Revision-Date: 2009-08-30 22:36+0300\n"
 "Last-Translator: Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>\n"
 "Language-Team: Finnish <laatu@lokalisointi.org>\n"
 "MIME-Version: 1.0\n"
@@ -19,7 +19,7 @@ msgstr ""
 #: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2676
 #, c-format
 msgid "%s %s"
-msgstr ""
+msgstr "%s %s"
 
 #: ../src/modules/alsa/alsa-util.c:1023
 #, c-format
@@ -61,7 +61,7 @@ msgstr ""
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
-msgstr ""
+msgstr "Virtuaalinen LADSPA-nielu"
 
 #: ../src/modules/module-ladspa-sink.c:53
 msgid ""
@@ -71,6 +71,12 @@ msgid ""
 "plugin name> label=<ladspa plugin label> control=<comma seperated list of "
 "input control values>"
 msgstr ""
+"sink_name=<nielun nimi> sink_properties=<nielun asetukset> "
+"master=<suodatettavan nielun nimi> format=<näytemuoto> "
+"rate=<näytteenottotaajuus> channels=<kanavien määrä> "
+"channel_map=<kanavakartta> plugin=<ladspa-liitännäisen nimi> "
+"label=<ladspa-liitännäisen nimiö (label)> control=<pilkulla erotettu luettelo "
+"syötteenhallinta-arvoja>"
 
 #: ../src/pulsecore/sink.c:2660
 msgid "Internal Audio"
@@ -348,6 +354,10 @@ msgid ""
 "Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an "
 "explanation why system mode is usually a bad idea."
 msgstr ""
+"PA:ta suoritetaan järjestelmätilassa. Näin ei luultavasti pitäisi tehdä.\n"
+"Jos silti teet näin, on sinun vikasi jos kaikki ei toimikaan odotetusti.\n"
+"Lisätietoja siitä, miksi järjestelmätilan käyttäminen on yleensä huono "
+"ajatus on osoitteessa http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode"
 
 #: ../src/daemon/main.c:799
 msgid "pa_pid_file_create() failed."
@@ -651,7 +661,7 @@ msgstr "Lataa kerran: %s\n"
 #: ../src/daemon/dumpmodules.c:75
 #, c-format
 msgid "DEPRECATION WARNING: %s\n"
-msgstr ""
+msgstr "VAROITUS VANHENTUNEISUUDESTA: %s\n"
 
 #: ../src/daemon/dumpmodules.c:79
 #, c-format
@@ -2202,6 +2212,8 @@ msgstr "Toteutusta ei vielä ole.\n"
 #: ../src/utils/pacmd.c:69
 msgid "No PulseAudio daemon running, or not running as session daemon."
 msgstr ""
+"PulseAudio-taustaprosessi ei ole käynnissä eikä PulseAudiota suoriteta "
+"istunnon taustaprosessina."
 
 #: ../src/utils/pacmd.c:74
 #, c-format
