@@ -72,6 +72,7 @@ struct connection_entry {
 struct interface_entry {
     char *name;
     pa_hashmap *method_handlers;
+    pa_hashmap *method_signatures; /* Derived from method_handlers. Contains only "in" arguments. */
     pa_hashmap *property_handlers;
     pa_dbus_receive_cb_t get_all_properties_cb;
     pa_dbus_signal_info *signals;
@@ -354,8 +355,14 @@ static enum find_result_t find_handler_by_method(struct call_info *call_info) {
     pa_assert(call_info);
 
     PA_HASHMAP_FOREACH(call_info->iface_entry, call_info->obj_entry->interfaces, state) {
-        if ((call_info->method_handler = pa_hashmap_get(call_info->iface_entry->method_handlers, call_info->method)))
-            return FOUND_METHOD;
+        if ((call_info->method_handler = pa_hashmap_get(call_info->iface_entry->method_handlers, call_info->method))) {
+            call_info->expected_method_sig = pa_hashmap_get(call_info->iface_entry->method_signatures, call_info->method);
+
+            if (pa_streq(call_info->method_sig, call_info->expected_method_sig))
+                return FOUND_METHOD;
+            else
+                return INVALID_METHOD_SIG;
+        }
     }
 
     return NO_SUCH_METHOD;
@@ -630,6 +637,31 @@ static pa_hashmap *create_method_handlers(const pa_dbus_interface_info *info) {
     return handlers;
 }
 
+static pa_hashmap *extract_method_signatures(pa_hashmap *method_handlers) {
+    pa_hashmap *signatures = NULL;
+    pa_dbus_method_handler *handler = NULL;
+    void *state = NULL;
+    pa_strbuf *sig_buf = NULL;
+    unsigned i = 0;
+
+    pa_assert(method_handlers);
+
+    signatures = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+
+    PA_HASHMAP_FOREACH(handler, method_handlers, state) {
+        sig_buf = pa_strbuf_new();
+
+        for (i = 0; i < handler->n_arguments; ++i) {
+            if (pa_streq(handler->arguments[i].direction, "in"))
+                pa_strbuf_puts(sig_buf, handler->arguments[i].type);
+        }
+
+        pa_hashmap_put(signatures, handler->method_name, pa_strbuf_tostring_free(sig_buf));
+    }
+
+    return signatures;
+}
+
 static pa_hashmap *create_property_handlers(const pa_dbus_interface_info *info) {
     pa_hashmap *handlers;
     unsigned i = 0;
@@ -707,6 +739,7 @@ int pa_dbus_protocol_add_interface(pa_dbus_protocol *p,
     iface_entry = pa_xnew(struct interface_entry, 1);
     iface_entry->name = pa_xstrdup(info->name);
     iface_entry->method_handlers = create_method_handlers(info);
+    iface_entry->method_signatures = extract_method_signatures(iface_entry->method_handlers);
     iface_entry->property_handlers = create_property_handlers(info);
     iface_entry->get_all_properties_cb = info->get_all_properties_cb;
     iface_entry->signals = copy_signals(info);
@@ -760,6 +793,12 @@ static void method_handler_free_cb(void *p, void *userdata) {
     pa_xfree((pa_dbus_arg_info *) h->arguments);
 }
 
+static void method_signature_free_cb(void *p, void *userdata) {
+    pa_assert(p);
+
+    pa_xfree(p);
+}
+
 static void property_handler_free_cb(void *p, void *userdata) {
     pa_dbus_property_handler *h = p;
 
@@ -792,6 +831,7 @@ int pa_dbus_protocol_remove_interface(pa_dbus_protocol *p, const char* path, con
 
     pa_xfree(iface_entry->name);
     pa_hashmap_free(iface_entry->method_handlers, method_handler_free_cb, NULL);
+    pa_hashmap_free(iface_entry->method_signatures, method_signature_free_cb, NULL);
     pa_hashmap_free(iface_entry->property_handlers, property_handler_free_cb, NULL);
 
     for (i = 0; i < iface_entry->n_signals; ++i) {

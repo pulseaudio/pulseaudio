@@ -101,7 +101,7 @@ static pa_dbus_method_handler method_handlers[METHOD_HANDLER_MAX] = {
     [METHOD_HANDLER_REMOVE_PROPERTIES] = {
         .method_name = "RemoveProperties",
         .arguments = remove_properties_args,
-        .n_arguments = sizeof(update_properties_args) / sizeof(pa_dbus_arg_info),
+        .n_arguments = sizeof(remove_properties_args) / sizeof(pa_dbus_arg_info),
         .receive_cb = handle_remove_properties }
 };
 
