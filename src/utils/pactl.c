@@ -132,7 +132,7 @@ static void complete_action(void) {
 static void stat_callback(pa_context *c, const pa_stat_info *i, void *userdata) {
     char s[128];
     if (!i) {
-        pa_log(_("Failed to get statistics: %s\n"), pa_strerror(pa_context_errno(c)));
+        pa_log(_("Failed to get statistics: %s"), pa_strerror(pa_context_errno(c)));
         quit(1);
         return;
     }
@@ -153,7 +153,7 @@ static void get_server_info_callback(pa_context *c, const pa_server_info *i, voi
     char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
     if (!i) {
-        pa_log(_("Failed to get server information: %s\n"), pa_strerror(pa_context_errno(c)));
+        pa_log(_("Failed to get server information: %s"), pa_strerror(pa_context_errno(c)));
         quit(1);
         return;
     }
@@ -202,7 +202,7 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
     char *pl;
 
     if (is_last < 0) {
-        pa_log(_("Failed to get sink information: %s\n"), pa_strerror(pa_context_errno(c)));
+        pa_log(_("Failed to get sink information: %s"), pa_strerror(pa_context_errno(c)));
         quit(1);
         return;
     }
@@ -294,7 +294,7 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
     char *pl;
 
     if (is_last < 0) {
-        pa_log(_("Failed to get source information: %s\n"), pa_strerror(pa_context_errno(c)));
+        pa_log(_("Failed to get source information: %s"), pa_strerror(pa_context_errno(c)));
         quit(1);
         return;
     }
@@ -372,7 +372,7 @@ static void get_module_info_callback(pa_context *c, const pa_module_info *i, int
     char *pl;
 
     if (is_last < 0) {
-        pa_log(_("Failed to get module information: %s\n"), pa_strerror(pa_context_errno(c)));
+        pa_log(_("Failed to get module information: %s"), pa_strerror(pa_context_errno(c)));
         quit(1);
         return;
     }
@@ -409,7 +409,7 @@ static void get_client_info_callback(pa_context *c, const pa_client_info *i, int
     char *pl;
 
     if (is_last < 0) {
-        pa_log(_("Failed to get client information: %s\n"), pa_strerror(pa_context_errno(c)));
+        pa_log(_("Failed to get client information: %s"), pa_strerror(pa_context_errno(c)));
         quit(1);
         return;
     }
@@ -444,7 +444,7 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
     char *pl;
 
     if (is_last < 0) {
-        pa_log(_("Failed to get card information: %s\n"), pa_strerror(pa_context_errno(c)));
+        pa_log(_("Failed to get card information: %s"), pa_strerror(pa_context_errno(c)));
         complete_action();
         return;
     }
@@ -493,7 +493,7 @@ static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info
     char *pl;
 
     if (is_last < 0) {
-        pa_log(_("Failed to get sink input information: %s\n"), pa_strerror(pa_context_errno(c)));
+        pa_log(_("Failed to get sink input information: %s"), pa_strerror(pa_context_errno(c)));
         quit(1);
         return;
     }
@@ -551,7 +551,7 @@ static void get_source_output_info_callback(pa_context *c, const pa_source_outpu
     char *pl;
 
     if (is_last < 0) {
-        pa_log(_("Failed to get source output information: %s\n"), pa_strerror(pa_context_errno(c)));
+        pa_log(_("Failed to get source output information: %s"), pa_strerror(pa_context_errno(c)));
         quit(1);
         return;
     }
@@ -602,7 +602,7 @@ static void get_sample_info_callback(pa_context *c, const pa_sample_info *i, int
     char *pl;
 
     if (is_last < 0) {
-        pa_log(_("Failed to get sample information: %s\n"), pa_strerror(pa_context_errno(c)));
+        pa_log(_("Failed to get sample information: %s"), pa_strerror(pa_context_errno(c)));
         quit(1);
         return;
     }
@@ -650,7 +650,7 @@ static void get_sample_info_callback(pa_context *c, const pa_sample_info *i, int
 
 static void simple_callback(pa_context *c, int success, void *userdata) {
     if (!success) {
-        pa_log(_("Failure: %s\n"), pa_strerror(pa_context_errno(c)));
+        pa_log(_("Failure: %s"), pa_strerror(pa_context_errno(c)));
         quit(1);
         return;
     }
@@ -660,7 +660,7 @@ static void simple_callback(pa_context *c, int success, void *userdata) {
 
 static void index_callback(pa_context *c, uint32_t idx, void *userdata) {
     if (idx == PA_INVALID_INDEX) {
-        pa_log(_("Failure: %s\n"), pa_strerror(pa_context_errno(c)));
+        pa_log(_("Failure: %s"), pa_strerror(pa_context_errno(c)));
         quit(1);
         return;
     }
@@ -684,7 +684,7 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
 
         case PA_STREAM_FAILED:
         default:
-            pa_log(_("Failed to upload sample: %s\n"), pa_strerror(pa_context_errno(pa_stream_get_context(s))));
+            pa_log(_("Failed to upload sample: %s"), pa_strerror(pa_context_errno(pa_stream_get_context(s))));
             quit(1);
     }
 }
@@ -701,7 +701,7 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
 
     if ((sf_readf_float(sndfile, d, l)) != l) {
         pa_xfree(d);
-        pa_log(_("Premature end of file\n"));
+        pa_log(_("Premature end of file"));
         quit(1);
         return;
     }
@@ -854,13 +854,13 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
         case PA_CONTEXT_FAILED:
         default:
-            pa_log(_("Connection failure: %s\n"), pa_strerror(pa_context_errno(c)));
+            pa_log(_("Connection failure: %s"), pa_strerror(pa_context_errno(c)));
             quit(1);
     }
 }
 
 static void exit_signal_callback(pa_mainloop_api *m, pa_signal_event *e, int sig, void *userdata) {
-    pa_log(_("Got SIGINT, exiting.\n"));
+    pa_log(_("Got SIGINT, exiting."));
     quit(0);
 }
 
@@ -950,7 +950,7 @@ int main(int argc, char *argv[]) {
                 if (!(t = pa_locale_to_utf8(optarg)) ||
                     pa_proplist_sets(proplist, PA_PROP_APPLICATION_NAME, t) < 0) {
 
-                    pa_log(_("Invalid client name '%s'\n"), t ? t : optarg);
+                    pa_log(_("Invalid client name '%s'"), t ? t : optarg);
                     pa_xfree(t);
                     goto quit;
                 }
@@ -976,7 +976,7 @@ int main(int argc, char *argv[]) {
             action = UPLOAD_SAMPLE;
 
             if (optind+1 >= argc) {
-                pa_log(_("Please specify a sample file to load\n"));
+                pa_log(_("Please specify a sample file to load"));
                 goto quit;
             }
 
@@ -989,19 +989,19 @@ int main(int argc, char *argv[]) {
 
             pa_zero(sfi);
             if (!(sndfile = sf_open(argv[optind+1], SFM_READ, &sfi))) {
-                pa_log(_("Failed to open sound file.\n"));
+                pa_log(_("Failed to open sound file."));
                 goto quit;
             }
 
             if (pa_sndfile_read_sample_spec(sndfile, &sample_spec) < 0) {
-                pa_log(_("Failed to determine sample specification from file.\n"));
+                pa_log(_("Failed to determine sample specification from file."));
                 goto quit;
             }
             sample_spec.format = PA_SAMPLE_FLOAT32;
 
             if (pa_sndfile_read_channel_map(sndfile, &channel_map) < 0) {
                 if (sample_spec.channels > 2)
-                     pa_log(_("Warning: Failed to determine sample specification from file.\n"));
+                     pa_log(_("Warning: Failed to determine sample specification from file."));
                 pa_channel_map_init_extend(&channel_map, sample_spec.channels, PA_CHANNEL_MAP_DEFAULT);
             }
 
@@ -1011,7 +1011,7 @@ int main(int argc, char *argv[]) {
         } else if (pa_streq(argv[optind], "play-sample")) {
             action = PLAY_SAMPLE;
             if (argc != optind+2 && argc != optind+3) {
-                pa_log(_("You have to specify a sample name to play\n"));
+                pa_log(_("You have to specify a sample name to play"));
                 goto quit;
             }
 
@@ -1023,7 +1023,7 @@ int main(int argc, char *argv[]) {
         } else if (pa_streq(argv[optind], "remove-sample")) {
             action = REMOVE_SAMPLE;
             if (argc != optind+2) {
-                pa_log(_("You have to specify a sample name to remove\n"));
+                pa_log(_("You have to specify a sample name to remove"));
                 goto quit;
             }
 
@@ -1032,7 +1032,7 @@ int main(int argc, char *argv[]) {
         } else if (pa_streq(argv[optind], "move-sink-input")) {
             action = MOVE_SINK_INPUT;
             if (argc != optind+3) {
-                pa_log(_("You have to specify a sink input index and a sink\n"));
+                pa_log(_("You have to specify a sink input index and a sink"));
                 goto quit;
             }
 
@@ -1042,7 +1042,7 @@ int main(int argc, char *argv[]) {
         } else if (pa_streq(argv[optind], "move-source-output")) {
             action = MOVE_SOURCE_OUTPUT;
             if (argc != optind+3) {
-                pa_log(_("You have to specify a source output index and a source\n"));
+                pa_log(_("You have to specify a source output index and a source"));
                 goto quit;
             }
 
@@ -1057,7 +1057,7 @@ int main(int argc, char *argv[]) {
             action = LOAD_MODULE;
 
             if (argc <= optind+1) {
-                pa_log(_("You have to specify a module name and arguments.\n"));
+                pa_log(_("You have to specify a module name and arguments."));
                 goto quit;
             }
 
@@ -1077,7 +1077,7 @@ int main(int argc, char *argv[]) {
             action = UNLOAD_MODULE;
 
             if (argc != optind+2) {
-                pa_log(_("You have to specify a module index\n"));
+                pa_log(_("You have to specify a module index"));
                 goto quit;
             }
 
@@ -1087,7 +1087,7 @@ int main(int argc, char *argv[]) {
             action = SUSPEND_SINK;
 
             if (argc > optind+3 || optind+1 >= argc) {
-                pa_log(_("You may not specify more than one sink. You have to specify a boolean value.\n"));
+                pa_log(_("You may not specify more than one sink. You have to specify a boolean value."));
                 goto quit;
             }
 
@@ -1100,7 +1100,7 @@ int main(int argc, char *argv[]) {
             action = SUSPEND_SOURCE;
 
             if (argc > optind+3 || optind+1 >= argc) {
-                pa_log(_("You may not specify more than one source. You have to specify a boolean value.\n"));
+                pa_log(_("You may not specify more than one source. You have to specify a boolean value."));
                 goto quit;
             }
 
@@ -1112,7 +1112,7 @@ int main(int argc, char *argv[]) {
             action = SET_CARD_PROFILE;
 
             if (argc != optind+3) {
-                pa_log(_("You have to specify a card name/index and a profile name\n"));
+                pa_log(_("You have to specify a card name/index and a profile name"));
                 goto quit;
             }
 
@@ -1123,7 +1123,7 @@ int main(int argc, char *argv[]) {
             action = SET_SINK_PORT;
 
             if (argc != optind+3) {
-                pa_log(_("You have to specify a sink name/index and a port name\n"));
+                pa_log(_("You have to specify a sink name/index and a port name"));
                 goto quit;
             }
 
@@ -1134,7 +1134,7 @@ int main(int argc, char *argv[]) {
             action = SET_SOURCE_PORT;
 
             if (argc != optind+3) {
-                pa_log(_("You have to specify a source name/index and a port name\n"));
+                pa_log(_("You have to specify a source name/index and a port name"));
                 goto quit;
             }
 
@@ -1146,12 +1146,12 @@ int main(int argc, char *argv[]) {
             action = SET_SINK_VOLUME;
 
             if (argc != optind+3) {
-                pa_log(_("You have to specify a sink name/index and a volume\n"));
+                pa_log(_("You have to specify a sink name/index and a volume"));
                 goto quit;
             }
 
             if (pa_atou(argv[optind+2], &v) < 0) {
-                pa_log(_("Invalid volume specification\n"));
+                pa_log(_("Invalid volume specification"));
                 goto quit;
             }
 
@@ -1163,12 +1163,12 @@ int main(int argc, char *argv[]) {
             action = SET_SOURCE_VOLUME;
 
             if (argc != optind+3) {
-                pa_log(_("You have to specify a source name/index and a volume\n"));
+                pa_log(_("You have to specify a source name/index and a volume"));
                 goto quit;
             }
 
             if (pa_atou(argv[optind+2], &v) < 0) {
-                pa_log(_("Invalid volume specification\n"));
+                pa_log(_("Invalid volume specification"));
                 goto quit;
             }
 
@@ -1180,17 +1180,17 @@ int main(int argc, char *argv[]) {
             action = SET_SINK_INPUT_VOLUME;
 
             if (argc != optind+3) {
-                pa_log(_("You have to specify a sink input index and a volume\n"));
+                pa_log(_("You have to specify a sink input index and a volume"));
                 goto quit;
             }
 
             if (pa_atou(argv[optind+1], &sink_input_idx) < 0) {
-                pa_log(_("Invalid sink input index\n"));
+                pa_log(_("Invalid sink input index"));
                 goto quit;
             }
 
             if (pa_atou(argv[optind+2], &v) < 0) {
-                pa_log(_("Invalid volume specification\n"));
+                pa_log(_("Invalid volume specification"));
                 goto quit;
             }
 
@@ -1201,12 +1201,12 @@ int main(int argc, char *argv[]) {
             action = SET_SINK_MUTE;
 
             if (argc != optind+3) {
-                pa_log(_("You have to specify a sink name/index and a mute boolean\n"));
+                pa_log(_("You have to specify a sink name/index and a mute boolean"));
                 goto quit;
             }
 
             if ((b = pa_parse_boolean(argv[optind+2])) < 0) {
-                pa_log(_("Invalid volume specification\n"));
+                pa_log(_("Invalid volume specification"));
                 goto quit;
             }
 
@@ -1218,12 +1218,12 @@ int main(int argc, char *argv[]) {
             action = SET_SOURCE_MUTE;
 
             if (argc != optind+3) {
-                pa_log(_("You have to specify a source name/index and a mute boolean\n"));
+                pa_log(_("You have to specify a source name/index and a mute boolean"));
                 goto quit;
             }
 
             if ((b = pa_parse_boolean(argv[optind+2])) < 0) {
-                pa_log(_("Invalid volume specification\n"));
+                pa_log(_("Invalid volume specification"));
                 goto quit;
             }
 
@@ -1235,17 +1235,17 @@ int main(int argc, char *argv[]) {
             action = SET_SINK_INPUT_MUTE;
 
             if (argc != optind+3) {
-                pa_log(_("You have to specify a sink input index and a mute boolean\n"));
+                pa_log(_("You have to specify a sink input index and a mute boolean"));
                 goto quit;
             }
 
             if (pa_atou(argv[optind+1], &sink_input_idx) < 0) {
-                pa_log(_("Invalid sink input index specification\n"));
+                pa_log(_("Invalid sink input index specification"));
                 goto quit;
             }
 
             if ((b = pa_parse_boolean(argv[optind+2])) < 0) {
-                pa_log(_("Invalid volume specification\n"));
+                pa_log(_("Invalid volume specification"));
                 goto quit;
             }
 
@@ -1259,12 +1259,12 @@ int main(int argc, char *argv[]) {
     }
 
     if (action == NONE) {
-        pa_log(_("No valid command specified.\n"));
+        pa_log(_("No valid command specified."));
         goto quit;
     }
 
     if (!(m = pa_mainloop_new())) {
-        pa_log(_("pa_mainloop_new() failed.\n"));
+        pa_log(_("pa_mainloop_new() failed."));
         goto quit;
     }
 
@@ -1276,7 +1276,7 @@ int main(int argc, char *argv[]) {
     pa_disable_sigpipe();
 
     if (!(context = pa_context_new_with_proplist(mainloop_api, NULL, proplist))) {
-        pa_log(_("pa_context_new() failed.\n"));
+        pa_log(_("pa_context_new() failed."));
         goto quit;
     }
 
@@ -1287,7 +1287,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (pa_mainloop_run(m, &ret) < 0) {
-        pa_log(_("pa_mainloop_run() failed.\n"));
+        pa_log(_("pa_mainloop_run() failed."));
         goto quit;
     }
 
