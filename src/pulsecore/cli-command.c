@@ -529,7 +529,7 @@ static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
         return -1;
     }
 
-    pa_cvolume_set(&cvolume, sink->sample_spec.channels, volume);
+    pa_cvolume_set(&cvolume, 1, volume);
     pa_sink_set_volume(sink, &cvolume, TRUE, TRUE);
     return 0;
 }
@@ -571,7 +571,7 @@ static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strb
         return -1;
     }
 
-    pa_cvolume_set(&cvolume, si->sample_spec.channels, volume);
+    pa_cvolume_set(&cvolume, 1, volume);
     pa_sink_input_set_volume(si, &cvolume, TRUE, TRUE);
     return 0;
 }
@@ -607,7 +607,7 @@ static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *
         return -1;
     }
 
-    pa_cvolume_set(&cvolume, source->sample_spec.channels, volume);
+    pa_cvolume_set(&cvolume, 1, volume);
     pa_source_set_volume(source, &cvolume, TRUE);
     return 0;
 }
