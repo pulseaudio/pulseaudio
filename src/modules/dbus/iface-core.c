@@ -247,9 +247,11 @@ enum signal_index {
     SIGNAL_NEW_SINK,
     SIGNAL_SINK_REMOVED,
     SIGNAL_FALLBACK_SINK_UPDATED,
+    SIGNAL_FALLBACK_SINK_UNSET,
     SIGNAL_NEW_SOURCE,
     SIGNAL_SOURCE_REMOVED,
     SIGNAL_FALLBACK_SOURCE_UPDATED,
+    SIGNAL_FALLBACK_SOURCE_UNSET,
     SIGNAL_NEW_PLAYBACK_STREAM,
     SIGNAL_PLAYBACK_STREAM_REMOVED,
     SIGNAL_NEW_RECORD_STREAM,
@@ -292,9 +294,11 @@ static pa_dbus_signal_info signals[SIGNAL_MAX] = {
     [SIGNAL_NEW_SINK]                = { .name = "NewSink",               .arguments = new_sink_args,                .n_arguments = 1 },
     [SIGNAL_SINK_REMOVED]            = { .name = "SinkRemoved",           .arguments = sink_removed_args,            .n_arguments = 1 },
     [SIGNAL_FALLBACK_SINK_UPDATED]   = { .name = "FallbackSinkUpdated",   .arguments = fallback_sink_updated_args,   .n_arguments = 1 },
+    [SIGNAL_FALLBACK_SINK_UNSET]     = { .name = "FallbackSinkUnset",     .arguments = NULL,                         .n_arguments = 0 },
     [SIGNAL_NEW_SOURCE]              = { .name = "NewSource",             .arguments = new_source_args,              .n_arguments = 1 },
     [SIGNAL_SOURCE_REMOVED]          = { .name = "SourceRemoved",         .arguments = source_removed_args,          .n_arguments = 1 },
     [SIGNAL_FALLBACK_SOURCE_UPDATED] = { .name = "FallbackSourceUpdated", .arguments = fallback_source_updated_args, .n_arguments = 1 },
+    [SIGNAL_FALLBACK_SOURCE_UNSET]   = { .name = "FallbackSourceUnset",   .arguments = NULL,                         .n_arguments = 0 },
     [SIGNAL_NEW_PLAYBACK_STREAM]     = { .name = "NewPlaybackStream",     .arguments = new_playback_stream_args,     .n_arguments = 1 },
     [SIGNAL_PLAYBACK_STREAM_REMOVED] = { .name = "PlaybackStreamRemoved", .arguments = playback_stream_removed_args, .n_arguments = 1 },
     [SIGNAL_NEW_RECORD_STREAM]       = { .name = "NewRecordStream",       .arguments = new_record_stream_args,       .n_arguments = 1 },
@@ -1555,6 +1559,14 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
                     pa_dbus_protocol_send_signal(c->dbus_protocol, signal);
                     dbus_message_unref(signal);
                     signal = NULL;
+
+                } else if (!new_fallback_sink) {
+                    pa_assert_se((signal = dbus_message_new_signal(PA_DBUS_CORE_OBJECT_PATH,
+                                                                   PA_DBUS_CORE_INTERFACE,
+                                                                   signals[SIGNAL_FALLBACK_SINK_UNSET].name)));
+                    pa_dbus_protocol_send_signal(c->dbus_protocol, signal);
+                    dbus_message_unref(signal);
+                    signal = NULL;
                 }
             }
 
@@ -1571,6 +1583,14 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
                                                                    PA_DBUS_CORE_INTERFACE,
                                                                    signals[SIGNAL_FALLBACK_SOURCE_UPDATED].name)));
                     pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
+                    pa_dbus_protocol_send_signal(c->dbus_protocol, signal);
+                    dbus_message_unref(signal);
+                    signal = NULL;
+
+                } else if (!new_fallback_source) {
+                    pa_assert_se((signal = dbus_message_new_signal(PA_DBUS_CORE_OBJECT_PATH,
+                                                                   PA_DBUS_CORE_INTERFACE,
+                                                                   signals[SIGNAL_FALLBACK_SOURCE_UNSET].name)));
                     pa_dbus_protocol_send_signal(c->dbus_protocol, signal);
                     dbus_message_unref(signal);
                     signal = NULL;
