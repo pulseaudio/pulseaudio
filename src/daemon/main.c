@@ -259,9 +259,14 @@ static int change_user(void) {
     pa_set_env("HOME", PA_SYSTEM_RUNTIME_PATH);
 
     /* Relevant for pa_runtime_path() */
-    pa_set_env("PULSE_RUNTIME_PATH", PA_SYSTEM_RUNTIME_PATH);
-    pa_set_env("PULSE_CONFIG_PATH", PA_SYSTEM_CONFIG_PATH);
-    pa_set_env("PULSE_STATE_PATH", PA_SYSTEM_STATE_PATH);
+    if (!getenv("PULSE_RUNTIME_PATH"))
+        pa_set_env("PULSE_RUNTIME_PATH", PA_SYSTEM_RUNTIME_PATH);
+
+    if (!getenv("PULSE_CONFIG_PATH"))
+        pa_set_env("PULSE_CONFIG_PATH", PA_SYSTEM_CONFIG_PATH);
+
+    if (!getenv("PULSE_STATE_PATH"))
+        pa_set_env("PULSE_STATE_PATH", PA_SYSTEM_STATE_PATH);
 
     pa_log_info(_("Successfully dropped root privileges."));
 
