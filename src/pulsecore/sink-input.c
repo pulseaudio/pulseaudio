@@ -941,12 +941,22 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_boo
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_assert(volume);
     pa_assert(pa_cvolume_valid(volume));
-    pa_assert(pa_cvolume_compatible(volume, &i->sample_spec));
+    pa_assert(volume->channels == 1 || pa_cvolume_compatible(volume, &i->sample_spec));
 
     if ((i->sink->flags & PA_SINK_FLAT_VOLUME) && !absolute) {
         v = i->sink->reference_volume;
         pa_cvolume_remap(&v, &i->sink->channel_map, &i->channel_map);
-        volume = pa_sw_cvolume_multiply(&v, &v, volume);
+
+        if (pa_cvolume_compatible(volume, &i->sample_spec))
+            volume = pa_sw_cvolume_multiply(&v, &v, volume);
+        else
+            volume = pa_sw_cvolume_multiply_scalar(&v, &v, pa_cvolume_max(volume));
+    } else {
+
+        if (!pa_cvolume_compatible(volume, &i->sample_spec)) {
+            v = i->volume;
+            volume = pa_cvolume_scale(&v, pa_cvolume_max(volume));
+        }
     }
 
     if (pa_cvolume_equal(volume, &i->volume)) {

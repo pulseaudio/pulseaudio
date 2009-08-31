@@ -760,15 +760,22 @@ void pa_source_set_volume(
         pa_bool_t save) {
 
     pa_bool_t real_changed;
+    pa_cvolume old_volume;
 
     pa_source_assert_ref(s);
     pa_assert_ctl_context();
     pa_assert(PA_SOURCE_IS_LINKED(s->state));
     pa_assert(pa_cvolume_valid(volume));
-    pa_assert(pa_cvolume_compatible(volume, &s->sample_spec));
+    pa_assert(volume->channels == 1 || pa_cvolume_compatible(volume, &s->sample_spec));
 
-    real_changed = !pa_cvolume_equal(volume, &s->volume);
-    s->volume = *volume;
+    old_volume = s->volume;
+
+    if (pa_cvolume_compatible(volume, &s->sample_spec))
+        s->volume = *volume;
+    else
+        pa_cvolume_scale(&s->volume, pa_cvolume_max(volume));
+
+    real_changed = !pa_cvolume_equal(&old_volume, &s->volume);
     s->save_volume = (!real_changed && s->save_volume) || save;
 
     if (s->set_volume) {

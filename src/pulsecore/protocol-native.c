@@ -3390,17 +3390,17 @@ static void command_set_volume(
     client_name = pa_strnull(pa_proplist_gets(c->client->proplist, PA_PROP_APPLICATION_PROCESS_BINARY));
 
     if (sink) {
-        CHECK_VALIDITY(c->pstream, pa_cvolume_compatible(&volume, &sink->sample_spec), tag, PA_ERR_INVALID);
+        CHECK_VALIDITY(c->pstream, volume.channels == 1 || pa_cvolume_compatible(&volume, &sink->sample_spec), tag, PA_ERR_INVALID);
 
         pa_log_debug("Client %s changes volume of sink %s.", client_name, sink->name);
         pa_sink_set_volume(sink, &volume, TRUE, TRUE);
     } else if (source) {
-        CHECK_VALIDITY(c->pstream, pa_cvolume_compatible(&volume, &source->sample_spec), tag, PA_ERR_INVALID);
+        CHECK_VALIDITY(c->pstream, volume.channels == 1 || pa_cvolume_compatible(&volume, &source->sample_spec), tag, PA_ERR_INVALID);
 
         pa_log_debug("Client %s changes volume of source %s.", client_name, source->name);
         pa_source_set_volume(source, &volume, TRUE);
     } else if (si) {
-        CHECK_VALIDITY(c->pstream, pa_cvolume_compatible(&volume, &si->sample_spec), tag, PA_ERR_INVALID);
+        CHECK_VALIDITY(c->pstream, volume.channels == 1 || pa_cvolume_compatible(&volume, &si->sample_spec), tag, PA_ERR_INVALID);
 
         pa_log_debug("Client %s changes volume of sink input %s.",
                      client_name,

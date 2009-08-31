@@ -1408,8 +1408,11 @@ void pa_sink_set_volume(
     pa_assert_ctl_context();
     pa_assert(PA_SINK_IS_LINKED(s->state));
     pa_assert(!volume || pa_cvolume_valid(volume));
-    pa_assert(!volume || pa_cvolume_compatible(volume, &s->sample_spec));
     pa_assert(volume || (s->flags & PA_SINK_FLAT_VOLUME));
+    pa_assert(!volume || volume->channels == 1 || pa_cvolume_compatible(volume, &s->sample_spec));
+
+    /* As a special exception we accept mono volumes on all sinks --
+     * even on those with more complex channel maps */
 
     /* If volume is NULL we synchronize the sink's real and reference
      * volumes with the stream volumes. If it is not NULL we update
@@ -1419,7 +1422,10 @@ void pa_sink_set_volume(
 
     if (volume) {
 
-        s->reference_volume = *volume;
+        if (pa_cvolume_compatible(volume, &s->sample_spec))
+            s->reference_volume = *volume;
+        else
+            pa_cvolume_scale(&s->reference_volume, pa_cvolume_max(volume));
 
         if (s->flags & PA_SINK_FLAT_VOLUME) {
             /* OK, propagate this volume change back to the inputs */
