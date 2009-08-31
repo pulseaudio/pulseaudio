@@ -170,8 +170,8 @@ static void handle_entry_get_device(DBusConnection *conn, DBusMessage *msg, void
 static void handle_entry_set_device(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 static void handle_entry_get_volume(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_entry_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
-static void handle_entry_get_is_muted(DBusConnection *conn, DBusMessage *msg, void *userdata);
-static void handle_entry_set_is_muted(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
+static void handle_entry_get_mute(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_entry_set_mute(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 
 static void handle_entry_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata);
 
@@ -188,7 +188,7 @@ enum entry_property_handler_index {
     ENTRY_PROPERTY_HANDLER_NAME,
     ENTRY_PROPERTY_HANDLER_DEVICE,
     ENTRY_PROPERTY_HANDLER_VOLUME,
-    ENTRY_PROPERTY_HANDLER_IS_MUTED,
+    ENTRY_PROPERTY_HANDLER_MUTE,
     ENTRY_PROPERTY_HANDLER_MAX
 };
 
@@ -202,7 +202,7 @@ static pa_dbus_property_handler entry_property_handlers[ENTRY_PROPERTY_HANDLER_M
     [ENTRY_PROPERTY_HANDLER_NAME]     = { .property_name = "Name",    .type = "s",     .get_cb = handle_entry_get_name,     .set_cb = NULL },
     [ENTRY_PROPERTY_HANDLER_DEVICE]   = { .property_name = "Device",  .type = "s",     .get_cb = handle_entry_get_device,   .set_cb = handle_entry_set_device },
     [ENTRY_PROPERTY_HANDLER_VOLUME]   = { .property_name = "Volume",  .type = "a(uu)", .get_cb = handle_entry_get_volume,   .set_cb = handle_entry_set_volume },
-    [ENTRY_PROPERTY_HANDLER_IS_MUTED] = { .property_name = "IsMuted", .type = "b",     .get_cb = handle_entry_get_is_muted, .set_cb = handle_entry_set_is_muted }
+    [ENTRY_PROPERTY_HANDLER_MUTE]     = { .property_name = "Mute",    .type = "b",     .get_cb = handle_entry_get_mute,     .set_cb = handle_entry_set_mute }
 };
 
 enum method_handler_index {
@@ -216,11 +216,11 @@ enum entry_method_handler_index {
     ENTRY_METHOD_HANDLER_MAX
 };
 
-static pa_dbus_arg_info add_entry_args[] = { { "name",     "s",     "in" },
-                                             { "device",   "s",     "in" },
-                                             { "volume",   "a(uu)", "in" },
-                                             { "is_muted", "b",     "in" },
-                                             { "entry",    "o",     "out" } };
+static pa_dbus_arg_info add_entry_args[] = { { "name",   "s",     "in" },
+                                             { "device", "s",     "in" },
+                                             { "volume", "a(uu)", "in" },
+                                             { "mute",   "b",     "in" },
+                                             { "entry",  "o",     "out" } };
 static pa_dbus_arg_info get_entry_by_name_args[] = { { "name", "s", "in" }, { "entry", "o", "out" } };
 
 static pa_dbus_method_handler method_handlers[METHOD_HANDLER_MAX] = {
@@ -837,10 +837,10 @@ static void handle_entry_set_volume(DBusConnection *conn, DBusMessage *msg, DBus
     pa_xfree(e);
 }
 
-static void handle_entry_get_is_muted(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+static void handle_entry_get_mute(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     struct dbus_entry *de = userdata;
     struct entry *e;
-    dbus_bool_t muted;
+    dbus_bool_t mute;
 
     pa_assert(conn);
     pa_assert(msg);
@@ -848,16 +848,16 @@ static void handle_entry_get_is_muted(DBusConnection *conn, DBusMessage *msg, vo
 
     pa_assert_se(e = read_entry(de->userdata, de->entry_name));
 
-    muted = e->muted_valid ? e->muted : FALSE;
+    mute = e->muted_valid ? e->muted : FALSE;
 
-    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &muted);
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &mute);
 
     pa_xfree(e);
 }
 
-static void handle_entry_set_is_muted(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
+static void handle_entry_set_mute(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     struct dbus_entry *de = userdata;
-    pa_bool_t muted;
+    dbus_bool_t mute;
     struct entry *e;
     pa_bool_t updated;
 
@@ -866,17 +866,17 @@ static void handle_entry_set_is_muted(DBusConnection *conn, DBusMessage *msg, DB
     pa_assert(iter);
     pa_assert(de);
 
-    dbus_message_iter_get_basic(iter, &muted);
+    dbus_message_iter_get_basic(iter, &mute);
 
     pa_assert_se(e = read_entry(de->userdata, de->entry_name));
 
-    updated = !e->muted_valid || e->muted != muted;
+    updated = !e->muted_valid || e->muted != mute;
 
     if (updated) {
         pa_datum key;
         pa_datum value;
 
-        e->muted = muted;
+        e->muted = mute;
         e->muted_valid = TRUE;
 
         key.data = de->entry_name;
@@ -902,7 +902,7 @@ static void handle_entry_get_all(DBusConnection *conn, DBusMessage *msg, void *u
     DBusMessageIter dict_iter;
     DBusMessageIter dict_entry_iter;
     const char *device;
-    dbus_bool_t muted;
+    dbus_bool_t mute;
 
     pa_assert(conn);
     pa_assert(msg);
@@ -911,7 +911,7 @@ static void handle_entry_get_all(DBusConnection *conn, DBusMessage *msg, void *u
     pa_assert_se(e = read_entry(de->userdata, de->entry_name));
 
     device = e->device_valid ? e->device : "";
-    muted = e->muted_valid ? e->muted : FALSE;
+    mute = e->muted_valid ? e->muted : FALSE;
 
     pa_assert_se((reply = dbus_message_new_method_return(msg)));
 
@@ -929,7 +929,7 @@ static void handle_entry_get_all(DBusConnection *conn, DBusMessage *msg, void *u
 
     pa_assert_se(dbus_message_iter_close_container(&dict_iter, &dict_entry_iter));
 
-    pa_dbus_append_basic_variant_dict_entry(&dict_iter, entry_property_handlers[ENTRY_PROPERTY_HANDLER_IS_MUTED].property_name, DBUS_TYPE_BOOLEAN, &muted);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, entry_property_handlers[ENTRY_PROPERTY_HANDLER_MUTE].property_name, DBUS_TYPE_BOOLEAN, &mute);
 
     pa_assert_se(dbus_message_iter_close_container(&msg_iter, &dict_iter));
 

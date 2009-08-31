@@ -53,7 +53,7 @@ struct pa_dbusiface_stream {
     };
     uint32_t sample_rate;
     pa_cvolume volume;
-    pa_bool_t is_muted;
+    dbus_bool_t mute;
     pa_proplist *proplist;
 
     pa_dbus_protocol *dbus_protocol;
@@ -71,8 +71,8 @@ static void handle_get_sample_rate(DBusConnection *conn, DBusMessage *msg, void 
 static void handle_get_channels(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_volume(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
-static void handle_get_is_muted(DBusConnection *conn, DBusMessage *msg, void *userdata);
-static void handle_set_is_muted(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
+static void handle_get_mute(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_set_mute(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
 static void handle_get_buffer_latency(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_device_latency(DBusConnection *conn, DBusMessage *msg, void *userdata);
 static void handle_get_resample_method(DBusConnection *conn, DBusMessage *msg, void *userdata);
@@ -93,7 +93,7 @@ enum property_handler_index {
     PROPERTY_HANDLER_SAMPLE_RATE,
     PROPERTY_HANDLER_CHANNELS,
     PROPERTY_HANDLER_VOLUME,
-    PROPERTY_HANDLER_IS_MUTED,
+    PROPERTY_HANDLER_MUTE,
     PROPERTY_HANDLER_BUFFER_LATENCY,
     PROPERTY_HANDLER_DEVICE_LATENCY,
     PROPERTY_HANDLER_RESAMPLE_METHOD,
@@ -111,7 +111,7 @@ static pa_dbus_property_handler property_handlers[PROPERTY_HANDLER_MAX] = {
     [PROPERTY_HANDLER_SAMPLE_RATE]     = { .property_name = "SampleRate",     .type = "u",      .get_cb = handle_get_sample_rate,     .set_cb = NULL },
     [PROPERTY_HANDLER_CHANNELS]        = { .property_name = "Channels",       .type = "au",     .get_cb = handle_get_channels,        .set_cb = NULL },
     [PROPERTY_HANDLER_VOLUME]          = { .property_name = "Volume",         .type = "au",     .get_cb = handle_get_volume,          .set_cb = handle_set_volume },
-    [PROPERTY_HANDLER_IS_MUTED]        = { .property_name = "IsMuted",        .type = "b",      .get_cb = handle_get_is_muted,        .set_cb = handle_set_is_muted },
+    [PROPERTY_HANDLER_MUTE]            = { .property_name = "Mute",           .type = "b",      .get_cb = handle_get_mute,            .set_cb = handle_set_mute },
     [PROPERTY_HANDLER_BUFFER_LATENCY]  = { .property_name = "BufferLatency",  .type = "t",      .get_cb = handle_get_buffer_latency,  .set_cb = NULL },
     [PROPERTY_HANDLER_DEVICE_LATENCY]  = { .property_name = "DeviceLatency",  .type = "t",      .get_cb = handle_get_device_latency,  .set_cb = NULL },
     [PROPERTY_HANDLER_RESAMPLE_METHOD] = { .property_name = "ResampleMethod", .type = "s",      .get_cb = handle_get_resample_method, .set_cb = NULL },
@@ -390,7 +390,7 @@ static void handle_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessag
     pa_dbus_send_empty_reply(conn, msg);
 }
 
-static void handle_get_is_muted(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+static void handle_get_mute(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_stream *s = userdata;
 
     pa_assert(conn);
@@ -402,26 +402,26 @@ static void handle_get_is_muted(DBusConnection *conn, DBusMessage *msg, void *us
         return;
     }
 
-    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &s->is_muted);
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &s->mute);
 }
 
-static void handle_set_is_muted(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
+static void handle_set_mute(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     pa_dbusiface_stream *s = userdata;
-    dbus_bool_t is_muted = FALSE;
+    dbus_bool_t mute = FALSE;
 
     pa_assert(conn);
     pa_assert(msg);
     pa_assert(iter);
     pa_assert(s);
 
-    dbus_message_iter_get_basic(iter, &is_muted);
+    dbus_message_iter_get_basic(iter, &mute);
 
     if (s->type == STREAM_TYPE_RECORD) {
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "Record streams don't have mute.");
         return;
     }
 
-    pa_sink_input_set_mute(s->sink_input, is_muted, TRUE);
+    pa_sink_input_set_mute(s->sink_input, mute, TRUE);
 
     pa_dbus_send_empty_reply(conn, msg);
 };
@@ -561,7 +561,7 @@ static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdat
 
     if (s->type == STREAM_TYPE_PLAYBACK) {
         pa_dbus_append_basic_array_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_VOLUME].property_name, DBUS_TYPE_UINT32, volume, s->volume.channels);
-        pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_IS_MUTED].property_name, DBUS_TYPE_BOOLEAN, &s->is_muted);
+        pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_MUTE].property_name, DBUS_TYPE_BOOLEAN, &s->mute);
     }
 
     pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_BUFFER_LATENCY].property_name, DBUS_TYPE_UINT64, &buffer_latency);
@@ -708,7 +708,7 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
 
     if (s->type == STREAM_TYPE_PLAYBACK) {
         pa_cvolume new_volume;
-        pa_bool_t new_muted = FALSE;
+        pa_bool_t new_mute = FALSE;
 
         pa_sink_input_get_volume(s->sink_input, &new_volume, TRUE);
 
@@ -733,15 +733,15 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
             signal = NULL;
         }
 
-        new_muted = pa_sink_input_get_mute(s->sink_input);
+        new_mute = pa_sink_input_get_mute(s->sink_input);
 
-        if (s->is_muted != new_muted) {
-            s->is_muted = new_muted;
+        if (s->mute != new_mute) {
+            s->mute = new_mute;
 
             pa_assert_se(signal = dbus_message_new_signal(s->path,
                                                           PA_DBUSIFACE_STREAM_INTERFACE,
                                                           signals[SIGNAL_MUTE_UPDATED].name));
-            pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_BOOLEAN, &s->is_muted, DBUS_TYPE_INVALID));
+            pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_BOOLEAN, &s->mute, DBUS_TYPE_INVALID));
 
             pa_dbus_protocol_send_signal(s->dbus_protocol, signal);
             dbus_message_unref(signal);
@@ -823,7 +823,7 @@ pa_dbusiface_stream *pa_dbusiface_stream_new_playback(pa_dbusiface_core *core, p
     s->sink = pa_sink_ref(sink_input->sink);
     s->sample_rate = sink_input->sample_spec.rate;
     pa_sink_input_get_volume(sink_input, &s->volume, TRUE);
-    s->is_muted = pa_sink_input_get_mute(sink_input);
+    s->mute = pa_sink_input_get_mute(sink_input);
     s->proplist = pa_proplist_copy(sink_input->proplist);
     s->dbus_protocol = pa_dbus_protocol_get(sink_input->core);
     s->subscription = pa_subscription_new(sink_input->core, PA_SUBSCRIPTION_MASK_SINK_INPUT, subscription_cb, s);
@@ -851,7 +851,7 @@ pa_dbusiface_stream *pa_dbusiface_stream_new_record(pa_dbusiface_core *core, pa_
     s->source = pa_source_ref(source_output->source);
     s->sample_rate = source_output->sample_spec.rate;
     pa_cvolume_init(&s->volume);
-    s->is_muted = FALSE;
+    s->mute = FALSE;
     s->proplist = pa_proplist_copy(source_output->proplist);
     s->dbus_protocol = pa_dbus_protocol_get(source_output->core);
     s->subscription = pa_subscription_new(source_output->core, PA_SUBSCRIPTION_MASK_SOURCE_OUTPUT, subscription_cb, s);
