@@ -50,7 +50,6 @@ static pa_context *context = NULL;
 static pa_mainloop_api *mainloop_api = NULL;
 
 static char
-    *device = NULL,
     *sample_name = NULL,
     *sink_name = NULL,
     *source_name = NULL,
@@ -66,6 +65,8 @@ static uint32_t
 
 static uint32_t module_index;
 static pa_bool_t suspend;
+static pa_bool_t mute;
+static pa_volume_t volume;
 
 static pa_proplist *proplist = NULL;
 
@@ -74,7 +75,6 @@ static pa_stream *sample_stream = NULL;
 static pa_sample_spec sample_spec;
 static pa_channel_map channel_map;
 static size_t sample_length = 0;
-
 static int actions = 1;
 
 static pa_bool_t nl = FALSE;
@@ -95,7 +95,13 @@ static enum {
     SUSPEND_SOURCE,
     SET_CARD_PROFILE,
     SET_SINK_PORT,
-    SET_SOURCE_PORT
+    SET_SOURCE_PORT,
+    SET_SINK_VOLUME,
+    SET_SOURCE_VOLUME,
+    SET_SINK_INPUT_VOLUME,
+    SET_SINK_MUTE,
+    SET_SOURCE_MUTE,
+    SET_SINK_INPUT_MUTE
 } action = NONE;
 
 static void quit(int ret) {
@@ -109,6 +115,7 @@ static void context_drain_complete(pa_context *c, void *userdata) {
 
 static void drain(void) {
     pa_operation *o;
+
     if (!(o = pa_context_drain(context, context_drain_complete, NULL)))
         pa_context_disconnect(context);
     else
@@ -726,7 +733,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     break;
 
                 case PLAY_SAMPLE:
-                    pa_operation_unref(pa_context_play_sample(c, sample_name, device, PA_VOLUME_NORM, simple_callback, NULL));
+                    pa_operation_unref(pa_context_play_sample(c, sample_name, sink_name, PA_VOLUME_NORM, simple_callback, NULL));
                     break;
 
                 case REMOVE_SAMPLE:
@@ -800,6 +807,42 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     pa_operation_unref(pa_context_set_source_port_by_name(c, source_name, port_name, simple_callback, NULL));
                     break;
 
+                case SET_SINK_MUTE:
+                    pa_operation_unref(pa_context_set_sink_mute_by_name(c, sink_name, mute, simple_callback, NULL));
+                    break;
+
+                case SET_SOURCE_MUTE:
+                    pa_operation_unref(pa_context_set_source_mute_by_name(c, source_name, mute, simple_callback, NULL));
+                    break;
+
+                case SET_SINK_INPUT_MUTE:
+                    pa_operation_unref(pa_context_set_sink_input_mute(c, sink_input_idx, mute, simple_callback, NULL));
+                    break;
+
+                case SET_SINK_VOLUME: {
+                    pa_cvolume v;
+
+                    pa_cvolume_set(&v, 1, volume);
+                    pa_operation_unref(pa_context_set_sink_volume_by_name(c, sink_name, &v, simple_callback, NULL));
+                    break;
+                }
+
+                case SET_SOURCE_VOLUME: {
+                    pa_cvolume v;
+
+                    pa_cvolume_set(&v, 1, volume);
+                    pa_operation_unref(pa_context_set_source_volume_by_name(c, source_name, &v, simple_callback, NULL));
+                    break;
+                }
+
+                case SET_SINK_INPUT_VOLUME: {
+                    pa_cvolume v;
+
+                    pa_cvolume_set(&v, 1, volume);
+                    pa_operation_unref(pa_context_set_sink_input_volume(c, sink_input_idx, &v, simple_callback, NULL));
+                    break;
+                }
+
                 default:
                     pa_assert_not_reached();
             }
@@ -829,20 +872,30 @@ static void help(const char *argv0) {
              "%s [options] upload-sample FILENAME [NAME]\n"
              "%s [options] play-sample NAME [SINK]\n"
              "%s [options] remove-sample NAME\n"
-             "%s [options] move-sink-input ID SINK\n"
-             "%s [options] move-source-output ID SOURCE\n"
+             "%s [options] move-sink-input SINKINPUT SINK\n"
+             "%s [options] move-source-output SOURCEOUTPUT SOURCE\n"
              "%s [options] load-module NAME [ARGS ...]\n"
-             "%s [options] unload-module ID\n"
-             "%s [options] suspend-sink [SINK] 1|0\n"
-             "%s [options] suspend-source [SOURCE] 1|0\n"
-             "%s [options] set-card-profile [CARD] [PROFILE] \n"
-             "%s [options] set-sink-port [SINK] [PORT] \n"
-             "%s [options] set-source-port [SOURCE] [PORT] \n\n"
+             "%s [options] unload-module MODULE\n"
+             "%s [options] suspend-sink SINK 1|0\n"
+             "%s [options] suspend-source SOURCE 1|0\n"
+             "%s [options] set-card-profile CARD PROFILE\n"
+             "%s [options] set-sink-port SINK PORT\n"
+             "%s [options] set-source-port SOURCE PORT\n"
+             "%s [options] set-sink-volume SINK VOLUME\n"
+             "%s [options] set-source-volume SOURCE VOLUME\n"
+             "%s [options] set-sink-input-volume SINKINPUT VOLUME\n"
+             "%s [options] set-sink-mute SINK 1|0\n"
+             "%s [options] set-source-mute SOURCE 1|0\n"
+             "%s [options] set-sink-input-mute SINKINPUT 1|0\n\n"
              "  -h, --help                            Show this help\n"
              "      --version                         Show version\n\n"
              "  -s, --server=SERVER                   The name of the server to connect to\n"
              "  -n, --client-name=NAME                How to call this client on the server\n"),
-           argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0);
+           argv0, argv0, argv0, argv0, argv0,
+           argv0, argv0, argv0, argv0, argv0,
+           argv0, argv0, argv0, argv0, argv0,
+           argv0, argv0, argv0, argv0, argv0,
+           argv0);
 }
 
 enum {
@@ -965,7 +1018,7 @@ int main(int argc, char *argv[]) {
             sample_name = pa_xstrdup(argv[optind+1]);
 
             if (optind+2 < argc)
-                device = pa_xstrdup(argv[optind+2]);
+                sink_name = pa_xstrdup(argv[optind+2]);
 
         } else if (pa_streq(argv[optind], "remove-sample")) {
             action = REMOVE_SAMPLE;
@@ -1088,6 +1141,116 @@ int main(int argc, char *argv[]) {
             source_name = pa_xstrdup(argv[optind+1]);
             port_name = pa_xstrdup(argv[optind+2]);
 
+        } else if (pa_streq(argv[optind], "set-sink-volume")) {
+            uint32_t v;
+            action = SET_SINK_VOLUME;
+
+            if (argc != optind+3) {
+                pa_log(_("You have to specify a sink name/index and a volume\n"));
+                goto quit;
+            }
+
+            if (pa_atou(argv[optind+2], &v) < 0) {
+                pa_log(_("Invalid volume specification\n"));
+                goto quit;
+            }
+
+            sink_name = pa_xstrdup(argv[optind+1]);
+            volume = (pa_volume_t) v;
+
+        } else if (pa_streq(argv[optind], "set-source-volume")) {
+            uint32_t v;
+            action = SET_SOURCE_VOLUME;
+
+            if (argc != optind+3) {
+                pa_log(_("You have to specify a source name/index and a volume\n"));
+                goto quit;
+            }
+
+            if (pa_atou(argv[optind+2], &v) < 0) {
+                pa_log(_("Invalid volume specification\n"));
+                goto quit;
+            }
+
+            source_name = pa_xstrdup(argv[optind+1]);
+            volume = (pa_volume_t) v;
+
+        } else if (pa_streq(argv[optind], "set-sink-input-volume")) {
+            uint32_t v;
+            action = SET_SINK_INPUT_VOLUME;
+
+            if (argc != optind+3) {
+                pa_log(_("You have to specify a sink input index and a volume\n"));
+                goto quit;
+            }
+
+            if (pa_atou(argv[optind+1], &sink_input_idx) < 0) {
+                pa_log(_("Invalid sink input index\n"));
+                goto quit;
+            }
+
+            if (pa_atou(argv[optind+2], &v) < 0) {
+                pa_log(_("Invalid volume specification\n"));
+                goto quit;
+            }
+
+            volume = (pa_volume_t) v;
+
+        } else if (pa_streq(argv[optind], "set-sink-mute")) {
+            int b;
+            action = SET_SINK_MUTE;
+
+            if (argc != optind+3) {
+                pa_log(_("You have to specify a sink name/index and a mute boolean\n"));
+                goto quit;
+            }
+
+            if ((b = pa_parse_boolean(argv[optind+2])) < 0) {
+                pa_log(_("Invalid volume specification\n"));
+                goto quit;
+            }
+
+            sink_name = pa_xstrdup(argv[optind+1]);
+            mute = b;
+
+        } else if (pa_streq(argv[optind], "set-source-mute")) {
+            int b;
+            action = SET_SOURCE_MUTE;
+
+            if (argc != optind+3) {
+                pa_log(_("You have to specify a source name/index and a mute boolean\n"));
+                goto quit;
+            }
+
+            if ((b = pa_parse_boolean(argv[optind+2])) < 0) {
+                pa_log(_("Invalid volume specification\n"));
+                goto quit;
+            }
+
+            source_name = pa_xstrdup(argv[optind+1]);
+            mute = b;
+
+        } else if (pa_streq(argv[optind], "set-sink-input-mute")) {
+            int b;
+            action = SET_SINK_INPUT_MUTE;
+
+            if (argc != optind+3) {
+                pa_log(_("You have to specify a sink input index and a mute boolean\n"));
+                goto quit;
+            }
+
+            if (pa_atou(argv[optind+1], &sink_input_idx) < 0) {
+                pa_log(_("Invalid sink input index specification\n"));
+                goto quit;
+            }
+
+            if ((b = pa_parse_boolean(argv[optind+2])) < 0) {
+                pa_log(_("Invalid volume specification\n"));
+                goto quit;
+            }
+
+            mute = b;
+
         } else if (pa_streq(argv[optind], "help")) {
             help(bn);
             ret = 0;
@@ -1141,7 +1304,6 @@ quit:
     }
 
     pa_xfree(server);
-    pa_xfree(device);
     pa_xfree(sample_name);
     pa_xfree(sink_name);
     pa_xfree(source_name);
