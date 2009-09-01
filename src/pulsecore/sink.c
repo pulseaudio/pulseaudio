@@ -1163,21 +1163,15 @@ void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
 
     if (result->length < length) {
         pa_memchunk chunk;
-        size_t l, d;
+
         pa_memchunk_make_writable(result, length);
 
-        l = length - result->length;
-        d = result->index + result->length;
-        while (l > 0) {
-            chunk = *result;
-            chunk.index = d;
-            chunk.length = l;
+        chunk.memblock = result->memblock;
+        chunk.index = result->index + result->length;
+        chunk.length = length - result->length;
 
-            pa_sink_render_into(s, &chunk);
+        pa_sink_render_into_full(s, &chunk);
 
-            d += chunk.length;
-            l -= chunk.length;
-        }
         result->length = length;
     }
 
