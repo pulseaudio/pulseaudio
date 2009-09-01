@@ -116,6 +116,7 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/strbuf.h>
 #include <pulsecore/usergroup.h>
+#include <pulsecore/strlist.h>
 
 #include "core-util.h"
 
@@ -123,6 +124,8 @@
 #ifndef MSG_NOSIGNAL
 #define MSG_NOSIGNAL 0
 #endif
+
+static pa_strlist *recorded_env = NULL;
 
 #ifdef OS_IS_WIN32
 
@@ -2451,7 +2454,34 @@ void pa_set_env(const char *key, const char *value) {
     pa_assert(key);
     pa_assert(value);
 
+    /* This is not thread-safe */
+
     putenv(pa_sprintf_malloc("%s=%s", key, value));
+}
+
+void pa_set_env_and_record(const char *key, const char *value) {
+    pa_assert(key);
+    pa_assert(value);
+
+    /* This is not thread-safe */
+
+    pa_set_env(key, value);
+    recorded_env = pa_strlist_prepend(recorded_env, key);
+}
+
+void pa_unset_env_recorded(void) {
+
+    /* This is not thread-safe */
+
+    for (;;) {
+        char *s = NULL;
+
+        if (!(recorded_env = pa_strlist_pop(recorded_env, &s)))
+            break;
+
+        unsetenv(s);
+        pa_xfree(s);
+    }
 }
 
 pa_bool_t pa_in_system_mode(void) {

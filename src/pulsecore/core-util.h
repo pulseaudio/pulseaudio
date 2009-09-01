@@ -195,6 +195,8 @@ int pa_reset_sigs(int except, ...);
 int pa_reset_sigsv(const int except[]);
 
 void pa_set_env(const char *key, const char *value);
+void pa_set_env_and_record(const char *key, const char *value);
+void pa_unset_env_recorded(void);
 
 pa_bool_t pa_in_system_mode(void);
 
