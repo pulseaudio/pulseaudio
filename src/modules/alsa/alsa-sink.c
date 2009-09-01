@@ -69,8 +69,11 @@
 #define TSCHED_WATERMARK_INC_STEP_USEC (10*PA_USEC_PER_MSEC)       /* 10ms  -- On underrun, increase watermark by this */
 #define TSCHED_WATERMARK_DEC_STEP_USEC (5*PA_USEC_PER_MSEC)        /* 5ms   -- When everything's great, decrease watermark by this */
 #define TSCHED_WATERMARK_VERIFY_AFTER_USEC (20*PA_USEC_PER_SEC)    /* 20s   -- How long after a drop out recheck if things are good now */
-#define TSCHED_WATERMARK_INC_THRESHOLD_USEC (1*PA_USEC_PER_MSEC)   /* 3ms   -- If the buffer level ever below this theshold, increase the watermark */
+#define TSCHED_WATERMARK_INC_THRESHOLD_USEC (0*PA_USEC_PER_MSEC)   /* 0ms   -- If the buffer level ever below this theshold, increase the watermark */
 #define TSCHED_WATERMARK_DEC_THRESHOLD_USEC (100*PA_USEC_PER_MSEC) /* 100ms -- If the buffer level didn't drop below this theshold in the verification time, decrease the watermark */
+
+/* Note that TSCHED_WATERMARK_INC_THRESHOLD_USEC == 0 means tht we
+ * will increase the watermark only if we hit a real underrun. */
 
 #define TSCHED_MIN_SLEEP_USEC (10*PA_USEC_PER_MSEC)                /* 10ms  -- Sleep at least 10ms on each iteration */
 #define TSCHED_MIN_WAKEUP_USEC (4*PA_USEC_PER_MSEC)                /* 4ms   -- Wakeup at least this long before the buffer runs empty*/
