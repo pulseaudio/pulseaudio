@@ -1099,7 +1099,16 @@ void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
     pa_assert(!s->thread_info.rewind_requested);
     pa_assert(s->thread_info.rewind_nbytes == 0);
 
-    pa_assert(length > 0);
+    if (s->thread_info.state == PA_SINK_SUSPENDED) {
+        pa_silence_memchunk_get(&s->core->silence_cache,
+                                s->core->mempool,
+                                result,
+                                &s->sample_spec,
+                                length1st);
+
+        pa_sink_unref(s);
+        return;
+    }
 
     n = fill_mix_info(s, &length1st, info, MAX_MIX_CHANNELS);
 
