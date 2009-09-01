@@ -893,6 +893,8 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
         result->memblock = pa_memblock_ref(s->silence.memblock);
         result->index = s->silence.index;
         result->length = PA_MIN(s->silence.length, length);
+
+        pa_sink_unref(s);
         return;
     }
 
@@ -980,6 +982,7 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
 
     if (s->thread_info.state == PA_SINK_SUSPENDED) {
         pa_silence_memchunk(target, &s->sample_spec);
+        pa_sink_unref(s);
         return;
     }
 
