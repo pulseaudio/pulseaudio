@@ -410,6 +410,7 @@ static int try_recover(struct userdata *u, const char *call, int err) {
 
 static size_t check_left_to_play(struct userdata *u, size_t n_bytes, pa_bool_t on_timeout) {
     size_t left_to_play;
+    pa_bool_t underrun = FALSE;
 
     /* We use <= instead of < for this check here because an underrun
      * only happens after the last sample was processed, not already when
@@ -422,6 +423,7 @@ static size_t check_left_to_play(struct userdata *u, size_t n_bytes, pa_bool_t o
 
         /* We got a dropout. What a mess! */
         left_to_play = 0;
+        underrun = TRUE;
 
 #ifdef DEBUG_TIMING
         PA_DEBUG_TRAP;
@@ -443,7 +445,7 @@ static size_t check_left_to_play(struct userdata *u, size_t n_bytes, pa_bool_t o
         pa_bool_t reset_not_before = TRUE;
 
         if (!u->first && !u->after_rewind) {
-            if (left_to_play < u->watermark_inc_threshold)
+            if (underrun || left_to_play < u->watermark_inc_threshold)
                 increase_watermark(u);
             else if (left_to_play > u->watermark_dec_threshold) {
                 reset_not_before = FALSE;
