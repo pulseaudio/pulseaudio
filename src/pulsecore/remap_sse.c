@@ -108,7 +108,7 @@ static void remap_mono_to_stereo_sse (pa_remap_t *m, void *dst, const void *src,
         case PA_SAMPLE_FLOAT32NE:
         {
             __asm__ __volatile__ (
-                MONO_TO_STEREO(dq,3,7) /* do doubles to quads */
+                MONO_TO_STEREO(dq, 4, 15) /* do doubles to quads */
                 : "+r" (dst), "+r" (src), "=&r" (temp), "=&r" (temp2)
                 : "r" ((pa_reg_x86)n)
                 : "cc"
@@ -118,7 +118,7 @@ static void remap_mono_to_stereo_sse (pa_remap_t *m, void *dst, const void *src,
         case PA_SAMPLE_S16NE:
         {
             __asm__ __volatile__ (
-                MONO_TO_STEREO(wd,4,15) /* do words to doubles */
+                MONO_TO_STEREO(wd, 5, 31) /* do words to doubles */
                 : "+r" (dst), "+r" (src), "=&r" (temp), "=&r" (temp2)
                 : "r" ((pa_reg_x86)n)
                 : "cc"
