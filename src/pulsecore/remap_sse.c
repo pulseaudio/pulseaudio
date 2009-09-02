@@ -101,6 +101,7 @@
                 " jne 3b                        \n\t"  \
                 "4:                             \n\t"
 
+#if defined (__i386__) || defined (__amd64__)
 static void remap_mono_to_stereo_sse (pa_remap_t *m, void *dst, const void *src, unsigned n) {
     pa_reg_x86 temp, temp2;
 
@@ -144,6 +145,7 @@ static void init_remap_sse (pa_remap_t *m) {
         pa_log_info("Using SSE mono to stereo remapping");
     }
 }
+#endif /* defined (__i386__) || defined (__amd64__) */
 
 void pa_remap_func_init_sse (pa_cpu_x86_flag_t flags) {
 #if defined (__i386__) || defined (__amd64__)
