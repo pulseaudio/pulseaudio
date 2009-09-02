@@ -80,25 +80,25 @@
                 " add $2, %1                    \n\t"  \
                 " add $4, %0                    \n\t"
 
-#define MONO_TO_STEREO(s,shift,mask)                    \
-                " mov %4, %2                    \n\t"   \
-                " sar $"#shift", %2             \n\t"   \
-                " cmp $0, %2                    \n\t"   \
-                " je 2f                         \n\t"   \
-                "1:                             \n\t"   \
-                LOAD_SAMPLES                            \
-                UNPACK_SAMPLES(s)                       \
-                STORE_SAMPLES                           \
-                " dec %2                        \n\t"   \
-                " jne 1b                        \n\t"   \
-                "2:                             \n\t"   \
-                " mov %4, %2                    \n\t"   \
-                " and $"#mask", %2              \n\t"   \
-                " je 4f                         \n\t"   \
-                "3:                             \n\t"   \
-                HANDLE_SINGLE_##s()                     \
-                " dec %2                        \n\t"   \
-                " jne 3b                        \n\t"   \
+#define MONO_TO_STEREO(s,shift,mask)                   \
+                " mov %4, %2                    \n\t"  \
+                " sar $"#shift", %2             \n\t"  \
+                " cmp $0, %2                    \n\t"  \
+                " je 2f                         \n\t"  \
+                "1:                             \n\t"  \
+                LOAD_SAMPLES                           \
+                UNPACK_SAMPLES(s)                      \
+                STORE_SAMPLES                          \
+                " dec %2                        \n\t"  \
+                " jne 1b                        \n\t"  \
+                "2:                             \n\t"  \
+                " mov %4, %2                    \n\t"  \
+                " and $"#mask", %2              \n\t"  \
+                " je 4f                         \n\t"  \
+                "3:                             \n\t"  \
+                HANDLE_SINGLE_##s()                    \
+                " dec %2                        \n\t"  \
+                " jne 3b                        \n\t"  \
                 "4:                             \n\t"
 
 static void remap_mono_to_stereo_sse (pa_remap_t *m, void *dst, const void *src, unsigned n) {
