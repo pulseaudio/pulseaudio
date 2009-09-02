@@ -612,6 +612,11 @@ static int set_scheduler(int rtprio) {
         return -1;
     }
 
+    /* We need to disable exit on disconnect because otherwise
+     * dbus_shutdown will kill us. See
+     * https://bugs.freedesktop.org/show_bug.cgi?id=16924 */
+    dbus_connection_set_exit_on_disconnect(bus, FALSE);
+
     r = rtkit_make_realtime(bus, 0, rtprio);
     dbus_connection_unref(bus);
 
@@ -679,6 +684,11 @@ static int set_nice(int nice_level) {
         errno = -EIO;
         return -1;
     }
+
+    /* We need to disable exit on disconnect because otherwise
+     * dbus_shutdown will kill us. See
+     * https://bugs.freedesktop.org/show_bug.cgi?id=16924 */
+    dbus_connection_set_exit_on_disconnect(bus, FALSE);
 
     r = rtkit_make_high_priority(bus, 0, nice_level);
     dbus_connection_unref(bus);
