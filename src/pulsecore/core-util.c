@@ -2474,9 +2474,11 @@ void pa_unset_env_recorded(void) {
     /* This is not thread-safe */
 
     for (;;) {
-        char *s = NULL;
+        char *s;
 
-        if (!(recorded_env = pa_strlist_pop(recorded_env, &s)))
+        recorded_env = pa_strlist_pop(recorded_env, &s);
+
+        if (!s)
             break;
 
         unsetenv(s);
