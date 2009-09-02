@@ -83,7 +83,7 @@ static void pa_sconv_s16le_from_f32ne_sse(unsigned n, const float *a, int16_t *b
 
         "2:                             \n\t"
         " mov %4, %1                    \n\t" /* prepare for leftovers */
-        " and $15, %1                   \n\t"
+        " and $7, %1                    \n\t"
         " je 4f                         \n\t"
 
         "3:                             \n\t"
@@ -142,7 +142,7 @@ static void pa_sconv_s16le_from_f32ne_sse2(unsigned n, const float *a, int16_t *
 
         "2:                             \n\t"
         " mov %4, %1                    \n\t" /* prepare for leftovers */
-        " and $15, %1                   \n\t"
+        " and $7, %1                    \n\t"
         " je 4f                         \n\t"
 
         "3:                             \n\t"
