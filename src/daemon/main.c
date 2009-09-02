@@ -828,8 +828,10 @@ int main(int argc, char *argv[]) {
 
     pa_memtrap_install();
 
-    pa_cpu_init_x86();
-    pa_cpu_init_arm();
+    if (!getenv("PULSE_NO_SIMD")) {
+        pa_cpu_init_x86();
+        pa_cpu_init_arm();
+    }
 
     pa_assert_se(mainloop = pa_mainloop_new());
 
