@@ -778,7 +778,7 @@ static unsigned fill_mix_info(pa_sink *s, size_t *length, pa_mix_info *info, uns
 /* Called from IO thread context */
 static void inputs_drop(pa_sink *s, pa_mix_info *info, unsigned n, pa_memchunk *result) {
     pa_sink_input *i;
-    void *state = NULL;
+    void *state;
     unsigned p = 0;
     unsigned n_unreffed = 0;
 
