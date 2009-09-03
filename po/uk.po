@@ -6,21 +6,21 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-24 03:31+0200\n"
-"PO-Revision-Date: 2009-04-18 11:13+0300\n"
+"POT-Creation-Date: 2009-08-22 02:54+0000\n"
+"PO-Revision-Date: 2009-08-22 09:51+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation@linux.org.ua>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Lokalize 0.3\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
-"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 "
+"&& (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2676
 #, c-format
 msgid "%s %s"
-msgstr ""
+msgstr "%s %s"
 
 #: ../src/modules/alsa/alsa-util.c:1023
 #, c-format
@@ -63,7 +63,7 @@ msgstr ""
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
-msgstr ""
+msgstr "Віртуальний приймач LADSPA"
 
 #: ../src/modules/module-ladspa-sink.c:53
 msgid ""
@@ -73,6 +73,12 @@ msgid ""
 "plugin name> label=<ladspa plugin label> control=<comma seperated list of "
 "input control values>"
 msgstr ""
+"sink_name=<назва приймача> sink_properties=<властивості приймача> "
+"master=<назва приймача для фільтрування> format=<формат семпла> rate=<частота "
+"вибірки> "
+"channels=<кількість каналів> channel_map=<карта каналів> plugin=<назва додатка "
+"ladspa> label=<мітка додатка ladspa> control=<розділений комами список значень "
+"вхідних параметрів>"
 
 #: ../src/pulsecore/sink.c:2660
 msgid "Internal Audio"
@@ -201,8 +207,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:573
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr ""
-"Запуск у загальносистемному режимі, але не встановлено --disallow-exit!"
+msgstr "Запуск у загальносистемному режимі, але не встановлено --disallow-exit!"
 
 #: ../src/daemon/main.c:576
 msgid "Running in system mode, but --disallow-module-loading not set!"
@@ -300,15 +305,15 @@ msgstr "Зібрано з оптимізацією: ні"
 
 #: ../src/daemon/main.c:748
 msgid "NDEBUG defined, all asserts disabled."
-msgstr ""
+msgstr "Визначено NDEBUG, всі додавання вимкнено."
 
 #: ../src/daemon/main.c:750
 msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr ""
+msgstr "Визначено FASTPATH, вимкнено лише додавання швидких шляхів."
 
 #: ../src/daemon/main.c:752
 msgid "All asserts enabled."
-msgstr ""
+msgstr "Увімкнено всі додавання."
 
 #: ../src/daemon/main.c:756
 msgid "Failed to get machine ID"
@@ -319,10 +324,9 @@ msgstr "Спроба отримати ідентифікатор системи 
 msgid "Machine ID is %s."
 msgstr "Ідентифікатор системи %s."
 
-#: ../src/daemon/main.c:763
-#, fuzzy, c-format
+#: ../src/daemon/main.c:763, c-format
 msgid "Session ID is %s."
-msgstr "Ідентифікатор системи %s."
+msgstr "Ідентифікатор сеансу — %s."
 
 #: ../src/daemon/main.c:769
 #, c-format
@@ -334,10 +338,9 @@ msgstr "Каталог запуску: %s."
 msgid "Using state directory %s."
 msgstr "Каталог стану: %s."
 
-#: ../src/daemon/main.c:777
-#, fuzzy, c-format
+#: ../src/daemon/main.c:777, c-format
 msgid "Using modules directory %s."
-msgstr "Каталог запуску: %s."
+msgstr "Каталог модулів: %s."
 
 #: ../src/daemon/main.c:779
 #, c-format
@@ -353,6 +356,12 @@ msgid ""
 "Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an "
 "explanation why system mode is usually a bad idea."
 msgstr ""
+"Гаразд, ви запустили PA у системному режимі. Будь ласка, зауважте, що "
+"здебільшого у цьому немає потреби.\n"
+"Якщо ви все ж це зробили, відповідальність за всі негаразди лягає саме на вас.\n"
+"Будь ласка, ознайомтеся зі статтею http://pulseaudio."
+"org/wiki/WhatIsWrongWithSystemMode, щоб дізнатися про те, чому не варто "
+"використовувати системний режим."
 
 #: ../src/daemon/main.c:799
 msgid "pa_pid_file_create() failed."
@@ -370,29 +379,29 @@ msgstr ""
 "Чувак, твоє ядро — лайно! Круті пацани рекомендують Linux з увімкненими "
 "високоточними таймерами!"
 
-#: ../src/daemon/main.c:832
+#: ../src/daemon/main.c:829
 msgid "pa_core_new() failed."
 msgstr "Спроба виконання pa_core_new() зазнала невдачі."
 
-#: ../src/daemon/main.c:892
+#: ../src/daemon/main.c:891
 msgid "Failed to initialize daemon."
 msgstr "Не вдалося ініціалізувати фонову службу."
 
-#: ../src/daemon/main.c:897
+#: ../src/daemon/main.c:896
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "Запуск фонової служби без жодного завантаженого модуля, служба не буде "
 "працездатною."
 
-#: ../src/daemon/main.c:914
+#: ../src/daemon/main.c:913
 msgid "Daemon startup complete."
 msgstr "Запуск фонової служби завершено."
 
-#: ../src/daemon/main.c:920
+#: ../src/daemon/main.c:919
 msgid "Daemon shutdown initiated."
 msgstr "Ініційовано завершення роботи фонової служби."
 
-#: ../src/daemon/main.c:942
+#: ../src/daemon/main.c:941
 msgid "Daemon terminated."
 msgstr "Виконання фонової служби перервано."
 
@@ -659,7 +668,7 @@ msgstr "Завантаження при: %s\n"
 #: ../src/daemon/dumpmodules.c:75
 #, c-format
 msgid "DEPRECATION WARNING: %s\n"
-msgstr ""
+msgstr "ПОПЕРЕДЖЕННЯ ПРО ЗАСТАРІЛІСТЬ: %s\n"
 
 #: ../src/daemon/dumpmodules.c:79
 #, c-format
@@ -745,9 +754,8 @@ msgid "### Read from configuration file: %s ###\n"
 msgstr "### Прочитано з файла налаштувань: %s ###\n"
 
 #: ../src/daemon/caps.c:62
-#, fuzzy
 msgid "Cleaning up privileges."
-msgstr "Позбуваємося прав доступу root."
+msgstr "Позбуваємося прав доступу."
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
@@ -961,7 +969,7 @@ msgstr "Верхній задній лівий"
 msgid "Top Rear Right"
 msgstr "Верхній задній правий"
 
-#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
+#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:171
 #: ../src/pulse/volume.c:285 ../src/pulse/volume.c:311
 #: ../src/pulse/volume.c:331 ../src/pulse/volume.c:361
 msgid "(invalid)"
@@ -1091,27 +1099,27 @@ msgstr "Відсутня реалізація"
 msgid "Client forked"
 msgstr "Клієнт розгалужено"
 
-#: ../src/pulse/sample.c:172
+#: ../src/pulse/sample.c:173
 #, c-format
 msgid "%s %uch %uHz"
 msgstr "%s %uкан. %uГц"
 
-#: ../src/pulse/sample.c:184
+#: ../src/pulse/sample.c:185
 #, c-format
 msgid "%0.1f GiB"
 msgstr "%0.1f ГБ"
 
-#: ../src/pulse/sample.c:186
+#: ../src/pulse/sample.c:187
 #, c-format
 msgid "%0.1f MiB"
 msgstr "%0.1f МБ"
 
-#: ../src/pulse/sample.c:188
+#: ../src/pulse/sample.c:189
 #, c-format
 msgid "%0.1f KiB"
 msgstr "%0.1f кБ"
 
-#: ../src/pulse/sample.c:190
+#: ../src/pulse/sample.c:191
 #, c-format
 msgid "%u B"
 msgstr "%u Б"
@@ -1131,8 +1139,7 @@ msgstr "Не вдалося відкрити файл налаштування �
 
 #: ../src/pulse/context.c:550
 msgid "No cookie loaded. Attempting to connect without."
-msgstr ""
-"Куків не завантажено. Буде виконано спробу з’єднання за їх відсутності."
+msgstr "Куків не завантажено. Буде виконано спробу з’єднання за їх відсутності."
 
 #: ../src/pulse/context.c:693
 #, c-format
@@ -1149,173 +1156,140 @@ msgstr "waitpid(): %s"
 msgid "Received message for unknown extension '%s'"
 msgstr "Отримано повідомлення про невідомий додаток «%s»"
 
-#: ../src/utils/pacat.c:108
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:108, c-format
 msgid "Failed to drain stream: %s"
-msgstr "Не вдалося створити тунель для потоку: %s\n"
+msgstr "Не вдалося створити тунель для потоку: %s"
 
 #: ../src/utils/pacat.c:113
-#, fuzzy
 msgid "Playback stream drained."
-msgstr "Потік відтворення тунельовано.\n"
+msgstr "Потік відтворення тунельовано."
 
 #: ../src/utils/pacat.c:123
-#, fuzzy
 msgid "Draining connection to server."
-msgstr "Тунельне з’єднання з сервером.\n"
+msgstr "Тунельне з’єднання з сервером."
 
-#: ../src/utils/pacat.c:136
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:136, c-format
 msgid "pa_stream_drain(): %s"
-msgstr "pa_stream_drain(): %s\n"
+msgstr "pa_stream_drain(): %s"
 
-#: ../src/utils/pacat.c:159
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:159, c-format
 msgid "pa_stream_write() failed: %s"
-msgstr "Спроба виконання pa_stream_write() завершилася невдало: %s\n"
+msgstr "Спроба виконання pa_stream_write() завершилася невдало: %s"
 
-#: ../src/utils/pacat.c:197
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:197, c-format
 msgid "pa_stream_begin_write() failed: %s"
-msgstr "Спроба виконання pa_stream_write() завершилася невдало: %s\n"
+msgstr "Спроба виконання pa_stream_write() завершилася невдало: %s"
 
-#: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267, c-format
 msgid "pa_stream_peek() failed: %s"
-msgstr "Спроба виконання pa_stream_peek() завершилася невдало: %s\n"
+msgstr "Спроба виконання pa_stream_peek() завершилася невдало: %s"
 
 #: ../src/utils/pacat.c:307
-#, fuzzy
 msgid "Stream successfully created."
-msgstr "Потік було успішно створено.\n"
+msgstr "Потік було успішно створено."
 
-#: ../src/utils/pacat.c:310
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:310, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s"
-msgstr "Спроба виконання pa_stream_get_buffer_attr() завершилася невдало: %s\n"
+msgstr "Спроба виконання pa_stream_get_buffer_attr() завершилася невдало: %s"
 
-#: ../src/utils/pacat.c:314
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:314, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
-msgstr "Метрика буфера: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
+msgstr "Метрика буфера: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 
-#: ../src/utils/pacat.c:317
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:317, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u"
-msgstr "Метрика буфера: maxlength=%u, fragsize=%u\n"
+msgstr "Метрика буфера: maxlength=%u, fragsize=%u"
 
-#: ../src/utils/pacat.c:321
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:321, c-format
 msgid "Using sample spec '%s', channel map '%s'."
-msgstr "Використання частотної специфікації «%s», карта каналів «%s».\n"
+msgstr "Використання частотної специфікації «%s», карта каналів «%s»."
 
-#: ../src/utils/pacat.c:325
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:325, c-format
 msgid "Connected to device %s (%u, %ssuspended)."
-msgstr "З’єднано з пристроєм %s (%u, %s призупинено).\n"
+msgstr "З’єднано з пристроєм %s (%u, %s призупинено)."
 
-#: ../src/utils/pacat.c:335
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:335, c-format
 msgid "Stream error: %s"
-msgstr "Помилка потоку: %s\n"
+msgstr "Помилка потоку: %s"
 
-#: ../src/utils/pacat.c:345
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:345, c-format
 msgid "Stream device suspended.%s"
-msgstr "Призупинено пристрій потоку. %s \n"
+msgstr "Призупинено пристрій потоку. %s"
 
-#: ../src/utils/pacat.c:347
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:347, c-format
 msgid "Stream device resumed.%s"
-msgstr "Відновлено пристрій потоку. %s \n"
+msgstr "Відновлено пристрій потоку. %s"
 
-#: ../src/utils/pacat.c:355
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:355, c-format
 msgid "Stream underrun.%s"
-msgstr "Недовантаження потоку. %s \n"
+msgstr "Недовантаження потоку. %s"
 
-#: ../src/utils/pacat.c:362
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:362, c-format
 msgid "Stream overrun.%s"
-msgstr "Перевантаження потоку. %s \n"
+msgstr "Перевантаження потоку. %s"
 
-#: ../src/utils/pacat.c:369
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:369, c-format
 msgid "Stream started.%s"
-msgstr "Потік запущено. %s \n"
+msgstr "Потік запущено. %s"
 
-#: ../src/utils/pacat.c:376
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:376, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s"
-msgstr "Потік пересунуто на пристрій %s (%u, %s призупинено). %s \n"
+msgstr "Потік пересунуто на пристрій %s (%u, %s призупинено). %s"
 
 #: ../src/utils/pacat.c:376
 msgid "not "
 msgstr "не "
 
-#: ../src/utils/pacat.c:383
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:383, c-format
 msgid "Stream buffer attributes changed.%s"
-msgstr "Недовантаження потоку. %s \n"
+msgstr "Недовантаження потоку. %s"
 
-#: ../src/utils/pacat.c:416
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:416, c-format
 msgid "Connection established.%s"
-msgstr "Встановлено з’єднання. %s \n"
+msgstr "Встановлено з’єднання. %s"
 
-#: ../src/utils/pacat.c:419
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:419, c-format
 msgid "pa_stream_new() failed: %s"
-msgstr "Спроба виконання pa_stream_new() зазнала невдачі: %s\n"
+msgstr "Спроба виконання pa_stream_new() зазнала невдачі: %s"
 
-#: ../src/utils/pacat.c:447
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:447, c-format
 msgid "pa_stream_connect_playback() failed: %s"
-msgstr "Спроба виконання pa_stream_connect_playback() зазнала невдачі: %s\n"
+msgstr "Спроба виконання pa_stream_connect_playback() зазнала невдачі: %s"
 
-#: ../src/utils/pacat.c:453
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:453, c-format
 msgid "pa_stream_connect_record() failed: %s"
-msgstr "Спроба виконання pa_stream_connect_record() зазнала невдачі: %s\n"
+msgstr "Спроба виконання pa_stream_connect_record() зазнала невдачі: %s"
 
-#: ../src/utils/pacat.c:467
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:467, c-format
 msgid "Connection failure: %s"
-msgstr "Спроба встановлення з’єднання зазнала невдачі: %s\n"
+msgstr "Спроба встановлення з’єднання зазнала невдачі: %s"
 
 #: ../src/utils/pacat.c:500
-#, fuzzy
 msgid "Got EOF."
-msgstr "Отримано EOF.\n"
+msgstr "Отримано EOF."
 
-#: ../src/utils/pacat.c:537
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:537, c-format
 msgid "write() failed: %s"
-msgstr "Спроба виконання write() завершилася невдало: %s\n"
+msgstr "Спроба виконання write() завершилася невдало: %s"
 
 #: ../src/utils/pacat.c:558
-#, fuzzy
 msgid "Got signal, exiting."
-msgstr "Отримано сигнал, завершення роботи.\n"
+msgstr "Отримано сигнал, завершення роботи."
 
-#: ../src/utils/pacat.c:572
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:572, c-format
 msgid "Failed to get latency: %s"
-msgstr "Не вдалося отримати латентність: %s\n"
+msgstr "Не вдалося отримати латентність: %s"
 
 #: ../src/utils/pacat.c:577
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr "Час: %0.3f сек.; Латентність: %0.0f мкс.  \r"
 
-#: ../src/utils/pacat.c:595
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:595, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
-msgstr ""
-"Спроба виконання pa_stream_update_timing_info() завершилася невдало: %s\n"
+msgstr "Спроба виконання pa_stream_update_timing_info() завершилася невдало: %s"
 
-#: ../src/utils/pacat.c:605
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:605, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1419,6 +1393,14 @@ msgstr ""
 "латентність у байтах.\n"
 "      --process-time=БАЙТИ              Надіслати запит щодо вказаного часу "
 "обробки на запит у байтах.\n"
+"      --property=ВЛАСТИВІСТЬ=ЗНАЧЕННЯ   Встановити для вказаної властивості "
+"вказане значення.\n"
+"      --raw                             Записати/Відтворити не оброблені дані "
+"PCM.\n"
+"      --file-format=ФОРМАТ              Записати/Відтворити форматовані дані "
+"PCM.\n"
+"      --list-file-formats               Показати список можливих форматів "
+"файлів.\n"
 
 #: ../src/utils/pacat.c:727
 #, c-format
@@ -1431,103 +1413,86 @@ msgstr ""
 "Зібрано з libpulse %s\n"
 "З’єднано з libpulse %s\n"
 
-#: ../src/utils/pacat.c:760
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:760, c-format
 msgid "Invalid client name '%s'"
-msgstr "Некоректна карта каналів «%s»\n"
+msgstr "Некоректна назва клієнта «%s»"
 
-#: ../src/utils/pacat.c:776
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:776, c-format
 msgid "Invalid stream name '%s'"
-msgstr "Некоректний метод зміни частотних характеристик «%s»."
+msgstr "Некоректна назва потоку «%s»"
 
-#: ../src/utils/pacat.c:813
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:813, c-format
 msgid "Invalid channel map '%s'"
-msgstr "Некоректна карта каналів «%s»\n"
+msgstr "Некоректна карта каналів «%s»"
 
-#: ../src/utils/pacat.c:842
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:842, c-format
 msgid "Invalid latency specification '%s'"
-msgstr "Некоректна специфікація латентності «%s»\n"
+msgstr "Некоректна специфікація латентності «%s»"
 
-#: ../src/utils/pacat.c:849
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:849, c-format
 msgid "Invalid process time specification '%s'"
-msgstr "Некоректна часова специфікація «%s»\n"
+msgstr "Некоректна часова специфікація «%s»"
 
-#: ../src/utils/pacat.c:861
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:861, c-format
 msgid "Invalid property '%s'"
-msgstr "Некоректний метод зміни частотних характеристик «%s»."
+msgstr "Некоректна властивість «%s»"
 
 #: ../src/utils/pacat.c:878
 #, c-format
 msgid "Unknown file format %s."
-msgstr ""
+msgstr "Невідомий формат файлів %s."
 
 #: ../src/utils/pacat.c:897
-#, fuzzy
 msgid "Invalid sample specification"
-msgstr "Некоректна частотна специфікація\n"
+msgstr "Некоректна частотна специфікація"
 
-#: ../src/utils/pacat.c:907
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:907, c-format
 msgid "open(): %s"
-msgstr "open(): %s\n"
+msgstr "open(): %s"
 
-#: ../src/utils/pacat.c:912
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:912, c-format
 msgid "dup2(): %s"
-msgstr "dup2(): %s\n"
+msgstr "dup2(): %s"
 
 #: ../src/utils/pacat.c:919
-#, fuzzy
 msgid "Too many arguments."
-msgstr "Забагато аргументів.\n"
+msgstr "Забагато аргументів."
 
 #: ../src/utils/pacat.c:930
-#, fuzzy
 msgid "Failed to generate sample specification for file."
-msgstr "Не вдалося отримати дані щодо фрагмента: %s\n"
+msgstr "Не вдалося створити частотну специфікацію для файла."
 
 #: ../src/utils/pacat.c:950
-#, fuzzy
 msgid "Failed to open audio file."
-msgstr "Не вдалося відкрити звуковий файл.\n"
+msgstr "Не вдалося відкрити звуковий файл."
 
 #: ../src/utils/pacat.c:956
-#, fuzzy
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
-msgstr "Відкриття потоку %s з частотною специфікацією «%s».\n"
+msgstr ""
+"Попередження: вказану частотну специфікацію буде перезаписано специфікацією з "
+"файла."
 
 #: ../src/utils/pacat.c:959
-#, fuzzy
 msgid "Failed to determine sample specification from file."
-msgstr "Не вдалося отримати дані щодо фрагмента: %s\n"
+msgstr "Не вдалося отримати дані щодо частотної специфікації з файла."
 
 #: ../src/utils/pacat.c:968
-#, fuzzy
 msgid "Warning: Failed to determine channel map from file."
-msgstr "Відкриття потоку %s з частотною специфікацією «%s».\n"
+msgstr "Попередження: не вдалося отримати дані щодо карти каналів з файла."
 
 #: ../src/utils/pacat.c:979
-#, fuzzy
 msgid "Channel map doesn't match sample specification"
-msgstr "Карта каналі не відповідає частотній специфікації\n"
+msgstr "Карта каналів не відповідає частотній специфікації"
 
 #: ../src/utils/pacat.c:990
-#, fuzzy
 msgid "Warning: failed to write channel map to file."
-msgstr "Відкриття потоку %s з частотною специфікацією «%s».\n"
+msgstr "Попердження: не вдалося записати карту каналів до файла."
 
-#: ../src/utils/pacat.c:1005
-#, fuzzy, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
-msgstr "Відкриття потоку %s з частотною специфікацією «%s».\n"
+#: ../src/utils/pacat.c:1005, c-format
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgstr "Відкриття потоку %s з частотною специфікацією «%s» і картою каналів «%s»."
 
 #: ../src/utils/pacat.c:1006
 msgid "recording"
@@ -1538,19 +1503,16 @@ msgid "playback"
 msgstr "відтворення"
 
 #: ../src/utils/pacat.c:1032
-#, fuzzy
 msgid "pa_mainloop_new() failed."
-msgstr "Спроба виконання pa_mainloop_new() завершилася невдало.\n"
+msgstr "Спроба виконання pa_mainloop_new() завершилася невдало."
 
 #: ../src/utils/pacat.c:1051
-#, fuzzy
 msgid "io_new() failed."
-msgstr "Спроба виконання io_new() завершилася невдало.\n"
+msgstr "Спроба виконання io_new() завершилася невдало."
 
 #: ../src/utils/pacat.c:1058
-#, fuzzy
 msgid "pa_context_new() failed."
-msgstr "Спроба виконання pa_context_new() завершилася невдало.\n"
+msgstr "Спроба виконання pa_context_new() завершилася невдало."
 
 #: ../src/utils/pacat.c:1066 ../src/utils/pactl.c:1122
 #, c-format
@@ -1558,14 +1520,12 @@ msgid "pa_context_connect() failed: %s"
 msgstr "Спроба виконання pa_context_connect() завершилася невдало: %s"
 
 #: ../src/utils/pacat.c:1072
-#, fuzzy
 msgid "pa_context_rttime_new() failed."
-msgstr "Спроба виконання pa_context_new() завершилася невдало.\n"
+msgstr "Спроба виконання pa_context_new() завершилася невдало."
 
 #: ../src/utils/pacat.c:1079
-#, fuzzy
 msgid "pa_mainloop_run() failed."
-msgstr "Спроба виконання pa_mainloop_run() завершилася невдало.\n"
+msgstr "Спроба виконання pa_mainloop_run() завершилася невдало."
 
 #: ../src/utils/pasuspender.c:81
 #, c-format
@@ -1606,8 +1566,7 @@ msgstr "Отримано сигнал SIGINT, завершення роботи.
 #: ../src/utils/pasuspender.c:194
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr ""
-"ПОПЕРЕДЖЕННЯ: виконання дочірнього процесу було перервано з сигналом %u\n"
+msgstr "ПОПЕРЕДЖЕННЯ: виконання дочірнього процесу було перервано з сигналом %u\n"
 
 #: ../src/utils/pasuspender.c:212
 #, c-format
@@ -1667,8 +1626,7 @@ msgstr "Зараз використано: %u блоків, що містять 
 #: ../src/utils/pactl.c:137
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr ""
-"Виділено протягом виконання загалом: %u блоків, що містять %s байтів.\n"
+msgstr "Виділено протягом виконання загалом: %u блоків, що містять %s байтів.\n"
 
 #: ../src/utils/pactl.c:140
 #, c-format
@@ -1747,15 +1705,13 @@ msgstr ""
 "\tВластивості:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:261 ../src/utils/pactl.c:353
-#, fuzzy, c-format
+#: ../src/utils/pactl.c:261 ../src/utils/pactl.c:353, c-format
 msgid "\tPorts:\n"
-msgstr "\tПрофілі:\n"
+msgstr "\tПорти:\n"
 
-#: ../src/utils/pactl.c:267 ../src/utils/pactl.c:359
-#, fuzzy, c-format
+#: ../src/utils/pactl.c:267 ../src/utils/pactl.c:359, c-format
 msgid "\tActive Port: %s\n"
-msgstr "\tАктивний профіль: %s\n"
+msgstr "\tАктивний порт: %s\n"
 
 #: ../src/utils/pactl.c:290
 #, c-format
@@ -2009,8 +1965,7 @@ msgstr "Не вдалося вивантажити зразок: %s\n"
 msgid "Premature end of file\n"
 msgstr "Передчасне завершення файла\n"
 
-#: ../src/utils/pactl.c:826
-#, fuzzy, c-format
+#: ../src/utils/pactl.c:826, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -2049,6 +2004,8 @@ msgstr ""
 "%s [параметри] suspend-sink [ПРИЙМАЧ] 1|0\n"
 "%s [параметри] suspend-source [ДЖЕРЕЛО] 1|0\n"
 "%s [параметри] set-card-profile [КАРТА] [ПРОФІЛЬ] \n"
+"%s [параметри] set-sink-port [ПРИЙМАЧ] [ПОРТ] \n"
+"%s [параметри] set-source-port [ДЖЕРЕЛО] [ПОРТ] \n"
 "\n"
 "  -h, --help                            Показати цю довідку\n"
 "      --version                         Показати дані щодо версії\n"
@@ -2068,10 +2025,9 @@ msgstr ""
 "Зібрано з libpulse %s\n"
 "З’єднано з libpulse %s\n"
 
-#: ../src/utils/pactl.c:900
-#, fuzzy, c-format
+#: ../src/utils/pactl.c:900, c-format
 msgid "Invalid client name '%s'\n"
-msgstr "Некоректна карта каналів «%s»\n"
+msgstr "Некоректна назва клієнта «%s»\n"
 
 #: ../src/utils/pactl.c:926
 msgid "Please specify a sample file to load\n"
@@ -2082,14 +2038,13 @@ msgid "Failed to open sound file.\n"
 msgstr "Не вдалося відкрити звуковий файл.\n"
 
 #: ../src/utils/pactl.c:944
-#, fuzzy
 msgid "Failed to determine sample specification from file.\n"
-msgstr "Не вдалося отримати дані щодо фрагмента: %s\n"
+msgstr "Не вдалося отримати дані щодо частотної специфікації з файла.\n"
 
 #: ../src/utils/pactl.c:951
-#, fuzzy
 msgid "Warning: Failed to determine sample specification from file.\n"
-msgstr "Відкриття потоку %s з частотною специфікацією «%s».\n"
+msgstr ""
+"Попередження: не вдалося отримати дані щодо частотної специфікації з файла.\n"
 
 #: ../src/utils/pactl.c:961
 msgid "You have to specify a sample name to play\n"
@@ -2136,14 +2091,12 @@ msgid "You have to specify a card name/index and a profile name\n"
 msgstr "Вам слід вказати назву/індекс карти і назву профілю\n"
 
 #: ../src/utils/pactl.c:1073
-#, fuzzy
 msgid "You have to specify a sink name/index and a port name\n"
-msgstr "Вам слід вказати назву/індекс карти і назву профілю\n"
+msgstr "Вам слід вказати назву/індекс приймача і назву порту\n"
 
 #: ../src/utils/pactl.c:1084
-#, fuzzy
 msgid "You have to specify a source name/index and a port name\n"
-msgstr "Вам слід вказати назву/індекс карти і назву профілю\n"
+msgstr "Вам слід вказати назву/індекс джерела і назву порту\n"
 
 #: ../src/utils/pactl.c:1099
 msgid "No valid command specified.\n"
@@ -2233,6 +2186,8 @@ msgstr "Ще не реалізовано.\n"
 #: ../src/utils/pacmd.c:69
 msgid "No PulseAudio daemon running, or not running as session daemon."
 msgstr ""
+"Фонову службу PulseAudio не запущено, або цю службу не запущено як фонову "
+"службу сеансу."
 
 #: ../src/utils/pacmd.c:74
 #, c-format
@@ -2246,17 +2201,15 @@ msgstr "connect(): %s"
 
 #: ../src/utils/pacmd.c:99
 msgid "Failed to kill PulseAudio daemon."
-msgstr ""
-"Спроба завершення роботи фонової служби PulseAudio завершилася невдало."
+msgstr "Спроба завершення роботи фонової служби PulseAudio завершилася невдало."
 
 #: ../src/utils/pacmd.c:107
 msgid "Daemon not responding."
 msgstr "Фонова служба не відповідає."
 
-#: ../src/utils/pacmd.c:161
-#, fuzzy, c-format
+#: ../src/utils/pacmd.c:161, c-format
 msgid "poll(): %s"
-msgstr "fork(): %s"
+msgstr "poll(): %s"
 
 #: ../src/utils/pacmd.c:171 ../src/utils/pacmd.c:188
 #, c-format
@@ -2272,7 +2225,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr "Не вдалося зняти блокування автоматичного розгалуження."
 
-#: ../src/modules/alsa/alsa-sink.c:526 ../src/modules/alsa/alsa-sink.c:684
+#: ../src/modules/alsa/alsa-sink.c:451 ../src/modules/alsa/alsa-sink.c:608
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2282,8 +2235,14 @@ msgid ""
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
+"ALSA викликала службу запису нових даних на пристрій, але насправді ніяких "
+"даних для запису не виявлено!\n"
+"Ймовірно, це пов’язано з вадою у драйвері ALSA «%s». Будь ласка, повідомте про "
+"цю ваду розробникам ALSA.\n"
+"Службу було викликано зі встановленим POLLOUT, але наступний виклик "
+"snd_pcm_avail() повернув 0 або інше значення < min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
+#: ../src/modules/alsa/alsa-source.c:431 ../src/modules/alsa/alsa-source.c:580
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2293,24 +2252,29 @@ msgid ""
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
+"ALSA викликала службу читання нових даних з пристрою, але насправді ніяких "
+"даних для читання не виявлено!\n"
+"Ймовірно, це пов’язано з вадою у драйвері ALSA «%s». Будь ласка, повідомте про "
+"цю ваду розробникам ALSA.\n"
+"Службу було викликано зі встановленим POLLIN, але наступний виклик "
+"snd_pcm_avail() повернув 0 або інше значення < min_avail."
 
 #: ../src/modules/alsa/module-alsa-card.c:152
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2070
 msgid "Off"
-msgstr ""
+msgstr "Вимкнено"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2040
 msgid "High Fidelity Playback (A2DP)"
-msgstr ""
+msgstr "Високоточне відтворення (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2055
 msgid "Telephony Duplex (HSP/HFP)"
-msgstr ""
+msgstr "Телефонний дуплекс (HSP/HFP)"
 
 #: ../src/modules/reserve-wrap.c:151
-#, fuzzy
 msgid "PulseAudio Sound Server"
-msgstr "Звукова система PulseAudio"
+msgstr "Звуковий сервер PulseAudio"
 
 #~ msgid "select(): %s"
 #~ msgstr "select(): %s"
