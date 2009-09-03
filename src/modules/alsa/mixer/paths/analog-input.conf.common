@@ -78,6 +78,10 @@ priority = 19
 name = input-microphone
 priority = 19
 
+[Option Input Source:Internal Mic]
+name = input-microphone
+priority = 19
+
 [Option Input Source:Line]
 name = input-linein
 priority = 18
@@ -89,6 +93,10 @@ priority = 18
 [Option Input Source:Line In]
 name = input-linein
 priority = 18
+
+[Option Input Source:Docking-Station]
+name = input-docking
+priority = 17
 
 ;;; ' Capture Source'
 
