@@ -1,21 +1,21 @@
-# translation of pulseaudio.master-tx.pulseaudio.po to Hindi
+# translation of pulseaudio.master-tx.po to Hindi
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Rajesh Ranjan <rajesh672@gmail.com>, 2009.
 msgid ""
 msgstr ""
-"Project-Id-Version: pulseaudio.master-tx.pulseaudio\n"
+"Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-03 03:04+0200\n"
-"PO-Revision-Date: 2009-06-08 12:01+0530\n"
+"POT-Creation-Date: 2009-09-03 23:46+0000\n"
+"PO-Revision-Date: 2009-09-04 10:48+0530\n"
 "Last-Translator: Rajesh Ranjan <rajesh672@gmail.com>\n"
 "Language-Team: Hindi <hindi.sf.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
-"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n\n"
 "\n"
 "\n"
 "\n"
@@ -23,7 +23,7 @@ msgstr ""
 #: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2629
 #, c-format
 msgid "%s %s"
-msgstr ""
+msgstr "%s %s"
 
 #: ../src/modules/alsa/alsa-util.c:1023
 #, c-format
@@ -64,7 +64,7 @@ msgstr ""
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
-msgstr ""
+msgstr "वर्चुअल LADSPA सिंक"
 
 #: ../src/modules/module-ladspa-sink.c:53
 msgid ""
@@ -74,6 +74,11 @@ msgid ""
 "plugin name> label=<ladspa plugin label> control=<comma seperated list of "
 "input control values>"
 msgstr ""
+"sink_name=<name for the sink> sink_properties=<properties for the sink> "
+"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
+"channels=<number of channels> channel_map=<channel map> plugin=<ladspa "
+"plugin name> label=<ladspa plugin label> control=<comma seperated list of "
+"input control values>"
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -184,8 +189,7 @@ msgstr "डेमॉन हटाने में विफल: %s"
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr ""
-"यह प्रोग्राम बतौर रूट चलाने के लिए इच्छित नहीं है (unless --system is specified)."
+msgstr "यह प्रोग्राम बतौर रूट चलाने के लिए इच्छित नहीं है (unless --system is specified)."
 
 #: ../src/daemon/main.c:568
 msgid "Root privileges required."
@@ -311,9 +315,9 @@ msgid "Machine ID is %s."
 msgstr "मशीन ID %s है."
 
 #: ../src/daemon/main.c:768
-#, fuzzy, c-format
+#, c-format
 msgid "Session ID is %s."
-msgstr "मशीन ID %s है."
+msgstr "सत्र ID %s है."
 
 #: ../src/daemon/main.c:774
 #, c-format
@@ -326,9 +330,9 @@ msgid "Using state directory %s."
 msgstr "स्टेट निर्देशिका %s का प्रयोग कर रहा है."
 
 #: ../src/daemon/main.c:782
-#, fuzzy, c-format
+#, c-format
 msgid "Using modules directory %s."
-msgstr "रनटाइम निर्देशिका %s का प्रयोग कर रहा है."
+msgstr "मॉड्यूल निर्देशिका %s का प्रयोग कर रहा है."
 
 #: ../src/daemon/main.c:784
 #, c-format
@@ -344,6 +348,9 @@ msgid ""
 "Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an "
 "explanation why system mode is usually a bad idea."
 msgstr ""
+"तो आप PA तंत्र मोड में चला रहे हैं. कृपया नोट करें कि आपको ऐसा नहीं करना चाहिए.\n"
+"यदि आप इसे करते हैं तो यह आपकी गलती है यदि कुछ अप्रत्याशित होता है.\n"
+"कृपया http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode को पढ़ें जानने के लिए कि क्यों तंत्र मोड एक बढ़िया विचार नहीं है."
 
 #: ../src/daemon/main.c:804
 msgid "pa_pid_file_create() failed."
@@ -357,8 +364,7 @@ msgstr "ताज़ा उच्च विभेदन टाइमर उप�
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
-msgstr ""
-"आपका कर्नेल बुरी स्थिति में है! सलाह है कि उच्च विभेदन युक्त लिनक्स सक्रिय किया जाना चाहिए!"
+msgstr "आपका कर्नेल बुरी स्थिति में है! सलाह है कि उच्च विभेदन युक्त लिनक्स सक्रिय किया जाना चाहिए!"
 
 #: ../src/daemon/main.c:839
 msgid "pa_core_new() failed."
@@ -630,7 +636,7 @@ msgstr "एक बार लोड करें: %s\n"
 #: ../src/daemon/dumpmodules.c:75
 #, c-format
 msgid "DEPRECATION WARNING: %s\n"
-msgstr ""
+msgstr "अवमूल्यन चेतावनी: %s\n"
 
 #: ../src/daemon/dumpmodules.c:79
 #, c-format
@@ -716,9 +722,8 @@ msgid "### Read from configuration file: %s ###\n"
 msgstr "### विन्यास फ़ाइल से पढ़ें: %s ###\n"
 
 #: ../src/daemon/caps.c:62
-#, fuzzy
 msgid "Cleaning up privileges."
-msgstr "रूट अधिकार छोड़ रहा है."
+msgstr "अधिकार छोड़ रहा है."
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
@@ -1120,158 +1125,153 @@ msgid "Received message for unknown extension '%s'"
 msgstr "अज्ञात विस्तार '%s' के लिए संदेश प्राप्त"
 
 #: ../src/utils/pacat.c:108
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to drain stream: %s"
-msgstr "Failed to drain stream: %s\n"
+msgstr "स्ट्रीम से खींचने में विफल: %s"
 
 #: ../src/utils/pacat.c:113
-#, fuzzy
 msgid "Playback stream drained."
-msgstr "प्लेबैक स्ट्रीम खत्म.\n"
+msgstr "प्लेबैक स्ट्रीम खत्म."
 
 #: ../src/utils/pacat.c:123
-#, fuzzy
 msgid "Draining connection to server."
-msgstr "सर्वर में कनेक्शन ले जा रहा है.\n"
+msgstr "सर्वर में कनेक्शन ले जा रहा है."
 
 #: ../src/utils/pacat.c:136
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_drain(): %s"
-msgstr "pa_stream_drain(): %s\n"
+msgstr "pa_stream_drain(): %s"
 
 #: ../src/utils/pacat.c:159
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_write() failed: %s"
-msgstr "pa_stream_write() विफल: %s\n"
+msgstr "pa_stream_write() विफल: %s"
 
 #: ../src/utils/pacat.c:197
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_begin_write() failed: %s"
-msgstr "pa_stream_write() विफल: %s\n"
+msgstr "pa_stream_begin_write() विफल: %s"
 
 #: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_peek() failed: %s"
-msgstr "pa_stream_peek() विफल: %s\n"
+msgstr "pa_stream_peek() विफल: %s"
 
 #: ../src/utils/pacat.c:307
-#, fuzzy
 msgid "Stream successfully created."
-msgstr "स्ट्रीम सफलतापूर्वक निर्मित.\n"
+msgstr "स्ट्रीम सफलतापूर्वक निर्मित."
 
 #: ../src/utils/pacat.c:310
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s"
-msgstr "pa_stream_get_buffer_attr() विफल: %s\n"
+msgstr "pa_stream_get_buffer_attr() विफल: %s"
 
 #: ../src/utils/pacat.c:314
-#, fuzzy, c-format
+#, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
-msgstr "बफ़र मेट्रिक्स: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n"
+msgstr "बफ़र मेट्रिक्स: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 
 #: ../src/utils/pacat.c:317
-#, fuzzy, c-format
+#, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u"
-msgstr "बफ़र मेट्रिक्स: maxlength=%u, fragsize=%u\n"
+msgstr "बफ़र मेट्रिक्स: maxlength=%u, fragsize=%u"
 
 #: ../src/utils/pacat.c:321
-#, fuzzy, c-format
+#, c-format
 msgid "Using sample spec '%s', channel map '%s'."
-msgstr "नमूना स्पेक '%s' का प्रयोग, चैनल मैप '%s'.\n"
+msgstr "नमूना स्पेक '%s' का प्रयोग, चैनल मैप '%s'."
 
 #: ../src/utils/pacat.c:325
-#, fuzzy, c-format
+#, c-format
 msgid "Connected to device %s (%u, %ssuspended)."
-msgstr "युक्ति %s (%u, %ssuspended) से कनेक्टेड.\n"
+msgstr "युक्ति %s (%u, %ssuspended) से कनेक्टेड."
 
 #: ../src/utils/pacat.c:335
-#, fuzzy, c-format
+#, c-format
 msgid "Stream error: %s"
-msgstr "स्ट्रीम त्रुटि: %s\n"
+msgstr "स्ट्रीम त्रुटि: %s"
 
 #: ../src/utils/pacat.c:345
-#, fuzzy, c-format
+#, c-format
 msgid "Stream device suspended.%s"
-msgstr "स्ट्रीम युक्ति स्थगित.%s \n"
+msgstr "स्ट्रीम युक्ति स्थगित.%s "
 
 #: ../src/utils/pacat.c:347
-#, fuzzy, c-format
+#, c-format
 msgid "Stream device resumed.%s"
-msgstr "स्ट्रीम युक्ति पुनर्बहाल.%s \n"
+msgstr "स्ट्रीम युक्ति पुनर्बहाल.%s "
 
 #: ../src/utils/pacat.c:355
-#, fuzzy, c-format
+#, c-format
 msgid "Stream underrun.%s"
-msgstr "स्ट्रीम अंडररन.%s \n"
+msgstr "स्ट्रीम अंडररन.%s "
 
 #: ../src/utils/pacat.c:362
-#, fuzzy, c-format
+#, c-format
 msgid "Stream overrun.%s"
-msgstr "स्ट्रीम ओवररन.%s \n"
+msgstr "स्ट्रीम ओवररन.%s"
 
 #: ../src/utils/pacat.c:369
-#, fuzzy, c-format
+#, c-format
 msgid "Stream started.%s"
-msgstr "स्ट्रीम आरंभ.%s \n"
+msgstr "स्ट्रीम आरंभ.%s"
 
 #: ../src/utils/pacat.c:376
-#, fuzzy, c-format
+#, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s"
-msgstr "स्ट्रीम युक्ति %s (%u, %ssuspended).%s में खिसकाया गया \n"
+msgstr "स्ट्रीम युक्ति %s (%u, %ssuspended).%s में खिसकाया गया"
 
 #: ../src/utils/pacat.c:376
 msgid "not "
 msgstr "नहीं "
 
 #: ../src/utils/pacat.c:383
-#, fuzzy, c-format
+#, c-format
 msgid "Stream buffer attributes changed.%s"
-msgstr "स्ट्रीम बफ़र गुण परिवर्तित.%s \n"
+msgstr "स्ट्रीम बफ़र गुण परिवर्तित.%s "
 
 #: ../src/utils/pacat.c:416
-#, fuzzy, c-format
+#, c-format
 msgid "Connection established.%s"
-msgstr "कनेक्शन स्थापित.%s \n"
+msgstr "कनेक्शन स्थापित.%s "
 
 #: ../src/utils/pacat.c:419
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_new() failed: %s"
-msgstr "pa_stream_new() विफल: %s\n"
+msgstr "pa_stream_new() विफल: %s"
 
 #: ../src/utils/pacat.c:447
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_connect_playback() failed: %s"
-msgstr "pa_stream_connect_playback() विफल: %s\n"
+msgstr "pa_stream_connect_playback() विफल: %s"
 
 #: ../src/utils/pacat.c:453
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_connect_record() failed: %s"
-msgstr "pa_stream_connect_record() विफल: %s\n"
+msgstr "pa_stream_connect_record() विफल: %s"
 
 #: ../src/utils/pacat.c:467 ../src/utils/pactl.c:857
-#, fuzzy, c-format
+#, c-format
 msgid "Connection failure: %s"
-msgstr "कनेक्शन विफल.%s \n"
+msgstr "कनेक्शन विफल.%s"
 
 #: ../src/utils/pacat.c:500
-#, fuzzy
 msgid "Got EOF."
-msgstr "EOF पाया.\n"
+msgstr "EOF पाया."
 
 #: ../src/utils/pacat.c:537
-#, fuzzy, c-format
+#, c-format
 msgid "write() failed: %s"
-msgstr "write() विफल: %s\n"
+msgstr "write() विफल: %s"
 
 #: ../src/utils/pacat.c:558
-#, fuzzy
 msgid "Got signal, exiting."
-msgstr "संकेत पाया, निकल रहा है.\n"
+msgstr "संकेत पाया, निकल रहा है."
 
 #: ../src/utils/pacat.c:572
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get latency: %s"
-msgstr "Failed to get latency: %s\n"
+msgstr "लेटेंसी पाने में विफल: %s"
 
 #: ../src/utils/pacat.c:577
 #, c-format
@@ -1279,12 +1279,12 @@ msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 msgstr "समय: %0.3f sec; लैटेंसी: %0.0f usec.  \r"
 
 #: ../src/utils/pacat.c:595
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
-msgstr "pa_stream_update_timing_info() विफल: %s\n"
+msgstr "pa_stream_update_timing_info() विफल: %s"
 
 #: ../src/utils/pacat.c:605
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1366,8 +1366,10 @@ msgstr ""
 "44100)\n"
 "      --format=SAMPLEFORMAT             The sample type, one of s16le, "
 "s16be, u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be "
-"(defaults to s16ne)\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, "
+"s24le, s24be,\n"
+"                                        s24-32le, s24-32be (defaults to "
+"s16ne)\n"
 "      --channels=CHANNELS               The number of channels, 1 for mono, "
 "2 for stereo\n"
 "                                        (defaults to 2)\n"
@@ -1390,6 +1392,11 @@ msgstr ""
 "bytes.\n"
 "      --process-time=BYTES              Request the specified process time "
 "per request in bytes.\n"
+"      --property=PROPERTY=VALUE         Set the specified property to the "
+"specified value.\n"
+"      --raw                             Record/play raw PCM data.\n"
+"      --file-format=FFORMAT             Record/play formatted PCM data.\n"
+"      --list-file-formats               List available file formats.\n"
 
 #: ../src/utils/pacat.c:727
 #, c-format
@@ -1403,102 +1410,92 @@ msgstr ""
 "लिबपल्स %s के साथ लिंक\n"
 
 #: ../src/utils/pacat.c:760 ../src/utils/pactl.c:953
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid client name '%s'"
-msgstr "अवैध चैनल मानचित्र '%s'\n"
+msgstr "अवैध क्लाइंट नाम '%s'"
 
 #: ../src/utils/pacat.c:776
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid stream name '%s'"
-msgstr "अवैध पुनः प्रतिदर्श विधि '%s'."
+msgstr "अवैध स्ट्रीम नाम '%s'"
 
 #: ../src/utils/pacat.c:813
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid channel map '%s'"
-msgstr "अवैध चैनल मानचित्र '%s'\n"
+msgstr "अवैध चैनल मानचित्र '%s'"
 
 #: ../src/utils/pacat.c:842
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid latency specification '%s'"
-msgstr "अवैध लैटेंसी विनिर्दिष्टता '%s'\n"
+msgstr "अवैध लैटेंसी विनिर्दिष्टता '%s'"
 
 #: ../src/utils/pacat.c:849
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid process time specification '%s'"
-msgstr "अवैध प्रक्रिया समय विनिर्दिष्टता '%s'\n"
+msgstr "अवैध प्रक्रिया समय विनिर्दिष्टता '%s'"
 
 #: ../src/utils/pacat.c:861
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid property '%s'"
-msgstr "अवैध पुनः प्रतिदर्श विधि '%s'."
+msgstr "अवैध गुण '%s'"
 
 #: ../src/utils/pacat.c:878
 #, c-format
 msgid "Unknown file format %s."
-msgstr ""
+msgstr "अज्ञात फ़ाइल प्रारूप %s."
 
 #: ../src/utils/pacat.c:897
-#, fuzzy
 msgid "Invalid sample specification"
-msgstr "अवैध नमूना विनिर्दिष्टता\n"
+msgstr "अवैध नमूना विनिर्दिष्टता"
 
 #: ../src/utils/pacat.c:907
-#, fuzzy, c-format
+#, c-format
 msgid "open(): %s"
-msgstr "open(): %s\n"
+msgstr "open(): %s"
 
 #: ../src/utils/pacat.c:912
-#, fuzzy, c-format
+#, c-format
 msgid "dup2(): %s"
-msgstr "dup2(): %s\n"
+msgstr "dup2(): %s"
 
 #: ../src/utils/pacat.c:919
-#, fuzzy
 msgid "Too many arguments."
-msgstr "कई वितर्क.\n"
+msgstr "कई वितर्क."
 
 #: ../src/utils/pacat.c:930
-#, fuzzy
 msgid "Failed to generate sample specification for file."
-msgstr "नमूना सूचना पाने में विफल: %s\n"
+msgstr "फ़ाइल के लिए नमूना विनिर्दिष्टता पाने में विफल."
 
 #: ../src/utils/pacat.c:950
-#, fuzzy
 msgid "Failed to open audio file."
-msgstr "ध्वनि फ़ाइल खोलने में विफल.\n"
+msgstr "ध्वनि फ़ाइल खोलने में विफल."
 
 #: ../src/utils/pacat.c:956
-#, fuzzy
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
-msgstr "%s स्ट्रीम को किसी नमूना विनिर्दिष्टता '%s' के साथ खोल रहा है.\n"
+msgstr "चेतावनी: निर्दिष्ट नमूना विनिर्दिष्टता को फ़ाइल की विनिर्दिष्टता से लिखा जाएगा."
 
 #: ../src/utils/pacat.c:959 ../src/utils/pactl.c:997
-#, fuzzy
 msgid "Failed to determine sample specification from file."
-msgstr "नमूना सूचना पाने में विफल: %s\n"
+msgstr "फ़ाइल से नमूना विनिर्दिष्टता निर्धारित करने में विफल."
 
 #: ../src/utils/pacat.c:968
-#, fuzzy
 msgid "Warning: Failed to determine channel map from file."
-msgstr "%s स्ट्रीम को किसी नमूना विनिर्दिष्टता '%s' के साथ खोल रहा है.\n"
+msgstr "चेतावनी: फ़ाइल से चैनल मैप पाने में विफल."
 
 #: ../src/utils/pacat.c:979
-#, fuzzy
 msgid "Channel map doesn't match sample specification"
-msgstr "चैनल मानचित्र नमूना विनिर्दिष्टता के मेल नहीं खाता\n"
+msgstr "चैनल मैप नमूना विनिर्दिष्टता से मेल नहीं खाता है"
 
 #: ../src/utils/pacat.c:990
-#, fuzzy
 msgid "Warning: failed to write channel map to file."
-msgstr "%s स्ट्रीम को किसी नमूना विनिर्दिष्टता '%s' के साथ खोल रहा है.\n"
+msgstr "चेतावनी: फ़ाइल में चैनल मैप लिखने में विफल."
 
 #: ../src/utils/pacat.c:1005
-#, fuzzy, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
-msgstr "%s स्ट्रीम को किसी नमूना विनिर्दिष्टता '%s' के साथ खोल रहा है.\n"
+#, c-format
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgstr "किसी %s स्ट्रीम को किसी नमूना विनिर्दिष्ता '%s' और चैनल मैप '%s' से खोल रहा है."
 
 #: ../src/utils/pacat.c:1006
 msgid "recording"
@@ -1509,19 +1506,16 @@ msgid "playback"
 msgstr "प्लेबैक"
 
 #: ../src/utils/pacat.c:1032 ../src/utils/pactl.c:1267
-#, fuzzy
 msgid "pa_mainloop_new() failed."
-msgstr "pa_mainloop_new() विफल.\n"
+msgstr "pa_mainloop_new() विफल."
 
 #: ../src/utils/pacat.c:1051
-#, fuzzy
 msgid "io_new() failed."
-msgstr "io_new() विफल.\n"
+msgstr "io_new() विफल."
 
 #: ../src/utils/pacat.c:1058 ../src/utils/pactl.c:1279
-#, fuzzy
 msgid "pa_context_new() failed."
-msgstr "pa_context_new() विफल.\n"
+msgstr "pa_context_new() विफल."
 
 #: ../src/utils/pacat.c:1066 ../src/utils/pactl.c:1285
 #, c-format
@@ -1529,14 +1523,12 @@ msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() विफल: %s"
 
 #: ../src/utils/pacat.c:1072
-#, fuzzy
 msgid "pa_context_rttime_new() failed."
-msgstr "pa_context_new() विफल.\n"
+msgstr "pa_context_rttime_new() विफल."
 
 #: ../src/utils/pacat.c:1079 ../src/utils/pactl.c:1290
-#, fuzzy
 msgid "pa_mainloop_run() failed."
-msgstr "pa_mainloop_run() विफल.\n"
+msgstr "pa_mainloop_run() विफल."
 
 #: ../src/utils/pasuspender.c:81
 #, c-format
@@ -1624,9 +1616,9 @@ msgid "pa_mainloop_run() failed.\n"
 msgstr "pa_mainloop_run() विफल.\n"
 
 #: ../src/utils/pactl.c:135
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get statistics: %s"
-msgstr "आंकड़े पाने में विफल: %s\n"
+msgstr "आंकड़े पाने में विफल: %s"
 
 #: ../src/utils/pactl.c:141
 #, c-format
@@ -1644,9 +1636,9 @@ msgid "Sample cache size: %s\n"
 msgstr "नमूना कैश आकार: %s\n"
 
 #: ../src/utils/pactl.c:156
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get server information: %s"
-msgstr "सर्वर सूचना पाने में विफल: %s\n"
+msgstr "सर्वर सूचना पाने में विफल: %s"
 
 #: ../src/utils/pactl.c:164
 #, c-format
@@ -1672,9 +1664,9 @@ msgstr ""
 "कुकी: %08x\n"
 
 #: ../src/utils/pactl.c:205
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get sink information: %s"
-msgstr "सिंक सूचना पाने में विफल: %s\n"
+msgstr "सिंक सूचना पाने में विफल: %s"
 
 #: ../src/utils/pactl.c:221
 #, c-format
@@ -1716,19 +1708,19 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:268 ../src/utils/pactl.c:360
-#, fuzzy, c-format
+#, c-format
 msgid "\tPorts:\n"
-msgstr "\tProfiles:\n"
+msgstr "\tPorts:\n"
 
 #: ../src/utils/pactl.c:274 ../src/utils/pactl.c:366
-#, fuzzy, c-format
+#, c-format
 msgid "\tActive Port: %s\n"
-msgstr "\tActive Profile: %s\n"
+msgstr "\tActive Port: %s\n"
 
 #: ../src/utils/pactl.c:297
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get source information: %s"
-msgstr "स्रोत सूचना पाने में विफल: %s\n"
+msgstr "स्रोत सूचना पाने में विफल: %s"
 
 #: ../src/utils/pactl.c:313
 #, c-format
@@ -1778,9 +1770,9 @@ msgid "n/a"
 msgstr "n/a"
 
 #: ../src/utils/pactl.c:375
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get module information: %s"
-msgstr "मॉड्यूल सूचना पाने में विफल: %s\n"
+msgstr "मॉड्यूल सूचना पाने में विफल: %s"
 
 #: ../src/utils/pactl.c:393
 #, c-format
@@ -1800,9 +1792,9 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:412
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get client information: %s"
-msgstr "क्लाइंट सूचना पाने में विफल: %s\n"
+msgstr "क्लाइंट सूचना पाने में विफल: %s"
 
 #: ../src/utils/pactl.c:430
 #, c-format
@@ -1820,9 +1812,9 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:447
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get card information: %s"
-msgstr "कार्ड सूचना पाने में विफल: %s\n"
+msgstr "कार्ड सूचना पाने में विफल: %s"
 
 #: ../src/utils/pactl.c:465
 #, c-format
@@ -1852,9 +1844,9 @@ msgid "\tActive Profile: %s\n"
 msgstr "\tActive Profile: %s\n"
 
 #: ../src/utils/pactl.c:496
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get sink input information: %s"
-msgstr "सिंक इनपुट सूचना पाने में विफल: %s\n"
+msgstr "सिंक इनपुट सूचना पाने में विफल: %s"
 
 #: ../src/utils/pactl.c:515
 #, c-format
@@ -1894,9 +1886,9 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:554
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get source output information: %s"
-msgstr "स्रोत आउटपुट सूचना पाने में विफल: %s\n"
+msgstr "स्रोत आउटपुट सूचना पाने में विफल: %s"
 
 #: ../src/utils/pactl.c:574
 #, c-format
@@ -1928,9 +1920,9 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:605
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get sample information: %s"
-msgstr "नमूना सूचना पाने में विफल: %s\n"
+msgstr "नमूना सूचना पाने में विफल: %s"
 
 #: ../src/utils/pactl.c:623
 #, c-format
@@ -1964,27 +1956,25 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:653 ../src/utils/pactl.c:663
-#, fuzzy, c-format
+#, c-format
 msgid "Failure: %s"
-msgstr "विफलता: %s\n"
+msgstr "विफलता: %s"
 
 #: ../src/utils/pactl.c:687
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to upload sample: %s"
-msgstr "नमूना अफलोड करने में विफल: %s\n"
+msgstr "नमूना अफलोड करने में विफल: %s"
 
 #: ../src/utils/pactl.c:704
-#, fuzzy
 msgid "Premature end of file"
-msgstr "फ़ाइल का असामयिक अंत\n"
+msgstr "फ़ाइल का असामयिक अंत"
 
 #: ../src/utils/pactl.c:863
-#, fuzzy
 msgid "Got SIGINT, exiting."
-msgstr "SIGINT पाया, निकल रहा है.\n"
+msgstr "SIGINT पाया, निकल रहा है."
 
 #: ../src/utils/pactl.c:869
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -2022,13 +2012,21 @@ msgstr ""
 "%s [options] upload-sample FILENAME [NAME]\n"
 "%s [options] play-sample NAME [SINK]\n"
 "%s [options] remove-sample NAME\n"
-"%s [options] move-sink-input ID SINK\n"
-"%s [options] move-source-output ID SOURCE\n"
+"%s [options] move-sink-input SINKINPUT SINK\n"
+"%s [options] move-source-output SOURCEOUTPUT SOURCE\n"
 "%s [options] load-module NAME [ARGS ...]\n"
-"%s [options] unload-module ID\n"
-"%s [options] suspend-sink [SINK] 1|0\n"
-"%s [options] suspend-source [SOURCE] 1|0\n"
-"%s [options] set-card-profile [CARD] [PROFILE] \n"
+"%s [options] unload-module MODULE\n"
+"%s [options] suspend-sink SINK 1|0\n"
+"%s [options] suspend-source SOURCE 1|0\n"
+"%s [options] set-card-profile CARD PROFILE\n"
+"%s [options] set-sink-port SINK PORT\n"
+"%s [options] set-source-port SOURCE PORT\n"
+"%s [options] set-sink-volume SINK VOLUME\n"
+"%s [options] set-source-volume SOURCE VOLUME\n"
+"%s [options] set-sink-input-volume SINKINPUT VOLUME\n"
+"%s [options] set-sink-mute SINK 1|0\n"
+"%s [options] set-source-mute SOURCE 1|0\n"
+"%s [options] set-sink-input-mute SINKINPUT 1|0\n"
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
@@ -2050,132 +2048,108 @@ msgstr ""
 "लिबपल्स %s से कड़ीबद्ध\n"
 
 #: ../src/utils/pactl.c:979
-#, fuzzy
 msgid "Please specify a sample file to load"
-msgstr "लोड करने के लिए किसी नमूना फ़ाइल निर्दिष्ट करें\n"
+msgstr "लोड करने के लिए किसी नमूना फ़ाइल निर्दिष्ट करें"
 
 #: ../src/utils/pactl.c:992
-#, fuzzy
 msgid "Failed to open sound file."
-msgstr "ध्वनि फ़ाइल खोलने में विफल.\n"
+msgstr "ध्वनि फ़ाइल खोलने में विफल."
 
 #: ../src/utils/pactl.c:1004
-#, fuzzy
 msgid "Warning: Failed to determine sample specification from file."
-msgstr "%s स्ट्रीम को किसी नमूना विनिर्दिष्टता '%s' के साथ खोल रहा है.\n"
+msgstr "%s स्ट्रीम को किसी नमूना विनिर्दिष्टता '%s' के साथ खोल रहा है."
 
 #: ../src/utils/pactl.c:1014
-#, fuzzy
 msgid "You have to specify a sample name to play"
-msgstr "आपने किसी नमूना नाम को बजाने के लिए निर्दिष्ट किया है\n"
+msgstr "आपको किसी नमूना नाम को बजाने के लिए निर्दिष्ट करना है"
 
 #: ../src/utils/pactl.c:1026
-#, fuzzy
 msgid "You have to specify a sample name to remove"
-msgstr "आपने किसी नमूना नाम को हटाने के लिए निर्दिष्ट किया है\n"
+msgstr "आपको किसी नमूना नाम को हटाने के लिए निर्दिष्ट करना है"
 
 #: ../src/utils/pactl.c:1035
-#, fuzzy
 msgid "You have to specify a sink input index and a sink"
-msgstr "आपने किसी सिंक इनपुट सूची और सिंक को निर्दिष्ट किया है\n"
+msgstr "आपको किसी सिंक इनपुट सूची और सिंक को निर्दिष्ट करना है"
 
 #: ../src/utils/pactl.c:1045
-#, fuzzy
 msgid "You have to specify a source output index and a source"
-msgstr "आपने किसी सिंक स्रोत आउटपुट और स्रोत को निर्दिष्ट किया है\n"
+msgstr "आपको किसी सिंक स्रोत आउटपुट और स्रोत को निर्दिष्ट करना है"
 
 #: ../src/utils/pactl.c:1060
-#, fuzzy
 msgid "You have to specify a module name and arguments."
-msgstr "आपने किसी मॉड्यूल नाम और वितर्क को निर्दिष्ट किया है\n"
+msgstr "आपको किसी मॉड्यूल नाम और वितर्क को निर्दिष्ट करना है"
 
 #: ../src/utils/pactl.c:1080
-#, fuzzy
 msgid "You have to specify a module index"
-msgstr "आपने किसी मॉड्यूल सूची को निर्दिष्ट किया है\n"
+msgstr "आपको किसी मॉड्यूल सूची को निर्दिष्ट करना है"
 
 #: ../src/utils/pactl.c:1090
-#, fuzzy
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
+msgid "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
 "आप एक सिंक से अधिक निर्दिष्ट नहीं कर सकते हैं. आपको किसी बुलियन मान को निर्दिष्ट करना "
-"है.\n"
+"है."
 
 #: ../src/utils/pactl.c:1103
-#, fuzzy
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
 msgstr ""
 "आप एक स्रोत से अधिक निर्दिष्ट नहीं कर सकते हैं. आपको किसी बुलियन मान को निर्दिष्ट करना "
-"है.\n"
+"है."
 
 #: ../src/utils/pactl.c:1115
-#, fuzzy
 msgid "You have to specify a card name/index and a profile name"
-msgstr "आपको किसी कार्ड नाम/सूची और प्रोफ़ाइल नाम को निर्दिष्ट करना है.\n"
+msgstr "आपको किसी कार्ड नाम/सूची और प्रोफ़ाइल नाम को निर्दिष्ट करना है."
 
 #: ../src/utils/pactl.c:1126
-#, fuzzy
 msgid "You have to specify a sink name/index and a port name"
-msgstr "आपको किसी कार्ड नाम/सूची और प्रोफ़ाइल नाम को निर्दिष्ट करना है.\n"
+msgstr "आपको किसी कार्ड नाम/सूची और पोर्ट नाम को निर्दिष्ट करना है."
 
 #: ../src/utils/pactl.c:1137
-#, fuzzy
 msgid "You have to specify a source name/index and a port name"
-msgstr "आपको किसी कार्ड नाम/सूची और प्रोफ़ाइल नाम को निर्दिष्ट करना है.\n"
+msgstr "आपको किसी स्रोत नाम/सूची और पोर्ट नाम को निर्दिष्ट करना है."
 
 #: ../src/utils/pactl.c:1149
-#, fuzzy
 msgid "You have to specify a sink name/index and a volume"
-msgstr "आपको किसी कार्ड नाम/सूची और प्रोफ़ाइल नाम को निर्दिष्ट करना है.\n"
+msgstr "आपको किसी सिंक नाम/सूची और वाल्यूम को निर्दिष्ट करना है."
 
 #: ../src/utils/pactl.c:1154 ../src/utils/pactl.c:1171
 #: ../src/utils/pactl.c:1193 ../src/utils/pactl.c:1209
 #: ../src/utils/pactl.c:1226 ../src/utils/pactl.c:1248
-#, fuzzy
 msgid "Invalid volume specification"
-msgstr "अवैध नमूना विनिर्दिष्टता\n"
+msgstr "अवैध आयतन विनिर्दिष्टता"
 
 #: ../src/utils/pactl.c:1166
-#, fuzzy
 msgid "You have to specify a source name/index and a volume"
-msgstr "आपको किसी कार्ड नाम/सूची और प्रोफ़ाइल नाम को निर्दिष्ट करना है.\n"
+msgstr "आपको किसी स्रोत नाम/सूची और आयतन को निर्दिष्ट करना है."
 
 #: ../src/utils/pactl.c:1183
-#, fuzzy
 msgid "You have to specify a sink input index and a volume"
-msgstr "आपने किसी सिंक इनपुट सूची और सिंक को निर्दिष्ट किया है\n"
+msgstr "आपने किसी सिंक इनपुट सूची और आयतन को निर्दिष्ट किया है"
 
 #: ../src/utils/pactl.c:1188
 msgid "Invalid sink input index"
-msgstr ""
+msgstr "अवैध सिंक इनपुट सूची"
 
 #: ../src/utils/pactl.c:1204
-#, fuzzy
 msgid "You have to specify a sink name/index and a mute boolean"
-msgstr "आपको किसी कार्ड नाम/सूची और प्रोफ़ाइल नाम को निर्दिष्ट करना है.\n"
+msgstr "आपको किसी कार्ड नाम/सूची और मूक बुलियन नाम को निर्दिष्ट करना है."
 
 #: ../src/utils/pactl.c:1221
-#, fuzzy
 msgid "You have to specify a source name/index and a mute boolean"
-msgstr "आपको किसी कार्ड नाम/सूची और प्रोफ़ाइल नाम को निर्दिष्ट करना है.\n"
+msgstr "आपको किसी स्रोत नाम/सूची और मूल बुलियन को निर्दिष्ट करना है."
 
 #: ../src/utils/pactl.c:1238
-#, fuzzy
 msgid "You have to specify a sink input index and a mute boolean"
-msgstr "आपने किसी सिंक इनपुट सूची और सिंक को निर्दिष्ट किया है\n"
+msgstr "आपने किसी सिंक इनपुट सूची और मूल बुलियन को निर्दिष्ट किया है"
 
 #: ../src/utils/pactl.c:1243
-#, fuzzy
 msgid "Invalid sink input index specification"
-msgstr "अवैध नमूना विनिर्दिष्टता\n"
+msgstr "अवैध सिंक इनपुट सूची विनिर्दिष्टता"
 
 #: ../src/utils/pactl.c:1262
-#, fuzzy
 msgid "No valid command specified."
-msgstr "कोई वैध कमांड निर्दिष्ट नहीं.\n"
+msgstr "कोई वैध कमांड निर्दिष्ट नहीं."
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2258,7 +2232,7 @@ msgstr "अभी तक कार्यान्वित नहीं.\n"
 
 #: ../src/utils/pacmd.c:69
 msgid "No PulseAudio daemon running, or not running as session daemon."
-msgstr ""
+msgstr "कोई पल्सऑडियो डेमॉन चल रहा है, या चयन डेमॉन के तहत चल रहा है."
 
 #: ../src/utils/pacmd.c:74
 #, c-format
@@ -2279,9 +2253,9 @@ msgid "Daemon not responding."
 msgstr "डेमॉन प्रतिक्रिया नहीं दे रहा है."
 
 #: ../src/utils/pacmd.c:161
-#, fuzzy, c-format
+#, c-format
 msgid "poll(): %s"
-msgstr "fork(): %s"
+msgstr "poll(): %s"
 
 #: ../src/utils/pacmd.c:171 ../src/utils/pacmd.c:188
 #, c-format
@@ -2341,9 +2315,8 @@ msgid "High Fidelity Playback (A2DP)"
 msgstr "उच्च विश्वसनीयतायुक्ति प्लेबैक (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2195
-#, fuzzy
 msgid "High Fidelity Capture (A2DP)"
-msgstr "उच्च विश्वसनीयतायुक्ति प्लेबैक (A2DP)"
+msgstr "उच्च विश्वसनीयता कैप्चर (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2210
 msgid "Telephony Duplex (HSP/HFP)"
@@ -2353,246 +2326,3 @@ msgstr "टेलिफोनी ड्यूप्लेक्स (HSP/HFP)"
 msgid "PulseAudio Sound Server"
 msgstr "पल्सऑडियो ध्वनि सर्वर"
 
-#, fuzzy
-#~ msgid "Invalid client name '%s'\n"
-#~ msgstr "अवैध चैनल मानचित्र '%s'\n"
-
-#, fuzzy
-#~ msgid "Failed to determine sample specification from file.\n"
-#~ msgstr "नमूना सूचना पाने में विफल: %s\n"
-
-#~ msgid "select(): %s"
-#~ msgstr "select(): %s"
-
-#~ msgid "Cannot connect to system bus: %s"
-#~ msgstr "तंत्र बस से कनेक्ट नहीं हो सकता है: %s"
-
-#~ msgid "Cannot get caller from PID: %s"
-#~ msgstr "PID से कॉलर पाने में विफल: %s"
-
-#~ msgid "Cannot set UID on caller object."
-#~ msgstr "UID को कॉलर वस्तु पर सेट नहीं कर सकता है."
-
-#~ msgid "Failed to get CK session."
-#~ msgstr "CK सत्र पाने में विफल."
-
-#~ msgid "Cannot set UID on session object."
-#~ msgstr "UID को सत्र वस्तु पर सेट नहीं कर सकता है."
-
-#~ msgid "Cannot allocate PolKitAction."
-#~ msgstr "PolKitAction आबंटित नहीं कर सकता है."
-
-#~ msgid "Cannot set action_id"
-#~ msgstr "action_id सेट नहीं कर सकता है"
-
-#~ msgid "Cannot allocate PolKitContext."
-#~ msgstr "PolKitContext आबंटित नहीं कर सकता है."
-
-#~ msgid "Cannot initialize PolKitContext: %s"
-#~ msgstr "PolKitContext आरंभ नहीं कर सकता है.: %s"
-
-#~ msgid "Could not determine whether caller is authorized: %s"
-#~ msgstr "निर्धारित नहीं कर सकता है कि क्या कॉलर अधिकृत है: %s"
-
-#~ msgid "Cannot obtain auth: %s"
-#~ msgstr "अधिकार प्राप्त नहीं कर सकता है: %s"
-
-#~ msgid "PolicyKit responded with '%s'"
-#~ msgstr "PolicyKit ने '%s' के साथ अनुक्रिया किया"
-
-#~ msgid ""
-#~ "High-priority scheduling (negative Unix nice level) for the PulseAudio "
-#~ "daemon"
-#~ msgstr ""
-#~ "उच्च प्राथमिकता अनुसूचन (negative Unix nice level) PulseAudio डेमॉन के लिए"
-
-#~ msgid "Real-time scheduling for the PulseAudio daemon"
-#~ msgstr "पल्सऑडियो डेमॉन के लिए वास्तविक समय नियोजन"
-
-#~ msgid ""
-#~ "System policy prevents PulseAudio from acquiring high-priority scheduling."
-#~ msgstr "तंत्र नीति PulseAudio को रोकती है उच्च प्राथमिकता अनुसूचन के लिए."
-
-#~ msgid ""
-#~ "System policy prevents PulseAudio from acquiring real-time scheduling."
-#~ msgstr "तंत्र नीति PulseAudio को वास्तविक समय अनुसूचन पाने से रोकती है."
-
-#~ msgid "read() failed: %s\n"
-#~ msgstr "read() विफल: %s\n"
-
-#, fuzzy
-#~ msgid "pa_context_connect() failed: %s\n"
-#~ msgstr "pa_context_connect() विफल: %s"
-
-#~ msgid "We're in the group '%s', allowing high-priority scheduling."
-#~ msgstr "हम '%s' समूह में हैं, उच्च प्राथमिकता नियोजन की अनुमति के साथ."
-
-#~ msgid "We're in the group '%s', allowing real-time scheduling."
-#~ msgstr "हम '%s' समूह में हैं, वास्तविक समय नियोजन को अनुमति देते हुए."
-
-#~ msgid "PolicyKit grants us acquire-high-priority privilege."
-#~ msgstr "PolicyKit उच्च प्राथमिकता अधिकार अधिग्रहण हमें देती है."
-
-#~ msgid "PolicyKit refuses acquire-high-priority privilege."
-#~ msgstr "PolicyKit उच्च प्राथमिकता अधिकार अधिग्रहण अस्वीकृत करती है."
-
-#~ msgid "PolicyKit grants us acquire-real-time privilege."
-#~ msgstr "PolicyKit हमें देती है वास्तविक समय अधिकार अधिग्रहण."
-
-#~ msgid "PolicyKit refuses acquire-real-time privilege."
-#~ msgstr "PolicyKit स्वीकृत करती है वास्तविक समय अधिकार अधिग्रहण."
-
-#~ msgid ""
-#~ "Called SUID root and real-time and/or high-priority scheduling was "
-#~ "requested in the configuration. However, we lack the necessary "
-#~ "privileges:\n"
-#~ "We are not in group '%s', PolicyKit refuse to grant us the requested "
-#~ "privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
-#~ "limits.\n"
-#~ "For enabling real-time/high-priority scheduling please acquire the "
-#~ "appropriate PolicyKit privileges, or become a member of '%s', or increase "
-#~ "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
-#~ msgstr ""
-#~ "SUID रूट को आह्वान किया और वास्तविक समय/या उच्च प्राथमिकता नियोजन को इस विन्यास "
-#~ "में निवेदन किया गया था. हालांकि, हमें जरूरी अधिकार कम है:\n"
-#~ "हम '%s' समूह में नहीं है, PolicyKit निवेदित अधिकार हमें देने से मना करता है और हम "
-#~ "RLIMIT_NICE/RLIMIT_RTPRIO संसाधन सीमा को बढ़ाना नहीं है.\n"
-#~ "वास्तविक समय/या उच्च प्राथमिकता नियोजन को सक्रिय करने के लिए कृपया उचित "
-#~ "PolicyKit अधिकार अधिग्रहित करें, या '%s' का सदस्य बनें, RLIMIT_NICE/"
-#~ "RLIMIT_RTPRIO संसाधन सीमा को इस उपयोक्ता के लिए बढ़ाएँ."
-
-#~ msgid ""
-#~ "High-priority scheduling enabled in configuration but not allowed by "
-#~ "policy."
-#~ msgstr ""
-#~ "विन्यास में उच्च प्राथमिकता नियोजन सक्रिय है लेकिन नीति के द्वारा अनुमति प्राप्त नहीं है."
-
-#~ msgid "Successfully increased RLIMIT_RTPRIO"
-#~ msgstr "सफलतापूर्वक बढ़ा हुआ RLIMIT_RTPRIO"
-
-#~ msgid "RLIMIT_RTPRIO failed: %s"
-#~ msgstr "RLIMIT_RTPRIO विफल: %s"
-
-#~ msgid "Giving up CAP_NICE"
-#~ msgstr "CAP_NICE छोड़ रहा है"
-
-#~ msgid ""
-#~ "Real-time scheduling enabled in configuration but not allowed by policy."
-#~ msgstr "विन्यास में वास्तविक समय नियोजन लेकिन नीति के द्वारा अनुमति प्राप्त नहीं."
-
-#~ msgid "Limited capabilities successfully to CAP_SYS_NICE."
-#~ msgstr "CAP_SYS_NICE में सीमित क्षमता सफलतापूर्वक."
-
-#~ msgid "time_new() failed.\n"
-#~ msgstr "time_new() विफल.\n"
-
-#~ msgid "Analog Mono"
-#~ msgstr "एनालॉग मोनो"
-
-#~ msgid "Analog Stereo"
-#~ msgstr "एनालॉग स्टीरियो"
-
-#~ msgid "Digital Stereo (IEC958)"
-#~ msgstr "डिजिटल स्टीरियो (IEC958)"
-
-#~ msgid "Digital Stereo (HDMI)"
-#~ msgstr "डिजिटल स्टीरियो (HDMI)"
-
-#~ msgid "Analog Surround 4.0"
-#~ msgstr "एनालॉग सर्राउंड 4.0"
-
-#~ msgid "Digital Surround 4.0 (IEC958/AC3)"
-#~ msgstr "डिजिटल सर्राउंड 4.0 (IEC958/AC3)"
-
-#~ msgid "Analog Surround 4.1"
-#~ msgstr "एनालॉग सर्राउंड 4.1"
-
-#~ msgid "Analog Surround 5.0"
-#~ msgstr "एनालॉग सर्राउंड 5.0"
-
-#~ msgid "Analog Surround 5.1"
-#~ msgstr "एनालॉग सर्राउंड 5.1"
-
-#~ msgid "Digital Surround 5.1 (IEC958/AC3)"
-#~ msgstr "डिजिटल सर्राउंड 5.1 (IEC958/AC3)"
-
-#~ msgid "Analog Surround 7.1"
-#~ msgstr "एनालॉग सर्राउंड 7.1"
-
-#~ msgid "Stream successfully created\n"
-#~ msgstr "स्ट्रीम सफलतापूर्वक बनाया गया\n"
-
-#~ msgid "Stream errror: %s\n"
-#~ msgstr "स्ट्रीम त्रुटि: %s\n"
-
-#~ msgid "Connection established.\n"
-#~ msgstr "कनेक्शन स्थापित.\n"
-
-#~ msgid ""
-#~ "%s [options] [FILE]\n"
-#~ "\n"
-#~ "  -h, --help                            Show this help\n"
-#~ "      --version                         Show version\n"
-#~ "\n"
-#~ "  -v, --verbose                         Enable verbose operation\n"
-#~ "\n"
-#~ "  -s, --server=SERVER                   The name of the server to connect "
-#~ "to\n"
-#~ "  -d, --device=DEVICE                   The name of the sink to connect "
-#~ "to\n"
-#~ "  -n, --client-name=NAME                How to call this client on the "
-#~ "server\n"
-#~ "      --stream-name=NAME                How to call this stream on the "
-#~ "server\n"
-#~ "      --volume=VOLUME                   Specify the initial (linear) "
-#~ "volume in range 0...65536\n"
-#~ "      --channel-map=CHANNELMAP          Set the channel map to the use\n"
-#~ msgstr ""
-#~ "%s [options] [FILE]\n"
-#~ "\n"
-#~ "  -h, --help                            Show this help\n"
-#~ "      --version                         Show version\n"
-#~ "\n"
-#~ "  -v, --verbose                         Enable verbose operation\n"
-#~ "\n"
-#~ "  -s, --server=SERVER                   The name of the server to connect "
-#~ "to\n"
-#~ "  -d, --device=DEVICE                   The name of the sink to connect "
-#~ "to\n"
-#~ "  -n, --client-name=NAME                How to call this client on the "
-#~ "server\n"
-#~ "      --stream-name=NAME                How to call this stream on the "
-#~ "server\n"
-#~ "      --volume=VOLUME                   Specify the initial (linear) "
-#~ "volume in range 0...65536\n"
-#~ "      --channel-map=CHANNELMAP          Set the channel map to the use\n"
-
-#~ msgid ""
-#~ "paplay %s\n"
-#~ "Compiled with libpulse %s\n"
-#~ "Linked with libpulse %s\n"
-#~ msgstr ""
-#~ "paplay %s\n"
-#~ "लिबपल्स %s से कंपाइल\n"
-#~ "लिबपल्स %s से कड़ीबद्ध\n"
-
-#~ msgid "Invalid channel map\n"
-#~ msgstr "अवैध चैनल मानचित्र\n"
-
-#~ msgid "Failed to open file '%s'\n"
-#~ msgstr "फ़ाइल '%s' खोलने में विफल\n"
-
-#~ msgid "Channel map doesn't match file.\n"
-#~ msgstr "चैनल मानचित्र फ़ाइल से मेल नहीं खाता है.\n"
-
-#~ msgid "Using sample spec '%s'\n"
-#~ msgstr "नमूना स्पेक '%s' का प्रयोग कर रहा है\n"
-
-#~ msgid "Output %s + Input %s"
-#~ msgstr "आउटपुट %s + इनपुट %s"
-
-#~ msgid "Output %s"
-#~ msgstr "आउटपुट %s"
-
-#~ msgid "Input %s"
-#~ msgstr "इनपुट %s"
