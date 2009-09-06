@@ -319,7 +319,7 @@ typedef struct pa_stream pa_stream;
 typedef void (*pa_stream_success_cb_t) (pa_stream*s, int success, void *userdata);
 
 /** A generic request callback */
-typedef void (*pa_stream_request_cb_t)(pa_stream *p, size_t bytes, void *userdata);
+typedef void (*pa_stream_request_cb_t)(pa_stream *p, size_t nbytes, void *userdata);
 
 /** A generic notification callback */
 typedef void (*pa_stream_notify_cb_t)(pa_stream *p, void *userdata);

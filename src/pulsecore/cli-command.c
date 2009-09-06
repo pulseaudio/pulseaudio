@@ -328,7 +328,7 @@ static int pa_cli_command_source_outputs(pa_core *c, pa_tokenizer *t, pa_strbuf 
 static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
     char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
     char cm[PA_CHANNEL_MAP_SNPRINT_MAX];
-    char s[256];
+    char bytes[PA_BYTES_SNPRINT_MAX];
     const pa_mempool_stat *stat;
     unsigned k;
     pa_sink *def_sink;
@@ -352,22 +352,22 @@ static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
 
     pa_strbuf_printf(buf, "Memory blocks currently allocated: %u, size: %s.\n",
                      (unsigned) pa_atomic_load(&stat->n_allocated),
-                     pa_bytes_snprint(s, sizeof(s), (unsigned) pa_atomic_load(&stat->allocated_size)));
+                     pa_bytes_snprint(bytes, sizeof(bytes), (unsigned) pa_atomic_load(&stat->allocated_size)));
 
     pa_strbuf_printf(buf, "Memory blocks allocated during the whole lifetime: %u, size: %s.\n",
                      (unsigned) pa_atomic_load(&stat->n_accumulated),
-                     pa_bytes_snprint(s, sizeof(s), (unsigned) pa_atomic_load(&stat->accumulated_size)));
+                     pa_bytes_snprint(bytes, sizeof(bytes), (unsigned) pa_atomic_load(&stat->accumulated_size)));
 
     pa_strbuf_printf(buf, "Memory blocks imported from other processes: %u, size: %s.\n",
                      (unsigned) pa_atomic_load(&stat->n_imported),
-                     pa_bytes_snprint(s, sizeof(s), (unsigned) pa_atomic_load(&stat->imported_size)));
+                     pa_bytes_snprint(bytes, sizeof(bytes), (unsigned) pa_atomic_load(&stat->imported_size)));
 
     pa_strbuf_printf(buf, "Memory blocks exported to other processes: %u, size: %s.\n",
                      (unsigned) pa_atomic_load(&stat->n_exported),
-                     pa_bytes_snprint(s, sizeof(s), (unsigned) pa_atomic_load(&stat->exported_size)));
+                     pa_bytes_snprint(bytes, sizeof(bytes), (unsigned) pa_atomic_load(&stat->exported_size)));
 
     pa_strbuf_printf(buf, "Total sample cache size: %s.\n",
-                     pa_bytes_snprint(s, sizeof(s), (unsigned) pa_scache_total_size(c)));
+                     pa_bytes_snprint(bytes, sizeof(bytes), (unsigned) pa_scache_total_size(c)));
 
     pa_strbuf_printf(buf, "Default sample spec: %s\n",
                      pa_sample_spec_snprint(ss, sizeof(ss), &c->default_sample_spec));

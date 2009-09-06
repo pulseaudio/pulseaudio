@@ -130,7 +130,7 @@ static void complete_action(void) {
 }
 
 static void stat_callback(pa_context *c, const pa_stat_info *i, void *userdata) {
-    char s[128];
+    char s[PA_BYTES_SNPRINT_MAX];
     if (!i) {
         pa_log(_("Failed to get statistics: %s"), pa_strerror(pa_context_errno(c)));
         quit(1);
@@ -598,7 +598,7 @@ static void get_source_output_info_callback(pa_context *c, const pa_source_outpu
 }
 
 static void get_sample_info_callback(pa_context *c, const pa_sample_info *i, int is_last, void *userdata) {
-    char t[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    char t[PA_BYTES_SNPRINT_MAX], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cvdb[PA_SW_CVOLUME_SNPRINT_DB_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
     char *pl;
 
     if (is_last < 0) {

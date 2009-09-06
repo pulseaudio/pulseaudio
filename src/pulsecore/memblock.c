@@ -694,7 +694,7 @@ static void memblock_replace_import(pa_memblock *b) {
 
 pa_mempool* pa_mempool_new(pa_bool_t shared, size_t size) {
     pa_mempool *p;
-    char t1[64], t2[64];
+    char t1[PA_BYTES_SNPRINT_MAX], t2[PA_BYTES_SNPRINT_MAX];
 
     p = pa_xnew(pa_mempool, 1);
 
