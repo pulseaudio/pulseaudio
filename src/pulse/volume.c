@@ -510,8 +510,6 @@ pa_cvolume *pa_cvolume_remap(pa_cvolume *v, const pa_channel_map *from, const pa
     pa_assert(from);
     pa_assert(to);
 
-    pa_return_val_if_fail(pa_cvolume_valid(v), NULL);
-    pa_return_val_if_fail(pa_channel_map_valid(from), NULL);
     pa_return_val_if_fail(pa_channel_map_valid(to), NULL);
     pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(v, from), NULL);
 
@@ -613,8 +611,6 @@ float pa_cvolume_get_balance(const pa_cvolume *v, const pa_channel_map *map) {
     pa_assert(v);
     pa_assert(map);
 
-    pa_return_val_if_fail(pa_cvolume_valid(v), 0.0f);
-    pa_return_val_if_fail(pa_channel_map_valid(map), 0.0f);
     pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(v, map), 0.0f);
 
     if (!pa_channel_map_can_balance(map))
@@ -711,8 +707,8 @@ pa_cvolume* pa_cvolume_scale_mask(pa_cvolume *v, pa_volume_t max, pa_channel_map
 
     pa_assert(v);
 
-    pa_return_val_if_fail(pa_cvolume_valid(v), NULL);
     pa_return_val_if_fail(max != (pa_volume_t) -1, NULL);
+    pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(v, cm), NULL);
 
     t = pa_cvolume_max_mask(v, cm, mask);
 
@@ -763,8 +759,6 @@ float pa_cvolume_get_fade(const pa_cvolume *v, const pa_channel_map *map) {
     pa_assert(v);
     pa_assert(map);
 
-    pa_return_val_if_fail(pa_cvolume_valid(v), 0.0f);
-    pa_return_val_if_fail(pa_channel_map_valid(map), 0.0f);
     pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(v, map), 0.0f);
 
     if (!pa_channel_map_can_fade(map))
