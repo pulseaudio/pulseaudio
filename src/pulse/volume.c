@@ -707,7 +707,11 @@ pa_cvolume* pa_cvolume_scale_mask(pa_cvolume *v, pa_volume_t max, pa_channel_map
 
     pa_assert(v);
 
-    pa_return_val_if_fail(max != (pa_volume_t) -1, NULL);
+    pa_return_val_if_fail(max != PA_VOLUME_INVALID, NULL);
+
+    if (!cm)
+        return pa_cvolume_scale(v, max);
+
     pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(v, cm), NULL);
 
     t = pa_cvolume_max_mask(v, cm, mask);
