@@ -574,9 +574,10 @@ static void stream_update_timing_callback(pa_stream *s, int success, void *userd
         return;
     }
 
-    pa_log(_("Time: %0.3f sec; Latency: %0.0f usec.  \r"),
+    fprintf(stderr, _("Time: %0.3f sec; Latency: %0.0f usec."),
             (float) usec / 1000000,
             (float) l * (negative?-1.0f:1.0f));
+    fprintf(stderr, "        \r");
 }
 
 /* Someone requested that the latency is shown */
