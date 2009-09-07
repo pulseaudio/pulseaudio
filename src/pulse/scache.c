@@ -216,7 +216,6 @@ pa_operation *pa_context_play_sample_with_proplist(pa_context *c, const char *na
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);
     PA_CHECK_VALIDITY_RETURN_NULL(c, !dev || *dev, PA_ERR_INVALID);
-    PA_CHECK_VALIDITY_RETURN_NULL(c, p, PA_ERR_INVALID);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 13, PA_ERR_NOTSUPPORTED);
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
@@ -233,7 +232,14 @@ pa_operation *pa_context_play_sample_with_proplist(pa_context *c, const char *na
 
     pa_tagstruct_putu32(t, volume);
     pa_tagstruct_puts(t, name);
-    pa_tagstruct_put_proplist(t, p);
+
+    if (p)
+        pa_tagstruct_put_proplist(t, p);
+    else {
+        p = pa_proplist_new();
+        pa_tagstruct_put_proplist(t, p);
+        pa_proplist_free(p);
+    }
 
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, play_sample_with_proplist_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
