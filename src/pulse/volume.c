@@ -64,7 +64,7 @@ pa_cvolume* pa_cvolume_init(pa_cvolume *a) {
     a->channels = 0;
 
     for (c = 0; c < PA_CHANNELS_MAX; c++)
-        a->values[c] = (pa_volume_t) -1;
+        a->values[c] = PA_VOLUME_INVALID;
 
     return a;
 }
@@ -307,7 +307,7 @@ char *pa_volume_snprint(char *s, size_t l, pa_volume_t v) {
 
     pa_init_i18n();
 
-    if (v == (pa_volume_t) -1) {
+    if (v == PA_VOLUME_INVALID) {
         pa_snprintf(s, l, _("(invalid)"));
         return s;
     }
@@ -357,7 +357,7 @@ char *pa_sw_volume_snprint_dB(char *s, size_t l, pa_volume_t v) {
 
     pa_init_i18n();
 
-    if (v == (pa_volume_t) -1) {
+    if (v == PA_VOLUME_INVALID) {
         pa_snprintf(s, l, _("(invalid)"));
         return s;
     }
@@ -459,7 +459,7 @@ int pa_cvolume_valid(const pa_cvolume *v) {
         return 0;
 
     for (c = 0; c < v->channels; c++)
-        if (v->values[c] == (pa_volume_t) -1)
+        if (v->values[c] == PA_VOLUME_INVALID)
             return 0;
 
     return 1;
@@ -679,7 +679,7 @@ pa_cvolume* pa_cvolume_scale(pa_cvolume *v, pa_volume_t max) {
     pa_assert(v);
 
     pa_return_val_if_fail(pa_cvolume_valid(v), NULL);
-    pa_return_val_if_fail(max != (pa_volume_t) -1, NULL);
+    pa_return_val_if_fail(max != PA_VOLUME_INVALID, NULL);
 
     t = pa_cvolume_max(v);
 

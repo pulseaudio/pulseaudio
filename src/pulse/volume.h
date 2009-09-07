@@ -106,11 +106,14 @@ typedef uint32_t pa_volume_t;
 /** Normal volume (100%, 0 dB) */
 #define PA_VOLUME_NORM ((pa_volume_t) 0x10000U)
 
-/** Muted volume (0%, -inf dB) */
+/** Muted (minimal valid) volume (0%, -inf dB) */
 #define PA_VOLUME_MUTED ((pa_volume_t) 0U)
 
-/** Maximum volume we can store. \since 0.9.15 */
-#define PA_VOLUME_MAX ((pa_volume_t) UINT32_MAX)
+/** Maximum valid volume we can store. \since 0.9.15 */
+#define PA_VOLUME_MAX ((pa_volume_t) UINT32_MAX-1)
+
+/** Special 'invalid' volume. \since 0.9.16 */
+#define PA_VOLUME_INVALID ((pa_volume_t) UINT32_MAX)
 
 /** A structure encapsulating a per-channel volume */
 typedef struct pa_cvolume {
