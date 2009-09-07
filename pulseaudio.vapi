@@ -528,7 +528,7 @@ namespace Pulse {
 
 		[Compact]
 		[CCode (cname="pa_proplist", cprefix="pa_proplist_", free_function="pa_proplist_free")]
-		public class PropList {
+		public class Proplist {
 
 				[CCode (cname="PA_PROP_MEDIA_NAME")]
 				public static const string PROP_MEDIA_NAME;
@@ -648,7 +648,7 @@ namespace Pulse {
 				public static const string PROP_MODULE_VERSION;
 
 				[CCode (cname="pa_proplist_new")]
-				public PropList();
+				public Proplist();
 
 				public int sets(string key, string value);
 				public int setp(string pair);
@@ -662,7 +662,7 @@ namespace Pulse {
 
 				public int get(string key, out void* data, out size_t size);
 
-				public void update(UpdateMode mode, PropList other);
+				public void update(UpdateMode mode, Proplist other);
 
 				public void unset(string key);
 
@@ -675,13 +675,13 @@ namespace Pulse {
 
 				public string to_string_sep(string sep);
 
-				public static PropList? from_string(string s);
+				public static Proplist? from_string(string s);
 
 				public int contains(string key);
 
 				public void clear();
 
-				public PropList copy();
+				public Proplist copy();
 
 				public uint size();
 
@@ -962,7 +962,7 @@ namespace Pulse {
 
 				public delegate void NotifyCb();
 				public delegate void SuccessCb(int success);
-				public delegate void EventCb(string name, PropList? proplist);
+				public delegate void EventCb(string name, Proplist? proplist);
 				public delegate void SubscribeCb(SubscriptionEventType t, uint32 idx);
 				public delegate void SinkInfoCb(SinkInfo? i, int eol);
 				public delegate void SourceInfoCb(SourceInfo? i, int eol);
@@ -977,7 +977,7 @@ namespace Pulse {
 				public delegate void IndexCb(uint32 idx);
 
 				[CCode (cname="pa_context_new_with_proplist")]
-				public Context(MainLoopApi api, string? name, PropList? proplist = null);
+				public Context(MainLoopApi api, string? name, Proplist? proplist = null);
 
 				public void set_state_callback(NotifyCb? cb = null);
 				public void set_event_callback(EventCb? cb = null);
@@ -1004,7 +1004,7 @@ namespace Pulse {
 
 				[CCode (array_length = false)]
 				public Operation? proplist_remove(string[] keys, SuccessCb? cb = null);
-				public Operation? proplist_update(UpdateMode mode, PropList pl, SuccessCb? cb = null);
+				public Operation? proplist_update(UpdateMode mode, Proplist pl, SuccessCb? cb = null);
 
 				public Operation? subscribe(SubscriptionMask mask, SuccessCb? cb = null);
 
@@ -1175,10 +1175,10 @@ namespace Pulse {
 				public delegate void SuccessCb(int success);
 				public delegate void RequestCb(size_t nbytes);
 				public delegate void NotifyCb();
-				public delegate void EventCb(string name, PropList proplist);
+				public delegate void EventCb(string name, Proplist proplist);
 
 				[CCode (cname="pa_stream_new_with_proplist")]
-				public Stream(Context c, string name, SampleSpec ss, ChannelMap map = null, PropList proplist = null);
+				public Stream(Context c, string name, SampleSpec ss, ChannelMap map = null, Proplist proplist = null);
 
 				public State get_state();
 				public Context get_context();
@@ -1228,7 +1228,7 @@ namespace Pulse {
 
 				[CCode (array_length = false)]
 				public Operation? proplist_remove(string[] keys, SuccessCb cb = null);
-				public Operation? proplist_update(UpdateMode mode, PropList pl, SuccessCb cb = null);
+				public Operation? proplist_update(UpdateMode mode, Proplist pl, SuccessCb cb = null);
 
 				public unowned TimingInfo? get_timing_info();
 				public int get_time(out usec u);
@@ -1264,7 +1264,7 @@ namespace Pulse {
 				usec latency;
 				string driver;
 				SinkFlags flags;
-				PropList proplist;
+				Proplist proplist;
 				usec configured_latency;
 				Volume base_volume;
 				SinkState state;
@@ -1297,7 +1297,7 @@ namespace Pulse {
 				usec latency;
 				string driver;
 				SourceFlags flags;
-				PropList proplist;
+				Proplist proplist;
 				usec configured_latency;
 				Volume base_volume;
 				SourceState state;
@@ -1326,7 +1326,7 @@ namespace Pulse {
 				string name;
 				string argument;
 				uint32 n_used;
-				PropList proplist;
+				Proplist proplist;
 		}
 
 		[CCode (cname="pa_client_info")]
@@ -1335,7 +1335,7 @@ namespace Pulse {
 				string name;
 				uint32 owner_module;
 				string driver;
-				PropList proplist;
+				Proplist proplist;
 		}
 
 		[CCode (cname="pa_card_profile_info")]
@@ -1356,7 +1356,7 @@ namespace Pulse {
 				uint32 n_profiles;
 				CardProfileInfo profiles[];
 				CardProfileInfo *active_profile;
-				PropList proplist;
+				Proplist proplist;
 		}
 
 		[CCode (cname="pa_sink_input_info")]
@@ -1374,7 +1374,7 @@ namespace Pulse {
 				string resample_method;
 				string driver;
 				int mute;
-				PropList proplist;
+				Proplist proplist;
 		}
 
 		[CCode (cname="pa_source_output_info")]
@@ -1390,7 +1390,7 @@ namespace Pulse {
 				uint32 sink_usec;
 				string resample_method;
 				string driver;
-				PropList proplist;
+				Proplist proplist;
 		}
 
 		[CCode (cname="pa_stat_info")]
@@ -1413,7 +1413,7 @@ namespace Pulse {
 				uint32 bytes;
 				bool lazy;
 				string filename;
-				PropList proplist;
+				Proplist proplist;
 		}
 
 		[CCode (cname="pa_sink_flags_t", cprefix="PA_SINK_")]
