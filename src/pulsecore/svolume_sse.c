@@ -75,7 +75,7 @@
       " por %%xmm5, "#s2"            \n\t"
 
 static void
-pa_volume_s16ne_sse (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
+pa_volume_s16ne_sse2 (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
     pa_reg_x86 channel, temp;
 
@@ -155,7 +155,7 @@ pa_volume_s16ne_sse (int16_t *samples, int32_t *volumes, unsigned channels, unsi
 }
 
 static void
-pa_volume_s16re_sse (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
+pa_volume_s16re_sse2 (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
     pa_reg_x86 channel, temp;
 
@@ -308,7 +308,9 @@ void pa_volume_func_init_sse (pa_cpu_x86_flag_t flags) {
     run_test ();
 #endif
 
-    pa_set_volume_func (PA_SAMPLE_S16NE,     (pa_do_volume_func_t) pa_volume_s16ne_sse);
-    pa_set_volume_func (PA_SAMPLE_S16RE,     (pa_do_volume_func_t) pa_volume_s16re_sse);
+    if (flags & PA_CPU_X86_SSE2) {
+      pa_set_volume_func (PA_SAMPLE_S16NE,     (pa_do_volume_func_t) pa_volume_s16ne_sse2);
+      pa_set_volume_func (PA_SAMPLE_S16RE,     (pa_do_volume_func_t) pa_volume_s16re_sse2);
+    }
 #endif /* defined (__i386__) || defined (__amd64__) */
 }
