@@ -642,12 +642,10 @@ pa_cvolume* pa_cvolume_set_balance(pa_cvolume *v, const pa_channel_map *map, flo
 
     pa_assert(map);
     pa_assert(v);
-    pa_assert(new_balance >= -1.0f);
-    pa_assert(new_balance <= 1.0f);
 
-    pa_return_val_if_fail(pa_cvolume_valid(v), NULL);
-    pa_return_val_if_fail(pa_channel_map_valid(map), NULL);
     pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(v, map), NULL);
+    pa_return_val_if_fail(new_balance >= -1.0f, NULL);
+    pa_return_val_if_fail(new_balance <= 1.0f, NULL);
 
     if (!pa_channel_map_can_balance(map))
         return v;
@@ -785,12 +783,10 @@ pa_cvolume* pa_cvolume_set_fade(pa_cvolume *v, const pa_channel_map *map, float 
 
     pa_assert(map);
     pa_assert(v);
-    pa_assert(new_fade >= -1.0f);
-    pa_assert(new_fade <= 1.0f);
 
-    pa_return_val_if_fail(pa_cvolume_valid(v), NULL);
-    pa_return_val_if_fail(pa_channel_map_valid(map), NULL);
     pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(v, map), NULL);
+    pa_return_val_if_fail(new_fade >= -1.0f, NULL);
+    pa_return_val_if_fail(new_fade <= 1.0f, NULL);
 
     if (!pa_channel_map_can_fade(map))
         return v;
