@@ -2404,7 +2404,7 @@ int pa_reset_sigs(int except, ...) {
         p[i++] = except;
 
         while ((sig = va_arg(ap, int)) >= 0)
-            sig = p[i++];
+            p[i++] = sig;
     }
     p[i] = -1;
 
