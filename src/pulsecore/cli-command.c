@@ -1813,8 +1813,6 @@ int pa_cli_command_execute_file(pa_core *c, const char *fn, pa_strbuf *buf, pa_b
 
     ret = pa_cli_command_execute_file_stream(c, f, buf, fail);
 
-    ret = 0;
-
 fail:
     if (f)
         fclose(f);
