@@ -1821,7 +1821,7 @@ fail:
 
     pa_threaded_mainloop_unlock(i->mainloop);
 
-    return 0;
+    return r;
 }
 
 static int dsp_trigger(fd_info *i) {
@@ -1864,7 +1864,7 @@ fail:
 
     pa_threaded_mainloop_unlock(i->mainloop);
 
-    return 0;
+    return r;
 }
 
 static int dsp_cork(fd_info *i, pa_stream *s, int b) {
@@ -1902,7 +1902,7 @@ fail:
 
     pa_threaded_mainloop_unlock(i->mainloop);
 
-    return 0;
+    return r;
 }
 
 static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) {
