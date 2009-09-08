@@ -81,7 +81,7 @@ static pid_t read_pid(const char *fn, int fd) {
 }
 
 static int open_pid_file(const char *fn, int mode) {
-    int fd = -1;
+    int fd;
 
     pa_assert(fn);
 
@@ -123,8 +123,6 @@ static int open_pid_file(const char *fn, int mode) {
             fd = -1;
             goto fail;
         }
-
-        fd = -1;
     }
 
     return fd;

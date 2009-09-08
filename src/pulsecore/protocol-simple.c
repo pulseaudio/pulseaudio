@@ -154,7 +154,7 @@ static int do_read(connection *c) {
     ssize_t r;
     size_t l;
     void *p;
-    size_t space;
+    size_t space = 0;
 
     connection_assert_ref(c);
 

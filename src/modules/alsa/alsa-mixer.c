@@ -2889,7 +2889,7 @@ static void profile_set_add_auto_pair(
     else
         name = pa_sprintf_malloc("input:%s", n->name);
 
-    if ((p = pa_hashmap_get(ps->profiles, name))) {
+    if (pa_hashmap_get(ps->profiles, name)) {
         pa_xfree(name);
         return;
     }

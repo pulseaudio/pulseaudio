@@ -900,7 +900,7 @@ void pa_alsa_init_proplist_ctl(pa_proplist *p, const char *name) {
     snd_ctl_card_info_alloca(&info);
 
     if ((err = snd_ctl_open(&ctl, name, 0)) < 0) {
-        pa_log_warn("Error opening low-level control device '%s'", name);
+        pa_log_warn("Error opening low-level control device '%s': %s", name, snd_strerror(err));
         return;
     }
 

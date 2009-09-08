@@ -406,7 +406,6 @@ static void context_state_callback(pa_context *c, void *userdata) {
             break;
 
         case PA_CONTEXT_READY: {
-            int r;
             pa_buffer_attr buffer_attr;
 
             pa_assert(c);
@@ -443,13 +442,13 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
             if (mode == PLAYBACK) {
                 pa_cvolume cv;
-                if ((r = pa_stream_connect_playback(stream, device, latency > 0 ? &buffer_attr : NULL, flags, volume_is_set ? pa_cvolume_set(&cv, sample_spec.channels, volume) : NULL, NULL)) < 0) {
+                if (pa_stream_connect_playback(stream, device, latency > 0 ? &buffer_attr : NULL, flags, volume_is_set ? pa_cvolume_set(&cv, sample_spec.channels, volume) : NULL, NULL) < 0) {
                     pa_log(_("pa_stream_connect_playback() failed: %s"), pa_strerror(pa_context_errno(c)));
                     goto fail;
                 }
 
             } else {
-                if ((r = pa_stream_connect_record(stream, device, latency > 0 ? &buffer_attr : NULL, flags)) < 0) {
+                if (pa_stream_connect_record(stream, device, latency > 0 ? &buffer_attr : NULL, flags) < 0) {
                     pa_log(_("pa_stream_connect_record() failed: %s"), pa_strerror(pa_context_errno(c)));
                     goto fail;
                 }

@@ -1152,7 +1152,6 @@ pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
 /* Called from main context */
 int pa_sink_input_start_move(pa_sink_input *i) {
     pa_source_output *o, *p = NULL;
-    pa_sink *origin;
     int r;
 
     pa_sink_input_assert_ref(i);
@@ -1165,8 +1164,6 @@ int pa_sink_input_start_move(pa_sink_input *i) {
 
     if ((r = pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_START], i)) < 0)
         return r;
-
-    origin = i->sink;
 
     /* Kill directly connected outputs */
     while ((o = pa_idxset_first(i->direct_outputs, NULL))) {

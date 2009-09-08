@@ -628,7 +628,6 @@ static record_stream* record_stream_new(
 
     record_stream *s;
     pa_source_output *source_output = NULL;
-    size_t base;
     pa_source_output_new_data data;
 
     pa_assert(c);
@@ -682,7 +681,7 @@ static record_stream* record_stream_new(
             0,
             s->buffer_attr.maxlength,
             0,
-            base = pa_frame_size(&source_output->sample_spec),
+            pa_frame_size(&source_output->sample_spec),
             1,
             0,
             0,

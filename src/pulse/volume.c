@@ -155,7 +155,7 @@ pa_volume_t pa_cvolume_min(const pa_cvolume *a) {
 
 pa_volume_t pa_cvolume_max_mask(const pa_cvolume *a, const pa_channel_map *cm, pa_channel_position_mask_t mask) {
     pa_volume_t m = PA_VOLUME_MUTED;
-    unsigned c, n;
+    unsigned c;
 
     pa_assert(a);
 
@@ -164,7 +164,7 @@ pa_volume_t pa_cvolume_max_mask(const pa_cvolume *a, const pa_channel_map *cm, p
 
     pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(a, cm), PA_VOLUME_MUTED);
 
-    for (c = n = 0; c < a->channels; c++) {
+    for (c = 0; c < a->channels; c++) {
 
         if (!(PA_CHANNEL_POSITION_MASK(cm->map[c]) & mask))
             continue;
@@ -178,7 +178,7 @@ pa_volume_t pa_cvolume_max_mask(const pa_cvolume *a, const pa_channel_map *cm, p
 
 pa_volume_t pa_cvolume_min_mask(const pa_cvolume *a, const pa_channel_map *cm, pa_channel_position_mask_t mask) {
     pa_volume_t m = PA_VOLUME_MAX;
-    unsigned c, n;
+    unsigned c;
 
     pa_assert(a);
 
@@ -187,7 +187,7 @@ pa_volume_t pa_cvolume_min_mask(const pa_cvolume *a, const pa_channel_map *cm, p
 
     pa_return_val_if_fail(pa_cvolume_compatible_with_channel_map(a, cm), PA_VOLUME_MUTED);
 
-    for (c = n = 0; c < a->channels; c++) {
+    for (c = 0; c < a->channels; c++) {
 
         if (!(PA_CHANNEL_POSITION_MASK(cm->map[c]) & mask))
             continue;

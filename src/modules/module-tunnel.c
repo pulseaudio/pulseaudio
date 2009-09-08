@@ -332,7 +332,7 @@ static void command_moved(pa_pdispatch *pd,  uint32_t command,  uint32_t tag, pa
 
 static void command_stream_buffer_attr_changed(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
-    uint32_t channel, maxlength, tlength, fragsize, prebuf, minreq;
+    uint32_t channel, maxlength, tlength = 0, fragsize, prebuf, minreq;
     pa_usec_t usec;
 
     pa_assert(pd);
@@ -1097,7 +1097,7 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag
     uint32_t idx, owner_module, client, sink;
     pa_usec_t buffer_usec, sink_usec;
     const char *name, *driver, *resample_method;
-    pa_bool_t mute;
+    pa_bool_t mute = FALSE;
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
     pa_cvolume volume;
@@ -1345,12 +1345,11 @@ static void command_subscribe_event(pa_pdispatch *pd,  uint32_t command,  uint32
 /* Called from main context */
 static void start_subscribe(struct userdata *u) {
     pa_tagstruct *t;
-    uint32_t tag;
     pa_assert(u);
 
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_SUBSCRIBE);
-    pa_tagstruct_putu32(t, tag = u->ctag++);
+    pa_tagstruct_putu32(t, u->ctag++);
     pa_tagstruct_putu32(t, PA_SUBSCRIPTION_MASK_SERVER|
 #ifdef TUNNEL_SINK
                         PA_SUBSCRIPTION_MASK_SINK_INPUT|PA_SUBSCRIPTION_MASK_SINK
@@ -1526,7 +1525,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
 
     reply = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(reply, PA_COMMAND_SET_CLIENT_NAME);
-    pa_tagstruct_putu32(reply, tag = u->ctag++);
+    pa_tagstruct_putu32(reply, u->ctag++);
 
     if (u->version >= 13) {
         pa_proplist *pl;
@@ -1753,7 +1752,6 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
 static void sink_set_volume(pa_sink *sink) {
     struct userdata *u;
     pa_tagstruct *t;
-    uint32_t tag;
 
     pa_assert(sink);
     u = sink->userdata;
@@ -1761,7 +1759,7 @@ static void sink_set_volume(pa_sink *sink) {
 
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_SET_SINK_INPUT_VOLUME);
-    pa_tagstruct_putu32(t, tag = u->ctag++);
+    pa_tagstruct_putu32(t, u->ctag++);
     pa_tagstruct_putu32(t, u->device_index);
     pa_tagstruct_put_cvolume(t, &sink->real_volume);
     pa_pstream_send_tagstruct(u->pstream, t);
@@ -1771,7 +1769,6 @@ static void sink_set_volume(pa_sink *sink) {
 static void sink_set_mute(pa_sink *sink) {
     struct userdata *u;
     pa_tagstruct *t;
-    uint32_t tag;
 
     pa_assert(sink);
     u = sink->userdata;
@@ -1782,7 +1779,7 @@ static void sink_set_mute(pa_sink *sink) {
 
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_SET_SINK_INPUT_MUTE);
-    pa_tagstruct_putu32(t, tag = u->ctag++);
+    pa_tagstruct_putu32(t, u->ctag++);
     pa_tagstruct_putu32(t, u->device_index);
     pa_tagstruct_put_boolean(t, !!sink->muted);
     pa_pstream_send_tagstruct(u->pstream, t);

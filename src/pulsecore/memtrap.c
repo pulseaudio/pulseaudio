@@ -200,13 +200,13 @@ pa_memtrap *pa_memtrap_update(pa_memtrap *m, const void *start, size_t size) {
         goto unlock;
 
     memtrap_unlink(m, j);
-    j = pa_aupdate_write_swap(aupdate);
+    pa_aupdate_write_swap(aupdate);
 
     m->start = (void*) start;
     m->size = size;
     pa_atomic_store(&m->bad, 0);
 
-    j = pa_aupdate_write_swap(aupdate);
+    pa_assert_se(pa_aupdate_write_swap(aupdate) == j);
     memtrap_link(m, j);
 
 unlock:

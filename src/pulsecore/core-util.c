@@ -591,13 +591,13 @@ static int set_scheduler(int rtprio) {
     sp.sched_priority = rtprio;
 
 #ifdef SCHED_RESET_ON_FORK
-    if ((r = pthread_setschedparam(pthread_self(), SCHED_RR|SCHED_RESET_ON_FORK, &sp)) == 0) {
+    if (pthread_setschedparam(pthread_self(), SCHED_RR|SCHED_RESET_ON_FORK, &sp) == 0) {
         pa_log_debug("SCHED_RR|SCHED_RESET_ON_FORK worked.");
         return 0;
     }
 #endif
 
-    if ((r = pthread_setschedparam(pthread_self(), SCHED_RR, &sp)) == 0) {
+    if (pthread_setschedparam(pthread_self(), SCHED_RR, &sp) == 0) {
         pa_log_debug("SCHED_RR worked.");
         return 0;
     }
@@ -786,7 +786,6 @@ int pa_match(const char *expr, const char *v) {
 /* Try to parse a boolean string value.*/
 int pa_parse_boolean(const char *v) {
     const char *expr;
-    int r;
     pa_assert(v);
 
     /* First we check language independant */
@@ -798,12 +797,12 @@ int pa_parse_boolean(const char *v) {
     /* And then we check language dependant */
     if ((expr = nl_langinfo(YESEXPR)))
         if (expr[0])
-            if ((r = pa_match(expr, v)) > 0)
+            if (pa_match(expr, v) > 0)
                 return 1;
 
     if ((expr = nl_langinfo(NOEXPR)))
         if (expr[0])
-            if ((r = pa_match(expr, v)) > 0)
+            if (pa_match(expr, v) > 0)
                 return 0;
 
     errno = EINVAL;
@@ -1195,7 +1194,7 @@ char* pa_strip_nl(char *s) {
 
 /* Create a temporary lock file and lock it. */
 int pa_lock_lockfile(const char *fn) {
-    int fd = -1;
+    int fd;
     pa_assert(fn);
 
     for (;;) {
@@ -1238,8 +1237,6 @@ int pa_lock_lockfile(const char *fn) {
             fd = -1;
             goto fail;
         }
-
-        fd = -1;
     }
 
     return fd;

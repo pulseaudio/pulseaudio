@@ -1483,7 +1483,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     const char *dev_id = NULL;
     pa_sample_spec ss, requested_ss;
     pa_channel_map map;
-    uint32_t nfrags, hwbuf_size, frag_size, tsched_size, tsched_watermark;
+    uint32_t nfrags, frag_size, tsched_size, tsched_watermark;
     snd_pcm_uframes_t period_frames, tsched_frames;
     size_t frame_size;
     pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE;
@@ -1518,7 +1518,6 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         goto fail;
     }
 
-    hwbuf_size = frag_size * nfrags;
     period_frames = frag_size/frame_size;
     tsched_frames = tsched_size/frame_size;
 

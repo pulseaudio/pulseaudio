@@ -771,7 +771,6 @@ static int esd_proto_stream_pan(connection *c, esd_proto_t request, const void *
 
     memcpy(&rvolume, data, sizeof(uint32_t));
     rvolume = PA_MAYBE_UINT32_SWAP(c->swap_byte_order, rvolume);
-    data = (const char*)data + sizeof(uint32_t);
 
     if ((conn = pa_idxset_get_by_index(c->protocol->connections, idx)) && conn->sink_input) {
         pa_cvolume volume;
@@ -809,7 +808,6 @@ static int esd_proto_sample_pan(connection *c, esd_proto_t request, const void *
 
     memcpy(&rvolume, data, sizeof(uint32_t));
     rvolume = PA_MAYBE_UINT32_SWAP(c->swap_byte_order, rvolume);
-    data = (const char*)data + sizeof(uint32_t);
 
     volume.values[0] = (lvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
     volume.values[1] = (rvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
@@ -1123,7 +1121,7 @@ static int do_read(connection *c) {
         ssize_t r;
         size_t l;
         void *p;
-        size_t space;
+        size_t space = 0;
 
         pa_assert(c->input_memblockq);
 
