@@ -656,6 +656,7 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
         snd_pcm_sframes_t n;
         size_t n_bytes;
         int r;
+        pa_bool_t after_avail = TRUE;
 
         if (PA_UNLIKELY((n = pa_alsa_safe_avail(u->pcm_handle, u->hwbuf_size, &u->sink->sample_spec)) < 0)) {
 
@@ -710,7 +711,6 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, pa_bool_t polle
         for (;;) {
             snd_pcm_sframes_t frames;
             void *p;
-            pa_bool_t after_avail = TRUE;
 
 /*         pa_log_debug("%lu frames to write", (unsigned long) frames); */
 
