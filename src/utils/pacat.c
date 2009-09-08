@@ -768,7 +768,6 @@ int main(int argc, char *argv[]) {
 
             case ARG_STREAM_NAME: {
                 char *t;
-                t = pa_locale_to_utf8(optarg);
 
                 if (!(t = pa_locale_to_utf8(optarg)) ||
                     pa_proplist_sets(proplist, PA_PROP_MEDIA_NAME, t) < 0) {
