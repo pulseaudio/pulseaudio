@@ -113,7 +113,7 @@ static int parse_line(const char *filename, unsigned line, char **section, const
         return 0;
 
     if (pa_startswith(b, ".include ")) {
-        char *path, *fn;
+        char *path = NULL, *fn;
         int r;
 
         fn = strip(b+9);
