@@ -1549,7 +1549,7 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     pa_sink *sink;
     pa_source *source;
     pa_card *card;
-    int nl;
+    pa_bool_t nl;
     uint32_t idx;
     char txt[256];
     time_t now;
@@ -1567,7 +1567,7 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     pa_strbuf_printf(buf, "### Configuration dump generated at %s\n", ctime(&now));
 #endif
 
-    for (m = pa_idxset_first(c->modules, &idx); m; m = pa_idxset_next(c->modules, &idx)) {
+    PA_IDXSET_FOREACH(m, c->modules, idx) {
 
         pa_strbuf_printf(buf, "load-module %s", m->name);
 
@@ -1577,13 +1577,12 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
         pa_strbuf_puts(buf, "\n");
     }
 
-    nl = 0;
-
-    for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx)) {
+    nl = FALSE;
+    PA_IDXSET_FOREACH(sink, c->sinks, idx) {
 
         if (!nl) {
             pa_strbuf_puts(buf, "\n");
-            nl = 1;
+            nl = TRUE;
         }
 
         pa_strbuf_printf(buf, "set-sink-volume %s 0x%03x\n", sink->name, pa_cvolume_max(pa_sink_get_volume(sink, FALSE)));
@@ -1591,11 +1590,12 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
         pa_strbuf_printf(buf, "suspend-sink %s %s\n", sink->name, pa_yes_no(pa_sink_get_state(sink) == PA_SINK_SUSPENDED));
     }
 
-    for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx)) {
+    nl = FALSE;
+    PA_IDXSET_FOREACH(source, c->sources, idx) {
 
         if (!nl) {
             pa_strbuf_puts(buf, "\n");
-            nl = 1;
+            nl = TRUE;
         }
 
         pa_strbuf_printf(buf, "set-source-volume %s 0x%03x\n", source->name, pa_cvolume_max(pa_source_get_volume(source, FALSE)));
@@ -1603,32 +1603,32 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
         pa_strbuf_printf(buf, "suspend-source %s %s\n", source->name, pa_yes_no(pa_source_get_state(source) == PA_SOURCE_SUSPENDED));
     }
 
-    for (card = pa_idxset_first(c->cards, &idx); card; card = pa_idxset_next(c->cards, &idx)) {
+    nl = FALSE;
+    PA_IDXSET_FOREACH(card, c->cards, idx) {
 
         if (!nl) {
             pa_strbuf_puts(buf, "\n");
-            nl = 1;
+            nl = TRUE;
         }
 
         if (card->active_profile)
             pa_strbuf_printf(buf, "set-card-profile %s %s\n", card->name, card->active_profile->name);
     }
 
-    nl = 0;
-
+    nl = FALSE;
     if ((sink = pa_namereg_get_default_sink(c))) {
         if (!nl) {
             pa_strbuf_puts(buf, "\n");
-            nl = 1;
+            nl = TRUE;
         }
+
         pa_strbuf_printf(buf, "set-default-sink %s\n", sink->name);
     }
 
     if ((source = pa_namereg_get_default_source(c))) {
-        if (!nl) {
+        if (!nl)
             pa_strbuf_puts(buf, "\n");
-            nl = 1;
-        }
+
         pa_strbuf_printf(buf, "set-default-source %s\n", source->name);
     }
 
