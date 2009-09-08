@@ -221,9 +221,7 @@ static int service_recv(struct userdata *u, bt_audio_msg_header_t *msg, size_t r
     pa_assert(u);
     pa_assert(u->service_fd >= 0);
     pa_assert(msg);
-
-    if (room <= 0)
-        room = BT_SUGGESTED_BUFFER_SIZE;
+    pa_assert(room >= sizeof(*msg));
 
     pa_log_debug("Trying to receive message from audio service...");
 
@@ -233,6 +231,11 @@ static int service_recv(struct userdata *u, bt_audio_msg_header_t *msg, size_t r
 
     if (msg->length < sizeof(*msg)) {
         pa_log_error("Invalid message size.");
+        return -1;
+    }
+
+    if (msg->length > room) {
+        pa_log_error("Not enough room.");
         return -1;
     }
 
