@@ -148,11 +148,8 @@ ONE_REMAINING:
 
             if (o) {
                 memcpy(o, last, (size_t) size);
-                o += size - 1;
+                o += size;
             }
-
-            if (o)
-                o++;
 
             continue;
 
