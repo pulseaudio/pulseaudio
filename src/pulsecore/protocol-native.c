@@ -2273,6 +2273,8 @@ static void command_exit(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
     ret = pa_core_exit(c->protocol->core, FALSE, 0);
     CHECK_VALIDITY(c->pstream, ret >= 0, tag, PA_ERR_ACCESS);
 
+    pa_log_debug("Client %s asks us to terminate.", pa_strnull(pa_proplist_gets(c->client->proplist, PA_PROP_APPLICATION_PROCESS_BINARY)));
+
     pa_pstream_send_simple_ack(c->pstream, tag); /* nonsense */
 }
 
