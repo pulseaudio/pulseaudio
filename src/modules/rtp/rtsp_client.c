@@ -456,6 +456,8 @@ static int rtsp_exec(pa_rtsp_client* c, const char* cmd,
     l = pa_iochannel_write(c->io, hdrs, strlen(hdrs));
     pa_xfree(hdrs);
 
+    /* FIXME: this is broken, not necessarily all bytes are written */
+
     return 0;
 }
 
