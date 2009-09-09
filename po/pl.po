@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-09-03 03:04+0200\n"
-"PO-Revision-Date: 2009-08-22 12:12+0200\n"
+"PO-Revision-Date: 2009-09-03 12:25+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -1635,9 +1635,9 @@ msgid "pa_mainloop_run() failed.\n"
 msgstr "pa_mainloop_run() nie powiodło się.\n"
 
 #: ../src/utils/pactl.c:135
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get statistics: %s"
-msgstr "Uzyskanie statystyk nie powiodło się: %s\n"
+msgstr "Uzyskanie statystyk nie powiodło się: %s"
 
 #: ../src/utils/pactl.c:141
 #, c-format
@@ -1657,9 +1657,9 @@ msgid "Sample cache size: %s\n"
 msgstr "Rozmiar pamięci podręcznej próbek: %s\n"
 
 #: ../src/utils/pactl.c:156
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get server information: %s"
-msgstr "Uzyskanie informacji o serwerze nie powiodło się: %s\n"
+msgstr "Uzyskanie informacji o serwerze nie powiodło się: %s"
 
 #: ../src/utils/pactl.c:164
 #, c-format
@@ -1685,9 +1685,9 @@ msgstr ""
 "Ciasteczko: %08x\n"
 
 #: ../src/utils/pactl.c:205
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get sink information: %s"
-msgstr "Uzyskanie informacji o odpływie nie powiodło się: %s\n"
+msgstr "Uzyskanie informacji o odpływie nie powiodło się: %s"
 
 #: ../src/utils/pactl.c:221
 #, c-format
@@ -1739,9 +1739,9 @@ msgid "\tActive Port: %s\n"
 msgstr "\tAktywny port: %s\n"
 
 #: ../src/utils/pactl.c:297
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get source information: %s"
-msgstr "Uzyskanie informacji o źródle nie powiodło się: %s\n"
+msgstr "Uzyskanie informacji o źródle nie powiodło się: %s"
 
 #: ../src/utils/pactl.c:313
 #, c-format
@@ -1791,9 +1791,9 @@ msgid "n/a"
 msgstr "nie dotyczy"
 
 #: ../src/utils/pactl.c:375
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get module information: %s"
-msgstr "Uzyskanie informacji o module nie powiodło się: %s\n"
+msgstr "Uzyskanie informacji o module nie powiodło się: %s"
 
 #: ../src/utils/pactl.c:393
 #, c-format
@@ -1813,9 +1813,9 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:412
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get client information: %s"
-msgstr "Uzyskanie informacji o kliencie nie powiodło się: %s\n"
+msgstr "Uzyskanie informacji o kliencie nie powiodło się: %s"
 
 #: ../src/utils/pactl.c:430
 #, c-format
@@ -1833,9 +1833,9 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:447
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get card information: %s"
-msgstr "Uzyskanie informacji o karcie nie powiodło się: %s\n"
+msgstr "Uzyskanie informacji o karcie nie powiodło się: %s"
 
 #: ../src/utils/pactl.c:465
 #, c-format
@@ -1865,9 +1865,9 @@ msgid "\tActive Profile: %s\n"
 msgstr "\tAktywny profil: %s\n"
 
 #: ../src/utils/pactl.c:496
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get sink input information: %s"
-msgstr "Uzyskanie informacji o wejściu odpływu nie powiodło się: %s\n"
+msgstr "Uzyskanie informacji o wejściu odpływu nie powiodło się: %s"
 
 #: ../src/utils/pactl.c:515
 #, c-format
@@ -1907,9 +1907,9 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:554
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get source output information: %s"
-msgstr "Uzyskanie informacji o wyjściu źródła nie powiodło się: %s\n"
+msgstr "Uzyskanie informacji o wyjściu źródła nie powiodło się: %s"
 
 #: ../src/utils/pactl.c:574
 #, c-format
@@ -1941,9 +1941,9 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:605
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get sample information: %s"
-msgstr "Uzyskanie informacji o próbce nie powiodło się: %s\n"
+msgstr "Uzyskanie informacji o próbce nie powiodło się: %s"
 
 #: ../src/utils/pactl.c:623
 #, c-format
@@ -1977,27 +1977,25 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:653 ../src/utils/pactl.c:663
-#, fuzzy, c-format
+#, c-format
 msgid "Failure: %s"
-msgstr "Niepowodzenie: %s\n"
+msgstr "Niepowodzenie: %s"
 
 #: ../src/utils/pactl.c:687
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to upload sample: %s"
-msgstr "Usunięcie próbki nie powiodło się: %s\n"
+msgstr "Wysłanie próbki nie powiodło się: %s"
 
 #: ../src/utils/pactl.c:704
-#, fuzzy
 msgid "Premature end of file"
-msgstr "Przedwczesny koniec pliku\n"
+msgstr "Przedwczesny koniec pliku"
 
 #: ../src/utils/pactl.c:863
-#, fuzzy
 msgid "Got SIGINT, exiting."
-msgstr "Otrzymano SIGINT, wyłączanie.\n"
+msgstr "Otrzymano SIGINT, wyłączanie."
 
 #: ../src/utils/pactl.c:869
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -2035,15 +2033,22 @@ msgstr ""
 "%s [opcje] upload-sample NAZWAPLIKU [NAZWA]\n"
 "%s [opcje] play-sample NAZWA [ODPŁYW]\n"
 "%s [opcje] remove-sample NAZWA\n"
-"%s [opcje] move-sink-input IDENTYFIKATOR ODPŁYW\n"
-"%s [opcje] move-source-output IDENTYFIKATOR ŹRÓDŁO\n"
+"%s [opcje] move-sink-input WEJŚCIE_ODPŁYWU ODPŁYW\n"
+"%s [opcje] move-source-output WYJŚCIE_ODPŁYWU ŹRÓDŁO\n"
 "%s [opcje] load-module NAZWA [PARAMETRY...]\n"
-"%s [opcje] unload-module IDENTYFIKATOR\n"
-"%s [opcje] suspend-sink [ODPŁYW] 1|0\n"
-"%s [opcje] suspend-source [ŹRÓDŁO] 1|0\n"
-"%s [opcje] set-card-profile [KARTA] [PROFIL] \n"
-"%s [opcje] set-sink-port [ODPŁYW] [PORT] \n"
-"%s [opcje] set-source-port [ŹRÓDŁO] [PORT] \n"
+"%s [opcje] unload-module MODUŁ\n"
+"%s [opcje] suspend-sink SINK 1|0\n"
+"%s [opcje] suspend-source SOURCE 1|0\n"
+"%s [opcje] set-card-profile KARTA PROFIL\n"
+"%s [opcje] set-sink-port ODPŁYW PORT\n"
+"%s [opcje] set-source-port ŹRÓDŁO PORT\n"
+"%s [opcje] set-sink-volume ODPŁYW GŁOŚNOŚĆ\n"
+"%s [opcje] set-source-volume ŹRÓDŁO GŁOŚNOŚĆ\n"
+"%s [opcje] set-sink-input-volume WYJŚCIE_ODPŁYWU GŁOŚNOŚĆ\n"
+"%s [opcje] set-sink-mute ODPŁYW 1|0\n"
+"%s [opcje] set-source-mute ŹRÓDŁO 1|0\n"
+"%s [opcje] set-sink-input-mute WEJŚCIE_ODPŁYWU 1|0\n"
+"\n"
 "\n"
 "  -h, --help                            Wyświetla tę pomoc\n"
 "      --version                         Wyświetla wersję\n"
@@ -2063,130 +2068,107 @@ msgstr ""
 "Skonsolidowane za pomocą libpulse %s\n"
 
 #: ../src/utils/pactl.c:979
-#, fuzzy
 msgid "Please specify a sample file to load"
-msgstr "Proszę podać plik próbki do wczytania\n"
+msgstr "Proszę podać plik próbki do wczytania"
 
 #: ../src/utils/pactl.c:992
-#, fuzzy
 msgid "Failed to open sound file."
-msgstr "Otwarcie pliku dźwiękowego nie powiodło się.\n"
+msgstr "Otwarcie pliku dźwiękowego nie powiodło się."
 
 #: ../src/utils/pactl.c:1004
-#, fuzzy
 msgid "Warning: Failed to determine sample specification from file."
-msgstr "Ostrzeżenie: ustalenie określenia próbki z pliku nie powiodło się.\n"
+msgstr "Ostrzeżenie: ustalenie określenia próbki z pliku nie powiodło się."
 
 #: ../src/utils/pactl.c:1014
-#, fuzzy
 msgid "You have to specify a sample name to play"
-msgstr "Należy podać nazwę próbki do odtworzenia\n"
+msgstr "Należy podać nazwę próbki do odtworzenia"
 
 #: ../src/utils/pactl.c:1026
-#, fuzzy
 msgid "You have to specify a sample name to remove"
-msgstr "Należy podać nazwę próbki do usunięcia\n"
+msgstr "Należy podać nazwę próbki do usunięcia"
 
 #: ../src/utils/pactl.c:1035
-#, fuzzy
 msgid "You have to specify a sink input index and a sink"
-msgstr "Należy podać indeks odpływu wejścia i odpływ\n"
+msgstr "Należy podać indeks odpływu wejścia i odpływ"
 
 #: ../src/utils/pactl.c:1045
-#, fuzzy
 msgid "You have to specify a source output index and a source"
-msgstr "Należy podać indeks źródła wyjścia i źródło\n"
+msgstr "Należy podać indeks źródła wyjścia i źródło"
 
 #: ../src/utils/pactl.c:1060
-#, fuzzy
 msgid "You have to specify a module name and arguments."
-msgstr "Należy podać nazwę modułu i parametry.\n"
+msgstr "Należy podać nazwę modułu i parametry."
 
 #: ../src/utils/pactl.c:1080
-#, fuzzy
 msgid "You have to specify a module index"
-msgstr "Należy podać indeks modułu\n"
+msgstr "Należy podać indeks modułu"
 
 #: ../src/utils/pactl.c:1090
-#, fuzzy
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
-"Nie można podać więcej niż jednego odpływu. Należy podać wartość logiczną.\n"
+"Nie można podać więcej niż jednego odpływu. Należy podać wartość logiczną."
 
 #: ../src/utils/pactl.c:1103
-#, fuzzy
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
 msgstr ""
-"Nie można podać więcej niż jednego źródła. Należy podać wartość logiczną.\n"
+"Nie można podać więcej niż jednego źródła. Należy podać wartość logiczną."
 
 #: ../src/utils/pactl.c:1115
-#, fuzzy
 msgid "You have to specify a card name/index and a profile name"
-msgstr "Należy podać nazwę karty/indeks i nazwę profilu\n"
+msgstr "Należy podać nazwę karty/indeks i nazwę profilu"
 
 #: ../src/utils/pactl.c:1126
-#, fuzzy
 msgid "You have to specify a sink name/index and a port name"
-msgstr "Należy podać nazwę odpływu/indeks i nazwę portu\n"
+msgstr "Należy podać nazwę odpływu/indeks i nazwę portu"
 
 #: ../src/utils/pactl.c:1137
-#, fuzzy
 msgid "You have to specify a source name/index and a port name"
-msgstr "Należy podać nazwę źródła/indeks i nazwę portu\n"
+msgstr "Należy podać nazwę źródła/indeks i nazwę portu"
 
 #: ../src/utils/pactl.c:1149
-#, fuzzy
 msgid "You have to specify a sink name/index and a volume"
-msgstr "Należy podać nazwę odpływu/indeks i nazwę portu\n"
+msgstr "Należy podać nazwę odpływu/indeks i głośność"
 
 #: ../src/utils/pactl.c:1154 ../src/utils/pactl.c:1171
 #: ../src/utils/pactl.c:1193 ../src/utils/pactl.c:1209
 #: ../src/utils/pactl.c:1226 ../src/utils/pactl.c:1248
-#, fuzzy
 msgid "Invalid volume specification"
-msgstr "Nieprawidłowe określenie próbki"
+msgstr "Nieprawidłowe określenie głośności"
 
 #: ../src/utils/pactl.c:1166
-#, fuzzy
 msgid "You have to specify a source name/index and a volume"
-msgstr "Należy podać nazwę źródła/indeks i nazwę portu\n"
+msgstr "Należy podać nazwę źródła/indeks i głośność"
 
 #: ../src/utils/pactl.c:1183
-#, fuzzy
 msgid "You have to specify a sink input index and a volume"
-msgstr "Należy podać indeks odpływu wejścia i odpływ\n"
+msgstr "Należy podać indeks odpływu wejścia i głośność"
 
 #: ../src/utils/pactl.c:1188
 msgid "Invalid sink input index"
-msgstr ""
+msgstr "Nieprawidłowy indeks wejścia odpływu"
 
 #: ../src/utils/pactl.c:1204
-#, fuzzy
 msgid "You have to specify a sink name/index and a mute boolean"
-msgstr "Należy podać nazwę odpływu/indeks i nazwę portu\n"
+msgstr "Należy podać nazwę odpływu/indeks i zmienną logiczną wyciszenia"
 
 #: ../src/utils/pactl.c:1221
-#, fuzzy
 msgid "You have to specify a source name/index and a mute boolean"
-msgstr "Należy podać nazwę źródła/indeks i nazwę portu\n"
+msgstr "Należy podać nazwę źródła/indeks i zmienną logiczną wyciszenia"
 
 #: ../src/utils/pactl.c:1238
-#, fuzzy
 msgid "You have to specify a sink input index and a mute boolean"
-msgstr "Należy podać indeks odpływu wejścia i odpływ\n"
+msgstr "Należy podać indeks odpływu wejścia i zmienną logiczną wyciszenia"
 
 #: ../src/utils/pactl.c:1243
-#, fuzzy
 msgid "Invalid sink input index specification"
-msgstr "Nieprawidłowe określenie próbki"
+msgstr "Nieprawidłowe określenie indeksu wejścia odpływu"
 
 #: ../src/utils/pactl.c:1262
-#, fuzzy
 msgid "No valid command specified."
-msgstr "Nie podano prawidłowego polecenia.\n"
+msgstr "Nie podano prawidłowego polecenia."
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2354,9 +2336,8 @@ msgid "High Fidelity Playback (A2DP)"
 msgstr "Odtwarzanie o wysokiej dokładności (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2195
-#, fuzzy
 msgid "High Fidelity Capture (A2DP)"
-msgstr "Odtwarzanie o wysokiej dokładności (A2DP)"
+msgstr "Przechwytywanie o wysokiej dokładności (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2210
 msgid "Telephony Duplex (HSP/HFP)"
@@ -2365,9 +2346,3 @@ msgstr "Duplex telefoniczny (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "Serwer dźwięku PulseAudio"
-
-#~ msgid "Invalid client name '%s'\n"
-#~ msgstr "Nieprawidłowa nazwa klienta \"%s\"\n"
-
-#~ msgid "Failed to determine sample specification from file.\n"
-#~ msgstr "Ustalenie określenia próbki z pliku nie powiodło się.\n"

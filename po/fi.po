@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-03 03:04+0200\n"
-"PO-Revision-Date: 2009-08-30 22:36+0300\n"
+"POT-Creation-Date: 2009-09-04 14:48+0000\n"
+"PO-Revision-Date: 2009-09-04 23:29+0300\n"
 "Last-Translator: Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>\n"
 "Language-Team: Finnish <laatu@lokalisointi.org>\n"
 "MIME-Version: 1.0\n"
@@ -1640,9 +1640,9 @@ msgid "pa_mainloop_run() failed.\n"
 msgstr "pa_mainloop_run() epäonnistui.\n"
 
 #: ../src/utils/pactl.c:135
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get statistics: %s"
-msgstr "Tilastojen selvittäminen epäonnistui: %s\n"
+msgstr "Tilastojen selvittäminen epäonnistui: %s"
 
 #: ../src/utils/pactl.c:141
 #, c-format
@@ -1660,9 +1660,9 @@ msgid "Sample cache size: %s\n"
 msgstr "Näytevälimuistin koko: %s\n"
 
 #: ../src/utils/pactl.c:156
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get server information: %s"
-msgstr "Palvelintietojen selvittäminen epäonnistui: %s\n"
+msgstr "Palvelintietojen selvittäminen epäonnistui: %s"
 
 #: ../src/utils/pactl.c:164
 #, c-format
@@ -1688,9 +1688,9 @@ msgstr ""
 "Eväste: %08x\n"
 
 #: ../src/utils/pactl.c:205
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get sink information: %s"
-msgstr "Nielun tietojen nouto epäonnistui: %s\n"
+msgstr "Nielun tietojen nouto epäonnistui: %s"
 
 #: ../src/utils/pactl.c:221
 #, c-format
@@ -1742,9 +1742,9 @@ msgid "\tActive Port: %s\n"
 msgstr "\tAktiivinen portti: %s\n"
 
 #: ../src/utils/pactl.c:297
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get source information: %s"
-msgstr "Lähteen tietojen nouto epäonnistui: %s\n"
+msgstr "Lähteen tietojen nouto epäonnistui: %s"
 
 #: ../src/utils/pactl.c:313
 #, c-format
@@ -1794,9 +1794,9 @@ msgid "n/a"
 msgstr "-"
 
 #: ../src/utils/pactl.c:375
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get module information: %s"
-msgstr "Moduulin tietojen nouto epäonnistui: %s\n"
+msgstr "Moduulin tietojen nouto epäonnistui: %s"
 
 #: ../src/utils/pactl.c:393
 #, c-format
@@ -1816,9 +1816,9 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:412
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get client information: %s"
-msgstr "Asiakkaan tietojen nouto epäonnistui: %s\n"
+msgstr "Asiakkaan tietojen nouto epäonnistui: %s"
 
 #: ../src/utils/pactl.c:430
 #, c-format
@@ -1836,9 +1836,9 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:447
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get card information: %s"
-msgstr "Kortin tietojen nouto epäonnistui: %s\n"
+msgstr "Kortin tietojen nouto epäonnistui: %s"
 
 #: ../src/utils/pactl.c:465
 #, c-format
@@ -1868,9 +1868,9 @@ msgid "\tActive Profile: %s\n"
 msgstr "\tAktiivinen profiili: %s\n"
 
 #: ../src/utils/pactl.c:496
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get sink input information: %s"
-msgstr "Nielun sisääntulon tietojen nouto epäonnistui: %s\n"
+msgstr "Nielun sisääntulon tietojen nouto epäonnistui: %s"
 
 #: ../src/utils/pactl.c:515
 #, c-format
@@ -1910,9 +1910,9 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:554
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get source output information: %s"
-msgstr "Lähteen ulostulon tietojen nouto epäonnistui: %s\n"
+msgstr "Lähteen ulostulon tietojen nouto epäonnistui: %s"
 
 #: ../src/utils/pactl.c:574
 #, c-format
@@ -1944,9 +1944,9 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:605
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get sample information: %s"
-msgstr "Näytetietojen nouto epäonnistui: %s\n"
+msgstr "Näytetietojen nouto epäonnistui: %s"
 
 #: ../src/utils/pactl.c:623
 #, c-format
@@ -1980,27 +1980,25 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:653 ../src/utils/pactl.c:663
-#, fuzzy, c-format
+#, c-format
 msgid "Failure: %s"
-msgstr "Epäonnistuminen: %s\n"
+msgstr "Epäonnistuminen: %s"
 
 #: ../src/utils/pactl.c:687
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to upload sample: %s"
-msgstr "Näytteen lähettäminen epäonnistui: %s\n"
+msgstr "Näytteen lähettäminen epäonnistui: %s"
 
 #: ../src/utils/pactl.c:704
-#, fuzzy
 msgid "Premature end of file"
-msgstr "Ennenaikainen tiedoston päättyminen\n"
+msgstr "Ennenaikainen tiedoston päättyminen"
 
 #: ../src/utils/pactl.c:863
-#, fuzzy
 msgid "Got SIGINT, exiting."
-msgstr "Saatiin SIGINT, lopetetaan.\n"
+msgstr "Saatiin SIGINT, lopetetaan."
 
 #: ../src/utils/pactl.c:869
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -2038,15 +2036,21 @@ msgstr ""
 "%s [valitsimet] upload-sample TIEDOSTONIMI [NIMI]\n"
 "%s [valitsimet] play-sample NIMI [NIELU]\n"
 "%s [valitsimet] remove-sample NIMI\n"
-"%s [valitsimet] move-sink-input TUNNISTE NIELU\n"
-"%s [valitsimet] move-source-output TUNNISTE LÄHDE\n"
+"%s [valitsimet] move-sink-input NIELUSISÄÄNMENO NIELU\n"
+"%s [valitsimet] move-source-output LÄHDEULOSTULO LÄHDE\n"
 "%s [valitsimet] load-module NIMI [ARGUMENTIT ...]\n"
-"%s [valitsimet] unload-module TUNNISTE\n"
-"%s [valitsimet] suspend-sink [NIELU] 1|0\n"
-"%s [valitsimet] suspend-source [LÄHDE] 1|0\n"
-"%s [valitsimet] set-card-profile [KORTTI] [PROFIILI] \n"
-"%s [valitsimet] set-sink-port [NIELU] [PORTTI] \n"
-"%s [valitsimet] set-source-port [LÄHDE] [PORTTI] \n"
+"%s [valitsimet] unload-module MODUULI\n"
+"%s [valitsimet] suspend-sink NIELU 1|0\n"
+"%s [valitsimet] suspend-source LÄHDE 1|0\n"
+"%s [valitsimet] set-card-profile KORTTI PROFIILI\n"
+"%s [valitsimet] set-sink-port NIELU PORTTI\n"
+"%s [valitsimet] set-source-port LÄHDE PORTTI\n"
+"%s [valitsimet] set-sink-volume NIELU VOIMAKKUUS\n"
+"%s [valitsimet] set-source-volume LÄHDE VOIMAKKUUS\n"
+"%s [valitsimet] set-sink-input-volume NIELUSISÄÄNMENO VOIMAKKUUS\n"
+"%s [valitsimet] set-sink-mute NIELU 1|0\n"
+"%s [valitsimet] set-source-mute LÄHDE 1|0\n"
+"%s [valitsimet] set-sink-input-mute NIELUSISÄÄNMENO 1|0\n"
 "\n"
 "  -h, --help                            Näytä tämä ohje\n"
 "      --version                         Näytä versio\n"
@@ -2068,128 +2072,105 @@ msgstr ""
 "Linkitetty libpulsen versiolle %s\n"
 
 #: ../src/utils/pactl.c:979
-#, fuzzy
 msgid "Please specify a sample file to load"
-msgstr "Anna ladattava näytetiedosto\n"
+msgstr "Anna ladattava näytetiedosto"
 
 #: ../src/utils/pactl.c:992
-#, fuzzy
 msgid "Failed to open sound file."
-msgstr "Äänitiedoston avaaminen epäonnistui.\n"
+msgstr "Äänitiedoston avaaminen epäonnistui."
 
 #: ../src/utils/pactl.c:1004
-#, fuzzy
 msgid "Warning: Failed to determine sample specification from file."
-msgstr "Varoitus: näytemäärityksen selvitys tiedostosta epäonnistui.\n"
+msgstr "Varoitus: näytemäärityksen selvitys tiedostosta epäonnistui."
 
 #: ../src/utils/pactl.c:1014
-#, fuzzy
 msgid "You have to specify a sample name to play"
-msgstr "Soitettavan näytteen nimi on annettava\n"
+msgstr "Soitettavan näytteen nimi on annettava"
 
 #: ../src/utils/pactl.c:1026
-#, fuzzy
 msgid "You have to specify a sample name to remove"
-msgstr "Poistettavan näytteen nimi on annettava\n"
+msgstr "Poistettavan näytteen nimi on annettava"
 
 #: ../src/utils/pactl.c:1035
-#, fuzzy
 msgid "You have to specify a sink input index and a sink"
-msgstr "Nielun syöteindeksi ja nielu on annettava\n"
+msgstr "Nielun syöteindeksi ja nielu on annettava"
 
 #: ../src/utils/pactl.c:1045
-#, fuzzy
 msgid "You have to specify a source output index and a source"
-msgstr "Lähteen ulostuloindeksi ja lähde on annettava\n"
+msgstr "Lähteen ulostuloindeksi ja lähde on annettava"
 
 #: ../src/utils/pactl.c:1060
-#, fuzzy
 msgid "You have to specify a module name and arguments."
-msgstr "Moduulin nimi ja argumentit on annettava.\n"
+msgstr "Moduulin nimi ja argumentit on annettava."
 
 #: ../src/utils/pactl.c:1080
-#, fuzzy
 msgid "You have to specify a module index"
-msgstr "Moduulin indeksi on annettava\n"
+msgstr "Moduulin indeksi on annettava"
 
 #: ../src/utils/pactl.c:1090
-#, fuzzy
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
-msgstr "Ei voi antaa enempää kuin yhden nielun. Totuusarvo on annettava.\n"
+msgstr "Ei voi antaa enempää kuin yhden nielun. Totuusarvo on annettava."
 
 #: ../src/utils/pactl.c:1103
-#, fuzzy
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
-msgstr "Ei voi antaa enempää kuin yhden lähteen. Totuusarvo on annettava.\n"
+msgstr "Ei voi antaa enempää kuin yhden lähteen. Totuusarvo on annettava."
 
 #: ../src/utils/pactl.c:1115
-#, fuzzy
 msgid "You have to specify a card name/index and a profile name"
-msgstr "Kortin nimi/indeksi ja profiilin nimi on annettava\n"
+msgstr "Kortin nimi/indeksi ja profiilin nimi on annettava"
 
 #: ../src/utils/pactl.c:1126
-#, fuzzy
 msgid "You have to specify a sink name/index and a port name"
-msgstr "Nielun nimi/indeksi ja portin nimi on annettava\n"
+msgstr "Nielun nimi/indeksi ja portin nimi on annettava"
 
 #: ../src/utils/pactl.c:1137
-#, fuzzy
 msgid "You have to specify a source name/index and a port name"
-msgstr "Lähteen nimi/indeksi ja portin nimi on annettava\n"
+msgstr "Lähteen nimi/indeksi ja portin nimi on annettava"
 
 #: ../src/utils/pactl.c:1149
-#, fuzzy
 msgid "You have to specify a sink name/index and a volume"
-msgstr "Nielun nimi/indeksi ja portin nimi on annettava\n"
+msgstr "Nielun nimi/indeksi ja portin nimi on annettava"
 
 #: ../src/utils/pactl.c:1154 ../src/utils/pactl.c:1171
 #: ../src/utils/pactl.c:1193 ../src/utils/pactl.c:1209
 #: ../src/utils/pactl.c:1226 ../src/utils/pactl.c:1248
-#, fuzzy
 msgid "Invalid volume specification"
-msgstr "Virheellinen näytemääritys"
+msgstr "Virheellinen äänenvoimakkuuden määritys"
 
 #: ../src/utils/pactl.c:1166
-#, fuzzy
 msgid "You have to specify a source name/index and a volume"
-msgstr "Lähteen nimi/indeksi ja portin nimi on annettava\n"
+msgstr "Lähteen nimi/indeksi ja äänenvoimakkuus on annettava"
 
 #: ../src/utils/pactl.c:1183
-#, fuzzy
 msgid "You have to specify a sink input index and a volume"
-msgstr "Nielun syöteindeksi ja nielu on annettava\n"
+msgstr "Nielun syöteindeksi ja äänenvoimakkuus on annettava"
 
 #: ../src/utils/pactl.c:1188
 msgid "Invalid sink input index"
-msgstr ""
+msgstr "Virheellinen nielun syöteindeksi"
 
 #: ../src/utils/pactl.c:1204
-#, fuzzy
 msgid "You have to specify a sink name/index and a mute boolean"
-msgstr "Nielun nimi/indeksi ja portin nimi on annettava\n"
+msgstr "Nielun nimi/indeksi ja vaimennuksen totuusarvo on annettava"
 
 #: ../src/utils/pactl.c:1221
-#, fuzzy
 msgid "You have to specify a source name/index and a mute boolean"
-msgstr "Lähteen nimi/indeksi ja portin nimi on annettava\n"
+msgstr "Lähteen nimi/indeksi ja vaimennuksen totuusarvo on annettava"
 
 #: ../src/utils/pactl.c:1238
-#, fuzzy
 msgid "You have to specify a sink input index and a mute boolean"
-msgstr "Nielun syöteindeksi ja nielu on annettava\n"
+msgstr "Nielun syöteindeksi ja vaimennuksen totuusarvo on annettava"
 
 #: ../src/utils/pactl.c:1243
-#, fuzzy
 msgid "Invalid sink input index specification"
-msgstr "Virheellinen näytemääritys"
+msgstr "Virheellinen nielun syöteindeksin määritys"
 
 #: ../src/utils/pactl.c:1262
-#, fuzzy
 msgid "No valid command specified."
-msgstr "Mitään kelvollista komentoa ei annettu.\n"
+msgstr "Mitään kelvollista komentoa ei annettu."
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2358,9 +2339,8 @@ msgid "High Fidelity Playback (A2DP)"
 msgstr "Korkean äänenlaadun toisto (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2195
-#, fuzzy
 msgid "High Fidelity Capture (A2DP)"
-msgstr "Korkean äänenlaadun toisto (A2DP)"
+msgstr "Korkean äänenlaadun tallennus (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2210
 msgid "Telephony Duplex (HSP/HFP)"
