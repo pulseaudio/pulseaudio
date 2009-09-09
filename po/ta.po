@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.ta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-07 02:52+0000\n"
+"POT-Creation-Date: 2009-09-10 01:47+0200\n"
 "PO-Revision-Date: 2009-09-07 12:44+0530\n"
 "Last-Translator: I. Felix <ifelix@redhat.com>\n"
 "Language-Team: Tamil <fedora-trans-ta@redhat.com>\n"
@@ -36,12 +36,12 @@ msgstr ""
 "\n"
 "\n"
 
-#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2629
+#: ../src/modules/alsa/alsa-util.c:858 ../src/pulsecore/sink.c:2629
 #, c-format
 msgid "%s %s"
 msgstr "%s %s"
 
-#: ../src/modules/alsa/alsa-util.c:1023
+#: ../src/modules/alsa/alsa-util.c:1106
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -54,7 +54,7 @@ msgstr ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 
-#: ../src/modules/alsa/alsa-util.c:1064
+#: ../src/modules/alsa/alsa-util.c:1147
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -67,7 +67,7 @@ msgstr ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 
-#: ../src/modules/alsa/alsa-util.c:1111
+#: ../src/modules/alsa/alsa-util.c:1194
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -79,6 +79,14 @@ msgstr ""
 "(%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
+
+#: ../src/modules/module-always-sink.c:39
+msgid "Always keeps at least one sink loaded even if it's a null one"
+msgstr ""
+
+#: ../src/modules/module-always-sink.c:83
+msgid "Dummy Output"
+msgstr ""
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
@@ -97,6 +105,14 @@ msgstr ""
 "channels=<number of channels> channel_map=<channel map> plugin=<ladspa "
 "plugin name> label=<ladspa plugin label> control=<comma seperated list of "
 "input control values>"
+
+#: ../src/modules/module-null-sink.c:55
+msgid "Clocked NULL sink"
+msgstr ""
+
+#: ../src/modules/module-null-sink.c:291
+msgid "Null Output"
+msgstr ""
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -223,7 +239,8 @@ msgstr "கணினி முறைமையில் இயங்குகி�
 
 #: ../src/daemon/main.c:581
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr "கணினி முறைமையில் இயங்குகிறது, ஆனால் --disallow-module-loading அமைக்கப்படவில்லை!"
+msgstr ""
+"கணினி முறைமையில் இயங்குகிறது, ஆனால் --disallow-module-loading அமைக்கப்படவில்லை!"
 
 #: ../src/daemon/main.c:584
 msgid "Running in system mode, forcibly disabling SHM mode!"
@@ -247,7 +264,7 @@ msgstr "பைப் தோல்வியுற்றது: %s"
 msgid "fork() failed: %s"
 msgstr "fork() தோல்வியுற்றது: %s"
 
-#: ../src/daemon/main.c:641 ../src/utils/pacat.c:505
+#: ../src/daemon/main.c:641 ../src/utils/pacat.c:504
 #, c-format
 msgid "read() failed: %s"
 msgstr "வாசிப்பதில்() தோல்வியுற்றது: %s"
@@ -961,8 +978,8 @@ msgid "Top Rear Right"
 msgstr "மேலே பின் வலது"
 
 #: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
-#: ../src/pulse/volume.c:285 ../src/pulse/volume.c:311
-#: ../src/pulse/volume.c:331 ../src/pulse/volume.c:361
+#: ../src/pulse/volume.c:295 ../src/pulse/volume.c:321
+#: ../src/pulse/volume.c:341 ../src/pulse/volume.c:371
 msgid "(invalid)"
 msgstr "(தவறான)"
 
@@ -1253,52 +1270,52 @@ msgstr "இல்லை"
 msgid "Stream buffer attributes changed.%s"
 msgstr "ஸ்டீரிம் ஃபப்பர் பண்புகளை மாற்றப்பட்டது.%s"
 
-#: ../src/utils/pacat.c:416
+#: ../src/utils/pacat.c:415
 #, c-format
 msgid "Connection established.%s"
 msgstr "இணைப்பு துவக்கப்பட்டது.%s"
 
-#: ../src/utils/pacat.c:419
+#: ../src/utils/pacat.c:418
 #, c-format
 msgid "pa_stream_new() failed: %s"
 msgstr "pa_stream_new() தோல்வியுற்றது: %s"
 
-#: ../src/utils/pacat.c:447
+#: ../src/utils/pacat.c:446
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s"
 msgstr "pa_stream_connect_playback() தோல்வியுற்றது: %s"
 
-#: ../src/utils/pacat.c:453
+#: ../src/utils/pacat.c:452
 #, c-format
 msgid "pa_stream_connect_record() failed: %s"
 msgstr "pa_stream_connect_record() தோல்வியுற்றது: %s"
 
-#: ../src/utils/pacat.c:467 ../src/utils/pactl.c:857
+#: ../src/utils/pacat.c:466 ../src/utils/pactl.c:857
 #, c-format
 msgid "Connection failure: %s"
 msgstr "இணைப்பதில் தோல்வி: %s"
 
-#: ../src/utils/pacat.c:500
+#: ../src/utils/pacat.c:499
 msgid "Got EOF."
 msgstr "EOF கிடைக்கப் பெற்றது"
 
-#: ../src/utils/pacat.c:537
+#: ../src/utils/pacat.c:536
 #, c-format
 msgid "write() failed: %s"
 msgstr "எழுதுவதில் () தோல்வியுற்றது: %s"
 
-#: ../src/utils/pacat.c:558
+#: ../src/utils/pacat.c:557
 msgid "Got signal, exiting."
 msgstr "சிக்னல் கிடைத்தது, வெளியேறுகிறது."
 
-#: ../src/utils/pacat.c:572
+#: ../src/utils/pacat.c:571
 #, c-format
 msgid "Failed to get latency: %s"
 msgstr "லடன்சியை பெற முடியவில்லை: %s"
 
-#: ../src/utils/pacat.c:577
-#, c-format
-msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
+#: ../src/utils/pacat.c:576
+#, fuzzy, c-format
+msgid "Time: %0.3f sec; Latency: %0.0f usec."
 msgstr "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 
 #: ../src/utils/pacat.c:595
@@ -1437,119 +1454,122 @@ msgstr ""
 msgid "Invalid client name '%s'"
 msgstr "தவறான கிளையன் பெயர் '%s'"
 
-#: ../src/utils/pacat.c:776
+#: ../src/utils/pacat.c:775
 #, c-format
 msgid "Invalid stream name '%s'"
 msgstr "தவறான ஸ்டீரீம் பெயர் '%s'."
 
-#: ../src/utils/pacat.c:813
+#: ../src/utils/pacat.c:812
 #, c-format
 msgid "Invalid channel map '%s'"
 msgstr "தவறான சேனல் வரைபடம் '%s'"
 
-#: ../src/utils/pacat.c:842
+#: ../src/utils/pacat.c:841
 #, c-format
 msgid "Invalid latency specification '%s'"
 msgstr "தவறான லேடன்சி குறிப்பீடு '%s'"
 
-#: ../src/utils/pacat.c:849
+#: ../src/utils/pacat.c:848
 #, c-format
 msgid "Invalid process time specification '%s'"
 msgstr "தவறான செயல் நேர குறிப்பீடு '%s'"
 
-#: ../src/utils/pacat.c:861
+#: ../src/utils/pacat.c:860
 #, c-format
 msgid "Invalid property '%s'"
 msgstr "தவறான தன்மை '%s'."
 
-#: ../src/utils/pacat.c:878
+#: ../src/utils/pacat.c:877
 #, c-format
 msgid "Unknown file format %s."
 msgstr "தெரியாத கோப்பு வடிவம் %s."
 
-#: ../src/utils/pacat.c:897
+#: ../src/utils/pacat.c:896
 msgid "Invalid sample specification"
 msgstr "தவறான மாதிரி குறிப்பீடு"
 
-#: ../src/utils/pacat.c:907
+#: ../src/utils/pacat.c:906
 #, c-format
 msgid "open(): %s"
 msgstr "open(): %s"
 
-#: ../src/utils/pacat.c:912
+#: ../src/utils/pacat.c:911
 #, c-format
 msgid "dup2(): %s"
 msgstr "dup2(): %s"
 
-#: ../src/utils/pacat.c:919
+#: ../src/utils/pacat.c:918
 msgid "Too many arguments."
 msgstr "நிறைய விவாதங்கள்."
 
-#: ../src/utils/pacat.c:930
+#: ../src/utils/pacat.c:929
 msgid "Failed to generate sample specification for file."
 msgstr "மாதிரி தகவலை பெற முடியவில்லை.: %s"
 
-#: ../src/utils/pacat.c:950
+#: ../src/utils/pacat.c:949
 msgid "Failed to open audio file."
 msgstr "ஒலி கோப்பினை திறக்க முடியவில்லை."
 
-#: ../src/utils/pacat.c:956
+#: ../src/utils/pacat.c:955
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
-msgstr "எச்சரிக்கை: கோப்பிலிருந்து குறிப்பீட்டுடன் குறிக்கிட்ட மாதிரி குறிப்பீடு மேலெழுதப்படலாம்."
+msgstr ""
+"எச்சரிக்கை: கோப்பிலிருந்து குறிப்பீட்டுடன் குறிக்கிட்ட மாதிரி குறிப்பீடு மேலெழுதப்படலாம்."
 
-#: ../src/utils/pacat.c:959 ../src/utils/pactl.c:997
+#: ../src/utils/pacat.c:958 ../src/utils/pactl.c:997
 msgid "Failed to determine sample specification from file."
 msgstr "கோப்பிலிருந்து மாதிரி குறிப்பீட்டை  வரையறுக்க முடியவில்லை."
 
-#: ../src/utils/pacat.c:968
+#: ../src/utils/pacat.c:967
 msgid "Warning: Failed to determine channel map from file."
 msgstr "எச்சரிக்கை: கோப்பிலிருந்து சேனல் வரைபடத்தை வரையறுக்க முடியவில்லை."
 
-#: ../src/utils/pacat.c:979
+#: ../src/utils/pacat.c:978
 msgid "Channel map doesn't match sample specification"
 msgstr "சேனல் வரைபடம் மாதிரி குறிப்பீட்டுடன் பொருந்தவில்லை"
 
-#: ../src/utils/pacat.c:990
+#: ../src/utils/pacat.c:989
 msgid "Warning: failed to write channel map to file."
 msgstr "எச்சரிக்கை: கோப்புக்கு சேனல் வரைபடத்தை எழுத முடியவில்லை."
 
-#: ../src/utils/pacat.c:1005
+#: ../src/utils/pacat.c:1004
 #, c-format
-msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
-msgstr "ஒரு %s ஸ்டீரம் மாதிரி குறிப்பீட்டை '%s' மற்றும் சேனல் வரைபட்டம் '%s' உடன் திறக்கிறது."
+msgid ""
+"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgstr ""
+"ஒரு %s ஸ்டீரம் மாதிரி குறிப்பீட்டை '%s' மற்றும் சேனல் வரைபட்டம் '%s' உடன் திறக்கிறது."
 
-#: ../src/utils/pacat.c:1006
+#: ../src/utils/pacat.c:1005
 msgid "recording"
 msgstr "ஒலிப்பதிவு"
 
-#: ../src/utils/pacat.c:1006
+#: ../src/utils/pacat.c:1005
 msgid "playback"
 msgstr "பிண்ணனி"
 
-#: ../src/utils/pacat.c:1032 ../src/utils/pactl.c:1267
+#: ../src/utils/pacat.c:1031 ../src/utils/pactl.c:1267
 msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() தோல்வி."
 
-#: ../src/utils/pacat.c:1051
+#: ../src/utils/pacat.c:1050
 msgid "io_new() failed."
 msgstr "io_new() தோல்வியுற்றது."
 
-#: ../src/utils/pacat.c:1058 ../src/utils/pactl.c:1279
+#: ../src/utils/pacat.c:1057 ../src/utils/pactl.c:1279
 msgid "pa_context_new() failed."
 msgstr "pa_context_new() தோல்வி."
 
-#: ../src/utils/pacat.c:1066 ../src/utils/pactl.c:1285
+#: ../src/utils/pacat.c:1065 ../src/utils/pactl.c:1285
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() தோல்வி: %s"
 
-#: ../src/utils/pacat.c:1072
+#: ../src/utils/pacat.c:1071
 msgid "pa_context_rttime_new() failed."
 msgstr "pa_context_rttime_new() தோல்வியுற்றது."
 
-#: ../src/utils/pacat.c:1079 ../src/utils/pactl.c:1290
+#: ../src/utils/pacat.c:1078 ../src/utils/pactl.c:1290
 msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() தோல்வி."
 
@@ -1650,7 +1670,8 @@ msgstr "தற்போது பயனிலுள்ளது: %u தொகு
 #: ../src/utils/pactl.c:144
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr "வாழ்க்கை முழுவதும் ஒதுக்கப்பட்டது: %u தொகுதிகள் %s பைட்களை மொத்தமாக கொண்டுள்ளது.\n"
+msgstr ""
+"வாழ்க்கை முழுவதும் ஒதுக்கப்பட்டது: %u தொகுதிகள் %s பைட்களை மொத்தமாக கொண்டுள்ளது.\n"
 
 #: ../src/utils/pactl.c:147
 #, c-format
@@ -2106,16 +2127,17 @@ msgid "You have to specify a module index"
 msgstr "தொகுதி அட்டவணையை நீங்கள் குறிப்பிட வேண்டும்"
 
 #: ../src/utils/pactl.c:1090
-msgid "You may not specify more than one sink. You have to specify a boolean value."
-msgstr "ஒரு சிங்கிற்கு மேல் நீங்கள் குறிப்பிடக் கூடாது. பூலியன் மதிப்பை நீங்கள் குறிப்பிட வேண்டும்."
+msgid ""
+"You may not specify more than one sink. You have to specify a boolean value."
+msgstr ""
+"ஒரு சிங்கிற்கு மேல் நீங்கள் குறிப்பிடக் கூடாது. பூலியன் மதிப்பை நீங்கள் குறிப்பிட வேண்டும்."
 
 #: ../src/utils/pactl.c:1103
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
 msgstr ""
-"ஒரு மூலத்திற்கு மேல் நீங்கள் குறிப்பிடக் கூடாது. பூலியன் மதிப்பை நீங்கள் குறிப்பிட "
-"வேண்டும்."
+"ஒரு மூலத்திற்கு மேல் நீங்கள் குறிப்பிடக் கூடாது. பூலியன் மதிப்பை நீங்கள் குறிப்பிட வேண்டும்."
 
 #: ../src/utils/pactl.c:1115
 msgid "You have to specify a card name/index and a profile name"
@@ -2291,7 +2313,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr "autospawn பூட்டை அணுக முடியவில்லை."
 
-#: ../src/modules/alsa/alsa-sink.c:531 ../src/modules/alsa/alsa-sink.c:689
+#: ../src/modules/alsa/alsa-sink.c:530 ../src/modules/alsa/alsa-sink.c:689
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2308,7 +2330,7 @@ msgstr ""
 "POLLOUT அமைவுடன் நாங்கள் எழுந்திருந்தோம்-- எப்படியிருந்தும் அடுத்தடுத்து snd_pcm_avail"
 "() r0 அல்லது வேறொரு மதிப்பு < min_avail திரும்பியது."
 
-#: ../src/modules/alsa/alsa-source.c:508 ../src/modules/alsa/alsa-source.c:658
+#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2326,23 +2348,22 @@ msgstr ""
 "() 0 அல்லது வேறொரு மதிப்பு < min_avail திரும்பியது."
 
 #: ../src/modules/alsa/module-alsa-card.c:152
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2225
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2228
 msgid "Off"
 msgstr "ஆஃப்"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2181
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2184
 msgid "High Fidelity Playback (A2DP)"
 msgstr "High Fidelity Playback (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2195
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2198
 msgid "High Fidelity Capture (A2DP)"
 msgstr "High Fidelity Capture (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2210
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2213
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr "Telephony Duplex (HSP/HFP)"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio ஒலி சேவையகம்"
-

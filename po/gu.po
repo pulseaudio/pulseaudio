@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-03 08:42+0000\n"
+"POT-Creation-Date: 2009-09-10 01:47+0200\n"
 "PO-Revision-Date: 2009-09-03 15:31+0530\n"
 "Last-Translator: Sweta Kothari <swkothar@redhat.com>\n"
 "Language-Team: Gujarati\n"
@@ -17,12 +17,12 @@ msgstr ""
 "X-Generator: KBabel 1.11.4\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
 
-#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2629
+#: ../src/modules/alsa/alsa-util.c:858 ../src/pulsecore/sink.c:2629
 #, c-format
 msgid "%s %s"
 msgstr "%s %s"
 
-#: ../src/modules/alsa/alsa-util.c:1023
+#: ../src/modules/alsa/alsa-util.c:1106
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -34,7 +34,7 @@ msgstr ""
 "ALSA ડ્રાઇવર '%s' માં મોટેભાગે આ ભૂલ જેવુ છે. ALSA ડેવલ્પરોમાં આ સમસ્યાને મહેરબાની કરીને "
 "અહેવાલ કરો."
 
-#: ../src/modules/alsa/alsa-util.c:1064
+#: ../src/modules/alsa/alsa-util.c:1147
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -47,7 +47,7 @@ msgstr ""
 "ALSA ડ્રાઇવર '%s' માં મોટેભાગે આ ભૂલ જેવુ છે. ALSA ડેવલ્પરોમાં આ સમસ્યાને મહેરબાની કરીને "
 "અહેવાલ કરો."
 
-#: ../src/modules/alsa/alsa-util.c:1111
+#: ../src/modules/alsa/alsa-util.c:1194
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -59,6 +59,14 @@ msgstr ""
 "ms).\n"
 "ALSA ડ્રાઇવર '%s' માં મોટેભાગે આ ભૂલ જેવુ છે. ALSA ડેવલ્પરોમાં આ સમસ્યાને મહેરબાની કરીને "
 "અહેવાલ કરો."
+
+#: ../src/modules/module-always-sink.c:39
+msgid "Always keeps at least one sink loaded even if it's a null one"
+msgstr ""
+
+#: ../src/modules/module-always-sink.c:83
+msgid "Dummy Output"
+msgstr ""
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
@@ -77,6 +85,14 @@ msgstr ""
 "channels=<number of channels> channel_map=<channel map> plugin=<ladspa "
 "plugin name> label=<ladspa plugin label> control=<comma seperated list of "
 "input control values>"
+
+#: ../src/modules/module-null-sink.c:55
+msgid "Clocked NULL sink"
+msgstr ""
+
+#: ../src/modules/module-null-sink.c:291
+msgid "Null Output"
+msgstr ""
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -187,7 +203,8 @@ msgstr "ડિમનને મારવાનું નિષ્ફળ: %s"
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr "આ પ્રક્રિયાને રુટ તરીકે ચલાવવા માટે વિચાર થયેલ નથી (નહિં તો --system એ સ્પષ્ટ થયેલ છે)."
+msgstr ""
+"આ પ્રક્રિયાને રુટ તરીકે ચલાવવા માટે વિચાર થયેલ નથી (નહિં તો --system એ સ્પષ્ટ થયેલ છે)."
 
 #: ../src/daemon/main.c:568
 msgid "Root privileges required."
@@ -229,7 +246,7 @@ msgstr "પાઇપ નિષ્ફળ: %s"
 msgid "fork() failed: %s"
 msgstr "fork() નિષ્ફળ: %s"
 
-#: ../src/daemon/main.c:641 ../src/utils/pacat.c:505
+#: ../src/daemon/main.c:641 ../src/utils/pacat.c:504
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() નિષ્ફળ: %s"
@@ -348,12 +365,11 @@ msgid ""
 "Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an "
 "explanation why system mode is usually a bad idea."
 msgstr ""
-"બરાબર, તેથી તમે સિસ્ટમ સ્થિતિમાં PA ચલાવી રહ્યા છો. મહેરબાની કરીને નોંધો કે જે તમારે મોટેભાગે "
-"કરવુ જોઇએ નહિં.\n"
+"બરાબર, તેથી તમે સિસ્ટમ સ્થિતિમાં PA ચલાવી રહ્યા છો. મહેરબાની કરીને નોંધો કે જે તમારે "
+"મોટેભાગે કરવુ જોઇએ નહિં.\n"
 "જો તમે તેનાં વગર કરે તો પછી તે તમારી ભૂલ થે જો ઇચ્છિત રીતે તે કામ કરતુ ન હોય તો.\n"
-"શા માટે સિસ્ટમ સ્થિતિ સામાન્ય રીતે ખરાબ વિચાર છે તે માટે વિગતવાર જાણકારી માટે "
-"મહેરબાની કરીને http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode આને "
-"વાંચો."
+"શા માટે સિસ્ટમ સ્થિતિ સામાન્ય રીતે ખરાબ વિચાર છે તે માટે વિગતવાર જાણકારી માટે મહેરબાની "
+"કરીને http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode આને વાંચો."
 
 #: ../src/daemon/main.c:804
 msgid "pa_pid_file_create() failed."
@@ -716,7 +732,8 @@ msgstr "રૂપરેખાંકન ફાઇલને ખોલવાનુ�
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
-msgstr "સ્પષ્ટ થયેલ મૂળભૂત ચેનલ મેપ પાસે સ્પષ્ટ થયેલ ચેનલોની મૂળભૂત સંખ્યા કરતા વિવિધ ચેનલોની સંખ્યા છે."
+msgstr ""
+"સ્પષ્ટ થયેલ મૂળભૂત ચેનલ મેપ પાસે સ્પષ્ટ થયેલ ચેનલોની મૂળભૂત સંખ્યા કરતા વિવિધ ચેનલોની સંખ્યા છે."
 
 #: ../src/daemon/daemon-conf.c:638
 #, c-format
@@ -940,8 +957,8 @@ msgid "Top Rear Right"
 msgstr "ઉપર રિઅર જમણે"
 
 #: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
-#: ../src/pulse/volume.c:285 ../src/pulse/volume.c:311
-#: ../src/pulse/volume.c:331 ../src/pulse/volume.c:361
+#: ../src/pulse/volume.c:295 ../src/pulse/volume.c:321
+#: ../src/pulse/volume.c:341 ../src/pulse/volume.c:371
 msgid "(invalid)"
 msgstr "(અયોગ્ય)"
 
@@ -1232,52 +1249,52 @@ msgstr "નથી "
 msgid "Stream buffer attributes changed.%s"
 msgstr "સ્ટ્રીમ બફર ગુણધર્મો બદલાયેલ છે.%s"
 
-#: ../src/utils/pacat.c:416
+#: ../src/utils/pacat.c:415
 #, c-format
 msgid "Connection established.%s"
 msgstr "જોડાણ સ્થાપિત થયેલ છે.%s"
 
-#: ../src/utils/pacat.c:419
+#: ../src/utils/pacat.c:418
 #, c-format
 msgid "pa_stream_new() failed: %s"
 msgstr "pa_stream_new() નિષ્ફળ: %s"
 
-#: ../src/utils/pacat.c:447
+#: ../src/utils/pacat.c:446
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s"
 msgstr "pa_stream_connect_playback() નિષ્ફળ: %s"
 
-#: ../src/utils/pacat.c:453
+#: ../src/utils/pacat.c:452
 #, c-format
 msgid "pa_stream_connect_record() failed: %s"
 msgstr "pa_stream_connect_record() નિષ્ફળ: %s"
 
-#: ../src/utils/pacat.c:467 ../src/utils/pactl.c:857
+#: ../src/utils/pacat.c:466 ../src/utils/pactl.c:857
 #, c-format
 msgid "Connection failure: %s"
 msgstr "જોડાણ નિષ્ફળ: %s"
 
-#: ../src/utils/pacat.c:500
+#: ../src/utils/pacat.c:499
 msgid "Got EOF."
 msgstr "EOF મળ્યુ."
 
-#: ../src/utils/pacat.c:537
+#: ../src/utils/pacat.c:536
 #, c-format
 msgid "write() failed: %s"
 msgstr "write() નિષ્ફળ: %s"
 
-#: ../src/utils/pacat.c:558
+#: ../src/utils/pacat.c:557
 msgid "Got signal, exiting."
 msgstr "સંકેત મળ્યું, બહાર નીકળી રહ્યા છે."
 
-#: ../src/utils/pacat.c:572
+#: ../src/utils/pacat.c:571
 #, c-format
 msgid "Failed to get latency: %s"
 msgstr "ગુપ્તતા મેળવવામાં નિષ્ફળતા: %s"
 
-#: ../src/utils/pacat.c:577
-#, c-format
-msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
+#: ../src/utils/pacat.c:576
+#, fuzzy, c-format
+msgid "Time: %0.3f sec; Latency: %0.0f usec."
 msgstr "Time: %0.3f sec; Latency: %0.0f usec.  \r"
 
 #: ../src/utils/pacat.c:595
@@ -1358,29 +1375,34 @@ msgstr ""
 "  -d, --device=DEVICE                   તેમાં જોડાવા માટે સિંક/સ્ત્રોત નું નામ\n"
 "  -n, --client-name=NAME                સર્વર પર આ ક્લાઇન્ટને કેવી રીતે કોલ કરવો\n"
 "      --stream-name=NAME                સર્વર પર આ સ્ટ્રીમને કેવી રીતે કોલ કરવો\n"
-"      --volume=VOLUME                   સીમા 0...65536 માં પ્રારંભનાં (સીધા) વોલ્યુમને સ્પષ્ટ કરો\n"
+"      --volume=VOLUME                   સીમા 0...65536 માં પ્રારંભનાં (સીધા) "
+"વોલ્યુમને સ્પષ્ટ કરો\n"
 "      --rate=SAMPLERATE                 Hz માં નમૂનો(44100 નાં મૂળભૂતો)\n"
-"      --format=SAMPLEFORMAT             નમૂના પ્રકાર, s16le, "
-"s16be, u8, float32le, માંનો એક\n"
+"      --format=SAMPLEFORMAT             નમૂના પ્રકાર, s16le, s16be, u8, "
+"float32le, માંનો એક\n"
 "                                        float32be, ulaw, alaw, s32le, s32be, "
 "s24le, s24be,\n"
 "                                        s24-32le, s24-32be (defaults to "
 "s16ne)\n"
-"      --channels=CHANNELS               ચેનલોની સંખ્યા, mono માટે 1, "
-"stereo માટે 2\n"
+"      --channels=CHANNELS               ચેનલોની સંખ્યા, mono માટે 1, stereo માટે "
+"2\n"
 "                                        (2 એ મૂળભૂત છે)\n"
 "      --channel-map=CHANNELMAP          મૂળભૂત ને બદલે વાપરવા માટે ચેનલ મેપ\n"
 "      --fix-format                      સ્ટ્રીમ તેમાં જોડાયેલ છે તે સિંક માંથી નમૂના "
 "બંધારણને\n"
 "                                        લો.\n"
-"      --fix-rate                        સ્ટ્રીમ તેમાં જોડાયેલ છે તે સિંક માંથી નમૂના દરને લો.\n"
+"      --fix-rate                        સ્ટ્રીમ તેમાં જોડાયેલ છે તે સિંક માંથી નમૂના "
+"દરને લો.\n"
 "      --fix-channels                    સ્ટ્રીમ તેમાં જોડાયેલ છે તે સિંક માંથી ચેનલો "
 "અને ચેનલ માપને લો.\n"
 "      --no-remix                        ચેનલોને upmix અથવા downmix કરો નહિં.\n"
 "      --no-remap                        નામને બદલે અનુક્રમણિકા દ્દારા મેપ ચેનલો.\n"
-"      --latency=BYTES                   બાઇટોમાં સ્પષ્ટ થયેલ ગુપ્તતા ની માંગણી કરો.\n"
-"      --process-time=BYTES              બાઇટોમાં માંગણી ની સાથે સ્પષ્ટ થયેલ પ્રક્રિયા સમયની માંગણી કરો.\n"
-"      --property=PROPERTY=VALUE         સ્પષ્ટ થયેલ કિંમતમાં સ્પષ્ટ થયેલ ગુણધર્મને સુયોજિત કરો.\n"
+"      --latency=BYTES                   બાઇટોમાં સ્પષ્ટ થયેલ ગુપ્તતા ની માંગણી "
+"કરો.\n"
+"      --process-time=BYTES              બાઇટોમાં માંગણી ની સાથે સ્પષ્ટ થયેલ "
+"પ્રક્રિયા સમયની માંગણી કરો.\n"
+"      --property=PROPERTY=VALUE         સ્પષ્ટ થયેલ કિંમતમાં સ્પષ્ટ થયેલ ગુણધર્મને "
+"સુયોજિત કરો.\n"
 "      --raw                             કાચી PCM માહિતીનો રેકોર્ડ કરો/વગાડો.\n"
 "      --file-format=FFORMAT             બંધારણ થયેલ માહિતીનો રેકોર્ડ કરો/વગાડો.\n"
 "      --list-file-formats               ઉપલ્બધ ફાઇલ બંધારણોની યાદી.\n"
@@ -1401,119 +1423,120 @@ msgstr ""
 msgid "Invalid client name '%s'"
 msgstr "અયોગ્ય ક્લાઇન્ટ નામ '%s'"
 
-#: ../src/utils/pacat.c:776
+#: ../src/utils/pacat.c:775
 #, c-format
 msgid "Invalid stream name '%s'"
 msgstr "અયોગ્ય સ્ટ્રીમ નામ '%s'"
 
-#: ../src/utils/pacat.c:813
+#: ../src/utils/pacat.c:812
 #, c-format
 msgid "Invalid channel map '%s'"
 msgstr "અયોગ્ય ચેનલ મેપ '%s'"
 
-#: ../src/utils/pacat.c:842
+#: ../src/utils/pacat.c:841
 #, c-format
 msgid "Invalid latency specification '%s'"
 msgstr "અયોગ્ય ગુપ્તતા સ્પષ્ટીકરણ '%s'"
 
-#: ../src/utils/pacat.c:849
+#: ../src/utils/pacat.c:848
 #, c-format
 msgid "Invalid process time specification '%s'"
 msgstr "અયોગ્ય પ્રક્રિયા સમય સ્પષ્ટીકરણ '%s'"
 
-#: ../src/utils/pacat.c:861
+#: ../src/utils/pacat.c:860
 #, c-format
 msgid "Invalid property '%s'"
 msgstr "અયોગ્ય ગુણધર્મ '%s'"
 
-#: ../src/utils/pacat.c:878
+#: ../src/utils/pacat.c:877
 #, c-format
 msgid "Unknown file format %s."
 msgstr "અજ્ઞાત ફાઇલ બંધારણ %s."
 
-#: ../src/utils/pacat.c:897
+#: ../src/utils/pacat.c:896
 msgid "Invalid sample specification"
 msgstr "અયોગ્ય નમૂના સ્પષ્ટીકરણ"
 
-#: ../src/utils/pacat.c:907
+#: ../src/utils/pacat.c:906
 #, c-format
 msgid "open(): %s"
 msgstr "open(): %s"
 
-#: ../src/utils/pacat.c:912
+#: ../src/utils/pacat.c:911
 #, c-format
 msgid "dup2(): %s"
 msgstr "dup2(): %s"
 
-#: ../src/utils/pacat.c:919
+#: ../src/utils/pacat.c:918
 msgid "Too many arguments."
 msgstr "ઘણી બધી દલીલો છે."
 
-#: ../src/utils/pacat.c:930
+#: ../src/utils/pacat.c:929
 msgid "Failed to generate sample specification for file."
 msgstr "ફાઇલ માટે નમૂના સ્પષ્ટીકરણ ને ઉત્પન્ન કરવામાં નિષ્ફળ."
 
-#: ../src/utils/pacat.c:950
+#: ../src/utils/pacat.c:949
 msgid "Failed to open audio file."
 msgstr "સાઉન્ડ ફાઇલને ખોલવામાં નિષ્ફળતા."
 
-#: ../src/utils/pacat.c:956
+#: ../src/utils/pacat.c:955
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
 msgstr "ચેતવણી: સ્પષ્ટ થયેલ નમૂના સ્પષ્ટીકરણ ફાઇલ માંથી સ્પષ્ટીકરણ સાથે ઉપર લખાયેલ હશે."
 
-#: ../src/utils/pacat.c:959 ../src/utils/pactl.c:997
+#: ../src/utils/pacat.c:958 ../src/utils/pactl.c:997
 msgid "Failed to determine sample specification from file."
 msgstr "ફાઇલ માંથી નમૂના સ્પષ્ટીકરણને નક્કી કરવામાં નિષ્ફળતા."
 
-#: ../src/utils/pacat.c:968
+#: ../src/utils/pacat.c:967
 msgid "Warning: Failed to determine channel map from file."
 msgstr "ચેતવણી: ફાઇલમાંથી ચેનલ મેપને નક્કી કરવામાં નિષ્ફળતા."
 
-#: ../src/utils/pacat.c:979
+#: ../src/utils/pacat.c:978
 msgid "Channel map doesn't match sample specification"
 msgstr "ચેનલ મેપ એ સ્પષ્ટીકરણ નમૂનાને બંધબેસતુ નથી"
 
-#: ../src/utils/pacat.c:990
+#: ../src/utils/pacat.c:989
 msgid "Warning: failed to write channel map to file."
 msgstr "ચેતણી: ફાઇલમાં ચેનલ મેપને લખવામાં નિષ્ફળતા."
 
-#: ../src/utils/pacat.c:1005
+#: ../src/utils/pacat.c:1004
 #, c-format
-msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid ""
+"Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "નમૂના સ્પષ્ટીકરણ '%s' અને ચેનલ નક્ષા '%s' સાથે %s સ્ટ્રીમને ખોલી રહ્યા છે."
 
-#: ../src/utils/pacat.c:1006
+#: ../src/utils/pacat.c:1005
 msgid "recording"
 msgstr "રેકોર્ડ કરી રહ્યા છે"
 
-#: ../src/utils/pacat.c:1006
+#: ../src/utils/pacat.c:1005
 msgid "playback"
 msgstr "પ્લેબેક"
 
-#: ../src/utils/pacat.c:1032 ../src/utils/pactl.c:1267
+#: ../src/utils/pacat.c:1031 ../src/utils/pactl.c:1267
 msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() નિષ્ફળ."
 
-#: ../src/utils/pacat.c:1051
+#: ../src/utils/pacat.c:1050
 msgid "io_new() failed."
 msgstr "io_new() નિષ્ફળ."
 
-#: ../src/utils/pacat.c:1058 ../src/utils/pactl.c:1279
+#: ../src/utils/pacat.c:1057 ../src/utils/pactl.c:1279
 msgid "pa_context_new() failed."
 msgstr "pa_context_new() નિષ્ફળ."
 
-#: ../src/utils/pacat.c:1066 ../src/utils/pactl.c:1285
+#: ../src/utils/pacat.c:1065 ../src/utils/pactl.c:1285
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() નિષ્ફળ: %s"
 
-#: ../src/utils/pacat.c:1072
+#: ../src/utils/pacat.c:1071
 msgid "pa_context_rttime_new() failed."
 msgstr "pa_context_new() નિષ્ફળ."
 
-#: ../src/utils/pacat.c:1079 ../src/utils/pactl.c:1290
+#: ../src/utils/pacat.c:1078 ../src/utils/pactl.c:1290
 msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() નિષ્ફળ."
 
@@ -2070,14 +2093,17 @@ msgid "You have to specify a module index"
 msgstr "તમારે મોડ્યુલ અનુક્રમણિકાને સ્પષ્ટ કરવુ જ પડશે"
 
 #: ../src/utils/pactl.c:1090
-msgid "You may not specify more than one sink. You have to specify a boolean value."
-msgstr "તમે એક સિંક કરતા વધારે સ્પષ્ટ કરી શકશો નહિં. તમારે બુલિયન કિંમતને સ્પષ્ટ કરવુ જ પડશે."
+msgid ""
+"You may not specify more than one sink. You have to specify a boolean value."
+msgstr ""
+"તમે એક સિંક કરતા વધારે સ્પષ્ટ કરી શકશો નહિં. તમારે બુલિયન કિંમતને સ્પષ્ટ કરવુ જ પડશે."
 
 #: ../src/utils/pactl.c:1103
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
-msgstr "તમે એક સ્ત્રોત કરતા વધારે સ્પષ્ટ કરી શકશો નહિં. તમારે બુલિયન કિંમતને સ્પષ્ટ કરવુ જ પડશે."
+msgstr ""
+"તમે એક સ્ત્રોત કરતા વધારે સ્પષ્ટ કરી શકશો નહિં. તમારે બુલિયન કિંમતને સ્પષ્ટ કરવુ જ પડશે."
 
 #: ../src/utils/pactl.c:1115
 msgid "You have to specify a card name/index and a profile name"
@@ -2253,7 +2279,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr "autospawn તાળાને દાખલ કરી શકાતુ નથી."
 
-#: ../src/modules/alsa/alsa-sink.c:531 ../src/modules/alsa/alsa-sink.c:689
+#: ../src/modules/alsa/alsa-sink.c:530 ../src/modules/alsa/alsa-sink.c:689
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2270,7 +2296,7 @@ msgstr ""
 "POLLOUT સુયોજન સાથે આપણે જાગેલ હતા -- છતાંપણ ના પછીનું snd_pcm_avail() ને 0 પાછો મળે "
 "છે અથવા બીજી કિંમત < min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:508 ../src/modules/alsa/alsa-source.c:658
+#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2288,23 +2314,22 @@ msgstr ""
 "છે અથવા બીજી કિંમત < min_avail."
 
 #: ../src/modules/alsa/module-alsa-card.c:152
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2225
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2228
 msgid "Off"
 msgstr "બંધ"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2181
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2184
 msgid "High Fidelity Playback (A2DP)"
 msgstr "High Fidelity Playback (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2195
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2198
 msgid "High Fidelity Capture (A2DP)"
 msgstr "High Fidelity Capture (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2210
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2213
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr "Telephony Duplex (HSP/HFP)"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio સાઉન્ડ સર્વર"
-

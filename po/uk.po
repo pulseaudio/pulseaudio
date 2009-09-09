@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-03 03:04+0200\n"
+"POT-Creation-Date: 2009-09-10 01:47+0200\n"
 "PO-Revision-Date: 2009-08-22 09:51+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation@linux.org.ua>\n"
@@ -17,12 +17,12 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
 "10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2629
+#: ../src/modules/alsa/alsa-util.c:858 ../src/pulsecore/sink.c:2629
 #, c-format
 msgid "%s %s"
 msgstr "%s %s"
 
-#: ../src/modules/alsa/alsa-util.c:1023
+#: ../src/modules/alsa/alsa-util.c:1106
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -35,7 +35,7 @@ msgstr ""
 "Ймовірно, ви натрапили на ваду у драйвері ALSA «%s». Будь ласка, повідомте "
 "про цю ваду розробникам ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1064
+#: ../src/modules/alsa/alsa-util.c:1147
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -48,7 +48,7 @@ msgstr ""
 "Ймовірно, ви натрапили на ваду у драйвері ALSA «%s». Будь ласка, повідомте "
 "про цю ваду розробникам ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1111
+#: ../src/modules/alsa/alsa-util.c:1194
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -60,6 +60,14 @@ msgstr ""
 "(%lu мс).\n"
 "Ймовірно, ви натрапили на ваду у драйвері ALSA «%s». Будь ласка, повідомте "
 "про цю ваду розробникам ALSA."
+
+#: ../src/modules/module-always-sink.c:39
+msgid "Always keeps at least one sink loaded even if it's a null one"
+msgstr ""
+
+#: ../src/modules/module-always-sink.c:83
+msgid "Dummy Output"
+msgstr ""
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
@@ -78,6 +86,14 @@ msgstr ""
 "rate=<частота вибірки> channels=<кількість каналів> channel_map=<карта "
 "каналів> plugin=<назва додатка ladspa> label=<мітка додатка ladspa> "
 "control=<розділений комами список значень вхідних параметрів>"
+
+#: ../src/modules/module-null-sink.c:55
+msgid "Clocked NULL sink"
+msgstr ""
+
+#: ../src/modules/module-null-sink.c:291
+msgid "Null Output"
+msgstr ""
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -239,7 +255,7 @@ msgstr "Спроба створення каналу завершилася не
 msgid "fork() failed: %s"
 msgstr "Спроба виконання fork() завершилася невдало: %s"
 
-#: ../src/daemon/main.c:641 ../src/utils/pacat.c:505
+#: ../src/daemon/main.c:641 ../src/utils/pacat.c:504
 #, c-format
 msgid "read() failed: %s"
 msgstr "Спроба виконання read() завершилася невдало: %s"
@@ -973,8 +989,8 @@ msgid "Top Rear Right"
 msgstr "Верхній задній правий"
 
 #: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
-#: ../src/pulse/volume.c:285 ../src/pulse/volume.c:311
-#: ../src/pulse/volume.c:331 ../src/pulse/volume.c:361
+#: ../src/pulse/volume.c:295 ../src/pulse/volume.c:321
+#: ../src/pulse/volume.c:341 ../src/pulse/volume.c:371
 msgid "(invalid)"
 msgstr "(некоректний)"
 
@@ -1266,52 +1282,52 @@ msgstr "не "
 msgid "Stream buffer attributes changed.%s"
 msgstr "Недовантаження потоку. %s"
 
-#: ../src/utils/pacat.c:416
+#: ../src/utils/pacat.c:415
 #, c-format
 msgid "Connection established.%s"
 msgstr "Встановлено з’єднання. %s"
 
-#: ../src/utils/pacat.c:419
+#: ../src/utils/pacat.c:418
 #, c-format
 msgid "pa_stream_new() failed: %s"
 msgstr "Спроба виконання pa_stream_new() зазнала невдачі: %s"
 
-#: ../src/utils/pacat.c:447
+#: ../src/utils/pacat.c:446
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s"
 msgstr "Спроба виконання pa_stream_connect_playback() зазнала невдачі: %s"
 
-#: ../src/utils/pacat.c:453
+#: ../src/utils/pacat.c:452
 #, c-format
 msgid "pa_stream_connect_record() failed: %s"
 msgstr "Спроба виконання pa_stream_connect_record() зазнала невдачі: %s"
 
-#: ../src/utils/pacat.c:467 ../src/utils/pactl.c:857
+#: ../src/utils/pacat.c:466 ../src/utils/pactl.c:857
 #, c-format
 msgid "Connection failure: %s"
 msgstr "Спроба встановлення з’єднання зазнала невдачі: %s"
 
-#: ../src/utils/pacat.c:500
+#: ../src/utils/pacat.c:499
 msgid "Got EOF."
 msgstr "Отримано EOF."
 
-#: ../src/utils/pacat.c:537
+#: ../src/utils/pacat.c:536
 #, c-format
 msgid "write() failed: %s"
 msgstr "Спроба виконання write() завершилася невдало: %s"
 
-#: ../src/utils/pacat.c:558
+#: ../src/utils/pacat.c:557
 msgid "Got signal, exiting."
 msgstr "Отримано сигнал, завершення роботи."
 
-#: ../src/utils/pacat.c:572
+#: ../src/utils/pacat.c:571
 #, c-format
 msgid "Failed to get latency: %s"
 msgstr "Не вдалося отримати латентність: %s"
 
-#: ../src/utils/pacat.c:577
-#, c-format
-msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
+#: ../src/utils/pacat.c:576
+#, fuzzy, c-format
+msgid "Time: %0.3f sec; Latency: %0.0f usec."
 msgstr "Час: %0.3f сек.; Латентність: %0.0f мкс.  \r"
 
 #: ../src/utils/pacat.c:595
@@ -1450,63 +1466,63 @@ msgstr ""
 msgid "Invalid client name '%s'"
 msgstr "Некоректна назва клієнта «%s»"
 
-#: ../src/utils/pacat.c:776
+#: ../src/utils/pacat.c:775
 #, c-format
 msgid "Invalid stream name '%s'"
 msgstr "Некоректна назва потоку «%s»"
 
-#: ../src/utils/pacat.c:813
+#: ../src/utils/pacat.c:812
 #, c-format
 msgid "Invalid channel map '%s'"
 msgstr "Некоректна карта каналів «%s»"
 
-#: ../src/utils/pacat.c:842
+#: ../src/utils/pacat.c:841
 #, c-format
 msgid "Invalid latency specification '%s'"
 msgstr "Некоректна специфікація латентності «%s»"
 
-#: ../src/utils/pacat.c:849
+#: ../src/utils/pacat.c:848
 #, c-format
 msgid "Invalid process time specification '%s'"
 msgstr "Некоректна часова специфікація «%s»"
 
-#: ../src/utils/pacat.c:861
+#: ../src/utils/pacat.c:860
 #, c-format
 msgid "Invalid property '%s'"
 msgstr "Некоректна властивість «%s»"
 
-#: ../src/utils/pacat.c:878
+#: ../src/utils/pacat.c:877
 #, c-format
 msgid "Unknown file format %s."
 msgstr "Невідомий формат файлів %s."
 
-#: ../src/utils/pacat.c:897
+#: ../src/utils/pacat.c:896
 msgid "Invalid sample specification"
 msgstr "Некоректна частотна специфікація"
 
-#: ../src/utils/pacat.c:907
+#: ../src/utils/pacat.c:906
 #, c-format
 msgid "open(): %s"
 msgstr "open(): %s"
 
-#: ../src/utils/pacat.c:912
+#: ../src/utils/pacat.c:911
 #, c-format
 msgid "dup2(): %s"
 msgstr "dup2(): %s"
 
-#: ../src/utils/pacat.c:919
+#: ../src/utils/pacat.c:918
 msgid "Too many arguments."
 msgstr "Забагато аргументів."
 
-#: ../src/utils/pacat.c:930
+#: ../src/utils/pacat.c:929
 msgid "Failed to generate sample specification for file."
 msgstr "Не вдалося створити частотну специфікацію для файла."
 
-#: ../src/utils/pacat.c:950
+#: ../src/utils/pacat.c:949
 msgid "Failed to open audio file."
 msgstr "Не вдалося відкрити звуковий файл."
 
-#: ../src/utils/pacat.c:956
+#: ../src/utils/pacat.c:955
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
@@ -1514,59 +1530,59 @@ msgstr ""
 "Попередження: вказану частотну специфікацію буде перезаписано специфікацією "
 "з файла."
 
-#: ../src/utils/pacat.c:959 ../src/utils/pactl.c:997
+#: ../src/utils/pacat.c:958 ../src/utils/pactl.c:997
 msgid "Failed to determine sample specification from file."
 msgstr "Не вдалося отримати дані щодо частотної специфікації з файла."
 
-#: ../src/utils/pacat.c:968
+#: ../src/utils/pacat.c:967
 msgid "Warning: Failed to determine channel map from file."
 msgstr "Попередження: не вдалося отримати дані щодо карти каналів з файла."
 
-#: ../src/utils/pacat.c:979
+#: ../src/utils/pacat.c:978
 msgid "Channel map doesn't match sample specification"
 msgstr "Карта каналів не відповідає частотній специфікації"
 
-#: ../src/utils/pacat.c:990
+#: ../src/utils/pacat.c:989
 msgid "Warning: failed to write channel map to file."
 msgstr "Попердження: не вдалося записати карту каналів до файла."
 
-#: ../src/utils/pacat.c:1005
+#: ../src/utils/pacat.c:1004
 #, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
 "Відкриття потоку %s з частотною специфікацією «%s» і картою каналів «%s»."
 
-#: ../src/utils/pacat.c:1006
+#: ../src/utils/pacat.c:1005
 msgid "recording"
 msgstr "запис"
 
-#: ../src/utils/pacat.c:1006
+#: ../src/utils/pacat.c:1005
 msgid "playback"
 msgstr "відтворення"
 
-#: ../src/utils/pacat.c:1032 ../src/utils/pactl.c:1267
+#: ../src/utils/pacat.c:1031 ../src/utils/pactl.c:1267
 msgid "pa_mainloop_new() failed."
 msgstr "Спроба виконання pa_mainloop_new() завершилася невдало."
 
-#: ../src/utils/pacat.c:1051
+#: ../src/utils/pacat.c:1050
 msgid "io_new() failed."
 msgstr "Спроба виконання io_new() завершилася невдало."
 
-#: ../src/utils/pacat.c:1058 ../src/utils/pactl.c:1279
+#: ../src/utils/pacat.c:1057 ../src/utils/pactl.c:1279
 msgid "pa_context_new() failed."
 msgstr "Спроба виконання pa_context_new() завершилася невдало."
 
-#: ../src/utils/pacat.c:1066 ../src/utils/pactl.c:1285
+#: ../src/utils/pacat.c:1065 ../src/utils/pactl.c:1285
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "Спроба виконання pa_context_connect() завершилася невдало: %s"
 
-#: ../src/utils/pacat.c:1072
+#: ../src/utils/pacat.c:1071
 msgid "pa_context_rttime_new() failed."
 msgstr "Спроба виконання pa_context_new() завершилася невдало."
 
-#: ../src/utils/pacat.c:1079 ../src/utils/pactl.c:1290
+#: ../src/utils/pacat.c:1078 ../src/utils/pactl.c:1290
 msgid "pa_mainloop_run() failed."
 msgstr "Спроба виконання pa_mainloop_run() завершилася невдало."
 
@@ -2339,7 +2355,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr "Не вдалося зняти блокування автоматичного розгалуження."
 
-#: ../src/modules/alsa/alsa-sink.c:531 ../src/modules/alsa/alsa-sink.c:689
+#: ../src/modules/alsa/alsa-sink.c:530 ../src/modules/alsa/alsa-sink.c:689
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2356,7 +2372,7 @@ msgstr ""
 "Службу було викликано зі встановленим POLLOUT, але наступний виклик "
 "snd_pcm_avail() повернув 0 або інше значення < min_avail."
 
-#: ../src/modules/alsa/alsa-source.c:508 ../src/modules/alsa/alsa-source.c:658
+#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2374,20 +2390,20 @@ msgstr ""
 "snd_pcm_avail() повернув 0 або інше значення < min_avail."
 
 #: ../src/modules/alsa/module-alsa-card.c:152
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2225
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2228
 msgid "Off"
 msgstr "Вимкнено"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2181
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2184
 msgid "High Fidelity Playback (A2DP)"
 msgstr "Високоточне відтворення (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2195
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2198
 #, fuzzy
 msgid "High Fidelity Capture (A2DP)"
 msgstr "Високоточне відтворення (A2DP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2210
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2213
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr "Телефонний дуплекс (HSP/HFP)"
 

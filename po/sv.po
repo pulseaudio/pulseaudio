@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-03 03:04+0200\n"
+"POT-Creation-Date: 2009-09-10 01:47+0200\n"
 "PO-Revision-Date: 2008-09-05 18:24+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -15,12 +15,12 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2629
+#: ../src/modules/alsa/alsa-util.c:858 ../src/pulsecore/sink.c:2629
 #, c-format
 msgid "%s %s"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1023
+#: ../src/modules/alsa/alsa-util.c:1106
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -29,7 +29,7 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1064
+#: ../src/modules/alsa/alsa-util.c:1147
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -38,13 +38,21 @@ msgid ""
 "to the ALSA developers."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1111
+#: ../src/modules/alsa/alsa-util.c:1194
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
 "(%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
+msgstr ""
+
+#: ../src/modules/module-always-sink.c:39
+msgid "Always keeps at least one sink loaded even if it's a null one"
+msgstr ""
+
+#: ../src/modules/module-always-sink.c:83
+msgid "Dummy Output"
 msgstr ""
 
 #: ../src/modules/module-ladspa-sink.c:49
@@ -58,6 +66,14 @@ msgid ""
 "channels=<number of channels> channel_map=<channel map> plugin=<ladspa "
 "plugin name> label=<ladspa plugin label> control=<comma seperated list of "
 "input control values>"
+msgstr ""
+
+#: ../src/modules/module-null-sink.c:55
+msgid "Clocked NULL sink"
+msgstr ""
+
+#: ../src/modules/module-null-sink.c:291
+msgid "Null Output"
 msgstr ""
 
 #: ../src/pulsecore/sink.c:2613
@@ -214,7 +230,7 @@ msgstr "pipe misslyckades: %s"
 msgid "fork() failed: %s"
 msgstr "fork() misslyckades: %s"
 
-#: ../src/daemon/main.c:641 ../src/utils/pacat.c:505
+#: ../src/daemon/main.c:641 ../src/utils/pacat.c:504
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() misslyckades: %s"
@@ -851,8 +867,8 @@ msgid "Top Rear Right"
 msgstr ""
 
 #: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
-#: ../src/pulse/volume.c:285 ../src/pulse/volume.c:311
-#: ../src/pulse/volume.c:331 ../src/pulse/volume.c:361
+#: ../src/pulse/volume.c:295 ../src/pulse/volume.c:321
+#: ../src/pulse/volume.c:341 ../src/pulse/volume.c:371
 #, fuzzy
 msgid "(invalid)"
 msgstr "Ogiltig"
@@ -1144,54 +1160,54 @@ msgstr "inte "
 msgid "Stream buffer attributes changed.%s"
 msgstr ""
 
-#: ../src/utils/pacat.c:416
+#: ../src/utils/pacat.c:415
 #, fuzzy, c-format
 msgid "Connection established.%s"
 msgstr "Anslutning etablerad.\n"
 
-#: ../src/utils/pacat.c:419
+#: ../src/utils/pacat.c:418
 #, fuzzy, c-format
 msgid "pa_stream_new() failed: %s"
 msgstr "pa_stream_new() misslyckades: %s\n"
 
-#: ../src/utils/pacat.c:447
+#: ../src/utils/pacat.c:446
 #, fuzzy, c-format
 msgid "pa_stream_connect_playback() failed: %s"
 msgstr "pa_stream_connect_playback() misslyckades: %s\n"
 
-#: ../src/utils/pacat.c:453
+#: ../src/utils/pacat.c:452
 #, fuzzy, c-format
 msgid "pa_stream_connect_record() failed: %s"
 msgstr "pa_stream_connect_record() misslyckades: %s\n"
 
-#: ../src/utils/pacat.c:467 ../src/utils/pactl.c:857
+#: ../src/utils/pacat.c:466 ../src/utils/pactl.c:857
 #, fuzzy, c-format
 msgid "Connection failure: %s"
 msgstr "Anslutningsfel: %s\n"
 
-#: ../src/utils/pacat.c:500
+#: ../src/utils/pacat.c:499
 #, fuzzy
 msgid "Got EOF."
 msgstr "Fick filslut.\n"
 
-#: ../src/utils/pacat.c:537
+#: ../src/utils/pacat.c:536
 #, fuzzy, c-format
 msgid "write() failed: %s"
 msgstr "write() misslyckades: %s\n"
 
-#: ../src/utils/pacat.c:558
+#: ../src/utils/pacat.c:557
 #, fuzzy
 msgid "Got signal, exiting."
 msgstr "Fick signal %s."
 
-#: ../src/utils/pacat.c:572
+#: ../src/utils/pacat.c:571
 #, fuzzy, c-format
 msgid "Failed to get latency: %s"
 msgstr "Misslyckades med att få statistik: %s\n"
 
-#: ../src/utils/pacat.c:577
-#, c-format
-msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
+#: ../src/utils/pacat.c:576
+#, fuzzy, c-format
+msgid "Time: %0.3f sec; Latency: %0.0f usec."
 msgstr "Tid: %0.3f sec; Latens: %0.0f ms  \r"
 
 #: ../src/utils/pacat.c:595
@@ -1272,130 +1288,130 @@ msgstr ""
 msgid "Invalid client name '%s'"
 msgstr "Ogiltig server"
 
-#: ../src/utils/pacat.c:776
+#: ../src/utils/pacat.c:775
 #, fuzzy, c-format
 msgid "Invalid stream name '%s'"
 msgstr "Ogiltig server"
 
-#: ../src/utils/pacat.c:813
+#: ../src/utils/pacat.c:812
 #, fuzzy, c-format
 msgid "Invalid channel map '%s'"
 msgstr "Ogiltig server"
 
-#: ../src/utils/pacat.c:842
+#: ../src/utils/pacat.c:841
 #, c-format
 msgid "Invalid latency specification '%s'"
 msgstr ""
 
-#: ../src/utils/pacat.c:849
+#: ../src/utils/pacat.c:848
 #, fuzzy, c-format
 msgid "Invalid process time specification '%s'"
 msgstr "Ogiltig server"
 
-#: ../src/utils/pacat.c:861
+#: ../src/utils/pacat.c:860
 #, fuzzy, c-format
 msgid "Invalid property '%s'"
 msgstr "Ogiltig server"
 
-#: ../src/utils/pacat.c:878
+#: ../src/utils/pacat.c:877
 #, c-format
 msgid "Unknown file format %s."
 msgstr ""
 
-#: ../src/utils/pacat.c:897
+#: ../src/utils/pacat.c:896
 #, fuzzy
 msgid "Invalid sample specification"
 msgstr "Misslyckades med att få modulinformation: %s\n"
 
-#: ../src/utils/pacat.c:907
+#: ../src/utils/pacat.c:906
 #, fuzzy, c-format
 msgid "open(): %s"
 msgstr "open(): %s\n"
 
-#: ../src/utils/pacat.c:912
+#: ../src/utils/pacat.c:911
 #, fuzzy, c-format
 msgid "dup2(): %s"
 msgstr "dup2(): %s\n"
 
-#: ../src/utils/pacat.c:919
+#: ../src/utils/pacat.c:918
 #, fuzzy
 msgid "Too many arguments."
 msgstr "För många argument.\n"
 
-#: ../src/utils/pacat.c:930
+#: ../src/utils/pacat.c:929
 #, fuzzy
 msgid "Failed to generate sample specification for file."
 msgstr "Misslyckades med att få modulinformation: %s\n"
 
-#: ../src/utils/pacat.c:950
+#: ../src/utils/pacat.c:949
 #, fuzzy
 msgid "Failed to open audio file."
 msgstr "Misslyckades med att öppna ljudfil.\n"
 
-#: ../src/utils/pacat.c:956
+#: ../src/utils/pacat.c:955
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
 msgstr ""
 
-#: ../src/utils/pacat.c:959 ../src/utils/pactl.c:997
+#: ../src/utils/pacat.c:958 ../src/utils/pactl.c:997
 #, fuzzy
 msgid "Failed to determine sample specification from file."
 msgstr "Misslyckades med att få modulinformation: %s\n"
 
-#: ../src/utils/pacat.c:968
+#: ../src/utils/pacat.c:967
 msgid "Warning: Failed to determine channel map from file."
 msgstr ""
 
-#: ../src/utils/pacat.c:979
+#: ../src/utils/pacat.c:978
 #, fuzzy
 msgid "Channel map doesn't match sample specification"
 msgstr "Misslyckades med att få modulinformation: %s\n"
 
-#: ../src/utils/pacat.c:990
+#: ../src/utils/pacat.c:989
 msgid "Warning: failed to write channel map to file."
 msgstr ""
 
-#: ../src/utils/pacat.c:1005
+#: ../src/utils/pacat.c:1004
 #, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
 
-#: ../src/utils/pacat.c:1006
+#: ../src/utils/pacat.c:1005
 msgid "recording"
 msgstr ""
 
-#: ../src/utils/pacat.c:1006
+#: ../src/utils/pacat.c:1005
 msgid "playback"
 msgstr ""
 
-#: ../src/utils/pacat.c:1032 ../src/utils/pactl.c:1267
+#: ../src/utils/pacat.c:1031 ../src/utils/pactl.c:1267
 #, fuzzy
 msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() misslyckades.\n"
 
-#: ../src/utils/pacat.c:1051
+#: ../src/utils/pacat.c:1050
 #, fuzzy
 msgid "io_new() failed."
 msgstr "io_new() misslyckades.\n"
 
-#: ../src/utils/pacat.c:1058 ../src/utils/pactl.c:1279
+#: ../src/utils/pacat.c:1057 ../src/utils/pactl.c:1279
 #, fuzzy
 msgid "pa_context_new() failed."
 msgstr "pa_context_new() misslyckades.\n"
 
-#: ../src/utils/pacat.c:1066 ../src/utils/pactl.c:1285
+#: ../src/utils/pacat.c:1065 ../src/utils/pactl.c:1285
 #, fuzzy, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_new() misslyckades.\n"
 
-#: ../src/utils/pacat.c:1072
+#: ../src/utils/pacat.c:1071
 #, fuzzy
 msgid "pa_context_rttime_new() failed."
 msgstr "pa_context_new() misslyckades.\n"
 
-#: ../src/utils/pacat.c:1079 ../src/utils/pactl.c:1290
+#: ../src/utils/pacat.c:1078 ../src/utils/pactl.c:1290
 #, fuzzy
 msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() misslyckades.\n"
@@ -1999,7 +2015,7 @@ msgstr "write(): %s"
 msgid "Cannot access autospawn lock."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-sink.c:531 ../src/modules/alsa/alsa-sink.c:689
+#: ../src/modules/alsa/alsa-sink.c:530 ../src/modules/alsa/alsa-sink.c:689
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2010,7 +2026,7 @@ msgid ""
 "returned 0 or another value < min_avail."
 msgstr ""
 
-#: ../src/modules/alsa/alsa-source.c:508 ../src/modules/alsa/alsa-source.c:658
+#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -2022,19 +2038,19 @@ msgid ""
 msgstr ""
 
 #: ../src/modules/alsa/module-alsa-card.c:152
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2225
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2228
 msgid "Off"
 msgstr ""
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2181
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2184
 msgid "High Fidelity Playback (A2DP)"
 msgstr ""
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2195
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2198
 msgid "High Fidelity Capture (A2DP)"
 msgstr ""
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2210
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2213
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr ""
 
