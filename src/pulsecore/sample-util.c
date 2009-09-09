@@ -1056,3 +1056,13 @@ void pa_memchunk_sine(pa_memchunk *c, pa_mempool *pool, unsigned rate, unsigned 
     calc_sine(p, c->length, freq * l / rate);
     pa_memblock_release(c->memblock);
 }
+
+size_t pa_convert_size(size_t size, const pa_sample_spec *from, const pa_sample_spec *to) {
+    pa_usec_t usec;
+
+    pa_assert(from);
+    pa_assert(to);
+
+    usec = pa_bytes_to_usec_round_up(size, from);
+    return pa_usec_to_bytes_round_up(usec, to);
+}
