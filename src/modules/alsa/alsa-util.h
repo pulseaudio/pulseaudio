@@ -42,8 +42,8 @@
 int pa_alsa_set_hw_params(
         snd_pcm_t *pcm_handle,
         pa_sample_spec *ss,                /* modified at return */
-        uint32_t *periods,                 /* modified at return */
         snd_pcm_uframes_t *period_size,    /* modified at return */
+        snd_pcm_uframes_t *buffer_size,    /* modified at return */
         snd_pcm_uframes_t tsched_size,
         pa_bool_t *use_mmap,               /* modified at return */
         pa_bool_t *use_tsched,             /* modified at return */
@@ -60,8 +60,8 @@ snd_pcm_t *pa_alsa_open_by_device_id_auto(
         pa_sample_spec *ss,               /* modified at return */
         pa_channel_map* map,              /* modified at return */
         int mode,
-        uint32_t *nfrags,                 /* modified at return */
         snd_pcm_uframes_t *period_size,   /* modified at return */
+        snd_pcm_uframes_t *buffer_size,   /* modified at return */
         snd_pcm_uframes_t tsched_size,
         pa_bool_t *use_mmap,              /* modified at return */
         pa_bool_t *use_tsched,            /* modified at return */
@@ -75,8 +75,8 @@ snd_pcm_t *pa_alsa_open_by_device_id_mapping(
         pa_sample_spec *ss,               /* modified at return */
         pa_channel_map* map,              /* modified at return */
         int mode,
-        uint32_t *nfrags,                 /* modified at return */
         snd_pcm_uframes_t *period_size,   /* modified at return */
+        snd_pcm_uframes_t *buffer_size,   /* modified at return */
         snd_pcm_uframes_t tsched_size,
         pa_bool_t *use_mmap,              /* modified at return */
         pa_bool_t *use_tsched,            /* modified at return */
@@ -89,8 +89,8 @@ snd_pcm_t *pa_alsa_open_by_device_string(
         pa_sample_spec *ss,               /* modified at return */
         pa_channel_map* map,              /* modified at return */
         int mode,
-        uint32_t *nfrags,                 /* modified at return */
         snd_pcm_uframes_t *period_size,   /* modified at return */
+        snd_pcm_uframes_t *buffer_size,   /* modified at return */
         snd_pcm_uframes_t tsched_size,
         pa_bool_t *use_mmap,              /* modified at return */
         pa_bool_t *use_tsched,            /* modified at return */
@@ -104,8 +104,8 @@ snd_pcm_t *pa_alsa_open_by_template(
         pa_sample_spec *ss,               /* modified at return */
         pa_channel_map* map,              /* modified at return */
         int mode,
-        uint32_t *nfrags,                 /* modified at return */
         snd_pcm_uframes_t *period_size,   /* modified at return */
+        snd_pcm_uframes_t *buffer_size,   /* modified at return */
         snd_pcm_uframes_t tsched_size,
         pa_bool_t *use_mmap,              /* modified at return */
         pa_bool_t *use_tsched,            /* modified at return */

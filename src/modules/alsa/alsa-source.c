@@ -111,8 +111,6 @@ struct userdata {
 
     pa_usec_t watermark_dec_not_before;
 
-    unsigned nfragments;
-
     char *device_name;
     char *control_device;
 
@@ -891,8 +889,7 @@ static int unsuspend(struct userdata *u) {
     pa_sample_spec ss;
     int err;
     pa_bool_t b, d;
-    unsigned nfrags;
-    snd_pcm_uframes_t period_size;
+    snd_pcm_uframes_t period_size, buffer_size;
 
     pa_assert(u);
     pa_assert(!u->pcm_handle);
@@ -909,12 +906,12 @@ static int unsuspend(struct userdata *u) {
     }
 
     ss = u->source->sample_spec;
-    nfrags = u->nfragments;
     period_size = u->fragment_size / u->frame_size;
+    buffer_size = u->hwbuf_size / u->frame_size;
     b = u->use_mmap;
     d = u->use_tsched;
 
-    if ((err = pa_alsa_set_hw_params(u->pcm_handle, &ss, &nfrags, &period_size, u->hwbuf_size / u->frame_size, &b, &d, TRUE)) < 0) {
+    if ((err = pa_alsa_set_hw_params(u->pcm_handle, &ss, &period_size, &buffer_size, 0, &b, &d, TRUE)) < 0) {
         pa_log("Failed to set hardware parameters: %s", pa_alsa_strerror(err));
         goto fail;
     }
@@ -929,10 +926,11 @@ static int unsuspend(struct userdata *u) {
         goto fail;
     }
 
-    if (nfrags != u->nfragments || period_size*u->frame_size != u->fragment_size) {
-        pa_log_warn("Resume failed, couldn't restore original fragment settings. (Old: %lu*%lu, New %lu*%lu)",
-                    (unsigned long) u->nfragments, (unsigned long) u->fragment_size,
-                    (unsigned long) nfrags, period_size * u->frame_size);
+    if (period_size*u->frame_size != u->fragment_size ||
+        buffer_size*u->frame_size != u->hwbuf_size) {
+        pa_log_warn("Resume failed, couldn't restore original fragment settings. (Old: %lu/%lu, New %lu/%lu)",
+                    (unsigned long) u->hwbuf_size, (unsigned long) u->fragment_size,
+                    (unsigned long) (buffer_size*u->fragment_size), (unsigned long) (period_size*u->frame_size));
         goto fail;
     }
 
@@ -1483,8 +1481,8 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     const char *dev_id = NULL;
     pa_sample_spec ss, requested_ss;
     pa_channel_map map;
-    uint32_t nfrags, frag_size, tsched_size, tsched_watermark;
-    snd_pcm_uframes_t period_frames, tsched_frames;
+    uint32_t nfrags, frag_size, buffer_size, tsched_size, tsched_watermark;
+    snd_pcm_uframes_t period_frames, buffer_frames, tsched_frames;
     size_t frame_size;
     pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE;
     pa_source_new_data data;
@@ -1518,7 +1516,10 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         goto fail;
     }
 
+    buffer_size = nfrags * frag_size;
+
     period_frames = frag_size/frame_size;
+    buffer_frames = buffer_size/frame_size;
     tsched_frames = tsched_size/frame_size;
 
     if (pa_modargs_get_value_boolean(ma, "mmap", &use_mmap) < 0) {
@@ -1584,7 +1585,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
                       &u->device_name,
                       &ss, &map,
                       SND_PCM_STREAM_CAPTURE,
-                      &nfrags, &period_frames, tsched_frames,
+                      &period_frames, &buffer_frames, tsched_frames,
                       &b, &d, mapping)))
             goto fail;
 
@@ -1598,7 +1599,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
                       &u->device_name,
                       &ss, &map,
                       SND_PCM_STREAM_CAPTURE,
-                      &nfrags, &period_frames, tsched_frames,
+                      &period_frames, &buffer_frames, tsched_frames,
                       &b, &d, profile_set, &mapping)))
             goto fail;
 
@@ -1609,7 +1610,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
                       &u->device_name,
                       &ss, &map,
                       SND_PCM_STREAM_CAPTURE,
-                      &nfrags, &period_frames, tsched_frames,
+                      &period_frames, &buffer_frames, tsched_frames,
                       &b, &d, FALSE)))
             goto fail;
     }
@@ -1661,7 +1662,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
 
     pa_alsa_init_proplist_pcm(m->core, data.proplist, u->pcm_handle);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_name);
-    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (period_frames * frame_size * nfrags));
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (buffer_frames * frame_size));
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%lu", (unsigned long) (period_frames * frame_size));
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_ACCESS_MODE, u->use_tsched ? "mmap+timer" : (u->use_mmap ? "mmap" : "serial"));
 
@@ -1702,13 +1703,15 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     pa_source_set_rtpoll(u->source, u->rtpoll);
 
     u->frame_size = frame_size;
-    u->fragment_size = frag_size = (uint32_t) (period_frames * frame_size);
-    u->nfragments = nfrags;
-    u->hwbuf_size = u->fragment_size * nfrags;
+    u->fragment_size = frag_size = (size_t) (period_frames * frame_size);
+    u->hwbuf_size = buffer_size = (size_t) (buffer_frames * frame_size);
     pa_cvolume_mute(&u->hardware_volume, u->source->sample_spec.channels);
 
-    pa_log_info("Using %u fragments of size %lu bytes, buffer time is %0.2fms",
-                nfrags, (long unsigned) u->fragment_size,
+    pa_log_info("Using %0.1f fragments of size %lu bytes (%0.2fms), buffer size is %lu bytes (%0.2fms)",
+                (double) u->hwbuf_size / (double) u->fragment_size,
+                (long unsigned) u->fragment_size,
+                (double) pa_bytes_to_usec(u->fragment_size, &ss) / PA_USEC_PER_MSEC,
+                (long unsigned) u->hwbuf_size,
                 (double) pa_bytes_to_usec(u->hwbuf_size, &ss) / PA_USEC_PER_MSEC);
 
     if (u->use_tsched) {
