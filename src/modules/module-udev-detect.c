@@ -29,10 +29,13 @@
 #include <sys/inotify.h>
 #include <libudev.h>
 
+#include <pulse/timeval.h>
+
 #include <pulsecore/modargs.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/namereg.h>
+#include <pulsecore/ratelimit.h>
 
 #include "module-udev-detect-symdef.h"
 
@@ -50,6 +53,7 @@ struct device {
     char *card_name;
     char *args;
     uint32_t module;
+    pa_ratelimit ratelimit;
 };
 
 struct userdata {
@@ -109,6 +113,9 @@ static pa_bool_t is_card_busy(const char *id) {
     int r;
 
     pa_assert(id);
+
+    /* This simply uses /proc/asound/card.../pcm.../sub.../status to
+     * check whether there is still a process using this audio device. */
 
     card_path = pa_sprintf_malloc("/proc/asound/card%s", id);
 
@@ -234,14 +241,41 @@ static void verify_access(struct userdata *u, struct device *d) {
             pa_log_debug("%s is busy: %s", d->path, pa_yes_no(busy));
 
             if (!busy) {
-                pa_log_debug("Loading module-alsa-card with arguments '%s'", d->args);
-                m = pa_module_load(u->core, "module-alsa-card", d->args);
 
-                if (m) {
-                    d->module = m->index;
-                    pa_log_info("Card %s (%s) module loaded.", d->path, d->card_name);
+                /* So, why do we rate limit here? It's certainly ugly,
+                 * but there seems to be no other way. Problem is
+                 * this: if we are unable to configure/probe an audio
+                 * device after opening it we will close it again and
+                 * the module initialization will fail. This will then
+                 * cause an inotify event on the device node which
+                 * will be forwarded to us. We then try to reopen the
+                 * audio device again, practically entering a busy
+                 * loop.
+                 *
+                 * A clean fix would be if we would be able to ignore
+                 * our own inotify close events. However, inotify
+                 * lacks such functionality. Also, during probing of
+                 * the device we cannot really distuingish between
+                 * other processes causing EBUSY or ourselves, which
+                 * means we have no way to figure out if the probing
+                 * during opening was canceled by a "try again"
+                 * failure or a "fatal" failure. */
+
+                if (pa_ratelimit_test(&d->ratelimit)) {
+                    pa_log_debug("Loading module-alsa-card with arguments '%s'", d->args);
+                    m = pa_module_load(u->core, "module-alsa-card", d->args);
+
+                    if (m) {
+                        d->module = m->index;
+                        pa_log_info("Card %s (%s) module loaded.", d->path, d->card_name);
+                    } else
+                        pa_log_info("Card %s (%s) failed to load module.", d->path, d->card_name);
                 } else
-                    pa_log_info("Card %s (%s) failed to load module.", d->path, d->card_name);
+                    pa_log_warn("Tried to configure %s (%s) more often than %u times in %llus",
+                                d->path,
+                                d->card_name,
+                                d->ratelimit.burst,
+                                (long long unsigned) (d->ratelimit.interval / PA_USEC_PER_SEC));
             }
         }
 
@@ -277,6 +311,7 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
     d = pa_xnew0(struct device, 1);
     d->path = pa_xstrdup(path);
     d->module = PA_INVALID_INDEX;
+    PA_INIT_RATELIMIT(d->ratelimit, 10*PA_USEC_PER_SEC, 5);
 
     if (!(t = udev_device_get_property_value(dev, "PULSE_NAME")))
         if (!(t = udev_device_get_property_value(dev, "ID_ID")))
