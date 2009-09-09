@@ -302,15 +302,16 @@ static void run_test (void) {
 
 void pa_volume_func_init_sse (pa_cpu_x86_flag_t flags) {
 #if defined (__i386__) || defined (__amd64__)
-    pa_log_info("Initialising SSE optimized functions.");
 
 #ifdef RUN_TEST
     run_test ();
 #endif
 
     if (flags & PA_CPU_X86_SSE2) {
-      pa_set_volume_func (PA_SAMPLE_S16NE,     (pa_do_volume_func_t) pa_volume_s16ne_sse2);
-      pa_set_volume_func (PA_SAMPLE_S16RE,     (pa_do_volume_func_t) pa_volume_s16re_sse2);
+        pa_log_info("Initialising SSE2 optimized functions.");
+
+        pa_set_volume_func (PA_SAMPLE_S16NE, (pa_do_volume_func_t) pa_volume_s16ne_sse2);
+        pa_set_volume_func (PA_SAMPLE_S16RE, (pa_do_volume_func_t) pa_volume_s16re_sse2);
     }
 #endif /* defined (__i386__) || defined (__amd64__) */
 }

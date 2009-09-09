@@ -149,9 +149,11 @@ static void init_remap_sse2 (pa_remap_t *m) {
 
 void pa_remap_func_init_sse (pa_cpu_x86_flag_t flags) {
 #if defined (__i386__) || defined (__amd64__)
-    pa_log_info("Initialising SSE optimized remappers.");
 
-    if (flags & PA_CPU_X86_SSE2)
-      pa_set_init_remap_func ((pa_init_remap_func_t) init_remap_sse2);
+    if (flags & PA_CPU_X86_SSE2) {
+        pa_log_info("Initialising SSE2 optimized remappers.");
+        pa_set_init_remap_func ((pa_init_remap_func_t) init_remap_sse2);
+    }
+
 #endif /* defined (__i386__) || defined (__amd64__) */
 }

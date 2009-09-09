@@ -150,8 +150,12 @@ static void init_remap_mmx (pa_remap_t *m) {
 
 void pa_remap_func_init_mmx (pa_cpu_x86_flag_t flags) {
 #if defined (__i386__) || defined (__amd64__)
-    pa_log_info("Initialising MMX optimized remappers.");
 
-    pa_set_init_remap_func ((pa_init_remap_func_t) init_remap_mmx);
+    if (flags & PA_CPU_X86_MMX) {
+        pa_log_info("Initialising MMX optimized remappers.");
+
+        pa_set_init_remap_func ((pa_init_remap_func_t) init_remap_mmx);
+    }
+
 #endif /* defined (__i386__) || defined (__amd64__) */
 }

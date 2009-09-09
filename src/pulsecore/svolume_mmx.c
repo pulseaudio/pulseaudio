@@ -301,13 +301,16 @@ static void run_test (void) {
 
 void pa_volume_func_init_mmx (pa_cpu_x86_flag_t flags) {
 #if defined (__i386__) || defined (__amd64__)
-    pa_log_info("Initialising MMX optimized functions.");
 
 #ifdef RUN_TEST
     run_test ();
 #endif
 
-    pa_set_volume_func (PA_SAMPLE_S16NE,     (pa_do_volume_func_t) pa_volume_s16ne_mmx);
-    pa_set_volume_func (PA_SAMPLE_S16RE,     (pa_do_volume_func_t) pa_volume_s16re_mmx);
+    if (flags & PA_CPU_X86_MMX) {
+        pa_log_info("Initialising MMX optimized functions.");
+
+        pa_set_volume_func (PA_SAMPLE_S16NE, (pa_do_volume_func_t) pa_volume_s16ne_mmx);
+        pa_set_volume_func (PA_SAMPLE_S16RE, (pa_do_volume_func_t) pa_volume_s16re_mmx);
+    }
 #endif /* defined (__i386__) || defined (__amd64__) */
 }

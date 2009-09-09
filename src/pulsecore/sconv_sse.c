@@ -218,16 +218,18 @@ static void run_test (void) {
 
 void pa_convert_func_init_sse (pa_cpu_x86_flag_t flags) {
 #if defined (__i386__) || defined (__amd64__)
-    pa_log_info("Initialising SSE optimized conversions.");
 
 #ifdef RUN_TEST
     run_test ();
 #endif
 
-    if (flags & PA_CPU_X86_SSE2)
-      pa_set_convert_from_float32ne_function (PA_SAMPLE_S16LE, (pa_convert_func_t) pa_sconv_s16le_from_f32ne_sse2);
-    else
-      pa_set_convert_from_float32ne_function (PA_SAMPLE_S16LE, (pa_convert_func_t) pa_sconv_s16le_from_f32ne_sse);
+    if (flags & PA_CPU_X86_SSE2) {
+        pa_log_info("Initialising SSE2 optimized conversions.");
+        pa_set_convert_from_float32ne_function (PA_SAMPLE_S16LE, (pa_convert_func_t) pa_sconv_s16le_from_f32ne_sse2);
+    } else {
+        pa_log_info("Initialising SSE optimized conversions.");
+        pa_set_convert_from_float32ne_function (PA_SAMPLE_S16LE, (pa_convert_func_t) pa_sconv_s16le_from_f32ne_sse);
+    }
 
 #endif /* defined (__i386__) || defined (__amd64__) */
 }
