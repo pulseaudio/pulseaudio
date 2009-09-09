@@ -1,23 +1,22 @@
 # Serbian(Latin) translations for pulseaudio
 # Copyright (C) 2006 Lennart Poettering
 # This file is distributed under the same license as the pulseaudio package.
-#
-# Miloš Komarčević <kmilos@gmail.com>, 2009.
 # Igor Miletic (Igor Miletić) <grejigl-gnomeprevod@yahoo.ca>, 2009.
+# Miloš Komarčević <kmilos@gmail.com>, 2009.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-08 14:53+0000\n"
-"PO-Revision-Date: 2009-09-09 12:28-0400\n"
-"Last-Translator: Igor Miletic (Igor Miletić) <grejigl-gnomeprevod@yahoo.ca>\n"
-"Language-Team: Serbian <fedora-trans-sr@redhat.com>\n"
+"POT-Creation-Date: 2009-09-09 08:47+0000\n"
+"PO-Revision-Date: 2009-09-09 21:33+0100\n"
+"Last-Translator: Miloš Komarčević <kmilos@gmail.com>\n"
+"Language-Team: Serbian (sr) <fedora-trans-sr@redhat.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
 "10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Lokalize 0.3\n"
 
 #: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2629
 #, c-format
@@ -75,11 +74,11 @@ msgid ""
 "plugin name> label=<ladspa plugin label> control=<comma seperated list of "
 "input control values>"
 msgstr ""
-"sink_name=<ime slivnika> sink_properties=<osobine slivnika> master=<ime "
-"slivnika koji će se filtrirati> format=<format uzorka> rate=<učestalost "
-"uzorka> channels=<broj kanala> channel_map=<mapa kanala> plugin=<ime ladspa "
-"priključka> label=<zonaka ladspa priključka> control=<zarezom odvojen spisak "
-"ulaznih kontrolnih vrednosti>"
+"sink_name=<ime slivnika> sink_properties=<svojstva slivnika> master=<ime "
+"slivnika za filtriranje> format=<format uzorka> rate=<učestanost "
+"diskretizacije> channels=<broj kanala> channel_map=<mapa kanala> plugin=<ime "
+"ladspa dodatka> label=<oznaka ladspa dodatka> control=<spisak ulaznih "
+"kontrolnih vrednosti razdvojenih zarezom>"
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -339,7 +338,7 @@ msgstr "Koristi se %s direktorijum stanja."
 #: ../src/daemon/main.c:782
 #, c-format
 msgid "Using modules directory %s."
-msgstr "Koristi se %s izvršni direktorijum."
+msgstr "Koristi se %s direktorijum modula."
 
 #: ../src/daemon/main.c:784
 #, c-format
@@ -355,11 +354,12 @@ msgid ""
 "Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an "
 "explanation why system mode is usually a bad idea."
 msgstr ""
-"Pokrenuliste PA u sistemskom režimu. Naznačavamo Vam da to najverovatnije ne "
-"treba da radite.\n"
-"Ako ipak uradite to, onda je Vaša krivica ako sve neradi na očekivan način. "
-"Pročitajte http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode za "
-"objašnjenje zašto je sustemski režim obično loša ideja."
+"U redu, znači izvršavate PA u sistemskom režimu. Primite k znanju da to "
+"verovatno ne bi trebalo da radite.\n"
+"Ako to svejedno činite onda je vaša krivica ako stvari ne rade onako kako se "
+"očekuje.\n"
+"Pročitajte http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode radi "
+"objašnjenja zašto je sistemski režim obično loša ideja."
 
 #: ../src/daemon/main.c:804
 msgid "pa_pid_file_create() failed."
@@ -474,14 +474,14 @@ msgid ""
 "\n"
 "  -n                                    Don't load default script file\n"
 msgstr ""
-"%s [options]\n"
+"%s [opcije]\n"
 "\n"
 "NAREDBE:\n"
 "  -h, --help                            Prikaži ovu pomoć\n"
 "      --version                         Prikaži verziju\n"
-"      --dump-conf                       Izlistaj podrazumevana podešavanja\n"
-"      --dump-modules                    Izlistaj spisak dostupnih modula\n"
-"      --dump-resample-methods           Izlistaj dostupne vrednosti "
+"      --dump-conf                       Ispiši podrazumevana podešavanja\n"
+"      --dump-modules                    Ispiši spisak dostupnih modula\n"
+"      --dump-resample-methods           Ispiši dostupne vrednosti "
 "diskretizacije\n"
 "      --cleanup-shm                     Očisti bajate delove deljene "
 "memorije\n"
@@ -527,7 +527,7 @@ msgstr ""
 "      --log-backtrace=FRAMES            Uključi tragove u porukama dnevnika\n"
 "  -p, --dl-search-path=PUTANJA           Postavi putanju pretrage za "
 "dinamički deljene\n"
-"                                        objekte (dodatci)\n"
+"                                        objekte (dodaci)\n"
 "      --resample-method=NAČIN           Koristi navedeni način "
 "diskretizacije\n"
 "                                        (Pogledaj --dump-resample-methods "
@@ -554,39 +554,39 @@ msgstr ""
 
 #: ../src/daemon/cmdline.c:247
 msgid "--daemonize expects boolean argument"
-msgstr "--daemonize očekuje logičku vrednost"
+msgstr "--daemonize očekuje logički argument"
 
 #: ../src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
-msgstr "--fail očekuje logičku vrednost"
+msgstr "--fail očekuje logički argument"
 
 #: ../src/daemon/cmdline.c:264
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
 msgstr ""
-"--log-level očekuje parametar za nivo opširnosti (numerička vrednost između "
-"0 i 4 ili jedno od: debug, info, notice, warn, error)."
+"--log-level očekuje argument za nivo zapisa (ili numerička vrednost u opsegu "
+"0..4 ili jedno od debug, info, notice, warn, error)."
 
 #: ../src/daemon/cmdline.c:276
 msgid "--high-priority expects boolean argument"
-msgstr "--high-priority očekuje logičku vrednost"
+msgstr "--high-priority očekuje logički argument"
 
 #: ../src/daemon/cmdline.c:283
 msgid "--realtime expects boolean argument"
-msgstr "--realtime očekuje logičku vrednost"
+msgstr "--realtime očekuje logički argument"
 
 #: ../src/daemon/cmdline.c:290
 msgid "--disallow-module-loading expects boolean argument"
-msgstr "--disallow-module-loading očekuje logičku vrednost"
+msgstr "--disallow-module-loading očekuje logički argument"
 
 #: ../src/daemon/cmdline.c:297
 msgid "--disallow-exit expects boolean argument"
-msgstr "--disallow-exit očekuje logičku vrednost"
+msgstr "--disallow-exit očekuje logički argument"
 
 #: ../src/daemon/cmdline.c:304
 msgid "--use-pid-file expects boolean argument"
-msgstr "--use-pid-file očekuje logičku vrednost"
+msgstr "--use-pid-file očekuje logički argument"
 
 #: ../src/daemon/cmdline.c:321
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
@@ -595,11 +595,11 @@ msgstr ""
 
 #: ../src/daemon/cmdline.c:328
 msgid "--log-time expects boolean argument"
-msgstr "--log-time očekuje logičku vrednost"
+msgstr "--log-time očekuje logički argument"
 
 #: ../src/daemon/cmdline.c:335
 msgid "--log-meta expects boolean argument"
-msgstr "--log-meta očekuje logičku vrednost"
+msgstr "--log-meta očekuje logički argument"
 
 #: ../src/daemon/cmdline.c:354
 #, c-format
@@ -608,15 +608,15 @@ msgstr "Neispravan način diskretizacije „%s“."
 
 #: ../src/daemon/cmdline.c:361
 msgid "--system expects boolean argument"
-msgstr "--system očekuje logičku vrednost"
+msgstr "--system očekuje logički argument"
 
 #: ../src/daemon/cmdline.c:368
 msgid "--no-cpu-limit expects boolean argument"
-msgstr "--no-cpu-limit očekuje logičku vrednost"
+msgstr "--no-cpu-limit očekuje logički argument"
 
 #: ../src/daemon/cmdline.c:375
 msgid "--disable-shm expects boolean argument"
-msgstr "--disable-shm očekuje logičku vrednost"
+msgstr "--disable-shm očekuje logički argument"
 
 #: ../src/daemon/dumpmodules.c:60
 #, c-format
@@ -656,7 +656,7 @@ msgstr "Učitaj jednom: %s\n"
 #: ../src/daemon/dumpmodules.c:75
 #, c-format
 msgid "DEPRECATION WARNING: %s\n"
-msgstr "UPOZORENJE O PREVAZIĐENOSTI: %s\n"
+msgstr "UPOZORENJE O PREVAZILAŽENJU: %s\n"
 
 #: ../src/daemon/dumpmodules.c:79
 #, c-format
@@ -1001,7 +1001,7 @@ msgstr "Nepoznata naredba"
 
 #: ../src/pulse/error.c:46
 msgid "Invalid argument"
-msgstr "Neispravan parametar"
+msgstr "Neispravan argument"
 
 #: ../src/pulse/error.c:47
 msgid "Entity exists"
@@ -1025,7 +1025,7 @@ msgstr "Vreme isteklo"
 
 #: ../src/pulse/error.c:52
 msgid "No authorization key"
-msgstr "Nema ključa za autorizaciju"
+msgstr "Nema ključa za ovlašćenje"
 
 #: ../src/pulse/error.c:53
 msgid "Internal error"
@@ -1073,7 +1073,7 @@ msgstr "Kȏd greške je nepoznat"
 
 #: ../src/pulse/error.c:64
 msgid "No such extension"
-msgstr "Ne postoji takva ekstenzija"
+msgstr "Ne postoji takvo proširenje"
 
 #: ../src/pulse/error.c:65
 msgid "Obsolete functionality"
@@ -1085,7 +1085,7 @@ msgstr "Nije odrađeno"
 
 #: ../src/pulse/error.c:67
 msgid "Client forked"
-msgstr "Klijent izračvan"
+msgstr "Klijent je izračvan"
 
 #: ../src/pulse/sample.c:172
 #, c-format
@@ -1151,7 +1151,7 @@ msgstr "Neuspešno isušivanje toka: %s"
 
 #: ../src/utils/pacat.c:113
 msgid "Playback stream drained."
-msgstr "Reprodukcioni tok isušen."
+msgstr "Reprodukcioni tok je isušen."
 
 #: ../src/utils/pacat.c:123
 msgid "Draining connection to server."
@@ -1179,12 +1179,12 @@ msgstr "Neuspela funkcija pa_stream_peek(): %s"
 
 #: ../src/utils/pacat.c:307
 msgid "Stream successfully created."
-msgstr "Tok uspešno napravljen."
+msgstr "Tok je uspešno napravljen."
 
 #: ../src/utils/pacat.c:310
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s"
-msgstr "Neuspešno pa_stream_get_buffer_attr(): %s"
+msgstr "Neuspela funkcija pa_stream_get_buffer_attr(): %s"
 
 #: ../src/utils/pacat.c:314
 #, c-format
@@ -1224,7 +1224,7 @@ msgstr "Uređaj toka nastavljen.%s"
 #: ../src/utils/pacat.c:355
 #, c-format
 msgid "Stream underrun.%s"
-msgstr "Tok nije popunjen. %s"
+msgstr "Tok nije popunjen.%s"
 
 #: ../src/utils/pacat.c:362
 #, c-format
@@ -1234,12 +1234,12 @@ msgstr "Tok se preliva.%s"
 #: ../src/utils/pacat.c:369
 #, c-format
 msgid "Stream started.%s"
-msgstr "Tok pokrenut. %s"
+msgstr "Tok je pokrenut.%s"
 
 #: ../src/utils/pacat.c:376
 #, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s"
-msgstr "Tok prebačen na uređaj %s (%u, %s obustavljeno). %s"
+msgstr "Tok prebačen na uređaj %s (%u, %s obustavljeno).%s"
 
 #: ../src/utils/pacat.c:376
 msgid "not "
@@ -1248,7 +1248,7 @@ msgstr "nije"
 #: ../src/utils/pacat.c:383
 #, c-format
 msgid "Stream buffer attributes changed.%s"
-msgstr "Parametri bafera toka su promenjeni. %s"
+msgstr "Parametri bafera toka su promenjeni.%s"
 
 #: ../src/utils/pacat.c:416
 #, c-format
@@ -1258,17 +1258,17 @@ msgstr "Veza uspostavljena.%s"
 #: ../src/utils/pacat.c:419
 #, c-format
 msgid "pa_stream_new() failed: %s"
-msgstr "Neuspelo pa_stream_new() : %s"
+msgstr "Neuspela funkcija pa_stream_new(): %s"
 
 #: ../src/utils/pacat.c:447
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s"
-msgstr "Neuspelo pa_stream_connect_playback(): %s"
+msgstr "Neuspela funkcija pa_stream_connect_playback(): %s"
 
 #: ../src/utils/pacat.c:453
 #, c-format
 msgid "pa_stream_connect_record() failed: %s"
-msgstr "Neuspelo pa_stream_connect_record(): %s"
+msgstr "Neuspela funkcija pa_stream_connect_record(): %s"
 
 #: ../src/utils/pacat.c:467 ../src/utils/pactl.c:857
 #, c-format
@@ -1277,31 +1277,31 @@ msgstr "Neuspešno povezivanje: %s"
 
 #: ../src/utils/pacat.c:500
 msgid "Got EOF."
-msgstr "Dobio EOF."
+msgstr "Dobih EOF."
 
 #: ../src/utils/pacat.c:537
 #, c-format
 msgid "write() failed: %s"
-msgstr "Neuspelo write(): %s"
+msgstr "Neuspela funkcija write(): %s"
 
 #: ../src/utils/pacat.c:558
 msgid "Got signal, exiting."
-msgstr "Dobio signal, izlazim."
+msgstr "Dobih signal, izlazim."
 
 #: ../src/utils/pacat.c:572
 #, c-format
 msgid "Failed to get latency: %s"
-msgstr "Nemogu dobiti vrednost kašnjenja: %s"
+msgstr "Ne mogu dobiti vrednost kašnjenja: %s"
 
 #: ../src/utils/pacat.c:577
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
-msgstr "Vreme: %0.3f s. Kašnjenje: %0.0f μs.  \r"
+msgstr "Vreme: %0.3f s; Kašnjenje: %0.0f μs.  \r"
 
 #: ../src/utils/pacat.c:595
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
-msgstr "Neuspelo pa_stream_update_timing_info(): %s"
+msgstr "Neuspela funkcija pa_stream_update_timing_info(): %s"
 
 #: ../src/utils/pacat.c:605
 #, c-format
@@ -1372,47 +1372,52 @@ msgstr ""
 "\n"
 "  -v, --verbose                         Omogući opširan opis radnje\n"
 "\n"
-"  -s, --server=SERVER                   Naziv servera sa kojim će se "
+"  -s, --server=SERVER                   Ime servera na koji se treba "
 "povezati\n"
-"  -d, --device=UREĐAJ                   Naziv slivnika/izvora na koji će se "
-"povezati\n"
+"  -d, --device=UREĐAJ                   Naziv slivnika/izvora na koji se "
+"treba povezati\n"
 "  -n, --client-name=IME                 Kako nazvati ovog klijenta na "
 "serveru\n"
 "      --stream-name=IME                 Kako nazvati ovaj tok na serveru\n"
-"      --volume=GLASNOST                 Navedi početnu jačinu zvuka između "
-"0...65536 (linearna skala)\n"
-"      --rate=UČESTANOST                 Učestanost diskretizacije u hercima "
+"      --volume=JAČINA                   Navedi početnu (linearnu) jačinu "
+"zvuka u opsegu 0...65536\n"
+"      --rate=UČESTANOST                 Učestanost diskretizacije u Hz "
 "(podrazumevana 44100)\n"
-"      --format=FORMATUZORKA            Format uzorka, jedno od s16le, s16be, "
+"      --format=FORMATUZORKA             Vrsta uzorka, jedna od s16le, s16be, "
 "u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be "
-"(podrazumevano s16ne)\n"
-"      --channels=BROJKANALA             Broj kanala, 1 za mono, 2 za stereo\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, "
+"s24le, s24be,\n"
+"                                        s24-32le, s24-32be (podrazumevano "
+"s16ne)\n"
+"      --channels=KANALI                 Broj kanala, 1 za mono, 2 za stereo\n"
 "                                        (podrazumevano 2)\n"
 "      --channel-map=MAPAKANALA          Mapu kanala koju treba koristiti "
 "umesto podrazumevane\n"
-"      --fix-format                      Preuzmi format uzorka iz slivnika\n"
-"                                        na koji je tok priključen.\n"
+"      --fix-format                      Preuzmi format uzorka iz slivnika na "
+"koji se tok\n"
+"                                        priključuje.\n"
 "      --fix-rate                        Preuzmi učestanost diskretizacije iz "
-"odliva \n"
-"                                        na koji je tok priključen.\n"
+"odliva na koji\n"
+"                                        se tok priključuje.\n"
 "      --fix-channels                    Preuzmi broj i mapu kanala iz "
-"slivnika na\n"
-"                                        koji je tok priključen.\n"
-"      --no-remix                        Bez sažimanja ili raširivanja broja "
+"slivnika na koji se\n"
+"                                        tok priključuje.\n"
+"      --no-remix                        Bez stapanja ili razdvajanja "
 "kanala.\n"
-"      --no-remap                        Naznači kanale po indeksu umesto po "
+"      --no-remap                        Mapiraj kanale po indeksu umesto po "
 "nazivu.\n"
 "      --latency=BAJTOVA                 Traži navedeno kašnjenje u "
 "bajtovima.\n"
 "      --process-time=BAJTOVA            Traži navedeno vreme procesa po "
 "zahtevu u bajtovima.\n"
-"      --property=OSOBINA=VREDNOST      Daj navedenoj osobini navedenu "
-"vrednost.\n"
-"      --raw                             Snimi/pusti neobrađene PCM podatke.\n"
-"      --file-format=FFORMAT             Snimi/pusti PCM podatke u navedenom "
-"formatu.\n"
-"      --list-file-formats               Ispiši sve dostupne formate.\n"
+"      --property=SVOJSTVO=VREDNOST      Postavi navedeno svojstvo na "
+"navedenu vrednost.\n"
+"      --raw                             Snimaj/reprodukuj sirove PCM "
+"podatke.\n"
+"      --file-format=FORMAT              Snimaj/reprodukuj formatirane PCM "
+"podatke.\n"
+"      --list-file-formats               Ispiši sve dostupne formate "
+"podataka.\n"
 
 #: ../src/utils/pacat.c:727
 #, c-format
@@ -1433,7 +1438,7 @@ msgstr "Neispravno ime klijenta „%s“"
 #: ../src/utils/pacat.c:776
 #, c-format
 msgid "Invalid stream name '%s'"
-msgstr "Neispravao ime toka „%s“"
+msgstr "Neispravno ime toka „%s“"
 
 #: ../src/utils/pacat.c:813
 #, c-format
@@ -1448,17 +1453,17 @@ msgstr "Neispravan parametar kašnjenja „%s“"
 #: ../src/utils/pacat.c:849
 #, c-format
 msgid "Invalid process time specification '%s'"
-msgstr "Neispravan parametar „vreme procesa“ „%s“"
+msgstr "Neispravan parametar za vreme procesa „%s“"
 
 #: ../src/utils/pacat.c:861
 #, c-format
 msgid "Invalid property '%s'"
-msgstr "Neispravan parametar „%s“"
+msgstr "Neispravno svojstvo „%s“"
 
 #: ../src/utils/pacat.c:878
 #, c-format
 msgid "Unknown file format %s."
-msgstr "Nepoznat format datoteke %s."
+msgstr "Nepoznat %s format datoteke."
 
 #: ../src/utils/pacat.c:897
 msgid "Invalid sample specification"
@@ -1476,7 +1481,7 @@ msgstr "dup2(): %s"
 
 #: ../src/utils/pacat.c:919
 msgid "Too many arguments."
-msgstr "Previše parametara."
+msgstr "Previše argumenata."
 
 #: ../src/utils/pacat.c:930
 msgid "Failed to generate sample specification for file."
@@ -1484,14 +1489,14 @@ msgstr "Nije uspelo pravljenje parametara uzorka za datoteku."
 
 #: ../src/utils/pacat.c:950
 msgid "Failed to open audio file."
-msgstr "Neuspešno otvaranje zvučne datoteke."
+msgstr "Nije uspelo otvaranje zvučne datoteke."
 
 #: ../src/utils/pacat.c:956
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
 msgstr ""
-"Upozorenje: navedeni parametri uzorka će biti prepisani sa parametrima iz "
+"Upozorenje: navedeni parametri uzorka će biti prebrisani parametrima iz "
 "datoteke."
 
 #: ../src/utils/pacat.c:959 ../src/utils/pactl.c:997
@@ -1514,8 +1519,7 @@ msgstr "Upozorenje: Neuspešno zapisivanje mape kanala u datoteku."
 #, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
-msgstr ""
-"Otvaram tok %s sa sledećim parametrima uzorka „%s“ i mapom kanala „%s“."
+msgstr "Otvaram tok %s sa parametrima uzorka „%s“ i mapom kanala „%s“."
 
 #: ../src/utils/pacat.c:1006
 msgid "recording"
@@ -1531,7 +1535,7 @@ msgstr "Neuspela funkcija pa_mainloop_new()."
 
 #: ../src/utils/pacat.c:1051
 msgid "io_new() failed."
-msgstr "Neuspela funkcija io_new() "
+msgstr "Neuspela funkcija io_new()."
 
 #: ../src/utils/pacat.c:1058 ../src/utils/pactl.c:1279
 msgid "pa_context_new() failed."
@@ -1544,7 +1548,7 @@ msgstr "Neuspela funkcija pa_context_connect(): %s"
 
 #: ../src/utils/pacat.c:1072
 msgid "pa_context_rttime_new() failed."
-msgstr "Neuspela funkcija pa_context_rttime_new()."
+msgstr "Neuspela funkcija pa_context_new()."
 
 #: ../src/utils/pacat.c:1079 ../src/utils/pactl.c:1290
 msgid "pa_mainloop_run() failed."
@@ -1605,7 +1609,8 @@ msgstr ""
 "\n"
 "  -h, --help                            Prikaži ovu pomoć\n"
 "      --version                         Prikaži verziju\n"
-"  -s, --server=SERVER                   Ime servera sa kojim se povezuje\n"
+"  -s, --server=SERVER                   Ime servera na koji se treba "
+"povezati\n"
 "\n"
 
 #: ../src/utils/pasuspender.c:248
@@ -1657,7 +1662,7 @@ msgstr "Veličina keš memorije uzorka: %s\n"
 #: ../src/utils/pactl.c:156
 #, c-format
 msgid "Failed to get server information: %s"
-msgstr "Neuspešno dobijanje podataka o serveru: %s"
+msgstr "Neuspešno dobavljanje podataka o serveru: %s"
 
 #: ../src/utils/pactl.c:164
 #, c-format
@@ -1685,7 +1690,7 @@ msgstr ""
 #: ../src/utils/pactl.c:205
 #, c-format
 msgid "Failed to get sink information: %s"
-msgstr "Neuspešno dobijanje podataka o slivniku: %s"
+msgstr "Neuspešno dobavljanje podataka o slivniku: %s"
 
 #: ../src/utils/pactl.c:221
 #, c-format
@@ -1739,7 +1744,7 @@ msgstr "\tAktivni port: %s\n"
 #: ../src/utils/pactl.c:297
 #, c-format
 msgid "Failed to get source information: %s"
-msgstr "Nije uspelo dobavljanje podataka o izvoru: %s"
+msgstr "Neuspešno dobavljanje podataka o izvoru: %s"
 
 #: ../src/utils/pactl.c:313
 #, c-format
@@ -1791,7 +1796,7 @@ msgstr "nepoznato"
 #: ../src/utils/pactl.c:375
 #, c-format
 msgid "Failed to get module information: %s"
-msgstr "Neuspešno dobijanje podataka o modulu: %s"
+msgstr "Neuspešno dobavljanje podataka o modulu: %s"
 
 #: ../src/utils/pactl.c:393
 #, c-format
@@ -1805,7 +1810,7 @@ msgid ""
 msgstr ""
 "Modul #%u\n"
 "\tIme: %s\n"
-"\tParametar: %s\n"
+"\tArgument: %s\n"
 "\tBrojač korišćenja: %s\n"
 "\tSvojstva:\n"
 "\t\t%s\n"
@@ -1813,7 +1818,7 @@ msgstr ""
 #: ../src/utils/pactl.c:412
 #, c-format
 msgid "Failed to get client information: %s"
-msgstr "Neuspešno dobijanje podataka o klijentu: %s"
+msgstr "Neuspešno dobavljanje podataka o klijentu: %s"
 
 #: ../src/utils/pactl.c:430
 #, c-format
@@ -1833,7 +1838,7 @@ msgstr ""
 #: ../src/utils/pactl.c:447
 #, c-format
 msgid "Failed to get card information: %s"
-msgstr "Neuspešno dobijanje podataka o kartici: %s"
+msgstr "Neuspešno dobavljanje podataka o kartici: %s"
 
 #: ../src/utils/pactl.c:465
 #, c-format
@@ -1865,7 +1870,7 @@ msgstr "\tAktivni profil: %s\n"
 #: ../src/utils/pactl.c:496
 #, c-format
 msgid "Failed to get sink input information: %s"
-msgstr "Neuspešno dobijanje podataka o ulazu slivnika: %s"
+msgstr "Neuspešno dobavljanje podataka o ulazu slivnika: %s"
 
 #: ../src/utils/pactl.c:515
 #, c-format
@@ -1907,7 +1912,7 @@ msgstr ""
 #: ../src/utils/pactl.c:554
 #, c-format
 msgid "Failed to get source output information: %s"
-msgstr "Neuspešno dobijanje podataka o izlazu izvora: %s"
+msgstr "Neuspešno dobavljanje podataka o izlazu izvora: %s"
 
 #: ../src/utils/pactl.c:574
 #, c-format
@@ -1941,7 +1946,7 @@ msgstr ""
 #: ../src/utils/pactl.c:605
 #, c-format
 msgid "Failed to get sample information: %s"
-msgstr "Nije uspelo dobavljanje podataka o uzorku: %s"
+msgstr "Neuspešno dobavljanje podataka o uzorku: %s"
 
 #: ../src/utils/pactl.c:623
 #, c-format
@@ -2031,27 +2036,27 @@ msgstr ""
 "%s [opcije] upload-sample IMEDATOTEKE [IME]\n"
 "%s [opcije] play-sample IME [SLIVNIK]\n"
 "%s [opcije] remove-sample IME\n"
-"%s [opcije] move-sink-input ULAZ_SLIVNIKA SLIVNIK\n"
-"%s [opcije] move-source-output IZLAZ_IZVORA IZVOR\n"
-"%s [opcije] load-module IME [PARAM. ...]\n"
+"%s [opcije] move-sink-input ULAZSLIVNIKA SLIVNIK\n"
+"%s [opcije] move-source-output IZLAZIZVORA IZVOR\n"
+"%s [opcije] load-module IME [ARG ...]\n"
 "%s [opcije] unload-module MODUL\n"
 "%s [opcije] suspend-sink SLIVNIK 1|0\n"
 "%s [opcije] suspend-source IZVOR 1|0\n"
-"%s [opcije] set-card-profile KARTICA PROFIL \n"
-"%s [options] set-sink-port SLIVNIK PORT\n"
-"%s [options] set-source-port IZVOR PORT\n"
-"%s [options] set-sink-volume SLIVNIK JAČINA_ZVUKA\n"
-"%s [options] set-source-volume IZVOR JAČINA_ZVUKA\n"
-"%s [options] set-sink-input-volume ULAZ_SLIVNIKA JAČINA_ZVUKA\n"
-"%s [options] set-sink-mute SLIVNIK 1|0\n"
-"%s [options] set-source-mute IZVOR 1|0\n"
-"%s [options] set-sink-input-mute ULAZ_SLIVNIKA 1|0\n"
+"%s [opcije] set-card-profile KARTICA PROFIL\n"
+"%s [opcije] set-sink-port SLIVNIK PORT\n"
+"%s [opcije] set-source-port IZVOR PORT\n"
+"%s [opcije] set-sink-volume SLIVNIK JAČINA\n"
+"%s [opcije] set-source-volume IZVOR JAČINA\n"
+"%s [opcije] set-sink-input-volume ULAZSLIVNIKA JAČINA\n"
+"%s [opcije] set-sink-mute SLIVNIK 1|0\n"
+"%s [opcije] set-source-mute IZVOR 1|0\n"
+"%s [opcije] set-sink-input-mute ULAZSLIVNIKA 1|0\n"
 "\n"
 "  -h, --help                            Prikaži ovu pomoć\n"
 "      --version                         Prikaži verziju\n"
 "\n"
 "  -s, --server=SERVER                   Ime servera na koji se treba "
-"priključiti\n"
+"povezati\n"
 "  -n, --client-name=IME                 Kako nazvati ovog klijenta na "
 "serveru\n"
 
@@ -2080,23 +2085,23 @@ msgstr "Upozorenje: Neuspešno utvrđivanje parametara uzorka iz datoteke."
 
 #: ../src/utils/pactl.c:1014
 msgid "You have to specify a sample name to play"
-msgstr "Morate navesti ime uzorka kojeg želite pustiti"
+msgstr "Morate navesti ime uzorka kojeg želite reprodukovati"
 
 #: ../src/utils/pactl.c:1026
 msgid "You have to specify a sample name to remove"
-msgstr "Morate navesti naziv uzorka kojeg želite ukloniti"
+msgstr "Morate navesti ime uzorka kojeg želite ukloniti"
 
 #: ../src/utils/pactl.c:1035
 msgid "You have to specify a sink input index and a sink"
-msgstr "Morate navesti indeks ulaza u slivniku i slivnik"
+msgstr "Morate navesti indeks ulaza slivnika i slivnik"
 
 #: ../src/utils/pactl.c:1045
 msgid "You have to specify a source output index and a source"
-msgstr "Morate navesti indeks izlaza u izvoru i izvor"
+msgstr "Morate navesti indeks izlaza izvora i izvor"
 
 #: ../src/utils/pactl.c:1060
 msgid "You have to specify a module name and arguments."
-msgstr "Morate navesti ime i parametre modula."
+msgstr "Morate navesti ime i argumente modula."
 
 #: ../src/utils/pactl.c:1080
 msgid "You have to specify a module index"
@@ -2105,13 +2110,15 @@ msgstr "Morate navesti indeks modula"
 #: ../src/utils/pactl.c:1090
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
-msgstr "Možete navesti samo jedan slivnik. Morate navesti logičku vrednost."
+msgstr ""
+"Ne možete navesti više od jednog slivnika. Morate navesti logičku vrednost."
 
 #: ../src/utils/pactl.c:1103
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
-msgstr "Možete navesti samo jedan izvor. Morate navesti logičku vrednost."
+msgstr ""
+"Ne možete navesti više od jednog izvora. Morate navesti logičku vrednost."
 
 #: ../src/utils/pactl.c:1115
 msgid "You have to specify a card name/index and a profile name"
@@ -2127,49 +2134,46 @@ msgstr "Morate navesti ime/indeks izvora i ime porta"
 
 #: ../src/utils/pactl.c:1149
 msgid "You have to specify a sink name/index and a volume"
-msgstr "Morate navesti ime/indeks slivnika i jačinu zvuka"
+msgstr "Morate navesti ime/indeks slivnika i jačinu"
 
 #: ../src/utils/pactl.c:1154 ../src/utils/pactl.c:1171
 #: ../src/utils/pactl.c:1193 ../src/utils/pactl.c:1209
 #: ../src/utils/pactl.c:1226 ../src/utils/pactl.c:1248
 msgid "Invalid volume specification"
-msgstr "Neispravan parametar za jačinu zvuka"
+msgstr "Neispravan parametar jačine"
 
 #: ../src/utils/pactl.c:1166
 msgid "You have to specify a source name/index and a volume"
-msgstr "Morate navesti ime/indeks izvora i jačinu zvuka"
+msgstr "Morate navesti ime/indeks izvora i jačinu"
 
 #: ../src/utils/pactl.c:1183
 msgid "You have to specify a sink input index and a volume"
-msgstr "Morate navesti indeks ulaza u slivniku i jačinu zvuka"
+msgstr "Morate navesti indeks ulaza slivnika i jačinu"
 
 #: ../src/utils/pactl.c:1188
 msgid "Invalid sink input index"
-msgstr "Neispravan indeks za ulaz slivnika"
+msgstr "Neispravan indeks ulaza slivnika"
 
 #: ../src/utils/pactl.c:1204
 msgid "You have to specify a sink name/index and a mute boolean"
-msgstr ""
-"Morate navesti ime/indeks slivnika i logičku vrednost za isključenje zvuka"
+msgstr "Morate navesti ime/indeks slivnika i logičku vrednost za isključivanje"
 
 #: ../src/utils/pactl.c:1221
 msgid "You have to specify a source name/index and a mute boolean"
-msgstr ""
-"Morate navesti ime/indeks izvora i logičku vrednost za isključenje zvuka"
+msgstr "Morate navesti ime/indeks izvora i logičku vrednost za isključivanje"
 
 #: ../src/utils/pactl.c:1238
 msgid "You have to specify a sink input index and a mute boolean"
 msgstr ""
-"Morate navesti indeks ulaza u slivniku i logičku vrednost za isključenje "
-"zvuka"
+"Morate navesti indeks ulaza slivnika i logičku vrednost za isključivanje"
 
 #: ../src/utils/pactl.c:1243
 msgid "Invalid sink input index specification"
-msgstr "Neispravan parametar za indekz ulaza u slivnik"
+msgstr "Neispravan parametar indeksa ulaza slivnika"
 
 #: ../src/utils/pactl.c:1262
 msgid "No valid command specified."
-msgstr "Ni jedna ispravna naredba nije navedena."
+msgstr "Nije navedena ispravna naredba."
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2254,7 +2258,8 @@ msgstr "Nije još implementirano.\n"
 
 #: ../src/utils/pacmd.c:69
 msgid "No PulseAudio daemon running, or not running as session daemon."
-msgstr "PulseAudio demon nije pokrenut, ili nije pokrenut kao demon sesije."
+msgstr ""
+"Nema pokrenutog PulseAudio demona, ili se ne izvršava kao demon sesije."
 
 #: ../src/utils/pacmd.c:74
 #, c-format
@@ -2338,7 +2343,7 @@ msgstr "Reprodukcija visoke tačnosti (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2195
 msgid "High Fidelity Capture (A2DP)"
-msgstr "Reprodukcija visoke tačnosti (A2DP)"
+msgstr "Snimanje visoke tačnosti (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2210
 msgid "Telephony Duplex (HSP/HFP)"
@@ -2347,258 +2352,3 @@ msgstr "Dvostrano telefoniranje (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio zvučni sistem"
-
-#, fuzzy
-#~ msgid "Invalid client name '%s'\n"
-#~ msgstr "Neispravna mapa kanala „%s“\n"
-
-#, fuzzy
-#~ msgid "Failed to determine sample specification from file.\n"
-#~ msgstr "Nije uspelo dobavljanje podataka o uzorku: %s\n"
-
-#~ msgid "select(): %s"
-#~ msgstr "select(): %s"
-
-#~ msgid "Cannot connect to system bus: %s"
-#~ msgstr "Nije se moguće priključiti na sistemsku magistralu: %s"
-
-#~ msgid "Cannot get caller from PID: %s"
-#~ msgstr "Ne mogu dobaviti pozivnika iz PID-a: %s"
-
-#~ msgid "Cannot set UID on caller object."
-#~ msgstr "Ne mogu postaviti UID za pozivnički objekat."
-
-#~ msgid "Failed to get CK session."
-#~ msgstr "Neuspešno dobavljanje CK sesije."
-
-#~ msgid "Cannot set UID on session object."
-#~ msgstr "Ne mogu postaviti UID za objekat sesije."
-
-#~ msgid "Cannot allocate PolKitAction."
-#~ msgstr "Ne mogu postaviti PolKitAction."
-
-#~ msgid "Cannot set action_id"
-#~ msgstr "Ne mogu postaviti action_id"
-
-#~ msgid "Cannot allocate PolKitContext."
-#~ msgstr "Ne mogu postaviti PolKitContext."
-
-#~ msgid "Cannot initialize PolKitContext: %s"
-#~ msgstr "Ne mogu inicijalizovati PolKitContex: %s"
-
-#~ msgid "Could not determine whether caller is authorized: %s"
-#~ msgstr "Nije moguće odrediti ovlašćenje pozivnika: %s"
-
-#~ msgid "Cannot obtain auth: %s"
-#~ msgstr "Ne mogu dobiti ovlašćenje: %s"
-
-#~ msgid "PolicyKit responded with '%s'"
-#~ msgstr "PolicyKit je odgovorio sa „%s“"
-
-#~ msgid ""
-#~ "High-priority scheduling (negative Unix nice level) for the PulseAudio "
-#~ "daemon"
-#~ msgstr ""
-#~ "Visokoprioritetno raspoređivanje (negativni Unix nivoi finoće, tj. nice "
-#~ "nivoi) za PulseAudio demona"
-
-#~ msgid "Real-time scheduling for the PulseAudio daemon"
-#~ msgstr "Stvarnovremensko raspoređivanje za PulseAudio demona"
-
-#~ msgid ""
-#~ "System policy prevents PulseAudio from acquiring high-priority scheduling."
-#~ msgstr ""
-#~ "Sistemska politika sprečava PulseAudiu da dobije visokoprioritetno "
-#~ "raspoređivanje."
-
-#~ msgid ""
-#~ "System policy prevents PulseAudio from acquiring real-time scheduling."
-#~ msgstr ""
-#~ "Sistemska politika sprečava PulseAudiu da dobije stvarnovremensko "
-#~ "raspoređivanje."
-
-#~ msgid "read() failed: %s\n"
-#~ msgstr "Neuspela funkcija read(): %s\n"
-
-#, fuzzy
-#~ msgid "pa_context_connect() failed: %s\n"
-#~ msgstr "Neuspela funkcija pa_context_connect(): %s"
-
-#~ msgid "We're in the group '%s', allowing high-priority scheduling."
-#~ msgstr ""
-#~ "Nalazimo se u grupi „%s“ koja dozvoljava visokoprioritetno raspoređivanje."
-
-#~ msgid "We're in the group '%s', allowing real-time scheduling."
-#~ msgstr ""
-#~ "Nalazimo se u grupi „%s“ koja dozvoljava stvarnovremensko raspoređivanje."
-
-#~ msgid "PolicyKit grants us acquire-high-priority privilege."
-#~ msgstr "PolicyKit nam je dao ovlašćenje za dobijanje visokog prioriteta."
-
-#~ msgid "PolicyKit refuses acquire-high-priority privilege."
-#~ msgstr "PolicyKit odbija ovlašćenje za dobijanje visokog prioriteta."
-
-#~ msgid "PolicyKit grants us acquire-real-time privilege."
-#~ msgstr ""
-#~ "PolicyKit nam je dao ovlašćenje za dobijanje rada u stvarnom vremenu."
-
-#~ msgid "PolicyKit refuses acquire-real-time privilege."
-#~ msgstr "PolicyKit odbija ovlašćenje za dobijanje rada u stvarnom vremenu."
-
-#
-#~ msgid ""
-#~ "Called SUID root and real-time and/or high-priority scheduling was "
-#~ "requested in the configuration. However, we lack the necessary "
-#~ "privileges:\n"
-#~ "We are not in group '%s', PolicyKit refuse to grant us the requested "
-#~ "privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
-#~ "limits.\n"
-#~ "For enabling real-time/high-priority scheduling please acquire the "
-#~ "appropriate PolicyKit privileges, or become a member of '%s', or increase "
-#~ "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
-#~ msgstr ""
-#~ "SUID root i stvarnovremensko i/ili visokoprioritetno raspoređivanje je "
-#~ "zahtevano u podešavanjima. Međutim, nemamo potrebna ovlašćenja:\n"
-#~ "nismo u grupi „%s“, PolicyKit odbija da nam dȃ tražena ovlašćenja i  "
-#~ "nemamo sredstava za povećanje RLIMIT_NICE/RLIMIT_RTPRIO ograničenja.\n"
-#~ "Morate dobiti odgovarajuća PolicyKit ovlašćenja, ili postati član grupe „%"
-#~ "s“, ili povećati ograničenja za RLIMIT_NICE/RLIMIT_RTPRIO sredstva ovog "
-#~ "korisnika kako bi omogućili stvarnovremensko ili visokoprioritetno "
-#~ "raspoređivanje."
-
-#~ msgid ""
-#~ "High-priority scheduling enabled in configuration but not allowed by "
-#~ "policy."
-#~ msgstr ""
-#~ "Visokoprioritetno raspoređivanje je omogućeno u podešavanjima, ali "
-#~ "politika to ne dozvoljava."
-
-#~ msgid "Successfully increased RLIMIT_RTPRIO"
-#~ msgstr "Uspešno povećano RLIMIT_RTPRIO ograničenje"
-
-#~ msgid "RLIMIT_RTPRIO failed: %s"
-#~ msgstr "Neuspešno postavljanje RLIMIT_RTPRIO-a:%s"
-
-#~ msgid "Giving up CAP_NICE"
-#~ msgstr "Odustajem od CAP_NICE"
-
-#~ msgid ""
-#~ "Real-time scheduling enabled in configuration but not allowed by policy."
-#~ msgstr ""
-#~ "Stvarnovremensko raspoređivanje je omogućeno u podešavanjima, ali "
-#~ "politika to ne dozvoljava."
-
-#~ msgid "Limited capabilities successfully to CAP_SYS_NICE."
-#~ msgstr "Uspešno ograničio mogućnosti na CAP_SYS_NICE."
-
-#~ msgid "time_new() failed.\n"
-#~ msgstr "Neuspela funkcija time_new() \n"
-
-#~ msgid "Analog Mono"
-#~ msgstr "Analogni mono"
-
-#~ msgid "Analog Stereo"
-#~ msgstr "Analogni stereo"
-
-#~ msgid "Digital Stereo (IEC958)"
-#~ msgstr "Digitalni stereo (IEC958)"
-
-#~ msgid "Digital Stereo (HDMI)"
-#~ msgstr "Digitalni stereo (HDMI)"
-
-#~ msgid "Analog Surround 4.0"
-#~ msgstr "Analogni okružujući 4.0"
-
-#~ msgid "Digital Surround 4.0 (IEC958/AC3)"
-#~ msgstr "Digitalni okružujući 4.0 (IEC958/AC3)"
-
-#~ msgid "Analog Surround 4.1"
-#~ msgstr "Analogni okružujući 4.1"
-
-#~ msgid "Analog Surround 5.0"
-#~ msgstr "Analogni okružujući 5.0"
-
-#~ msgid "Analog Surround 5.1"
-#~ msgstr "Analogni okružujući 5.1"
-
-#~ msgid "Digital Surround 5.1 (IEC958/AC3)"
-#~ msgstr "Digitalni okružujući 5.1 (IEC958/AC3)"
-
-#~ msgid "Analog Surround 7.1"
-#~ msgstr "Analogni okružujući 7.1"
-
-#~ msgid "Output %s + Input %s"
-#~ msgstr "Izlaz %s + ulaz %s"
-
-#~ msgid "Output %s"
-#~ msgstr "Izlaz %s"
-
-#~ msgid "Input %s"
-#~ msgstr "Ulaz %s"
-
-#~ msgid "Stream successfully created\n"
-#~ msgstr "Tok uspešno napravljen\n"
-
-#~ msgid "Stream errror: %s\n"
-#~ msgstr "Greška toka: %s\n"
-
-#~ msgid "Connection established.\n"
-#~ msgstr "Veza ustanovljena.\n"
-
-#~ msgid ""
-#~ "%s [options] [FILE]\n"
-#~ "\n"
-#~ "  -h, --help                            Show this help\n"
-#~ "      --version                         Show version\n"
-#~ "\n"
-#~ "  -v, --verbose                         Enable verbose operation\n"
-#~ "\n"
-#~ "  -s, --server=SERVER                   The name of the server to connect "
-#~ "to\n"
-#~ "  -d, --device=DEVICE                   The name of the sink to connect "
-#~ "to\n"
-#~ "  -n, --client-name=NAME                How to call this client on the "
-#~ "server\n"
-#~ "      --stream-name=NAME                How to call this stream on the "
-#~ "server\n"
-#~ "      --volume=VOLUME                   Specify the initial (linear) "
-#~ "volume in range 0...65536\n"
-#~ "      --channel-map=CHANNELMAP          Set the channel map to the use\n"
-#~ msgstr ""
-#~ "%s [opcije] [DATOTEKA]\n"
-#~ "\n"
-#~ "  -h, --help                            Prikaži ovu pomoć\n"
-#~ "      --version                         Prikaži verziju\n"
-#~ "\n"
-#~ "  -v, --verbose                         Omogući opširni opis radnji\n"
-#~ "\n"
-#~ "  -s, --server=SERVER                   Ime servera na koji se povezuje\n"
-#~ "  -d, --device=UREĐAJ                   Ime slivnika na koje se povezuje\n"
-#~ "  -n, --client-name=IME                 Kako nazvati ovog klijenta na "
-#~ "serveru\n"
-#~ "      --stream-name=IME                 Kako nazvati ovaj tok na serveru\n"
-#~ "      --volume=GLASNOST                 Navedi početnu (linearnu) jačinu "
-#~ "zvuka iz opsega 0...65536\n"
-#~ "      --channel-map=MAPAKANALA          Postavi mapu kanala koja će se "
-#~ "koristiti\n"
-
-#~ msgid ""
-#~ "paplay %s\n"
-#~ "Compiled with libpulse %s\n"
-#~ "Linked with libpulse %s\n"
-#~ msgstr ""
-#~ "paplay %s\n"
-#~ "Kompajlirano sa libpulse %s\n"
-#~ "Povezano sa libpulse %s\n"
-
-#~ msgid "Invalid channel map\n"
-#~ msgstr "Neispravna mapa kanala\n"
-
-#~ msgid "Failed to open file '%s'\n"
-#~ msgstr "Neuspelo otvaranje datoteke „%s“\n"
-
-#~ msgid "Channel map doesn't match file.\n"
-#~ msgstr "Mapa kanala se ne poklapa sa datotekom.\n"
-
-#~ msgid "Using sample spec '%s'\n"
-#~ msgstr "Koriste se sledeći parametri uzorka „%s“\n"
