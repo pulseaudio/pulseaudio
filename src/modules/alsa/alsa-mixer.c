@@ -3145,7 +3145,13 @@ fail:
     return NULL;
 }
 
-void pa_alsa_profile_set_probe(pa_alsa_profile_set *ps, const char *dev_id, const pa_sample_spec *ss) {
+void pa_alsa_profile_set_probe(
+        pa_alsa_profile_set *ps,
+        const char *dev_id,
+        const pa_sample_spec *ss,
+        unsigned default_n_fragments,
+        unsigned default_fragment_size_msec) {
+
     void *state;
     pa_alsa_profile *p, *last = NULL;
     pa_alsa_mapping *m;
@@ -3160,6 +3166,7 @@ void pa_alsa_profile_set_probe(pa_alsa_profile_set *ps, const char *dev_id, cons
     PA_HASHMAP_FOREACH(p, ps->profiles, state) {
         pa_sample_spec try_ss;
         pa_channel_map try_map;
+        snd_pcm_uframes_t try_period_size, try_buffer_size;
         uint32_t idx;
 
         /* Is this already marked that it is supported? (i.e. from the config file) */
@@ -3213,13 +3220,18 @@ void pa_alsa_profile_set_probe(pa_alsa_profile_set *ps, const char *dev_id, cons
                 try_ss = *ss;
                 try_ss.channels = try_map.channels;
 
+                try_period_size =
+                    pa_usec_to_bytes(default_fragment_size_msec * PA_USEC_PER_MSEC, &try_ss) /
+                    pa_frame_size(&try_ss);
+                try_buffer_size = default_n_fragments * try_period_size;
+
                 if (!(m ->output_pcm = pa_alsa_open_by_template(
                               m->device_strings,
                               dev_id,
                               NULL,
                               &try_ss, &try_map,
                               SND_PCM_STREAM_PLAYBACK,
-                              NULL, NULL, 0, NULL, NULL,
+                              &try_period_size, &try_buffer_size, 0, NULL, NULL,
                               TRUE))) {
                     p->supported = FALSE;
                     break;
@@ -3237,13 +3249,18 @@ void pa_alsa_profile_set_probe(pa_alsa_profile_set *ps, const char *dev_id, cons
                 try_ss = *ss;
                 try_ss.channels = try_map.channels;
 
+                try_period_size =
+                    pa_usec_to_bytes(default_fragment_size_msec*PA_USEC_PER_MSEC, &try_ss) /
+                    pa_frame_size(&try_ss);
+                try_buffer_size = default_n_fragments * try_period_size;
+
                 if (!(m ->input_pcm = pa_alsa_open_by_template(
                               m->device_strings,
                               dev_id,
                               NULL,
                               &try_ss, &try_map,
                               SND_PCM_STREAM_CAPTURE,
-                              NULL, NULL, 0, NULL, NULL,
+                              &try_period_size, &try_buffer_size, 0, NULL, NULL,
                               TRUE))) {
                     p->supported = FALSE;
                     break;
