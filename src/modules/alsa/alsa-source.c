@@ -1636,11 +1636,6 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         u->use_tsched = use_tsched = FALSE;
     }
 
-    if (use_tsched && !pa_alsa_pcm_is_hw(u->pcm_handle)) {
-        pa_log_info("Device is not a hardware device, disabling timer-based scheduling.");
-        u->use_tsched = use_tsched = FALSE;
-    }
-
     if (u->use_mmap)
         pa_log_info("Successfully enabled mmap() mode.");
 

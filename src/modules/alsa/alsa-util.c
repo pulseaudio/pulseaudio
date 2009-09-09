@@ -189,7 +189,7 @@ static int set_buffer_size(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams,
 }
 
 /* Set the hardware parameters of the given ALSA device. Returns the
- * selected fragment settings in *period and *period_size */
+ * selected fragment settings in *buffer_size and *period_size. If tsched mode can be enabled */
 int pa_alsa_set_hw_params(
         snd_pcm_t *pcm_handle,
         pa_sample_spec *ss,
@@ -245,6 +245,9 @@ int pa_alsa_set_hw_params(
     }
 
     if (!_use_mmap)
+        _use_tsched = FALSE;
+
+    if (!pa_alsa_pcm_is_hw(pcm_handle))
         _use_tsched = FALSE;
 
     if ((ret = set_format(pcm_handle, hwparams, &_ss.format)) < 0)
