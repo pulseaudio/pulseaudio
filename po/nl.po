@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-10 01:54+0200\n"
-"PO-Revision-Date: 2009-09-07 14:50+0200\n"
+"POT-Creation-Date: 2009-09-10 08:40+0000\n"
+"PO-Revision-Date: 2009-09-10 16:03+0200\n"
 "Last-Translator: Geert Warrink <geert.warrink@onsnet.nu>\n"
 "Language-Team: nl <nl@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -63,10 +63,11 @@ msgstr ""
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
 msgstr ""
+"Houdt altijd ten minste een afvoer ingeladen zelfs als het de null afvoer is."
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
-msgstr ""
+msgstr "Dummy output"
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
@@ -88,11 +89,11 @@ msgstr ""
 
 #: ../src/modules/module-null-sink.c:55
 msgid "Clocked NULL sink"
-msgstr ""
+msgstr "Geklokte MULL afvoer"
 
 #: ../src/modules/module-null-sink.c:291
 msgid "Null Output"
-msgstr ""
+msgstr "Null output"
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -1306,9 +1307,9 @@ msgid "Failed to get latency: %s"
 msgstr "Latentie krijgen mislukte: %s"
 
 #: ../src/utils/pacat.c:576
-#, fuzzy, c-format
+#, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr "Tijd: %0.3f sec; Latentie: %0.0f usec.  \r"
+msgstr "Tijd: %0.3f sec; Latentie: %0.0f usec."
 
 #: ../src/utils/pacat.c:595
 #, c-format
