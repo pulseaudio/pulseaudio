@@ -197,7 +197,7 @@ PA_C_DECL_BEGIN
 /** For filter devices: master device id if applicable. */
 #define PA_PROP_DEVICE_MASTER_DEVICE           "device.master_device"
 
-/** For devices: buffer size in bytes, integer formatted as string.. */
+/** For devices: buffer size in bytes, integer formatted as string. */
 #define PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE   "device.buffering.buffer_size"
 
 /** For devices: fragment size in bytes, integer formatted as string. */
