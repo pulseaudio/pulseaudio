@@ -147,12 +147,6 @@
  * server. A pa_context object wraps a connection to a PulseAudio
  * server using its native protocol. */
 
-/** \example pacat.c
- * A playback and recording tool using the asynchronous API */
-
-/** \example paplay.c
- * A sound file playback tool using the asynchronous API, based on libsndfile */
-
 PA_C_DECL_BEGIN
 
 /** An opaque connection context to a daemon */
