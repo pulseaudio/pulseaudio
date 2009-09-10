@@ -275,11 +275,11 @@ int pa_alsa_set_hw_params(
     }
 
     if (_use_tsched && tsched_size > 0) {
-        _buffer_size = pa_convert_size(tsched_size, ss, &_ss);
+        _buffer_size = (snd_pcm_uframes_t) (((uint64_t) tsched_size * _ss.rate) / ss->rate);
         _period_size = _buffer_size;
     } else {
-        _period_size = pa_convert_size(_period_size, ss, &_ss);
-        _buffer_size = pa_convert_size(_buffer_size, ss, &_ss);
+        _period_size = (snd_pcm_uframes_t) (((uint64_t) _period_size * _ss.rate) / ss->rate);
+        _buffer_size = (snd_pcm_uframes_t) (((uint64_t) _buffer_size * _ss.rate) / ss->rate);
     }
 
     if (_buffer_size > 0 || _period_size > 0) {
