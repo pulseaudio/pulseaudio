@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.pa\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-10 01:54+0200\n"
-"PO-Revision-Date: 2009-09-07 21:52+0530\n"
-"Last-Translator: \n"
-"Language-Team: American English <kde-i18n-doc@kde.org>\n"
+"POT-Creation-Date: 2009-09-10 04:42+0000\n"
+"PO-Revision-Date: 2009-09-10 11:19+0530\n"
+"Last-Translator: Jaswinder Singh <jsingh@redhat.com>\n"
+"Language-Team: Punjabi <Punjabi-users@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 1.0\n"
+"X-Generator: KBabel 1.11.4\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
 #: ../src/modules/alsa/alsa-util.c:858 ../src/pulsecore/sink.c:2629
@@ -59,11 +59,11 @@ msgstr ""
 
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
-msgstr ""
+msgstr "ਹਮੇਸ਼ਾਂ ਘੱਟੋ-ਘੱਟ ਇੱਕ ਸਿੰਕ ਲੋਡ ਹੀ ਰੱਖੋ ਭਾਵੇਂ ਇਹ ਇੱਕ ਜ਼ੀਰੋ (null) ਹੇਵੋ"
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
-msgstr ""
+msgstr "ਡੰਮੀ ਆਊਟਪੁੱਟ"
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
@@ -85,12 +85,11 @@ msgstr ""
 
 #: ../src/modules/module-null-sink.c:55
 msgid "Clocked NULL sink"
-msgstr ""
+msgstr "ਕਲਾਕਡ NULL ਸਿੰਕ"
 
 #: ../src/modules/module-null-sink.c:291
-#, fuzzy
 msgid "Null Output"
-msgstr "ਆਉਟਪੁੱਟ %s"
+msgstr "ਜ਼ੀਰੋ (Null) ਆਉਟਪੁੱਟ"
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -378,8 +377,7 @@ msgstr "ਤਾਜ਼ੀ ਹਾਈ-ਰੈਜ਼ੋਲੂਸ਼ਨ ਟਾਈਮਰ ਉਪ�
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
-msgstr ""
-"ਮਿੱਤਰਾ, ਤੇਰਾ ਕਰਨਲ ਪੁਰਾਣਾ ਹੈ! ਚੀਫ ਦੀ ਅੱਜ ਦੀ ਸਿਫਾਰਸ਼ ਹਾਈ-ਰੈਜ਼ੋਲੂਸ਼ਨ ਟਾਈਮਰ ਯੋਗ ਨਾਲ ਲੀਨਕਸ ਹੈ!"
+msgstr "ਮਿੱਤਰਾ, ਤੇਰਾ ਕਰਨਲ ਪੁਰਾਣਾ ਹੈ! ਚੀਫ ਦੀ ਅੱਜ ਦੀ ਸਿਫਾਰਸ਼ ਹਾਈ-ਰੈਜ਼ੋਲੂਸ਼ਨ ਟਾਈਮਰ ਯੋਗ ਨਾਲ ਲੀਨਕਸ ਹੈ!"
 
 #: ../src/daemon/main.c:839
 msgid "pa_core_new() failed."
@@ -1287,9 +1285,9 @@ msgid "Failed to get latency: %s"
 msgstr "ਵਕਫਾ ਪ੍ਰਾਪਤੀ ਫੇਲ ਹੋਈ: %s"
 
 #: ../src/utils/pacat.c:576
-#, fuzzy, c-format
+#, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr "ਸਮਾਂ: %0.3f ਸਕਿੰਟ; ਵਕਫਾ: %0.0f usec।  \r"
+msgstr "ਟਾਈਮ: %0.3f ਸਕਿੰਟ; ਵਕਫਾ: %0.0f usec।"
 
 #: ../src/utils/pacat.c:595
 #, c-format
@@ -1506,10 +1504,9 @@ msgid "Warning: failed to write channel map to file."
 msgstr "ਇੱਕ %s ਸਟਰੀਮ ਨੂੰ ਸੈਂਪਲ ਹਦਾਇਤ '%s' ਨਾਲ ਖੋਲ੍ਹਿਆ ਜਾ ਰਿਹਾ ਹੈ।"
 
 #: ../src/utils/pacat.c:1004
-#, fuzzy, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
-msgstr "ਇੱਕ %s ਸਟਰੀਮ ਨੂੰ ਸੈਂਪਲ ਹਦਾਇਤ '%s' ਨਾਲ ਖੋਲ੍ਹਿਆ ਜਾ ਰਿਹਾ ਹੈ।"
+#, c-format
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgstr "ਇੱਕ %s ਸਟਰੀਮ ਨੂੰ ਸੈਂਪਲ ਹਦਾਇਤ '%s' ਅਤੇ ਚੈਨਲ ਮੈਪ '%s' ਨਾਲ ਖੋਲ੍ਹਿਆ ਜਾ ਰਿਹਾ ਹੈ।"
 
 #: ../src/utils/pacat.c:1005
 msgid "recording"
@@ -2098,8 +2095,7 @@ msgid "You have to specify a module index"
 msgstr "ਤੁਹਾਨੂੰ ਇੱਕ ਮੈਡੀਊਲ ਲਿਸਟ ਦੇਣੀ ਪਵੇਗੀ"
 
 #: ../src/utils/pactl.c:1090
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
+msgid "You may not specify more than one sink. You have to specify a boolean value."
 msgstr "ਤੁਸੀਂ ਇੱਕ ਤੋਂ ਵੱਧ ਸਿੰਕ ਨਹੀਂ ਦੇ ਸਕਦੇ। ਤੁਹਾਨੂੰ ਇੱਕ ਬੁਲੀਅਨ ਮੁੱਲ ਦੇਣਾ ਪਵੇਗਾ।"
 
 #: ../src/utils/pactl.c:1103
@@ -2337,243 +2333,3 @@ msgstr "ਟੈਲੀਫੋਨੀ ਡੁਪਲੈਕਸ (HSP/HFP)"
 msgid "PulseAudio Sound Server"
 msgstr "ਪਲਸਆਡੀਓ ਸਾਊਂਡ ਡਰਾਇਵਰ"
 
-#, fuzzy
-#~ msgid "Invalid client name '%s'\n"
-#~ msgstr "ਅਢੁੱਕਵਾਂ ਚੈਨਲ ਮੈਪ '%s'\n"
-
-#, fuzzy
-#~ msgid "Failed to determine sample specification from file.\n"
-#~ msgstr "ਸੈਂਪਲ ਜਾਣਕਾਰੀ ਲੈਣ ਵਿੱਚ ਫੇਲ: %s\n"
-
-#~ msgid "select(): %s"
-#~ msgstr "select(): %s"
-
-#~ msgid "Cannot connect to system bus: %s"
-#~ msgstr "ਸਿਸਟਮ ਬੱਸ ਨਾਲ ਜੁੜਨ ਨਹੀਂ ਸਕਿਆ: %s"
-
-#~ msgid "Cannot get caller from PID: %s"
-#~ msgstr "PID ਤੋਂ ਕਾਲਰ ਪ੍ਰਾਪਤ ਨਹੀਂ ਕਰ ਸਕਿਆ: %s"
-
-#~ msgid "Cannot set UID on caller object."
-#~ msgstr "ਕਾਲਰ ਐਬਜੈਕਟ ਤੇ UID ਸੈੱਟ ਨਹੀਂ ਕਰ ਸਕਿਆ।"
-
-#~ msgid "Failed to get CK session."
-#~ msgstr "CK ਸ਼ੈਸ਼ਨ ਪ੍ਰਾਪਤ ਕਰਨ ਵਿੱਚ ਫੇਲ।"
-
-#~ msgid "Cannot set UID on session object."
-#~ msgstr "ਸ਼ੈਸ਼ਨ ਆਬਜੈਕਟ ਤੇ UID ਸੈੱਟ ਨਹੀਂ ਕਰ ਸਕਿਆ।"
-
-#~ msgid "Cannot allocate PolKitAction."
-#~ msgstr "PolKitAction ਨਹੀਂ ਦੇ ਸਕਿਆ।"
-
-#~ msgid "Cannot set action_id"
-#~ msgstr "action_id ਸੈੱਟ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ।"
-
-#~ msgid "Cannot allocate PolKitContext."
-#~ msgstr "PolKitContext ਜਾਰੀ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ।"
-
-#~ msgid "Cannot initialize PolKitContext: %s"
-#~ msgstr "PolKitContext ਨੂੰ ਸ਼ੁਰੂ ਨਹੀਂ ਕਰ ਸਕਿਆ: %s"
-
-#~ msgid "Could not determine whether caller is authorized: %s"
-#~ msgstr "ਪਤਾ ਨਹੀਂ ਕਰ ਸਕਿਆ ਕਿ ਕੀ ਕਾਲਰ ਪਰਮਾਣਿਤ ਹੈ: %s"
-
-#~ msgid "Cannot obtain auth: %s"
-#~ msgstr "ਪਰਮਾਣਕਿਤਾ ਨਹੀਂ ਲੈ ਸਕਦਾ: %s"
-
-#~ msgid "PolicyKit responded with '%s'"
-#~ msgstr "PolicyKit ਦੇ ਜਵਾਬ ਵਜੋਂ '%s' ਮਿਲਿਆ ਹੈ"
-
-#~ msgid ""
-#~ "High-priority scheduling (negative Unix nice level) for the PulseAudio "
-#~ "daemon"
-#~ msgstr "ਪਲਸਆਡੀਓ ਡੈਮਨ ਲਈ ਵਧੇਰੇ-ਤਰਜੀਹ ਸੈਡਿਊਲ (ਨਾਂ-ਵਾਚਕ ਯੂਨੈਕਸ ਨਾਈਸ ਲੈਵਲ)"
-
-#~ msgid "Real-time scheduling for the PulseAudio daemon"
-#~ msgstr "ਪਲਸਆਡੀਓ ਡੈਮਨ ਰੀਅਲ-ਟਾਈਮ ਸੈਡਿਊਲ"
-
-#~ msgid ""
-#~ "System policy prevents PulseAudio from acquiring high-priority scheduling."
-#~ msgstr "ਸਿਸਟਮ ਪਾਲਸੀ ਪਲਸਆਡੀਓ ਨੂੰ ਵਧੇਰੇ-ਤਰਜੀਹ ਸੈਡਿਊਲ ਪ੍ਰਾਪਤ ਕਰਨ ਤੋਂ ਰੋਕਦੀ ਹੈ।"
-
-#~ msgid ""
-#~ "System policy prevents PulseAudio from acquiring real-time scheduling."
-#~ msgstr "ਸਿਸਟਮ ਪਾਲਸੀ ਪਲਸਆਡੀਓ ਨੂੰ ਵਧੇਰੇ-ਤਰਜੀਹ ਰੀਅਲ-ਟਾਈਮ ਪ੍ਰਾਪਤ ਕਰਨ ਤੋਂ ਰੋਕਦੀ ਹੈ।"
-
-#~ msgid "read() failed: %s\n"
-#~ msgstr "read() ਫੇਲ੍ਹ ਹੈ: %s\n"
-
-#, fuzzy
-#~ msgid "pa_context_connect() failed: %s\n"
-#~ msgstr "pa_context_connect() ਫੇਲ੍ਹ ਹੈ: %s"
-
-#~ msgid "We're in the group '%s', allowing high-priority scheduling."
-#~ msgstr "ਅਸੀਂ ਗਰੁੱਪ '%s' ਵਿੱਚ ਹਾਂ, ਜਿਸ ਨੂੰ ਵਧੇਰੇ-ਤਰਜੀਹ ਤਹਿ ਕੀਤਾ ਗਿਆ ਹੈ।"
-
-#~ msgid "We're in the group '%s', allowing real-time scheduling."
-#~ msgstr "ਅਸੀਂ ਗਰੁੱਪ '%s' ਵਿੱਚ ਹਾਂ, ਜਿਸ ਨੂੰ ਰੀਅਲ-ਟਾਈਮ ਤਹਿ ਕੀਤਾ ਗਿਆ ਹੈ।"
-
-#~ msgid "PolicyKit grants us acquire-high-priority privilege."
-#~ msgstr "PolicyKit ਸਾਨੂੰ ਵਧੇਰੇ-ਤਰਜੀਹ-ਪ੍ਰਾਪਤੀ ਅਧਿਕਾਰ ਦਿੰਦੀ ਹੈ।"
-
-#~ msgid "PolicyKit refuses acquire-high-priority privilege."
-#~ msgstr "PolicyKit ਵਧੇਰੇ-ਤਰਜੀਹ-ਪ੍ਰਾਪਤੀ ਅਧਿਕਾਰ ਹਟਾਉਂਦੀ ਹੈ।"
-
-#~ msgid "PolicyKit grants us acquire-real-time privilege."
-#~ msgstr "PolicyKit ਸਾਨੂੰ ਰੀਅਲ-ਟਾਈਮ-ਪ੍ਰਾਪਤੀ ਅਧਿਕਾਰ ਦਿੰਦੀ ਹੈ।"
-
-#~ msgid "PolicyKit refuses acquire-real-time privilege."
-#~ msgstr "PolicyKit ਰੀਅਲ-ਟਾਈਮ-ਪ੍ਰਾਪਤੀ ਅਧਿਕਾਰ ਹਟਾਉਂਦੀ ਹੈ।"
-
-#~ msgid ""
-#~ "Called SUID root and real-time and/or high-priority scheduling was "
-#~ "requested in the configuration. However, we lack the necessary "
-#~ "privileges:\n"
-#~ "We are not in group '%s', PolicyKit refuse to grant us the requested "
-#~ "privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
-#~ "limits.\n"
-#~ "For enabling real-time/high-priority scheduling please acquire the "
-#~ "appropriate PolicyKit privileges, or become a member of '%s', or increase "
-#~ "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
-#~ msgstr ""
-#~ "Called SUID root and real-time and/or high-priority scheduling was "
-#~ "requested in the configuration. However, we lack the necessary "
-#~ "privileges:\n"
-#~ "We are not in group '%s', PolicyKit refuse to grant us the requested "
-#~ "privileges and we have no increase RLIMIT_NICE/RLIMIT_RTPRIO resource "
-#~ "limits.\n"
-#~ "For enabling real-time/high-priority scheduling please acquire the "
-#~ "appropriate PolicyKit privileges, or become a member of '%s', or increase "
-#~ "the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user."
-
-#~ msgid ""
-#~ "High-priority scheduling enabled in configuration but not allowed by "
-#~ "policy."
-#~ msgstr "ਸੰਰਚਨਾ ਵਿੱਚ ਵਧੇਰੇ-ਤਰਜੀਹ ਯੋਗ ਕੀਤੀ ਗਈ ਹੈ, ਪਰ ਪਾਲਸੀ ਵਲੋਂ ਮਨਜ਼ੂਰ ਨਹੀਂ ਕੀਤੀ।"
-
-#~ msgid "Successfully increased RLIMIT_RTPRIO"
-#~ msgstr "RLIMIT_RTPRIO ਨੂੰ ਸਫਲਤਾਪੂਰਕ ਵਧਾਇਆ ਗਿਆ"
-
-#~ msgid "RLIMIT_RTPRIO failed: %s"
-#~ msgstr "RLIMIT_RTPRIO ਫੇਲ੍ਹ: %s"
-
-#~ msgid "Giving up CAP_NICE"
-#~ msgstr "CAP_NICE ਨੂੰ ਹਟਾ ਰਿਹਾ ਹੈ"
-
-#~ msgid ""
-#~ "Real-time scheduling enabled in configuration but not allowed by policy."
-#~ msgstr "ਰੀਅਲ-ਟਾਈਮ ਤਹਿ ਨੂੰ ਸੰਰਚਨਾ ਵਿੱਚ ਯੋਗ ਕਰਨ ਨਾਲ, ਪਰ ਪਾਲਸੀ ਵਲੋਂ ਮਨਜੂਰ ਨਹੀਂ ਕੀਤੀ।"
-
-#~ msgid "Limited capabilities successfully to CAP_SYS_NICE."
-#~ msgstr "CAP_SYS_NICE ਨੂੰ ਸਫਲਤਾਪੂਰਕ ਸੀਮਿਤ ਸਮੱਰਥਾ।"
-
-#~ msgid "time_new() failed.\n"
-#~ msgstr "time_new() ਫੇਲ੍ਹ ਹੈ।\n"
-
-#~ msgid "Analog Mono"
-#~ msgstr "ਐਨਾਲਾਗ ਮੋਨੋ"
-
-#~ msgid "Analog Stereo"
-#~ msgstr "ਐਨਾਲਾਗ ਸਟੀਰੀਓ"
-
-#~ msgid "Digital Stereo (IEC958)"
-#~ msgstr "ਡਿਜ਼ੀਟਲ ਸਟੀਰੀਓ (IEC958)"
-
-#~ msgid "Digital Stereo (HDMI)"
-#~ msgstr "ਡਿਜ਼ਿਟਲ ਸਟੀਰੀਓ (HDMI)"
-
-#~ msgid "Analog Surround 4.0"
-#~ msgstr "ਐਨਾਲਾਗ ਸਰਾਊਂਡਿੰਗ 4.0"
-
-#~ msgid "Digital Surround 4.0 (IEC958/AC3)"
-#~ msgstr "ਡਿਜ਼ਿਟਲ ਸਰਾਊਂਡਿੰਗ 4.0 (IEC958/AC3)"
-
-#~ msgid "Analog Surround 4.1"
-#~ msgstr "ਐਨਾਲਾਗ ਸਰਾਊਂਡਿੰਗ 4.1"
-
-#~ msgid "Analog Surround 5.0"
-#~ msgstr "ਐਨਾਲਾਗ ਸਰਾਊਂਡਿੰਗ 5.0"
-
-#~ msgid "Analog Surround 5.1"
-#~ msgstr "ਐਨਾਲਾਗ ਸਰਾਊਂਡਿੰਗ 5.1"
-
-#~ msgid "Digital Surround 5.1 (IEC958/AC3)"
-#~ msgstr "ਡਿਜ਼ਿਟਲ ਸਰਾਊਂਡਿੰਗ 5.1 (IEC958/AC3)"
-
-#~ msgid "Analog Surround 7.1"
-#~ msgstr "ਐਨਾਲਾਗ ਸਰਾਊਂਡਿੰਗ 7.1"
-
-#~ msgid "Output %s + Input %s"
-#~ msgstr "ਆਉਟਪੁੱਟ %s + ਇੰਪੁੱਟ %s"
-
-#~ msgid "Input %s"
-#~ msgstr "ਇੰਪੁੱਟ %s"
-
-#~ msgid "Stream successfully created\n"
-#~ msgstr "ਸਟਰੀਮ ਠੀਕ ਤਰ੍ਹਾਂ ਬਣਾਈ ਗਈ।\n"
-
-#~ msgid "Stream errror: %s\n"
-#~ msgstr "ਸਟਰੀਮ ਗਲਤੀ: %s\n"
-
-#~ msgid "Connection established.\n"
-#~ msgstr "ਕੁਨੈਕਸ਼ਨ ਬਣਾਇਆ ਗਿਆ।\n"
-
-#~ msgid ""
-#~ "%s [options] [FILE]\n"
-#~ "\n"
-#~ "  -h, --help                            Show this help\n"
-#~ "      --version                         Show version\n"
-#~ "\n"
-#~ "  -v, --verbose                         Enable verbose operation\n"
-#~ "\n"
-#~ "  -s, --server=SERVER                   The name of the server to connect "
-#~ "to\n"
-#~ "  -d, --device=DEVICE                   The name of the sink to connect "
-#~ "to\n"
-#~ "  -n, --client-name=NAME                How to call this client on the "
-#~ "server\n"
-#~ "      --stream-name=NAME                How to call this stream on the "
-#~ "server\n"
-#~ "      --volume=VOLUME                   Specify the initial (linear) "
-#~ "volume in range 0...65536\n"
-#~ "      --channel-map=CHANNELMAP          Set the channel map to the use\n"
-#~ msgstr ""
-#~ "%s [options] [FILE]\n"
-#~ "\n"
-#~ "  -h, --help                            Show this help\n"
-#~ "      --version                         Show version\n"
-#~ "\n"
-#~ "  -v, --verbose                         Enable verbose operation\n"
-#~ "\n"
-#~ "  -s, --server=SERVER                   The name of the server to connect "
-#~ "to\n"
-#~ "  -d, --device=DEVICE                   The name of the sink to connect "
-#~ "to\n"
-#~ "  -n, --client-name=NAME                How to call this client on the "
-#~ "server\n"
-#~ "      --stream-name=NAME                How to call this stream on the "
-#~ "server\n"
-#~ "      --volume=VOLUME                   Specify the initial (linear) "
-#~ "volume in range 0...65536\n"
-#~ "      --channel-map=CHANNELMAP          Set the channel map to the use\n"
-
-#~ msgid ""
-#~ "paplay %s\n"
-#~ "Compiled with libpulse %s\n"
-#~ "Linked with libpulse %s\n"
-#~ msgstr ""
-#~ "paplay %s\n"
-#~ "Compiled with libpulse %s\n"
-#~ "Linked with libpulse %s\n"
-
-#~ msgid "Invalid channel map\n"
-#~ msgstr "ਗਲਤ ਚੈਨਲ ਮੈਪ\n"
-
-#~ msgid "Failed to open file '%s'\n"
-#~ msgstr "ਫਾਇਲ '%s' ਖੋਲ੍ਹਣ ਲਈ ਫੇਲ\n"
-
-#~ msgid "Channel map doesn't match file.\n"
-#~ msgstr "ਚੈਨਲ ਮੈਪ ਫਾਇਲ ਨਾਲ ਨਹੀਂ ਮਿਲਦਾ।\n"
-
-#~ msgid "Using sample spec '%s'\n"
-#~ msgstr "ਸੈਂਪਲ spec '%s' ਦੀ ਵਰਤੋਂ\n"
