@@ -826,24 +826,26 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
             pa_pstream_send_simple_ack(s->connection->pstream, PA_PTR_TO_UINT(userdata));
             break;
 
-        case PLAYBACK_STREAM_MESSAGE_UPDATE_TLENGTH: {
-            pa_tagstruct *t;
+        case PLAYBACK_STREAM_MESSAGE_UPDATE_TLENGTH:
 
             s->buffer_attr.tlength = (uint32_t) offset;
 
-            t = pa_tagstruct_new(NULL, 0);
-            pa_tagstruct_putu32(t, PA_COMMAND_PLAYBACK_BUFFER_ATTR_CHANGED);
-            pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
-            pa_tagstruct_putu32(t, s->index);
-            pa_tagstruct_putu32(t, s->buffer_attr.maxlength);
-            pa_tagstruct_putu32(t, s->buffer_attr.tlength);
-            pa_tagstruct_putu32(t, s->buffer_attr.prebuf);
-            pa_tagstruct_putu32(t, s->buffer_attr.minreq);
-            pa_tagstruct_put_usec(t, s->configured_sink_latency);
-            pa_pstream_send_tagstruct(s->connection->pstream, t);
+            if (s->connection->version >= 15) {
+                pa_tagstruct *t;
+
+                t = pa_tagstruct_new(NULL, 0);
+                pa_tagstruct_putu32(t, PA_COMMAND_PLAYBACK_BUFFER_ATTR_CHANGED);
+                pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
+                pa_tagstruct_putu32(t, s->index);
+                pa_tagstruct_putu32(t, s->buffer_attr.maxlength);
+                pa_tagstruct_putu32(t, s->buffer_attr.tlength);
+                pa_tagstruct_putu32(t, s->buffer_attr.prebuf);
+                pa_tagstruct_putu32(t, s->buffer_attr.minreq);
+                pa_tagstruct_put_usec(t, s->configured_sink_latency);
+                pa_pstream_send_tagstruct(s->connection->pstream, t);
+            }
 
             break;
-        }
     }
 
     return 0;
