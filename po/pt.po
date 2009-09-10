@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-10 01:54+0200\n"
+"POT-Creation-Date: 2009-09-11 01:26+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Rui Gouveia <rui.gouveia@globaltek.pt>\n"
 "Language-Team: pt <fedora-trans-pt@redhat.com>\n"
@@ -1092,6 +1092,14 @@ msgstr "Implementação em falta"
 #: ../src/pulse/error.c:67
 msgid "Client forked"
 msgstr "Cliente efectuou um fork"
+
+#: ../src/pulse/error.c:68
+msgid "Input/Output error"
+msgstr ""
+
+#: ../src/pulse/error.c:69
+msgid "Device or resource busy"
+msgstr ""
 
 #: ../src/pulse/sample.c:172
 #, c-format

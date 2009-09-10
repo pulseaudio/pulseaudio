@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-10 01:54+0200\n"
+"POT-Creation-Date: 2009-09-11 01:26+0200\n"
 "PO-Revision-Date: 2008-09-05 18:24+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -995,6 +995,14 @@ msgstr ""
 
 #: ../src/pulse/error.c:67
 msgid "Client forked"
+msgstr ""
+
+#: ../src/pulse/error.c:68
+msgid "Input/Output error"
+msgstr ""
+
+#: ../src/pulse/error.c:69
+msgid "Device or resource busy"
 msgstr ""
 
 #: ../src/pulse/sample.c:172

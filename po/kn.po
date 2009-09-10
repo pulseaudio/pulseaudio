@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.kn\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-10 01:54+0200\n"
+"POT-Creation-Date: 2009-09-11 01:26+0200\n"
 "PO-Revision-Date: 2009-09-08 13:49+0530\n"
 "Last-Translator: Shankar Prasad <svenkate@redhat.com>\n"
 "Language-Team: Kannada <en@li.org>\n"
@@ -1098,6 +1098,14 @@ msgstr "ಅನ್ವಯಿಸುವಿಕೆಯು ಕಾಣಿಸುತ್ತ�
 #: ../src/pulse/error.c:67
 msgid "Client forked"
 msgstr "ಕ್ಲೈಂಟ್ ಅನ್ನು ಫೋರ್ಕ್ ಮಾಡಲಾಗಿದೆ"
+
+#: ../src/pulse/error.c:68
+msgid "Input/Output error"
+msgstr ""
+
+#: ../src/pulse/error.c:69
+msgid "Device or resource busy"
+msgstr ""
 
 #: ../src/pulse/sample.c:172
 #, c-format

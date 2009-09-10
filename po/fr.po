@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-10 01:54+0200\n"
+"POT-Creation-Date: 2009-09-11 01:26+0200\n"
 "PO-Revision-Date: 2009-04-26 17:22+0200\n"
 "Last-Translator: Corentin Perard <corentin.perard@gmail.com>\n"
 "Language-Team: French <fedora-trans-fr@redhat.com>\n"
@@ -1109,6 +1109,14 @@ msgstr "Implantation manquante"
 #: ../src/pulse/error.c:67
 msgid "Client forked"
 msgstr "Le client s'est divisé (Client forked)"
+
+#: ../src/pulse/error.c:68
+msgid "Input/Output error"
+msgstr ""
+
+#: ../src/pulse/error.c:69
+msgid "Device or resource busy"
+msgstr ""
 
 #: ../src/pulse/sample.c:172
 #, c-format

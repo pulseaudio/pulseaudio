@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-10 01:54+0200\n"
+"POT-Creation-Date: 2009-09-11 01:26+0200\n"
 "PO-Revision-Date: 2009-08-24 19:26-0300\n"
 "Last-Translator: Igor Pires Soares <igor@projetofedora.org>\n"
 "Language-Team: Brazilian-Portuguese <fedora-trans-pt_br@redhat.com>\n"
@@ -1105,6 +1105,14 @@ msgstr "Implementação faltando"
 #: ../src/pulse/error.c:67
 msgid "Client forked"
 msgstr "Cliente bifurcado"
+
+#: ../src/pulse/error.c:68
+msgid "Input/Output error"
+msgstr ""
+
+#: ../src/pulse/error.c:69
+msgid "Device or resource busy"
+msgstr ""
 
 #: ../src/pulse/sample.c:172
 #, c-format

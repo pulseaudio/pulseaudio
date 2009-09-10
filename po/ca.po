@@ -24,7 +24,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-10 01:54+0200\n"
+"POT-Creation-Date: 2009-09-11 01:26+0200\n"
 "PO-Revision-Date: 2009-09-05 11:40+0100\n"
 "Last-Translator: Tomàs Bigordà <t0mynoker@gmail.com>\n"
 "Language-Team: Catalan <fedora@softcatala.net>\n"
@@ -1125,6 +1125,14 @@ msgstr "Manca la implementació"
 #: ../src/pulse/error.c:67
 msgid "Client forked"
 msgstr "Client bifurcat"
+
+#: ../src/pulse/error.c:68
+msgid "Input/Output error"
+msgstr ""
+
+#: ../src/pulse/error.c:69
+msgid "Device or resource busy"
+msgstr ""
 
 #: ../src/pulse/sample.c:172
 #, c-format

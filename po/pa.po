@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.pa\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-10 04:42+0000\n"
+"POT-Creation-Date: 2009-09-11 01:26+0200\n"
 "PO-Revision-Date: 2009-09-10 11:19+0530\n"
 "Last-Translator: Jaswinder Singh <jsingh@redhat.com>\n"
 "Language-Team: Punjabi <Punjabi-users@lists.sourceforge.net>\n"
@@ -377,7 +377,8 @@ msgstr "ਤਾਜ਼ੀ ਹਾਈ-ਰੈਜ਼ੋਲੂਸ਼ਨ ਟਾਈਮਰ ਉਪ�
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
-msgstr "ਮਿੱਤਰਾ, ਤੇਰਾ ਕਰਨਲ ਪੁਰਾਣਾ ਹੈ! ਚੀਫ ਦੀ ਅੱਜ ਦੀ ਸਿਫਾਰਸ਼ ਹਾਈ-ਰੈਜ਼ੋਲੂਸ਼ਨ ਟਾਈਮਰ ਯੋਗ ਨਾਲ ਲੀਨਕਸ ਹੈ!"
+msgstr ""
+"ਮਿੱਤਰਾ, ਤੇਰਾ ਕਰਨਲ ਪੁਰਾਣਾ ਹੈ! ਚੀਫ ਦੀ ਅੱਜ ਦੀ ਸਿਫਾਰਸ਼ ਹਾਈ-ਰੈਜ਼ੋਲੂਸ਼ਨ ਟਾਈਮਰ ਯੋਗ ਨਾਲ ਲੀਨਕਸ ਹੈ!"
 
 #: ../src/daemon/main.c:839
 msgid "pa_core_new() failed."
@@ -1078,6 +1079,14 @@ msgstr "ਗੈਰ-ਮੌਜੂਦ ਨਿਰਧਾਰਨ"
 msgid "Client forked"
 msgstr "ਕਲਾਇਟ ਅੱਡ ਕੀਤਾ"
 
+#: ../src/pulse/error.c:68
+msgid "Input/Output error"
+msgstr ""
+
+#: ../src/pulse/error.c:69
+msgid "Device or resource busy"
+msgstr ""
+
 #: ../src/pulse/sample.c:172
 #, c-format
 msgid "%s %uch %uHz"
@@ -1505,7 +1514,8 @@ msgstr "ਇੱਕ %s ਸਟਰੀਮ ਨੂੰ ਸੈਂਪਲ ਹਦਾਇਤ '
 
 #: ../src/utils/pacat.c:1004
 #, c-format
-msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid ""
+"Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "ਇੱਕ %s ਸਟਰੀਮ ਨੂੰ ਸੈਂਪਲ ਹਦਾਇਤ '%s' ਅਤੇ ਚੈਨਲ ਮੈਪ '%s' ਨਾਲ ਖੋਲ੍ਹਿਆ ਜਾ ਰਿਹਾ ਹੈ।"
 
 #: ../src/utils/pacat.c:1005
@@ -2095,7 +2105,8 @@ msgid "You have to specify a module index"
 msgstr "ਤੁਹਾਨੂੰ ਇੱਕ ਮੈਡੀਊਲ ਲਿਸਟ ਦੇਣੀ ਪਵੇਗੀ"
 
 #: ../src/utils/pactl.c:1090
-msgid "You may not specify more than one sink. You have to specify a boolean value."
+msgid ""
+"You may not specify more than one sink. You have to specify a boolean value."
 msgstr "ਤੁਸੀਂ ਇੱਕ ਤੋਂ ਵੱਧ ਸਿੰਕ ਨਹੀਂ ਦੇ ਸਕਦੇ। ਤੁਹਾਨੂੰ ਇੱਕ ਬੁਲੀਅਨ ਮੁੱਲ ਦੇਣਾ ਪਵੇਗਾ।"
 
 #: ../src/utils/pactl.c:1103
@@ -2332,4 +2343,3 @@ msgstr "ਟੈਲੀਫੋਨੀ ਡੁਪਲੈਕਸ (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "ਪਲਸਆਡੀਓ ਸਾਊਂਡ ਡਰਾਇਵਰ"
-
