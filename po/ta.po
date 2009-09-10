@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.ta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-10 01:54+0200\n"
-"PO-Revision-Date: 2009-09-07 12:44+0530\n"
+"POT-Creation-Date: 2009-09-10 08:40+0000\n"
+"PO-Revision-Date: 2009-09-10 15:57+0530\n"
 "Last-Translator: I. Felix <ifelix@redhat.com>\n"
 "Language-Team: Tamil <fedora-trans-ta@redhat.com>\n"
 "MIME-Version: 1.0\n"
@@ -16,6 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\\n\n"
+"\n"
 "\n"
 "\n"
 "\n"
@@ -82,11 +83,11 @@ msgstr ""
 
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
-msgstr ""
+msgstr "ஒரு பூஜ்ஜியம் இருந்தாலும் குறைந்தது ஒன்றை மட்டும் வைத்திருக்கவும்"
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
-msgstr ""
+msgstr "டம்மி வெளிப்பாடு"
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
@@ -108,11 +109,11 @@ msgstr ""
 
 #: ../src/modules/module-null-sink.c:55
 msgid "Clocked NULL sink"
-msgstr ""
+msgstr "கடிகார பூஜ்ஜிய சிங்"
 
 #: ../src/modules/module-null-sink.c:291
 msgid "Null Output"
-msgstr ""
+msgstr "பூஜ்ஜிய வெளிப்பாடு"
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -239,8 +240,7 @@ msgstr "கணினி முறைமையில் இயங்குகி�
 
 #: ../src/daemon/main.c:581
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr ""
-"கணினி முறைமையில் இயங்குகிறது, ஆனால் --disallow-module-loading அமைக்கப்படவில்லை!"
+msgstr "கணினி முறைமையில் இயங்குகிறது, ஆனால் --disallow-module-loading அமைக்கப்படவில்லை!"
 
 #: ../src/daemon/main.c:584
 msgid "Running in system mode, forcibly disabling SHM mode!"
@@ -1314,9 +1314,9 @@ msgid "Failed to get latency: %s"
 msgstr "லடன்சியை பெற முடியவில்லை: %s"
 
 #: ../src/utils/pacat.c:576
-#, fuzzy, c-format
+#, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr "Time: %0.3f sec; Latency: %0.0f usec.  \r"
+msgstr "Time: %0.3f sec; Latency: %0.0f usec."
 
 #: ../src/utils/pacat.c:595
 #, c-format
@@ -1514,8 +1514,7 @@ msgstr "ஒலி கோப்பினை திறக்க முடியவ
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
-msgstr ""
-"எச்சரிக்கை: கோப்பிலிருந்து குறிப்பீட்டுடன் குறிக்கிட்ட மாதிரி குறிப்பீடு மேலெழுதப்படலாம்."
+msgstr "எச்சரிக்கை: கோப்பிலிருந்து குறிப்பீட்டுடன் குறிக்கிட்ட மாதிரி குறிப்பீடு மேலெழுதப்படலாம்."
 
 #: ../src/utils/pacat.c:958 ../src/utils/pactl.c:997
 msgid "Failed to determine sample specification from file."
@@ -1535,10 +1534,8 @@ msgstr "எச்சரிக்கை: கோப்புக்கு சேன
 
 #: ../src/utils/pacat.c:1004
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
-msgstr ""
-"ஒரு %s ஸ்டீரம் மாதிரி குறிப்பீட்டை '%s' மற்றும் சேனல் வரைபட்டம் '%s' உடன் திறக்கிறது."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgstr "ஒரு %s ஸ்டீரம் மாதிரி குறிப்பீட்டை '%s' மற்றும் சேனல் வரைபட்டம் '%s' உடன் திறக்கிறது."
 
 #: ../src/utils/pacat.c:1005
 msgid "recording"
@@ -1670,8 +1667,7 @@ msgstr "தற்போது பயனிலுள்ளது: %u தொகு
 #: ../src/utils/pactl.c:144
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr ""
-"வாழ்க்கை முழுவதும் ஒதுக்கப்பட்டது: %u தொகுதிகள் %s பைட்களை மொத்தமாக கொண்டுள்ளது.\n"
+msgstr "வாழ்க்கை முழுவதும் ஒதுக்கப்பட்டது: %u தொகுதிகள் %s பைட்களை மொத்தமாக கொண்டுள்ளது.\n"
 
 #: ../src/utils/pactl.c:147
 #, c-format
@@ -2127,17 +2123,14 @@ msgid "You have to specify a module index"
 msgstr "தொகுதி அட்டவணையை நீங்கள் குறிப்பிட வேண்டும்"
 
 #: ../src/utils/pactl.c:1090
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
-msgstr ""
-"ஒரு சிங்கிற்கு மேல் நீங்கள் குறிப்பிடக் கூடாது. பூலியன் மதிப்பை நீங்கள் குறிப்பிட வேண்டும்."
+msgid "You may not specify more than one sink. You have to specify a boolean value."
+msgstr "ஒரு சிங்கிற்கு மேல் நீங்கள் குறிப்பிடக் கூடாது. பூலியன் மதிப்பை நீங்கள் குறிப்பிட வேண்டும்."
 
 #: ../src/utils/pactl.c:1103
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
-msgstr ""
-"ஒரு மூலத்திற்கு மேல் நீங்கள் குறிப்பிடக் கூடாது. பூலியன் மதிப்பை நீங்கள் குறிப்பிட வேண்டும்."
+msgstr "ஒரு மூலத்திற்கு மேல் நீங்கள் குறிப்பிடக் கூடாது. பூலியன் மதிப்பை நீங்கள் குறிப்பிட வேண்டும்."
 
 #: ../src/utils/pactl.c:1115
 msgid "You have to specify a card name/index and a profile name"
@@ -2367,3 +2360,4 @@ msgstr "Telephony Duplex (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio ஒலி சேவையகம்"
+
