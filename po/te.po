@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.te\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-10 01:54+0200\n"
-"PO-Revision-Date: 2009-09-09 12:24+0530\n"
+"POT-Creation-Date: 2009-09-10 08:40+0000\n"
+"PO-Revision-Date: 2009-09-10 16:54+0530\n"
 "Last-Translator: Krishna Babu K <kkrothap@redhat.com>\n"
 "Language-Team: Telugu <en@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
-"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n\n"
 "\n"
 "\n"
 "\n"
@@ -64,11 +64,11 @@ msgstr ""
 
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
-msgstr ""
+msgstr "ఒకవేళ అది null అయినా కూడా యెల్లప్పుడూ కనీసం వొక సింకు లోడైనట్లు వుంచుతుంది"
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
-msgstr ""
+msgstr "డమ్మీ అవుట్పుట్"
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
@@ -89,11 +89,11 @@ msgstr ""
 
 #: ../src/modules/module-null-sink.c:55
 msgid "Clocked NULL sink"
-msgstr ""
+msgstr "NULL సింక్ క్లాక్‌చేయబడింది"
 
 #: ../src/modules/module-null-sink.c:291
 msgid "Null Output"
-msgstr ""
+msgstr "Null అవుట్పుట్"
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -1290,9 +1290,9 @@ msgid "Failed to get latency: %s"
 msgstr "లేటెన్సీని పొందుటలో విఫలమైంది: %s"
 
 #: ../src/utils/pacat.c:576
-#, fuzzy, c-format
+#, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr "సమయం: %0.3f sec; క్రియాహీనత: %0.0f usec.  \r"
+msgstr "సమయం: %0.3f సెకను; లెటెన్సీ: %0.0f usec."
 
 #: ../src/utils/pacat.c:595
 #, c-format
@@ -1510,8 +1510,7 @@ msgstr "హెచ్చరిక: ప్రసారమార్గ మాప్
 
 #: ../src/utils/pacat.c:1004
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "%s స్ట్రీమ్‌ను మాదిరి విశదీకరణ '%s' మరియు ప్రసారమార్గ మాప్ '%s'తో తెరుచుచున్నది."
 
 #: ../src/utils/pacat.c:1005
@@ -2101,17 +2100,14 @@ msgid "You have to specify a module index"
 msgstr "మీరు మాడ్యూల్ విషయసూచిక తెలుపవలసి వుంది"
 
 #: ../src/utils/pactl.c:1090
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
-msgstr ""
-"మీరు వొక సింకు కన్నా యెక్కువ తెలుపవలసి వుండకపోవచ్చు. మీరు బూలియన్ విలువను తెలుపవలసి వుంది."
+msgid "You may not specify more than one sink. You have to specify a boolean value."
+msgstr "మీరు వొక సింకు కన్నా యెక్కువ తెలుపవలసి వుండకపోవచ్చు. మీరు బూలియన్ విలువను తెలుపవలసి వుంది."
 
 #: ../src/utils/pactl.c:1103
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
-msgstr ""
-"మీరు వొక మూలము కన్నా యెక్కువ తెలుపవలసి వుండకపోవచ్చు. మీరు బూలియన్ విలువను తెలుపవలసి వుంది."
+msgstr "మీరు వొక మూలము కన్నా యెక్కువ తెలుపవలసి వుండకపోవచ్చు. మీరు బూలియన్ విలువను తెలుపవలసి వుంది."
 
 #: ../src/utils/pactl.c:1115
 msgid "You have to specify a card name/index and a profile name"
@@ -2339,3 +2335,4 @@ msgstr "టెలిఫోనీ డూప్లెక్స్ (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "పల్స్ ఆడియో సౌండ్ సేవిక"
+
