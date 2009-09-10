@@ -1011,7 +1011,7 @@ fail:
         u->pcm_handle = NULL;
     }
 
-    return -1;
+    return -PA_ERR_IO;
 }
 
 /* Called from IO context */
@@ -1035,28 +1035,33 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
             switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
 
-                case PA_SINK_SUSPENDED:
+                case PA_SINK_SUSPENDED: {
+                    int r;
+
                     pa_assert(PA_SINK_IS_OPENED(u->sink->thread_info.state));
 
-                    if (suspend(u) < 0)
-                        return -1;
+                    if ((r = suspend(u)) < 0)
+                        return r;
 
                     break;
+                }
 
                 case PA_SINK_IDLE:
-                case PA_SINK_RUNNING:
+                case PA_SINK_RUNNING: {
+                    int r;
 
                     if (u->sink->thread_info.state == PA_SINK_INIT) {
                         if (build_pollfd(u) < 0)
-                            return -1;
+                            return -PA_ERR_IO;
                     }
 
                     if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
-                        if (unsuspend(u) < 0)
-                            return -1;
+                        if ((r = unsuspend(u)) < 0)
+                            return r;
                     }
 
                     break;
+                }
 
                 case PA_SINK_UNLINKED:
                 case PA_SINK_INIT:
@@ -1084,7 +1089,7 @@ static int sink_set_state_cb(pa_sink *s, pa_sink_state_t new_state) {
         reserve_done(u);
     else if (old_state == PA_SINK_SUSPENDED && PA_SINK_IS_OPENED(new_state))
         if (reserve_init(u, u->device_name) < 0)
-            return -1;
+            return -PA_ERR_BUSY;
 
     return 0;
 }

@@ -959,7 +959,7 @@ fail:
         u->pcm_handle = NULL;
     }
 
-    return -1;
+    return -PA_ERR_IO;
 }
 
 static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
@@ -982,30 +982,34 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
             switch ((pa_source_state_t) PA_PTR_TO_UINT(data)) {
 
-                case PA_SOURCE_SUSPENDED:
+                case PA_SOURCE_SUSPENDED: {
+                    int r;
                     pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
 
-                    if (suspend(u) < 0)
-                        return -1;
+                    if ((r = suspend(u)) < 0)
+                        return r;
 
                     break;
+                }
 
                 case PA_SOURCE_IDLE:
-                case PA_SOURCE_RUNNING:
+                case PA_SOURCE_RUNNING: {
+                    int r;
 
                     if (u->source->thread_info.state == PA_SOURCE_INIT) {
                         if (build_pollfd(u) < 0)
-                            return -1;
+                            return -PA_ERR_IO;
 
                         snd_pcm_start(u->pcm_handle);
                     }
 
                     if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
-                        if (unsuspend(u) < 0)
-                            return -1;
+                        if ((r = unsuspend(u)) < 0)
+                            return r;
                     }
 
                     break;
+                }
 
                 case PA_SOURCE_UNLINKED:
                 case PA_SOURCE_INIT:
@@ -1033,7 +1037,7 @@ static int source_set_state_cb(pa_source *s, pa_source_state_t new_state) {
         reserve_done(u);
     else if (old_state == PA_SINK_SUSPENDED && PA_SINK_IS_OPENED(new_state))
         if (reserve_init(u, u->device_name) < 0)
-            return -1;
+            return -PA_ERR_BUSY;
 
     return 0;
 }
