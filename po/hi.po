@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-10 01:54+0200\n"
-"PO-Revision-Date: 2009-09-04 10:48+0530\n"
+"POT-Creation-Date: 2009-09-10 08:40+0000\n"
+"PO-Revision-Date: 2009-09-10 17:01+0530\n"
 "Last-Translator: Rajesh Ranjan <rajesh672@gmail.com>\n"
 "Language-Team: Hindi <hindi.sf.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
-"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n\n"
 "\n"
 "\n"
 "\n"
@@ -65,11 +65,11 @@ msgstr ""
 
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
-msgstr ""
+msgstr "हमेशा कम से मक एक सिंक को लोडेड रखें हालांकि यह एक रिक्त है"
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
-msgstr ""
+msgstr "डमी आउटपुट"
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
@@ -91,11 +91,11 @@ msgstr ""
 
 #: ../src/modules/module-null-sink.c:55
 msgid "Clocked NULL sink"
-msgstr ""
+msgstr "क्लॉक्ड रिक्त सिंक"
 
 #: ../src/modules/module-null-sink.c:291
 msgid "Null Output"
-msgstr ""
+msgstr "रिक्त आउटपुट"
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -206,8 +206,7 @@ msgstr "डेमॉन हटाने में विफल: %s"
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr ""
-"यह प्रोग्राम बतौर रूट चलाने के लिए इच्छित नहीं है (unless --system is specified)."
+msgstr "यह प्रोग्राम बतौर रूट चलाने के लिए इच्छित नहीं है (unless --system is specified)."
 
 #: ../src/daemon/main.c:568
 msgid "Root privileges required."
@@ -383,8 +382,7 @@ msgstr "ताज़ा उच्च विभेदन टाइमर उप�
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
-msgstr ""
-"आपका कर्नेल बुरी स्थिति में है! सलाह है कि उच्च विभेदन युक्त लिनक्स सक्रिय किया जाना चाहिए!"
+msgstr "आपका कर्नेल बुरी स्थिति में है! सलाह है कि उच्च विभेदन युक्त लिनक्स सक्रिय किया जाना चाहिए!"
 
 #: ../src/daemon/main.c:839
 msgid "pa_core_new() failed."
@@ -1294,9 +1292,9 @@ msgid "Failed to get latency: %s"
 msgstr "लेटेंसी पाने में विफल: %s"
 
 #: ../src/utils/pacat.c:576
-#, fuzzy, c-format
+#, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr "समय: %0.3f sec; लैटेंसी: %0.0f usec.  \r"
+msgstr "समय: %0.3f सेकेंड; लैटेंसी: %0.0f usec."
 
 #: ../src/utils/pacat.c:595
 #, c-format
@@ -1514,8 +1512,7 @@ msgstr "चेतावनी: फ़ाइल में चैनल मैप 
 
 #: ../src/utils/pacat.c:1004
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "किसी %s स्ट्रीम को किसी नमूना विनिर्दिष्ता '%s' और चैनल मैप '%s' से खोल रहा है."
 
 #: ../src/utils/pacat.c:1005
@@ -2105,10 +2102,8 @@ msgid "You have to specify a module index"
 msgstr "आपको किसी मॉड्यूल सूची को निर्दिष्ट करना है"
 
 #: ../src/utils/pactl.c:1090
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
-msgstr ""
-"आप एक सिंक से अधिक निर्दिष्ट नहीं कर सकते हैं. आपको किसी बुलियन मान को निर्दिष्ट करना है."
+msgid "You may not specify more than one sink. You have to specify a boolean value."
+msgstr "आप एक सिंक से अधिक निर्दिष्ट नहीं कर सकते हैं. आपको किसी बुलियन मान को निर्दिष्ट करना है."
 
 #: ../src/utils/pactl.c:1103
 msgid ""
@@ -2346,3 +2341,4 @@ msgstr "टेलिफोनी ड्यूप्लेक्स (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "पल्सऑडियो ध्वनि सर्वर"
+
