@@ -57,34 +57,67 @@ struct userdata {
     pa_hook_slot *sink_input_fixate_hook_slot;
 };
 
+static int parse_pos(const char *pos, double *f) {
+
+    if (pa_atod(pos, f) < 0) {
+        pa_log_warn("Failed to parse hpos/vpos property '%s'.", pos);
+        return -1;
+    }
+
+    if (*f < 0.0 || *f > 1.0) {
+        pa_log_warn("Property hpos/vpos out of range %0.2f", *f);
+        return -1;
+    }
+
+    return 0;
+}
+
 static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *core, pa_sink_input_new_data *data, struct userdata *u) {
-    const char *hpos;
+    const char *hpos, *vpos, *role;
     double f;
     char t[PA_CVOLUME_SNPRINT_MAX];
     pa_cvolume v;
 
     pa_assert(data);
 
+    if (!(role = pa_proplist_gets(data->proplist, PA_PROP_MEDIA_ROLE)))
+        return PA_HOOK_OK;
+
+    if (!pa_streq(role, "event"))
+        return PA_HOOK_OK;
+
     if (!(hpos = pa_proplist_gets(data->proplist, PA_PROP_EVENT_MOUSE_HPOS)))
-        return PA_HOOK_OK;
+        hpos = pa_proplist_gets(data->proplist, PA_PROP_WINDOW_HPOS);
 
-    if (pa_atod(hpos, &f) < 0) {
-        pa_log_warn("Failed to parse "PA_PROP_EVENT_MOUSE_HPOS" property '%s'.", hpos);
-        return PA_HOOK_OK;
-    }
+    if (!(vpos = pa_proplist_gets(data->proplist, PA_PROP_EVENT_MOUSE_VPOS)))
+        vpos = pa_proplist_gets(data->proplist, PA_PROP_WINDOW_VPOS);
 
-    if (f < 0.0 || f > 1.0) {
-        pa_log_warn("Property "PA_PROP_EVENT_MOUSE_HPOS" out of range %0.2f", f);
+    if (!hpos && !vpos)
         return PA_HOOK_OK;
-    }
-
-    pa_log_debug("Positioning event sound '%s' at %0.2f.", pa_strnull(pa_proplist_gets(data->proplist, PA_PROP_EVENT_ID)), f);
 
     pa_cvolume_reset(&v, data->sample_spec.channels);
-    pa_cvolume_set_balance(&v, &data->channel_map, f*2.0-1.0);
+
+    if (hpos) {
+        if (parse_pos(hpos, &f) < 0)
+            return PA_HOOK_OK;
+
+        if (pa_channel_map_can_balance(&data->channel_map)) {
+            pa_log_debug("Positioning event sound '%s' horizontally at %0.2f.", pa_strnull(pa_proplist_gets(data->proplist, PA_PROP_EVENT_ID)), f);
+            pa_cvolume_set_balance(&v, &data->channel_map, f*2.0-1.0);
+        }
+    }
+
+    if (vpos) {
+        if (parse_pos(vpos, &f) < 0)
+            return PA_HOOK_OK;
+
+        if (pa_channel_map_can_fade(&data->channel_map)) {
+            pa_log_debug("Positioning event sound '%s' vertically at %0.2f.", pa_strnull(pa_proplist_gets(data->proplist, PA_PROP_EVENT_ID)), f);
+            pa_cvolume_set_fade(&v, &data->channel_map, f*2.0-1.0);
+        }
+    }
 
     pa_log_debug("Final volume factor %s.", pa_cvolume_snprint(t, sizeof(t), &v));
-
     pa_sink_input_new_data_apply_volume_factor(data, &v);
 
     return PA_HOOK_OK;
