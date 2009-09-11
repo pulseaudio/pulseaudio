@@ -95,15 +95,15 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *core, pa_sink_i
     if (!hpos && !vpos)
         return PA_HOOK_OK;
 
-    pa_cvolume_reset(&v, data->sample_spec.channels);
+    pa_cvolume_reset(&v, data->sink->sample_spec.channels);
 
     if (hpos) {
         if (parse_pos(hpos, &f) < 0)
             return PA_HOOK_OK;
 
-        if (pa_channel_map_can_balance(&data->channel_map)) {
+        if (pa_channel_map_can_balance(&data->sink->channel_map)) {
             pa_log_debug("Positioning event sound '%s' horizontally at %0.2f.", pa_strnull(pa_proplist_gets(data->proplist, PA_PROP_EVENT_ID)), f);
-            pa_cvolume_set_balance(&v, &data->channel_map, f*2.0-1.0);
+            pa_cvolume_set_balance(&v, &data->sink->channel_map, f*2.0-1.0);
         }
     }
 
@@ -111,14 +111,14 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *core, pa_sink_i
         if (parse_pos(vpos, &f) < 0)
             return PA_HOOK_OK;
 
-        if (pa_channel_map_can_fade(&data->channel_map)) {
+        if (pa_channel_map_can_fade(&data->sink->channel_map)) {
             pa_log_debug("Positioning event sound '%s' vertically at %0.2f.", pa_strnull(pa_proplist_gets(data->proplist, PA_PROP_EVENT_ID)), f);
-            pa_cvolume_set_fade(&v, &data->channel_map, f*2.0-1.0);
+            pa_cvolume_set_fade(&v, &data->sink->channel_map, f*2.0-1.0);
         }
     }
 
     pa_log_debug("Final volume factor %s.", pa_cvolume_snprint(t, sizeof(t), &v));
-    pa_sink_input_new_data_apply_volume_factor(data, &v);
+    pa_sink_input_new_data_apply_volume_factor_sink(data, &v);
 
     return PA_HOOK_OK;
 }
