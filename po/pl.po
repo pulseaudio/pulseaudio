@@ -6,9 +6,9 @@ msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-09-11 01:26+0200\n"
-"PO-Revision-Date: 2009-09-03 12:25+0200\n"
+"PO-Revision-Date: 2009-09-12 21:17+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
-"Language-Team: Polish <pl@li.org>\n"
+"Language-Team: Polish <fedora-trans-pl@redhat.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -57,10 +57,12 @@ msgstr ""
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
 msgstr ""
+"Utrzymywanie zawsze co najmniej jednego wczytanego odpływu nawet, jeśli to "
+"pusty odpływ"
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
-msgstr ""
+msgstr "Głuche wyjście"
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
@@ -82,11 +84,11 @@ msgstr ""
 
 #: ../src/modules/module-null-sink.c:55
 msgid "Clocked NULL sink"
-msgstr ""
+msgstr "Zegarowy PUSTY odpływ"
 
 #: ../src/modules/module-null-sink.c:291
 msgid "Null Output"
-msgstr ""
+msgstr "Puste wyjście"
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -1099,11 +1101,11 @@ msgstr "Rozdzielono klienta"
 
 #: ../src/pulse/error.c:68
 msgid "Input/Output error"
-msgstr ""
+msgstr "Błąd wejścia/wyjścia"
 
 #: ../src/pulse/error.c:69
 msgid "Device or resource busy"
-msgstr ""
+msgstr "Urządzenie lub zasób jest zajęty"
 
 #: ../src/pulse/sample.c:172
 #, c-format
@@ -1312,9 +1314,9 @@ msgid "Failed to get latency: %s"
 msgstr "Uzyskanie opóźnienia nie powiodło się: %s"
 
 #: ../src/utils/pacat.c:576
-#, fuzzy, c-format
+#, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr "Czas: %0.3f sekundy; opóźnienie: %0.0f usekundy.  \r"
+msgstr "Czas: %0.3f sekundy; opóźnienie: %0.0f usekundy."
 
 #: ../src/utils/pacat.c:595
 #, c-format
