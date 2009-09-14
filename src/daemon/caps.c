@@ -57,24 +57,29 @@ void pa_drop_root(void) {
 
 #ifdef HAVE_GETUID
     uid_t uid;
+    gid_t gid;
 
+    pa_log_debug(_("Cleaning up privileges."));
     uid = getuid();
-    if (uid == 0 || geteuid() != 0)
-        return;
-
-    pa_log_info(_("Dropping root privileges."));
+    gid = getgid();
 
 #if defined(HAVE_SETRESUID)
     pa_assert_se(setresuid(uid, uid, uid) >= 0);
+    pa_assert_se(setresgid(gid, gid, gid) >= 0);
 #elif defined(HAVE_SETREUID)
     pa_assert_se(setreuid(uid, uid) >= 0);
+    pa_assert_se(setregid(gid, gid) >= 0);
 #else
     pa_assert_se(setuid(uid) >= 0);
     pa_assert_se(seteuid(uid) >= 0);
+    pa_assert_se(setgid(gid) >= 0);
+    pa_assert_se(setegid(gid) >= 0);
 #endif
 
     pa_assert_se(getuid() == uid);
     pa_assert_se(geteuid() == uid);
+    pa_assert_se(getgid() == gid);
+    pa_assert_se(getegid() == gid);
 #endif
 
 #ifdef HAVE_SYS_PRCTL_H
@@ -82,7 +87,7 @@ void pa_drop_root(void) {
 #endif
 
 #ifdef HAVE_SYS_CAPABILITY_H
-    {
+    if (uid != 0) {
         cap_t caps;
         pa_assert_se(caps = cap_init());
         pa_assert_se(cap_clear(caps) == 0);

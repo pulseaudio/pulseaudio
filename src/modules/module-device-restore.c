@@ -218,7 +218,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         if (sink->save_volume) {
             entry.channel_map = sink->channel_map;
-            entry.volume = *pa_sink_get_volume(sink, FALSE, TRUE);
+            entry.volume = *pa_sink_get_volume(sink, FALSE);
             entry.volume_valid = TRUE;
         }
 

@@ -50,7 +50,7 @@ PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_USAGE("just-one=<boolean>");
-PA_MODULE_DEPRECATED("Please use module-hal-detect instead of module-detect!");
+PA_MODULE_DEPRECATED("Please use module-udev-detect instead of module-detect!");
 
 static const char* const valid_modargs[] = {
     "just-one",
@@ -119,7 +119,7 @@ static int detect_alsa(pa_core *c, int just_one) {
 }
 #endif
 
-#ifdef HAVE_OSS
+#ifdef HAVE_OSS_OUTPUT
 static int detect_oss(pa_core *c, int just_one) {
     FILE *f;
     int n = 0, b = 0;
@@ -240,7 +240,7 @@ int pa__init(pa_module*m) {
 #ifdef HAVE_ALSA
     if ((n = detect_alsa(m->core, just_one)) <= 0)
 #endif
-#ifdef HAVE_OSS
+#ifdef HAVE_OSS_OUTPUT
     if ((n = detect_oss(m->core, just_one)) <= 0)
 #endif
 #ifdef HAVE_SOLARIS

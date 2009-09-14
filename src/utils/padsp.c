@@ -53,6 +53,7 @@
 #include <pulse/pulseaudio.h>
 #include <pulse/gccmacro.h>
 #include <pulsecore/llist.h>
+#include <pulsecore/core-util.h>
 
 /* On some systems SIOCINQ isn't defined, but FIONREAD is just an alias */
 #if !defined(SIOCINQ) && defined(FIONREAD)
@@ -459,15 +460,16 @@ static void reset_params(fd_info *i) {
 }
 
 static const char *client_name(char *buf, size_t n) {
-    char p[PATH_MAX];
+    char *p;
     const char *e;
 
     if ((e = getenv("PADSP_CLIENT_NAME")))
         return e;
 
-    if (pa_get_binary_name(p, sizeof(p)))
+    if ((p = pa_get_binary_name_malloc())) {
         snprintf(buf, n, "OSS Emulation[%s]", p);
-    else
+        pa_xfree(p);
+    } else
         snprintf(buf, n, "OSS");
 
     return buf;
@@ -1819,7 +1821,7 @@ fail:
 
     pa_threaded_mainloop_unlock(i->mainloop);
 
-    return 0;
+    return r;
 }
 
 static int dsp_trigger(fd_info *i) {
@@ -1862,7 +1864,7 @@ fail:
 
     pa_threaded_mainloop_unlock(i->mainloop);
 
-    return 0;
+    return r;
 }
 
 static int dsp_cork(fd_info *i, pa_stream *s, int b) {
@@ -1900,7 +1902,7 @@ fail:
 
     pa_threaded_mainloop_unlock(i->mainloop);
 
-    return 0;
+    return r;
 }
 
 static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) {

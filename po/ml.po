@@ -1,0 +1,2350 @@
+# translation of pulseaudio.master-tx.ml.po to
+# translation of pulseaudio.master-tx.pulseaudio.ml.po to
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: pulseaudio.master-tx.ml\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-09-11 01:26+0200\n"
+"PO-Revision-Date: 2009-09-10 11:19+0530\n"
+"Last-Translator: \n"
+"Language-Team:  <en@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
+
+#: ../src/modules/alsa/alsa-util.c:858 ../src/pulsecore/sink.c:2629
+#, c-format
+msgid "%s %s"
+msgstr "%s %s"
+
+#: ../src/modules/alsa/alsa-util.c:1106
+#, c-format
+msgid ""
+"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
+"ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+"snd_pcm_avail() നല്‍കിയ മൂല്ല്യം വളരെ വലുതാണു്: %lu ബൈറ്റുകള്‍ (%lu ms).\n"
+"ഇതു് ALSA ഡ്രൈവര്‍ '%s'-ലുള്ള ഒരു ബഗാവാം. ദയവായി ഈ പ്രശ്നം ALSA ഡവലപ്പര്‍സിനെ അറിയിക്കുക."
+
+#: ../src/modules/alsa/alsa-util.c:1147
+#, c-format
+msgid ""
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
+"lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+"snd_pcm_delay() നല്‍കിയ മൂല്ല്യം വളരെ വലുതാണു്: %li ബൈറ്റുകള്‍ (%s%lu ms).\n"
+"ഇതു് ALSA ഡ്രൈവര്‍ '%s'-ലുള്ള ഒരു ബഗാവാം. ദയവായി ഈ പ്രശ്നം ALSA ഡവലപ്പര്‍സിനെ അറിയിക്കുക."
+
+#: ../src/modules/alsa/alsa-util.c:1194
+#, c-format
+msgid ""
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
+"(%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+"snd_pcm_mmap_begin() നല്‍കിയ മൂല്ല്യം വളരെ വലുതാണു്: %lu ബൈറ്റുകള്‍(%lu ms).\n"
+"ഇതു് ALSA ഡ്രൈവര്‍ '%s'-ലുള്ള ഒരു ബഗാവാം. ദയവായി ഈ പ്രശ്നം ALSA ഡവലപ്പര്‍സിനെ അറിയിക്കുക."
+
+#: ../src/modules/module-always-sink.c:39
+msgid "Always keeps at least one sink loaded even if it's a null one"
+msgstr "നള്‍ ആണെങ്കിലും ഒരു സിങ്കെങ്കിലും എപ്പോഴും ലഭ്യമാക്കുക"
+
+#: ../src/modules/module-always-sink.c:83
+msgid "Dummy Output"
+msgstr "ഡമ്മി ഔട്ട്പുട്ട്"
+
+#: ../src/modules/module-ladspa-sink.c:49
+msgid "Virtual LADSPA sink"
+msgstr "വിര്‍ച്ച്വല്‍ LADSPA സിങ്ക്"
+
+#: ../src/modules/module-ladspa-sink.c:53
+msgid ""
+"sink_name=<name for the sink> sink_properties=<properties for the sink> "
+"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
+"channels=<number of channels> channel_map=<channel map> plugin=<ladspa "
+"plugin name> label=<ladspa plugin label> control=<comma seperated list of "
+"input control values>"
+msgstr ""
+"sink_name=<name for the sink> sink_properties=<properties for the sink> "
+"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
+"channels=<number of channels> channel_map=<channel map> plugin=<ladspa "
+"plugin name> label=<ladspa plugin label> control=<comma seperated list of "
+"input control values>"
+
+#: ../src/modules/module-null-sink.c:55
+msgid "Clocked NULL sink"
+msgstr "ക്ലോക്കഡ് NULL സിങ്ക്"
+
+#: ../src/modules/module-null-sink.c:291
+msgid "Null Output"
+msgstr "നള്‍ ഔട്ട്പുട്ട്"
+
+#: ../src/pulsecore/sink.c:2613
+msgid "Internal Audio"
+msgstr "ഇന്റേര്‍ണല്‍ ഓഡിയോ"
+
+#: ../src/pulsecore/sink.c:2618
+msgid "Modem"
+msgstr "മോഡം"
+
+#: ../src/daemon/ltdl-bind-now.c:124
+msgid "Failed to find original lt_dlopen loader."
+msgstr "യഥാര്‍ത്ഥ lt_dlopen ലോഡര്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
+
+#: ../src/daemon/ltdl-bind-now.c:129
+msgid "Failed to allocate new dl loader."
+msgstr "പുതിയ dl ലോഡര്‍ അനുവദിക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
+
+#: ../src/daemon/ltdl-bind-now.c:142
+msgid "Failed to add bind-now-loader."
+msgstr "bind-now-loader ചേര്‍ക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
+
+#: ../src/daemon/main.c:141
+#, c-format
+msgid "Got signal %s."
+msgstr "%s സിഗ്നല്‍ ലഭ്യമായി."
+
+#: ../src/daemon/main.c:168
+msgid "Exiting."
+msgstr "പുറത്തു് കടക്കുന്നു."
+
+#: ../src/daemon/main.c:186
+#, c-format
+msgid "Failed to find user '%s'."
+msgstr "'%s' എന്ന ഉപയോക്താവു് ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
+
+#: ../src/daemon/main.c:191
+#, c-format
+msgid "Failed to find group '%s'."
+msgstr "'%s' എന്ന ഗ്രൂപ്പ് ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
+
+#: ../src/daemon/main.c:195
+#, c-format
+msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
+msgstr "ഉപയോക്താവു് '%s' (UID %lu) , ഗ്രൂപ്പ് '%s' (GID %lu) ലഭ്യമായി."
+
+#: ../src/daemon/main.c:200
+#, c-format
+msgid "GID of user '%s' and of group '%s' don't match."
+msgstr "ഉപയോക്താവു് '%s'-ന്റെയും ഗ്രൂപ്പ് '%s'-ന്റെയും GID ചേരുന്നില്ല."
+
+#: ../src/daemon/main.c:205
+#, c-format
+msgid "Home directory of user '%s' is not '%s', ignoring."
+msgstr "ഉപയോക്താവു് '%s'-ന്റെ ഹോം ഡയറക്ടറി '%s' അല്ല, ഉപേക്ഷിക്കുന്നു."
+
+#: ../src/daemon/main.c:208 ../src/daemon/main.c:213
+#, c-format
+msgid "Failed to create '%s': %s"
+msgstr "'%s' ഉണ്ടാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/daemon/main.c:220
+#, c-format
+msgid "Failed to change group list: %s"
+msgstr "ഗ്രൂപ്പ് ലിസ്റ്റ് മാറ്റുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/daemon/main.c:236
+#, c-format
+msgid "Failed to change GID: %s"
+msgstr "GID മാറ്റുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/daemon/main.c:252
+#, c-format
+msgid "Failed to change UID: %s"
+msgstr "UID മാറ്റുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/daemon/main.c:271
+msgid "Successfully dropped root privileges."
+msgstr "റൂട്ട് ആനുകൂല്യങ്ങള്‍ വിജയകരമായി ഉപേക്ഷിച്ചിരിക്കുന്നു."
+
+#: ../src/daemon/main.c:279
+msgid "System wide mode unsupported on this platform."
+msgstr "ഈ പ്ലാറ്റ്ഫോമില്‍ സിസ്റ്റം വൈഡ് മോഡ് പിന്തുണയ്ക്കുന്നില്ല."
+
+#: ../src/daemon/main.c:297
+#, c-format
+msgid "setrlimit(%s, (%u, %u)) failed: %s"
+msgstr "setrlimit(%s, (%u, %u)) പരാജയപ്പെട്ടു: %s"
+
+#: ../src/daemon/main.c:469
+msgid "Failed to parse command line."
+msgstr "കമാന്‍ഡ് ലൈന്‍ പാഴ്സ് ചെയ്യുന്നതില്‍ പരാജയപ്പെട്ടു."
+
+#: ../src/daemon/main.c:536
+msgid "Daemon not running"
+msgstr "ഡെമണ്‍ പ്രവര്‍ത്തനത്തിലില്ല"
+
+#: ../src/daemon/main.c:538
+#, c-format
+msgid "Daemon running as PID %u"
+msgstr "ഡെമണ്‍ PID %u ആയി പ്രവര്‍ത്തിക്കുന്നു"
+
+#: ../src/daemon/main.c:548
+#, c-format
+msgid "Failed to kill daemon: %s"
+msgstr "ഡെമണ്‍ നശിപ്പിക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/daemon/main.c:566
+msgid ""
+"This program is not intended to be run as root (unless --system is "
+"specified)."
+msgstr ""
+"ഈ പ്രോഗ്രാം റൂട്ടായി പ്രവര്‍ത്തിപ്പിക്കേണ്ടതല്ല (--system എന്നു് പറഞ്ഞിട്ടുണ്ടെങ്കില്‍ മാത്രം റൂട്ട് "
+"ആവശ്യമുണ്ടു്)."
+
+#: ../src/daemon/main.c:568
+msgid "Root privileges required."
+msgstr "റൂട്ട് ആനുകൂല്യങ്ങള്‍ ആവശ്യമുണ്ടു്."
+
+#: ../src/daemon/main.c:573
+msgid "--start not supported for system instances."
+msgstr "സിസ്റ്റം ഇന്‍സ്റ്റന്‍സുകള്‍ക്ക് --start പിന്തുണയ്ക്കുന്നില്ല."
+
+#: ../src/daemon/main.c:578
+msgid "Running in system mode, but --disallow-exit not set!"
+msgstr "സിസ്റ്റം മോഡില്‍ പ്രവര്‍ത്തിക്കുന്നു, പക്ഷേ --disallow-exit സജ്ജമാക്കിയിട്ടില്ല!"
+
+#: ../src/daemon/main.c:581
+msgid "Running in system mode, but --disallow-module-loading not set!"
+msgstr ""
+"സിസ്റ്റം മോഡില്‍ പ്രവര്‍ത്തിക്കുന്നു, പക്ഷേ --disallow-module-loading സജ്ജമാക്കിയിട്ടില്ല!"
+
+#: ../src/daemon/main.c:584
+msgid "Running in system mode, forcibly disabling SHM mode!"
+msgstr "സിസ്റ്റം മോഡില്‍ പ്രവര്‍ത്തിക്കുന്നു, നിര്‍ബന്ധമായും SHM മോഡ് പ്രവര്‍ത്ത രഹിതമാക്കുന്നു!"
+
+#: ../src/daemon/main.c:589
+msgid "Running in system mode, forcibly disabling exit idle time!"
+msgstr ""
+"സിസ്റ്റം മോഡില്‍ പ്രവര്‍ത്തിക്കുന്നു, നിര്‍ബന്ധമായും എക്സിറ്റ് ഐഡില്‍ സമയം പ്രവര്‍ത്ത രഹിതമാക്കുന്നു!"
+
+#: ../src/daemon/main.c:616
+msgid "Failed to acquire stdio."
+msgstr "stdio ലഭിക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
+
+#: ../src/daemon/main.c:622
+#, c-format
+msgid "pipe failed: %s"
+msgstr "pipe പരാജയപ്പെട്ടു: %s"
+
+#: ../src/daemon/main.c:627
+#, c-format
+msgid "fork() failed: %s"
+msgstr "fork() പരാജയപ്പെട്ടു: %s"
+
+#: ../src/daemon/main.c:641 ../src/utils/pacat.c:504
+#, c-format
+msgid "read() failed: %s"
+msgstr "read() പരാജയപ്പെട്ടു: %s"
+
+#: ../src/daemon/main.c:647
+msgid "Daemon startup failed."
+msgstr "ഡെമണിന്റെ തുടക്കം പരാജയപ്പെട്ടു."
+
+#: ../src/daemon/main.c:649
+msgid "Daemon startup successful."
+msgstr "ഡെമണിന്റെ തുടക്കം വിജയിച്ചു."
+
+#: ../src/daemon/main.c:726
+#, c-format
+msgid "This is PulseAudio %s"
+msgstr "ഇതു് PulseAudio %s ആണു്"
+
+#: ../src/daemon/main.c:727
+#, c-format
+msgid "Compilation host: %s"
+msgstr "കംപൈലേഷന്‍ ഹോസ്റ്റ്: %s"
+
+#: ../src/daemon/main.c:728
+#, c-format
+msgid "Compilation CFLAGS: %s"
+msgstr "കംപൈലേഷന്‍ CFLAGS: %s"
+
+#: ../src/daemon/main.c:731
+#, c-format
+msgid "Running on host: %s"
+msgstr "ഹോസ്റ്റില്‍ പ്രവര്‍ത്തിക്കുന്നു: %s"
+
+#: ../src/daemon/main.c:734
+#, c-format
+msgid "Found %u CPUs."
+msgstr "%u സിപിയു ലഭ്യമായി."
+
+#: ../src/daemon/main.c:736
+#, c-format
+msgid "Page size is %lu bytes"
+msgstr "താളിന്റെ വ്യാപ്തി %lu ബൈറ്റുകളാണു്"
+
+#: ../src/daemon/main.c:739
+msgid "Compiled with Valgrind support: yes"
+msgstr "Valgrind പിന്തുണയോടെ കംപൈല്‍ ചെയ്തിരിക്കുന്നു: ഉവ്വു്"
+
+#: ../src/daemon/main.c:741
+msgid "Compiled with Valgrind support: no"
+msgstr "Valgrind പിന്തുണയോടെ കംപൈല്‍ ചെയ്തിരിക്കുന്നു: ഇല്ല"
+
+#: ../src/daemon/main.c:744
+#, c-format
+msgid "Running in valgrind mode: %s"
+msgstr "valgrind മോഡില്‍ പ്രവര്‍ത്തിപ്പിക്കുന്നു: %s"
+
+#: ../src/daemon/main.c:747
+msgid "Optimized build: yes"
+msgstr "ഒപ്ടിമൈസ്ഡ് ബിള്‍ഡ്: ഉവ്വു്"
+
+#: ../src/daemon/main.c:749
+msgid "Optimized build: no"
+msgstr "ഒപ്ടിമൈസ്ഡ് ബിള്‍ഡ്: ഇല്ല"
+
+#: ../src/daemon/main.c:753
+msgid "NDEBUG defined, all asserts disabled."
+msgstr "NDEBUG നിഷ്കര്‍ഷിച്ചിരിക്കുന്നു, എല്ലാ asserts-ഉം പ്രവര്‍‌ത്ത രഹിതം."
+
+#: ../src/daemon/main.c:755
+msgid "FASTPATH defined, only fast path asserts disabled."
+msgstr "FASTPATH നിഷ്കര്‍ഷിച്ചിരിക്കുന്നു, fast path asserts മാത്രം പ്രവര്‍‌ത്ത രഹിതം."
+
+#: ../src/daemon/main.c:757
+msgid "All asserts enabled."
+msgstr "എല്ലാ asserts-ഉം പ്രവര്‍‌ത്ത സജ്ജം"
+
+#: ../src/daemon/main.c:761
+msgid "Failed to get machine ID"
+msgstr "മഷീന്‍ ID ലഭ്യമാക്കുവാന്‍ സാധ്യമായില്ല"
+
+#: ../src/daemon/main.c:764
+#, c-format
+msgid "Machine ID is %s."
+msgstr "മഷീന്‍ ID %s ആണു്."
+
+#: ../src/daemon/main.c:768
+#, c-format
+msgid "Session ID is %s."
+msgstr "സെഷന്‍ ID %s ആണു്."
+
+#: ../src/daemon/main.c:774
+#, c-format
+msgid "Using runtime directory %s."
+msgstr "റണ്‍ടൈം ഡയറക്ടറി %s ഉപയോഗിക്കുന്നു."
+
+#: ../src/daemon/main.c:779
+#, c-format
+msgid "Using state directory %s."
+msgstr "സ്റ്റേറ്റ് ഡയറക്ടറി %s ഉപയോഗിക്കുന്നു."
+
+#: ../src/daemon/main.c:782
+#, c-format
+msgid "Using modules directory %s."
+msgstr "മൊഡ്യൂള്‍സ് ഡയറക്ടറി %s ഉപയോഗിക്കുന്നു."
+
+#: ../src/daemon/main.c:784
+#, c-format
+msgid "Running in system mode: %s"
+msgstr "സിസ്റ്റം മോഡില്‍ പ്രവര്‍ത്തിക്കുന്നു: %s"
+
+#: ../src/daemon/main.c:787
+msgid ""
+"OK, so you are running PA in system mode. Please note that you most likely "
+"shouldn't be doing that.\n"
+"If you do it nonetheless then it's your own fault if things don't work as "
+"expected.\n"
+"Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an "
+"explanation why system mode is usually a bad idea."
+msgstr ""
+"ശരി, അപ്പോള്‍ നിങ്ങള്‍ പിഎ സിസ്റ്റം മോഡിലാണു് പ്രവര്‍ത്തിപ്പിക്കുന്നതു്. ദയവായി ഇതുപേക്ഷിക്കുക.\n"
+"ഇങ്ങനെ ചെയ്തുണ്ടാകുന്ന സകല തകരാറുകളുടേയും ഉത്തരവാദി നിങ്ങള്‍ സ്വയമാകുന്നു.\n"
+"സിസ്റ്റം മോഡിലുള്ള പ്രവര്‍ത്തനം ഉത്തമമല്ലാത്തതിന്റെ കാരണങ്ങള്‍ക്കായിhttp://pulseaudio.org/"
+"wiki/WhatIsWrongWithSystemMode കാണുക."
+
+#: ../src/daemon/main.c:804
+msgid "pa_pid_file_create() failed."
+msgstr "pa_pid_file_create() പരാജയപ്പെട്ടു."
+
+#: ../src/daemon/main.c:814
+msgid "Fresh high-resolution timers available! Bon appetit!"
+msgstr "Fresh high-resolution timers available! Bon appetit!"
+
+#: ../src/daemon/main.c:816
+msgid ""
+"Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
+"resolution timers enabled!"
+msgstr ""
+"Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
+"resolution timers enabled!"
+
+#: ../src/daemon/main.c:839
+msgid "pa_core_new() failed."
+msgstr "pa_core_new() പരാജയപ്പെട്ടു."
+
+#: ../src/daemon/main.c:899
+msgid "Failed to initialize daemon."
+msgstr "ഡെമണ്‍ ആരംഭിക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
+
+#: ../src/daemon/main.c:904
+msgid "Daemon startup without any loaded modules, refusing to work."
+msgstr "ഒരു ഘടകങ്ങളും ലഭ്യമാകാതെ ഡെമണ്‍ ആരംഭിച്ചിരിക്കുന്നു, പ്രവര്‍ത്തനം നിഷേധിച്ചിരിക്കുന്നു."
+
+#: ../src/daemon/main.c:921
+msgid "Daemon startup complete."
+msgstr "ഡെമണിന്റെ തുടക്കം പൂര്‍ണ്ണമായി."
+
+#: ../src/daemon/main.c:927
+msgid "Daemon shutdown initiated."
+msgstr "ഡെമണ്‍ അടച്ചുപൂട്ടുന്നതു് ആരംഭിച്ചിരിക്കുന്നു."
+
+#: ../src/daemon/main.c:949
+msgid "Daemon terminated."
+msgstr "ഡെമണ്‍ നിര്‍ത്തിയിരിക്കുന്നു."
+
+#: ../src/daemon/cmdline.c:115
+#, c-format
+msgid ""
+"%s [options]\n"
+"\n"
+"COMMANDS:\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"      --dump-conf                       Dump default configuration\n"
+"      --dump-modules                    Dump list of available modules\n"
+"      --dump-resample-methods           Dump available resample methods\n"
+"      --cleanup-shm                     Cleanup stale shared memory "
+"segments\n"
+"      --start                           Start the daemon if it is not "
+"running\n"
+"  -k  --kill                            Kill a running daemon\n"
+"      --check                           Check for a running daemon (only "
+"returns exit code)\n"
+"\n"
+"OPTIONS:\n"
+"      --system[=BOOL]                   Run as system-wide instance\n"
+"  -D, --daemonize[=BOOL]                Daemonize after startup\n"
+"      --fail[=BOOL]                     Quit when startup fails\n"
+"      --high-priority[=BOOL]            Try to set high nice level\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_NICE)\n"
+"      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_RTPRIO)\n"
+"      --disallow-module-loading[=BOOL]  Disallow module user requested "
+"module\n"
+"                                        loading/unloading after startup\n"
+"      --disallow-exit[=BOOL]            Disallow user requested exit\n"
+"      --exit-idle-time=SECS             Terminate the daemon when idle and "
+"this\n"
+"                                        time passed\n"
+"      --module-idle-time=SECS           Unload autoloaded modules when idle "
+"and\n"
+"                                        this time passed\n"
+"      --scache-idle-time=SECS           Unload autoloaded samples when idle "
+"and\n"
+"                                        this time passed\n"
+"      --log-level[=LEVEL]               Increase or set verbosity level\n"
+"  -v                                    Increase the verbosity level\n"
+"      --log-target={auto,syslog,stderr} Specify the log target\n"
+"      --log-meta[=BOOL]                 Include code location in log "
+"messages\n"
+"      --log-time[=BOOL]                 Include timestamps in log messages\n"
+"      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
+"  -p, --dl-search-path=PATH             Set the search path for dynamic "
+"shared\n"
+"                                        objects (plugins)\n"
+"      --resample-method=METHOD          Use the specified resampling method\n"
+"                                        (See --dump-resample-methods for\n"
+"                                        possible values)\n"
+"      --use-pid-file[=BOOL]             Create a PID file\n"
+"      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
+"                                        platforms that support it.\n"
+"      --disable-shm[=BOOL]              Disable shared memory support.\n"
+"\n"
+"STARTUP SCRIPT:\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
+"with\n"
+"                                        the specified argument\n"
+"  -F, --file=FILENAME                   Run the specified script\n"
+"  -C                                    Open a command line on the running "
+"TTY\n"
+"                                        after startup\n"
+"\n"
+"  -n                                    Don't load default script file\n"
+msgstr ""
+"%s [options]\n"
+"\n"
+"COMMANDS:\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"      --dump-conf                       Dump default configuration\n"
+"      --dump-modules                    Dump list of available modules\n"
+"      --dump-resample-methods           Dump available resample methods\n"
+"      --cleanup-shm                     Cleanup stale shared memory "
+"segments\n"
+"      --start                           Start the daemon if it is not "
+"running\n"
+"  -k  --kill                            Kill a running daemon\n"
+"      --check                           Check for a running daemon (only "
+"returns exit code)\n"
+"\n"
+"OPTIONS:\n"
+"      --system[=BOOL]                   Run as system-wide instance\n"
+"  -D, --daemonize[=BOOL]                Daemonize after startup\n"
+"      --fail[=BOOL]                     Quit when startup fails\n"
+"      --high-priority[=BOOL]            Try to set high nice level\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_NICE)\n"
+"      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_RTPRIO)\n"
+"      --disallow-module-loading[=BOOL]  Disallow module user requested "
+"module\n"
+"                                        loading/unloading after startup\n"
+"      --disallow-exit[=BOOL]            Disallow user requested exit\n"
+"      --exit-idle-time=SECS             Terminate the daemon when idle and "
+"this\n"
+"                                        time passed\n"
+"      --module-idle-time=SECS           Unload autoloaded modules when idle "
+"and\n"
+"                                        this time passed\n"
+"      --scache-idle-time=SECS           Unload autoloaded samples when idle "
+"and\n"
+"                                        this time passed\n"
+"      --log-level[=LEVEL]               Increase or set verbosity level\n"
+"  -v                                    Increase the verbosity level\n"
+"      --log-target={auto,syslog,stderr} Specify the log target\n"
+"      --log-meta[=BOOL]                 Include code location in log "
+"messages\n"
+"      --log-time[=BOOL]                 Include timestamps in log messages\n"
+"      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
+"  -p, --dl-search-path=PATH             Set the search path for dynamic "
+"shared\n"
+"                                        objects (plugins)\n"
+"      --resample-method=METHOD          Use the specified resampling method\n"
+"                                        (See --dump-resample-methods for\n"
+"                                        possible values)\n"
+"      --use-pid-file[=BOOL]             Create a PID file\n"
+"      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
+"                                        platforms that support it.\n"
+"      --disable-shm[=BOOL]              Disable shared memory support.\n"
+"\n"
+"STARTUP SCRIPT:\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
+"with\n"
+"                                        the specified argument\n"
+"  -F, --file=FILENAME                   Run the specified script\n"
+"  -C                                    Open a command line on the running "
+"TTY\n"
+"                                        after startup\n"
+"\n"
+"  -n                                    Don't load default script file\n"
+
+#: ../src/daemon/cmdline.c:247
+msgid "--daemonize expects boolean argument"
+msgstr "--daemonize-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
+
+#: ../src/daemon/cmdline.c:254
+msgid "--fail expects boolean argument"
+msgstr "--fail-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
+
+#: ../src/daemon/cmdline.c:264
+msgid ""
+"--log-level expects log level argument (either numeric in range 0..4 or one "
+"of debug, info, notice, warn, error)."
+msgstr ""
+"--log-level-നു് ലോഗ് ലവല്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു് (ഒന്നുകില്‍ 0..4 വരെയുള്ള ന്യൂമറിക് പരിധി "
+"അല്ലെങ്കില്‍ debug, info, notice, warn, error എന്നിവയില്‍ ഒന്നു്)."
+
+#: ../src/daemon/cmdline.c:276
+msgid "--high-priority expects boolean argument"
+msgstr "--high-priority-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
+
+#: ../src/daemon/cmdline.c:283
+msgid "--realtime expects boolean argument"
+msgstr "--realtime-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
+
+#: ../src/daemon/cmdline.c:290
+msgid "--disallow-module-loading expects boolean argument"
+msgstr "--disallow-module-loading-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
+
+#: ../src/daemon/cmdline.c:297
+msgid "--disallow-exit expects boolean argument"
+msgstr "--disallow-exit-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
+
+#: ../src/daemon/cmdline.c:304
+msgid "--use-pid-file expects boolean argument"
+msgstr "--use-pid-file-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
+
+#: ../src/daemon/cmdline.c:321
+msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
+msgstr "തെറ്റായ ലോഗ് ടാര്‍ഗറ്റ്: 'syslog', 'stderr' അല്ലെങ്കില്‍ 'auto' ഉപയോഗിക്കുക."
+
+#: ../src/daemon/cmdline.c:328
+msgid "--log-time expects boolean argument"
+msgstr "--log-time-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
+
+#: ../src/daemon/cmdline.c:335
+msgid "--log-meta expects boolean argument"
+msgstr "--log-meta-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
+
+#: ../src/daemon/cmdline.c:354
+#, c-format
+msgid "Invalid resample method '%s'."
+msgstr "തെറ്റായ റീസാംപിള്‍ മാര്‍ഗ്ഗം '%s'."
+
+#: ../src/daemon/cmdline.c:361
+msgid "--system expects boolean argument"
+msgstr "--system-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
+
+#: ../src/daemon/cmdline.c:368
+msgid "--no-cpu-limit expects boolean argument"
+msgstr "--no-cpu-limit-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
+
+#: ../src/daemon/cmdline.c:375
+msgid "--disable-shm expects boolean argument"
+msgstr "--disable-shm-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
+
+#: ../src/daemon/dumpmodules.c:60
+#, c-format
+msgid "Name: %s\n"
+msgstr "പേരു്: %s\n"
+
+#: ../src/daemon/dumpmodules.c:63
+#, c-format
+msgid "No module information available\n"
+msgstr "ഘടകത്തെപ്പറ്റിയുള്ള വിവരം ലഭ്യമല്ല\n"
+
+#: ../src/daemon/dumpmodules.c:66
+#, c-format
+msgid "Version: %s\n"
+msgstr "പതിപ്പു്: %s\n"
+
+#: ../src/daemon/dumpmodules.c:68
+#, c-format
+msgid "Description: %s\n"
+msgstr "വിവരണം: %s\n"
+
+#: ../src/daemon/dumpmodules.c:70
+#, c-format
+msgid "Author: %s\n"
+msgstr "രചയിതാവു്: %s\n"
+
+#: ../src/daemon/dumpmodules.c:72
+#, c-format
+msgid "Usage: %s\n"
+msgstr "ഉപയോഗം: %s\n"
+
+#: ../src/daemon/dumpmodules.c:73
+#, c-format
+msgid "Load Once: %s\n"
+msgstr "ഒരിക്കല്‍ ലഭ്യമാക്കുക: %s\n"
+
+#: ../src/daemon/dumpmodules.c:75
+#, c-format
+msgid "DEPRECATION WARNING: %s\n"
+msgstr "DEPRECATION WARNING: %s\n"
+
+#: ../src/daemon/dumpmodules.c:79
+#, c-format
+msgid "Path: %s\n"
+msgstr "പാഥ്: %s\n"
+
+#: ../src/daemon/daemon-conf.c:232
+#, c-format
+msgid "[%s:%u] Invalid log target '%s'."
+msgstr "[%s:%u] തെറ്റായ ലോഗ് ടാര്‍ഗറ്റ് '%s'."
+
+#: ../src/daemon/daemon-conf.c:248
+#, c-format
+msgid "[%s:%u] Invalid log level '%s'."
+msgstr "[%s:%u] തെറ്റായ ലോഗ് ലവല്‍ '%s'."
+
+#: ../src/daemon/daemon-conf.c:264
+#, c-format
+msgid "[%s:%u] Invalid resample method '%s'."
+msgstr "[%s:%u] തെറ്റായ റീസാംപിള്‍ മാര്‍ഗ്ഗം '%s'."
+
+#: ../src/daemon/daemon-conf.c:287
+#, c-format
+msgid "[%s:%u] Invalid rlimit '%s'."
+msgstr "[%s:%u] അസാധുവായ rlimit '%s'."
+
+#: ../src/daemon/daemon-conf.c:294
+#, c-format
+msgid "[%s:%u] rlimit not supported on this platform."
+msgstr "[%s:%u] ഈ പ്ലാറ്റ്ഫോമില്‍ rlimit-നുള്ള പിന്തുണ ലഭ്യമല്ല."
+
+#: ../src/daemon/daemon-conf.c:310
+#, c-format
+msgid "[%s:%u] Invalid sample format '%s'."
+msgstr "[%s:%u] തെറ്റായ സാംപിള്‍ മാതൃക '%s'."
+
+#: ../src/daemon/daemon-conf.c:328
+#, c-format
+msgid "[%s:%u] Invalid sample rate '%s'."
+msgstr "[%s:%u] തെറ്റായ സാംപിള്‍ റേറ്റ് '%s'."
+
+#: ../src/daemon/daemon-conf.c:352
+#, c-format
+msgid "[%s:%u] Invalid sample channels '%s'."
+msgstr "[%s:%u] തെറ്റായ സാംപിള്‍ ചാനലുകള്‍ '%s'."
+
+#: ../src/daemon/daemon-conf.c:370
+#, c-format
+msgid "[%s:%u] Invalid channel map '%s'."
+msgstr "[%s:%u] അസാധുവായ ചാനല്‍ മാപ്പ് '%s'."
+
+#: ../src/daemon/daemon-conf.c:388
+#, c-format
+msgid "[%s:%u] Invalid number of fragments '%s'."
+msgstr "[%s:%u] '%s' ഫ്രാഗ്മെന്റുകളുടെ തെറ്റായ എണ്ണം."
+
+#: ../src/daemon/daemon-conf.c:406
+#, c-format
+msgid "[%s:%u] Invalid fragment size '%s'."
+msgstr "[%s:%u] തെറ്റായ ഫ്രാഗ്മെന്റ് വ്യാപ്തി '%s'."
+
+#: ../src/daemon/daemon-conf.c:424
+#, c-format
+msgid "[%s:%u] Invalid nice level '%s'."
+msgstr "[%s:%u] അസാധുവായ nice സ്ഥാനം '%s'."
+
+#: ../src/daemon/daemon-conf.c:546
+#, c-format
+msgid "Failed to open configuration file: %s"
+msgstr "ക്രമീകരണ ഫയല്‍ തുറക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/daemon/daemon-conf.c:562
+msgid ""
+"The specified default channel map has a different number of channels than "
+"the specified default number of channels."
+msgstr ""
+"വ്യക്തമാക്കിയിട്ടുള്ള സ്വതവേയുള്ള ചാനല്‍ മാപ്പിനുള്ള ചാനലുകളുടെ എണ്ണം നല്‍കിയിരിക്കുന്ന സ്വതവേയുള്ള "
+"ചാനലുകളുടെ എണ്ണത്തേക്കാള്‍ വ്യത്യസ്ഥമാണു്."
+
+#: ../src/daemon/daemon-conf.c:638
+#, c-format
+msgid "### Read from configuration file: %s ###\n"
+msgstr "### ക്രമീകരണ ഫയലില്‍ നിന്നും ലഭ്യമാക്കുക: %s ###\n"
+
+#: ../src/daemon/caps.c:62
+msgid "Cleaning up privileges."
+msgstr "അനുമതികള്‍ വെടിപ്പാക്കുന്നു."
+
+#: ../src/daemon/pulseaudio.desktop.in.h:1
+msgid "PulseAudio Sound System"
+msgstr "PulseAudio സൌണ്ട് സിസ്റ്റം"
+
+#: ../src/daemon/pulseaudio.desktop.in.h:2
+msgid "Start the PulseAudio Sound System"
+msgstr "PulseAudio സൌണ്ട് സിസ്റ്റം ആരംഭിക്കുക"
+
+#: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:757
+msgid "Mono"
+msgstr "മോണോ"
+
+#: ../src/pulse/channelmap.c:107
+msgid "Front Center"
+msgstr "മദ്ധ്യം മുന്നില്‍"
+
+#: ../src/pulse/channelmap.c:108
+msgid "Front Left"
+msgstr "ഇടതു്് മുന്നില്‍"
+
+#: ../src/pulse/channelmap.c:109
+msgid "Front Right"
+msgstr "വലതു് മുന്നില്‍"
+
+#: ../src/pulse/channelmap.c:111
+msgid "Rear Center"
+msgstr "മദ്ധ്യം അവസാനം"
+
+#: ../src/pulse/channelmap.c:112
+msgid "Rear Left"
+msgstr "ഇടതു് അവസാനം"
+
+#: ../src/pulse/channelmap.c:113
+msgid "Rear Right"
+msgstr "വലതു് അവസാനം"
+
+#: ../src/pulse/channelmap.c:115
+msgid "Low Frequency Emmiter"
+msgstr "ലോ ഫ്രീക്വന്‍സി എമ്മിറ്റര്‍"
+
+#: ../src/pulse/channelmap.c:117
+msgid "Front Left-of-center"
+msgstr "മുമ്പില്‍ ഇടതു് മദ്ധ്യം"
+
+#: ../src/pulse/channelmap.c:118
+msgid "Front Right-of-center"
+msgstr "മുമ്പില്‍ വലതു് മദ്ധ്യം"
+
+#: ../src/pulse/channelmap.c:120
+msgid "Side Left"
+msgstr "ഇടത്തു് വശം"
+
+#: ../src/pulse/channelmap.c:121
+msgid "Side Right"
+msgstr "വലത്തു് വശം"
+
+#: ../src/pulse/channelmap.c:123
+msgid "Auxiliary 0"
+msgstr "ഓക്സിലറി 0"
+
+#: ../src/pulse/channelmap.c:124
+msgid "Auxiliary 1"
+msgstr "ഓക്സിലറി 1"
+
+#: ../src/pulse/channelmap.c:125
+msgid "Auxiliary 2"
+msgstr "ഓക്സിലറി 2"
+
+#: ../src/pulse/channelmap.c:126
+msgid "Auxiliary 3"
+msgstr "ഓക്സിലറി 3"
+
+#: ../src/pulse/channelmap.c:127
+msgid "Auxiliary 4"
+msgstr "ഓക്സിലറി 4"
+
+#: ../src/pulse/channelmap.c:128
+msgid "Auxiliary 5"
+msgstr "ഓക്സിലറി 5"
+
+#: ../src/pulse/channelmap.c:129
+msgid "Auxiliary 6"
+msgstr "ഓക്സിലറി 6"
+
+#: ../src/pulse/channelmap.c:130
+msgid "Auxiliary 7"
+msgstr "ഓക്സിലറി 7"
+
+#: ../src/pulse/channelmap.c:131
+msgid "Auxiliary 8"
+msgstr "ഓക്സിലറി 8"
+
+#: ../src/pulse/channelmap.c:132
+msgid "Auxiliary 9"
+msgstr "ഓക്സിലറി 9"
+
+#: ../src/pulse/channelmap.c:133
+msgid "Auxiliary 10"
+msgstr "ഓക്സിലറി 10"
+
+#: ../src/pulse/channelmap.c:134
+msgid "Auxiliary 11"
+msgstr "ഓക്സിലറി 11"
+
+#: ../src/pulse/channelmap.c:135
+msgid "Auxiliary 12"
+msgstr "ഓക്സിലറി 12"
+
+#: ../src/pulse/channelmap.c:136
+msgid "Auxiliary 13"
+msgstr "ഓക്സിലറി 13"
+
+#: ../src/pulse/channelmap.c:137
+msgid "Auxiliary 14"
+msgstr "ഓക്സിലറി 14"
+
+#: ../src/pulse/channelmap.c:138
+msgid "Auxiliary 15"
+msgstr "ഓക്സിലറി 15"
+
+#: ../src/pulse/channelmap.c:139
+msgid "Auxiliary 16"
+msgstr "ഓക്സിലറി 16"
+
+#: ../src/pulse/channelmap.c:140
+msgid "Auxiliary 17"
+msgstr "ഓക്സിലറി 17"
+
+#: ../src/pulse/channelmap.c:141
+msgid "Auxiliary 18"
+msgstr "ഓക്സിലറി 18"
+
+#: ../src/pulse/channelmap.c:142
+msgid "Auxiliary 19"
+msgstr "ഓക്സിലറി 19"
+
+#: ../src/pulse/channelmap.c:143
+msgid "Auxiliary 20"
+msgstr "ഓക്സിലറി 20"
+
+#: ../src/pulse/channelmap.c:144
+msgid "Auxiliary 21"
+msgstr "ഓക്സിലറി 21"
+
+#: ../src/pulse/channelmap.c:145
+msgid "Auxiliary 22"
+msgstr "ഓക്സിലറി 22"
+
+#: ../src/pulse/channelmap.c:146
+msgid "Auxiliary 23"
+msgstr "ഓക്സിലറി 23"
+
+#: ../src/pulse/channelmap.c:147
+msgid "Auxiliary 24"
+msgstr "ഓക്സിലറി 24"
+
+#: ../src/pulse/channelmap.c:148
+msgid "Auxiliary 25"
+msgstr "ഓക്സിലറി 25"
+
+#: ../src/pulse/channelmap.c:149
+msgid "Auxiliary 26"
+msgstr "ഓക്സിലറി 26"
+
+#: ../src/pulse/channelmap.c:150
+msgid "Auxiliary 27"
+msgstr "ഓക്സിലറി 27"
+
+#: ../src/pulse/channelmap.c:151
+msgid "Auxiliary 28"
+msgstr "ഓക്സിലറി 28"
+
+#: ../src/pulse/channelmap.c:152
+msgid "Auxiliary 29"
+msgstr "ഓക്സിലറി 29"
+
+#: ../src/pulse/channelmap.c:153
+msgid "Auxiliary 30"
+msgstr "ഓക്സിലറി 30"
+
+#: ../src/pulse/channelmap.c:154
+msgid "Auxiliary 31"
+msgstr "ഓക്സിലറി 31"
+
+#: ../src/pulse/channelmap.c:156
+msgid "Top Center"
+msgstr "മുകളില്‍ മുമ്പില്‍"
+
+#: ../src/pulse/channelmap.c:158
+msgid "Top Front Center"
+msgstr "മുകളില്‍ മുമ്പില്‍ മദ്ധ്യം"
+
+#: ../src/pulse/channelmap.c:159
+msgid "Top Front Left"
+msgstr "മുകളില്‍ മുമ്പില്‍ ഇടത്തു്"
+
+#: ../src/pulse/channelmap.c:160
+msgid "Top Front Right"
+msgstr "മുകളില്‍ മുമ്പില്‍ വലത്തു്"
+
+#: ../src/pulse/channelmap.c:162
+msgid "Top Rear Center"
+msgstr "മുകളില്‍ അവസാനം മദ്ധ്യം"
+
+#: ../src/pulse/channelmap.c:163
+msgid "Top Rear Left"
+msgstr "മുകളില്‍ അവസാനം ഇടത്തു്"
+
+#: ../src/pulse/channelmap.c:164
+msgid "Top Rear Right"
+msgstr "മുകളില്‍ അവസാനം വലത്തു്"
+
+#: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
+#: ../src/pulse/volume.c:295 ../src/pulse/volume.c:321
+#: ../src/pulse/volume.c:341 ../src/pulse/volume.c:371
+msgid "(invalid)"
+msgstr "(അസാധു)"
+
+#: ../src/pulse/channelmap.c:761
+msgid "Stereo"
+msgstr "സ്റ്റീരിയോ"
+
+#: ../src/pulse/channelmap.c:766
+msgid "Surround 4.0"
+msgstr "സറൌണ്ട് 4.0"
+
+#: ../src/pulse/channelmap.c:772
+msgid "Surround 4.1"
+msgstr "സറൌണ്ട് 4.1"
+
+#: ../src/pulse/channelmap.c:778
+msgid "Surround 5.0"
+msgstr "സറൌണ്ട് 5.0"
+
+#: ../src/pulse/channelmap.c:784
+msgid "Surround 5.1"
+msgstr "സറൌണ്ട് 5.1"
+
+#: ../src/pulse/channelmap.c:791
+msgid "Surround 7.1"
+msgstr "സറൌണ്ട് 7.1"
+
+#: ../src/pulse/error.c:43
+msgid "OK"
+msgstr "ശരി"
+
+#: ../src/pulse/error.c:44
+msgid "Access denied"
+msgstr "അനുമതി നിഷേധിച്ചിരിക്കുന്നു"
+
+#: ../src/pulse/error.c:45
+msgid "Unknown command"
+msgstr "അപരിചിതമായ കമാന്‍ഡ്"
+
+#: ../src/pulse/error.c:46
+msgid "Invalid argument"
+msgstr "തെറ്റായ ആര്‍ഗ്യുമെന്റ്"
+
+#: ../src/pulse/error.c:47
+msgid "Entity exists"
+msgstr "എന്റിറ്റി നിലവിലുണ്ടു്"
+
+#: ../src/pulse/error.c:48
+msgid "No such entity"
+msgstr "അത്തരം എന്റിറ്റിയില്ല"
+
+#: ../src/pulse/error.c:49
+msgid "Connection refused"
+msgstr "കണക്ഷന്‍ നിഷേധിച്ചിരിക്കുന്നു"
+
+#: ../src/pulse/error.c:50
+msgid "Protocol error"
+msgstr "പ്രോട്ടോക്കോളില്‍ പിശക്"
+
+#: ../src/pulse/error.c:51
+msgid "Timeout"
+msgstr "സമയം കഴിഞ്ഞിരിക്കുന്നു"
+
+#: ../src/pulse/error.c:52
+msgid "No authorization key"
+msgstr "ഓഥറൈസേഷന്‍ കീ നിലവിലില്ല"
+
+#: ../src/pulse/error.c:53
+msgid "Internal error"
+msgstr "ആന്തരിക പിശക്"
+
+#: ../src/pulse/error.c:54
+msgid "Connection terminated"
+msgstr "കണക്ഷന്‍ വിഛേദിച്ചിരിക്കുന്നു"
+
+#: ../src/pulse/error.c:55
+msgid "Entity killed"
+msgstr "എന്റിറ്റി ഇല്ലാതാക്കിയിരിക്കുന്നു"
+
+#: ../src/pulse/error.c:56
+msgid "Invalid server"
+msgstr "തെറ്റായ സര്‍വര്‍"
+
+#: ../src/pulse/error.c:57
+msgid "Module initalization failed"
+msgstr "ഘടകം ആരംഭിക്കുന്നതില്‍ പരാജയപ്പെട്ടു"
+
+#: ../src/pulse/error.c:58
+msgid "Bad state"
+msgstr "തെറ്റായ അവസ്ഥ"
+
+#: ../src/pulse/error.c:59
+msgid "No data"
+msgstr "ഡേറ്റാ ലഭ്യമല്ല"
+
+#: ../src/pulse/error.c:60
+msgid "Incompatible protocol version"
+msgstr "പൊരുത്തപ്പെടാത്ത പ്രോട്ടോക്കോള്‍ പതിപ്പു്"
+
+#: ../src/pulse/error.c:61
+msgid "Too large"
+msgstr "വളരെ വലുതു്"
+
+#: ../src/pulse/error.c:62
+msgid "Not supported"
+msgstr "പിന്തുണ ലഭ്യമല്ല"
+
+#: ../src/pulse/error.c:63
+msgid "Unknown error code"
+msgstr "അപരിചിതമായ പിശക് കോഡ്"
+
+#: ../src/pulse/error.c:64
+msgid "No such extension"
+msgstr "അത്തരം എക്സ്റ്റെന്‍ഷന്‍ ലഭ്യമല്ല"
+
+#: ../src/pulse/error.c:65
+msgid "Obsolete functionality"
+msgstr "ഇല്ലാതാക്കിയ വിശേഷത"
+
+#: ../src/pulse/error.c:66
+msgid "Missing implementation"
+msgstr "പ്രവര്‍ത്തനം ലഭ്യമല്ല"
+
+#: ../src/pulse/error.c:67
+msgid "Client forked"
+msgstr "ക്ലൈന്റ് ഫോര്‍ക്ക് ചെയ്തിരിക്കുന്നു"
+
+#: ../src/pulse/error.c:68
+msgid "Input/Output error"
+msgstr ""
+
+#: ../src/pulse/error.c:69
+msgid "Device or resource busy"
+msgstr ""
+
+#: ../src/pulse/sample.c:172
+#, c-format
+msgid "%s %uch %uHz"
+msgstr "%s %uch %uHz"
+
+#: ../src/pulse/sample.c:184
+#, c-format
+msgid "%0.1f GiB"
+msgstr "%0.1f GiB"
+
+#: ../src/pulse/sample.c:186
+#, c-format
+msgid "%0.1f MiB"
+msgstr "%0.1f MiB"
+
+#: ../src/pulse/sample.c:188
+#, c-format
+msgid "%0.1f KiB"
+msgstr "%0.1f KiB"
+
+#: ../src/pulse/sample.c:190
+#, c-format
+msgid "%u B"
+msgstr "%u B"
+
+#: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
+msgid "XOpenDisplay() failed"
+msgstr "XOpenDisplay() പരാജയപ്പെട്ടു"
+
+#: ../src/pulse/client-conf-x11.c:93
+msgid "Failed to parse cookie data"
+msgstr "കുക്കി ഡേറ്റാ പാഴ്സ് ചെയ്യുന്നതില്‍ പരാജയപ്പെട്ടു"
+
+#: ../src/pulse/client-conf.c:111
+#, c-format
+msgid "Failed to open configuration file '%s': %s"
+msgstr "ക്രമീകരണ ഫയല്‍ '%s' തുറക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/pulse/context.c:550
+msgid "No cookie loaded. Attempting to connect without."
+msgstr "ഒരു കുക്കിയും ലഭ്യമല്ല. അതില്ലാതെ കണക്ട് ചെയ്യുവാന്‍‌ ശ്രമിക്കുന്നു."
+
+#: ../src/pulse/context.c:693
+#, c-format
+msgid "fork(): %s"
+msgstr "fork(): %s"
+
+#: ../src/pulse/context.c:748
+#, c-format
+msgid "waitpid(): %s"
+msgstr "waitpid(): %s"
+
+#: ../src/pulse/context.c:1435
+#, c-format
+msgid "Received message for unknown extension '%s'"
+msgstr "അപരിചിതമായ എക്സ്റ്റെന്‍ഷന്‍ '%s'-നുള്ള സന്ദേശം ലഭിച്ചിരിക്കുന്നു"
+
+#: ../src/utils/pacat.c:108
+#, c-format
+msgid "Failed to drain stream: %s"
+msgstr "സ്ട്രീം ഡ്രെയിന്‍ ചെയ്യുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pacat.c:113
+msgid "Playback stream drained."
+msgstr "പ്ലേബാക്ക് സ്ട്രീം ഡ്രെയിന്‍ ചെയ്തിരിക്കുന്നു."
+
+#: ../src/utils/pacat.c:123
+msgid "Draining connection to server."
+msgstr "സര്‍വറിലേക്കുള്ള കണക്ഷന്‍ ഡ്രെയിന്‍ ചെയ്യുന്നു."
+
+#: ../src/utils/pacat.c:136
+#, c-format
+msgid "pa_stream_drain(): %s"
+msgstr "pa_stream_drain(): %s"
+
+#: ../src/utils/pacat.c:159
+#, c-format
+msgid "pa_stream_write() failed: %s"
+msgstr "pa_stream_write() പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pacat.c:197
+#, c-format
+msgid "pa_stream_begin_write() failed: %s"
+msgstr "pa_stream_begin_write() പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267
+#, c-format
+msgid "pa_stream_peek() failed: %s"
+msgstr "pa_stream_peek() പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pacat.c:307
+msgid "Stream successfully created."
+msgstr "സ്ട്രീം വിജയകരമായി ഉണ്ടാക്കിയിരിക്കുന്നു."
+
+#: ../src/utils/pacat.c:310
+#, c-format
+msgid "pa_stream_get_buffer_attr() failed: %s"
+msgstr "pa_stream_get_buffer_attr() പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pacat.c:314
+#, c-format
+msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
+msgstr "ബഫര്‍ മെട്രിക്സ്: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
+
+#: ../src/utils/pacat.c:317
+#, c-format
+msgid "Buffer metrics: maxlength=%u, fragsize=%u"
+msgstr "ബഫര്‍ മെട്രിക്സ്: maxlength=%u, fragsize=%u"
+
+#: ../src/utils/pacat.c:321
+#, c-format
+msgid "Using sample spec '%s', channel map '%s'."
+msgstr "സാംപിള്‍ സ്പെക് '%s', ചാനല്‍ മാപ്പ് '%s' ഉപയോഗിക്കുന്നു."
+
+#: ../src/utils/pacat.c:325
+#, c-format
+msgid "Connected to device %s (%u, %ssuspended)."
+msgstr "ഡിവൈസ് %s-ലേക്ക് കണക്ട് ചെയ്തിരിക്കുന്നു (%u, %ssuspended)."
+
+#: ../src/utils/pacat.c:335
+#, c-format
+msgid "Stream error: %s"
+msgstr "സ്ട്രീം പിശക്: %s"
+
+#: ../src/utils/pacat.c:345
+#, c-format
+msgid "Stream device suspended.%s"
+msgstr "സ്ട്രീം ഡിവൈസ് സസ്പെന്‍ഡ് ചെയ്തിരിക്കുന്നു.%s"
+
+#: ../src/utils/pacat.c:347
+#, c-format
+msgid "Stream device resumed.%s"
+msgstr "സ്ട്രീം ഡിവൈസ് വീണ്ടും ആരംഭിച്ചിരിക്കുന്നു.%s"
+
+#: ../src/utils/pacat.c:355
+#, c-format
+msgid "Stream underrun.%s"
+msgstr "സ്ട്രീം അണ്ടര്‍റണ്‍.%s"
+
+#: ../src/utils/pacat.c:362
+#, c-format
+msgid "Stream overrun.%s"
+msgstr "സ്ട്രീ ഓവര്‍റണ്‍.%s"
+
+#: ../src/utils/pacat.c:369
+#, c-format
+msgid "Stream started.%s"
+msgstr "സ്ട്രീം ആരംഭിച്ചിരിക്കുന്നു.%s"
+
+#: ../src/utils/pacat.c:376
+#, c-format
+msgid "Stream moved to device %s (%u, %ssuspended).%s"
+msgstr "ഡിവൈസ് %s-ലേക്ക് സ്ട്രീം നീക്കം ചെയ്തിരിക്കുന്നു (%u, %ssuspended).%s"
+
+#: ../src/utils/pacat.c:376
+msgid "not "
+msgstr "അല്ല"
+
+#: ../src/utils/pacat.c:383
+#, c-format
+msgid "Stream buffer attributes changed.%s"
+msgstr "സ്ട്രീം ബഫര്‍ വിശേഷതകള്‍ മാറ്റിയിരിക്കുന്നു.%s"
+
+#: ../src/utils/pacat.c:415
+#, c-format
+msgid "Connection established.%s"
+msgstr "കണക്ഷന്‍ സ്ഥാപിച്ചിരിക്കുന്നു.%s"
+
+#: ../src/utils/pacat.c:418
+#, c-format
+msgid "pa_stream_new() failed: %s"
+msgstr "pa_stream_new() പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pacat.c:446
+#, c-format
+msgid "pa_stream_connect_playback() failed: %s"
+msgstr "pa_stream_connect_playback() പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pacat.c:452
+#, c-format
+msgid "pa_stream_connect_record() failed: %s"
+msgstr "pa_stream_connect_record() പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pacat.c:466 ../src/utils/pactl.c:857
+#, c-format
+msgid "Connection failure: %s"
+msgstr "കണക്ഷനില്‍ തകരാര്‍: %s"
+
+#: ../src/utils/pacat.c:499
+msgid "Got EOF."
+msgstr "EOF ലഭ്യമായിരിക്കുന്നു"
+
+#: ../src/utils/pacat.c:536
+#, c-format
+msgid "write() failed: %s"
+msgstr "write() പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pacat.c:557
+msgid "Got signal, exiting."
+msgstr "സിഗ്നല്‍ ലഭ്യമായി, പുറത്തു് കടക്കുന്നു."
+
+#: ../src/utils/pacat.c:571
+#, c-format
+msgid "Failed to get latency: %s"
+msgstr "ലാറ്റന്‍സി ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pacat.c:576
+#, c-format
+msgid "Time: %0.3f sec; Latency: %0.0f usec."
+msgstr "സമയം: %0.3f sec; ലാറ്റന്‍സി: %0.0f usec."
+
+#: ../src/utils/pacat.c:595
+#, c-format
+msgid "pa_stream_update_timing_info() failed: %s"
+msgstr "pa_stream_update_timing_info() പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pacat.c:605
+#, c-format
+msgid ""
+"%s [options]\n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -r, --record                          Create a connection for recording\n"
+"  -p, --playback                        Create a connection for playback\n"
+"\n"
+"  -v, --verbose                         Enable verbose operations\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -d, --device=DEVICE                   The name of the sink/source to "
+"connect to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
+"44100)\n"
+"      --format=SAMPLEFORMAT             The sample type, one of s16le, "
+"s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, "
+"s24le, s24be,\n"
+"                                        s24-32le, s24-32be (defaults to "
+"s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, "
+"2 for stereo\n"
+"                                        (defaults to 2)\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the "
+"default\n"
+"      --fix-format                      Take the sample format from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-rate                        Take the sampling rate from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-channels                    Take the number of channels and the "
+"channel map\n"
+"                                        from the sink the stream is being "
+"connected to.\n"
+"      --no-remix                        Don't upmix or downmix channels.\n"
+"      --no-remap                        Map channels by index instead of "
+"name.\n"
+"      --latency=BYTES                   Request the specified latency in "
+"bytes.\n"
+"      --process-time=BYTES              Request the specified process time "
+"per request in bytes.\n"
+"      --property=PROPERTY=VALUE         Set the specified property to the "
+"specified value.\n"
+"      --raw                             Record/play raw PCM data.\n"
+"      --file-format=FFORMAT             Record/play formatted PCM data.\n"
+"      --list-file-formats               List available file formats.\n"
+msgstr ""
+"%s [options]\n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -r, --record                          Create a connection for recording\n"
+"  -p, --playback                        Create a connection for playback\n"
+"\n"
+"  -v, --verbose                         Enable verbose operations\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -d, --device=DEVICE                   The name of the sink/source to "
+"connect to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
+"44100)\n"
+"      --format=SAMPLEFORMAT             The sample type, one of s16le, "
+"s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, "
+"s24le, s24be,\n"
+"                                        s24-32le, s24-32be (defaults to "
+"s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, "
+"2 for stereo\n"
+"                                        (defaults to 2)\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the "
+"default\n"
+"      --fix-format                      Take the sample format from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-rate                        Take the sampling rate from the sink "
+"the stream is\n"
+"                                        being connected to.\n"
+"      --fix-channels                    Take the number of channels and the "
+"channel map\n"
+"                                        from the sink the stream is being "
+"connected to.\n"
+"      --no-remix                        Don't upmix or downmix channels.\n"
+"      --no-remap                        Map channels by index instead of "
+"name.\n"
+"      --latency=BYTES                   Request the specified latency in "
+"bytes.\n"
+"      --process-time=BYTES              Request the specified process time "
+"per request in bytes.\n"
+"      --property=PROPERTY=VALUE         Set the specified property to the "
+"specified value.\n"
+"      --raw                             Record/play raw PCM data.\n"
+"      --file-format=FFORMAT             Record/play formatted PCM data.\n"
+"      --list-file-formats               List available file formats.\n"
+
+#: ../src/utils/pacat.c:727
+#, c-format
+msgid ""
+"pacat %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pacat %s\n"
+"libpulse %s-നൊപ്പം കംപൈല്‍ ചെയ്തിരിക്കുന്നു\n"
+"libpulse %s-നൊപ്പം ലിങ്ക് ചെയ്തിരിക്കുന്നു\n"
+
+#: ../src/utils/pacat.c:760 ../src/utils/pactl.c:953
+#, c-format
+msgid "Invalid client name '%s'"
+msgstr "തെറ്റായ ക്ലൈന്റ് നാമം '%s'"
+
+#: ../src/utils/pacat.c:775
+#, c-format
+msgid "Invalid stream name '%s'"
+msgstr "തെറ്റായ സ്ട്രീം നാമം '%s'"
+
+#: ../src/utils/pacat.c:812
+#, c-format
+msgid "Invalid channel map '%s'"
+msgstr "തെറ്റായ ചാനല്‍ മാപ്പ് '%s'"
+
+#: ../src/utils/pacat.c:841
+#, c-format
+msgid "Invalid latency specification '%s'"
+msgstr "തെറ്റായ ലാറ്റന്‍സി വിവരണം '%s'"
+
+#: ../src/utils/pacat.c:848
+#, c-format
+msgid "Invalid process time specification '%s'"
+msgstr "തെറ്റായ പ്രക്രിയ സമയ വിവരണം '%s'"
+
+#: ../src/utils/pacat.c:860
+#, c-format
+msgid "Invalid property '%s'"
+msgstr "തെറ്റായ വിശേഷത '%s'"
+
+#: ../src/utils/pacat.c:877
+#, c-format
+msgid "Unknown file format %s."
+msgstr "അപരിചിതമായ ഫയല്‍ രീതി %s."
+
+#: ../src/utils/pacat.c:896
+msgid "Invalid sample specification"
+msgstr "തെറ്റായ മാതൃക വിവരണം"
+
+#: ../src/utils/pacat.c:906
+#, c-format
+msgid "open(): %s"
+msgstr "open(): %s"
+
+#: ../src/utils/pacat.c:911
+#, c-format
+msgid "dup2(): %s"
+msgstr "dup2(): %s"
+
+#: ../src/utils/pacat.c:918
+msgid "Too many arguments."
+msgstr "അനവധി ആര്‍ഗ്യുമെന്റുകള്‍."
+
+#: ../src/utils/pacat.c:929
+msgid "Failed to generate sample specification for file."
+msgstr "ഫയലിനുള്ള സാംപിള്‍ വിവരണം ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
+
+#: ../src/utils/pacat.c:949
+msgid "Failed to open audio file."
+msgstr "ഓ‍ഡിയോ ഫയല്‍ തുറക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
+
+#: ../src/utils/pacat.c:955
+msgid ""
+"Warning: specified sample specification will be overwritten with "
+"specification from file."
+msgstr ""
+"മുന്നറിയിപ്പു്: ഫയലില്‍ നിന്നുള്ള വിവരണം വ്യക്തമാക്കിയിരിക്കുന്ന സാംപിള്‍ വിവരണം മാറ്റിയെഴുതുന്നു."
+
+#: ../src/utils/pacat.c:958 ../src/utils/pactl.c:997
+msgid "Failed to determine sample specification from file."
+msgstr "ഫയലില്‍ നിന്നും സാംപിള്‍ വിവരണം ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
+
+#: ../src/utils/pacat.c:967
+msgid "Warning: Failed to determine channel map from file."
+msgstr "മുന്നറിയിപ്പു്: ഫയലില്‍ നിന്നും ചാനല്‍ മാപ്പ് ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
+
+#: ../src/utils/pacat.c:978
+msgid "Channel map doesn't match sample specification"
+msgstr "ചാനല്‍ മാപ്പ് സാംപിള്‍ വിവരണവുമായി ചേരുന്നില്ല"
+
+#: ../src/utils/pacat.c:989
+msgid "Warning: failed to write channel map to file."
+msgstr "മുന്നറിയിപ്പു്: ഫയലിലേക്ക് ചാനല്‍ മാപ്പ് സൂക്ഷിക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
+
+#: ../src/utils/pacat.c:1004
+#, c-format
+msgid ""
+"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgstr "%s സ്ട്രീം തുറക്കുന്നു. ഇതിന്റെ സാംപിള്‍ വിവരണം '%s'-ഉം ചാനല്‍ മാപ്പ് '%s'-ഉം ആണു്."
+
+#: ../src/utils/pacat.c:1005
+msgid "recording"
+msgstr "റിക്കോര്‍ഡ് ചെയ്യുന്നു"
+
+#: ../src/utils/pacat.c:1005
+msgid "playback"
+msgstr "പ്ലേബാക്ക്"
+
+#: ../src/utils/pacat.c:1031 ../src/utils/pactl.c:1267
+msgid "pa_mainloop_new() failed."
+msgstr "pa_mainloop_new() പരാജയപ്പെട്ടു."
+
+#: ../src/utils/pacat.c:1050
+msgid "io_new() failed."
+msgstr "io_new() പരാജയപ്പെട്ടു."
+
+#: ../src/utils/pacat.c:1057 ../src/utils/pactl.c:1279
+msgid "pa_context_new() failed."
+msgstr "pa_context_new() പരാജയപ്പെട്ടു."
+
+#: ../src/utils/pacat.c:1065 ../src/utils/pactl.c:1285
+#, c-format
+msgid "pa_context_connect() failed: %s"
+msgstr "pa_context_connect() പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pacat.c:1071
+msgid "pa_context_rttime_new() failed."
+msgstr "pa_context_rttime_new() പരാജയപ്പെട്ടു."
+
+#: ../src/utils/pacat.c:1078 ../src/utils/pactl.c:1290
+msgid "pa_mainloop_run() failed."
+msgstr "pa_mainloop_run() പരാജയപ്പെട്ടു."
+
+#: ../src/utils/pasuspender.c:81
+#, c-format
+msgid "fork(): %s\n"
+msgstr "fork(): %s\n"
+
+#: ../src/utils/pasuspender.c:92
+#, c-format
+msgid "execvp(): %s\n"
+msgstr "execvp(): %s\n"
+
+#: ../src/utils/pasuspender.c:109
+#, c-format
+msgid "Failure to suspend: %s\n"
+msgstr "സസ്പെന്‍ഡ് ചെയ്യുന്നതില്‍ പരാജയപ്പെട്ടു: %s\n"
+
+#: ../src/utils/pasuspender.c:124
+#, c-format
+msgid "Failure to resume: %s\n"
+msgstr "വീണ്ടും ആരംഭിക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s\n"
+
+#: ../src/utils/pasuspender.c:147
+#, c-format
+msgid "WARNING: Sound server is not local, not suspending.\n"
+msgstr "മുന്നറിയിപ്പു്: ശബ്ദ സര്‍വര്‍ ലോക്കലല്ല, സസ്പെന്‍ഡ് ചെയ്യുന്നില്ല.\n"
+
+#: ../src/utils/pasuspender.c:159
+#, c-format
+msgid "Connection failure: %s\n"
+msgstr "കണക്ഷനില്‍ തകരാര്‍: %s\n"
+
+#: ../src/utils/pasuspender.c:176
+#, c-format
+msgid "Got SIGINT, exiting.\n"
+msgstr "SIGINT ലഭിച്ചു, പുറത്തു് കടക്കുന്നു.\n"
+
+#: ../src/utils/pasuspender.c:194
+#, c-format
+msgid "WARNING: Child process terminated by signal %u\n"
+msgstr "മുന്നറിയിപ്പു്: %u സിഗ്നല്‍ വഴി ചൈള്‍ പ്രക്രിയ അവസാനിച്ചിരിക്കുന്നു\n"
+
+#: ../src/utils/pasuspender.c:212
+#, c-format
+msgid ""
+"%s [options] ... \n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"\n"
+msgstr ""
+"%s [options] ... \n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"\n"
+
+#: ../src/utils/pasuspender.c:248
+#, c-format
+msgid ""
+"pasuspender %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pasuspender %s\n"
+"libpulse %s-നൊപ്പം കംപൈല്‍ ചെയ്തിരിക്കുന്നു\n"
+"libpulse %s-നൊപ്പം ലിങ്ക് ചെയ്തിരിക്കുന്നു\n"
+
+#: ../src/utils/pasuspender.c:277
+#, c-format
+msgid "pa_mainloop_new() failed.\n"
+msgstr "pa_mainloop_new() പരാജയപ്പെട്ടു.\n"
+
+#: ../src/utils/pasuspender.c:290
+#, c-format
+msgid "pa_context_new() failed.\n"
+msgstr "pa_context_new() പരാജയപ്പെട്ടു..\n"
+
+#: ../src/utils/pasuspender.c:298
+#, c-format
+msgid "pa_mainloop_run() failed.\n"
+msgstr "pa_mainloop_run() പരാജയപ്പെട്ടു.\n"
+
+#: ../src/utils/pactl.c:135
+#, c-format
+msgid "Failed to get statistics: %s"
+msgstr "സ്ഥിതിവിവരക്കണക്കുകള്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pactl.c:141
+#, c-format
+msgid "Currently in use: %u blocks containing %s bytes total.\n"
+msgstr "നിലവില്‍ ഉപയോഗത്തില്‍: %u ബ്ലോക്കുകള്‍, മൊത്തം %s ബൈറ്റുകള്‍ അടങ്ങുന്നു.\n"
+
+#: ../src/utils/pactl.c:144
+#, c-format
+msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
+msgstr "കാലാവധിയ്ക്കുള്ളില്‍ അനുവദിക്കുന്നു: %u ബ്ലോക്കുകള്‍, മൊത്തം %s ബൈറ്റുകള്‍ അടങ്ങുന്നു.\n"
+
+#: ../src/utils/pactl.c:147
+#, c-format
+msgid "Sample cache size: %s\n"
+msgstr "സാംപിള്‍ കാഷ് വ്യപ്തി: %s\n"
+
+#: ../src/utils/pactl.c:156
+#, c-format
+msgid "Failed to get server information: %s"
+msgstr "സര്‍വര്‍ വിവരങ്ങള്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pactl.c:164
+#, c-format
+msgid ""
+"User name: %s\n"
+"Host Name: %s\n"
+"Server Name: %s\n"
+"Server Version: %s\n"
+"Default Sample Specification: %s\n"
+"Default Channel Map: %s\n"
+"Default Sink: %s\n"
+"Default Source: %s\n"
+"Cookie: %08x\n"
+msgstr ""
+"User name: %s\n"
+"Host Name: %s\n"
+"Server Name: %s\n"
+"Server Version: %s\n"
+"Default Sample Specification: %s\n"
+"Default Channel Map: %s\n"
+"Default Sink: %s\n"
+"Default Source: %s\n"
+"Cookie: %08x\n"
+
+#: ../src/utils/pactl.c:205
+#, c-format
+msgid "Failed to get sink information: %s"
+msgstr "സിങ്ക് വിവരം ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pactl.c:221
+#, c-format
+msgid ""
+"Sink #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s%s%s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s%s%s\n"
+"\tMonitor Source: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Sink #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s%s%s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s%s%s\n"
+"\tMonitor Source: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:268 ../src/utils/pactl.c:360
+#, c-format
+msgid "\tPorts:\n"
+msgstr "\tപോര്‍ട്ടുകള്‍:\n"
+
+#: ../src/utils/pactl.c:274 ../src/utils/pactl.c:366
+#, c-format
+msgid "\tActive Port: %s\n"
+msgstr "\tസജീവമായ പോര്‍ട്ട്: %s\n"
+
+#: ../src/utils/pactl.c:297
+#, c-format
+msgid "Failed to get source information: %s"
+msgstr "സോഴ്സ് വിവരങ്ങള്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pactl.c:313
+#, c-format
+msgid ""
+"Source #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s%s%s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s%s%s\n"
+"\tMonitor of Sink: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Source #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s%s%s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s%s%s\n"
+"\tMonitor of Sink: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:345 ../src/utils/pactl.c:401 ../src/utils/pactl.c:436
+#: ../src/utils/pactl.c:473 ../src/utils/pactl.c:532 ../src/utils/pactl.c:533
+#: ../src/utils/pactl.c:543 ../src/utils/pactl.c:587 ../src/utils/pactl.c:588
+#: ../src/utils/pactl.c:594 ../src/utils/pactl.c:637 ../src/utils/pactl.c:638
+#: ../src/utils/pactl.c:645
+msgid "n/a"
+msgstr "n/a"
+
+#: ../src/utils/pactl.c:375
+#, c-format
+msgid "Failed to get module information: %s"
+msgstr "ഘടക വിവരങ്ങള്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pactl.c:393
+#, c-format
+msgid ""
+"Module #%u\n"
+"\tName: %s\n"
+"\tArgument: %s\n"
+"\tUsage counter: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Module #%u\n"
+"\tName: %s\n"
+"\tArgument: %s\n"
+"\tUsage counter: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:412
+#, c-format
+msgid "Failed to get client information: %s"
+msgstr "ക്ലൈന്റ് വിവരങ്ങള്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pactl.c:430
+#, c-format
+msgid ""
+"Client #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Client #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:447
+#, c-format
+msgid "Failed to get card information: %s"
+msgstr "കാര്‍ഡ് വിവരങ്ങള്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pactl.c:465
+#, c-format
+msgid ""
+"Card #%u\n"
+"\tName: %s\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Card #%u\n"
+"\tName: %s\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:479
+#, c-format
+msgid "\tProfiles:\n"
+msgstr "\tപ്രൊഫൈലുകള്‍:\n"
+
+#: ../src/utils/pactl.c:485
+#, c-format
+msgid "\tActive Profile: %s\n"
+msgstr "\tസജീവമായ പ്രൊഫൈല്‍: %s\n"
+
+#: ../src/utils/pactl.c:496
+#, c-format
+msgid "Failed to get sink input information: %s"
+msgstr "സിങ്ക് ഇന്‍പുട്ട് വിവരങ്ങള്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pactl.c:515
+#, c-format
+msgid ""
+"Sink Input #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSink: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        %s\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSink Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Sink Input #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSink: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        %s\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSink Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:554
+#, c-format
+msgid "Failed to get source output information: %s"
+msgstr "സോഴ്സ് ഔട്ട്പുട്ട് വിവരം ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pactl.c:574
+#, c-format
+msgid ""
+"Source Output #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSource: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSource Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Source Output #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSource: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSource Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:605
+#, c-format
+msgid "Failed to get sample information: %s"
+msgstr "മാതൃകയുടെ വിവരങ്ങള്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pactl.c:623
+#, c-format
+msgid ""
+"Sample #%u\n"
+"\tName: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tVolume: %s\n"
+"\t        %s\n"
+"\t        balance %0.2f\n"
+"\tDuration: %0.1fs\n"
+"\tSize: %s\n"
+"\tLazy: %s\n"
+"\tFilename: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Sample #%u\n"
+"\tName: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tVolume: %s\n"
+"\t        %s\n"
+"\t        balance %0.2f\n"
+"\tDuration: %0.1fs\n"
+"\tSize: %s\n"
+"\tLazy: %s\n"
+"\tFilename: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+
+#: ../src/utils/pactl.c:653 ../src/utils/pactl.c:663
+#, c-format
+msgid "Failure: %s"
+msgstr "പരാജയം: %s"
+
+#: ../src/utils/pactl.c:687
+#, c-format
+msgid "Failed to upload sample: %s"
+msgstr "മാതൃക അപ്ലോഡ് ചെയ്യുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
+
+#: ../src/utils/pactl.c:704
+msgid "Premature end of file"
+msgstr "ഫയല്‍ അനുചിതമായ അവസാനം"
+
+#: ../src/utils/pactl.c:863
+msgid "Got SIGINT, exiting."
+msgstr "SIGINT ലഭ്യമായി, പുറത്തു് കടക്കുന്നു."
+
+#: ../src/utils/pactl.c:869
+#, c-format
+msgid ""
+"%s [options] stat\n"
+"%s [options] list\n"
+"%s [options] exit\n"
+"%s [options] upload-sample FILENAME [NAME]\n"
+"%s [options] play-sample NAME [SINK]\n"
+"%s [options] remove-sample NAME\n"
+"%s [options] move-sink-input SINKINPUT SINK\n"
+"%s [options] move-source-output SOURCEOUTPUT SOURCE\n"
+"%s [options] load-module NAME [ARGS ...]\n"
+"%s [options] unload-module MODULE\n"
+"%s [options] suspend-sink SINK 1|0\n"
+"%s [options] suspend-source SOURCE 1|0\n"
+"%s [options] set-card-profile CARD PROFILE\n"
+"%s [options] set-sink-port SINK PORT\n"
+"%s [options] set-source-port SOURCE PORT\n"
+"%s [options] set-sink-volume SINK VOLUME\n"
+"%s [options] set-source-volume SOURCE VOLUME\n"
+"%s [options] set-sink-input-volume SINKINPUT VOLUME\n"
+"%s [options] set-sink-mute SINK 1|0\n"
+"%s [options] set-source-mute SOURCE 1|0\n"
+"%s [options] set-sink-input-mute SINKINPUT 1|0\n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+msgstr ""
+"%s [options] stat\n"
+"%s [options] list\n"
+"%s [options] exit\n"
+"%s [options] upload-sample FILENAME [NAME]\n"
+"%s [options] play-sample NAME [SINK]\n"
+"%s [options] remove-sample NAME\n"
+"%s [options] move-sink-input SINKINPUT SINK\n"
+"%s [options] move-source-output SOURCEOUTPUT SOURCE\n"
+"%s [options] load-module NAME [ARGS ...]\n"
+"%s [options] unload-module MODULE\n"
+"%s [options] suspend-sink SINK 1|0\n"
+"%s [options] suspend-source SOURCE 1|0\n"
+"%s [options] set-card-profile CARD PROFILE\n"
+"%s [options] set-sink-port SINK PORT\n"
+"%s [options] set-source-port SOURCE PORT\n"
+"%s [options] set-sink-volume SINK VOLUME\n"
+"%s [options] set-source-volume SOURCE VOLUME\n"
+"%s [options] set-sink-input-volume SINKINPUT VOLUME\n"
+"%s [options] set-sink-mute SINK 1|0\n"
+"%s [options] set-source-mute SOURCE 1|0\n"
+"%s [options] set-sink-input-mute SINKINPUT 1|0\n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+
+#: ../src/utils/pactl.c:933
+#, c-format
+msgid ""
+"pactl %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pactl %s\n"
+"libpulse %s-നൊപ്പം കംപൈല്‍ ചെയ്തിരിക്കുന്നു\n"
+"libpulse %s-നൊപ്പം ലിങ്ക് ചെയ്തിരിക്കുന്നു\n"
+
+#: ../src/utils/pactl.c:979
+msgid "Please specify a sample file to load"
+msgstr "ലഭ്യമാക്കുന്നതിലുള്ള മാതൃകാ ഫയല്‍ ദയവായി വ്യക്തമാക്കുക"
+
+#: ../src/utils/pactl.c:992
+msgid "Failed to open sound file."
+msgstr "ശബ്ദ ഫയല്‍ തുറക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
+
+#: ../src/utils/pactl.c:1004
+msgid "Warning: Failed to determine sample specification from file."
+msgstr "മുന്നറിയിപ്പു്: ഫയലില്‍ നിന്നും മാതൃകയുടെ വിവരണം കണ്ടുപിടിക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
+
+#: ../src/utils/pactl.c:1014
+msgid "You have to specify a sample name to play"
+msgstr "പ്രവര്‍ത്തിപ്പിക്കുവാനുള്ള മാതൃകയുടെ പേരു് നല്‍കേണ്ടതുണ്ടു്"
+
+#: ../src/utils/pactl.c:1026
+msgid "You have to specify a sample name to remove"
+msgstr "നീക്കം ചെയ്യുന്നതിനുള്ള മാതൃകയുടെ പേരു് നല്‍കേണ്ടതുണ്ടു്"
+
+#: ../src/utils/pactl.c:1035
+msgid "You have to specify a sink input index and a sink"
+msgstr "ഒരു സിങ്ക് ഇന്‍പുട്ട് ഇന്‍ഡക്സും സിങ്കും നല്‍കേണ്ടതുണ്ടു്"
+
+#: ../src/utils/pactl.c:1045
+msgid "You have to specify a source output index and a source"
+msgstr "ഒരു സോഴ്സ് ഔട്ട്പുട്ട് ഇന്‍ഡക്സും സോഴ്സും നല്‍കേണ്ടതുണ്ടു്"
+
+#: ../src/utils/pactl.c:1060
+msgid "You have to specify a module name and arguments."
+msgstr "ഒരു മൌഡ്യൂള്‍ നാമവും ആര്‍ഗ്യുമെന്റുകളും നല്‍കേണ്ടതുണ്ടു്."
+
+#: ../src/utils/pactl.c:1080
+msgid "You have to specify a module index"
+msgstr "ഒരു മൌഡ്യൂള്‍ ഇന്‍ഡക്സ് നല്‍കേണ്ടതുണ്ടു്"
+
+#: ../src/utils/pactl.c:1090
+msgid ""
+"You may not specify more than one sink. You have to specify a boolean value."
+msgstr ""
+"ഒരു സിങ്കില്‍ കൂടുതല്‍ നിങ്ങള്‍ നല്‍കേണ്ടതില്ല. കൂടാതെ, ഒരു ബൂളിയന്‍ മൂല്ല്യവും നിങ്ങള്‍ നല്‍കേണ്ടതാണു്."
+
+#: ../src/utils/pactl.c:1103
+msgid ""
+"You may not specify more than one source. You have to specify a boolean "
+"value."
+msgstr ""
+"ഒരു സോഴ്സില്‍ കൂടുതല്‍ നിങ്ങള്‍ നല്‍കേണ്ടതില്ല. കൂടാതെ, ഒരു ബൂളിയന്‍ മൂല്ല്യവും നിങ്ങള്‍ നല്‍കേണ്ടതാണു്."
+
+#: ../src/utils/pactl.c:1115
+msgid "You have to specify a card name/index and a profile name"
+msgstr "ഒരു കാര്‍ഡ് നാമം/ഇന്‍ഡക്സും പ്രൊഫൈല്‍ നാമവും നല്‍കേണ്ടതുണ്ടു്"
+
+#: ../src/utils/pactl.c:1126
+msgid "You have to specify a sink name/index and a port name"
+msgstr "ഒരു സിങ്ക് നാമം/ഇന്‍ഡക്സും പോര്‍ട്ട് നാമവും നല്‍കേണ്ടതുണ്ടു്"
+
+#: ../src/utils/pactl.c:1137
+msgid "You have to specify a source name/index and a port name"
+msgstr "ഒരു സോഴ്സ് നാമം/ഇന്‍ഡക്സും പോര്‍ട്ട് നാമവും നല്‍കേണ്ടതുണ്ടു്"
+
+#: ../src/utils/pactl.c:1149
+msgid "You have to specify a sink name/index and a volume"
+msgstr "ഒരു സിങ്ക് നാമം/ഇന്‍ഡക്സും വോള്യവും നല്‍കേണ്ടതുണ്ടു്"
+
+#: ../src/utils/pactl.c:1154 ../src/utils/pactl.c:1171
+#: ../src/utils/pactl.c:1193 ../src/utils/pactl.c:1209
+#: ../src/utils/pactl.c:1226 ../src/utils/pactl.c:1248
+msgid "Invalid volume specification"
+msgstr "തെറ്റായ വോള്യം വിവരണങ്ങള്‍"
+
+#: ../src/utils/pactl.c:1166
+msgid "You have to specify a source name/index and a volume"
+msgstr "ഒരു സോഴ്സ് നാമം/ഇന്‍ഡക്സും വോള്യവും നല്‍കേണ്ടതുണ്ടു്"
+
+#: ../src/utils/pactl.c:1183
+msgid "You have to specify a sink input index and a volume"
+msgstr "ഒരു സിങ്ക് ഇന്‍പുട്ട് ഇന്‍ഡക്സും വോള്യവും നല്‍കേണ്ടതുണ്ടു്"
+
+#: ../src/utils/pactl.c:1188
+msgid "Invalid sink input index"
+msgstr "തെറ്റായ സിങ്ക് ഇന്‍പുട്ട് ഇന്‍ഡക്സ്"
+
+#: ../src/utils/pactl.c:1204
+msgid "You have to specify a sink name/index and a mute boolean"
+msgstr "ഒരു സിങ്ക് നാമം/ഇന്‍ഡക്സും മ്യൂട്ട് ബൂളിയനും നല്‍കേണ്ടതുണ്ടു്"
+
+#: ../src/utils/pactl.c:1221
+msgid "You have to specify a source name/index and a mute boolean"
+msgstr "ഒരു സോഴ്സ് നാമം/ഇന്‍ഡക്സും മ്യൂട്ട് ബൂളിയനും നല്‍കേണ്ടതുണ്ടു്"
+
+#: ../src/utils/pactl.c:1238
+msgid "You have to specify a sink input index and a mute boolean"
+msgstr "ഒരു സിങ്ക് ഇന്‍പുട്ട് ഇന്‍ഡക്സും മ്യൂട്ട് ബൂളിയനും നല്‍കേണ്ടതുണ്ടു്"
+
+#: ../src/utils/pactl.c:1243
+msgid "Invalid sink input index specification"
+msgstr "തെറ്റായ സിങ്ക് ഇന്‍പുട്ട് ഇന്‍ഡക്സ് സ്പെസിഫിക്കേഷന്‍"
+
+#: ../src/utils/pactl.c:1262
+msgid "No valid command specified."
+msgstr "ശരിയായ കമാന്‍ഡുകള്‍ നല്‍കിയിട്ടില്ല."
+
+#: ../src/utils/pax11publish.c:61
+#, c-format
+msgid ""
+"%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n"
+"\n"
+" -d    Show current PulseAudio data attached to X11 display (default)\n"
+" -e    Export local PulseAudio data to X11 display\n"
+" -i    Import PulseAudio data from X11 display to local environment "
+"variables and cookie file.\n"
+" -r    Remove PulseAudio data from X11 display\n"
+msgstr ""
+"%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n"
+"\n"
+" -d    Show current PulseAudio data attached to X11 display (default)\n"
+" -e    Export local PulseAudio data to X11 display\n"
+" -i    Import PulseAudio data from X11 display to local environment "
+"variables and cookie file.\n"
+" -r    Remove PulseAudio data from X11 display\n"
+
+#: ../src/utils/pax11publish.c:94
+#, c-format
+msgid "Failed to parse command line.\n"
+msgstr "കമാന്‍ഡ് ലൈന്‍ പാഴ്സ് ചെയ്യുന്നതില്‍ പരാജയപ്പെട്ടു.\n"
+
+#: ../src/utils/pax11publish.c:108
+#, c-format
+msgid "Server: %s\n"
+msgstr "സര്‍വര്‍: %s\n"
+
+#: ../src/utils/pax11publish.c:110
+#, c-format
+msgid "Source: %s\n"
+msgstr "സോഴ്സ്: %s\n"
+
+#: ../src/utils/pax11publish.c:112
+#, c-format
+msgid "Sink: %s\n"
+msgstr "സിങ്ക്: %s\n"
+
+#: ../src/utils/pax11publish.c:114
+#, c-format
+msgid "Cookie: %s\n"
+msgstr "കുക്കി: %s\n"
+
+#: ../src/utils/pax11publish.c:132
+#, c-format
+msgid "Failed to parse cookie data\n"
+msgstr "കുക്കീ ഡേറ്റാ പാഴ്സ് ചെയ്യുന്നതില്‍ പരാജയപ്പെട്ടു\n"
+
+#: ../src/utils/pax11publish.c:137
+#, c-format
+msgid "Failed to save cookie data\n"
+msgstr "കുക്കീ ഡേറ്റാ സൂക്ഷിക്കുന്നതില്‍ പരാജയപ്പെട്ടു\n"
+
+#: ../src/utils/pax11publish.c:152
+#, c-format
+msgid "Failed to load client configuration file.\n"
+msgstr "ക്ലൈന്റ് ക്രമീകരണ ഫയല്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു\n"
+
+#: ../src/utils/pax11publish.c:157
+#, c-format
+msgid "Failed to read environment configuration data.\n"
+msgstr "എന്‍വയോണ്മെന്റ് ക്രമീകരണ ഡേറ്റാ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു\n"
+
+#: ../src/utils/pax11publish.c:174
+#, c-format
+msgid "Failed to get FQDN.\n"
+msgstr "FQDN ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു\n"
+
+#: ../src/utils/pax11publish.c:194
+#, c-format
+msgid "Failed to load cookie data\n"
+msgstr "കുക്കീ ഡേറ്റാ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു\n"
+
+#: ../src/utils/pax11publish.c:211
+#, c-format
+msgid "Not yet implemented.\n"
+msgstr "ഇതുവരെ ലഭ്യമാക്കിയിട്ടില്ല.\n"
+
+#: ../src/utils/pacmd.c:69
+msgid "No PulseAudio daemon running, or not running as session daemon."
+msgstr "പള്‍സ്ഓഡിയോ ഡെമണ്‍ പ്രവര്‍ത്തനതിലില്ല, സെഷന്‍ ഡെമണായും പ്രവര്‍ത്തിക്കുന്നില്ല."
+
+#: ../src/utils/pacmd.c:74
+#, c-format
+msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
+msgstr "socket(PF_UNIX, SOCK_STREAM, 0): %s"
+
+#: ../src/utils/pacmd.c:91
+#, c-format
+msgid "connect(): %s"
+msgstr "connect(): %s"
+
+#: ../src/utils/pacmd.c:99
+msgid "Failed to kill PulseAudio daemon."
+msgstr "പള്‍സ്ഓഡിയോ ഡെമണ്‍ ഇല്ലാതാക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
+
+#: ../src/utils/pacmd.c:107
+msgid "Daemon not responding."
+msgstr "ഡെമണ്‍ മറുപടി നല്‍കുന്നില്ല."
+
+#: ../src/utils/pacmd.c:161
+#, c-format
+msgid "poll(): %s"
+msgstr "poll(): %s"
+
+#: ../src/utils/pacmd.c:171 ../src/utils/pacmd.c:188
+#, c-format
+msgid "read(): %s"
+msgstr "read(): %s"
+
+#: ../src/utils/pacmd.c:207 ../src/utils/pacmd.c:223
+#, c-format
+msgid "write(): %s"
+msgstr "write(): %s"
+
+#: ../src/pulsecore/lock-autospawn.c:136 ../src/pulsecore/lock-autospawn.c:219
+msgid "Cannot access autospawn lock."
+msgstr "ഓട്ടോസ്പൌണ്‍ ലോക്ക് ലഭ്യമാക്കുവാന്‍ സാധ്യമല്ല."
+
+#: ../src/modules/alsa/alsa-sink.c:530 ../src/modules/alsa/alsa-sink.c:689
+#, c-format
+msgid ""
+"ALSA woke us up to write new data to the device, but there was actually "
+"nothing to write!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+"ഡിവൈസില്‍ നിന്നും പുതിയ ഡേറ്റാ ലഭ്യമാക്കുന്നതിനായി ALSA നമുക്കു് അറിയിപ്പു് നല്‍കിയിരിക്കുന്നു, "
+"പക്ഷേ ഡേറ്റാ ലഭ്യമല്ല!\n"
+"ഇതു് ALSA ഡ്രൈവര്‍ '%s'-ലുള്ള ഒരു ബഗാവാം. ദയവായി ഈ പ്രശ്നം ALSA ഡവലപ്പര്‍സിനെ അറിയിക്കുക.\n"
+"POLLOUT സെറ്റ് വഴി നമ്മെ അറിയിച്ചിരിക്കുന്നു -- പക്ഷേ, snd_pcm_avail() ലഭ്യമാക്കിയതു് 0 "
+"അല്ലെങ്കില്‍ മറ്റൊരു മൂല്ല്യം < min_avail ആണു്."
+
+#: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
+#, c-format
+msgid ""
+"ALSA woke us up to read new data from the device, but there was actually "
+"nothing to read!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+"ഡിവൈസില്‍ നിന്നും പുതിയ ഡേറ്റാ ലഭ്യമാക്കുന്നതിനായി ALSA നമുക്കു് അറിയിപ്പു് നല്‍കിയിരിക്കുന്നു, "
+"പക്ഷേ ഡേറ്റാ ലഭ്യമല്ല!\n"
+"ഇതു് ALSA ഡ്രൈവര്‍ '%s'-ലുള്ള ഒരു ബഗാവാം. ദയവായി ഈ പ്രശ്നം ALSA ഡവലപ്പര്‍സിനെ അറിയിക്കുക.\n"
+"POLLIN സെറ്റ് വഴി നമ്മെ അറിയിച്ചിരിക്കുന്നു -- പക്ഷേ, snd_pcm_avail() ലഭ്യമാക്കിയതു് 0 "
+"അല്ലെങ്കില്‍ മറ്റൊരു മൂല്ല്യം < min_avail ആണു്."
+
+#: ../src/modules/alsa/module-alsa-card.c:152
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2228
+msgid "Off"
+msgstr "ഓഫ്"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2184
+msgid "High Fidelity Playback (A2DP)"
+msgstr "ഹൈ ഫിഡലിറ്റി പ്ലേബാക്ക് (A2DP)"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2198
+msgid "High Fidelity Capture (A2DP)"
+msgstr "ഹൈ ഫിഡലിറ്റി കാപ്ചര്‍ (A2DP)"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2213
+msgid "Telephony Duplex (HSP/HFP)"
+msgstr "ടെലിഫോണി ഡ്യൂപ്ലെക്സ് (HSP/HFP)"
+
+#: ../src/modules/reserve-wrap.c:151
+msgid "PulseAudio Sound Server"
+msgstr "പള്‍സ്ഓഡിയോ സൌണ്ട് സര്‍വര്‍"

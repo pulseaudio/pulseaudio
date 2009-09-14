@@ -64,9 +64,8 @@ enum {
     FILE_STREAM_MESSAGE_UNLINK
 };
 
-PA_DECLARE_CLASS(file_stream);
+PA_DEFINE_PRIVATE_CLASS(file_stream, pa_msgobject);
 #define FILE_STREAM(o) (file_stream_cast(o))
-static PA_DEFINE_CHECK_TYPE(file_stream, pa_msgobject);
 
 /* Called from main context */
 static void file_stream_unlink(file_stream *u) {
@@ -312,7 +311,7 @@ int pa_play_file(
     pa_proplist_sets(data.proplist, PA_PROP_MEDIA_FILENAME, fname);
     pa_sndfile_init_proplist(u->sndfile, data.proplist);
 
-    pa_sink_input_new(&u->sink_input, sink->core, &data, 0);
+    pa_sink_input_new(&u->sink_input, sink->core, &data);
     pa_sink_input_new_data_done(&data);
 
     if (!u->sink_input)
@@ -335,8 +334,7 @@ int pa_play_file(
     return 0;
 
 fail:
-    if (u)
-        file_stream_unref(u);
+    file_stream_unref(u);
 
     if (fd >= 0)
         pa_close(fd);

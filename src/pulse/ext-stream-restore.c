@@ -239,13 +239,10 @@ pa_operation *pa_ext_stream_restore_write(
     return o;
 
 fail:
-    if (o) {
-        pa_operation_cancel(o);
-        pa_operation_unref(o);
-    }
+    pa_operation_cancel(o);
+    pa_operation_unref(o);
 
-    if (t)
-        pa_tagstruct_free(t);
+    pa_tagstruct_free(t);
 
     pa_context_set_error(c, PA_ERR_INVALID);
     return NULL;
@@ -290,13 +287,10 @@ pa_operation *pa_ext_stream_restore_delete(
     return o;
 
 fail:
-    if (o) {
-        pa_operation_cancel(o);
-        pa_operation_unref(o);
-    }
+    pa_operation_cancel(o);
+    pa_operation_unref(o);
 
-    if (t)
-        pa_tagstruct_free(t);
+    pa_tagstruct_free(t);
 
     pa_context_set_error(c, PA_ERR_INVALID);
     return NULL;

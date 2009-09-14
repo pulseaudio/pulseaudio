@@ -32,8 +32,6 @@
 #include <pulsecore/memblock.h>
 #include <pulsecore/sample-util.h>
 
-#include <liboil/liboil.h>
-
 static void dump_block(const pa_sample_spec *ss, const pa_memchunk *chunk) {
     void *d;
     unsigned i;
@@ -248,7 +246,6 @@ int main(int argc, char *argv[]) {
     pa_sample_spec a, b;
     pa_cvolume v;
 
-    oil_init();
     pa_log_set_level(PA_LOG_DEBUG);
 
     pa_assert_se(pool = pa_mempool_new(FALSE, 0));

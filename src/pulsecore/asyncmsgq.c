@@ -26,14 +26,16 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include <pulse/xmalloc.h>
+
 #include <pulsecore/atomic.h>
+#include <pulsecore/macro.h>
 #include <pulsecore/log.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/semaphore.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/flist.h>
-#include <pulse/xmalloc.h>
 
 #include "asyncmsgq.h"
 
@@ -76,7 +78,7 @@ static void asyncmsgq_free(pa_asyncmsgq *a) {
     struct asyncmsgq_item *i;
     pa_assert(a);
 
-    while ((i = pa_asyncq_pop(a->asyncq, 0))) {
+    while ((i = pa_asyncq_pop(a->asyncq, FALSE))) {
 
         pa_assert(!i->semaphore);
 
@@ -246,7 +248,7 @@ int pa_asyncmsgq_wait_for(pa_asyncmsgq *a, int code) {
         pa_memchunk chunk;
         int ret;
 
-        if (pa_asyncmsgq_get(a, &o, &c, &data, &offset, &chunk, 1) < 0)
+        if (pa_asyncmsgq_get(a, &o, &c, &data, &offset, &chunk, TRUE) < 0)
             return -1;
 
         ret = pa_asyncmsgq_dispatch(o, c, data, offset, &chunk);
@@ -269,7 +271,7 @@ int pa_asyncmsgq_process_one(pa_asyncmsgq *a) {
 
     pa_assert(PA_REFCNT_VALUE(a) > 0);
 
-    if (pa_asyncmsgq_get(a, &object, &code, &data, &offset, &chunk, 0) < 0)
+    if (pa_asyncmsgq_get(a, &object, &code, &data, &offset, &chunk, FALSE) < 0)
         return 0;
 
     pa_asyncmsgq_ref(a);
@@ -322,4 +324,36 @@ int pa_asyncmsgq_dispatch(pa_msgobject *object, int code, void *userdata, int64_
         return object->process_msg(object, code, userdata, offset, memchunk);
 
     return 0;
+}
+
+void pa_asyncmsgq_flush(pa_asyncmsgq *a, pa_bool_t run) {
+    pa_assert(PA_REFCNT_VALUE(a) > 0);
+
+    for (;;) {
+        pa_msgobject *object;
+        int code;
+        void *data;
+        int64_t offset;
+        pa_memchunk chunk;
+        int ret;
+
+        if (pa_asyncmsgq_get(a, &object, &code, &data, &offset, &chunk, FALSE) < 0)
+            return;
+
+        if (!run) {
+            pa_asyncmsgq_done(a, -1);
+            continue;
+        }
+
+        pa_asyncmsgq_ref(a);
+        ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
+        pa_asyncmsgq_done(a, ret);
+        pa_asyncmsgq_unref(a);
+    }
+}
+
+pa_bool_t pa_asyncmsgq_dispatching(pa_asyncmsgq *a) {
+    pa_assert(PA_REFCNT_VALUE(a) > 0);
+
+    return !!a->current;
 }

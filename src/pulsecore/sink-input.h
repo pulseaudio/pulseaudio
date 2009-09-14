@@ -42,6 +42,7 @@ typedef enum pa_sink_input_state {
     PA_SINK_INPUT_RUNNING,      /*< The stream is alive and kicking */
     PA_SINK_INPUT_CORKED,       /*< The stream was corked on user request */
     PA_SINK_INPUT_UNLINKED      /*< The stream is dead */
+    /* FIXME: we need a state for MOVING here */
 } pa_sink_input_state_t;
 
 static inline pa_bool_t PA_SINK_INPUT_IS_LINKED(pa_sink_input_state_t x) {
@@ -58,7 +59,8 @@ typedef enum pa_sink_input_flags {
     PA_SINK_INPUT_FIX_RATE = 64,
     PA_SINK_INPUT_FIX_CHANNELS = 128,
     PA_SINK_INPUT_DONT_INHIBIT_AUTO_SUSPEND = 256,
-    PA_SINK_INPUT_FAIL_ON_SUSPEND = 512
+    PA_SINK_INPUT_NO_CREATE_ON_SUSPEND = 512,
+    PA_SINK_INPUT_KILL_ON_SUSPEND = 1024
 } pa_sink_input_flags_t;
 
 struct pa_sink_input {
@@ -92,10 +94,14 @@ struct pa_sink_input {
     pa_sink_input *sync_prev, *sync_next;
 
     /* Also see http://pulseaudio.org/wiki/InternalVolumes */
-    pa_cvolume virtual_volume;  /* The volume clients are informed about */
-    pa_cvolume volume_factor;   /* An internally used volume factor that can be used by modules to apply effects and suchlike without having that visible to the outside */
-    double relative_volume[PA_CHANNELS_MAX]; /* The calculated volume relative to the sink volume as linear factors. */
-    pa_cvolume soft_volume;     /* The internal software volume we apply to all PCM data while it passes through. Usually calculated as relative_volume * volume_factor  */
+    pa_cvolume volume;             /* The volume clients are informed about */
+    pa_cvolume reference_ratio;    /* The ratio of the stream's volume to the sink's reference volume */
+    pa_cvolume real_ratio;         /* The ratio of the stream's volume to the sink's real volume */
+    pa_cvolume volume_factor;      /* An internally used volume factor that can be used by modules to apply effects and suchlike without having that visible to the outside */
+    pa_cvolume soft_volume;        /* The internal software volume we apply to all PCM data while it passes through. Usually calculated as real_ratio * volume_factor */
+
+    pa_cvolume volume_factor_sink; /* A second volume factor in format of the sink this stream is connected to */
+
     pa_bool_t muted:1;
 
     /* if TRUE then the source we are connected to and/or the volume
@@ -137,6 +143,10 @@ struct pa_sink_input {
      * from IO context. */
     void (*update_sink_latency_range) (pa_sink_input *i); /* may be NULL */
 
+    /* Called whenver the fixed latency of the sink changes, if there
+     * is one. Called from IO context. */
+    void (*update_sink_fixed_latency) (pa_sink_input *i); /* may be NULL */
+
     /* If non-NULL this function is called when the input is first
      * connected to a sink or when the rtpoll/asyncmsgq fields
      * change. You usually don't need to implement this function
@@ -159,7 +169,9 @@ struct pa_sink_input {
     /* If non-NULL called whenever the sink input is moved to a new
      * sink. Called from main context after the sink input has been
      * detached from the old sink and before it has been attached to
-     * the new sink. */
+     * the new sink. If dest is NULL the move was executed in two
+     * phases and the second one failed; the stream will be destroyed
+     * after this call. */
     void (*moving) (pa_sink_input *i, pa_sink *dest);   /* may be NULL */
 
     /* Supposed to unlink and destroy this stream. Called from main
@@ -182,8 +194,16 @@ struct pa_sink_input {
     pa_bool_t (*may_move_to) (pa_sink_input *i, pa_sink *s); /* may be NULL */
 
     /* If non-NULL this function is used to dispatch asynchronous
-     * control events. */
-    void (*send_event)(pa_sink_input *i, const char *event, pa_proplist* data);
+     * control events. Called from main context. */
+    void (*send_event)(pa_sink_input *i, const char *event, pa_proplist* data); /* may be NULL */
+
+    /* If non-NULL this function is called whenever the sink input
+     * volume changes. Called from main context */
+    void (*volume_changed)(pa_sink_input *i); /* may be NULL */
+
+    /* If non-NULL this function is called whenever the sink input
+     * mute status changes. Called from main context */
+    void (*mute_changed)(pa_sink_input *i); /* may be NULL */
 
     struct {
         pa_sink_input_state_t state;
@@ -194,7 +214,7 @@ struct pa_sink_input {
 
         pa_bool_t attached:1; /* True only between ->attach() and ->detach() calls */
 
-        /* 0: rewrite nothing, (size_t) -1: rewrite everything, otherwise how many bytes to rewrite */
+        /* rewrite_nbytes: 0: rewrite nothing, (size_t) -1: rewrite everything, otherwise how many bytes to rewrite */
         pa_bool_t rewrite_flush:1, dont_rewind_render:1;
         size_t rewrite_nbytes;
         uint64_t underrun_for, playing_for;
@@ -217,7 +237,7 @@ struct pa_sink_input {
     void *userdata;
 };
 
-PA_DECLARE_CLASS(pa_sink_input);
+PA_DECLARE_PUBLIC_CLASS(pa_sink_input);
 #define PA_SINK_INPUT(o) pa_sink_input_cast(o)
 
 enum {
@@ -238,6 +258,8 @@ typedef struct pa_sink_input_send_event_hook_data {
 } pa_sink_input_send_event_hook_data;
 
 typedef struct pa_sink_input_new_data {
+    pa_sink_input_flags_t flags;
+
     pa_proplist *proplist;
 
     const char *driver;
@@ -253,13 +275,13 @@ typedef struct pa_sink_input_new_data {
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
 
-    pa_cvolume volume, volume_factor;
+    pa_cvolume volume, volume_factor, volume_factor_sink;
     pa_bool_t muted:1;
 
     pa_bool_t sample_spec_is_set:1;
     pa_bool_t channel_map_is_set:1;
 
-    pa_bool_t volume_is_set:1, volume_factor_is_set:1;
+    pa_bool_t volume_is_set:1, volume_factor_is_set:1, volume_factor_sink_is_set:1;
     pa_bool_t muted_is_set:1;
 
     pa_bool_t volume_is_absolute:1;
@@ -272,6 +294,7 @@ void pa_sink_input_new_data_set_sample_spec(pa_sink_input_new_data *data, const 
 void pa_sink_input_new_data_set_channel_map(pa_sink_input_new_data *data, const pa_channel_map *map);
 void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cvolume *volume);
 void pa_sink_input_new_data_apply_volume_factor(pa_sink_input_new_data *data, const pa_cvolume *volume_factor);
+void pa_sink_input_new_data_apply_volume_factor_sink(pa_sink_input_new_data *data, const pa_cvolume *volume_factor);
 void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mute);
 void pa_sink_input_new_data_done(pa_sink_input_new_data *data);
 
@@ -280,8 +303,7 @@ void pa_sink_input_new_data_done(pa_sink_input_new_data *data);
 int pa_sink_input_new(
         pa_sink_input **i,
         pa_core *core,
-        pa_sink_input_new_data *data,
-        pa_sink_input_flags_t flags);
+        pa_sink_input_new_data *data);
 
 void pa_sink_input_put(pa_sink_input *i);
 void pa_sink_input_unlink(pa_sink_input* i);
@@ -303,6 +325,10 @@ void pa_sink_input_cork(pa_sink_input *i, pa_bool_t b);
 
 int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate);
 
+/* This returns the sink's fields converted into out sample type */
+size_t pa_sink_input_get_max_rewind(pa_sink_input *i);
+size_t pa_sink_input_get_max_request(pa_sink_input *i);
+
 /* Callable by everyone from main thread*/
 
 /* External code may request disconnection with this function */
@@ -312,8 +338,6 @@ pa_usec_t pa_sink_input_get_latency(pa_sink_input *i, pa_usec_t *sink_latency);
 
 void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_bool_t save, pa_bool_t absolute);
 pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i, pa_cvolume *volume, pa_bool_t absolute);
-
-pa_cvolume *pa_sink_input_get_relative_volume(pa_sink_input *i, pa_cvolume *v);
 
 void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute, pa_bool_t save);
 pa_bool_t pa_sink_input_get_mute(pa_sink_input *i);
@@ -333,6 +357,7 @@ pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest); /* may thi
  * new sink */
 int pa_sink_input_start_move(pa_sink_input *i);
 int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save);
+void pa_sink_input_fail_move(pa_sink_input *i);
 
 pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i);
 
@@ -356,7 +381,7 @@ pa_bool_t pa_sink_input_safe_to_remove(pa_sink_input *i);
 
 pa_memchunk* pa_sink_input_get_silence(pa_sink_input *i, pa_memchunk *ret);
 
-/* To be used by sink.c only */
-void pa_sink_input_set_relative_volume(pa_sink_input *i, const pa_cvolume *v);
+#define pa_sink_input_assert_io_context(s) \
+    pa_assert(pa_thread_mq_get() || !PA_SINK_INPUT_IS_LINKED((s)->state))
 
 #endif

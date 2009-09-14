@@ -216,7 +216,7 @@ static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, v
                 pa_cvolume cv;
                 pa_log_debug("changing volume of sink input '%s' to 0x%03x", n, r->volume);
                 pa_cvolume_set(&cv, si->sample_spec.channels, r->volume);
-                pa_sink_input_set_volume(si, &cv, TRUE, TRUE);
+                pa_sink_input_set_volume(si, &cv, TRUE, FALSE);
             }
         }
     }
@@ -242,6 +242,9 @@ int pa__init(pa_module*m) {
 
     if (load_rules(u, pa_modargs_get_value(ma, "table", NULL)) < 0)
         goto fail;
+
+    /* FIXME: Doing this asynchronously is just broken. This needs to
+     * use a hook! */
 
     u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK_INPUT, callback, u);
 

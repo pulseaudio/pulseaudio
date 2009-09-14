@@ -55,6 +55,7 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/proplist-util.h>
 #include <pulsecore/auth-cookie.h>
+#include <pulsecore/mcalign.h>
 
 #ifdef TUNNEL_SINK
 #include "module-tunnel-sink-symdef.h"
@@ -194,6 +195,7 @@ struct userdata {
 #else
     char *source_name;
     pa_source *source;
+    pa_mcalign *mcalign;
 #endif
 
     pa_auth_cookie *auth_cookie;
@@ -330,7 +332,7 @@ static void command_moved(pa_pdispatch *pd,  uint32_t command,  uint32_t tag, pa
 
 static void command_stream_buffer_attr_changed(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
-    uint32_t channel, maxlength, tlength, fragsize, prebuf, minreq;
+    uint32_t channel, maxlength, tlength = 0, fragsize, prebuf, minreq;
     pa_usec_t usec;
 
     pa_assert(pd);
@@ -614,14 +616,23 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             return 0;
         }
 
-        case SOURCE_MESSAGE_POST:
+        case SOURCE_MESSAGE_POST: {
+            pa_memchunk c;
 
-            if (PA_SOURCE_IS_OPENED(u->source->thread_info.state))
-                pa_source_post(u->source, chunk);
+            pa_mcalign_push(u->mcalign, chunk);
 
-            u->counter += (int64_t) chunk->length;
+            while (pa_mcalign_pop(u->mcalign, &c) >= 0) {
+
+                if (PA_SOURCE_IS_OPENED(u->source->thread_info.state))
+                    pa_source_post(u->source, &c);
+
+                pa_memblock_unref(c.memblock);
+
+                u->counter += (int64_t) c.length;
+            }
 
             return 0;
+        }
 
         case SOURCE_MESSAGE_REMOTE_SUSPEND:
 
@@ -1086,7 +1097,7 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag
     uint32_t idx, owner_module, client, sink;
     pa_usec_t buffer_usec, sink_usec;
     const char *name, *driver, *resample_method;
-    pa_bool_t mute;
+    pa_bool_t mute = FALSE;
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
     pa_cvolume volume;
@@ -1151,13 +1162,13 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag
     pa_assert(u->sink);
 
     if ((u->version < 11 || !!mute == !!u->sink->muted) &&
-        pa_cvolume_equal(&volume, &u->sink->virtual_volume))
+        pa_cvolume_equal(&volume, &u->sink->real_volume))
         return;
 
-    pa_sink_volume_changed(u->sink, &volume, FALSE);
+    pa_sink_volume_changed(u->sink, &volume);
 
     if (u->version >= 11)
-        pa_sink_mute_changed(u->sink, mute, FALSE);
+        pa_sink_mute_changed(u->sink, mute);
 
     return;
 
@@ -1334,12 +1345,11 @@ static void command_subscribe_event(pa_pdispatch *pd,  uint32_t command,  uint32
 /* Called from main context */
 static void start_subscribe(struct userdata *u) {
     pa_tagstruct *t;
-    uint32_t tag;
     pa_assert(u);
 
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_SUBSCRIBE);
-    pa_tagstruct_putu32(t, tag = u->ctag++);
+    pa_tagstruct_putu32(t, u->ctag++);
     pa_tagstruct_putu32(t, PA_SUBSCRIPTION_MASK_SERVER|
 #ifdef TUNNEL_SINK
                         PA_SUBSCRIPTION_MASK_SINK_INPUT|PA_SUBSCRIPTION_MASK_SINK
@@ -1515,7 +1525,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
 
     reply = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(reply, PA_COMMAND_SET_CLIENT_NAME);
-    pa_tagstruct_putu32(reply, tag = u->ctag++);
+    pa_tagstruct_putu32(reply, u->ctag++);
 
     if (u->version >= 13) {
         pa_proplist *pl;
@@ -1742,7 +1752,6 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
 static void sink_set_volume(pa_sink *sink) {
     struct userdata *u;
     pa_tagstruct *t;
-    uint32_t tag;
 
     pa_assert(sink);
     u = sink->userdata;
@@ -1750,9 +1759,9 @@ static void sink_set_volume(pa_sink *sink) {
 
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_SET_SINK_INPUT_VOLUME);
-    pa_tagstruct_putu32(t, tag = u->ctag++);
+    pa_tagstruct_putu32(t, u->ctag++);
     pa_tagstruct_putu32(t, u->device_index);
-    pa_tagstruct_put_cvolume(t, &sink->virtual_volume);
+    pa_tagstruct_put_cvolume(t, &sink->real_volume);
     pa_pstream_send_tagstruct(u->pstream, t);
 }
 
@@ -1760,7 +1769,6 @@ static void sink_set_volume(pa_sink *sink) {
 static void sink_set_mute(pa_sink *sink) {
     struct userdata *u;
     pa_tagstruct *t;
-    uint32_t tag;
 
     pa_assert(sink);
     u = sink->userdata;
@@ -1771,7 +1779,7 @@ static void sink_set_mute(pa_sink *sink) {
 
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_SET_SINK_INPUT_MUTE);
-    pa_tagstruct_putu32(t, tag = u->ctag++);
+    pa_tagstruct_putu32(t, u->ctag++);
     pa_tagstruct_putu32(t, u->device_index);
     pa_tagstruct_put_boolean(t, !!sink->muted);
     pa_pstream_send_tagstruct(u->pstream, t);
@@ -1937,6 +1945,8 @@ int pa__init(pa_module*m) {
 
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_rtpoll(u->source, u->rtpoll);
+
+    u->mcalign = pa_mcalign_new(pa_frame_size(&u->source->sample_spec));
 #endif
 
     pa_xfree(dn);
@@ -2029,6 +2039,11 @@ void pa__done(pa_module*m) {
 
     if (u->time_event)
         u->core->mainloop->time_free(u->time_event);
+
+#ifndef TUNNEL_SINK
+    if (u->mcalign)
+        pa_mcalign_free(u->mcalign);
+#endif
 
 #ifdef TUNNEL_SINK
     pa_xfree(u->sink_name);

@@ -361,7 +361,7 @@ static void sink_input_attach(pa_sink_input *i) {
     pa_assert_se(s = i->userdata);
 
     pa_assert(!s->rtpoll_item);
-    s->rtpoll_item = pa_rtpoll_item_new(i->sink->rtpoll, PA_RTPOLL_LATE, 1);
+    s->rtpoll_item = pa_rtpoll_item_new(i->sink->thread_info.rtpoll, PA_RTPOLL_LATE, 1);
 
     p = pa_rtpoll_item_get_pollfd(s->rtpoll_item, NULL);
     p->fd = s->rtp_context.fd;
@@ -501,8 +501,9 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     pa_proplist_setf(data.proplist, "rtp.payload", "%u", (unsigned) sdp_info->payload);
     data.module = u->module;
     pa_sink_input_new_data_set_sample_spec(&data, &sdp_info->sample_spec);
+    data.flags = PA_SINK_INPUT_VARIABLE_RATE;
 
-    pa_sink_input_new(&s->sink_input, u->module->core, &data, PA_SINK_INPUT_VARIABLE_RATE);
+    pa_sink_input_new(&s->sink_input, u->module->core, &data);
     pa_sink_input_new_data_done(&data);
 
     if (!s->sink_input) {

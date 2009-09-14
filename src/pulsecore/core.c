@@ -47,7 +47,7 @@
 
 #include "core.h"
 
-static PA_DEFINE_CHECK_TYPE(pa_core, pa_msgobject);
+PA_DEFINE_PUBLIC_CLASS(pa_core, pa_msgobject);
 
 static int core_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk) {
     pa_core *c = PA_CORE(o);

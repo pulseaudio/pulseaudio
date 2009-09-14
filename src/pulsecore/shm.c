@@ -60,7 +60,8 @@
 #define MADV_REMOVE 9
 #endif
 
-#define MAX_SHM_SIZE (PA_ALIGN(1024*1024*64))
+/* 1 GiB at max */
+#define MAX_SHM_SIZE (PA_ALIGN(1024*1024*1024))
 
 #ifdef __linux__
 /* On Linux we know that the shared memory blocks are files in

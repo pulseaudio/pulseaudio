@@ -335,12 +335,12 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
 
     pass_volume = TRUE;
 
-    if (e->volume_is_set && volume != (pa_volume_t) -1) {
+    if (e->volume_is_set && volume != PA_VOLUME_INVALID) {
         pa_cvolume_set(&r, e->sample_spec.channels, volume);
         pa_sw_cvolume_multiply(&r, &r, &e->volume);
     } else if (e->volume_is_set)
         r = e->volume;
-    else if (volume != (pa_volume_t) -1)
+    else if (volume != PA_VOLUME_INVALID)
         pa_cvolume_set(&r, e->sample_spec.channels, volume);
     else
         pass_volume = FALSE;
@@ -494,13 +494,14 @@ int pa_scache_add_directory_lazy(pa_core *c, const char *pathname) {
         struct dirent *e;
 
         while ((e = readdir(dir))) {
-            char p[PATH_MAX];
+            char *p;
 
             if (e->d_name[0] == '.')
                 continue;
 
-            pa_snprintf(p, sizeof(p), "%s/%s", pathname, e->d_name);
+            p = pa_sprintf_malloc("%s" PA_PATH_SEP "%s", pathname, e->d_name);
             add_file(c, p);
+            pa_xfree(p);
         }
 
         closedir(dir);

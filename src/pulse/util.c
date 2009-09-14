@@ -61,38 +61,40 @@
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/usergroup.h>
 
 #include "util.h"
 
 char *pa_get_user_name(char *s, size_t l) {
     const char *p;
+    char *name = NULL;
+#ifdef OS_IS_WIN32
     char buf[1024];
+#endif
 
 #ifdef HAVE_PWD_H
-    struct passwd pw, *r;
+    struct passwd *r;
 #endif
 
     pa_assert(s);
     pa_assert(l > 0);
 
-    if (!(p = (getuid() == 0 ? "root" : NULL)) &&
-        !(p = getenv("USER")) &&
-        !(p = getenv("LOGNAME")) &&
-        !(p = getenv("USERNAME"))) {
+    if ((p = (getuid() == 0 ? "root" : NULL)) ||
+        (p = getenv("USER")) ||
+        (p = getenv("LOGNAME")) ||
+        (p = getenv("USERNAME")))
+    {
+        name = pa_strlcpy(s, p, l);
+    } else {
 #ifdef HAVE_PWD_H
 
-#ifdef HAVE_GETPWUID_R
-        if (getpwuid_r(getuid(), &pw, buf, sizeof(buf), &r) != 0 || !r) {
-#else
-        /* XXX Not thread-safe, but needed on OSes (e.g. FreeBSD 4.X)
-            * that do not support getpwuid_r. */
-        if ((r = getpwuid(getuid())) == NULL) {
-#endif
+        if ((r = pa_getpwuid_malloc(getuid())) == NULL) {
             pa_snprintf(s, l, "%lu", (unsigned long) getuid());
             return s;
         }
 
-        p = r->pw_name;
+        name = pa_strlcpy(s, r->pw_name, l);
+        pa_getpwuid_free(r);
 
 #elif defined(OS_IS_WIN32) /* HAVE_PWD_H */
         DWORD size = sizeof(buf);
@@ -102,7 +104,7 @@ char *pa_get_user_name(char *s, size_t l) {
             return NULL;
         }
 
-        p = buf;
+        name = pa_strlcpy(s, buf, l);
 
 #else /* HAVE_PWD_H */
 
@@ -110,7 +112,7 @@ char *pa_get_user_name(char *s, size_t l) {
 #endif /* HAVE_PWD_H */
     }
 
-    return pa_strlcpy(s, p, l);
+    return name;
 }
 
 char *pa_get_host_name(char *s, size_t l) {
@@ -126,11 +128,10 @@ char *pa_get_host_name(char *s, size_t l) {
 }
 
 char *pa_get_home_dir(char *s, size_t l) {
-    char *e;
+    char *e, *dir;
 
 #ifdef HAVE_PWD_H
-    char buf[1024];
-    struct passwd pw, *r;
+    struct passwd *r;
 #endif
 
     pa_assert(s);
@@ -143,22 +144,19 @@ char *pa_get_home_dir(char *s, size_t l) {
         return pa_strlcpy(s, e, l);
 
 #ifdef HAVE_PWD_H
-
     errno = 0;
-#ifdef HAVE_GETPWUID_R
-    if (getpwuid_r(getuid(), &pw, buf, sizeof(buf), &r) != 0 || !r) {
-#else
-    /* XXX Not thread-safe, but needed on OSes (e.g. FreeBSD 4.X)
-        * that do not support getpwuid_r. */
-    if ((r = getpwuid(getuid())) == NULL) {
-#endif
+    if ((r = pa_getpwuid_malloc(getuid())) == NULL) {
         if (!errno)
             errno = ENOENT;
 
         return NULL;
     }
 
-    return pa_strlcpy(s, r->pw_dir, l);
+    dir = pa_strlcpy(s, r->pw_dir, l);
+
+    pa_getpwuid_free(r);
+
+    return dir;
 #else /* HAVE_PWD_H */
 
     errno = ENOENT;

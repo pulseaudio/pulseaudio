@@ -108,7 +108,9 @@ int pa_mainloop_iterate(pa_mainloop *m, int block, int *retval);
 /** Run unlimited iterations of the main loop object until the main loop's quit() routine is called. */
 int pa_mainloop_run(pa_mainloop *m, int *retval);
 
-/** Return the abstract main loop abstraction layer vtable for this main loop. */
+/** Return the abstract main loop abstraction layer vtable for this
+    main loop. No need of freeing the API as it is owned by the loop
+    and it is destroyed when this dies */
 pa_mainloop_api* pa_mainloop_get_api(pa_mainloop*m);
 
 /** Shutdown the main loop */

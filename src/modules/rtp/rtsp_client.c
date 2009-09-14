@@ -214,11 +214,13 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
         /* End of headers */
         /* We will have a header left from our looping iteration, so add it in :) */
         if (c->last_header) {
+            char *tmp = pa_strbuf_tostring_free(c->header_buffer);
             /* This is not a continuation header so let's dump it into our proplist */
-            pa_headerlist_puts(c->response_headers, c->last_header, pa_strbuf_tostring_free(c->header_buffer));
+            pa_headerlist_puts(c->response_headers, c->last_header, tmp);
+            pa_xfree(tmp);
             pa_xfree(c->last_header);
             c->last_header = NULL;
-            c->header_buffer= NULL;
+            c->header_buffer = NULL;
         }
 
         pa_log_debug("Full response received. Dispatching");
@@ -240,9 +242,11 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     }
 
     if (c->last_header) {
+        char *tmp = pa_strbuf_tostring_free(c->header_buffer);
         /* This is not a continuation header so let's dump the full
           header/value into our proplist */
-        pa_headerlist_puts(c->response_headers, c->last_header, pa_strbuf_tostring_free(c->header_buffer));
+        pa_headerlist_puts(c->response_headers, c->last_header, tmp);
+        pa_xfree(tmp);
         pa_xfree(c->last_header);
         c->last_header = NULL;
         c->header_buffer = NULL;
@@ -451,6 +455,8 @@ static int rtsp_exec(pa_rtsp_client* c, const char* cmd,
     pa_log_debug(hdrs);*/
     l = pa_iochannel_write(c->io, hdrs, strlen(hdrs));
     pa_xfree(hdrs);
+
+    /* FIXME: this is broken, not necessarily all bytes are written */
 
     return 0;
 }

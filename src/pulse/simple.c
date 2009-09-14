@@ -70,8 +70,8 @@ struct pa_simple {
 
 #define CHECK_DEAD_GOTO(p, rerror, label)                               \
     do {                                                                \
-        if (!(p)->context || pa_context_get_state((p)->context) != PA_CONTEXT_READY || \
-            !(p)->stream || pa_stream_get_state((p)->stream) != PA_STREAM_READY) { \
+        if (!(p)->context || !PA_CONTEXT_IS_GOOD(pa_context_get_state((p)->context)) || \
+            !(p)->stream || !PA_STREAM_IS_GOOD(pa_stream_get_state((p)->stream))) { \
             if (((p)->context && pa_context_get_state((p)->context) == PA_CONTEXT_FAILED) || \
                 ((p)->stream && pa_stream_get_state((p)->stream) == PA_STREAM_FAILED)) { \
                 if (rerror)                                             \
@@ -157,12 +157,8 @@ pa_simple* pa_simple_new(
     CHECK_VALIDITY_RETURN_ANY(rerror, ss && pa_sample_spec_valid(ss), PA_ERR_INVALID, NULL);
     CHECK_VALIDITY_RETURN_ANY(rerror, !map || (pa_channel_map_valid(map) && map->channels == ss->channels), PA_ERR_INVALID, NULL)
 
-    p = pa_xnew(pa_simple, 1);
-    p->context = NULL;
-    p->stream = NULL;
+    p = pa_xnew0(pa_simple, 1);
     p->direction = dir;
-    p->read_data = NULL;
-    p->read_index = p->read_length = 0;
 
     if (!(p->mainloop = pa_threaded_mainloop_new()))
         goto fail;
@@ -182,12 +178,21 @@ pa_simple* pa_simple_new(
     if (pa_threaded_mainloop_start(p->mainloop) < 0)
         goto unlock_and_fail;
 
-    /* Wait until the context is ready */
-    pa_threaded_mainloop_wait(p->mainloop);
+    for (;;) {
+        pa_context_state_t state;
 
-    if (pa_context_get_state(p->context) != PA_CONTEXT_READY) {
-        error = pa_context_errno(p->context);
-        goto unlock_and_fail;
+        state = pa_context_get_state(p->context);
+
+        if (state == PA_CONTEXT_READY)
+            break;
+
+        if (!PA_CONTEXT_IS_GOOD(state)) {
+            error = pa_context_errno(p->context);
+            goto unlock_and_fail;
+        }
+
+        /* Wait until the context is ready */
+        pa_threaded_mainloop_wait(p->mainloop);
     }
 
     if (!(p->stream = pa_stream_new(p->context, stream_name, ss, map))) {
@@ -216,13 +221,21 @@ pa_simple* pa_simple_new(
         goto unlock_and_fail;
     }
 
-    /* Wait until the stream is ready */
-    pa_threaded_mainloop_wait(p->mainloop);
+    for (;;) {
+        pa_stream_state_t state;
 
-    /* Wait until the stream is ready */
-    if (pa_stream_get_state(p->stream) != PA_STREAM_READY) {
-        error = pa_context_errno(p->context);
-        goto unlock_and_fail;
+        state = pa_stream_get_state(p->stream);
+
+        if (state == PA_STREAM_READY)
+            break;
+
+        if (!PA_STREAM_IS_GOOD(state)) {
+            error = pa_context_errno(p->context);
+            goto unlock_and_fail;
+        }
+
+        /* Wait until the stream is ready */
+        pa_threaded_mainloop_wait(p->mainloop);
     }
 
     pa_threaded_mainloop_unlock(p->mainloop);
@@ -248,8 +261,10 @@ void pa_simple_free(pa_simple *s) {
     if (s->stream)
         pa_stream_unref(s->stream);
 
-    if (s->context)
+    if (s->context) {
+        pa_context_disconnect(s->context);
         pa_context_unref(s->context);
+    }
 
     if (s->mainloop)
         pa_threaded_mainloop_free(s->mainloop);
@@ -261,7 +276,8 @@ int pa_simple_write(pa_simple *p, const void*data, size_t length, int *rerror) {
     pa_assert(p);
 
     CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE, -1);
-    CHECK_VALIDITY_RETURN_ANY(rerror, data && length, PA_ERR_INVALID, -1);
+    CHECK_VALIDITY_RETURN_ANY(rerror, data, PA_ERR_INVALID, -1);
+    CHECK_VALIDITY_RETURN_ANY(rerror, length > 0, PA_ERR_INVALID, -1);
 
     pa_threaded_mainloop_lock(p->mainloop);
 
@@ -300,7 +316,8 @@ int pa_simple_read(pa_simple *p, void*data, size_t length, int *rerror) {
     pa_assert(p);
 
     CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_RECORD, PA_ERR_BADSTATE, -1);
-    CHECK_VALIDITY_RETURN_ANY(rerror, data && length, PA_ERR_INVALID, -1);
+    CHECK_VALIDITY_RETURN_ANY(rerror, data, PA_ERR_INVALID, -1);
+    CHECK_VALIDITY_RETURN_ANY(rerror, length > 0, PA_ERR_INVALID, -1);
 
     pa_threaded_mainloop_lock(p->mainloop);
 
@@ -375,7 +392,7 @@ int pa_simple_drain(pa_simple *p, int *rerror) {
     CHECK_SUCCESS_GOTO(p, rerror, o, unlock_and_fail);
 
     p->operation_success = 0;
-    while (pa_operation_get_state(o) != PA_OPERATION_DONE) {
+    while (pa_operation_get_state(o) == PA_OPERATION_RUNNING) {
         pa_threaded_mainloop_wait(p->mainloop);
         CHECK_DEAD_GOTO(p, rerror, unlock_and_fail);
     }
@@ -411,7 +428,7 @@ int pa_simple_flush(pa_simple *p, int *rerror) {
     CHECK_SUCCESS_GOTO(p, rerror, o, unlock_and_fail);
 
     p->operation_success = 0;
-    while (pa_operation_get_state(o) != PA_OPERATION_DONE) {
+    while (pa_operation_get_state(o) == PA_OPERATION_RUNNING) {
         pa_threaded_mainloop_wait(p->mainloop);
         CHECK_DEAD_GOTO(p, rerror, unlock_and_fail);
     }

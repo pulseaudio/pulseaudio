@@ -113,7 +113,7 @@ static int parse_line(const char *filename, unsigned line, char **section, const
         return 0;
 
     if (pa_startswith(b, ".include ")) {
-        char *path, *fn;
+        char *path = NULL, *fn;
         int r;
 
         fn = strip(b+9);
@@ -274,6 +274,30 @@ int pa_config_parse_bool(const char *filename, unsigned line, const char *sectio
     }
 
     *b = !!k;
+
+    return 0;
+}
+
+int pa_config_parse_not_bool(
+        const char *filename, unsigned line,
+        const char *section,
+        const char *lvalue, const char *rvalue,
+        void *data, void *userdata) {
+
+    int k;
+    pa_bool_t *b = data;
+
+    pa_assert(filename);
+    pa_assert(lvalue);
+    pa_assert(rvalue);
+    pa_assert(data);
+
+    if ((k = pa_parse_boolean(rvalue)) < 0) {
+        pa_log("[%s:%u] Failed to parse boolean value: %s", filename, line, rvalue);
+        return -1;
+    }
+
+    *b = !k;
 
     return 0;
 }

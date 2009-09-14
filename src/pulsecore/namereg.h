@@ -45,6 +45,7 @@ pa_sink *pa_namereg_get_default_sink(pa_core *c);
 pa_source *pa_namereg_get_default_source(pa_core *c);
 
 pa_bool_t pa_namereg_is_valid_name(const char *name);
+pa_bool_t pa_namereg_is_valid_name_or_wildcard(const char *name, pa_namereg_type_t type);
 char* pa_namereg_make_valid_name(const char *name);
 
 #endif

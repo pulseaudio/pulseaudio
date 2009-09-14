@@ -668,10 +668,23 @@ static pa_strlist *prepend_per_user(pa_strlist *l) {
 static int context_autospawn(pa_context *c) {
     pid_t pid;
     int status, r;
-
-    pa_log_debug("Trying to autospawn...");
+    struct sigaction sa;
 
     pa_context_ref(c);
+
+    if (sigaction(SIGCHLD, NULL, &sa) < 0) {
+        pa_log_debug("sigaction() failed: %s", pa_cstrerror(errno));
+        pa_context_fail(c, PA_ERR_INTERNAL);
+        goto fail;
+    }
+
+    if ((sa.sa_flags & SA_NOCLDWAIT) || sa.sa_handler == SIG_IGN) {
+        pa_log_debug("Process disabled waitpid(), cannot autospawn.");
+        pa_context_fail(c, PA_ERR_CONNECTIONREFUSED);
+        goto fail;
+    }
+
+    pa_log_debug("Trying to autospawn...");
 
     if (c->spawn_api.prefork)
         c->spawn_api.prefork();
@@ -688,23 +701,23 @@ static int context_autospawn(pa_context *c) {
         /* Child */
 
         const char *state = NULL;
-#define MAX_ARGS 64
-        const char * argv[MAX_ARGS+1];
-        int n;
+        const char * argv[32];
+        unsigned n = 0;
 
         if (c->spawn_api.atfork)
             c->spawn_api.atfork();
 
+        /* We leave most of the cleaning up of the process environment
+         * to the executable. We only clean up the file descriptors to
+         * make sure the executable can actually be loaded
+         * correctly. */
         pa_close_all(-1);
 
         /* Setup argv */
-
-        n = 0;
-
         argv[n++] = c->conf->daemon_binary;
         argv[n++] = "--start";
 
-        while (n < MAX_ARGS) {
+        while (n < PA_ELEMENTSOF(argv)-1) {
             char *a;
 
             if (!(a = pa_split_spaces(c->conf->extra_arguments, &state)))
@@ -714,10 +727,10 @@ static int context_autospawn(pa_context *c) {
         }
 
         argv[n++] = NULL;
+        pa_assert(n <= PA_ELEMENTSOF(argv));
 
         execv(argv[0], (char * const *) argv);
         _exit(1);
-#undef MAX_ARGS
     }
 
     /* Parent */
@@ -730,9 +743,16 @@ static int context_autospawn(pa_context *c) {
     } while (r < 0 && errno == EINTR);
 
     if (r < 0) {
-        pa_log(_("waitpid(): %s"), pa_cstrerror(errno));
-        pa_context_fail(c, PA_ERR_INTERNAL);
-        goto fail;
+
+        if (errno != ESRCH) {
+            pa_log(_("waitpid(): %s"), pa_cstrerror(errno));
+            pa_context_fail(c, PA_ERR_INTERNAL);
+            goto fail;
+        }
+
+        /* hmm, something already reaped our child, so we assume
+         * startup worked, even if we cannot know */
+
     } else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
         pa_context_fail(c, PA_ERR_CONNECTIONREFUSED);
         goto fail;

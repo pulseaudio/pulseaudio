@@ -107,4 +107,7 @@
 #define PA_LLIST_FOREACH(i,head)                                        \
     for (i = (head); i; i = i->next)
 
+#define PA_LLIST_FOREACH_SAFE(i,n,head)                                 \
+    for (i = (head); i && ((n = i->next), 1); i = n)
+
 #endif

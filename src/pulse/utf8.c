@@ -120,10 +120,8 @@ static char* utf8_validate(const char *str, char *output) {
                 size = 4;
                 min = (1 << 16);
                 val = (uint32_t) (*p & 0x07);
-            } else {
-                size = 1;
+            } else
                 goto error;
-            }
 
             p++;
             if (!is_continuation_char(*p))
@@ -150,11 +148,8 @@ ONE_REMAINING:
 
             if (o) {
                 memcpy(o, last, (size_t) size);
-                o += size - 1;
+                o += size;
             }
-
-            if (o)
-                o++;
 
             continue;
 

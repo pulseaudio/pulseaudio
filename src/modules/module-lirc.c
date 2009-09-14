@@ -63,6 +63,8 @@ struct userdata {
     float mute_toggle_save;
 };
 
+#define DELTA (PA_VOLUME_NORM/20)
+
 static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event_flags_t events, void*userdata) {
     struct userdata *u = userdata;
     char *name = NULL, *code = NULL;
@@ -119,32 +121,17 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
                 if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK)))
                     pa_log("Failed to get sink '%s'", u->sink_name);
                 else {
-                    int i;
-                    pa_cvolume cv = *pa_sink_get_volume(s, FALSE, FALSE);
-
-#define DELTA (PA_VOLUME_NORM/20)
+                    pa_cvolume cv = *pa_sink_get_volume(s, FALSE);
 
                     switch (volchange) {
                         case UP:
-                            for (i = 0; i < cv.channels; i++) {
-                                if (cv.values[i] < PA_VOLUME_MAX - DELTA)
-                                    cv.values[i] += DELTA;
-                                else
-                                    cv.values[i] = PA_VOLUME_MAX;
-                            }
-
-                            pa_sink_set_volume(s, &cv, TRUE, TRUE, TRUE, TRUE);
+                            pa_cvolume_inc(&cv, DELTA);
+                            pa_sink_set_volume(s, &cv, TRUE, TRUE);
                             break;
 
                         case DOWN:
-                            for (i = 0; i < cv.channels; i++) {
-                                if (cv.values[i] > DELTA)
-                                    cv.values[i] -= DELTA;
-                                else
-                                    cv.values[i] = PA_VOLUME_MUTED;
-                            }
-
-                            pa_sink_set_volume(s, &cv, TRUE, TRUE, TRUE, TRUE);
+                            pa_cvolume_dec(&cv, DELTA);
+                            pa_sink_set_volume(s, &cv, TRUE, TRUE);
                             break;
 
                         case MUTE:
@@ -156,7 +143,6 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
                             break;
 
                         case MUTE_TOGGLE:
-
                             pa_sink_set_mute(s, !pa_sink_get_mute(s, FALSE), TRUE);
                             break;
 

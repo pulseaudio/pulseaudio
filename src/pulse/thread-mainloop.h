@@ -137,15 +137,19 @@ PA_C_DECL_BEGIN
  * The main function, my_drain_stream_func(), will wait for the callback to
  * be called using pa_threaded_mainloop_wait().
  *
- * If your application is multi-threaded, then this waiting must be done
- * inside a while loop. The reason for this is that multiple threads might be
- * using pa_threaded_mainloop_wait() at the same time. Each thread must
- * therefore verify that it was its callback that was invoked.
+ * If your application is multi-threaded, then this waiting must be
+ * done inside a while loop. The reason for this is that multiple
+ * threads might be using pa_threaded_mainloop_wait() at the same
+ * time. Each thread must therefore verify that it was its callback
+ * that was invoked. Also the underlying OS synchronization primitives
+ * are usually not free of spurious wake-ups, so a
+ * pa_threaded_mainloop_wait() must be called within a loop even if
+ * you have only one thread waiting.
  *
  * The callback, my_drain_callback(), indicates to the main function that it
  * has been called using pa_threaded_mainloop_signal().
  *
- * As you can see, both pa_threaded_mainloop_wait() may only be called with
+ * As you can see, pa_threaded_mainloop_wait() may only be called with
  * the lock held. The same thing is true for pa_threaded_mainloop_signal(),
  * but as the lock is held before the callback is invoked, you do not have to
  * deal with that.
@@ -274,7 +278,9 @@ void pa_threaded_mainloop_unlock(pa_threaded_mainloop *m);
  * inside the event loop thread. Prior to this call the event loop
  * object needs to be locked using pa_threaded_mainloop_lock(). While
  * waiting the lock will be released, immediately before returning it
- * will be acquired again. */
+ * will be acquired again. This function may spuriously wake up even
+ * without _signal() being called. You need to make sure to handle
+ * that! */
 void pa_threaded_mainloop_wait(pa_threaded_mainloop *m);
 
 /** Signal all threads waiting for a signalling event in
@@ -293,7 +299,9 @@ void pa_threaded_mainloop_accept(pa_threaded_mainloop *m);
 /** Return the return value as specified with the main loop's quit() routine. */
 int pa_threaded_mainloop_get_retval(pa_threaded_mainloop *m);
 
-/** Return the abstract main loop abstraction layer vtable for this main loop. */
+/** Return the abstract main loop abstraction layer vtable for this
+    main loop. No need of freeing the API as it is owned by the loop
+    and it is destroyed when this dies */
 pa_mainloop_api* pa_threaded_mainloop_get_api(pa_threaded_mainloop*m);
 
 /** Returns non-zero when called from withing the event loop thread. \since 0.9.7 */

@@ -47,7 +47,6 @@ typedef struct pa_native_options {
     char *auth_group;
     pa_ip_acl *auth_ip_acl;
     pa_auth_cookie *auth_cookie;
-
 } pa_native_options;
 
 typedef enum pa_native_hook {
@@ -80,6 +79,7 @@ int pa_native_protocol_install_ext(pa_native_protocol *p, pa_module *m, pa_nativ
 void pa_native_protocol_remove_ext(pa_native_protocol *p, pa_module *m);
 
 pa_pstream* pa_native_connection_get_pstream(pa_native_connection *c);
+pa_client* pa_native_connection_get_client(pa_native_connection *c);
 
 pa_native_options* pa_native_options_new(void);
 pa_native_options* pa_native_options_ref(pa_native_options *o);

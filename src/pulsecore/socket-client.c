@@ -202,8 +202,6 @@ static void connect_io_cb(pa_mainloop_api*m, pa_io_event *e, int fd, pa_io_event
 }
 
 static int do_connect(pa_socket_client *c, const struct sockaddr *sa, socklen_t len) {
-    int r;
-
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
     pa_assert(sa);
@@ -211,7 +209,7 @@ static int do_connect(pa_socket_client *c, const struct sockaddr *sa, socklen_t 
 
     pa_make_fd_nonblock(c->fd);
 
-    if ((r = connect(c->fd, sa, len)) < 0) {
+    if (connect(c->fd, sa, len) < 0) {
 #ifdef OS_IS_WIN32
         if (WSAGetLastError() != EWOULDBLOCK) {
             pa_log_debug("connect(): %d", WSAGetLastError());

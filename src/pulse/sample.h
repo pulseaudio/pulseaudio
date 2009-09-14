@@ -302,6 +302,13 @@ pa_sample_format_t pa_parse_sample_format(const char *format) PA_GCC_PURE;
 /** Pretty print a sample type specification to a string */
 char* pa_sample_spec_snprint(char *s, size_t l, const pa_sample_spec *spec);
 
+/** Maximum required string length for pa_bytes_snprint(). Please note
+ * that this value can change with any release without warning and
+ * without being considered API or ABI breakage. You should not use
+ * this definition anywhere where it might become part of an
+ * ABI. \since 0.9.16 */
+#define PA_BYTES_SNPRINT_MAX 11
+
 /** Pretty print a byte size value. (i.e. "2.5 MiB") */
 char* pa_bytes_snprint(char *s, size_t l, unsigned v);
 

@@ -120,9 +120,8 @@ typedef struct connection {
     pa_time_event *auth_timeout_event;
 } connection;
 
-PA_DECLARE_CLASS(connection);
+PA_DEFINE_PRIVATE_CLASS(connection, pa_msgobject);
 #define CONNECTION(o) (connection_cast(o))
-static PA_DEFINE_CHECK_TYPE(connection, pa_msgobject);
 
 struct pa_esound_protocol {
     PA_REFCNT_DECLARE;
@@ -430,7 +429,7 @@ static int esd_proto_stream_play(connection *c, esd_proto_t request, const void 
     sdata.sink = sink;
     pa_sink_input_new_data_set_sample_spec(&sdata, &ss);
 
-    pa_sink_input_new(&c->sink_input, c->protocol->core, &sdata, 0);
+    pa_sink_input_new(&c->sink_input, c->protocol->core, &sdata);
     pa_sink_input_new_data_done(&sdata);
 
     CHECK_VALIDITY(c->sink_input, "Failed to create sink input.");
@@ -526,7 +525,7 @@ static int esd_proto_stream_record(connection *c, esd_proto_t request, const voi
     sdata.source = source;
     pa_source_output_new_data_set_sample_spec(&sdata, &ss);
 
-    pa_source_output_new(&c->source_output, c->protocol->core, &sdata, 0);
+    pa_source_output_new(&c->source_output, c->protocol->core, &sdata);
     pa_source_output_new_data_done(&sdata);
 
     CHECK_VALIDITY(c->source_output, "Failed to create source output.");
@@ -772,7 +771,6 @@ static int esd_proto_stream_pan(connection *c, esd_proto_t request, const void *
 
     memcpy(&rvolume, data, sizeof(uint32_t));
     rvolume = PA_MAYBE_UINT32_SWAP(c->swap_byte_order, rvolume);
-    data = (const char*)data + sizeof(uint32_t);
 
     if ((conn = pa_idxset_get_by_index(c->protocol->connections, idx)) && conn->sink_input) {
         pa_cvolume volume;
@@ -810,7 +808,6 @@ static int esd_proto_sample_pan(connection *c, esd_proto_t request, const void *
 
     memcpy(&rvolume, data, sizeof(uint32_t));
     rvolume = PA_MAYBE_UINT32_SWAP(c->swap_byte_order, rvolume);
-    data = (const char*)data + sizeof(uint32_t);
 
     volume.values[0] = (lvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
     volume.values[1] = (rvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
@@ -1124,7 +1121,7 @@ static int do_read(connection *c) {
         ssize_t r;
         size_t l;
         void *p;
-        size_t space;
+        size_t space = 0;
 
         pa_assert(c->input_memblockq);
 

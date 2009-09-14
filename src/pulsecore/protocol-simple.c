@@ -69,9 +69,8 @@ typedef struct connection {
     } playback;
 } connection;
 
-PA_DECLARE_CLASS(connection);
+PA_DEFINE_PRIVATE_CLASS(connection, pa_msgobject);
 #define CONNECTION(o) (connection_cast(o))
-static PA_DEFINE_CHECK_TYPE(connection, pa_msgobject);
 
 struct pa_simple_protocol {
     PA_REFCNT_DECLARE;
@@ -155,7 +154,7 @@ static int do_read(connection *c) {
     ssize_t r;
     size_t l;
     void *p;
-    size_t space;
+    size_t space = 0;
 
     connection_assert_ref(c);
 
@@ -542,7 +541,7 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
         pa_proplist_update(data.proplist, PA_UPDATE_MERGE, c->client->proplist);
         pa_sink_input_new_data_set_sample_spec(&data, &o->sample_spec);
 
-        pa_sink_input_new(&c->sink_input, p->core, &data, 0);
+        pa_sink_input_new(&c->sink_input, p->core, &data);
         pa_sink_input_new_data_done(&data);
 
         if (!c->sink_input) {
@@ -594,7 +593,7 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
         pa_proplist_update(data.proplist, PA_UPDATE_MERGE, c->client->proplist);
         pa_source_output_new_data_set_sample_spec(&data, &o->sample_spec);
 
-        pa_source_output_new(&c->source_output, p->core, &data, 0);
+        pa_source_output_new(&c->source_output, p->core, &data);
         pa_source_output_new_data_done(&data);
 
         if (!c->source_output) {
@@ -628,8 +627,7 @@ void pa_simple_protocol_connect(pa_simple_protocol *p, pa_iochannel *io, pa_simp
     return;
 
 fail:
-    if (c)
-        connection_unlink(c);
+    connection_unlink(c);
 }
 
 void pa_simple_protocol_disconnect(pa_simple_protocol *p, pa_module *m) {

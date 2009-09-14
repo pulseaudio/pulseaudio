@@ -96,6 +96,7 @@ struct pa_memimport_segment {
     unsigned n_blocks;
 };
 
+/* A collection of multiple segments */
 struct pa_memimport {
     pa_mutex *mutex;
 
@@ -257,7 +258,8 @@ static struct mempool_slot* mempool_allocate_slot(pa_mempool *p) {
             slot = (struct mempool_slot*) ((uint8_t*) p->memory.ptr + (p->block_size * (size_t) idx));
 
         if (!slot) {
-            pa_log_debug("Pool full");
+            if (pa_log_ratelimit())
+                pa_log_debug("Pool full");
             pa_atomic_inc(&p->stat.n_pool_full);
             return NULL;
         }
@@ -514,9 +516,9 @@ static void memblock_free(pa_memblock *b) {
 
             pa_mutex_lock(import->mutex);
 
-            pa_hashmap_remove(
-                    import->blocks,
-                    PA_UINT32_TO_PTR(b->per_type.imported.id));
+            pa_assert_se(pa_hashmap_remove(
+                                 import->blocks,
+                                 PA_UINT32_TO_PTR(b->per_type.imported.id)));
 
             pa_assert(segment->n_blocks >= 1);
             if (-- segment->n_blocks <= 0)
@@ -677,9 +679,9 @@ static void memblock_replace_import(pa_memblock *b) {
 
     pa_mutex_lock(import->mutex);
 
-    pa_hashmap_remove(
-            import->blocks,
-            PA_UINT32_TO_PTR(b->per_type.imported.id));
+    pa_assert_se(pa_hashmap_remove(
+                         import->blocks,
+                         PA_UINT32_TO_PTR(b->per_type.imported.id)));
 
     memblock_make_local(b);
 
@@ -692,7 +694,7 @@ static void memblock_replace_import(pa_memblock *b) {
 
 pa_mempool* pa_mempool_new(pa_bool_t shared, size_t size) {
     pa_mempool *p;
-    char t1[64], t2[64];
+    char t1[PA_BYTES_SNPRINT_MAX], t2[PA_BYTES_SNPRINT_MAX];
 
     p = pa_xnew(pa_mempool, 1);
 
@@ -960,6 +962,11 @@ pa_memblock* pa_memimport_get(pa_memimport *i, uint32_t block_id, uint32_t shm_i
 
     pa_mutex_lock(i->mutex);
 
+    if ((b = pa_hashmap_get(i->blocks, PA_UINT32_TO_PTR(block_id)))) {
+        pa_memblock_ref(b);
+        goto finish;
+    }
+
     if (pa_hashmap_size(i->blocks) >= PA_MEMIMPORT_SLOTS_MAX)
         goto finish;
 
@@ -989,11 +996,10 @@ pa_memblock* pa_memimport_get(pa_memimport *i, uint32_t block_id, uint32_t shm_i
 
     seg->n_blocks++;
 
+    stat_add(b);
+
 finish:
     pa_mutex_unlock(i->mutex);
-
-    if (b)
-    stat_add(b);
 
     return b;
 }

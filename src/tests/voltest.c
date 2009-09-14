@@ -1,13 +1,40 @@
+/***
+  This file is part of PulseAudio.
+
+  PulseAudio is free software; you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as published
+  by the Free Software Foundation; either version 2.1 of the License,
+  or (at your option) any later version.
+
+  PulseAudio is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public License
+  along with PulseAudio; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  USA.
+***/
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 
 #include <pulse/volume.h>
 #include <pulse/gccmacro.h>
+
+#include <pulsecore/macro.h>
 
 int main(int argc, char *argv[]) {
     pa_volume_t v;
     pa_cvolume cv;
     float b;
     pa_channel_map map;
+    pa_volume_t md = 0;
+    unsigned mdn = 0;
 
     printf("Attenuation of sample 1 against 32767: %g dB\n", 20.0*log10(1.0/32767.0));
     printf("Smallest possible attenutation > 0 applied to 32767: %li\n", lrint(32767.0*pa_sw_volume_to_linear(1)));
@@ -59,6 +86,49 @@ int main(int argc, char *argv[]) {
                 k = pa_cvolume_get_balance(&r, &map);
                 printf("After: volume: [%s]; balance: %2.1f (intended: %2.1f) %s\n", pa_cvolume_snprint(s, sizeof(s), &r), k, b, k < b-.05 || k > b+.5 ? "MISMATCH" : "");
             }
+
+    for (v = PA_VOLUME_MUTED; v <= PA_VOLUME_NORM*2; v += 51) {
+
+        double l = pa_sw_volume_to_linear(v);
+        pa_volume_t k = pa_sw_volume_from_linear(l);
+        double db = pa_sw_volume_to_dB(v);
+        pa_volume_t r = pa_sw_volume_from_dB(db);
+        pa_volume_t w;
+
+        pa_assert(k == v);
+        pa_assert(r == v);
+
+        for (w = PA_VOLUME_MUTED; w < PA_VOLUME_NORM*2; w += 37) {
+
+            double t = pa_sw_volume_to_linear(w);
+            double db2 = pa_sw_volume_to_dB(w);
+            pa_volume_t p, p1, p2;
+            double q, qq;
+
+            p = pa_sw_volume_multiply(v, w);
+            qq = db + db2;
+            p2 = pa_sw_volume_from_dB(qq);
+            q = l*t;
+            p1 = pa_sw_volume_from_linear(q);
+
+            if (p2 > p && p2 - p > md)
+                md = p2 - p;
+            if (p2 < p && p - p2 > md)
+                md = p - p2;
+            if (p1 > p && p1 - p > md)
+                md = p1 - p;
+            if (p1 < p && p - p1 > md)
+                md = p - p1;
+
+            if (p1 != p || p2 != p)
+                mdn++;
+        }
+    }
+
+    printf("max deviation: %lu n=%lu\n", (unsigned long) md, (unsigned long) mdn);
+
+    pa_assert(md <= 1);
+    pa_assert(mdn <= 251);
 
     return 0;
 }

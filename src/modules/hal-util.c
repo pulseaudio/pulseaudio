@@ -65,7 +65,7 @@ int pa_hal_get_info(pa_core *core, pa_proplist *p, int card) {
         goto finish;
     }
 
-    if (!(udis = libhal_find_device_by_capability(hal, "sound", &n, &error)) < 0) {
+    if (!(udis = libhal_find_device_by_capability(hal, "sound", &n, &error))) {
         pa_log_error("Couldn't find devices: %s: %s", error.name, error.message);
         goto finish;
     }

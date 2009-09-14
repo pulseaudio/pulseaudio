@@ -24,6 +24,7 @@
 #endif
 
 #include <pulse/xmalloc.h>
+#include <pulse/i18n.h>
 
 #include <pulsecore/core.h>
 #include <pulsecore/sink-input.h>
@@ -35,7 +36,7 @@
 #include "module-always-sink-symdef.h"
 
 PA_MODULE_AUTHOR("Colin Guthrie");
-PA_MODULE_DESCRIPTION("Always keeps at least one sink loaded even if it's a null one");
+PA_MODULE_DESCRIPTION(_("Always keeps at least one sink loaded even if it's a null one"));
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_USAGE(
@@ -78,7 +79,8 @@ static void load_null_sink_if_needed(pa_core *c, pa_sink *sink, struct userdata*
 
     u->ignore = TRUE;
 
-    t = pa_sprintf_malloc("sink_name=%s", u->sink_name);
+    t = pa_sprintf_malloc("sink_name=%s sink_properties='device.description=\"%s\"'", u->sink_name,
+                          _("Dummy Output"));
     m = pa_module_load(c, "module-null-sink", t);
     u->null_module = m ? m->index : PA_INVALID_INDEX;
     pa_xfree(t);

@@ -45,4 +45,12 @@ void pa_thread_mq_install(pa_thread_mq *q);
 /* Return the pa_thread_mq object that is set for the current thread */
 pa_thread_mq *pa_thread_mq_get(void);
 
+/* Verify that we are in control context (aka 'main context'). */
+#define pa_assert_ctl_context(s) \
+    pa_assert(!pa_thread_mq_get())
+
+/* Verify that we are in IO context (aka 'thread context'). */
+#define pa_assert_io_context(s) \
+    pa_assert(pa_thread_mq_get())
+
 #endif

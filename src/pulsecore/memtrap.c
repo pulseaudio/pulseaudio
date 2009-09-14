@@ -65,7 +65,7 @@ pa_bool_t pa_memtrap_is_good(pa_memtrap *m) {
 }
 
 static void sigsafe_error(const char *s) {
-    write(STDERR_FILENO, s, strlen(s));
+    (void) write(STDERR_FILENO, s, strlen(s));
 }
 
 static void signal_handler(int sig, siginfo_t* si, void *data) {
@@ -200,13 +200,13 @@ pa_memtrap *pa_memtrap_update(pa_memtrap *m, const void *start, size_t size) {
         goto unlock;
 
     memtrap_unlink(m, j);
-    j = pa_aupdate_write_swap(aupdate);
+    pa_aupdate_write_swap(aupdate);
 
     m->start = (void*) start;
     m->size = size;
     pa_atomic_store(&m->bad, 0);
 
-    j = pa_aupdate_write_swap(aupdate);
+    pa_assert_se(pa_aupdate_write_swap(aupdate) == j);
     memtrap_link(m, j);
 
 unlock:

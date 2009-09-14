@@ -102,15 +102,16 @@ struct userdata {
     pa_idxset *subscribed;
 };
 
-#define ENTRY_VERSION 2
+#define ENTRY_VERSION 3
 
 struct entry {
     uint8_t version;
-    pa_bool_t muted_valid:1, volume_valid:1, device_valid:1;
+    pa_bool_t muted_valid:1, volume_valid:1, device_valid:1, card_valid:1;
     pa_bool_t muted:1;
     pa_channel_map channel_map;
     pa_cvolume volume;
     char device[PA_NAME_MAX];
+    char card[PA_NAME_MAX];
 } PA_GCC_PACKED;
 
 enum {
@@ -196,8 +197,18 @@ static struct entry* read_entry(struct userdata *u, const char *name) {
         goto fail;
     }
 
+    if (!memchr(e->card, 0, sizeof(e->card))) {
+        pa_log_warn("Database contains entry for stream %s with missing NUL byte in card name", name);
+        goto fail;
+    }
+
     if (e->device_valid && !pa_namereg_is_valid_name(e->device)) {
         pa_log_warn("Invalid device name stored in database for stream %s", name);
+        goto fail;
+    }
+
+    if (e->card_valid && !pa_namereg_is_valid_name(e->card)) {
+        pa_log_warn("Invalid card name stored in database for stream %s", name);
         goto fail;
     }
 
@@ -250,6 +261,10 @@ static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
 
     if (a->device_valid != b->device_valid ||
         (a->device_valid && strncmp(a->device, b->device, sizeof(a->device))))
+        return FALSE;
+
+    if (a->card_valid != b->card_valid ||
+        (a->card_valid && strncmp(a->card, b->card, sizeof(a->card))))
         return FALSE;
 
     if (a->muted_valid != b->muted_valid ||
@@ -308,6 +323,11 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (sink_input->save_sink) {
             pa_strlcpy(entry.device, sink_input->sink->name, sizeof(entry.device));
             entry.device_valid = TRUE;
+
+            if (sink_input->sink->card) {
+                pa_strlcpy(entry.card, sink_input->sink->card->name, sizeof(entry.card));
+                entry.card_valid = TRUE;
+            }
         }
 
     } else {
@@ -327,6 +347,11 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (source_output->save_source) {
             pa_strlcpy(entry.device, source_output->source->name, sizeof(entry.device));
             entry.device_valid = source_output->save_source;
+
+            if (source_output->source->card) {
+                pa_strlcpy(entry.card, source_output->source->card->name, sizeof(entry.card));
+                entry.card_valid = TRUE;
+            }
         }
     }
 
@@ -368,19 +393,28 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
     if (!(name = get_name(new_data->proplist, "sink-input")))
         return PA_HOOK_OK;
 
-    if ((e = read_entry(u, name))) {
+    if (new_data->sink)
+        pa_log_debug("Not restoring device for stream %s, because already set.", name);
+    else if ((e = read_entry(u, name))) {
+        pa_sink *s = NULL;
 
-        if (e->device_valid) {
-            pa_sink *s;
+        if (e->device_valid)
+            s = pa_namereg_get(c, e->device, PA_NAMEREG_SINK);
 
-            if ((s = pa_namereg_get(c, e->device, PA_NAMEREG_SINK))) {
-                if (!new_data->sink) {
-                    pa_log_info("Restoring device for stream %s.", name);
-                    new_data->sink = s;
-                    new_data->save_sink = TRUE;
-                } else
-                    pa_log_debug("Not restoring device for stream %s, because already set.", name);
-            }
+        if (!s && e->card_valid) {
+            pa_card *card;
+
+            if ((card = pa_namereg_get(c, e->card, PA_NAMEREG_CARD)))
+                s = pa_idxset_first(card->sinks, NULL);
+        }
+
+        /* It might happen that a stream and a sink are set up at the
+           same time, in which case we want to make sure we don't
+           interfere with that */
+        if (s && PA_SINK_IS_LINKED(pa_sink_get_state(s))) {
+            pa_log_info("Restoring device for stream %s.", name);
+            new_data->sink = s;
+            new_data->save_sink = TRUE;
         }
 
         pa_xfree(e);
@@ -455,18 +489,28 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
     if (!(name = get_name(new_data->proplist, "source-output")))
         return PA_HOOK_OK;
 
-    if ((e = read_entry(u, name))) {
-        pa_source *s;
+    if (new_data->source)
+        pa_log_debug("Not restoring device for stream %s, because already set", name);
+    else if ((e = read_entry(u, name))) {
+        pa_source *s = NULL;
 
-        if (e->device_valid) {
-            if ((s = pa_namereg_get(c, e->device, PA_NAMEREG_SOURCE))) {
-                if (!new_data->source) {
-                    pa_log_info("Restoring device for stream %s.", name);
-                    new_data->source = s;
-                    new_data->save_source = TRUE;
-                } else
-                    pa_log_debug("Not restoring device for stream %s, because already set", name);
-            }
+        if (e->device_valid)
+            s = pa_namereg_get(c, e->device, PA_NAMEREG_SOURCE);
+
+        if (!s && e->card_valid) {
+            pa_card *card;
+
+            if ((card = pa_namereg_get(c, e->card, PA_NAMEREG_CARD)))
+                s = pa_idxset_first(card->sources, NULL);
+        }
+
+        /* It might happen that a stream and a sink are set up at the
+           same time, in which case we want to make sure we don't
+           interfere with that */
+        if (s && PA_SOURCE_IS_LINKED(pa_source_get_state(s))) {
+            pa_log_info("Restoring device for stream %s.", name);
+            new_data->source = s;
+            new_data->save_source = TRUE;
         }
 
         pa_xfree(e);
@@ -494,6 +538,17 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, struct
             continue;
 
         if (si->save_sink)
+            continue;
+
+        /* Skip this if it is already in the process of being moved
+         * anyway */
+        if (!si->sink)
+            continue;
+
+        /* It might happen that a stream and a sink are set up at the
+           same time, in which case we want to make sure we don't
+           interfere with that */
+        if (!PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(si)))
             continue;
 
         if (!(name = get_name(si->proplist, "sink-input")))
@@ -534,6 +589,16 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
         if (so->direct_on_input)
             continue;
 
+        /* Skip this if it is already in the process of being moved anyway */
+        if (!so->source)
+            continue;
+
+        /* It might happen that a stream and a sink are set up at the
+           same time, in which case we want to make sure we don't
+           interfere with that */
+        if (!PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(so)))
+            continue;
+
         if (!(name = get_name(so->proplist, "source-input")))
             continue;
 
@@ -567,6 +632,9 @@ static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, str
         char *name;
         struct entry *e;
 
+        if (!si->sink)
+            continue;
+
         if (!(name = get_name(si->proplist, "sink-input")))
             continue;
 
@@ -575,7 +643,9 @@ static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, str
             if (e->device_valid) {
                 pa_sink *d;
 
-                if ((d = pa_namereg_get(c, e->device, PA_NAMEREG_SINK)) && d != sink)
+                if ((d = pa_namereg_get(c, e->device, PA_NAMEREG_SINK)) &&
+                    d != sink &&
+                    PA_SINK_IS_LINKED(pa_sink_get_state(d)))
                     pa_sink_input_move_to(si, d, TRUE);
             }
 
@@ -605,6 +675,12 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
         char *name;
         struct entry *e;
 
+        if (so->direct_on_input)
+            continue;
+
+        if (!so->source)
+            continue;
+
         if (!(name = get_name(so->proplist, "source-output")))
             continue;
 
@@ -613,7 +689,9 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
             if (e->device_valid) {
                 pa_source *d;
 
-                if ((d = pa_namereg_get(c, e->device, PA_NAMEREG_SOURCE)) && d != source)
+                if ((d = pa_namereg_get(c, e->device, PA_NAMEREG_SOURCE)) &&
+                    d != source &&
+                    PA_SOURCE_IS_LINKED(pa_source_get_state(d)))
                     pa_source_output_move_to(so, d, TRUE);
             }
 
@@ -855,6 +933,10 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
 
                 data.data = &entry;
                 data.size = sizeof(entry);
+
+                pa_log_debug("Client %s changes entry %s.",
+                             pa_strnull(pa_proplist_gets(pa_native_connection_get_client(c)->proplist, PA_PROP_APPLICATION_PROCESS_BINARY)),
+                             name);
 
                 if (pa_database_set(u->database, &key, &data, mode == PA_UPDATE_REPLACE) == 0)
                     if (apply_immediately)

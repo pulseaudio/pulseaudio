@@ -92,9 +92,9 @@ USA.
     </option>
 
     <option>
-      <p><opt>disable-shm=</opt> Disable data transfer via POSIX
+      <p><opt>enable-shm=</opt> Enable data transfer via POSIX
       shared memory. Takes a boolean argument, defaults to
-      <opt>no</opt>.</p>
+      <opt>yes</opt>.</p>
     </option>
 
     <option>

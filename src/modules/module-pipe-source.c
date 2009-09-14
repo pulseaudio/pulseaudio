@@ -142,7 +142,7 @@ static void thread_func(void *userdata) {
             void *p;
 
             if (!u->memchunk.memblock) {
-                u->memchunk.memblock = pa_memblock_new(u->core->mempool, PIPE_BUF);
+                u->memchunk.memblock = pa_memblock_new(u->core->mempool, pa_pipe_buf(u->fd));
                 u->memchunk.index = u->memchunk.length = 0;
             }
 

@@ -27,9 +27,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <liboil/liboilfuncs.h>
-#include <liboil/liboil.h>
-
 #include <pulsecore/g711.h>
 #include <pulsecore/macro.h>
 
@@ -41,32 +38,31 @@
 
 /* u8 */
 static void u8_to_float32ne(unsigned n, const uint8_t *a, float *b) {
-    static const double add = -1, factor = 1.0/128.0;
-
     pa_assert(a);
     pa_assert(b);
 
-    oil_scaleconv_f32_u8(b, a, (int) n, &add, &factor);
+    for (; n > 0; n--, a++, b++)
+        *b = (*a * 1.0/128.0) - 1.0;
 }
 
 static void u8_from_float32ne(unsigned n, const float *a, uint8_t *b) {
-    static const double add = 128, factor = 127.0;
-
     pa_assert(a);
     pa_assert(b);
 
-    oil_scaleconv_u8_f32(b, a, (int) n, &add, &factor);
+    for (; n > 0; n--, a++, b++) {
+        float v;
+        v = (*a * 127.0) + 128.0;
+        v = PA_CLAMP_UNLIKELY (v, 0.0, 255.0);
+        *b = rint (v);
+    }
 }
 
 static void u8_to_s16ne(unsigned n, const uint8_t *a, int16_t *b) {
-    static const int16_t add = -0x80, factor = 0x100;
-
     pa_assert(a);
     pa_assert(b);
 
-    oil_conv_s16_u8(b, 2, a, 1, (int) n);
-    oil_scalaradd_s16(b, 2, b, 2, &add, (int) n);
-    oil_scalarmult_s16(b, 2, b, 2, &factor, (int) n);
+    for (; n > 0; n--, a++, b++)
+        *b = (((int16_t)*a) - 128) << 8;
 }
 
 static void u8_from_s16ne(unsigned n, const int16_t *a, uint8_t *b) {
@@ -84,7 +80,7 @@ static void float32ne_to_float32ne(unsigned n, const float *a, float *b) {
     pa_assert(a);
     pa_assert(b);
 
-    oil_memcpy(b, a, (int) (sizeof(float) * n));
+    memcpy(b, a, (int) (sizeof(float) * n));
 }
 
 static void float32re_to_float32ne(unsigned n, const float *a, float *b) {
@@ -101,7 +97,7 @@ static void s16ne_to_s16ne(unsigned n, const int16_t *a, int16_t *b) {
     pa_assert(a);
     pa_assert(b);
 
-    oil_memcpy(b, a, (int) (sizeof(int16_t) * n));
+    memcpy(b, a, (int) (sizeof(int16_t) * n));
 }
 
 static void s16re_to_s16ne(unsigned n, const int16_t *a, int16_t *b) {
@@ -188,98 +184,130 @@ static void alaw_from_s16ne(unsigned n, const int16_t *a, uint8_t *b) {
         *b = st_13linear2alaw(*a >> 3);
 }
 
-pa_convert_func_t pa_get_convert_to_float32ne_function(pa_sample_format_t f) {
+static pa_convert_func_t to_float32ne_table[] = {
+    [PA_SAMPLE_U8]        = (pa_convert_func_t) u8_to_float32ne,
+    [PA_SAMPLE_ALAW]      = (pa_convert_func_t) alaw_to_float32ne,
+    [PA_SAMPLE_ULAW]      = (pa_convert_func_t) ulaw_to_float32ne,
+    [PA_SAMPLE_S16LE]     = (pa_convert_func_t) pa_sconv_s16le_to_float32ne,
+    [PA_SAMPLE_S16BE]     = (pa_convert_func_t) pa_sconv_s16be_to_float32ne,
+    [PA_SAMPLE_S32LE]     = (pa_convert_func_t) pa_sconv_s32le_to_float32ne,
+    [PA_SAMPLE_S32BE]     = (pa_convert_func_t) pa_sconv_s32be_to_float32ne,
+    [PA_SAMPLE_S24LE]     = (pa_convert_func_t) pa_sconv_s24le_to_float32ne,
+    [PA_SAMPLE_S24BE]     = (pa_convert_func_t) pa_sconv_s24be_to_float32ne,
+    [PA_SAMPLE_S24_32LE]  = (pa_convert_func_t) pa_sconv_s24_32le_to_float32ne,
+    [PA_SAMPLE_S24_32BE]  = (pa_convert_func_t) pa_sconv_s24_32be_to_float32ne,
+    [PA_SAMPLE_FLOAT32NE] = (pa_convert_func_t) float32ne_to_float32ne,
+    [PA_SAMPLE_FLOAT32RE] = (pa_convert_func_t) float32re_to_float32ne,
+};
 
-    static const pa_convert_func_t table[] = {
-        [PA_SAMPLE_U8]        = (pa_convert_func_t) u8_to_float32ne,
-        [PA_SAMPLE_ALAW]      = (pa_convert_func_t) alaw_to_float32ne,
-        [PA_SAMPLE_ULAW]      = (pa_convert_func_t) ulaw_to_float32ne,
-        [PA_SAMPLE_S16LE]     = (pa_convert_func_t) pa_sconv_s16le_to_float32ne,
-        [PA_SAMPLE_S16BE]     = (pa_convert_func_t) pa_sconv_s16be_to_float32ne,
-        [PA_SAMPLE_S32LE]     = (pa_convert_func_t) pa_sconv_s32le_to_float32ne,
-        [PA_SAMPLE_S32BE]     = (pa_convert_func_t) pa_sconv_s32be_to_float32ne,
-        [PA_SAMPLE_S24LE]     = (pa_convert_func_t) pa_sconv_s24le_to_float32ne,
-        [PA_SAMPLE_S24BE]     = (pa_convert_func_t) pa_sconv_s24be_to_float32ne,
-        [PA_SAMPLE_S24_32LE]  = (pa_convert_func_t) pa_sconv_s24_32le_to_float32ne,
-        [PA_SAMPLE_S24_32BE]  = (pa_convert_func_t) pa_sconv_s24_32be_to_float32ne,
-        [PA_SAMPLE_FLOAT32NE] = (pa_convert_func_t) float32ne_to_float32ne,
-        [PA_SAMPLE_FLOAT32RE] = (pa_convert_func_t) float32re_to_float32ne,
-    };
+pa_convert_func_t pa_get_convert_to_float32ne_function(pa_sample_format_t f) {
 
     pa_assert(f >= 0);
     pa_assert(f < PA_SAMPLE_MAX);
 
-    return table[f];
+    return to_float32ne_table[f];
 }
+
+void pa_set_convert_to_float32ne_function(pa_sample_format_t f, pa_convert_func_t func) {
+
+    pa_assert(f >= 0);
+    pa_assert(f < PA_SAMPLE_MAX);
+
+    to_float32ne_table[f] = func;
+}
+
+static pa_convert_func_t from_float32ne_table[] = {
+    [PA_SAMPLE_U8]        = (pa_convert_func_t) u8_from_float32ne,
+    [PA_SAMPLE_S16LE]     = (pa_convert_func_t) pa_sconv_s16le_from_float32ne,
+    [PA_SAMPLE_S16BE]     = (pa_convert_func_t) pa_sconv_s16be_from_float32ne,
+    [PA_SAMPLE_S32LE]     = (pa_convert_func_t) pa_sconv_s32le_from_float32ne,
+    [PA_SAMPLE_S32BE]     = (pa_convert_func_t) pa_sconv_s32be_from_float32ne,
+    [PA_SAMPLE_S24LE]     = (pa_convert_func_t) pa_sconv_s24le_from_float32ne,
+    [PA_SAMPLE_S24BE]     = (pa_convert_func_t) pa_sconv_s24be_from_float32ne,
+    [PA_SAMPLE_S24_32LE]  = (pa_convert_func_t) pa_sconv_s24_32le_from_float32ne,
+    [PA_SAMPLE_S24_32BE]  = (pa_convert_func_t) pa_sconv_s24_32be_from_float32ne,
+    [PA_SAMPLE_FLOAT32NE] = (pa_convert_func_t) float32ne_to_float32ne,
+    [PA_SAMPLE_FLOAT32RE] = (pa_convert_func_t) float32re_to_float32ne,
+    [PA_SAMPLE_ALAW]      = (pa_convert_func_t) alaw_from_float32ne,
+    [PA_SAMPLE_ULAW]      = (pa_convert_func_t) ulaw_from_float32ne
+};
 
 pa_convert_func_t pa_get_convert_from_float32ne_function(pa_sample_format_t f) {
 
-    static const pa_convert_func_t table[] = {
-        [PA_SAMPLE_U8]        = (pa_convert_func_t) u8_from_float32ne,
-        [PA_SAMPLE_S16LE]     = (pa_convert_func_t) pa_sconv_s16le_from_float32ne,
-        [PA_SAMPLE_S16BE]     = (pa_convert_func_t) pa_sconv_s16be_from_float32ne,
-        [PA_SAMPLE_S32LE]     = (pa_convert_func_t) pa_sconv_s32le_from_float32ne,
-        [PA_SAMPLE_S32BE]     = (pa_convert_func_t) pa_sconv_s32be_from_float32ne,
-        [PA_SAMPLE_S24LE]     = (pa_convert_func_t) pa_sconv_s24le_from_float32ne,
-        [PA_SAMPLE_S24BE]     = (pa_convert_func_t) pa_sconv_s24be_from_float32ne,
-        [PA_SAMPLE_S24_32LE]  = (pa_convert_func_t) pa_sconv_s24_32le_from_float32ne,
-        [PA_SAMPLE_S24_32BE]  = (pa_convert_func_t) pa_sconv_s24_32be_from_float32ne,
-        [PA_SAMPLE_FLOAT32NE] = (pa_convert_func_t) float32ne_to_float32ne,
-        [PA_SAMPLE_FLOAT32RE] = (pa_convert_func_t) float32re_to_float32ne,
-        [PA_SAMPLE_ALAW]      = (pa_convert_func_t) alaw_from_float32ne,
-        [PA_SAMPLE_ULAW]      = (pa_convert_func_t) ulaw_from_float32ne
-    };
+    pa_assert(f >= 0);
+    pa_assert(f < PA_SAMPLE_MAX);
+
+    return from_float32ne_table[f];
+}
+
+void pa_set_convert_from_float32ne_function(pa_sample_format_t f, pa_convert_func_t func) {
 
     pa_assert(f >= 0);
     pa_assert(f < PA_SAMPLE_MAX);
 
-    return table[f];
+    from_float32ne_table[f] = func;
 }
+
+static pa_convert_func_t to_s16ne_table[] = {
+    [PA_SAMPLE_U8]        = (pa_convert_func_t) u8_to_s16ne,
+    [PA_SAMPLE_S16NE]     = (pa_convert_func_t) s16ne_to_s16ne,
+    [PA_SAMPLE_S16RE]     = (pa_convert_func_t) s16re_to_s16ne,
+    [PA_SAMPLE_FLOAT32BE] = (pa_convert_func_t) pa_sconv_float32be_to_s16ne,
+    [PA_SAMPLE_FLOAT32LE] = (pa_convert_func_t) pa_sconv_float32le_to_s16ne,
+    [PA_SAMPLE_S32BE]     = (pa_convert_func_t) pa_sconv_s32be_to_s16ne,
+    [PA_SAMPLE_S32LE]     = (pa_convert_func_t) pa_sconv_s32le_to_s16ne,
+    [PA_SAMPLE_S24BE]     = (pa_convert_func_t) pa_sconv_s24be_to_s16ne,
+    [PA_SAMPLE_S24LE]     = (pa_convert_func_t) pa_sconv_s24le_to_s16ne,
+    [PA_SAMPLE_S24_32BE]  = (pa_convert_func_t) pa_sconv_s24_32be_to_s16ne,
+    [PA_SAMPLE_S24_32LE]  = (pa_convert_func_t) pa_sconv_s24_32le_to_s16ne,
+    [PA_SAMPLE_ALAW]      = (pa_convert_func_t) alaw_to_s16ne,
+    [PA_SAMPLE_ULAW]      = (pa_convert_func_t) ulaw_to_s16ne
+};
 
 pa_convert_func_t pa_get_convert_to_s16ne_function(pa_sample_format_t f) {
 
-    static const pa_convert_func_t table[] = {
-        [PA_SAMPLE_U8]        = (pa_convert_func_t) u8_to_s16ne,
-        [PA_SAMPLE_S16NE]     = (pa_convert_func_t) s16ne_to_s16ne,
-        [PA_SAMPLE_S16RE]     = (pa_convert_func_t) s16re_to_s16ne,
-        [PA_SAMPLE_FLOAT32BE] = (pa_convert_func_t) pa_sconv_float32be_to_s16ne,
-        [PA_SAMPLE_FLOAT32LE] = (pa_convert_func_t) pa_sconv_float32le_to_s16ne,
-        [PA_SAMPLE_S32BE]     = (pa_convert_func_t) pa_sconv_s32be_to_s16ne,
-        [PA_SAMPLE_S32LE]     = (pa_convert_func_t) pa_sconv_s32le_to_s16ne,
-        [PA_SAMPLE_S24BE]     = (pa_convert_func_t) pa_sconv_s24be_to_s16ne,
-        [PA_SAMPLE_S24LE]     = (pa_convert_func_t) pa_sconv_s24le_to_s16ne,
-        [PA_SAMPLE_S24_32BE]  = (pa_convert_func_t) pa_sconv_s24_32be_to_s16ne,
-        [PA_SAMPLE_S24_32LE]  = (pa_convert_func_t) pa_sconv_s24_32le_to_s16ne,
-        [PA_SAMPLE_ALAW]      = (pa_convert_func_t) alaw_to_s16ne,
-        [PA_SAMPLE_ULAW]      = (pa_convert_func_t) ulaw_to_s16ne
-    };
+    pa_assert(f >= 0);
+    pa_assert(f < PA_SAMPLE_MAX);
+
+    return to_s16ne_table[f];
+}
+
+void pa_set_convert_to_s16ne_function(pa_sample_format_t f, pa_convert_func_t func) {
 
     pa_assert(f >= 0);
     pa_assert(f < PA_SAMPLE_MAX);
 
-    return table[f];
+    to_s16ne_table[f] = func;
 }
+
+static pa_convert_func_t from_s16ne_table[] = {
+    [PA_SAMPLE_U8]        = (pa_convert_func_t) u8_from_s16ne,
+    [PA_SAMPLE_S16NE]     = (pa_convert_func_t) s16ne_to_s16ne,
+    [PA_SAMPLE_S16RE]     = (pa_convert_func_t) s16re_to_s16ne,
+    [PA_SAMPLE_FLOAT32BE] = (pa_convert_func_t) pa_sconv_float32be_from_s16ne,
+    [PA_SAMPLE_FLOAT32LE] = (pa_convert_func_t) pa_sconv_float32le_from_s16ne,
+    [PA_SAMPLE_S32BE]     = (pa_convert_func_t) pa_sconv_s32be_from_s16ne,
+    [PA_SAMPLE_S32LE]     = (pa_convert_func_t) pa_sconv_s32le_from_s16ne,
+    [PA_SAMPLE_S24BE]     = (pa_convert_func_t) pa_sconv_s24be_from_s16ne,
+    [PA_SAMPLE_S24LE]     = (pa_convert_func_t) pa_sconv_s24le_from_s16ne,
+    [PA_SAMPLE_S24_32BE]  = (pa_convert_func_t) pa_sconv_s24_32be_from_s16ne,
+    [PA_SAMPLE_S24_32LE]  = (pa_convert_func_t) pa_sconv_s24_32le_from_s16ne,
+    [PA_SAMPLE_ALAW]      = (pa_convert_func_t) alaw_from_s16ne,
+    [PA_SAMPLE_ULAW]      = (pa_convert_func_t) ulaw_from_s16ne,
+};
 
 pa_convert_func_t pa_get_convert_from_s16ne_function(pa_sample_format_t f) {
 
-    static const pa_convert_func_t table[] = {
-        [PA_SAMPLE_U8]        = (pa_convert_func_t) u8_from_s16ne,
-        [PA_SAMPLE_S16NE]     = (pa_convert_func_t) s16ne_to_s16ne,
-        [PA_SAMPLE_S16RE]     = (pa_convert_func_t) s16re_to_s16ne,
-        [PA_SAMPLE_FLOAT32BE] = (pa_convert_func_t) pa_sconv_float32be_from_s16ne,
-        [PA_SAMPLE_FLOAT32LE] = (pa_convert_func_t) pa_sconv_float32le_from_s16ne,
-        [PA_SAMPLE_S32BE]     = (pa_convert_func_t) pa_sconv_s32be_from_s16ne,
-        [PA_SAMPLE_S32LE]     = (pa_convert_func_t) pa_sconv_s32le_from_s16ne,
-        [PA_SAMPLE_S24BE]     = (pa_convert_func_t) pa_sconv_s24be_from_s16ne,
-        [PA_SAMPLE_S24LE]     = (pa_convert_func_t) pa_sconv_s24le_from_s16ne,
-        [PA_SAMPLE_S24_32BE]  = (pa_convert_func_t) pa_sconv_s24_32be_from_s16ne,
-        [PA_SAMPLE_S24_32LE]  = (pa_convert_func_t) pa_sconv_s24_32le_from_s16ne,
-        [PA_SAMPLE_ALAW]      = (pa_convert_func_t) alaw_from_s16ne,
-        [PA_SAMPLE_ULAW]      = (pa_convert_func_t) ulaw_from_s16ne,
-    };
+    pa_assert(f >= 0);
+    pa_assert(f < PA_SAMPLE_MAX);
+
+    return from_s16ne_table[f];
+}
+
+void pa_set_convert_from_s16ne_function(pa_sample_format_t f, pa_convert_func_t func) {
 
     pa_assert(f >= 0);
     pa_assert(f < PA_SAMPLE_MAX);
 
-    return table[f];
+    from_s16ne_table[f] = func;
 }

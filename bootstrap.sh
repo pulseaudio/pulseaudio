@@ -47,9 +47,9 @@ case $(uname) in
 esac
 
 if [ -f .git/hooks/pre-commit.sample -a ! -f .git/hooks/pre-commit ] ; then
-    echo "Activating pre-commit hook."
-    cp -pv  .git/hooks/pre-commit.sample .git/hooks/pre-commit
-    chmod -v +x  .git/hooks/pre-commit
+    cp -p .git/hooks/pre-commit.sample .git/hooks/pre-commit && \
+    chmod +x .git/hooks/pre-commit && \
+    echo "Activated pre-commit hook."
 fi
 
 if [ -f .tarball-version ]; then
@@ -94,7 +94,7 @@ else
     run_versioned automake "$VERSION" --copy --foreign --add-missing
 
     if test "x$NOCONFIGURE" = "x"; then
-        CFLAGS="-g -O0" ./configure --sysconfdir=/etc --localstatedir=/var --enable-force-preopen "$@"
+        CFLAGS="$CFLAGS -g -O0" ./configure --sysconfdir=/etc --localstatedir=/var --enable-force-preopen "$@"
         make clean
     fi
 fi
