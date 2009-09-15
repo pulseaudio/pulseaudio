@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-11 01:26+0200\n"
-"PO-Revision-Date: 2009-09-04 23:29+0300\n"
+"POT-Creation-Date: 2009-09-15 07:47+0000\n"
+"PO-Revision-Date: 2009-09-15 13:24+0300\n"
 "Last-Translator: Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>\n"
 "Language-Team: Finnish <laatu@lokalisointi.org>\n"
 "MIME-Version: 1.0\n"
@@ -61,11 +61,11 @@ msgstr ""
 
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
-msgstr ""
+msgstr "Pidä aina vähintään yksi nielu ladattuna, vaikka se olisi tyhjä nielu"
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
-msgstr ""
+msgstr "Valeulostulo"
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
@@ -88,12 +88,11 @@ msgstr ""
 
 #: ../src/modules/module-null-sink.c:55
 msgid "Clocked NULL sink"
-msgstr ""
+msgstr "Kellotettu tyhjä nielu"
 
 #: ../src/modules/module-null-sink.c:291
-#, fuzzy
 msgid "Null Output"
-msgstr "Ulostulo %s"
+msgstr "Tyhjä ulostulo"
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -1111,11 +1110,11 @@ msgstr "Asiakasohjelma haarautui"
 
 #: ../src/pulse/error.c:68
 msgid "Input/Output error"
-msgstr ""
+msgstr "Siirräntävirhe"
 
 #: ../src/pulse/error.c:69
 msgid "Device or resource busy"
-msgstr ""
+msgstr "Laite tai resurssi on varattu"
 
 #: ../src/pulse/sample.c:172
 #, c-format
@@ -1324,9 +1323,9 @@ msgid "Failed to get latency: %s"
 msgstr "Latenssin selvittäminen epäonnistui: %s"
 
 #: ../src/utils/pacat.c:576
-#, fuzzy, c-format
+#, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr "Aika: %0.3f s; latenssi: %0.0f μs.  \r"
+msgstr "Aika: %0.3f s; Latenssi: %0.0f μs."
 
 #: ../src/utils/pacat.c:595
 #, c-format
