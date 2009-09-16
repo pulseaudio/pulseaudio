@@ -303,9 +303,16 @@ static struct mempool_slot* mempool_slot_by_ptr(pa_mempool *p, void *ptr) {
 pa_memblock *pa_memblock_new_pool(pa_mempool *p, size_t length) {
     pa_memblock *b = NULL;
     struct mempool_slot *slot;
+    static int mempool_disable = 0;
 
     pa_assert(p);
     pa_assert(length);
+
+    if (mempool_disable == 0)
+        mempool_disable = getenv("PULSE_MEMPOOL_DISABLE") ? 1 : -1;
+
+    if (mempool_disable > 0)
+        return NULL;
 
     /* If -1 is passed as length we choose the size for the caller: we
      * take the largest size that fits in one of our slots. */
