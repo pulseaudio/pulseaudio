@@ -430,14 +430,18 @@ static void context_state_callback(pa_context *c, void *userdata) {
             pa_stream_set_event_callback(stream, stream_event_callback, NULL);
             pa_stream_set_buffer_attr_callback(stream, stream_buffer_attr_callback, NULL);
 
+            pa_zero(buffer_attr);
+            buffer_attr.maxlength = (uint32_t) -1;
+            buffer_attr.prebuf = (uint32_t) -1;
+
             if (latency > 0) {
-                memset(&buffer_attr, 0, sizeof(buffer_attr));
-                buffer_attr.tlength = (uint32_t) latency;
+                buffer_attr.fragsize = buffer_attr.tlength = (uint32_t) latency;
                 buffer_attr.minreq = (uint32_t) process_time;
-                buffer_attr.maxlength = (uint32_t) -1;
-                buffer_attr.prebuf = (uint32_t) -1;
-                buffer_attr.fragsize = (uint32_t) latency;
                 flags |= PA_STREAM_ADJUST_LATENCY;
+            } else {
+                buffer_attr.tlength = (uint32_t) -1;
+                buffer_attr.minreq = (uint32_t) -1;
+                buffer_attr.fragsize = (uint32_t) -1;
             }
 
             if (mode == PLAYBACK) {
