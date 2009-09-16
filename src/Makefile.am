@@ -640,12 +640,21 @@ libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += \
 		pulsecore/mutex-win32.c pulsecore/mutex.h \
 		pulsecore/thread-win32.c pulsecore/thread.h \
 		pulsecore/semaphore-win32.c pulsecore/semaphore.h
-else
+else !OS_IS_WIN32
+if OS_IS_DARWIN
+libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += \
+		pulsecore/mutex-posix.c pulsecore/mutex.h \
+		pulsecore/thread-posix.c pulsecore/thread.h \
+		pulsecore/semaphore-osx.c pulsecore/semaphore.h
+libpulsecommon_@PA_MAJORMINORMICRO@_la_CFLAGS += "-I/Developer/Headers/FlatCarbon/"
+#libpulsecommon_@PA_MAJORMINORMICRO@_la_LDFLAGS += "-framework CoreServices"
+else !OS_IS_DARWIN
 libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += \
 		pulsecore/mutex-posix.c pulsecore/mutex.h \
 		pulsecore/thread-posix.c pulsecore/thread.h \
 		pulsecore/semaphore-posix.c pulsecore/semaphore.h
-endif
+endif !OS_IS_DARWIN
+endif !OS_IS_WIN32
 
 if HAVE_X11
 libpulsecommon_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/x11prop.c pulsecore/x11prop.h
