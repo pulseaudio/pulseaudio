@@ -172,6 +172,10 @@ case $host in
             AC_MSG_RESULT([linux])
             pulse_target_os=linux
         ;;
+        *-*-darwin*)
+            AC_MSG_RESULT([darwin])
+            pulse_target_os=darwin
+        ;;
         *)
             AC_MSG_RESULT([unknown])
             pulse_target_os=unknown
@@ -291,15 +295,21 @@ AC_SUBST([LIBLTDL])
 #### Determine build environment ####
 
 os_is_win32=0
+os_is_darwin=0
 
 case "$host_os" in
         mingw*)
         AC_DEFINE([OS_IS_WIN32], 1, [Build target is Windows.])
         os_is_win32=1
                 ;;
+        darwin*)
+        AC_DEFINE([OS_IS_DARWIN], 1, [Build target is Darwin.])
+        os_is_darwin=1
+                ;;
         esac
 
 AM_CONDITIONAL(OS_IS_WIN32, test "x$os_is_win32" = "x1")
+AM_CONDITIONAL(OS_IS_DARWIN, test "x$os_is_darwin" = "x1")
 
 ###################################
 #   Basic environment checks      #
@@ -402,6 +412,18 @@ AC_SEARCH_LIBS([backtrace], [execinfo])
 # This magic is needed so we do not needlessly add static libs to the win32
 # build, disabling its ability to make dlls.
 AC_CHECK_FUNCS([getopt_long], [], [AC_CHECK_LIB([iberty], [getopt_long])])
+
+# Darwin/OS X
+if test "x$os_is_darwin" = "x1" ; then
+    AC_MSG_CHECKING([looking for Apple CoreService Framework])
+    # How do I check a framework "library" - AC_CHECK_LIB prob. won't work??, just assign LIBS & hope
+    AC_CHECK_HEADER([/Developer/Headers/FlatCarbon/CoreServices.h],
+    [LIBS="$LIBS -framework CoreServices"],
+    [AC_MSG_ERROR([CoreServices.h header file not found]) ])
+
+    AC_MSG_RESULT([ok])
+    AC_DEFINE([HAVE_CLOCK_GETTIME], 1, [Using clock_gettime() replacement])
+fi
 
 #### Check for functions ####
 
