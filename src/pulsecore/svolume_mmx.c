@@ -233,7 +233,7 @@ pa_volume_s16re_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
     );
 }
 
-#define RUN_TEST
+#undef RUN_TEST
 
 #ifdef RUN_TEST
 #define CHANNELS 2
