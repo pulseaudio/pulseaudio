@@ -1045,7 +1045,10 @@ pa_context_state_t pa_context_get_state(pa_context *c) {
 }
 
 int pa_context_errno(pa_context *c) {
-    pa_assert(c);
+
+    if (!c)
+        return PA_ERR_INVALID;
+
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     return c->error;
