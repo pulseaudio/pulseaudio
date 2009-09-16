@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-11 01:26+0200\n"
-"PO-Revision-Date: 2009-09-09 21:33+0100\n"
+"POT-Creation-Date: 2009-09-16 18:19+0000\n"
+"PO-Revision-Date: 2009-09-16 22:10+0100\n"
 "Last-Translator: Miloš Komarčević <kmilos@gmail.com>\n"
 "Language-Team: Serbian (sr) <fedora-trans-sr@redhat.com>\n"
 "MIME-Version: 1.0\n"
@@ -64,11 +64,11 @@ msgstr ""
 
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
-msgstr ""
+msgstr "Uvek održava barem jedan slivnik opterećenim čak i kada je prazan"
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
-msgstr ""
+msgstr "Lažan izlaz"
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
@@ -90,11 +90,11 @@ msgstr ""
 
 #: ../src/modules/module-null-sink.c:55
 msgid "Clocked NULL sink"
-msgstr ""
+msgstr "Uzorak NULL slivnika"
 
 #: ../src/modules/module-null-sink.c:291
 msgid "Null Output"
-msgstr ""
+msgstr "Prazan izlaz"
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -1105,11 +1105,11 @@ msgstr "Klijent je izračvan"
 
 #: ../src/pulse/error.c:68
 msgid "Input/Output error"
-msgstr ""
+msgstr "Ulazna/izlazna greška"
 
 #: ../src/pulse/error.c:69
 msgid "Device or resource busy"
-msgstr ""
+msgstr "Uređaj ili resurs je zauzet"
 
 #: ../src/pulse/sample.c:172
 #, c-format
@@ -1318,9 +1318,9 @@ msgid "Failed to get latency: %s"
 msgstr "Ne mogu dobiti vrednost kašnjenja: %s"
 
 #: ../src/utils/pacat.c:576
-#, fuzzy, c-format
+#, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr "Vreme: %0.3f s; Kašnjenje: %0.0f μs.  \r"
+msgstr "Vreme: %0.3f s; Kašnjenje: %0.0f us."
 
 #: ../src/utils/pacat.c:595
 #, c-format
@@ -1426,8 +1426,7 @@ msgstr ""
 "      --fix-channels                    Preuzmi broj i mapu kanala iz "
 "slivnika na koji se\n"
 "                                        tok priključuje.\n"
-"      --no-remix                        Bez stapanja ili razdvajanja "
-"kanala.\n"
+"      --no-remix                        Bez svođenja ili razlaganja kanala.\n"
 "      --no-remap                        Mapiraj kanale po indeksu umesto po "
 "nazivu.\n"
 "      --latency=BAJTOVA                 Traži navedeno kašnjenje u "
