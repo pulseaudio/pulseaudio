@@ -45,7 +45,7 @@
       " movdqa "#s", %%xmm5          \n\t"                                              \
       " pmulhuw "#v", "#s"           \n\t" /* .. |    0  | vl*p0 | */                   \
       " psubd %%xmm4, "#s"           \n\t" /* .. |    0  | vl*p0 | + sign correct */    \
-      " psrld $16, "#v"              \n\t" /* .. |   p0  |    0  | */                   \
+      " psrld $16, "#v"              \n\t" /* .. |    0  |   vh  | */                   \
       " pmaddwd %%xmm5, "#v"         \n\t" /* .. |    p0 * vh    | */                   \
       " paddd "#s", "#v"             \n\t" /* .. |    p0 * v0    | */                   \
       " packssdw "#v", "#v"          \n\t" /* .. | p1*v1 | p0*v0 | */
