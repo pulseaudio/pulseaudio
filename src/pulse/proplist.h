@@ -115,6 +115,9 @@ PA_C_DECL_BEGIN
 /** For streams that belong to a window on the screen: relative position of the window center on the screen, float formatted as text string, ranging from 0.0 (top of the screen) to 1.0 (bottom of the screen). e.g. "0.43". \since 0.9.17 */
 #define PA_PROP_WINDOW_VPOS                    "window.vpos"
 
+/** For streams that belong to a window on the screen: if the windowing system supports multiple desktops, a comma seperated list of indexes of the desktops this window is visible on. If this property is an empty string, it is visible on all desktops (i.e. 'sticky'). The first desktop is 0. e.g. "0,2,3" \since 0.9.18 */
+#define PA_PROP_WINDOW_DESKTOP                 "window.desktop"
+
 /** For streams that belong to an X11 window on the screen: the X11 display string. e.g. ":0.0" */
 #define PA_PROP_WINDOW_X11_DISPLAY             "window.x11.display"
 
