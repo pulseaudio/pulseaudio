@@ -1390,7 +1390,7 @@ static char* make_random_dir(mode_t m) {
     if (!tmpdir || !pa_is_path_absolute(tmpdir))
         tmpdir = "/tmp";
 
-    fn = pa_sprintf_malloc("%s/pulse-XXXXXXXXXXXX", tmpdir);
+    fn = pa_sprintf_malloc("%s" PA_PATH_SEP "pulse-XXXXXXXXXXXX", tmpdir);
     pathlen = strlen(fn);
 
     for (;;) {
