@@ -93,7 +93,7 @@ int pa__init(pa_module*m) {
     }
 
     if (pa_stdio_acquire() < 0) {
-        pa_log("STDIN/STDUSE already in use.");
+        pa_log("STDIN/STDOUT already in use.");
         goto fail;
     }
 
@@ -132,7 +132,7 @@ fail:
 void pa__done(pa_module*m) {
     pa_assert(m);
 
-    if (m->core->running_as_daemon == 0) {
+    if (m->userdata) {
         pa_cli_free(m->userdata);
         pa_stdio_release();
     }
