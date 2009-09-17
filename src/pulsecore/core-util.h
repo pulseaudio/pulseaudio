@@ -249,4 +249,6 @@ void pa_reset_personality(void);
 pa_bool_t pa_run_from_build_tree(void);
 #endif
 
+const char *pa_get_temp_dir(void);
+
 #endif

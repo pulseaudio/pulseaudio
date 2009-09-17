@@ -1398,17 +1398,8 @@ static int sndstat_open(int flags, int *_errno) {
     mode_t u;
     int fd = -1;
     int e;
-    const char *tmpdir;
 
-    if (!(tmpdir = getenv("TMPDIR")))
-        if (!(tmpdir = getenv("TMP")))
-            if (!(tmpdir = getenv("TEMP")))
-                tmpdir = getenv("TEMPDIR");
-
-    if (!tmpdir || !pa_is_path_absolute(tmpdir))
-        tmpdir = "/tmp";
-
-    fn = pa_sprintf_malloc("%s" PA_PATH_SEP "padsp-sndstat-XXXXXX", tmpdir);
+    fn = pa_sprintf_malloc("%s" PA_PATH_SEP "padsp-sndstat-XXXXXX", pa_get_temp_dir());
 
     debug(DEBUG_LEVEL_NORMAL, __FILE__": sndstat_open()\n");
 
