@@ -44,6 +44,7 @@ void pa_rtclock_hrtimer_enable(void);
 struct timeval* pa_rtclock_from_wallclock(struct timeval *tv);
 
 pa_usec_t pa_timespec_load(const struct timespec *ts);
+struct timespec* pa_timespec_store(struct timespec *ts, pa_usec_t v);
 
 struct timeval* pa_timeval_rtstore(struct timeval *tv, pa_usec_t v, pa_bool_t rtclock);
 

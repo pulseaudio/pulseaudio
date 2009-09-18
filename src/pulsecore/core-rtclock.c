@@ -151,6 +151,20 @@ pa_usec_t pa_timespec_load(const struct timespec *ts) {
         (pa_usec_t) ts->tv_nsec / PA_NSEC_PER_USEC;
 }
 
+struct timespec* pa_timespec_store(struct timespec *ts, pa_usec_t v) {
+    pa_assert(ts);
+
+    if (PA_UNLIKELY(v == PA_USEC_INVALID)) {
+        ts->tv_sec = PA_INT_TYPE_MAX(time_t);
+        ts->tv_nsec = (long) (PA_NSEC_PER_SEC-1);
+        return NULL;
+    }
+
+    ts->tv_sec = (time_t) (v / PA_USEC_PER_SEC);
+    ts->tv_nsec = (long) ((v % PA_USEC_PER_SEC) * PA_NSEC_PER_USEC);
+
+    return ts;
+}
 
 static struct timeval* wallclock_from_rtclock(struct timeval *tv) {
 
