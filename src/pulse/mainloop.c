@@ -172,17 +172,14 @@ static pa_io_event* mainloop_io_new(
     m = a->userdata;
     pa_assert(a == &m->api);
 
-    e = pa_xnew(pa_io_event, 1);
+    e = pa_xnew0(pa_io_event, 1);
     e->mainloop = m;
-    e->dead = FALSE;
 
     e->fd = fd;
     e->events = events;
-    e->pollfd = NULL;
 
     e->callback = callback;
     e->userdata = userdata;
-    e->destroy_callback = NULL;
 
 #ifdef OS_IS_WIN32
     {
@@ -265,16 +262,14 @@ static pa_defer_event* mainloop_defer_new(
     m = a->userdata;
     pa_assert(a == &m->api);
 
-    e = pa_xnew(pa_defer_event, 1);
+    e = pa_xnew0(pa_defer_event, 1);
     e->mainloop = m;
-    e->dead = FALSE;
 
     e->enabled = TRUE;
     m->n_enabled_defer_events++;
 
     e->callback = callback;
     e->userdata = userdata;
-    e->destroy_callback = NULL;
 
     PA_LLIST_PREPEND(pa_defer_event, m->defer_events, e);
 
@@ -354,9 +349,8 @@ static pa_time_event* mainloop_time_new(
     m = a->userdata;
     pa_assert(a == &m->api);
 
-    e = pa_xnew(pa_time_event, 1);
+    e = pa_xnew0(pa_time_event, 1);
     e->mainloop = m;
-    e->dead = FALSE;
 
     if ((e->enabled = (t != PA_USEC_INVALID))) {
         e->time = t;
@@ -373,7 +367,6 @@ static pa_time_event* mainloop_time_new(
 
     e->callback = callback;
     e->userdata = userdata;
-    e->destroy_callback = NULL;
 
     PA_LLIST_PREPEND(pa_time_event, m->time_events, e);
 
@@ -478,9 +471,8 @@ pa_mainloop *pa_mainloop_new(void) {
 
     pa_init_i18n();
 
-    m = pa_xnew(pa_mainloop, 1);
+    m = pa_xnew0(pa_mainloop, 1);
 
-    m->wakeup_pipe_type = 0;
     if (pipe(m->wakeup_pipe) < 0) {
         pa_log_error("ERROR: cannot create wakeup pipe");
         pa_xfree(m);
@@ -491,32 +483,14 @@ pa_mainloop *pa_mainloop_new(void) {
     pa_make_fd_nonblock(m->wakeup_pipe[1]);
     pa_make_fd_cloexec(m->wakeup_pipe[0]);
     pa_make_fd_cloexec(m->wakeup_pipe[1]);
-    m->wakeup_requested = FALSE;
 
-    PA_LLIST_HEAD_INIT(pa_io_event, m->io_events);
-    PA_LLIST_HEAD_INIT(pa_time_event, m->time_events);
-    PA_LLIST_HEAD_INIT(pa_defer_event, m->defer_events);
-
-    m->n_enabled_defer_events = m->n_enabled_time_events = m->n_io_events = 0;
-    m->io_events_please_scan = m->time_events_please_scan = m->defer_events_please_scan = 0;
-
-    m->cached_next_time_event = NULL;
-    m->prepared_timeout = 0;
-
-    m->pollfds = NULL;
-    m->max_pollfds = m->n_pollfds = 0;
     m->rebuild_pollfds = TRUE;
-
-    m->quit = FALSE;
-    m->retval = 0;
 
     m->api = vtable;
     m->api.userdata = m;
 
     m->state = STATE_PASSIVE;
 
-    m->poll_func = NULL;
-    m->poll_func_userdata = NULL;
     m->poll_func_ret = -1;
 
     return m;
