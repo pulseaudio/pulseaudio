@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-11 01:26+0200\n"
+"POT-Creation-Date: 2009-09-18 22:17+0200\n"
 "PO-Revision-Date: 2009-04-06 10:26+1000\n"
 "Last-Translator: Leah Liu <lliu@redhat.com>\n"
 "Language-Team: Simplified Chinese <zh@li.org>\n"
@@ -237,7 +237,7 @@ msgstr "管道失败：%s"
 msgid "fork() failed: %s"
 msgstr "fork()失败：%s"
 
-#: ../src/daemon/main.c:641 ../src/utils/pacat.c:504
+#: ../src/daemon/main.c:641 ../src/utils/pacat.c:508
 #, c-format
 msgid "read() failed: %s"
 msgstr "read()失败：%s"
@@ -1115,7 +1115,7 @@ msgstr "fork()：%s"
 msgid "waitpid(): %s"
 msgstr "waitpid()：%s"
 
-#: ../src/pulse/context.c:1435
+#: ../src/pulse/context.c:1438
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "收到未知扩展'%s'的信息"
@@ -1239,52 +1239,52 @@ msgstr "连接已建立。%s \n"
 msgid "pa_stream_new() failed: %s"
 msgstr "pa_stream_new()失败：%s\n"
 
-#: ../src/utils/pacat.c:446
+#: ../src/utils/pacat.c:450
 #, fuzzy, c-format
 msgid "pa_stream_connect_playback() failed: %s"
 msgstr "pa_stream_connect_playback()失败：%s\n"
 
-#: ../src/utils/pacat.c:452
+#: ../src/utils/pacat.c:456
 #, fuzzy, c-format
 msgid "pa_stream_connect_record() failed: %s"
 msgstr "pa_stream_connect_playback()失败：%s\n"
 
-#: ../src/utils/pacat.c:466 ../src/utils/pactl.c:857
+#: ../src/utils/pacat.c:470 ../src/utils/pactl.c:857
 #, fuzzy, c-format
 msgid "Connection failure: %s"
 msgstr "连接失败：%s\n"
 
-#: ../src/utils/pacat.c:499
+#: ../src/utils/pacat.c:503
 #, fuzzy
 msgid "Got EOF."
 msgstr "收到EOF。\n"
 
-#: ../src/utils/pacat.c:536
+#: ../src/utils/pacat.c:540
 #, fuzzy, c-format
 msgid "write() failed: %s"
 msgstr "write()失败：%s\n"
 
-#: ../src/utils/pacat.c:557
+#: ../src/utils/pacat.c:561
 #, fuzzy
 msgid "Got signal, exiting."
 msgstr "收到信号，正在退出。\n"
 
-#: ../src/utils/pacat.c:571
+#: ../src/utils/pacat.c:575
 #, fuzzy, c-format
 msgid "Failed to get latency: %s"
 msgstr "获取传输延迟失败：%s\n"
 
-#: ../src/utils/pacat.c:576
+#: ../src/utils/pacat.c:580
 #, fuzzy, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
 msgstr "时间：%0.3f秒；延迟：%0.0f 微秒。  \r"
 
-#: ../src/utils/pacat.c:595
+#: ../src/utils/pacat.c:599
 #, fuzzy, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info()失败：%s\n"
 
-#: ../src/utils/pacat.c:605
+#: ../src/utils/pacat.c:609
 #, fuzzy, c-format
 msgid ""
 "%s [options]\n"
@@ -1376,7 +1376,7 @@ msgstr ""
 "      --latency=BYTES                   请求指定字节数的延迟。\n"
 "      --process-time=BYTES              每次请求指定字节数的处理时间。\n"
 
-#: ../src/utils/pacat.c:727
+#: ../src/utils/pacat.c:731
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1387,138 +1387,138 @@ msgstr ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 
-#: ../src/utils/pacat.c:760 ../src/utils/pactl.c:953
+#: ../src/utils/pacat.c:764 ../src/utils/pactl.c:953
 #, fuzzy, c-format
 msgid "Invalid client name '%s'"
 msgstr "无效的通道映射描述'%s'\n"
 
-#: ../src/utils/pacat.c:775
+#: ../src/utils/pacat.c:779
 #, fuzzy, c-format
 msgid "Invalid stream name '%s'"
 msgstr "无效的重采样方法'%s'。"
 
-#: ../src/utils/pacat.c:812
+#: ../src/utils/pacat.c:816
 #, fuzzy, c-format
 msgid "Invalid channel map '%s'"
 msgstr "无效的通道映射描述'%s'\n"
 
-#: ../src/utils/pacat.c:841
+#: ../src/utils/pacat.c:845
 #, fuzzy, c-format
 msgid "Invalid latency specification '%s'"
 msgstr "无效的延迟规格描述 %s'\n"
 
-#: ../src/utils/pacat.c:848
+#: ../src/utils/pacat.c:852
 #, fuzzy, c-format
 msgid "Invalid process time specification '%s'"
 msgstr "无效的处理时间描述 '%s'\n"
 
-#: ../src/utils/pacat.c:860
+#: ../src/utils/pacat.c:864
 #, fuzzy, c-format
 msgid "Invalid property '%s'"
 msgstr "无效的重采样方法'%s'。"
 
-#: ../src/utils/pacat.c:877
+#: ../src/utils/pacat.c:881
 #, c-format
 msgid "Unknown file format %s."
 msgstr ""
 
-#: ../src/utils/pacat.c:896
+#: ../src/utils/pacat.c:900
 #, fuzzy
 msgid "Invalid sample specification"
 msgstr "无效的采样描述\n"
 
-#: ../src/utils/pacat.c:906
+#: ../src/utils/pacat.c:910
 #, fuzzy, c-format
 msgid "open(): %s"
 msgstr "open()：%s\n"
 
-#: ../src/utils/pacat.c:911
+#: ../src/utils/pacat.c:915
 #, fuzzy, c-format
 msgid "dup2(): %s"
 msgstr "dup2()：%s\n"
 
-#: ../src/utils/pacat.c:918
+#: ../src/utils/pacat.c:922
 #, fuzzy
 msgid "Too many arguments."
 msgstr "参数过多。\n"
 
-#: ../src/utils/pacat.c:929
+#: ../src/utils/pacat.c:933
 #, fuzzy
 msgid "Failed to generate sample specification for file."
 msgstr "获取采样信息失败：%s\n"
 
-#: ../src/utils/pacat.c:949
+#: ../src/utils/pacat.c:953
 #, fuzzy
 msgid "Failed to open audio file."
 msgstr "打开声音文件失败。\n"
 
-#: ../src/utils/pacat.c:955
+#: ../src/utils/pacat.c:959
 #, fuzzy
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
 msgstr "以采样规格'%s'打开%s流。\n"
 
-#: ../src/utils/pacat.c:958 ../src/utils/pactl.c:997
+#: ../src/utils/pacat.c:962 ../src/utils/pactl.c:997
 #, fuzzy
 msgid "Failed to determine sample specification from file."
 msgstr "获取采样信息失败：%s\n"
 
-#: ../src/utils/pacat.c:967
+#: ../src/utils/pacat.c:971
 #, fuzzy
 msgid "Warning: Failed to determine channel map from file."
 msgstr "以采样规格'%s'打开%s流。\n"
 
-#: ../src/utils/pacat.c:978
+#: ../src/utils/pacat.c:982
 #, fuzzy
 msgid "Channel map doesn't match sample specification"
 msgstr "通道映射与采样描述不匹配\n"
 
-#: ../src/utils/pacat.c:989
+#: ../src/utils/pacat.c:993
 #, fuzzy
 msgid "Warning: failed to write channel map to file."
 msgstr "以采样规格'%s'打开%s流。\n"
 
-#: ../src/utils/pacat.c:1004
+#: ../src/utils/pacat.c:1008
 #, fuzzy, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "以采样规格'%s'打开%s流。\n"
 
-#: ../src/utils/pacat.c:1005
+#: ../src/utils/pacat.c:1009
 msgid "recording"
 msgstr "正在录制"
 
-#: ../src/utils/pacat.c:1005
+#: ../src/utils/pacat.c:1009
 msgid "playback"
 msgstr "回放"
 
-#: ../src/utils/pacat.c:1031 ../src/utils/pactl.c:1267
+#: ../src/utils/pacat.c:1035 ../src/utils/pactl.c:1267
 #, fuzzy
 msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new()失败。\n"
 
-#: ../src/utils/pacat.c:1050
+#: ../src/utils/pacat.c:1054
 #, fuzzy
 msgid "io_new() failed."
 msgstr "io_new()失败。\n"
 
-#: ../src/utils/pacat.c:1057 ../src/utils/pactl.c:1279
+#: ../src/utils/pacat.c:1061 ../src/utils/pactl.c:1279
 #, fuzzy
 msgid "pa_context_new() failed."
 msgstr "pa_context_new()失败。\n"
 
-#: ../src/utils/pacat.c:1065 ../src/utils/pactl.c:1285
+#: ../src/utils/pacat.c:1069 ../src/utils/pactl.c:1285
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect()失败：%s"
 
-#: ../src/utils/pacat.c:1071
+#: ../src/utils/pacat.c:1075
 #, fuzzy
 msgid "pa_context_rttime_new() failed."
 msgstr "pa_context_new()失败。\n"
 
-#: ../src/utils/pacat.c:1078 ../src/utils/pactl.c:1290
+#: ../src/utils/pacat.c:1082 ../src/utils/pactl.c:1290
 #, fuzzy
 msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run()失败。\n"
