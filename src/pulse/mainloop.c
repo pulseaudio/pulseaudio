@@ -497,11 +497,9 @@ pa_mainloop *pa_mainloop_new(void) {
 }
 
 static void cleanup_io_events(pa_mainloop *m, pa_bool_t force) {
-    pa_io_event *e;
+    pa_io_event *e, *n;
 
-    e = m->io_events;
-    while (e) {
-        pa_io_event *n = e->next;
+    PA_LLIST_FOREACH_SAFE(e, n, m->io_events) {
 
         if (!force && m->io_events_please_scan <= 0)
             break;
@@ -521,19 +519,15 @@ static void cleanup_io_events(pa_mainloop *m, pa_bool_t force) {
 
             m->rebuild_pollfds = TRUE;
         }
-
-        e = n;
     }
 
     pa_assert(m->io_events_please_scan == 0);
 }
 
 static void cleanup_time_events(pa_mainloop *m, pa_bool_t force) {
-    pa_time_event *e;
+    pa_time_event *e, *n;
 
-    e = m->time_events;
-    while (e) {
-        pa_time_event *n = e->next;
+    PA_LLIST_FOREACH_SAFE(e, n, m->time_events) {
 
         if (!force && m->time_events_please_scan <= 0)
             break;
@@ -557,19 +551,15 @@ static void cleanup_time_events(pa_mainloop *m, pa_bool_t force) {
 
             pa_xfree(e);
         }
-
-        e = n;
     }
 
     pa_assert(m->time_events_please_scan == 0);
 }
 
 static void cleanup_defer_events(pa_mainloop *m, pa_bool_t force) {
-    pa_defer_event *e;
+    pa_defer_event *e, *n;
 
-    e = m->defer_events;
-    while (e) {
-        pa_defer_event *n = e->next;
+    PA_LLIST_FOREACH_SAFE(e, n, m->defer_events) {
 
         if (!force && m->defer_events_please_scan <= 0)
             break;
@@ -593,8 +583,6 @@ static void cleanup_defer_events(pa_mainloop *m, pa_bool_t force) {
 
             pa_xfree(e);
         }
-
-        e = n;
     }
 
     pa_assert(m->defer_events_please_scan == 0);
@@ -651,7 +639,7 @@ static void rebuild_pollfds(pa_mainloop *m) {
         m->n_pollfds++;
     }
 
-    for (e = m->io_events; e; e = e->next) {
+    PA_LLIST_FOREACH(e, m->io_events) {
         if (e->dead) {
             e->pollfd = NULL;
             continue;
@@ -675,16 +663,22 @@ static int dispatch_pollfds(pa_mainloop *m) {
 
     pa_assert(m->poll_func_ret > 0);
 
-    for (e = m->io_events, k = m->poll_func_ret; e && !m->quit && k > 0; e = e->next) {
+    k = m->poll_func_ret;
+
+    PA_LLIST_FOREACH(e, m->io_events) {
+
+        if (k <= 0 || m->quit)
+            break;
+
         if (e->dead || !e->pollfd || !e->pollfd->revents)
             continue;
 
         pa_assert(e->pollfd->fd == e->fd);
         pa_assert(e->callback);
+
         e->callback(&m->api, e, e->fd, map_flags_from_libc(e->pollfd->revents), e->userdata);
         e->pollfd->revents = 0;
         r++;
-
         k--;
     }
 
@@ -698,7 +692,11 @@ static int dispatch_defer(pa_mainloop *m) {
     if (m->n_enabled_defer_events <= 0)
         return 0;
 
-    for (e = m->defer_events; e && !m->quit; e = e->next) {
+    PA_LLIST_FOREACH(e, m->defer_events) {
+
+        if (m->quit)
+            break;
+
         if (e->dead || !e->enabled)
             continue;
 
@@ -717,7 +715,7 @@ static pa_time_event* find_next_time_event(pa_mainloop *m) {
     if (m->cached_next_time_event)
         return m->cached_next_time_event;
 
-    for (t = m->time_events; t; t = t->next) {
+    PA_LLIST_FOREACH(t, m->time_events) {
 
         if (t->dead || !t->enabled)
             continue;
@@ -766,7 +764,10 @@ static int dispatch_timeout(pa_mainloop *m) {
 
     now = pa_rtclock_now();
 
-    for (e = m->time_events; e && !m->quit; e = e->next) {
+    PA_LLIST_FOREACH(e, m->time_events) {
+
+        if (m->quit)
+            break;
 
         if (e->dead || !e->enabled)
             continue;
@@ -806,7 +807,8 @@ static void clear_wakeup(pa_mainloop *m) {
         return;
 
     if (m->wakeup_requested) {
-        while (pa_read(m->wakeup_pipe[0], &c, sizeof(c), &m->wakeup_pipe_type) == sizeof(c));
+        while (pa_read(m->wakeup_pipe[0], &c, sizeof(c), &m->wakeup_pipe_type) == sizeof(c))
+            ;
         m->wakeup_requested = 0;
     }
 }
@@ -964,7 +966,8 @@ quit:
 int pa_mainloop_run(pa_mainloop *m, int *retval) {
     int r;
 
-    while ((r = pa_mainloop_iterate(m, 1, retval)) >= 0);
+    while ((r = pa_mainloop_iterate(m, 1, retval)) >= 0)
+        ;
 
     if (r == -2)
         return 1;
@@ -984,6 +987,7 @@ void pa_mainloop_quit(pa_mainloop *m, int retval) {
 
 pa_mainloop_api* pa_mainloop_get_api(pa_mainloop*m) {
     pa_assert(m);
+
     return &m->api;
 }
 
