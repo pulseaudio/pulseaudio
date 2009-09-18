@@ -193,6 +193,13 @@ underflow:
 struct timeval* pa_timeval_store(struct timeval *tv, pa_usec_t v) {
     pa_assert(tv);
 
+    if (PA_UNLIKELY(v == PA_USEC_INVALID)) {
+        tv->tv_sec = PA_INT_TYPE_MAX(time_t);
+        tv->tv_usec = (suseconds_t) (PA_USEC_PER_SEC-1);
+
+        return tv;
+    }
+
     tv->tv_sec = (time_t) (v / PA_USEC_PER_SEC);
     tv->tv_usec = (suseconds_t) (v % PA_USEC_PER_SEC);
 
@@ -200,7 +207,9 @@ struct timeval* pa_timeval_store(struct timeval *tv, pa_usec_t v) {
 }
 
 pa_usec_t pa_timeval_load(const struct timeval *tv) {
-    pa_assert(tv);
+
+    if (PA_UNLIKELY(!tv))
+        return PA_USEC_INVALID;
 
     return
         (pa_usec_t) tv->tv_sec * PA_USEC_PER_SEC +

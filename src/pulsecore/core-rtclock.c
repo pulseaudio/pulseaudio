@@ -132,6 +132,8 @@ struct timeval* pa_rtclock_from_wallclock(struct timeval *tv) {
 
     pa_assert(tv);
 
+    /* pa_timeval_sub() saturates on underflow! */
+
     if (pa_timeval_cmp(&wc_now, tv) < 0)
         pa_timeval_add(&rt_now, pa_timeval_diff(tv, &wc_now));
     else
@@ -144,7 +146,9 @@ struct timeval* pa_rtclock_from_wallclock(struct timeval *tv) {
 }
 
 pa_usec_t pa_timespec_load(const struct timespec *ts) {
-    pa_assert(ts);
+
+    if (PA_UNLIKELY(!ts))
+        return PA_USEC_INVALID;
 
     return
         (pa_usec_t) ts->tv_sec * PA_USEC_PER_SEC +
@@ -175,6 +179,8 @@ static struct timeval* wallclock_from_rtclock(struct timeval *tv) {
     pa_rtclock_get(&rt_now);
 
     pa_assert(tv);
+
+    /* pa_timeval_sub() saturates on underflow! */
 
     if (pa_timeval_cmp(&rt_now, tv) < 0)
         pa_timeval_add(&wc_now, pa_timeval_diff(tv, &rt_now));
