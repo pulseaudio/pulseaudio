@@ -70,7 +70,7 @@
 ; rlimit-msgqueue = -1
 ; rlimit-nice = 31
 ; rlimit-rtprio = 9
-; rlimit-rtttime = 1000000
+; rlimit-rttime = 1000000
 
 ; default-sample-format = s16le
 ; default-sample-rate = 44100
