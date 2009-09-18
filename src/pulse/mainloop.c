@@ -657,9 +657,9 @@ static void rebuild_pollfds(pa_mainloop *m) {
     m->rebuild_pollfds = FALSE;
 }
 
-static int dispatch_pollfds(pa_mainloop *m) {
+static unsigned dispatch_pollfds(pa_mainloop *m) {
     pa_io_event *e;
-    int r = 0, k;
+    unsigned r = 0, k;
 
     pa_assert(m->poll_func_ret > 0);
 
@@ -685,9 +685,9 @@ static int dispatch_pollfds(pa_mainloop *m) {
     return r;
 }
 
-static int dispatch_defer(pa_mainloop *m) {
+static unsigned dispatch_defer(pa_mainloop *m) {
     pa_defer_event *e;
-    int r = 0;
+    unsigned r = 0;
 
     if (m->n_enabled_defer_events <= 0)
         return 0;
@@ -753,10 +753,10 @@ static pa_usec_t calc_next_timeout(pa_mainloop *m) {
     return t->time - clock_now;
 }
 
-static int dispatch_timeout(pa_mainloop *m) {
+static unsigned dispatch_timeout(pa_mainloop *m) {
     pa_time_event *e;
     pa_usec_t now;
-    int r = 0;
+    unsigned r = 0;
     pa_assert(m);
 
     if (m->n_enabled_time_events <= 0)
@@ -903,7 +903,7 @@ quit:
 }
 
 int pa_mainloop_dispatch(pa_mainloop *m) {
-    int dispatched = 0;
+    unsigned dispatched = 0;
 
     pa_assert(m);
     pa_assert(m->state == STATE_POLLED);
@@ -929,7 +929,7 @@ int pa_mainloop_dispatch(pa_mainloop *m) {
 
     m->state = STATE_PASSIVE;
 
-    return dispatched;
+    return (int) dispatched;
 
 quit:
     m->state = STATE_QUIT;
@@ -938,6 +938,7 @@ quit:
 
 int pa_mainloop_get_retval(pa_mainloop *m) {
     pa_assert(m);
+
     return m->retval;
 }
 
