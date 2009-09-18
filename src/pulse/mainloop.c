@@ -324,16 +324,15 @@ static pa_usec_t make_rt(const struct timeval *tv, pa_bool_t *use_rtclock) {
         return PA_USEC_INVALID;
     }
 
-    if (tv->tv_usec & PA_TIMEVAL_RTCLOCK) {
-        ttv = *tv;
+    ttv = *tv;
+    *use_rtclock = !!(ttv.tv_usec & PA_TIMEVAL_RTCLOCK);
+
+    if (*use_rtclock)
         ttv.tv_usec &= ~PA_TIMEVAL_RTCLOCK;
-        tv = pa_rtclock_from_wallclock(&ttv);
+    else
+        pa_rtclock_from_wallclock(&ttv);
 
-        *use_rtclock = TRUE;
-    } else
-        *use_rtclock = FALSE;
-
-    return pa_timeval_load(tv);
+    return pa_timeval_load(&ttv);
 }
 
 static pa_time_event* mainloop_time_new(
