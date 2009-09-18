@@ -107,7 +107,10 @@ static void memtrap_link(pa_memtrap *m, unsigned j) {
     pa_assert(m);
 
     m->prev[j] = NULL;
-    m->next[j] = memtraps[j];
+
+    if ((m->next[j] = memtraps[j]))
+        m->next[j]->prev[j] = m;
+
     memtraps[j] = m;
 }
 
