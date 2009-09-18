@@ -898,7 +898,7 @@ static pa_memimport_segment* segment_attach(pa_memimport *i, uint32_t shm_id) {
     if (pa_hashmap_size(i->segments) >= PA_MEMIMPORT_SEGMENTS_MAX)
         return NULL;
 
-    seg = pa_xnew(pa_memimport_segment, 1);
+    seg = pa_xnew0(pa_memimport_segment, 1);
 
     if (pa_shm_attach_ro(&seg->memory, shm_id) < 0) {
         pa_xfree(seg);
@@ -906,10 +906,9 @@ static pa_memimport_segment* segment_attach(pa_memimport *i, uint32_t shm_id) {
     }
 
     seg->import = i;
-    seg->n_blocks = 0;
     seg->trap = pa_memtrap_add(seg->memory.ptr, seg->memory.size);
 
-    pa_hashmap_put(i->segments, PA_UINT32_TO_PTR(shm_id), seg);
+    pa_hashmap_put(i->segments, PA_UINT32_TO_PTR(seg->memory.id), seg);
     return seg;
 }
 
