@@ -78,6 +78,7 @@ struct pa_time_event {
     pa_bool_t dead:1;
 
     pa_bool_t enabled:1;
+    pa_bool_t use_rtclock:1;
     pa_usec_t time;
 
     pa_time_event_cb_t callback;
@@ -315,17 +316,22 @@ static void mainloop_defer_set_destroy(pa_defer_event *e, pa_defer_event_destroy
 }
 
 /* Time events */
-static pa_usec_t make_rt(const struct timeval *tv) {
+static pa_usec_t make_rt(const struct timeval *tv, pa_bool_t *use_rtclock) {
     struct timeval ttv;
 
-    if (!tv)
+    if (!tv) {
+        *use_rtclock = FALSE;
         return PA_USEC_INVALID;
+    }
 
     if (tv->tv_usec & PA_TIMEVAL_RTCLOCK) {
         ttv = *tv;
         ttv.tv_usec &= ~PA_TIMEVAL_RTCLOCK;
         tv = pa_rtclock_from_wallclock(&ttv);
-    }
+
+        *use_rtclock = TRUE;
+    } else
+        *use_rtclock = FALSE;
 
     return pa_timeval_load(tv);
 }
@@ -339,12 +345,13 @@ static pa_time_event* mainloop_time_new(
     pa_mainloop *m;
     pa_time_event *e;
     pa_usec_t t;
+    pa_bool_t use_rtclock = FALSE;
 
     pa_assert(a);
     pa_assert(a->userdata);
     pa_assert(callback);
 
-    t = make_rt(tv);
+    t = make_rt(tv, &use_rtclock);
 
     m = a->userdata;
     pa_assert(a == &m->api);
@@ -354,6 +361,7 @@ static pa_time_event* mainloop_time_new(
 
     if ((e->enabled = (t != PA_USEC_INVALID))) {
         e->time = t;
+        e->use_rtclock= use_rtclock;
 
         m->n_enabled_time_events++;
 
@@ -379,11 +387,12 @@ static pa_time_event* mainloop_time_new(
 static void mainloop_time_restart(pa_time_event *e, const struct timeval *tv) {
     pa_bool_t valid;
     pa_usec_t t;
+    pa_bool_t use_rtclock = FALSE;
 
     pa_assert(e);
     pa_assert(!e->dead);
 
-    t = make_rt(tv);
+    t = make_rt(tv, &use_rtclock);
 
     valid = (t != PA_USEC_INVALID);
     if (e->enabled && !valid) {
@@ -394,6 +403,7 @@ static void mainloop_time_restart(pa_time_event *e, const struct timeval *tv) {
 
     if ((e->enabled = valid)) {
         e->time = t;
+        e->use_rtclock = use_rtclock;
         pa_mainloop_wakeup(e->mainloop);
     }
 
@@ -779,7 +789,7 @@ static unsigned dispatch_timeout(pa_mainloop *m) {
             /* Disable time event */
             mainloop_time_restart(e, NULL);
 
-            e->callback(&m->api, e, pa_timeval_rtstore(&tv, e->time, FALSE), e->userdata);
+            e->callback(&m->api, e, pa_timeval_rtstore(&tv, e->time, e->use_rtclock), e->userdata);
 
             r++;
         }
