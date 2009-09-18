@@ -368,6 +368,7 @@ pa_memblock *pa_memblock_new_fixed(pa_mempool *p, void *d, size_t length, pa_boo
 
     if (!(b = pa_flist_pop(PA_STATIC_FLIST_GET(unused_memblocks))))
         b = pa_xnew(pa_memblock, 1);
+
     PA_REFCNT_INIT(b);
     b->pool = p;
     b->type = PA_MEMBLOCK_FIXED;
@@ -394,6 +395,7 @@ pa_memblock *pa_memblock_new_user(pa_mempool *p, void *d, size_t length, pa_free
 
     if (!(b = pa_flist_pop(PA_STATIC_FLIST_GET(unused_memblocks))))
         b = pa_xnew(pa_memblock, 1);
+
     PA_REFCNT_INIT(b);
     b->pool = p;
     b->type = PA_MEMBLOCK_USER;
@@ -506,13 +508,19 @@ static void memblock_free(pa_memblock *b) {
             /* Fall through */
 
         case PA_MEMBLOCK_FIXED:
-        case PA_MEMBLOCK_APPENDED :
             if (pa_flist_push(PA_STATIC_FLIST_GET(unused_memblocks), b) < 0)
                 pa_xfree(b);
 
             break;
 
-        case PA_MEMBLOCK_IMPORTED : {
+        case PA_MEMBLOCK_APPENDED:
+
+            /* We could attached it unused_memblocks, but that would
+             * probably waste some considerable memory */
+            pa_xfree(b);
+            break;
+
+        case PA_MEMBLOCK_IMPORTED: {
             pa_memimport_segment *segment;
             pa_memimport *import;
 
@@ -546,8 +554,7 @@ static void memblock_free(pa_memblock *b) {
             struct mempool_slot *slot;
             pa_bool_t call_free;
 
-            slot = mempool_slot_by_ptr(b->pool, pa_atomic_ptr_load(&b->data));
-            pa_assert(slot);
+            pa_assert_se(slot = mempool_slot_by_ptr(b->pool, pa_atomic_ptr_load(&b->data)));
 
             call_free = b->type == PA_MEMBLOCK_POOL_EXTERNAL;
 
