@@ -33,6 +33,7 @@
 
 #include <pulsecore/winsock.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/core-util.h>
 
 #include "timeval.h"
 
@@ -54,9 +55,9 @@ struct timeval *pa_gettimeofday(struct timeval *tv) {
 #define EPOCHFILETIME (116444736000000000LL)
 #endif
 
-    FILETIME        ft;
-    LARGE_INTEGER   li;
-    __int64         t;
+    FILETIME ft;
+    LARGE_INTEGER li;
+    int64_t t;
 
     pa_assert(tv);
 
@@ -128,39 +129,64 @@ pa_usec_t pa_timeval_age(const struct timeval *tv) {
 }
 
 struct timeval* pa_timeval_add(struct timeval *tv, pa_usec_t v) {
-    unsigned long secs;
+    time_t secs;
     pa_assert(tv);
 
-    secs = (unsigned long) (v/PA_USEC_PER_SEC);
-    tv->tv_sec += (time_t) secs;
-    v -= ((pa_usec_t) secs) * PA_USEC_PER_SEC;
+    secs = (time_t) (v/PA_USEC_PER_SEC);
 
+    if (PA_UNLIKELY(tv->tv_sec > PA_INT_TYPE_MAX(time_t) - secs))
+        goto overflow;
+
+    tv->tv_sec += secs;
+    v -= (pa_usec_t) secs * PA_USEC_PER_SEC;
     tv->tv_usec += (suseconds_t) v;
 
     /* Normalize */
-    while ((unsigned) tv->tv_usec >= PA_USEC_PER_SEC) {
+    while ((pa_usec_t) tv->tv_usec >= PA_USEC_PER_SEC) {
+
+        if (PA_UNLIKELY(tv->tv_sec >= PA_INT_TYPE_MAX(time_t)))
+            goto overflow;
+
         tv->tv_sec++;
         tv->tv_usec -= (suseconds_t) PA_USEC_PER_SEC;
     }
 
     return tv;
+
+overflow:
+    tv->tv_sec = PA_INT_TYPE_MAX(time_t);
+    tv->tv_usec = (suseconds_t) (PA_USEC_PER_SEC-1);
+    return tv;
 }
 
 struct timeval* pa_timeval_sub(struct timeval *tv, pa_usec_t v) {
-    unsigned long secs;
+    time_t secs;
     pa_assert(tv);
 
-    secs = (unsigned long) (v/PA_USEC_PER_SEC);
-    tv->tv_sec -= (time_t) secs;
-    v -= ((pa_usec_t) secs) * PA_USEC_PER_SEC;
+    secs = (time_t) (v/PA_USEC_PER_SEC);
+
+    if (PA_UNLIKELY(tv->tv_sec < secs))
+        goto underflow;
+
+    tv->tv_sec -= secs;
+    v -= (pa_usec_t) secs * PA_USEC_PER_SEC;
 
     if (tv->tv_usec >= (suseconds_t) v)
         tv->tv_usec -= (suseconds_t) v;
     else {
+
+        if (PA_UNLIKELY(tv->tv_sec <= 0))
+            goto underflow;
+
         tv->tv_sec --;
         tv->tv_usec += (suseconds_t) (PA_USEC_PER_SEC - v);
     }
 
+    return tv;
+
+underflow:
+    tv->tv_sec = 0;
+    tv->tv_usec = 0;
     return tv;
 }
 
