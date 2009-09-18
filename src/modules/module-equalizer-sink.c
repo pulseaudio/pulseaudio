@@ -837,13 +837,10 @@ static void unpack(char *str, size_t length, char ***strs, size_t *len){
         size_t l = *((uint16_t *)(str+offset));
         size_t e = PA_MIN(offset + l, length) - offset;
         offset = PA_MIN(offset + sizeof(uint16_t), length);
-        if(e > 0){
-            (*strs)[i] = pa_xnew(char, e + 1);
-            memcpy((*strs)[i], strs + offset, e);
-            (*strs)[i][e] = '\0';
-        }else{
-            (*strs)[i]=NULL;
-        }
+        (*strs)[i] = pa_xnew(char, e + 1);
+        memcpy((*strs)[i], str + offset, e);
+        (*strs)[i][e] = '\0';
+        offset += l;
     }
 }
 static void save_profile(struct userdata *u, size_t channel, char *name){
@@ -905,7 +902,7 @@ static void save_state(struct userdata *u){
     data.data = state;
     data.size = filter_state_size + packed_length;
     //thread safety for 0.9.17?
-    pa_assert_se(dbname = pa_state_path(EQ_STATE_DB, TRUE));
+    pa_assert_se(dbname = pa_state_path(EQ_STATE_DB, FALSE));
     pa_assert_se(database = pa_database_open(dbname, TRUE));
     pa_xfree(dbname);
 
@@ -936,12 +933,10 @@ static const char* load_profile(struct userdata *u, size_t channel, char *name){
             float *profile = (float *) value.data;
             a_i = pa_aupdate_write_begin(u->a_H[channel]);
             u->Xs[channel][a_i] = profile[0];
-            memcpy(u->Hs[channel][a_i], profile + 1, CHANNEL_PROFILE_SIZE * sizeof(float));
+            memcpy(u->Hs[channel][a_i], profile + 1, FILTER_SIZE * sizeof(float));
             fix_filter(u->Hs[channel][a_i], u->fft_size);
             pa_aupdate_write_end(u->a_H[channel]);
-            if(u->base_profiles[channel]){
-                pa_xfree(u->base_profiles[channel]);
-            }
+            pa_xfree(u->base_profiles[channel]);
             u->base_profiles[channel] = pa_xstrdup(name);
         }else{
             return "incompatible size";
@@ -964,6 +959,7 @@ static void load_state(struct userdata *u){
     database = pa_database_open(dbname, FALSE);
     pa_xfree(dbname);
     if(!database){
+        pa_log("No resume state");
         return;
     }
 
@@ -985,14 +981,14 @@ static void load_state(struct userdata *u){
             unpack(((char *)value.data) + FILTER_STATE_SIZE, value.size - FILTER_STATE_SIZE, &names, &n_profs);
             n_profs = PA_MIN(n_profs, u->channels);
             for(size_t c = 0; c < n_profs; ++c){
-                if(u->base_profiles[c]){
-                    pa_xfree(u->base_profiles[c]);
-                }
+                pa_xfree(u->base_profiles[c]);
                 u->base_profiles[c] = names[c];
             }
             pa_xfree(names);
         }
         pa_datum_free(&value);
+    }else{
+        pa_log("resume state exists but is wrong size!");
     }
     pa_database_close(database);
 }
@@ -1066,7 +1062,7 @@ int pa__init(pa_module*m) {
     pa_modargs_get_value_boolean(ma, "set_default", &u->set_default);
 
     u->channels = ss.channels;
-    u->fft_size = pow(2, ceil(log(ss.rate)/log(2)));
+    u->fft_size = pow(2, ceil(log(ss.rate)/log(2)));//probably unstable near corner cases of powers of 2
     pa_log_debug("fft size: %ld", u->fft_size);
     u->window_size = 15999;
     u->R = (u->window_size + 1) / 2;
@@ -1102,6 +1098,9 @@ int pa__init(pa_module*m) {
     u->first_iteration = TRUE;
 
     u->base_profiles = pa_xnew0(char *, u->channels);
+    for(size_t c = 0; c < u->channels; ++c){
+        u->base_profiles[c] = pa_xstrdup("default");
+    }
 
     /* Create sink */
     pa_sink_new_data_init(&sink_data);
@@ -1233,9 +1232,7 @@ void pa__done(pa_module*m) {
     dbus_done(u);
 
     for(size_t c = 0; c < u->channels; ++c){
-        if(u->base_profiles[c]){
-            pa_xfree(u->base_profiles[c]);
-        }
+        pa_xfree(u->base_profiles[c]);
     }
     pa_xfree(u->base_profiles);
 
@@ -1308,6 +1305,7 @@ static void equalizer_handle_get_filter(DBusConnection *conn, DBusMessage *msg, 
 static void equalizer_handle_set_filter(DBusConnection *conn, DBusMessage *msg, void *_u);
 static void equalizer_handle_save_profile(DBusConnection *conn, DBusMessage *msg, void *_u);
 static void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_handle_save_state(DBusConnection *conn, DBusMessage *msg, void *_u);
 static void equalizer_handle_get_profile_name(DBusConnection *conn, DBusMessage *msg, void *_u);
 enum manager_method_index {
     MANAGER_METHOD_REMOVE_PROFILE,
@@ -1374,6 +1372,7 @@ enum equalizer_method_index {
     EQUALIZER_METHOD_LOAD_PROFILE,
     EQUALIZER_METHOD_SET_FILTER,
     EQUALIZER_METHOD_GET_FILTER,
+    EQUALIZER_METHOD_SAVE_STATE,
     EQUALIZER_METHOD_GET_PROFILE_NAME,
     EQUALIZER_METHOD_MAX
 };
@@ -1455,6 +1454,11 @@ static pa_dbus_method_handler equalizer_methods[EQUALIZER_METHOD_MAX]={
         .arguments=load_profile_args,
         .n_arguments=sizeof(load_profile_args)/sizeof(pa_dbus_arg_info),
         .receive_cb=equalizer_handle_load_profile},
+    [EQUALIZER_METHOD_SAVE_STATE]{
+        .method_name="SaveState",
+        .arguments=NULL,
+        .n_arguments=0,
+        .receive_cb=equalizer_handle_save_state},
     [EQUALIZER_METHOD_GET_PROFILE_NAME]{
         .method_name="BaseProfile",
         .arguments=base_profile_name_args,
@@ -2037,6 +2041,16 @@ void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void 
     dbus_message_unref(signal);
 }
 
+void equalizer_handle_save_state(DBusConnection *conn, DBusMessage *msg, void *_u) {
+    struct userdata *u = (struct userdata *) _u;
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(u);
+
+    save_state(u);
+    pa_dbus_send_empty_reply(conn, msg);
+}
+
 void equalizer_handle_get_profile_name(DBusConnection *conn, DBusMessage *msg, void *_u){
     struct userdata *u = (struct userdata *) _u;
     DBusError error;
@@ -2060,11 +2074,8 @@ void equalizer_handle_get_profile_name(DBusConnection *conn, DBusMessage *msg, v
         return;
     }
     r_channel = channel == u->channels ? 0 : channel;
-    if(u->base_profiles[r_channel]){
-        pa_dbus_send_basic_value_reply(conn,msg, DBUS_TYPE_STRING, &u->base_profiles[r_channel]);
-    }else{
-        pa_dbus_send_empty_reply(conn, msg);
-    }
+    pa_assert(u->base_profiles[r_channel]);
+    pa_dbus_send_basic_value_reply(conn,msg, DBUS_TYPE_STRING, &u->base_profiles[r_channel]);
 }
 
 void equalizer_get_revision(DBusConnection *conn, DBusMessage *msg, void *_u){
