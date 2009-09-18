@@ -806,7 +806,7 @@ static int dispatch_timeout(pa_mainloop *m) {
             /* Disable time event */
             mainloop_time_restart(e, NULL);
 
-            e->callback(&m->api, e, pa_timeval_rtstore(&tv, e->time, TRUE), e->userdata);
+            e->callback(&m->api, e, pa_timeval_rtstore(&tv, e->time, FALSE), e->userdata);
 
             r++;
         }
