@@ -1,14 +1,14 @@
-# translation of pulaudio.po to Gujarati
+# translation of PulseAudio-up.po to Gujarati
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Sweta Kothari <swkothar@redhat.com>, 2009.
 msgid ""
 msgstr ""
-"Project-Id-Version: pulaudio\n"
+"Project-Id-Version: PulseAudio-up\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-11 01:26+0200\n"
-"PO-Revision-Date: 2009-09-10 15:26+0530\n"
+"POT-Creation-Date: 2009-09-11 04:41+0000\n"
+"PO-Revision-Date: 2009-09-11 13:02+0530\n"
 "Last-Translator: Sweta Kothari <swkothar@redhat.com>\n"
 "Language-Team: Gujarati\n"
 "MIME-Version: 1.0\n"
@@ -203,8 +203,7 @@ msgstr "ડિમનને મારવાનું નિષ્ફળ: %s"
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr ""
-"આ પ્રક્રિયાને રુટ તરીકે ચલાવવા માટે વિચાર થયેલ નથી (નહિં તો --system એ સ્પષ્ટ થયેલ છે)."
+msgstr "આ પ્રક્રિયાને રુટ તરીકે ચલાવવા માટે વિચાર થયેલ નથી (નહિં તો --system એ સ્પષ્ટ થયેલ છે)."
 
 #: ../src/daemon/main.c:568
 msgid "Root privileges required."
@@ -732,8 +731,7 @@ msgstr "રૂપરેખાંકન ફાઇલને ખોલવાનુ�
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
-msgstr ""
-"સ્પષ્ટ થયેલ મૂળભૂત ચેનલ મેપ પાસે સ્પષ્ટ થયેલ ચેનલોની મૂળભૂત સંખ્યા કરતા વિવિધ ચેનલોની સંખ્યા છે."
+msgstr "સ્પષ્ટ થયેલ મૂળભૂત ચેનલ મેપ પાસે સ્પષ્ટ થયેલ ચેનલોની મૂળભૂત સંખ્યા કરતા વિવિધ ચેનલોની સંખ્યા છે."
 
 #: ../src/daemon/daemon-conf.c:638
 #, c-format
@@ -1088,11 +1086,11 @@ msgstr "ક્લાઇન્ટમાં ફાટા પડેલ છે"
 
 #: ../src/pulse/error.c:68
 msgid "Input/Output error"
-msgstr ""
+msgstr "ઇનપુટ/આઉટપુટ ભૂલ"
 
 #: ../src/pulse/error.c:69
 msgid "Device or resource busy"
-msgstr ""
+msgstr "ઉપકરણ અથવા સ્ત્રોત વ્યસ્ત"
 
 #: ../src/pulse/sample.c:172
 #, c-format
@@ -1511,8 +1509,7 @@ msgstr "ચેતણી: ફાઇલમાં ચેનલ મેપને લ�
 
 #: ../src/utils/pacat.c:1004
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "નમૂના સ્પષ્ટીકરણ '%s' અને ચેનલ નક્ષા '%s' સાથે %s સ્ટ્રીમને ખોલી રહ્યા છે."
 
 #: ../src/utils/pacat.c:1005
@@ -2101,17 +2098,14 @@ msgid "You have to specify a module index"
 msgstr "તમારે મોડ્યુલ અનુક્રમણિકાને સ્પષ્ટ કરવુ જ પડશે"
 
 #: ../src/utils/pactl.c:1090
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
-msgstr ""
-"તમે એક સિંક કરતા વધારે સ્પષ્ટ કરી શકશો નહિં. તમારે બુલિયન કિંમતને સ્પષ્ટ કરવુ જ પડશે."
+msgid "You may not specify more than one sink. You have to specify a boolean value."
+msgstr "તમે એક સિંક કરતા વધારે સ્પષ્ટ કરી શકશો નહિં. તમારે બુલિયન કિંમતને સ્પષ્ટ કરવુ જ પડશે."
 
 #: ../src/utils/pactl.c:1103
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
-msgstr ""
-"તમે એક સ્ત્રોત કરતા વધારે સ્પષ્ટ કરી શકશો નહિં. તમારે બુલિયન કિંમતને સ્પષ્ટ કરવુ જ પડશે."
+msgstr "તમે એક સ્ત્રોત કરતા વધારે સ્પષ્ટ કરી શકશો નહિં. તમારે બુલિયન કિંમતને સ્પષ્ટ કરવુ જ પડશે."
 
 #: ../src/utils/pactl.c:1115
 msgid "You have to specify a card name/index and a profile name"
@@ -2341,3 +2335,4 @@ msgstr "Telephony Duplex (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio સાઉન્ડ સર્વર"
+

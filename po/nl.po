@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-11 01:26+0200\n"
-"PO-Revision-Date: 2009-09-10 16:03+0200\n"
+"POT-Creation-Date: 2009-09-11 14:45+0000\n"
+"PO-Revision-Date: 2009-09-11 19:58+0200\n"
 "Last-Translator: Geert Warrink <geert.warrink@onsnet.nu>\n"
 "Language-Team: nl <nl@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -1102,11 +1102,11 @@ msgstr "Client afgesplitst"
 
 #: ../src/pulse/error.c:68
 msgid "Input/Output error"
-msgstr ""
+msgstr "Input/Output fout"
 
 #: ../src/pulse/error.c:69
 msgid "Device or resource busy"
-msgstr ""
+msgstr "Apparaat of hulpbron is bezig"
 
 #: ../src/pulse/sample.c:172
 #, c-format
