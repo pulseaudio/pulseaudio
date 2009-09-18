@@ -1716,11 +1716,11 @@ static int option_verify(pa_alsa_option *o) {
         { "input-radio",               N_("Radio") },
         { "input-video",               N_("Video") },
         { "input-agc-on",              N_("Automatic Gain Control") },
-        { "input-agc-off",             "" },
+        { "input-agc-off",             N_("No Automatic Gain Control") },
         { "input-boost-on",            N_("Boost") },
-        { "input-boost-off",           "" },
+        { "input-boost-off",           N_("No Boost") },
         { "output-amplifier-on",       N_("Amplifier") },
-        { "output-amplifier-off",      "" }
+        { "output-amplifier-off",      N_("No Amplifier") }
     };
 
     pa_assert(o);
