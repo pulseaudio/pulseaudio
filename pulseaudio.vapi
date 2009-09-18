@@ -23,7 +23,7 @@ using GLib;
 using Posix;
 
 [CCode (cheader_filename="pulse/pulseaudio.h")]
-namespace Pulse {
+namespace PulseAudio {
 
         [CCode (cname="pa_get_library_version")]
         public unowned string get_library_version();
@@ -152,7 +152,7 @@ namespace Pulse {
                 }
 
                 [CCode (cname="pa_sample_spec_init")]
-                SampleSpec();
+                public SampleSpec();
         }
 
         // [CCode (cname="PA_BYTES_SNPRINT_MAX")]
@@ -747,18 +747,22 @@ namespace Pulse {
                 ERROR
         }
 
-        [CCode (cname="pa_io_event")]
+        [Compact]
+        [CCode (cname="pa_io_event", unref_function="", ref_function="")]
         public struct IoEvent {
         }
 
-        [CCode (cname="pa_time_event")]
+        [Compact]
+        [CCode (cname="pa_time_event", unref_function="", ref_function="")]
         public struct TimeEvent {
         }
 
-        [CCode (cname="pa_defer_event")]
+        [Compact]
+        [CCode (cname="pa_defer_event", unref_function="", ref_function="")]
         public struct DeferEvent {
         }
 
+        [Compact]
         [CCode (cname="pa_signal_event", cprefix="pa_signal_", free_function="pa_signal_free")]
         public struct SignalEvent {
 
@@ -769,42 +773,42 @@ namespace Pulse {
         }
 
         [Compact]
-        [CCode (cname="pa_mainloop_api")]
+        [CCode (cname="pa_mainloop_api", unref_function="", ref_function="")]
         public class MainLoopApi {
                 public void* userdata;
 
                 /* Callbacks for the consumer to implement*/
-                public delegate void IoEventCb(IoEvent e, int fd, IoEventFlags flags);
-                public delegate void IoEventDestroyCb(IoEvent e);
+                public delegate void IoEventCb(MainLoopApi a, IoEvent e, int fd, IoEventFlags flags);
+                public delegate void IoEventDestroyCb(MainLoopApi a, IoEvent e);
 
-                public delegate void TimeEventCb(TimeEvent e, ref timeval t);
-                public delegate void TimeEventDestroyCb(TimeEvent e);
+                public delegate void TimeEventCb(MainLoopApi a, TimeEvent e, ref timeval t);
+                public delegate void TimeEventDestroyCb(MainLoopApi a, TimeEvent e);
 
-                public delegate void DeferEventCb(DeferEvent e);
-                public delegate void DeferEventDestroyCb(DeferEvent e);
+                public delegate void DeferEventCb(MainLoopApi a, DeferEvent e);
+                public delegate void DeferEventDestroyCb(MainLoopApi a, DeferEvent e);
 
-                public delegate void SignalEventCb(SignalEvent e);
-                public delegate void SignalEventDestroyCb(SignalEvent e);
+                public delegate void SignalEventCb(MainLoopApi a, SignalEvent e);
+                public delegate void SignalEventDestroyCb(MainLoopApi a, SignalEvent e);
 
                 /* Callbacks for the provider to implement */
-                public delegate IoEvent IoNewCb(int fd, IoEventFlags flags, IoEventCb cb);
-                public delegate void IoEnableCb(IoEvent e, IoEventFlags flags);
-                public delegate void IoFreeCb(IoEvent e);
-                public delegate void IoSetDestroyCb(IoEvent e, IoEventDestroyCb? cb);
+                public delegate IoEvent IoNewCb(MainLoopApi a, int fd, IoEventFlags flags, IoEventCb cb);
+                public delegate void IoEnableCb(MainLoopApi a, IoEvent e, IoEventFlags flags);
+                public delegate void IoFreeCb(MainLoopApi a, IoEvent e);
+                public delegate void IoSetDestroyCb(MainLoopApi a, IoEvent e, IoEventDestroyCb? cb);
 
-                public delegate TimeEvent TimeNewCb(ref timeval? t, TimeEventCb cb);
-                public delegate void TimeRestartCb(TimeEvent e, ref timeval? t);
-                public delegate void TimeFreeCb(TimeEvent e);
-                public delegate void TimeSetDestroyCb(TimeEvent e, TimeEventDestroyCb? cb);
+                public delegate TimeEvent TimeNewCb(MainLoopApi a, timeval? t, TimeEventCb cb);
+                public delegate void TimeRestartCb(MainLoopApi a, TimeEvent e, timeval? t);
+                public delegate void TimeFreeCb(MainLoopApi a, TimeEvent e);
+                public delegate void TimeSetDestroyCb(MainLoopApi a, TimeEvent e, TimeEventDestroyCb? cb);
 
-                public delegate DeferEvent DeferNewCb(DeferEventCb cb);
-                public delegate void DeferEnableCb(DeferEvent e, bool b);
-                public delegate void DeferFreeCb(DeferEvent e);
-                public delegate void DeferSetDestroyCb(DeferEvent e, DeferEventDestroyCb? cb);
+                public delegate DeferEvent DeferNewCb(MainLoopApi a, DeferEventCb cb);
+                public delegate void DeferEnableCb(MainLoopApi a, DeferEvent e, bool b);
+                public delegate void DeferFreeCb(MainLoopApi a, DeferEvent e);
+                public delegate void DeferSetDestroyCb(MainLoopApi a, DeferEvent e, DeferEventDestroyCb? cb);
 
-                public delegate void QuitCb(int retval);
+                public delegate void QuitCb(MainLoopApi a, int retval);
 
-                public delegate void OnceCb();
+                public delegate void OnceCb(MainLoopApi a);
 
                 public IoNewCb io_new;
                 public IoEnableCb io_enable;
@@ -834,7 +838,7 @@ namespace Pulse {
         public void signal_done();
 
         [CCode (cname="pa_poll_func")]
-        public delegate int PollFunc(pollfd[] ufds);
+        public delegate int PollFunc(pollfd[] ufds, int timeout);
 
         [Compact]
         [CCode (cname="pa_mainloop", cprefix="pa_mainloop_", free_function="pa_mainloop_free")]
@@ -915,11 +919,12 @@ namespace Pulse {
                         CONNECTING,
                         AUTHORIZING,
                         SETTING_NAME,
-                        READ,
+                        READY,
                         FAILED,
                         TERMINATED;
 
-                        bool IS_GOOD();
+                        [CCode (cname="PA_CONTEXT_IS_GOOD")]
+                        public bool IS_GOOD();
                 }
 
                 [CCode (cname="pa_subscription_mask_t", cprefix="PA_SUBSCRIPTION_MASK_")]
@@ -937,7 +942,7 @@ namespace Pulse {
                         ALL;
 
                         [CCode (cname="pa_subscription_match_flags")]
-                        bool match_flags(SubscriptionEventType t);
+                        public bool match_flags(SubscriptionEventType t);
                 }
 
                 [CCode (cname="pa_subscription_event_type_t", cprefix="PA_SUBSCRIPTION_EVENT_")]
@@ -958,21 +963,21 @@ namespace Pulse {
                         TYPE_MASK
                 }
 
-                public delegate void NotifyCb();
-                public delegate void SuccessCb(int success);
-                public delegate void EventCb(string name, Proplist? proplist);
-                public delegate void SubscribeCb(SubscriptionEventType t, uint32 idx);
-                public delegate void SinkInfoCb(SinkInfo? i, int eol);
-                public delegate void SourceInfoCb(SourceInfo? i, int eol);
-                public delegate void CardInfoCb(CardInfo? i, int eol);
-                public delegate void SinkInputInfoCb(SinkInputInfo? i, int eol);
-                public delegate void SourceOutputInfoCb(SourceOutputInfo? i, int eol);
-                public delegate void ServerInfoCb(ServerInfo? i);
-                public delegate void StatInfoCb(ServerInfo? i);
-                public delegate void ModuleInfoCb(ModuleInfo? i, int eol);
-                public delegate void ClientInfoCb(ClientInfo? i, int eol);
-                public delegate void SampleInfoCb(SampleInfo? i, int eol);
-                public delegate void IndexCb(uint32 idx);
+                public delegate void NotifyCb(Context c);
+                public delegate void SuccessCb(Context c, int success);
+                public delegate void EventCb(Context c, string name, Proplist? proplist);
+                public delegate void SubscribeCb(Context c, SubscriptionEventType t, uint32 idx);
+                public delegate void SinkInfoCb(Context c, SinkInfo? i, int eol);
+                public delegate void SourceInfoCb(Context c, SourceInfo? i, int eol);
+                public delegate void CardInfoCb(Context c, CardInfo? i, int eol);
+                public delegate void SinkInputInfoCb(Context c, SinkInputInfo? i, int eol);
+                public delegate void SourceOutputInfoCb(Context c, SourceOutputInfo? i, int eol);
+                public delegate void ServerInfoCb(Context c, ServerInfo? i);
+                public delegate void StatInfoCb(Context c, ServerInfo? i);
+                public delegate void ModuleInfoCb(Context c, ModuleInfo? i, int eol);
+                public delegate void ClientInfoCb(Context c, ClientInfo? i, int eol);
+                public delegate void SampleInfoCb(Context c, SampleInfo? i, int eol);
+                public delegate void IndexCb(Context c, uint32 idx);
 
                 [CCode (cname="pa_context_new_with_proplist")]
                 public Context(MainLoopApi api, string? name, Proplist? proplist = null);
@@ -1121,7 +1126,8 @@ namespace Pulse {
                         FAILED,
                         TERMINATED;
 
-                        bool IS_GOOD();
+                        [CCode (cname="PA_STREAM_IS_GOOD")]
+                        public bool IS_GOOD();
                 }
 
                 [CCode (cname="pa_stream_direction_t", cprefix="PA_STREAM_")]
@@ -1172,13 +1178,13 @@ namespace Pulse {
                 [CCode (cname="PA_STREAM_EVENT_REQUEST_UNCORK")]
                 public const string EVENT_REQUEST_UNCORK;
 
-                public delegate void SuccessCb(int success);
-                public delegate void RequestCb(size_t nbytes);
-                public delegate void NotifyCb();
-                public delegate void EventCb(string name, Proplist proplist);
+                public delegate void SuccessCb(Stream s, int success);
+                public delegate void RequestCb(Stream s, size_t nbytes);
+                public delegate void NotifyCb(Stream s);
+                public delegate void EventCb(Stream s, string name, Proplist proplist);
 
                 [CCode (cname="pa_stream_new_with_proplist")]
-                public Stream(Context c, string name, SampleSpec ss, ChannelMap map = null, Proplist proplist = null);
+                public Stream(Context c, string name, SampleSpec ss, ChannelMap? map = null, Proplist? proplist = null);
 
                 public State get_state();
                 public Context get_context();
@@ -1188,47 +1194,47 @@ namespace Pulse {
                 public int is_suspended();
                 public int is_corked();
 
-                public int connect_playback(string dev, BufferAttr a = null, Flags flags = 0, Volume volume = null, Stream sync_stream = null);
-                public int connect_record(string dev, BufferAttr a = null, Flags flags = 0);
+                public int connect_playback(string dev, BufferAttr? a = null, Flags flags = 0, CVolume? volume = null, Stream? sync_stream = null);
+                public int connect_record(string dev, BufferAttr? a = null, Flags flags = 0);
                 public int connect_upload(size_t length);
                 public int disconnect();
                 public int finish_upload();
 
                 public int begin_write(out void* data, out size_t nbytes);
                 public int cancel_write();
-                public int write(void *data, size_t bytes, FreeCb free_cb = null, int64 offset = 0, SeekMode mode = SeekMode.RELATIVE);
+                public int write(void *data, size_t bytes, FreeCb? free_cb = null, int64 offset = 0, SeekMode mode = SeekMode.RELATIVE);
                 public int peek(out void *data, out size_t nbytes);
                 public int drop();
                 public size_t writable_size();
                 public size_t readable_size();
 
-                public void set_state_callback(NotifyCb cb = null);
-                public void set_write_callback(RequestCb cb = null);
-                public void set_read_callback(RequestCb cb = null);
-                public void set_overflow_callback(NotifyCb cb = null);
-                public void set_underflow_callback(NotifyCb cb = null);
-                public void set_started_callback(NotifyCb cb = null);
-                public void set_latency_update_callback(NotifyCb cb = null);
-                public void set_moved_callback(NotifyCb cb = null);
-                public void set_suspended_callback(NotifyCb cb = null);
-                public void set_event_callback(EventCb cb = null);
-                public void set_buffer_attr_callback(NotifyCb cb = null);
+                public void set_state_callback(NotifyCb? cb = null);
+                public void set_write_callback(RequestCb? cb = null);
+                public void set_read_callback(RequestCb? cb = null);
+                public void set_overflow_callback(NotifyCb? cb = null);
+                public void set_underflow_callback(NotifyCb? cb = null);
+                public void set_started_callback(NotifyCb? cb = null);
+                public void set_latency_update_callback(NotifyCb? cb = null);
+                public void set_moved_callback(NotifyCb? cb = null);
+                public void set_suspended_callback(NotifyCb? cb = null);
+                public void set_event_callback(EventCb? cb = null);
+                public void set_buffer_attr_callback(NotifyCb? cb = null);
 
-                public Operation? drain(SuccessCb cb = null);
-                public Operation? update_timing_info(SuccessCb cb = null);
+                public Operation? drain(SuccessCb? cb = null);
+                public Operation? update_timing_info(SuccessCb? cb = null);
 
-                public Operation? cork(bool b, SuccessCb cb = null);
-                public Operation? flush(SuccessCb cb = null);
-                public Operation? prebuf(SuccessCb cb = null);
-                public Operation? trigger(SuccessCb cb = null);
+                public Operation? cork(bool b, SuccessCb? cb = null);
+                public Operation? flush(SuccessCb? cb = null);
+                public Operation? prebuf(SuccessCb? cb = null);
+                public Operation? trigger(SuccessCb? cb = null);
 
-                public Operation? set_name(string name, SuccessCb cb = null);
-                public Operation? set_buffer_attr(BufferAttr attr, SuccessCb cb = null);
-                public Operation? update_sample_rate(uint32 rate, SuccessCb cb = null);
+                public Operation? set_name(string name, SuccessCb? cb = null);
+                public Operation? set_buffer_attr(BufferAttr attr, SuccessCb? cb = null);
+                public Operation? update_sample_rate(uint32 rate, SuccessCb? cb = null);
 
                 [CCode (array_length = false)]
-                public Operation? proplist_remove(string[] keys, SuccessCb cb = null);
-                public Operation? proplist_update(UpdateMode mode, Proplist pl, SuccessCb cb = null);
+                public Operation? proplist_remove(string[] keys, SuccessCb? cb = null);
+                public Operation? proplist_update(UpdateMode mode, Proplist pl, SuccessCb? cb = null);
 
                 public unowned TimingInfo? get_timing_info();
                 public int get_time(out usec u);
@@ -1244,176 +1250,176 @@ namespace Pulse {
 
         [CCode (cname="pa_sink_port_info")]
         public struct SinkPortInfo {
-                string name;
-                string description;
-                uint32 priority;
+                public string name;
+                public string description;
+                public uint32 priority;
         }
 
         [CCode (cname="pa_sink_info")]
         public struct SinkInfo {
-                string name;
-                uint32 index;
-                string description;
-                SampleSpec sample_spec;
-                ChannelMap channel_map;
-                uint32 owner_module;
-                CVolume volume;
-                int mute;
-                uint32 monitor_source;
-                string monitor_source_name;
-                usec latency;
-                string driver;
-                SinkFlags flags;
-                Proplist proplist;
-                usec configured_latency;
-                Volume base_volume;
-                SinkState state;
-                uint32 n_volume_steps;
-                uint32 card;
-                uint32 n_ports;
-                SinkPortInfo*[] ports;
-                SinkPortInfo* active_port;
+                public string name;
+                public uint32 index;
+                public string description;
+                public SampleSpec sample_spec;
+                public ChannelMap channel_map;
+                public uint32 owner_module;
+                public CVolume volume;
+                public int mute;
+                public uint32 monitor_source;
+                public string monitor_source_name;
+                public usec latency;
+                public string driver;
+                public SinkFlags flags;
+                public Proplist proplist;
+                public usec configured_latency;
+                public Volume base_volume;
+                public SinkState state;
+                public uint32 n_volume_steps;
+                public uint32 card;
+                public uint32 n_ports;
+                public SinkPortInfo*[] ports;
+                public SinkPortInfo* active_port;
         }
 
         [CCode (cname="pa_source_port_info")]
         public struct SourcePortInfo {
-                string name;
-                string description;
-                uint32 priority;
+                public string name;
+                public string description;
+                public uint32 priority;
         }
 
         [CCode (cname="pa_source_info")]
         public struct SourceInfo {
-                string name;
-                uint32 index;
-                string description;
-                SampleSpec sample_spec;
-                ChannelMap channel_map;
-                uint32 owner_module;
-                CVolume volume;
-                int mute;
-                uint32 monitor_of_sink;
-                string monitor_of_sink_name;
-                usec latency;
-                string driver;
-                SourceFlags flags;
-                Proplist proplist;
-                usec configured_latency;
-                Volume base_volume;
-                SourceState state;
-                uint32 n_volume_steps;
-                uint32 card;
-                uint32 n_ports;
-                SourcePortInfo*[] ports;
-                SourcePortInfo* active_port;
+                public string name;
+                public uint32 index;
+                public string description;
+                public SampleSpec sample_spec;
+                public ChannelMap channel_map;
+                public uint32 owner_module;
+                public CVolume volume;
+                public int mute;
+                public uint32 monitor_of_sink;
+                public string monitor_of_sink_name;
+                public usec latency;
+                public string driver;
+                public SourceFlags flags;
+                public Proplist proplist;
+                public usec configured_latency;
+                public Volume base_volume;
+                public SourceState state;
+                public uint32 n_volume_steps;
+                public uint32 card;
+                public uint32 n_ports;
+                public SourcePortInfo*[] ports;
+                public SourcePortInfo* active_port;
         }
 
         [CCode (cname="pa_server_info")]
         public struct ServerInfo {
-                string user_name;
-                string host_name;
-                string server_version;
-                string server_name;
-                SampleSpec sample_spec;
-                string default_sink_name;
-                string default_source_name;
-                ChannelMap channel_map;
+                public string user_name;
+                public string host_name;
+                public string server_version;
+                public string server_name;
+                public SampleSpec sample_spec;
+                public string default_sink_name;
+                public string default_source_name;
+                public ChannelMap channel_map;
         }
 
         [CCode (cname="pa_module_info")]
         public struct ModuleInfo {
-                uint32 index;
-                string name;
-                string argument;
-                uint32 n_used;
-                Proplist proplist;
+                public uint32 index;
+                public string name;
+                public string argument;
+                public uint32 n_used;
+                public Proplist proplist;
         }
 
         [CCode (cname="pa_client_info")]
         public struct ClientInfo {
-                uint32 index;
-                string name;
-                uint32 owner_module;
-                string driver;
-                Proplist proplist;
+                public uint32 index;
+                public string name;
+                public uint32 owner_module;
+                public string driver;
+                public Proplist proplist;
         }
 
         [CCode (cname="pa_card_profile_info")]
         public struct CardProfileInfo {
-                string name;
-                string description;
-                uint32 n_sinks;
-                uint32 n_sources;
-                uint32 priority;
+                public string name;
+                public string description;
+                public uint32 n_sinks;
+                public uint32 n_sources;
+                public uint32 priority;
         }
 
         [CCode (cname="pa_card_info")]
         public struct CardInfo {
-                uint32 index;
-                string name;
-                uint32 owner_module;
-                string driver;
-                uint32 n_profiles;
-                CardProfileInfo profiles[];
-                CardProfileInfo *active_profile;
-                Proplist proplist;
+                public uint32 index;
+                public string name;
+                public uint32 owner_module;
+                public string driver;
+                public uint32 n_profiles;
+                public CardProfileInfo profiles[];
+                public CardProfileInfo *active_profile;
+                public Proplist proplist;
         }
 
         [CCode (cname="pa_sink_input_info")]
         public struct SinkInputInfo {
-                uint32 index;
-                string name;
-                uint32 owner_module;
-                uint32 client;
-                uint32 sink;
-                SampleSpec sample_spec;
-                ChannelMap channel_map;
-                CVolume volume;
-                uint32 buffer_usec;
-                uint32 sink_usec;
-                string resample_method;
-                string driver;
-                int mute;
-                Proplist proplist;
+                public uint32 index;
+                public string name;
+                public uint32 owner_module;
+                public uint32 client;
+                public uint32 sink;
+                public SampleSpec sample_spec;
+                public ChannelMap channel_map;
+                public CVolume volume;
+                public uint32 buffer_usec;
+                public uint32 sink_usec;
+                public string resample_method;
+                public string driver;
+                public int mute;
+                public Proplist proplist;
         }
 
         [CCode (cname="pa_source_output_info")]
         public struct SourceOutputInfo {
-                uint32 index;
-                string name;
-                uint32 owner_module;
-                uint32 client;
-                uint32 source;
-                SampleSpec sample_spec;
-                ChannelMap channel_map;
-                uint32 buffer_usec;
-                uint32 sink_usec;
-                string resample_method;
-                string driver;
-                Proplist proplist;
+                public uint32 index;
+                public string name;
+                public uint32 owner_module;
+                public uint32 client;
+                public uint32 source;
+                public SampleSpec sample_spec;
+                public ChannelMap channel_map;
+                public uint32 buffer_usec;
+                public uint32 sink_usec;
+                public string resample_method;
+                public string driver;
+                public Proplist proplist;
         }
 
         [CCode (cname="pa_stat_info")]
         public struct StatInfo {
-                uint32 memblock_total;
-                uint32 memblock_total_size;
-                uint32 memblock_allocated;
-                uint32 memblock_allocated_size;
-                uint32 scache_size;
+                public uint32 memblock_total;
+                public uint32 memblock_total_size;
+                public uint32 memblock_allocated;
+                public uint32 memblock_allocated_size;
+                public uint32 scache_size;
         }
 
         [CCode (cname="pa_sample_info")]
         public struct SampleInfo {
-                uint32 index;
-                string name;
-                CVolume volume;
-                SampleSpec sample_spec;
-                ChannelMap channel_map;
-                usec duration;
-                uint32 bytes;
-                bool lazy;
-                string filename;
-                Proplist proplist;
+                public uint32 index;
+                public string name;
+                public CVolume volume;
+                public SampleSpec sample_spec;
+                public ChannelMap channel_map;
+                public usec duration;
+                public uint32 bytes;
+                public bool lazy;
+                public string filename;
+                public Proplist proplist;
         }
 
         [CCode (cname="pa_sink_flags_t", cprefix="PA_SINK_")]
@@ -1460,4 +1466,54 @@ namespace Pulse {
                 [CCode (cname="PA_SOURCE_IS_OPENED")]
                 public bool IS_OPENED();
         }
+
+        [CCode (cname="pa_gettimeofday")]
+        public unowned timeval gettimeofday(out timeval tv);
+
+        [CCode (cname="pa_timeval_diff")]
+        public usec timeval_diff(ref timeval a, ref timeval b);
+
+        [CCode (cname="pa_timeval_cmp")]
+        public int timeval_cmp(ref timeval a, ref timeval b);
+
+        [CCode (cname="pa_timeval_age")]
+        public usec timeval_age(ref timeval a);
+
+        [CCode (cname="pa_timeval_add")]
+        public unowned timeval timeval_add(ref timeval tv, usec x);
+
+        [CCode (cname="pa_timeval_sub")]
+        public unowned timeval timeval_sub(ref timeval tv, usec x);
+
+        [CCode (cname="pa_timeval_store")]
+        public unowned timeval timeval_store(out timeval tv, usec c);
+
+        [CCode (cname="pa_timeval_load")]
+        public usec timeval_load(timeval tv);
+
+        [CCode (cname="PA_USEC_MAX")]
+        public const usec USEC_MAX;
+
+        [CCode (cname="PA_USEC_INVALID")]
+        public const usec USEC_INVALID;
+
+        [CCode (cname="PA_MSEC_PER_SEC")]
+        public const usec MSEC_PER_SEC;
+
+        [CCode (cname="PA_USEC_PER_SEC")]
+        public const usec USEC_PER_SEC;
+
+        [CCode (cname="PA_NSEC_PER_SEC")]
+        public const uint64 NSEC_PER_SEC;
+
+
+        [CCode (cname="PA_USEC_PER_MSEC")]
+        public const usec USEC_PER_MSEC;
+
+        [CCode (cname="PA_NSEC_PER_MSEC")]
+        public const uint64 NSEC_PER_MSEC;
+
+
+        [CCode (cname="PA_NSEC_PER_USEC")]
+        public const uint64 NSEC_PER_USEC;
 }
