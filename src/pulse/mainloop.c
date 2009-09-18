@@ -112,7 +112,7 @@ struct pa_mainloop {
     struct pollfd *pollfds;
     unsigned max_pollfds, n_pollfds;
 
-    int prepared_timeout;
+    pa_usec_t prepared_timeout;
     pa_time_event *cached_next_time_event;
 
     pa_mainloop_api api;
@@ -320,21 +320,19 @@ static void mainloop_defer_set_destroy(pa_defer_event *e, pa_defer_event_destroy
 }
 
 /* Time events */
-static pa_usec_t timeval_load(const struct timeval *tv) {
-    pa_bool_t is_rtclock;
+static pa_usec_t make_rt(const struct timeval *tv) {
     struct timeval ttv;
 
     if (!tv)
         return PA_USEC_INVALID;
 
-    ttv = *tv;
-    is_rtclock = !!(ttv.tv_usec & PA_TIMEVAL_RTCLOCK);
-    ttv.tv_usec &= ~PA_TIMEVAL_RTCLOCK;
+    if (tv->tv_usec & PA_TIMEVAL_RTCLOCK) {
+        ttv = *tv;
+        ttv.tv_usec &= ~PA_TIMEVAL_RTCLOCK;
+        tv = pa_rtclock_from_wallclock(&ttv);
+    }
 
-    if (!is_rtclock)
-        pa_rtclock_from_wallclock(&ttv);
-
-    return pa_timeval_load(&ttv);
+    return pa_timeval_load(tv);
 }
 
 static pa_time_event* mainloop_time_new(
@@ -351,7 +349,7 @@ static pa_time_event* mainloop_time_new(
     pa_assert(a->userdata);
     pa_assert(callback);
 
-    t = timeval_load(tv);
+    t = make_rt(tv);
 
     m = a->userdata;
     pa_assert(a == &m->api);
@@ -392,7 +390,7 @@ static void mainloop_time_restart(pa_time_event *e, const struct timeval *tv) {
     pa_assert(e);
     pa_assert(!e->dead);
 
-    t = timeval_load(tv);
+    t = make_rt(tv);
 
     valid = (t != PA_USEC_INVALID);
     if (e->enabled && !valid) {
@@ -763,12 +761,12 @@ static pa_time_event* find_next_time_event(pa_mainloop *m) {
     return n;
 }
 
-static int calc_next_timeout(pa_mainloop *m) {
+static pa_usec_t calc_next_timeout(pa_mainloop *m) {
     pa_time_event *t;
     pa_usec_t clock_now;
 
-    if (!m->n_enabled_time_events)
-        return -1;
+    if (m->n_enabled_time_events <= 0)
+        return PA_USEC_INVALID;
 
     pa_assert_se(t = find_next_time_event(m));
 
@@ -780,7 +778,7 @@ static int calc_next_timeout(pa_mainloop *m) {
     if (t->time <= clock_now)
         return 0;
 
-    return (int) ((t->time - clock_now) / 1000); /* in milliseconds */
+    return t->time - clock_now;
 }
 
 static int dispatch_timeout(pa_mainloop *m) {
@@ -850,12 +848,17 @@ int pa_mainloop_prepare(pa_mainloop *m, int timeout) {
         goto quit;
 
     if (m->n_enabled_defer_events <= 0) {
+
         if (m->rebuild_pollfds)
             rebuild_pollfds(m);
 
         m->prepared_timeout = calc_next_timeout(m);
-        if (timeout >= 0 && (timeout < m->prepared_timeout || m->prepared_timeout < 0))
-            m->prepared_timeout = timeout;
+        if (timeout >= 0) {
+            uint64_t u = (uint64_t) timeout * PA_USEC_PER_MSEC;
+
+            if (u < m->prepared_timeout || m->prepared_timeout == PA_USEC_INVALID)
+                m->prepared_timeout = timeout;
+        }
     }
 
     m->state = STATE_PREPARED;
@@ -864,6 +867,13 @@ int pa_mainloop_prepare(pa_mainloop *m, int timeout) {
 quit:
     m->state = STATE_QUIT;
     return -2;
+}
+
+static int usec_to_timeout(pa_usec_t u) {
+    if (u == PA_USEC_INVALID)
+        return -1;
+
+    return (u + PA_USEC_PER_MSEC - 1) / PA_USEC_PER_MSEC;
 }
 
 int pa_mainloop_poll(pa_mainloop *m) {
@@ -881,9 +891,24 @@ int pa_mainloop_poll(pa_mainloop *m) {
         pa_assert(!m->rebuild_pollfds);
 
         if (m->poll_func)
-            m->poll_func_ret = m->poll_func(m->pollfds, m->n_pollfds, m->prepared_timeout, m->poll_func_userdata);
-        else
-            m->poll_func_ret = poll(m->pollfds, m->n_pollfds, m->prepared_timeout);
+            m->poll_func_ret = m->poll_func(
+                    m->pollfds, m->n_pollfds,
+                    usec_to_timeout(m->prepared_timeout),
+                    m->poll_func_userdata);
+        else {
+#ifdef HAVE_PPOLL
+            struct timespec ts;
+
+            m->poll_func_ret = ppoll(
+                    m->pollfds, m->n_pollfds,
+                    m->prepared_timeout == PA_USEC_INVALID ? NULL : pa_timespec_store(&ts, m->prepared_timeout),
+                    NULL);
+#else
+            m->poll_func_ret = poll(
+                    m->pollfds, m->n_pollfds,
+                    usec_to_timeout(m->prepared_timeout));
+#endif
+        }
 
         if (m->poll_func_ret < 0) {
             if (errno == EINTR)
