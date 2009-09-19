@@ -87,9 +87,23 @@ struct userdata {
 
 #define ENTRY_VERSION 1
 
+#define NUM_ROLES 9
+enum {
+    ROLE_NONE,
+    ROLE_VIDEO,
+    ROLE_MUSIC,
+    ROLE_GAME,
+    ROLE_EVENT,
+    ROLE_PHONE,
+    ROLE_ANIMATION,
+    ROLE_PRODUCTION,
+    ROLE_A11Y,
+};
+
 struct entry {
     uint8_t version;
     char description[PA_NAME_MAX];
+    uint32_t priority[NUM_ROLES];
 } PA_GCC_PACKED;
 
 enum {
@@ -98,6 +112,8 @@ enum {
     SUBCOMMAND_WRITE,
     SUBCOMMAND_DELETE,
     SUBCOMMAND_ROLE_DEVICE_PRIORITY_ROUTING,
+    SUBCOMMAND_PREFER_DEVICE,
+    SUBCOMMAND_DEFER_DEVICE,
     SUBCOMMAND_SUBSCRIBE,
     SUBCOMMAND_EVENT
 };
@@ -346,6 +362,31 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
     }
 }
 
+
+static uint32_t get_role_index(const char* role) {
+    pa_assert(role);
+
+    if (strcmp(role, "") == 0)
+        return ROLE_NONE;
+    if (strcmp(role, "video") == 0)
+        return ROLE_VIDEO;
+    if (strcmp(role, "music") == 0)
+        return ROLE_MUSIC;
+    if (strcmp(role, "game") == 0)
+        return ROLE_GAME;
+    if (strcmp(role, "event") == 0)
+        return ROLE_EVENT;
+    if (strcmp(role, "phone") == 0)
+        return ROLE_PHONE;
+    if (strcmp(role, "animation") == 0)
+        return ROLE_ANIMATION;
+    if (strcmp(role, "production") == 0)
+        return ROLE_PRODUCTION;
+    if (strcmp(role, "a11y") == 0)
+        return ROLE_A11Y;
+    return PA_INVALID_INDEX;
+}
+
 #define EXT_VERSION 1
 
 static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connection *c, uint32_t tag, pa_tagstruct *t) {
@@ -523,6 +564,113 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 pa_log_warn("Failed to load module-stream-restore while disabling role-based device-priority routing");
         }
 
+        break;
+    }
+
+    case SUBCOMMAND_PREFER_DEVICE:
+    case SUBCOMMAND_DEFER_DEVICE: {
+
+        const char *role, *device;
+        struct entry *e;
+        uint32_t role_index;
+
+        if (pa_tagstruct_gets(t, &role) < 0 ||
+            pa_tagstruct_gets(t, &device) < 0)
+            goto fail;
+
+        if (!role || !device || !*device)
+            goto fail;
+
+        role_index = get_role_index(role);
+        if (PA_INVALID_INDEX == role_index)
+            goto fail;
+
+        if ((e = read_entry(u, device)) && ENTRY_VERSION == e->version) {
+            pa_datum key;
+            pa_datum data;
+            pa_bool_t done;
+            char* prefix;
+            uint32_t priority;
+            pa_bool_t haschanged = FALSE;
+
+            if (strncmp(device, "sink:", 5) == 0)
+                prefix = pa_xstrdup("sink:");
+            else
+                prefix = pa_xstrdup("source:");
+
+            priority = e->priority[role_index];
+
+            /* Now we need to load up all the other entries of this type and shuffle the priroities around */
+
+            done = !pa_database_first(u->database, &key, NULL);
+
+            while (!done && !haschanged) {
+                pa_datum next_key;
+
+                done = !pa_database_next(u->database, &key, &next_key, NULL);
+
+                /* Only read devices with the right prefix */
+                if (key.size > strlen(prefix) && strncmp(key.data, prefix, strlen(prefix)) == 0) {
+                    char *name;
+                    struct entry *e2;
+
+                    name = pa_xstrndup(key.data, key.size);
+                    pa_datum_free(&key);
+
+                    if ((e2 = read_entry(u, name))) {
+                        if (SUBCOMMAND_PREFER_DEVICE == command) {
+                            /* PREFER */
+                            if (e2->priority[role_index] == (priority - 1)) {
+                                e2->priority[role_index]++;
+                                haschanged = TRUE;
+                            }
+                        } else {
+                            /* DEFER */
+                            if (e2->priority[role_index] == (priority + 1)) {
+                                e2->priority[role_index]--;
+                                haschanged = TRUE;
+                            }
+                        }
+
+                        if (haschanged) {
+                            data.data = e2;
+                            data.size = sizeof(*e2);
+
+                            if (pa_database_set(u->database, &key, &data, FALSE))
+                                pa_log_warn("Could not save device");
+                        }
+                        pa_xfree(e2);
+                    }
+
+                    pa_xfree(name);
+                }
+
+                key = next_key;
+            }
+
+            /* Now write out our actual entry */
+            if (haschanged) {
+                if (SUBCOMMAND_PREFER_DEVICE == command)
+                    e->priority[role_index]--;
+                else
+                    e->priority[role_index]++;
+
+                key.data = (char *) device;
+                key.size = strlen(device);
+
+                data.data = e;
+                data.size = sizeof(*e);
+
+                if (pa_database_set(u->database, &key, &data, FALSE))
+                    pa_log_warn("Could not save device");
+
+                trigger_save(u);
+            }
+
+            pa_xfree(e);
+
+            pa_xfree(prefix);
+        }
         break;
     }
 
