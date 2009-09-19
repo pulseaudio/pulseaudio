@@ -978,13 +978,13 @@ static void load_state(struct userdata *u){
                 memcpy(u->Hs[c][a_i], H, FILTER_SIZE * sizeof(float));
                 pa_aupdate_write_end(u->a_H[c]);
             }
-            unpack(((char *)value.data) + FILTER_STATE_SIZE, value.size - FILTER_STATE_SIZE, &names, &n_profs);
-            n_profs = PA_MIN(n_profs, u->channels);
-            for(size_t c = 0; c < n_profs; ++c){
-                pa_xfree(u->base_profiles[c]);
-                u->base_profiles[c] = names[c];
-            }
-            pa_xfree(names);
+            //unpack(((char *)value.data) + FILTER_STATE_SIZE, value.size - FILTER_STATE_SIZE, &names, &n_profs);
+            //n_profs = PA_MIN(n_profs, u->channels);
+            //for(size_t c = 0; c < n_profs; ++c){
+            //    pa_xfree(u->base_profiles[c]);
+            //    u->base_profiles[c] = names[c];
+            //}
+            //pa_xfree(names);
         }
         pa_datum_free(&value);
     }else{
