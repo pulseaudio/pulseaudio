@@ -885,7 +885,7 @@ pa_cvolume* pa_cvolume_merge(pa_cvolume *dest, const pa_cvolume *a, const pa_cvo
     return dest;
 }
 
-pa_cvolume* pa_cvolume_inc(pa_cvolume *v, pa_volume_t inc) {
+pa_cvolume* pa_cvolume_inc_clamp(pa_cvolume *v, pa_volume_t inc, pa_volume_t limit) {
     pa_volume_t m;
 
     pa_assert(v);
@@ -895,12 +895,16 @@ pa_cvolume* pa_cvolume_inc(pa_cvolume *v, pa_volume_t inc) {
 
     m = pa_cvolume_max(v);
 
-    if (m >= PA_VOLUME_MAX - inc)
-        m = PA_VOLUME_MAX;
+    if (m >= limit - inc)
+        m = limit;
     else
         m += inc;
 
     return pa_cvolume_scale(v, m);
+}
+
+pa_cvolume* pa_cvolume_inc(pa_cvolume *v, pa_volume_t inc){
+    return pa_cvolume_inc_clamp(v, inc, PA_VOLUME_MAX);
 }
 
 pa_cvolume* pa_cvolume_dec(pa_cvolume *v, pa_volume_t dec) {

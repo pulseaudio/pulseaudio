@@ -130,6 +130,7 @@ pa_cvolume_get_balance;
 pa_cvolume_get_fade;
 pa_cvolume_get_position;
 pa_cvolume_inc;
+pa_cvolume_inc_clamp;
 pa_cvolume_init;
 pa_cvolume_max;
 pa_cvolume_max_mask;
