@@ -79,6 +79,10 @@ struct userdata {
 
     pa_native_protocol *protocol;
     pa_idxset *subscribed;
+
+    pa_bool_t role_device_priority_routing;
+    pa_bool_t stream_restore_used;
+    pa_bool_t checked_stream_restore;
 };
 
 #define ENTRY_VERSION 1
@@ -93,6 +97,7 @@ enum {
     SUBCOMMAND_READ,
     SUBCOMMAND_WRITE,
     SUBCOMMAND_DELETE,
+    SUBCOMMAND_ROLE_DEVICE_PRIORITY_ROUTING,
     SUBCOMMAND_SUBSCRIBE,
     SUBCOMMAND_EVENT
 };
@@ -472,6 +477,57 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
       trigger_save(u);
 
       break;
+
+    case SUBCOMMAND_ROLE_DEVICE_PRIORITY_ROUTING:
+
+        while (!pa_tagstruct_eof(t)) {
+            pa_bool_t enable;
+            uint32_t sridx = PA_INVALID_INDEX;
+            uint32_t idx;
+            pa_module *module;
+
+            if (pa_tagstruct_get_boolean(t, &enable) < 0)
+                goto fail;
+
+            /* If this is the first run, check for stream restore module */
+            if (!u->checked_stream_restore) {
+                u->checked_stream_restore = TRUE;
+
+                for (module = pa_idxset_first(u->core->modules, &idx); module; module = pa_idxset_next(u->core->modules, &idx)) {
+                    if (strcmp(module->name, "module-stream-restore") == 0) {
+                        pa_log_debug("Detected module-stream-restore is currently in use");
+                        u->stream_restore_used = TRUE;
+                        sridx = module->index;
+                    }
+                }
+            }
+
+            u->role_device_priority_routing = enable;
+            if (enable) {
+                if (u->stream_restore_used) {
+                    if (PA_INVALID_INDEX == sridx) {
+                        /* As a shortcut on first load, we have sridx filled in, but otherwise we search for it. */
+                        for (module = pa_idxset_first(u->core->modules, &idx); module; module = pa_idxset_next(u->core->modules, &idx)) {
+                            if (strcmp(module->name, "module-stream-restore") == 0) {
+                                sridx = module->index;
+                            }
+                        }
+                    }
+                    if (PA_INVALID_INDEX != sridx) {
+                        pa_log_debug("Unloading module-stream-restore to enable role-based device-priority routing");
+                        pa_module_unload_request_by_index(u->core, sridx, TRUE);
+                    }
+                }
+            } else if (u->stream_restore_used) {
+                /* We want to reload module-stream-restore */
+                if (!pa_module_load(u->core, "module-stream-restore", ""))
+                    pa_log_warn("Failed to load module-stream-restore while disabling role-based device-priority routing");
+            }
+        }
+
+        trigger_save(u);
+
+        break;
 
     case SUBCOMMAND_SUBSCRIBE: {
 

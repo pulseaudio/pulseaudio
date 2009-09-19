@@ -83,6 +83,13 @@ pa_operation *pa_ext_device_manager_delete(
         void *userdata);
 
 /** Subscribe to changes in the device database. \since 0.9.19 */
+pa_operation *pa_ext_device_manager_enable_role_device_priority_routing(
+        pa_context *c,
+        int enable,
+        pa_context_success_cb_t cb,
+        void *userdata);
+
+/** Subscribe to changes in the device database. \since 0.9.19 */
 pa_operation *pa_ext_device_manager_subscribe(
         pa_context *c,
         int enable,
