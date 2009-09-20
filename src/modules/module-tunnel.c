@@ -1069,6 +1069,33 @@ static void sink_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa_t
         }
     }
 
+    if (u->version >= 16) {
+        uint32_t n_ports, j;
+        const char *s;
+
+        if (pa_tagstruct_getu32(t, &n_ports)) {
+            pa_log("Parse failure");
+            goto fail;
+        }
+
+        for (j = 0; j < n_ports; j++) {
+            uint32_t priority;
+
+            if (pa_tagstruct_gets(t, &s) < 0 || /* name */
+                pa_tagstruct_gets(t, &s) < 0 || /* description */
+                pa_tagstruct_getu32(t, &priority) < 0) {
+
+                pa_log("Parse failure");
+                goto fail;
+            }
+        }
+
+        if (pa_tagstruct_gets(t, &s) < 0) { /* active port */
+            pa_log("Parse failure");
+            goto fail;
+        }
+    }
+
     if (!pa_tagstruct_eof(t)) {
         pa_log("Packet too long");
         goto fail;
