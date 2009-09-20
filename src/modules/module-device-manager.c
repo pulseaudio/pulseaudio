@@ -598,6 +598,47 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
     return PA_HOOK_OK;
 }
 
+
+static void route_sink_input(struct userdata *u, pa_sink_input *si) {
+    const char *role;
+    uint32_t role_index, device_index;
+    pa_sink *sink;
+
+    pa_assert(u);
+    pa_assert(u->do_routing);
+
+    if (si->save_sink)
+        return;
+
+    /* Skip this if it is already in the process of being moved anyway */
+    if (!si->sink)
+        return;
+
+    /* It might happen that a stream and a sink are set up at the
+    same time, in which case we want to make sure we don't
+    interfere with that */
+    if (!PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(si)))
+        return;
+
+    if (!(role = pa_proplist_gets(si->proplist, PA_PROP_MEDIA_ROLE)))
+        role_index = get_role_index("");
+    else
+        role_index = get_role_index(role);
+
+    if (PA_INVALID_INDEX == role_index)
+        return;
+
+    device_index = u->preferred_sinks[role_index];
+    if (PA_INVALID_INDEX == device_index)
+        return;
+
+    if (!(sink = pa_idxset_get_by_index(u->core->sinks, device_index)))
+        return;
+
+    if (si->sink != sink)
+        pa_sink_input_move_to(si, sink, TRUE);
+}
+
 static pa_hook_result_t route_sink_inputs(struct userdata *u, pa_sink *ignore_sink) {
     pa_sink_input *si;
     uint32_t idx;
@@ -610,43 +651,53 @@ static pa_hook_result_t route_sink_inputs(struct userdata *u, pa_sink *ignore_si
     update_highest_priority_device_indexes(u, "sink:", ignore_sink);
 
     PA_IDXSET_FOREACH(si, u->core->sink_inputs, idx) {
-        const char *role;
-        uint32_t role_index, device_index;
-        pa_sink *sink;
-
-        if (si->save_sink)
-            continue;
-
-        /* Skip this if it is already in the process of being moved anyway */
-        if (!si->sink)
-            continue;
-
-        /* It might happen that a stream and a sink are set up at the
-        same time, in which case we want to make sure we don't
-        interfere with that */
-        if (!PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(si)))
-            continue;
-
-        if (!(role = pa_proplist_gets(si->proplist, PA_PROP_MEDIA_ROLE)))
-            role_index = get_role_index("");
-        else
-            role_index = get_role_index(role);
-
-        if (PA_INVALID_INDEX == role_index)
-            continue;
-
-        device_index = u->preferred_sinks[role_index];
-        if (PA_INVALID_INDEX == device_index)
-            continue;
-
-        if (!(sink = pa_idxset_get_by_index(u->core->sinks, device_index)))
-            continue;
-
-        if (si->sink != sink)
-            pa_sink_input_move_to(si, sink, TRUE);
+        route_sink_input(u, si);
     }
 
     return PA_HOOK_OK;
+}
+
+static void route_source_output(struct userdata *u, pa_source_output *so) {
+    const char *role;
+    uint32_t role_index, device_index;
+    pa_source *source;
+
+    pa_assert(u);
+    pa_assert(u->do_routing);
+
+    if (so->save_source)
+        return;
+
+    if (so->direct_on_input)
+        return;
+
+    /* Skip this if it is already in the process of being moved anyway */
+    if (!so->source)
+        return;
+
+    /* It might happen that a stream and a source are set up at the
+    same time, in which case we want to make sure we don't
+    interfere with that */
+    if (!PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(so)))
+        return;
+
+    if (!(role = pa_proplist_gets(so->proplist, PA_PROP_MEDIA_ROLE)))
+        role_index = get_role_index("");
+    else
+        role_index = get_role_index(role);
+
+    if (PA_INVALID_INDEX == role_index)
+        return;
+
+    device_index = u->preferred_sources[role_index];
+    if (PA_INVALID_INDEX == device_index)
+        return;
+
+    if (!(source = pa_idxset_get_by_index(u->core->sources, device_index)))
+        return;
+
+    if (so->source != source)
+        pa_source_output_move_to(so, source, TRUE);
 }
 
 static pa_hook_result_t route_source_outputs(struct userdata *u, pa_source* ignore_source) {
@@ -661,43 +712,7 @@ static pa_hook_result_t route_source_outputs(struct userdata *u, pa_source* igno
     update_highest_priority_device_indexes(u, "source:", ignore_source);
 
     PA_IDXSET_FOREACH(so, u->core->source_outputs, idx) {
-        const char *role;
-        uint32_t role_index, device_index;
-        pa_source *source;
-
-        if (so->save_source)
-            continue;
-
-        if (so->direct_on_input)
-            continue;
-
-        /* Skip this if it is already in the process of being moved anyway */
-        if (!so->source)
-            continue;
-
-        /* It might happen that a stream and a source are set up at the
-        same time, in which case we want to make sure we don't
-        interfere with that */
-        if (!PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(so)))
-            continue;
-
-        if (!(role = pa_proplist_gets(so->proplist, PA_PROP_MEDIA_ROLE)))
-            role_index = get_role_index("");
-        else
-            role_index = get_role_index(role);
-
-        if (PA_INVALID_INDEX == role_index)
-            continue;
-
-        device_index = u->preferred_sources[role_index];
-        if (PA_INVALID_INDEX == device_index)
-            continue;
-
-        if (!(source = pa_idxset_get_by_index(u->core->sources, device_index)))
-            continue;
-
-        if (so->source != source)
-            pa_source_output_move_to(so, source, TRUE);
+        route_source_output(u, so);
     }
 
     return PA_HOOK_OK;
