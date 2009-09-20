@@ -153,6 +153,7 @@ int pa_sink_input_new(
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
     pa_channel_map original_cm;
     int r;
+    char *pt;
 
     pa_assert(_i);
     pa_assert(core);
@@ -353,12 +354,15 @@ int pa_sink_input_new(
     if (i->client)
         pa_assert_se(pa_idxset_put(i->client->sink_inputs, i, NULL) >= 0);
 
-    pa_log_info("Created input %u \"%s\" on %s with sample spec %s and channel map %s",
+    pt = pa_proplist_to_string_sep(i->proplist, "\n    ");
+    pa_log_info("Created input %u \"%s\" on %s with sample spec %s and channel map %s\n    %s",
                 i->index,
                 pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME)),
                 i->sink->name,
                 pa_sample_spec_snprint(st, sizeof(st), &i->sample_spec),
-                pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map));
+                pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
+                pt);
+    pa_xfree(pt);
 
     /* Don't forget to call pa_sink_input_put! */
 
