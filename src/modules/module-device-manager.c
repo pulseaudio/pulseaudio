@@ -515,17 +515,34 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
     if (!u->role_device_priority_routing)
         return PA_HOOK_OK;
 
-    /*if (!(name = get_name(new_data->proplist, "sink-input")))
-        return PA_HOOK_OK;
-
     if (new_data->sink)
-        pa_log_debug("Not restoring device for stream %s, because already set.", name);
-    else if ((e = read_entry(u, name))) {
+        pa_log_debug("Not restoring device for stream, because already set.");
+    else {
+        const char *role;
+        uint32_t role_index;
 
-        pa_xfree(e);
+        if (!(role = pa_proplist_gets(new_data->proplist, PA_PROP_MEDIA_ROLE)))
+            role_index = get_role_index("");
+        else
+            role_index = get_role_index(role);
+
+        if (PA_INVALID_INDEX != role_index) {
+            role_indexes_t *indexes;
+            uint32_t device_index;
+
+            pa_assert_se(indexes = get_highest_priority_device_indexes(u, "sink:"));
+
+            device_index = *indexes[role_index];
+            if (PA_INVALID_INDEX != device_index) {
+                pa_sink *sink;
+
+                if ((sink = pa_idxset_get_by_index(u->core->sinks, device_index))) {
+                    new_data->sink = sink;
+                    new_data->save_sink = TRUE;
+                }
+            }
+        }
     }
-
-    pa_xfree(name);*/
 
     return PA_HOOK_OK;
 }
@@ -541,17 +558,34 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
     if (new_data->direct_on_input)
         return PA_HOOK_OK;
 
-    /*if (!(name = get_name(new_data->proplist, "source-output")))
-        return PA_HOOK_OK;
-
     if (new_data->source)
-        pa_log_debug("Not restoring device for stream %s, because already set", name);
-    else if ((e = read_entry(u, name))) {
+        pa_log_debug("Not restoring device for stream, because already set");
+    else {
+        const char *role;
+        uint32_t role_index;
 
-        pa_xfree(e);
+        if (!(role = pa_proplist_gets(new_data->proplist, PA_PROP_MEDIA_ROLE)))
+            role_index = get_role_index("");
+        else
+            role_index = get_role_index(role);
+
+        if (PA_INVALID_INDEX != role_index) {
+            role_indexes_t *indexes;
+            uint32_t device_index;
+
+            pa_assert_se(indexes = get_highest_priority_device_indexes(u, "source:"));
+
+            device_index = *indexes[role_index];
+            if (PA_INVALID_INDEX != device_index) {
+                pa_source *source;
+
+                if ((source = pa_idxset_get_by_index(u->core->sources, device_index))) {
+                    new_data->source = source;
+                    new_data->save_source = TRUE;
+                }
+            }
+        }
     }
-
-    pa_xfree(name);*/
 
     return PA_HOOK_OK;
 }
