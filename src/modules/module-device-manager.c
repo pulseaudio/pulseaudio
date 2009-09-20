@@ -920,7 +920,11 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         if (pa_tagstruct_get_boolean(t, &enable) < 0)
             goto fail;
 
-        u->do_routing = enable;
+        if ((u->do_routing = enable)) {
+            /* Update our caches */
+            update_highest_priority_device_indexes(u, "sink:", NULL);
+            update_highest_priority_device_indexes(u, "source:", NULL);
+        }
 
         break;
     }
@@ -1158,15 +1162,9 @@ int pa__init(pa_module*m) {
     PA_IDXSET_FOREACH(source, m->core->sources, idx)
         subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_NEW, source->index, u);
 
-    /* Update our caches (all available devices will be present in our database now */
-    update_highest_priority_device_indexes(u, "sink:", NULL);
-    update_highest_priority_device_indexes(u, "source:", NULL);
-
-    PA_IDXSET_FOREACH(si, m->core->sink_inputs, idx)
-        subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, si->index, u);
-
-    PA_IDXSET_FOREACH(so, m->core->source_outputs, idx)
-        subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, so->index, u);
+    /* Perform the routing (if it's enabled) which will update our priority list cache too */
+    reroute_sinks(u, NULL);
+    reroute_sources(u, NULL);
 
     pa_modargs_free(ma);
     return 0;
