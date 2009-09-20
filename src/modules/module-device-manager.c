@@ -174,6 +174,22 @@ fail:
 }
 
 static void trigger_save(struct userdata *u) {
+    pa_native_connection *c;
+    uint32_t idx;
+
+    for (c = pa_idxset_first(u->subscribed, &idx); c; c = pa_idxset_next(u->subscribed, &idx)) {
+        pa_tagstruct *t;
+
+        t = pa_tagstruct_new(NULL, 0);
+        pa_tagstruct_putu32(t, PA_COMMAND_EXTENSION);
+        pa_tagstruct_putu32(t, 0);
+        pa_tagstruct_putu32(t, u->module->index);
+        pa_tagstruct_puts(t, u->module->name);
+        pa_tagstruct_putu32(t, SUBCOMMAND_EVENT);
+
+        pa_pstream_send_tagstruct(pa_native_connection_get_pstream(c), t);
+    }
+
     if (u->save_time_event)
         return;
 
