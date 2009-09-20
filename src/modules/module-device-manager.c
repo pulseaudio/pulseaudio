@@ -402,6 +402,87 @@ static char *get_name(const char *key, const char *prefix) {
     return t;
 }
 
+static role_indexes_t *get_highest_priority_device_indexes(struct userdata *u, const char *prefix) {
+    role_indexes_t *indexes, highest_priority_available;
+    pa_datum key;
+    pa_bool_t done;
+
+    pa_assert(u);
+    pa_assert(prefix);
+
+    indexes = pa_xnew(role_indexes_t, 1);
+    for (uint32_t i = 0; i < NUM_ROLES; ++i) {
+        *indexes[i] = PA_INVALID_INDEX;
+    }
+    pa_zero(highest_priority_available);
+
+    done = !pa_database_first(u->database, &key, NULL);
+
+    /* Find all existing devices with the same prefix so we find the highest priority device for each role */
+    while (!done) {
+        pa_datum next_key;
+
+        done = !pa_database_next(u->database, &key, &next_key, NULL);
+
+        if (key.size > strlen(prefix) && strncmp(key.data, prefix, strlen(prefix)) == 0) {
+            char *name;
+            struct entry *e;
+
+            name = pa_xstrndup(key.data, key.size);
+
+            if ((e = read_entry(u, name))) {
+                for (uint32_t i = 0; i < NUM_ROLES; ++i) {
+                    if (highest_priority_available[i] && e->priority[i] < highest_priority_available[i]) {
+                        /* We've found a device with a higher priority than that we've currently got,
+                           so see if it is currently available or not and update our list */
+                        uint32_t idx;
+                        pa_bool_t found = FALSE;
+                        char *device_name = get_name(name, prefix);
+
+                        if (strcmp(prefix, "sink:") == 0) {
+                            pa_sink *sink;
+
+                            PA_IDXSET_FOREACH(sink, u->core->sinks, idx) {
+                                if (strcmp(sink->name, device_name) == 0) {
+                                    found = TRUE;
+                                    idx = sink->index; /* Is this needed? */
+                                    break;
+                                }
+                            }
+                        } else {
+                            pa_source *source;
+
+                            PA_IDXSET_FOREACH(source, u->core->sources, idx) {
+                                if (strcmp(source->name, device_name) == 0) {
+                                    found = TRUE;
+                                    idx = source->index; /* Is this needed? */
+                                    break;
+                                }
+                            }
+                        }
+                        if (found) {
+                            highest_priority_available[i] = e->priority[i];
+                            *indexes[i] = idx;
+                        }
+
+                        pa_xfree(device_name);
+                    }
+                }
+
+                pa_xfree(e);
+            }
+
+            pa_xfree(name);
+        }
+
+        pa_datum_free(&key);
+        key = next_key;
+    }
+
+    return indexes;
+}
+
+
 static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_new_data *new_data, struct userdata *u) {
     char *name;
     struct entry *e;
