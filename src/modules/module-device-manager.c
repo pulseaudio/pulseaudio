@@ -322,7 +322,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     data.data = &entry;
     data.size = sizeof(entry);
 
-    pa_log_info("Storing device description for %s.", name);
+    pa_log_info("Storing device %s.", name);
 
     pa_database_set(u->database, &key, &data, TRUE);
 
@@ -569,6 +569,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         key.data = (char*) name;
         key.size = strlen(name);
 
+        /** @todo: Reindex the priorities */
         pa_database_unset(u->database, &key);
       }
 
