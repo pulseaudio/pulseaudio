@@ -72,6 +72,21 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
+#define NUM_ROLES 9
+enum {
+    ROLE_NONE,
+    ROLE_VIDEO,
+    ROLE_MUSIC,
+    ROLE_GAME,
+    ROLE_EVENT,
+    ROLE_PHONE,
+    ROLE_ANIMATION,
+    ROLE_PRODUCTION,
+    ROLE_A11Y,
+};
+
+typedef uint32_t role_indexes_t[NUM_ROLES];
+
 struct userdata {
     pa_core *core;
     pa_module *module;
@@ -95,24 +110,12 @@ struct userdata {
     pa_bool_t on_hotplug;
     pa_bool_t on_rescue;
     pa_bool_t do_routing;
+
+    role_indexes_t preferred_sinks;
+    role_indexes_t preferred_sources;
 };
 
 #define ENTRY_VERSION 1
-
-#define NUM_ROLES 9
-enum {
-    ROLE_NONE,
-    ROLE_VIDEO,
-    ROLE_MUSIC,
-    ROLE_GAME,
-    ROLE_EVENT,
-    ROLE_PHONE,
-    ROLE_ANIMATION,
-    ROLE_PRODUCTION,
-    ROLE_A11Y,
-};
-
-typedef uint32_t role_indexes_t[NUM_ROLES];
 
 struct entry {
     uint8_t version;
@@ -211,6 +214,7 @@ static void trigger_save(struct userdata *u) {
 }
 
 static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
+    /** @todo: Compare the priority lists too */
     if (strncmp(a->description, b->description, sizeof(a->description)))
         return FALSE;
 
@@ -428,7 +432,7 @@ static uint32_t get_role_index(const char* role) {
     return PA_INVALID_INDEX;
 }
 
-static role_indexes_t *get_highest_priority_device_indexes(struct userdata *u, const char *prefix) {
+static void update_highest_priority_device_indexes(struct userdata *u, const char *prefix, void *ignore_device) {
     role_indexes_t *indexes, highest_priority_available;
     pa_datum key;
     pa_bool_t done, sink_mode;
@@ -436,13 +440,17 @@ static role_indexes_t *get_highest_priority_device_indexes(struct userdata *u, c
     pa_assert(u);
     pa_assert(prefix);
 
-    indexes = pa_xnew(role_indexes_t, 1);
+    sink_mode = (strcmp(prefix, "sink:") == 0);
+
+    if (sink_mode)
+        indexes = &u->preferred_sinks;
+    else
+        indexes = &u->preferred_sources;
+
     for (uint32_t i = 0; i < NUM_ROLES; ++i) {
         *indexes[i] = PA_INVALID_INDEX;
     }
     pa_zero(highest_priority_available);
-
-    sink_mode = (strcmp(prefix, "sink:") == 0);
 
     done = !pa_database_first(u->database, &key, NULL);
 
@@ -471,6 +479,8 @@ static role_indexes_t *get_highest_priority_device_indexes(struct userdata *u, c
                             pa_sink *sink;
 
                             PA_IDXSET_FOREACH(sink, u->core->sinks, idx) {
+                                if ((pa_sink*) ignore_device == sink)
+                                    continue;
                                 if (strcmp(sink->name, device_name) == 0) {
                                     found = TRUE;
                                     idx = sink->index; /* Is this needed? */
@@ -481,6 +491,8 @@ static role_indexes_t *get_highest_priority_device_indexes(struct userdata *u, c
                             pa_source *source;
 
                             PA_IDXSET_FOREACH(source, u->core->sources, idx) {
+                                if ((pa_source*) ignore_device == source)
+                                    continue;
                                 if (strcmp(source->name, device_name) == 0) {
                                     found = TRUE;
                                     idx = source->index; /* Is this needed? */
@@ -506,8 +518,6 @@ static role_indexes_t *get_highest_priority_device_indexes(struct userdata *u, c
         pa_datum_free(&key);
         key = next_key;
     }
-
-    return indexes;
 }
 
 
@@ -531,12 +541,9 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
             role_index = get_role_index(role);
 
         if (PA_INVALID_INDEX != role_index) {
-            role_indexes_t *indexes;
             uint32_t device_index;
 
-            pa_assert_se(indexes = get_highest_priority_device_indexes(u, "sink:"));
-
-            device_index = *indexes[role_index];
+            device_index = u->preferred_sinks[role_index];
             if (PA_INVALID_INDEX != device_index) {
                 pa_sink *sink;
 
@@ -574,12 +581,9 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
             role_index = get_role_index(role);
 
         if (PA_INVALID_INDEX != role_index) {
-            role_indexes_t *indexes;
             uint32_t device_index;
 
-            pa_assert_se(indexes = get_highest_priority_device_indexes(u, "source:"));
-
-            device_index = *indexes[role_index];
+            device_index = u->preferred_sources[role_index];
             if (PA_INVALID_INDEX != device_index) {
                 pa_source *source;
 
@@ -594,9 +598,8 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t reroute_sinks(struct userdata *u) {
+static pa_hook_result_t reroute_sinks(struct userdata *u, pa_sink *ignore_sink) {
     pa_sink_input *si;
-    role_indexes_t *indexes;
     uint32_t idx;
 
     pa_assert(u);
@@ -604,7 +607,7 @@ static pa_hook_result_t reroute_sinks(struct userdata *u) {
     if (!u->do_routing)
         return PA_HOOK_OK;
 
-    pa_assert_se(indexes = get_highest_priority_device_indexes(u, "sink:"));
+    update_highest_priority_device_indexes(u, "sink:", ignore_sink);
 
     PA_IDXSET_FOREACH(si, u->core->sink_inputs, idx) {
         const char *role;
@@ -632,7 +635,7 @@ static pa_hook_result_t reroute_sinks(struct userdata *u) {
         if (PA_INVALID_INDEX == role_index)
             continue;
 
-        device_index = *indexes[role_index];
+        device_index = u->preferred_sinks[role_index];
         if (PA_INVALID_INDEX == device_index)
             continue;
 
@@ -643,14 +646,11 @@ static pa_hook_result_t reroute_sinks(struct userdata *u) {
             pa_sink_input_move_to(si, sink, TRUE);
     }
 
-    pa_xfree(indexes);
-
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t reroute_sources(struct userdata *u) {
+static pa_hook_result_t reroute_sources(struct userdata *u, pa_source* ignore_source) {
     pa_source_output *so;
-    role_indexes_t *indexes;
     uint32_t idx;
 
     pa_assert(u);
@@ -658,7 +658,7 @@ static pa_hook_result_t reroute_sources(struct userdata *u) {
     if (!u->do_routing)
         return PA_HOOK_OK;
 
-    pa_assert_se(indexes = get_highest_priority_device_indexes(u, "source:"));
+    update_highest_priority_device_indexes(u, "source:", ignore_source);
 
     PA_IDXSET_FOREACH(so, u->core->source_outputs, idx) {
         const char *role;
@@ -689,7 +689,7 @@ static pa_hook_result_t reroute_sources(struct userdata *u) {
         if (PA_INVALID_INDEX == role_index)
             continue;
 
-        device_index = *indexes[role_index];
+        device_index = u->preferred_sources[role_index];
         if (PA_INVALID_INDEX == device_index)
             continue;
 
@@ -700,8 +700,6 @@ static pa_hook_result_t reroute_sources(struct userdata *u) {
             pa_source_output_move_to(so, source, TRUE);
     }
 
-    pa_xfree(indexes);
-
     return PA_HOOK_OK;
 }
 
@@ -711,7 +709,7 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, PA_GCC_UNUSED pa_sink
     pa_assert(u->core == c);
     pa_assert(u->on_hotplug);
 
-    return reroute_sinks(u);
+    return reroute_sinks(u, NULL);
 }
 
 static pa_hook_result_t source_put_hook_callback(pa_core *c, PA_GCC_UNUSED pa_source *source, struct userdata *u) {
@@ -720,11 +718,12 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, PA_GCC_UNUSED pa_so
     pa_assert(u->core == c);
     pa_assert(u->on_hotplug);
 
-    return reroute_sources(u);
+    return reroute_sources(u, NULL);
 }
 
-static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, PA_GCC_UNUSED pa_sink *sink, struct userdata *u) {
+static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, struct userdata *u) {
     pa_assert(c);
+    pa_assert(sink);
     pa_assert(u);
     pa_assert(u->core == c);
     pa_assert(u->on_rescue);
@@ -733,11 +732,12 @@ static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, PA_GCC_UNUSED pa_s
     if (c->state == PA_CORE_SHUTDOWN)
         return PA_HOOK_OK;
 
-    return reroute_sinks(u);
+    return reroute_sinks(u, sink);
 }
 
-static pa_hook_result_t source_unlink_hook_callback(pa_core *c, PA_GCC_UNUSED pa_source *source, struct userdata *u) {
+static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *source, struct userdata *u) {
     pa_assert(c);
+    pa_assert(source);
     pa_assert(u);
     pa_assert(u->core == c);
     pa_assert(u->on_rescue);
@@ -746,7 +746,7 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, PA_GCC_UNUSED pa
     if (c->state == PA_CORE_SHUTDOWN)
         return PA_HOOK_OK;
 
-    return reroute_sinks(u);
+    return reroute_sources(u, source);
 }
 
 
@@ -1151,11 +1151,16 @@ int pa__init(pa_module*m) {
     pa_log_info("Sucessfully opened database file '%s'.", fname);
     pa_xfree(fname);
 
+    /* We cycle over all the available sinks so that they are added to our database if they are not in it yet */
     PA_IDXSET_FOREACH(sink, m->core->sinks, idx)
         subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_NEW, sink->index, u);
 
     PA_IDXSET_FOREACH(source, m->core->sources, idx)
         subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_NEW, source->index, u);
+
+    /* Update our caches (all available devices will be present in our database now */
+    update_highest_priority_device_indexes(u, "sink:", NULL);
+    update_highest_priority_device_indexes(u, "source:", NULL);
 
     PA_IDXSET_FOREACH(si, m->core->sink_inputs, idx)
         subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, si->index, u);
