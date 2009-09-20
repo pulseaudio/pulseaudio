@@ -402,6 +402,30 @@ static char *get_name(const char *key, const char *prefix) {
     return t;
 }
 
+static uint32_t get_role_index(const char* role) {
+    pa_assert(role);
+
+    if (strcmp(role, "") == 0)
+        return ROLE_NONE;
+    if (strcmp(role, "video") == 0)
+        return ROLE_VIDEO;
+    if (strcmp(role, "music") == 0)
+        return ROLE_MUSIC;
+    if (strcmp(role, "game") == 0)
+        return ROLE_GAME;
+    if (strcmp(role, "event") == 0)
+        return ROLE_EVENT;
+    if (strcmp(role, "phone") == 0)
+        return ROLE_PHONE;
+    if (strcmp(role, "animation") == 0)
+        return ROLE_ANIMATION;
+    if (strcmp(role, "production") == 0)
+        return ROLE_PRODUCTION;
+    if (strcmp(role, "a11y") == 0)
+        return ROLE_A11Y;
+    return PA_INVALID_INDEX;
+}
+
 static role_indexes_t *get_highest_priority_device_indexes(struct userdata *u, const char *prefix) {
     role_indexes_t *indexes, highest_priority_available;
     pa_datum key;
@@ -484,9 +508,6 @@ static role_indexes_t *get_highest_priority_device_indexes(struct userdata *u, c
 
 
 static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_new_data *new_data, struct userdata *u) {
-    char *name;
-    struct entry *e;
-
     pa_assert(c);
     pa_assert(new_data);
     pa_assert(u);
@@ -510,9 +531,6 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
 }
 
 static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_output_new_data *new_data, struct userdata *u) {
-    char *name;
-    struct entry *e;
-
     pa_assert(c);
     pa_assert(new_data);
     pa_assert(u);
@@ -538,80 +556,161 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, struct userdata *u) {
+static pa_hook_result_t reroute_sinks(struct userdata *u) {
     pa_sink_input *si;
+    role_indexes_t *indexes;
     uint32_t idx;
 
-    pa_assert(c);
-    pa_assert(sink);
     pa_assert(u);
-    pa_assert(u->on_hotplug);
 
     if (!u->role_device_priority_routing)
         return PA_HOOK_OK;
 
-    /** @todo Ensure redo the routing based on the priorities */
+    pa_assert_se(indexes = get_highest_priority_device_indexes(u, "sink:"));
+
+    PA_IDXSET_FOREACH(si, u->core->sink_inputs, idx) {
+        const char *role;
+        uint32_t role_index, device_index;
+        pa_sink *sink;
+
+        if (si->save_sink)
+            continue;
+
+        /* Skip this if it is already in the process of being moved
+        * anyway */
+        if (!si->sink)
+            continue;
+
+        /* It might happen that a stream and a sink are set up at the
+        same time, in which case we want to make sure we don't
+        interfere with that */
+        if (!PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(si)))
+            continue;
+
+        if (!(role = pa_proplist_gets(si->proplist, PA_PROP_MEDIA_ROLE)))
+            role_index = get_role_index("");
+        else
+            role_index = get_role_index(role);
+
+        if (PA_INVALID_INDEX == role_index)
+            continue;
+
+        device_index = *indexes[role_index];
+        if (PA_INVALID_INDEX == device_index)
+            continue;
+
+        if (!(sink = pa_idxset_get_by_index(u->core->sinks, device_index)))
+            continue;
+
+        if (si->sink != sink)
+            pa_sink_input_move_to(si, sink, TRUE);
+    }
+
+    pa_xfree(indexes);
 
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, struct userdata *u) {
+static pa_hook_result_t reroute_sources(struct userdata *u) {
     pa_source_output *so;
+    role_indexes_t *indexes;
     uint32_t idx;
 
-    pa_assert(c);
-    pa_assert(source);
     pa_assert(u);
-    pa_assert(u->on_hotplug);
 
     if (!u->role_device_priority_routing)
         return PA_HOOK_OK;
 
-    /** @todo Ensure redo the routing based on the priorities */
+    pa_assert_se(indexes = get_highest_priority_device_indexes(u, "source:"));
+
+    PA_IDXSET_FOREACH(so, u->core->source_outputs, idx) {
+        const char *role;
+        uint32_t role_index, device_index;
+        pa_source *source;
+
+        if (so->save_source)
+            continue;
+
+        if (so->direct_on_input)
+            continue;
+
+        /* Skip this if it is already in the process of being moved
+        * anyway */
+        if (!so->source)
+            continue;
+
+        /* It might happen that a stream and a source are set up at the
+        same time, in which case we want to make sure we don't
+        interfere with that */
+        if (!PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(so)))
+            continue;
+
+        if (!(role = pa_proplist_gets(so->proplist, PA_PROP_MEDIA_ROLE)))
+            role_index = get_role_index("");
+        else
+            role_index = get_role_index(role);
+
+        if (PA_INVALID_INDEX == role_index)
+            continue;
+
+        device_index = *indexes[role_index];
+        if (PA_INVALID_INDEX == device_index)
+            continue;
+
+        if (!(source = pa_idxset_get_by_index(u->core->sources, device_index)))
+            continue;
+
+        if (so->source != source)
+            pa_source_output_move_to(so, source, TRUE);
+    }
+
+    pa_xfree(indexes);
 
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, struct userdata *u) {
-    pa_sink_input *si;
-    uint32_t idx;
-
+static pa_hook_result_t sink_put_hook_callback(pa_core *c, PA_GCC_UNUSED pa_sink *sink, struct userdata *u) {
     pa_assert(c);
-    pa_assert(sink);
     pa_assert(u);
+    pa_assert(u->core == c);
+    pa_assert(u->on_hotplug);
+
+    return reroute_sinks(u);
+}
+
+static pa_hook_result_t source_put_hook_callback(pa_core *c, PA_GCC_UNUSED pa_source *source, struct userdata *u) {
+    pa_assert(c);
+    pa_assert(u);
+    pa_assert(u->core == c);
+    pa_assert(u->on_hotplug);
+
+    return reroute_sources(u);
+}
+
+static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, PA_GCC_UNUSED pa_sink *sink, struct userdata *u) {
+    pa_assert(c);
+    pa_assert(u);
+    pa_assert(u->core == c);
     pa_assert(u->on_rescue);
 
     /* There's no point in doing anything if the core is shut down anyway */
     if (c->state == PA_CORE_SHUTDOWN)
         return PA_HOOK_OK;
 
-    if (!u->role_device_priority_routing)
-        return PA_HOOK_OK;
-
-    /** @todo Ensure redo the routing based on the priorities */
-
-    return PA_HOOK_OK;
+    return reroute_sinks(u);
 }
 
-static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *source, struct userdata *u) {
-    pa_source_output *so;
-    uint32_t idx;
-
+static pa_hook_result_t source_unlink_hook_callback(pa_core *c, PA_GCC_UNUSED pa_source *source, struct userdata *u) {
     pa_assert(c);
-    pa_assert(source);
     pa_assert(u);
+    pa_assert(u->core == c);
     pa_assert(u->on_rescue);
 
     /* There's no point in doing anything if the core is shut down anyway */
     if (c->state == PA_CORE_SHUTDOWN)
         return PA_HOOK_OK;
 
-    if (!u->role_device_priority_routing)
-        return PA_HOOK_OK;
-
-    /** @todo Ensure redo the routing based on the priorities */
-
-    return PA_HOOK_OK;
+    return reroute_sinks(u);
 }
 
 
@@ -654,30 +753,6 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
     }
 }
 
-
-static uint32_t get_role_index(const char* role) {
-    pa_assert(role);
-
-    if (strcmp(role, "") == 0)
-        return ROLE_NONE;
-    if (strcmp(role, "video") == 0)
-        return ROLE_VIDEO;
-    if (strcmp(role, "music") == 0)
-        return ROLE_MUSIC;
-    if (strcmp(role, "game") == 0)
-        return ROLE_GAME;
-    if (strcmp(role, "event") == 0)
-        return ROLE_EVENT;
-    if (strcmp(role, "phone") == 0)
-        return ROLE_PHONE;
-    if (strcmp(role, "animation") == 0)
-        return ROLE_ANIMATION;
-    if (strcmp(role, "production") == 0)
-        return ROLE_PRODUCTION;
-    if (strcmp(role, "a11y") == 0)
-        return ROLE_A11Y;
-    return PA_INVALID_INDEX;
-}
 
 #define EXT_VERSION 1
 
