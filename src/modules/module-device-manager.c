@@ -203,6 +203,60 @@ static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
     return TRUE;
 }
 
+static inline struct entry *load_or_initialize_entry(struct userdata *u, struct entry *entry, const char *name, const char *prefix) {
+    struct entry *old;
+
+    pa_assert(u);
+    pa_assert(entry);
+    pa_assert(name);
+    pa_assert(prefix);
+
+    if ((old = read_entry(u, name)))
+        *entry = *old;
+    else {
+        /* This is a new device, so make sure we write it's priority list correctly */
+        uint32_t max_priority[NUM_ROLES];
+        pa_datum key;
+        pa_bool_t done;
+
+        pa_zero(max_priority);
+        done = !pa_database_first(u->database, &key, NULL);
+
+        /* Find all existing devices with the same prefix so we calculate the current max priority for each role */
+        while (!done) {
+            pa_datum next_key;
+
+            done = !pa_database_next(u->database, &key, &next_key, NULL);
+
+            if (key.size > strlen(prefix) && strncmp(key.data, prefix, strlen(prefix)) == 0) {
+                char *name2;
+                struct entry *e;
+
+                name2 = pa_xstrndup(key.data, key.size);
+
+                if ((e = read_entry(u, name2))) {
+                    for (uint32_t i = 0; i < NUM_ROLES; ++i) {
+                        max_priority[i] = PA_MAX(max_priority[i], e->priority[i]);
+                    }
+
+                    pa_xfree(e);
+                }
+
+                pa_xfree(name2);
+            }
+            pa_datum_free(&key);
+            key = next_key;
+        }
+
+        /* Actually initialise our entry now we've calculated it */
+        for (uint32_t i = 0; i < NUM_ROLES; ++i) {
+            entry->priority[i] = max_priority[i] + 1;
+        }
+    }
+
+    return old;
+}
+
 static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     struct userdata *u = userdata;
     struct entry entry, *old = NULL;
@@ -229,8 +283,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         name = pa_sprintf_malloc("sink:%s", sink->name);
 
-        if ((old = read_entry(u, name)))
-            entry = *old;
+        old = load_or_initialize_entry(u, &entry, name, "sink:");
 
         pa_strlcpy(entry.description, pa_strnull(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description));
 
@@ -247,8 +300,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         name = pa_sprintf_malloc("source:%s", source->name);
 
-        if ((old = read_entry(u, name)))
-            entry = *old;
+        old = load_or_initialize_entry(u, &entry, name, "source:");
 
         pa_strlcpy(entry.description, pa_strnull(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description));
     }
