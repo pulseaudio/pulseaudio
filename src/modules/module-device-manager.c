@@ -366,10 +366,9 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
     name = pa_sprintf_malloc("source:%s", new_data->name);
 
     if ((e = read_entry(u, name))) {
-
         if (strncmp(e->description, pa_proplist_gets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION), sizeof(e->description)) != 0) {
             /* NB, We cannot detect if we are a monitor here... this could mess things up a bit... */
-            pa_log_info("Restoring description for sink %s.", new_data->name);
+            pa_log_info("Restoring description for source %s.", new_data->name);
             pa_proplist_sets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION, e->description);
         }
 
@@ -644,8 +643,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             goto fail;
 
         if ((e = read_entry(u, device)) && ENTRY_VERSION == e->version) {
-            pa_datum key;
-            pa_datum data;
+            pa_datum key, data;
             pa_bool_t done;
             char* prefix;
             uint32_t priority;
@@ -673,7 +671,6 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                     struct entry *e2;
 
                     name = pa_xstrndup(key.data, key.size);
-                    pa_datum_free(&key);
 
                     if ((e2 = read_entry(u, name))) {
                         if (SUBCOMMAND_PREFER_DEVICE == command) {
@@ -697,12 +694,14 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                             if (pa_database_set(u->database, &key, &data, FALSE))
                                 pa_log_warn("Could not save device");
                         }
+
                         pa_xfree(e2);
                     }
 
                     pa_xfree(name);
                 }
 
+                pa_datum_free(&key);
                 key = next_key;
             }
 
