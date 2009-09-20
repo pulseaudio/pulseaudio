@@ -431,7 +431,7 @@ static uint32_t get_role_index(const char* role) {
 static role_indexes_t *get_highest_priority_device_indexes(struct userdata *u, const char *prefix) {
     role_indexes_t *indexes, highest_priority_available;
     pa_datum key;
-    pa_bool_t done;
+    pa_bool_t done, sink_mode;
 
     pa_assert(u);
     pa_assert(prefix);
@@ -441,6 +441,8 @@ static role_indexes_t *get_highest_priority_device_indexes(struct userdata *u, c
         *indexes[i] = PA_INVALID_INDEX;
     }
     pa_zero(highest_priority_available);
+
+    sink_mode = (strcmp(prefix, "sink:") == 0);
 
     done = !pa_database_first(u->database, &key, NULL);
 
@@ -465,7 +467,7 @@ static role_indexes_t *get_highest_priority_device_indexes(struct userdata *u, c
                         pa_bool_t found = FALSE;
                         char *device_name = get_name(name, prefix);
 
-                        if (strcmp(prefix, "sink:") == 0) {
+                        if (sink_mode) {
                             pa_sink *sink;
 
                             PA_IDXSET_FOREACH(sink, u->core->sinks, idx) {
@@ -944,14 +946,17 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         if ((e = read_entry(u, device)) && ENTRY_VERSION == e->version) {
             pa_datum key, data;
             pa_bool_t done;
-            char* prefix;
+            char* prefix = NULL;
             uint32_t priority;
             pa_bool_t haschanged = FALSE;
 
             if (strncmp(device, "sink:", 5) == 0)
                 prefix = pa_xstrdup("sink:");
-            else
+            else if (strncmp(device, "source:", 7) == 0)
                 prefix = pa_xstrdup("source:");
+
+            if (!prefix)
+                goto fail;
 
             priority = e->priority[role_index];
 
