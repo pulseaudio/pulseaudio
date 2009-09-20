@@ -221,6 +221,16 @@ static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
     return TRUE;
 }
 
+static char *get_name(const char *key, const char *prefix) {
+    char *t;
+
+    if (strncmp(key, prefix, strlen(prefix)))
+        return NULL;
+
+    t = pa_xstrdup(key + strlen(prefix));
+    return t;
+}
+
 static inline struct entry *load_or_initialize_entry(struct userdata *u, struct entry *entry, const char *name, const char *prefix) {
     struct entry *old;
 
@@ -273,139 +283,6 @@ static inline struct entry *load_or_initialize_entry(struct userdata *u, struct 
     }
 
     return old;
-}
-
-static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
-    struct userdata *u = userdata;
-    struct entry entry, *old = NULL;
-    char *name = NULL;
-    pa_datum key, data;
-
-    pa_assert(c);
-    pa_assert(u);
-
-    if (t != (PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_NEW) &&
-        t != (PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE) &&
-        t != (PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_NEW) &&
-        t != (PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE))
-        return;
-
-    pa_zero(entry);
-    entry.version = ENTRY_VERSION;
-
-    if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK) {
-        pa_sink *sink;
-
-        if (!(sink = pa_idxset_get_by_index(c->sinks, idx)))
-            return;
-
-        name = pa_sprintf_malloc("sink:%s", sink->name);
-
-        old = load_or_initialize_entry(u, &entry, name, "sink:");
-
-        pa_strlcpy(entry.description, pa_strnull(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description));
-
-    } else {
-        pa_source *source;
-
-        pa_assert((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE);
-
-        if (!(source = pa_idxset_get_by_index(c->sources, idx)))
-            return;
-
-        if (source->monitor_of)
-            return;
-
-        name = pa_sprintf_malloc("source:%s", source->name);
-
-        old = load_or_initialize_entry(u, &entry, name, "source:");
-
-        pa_strlcpy(entry.description, pa_strnull(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description));
-    }
-
-    if (old) {
-
-        if (entries_equal(old, &entry)) {
-            pa_xfree(old);
-            pa_xfree(name);
-            return;
-        }
-
-        pa_xfree(old);
-    }
-
-    key.data = name;
-    key.size = strlen(name);
-
-    data.data = &entry;
-    data.size = sizeof(entry);
-
-    pa_log_info("Storing device %s.", name);
-
-    pa_database_set(u->database, &key, &data, TRUE);
-
-    pa_xfree(name);
-
-    trigger_save(u);
-}
-
-static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new_data, struct userdata *u) {
-    char *name;
-    struct entry *e;
-
-    pa_assert(c);
-    pa_assert(new_data);
-    pa_assert(u);
-
-    name = pa_sprintf_malloc("sink:%s", new_data->name);
-
-    if ((e = read_entry(u, name))) {
-        if (strncmp(e->description, pa_proplist_gets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION), sizeof(e->description)) != 0) {
-            pa_log_info("Restoring description for sink %s.", new_data->name);
-            pa_proplist_sets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION, e->description);
-        }
-
-        pa_xfree(e);
-    }
-
-    pa_xfree(name);
-
-    return PA_HOOK_OK;
-}
-
-static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data *new_data, struct userdata *u) {
-    char *name;
-    struct entry *e;
-
-    pa_assert(c);
-    pa_assert(new_data);
-    pa_assert(u);
-
-    name = pa_sprintf_malloc("source:%s", new_data->name);
-
-    if ((e = read_entry(u, name))) {
-        if (strncmp(e->description, pa_proplist_gets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION), sizeof(e->description)) != 0) {
-            /* NB, We cannot detect if we are a monitor here... this could mess things up a bit... */
-            pa_log_info("Restoring description for source %s.", new_data->name);
-            pa_proplist_sets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION, e->description);
-        }
-
-        pa_xfree(e);
-    }
-
-    pa_xfree(name);
-
-    return PA_HOOK_OK;
-}
-
-static char *get_name(const char *key, const char *prefix) {
-    char *t;
-
-    if (strncmp(key, prefix, strlen(prefix)))
-        return NULL;
-
-    t = pa_xstrdup(key + strlen(prefix));
-    return t;
 }
 
 static uint32_t get_role_index(const char* role) {
@@ -518,84 +395,6 @@ static void update_highest_priority_device_indexes(struct userdata *u, const cha
         pa_datum_free(&key);
         key = next_key;
     }
-}
-
-
-static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_new_data *new_data, struct userdata *u) {
-    pa_assert(c);
-    pa_assert(new_data);
-    pa_assert(u);
-
-    if (!u->do_routing)
-        return PA_HOOK_OK;
-
-    if (new_data->sink)
-        pa_log_debug("Not restoring device for stream, because already set.");
-    else {
-        const char *role;
-        uint32_t role_index;
-
-        if (!(role = pa_proplist_gets(new_data->proplist, PA_PROP_MEDIA_ROLE)))
-            role_index = get_role_index("");
-        else
-            role_index = get_role_index(role);
-
-        if (PA_INVALID_INDEX != role_index) {
-            uint32_t device_index;
-
-            device_index = u->preferred_sinks[role_index];
-            if (PA_INVALID_INDEX != device_index) {
-                pa_sink *sink;
-
-                if ((sink = pa_idxset_get_by_index(u->core->sinks, device_index))) {
-                    new_data->sink = sink;
-                    new_data->save_sink = TRUE;
-                }
-            }
-        }
-    }
-
-    return PA_HOOK_OK;
-}
-
-static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_output_new_data *new_data, struct userdata *u) {
-    pa_assert(c);
-    pa_assert(new_data);
-    pa_assert(u);
-
-    if (!u->do_routing)
-        return PA_HOOK_OK;
-
-    if (new_data->direct_on_input)
-        return PA_HOOK_OK;
-
-    if (new_data->source)
-        pa_log_debug("Not restoring device for stream, because already set");
-    else {
-        const char *role;
-        uint32_t role_index;
-
-        if (!(role = pa_proplist_gets(new_data->proplist, PA_PROP_MEDIA_ROLE)))
-            role_index = get_role_index("");
-        else
-            role_index = get_role_index(role);
-
-        if (PA_INVALID_INDEX != role_index) {
-            uint32_t device_index;
-
-            device_index = u->preferred_sources[role_index];
-            if (PA_INVALID_INDEX != device_index) {
-                pa_source *source;
-
-                if ((source = pa_idxset_get_by_index(u->core->sources, device_index))) {
-                    new_data->source = source;
-                    new_data->save_source = TRUE;
-                }
-            }
-        }
-    }
-
-    return PA_HOOK_OK;
 }
 
 
@@ -717,6 +516,238 @@ static pa_hook_result_t route_source_outputs(struct userdata *u, pa_source* igno
 
     return PA_HOOK_OK;
 }
+
+static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
+    struct userdata *u = userdata;
+    struct entry entry, *old = NULL;
+    char *name = NULL;
+    pa_datum key, data;
+
+    pa_assert(c);
+    pa_assert(u);
+
+    if (t != (PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_NEW) &&
+        t != (PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE) &&
+        t != (PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_NEW) &&
+        t != (PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE) &&
+
+        /*t != (PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW) &&*/
+        t != (PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE) &&
+        /*t != (PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW) &&*/
+        t != (PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE))
+        return;
+
+    pa_zero(entry);
+    entry.version = ENTRY_VERSION;
+
+    if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK_INPUT) {
+        pa_sink_input *si;
+
+        if (!u->do_routing)
+            return;
+        if (!(si = pa_idxset_get_by_index(c->sink_inputs, idx)))
+            return;
+
+        /* The role may change mid-stream, so we reroute */
+        route_sink_input(u, si);
+
+        return;
+    } else if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT) {
+        pa_source_output *so;
+
+        if (!u->do_routing)
+            return;
+        if (!(so = pa_idxset_get_by_index(c->source_outputs, idx)))
+            return;
+
+        /* The role may change mid-stream, so we reroute */
+        route_source_output(u, so);
+
+        return;
+    } else if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK) {
+        pa_sink *sink;
+
+        if (!(sink = pa_idxset_get_by_index(c->sinks, idx)))
+            return;
+
+        name = pa_sprintf_malloc("sink:%s", sink->name);
+
+        old = load_or_initialize_entry(u, &entry, name, "sink:");
+
+        pa_strlcpy(entry.description, pa_strnull(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description));
+
+    } else  if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE) {
+        pa_source *source;
+
+        pa_assert((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE);
+
+        if (!(source = pa_idxset_get_by_index(c->sources, idx)))
+            return;
+
+        if (source->monitor_of)
+            return;
+
+        name = pa_sprintf_malloc("source:%s", source->name);
+
+        old = load_or_initialize_entry(u, &entry, name, "source:");
+
+        pa_strlcpy(entry.description, pa_strnull(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description));
+    }
+
+    pa_assert(name);
+
+    if (old) {
+
+        if (entries_equal(old, &entry)) {
+            pa_xfree(old);
+            pa_xfree(name);
+            return;
+        }
+
+        pa_xfree(old);
+    }
+
+    key.data = name;
+    key.size = strlen(name);
+
+    data.data = &entry;
+    data.size = sizeof(entry);
+
+    pa_log_info("Storing device %s.", name);
+
+    pa_database_set(u->database, &key, &data, TRUE);
+
+    pa_xfree(name);
+
+    trigger_save(u);
+}
+
+static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new_data, struct userdata *u) {
+    char *name;
+    struct entry *e;
+
+    pa_assert(c);
+    pa_assert(new_data);
+    pa_assert(u);
+
+    name = pa_sprintf_malloc("sink:%s", new_data->name);
+
+    if ((e = read_entry(u, name))) {
+        if (strncmp(e->description, pa_proplist_gets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION), sizeof(e->description)) != 0) {
+            pa_log_info("Restoring description for sink %s.", new_data->name);
+            pa_proplist_sets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION, e->description);
+        }
+
+        pa_xfree(e);
+    }
+
+    pa_xfree(name);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data *new_data, struct userdata *u) {
+    char *name;
+    struct entry *e;
+
+    pa_assert(c);
+    pa_assert(new_data);
+    pa_assert(u);
+
+    name = pa_sprintf_malloc("source:%s", new_data->name);
+
+    if ((e = read_entry(u, name))) {
+        if (strncmp(e->description, pa_proplist_gets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION), sizeof(e->description)) != 0) {
+            /* NB, We cannot detect if we are a monitor here... this could mess things up a bit... */
+            pa_log_info("Restoring description for source %s.", new_data->name);
+            pa_proplist_sets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION, e->description);
+        }
+
+        pa_xfree(e);
+    }
+
+    pa_xfree(name);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_new_data *new_data, struct userdata *u) {
+    pa_assert(c);
+    pa_assert(new_data);
+    pa_assert(u);
+
+    if (!u->do_routing)
+        return PA_HOOK_OK;
+
+    if (new_data->sink)
+        pa_log_debug("Not restoring device for stream, because already set.");
+    else {
+        const char *role;
+        uint32_t role_index;
+
+        if (!(role = pa_proplist_gets(new_data->proplist, PA_PROP_MEDIA_ROLE)))
+            role_index = get_role_index("");
+        else
+            role_index = get_role_index(role);
+
+        if (PA_INVALID_INDEX != role_index) {
+            uint32_t device_index;
+
+            device_index = u->preferred_sinks[role_index];
+            if (PA_INVALID_INDEX != device_index) {
+                pa_sink *sink;
+
+                if ((sink = pa_idxset_get_by_index(u->core->sinks, device_index))) {
+                    new_data->sink = sink;
+                    new_data->save_sink = TRUE;
+                }
+            }
+        }
+    }
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_output_new_data *new_data, struct userdata *u) {
+    pa_assert(c);
+    pa_assert(new_data);
+    pa_assert(u);
+
+    if (!u->do_routing)
+        return PA_HOOK_OK;
+
+    if (new_data->direct_on_input)
+        return PA_HOOK_OK;
+
+    if (new_data->source)
+        pa_log_debug("Not restoring device for stream, because already set");
+    else {
+        const char *role;
+        uint32_t role_index;
+
+        if (!(role = pa_proplist_gets(new_data->proplist, PA_PROP_MEDIA_ROLE)))
+            role_index = get_role_index("");
+        else
+            role_index = get_role_index(role);
+
+        if (PA_INVALID_INDEX != role_index) {
+            uint32_t device_index;
+
+            device_index = u->preferred_sources[role_index];
+            if (PA_INVALID_INDEX != device_index) {
+                pa_source *source;
+
+                if ((source = pa_idxset_get_by_index(u->core->sources, device_index))) {
+                    new_data->source = source;
+                    new_data->save_source = TRUE;
+                }
+            }
+        }
+    }
+
+    return PA_HOOK_OK;
+}
+
 
 static pa_hook_result_t sink_put_hook_callback(pa_core *c, PA_GCC_UNUSED pa_sink *sink, struct userdata *u) {
     pa_assert(c);
@@ -1133,7 +1164,7 @@ int pa__init(pa_module*m) {
 
     u->connection_unlink_hook_slot = pa_hook_connect(&pa_native_protocol_hooks(u->protocol)[PA_NATIVE_HOOK_CONNECTION_UNLINK], PA_HOOK_NORMAL, (pa_hook_cb_t) connection_unlink_hook_cb, u);
 
-    u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK|PA_SUBSCRIPTION_MASK_SOURCE, subscribe_callback, u);
+    u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK|PA_SUBSCRIPTION_MASK_SOURCE|PA_SUBSCRIPTION_MASK_SINK_INPUT|PA_SUBSCRIPTION_MASK_SOURCE_OUTPUT, subscribe_callback, u);
 
     /* Used to handle device description management */
     u->sink_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) sink_new_hook_callback, u);
