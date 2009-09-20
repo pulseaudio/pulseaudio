@@ -877,7 +877,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             data.data = e;
             data.size = sizeof(*e);
 
-            if (pa_database_set(u->database, &key, &data, FALSE) == 0) {
+            if (pa_database_set(u->database, &key, &data, TRUE) == 0) {
                 apply_entry(u, device, e);
 
                 trigger_save(u);
@@ -995,7 +995,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                             data.data = e2;
                             data.size = sizeof(*e2);
 
-                            if (pa_database_set(u->database, &key, &data, FALSE))
+                            if (pa_database_set(u->database, &key, &data, TRUE))
                                 pa_log_warn("Could not save device");
                         }
 
@@ -1022,7 +1022,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 data.data = e;
                 data.size = sizeof(*e);
 
-                if (pa_database_set(u->database, &key, &data, FALSE))
+                if (pa_database_set(u->database, &key, &data, TRUE))
                     pa_log_warn("Could not save device");
 
                 trigger_save(u);
