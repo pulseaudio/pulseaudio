@@ -1070,7 +1070,7 @@ static void sink_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa_t
     }
 
     if (u->version >= 16) {
-        uint32_t n_ports, j;
+        uint32_t n_ports;
         const char *s;
 
         if (pa_tagstruct_getu32(t, &n_ports)) {
@@ -1078,7 +1078,7 @@ static void sink_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa_t
             goto fail;
         }
 
-        for (j = 0; j < n_ports; j++) {
+        for (uint32_t j = 0; j < n_ports; j++) {
             uint32_t priority;
 
             if (pa_tagstruct_gets(t, &s) < 0 || /* name */
@@ -1267,6 +1267,33 @@ static void source_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa
             pa_tagstruct_getu32(t, &n_volume_steps) < 0 ||
             pa_tagstruct_getu32(t, &card) < 0) {
 
+            pa_log("Parse failure");
+            goto fail;
+        }
+    }
+
+    if (u->version >= 16) {
+        uint32_t n_ports;
+        const char *s;
+
+        if (pa_tagstruct_getu32(t, &n_ports)) {
+            pa_log("Parse failure");
+            goto fail;
+        }
+
+        for (uint32_t j = 0; j < n_ports; j++) {
+            uint32_t priority;
+
+            if (pa_tagstruct_gets(t, &s) < 0 || /* name */
+                pa_tagstruct_gets(t, &s) < 0 || /* description */
+                pa_tagstruct_getu32(t, &priority) < 0) {
+
+                pa_log("Parse failure");
+                goto fail;
+            }
+        }
+
+        if (pa_tagstruct_gets(t, &s) < 0) { /* active port */
             pa_log("Parse failure");
             goto fail;
         }
