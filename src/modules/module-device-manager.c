@@ -914,9 +914,6 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
     case SUBCOMMAND_ROLE_DEVICE_PRIORITY_ROUTING: {
 
         pa_bool_t enable;
-        uint32_t sridx = PA_INVALID_INDEX;
-        uint32_t idx;
-        pa_module *module;
 
         if (pa_tagstruct_get_boolean(t, &enable) < 0)
             goto fail;
