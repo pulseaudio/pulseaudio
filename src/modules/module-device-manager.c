@@ -59,12 +59,14 @@ PA_MODULE_DESCRIPTION("Keep track of devices (and their descriptions) both past 
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_USAGE(
+    "do_routing=<Automatically route streams based on a priority list (unique per-role)?> "
     "on_hotplug=<When new device becomes available, recheck streams?> "
     "on_rescue=<When device becomes unavailable, recheck streams?>");
 
 #define SAVE_INTERVAL (10 * PA_USEC_PER_SEC)
 
 static const char* const valid_modargs[] = {
+    "do_routing",
     "on_hotplug",
     "on_rescue",
     NULL
@@ -92,7 +94,7 @@ struct userdata {
 
     pa_bool_t on_hotplug;
     pa_bool_t on_rescue;
-    pa_bool_t role_device_priority_routing;
+    pa_bool_t do_routing;
 };
 
 #define ENTRY_VERSION 1
@@ -512,7 +514,7 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
     pa_assert(new_data);
     pa_assert(u);
 
-    if (!u->role_device_priority_routing)
+    if (!u->do_routing)
         return PA_HOOK_OK;
 
     if (new_data->sink)
@@ -552,7 +554,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
     pa_assert(new_data);
     pa_assert(u);
 
-    if (!u->role_device_priority_routing)
+    if (!u->do_routing)
         return PA_HOOK_OK;
 
     if (new_data->direct_on_input)
@@ -597,7 +599,7 @@ static pa_hook_result_t reroute_sinks(struct userdata *u) {
 
     pa_assert(u);
 
-    if (!u->role_device_priority_routing)
+    if (!u->do_routing)
         return PA_HOOK_OK;
 
     pa_assert_se(indexes = get_highest_priority_device_indexes(u, "sink:"));
@@ -610,8 +612,7 @@ static pa_hook_result_t reroute_sinks(struct userdata *u) {
         if (si->save_sink)
             continue;
 
-        /* Skip this if it is already in the process of being moved
-        * anyway */
+        /* Skip this if it is already in the process of being moved anyway */
         if (!si->sink)
             continue;
 
@@ -652,7 +653,7 @@ static pa_hook_result_t reroute_sources(struct userdata *u) {
 
     pa_assert(u);
 
-    if (!u->role_device_priority_routing)
+    if (!u->do_routing)
         return PA_HOOK_OK;
 
     pa_assert_se(indexes = get_highest_priority_device_indexes(u, "source:"));
@@ -668,8 +669,7 @@ static pa_hook_result_t reroute_sources(struct userdata *u) {
         if (so->direct_on_input)
             continue;
 
-        /* Skip this if it is already in the process of being moved
-        * anyway */
+        /* Skip this if it is already in the process of being moved anyway */
         if (!so->source)
             continue;
 
@@ -918,7 +918,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         if (pa_tagstruct_get_boolean(t, &enable) < 0)
             goto fail;
 
-        u->role_device_priority_routing = enable;
+        u->do_routing = enable;
 
         break;
     }
@@ -1082,7 +1082,7 @@ int pa__init(pa_module*m) {
     pa_sink_input *si;
     pa_source_output *so;
     uint32_t idx;
-    pa_bool_t on_hotplug = TRUE, on_rescue = TRUE;
+    pa_bool_t do_routing = FALSE, on_hotplug = TRUE, on_rescue = TRUE;
 
     pa_assert(m);
 
@@ -1091,7 +1091,8 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (pa_modargs_get_value_boolean(ma, "on_hotplug", &on_hotplug) < 0 ||
+    if (pa_modargs_get_value_boolean(ma, "do_routing", &do_routing) < 0 ||
+        pa_modargs_get_value_boolean(ma, "on_hotplug", &on_hotplug) < 0 ||
         pa_modargs_get_value_boolean(ma, "on_rescue", &on_rescue) < 0) {
         pa_log("on_hotplug= and on_rescue= expect boolean arguments");
         goto fail;
@@ -1100,6 +1101,7 @@ int pa__init(pa_module*m) {
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
+    u->do_routing = do_routing;
     u->on_hotplug = on_hotplug;
     u->on_rescue = on_rescue;
     u->subscribed = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
