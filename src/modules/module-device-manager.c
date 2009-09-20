@@ -598,7 +598,7 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t reroute_sinks(struct userdata *u, pa_sink *ignore_sink) {
+static pa_hook_result_t route_sink_inputs(struct userdata *u, pa_sink *ignore_sink) {
     pa_sink_input *si;
     uint32_t idx;
 
@@ -649,7 +649,7 @@ static pa_hook_result_t reroute_sinks(struct userdata *u, pa_sink *ignore_sink) 
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t reroute_sources(struct userdata *u, pa_source* ignore_source) {
+static pa_hook_result_t route_source_outputs(struct userdata *u, pa_source* ignore_source) {
     pa_source_output *so;
     uint32_t idx;
 
@@ -709,7 +709,7 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, PA_GCC_UNUSED pa_sink
     pa_assert(u->core == c);
     pa_assert(u->on_hotplug);
 
-    return reroute_sinks(u, NULL);
+    return route_sink_inputs(u, NULL);
 }
 
 static pa_hook_result_t source_put_hook_callback(pa_core *c, PA_GCC_UNUSED pa_source *source, struct userdata *u) {
@@ -718,7 +718,7 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, PA_GCC_UNUSED pa_so
     pa_assert(u->core == c);
     pa_assert(u->on_hotplug);
 
-    return reroute_sources(u, NULL);
+    return route_source_outputs(u, NULL);
 }
 
 static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, struct userdata *u) {
@@ -732,7 +732,7 @@ static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, str
     if (c->state == PA_CORE_SHUTDOWN)
         return PA_HOOK_OK;
 
-    return reroute_sinks(u, sink);
+    return route_sink_inputs(u, sink);
 }
 
 static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *source, struct userdata *u) {
@@ -746,7 +746,7 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
     if (c->state == PA_CORE_SHUTDOWN)
         return PA_HOOK_OK;
 
-    return reroute_sources(u, source);
+    return route_source_outputs(u, source);
 }
 
 
@@ -1088,8 +1088,6 @@ int pa__init(pa_module*m) {
     char *fname;
     pa_sink *sink;
     pa_source *source;
-    pa_sink_input *si;
-    pa_source_output *so;
     uint32_t idx;
     pa_bool_t do_routing = FALSE, on_hotplug = TRUE, on_rescue = TRUE;
 
@@ -1163,8 +1161,8 @@ int pa__init(pa_module*m) {
         subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_NEW, source->index, u);
 
     /* Perform the routing (if it's enabled) which will update our priority list cache too */
-    reroute_sinks(u, NULL);
-    reroute_sources(u, NULL);
+    route_sink_inputs(u, NULL);
+    route_source_outputs(u, NULL);
 
     pa_modargs_free(ma);
     return 0;
