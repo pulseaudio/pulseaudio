@@ -58,11 +58,15 @@ PA_MODULE_AUTHOR("Colin Guthrie");
 PA_MODULE_DESCRIPTION("Keep track of devices (and their descriptions) both past and present");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
-PA_MODULE_USAGE("This module does not take any arguments");
+PA_MODULE_USAGE(
+    "on_hotplug=<When new device becomes available, recheck streams?> "
+    "on_rescue=<When device becomes unavailable, recheck streams?>");
 
 #define SAVE_INTERVAL (10 * PA_USEC_PER_SEC)
 
 static const char* const valid_modargs[] = {
+    "on_hotplug",
+    "on_rescue",
     NULL
 };
 
@@ -73,6 +77,12 @@ struct userdata {
     pa_hook_slot
         *sink_new_hook_slot,
         *source_new_hook_slot,
+        *sink_input_new_hook_slot,
+        *source_output_new_hook_slot,
+        *sink_put_hook_slot,
+        *source_put_hook_slot,
+        *sink_unlink_hook_slot,
+        *source_unlink_hook_slot,
         *connection_unlink_hook_slot;
     pa_time_event *save_time_event;
     pa_database *database;
@@ -80,6 +90,8 @@ struct userdata {
     pa_native_protocol *protocol;
     pa_idxset *subscribed;
 
+    pa_bool_t on_hotplug;
+    pa_bool_t on_rescue;
     pa_bool_t role_device_priority_routing;
     pa_bool_t stream_restore_used;
     pa_bool_t checked_stream_restore;
@@ -100,10 +112,12 @@ enum {
     ROLE_A11Y,
 };
 
+typedef uint32_t role_indexes_t[NUM_ROLES];
+
 struct entry {
     uint8_t version;
     char description[PA_NAME_MAX];
-    uint32_t priority[NUM_ROLES];
+    role_indexes_t priority;
 } PA_GCC_PACKED;
 
 enum {
@@ -215,7 +229,7 @@ static inline struct entry *load_or_initialize_entry(struct userdata *u, struct 
         *entry = *old;
     else {
         /* This is a new device, so make sure we write it's priority list correctly */
-        uint32_t max_priority[NUM_ROLES];
+        role_indexes_t max_priority;
         pa_datum key;
         pa_bool_t done;
 
@@ -389,6 +403,138 @@ static char *get_name(const char *key, const char *prefix) {
     t = pa_xstrdup(key + strlen(prefix));
     return t;
 }
+
+static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_new_data *new_data, struct userdata *u) {
+    char *name;
+    struct entry *e;
+
+    pa_assert(c);
+    pa_assert(new_data);
+    pa_assert(u);
+
+    if (!u->role_device_priority_routing)
+        return PA_HOOK_OK;
+
+    /*if (!(name = get_name(new_data->proplist, "sink-input")))
+        return PA_HOOK_OK;
+
+    if (new_data->sink)
+        pa_log_debug("Not restoring device for stream %s, because already set.", name);
+    else if ((e = read_entry(u, name))) {
+
+        pa_xfree(e);
+    }
+
+    pa_xfree(name);*/
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_output_new_data *new_data, struct userdata *u) {
+    char *name;
+    struct entry *e;
+
+    pa_assert(c);
+    pa_assert(new_data);
+    pa_assert(u);
+
+    if (!u->role_device_priority_routing)
+        return PA_HOOK_OK;
+
+    if (new_data->direct_on_input)
+        return PA_HOOK_OK;
+
+    /*if (!(name = get_name(new_data->proplist, "source-output")))
+        return PA_HOOK_OK;
+
+    if (new_data->source)
+        pa_log_debug("Not restoring device for stream %s, because already set", name);
+    else if ((e = read_entry(u, name))) {
+
+        pa_xfree(e);
+    }
+
+    pa_xfree(name);*/
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, struct userdata *u) {
+    pa_sink_input *si;
+    uint32_t idx;
+
+    pa_assert(c);
+    pa_assert(sink);
+    pa_assert(u);
+    pa_assert(u->on_hotplug);
+
+    if (!u->role_device_priority_routing)
+        return PA_HOOK_OK;
+
+    /** @todo Ensure redo the routing based on the priorities */
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, struct userdata *u) {
+    pa_source_output *so;
+    uint32_t idx;
+
+    pa_assert(c);
+    pa_assert(source);
+    pa_assert(u);
+    pa_assert(u->on_hotplug);
+
+    if (!u->role_device_priority_routing)
+        return PA_HOOK_OK;
+
+    /** @todo Ensure redo the routing based on the priorities */
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, struct userdata *u) {
+    pa_sink_input *si;
+    uint32_t idx;
+
+    pa_assert(c);
+    pa_assert(sink);
+    pa_assert(u);
+    pa_assert(u->on_rescue);
+
+    /* There's no point in doing anything if the core is shut down anyway */
+    if (c->state == PA_CORE_SHUTDOWN)
+        return PA_HOOK_OK;
+
+    if (!u->role_device_priority_routing)
+        return PA_HOOK_OK;
+
+    /** @todo Ensure redo the routing based on the priorities */
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *source, struct userdata *u) {
+    pa_source_output *so;
+    uint32_t idx;
+
+    pa_assert(c);
+    pa_assert(source);
+    pa_assert(u);
+    pa_assert(u->on_rescue);
+
+    /* There's no point in doing anything if the core is shut down anyway */
+    if (c->state == PA_CORE_SHUTDOWN)
+        return PA_HOOK_OK;
+
+    if (!u->role_device_priority_routing)
+        return PA_HOOK_OK;
+
+    /** @todo Ensure redo the routing based on the priorities */
+
+    return PA_HOOK_OK;
+}
+
 
 static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
     pa_sink *sink;
@@ -781,7 +927,10 @@ int pa__init(pa_module*m) {
     char *fname;
     pa_sink *sink;
     pa_source *source;
+    pa_sink_input *si;
+    pa_source_output *so;
     uint32_t idx;
+    pa_bool_t on_hotplug = TRUE, on_rescue = TRUE;
 
     pa_assert(m);
 
@@ -790,9 +939,17 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+    if (pa_modargs_get_value_boolean(ma, "on_hotplug", &on_hotplug) < 0 ||
+        pa_modargs_get_value_boolean(ma, "on_rescue", &on_rescue) < 0) {
+        pa_log("on_hotplug= and on_rescue= expect boolean arguments");
+        goto fail;
+    }
+
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
+    u->on_hotplug = on_hotplug;
+    u->on_rescue = on_rescue;
     u->subscribed = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
     u->protocol = pa_native_protocol_get(m->core);
@@ -802,8 +959,26 @@ int pa__init(pa_module*m) {
 
     u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK|PA_SUBSCRIPTION_MASK_SOURCE, subscribe_callback, u);
 
+    /* Used to handle device description management */
     u->sink_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) sink_new_hook_callback, u);
     u->source_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) source_new_hook_callback, u);
+
+    /* The following slots are used to deal with routing */
+    /* A little bit later than module-stream-restore, module-intended-roles */
+    u->sink_input_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], PA_HOOK_EARLY+15, (pa_hook_cb_t) sink_input_new_hook_callback, u);
+    u->source_output_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_NEW], PA_HOOK_EARLY+15, (pa_hook_cb_t) source_output_new_hook_callback, u);
+
+    if (on_hotplug) {
+        /* A little bit later than module-stream-restore, module-intended-roles */
+        u->sink_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE+15, (pa_hook_cb_t) sink_put_hook_callback, u);
+        u->source_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE+15, (pa_hook_cb_t) source_put_hook_callback, u);
+    }
+
+    if (on_rescue) {
+        /* A little bit later than module-stream-restore, module-intended-roles, a little bit earlier than module-rescue-streams, ... */
+        u->sink_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_LATE+15, (pa_hook_cb_t) sink_unlink_hook_callback, u);
+        u->source_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE+15, (pa_hook_cb_t) source_unlink_hook_callback, u);
+    }
 
     if (!(fname = pa_state_path("device-manager", TRUE)))
         goto fail;
@@ -817,11 +992,17 @@ int pa__init(pa_module*m) {
     pa_log_info("Sucessfully opened database file '%s'.", fname);
     pa_xfree(fname);
 
-    for (sink = pa_idxset_first(m->core->sinks, &idx); sink; sink = pa_idxset_next(m->core->sinks, &idx))
+    PA_IDXSET_FOREACH(sink, m->core->sinks, idx)
         subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_NEW, sink->index, u);
 
-    for (source = pa_idxset_first(m->core->sources, &idx); source; source = pa_idxset_next(m->core->sources, &idx))
+    PA_IDXSET_FOREACH(source, m->core->sources, idx)
         subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_NEW, source->index, u);
+
+    PA_IDXSET_FOREACH(si, m->core->sink_inputs, idx)
+        subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, si->index, u);
+
+    PA_IDXSET_FOREACH(so, m->core->source_outputs, idx)
+        subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, so->index, u);
 
     pa_modargs_free(ma);
     return 0;
@@ -850,6 +1031,21 @@ void pa__done(pa_module*m) {
         pa_hook_slot_free(u->sink_new_hook_slot);
     if (u->source_new_hook_slot)
         pa_hook_slot_free(u->source_new_hook_slot);
+
+    if (u->sink_input_new_hook_slot)
+        pa_hook_slot_free(u->sink_input_new_hook_slot);
+    if (u->source_output_new_hook_slot)
+        pa_hook_slot_free(u->source_output_new_hook_slot);
+
+    if (u->sink_put_hook_slot)
+        pa_hook_slot_free(u->sink_put_hook_slot);
+    if (u->source_put_hook_slot)
+        pa_hook_slot_free(u->source_put_hook_slot);
+
+    if (u->sink_unlink_hook_slot)
+        pa_hook_slot_free(u->sink_unlink_hook_slot);
+    if (u->source_unlink_hook_slot)
+        pa_hook_slot_free(u->source_unlink_hook_slot);
 
     if (u->save_time_event)
         u->core->mainloop->time_free(u->save_time_event);
