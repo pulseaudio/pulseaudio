@@ -39,7 +39,7 @@
 enum {
     SUBCOMMAND_TEST,
     SUBCOMMAND_READ,
-    SUBCOMMAND_WRITE,
+    SUBCOMMAND_RENAME,
     SUBCOMMAND_DELETE,
     SUBCOMMAND_ROLE_DEVICE_PRIORITY_ROUTING,
     SUBCOMMAND_PREFER_DEVICE,
@@ -183,12 +183,10 @@ pa_operation *pa_ext_device_manager_read(
     return o;
 }
 
-pa_operation *pa_ext_device_manager_write(
+pa_operation *pa_ext_device_manager_set_device_description(
         pa_context *c,
-        pa_update_mode_t mode,
-        const pa_ext_device_manager_info data[],
-        unsigned n,
-        int apply_immediately,
+        const char* device,
+        const char* description,
         pa_context_success_cb_t cb,
         void *userdata) {
 
@@ -198,8 +196,8 @@ pa_operation *pa_ext_device_manager_write(
 
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
-    pa_assert(mode == PA_UPDATE_MERGE || mode == PA_UPDATE_REPLACE || mode == PA_UPDATE_SET);
-    pa_assert(data);
+    pa_assert(device);
+    pa_assert(description);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -210,35 +208,15 @@ pa_operation *pa_ext_device_manager_write(
     t = pa_tagstruct_command(c, PA_COMMAND_EXTENSION, &tag);
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, "module-device-manager");
-    pa_tagstruct_putu32(t, SUBCOMMAND_WRITE);
+    pa_tagstruct_putu32(t, SUBCOMMAND_RENAME);
 
-    pa_tagstruct_putu32(t, mode);
-    pa_tagstruct_put_boolean(t, apply_immediately);
-
-    for (; n > 0; n--, data++) {
-        if (!data->name || !*data->name)
-            goto fail;
-
-        pa_tagstruct_puts(t, data->name);
-        pa_tagstruct_puts(t, data->description);
-    }
+    pa_tagstruct_puts(t, device);
+    pa_tagstruct_puts(t, description);
 
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
-
-fail:
-    if (o) {
-        pa_operation_cancel(o);
-        pa_operation_unref(o);
-    }
-
-    if (t)
-        pa_tagstruct_free(t);
-
-    pa_context_set_error(c, PA_ERR_INVALID);
-    return NULL;
 }
 
 pa_operation *pa_ext_device_manager_delete(

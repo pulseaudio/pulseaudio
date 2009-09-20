@@ -109,7 +109,7 @@ struct entry {
 enum {
     SUBCOMMAND_TEST,
     SUBCOMMAND_READ,
-    SUBCOMMAND_WRITE,
+    SUBCOMMAND_RENAME,
     SUBCOMMAND_DELETE,
     SUBCOMMAND_ROLE_DEVICE_PRIORITY_ROUTING,
     SUBCOMMAND_PREFER_DEVICE,
@@ -451,51 +451,41 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
       break;
     }
 
-    case SUBCOMMAND_WRITE: {
-      uint32_t mode;
-      pa_bool_t apply_immediately = FALSE;
+    case SUBCOMMAND_RENAME: {
 
-      if (pa_tagstruct_getu32(t, &mode) < 0 ||
-        pa_tagstruct_get_boolean(t, &apply_immediately) < 0)
-        goto fail;
+        struct entry *e;
+        const char *device, *description;
 
-      if (mode != PA_UPDATE_MERGE &&
-        mode != PA_UPDATE_REPLACE &&
-        mode != PA_UPDATE_SET)
-        goto fail;
-
-      if (mode == PA_UPDATE_SET)
-        pa_database_clear(u->database);
-
-      while (!pa_tagstruct_eof(t)) {
-        const char *name, *description;
-        struct entry entry;
-        pa_datum key, data;
-
-        pa_zero(entry);
-        entry.version = ENTRY_VERSION;
-
-        if (pa_tagstruct_gets(t, &name) < 0 ||
+        if (pa_tagstruct_gets(t, &device) < 0 ||
           pa_tagstruct_gets(t, &description) < 0)
           goto fail;
 
-        if (!name || !*name)
+        if (!device || !*device || !description || !*description)
           goto fail;
 
-        pa_strlcpy(entry.description, description, sizeof(entry.description));
+        if ((e = read_entry(u, device)) && ENTRY_VERSION == e->version) {
+            pa_datum key, data;
 
-        key.data = (char*) name;
-        key.size = strlen(name);
+            pa_strlcpy(e->description, description, sizeof(e->description));
 
-        data.data = &entry;
-        data.size = sizeof(entry);
+            key.data = (char *) device;
+            key.size = strlen(device);
 
-        if (pa_database_set(u->database, &key, &data, mode == PA_UPDATE_REPLACE) == 0)
-          if (apply_immediately)
-            apply_entry(u, name, &entry);
-      }
+            data.data = e;
+            data.size = sizeof(*e);
 
-      trigger_save(u);
+            if (pa_database_set(u->database, &key, &data, FALSE) == 0) {
+                apply_entry(u, device, e);
+
+                trigger_save(u);
+            }
+            else
+                pa_log_warn("Could not save device");
+
+            pa_xfree(e);
+        }
+        else
+            pa_log_warn("Could not rename device %s, no entry in database", device);
 
       break;
     }
@@ -671,6 +661,9 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
 
             pa_xfree(prefix);
         }
+        else
+            pa_log_warn("Could not reorder device %s, no entry in database", device);
+
         break;
     }
 

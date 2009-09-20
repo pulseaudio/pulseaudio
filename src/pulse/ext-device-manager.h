@@ -65,13 +65,11 @@ pa_operation *pa_ext_device_manager_read(
         pa_ext_device_manager_read_cb_t cb,
         void *userdata);
 
-/** Store entries in the device database. \since 0.9.19 */
-pa_operation *pa_ext_device_manager_write(
+/** Sets the description for a device. \since 0.9.19 */
+pa_operation *pa_ext_device_manager_set_device_description(
         pa_context *c,
-        pa_update_mode_t mode,
-        const pa_ext_device_manager_info data[],
-        unsigned n,
-        int apply_immediately,
+        const char* device,
+        const char* description,
         pa_context_success_cb_t cb,
         void *userdata);
 
@@ -82,14 +80,14 @@ pa_operation *pa_ext_device_manager_delete(
         pa_context_success_cb_t cb,
         void *userdata);
 
-/** Subscribe to changes in the device database. \since 0.9.19 */
+/** Enable the role-based device-priority routing mode. \since 0.9.19 */
 pa_operation *pa_ext_device_manager_enable_role_device_priority_routing(
         pa_context *c,
         int enable,
         pa_context_success_cb_t cb,
         void *userdata);
 
-/** Subscribe to changes in the device database. \since 0.9.19 */
+/** Prefer a given device in the priority list. \since 0.9.19 */
 pa_operation *pa_ext_device_manager_prefer_device(
         pa_context *c,
         const char* role,
@@ -97,7 +95,7 @@ pa_operation *pa_ext_device_manager_prefer_device(
         pa_context_success_cb_t cb,
         void *userdata);
 
-/** Subscribe to changes in the device database. \since 0.9.19 */
+/** Defer a given device in the priority list. \since 0.9.19 */
 pa_operation *pa_ext_device_manager_defer_device(
         pa_context *c,
         const char* role,
