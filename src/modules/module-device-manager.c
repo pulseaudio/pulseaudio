@@ -55,7 +55,7 @@
 #include "module-device-manager-symdef.h"
 
 PA_MODULE_AUTHOR("Colin Guthrie");
-PA_MODULE_DESCRIPTION("Keep track of devices (and their descriptions) both past and present");
+PA_MODULE_DESCRIPTION("Keep track of devices (and their descriptions) both past and present and prioritise by role");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_USAGE(
@@ -64,6 +64,7 @@ PA_MODULE_USAGE(
     "on_rescue=<When device becomes unavailable, recheck streams?>");
 
 #define SAVE_INTERVAL (10 * PA_USEC_PER_SEC)
+#define DUMP_DATABASE
 
 static const char* const valid_modargs[] = {
     "do_routing",
@@ -135,20 +136,6 @@ enum {
     SUBCOMMAND_EVENT
 };
 
-static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *t, void *userdata) {
-    struct userdata *u = userdata;
-
-    pa_assert(a);
-    pa_assert(e);
-    pa_assert(u);
-
-    pa_assert(e == u->save_time_event);
-    u->core->mainloop->time_free(u->save_time_event);
-    u->save_time_event = NULL;
-
-    pa_database_sync(u->database);
-    pa_log_info("Synced.");
-}
 
 static struct entry* read_entry(struct userdata *u, const char *name) {
     pa_datum key, data;
@@ -188,6 +175,107 @@ fail:
 
     pa_datum_free(&data);
     return NULL;
+}
+
+#ifdef DUMP_DATABASE
+static void dump_database_helper(struct userdata *u, uint32_t role_index, const char* human, pa_bool_t sink_mode) {
+    pa_assert(u);
+    pa_assert(human);
+
+    if (sink_mode) {
+        pa_sink *s;
+        if (PA_INVALID_INDEX != u->preferred_sinks[role_index] && (s = pa_idxset_get_by_index(u->core->sinks, u->preferred_sinks[role_index])))
+            pa_log_debug("   %s %s (%s)", human, pa_strnull(pa_proplist_gets(s->proplist, PA_PROP_DEVICE_DESCRIPTION)), s->name);
+        else
+            pa_log_debug("   %s No sink specified", human);
+    } else {
+        pa_source *s;
+        if (PA_INVALID_INDEX != u->preferred_sinks[role_index] && (s = pa_idxset_get_by_index(u->core->sinks, u->preferred_sinks[role_index])))
+            pa_log_debug("   %s %s (%s)", human, pa_strnull(pa_proplist_gets(s->proplist, PA_PROP_DEVICE_DESCRIPTION)), s->name);
+        else
+            pa_log_debug("   %s No source specified", human);
+    }
+}
+
+static void dump_database(struct userdata *u) {
+    pa_datum key;
+    pa_bool_t done;
+
+    pa_assert(u);
+
+    done = !pa_database_first(u->database, &key, NULL);
+
+    pa_log_debug("Dumping database");
+    while (!done) {
+        char *name;
+        struct entry *e;
+        pa_datum next_key;
+
+        done = !pa_database_next(u->database, &key, &next_key, NULL);
+
+        name = pa_xstrndup(key.data, key.size);
+
+        if ((e = read_entry(u, name))) {
+            pa_log_debug(" Got entry: %s", name);
+            pa_log_debug("  Description: %s", e->description);
+            pa_log_debug("  Priorities: None:   %3u, Video: %3u, Music:  %3u, Game: %3u, Event: %3u",
+                         e->priority[ROLE_NONE], e->priority[ROLE_VIDEO], e->priority[ROLE_MUSIC], e->priority[ROLE_GAME], e->priority[ROLE_EVENT]);
+            pa_log_debug("              Phone:  %3u, Anim:  %3u, Prodtn: %3u, A11y: %3u",
+                         e->priority[ROLE_PHONE], e->priority[ROLE_ANIMATION], e->priority[ROLE_PRODUCTION], e->priority[ROLE_A11Y]);
+            pa_xfree(e);
+        }
+
+        pa_xfree(name);
+
+        pa_datum_free(&key);
+        key = next_key;
+    }
+
+    pa_log_debug(" Highest priority devices per-role:");
+
+    pa_log_debug("  Sinks:");
+    dump_database_helper(u, ROLE_NONE, "None:  ", TRUE);
+    dump_database_helper(u, ROLE_NONE, "Video: ", TRUE);
+    dump_database_helper(u, ROLE_NONE, "Music: ", TRUE);
+    dump_database_helper(u, ROLE_NONE, "Game:  ", TRUE);
+    dump_database_helper(u, ROLE_NONE, "Event: ", TRUE);
+    dump_database_helper(u, ROLE_NONE, "Phone: ", TRUE);
+    dump_database_helper(u, ROLE_NONE, "Anim:  ", TRUE);
+    dump_database_helper(u, ROLE_NONE, "Prodtn:", TRUE);
+    dump_database_helper(u, ROLE_NONE, "Ally:  ", TRUE);
+
+    pa_log_debug("  Sources:");
+    dump_database_helper(u, ROLE_NONE, "None:  ", FALSE);
+    dump_database_helper(u, ROLE_NONE, "Video: ", FALSE);
+    dump_database_helper(u, ROLE_NONE, "Music: ", FALSE);
+    dump_database_helper(u, ROLE_NONE, "Game:  ", FALSE);
+    dump_database_helper(u, ROLE_NONE, "Event: ", FALSE);
+    dump_database_helper(u, ROLE_NONE, "Phone: ", FALSE);
+    dump_database_helper(u, ROLE_NONE, "Anim:  ", FALSE);
+    dump_database_helper(u, ROLE_NONE, "Prodtn:", FALSE);
+    dump_database_helper(u, ROLE_NONE, "Ally:  ", FALSE);
+
+    pa_log_debug("Completed database dump");
+}
+#endif
+
+static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *t, void *userdata) {
+    struct userdata *u = userdata;
+
+    pa_assert(a);
+    pa_assert(e);
+    pa_assert(u);
+
+    pa_assert(e == u->save_time_event);
+    u->core->mainloop->time_free(u->save_time_event);
+    u->save_time_event = NULL;
+
+    pa_database_sync(u->database);
+    pa_log_info("Synced.");
+
+#ifdef DUMP_DATABASE
+    dump_database(u);
+#endif
 }
 
 static void trigger_save(struct userdata *u) {
@@ -1209,6 +1297,10 @@ int pa__init(pa_module*m) {
     /* Perform the routing (if it's enabled) which will update our priority list cache too */
     route_sink_inputs(u, NULL);
     route_source_outputs(u, NULL);
+
+#ifdef DUMP_DATABASE
+    dump_database(u);
+#endif
 
     pa_modargs_free(ma);
     return 0;
