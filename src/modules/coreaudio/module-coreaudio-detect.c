@@ -1,0 +1,229 @@
+/***
+  This file is part of PulseAudio.
+
+  Copyright 2009 Daniel Mack <daniel@caiaq.de>
+
+  PulseAudio is free software; you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as published
+  by the Free Software Foundation; either version 2.1 of the License,
+  or (at your option) any later version.
+
+  PulseAudio is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public License
+  along with PulseAudio; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  USA.
+***/
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <pulse/xmalloc.h>
+
+#include <pulsecore/module.h>
+#include <pulsecore/core-util.h>
+#include <pulsecore/modargs.h>
+#include <pulsecore/log.h>
+#include <pulsecore/llist.h>
+
+#include <CoreAudio/CoreAudio.h>
+
+#include "module-coreaudio-detect-symdef.h"
+
+#define DEVICE_MODULE_NAME "module-coreaudio-device"
+
+PA_MODULE_AUTHOR("Daniel Mack");
+PA_MODULE_DESCRIPTION("CoreAudio device detection");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_USAGE("");
+
+typedef struct ca_device ca_device;
+
+struct ca_device {
+    AudioDeviceID id;
+    unsigned int  module_index;
+    PA_LLIST_FIELDS(ca_device);
+};
+
+struct userdata {
+    int detect_fds[2];
+    pa_io_event *detect_io;
+
+    PA_LLIST_HEAD(ca_device, devices);
+};
+
+static int ca_device_added(struct pa_module *m, AudioDeviceID id) {
+    pa_module *mod;
+    struct userdata *u = m->userdata;
+    struct ca_device *dev;
+    char *args;
+
+    pa_assert(u);
+
+    args = pa_sprintf_malloc("device_id=%d", (int) id);
+    pa_log_debug("Loading %s with arguments '%s'", DEVICE_MODULE_NAME, args);
+    mod = pa_module_load(m->core, DEVICE_MODULE_NAME, args);
+    pa_xfree(args);
+
+    if (!mod) {
+        pa_log_info("Failed to load module %s with arguments '%s'", DEVICE_MODULE_NAME, args);
+        return -1;
+    }
+
+    dev = pa_xnew0(ca_device, 1);
+    dev->module_index = mod->index;
+    dev->id = id;
+
+    PA_LLIST_INIT(ca_device, dev);
+    PA_LLIST_PREPEND(ca_device, u->devices, dev);
+
+    return 0;
+}
+
+static int ca_update_device_list(struct pa_module *m) {
+    OSStatus err;
+    UInt32 i, size, num_devices;
+    Boolean writable;
+    AudioDeviceID *device_id;
+    struct ca_device *dev;
+    struct userdata *u = m->userdata;
+
+    pa_assert(u);
+
+    /* get the number of currently available audio devices */
+    err = AudioHardwareGetPropertyInfo(kAudioHardwarePropertyDevices, &size, &writable);
+    if (err) {
+        pa_log("Unable to get info for kAudioHardwarePropertyDevices.");
+        return -1;
+    }
+
+    num_devices = size / sizeof(AudioDeviceID);
+    device_id = pa_xnew(AudioDeviceID, num_devices);
+
+    err = AudioHardwareGetProperty(kAudioHardwarePropertyDevices, &size, device_id);
+    if (err) {
+        pa_log("Unable to get kAudioHardwarePropertyDevices.");
+        pa_xfree(device_id);
+        return -1;
+    }
+
+    /* scan for devices which are reported but not in our cached list */
+    for (i = 0; i < num_devices; i++) {
+        bool found = FALSE;
+
+        PA_LLIST_FOREACH(dev, u->devices)
+            if (dev->id == device_id[i]) {
+                found = TRUE;
+                break;
+            }
+
+        if (!found)
+            ca_device_added(m, device_id[i]);
+    }
+
+    /* scan for devices which are in our cached list but are not reported */
+scan_removed:
+
+    PA_LLIST_FOREACH(dev, u->devices) {
+        bool found = FALSE;
+
+        for (i = 0; i < num_devices; i++)
+            if (dev->id == device_id[i]) {
+                found = TRUE;
+                break;
+            }
+
+        if (!found) {
+            pa_log_debug("device id %d has been removed (module index %d)  %p", (unsigned int) dev->id, dev->module_index, dev);
+            pa_module_unload_request_by_index(m->core, dev->module_index, TRUE);
+            PA_LLIST_REMOVE(ca_device, u->devices, dev);
+            pa_xfree(dev);
+            /* the current list item pointer is not valid anymore, so start over. */
+            goto scan_removed;
+        }
+    }
+
+    pa_xfree(device_id);
+    return 0;
+}
+
+static OSStatus property_listener_proc(AudioHardwarePropertyID property, void *data) {
+    struct userdata *u = data;
+    char dummy = 1;
+
+    pa_assert(u);
+
+    /* dispatch module load/unload operations in main thread */
+    if (property == kAudioHardwarePropertyDevices)
+        write(u->detect_fds[1], &dummy, 1);
+
+    return 0;
+}
+
+static void detect_handle(pa_mainloop_api *a, pa_io_event *e, int fd, pa_io_event_flags_t events, void *userdata) {
+    pa_module *m = userdata;
+    char dummy;
+
+    pa_assert(m);
+
+    read(fd, &dummy, 1);
+    ca_update_device_list(m);
+}
+
+int pa__init(pa_module *m) {
+    struct userdata *u = pa_xnew0(struct userdata, 1);
+
+    m->userdata = u;
+
+    if (AudioHardwareAddPropertyListener(kAudioHardwarePropertyDevices, property_listener_proc, u)) {
+        pa_log("AudioHardwareAddPropertyListener() failed.");
+        goto fail;
+    }
+
+    if (ca_update_device_list(m))
+       goto fail;
+
+    pa_assert_se(pipe(u->detect_fds) == 0);
+    pa_assert_se(u->detect_io = m->core->mainloop->io_new(m->core->mainloop, u->detect_fds[0], PA_IO_EVENT_INPUT, detect_handle, m));
+
+    return 0;
+
+fail:
+    pa_xfree(u);
+    return -1;
+}
+
+void pa__done(pa_module *m) {
+    struct userdata *u = m->userdata;
+    struct ca_device *dev = u->devices;
+
+    pa_assert(u);
+
+    AudioHardwareRemovePropertyListener(kAudioHardwarePropertyDevices, property_listener_proc);
+
+    while (dev) {
+        struct ca_device *next = dev->next;
+
+        pa_module_unload_request_by_index(m->core, dev->module_index, TRUE);
+        pa_xfree(dev);
+
+        dev = next;
+    }
+
+    if (u->detect_fds[0] >= 0)
+        close(u->detect_fds[0]);
+
+    if (u->detect_fds[1] >= 0)
+        close(u->detect_fds[1]);
+
+    if (u->detect_io)
+        m->core->mainloop->io_free(u->detect_io);
+
+    pa_xfree(u);
+}

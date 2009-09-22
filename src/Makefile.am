@@ -1066,6 +1066,11 @@ modlibexec_LTLIBRARIES += \
 		module-oss.la
 endif
 
+if HAVE_COREAUDIO
+modlibexec_LTLIBRARIES += \
+		module-coreaudio-detect.la
+endif
+
 pulselibexec_PROGRAMS =
 
 if HAVE_ALSA
@@ -1238,6 +1243,7 @@ SYMDEF_FILES = \
 		modules/alsa/module-alsa-sink-symdef.h \
 		modules/alsa/module-alsa-source-symdef.h \
 		modules/alsa/module-alsa-card-symdef.h \
+		modules/coreaudio/module-coreaudio-detect-symdef.h \
 		modules/module-solaris-symdef.h \
 		modules/module-waveout-symdef.h \
 		modules/module-detect-symdef.h \
@@ -1468,6 +1474,14 @@ liboss_util_la_LIBADD = libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_
 module_oss_la_SOURCES = modules/oss/module-oss.c
 module_oss_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_oss_la_LIBADD = $(AM_LIBADD) liboss-util.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+
+# COREAUDIO
+
+module_coreaudio_detect_la_SOURCES = modules/coreaudio/module-coreaudio-detect.c
+module_coreaudio_detect_la_LDFLAGS = $(MODULE_LDFLAGS) \
+			-Wl,-framework -Wl,Cocoa -framework CoreAudio \
+			-Wl,-framework -Wl,AudioUnit -framework AudioUnit
+module_coreaudio_detect_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
 # ALSA
 
