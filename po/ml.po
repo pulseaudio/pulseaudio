@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.ml\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-11 01:26+0200\n"
+"POT-Creation-Date: 2009-09-18 22:17+0200\n"
 "PO-Revision-Date: 2009-09-10 11:19+0530\n"
 "Last-Translator: \n"
 "Language-Team:  <en@li.org>\n"
@@ -242,7 +242,7 @@ msgstr "pipe പരാജയപ്പെട്ടു: %s"
 msgid "fork() failed: %s"
 msgstr "fork() പരാജയപ്പെട്ടു: %s"
 
-#: ../src/daemon/main.c:641 ../src/utils/pacat.c:504
+#: ../src/daemon/main.c:641 ../src/utils/pacat.c:508
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() പരാജയപ്പെട്ടു: %s"
@@ -1143,7 +1143,7 @@ msgstr "fork(): %s"
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1435
+#: ../src/pulse/context.c:1438
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "അപരിചിതമായ എക്സ്റ്റെന്‍ഷന്‍ '%s'-നുള്ള സന്ദേശം ലഭിച്ചിരിക്കുന്നു"
@@ -1264,50 +1264,50 @@ msgstr "കണക്ഷന്‍ സ്ഥാപിച്ചിരിക്ക�
 msgid "pa_stream_new() failed: %s"
 msgstr "pa_stream_new() പരാജയപ്പെട്ടു: %s"
 
-#: ../src/utils/pacat.c:446
+#: ../src/utils/pacat.c:450
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s"
 msgstr "pa_stream_connect_playback() പരാജയപ്പെട്ടു: %s"
 
-#: ../src/utils/pacat.c:452
+#: ../src/utils/pacat.c:456
 #, c-format
 msgid "pa_stream_connect_record() failed: %s"
 msgstr "pa_stream_connect_record() പരാജയപ്പെട്ടു: %s"
 
-#: ../src/utils/pacat.c:466 ../src/utils/pactl.c:857
+#: ../src/utils/pacat.c:470 ../src/utils/pactl.c:857
 #, c-format
 msgid "Connection failure: %s"
 msgstr "കണക്ഷനില്‍ തകരാര്‍: %s"
 
-#: ../src/utils/pacat.c:499
+#: ../src/utils/pacat.c:503
 msgid "Got EOF."
 msgstr "EOF ലഭ്യമായിരിക്കുന്നു"
 
-#: ../src/utils/pacat.c:536
+#: ../src/utils/pacat.c:540
 #, c-format
 msgid "write() failed: %s"
 msgstr "write() പരാജയപ്പെട്ടു: %s"
 
-#: ../src/utils/pacat.c:557
+#: ../src/utils/pacat.c:561
 msgid "Got signal, exiting."
 msgstr "സിഗ്നല്‍ ലഭ്യമായി, പുറത്തു് കടക്കുന്നു."
 
-#: ../src/utils/pacat.c:571
+#: ../src/utils/pacat.c:575
 #, c-format
 msgid "Failed to get latency: %s"
 msgstr "ലാറ്റന്‍സി ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
-#: ../src/utils/pacat.c:576
+#: ../src/utils/pacat.c:580
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
 msgstr "സമയം: %0.3f sec; ലാറ്റന്‍സി: %0.0f usec."
 
-#: ../src/utils/pacat.c:595
+#: ../src/utils/pacat.c:599
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() പരാജയപ്പെട്ടു: %s"
 
-#: ../src/utils/pacat.c:605
+#: ../src/utils/pacat.c:609
 #, c-format
 msgid ""
 "%s [options]\n"
@@ -1422,7 +1422,7 @@ msgstr ""
 "      --file-format=FFORMAT             Record/play formatted PCM data.\n"
 "      --list-file-formats               List available file formats.\n"
 
-#: ../src/utils/pacat.c:727
+#: ../src/utils/pacat.c:731
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1433,126 +1433,126 @@ msgstr ""
 "libpulse %s-നൊപ്പം കംപൈല്‍ ചെയ്തിരിക്കുന്നു\n"
 "libpulse %s-നൊപ്പം ലിങ്ക് ചെയ്തിരിക്കുന്നു\n"
 
-#: ../src/utils/pacat.c:760 ../src/utils/pactl.c:953
+#: ../src/utils/pacat.c:764 ../src/utils/pactl.c:953
 #, c-format
 msgid "Invalid client name '%s'"
 msgstr "തെറ്റായ ക്ലൈന്റ് നാമം '%s'"
 
-#: ../src/utils/pacat.c:775
+#: ../src/utils/pacat.c:779
 #, c-format
 msgid "Invalid stream name '%s'"
 msgstr "തെറ്റായ സ്ട്രീം നാമം '%s'"
 
-#: ../src/utils/pacat.c:812
+#: ../src/utils/pacat.c:816
 #, c-format
 msgid "Invalid channel map '%s'"
 msgstr "തെറ്റായ ചാനല്‍ മാപ്പ് '%s'"
 
-#: ../src/utils/pacat.c:841
+#: ../src/utils/pacat.c:845
 #, c-format
 msgid "Invalid latency specification '%s'"
 msgstr "തെറ്റായ ലാറ്റന്‍സി വിവരണം '%s'"
 
-#: ../src/utils/pacat.c:848
+#: ../src/utils/pacat.c:852
 #, c-format
 msgid "Invalid process time specification '%s'"
 msgstr "തെറ്റായ പ്രക്രിയ സമയ വിവരണം '%s'"
 
-#: ../src/utils/pacat.c:860
+#: ../src/utils/pacat.c:864
 #, c-format
 msgid "Invalid property '%s'"
 msgstr "തെറ്റായ വിശേഷത '%s'"
 
-#: ../src/utils/pacat.c:877
+#: ../src/utils/pacat.c:881
 #, c-format
 msgid "Unknown file format %s."
 msgstr "അപരിചിതമായ ഫയല്‍ രീതി %s."
 
-#: ../src/utils/pacat.c:896
+#: ../src/utils/pacat.c:900
 msgid "Invalid sample specification"
 msgstr "തെറ്റായ മാതൃക വിവരണം"
 
-#: ../src/utils/pacat.c:906
+#: ../src/utils/pacat.c:910
 #, c-format
 msgid "open(): %s"
 msgstr "open(): %s"
 
-#: ../src/utils/pacat.c:911
+#: ../src/utils/pacat.c:915
 #, c-format
 msgid "dup2(): %s"
 msgstr "dup2(): %s"
 
-#: ../src/utils/pacat.c:918
+#: ../src/utils/pacat.c:922
 msgid "Too many arguments."
 msgstr "അനവധി ആര്‍ഗ്യുമെന്റുകള്‍."
 
-#: ../src/utils/pacat.c:929
+#: ../src/utils/pacat.c:933
 msgid "Failed to generate sample specification for file."
 msgstr "ഫയലിനുള്ള സാംപിള്‍ വിവരണം ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
-#: ../src/utils/pacat.c:949
+#: ../src/utils/pacat.c:953
 msgid "Failed to open audio file."
 msgstr "ഓ‍ഡിയോ ഫയല്‍ തുറക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
-#: ../src/utils/pacat.c:955
+#: ../src/utils/pacat.c:959
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
 msgstr ""
 "മുന്നറിയിപ്പു്: ഫയലില്‍ നിന്നുള്ള വിവരണം വ്യക്തമാക്കിയിരിക്കുന്ന സാംപിള്‍ വിവരണം മാറ്റിയെഴുതുന്നു."
 
-#: ../src/utils/pacat.c:958 ../src/utils/pactl.c:997
+#: ../src/utils/pacat.c:962 ../src/utils/pactl.c:997
 msgid "Failed to determine sample specification from file."
 msgstr "ഫയലില്‍ നിന്നും സാംപിള്‍ വിവരണം ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
-#: ../src/utils/pacat.c:967
+#: ../src/utils/pacat.c:971
 msgid "Warning: Failed to determine channel map from file."
 msgstr "മുന്നറിയിപ്പു്: ഫയലില്‍ നിന്നും ചാനല്‍ മാപ്പ് ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
-#: ../src/utils/pacat.c:978
+#: ../src/utils/pacat.c:982
 msgid "Channel map doesn't match sample specification"
 msgstr "ചാനല്‍ മാപ്പ് സാംപിള്‍ വിവരണവുമായി ചേരുന്നില്ല"
 
-#: ../src/utils/pacat.c:989
+#: ../src/utils/pacat.c:993
 msgid "Warning: failed to write channel map to file."
 msgstr "മുന്നറിയിപ്പു്: ഫയലിലേക്ക് ചാനല്‍ മാപ്പ് സൂക്ഷിക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
-#: ../src/utils/pacat.c:1004
+#: ../src/utils/pacat.c:1008
 #, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "%s സ്ട്രീം തുറക്കുന്നു. ഇതിന്റെ സാംപിള്‍ വിവരണം '%s'-ഉം ചാനല്‍ മാപ്പ് '%s'-ഉം ആണു്."
 
-#: ../src/utils/pacat.c:1005
+#: ../src/utils/pacat.c:1009
 msgid "recording"
 msgstr "റിക്കോര്‍ഡ് ചെയ്യുന്നു"
 
-#: ../src/utils/pacat.c:1005
+#: ../src/utils/pacat.c:1009
 msgid "playback"
 msgstr "പ്ലേബാക്ക്"
 
-#: ../src/utils/pacat.c:1031 ../src/utils/pactl.c:1267
+#: ../src/utils/pacat.c:1035 ../src/utils/pactl.c:1267
 msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() പരാജയപ്പെട്ടു."
 
-#: ../src/utils/pacat.c:1050
+#: ../src/utils/pacat.c:1054
 msgid "io_new() failed."
 msgstr "io_new() പരാജയപ്പെട്ടു."
 
-#: ../src/utils/pacat.c:1057 ../src/utils/pactl.c:1279
+#: ../src/utils/pacat.c:1061 ../src/utils/pactl.c:1279
 msgid "pa_context_new() failed."
 msgstr "pa_context_new() പരാജയപ്പെട്ടു."
 
-#: ../src/utils/pacat.c:1065 ../src/utils/pactl.c:1285
+#: ../src/utils/pacat.c:1069 ../src/utils/pactl.c:1285
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() പരാജയപ്പെട്ടു: %s"
 
-#: ../src/utils/pacat.c:1071
+#: ../src/utils/pacat.c:1075
 msgid "pa_context_rttime_new() failed."
 msgstr "pa_context_rttime_new() പരാജയപ്പെട്ടു."
 
-#: ../src/utils/pacat.c:1078 ../src/utils/pactl.c:1290
+#: ../src/utils/pacat.c:1082 ../src/utils/pactl.c:1290
 msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() പരാജയപ്പെട്ടു."
 

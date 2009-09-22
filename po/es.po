@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PulseAudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-11 01:26+0200\n"
-"PO-Revision-Date: 2009-09-03 09:52-0300\n"
+"POT-Creation-Date: 2009-09-18 22:17+0200\n"
+"PO-Revision-Date: 2009-09-11 08:40-0300\n"
 "Last-Translator: Domingo Becker <domingobecker@gmail.com>\n"
 "Language-Team: Fedora Spanish <fedora-trans-es@redhat.com>\n"
 "MIME-Version: 1.0\n"
@@ -64,11 +64,11 @@ msgstr ""
 
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
-msgstr ""
+msgstr "Siempre tenga al menos un sumidero cargado aunque sea uno nulo"
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
-msgstr ""
+msgstr "Salida Boba"
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
@@ -91,12 +91,11 @@ msgstr ""
 
 #: ../src/modules/module-null-sink.c:55
 msgid "Clocked NULL sink"
-msgstr ""
+msgstr "Sumidero nulo sincronizado"
 
 #: ../src/modules/module-null-sink.c:291
-#, fuzzy
 msgid "Null Output"
-msgstr "Salida %s"
+msgstr "Salida Nula"
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -254,7 +253,7 @@ msgstr "Falló el pipe: %s"
 msgid "fork() failed: %s"
 msgstr "Falló el fork(): %s"
 
-#: ../src/daemon/main.c:641 ../src/utils/pacat.c:504
+#: ../src/daemon/main.c:641 ../src/utils/pacat.c:508
 #, c-format
 msgid "read() failed: %s"
 msgstr "Falló la operación read(): %s"
@@ -1114,11 +1113,11 @@ msgstr "Cliente iniciado"
 
 #: ../src/pulse/error.c:68
 msgid "Input/Output error"
-msgstr ""
+msgstr "Error de Entrada/Salida"
 
 #: ../src/pulse/error.c:69
 msgid "Device or resource busy"
-msgstr ""
+msgstr "Dispositivo o recurso ocupado"
 
 #: ../src/pulse/sample.c:172
 #, c-format
@@ -1172,7 +1171,7 @@ msgstr "fork(): %s"
 msgid "waitpid(): %s"
 msgstr "waitpid(:) %s"
 
-#: ../src/pulse/context.c:1435
+#: ../src/pulse/context.c:1438
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Se ha recibido un mensaje para una extensión desconocida '%s'"
@@ -1293,50 +1292,50 @@ msgstr "Conexión establecida.%s"
 msgid "pa_stream_new() failed: %s"
 msgstr "pa_stream_new() falló: %s"
 
-#: ../src/utils/pacat.c:446
+#: ../src/utils/pacat.c:450
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s"
 msgstr "pa_stream_connect_playback() falló: %s"
 
-#: ../src/utils/pacat.c:452
+#: ../src/utils/pacat.c:456
 #, c-format
 msgid "pa_stream_connect_record() failed: %s"
 msgstr "pa_stream_connect_record() falló: %s"
 
-#: ../src/utils/pacat.c:466 ../src/utils/pactl.c:857
+#: ../src/utils/pacat.c:470 ../src/utils/pactl.c:857
 #, c-format
 msgid "Connection failure: %s"
 msgstr "Error en la conexión: %s"
 
-#: ../src/utils/pacat.c:499
+#: ../src/utils/pacat.c:503
 msgid "Got EOF."
 msgstr "Se tiene EOF."
 
-#: ../src/utils/pacat.c:536
+#: ../src/utils/pacat.c:540
 #, c-format
 msgid "write() failed: %s"
 msgstr "write() falló: %s"
 
-#: ../src/utils/pacat.c:557
+#: ../src/utils/pacat.c:561
 msgid "Got signal, exiting."
 msgstr "Hay señal, saliendo (exiting)."
 
-#: ../src/utils/pacat.c:571
+#: ../src/utils/pacat.c:575
 #, c-format
 msgid "Failed to get latency: %s"
 msgstr "No se pudo obtener latencia: %s"
 
-#: ../src/utils/pacat.c:576
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:580
+#, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr "Tiempo: %0.3f sec; Latencia: %0.0f usec. \r"
+msgstr "Tiempo: %0.3f seg; Latencia: %0.0f useg."
 
-#: ../src/utils/pacat.c:595
+#: ../src/utils/pacat.c:599
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() falló: %s"
 
-#: ../src/utils/pacat.c:605
+#: ../src/utils/pacat.c:609
 #, c-format
 msgid ""
 "%s [options]\n"
@@ -1454,7 +1453,7 @@ msgstr ""
 "      --list-file-formats               Muestra una lista con los formatos "
 "de archivo disponibles.\n"
 
-#: ../src/utils/pacat.c:727
+#: ../src/utils/pacat.c:731
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1465,68 +1464,68 @@ msgstr ""
 "Compilado con libpulse %s\n"
 "Linkeado con libpulse %s\n"
 
-#: ../src/utils/pacat.c:760 ../src/utils/pactl.c:953
+#: ../src/utils/pacat.c:764 ../src/utils/pactl.c:953
 #, c-format
 msgid "Invalid client name '%s'"
 msgstr "Nombre de cliente '%s' inválido"
 
-#: ../src/utils/pacat.c:775
+#: ../src/utils/pacat.c:779
 #, c-format
 msgid "Invalid stream name '%s'"
 msgstr "Nombre de flujo '%s' inválido"
 
-#: ../src/utils/pacat.c:812
+#: ../src/utils/pacat.c:816
 #, c-format
 msgid "Invalid channel map '%s'"
 msgstr "Mapa de canales '%s' inválido"
 
-#: ../src/utils/pacat.c:841
+#: ../src/utils/pacat.c:845
 #, c-format
 msgid "Invalid latency specification '%s'"
 msgstr "Especificación de latencia '%s' inválida"
 
-#: ../src/utils/pacat.c:848
+#: ../src/utils/pacat.c:852
 #, c-format
 msgid "Invalid process time specification '%s'"
 msgstr "Especificación de tiempo de proceso '%s' inválida"
 
-#: ../src/utils/pacat.c:860
+#: ../src/utils/pacat.c:864
 #, c-format
 msgid "Invalid property '%s'"
 msgstr "Propiedad '%s' inválida"
 
-#: ../src/utils/pacat.c:877
+#: ../src/utils/pacat.c:881
 #, c-format
 msgid "Unknown file format %s."
 msgstr "Formato de archivo desconocido %s."
 
-#: ../src/utils/pacat.c:896
+#: ../src/utils/pacat.c:900
 msgid "Invalid sample specification"
 msgstr "Especificación de muestra inválida"
 
-#: ../src/utils/pacat.c:906
+#: ../src/utils/pacat.c:910
 #, c-format
 msgid "open(): %s"
 msgstr "open() %s"
 
-#: ../src/utils/pacat.c:911
+#: ../src/utils/pacat.c:915
 #, c-format
 msgid "dup2(): %s"
 msgstr "dup2(): %s"
 
-#: ../src/utils/pacat.c:918
+#: ../src/utils/pacat.c:922
 msgid "Too many arguments."
 msgstr "Demasiados argumentos."
 
-#: ../src/utils/pacat.c:929
+#: ../src/utils/pacat.c:933
 msgid "Failed to generate sample specification for file."
 msgstr "Falló al generar especificación de ejemplo para el archivo."
 
-#: ../src/utils/pacat.c:949
+#: ../src/utils/pacat.c:953
 msgid "Failed to open audio file."
 msgstr "Falló al abrir el archivo de sonido."
 
-#: ../src/utils/pacat.c:955
+#: ../src/utils/pacat.c:959
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
@@ -1534,23 +1533,23 @@ msgstr ""
 "Aviso: el ejemplo de especificación indicado será sobreescrito con las "
 "especificaciones del archivo."
 
-#: ../src/utils/pacat.c:958 ../src/utils/pactl.c:997
+#: ../src/utils/pacat.c:962 ../src/utils/pactl.c:997
 msgid "Failed to determine sample specification from file."
 msgstr "Falló al determinar especificación de ejemplo del archivo."
 
-#: ../src/utils/pacat.c:967
+#: ../src/utils/pacat.c:971
 msgid "Warning: Failed to determine channel map from file."
 msgstr "Aviso: Falló al determinar el mapeo del canal desde el archivo."
 
-#: ../src/utils/pacat.c:978
+#: ../src/utils/pacat.c:982
 msgid "Channel map doesn't match sample specification"
 msgstr "El mapa del canal no se corresponde con la especificación de muestra"
 
-#: ../src/utils/pacat.c:989
+#: ../src/utils/pacat.c:993
 msgid "Warning: failed to write channel map to file."
 msgstr "Aviso: Faló al escribir el mapeo del canal en el archivo."
 
-#: ../src/utils/pacat.c:1004
+#: ../src/utils/pacat.c:1008
 #, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
@@ -1558,36 +1557,36 @@ msgstr ""
 "Abriendo un flujo %s con especificación de muestra '%s' y mapeo de canal '%"
 "s'."
 
-#: ../src/utils/pacat.c:1005
+#: ../src/utils/pacat.c:1009
 msgid "recording"
 msgstr "grabando"
 
-#: ../src/utils/pacat.c:1005
+#: ../src/utils/pacat.c:1009
 msgid "playback"
 msgstr "playback"
 
-#: ../src/utils/pacat.c:1031 ../src/utils/pactl.c:1267
+#: ../src/utils/pacat.c:1035 ../src/utils/pactl.c:1267
 msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() falló."
 
-#: ../src/utils/pacat.c:1050
+#: ../src/utils/pacat.c:1054
 msgid "io_new() failed."
 msgstr "io_new() falló."
 
-#: ../src/utils/pacat.c:1057 ../src/utils/pactl.c:1279
+#: ../src/utils/pacat.c:1061 ../src/utils/pactl.c:1279
 msgid "pa_context_new() failed."
 msgstr "pa_context_new() falló."
 
-#: ../src/utils/pacat.c:1065 ../src/utils/pactl.c:1285
+#: ../src/utils/pacat.c:1069 ../src/utils/pactl.c:1285
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() falló: %s"
 
-#: ../src/utils/pacat.c:1071
+#: ../src/utils/pacat.c:1075
 msgid "pa_context_rttime_new() failed."
 msgstr "pa_context_rttime_new() falló."
 
-#: ../src/utils/pacat.c:1078 ../src/utils/pactl.c:1290
+#: ../src/utils/pacat.c:1082 ../src/utils/pactl.c:1290
 msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() falló."
 

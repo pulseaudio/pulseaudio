@@ -107,6 +107,7 @@ int pa_source_output_new(
     pa_resampler *resampler = NULL;
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
     int r;
+    char *pt;
 
     pa_assert(_o);
     pa_assert(core);
@@ -247,12 +248,15 @@ int pa_source_output_new(
     if (o->direct_on_input)
         pa_assert_se(pa_idxset_put(o->direct_on_input->direct_outputs, o, NULL) == 0);
 
-    pa_log_info("Created output %u \"%s\" on %s with sample spec %s and channel map %s",
+    pt = pa_proplist_to_string_sep(o->proplist, "\n    ");
+    pa_log_info("Created output %u \"%s\" on %s with sample spec %s and channel map %s\n    %s",
                 o->index,
                 pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_MEDIA_NAME)),
                 o->source->name,
                 pa_sample_spec_snprint(st, sizeof(st), &o->sample_spec),
-                pa_channel_map_snprint(cm, sizeof(cm), &o->channel_map));
+                pa_channel_map_snprint(cm, sizeof(cm), &o->channel_map),
+                pt);
+    pa_xfree(pt);
 
     /* Don't forget to call pa_source_output_put! */
 

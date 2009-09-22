@@ -95,13 +95,14 @@ static inline int PA_STREAM_IS_GOOD(pa_stream_state_t x) {
 typedef enum pa_operation_state {
     PA_OPERATION_RUNNING,      /**< The operation is still running */
     PA_OPERATION_DONE,         /**< The operation has been completed */
-    PA_OPERATION_CANCELED      /**< The operation has been canceled */
+    PA_OPERATION_CANCELLED     /**< The operation has been cancelled. Before 0.9.18 this was called PA_OPERATION_CANCELED. That name is still available for compatibility. */
 } pa_operation_state_t;
 
 /** \cond fulldocs */
 #define PA_OPERATION_RUNNING PA_OPERATION_RUNNING
 #define PA_OPERATION_DONE PA_OPERATION_DONE
-#define PA_OPERATION_CANCELED PA_OPERATION_CANCELED
+#define PA_OPERATION_CANCELED PA_OPERATION_CANCELLED
+#define PA_OPERATION_CANCELLED PA_OPERATION_CANCELLED
 /** \endcond */
 
 /** An invalid index */

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-11 01:26+0200\n"
-"PO-Revision-Date: 2009-09-04 23:29+0300\n"
+"POT-Creation-Date: 2009-09-18 22:17+0200\n"
+"PO-Revision-Date: 2009-09-15 13:24+0300\n"
 "Last-Translator: Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>\n"
 "Language-Team: Finnish <laatu@lokalisointi.org>\n"
 "MIME-Version: 1.0\n"
@@ -61,11 +61,11 @@ msgstr ""
 
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
-msgstr ""
+msgstr "Pidä aina vähintään yksi nielu ladattuna, vaikka se olisi tyhjä nielu"
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
-msgstr ""
+msgstr "Valeulostulo"
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
@@ -88,12 +88,11 @@ msgstr ""
 
 #: ../src/modules/module-null-sink.c:55
 msgid "Clocked NULL sink"
-msgstr ""
+msgstr "Kellotettu tyhjä nielu"
 
 #: ../src/modules/module-null-sink.c:291
-#, fuzzy
 msgid "Null Output"
-msgstr "Ulostulo %s"
+msgstr "Tyhjä ulostulo"
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -252,7 +251,7 @@ msgstr "putki epäonnistui: %s"
 msgid "fork() failed: %s"
 msgstr "fork() epäonnistui: %s"
 
-#: ../src/daemon/main.c:641 ../src/utils/pacat.c:504
+#: ../src/daemon/main.c:641 ../src/utils/pacat.c:508
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() epäonnistui: %s"
@@ -1111,11 +1110,11 @@ msgstr "Asiakasohjelma haarautui"
 
 #: ../src/pulse/error.c:68
 msgid "Input/Output error"
-msgstr ""
+msgstr "Siirräntävirhe"
 
 #: ../src/pulse/error.c:69
 msgid "Device or resource busy"
-msgstr ""
+msgstr "Laite tai resurssi on varattu"
 
 #: ../src/pulse/sample.c:172
 #, c-format
@@ -1169,7 +1168,7 @@ msgstr "fork(): %s"
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1435
+#: ../src/pulse/context.c:1438
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Saatiin viesti tuntemattomalle laajennokselle ”%s”"
@@ -1290,50 +1289,50 @@ msgstr "Yhteys muodostettu.%s"
 msgid "pa_stream_new() failed: %s"
 msgstr "pa_stream_new() epäonnistui: %s"
 
-#: ../src/utils/pacat.c:446
+#: ../src/utils/pacat.c:450
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s"
 msgstr "pa_stream_connect_playback() epäonnistui: %s"
 
-#: ../src/utils/pacat.c:452
+#: ../src/utils/pacat.c:456
 #, c-format
 msgid "pa_stream_connect_record() failed: %s"
 msgstr "pa_stream_connect_record() epäonnistui: %s"
 
-#: ../src/utils/pacat.c:466 ../src/utils/pactl.c:857
+#: ../src/utils/pacat.c:470 ../src/utils/pactl.c:857
 #, c-format
 msgid "Connection failure: %s"
 msgstr "Yhteysvirhe: %s"
 
-#: ../src/utils/pacat.c:499
+#: ../src/utils/pacat.c:503
 msgid "Got EOF."
 msgstr "Saatiin EOF."
 
-#: ../src/utils/pacat.c:536
+#: ../src/utils/pacat.c:540
 #, c-format
 msgid "write() failed: %s"
 msgstr "write() epäonnistui: %s"
 
-#: ../src/utils/pacat.c:557
+#: ../src/utils/pacat.c:561
 msgid "Got signal, exiting."
 msgstr "Saatiin signaali, lopetetaan."
 
-#: ../src/utils/pacat.c:571
+#: ../src/utils/pacat.c:575
 #, c-format
 msgid "Failed to get latency: %s"
 msgstr "Latenssin selvittäminen epäonnistui: %s"
 
-#: ../src/utils/pacat.c:576
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:580
+#, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr "Aika: %0.3f s; latenssi: %0.0f μs.  \r"
+msgstr "Aika: %0.3f s; Latenssi: %0.0f μs."
 
-#: ../src/utils/pacat.c:595
+#: ../src/utils/pacat.c:599
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() epäonnistui: %s"
 
-#: ../src/utils/pacat.c:605
+#: ../src/utils/pacat.c:609
 #, c-format
 msgid ""
 "%s [options]\n"
@@ -1445,7 +1444,7 @@ msgstr ""
 "      --list-file-formats               Luettele käytettävissä olevat "
 "tiedostomuodot.\n"
 
-#: ../src/utils/pacat.c:727
+#: ../src/utils/pacat.c:731
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1456,126 +1455,126 @@ msgstr ""
 "Käännetty libpulsen versiolle %s\n"
 "Linkitetty libpulsen versiolle %s\n"
 
-#: ../src/utils/pacat.c:760 ../src/utils/pactl.c:953
+#: ../src/utils/pacat.c:764 ../src/utils/pactl.c:953
 #, c-format
 msgid "Invalid client name '%s'"
 msgstr "Virheellinen asiakasohjelman nimi ”%s”"
 
-#: ../src/utils/pacat.c:775
+#: ../src/utils/pacat.c:779
 #, c-format
 msgid "Invalid stream name '%s'"
 msgstr "Virheellinen virran nimi ”%s”"
 
-#: ../src/utils/pacat.c:812
+#: ../src/utils/pacat.c:816
 #, c-format
 msgid "Invalid channel map '%s'"
 msgstr "Virheellinen kanavakartta ”%s”"
 
-#: ../src/utils/pacat.c:841
+#: ../src/utils/pacat.c:845
 #, c-format
 msgid "Invalid latency specification '%s'"
 msgstr "Virheellinen latenssimääritys ”%s”"
 
-#: ../src/utils/pacat.c:848
+#: ../src/utils/pacat.c:852
 #, c-format
 msgid "Invalid process time specification '%s'"
 msgstr "Virheellinen prosessiajan määritys ”%s”"
 
-#: ../src/utils/pacat.c:860
+#: ../src/utils/pacat.c:864
 #, c-format
 msgid "Invalid property '%s'"
 msgstr "Virheellinen asetus ”%s”"
 
-#: ../src/utils/pacat.c:877
+#: ../src/utils/pacat.c:881
 #, c-format
 msgid "Unknown file format %s."
 msgstr "Tuntematon tiedostomuoto %s."
 
-#: ../src/utils/pacat.c:896
+#: ../src/utils/pacat.c:900
 msgid "Invalid sample specification"
 msgstr "Virheellinen näytemääritys"
 
-#: ../src/utils/pacat.c:906
+#: ../src/utils/pacat.c:910
 #, c-format
 msgid "open(): %s"
 msgstr "open(): %s"
 
-#: ../src/utils/pacat.c:911
+#: ../src/utils/pacat.c:915
 #, c-format
 msgid "dup2(): %s"
 msgstr "dup2(): %s"
 
-#: ../src/utils/pacat.c:918
+#: ../src/utils/pacat.c:922
 msgid "Too many arguments."
 msgstr "Liian monta argumenttia."
 
-#: ../src/utils/pacat.c:929
+#: ../src/utils/pacat.c:933
 msgid "Failed to generate sample specification for file."
 msgstr "Näytemäärityksen generointi tiedostolle epäonnistui."
 
-#: ../src/utils/pacat.c:949
+#: ../src/utils/pacat.c:953
 msgid "Failed to open audio file."
 msgstr "Äänitiedoston avaaminen epäonnistui."
 
-#: ../src/utils/pacat.c:955
+#: ../src/utils/pacat.c:959
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
 msgstr ""
 "Varoitus: tiedostosta luettava näytemääritys korvaa annetun määrityksen."
 
-#: ../src/utils/pacat.c:958 ../src/utils/pactl.c:997
+#: ../src/utils/pacat.c:962 ../src/utils/pactl.c:997
 msgid "Failed to determine sample specification from file."
 msgstr "Näytemäärityksen selvittäminen tiedostosta epäonnistui."
 
-#: ../src/utils/pacat.c:967
+#: ../src/utils/pacat.c:971
 msgid "Warning: Failed to determine channel map from file."
 msgstr "Varoitus: Kanavakartan selvittäminen tiedostosta epäonnistui."
 
-#: ../src/utils/pacat.c:978
+#: ../src/utils/pacat.c:982
 msgid "Channel map doesn't match sample specification"
 msgstr "Kanavakartta ei vastaa näytemääritystä"
 
-#: ../src/utils/pacat.c:989
+#: ../src/utils/pacat.c:993
 msgid "Warning: failed to write channel map to file."
 msgstr "Varoitus: kanavakartan kirjoittaminen tiedostoon epäonnistui."
 
-#: ../src/utils/pacat.c:1004
+#: ../src/utils/pacat.c:1008
 #, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "Avataan %svirta näytemäärityksellä ”%s” ja kanavakartalla ”%s”."
 
-#: ../src/utils/pacat.c:1005
+#: ../src/utils/pacat.c:1009
 msgid "recording"
 msgstr "nauhoitus"
 
-#: ../src/utils/pacat.c:1005
+#: ../src/utils/pacat.c:1009
 msgid "playback"
 msgstr "toisto"
 
-#: ../src/utils/pacat.c:1031 ../src/utils/pactl.c:1267
+#: ../src/utils/pacat.c:1035 ../src/utils/pactl.c:1267
 msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() epäonnistui."
 
-#: ../src/utils/pacat.c:1050
+#: ../src/utils/pacat.c:1054
 msgid "io_new() failed."
 msgstr "io_new() epäonnistui."
 
-#: ../src/utils/pacat.c:1057 ../src/utils/pactl.c:1279
+#: ../src/utils/pacat.c:1061 ../src/utils/pactl.c:1279
 msgid "pa_context_new() failed."
 msgstr "pa_context_new() epäonnistui."
 
-#: ../src/utils/pacat.c:1065 ../src/utils/pactl.c:1285
+#: ../src/utils/pacat.c:1069 ../src/utils/pactl.c:1285
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() epäonnistui: %s"
 
-#: ../src/utils/pacat.c:1071
+#: ../src/utils/pacat.c:1075
 msgid "pa_context_rttime_new() failed."
 msgstr "pa_context_new() epäonnistui."
 
-#: ../src/utils/pacat.c:1078 ../src/utils/pactl.c:1290
+#: ../src/utils/pacat.c:1082 ../src/utils/pactl.c:1290
 msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() epäonnistui."
 

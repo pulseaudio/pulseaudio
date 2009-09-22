@@ -479,7 +479,6 @@ static int element_get_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
     snd_mixer_elem_t *me;
     snd_mixer_selem_channel_id_t c;
     pa_channel_position_mask_t mask = 0;
-    pa_volume_t max_channel_volume = PA_VOLUME_MUTED;
     unsigned k;
 
     pa_assert(m);
@@ -546,9 +545,6 @@ static int element_get_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
             f = from_alsa_volume(value, e->min_volume, e->max_volume);
         }
 
-        if (f > max_channel_volume)
-            max_channel_volume = f;
-
         for (k = 0; k < cm->channels; k++)
             if (e->masks[c][e->n_channels-1] & PA_CHANNEL_POSITION_MASK(cm->map[k]))
                 if (v->values[k] < f)
@@ -559,7 +555,7 @@ static int element_get_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
 
     for (k = 0; k < cm->channels; k++)
         if (!(mask & PA_CHANNEL_POSITION_MASK(cm->map[k])))
-            v->values[k] = max_channel_volume;
+            v->values[k] = PA_VOLUME_NORM;
 
     return 0;
 }
@@ -681,7 +677,6 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
     snd_mixer_elem_t *me;
     snd_mixer_selem_channel_id_t c;
     pa_channel_position_mask_t mask = 0;
-    pa_volume_t max_channel_volume = PA_VOLUME_MUTED;
     unsigned k;
 
     pa_assert(m);
@@ -771,9 +766,6 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
             f = from_alsa_volume(value, e->min_volume, e->max_volume);
         }
 
-        if (f > max_channel_volume)
-            max_channel_volume = f;
-
         for (k = 0; k < cm->channels; k++)
             if (e->masks[c][e->n_channels-1] & PA_CHANNEL_POSITION_MASK(cm->map[k]))
                 if (rv.values[k] < f)
@@ -784,7 +776,7 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
 
     for (k = 0; k < cm->channels; k++)
         if (!(mask & PA_CHANNEL_POSITION_MASK(cm->map[k])))
-            rv.values[k] = max_channel_volume;
+            rv.values[k] = PA_VOLUME_NORM;
 
     *v = rv;
     return 0;
@@ -1716,11 +1708,11 @@ static int option_verify(pa_alsa_option *o) {
         { "input-radio",               N_("Radio") },
         { "input-video",               N_("Video") },
         { "input-agc-on",              N_("Automatic Gain Control") },
-        { "input-agc-off",             "" },
+        { "input-agc-off",             N_("No Automatic Gain Control") },
         { "input-boost-on",            N_("Boost") },
-        { "input-boost-off",           "" },
+        { "input-boost-off",           N_("No Boost") },
         { "output-amplifier-on",       N_("Amplifier") },
-        { "output-amplifier-off",      "" }
+        { "output-amplifier-off",      N_("No Amplifier") }
     };
 
     pa_assert(o);

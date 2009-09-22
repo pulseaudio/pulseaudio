@@ -1394,10 +1394,12 @@ static int sndstat_open(int flags, int *_errno) {
         "Mixers:\n"
         "0: PulseAudio Virtual OSS\n";
 
-    char fn[] = "/tmp/padsp-sndstat-XXXXXX";
+    char *fn;
     mode_t u;
     int fd = -1;
     int e;
+
+    fn = pa_sprintf_malloc("%s" PA_PATH_SEP "padsp-sndstat-XXXXXX", pa_get_temp_dir());
 
     debug(DEBUG_LEVEL_NORMAL, __FILE__": sndstat_open()\n");
 
@@ -1423,6 +1425,7 @@ static int sndstat_open(int flags, int *_errno) {
     }
 
     unlink(fn);
+    pa_xfree(fn);
 
     if (write(fd, sndstat, sizeof(sndstat) -1) != sizeof(sndstat)-1) {
         *_errno = errno;
@@ -1439,6 +1442,7 @@ static int sndstat_open(int flags, int *_errno) {
     return fd;
 
 fail:
+    pa_xfree(fn);
     if (fd >= 0)
         close(fd);
     return -1;

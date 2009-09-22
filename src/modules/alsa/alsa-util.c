@@ -288,7 +288,7 @@ int pa_alsa_set_hw_params(
         if ((ret = snd_pcm_hw_params_get_buffer_size_max(hwparams, &max_frames)) < 0)
             pa_log_warn("snd_pcm_hw_params_get_buffer_size_max() failed: %s", pa_alsa_strerror(ret));
         else
-            pa_log_debug("Maximum hw buffer size is %lu ms", (long unsigned) max_frames * PA_MSEC_PER_SEC / _ss.rate);
+            pa_log_debug("Maximum hw buffer size is %lu ms", (long unsigned) (max_frames * PA_MSEC_PER_SEC / _ss.rate));
 
         /* Some ALSA drivers really don't like if we set the buffer
          * size first and the number of periods second. (which would

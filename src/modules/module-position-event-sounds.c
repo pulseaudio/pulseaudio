@@ -65,8 +65,9 @@ static int parse_pos(const char *pos, double *f) {
     }
 
     if (*f < 0.0 || *f > 1.0) {
-        pa_log_warn("Property hpos/vpos out of range %0.2f", *f);
-        return -1;
+        pa_log_debug("Property hpos/vpos out of range %0.2f", *f);
+
+        *f = PA_CLAMP(*f, 0.0, 1.0);
     }
 
     return 0;

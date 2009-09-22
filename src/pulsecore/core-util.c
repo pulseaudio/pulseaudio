@@ -1378,19 +1378,10 @@ static char* make_random_dir(mode_t m) {
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "0123456789";
 
-    const char *tmpdir;
     char *fn;
     size_t pathlen;
 
-    if (!(tmpdir = getenv("TMPDIR")))
-        if (!(tmpdir = getenv("TMP")))
-            if (!(tmpdir = getenv("TEMP")))
-                tmpdir = getenv("TEMPDIR");
-
-    if (!tmpdir || !pa_is_path_absolute(tmpdir))
-        tmpdir = "/tmp";
-
-    fn = pa_sprintf_malloc("%s/pulse-XXXXXXXXXXXX", tmpdir);
+    fn = pa_sprintf_malloc("%s" PA_PATH_SEP "pulse-XXXXXXXXXXXX", pa_get_temp_dir());
     pathlen = strlen(fn);
 
     for (;;) {
@@ -2854,3 +2845,25 @@ pa_bool_t pa_run_from_build_tree(void) {
 }
 
 #endif
+
+const char *pa_get_temp_dir(void) {
+    const char *t;
+
+    if ((t = getenv("TMPDIR")) &&
+        pa_is_path_absolute(t))
+        return t;
+
+    if ((t = getenv("TMP")) &&
+        pa_is_path_absolute(t))
+        return t;
+
+    if ((t = getenv("TEMP")) &&
+        pa_is_path_absolute(t))
+        return t;
+
+    if ((t = getenv("TEMPDIR")) &&
+        pa_is_path_absolute(t))
+        return t;
+
+    return "/tmp";
+}

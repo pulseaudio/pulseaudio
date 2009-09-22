@@ -98,7 +98,7 @@ char* pa_namereg_make_valid_name(const char *name) {
     if (*name == 0)
         return NULL;
 
-    n = pa_xmalloc(strlen(name)+1);
+    n = pa_xnew(char, strlen(name)+1);
 
     for (a = name, b = n; *a && (a-name < PA_NAME_MAX); a++, b++)
         *b = (char) (is_valid_char(*a) ? *a : '_');
@@ -169,6 +169,17 @@ const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t 
     e->data = data;
 
     pa_assert_se(pa_hashmap_put(c->namereg, e->name, e) >= 0);
+
+    /* If a sink or source is registered and there was none registered
+     * before we inform the clients which then can ask for the default
+     * sink/source which is then assigned. We don't adjust the default
+     * sink/source here right away to give the module the chance to
+     * register more sinks/sources before we choose a new default
+     * sink/source. */
+
+    if ((!c->default_sink && type == PA_NAMEREG_SINK) ||
+        (!c->default_source && type == PA_NAMEREG_SOURCE))
+        pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SERVER|PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
 
     return e->name;
 }

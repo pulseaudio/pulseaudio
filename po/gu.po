@@ -1,14 +1,14 @@
-# translation of pulaudio.po to Gujarati
+# translation of PulseAudio-up.po to Gujarati
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Sweta Kothari <swkothar@redhat.com>, 2009.
 msgid ""
 msgstr ""
-"Project-Id-Version: pulaudio\n"
+"Project-Id-Version: PulseAudio-up\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-11 01:26+0200\n"
-"PO-Revision-Date: 2009-09-10 15:26+0530\n"
+"POT-Creation-Date: 2009-09-18 22:17+0200\n"
+"PO-Revision-Date: 2009-09-11 13:02+0530\n"
 "Last-Translator: Sweta Kothari <swkothar@redhat.com>\n"
 "Language-Team: Gujarati\n"
 "MIME-Version: 1.0\n"
@@ -246,7 +246,7 @@ msgstr "પાઇપ નિષ્ફળ: %s"
 msgid "fork() failed: %s"
 msgstr "fork() નિષ્ફળ: %s"
 
-#: ../src/daemon/main.c:641 ../src/utils/pacat.c:504
+#: ../src/daemon/main.c:641 ../src/utils/pacat.c:508
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() નિષ્ફળ: %s"
@@ -1088,11 +1088,11 @@ msgstr "ક્લાઇન્ટમાં ફાટા પડેલ છે"
 
 #: ../src/pulse/error.c:68
 msgid "Input/Output error"
-msgstr ""
+msgstr "ઇનપુટ/આઉટપુટ ભૂલ"
 
 #: ../src/pulse/error.c:69
 msgid "Device or resource busy"
-msgstr ""
+msgstr "ઉપકરણ અથવા સ્ત્રોત વ્યસ્ત"
 
 #: ../src/pulse/sample.c:172
 #, c-format
@@ -1146,7 +1146,7 @@ msgstr "fork(): %s"
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1435
+#: ../src/pulse/context.c:1438
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "અજ્ઞાત એક્સટેન્શન '%s' માટે મળેલ સંદેશ"
@@ -1267,50 +1267,50 @@ msgstr "જોડાણ સ્થાપિત થયેલ છે.%s"
 msgid "pa_stream_new() failed: %s"
 msgstr "pa_stream_new() નિષ્ફળ: %s"
 
-#: ../src/utils/pacat.c:446
+#: ../src/utils/pacat.c:450
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s"
 msgstr "pa_stream_connect_playback() નિષ્ફળ: %s"
 
-#: ../src/utils/pacat.c:452
+#: ../src/utils/pacat.c:456
 #, c-format
 msgid "pa_stream_connect_record() failed: %s"
 msgstr "pa_stream_connect_record() નિષ્ફળ: %s"
 
-#: ../src/utils/pacat.c:466 ../src/utils/pactl.c:857
+#: ../src/utils/pacat.c:470 ../src/utils/pactl.c:857
 #, c-format
 msgid "Connection failure: %s"
 msgstr "જોડાણ નિષ્ફળ: %s"
 
-#: ../src/utils/pacat.c:499
+#: ../src/utils/pacat.c:503
 msgid "Got EOF."
 msgstr "EOF મળ્યુ."
 
-#: ../src/utils/pacat.c:536
+#: ../src/utils/pacat.c:540
 #, c-format
 msgid "write() failed: %s"
 msgstr "write() નિષ્ફળ: %s"
 
-#: ../src/utils/pacat.c:557
+#: ../src/utils/pacat.c:561
 msgid "Got signal, exiting."
 msgstr "સંકેત મળ્યું, બહાર નીકળી રહ્યા છે."
 
-#: ../src/utils/pacat.c:571
+#: ../src/utils/pacat.c:575
 #, c-format
 msgid "Failed to get latency: %s"
 msgstr "ગુપ્તતા મેળવવામાં નિષ્ફળતા: %s"
 
-#: ../src/utils/pacat.c:576
+#: ../src/utils/pacat.c:580
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
 msgstr "Time: %0.3f sec; Latency: %0.0f usec."
 
-#: ../src/utils/pacat.c:595
+#: ../src/utils/pacat.c:599
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() નિષ્ફળ: %s"
 
-#: ../src/utils/pacat.c:605
+#: ../src/utils/pacat.c:609
 #, c-format
 msgid ""
 "%s [options]\n"
@@ -1415,7 +1415,7 @@ msgstr ""
 "      --file-format=FFORMAT             બંધારણ થયેલ માહિતીનો રેકોર્ડ કરો/વગાડો.\n"
 "      --list-file-formats               ઉપલ્બધ ફાઇલ બંધારણોની યાદી.\n"
 
-#: ../src/utils/pacat.c:727
+#: ../src/utils/pacat.c:731
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1426,125 +1426,125 @@ msgstr ""
 "libpulse %s સાથે કમ્પાઇલ થયેલ છે\n"
 "libpulse %s સાથે કડી થયેલ છે\n"
 
-#: ../src/utils/pacat.c:760 ../src/utils/pactl.c:953
+#: ../src/utils/pacat.c:764 ../src/utils/pactl.c:953
 #, c-format
 msgid "Invalid client name '%s'"
 msgstr "અયોગ્ય ક્લાઇન્ટ નામ '%s'"
 
-#: ../src/utils/pacat.c:775
+#: ../src/utils/pacat.c:779
 #, c-format
 msgid "Invalid stream name '%s'"
 msgstr "અયોગ્ય સ્ટ્રીમ નામ '%s'"
 
-#: ../src/utils/pacat.c:812
+#: ../src/utils/pacat.c:816
 #, c-format
 msgid "Invalid channel map '%s'"
 msgstr "અયોગ્ય ચેનલ મેપ '%s'"
 
-#: ../src/utils/pacat.c:841
+#: ../src/utils/pacat.c:845
 #, c-format
 msgid "Invalid latency specification '%s'"
 msgstr "અયોગ્ય ગુપ્તતા સ્પષ્ટીકરણ '%s'"
 
-#: ../src/utils/pacat.c:848
+#: ../src/utils/pacat.c:852
 #, c-format
 msgid "Invalid process time specification '%s'"
 msgstr "અયોગ્ય પ્રક્રિયા સમય સ્પષ્ટીકરણ '%s'"
 
-#: ../src/utils/pacat.c:860
+#: ../src/utils/pacat.c:864
 #, c-format
 msgid "Invalid property '%s'"
 msgstr "અયોગ્ય ગુણધર્મ '%s'"
 
-#: ../src/utils/pacat.c:877
+#: ../src/utils/pacat.c:881
 #, c-format
 msgid "Unknown file format %s."
 msgstr "અજ્ઞાત ફાઇલ બંધારણ %s."
 
-#: ../src/utils/pacat.c:896
+#: ../src/utils/pacat.c:900
 msgid "Invalid sample specification"
 msgstr "અયોગ્ય નમૂના સ્પષ્ટીકરણ"
 
-#: ../src/utils/pacat.c:906
+#: ../src/utils/pacat.c:910
 #, c-format
 msgid "open(): %s"
 msgstr "open(): %s"
 
-#: ../src/utils/pacat.c:911
+#: ../src/utils/pacat.c:915
 #, c-format
 msgid "dup2(): %s"
 msgstr "dup2(): %s"
 
-#: ../src/utils/pacat.c:918
+#: ../src/utils/pacat.c:922
 msgid "Too many arguments."
 msgstr "ઘણી બધી દલીલો છે."
 
-#: ../src/utils/pacat.c:929
+#: ../src/utils/pacat.c:933
 msgid "Failed to generate sample specification for file."
 msgstr "ફાઇલ માટે નમૂના સ્પષ્ટીકરણ ને ઉત્પન્ન કરવામાં નિષ્ફળ."
 
-#: ../src/utils/pacat.c:949
+#: ../src/utils/pacat.c:953
 msgid "Failed to open audio file."
 msgstr "સાઉન્ડ ફાઇલને ખોલવામાં નિષ્ફળતા."
 
-#: ../src/utils/pacat.c:955
+#: ../src/utils/pacat.c:959
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
 msgstr "ચેતવણી: સ્પષ્ટ થયેલ નમૂના સ્પષ્ટીકરણ ફાઇલ માંથી સ્પષ્ટીકરણ સાથે ઉપર લખાયેલ હશે."
 
-#: ../src/utils/pacat.c:958 ../src/utils/pactl.c:997
+#: ../src/utils/pacat.c:962 ../src/utils/pactl.c:997
 msgid "Failed to determine sample specification from file."
 msgstr "ફાઇલ માંથી નમૂના સ્પષ્ટીકરણને નક્કી કરવામાં નિષ્ફળતા."
 
-#: ../src/utils/pacat.c:967
+#: ../src/utils/pacat.c:971
 msgid "Warning: Failed to determine channel map from file."
 msgstr "ચેતવણી: ફાઇલમાંથી ચેનલ મેપને નક્કી કરવામાં નિષ્ફળતા."
 
-#: ../src/utils/pacat.c:978
+#: ../src/utils/pacat.c:982
 msgid "Channel map doesn't match sample specification"
 msgstr "ચેનલ મેપ એ સ્પષ્ટીકરણ નમૂનાને બંધબેસતુ નથી"
 
-#: ../src/utils/pacat.c:989
+#: ../src/utils/pacat.c:993
 msgid "Warning: failed to write channel map to file."
 msgstr "ચેતણી: ફાઇલમાં ચેનલ મેપને લખવામાં નિષ્ફળતા."
 
-#: ../src/utils/pacat.c:1004
+#: ../src/utils/pacat.c:1008
 #, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "નમૂના સ્પષ્ટીકરણ '%s' અને ચેનલ નક્ષા '%s' સાથે %s સ્ટ્રીમને ખોલી રહ્યા છે."
 
-#: ../src/utils/pacat.c:1005
+#: ../src/utils/pacat.c:1009
 msgid "recording"
 msgstr "રેકોર્ડ કરી રહ્યા છે"
 
-#: ../src/utils/pacat.c:1005
+#: ../src/utils/pacat.c:1009
 msgid "playback"
 msgstr "પ્લેબેક"
 
-#: ../src/utils/pacat.c:1031 ../src/utils/pactl.c:1267
+#: ../src/utils/pacat.c:1035 ../src/utils/pactl.c:1267
 msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() નિષ્ફળ."
 
-#: ../src/utils/pacat.c:1050
+#: ../src/utils/pacat.c:1054
 msgid "io_new() failed."
 msgstr "io_new() નિષ્ફળ."
 
-#: ../src/utils/pacat.c:1057 ../src/utils/pactl.c:1279
+#: ../src/utils/pacat.c:1061 ../src/utils/pactl.c:1279
 msgid "pa_context_new() failed."
 msgstr "pa_context_new() નિષ્ફળ."
 
-#: ../src/utils/pacat.c:1065 ../src/utils/pactl.c:1285
+#: ../src/utils/pacat.c:1069 ../src/utils/pactl.c:1285
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() નિષ્ફળ: %s"
 
-#: ../src/utils/pacat.c:1071
+#: ../src/utils/pacat.c:1075
 msgid "pa_context_rttime_new() failed."
 msgstr "pa_context_new() નિષ્ફળ."
 
-#: ../src/utils/pacat.c:1078 ../src/utils/pactl.c:1290
+#: ../src/utils/pacat.c:1082 ../src/utils/pactl.c:1290
 msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() નિષ્ફળ."
 

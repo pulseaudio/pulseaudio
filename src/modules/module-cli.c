@@ -25,6 +25,8 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #include <pulsecore/module.h>
 #include <pulsecore/iochannel.h>
@@ -33,6 +35,8 @@
 #include <pulsecore/log.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/core-util.h>
+#include <pulsecore/core-error.h>
 
 #include "module-cli-symdef.h"
 
@@ -69,6 +73,7 @@ int pa__init(pa_module*m) {
     pa_iochannel *io;
     pa_modargs *ma;
     pa_bool_t exit_on_eof = FALSE;
+    int fd;
 
     pa_assert(m);
 
@@ -88,15 +93,28 @@ int pa__init(pa_module*m) {
     }
 
     if (pa_stdio_acquire() < 0) {
-        pa_log("STDIN/STDUSE already in use.");
+        pa_log("STDIN/STDOUT already in use.");
         goto fail;
     }
 
-    io = pa_iochannel_new(m->core->mainloop, STDIN_FILENO, STDOUT_FILENO);
-    pa_iochannel_set_noclose(io, 1);
+    /* We try to open the controlling tty anew here. This has the
+     * benefit of giving us a new fd that doesn't share the O_NDELAY
+     * flag with fds 0, 1, or 2. Since pa_iochannel_xxx needs O_NDELAY
+     * on its fd using those fds directly could set O_NDELAY which
+     * fprintf() doesn't really like, resulting in truncated output
+     * of log messages, particularly because if stdout and stderr are
+     * dup'ed they share the same O_NDELAY, too. */
+
+    if ((fd = open("/dev/tty", O_RDWR|O_CLOEXEC|O_NONBLOCK)) >= 0) {
+        io = pa_iochannel_new(m->core->mainloop, fd, fd);
+        pa_log_debug("Managed to open /dev/tty.");
+    } else {
+        io = pa_iochannel_new(m->core->mainloop, STDIN_FILENO, STDOUT_FILENO);
+        pa_iochannel_set_noclose(io, TRUE);
+        pa_log_debug("Failed to open /dev/tty, using stdin/stdout fds instead.");
+    }
 
     m->userdata = pa_cli_new(m->core, io, m);
-
     pa_cli_set_eof_callback(m->userdata, exit_on_eof ? eof_and_exit_cb : eof_and_unload_cb, m);
 
     pa_modargs_free(ma);
@@ -114,7 +132,7 @@ fail:
 void pa__done(pa_module*m) {
     pa_assert(m);
 
-    if (m->core->running_as_daemon == 0) {
+    if (m->userdata) {
         pa_cli_free(m->userdata);
         pa_stdio_release();
     }
