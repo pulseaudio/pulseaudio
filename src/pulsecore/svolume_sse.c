@@ -149,7 +149,7 @@ pa_volume_s16ne_sse2 (int16_t *samples, int32_t *volumes, unsigned channels, uns
         "8:                             \n\t"
 
         : "+r" (samples), "+r" (volumes), "+r" (length), "=D" (channel), "=&r" (temp)
-        : "r" ((pa_reg_x86)channels)
+        : "X" ((pa_reg_x86)channels)
         : "cc"
     );
 }
@@ -237,7 +237,7 @@ pa_volume_s16re_sse2 (int16_t *samples, int32_t *volumes, unsigned channels, uns
         "8:                             \n\t"
 
         : "+r" (samples), "+r" (volumes), "+r" (length), "=D" (channel), "=&r" (temp)
-        : "r" ((pa_reg_x86)channels)
+        : "X" ((pa_reg_x86)channels)
         : "cc"
     );
 }
