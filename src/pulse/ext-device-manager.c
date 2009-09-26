@@ -26,6 +26,7 @@
 
 #include <pulse/context.h>
 #include <pulse/gccmacro.h>
+#include <pulse/xmalloc.h>
 
 #include <pulsecore/macro.h>
 #include <pulsecore/pstream-util.h>
@@ -128,20 +129,48 @@ static void ext_device_manager_read_cb(pa_pdispatch *pd, uint32_t command, uint3
 
         while (!pa_tagstruct_eof(t)) {
             pa_ext_device_manager_info i;
+            pa_bool_t available;
 
             memset(&i, 0, sizeof(i));
+            available = FALSE;
 
             if (pa_tagstruct_gets(t, &i.name) < 0 ||
-                pa_tagstruct_gets(t, &i.description) < 0) {
+                pa_tagstruct_gets(t, &i.description) < 0 ||
+                pa_tagstruct_gets(t, &i.icon) < 0 ||
+                pa_tagstruct_get_boolean(t, &available) < 0 ||
+                pa_tagstruct_getu32(t, &i.n_role_priorities) < 0) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
+            }
+            i.available = (uint8_t)available;
+
+            if (i.n_role_priorities > 0) {
+                uint32_t j;
+                i.role_priorities = pa_xnew0(pa_ext_device_manager_role_priority_info, i.n_role_priorities+1);
+
+                for (j = 0; j < i.n_role_priorities; j++) {
+
+                    if (pa_tagstruct_gets(t, &i.role_priorities[j].role) < 0 ||
+                        pa_tagstruct_getu32(t, &i.role_priorities[j].priority) < 0) {
+
+                        pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                        pa_xfree(i.role_priorities);
+                        goto finish;
+                    }
+                }
+
+                /* Terminate with an extra NULL entry, just to make sure */
+                i.role_priorities[j].role = NULL;
+                i.role_priorities[j].priority = 0;
             }
 
             if (o->callback) {
                 pa_ext_device_manager_read_cb_t cb = (pa_ext_device_manager_read_cb_t) o->callback;
                 cb(o->context, &i, 0, o->userdata);
             }
+
+            pa_xfree(i.role_priorities);
         }
     }
 

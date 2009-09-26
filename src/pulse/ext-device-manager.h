@@ -33,11 +33,20 @@
 
 PA_C_DECL_BEGIN
 
+typedef struct pa_ext_device_manager_role_priority_info {
+    const char *role;
+    uint32_t priority;
+} pa_ext_device_manager_role_priority_info;
+
 /** Stores information about one device in the device database that is
  * maintained by module-device-manager. \since 0.9.19 */
 typedef struct pa_ext_device_manager_info {
     const char *name;            /**< Identifier string of the device. A string like "sink:" or similar followed by the name of the device. */
     const char *description;     /**< The description of the device when it was last seen, if applicable and saved */
+    const char *icon;            /**< The icon given to the device */
+    uint8_t available;           /**< Is the device currently available? */
+    uint32_t n_role_priorities;  /**< How many role priorities do we have? */
+    pa_ext_device_manager_role_priority_info *role_priorities; /**< An array of role priority structures or NULL */
 } pa_ext_device_manager_info;
 
 /** Callback prototype for pa_ext_device_manager_test(). \since 0.9.19 */
