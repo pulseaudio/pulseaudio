@@ -416,23 +416,28 @@ int main(int argc, char *argv[]) {
 
     if (!getenv("LD_BIND_NOW")) {
         char *rp;
+        char *canonical_rp;
 
         /* We have to execute ourselves, because the libc caches the
          * value of $LD_BIND_NOW on initialization. */
 
         pa_set_env("LD_BIND_NOW", "1");
 
+        canonical_rp = pa_realpath(PA_BINARY);
+
         if ((rp = pa_readlink("/proc/self/exe"))) {
 
-            if (pa_streq(rp, PA_BINARY))
+            if (pa_streq(rp, canonical_rp))
                 pa_assert_se(execv(rp, argv) == 0);
             else
-                pa_log_warn("/proc/self/exe does not point to " PA_BINARY ", cannot self execute. Are you playing games?");
+                pa_log_warn("/proc/self/exe does not point to %s, cannot self execute. Are you playing games?", canonical_rp);
 
             pa_xfree(rp);
 
         } else
             pa_log_warn("Couldn't read /proc/self/exe, cannot self execute. Running in a chroot()?");
+
+        pa_xfree(canonical_rp);
     }
 #endif
 
