@@ -88,6 +88,18 @@ enum {
 
 typedef uint32_t role_indexes_t[NUM_ROLES];
 
+static const char* role_names[NUM_ROLES] = {
+    "none",
+    "video",
+    "music",
+    "game",
+    "event",
+    "phone",
+    "animation",
+    "production",
+    "a11y",
+};
+
 struct userdata {
     pa_core *core;
     pa_module *module;
@@ -234,26 +246,28 @@ static void dump_database(struct userdata *u) {
     pa_log_debug(" Highest priority devices per-role:");
 
     pa_log_debug("  Sinks:");
-    dump_database_helper(u, ROLE_NONE, "None:  ", TRUE);
-    dump_database_helper(u, ROLE_NONE, "Video: ", TRUE);
-    dump_database_helper(u, ROLE_NONE, "Music: ", TRUE);
-    dump_database_helper(u, ROLE_NONE, "Game:  ", TRUE);
-    dump_database_helper(u, ROLE_NONE, "Event: ", TRUE);
-    dump_database_helper(u, ROLE_NONE, "Phone: ", TRUE);
-    dump_database_helper(u, ROLE_NONE, "Anim:  ", TRUE);
-    dump_database_helper(u, ROLE_NONE, "Prodtn:", TRUE);
-    dump_database_helper(u, ROLE_NONE, "Ally:  ", TRUE);
+    for (uint32_t role = ROLE_NONE; role < NUM_ROLES; ++role) {
+        char name[13];
+        uint32_t len = PA_MAX(12u, strlen(role_names[role]));
+        for (int i = 0; i < 12; ++i) name[i] = ' ';
+        strncpy(name, role_names[role], len);
+        name[len] = ':';
+        name[0] -= 32;
+        name[12] = '\0';
+        dump_database_helper(u, role, name, TRUE);
+    }
 
     pa_log_debug("  Sources:");
-    dump_database_helper(u, ROLE_NONE, "None:  ", FALSE);
-    dump_database_helper(u, ROLE_NONE, "Video: ", FALSE);
-    dump_database_helper(u, ROLE_NONE, "Music: ", FALSE);
-    dump_database_helper(u, ROLE_NONE, "Game:  ", FALSE);
-    dump_database_helper(u, ROLE_NONE, "Event: ", FALSE);
-    dump_database_helper(u, ROLE_NONE, "Phone: ", FALSE);
-    dump_database_helper(u, ROLE_NONE, "Anim:  ", FALSE);
-    dump_database_helper(u, ROLE_NONE, "Prodtn:", FALSE);
-    dump_database_helper(u, ROLE_NONE, "Ally:  ", FALSE);
+    for (uint32_t role = ROLE_NONE; role < NUM_ROLES; ++role) {
+        char name[13];
+        uint32_t len = PA_MAX(12u, strlen(role_names[role]));
+        for (int i = 0; i < 12; ++i) name[i] = ' ';
+        strncpy(name, role_names[role], len);
+        name[len] = ':';
+        name[0] -= 32;
+        name[12] = '\0';
+        dump_database_helper(u, role, name, FALSE);
+    }
 
     pa_log_debug("Completed database dump");
 }
@@ -378,22 +392,10 @@ static uint32_t get_role_index(const char* role) {
 
     if (strcmp(role, "") == 0)
         return ROLE_NONE;
-    if (strcmp(role, "video") == 0)
-        return ROLE_VIDEO;
-    if (strcmp(role, "music") == 0)
-        return ROLE_MUSIC;
-    if (strcmp(role, "game") == 0)
-        return ROLE_GAME;
-    if (strcmp(role, "event") == 0)
-        return ROLE_EVENT;
-    if (strcmp(role, "phone") == 0)
-        return ROLE_PHONE;
-    if (strcmp(role, "animation") == 0)
-        return ROLE_ANIMATION;
-    if (strcmp(role, "production") == 0)
-        return ROLE_PRODUCTION;
-    if (strcmp(role, "a11y") == 0)
-        return ROLE_A11Y;
+    for (uint32_t i = ROLE_NONE; i < NUM_ROLES; ++i)
+        if (strcmp(role, role_names[i]) == 0)
+            return i;
+
     return PA_INVALID_INDEX;
 }
 
@@ -974,10 +976,18 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         pa_datum_free(&key);
 
         if ((e = read_entry(u, name))) {
-          pa_tagstruct_puts(reply, name);
-          pa_tagstruct_puts(reply, e->description);
+            pa_tagstruct_puts(reply, name);
+            pa_tagstruct_puts(reply, e->description);
+            pa_tagstruct_puts(reply, "audio-card"); /** @todo store the icon */
+            pa_tagstruct_put_boolean(reply, TRUE); /** @todo show current available */
+            pa_tagstruct_putu32(reply, NUM_ROLES);
 
-          pa_xfree(e);
+            for (uint32_t i = ROLE_NONE; i < NUM_ROLES; ++i) {
+                pa_tagstruct_puts(reply, role_names[i]);
+                pa_tagstruct_putu32(reply, e->priority[i]);
+            }
+
+            pa_xfree(e);
         }
 
         pa_xfree(name);
