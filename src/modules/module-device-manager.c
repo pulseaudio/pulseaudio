@@ -323,9 +323,17 @@ static void trigger_save(struct userdata *u) {
 }
 
 static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
-    /** @todo: Compare the priority lists too */
-    if (strncmp(a->description, b->description, sizeof(a->description)))
+
+    pa_assert(a);
+    pa_assert(b);
+
+    if (strncmp(a->description, b->description, sizeof(a->description))
+        || strncmp(a->icon, b->icon, sizeof(a->icon)))
         return FALSE;
+
+    for (int i=0; i < NUM_ROLES; ++i)
+        if (a->priority[i] != b->priority[i])
+            return FALSE;
 
     return TRUE;
 }
@@ -699,10 +707,6 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
             pa_xfree(old);
             pa_xfree(name);
 
-            /* Even if the entries are equal, the availability or otherwise
-               of the sink/source may have changed so we notify clients all the same */
-            notify_subscribers(u);
-
             return;
         }
 
@@ -857,6 +861,8 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, PA_GCC_UNUSED pa_sink
     pa_assert(u->core == c);
     pa_assert(u->on_hotplug);
 
+    notify_subscribers(u);
+
     return route_sink_inputs(u, NULL);
 }
 
@@ -865,6 +871,8 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, PA_GCC_UNUSED pa_so
     pa_assert(u);
     pa_assert(u->core == c);
     pa_assert(u->on_hotplug);
+
+    notify_subscribers(u);
 
     return route_source_outputs(u, NULL);
 }
@@ -880,6 +888,8 @@ static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, str
     if (c->state == PA_CORE_SHUTDOWN)
         return PA_HOOK_OK;
 
+    notify_subscribers(u);
+
     return route_sink_inputs(u, sink);
 }
 
@@ -893,6 +903,8 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
     /* There's no point in doing anything if the core is shut down anyway */
     if (c->state == PA_CORE_SHUTDOWN)
         return PA_HOOK_OK;
+
+    notify_subscribers(u);
 
     return route_source_outputs(u, source);
 }
