@@ -133,6 +133,7 @@ struct userdata {
 struct entry {
     uint8_t version;
     char description[PA_NAME_MAX];
+    char icon[PA_NAME_MAX];
     role_indexes_t priority;
 } PA_GCC_PACKED;
 
@@ -248,24 +249,20 @@ static void dump_database(struct userdata *u) {
     pa_log_debug("  Sinks:");
     for (uint32_t role = ROLE_NONE; role < NUM_ROLES; ++role) {
         char name[13];
-        uint32_t len = PA_MAX(12u, strlen(role_names[role]));
-        for (int i = 0; i < 12; ++i) name[i] = ' ';
+        uint32_t len = PA_MIN(12u, strlen(role_names[role]));
         strncpy(name, role_names[role], len);
-        name[len] = ':';
-        name[0] -= 32;
-        name[12] = '\0';
+        for (int i = len+1; i < 12; ++i) name[i] = ' ';
+        name[len] = ':'; name[0] -= 32; name[12] = '\0';
         dump_database_helper(u, role, name, TRUE);
     }
 
     pa_log_debug("  Sources:");
     for (uint32_t role = ROLE_NONE; role < NUM_ROLES; ++role) {
         char name[13];
-        uint32_t len = PA_MAX(12u, strlen(role_names[role]));
-        for (int i = 0; i < 12; ++i) name[i] = ' ';
+        uint32_t len = PA_MIN(12u, strlen(role_names[role]));
         strncpy(name, role_names[role], len);
-        name[len] = ':';
-        name[0] -= 32;
-        name[12] = '\0';
+        for (int i = len+1; i < 12; ++i) name[i] = ' ';
+        name[len] = ':'; name[0] -= 32; name[12] = '\0';
         dump_database_helper(u, role, name, FALSE);
     }
 
@@ -292,9 +289,12 @@ static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct
 #endif
 }
 
-static void trigger_save(struct userdata *u) {
+static void notify_subscribers(struct userdata *u) {
+
     pa_native_connection *c;
     uint32_t idx;
+
+    pa_assert(u);
 
     for (c = pa_idxset_first(u->subscribed, &idx); c; c = pa_idxset_next(u->subscribed, &idx)) {
         pa_tagstruct *t;
@@ -308,6 +308,13 @@ static void trigger_save(struct userdata *u) {
 
         pa_pstream_send_tagstruct(pa_native_connection_get_pstream(c), t);
     }
+}
+
+static void trigger_save(struct userdata *u) {
+
+    pa_assert(u);
+
+    notify_subscribers(u);
 
     if (u->save_time_event)
         return;
@@ -390,8 +397,6 @@ static inline struct entry *load_or_initialize_entry(struct userdata *u, struct 
 static uint32_t get_role_index(const char* role) {
     pa_assert(role);
 
-    if (strcmp(role, "") == 0)
-        return ROLE_NONE;
     for (uint32_t i = ROLE_NONE; i < NUM_ROLES; ++i)
         if (strcmp(role, role_names[i]) == 0)
             return i;
@@ -510,7 +515,7 @@ static void route_sink_input(struct userdata *u, pa_sink_input *si) {
         return;
 
     if (!(role = pa_proplist_gets(si->proplist, PA_PROP_MEDIA_ROLE)))
-        role_index = get_role_index("");
+        role_index = get_role_index("none");
     else
         role_index = get_role_index(role);
 
@@ -571,7 +576,7 @@ static void route_source_output(struct userdata *u, pa_source_output *so) {
         return;
 
     if (!(role = pa_proplist_gets(so->proplist, PA_PROP_MEDIA_ROLE)))
-        role_index = get_role_index("");
+        role_index = get_role_index("none");
     else
         role_index = get_role_index(role);
 
@@ -665,6 +670,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         old = load_or_initialize_entry(u, &entry, name, "sink:");
 
         pa_strlcpy(entry.description, pa_strnull(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description));
+        pa_strlcpy(entry.icon, pa_strnull(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_ICON_NAME)), sizeof(entry.icon));
 
     } else  if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE) {
         pa_source *source;
@@ -682,6 +688,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         old = load_or_initialize_entry(u, &entry, name, "source:");
 
         pa_strlcpy(entry.description, pa_strnull(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description));
+        pa_strlcpy(entry.icon, pa_strnull(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_ICON_NAME)), sizeof(entry.icon));
     }
 
     pa_assert(name);
@@ -691,6 +698,11 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (entries_equal(old, &entry)) {
             pa_xfree(old);
             pa_xfree(name);
+
+            /* Even if the entries are equal, the availability or otherwise
+               of the sink/source may have changed so we notify clients all the same */
+            notify_subscribers(u);
+
             return;
         }
 
@@ -976,10 +988,34 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         pa_datum_free(&key);
 
         if ((e = read_entry(u, name))) {
+            uint32_t idx;
+            char *devname;
+            pa_bool_t available = FALSE;
+
+            if ((devname = get_name(name, "sink:"))) {
+                pa_sink* s;
+                PA_IDXSET_FOREACH(s, u->core->sinks, idx) {
+                    if (strcmp(s->name, devname) == 0) {
+                        available = TRUE;
+                        break;
+                    }
+                }
+                pa_xfree(devname);
+            } else if ((devname = get_name(name, "source:"))) {
+                pa_source* s;
+                PA_IDXSET_FOREACH(s, u->core->sources, idx) {
+                    if (strcmp(s->name, devname) == 0) {
+                        available = TRUE;
+                        break;
+                    }
+                }
+                pa_xfree(devname);
+            }
+
             pa_tagstruct_puts(reply, name);
             pa_tagstruct_puts(reply, e->description);
-            pa_tagstruct_puts(reply, "audio-card"); /** @todo store the icon */
-            pa_tagstruct_put_boolean(reply, TRUE); /** @todo show current available */
+            pa_tagstruct_puts(reply, e->icon);
+            pa_tagstruct_put_boolean(reply, available);
             pa_tagstruct_putu32(reply, NUM_ROLES);
 
             for (uint32_t i = ROLE_NONE; i < NUM_ROLES; ++i) {
