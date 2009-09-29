@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.te\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-21 08:49+0000\n"
+"POT-Creation-Date: 2009-09-29 19:25+0200\n"
 "PO-Revision-Date: 2009-09-21 17:28+0530\n"
 "Last-Translator: Krishna Babu K <kkrothap@redhat.com>\n"
 "Language-Team: Telugu <en@li.org>\n"
@@ -15,7 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
-"Plural-Forms: nplurals=2; plural=(n!=1);\n\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"\n"
 "\n"
 "\n"
 "\n"
@@ -1519,7 +1520,8 @@ msgstr "హెచ్చరిక: ప్రసారమార్గ మాప్
 
 #: ../src/utils/pacat.c:1008
 #, c-format
-msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid ""
+"Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "%s స్ట్రీమ్‌ను మాదిరి విశదీకరణ '%s' మరియు ప్రసారమార్గ మాప్ '%s'తో తెరుచుచున్నది."
 
 #: ../src/utils/pacat.c:1009
@@ -2109,14 +2111,17 @@ msgid "You have to specify a module index"
 msgstr "మీరు మాడ్యూల్ విషయసూచిక తెలుపవలసి వుంది"
 
 #: ../src/utils/pactl.c:1090
-msgid "You may not specify more than one sink. You have to specify a boolean value."
-msgstr "మీరు వొక సింకు కన్నా యెక్కువ తెలుపవలసి వుండకపోవచ్చు. మీరు బూలియన్ విలువను తెలుపవలసి వుంది."
+msgid ""
+"You may not specify more than one sink. You have to specify a boolean value."
+msgstr ""
+"మీరు వొక సింకు కన్నా యెక్కువ తెలుపవలసి వుండకపోవచ్చు. మీరు బూలియన్ విలువను తెలుపవలసి వుంది."
 
 #: ../src/utils/pactl.c:1103
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
-msgstr "మీరు వొక మూలము కన్నా యెక్కువ తెలుపవలసి వుండకపోవచ్చు. మీరు బూలియన్ విలువను తెలుపవలసి వుంది."
+msgstr ""
+"మీరు వొక మూలము కన్నా యెక్కువ తెలుపవలసి వుండకపోవచ్చు. మీరు బూలియన్ విలువను తెలుపవలసి వుంది."
 
 #: ../src/utils/pactl.c:1115
 msgid "You have to specify a card name/index and a profile name"
@@ -2344,4 +2349,3 @@ msgstr "టెలిఫోనీ డూప్లెక్స్ (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "పల్స్ ఆడియో సౌండ్ సేవిక"
-
