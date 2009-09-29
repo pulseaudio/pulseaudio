@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-18 22:17+0200\n"
-"PO-Revision-Date: 2009-09-12 21:17+0200\n"
+"POT-Creation-Date: 2009-09-27 08:46+0000\n"
+"PO-Revision-Date: 2009-09-27 15:42+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <fedora-trans-pl@redhat.com>\n"
 "MIME-Version: 1.0\n"
@@ -118,22 +118,22 @@ msgstr "Otrzymano sygnał %s."
 
 #: ../src/daemon/main.c:168
 msgid "Exiting."
-msgstr "Wyłączanie."
+msgstr "Kończenie pracy."
 
 #: ../src/daemon/main.c:186
 #, c-format
 msgid "Failed to find user '%s'."
-msgstr "Znalezienie użytkownika \"%s\" nie powiodło się."
+msgstr "Odnalezienie użytkownika \"%s\" nie powiodło się."
 
 #: ../src/daemon/main.c:191
 #, c-format
 msgid "Failed to find group '%s'."
-msgstr "Znalezienie grupy \"%s\" nie powiodło się."
+msgstr "Odnalezienie grupy \"%s\" nie powiodło się."
 
 #: ../src/daemon/main.c:195
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
-msgstr "Znaleziono użytkownika \"%s\" (UID %lu) i grupę \"%s\" (GID %lu)."
+msgstr "Odnaleziono użytkownika \"%s\" (UID %lu) i grupę \"%s\" (GID %lu)."
 
 #: ../src/daemon/main.c:200
 #, c-format
@@ -143,7 +143,7 @@ msgstr "GID użytkownika \"%s\" i grupy \"%s\" nie zgadzają się."
 #: ../src/daemon/main.c:205
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr "Folder domowy użytkownika \"%s\" nie jest \"%s\", ignorowanie."
+msgstr "Katalog domowy użytkownika \"%s\" nie jest \"%s\", ignorowanie."
 
 #: ../src/daemon/main.c:208 ../src/daemon/main.c:213
 #, c-format
@@ -180,7 +180,7 @@ msgstr "setrlimit(%s, (%u, %u)) nie powiodło się: %s"
 
 #: ../src/daemon/main.c:469
 msgid "Failed to parse command line."
-msgstr "Analiza wiersza poleceń nie powiodła się."
+msgstr "Przetworzenie wiersza poleceń nie powiodła się."
 
 #: ../src/daemon/main.c:536
 msgid "Daemon not running"
@@ -215,23 +215,23 @@ msgstr "--start nie jest obsługiwane przy uruchamianiu systemowym."
 #: ../src/daemon/main.c:578
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr ""
-"Uruchamianie w trybie systemowym, ale --disallow-exit nie jest ustawione!"
+"Uruchamianie w trybie systemowym, ale --disallow-exit nie jest ustawione."
 
 #: ../src/daemon/main.c:581
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 "Uruchamianie w trybie systemowym, ale --disallow-module-loading nie jest "
-"ustawione!"
+"ustawione."
 
 #: ../src/daemon/main.c:584
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr "Uruchamianie w trybie systemowym, wymuszanie wyłączenia trybu SHM!"
+msgstr "Uruchamianie w trybie systemowym, wymuszanie wyłączenia trybu SHM."
 
 #: ../src/daemon/main.c:589
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "Uruchamianie w trybie systemowym, wymuszanie wyłączenia czasu oczekiwania na "
-"zakończenie!"
+"zakończenie."
 
 #: ../src/daemon/main.c:616
 msgid "Failed to acquire stdio."
@@ -283,7 +283,7 @@ msgstr "Uruchamianie na komputerze: %s"
 #: ../src/daemon/main.c:734
 #, c-format
 msgid "Found %u CPUs."
-msgstr "Znaleziono %u procesorów."
+msgstr "Odnaleziono %u procesorów."
 
 #: ../src/daemon/main.c:736
 #, c-format
@@ -340,17 +340,17 @@ msgstr "Identyfikator sesji to %s."
 #: ../src/daemon/main.c:774
 #, c-format
 msgid "Using runtime directory %s."
-msgstr "Używanie folderu wykonywania %s."
+msgstr "Używanie katalogu wykonywania %s."
 
 #: ../src/daemon/main.c:779
 #, c-format
 msgid "Using state directory %s."
-msgstr "Używanie folderu stanu %s."
+msgstr "Używanie katalogu stanu %s."
 
 #: ../src/daemon/main.c:782
 #, c-format
 msgid "Using modules directory %s."
-msgstr "Używanie folderu modułów %s."
+msgstr "Używanie katalogu modułów %s."
 
 #: ../src/daemon/main.c:784
 #, c-format
@@ -368,7 +368,7 @@ msgid ""
 msgstr ""
 "OK, więc PA jest uruchomione w trybie systemowym. Proszę zauważyć, że "
 "prawdopodobnie tak nie powinno być.\n"
-"Jeśli mimo to tak jest, to twoja wina, jeśli coś nie działa tak jak "
+"Jeśli mimo to tak jest, to wina użytkownika, jeśli coś nie działa tak jak "
 "powinno.\n"
 "Proszę przeczytać http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode, "
 "gdzie wyjaśniono, dlaczego tryb systemowy jest zwykle złym pomysłem."
@@ -386,7 +386,7 @@ msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 msgstr ""
-"Koleś, twoje jądro śmierdzi! Szef kuchni poleca dzisiaj Linuksa w włączonymi "
+"Koleś, twoje jądro śmierdzi! Szef kuchni poleca dzisiaj Linuksa z włączonymi "
 "zegarami o wysokiej rozdzielczości!"
 
 #: ../src/daemon/main.c:839
@@ -403,7 +403,7 @@ msgstr "Uruchamianie demona bez żadnych wczytanych modułów, odmawianie pracy.
 
 #: ../src/daemon/main.c:921
 msgid "Daemon startup complete."
-msgstr "Zakończono uruchamianie demona."
+msgstr "Ukończono uruchamianie demona."
 
 #: ../src/daemon/main.c:927
 msgid "Daemon shutdown initiated."
@@ -565,11 +565,11 @@ msgstr ""
 
 #: ../src/daemon/cmdline.c:247
 msgid "--daemonize expects boolean argument"
-msgstr "--daemonize oczekuje parametru w postaci zmiennej logicznej"
+msgstr "--daemonize oczekuje parametru zmiennej logicznej"
 
 #: ../src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
-msgstr "--fail oczekuje parametru w postaci zmiennej logicznej"
+msgstr "--fail oczekuje parametru zmiennej logicznej"
 
 #: ../src/daemon/cmdline.c:264
 msgid ""
@@ -1138,7 +1138,7 @@ msgstr "XOpenDisplay() nie powiodło się"
 
 #: ../src/pulse/client-conf-x11.c:93
 msgid "Failed to parse cookie data"
-msgstr "Analiza danych ciasteczka nie powiodło się"
+msgstr "Przetworzenie danych ciasteczka nie powiodło się"
 
 #: ../src/pulse/client-conf.c:111
 #, c-format
@@ -1147,7 +1147,7 @@ msgstr "Otwarcie pliku konfiguracji \"%s\" nie powiodło się: %s"
 
 #: ../src/pulse/context.c:550
 msgid "No cookie loaded. Attempting to connect without."
-msgstr "Nie wczytano ciasteczka. Próbowanie połączenia się bez niego."
+msgstr "Nie wczytano ciasteczka. Próba połączenia się bez niego."
 
 #: ../src/pulse/context.c:693
 #, c-format
@@ -1306,7 +1306,7 @@ msgstr "write() nie powiodło się: %s"
 
 #: ../src/utils/pacat.c:561
 msgid "Got signal, exiting."
-msgstr "Otrzymano sygnał, wyłączanie."
+msgstr "Otrzymano sygnał, kończenie pracy."
 
 #: ../src/utils/pacat.c:575
 #, c-format
@@ -1609,7 +1609,7 @@ msgstr "Połączenie nie powiodło się: %s\n"
 #: ../src/utils/pasuspender.c:176
 #, c-format
 msgid "Got SIGINT, exiting.\n"
-msgstr "Otrzymano SIGINT, wyłączanie.\n"
+msgstr "Otrzymano SIGINT, kończenie pracy.\n"
 
 #: ../src/utils/pasuspender.c:194
 #, c-format
@@ -2018,7 +2018,7 @@ msgstr "Przedwczesny koniec pliku"
 
 #: ../src/utils/pactl.c:863
 msgid "Got SIGINT, exiting."
-msgstr "Otrzymano SIGINT, wyłączanie."
+msgstr "Otrzymano SIGINT, kończenie pracy."
 
 #: ../src/utils/pactl.c:869
 #, c-format
@@ -2218,7 +2218,7 @@ msgstr ""
 #: ../src/utils/pax11publish.c:94
 #, c-format
 msgid "Failed to parse command line.\n"
-msgstr "Analiza wiersza poleceń nie powiodła się.\n"
+msgstr "Przetworzenie wiersza poleceń nie powiodła się.\n"
 
 #: ../src/utils/pax11publish.c:108
 #, c-format
@@ -2243,7 +2243,7 @@ msgstr "Ciasteczko: %s\n"
 #: ../src/utils/pax11publish.c:132
 #, c-format
 msgid "Failed to parse cookie data\n"
-msgstr "Analiza danych ciasteczka nie powiodła się\n"
+msgstr "Przetworzenie danych ciasteczka nie powiodła się\n"
 
 #: ../src/utils/pax11publish.c:137
 #, c-format
@@ -2329,7 +2329,7 @@ msgid ""
 "returned 0 or another value < min_avail."
 msgstr ""
 "ALSA została wybudzona, aby zapisać nowe dane do urządzenia, ale nie było "
-"nic do zapisania!\n"
+"nic do zapisania.\n"
 "Prawdopodobnie jest to błąd w sterowniku ALSA \"%s\". Proszę zgłosić ten "
 "problem programistom ALSA.\n"
 "Wybudzono za pomocą ustawienia POLLOUT - ale jednoczesne wywołanie "
@@ -2346,7 +2346,7 @@ msgid ""
 "returned 0 or another value < min_avail."
 msgstr ""
 "ALSA została wybudzona, aby odczytać nowe dane z urządzenia, ale nie było "
-"nic do odczytania!\n"
+"nic do odczytania.\n"
 "Prawdopodobnie jest to błąd w sterowniku ALSA \"%s\". Proszę zgłosić ten "
 "problem programistom ALSA.\n"
 "Wybudzono za pomocą ustawienia POLLIN - ale jednoczesne wywołanie "

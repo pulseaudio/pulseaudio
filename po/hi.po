@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-18 22:17+0200\n"
-"PO-Revision-Date: 2009-09-10 17:01+0530\n"
+"POT-Creation-Date: 2009-09-21 08:49+0000\n"
+"PO-Revision-Date: 2009-09-21 16:29+0530\n"
 "Last-Translator: Rajesh Ranjan <rajesh672@gmail.com>\n"
 "Language-Team: Hindi <hindi.sf.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
-"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n\n"
 "\n"
 "\n"
 "\n"
@@ -207,8 +207,7 @@ msgstr "डेमॉन हटाने में विफल: %s"
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr ""
-"यह प्रोग्राम बतौर रूट चलाने के लिए इच्छित नहीं है (unless --system is specified)."
+msgstr "यह प्रोग्राम बतौर रूट चलाने के लिए इच्छित नहीं है (unless --system is specified)."
 
 #: ../src/daemon/main.c:568
 msgid "Root privileges required."
@@ -384,8 +383,7 @@ msgstr "ताज़ा उच्च विभेदन टाइमर उप�
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
-msgstr ""
-"आपका कर्नेल बुरी स्थिति में है! सलाह है कि उच्च विभेदन युक्त लिनक्स सक्रिय किया जाना चाहिए!"
+msgstr "आपका कर्नेल बुरी स्थिति में है! सलाह है कि उच्च विभेदन युक्त लिनक्स सक्रिय किया जाना चाहिए!"
 
 #: ../src/daemon/main.c:839
 msgid "pa_core_new() failed."
@@ -1090,11 +1088,11 @@ msgstr "क्लाएंट विभाजित"
 
 #: ../src/pulse/error.c:68
 msgid "Input/Output error"
-msgstr ""
+msgstr "इनपुट/आउटपुट त्रुटि"
 
 #: ../src/pulse/error.c:69
 msgid "Device or resource busy"
-msgstr ""
+msgstr "युक्ति या संसाधन व्यस्त"
 
 #: ../src/pulse/sample.c:172
 #, c-format
@@ -1523,8 +1521,7 @@ msgstr "चेतावनी: फ़ाइल में चैनल मैप 
 
 #: ../src/utils/pacat.c:1008
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "किसी %s स्ट्रीम को किसी नमूना विनिर्दिष्ता '%s' और चैनल मैप '%s' से खोल रहा है."
 
 #: ../src/utils/pacat.c:1009
@@ -2114,10 +2111,8 @@ msgid "You have to specify a module index"
 msgstr "आपको किसी मॉड्यूल सूची को निर्दिष्ट करना है"
 
 #: ../src/utils/pactl.c:1090
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
-msgstr ""
-"आप एक सिंक से अधिक निर्दिष्ट नहीं कर सकते हैं. आपको किसी बुलियन मान को निर्दिष्ट करना है."
+msgid "You may not specify more than one sink. You have to specify a boolean value."
+msgstr "आप एक सिंक से अधिक निर्दिष्ट नहीं कर सकते हैं. आपको किसी बुलियन मान को निर्दिष्ट करना है."
 
 #: ../src/utils/pactl.c:1103
 msgid ""
@@ -2355,3 +2350,4 @@ msgstr "टेलिफोनी ड्यूप्लेक्स (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "पल्सऑडियो ध्वनि सर्वर"
+

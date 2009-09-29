@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-18 22:17+0200\n"
-"PO-Revision-Date: 2009-09-10 15:34+0530\n"
+"POT-Creation-Date: 2009-09-21 08:49+0000\n"
+"PO-Revision-Date: 2009-09-21 18:16+0530\n"
 "Last-Translator: Sandeep Shedmake <sshedmak@redhat.com>\n"
 "Language-Team: Marathi <fedora-trans-mr@redhat.com>\n"
 "MIME-Version: 1.0\n"
@@ -218,8 +218,7 @@ msgstr "प्रणाली पद्धती अंतर्गत कार
 
 #: ../src/daemon/main.c:581
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr ""
-"प्रणाली पद्धती अंतर्गत कार्यरत, परंतु --disallow-module-loading निश्चित केले नाही!"
+msgstr "प्रणाली पद्धती अंतर्गत कार्यरत, परंतु --disallow-module-loading निश्चित केले नाही!"
 
 #: ../src/daemon/main.c:584
 msgid "Running in system mode, forcibly disabling SHM mode!"
@@ -1088,11 +1087,11 @@ msgstr "क्लाऐंट विभाजीत केले"
 
 #: ../src/pulse/error.c:68
 msgid "Input/Output error"
-msgstr ""
+msgstr "इंपुट/आऊटपुट त्रुटी"
 
 #: ../src/pulse/error.c:69
 msgid "Device or resource busy"
-msgstr ""
+msgstr "उपकरन किंव स्रोत व्यस्थ"
 
 #: ../src/pulse/sample.c:172
 #, c-format
@@ -1521,8 +1520,7 @@ msgstr "सावधानता: वाहिनी नकाशा फाइ�
 
 #: ../src/utils/pacat.c:1008
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "%s स्ट्रीम चाचणी संयोजना '%s' व वाहिनी नकाशा '%s' सह उघडत आहे."
 
 #: ../src/utils/pacat.c:1009
@@ -2112,17 +2110,14 @@ msgid "You have to specify a module index"
 msgstr "तुम्हाला विभाग इंडेक्स् निश्चित करावे लागेल"
 
 #: ../src/utils/pactl.c:1090
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
-msgstr ""
-"तुम्ही एकापेक्षा जास्त सींक निश्चित करू शकत नाही. तुम्हाला बूलीयन मूल्य निश्चित करावे लागेल."
+msgid "You may not specify more than one sink. You have to specify a boolean value."
+msgstr "तुम्ही एकापेक्षा जास्त सींक निश्चित करू शकत नाही. तुम्हाला बूलीयन मूल्य निश्चित करावे लागेल."
 
 #: ../src/utils/pactl.c:1103
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
-msgstr ""
-"तुम्ही एकापेक्षा जास्त स्रोत निश्चित करू शकत नाही. तुम्हाला बूलीयन मूल्य निश्चित करावे लागेल."
+msgstr "तुम्ही एकापेक्षा जास्त स्रोत निश्चित करू शकत नाही. तुम्हाला बूलीयन मूल्य निश्चित करावे लागेल."
 
 #: ../src/utils/pactl.c:1115
 msgid "You have to specify a card name/index and a profile name"
@@ -2348,3 +2343,4 @@ msgstr "टेलिफोनी ड्युप्लेक्स् (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio आवाज सर्वर"
+
