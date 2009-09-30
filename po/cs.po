@@ -6,14 +6,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-29 23:47+0200\n"
-"PO-Revision-Date: 2009-09-09 02:43+0100\n"
+"POT-Creation-Date: 2009-09-30 09:44+0000\n"
+"PO-Revision-Date: 2009-09-30 20:33+0200\n"
 "Last-Translator: Petr Kovar <pknbe@volny.cz>\n"
 "Language-Team: Czech <translation-team-cs@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Lokalize 1.0\n"
 
 #: ../src/modules/alsa/alsa-util.c:858 ../src/pulsecore/sink.c:2629
 #, c-format
@@ -61,11 +62,11 @@ msgstr ""
 
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
-msgstr ""
+msgstr "Udržuje nahraný vždy alespoň jeden cíl, i když se jedná o \"null\""
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
-msgstr ""
+msgstr "Prázdný výstup"
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
@@ -87,12 +88,11 @@ msgstr ""
 
 #: ../src/modules/module-null-sink.c:55
 msgid "Clocked NULL sink"
-msgstr ""
+msgstr "Taktovaný cíl NULL"
 
 #: ../src/modules/module-null-sink.c:291
-#, fuzzy
 msgid "Null Output"
-msgstr "Výstup %s"
+msgstr "Výstup \"null\""
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -1095,11 +1095,11 @@ msgstr "Klient rozvětven"
 
 #: ../src/pulse/error.c:68
 msgid "Input/Output error"
-msgstr ""
+msgstr "Chyba vstupu/výstupu"
 
 #: ../src/pulse/error.c:69
 msgid "Device or resource busy"
-msgstr ""
+msgstr "Zařízení nebo zdroj se používá"
 
 #: ../src/pulse/sample.c:172
 #, c-format
@@ -1308,10 +1308,9 @@ msgstr "Získán signál, ukončování."
 msgid "Failed to get latency: %s"
 msgstr "Nezdařilo se získat latenci: %s"
 
-#: ../src/utils/pacat.c:580
-#, fuzzy, c-format
+#: ../src/utils/pacat.c:580, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr "Čas: %0.3f sekund; latence: %0.0f μs.  \r"
+msgstr "Čas: %0.3f sekund; latence: %0.0f μs"
 
 #: ../src/utils/pacat.c:599
 #, c-format
@@ -2358,133 +2357,120 @@ msgstr "Zvukový server PulseAudio"
 #: ../src/modules/module-rygel-media-server.c:569
 #: ../src/modules/module-rygel-media-server.c:583
 msgid "Output Devices"
-msgstr ""
+msgstr "Výstupní zařízení"
 
 #: ../src/modules/module-rygel-media-server.c:570
 #: ../src/modules/module-rygel-media-server.c:584
-#, fuzzy
 msgid "Input Devices"
-msgstr "Vstup %s"
+msgstr "Vstupní zařízení"
 
 #: ../src/modules/module-rygel-media-server.c:774
 msgid "Audio on @HOSTNAME@"
-msgstr ""
+msgstr "Zvuk na @HOSTNAME@"
 
 #: ../src/modules/alsa/alsa-mixer.c:1701
-#, fuzzy
 msgid "Input"
-msgstr "Vstup %s"
+msgstr "Vstup"
 
 #: ../src/modules/alsa/alsa-mixer.c:1702
 msgid "Docking Station Input"
-msgstr ""
+msgstr "Vstup dokovací stanice"
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
 msgid "Docking Station Microphone"
-msgstr ""
+msgstr "Mikrofon dokovací stanice"
 
 #: ../src/modules/alsa/alsa-mixer.c:1704
 msgid "Line-In"
-msgstr ""
+msgstr "Linkový vstup"
 
 #: ../src/modules/alsa/alsa-mixer.c:1705
 msgid "Microphone"
-msgstr ""
+msgstr "Mikrofon"
 
 #: ../src/modules/alsa/alsa-mixer.c:1706
 msgid "External Microphone"
-msgstr ""
+msgstr "Externí mikrofon"
 
 #: ../src/modules/alsa/alsa-mixer.c:1707
-#, fuzzy
 msgid "Internal Microphone"
-msgstr "Vnitřní zvukový systém"
+msgstr "Interní mikrofon"
 
 #: ../src/modules/alsa/alsa-mixer.c:1708
 msgid "Radio"
-msgstr ""
+msgstr "Rádio"
 
 #: ../src/modules/alsa/alsa-mixer.c:1709
 msgid "Video"
-msgstr ""
+msgstr "Obraz"
 
 #: ../src/modules/alsa/alsa-mixer.c:1710
 msgid "Automatic Gain Control"
-msgstr ""
+msgstr "Automatické ovládání zesílení"
 
 #: ../src/modules/alsa/alsa-mixer.c:1711
 msgid "No Automatic Gain Control"
-msgstr ""
+msgstr "Bez automatického ovládání zesílení"
 
 #: ../src/modules/alsa/alsa-mixer.c:1712
 msgid "Boost"
-msgstr ""
+msgstr "Zesílení"
 
 #: ../src/modules/alsa/alsa-mixer.c:1713
 msgid "No Boost"
-msgstr ""
+msgstr "Bez zesílení"
 
 #: ../src/modules/alsa/alsa-mixer.c:1714
 msgid "Amplifier"
-msgstr ""
+msgstr "Zesilovač"
 
 #: ../src/modules/alsa/alsa-mixer.c:1715
 msgid "No Amplifier"
-msgstr ""
+msgstr "Bez zesilovače"
 
 #: ../src/modules/alsa/alsa-mixer.c:1773
-#, fuzzy
 msgid "Analog Input"
-msgstr "Analogové mono"
+msgstr "Analogový vstup"
 
 #: ../src/modules/alsa/alsa-mixer.c:1774
-#, fuzzy
 msgid "Analog Microphone"
-msgstr "Analogové mono"
+msgstr "Analogový mikrofon"
 
 #: ../src/modules/alsa/alsa-mixer.c:1775
-#, fuzzy
 msgid "Analog Line-In"
-msgstr "Analogové mono"
+msgstr "Analogový linkový vstup"
 
 #: ../src/modules/alsa/alsa-mixer.c:1776
-#, fuzzy
 msgid "Analog Radio"
-msgstr "Analogové mono"
+msgstr "Analogové rádio"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
-#, fuzzy
 msgid "Analog Video"
-msgstr "Analogové stereo"
+msgstr "Analogový obraz"
 
 #: ../src/modules/alsa/alsa-mixer.c:1778
-#, fuzzy
 msgid "Analog Output"
-msgstr "Výstup %s"
+msgstr "Analogový výstup"
 
 #: ../src/modules/alsa/alsa-mixer.c:1779
-#, fuzzy
 msgid "Analog Headphones"
-msgstr "Analogové mono"
+msgstr "Analogová sluchátka"
 
 #: ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Analog Output (LFE)"
-msgstr ""
+msgstr "Analogový výstup (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1781
-#, fuzzy
 msgid "Analog Mono Output"
-msgstr "Analogové mono"
+msgstr "Analogový výstup mono"
 
-#: ../src/modules/alsa/alsa-mixer.c:1981
-#, fuzzy, c-format
+#: ../src/modules/alsa/alsa-mixer.c:1981, c-format
 msgid "%s+%s"
-msgstr "%s %s"
+msgstr "%s+%s"
 
-#: ../src/modules/alsa/alsa-mixer.c:1984 ../src/modules/alsa/alsa-mixer.c:3404
-#, fuzzy, c-format
+#: ../src/modules/alsa/alsa-mixer.c:1984 ../src/modules/alsa/alsa-mixer.c:3404, c-format
 msgid "%s / %s"
-msgstr "%s %s"
+msgstr "%s / %s"
 
 #: ../src/modules/alsa/alsa-mixer.c:2790
 msgid "Analog Mono"
@@ -2495,19 +2481,16 @@ msgid "Analog Stereo"
 msgstr "Analogové stereo"
 
 #: ../src/modules/alsa/alsa-mixer.c:2792
-#, fuzzy
 msgid "Analog Surround 2.1"
-msgstr "Analogový Surround 4.1"
+msgstr "Analogový Surround 2.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2793
-#, fuzzy
 msgid "Analog Surround 3.0"
-msgstr "Analogový Surround 4.0"
+msgstr "Analogový Surround 3.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2794
-#, fuzzy
 msgid "Analog Surround 3.1"
-msgstr "Analogový Surround 4.1"
+msgstr "Analogový Surround 3.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2795
 msgid "Analog Surround 4.0"
@@ -2526,19 +2509,16 @@ msgid "Analog Surround 5.1"
 msgstr "Analogový Surround 5.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2799
-#, fuzzy
 msgid "Analog Surround 6.0"
-msgstr "Analogový Surround 4.0"
+msgstr "Analogový Surround 6.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2800
-#, fuzzy
 msgid "Analog Surround 6.1"
-msgstr "Analogový Surround 4.1"
+msgstr "Analogový Surround 6.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2801
-#, fuzzy
 msgid "Analog Surround 7.0"
-msgstr "Analogový Surround 4.0"
+msgstr "Analogový Surround 7.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2802
 msgid "Analog Surround 7.1"
@@ -2549,9 +2529,8 @@ msgid "Digital Stereo (IEC958)"
 msgstr "Digitální stereo (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2804
-#, fuzzy
 msgid "Digital Surround 4.0 (IEC958)"
-msgstr "Digitální Surround 4.0 (IEC958/AC3)"
+msgstr "Digitální Surround 4.0 (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2805
 msgid "Digital Surround 4.0 (IEC958/AC3)"
@@ -2566,19 +2545,16 @@ msgid "Digital Stereo (HDMI)"
 msgstr "Digitální stereo (HDMI)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2928
-#, fuzzy
 msgid "Analog Mono Duplex"
-msgstr "Analogové mono"
+msgstr "Analogové duplexní mono"
 
 #: ../src/modules/alsa/alsa-mixer.c:2929
-#, fuzzy
 msgid "Analog Stereo Duplex"
-msgstr "Analogové stereo"
+msgstr "Analogové duplexní stereo"
 
 #: ../src/modules/alsa/alsa-mixer.c:2930
-#, fuzzy
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr "Digitální stereo (IEC958)"
+msgstr "Digitální duplexní stereo (IEC958)"
 
 #~ msgid "Invalid client name '%s'\n"
 #~ msgstr "Neplatný název klienta \"%s\"\n"
