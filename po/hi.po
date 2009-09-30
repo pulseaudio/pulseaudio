@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-29 19:25+0200\n"
+"POT-Creation-Date: 2009-09-29 23:47+0200\n"
 "PO-Revision-Date: 2009-09-21 16:29+0530\n"
 "Last-Translator: Rajesh Ranjan <rajesh672@gmail.com>\n"
 "Language-Team: Hindi <hindi.sf.net>\n"
@@ -186,180 +186,180 @@ msgstr "इस प्लैटफॉर्म पर असमर्थित �
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) विफल: %s"
 
-#: ../src/daemon/main.c:469
+#: ../src/daemon/main.c:474
 msgid "Failed to parse command line."
 msgstr "कमांड लाइन विश्लेषण में विफल."
 
-#: ../src/daemon/main.c:536
+#: ../src/daemon/main.c:541
 msgid "Daemon not running"
 msgstr "डेमॉन नहीं कार्यशील"
 
-#: ../src/daemon/main.c:538
+#: ../src/daemon/main.c:543
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "डेमॉन बतौर PID %u चल रहा है"
 
-#: ../src/daemon/main.c:548
+#: ../src/daemon/main.c:553
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "डेमॉन हटाने में विफल: %s"
 
-#: ../src/daemon/main.c:566
+#: ../src/daemon/main.c:571
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
 msgstr ""
 "यह प्रोग्राम बतौर रूट चलाने के लिए इच्छित नहीं है (unless --system is specified)."
 
-#: ../src/daemon/main.c:568
+#: ../src/daemon/main.c:573
 msgid "Root privileges required."
 msgstr "रूट अधिकार जरूरी."
 
-#: ../src/daemon/main.c:573
+#: ../src/daemon/main.c:578
 msgid "--start not supported for system instances."
 msgstr "--start not supported for system instances."
 
-#: ../src/daemon/main.c:578
+#: ../src/daemon/main.c:583
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr "तंत्र मोड में चल रहा है, लेकिन --disallow-exit सेट नहीं!"
 
-#: ../src/daemon/main.c:581
+#: ../src/daemon/main.c:586
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr "तंत्र मोड में चल रहा है, लेकिन --disallow-module-loading सेट नहीं!"
 
-#: ../src/daemon/main.c:584
+#: ../src/daemon/main.c:589
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "तंत्र मोड में चल रहा है, SHM मोड बाध्य रूप से निष्क्रिय!"
 
-#: ../src/daemon/main.c:589
+#: ../src/daemon/main.c:594
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr "तंत्र मोड में चल रहा है, निकास निष्क्रिय समय बाध्य रूप से निष्क्रिय!"
 
-#: ../src/daemon/main.c:616
+#: ../src/daemon/main.c:621
 msgid "Failed to acquire stdio."
 msgstr "stdio पाने में विफल."
 
-#: ../src/daemon/main.c:622
+#: ../src/daemon/main.c:627
 #, c-format
 msgid "pipe failed: %s"
 msgstr "पाइप विफल: %s"
 
-#: ../src/daemon/main.c:627
+#: ../src/daemon/main.c:632
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork() विफल: %s"
 
-#: ../src/daemon/main.c:641 ../src/utils/pacat.c:508
+#: ../src/daemon/main.c:646 ../src/utils/pacat.c:508
 #, c-format
 msgid "read() failed: %s"
 msgstr "read() विफल: %s"
 
-#: ../src/daemon/main.c:647
+#: ../src/daemon/main.c:652
 msgid "Daemon startup failed."
 msgstr "डेमॉन आरंभ विफल."
 
-#: ../src/daemon/main.c:649
+#: ../src/daemon/main.c:654
 msgid "Daemon startup successful."
 msgstr "डेमॉन आरंभ सफल."
 
-#: ../src/daemon/main.c:726
+#: ../src/daemon/main.c:731
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "यह पल्सऑडियो %s है."
 
-#: ../src/daemon/main.c:727
+#: ../src/daemon/main.c:732
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Compilation host: %s"
 
-#: ../src/daemon/main.c:728
+#: ../src/daemon/main.c:733
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "Compilation CFLAGS: %s"
 
-#: ../src/daemon/main.c:731
+#: ../src/daemon/main.c:736
 #, c-format
 msgid "Running on host: %s"
 msgstr "मेजबान पर चल रहा है: %s"
 
-#: ../src/daemon/main.c:734
+#: ../src/daemon/main.c:739
 #, c-format
 msgid "Found %u CPUs."
 msgstr "%u CPU पाया."
 
-#: ../src/daemon/main.c:736
+#: ../src/daemon/main.c:741
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "पृष्ठ आकार %lu बाइट है."
 
-#: ../src/daemon/main.c:739
+#: ../src/daemon/main.c:744
 msgid "Compiled with Valgrind support: yes"
 msgstr "वेलग्रिंड समर्थन से कंपाइल: हाँ"
 
-#: ../src/daemon/main.c:741
+#: ../src/daemon/main.c:746
 msgid "Compiled with Valgrind support: no"
 msgstr "वेलग्रिंड समर्थन से कंपाइल: नहीं"
 
-#: ../src/daemon/main.c:744
+#: ../src/daemon/main.c:749
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "वेलग्रिंड विधि में चल रहा है: %s"
 
-#: ../src/daemon/main.c:747
+#: ../src/daemon/main.c:752
 msgid "Optimized build: yes"
 msgstr "अनुकूलित बिल्ड: हाँ"
 
-#: ../src/daemon/main.c:749
+#: ../src/daemon/main.c:754
 msgid "Optimized build: no"
 msgstr "अनुकूलित बिल्ड: नहीं"
 
-#: ../src/daemon/main.c:753
+#: ../src/daemon/main.c:758
 msgid "NDEBUG defined, all asserts disabled."
 msgstr "NDEBUG परिभाषित, सभी निष्क्रिय."
 
-#: ../src/daemon/main.c:755
+#: ../src/daemon/main.c:760
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr "FASTPATH परिभाषित, केव तेज पथ एसर्ट निष्क्रिय."
 
-#: ../src/daemon/main.c:757
+#: ../src/daemon/main.c:762
 msgid "All asserts enabled."
 msgstr "सभी एसर्ट सक्षम."
 
-#: ../src/daemon/main.c:761
+#: ../src/daemon/main.c:766
 msgid "Failed to get machine ID"
 msgstr "मशीन ID पाने में विफल"
 
-#: ../src/daemon/main.c:764
+#: ../src/daemon/main.c:769
 #, c-format
 msgid "Machine ID is %s."
 msgstr "मशीन ID %s है."
 
-#: ../src/daemon/main.c:768
+#: ../src/daemon/main.c:773
 #, c-format
 msgid "Session ID is %s."
 msgstr "सत्र ID %s है."
 
-#: ../src/daemon/main.c:774
+#: ../src/daemon/main.c:779
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "रनटाइम निर्देशिका %s का प्रयोग कर रहा है."
 
-#: ../src/daemon/main.c:779
+#: ../src/daemon/main.c:784
 #, c-format
 msgid "Using state directory %s."
 msgstr "स्टेट निर्देशिका %s का प्रयोग कर रहा है."
 
-#: ../src/daemon/main.c:782
+#: ../src/daemon/main.c:787
 #, c-format
 msgid "Using modules directory %s."
 msgstr "मॉड्यूल निर्देशिका %s का प्रयोग कर रहा है."
 
-#: ../src/daemon/main.c:784
+#: ../src/daemon/main.c:789
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "तंत्र मोड में चल रहा है: %s"
 
-#: ../src/daemon/main.c:787
+#: ../src/daemon/main.c:792
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -373,42 +373,42 @@ msgstr ""
 "कृपया http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode को पढ़ें जानने के लिए "
 "कि क्यों तंत्र मोड एक बढ़िया विचार नहीं है."
 
-#: ../src/daemon/main.c:804
+#: ../src/daemon/main.c:809
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create() विफल."
 
-#: ../src/daemon/main.c:814
+#: ../src/daemon/main.c:819
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "ताज़ा उच्च विभेदन टाइमर उपलब्ध! आनंद लें!"
 
-#: ../src/daemon/main.c:816
+#: ../src/daemon/main.c:821
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 msgstr ""
 "आपका कर्नेल बुरी स्थिति में है! सलाह है कि उच्च विभेदन युक्त लिनक्स सक्रिय किया जाना चाहिए!"
 
-#: ../src/daemon/main.c:839
+#: ../src/daemon/main.c:844
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() विफल."
 
-#: ../src/daemon/main.c:899
+#: ../src/daemon/main.c:904
 msgid "Failed to initialize daemon."
 msgstr "डेमॉन आरंभ करने में विफल."
 
-#: ../src/daemon/main.c:904
+#: ../src/daemon/main.c:909
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "बिना लोड मॉड्यूल के डेमॉन आरंभ, काम करने से अस्वीकार कर रहा है."
 
-#: ../src/daemon/main.c:921
+#: ../src/daemon/main.c:926
 msgid "Daemon startup complete."
 msgstr "डेमॉन आरंभन पूर्ण."
 
-#: ../src/daemon/main.c:927
+#: ../src/daemon/main.c:932
 msgid "Daemon shutdown initiated."
 msgstr "डेमॉन बन्द किया जाना आरंभ."
 
-#: ../src/daemon/main.c:949
+#: ../src/daemon/main.c:954
 msgid "Daemon terminated."
 msgstr "डेमॉन अवरोधित."
 
@@ -2338,6 +2338,7 @@ msgstr ""
 
 #: ../src/modules/alsa/module-alsa-card.c:152
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2228
+#: ../src/modules/alsa/alsa-mixer.c:2931
 msgid "Off"
 msgstr "बंद"
 
@@ -2356,3 +2357,221 @@ msgstr "टेलिफोनी ड्यूप्लेक्स (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "पल्सऑडियो ध्वनि सर्वर"
+
+#: ../src/modules/module-rygel-media-server.c:569
+#: ../src/modules/module-rygel-media-server.c:583
+msgid "Output Devices"
+msgstr ""
+
+#: ../src/modules/module-rygel-media-server.c:570
+#: ../src/modules/module-rygel-media-server.c:584
+msgid "Input Devices"
+msgstr ""
+
+#: ../src/modules/module-rygel-media-server.c:774
+msgid "Audio on @HOSTNAME@"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1701
+msgid "Input"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1702
+msgid "Docking Station Input"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1703
+msgid "Docking Station Microphone"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1704
+msgid "Line-In"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1705
+msgid "Microphone"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1706
+msgid "External Microphone"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1707
+#, fuzzy
+msgid "Internal Microphone"
+msgstr "आंतरिक ऑडियो"
+
+#: ../src/modules/alsa/alsa-mixer.c:1708
+msgid "Radio"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1709
+msgid "Video"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1710
+msgid "Automatic Gain Control"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1711
+msgid "No Automatic Gain Control"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1712
+msgid "Boost"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1713
+msgid "No Boost"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1714
+msgid "Amplifier"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1715
+msgid "No Amplifier"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1773
+msgid "Analog Input"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1774
+msgid "Analog Microphone"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1775
+msgid "Analog Line-In"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1776
+msgid "Analog Radio"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1777
+msgid "Analog Video"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1778
+#, fuzzy
+msgid "Analog Output"
+msgstr "रिक्त आउटपुट"
+
+#: ../src/modules/alsa/alsa-mixer.c:1779
+msgid "Analog Headphones"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1780
+msgid "Analog Output (LFE)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1781
+msgid "Analog Mono Output"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1981
+#, fuzzy, c-format
+msgid "%s+%s"
+msgstr "%s %s"
+
+#: ../src/modules/alsa/alsa-mixer.c:1984 ../src/modules/alsa/alsa-mixer.c:3404
+#, fuzzy, c-format
+msgid "%s / %s"
+msgstr "%s %s"
+
+#: ../src/modules/alsa/alsa-mixer.c:2790
+msgid "Analog Mono"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2791
+#, fuzzy
+msgid "Analog Stereo"
+msgstr "स्टीरियो"
+
+#: ../src/modules/alsa/alsa-mixer.c:2792
+#, fuzzy
+msgid "Analog Surround 2.1"
+msgstr "सर्राउंड 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2793
+#, fuzzy
+msgid "Analog Surround 3.0"
+msgstr "सर्राउंड 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2794
+#, fuzzy
+msgid "Analog Surround 3.1"
+msgstr "सर्राउंड 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2795
+#, fuzzy
+msgid "Analog Surround 4.0"
+msgstr "सर्राउंड 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2796
+#, fuzzy
+msgid "Analog Surround 4.1"
+msgstr "सर्राउंड 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2797
+#, fuzzy
+msgid "Analog Surround 5.0"
+msgstr "सर्राउंड 5.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2798
+#, fuzzy
+msgid "Analog Surround 5.1"
+msgstr "सर्राउंड 5.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2799
+#, fuzzy
+msgid "Analog Surround 6.0"
+msgstr "सर्राउंड 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2800
+#, fuzzy
+msgid "Analog Surround 6.1"
+msgstr "सर्राउंड 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2801
+#, fuzzy
+msgid "Analog Surround 7.0"
+msgstr "सर्राउंड 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2802
+#, fuzzy
+msgid "Analog Surround 7.1"
+msgstr "सर्राउंड 7.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2803
+msgid "Digital Stereo (IEC958)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2804
+msgid "Digital Surround 4.0 (IEC958)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2805
+msgid "Digital Surround 4.0 (IEC958/AC3)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2806
+msgid "Digital Surround 5.1 (IEC958/AC3)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2807
+msgid "Digital Stereo (HDMI)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2928
+msgid "Analog Mono Duplex"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2929
+msgid "Analog Stereo Duplex"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2930
+msgid "Digital Stereo Duplex (IEC958)"
+msgstr ""

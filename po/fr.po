@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio trunk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-29 19:25+0200\n"
+"POT-Creation-Date: 2009-09-29 23:47+0200\n"
 "PO-Revision-Date: 2009-04-26 17:22+0200\n"
 "Last-Translator: Corentin Perard <corentin.perard@gmail.com>\n"
 "Language-Team: French <fedora-trans-fr@redhat.com>\n"
@@ -182,25 +182,25 @@ msgstr "Mode système étendu non pris en charge sur cette plateforme."
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) a échoué : %s"
 
-#: ../src/daemon/main.c:469
+#: ../src/daemon/main.c:474
 msgid "Failed to parse command line."
 msgstr "Échec lors de l'analyse de la ligne de commande"
 
-#: ../src/daemon/main.c:536
+#: ../src/daemon/main.c:541
 msgid "Daemon not running"
 msgstr "Lé démon n'est pas lancé"
 
-#: ../src/daemon/main.c:538
+#: ../src/daemon/main.c:543
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "Le démon est lancé avec le PID %u"
 
-#: ../src/daemon/main.c:548
+#: ../src/daemon/main.c:553
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Impossible de tuer le démon : %s"
 
-#: ../src/daemon/main.c:566
+#: ../src/daemon/main.c:571
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -208,161 +208,161 @@ msgstr ""
 "Le programme n'est pas conçu pour être lancé en tant que root (sauf si --"
 "system est renseigné)."
 
-#: ../src/daemon/main.c:568
+#: ../src/daemon/main.c:573
 msgid "Root privileges required."
 msgstr "Les privilèges root sont nécessaires."
 
-#: ../src/daemon/main.c:573
+#: ../src/daemon/main.c:578
 msgid "--start not supported for system instances."
 msgstr "--start n'est pas pris en charge pour les instances système."
 
-#: ../src/daemon/main.c:578
+#: ../src/daemon/main.c:583
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr ""
 "Le démon s'exécute en mode système, mais --disallow-exit n'est pas défini."
 
-#: ../src/daemon/main.c:581
+#: ../src/daemon/main.c:586
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 "Le démon s'exécute en mode système, mais --disallow-module-loading n'est pas "
 "défini."
 
-#: ../src/daemon/main.c:584
+#: ../src/daemon/main.c:589
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "Le démon s'exécute en mode système, désactivation forcée du mode SHM."
 
-#: ../src/daemon/main.c:589
+#: ../src/daemon/main.c:594
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "Le démon s'exécute en mode système, désactivation forcée de la fermeture "
 "après délai d'inactivité."
 
-#: ../src/daemon/main.c:616
+#: ../src/daemon/main.c:621
 msgid "Failed to acquire stdio."
 msgstr "Échec lors de l'acquisition de stdio."
 
-#: ../src/daemon/main.c:622
+#: ../src/daemon/main.c:627
 #, c-format
 msgid "pipe failed: %s"
 msgstr "Échec du tube : %s"
 
-#: ../src/daemon/main.c:627
+#: ../src/daemon/main.c:632
 #, c-format
 msgid "fork() failed: %s"
 msgstr "Échec de fork() : %s"
 
-#: ../src/daemon/main.c:641 ../src/utils/pacat.c:508
+#: ../src/daemon/main.c:646 ../src/utils/pacat.c:508
 #, c-format
 msgid "read() failed: %s"
 msgstr "Échec de read() : %s"
 
-#: ../src/daemon/main.c:647
+#: ../src/daemon/main.c:652
 msgid "Daemon startup failed."
 msgstr "Échec lors du démarrage du démon."
 
-#: ../src/daemon/main.c:649
+#: ../src/daemon/main.c:654
 msgid "Daemon startup successful."
 msgstr "Démarrage du démon réussi."
 
-#: ../src/daemon/main.c:726
+#: ../src/daemon/main.c:731
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Pulseaudio %s"
 
-#: ../src/daemon/main.c:727
+#: ../src/daemon/main.c:732
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Hôte de compilation : %s"
 
-#: ../src/daemon/main.c:728
+#: ../src/daemon/main.c:733
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "CFLAGS de compilation : %s"
 
-#: ../src/daemon/main.c:731
+#: ../src/daemon/main.c:736
 #, c-format
 msgid "Running on host: %s"
 msgstr "Exécution sur l'hôte : %s"
 
-#: ../src/daemon/main.c:734
+#: ../src/daemon/main.c:739
 #, c-format
 msgid "Found %u CPUs."
 msgstr "%u processeurs trouvés."
 
-#: ../src/daemon/main.c:736
+#: ../src/daemon/main.c:741
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "La taille de la page est de %lu octets"
 
-#: ../src/daemon/main.c:739
+#: ../src/daemon/main.c:744
 msgid "Compiled with Valgrind support: yes"
 msgstr "Compilé avec la prise en charge Valgrind : oui"
 
-#: ../src/daemon/main.c:741
+#: ../src/daemon/main.c:746
 msgid "Compiled with Valgrind support: no"
 msgstr "Compilé avec la prise en charge Valgrind : non"
 
-#: ../src/daemon/main.c:744
+#: ../src/daemon/main.c:749
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "Exécution en mode valgrind : %s"
 
-#: ../src/daemon/main.c:747
+#: ../src/daemon/main.c:752
 msgid "Optimized build: yes"
 msgstr "Construction optimisée : oui"
 
-#: ../src/daemon/main.c:749
+#: ../src/daemon/main.c:754
 msgid "Optimized build: no"
 msgstr "Construction optimisée : non"
 
-#: ../src/daemon/main.c:753
+#: ../src/daemon/main.c:758
 msgid "NDEBUG defined, all asserts disabled."
 msgstr "NDEBUG défini, tous les messages d'erreur sont désactivés."
 
-#: ../src/daemon/main.c:755
+#: ../src/daemon/main.c:760
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr ""
 "FASTPATH défini, seuls les messages d'erreur fastpath ont été désactivés."
 
-#: ../src/daemon/main.c:757
+#: ../src/daemon/main.c:762
 msgid "All asserts enabled."
 msgstr "Tous les messages d'erreur sont activés."
 
-#: ../src/daemon/main.c:761
+#: ../src/daemon/main.c:766
 msgid "Failed to get machine ID"
 msgstr "Échec lors de l'obtention de l'ID de la machine"
 
-#: ../src/daemon/main.c:764
+#: ../src/daemon/main.c:769
 #, c-format
 msgid "Machine ID is %s."
 msgstr "L'ID de la machine est %s."
 
-#: ../src/daemon/main.c:768
+#: ../src/daemon/main.c:773
 #, fuzzy, c-format
 msgid "Session ID is %s."
 msgstr "L'ID de la machine est %s."
 
-#: ../src/daemon/main.c:774
+#: ../src/daemon/main.c:779
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Utilisation du répertoire d'exécution %s."
 
-#: ../src/daemon/main.c:779
+#: ../src/daemon/main.c:784
 #, c-format
 msgid "Using state directory %s."
 msgstr "Utilisation du répertoire d'état %s."
 
-#: ../src/daemon/main.c:782
+#: ../src/daemon/main.c:787
 #, fuzzy, c-format
 msgid "Using modules directory %s."
 msgstr "Utilisation du répertoire d'exécution %s."
 
-#: ../src/daemon/main.c:784
+#: ../src/daemon/main.c:789
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Exécution en mode système : %s"
 
-#: ../src/daemon/main.c:787
+#: ../src/daemon/main.c:792
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -372,16 +372,16 @@ msgid ""
 "explanation why system mode is usually a bad idea."
 msgstr ""
 
-#: ../src/daemon/main.c:804
+#: ../src/daemon/main.c:809
 msgid "pa_pid_file_create() failed."
 msgstr "Échec de pa_pid_file_create()."
 
-#: ../src/daemon/main.c:814
+#: ../src/daemon/main.c:819
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr ""
 "De nouvelles horloges à haute résolution sont disponibles ! Bon appétit !"
 
-#: ../src/daemon/main.c:816
+#: ../src/daemon/main.c:821
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -389,27 +389,27 @@ msgstr ""
 "Eh mec, ton noyau il pue ! La recommandation d'aujourd'hui du patron est "
 "d'activer les horloges à haute résolution sur ton Linux."
 
-#: ../src/daemon/main.c:839
+#: ../src/daemon/main.c:844
 msgid "pa_core_new() failed."
 msgstr "Échec de pa_core_new()."
 
-#: ../src/daemon/main.c:899
+#: ../src/daemon/main.c:904
 msgid "Failed to initialize daemon."
 msgstr "Échec lors de l'initialisation du démon"
 
-#: ../src/daemon/main.c:904
+#: ../src/daemon/main.c:909
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "Démarrage du démon sans aucun module chargé : refus de fonctionner."
 
-#: ../src/daemon/main.c:921
+#: ../src/daemon/main.c:926
 msgid "Daemon startup complete."
 msgstr "Démarrage du démon effectué."
 
-#: ../src/daemon/main.c:927
+#: ../src/daemon/main.c:932
 msgid "Daemon shutdown initiated."
 msgstr "Fermeture du démon initiée."
 
-#: ../src/daemon/main.c:949
+#: ../src/daemon/main.c:954
 msgid "Daemon terminated."
 msgstr "Démon terminé."
 
@@ -2416,6 +2416,7 @@ msgstr ""
 
 #: ../src/modules/alsa/module-alsa-card.c:152
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2228
+#: ../src/modules/alsa/alsa-mixer.c:2931
 msgid "Off"
 msgstr "Éteint"
 
@@ -2435,6 +2436,231 @@ msgstr "Telephonie en duplex (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "Serveur de son PulseAudio"
+
+#: ../src/modules/module-rygel-media-server.c:569
+#: ../src/modules/module-rygel-media-server.c:583
+msgid "Output Devices"
+msgstr ""
+
+#: ../src/modules/module-rygel-media-server.c:570
+#: ../src/modules/module-rygel-media-server.c:584
+#, fuzzy
+msgid "Input Devices"
+msgstr "Entrée %s"
+
+#: ../src/modules/module-rygel-media-server.c:774
+msgid "Audio on @HOSTNAME@"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1701
+#, fuzzy
+msgid "Input"
+msgstr "Entrée %s"
+
+#: ../src/modules/alsa/alsa-mixer.c:1702
+msgid "Docking Station Input"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1703
+msgid "Docking Station Microphone"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1704
+msgid "Line-In"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1705
+msgid "Microphone"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1706
+msgid "External Microphone"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1707
+#, fuzzy
+msgid "Internal Microphone"
+msgstr "Audio interne"
+
+#: ../src/modules/alsa/alsa-mixer.c:1708
+msgid "Radio"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1709
+msgid "Video"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1710
+msgid "Automatic Gain Control"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1711
+msgid "No Automatic Gain Control"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1712
+msgid "Boost"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1713
+msgid "No Boost"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1714
+msgid "Amplifier"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1715
+msgid "No Amplifier"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1773
+#, fuzzy
+msgid "Analog Input"
+msgstr "Mono analogique"
+
+#: ../src/modules/alsa/alsa-mixer.c:1774
+#, fuzzy
+msgid "Analog Microphone"
+msgstr "Mono analogique"
+
+#: ../src/modules/alsa/alsa-mixer.c:1775
+#, fuzzy
+msgid "Analog Line-In"
+msgstr "Mono analogique"
+
+#: ../src/modules/alsa/alsa-mixer.c:1776
+#, fuzzy
+msgid "Analog Radio"
+msgstr "Mono analogique"
+
+#: ../src/modules/alsa/alsa-mixer.c:1777
+#, fuzzy
+msgid "Analog Video"
+msgstr "Stéréo analogique"
+
+#: ../src/modules/alsa/alsa-mixer.c:1778
+#, fuzzy
+msgid "Analog Output"
+msgstr "Sortie %s"
+
+#: ../src/modules/alsa/alsa-mixer.c:1779
+#, fuzzy
+msgid "Analog Headphones"
+msgstr "Mono analogique"
+
+#: ../src/modules/alsa/alsa-mixer.c:1780
+msgid "Analog Output (LFE)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1781
+#, fuzzy
+msgid "Analog Mono Output"
+msgstr "Mono analogique"
+
+#: ../src/modules/alsa/alsa-mixer.c:1981
+#, c-format
+msgid "%s+%s"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1984 ../src/modules/alsa/alsa-mixer.c:3404
+#, c-format
+msgid "%s / %s"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2790
+msgid "Analog Mono"
+msgstr "Mono analogique"
+
+#: ../src/modules/alsa/alsa-mixer.c:2791
+msgid "Analog Stereo"
+msgstr "Stéréo analogique"
+
+#: ../src/modules/alsa/alsa-mixer.c:2792
+#, fuzzy
+msgid "Analog Surround 2.1"
+msgstr "Surround analogique 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2793
+#, fuzzy
+msgid "Analog Surround 3.0"
+msgstr "Surround analogique 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2794
+#, fuzzy
+msgid "Analog Surround 3.1"
+msgstr "Surround analogique 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2795
+msgid "Analog Surround 4.0"
+msgstr "Surround analogique 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2796
+msgid "Analog Surround 4.1"
+msgstr "Surround analogique 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2797
+msgid "Analog Surround 5.0"
+msgstr "Surround analogique 5.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2798
+msgid "Analog Surround 5.1"
+msgstr "Surround analogique 5.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2799
+#, fuzzy
+msgid "Analog Surround 6.0"
+msgstr "Surround analogique 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2800
+#, fuzzy
+msgid "Analog Surround 6.1"
+msgstr "Surround analogique 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2801
+#, fuzzy
+msgid "Analog Surround 7.0"
+msgstr "Surround analogique 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2802
+msgid "Analog Surround 7.1"
+msgstr "Surround analogique 7.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2803
+msgid "Digital Stereo (IEC958)"
+msgstr "Stéréo numérique (IEC958)"
+
+#: ../src/modules/alsa/alsa-mixer.c:2804
+#, fuzzy
+msgid "Digital Surround 4.0 (IEC958)"
+msgstr "Surround numérique 4.0 (IEC958/AC3)"
+
+#: ../src/modules/alsa/alsa-mixer.c:2805
+msgid "Digital Surround 4.0 (IEC958/AC3)"
+msgstr "Surround numérique 4.0 (IEC958/AC3)"
+
+#: ../src/modules/alsa/alsa-mixer.c:2806
+msgid "Digital Surround 5.1 (IEC958/AC3)"
+msgstr "Surround numérique 5.1 (IEC958/AC3)"
+
+#: ../src/modules/alsa/alsa-mixer.c:2807
+msgid "Digital Stereo (HDMI)"
+msgstr "Stéréo numérique (HDMI)"
+
+#: ../src/modules/alsa/alsa-mixer.c:2928
+#, fuzzy
+msgid "Analog Mono Duplex"
+msgstr "Mono analogique"
+
+#: ../src/modules/alsa/alsa-mixer.c:2929
+#, fuzzy
+msgid "Analog Stereo Duplex"
+msgstr "Stéréo analogique"
+
+#: ../src/modules/alsa/alsa-mixer.c:2930
+#, fuzzy
+msgid "Digital Stereo Duplex (IEC958)"
+msgstr "Stéréo numérique (IEC958)"
 
 #, fuzzy
 #~ msgid "Invalid client name '%s'\n"
@@ -2585,44 +2811,8 @@ msgstr "Serveur de son PulseAudio"
 #~ msgid "time_new() failed.\n"
 #~ msgstr "Échec de time_new().\n"
 
-#~ msgid "Analog Mono"
-#~ msgstr "Mono analogique"
-
-#~ msgid "Analog Stereo"
-#~ msgstr "Stéréo analogique"
-
-#~ msgid "Digital Stereo (IEC958)"
-#~ msgstr "Stéréo numérique (IEC958)"
-
-#~ msgid "Digital Stereo (HDMI)"
-#~ msgstr "Stéréo numérique (HDMI)"
-
-#~ msgid "Analog Surround 4.0"
-#~ msgstr "Surround analogique 4.0"
-
-#~ msgid "Digital Surround 4.0 (IEC958/AC3)"
-#~ msgstr "Surround numérique 4.0 (IEC958/AC3)"
-
-#~ msgid "Analog Surround 4.1"
-#~ msgstr "Surround analogique 4.1"
-
-#~ msgid "Analog Surround 5.0"
-#~ msgstr "Surround analogique 5.0"
-
-#~ msgid "Analog Surround 5.1"
-#~ msgstr "Surround analogique 5.1"
-
-#~ msgid "Digital Surround 5.1 (IEC958/AC3)"
-#~ msgstr "Surround numérique 5.1 (IEC958/AC3)"
-
-#~ msgid "Analog Surround 7.1"
-#~ msgstr "Surround analogique 7.1"
-
 #~ msgid "Output %s + Input %s"
 #~ msgstr "Sortie %s + Entrée %s"
-
-#~ msgid "Input %s"
-#~ msgstr "Entrée %s"
 
 #~ msgid "Stream successfully created\n"
 #~ msgstr "Création du flux réussie\n"

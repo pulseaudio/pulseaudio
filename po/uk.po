@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-29 19:25+0200\n"
+"POT-Creation-Date: 2009-09-29 23:47+0200\n"
 "PO-Revision-Date: 2009-09-11 17:38+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation@linux.org.ua>\n"
@@ -187,25 +187,25 @@ msgstr "Загальносистемний режим не підтримуєт�
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "Спроба виконати setrlimit(%s, (%u, %u)) була невдалою: %s"
 
-#: ../src/daemon/main.c:469
+#: ../src/daemon/main.c:474
 msgid "Failed to parse command line."
 msgstr "Не вдалося обробити рядок команди."
 
-#: ../src/daemon/main.c:536
+#: ../src/daemon/main.c:541
 msgid "Daemon not running"
 msgstr "Фонову службу не запущено"
 
-#: ../src/daemon/main.c:538
+#: ../src/daemon/main.c:543
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "Фонову службу запущено як PID %u"
 
-#: ../src/daemon/main.c:548
+#: ../src/daemon/main.c:553
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "Не вдалося завершити роботу фонової служби: %s"
 
-#: ../src/daemon/main.c:566
+#: ../src/daemon/main.c:571
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -213,161 +213,161 @@ msgstr ""
 "Цю програму не призначено для запуску від імені користувача root (якщо не "
 "вказано параметра --system)."
 
-#: ../src/daemon/main.c:568
+#: ../src/daemon/main.c:573
 msgid "Root privileges required."
 msgstr "Потрібні права доступу користувача root."
 
-#: ../src/daemon/main.c:573
+#: ../src/daemon/main.c:578
 msgid "--start not supported for system instances."
 msgstr ""
 "Параметр --start не підтримується для загальносистемних екземплярів програми."
 
-#: ../src/daemon/main.c:578
+#: ../src/daemon/main.c:583
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr ""
 "Запуск у загальносистемному режимі, але не встановлено --disallow-exit!"
 
-#: ../src/daemon/main.c:581
+#: ../src/daemon/main.c:586
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 "Запуск у загальносистемному режимі, але не встановлено --disallow-module-"
 "loading!"
 
-#: ../src/daemon/main.c:584
+#: ../src/daemon/main.c:589
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "Запуск у загальносистемному режимі, примусове вимикання режиму SHM!"
 
-#: ../src/daemon/main.c:589
+#: ../src/daemon/main.c:594
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "Запуск у загальносистемному режимі, примусове вимикання режиму параметрів "
 "часу виходу за відсутності активності!"
 
-#: ../src/daemon/main.c:616
+#: ../src/daemon/main.c:621
 msgid "Failed to acquire stdio."
 msgstr "Не вдалося отримати stdio."
 
-#: ../src/daemon/main.c:622
+#: ../src/daemon/main.c:627
 #, c-format
 msgid "pipe failed: %s"
 msgstr "Спроба створення каналу завершилася невдало: %s"
 
-#: ../src/daemon/main.c:627
+#: ../src/daemon/main.c:632
 #, c-format
 msgid "fork() failed: %s"
 msgstr "Спроба виконання fork() завершилася невдало: %s"
 
-#: ../src/daemon/main.c:641 ../src/utils/pacat.c:508
+#: ../src/daemon/main.c:646 ../src/utils/pacat.c:508
 #, c-format
 msgid "read() failed: %s"
 msgstr "Спроба виконання read() завершилася невдало: %s"
 
-#: ../src/daemon/main.c:647
+#: ../src/daemon/main.c:652
 msgid "Daemon startup failed."
 msgstr "Спроба запуску фонової служби завершилася невдало."
 
-#: ../src/daemon/main.c:649
+#: ../src/daemon/main.c:654
 msgid "Daemon startup successful."
 msgstr "Фонову службу успішно запущено."
 
-#: ../src/daemon/main.c:726
+#: ../src/daemon/main.c:731
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "Це PulseAudio %s"
 
-#: ../src/daemon/main.c:727
+#: ../src/daemon/main.c:732
 #, c-format
 msgid "Compilation host: %s"
 msgstr "Вузол збирання: %s"
 
-#: ../src/daemon/main.c:728
+#: ../src/daemon/main.c:733
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "CFLAGS збирання: %s"
 
-#: ../src/daemon/main.c:731
+#: ../src/daemon/main.c:736
 #, c-format
 msgid "Running on host: %s"
 msgstr "Запущено на вузлі: %s"
 
-#: ../src/daemon/main.c:734
+#: ../src/daemon/main.c:739
 #, c-format
 msgid "Found %u CPUs."
 msgstr "Знайдено %u процесорів."
 
-#: ../src/daemon/main.c:736
+#: ../src/daemon/main.c:741
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "Розмір сторінки дорівнює %lu байтам"
 
-#: ../src/daemon/main.c:739
+#: ../src/daemon/main.c:744
 msgid "Compiled with Valgrind support: yes"
 msgstr "Зібрано з підтримкою Valgrind: так"
 
-#: ../src/daemon/main.c:741
+#: ../src/daemon/main.c:746
 msgid "Compiled with Valgrind support: no"
 msgstr "Зібрано з підтримкою Valgrind: ні"
 
-#: ../src/daemon/main.c:744
+#: ../src/daemon/main.c:749
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "Запуск у режимі valgrind: %s"
 
-#: ../src/daemon/main.c:747
+#: ../src/daemon/main.c:752
 msgid "Optimized build: yes"
 msgstr "Зібрано з оптимізацією: так"
 
-#: ../src/daemon/main.c:749
+#: ../src/daemon/main.c:754
 msgid "Optimized build: no"
 msgstr "Зібрано з оптимізацією: ні"
 
-#: ../src/daemon/main.c:753
+#: ../src/daemon/main.c:758
 msgid "NDEBUG defined, all asserts disabled."
 msgstr "Визначено NDEBUG, всі додавання вимкнено."
 
-#: ../src/daemon/main.c:755
+#: ../src/daemon/main.c:760
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr "Визначено FASTPATH, вимкнено лише додавання швидких шляхів."
 
-#: ../src/daemon/main.c:757
+#: ../src/daemon/main.c:762
 msgid "All asserts enabled."
 msgstr "Увімкнено всі додавання."
 
-#: ../src/daemon/main.c:761
+#: ../src/daemon/main.c:766
 msgid "Failed to get machine ID"
 msgstr "Спроба отримати ідентифікатор системи завершилася невдало"
 
-#: ../src/daemon/main.c:764
+#: ../src/daemon/main.c:769
 #, c-format
 msgid "Machine ID is %s."
 msgstr "Ідентифікатор системи %s."
 
-#: ../src/daemon/main.c:768
+#: ../src/daemon/main.c:773
 #, c-format
 msgid "Session ID is %s."
 msgstr "Ідентифікатор сеансу — %s."
 
-#: ../src/daemon/main.c:774
+#: ../src/daemon/main.c:779
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "Каталог запуску: %s."
 
-#: ../src/daemon/main.c:779
+#: ../src/daemon/main.c:784
 #, c-format
 msgid "Using state directory %s."
 msgstr "Каталог стану: %s."
 
-#: ../src/daemon/main.c:782
+#: ../src/daemon/main.c:787
 #, c-format
 msgid "Using modules directory %s."
 msgstr "Каталог модулів: %s."
 
-#: ../src/daemon/main.c:784
+#: ../src/daemon/main.c:789
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "Запуску у загальносистемному режимі: %s"
 
-#: ../src/daemon/main.c:787
+#: ../src/daemon/main.c:792
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -384,15 +384,15 @@ msgstr ""
 "WhatIsWrongWithSystemMode, щоб дізнатися про те, чому не варто "
 "використовувати системний режим."
 
-#: ../src/daemon/main.c:804
+#: ../src/daemon/main.c:809
 msgid "pa_pid_file_create() failed."
 msgstr "Спроба виконання pa_pid_file_create() зазнала невдачі."
 
-#: ../src/daemon/main.c:814
+#: ../src/daemon/main.c:819
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "Доступні свіжі високоточні таймери! Смачного!"
 
-#: ../src/daemon/main.c:816
+#: ../src/daemon/main.c:821
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
@@ -400,29 +400,29 @@ msgstr ""
 "Чувак, твоє ядро — лайно! Круті пацани рекомендують Linux з увімкненими "
 "високоточними таймерами!"
 
-#: ../src/daemon/main.c:839
+#: ../src/daemon/main.c:844
 msgid "pa_core_new() failed."
 msgstr "Спроба виконання pa_core_new() зазнала невдачі."
 
-#: ../src/daemon/main.c:899
+#: ../src/daemon/main.c:904
 msgid "Failed to initialize daemon."
 msgstr "Не вдалося ініціалізувати фонову службу."
 
-#: ../src/daemon/main.c:904
+#: ../src/daemon/main.c:909
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "Запуск фонової служби без жодного завантаженого модуля, служба не буде "
 "працездатною."
 
-#: ../src/daemon/main.c:921
+#: ../src/daemon/main.c:926
 msgid "Daemon startup complete."
 msgstr "Запуск фонової служби завершено."
 
-#: ../src/daemon/main.c:927
+#: ../src/daemon/main.c:932
 msgid "Daemon shutdown initiated."
 msgstr "Ініційовано завершення роботи фонової служби."
 
-#: ../src/daemon/main.c:949
+#: ../src/daemon/main.c:954
 msgid "Daemon terminated."
 msgstr "Виконання фонової служби перервано."
 
@@ -2385,6 +2385,7 @@ msgstr ""
 
 #: ../src/modules/alsa/module-alsa-card.c:152
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2228
+#: ../src/modules/alsa/alsa-mixer.c:2931
 msgid "Off"
 msgstr "Вимкнено"
 
@@ -2403,3 +2404,221 @@ msgstr "Телефонний дуплекс (HSP/HFP)"
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "Звуковий сервер PulseAudio"
+
+#: ../src/modules/module-rygel-media-server.c:569
+#: ../src/modules/module-rygel-media-server.c:583
+msgid "Output Devices"
+msgstr ""
+
+#: ../src/modules/module-rygel-media-server.c:570
+#: ../src/modules/module-rygel-media-server.c:584
+msgid "Input Devices"
+msgstr ""
+
+#: ../src/modules/module-rygel-media-server.c:774
+msgid "Audio on @HOSTNAME@"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1701
+msgid "Input"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1702
+msgid "Docking Station Input"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1703
+msgid "Docking Station Microphone"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1704
+msgid "Line-In"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1705
+msgid "Microphone"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1706
+msgid "External Microphone"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1707
+#, fuzzy
+msgid "Internal Microphone"
+msgstr "Вбудоване аудіо"
+
+#: ../src/modules/alsa/alsa-mixer.c:1708
+msgid "Radio"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1709
+msgid "Video"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1710
+msgid "Automatic Gain Control"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1711
+msgid "No Automatic Gain Control"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1712
+msgid "Boost"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1713
+msgid "No Boost"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1714
+msgid "Amplifier"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1715
+msgid "No Amplifier"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1773
+msgid "Analog Input"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1774
+msgid "Analog Microphone"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1775
+msgid "Analog Line-In"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1776
+msgid "Analog Radio"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1777
+msgid "Analog Video"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1778
+#, fuzzy
+msgid "Analog Output"
+msgstr "Нуль-відтворення"
+
+#: ../src/modules/alsa/alsa-mixer.c:1779
+msgid "Analog Headphones"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1780
+msgid "Analog Output (LFE)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1781
+msgid "Analog Mono Output"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1981
+#, fuzzy, c-format
+msgid "%s+%s"
+msgstr "%s %s"
+
+#: ../src/modules/alsa/alsa-mixer.c:1984 ../src/modules/alsa/alsa-mixer.c:3404
+#, fuzzy, c-format
+msgid "%s / %s"
+msgstr "%s %s"
+
+#: ../src/modules/alsa/alsa-mixer.c:2790
+msgid "Analog Mono"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2791
+#, fuzzy
+msgid "Analog Stereo"
+msgstr "Стерео"
+
+#: ../src/modules/alsa/alsa-mixer.c:2792
+#, fuzzy
+msgid "Analog Surround 2.1"
+msgstr "Об'ємний 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2793
+#, fuzzy
+msgid "Analog Surround 3.0"
+msgstr "Об'ємний 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2794
+#, fuzzy
+msgid "Analog Surround 3.1"
+msgstr "Об'ємний 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2795
+#, fuzzy
+msgid "Analog Surround 4.0"
+msgstr "Об'ємний 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2796
+#, fuzzy
+msgid "Analog Surround 4.1"
+msgstr "Об'ємний 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2797
+#, fuzzy
+msgid "Analog Surround 5.0"
+msgstr "Об'ємний 5.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2798
+#, fuzzy
+msgid "Analog Surround 5.1"
+msgstr "Об'ємний 5.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2799
+#, fuzzy
+msgid "Analog Surround 6.0"
+msgstr "Об'ємний 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2800
+#, fuzzy
+msgid "Analog Surround 6.1"
+msgstr "Об'ємний 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2801
+#, fuzzy
+msgid "Analog Surround 7.0"
+msgstr "Об'ємний 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2802
+#, fuzzy
+msgid "Analog Surround 7.1"
+msgstr "Об'ємний 7.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2803
+msgid "Digital Stereo (IEC958)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2804
+msgid "Digital Surround 4.0 (IEC958)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2805
+msgid "Digital Surround 4.0 (IEC958/AC3)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2806
+msgid "Digital Surround 5.1 (IEC958/AC3)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2807
+msgid "Digital Stereo (HDMI)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2928
+msgid "Analog Mono Duplex"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2929
+msgid "Analog Stereo Duplex"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2930
+msgid "Digital Stereo Duplex (IEC958)"
+msgstr ""
