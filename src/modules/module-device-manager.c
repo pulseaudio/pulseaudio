@@ -510,9 +510,6 @@ static void route_sink_input(struct userdata *u, pa_sink_input *si) {
     pa_assert(u);
     pa_assert(u->do_routing);
 
-    if (si->save_sink)
-        return;
-
     /* Skip this if it is already in the process of being moved anyway */
     if (!si->sink)
         return;
@@ -567,9 +564,6 @@ static void route_source_output(struct userdata *u, pa_source_output *so) {
 
     pa_assert(u);
     pa_assert(u->do_routing);
-
-    if (so->save_source)
-        return;
 
     if (so->direct_on_input)
         return;
@@ -779,6 +773,9 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
 }
 
 static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_new_data *new_data, struct userdata *u) {
+    const char *role;
+    uint32_t role_index;
+
     pa_assert(c);
     pa_assert(new_data);
     pa_assert(u);
@@ -787,27 +784,22 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
         return PA_HOOK_OK;
 
     if (new_data->sink)
-        pa_log_debug("Not restoring device for stream, because already set.");
-    else {
-        const char *role;
-        uint32_t role_index;
+        pa_log_debug("Overriding device for stream, even although it is already set. I am evil that way...");
 
-        if (!(role = pa_proplist_gets(new_data->proplist, PA_PROP_MEDIA_ROLE)))
-            role_index = get_role_index("");
-        else
-            role_index = get_role_index(role);
+    if (!(role = pa_proplist_gets(new_data->proplist, PA_PROP_MEDIA_ROLE)))
+        role_index = get_role_index("none");
+    else
+        role_index = get_role_index(role);
 
-        if (PA_INVALID_INDEX != role_index) {
-            uint32_t device_index;
+    if (PA_INVALID_INDEX != role_index) {
+        uint32_t device_index;
 
-            device_index = u->preferred_sinks[role_index];
-            if (PA_INVALID_INDEX != device_index) {
-                pa_sink *sink;
+        device_index = u->preferred_sinks[role_index];
+        if (PA_INVALID_INDEX != device_index) {
+            pa_sink *sink;
 
-                if ((sink = pa_idxset_get_by_index(u->core->sinks, device_index))) {
-                    new_data->sink = sink;
-                    new_data->save_sink = TRUE;
-                }
+            if ((sink = pa_idxset_get_by_index(u->core->sinks, device_index))) {
+                new_data->sink = sink;
             }
         }
     }
@@ -816,6 +808,9 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
 }
 
 static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_output_new_data *new_data, struct userdata *u) {
+    const char *role;
+    uint32_t role_index;
+
     pa_assert(c);
     pa_assert(new_data);
     pa_assert(u);
@@ -827,27 +822,22 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
         return PA_HOOK_OK;
 
     if (new_data->source)
-        pa_log_debug("Not restoring device for stream, because already set");
-    else {
-        const char *role;
-        uint32_t role_index;
+        pa_log_debug("Overriding device for stream, even although it is already set. I am evil that way...");
 
-        if (!(role = pa_proplist_gets(new_data->proplist, PA_PROP_MEDIA_ROLE)))
-            role_index = get_role_index("");
-        else
-            role_index = get_role_index(role);
+    if (!(role = pa_proplist_gets(new_data->proplist, PA_PROP_MEDIA_ROLE)))
+        role_index = get_role_index("none");
+    else
+        role_index = get_role_index(role);
 
-        if (PA_INVALID_INDEX != role_index) {
-            uint32_t device_index;
+    if (PA_INVALID_INDEX != role_index) {
+        uint32_t device_index;
 
-            device_index = u->preferred_sources[role_index];
-            if (PA_INVALID_INDEX != device_index) {
-                pa_source *source;
+        device_index = u->preferred_sources[role_index];
+        if (PA_INVALID_INDEX != device_index) {
+            pa_source *source;
 
-                if ((source = pa_idxset_get_by_index(u->core->sources, device_index))) {
-                    new_data->source = source;
-                    new_data->save_source = TRUE;
-                }
+            if ((source = pa_idxset_get_by_index(u->core->sources, device_index))) {
+                new_data->source = source;
             }
         }
     }
