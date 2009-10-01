@@ -25,6 +25,6 @@ set -e
 
 if [ x"$DISPLAY" != x ] ; then
 
-    @PACTL_BINARY@ load-module module-module-device-manager "do_routing=1" > /dev/null
+    @PACTL_BINARY@ load-module module-device-manager "do_routing=1" > /dev/null
 
 fi
