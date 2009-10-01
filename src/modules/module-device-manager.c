@@ -1132,6 +1132,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         struct device_t **devices;
         uint32_t i, idx, offset;
         pa_hashmap *h;
+        void *state;
         pa_bool_t first;
 
         if (pa_tagstruct_gets(t, &role) < 0 ||
@@ -1200,6 +1201,11 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             }
         }
 
+        pa_log_debug("Hashmap contents (received from client)");
+        PA_HASHMAP_FOREACH(device, h, state) {
+            pa_log_debug("  - %s (%d)", device->device, device->prio);
+        }
+
         /* Now cycle through our list and add all the devices.
            This has the effect of addign in any in our DB,
            not specified in the device list (and thus will be
@@ -1239,6 +1245,11 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             key = next_key;
         }
 
+        pa_log_debug("Hashmap contents (combined with database)");
+        PA_HASHMAP_FOREACH(device, h, state) {
+            pa_log_debug("  - %s (%d)", device->device, device->prio);
+        }
+
         /* Now we put all the entries in a simple list for sorting it. */
         n_devices = pa_hashmap_size(h);
         devices = pa_xnew(struct device_t *,  n_devices);
@@ -1260,8 +1271,13 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             }
         }
 
+        pa_log_debug("Sorted device list");
+        for (i = 0; i < n_devices; ++i) {
+            pa_log_debug("  - %s (%d)", devices[i]->device, devices[i]->prio);
+        }
+
         /* Go through in order and write the new entry and cleanup our own list */
-        i = 0; idx = 1;
+        idx = 1;
         first = TRUE;
         for (i = 0; i < n_devices; ++i) {
             if ((e = read_entry(u, devices[i]->device)) && ENTRY_VERSION == e->version) {
@@ -1274,7 +1290,9 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                     data.data = e;
                     data.size = sizeof(*e);
 
+                    pa_log_debug("Attempting to write record: %d. %s", e->priority[role_index], e->description);
                     if (pa_database_set(u->database, &key, &data, TRUE) == 0) {
+                        pa_log_debug("..... write successfull");
                         first = FALSE;
                         idx++;
                     }
