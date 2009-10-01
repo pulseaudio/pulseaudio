@@ -117,9 +117,11 @@ EXTRA_DIST = \
 		depmod.py \
 		daemon/esdcompat.in \
 		daemon/start-pulseaudio-x11.in \
+		daemon/start-pulseaudio-kde.in \
 		utils/padsp \
 		modules/module-defs.h.m4 \
 		daemon/pulseaudio.desktop.in \
+		daemon/pulseaudio-kde.desktop.in \
 		map-file \
 		daemon/pulseaudio-system.conf \
 		modules/alsa/mixer/profile-sets/default.conf \
@@ -155,7 +157,8 @@ dbuspolicy_DATA = \
 
 if HAVE_X11
 xdgautostart_in_files = \
-		daemon/pulseaudio.desktop.in
+		daemon/pulseaudio.desktop.in \
+		daemon/pulseaudio-kde.desktop.in
 endif
 xdgautostart_DATA = $(xdgautostart_in_files:.desktop.in=.desktop)
 @INTLTOOL_DESKTOP_RULE@
@@ -217,7 +220,7 @@ if HAVE_AVAHI
 bin_PROGRAMS += pabrowse
 endif
 
-bin_SCRIPTS = esdcompat start-pulseaudio-x11
+bin_SCRIPTS = esdcompat start-pulseaudio-x11 start-pulseaudio-kde
 
 pacat_SOURCES = utils/pacat.c
 pacat_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@.la $(LIBSNDFILE_LIBS)
@@ -1713,7 +1716,7 @@ module_rygel_media_server_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 #        Some minor stuff         #
 ###################################
 
-CLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 daemon/pulseaudio.desktop
+CLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 start-pulseaudio-kde daemon/pulseaudio.desktop daemon/pulseaudio-kde.desktop
 
 esdcompat: daemon/esdcompat.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
@@ -1725,6 +1728,11 @@ start-pulseaudio-x11: daemon/start-pulseaudio-x11.in Makefile
 	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
 		-e 's,@PACTL_BINARY\@,$(bindir)/pactl,g' < $< > $@
 	chmod +x start-pulseaudio-x11
+
+start-pulseaudio-kde: daemon/start-pulseaudio-kde.in Makefile
+	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
+		-e 's,@PACTL_BINARY\@,$(bindir)/pactl,g' < $< > $@
+	chmod +x start-pulseaudio-kde
 
 client.conf: pulse/client.conf.in Makefile
 	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' < $< > $@
