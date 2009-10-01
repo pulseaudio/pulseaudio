@@ -143,8 +143,7 @@ enum {
     SUBCOMMAND_RENAME,
     SUBCOMMAND_DELETE,
     SUBCOMMAND_ROLE_DEVICE_PRIORITY_ROUTING,
-    SUBCOMMAND_PREFER_DEVICE,
-    SUBCOMMAND_DEFER_DEVICE,
+    SUBCOMMAND_REORDER,
     SUBCOMMAND_SUBSCRIBE,
     SUBCOMMAND_EVENT
 };
@@ -1121,115 +1120,174 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         break;
     }
 
-    case SUBCOMMAND_PREFER_DEVICE:
-    case SUBCOMMAND_DEFER_DEVICE: {
+    case SUBCOMMAND_REORDER: {
 
-        const char *role, *device;
+        const char *role;
         struct entry *e;
-        uint32_t role_index;
+        uint32_t role_index, n_devices;
+        pa_datum key, data;
+        pa_bool_t done, sink_mode = TRUE;
+        struct device_t { uint32_t prio; char *device; };
+        struct device_t *device;
+        struct device_t **devices;
+        uint32_t i, idx, offset;
+        pa_hashmap *h;
+        pa_bool_t first;
 
         if (pa_tagstruct_gets(t, &role) < 0 ||
-            pa_tagstruct_gets(t, &device) < 0)
+            pa_tagstruct_getu32(t, &n_devices) < 0 ||
+            n_devices < 1)
             goto fail;
 
-        if (!role || !device || !*device)
-            goto fail;
+        if (PA_INVALID_INDEX == (role_index = get_role_index(role)))
+           goto fail;
 
-        role_index = get_role_index(role);
-        if (PA_INVALID_INDEX == role_index)
-            goto fail;
-
-        if ((e = read_entry(u, device)) && ENTRY_VERSION == e->version) {
-            pa_datum key, data;
-            pa_bool_t done;
-            char* prefix = NULL;
-            uint32_t priority;
-            pa_bool_t haschanged = FALSE;
-
-            if (strncmp(device, "sink:", 5) == 0)
-                prefix = pa_xstrdup("sink:");
-            else if (strncmp(device, "source:", 7) == 0)
-                prefix = pa_xstrdup("source:");
-
-            if (!prefix)
-                goto fail;
-
-            priority = e->priority[role_index];
-
-            /* Now we need to load up all the other entries of this type and shuffle the priroities around */
-
-            done = !pa_database_first(u->database, &key, NULL);
-
-            while (!done && !haschanged) {
-                pa_datum next_key;
-
-                done = !pa_database_next(u->database, &key, &next_key, NULL);
-
-                /* Only read devices with the right prefix */
-                if (key.size > strlen(prefix) && strncmp(key.data, prefix, strlen(prefix)) == 0) {
-                    char *name;
-                    struct entry *e2;
-
-                    name = pa_xstrndup(key.data, key.size);
-
-                    if ((e2 = read_entry(u, name))) {
-                        if (SUBCOMMAND_PREFER_DEVICE == command) {
-                            /* PREFER */
-                            if (e2->priority[role_index] == (priority - 1)) {
-                                e2->priority[role_index]++;
-                                haschanged = TRUE;
-                            }
-                        } else {
-                            /* DEFER */
-                            if (e2->priority[role_index] == (priority + 1)) {
-                                e2->priority[role_index]--;
-                                haschanged = TRUE;
-                            }
-                        }
-
-                        if (haschanged) {
-                            data.data = e2;
-                            data.size = sizeof(*e2);
-
-                            if (pa_database_set(u->database, &key, &data, TRUE))
-                                pa_log_warn("Could not save device");
-                        }
-
-                        pa_xfree(e2);
-                    }
-
-                    pa_xfree(name);
+        /* Cycle through the devices given and make sure they exist */
+        h = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+        first = TRUE;
+        idx = 0;
+        for (i = 0; i < n_devices; ++i) {
+            const char *s;
+            if (pa_tagstruct_gets(t, &s) < 0) {
+                while ((device = pa_hashmap_steal_first(h))) {
+                    pa_xfree(device->device);
+                    pa_xfree(device);
                 }
 
-                pa_datum_free(&key);
-                key = next_key;
+                pa_hashmap_free(h, NULL, NULL);
+                pa_log_error("Protocol error on reorder");
+                goto fail;
             }
 
-            /* Now write out our actual entry */
-            if (haschanged) {
-                if (SUBCOMMAND_PREFER_DEVICE == command)
-                    e->priority[role_index]--;
-                else
-                    e->priority[role_index]++;
+            /* Ensure this is a valid entry */
+            if (!(e = read_entry(u, s))) {
+                while ((device = pa_hashmap_steal_first(h))) {
+                    pa_xfree(device->device);
+                    pa_xfree(device);
+                }
 
-                key.data = (char *) device;
-                key.size = strlen(device);
-
-                data.data = e;
-                data.size = sizeof(*e);
-
-                if (pa_database_set(u->database, &key, &data, TRUE))
-                    pa_log_warn("Could not save device");
-
-                trigger_save(u);
+                pa_hashmap_free(h, NULL, NULL);
+                pa_log_error("Client specified an unknown device in it's reorder list.");
+                goto fail;
             }
-
             pa_xfree(e);
 
-            pa_xfree(prefix);
+            if (first) {
+                first = FALSE;
+                sink_mode = (0 == strncmp("sink:", s, 5));
+            } else if ((sink_mode && 0 != strncmp("sink:", s, 5))
+                       || (!sink_mode && 0 != strncmp("source:", s, 7)))
+            {
+                while ((device = pa_hashmap_steal_first(h))) {
+                    pa_xfree(device->device);
+                    pa_xfree(device);
+                }
+
+                pa_hashmap_free(h, NULL, NULL);
+                pa_log_error("Attempted to reorder mixed devices (sinks and sources)");
+                goto fail;
+            }
+
+            /* Add the device to our hashmap. If it's alredy in it, free it now and carry on */
+            device = pa_xnew(struct device_t, 1);
+            device->device = pa_xstrdup(s);
+            if (pa_hashmap_put(h, device->device, device) == 0) {
+                device->prio = idx;
+                idx++;
+            } else {
+                pa_xfree(device->device);
+                pa_xfree(device);
+            }
         }
-        else
-            pa_log_warn("Could not reorder device %s, no entry in database", device);
+
+        /* Now cycle through our list and add all the devices.
+           This has the effect of addign in any in our DB,
+           not specified in the device list (and thus will be
+           tacked on at the end) */
+        offset = idx;
+        done = !pa_database_first(u->database, &key, NULL);
+
+        while (!done && idx < 256) {
+            pa_datum next_key;
+
+            done = !pa_database_next(u->database, &key, &next_key, NULL);
+
+            device = pa_xnew(struct device_t, 1);
+            device->device = pa_xstrndup(key.data, key.size);
+            if ((sink_mode && 0 == strncmp("sink:", device->device, 5))
+                || (!sink_mode && 0 == strncmp("source:", device->device, 7))) {
+
+                /* Add the device to our hashmap. If it's alredy in it, free it now and carry on */
+                if (pa_hashmap_put(h, device->device, device) == 0
+                    && (e = read_entry(u, device->device)) && ENTRY_VERSION == e->version) {
+                    /* We add offset on to the existing priorirty so that when we order, the
+                       existing entries are always lower priority than the new ones. */
+                    device->prio = (offset + e->priority[role_index]);
+                    pa_xfree(e);
+                }
+                else {
+                    pa_xfree(device->device);
+                    pa_xfree(device);
+                }
+            } else {
+                pa_xfree(device->device);
+                pa_xfree(device);
+            }
+
+            pa_datum_free(&key);
+
+            key = next_key;
+        }
+
+        /* Now we put all the entries in a simple list for sorting it. */
+        n_devices = pa_hashmap_size(h);
+        devices = pa_xnew(struct device_t *,  n_devices);
+        idx = 0;
+        while ((device = pa_hashmap_steal_first(h))) {
+            devices[idx++] = device;
+        }
+        pa_hashmap_free(h, NULL, NULL);
+
+        /* Simple bubble sort */
+        for (i = 0; i < n_devices; ++i) {
+            for (uint32_t j = i; j < n_devices; ++j) {
+                if (devices[i]->prio > devices[j]->prio) {
+                    struct device_t *tmp;
+                    tmp = devices[i];
+                    devices[i] = devices[j];
+                    devices[j] = tmp;
+                }
+            }
+        }
+
+        /* Go through in order and write the new entry and cleanup our own list */
+        i = 0; idx = 1;
+        first = TRUE;
+        for (i = 0; i < n_devices; ++i) {
+            if ((e = read_entry(u, devices[i]->device)) && ENTRY_VERSION == e->version) {
+                if (e->priority[role_index] != idx) {
+                    e->priority[role_index] = idx;
+
+                    key.data = (char *) devices[i]->device;
+                    key.size = strlen(devices[i]->device);
+
+                    data.data = e;
+                    data.size = sizeof(*e);
+
+                    if (pa_database_set(u->database, &key, &data, TRUE) == 0) {
+                        first = FALSE;
+                        idx++;
+                    }
+                }
+
+                pa_xfree(e);
+            }
+            pa_xfree(devices[i]->device);
+            pa_xfree(devices[i]);
+        }
+
+        if (!first)
+            trigger_save(u);
 
         break;
     }

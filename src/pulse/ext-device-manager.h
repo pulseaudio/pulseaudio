@@ -97,18 +97,10 @@ pa_operation *pa_ext_device_manager_enable_role_device_priority_routing(
         void *userdata);
 
 /** Prefer a given device in the priority list. \since 0.9.19 */
-pa_operation *pa_ext_device_manager_prefer_device(
+pa_operation *pa_ext_device_manager_reorder_devices_for_role(
         pa_context *c,
         const char* role,
-        const char* device,
-        pa_context_success_cb_t cb,
-        void *userdata);
-
-/** Defer a given device in the priority list. \since 0.9.19 */
-pa_operation *pa_ext_device_manager_defer_device(
-        pa_context *c,
-        const char* role,
-        const char* device,
+        const char** devices,
         pa_context_success_cb_t cb,
         void *userdata);
 
