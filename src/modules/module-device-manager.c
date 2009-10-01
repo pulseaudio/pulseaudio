@@ -1281,7 +1281,9 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         first = TRUE;
         for (i = 0; i < n_devices; ++i) {
             if ((e = read_entry(u, devices[i]->device)) && ENTRY_VERSION == e->version) {
-                if (e->priority[role_index] != idx) {
+                if (e->priority[role_index] == idx)
+                    idx++;
+                else {
                     e->priority[role_index] = idx;
 
                     key.data = (char *) devices[i]->device;
