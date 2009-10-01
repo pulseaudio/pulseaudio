@@ -202,7 +202,7 @@ static void dump_database_helper(struct userdata *u, uint32_t role_index, const 
             pa_log_debug("   %s No sink specified", human);
     } else {
         pa_source *s;
-        if (PA_INVALID_INDEX != u->preferred_sinks[role_index] && (s = pa_idxset_get_by_index(u->core->sinks, u->preferred_sinks[role_index])))
+        if (PA_INVALID_INDEX != u->preferred_sources[role_index] && (s = pa_idxset_get_by_index(u->core->sources, u->preferred_sources[role_index])))
             pa_log_debug("   %s %s (%s)", human, pa_strnull(pa_proplist_gets(s->proplist, PA_PROP_DEVICE_DESCRIPTION)), s->name);
         else
             pa_log_debug("   %s No source specified", human);
@@ -243,26 +243,28 @@ static void dump_database(struct userdata *u) {
         key = next_key;
     }
 
-    pa_log_debug(" Highest priority devices per-role:");
+    if (u->do_routing) {
+        pa_log_debug(" Highest priority devices per-role:");
 
-    pa_log_debug("  Sinks:");
-    for (uint32_t role = ROLE_NONE; role < NUM_ROLES; ++role) {
-        char name[13];
-        uint32_t len = PA_MIN(12u, strlen(role_names[role]));
-        strncpy(name, role_names[role], len);
-        for (int i = len+1; i < 12; ++i) name[i] = ' ';
-        name[len] = ':'; name[0] -= 32; name[12] = '\0';
-        dump_database_helper(u, role, name, TRUE);
-    }
+        pa_log_debug("  Sinks:");
+        for (uint32_t role = ROLE_NONE; role < NUM_ROLES; ++role) {
+            char name[13];
+            uint32_t len = PA_MIN(12u, strlen(role_names[role]));
+            strncpy(name, role_names[role], len);
+            for (int i = len+1; i < 12; ++i) name[i] = ' ';
+            name[len] = ':'; name[0] -= 32; name[12] = '\0';
+            dump_database_helper(u, role, name, TRUE);
+        }
 
-    pa_log_debug("  Sources:");
-    for (uint32_t role = ROLE_NONE; role < NUM_ROLES; ++role) {
-        char name[13];
-        uint32_t len = PA_MIN(12u, strlen(role_names[role]));
-        strncpy(name, role_names[role], len);
-        for (int i = len+1; i < 12; ++i) name[i] = ' ';
-        name[len] = ':'; name[0] -= 32; name[12] = '\0';
-        dump_database_helper(u, role, name, FALSE);
+        pa_log_debug("  Sources:");
+        for (uint32_t role = ROLE_NONE; role < NUM_ROLES; ++role) {
+            char name[13];
+            uint32_t len = PA_MIN(12u, strlen(role_names[role]));
+            strncpy(name, role_names[role], len);
+            for (int i = len+1; i < 12; ++i) name[i] = ' ';
+            name[len] = ':'; name[0] -= 32; name[12] = '\0';
+            dump_database_helper(u, role, name, FALSE);
+        }
     }
 
     pa_log_debug("Completed database dump");
@@ -427,7 +429,7 @@ static void update_highest_priority_device_indexes(struct userdata *u, const cha
         indexes = &u->preferred_sources;
 
     for (uint32_t i = 0; i < NUM_ROLES; ++i) {
-        *indexes[i] = PA_INVALID_INDEX;
+        (*indexes)[i] = PA_INVALID_INDEX;
     }
     pa_zero(highest_priority_available);
 
@@ -440,19 +442,19 @@ static void update_highest_priority_device_indexes(struct userdata *u, const cha
         done = !pa_database_next(u->database, &key, &next_key, NULL);
 
         if (key.size > strlen(prefix) && strncmp(key.data, prefix, strlen(prefix)) == 0) {
-            char *name;
+            char *name, *device_name;
             struct entry *e;
 
             name = pa_xstrndup(key.data, key.size);
+            device_name = get_name(name, prefix);
 
-            if ((e = read_entry(u, name))) {
+            if ((e = read_entry(u, name)) && ENTRY_VERSION == e->version) {
                 for (uint32_t i = 0; i < NUM_ROLES; ++i) {
-                    if (highest_priority_available[i] && e->priority[i] < highest_priority_available[i]) {
+                    if (!highest_priority_available[i] || e->priority[i] < highest_priority_available[i]) {
                         /* We've found a device with a higher priority than that we've currently got,
                            so see if it is currently available or not and update our list */
                         uint32_t idx;
                         pa_bool_t found = FALSE;
-                        char *device_name = get_name(name, prefix);
 
                         if (sink_mode) {
                             pa_sink *sink;
@@ -481,10 +483,9 @@ static void update_highest_priority_device_indexes(struct userdata *u, const cha
                         }
                         if (found) {
                             highest_priority_available[i] = e->priority[i];
-                            *indexes[i] = idx;
+                            (*indexes)[i] = idx;
                         }
 
-                        pa_xfree(device_name);
                     }
                 }
 
@@ -492,6 +493,7 @@ static void update_highest_priority_device_indexes(struct userdata *u, const cha
             }
 
             pa_xfree(name);
+            pa_xfree(device_name);
         }
 
         pa_datum_free(&key);
@@ -1132,7 +1134,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         struct device_t **devices;
         uint32_t i, idx, offset;
         pa_hashmap *h;
-        void *state;
+        /*void *state;*/
         pa_bool_t first;
 
         if (pa_tagstruct_gets(t, &role) < 0 ||
@@ -1201,10 +1203,10 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             }
         }
 
-        pa_log_debug("Hashmap contents (received from client)");
+        /*pa_log_debug("Hashmap contents (received from client)");
         PA_HASHMAP_FOREACH(device, h, state) {
             pa_log_debug("  - %s (%d)", device->device, device->prio);
-        }
+        }*/
 
         /* Now cycle through our list and add all the devices.
            This has the effect of addign in any in our DB,
@@ -1245,10 +1247,10 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             key = next_key;
         }
 
-        pa_log_debug("Hashmap contents (combined with database)");
+        /*pa_log_debug("Hashmap contents (combined with database)");
         PA_HASHMAP_FOREACH(device, h, state) {
             pa_log_debug("  - %s (%d)", device->device, device->prio);
-        }
+        }*/
 
         /* Now we put all the entries in a simple list for sorting it. */
         n_devices = pa_hashmap_size(h);
@@ -1271,10 +1273,10 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             }
         }
 
-        pa_log_debug("Sorted device list");
+        /*pa_log_debug("Sorted device list");
         for (i = 0; i < n_devices; ++i) {
             pa_log_debug("  - %s (%d)", devices[i]->device, devices[i]->prio);
-        }
+        }*/
 
         /* Go through in order and write the new entry and cleanup our own list */
         idx = 1;
@@ -1292,9 +1294,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                     data.data = e;
                     data.size = sizeof(*e);
 
-                    pa_log_debug("Attempting to write record: %d. %s", e->priority[role_index], e->description);
                     if (pa_database_set(u->database, &key, &data, TRUE) == 0) {
-                        pa_log_debug("..... write successfull");
                         first = FALSE;
                         idx++;
                     }
@@ -1306,8 +1306,14 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             pa_xfree(devices[i]);
         }
 
-        if (!first)
+        if (!first) {
             trigger_save(u);
+
+            if (sink_mode)
+                route_sink_inputs(u, NULL);
+            else
+                route_source_outputs(u, NULL);
+        }
 
         break;
     }
@@ -1431,6 +1437,10 @@ int pa__init(pa_module*m) {
         subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_NEW, source->index, u);
 
     /* Perform the routing (if it's enabled) which will update our priority list cache too */
+    for (uint32_t i = 0; i < NUM_ROLES; ++i) {
+        u->preferred_sinks[i] = u->preferred_sources[i] = PA_INVALID_INDEX;
+    }
+
     route_sink_inputs(u, NULL);
     route_source_outputs(u, NULL);
 
