@@ -929,8 +929,6 @@ static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *sourc
 
 
 static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
-    pa_sink *sink;
-    pa_source *source;
     uint32_t idx;
     char *n;
 
@@ -942,29 +940,31 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
         return;
 
     if ((n = get_name(name, "sink:"))) {
-        for (sink = pa_idxset_first(u->core->sinks, &idx); sink; sink = pa_idxset_next(u->core->sinks, &idx)) {
-            if (!pa_streq(sink->name, n)) {
+        pa_sink *s;
+        PA_IDXSET_FOREACH(s, u->core->sinks, idx) {
+            if (!pa_streq(s->name, n)) {
                 continue;
             }
 
-            pa_log_info("Setting description for sink %s to '%s'", sink->name, e->description);
-            pa_sink_set_description(sink, e->description);
+            pa_log_info("Setting description for sink %s to '%s'", s->name, e->description);
+            pa_sink_set_description(s, e->description);
         }
         pa_xfree(n);
     }
     else if ((n = get_name(name, "source:"))) {
-        for (source = pa_idxset_first(u->core->sources, &idx); source; source = pa_idxset_next(u->core->sources, &idx)) {
-            if (!pa_streq(source->name, n)) {
+        pa_source *s;
+        PA_IDXSET_FOREACH(s, u->core->sources, idx) {
+            if (!pa_streq(s->name, n)) {
                 continue;
             }
 
-            if (source->monitor_of) {
-                pa_log_warn("Cowardly refusing to set the description for monitor source %s.", source->name);
+            if (s->monitor_of) {
+                pa_log_warn("Cowardly refusing to set the description for monitor source %s.", s->name);
                 continue;
             }
 
-            pa_log_info("Setting description for source %s to '%s'", source->name, e->description);
-            pa_source_set_description(source, e->description);
+            pa_log_info("Setting description for source %s to '%s'", s->name, e->description);
+            pa_source_set_description(s, e->description);
         }
         pa_xfree(n);
     }
