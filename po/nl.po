@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-30 09:44+0000\n"
+"POT-Creation-Date: 2009-10-02 20:57+0000\n"
 "PO-Revision-Date: 2009-09-30 16:47+0200\n"
 "Last-Translator: Geert Warrink <geert.warrink@onsnet.nu>\n"
 "Language-Team: nl <nl@li.org>\n"
@@ -1026,7 +1026,7 @@ msgstr "Eenheid onbekent"
 
 #: ../src/pulse/error.c:49
 msgid "Connection refused"
-msgstr "Verbinding geweigert"
+msgstr "Verbinding geweigerd"
 
 #: ../src/pulse/error.c:50
 msgid "Protocol error"
