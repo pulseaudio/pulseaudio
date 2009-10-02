@@ -90,7 +90,7 @@ static void publish_servers(struct userdata *u, pa_strlist *l) {
 
         l = pa_strlist_reverse(l);
         s = pa_strlist_tostring(l);
-        l = pa_strlist_reverse(l);
+        pa_strlist_reverse(l);
 
         pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SERVER", s);
         pa_xfree(s);

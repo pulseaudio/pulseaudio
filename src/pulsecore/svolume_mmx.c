@@ -57,14 +57,12 @@
       " punpcklwd %%mm4, "#s"        \n\t" /* .. |    0  |   p0  | */                   \
       " pcmpgtw "#v", %%mm4          \n\t" /* .. |    0  | s(vl) | */                   \
       " pand "#s", %%mm4             \n\t" /* .. |    0  |  (p0) |  (vl >> 15) & p */   \
-      " movq %%mm6, %%mm5            \n\t" /* .. |  ffff |   0   | */                   \
-      " pand "#v", %%mm5             \n\t" /* .. |   vh  |   0   | */                   \
-      " por %%mm5, %%mm4             \n\t" /* .. |   vh  |  (p0) | */                   \
-      " pmulhw "#s", "#v"            \n\t" /* .. |    0  | vl*p0 | */                   \
-      " paddw %%mm4, "#v"            \n\t" /* .. |   vh  | vl*p0 | vh + sign correct */ \
-      " pslld $16, "#s"              \n\t" /* .. |   p0  |    0  | */                   \
-      " por %%mm7, "#s"              \n\t" /* .. |   p0  |    1  | */                   \
-      " pmaddwd "#s", "#v"           \n\t" /* .. |    p0 * v0    | */                   \
+      " movq "#s", %%mm5             \n\t"                                              \
+      " pmulhw "#v", "#s"            \n\t" /* .. |    0  | vl*p0 | */                   \
+      " paddw %%mm4, "#s"            \n\t" /* .. |    0  | vl*p0 | + sign correct */    \
+      " psrld $16, "#v"              \n\t" /* .. |    0  |   vh  | */                   \
+      " pmaddwd %%mm5, "#v"          \n\t" /* .. |    p0 * vh    | */                   \
+      " paddd "#s", "#v"             \n\t" /* .. |    p0 * v0    | */                   \
       " packssdw "#v", "#v"          \n\t" /* .. | p1*v1 | p0*v0 | */
 
 /* approximately advances %3 = (%3 + a) % b. This function requires that
@@ -105,10 +103,6 @@ pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
     __asm__ __volatile__ (
         " xor %3, %3                    \n\t"
         " sar $1, %2                    \n\t" /* length /= sizeof (int16_t) */
-        " pcmpeqw %%mm6, %%mm6          \n\t" /* .. |  ffff |  ffff | */
-        " pcmpeqw %%mm7, %%mm7          \n\t" /* .. |  ffff |  ffff | */
-        " pslld  $16, %%mm6             \n\t" /* .. |  ffff |     0 | */
-        " psrld  $31, %%mm7             \n\t" /* .. |     0 |     1 | */
 
         " test $1, %2                   \n\t" /* check for odd samples */
         " je 2f                         \n\t"
@@ -158,7 +152,7 @@ pa_volume_s16ne_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
         " emms                          \n\t"
 
         : "+r" (samples), "+r" (volumes), "+r" (length), "=D" ((pa_reg_x86)channel), "=&r" (temp)
-        : "r" ((pa_reg_x86)channels)
+        : "X" ((pa_reg_x86)channels)
         : "cc"
     );
 }
@@ -234,7 +228,7 @@ pa_volume_s16re_mmx (int16_t *samples, int32_t *volumes, unsigned channels, unsi
         " emms                          \n\t"
 
         : "+r" (samples), "+r" (volumes), "+r" (length), "=D" ((pa_reg_x86)channel), "=&r" (temp)
-        : "r" ((pa_reg_x86)channels)
+        : "X" ((pa_reg_x86)channels)
         : "cc"
     );
 }
@@ -301,13 +295,16 @@ static void run_test (void) {
 
 void pa_volume_func_init_mmx (pa_cpu_x86_flag_t flags) {
 #if defined (__i386__) || defined (__amd64__)
-    pa_log_info("Initialising MMX optimized functions.");
 
 #ifdef RUN_TEST
     run_test ();
 #endif
 
-    pa_set_volume_func (PA_SAMPLE_S16NE,     (pa_do_volume_func_t) pa_volume_s16ne_mmx);
-    pa_set_volume_func (PA_SAMPLE_S16RE,     (pa_do_volume_func_t) pa_volume_s16re_mmx);
+    if (flags & PA_CPU_X86_MMX) {
+        pa_log_info("Initialising MMX optimized functions.");
+
+        pa_set_volume_func (PA_SAMPLE_S16NE, (pa_do_volume_func_t) pa_volume_s16ne_mmx);
+        pa_set_volume_func (PA_SAMPLE_S16RE, (pa_do_volume_func_t) pa_volume_s16re_mmx);
+    }
 #endif /* defined (__i386__) || defined (__amd64__) */
 }

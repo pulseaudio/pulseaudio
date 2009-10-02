@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-24 03:31+0200\n"
+"POT-Creation-Date: 2009-09-29 23:47+0200\n"
 "PO-Revision-Date: 2009-04-06 10:26+1000\n"
 "Last-Translator: Leah Liu <lliu@redhat.com>\n"
 "Language-Team: Simplified Chinese <zh@li.org>\n"
@@ -20,12 +20,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
 
-#: ../src/modules/alsa/alsa-util.c:775 ../src/pulsecore/sink.c:2676
+#: ../src/modules/alsa/alsa-util.c:858 ../src/pulsecore/sink.c:2629
 #, c-format
 msgid "%s %s"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-util.c:1023
+#: ../src/modules/alsa/alsa-util.c:1106
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
@@ -36,7 +36,7 @@ msgstr ""
 "snd_pcm_avail() 返回的值非常大：%lu 字节（%lu ms）。\n"
 "很可能是 ALSA 驱动程序 '%s' 中的 bug。请向 ALSA 开发者举报这个问题。"
 
-#: ../src/modules/alsa/alsa-util.c:1064
+#: ../src/modules/alsa/alsa-util.c:1147
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
@@ -47,7 +47,7 @@ msgstr ""
 "snd_pcm_delay() 返回的值非常大：%li 字节（%s%lu ms）。\n"
 "很可能是 ALSA 驱动程序 '%s' 中的 bug。请向 ALSA 开发者举报这个问题。"
 
-#: ../src/modules/alsa/alsa-util.c:1111
+#: ../src/modules/alsa/alsa-util.c:1194
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
@@ -57,6 +57,14 @@ msgid ""
 msgstr ""
 "snd_pcm_mmap_begin() 返回的值非常大：%lu 字节（%lu ms）。\n"
 "很可能是 ALSA 驱动程序 '%s' 中的 bug。请向 ALSA 开发者举报这个问题。"
+
+#: ../src/modules/module-always-sink.c:39
+msgid "Always keeps at least one sink loaded even if it's a null one"
+msgstr ""
+
+#: ../src/modules/module-always-sink.c:83
+msgid "Dummy Output"
+msgstr ""
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
@@ -71,11 +79,20 @@ msgid ""
 "input control values>"
 msgstr ""
 
-#: ../src/pulsecore/sink.c:2660
+#: ../src/modules/module-null-sink.c:55
+msgid "Clocked NULL sink"
+msgstr ""
+
+#: ../src/modules/module-null-sink.c:291
+#, fuzzy
+msgid "Null Output"
+msgstr "输出 %s"
+
+#: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
 msgstr "内部音频"
 
-#: ../src/pulsecore/sink.c:2665
+#: ../src/pulsecore/sink.c:2618
 msgid "Modem"
 msgstr "调制解调器"
 
@@ -145,192 +162,192 @@ msgstr "更改GID失败：%s"
 msgid "Failed to change UID: %s"
 msgstr "更改UID失败：%s"
 
-#: ../src/daemon/main.c:266
+#: ../src/daemon/main.c:271
 msgid "Successfully dropped root privileges."
 msgstr "成功放弃root权限。"
 
-#: ../src/daemon/main.c:274
+#: ../src/daemon/main.c:279
 msgid "System wide mode unsupported on this platform."
 msgstr "此平台不支持system-wide模式。"
 
-#: ../src/daemon/main.c:292
+#: ../src/daemon/main.c:297
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "setrlimit(%s, (%u, %u)) 失败：%s"
 
-#: ../src/daemon/main.c:464
+#: ../src/daemon/main.c:474
 msgid "Failed to parse command line."
 msgstr "分析命令行失败。"
 
-#: ../src/daemon/main.c:531
+#: ../src/daemon/main.c:541
 msgid "Daemon not running"
 msgstr "后台程序没有运行"
 
-#: ../src/daemon/main.c:533
+#: ../src/daemon/main.c:543
 #, c-format
 msgid "Daemon running as PID %u"
 msgstr "后台程序正在运行，PID %u"
 
-#: ../src/daemon/main.c:543
+#: ../src/daemon/main.c:553
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "杀死后台程序失败：%s"
 
-#: ../src/daemon/main.c:561
+#: ../src/daemon/main.c:571
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
 msgstr "不应以root身份运行本程序（除非指定 --system）。"
 
-#: ../src/daemon/main.c:563
+#: ../src/daemon/main.c:573
 msgid "Root privileges required."
 msgstr "需要 root 权限。"
 
-#: ../src/daemon/main.c:568
+#: ../src/daemon/main.c:578
 msgid "--start not supported for system instances."
 msgstr "系统实例不支持 --start。"
 
-#: ../src/daemon/main.c:573
+#: ../src/daemon/main.c:583
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr "正在以系统模式运行，但是 --disallow-exit 未设定！"
 
-#: ../src/daemon/main.c:576
+#: ../src/daemon/main.c:586
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr "正在以系统模式运行，但是 --disallow-module-loading 未设定！"
 
-#: ../src/daemon/main.c:579
+#: ../src/daemon/main.c:589
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr "正在以系统模式运行，强制禁用SHM模式！"
 
-#: ../src/daemon/main.c:584
+#: ../src/daemon/main.c:594
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr "正在以系统模式运行，强制禁用退出空闲时间！"
 
-#: ../src/daemon/main.c:611
+#: ../src/daemon/main.c:621
 msgid "Failed to acquire stdio."
 msgstr "获取stdio失败。"
 
-#: ../src/daemon/main.c:617
+#: ../src/daemon/main.c:627
 #, c-format
 msgid "pipe failed: %s"
 msgstr "管道失败：%s"
 
-#: ../src/daemon/main.c:622
+#: ../src/daemon/main.c:632
 #, c-format
 msgid "fork() failed: %s"
 msgstr "fork()失败：%s"
 
-#: ../src/daemon/main.c:636 ../src/utils/pacat.c:505
+#: ../src/daemon/main.c:646 ../src/utils/pacat.c:508
 #, c-format
 msgid "read() failed: %s"
 msgstr "read()失败：%s"
 
-#: ../src/daemon/main.c:642
+#: ../src/daemon/main.c:652
 msgid "Daemon startup failed."
 msgstr "后台程序启动失败。"
 
-#: ../src/daemon/main.c:644
+#: ../src/daemon/main.c:654
 msgid "Daemon startup successful."
 msgstr "后台程序启动成功。"
 
-#: ../src/daemon/main.c:721
+#: ../src/daemon/main.c:731
 #, c-format
 msgid "This is PulseAudio %s"
 msgstr "这是 PulseAudio %s"
 
-#: ../src/daemon/main.c:722
+#: ../src/daemon/main.c:732
 #, c-format
 msgid "Compilation host: %s"
 msgstr "编译主机：%s"
 
-#: ../src/daemon/main.c:723
+#: ../src/daemon/main.c:733
 #, c-format
 msgid "Compilation CFLAGS: %s"
 msgstr "编译CFLAGS：%s"
 
-#: ../src/daemon/main.c:726
+#: ../src/daemon/main.c:736
 #, c-format
 msgid "Running on host: %s"
 msgstr "正在主机上运行：%s"
 
-#: ../src/daemon/main.c:729
+#: ../src/daemon/main.c:739
 #, c-format
 msgid "Found %u CPUs."
 msgstr "找到 %u CPU。"
 
-#: ../src/daemon/main.c:731
+#: ../src/daemon/main.c:741
 #, c-format
 msgid "Page size is %lu bytes"
 msgstr "页面大小为%lu字节"
 
-#: ../src/daemon/main.c:734
+#: ../src/daemon/main.c:744
 msgid "Compiled with Valgrind support: yes"
 msgstr "编译启用Valgrind支持：是"
 
-#: ../src/daemon/main.c:736
+#: ../src/daemon/main.c:746
 msgid "Compiled with Valgrind support: no"
 msgstr "编译启用Valgrind支持：否"
 
-#: ../src/daemon/main.c:739
+#: ../src/daemon/main.c:749
 #, c-format
 msgid "Running in valgrind mode: %s"
 msgstr "正在以valgrind模式运行：%s"
 
-#: ../src/daemon/main.c:742
+#: ../src/daemon/main.c:752
 msgid "Optimized build: yes"
 msgstr "优化生成：是"
 
-#: ../src/daemon/main.c:744
+#: ../src/daemon/main.c:754
 msgid "Optimized build: no"
 msgstr "优化生成：否"
 
-#: ../src/daemon/main.c:748
+#: ../src/daemon/main.c:758
 msgid "NDEBUG defined, all asserts disabled."
 msgstr "拒绝 NDEBUG，禁用所有 assert"
 
-#: ../src/daemon/main.c:750
+#: ../src/daemon/main.c:760
 msgid "FASTPATH defined, only fast path asserts disabled."
 msgstr "拒绝 FASTPATH，只禁用快速路径 assert。"
 
-#: ../src/daemon/main.c:752
+#: ../src/daemon/main.c:762
 msgid "All asserts enabled."
 msgstr "启用所有 assert。"
 
-#: ../src/daemon/main.c:756
+#: ../src/daemon/main.c:766
 msgid "Failed to get machine ID"
 msgstr "获取machine ID失败"
 
-#: ../src/daemon/main.c:759
+#: ../src/daemon/main.c:769
 #, c-format
 msgid "Machine ID is %s."
 msgstr "machine ID是%s。"
 
-#: ../src/daemon/main.c:763
+#: ../src/daemon/main.c:773
 #, fuzzy, c-format
 msgid "Session ID is %s."
 msgstr "machine ID是%s。"
 
-#: ../src/daemon/main.c:769
+#: ../src/daemon/main.c:779
 #, c-format
 msgid "Using runtime directory %s."
 msgstr "正在使用运行时文件夹%s。"
 
-#: ../src/daemon/main.c:774
+#: ../src/daemon/main.c:784
 #, c-format
 msgid "Using state directory %s."
 msgstr "正在使用状态文件夹%s。"
 
-#: ../src/daemon/main.c:777
+#: ../src/daemon/main.c:787
 #, fuzzy, c-format
 msgid "Using modules directory %s."
 msgstr "正在使用运行时文件夹%s。"
 
-#: ../src/daemon/main.c:779
+#: ../src/daemon/main.c:789
 #, c-format
 msgid "Running in system mode: %s"
 msgstr "正在以系统模式运行：%s"
 
-#: ../src/daemon/main.c:782
+#: ../src/daemon/main.c:792
 msgid ""
 "OK, so you are running PA in system mode. Please note that you most likely "
 "shouldn't be doing that.\n"
@@ -340,41 +357,41 @@ msgid ""
 "explanation why system mode is usually a bad idea."
 msgstr ""
 
-#: ../src/daemon/main.c:799
+#: ../src/daemon/main.c:809
 msgid "pa_pid_file_create() failed."
 msgstr "pa_pid_file_create()失败。"
 
-#: ../src/daemon/main.c:809
+#: ../src/daemon/main.c:819
 msgid "Fresh high-resolution timers available! Bon appetit!"
 msgstr "新鲜的高分辨率计时器开锅了！吃个饱！"
 
-#: ../src/daemon/main.c:811
+#: ../src/daemon/main.c:821
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 msgstr "老兄，你的内核真臭！现在流行的是启用了高分辩率计分器的Linux！"
 
-#: ../src/daemon/main.c:832
+#: ../src/daemon/main.c:844
 msgid "pa_core_new() failed."
 msgstr "pa_core_new()失败。"
 
-#: ../src/daemon/main.c:892
+#: ../src/daemon/main.c:904
 msgid "Failed to initialize daemon."
 msgstr "后台程序初始化失败。"
 
-#: ../src/daemon/main.c:897
+#: ../src/daemon/main.c:909
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "后台程序启动未加载任何模块，拒绝工作。"
 
-#: ../src/daemon/main.c:914
+#: ../src/daemon/main.c:926
 msgid "Daemon startup complete."
 msgstr "后台程序启动完成。"
 
-#: ../src/daemon/main.c:920
+#: ../src/daemon/main.c:932
 msgid "Daemon shutdown initiated."
 msgstr "开始关闭后台程序。"
 
-#: ../src/daemon/main.c:942
+#: ../src/daemon/main.c:954
 msgid "Daemon terminated."
 msgstr "后台程序已终止。"
 
@@ -909,8 +926,8 @@ msgid "Top Rear Right"
 msgstr "上右后"
 
 #: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
-#: ../src/pulse/volume.c:285 ../src/pulse/volume.c:311
-#: ../src/pulse/volume.c:331 ../src/pulse/volume.c:361
+#: ../src/pulse/volume.c:295 ../src/pulse/volume.c:321
+#: ../src/pulse/volume.c:341 ../src/pulse/volume.c:371
 msgid "(invalid)"
 msgstr "（无效）"
 
@@ -1038,6 +1055,14 @@ msgstr "缺少部署"
 msgid "Client forked"
 msgstr "客户端分支"
 
+#: ../src/pulse/error.c:68
+msgid "Input/Output error"
+msgstr ""
+
+#: ../src/pulse/error.c:69
+msgid "Device or resource busy"
+msgstr ""
+
 #: ../src/pulse/sample.c:172
 #, c-format
 msgid "%s %uch %uHz"
@@ -1090,7 +1115,7 @@ msgstr "fork()：%s"
 msgid "waitpid(): %s"
 msgstr "waitpid()：%s"
 
-#: ../src/pulse/context.c:1435
+#: ../src/pulse/context.c:1438
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "收到未知扩展'%s'的信息"
@@ -1204,62 +1229,62 @@ msgstr "not "
 msgid "Stream buffer attributes changed.%s"
 msgstr "更改流换出属性。%s\n"
 
-#: ../src/utils/pacat.c:416
+#: ../src/utils/pacat.c:415
 #, fuzzy, c-format
 msgid "Connection established.%s"
 msgstr "连接已建立。%s \n"
 
-#: ../src/utils/pacat.c:419
+#: ../src/utils/pacat.c:418
 #, fuzzy, c-format
 msgid "pa_stream_new() failed: %s"
 msgstr "pa_stream_new()失败：%s\n"
 
-#: ../src/utils/pacat.c:447
+#: ../src/utils/pacat.c:450
 #, fuzzy, c-format
 msgid "pa_stream_connect_playback() failed: %s"
 msgstr "pa_stream_connect_playback()失败：%s\n"
 
-#: ../src/utils/pacat.c:453
+#: ../src/utils/pacat.c:456
 #, fuzzy, c-format
 msgid "pa_stream_connect_record() failed: %s"
 msgstr "pa_stream_connect_playback()失败：%s\n"
 
-#: ../src/utils/pacat.c:467
+#: ../src/utils/pacat.c:470 ../src/utils/pactl.c:857
 #, fuzzy, c-format
 msgid "Connection failure: %s"
 msgstr "连接失败：%s\n"
 
-#: ../src/utils/pacat.c:500
+#: ../src/utils/pacat.c:503
 #, fuzzy
 msgid "Got EOF."
 msgstr "收到EOF。\n"
 
-#: ../src/utils/pacat.c:537
+#: ../src/utils/pacat.c:540
 #, fuzzy, c-format
 msgid "write() failed: %s"
 msgstr "write()失败：%s\n"
 
-#: ../src/utils/pacat.c:558
+#: ../src/utils/pacat.c:561
 #, fuzzy
 msgid "Got signal, exiting."
 msgstr "收到信号，正在退出。\n"
 
-#: ../src/utils/pacat.c:572
+#: ../src/utils/pacat.c:575
 #, fuzzy, c-format
 msgid "Failed to get latency: %s"
 msgstr "获取传输延迟失败：%s\n"
 
-#: ../src/utils/pacat.c:577
-#, c-format
-msgid "Time: %0.3f sec; Latency: %0.0f usec.  \r"
+#: ../src/utils/pacat.c:580
+#, fuzzy, c-format
+msgid "Time: %0.3f sec; Latency: %0.0f usec."
 msgstr "时间：%0.3f秒；延迟：%0.0f 微秒。  \r"
 
-#: ../src/utils/pacat.c:595
+#: ../src/utils/pacat.c:599
 #, fuzzy, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info()失败：%s\n"
 
-#: ../src/utils/pacat.c:605
+#: ../src/utils/pacat.c:609
 #, fuzzy, c-format
 msgid ""
 "%s [options]\n"
@@ -1351,7 +1376,7 @@ msgstr ""
 "      --latency=BYTES                   请求指定字节数的延迟。\n"
 "      --process-time=BYTES              每次请求指定字节数的处理时间。\n"
 
-#: ../src/utils/pacat.c:727
+#: ../src/utils/pacat.c:731
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1362,138 +1387,138 @@ msgstr ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 
-#: ../src/utils/pacat.c:760
+#: ../src/utils/pacat.c:764 ../src/utils/pactl.c:953
 #, fuzzy, c-format
 msgid "Invalid client name '%s'"
 msgstr "无效的通道映射描述'%s'\n"
 
-#: ../src/utils/pacat.c:776
+#: ../src/utils/pacat.c:779
 #, fuzzy, c-format
 msgid "Invalid stream name '%s'"
 msgstr "无效的重采样方法'%s'。"
 
-#: ../src/utils/pacat.c:813
+#: ../src/utils/pacat.c:816
 #, fuzzy, c-format
 msgid "Invalid channel map '%s'"
 msgstr "无效的通道映射描述'%s'\n"
 
-#: ../src/utils/pacat.c:842
+#: ../src/utils/pacat.c:845
 #, fuzzy, c-format
 msgid "Invalid latency specification '%s'"
 msgstr "无效的延迟规格描述 %s'\n"
 
-#: ../src/utils/pacat.c:849
+#: ../src/utils/pacat.c:852
 #, fuzzy, c-format
 msgid "Invalid process time specification '%s'"
 msgstr "无效的处理时间描述 '%s'\n"
 
-#: ../src/utils/pacat.c:861
+#: ../src/utils/pacat.c:864
 #, fuzzy, c-format
 msgid "Invalid property '%s'"
 msgstr "无效的重采样方法'%s'。"
 
-#: ../src/utils/pacat.c:878
+#: ../src/utils/pacat.c:881
 #, c-format
 msgid "Unknown file format %s."
 msgstr ""
 
-#: ../src/utils/pacat.c:897
+#: ../src/utils/pacat.c:900
 #, fuzzy
 msgid "Invalid sample specification"
 msgstr "无效的采样描述\n"
 
-#: ../src/utils/pacat.c:907
+#: ../src/utils/pacat.c:910
 #, fuzzy, c-format
 msgid "open(): %s"
 msgstr "open()：%s\n"
 
-#: ../src/utils/pacat.c:912
+#: ../src/utils/pacat.c:915
 #, fuzzy, c-format
 msgid "dup2(): %s"
 msgstr "dup2()：%s\n"
 
-#: ../src/utils/pacat.c:919
+#: ../src/utils/pacat.c:922
 #, fuzzy
 msgid "Too many arguments."
 msgstr "参数过多。\n"
 
-#: ../src/utils/pacat.c:930
+#: ../src/utils/pacat.c:933
 #, fuzzy
 msgid "Failed to generate sample specification for file."
 msgstr "获取采样信息失败：%s\n"
 
-#: ../src/utils/pacat.c:950
+#: ../src/utils/pacat.c:953
 #, fuzzy
 msgid "Failed to open audio file."
 msgstr "打开声音文件失败。\n"
 
-#: ../src/utils/pacat.c:956
+#: ../src/utils/pacat.c:959
 #, fuzzy
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
 msgstr "以采样规格'%s'打开%s流。\n"
 
-#: ../src/utils/pacat.c:959
+#: ../src/utils/pacat.c:962 ../src/utils/pactl.c:997
 #, fuzzy
 msgid "Failed to determine sample specification from file."
 msgstr "获取采样信息失败：%s\n"
 
-#: ../src/utils/pacat.c:968
+#: ../src/utils/pacat.c:971
 #, fuzzy
 msgid "Warning: Failed to determine channel map from file."
 msgstr "以采样规格'%s'打开%s流。\n"
 
-#: ../src/utils/pacat.c:979
+#: ../src/utils/pacat.c:982
 #, fuzzy
 msgid "Channel map doesn't match sample specification"
 msgstr "通道映射与采样描述不匹配\n"
 
-#: ../src/utils/pacat.c:990
+#: ../src/utils/pacat.c:993
 #, fuzzy
 msgid "Warning: failed to write channel map to file."
 msgstr "以采样规格'%s'打开%s流。\n"
 
-#: ../src/utils/pacat.c:1005
+#: ../src/utils/pacat.c:1008
 #, fuzzy, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "以采样规格'%s'打开%s流。\n"
 
-#: ../src/utils/pacat.c:1006
+#: ../src/utils/pacat.c:1009
 msgid "recording"
 msgstr "正在录制"
 
-#: ../src/utils/pacat.c:1006
+#: ../src/utils/pacat.c:1009
 msgid "playback"
 msgstr "回放"
 
-#: ../src/utils/pacat.c:1032
+#: ../src/utils/pacat.c:1035 ../src/utils/pactl.c:1267
 #, fuzzy
 msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new()失败。\n"
 
-#: ../src/utils/pacat.c:1051
+#: ../src/utils/pacat.c:1054
 #, fuzzy
 msgid "io_new() failed."
 msgstr "io_new()失败。\n"
 
-#: ../src/utils/pacat.c:1058
+#: ../src/utils/pacat.c:1061 ../src/utils/pactl.c:1279
 #, fuzzy
 msgid "pa_context_new() failed."
 msgstr "pa_context_new()失败。\n"
 
-#: ../src/utils/pacat.c:1066 ../src/utils/pactl.c:1122
+#: ../src/utils/pacat.c:1069 ../src/utils/pactl.c:1285
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect()失败：%s"
 
-#: ../src/utils/pacat.c:1072
+#: ../src/utils/pacat.c:1075
 #, fuzzy
 msgid "pa_context_rttime_new() failed."
 msgstr "pa_context_new()失败。\n"
 
-#: ../src/utils/pacat.c:1079
+#: ../src/utils/pacat.c:1082 ../src/utils/pactl.c:1290
 #, fuzzy
 msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run()失败。\n"
@@ -1523,12 +1548,12 @@ msgstr "恢复失败：%s\n"
 msgid "WARNING: Sound server is not local, not suspending.\n"
 msgstr "警告：非本地声音服务器，不会挂起。\n"
 
-#: ../src/utils/pasuspender.c:159 ../src/utils/pactl.c:814
+#: ../src/utils/pasuspender.c:159
 #, c-format
 msgid "Connection failure: %s\n"
 msgstr "连接失败：%s\n"
 
-#: ../src/utils/pasuspender.c:176 ../src/utils/pactl.c:820
+#: ../src/utils/pasuspender.c:176
 #, c-format
 msgid "Got SIGINT, exiting.\n"
 msgstr "收到SIGINT，正在退出。\n"
@@ -1567,47 +1592,47 @@ msgstr ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 
-#: ../src/utils/pasuspender.c:277 ../src/utils/pactl.c:1104
+#: ../src/utils/pasuspender.c:277
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
 msgstr "pa_mainloop_new()失败。\n"
 
-#: ../src/utils/pasuspender.c:290 ../src/utils/pactl.c:1116
+#: ../src/utils/pasuspender.c:290
 #, c-format
 msgid "pa_context_new() failed.\n"
 msgstr "pa_context_new()失败。\n"
 
-#: ../src/utils/pasuspender.c:298 ../src/utils/pactl.c:1127
+#: ../src/utils/pasuspender.c:298
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
 msgstr "pa_mainloop_run()失败。\n"
 
-#: ../src/utils/pactl.c:128
-#, c-format
-msgid "Failed to get statistics: %s\n"
+#: ../src/utils/pactl.c:135
+#, fuzzy, c-format
+msgid "Failed to get statistics: %s"
 msgstr "获取统计数据失败：%s\n"
 
-#: ../src/utils/pactl.c:134
+#: ../src/utils/pactl.c:141
 #, c-format
 msgid "Currently in use: %u blocks containing %s bytes total.\n"
 msgstr "当前使用：%u块，总共%s字节。\n"
 
-#: ../src/utils/pactl.c:137
+#: ../src/utils/pactl.c:144
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
 msgstr "整个生命周期所得分配：%u块，总共%s字节。\n"
 
-#: ../src/utils/pactl.c:140
+#: ../src/utils/pactl.c:147
 #, c-format
 msgid "Sample cache size: %s\n"
 msgstr "采样缓存大小：%s\n"
 
-#: ../src/utils/pactl.c:149
-#, c-format
-msgid "Failed to get server information: %s\n"
+#: ../src/utils/pactl.c:156
+#, fuzzy, c-format
+msgid "Failed to get server information: %s"
 msgstr "获取服务器信息失败：%s\n"
 
-#: ../src/utils/pactl.c:157
+#: ../src/utils/pactl.c:164
 #, c-format
 msgid ""
 "User name: %s\n"
@@ -1630,12 +1655,12 @@ msgstr ""
 "默认源： %s\n"
 "Cookie：%08x\n"
 
-#: ../src/utils/pactl.c:198
-#, c-format
-msgid "Failed to get sink information: %s\n"
+#: ../src/utils/pactl.c:205
+#, fuzzy, c-format
+msgid "Failed to get sink information: %s"
 msgstr "获取音频出口信息失败：%s\n"
 
-#: ../src/utils/pactl.c:214
+#: ../src/utils/pactl.c:221
 #, c-format
 msgid ""
 "Sink #%u\n"
@@ -1674,22 +1699,22 @@ msgstr ""
 "\tProperties:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:261 ../src/utils/pactl.c:353
+#: ../src/utils/pactl.c:268 ../src/utils/pactl.c:360
 #, fuzzy, c-format
 msgid "\tPorts:\n"
 msgstr "\tProfiles:\n"
 
-#: ../src/utils/pactl.c:267 ../src/utils/pactl.c:359
+#: ../src/utils/pactl.c:274 ../src/utils/pactl.c:366
 #, fuzzy, c-format
 msgid "\tActive Port: %s\n"
 msgstr "\tActive Profile: %s\n"
 
-#: ../src/utils/pactl.c:290
-#, c-format
-msgid "Failed to get source information: %s\n"
+#: ../src/utils/pactl.c:297
+#, fuzzy, c-format
+msgid "Failed to get source information: %s"
 msgstr "获取音频入口信息失败：%s\n"
 
-#: ../src/utils/pactl.c:306
+#: ../src/utils/pactl.c:313
 #, c-format
 msgid ""
 "Source #%u\n"
@@ -1728,20 +1753,20 @@ msgstr ""
 "\tProperties:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:338 ../src/utils/pactl.c:394 ../src/utils/pactl.c:429
-#: ../src/utils/pactl.c:466 ../src/utils/pactl.c:525 ../src/utils/pactl.c:526
-#: ../src/utils/pactl.c:536 ../src/utils/pactl.c:580 ../src/utils/pactl.c:581
-#: ../src/utils/pactl.c:587 ../src/utils/pactl.c:630 ../src/utils/pactl.c:631
-#: ../src/utils/pactl.c:638
+#: ../src/utils/pactl.c:345 ../src/utils/pactl.c:401 ../src/utils/pactl.c:436
+#: ../src/utils/pactl.c:473 ../src/utils/pactl.c:532 ../src/utils/pactl.c:533
+#: ../src/utils/pactl.c:543 ../src/utils/pactl.c:587 ../src/utils/pactl.c:588
+#: ../src/utils/pactl.c:594 ../src/utils/pactl.c:637 ../src/utils/pactl.c:638
+#: ../src/utils/pactl.c:645
 msgid "n/a"
 msgstr "n/a"
 
-#: ../src/utils/pactl.c:368
-#, c-format
-msgid "Failed to get module information: %s\n"
+#: ../src/utils/pactl.c:375
+#, fuzzy, c-format
+msgid "Failed to get module information: %s"
 msgstr "获取模块信息失败：%s\n"
 
-#: ../src/utils/pactl.c:386
+#: ../src/utils/pactl.c:393
 #, c-format
 msgid ""
 "Module #%u\n"
@@ -1758,12 +1783,12 @@ msgstr ""
 "\tProperties:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:405
-#, c-format
-msgid "Failed to get client information: %s\n"
+#: ../src/utils/pactl.c:412
+#, fuzzy, c-format
+msgid "Failed to get client information: %s"
 msgstr "获取客户端信息失败：%s\n"
 
-#: ../src/utils/pactl.c:423
+#: ../src/utils/pactl.c:430
 #, c-format
 msgid ""
 "Client #%u\n"
@@ -1778,12 +1803,12 @@ msgstr ""
 "\tProperties:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:440
-#, c-format
-msgid "Failed to get card information: %s\n"
+#: ../src/utils/pactl.c:447
+#, fuzzy, c-format
+msgid "Failed to get card information: %s"
 msgstr "获取声卡信息失败：%s\n"
 
-#: ../src/utils/pactl.c:458
+#: ../src/utils/pactl.c:465
 #, c-format
 msgid ""
 "Card #%u\n"
@@ -1800,22 +1825,22 @@ msgstr ""
 "\tProperties:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:472
+#: ../src/utils/pactl.c:479
 #, c-format
 msgid "\tProfiles:\n"
 msgstr "\tProfiles:\n"
 
-#: ../src/utils/pactl.c:478
+#: ../src/utils/pactl.c:485
 #, c-format
 msgid "\tActive Profile: %s\n"
 msgstr "\tActive Profile: %s\n"
 
-#: ../src/utils/pactl.c:489
-#, c-format
-msgid "Failed to get sink input information: %s\n"
+#: ../src/utils/pactl.c:496
+#, fuzzy, c-format
+msgid "Failed to get sink input information: %s"
 msgstr "获取音频出口输入信息失败：%s\n"
 
-#: ../src/utils/pactl.c:508
+#: ../src/utils/pactl.c:515
 #, c-format
 msgid ""
 "Sink Input #%u\n"
@@ -1852,12 +1877,12 @@ msgstr ""
 "\tProperties:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:547
-#, c-format
-msgid "Failed to get source output information: %s\n"
+#: ../src/utils/pactl.c:554
+#, fuzzy, c-format
+msgid "Failed to get source output information: %s"
 msgstr "获取音频入口输出信息失败：%s\n"
 
-#: ../src/utils/pactl.c:567
+#: ../src/utils/pactl.c:574
 #, c-format
 msgid ""
 "Source Output #%u\n"
@@ -1886,12 +1911,12 @@ msgstr ""
 "\tProperties:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:598
-#, c-format
-msgid "Failed to get sample information: %s\n"
+#: ../src/utils/pactl.c:605
+#, fuzzy, c-format
+msgid "Failed to get sample information: %s"
 msgstr "获取采样信息失败：%s\n"
 
-#: ../src/utils/pactl.c:616
+#: ../src/utils/pactl.c:623
 #, c-format
 msgid ""
 "Sample #%u\n"
@@ -1922,21 +1947,27 @@ msgstr ""
 "\tProperties:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:646 ../src/utils/pactl.c:656
-#, c-format
-msgid "Failure: %s\n"
+#: ../src/utils/pactl.c:653 ../src/utils/pactl.c:663
+#, fuzzy, c-format
+msgid "Failure: %s"
 msgstr "失败：%s\n"
 
-#: ../src/utils/pactl.c:680
-#, c-format
-msgid "Failed to upload sample: %s\n"
+#: ../src/utils/pactl.c:687
+#, fuzzy, c-format
+msgid "Failed to upload sample: %s"
 msgstr "上传采样失败：%s\n"
 
-#: ../src/utils/pactl.c:697
-msgid "Premature end of file\n"
+#: ../src/utils/pactl.c:704
+#, fuzzy
+msgid "Premature end of file"
 msgstr "文件过早结束\n"
 
-#: ../src/utils/pactl.c:826
+#: ../src/utils/pactl.c:863
+#, fuzzy
+msgid "Got SIGINT, exiting."
+msgstr "收到SIGINT，正在退出。\n"
+
+#: ../src/utils/pactl.c:869
 #, fuzzy, c-format
 msgid ""
 "%s [options] stat\n"
@@ -1945,15 +1976,21 @@ msgid ""
 "%s [options] upload-sample FILENAME [NAME]\n"
 "%s [options] play-sample NAME [SINK]\n"
 "%s [options] remove-sample NAME\n"
-"%s [options] move-sink-input ID SINK\n"
-"%s [options] move-source-output ID SOURCE\n"
+"%s [options] move-sink-input SINKINPUT SINK\n"
+"%s [options] move-source-output SOURCEOUTPUT SOURCE\n"
 "%s [options] load-module NAME [ARGS ...]\n"
-"%s [options] unload-module ID\n"
-"%s [options] suspend-sink [SINK] 1|0\n"
-"%s [options] suspend-source [SOURCE] 1|0\n"
-"%s [options] set-card-profile [CARD] [PROFILE] \n"
-"%s [options] set-sink-port [SINK] [PORT] \n"
-"%s [options] set-source-port [SOURCE] [PORT] \n"
+"%s [options] unload-module MODULE\n"
+"%s [options] suspend-sink SINK 1|0\n"
+"%s [options] suspend-source SOURCE 1|0\n"
+"%s [options] set-card-profile CARD PROFILE\n"
+"%s [options] set-sink-port SINK PORT\n"
+"%s [options] set-source-port SOURCE PORT\n"
+"%s [options] set-sink-volume SINK VOLUME\n"
+"%s [options] set-source-volume SOURCE VOLUME\n"
+"%s [options] set-sink-input-volume SINKINPUT VOLUME\n"
+"%s [options] set-sink-mute SINK 1|0\n"
+"%s [options] set-source-mute SOURCE 1|0\n"
+"%s [options] set-sink-input-mute SINKINPUT 1|0\n"
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
@@ -1985,7 +2022,7 @@ msgstr ""
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 
-#: ../src/utils/pactl.c:880
+#: ../src/utils/pactl.c:933
 #, c-format
 msgid ""
 "pactl %s\n"
@@ -1996,81 +2033,128 @@ msgstr ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 
-#: ../src/utils/pactl.c:900
-#, fuzzy, c-format
-msgid "Invalid client name '%s'\n"
-msgstr "无效的通道映射描述'%s'\n"
-
-#: ../src/utils/pactl.c:926
-msgid "Please specify a sample file to load\n"
+#: ../src/utils/pactl.c:979
+#, fuzzy
+msgid "Please specify a sample file to load"
 msgstr "请指定要加载的采样文件\n"
 
-#: ../src/utils/pactl.c:939
-msgid "Failed to open sound file.\n"
+#: ../src/utils/pactl.c:992
+#, fuzzy
+msgid "Failed to open sound file."
 msgstr "打开声音文件失败。\n"
 
-#: ../src/utils/pactl.c:944
+#: ../src/utils/pactl.c:1004
 #, fuzzy
-msgid "Failed to determine sample specification from file.\n"
-msgstr "获取采样信息失败：%s\n"
-
-#: ../src/utils/pactl.c:951
-#, fuzzy
-msgid "Warning: Failed to determine sample specification from file.\n"
+msgid "Warning: Failed to determine sample specification from file."
 msgstr "以采样规格'%s'打开%s流。\n"
 
-#: ../src/utils/pactl.c:961
-msgid "You have to specify a sample name to play\n"
+#: ../src/utils/pactl.c:1014
+#, fuzzy
+msgid "You have to specify a sample name to play"
 msgstr "你必须指定要播放的采样名\n"
 
-#: ../src/utils/pactl.c:973
-msgid "You have to specify a sample name to remove\n"
+#: ../src/utils/pactl.c:1026
+#, fuzzy
+msgid "You have to specify a sample name to remove"
 msgstr "你必须指定要删除的采样名\n"
 
-#: ../src/utils/pactl.c:982
-msgid "You have to specify a sink input index and a sink\n"
+#: ../src/utils/pactl.c:1035
+#, fuzzy
+msgid "You have to specify a sink input index and a sink"
 msgstr "你必须指定音频出口索引和音频出口\n"
 
-#: ../src/utils/pactl.c:992
-msgid "You have to specify a source output index and a source\n"
+#: ../src/utils/pactl.c:1045
+#, fuzzy
+msgid "You have to specify a source output index and a source"
 msgstr "你必须指定音频入口输出索引和音频入口\n"
 
-#: ../src/utils/pactl.c:1007
-msgid "You have to specify a module name and arguments.\n"
+#: ../src/utils/pactl.c:1060
+#, fuzzy
+msgid "You have to specify a module name and arguments."
 msgstr "必须指定模块名和参数。\n"
 
-#: ../src/utils/pactl.c:1027
-msgid "You have to specify a module index\n"
+#: ../src/utils/pactl.c:1080
+#, fuzzy
+msgid "You have to specify a module index"
 msgstr "必须指定模块索引\n"
 
-#: ../src/utils/pactl.c:1037
+#: ../src/utils/pactl.c:1090
+#, fuzzy
 msgid ""
-"You may not specify more than one sink. You have to specify a boolean "
-"value.\n"
+"You may not specify more than one sink. You have to specify a boolean value."
 msgstr "不可指定多个音频出口。必须指定一个布尔值。\n"
 
-#: ../src/utils/pactl.c:1050
+#: ../src/utils/pactl.c:1103
+#, fuzzy
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
-"value.\n"
+"value."
 msgstr "不可指定多个源。必须指定一个布尔值。\n"
 
-#: ../src/utils/pactl.c:1062
-msgid "You have to specify a card name/index and a profile name\n"
-msgstr "你必须指定声卡名称/索引和侧写名称\n"
-
-#: ../src/utils/pactl.c:1073
+#: ../src/utils/pactl.c:1115
 #, fuzzy
-msgid "You have to specify a sink name/index and a port name\n"
+msgid "You have to specify a card name/index and a profile name"
 msgstr "你必须指定声卡名称/索引和侧写名称\n"
 
-#: ../src/utils/pactl.c:1084
+#: ../src/utils/pactl.c:1126
 #, fuzzy
-msgid "You have to specify a source name/index and a port name\n"
+msgid "You have to specify a sink name/index and a port name"
 msgstr "你必须指定声卡名称/索引和侧写名称\n"
 
-#: ../src/utils/pactl.c:1099
-msgid "No valid command specified.\n"
+#: ../src/utils/pactl.c:1137
+#, fuzzy
+msgid "You have to specify a source name/index and a port name"
+msgstr "你必须指定声卡名称/索引和侧写名称\n"
+
+#: ../src/utils/pactl.c:1149
+#, fuzzy
+msgid "You have to specify a sink name/index and a volume"
+msgstr "你必须指定声卡名称/索引和侧写名称\n"
+
+#: ../src/utils/pactl.c:1154 ../src/utils/pactl.c:1171
+#: ../src/utils/pactl.c:1193 ../src/utils/pactl.c:1209
+#: ../src/utils/pactl.c:1226 ../src/utils/pactl.c:1248
+#, fuzzy
+msgid "Invalid volume specification"
+msgstr "无效的采样描述\n"
+
+#: ../src/utils/pactl.c:1166
+#, fuzzy
+msgid "You have to specify a source name/index and a volume"
+msgstr "你必须指定声卡名称/索引和侧写名称\n"
+
+#: ../src/utils/pactl.c:1183
+#, fuzzy
+msgid "You have to specify a sink input index and a volume"
+msgstr "你必须指定音频出口索引和音频出口\n"
+
+#: ../src/utils/pactl.c:1188
+msgid "Invalid sink input index"
+msgstr ""
+
+#: ../src/utils/pactl.c:1204
+#, fuzzy
+msgid "You have to specify a sink name/index and a mute boolean"
+msgstr "你必须指定声卡名称/索引和侧写名称\n"
+
+#: ../src/utils/pactl.c:1221
+#, fuzzy
+msgid "You have to specify a source name/index and a mute boolean"
+msgstr "你必须指定声卡名称/索引和侧写名称\n"
+
+#: ../src/utils/pactl.c:1238
+#, fuzzy
+msgid "You have to specify a sink input index and a mute boolean"
+msgstr "你必须指定音频出口索引和音频出口\n"
+
+#: ../src/utils/pactl.c:1243
+#, fuzzy
+msgid "Invalid sink input index specification"
+msgstr "无效的采样描述\n"
+
+#: ../src/utils/pactl.c:1262
+#, fuzzy
+msgid "No valid command specified."
 msgstr "未指定有效的命令。\n"
 
 #: ../src/utils/pax11publish.c:61
@@ -2192,7 +2276,7 @@ msgstr "write()：%s"
 msgid "Cannot access autospawn lock."
 msgstr "不能访问autospawn锁。"
 
-#: ../src/modules/alsa/alsa-sink.c:526 ../src/modules/alsa/alsa-sink.c:684
+#: ../src/modules/alsa/alsa-sink.c:530 ../src/modules/alsa/alsa-sink.c:689
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -2225,21 +2309,260 @@ msgstr ""
 "用值的数值。"
 
 #: ../src/modules/alsa/module-alsa-card.c:152
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2070
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2228
+#: ../src/modules/alsa/alsa-mixer.c:2931
 msgid "Off"
 msgstr "关闭"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2040
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2184
 msgid "High Fidelity Playback (A2DP)"
 msgstr "高保真回放（A2DP）"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2055
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2198
+#, fuzzy
+msgid "High Fidelity Capture (A2DP)"
+msgstr "高保真回放（A2DP）"
+
+#: ../src/modules/bluetooth/module-bluetooth-device.c:2213
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr "双工电话（HSP/HFP）"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio 声音服务器"
+
+#: ../src/modules/module-rygel-media-server.c:569
+#: ../src/modules/module-rygel-media-server.c:583
+msgid "Output Devices"
+msgstr ""
+
+#: ../src/modules/module-rygel-media-server.c:570
+#: ../src/modules/module-rygel-media-server.c:584
+#, fuzzy
+msgid "Input Devices"
+msgstr "输入 %s"
+
+#: ../src/modules/module-rygel-media-server.c:774
+msgid "Audio on @HOSTNAME@"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1701
+#, fuzzy
+msgid "Input"
+msgstr "输入 %s"
+
+#: ../src/modules/alsa/alsa-mixer.c:1702
+msgid "Docking Station Input"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1703
+msgid "Docking Station Microphone"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1704
+msgid "Line-In"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1705
+msgid "Microphone"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1706
+msgid "External Microphone"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1707
+#, fuzzy
+msgid "Internal Microphone"
+msgstr "内部音频"
+
+#: ../src/modules/alsa/alsa-mixer.c:1708
+msgid "Radio"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1709
+msgid "Video"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1710
+msgid "Automatic Gain Control"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1711
+msgid "No Automatic Gain Control"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1712
+msgid "Boost"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1713
+msgid "No Boost"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1714
+msgid "Amplifier"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1715
+msgid "No Amplifier"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1773
+#, fuzzy
+msgid "Analog Input"
+msgstr "模拟单声道"
+
+#: ../src/modules/alsa/alsa-mixer.c:1774
+#, fuzzy
+msgid "Analog Microphone"
+msgstr "模拟单声道"
+
+#: ../src/modules/alsa/alsa-mixer.c:1775
+#, fuzzy
+msgid "Analog Line-In"
+msgstr "模拟单声道"
+
+#: ../src/modules/alsa/alsa-mixer.c:1776
+#, fuzzy
+msgid "Analog Radio"
+msgstr "模拟单声道"
+
+#: ../src/modules/alsa/alsa-mixer.c:1777
+#, fuzzy
+msgid "Analog Video"
+msgstr "模拟立体声"
+
+#: ../src/modules/alsa/alsa-mixer.c:1778
+#, fuzzy
+msgid "Analog Output"
+msgstr "输出 %s"
+
+#: ../src/modules/alsa/alsa-mixer.c:1779
+#, fuzzy
+msgid "Analog Headphones"
+msgstr "模拟单声道"
+
+#: ../src/modules/alsa/alsa-mixer.c:1780
+msgid "Analog Output (LFE)"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1781
+#, fuzzy
+msgid "Analog Mono Output"
+msgstr "模拟单声道"
+
+#: ../src/modules/alsa/alsa-mixer.c:1981
+#, c-format
+msgid "%s+%s"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:1984 ../src/modules/alsa/alsa-mixer.c:3404
+#, c-format
+msgid "%s / %s"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2790
+msgid "Analog Mono"
+msgstr "模拟单声道"
+
+#: ../src/modules/alsa/alsa-mixer.c:2791
+msgid "Analog Stereo"
+msgstr "模拟立体声"
+
+#: ../src/modules/alsa/alsa-mixer.c:2792
+#, fuzzy
+msgid "Analog Surround 2.1"
+msgstr "模拟环绕 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2793
+#, fuzzy
+msgid "Analog Surround 3.0"
+msgstr "模拟环绕 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2794
+#, fuzzy
+msgid "Analog Surround 3.1"
+msgstr "模拟环绕 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2795
+msgid "Analog Surround 4.0"
+msgstr "模拟环绕 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2796
+msgid "Analog Surround 4.1"
+msgstr "模拟环绕 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2797
+msgid "Analog Surround 5.0"
+msgstr "模拟环绕 5.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2798
+msgid "Analog Surround 5.1"
+msgstr "模拟环绕 5.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2799
+#, fuzzy
+msgid "Analog Surround 6.0"
+msgstr "模拟环绕 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2800
+#, fuzzy
+msgid "Analog Surround 6.1"
+msgstr "模拟环绕 4.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2801
+#, fuzzy
+msgid "Analog Surround 7.0"
+msgstr "模拟环绕 4.0"
+
+#: ../src/modules/alsa/alsa-mixer.c:2802
+msgid "Analog Surround 7.1"
+msgstr "模拟环绕 7.1"
+
+#: ../src/modules/alsa/alsa-mixer.c:2803
+msgid "Digital Stereo (IEC958)"
+msgstr "数字立体声（IEC958）"
+
+#: ../src/modules/alsa/alsa-mixer.c:2804
+#, fuzzy
+msgid "Digital Surround 4.0 (IEC958)"
+msgstr "数字环绕 4.0（IEC958/AC3）"
+
+#: ../src/modules/alsa/alsa-mixer.c:2805
+msgid "Digital Surround 4.0 (IEC958/AC3)"
+msgstr "数字环绕 4.0（IEC958/AC3）"
+
+#: ../src/modules/alsa/alsa-mixer.c:2806
+msgid "Digital Surround 5.1 (IEC958/AC3)"
+msgstr "数字环绕 5.1（IEC958/AC3）"
+
+#: ../src/modules/alsa/alsa-mixer.c:2807
+msgid "Digital Stereo (HDMI)"
+msgstr "数字立体声（HDMI）"
+
+#: ../src/modules/alsa/alsa-mixer.c:2928
+#, fuzzy
+msgid "Analog Mono Duplex"
+msgstr "模拟单声道"
+
+#: ../src/modules/alsa/alsa-mixer.c:2929
+#, fuzzy
+msgid "Analog Stereo Duplex"
+msgstr "模拟立体声"
+
+#: ../src/modules/alsa/alsa-mixer.c:2930
+#, fuzzy
+msgid "Digital Stereo Duplex (IEC958)"
+msgstr "数字立体声（IEC958）"
+
+#, fuzzy
+#~ msgid "Invalid client name '%s'\n"
+#~ msgstr "无效的通道映射描述'%s'\n"
+
+#, fuzzy
+#~ msgid "Failed to determine sample specification from file.\n"
+#~ msgstr "获取采样信息失败：%s\n"
 
 #~ msgid "select(): %s"
 #~ msgstr "select()：%s"
@@ -2363,47 +2686,8 @@ msgstr "PulseAudio 声音服务器"
 #~ msgid "time_new() failed.\n"
 #~ msgstr "time_new()失败。\n"
 
-#~ msgid "Analog Mono"
-#~ msgstr "模拟单声道"
-
-#~ msgid "Analog Stereo"
-#~ msgstr "模拟立体声"
-
-#~ msgid "Digital Stereo (IEC958)"
-#~ msgstr "数字立体声（IEC958）"
-
-#~ msgid "Digital Stereo (HDMI)"
-#~ msgstr "数字立体声（HDMI）"
-
-#~ msgid "Analog Surround 4.0"
-#~ msgstr "模拟环绕 4.0"
-
-#~ msgid "Digital Surround 4.0 (IEC958/AC3)"
-#~ msgstr "数字环绕 4.0（IEC958/AC3）"
-
-#~ msgid "Analog Surround 4.1"
-#~ msgstr "模拟环绕 4.1"
-
-#~ msgid "Analog Surround 5.0"
-#~ msgstr "模拟环绕 5.0"
-
-#~ msgid "Analog Surround 5.1"
-#~ msgstr "模拟环绕 5.1"
-
-#~ msgid "Digital Surround 5.1 (IEC958/AC3)"
-#~ msgstr "数字环绕 5.1（IEC958/AC3）"
-
-#~ msgid "Analog Surround 7.1"
-#~ msgstr "模拟环绕 7.1"
-
 #~ msgid "Output %s + Input %s"
 #~ msgstr "输出 %s + 输入 %s"
-
-#~ msgid "Output %s"
-#~ msgstr "输出 %s"
-
-#~ msgid "Input %s"
-#~ msgstr "输入 %s"
 
 #~ msgid "Stream successfully created\n"
 #~ msgstr "成功创建流\n"

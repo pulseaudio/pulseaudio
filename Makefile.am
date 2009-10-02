@@ -17,11 +17,26 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-EXTRA_DIST = bootstrap.sh git-version-gen LICENSE GPL LGPL doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in README todo
+EXTRA_DIST = \
+	bootstrap.sh \
+	git-version-gen \
+	LICENSE \
+	GPL \
+	LGPL \
+	doxygen/Makefile.am \
+	doxygen/Makefile.in \
+	doxygen/doxygen.conf.in \
+	README \
+	todo \
+	vala/libpulse.vapi
+
 SUBDIRS = src doxygen man po
 
 MAINTAINERCLEANFILES =
 noinst_DATA =
+
+vapidir = $(datadir)/vala/vapi
+vapi_DATA = vala/libpulse.vapi
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libpulse.pc libpulse-simple.pc

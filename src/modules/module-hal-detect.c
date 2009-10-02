@@ -435,9 +435,7 @@ static int hal_device_add_all(struct userdata *u) {
         int i;
 
         for (i = 0; i < n; i++) {
-            struct device *d;
-
-            if ((d = hal_device_add(u, udis[i]))) {
+            if (hal_device_add(u, udis[i])) {
                 count++;
                 pa_log_debug("Loaded device %s", udis[i]);
             } else

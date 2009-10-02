@@ -329,7 +329,7 @@ int pa__init(pa_module *m) {
     if (!u->profile_set)
         goto fail;
 
-    pa_alsa_profile_set_probe(u->profile_set, u->device_id, &m->core->default_sample_spec);
+    pa_alsa_profile_set_probe(u->profile_set, u->device_id, &m->core->default_sample_spec, m->core->default_n_fragments, m->core->default_fragment_size_msec);
 
     pa_card_new_data_init(&data);
     data.driver = __FILE__;

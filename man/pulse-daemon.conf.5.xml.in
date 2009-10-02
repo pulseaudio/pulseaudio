@@ -133,11 +133,11 @@ USA.
     </option>
 
     <option>
-      <p><opt>cpu-limit=</opt> If disabled d not install the CPU load
+      <p><opt>cpu-limit=</opt> If disabled do not install the CPU load
       limiter, even on platforms where it is supported. This option is
       useful when debugging/profiling PulseAudio to disable disturbing
       SIGXCPU signals. Takes a boolean argument, defaults to
-      <opt>yes</opt>. The <opt>--no-cpu-limit</opt> command line
+      <opt>no</opt>. The <opt>--no-cpu-limit</opt> command line
       argument takes precedence.</p>
     </option>
 

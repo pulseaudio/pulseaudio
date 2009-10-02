@@ -58,6 +58,8 @@ struct userdata {
 
     pa_sink *sink;
     pa_sink_input *sink_input;
+
+    pa_bool_t auto_desc;
 };
 
 static const char* const valid_modargs[] = {
@@ -307,6 +309,18 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
         pa_sink_update_flags(u->sink, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY, dest->flags);
     } else
         pa_sink_set_asyncmsgq(u->sink, NULL);
+
+    if (u->auto_desc && dest) {
+        const char *k;
+        pa_proplist *pl;
+
+        pl = pa_proplist_new();
+        k = pa_proplist_gets(dest->proplist, PA_PROP_DEVICE_DESCRIPTION);
+        pa_proplist_setf(pl, PA_PROP_DEVICE_DESCRIPTION, "Remapped %s", k ? k : dest->name);
+
+        pa_sink_update_proplist(u->sink, PA_UPDATE_REPLACE, pl);
+        pa_proplist_free(pl);
+    }
 }
 
 int pa__init(pa_module*m) {
@@ -314,7 +328,6 @@ int pa__init(pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map sink_map, stream_map;
     pa_modargs *ma;
-    const char *k;
     pa_sink *master;
     pa_sink_input_new_data sink_input_data;
     pa_sink_new_data sink_data;
@@ -370,8 +383,6 @@ int pa__init(pa_module*m) {
         sink_data.name = pa_sprintf_malloc("%s.remapped", master->name);
     pa_sink_new_data_set_sample_spec(&sink_data, &ss);
     pa_sink_new_data_set_channel_map(&sink_data, &sink_map);
-    k = pa_proplist_gets(master->proplist, PA_PROP_DEVICE_DESCRIPTION);
-    pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Remapped %s", k ? k : master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
 
@@ -379,6 +390,13 @@ int pa__init(pa_module*m) {
         pa_log("Invalid properties");
         pa_sink_new_data_done(&sink_data);
         goto fail;
+    }
+
+    if ((u->auto_desc = !pa_proplist_contains(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION))) {
+        const char *k;
+
+        k = pa_proplist_gets(master->proplist, PA_PROP_DEVICE_DESCRIPTION);
+        pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Remapped %s", k ? k : master->name);
     }
 
     u->sink = pa_sink_new(m->core, &sink_data, master->flags & (PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY));

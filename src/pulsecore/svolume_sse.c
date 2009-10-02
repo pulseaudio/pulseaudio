@@ -45,7 +45,7 @@
       " movdqa "#s", %%xmm5          \n\t"                                              \
       " pmulhuw "#v", "#s"           \n\t" /* .. |    0  | vl*p0 | */                   \
       " psubd %%xmm4, "#s"           \n\t" /* .. |    0  | vl*p0 | + sign correct */    \
-      " psrld $16, "#v"              \n\t" /* .. |   p0  |    0  | */                   \
+      " psrld $16, "#v"              \n\t" /* .. |    0  |   vh  | */                   \
       " pmaddwd %%xmm5, "#v"         \n\t" /* .. |    p0 * vh    | */                   \
       " paddd "#s", "#v"             \n\t" /* .. |    p0 * v0    | */                   \
       " packssdw "#v", "#v"          \n\t" /* .. | p1*v1 | p0*v0 | */
@@ -75,7 +75,7 @@
       " por %%xmm5, "#s2"            \n\t"
 
 static void
-pa_volume_s16ne_sse (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
+pa_volume_s16ne_sse2 (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
     pa_reg_x86 channel, temp;
 
@@ -149,13 +149,13 @@ pa_volume_s16ne_sse (int16_t *samples, int32_t *volumes, unsigned channels, unsi
         "8:                             \n\t"
 
         : "+r" (samples), "+r" (volumes), "+r" (length), "=D" (channel), "=&r" (temp)
-        : "r" ((pa_reg_x86)channels)
+        : "X" ((pa_reg_x86)channels)
         : "cc"
     );
 }
 
 static void
-pa_volume_s16re_sse (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
+pa_volume_s16re_sse2 (int16_t *samples, int32_t *volumes, unsigned channels, unsigned length)
 {
     pa_reg_x86 channel, temp;
 
@@ -237,7 +237,7 @@ pa_volume_s16re_sse (int16_t *samples, int32_t *volumes, unsigned channels, unsi
         "8:                             \n\t"
 
         : "+r" (samples), "+r" (volumes), "+r" (length), "=D" (channel), "=&r" (temp)
-        : "r" ((pa_reg_x86)channels)
+        : "X" ((pa_reg_x86)channels)
         : "cc"
     );
 }
@@ -302,13 +302,16 @@ static void run_test (void) {
 
 void pa_volume_func_init_sse (pa_cpu_x86_flag_t flags) {
 #if defined (__i386__) || defined (__amd64__)
-    pa_log_info("Initialising SSE optimized functions.");
 
 #ifdef RUN_TEST
     run_test ();
 #endif
 
-    pa_set_volume_func (PA_SAMPLE_S16NE,     (pa_do_volume_func_t) pa_volume_s16ne_sse);
-    pa_set_volume_func (PA_SAMPLE_S16RE,     (pa_do_volume_func_t) pa_volume_s16re_sse);
+    if (flags & PA_CPU_X86_SSE2) {
+        pa_log_info("Initialising SSE2 optimized functions.");
+
+        pa_set_volume_func (PA_SAMPLE_S16NE, (pa_do_volume_func_t) pa_volume_s16ne_sse2);
+        pa_set_volume_func (PA_SAMPLE_S16RE, (pa_do_volume_func_t) pa_volume_s16re_sse2);
+    }
 #endif /* defined (__i386__) || defined (__amd64__) */
 }

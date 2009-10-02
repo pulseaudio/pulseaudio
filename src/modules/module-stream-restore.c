@@ -1476,7 +1476,7 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
         if (!so->source)
             continue;
 
-        /* It might happen that a stream and a sink are set up at the
+        /* It might happen that a stream and a source are set up at the
            same time, in which case we want to make sure we don't
            interfere with that */
         if (!PA_SOURCE_OUTPUT_IS_LINKED(pa_source_output_get_state(so)))

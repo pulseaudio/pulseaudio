@@ -93,6 +93,7 @@ static int set_format(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams, pa_s
     int ret;
 
     pa_assert(pcm_handle);
+    pa_assert(hwparams);
     pa_assert(f);
 
     if ((ret = snd_pcm_hw_params_set_format(pcm_handle, hwparams, format_trans[*f])) >= 0)
@@ -148,33 +149,71 @@ try_auto:
     return -1;
 }
 
+static int set_period_size(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams, snd_pcm_uframes_t size) {
+    snd_pcm_uframes_t s;
+    int d, ret;
+
+    pa_assert(pcm_handle);
+    pa_assert(hwparams);
+
+    s = size;
+    d = 0;
+    if (snd_pcm_hw_params_set_period_size_near(pcm_handle, hwparams, &s, &d) < 0) {
+        s = size;
+        d = -1;
+        if (snd_pcm_hw_params_set_period_size_near(pcm_handle, hwparams, &s, &d) < 0) {
+            s = size;
+            d = 1;
+            if ((ret = snd_pcm_hw_params_set_period_size_near(pcm_handle, hwparams, &s, &d)) < 0) {
+                pa_log_info("snd_pcm_hw_params_set_period_size_near() failed: %s", pa_alsa_strerror(ret));
+                return ret;
+            }
+        }
+    }
+
+    return 0;
+}
+
+static int set_buffer_size(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams, snd_pcm_uframes_t size) {
+    int ret;
+
+    pa_assert(pcm_handle);
+    pa_assert(hwparams);
+
+    if ((ret = snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &size)) < 0) {
+        pa_log_info("snd_pcm_hw_params_set_buffer_size_near() failed: %s", pa_alsa_strerror(ret));
+        return ret;
+    }
+
+    return 0;
+}
+
 /* Set the hardware parameters of the given ALSA device. Returns the
- * selected fragment settings in *period and *period_size */
+ * selected fragment settings in *buffer_size and *period_size. If tsched mode can be enabled */
 int pa_alsa_set_hw_params(
         snd_pcm_t *pcm_handle,
         pa_sample_spec *ss,
-        uint32_t *periods,
         snd_pcm_uframes_t *period_size,
+        snd_pcm_uframes_t *buffer_size,
         snd_pcm_uframes_t tsched_size,
         pa_bool_t *use_mmap,
         pa_bool_t *use_tsched,
         pa_bool_t require_exact_channel_number) {
 
     int ret = -1;
+    snd_pcm_hw_params_t *hwparams, *hwparams_copy;
+    int dir;
     snd_pcm_uframes_t _period_size = period_size ? *period_size : 0;
-    unsigned int _periods = periods ? *periods : 0;
-    unsigned int r = ss->rate;
-    unsigned int c = ss->channels;
-    pa_sample_format_t f = ss->format;
-    snd_pcm_hw_params_t *hwparams;
+    snd_pcm_uframes_t _buffer_size = buffer_size ? *buffer_size : 0;
     pa_bool_t _use_mmap = use_mmap && *use_mmap;
     pa_bool_t _use_tsched = use_tsched && *use_tsched;
-    int dir;
+    pa_sample_spec _ss = *ss;
 
     pa_assert(pcm_handle);
     pa_assert(ss);
 
     snd_pcm_hw_params_alloca(&hwparams);
+    snd_pcm_hw_params_alloca(&hwparams_copy);
 
     if ((ret = snd_pcm_hw_params_any(pcm_handle, hwparams)) < 0) {
         pa_log_debug("snd_pcm_hw_params_any() failed: %s", pa_alsa_strerror(ret));
@@ -208,114 +247,143 @@ int pa_alsa_set_hw_params(
     if (!_use_mmap)
         _use_tsched = FALSE;
 
-    if ((ret = set_format(pcm_handle, hwparams, &f)) < 0)
+    if (!pa_alsa_pcm_is_hw(pcm_handle))
+        _use_tsched = FALSE;
+
+    if ((ret = set_format(pcm_handle, hwparams, &_ss.format)) < 0)
         goto finish;
 
-    if ((ret = snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, &r, NULL)) < 0) {
+    if ((ret = snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, &_ss.rate, NULL)) < 0) {
         pa_log_debug("snd_pcm_hw_params_set_rate_near() failed: %s", pa_alsa_strerror(ret));
         goto finish;
     }
 
     if (require_exact_channel_number) {
-        if ((ret = snd_pcm_hw_params_set_channels(pcm_handle, hwparams, c)) < 0) {
-            pa_log_debug("snd_pcm_hw_params_set_channels(%u) failed: %s", c, pa_alsa_strerror(ret));
+        if ((ret = snd_pcm_hw_params_set_channels(pcm_handle, hwparams, _ss.channels)) < 0) {
+            pa_log_debug("snd_pcm_hw_params_set_channels(%u) failed: %s", _ss.channels, pa_alsa_strerror(ret));
             goto finish;
         }
     } else {
+        unsigned int c = _ss.channels;
+
         if ((ret = snd_pcm_hw_params_set_channels_near(pcm_handle, hwparams, &c)) < 0) {
-            pa_log_debug("snd_pcm_hw_params_set_channels_near(%u) failed: %s", c, pa_alsa_strerror(ret));
+            pa_log_debug("snd_pcm_hw_params_set_channels_near(%u) failed: %s", _ss.channels, pa_alsa_strerror(ret));
             goto finish;
         }
+
+        _ss.channels = c;
     }
 
-    if ((ret = snd_pcm_hw_params_set_periods_integer(pcm_handle, hwparams)) < 0) {
-        pa_log_debug("snd_pcm_hw_params_set_periods_integer() failed: %s", pa_alsa_strerror(ret));
-        goto finish;
+    if (_use_tsched && tsched_size > 0) {
+        _buffer_size = (snd_pcm_uframes_t) (((uint64_t) tsched_size * _ss.rate) / ss->rate);
+        _period_size = _buffer_size;
+    } else {
+        _period_size = (snd_pcm_uframes_t) (((uint64_t) _period_size * _ss.rate) / ss->rate);
+        _buffer_size = (snd_pcm_uframes_t) (((uint64_t) _buffer_size * _ss.rate) / ss->rate);
     }
 
-    if (_period_size > 0 && tsched_size > 0 && _periods > 0) {
-        snd_pcm_uframes_t buffer_size;
-        unsigned int p;
+    if (_buffer_size > 0 || _period_size > 0) {
+        snd_pcm_uframes_t max_frames = 0;
 
-        /* Adjust the buffer sizes, if we didn't get the rate we were asking for */
-        _period_size = (snd_pcm_uframes_t) (((uint64_t) _period_size * r) / ss->rate);
-        tsched_size = (snd_pcm_uframes_t) (((uint64_t) tsched_size * r) / ss->rate);
-
-        if (_use_tsched) {
-            buffer_size = 0;
-
-            if ((ret = snd_pcm_hw_params_get_buffer_size_max(hwparams, &buffer_size)) < 0)
-                pa_log_warn("snd_pcm_hw_params_get_buffer_size_max() failed: %s", pa_alsa_strerror(ret));
-            else
-                pa_log_debug("Maximum hw buffer size is %u ms", (unsigned) buffer_size * 1000 / r);
-
-            _period_size = tsched_size;
-            _periods = 1;
-        }
+        if ((ret = snd_pcm_hw_params_get_buffer_size_max(hwparams, &max_frames)) < 0)
+            pa_log_warn("snd_pcm_hw_params_get_buffer_size_max() failed: %s", pa_alsa_strerror(ret));
+        else
+            pa_log_debug("Maximum hw buffer size is %lu ms", (long unsigned) (max_frames * PA_MSEC_PER_SEC / _ss.rate));
 
         /* Some ALSA drivers really don't like if we set the buffer
          * size first and the number of periods second. (which would
-         * make a lot more sense to me) So, follow this rule and
-         * adjust the periods first and the buffer size second */
+         * make a lot more sense to me) So, try a few combinations
+         * before we give up. */
 
-        /* First we pass 0 as direction to get exactly what we
-         * asked for. That this is necessary is presumably a bug
-         * in ALSA. All in all this is mostly a hint to ALSA, so
-         * we don't care if this fails. */
+        if (_buffer_size > 0 && _period_size > 0) {
+            snd_pcm_hw_params_copy(hwparams_copy, hwparams);
 
-        p = _periods;
-        dir = 0;
-        if (snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &p, &dir) < 0) {
-            p = _periods;
-            dir = 1;
-            if (snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &p, &dir) < 0) {
-                p = _periods;
-                dir = -1;
-                if ((ret = snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &p, &dir)) < 0)
-                    pa_log_info("snd_pcm_hw_params_set_periods_near() failed: %s", pa_alsa_strerror(ret));
+            /* First try: set buffer size first, followed by period size */
+            if (set_buffer_size(pcm_handle, hwparams_copy, _buffer_size) >= 0 &&
+                set_period_size(pcm_handle, hwparams_copy, _period_size) >= 0 &&
+                snd_pcm_hw_params(pcm_handle, hwparams_copy) >= 0) {
+                pa_log_debug("Set buffer size first, period size second.");
+                goto success;
+            }
+
+            /* Second try: set period size first, followed by buffer size */
+            if (set_period_size(pcm_handle, hwparams_copy, _period_size) >= 0 &&
+                set_buffer_size(pcm_handle, hwparams_copy, _buffer_size) >= 0 &&
+                snd_pcm_hw_params(pcm_handle, hwparams_copy) >= 0) {
+                pa_log_debug("Set period size first, buffer size second.");
+                goto success;
             }
         }
 
-        /* Now set the buffer size */
-        buffer_size = _periods * _period_size;
-        if ((ret = snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &buffer_size)) < 0)
-            pa_log_info("snd_pcm_hw_params_set_buffer_size_near() failed: %s", pa_alsa_strerror(ret));
+        if (_buffer_size > 0) {
+            snd_pcm_hw_params_copy(hwparams_copy, hwparams);
+
+            /* Third try: set only buffer size */
+            if (set_buffer_size(pcm_handle, hwparams_copy, _buffer_size) >= 0 &&
+                snd_pcm_hw_params(pcm_handle, hwparams_copy) >= 0) {
+                pa_log_debug("Set only buffer size second.");
+                goto success;
+            }
+        }
+
+        if (_period_size > 0) {
+            snd_pcm_hw_params_copy(hwparams_copy, hwparams);
+
+            /* Fourth try: set only period size */
+            if (set_period_size(pcm_handle, hwparams_copy, _period_size) >= 0 &&
+                snd_pcm_hw_params(pcm_handle, hwparams_copy) >= 0) {
+                pa_log_debug("Set only period size second.");
+                goto success;
+            }
+        }
     }
 
-    if  ((ret = snd_pcm_hw_params(pcm_handle, hwparams)) < 0)
+    pa_log_debug("Set neither period nor buffer size.");
+
+    /* Last chance, set nothing */
+    if  ((ret = snd_pcm_hw_params(pcm_handle, hwparams)) < 0) {
+        pa_log_info("snd_pcm_hw_params failed: %s", pa_alsa_strerror(ret));
         goto finish;
+    }
 
-    if (ss->rate != r)
-        pa_log_info("Device %s doesn't support %u Hz, changed to %u Hz.", snd_pcm_name(pcm_handle), ss->rate, r);
+success:
 
-    if (ss->channels != c)
-        pa_log_info("Device %s doesn't support %u channels, changed to %u.", snd_pcm_name(pcm_handle), ss->channels, c);
+    if (ss->rate != _ss.rate)
+        pa_log_info("Device %s doesn't support %u Hz, changed to %u Hz.", snd_pcm_name(pcm_handle), ss->rate, _ss.rate);
 
-    if (ss->format != f)
-        pa_log_info("Device %s doesn't support sample format %s, changed to %s.", snd_pcm_name(pcm_handle), pa_sample_format_to_string(ss->format), pa_sample_format_to_string(f));
+    if (ss->channels != _ss.channels)
+        pa_log_info("Device %s doesn't support %u channels, changed to %u.", snd_pcm_name(pcm_handle), ss->channels, _ss.channels);
+
+    if (ss->format != _ss.format)
+        pa_log_info("Device %s doesn't support sample format %s, changed to %s.", snd_pcm_name(pcm_handle), pa_sample_format_to_string(ss->format), pa_sample_format_to_string(_ss.format));
 
     if ((ret = snd_pcm_prepare(pcm_handle)) < 0) {
         pa_log_info("snd_pcm_prepare() failed: %s", pa_alsa_strerror(ret));
         goto finish;
     }
 
+    if ((ret = snd_pcm_hw_params_current(pcm_handle, hwparams)) < 0) {
+        pa_log_info("snd_pcm_hw_params_current() failed: %s", pa_alsa_strerror(ret));
+        goto finish;
+    }
+
     if ((ret = snd_pcm_hw_params_get_period_size(hwparams, &_period_size, &dir)) < 0 ||
-        (ret = snd_pcm_hw_params_get_periods(hwparams, &_periods, &dir)) < 0) {
-        pa_log_info("snd_pcm_hw_params_get_period{s|_size}() failed: %s", pa_alsa_strerror(ret));
+        (ret = snd_pcm_hw_params_get_buffer_size(hwparams, &_buffer_size)) < 0) {
+        pa_log_info("snd_pcm_hw_params_get_{period|buffer}_size() failed: %s", pa_alsa_strerror(ret));
         goto finish;
     }
 
     /* If the sample rate deviates too much, we need to resample */
-    if (r < ss->rate*.95 || r > ss->rate*1.05)
-        ss->rate = r;
-    ss->channels = (uint8_t) c;
-    ss->format = f;
+    if (_ss.rate < ss->rate*.95 || _ss.rate > ss->rate*1.05)
+        ss->rate = _ss.rate;
+    ss->channels = _ss.channels;
+    ss->format = _ss.format;
 
-    pa_assert(_periods > 0);
     pa_assert(_period_size > 0);
+    pa_assert(_buffer_size > 0);
 
-    if (periods)
-        *periods = _periods;
+    if (buffer_size)
+        *buffer_size = _buffer_size;
 
     if (period_size)
         *period_size = _period_size;
@@ -393,8 +461,8 @@ snd_pcm_t *pa_alsa_open_by_device_id_auto(
         pa_sample_spec *ss,
         pa_channel_map* map,
         int mode,
-        uint32_t *nfrags,
         snd_pcm_uframes_t *period_size,
+        snd_pcm_uframes_t *buffer_size,
         snd_pcm_uframes_t tsched_size,
         pa_bool_t *use_mmap,
         pa_bool_t *use_tsched,
@@ -410,8 +478,6 @@ snd_pcm_t *pa_alsa_open_by_device_id_auto(
     pa_assert(dev);
     pa_assert(ss);
     pa_assert(map);
-    pa_assert(nfrags);
-    pa_assert(period_size);
     pa_assert(ps);
 
     /* First we try to find a device string with a superset of the
@@ -433,8 +499,8 @@ snd_pcm_t *pa_alsa_open_by_device_id_auto(
                 ss,
                 map,
                 mode,
-                nfrags,
                 period_size,
+                buffer_size,
                 tsched_size,
                 use_mmap,
                 use_tsched,
@@ -460,8 +526,8 @@ snd_pcm_t *pa_alsa_open_by_device_id_auto(
                 ss,
                 map,
                 mode,
-                nfrags,
                 period_size,
+                buffer_size,
                 tsched_size,
                 use_mmap,
                 use_tsched,
@@ -478,7 +544,18 @@ snd_pcm_t *pa_alsa_open_by_device_id_auto(
     /* OK, we didn't find any good device, so let's try the raw hw: stuff */
     d = pa_sprintf_malloc("hw:%s", dev_id);
     pa_log_debug("Trying %s as last resort...", d);
-    pcm_handle = pa_alsa_open_by_device_string(d, dev, ss, map, mode, nfrags, period_size, tsched_size, use_mmap, use_tsched, FALSE);
+    pcm_handle = pa_alsa_open_by_device_string(
+            d,
+            dev,
+            ss,
+            map,
+            mode,
+            period_size,
+            buffer_size,
+            tsched_size,
+            use_mmap,
+            use_tsched,
+            FALSE);
     pa_xfree(d);
 
     if (pcm_handle && mapping)
@@ -493,8 +570,8 @@ snd_pcm_t *pa_alsa_open_by_device_id_mapping(
         pa_sample_spec *ss,
         pa_channel_map* map,
         int mode,
-        uint32_t *nfrags,
         snd_pcm_uframes_t *period_size,
+        snd_pcm_uframes_t *buffer_size,
         snd_pcm_uframes_t tsched_size,
         pa_bool_t *use_mmap,
         pa_bool_t *use_tsched,
@@ -508,8 +585,6 @@ snd_pcm_t *pa_alsa_open_by_device_id_mapping(
     pa_assert(dev);
     pa_assert(ss);
     pa_assert(map);
-    pa_assert(nfrags);
-    pa_assert(period_size);
     pa_assert(m);
 
     try_ss.channels = m->channel_map.channels;
@@ -524,8 +599,8 @@ snd_pcm_t *pa_alsa_open_by_device_id_mapping(
             &try_ss,
             &try_map,
             mode,
-            nfrags,
             period_size,
+            buffer_size,
             tsched_size,
             use_mmap,
             use_tsched,
@@ -547,8 +622,8 @@ snd_pcm_t *pa_alsa_open_by_device_string(
         pa_sample_spec *ss,
         pa_channel_map* map,
         int mode,
-        uint32_t *nfrags,
         snd_pcm_uframes_t *period_size,
+        snd_pcm_uframes_t *buffer_size,
         snd_pcm_uframes_t tsched_size,
         pa_bool_t *use_mmap,
         pa_bool_t *use_tsched,
@@ -579,7 +654,15 @@ snd_pcm_t *pa_alsa_open_by_device_string(
 
         pa_log_debug("Managed to open %s", d);
 
-        if ((err = pa_alsa_set_hw_params(pcm_handle, ss, nfrags, period_size, tsched_size, use_mmap, use_tsched, require_exact_channel_number)) < 0) {
+        if ((err = pa_alsa_set_hw_params(
+                     pcm_handle,
+                     ss,
+                     period_size,
+                     buffer_size,
+                     tsched_size,
+                     use_mmap,
+                     use_tsched,
+                     require_exact_channel_number)) < 0) {
 
             if (!reformat) {
                 reformat = TRUE;
@@ -632,8 +715,8 @@ snd_pcm_t *pa_alsa_open_by_template(
         pa_sample_spec *ss,
         pa_channel_map* map,
         int mode,
-        uint32_t *nfrags,
         snd_pcm_uframes_t *period_size,
+        snd_pcm_uframes_t *buffer_size,
         snd_pcm_uframes_t tsched_size,
         pa_bool_t *use_mmap,
         pa_bool_t *use_tsched,
@@ -653,8 +736,8 @@ snd_pcm_t *pa_alsa_open_by_template(
                 ss,
                 map,
                 mode,
-                nfrags,
                 period_size,
+                buffer_size,
                 tsched_size,
                 use_mmap,
                 use_tsched,
@@ -900,7 +983,7 @@ void pa_alsa_init_proplist_ctl(pa_proplist *p, const char *name) {
     snd_ctl_card_info_alloca(&info);
 
     if ((err = snd_ctl_open(&ctl, name, 0)) < 0) {
-        pa_log_warn("Error opening low-level control device '%s'", name);
+        pa_log_warn("Error opening low-level control device '%s': %s", name, snd_strerror(err));
         return;
     }
 

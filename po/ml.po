@@ -1,42 +1,21 @@
-# translation of pulseaudio.master-tx.ta.po to Tamil
+# translation of pulseaudio.master-tx.ml.po to
+# translation of pulseaudio.master-tx.pulseaudio.ml.po to
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-# I. Felix <ifelix@redhat.com>, 2009.
 msgid ""
 msgstr ""
-"Project-Id-Version: pulseaudio.master-tx.ta\n"
+"Project-Id-Version: pulseaudio.master-tx.ml\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-09-29 23:47+0200\n"
-"PO-Revision-Date: 2009-09-18 13:43+0530\n"
-"Last-Translator: I. Felix <ifelix@redhat.com>\n"
-"Language-Team: Tamil <fedora-trans-ta@redhat.com>\n"
+"PO-Revision-Date: 2009-09-21 20:54+0530\n"
+"Last-Translator: \n"
+"Language-Team:  <en@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
-"Plural-Forms: nplurals=2; plural=(n!=1);\\n\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
 
 #: ../src/modules/alsa/alsa-util.c:858 ../src/pulsecore/sink.c:2629
 #, c-format
@@ -51,10 +30,8 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
-"ms).\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers."
+"snd_pcm_avail() നല്‍കിയ മൂല്ല്യം വളരെ വലുതാണു്: %lu ബൈറ്റുകള്‍ (%lu ms).\n"
+"ഇതു് ALSA ഡ്രൈവര്‍ '%s'-ലുള്ള ഒരു ബഗാവാം. ദയവായി ഈ പ്രശ്നം ALSA ഡവലപ്പര്‍സിനെ അറിയിക്കുക."
 
 #: ../src/modules/alsa/alsa-util.c:1147
 #, c-format
@@ -64,10 +41,8 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%"
-"lu ms).\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers."
+"snd_pcm_delay() നല്‍കിയ മൂല്ല്യം വളരെ വലുതാണു്: %li ബൈറ്റുകള്‍ (%s%lu ms).\n"
+"ഇതു് ALSA ഡ്രൈവര്‍ '%s'-ലുള്ള ഒരു ബഗാവാം. ദയവായി ഈ പ്രശ്നം ALSA ഡവലപ്പര്‍സിനെ അറിയിക്കുക."
 
 #: ../src/modules/alsa/alsa-util.c:1194
 #, c-format
@@ -77,22 +52,20 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
-"(%lu ms).\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers."
+"snd_pcm_mmap_begin() നല്‍കിയ മൂല്ല്യം വളരെ വലുതാണു്: %lu ബൈറ്റുകള്‍(%lu ms).\n"
+"ഇതു് ALSA ഡ്രൈവര്‍ '%s'-ലുള്ള ഒരു ബഗാവാം. ദയവായി ഈ പ്രശ്നം ALSA ഡവലപ്പര്‍സിനെ അറിയിക്കുക."
 
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
-msgstr "ஒரு பூஜ்ஜியம் இருந்தாலும் குறைந்தது ஒன்றை மட்டும் வைத்திருக்கவும்"
+msgstr "നള്‍ ആണെങ്കിലും ഒരു സിങ്കെങ്കിലും എപ്പോഴും ലഭ്യമാക്കുക"
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
-msgstr "டம்மி வெளிப்பாடு"
+msgstr "ഡമ്മി ഔട്ട്പുട്ട്"
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
-msgstr "மெய்நிகர் LADSPA சின்க்"
+msgstr "വിര്‍ച്ച്വല്‍ LADSPA സിങ്ക്"
 
 #: ../src/modules/module-ladspa-sink.c:53
 msgid ""
@@ -110,271 +83,274 @@ msgstr ""
 
 #: ../src/modules/module-null-sink.c:55
 msgid "Clocked NULL sink"
-msgstr "கடிகார பூஜ்ஜிய சிங்"
+msgstr "ക്ലോക്കഡ് NULL സിങ്ക്"
 
 #: ../src/modules/module-null-sink.c:291
 msgid "Null Output"
-msgstr "பூஜ்ஜிய வெளிப்பாடு"
+msgstr "നള്‍ ഔട്ട്പുട്ട്"
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
-msgstr "உட்புற ஆடியோ"
+msgstr "ഇന്റേര്‍ണല്‍ ഓഡിയോ"
 
 #: ../src/pulsecore/sink.c:2618
 msgid "Modem"
-msgstr "மாதிரி"
+msgstr "മോഡം"
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
-msgstr "அசல் lt_dlopen ஏற்றியை காண முடியவில்லை."
+msgstr "യഥാര്‍ത്ഥ lt_dlopen ലോഡര്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
 #: ../src/daemon/ltdl-bind-now.c:129
 msgid "Failed to allocate new dl loader."
-msgstr "புதிய dl ஏற்றுபவரை ஒதுக்கிருவதில் தோல்வி."
+msgstr "പുതിയ dl ലോഡര്‍ അനുവദിക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
-msgstr "இப்போது பிணைக்கும் ஏற்பியை சேர்ப்பதில் தோல்வி."
+msgstr "bind-now-loader ചേര്‍ക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
 #: ../src/daemon/main.c:141
 #, c-format
 msgid "Got signal %s."
-msgstr "%sக்கு சிக்னல் கிடைத்துவிட்டது."
+msgstr "%s സിഗ്നല്‍ ലഭ്യമായി."
 
 #: ../src/daemon/main.c:168
 msgid "Exiting."
-msgstr "வெளியேறுதல்."
+msgstr "പുറത്തു് കടക്കുന്നു."
 
 #: ../src/daemon/main.c:186
 #, c-format
 msgid "Failed to find user '%s'."
-msgstr "'%s' பயனரை கண்டுபிடிப்பதில் தோல்வி."
+msgstr "'%s' എന്ന ഉപയോക്താവു് ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
 #: ../src/daemon/main.c:191
 #, c-format
 msgid "Failed to find group '%s'."
-msgstr "'%s' குழுவை கண்டுபிடிப்பதில் தோல்வி."
+msgstr "'%s' എന്ന ഗ്രൂപ്പ് ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
 #: ../src/daemon/main.c:195
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
-msgstr "'%s'பயனர் கண்டுபிடிக்கப்பட்டார் (UID %lu) மற்றும் குழு '%s' (GID %lu)."
+msgstr "ഉപയോക്താവു് '%s' (UID %lu) , ഗ്രൂപ്പ് '%s' (GID %lu) ലഭ്യമായി."
 
 #: ../src/daemon/main.c:200
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
-msgstr "GID ன் பயனர் '%s' மற்றும் '%s' குழுவுடன் ஒத்து போகவில்லை."
+msgstr "ഉപയോക്താവു് '%s'-ന്റെയും ഗ്രൂപ്പ് '%s'-ന്റെയും GID ചേരുന്നില്ല."
 
 #: ../src/daemon/main.c:205
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr "முகப்பு அடைவு பயனரான'%s' '%s'ஆல், புறக்கணிக்கப்படவில்லை."
+msgstr "ഉപയോക്താവു് '%s'-ന്റെ ഹോം ഡയറക്ടറി '%s' അല്ല, ഉപേക്ഷിക്കുന്നു."
 
 #: ../src/daemon/main.c:208 ../src/daemon/main.c:213
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr "'%s'ஐ உருவாக்க முடியவில்லை: %s"
+msgstr "'%s' ഉണ്ടാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/daemon/main.c:220
 #, c-format
 msgid "Failed to change group list: %s"
-msgstr "குழுப் பட்டியலை மாற்ற முடியவில்லை: %s"
+msgstr "ഗ്രൂപ്പ് ലിസ്റ്റ് മാറ്റുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/daemon/main.c:236
 #, c-format
 msgid "Failed to change GID: %s"
-msgstr "GIDக்கு மாற்றுவதில் தோல்வி: %s"
+msgstr "GID മാറ്റുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/daemon/main.c:252
 #, c-format
 msgid "Failed to change UID: %s"
-msgstr "UIDக்கு மாற்றுவதில் தோல்வி: %s"
+msgstr "UID മാറ്റുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/daemon/main.c:271
 msgid "Successfully dropped root privileges."
-msgstr "ரூட் முன்னுரிமைகள் வெற்றிகரமாக விடப்பட்டது."
+msgstr "റൂട്ട് ആനുകൂല്യങ്ങള്‍ വിജയകരമായി ഉപേക്ഷിച്ചിരിക്കുന്നു."
 
 #: ../src/daemon/main.c:279
 msgid "System wide mode unsupported on this platform."
-msgstr "இந்த தளத்தில் கணினியின் திறந்த முறைமை துணைபுரியவில்லை."
+msgstr "ഈ പ്ലാറ്റ്ഫോമില്‍ സിസ്റ്റം വൈഡ് മോഡ് പിന്തുണയ്ക്കുന്നില്ല."
 
 #: ../src/daemon/main.c:297
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
-msgstr "setrlimit(%s, (%u, %u)) தோல்வியுற்றது: %s"
+msgstr "setrlimit(%s, (%u, %u)) പരാജയപ്പെട്ടു: %s"
 
 #: ../src/daemon/main.c:474
 msgid "Failed to parse command line."
-msgstr "கட்டளை வரியை மாற்றுவதில் தோல்வி."
+msgstr "കമാന്‍ഡ് ലൈന്‍ പാഴ്സ് ചെയ്യുന്നതില്‍ പരാജയപ്പെട്ടു."
 
 #: ../src/daemon/main.c:541
 msgid "Daemon not running"
-msgstr "டோமோன் இயங்கவில்லை"
+msgstr "ഡെമണ്‍ പ്രവര്‍ത്തനത്തിലില്ല"
 
 #: ../src/daemon/main.c:543
 #, c-format
 msgid "Daemon running as PID %u"
-msgstr "PID %uவாக டோமோன் இயங்குகிறது"
+msgstr "ഡെമണ്‍ PID %u ആയി പ്രവര്‍ത്തിക്കുന്നു"
 
 #: ../src/daemon/main.c:553
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr "டோமோனுக்கு முடிவு கட்டுவதில் தோல்வி: %s"
+msgstr "ഡെമണ്‍ നശിപ്പിക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/daemon/main.c:571
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr "இந்த நிரல் ரூட்டாக இயங்க முடியவில்லை (--system குறிப்பிடாத வரை)."
+msgstr ""
+"ഈ പ്രോഗ്രാം റൂട്ടായി പ്രവര്‍ത്തിപ്പിക്കേണ്ടതല്ല (--system എന്നു് പറഞ്ഞിട്ടുണ്ടെങ്കില്‍ മാത്രം റൂട്ട് "
+"ആവശ്യമുണ്ടു്)."
 
 #: ../src/daemon/main.c:573
 msgid "Root privileges required."
-msgstr "ரூட் முன்னுரிமைகள் தேவைப்படுகிறது."
+msgstr "റൂട്ട് ആനുകൂല്യങ്ങള്‍ ആവശ്യമുണ്ടു്."
 
 #: ../src/daemon/main.c:578
 msgid "--start not supported for system instances."
-msgstr "--start கணினி நிகழ்வில் துணைபுரியவில்லை."
+msgstr "സിസ്റ്റം ഇന്‍സ്റ്റന്‍സുകള്‍ക്ക് --start പിന്തുണയ്ക്കുന്നില്ല."
 
 #: ../src/daemon/main.c:583
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr "கணினி முறைமையில் இயங்குகிறது, ஆனால் --disallow-exit அமைக்கப்படவில்லை!"
+msgstr "സിസ്റ്റം മോഡില്‍ പ്രവര്‍ത്തിക്കുന്നു, പക്ഷേ --disallow-exit സജ്ജമാക്കിയിട്ടില്ല!"
 
 #: ../src/daemon/main.c:586
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
-"கணினி முறைமையில் இயங்குகிறது, ஆனால் --disallow-module-loading அமைக்கப்படவில்லை!"
+"സിസ്റ്റം മോഡില്‍ പ്രവര്‍ത്തിക്കുന്നു, പക്ഷേ --disallow-module-loading സജ്ജമാക്കിയിട്ടില്ല!"
 
 #: ../src/daemon/main.c:589
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr "கணினி முறைமையில் இயங்குகிறது, SHM முறைமை செயல்நீக்குதல் கட்டாயப்படுத்துகிறது!"
+msgstr "സിസ്റ്റം മോഡില്‍ പ്രവര്‍ത്തിക്കുന്നു, നിര്‍ബന്ധമായും SHM മോഡ് പ്രവര്‍ത്ത രഹിതമാക്കുന്നു!"
 
 #: ../src/daemon/main.c:594
 msgid "Running in system mode, forcibly disabling exit idle time!"
-msgstr "கணினி முறைமையில் இயங்குகிறது, வெறுமை நேரத்தை செயல்நீக்க கட்டாயப்படுத்துகிறது!"
+msgstr ""
+"സിസ്റ്റം മോഡില്‍ പ്രവര്‍ത്തിക്കുന്നു, നിര്‍ബന്ധമായും എക്സിറ്റ് ഐഡില്‍ സമയം പ്രവര്‍ത്ത രഹിതമാക്കുന്നു!"
 
 #: ../src/daemon/main.c:621
 msgid "Failed to acquire stdio."
-msgstr "stdioஐ பெற முடியவில்லை."
+msgstr "stdio ലഭിക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
 #: ../src/daemon/main.c:627
 #, c-format
 msgid "pipe failed: %s"
-msgstr "பைப் தோல்வியுற்றது: %s"
+msgstr "pipe പരാജയപ്പെട്ടു: %s"
 
 #: ../src/daemon/main.c:632
 #, c-format
 msgid "fork() failed: %s"
-msgstr "fork() தோல்வியுற்றது: %s"
+msgstr "fork() പരാജയപ്പെട്ടു: %s"
 
 #: ../src/daemon/main.c:646 ../src/utils/pacat.c:508
 #, c-format
 msgid "read() failed: %s"
-msgstr "வாசிப்பதில்() தோல்வியுற்றது: %s"
+msgstr "read() പരാജയപ്പെട്ടു: %s"
 
 #: ../src/daemon/main.c:652
 msgid "Daemon startup failed."
-msgstr "டோமோனை துவக்குவதில் தோல்வியுற்றது."
+msgstr "ഡെമണിന്റെ തുടക്കം പരാജയപ്പെട്ടു."
 
 #: ../src/daemon/main.c:654
 msgid "Daemon startup successful."
-msgstr "டோமோனை வெற்றிகரமாக துவக்ககப்பட்டது."
+msgstr "ഡെമണിന്റെ തുടക്കം വിജയിച്ചു."
 
 #: ../src/daemon/main.c:731
 #, c-format
 msgid "This is PulseAudio %s"
-msgstr "இது தான் பள்ஸ் ஆடியோ %s"
+msgstr "ഇതു് PulseAudio %s ആണു്"
 
 #: ../src/daemon/main.c:732
 #, c-format
 msgid "Compilation host: %s"
-msgstr "தொகுக்கப்பட்ட புரவலன்: %s"
+msgstr "കംപൈലേഷന്‍ ഹോസ്റ്റ്: %s"
 
 #: ../src/daemon/main.c:733
 #, c-format
 msgid "Compilation CFLAGS: %s"
-msgstr "தொகுப்பு CFLAGS: %s"
+msgstr "കംപൈലേഷന്‍ CFLAGS: %s"
 
 #: ../src/daemon/main.c:736
 #, c-format
 msgid "Running on host: %s"
-msgstr "புரவலனாக இயங்குகிறத: %s"
+msgstr "ഹോസ്റ്റില്‍ പ്രവര്‍ത്തിക്കുന്നു: %s"
 
 #: ../src/daemon/main.c:739
 #, c-format
 msgid "Found %u CPUs."
-msgstr "CPUs %uவில் காணப்படுகிறது ."
+msgstr "%u സിപിയു ലഭ്യമായി."
 
 #: ../src/daemon/main.c:741
 #, c-format
 msgid "Page size is %lu bytes"
-msgstr "பக்க அளவுகள் %lu பைட்ஸ்"
+msgstr "താളിന്റെ വ്യാപ്തി %lu ബൈറ്റുകളാണു്"
 
 #: ../src/daemon/main.c:744
 msgid "Compiled with Valgrind support: yes"
-msgstr "Compiled with Valgrind support: yes"
+msgstr "Valgrind പിന്തുണയോടെ കംപൈല്‍ ചെയ്തിരിക്കുന്നു: ഉവ്വു്"
 
 #: ../src/daemon/main.c:746
 msgid "Compiled with Valgrind support: no"
-msgstr "Compiled with Valgrind support: no"
+msgstr "Valgrind പിന്തുണയോടെ കംപൈല്‍ ചെയ്തിരിക്കുന്നു: ഇല്ല"
 
 #: ../src/daemon/main.c:749
 #, c-format
 msgid "Running in valgrind mode: %s"
-msgstr "valgrind முறைமையில் இயங்குகிறது: %s"
+msgstr "valgrind മോഡില്‍ പ്രവര്‍ത്തിപ്പിക്കുന്നു: %s"
 
 #: ../src/daemon/main.c:752
 msgid "Optimized build: yes"
-msgstr "Optimized build: yes"
+msgstr "ഒപ്ടിമൈസ്ഡ് ബിള്‍ഡ്: ഉവ്വു്"
 
 #: ../src/daemon/main.c:754
 msgid "Optimized build: no"
-msgstr "சுருக்கமான உருவாக்கம்: இல்லை"
+msgstr "ഒപ്ടിമൈസ്ഡ് ബിള്‍ഡ്: ഇല്ല"
 
 #: ../src/daemon/main.c:758
 msgid "NDEBUG defined, all asserts disabled."
-msgstr "NDEBUG வரையறுக்கப்பட்டது, அனைத்தும் உறுதியாக செயல்நீக்கப்பட்டது."
+msgstr "NDEBUG നിഷ്കര്‍ഷിച്ചിരിക്കുന്നു, എല്ലാ asserts-ഉം പ്രവര്‍‌ത്ത രഹിതം."
 
 #: ../src/daemon/main.c:760
 msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr "FASTPATH வரையறுக்கப்பட்டது, விரைவு பாதை மட்டும் உறுதியாக செயல்நீக்கப்பட்டது."
+msgstr "FASTPATH നിഷ്കര്‍ഷിച്ചിരിക്കുന്നു, fast path asserts മാത്രം പ്രവര്‍‌ത്ത രഹിതം."
 
 #: ../src/daemon/main.c:762
 msgid "All asserts enabled."
-msgstr "அனைத்து உறுதியாக செயல்படுகிறது."
+msgstr "എല്ലാ asserts-ഉം പ്രവര്‍‌ത്ത സജ്ജം"
 
 #: ../src/daemon/main.c:766
 msgid "Failed to get machine ID"
-msgstr "கணினி குறியீடை பெறுவதில் தோல்வி"
+msgstr "മഷീന്‍ ID ലഭ്യമാക്കുവാന്‍ സാധ്യമായില്ല"
 
 #: ../src/daemon/main.c:769
 #, c-format
 msgid "Machine ID is %s."
-msgstr "கணினி குறியீடு %s."
+msgstr "മഷീന്‍ ID %s ആണു്."
 
 #: ../src/daemon/main.c:773
 #, c-format
 msgid "Session ID is %s."
-msgstr "அமர்வு குறியீடு %s."
+msgstr "സെഷന്‍ ID %s ആണു്."
 
 #: ../src/daemon/main.c:779
 #, c-format
 msgid "Using runtime directory %s."
-msgstr "ஓடும்நேரம்  %s அடைவை பயன்படுத்துகிறது."
+msgstr "റണ്‍ടൈം ഡയറക്ടറി %s ഉപയോഗിക്കുന്നു."
 
 #: ../src/daemon/main.c:784
 #, c-format
 msgid "Using state directory %s."
-msgstr "%s நிலை அடைவினை பயன்படுத்துகிறது."
+msgstr "സ്റ്റേറ്റ് ഡയറക്ടറി %s ഉപയോഗിക്കുന്നു."
 
 #: ../src/daemon/main.c:787
 #, c-format
 msgid "Using modules directory %s."
-msgstr "தொகுதி %s அடைவை பயன்படுத்துகிறது."
+msgstr "മൊഡ്യൂള്‍സ് ഡയറക്ടറി %s ഉപയോഗിക്കുന്നു."
 
 #: ../src/daemon/main.c:789
 #, c-format
 msgid "Running in system mode: %s"
-msgstr "கணினியின் முறைமையில் இயங்குகிறது: %s"
+msgstr "സിസ്റ്റം മോഡില്‍ പ്രവര്‍ത്തിക്കുന്നു: %s"
 
 #: ../src/daemon/main.c:792
 msgid ""
@@ -385,20 +361,18 @@ msgid ""
 "Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an "
 "explanation why system mode is usually a bad idea."
 msgstr ""
-"OK, so you are running PA in system mode. Please note that you most likely "
-"shouldn't be doing that.\n"
-"If you do it nonetheless then it's your own fault if things don't work as "
-"expected.\n"
-"Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an "
-"explanation why system mode is usually a bad idea."
+"ശരി, അപ്പോള്‍ നിങ്ങള്‍ പിഎ സിസ്റ്റം മോഡിലാണു് പ്രവര്‍ത്തിപ്പിക്കുന്നതു്. ദയവായി ഇതുപേക്ഷിക്കുക.\n"
+"ഇങ്ങനെ ചെയ്തുണ്ടാകുന്ന സകല തകരാറുകളുടേയും ഉത്തരവാദി നിങ്ങള്‍ സ്വയമാകുന്നു.\n"
+"സിസ്റ്റം മോഡിലുള്ള പ്രവര്‍ത്തനം ഉത്തമമല്ലാത്തതിന്റെ കാരണങ്ങള്‍ക്കായിhttp://pulseaudio.org/"
+"wiki/WhatIsWrongWithSystemMode കാണുക."
 
 #: ../src/daemon/main.c:809
 msgid "pa_pid_file_create() failed."
-msgstr "pa_pid_file_create() தோல்வியுற்றது."
+msgstr "pa_pid_file_create() പരാജയപ്പെട്ടു."
 
 #: ../src/daemon/main.c:819
 msgid "Fresh high-resolution timers available! Bon appetit!"
-msgstr "உயர்ந்த திரைத்திறன் நேரம்காட்டி கிடைக்கிளது! Bon appetit!"
+msgstr "Fresh high-resolution timers available! Bon appetit!"
 
 #: ../src/daemon/main.c:821
 msgid ""
@@ -410,27 +384,27 @@ msgstr ""
 
 #: ../src/daemon/main.c:844
 msgid "pa_core_new() failed."
-msgstr "pa_core_new() தோல்வியுற்றது."
+msgstr "pa_core_new() പരാജയപ്പെട്ടു."
 
 #: ../src/daemon/main.c:904
 msgid "Failed to initialize daemon."
-msgstr "டோமோனை ஆரம்பிப்பதில் தோல்வி."
+msgstr "ഡെമണ്‍ ആരംഭിക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
 #: ../src/daemon/main.c:909
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr "டீமான் துவக்கம் எந்த தொகுதிகளும் ஏற்றப்படாமல், வேலையை நிராகரிக்கிறது."
+msgstr "ഒരു ഘടകങ്ങളും ലഭ്യമാകാതെ ഡെമണ്‍ ആരംഭിച്ചിരിക്കുന്നു, പ്രവര്‍ത്തനം നിഷേധിച്ചിരിക്കുന്നു."
 
 #: ../src/daemon/main.c:926
 msgid "Daemon startup complete."
-msgstr "டோமோன் துவக்குவது முடிவடைந்தது."
+msgstr "ഡെമണിന്റെ തുടക്കം പൂര്‍ണ്ണമായി."
 
 #: ../src/daemon/main.c:932
 msgid "Daemon shutdown initiated."
-msgstr "டோமோன் பணிநிறுத்தம் முனைகிறது."
+msgstr "ഡെമണ്‍ അടച്ചുപൂട്ടുന്നതു് ആരംഭിച്ചിരിക്കുന്നു."
 
 #: ../src/daemon/main.c:954
 msgid "Daemon terminated."
-msgstr "டோமோன் நீக்கப்பட்டுது."
+msgstr "ഡെമണ്‍ നിര്‍ത്തിയിരിക്കുന്നു."
 
 #: ../src/daemon/cmdline.c:115
 #, c-format
@@ -577,103 +551,103 @@ msgstr ""
 
 #: ../src/daemon/cmdline.c:247
 msgid "--daemonize expects boolean argument"
-msgstr "--daemonize பூலியன் அளவுரு எதிர்பார்க்கிறது"
+msgstr "--daemonize-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
 
 #: ../src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
-msgstr "--fail பூலியன் அளவுரு எதிர்பார்க்கிறது"
+msgstr "--fail-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
 
 #: ../src/daemon/cmdline.c:264
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
 msgstr ""
-"--log-level பதிவு நிலை அளவுருவை எதிர்பார்க்கிறது (எண் 0..4 அல்லது debug, info, "
-"notice, warn, errorஇல் ஒன்று)."
+"--log-level-നു് ലോഗ് ലവല്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു് (ഒന്നുകില്‍ 0..4 വരെയുള്ള ന്യൂമറിക് പരിധി "
+"അല്ലെങ്കില്‍ debug, info, notice, warn, error എന്നിവയില്‍ ഒന്നു്)."
 
 #: ../src/daemon/cmdline.c:276
 msgid "--high-priority expects boolean argument"
-msgstr "--high-priority பூலியன் அளவுரு எதிர்பார்க்கிறது"
+msgstr "--high-priority-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
 
 #: ../src/daemon/cmdline.c:283
 msgid "--realtime expects boolean argument"
-msgstr "--realtime பூலியன் அளவுரு எதிர்பார்க்கிறது"
+msgstr "--realtime-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
 
 #: ../src/daemon/cmdline.c:290
 msgid "--disallow-module-loading expects boolean argument"
-msgstr "--disallow-module-loading பூலியன் அளவுரு எதிர்பார்க்கிறது"
+msgstr "--disallow-module-loading-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
 
 #: ../src/daemon/cmdline.c:297
 msgid "--disallow-exit expects boolean argument"
-msgstr "--disallow-exit பூலியன் அளவுரு எதிர்பார்க்கிறது"
+msgstr "--disallow-exit-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
 
 #: ../src/daemon/cmdline.c:304
 msgid "--use-pid-file expects boolean argument"
-msgstr "--use-pid-file பூலியன் அளவுரு எதிர்பார்க்கிறது"
+msgstr "--use-pid-file-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
 
 #: ../src/daemon/cmdline.c:321
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
-msgstr "தவறான பதிவு இலக்கு: 'syslog', 'stderr' அல்லது 'auto'ஐ பயன்படுத்தவும்."
+msgstr "തെറ്റായ ലോഗ് ടാര്‍ഗറ്റ്: 'syslog', 'stderr' അല്ലെങ്കില്‍ 'auto' ഉപയോഗിക്കുക."
 
 #: ../src/daemon/cmdline.c:328
 msgid "--log-time expects boolean argument"
-msgstr "--log-time பூலியன் அளவுரு எதிர்பார்க்கிறது"
+msgstr "--log-time-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
 
 #: ../src/daemon/cmdline.c:335
 msgid "--log-meta expects boolean argument"
-msgstr "--log-meta பூலியன் அளவுரு எதிர்பார்க்கிறது"
+msgstr "--log-meta-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
 
 #: ../src/daemon/cmdline.c:354
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr "தவறான மறுமாதிரி முறை '%s'."
+msgstr "തെറ്റായ റീസാംപിള്‍ മാര്‍ഗ്ഗം '%s'."
 
 #: ../src/daemon/cmdline.c:361
 msgid "--system expects boolean argument"
-msgstr "--system பூலியன் அளவுரு எதிர்பார்க்கிறது"
+msgstr "--system-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
 
 #: ../src/daemon/cmdline.c:368
 msgid "--no-cpu-limit expects boolean argument"
-msgstr "--no-cpu-limit பூலியன் அளவுரு எதிர்பார்க்கிறது"
+msgstr "--no-cpu-limit-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
 
 #: ../src/daemon/cmdline.c:375
 msgid "--disable-shm expects boolean argument"
-msgstr "--disable-shm பூலியன் அளவுரு எதிர்பார்க்கிறது"
+msgstr "--disable-shm-നു് ബൂളിയന്‍ ആര്‍ഗ്യുമെന്റ് ആവശ്യമുണ്ടു്"
 
 #: ../src/daemon/dumpmodules.c:60
 #, c-format
 msgid "Name: %s\n"
-msgstr "பெயர்: %s\n"
+msgstr "പേരു്: %s\n"
 
 #: ../src/daemon/dumpmodules.c:63
 #, c-format
 msgid "No module information available\n"
-msgstr "தொகுதி தகவல் கிடைக்கப் பெறவில்லை\n"
+msgstr "ഘടകത്തെപ്പറ്റിയുള്ള വിവരം ലഭ്യമല്ല\n"
 
 #: ../src/daemon/dumpmodules.c:66
 #, c-format
 msgid "Version: %s\n"
-msgstr "பதிப்பு: %s\n"
+msgstr "പതിപ്പു്: %s\n"
 
 #: ../src/daemon/dumpmodules.c:68
 #, c-format
 msgid "Description: %s\n"
-msgstr "விளக்கம்: %s\n"
+msgstr "വിവരണം: %s\n"
 
 #: ../src/daemon/dumpmodules.c:70
 #, c-format
 msgid "Author: %s\n"
-msgstr "ஆசிரியர்: %s\n"
+msgstr "രചയിതാവു്: %s\n"
 
 #: ../src/daemon/dumpmodules.c:72
 #, c-format
 msgid "Usage: %s\n"
-msgstr "பயன்பாடு: %s\n"
+msgstr "ഉപയോഗം: %s\n"
 
 #: ../src/daemon/dumpmodules.c:73
 #, c-format
 msgid "Load Once: %s\n"
-msgstr "ஒருமுறை ஏற்றப்பட்டது: %s\n"
+msgstr "ഒരിക്കല്‍ ലഭ്യമാക്കുക: %s\n"
 
 #: ../src/daemon/dumpmodules.c:75
 #, c-format
@@ -683,439 +657,439 @@ msgstr "DEPRECATION WARNING: %s\n"
 #: ../src/daemon/dumpmodules.c:79
 #, c-format
 msgid "Path: %s\n"
-msgstr "பாதை: %s\n"
+msgstr "പാഥ്: %s\n"
 
 #: ../src/daemon/daemon-conf.c:232
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr "[%s:%u] தவறான பதிவு இலக்கு '%s'."
+msgstr "[%s:%u] തെറ്റായ ലോഗ് ടാര്‍ഗറ്റ് '%s'."
 
 #: ../src/daemon/daemon-conf.c:248
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
-msgstr "[%s:%u] தவறான பதிவு இலக்கு '%s'."
+msgstr "[%s:%u] തെറ്റായ ലോഗ് ലവല്‍ '%s'."
 
 #: ../src/daemon/daemon-conf.c:264
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr "[%s:%u] தவறான மறுமாதிரி முறை '%s'."
+msgstr "[%s:%u] തെറ്റായ റീസാംപിള്‍ മാര്‍ഗ്ഗം '%s'."
 
 #: ../src/daemon/daemon-conf.c:287
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
-msgstr "[%s:%u] தவறான rlimit '%s'."
+msgstr "[%s:%u] അസാധുവായ rlimit '%s'."
 
 #: ../src/daemon/daemon-conf.c:294
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
-msgstr "[%s:%u] rlimit இந்த தளத்தில் துணைபுரியவில்லை."
+msgstr "[%s:%u] ഈ പ്ലാറ്റ്ഫോമില്‍ rlimit-നുള്ള പിന്തുണ ലഭ്യമല്ല."
 
 #: ../src/daemon/daemon-conf.c:310
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
-msgstr "[%s:%u] தவறான மாதிரி முறை '%s'."
+msgstr "[%s:%u] തെറ്റായ സാംപിള്‍ മാതൃക '%s'."
 
 #: ../src/daemon/daemon-conf.c:328
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr "[%s:%u] தவறான மாதிரி விலை '%s'."
+msgstr "[%s:%u] തെറ്റായ സാംപിള്‍ റേറ്റ് '%s'."
 
 #: ../src/daemon/daemon-conf.c:352
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
-msgstr "[%s:%u] தவறான மாதிரி சேனல்கள் '%s'."
+msgstr "[%s:%u] തെറ്റായ സാംപിള്‍ ചാനലുകള്‍ '%s'."
 
 #: ../src/daemon/daemon-conf.c:370
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr "[%s:%u] தவறான சேனல் படம் '%s'."
+msgstr "[%s:%u] അസാധുവായ ചാനല്‍ മാപ്പ് '%s'."
 
 #: ../src/daemon/daemon-conf.c:388
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr "[%s:%u] பகுப்பு '%s'க்கு தவறான எண்"
+msgstr "[%s:%u] '%s' ഫ്രാഗ്മെന്റുകളുടെ തെറ്റായ എണ്ണം."
 
 #: ../src/daemon/daemon-conf.c:406
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr "[%s:%u] தவறான பகுப்பு அளவு '%s'."
+msgstr "[%s:%u] തെറ്റായ ഫ്രാഗ്മെന്റ് വ്യാപ്തി '%s'."
 
 #: ../src/daemon/daemon-conf.c:424
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr "[%s:%u] தவறான நல்ல நிலை '%s'."
+msgstr "[%s:%u] അസാധുവായ nice സ്ഥാനം '%s'."
 
 #: ../src/daemon/daemon-conf.c:546
 #, c-format
 msgid "Failed to open configuration file: %s"
-msgstr "கட்டமைக்கப்பட்ட கோப்பினை திறப்பதில் தோல்வி: %s"
+msgstr "ക്രമീകരണ ഫയല്‍ തുറക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/daemon/daemon-conf.c:562
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
 msgstr ""
-"குறிப்பிட்ட முன்னிருப்பு சேனல் மேப் வேறுபட்ட சேனல்களின் எண்ணிக்கையை குறிப்பிட்ட "
-"முன்னிருப்பு சேனல்களின் எண்ணிக்கையை விட கொண்டுள்ளது"
+"വ്യക്തമാക്കിയിട്ടുള്ള സ്വതവേയുള്ള ചാനല്‍ മാപ്പിനുള്ള ചാനലുകളുടെ എണ്ണം നല്‍കിയിരിക്കുന്ന സ്വതവേയുള്ള "
+"ചാനലുകളുടെ എണ്ണത്തേക്കാള്‍ വ്യത്യസ്ഥമാണു്."
 
 #: ../src/daemon/daemon-conf.c:638
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
-msgstr "### கட்டமைப்பு கோப்பிலிருந்து வாசிக்கவும்: %s ###\n"
+msgstr "### ക്രമീകരണ ഫയലില്‍ നിന്നും ലഭ്യമാക്കുക: %s ###\n"
 
 #: ../src/daemon/caps.c:62
 msgid "Cleaning up privileges."
-msgstr "முன்னுரிமைகளை துடைக்கிறது."
+msgstr "അനുമതികള്‍ വെടിപ്പാക്കുന്നു."
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
-msgstr "பள்ஸ் ஆடியோ ஒலி கணினி"
+msgstr "PulseAudio സൌണ്ട് സിസ്റ്റം"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
-msgstr "பள்ஸ் ஆடியோ ஒலி கணினியை துவக்கவும"
+msgstr "PulseAudio സൌണ്ട് സിസ്റ്റം ആരംഭിക്കുക"
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:757
 msgid "Mono"
-msgstr "மோனோ"
+msgstr "മോണോ"
 
 #: ../src/pulse/channelmap.c:107
 msgid "Front Center"
-msgstr "முன் நடுவில்"
+msgstr "മദ്ധ്യം മുന്നില്‍"
 
 #: ../src/pulse/channelmap.c:108
 msgid "Front Left"
-msgstr "முன் இடது"
+msgstr "ഇടതു്് മുന്നില്‍"
 
 #: ../src/pulse/channelmap.c:109
 msgid "Front Right"
-msgstr "முன் வலது"
+msgstr "വലതു് മുന്നില്‍"
 
 #: ../src/pulse/channelmap.c:111
 msgid "Rear Center"
-msgstr "பின் நடுவில்"
+msgstr "മദ്ധ്യം അവസാനം"
 
 #: ../src/pulse/channelmap.c:112
 msgid "Rear Left"
-msgstr "பின் இடது"
+msgstr "ഇടതു് അവസാനം"
 
 #: ../src/pulse/channelmap.c:113
 msgid "Rear Right"
-msgstr "பின் வலது"
+msgstr "വലതു് അവസാനം"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Low Frequency Emmiter"
-msgstr "குறைந்த அலைவரிசை எம்மிட்டர்"
+msgstr "ലോ ഫ്രീക്വന്‍സി എമ്മിറ്റര്‍"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
-msgstr "முன் இடது பக்கத்தின் நடுவில்"
+msgstr "മുമ്പില്‍ ഇടതു് മദ്ധ്യം"
 
 #: ../src/pulse/channelmap.c:118
 msgid "Front Right-of-center"
-msgstr "முன் வலது பக்கத்தின் நடுவில்"
+msgstr "മുമ്പില്‍ വലതു് മദ്ധ്യം"
 
 #: ../src/pulse/channelmap.c:120
 msgid "Side Left"
-msgstr "இடது பக்கம்"
+msgstr "ഇടത്തു് വശം"
 
 #: ../src/pulse/channelmap.c:121
 msgid "Side Right"
-msgstr "வலது பக்கம்"
+msgstr "വലത്തു് വശം"
 
 #: ../src/pulse/channelmap.c:123
 msgid "Auxiliary 0"
-msgstr "Auxiliary 0"
+msgstr "ഓക്സിലറി 0"
 
 #: ../src/pulse/channelmap.c:124
 msgid "Auxiliary 1"
-msgstr "Auxiliary 1"
+msgstr "ഓക്സിലറി 1"
 
 #: ../src/pulse/channelmap.c:125
 msgid "Auxiliary 2"
-msgstr "Auxiliary 2"
+msgstr "ഓക്സിലറി 2"
 
 #: ../src/pulse/channelmap.c:126
 msgid "Auxiliary 3"
-msgstr "Auxiliary 3"
+msgstr "ഓക്സിലറി 3"
 
 #: ../src/pulse/channelmap.c:127
 msgid "Auxiliary 4"
-msgstr "Auxiliary 4"
+msgstr "ഓക്സിലറി 4"
 
 #: ../src/pulse/channelmap.c:128
 msgid "Auxiliary 5"
-msgstr "Auxiliary 5"
+msgstr "ഓക്സിലറി 5"
 
 #: ../src/pulse/channelmap.c:129
 msgid "Auxiliary 6"
-msgstr "Auxiliary 6"
+msgstr "ഓക്സിലറി 6"
 
 #: ../src/pulse/channelmap.c:130
 msgid "Auxiliary 7"
-msgstr "Auxiliary 7"
+msgstr "ഓക്സിലറി 7"
 
 #: ../src/pulse/channelmap.c:131
 msgid "Auxiliary 8"
-msgstr "Auxiliary 8"
+msgstr "ഓക്സിലറി 8"
 
 #: ../src/pulse/channelmap.c:132
 msgid "Auxiliary 9"
-msgstr "Auxiliary 9"
+msgstr "ഓക്സിലറി 9"
 
 #: ../src/pulse/channelmap.c:133
 msgid "Auxiliary 10"
-msgstr "Auxiliary 10"
+msgstr "ഓക്സിലറി 10"
 
 #: ../src/pulse/channelmap.c:134
 msgid "Auxiliary 11"
-msgstr "Auxiliary 11"
+msgstr "ഓക്സിലറി 11"
 
 #: ../src/pulse/channelmap.c:135
 msgid "Auxiliary 12"
-msgstr "Auxiliary 12"
+msgstr "ഓക്സിലറി 12"
 
 #: ../src/pulse/channelmap.c:136
 msgid "Auxiliary 13"
-msgstr "Auxiliary 13"
+msgstr "ഓക്സിലറി 13"
 
 #: ../src/pulse/channelmap.c:137
 msgid "Auxiliary 14"
-msgstr "Auxiliary 14"
+msgstr "ഓക്സിലറി 14"
 
 #: ../src/pulse/channelmap.c:138
 msgid "Auxiliary 15"
-msgstr "Auxiliary 15"
+msgstr "ഓക്സിലറി 15"
 
 #: ../src/pulse/channelmap.c:139
 msgid "Auxiliary 16"
-msgstr "Auxiliary 16"
+msgstr "ഓക്സിലറി 16"
 
 #: ../src/pulse/channelmap.c:140
 msgid "Auxiliary 17"
-msgstr "Auxiliary 17"
+msgstr "ഓക്സിലറി 17"
 
 #: ../src/pulse/channelmap.c:141
 msgid "Auxiliary 18"
-msgstr "Auxiliary 18"
+msgstr "ഓക്സിലറി 18"
 
 #: ../src/pulse/channelmap.c:142
 msgid "Auxiliary 19"
-msgstr "Auxiliary 19"
+msgstr "ഓക്സിലറി 19"
 
 #: ../src/pulse/channelmap.c:143
 msgid "Auxiliary 20"
-msgstr "Auxiliary 20"
+msgstr "ഓക്സിലറി 20"
 
 #: ../src/pulse/channelmap.c:144
 msgid "Auxiliary 21"
-msgstr "Auxiliary 21"
+msgstr "ഓക്സിലറി 21"
 
 #: ../src/pulse/channelmap.c:145
 msgid "Auxiliary 22"
-msgstr "Auxiliary 22"
+msgstr "ഓക്സിലറി 22"
 
 #: ../src/pulse/channelmap.c:146
 msgid "Auxiliary 23"
-msgstr "Auxiliary 23"
+msgstr "ഓക്സിലറി 23"
 
 #: ../src/pulse/channelmap.c:147
 msgid "Auxiliary 24"
-msgstr "Auxiliary 24"
+msgstr "ഓക്സിലറി 24"
 
 #: ../src/pulse/channelmap.c:148
 msgid "Auxiliary 25"
-msgstr "Auxiliary 25"
+msgstr "ഓക്സിലറി 25"
 
 #: ../src/pulse/channelmap.c:149
 msgid "Auxiliary 26"
-msgstr "Auxiliary 26"
+msgstr "ഓക്സിലറി 26"
 
 #: ../src/pulse/channelmap.c:150
 msgid "Auxiliary 27"
-msgstr "Auxiliary 27"
+msgstr "ഓക്സിലറി 27"
 
 #: ../src/pulse/channelmap.c:151
 msgid "Auxiliary 28"
-msgstr "Auxiliary 28"
+msgstr "ഓക്സിലറി 28"
 
 #: ../src/pulse/channelmap.c:152
 msgid "Auxiliary 29"
-msgstr "Auxiliary 29"
+msgstr "ഓക്സിലറി 29"
 
 #: ../src/pulse/channelmap.c:153
 msgid "Auxiliary 30"
-msgstr "Auxiliary 30"
+msgstr "ഓക്സിലറി 30"
 
 #: ../src/pulse/channelmap.c:154
 msgid "Auxiliary 31"
-msgstr "Auxiliary 31"
+msgstr "ഓക്സിലറി 31"
 
 #: ../src/pulse/channelmap.c:156
 msgid "Top Center"
-msgstr "மேல் நடுவில"
+msgstr "മുകളില്‍ മുമ്പില്‍"
 
 #: ../src/pulse/channelmap.c:158
 msgid "Top Front Center"
-msgstr "மேலை முன் நடுவில்"
+msgstr "മുകളില്‍ മുമ്പില്‍ മദ്ധ്യം"
 
 #: ../src/pulse/channelmap.c:159
 msgid "Top Front Left"
-msgstr "மேலே முன் இடது"
+msgstr "മുകളില്‍ മുമ്പില്‍ ഇടത്തു്"
 
 #: ../src/pulse/channelmap.c:160
 msgid "Top Front Right"
-msgstr "மேலே முன் வலது"
+msgstr "മുകളില്‍ മുമ്പില്‍ വലത്തു്"
 
 #: ../src/pulse/channelmap.c:162
 msgid "Top Rear Center"
-msgstr "மேலே பின் நடுவில்"
+msgstr "മുകളില്‍ അവസാനം മദ്ധ്യം"
 
 #: ../src/pulse/channelmap.c:163
 msgid "Top Rear Left"
-msgstr "மேலே பின் இடது"
+msgstr "മുകളില്‍ അവസാനം ഇടത്തു്"
 
 #: ../src/pulse/channelmap.c:164
 msgid "Top Rear Right"
-msgstr "மேலே பின் வலது"
+msgstr "മുകളില്‍ അവസാനം വലത്തു്"
 
 #: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
 #: ../src/pulse/volume.c:295 ../src/pulse/volume.c:321
 #: ../src/pulse/volume.c:341 ../src/pulse/volume.c:371
 msgid "(invalid)"
-msgstr "(தவறான)"
+msgstr "(അസാധു)"
 
 #: ../src/pulse/channelmap.c:761
 msgid "Stereo"
-msgstr "ஸ்டிரியோ"
+msgstr "സ്റ്റീരിയോ"
 
 #: ../src/pulse/channelmap.c:766
 msgid "Surround 4.0"
-msgstr "Surround 4.0"
+msgstr "സറൌണ്ട് 4.0"
 
 #: ../src/pulse/channelmap.c:772
 msgid "Surround 4.1"
-msgstr "Surround 4.1"
+msgstr "സറൌണ്ട് 4.1"
 
 #: ../src/pulse/channelmap.c:778
 msgid "Surround 5.0"
-msgstr "Surround 5.0"
+msgstr "സറൌണ്ട് 5.0"
 
 #: ../src/pulse/channelmap.c:784
 msgid "Surround 5.1"
-msgstr "Surround 5.1"
+msgstr "സറൌണ്ട് 5.1"
 
 #: ../src/pulse/channelmap.c:791
 msgid "Surround 7.1"
-msgstr "Surround 7.1"
+msgstr "സറൌണ്ട് 7.1"
 
 #: ../src/pulse/error.c:43
 msgid "OK"
-msgstr "சரி"
+msgstr "ശരി"
 
 #: ../src/pulse/error.c:44
 msgid "Access denied"
-msgstr "அணுகல் மறுக்கப்பட்டது"
+msgstr "അനുമതി നിഷേധിച്ചിരിക്കുന്നു"
 
 #: ../src/pulse/error.c:45
 msgid "Unknown command"
-msgstr "தெரியாத கட்டளை"
+msgstr "അപരിചിതമായ കമാന്‍ഡ്"
 
 #: ../src/pulse/error.c:46
 msgid "Invalid argument"
-msgstr "தவறான விவாதம்"
+msgstr "തെറ്റായ ആര്‍ഗ്യുമെന്റ്"
 
 #: ../src/pulse/error.c:47
 msgid "Entity exists"
-msgstr "உருப்படி உள்ளது"
+msgstr "എന്റിറ്റി നിലവിലുണ്ടു്"
 
 #: ../src/pulse/error.c:48
 msgid "No such entity"
-msgstr "உருப்படி எதுவும் இல்லை"
+msgstr "അത്തരം എന്റിറ്റിയില്ല"
 
 #: ../src/pulse/error.c:49
 msgid "Connection refused"
-msgstr "இணைப்பு மறுக்கப்பட்டது"
+msgstr "കണക്ഷന്‍ നിഷേധിച്ചിരിക്കുന്നു"
 
 #: ../src/pulse/error.c:50
 msgid "Protocol error"
-msgstr "அறிக்கை பிழை"
+msgstr "പ്രോട്ടോക്കോളില്‍ പിശക്"
 
 #: ../src/pulse/error.c:51
 msgid "Timeout"
-msgstr "நேரம் முடிவுற்றது"
+msgstr "സമയം കഴിഞ്ഞിരിക്കുന്നു"
 
 #: ../src/pulse/error.c:52
 msgid "No authorization key"
-msgstr "அங்கீகார விசை இல்லை"
+msgstr "ഓഥറൈസേഷന്‍ കീ നിലവിലില്ല"
 
 #: ../src/pulse/error.c:53
 msgid "Internal error"
-msgstr "உட்புற பிழை"
+msgstr "ആന്തരിക പിശക്"
 
 #: ../src/pulse/error.c:54
 msgid "Connection terminated"
-msgstr "இணைப்பு துண்டிக்கப்பட்டது"
+msgstr "കണക്ഷന്‍ വിഛേദിച്ചിരിക്കുന്നു"
 
 #: ../src/pulse/error.c:55
 msgid "Entity killed"
-msgstr "உருப்படி நீக்கப்பட்டது"
+msgstr "എന്റിറ്റി ഇല്ലാതാക്കിയിരിക്കുന്നു"
 
 #: ../src/pulse/error.c:56
 msgid "Invalid server"
-msgstr "தவறான புரவலன்"
+msgstr "തെറ്റായ സര്‍വര്‍"
 
 #: ../src/pulse/error.c:57
 msgid "Module initalization failed"
-msgstr "தொகுதியை துவக்க முடியவில்லை"
+msgstr "ഘടകം ആരംഭിക്കുന്നതില്‍ പരാജയപ്പെട്ടു"
 
 #: ../src/pulse/error.c:58
 msgid "Bad state"
-msgstr "தவறான நிலை"
+msgstr "തെറ്റായ അവസ്ഥ"
 
 #: ../src/pulse/error.c:59
 msgid "No data"
-msgstr "தரவு இல்லை"
+msgstr "ഡേറ്റാ ലഭ്യമല്ല"
 
 #: ../src/pulse/error.c:60
 msgid "Incompatible protocol version"
-msgstr "நெறிமுறை பதிப்பு உகந்ததல்ல"
+msgstr "പൊരുത്തപ്പെടാത്ത പ്രോട്ടോക്കോള്‍ പതിപ്പു്"
 
 #: ../src/pulse/error.c:61
 msgid "Too large"
-msgstr "மிகப் பெரியது"
+msgstr "വളരെ വലുതു്"
 
 #: ../src/pulse/error.c:62
 msgid "Not supported"
-msgstr "துணைப்புரியாத"
+msgstr "പിന്തുണ ലഭ്യമല്ല"
 
 #: ../src/pulse/error.c:63
 msgid "Unknown error code"
-msgstr "தெரியாத பிழைக் குறியீடு"
+msgstr "അപരിചിതമായ പിശക് കോഡ്"
 
 #: ../src/pulse/error.c:64
 msgid "No such extension"
-msgstr "இது போன்ற தொடர்ச்சி இல்லை"
+msgstr "അത്തരം എക്സ്റ്റെന്‍ഷന്‍ ലഭ്യമല്ല"
 
 #: ../src/pulse/error.c:65
 msgid "Obsolete functionality"
-msgstr "நீக்கப்படும் செயல்பாடு"
+msgstr "ഇല്ലാതാക്കിയ വിശേഷത"
 
 #: ../src/pulse/error.c:66
 msgid "Missing implementation"
-msgstr "விடுபட்ட செயல்பாடு"
+msgstr "പ്രവര്‍ത്തനം ലഭ്യമല്ല"
 
 #: ../src/pulse/error.c:67
 msgid "Client forked"
-msgstr "கிளையன் நீக்கப்பட்டது"
+msgstr "ക്ലൈന്റ് ഫോര്‍ക്ക് ചെയ്തിരിക്കുന്നു"
 
 #: ../src/pulse/error.c:68
 msgid "Input/Output error"
-msgstr "உள்ளீடு/வெளிப்பாடு பிழை"
+msgstr "ഇന്‍പുട്ട്/ഔട്ട്പുട്ട് പിശക്"
 
 #: ../src/pulse/error.c:69
 msgid "Device or resource busy"
-msgstr "சாதனம் அல்லது மூலம் பணிமிகுதியில்"
+msgstr "ഉപകരണം അല്ലെങ്കില്‍ ഉറവിടം ഉപയോഗത്തില്‍"
 
 #: ../src/pulse/sample.c:172
 #, c-format
@@ -1144,20 +1118,20 @@ msgstr "%u B"
 
 #: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
 msgid "XOpenDisplay() failed"
-msgstr "XOpenகாட்சி() தோல்வியுற்றது"
+msgstr "XOpenDisplay() പരാജയപ്പെട്ടു"
 
 #: ../src/pulse/client-conf-x11.c:93
 msgid "Failed to parse cookie data"
-msgstr "குக்கீ தரவை மாற்றுவதில் தோல்வியுற்றது"
+msgstr "കുക്കി ഡേറ്റാ പാഴ്സ് ചെയ്യുന്നതില്‍ പരാജയപ്പെട്ടു"
 
 #: ../src/pulse/client-conf.c:111
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
-msgstr "'%s'கட்டமைக்கப்பட்ட கோப்பினை திறக்க முடியவில்லை: %s"
+msgstr "ക്രമീകരണ ഫയല്‍ '%s' തുറക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/pulse/context.c:550
 msgid "No cookie loaded. Attempting to connect without."
-msgstr "குக்கி ஏற்றப்படவில்லை. இணைப்பில்லாமல் முயற்சிக்கிறது."
+msgstr "ഒരു കുക്കിയും ലഭ്യമല്ല. അതില്ലാതെ കണക്ട് ചെയ്യുവാന്‍‌ ശ്രമിക്കുന്നു."
 
 #: ../src/pulse/context.c:693
 #, c-format
@@ -1172,20 +1146,20 @@ msgstr "waitpid(): %s"
 #: ../src/pulse/context.c:1438
 #, c-format
 msgid "Received message for unknown extension '%s'"
-msgstr "தெரியாத தொடரிச்சியிலிருந்து '%s'க்கு செய்திகள் பெறப்பட்டன"
+msgstr "അപരിചിതമായ എക്സ്റ്റെന്‍ഷന്‍ '%s'-നുള്ള സന്ദേശം ലഭിച്ചിരിക്കുന്നു"
 
 #: ../src/utils/pacat.c:108
 #, c-format
 msgid "Failed to drain stream: %s"
-msgstr "ஸ்டீரிமை இழக்க முடியவில்லை: %s"
+msgstr "സ്ട്രീം ഡ്രെയിന്‍ ചെയ്യുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pacat.c:113
 msgid "Playback stream drained."
-msgstr "பின்னணி ஸ்டீரிம் இழக்கப்படுகிறது."
+msgstr "പ്ലേബാക്ക് സ്ട്രീം ഡ്രെയിന്‍ ചെയ്തിരിക്കുന്നു."
 
 #: ../src/utils/pacat.c:123
 msgid "Draining connection to server."
-msgstr "சேவையகத்திற்கு இணைப்பு இழக்கப்படுகிறது."
+msgstr "സര്‍വറിലേക്കുള്ള കണക്ഷന്‍ ഡ്രെയിന്‍ ചെയ്യുന്നു."
 
 #: ../src/utils/pacat.c:136
 #, c-format
@@ -1195,143 +1169,143 @@ msgstr "pa_stream_drain(): %s"
 #: ../src/utils/pacat.c:159
 #, c-format
 msgid "pa_stream_write() failed: %s"
-msgstr "pa_stream_write() தோல்வியுற்றது: %s"
+msgstr "pa_stream_write() പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pacat.c:197
 #, c-format
 msgid "pa_stream_begin_write() failed: %s"
-msgstr "pa_stream_write() தோல்வியுற்றது: %s"
+msgstr "pa_stream_begin_write() പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267
 #, c-format
 msgid "pa_stream_peek() failed: %s"
-msgstr "pa_stream_peek() தோல்வியுற்றது: %s"
+msgstr "pa_stream_peek() പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pacat.c:307
 msgid "Stream successfully created."
-msgstr "ஸ்டிரீம் வெற்றிகரமாக உருவாக்கப்பட்டது."
+msgstr "സ്ട്രീം വിജയകരമായി ഉണ്ടാക്കിയിരിക്കുന്നു."
 
 #: ../src/utils/pacat.c:310
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s"
-msgstr "pa_stream_get_buffer_attr() தோல்வியுற்றது: %s"
+msgstr "pa_stream_get_buffer_attr() പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pacat.c:314
 #, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
-msgstr "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
+msgstr "ബഫര്‍ മെട്രിക്സ്: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 
 #: ../src/utils/pacat.c:317
 #, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u"
-msgstr "Buffer metrics: maxlength=%u, fragsize=%u"
+msgstr "ബഫര്‍ മെട്രിക്സ്: maxlength=%u, fragsize=%u"
 
 #: ../src/utils/pacat.c:321
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'."
-msgstr "குறிப்பிட்ட குறிப்பு '%s', சேனல் வரைபடத்தை '%s'ஐ பயன்படுத்துகிறது."
+msgstr "സാംപിള്‍ സ്പെക് '%s', ചാനല്‍ മാപ്പ് '%s' ഉപയോഗിക്കുന്നു."
 
 #: ../src/utils/pacat.c:325
 #, c-format
 msgid "Connected to device %s (%u, %ssuspended)."
-msgstr "%s சாதனத்துடன் இணைக்கப்பட்டது (%u, %ssuspended)."
+msgstr "ഡിവൈസ് %s-ലേക്ക് കണക്ട് ചെയ്തിരിക്കുന്നു (%u, %ssuspended)."
 
 #: ../src/utils/pacat.c:335
 #, c-format
 msgid "Stream error: %s"
-msgstr "ஸ்டிரீம் பிழை: %s"
+msgstr "സ്ട്രീം പിശക്: %s"
 
 #: ../src/utils/pacat.c:345
 #, c-format
 msgid "Stream device suspended.%s"
-msgstr "ஸ்டீரிம் சாதனம் இடைநீக்கப்பட்டது.%s"
+msgstr "സ്ട്രീം ഡിവൈസ് സസ്പെന്‍ഡ് ചെയ്തിരിക്കുന്നു.%s"
 
 #: ../src/utils/pacat.c:347
 #, c-format
 msgid "Stream device resumed.%s"
-msgstr "ஸ்டீரிம் சாதனம் தொடர்கிறது.%s"
+msgstr "സ്ട്രീം ഡിവൈസ് വീണ്ടും ആരംഭിച്ചിരിക്കുന്നു.%s"
 
 #: ../src/utils/pacat.c:355
 #, c-format
 msgid "Stream underrun.%s"
-msgstr "ஸ்டீரிம் இயங்குகிறது.%s"
+msgstr "സ്ട്രീം അണ്ടര്‍റണ്‍.%s"
 
 #: ../src/utils/pacat.c:362
 #, c-format
 msgid "Stream overrun.%s"
-msgstr "ஸ்டீரிம் அதிகளவு இயங்கியது.%s"
+msgstr "സ്ട്രീ ഓവര്‍റണ്‍.%s"
 
 #: ../src/utils/pacat.c:369
 #, c-format
 msgid "Stream started.%s"
-msgstr "ஸ்டிரீம் %s துவக்கப்பட்டது"
+msgstr "സ്ട്രീം ആരംഭിച്ചിരിക്കുന്നു.%s"
 
 #: ../src/utils/pacat.c:376
 #, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s"
-msgstr "ஸ்டிரீம் %s சாதனத்திற்கு நகர்ந்தது (%u, %ssuspended).%s"
+msgstr "ഡിവൈസ് %s-ലേക്ക് സ്ട്രീം നീക്കം ചെയ്തിരിക്കുന്നു (%u, %ssuspended).%s"
 
 #: ../src/utils/pacat.c:376
 msgid "not "
-msgstr "இல்லை"
+msgstr "അല്ല"
 
 #: ../src/utils/pacat.c:383
 #, c-format
 msgid "Stream buffer attributes changed.%s"
-msgstr "ஸ்டீரிம் ஃபப்பர் பண்புகளை மாற்றப்பட்டது.%s"
+msgstr "സ്ട്രീം ബഫര്‍ വിശേഷതകള്‍ മാറ്റിയിരിക്കുന്നു.%s"
 
 #: ../src/utils/pacat.c:415
 #, c-format
 msgid "Connection established.%s"
-msgstr "இணைப்பு துவக்கப்பட்டது.%s"
+msgstr "കണക്ഷന്‍ സ്ഥാപിച്ചിരിക്കുന്നു.%s"
 
 #: ../src/utils/pacat.c:418
 #, c-format
 msgid "pa_stream_new() failed: %s"
-msgstr "pa_stream_new() தோல்வியுற்றது: %s"
+msgstr "pa_stream_new() പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pacat.c:450
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s"
-msgstr "pa_stream_connect_playback() தோல்வியுற்றது: %s"
+msgstr "pa_stream_connect_playback() പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pacat.c:456
 #, c-format
 msgid "pa_stream_connect_record() failed: %s"
-msgstr "pa_stream_connect_record() தோல்வியுற்றது: %s"
+msgstr "pa_stream_connect_record() പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pacat.c:470 ../src/utils/pactl.c:857
 #, c-format
 msgid "Connection failure: %s"
-msgstr "இணைப்பதில் தோல்வி: %s"
+msgstr "കണക്ഷനില്‍ തകരാര്‍: %s"
 
 #: ../src/utils/pacat.c:503
 msgid "Got EOF."
-msgstr "EOF கிடைக்கப் பெற்றது"
+msgstr "EOF ലഭ്യമായിരിക്കുന്നു"
 
 #: ../src/utils/pacat.c:540
 #, c-format
 msgid "write() failed: %s"
-msgstr "எழுதுவதில் () தோல்வியுற்றது: %s"
+msgstr "write() പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pacat.c:561
 msgid "Got signal, exiting."
-msgstr "சிக்னல் கிடைத்தது, வெளியேறுகிறது."
+msgstr "സിഗ്നല്‍ ലഭ്യമായി, പുറത്തു് കടക്കുന്നു."
 
 #: ../src/utils/pacat.c:575
 #, c-format
 msgid "Failed to get latency: %s"
-msgstr "லடன்சியை பெற முடியவில்லை: %s"
+msgstr "ലാറ്റന്‍സി ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pacat.c:580
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr "Time: %0.3f sec; Latency: %0.0f usec."
+msgstr "സമയം: %0.3f sec; ലാറ്റന്‍സി: %0.0f usec."
 
 #: ../src/utils/pacat.c:599
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
-msgstr "pa_stream_update_timing_info() தோல்வி: %s"
+msgstr "pa_stream_update_timing_info() പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pacat.c:609
 #, c-format
@@ -1456,47 +1430,47 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 "pacat %s\n"
-"Compiled with libpulse %s\n"
-"Linked with libpulse %s\n"
+"libpulse %s-നൊപ്പം കംപൈല്‍ ചെയ്തിരിക്കുന്നു\n"
+"libpulse %s-നൊപ്പം ലിങ്ക് ചെയ്തിരിക്കുന്നു\n"
 
 #: ../src/utils/pacat.c:764 ../src/utils/pactl.c:953
 #, c-format
 msgid "Invalid client name '%s'"
-msgstr "தவறான கிளையன் பெயர் '%s'"
+msgstr "തെറ്റായ ക്ലൈന്റ് നാമം '%s'"
 
 #: ../src/utils/pacat.c:779
 #, c-format
 msgid "Invalid stream name '%s'"
-msgstr "தவறான ஸ்டீரீம் பெயர் '%s'."
+msgstr "തെറ്റായ സ്ട്രീം നാമം '%s'"
 
 #: ../src/utils/pacat.c:816
 #, c-format
 msgid "Invalid channel map '%s'"
-msgstr "தவறான சேனல் வரைபடம் '%s'"
+msgstr "തെറ്റായ ചാനല്‍ മാപ്പ് '%s'"
 
 #: ../src/utils/pacat.c:845
 #, c-format
 msgid "Invalid latency specification '%s'"
-msgstr "தவறான லேடன்சி குறிப்பீடு '%s'"
+msgstr "തെറ്റായ ലാറ്റന്‍സി വിവരണം '%s'"
 
 #: ../src/utils/pacat.c:852
 #, c-format
 msgid "Invalid process time specification '%s'"
-msgstr "தவறான செயல் நேர குறிப்பீடு '%s'"
+msgstr "തെറ്റായ പ്രക്രിയ സമയ വിവരണം '%s'"
 
 #: ../src/utils/pacat.c:864
 #, c-format
 msgid "Invalid property '%s'"
-msgstr "தவறான தன்மை '%s'."
+msgstr "തെറ്റായ വിശേഷത '%s'"
 
 #: ../src/utils/pacat.c:881
 #, c-format
 msgid "Unknown file format %s."
-msgstr "தெரியாத கோப்பு வடிவம் %s."
+msgstr "അപരിചിതമായ ഫയല്‍ രീതി %s."
 
 #: ../src/utils/pacat.c:900
 msgid "Invalid sample specification"
-msgstr "தவறான மாதிரி குறிப்பீடு"
+msgstr "തെറ്റായ മാതൃക വിവരണം"
 
 #: ../src/utils/pacat.c:910
 #, c-format
@@ -1510,78 +1484,77 @@ msgstr "dup2(): %s"
 
 #: ../src/utils/pacat.c:922
 msgid "Too many arguments."
-msgstr "நிறைய விவாதங்கள்."
+msgstr "അനവധി ആര്‍ഗ്യുമെന്റുകള്‍."
 
 #: ../src/utils/pacat.c:933
 msgid "Failed to generate sample specification for file."
-msgstr "மாதிரி தகவலை பெற முடியவில்லை.: %s"
+msgstr "ഫയലിനുള്ള സാംപിള്‍ വിവരണം ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
 #: ../src/utils/pacat.c:953
 msgid "Failed to open audio file."
-msgstr "ஒலி கோப்பினை திறக்க முடியவில்லை."
+msgstr "ഓ‍ഡിയോ ഫയല്‍ തുറക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
 #: ../src/utils/pacat.c:959
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
 msgstr ""
-"எச்சரிக்கை: கோப்பிலிருந்து குறிப்பீட்டுடன் குறிக்கிட்ட மாதிரி குறிப்பீடு மேலெழுதப்படலாம்."
+"മുന്നറിയിപ്പു്: ഫയലില്‍ നിന്നുള്ള വിവരണം വ്യക്തമാക്കിയിരിക്കുന്ന സാംപിള്‍ വിവരണം മാറ്റിയെഴുതുന്നു."
 
 #: ../src/utils/pacat.c:962 ../src/utils/pactl.c:997
 msgid "Failed to determine sample specification from file."
-msgstr "கோப்பிலிருந்து மாதிரி குறிப்பீட்டை  வரையறுக்க முடியவில்லை."
+msgstr "ഫയലില്‍ നിന്നും സാംപിള്‍ വിവരണം ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
 #: ../src/utils/pacat.c:971
 msgid "Warning: Failed to determine channel map from file."
-msgstr "எச்சரிக்கை: கோப்பிலிருந்து சேனல் வரைபடத்தை வரையறுக்க முடியவில்லை."
+msgstr "മുന്നറിയിപ്പു്: ഫയലില്‍ നിന്നും ചാനല്‍ മാപ്പ് ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
 #: ../src/utils/pacat.c:982
 msgid "Channel map doesn't match sample specification"
-msgstr "சேனல் வரைபடம் மாதிரி குறிப்பீட்டுடன் பொருந்தவில்லை"
+msgstr "ചാനല്‍ മാപ്പ് സാംപിള്‍ വിവരണവുമായി ചേരുന്നില്ല"
 
 #: ../src/utils/pacat.c:993
 msgid "Warning: failed to write channel map to file."
-msgstr "எச்சரிக்கை: கோப்புக்கு சேனல் வரைபடத்தை எழுத முடியவில்லை."
+msgstr "മുന്നറിയിപ്പു്: ഫയലിലേക്ക് ചാനല്‍ മാപ്പ് സൂക്ഷിക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
 #: ../src/utils/pacat.c:1008
 #, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
-msgstr ""
-"ஒரு %s ஸ்டீரம் மாதிரி குறிப்பீட்டை '%s' மற்றும் சேனல் வரைபட்டம் '%s' உடன் திறக்கிறது."
+msgstr "%s സ്ട്രീം തുറക്കുന്നു. ഇതിന്റെ സാംപിള്‍ വിവരണം '%s'-ഉം ചാനല്‍ മാപ്പ് '%s'-ഉം ആണു്."
 
 #: ../src/utils/pacat.c:1009
 msgid "recording"
-msgstr "ஒலிப்பதிவு"
+msgstr "റിക്കോര്‍ഡ് ചെയ്യുന്നു"
 
 #: ../src/utils/pacat.c:1009
 msgid "playback"
-msgstr "பிண்ணனி"
+msgstr "പ്ലേബാക്ക്"
 
 #: ../src/utils/pacat.c:1035 ../src/utils/pactl.c:1267
 msgid "pa_mainloop_new() failed."
-msgstr "pa_mainloop_new() தோல்வி."
+msgstr "pa_mainloop_new() പരാജയപ്പെട്ടു."
 
 #: ../src/utils/pacat.c:1054
 msgid "io_new() failed."
-msgstr "io_new() தோல்வியுற்றது."
+msgstr "io_new() പരാജയപ്പെട്ടു."
 
 #: ../src/utils/pacat.c:1061 ../src/utils/pactl.c:1279
 msgid "pa_context_new() failed."
-msgstr "pa_context_new() தோல்வி."
+msgstr "pa_context_new() പരാജയപ്പെട്ടു."
 
 #: ../src/utils/pacat.c:1069 ../src/utils/pactl.c:1285
 #, c-format
 msgid "pa_context_connect() failed: %s"
-msgstr "pa_context_connect() தோல்வி: %s"
+msgstr "pa_context_connect() പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pacat.c:1075
 msgid "pa_context_rttime_new() failed."
-msgstr "pa_context_rttime_new() தோல்வியுற்றது."
+msgstr "pa_context_rttime_new() പരാജയപ്പെട്ടു."
 
 #: ../src/utils/pacat.c:1082 ../src/utils/pactl.c:1290
 msgid "pa_mainloop_run() failed."
-msgstr "pa_mainloop_run() தோல்வி."
+msgstr "pa_mainloop_run() പരാജയപ്പെട്ടു."
 
 #: ../src/utils/pasuspender.c:81
 #, c-format
@@ -1596,32 +1569,32 @@ msgstr "execvp(): %s\n"
 #: ../src/utils/pasuspender.c:109
 #, c-format
 msgid "Failure to suspend: %s\n"
-msgstr "நீக்க முடியவில்லை: %s\n"
+msgstr "സസ്പെന്‍ഡ് ചെയ്യുന്നതില്‍ പരാജയപ്പെട്ടു: %s\n"
 
 #: ../src/utils/pasuspender.c:124
 #, c-format
 msgid "Failure to resume: %s\n"
-msgstr "தொடர முடியவில்லை: %s\n"
+msgstr "വീണ്ടും ആരംഭിക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s\n"
 
 #: ../src/utils/pasuspender.c:147
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
-msgstr "எச்சரிக்கை: ஒலி சேவையம் உள்ளமைவாக இல்லை, இடைநிறுத்தப்படவில்லை.\n"
+msgstr "മുന്നറിയിപ്പു്: ശബ്ദ സര്‍വര്‍ ലോക്കലല്ല, സസ്പെന്‍ഡ് ചെയ്യുന്നില്ല.\n"
 
 #: ../src/utils/pasuspender.c:159
 #, c-format
 msgid "Connection failure: %s\n"
-msgstr "இணைப்பதில் தோல்வி: %s\n"
+msgstr "കണക്ഷനില്‍ തകരാര്‍: %s\n"
 
 #: ../src/utils/pasuspender.c:176
 #, c-format
 msgid "Got SIGINT, exiting.\n"
-msgstr "SIGINT பெறப்பட்டது, வெளியேறுகிறது.\n"
+msgstr "SIGINT ലഭിച്ചു, പുറത്തു് കടക്കുന്നു.\n"
 
 #: ../src/utils/pasuspender.c:194
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr "எச்சரிக்கை: சேய் செயல் சிக்னல் %uஆல் முடிக்கப்பட்டது\n"
+msgstr "മുന്നറിയിപ്പു്: %u സിഗ്നല്‍ വഴി ചൈള്‍ പ്രക്രിയ അവസാനിച്ചിരിക്കുന്നു\n"
 
 #: ../src/utils/pasuspender.c:212
 #, c-format
@@ -1634,11 +1607,12 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [விருப்பங்கள்] ... \n"
+"%s [options] ... \n"
 "\n"
-"  -h, --உதவி                            இந்த உதவியை காட்டு\n"
-"      --பதிப்பு                         பதிப்பினைக் காட்டு\n"
-"  -s, --சேவையகம்=SERVER                   பெயரிடப்பட்ட சேவையகம் இணைக்கப்பட வேண்டும்\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
 "\n"
 
 #: ../src/utils/pasuspender.c:248
@@ -1649,49 +1623,48 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 "pasuspender %s\n"
-"Compiled with libpulse %s\n"
-"Linked with libpulse %s\n"
+"libpulse %s-നൊപ്പം കംപൈല്‍ ചെയ്തിരിക്കുന്നു\n"
+"libpulse %s-നൊപ്പം ലിങ്ക് ചെയ്തിരിക്കുന്നു\n"
 
 #: ../src/utils/pasuspender.c:277
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
-msgstr "pa_mainloop_new() தோல்வி.\n"
+msgstr "pa_mainloop_new() പരാജയപ്പെട്ടു.\n"
 
 #: ../src/utils/pasuspender.c:290
 #, c-format
 msgid "pa_context_new() failed.\n"
-msgstr "pa_context_new() தோல்வி.\n"
+msgstr "pa_context_new() പരാജയപ്പെട്ടു..\n"
 
 #: ../src/utils/pasuspender.c:298
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
-msgstr "pa_mainloop_run() தோல்வி.\n"
+msgstr "pa_mainloop_run() പരാജയപ്പെട്ടു.\n"
 
 #: ../src/utils/pactl.c:135
 #, c-format
 msgid "Failed to get statistics: %s"
-msgstr "புள்ளிவிவரத்தை பெற முடியவில்லை: %s"
+msgstr "സ്ഥിതിവിവരക്കണക്കുകള്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pactl.c:141
 #, c-format
 msgid "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr "தற்போது பயனிலுள்ளது: %u தொகுதிகள் %s பைட்களை மொத்தமாக கொண்டுள்ளது.\n"
+msgstr "നിലവില്‍ ഉപയോഗത്തില്‍: %u ബ്ലോക്കുകള്‍, മൊത്തം %s ബൈറ്റുകള്‍ അടങ്ങുന്നു.\n"
 
 #: ../src/utils/pactl.c:144
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr ""
-"வாழ்க்கை முழுவதும் ஒதுக்கப்பட்டது: %u தொகுதிகள் %s பைட்களை மொத்தமாக கொண்டுள்ளது.\n"
+msgstr "കാലാവധിയ്ക്കുള്ളില്‍ അനുവദിക്കുന്നു: %u ബ്ലോക്കുകള്‍, മൊത്തം %s ബൈറ്റുകള്‍ അടങ്ങുന്നു.\n"
 
 #: ../src/utils/pactl.c:147
 #, c-format
 msgid "Sample cache size: %s\n"
-msgstr "மாதிரி இடையக அளவு: %s\n"
+msgstr "സാംപിള്‍ കാഷ് വ്യപ്തി: %s\n"
 
 #: ../src/utils/pactl.c:156
 #, c-format
 msgid "Failed to get server information: %s"
-msgstr "சேவையகத்தின் தகவலை பெற முடியவில்லை: %s"
+msgstr "സര്‍വര്‍ വിവരങ്ങള്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pactl.c:164
 #, c-format
@@ -1706,20 +1679,20 @@ msgid ""
 "Default Source: %s\n"
 "Cookie: %08x\n"
 msgstr ""
-"பயனர் பெயர்: %s\n"
-"புரவலன் பெயர்: %s\n"
-"Server பெயர்: %s\n"
-"Server பதிப்பு: %s\n"
+"User name: %s\n"
+"Host Name: %s\n"
+"Server Name: %s\n"
+"Server Version: %s\n"
 "Default Sample Specification: %s\n"
 "Default Channel Map: %s\n"
 "Default Sink: %s\n"
-"முன்னிருப்பு மூலங்கள்: %s\n"
-"கூக்கி: %08x\n"
+"Default Source: %s\n"
+"Cookie: %08x\n"
 
 #: ../src/utils/pactl.c:205
 #, c-format
 msgid "Failed to get sink information: %s"
-msgstr "சுருக்கமான தகவலை பெறு முடியவில்லை: %s"
+msgstr "സിങ്ക് വിവരം ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pactl.c:221
 #, c-format
@@ -1742,17 +1715,17 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"சுருக்கம் #%u\n"
-"\tமாநிலம்: %s\n"
-"\tபெயர்: %s\n"
-"\tவிளக்கம்: %s\n"
-"\tஇயக்கி: %s\n"
+"Sink #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
 "\tSample Specification: %s\n"
 "\tChannel Map: %s\n"
-"\tOwner முறைமை: %u\n"
+"\tOwner Module: %u\n"
 "\tMute: %s\n"
 "\tVolume: %s%s%s\n"
-"\t        மீதி %0.2f\n"
+"\t        balance %0.2f\n"
 "\tBase Volume: %s%s%s\n"
 "\tMonitor Source: %s\n"
 "\tLatency: %0.0f usec, configured %0.0f usec\n"
@@ -1763,17 +1736,17 @@ msgstr ""
 #: ../src/utils/pactl.c:268 ../src/utils/pactl.c:360
 #, c-format
 msgid "\tPorts:\n"
-msgstr "\tPorts:\n"
+msgstr "\tപോര്‍ട്ടുകള്‍:\n"
 
 #: ../src/utils/pactl.c:274 ../src/utils/pactl.c:366
 #, c-format
 msgid "\tActive Port: %s\n"
-msgstr "\tசெயல்பாட்டிலுள்ள விவரக்குறிப்புகள்: %s\n"
+msgstr "\tസജീവമായ പോര്‍ട്ട്: %s\n"
 
 #: ../src/utils/pactl.c:297
 #, c-format
 msgid "Failed to get source information: %s"
-msgstr "மூலத்தின் தகவலை பெற இயலவில்லை: %s"
+msgstr "സോഴ്സ് വിവരങ്ങള്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pactl.c:313
 #, c-format
@@ -1796,22 +1769,22 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"மூலம் #%u\n"
-"\tநிலை: %s\n"
-"\tபெயர்: %s\n"
-"\tவிளக்கம்: %s\n"
-"\tஇயக்கி: %s\n"
-"\tமாதிரி குறிப்பிடுதல்: %s\n"
-"\tசேனல் வரைபடம்.: %s\n"
-"\tஉரிமையாளர் தொகுதி: %u\n"
-"\tநிறுத்தப்பட்டது: %s\n"
-"\tஒலி: %s%s%s\n"
-"\t        மீதி %0.2f\n"
-"\tஅடிப்படை ஒலி: %s%s%s\n"
-"\tகணினி சுருங்கப்பட்டது: %s\n"
-"\tLatency: %0.0f usec, கட்டமைக்கப்பட்டது %0.0f usec\n"
-"\tகொடிகள்: %s%s%s%s%s%s\n"
-"\tபண்புகள்:\n"
+"Source #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s%s%s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s%s%s\n"
+"\tMonitor of Sink: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:345 ../src/utils/pactl.c:401 ../src/utils/pactl.c:436
@@ -1825,7 +1798,7 @@ msgstr "n/a"
 #: ../src/utils/pactl.c:375
 #, c-format
 msgid "Failed to get module information: %s"
-msgstr "தொகுதி தகவலை பெற முடியவில்லை: %s"
+msgstr "ഘടക വിവരങ്ങള്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pactl.c:393
 #, c-format
@@ -1837,17 +1810,17 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"தொகுதி #%u\n"
-"\tபெயர்: %s\n"
-"\tவிவாதம்: %s\n"
-"\tபயன்படுத்தும் கவுன்டர்: %s\n"
-"\tபண்புகள்:\n"
+"Module #%u\n"
+"\tName: %s\n"
+"\tArgument: %s\n"
+"\tUsage counter: %s\n"
+"\tProperties:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:412
 #, c-format
 msgid "Failed to get client information: %s"
-msgstr "கிளையன்ட் தகவலை பெற முடியவில்லை: %s"
+msgstr "ക്ലൈന്റ് വിവരങ്ങള്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pactl.c:430
 #, c-format
@@ -1858,16 +1831,16 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"கிளையன்ட் #%u\n"
-"\tஇயக்கி: %s\n"
-"\tஉரிமையாளர் தொகுதி: %s\n"
-"\tபண்புகள்:\n"
+"Client #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:447
 #, c-format
 msgid "Failed to get card information: %s"
-msgstr "அட்டை தகவலை பெற முடியவில்லை: %s"
+msgstr "കാര്‍ഡ് വിവരങ്ങള്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pactl.c:465
 #, c-format
@@ -1889,17 +1862,17 @@ msgstr ""
 #: ../src/utils/pactl.c:479
 #, c-format
 msgid "\tProfiles:\n"
-msgstr "\tவிவரக்குறிப்புகள்:\n"
+msgstr "\tപ്രൊഫൈലുകള്‍:\n"
 
 #: ../src/utils/pactl.c:485
 #, c-format
 msgid "\tActive Profile: %s\n"
-msgstr "\tசெயல்பாட்டிலுள்ள விவரக்குறிப்புகள்: %s\n"
+msgstr "\tസജീവമായ പ്രൊഫൈല്‍: %s\n"
 
 #: ../src/utils/pactl.c:496
 #, c-format
 msgid "Failed to get sink input information: %s"
-msgstr "சிங்க் தகவலை பெற முடியவில்லை: %s"
+msgstr "സിങ്ക് ഇന്‍പുട്ട് വിവരങ്ങള്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pactl.c:515
 #, c-format
@@ -1941,7 +1914,7 @@ msgstr ""
 #: ../src/utils/pactl.c:554
 #, c-format
 msgid "Failed to get source output information: %s"
-msgstr "மூல வெளிப்பாடு தகவலை பெற முடியவில்லை: %s"
+msgstr "സോഴ്സ് ഔട്ട്പുട്ട് വിവരം ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pactl.c:574
 #, c-format
@@ -1975,7 +1948,7 @@ msgstr ""
 #: ../src/utils/pactl.c:605
 #, c-format
 msgid "Failed to get sample information: %s"
-msgstr "மாதிரி தகவலை பெற முடியவில்லை.: %s"
+msgstr "മാതൃകയുടെ വിവരങ്ങള്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pactl.c:623
 #, c-format
@@ -2011,20 +1984,20 @@ msgstr ""
 #: ../src/utils/pactl.c:653 ../src/utils/pactl.c:663
 #, c-format
 msgid "Failure: %s"
-msgstr "தோல்வி: %s"
+msgstr "പരാജയം: %s"
 
 #: ../src/utils/pactl.c:687
 #, c-format
 msgid "Failed to upload sample: %s"
-msgstr "மாதிரியை மேம்படுத்த முடியவில்லை: %s"
+msgstr "മാതൃക അപ്ലോഡ് ചെയ്യുന്നതില്‍ പരാജയപ്പെട്ടു: %s"
 
 #: ../src/utils/pactl.c:704
 msgid "Premature end of file"
-msgstr "முன்னாக கோப்பு முடித்தல்"
+msgstr "ഫയല്‍ അനുചിതമായ അവസാനം"
 
 #: ../src/utils/pactl.c:863
 msgid "Got SIGINT, exiting."
-msgstr "SIGINT பெறப்பட்டது, வெளியேறுகிறது."
+msgstr "SIGINT ലഭ്യമായി, പുറത്തു് കടക്കുന്നു."
 
 #: ../src/utils/pactl.c:869
 #, c-format
@@ -2097,111 +2070,111 @@ msgid ""
 "Linked with libpulse %s\n"
 msgstr ""
 "pactl %s\n"
-"Compiled with libpulse %s\n"
-"Linked with libpulse %s\n"
+"libpulse %s-നൊപ്പം കംപൈല്‍ ചെയ്തിരിക്കുന്നു\n"
+"libpulse %s-നൊപ്പം ലിങ്ക് ചെയ്തിരിക്കുന്നു\n"
 
 #: ../src/utils/pactl.c:979
 msgid "Please specify a sample file to load"
-msgstr "ஏற்றுவதற்கு ஒரு மாதிரி கோப்பினை குறிப்பிடவும்"
+msgstr "ലഭ്യമാക്കുന്നതിലുള്ള മാതൃകാ ഫയല്‍ ദയവായി വ്യക്തമാക്കുക"
 
 #: ../src/utils/pactl.c:992
 msgid "Failed to open sound file."
-msgstr "ஒலி கோப்பினை திறக்க முடியவில்லை."
+msgstr "ശബ്ദ ഫയല്‍ തുറക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
 #: ../src/utils/pactl.c:1004
 msgid "Warning: Failed to determine sample specification from file."
-msgstr "எச்சரிக்கை: கோப்பிலிருந்து மாதிரி குறிப்பீட்டை வரையறுக்க முடியவில்லை."
+msgstr "മുന്നറിയിപ്പു്: ഫയലില്‍ നിന്നും മാതൃകയുടെ വിവരണം കണ്ടുപിടിക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
 #: ../src/utils/pactl.c:1014
 msgid "You have to specify a sample name to play"
-msgstr "இயக்கிவதற்கு நீங்கள் ஒரு மாதிரி பெயர் குறிப்பிட வேண்டும்"
+msgstr "പ്രവര്‍ത്തിപ്പിക്കുവാനുള്ള മാതൃകയുടെ പേരു് നല്‍കേണ്ടതുണ്ടു്"
 
 #: ../src/utils/pactl.c:1026
 msgid "You have to specify a sample name to remove"
-msgstr "நீக்குவதற்கு நீங்கள் ஒரு மாதிரி பெயர் குறிப்பிட வேண்டும்"
+msgstr "നീക്കം ചെയ്യുന്നതിനുള്ള മാതൃകയുടെ പേരു് നല്‍കേണ്ടതുണ്ടു്"
 
 #: ../src/utils/pactl.c:1035
 msgid "You have to specify a sink input index and a sink"
-msgstr "நீங்கள் ஒரு சிங்க் உள்ளீடு சுட்டி மற்றும் ஒரு சிங்கை குறிப்பிட வேண்டும்"
+msgstr "ഒരു സിങ്ക് ഇന്‍പുട്ട് ഇന്‍ഡക്സും സിങ്കും നല്‍കേണ്ടതുണ്ടു്"
 
 #: ../src/utils/pactl.c:1045
 msgid "You have to specify a source output index and a source"
-msgstr "நீங்கள் ஒரு மூல வெளிப்பாடு சுட்டி மற்றும் ஒரு மூலத்தை குறிப்பிட வேண்டும்"
+msgstr "ഒരു സോഴ്സ് ഔട്ട്പുട്ട് ഇന്‍ഡക്സും സോഴ്സും നല്‍കേണ്ടതുണ്ടു്"
 
 #: ../src/utils/pactl.c:1060
 msgid "You have to specify a module name and arguments."
-msgstr "தொகுதி பெயர் மற்றும் விவாதங்களை நீங்கள் குறிப்பிட வேண்டும்."
+msgstr "ഒരു മൌഡ്യൂള്‍ നാമവും ആര്‍ഗ്യുമെന്റുകളും നല്‍കേണ്ടതുണ്ടു്."
 
 #: ../src/utils/pactl.c:1080
 msgid "You have to specify a module index"
-msgstr "தொகுதி அட்டவணையை நீங்கள் குறிப்பிட வேண்டும்"
+msgstr "ഒരു മൌഡ്യൂള്‍ ഇന്‍ഡക്സ് നല്‍കേണ്ടതുണ്ടു്"
 
 #: ../src/utils/pactl.c:1090
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
-"ஒரு சிங்கிற்கு மேல் நீங்கள் குறிப்பிடக் கூடாது. பூலியன் மதிப்பை நீங்கள் குறிப்பிட வேண்டும்."
+"ഒരു സിങ്കില്‍ കൂടുതല്‍ നിങ്ങള്‍ നല്‍കേണ്ടതില്ല. കൂടാതെ, ഒരു ബൂളിയന്‍ മൂല്ല്യവും നിങ്ങള്‍ നല്‍കേണ്ടതാണു്."
 
 #: ../src/utils/pactl.c:1103
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
 msgstr ""
-"ஒரு மூலத்திற்கு மேல் நீங்கள் குறிப்பிடக் கூடாது. பூலியன் மதிப்பை நீங்கள் குறிப்பிட வேண்டும்."
+"ഒരു സോഴ്സില്‍ കൂടുതല്‍ നിങ്ങള്‍ നല്‍കേണ്ടതില്ല. കൂടാതെ, ഒരു ബൂളിയന്‍ മൂല്ല്യവും നിങ്ങള്‍ നല്‍കേണ്ടതാണു്."
 
 #: ../src/utils/pactl.c:1115
 msgid "You have to specify a card name/index and a profile name"
-msgstr "ஒரு அட்டை பெயர்/ முன்பக்கம் மற்றும் ஒரு விவரச்சீட்டு பெயர் நீங்கள் குறிப்பிட வேண்டும்"
+msgstr "ഒരു കാര്‍ഡ് നാമം/ഇന്‍ഡക്സും പ്രൊഫൈല്‍ നാമവും നല്‍കേണ്ടതുണ്ടു്"
 
 #: ../src/utils/pactl.c:1126
 msgid "You have to specify a sink name/index and a port name"
-msgstr "நீங்கள் ஒரு சிங்க் பெயர்/ முன்பக்கம் மற்றும் ஒரு துறைப் பெயரை குறிப்பிட வேண்டும்"
+msgstr "ഒരു സിങ്ക് നാമം/ഇന്‍ഡക്സും പോര്‍ട്ട് നാമവും നല്‍കേണ്ടതുണ്ടു്"
 
 #: ../src/utils/pactl.c:1137
 msgid "You have to specify a source name/index and a port name"
-msgstr "ஒரு மூலப் பெயர்/ முன்பக்கம் மற்றும் ஒரு துறைப் பெயர் நீங்கள் குறிப்பிட வேண்டும்"
+msgstr "ഒരു സോഴ്സ് നാമം/ഇന്‍ഡക്സും പോര്‍ട്ട് നാമവും നല്‍കേണ്ടതുണ്ടു്"
 
 #: ../src/utils/pactl.c:1149
 msgid "You have to specify a sink name/index and a volume"
-msgstr "நீங்கள் ஒரு சிங்க் பெயர்/ முன்பக்கம் மற்றும் ஒரு துறைப் பெயரை குறிப்பிட வேண்டும்"
+msgstr "ഒരു സിങ്ക് നാമം/ഇന്‍ഡക്സും വോള്യവും നല്‍കേണ്ടതുണ്ടു്"
 
 #: ../src/utils/pactl.c:1154 ../src/utils/pactl.c:1171
 #: ../src/utils/pactl.c:1193 ../src/utils/pactl.c:1209
 #: ../src/utils/pactl.c:1226 ../src/utils/pactl.c:1248
 msgid "Invalid volume specification"
-msgstr "தவறான தொகுதி குறிப்பீடு"
+msgstr "തെറ്റായ വോള്യം വിവരണങ്ങള്‍"
 
 #: ../src/utils/pactl.c:1166
 msgid "You have to specify a source name/index and a volume"
-msgstr "ஒரு மூலப் பெயர்/ முன்பக்கம் மற்றும் ஒரு துறைப் பெயர் நீங்கள் குறிப்பிட வேண்டும்"
+msgstr "ഒരു സോഴ്സ് നാമം/ഇന്‍ഡക്സും വോള്യവും നല്‍കേണ്ടതുണ്ടു്"
 
 #: ../src/utils/pactl.c:1183
 msgid "You have to specify a sink input index and a volume"
-msgstr "நீங்கள் ஒரு சிங்க் உள்ளீடு சுட்டி மற்றும் ஒரு சிங்கை குறிப்பிட வேண்டும்"
+msgstr "ഒരു സിങ്ക് ഇന്‍പുട്ട് ഇന്‍ഡക്സും വോള്യവും നല്‍കേണ്ടതുണ്ടു്"
 
 #: ../src/utils/pactl.c:1188
 msgid "Invalid sink input index"
-msgstr "தவறான சுருக்க உள்ளீடு அட்டவணை"
+msgstr "തെറ്റായ സിങ്ക് ഇന്‍പുട്ട് ഇന്‍ഡക്സ്"
 
 #: ../src/utils/pactl.c:1204
 msgid "You have to specify a sink name/index and a mute boolean"
-msgstr "நீங்கள் ஒரு சிங்க் பெயர்/ முன்பக்கம் மற்றும் ஒரு துறைப் பெயரை குறிப்பிட வேண்டும்"
+msgstr "ഒരു സിങ്ക് നാമം/ഇന്‍ഡക്സും മ്യൂട്ട് ബൂളിയനും നല്‍കേണ്ടതുണ്ടു്"
 
 #: ../src/utils/pactl.c:1221
 msgid "You have to specify a source name/index and a mute boolean"
-msgstr "ஒரு மூலப் பெயர்/ முன்பக்கம் மற்றும் ஒரு துறைப் பெயர் நீங்கள் குறிப்பிட வேண்டும்"
+msgstr "ഒരു സോഴ്സ് നാമം/ഇന്‍ഡക്സും മ്യൂട്ട് ബൂളിയനും നല്‍കേണ്ടതുണ്ടു്"
 
 #: ../src/utils/pactl.c:1238
 msgid "You have to specify a sink input index and a mute boolean"
-msgstr "நீங்கள் ஒரு சிங்க் உள்ளீடு சுட்டி மற்றும் ஒரு சிங்கை குறிப்பிட வேண்டும்"
+msgstr "ഒരു സിങ്ക് ഇന്‍പുട്ട് ഇന്‍ഡക്സും മ്യൂട്ട് ബൂളിയനും നല്‍കേണ്ടതുണ്ടു്"
 
 #: ../src/utils/pactl.c:1243
 msgid "Invalid sink input index specification"
-msgstr "தவறான சுருக்க உள்ளீடு அட்டவணை குறிப்பீடு"
+msgstr "തെറ്റായ സിങ്ക് ഇന്‍പുട്ട് ഇന്‍ഡക്സ് സ്പെസിഫിക്കേഷന്‍"
 
 #: ../src/utils/pactl.c:1262
 msgid "No valid command specified."
-msgstr "சரியான கட்டளை குறிப்பிடபடவில்லை"
+msgstr "ശരിയായ കമാന്‍ഡുകള്‍ നല്‍കിയിട്ടില്ല."
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2225,66 +2198,66 @@ msgstr ""
 #: ../src/utils/pax11publish.c:94
 #, c-format
 msgid "Failed to parse command line.\n"
-msgstr "கட்டளை வரியை மாற்ற முடியவில்லை \n"
+msgstr "കമാന്‍ഡ് ലൈന്‍ പാഴ്സ് ചെയ്യുന്നതില്‍ പരാജയപ്പെട്ടു.\n"
 
 #: ../src/utils/pax11publish.c:108
 #, c-format
 msgid "Server: %s\n"
-msgstr "சேவையகம்: %s\n"
+msgstr "സര്‍വര്‍: %s\n"
 
 #: ../src/utils/pax11publish.c:110
 #, c-format
 msgid "Source: %s\n"
-msgstr "மூலம்: %s\n"
+msgstr "സോഴ്സ്: %s\n"
 
 #: ../src/utils/pax11publish.c:112
 #, c-format
 msgid "Sink: %s\n"
-msgstr "சுருங்குதல்: %s\n"
+msgstr "സിങ്ക്: %s\n"
 
 #: ../src/utils/pax11publish.c:114
 #, c-format
 msgid "Cookie: %s\n"
-msgstr "கூக்கீ: %s\n"
+msgstr "കുക്കി: %s\n"
 
 #: ../src/utils/pax11publish.c:132
 #, c-format
 msgid "Failed to parse cookie data\n"
-msgstr "குக்கீ தரவை மாற்ற முடியவில்லை\n"
+msgstr "കുക്കീ ഡേറ്റാ പാഴ്സ് ചെയ്യുന്നതില്‍ പരാജയപ്പെട്ടു\n"
 
 #: ../src/utils/pax11publish.c:137
 #, c-format
 msgid "Failed to save cookie data\n"
-msgstr "குக்கீ தரவை சேமிக்க முடியவில்லை\n"
+msgstr "കുക്കീ ഡേറ്റാ സൂക്ഷിക്കുന്നതില്‍ പരാജയപ്പെട്ടു\n"
 
 #: ../src/utils/pax11publish.c:152
 #, c-format
 msgid "Failed to load client configuration file.\n"
-msgstr "கிளையன்ட் கட்டமைப்பு கோப்பினை ஏற்ற முடியவில்லை.\n"
+msgstr "ക്ലൈന്റ് ക്രമീകരണ ഫയല്‍ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു\n"
 
 #: ../src/utils/pax11publish.c:157
 #, c-format
 msgid "Failed to read environment configuration data.\n"
-msgstr "சுற்றுப்புற கட்டமைப்பு தரவினை வாணிக்க முடியவில்லை.\n"
+msgstr "എന്‍വയോണ്മെന്റ് ക്രമീകരണ ഡേറ്റാ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു\n"
 
 #: ../src/utils/pax11publish.c:174
 #, c-format
 msgid "Failed to get FQDN.\n"
-msgstr "FQDNஐ பெற முடியவில்லை.\n"
+msgstr "FQDN ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു\n"
 
 #: ../src/utils/pax11publish.c:194
 #, c-format
 msgid "Failed to load cookie data\n"
-msgstr "குக்கீ தரவை ஏற்ற முடியவில்லை\n"
+msgstr "കുക്കീ ഡേറ്റാ ലഭ്യമാക്കുന്നതില്‍ പരാജയപ്പെട്ടു\n"
 
 #: ../src/utils/pax11publish.c:211
 #, c-format
 msgid "Not yet implemented.\n"
-msgstr "இன்னும் செயல்படுத்தபடவில்லை.\n"
+msgstr "ഇതുവരെ ലഭ്യമാക്കിയിട്ടില്ല.\n"
 
 #: ../src/utils/pacmd.c:69
 msgid "No PulseAudio daemon running, or not running as session daemon."
-msgstr "PulseAudio டீமான் இயங்கவில்லை, அல்லது அமர்வு டீமானாக இயங்கவில்லை."
+msgstr "പള്‍സ്ഓഡിയോ ഡെമണ്‍ പ്രവര്‍ത്തനതിലില്ല, സെഷന്‍ ഡെമണായും പ്രവര്‍ത്തിക്കുന്നില്ല."
 
 #: ../src/utils/pacmd.c:74
 #, c-format
@@ -2298,11 +2271,11 @@ msgstr "connect(): %s"
 
 #: ../src/utils/pacmd.c:99
 msgid "Failed to kill PulseAudio daemon."
-msgstr "PulseAudio daemonஐ நிறுத்த முடியவில்லை."
+msgstr "പള്‍സ്ഓഡിയോ ഡെമണ്‍ ഇല്ലാതാക്കുന്നതില്‍ പരാജയപ്പെട്ടു."
 
 #: ../src/utils/pacmd.c:107
 msgid "Daemon not responding."
-msgstr "டோமோன் பதிலளிக்க மறுக்கிறது."
+msgstr "ഡെമണ്‍ മറുപടി നല്‍കുന്നില്ല."
 
 #: ../src/utils/pacmd.c:161
 #, c-format
@@ -2321,7 +2294,7 @@ msgstr "write(): %s"
 
 #: ../src/pulsecore/lock-autospawn.c:136 ../src/pulsecore/lock-autospawn.c:219
 msgid "Cannot access autospawn lock."
-msgstr "autospawn பூட்டை அணுக முடியவில்லை."
+msgstr "ഓട്ടോസ്പൌണ്‍ ലോക്ക് ലഭ്യമാക്കുവാന്‍ സാധ്യമല്ല."
 
 #: ../src/modules/alsa/alsa-sink.c:530 ../src/modules/alsa/alsa-sink.c:689
 #, c-format
@@ -2333,12 +2306,11 @@ msgid ""
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
-"ALSA சாதனத்திற்கு புதிய தரவை எழுதுவதற்கு எங்களை எழுப்பி இருக்கவாம், ஆனால் இங்கே "
-"சரியாக எழுதுவதற்கு எதுவும் இல்லை!\n"
-"இந்த ஒரு பிழையானது ALSA இயக்கி '%s'. இந்த வெளிப்பாட்டை ALSA வல்லுநர்களுக்கு  "
-"அறிக்கையிடவும்.\n"
-"POLLOUT அமைவுடன் நாங்கள் எழுந்திருந்தோம்-- எப்படியிருந்தும் அடுத்தடுத்து snd_pcm_avail"
-"() r0 அல்லது வேறொரு மதிப்பு < min_avail திரும்பியது."
+"ഡിവൈസില്‍ നിന്നും പുതിയ ഡേറ്റാ ലഭ്യമാക്കുന്നതിനായി ALSA നമുക്കു് അറിയിപ്പു് നല്‍കിയിരിക്കുന്നു, "
+"പക്ഷേ ഡേറ്റാ ലഭ്യമല്ല!\n"
+"ഇതു് ALSA ഡ്രൈവര്‍ '%s'-ലുള്ള ഒരു ബഗാവാം. ദയവായി ഈ പ്രശ്നം ALSA ഡവലപ്പര്‍സിനെ അറിയിക്കുക.\n"
+"POLLOUT സെറ്റ് വഴി നമ്മെ അറിയിച്ചിരിക്കുന്നു -- പക്ഷേ, snd_pcm_avail() ലഭ്യമാക്കിയതു് 0 "
+"അല്ലെങ്കില്‍ മറ്റൊരു മൂല്ല്യം < min_avail ആണു്."
 
 #: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
 #, c-format
@@ -2350,34 +2322,33 @@ msgid ""
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
-"ALSA சாதனத்திற்கு புதிய தரவை எழுதுவதற்கு எங்களை எழுப்பி இருக்கவாம், ஆனால் இங்கே "
-"சரியாக எழுதுவதற்கு எதுவும் இல்லை!\n"
-"இந்த ஒரு பிழையானது ALSA இயக்கி '%s'. இந்த வெளிப்பாட்டை ALSA வல்லுநர்களுக்கு  "
-"அறிக்கையிடவும்.\n"
-"POLLOUT அமைவுடன் நாங்கள் எழுந்திருந்தோம்-- எப்படியிருந்தும் அடுத்தடுத்து snd_pcm_avail"
-"() 0 அல்லது வேறொரு மதிப்பு < min_avail திரும்பியது."
+"ഡിവൈസില്‍ നിന്നും പുതിയ ഡേറ്റാ ലഭ്യമാക്കുന്നതിനായി ALSA നമുക്കു് അറിയിപ്പു് നല്‍കിയിരിക്കുന്നു, "
+"പക്ഷേ ഡേറ്റാ ലഭ്യമല്ല!\n"
+"ഇതു് ALSA ഡ്രൈവര്‍ '%s'-ലുള്ള ഒരു ബഗാവാം. ദയവായി ഈ പ്രശ്നം ALSA ഡവലപ്പര്‍സിനെ അറിയിക്കുക.\n"
+"POLLIN സെറ്റ് വഴി നമ്മെ അറിയിച്ചിരിക്കുന്നു -- പക്ഷേ, snd_pcm_avail() ലഭ്യമാക്കിയതു് 0 "
+"അല്ലെങ്കില്‍ മറ്റൊരു മൂല്ല്യം < min_avail ആണു്."
 
 #: ../src/modules/alsa/module-alsa-card.c:152
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2228
 #: ../src/modules/alsa/alsa-mixer.c:2931
 msgid "Off"
-msgstr "ஆஃப்"
+msgstr "ഓഫ്"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2184
 msgid "High Fidelity Playback (A2DP)"
-msgstr "High Fidelity Playback (A2DP)"
+msgstr "ഹൈ ഫിഡലിറ്റി പ്ലേബാക്ക് (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2198
 msgid "High Fidelity Capture (A2DP)"
-msgstr "High Fidelity Capture (A2DP)"
+msgstr "ഹൈ ഫിഡലിറ്റി കാപ്ചര്‍ (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2213
 msgid "Telephony Duplex (HSP/HFP)"
-msgstr "Telephony Duplex (HSP/HFP)"
+msgstr "ടെലിഫോണി ഡ്യൂപ്ലെക്സ് (HSP/HFP)"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
-msgstr "PulseAudio ஒலி சேவையகம்"
+msgstr "പള്‍സ്ഓഡിയോ സൌണ്ട് സര്‍വര്‍"
 
 #: ../src/modules/module-rygel-media-server.c:569
 #: ../src/modules/module-rygel-media-server.c:583
@@ -2420,7 +2391,7 @@ msgstr ""
 #: ../src/modules/alsa/alsa-mixer.c:1707
 #, fuzzy
 msgid "Internal Microphone"
-msgstr "உட்புற ஆடியோ"
+msgstr "ഇന്റേര്‍ണല്‍ ഓഡിയോ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1708
 msgid "Radio"
@@ -2477,7 +2448,7 @@ msgstr ""
 #: ../src/modules/alsa/alsa-mixer.c:1778
 #, fuzzy
 msgid "Analog Output"
-msgstr "பூஜ்ஜிய வெளிப்பாடு"
+msgstr "നള്‍ ഔട്ട്പുട്ട്"
 
 #: ../src/modules/alsa/alsa-mixer.c:1779
 msgid "Analog Headphones"
@@ -2508,62 +2479,62 @@ msgstr ""
 #: ../src/modules/alsa/alsa-mixer.c:2791
 #, fuzzy
 msgid "Analog Stereo"
-msgstr "ஸ்டிரியோ"
+msgstr "സ്റ്റീരിയോ"
 
 #: ../src/modules/alsa/alsa-mixer.c:2792
 #, fuzzy
 msgid "Analog Surround 2.1"
-msgstr "Surround 4.1"
+msgstr "സറൌണ്ട് 4.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2793
 #, fuzzy
 msgid "Analog Surround 3.0"
-msgstr "Surround 4.0"
+msgstr "സറൌണ്ട് 4.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2794
 #, fuzzy
 msgid "Analog Surround 3.1"
-msgstr "Surround 4.1"
+msgstr "സറൌണ്ട് 4.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2795
 #, fuzzy
 msgid "Analog Surround 4.0"
-msgstr "Surround 4.0"
+msgstr "സറൌണ്ട് 4.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2796
 #, fuzzy
 msgid "Analog Surround 4.1"
-msgstr "Surround 4.1"
+msgstr "സറൌണ്ട് 4.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2797
 #, fuzzy
 msgid "Analog Surround 5.0"
-msgstr "Surround 5.0"
+msgstr "സറൌണ്ട് 5.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2798
 #, fuzzy
 msgid "Analog Surround 5.1"
-msgstr "Surround 5.1"
+msgstr "സറൌണ്ട് 5.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2799
 #, fuzzy
 msgid "Analog Surround 6.0"
-msgstr "Surround 4.0"
+msgstr "സറൌണ്ട് 4.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2800
 #, fuzzy
 msgid "Analog Surround 6.1"
-msgstr "Surround 4.1"
+msgstr "സറൌണ്ട് 4.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2801
 #, fuzzy
 msgid "Analog Surround 7.0"
-msgstr "Surround 4.0"
+msgstr "സറൌണ്ട് 4.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2802
 #, fuzzy
 msgid "Analog Surround 7.1"
-msgstr "Surround 7.1"
+msgstr "സറൌണ്ട് 7.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2803
 msgid "Digital Stereo (IEC958)"

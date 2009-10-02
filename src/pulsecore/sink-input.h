@@ -100,6 +100,8 @@ struct pa_sink_input {
     pa_cvolume volume_factor;      /* An internally used volume factor that can be used by modules to apply effects and suchlike without having that visible to the outside */
     pa_cvolume soft_volume;        /* The internal software volume we apply to all PCM data while it passes through. Usually calculated as real_ratio * volume_factor */
 
+    pa_cvolume volume_factor_sink; /* A second volume factor in format of the sink this stream is connected to */
+
     pa_bool_t muted:1;
 
     /* if TRUE then the source we are connected to and/or the volume
@@ -273,13 +275,13 @@ typedef struct pa_sink_input_new_data {
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
 
-    pa_cvolume volume, volume_factor;
+    pa_cvolume volume, volume_factor, volume_factor_sink;
     pa_bool_t muted:1;
 
     pa_bool_t sample_spec_is_set:1;
     pa_bool_t channel_map_is_set:1;
 
-    pa_bool_t volume_is_set:1, volume_factor_is_set:1;
+    pa_bool_t volume_is_set:1, volume_factor_is_set:1, volume_factor_sink_is_set:1;
     pa_bool_t muted_is_set:1;
 
     pa_bool_t volume_is_absolute:1;
@@ -292,6 +294,7 @@ void pa_sink_input_new_data_set_sample_spec(pa_sink_input_new_data *data, const 
 void pa_sink_input_new_data_set_channel_map(pa_sink_input_new_data *data, const pa_channel_map *map);
 void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cvolume *volume);
 void pa_sink_input_new_data_apply_volume_factor(pa_sink_input_new_data *data, const pa_cvolume *volume_factor);
+void pa_sink_input_new_data_apply_volume_factor_sink(pa_sink_input_new_data *data, const pa_cvolume *volume_factor);
 void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mute);
 void pa_sink_input_new_data_done(pa_sink_input_new_data *data);
 

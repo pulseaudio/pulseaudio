@@ -195,6 +195,8 @@ int pa_reset_sigs(int except, ...);
 int pa_reset_sigsv(const int except[]);
 
 void pa_set_env(const char *key, const char *value);
+void pa_set_env_and_record(const char *key, const char *value);
+void pa_unset_env_recorded(void);
 
 pa_bool_t pa_in_system_mode(void);
 
@@ -253,5 +255,7 @@ void pa_reset_personality(void);
 #if defined(__linux__) && !defined(__OPTIMIZE__)
 pa_bool_t pa_run_from_build_tree(void);
 #endif
+
+const char *pa_get_temp_dir(void);
 
 #endif

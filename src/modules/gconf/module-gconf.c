@@ -342,7 +342,7 @@ int pa__init(pa_module*m) {
 
     if ((u->fd = pa_start_child_for_read(
 #if defined(__linux__) && !defined(__OPTIMIZE__)
-                              pa_run_from_build_tree() ? PA_BUILDDIR "/.libs/gconf-helper" :
+                              pa_run_from_build_tree() ? PA_BUILDDIR "/gconf-helper" :
 #endif
                  PA_GCONF_HELPER, NULL, &u->pid)) < 0)
         goto fail;

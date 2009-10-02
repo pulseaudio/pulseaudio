@@ -66,7 +66,7 @@
 #define TSCHED_WATERMARK_INC_STEP_USEC (10*PA_USEC_PER_MSEC)       /* 10ms  */
 #define TSCHED_WATERMARK_DEC_STEP_USEC (5*PA_USEC_PER_MSEC)        /* 5ms */
 #define TSCHED_WATERMARK_VERIFY_AFTER_USEC (20*PA_USEC_PER_SEC)    /* 20s */
-#define TSCHED_WATERMARK_INC_THRESHOLD_USEC (1*PA_USEC_PER_MSEC)   /* 3ms */
+#define TSCHED_WATERMARK_INC_THRESHOLD_USEC (0*PA_USEC_PER_MSEC)   /* 0ms */
 #define TSCHED_WATERMARK_DEC_THRESHOLD_USEC (100*PA_USEC_PER_MSEC) /* 100ms */
 #define TSCHED_WATERMARK_STEP_USEC (10*PA_USEC_PER_MSEC)           /* 10ms */
 
@@ -110,8 +110,6 @@ struct userdata {
         watermark_dec_threshold;
 
     pa_usec_t watermark_dec_not_before;
-
-    unsigned nfragments;
 
     char *device_name;
     char *control_device;
@@ -406,6 +404,7 @@ static int try_recover(struct userdata *u, const char *call, int err) {
 static size_t check_left_to_record(struct userdata *u, size_t n_bytes, pa_bool_t on_timeout) {
     size_t left_to_record;
     size_t rec_space = u->hwbuf_size - u->hwbuf_unused;
+    pa_bool_t overrun = FALSE;
 
     /* We use <= instead of < for this check here because an overrun
      * only happens after the last sample was processed, not already when
@@ -418,6 +417,7 @@ static size_t check_left_to_record(struct userdata *u, size_t n_bytes, pa_bool_t
 
         /* We got a dropout. What a mess! */
         left_to_record = 0;
+        overrun = TRUE;
 
 #ifdef DEBUG_TIMING
         PA_DEBUG_TRAP;
@@ -434,7 +434,7 @@ static size_t check_left_to_record(struct userdata *u, size_t n_bytes, pa_bool_t
     if (u->use_tsched) {
         pa_bool_t reset_not_before = TRUE;
 
-        if (left_to_record < u->watermark_inc_threshold)
+        if (overrun || left_to_record < u->watermark_inc_threshold)
             increase_watermark(u);
         else if (left_to_record > u->watermark_dec_threshold) {
             reset_not_before = FALSE;
@@ -889,8 +889,7 @@ static int unsuspend(struct userdata *u) {
     pa_sample_spec ss;
     int err;
     pa_bool_t b, d;
-    unsigned nfrags;
-    snd_pcm_uframes_t period_size;
+    snd_pcm_uframes_t period_size, buffer_size;
 
     pa_assert(u);
     pa_assert(!u->pcm_handle);
@@ -898,7 +897,7 @@ static int unsuspend(struct userdata *u) {
     pa_log_info("Trying resume...");
 
     if ((err = snd_pcm_open(&u->pcm_handle, u->device_name, SND_PCM_STREAM_CAPTURE,
-                            /*SND_PCM_NONBLOCK|*/
+                            SND_PCM_NONBLOCK|
                             SND_PCM_NO_AUTO_RESAMPLE|
                             SND_PCM_NO_AUTO_CHANNELS|
                             SND_PCM_NO_AUTO_FORMAT)) < 0) {
@@ -907,12 +906,12 @@ static int unsuspend(struct userdata *u) {
     }
 
     ss = u->source->sample_spec;
-    nfrags = u->nfragments;
     period_size = u->fragment_size / u->frame_size;
+    buffer_size = u->hwbuf_size / u->frame_size;
     b = u->use_mmap;
     d = u->use_tsched;
 
-    if ((err = pa_alsa_set_hw_params(u->pcm_handle, &ss, &nfrags, &period_size, u->hwbuf_size / u->frame_size, &b, &d, TRUE)) < 0) {
+    if ((err = pa_alsa_set_hw_params(u->pcm_handle, &ss, &period_size, &buffer_size, 0, &b, &d, TRUE)) < 0) {
         pa_log("Failed to set hardware parameters: %s", pa_alsa_strerror(err));
         goto fail;
     }
@@ -927,10 +926,11 @@ static int unsuspend(struct userdata *u) {
         goto fail;
     }
 
-    if (nfrags != u->nfragments || period_size*u->frame_size != u->fragment_size) {
-        pa_log_warn("Resume failed, couldn't restore original fragment settings. (Old: %lu*%lu, New %lu*%lu)",
-                    (unsigned long) u->nfragments, (unsigned long) u->fragment_size,
-                    (unsigned long) nfrags, period_size * u->frame_size);
+    if (period_size*u->frame_size != u->fragment_size ||
+        buffer_size*u->frame_size != u->hwbuf_size) {
+        pa_log_warn("Resume failed, couldn't restore original fragment settings. (Old: %lu/%lu, New %lu/%lu)",
+                    (unsigned long) u->hwbuf_size, (unsigned long) u->fragment_size,
+                    (unsigned long) (buffer_size*u->fragment_size), (unsigned long) (period_size*u->frame_size));
         goto fail;
     }
 
@@ -959,7 +959,7 @@ fail:
         u->pcm_handle = NULL;
     }
 
-    return -1;
+    return -PA_ERR_IO;
 }
 
 static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
@@ -982,30 +982,34 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
             switch ((pa_source_state_t) PA_PTR_TO_UINT(data)) {
 
-                case PA_SOURCE_SUSPENDED:
+                case PA_SOURCE_SUSPENDED: {
+                    int r;
                     pa_assert(PA_SOURCE_IS_OPENED(u->source->thread_info.state));
 
-                    if (suspend(u) < 0)
-                        return -1;
+                    if ((r = suspend(u)) < 0)
+                        return r;
 
                     break;
+                }
 
                 case PA_SOURCE_IDLE:
-                case PA_SOURCE_RUNNING:
+                case PA_SOURCE_RUNNING: {
+                    int r;
 
                     if (u->source->thread_info.state == PA_SOURCE_INIT) {
                         if (build_pollfd(u) < 0)
-                            return -1;
+                            return -PA_ERR_IO;
 
                         snd_pcm_start(u->pcm_handle);
                     }
 
                     if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
-                        if (unsuspend(u) < 0)
-                            return -1;
+                        if ((r = unsuspend(u)) < 0)
+                            return r;
                     }
 
                     break;
+                }
 
                 case PA_SOURCE_UNLINKED:
                 case PA_SOURCE_INIT:
@@ -1033,7 +1037,7 @@ static int source_set_state_cb(pa_source *s, pa_source_state_t new_state) {
         reserve_done(u);
     else if (old_state == PA_SINK_SUSPENDED && PA_SINK_IS_OPENED(new_state))
         if (reserve_init(u, u->device_name) < 0)
-            return -1;
+            return -PA_ERR_BUSY;
 
     return 0;
 }
@@ -1481,8 +1485,8 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     const char *dev_id = NULL;
     pa_sample_spec ss, requested_ss;
     pa_channel_map map;
-    uint32_t nfrags, hwbuf_size, frag_size, tsched_size, tsched_watermark;
-    snd_pcm_uframes_t period_frames, tsched_frames;
+    uint32_t nfrags, frag_size, buffer_size, tsched_size, tsched_watermark;
+    snd_pcm_uframes_t period_frames, buffer_frames, tsched_frames;
     size_t frame_size;
     pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d, ignore_dB = FALSE;
     pa_source_new_data data;
@@ -1516,8 +1520,10 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         goto fail;
     }
 
-    hwbuf_size = frag_size * nfrags;
+    buffer_size = nfrags * frag_size;
+
     period_frames = frag_size/frame_size;
+    buffer_frames = buffer_size/frame_size;
     tsched_frames = tsched_size/frame_size;
 
     if (pa_modargs_get_value_boolean(ma, "mmap", &use_mmap) < 0) {
@@ -1583,7 +1589,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
                       &u->device_name,
                       &ss, &map,
                       SND_PCM_STREAM_CAPTURE,
-                      &nfrags, &period_frames, tsched_frames,
+                      &period_frames, &buffer_frames, tsched_frames,
                       &b, &d, mapping)))
             goto fail;
 
@@ -1597,7 +1603,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
                       &u->device_name,
                       &ss, &map,
                       SND_PCM_STREAM_CAPTURE,
-                      &nfrags, &period_frames, tsched_frames,
+                      &period_frames, &buffer_frames, tsched_frames,
                       &b, &d, profile_set, &mapping)))
             goto fail;
 
@@ -1608,7 +1614,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
                       &u->device_name,
                       &ss, &map,
                       SND_PCM_STREAM_CAPTURE,
-                      &nfrags, &period_frames, tsched_frames,
+                      &period_frames, &buffer_frames, tsched_frames,
                       &b, &d, FALSE)))
             goto fail;
     }
@@ -1634,11 +1640,6 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         u->use_tsched = use_tsched = FALSE;
     }
 
-    if (use_tsched && !pa_alsa_pcm_is_hw(u->pcm_handle)) {
-        pa_log_info("Device is not a hardware device, disabling timer-based scheduling.");
-        u->use_tsched = use_tsched = FALSE;
-    }
-
     if (u->use_mmap)
         pa_log_info("Successfully enabled mmap() mode.");
 
@@ -1660,7 +1661,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
 
     pa_alsa_init_proplist_pcm(m->core, data.proplist, u->pcm_handle);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_name);
-    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (period_frames * frame_size * nfrags));
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (buffer_frames * frame_size));
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%lu", (unsigned long) (period_frames * frame_size));
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_ACCESS_MODE, u->use_tsched ? "mmap+timer" : (u->use_mmap ? "mmap" : "serial"));
 
@@ -1701,13 +1702,15 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
     pa_source_set_rtpoll(u->source, u->rtpoll);
 
     u->frame_size = frame_size;
-    u->fragment_size = frag_size = (uint32_t) (period_frames * frame_size);
-    u->nfragments = nfrags;
-    u->hwbuf_size = u->fragment_size * nfrags;
+    u->fragment_size = frag_size = (size_t) (period_frames * frame_size);
+    u->hwbuf_size = buffer_size = (size_t) (buffer_frames * frame_size);
     pa_cvolume_mute(&u->hardware_volume, u->source->sample_spec.channels);
 
-    pa_log_info("Using %u fragments of size %lu bytes, buffer time is %0.2fms",
-                nfrags, (long unsigned) u->fragment_size,
+    pa_log_info("Using %0.1f fragments of size %lu bytes (%0.2fms), buffer size is %lu bytes (%0.2fms)",
+                (double) u->hwbuf_size / (double) u->fragment_size,
+                (long unsigned) u->fragment_size,
+                (double) pa_bytes_to_usec(u->fragment_size, &ss) / PA_USEC_PER_MSEC,
+                (long unsigned) u->hwbuf_size,
                 (double) pa_bytes_to_usec(u->hwbuf_size, &ss) / PA_USEC_PER_MSEC);
 
     if (u->use_tsched) {

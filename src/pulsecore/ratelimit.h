@@ -26,20 +26,30 @@
 #include <pulsecore/macro.h>
 
 typedef struct pa_ratelimit {
-    const pa_usec_t interval;
-    const unsigned burst;
+    pa_usec_t interval;
+    unsigned burst;
     unsigned n_printed, n_missed;
     pa_usec_t begin;
 } pa_ratelimit;
 
 #define PA_DEFINE_RATELIMIT(_name, _interval, _burst)   \
     pa_ratelimit _name = {                              \
-        .interval = _interval,                          \
-        .burst = _burst,                                \
+        .interval = (_interval),                        \
+        .burst = (_burst),                              \
         .n_printed = 0,                                 \
         .n_missed = 0,                                  \
         .begin = 0                                      \
     }
+
+#define PA_INIT_RATELIMIT(v, _interval, _burst)         \
+    do {                                                \
+        pa_ratelimit *r = &(v);                         \
+        r->interval = (_interval);                      \
+        r->burst = (_burst);                            \
+        r->n_printed = 0;                               \
+        r->n_missed = 0;                                \
+        r->begin = 0;                                   \
+    } while (FALSE);
 
 pa_bool_t pa_ratelimit_test(pa_ratelimit *r);
 

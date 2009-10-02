@@ -130,15 +130,22 @@ void pa_flist_free(pa_flist *l, pa_free_cb_t free_cb) {
 }
 
 int pa_flist_push(pa_flist*l, void *p) {
-    unsigned idx, n, len;
+    unsigned idx, n;
     pa_atomic_ptr_t*cells;
+#ifdef PROFILE
+    unsigned len;
+#endif
 
     pa_assert(l);
     pa_assert(p);
 
     cells = PA_FLIST_CELLS(l);
 
-    n = len = l->size + N_EXTRA_SCAN - (unsigned) pa_atomic_load(&l->length);
+    n = l->size + N_EXTRA_SCAN - (unsigned) pa_atomic_load(&l->length);
+
+#ifdef PROFILE
+    len = n;
+#endif
 
     _Y;
     idx = reduce(l, (unsigned) pa_atomic_load(&l->write_idx));
@@ -171,14 +178,21 @@ int pa_flist_push(pa_flist*l, void *p) {
 }
 
 void* pa_flist_pop(pa_flist*l) {
-    unsigned idx, len, n;
+    unsigned idx, n;
     pa_atomic_ptr_t *cells;
+#ifdef PROFILE
+    unsigned len;
+#endif
 
     pa_assert(l);
 
     cells = PA_FLIST_CELLS(l);
 
-    n = len = (unsigned) pa_atomic_load(&l->length) + N_EXTRA_SCAN;
+    n = (unsigned) pa_atomic_load(&l->length) + N_EXTRA_SCAN;
+
+#ifdef PROFILE
+    len = n;
+#endif
 
     _Y;
     idx = reduce(l, (unsigned) pa_atomic_load(&l->read_idx));

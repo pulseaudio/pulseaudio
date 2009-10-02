@@ -97,6 +97,27 @@ PA_C_DECL_BEGIN
 /** For streams that belong to a window on the screen: an XDG icon name for the window. e.g. "totem" */
 #define PA_PROP_WINDOW_ICON_NAME               "window.icon_name"
 
+/** For streams that belong to a window on the screen: absolute horizontal window position on the screen, integer formatted as text string. e.g. "865". \since 0.9.17 */
+#define PA_PROP_WINDOW_X                       "window.x"
+
+/** For streams that belong to a window on the screen: absolute vertical window position on the screen, integer formatted as text string. e.g. "343". \since 0.9.17 */
+#define PA_PROP_WINDOW_Y                       "window.y"
+
+/** For streams that belong to a window on the screen: window width on the screen, integer formatted as text string. e.g. "365". \since 0.9.17 */
+#define PA_PROP_WINDOW_WIDTH                   "window.width"
+
+/** For streams that belong to a window on the screen: window height on the screen, integer formatted as text string. e.g. "643". \since 0.9.17 */
+#define PA_PROP_WINDOW_HEIGHT                  "window.height"
+
+/** For streams that belong to a window on the screen: relative position of the window center on the screen, float formatted as text string, ranging from 0.0 (left side of the screen) to 1.0 (right side of the screen). e.g. "0.65". \since 0.9.17 */
+#define PA_PROP_WINDOW_HPOS                    "window.hpos"
+
+/** For streams that belong to a window on the screen: relative position of the window center on the screen, float formatted as text string, ranging from 0.0 (top of the screen) to 1.0 (bottom of the screen). e.g. "0.43". \since 0.9.17 */
+#define PA_PROP_WINDOW_VPOS                    "window.vpos"
+
+/** For streams that belong to a window on the screen: if the windowing system supports multiple desktops, a comma seperated list of indexes of the desktops this window is visible on. If this property is an empty string, it is visible on all desktops (i.e. 'sticky'). The first desktop is 0. e.g. "0,2,3" \since 0.9.18 */
+#define PA_PROP_WINDOW_DESKTOP                 "window.desktop"
+
 /** For streams that belong to an X11 window on the screen: the X11 display string. e.g. ":0.0" */
 #define PA_PROP_WINDOW_X11_DISPLAY             "window.x11.display"
 
@@ -197,7 +218,7 @@ PA_C_DECL_BEGIN
 /** For filter devices: master device id if applicable. */
 #define PA_PROP_DEVICE_MASTER_DEVICE           "device.master_device"
 
-/** For devices: buffer size in bytes, integer formatted as string.. */
+/** For devices: buffer size in bytes, integer formatted as string. */
 #define PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE   "device.buffering.buffer_size"
 
 /** For devices: fragment size in bytes, integer formatted as string. */

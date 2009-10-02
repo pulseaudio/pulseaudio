@@ -65,16 +65,24 @@
                 " add $32, %1                   \n\t"  \
                 " add $64, %0                   \n\t"
 
-#define HANDLE_SINGLE(s)                               \
+#define HANDLE_SINGLE_dq()                            \
                 " movd (%1), %%mm0              \n\t"  \
-                " punpckl"#s" %%mm0, %%mm0      \n\t"  \
+                " punpckldq %%mm0, %%mm0        \n\t"  \
                 " movq %%mm0, (%0)              \n\t"  \
                 " add $4, %1                    \n\t"  \
                 " add $8, %0                    \n\t"
 
-#define MONO_TO_STEREO(s)                              \
-                " mov %3, %2                    \n\t"  \
-                " sar $3, %2                    \n\t"  \
+#define HANDLE_SINGLE_wd()                             \
+                " movw (%1), %w3                \n\t"  \
+                " movd %3,  %%mm0               \n\t"  \
+                " punpcklwd %%mm0, %%mm0        \n\t"  \
+                " movd %%mm0, (%0)              \n\t"  \
+                " add $2, %1                    \n\t"  \
+                " add $4, %0                    \n\t"
+
+#define MONO_TO_STEREO(s,shift,mask)                   \
+                " mov %4, %2                    \n\t"  \
+                " sar $"#shift", %2             \n\t"  \
                 " cmp $0, %2                    \n\t"  \
                 " je 2f                         \n\t"  \
                 "1:                             \n\t"  \
@@ -84,11 +92,11 @@
                 " dec %2                        \n\t"  \
                 " jne 1b                        \n\t"  \
                 "2:                             \n\t"  \
-                " mov %3, %2                    \n\t"  \
-                " and $7, %2                    \n\t"  \
+                " mov %4, %2                    \n\t"  \
+                " and $"#mask", %2              \n\t"  \
                 " je 4f                         \n\t"  \
                 "3:                             \n\t"  \
-                HANDLE_SINGLE(s)                       \
+                HANDLE_SINGLE_##s()                    \
                 " dec %2                        \n\t"  \
                 " jne 3b                        \n\t"  \
                 "4:                             \n\t"  \
@@ -96,14 +104,14 @@
 
 #if defined (__i386__) || defined (__amd64__)
 static void remap_mono_to_stereo_mmx (pa_remap_t *m, void *dst, const void *src, unsigned n) {
-    pa_reg_x86 temp;
+    pa_reg_x86 temp, temp2;
 
     switch (*m->format) {
         case PA_SAMPLE_FLOAT32NE:
         {
             __asm__ __volatile__ (
-                MONO_TO_STEREO(dq) /* do doubles to quads */
-                : "+r" (dst), "+r" (src), "=&r" (temp)
+                MONO_TO_STEREO(dq,3,7) /* do doubles to quads */
+                : "+r" (dst), "+r" (src), "=&r" (temp), "=&r" (temp2)
                 : "r" ((pa_reg_x86)n)
                 : "cc"
             );
@@ -112,8 +120,8 @@ static void remap_mono_to_stereo_mmx (pa_remap_t *m, void *dst, const void *src,
         case PA_SAMPLE_S16NE:
         {
             __asm__ __volatile__ (
-                MONO_TO_STEREO(wd) /* do words to doubles */
-                : "+r" (dst), "+r" (src), "=&r" (temp)
+                MONO_TO_STEREO(wd,4,15) /* do words to doubles */
+                : "+r" (dst), "+r" (src), "=&r" (temp), "=&r" (temp2)
                 : "r" ((pa_reg_x86)n)
                 : "cc"
             );
@@ -142,8 +150,12 @@ static void init_remap_mmx (pa_remap_t *m) {
 
 void pa_remap_func_init_mmx (pa_cpu_x86_flag_t flags) {
 #if defined (__i386__) || defined (__amd64__)
-    pa_log_info("Initialising MMX optimized remappers.");
 
-    pa_set_init_remap_func ((pa_init_remap_func_t) init_remap_mmx);
+    if (flags & PA_CPU_X86_MMX) {
+        pa_log_info("Initialising MMX optimized remappers.");
+
+        pa_set_init_remap_func ((pa_init_remap_func_t) init_remap_mmx);
+    }
+
 #endif /* defined (__i386__) || defined (__amd64__) */
 }

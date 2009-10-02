@@ -31,7 +31,7 @@
 int main(int argc, char *argv[]) {
     FILE *i, *o;
     size_t granularity;
-    pa_bool_t found;
+    pa_bool_t found = FALSE;
     uint8_t *zero;
 
     pa_assert_se(argc >= 2);

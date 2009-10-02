@@ -65,43 +65,52 @@
                 " add $64, %1                   \n\t"  \
                 " add $128, %0                  \n\t"
 
-#define HANDLE_SINGLE(s)                               \
+#define HANDLE_SINGLE_dq()                             \
                 " movd (%1), %%xmm0             \n\t"  \
-                " punpckl"#s" %%xmm0, %%xmm0    \n\t"  \
+                " punpckldq %%xmm0, %%xmm0      \n\t"  \
                 " movq %%xmm0, (%0)             \n\t"  \
                 " add $4, %1                    \n\t"  \
                 " add $8, %0                    \n\t"
 
-#define MONO_TO_STEREO(s)                               \
-                " mov %3, %2                    \n\t"   \
-                " sar $4, %2                    \n\t"   \
-                " cmp $0, %2                    \n\t"   \
-                " je 2f                         \n\t"   \
-                "1:                             \n\t"   \
-                LOAD_SAMPLES                            \
-                UNPACK_SAMPLES(s)                       \
-                STORE_SAMPLES                           \
-                " dec %2                        \n\t"   \
-                " jne 1b                        \n\t"   \
-                "2:                             \n\t"   \
-                " mov %3, %2                    \n\t"   \
-                " and $15, %2                   \n\t"   \
-                " je 4f                         \n\t"   \
-                "3:                             \n\t"   \
-                HANDLE_SINGLE(s)                        \
-                " dec %2                        \n\t"   \
-                " jne 3b                        \n\t"   \
+#define HANDLE_SINGLE_wd()                             \
+                " movw (%1), %w3                \n\t"  \
+                " movd %3, %%xmm0               \n\t"  \
+                " punpcklwd %%xmm0, %%xmm0      \n\t"  \
+                " movd %%xmm0, (%0)             \n\t"  \
+                " add $2, %1                    \n\t"  \
+                " add $4, %0                    \n\t"
+
+#define MONO_TO_STEREO(s,shift,mask)                   \
+                " mov %4, %2                    \n\t"  \
+                " sar $"#shift", %2             \n\t"  \
+                " cmp $0, %2                    \n\t"  \
+                " je 2f                         \n\t"  \
+                "1:                             \n\t"  \
+                LOAD_SAMPLES                           \
+                UNPACK_SAMPLES(s)                      \
+                STORE_SAMPLES                          \
+                " dec %2                        \n\t"  \
+                " jne 1b                        \n\t"  \
+                "2:                             \n\t"  \
+                " mov %4, %2                    \n\t"  \
+                " and $"#mask", %2              \n\t"  \
+                " je 4f                         \n\t"  \
+                "3:                             \n\t"  \
+                HANDLE_SINGLE_##s()                    \
+                " dec %2                        \n\t"  \
+                " jne 3b                        \n\t"  \
                 "4:                             \n\t"
 
-static void remap_mono_to_stereo_sse (pa_remap_t *m, void *dst, const void *src, unsigned n) {
-    pa_reg_x86 temp;
+#if defined (__i386__) || defined (__amd64__)
+static void remap_mono_to_stereo_sse2 (pa_remap_t *m, void *dst, const void *src, unsigned n) {
+    pa_reg_x86 temp, temp2;
 
     switch (*m->format) {
         case PA_SAMPLE_FLOAT32NE:
         {
             __asm__ __volatile__ (
-                MONO_TO_STEREO(dq) /* do doubles to quads */
-                : "+r" (dst), "+r" (src), "=&r" (temp)
+                MONO_TO_STEREO(dq, 4, 15) /* do doubles to quads */
+                : "+r" (dst), "+r" (src), "=&r" (temp), "=&r" (temp2)
                 : "r" ((pa_reg_x86)n)
                 : "cc"
             );
@@ -110,8 +119,8 @@ static void remap_mono_to_stereo_sse (pa_remap_t *m, void *dst, const void *src,
         case PA_SAMPLE_S16NE:
         {
             __asm__ __volatile__ (
-                MONO_TO_STEREO(wd) /* do words to doubles */
-                : "+r" (dst), "+r" (src), "=&r" (temp)
+                MONO_TO_STEREO(wd, 5, 31) /* do words to doubles */
+                : "+r" (dst), "+r" (src), "=&r" (temp), "=&r" (temp2)
                 : "r" ((pa_reg_x86)n)
                 : "cc"
             );
@@ -123,7 +132,7 @@ static void remap_mono_to_stereo_sse (pa_remap_t *m, void *dst, const void *src,
 }
 
 /* set the function that will execute the remapping based on the matrices */
-static void init_remap_sse (pa_remap_t *m) {
+static void init_remap_sse2 (pa_remap_t *m) {
     unsigned n_oc, n_ic;
 
     n_oc = m->o_ss->channels;
@@ -132,15 +141,19 @@ static void init_remap_sse (pa_remap_t *m) {
     /* find some common channel remappings, fall back to full matrix operation. */
     if (n_ic == 1 && n_oc == 2 &&
             m->map_table_f[0][0] >= 1.0 && m->map_table_f[1][0] >= 1.0) {
-        m->do_remap = (pa_do_remap_func_t) remap_mono_to_stereo_sse;
+        m->do_remap = (pa_do_remap_func_t) remap_mono_to_stereo_sse2;
         pa_log_info("Using SSE mono to stereo remapping");
     }
 }
+#endif /* defined (__i386__) || defined (__amd64__) */
 
 void pa_remap_func_init_sse (pa_cpu_x86_flag_t flags) {
 #if defined (__i386__) || defined (__amd64__)
-    pa_log_info("Initialising SSE optimized remappers.");
 
-    pa_set_init_remap_func ((pa_init_remap_func_t) init_remap_sse);
+    if (flags & PA_CPU_X86_SSE2) {
+        pa_log_info("Initialising SSE2 optimized remappers.");
+        pa_set_init_remap_func ((pa_init_remap_func_t) init_remap_sse2);
+    }
+
 #endif /* defined (__i386__) || defined (__amd64__) */
 }

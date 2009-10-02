@@ -23,7 +23,8 @@
 #include <inttypes.h>
 
 /* First, define HAVE_VECTOR if we have the gcc vector extensions at all */
-#if defined(__SSE2__) || defined(__ALTIVEC__)
+#if defined(__SSE2__)
+    /* || defined(__ALTIVEC__)*/
 #define HAVE_VECTOR
 
 

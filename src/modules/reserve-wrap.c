@@ -137,7 +137,7 @@ pa_reserve_wrapper* pa_reserve_wrapper_get(pa_core *c, const char *device_name) 
 
 #ifdef HAVE_DBUS
     if (!(r->connection = pa_dbus_bus_get(c, DBUS_BUS_SESSION, &error)) || dbus_error_is_set(&error)) {
-        pa_log_warn("Unable to contact D-Bus session bus: %s: %s", error.name, error.message);
+        pa_log_debug("Unable to contact D-Bus session bus: %s: %s", error.name, error.message);
 
         /* We don't treat this as error here because we want allow PA
          * to run even when no session bus is available. */
@@ -154,10 +154,10 @@ pa_reserve_wrapper* pa_reserve_wrapper_get(pa_core *c, const char *device_name) 
                  NULL)) < 0) {
 
         if (k == -EBUSY) {
-            pa_log_error("Device '%s' already locked.", device_name);
+            pa_log_debug("Device '%s' already locked.", device_name);
             goto fail;
         } else {
-            pa_log_warn("Failed to acquire reservation lock on device '%s': %s", device_name, pa_cstrerror(-k));
+            pa_log_debug("Failed to acquire reservation lock on device '%s': %s", device_name, pa_cstrerror(-k));
             return r;
         }
     }
@@ -280,7 +280,7 @@ pa_reserve_monitor_wrapper* pa_reserve_monitor_wrapper_get(pa_core *c, const cha
 
 #ifdef HAVE_DBUS
     if (!(w->connection = pa_dbus_bus_get(c, DBUS_BUS_SESSION, &error)) || dbus_error_is_set(&error)) {
-        pa_log_warn("Unable to contact D-Bus session bus: %s: %s", error.name, error.message);
+        pa_log_debug("Unable to contact D-Bus session bus: %s: %s", error.name, error.message);
 
         /* We don't treat this as error here because we want allow PA
          * to run even when no session bus is available. */
@@ -294,7 +294,7 @@ pa_reserve_monitor_wrapper* pa_reserve_monitor_wrapper_get(pa_core *c, const cha
                  change_cb,
                  NULL)) < 0) {
 
-        pa_log_warn("Failed to create watch on device '%s': %s", device_name, pa_cstrerror(-k));
+        pa_log_debug("Failed to create watch on device '%s': %s", device_name, pa_cstrerror(-k));
         goto fail;
     }
 

@@ -95,13 +95,14 @@ static inline int PA_STREAM_IS_GOOD(pa_stream_state_t x) {
 typedef enum pa_operation_state {
     PA_OPERATION_RUNNING,      /**< The operation is still running */
     PA_OPERATION_DONE,         /**< The operation has been completed */
-    PA_OPERATION_CANCELED      /**< The operation has been canceled */
+    PA_OPERATION_CANCELLED     /**< The operation has been cancelled. Before 0.9.18 this was called PA_OPERATION_CANCELED. That name is still available for compatibility. */
 } pa_operation_state_t;
 
 /** \cond fulldocs */
 #define PA_OPERATION_RUNNING PA_OPERATION_RUNNING
 #define PA_OPERATION_DONE PA_OPERATION_DONE
-#define PA_OPERATION_CANCELED PA_OPERATION_CANCELED
+#define PA_OPERATION_CANCELED PA_OPERATION_CANCELLED
+#define PA_OPERATION_CANCELLED PA_OPERATION_CANCELLED
 /** \endcond */
 
 /** An invalid index */
@@ -109,6 +110,8 @@ typedef enum pa_operation_state {
 
 /** Some special flags for contexts. */
 typedef enum pa_context_flags {
+    PA_CONTEXT_NOFLAGS = 0x0000U,
+    /**< Flag to pass when no specific options are needed (used to avoid casting)  \since 0.9.19 */
     PA_CONTEXT_NOAUTOSPAWN = 0x0001U,
     /**< Disabled autospawning of the PulseAudio daemon if required */
     PA_CONTEXT_NOFAIL = 0x0002U
@@ -138,6 +141,9 @@ typedef enum pa_stream_direction {
 
 /** Some special flags for stream connections. */
 typedef enum pa_stream_flags {
+
+    PA_STREAM_NOFLAGS = 0x0000U,
+    /**< Flag to pass when no specific options are needed (used to avoid casting)  \since 0.9.19 */
 
     PA_STREAM_START_CORKED = 0x0001U,
     /**< Create the stream corked, requiring an explicit
@@ -394,6 +400,7 @@ enum {
     PA_ERR_NOTIMPLEMENTED,         /**< Missing implementation. \since 0.9.15 */
     PA_ERR_FORKED,                 /**< The caller forked without calling execve() and tried to reuse the context. \since 0.9.15 */
     PA_ERR_IO,                     /**< An IO error happened. \since 0.9.16 */
+    PA_ERR_BUSY,                   /**< Device or resource busy. \since 0.9.17 */
     PA_ERR_MAX                     /**< Not really an error but the first invalid error code */
 };
 
@@ -686,6 +693,9 @@ typedef enum pa_seek_mode {
 
 /** Special sink flags. */
 typedef enum pa_sink_flags {
+    PA_SINK_NOFLAGS = 0x0000U,
+    /**< Flag to pass when no specific options are needed (used to avoid casting)  \since 0.9.19 */
+
     PA_SINK_HW_VOLUME_CTRL = 0x0001U,
     /**< Supports hardware volume control */
 
@@ -773,6 +783,9 @@ static inline int PA_SINK_IS_OPENED(pa_sink_state_t x) {
 
 /** Special source flags.  */
 typedef enum pa_source_flags {
+    PA_SOURCE_NOFLAGS = 0x0000U,
+    /**< Flag to pass when no specific options are needed (used to avoid casting)  \since 0.9.19 */
+
     PA_SOURCE_HW_VOLUME_CTRL = 0x0001U,
     /**< Supports hardware volume control */
 

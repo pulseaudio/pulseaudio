@@ -304,6 +304,18 @@ typedef int pa_bool_t;
 #define pa_memzero(x,l) (memset((x), 0, (l)))
 #define pa_zero(x) (pa_memzero(&(x), sizeof(x)))
 
+#define PA_INT_TYPE_SIGNED(type) (!!((type) 0 > (type) -1))
+
+#define PA_INT_TYPE_MAX(type)                                          \
+    ((type) (PA_INT_TYPE_SIGNED(type)                                  \
+             ? ~(~(type) 0 << (8*sizeof(type)-1))                      \
+             : (type) -1))
+
+#define PA_INT_TYPE_MIN(type)                                          \
+    ((type) (PA_INT_TYPE_SIGNED(type)                                  \
+             ? (~(type) 0 << (8*sizeof(type)-1))                       \
+             : (type) 0))
+
 /* We include this at the very last place */
 #include <pulsecore/log.h>
 

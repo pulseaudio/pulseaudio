@@ -92,6 +92,18 @@ void pa_sink_input_new_data_apply_volume_factor(pa_sink_input_new_data *data, co
     }
 }
 
+void pa_sink_input_new_data_apply_volume_factor_sink(pa_sink_input_new_data *data, const pa_cvolume *volume_factor) {
+    pa_assert(data);
+    pa_assert(volume_factor);
+
+    if (data->volume_factor_sink_is_set)
+        pa_sw_cvolume_multiply(&data->volume_factor_sink, &data->volume_factor_sink, volume_factor);
+    else {
+        data->volume_factor_sink_is_set = TRUE;
+        data->volume_factor_sink = *volume_factor;
+    }
+}
+
 void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mute) {
     pa_assert(data);
 
@@ -141,6 +153,7 @@ int pa_sink_input_new(
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
     pa_channel_map original_cm;
     int r;
+    char *pt;
 
     pa_assert(_i);
     pa_assert(core);
@@ -176,7 +189,6 @@ int pa_sink_input_new(
             pa_channel_map_init_extend(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT);
     }
 
-    pa_return_val_if_fail(pa_channel_map_valid(&data->channel_map), -PA_ERR_INVALID);
     pa_return_val_if_fail(pa_channel_map_compatible(&data->channel_map, &data->sample_spec), -PA_ERR_INVALID);
 
     if (!data->volume_is_set) {
@@ -185,14 +197,17 @@ int pa_sink_input_new(
         data->save_volume = FALSE;
     }
 
-    pa_return_val_if_fail(pa_cvolume_valid(&data->volume), -PA_ERR_INVALID);
     pa_return_val_if_fail(pa_cvolume_compatible(&data->volume, &data->sample_spec), -PA_ERR_INVALID);
 
     if (!data->volume_factor_is_set)
         pa_cvolume_reset(&data->volume_factor, data->sample_spec.channels);
 
-    pa_return_val_if_fail(pa_cvolume_valid(&data->volume_factor), -PA_ERR_INVALID);
     pa_return_val_if_fail(pa_cvolume_compatible(&data->volume_factor, &data->sample_spec), -PA_ERR_INVALID);
+
+    if (!data->volume_factor_sink_is_set)
+        pa_cvolume_reset(&data->volume_factor_sink, data->sink->sample_spec.channels);
+
+    pa_return_val_if_fail(pa_cvolume_compatible(&data->volume_factor_sink, &data->sink->sample_spec), -PA_ERR_INVALID);
 
     if (!data->muted_is_set)
         data->muted = FALSE;
@@ -283,6 +298,7 @@ int pa_sink_input_new(
         i->volume = data->volume;
 
     i->volume_factor = data->volume_factor;
+    i->volume_factor_sink = data->volume_factor_sink;
     i->real_ratio = i->reference_ratio = data->volume;
     pa_cvolume_reset(&i->soft_volume, i->sample_spec.channels);
     pa_cvolume_reset(&i->real_ratio, i->sample_spec.channels);
@@ -338,12 +354,15 @@ int pa_sink_input_new(
     if (i->client)
         pa_assert_se(pa_idxset_put(i->client->sink_inputs, i, NULL) >= 0);
 
-    pa_log_info("Created input %u \"%s\" on %s with sample spec %s and channel map %s",
+    pt = pa_proplist_to_string_sep(i->proplist, "\n    ");
+    pa_log_info("Created input %u \"%s\" on %s with sample spec %s and channel map %s\n    %s",
                 i->index,
                 pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME)),
                 i->sink->name,
                 pa_sample_spec_snprint(st, sizeof(st), &i->sample_spec),
-                pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map));
+                pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
+                pt);
+    pa_xfree(pt);
 
     /* Don't forget to call pa_sink_input_put! */
 
@@ -576,7 +595,7 @@ pa_usec_t pa_sink_input_get_latency(pa_sink_input *i, pa_usec_t *sink_latency) {
 
 /* Called from thread context */
 void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, pa_memchunk *chunk, pa_cvolume *volume) {
-    pa_bool_t do_volume_adj_here;
+    pa_bool_t do_volume_adj_here, need_volume_factor_sink;
     pa_bool_t volume_is_norm;
     size_t block_size_max_sink, block_size_max_sink_input;
     size_t ilength;
@@ -624,6 +643,7 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
 
     do_volume_adj_here = !pa_channel_map_equal(&i->channel_map, &i->sink->channel_map);
     volume_is_norm = pa_cvolume_is_norm(&i->thread_info.soft_volume) && !i->thread_info.muted;
+    need_volume_factor_sink = !pa_cvolume_is_norm(&i->volume_factor_sink);
 
     while (!pa_memblockq_is_readable(i->thread_info.render_memblockq)) {
         pa_memchunk tchunk;
@@ -655,6 +675,7 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
 
         while (tchunk.length > 0) {
             pa_memchunk wchunk;
+            pa_bool_t nvfs = need_volume_factor_sink;
 
             wchunk = tchunk;
             pa_memblock_ref(wchunk.memblock);
@@ -666,17 +687,40 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
             if (do_volume_adj_here && !volume_is_norm) {
                 pa_memchunk_make_writable(&wchunk, 0);
 
-                if (i->thread_info.muted)
+                if (i->thread_info.muted) {
                     pa_silence_memchunk(&wchunk, &i->thread_info.sample_spec);
-                else
+                    nvfs = FALSE;
+
+                } else if (!i->thread_info.resampler && nvfs) {
+                    pa_cvolume v;
+
+                    /* If we don't need a resampler we can merge the
+                     * post and the pre volume adjustment into one */
+
+                    pa_sw_cvolume_multiply(&v, &i->thread_info.soft_volume, &i->volume_factor_sink);
+                    pa_volume_memchunk(&wchunk, &i->thread_info.sample_spec, &v);
+                    nvfs = FALSE;
+
+                } else
                     pa_volume_memchunk(&wchunk, &i->thread_info.sample_spec, &i->thread_info.soft_volume);
             }
 
-            if (!i->thread_info.resampler)
+            if (!i->thread_info.resampler) {
+
+                if (nvfs) {
+                    pa_memchunk_make_writable(&wchunk, 0);
+                    pa_volume_memchunk(&wchunk, &i->sink->sample_spec, &i->volume_factor_sink);
+                }
+
                 pa_memblockq_push_align(i->thread_info.render_memblockq, &wchunk);
-            else {
+            } else {
                 pa_memchunk rchunk;
                 pa_resampler_run(i->thread_info.resampler, &wchunk, &rchunk);
+
+                if (nvfs) {
+                    pa_memchunk_make_writable(&rchunk, 0);
+                    pa_volume_memchunk(&rchunk, &i->sink->sample_spec, &i->volume_factor_sink);
+                }
 
 /*                 pa_log_debug("pushing %lu", (unsigned long) rchunk.length); */
 
@@ -941,12 +985,22 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume, pa_boo
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->state));
     pa_assert(volume);
     pa_assert(pa_cvolume_valid(volume));
-    pa_assert(pa_cvolume_compatible(volume, &i->sample_spec));
+    pa_assert(volume->channels == 1 || pa_cvolume_compatible(volume, &i->sample_spec));
 
     if ((i->sink->flags & PA_SINK_FLAT_VOLUME) && !absolute) {
         v = i->sink->reference_volume;
         pa_cvolume_remap(&v, &i->sink->channel_map, &i->channel_map);
-        volume = pa_sw_cvolume_multiply(&v, &v, volume);
+
+        if (pa_cvolume_compatible(volume, &i->sample_spec))
+            volume = pa_sw_cvolume_multiply(&v, &v, volume);
+        else
+            volume = pa_sw_cvolume_multiply_scalar(&v, &v, pa_cvolume_max(volume));
+    } else {
+
+        if (!pa_cvolume_compatible(volume, &i->sample_spec)) {
+            v = i->volume;
+            volume = pa_cvolume_scale(&v, pa_cvolume_max(volume));
+        }
     }
 
     if (pa_cvolume_equal(volume, &i->volume)) {
@@ -1142,7 +1196,6 @@ pa_bool_t pa_sink_input_may_move_to(pa_sink_input *i, pa_sink *dest) {
 /* Called from main context */
 int pa_sink_input_start_move(pa_sink_input *i) {
     pa_source_output *o, *p = NULL;
-    pa_sink *origin;
     int r;
 
     pa_sink_input_assert_ref(i);
@@ -1155,8 +1208,6 @@ int pa_sink_input_start_move(pa_sink_input *i) {
 
     if ((r = pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_START], i)) < 0)
         return r;
-
-    origin = i->sink;
 
     /* Kill directly connected outputs */
     while ((o = pa_idxset_first(i->direct_outputs, NULL))) {
@@ -1179,6 +1230,7 @@ int pa_sink_input_start_move(pa_sink_input *i) {
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_START_MOVE, i, 0, NULL) == 0);
 
     pa_sink_update_status(i->sink);
+    pa_cvolume_remap(&i->volume_factor_sink, &i->sink->channel_map, &i->channel_map);
     i->sink = NULL;
 
     pa_sink_input_unref(i);
@@ -1232,6 +1284,8 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, pa_bool_t save) {
     i->sink = dest;
     i->save_sink = save;
     pa_idxset_put(dest->inputs, pa_sink_input_ref(i), NULL);
+
+    pa_cvolume_remap(&i->volume_factor_sink, &i->channel_map, &i->sink->channel_map);
 
     if (pa_sink_input_get_state(i) == PA_SINK_INPUT_CORKED)
         i->sink->n_corked++;

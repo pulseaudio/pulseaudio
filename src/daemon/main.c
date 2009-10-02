@@ -260,9 +260,14 @@ static int change_user(void) {
     pa_set_env("HOME", PA_SYSTEM_RUNTIME_PATH);
 
     /* Relevant for pa_runtime_path() */
-    pa_set_env("PULSE_RUNTIME_PATH", PA_SYSTEM_RUNTIME_PATH);
-    pa_set_env("PULSE_CONFIG_PATH", PA_SYSTEM_CONFIG_PATH);
-    pa_set_env("PULSE_STATE_PATH", PA_SYSTEM_STATE_PATH);
+    if (!getenv("PULSE_RUNTIME_PATH"))
+        pa_set_env("PULSE_RUNTIME_PATH", PA_SYSTEM_RUNTIME_PATH);
+
+    if (!getenv("PULSE_CONFIG_PATH"))
+        pa_set_env("PULSE_CONFIG_PATH", PA_SYSTEM_CONFIG_PATH);
+
+    if (!getenv("PULSE_STATE_PATH"))
+        pa_set_env("PULSE_STATE_PATH", PA_SYSTEM_STATE_PATH);
 
     pa_log_info(_("Successfully dropped root privileges."));
 
@@ -413,23 +418,28 @@ int main(int argc, char *argv[]) {
 
     if (!getenv("LD_BIND_NOW")) {
         char *rp;
+        char *canonical_rp;
 
         /* We have to execute ourselves, because the libc caches the
          * value of $LD_BIND_NOW on initialization. */
 
         pa_set_env("LD_BIND_NOW", "1");
 
+        canonical_rp = pa_realpath(PA_BINARY);
+
         if ((rp = pa_readlink("/proc/self/exe"))) {
 
-            if (pa_streq(rp, PA_BINARY))
+            if (pa_streq(rp, canonical_rp))
                 pa_assert_se(execv(rp, argv) == 0);
             else
-                pa_log_warn("/proc/self/exe does not point to " PA_BINARY ", cannot self execute. Are you playing games?");
+                pa_log_warn("/proc/self/exe does not point to %s, cannot self execute. Are you playing games?", canonical_rp);
 
             pa_xfree(rp);
 
         } else
             pa_log_warn("Couldn't read /proc/self/exe, cannot self execute. Running in a chroot()?");
+
+        pa_xfree(canonical_rp);
     }
 #endif
 
@@ -731,7 +741,7 @@ int main(int argc, char *argv[]) {
 #endif
     }
 
-    pa_set_env("PULSE_INTERNAL", "1");
+    pa_set_env_and_record("PULSE_INTERNAL", "1");
     pa_assert_se(chdir("/") == 0);
     umask(0022);
 
@@ -746,7 +756,7 @@ int main(int argc, char *argv[]) {
         if (change_user() < 0)
             goto finish;
 
-    pa_set_env("PULSE_SYSTEM", conf->system_instance ? "1" : "0");
+    pa_set_env_and_record("PULSE_SYSTEM", conf->system_instance ? "1" : "0");
 
     pa_log_info(_("This is PulseAudio %s"), PACKAGE_VERSION);
     pa_log_debug(_("Compilation host: %s"), CANONICAL_HOST);
@@ -853,8 +863,10 @@ int main(int argc, char *argv[]) {
 
     pa_memtrap_install();
 
-    pa_cpu_init_x86();
-    pa_cpu_init_arm();
+    if (!getenv("PULSE_NO_SIMD")) {
+        pa_cpu_init_x86();
+        pa_cpu_init_arm();
+    }
 
     pa_assert_se(mainloop = pa_mainloop_new());
 
@@ -1020,6 +1032,9 @@ finish:
 
     if (valid_pid_file)
         pa_pid_file_remove();
+
+    /* This has no real purpose except making things valgrind-clean */
+    pa_unset_env_recorded();
 
 #ifdef OS_IS_WIN32
     WSACleanup();

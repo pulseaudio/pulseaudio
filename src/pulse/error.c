@@ -64,7 +64,9 @@ const char*pa_strerror(int error) {
         [PA_ERR_NOEXTENSION] = N_("No such extension"),
         [PA_ERR_OBSOLETE] = N_("Obsolete functionality"),
         [PA_ERR_NOTIMPLEMENTED] = N_("Missing implementation"),
-        [PA_ERR_FORKED] = N_("Client forked")
+        [PA_ERR_FORKED] = N_("Client forked"),
+        [PA_ERR_IO] = N_("Input/Output error"),
+        [PA_ERR_BUSY] = N_("Device or resource busy")
     };
 
     pa_init_i18n();

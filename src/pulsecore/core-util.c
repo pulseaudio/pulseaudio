@@ -116,6 +116,7 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/strbuf.h>
 #include <pulsecore/usergroup.h>
+#include <pulsecore/strlist.h>
 
 #include "core-util.h"
 
@@ -123,6 +124,8 @@
 #ifndef MSG_NOSIGNAL
 #define MSG_NOSIGNAL 0
 #endif
+
+static pa_strlist *recorded_env = NULL;
 
 #ifdef OS_IS_WIN32
 
@@ -588,13 +591,13 @@ static int set_scheduler(int rtprio) {
     sp.sched_priority = rtprio;
 
 #ifdef SCHED_RESET_ON_FORK
-    if ((r = pthread_setschedparam(pthread_self(), SCHED_RR|SCHED_RESET_ON_FORK, &sp)) == 0) {
+    if (pthread_setschedparam(pthread_self(), SCHED_RR|SCHED_RESET_ON_FORK, &sp) == 0) {
         pa_log_debug("SCHED_RR|SCHED_RESET_ON_FORK worked.");
         return 0;
     }
 #endif
 
-    if ((r = pthread_setschedparam(pthread_self(), SCHED_RR, &sp)) == 0) {
+    if (pthread_setschedparam(pthread_self(), SCHED_RR, &sp) == 0) {
         pa_log_debug("SCHED_RR worked.");
         return 0;
     }
@@ -608,6 +611,11 @@ static int set_scheduler(int rtprio) {
         errno = -EIO;
         return -1;
     }
+
+    /* We need to disable exit on disconnect because otherwise
+     * dbus_shutdown will kill us. See
+     * https://bugs.freedesktop.org/show_bug.cgi?id=16924 */
+    dbus_connection_set_exit_on_disconnect(bus, FALSE);
 
     r = rtkit_make_realtime(bus, 0, rtprio);
     dbus_connection_unref(bus);
@@ -676,6 +684,11 @@ static int set_nice(int nice_level) {
         errno = -EIO;
         return -1;
     }
+
+    /* We need to disable exit on disconnect because otherwise
+     * dbus_shutdown will kill us. See
+     * https://bugs.freedesktop.org/show_bug.cgi?id=16924 */
+    dbus_connection_set_exit_on_disconnect(bus, FALSE);
 
     r = rtkit_make_high_priority(bus, 0, nice_level);
     dbus_connection_unref(bus);
@@ -773,7 +786,6 @@ int pa_match(const char *expr, const char *v) {
 /* Try to parse a boolean string value.*/
 int pa_parse_boolean(const char *v) {
     const char *expr;
-    int r;
     pa_assert(v);
 
     /* First we check language independant */
@@ -785,12 +797,12 @@ int pa_parse_boolean(const char *v) {
     /* And then we check language dependant */
     if ((expr = nl_langinfo(YESEXPR)))
         if (expr[0])
-            if ((r = pa_match(expr, v)) > 0)
+            if (pa_match(expr, v) > 0)
                 return 1;
 
     if ((expr = nl_langinfo(NOEXPR)))
         if (expr[0])
-            if ((r = pa_match(expr, v)) > 0)
+            if (pa_match(expr, v) > 0)
                 return 0;
 
     errno = EINVAL;
@@ -1182,7 +1194,7 @@ char* pa_strip_nl(char *s) {
 
 /* Create a temporary lock file and lock it. */
 int pa_lock_lockfile(const char *fn) {
-    int fd = -1;
+    int fd;
     pa_assert(fn);
 
     for (;;) {
@@ -1225,8 +1237,6 @@ int pa_lock_lockfile(const char *fn) {
             fd = -1;
             goto fail;
         }
-
-        fd = -1;
     }
 
     return fd;
@@ -1368,19 +1378,10 @@ static char* make_random_dir(mode_t m) {
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "0123456789";
 
-    const char *tmpdir;
     char *fn;
     size_t pathlen;
 
-    if (!(tmpdir = getenv("TMPDIR")))
-        if (!(tmpdir = getenv("TMP")))
-            if (!(tmpdir = getenv("TEMP")))
-                tmpdir = getenv("TEMPDIR");
-
-    if (!tmpdir || !pa_is_path_absolute(tmpdir))
-        tmpdir = "/tmp";
-
-    fn = pa_sprintf_malloc("%s/pulse-XXXXXXXXXXXX", tmpdir);
+    fn = pa_sprintf_malloc("%s" PA_PATH_SEP "pulse-XXXXXXXXXXXX", pa_get_temp_dir());
     pathlen = strlen(fn);
 
     for (;;) {
@@ -2394,7 +2395,7 @@ int pa_reset_sigs(int except, ...) {
         p[i++] = except;
 
         while ((sig = va_arg(ap, int)) >= 0)
-            sig = p[i++];
+            p[i++] = sig;
     }
     p[i] = -1;
 
@@ -2451,7 +2452,36 @@ void pa_set_env(const char *key, const char *value) {
     pa_assert(key);
     pa_assert(value);
 
+    /* This is not thread-safe */
+
     putenv(pa_sprintf_malloc("%s=%s", key, value));
+}
+
+void pa_set_env_and_record(const char *key, const char *value) {
+    pa_assert(key);
+    pa_assert(value);
+
+    /* This is not thread-safe */
+
+    pa_set_env(key, value);
+    recorded_env = pa_strlist_prepend(recorded_env, key);
+}
+
+void pa_unset_env_recorded(void) {
+
+    /* This is not thread-safe */
+
+    for (;;) {
+        char *s;
+
+        recorded_env = pa_strlist_pop(recorded_env, &s);
+
+        if (!s)
+            break;
+
+        unsetenv(s);
+        pa_xfree(s);
+    }
 }
 
 pa_bool_t pa_in_system_mode(void) {
@@ -2837,3 +2867,25 @@ pa_bool_t pa_run_from_build_tree(void) {
 }
 
 #endif
+
+const char *pa_get_temp_dir(void) {
+    const char *t;
+
+    if ((t = getenv("TMPDIR")) &&
+        pa_is_path_absolute(t))
+        return t;
+
+    if ((t = getenv("TMP")) &&
+        pa_is_path_absolute(t))
+        return t;
+
+    if ((t = getenv("TEMP")) &&
+        pa_is_path_absolute(t))
+        return t;
+
+    if ((t = getenv("TEMPDIR")) &&
+        pa_is_path_absolute(t))
+        return t;
+
+    return "/tmp";
+}

@@ -91,6 +91,8 @@ typedef void (*pa_do_volume_func_t) (void *samples, void *volumes, unsigned chan
 pa_do_volume_func_t pa_get_volume_func(pa_sample_format_t f);
 void pa_set_volume_func(pa_sample_format_t f, pa_do_volume_func_t func);
 
+size_t pa_convert_size(size_t size, const pa_sample_spec *from, const pa_sample_spec *to);
+
 #define PA_CHANNEL_POSITION_MASK_LEFT                                   \
     (PA_CHANNEL_POSITION_MASK(PA_CHANNEL_POSITION_FRONT_LEFT)           \
      | PA_CHANNEL_POSITION_MASK(PA_CHANNEL_POSITION_REAR_LEFT)          \

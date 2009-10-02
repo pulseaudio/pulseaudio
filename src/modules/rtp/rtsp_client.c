@@ -60,7 +60,6 @@ struct pa_rtsp_client {
     uint16_t port;
 
     pa_socket_client *sc;
-    pa_iochannel *io;
     pa_ioline *ioline;
 
     pa_rtsp_cb_t callback;
@@ -111,10 +110,8 @@ void pa_rtsp_client_free(pa_rtsp_client* c) {
 
     if (c->sc)
         pa_socket_client_unref(c->sc);
-    if (c->ioline)
-        pa_ioline_close(c->ioline);
-    else if (c->io)
-        pa_iochannel_free(c->io);
+
+    pa_rtsp_disconnect(c);
 
     pa_xfree(c->hostname);
     pa_xfree(c->url);
@@ -187,7 +184,6 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     if (!s) {
         /* Keep the ioline/iochannel open as they will be freed automatically */
         c->ioline = NULL;
-        c->io = NULL;
         c->callback(c, STATE_DISCONNECTED, NULL, c->userdata);
         return;
     }
@@ -303,8 +299,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
         pa_log("Connection failed: %s", pa_cstrerror(errno));
         return;
     }
-    pa_assert(!c->io);
-    c->io = io;
+    pa_assert(!c->ioline);
 
     c->ioline = pa_ioline_new(io);
     pa_ioline_set_callback(c->ioline, line_callback, c);
@@ -360,9 +355,6 @@ void pa_rtsp_disconnect(pa_rtsp_client *c) {
 
     if (c->ioline)
         pa_ioline_close(c->ioline);
-    else if (c->io)
-        pa_iochannel_free(c->io);
-    c->io = NULL;
     c->ioline = NULL;
 }
 
@@ -408,13 +400,11 @@ static int rtsp_exec(pa_rtsp_client* c, const char* cmd,
                         pa_headerlist* headers) {
     pa_strbuf* buf;
     char* hdrs;
-    ssize_t l;
 
     pa_assert(c);
     pa_assert(c->url);
-
-    if (!cmd)
-        return -1;
+    pa_assert(cmd);
+    pa_assert(c->ioline);
 
     pa_log_debug("Sending command: %s", cmd);
 
@@ -453,7 +443,7 @@ static int rtsp_exec(pa_rtsp_client* c, const char* cmd,
     hdrs = pa_strbuf_tostring_free(buf);
     /*pa_log_debug("Submitting request:");
     pa_log_debug(hdrs);*/
-    l = pa_iochannel_write(c->io, hdrs, strlen(hdrs));
+    pa_ioline_puts(c->ioline, hdrs);
     pa_xfree(hdrs);
 
     return 0;

@@ -834,6 +834,8 @@ pa_operation* pa_context_get_card_info_by_name(pa_context *c, const char*name, p
 }
 
 pa_operation* pa_context_get_card_info_list(pa_context *c, pa_card_info_cb_t cb, void *userdata) {
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 15, PA_ERR_NOTSUPPORTED);
+
     return pa_context_send_simple_command(c, PA_COMMAND_GET_CARD_INFO_LIST, context_get_card_info_callback, (pa_operation_cb_t) cb, userdata);
 }
 

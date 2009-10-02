@@ -86,6 +86,11 @@ int pa_start_child_for_read(const char *name, const char *argv1, pid_t *pid) {
         pa_reset_sigs(-1);
         pa_unblock_sigs(-1);
         pa_reset_priority();
+        pa_unset_env_recorded();
+
+        /* Make sure our children are not influenced by the
+         * LD_BIND_NOW we set for ourselves. */
+        unsetenv("LD_BIND_NOW");
 
 #ifdef PR_SET_PDEATHSIG
         /* On Linux we can use PR_SET_PDEATHSIG to have the helper

@@ -335,12 +335,12 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
 
     pass_volume = TRUE;
 
-    if (e->volume_is_set && volume != (pa_volume_t) -1) {
+    if (e->volume_is_set && volume != PA_VOLUME_INVALID) {
         pa_cvolume_set(&r, e->sample_spec.channels, volume);
         pa_sw_cvolume_multiply(&r, &r, &e->volume);
     } else if (e->volume_is_set)
         r = e->volume;
-    else if (volume != (pa_volume_t) -1)
+    else if (volume != PA_VOLUME_INVALID)
         pa_cvolume_set(&r, e->sample_spec.channels, volume);
     else
         pass_volume = FALSE;

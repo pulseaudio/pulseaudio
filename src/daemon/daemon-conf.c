@@ -86,7 +86,7 @@ static const pa_daemon_conf default_conf = {
 #ifdef HAVE_DBUS
     .local_server_type = PA_SERVER_TYPE_UNSET, /* The actual default is _USER, but we have to detect when the user doesn't specify this option. */
 #endif
-    .no_cpu_limit = FALSE,
+    .no_cpu_limit = TRUE,
     .disable_shm = FALSE,
     .lock_memory = FALSE,
     .default_n_fragments = 4,

@@ -57,7 +57,6 @@ int pa_base64_encode(const void *data, int size, char **str)
 
     p = s = pa_xnew(char, size * 4 / 3 + 4);
     q = (const unsigned char *) data;
-    i = 0;
     for (i = 0; i < size;) {
         c = q[i++];
         c *= 256;

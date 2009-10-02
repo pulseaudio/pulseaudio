@@ -265,7 +265,7 @@ static void browser_cb(
         struct tunnel *t2;
 
         if ((t2 = pa_hashmap_get(u->tunnels, t))) {
-            pa_module_unload_by_index(u->core, t2->module_index, TRUE);
+            pa_module_unload_request_by_index(u->core, t2->module_index, TRUE);
             pa_hashmap_remove(u->tunnels, t2);
             tunnel_free(t2);
         }
@@ -386,7 +386,7 @@ void pa__done(pa_module*m) {
         struct tunnel *t;
 
         while ((t = pa_hashmap_steal_first(u->tunnels))) {
-            pa_module_unload_by_index(u->core, t->module_index, TRUE);
+            pa_module_unload_request_by_index(u->core, t->module_index, TRUE);
             tunnel_free(t);
         }
 

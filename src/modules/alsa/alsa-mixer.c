@@ -479,7 +479,6 @@ static int element_get_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
     snd_mixer_elem_t *me;
     snd_mixer_selem_channel_id_t c;
     pa_channel_position_mask_t mask = 0;
-    pa_volume_t max_channel_volume = PA_VOLUME_MUTED;
     unsigned k;
 
     pa_assert(m);
@@ -546,9 +545,6 @@ static int element_get_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
             f = from_alsa_volume(value, e->min_volume, e->max_volume);
         }
 
-        if (f > max_channel_volume)
-            max_channel_volume = f;
-
         for (k = 0; k < cm->channels; k++)
             if (e->masks[c][e->n_channels-1] & PA_CHANNEL_POSITION_MASK(cm->map[k]))
                 if (v->values[k] < f)
@@ -559,7 +555,7 @@ static int element_get_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
 
     for (k = 0; k < cm->channels; k++)
         if (!(mask & PA_CHANNEL_POSITION_MASK(cm->map[k])))
-            v->values[k] = max_channel_volume;
+            v->values[k] = PA_VOLUME_NORM;
 
     return 0;
 }
@@ -681,7 +677,6 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
     snd_mixer_elem_t *me;
     snd_mixer_selem_channel_id_t c;
     pa_channel_position_mask_t mask = 0;
-    pa_volume_t max_channel_volume = PA_VOLUME_MUTED;
     unsigned k;
 
     pa_assert(m);
@@ -771,9 +766,6 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
             f = from_alsa_volume(value, e->min_volume, e->max_volume);
         }
 
-        if (f > max_channel_volume)
-            max_channel_volume = f;
-
         for (k = 0; k < cm->channels; k++)
             if (e->masks[c][e->n_channels-1] & PA_CHANNEL_POSITION_MASK(cm->map[k]))
                 if (rv.values[k] < f)
@@ -784,7 +776,7 @@ static int element_set_volume(pa_alsa_element *e, snd_mixer_t *m, const pa_chann
 
     for (k = 0; k < cm->channels; k++)
         if (!(mask & PA_CHANNEL_POSITION_MASK(cm->map[k])))
-            rv.values[k] = max_channel_volume;
+            rv.values[k] = PA_VOLUME_NORM;
 
     *v = rv;
     return 0;
@@ -1716,11 +1708,11 @@ static int option_verify(pa_alsa_option *o) {
         { "input-radio",               N_("Radio") },
         { "input-video",               N_("Video") },
         { "input-agc-on",              N_("Automatic Gain Control") },
-        { "input-agc-off",             "" },
+        { "input-agc-off",             N_("No Automatic Gain Control") },
         { "input-boost-on",            N_("Boost") },
-        { "input-boost-off",           "" },
+        { "input-boost-off",           N_("No Boost") },
         { "output-amplifier-on",       N_("Amplifier") },
-        { "output-amplifier-off",      "" }
+        { "output-amplifier-off",      N_("No Amplifier") }
     };
 
     pa_assert(o);
@@ -2889,7 +2881,7 @@ static void profile_set_add_auto_pair(
     else
         name = pa_sprintf_malloc("input:%s", n->name);
 
-    if ((p = pa_hashmap_get(ps->profiles, name))) {
+    if (pa_hashmap_get(ps->profiles, name)) {
         pa_xfree(name);
         return;
     }
@@ -3145,7 +3137,13 @@ fail:
     return NULL;
 }
 
-void pa_alsa_profile_set_probe(pa_alsa_profile_set *ps, const char *dev_id, const pa_sample_spec *ss) {
+void pa_alsa_profile_set_probe(
+        pa_alsa_profile_set *ps,
+        const char *dev_id,
+        const pa_sample_spec *ss,
+        unsigned default_n_fragments,
+        unsigned default_fragment_size_msec) {
+
     void *state;
     pa_alsa_profile *p, *last = NULL;
     pa_alsa_mapping *m;
@@ -3160,6 +3158,7 @@ void pa_alsa_profile_set_probe(pa_alsa_profile_set *ps, const char *dev_id, cons
     PA_HASHMAP_FOREACH(p, ps->profiles, state) {
         pa_sample_spec try_ss;
         pa_channel_map try_map;
+        snd_pcm_uframes_t try_period_size, try_buffer_size;
         uint32_t idx;
 
         /* Is this already marked that it is supported? (i.e. from the config file) */
@@ -3213,13 +3212,18 @@ void pa_alsa_profile_set_probe(pa_alsa_profile_set *ps, const char *dev_id, cons
                 try_ss = *ss;
                 try_ss.channels = try_map.channels;
 
+                try_period_size =
+                    pa_usec_to_bytes(default_fragment_size_msec * PA_USEC_PER_MSEC, &try_ss) /
+                    pa_frame_size(&try_ss);
+                try_buffer_size = default_n_fragments * try_period_size;
+
                 if (!(m ->output_pcm = pa_alsa_open_by_template(
                               m->device_strings,
                               dev_id,
                               NULL,
                               &try_ss, &try_map,
                               SND_PCM_STREAM_PLAYBACK,
-                              NULL, NULL, 0, NULL, NULL,
+                              &try_period_size, &try_buffer_size, 0, NULL, NULL,
                               TRUE))) {
                     p->supported = FALSE;
                     break;
@@ -3237,13 +3241,18 @@ void pa_alsa_profile_set_probe(pa_alsa_profile_set *ps, const char *dev_id, cons
                 try_ss = *ss;
                 try_ss.channels = try_map.channels;
 
+                try_period_size =
+                    pa_usec_to_bytes(default_fragment_size_msec*PA_USEC_PER_MSEC, &try_ss) /
+                    pa_frame_size(&try_ss);
+                try_buffer_size = default_n_fragments * try_period_size;
+
                 if (!(m ->input_pcm = pa_alsa_open_by_template(
                               m->device_strings,
                               dev_id,
                               NULL,
                               &try_ss, &try_map,
                               SND_PCM_STREAM_CAPTURE,
-                              NULL, NULL, 0, NULL, NULL,
+                              &try_period_size, &try_buffer_size, 0, NULL, NULL,
                               TRUE))) {
                     p->supported = FALSE;
                     break;

@@ -331,6 +331,12 @@ pa_operation* pa_context_set_source_mute_by_index(pa_context *c, uint32_t idx, i
 /** Set the mute switch of a source device specified by its name */
 pa_operation* pa_context_set_source_mute_by_name(pa_context *c, const char *name, int mute, pa_context_success_cb_t cb, void *userdata);
 
+/** Suspend/Resume a source. \since 0.9.7 */
+pa_operation* pa_context_suspend_source_by_name(pa_context *c, const char *source_name, int suspend, pa_context_success_cb_t cb, void* userdata);
+
+/** Suspend/Resume a source. If idx is PA_INVALID_INDEX all sources will be suspended. \since 0.9.7 */
+pa_operation* pa_context_suspend_source_by_index(pa_context *c, uint32_t idx, int suspend, pa_context_success_cb_t cb, void* userdata);
+
 /** Change the profile of a source. \since 0.9.16 */
 pa_operation* pa_context_set_source_port_by_index(pa_context *c, uint32_t idx, const char*port, pa_context_success_cb_t cb, void *userdata);
 
@@ -556,12 +562,6 @@ pa_operation* pa_context_move_source_output_by_name(pa_context *c, uint32_t idx,
 
 /** Move the specified source output to a different source. \since 0.9.5 */
 pa_operation* pa_context_move_source_output_by_index(pa_context *c, uint32_t idx, uint32_t source_idx, pa_context_success_cb_t cb, void* userdata);
-
-/** Suspend/Resume a source. \since 0.9.7 */
-pa_operation* pa_context_suspend_source_by_name(pa_context *c, const char *source_name, int suspend, pa_context_success_cb_t cb, void* userdata);
-
-/** Suspend/Resume a source. If idx is PA_INVALID_INDEX all sources will be suspended. \since 0.9.7 */
-pa_operation* pa_context_suspend_source_by_index(pa_context *c, uint32_t idx, int suspend, pa_context_success_cb_t cb, void* userdata);
 
 /** Kill a source output. */
 pa_operation* pa_context_kill_source_output(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);

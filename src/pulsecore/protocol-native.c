@@ -628,7 +628,6 @@ static record_stream* record_stream_new(
 
     record_stream *s;
     pa_source_output *source_output = NULL;
-    size_t base;
     pa_source_output_new_data data;
 
     pa_assert(c);
@@ -682,7 +681,7 @@ static record_stream* record_stream_new(
             0,
             s->buffer_attr.maxlength,
             0,
-            base = pa_frame_size(&source_output->sample_spec),
+            pa_frame_size(&source_output->sample_spec),
             1,
             0,
             0,
@@ -827,24 +826,26 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
             pa_pstream_send_simple_ack(s->connection->pstream, PA_PTR_TO_UINT(userdata));
             break;
 
-        case PLAYBACK_STREAM_MESSAGE_UPDATE_TLENGTH: {
-            pa_tagstruct *t;
+        case PLAYBACK_STREAM_MESSAGE_UPDATE_TLENGTH:
 
             s->buffer_attr.tlength = (uint32_t) offset;
 
-            t = pa_tagstruct_new(NULL, 0);
-            pa_tagstruct_putu32(t, PA_COMMAND_PLAYBACK_BUFFER_ATTR_CHANGED);
-            pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
-            pa_tagstruct_putu32(t, s->index);
-            pa_tagstruct_putu32(t, s->buffer_attr.maxlength);
-            pa_tagstruct_putu32(t, s->buffer_attr.tlength);
-            pa_tagstruct_putu32(t, s->buffer_attr.prebuf);
-            pa_tagstruct_putu32(t, s->buffer_attr.minreq);
-            pa_tagstruct_put_usec(t, s->configured_sink_latency);
-            pa_pstream_send_tagstruct(s->connection->pstream, t);
+            if (s->connection->version >= 15) {
+                pa_tagstruct *t;
+
+                t = pa_tagstruct_new(NULL, 0);
+                pa_tagstruct_putu32(t, PA_COMMAND_PLAYBACK_BUFFER_ATTR_CHANGED);
+                pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
+                pa_tagstruct_putu32(t, s->index);
+                pa_tagstruct_putu32(t, s->buffer_attr.maxlength);
+                pa_tagstruct_putu32(t, s->buffer_attr.tlength);
+                pa_tagstruct_putu32(t, s->buffer_attr.prebuf);
+                pa_tagstruct_putu32(t, s->buffer_attr.minreq);
+                pa_tagstruct_put_usec(t, s->configured_sink_latency);
+                pa_pstream_send_tagstruct(s->connection->pstream, t);
+            }
 
             break;
-        }
     }
 
     return 0;
@@ -2274,6 +2275,8 @@ static void command_exit(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_ta
     ret = pa_core_exit(c->protocol->core, FALSE, 0);
     CHECK_VALIDITY(c->pstream, ret >= 0, tag, PA_ERR_ACCESS);
 
+    pa_log_debug("Client %s asks us to terminate.", pa_strnull(pa_proplist_gets(c->client->proplist, PA_PROP_APPLICATION_PROCESS_BINARY)));
+
     pa_pstream_send_simple_ack(c->pstream, tag); /* nonsense */
 }
 
@@ -3390,12 +3393,18 @@ static void command_set_volume(
     client_name = pa_strnull(pa_proplist_gets(c->client->proplist, PA_PROP_APPLICATION_PROCESS_BINARY));
 
     if (sink) {
+        CHECK_VALIDITY(c->pstream, volume.channels == 1 || pa_cvolume_compatible(&volume, &sink->sample_spec), tag, PA_ERR_INVALID);
+
         pa_log_debug("Client %s changes volume of sink %s.", client_name, sink->name);
         pa_sink_set_volume(sink, &volume, TRUE, TRUE);
     } else if (source) {
+        CHECK_VALIDITY(c->pstream, volume.channels == 1 || pa_cvolume_compatible(&volume, &source->sample_spec), tag, PA_ERR_INVALID);
+
         pa_log_debug("Client %s changes volume of source %s.", client_name, source->name);
         pa_source_set_volume(source, &volume, TRUE);
     } else if (si) {
+        CHECK_VALIDITY(c->pstream, volume.channels == 1 || pa_cvolume_compatible(&volume, &si->sample_spec), tag, PA_ERR_INVALID);
+
         pa_log_debug("Client %s changes volume of sink input %s.",
                      client_name,
                      pa_strnull(pa_proplist_gets(si->proplist, PA_PROP_MEDIA_NAME)));
@@ -3441,7 +3450,6 @@ static void command_set_mute(
     switch (command) {
 
         case PA_COMMAND_SET_SINK_MUTE:
-
             if (idx != PA_INVALID_INDEX)
                 sink = pa_idxset_get_by_index(c->protocol->core->sinks, idx);
             else
