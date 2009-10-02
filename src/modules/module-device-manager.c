@@ -448,7 +448,7 @@ static void update_highest_priority_device_indexes(struct userdata *u, const cha
             name = pa_xstrndup(key.data, key.size);
             device_name = get_name(name, prefix);
 
-            if ((e = read_entry(u, name)) && ENTRY_VERSION == e->version) {
+            if ((e = read_entry(u, name))) {
                 for (uint32_t i = 0; i < NUM_ROLES; ++i) {
                     if (!highest_priority_available[i] || e->priority[i] < highest_priority_available[i]) {
                         /* We've found a device with a higher priority than that we've currently got,
@@ -1049,7 +1049,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         if (!device || !*device || !description || !*description)
           goto fail;
 
-        if ((e = read_entry(u, device)) && ENTRY_VERSION == e->version) {
+        if ((e = read_entry(u, device))) {
             pa_datum key, data;
 
             pa_strlcpy(e->description, description, sizeof(e->description));
@@ -1217,7 +1217,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
 
                 /* Add the device to our hashmap. If it's alredy in it, free it now and carry on */
                 if (pa_hashmap_put(h, device->device, device) == 0
-                    && (e = read_entry(u, device->device)) && ENTRY_VERSION == e->version) {
+                    && (e = read_entry(u, device->device))) {
                     /* We add offset on to the existing priorirty so that when we order, the
                        existing entries are always lower priority than the new ones. */
                     device->prio = (offset + e->priority[role_index]);
@@ -1272,7 +1272,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         idx = 1;
         first = TRUE;
         for (i = 0; i < n_devices; ++i) {
-            if ((e = read_entry(u, devices[i]->device)) && ENTRY_VERSION == e->version) {
+            if ((e = read_entry(u, devices[i]->device))) {
                 if (e->priority[role_index] == idx)
                     idx++;
                 else {
