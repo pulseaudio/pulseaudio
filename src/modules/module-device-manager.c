@@ -518,6 +518,9 @@ static void route_sink_input(struct userdata *u, pa_sink_input *si) {
     pa_assert(u);
     pa_assert(u->do_routing);
 
+    if (si->save_sink)
+        return;
+
     /* Skip this if it is already in the process of being moved anyway */
     if (!si->sink)
         return;
@@ -544,7 +547,7 @@ static void route_sink_input(struct userdata *u, pa_sink_input *si) {
         return;
 
     if (si->sink != sink)
-        pa_sink_input_move_to(si, sink, TRUE);
+        pa_sink_input_move_to(si, sink, FALSE);
 }
 
 static pa_hook_result_t route_sink_inputs(struct userdata *u, pa_sink *ignore_sink) {
@@ -572,6 +575,9 @@ static void route_source_output(struct userdata *u, pa_source_output *so) {
 
     pa_assert(u);
     pa_assert(u->do_routing);
+
+    if (so->save_source)
+        return;
 
     if (so->direct_on_input)
         return;
@@ -602,7 +608,7 @@ static void route_source_output(struct userdata *u, pa_source_output *so) {
         return;
 
     if (so->source != source)
-        pa_source_output_move_to(so, source, TRUE);
+        pa_source_output_move_to(so, source, FALSE);
 }
 
 static pa_hook_result_t route_source_outputs(struct userdata *u, pa_source* ignore_source) {
@@ -811,22 +817,24 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
         return PA_HOOK_OK;
 
     if (new_data->sink)
-        pa_log_debug("Overriding device for stream, even although it is already set. I am evil that way...");
+        pa_log_debug("Not restoring device for stream because already set.");
+    else {
+        if (!(role = pa_proplist_gets(new_data->proplist, PA_PROP_MEDIA_ROLE)))
+            role_index = get_role_index("none");
+        else
+            role_index = get_role_index(role);
 
-    if (!(role = pa_proplist_gets(new_data->proplist, PA_PROP_MEDIA_ROLE)))
-        role_index = get_role_index("none");
-    else
-        role_index = get_role_index(role);
+        if (PA_INVALID_INDEX != role_index) {
+            uint32_t device_index;
 
-    if (PA_INVALID_INDEX != role_index) {
-        uint32_t device_index;
+            device_index = u->preferred_sinks[role_index];
+            if (PA_INVALID_INDEX != device_index) {
+                pa_sink *sink;
 
-        device_index = u->preferred_sinks[role_index];
-        if (PA_INVALID_INDEX != device_index) {
-            pa_sink *sink;
-
-            if ((sink = pa_idxset_get_by_index(u->core->sinks, device_index))) {
-                new_data->sink = sink;
+                if ((sink = pa_idxset_get_by_index(u->core->sinks, device_index))) {
+                    new_data->sink = sink;
+                    new_data->save_sink = FALSE;
+                }
             }
         }
     }
@@ -849,22 +857,24 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
         return PA_HOOK_OK;
 
     if (new_data->source)
-        pa_log_debug("Overriding device for stream, even although it is already set. I am evil that way...");
+        pa_log_debug("Not restoring device for stream because already set.");
+    else {
+        if (!(role = pa_proplist_gets(new_data->proplist, PA_PROP_MEDIA_ROLE)))
+            role_index = get_role_index("none");
+        else
+            role_index = get_role_index(role);
 
-    if (!(role = pa_proplist_gets(new_data->proplist, PA_PROP_MEDIA_ROLE)))
-        role_index = get_role_index("none");
-    else
-        role_index = get_role_index(role);
+        if (PA_INVALID_INDEX != role_index) {
+            uint32_t device_index;
 
-    if (PA_INVALID_INDEX != role_index) {
-        uint32_t device_index;
+            device_index = u->preferred_sources[role_index];
+            if (PA_INVALID_INDEX != device_index) {
+                pa_source *source;
 
-        device_index = u->preferred_sources[role_index];
-        if (PA_INVALID_INDEX != device_index) {
-            pa_source *source;
-
-            if ((source = pa_idxset_get_by_index(u->core->sources, device_index))) {
-                new_data->source = source;
+                if ((source = pa_idxset_get_by_index(u->core->sources, device_index))) {
+                    new_data->source = source;
+                    new_data->save_source = FALSE;
+                }
             }
         }
     }
@@ -1422,20 +1432,20 @@ int pa__init(pa_module*m) {
     u->source_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) source_new_hook_callback, u);
 
     /* The following slots are used to deal with routing */
-    /* A little bit later than module-stream-restore, module-intended-roles */
-    u->sink_input_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], PA_HOOK_EARLY+15, (pa_hook_cb_t) sink_input_new_hook_callback, u);
-    u->source_output_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_NEW], PA_HOOK_EARLY+15, (pa_hook_cb_t) source_output_new_hook_callback, u);
+    /* A little bit later than module-stream-restore, but before module-intended-roles */
+    u->sink_input_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], PA_HOOK_EARLY+5, (pa_hook_cb_t) sink_input_new_hook_callback, u);
+    u->source_output_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_NEW], PA_HOOK_EARLY+5, (pa_hook_cb_t) source_output_new_hook_callback, u);
 
     if (on_hotplug) {
-        /* A little bit later than module-stream-restore, module-intended-roles */
-        u->sink_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE+15, (pa_hook_cb_t) sink_put_hook_callback, u);
-        u->source_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE+15, (pa_hook_cb_t) source_put_hook_callback, u);
+        /* A little bit later than module-stream-restore, but before module-intended-roles */
+        u->sink_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE+5, (pa_hook_cb_t) sink_put_hook_callback, u);
+        u->source_put_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE+5, (pa_hook_cb_t) source_put_hook_callback, u);
     }
 
     if (on_rescue) {
-        /* A little bit later than module-stream-restore, module-intended-roles, a little bit earlier than module-rescue-streams, ... */
-        u->sink_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_LATE+15, (pa_hook_cb_t) sink_unlink_hook_callback, u);
-        u->source_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE+15, (pa_hook_cb_t) source_unlink_hook_callback, u);
+        /* A little bit later than module-stream-restore, a little bit earlier than module-intended-roles, module-rescue-streams, ... */
+        u->sink_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_LATE+5, (pa_hook_cb_t) sink_unlink_hook_callback, u);
+        u->source_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE+5, (pa_hook_cb_t) source_unlink_hook_callback, u);
     }
 
     if (!(fname = pa_state_path("device-manager", TRUE)))
