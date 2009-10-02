@@ -102,7 +102,7 @@ struct userdata {
 static const char* const valid_modargs[] = {
     "source",
     "sink",
-    "latency",
+    "latency_msec",
     "format",
     "rate",
     "channels",
