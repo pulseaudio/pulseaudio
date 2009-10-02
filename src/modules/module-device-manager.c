@@ -133,6 +133,7 @@ struct userdata {
 struct entry {
     uint8_t version;
     char description[PA_NAME_MAX];
+    pa_bool_t user_set_description;
     char icon[PA_NAME_MAX];
     role_indexes_t priority;
 } PA_GCC_PACKED;
@@ -178,6 +179,11 @@ static struct entry* read_entry(struct userdata *u, const char *name) {
 
     if (!memchr(e->description, 0, sizeof(e->description))) {
         pa_log_warn("Database contains entry for device %s with missing NUL byte in description", name);
+        goto fail;
+    }
+
+    if (!memchr(e->icon, 0, sizeof(e->icon))) {
+        pa_log_warn("Database contains entry for device %s with missing NUL byte in icon", name);
         goto fail;
     }
 
@@ -329,6 +335,7 @@ static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
     pa_assert(b);
 
     if (strncmp(a->description, b->description, sizeof(a->description))
+        || a->user_set_description != b->user_set_description
         || strncmp(a->icon, b->icon, sizeof(a->icon)))
         return FALSE;
 
@@ -398,6 +405,7 @@ static inline struct entry *load_or_initialize_entry(struct userdata *u, struct 
         for (uint32_t i = 0; i < NUM_ROLES; ++i) {
             entry->priority[i] = max_priority[i] + 1;
         }
+        entry->user_set_description = FALSE;
     }
 
     return old;
@@ -672,7 +680,16 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         old = load_or_initialize_entry(u, &entry, name, "sink:");
 
-        pa_strlcpy(entry.description, pa_strnull(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description));
+        if (!entry.user_set_description)
+            pa_strlcpy(entry.description, pa_strnull(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description));
+        else if (strncmp(entry.description, pa_strnull(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description)) != 0) {
+            /* Warning: If two modules fight over the description, this could cause an infinite loop.
+               by changing the description here, we retrigger this subscription callback. The only thing stopping us from
+               looping is the fact that the string comparison will fail on the second iteration. If another module tries to manage
+               the description, this will fail... */
+            pa_sink_set_description(sink, entry.description);
+        }
+
         pa_strlcpy(entry.icon, pa_strnull(pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_ICON_NAME)), sizeof(entry.icon));
 
     } else  if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE) {
@@ -690,7 +707,16 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         old = load_or_initialize_entry(u, &entry, name, "source:");
 
-        pa_strlcpy(entry.description, pa_strnull(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description));
+        if (!entry.user_set_description)
+            pa_strlcpy(entry.description, pa_strnull(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description));
+        else if (strncmp(entry.description, pa_strnull(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_DESCRIPTION)), sizeof(entry.description)) != 0) {
+            /* Warning: If two modules fight over the description, this could cause an infinite loop.
+               by changing the description here, we retrigger this subscription callback. The only thing stopping us from
+               looping is the fact that the string comparison will fail on the second iteration. If another module tries to manage
+               the description, this will fail... */
+            pa_source_set_description(source, entry.description);
+        }
+
         pa_strlcpy(entry.icon, pa_strnull(pa_proplist_gets(source->proplist, PA_PROP_DEVICE_ICON_NAME)), sizeof(entry.icon));
     }
 
@@ -716,11 +742,12 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
     pa_log_info("Storing device %s.", name);
 
-    pa_database_set(u->database, &key, &data, TRUE);
+    if (pa_database_set(u->database, &key, &data, TRUE) == 0)
+        trigger_save(u);
+    else
+        pa_log_warn("Could not save device");;
 
     pa_xfree(name);
-
-    trigger_save(u);
 }
 
 static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new_data, struct userdata *u) {
@@ -734,7 +761,7 @@ static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new
     name = pa_sprintf_malloc("sink:%s", new_data->name);
 
     if ((e = read_entry(u, name))) {
-        if (strncmp(e->description, pa_proplist_gets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION), sizeof(e->description)) != 0) {
+        if (e->user_set_description && strncmp(e->description, pa_proplist_gets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION), sizeof(e->description)) != 0) {
             pa_log_info("Restoring description for sink %s.", new_data->name);
             pa_proplist_sets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION, e->description);
         }
@@ -758,7 +785,7 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
     name = pa_sprintf_malloc("source:%s", new_data->name);
 
     if ((e = read_entry(u, name))) {
-        if (strncmp(e->description, pa_proplist_gets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION), sizeof(e->description)) != 0) {
+        if (e->user_set_description && strncmp(e->description, pa_proplist_gets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION), sizeof(e->description)) != 0) {
             /* NB, We cannot detect if we are a monitor here... this could mess things up a bit... */
             pa_log_info("Restoring description for source %s.", new_data->name);
             pa_proplist_sets(new_data->proplist, PA_PROP_DEVICE_DESCRIPTION, e->description);
@@ -911,13 +938,16 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
     pa_assert(name);
     pa_assert(e);
 
+    if (!e->user_set_description)
+        return;
+
     if ((n = get_name(name, "sink:"))) {
         for (sink = pa_idxset_first(u->core->sinks, &idx); sink; sink = pa_idxset_next(u->core->sinks, &idx)) {
             if (!pa_streq(sink->name, n)) {
                 continue;
             }
 
-            pa_log_info("Setting description for sink %s.", sink->name);
+            pa_log_info("Setting description for sink %s to '%s'", sink->name, e->description);
             pa_sink_set_description(sink, e->description);
         }
         pa_xfree(n);
@@ -933,7 +963,7 @@ static void apply_entry(struct userdata *u, const char *name, struct entry *e) {
                 continue;
             }
 
-            pa_log_info("Setting description for source %s.", source->name);
+            pa_log_info("Setting description for source %s to '%s'", source->name, e->description);
             pa_source_set_description(source, e->description);
         }
         pa_xfree(n);
@@ -1053,6 +1083,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             pa_datum key, data;
 
             pa_strlcpy(e->description, description, sizeof(e->description));
+            e->user_set_description = TRUE;
 
             key.data = (char *) device;
             key.size = strlen(device);
