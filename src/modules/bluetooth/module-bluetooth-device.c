@@ -74,7 +74,8 @@ PA_MODULE_USAGE(
         "profile=<a2dp|hsp> "
         "rate=<sample rate> "
         "channels=<number of channels> "
-        "path=<device object path>");
+        "path=<device object path> "
+        "auto_connect=<automatically connect?>");
 
 /*
 #ifdef NOKIA
@@ -98,6 +99,7 @@ static const char* const valid_modargs[] = {
     "rate",
     "channels",
     "path",
+    "auto_connect",
 #ifdef NOKIA
     "sco_sink",
     "sco_source",
@@ -141,6 +143,7 @@ struct userdata {
     char *address;
     char *path;
     pa_bluetooth_discovery *discovery;
+    pa_bool_t auto_connect;
 
     pa_dbus_connection *connection;
 
@@ -399,7 +402,7 @@ static int get_caps(struct userdata *u, uint8_t seid) {
         pa_assert(u->profile == PROFILE_HSP);
         msg.getcaps_req.transport = BT_CAPABILITIES_TRANSPORT_SCO;
     }
-    msg.getcaps_req.flags = BT_FLAG_AUTOCONNECT;
+    msg.getcaps_req.flags = u->auto_connect ? BT_FLAG_AUTOCONNECT : 0;
 
     if (service_send(u, &msg.getcaps_req.h) < 0)
         return -1;
@@ -2360,6 +2363,12 @@ int pa__init(pa_module* m) {
     if (pa_modargs_get_value_u32(ma, "rate", &u->sample_spec.rate) < 0 ||
         u->sample_spec.rate <= 0 || u->sample_spec.rate > PA_RATE_MAX) {
         pa_log_error("Failed to get rate from module arguments");
+        goto fail;
+    }
+
+    u->auto_connect = TRUE;
+    if (pa_modargs_get_value_boolean(ma, "auto_connect", &u->auto_connect)) {
+        pa_log("Failed to parse auto_connect= argument");
         goto fail;
     }
 

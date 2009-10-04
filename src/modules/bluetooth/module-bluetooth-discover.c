@@ -117,7 +117,7 @@ static pa_hook_result_t load_module_for_device(pa_bluetooth_discovery *y, const 
 #endif
 
             if (d->audio_source_state >= PA_BT_AUDIO_STATE_CONNECTED)
-                args = pa_sprintf_malloc("%s profile=\"a2dp_source\"", args);
+                args = pa_sprintf_malloc("%s profile=\"a2dp_source\" auto_connect=no", args);
 
             pa_log_debug("Loading module-bluetooth-device %s", args);
             m = pa_module_load(u->module->core, "module-bluetooth-device", args);
