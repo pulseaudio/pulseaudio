@@ -4,14 +4,15 @@
 # Domingo Becker <domingobecker@gmail.com>, 2009.
 # Héctor Daniel Cabrera <h.daniel.cabrera@gmail.com>, 2009.
 #
+# Fernando Gonzalez Blanco <fgonz@fedoraproject.org>, 2009.
 msgid ""
 msgstr ""
 "Project-Id-Version: PulseAudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-29 23:47+0200\n"
-"PO-Revision-Date: 2009-09-11 08:40-0300\n"
-"Last-Translator: Domingo Becker <domingobecker@gmail.com>\n"
-"Language-Team: Fedora Spanish <fedora-trans-es@redhat.com>\n"
+"POT-Creation-Date: 2009-10-04 16:37+0000\n"
+"PO-Revision-Date: 2009-10-04 21:16+0200\n"
+"Last-Translator: Fernando Gonzalez Blanco <fgonz@fedoraproject.org>\n"
+"Language-Team: Spanish <fedora-trans-es@redhat.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -2399,133 +2400,122 @@ msgstr "Servidor de Sonido PulseAudio"
 #: ../src/modules/module-rygel-media-server.c:569
 #: ../src/modules/module-rygel-media-server.c:583
 msgid "Output Devices"
-msgstr ""
+msgstr "Dispositivos de salida"
 
 #: ../src/modules/module-rygel-media-server.c:570
 #: ../src/modules/module-rygel-media-server.c:584
-#, fuzzy
 msgid "Input Devices"
-msgstr "Entrada %s"
+msgstr "Dispositivos de entrada"
 
 #: ../src/modules/module-rygel-media-server.c:774
 msgid "Audio on @HOSTNAME@"
-msgstr ""
+msgstr "Audio en @HOSTNAME@"
 
 #: ../src/modules/alsa/alsa-mixer.c:1701
-#, fuzzy
 msgid "Input"
-msgstr "Entrada %s"
+msgstr "Entrada"
 
 #: ../src/modules/alsa/alsa-mixer.c:1702
 msgid "Docking Station Input"
-msgstr ""
+msgstr "Estación dock de entrada"
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
 msgid "Docking Station Microphone"
-msgstr ""
+msgstr "Micrófono de la estación Dock"
 
 #: ../src/modules/alsa/alsa-mixer.c:1704
 msgid "Line-In"
-msgstr ""
+msgstr "En línea"
 
 #: ../src/modules/alsa/alsa-mixer.c:1705
 msgid "Microphone"
-msgstr ""
+msgstr "Micrófono"
 
 #: ../src/modules/alsa/alsa-mixer.c:1706
 msgid "External Microphone"
-msgstr ""
+msgstr "Micrófono externo"
 
 #: ../src/modules/alsa/alsa-mixer.c:1707
-#, fuzzy
 msgid "Internal Microphone"
-msgstr "Audio Interno"
+msgstr "Micrófono interno"
 
 #: ../src/modules/alsa/alsa-mixer.c:1708
 msgid "Radio"
-msgstr ""
+msgstr "Radio"
 
 #: ../src/modules/alsa/alsa-mixer.c:1709
 msgid "Video"
-msgstr ""
+msgstr "Vídeo"
 
 #: ../src/modules/alsa/alsa-mixer.c:1710
 msgid "Automatic Gain Control"
-msgstr ""
+msgstr "Control automático de ganancia"
 
 #: ../src/modules/alsa/alsa-mixer.c:1711
 msgid "No Automatic Gain Control"
-msgstr ""
+msgstr "Sin control automático de ganancia"
 
 #: ../src/modules/alsa/alsa-mixer.c:1712
 msgid "Boost"
-msgstr ""
+msgstr "Incremento de ganancia"
 
 #: ../src/modules/alsa/alsa-mixer.c:1713
 msgid "No Boost"
-msgstr ""
+msgstr "Sin incremento de ganancia"
 
 #: ../src/modules/alsa/alsa-mixer.c:1714
 msgid "Amplifier"
-msgstr ""
+msgstr "Amplificador"
 
 #: ../src/modules/alsa/alsa-mixer.c:1715
 msgid "No Amplifier"
-msgstr ""
+msgstr "Sin amplificador"
 
 #: ../src/modules/alsa/alsa-mixer.c:1773
-#, fuzzy
 msgid "Analog Input"
-msgstr "Mono Analógico"
+msgstr "Entrada analógica"
 
 #: ../src/modules/alsa/alsa-mixer.c:1774
-#, fuzzy
 msgid "Analog Microphone"
-msgstr "Mono Analógico"
+msgstr "Micrófono analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:1775
-#, fuzzy
 msgid "Analog Line-In"
-msgstr "Mono Analógico"
+msgstr "Entrada en línea analógica"
 
 #: ../src/modules/alsa/alsa-mixer.c:1776
-#, fuzzy
 msgid "Analog Radio"
-msgstr "Mono Analógico"
+msgstr "Radio analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
-#, fuzzy
 msgid "Analog Video"
-msgstr "Estéreo Analógico"
+msgstr "Vídeo analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:1778
-#, fuzzy
 msgid "Analog Output"
-msgstr "Salida Nula"
+msgstr "Salida analógica"
 
 #: ../src/modules/alsa/alsa-mixer.c:1779
-#, fuzzy
 msgid "Analog Headphones"
-msgstr "Mono Analógico"
+msgstr "Auriculares analógicos"
 
 #: ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Analog Output (LFE)"
-msgstr ""
+msgstr "Salida analógica (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1781
-#, fuzzy
 msgid "Analog Mono Output"
-msgstr "Mono Analógico"
+msgstr "Salida Mono analógica "
 
 #: ../src/modules/alsa/alsa-mixer.c:1981
-#, fuzzy, c-format
+#, c-format
 msgid "%s+%s"
-msgstr "%s %s"
+msgstr "%s+%s"
 
 #: ../src/modules/alsa/alsa-mixer.c:1984 ../src/modules/alsa/alsa-mixer.c:3404
-#, fuzzy, c-format
+#, c-format
 msgid "%s / %s"
-msgstr "%s %s"
+msgstr "%s / %s"
 
 #: ../src/modules/alsa/alsa-mixer.c:2790
 msgid "Analog Mono"
@@ -2536,19 +2526,16 @@ msgid "Analog Stereo"
 msgstr "Estéreo Analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:2792
-#, fuzzy
 msgid "Analog Surround 2.1"
-msgstr "Análogo Envolvente 4.1"
+msgstr "Análogico Envolvente 2.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2793
-#, fuzzy
 msgid "Analog Surround 3.0"
-msgstr "Análogo Envolvente 4.0"
+msgstr "Análogico Envolvente 3.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2794
-#, fuzzy
 msgid "Analog Surround 3.1"
-msgstr "Análogo Envolvente 4.1"
+msgstr "Análogico Envolvente 3.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2795
 msgid "Analog Surround 4.0"
@@ -2567,19 +2554,16 @@ msgid "Analog Surround 5.1"
 msgstr "Análogo Envolvente 5.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2799
-#, fuzzy
 msgid "Analog Surround 6.0"
-msgstr "Análogo Envolvente 4.0"
+msgstr "Análogico Envolvente 6.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2800
-#, fuzzy
 msgid "Analog Surround 6.1"
-msgstr "Análogo Envolvente 4.1"
+msgstr "Análogico Envolvente 6.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2801
-#, fuzzy
 msgid "Analog Surround 7.0"
-msgstr "Análogo Envolvente 4.0"
+msgstr "Análogico Envolvente 7.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2802
 msgid "Analog Surround 7.1"
@@ -2590,9 +2574,8 @@ msgid "Digital Stereo (IEC958)"
 msgstr "Estéreo Digital (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2804
-#, fuzzy
 msgid "Digital Surround 4.0 (IEC958)"
-msgstr "Digital Envolvente 4.0 (IEC9588/AC3)"
+msgstr "Digital Envolvente 4.0 (IEC9588)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2805
 msgid "Digital Surround 4.0 (IEC958/AC3)"
@@ -2607,19 +2590,16 @@ msgid "Digital Stereo (HDMI)"
 msgstr "Estéreo Digital (HDMI)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2928
-#, fuzzy
 msgid "Analog Mono Duplex"
-msgstr "Mono Analógico"
+msgstr "Mono Analógico.Duplex"
 
 #: ../src/modules/alsa/alsa-mixer.c:2929
-#, fuzzy
 msgid "Analog Stereo Duplex"
-msgstr "Estéreo Analógico"
+msgstr "Estéreo Analógico.Duplex"
 
 #: ../src/modules/alsa/alsa-mixer.c:2930
-#, fuzzy
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr "Estéreo Digital (IEC958)"
+msgstr "Estéreo Digital Duplex(IEC958)"
 
 #~ msgid "Invalid client name '%s'\n"
 #~ msgstr "Nombre de cliente inválido '%s'\n"
