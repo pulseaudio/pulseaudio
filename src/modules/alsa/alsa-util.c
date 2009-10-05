@@ -403,7 +403,7 @@ finish:
     return ret;
 }
 
-int pa_alsa_set_sw_params(snd_pcm_t *pcm, snd_pcm_uframes_t avail_min) {
+int pa_alsa_set_sw_params(snd_pcm_t *pcm, snd_pcm_uframes_t avail_min, pa_bool_t period_event) {
     snd_pcm_sw_params_t *swparams;
     snd_pcm_uframes_t boundary;
     int err;
@@ -417,7 +417,7 @@ int pa_alsa_set_sw_params(snd_pcm_t *pcm, snd_pcm_uframes_t avail_min) {
         return err;
     }
 
-    if ((err = snd_pcm_sw_params_set_period_event(pcm, swparams, 0)) < 0) {
+    if ((err = snd_pcm_sw_params_set_period_event(pcm, swparams, period_event)) < 0) {
         pa_log_warn("Unable to disable period event: %s\n", pa_alsa_strerror(err));
         return err;
     }
