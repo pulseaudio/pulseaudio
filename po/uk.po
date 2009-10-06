@@ -6,16 +6,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-29 23:47+0200\n"
-"PO-Revision-Date: 2009-09-11 17:38+0300\n"
+"POT-Creation-Date: 2009-10-03 10:02+0000\n"
+"PO-Revision-Date: 2009-10-03 19:28+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation@linux.org.ua>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Lokalize 0.3\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
-"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 "
+"&& (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: ../src/modules/alsa/alsa-util.c:858 ../src/pulsecore/sink.c:2629
 #, c-format
@@ -224,8 +224,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:583
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr ""
-"Запуск у загальносистемному режимі, але не встановлено --disallow-exit!"
+msgstr "Запуск у загальносистемному режимі, але не встановлено --disallow-exit!"
 
 #: ../src/daemon/main.c:586
 msgid "Running in system mode, but --disallow-module-loading not set!"
@@ -1168,8 +1167,7 @@ msgstr "Не вдалося відкрити файл налаштування �
 
 #: ../src/pulse/context.c:550
 msgid "No cookie loaded. Attempting to connect without."
-msgstr ""
-"Куків не завантажено. Буде виконано спробу з’єднання за їх відсутності."
+msgstr "Куків не завантажено. Буде виконано спробу з’єднання за їх відсутності."
 
 #: ../src/pulse/context.c:693
 #, c-format
@@ -1343,8 +1341,7 @@ msgstr "Час: %0.3f сек.; Латентність: %0.0f мкс."
 #: ../src/utils/pacat.c:599
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
-msgstr ""
-"Спроба виконання pa_stream_update_timing_info() завершилася невдало: %s"
+msgstr "Спроба виконання pa_stream_update_timing_info() завершилася невдало: %s"
 
 #: ../src/utils/pacat.c:609
 #, c-format
@@ -1558,10 +1555,8 @@ msgstr "Попередження: не вдалося записати карт�
 
 #: ../src/utils/pacat.c:1008
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
-msgstr ""
-"Відкриття потоку %s з частотною специфікацією «%s» і картою каналів «%s»."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgstr "Відкриття потоку %s з частотною специфікацією «%s» і картою каналів «%s»."
 
 #: ../src/utils/pacat.c:1009
 msgid "recording"
@@ -1635,8 +1630,7 @@ msgstr "Отримано сигнал SIGINT, завершення роботи.
 #: ../src/utils/pasuspender.c:194
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr ""
-"ПОПЕРЕДЖЕННЯ: виконання дочірнього процесу було перервано з сигналом %u\n"
+msgstr "ПОПЕРЕДЖЕННЯ: виконання дочірнього процесу було перервано з сигналом %u\n"
 
 #: ../src/utils/pasuspender.c:212
 #, c-format
@@ -1696,8 +1690,7 @@ msgstr "Зараз використано: %u блоків, що містять 
 #: ../src/utils/pactl.c:144
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr ""
-"Виділено протягом виконання загалом: %u блоків, що містять %s байтів.\n"
+msgstr "Виділено протягом виконання загалом: %u блоків, що містять %s байтів.\n"
 
 #: ../src/utils/pactl.c:147
 #, c-format
@@ -2203,18 +2196,15 @@ msgstr "Некоректний індекс вхідних даних прийм
 
 #: ../src/utils/pactl.c:1204
 msgid "You have to specify a sink name/index and a mute boolean"
-msgstr ""
-"Вам слід вказати назву/індекс приймача і булеве значення вимикання звуку"
+msgstr "Вам слід вказати назву/індекс приймача і булеве значення вимикання звуку"
 
 #: ../src/utils/pactl.c:1221
 msgid "You have to specify a source name/index and a mute boolean"
-msgstr ""
-"Вам слід вказати назву/індекс джерела і булеве значення вимикання звуку"
+msgstr "Вам слід вказати назву/індекс джерела і булеве значення вимикання звуку"
 
 #: ../src/utils/pactl.c:1238
 msgid "You have to specify a sink input index and a mute boolean"
-msgstr ""
-"Вам слід вказати індекс приймача даних і булеве значення вимикання звуку"
+msgstr "Вам слід вказати індекс приймача даних і булеве значення вимикання звуку"
 
 #: ../src/utils/pactl.c:1243
 msgid "Invalid sink input index specification"
@@ -2323,8 +2313,7 @@ msgstr "connect(): %s"
 
 #: ../src/utils/pacmd.c:99
 msgid "Failed to kill PulseAudio daemon."
-msgstr ""
-"Спроба завершення роботи фонової служби PulseAudio завершилася невдало."
+msgstr "Спроба завершення роботи фонової служби PulseAudio завершилася невдало."
 
 #: ../src/utils/pacmd.c:107
 msgid "Daemon not responding."
@@ -2408,217 +2397,202 @@ msgstr "Звуковий сервер PulseAudio"
 #: ../src/modules/module-rygel-media-server.c:569
 #: ../src/modules/module-rygel-media-server.c:583
 msgid "Output Devices"
-msgstr ""
+msgstr "Пристрої відтворення"
 
 #: ../src/modules/module-rygel-media-server.c:570
 #: ../src/modules/module-rygel-media-server.c:584
 msgid "Input Devices"
-msgstr ""
+msgstr "Пристрої отримання"
 
 #: ../src/modules/module-rygel-media-server.c:774
 msgid "Audio on @HOSTNAME@"
-msgstr ""
+msgstr "Звук на @НАЗВАВУЗЛА@"
 
 #: ../src/modules/alsa/alsa-mixer.c:1701
 msgid "Input"
-msgstr ""
+msgstr "Вхід"
 
 #: ../src/modules/alsa/alsa-mixer.c:1702
 msgid "Docking Station Input"
-msgstr ""
+msgstr "Вхідний канал стикувальної станції"
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
 msgid "Docking Station Microphone"
-msgstr ""
+msgstr "Мікрофон стикувальної станції"
 
 #: ../src/modules/alsa/alsa-mixer.c:1704
 msgid "Line-In"
-msgstr ""
+msgstr "Лінійний вхід"
 
 #: ../src/modules/alsa/alsa-mixer.c:1705
 msgid "Microphone"
-msgstr ""
+msgstr "Мікрофон"
 
 #: ../src/modules/alsa/alsa-mixer.c:1706
 msgid "External Microphone"
-msgstr ""
+msgstr "Зовнішній мікрофон"
 
 #: ../src/modules/alsa/alsa-mixer.c:1707
-#, fuzzy
 msgid "Internal Microphone"
-msgstr "Вбудоване аудіо"
+msgstr "Вбудований мікрофон"
 
 #: ../src/modules/alsa/alsa-mixer.c:1708
 msgid "Radio"
-msgstr ""
+msgstr "Радіо"
 
 #: ../src/modules/alsa/alsa-mixer.c:1709
 msgid "Video"
-msgstr ""
+msgstr "Відео"
 
 #: ../src/modules/alsa/alsa-mixer.c:1710
 msgid "Automatic Gain Control"
-msgstr ""
+msgstr "Автоматичне керування підсиленням"
 
 #: ../src/modules/alsa/alsa-mixer.c:1711
 msgid "No Automatic Gain Control"
-msgstr ""
+msgstr "Без автоматичного керування підсиленням"
 
 #: ../src/modules/alsa/alsa-mixer.c:1712
 msgid "Boost"
-msgstr ""
+msgstr "Підсилення"
 
 #: ../src/modules/alsa/alsa-mixer.c:1713
 msgid "No Boost"
-msgstr ""
+msgstr "Без пісилення"
 
 #: ../src/modules/alsa/alsa-mixer.c:1714
 msgid "Amplifier"
-msgstr ""
+msgstr "Підсилювач"
 
 #: ../src/modules/alsa/alsa-mixer.c:1715
 msgid "No Amplifier"
-msgstr ""
+msgstr "Без підсилювача"
 
 #: ../src/modules/alsa/alsa-mixer.c:1773
 msgid "Analog Input"
-msgstr ""
+msgstr "Аналогових вхід"
 
 #: ../src/modules/alsa/alsa-mixer.c:1774
 msgid "Analog Microphone"
-msgstr ""
+msgstr "Аналоговий мікрофон"
 
 #: ../src/modules/alsa/alsa-mixer.c:1775
 msgid "Analog Line-In"
-msgstr ""
+msgstr "Аналоговий лінійний вхід"
 
 #: ../src/modules/alsa/alsa-mixer.c:1776
 msgid "Analog Radio"
-msgstr ""
+msgstr "Аналогове радіо"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Video"
-msgstr ""
+msgstr "Аналогове відео"
 
 #: ../src/modules/alsa/alsa-mixer.c:1778
-#, fuzzy
 msgid "Analog Output"
-msgstr "Нуль-відтворення"
+msgstr "Аналогове відтворення"
 
 #: ../src/modules/alsa/alsa-mixer.c:1779
 msgid "Analog Headphones"
-msgstr ""
+msgstr "Аналогові навушники"
 
 #: ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Analog Output (LFE)"
-msgstr ""
+msgstr "Аналоговий вихід (сабвуфер)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Analog Mono Output"
-msgstr ""
+msgstr "Аналоговий моно-вихід"
 
-#: ../src/modules/alsa/alsa-mixer.c:1981
-#, fuzzy, c-format
+#: ../src/modules/alsa/alsa-mixer.c:1981, c-format
 msgid "%s+%s"
-msgstr "%s %s"
+msgstr "%s+%s"
 
-#: ../src/modules/alsa/alsa-mixer.c:1984 ../src/modules/alsa/alsa-mixer.c:3404
-#, fuzzy, c-format
+#: ../src/modules/alsa/alsa-mixer.c:1984 ../src/modules/alsa/alsa-mixer.c:3404, c-format
 msgid "%s / %s"
-msgstr "%s %s"
+msgstr "%s / %s"
 
 #: ../src/modules/alsa/alsa-mixer.c:2790
 msgid "Analog Mono"
-msgstr ""
+msgstr "Аналогове моно"
 
 #: ../src/modules/alsa/alsa-mixer.c:2791
-#, fuzzy
 msgid "Analog Stereo"
-msgstr "Стерео"
+msgstr "Аналогове стерео"
 
 #: ../src/modules/alsa/alsa-mixer.c:2792
-#, fuzzy
 msgid "Analog Surround 2.1"
-msgstr "Об'ємний 4.1"
+msgstr "Аналоговий об'ємний 2.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2793
-#, fuzzy
 msgid "Analog Surround 3.0"
-msgstr "Об'ємний 4.0"
+msgstr "Аналоговий об'ємний 3.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2794
-#, fuzzy
 msgid "Analog Surround 3.1"
-msgstr "Об'ємний 4.1"
+msgstr "Аналоговий об'ємний 3.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2795
-#, fuzzy
 msgid "Analog Surround 4.0"
-msgstr "Об'ємний 4.0"
+msgstr "Аналоговий об'ємний 4.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2796
-#, fuzzy
 msgid "Analog Surround 4.1"
-msgstr "Об'ємний 4.1"
+msgstr "Аналоговий об'ємний 4.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2797
-#, fuzzy
 msgid "Analog Surround 5.0"
-msgstr "Об'ємний 5.0"
+msgstr "Аналоговий об'ємний 5.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2798
-#, fuzzy
 msgid "Analog Surround 5.1"
-msgstr "Об'ємний 5.1"
+msgstr "Аналоговий об'ємний 5.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2799
-#, fuzzy
 msgid "Analog Surround 6.0"
-msgstr "Об'ємний 4.0"
+msgstr "Аналоговий об'ємний 6.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2800
-#, fuzzy
 msgid "Analog Surround 6.1"
-msgstr "Об'ємний 4.1"
+msgstr "Аналоговий об'ємний 6.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2801
-#, fuzzy
 msgid "Analog Surround 7.0"
-msgstr "Об'ємний 4.0"
+msgstr "Аналоговий об'ємний 7.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2802
-#, fuzzy
 msgid "Analog Surround 7.1"
-msgstr "Об'ємний 7.1"
+msgstr "Аналоговий об'ємний 7.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2803
 msgid "Digital Stereo (IEC958)"
-msgstr ""
+msgstr "Цифрове стерео (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2804
 msgid "Digital Surround 4.0 (IEC958)"
-msgstr ""
+msgstr "Цифровий об’ємний 4.0 (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2805
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr ""
+msgstr "Цифровий об’ємний 4.0 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2806
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr ""
+msgstr "Цифровий об’ємний 5.1 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2807
 msgid "Digital Stereo (HDMI)"
-msgstr ""
+msgstr "Цифровий стерео (HDMI)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2928
 msgid "Analog Mono Duplex"
-msgstr ""
+msgstr "Аналогове двобічне моно"
 
 #: ../src/modules/alsa/alsa-mixer.c:2929
 msgid "Analog Stereo Duplex"
-msgstr ""
+msgstr "Аналогове двобічне стерео"
 
 #: ../src/modules/alsa/alsa-mixer.c:2930
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr ""
+msgstr "Цифрове двобічне стерео (IEC958)"
+
