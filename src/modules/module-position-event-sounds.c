@@ -74,7 +74,7 @@ static int parse_pos(const char *pos, double *f) {
 }
 
 static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *core, pa_sink_input_new_data *data, struct userdata *u) {
-    const char *hpos, *vpos, *role;
+    const char *hpos, *vpos, *role, *id;
     double f;
     char t[PA_CVOLUME_SNPRINT_MAX];
     pa_cvolume v;
@@ -86,6 +86,22 @@ static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *core, pa_sink_i
 
     if (!pa_streq(role, "event"))
         return PA_HOOK_OK;
+
+    if ((id = pa_proplist_gets(data->proplist, PA_PROP_EVENT_ID))) {
+
+        /* The test sounds should never be positioned in space, since
+         * they might be trigered themselves to configure the speakers
+         * in space, which we don't want to mess up. */
+
+        if (pa_startswith(id, "audio-channel-"))
+            return PA_HOOK_OK;
+
+        if (pa_streq(id, "audio-volume-change"))
+            return PA_HOOK_OK;
+
+        if (pa_streq(id, "audio-test-signal"))
+            return PA_HOOK_OK;
+    }
 
     if (!(hpos = pa_proplist_gets(data->proplist, PA_PROP_EVENT_MOUSE_HPOS)))
         hpos = pa_proplist_gets(data->proplist, PA_PROP_WINDOW_HPOS);
