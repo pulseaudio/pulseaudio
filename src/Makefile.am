@@ -1009,6 +1009,7 @@ modlibexec_LTLIBRARIES += \
 		module-combine.la \
 		module-remap-sink.la \
 		module-ladspa-sink.la \
+		module-equalizer-sink.la \
 		module-esound-sink.la \
 		module-tunnel-sink.la \
 		module-tunnel-source.la \
@@ -1204,6 +1205,7 @@ SYMDEF_FILES = \
 		modules/module-combine-symdef.h \
 		modules/module-remap-sink-symdef.h \
 		modules/module-ladspa-sink-symdef.h \
+		modules/module-equalizer-sink-symdef.h \
 		modules/module-esound-compat-spawnfd-symdef.h \
 		modules/module-esound-compat-spawnpid-symdef.h \
 		modules/module-match-symdef.h \
@@ -1402,6 +1404,11 @@ module_ladspa_sink_la_SOURCES = modules/module-ladspa-sink.c modules/ladspa.h
 module_ladspa_sink_la_CFLAGS = -DLADSPA_PATH=\"$(libdir)/ladspa:/usr/local/lib/ladspa:/usr/lib/ladspa:/usr/local/lib64/ladspa:/usr/lib64/ladspa\" $(AM_CFLAGS)
 module_ladspa_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_ladspa_sink_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+
+module_equalizer_sink_la_SOURCES = modules/module-equalizer-sink.c
+module_equalizer_sink_la_CFLAGS = $(AM_CFLAGS)
+module_equalizer_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_equalizer_sink_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) -lfftw3f libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
 module_match_la_SOURCES = modules/module-match.c
 module_match_la_LDFLAGS = $(MODULE_LDFLAGS)

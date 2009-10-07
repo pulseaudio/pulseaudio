@@ -1198,6 +1198,7 @@ if test "x${dbus}" != xno || test "x${bluez}" != xno || test "x${hal}" != xno ; 
             HAVE_DBUS=1
             saved_LIBS="$LIBS"
             LIBS="$LIBS $DBUS_LIBS"
+            CFLAGS="$CFLAGS $DBUS_CFLAGS"
             AC_CHECK_FUNCS(dbus_watch_get_unix_fd)
             LIBS="$saved_LIBS"
             AC_DEFINE([HAVE_DBUS], 1, [Have D-Bus.])
