@@ -1122,8 +1122,8 @@ static pa_bool_t entries_equal(const struct entry *a, const struct entry *b) {
 
 static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     struct userdata *u = userdata;
-    struct entry entry, *old;
-    char *name;
+    struct entry entry, *old = NULL;
+    char *name = NULL;
     pa_datum key, data;
 
     /* These are only used when D-Bus is enabled, but in order to reduce ifdef

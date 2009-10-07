@@ -117,9 +117,11 @@ EXTRA_DIST = \
 		depmod.py \
 		daemon/esdcompat.in \
 		daemon/start-pulseaudio-x11.in \
+		daemon/start-pulseaudio-kde.in \
 		utils/padsp \
 		modules/module-defs.h.m4 \
 		daemon/pulseaudio.desktop.in \
+		daemon/pulseaudio-kde.desktop.in \
 		map-file \
 		daemon/pulseaudio-system.conf \
 		modules/alsa/mixer/profile-sets/default.conf \
@@ -153,7 +155,8 @@ dbuspolicy_DATA = \
 
 if HAVE_X11
 xdgautostart_in_files = \
-		daemon/pulseaudio.desktop.in
+		daemon/pulseaudio.desktop.in \
+		daemon/pulseaudio-kde.desktop.in
 endif
 xdgautostart_DATA = $(xdgautostart_in_files:.desktop.in=.desktop)
 @INTLTOOL_DESKTOP_RULE@
@@ -216,7 +219,7 @@ if HAVE_AVAHI
 bin_PROGRAMS += pabrowse
 endif
 
-bin_SCRIPTS = esdcompat start-pulseaudio-x11
+bin_SCRIPTS = esdcompat start-pulseaudio-x11 start-pulseaudio-kde
 
 pacat_SOURCES = utils/pacat.c
 pacat_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINORMICRO@.la $(LIBSNDFILE_LIBS)
@@ -690,6 +693,7 @@ pulseinclude_HEADERS = \
 		pulse/context.h \
 		pulse/def.h \
 		pulse/error.h \
+		pulse/ext-device-manager.h \
 		pulse/ext-stream-restore.h \
 		pulse/gccmacro.h \
 		pulse/introspect.h \
@@ -740,6 +744,7 @@ libpulse_la_SOURCES = \
 		pulse/context.c pulse/context.h \
 		pulse/def.h \
 		pulse/error.c pulse/error.h \
+		pulse/ext-device-manager.c pulse/ext-device-manager.h \
 		pulse/ext-stream-restore.c pulse/ext-stream-restore.h \
 		pulse/gccmacro.h \
 		pulse/internal.h \
@@ -993,6 +998,7 @@ modlibexec_LTLIBRARIES += \
 		module-sine-source.la \
 		module-detect.la \
 		module-volume-restore.la \
+		module-device-manager.la \
 		module-device-restore.la \
 		module-stream-restore.la \
 		module-card-restore.la \
@@ -1237,6 +1243,7 @@ SYMDEF_FILES = \
 		modules/jack/module-jack-sink-symdef.h \
 		modules/jack/module-jack-source-symdef.h \
 		modules/module-volume-restore-symdef.h \
+		modules/module-device-manager-symdef.h \
 		modules/module-device-restore-symdef.h \
 		modules/module-stream-restore-symdef.h \
 		modules/module-card-restore-symdef.h \
@@ -1569,6 +1576,12 @@ module_cork_music_on_phone_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_cork_music_on_phone_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_cork_music_on_phone_la_CFLAGS = $(AM_CFLAGS)
 
+# Device description restore module
+module_device_manager_la_SOURCES = modules/module-device-manager.c
+module_device_manager_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_device_manager_la_LIBADD = $(AM_LIBADD) libprotocol-native.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+module_device_manager_la_CFLAGS = $(AM_CFLAGS)
+
 # Device volume/muted restore module
 module_device_restore_la_SOURCES = modules/module-device-restore.c
 module_device_restore_la_LDFLAGS = $(MODULE_LDFLAGS)
@@ -1736,7 +1749,7 @@ module_rygel_media_server_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 #        Some minor stuff         #
 ###################################
 
-CLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 daemon/pulseaudio.desktop
+CLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 start-pulseaudio-kde daemon/pulseaudio.desktop daemon/pulseaudio-kde.desktop
 
 esdcompat: daemon/esdcompat.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
@@ -1748,6 +1761,11 @@ start-pulseaudio-x11: daemon/start-pulseaudio-x11.in Makefile
 	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
 		-e 's,@PACTL_BINARY\@,$(bindir)/pactl,g' < $< > $@
 	chmod +x start-pulseaudio-x11
+
+start-pulseaudio-kde: daemon/start-pulseaudio-kde.in Makefile
+	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
+		-e 's,@PACTL_BINARY\@,$(bindir)/pactl,g' < $< > $@
+	chmod +x start-pulseaudio-kde
 
 client.conf: pulse/client.conf.in Makefile
 	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' < $< > $@
