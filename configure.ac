@@ -1273,6 +1273,16 @@ AC_SUBST(OPENSSL_LIBS)
 AC_SUBST(HAVE_OPENSSL)
 AM_CONDITIONAL([HAVE_OPENSSL], [test "x$HAVE_OPENSSL" = x1])
 
+#### FFTW (optional) ####
+AC_ARG_WITH(
+	[fftw],
+	AS_HELP_STRING([--without-fftw], [Omit FFTW-using modules (equalizer)]))
+
+if test "x${with_fftw}" != "xno"; then
+    PKG_CHECK_MODULES([FFTW], [fftw3f], [HAVE_FFTW=1], [HAVE_FFTW=0])
+fi
+AM_CONDITIONAL([HAVE_FFTW], [test "x$HAVE_FFTW" = "x1"])
+
 ### Build and Install man pages ###
 AC_ARG_ENABLE(manpages,
         AS_HELP_STRING([--disable-manpages],[Disable building and installation of man pages]),
