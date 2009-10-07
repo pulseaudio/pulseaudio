@@ -5,7 +5,7 @@
   This file is part of PulseAudio.
 
   Copyright 2004-2006 Lennart Poettering
-  Copyright 2009 Wim Taymans <wim.taymans@collabora.co.uk> 
+  Copyright 2009 Wim Taymans <wim.taymans@collabora.co.uk>
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published

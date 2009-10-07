@@ -22,8 +22,7 @@
 
 AC_PREREQ(2.63)
 
-AC_INIT([pulseaudio], m4_esyscmd([./git-version-gen .tarball-version]),
-	[mzchyfrnhqvb (at) 0pointer (dot) net])
+AC_INIT([pulseaudio],[m4_esyscmd(./git-version-gen .tarball-version)],[mzchyfrnhqvb (at) 0pointer (dot) net])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])

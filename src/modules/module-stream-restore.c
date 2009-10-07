@@ -2,6 +2,7 @@
   This file is part of PulseAudio.
 
   Copyright 2008 Lennart Poettering
+  Copyright 2009 Tanu Kaskinen
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -50,6 +51,11 @@
 #include <pulsecore/pstream.h>
 #include <pulsecore/pstream-util.h>
 #include <pulsecore/database.h>
+
+#ifdef HAVE_DBUS
+#include <pulsecore/dbus-util.h>
+#include <pulsecore/protocol-dbus.h>
+#endif
 
 #include "module-stream-restore-symdef.h"
 
@@ -100,6 +106,12 @@ struct userdata {
 
     pa_native_protocol *protocol;
     pa_idxset *subscribed;
+
+#ifdef HAVE_DBUS
+    pa_dbus_protocol *dbus_protocol;
+    pa_hashmap *dbus_entries;
+    uint32_t next_index; /* For generating object paths for entries. */
+#endif
 };
 
 #define ENTRY_VERSION 3
@@ -122,6 +134,835 @@ enum {
     SUBCOMMAND_SUBSCRIBE,
     SUBCOMMAND_EVENT
 };
+
+static struct entry *read_entry(struct userdata *u, const char *name);
+static void apply_entry(struct userdata *u, const char *name, struct entry *e);
+static void trigger_save(struct userdata *u);
+
+#ifdef HAVE_DBUS
+
+#define OBJECT_PATH "/org/pulseaudio/stream_restore1"
+#define ENTRY_OBJECT_NAME "entry"
+#define INTERFACE_STREAM_RESTORE "org.PulseAudio.Ext.StreamRestore1"
+#define INTERFACE_ENTRY INTERFACE_STREAM_RESTORE ".RestoreEntry"
+
+#define DBUS_INTERFACE_REVISION 0
+
+struct dbus_entry {
+    struct userdata *userdata;
+
+    char *entry_name;
+    uint32_t index;
+    char *object_path;
+};
+
+static void handle_get_interface_revision(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_get_entries(DBusConnection *conn, DBusMessage *msg, void *userdata);
+
+static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata);
+
+static void handle_add_entry(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_get_entry_by_name(DBusConnection *conn, DBusMessage *msg, void *userdata);
+
+static void handle_entry_get_index(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_entry_get_name(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_entry_get_device(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_entry_set_device(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
+static void handle_entry_get_volume(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_entry_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
+static void handle_entry_get_mute(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_entry_set_mute(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata);
+
+static void handle_entry_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata);
+
+static void handle_entry_remove(DBusConnection *conn, DBusMessage *msg, void *userdata);
+
+enum property_handler_index {
+    PROPERTY_HANDLER_INTERFACE_REVISION,
+    PROPERTY_HANDLER_ENTRIES,
+    PROPERTY_HANDLER_MAX
+};
+
+enum entry_property_handler_index {
+    ENTRY_PROPERTY_HANDLER_INDEX,
+    ENTRY_PROPERTY_HANDLER_NAME,
+    ENTRY_PROPERTY_HANDLER_DEVICE,
+    ENTRY_PROPERTY_HANDLER_VOLUME,
+    ENTRY_PROPERTY_HANDLER_MUTE,
+    ENTRY_PROPERTY_HANDLER_MAX
+};
+
+static pa_dbus_property_handler property_handlers[PROPERTY_HANDLER_MAX] = {
+    [PROPERTY_HANDLER_INTERFACE_REVISION] = { .property_name = "InterfaceRevision", .type = "u",  .get_cb = handle_get_interface_revision, .set_cb = NULL },
+    [PROPERTY_HANDLER_ENTRIES]            = { .property_name = "Entries",           .type = "ao", .get_cb = handle_get_entries,            .set_cb = NULL }
+};
+
+static pa_dbus_property_handler entry_property_handlers[ENTRY_PROPERTY_HANDLER_MAX] = {
+    [ENTRY_PROPERTY_HANDLER_INDEX]    = { .property_name = "Index",   .type = "u",     .get_cb = handle_entry_get_index,    .set_cb = NULL },
+    [ENTRY_PROPERTY_HANDLER_NAME]     = { .property_name = "Name",    .type = "s",     .get_cb = handle_entry_get_name,     .set_cb = NULL },
+    [ENTRY_PROPERTY_HANDLER_DEVICE]   = { .property_name = "Device",  .type = "s",     .get_cb = handle_entry_get_device,   .set_cb = handle_entry_set_device },
+    [ENTRY_PROPERTY_HANDLER_VOLUME]   = { .property_name = "Volume",  .type = "a(uu)", .get_cb = handle_entry_get_volume,   .set_cb = handle_entry_set_volume },
+    [ENTRY_PROPERTY_HANDLER_MUTE]     = { .property_name = "Mute",    .type = "b",     .get_cb = handle_entry_get_mute,     .set_cb = handle_entry_set_mute }
+};
+
+enum method_handler_index {
+    METHOD_HANDLER_ADD_ENTRY,
+    METHOD_HANDLER_GET_ENTRY_BY_NAME,
+    METHOD_HANDLER_MAX
+};
+
+enum entry_method_handler_index {
+    ENTRY_METHOD_HANDLER_REMOVE,
+    ENTRY_METHOD_HANDLER_MAX
+};
+
+static pa_dbus_arg_info add_entry_args[] = { { "name",   "s",     "in" },
+                                             { "device", "s",     "in" },
+                                             { "volume", "a(uu)", "in" },
+                                             { "mute",   "b",     "in" },
+                                             { "entry",  "o",     "out" } };
+static pa_dbus_arg_info get_entry_by_name_args[] = { { "name", "s", "in" }, { "entry", "o", "out" } };
+
+static pa_dbus_method_handler method_handlers[METHOD_HANDLER_MAX] = {
+    [METHOD_HANDLER_ADD_ENTRY] = {
+        .method_name = "AddEntry",
+        .arguments = add_entry_args,
+        .n_arguments = sizeof(add_entry_args) / sizeof(pa_dbus_arg_info),
+        .receive_cb = handle_add_entry },
+    [METHOD_HANDLER_GET_ENTRY_BY_NAME] = {
+        .method_name = "GetEntryByName",
+        .arguments = get_entry_by_name_args,
+        .n_arguments = sizeof(get_entry_by_name_args) / sizeof(pa_dbus_arg_info),
+        .receive_cb = handle_get_entry_by_name }
+};
+
+static pa_dbus_method_handler entry_method_handlers[ENTRY_METHOD_HANDLER_MAX] = {
+    [ENTRY_METHOD_HANDLER_REMOVE] = {
+        .method_name = "Remove",
+        .arguments = NULL,
+        .n_arguments = 0,
+        .receive_cb = handle_entry_remove }
+};
+
+enum signal_index {
+    SIGNAL_NEW_ENTRY,
+    SIGNAL_ENTRY_REMOVED,
+    SIGNAL_MAX
+};
+
+enum entry_signal_index {
+    ENTRY_SIGNAL_DEVICE_UPDATED,
+    ENTRY_SIGNAL_VOLUME_UPDATED,
+    ENTRY_SIGNAL_MUTE_UPDATED,
+    ENTRY_SIGNAL_MAX
+};
+
+static pa_dbus_arg_info new_entry_args[]     = { { "entry", "o", NULL } };
+static pa_dbus_arg_info entry_removed_args[] = { { "entry", "o", NULL } };
+
+static pa_dbus_arg_info entry_device_updated_args[] = { { "device", "s",     NULL } };
+static pa_dbus_arg_info entry_volume_updated_args[] = { { "volume", "a(uu)", NULL } };
+static pa_dbus_arg_info entry_mute_updated_args[]   = { { "muted",  "b",     NULL } };
+
+static pa_dbus_signal_info signals[SIGNAL_MAX] = {
+    [SIGNAL_NEW_ENTRY]     = { .name = "NewEntry",     .arguments = new_entry_args,     .n_arguments = 1 },
+    [SIGNAL_ENTRY_REMOVED] = { .name = "EntryRemoved", .arguments = entry_removed_args, .n_arguments = 1 }
+};
+
+static pa_dbus_signal_info entry_signals[ENTRY_SIGNAL_MAX] = {
+    [ENTRY_SIGNAL_DEVICE_UPDATED] = { .name = "DeviceUpdated", .arguments = entry_device_updated_args, .n_arguments = 1 },
+    [ENTRY_SIGNAL_VOLUME_UPDATED] = { .name = "VolumeUpdated", .arguments = entry_volume_updated_args, .n_arguments = 1 },
+    [ENTRY_SIGNAL_MUTE_UPDATED]   = { .name = "MuteUpdated",   .arguments = entry_mute_updated_args,   .n_arguments = 1 }
+};
+
+static pa_dbus_interface_info stream_restore_interface_info = {
+    .name = INTERFACE_STREAM_RESTORE,
+    .method_handlers = method_handlers,
+    .n_method_handlers = METHOD_HANDLER_MAX,
+    .property_handlers = property_handlers,
+    .n_property_handlers = PROPERTY_HANDLER_MAX,
+    .get_all_properties_cb = handle_get_all,
+    .signals = signals,
+    .n_signals = SIGNAL_MAX
+};
+
+static pa_dbus_interface_info entry_interface_info = {
+    .name = INTERFACE_ENTRY,
+    .method_handlers = entry_method_handlers,
+    .n_method_handlers = ENTRY_METHOD_HANDLER_MAX,
+    .property_handlers = entry_property_handlers,
+    .n_property_handlers = ENTRY_PROPERTY_HANDLER_MAX,
+    .get_all_properties_cb = handle_entry_get_all,
+    .signals = entry_signals,
+    .n_signals = ENTRY_SIGNAL_MAX
+};
+
+static struct dbus_entry *dbus_entry_new(struct userdata *u, const char *entry_name) {
+    struct dbus_entry *de;
+
+    pa_assert(u);
+    pa_assert(entry_name);
+    pa_assert(*entry_name);
+
+    de = pa_xnew(struct dbus_entry, 1);
+    de->userdata = u;
+    de->entry_name = pa_xstrdup(entry_name);
+    de->index = u->next_index++;
+    de->object_path = pa_sprintf_malloc("%s/%s%u", OBJECT_PATH, ENTRY_OBJECT_NAME, de->index);
+
+    pa_assert_se(pa_dbus_protocol_add_interface(u->dbus_protocol, de->object_path, &entry_interface_info, u) >= 0);
+
+    return de;
+}
+
+static void dbus_entry_free(struct dbus_entry *de) {
+    pa_assert(de);
+
+    pa_assert_se(pa_dbus_protocol_remove_interface(de->userdata->dbus_protocol, de->object_path, entry_interface_info.name) >= 0);
+
+    pa_xfree(de->entry_name);
+    pa_xfree(de->object_path);
+}
+
+/* Reads an array [(UInt32, UInt32)] from the iterator. The struct items are
+ * are a channel position and a volume value, respectively. The result is
+ * stored in the map and vol arguments. The iterator must point to a "a(uu)"
+ * element. If the data is invalid, an error reply is sent and a negative
+ * number is returned. In case of a failure we make no guarantees about the
+ * state of map and vol. In case of an empty array the channels field of both
+ * map and vol are set to 0. This function calls dbus_message_iter_next(iter)
+ * before returning. */
+static int get_volume_arg(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, pa_channel_map *map, pa_cvolume *vol) {
+    DBusMessageIter array_iter;
+    DBusMessageIter struct_iter;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(iter);
+    pa_assert(pa_streq(dbus_message_iter_get_signature(iter), "a(uu)"));
+    pa_assert(map);
+    pa_assert(vol);
+
+    pa_channel_map_init(map);
+    pa_cvolume_init(vol);
+
+    map->channels = 0;
+    vol->channels = 0;
+
+    dbus_message_iter_recurse(iter, &array_iter);
+
+    while (dbus_message_iter_get_arg_type(&array_iter) != DBUS_TYPE_INVALID) {
+        dbus_uint32_t chan_pos;
+        dbus_uint32_t chan_vol;
+
+        dbus_message_iter_recurse(&array_iter, &struct_iter);
+
+        dbus_message_iter_get_basic(&struct_iter, &chan_pos);
+
+        if (chan_pos >= PA_CHANNEL_POSITION_MAX) {
+            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid channel position: %u", chan_pos);
+            return -1;
+        }
+
+        pa_assert_se(dbus_message_iter_next(&struct_iter));
+        dbus_message_iter_get_basic(&struct_iter, &chan_vol);
+
+        if (chan_vol > PA_VOLUME_MAX) {
+            pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Invalid volume: %u", chan_vol);
+            return -1;
+        }
+
+        if (map->channels < PA_CHANNELS_MAX) {
+            map->map[map->channels] = chan_pos;
+            vol->values[map->channels] = chan_vol;
+        }
+        ++map->channels;
+        ++vol->channels;
+
+        dbus_message_iter_next(&array_iter);
+    }
+
+    if (map->channels > PA_CHANNELS_MAX) {
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "Too many channels: %u. The maximum is %u.", map->channels, PA_CHANNELS_MAX);
+        return -1;
+    }
+
+    dbus_message_iter_next(iter);
+
+    return 0;
+}
+
+static void append_volume(DBusMessageIter *iter, struct entry *e) {
+    DBusMessageIter array_iter;
+    DBusMessageIter struct_iter;
+    unsigned i;
+
+    pa_assert(iter);
+    pa_assert(e);
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_ARRAY, "(uu)", &array_iter));
+
+    if (!e->volume_valid) {
+        pa_assert_se(dbus_message_iter_close_container(iter, &array_iter));
+        return;
+    }
+
+    for (i = 0; i < e->channel_map.channels; ++i) {
+        pa_assert_se(dbus_message_iter_open_container(&array_iter, DBUS_TYPE_STRUCT, NULL, &struct_iter));
+
+        pa_assert_se(dbus_message_iter_append_basic(&struct_iter, DBUS_TYPE_UINT32, &e->channel_map.map[i]));
+        pa_assert_se(dbus_message_iter_append_basic(&struct_iter, DBUS_TYPE_UINT32, &e->volume.values[i]));
+
+        pa_assert_se(dbus_message_iter_close_container(&array_iter, &struct_iter));
+    }
+
+    pa_assert_se(dbus_message_iter_close_container(iter, &array_iter));
+}
+
+static void append_volume_variant(DBusMessageIter *iter, struct entry *e) {
+    DBusMessageIter variant_iter;
+
+    pa_assert(iter);
+    pa_assert(e);
+
+    pa_assert_se(dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, "a(uu)", &variant_iter));
+
+    append_volume(&variant_iter, e);
+
+    pa_assert_se(dbus_message_iter_close_container(iter, &variant_iter));
+}
+
+static void send_new_entry_signal(struct dbus_entry *entry) {
+    DBusMessage *signal;
+
+    pa_assert(entry);
+
+    pa_assert_se(signal = dbus_message_new_signal(OBJECT_PATH, INTERFACE_STREAM_RESTORE, signals[SIGNAL_NEW_ENTRY].name));
+    pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &entry->object_path, DBUS_TYPE_INVALID));
+    pa_dbus_protocol_send_signal(entry->userdata->dbus_protocol, signal);
+    dbus_message_unref(signal);
+}
+
+static void send_entry_removed_signal(struct dbus_entry *entry) {
+    DBusMessage *signal;
+
+    pa_assert(entry);
+
+    pa_assert_se(signal = dbus_message_new_signal(OBJECT_PATH, INTERFACE_STREAM_RESTORE, signals[SIGNAL_ENTRY_REMOVED].name));
+    pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &entry->object_path, DBUS_TYPE_INVALID));
+    pa_dbus_protocol_send_signal(entry->userdata->dbus_protocol, signal);
+    dbus_message_unref(signal);
+}
+
+static void send_device_updated_signal(struct dbus_entry *de, struct entry *e) {
+    DBusMessage *signal;
+    const char *device;
+
+    pa_assert(de);
+    pa_assert(e);
+
+    device = e->device_valid ? e->device : "";
+
+    pa_assert_se(signal = dbus_message_new_signal(de->object_path, INTERFACE_ENTRY, entry_signals[ENTRY_SIGNAL_DEVICE_UPDATED].name));
+    pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_STRING, &device, DBUS_TYPE_INVALID));
+    pa_dbus_protocol_send_signal(de->userdata->dbus_protocol, signal);
+    dbus_message_unref(signal);
+}
+
+static void send_volume_updated_signal(struct dbus_entry *de, struct entry *e) {
+    DBusMessage *signal;
+    DBusMessageIter msg_iter;
+
+    pa_assert(de);
+    pa_assert(e);
+
+    pa_assert_se(signal = dbus_message_new_signal(de->object_path, INTERFACE_ENTRY, entry_signals[ENTRY_SIGNAL_VOLUME_UPDATED].name));
+    dbus_message_iter_init_append(signal, &msg_iter);
+    append_volume(&msg_iter, e);
+    pa_dbus_protocol_send_signal(de->userdata->dbus_protocol, signal);
+    dbus_message_unref(signal);
+}
+
+static void send_mute_updated_signal(struct dbus_entry *de, struct entry *e) {
+    DBusMessage *signal;
+    dbus_bool_t muted;
+
+    pa_assert(de);
+    pa_assert(e);
+
+    pa_assert(e->muted_valid);
+
+    muted = e->muted;
+
+    pa_assert_se(signal = dbus_message_new_signal(de->object_path, INTERFACE_ENTRY, entry_signals[ENTRY_SIGNAL_MUTE_UPDATED].name));
+    pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_BOOLEAN, &muted, DBUS_TYPE_INVALID));
+    pa_dbus_protocol_send_signal(de->userdata->dbus_protocol, signal);
+    dbus_message_unref(signal);
+}
+
+static void handle_get_interface_revision(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    dbus_uint32_t interface_revision = DBUS_INTERFACE_REVISION;
+
+    pa_assert(conn);
+    pa_assert(msg);
+
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &interface_revision);
+}
+
+/* The caller frees the array, but not the strings. */
+static const char **get_entries(struct userdata *u, unsigned *n) {
+    const char **entries;
+    unsigned i = 0;
+    void *state = NULL;
+    struct dbus_entry *de;
+
+    pa_assert(u);
+    pa_assert(n);
+
+    *n = pa_hashmap_size(u->dbus_entries);
+
+    if (*n == 0)
+        return NULL;
+
+    entries = pa_xnew(const char *, *n);
+
+    PA_HASHMAP_FOREACH(de, u->dbus_entries, state)
+        entries[i++] = de->object_path;
+
+    return entries;
+}
+
+static void handle_get_entries(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    struct userdata *u = userdata;
+    const char **entries;
+    unsigned n;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(u);
+
+    entries = get_entries(u, &n);
+
+    pa_dbus_send_basic_array_variant_reply(conn, msg, DBUS_TYPE_OBJECT_PATH, entries, n);
+
+    pa_xfree(entries);
+}
+
+static void handle_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    struct userdata *u = userdata;
+    DBusMessage *reply = NULL;
+    DBusMessageIter msg_iter;
+    DBusMessageIter dict_iter;
+    dbus_uint32_t interface_revision;
+    const char **entries;
+    unsigned n_entries;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(u);
+
+    interface_revision = DBUS_INTERFACE_REVISION;
+    entries = get_entries(u, &n_entries);
+
+    pa_assert_se((reply = dbus_message_new_method_return(msg)));
+
+    dbus_message_iter_init_append(reply, &msg_iter);
+    pa_assert_se(dbus_message_iter_open_container(&msg_iter, DBUS_TYPE_ARRAY, "{sv}", &dict_iter));
+
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_INTERFACE_REVISION].property_name, DBUS_TYPE_UINT32, &interface_revision);
+    pa_dbus_append_basic_array_variant_dict_entry(&dict_iter, property_handlers[PROPERTY_HANDLER_ENTRIES].property_name, DBUS_TYPE_OBJECT_PATH, entries, n_entries);
+
+    pa_assert_se(dbus_message_iter_close_container(&msg_iter, &dict_iter));
+
+    pa_assert_se(dbus_connection_send(conn, reply, NULL));
+
+    dbus_message_unref(reply);
+
+    pa_xfree(entries);
+}
+
+static void handle_add_entry(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    struct userdata *u = userdata;
+    DBusMessageIter msg_iter;
+    const char *name = NULL;
+    const char *device = NULL;
+    pa_channel_map map;
+    pa_cvolume vol;
+    dbus_bool_t muted = FALSE;
+    dbus_bool_t apply_immediately = FALSE;
+    pa_datum key;
+    pa_datum value;
+    struct dbus_entry *dbus_entry = NULL;
+    struct entry *e = NULL;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(u);
+
+    pa_assert_se(dbus_message_iter_init(msg, &msg_iter));
+    dbus_message_iter_get_basic(&msg_iter, &name);
+
+    pa_assert_se(dbus_message_iter_next(&msg_iter));
+    dbus_message_iter_get_basic(&msg_iter, &device);
+
+    pa_assert_se(dbus_message_iter_next(&msg_iter));
+    if (get_volume_arg(conn, msg, &msg_iter, &map, &vol) < 0)
+        return;
+
+    dbus_message_iter_get_basic(&msg_iter, &muted);
+
+    pa_assert_se(dbus_message_iter_next(&msg_iter));
+    dbus_message_iter_get_basic(&msg_iter, &apply_immediately);
+
+    if (!*name) {
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "An empty string was given as the entry name.");
+        return;
+    }
+
+    if ((dbus_entry = pa_hashmap_get(u->dbus_entries, name))) {
+        pa_bool_t mute_updated = FALSE;
+        pa_bool_t volume_updated = FALSE;
+        pa_bool_t device_updated = FALSE;
+
+        pa_assert_se(e = read_entry(u, name));
+        mute_updated = e->muted != muted;
+        e->muted = muted;
+        e->muted_valid = TRUE;
+
+        volume_updated = (e->volume_valid != !!map.channels) || !pa_cvolume_equal(&e->volume, &vol);
+        e->volume = vol;
+        e->channel_map = map;
+        e->volume_valid = !!map.channels;
+
+        device_updated = (e->device_valid != !!device[0]) || !pa_streq(e->device, device);
+        pa_strlcpy(e->device, device, sizeof(e->device));
+        e->device_valid = !!device[0];
+
+        if (mute_updated)
+            send_mute_updated_signal(dbus_entry, e);
+        if (volume_updated)
+            send_volume_updated_signal(dbus_entry, e);
+        if (device_updated)
+            send_device_updated_signal(dbus_entry, e);
+
+    } else {
+        dbus_entry = dbus_entry_new(u, name);
+        pa_assert(pa_hashmap_put(u->dbus_entries, dbus_entry->entry_name, dbus_entry) >= 0);
+
+        e->muted_valid = TRUE;
+        e->volume_valid = !!map.channels;
+        e->device_valid = !!device[0];
+        e->muted = muted;
+        e->volume = vol;
+        e->channel_map = map;
+        pa_strlcpy(e->device, device, sizeof(e->device));
+
+        send_new_entry_signal(dbus_entry);
+    }
+
+    key.data = (char *) name;
+    key.size = strlen(name);
+
+    value.data = e;
+    value.size = sizeof(struct entry);
+
+    pa_assert_se(pa_database_set(u->database, &key, &value, TRUE) == 0);
+    if (apply_immediately)
+        apply_entry(u, name, e);
+
+    trigger_save(u);
+
+    pa_dbus_send_empty_reply(conn, msg);
+
+    pa_xfree(e);
+}
+
+static void handle_get_entry_by_name(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    struct userdata *u = userdata;
+    const char *name;
+    struct dbus_entry *de;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(u);
+
+    pa_assert_se(dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &name, DBUS_TYPE_INVALID));
+
+    if (!(de = pa_hashmap_get(u->dbus_entries, name))) {
+        pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "No such stream restore entry.");
+        return;
+    }
+
+    pa_dbus_send_basic_value_reply(conn, msg, DBUS_TYPE_OBJECT_PATH, &de->object_path);
+}
+
+static void handle_entry_get_index(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    struct dbus_entry *de = userdata;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(de);
+
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &de->index);
+}
+
+static void handle_entry_get_name(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    struct dbus_entry *de = userdata;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(de);
+
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_STRING, &de->entry_name);
+}
+
+static void handle_entry_get_device(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    struct dbus_entry *de = userdata;
+    struct entry *e;
+    const char *device;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(de);
+
+    pa_assert_se(e = read_entry(de->userdata, de->entry_name));
+
+    device = e->device_valid ? e->device : "";
+
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_STRING, &device);
+
+    pa_xfree(e);
+}
+
+static void handle_entry_set_device(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
+    struct dbus_entry *de = userdata;
+    const char *device;
+    struct entry *e;
+    pa_bool_t updated;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(iter);
+    pa_assert(de);
+
+    dbus_message_iter_get_basic(iter, &device);
+
+    pa_assert_se(e = read_entry(de->userdata, de->entry_name));
+
+    updated = (e->device_valid != !!device[0]) || !pa_streq(e->device, device);
+
+    if (updated) {
+        pa_datum key;
+        pa_datum value;
+
+        pa_strlcpy(e->device, device, sizeof(e->device));
+        e->device_valid = !!device[0];
+
+        key.data = de->entry_name;
+        key.size = strlen(de->entry_name);
+        value.data = e;
+        value.size = sizeof(struct entry);
+        pa_assert_se(pa_database_set(de->userdata->database, &key, &value, TRUE) == 0);
+
+        send_device_updated_signal(de, e);
+        trigger_save(de->userdata);
+    }
+
+    pa_dbus_send_empty_reply(conn, msg);
+
+    pa_xfree(e);
+}
+
+static void handle_entry_get_volume(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    struct dbus_entry *de = userdata;
+    DBusMessage *reply;
+    DBusMessageIter msg_iter;
+    struct entry *e;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(de);
+
+    pa_assert_se(e = read_entry(de->userdata, de->entry_name));
+
+    pa_assert_se(reply = dbus_message_new_method_return(msg));
+
+    dbus_message_iter_init_append(reply, &msg_iter);
+    append_volume_variant(&msg_iter, e);
+
+    pa_assert_se(dbus_connection_send(conn, reply, NULL));
+
+    pa_xfree(e);
+}
+
+static void handle_entry_set_volume(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
+    struct dbus_entry *de = userdata;
+    pa_channel_map map;
+    pa_cvolume vol;
+    struct entry *e = NULL;
+    pa_bool_t updated = FALSE;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(iter);
+    pa_assert(de);
+
+    if (get_volume_arg(conn, msg, iter, &map, &vol) < 0)
+        return;
+
+    pa_assert_se(e = read_entry(de->userdata, de->entry_name));
+
+    updated = (e->volume_valid != !!map.channels) || !pa_cvolume_equal(&e->volume, &vol);
+
+    if (updated) {
+        pa_datum key;
+        pa_datum value;
+
+        e->volume = vol;
+        e->channel_map = map;
+        e->volume_valid = !!map.channels;
+
+        key.data = de->entry_name;
+        key.size = strlen(de->entry_name);
+        value.data = e;
+        value.size = sizeof(struct entry);
+        pa_assert_se(pa_database_set(de->userdata->database, &key, &value, TRUE) == 0);
+
+        send_volume_updated_signal(de, e);
+        trigger_save(de->userdata);
+    }
+
+    pa_dbus_send_empty_reply(conn, msg);
+
+    pa_xfree(e);
+}
+
+static void handle_entry_get_mute(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    struct dbus_entry *de = userdata;
+    struct entry *e;
+    dbus_bool_t mute;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(de);
+
+    pa_assert_se(e = read_entry(de->userdata, de->entry_name));
+
+    mute = e->muted_valid ? e->muted : FALSE;
+
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_BOOLEAN, &mute);
+
+    pa_xfree(e);
+}
+
+static void handle_entry_set_mute(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
+    struct dbus_entry *de = userdata;
+    dbus_bool_t mute;
+    struct entry *e;
+    pa_bool_t updated;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(iter);
+    pa_assert(de);
+
+    dbus_message_iter_get_basic(iter, &mute);
+
+    pa_assert_se(e = read_entry(de->userdata, de->entry_name));
+
+    updated = !e->muted_valid || e->muted != mute;
+
+    if (updated) {
+        pa_datum key;
+        pa_datum value;
+
+        e->muted = mute;
+        e->muted_valid = TRUE;
+
+        key.data = de->entry_name;
+        key.size = strlen(de->entry_name);
+        value.data = e;
+        value.size = sizeof(struct entry);
+        pa_assert_se(pa_database_set(de->userdata->database, &key, &value, TRUE) == 0);
+
+        send_mute_updated_signal(de, e);
+        trigger_save(de->userdata);
+    }
+
+    pa_dbus_send_empty_reply(conn, msg);
+
+    pa_xfree(e);
+}
+
+static void handle_entry_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    struct dbus_entry *de = userdata;
+    struct entry *e;
+    DBusMessage *reply = NULL;
+    DBusMessageIter msg_iter;
+    DBusMessageIter dict_iter;
+    DBusMessageIter dict_entry_iter;
+    const char *device;
+    dbus_bool_t mute;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(de);
+
+    pa_assert_se(e = read_entry(de->userdata, de->entry_name));
+
+    device = e->device_valid ? e->device : "";
+    mute = e->muted_valid ? e->muted : FALSE;
+
+    pa_assert_se((reply = dbus_message_new_method_return(msg)));
+
+    dbus_message_iter_init_append(reply, &msg_iter);
+    pa_assert_se(dbus_message_iter_open_container(&msg_iter, DBUS_TYPE_ARRAY, "{sv}", &dict_iter));
+
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, entry_property_handlers[ENTRY_PROPERTY_HANDLER_INDEX].property_name, DBUS_TYPE_UINT32, &de->index);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, entry_property_handlers[ENTRY_PROPERTY_HANDLER_NAME].property_name, DBUS_TYPE_STRING, &de->entry_name);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, entry_property_handlers[ENTRY_PROPERTY_HANDLER_DEVICE].property_name, DBUS_TYPE_STRING, &device);
+
+    pa_assert_se(dbus_message_iter_open_container(&dict_iter, DBUS_TYPE_DICT_ENTRY, NULL, &dict_entry_iter));
+
+    pa_assert_se(dbus_message_iter_append_basic(&dict_entry_iter, DBUS_TYPE_STRING, &entry_property_handlers[ENTRY_PROPERTY_HANDLER_VOLUME].property_name));
+    append_volume_variant(&dict_entry_iter, e);
+
+    pa_assert_se(dbus_message_iter_close_container(&dict_iter, &dict_entry_iter));
+
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, entry_property_handlers[ENTRY_PROPERTY_HANDLER_MUTE].property_name, DBUS_TYPE_BOOLEAN, &mute);
+
+    pa_assert_se(dbus_message_iter_close_container(&msg_iter, &dict_iter));
+
+    pa_assert_se(dbus_connection_send(conn, reply, NULL));
+
+    dbus_message_unref(reply);
+
+    pa_xfree(e);
+}
+
+static void handle_entry_remove(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    struct dbus_entry *de = userdata;
+    pa_datum key;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(de);
+
+    key.data = de->entry_name;
+    key.size = strlen(de->entry_name);
+
+    pa_assert_se(pa_database_unset(de->userdata->database, &key) == 0);
+
+    send_entry_removed_signal(de);
+    trigger_save(de->userdata);
+
+    pa_assert_se(pa_hashmap_remove(de->userdata->dbus_entries, de->entry_name));
+    dbus_entry_free(de);
+
+    pa_dbus_send_empty_reply(conn, msg);
+}
+
+#endif /* HAVE_DBUS */
 
 static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *t, void *userdata) {
     struct userdata *u = userdata;
@@ -163,7 +1004,7 @@ static char *get_name(pa_proplist *p, const char *prefix) {
     return t;
 }
 
-static struct entry* read_entry(struct userdata *u, const char *name) {
+static struct entry *read_entry(struct userdata *u, const char *name) {
     pa_datum key, data;
     struct entry *e;
 
@@ -285,6 +1126,17 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     char *name;
     pa_datum key, data;
 
+    /* These are only used when D-Bus is enabled, but in order to reduce ifdef
+     * clutter these are defined here unconditionally. */
+    pa_bool_t created_new_entry = TRUE;
+    pa_bool_t device_updated = FALSE;
+    pa_bool_t volume_updated = FALSE;
+    pa_bool_t mute_updated = FALSE;
+
+#ifdef HAVE_DBUS
+    struct dbus_entry *de = NULL;
+#endif
+
     pa_assert(c);
     pa_assert(u);
 
@@ -306,24 +1158,34 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (!(name = get_name(sink_input->proplist, "sink-input")))
             return;
 
-        if ((old = read_entry(u, name)))
+        if ((old = read_entry(u, name))) {
             entry = *old;
+            created_new_entry = FALSE;
+        }
 
         if (sink_input->save_volume) {
             entry.channel_map = sink_input->channel_map;
             pa_sink_input_get_volume(sink_input, &entry.volume, FALSE);
             entry.volume_valid = TRUE;
+
+            volume_updated = !created_new_entry
+                             && (!old->volume_valid
+                                 || !pa_channel_map_equal(&entry.channel_map, &old->channel_map)
+                                 || !pa_cvolume_equal(&entry.volume, &old->volume));
         }
 
         if (sink_input->save_muted) {
             entry.muted = pa_sink_input_get_mute(sink_input);
             entry.muted_valid = TRUE;
+
+            mute_updated = !created_new_entry && (!old->muted_valid || entry.muted != old->muted);
         }
 
         if (sink_input->save_sink) {
             pa_strlcpy(entry.device, sink_input->sink->name, sizeof(entry.device));
             entry.device_valid = TRUE;
 
+            device_updated = !created_new_entry && (!old->device_valid || !pa_streq(entry.device, old->device));
             if (sink_input->sink->card) {
                 pa_strlcpy(entry.card, sink_input->sink->card->name, sizeof(entry.card));
                 entry.card_valid = TRUE;
@@ -341,12 +1203,16 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (!(name = get_name(source_output->proplist, "source-output")))
             return;
 
-        if ((old = read_entry(u, name)))
+        if ((old = read_entry(u, name))) {
             entry = *old;
+            created_new_entry = FALSE;
+        }
 
         if (source_output->save_source) {
             pa_strlcpy(entry.device, source_output->source->name, sizeof(entry.device));
             entry.device_valid = source_output->save_source;
+
+            device_updated = !created_new_entry && (!old->device_valid || !pa_streq(entry.device, old->device));
 
             if (source_output->source->card) {
                 pa_strlcpy(entry.card, source_output->source->card->name, sizeof(entry.card));
@@ -375,6 +1241,23 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     pa_log_info("Storing volume/mute/device for stream %s.", name);
 
     pa_database_set(u->database, &key, &data, TRUE);
+
+#ifdef HAVE_DBUS
+    if (created_new_entry) {
+        de = dbus_entry_new(u, name);
+        pa_hashmap_put(u->dbus_entries, de->entry_name, de);
+        send_new_entry_signal(de);
+    } else {
+        pa_assert((de = pa_hashmap_get(u->dbus_entries, name)));
+
+        if (device_updated)
+            send_device_updated_signal(de, &entry);
+        if (volume_updated)
+            send_volume_updated_signal(de, &entry);
+        if (mute_updated)
+            send_mute_updated_signal(de, &entry);
+    }
+#endif
 
     pa_xfree(name);
 
@@ -889,14 +1772,27 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 mode != PA_UPDATE_SET)
                 goto fail;
 
-            if (mode == PA_UPDATE_SET)
+            if (mode == PA_UPDATE_SET) {
+#ifdef HAVE_DBUS
+                struct dbus_entry *de;
+                void *state = NULL;
+
+                PA_HASHMAP_FOREACH(de, u->dbus_entries, state) {
+                    send_entry_removed_signal(de);
+                    dbus_entry_free(pa_hashmap_remove(u->dbus_entries, de->entry_name));
+                }
+#endif
                 pa_database_clear(u->database);
+            }
 
             while (!pa_tagstruct_eof(t)) {
                 const char *name, *device;
                 pa_bool_t muted;
                 struct entry entry;
                 pa_datum key, data;
+#ifdef HAVE_DBUS
+                struct entry *old;
+#endif
 
                 pa_zero(entry);
                 entry.version = ENTRY_VERSION;
@@ -928,6 +1824,10 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                     !pa_namereg_is_valid_name(entry.device))
                     goto fail;
 
+#ifdef HAVE_DBUS
+                old = read_entry(u, name);
+#endif
+
                 key.data = (char*) name;
                 key.size = strlen(name);
 
@@ -938,9 +1838,40 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                              pa_strnull(pa_proplist_gets(pa_native_connection_get_client(c)->proplist, PA_PROP_APPLICATION_PROCESS_BINARY)),
                              name);
 
-                if (pa_database_set(u->database, &key, &data, mode == PA_UPDATE_REPLACE) == 0)
+                if (pa_database_set(u->database, &key, &data, mode == PA_UPDATE_REPLACE) == 0) {
+#ifdef HAVE_DBUS
+                    struct dbus_entry *de;
+
+                    if (old) {
+                        pa_assert_se((de = pa_hashmap_get(u->dbus_entries, name)));
+
+                        if ((old->device_valid != entry.device_valid)
+                            || (entry.device_valid && !pa_streq(entry.device, old->device)))
+                            send_device_updated_signal(de, &entry);
+
+                        if ((old->volume_valid != entry.volume_valid)
+                            || (entry.volume_valid && (!pa_cvolume_equal(&entry.volume, &old->volume)
+                                                       || !pa_channel_map_equal(&entry.channel_map, &old->channel_map))))
+                            send_volume_updated_signal(de, &entry);
+
+                        if (!old->muted_valid || (entry.muted != old->muted))
+                            send_mute_updated_signal(de, &entry);
+
+                    } else {
+                        de = dbus_entry_new(u, name);
+                        pa_assert_se(pa_hashmap_put(u->dbus_entries, de->entry_name, de));
+                        send_new_entry_signal(de);
+                    }
+#endif
+
                     if (apply_immediately)
                         apply_entry(u, name, &entry);
+                }
+
+#ifdef HAVE_DBUS
+                if (old)
+                    pa_xfree(old);
+#endif
             }
 
             trigger_save(u);
@@ -953,9 +1884,19 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             while (!pa_tagstruct_eof(t)) {
                 const char *name;
                 pa_datum key;
+#ifdef HAVE_DBUS
+                struct dbus_entry *de;
+#endif
 
                 if (pa_tagstruct_gets(t, &name) < 0)
                     goto fail;
+
+#ifdef HAVE_DBUS
+                if ((de = pa_hashmap_get(u->dbus_entries, name))) {
+                    send_entry_removed_signal(de);
+                    dbus_entry_free(pa_hashmap_remove(u->dbus_entries, name));
+                }
+#endif
 
                 key.data = (char*) name;
                 key.size = strlen(name);
@@ -1015,6 +1956,10 @@ int pa__init(pa_module*m) {
     pa_source_output *so;
     uint32_t idx;
     pa_bool_t restore_device = TRUE, restore_volume = TRUE, restore_muted = TRUE, on_hotplug = TRUE, on_rescue = TRUE;
+#ifdef HAVE_DBUS
+    pa_datum key;
+    pa_bool_t done;
+#endif
 
     pa_assert(m);
 
@@ -1085,6 +2030,34 @@ int pa__init(pa_module*m) {
     pa_log_info("Sucessfully opened database file '%s'.", fname);
     pa_xfree(fname);
 
+#ifdef HAVE_DBUS
+    u->dbus_protocol = pa_dbus_protocol_get(u->core);
+    u->dbus_entries = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+
+    pa_assert_se(pa_dbus_protocol_add_interface(u->dbus_protocol, OBJECT_PATH, &stream_restore_interface_info, u) >= 0);
+    pa_assert_se(pa_dbus_protocol_register_extension(u->dbus_protocol, INTERFACE_STREAM_RESTORE) >= 0);
+
+    /* Create the initial dbus entries. */
+    done = !pa_database_first(u->database, &key, NULL);
+    while (!done) {
+        pa_datum next_key;
+        char *name;
+        struct dbus_entry *de;
+
+        done = !pa_database_next(u->database, &key, &next_key, NULL);
+
+        name = pa_xstrndup(key.data, key.size);
+        pa_datum_free(&key);
+
+        de = dbus_entry_new(u, name);
+        pa_assert_se(pa_hashmap_put(u->dbus_entries, de->entry_name, de) >= 0);
+
+        pa_xfree(name);
+
+        key = next_key;
+    }
+#endif
+
     PA_IDXSET_FOREACH(si, m->core->sink_inputs, idx)
         subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, si->index, u);
 
@@ -1103,6 +2076,16 @@ fail:
     return  -1;
 }
 
+#ifdef HAVE_DBUS
+static void free_dbus_entry_cb(void *p, void *userdata) {
+    struct dbus_entry *de = p;
+
+    pa_assert(de);
+
+    dbus_entry_free(de);
+}
+#endif
+
 void pa__done(pa_module*m) {
     struct userdata* u;
 
@@ -1110,6 +2093,19 @@ void pa__done(pa_module*m) {
 
     if (!(u = m->userdata))
         return;
+
+#ifdef HAVE_DBUS
+    if (u->dbus_protocol) {
+        pa_assert(u->dbus_entries);
+
+        pa_assert_se(pa_dbus_protocol_unregister_extension(u->dbus_protocol, INTERFACE_STREAM_RESTORE) >= 0);
+        pa_assert_se(pa_dbus_protocol_remove_interface(u->dbus_protocol, OBJECT_PATH, stream_restore_interface_info.name) >= 0);
+
+        pa_hashmap_free(u->dbus_entries, free_dbus_entry_cb, NULL);
+
+        pa_dbus_protocol_unref(u->dbus_protocol);
+    }
+#endif
 
     if (u->subscription)
         pa_subscription_free(u->subscription);

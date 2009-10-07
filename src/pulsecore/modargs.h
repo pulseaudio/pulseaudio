@@ -60,4 +60,13 @@ int pa_modargs_get_sample_spec_and_channel_map(pa_modargs *ma, pa_sample_spec *s
 
 int pa_modargs_get_proplist(pa_modargs *ma, const char *name, pa_proplist *p, pa_update_mode_t m);
 
+/* Iterate through the module argument list. The user should allocate a
+ * state variable of type void* and initialize it with NULL. A pointer
+ * to this variable should then be passed to pa_modargs_iterate()
+ * which should be called in a loop until it returns NULL which
+ * signifies EOL. On each invication this function will return the
+ * key string for the next entry. The keys in the argument list do not
+ * have any particular order. */
+const char *pa_modargs_iterate(pa_modargs *ma, void **state);
+
 #endif

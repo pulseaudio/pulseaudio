@@ -169,13 +169,14 @@ BUILT_SOURCES = \
 bin_PROGRAMS = pulseaudio
 
 pulseaudio_SOURCES = \
-		daemon/caps.h daemon/caps.c \
+		daemon/caps.c daemon/caps.h \
 		daemon/cmdline.c daemon/cmdline.h \
 		daemon/cpulimit.c daemon/cpulimit.h \
 		daemon/daemon-conf.c daemon/daemon-conf.h \
 		daemon/dumpmodules.c daemon/dumpmodules.h \
 		daemon/ltdl-bind-now.c daemon/ltdl-bind-now.h \
-		daemon/main.c
+		daemon/main.c \
+		daemon/server-lookup.c daemon/server-lookup.h
 
 pulseaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSPEEX_CFLAGS) $(LIBSNDFILE_CFLAGS) $(CAP_CFLAGS) $(DBUS_CFLAGS)
 pulseaudio_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSPEEX_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS) $(DBUS_LIBS)
@@ -869,7 +870,9 @@ libpulsecore_@PA_MAJORMINORMICRO@_la_LDFLAGS += $(X11_LIBS)
 endif
 
 if HAVE_DBUS
-libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES += pulsecore/dbus-shared.c pulsecore/dbus-shared.h
+libpulsecore_@PA_MAJORMINORMICRO@_la_SOURCES += \
+		pulsecore/dbus-shared.c pulsecore/dbus-shared.h \
+		pulsecore/protocol-dbus.c pulsecore/protocol-dbus.h
 libpulsecore_@PA_MAJORMINORMICRO@_la_CFLAGS += $(DBUS_CFLAGS)
 libpulsecore_@PA_MAJORMINORMICRO@_la_LIBADD += $(DBUS_LIBS)
 endif
@@ -1156,7 +1159,8 @@ endif
 
 if HAVE_DBUS
 modlibexec_LTLIBRARIES += \
-		module-rygel-media-server.la
+		module-rygel-media-server.la \
+		module-dbus-protocol.la
 endif
 
 if HAVE_BLUEZ
@@ -1251,6 +1255,7 @@ SYMDEF_FILES = \
 		modules/module-augment-properties-symdef.h \
 		modules/module-cork-music-on-phone-symdef.h \
 		modules/module-console-kit-symdef.h \
+		modules/dbus/module-dbus-protocol-symdef.h \
 		modules/module-loopback-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
@@ -1299,6 +1304,24 @@ module_http_protocol_unix_la_SOURCES = modules/module-protocol-stub.c
 module_http_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_HTTP $(AM_CFLAGS)
 module_http_protocol_unix_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_http_protocol_unix_la_LIBADD = $(AM_LIBADD) libpulsecore-@PA_MAJORMINORMICRO@.la libprotocol-http.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
+
+# D-Bus protocol
+
+module_dbus_protocol_la_SOURCES = \
+		modules/dbus/iface-card.c modules/dbus/iface-card.h \
+		modules/dbus/iface-card-profile.c modules/dbus/iface-card-profile.h \
+		modules/dbus/iface-client.c modules/dbus/iface-client.h \
+		modules/dbus/iface-core.c modules/dbus/iface-core.h \
+		modules/dbus/iface-device.c modules/dbus/iface-device.h \
+		modules/dbus/iface-device-port.c modules/dbus/iface-device-port.h \
+		modules/dbus/iface-memstats.c modules/dbus/iface-memstats.h \
+		modules/dbus/iface-module.c modules/dbus/iface-module.h \
+		modules/dbus/iface-sample.c modules/dbus/iface-sample.h \
+		modules/dbus/iface-stream.c modules/dbus/iface-stream.h \
+		modules/dbus/module-dbus-protocol.c
+module_dbus_protocol_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
+module_dbus_protocol_la_LDFLAGS = $(MODULE_LDFLAGS)
+module_dbus_protocol_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
 # Native protocol
 
@@ -1550,6 +1573,11 @@ module_stream_restore_la_SOURCES = modules/module-stream-restore.c
 module_stream_restore_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_stream_restore_la_LIBADD = $(AM_LIBADD) libprotocol-native.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_stream_restore_la_CFLAGS = $(AM_CFLAGS)
+
+if HAVE_DBUS
+module_stream_restore_la_LIBADD += $(DBUS_LIBS)
+module_stream_restore_la_CFLAGS += $(DBUS_CFLAGS)
+endif
 
 # Card profile restore module
 module_card_restore_la_SOURCES = modules/module-card-restore.c

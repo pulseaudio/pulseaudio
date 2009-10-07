@@ -22,12 +22,13 @@
   USA.
 ***/
 
+#include <pulsecore/macro.h>
 #include <pulsecore/native-common.h>
 
 /* A structure containing configuration data for PulseAudio clients. */
 
 typedef struct pa_client_conf {
-    char *daemon_binary, *extra_arguments, *default_sink, *default_source, *default_server, *cookie_file;
+    char *daemon_binary, *extra_arguments, *default_sink, *default_source, *default_server, *default_dbus_server, *cookie_file;
     pa_bool_t autospawn, disable_shm;
     uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
     pa_bool_t cookie_valid; /* non-zero, when cookie is valid */

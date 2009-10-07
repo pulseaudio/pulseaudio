@@ -1,11 +1,10 @@
-#ifndef foocpuarmhfoo
-#define foocpuarmhfoo
+#ifndef foodbusifacesamplehfoo
+#define foodbusifacesamplehfoo
 
 /***
   This file is part of PulseAudio.
 
-  Copyright 2004-2006 Lennart Poettering
-  Copyright 2009 Wim Taymans <wim.taymans@collabora.co.uk>
+  Copyright 2009 Tanu Kaskinen
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -23,20 +22,24 @@
   USA.
 ***/
 
-#include <stdint.h>
+/* This object implements the D-Bus interface org.PulseAudio.Core1.Sample.
+ *
+ * See http://pulseaudio.org/wiki/DBusInterface for the Sample interface
+ * documentation.
+ */
 
-typedef enum pa_cpu_arm_flag {
-    PA_CPU_ARM_V6       = (1 << 0),
-    PA_CPU_ARM_V7       = (1 << 1),
-    PA_CPU_ARM_VFP      = (1 << 2),
-    PA_CPU_ARM_EDSP     = (1 << 3),
-    PA_CPU_ARM_NEON     = (1 << 4),
-    PA_CPU_ARM_VFPV3    = (1 << 5)
-} pa_cpu_arm_flag_t;
+#include <pulsecore/core-scache.h>
+#include <pulsecore/protocol-dbus.h>
 
-void pa_cpu_init_arm (void);
+#include "iface-core.h"
 
-/* some optimized functions */
-void pa_volume_func_init_arm(pa_cpu_arm_flag_t flags);
+#define PA_DBUSIFACE_SAMPLE_INTERFACE PA_DBUS_CORE_INTERFACE ".Sample"
 
-#endif /* foocpuarmhfoo */
+typedef struct pa_dbusiface_sample pa_dbusiface_sample;
+
+pa_dbusiface_sample *pa_dbusiface_sample_new(pa_dbusiface_core *core, pa_scache_entry *sample);
+void pa_dbusiface_sample_free(pa_dbusiface_sample *c);
+
+const char *pa_dbusiface_sample_get_path(pa_dbusiface_sample *c);
+
+#endif

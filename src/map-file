@@ -185,6 +185,7 @@ pa_path_get_filename;
 pa_proplist_clear;
 pa_proplist_contains;
 pa_proplist_copy;
+pa_proplist_equal;
 pa_proplist_free;
 pa_proplist_from_string;
 pa_proplist_get;

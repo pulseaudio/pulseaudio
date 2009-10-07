@@ -2678,6 +2678,28 @@ char *pa_replace(const char*s, const char*a, const char *b) {
     return pa_strbuf_tostring_free(sb);
 }
 
+char *pa_escape(const char *p, const char *chars) {
+    const char *s;
+    const char *c;
+    pa_strbuf *buf = pa_strbuf_new();
+
+    for (s = p; *s; ++s) {
+        if (*s == '\\')
+            pa_strbuf_putc(buf, '\\');
+        else if (chars) {
+            for (c = chars; *c; ++c) {
+                if (*s == *c) {
+                    pa_strbuf_putc(buf, '\\');
+                    break;
+                }
+            }
+        }
+        pa_strbuf_putc(buf, *s);
+    }
+
+    return pa_strbuf_tostring_free(buf);
+}
+
 char *pa_unescape(char *p) {
     char *s, *d;
     pa_bool_t escaped = FALSE;

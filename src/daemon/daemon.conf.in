@@ -25,6 +25,7 @@
 ; allow-exit = yes
 ; use-pid-file = yes
 ; system-instance = no
+; local-server-type = user
 ; enable-shm = yes
 ; shm-size-bytes = 0 # setting this 0 will use the system-default, usually 64 MiB
 ; lock-memory = no

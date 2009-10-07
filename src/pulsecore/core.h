@@ -52,6 +52,13 @@ typedef enum pa_suspend_cause {
 #include <pulsecore/sink-input.h>
 #include <pulsecore/msgobject.h>
 
+typedef enum pa_server_type {
+    PA_SERVER_TYPE_UNSET,
+    PA_SERVER_TYPE_USER,
+    PA_SERVER_TYPE_SYSTEM,
+    PA_SERVER_TYPE_NONE
+} pa_server_type_t;
+
 typedef enum pa_core_state {
     PA_CORE_STARTUP,
     PA_CORE_RUNNING,
@@ -160,6 +167,8 @@ struct pa_core {
 
     pa_resample_method_t resample_method;
     int realtime_priority;
+
+    pa_server_type_t server_type;
 
     /* hooks */
     pa_hook hooks[PA_CORE_HOOK_MAX];

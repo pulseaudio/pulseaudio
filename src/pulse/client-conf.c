@@ -57,6 +57,7 @@ static const pa_client_conf default_conf = {
     .default_sink = NULL,
     .default_source = NULL,
     .default_server = NULL,
+    .default_dbus_server = NULL,
     .autospawn = TRUE,
     .disable_shm = FALSE,
     .cookie_file = NULL,
@@ -81,6 +82,7 @@ void pa_client_conf_free(pa_client_conf *c) {
     pa_xfree(c->default_sink);
     pa_xfree(c->default_source);
     pa_xfree(c->default_server);
+    pa_xfree(c->default_dbus_server);
     pa_xfree(c->cookie_file);
     pa_xfree(c);
 }
@@ -97,6 +99,7 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
         { "default-sink",           pa_config_parse_string,   &c->default_sink, NULL },
         { "default-source",         pa_config_parse_string,   &c->default_source, NULL },
         { "default-server",         pa_config_parse_string,   &c->default_server, NULL },
+        { "default-dbus-server",    pa_config_parse_string,   &c->default_dbus_server, NULL },
         { "autospawn",              pa_config_parse_bool,     &c->autospawn, NULL },
         { "cookie-file",            pa_config_parse_string,   &c->cookie_file, NULL },
         { "disable-shm",            pa_config_parse_bool,     &c->disable_shm, NULL },
