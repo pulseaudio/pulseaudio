@@ -180,13 +180,18 @@ pulseaudio_SOURCES = \
 		daemon/daemon-conf.c daemon/daemon-conf.h \
 		daemon/dumpmodules.c daemon/dumpmodules.h \
 		daemon/ltdl-bind-now.c daemon/ltdl-bind-now.h \
-		daemon/main.c \
-		daemon/server-lookup.c daemon/server-lookup.h
+		daemon/main.c
 
-pulseaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSPEEX_CFLAGS) $(LIBSNDFILE_CFLAGS) $(CAP_CFLAGS) $(DBUS_CFLAGS)
-pulseaudio_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSPEEX_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS) $(DBUS_LIBS)
+pulseaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSPEEX_CFLAGS) $(LIBSNDFILE_CFLAGS) $(CAP_CFLAGS)
+pulseaudio_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSPEEX_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS)
 # This is needed because automake doesn't properly expand the foreach below
 pulseaudio_DEPENDENCIES = libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la $(PREOPEN_LIBS)
+
+if HAVE_DBUS
+pulseaudio_CFLAGS += $(DBUS_CFLAGS)
+pulseaudio_SOURCES += daemon/server-lookup.c daemon/server-lookup.h
+pulseaudio_LDADD += $(DBUS_LIBS)
+endif
 
 if PREOPEN_MODS
 PREOPEN_LIBS = $(PREOPEN_MODS)
