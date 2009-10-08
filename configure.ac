@@ -22,8 +22,7 @@
 
 AC_PREREQ(2.63)
 
-AC_INIT([pulseaudio], m4_esyscmd([./git-version-gen .tarball-version]),
-	[mzchyfrnhqvb (at) 0pointer (dot) net])
+AC_INIT([pulseaudio],[m4_esyscmd(./git-version-gen .tarball-version)],[mzchyfrnhqvb (at) 0pointer (dot) net])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
@@ -45,7 +44,7 @@ AC_SUBST(PA_PROTOCOL_VERSION, 16)
 
 # The stable ABI for client applications, for the version info x:y:z
 # always will hold y=z
-AC_SUBST(LIBPULSE_VERSION_INFO, [11:0:11])
+AC_SUBST(LIBPULSE_VERSION_INFO, [12:0:12])
 
 # A simplified, synchronous, ABI-stable interface for client
 # applications, for the version info x:y:z always will hold y=z
@@ -1199,6 +1198,7 @@ if test "x${dbus}" != xno || test "x${bluez}" != xno || test "x${hal}" != xno ; 
             HAVE_DBUS=1
             saved_LIBS="$LIBS"
             LIBS="$LIBS $DBUS_LIBS"
+            CFLAGS="$CFLAGS $DBUS_CFLAGS"
             AC_CHECK_FUNCS(dbus_watch_get_unix_fd)
             LIBS="$saved_LIBS"
             AC_DEFINE([HAVE_DBUS], 1, [Have D-Bus.])
@@ -1272,6 +1272,16 @@ AC_SUBST(OPENSSL_CFLAGS)
 AC_SUBST(OPENSSL_LIBS)
 AC_SUBST(HAVE_OPENSSL)
 AM_CONDITIONAL([HAVE_OPENSSL], [test "x$HAVE_OPENSSL" = x1])
+
+#### FFTW (optional) ####
+AC_ARG_WITH(
+	[fftw],
+	AS_HELP_STRING([--without-fftw], [Omit FFTW-using modules (equalizer)]))
+
+if test "x${with_fftw}" != "xno"; then
+    PKG_CHECK_MODULES([FFTW], [fftw3f], [HAVE_FFTW=1], [HAVE_FFTW=0])
+fi
+AM_CONDITIONAL([HAVE_FFTW], [test "x$HAVE_FFTW" = "x1"])
 
 ### Build and Install man pages ###
 AC_ARG_ENABLE(manpages,

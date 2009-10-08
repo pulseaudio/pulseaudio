@@ -224,6 +224,13 @@ unsigned pa_ncpus(void);
 
 char *pa_replace(const char*s, const char*a, const char *b);
 
+/* Escapes p by inserting backslashes in front of backslashes. chars is a
+ * regular (ie. NULL-terminated) string containing additional characters that
+ * should be escaped. chars can be NULL. The caller has to free the returned
+ * string. */
+char *pa_escape(const char *p, const char *chars);
+
+/* Does regular backslash unescaping. Returns the argument p. */
 char *pa_unescape(char *p);
 
 char *pa_realpath(const char *path);

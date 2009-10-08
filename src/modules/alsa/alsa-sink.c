@@ -927,7 +927,7 @@ static int update_sw_params(struct userdata *u) {
 
     pa_log_debug("setting avail_min=%lu", (unsigned long) avail_min);
 
-    if ((err = pa_alsa_set_sw_params(u->pcm_handle, avail_min)) < 0) {
+    if ((err = pa_alsa_set_sw_params(u->pcm_handle, avail_min, !u->use_tsched)) < 0) {
         pa_log("Failed to set software parameters: %s", pa_alsa_strerror(err));
         return err;
     }

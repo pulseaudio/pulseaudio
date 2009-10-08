@@ -681,3 +681,32 @@ int pa_proplist_isempty(pa_proplist *p) {
 
     return pa_hashmap_isempty(MAKE_HASHMAP(p));
 }
+
+int pa_proplist_equal(pa_proplist *a, pa_proplist *b) {
+    const void *key = NULL;
+    struct property *a_prop = NULL;
+    struct property *b_prop = NULL;
+    void *state = NULL;
+
+    pa_assert(a);
+    pa_assert(b);
+
+    if (a == b)
+        return 1;
+
+    if (pa_proplist_size(a) != pa_proplist_size(b))
+        return 0;
+
+    while ((a_prop = pa_hashmap_iterate(MAKE_HASHMAP(a), &state, &key))) {
+        if (!(b_prop = pa_hashmap_get(MAKE_HASHMAP(b), key)))
+            return 0;
+
+        if (a_prop->nbytes != b_prop->nbytes)
+            return 0;
+
+        if (memcmp(a_prop->value, b_prop->value, a_prop->nbytes) != 0)
+            return 0;
+    }
+
+    return 1;
+}

@@ -1,0 +1,2157 @@
+/***
+This file is part of PulseAudio.
+
+This module is based off Lennart Poettering's LADSPA sink and swaps out
+LADSPA functionality for a dbus-aware STFT OLA based digital equalizer.
+All new work is published under Pulseaudio's original license.
+Copyright 2009 Jason Newton <nevion@gmail.com>
+
+Original Author:
+Copyright 2004-2008 Lennart Poettering
+
+PulseAudio is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published
+by the Free Software Foundation; either version 2.1 of the License,
+or (at your option) any later version.
+
+PulseAudio is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with PulseAudio; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+USA.
+***/
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <float.h>
+#include <math.h>
+#include <fftw3.h>
+#include <string.h>
+
+#include <pulse/xmalloc.h>
+#include <pulse/i18n.h>
+#include <pulse/timeval.h>
+
+#include <pulsecore/core-rtclock.h>
+#include <pulsecore/aupdate.h>
+#include <pulsecore/core-error.h>
+#include <pulsecore/namereg.h>
+#include <pulsecore/sink.h>
+#include <pulsecore/module.h>
+#include <pulsecore/core-util.h>
+#include <pulsecore/modargs.h>
+#include <pulsecore/log.h>
+#include <pulsecore/thread.h>
+#include <pulsecore/thread-mq.h>
+#include <pulsecore/rtpoll.h>
+#include <pulsecore/sample-util.h>
+#include <pulsecore/shared.h>
+#include <pulsecore/idxset.h>
+#include <pulsecore/strlist.h>
+#include <pulsecore/database.h>
+#include <pulsecore/protocol-dbus.h>
+#include <pulsecore/dbus-util.h>
+
+#include <stdint.h>
+#include <time.h>
+
+
+//#undef __SSE2__
+#ifdef __SSE2__
+#include <xmmintrin.h>
+#include <emmintrin.h>
+#endif
+
+
+
+#include "module-equalizer-sink-symdef.h"
+
+PA_MODULE_AUTHOR("Jason Newton");
+PA_MODULE_DESCRIPTION(_("General Purpose Equalizer"));
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_USAGE(_("sink=<sink to connect to> "));
+
+#define MEMBLOCKQ_MAXLENGTH (16*1024*1024)
+
+
+struct userdata {
+    pa_module *module;
+    pa_sink *sink;
+    pa_sink_input *sink_input;
+    char *name;
+
+    size_t channels;
+    size_t fft_size;//length (res) of fft
+    size_t window_size;/*
+                        *sliding window size
+                        *effectively chooses R
+                        */
+    size_t R;/* the hop size between overlapping windows
+              * the latency of the filter, calculated from window_size
+              * based on constraints of COLA and window function
+              */
+    //for twiddling with pulseaudio
+    size_t overlap_size;//window_size-R
+    size_t samples_gathered;
+    size_t input_buffer_max;
+    //message
+    float *W;//windowing function (time domain)
+    float *work_buffer, **input, **overlap_accum;
+    fftwf_complex *output_window;
+    fftwf_plan forward_plan, inverse_plan;
+    //size_t samplings;
+
+    float **Xs;
+    float ***Hs;//thread updatable copies of the freq response filters (magintude based)
+    pa_aupdate **a_H;
+    pa_memchunk conv_buffer;
+    pa_memblockq *input_q;
+    pa_bool_t first_iteration;
+
+    pa_dbus_protocol *dbus_protocol;
+    char *dbus_path;
+    pa_bool_t set_default;
+
+    pa_database *database;
+    char **base_profiles;
+};
+
+static const char* const valid_modargs[] = {
+    "sink_name",
+    "sink_properties",
+    "master",
+    "format",
+    "rate",
+    "set_default",
+    "channels",
+    "channel_map",
+    NULL
+};
+
+
+#define v_size 4
+#define SINKLIST "equalized_sinklist"
+#define EQDB "equalizer_db"
+#define EQ_STATE_DB "equalizer-state"
+#define FILTER_SIZE (u->fft_size / 2 + 1)
+#define CHANNEL_PROFILE_SIZE (FILTER_SIZE + 1)
+#define FILTER_STATE_SIZE (CHANNEL_PROFILE_SIZE * u->channels)
+static void dbus_init(struct userdata *u);
+static void dbus_done(struct userdata *u);
+
+static void hanning_window(float *W, size_t window_size){
+    //h=.5*(1-cos(2*pi*j/(window_size+1)), COLA for R=(M+1)/2
+    for(size_t i=0; i < window_size;++i){
+        W[i] = (float).5*(1-cos(2*M_PI*i/(window_size+1)));
+    }
+}
+
+static void fix_filter(float *H, size_t fft_size){
+    //divide out the fft gain
+    for(size_t i = 0; i < fft_size / 2 + 1; ++i){
+        H[i] /= fft_size;
+    }
+}
+
+static void interpolate(float *signal, size_t length, uint32_t *xs, float *ys, size_t n_points){
+    //Note that xs must be monotonically increasing!
+    float x_range_lower, x_range_upper, c0;
+    pa_assert_se(n_points>=2);
+    pa_assert_se(xs[0] == 0);
+    pa_assert_se(xs[n_points - 1] == length - 1);
+    for(size_t x = 0, x_range_lower_i = 0; x < length-1; ++x){
+        pa_assert(x_range_lower_i < n_points-1);
+        x_range_lower = (float) (xs[x_range_lower_i]);
+        x_range_upper = (float) (xs[x_range_lower_i+1]);
+        pa_assert_se(x_range_lower < x_range_upper);
+        pa_assert_se(x >= x_range_lower);
+        pa_assert_se(x <= x_range_upper);
+        //bilinear-interpolation of coefficients specified
+        c0 = (x-x_range_lower)/(x_range_upper-x_range_lower);
+        pa_assert_se(c0 >= 0&&c0 <= 1.0);
+        signal[x] = ((1.0f - c0) * ys[x_range_lower_i] + c0 * ys[x_range_lower_i + 1]);
+        while(x >= xs[x_range_lower_i + 1]){
+            x_range_lower_i++;
+        }
+    }
+    signal[length-1]=ys[n_points-1];
+}
+
+static int is_monotonic(const uint32_t *xs,size_t length){
+    if(length<2){
+        return 1;
+    }
+    for(size_t i = 1; i < length; ++i){
+        if(xs[i]<=xs[i-1]){
+            return 0;
+        }
+    }
+    return 1;
+}
+
+//ensure's memory allocated is a multiple of v_size
+//and aligned
+static void * alloc(size_t x,size_t s){
+    size_t f = PA_ROUND_UP(x*s, sizeof(float)*v_size);
+    float *t;
+    pa_assert(f >= x*s);
+    t = fftwf_malloc(f);
+    memset(t, 0, f);
+    return t;
+}
+
+static void alloc_input_buffers(struct userdata *u, size_t min_buffer_length){
+    if(min_buffer_length <= u->input_buffer_max){
+        return;
+    }
+    pa_assert(min_buffer_length >= u->window_size);
+    for(size_t c = 0; c < u->channels; ++c){
+        float *tmp = alloc(min_buffer_length, sizeof(float));
+        if(u->input[c]){
+            if(!u->first_iteration){
+                memcpy(tmp, u->input[c], u->overlap_size * sizeof(float));
+            }
+            free(u->input[c]);
+        }
+        u->input[c] = tmp;
+    }
+    u->input_buffer_max = min_buffer_length;
+}
+
+/* Called from I/O thread context */
+static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
+    struct userdata *u = PA_SINK(o)->userdata;
+
+    switch (code) {
+
+        case PA_SINK_MESSAGE_GET_LATENCY: {
+            //size_t fs=pa_frame_size(&u->sink->sample_spec);
+
+            /* The sink is _put() before the sink input is, so let's
+             * make sure we don't access it in that time. Also, the
+             * sink input is first shut down, the sink second. */
+            if (!PA_SINK_IS_LINKED(u->sink->thread_info.state) ||
+                !PA_SINK_INPUT_IS_LINKED(u->sink_input->thread_info.state)) {
+                *((pa_usec_t*) data) = 0;
+                return 0;
+            }
+
+            *((pa_usec_t*) data) =
+                /* Get the latency of the master sink */
+                pa_sink_get_latency_within_thread(u->sink_input->sink) +
+
+                /* Add the latency internal to our sink input on top */
+                pa_bytes_to_usec(pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq), &u->sink_input->sink->sample_spec);
+            //    pa_bytes_to_usec(u->samples_gathered * fs, &u->sink->sample_spec);
+            //+ pa_bytes_to_usec(u->latency * fs, ss)
+            //+ pa_bytes_to_usec(pa_memblockq_get_length(u->input_q), ss);
+            return 0;
+        }
+    }
+
+    return pa_sink_process_msg(o, code, data, offset, chunk);
+}
+
+
+/* Called from main context */
+static int sink_set_state_cb(pa_sink *s, pa_sink_state_t state) {
+    struct userdata *u;
+
+    pa_sink_assert_ref(s);
+    pa_assert_se(u = s->userdata);
+
+    if (!PA_SINK_IS_LINKED(state) ||
+        !PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(u->sink_input)))
+        return 0;
+
+    pa_sink_input_cork(u->sink_input, state == PA_SINK_SUSPENDED);
+    return 0;
+}
+
+/* Called from I/O thread context */
+static void sink_request_rewind_cb(pa_sink *s) {
+    struct userdata *u;
+
+    pa_sink_assert_ref(s);
+    pa_assert_se(u = s->userdata);
+
+    if (!PA_SINK_IS_LINKED(u->sink->thread_info.state) ||
+        !PA_SINK_INPUT_IS_LINKED(u->sink_input->thread_info.state))
+        return;
+
+    /* Just hand this one over to the master sink */
+    pa_sink_input_request_rewind(u->sink_input, s->thread_info.rewind_nbytes+pa_memblockq_get_length(u->input_q), TRUE, FALSE, FALSE);
+}
+
+/* Called from I/O thread context */
+static void sink_update_requested_latency_cb(pa_sink *s) {
+    struct userdata *u;
+
+    pa_sink_assert_ref(s);
+    pa_assert_se(u = s->userdata);
+
+    if (!PA_SINK_IS_LINKED(u->sink->thread_info.state) ||
+        !PA_SINK_INPUT_IS_LINKED(u->sink_input->thread_info.state))
+        return;
+
+    /* Just hand this one over to the master sink */
+    pa_sink_input_set_requested_latency_within_thread(
+            u->sink_input,
+            pa_sink_get_requested_latency_within_thread(s));
+}
+
+/* Called from main context */
+static void sink_set_volume_cb(pa_sink *s) {
+    struct userdata *u;
+
+    pa_sink_assert_ref(s);
+    pa_assert_se(u = s->userdata);
+
+    if (!PA_SINK_IS_LINKED(pa_sink_get_state(s)) ||
+        !PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(u->sink_input)))
+        return;
+
+    pa_sink_input_set_volume(u->sink_input, &s->real_volume, s->save_volume, TRUE);
+}
+
+/* Called from main context */
+static void sink_set_mute_cb(pa_sink *s) {
+    struct userdata *u;
+
+    pa_sink_assert_ref(s);
+    pa_assert_se(u = s->userdata);
+
+    if (!PA_SINK_IS_LINKED(pa_sink_get_state(s)) ||
+        !PA_SINK_INPUT_IS_LINKED(pa_sink_input_get_state(u->sink_input)))
+        return;
+
+    pa_sink_input_set_mute(u->sink_input, s->muted, s->save_muted);
+}
+
+
+//reference implementation
+static void dsp_logic(
+    float * restrict dst,//used as a temp array too, needs to be fft_length!
+    float * restrict src,/*input data w/ overlap at start,
+                               *automatically cycled in routine
+                               */
+    float * restrict overlap,
+    const float X,//multipliar
+    const float * restrict H,//The freq. magnitude scalers filter
+    const float * restrict W,//The windowing function
+    fftwf_complex * restrict output_window,//The transformed window'd src
+    struct userdata *u){
+    //use a linear-phase sliding STFT and overlap-add method (for each channel)
+    //zero padd the data
+    memset(dst + u->window_size, 0, (u->fft_size - u->window_size) * sizeof(float));
+    //window the data
+    for(size_t j = 0; j < u->window_size; ++j){
+        dst[j] = X * W[j] * src[j];
+    }
+    //Processing is done here!
+    //do fft
+    fftwf_execute_dft_r2c(u->forward_plan, dst, output_window);
+    //perform filtering
+    for(size_t j = 0; j < FILTER_SIZE; ++j){
+        u->output_window[j][0] *= H[j];
+        u->output_window[j][1] *= H[j];
+    }
+    //inverse fft
+    fftwf_execute_dft_c2r(u->inverse_plan, output_window, dst);
+    ////debug: tests overlaping add
+    ////and negates ALL PREVIOUS processing
+    ////yields a perfect reconstruction if COLA is held
+    //for(size_t j = 0; j < u->window_size; ++j){
+    //    u->work_buffer[j] = u->W[j] * u->input[c][j];
+    //}
+
+    //overlap add and preserve overlap component from this window (linear phase)
+    for(size_t j = 0; j < u->overlap_size; ++j){
+        u->work_buffer[j] += overlap[j];
+        overlap[j] = dst[u->R + j];
+    }
+    ////debug: tests if basic buffering works
+    ////shouldn't modify the signal AT ALL (beyond roundoff)
+    //for(size_t j = 0; j < u->window_size;++j){
+    //    u->work_buffer[j] = u->input[c][j];
+    //}
+
+    //preseve the needed input for the next window's overlap
+    memmove(src, src + u->R,
+        (u->samples_gathered - u->R) * sizeof(float)
+    );
+}
+
+typedef float v4sf __attribute__ ((__aligned__(v_size * sizeof(float))));
+typedef union float_vector {
+    float f[v_size];
+    v4sf v;
+#ifdef __SSE2__
+    __m128 m;
+#endif
+} float_vector_t;
+
+////regardless of sse enabled, the loops in here assume
+////16 byte aligned addresses and memory allocations divisible by v_size
+//void dsp_logic(
+//    float * restrict dst,//used as a temp array too, needs to be fft_length!
+//    float * restrict src,/*input data w/ overlap at start,
+//                               *automatically cycled in routine
+//                               */
+//    float * restrict overlap,//The size of the overlap
+//    const float X,//multipliar
+//    const float * restrict H,//The freq. magnitude scalers filter
+//    const float * restrict W,//The windowing function
+//    fftwf_complex * restrict output_window,//The transformed window'd src
+//    struct userdata *u){//Collection of constants
+      //float_vector_t x = {X, X, X, X};
+//    const size_t window_size = PA_ROUND_UP(u->window_size,v_size);
+//    const size_t fft_h = PA_ROUND_UP(FILTER_SIZE, v_size / 2);
+//    //const size_t R = PA_ROUND_UP(u->R, v_size);
+//    const size_t overlap_size = PA_ROUND_UP(u->overlap_size, v_size);
+//     overlap_size = PA_ROUND_UP(u->overlap_size, v_size);
+//
+//    //assert(u->samples_gathered >= u->R);
+//    //zero out the bit beyond the real overlap so we don't add garbage
+//    for(size_t j = overlap_size; j > u->overlap_size; --j){
+//       overlap[j-1] = 0;
+//    }
+//    //use a linear-phase sliding STFT and overlap-add method
+//    //zero padd the data
+//    memset(dst + u->window_size, 0, (u->fft_size - u->window_size)*sizeof(float));
+//    //window the data
+//    for(size_t j = 0; j < window_size; j += v_size){
+//        //dst[j] = W[j]*src[j];
+//        float_vector_t *d = (float_vector_t*) (dst+j);
+//        float_vector_t *w = (float_vector_t*) (W+j);
+//        float_vector_t *s = (float_vector_t*) (src+j);
+//#if __SSE2__
+//        d->m = _mm_mul_ps(x->m, _mm_mul_ps(w->m, s->m));
+//#else
+//        d->v = x->v * w->v * s->v;
+//#endif
+//    }
+//    //Processing is done here!
+//    //do fft
+//    fftwf_execute_dft_r2c(u->forward_plan, dst, output_window);
+//
+//
+//    //perform filtering - purely magnitude based
+//    for(size_t j = 0;j < fft_h; j+=v_size/2){
+//        //output_window[j][0]*=H[j];
+//        //output_window[j][1]*=H[j];
+//        float_vector_t *d = (float_vector_t*)(output_window+j);
+//        float_vector_t h;
+//        h.f[0] = h.f[1] = H[j];
+//        h.f[2] = h.f[3] = H[j+1];
+//#if __SSE2__
+//        d->m = _mm_mul_ps(d->m, h.m);
+//#else
+//        d->v = d->v*h->v;
+//#endif
+//    }
+//    //inverse fft
+//    fftwf_execute_dft_c2r(u->inverse_plan, output_window, dst);
+//
+//    ////debug: tests overlaping add
+//    ////and negates ALL PREVIOUS processing
+//    ////yields a perfect reconstruction if COLA is held
+//    //for(size_t j = 0; j < u->window_size; ++j){
+//    //    dst[j] = W[j]*src[j];
+//    //}
+//
+//    //overlap add and preserve overlap component from this window (linear phase)
+//    for(size_t j = 0; j < overlap_size; j+=v_size){
+//        //dst[j]+=overlap[j];
+//        //overlap[j]+=dst[j+R];
+//        float_vector_t *d = (float_vector_t*)(dst+j);
+//        float_vector_t *o = (float_vector_t*)(overlap+j);
+//#if __SSE2__
+//        d->m = _mm_add_ps(d->m, o->m);
+//        o->m = ((float_vector_t*)(dst+u->R+j))->m;
+//#else
+//        d->v = d->v+o->v;
+//        o->v = ((float_vector_t*)(dst+u->R+j))->v;
+//#endif
+//    }
+//    //memcpy(overlap, dst+u->R, u->overlap_size*sizeof(float));
+//
+//    //////debug: tests if basic buffering works
+//    //////shouldn't modify the signal AT ALL (beyond roundoff)
+//    //for(size_t j = 0; j < u->window_size; ++j){
+//    //    dst[j] = src[j];
+//    //}
+//
+//    //preseve the needed input for the next window's overlap
+//    memmove(src, src + u->R,
+//        u->overlap_size * sizeof(float)
+//    );
+//}
+
+static void process_samples(struct userdata *u, pa_memchunk *tchunk){
+    size_t fs = pa_frame_size(&(u->sink->sample_spec));
+    float *dst;
+    unsigned a_i;
+    float *H, X;
+    size_t iterations, offset;
+    pa_assert(u->samples_gathered >= u->window_size);
+    iterations = (u->samples_gathered - u->overlap_size) / u->R;
+    tchunk->index = 0;
+    tchunk->length = iterations * u->R * fs;
+    tchunk->memblock = pa_memblock_new(u->sink->core->mempool, tchunk->length);
+    dst = ((float*) pa_memblock_acquire(tchunk->memblock));
+    for(size_t iter = 0; iter < iterations; ++iter){
+        offset = iter * u->R * fs;
+        for(size_t c = 0;c < u->channels; c++) {
+            a_i = pa_aupdate_read_begin(u->a_H[c]);
+            X = u->Xs[c][a_i];
+            H = u->Hs[c][a_i];
+            dsp_logic(
+                u->work_buffer,
+                u->input[c],
+                u->overlap_accum[c],
+                X,
+                H,
+                u->W,
+                u->output_window,
+                u
+            );
+            pa_aupdate_read_end(u->a_H[c]);
+            if(u->first_iteration){
+                /* The windowing function will make the audio ramped in, as a cheap fix we can
+                 * undo the windowing (for non-zero window values)
+                 */
+                for(size_t i = 0; i < u->overlap_size; ++i){
+                    u->work_buffer[i] = u->W[i] <= FLT_EPSILON ? u->work_buffer[i] : u->work_buffer[i] / u->W[i];
+                }
+            }
+            pa_sample_clamp(PA_SAMPLE_FLOAT32NE, (uint8_t *) (dst + c) + offset, fs, u->work_buffer, sizeof(float), u->R);
+        }
+        if(u->first_iteration){
+            u->first_iteration = FALSE;
+        }
+        u->samples_gathered -= u->R;
+    }
+    pa_memblock_release(tchunk->memblock);
+}
+
+static void input_buffer(struct userdata *u, pa_memchunk *in){
+    size_t fs = pa_frame_size(&(u->sink->sample_spec));
+    size_t samples = in->length/fs;
+    float *src = (float*) ((uint8_t*) pa_memblock_acquire(in->memblock) + in->index);
+    pa_assert(u->samples_gathered + samples <= u->input_buffer_max);
+    for(size_t c = 0; c < u->channels; c++) {
+        //buffer with an offset after the overlap from previous
+        //iterations
+        pa_assert_se(
+            u->input[c] + u->samples_gathered + samples <= u->input[c] + u->input_buffer_max
+        );
+        pa_sample_clamp(PA_SAMPLE_FLOAT32NE, u->input[c] + u->samples_gathered, sizeof(float), src + c, fs, samples);
+    }
+    u->samples_gathered += samples;
+    pa_memblock_release(in->memblock);
+}
+
+/* Called from I/O thread context */
+static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk) {
+    struct userdata *u;
+    size_t fs, target_samples;
+    struct timeval start, end;
+    pa_memchunk tchunk;
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+    pa_assert(chunk);
+    pa_assert(u->sink);
+    fs = pa_frame_size(&(u->sink->sample_spec));
+    target_samples = PA_ROUND_UP(nbytes / fs, u->R);
+    if(u->first_iteration){
+        //allocate request_size
+        target_samples = PA_MAX(target_samples, u->window_size);
+    }else{
+        //allocate request_size + overlap
+        target_samples += u->overlap_size;
+        alloc_input_buffers(u, target_samples);
+    }
+    alloc_input_buffers(u, target_samples);
+    chunk->memblock = NULL;
+
+    /* Hmm, process any rewind request that might be queued up */
+    pa_sink_process_rewind(u->sink, 0);
+
+    //pa_log_debug("start output-buffered %ld, input-buffered %ld, requested %ld",buffered_samples,u->samples_gathered,samples_requested);
+    pa_rtclock_get(&start);
+    do{
+        size_t input_remaining = target_samples - u->samples_gathered;
+        pa_assert(input_remaining > 0);
+        while(pa_memblockq_peek(u->input_q, &tchunk) < 0){
+            //pa_sink_render(u->sink, input_remaining * fs, &tchunk);
+            pa_sink_render_full(u->sink, input_remaining * fs, &tchunk);
+            pa_assert(tchunk.memblock);
+            pa_memblockq_push(u->input_q, &tchunk);
+            pa_memblock_unref(tchunk.memblock);
+        }
+        pa_assert(tchunk.memblock);
+        tchunk.length = PA_MIN(input_remaining * fs, tchunk.length);
+        pa_memblockq_drop(u->input_q, tchunk.length);
+        //pa_log_debug("asked for %ld input samples, got %ld samples",input_remaining,buffer->length/fs);
+        /* copy new input */
+        //pa_rtclock_get(start);
+        input_buffer(u, &tchunk);
+        //pa_rtclock_get(&end);
+        //pa_log_debug("Took %0.5f seconds to setup", pa_timeval_diff(end, start) / (double) PA_USEC_PER_SEC);
+        pa_memblock_unref(tchunk.memblock);
+    }while(u->samples_gathered < target_samples);
+
+    pa_rtclock_get(&end);
+    pa_log_debug("Took %0.6f seconds to get data", (double) pa_timeval_diff(&end, &start) / PA_USEC_PER_SEC);
+
+    pa_assert(u->fft_size >= u->window_size);
+    pa_assert(u->R < u->window_size);
+    /* set the H filter */
+    pa_rtclock_get(&start);
+    /* process a block */
+    process_samples(u, chunk);
+    pa_rtclock_get(&end);
+    pa_log_debug("Took %0.6f seconds to process", (double) pa_timeval_diff(&end, &start) / PA_USEC_PER_SEC);
+
+    pa_assert(chunk->memblock);
+    //pa_log_debug("gave %ld", chunk->length/fs);
+    //pa_log_debug("end pop");
+    return 0;
+}
+
+/* Called from main context */
+static void sink_input_volume_changed_cb(pa_sink_input *i) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    pa_sink_volume_changed(u->sink, &i->volume);
+}
+
+/* Called from main context */
+static void sink_input_mute_changed_cb(pa_sink_input *i) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    pa_sink_mute_changed(u->sink, i->muted);
+}
+
+static void reset_filter(struct userdata *u){
+    size_t fs = pa_frame_size(&u->sink->sample_spec);
+    size_t max_request;
+    u->samples_gathered = 0;
+    for(size_t i = 0; i < u->channels; ++i){
+        memset(u->overlap_accum[i], 0, u->overlap_size * sizeof(float));
+    }
+    u->first_iteration = TRUE;
+    //set buffer size to max request, no overlap copy
+    max_request = PA_ROUND_UP(pa_sink_input_get_max_request(u->sink_input) / fs , u->R);
+    max_request = PA_MAX(max_request, u->window_size);
+    pa_sink_set_max_request_within_thread(u->sink, max_request * fs);
+}
+
+/* Called from I/O thread context */
+static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
+    struct userdata *u;
+    size_t amount = 0;
+
+    pa_log_debug("Rewind callback!");
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    if (u->sink->thread_info.rewind_nbytes > 0) {
+        size_t max_rewrite;
+
+        //max_rewrite = nbytes;
+        max_rewrite = nbytes + pa_memblockq_get_length(u->input_q);
+        //PA_MIN(pa_memblockq_get_length(u->input_q), nbytes);
+        amount = PA_MIN(u->sink->thread_info.rewind_nbytes, max_rewrite);
+        u->sink->thread_info.rewind_nbytes = 0;
+
+        if (amount > 0) {
+            //invalidate the output q
+            pa_memblockq_seek(u->input_q, - (int64_t) amount, PA_SEEK_RELATIVE, TRUE);
+            pa_log("Resetting filter");
+            reset_filter(u);
+        }
+    }
+
+    pa_sink_process_rewind(u->sink, amount);
+    pa_memblockq_rewind(u->input_q, nbytes);
+}
+
+/* Called from I/O thread context */
+static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    pa_memblockq_set_maxrewind(u->input_q, nbytes);
+    pa_sink_set_max_rewind_within_thread(u->sink, nbytes);
+}
+
+/* Called from I/O thread context */
+static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
+    struct userdata *u;
+    size_t fs;
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+    //if(u->first_iteration){
+    //    return;
+    //}
+    fs = pa_frame_size(&(u->sink->sample_spec));
+    pa_sink_set_max_request_within_thread(u->sink, PA_ROUND_UP(nbytes / fs, u->R) * fs);
+}
+
+/* Called from I/O thread context */
+static void sink_input_update_sink_latency_range_cb(pa_sink_input *i) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    pa_sink_set_latency_range_within_thread(u->sink, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
+}
+
+/* Called from I/O thread context */
+static void sink_input_update_sink_fixed_latency_cb(pa_sink_input *i) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    pa_sink_set_fixed_latency_within_thread(u->sink, i->sink->thread_info.fixed_latency);
+}
+
+/* Called from I/O thread context */
+static void sink_input_detach_cb(pa_sink_input *i) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    pa_sink_detach_within_thread(u->sink);
+
+    pa_sink_set_rtpoll(u->sink, NULL);
+}
+
+/* Called from I/O thread context */
+static void sink_input_attach_cb(pa_sink_input *i) {
+    struct userdata *u;
+    size_t fs, max_request;
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    pa_sink_set_rtpoll(u->sink, i->sink->thread_info.rtpoll);
+    pa_sink_set_latency_range_within_thread(u->sink, i->sink->thread_info.min_latency, i->sink->thread_info.max_latency);
+
+    pa_sink_set_fixed_latency_within_thread(u->sink, i->sink->thread_info.fixed_latency);
+    fs = pa_frame_size(&u->sink->sample_spec);
+    //set buffer size to max request, no overlap copy
+    max_request = PA_ROUND_UP(pa_sink_input_get_max_request(u->sink_input) / fs , u->R);
+    max_request = PA_MAX(max_request, u->window_size);
+    pa_sink_set_max_request_within_thread(u->sink, max_request * fs);
+    pa_sink_set_max_rewind_within_thread(u->sink, pa_sink_input_get_max_rewind(i));
+    pa_sink_attach_within_thread(u->sink);
+    if(u->set_default){
+        pa_log_debug("Setting default sink to %s", u->sink->name);
+        pa_namereg_set_default_sink(u->module->core, u->sink);
+    }
+}
+
+/* Called from main context */
+static void sink_input_kill_cb(pa_sink_input *i) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    /* The order here matters! We first kill the sink input, followed
+     * by the sink. That means the sink callbacks must be protected
+     * against an unconnected sink input! */
+    pa_sink_input_unlink(u->sink_input);
+    pa_sink_unlink(u->sink);
+
+    pa_sink_input_unref(u->sink_input);
+    u->sink_input = NULL;
+
+    pa_sink_unref(u->sink);
+    u->sink = NULL;
+
+    pa_module_unload_request(u->module, TRUE);
+}
+
+/* Called from IO thread context */
+static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t state) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    /* If we are added for the first time, ask for a rewinding so that
+     * we are heard right-away. */
+    if (PA_SINK_INPUT_IS_LINKED(state) &&
+        i->thread_info.state == PA_SINK_INPUT_INIT) {
+        pa_log_debug("Requesting rewind due to state change.");
+        pa_sink_input_request_rewind(i, 0, FALSE, TRUE, TRUE);
+    }
+}
+
+static void pack(char **strs, size_t len, char **packed, size_t *length){
+    size_t t_len = 0;
+    size_t headers = (1+len) * sizeof(uint16_t);
+    size_t offset = sizeof(uint16_t);
+    for(size_t i = 0; i < len; ++i){
+        t_len += strlen(strs[i]);
+    }
+    *length = headers + t_len;
+    *packed = pa_xmalloc0(*length);
+    ((uint16_t *) *packed)[0] = (uint16_t) len;
+    for(size_t i = 0; i < len; ++i){
+        uint16_t l = strlen(strs[i]);
+        *((uint16_t *)(*packed + offset)) = l;
+        offset += sizeof(uint16_t);
+        memcpy(*packed + offset, strs[i], l);
+        offset += l;
+    }
+}
+static void unpack(char *str, size_t length, char ***strs, size_t *len){
+    size_t offset = sizeof(uint16_t);
+    *len = ((uint16_t *)str)[0];
+    *strs = pa_xnew(char *, *len);
+    for(size_t i = 0; i < *len; ++i){
+        size_t l = *((uint16_t *)(str+offset));
+        size_t e = PA_MIN(offset + l, length) - offset;
+        offset = PA_MIN(offset + sizeof(uint16_t), length);
+        (*strs)[i] = pa_xnew(char, e + 1);
+        memcpy((*strs)[i], str + offset, e);
+        (*strs)[i][e] = '\0';
+        offset += l;
+    }
+}
+static void save_profile(struct userdata *u, size_t channel, char *name){
+    unsigned a_i;
+    const size_t profile_size = CHANNEL_PROFILE_SIZE * sizeof(float);
+    float *H_n, *profile;
+    const float *H;
+    pa_datum key, data;
+    profile = pa_xnew0(float, profile_size);
+    a_i = pa_aupdate_read_begin(u->a_H[channel]);
+    profile[0] = u->Xs[a_i][channel];
+    H = u->Hs[channel][a_i];
+    H_n = profile + 1;
+    for(size_t i = 0 ; i <= FILTER_SIZE; ++i){
+        H_n[i] = H[i] * u->fft_size;
+        //H_n[i] = H[i];
+    }
+    pa_aupdate_read_end(u->a_H[channel]);
+    key.data=name;
+    key.size = strlen(key.data);
+    data.data = profile;
+    data.size = profile_size;
+    pa_database_set(u->database, &key, &data, TRUE);
+    pa_database_sync(u->database);
+    if(u->base_profiles[channel]){
+        pa_xfree(u->base_profiles[channel]);
+    }
+    u->base_profiles[channel] = pa_xstrdup(name);
+}
+
+static void save_state(struct userdata *u){
+    unsigned a_i;
+    const size_t filter_state_size = FILTER_STATE_SIZE * sizeof(float);
+    float *H_n, *state;
+    float *H;
+    pa_datum key, data;
+    pa_database *database;
+    char *dbname;
+    char *state_name = u->name;
+    char *packed;
+    size_t packed_length;
+
+    pack(u->base_profiles, u->channels, &packed, &packed_length);
+    state = (float *) pa_xmalloc0(filter_state_size + packed_length);
+
+    for(size_t c = 0; c < u->channels; ++c){
+        a_i = pa_aupdate_read_begin(u->a_H[c]);
+        state[c * CHANNEL_PROFILE_SIZE] = u->Xs[a_i][c];
+        H = u->Hs[c][a_i];
+        H_n = state + c * CHANNEL_PROFILE_SIZE + 1;
+        memcpy(H_n, H, FILTER_SIZE * sizeof(float));
+        pa_aupdate_read_end(u->a_H[c]);
+    }
+    memcpy(((char *)state) + filter_state_size, packed, packed_length);
+    pa_xfree(packed);
+
+    key.data = state_name;
+    key.size = strlen(key.data);
+    data.data = state;
+    data.size = filter_state_size + packed_length;
+    //thread safety for 0.9.17?
+    pa_assert_se(dbname = pa_state_path(EQ_STATE_DB, FALSE));
+    pa_assert_se(database = pa_database_open(dbname, TRUE));
+    pa_xfree(dbname);
+
+    pa_database_set(database, &key, &data, TRUE);
+    pa_database_sync(database);
+    pa_database_close(database);
+    pa_xfree(state);
+}
+
+static void remove_profile(pa_core *c, char *name){
+    pa_datum key;
+    pa_database *database;
+    key.data = name;
+    key.size = strlen(key.data);
+    pa_assert_se(database = pa_shared_get(c, EQDB));
+    pa_database_unset(database, &key);
+    pa_database_sync(database);
+}
+
+static const char* load_profile(struct userdata *u, size_t channel, char *name){
+    unsigned a_i;
+    pa_datum key, value;
+    const size_t profile_size = CHANNEL_PROFILE_SIZE * sizeof(float);
+    key.data = name;
+    key.size = strlen(key.data);
+    if(pa_database_get(u->database, &key, &value) != NULL){
+        if(value.size == profile_size){
+            float *profile = (float *) value.data;
+            a_i = pa_aupdate_write_begin(u->a_H[channel]);
+            u->Xs[channel][a_i] = profile[0];
+            memcpy(u->Hs[channel][a_i], profile + 1, FILTER_SIZE * sizeof(float));
+            fix_filter(u->Hs[channel][a_i], u->fft_size);
+            pa_aupdate_write_end(u->a_H[channel]);
+            pa_xfree(u->base_profiles[channel]);
+            u->base_profiles[channel] = pa_xstrdup(name);
+        }else{
+            return "incompatible size";
+        }
+        pa_datum_free(&value);
+    }else{
+        return "profile doesn't exist";
+    }
+    return NULL;
+}
+
+static void load_state(struct userdata *u){
+    unsigned a_i;
+    float *H;
+    pa_datum key, value;
+    pa_database *database;
+    char *dbname;
+    char *state_name = u->name;
+    pa_assert_se(dbname = pa_state_path(EQ_STATE_DB, FALSE));
+    database = pa_database_open(dbname, FALSE);
+    pa_xfree(dbname);
+    if(!database){
+        pa_log("No resume state");
+        return;
+    }
+
+    key.data = state_name;
+    key.size = strlen(key.data);
+
+    if(pa_database_get(database, &key, &value) != NULL){
+        if(value.size > FILTER_STATE_SIZE * sizeof(float) + sizeof(uint16_t)){
+            float *state = (float *) value.data;
+            size_t n_profs;
+            char **names;
+            for(size_t c = 0; c < u->channels; ++c){
+                a_i = pa_aupdate_write_begin(u->a_H[c]);
+                H = state + c * CHANNEL_PROFILE_SIZE + 1;
+                u->Xs[c][a_i] = state[c * CHANNEL_PROFILE_SIZE];
+                memcpy(u->Hs[c][a_i], H, FILTER_SIZE * sizeof(float));
+                pa_aupdate_write_end(u->a_H[c]);
+            }
+            //unpack(((char *)value.data) + FILTER_STATE_SIZE, value.size - FILTER_STATE_SIZE, &names, &n_profs);
+            //n_profs = PA_MIN(n_profs, u->channels);
+            //for(size_t c = 0; c < n_profs; ++c){
+            //    pa_xfree(u->base_profiles[c]);
+            //    u->base_profiles[c] = names[c];
+            //}
+            //pa_xfree(names);
+        }
+        pa_datum_free(&value);
+    }else{
+        pa_log("resume state exists but is wrong size!");
+    }
+    pa_database_close(database);
+}
+
+/* Called from main context */
+static pa_bool_t sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    return u->sink != dest;
+}
+
+/* Called from main context */
+static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+    if (dest) {
+        pa_sink_set_asyncmsgq(u->sink, dest->asyncmsgq);
+        pa_sink_update_flags(u->sink, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY, dest->flags);
+    } else
+        pa_sink_set_asyncmsgq(u->sink, NULL);
+}
+
+int pa__init(pa_module*m) {
+    struct userdata *u;
+    pa_sample_spec ss;
+    pa_channel_map map;
+    pa_modargs *ma;
+    const char *z;
+    pa_sink *master;
+    pa_sink_input_new_data sink_input_data;
+    pa_sink_new_data sink_data;
+    size_t fs;
+    float *H;
+    unsigned a_i;
+
+    pa_assert(m);
+
+    if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
+        pa_log("Failed to parse module arguments.");
+        goto fail;
+    }
+
+    if (!(master = pa_namereg_get(m->core, pa_modargs_get_value(ma, "master", NULL), PA_NAMEREG_SINK))) {
+        pa_log("Master sink not found, trying default");
+        master = pa_namereg_get_default_sink(m->core);
+        if(!master){
+            pa_log("no default sink found!");
+            goto fail;
+        }
+    }
+
+    ss = master->sample_spec;
+    ss.format = PA_SAMPLE_FLOAT32;
+    map = master->channel_map;
+    if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_DEFAULT) < 0) {
+        pa_log("Invalid sample format specification or channel map");
+        goto fail;
+    }
+    fs = pa_frame_size(&ss);
+
+    u = pa_xnew0(struct userdata, 1);
+    u->module = m;
+    m->userdata = u;
+
+    u->set_default = TRUE;
+    pa_modargs_get_value_boolean(ma, "set_default", &u->set_default);
+
+    u->channels = ss.channels;
+    u->fft_size = pow(2, ceil(log(ss.rate)/log(2)));//probably unstable near corner cases of powers of 2
+    pa_log_debug("fft size: %ld", u->fft_size);
+    u->window_size = 15999;
+    u->R = (u->window_size + 1) / 2;
+    u->overlap_size = u->window_size - u->R;
+    u->samples_gathered = 0;
+    u->input_buffer_max = 0;
+    u->a_H = pa_xnew0(pa_aupdate *, u->channels);
+    u->Xs = pa_xnew0(float *, u->channels);
+    u->Hs = pa_xnew0(float **, u->channels);
+    for(size_t c = 0; c < u->channels; ++c){
+        u->Xs[c] = pa_xnew0(float, 2);
+        u->Hs[c] = pa_xnew0(float *, 2);
+        for(size_t i = 0; i < 2; ++i){
+            u->Hs[c][i] = alloc(FILTER_SIZE, sizeof(float));
+        }
+    }
+    u->W = alloc(u->window_size, sizeof(float));
+    u->work_buffer = alloc(u->fft_size, sizeof(float));
+    memset(u->work_buffer, 0, u->fft_size*sizeof(float));
+    u->input = pa_xnew0(float *, u->channels);
+    u->overlap_accum = pa_xnew0(float *, u->channels);
+    for(size_t c = 0; c < u->channels; ++c){
+        u->a_H[c] = pa_aupdate_new();
+        u->input[c] = NULL;
+        u->overlap_accum[c] = alloc(u->overlap_size, sizeof(float));
+        memset(u->overlap_accum[c], 0, u->overlap_size*sizeof(float));
+    }
+    u->output_window = alloc((FILTER_SIZE), sizeof(fftwf_complex));
+    u->forward_plan = fftwf_plan_dft_r2c_1d(u->fft_size, u->work_buffer, u->output_window, FFTW_ESTIMATE);
+    u->inverse_plan = fftwf_plan_dft_c2r_1d(u->fft_size, u->output_window, u->work_buffer, FFTW_ESTIMATE);
+
+    hanning_window(u->W, u->window_size);
+    u->first_iteration = TRUE;
+
+    u->base_profiles = pa_xnew0(char *, u->channels);
+    for(size_t c = 0; c < u->channels; ++c){
+        u->base_profiles[c] = pa_xstrdup("default");
+    }
+
+    /* Create sink */
+    pa_sink_new_data_init(&sink_data);
+    sink_data.driver = __FILE__;
+    sink_data.module = m;
+    if (!(sink_data.name = pa_xstrdup(pa_modargs_get_value(ma, "sink_name", NULL))))
+        sink_data.name = pa_sprintf_malloc("%s.equalizer", master->name);
+    pa_sink_new_data_set_sample_spec(&sink_data, &ss);
+    pa_sink_new_data_set_channel_map(&sink_data, &map);
+    z = pa_proplist_gets(master->proplist, PA_PROP_DEVICE_DESCRIPTION);
+    pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "FFT based equalizer on %s",z? z: master->name);
+    pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, master->name);
+    pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
+
+    if (pa_modargs_get_proplist(ma, "sink_properties", sink_data.proplist, PA_UPDATE_REPLACE) < 0) {
+        pa_log("Invalid properties");
+        pa_sink_new_data_done(&sink_data);
+        goto fail;
+    }
+
+    u->sink = pa_sink_new(m->core, &sink_data,
+                          PA_SINK_HW_MUTE_CTRL|PA_SINK_HW_VOLUME_CTRL|PA_SINK_DECIBEL_VOLUME|
+                          (master->flags & (PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY)));
+    pa_sink_new_data_done(&sink_data);
+
+    if (!u->sink) {
+        pa_log("Failed to create sink.");
+        goto fail;
+    }
+    u->name=pa_xstrdup(u->sink->name);
+    u->sink->parent.process_msg = sink_process_msg_cb;
+    u->sink->set_state = sink_set_state_cb;
+    u->sink->update_requested_latency = sink_update_requested_latency_cb;
+    u->sink->request_rewind = sink_request_rewind_cb;
+    u->sink->set_volume = sink_set_volume_cb;
+    u->sink->set_mute = sink_set_mute_cb;
+    u->sink->userdata = u;
+    u->input_q = pa_memblockq_new(0,  MEMBLOCKQ_MAXLENGTH, 0, fs, 1, 1, 0, &u->sink->silence);
+
+    pa_sink_set_asyncmsgq(u->sink, master->asyncmsgq);
+    //pa_sink_set_fixed_latency(u->sink, pa_bytes_to_usec(u->R*fs, &ss));
+
+    /* Create sink input */
+    pa_sink_input_new_data_init(&sink_input_data);
+    sink_input_data.driver = __FILE__;
+    sink_input_data.module = m;
+    sink_input_data.sink = master;
+    pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "Equalized Stream");
+    pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "filter");
+    pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
+    pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
+
+    pa_sink_input_new(&u->sink_input, m->core, &sink_input_data);
+    pa_sink_input_new_data_done(&sink_input_data);
+
+    if (!u->sink_input)
+        goto fail;
+
+    u->sink_input->pop = sink_input_pop_cb;
+    u->sink_input->process_rewind = sink_input_process_rewind_cb;
+    u->sink_input->update_max_rewind = sink_input_update_max_rewind_cb;
+    u->sink_input->update_max_request = sink_input_update_max_request_cb;
+    u->sink_input->update_sink_latency_range = sink_input_update_sink_latency_range_cb;
+    u->sink_input->update_sink_fixed_latency = sink_input_update_sink_fixed_latency_cb;
+    u->sink_input->kill = sink_input_kill_cb;
+    u->sink_input->attach = sink_input_attach_cb;
+    u->sink_input->detach = sink_input_detach_cb;
+    u->sink_input->state_change = sink_input_state_change_cb;
+    u->sink_input->may_move_to = sink_input_may_move_to_cb;
+    u->sink_input->moving = sink_input_moving_cb;
+    u->sink_input->volume_changed = sink_input_volume_changed_cb;
+    u->sink_input->mute_changed = sink_input_mute_changed_cb;
+
+    u->sink_input->userdata = u;
+
+    pa_sink_put(u->sink);
+    pa_sink_input_put(u->sink_input);
+
+    pa_modargs_free(ma);
+
+
+    dbus_init(u);
+
+    //default filter to these
+    for(size_t c = 0; c< u->channels; ++c){
+        a_i = pa_aupdate_write_begin(u->a_H[c]);
+        H = u->Hs[c][a_i];
+        u->Xs[c][a_i] = 1.0f;
+        for(size_t i = 0; i < FILTER_SIZE; ++i){
+            H[i] = 1.0 / sqrtf(2.0f);
+        }
+        fix_filter(H, u->fft_size);
+        pa_aupdate_write_end(u->a_H[c]);
+    }
+    //load old parameters
+    load_state(u);
+
+    return 0;
+
+fail:
+    if (ma)
+        pa_modargs_free(ma);
+
+
+    pa__done(m);
+
+    return -1;
+}
+
+int pa__get_n_used(pa_module *m) {
+    struct userdata *u;
+
+    pa_assert(m);
+    pa_assert_se(u = m->userdata);
+
+    return pa_sink_linked_by(u->sink);
+}
+
+void pa__done(pa_module*m) {
+    struct userdata *u;
+
+    pa_assert(m);
+
+    if (!(u = m->userdata))
+        return;
+
+    save_state(u);
+
+    dbus_done(u);
+
+    for(size_t c = 0; c < u->channels; ++c){
+        pa_xfree(u->base_profiles[c]);
+    }
+    pa_xfree(u->base_profiles);
+
+    /* See comments in sink_input_kill_cb() above regarding
+     * destruction order! */
+
+    if (u->sink_input)
+        pa_sink_input_unlink(u->sink_input);
+
+    if (u->sink)
+        pa_sink_unlink(u->sink);
+
+    if (u->sink_input)
+        pa_sink_input_unref(u->sink_input);
+
+    if (u->sink)
+        pa_sink_unref(u->sink);
+
+    pa_memblockq_free(u->input_q);
+
+    fftwf_destroy_plan(u->inverse_plan);
+    fftwf_destroy_plan(u->forward_plan);
+    pa_xfree(u->output_window);
+    for(size_t c=0; c < u->channels; ++c){
+        pa_aupdate_free(u->a_H[c]);
+        pa_xfree(u->overlap_accum[c]);
+        pa_xfree(u->input[c]);
+    }
+    pa_xfree(u->a_H);
+    pa_xfree(u->overlap_accum);
+    pa_xfree(u->input);
+    pa_xfree(u->work_buffer);
+    pa_xfree(u->W);
+    for(size_t c = 0; c < u->channels; ++c){
+        pa_xfree(u->Xs[c]);
+        for(size_t i = 0; i < 2; ++i){
+            pa_xfree(u->Hs[c][i]);
+        }
+        pa_xfree(u->Hs[c]);
+    }
+    pa_xfree(u->Xs);
+    pa_xfree(u->Hs);
+
+    pa_xfree(u->name);
+
+    pa_xfree(u);
+}
+
+/*
+ * DBus Routines and Callbacks
+ */
+#define EXTNAME "org.PulseAudio.Ext.Equalizing1"
+#define MANAGER_PATH "/org/pulseaudio/equalizing1"
+#define MANAGER_IFACE EXTNAME ".Manager"
+#define EQUALIZER_IFACE EXTNAME ".Equalizer"
+static void manager_get_revision(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void manager_get_sinks(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void manager_get_profiles(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void manager_get_all(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void manager_handle_remove_profile(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_get_revision(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_get_sample_rate(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_get_filter_rate(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_get_n_coefs(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_get_n_channels(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_get_all(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_handle_get_filter_points(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_handle_get_filter(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_handle_set_filter(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_handle_save_profile(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_handle_save_state(DBusConnection *conn, DBusMessage *msg, void *_u);
+static void equalizer_handle_get_profile_name(DBusConnection *conn, DBusMessage *msg, void *_u);
+enum manager_method_index {
+    MANAGER_METHOD_REMOVE_PROFILE,
+    MANAGER_METHOD_MAX
+};
+
+pa_dbus_arg_info remove_profile_args[]={
+    {"name", "s","in"},
+};
+
+static pa_dbus_method_handler manager_methods[MANAGER_METHOD_MAX]={
+    [MANAGER_METHOD_REMOVE_PROFILE]{
+        .method_name="RemoveProfile",
+        .arguments=remove_profile_args,
+        .n_arguments=sizeof(remove_profile_args)/sizeof(pa_dbus_arg_info),
+        .receive_cb=manager_handle_remove_profile}
+};
+
+enum manager_handler_index {
+    MANAGER_HANDLER_REVISION,
+    MANAGER_HANDLER_EQUALIZED_SINKS,
+    MANAGER_HANDLER_PROFILES,
+    MANAGER_HANDLER_MAX
+};
+
+static pa_dbus_property_handler manager_handlers[MANAGER_HANDLER_MAX]={
+    [MANAGER_HANDLER_REVISION]={.property_name="InterfaceRevision",.type="u",.get_cb=manager_get_revision,.set_cb=NULL},
+    [MANAGER_HANDLER_EQUALIZED_SINKS]={.property_name="EqualizedSinks",.type="ao",.get_cb=manager_get_sinks,.set_cb=NULL},
+    [MANAGER_HANDLER_PROFILES]={.property_name="Profiles",.type="as",.get_cb=manager_get_profiles,.set_cb=NULL}
+};
+
+pa_dbus_arg_info sink_args[]={
+    {"sink", "o", NULL}
+};
+
+enum manager_signal_index{
+    MANAGER_SIGNAL_SINK_ADDED,
+    MANAGER_SIGNAL_SINK_REMOVED,
+    MANAGER_SIGNAL_PROFILES_CHANGED,
+    MANAGER_SIGNAL_MAX
+};
+
+static pa_dbus_signal_info manager_signals[MANAGER_SIGNAL_MAX]={
+    [MANAGER_SIGNAL_SINK_ADDED]={.name="SinkAdded", .arguments=sink_args, .n_arguments=sizeof(sink_args)/sizeof(pa_dbus_arg_info)},
+    [MANAGER_SIGNAL_SINK_REMOVED]={.name="SinkRemoved", .arguments=sink_args, .n_arguments=sizeof(sink_args)/sizeof(pa_dbus_arg_info)},
+    [MANAGER_SIGNAL_PROFILES_CHANGED]={.name="ProfilesChanged", .arguments=NULL, .n_arguments=0}
+};
+
+static pa_dbus_interface_info manager_info={
+    .name=MANAGER_IFACE,
+    .method_handlers=manager_methods,
+    .n_method_handlers=MANAGER_METHOD_MAX,
+    .property_handlers=manager_handlers,
+    .n_property_handlers=MANAGER_HANDLER_MAX,
+    .get_all_properties_cb=manager_get_all,
+    .signals=manager_signals,
+    .n_signals=MANAGER_SIGNAL_MAX
+};
+
+enum equalizer_method_index {
+    EQUALIZER_METHOD_FILTER_POINTS,
+    EQUALIZER_METHOD_SEED_FILTER,
+    EQUALIZER_METHOD_SAVE_PROFILE,
+    EQUALIZER_METHOD_LOAD_PROFILE,
+    EQUALIZER_METHOD_SET_FILTER,
+    EQUALIZER_METHOD_GET_FILTER,
+    EQUALIZER_METHOD_SAVE_STATE,
+    EQUALIZER_METHOD_GET_PROFILE_NAME,
+    EQUALIZER_METHOD_MAX
+};
+
+enum equalizer_handler_index {
+    EQUALIZER_HANDLER_REVISION,
+    EQUALIZER_HANDLER_SAMPLERATE,
+    EQUALIZER_HANDLER_FILTERSAMPLERATE,
+    EQUALIZER_HANDLER_N_COEFS,
+    EQUALIZER_HANDLER_N_CHANNELS,
+    EQUALIZER_HANDLER_MAX
+};
+
+pa_dbus_arg_info filter_points_args[]={
+    {"channel", "u","in"},
+    {"xs", "au","in"},
+    {"ys", "ad","out"},
+    {"preamp", "d","out"}
+};
+pa_dbus_arg_info seed_filter_args[]={
+    {"channel", "u","in"},
+    {"xs", "au","in"},
+    {"ys", "ad","in"},
+    {"preamp", "d","in"}
+};
+
+pa_dbus_arg_info set_filter_args[]={
+    {"channel", "u","in"},
+    {"ys", "ad","in"},
+    {"preamp", "d","in"}
+};
+pa_dbus_arg_info get_filter_args[]={
+    {"channel", "u","in"},
+    {"ys", "ad","out"},
+    {"preamp", "d","out"}
+};
+
+pa_dbus_arg_info save_profile_args[]={
+    {"channel", "u","in"},
+    {"name", "s","in"}
+};
+pa_dbus_arg_info load_profile_args[]={
+    {"channel", "u","in"},
+    {"name", "s","in"}
+};
+pa_dbus_arg_info base_profile_name_args[]={
+    {"channel", "u","in"},
+    {"name", "s","out"}
+};
+
+static pa_dbus_method_handler equalizer_methods[EQUALIZER_METHOD_MAX]={
+    [EQUALIZER_METHOD_SEED_FILTER]{
+        .method_name="SeedFilter",
+        .arguments=seed_filter_args,
+        .n_arguments=sizeof(seed_filter_args)/sizeof(pa_dbus_arg_info),
+        .receive_cb=equalizer_handle_seed_filter},
+    [EQUALIZER_METHOD_FILTER_POINTS]{
+        .method_name="FilterAtPoints",
+        .arguments=filter_points_args,
+        .n_arguments=sizeof(filter_points_args)/sizeof(pa_dbus_arg_info),
+        .receive_cb=equalizer_handle_get_filter_points},
+    [EQUALIZER_METHOD_SET_FILTER]{
+        .method_name="SetFilter",
+        .arguments=set_filter_args,
+        .n_arguments=sizeof(set_filter_args)/sizeof(pa_dbus_arg_info),
+        .receive_cb=equalizer_handle_set_filter},
+    [EQUALIZER_METHOD_GET_FILTER]{
+        .method_name="GetFilter",
+        .arguments=get_filter_args,
+        .n_arguments=sizeof(get_filter_args)/sizeof(pa_dbus_arg_info),
+        .receive_cb=equalizer_handle_get_filter},
+    [EQUALIZER_METHOD_SAVE_PROFILE]{
+        .method_name="SaveProfile",
+        .arguments=save_profile_args,
+        .n_arguments=sizeof(save_profile_args)/sizeof(pa_dbus_arg_info),
+        .receive_cb=equalizer_handle_save_profile},
+    [EQUALIZER_METHOD_LOAD_PROFILE]{
+        .method_name="LoadProfile",
+        .arguments=load_profile_args,
+        .n_arguments=sizeof(load_profile_args)/sizeof(pa_dbus_arg_info),
+        .receive_cb=equalizer_handle_load_profile},
+    [EQUALIZER_METHOD_SAVE_STATE]{
+        .method_name="SaveState",
+        .arguments=NULL,
+        .n_arguments=0,
+        .receive_cb=equalizer_handle_save_state},
+    [EQUALIZER_METHOD_GET_PROFILE_NAME]{
+        .method_name="BaseProfile",
+        .arguments=base_profile_name_args,
+        .n_arguments=sizeof(base_profile_name_args)/sizeof(pa_dbus_arg_info),
+        .receive_cb=equalizer_handle_get_profile_name}
+};
+
+static pa_dbus_property_handler equalizer_handlers[EQUALIZER_HANDLER_MAX]={
+    [EQUALIZER_HANDLER_REVISION]={.property_name="InterfaceRevision",.type="u",.get_cb=equalizer_get_revision,.set_cb=NULL},
+    [EQUALIZER_HANDLER_SAMPLERATE]{.property_name="SampleRate",.type="u",.get_cb=equalizer_get_sample_rate,.set_cb=NULL},
+    [EQUALIZER_HANDLER_FILTERSAMPLERATE]{.property_name="FilterSampleRate",.type="u",.get_cb=equalizer_get_filter_rate,.set_cb=NULL},
+    [EQUALIZER_HANDLER_N_COEFS]{.property_name="NFilterCoefficients",.type="u",.get_cb=equalizer_get_n_coefs,.set_cb=NULL},
+    [EQUALIZER_HANDLER_N_CHANNELS]{.property_name="NChannels",.type="u",.get_cb=equalizer_get_n_channels,.set_cb=NULL},
+};
+
+enum equalizer_signal_index{
+    EQUALIZER_SIGNAL_FILTER_CHANGED,
+    EQUALIZER_SIGNAL_SINK_RECONFIGURED,
+    EQUALIZER_SIGNAL_MAX
+};
+
+static pa_dbus_signal_info equalizer_signals[EQUALIZER_SIGNAL_MAX]={
+    [EQUALIZER_SIGNAL_FILTER_CHANGED]={.name="FilterChanged", .arguments=NULL, .n_arguments=0},
+    [EQUALIZER_SIGNAL_SINK_RECONFIGURED]={.name="SinkReconfigured", .arguments=NULL, .n_arguments=0},
+};
+
+static pa_dbus_interface_info equalizer_info={
+    .name=EQUALIZER_IFACE,
+    .method_handlers=equalizer_methods,
+    .n_method_handlers=EQUALIZER_METHOD_MAX,
+    .property_handlers=equalizer_handlers,
+    .n_property_handlers=EQUALIZER_HANDLER_MAX,
+    .get_all_properties_cb=equalizer_get_all,
+    .signals=equalizer_signals,
+    .n_signals=EQUALIZER_SIGNAL_MAX
+};
+
+void dbus_init(struct userdata *u){
+    uint32_t dummy;
+    DBusMessage *signal = NULL;
+    pa_idxset *sink_list = NULL;
+    u->dbus_protocol=pa_dbus_protocol_get(u->sink->core);
+    u->dbus_path=pa_sprintf_malloc("/org/pulseaudio/core1/sink%d", u->sink->index);
+
+    pa_dbus_protocol_add_interface(u->dbus_protocol, u->dbus_path, &equalizer_info, u);
+    sink_list = pa_shared_get(u->sink->core, SINKLIST);
+    u->database = pa_shared_get(u->sink->core, EQDB);
+    if(sink_list == NULL){
+        char *dbname;
+        sink_list=pa_idxset_new(&pa_idxset_trivial_hash_func, &pa_idxset_trivial_compare_func);
+        pa_shared_set(u->sink->core, SINKLIST, sink_list);
+        pa_assert_se(dbname = pa_state_path("equalizer-presets", FALSE));
+        pa_assert_se(u->database = pa_database_open(dbname, TRUE));
+        pa_xfree(dbname);
+        pa_shared_set(u->sink->core, EQDB, u->database);
+        pa_dbus_protocol_add_interface(u->dbus_protocol, MANAGER_PATH, &manager_info, u->sink->core);
+        pa_dbus_protocol_register_extension(u->dbus_protocol, EXTNAME);
+    }
+    pa_idxset_put(sink_list, u, &dummy);
+
+    pa_assert_se((signal = dbus_message_new_signal(MANAGER_PATH, MANAGER_IFACE, manager_signals[MANAGER_SIGNAL_SINK_ADDED].name)));
+    dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &u->dbus_path, DBUS_TYPE_INVALID);
+    pa_dbus_protocol_send_signal(u->dbus_protocol, signal);
+    dbus_message_unref(signal);
+}
+
+void dbus_done(struct userdata *u){
+    pa_idxset *sink_list;
+    uint32_t dummy;
+
+    DBusMessage *signal = NULL;
+    pa_assert_se((signal = dbus_message_new_signal(MANAGER_PATH, MANAGER_IFACE, manager_signals[MANAGER_SIGNAL_SINK_REMOVED].name)));
+    dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &u->dbus_path, DBUS_TYPE_INVALID);
+    pa_dbus_protocol_send_signal(u->dbus_protocol, signal);
+    dbus_message_unref(signal);
+
+    pa_assert_se(sink_list=pa_shared_get(u->sink->core,SINKLIST));
+    pa_idxset_remove_by_data(sink_list,u,&dummy);
+    if(pa_idxset_size(sink_list)==0){
+        pa_dbus_protocol_unregister_extension(u->dbus_protocol, EXTNAME);
+        pa_dbus_protocol_remove_interface(u->dbus_protocol, MANAGER_PATH, manager_info.name);
+        pa_shared_remove(u->sink->core, EQDB);
+        pa_database_close(u->database);
+        pa_shared_remove(u->sink->core, SINKLIST);
+        pa_xfree(sink_list);
+    }
+    pa_dbus_protocol_remove_interface(u->dbus_protocol, u->dbus_path, equalizer_info.name);
+    pa_xfree(u->dbus_path);
+    pa_dbus_protocol_unref(u->dbus_protocol);
+}
+
+void manager_handle_remove_profile(DBusConnection *conn, DBusMessage *msg, void *_u) {
+    DBusError error;
+    pa_core *c = (pa_core *)_u;
+    DBusMessage *signal = NULL;
+    pa_dbus_protocol *dbus_protocol;
+    char *name;
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(c);
+    dbus_error_init(&error);
+    if(!dbus_message_get_args(msg, &error,
+                 DBUS_TYPE_STRING, &name,
+                DBUS_TYPE_INVALID)){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
+        dbus_error_free(&error);
+        return;
+    }
+    remove_profile(c,name);
+    pa_dbus_send_empty_reply(conn, msg);
+
+    pa_assert_se((signal = dbus_message_new_signal(MANAGER_PATH, MANAGER_IFACE, manager_signals[MANAGER_SIGNAL_PROFILES_CHANGED].name)));
+    dbus_protocol = pa_dbus_protocol_get(c);
+    pa_dbus_protocol_send_signal(dbus_protocol, signal);
+    pa_dbus_protocol_unref(dbus_protocol);
+    dbus_message_unref(signal);
+}
+
+void manager_get_revision(DBusConnection *conn, DBusMessage *msg, void *_u){
+    uint32_t rev=1;
+    pa_dbus_send_basic_value_reply(conn, msg, DBUS_TYPE_UINT32, &rev);
+}
+
+static void get_sinks(pa_core *u, char ***names, unsigned *n_sinks){
+    void *iter = NULL;
+    struct userdata *sink_u = NULL;
+    uint32_t dummy;
+    pa_idxset *sink_list;
+    pa_assert(u);
+    pa_assert(names);
+    pa_assert(n_sinks);
+
+    pa_assert_se(sink_list = pa_shared_get(u, SINKLIST));
+    *n_sinks = (unsigned) pa_idxset_size(sink_list);
+    *names = *n_sinks > 0 ? pa_xnew0(char *,*n_sinks) : NULL;
+    for(uint32_t i = 0; i < *n_sinks; ++i){
+        sink_u = (struct userdata *) pa_idxset_iterate(sink_list, &iter, &dummy);
+        (*names)[i] = pa_xstrdup(sink_u->dbus_path);
+    }
+}
+
+void manager_get_sinks(DBusConnection *conn, DBusMessage *msg, void *_u){
+    unsigned n;
+    char **names = NULL;
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(_u);
+
+    get_sinks((pa_core *) _u, &names, &n);
+    pa_dbus_send_basic_array_variant_reply(conn, msg, DBUS_TYPE_OBJECT_PATH, names, n);
+    for(unsigned i = 0; i < n; ++i){
+        pa_xfree(names[i]);
+    }
+    pa_xfree(names);
+}
+
+static void get_profiles(pa_core *c, char ***names, unsigned *n){
+    char *name;
+    pa_database *database;
+    pa_datum key, next_key;
+    pa_strlist *head=NULL, *iter;
+    pa_bool_t done;
+    pa_assert_se(database = pa_shared_get(c, EQDB));
+
+    pa_assert(c);
+    pa_assert(names);
+    pa_assert(n);
+    done = !pa_database_first(database, &key, NULL);
+    *n = 0;
+    while(!done){
+        done = !pa_database_next(database, &key, &next_key, NULL);
+        name=pa_xmalloc(key.size + 1);
+        memcpy(name, key.data, key.size);
+        name[key.size] = '\0';
+        pa_datum_free(&key);
+        head = pa_strlist_prepend(head, name);
+        pa_xfree(name);
+        key = next_key;
+        (*n)++;
+    }
+    (*names) = *n > 0 ? pa_xnew0(char *, *n) : NULL;
+    iter=head;
+    for(unsigned i = 0; i < *n; ++i){
+        (*names)[*n - 1 - i] = pa_xstrdup(pa_strlist_data(iter));
+        iter = pa_strlist_next(iter);
+    }
+    pa_strlist_free(head);
+}
+
+void manager_get_profiles(DBusConnection *conn, DBusMessage *msg, void *_u){
+    char **names;
+    unsigned n;
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(_u);
+
+    get_profiles((pa_core *)_u, &names, &n);
+    pa_dbus_send_basic_array_variant_reply(conn, msg, DBUS_TYPE_STRING, names, n);
+    for(unsigned i = 0; i < n; ++i){
+        pa_xfree(names[i]);
+    }
+    pa_xfree(names);
+}
+
+void manager_get_all(DBusConnection *conn, DBusMessage *msg, void *_u){
+    pa_core *c;
+    char **names = NULL;
+    unsigned n;
+    DBusMessage *reply = NULL;
+    DBusMessageIter msg_iter, dict_iter;
+    uint32_t rev;
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert_se(c = _u);
+
+    pa_assert_se((reply = dbus_message_new_method_return(msg)));
+    dbus_message_iter_init_append(reply, &msg_iter);
+    pa_assert_se(dbus_message_iter_open_container(&msg_iter, DBUS_TYPE_ARRAY, "{sv}", &dict_iter));
+
+    rev = 1;
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, manager_handlers[MANAGER_HANDLER_REVISION].property_name, DBUS_TYPE_UINT32, &rev);
+
+    get_sinks(c, &names, &n);
+    pa_dbus_append_basic_array_variant_dict_entry(&dict_iter,manager_handlers[MANAGER_HANDLER_EQUALIZED_SINKS].property_name, DBUS_TYPE_OBJECT_PATH, names, n);
+    for(unsigned i = 0; i < n; ++i){
+        pa_xfree(names[i]);
+    }
+    pa_xfree(names);
+
+    get_profiles(c, &names, &n);
+    pa_dbus_append_basic_array_variant_dict_entry(&dict_iter, manager_handlers[MANAGER_HANDLER_PROFILES].property_name, DBUS_TYPE_STRING, names, n);
+    for(unsigned i = 0; i < n; ++i){
+        pa_xfree(names[i]);
+    }
+    pa_xfree(names);
+    pa_assert_se(dbus_message_iter_close_container(&msg_iter, &dict_iter));
+    pa_assert_se(dbus_connection_send(conn, reply, NULL));
+    dbus_message_unref(reply);
+}
+
+void equalizer_handle_seed_filter(DBusConnection *conn, DBusMessage *msg, void *_u) {
+    struct userdata *u=(struct userdata *) _u;
+    DBusError error;
+    DBusMessage *signal = NULL;
+    float *ys;
+    uint32_t *xs, channel, r_channel;
+    double *_ys, preamp;
+    unsigned x_npoints, y_npoints, a_i;
+    float *H;
+    pa_bool_t points_good = TRUE;
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(u);
+
+    dbus_error_init(&error);
+
+    if(!dbus_message_get_args(msg, &error,
+                DBUS_TYPE_UINT32, &channel,
+                DBUS_TYPE_ARRAY, DBUS_TYPE_UINT32, &xs, &x_npoints,
+                DBUS_TYPE_ARRAY, DBUS_TYPE_DOUBLE, &_ys, &y_npoints,
+                DBUS_TYPE_DOUBLE, &preamp,
+                DBUS_TYPE_INVALID)){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
+        dbus_error_free(&error);
+        return;
+    }
+    if(channel > u->channels){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "invalid channel: %d", channel);
+        dbus_error_free(&error);
+        return;
+    }
+    for(size_t i = 0; i < x_npoints; ++i){
+        if(xs[i] >= FILTER_SIZE){
+            points_good = FALSE;
+            break;
+        }
+    }
+    if(!is_monotonic(xs, x_npoints) || !points_good){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs must be monotonic and 0<=x<=%ld", u->fft_size / 2);
+        dbus_error_free(&error);
+        return;
+    }else if(x_npoints != y_npoints || x_npoints < 2 || x_npoints > FILTER_SIZE  ){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs and ys must be the same length and 2<=l<=%ld!", FILTER_SIZE);
+        dbus_error_free(&error);
+        return;
+    }else if(xs[0] != 0 || xs[x_npoints - 1] != u->fft_size / 2){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs[0] must be 0 and xs[-1]=fft_size/2");
+        dbus_error_free(&error);
+        return;
+    }
+
+    ys = pa_xmalloc(x_npoints * sizeof(float));
+    for(uint32_t i = 0; i < x_npoints; ++i){
+        ys[i] = (float) _ys[i];
+    }
+    r_channel = channel == u->channels ? 0 : channel;
+    a_i = pa_aupdate_write_begin(u->a_H[r_channel]);
+    H = u->Hs[r_channel][a_i];
+    u->Xs[r_channel][a_i] = preamp;
+    interpolate(H, FILTER_SIZE, xs, ys, x_npoints);
+    fix_filter(H, u->fft_size);
+    if(channel == u->channels){
+        for(size_t c = 1; c < u->channels; ++c){
+            unsigned b_i = pa_aupdate_write_begin(u->a_H[c]);
+            float *H_p = u->Hs[c][b_i];
+            u->Xs[c][b_i] = preamp;
+            memcpy(H_p, H, FILTER_SIZE * sizeof(float));
+            pa_aupdate_write_end(u->a_H[c]);
+        }
+    }
+    pa_aupdate_write_end(u->a_H[r_channel]);
+    pa_xfree(ys);
+
+
+    pa_dbus_send_empty_reply(conn, msg);
+
+    pa_assert_se((signal = dbus_message_new_signal(u->dbus_path, EQUALIZER_IFACE, equalizer_signals[EQUALIZER_SIGNAL_FILTER_CHANGED].name)));
+    pa_dbus_protocol_send_signal(u->dbus_protocol, signal);
+    dbus_message_unref(signal);
+}
+
+void equalizer_handle_get_filter_points(DBusConnection *conn, DBusMessage *msg, void *_u) {
+    struct userdata *u = (struct userdata *) _u;
+    uint32_t *xs, channel, r_channel;
+    double *ys, preamp;
+    unsigned x_npoints, a_i;
+    float *H;
+    pa_bool_t points_good=TRUE;
+    DBusMessage *reply = NULL;
+    DBusMessageIter msg_iter;
+    DBusError error;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(u);
+
+    dbus_error_init(&error);
+    if(!dbus_message_get_args(msg, &error,
+                DBUS_TYPE_UINT32, &channel,
+                DBUS_TYPE_ARRAY, DBUS_TYPE_UINT32, &xs, &x_npoints,
+                DBUS_TYPE_INVALID)){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
+        dbus_error_free(&error);
+        return;
+    }
+    if(channel > u->channels){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "invalid channel: %d", channel);
+        dbus_error_free(&error);
+        return;
+    }
+
+    for(size_t i = 0; i < x_npoints; ++i){
+        if(xs[i] >= FILTER_SIZE){
+            points_good=FALSE;
+            break;
+        }
+    }
+
+    if(x_npoints > FILTER_SIZE || !points_good){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "xs indices/length must be <= %ld!", FILTER_SIZE);
+        dbus_error_free(&error);
+        return;
+    }
+
+    r_channel = channel == u->channels ? 0 : channel;
+    ys = pa_xmalloc(x_npoints * sizeof(double));
+    a_i = pa_aupdate_read_begin(u->a_H[r_channel]);
+    H = u->Hs[r_channel][a_i];
+    preamp = u->Xs[r_channel][a_i];
+    for(uint32_t i = 0; i < x_npoints; ++i){
+        ys[i] = H[xs[i]] * u->fft_size;
+    }
+    pa_aupdate_read_end(u->a_H[r_channel]);
+
+    pa_assert_se((reply = dbus_message_new_method_return(msg)));
+    dbus_message_iter_init_append(reply, &msg_iter);
+
+    pa_dbus_append_basic_array(&msg_iter, DBUS_TYPE_DOUBLE, ys, x_npoints);
+    pa_dbus_append_basic_variant(&msg_iter, DBUS_TYPE_DOUBLE, &preamp);
+
+    pa_assert_se(dbus_connection_send(conn, reply, NULL));
+    dbus_message_unref(reply);
+    pa_xfree(ys);
+}
+
+static void get_filter(struct userdata *u, size_t channel, double **H_, double *preamp){
+    float *H;
+    unsigned a_i;
+    size_t r_channel = channel == u->channels ? 0 : channel;
+    *H_ = pa_xnew0(double, FILTER_SIZE);
+    a_i = pa_aupdate_read_begin(u->a_H[r_channel]);
+    H = u->Hs[r_channel][a_i];
+    for(size_t i = 0;i < FILTER_SIZE; ++i){
+        (*H_)[i] = H[i] * u->fft_size;
+    }
+    *preamp = u->Xs[r_channel][a_i];
+
+    pa_aupdate_read_end(u->a_H[r_channel]);
+}
+
+void equalizer_handle_get_filter(DBusConnection *conn, DBusMessage *msg, void *_u){
+    struct userdata *u;
+    unsigned n_coefs;
+    uint32_t channel;
+    double *H_, preamp;
+    DBusMessage *reply = NULL;
+    DBusMessageIter msg_iter;
+    DBusError error;
+    pa_assert_se(u = (struct userdata *) _u);
+    pa_assert(conn);
+    pa_assert(msg);
+
+    dbus_error_init(&error);
+    if(!dbus_message_get_args(msg, &error,
+                DBUS_TYPE_UINT32, &channel,
+                DBUS_TYPE_INVALID)){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
+        dbus_error_free(&error);
+        return;
+    }
+    if(channel > u->channels){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "invalid channel: %d", channel);
+        dbus_error_free(&error);
+        return;
+    }
+
+    n_coefs = CHANNEL_PROFILE_SIZE;
+    pa_assert(conn);
+    pa_assert(msg);
+    get_filter(u, channel, &H_, &preamp);
+    pa_assert_se((reply = dbus_message_new_method_return(msg)));
+    dbus_message_iter_init_append(reply, &msg_iter);
+
+    pa_dbus_append_basic_array(&msg_iter, DBUS_TYPE_DOUBLE, H_, n_coefs);
+    pa_dbus_append_basic_variant(&msg_iter, DBUS_TYPE_DOUBLE, &preamp);
+
+    pa_assert_se(dbus_connection_send(conn, reply, NULL));
+    dbus_message_unref(reply);
+    pa_xfree(H_);
+}
+
+static void set_filter(struct userdata *u, size_t channel, double *H_, double preamp){
+    unsigned a_i;
+    size_t r_channel = channel == u->channels ? 0 : channel;
+    float *H;
+    //all channels
+    a_i = pa_aupdate_write_begin(u->a_H[r_channel]);
+    u->Xs[r_channel][a_i] = (float) preamp;
+    H = u->Hs[r_channel][a_i];
+    for(size_t i = 0; i < FILTER_SIZE; ++i){
+        H[i] = (float) H_[i];
+    }
+    fix_filter(H, u->fft_size);
+    if(channel == u->channels){
+        for(size_t c = 1; c < u->channels; ++c){
+            unsigned b_i = pa_aupdate_write_begin(u->a_H[c]);
+            u->Xs[c][b_i] = u->Xs[r_channel][a_i];
+            memcpy(u->Hs[c][b_i], u->Hs[r_channel][a_i], FILTER_SIZE * sizeof(float));
+            pa_aupdate_write_end(u->a_H[c]);
+        }
+    }
+    pa_aupdate_write_end(u->a_H[r_channel]);
+}
+
+void equalizer_handle_set_filter(DBusConnection *conn, DBusMessage *msg, void *_u){
+    struct userdata *u;
+    double *H, preamp;
+    uint32_t channel;
+    unsigned _n_coefs;
+    DBusMessage *signal = NULL;
+    DBusError error;
+    pa_assert_se(u = (struct userdata *) _u);
+    pa_assert(conn);
+    pa_assert(msg);
+
+    dbus_error_init(&error);
+    if(!dbus_message_get_args(msg, &error,
+                DBUS_TYPE_UINT32, &channel,
+                DBUS_TYPE_ARRAY, DBUS_TYPE_DOUBLE, &H, &_n_coefs,
+                DBUS_TYPE_DOUBLE, &preamp,
+                DBUS_TYPE_INVALID)){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
+        dbus_error_free(&error);
+        return;
+    }
+    if(channel > u->channels){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "invalid channel: %d", channel);
+        dbus_error_free(&error);
+        return;
+    }
+    if(_n_coefs != FILTER_SIZE){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "This filter takes exactly %ld coefficients, you gave %d", FILTER_SIZE, _n_coefs);
+        return;
+    }
+    set_filter(u, channel, H, preamp);
+
+    pa_dbus_send_empty_reply(conn, msg);
+
+    pa_assert_se((signal = dbus_message_new_signal(u->dbus_path, EQUALIZER_IFACE, equalizer_signals[EQUALIZER_SIGNAL_FILTER_CHANGED].name)));
+    pa_dbus_protocol_send_signal(u->dbus_protocol, signal);
+    dbus_message_unref(signal);
+}
+
+void equalizer_handle_save_profile(DBusConnection *conn, DBusMessage *msg, void *_u) {
+    struct userdata *u = (struct userdata *) _u;
+    char *name;
+    uint32_t channel, r_channel;
+    DBusMessage *signal = NULL;
+    DBusError error;
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(u);
+    dbus_error_init(&error);
+
+    if(!dbus_message_get_args(msg, &error,
+                DBUS_TYPE_UINT32, &channel,
+                DBUS_TYPE_STRING, &name,
+                DBUS_TYPE_INVALID)){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
+        dbus_error_free(&error);
+        return;
+    }
+    if(channel > u->channels){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "invalid channel: %d", channel);
+        dbus_error_free(&error);
+        return;
+    }
+    r_channel = channel == u->channels ? 0 : channel;
+    save_profile(u, r_channel, name);
+    pa_dbus_send_empty_reply(conn, msg);
+
+    pa_assert_se((signal = dbus_message_new_signal(MANAGER_PATH, MANAGER_IFACE, manager_signals[MANAGER_SIGNAL_PROFILES_CHANGED].name)));
+    pa_dbus_protocol_send_signal(u->dbus_protocol, signal);
+    dbus_message_unref(signal);
+}
+
+void equalizer_handle_load_profile(DBusConnection *conn, DBusMessage *msg, void *_u) {
+    struct userdata *u = (struct userdata *) _u;
+    char *name;
+    DBusError error;
+    uint32_t channel, r_channel;
+    const char *err_msg = NULL;
+    DBusMessage *signal = NULL;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(u);
+    dbus_error_init(&error);
+
+    if(!dbus_message_get_args(msg, &error,
+                DBUS_TYPE_UINT32, &channel,
+                DBUS_TYPE_STRING, &name,
+                DBUS_TYPE_INVALID)){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
+        dbus_error_free(&error);
+        return;
+    }
+    if(channel > u->channels){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "invalid channel: %d", channel);
+        dbus_error_free(&error);
+        return;
+    }
+    r_channel = channel == u->channels ? 0 : channel;
+
+    err_msg = load_profile(u, r_channel, name);
+    if(err_msg != NULL){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_FAILED, "error loading profile %s: %s", name, err_msg);
+        dbus_error_free(&error);
+        return;
+    }
+    if(channel == u->channels){
+        for(uint32_t c = 1; c < u->channels; ++c){
+            load_profile(u, c, name);
+        }
+    }
+    pa_dbus_send_empty_reply(conn, msg);
+
+    pa_assert_se((signal = dbus_message_new_signal(u->dbus_path, EQUALIZER_IFACE, equalizer_signals[EQUALIZER_SIGNAL_FILTER_CHANGED].name)));
+    pa_dbus_protocol_send_signal(u->dbus_protocol, signal);
+    dbus_message_unref(signal);
+}
+
+void equalizer_handle_save_state(DBusConnection *conn, DBusMessage *msg, void *_u) {
+    struct userdata *u = (struct userdata *) _u;
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(u);
+
+    save_state(u);
+    pa_dbus_send_empty_reply(conn, msg);
+}
+
+void equalizer_handle_get_profile_name(DBusConnection *conn, DBusMessage *msg, void *_u){
+    struct userdata *u = (struct userdata *) _u;
+    DBusError error;
+    uint32_t channel, r_channel;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(u);
+    dbus_error_init(&error);
+
+    if(!dbus_message_get_args(msg, &error,
+                DBUS_TYPE_UINT32, &channel,
+                DBUS_TYPE_INVALID)){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "%s", error.message);
+        dbus_error_free(&error);
+        return;
+    }
+    if(channel > u->channels){
+        pa_dbus_send_error(conn, msg, DBUS_ERROR_INVALID_ARGS, "invalid channel: %d", channel);
+        dbus_error_free(&error);
+        return;
+    }
+    r_channel = channel == u->channels ? 0 : channel;
+    pa_assert(u->base_profiles[r_channel]);
+    pa_dbus_send_basic_value_reply(conn,msg, DBUS_TYPE_STRING, &u->base_profiles[r_channel]);
+}
+
+void equalizer_get_revision(DBusConnection *conn, DBusMessage *msg, void *_u){
+    uint32_t rev=1;
+    pa_dbus_send_basic_value_reply(conn, msg, DBUS_TYPE_UINT32, &rev);
+}
+
+void equalizer_get_n_channels(DBusConnection *conn, DBusMessage *msg, void *_u){
+    struct userdata *u;
+    uint32_t channels;
+    pa_assert_se(u = (struct userdata *) _u);
+    pa_assert(conn);
+    pa_assert(msg);
+
+    channels = (uint32_t) u->channels;
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &channels);
+}
+
+void equalizer_get_n_coefs(DBusConnection *conn, DBusMessage *msg, void *_u){
+    struct userdata *u;
+    uint32_t n_coefs;
+    pa_assert_se(u = (struct userdata *) _u);
+    pa_assert(conn);
+    pa_assert(msg);
+
+    n_coefs = (uint32_t) CHANNEL_PROFILE_SIZE;
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &n_coefs);
+}
+
+void equalizer_get_sample_rate(DBusConnection *conn, DBusMessage *msg, void *_u){
+    struct userdata *u;
+    uint32_t rate;
+    pa_assert_se(u = (struct userdata *) _u);
+    pa_assert(conn);
+    pa_assert(msg);
+
+    rate = (uint32_t) u->sink->sample_spec.rate;
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &rate);
+}
+
+void equalizer_get_filter_rate(DBusConnection *conn, DBusMessage *msg, void *_u){
+    struct userdata *u;
+    uint32_t fft_size;
+    pa_assert_se(u = (struct userdata *) _u);
+    pa_assert(conn);
+    pa_assert(msg);
+
+    fft_size = (uint32_t) u->fft_size;
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &fft_size);
+}
+
+void equalizer_get_all(DBusConnection *conn, DBusMessage *msg, void *_u){
+    struct userdata *u;
+    DBusMessage *reply = NULL;
+    DBusMessageIter msg_iter, dict_iter;
+    uint32_t rev, n_coefs, rate, fft_size, channels;
+    pa_assert_se(u = (struct userdata *) _u);
+    pa_assert(msg);
+
+    rev = 1;
+    n_coefs = (uint32_t) CHANNEL_PROFILE_SIZE;
+    rate = (uint32_t) u->sink->sample_spec.rate;
+    fft_size = (uint32_t) u->fft_size;
+    channels = (uint32_t) u->channels;
+
+    pa_assert_se((reply = dbus_message_new_method_return(msg)));
+    dbus_message_iter_init_append(reply, &msg_iter);
+    pa_assert_se(dbus_message_iter_open_container(&msg_iter, DBUS_TYPE_ARRAY, "{sv}", &dict_iter));
+
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_REVISION].property_name, DBUS_TYPE_UINT32, &rev);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_SAMPLERATE].property_name, DBUS_TYPE_UINT32, &rate);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_FILTERSAMPLERATE].property_name, DBUS_TYPE_UINT32, &fft_size);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_N_COEFS].property_name, DBUS_TYPE_UINT32, &n_coefs);
+    pa_dbus_append_basic_variant_dict_entry(&dict_iter, equalizer_handlers[EQUALIZER_HANDLER_N_CHANNELS].property_name, DBUS_TYPE_UINT32, &channels);
+
+    pa_assert_se(dbus_message_iter_close_container(&msg_iter, &dict_iter));
+    pa_assert_se(dbus_connection_send(conn, reply, NULL));
+    dbus_message_unref(reply);
+}

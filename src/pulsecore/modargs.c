@@ -415,3 +415,13 @@ int pa_modargs_get_proplist(pa_modargs *ma, const char *name, pa_proplist *p, pa
 
     return 0;
 }
+
+const char *pa_modargs_iterate(pa_modargs *ma, void **state) {
+    pa_hashmap *map = (pa_hashmap*) ma;
+    struct entry *e;
+
+    if (!(e = pa_hashmap_iterate(map, state, NULL)))
+        return NULL;
+
+    return e->key;
+}

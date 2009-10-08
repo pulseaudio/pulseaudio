@@ -192,3 +192,5 @@ src/modules/alsa/alsa-source.c
 src/modules/alsa/module-alsa-card.c
 src/modules/bluetooth/module-bluetooth-device.c
 src/modules/reserve-wrap.c
+src/modules/module-rygel-media-server.c
+src/modules/alsa/alsa-mixer.c
