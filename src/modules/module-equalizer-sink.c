@@ -814,33 +814,35 @@ static void sink_input_state_change_cb(pa_sink_input *i, pa_sink_input_state_t s
 static void pack(char **strs, size_t len, char **packed, size_t *length){
     size_t t_len = 0;
     size_t headers = (1+len) * sizeof(uint16_t);
-    size_t offset = sizeof(uint16_t);
+    char *p;
     for(size_t i = 0; i < len; ++i){
         t_len += strlen(strs[i]);
     }
     *length = headers + t_len;
-    *packed = pa_xmalloc0(*length);
-    ((uint16_t *) *packed)[0] = (uint16_t) len;
+    p = *packed = pa_xmalloc0(*length);
+    *((uint16_t *) p) = (uint16_t) len;
+    p += sizeof(uint16_t);
     for(size_t i = 0; i < len; ++i){
         uint16_t l = strlen(strs[i]);
-        *((uint16_t *)(*packed + offset)) = l;
-        offset += sizeof(uint16_t);
-        memcpy(*packed + offset, strs[i], l);
-        offset += l;
+        *((uint16_t *) p) = (uint16_t) l;
+        p += sizeof(uint16_t);
+        memcpy(p, strs[i], l);
+        p += l;
     }
 }
 static void unpack(char *str, size_t length, char ***strs, size_t *len){
-    size_t offset = sizeof(uint16_t);
-    *len = ((uint16_t *)str)[0];
+    char *p = str;
+    *len = *((uint16_t *) p);
+    p += sizeof(uint16_t);
     *strs = pa_xnew(char *, *len);
+
     for(size_t i = 0; i < *len; ++i){
-        size_t l = *((uint16_t *)(str+offset));
-        size_t e = PA_MIN(offset + l, length) - offset;
-        offset = PA_MIN(offset + sizeof(uint16_t), length);
-        (*strs)[i] = pa_xnew(char, e + 1);
-        memcpy((*strs)[i], str + offset, e);
-        (*strs)[i][e] = '\0';
-        offset += l;
+        size_t l = *((uint16_t *) p);
+        p += sizeof(uint16_t);
+        (*strs)[i] = pa_xnew(char, l + 1);
+        memcpy((*strs)[i], p, l);
+        (*strs)[i][l] = '\0';
+        p += l;
     }
 }
 static void save_profile(struct userdata *u, size_t channel, char *name){
@@ -885,17 +887,17 @@ static void save_state(struct userdata *u){
 
     pack(u->base_profiles, u->channels, &packed, &packed_length);
     state = (float *) pa_xmalloc0(filter_state_size + packed_length);
+    memcpy(state + FILTER_STATE_SIZE, packed, packed_length);
+    pa_xfree(packed);
 
     for(size_t c = 0; c < u->channels; ++c){
         a_i = pa_aupdate_read_begin(u->a_H[c]);
-        state[c * CHANNEL_PROFILE_SIZE] = u->Xs[a_i][c];
+        state[c * CHANNEL_PROFILE_SIZE] = u->Xs[c][a_i];
         H = u->Hs[c][a_i];
-        H_n = state + c * CHANNEL_PROFILE_SIZE + 1;
+        H_n = &state[c * CHANNEL_PROFILE_SIZE + 1];
         memcpy(H_n, H, FILTER_SIZE * sizeof(float));
         pa_aupdate_read_end(u->a_H[c]);
     }
-    memcpy(((char *)state) + filter_state_size, packed, packed_length);
-    pa_xfree(packed);
 
     key.data = state_name;
     key.size = strlen(key.data);
@@ -978,13 +980,13 @@ static void load_state(struct userdata *u){
                 memcpy(u->Hs[c][a_i], H, FILTER_SIZE * sizeof(float));
                 pa_aupdate_write_end(u->a_H[c]);
             }
-            //unpack(((char *)value.data) + FILTER_STATE_SIZE, value.size - FILTER_STATE_SIZE, &names, &n_profs);
-            //n_profs = PA_MIN(n_profs, u->channels);
-            //for(size_t c = 0; c < n_profs; ++c){
-            //    pa_xfree(u->base_profiles[c]);
-            //    u->base_profiles[c] = names[c];
-            //}
-            //pa_xfree(names);
+            unpack(((char *)value.data) + FILTER_STATE_SIZE * sizeof(float), value.size - FILTER_STATE_SIZE * sizeof(float), &names, &n_profs);
+            n_profs = PA_MIN(n_profs, u->channels);
+            for(size_t c = 0; c < n_profs; ++c){
+                pa_xfree(u->base_profiles[c]);
+                u->base_profiles[c] = names[c];
+            }
+            pa_xfree(names);
         }
         pa_datum_free(&value);
     }else{
