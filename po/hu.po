@@ -15,9 +15,9 @@ msgstr ""
 
 #: ../src/modules/alsa/alsa-util.c:858
 #: ../src/pulsecore/sink.c:2629
-#, fuzzy, c-format
+#, c-format
 msgid "%s %s"
-msgstr "%s.%s"
+msgstr "%s %s"
 
 #: ../src/modules/alsa/alsa-util.c:1106
 #, c-format
@@ -93,9 +93,9 @@ msgid "Failed to add bind-now-loader."
 msgstr "nem sikerült hozzáadni a tartományt a csatlakozások hasítótáblázatához"
 
 #: ../src/daemon/main.c:141
-#, fuzzy, c-format
+#, c-format
 msgid "Got signal %s."
-msgstr "Szignálnév"
+msgstr "Szignál: %s."
 
 #: ../src/daemon/main.c:168
 msgid "Exiting."
@@ -168,9 +168,8 @@ msgid "Failed to parse command line."
 msgstr "Nem lehet feldolgozni a(z) „%s” parancssort: %s"
 
 #: ../src/daemon/main.c:541
-#, fuzzy
 msgid "Daemon not running"
-msgstr "A démon nem fut"
+msgstr "A démon nem fut."
 
 #: ../src/daemon/main.c:543
 #, fuzzy, c-format
@@ -265,9 +264,9 @@ msgid "Running on host: %s"
 msgstr "Python %s verzió"
 
 #: ../src/daemon/main.c:739
-#, fuzzy, c-format
+#, c-format
 msgid "Found %u CPUs."
-msgstr "Minden CPU"
+msgstr "%u CPU található a rendszerben."
 
 #: ../src/daemon/main.c:741
 #, fuzzy, c-format
@@ -290,17 +289,12 @@ msgid "Running in valgrind mode: %s"
 msgstr "Bemutató mód"
 
 #: ../src/daemon/main.c:752
-#, fuzzy
 msgid "Optimized build: yes"
-msgstr ""
-"&Igen\n"
-"&Nem\n"
-"&Mégsem"
+msgstr "Optimalizált összeépítés: Igen"
 
 #: ../src/daemon/main.c:754
-#, fuzzy
 msgid "Optimized build: no"
-msgstr "Nincs fordítási függősége a következőnek: %s.\n"
+msgstr "Optimalizált összeépítés: Nem"
 
 #: ../src/daemon/main.c:758
 #, fuzzy
@@ -656,9 +650,8 @@ msgid "### Read from configuration file: %s ###\n"
 msgstr "%s: Olvasási hiba a(z) %s fájlban\n"
 
 #: ../src/daemon/caps.c:62
-#, fuzzy
 msgid "Cleaning up privileges."
-msgstr "Csomagok tisztítása"
+msgstr "Jogosultságok letisztázása."
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
@@ -675,15 +668,15 @@ msgstr "Mono"
 
 #: ../src/pulse/channelmap.c:107
 msgid "Front Center"
-msgstr "Szemközti középső"
+msgstr "Első középső"
 
 #: ../src/pulse/channelmap.c:108
 msgid "Front Left"
-msgstr "Szemközti bal"
+msgstr "Első bal"
 
 #: ../src/pulse/channelmap.c:109
 msgid "Front Right"
-msgstr "Szemközti jobb"
+msgstr "Első jobb"
 
 #: ../src/pulse/channelmap.c:111
 msgid "Rear Center"
@@ -698,224 +691,180 @@ msgid "Rear Right"
 msgstr "Hátsó jobb"
 
 #: ../src/pulse/channelmap.c:115
-#, fuzzy
 msgid "Low Frequency Emmiter"
-msgstr "Az internetes rádióállomás frekvenciája"
+msgstr "Mély-hangszóró (LFE)"
 
 #: ../src/pulse/channelmap.c:117
-#, fuzzy
 msgid "Front Left-of-center"
-msgstr "Balra, jobbra vagy középre igazítás"
+msgstr "Első közép-bal"
 
 #: ../src/pulse/channelmap.c:118
-#, fuzzy
 msgid "Front Right-of-center"
-msgstr "Balra, jobbra vagy középre igazítás"
+msgstr "Első közép-jobb"
 
 #: ../src/pulse/channelmap.c:120
-#, fuzzy
 msgid "Side Left"
 msgstr "Bal oldalsó"
 
 #: ../src/pulse/channelmap.c:121
-#, fuzzy
 msgid "Side Right"
 msgstr "Jobb oldalsó"
 
 #: ../src/pulse/channelmap.c:123
-#, fuzzy
 msgid "Auxiliary 0"
-msgstr "Folyamat/kiegészítő művelet"
+msgstr "Külső 0"
 
 #: ../src/pulse/channelmap.c:124
-#, fuzzy
 msgid "Auxiliary 1"
-msgstr "Folyamat/kiegészítő művelet"
+msgstr "Külső 1"
 
 #: ../src/pulse/channelmap.c:125
-#, fuzzy
 msgid "Auxiliary 2"
-msgstr "Folyamat/kiegészítő művelet"
+msgstr "Külső 2"
 
 #: ../src/pulse/channelmap.c:126
-#, fuzzy
 msgid "Auxiliary 3"
-msgstr "Folyamat/kiegészítő művelet"
+msgstr "Külső 3"
 
 #: ../src/pulse/channelmap.c:127
-#, fuzzy
 msgid "Auxiliary 4"
-msgstr "Folyamat/kiegészítő művelet"
+msgstr "Külső 4"
 
 #: ../src/pulse/channelmap.c:128
-#, fuzzy
 msgid "Auxiliary 5"
-msgstr "Folyamat/kiegészítő művelet"
+msgstr "Külső 5"
 
 #: ../src/pulse/channelmap.c:129
-#, fuzzy
 msgid "Auxiliary 6"
-msgstr "Folyamat/kiegészítő művelet"
+msgstr "Külső 6"
 
 #: ../src/pulse/channelmap.c:130
-#, fuzzy
 msgid "Auxiliary 7"
-msgstr "Folyamat/kiegészítő művelet"
+msgstr "Külső 7"
 
 #: ../src/pulse/channelmap.c:131
-#, fuzzy
 msgid "Auxiliary 8"
-msgstr "Folyamat/kiegészítő művelet"
+msgstr "Külső 8"
 
 #: ../src/pulse/channelmap.c:132
-#, fuzzy
 msgid "Auxiliary 9"
-msgstr "Folyamat/kiegészítő művelet"
+msgstr "Külső 9"
 
 #: ../src/pulse/channelmap.c:133
-#, fuzzy
 msgid "Auxiliary 10"
-msgstr "#10 boríték"
+msgstr "Külső 10"
 
 #: ../src/pulse/channelmap.c:134
-#, fuzzy
 msgid "Auxiliary 11"
-msgstr "5-11 éveseknek"
+msgstr "Külső 11"
 
 #: ../src/pulse/channelmap.c:135
-#, fuzzy
 msgid "Auxiliary 12"
-msgstr "#12 boríték"
+msgstr "Külső 12"
 
 #: ../src/pulse/channelmap.c:136
-#, fuzzy
 msgid "Auxiliary 13"
-msgstr "13 jegy"
+msgstr "Külső 13"
 
 #: ../src/pulse/channelmap.c:137
-#, fuzzy
 msgid "Auxiliary 14"
-msgstr "#14 boríték"
+msgstr "Külső 14"
 
 #: ../src/pulse/channelmap.c:138
-#, fuzzy
 msgid "Auxiliary 15"
-msgstr "15 fok  (%s)"
+msgstr "Külső 15"
 
 #: ../src/pulse/channelmap.c:139
-#, fuzzy
 msgid "Auxiliary 16"
-msgstr "16:9 (szélesvásznú)"
+msgstr "Külső 16"
 
 #: ../src/pulse/channelmap.c:140
-#, fuzzy
 msgid "Auxiliary 17"
-msgstr "17 USD"
+msgstr "Külső 17"
 
 #: ../src/pulse/channelmap.c:141
-#, fuzzy
 msgid "Auxiliary 18"
-msgstr "GTK+ 2.18"
+msgstr "Külső 18"
 
 #: ../src/pulse/channelmap.c:142
-#, fuzzy
 msgid "Auxiliary 19"
-msgstr "19.2 Kb/mp modem"
+msgstr "Külső 19"
 
 #: ../src/pulse/channelmap.c:143
-#, fuzzy
 msgid "Auxiliary 20"
-msgstr "Kivonás: 0-tól 20-ig"
+msgstr "Külső 20"
 
 #: ../src/pulse/channelmap.c:144
-#, fuzzy
 msgid "Auxiliary 21"
-msgstr "Folyamat/kiegészítő művelet"
+msgstr "Külső 21"
 
 #: ../src/pulse/channelmap.c:145
-#, fuzzy
 msgid "Auxiliary 22"
-msgstr "Folyamat/kiegészítő művelet"
+msgstr "Külső 22"
 
 #: ../src/pulse/channelmap.c:146
-#, fuzzy
 msgid "Auxiliary 23"
-msgstr "2009-09-23"
+msgstr "Külső 23"
 
 #: ../src/pulse/channelmap.c:147
-#, fuzzy
 msgid "Auxiliary 24"
-msgstr "24 órás"
+msgstr "Külső 24"
 
 #: ../src/pulse/channelmap.c:148
-#, fuzzy
 msgid "Auxiliary 25"
-msgstr "25% szürke"
+msgstr "Külső 25"
 
 #: ../src/pulse/channelmap.c:149
-#, fuzzy
 msgid "Auxiliary 26"
-msgstr "Imigre-_26…"
+msgstr "Külső 26"
 
 #: ../src/pulse/channelmap.c:150
-#, fuzzy
 msgid "Auxiliary 27"
-msgstr "Folyamat/kiegészítő művelet"
+msgstr "Külső 27"
 
 #: ../src/pulse/channelmap.c:151
-#, fuzzy
 msgid "Auxiliary 28"
-msgstr "GNOME 2.28"
+msgstr "Külső 28"
 
 #: ../src/pulse/channelmap.c:152
-#, fuzzy
 msgid "Auxiliary 29"
-msgstr "Folyamat/kiegészítő művelet"
+msgstr "Külső 29"
 
 #: ../src/pulse/channelmap.c:153
-#, fuzzy
 msgid "Auxiliary 30"
-msgstr "30 perc"
+msgstr "Külső 30"
 
 #: ../src/pulse/channelmap.c:154
-#, fuzzy
 msgid "Auxiliary 31"
-msgstr "1999 szeptember 31."
+msgstr "Külső 31"
 
 #: ../src/pulse/channelmap.c:156
-#, fuzzy
 msgid "Top Center"
-msgstr "Fent, középen"
+msgstr "Felső középső"
 
 #: ../src/pulse/channelmap.c:158
-#, fuzzy
 msgid "Top Front Center"
-msgstr "A bekezdés igazítása középre"
+msgstr "Felső első középső"
 
 #: ../src/pulse/channelmap.c:159
-#, fuzzy
 msgid "Top Front Left"
-msgstr "Elhelyezés balra felülre"
+msgstr "Felső első bal"
 
 #: ../src/pulse/channelmap.c:160
-#, fuzzy
 msgid "Top Front Right"
-msgstr "Elhelyezés jobbra felülre"
+msgstr "Felső első jobb"
 
 #: ../src/pulse/channelmap.c:162
-#, fuzzy
 msgid "Top Rear Center"
-msgstr "A bekezdés igazítása középre"
+msgstr "Felső hátsó középső"
 
 #: ../src/pulse/channelmap.c:163
-#, fuzzy
 msgid "Top Rear Left"
-msgstr "Elhelyezés balra felülre"
+msgstr "Felső hátsó bal"
 
 #: ../src/pulse/channelmap.c:164
-#, fuzzy
 msgid "Top Rear Right"
-msgstr "Elhelyezés jobbra felülre"
+msgstr "Felső hátsó jobb"
 
 #: ../src/pulse/channelmap.c:484
 #: ../src/pulse/sample.c:170
@@ -923,7 +872,6 @@ msgstr "Elhelyezés jobbra felülre"
 #: ../src/pulse/volume.c:321
 #: ../src/pulse/volume.c:341
 #: ../src/pulse/volume.c:371
-#, fuzzy
 msgid "(invalid)"
 msgstr "(Érvénytelen)"
 
@@ -1081,19 +1029,19 @@ msgid "%s %uch %uHz"
 msgstr ""
 
 #: ../src/pulse/sample.c:184
-#, fuzzy, c-format
+#, c-format
 msgid "%0.1f GiB"
-msgstr "%.1f GiB"
+msgstr "%0.1f GiB"
 
 #: ../src/pulse/sample.c:186
-#, fuzzy, c-format
+#, c-format
 msgid "%0.1f MiB"
-msgstr "%.1f MiB"
+msgstr "%0.1f MiB"
 
 #: ../src/pulse/sample.c:188
-#, fuzzy, c-format
+#, c-format
 msgid "%0.1f KiB"
-msgstr "%.1f KiB"
+msgstr "%0.1f KiB"
 
 #: ../src/pulse/sample.c:190
 #, c-format
@@ -1102,9 +1050,8 @@ msgstr ""
 
 #: ../src/pulse/client-conf-x11.c:55
 #: ../src/utils/pax11publish.c:100
-#, fuzzy
 msgid "XOpenDisplay() failed"
-msgstr "<b>Sikertelen bejelentkezést</b>"
+msgstr "Az XOpenDisplay() függvényhívás meghiúsult."
 
 #: ../src/pulse/client-conf-x11.c:93
 #, fuzzy
@@ -1121,14 +1068,14 @@ msgid "No cookie loaded. Attempting to connect without."
 msgstr ""
 
 #: ../src/pulse/context.c:693
-#, fuzzy, c-format
+#, c-format
 msgid "fork(): %s"
-msgstr "programindítás: %s"
+msgstr "Programindítás: %s"
 
 #: ../src/pulse/context.c:748
-#, fuzzy, c-format
+#, c-format
 msgid "waitpid(): %s"
-msgstr "Váratlan hiba a waitpid()-ben (%s)"
+msgstr "waitpid(): %s"
 
 #: ../src/pulse/context.c:1438
 #, fuzzy, c-format
@@ -1151,34 +1098,34 @@ msgid "Draining connection to server."
 msgstr "Kapcsolat visszaállítása a kiszolgálóhoz"
 
 #: ../src/utils/pacat.c:136
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_drain(): %s"
-msgstr "pa_ext_stream_restore_read() meghiúsult"
+msgstr "pa_stream_drain(): %s"
 
 #: ../src/utils/pacat.c:159
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_write() failed: %s"
-msgstr "pa_ext_stream_restore_write() meghiúsult"
+msgstr "A „pa_stream_write()” függvényhívás meghiúsult: %s"
 
 #: ../src/utils/pacat.c:197
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_begin_write() failed: %s"
-msgstr "pa_ext_stream_restore_write() meghiúsult"
+msgstr "A „pa_stream_begin_write()” függvényhívás meghiúsult: %s"
 
 #: ../src/utils/pacat.c:237
 #: ../src/utils/pacat.c:267
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_peek() failed: %s"
-msgstr "pa_ext_stream_restore_read() meghiúsult"
+msgstr "A „pa_stream_peek()” függvényhívás meghiúsult: %s"
 
 #: ../src/utils/pacat.c:307
 msgid "Stream successfully created."
 msgstr "Az adatfolyam sikeresen létrejött."
 
 #: ../src/utils/pacat.c:310
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s"
-msgstr "pa_context_get_client_info() meghiúsult"
+msgstr "A „pa_stream_get_buffer_attr()” függvényhívás meghiúsult: %s"
 
 #: ../src/utils/pacat.c:314
 #, c-format
@@ -1201,34 +1148,34 @@ msgid "Connected to device %s (%u, %ssuspended)."
 msgstr "Kapcsolódva az eszközhöz a következőn: %s"
 
 #: ../src/utils/pacat.c:335
-#, fuzzy, c-format
+#, c-format
 msgid "Stream error: %s"
-msgstr "Folyam hiba"
+msgstr "Adatfolyam hiba: %s"
 
 #: ../src/utils/pacat.c:345
-#, fuzzy, c-format
+#, c-format
 msgid "Stream device suspended.%s"
-msgstr "Az eszköz nem adatfolyam"
+msgstr "Adatfolyam-eszköz készenléti állapotban: %s"
 
 #: ../src/utils/pacat.c:347
-#, fuzzy, c-format
+#, c-format
 msgid "Stream device resumed.%s"
-msgstr "Az eszköz nem adatfolyam"
+msgstr "Adatfolyam-eszköz visszatért a készenléti állapotból: %s"
 
 #: ../src/utils/pacat.c:355
-#, fuzzy, c-format
+#, c-format
 msgid "Stream underrun.%s"
-msgstr "Vége az adatfolyamnak"
+msgstr "%s adatfolyam alulcsordulás."
 
 #: ../src/utils/pacat.c:362
-#, fuzzy, c-format
+#, c-format
 msgid "Stream overrun.%s"
-msgstr "%s: a bemenet túlcsordult"
+msgstr "%s adatfolyam túlcsordulás."
 
 #: ../src/utils/pacat.c:369
-#, fuzzy, c-format
+#, c-format
 msgid "Stream started.%s"
-msgstr "%s tartomány elindítva\n"
+msgstr "%s adatfolyam elindítva."
 
 #: ../src/utils/pacat.c:376
 #, fuzzy, c-format
@@ -1251,9 +1198,9 @@ msgid "Connection established.%s"
 msgstr "Kapcsolat létrehozva"
 
 #: ../src/utils/pacat.c:418
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_new() failed: %s"
-msgstr "Az új adatfolyam indítása meghiúsult"
+msgstr "A „pa_stream_new()” függvényhívás meghiúsult: %s"
 
 #: ../src/utils/pacat.c:450
 #, fuzzy, c-format
@@ -1267,9 +1214,9 @@ msgstr "A megfigyelő adatfolyam csatlakoztatása meghiúsult"
 
 #: ../src/utils/pacat.c:470
 #: ../src/utils/pactl.c:857
-#, fuzzy, c-format
+#, c-format
 msgid "Connection failure: %s"
-msgstr "Hitelesítési hiba"
+msgstr "Kapcsolódási hiba: %s"
 
 #: ../src/utils/pacat.c:503
 #, fuzzy
@@ -1277,14 +1224,13 @@ msgid "Got EOF."
 msgstr "Üzenet érkezett: #%"
 
 #: ../src/utils/pacat.c:540
-#, fuzzy, c-format
+#, c-format
 msgid "write() failed: %s"
-msgstr "az írás sikertelen"
+msgstr "Az írás sikertelen: %s"
 
 #: ../src/utils/pacat.c:561
-#, fuzzy
 msgid "Got signal, exiting."
-msgstr "%d szignál érkezett, kilépés…\n"
+msgstr "Kilépés, szignál hatására…"
 
 #: ../src/utils/pacat.c:575
 #, fuzzy, c-format
@@ -1297,9 +1243,9 @@ msgid "Time: %0.3f sec; Latency: %0.0f usec."
 msgstr "%d csoport elmentve ebben: \"%s\" %.1f másodperc alatt (%.0f csoport/mp)"
 
 #: ../src/utils/pacat.c:599
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
-msgstr "pa_context_get_client_info() meghiúsult"
+msgstr "A „pa_stream_update_timing_info()” függvényhívás meghiúsult: %s"
 
 #: ../src/utils/pacat.c:609
 #, c-format
@@ -1352,69 +1298,65 @@ msgstr "A program kapcsolói ütköznek"
 
 #: ../src/utils/pacat.c:764
 #: ../src/utils/pactl.c:953
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid client name '%s'"
-msgstr "%s: érvénytelen kapcsolónév"
+msgstr "Érvénytelen kliensnév: „%s”"
 
 #: ../src/utils/pacat.c:779
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid stream name '%s'"
-msgstr "%s: érvénytelen kapcsolónév"
+msgstr "Érvénytelen adatfolyam-név: „%s”"
 
 #: ../src/utils/pacat.c:816
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid channel map '%s'"
-msgstr "Érvénytelen csatornatípus '%s'"
+msgstr "Érvénytelen csatornaleképzés: „%s”"
 
 #: ../src/utils/pacat.c:845
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid latency specification '%s'"
-msgstr "%.*s: érvénytelen konverziós specifikáció"
+msgstr "Érvénytelen késleltetés leírás: „%s”"
 
 #: ../src/utils/pacat.c:852
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid process time specification '%s'"
-msgstr "Nem adott meg folyamat-specifikációt"
+msgstr "Érvénytelen műveleti idő leírás: „%s”"
 
 #: ../src/utils/pacat.c:864
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid property '%s'"
-msgstr "Érvénytelen %s tulajdonságérték"
+msgstr "Érvénytelen tulajdonság: „%s”"
 
 #: ../src/utils/pacat.c:881
-#, fuzzy, c-format
+#, c-format
 msgid "Unknown file format %s."
-msgstr "Ismeretlen fájlformátum: \"%s\""
+msgstr "Ismeretlen fájlformátum: „%s”"
 
 #: ../src/utils/pacat.c:900
-#, fuzzy
 msgid "Invalid sample specification"
-msgstr "%.*s: érvénytelen konverziós specifikáció"
+msgstr "Érvénytelen mintavételi leírás."
 
 #: ../src/utils/pacat.c:910
-#, fuzzy, c-format
+#, c-format
 msgid "open(): %s"
-msgstr "%s:%d megnyitása"
+msgstr "Megnyitás: %s"
 
 #: ../src/utils/pacat.c:915
-#, fuzzy, c-format
+#, c-format
 msgid "dup2(): %s"
-msgstr "a dup2 meghiúsult"
+msgstr "dup2(): %s"
 
 #: ../src/utils/pacat.c:922
-#, fuzzy
 msgid "Too many arguments."
-msgstr "túl sok argumentum"
+msgstr "Túl sok paraméter."
 
 #: ../src/utils/pacat.c:933
-#, fuzzy
 msgid "Failed to generate sample specification for file."
-msgstr "meghiúsult az alábbi beállító fájl megnyitása olvasásra: `%.255s'"
+msgstr "Nem sikerült létrehozni a mintavételi leírást a fájlhoz."
 
 #: ../src/utils/pacat.c:953
-#, fuzzy
 msgid "Failed to open audio file."
-msgstr "Nem sikerült megnyitni az átmeneti fájlt"
+msgstr "Nem sikerült megnyitni a hangfájlt."
 
 #: ../src/utils/pacat.c:959
 msgid "Warning: specified sample specification will be overwritten with specification from file."
@@ -1422,23 +1364,20 @@ msgstr ""
 
 #: ../src/utils/pacat.c:962
 #: ../src/utils/pactl.c:997
-#, fuzzy
 msgid "Failed to determine sample specification from file."
-msgstr "RGB-adat betöltése a TIFF-fájlból sikertelen"
+msgstr "Nem sikerült meghatározni a mintavételi leírást a fájlból."
 
 #: ../src/utils/pacat.c:971
 msgid "Warning: Failed to determine channel map from file."
 msgstr ""
 
 #: ../src/utils/pacat.c:982
-#, fuzzy
 msgid "Channel map doesn't match sample specification"
-msgstr "%s: a tanúsítvány „%s” általános neve nem egyezik a kért „%s” gépnévvel.\n"
+msgstr "A csatornaleképzés nem feleltethető meg a mintavételi leírásnak."
 
 #: ../src/utils/pacat.c:993
-#, fuzzy
 msgid "Warning: failed to write channel map to file."
-msgstr "Hiba történt a fájl írása közben. A fájlnév rendben van?"
+msgstr "Hiba történt a csatornaleképzés fájlba írása közben."
 
 #: ../src/utils/pacat.c:1008
 #, c-format
@@ -1446,68 +1385,61 @@ msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
 
 #: ../src/utils/pacat.c:1009
-#, fuzzy
 msgid "recording"
-msgstr "felvétel"
+msgstr "Felvétel"
 
 #: ../src/utils/pacat.c:1009
-#, fuzzy
 msgid "playback"
 msgstr "Lejátszás"
 
 #: ../src/utils/pacat.c:1035
 #: ../src/utils/pactl.c:1267
-#, fuzzy
 msgid "pa_mainloop_new() failed."
-msgstr "Nem sikerült megnyitni a(z) %s.new fájlt"
+msgstr "A „pa_mainloop_new()” függvényhívás meghiúsult."
 
 #: ../src/utils/pacat.c:1054
-#, fuzzy
 msgid "io_new() failed."
-msgstr "Nem sikerült megnyitni a(z) %s.new fájlt"
+msgstr "A „io_new()” függvényhívás meghiúsult."
 
 #: ../src/utils/pacat.c:1061
 #: ../src/utils/pactl.c:1279
-#, fuzzy
 msgid "pa_context_new() failed."
-msgstr "pa_context_subscribe() meghiúsult"
+msgstr "A „pa_context_new()” függvényhívás meghiúsult."
 
 #: ../src/utils/pacat.c:1069
 #: ../src/utils/pactl.c:1285
-#, fuzzy, c-format
+#, c-format
 msgid "pa_context_connect() failed: %s"
-msgstr "pa_context_subscribe() meghiúsult"
+msgstr "A „pa_context_connect()” függvényhívás meghiúsult: %s"
 
 #: ../src/utils/pacat.c:1075
-#, fuzzy
 msgid "pa_context_rttime_new() failed."
-msgstr "az új kontextus kiszámítása meghiúsult"
+msgstr "A „pa_context_rttime_new()” függvényhívás meghiúsult."
 
 #: ../src/utils/pacat.c:1082
 #: ../src/utils/pactl.c:1290
-#, fuzzy
 msgid "pa_mainloop_run() failed."
-msgstr "svc_run: - választás sikertelen"
+msgstr "A „pa_mainloop_run()” függvényhívás meghiúsult."
 
 #: ../src/utils/pasuspender.c:81
-#, fuzzy, c-format
+#, c-format
 msgid "fork(): %s\n"
-msgstr "programindítás: %s"
+msgstr "Programindítás: %s\n"
 
 #: ../src/utils/pasuspender.c:92
-#, fuzzy, c-format
+#, c-format
 msgid "execvp(): %s\n"
-msgstr "az execvp meghiúsult"
+msgstr "execvp(): %s\n"
 
 #: ../src/utils/pasuspender.c:109
-#, fuzzy, c-format
+#, c-format
 msgid "Failure to suspend: %s\n"
-msgstr "Kérés a felfüggesztésre"
+msgstr "Hiba lépett fel a készenléti állapotba térés közben: %s\n"
 
 #: ../src/utils/pasuspender.c:124
-#, fuzzy, c-format
+#, c-format
 msgid "Failure to resume: %s\n"
-msgstr "Kattintson a folytatáshoz"
+msgstr "Hiba lépett fel a készenléti állapotból visszatérés közben: %s\n"
 
 #: ../src/utils/pasuspender.c:147
 #, fuzzy, c-format
@@ -1515,14 +1447,14 @@ msgid "WARNING: Sound server is not local, not suspending.\n"
 msgstr "A leejtett fájl nem helyi."
 
 #: ../src/utils/pasuspender.c:159
-#, fuzzy, c-format
+#, c-format
 msgid "Connection failure: %s\n"
-msgstr "Hitelesítési hiba"
+msgstr "Kapcsolódási hiba: %s\n"
 
 #: ../src/utils/pasuspender.c:176
-#, fuzzy, c-format
+#, c-format
 msgid "Got SIGINT, exiting.\n"
-msgstr "Kilépés (SIGINT szignál)..."
+msgstr "Kilépés, SIGINT szignál hatására…\n"
 
 #: ../src/utils/pasuspender.c:194
 #, fuzzy, c-format
@@ -1551,24 +1483,24 @@ msgid ""
 msgstr "A program kapcsolói ütköznek"
 
 #: ../src/utils/pasuspender.c:277
-#, fuzzy, c-format
+#, c-format
 msgid "pa_mainloop_new() failed.\n"
-msgstr "Nem sikerült megnyitni a(z) %s.new fájlt"
+msgstr "A „pa_mainloop_new()” függvényhívás meghiúsult.\n"
 
 #: ../src/utils/pasuspender.c:290
-#, fuzzy, c-format
+#, c-format
 msgid "pa_context_new() failed.\n"
-msgstr "pa_context_subscribe() meghiúsult"
+msgstr "A „pa_context_new()” függvényhívás meghiúsult.\n"
 
 #: ../src/utils/pasuspender.c:298
-#, fuzzy, c-format
+#, c-format
 msgid "pa_mainloop_run() failed.\n"
-msgstr "svc_run: - választás sikertelen"
+msgstr "A „pa_mainloop_run()” függvényhívás meghiúsult.\n"
 
 #: ../src/utils/pactl.c:135
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get statistics: %s"
-msgstr "nem sikerült a képességek lekérdezése"
+msgstr "Nem sikerült a statisztika lekérdezése: %s"
 
 #: ../src/utils/pactl.c:141
 #, c-format
@@ -1581,9 +1513,9 @@ msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
 msgstr ""
 
 #: ../src/utils/pactl.c:147
-#, fuzzy, c-format
+#, c-format
 msgid "Sample cache size: %s\n"
-msgstr "Lemezes gyorsítótár mérete"
+msgstr "Minta-gyorsítótár mérete: %s\n"
 
 #: ../src/utils/pactl.c:156
 #, fuzzy, c-format
@@ -1635,13 +1567,13 @@ msgstr ""
 #: ../src/utils/pactl.c:360
 #, c-format
 msgid "\tPorts:\n"
-msgstr ""
+msgstr "\tPort:\n"
 
 #: ../src/utils/pactl.c:274
 #: ../src/utils/pactl.c:366
-#, fuzzy, c-format
+#, c-format
 msgid "\tActive Port: %s\n"
-msgstr "[kiszolgáló:port]"
+msgstr "\tAktív Port: %s\n"
 
 #: ../src/utils/pactl.c:297
 #, fuzzy, c-format
@@ -1683,7 +1615,6 @@ msgstr ""
 #: ../src/utils/pactl.c:637
 #: ../src/utils/pactl.c:638
 #: ../src/utils/pactl.c:645
-#, fuzzy
 msgid "n/a"
 msgstr "ismeretlen"
 
@@ -1737,12 +1668,12 @@ msgstr ""
 #: ../src/utils/pactl.c:479
 #, c-format
 msgid "\tProfiles:\n"
-msgstr ""
+msgstr "\tProfil:\n"
 
 #: ../src/utils/pactl.c:485
-#, fuzzy, c-format
+#, c-format
 msgid "\tActive Profile: %s\n"
-msgstr "Profillétrehozás"
+msgstr "\tAktív profil: %s\n"
 
 #: ../src/utils/pactl.c:496
 #, fuzzy, c-format
@@ -1817,9 +1748,9 @@ msgstr ""
 
 #: ../src/utils/pactl.c:653
 #: ../src/utils/pactl.c:663
-#, fuzzy, c-format
+#, c-format
 msgid "Failure: %s"
-msgstr "Hiba"
+msgstr "Hiba: %s"
 
 #: ../src/utils/pactl.c:687
 #, fuzzy, c-format
@@ -1834,9 +1765,8 @@ msgid "Premature end of file"
 msgstr "Idő előtti fájlvége"
 
 #: ../src/utils/pactl.c:863
-#, fuzzy
 msgid "Got SIGINT, exiting."
-msgstr "Kilépés (SIGINT szignál)..."
+msgstr "Kilépés, SIGINT szignál hatására…"
 
 #: ../src/utils/pactl.c:869
 #, c-format
@@ -1894,34 +1824,28 @@ msgid "Warning: Failed to determine sample specification from file."
 msgstr "RGB-adat betöltése a TIFF-fájlból sikertelen"
 
 #: ../src/utils/pactl.c:1014
-#, fuzzy
 msgid "You have to specify a sample name to play"
-msgstr "Meg kell adnia egy feloldandó csomagnevet"
+msgstr "Meg kell adnia lejátszandó minta nevét."
 
 #: ../src/utils/pactl.c:1026
-#, fuzzy
 msgid "You have to specify a sample name to remove"
-msgstr "Meg kell adnia egy eltávolítandó csomagot"
+msgstr "Meg kell adnia az eltávolítandó minta nevét."
 
 #: ../src/utils/pactl.c:1035
-#, fuzzy
 msgid "You have to specify a sink input index and a sink"
-msgstr "Meg kell adnia egy tárnevet/paramétert és értéket"
+msgstr "Meg kell adnia a nyelő bemeneti azonosítóját és a nyelőt."
 
 #: ../src/utils/pactl.c:1045
-#, fuzzy
 msgid "You have to specify a source output index and a source"
-msgstr "Adja meg a kimeneti fájl helyét és nevét:"
+msgstr "Meg kell adnia a forrás kimeneti azonosítóját és a forrást."
 
 #: ../src/utils/pactl.c:1060
-#, fuzzy
 msgid "You have to specify a module name and arguments."
-msgstr "Meg kell adnia egy tárnevet/paramétert és értéket"
+msgstr "Meg kell adnia a modul nevét és a paramétereit."
 
 #: ../src/utils/pactl.c:1080
-#, fuzzy
 msgid "You have to specify a module index"
-msgstr "Meg kell adnia egy archívumnevet."
+msgstr "Meg kell adnia a modul azonosítóját."
 
 #: ../src/utils/pactl.c:1090
 msgid "You may not specify more than one sink. You have to specify a boolean value."
@@ -1936,18 +1860,16 @@ msgid "You have to specify a card name/index and a profile name"
 msgstr ""
 
 #: ../src/utils/pactl.c:1126
-#, fuzzy
 msgid "You have to specify a sink name/index and a port name"
-msgstr "Meg kell adnia egy tárnevet/paramétert és értéket"
+msgstr "Meg kell adnia a nyelő nevét vagy azonosítóját és a port nevét."
 
 #: ../src/utils/pactl.c:1137
 msgid "You have to specify a source name/index and a port name"
 msgstr ""
 
 #: ../src/utils/pactl.c:1149
-#, fuzzy
 msgid "You have to specify a sink name/index and a volume"
-msgstr "Meg kell adnia egy tárnevet/paramétert és értéket"
+msgstr "Meg kell adnia a nyelő nevét vagy azonosítóját és a hangerejét."
 
 #: ../src/utils/pactl.c:1154
 #: ../src/utils/pactl.c:1171
@@ -1955,9 +1877,8 @@ msgstr "Meg kell adnia egy tárnevet/paramétert és értéket"
 #: ../src/utils/pactl.c:1209
 #: ../src/utils/pactl.c:1226
 #: ../src/utils/pactl.c:1248
-#, fuzzy
 msgid "Invalid volume specification"
-msgstr "%.*s: érvénytelen konverziós specifikáció"
+msgstr "A hangerő megadása érvénytelen."
 
 #: ../src/utils/pactl.c:1166
 msgid "You have to specify a source name/index and a volume"
@@ -1968,14 +1889,12 @@ msgid "You have to specify a sink input index and a volume"
 msgstr ""
 
 #: ../src/utils/pactl.c:1188
-#, fuzzy
 msgid "Invalid sink input index"
-msgstr "pa_context_move_sink_input_by_index() meghiúsult"
+msgstr "A nyelő bemeneti azonosítója érvénytelen."
 
 #: ../src/utils/pactl.c:1204
-#, fuzzy
 msgid "You have to specify a sink name/index and a mute boolean"
-msgstr "Meg kell adnia egy tárnevet/paramétert és értéket"
+msgstr "Meg kell adnia a nyelő nevét vagy azonosítóját és a némítás logikai változóját."
 
 #: ../src/utils/pactl.c:1221
 msgid "You have to specify a source name/index and a mute boolean"
@@ -1986,14 +1905,12 @@ msgid "You have to specify a sink input index and a mute boolean"
 msgstr ""
 
 #: ../src/utils/pactl.c:1243
-#, fuzzy
 msgid "Invalid sink input index specification"
-msgstr "A(z) „%s” escape sorozat érvénytelen a bemenet elhatárolójának meghatározásában."
+msgstr "A nyelő bemeneti azonosítójának megadása érvénytelen."
 
 #: ../src/utils/pactl.c:1262
-#, fuzzy
 msgid "No valid command specified."
-msgstr "nincs megadva a végrehajtandó parancs"
+msgstr "Érvénytelen parancs lett megadva."
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2012,24 +1929,24 @@ msgid "Failed to parse command line.\n"
 msgstr "Nem lehet feldolgozni a(z) „%s” parancssort: %s"
 
 #: ../src/utils/pax11publish.c:108
-#, fuzzy, c-format
+#, c-format
 msgid "Server: %s\n"
-msgstr "_Kiszolgáló:"
+msgstr "Kiszolgáló: %s\n"
 
 #: ../src/utils/pax11publish.c:110
-#, fuzzy, c-format
+#, c-format
 msgid "Source: %s\n"
-msgstr "Forrás:"
+msgstr "Forrás: %s\n"
 
 #: ../src/utils/pax11publish.c:112
-#, fuzzy, c-format
+#, c-format
 msgid "Sink: %s\n"
-msgstr "Bemenet"
+msgstr "Nyelő: %s\n"
 
 #: ../src/utils/pax11publish.c:114
-#, fuzzy, c-format
+#, c-format
 msgid "Cookie: %s\n"
-msgstr "süti"
+msgstr "Süti: %s\n"
 
 #: ../src/utils/pax11publish.c:132
 #, fuzzy, c-format
@@ -2062,9 +1979,9 @@ msgid "Failed to load cookie data\n"
 msgstr "sikertelen a szimbólum adatainak a betöltése"
 
 #: ../src/utils/pax11publish.c:211
-#, fuzzy, c-format
+#, c-format
 msgid "Not yet implemented.\n"
-msgstr "Még nincs megvalósítva."
+msgstr "Még nincs elkészítve.\n"
 
 #: ../src/utils/pacmd.c:69
 msgid "No PulseAudio daemon running, or not running as session daemon."
@@ -2076,36 +1993,34 @@ msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
 msgstr "svc_unix.c - AF_UNIX gond van illesztőpont létrehozásával"
 
 #: ../src/utils/pacmd.c:91
-#, fuzzy, c-format
+#, c-format
 msgid "connect(): %s"
-msgstr "\\kapcsolat: %s"
+msgstr "Kapcsolódás: %s"
 
 #: ../src/utils/pacmd.c:99
-#, fuzzy
 msgid "Failed to kill PulseAudio daemon."
-msgstr "nem sikerült olvasni a Xen-szolgáltatásból"
+msgstr "A PulseAudio démon leállítása nem sikerült."
 
 #: ../src/utils/pacmd.c:107
-#, fuzzy
 msgid "Daemon not responding."
-msgstr "„%s” nem válaszol."
+msgstr "A démon nem válaszol."
 
 #: ../src/utils/pacmd.c:161
-#, fuzzy, c-format
+#, c-format
 msgid "poll(): %s"
-msgstr "poll(): %s"
+msgstr "Lekérdezés: %s"
 
 #: ../src/utils/pacmd.c:171
 #: ../src/utils/pacmd.c:188
-#, fuzzy, c-format
+#, c-format
 msgid "read(): %s"
-msgstr "read(): %s"
+msgstr "Olvasás: %s"
 
 #: ../src/utils/pacmd.c:207
 #: ../src/utils/pacmd.c:223
-#, fuzzy, c-format
+#, c-format
 msgid "write(): %s"
-msgstr "write(): %s"
+msgstr "Írás: %s"
 
 #: ../src/pulsecore/lock-autospawn.c:136
 #: ../src/pulsecore/lock-autospawn.c:219
@@ -2138,19 +2053,16 @@ msgid "Off"
 msgstr "Kikapcsolva"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2184
-#, fuzzy
 msgid "High Fidelity Playback (A2DP)"
-msgstr "A lejátszás nem szüneteltethető"
+msgstr "HiFi lejátszás (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2198
-#, fuzzy
 msgid "High Fidelity Capture (A2DP)"
-msgstr "Felvétel, hozzáfűzés a film végéhez"
+msgstr "HiFi felvétel (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2213
-#, fuzzy
 msgid "Telephony Duplex (HSP/HFP)"
-msgstr "Mobiltelefon bázisállomás"
+msgstr "Telefon duplex (HSP/HFP)"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
@@ -2167,9 +2079,8 @@ msgid "Input Devices"
 msgstr "Bemeneti eszközök"
 
 #: ../src/modules/module-rygel-media-server.c:774
-#, fuzzy
 msgid "Audio on @HOSTNAME@"
-msgstr "%(safeuser)s felhasználó listatagságai a(z) %(hostname)s gépen"
+msgstr "Hangforrások a(z) @HOSTNAME@ számítógépen"
 
 #: ../src/modules/alsa/alsa-mixer.c:1701
 msgid "Input"
@@ -2208,33 +2119,28 @@ msgid "Video"
 msgstr "Videó"
 
 #: ../src/modules/alsa/alsa-mixer.c:1710
-#, fuzzy
 msgid "Automatic Gain Control"
-msgstr "Automatikus beállításvezérlés"
+msgstr "Automatikus erősítésszabályzás"
 
 #: ../src/modules/alsa/alsa-mixer.c:1711
-#, fuzzy
 msgid "No Automatic Gain Control"
-msgstr "Nem található hangerőszabályzó"
+msgstr "Nincs automatikus erősítésszabályzás"
 
 #: ../src/modules/alsa/alsa-mixer.c:1712
 msgid "Boost"
-msgstr ""
+msgstr "Erősítés"
 
 #: ../src/modules/alsa/alsa-mixer.c:1713
-#, fuzzy
 msgid "No Boost"
-msgstr "nincs automatikus indítás"
+msgstr "Nincs erősítés"
 
 #: ../src/modules/alsa/alsa-mixer.c:1714
-#, fuzzy
 msgid "Amplifier"
-msgstr "Műveleti erősítő"
+msgstr "Erősítő"
 
 #: ../src/modules/alsa/alsa-mixer.c:1715
-#, fuzzy
 msgid "No Amplifier"
-msgstr "Műveleti erősítő"
+msgstr "Nincs erősítő"
 
 #: ../src/modules/alsa/alsa-mixer.c:1773
 msgid "Analog Input"
@@ -2265,19 +2171,17 @@ msgid "Analog Headphones"
 msgstr "Analóg fejhallgató"
 
 #: ../src/modules/alsa/alsa-mixer.c:1780
-#, fuzzy
 msgid "Analog Output (LFE)"
-msgstr "Hiba a kimenet elindítása közben"
+msgstr "Analóg kimenet (mély)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1781
-#, fuzzy
 msgid "Analog Mono Output"
-msgstr "A Mono.Addins hibakeresési kimenetének engedélyezése"
+msgstr "Analóg mono kimenet"
 
 #: ../src/modules/alsa/alsa-mixer.c:1981
 #, c-format
 msgid "%s+%s"
-msgstr ""
+msgstr "%s+%s"
 
 #: ../src/modules/alsa/alsa-mixer.c:1984
 #: ../src/modules/alsa/alsa-mixer.c:3404
@@ -2286,9 +2190,8 @@ msgid "%s / %s"
 msgstr "%s / %s"
 
 #: ../src/modules/alsa/alsa-mixer.c:2790
-#, fuzzy
 msgid "Analog Mono"
-msgstr "Mono betöltő"
+msgstr "Analóg mono"
 
 #: ../src/modules/alsa/alsa-mixer.c:2791
 msgid "Analog Stereo"
@@ -2359,17 +2262,14 @@ msgid "Digital Stereo (HDMI)"
 msgstr "Digitális térhatású (HDMI)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2928
-#, fuzzy
 msgid "Analog Mono Duplex"
-msgstr "Kétoldalas/fordítva beállítás"
+msgstr "Analóg mono duplex"
 
 #: ../src/modules/alsa/alsa-mixer.c:2929
-#, fuzzy
 msgid "Analog Stereo Duplex"
-msgstr "Kétoldalas/fordítva beállítás"
+msgstr "Analóg sztereó duplex"
 
 #: ../src/modules/alsa/alsa-mixer.c:2930
-#, fuzzy
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr "Szteró LADSPA effekt rack"
+msgstr "Analóg sztereó duplex (IEC958)"
 
