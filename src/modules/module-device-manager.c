@@ -1033,13 +1033,13 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
         if ((e = read_entry(u, name))) {
             uint32_t idx;
             char *devname;
-            pa_bool_t available = FALSE;
+            uint32_t index = PA_INVALID_INDEX;
 
             if ((devname = get_name(name, "sink:"))) {
                 pa_sink* s;
                 PA_IDXSET_FOREACH(s, u->core->sinks, idx) {
                     if (strcmp(s->name, devname) == 0) {
-                        available = TRUE;
+                        index = s->index;
                         break;
                     }
                 }
@@ -1048,7 +1048,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 pa_source* s;
                 PA_IDXSET_FOREACH(s, u->core->sources, idx) {
                     if (strcmp(s->name, devname) == 0) {
-                        available = TRUE;
+                        index = s->index;
                         break;
                     }
                 }
@@ -1058,7 +1058,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
             pa_tagstruct_puts(reply, name);
             pa_tagstruct_puts(reply, e->description);
             pa_tagstruct_puts(reply, e->icon);
-            pa_tagstruct_put_boolean(reply, available);
+            pa_tagstruct_putu32(reply, index);
             pa_tagstruct_putu32(reply, NUM_ROLES);
 
             for (uint32_t i = ROLE_NONE; i < NUM_ROLES; ++i) {
