@@ -24,6 +24,8 @@
 
 #include <pulse/context.h>
 #include <pulse/version.h>
+#include <pulse/volume.h>
+#include <pulse/channelmap.h>
 
 /** \file
  *
