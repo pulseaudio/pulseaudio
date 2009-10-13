@@ -31,6 +31,8 @@
 #include <pulse/def.h>
 #include <pulse/cdecl.h>
 #include <pulse/operation.h>
+#include <pulse/context.h>
+#include <pulse/proplist.h>
 
 /** \page streams Audio Streams
  *
