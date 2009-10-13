@@ -128,21 +128,18 @@ static void ext_device_manager_read_cb(pa_pdispatch *pd, uint32_t command, uint3
 
         while (!pa_tagstruct_eof(t)) {
             pa_ext_device_manager_info i;
-            pa_bool_t available;
 
             memset(&i, 0, sizeof(i));
-            available = FALSE;
 
             if (pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_gets(t, &i.description) < 0 ||
                 pa_tagstruct_gets(t, &i.icon) < 0 ||
-                pa_tagstruct_get_boolean(t, &available) < 0 ||
+                pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_getu32(t, &i.n_role_priorities) < 0) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
-            i.available = (uint8_t)available;
 
             if (i.n_role_priorities > 0) {
                 uint32_t j;
