@@ -12,6 +12,7 @@ msgstr ""
 "X-Poedit-Language: Hungarian\n"
 "X-Poedit-Country: HUNGARY\n"
 "X-Poedit-SourceCharset: utf-8\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../src/modules/alsa/alsa-util.c:858
 #: ../src/pulsecore/sink.c:2629
@@ -69,9 +70,8 @@ msgid "Null Output"
 msgstr "szabványos kimenet"
 
 #: ../src/pulsecore/sink.c:2613
-#, fuzzy
 msgid "Internal Audio"
-msgstr "<b>Hangszűrő</b>"
+msgstr "Belső hangforrás"
 
 #: ../src/pulsecore/sink.c:2618
 msgid "Modem"
@@ -112,9 +112,9 @@ msgid "Failed to find group '%s'."
 msgstr "%s csoportjának megváltoztatása sikertelen a következőre: %s\n"
 
 #: ../src/daemon/main.c:195
-#, fuzzy, c-format
+#, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
-msgstr "%s: Nem módosítható a tulajdonos uid-ja %lu, gid-je %lu értékekre"
+msgstr "Létező felhasználó „%s” (UID: %lu) és csoport „%s” (GID: %lu)."
 
 #: ../src/daemon/main.c:200
 #, fuzzy, c-format
@@ -244,9 +244,9 @@ msgid "Daemon startup successful."
 msgstr "A portátirányítás sikeres!"
 
 #: ../src/daemon/main.c:731
-#, fuzzy, c-format
+#, c-format
 msgid "This is PulseAudio %s"
-msgstr "Ez egy programhiba... (%s:%d:%s)\n"
+msgstr "PulseAudio %s"
 
 #: ../src/daemon/main.c:732
 #, fuzzy, c-format
@@ -316,14 +316,14 @@ msgid "Failed to get machine ID"
 msgstr "A PDA azonosító lekérdezése nem sikerült"
 
 #: ../src/daemon/main.c:769
-#, fuzzy, c-format
+#, c-format
 msgid "Machine ID is %s."
-msgstr "\"%s\" felhasználói azonosító lejárt."
+msgstr "Számítógép-azonosító: %s."
 
 #: ../src/daemon/main.c:773
-#, fuzzy, c-format
+#, c-format
 msgid "Session ID is %s."
-msgstr "A munkamenet le van zárva"
+msgstr "Munkamenet-azonosító: %s."
 
 #: ../src/daemon/main.c:779
 #, fuzzy, c-format
@@ -566,9 +566,9 @@ msgid "Load Once: %s\n"
 msgstr "Betöltve: %s\n"
 
 #: ../src/daemon/dumpmodules.c:75
-#, fuzzy, c-format
+#, c-format
 msgid "DEPRECATION WARNING: %s\n"
-msgstr "%s: figyelem: %s felülbírálja %s-t\n"
+msgstr "VISSZAVONÁSI FIGYELMEZTETÉS: %s\n"
 
 #: ../src/daemon/dumpmodules.c:79
 #, c-format
@@ -959,7 +959,6 @@ msgid "Entity killed"
 msgstr "A(z) %d számú folyamat kilőve"
 
 #: ../src/pulse/error.c:56
-#, fuzzy
 msgid "Invalid server"
 msgstr "Érvénytelen kiszolgáló"
 
@@ -994,9 +993,8 @@ msgid "Unknown error code"
 msgstr "Ismeretlen hibakód"
 
 #: ../src/pulse/error.c:64
-#, fuzzy
 msgid "No such extension"
-msgstr "nincs ilyen puffer"
+msgstr "Nincs ilyen kiterjesztés"
 
 #: ../src/pulse/error.c:65
 #, fuzzy
@@ -1819,9 +1817,8 @@ msgid "Failed to open sound file."
 msgstr "Nem sikerült megnyitni az átmeneti fájlt"
 
 #: ../src/utils/pactl.c:1004
-#, fuzzy
 msgid "Warning: Failed to determine sample specification from file."
-msgstr "RGB-adat betöltése a TIFF-fájlból sikertelen"
+msgstr "RGB-adat betöltése a TIFF fájlból sikertelen"
 
 #: ../src/utils/pactl.c:1014
 msgid "You have to specify a sample name to play"
