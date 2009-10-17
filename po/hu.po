@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-30 21:32+0000\n"
+"POT-Creation-Date: 2009-10-17 04:45+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: KAMI <kami911@gmail.com>\n"
 "Language-Team: \n"
@@ -46,28 +46,24 @@ msgid "Always keeps at least one sink loaded even if it's a null one"
 msgstr ""
 
 #: ../src/modules/module-always-sink.c:83
-#, fuzzy
 msgid "Dummy Output"
-msgstr "szabványos kimenet"
+msgstr "Látszólagos kimenet"
 
 #: ../src/modules/module-ladspa-sink.c:49
-#, fuzzy
 msgid "Virtual LADSPA sink"
-msgstr "Ismeretlen nyelőelem"
+msgstr "Látszólagos LADSPA nyelő"
 
 #: ../src/modules/module-ladspa-sink.c:53
 msgid "sink_name=<name for the sink> sink_properties=<properties for the sink> master=<name of sink to filter> format=<sample format> rate=<sample rate> channels=<number of channels> channel_map=<channel map> plugin=<ladspa plugin name> label=<ladspa plugin label> control=<comma seperated list of input control values>"
 msgstr ""
 
 #: ../src/modules/module-null-sink.c:55
-#, fuzzy
 msgid "Clocked NULL sink"
-msgstr "Ismeretlen nyelőelem"
+msgstr "Órajelezett semmis nyelő"
 
 #: ../src/modules/module-null-sink.c:291
-#, fuzzy
 msgid "Null Output"
-msgstr "szabványos kimenet"
+msgstr "Semmis kimenet"
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -78,19 +74,16 @@ msgid "Modem"
 msgstr "Modem"
 
 #: ../src/daemon/ltdl-bind-now.c:124
-#, fuzzy
 msgid "Failed to find original lt_dlopen loader."
-msgstr "A PNM-betöltő egy egészet várt, de nem talált"
+msgstr "Nem található az eredeti „lt_dlopen” betöltő."
 
 #: ../src/daemon/ltdl-bind-now.c:129
-#, fuzzy
 msgid "Failed to allocate new dl loader."
-msgstr "dpkg: a memóriafoglalás meghiúsult a meghibásodott csomagok listájában egy új bejegyzés számára."
+msgstr "Nem foglalható le hely az új dl betöltő számára."
 
 #: ../src/daemon/ltdl-bind-now.c:142
-#, fuzzy
 msgid "Failed to add bind-now-loader."
-msgstr "nem sikerült hozzáadni a tartományt a csatlakozások hasítótáblázatához"
+msgstr "Nem sikerült hozzáadni az azonnali betöltés csatolást."
 
 #: ../src/daemon/main.c:141
 #, c-format
@@ -102,14 +95,14 @@ msgid "Exiting."
 msgstr "Kilépés."
 
 #: ../src/daemon/main.c:186
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to find user '%s'."
-msgstr "A csomag („%s”) keresése meghiúsult: %s"
+msgstr "Nem található a(z) „%s” felhasználó."
 
 #: ../src/daemon/main.c:191
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to find group '%s'."
-msgstr "%s csoportjának megváltoztatása sikertelen a következőre: %s\n"
+msgstr "Nem található a(z) „%s” csoport."
 
 #: ../src/daemon/main.c:195
 #, c-format
@@ -117,45 +110,43 @@ msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
 msgstr "Létező felhasználó „%s” (UID: %lu) és csoport „%s” (GID: %lu)."
 
 #: ../src/daemon/main.c:200
-#, fuzzy, c-format
+#, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
-msgstr "csomagok letöltése és a műveletek el nem indítása"
+msgstr "A(z) „%s” felhasználó GID azonosítója és „%s” csoportja nem egyezik meg."
 
 #: ../src/daemon/main.c:205
-#, fuzzy, c-format
+#, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr "%s: nem törlöm %s könyvtárat (%s saját könyvtára)\n"
+msgstr "A(z) „%s” felhasználó Saját mappája nem „%s”. Kihagyás."
 
 #: ../src/daemon/main.c:208
 #: ../src/daemon/main.c:213
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to create '%s': %s"
-msgstr "A szervizcsomag („%s”) létrehozása meghiúsult: %s"
+msgstr "Nem sikerült létrehozni a(z) „%s” fájlt: %s"
 
 #: ../src/daemon/main.c:220
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to change group list: %s"
-msgstr "Aktív tartományok listázása nem sikerült"
+msgstr "Nem sikerült megváltoztatni a csoportlistát: %s"
 
 #: ../src/daemon/main.c:236
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to change GID: %s"
-msgstr "A könyvtárváltás meghiúsult"
+msgstr "Nem sikerült megváltoztatni az GID azonosítót: %s"
 
 #: ../src/daemon/main.c:252
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to change UID: %s"
-msgstr "A könyvtárváltás meghiúsult"
+msgstr "Nem sikerült megváltoztatni az UID azonosítót: %s"
 
 #: ../src/daemon/main.c:271
-#, fuzzy
 msgid "Successfully dropped root privileges."
-msgstr "GNOME Commander - ROOT JOGSULTSÁGOK"
+msgstr "A rendszergazdai jogosultságok sikeresen visszaadva."
 
 #: ../src/daemon/main.c:279
-#, fuzzy
 msgid "System wide mode unsupported on this platform."
-msgstr "Az --atime-preserve='system' nem támogatott ezen az operációs rendszeren"
+msgstr "A rendszerszintű üzemmód nem támogatott ezen az operációs rendszeren."
 
 #: ../src/daemon/main.c:297
 #, fuzzy, c-format
@@ -163,32 +154,30 @@ msgid "setrlimit(%s, (%u, %u)) failed: %s"
 msgstr "<b>Sikertelen bejelentkezést</b>"
 
 #: ../src/daemon/main.c:474
-#, fuzzy
 msgid "Failed to parse command line."
-msgstr "Nem lehet feldolgozni a(z) „%s” parancssort: %s"
+msgstr "Nem sikerült feldolgozni a parancssort."
 
 #: ../src/daemon/main.c:541
 msgid "Daemon not running"
 msgstr "A démon nem fut."
 
 #: ../src/daemon/main.c:543
-#, fuzzy, c-format
+#, c-format
 msgid "Daemon running as PID %u"
-msgstr "Ne démonként fusson."
+msgstr "A démon a következő PID azonosítóval fut: %u"
 
 #: ../src/daemon/main.c:553
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to kill daemon: %s"
-msgstr "nem sikerült olvasni a Xen-szolgáltatásból"
+msgstr "A démon forszírozott leállítása nem sikerült: %s"
 
 #: ../src/daemon/main.c:571
 msgid "This program is not intended to be run as root (unless --system is specified)."
-msgstr ""
+msgstr "Ez a program nincsen felkészítve arra, hogy rendszergazdai jogosultságokkal fusson (kivéve, ha a --system paraméter megadásra kerül)."
 
 #: ../src/daemon/main.c:573
-#, fuzzy
 msgid "Root privileges required."
-msgstr "Rendszergazdai jogok szükségesek!"
+msgstr "Rendszergazdai jogosultságok szükségesek."
 
 #: ../src/daemon/main.c:578
 #, fuzzy
@@ -213,35 +202,32 @@ msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 
 #: ../src/daemon/main.c:621
-#, fuzzy
 msgid "Failed to acquire stdio."
-msgstr "A(z) „%s” D-Bus név beszerzése meghiúsult\n"
+msgstr "Nem sikerült jogot szerezni az alapértelmezett ki- és bemenetre (stdio)."
 
 #: ../src/daemon/main.c:627
-#, fuzzy, c-format
+#, c-format
 msgid "pipe failed: %s"
-msgstr "%s: Cső létrehozása sikertelen"
+msgstr "Cső létrehozás meghiúsult: %s"
 
 #: ../src/daemon/main.c:632
-#, fuzzy, c-format
+#, c-format
 msgid "fork() failed: %s"
-msgstr "az indítás meghiúsult\n"
+msgstr "Programindítás meghiúsult: %s"
 
 #: ../src/daemon/main.c:646
 #: ../src/utils/pacat.c:508
-#, fuzzy, c-format
+#, c-format
 msgid "read() failed: %s"
-msgstr "olvasás sikertelen"
+msgstr "Olvasás meghiúsult: %s"
 
 #: ../src/daemon/main.c:652
-#, fuzzy
 msgid "Daemon startup failed."
-msgstr "A csatlakozás meghiúsult a démonhoz"
+msgstr "A démon elindítása nem sikerült."
 
 #: ../src/daemon/main.c:654
-#, fuzzy
 msgid "Daemon startup successful."
-msgstr "A portátirányítás sikeres!"
+msgstr "A démon sikeresen elindult."
 
 #: ../src/daemon/main.c:731
 #, c-format
@@ -249,19 +235,19 @@ msgid "This is PulseAudio %s"
 msgstr "PulseAudio %s"
 
 #: ../src/daemon/main.c:732
-#, fuzzy, c-format
+#, c-format
 msgid "Compilation host: %s"
-msgstr "Válassz _gépet ..."
+msgstr "Összeépítő számítógép: %s"
 
 #: ../src/daemon/main.c:733
-#, fuzzy, c-format
+#, c-format
 msgid "Compilation CFLAGS: %s"
-msgstr "Regex fordítási hiba - %s"
+msgstr "Összeépítési CFLAGS jelzők: %s"
 
 #: ../src/daemon/main.c:736
-#, fuzzy, c-format
+#, c-format
 msgid "Running on host: %s"
-msgstr "Python %s verzió"
+msgstr "Kiszolgáló: %s"
 
 #: ../src/daemon/main.c:739
 #, c-format
@@ -274,19 +260,17 @@ msgid "Page size is %lu bytes"
 msgstr "minimális szegmensméret = %lu\n"
 
 #: ../src/daemon/main.c:744
-#, fuzzy
 msgid "Compiled with Valgrind support: yes"
-msgstr "Pacman-szerű játék többjátékos módban"
+msgstr "Összeépítés Valgrind támogatással: Igen"
 
 #: ../src/daemon/main.c:746
-#, fuzzy
 msgid "Compiled with Valgrind support: no"
-msgstr "A leírások nem érhetőek el: nincs XML támogatás befordítva."
+msgstr "Összeépítés Valgrind támogatással: Nem"
 
 #: ../src/daemon/main.c:749
-#, fuzzy, c-format
+#, c-format
 msgid "Running in valgrind mode: %s"
-msgstr "Bemutató mód"
+msgstr "Futás Valgrind üzemmódban: %s"
 
 #: ../src/daemon/main.c:752
 msgid "Optimized build: yes"
@@ -311,9 +295,8 @@ msgid "All asserts enabled."
 msgstr "Adatok indexelése minden engedélyezett modulból"
 
 #: ../src/daemon/main.c:766
-#, fuzzy
 msgid "Failed to get machine ID"
-msgstr "A PDA azonosító lekérdezése nem sikerült"
+msgstr "Nem sikerült lekérdezni a számítógép azonosítóját"
 
 #: ../src/daemon/main.c:769
 #, c-format
@@ -326,24 +309,24 @@ msgid "Session ID is %s."
 msgstr "Munkamenet-azonosító: %s."
 
 #: ../src/daemon/main.c:779
-#, fuzzy, c-format
+#, c-format
 msgid "Using runtime directory %s."
-msgstr "Nem hozható létre ideiglenes könyvtár a következő sablon használatával: %s"
+msgstr "A futásidőben használt mappa: %s."
 
 #: ../src/daemon/main.c:784
-#, fuzzy, c-format
+#, c-format
 msgid "Using state directory %s."
-msgstr "HIBA: Nem lehet létrehozni a(z) %s állapotkönyvtárat"
+msgstr "Az állapottároló mappa: %s."
 
 #: ../src/daemon/main.c:787
-#, fuzzy, c-format
+#, c-format
 msgid "Using modules directory %s."
-msgstr "Nem hozható létre ideiglenes könyvtár a következő sablon használatával: %s"
+msgstr "A modulok mappája: %s."
 
 #: ../src/daemon/main.c:789
-#, fuzzy, c-format
+#, c-format
 msgid "Running in system mode: %s"
-msgstr "A rendszeróra teszt módban nem kerül beállításra.\n"
+msgstr "Futás rendszer üzemmódban: %s"
 
 #: ../src/daemon/main.c:792
 msgid ""
@@ -353,9 +336,8 @@ msgid ""
 msgstr ""
 
 #: ../src/daemon/main.c:809
-#, fuzzy
 msgid "pa_pid_file_create() failed."
-msgstr "A(z) „%s” fájl létrehozása meghiúsult: %s"
+msgstr "A „pa_pid_file_create()” függvényhívás meghiúsult: %s"
 
 #: ../src/daemon/main.c:819
 msgid "Fresh high-resolution timers available! Bon appetit!"
@@ -366,35 +348,28 @@ msgid "Dude, your kernel stinks! The chef's recommendation today is Linux with h
 msgstr ""
 
 #: ../src/daemon/main.c:844
-#, fuzzy
 msgid "pa_core_new() failed."
-msgstr "Nem sikerült megnyitni a(z) %s.new fájlt"
+msgstr "A „pa_core_new()” függvényhívás meghiúsult: %s"
 
 #: ../src/daemon/main.c:904
-#, fuzzy
 msgid "Failed to initialize daemon."
-msgstr "PAM inicializálása sikertelen\n"
+msgstr "Nem sikerült előkészíteni a démont."
 
 #: ../src/daemon/main.c:909
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 
 #: ../src/daemon/main.c:926
-#, fuzzy
 msgid "Daemon startup complete."
-msgstr "Az importálás kész"
+msgstr "A démon elindítása sikeres."
 
 #: ../src/daemon/main.c:932
-#, fuzzy
 msgid "Daemon shutdown initiated."
-msgstr "egy tartomány elegáns leállítása"
+msgstr "A démon leállítása kezdeményezve."
 
 #: ../src/daemon/main.c:954
-#, fuzzy
 msgid "Daemon terminated."
-msgstr ""
-"\n"
-"A parancs megszakítva\n"
+msgstr "A démon leállítva."
 
 #: ../src/daemon/cmdline.c:115
 #, c-format
@@ -511,9 +486,9 @@ msgid "--log-meta expects boolean argument"
 msgstr "„%s” legalább egy paramétert vár"
 
 #: ../src/daemon/cmdline.c:354
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid resample method '%s'."
-msgstr "Üres rajzolásimód-név – érvénytelen"
+msgstr "Érvénytelen újramintavételezési eljárás: „%s”."
 
 #: ../src/daemon/cmdline.c:361
 #, fuzzy
@@ -536,9 +511,9 @@ msgid "Name: %s\n"
 msgstr "Név: %s\n"
 
 #: ../src/daemon/dumpmodules.c:63
-#, fuzzy, c-format
+#, c-format
 msgid "No module information available\n"
-msgstr "Nem áll rendelkezésre további információ."
+msgstr "Nem áll rendelkezésre modul információ.\n"
 
 #: ../src/daemon/dumpmodules.c:66
 #, c-format
@@ -576,78 +551,78 @@ msgid "Path: %s\n"
 msgstr "Elérési útvonal: %s\n"
 
 #: ../src/daemon/daemon-conf.c:232
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr "Érvénytelen naplózási szint: „%s”"
+msgstr "[%s:%u] Érvénytelen naplózási cél: „%s”."
 
 #: ../src/daemon/daemon-conf.c:248
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid log level '%s'."
-msgstr "Érvénytelen naplózási szint: „%s”"
+msgstr "[%s:%u] Érvénytelen naplózási szint: „%s”."
 
 #: ../src/daemon/daemon-conf.c:264
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr "Üres rajzolásimód-név – érvénytelen"
+msgstr "[%s:%u] Érvénytelen újramintavételezési eljárás: „%s”."
 
 #: ../src/daemon/daemon-conf.c:287
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
-msgstr "Érvénytelen művelet"
+msgstr "[%s:%u] Érvénytelen rlimit érték: „%s”."
 
 #: ../src/daemon/daemon-conf.c:294
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
-msgstr "Az --atime-preserve='system' nem támogatott ezen az operációs rendszeren"
+msgstr "[%s:%u] Az rlimit nem támogatott ezen az operációs rendszeren."
 
 #: ../src/daemon/daemon-conf.c:310
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
-msgstr "érvénytelen rövidítési forma"
+msgstr "[%s:%u] Érvénytelen mintavételi formátum: „%s”."
 
 #: ../src/daemon/daemon-conf.c:328
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr "FIGYELEM: Événytelen mintavételezést határott meg 44100-at használom.\n"
+msgstr "[%s:%u] Érvénytelen mintavételi ráta: „%s”."
 
 #: ../src/daemon/daemon-conf.c:352
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
-msgstr "FIGYELEM: Érénytelen mintavételezést határozott meg, 16-ost használom.\n"
+msgstr "[%s:%u] Érvénytelen minta csatornák: „%s”."
 
 #: ../src/daemon/daemon-conf.c:370
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr "Érvénytelen csatornatípus '%s'"
+msgstr "[%s:%u] Érvénytelen csatornaleképzés: „%s”."
 
 #: ../src/daemon/daemon-conf.c:388
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr "a sorok száma érvénytelen"
+msgstr "[%s:%u] Érvénytelen a részek száma: „%s”."
 
 #: ../src/daemon/daemon-conf.c:406
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr "a -size típusa („%c”) érvénytelen"
+msgstr "[%s:%u] Érvénytelen a részek mérete: „%s”."
 
 #: ../src/daemon/daemon-conf.c:424
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr "Érvénytelen optimalizálási szint: %s"
+msgstr "[%s:%u] Érvénytelen a prioritási érték: „%s”."
 
 #: ../src/daemon/daemon-conf.c:546
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open configuration file: %s"
-msgstr "nem sikerült olvasásra megnyitni a beállítási fájlt"
+msgstr "Nem sikerült megnyitni a konfigurációs fájlt: %s"
 
 #: ../src/daemon/daemon-conf.c:562
 msgid "The specified default channel map has a different number of channels than the specified default number of channels."
 msgstr ""
 
 #: ../src/daemon/daemon-conf.c:638
-#, fuzzy, c-format
+#, c-format
 msgid "### Read from configuration file: %s ###\n"
-msgstr "%s: Olvasási hiba a(z) %s fájlban\n"
+msgstr "### Olvasás a következő konfigurációs fájlból: %s ###\n"
 
 #: ../src/daemon/caps.c:62
 msgid "Cleaning up privileges."
@@ -916,14 +891,12 @@ msgid "Invalid argument"
 msgstr "Érvénytelen paraméter"
 
 #: ../src/pulse/error.c:47
-#, fuzzy
 msgid "Entity exists"
-msgstr "\" már létezik!"
+msgstr "Az egység létezik"
 
 #: ../src/pulse/error.c:48
-#, fuzzy
 msgid "No such entity"
-msgstr "nincs ilyen puffer"
+msgstr "Nincs ilyen egység"
 
 #: ../src/pulse/error.c:49
 msgid "Connection refused"
@@ -938,34 +911,28 @@ msgid "Timeout"
 msgstr "Időtúllépés"
 
 #: ../src/pulse/error.c:52
-#, fuzzy
 msgid "No authorization key"
-msgstr "Nem érhető el kulcs"
+msgstr "Nem érhető el hitelesítőkulcs"
 
 #: ../src/pulse/error.c:53
 msgid "Internal error"
 msgstr "Belső hiba"
 
 #: ../src/pulse/error.c:54
-#, fuzzy
 msgid "Connection terminated"
-msgstr ""
-"\n"
-"A parancs megszakítva\n"
+msgstr "A kapcsolat megszakadt."
 
 #: ../src/pulse/error.c:55
-#, fuzzy
 msgid "Entity killed"
-msgstr "A(z) %d számú folyamat kilőve"
+msgstr "Egység forszírozottan leállítva"
 
 #: ../src/pulse/error.c:56
 msgid "Invalid server"
 msgstr "Érvénytelen kiszolgáló"
 
 #: ../src/pulse/error.c:57
-#, fuzzy
 msgid "Module initalization failed"
-msgstr "A(z) \"%s\" modul végrehajtása meghiúsult."
+msgstr "A modul előkészítése meghiúsult."
 
 #: ../src/pulse/error.c:58
 msgid "Bad state"
@@ -976,7 +943,6 @@ msgid "No data"
 msgstr "Nincs adat"
 
 #: ../src/pulse/error.c:60
-#, fuzzy
 msgid "Incompatible protocol version"
 msgstr "Inkompatibilis protokollverzió"
 
@@ -997,34 +963,29 @@ msgid "No such extension"
 msgstr "Nincs ilyen kiterjesztés"
 
 #: ../src/pulse/error.c:65
-#, fuzzy
 msgid "Obsolete functionality"
-msgstr "Elavult vagy helyi"
+msgstr "Elavult funkcionalitás"
 
 #: ../src/pulse/error.c:66
-#, fuzzy
 msgid "Missing implementation"
 msgstr "Nincs megvalósítva"
 
 #: ../src/pulse/error.c:67
-#, fuzzy
 msgid "Client forked"
-msgstr "BitTorrent kliens"
+msgstr "Kliens elindítva"
 
 #: ../src/pulse/error.c:68
-#, fuzzy
 msgid "Input/Output error"
 msgstr "Kimeneti/bemeneti hiba"
 
 #: ../src/pulse/error.c:69
-#, fuzzy
 msgid "Device or resource busy"
 msgstr "Az eszköz vagy erőforrás foglalt"
 
 #: ../src/pulse/sample.c:172
 #, c-format
 msgid "%s %uch %uHz"
-msgstr ""
+msgstr "%s %uch %uHz"
 
 #: ../src/pulse/sample.c:184
 #, c-format
@@ -1044,7 +1005,7 @@ msgstr "%0.1f KiB"
 #: ../src/pulse/sample.c:190
 #, c-format
 msgid "%u B"
-msgstr ""
+msgstr "%u B"
 
 #: ../src/pulse/client-conf-x11.c:55
 #: ../src/utils/pax11publish.c:100
@@ -1052,14 +1013,13 @@ msgid "XOpenDisplay() failed"
 msgstr "Az XOpenDisplay() függvényhívás meghiúsult."
 
 #: ../src/pulse/client-conf-x11.c:93
-#, fuzzy
 msgid "Failed to parse cookie data"
-msgstr "sikertelen a szimbólum adatainak a betöltése"
+msgstr "Nem sikerült feldolgozni a süti adatokat."
 
 #: ../src/pulse/client-conf.c:111
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open configuration file '%s': %s"
-msgstr "nem sikerült olvasásra megnyitni a beállítási fájlt"
+msgstr "Nem sikerült megnyitni a(z) „%s” konfigurációs fájlt: %s"
 
 #: ../src/pulse/context.c:550
 msgid "No cookie loaded. Attempting to connect without."
@@ -1076,19 +1036,18 @@ msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
 #: ../src/pulse/context.c:1438
-#, fuzzy, c-format
+#, c-format
 msgid "Received message for unknown extension '%s'"
-msgstr "\"_Ismeretlen állapotú\" üzenet olvasása"
+msgstr "Üzenet érkezett az ismeretlen „%s” kiterjesztéstől"
 
 #: ../src/utils/pacat.c:108
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to drain stream: %s"
-msgstr "Az új adatfolyam indítása meghiúsult"
+msgstr "Nem sikerült csatlakozni a következő adatfolyamhoz: %s"
 
 #: ../src/utils/pacat.c:113
-#, fuzzy
 msgid "Playback stream drained."
-msgstr "A folyam váratlanul véget ért!"
+msgstr "A lejátszás adatfolyamához csatlakozva."
 
 #: ../src/utils/pacat.c:123
 #, fuzzy
@@ -1138,7 +1097,7 @@ msgstr "--Nincsenek sorok a pufferben--"
 #: ../src/utils/pacat.c:321
 #, fuzzy, c-format
 msgid "Using sample spec '%s', channel map '%s'."
-msgstr "%s: térkép tábla \"%s\": %lu bájt\n"
+msgstr "A csatornaleképzés nem feleltethető meg a mintavételi leírásnak."
 
 #: ../src/utils/pacat.c:325
 #, fuzzy, c-format
@@ -1181,9 +1140,8 @@ msgid "Stream moved to device %s (%u, %ssuspended).%s"
 msgstr "Nem sikerült megnyitni a kimeneti eszközt"
 
 #: ../src/utils/pacat.c:376
-#, fuzzy
 msgid "not "
-msgstr "Nem győződtem meg"
+msgstr "nem"
 
 #: ../src/utils/pacat.c:383
 #, fuzzy, c-format
@@ -1191,9 +1149,9 @@ msgid "Stream buffer attributes changed.%s"
 msgstr "E787: A puffer váratlanul megváltozott"
 
 #: ../src/utils/pacat.c:415
-#, fuzzy, c-format
+#, c-format
 msgid "Connection established.%s"
-msgstr "Kapcsolat létrehozva"
+msgstr "Kapcsolat létrehozva. %s"
 
 #: ../src/utils/pacat.c:418
 #, c-format
@@ -1201,14 +1159,14 @@ msgid "pa_stream_new() failed: %s"
 msgstr "A „pa_stream_new()” függvényhívás meghiúsult: %s"
 
 #: ../src/utils/pacat.c:450
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_connect_playback() failed: %s"
-msgstr "A megfigyelő adatfolyam csatlakoztatása meghiúsult"
+msgstr "A „pa_stream_connect_playback()” függvényhívás meghiúsult: %s"
 
 #: ../src/utils/pacat.c:456
-#, fuzzy, c-format
+#, c-format
 msgid "pa_stream_connect_record() failed: %s"
-msgstr "A megfigyelő adatfolyam csatlakoztatása meghiúsult"
+msgstr "A „pa_stream_connect_record()” függvényhívás meghiúsult: %s"
 
 #: ../src/utils/pacat.c:470
 #: ../src/utils/pactl.c:857
@@ -1217,9 +1175,8 @@ msgid "Connection failure: %s"
 msgstr "Kapcsolódási hiba: %s"
 
 #: ../src/utils/pacat.c:503
-#, fuzzy
 msgid "Got EOF."
-msgstr "Üzenet érkezett: #%"
+msgstr "A fájl vége elérve."
 
 #: ../src/utils/pacat.c:540
 #, c-format
@@ -1231,14 +1188,14 @@ msgid "Got signal, exiting."
 msgstr "Kilépés, szignál hatására…"
 
 #: ../src/utils/pacat.c:575
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get latency: %s"
-msgstr "nem sikerült a képességek lekérdezése"
+msgstr "Nem sikerült lekérdezni a késleltetést: %s"
 
 #: ../src/utils/pacat.c:580
-#, fuzzy, c-format
+#, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr "%d csoport elmentve ebben: \"%s\" %.1f másodperc alatt (%.0f csoport/mp)"
+msgstr "Idő: %0.3f másodperc, késleltetés: %0.0f ezredmásodperc."
 
 #: ../src/utils/pacat.c:599
 #, c-format
@@ -1440,9 +1397,9 @@ msgid "Failure to resume: %s\n"
 msgstr "Hiba lépett fel a készenléti állapotból visszatérés közben: %s\n"
 
 #: ../src/utils/pasuspender.c:147
-#, fuzzy, c-format
+#, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
-msgstr "A leejtett fájl nem helyi."
+msgstr "FIGYELMEZTETÉS: A hangkiszolgáló nem helyi és nincs is felfüggesztve.\n"
 
 #: ../src/utils/pasuspender.c:159
 #, c-format
@@ -1455,11 +1412,9 @@ msgid "Got SIGINT, exiting.\n"
 msgstr "Kilépés, SIGINT szignál hatására…\n"
 
 #: ../src/utils/pasuspender.c:194
-#, fuzzy, c-format
+#, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr ""
-"A(z) %d azonosítójú folyamatot nem lehet kilőni %d jelzéssel.\n"
-"%s"
+msgstr "FIGYELMEZTETÉS: A gyermek folyamat a következő szignállal fejeződött be: %u\n"
 
 #: ../src/utils/pasuspender.c:212
 #, c-format
@@ -1508,7 +1463,7 @@ msgstr ""
 #: ../src/utils/pactl.c:144
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr ""
+msgstr "A futás során összesen lefoglalt blokkok száma: %u, amely összesen %s bájtot jelent.\n"
 
 #: ../src/utils/pactl.c:147
 #, c-format
@@ -1516,9 +1471,9 @@ msgid "Sample cache size: %s\n"
 msgstr "Minta-gyorsítótár mérete: %s\n"
 
 #: ../src/utils/pactl.c:156
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get server information: %s"
-msgstr "csomópont-információ lekérdezése nem sikerült"
+msgstr "Nem sikerült lekérdezni a kiszolgáló adatait: „%s”"
 
 #: ../src/utils/pactl.c:164
 #, c-format
@@ -1533,11 +1488,20 @@ msgid ""
 "Default Source: %s\n"
 "Cookie: %08x\n"
 msgstr ""
+"Felhasználónév: %s\n"
+"Számítógépnév: %s\n"
+"Kiszolgálónév: %s\n"
+"Kiszolgáló verzió: %s\n"
+"Alapértelmezett mintavételi leírás: %s\n"
+"Alapértelmezett csatornaleképzés: %s\n"
+"Alapértelmezett nyelő: %s\n"
+"Alapértelmezett forrás: %s\n"
+"Süti: %08x\n"
 
 #: ../src/utils/pactl.c:205
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get sink information: %s"
-msgstr "csomópont-információ lekérdezése nem sikerült"
+msgstr "Nem sikerült lekérdezni a nyelő adatait: „%s”"
 
 #: ../src/utils/pactl.c:221
 #, c-format
@@ -1560,6 +1524,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Nyelő #%u\n"
+"\tÁllapot: %s\n"
+"\tNév: %s\n"
+"\tLeírás: %s\n"
+"\tEszközmeghajtó: %s\n"
+"\tMintavételi leírás: %s\n"
+"\tCsatornaleképzés: %s\n"
+"\tTulajdonos modul: %u\n"
+"\tNémítás: %s\n"
+"\tHangerő: %s%s%s\n"
+"\t        egyensúly %0.2f\n"
+"\tAlap hangerő: %s%s%s\n"
+"\tMonitor forrás: %s\n"
+"\tKésleltetés: %0.0f ezredmásodperc, beállítva %0.0f ezredmásodperc\n"
+"\tJelzők: %s%s%s%s%s%s\n"
+"\tTulajdonságok:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:268
 #: ../src/utils/pactl.c:360
@@ -1574,9 +1555,9 @@ msgid "\tActive Port: %s\n"
 msgstr "\tAktív Port: %s\n"
 
 #: ../src/utils/pactl.c:297
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get source information: %s"
-msgstr "csomópont-információ lekérdezése nem sikerült"
+msgstr "Nem sikerült lekérdezni a forrás adatait: „%s”"
 
 #: ../src/utils/pactl.c:313
 #, c-format
@@ -1599,6 +1580,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Forrás #%u\n"
+"\tÁllapot: %s\n"
+"\tNév: %s\n"
+"\tLeírás: %s\n"
+"\tEszközmeghajtó: %s\n"
+"\tMintavételi leírás: %s\n"
+"\tCsatornaleképzés: %s\n"
+"\tTulajdonos modul: %u\n"
+"\tNémítás: %s\n"
+"\tHangerő: %s%s%s\n"
+"\t        egyensúly %0.2f\n"
+"\tAlap hangerő: %s%s%s\n"
+"\tNyelő monitora: %s\n"
+"\tKésleltetés: %0.0f ezredmásodperc, beállítva %0.0f ezredmásodperc\n"
+"\tJelzők: %s%s%s%s%s%s\n"
+"\tTulajdonságok:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:345
 #: ../src/utils/pactl.c:401
@@ -1617,9 +1615,9 @@ msgid "n/a"
 msgstr "ismeretlen"
 
 #: ../src/utils/pactl.c:375
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get module information: %s"
-msgstr "csomópont-információ lekérdezése nem sikerült"
+msgstr "Nem sikerült lekérdezni a modul adatait: „%s”"
 
 #: ../src/utils/pactl.c:393
 #, c-format
@@ -1631,26 +1629,37 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Modul #%u\n"
+"\tNév: %s\n"
+"\tParaméter: %s\n"
+"\tHasználva: %s\n"
+"\tTulajdonságok:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:412
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get client information: %s"
-msgstr "csomópont-információ lekérdezése nem sikerült"
+msgstr "Nem sikerült lekérdezni a kliens adatait: „%s”"
 
 #: ../src/utils/pactl.c:430
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Client #%u\n"
 "\tDriver: %s\n"
 "\tOwner Module: %s\n"
 "\tProperties:\n"
 "\t\t%s\n"
-msgstr "A modul nem képes létrehozni a szükséges szálakat"
+msgstr ""
+"Kliens #%u\n"
+"\tEszközmeghajtó: %s\n"
+"\tTulajdonos modul: %s\n"
+"\tTulajdonságok:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:447
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get card information: %s"
-msgstr "csomópont-információ lekérdezése nem sikerült"
+msgstr "Nem sikerült lekérdezni a kártya adatait: „%s”"
 
 #: ../src/utils/pactl.c:465
 #, c-format
@@ -1662,6 +1671,12 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Kártya #%u\n"
+"\tNév: %s\n"
+"\tEszközmeghajtó: %s\n"
+"\tTulajdonos modul: %s\n"
+"\tTulajdonságok:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:479
 #, c-format
@@ -1674,9 +1689,9 @@ msgid "\tActive Profile: %s\n"
 msgstr "\tAktív profil: %s\n"
 
 #: ../src/utils/pactl.c:496
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get sink input information: %s"
-msgstr "pa_context_get_sink_input_info() meghiúsult"
+msgstr "Nem sikerült lekérdezni a nyelő bemeneti adatait: „%s”"
 
 #: ../src/utils/pactl.c:515
 #, c-format
@@ -1698,11 +1713,27 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Nyelő bemenet #%u\n"
+"\tEszközmeghajtó: %s\n"
+"\tTulajdonos modul: %s\n"
+"\tKliens: %s\n"
+"\tNyelő: %u\n"
+"\tMintavételi leírás: %s\n"
+"\tCsatornaleképzés: %s\n"
+"\tNémítás: %s\n"
+"\tHangerő: %s\n"
+"\t        %s\n"
+"\t        egyensúly %0.2f\n"
+"\tPuffer késleltetés: %0.0f usec\n"
+"\tNyelő késleltetés: %0.0f usec\n"
+"\tÚjramintavételezési eljárás: %s\n"
+"\tTulajdonságok:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:554
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get source output information: %s"
-msgstr "pa_context_get_source_output_info_list() meghiúsult"
+msgstr "Nem sikerült lekérdezni a forrás kimeneti adatait: „%s”"
 
 #: ../src/utils/pactl.c:574
 #, c-format
@@ -1720,11 +1751,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Forrás kimenet #%u\n"
+"\tEszközmeghajtó: %s\n"
+"\tTulajdonos modul: %s\n"
+"\tKliens: %s\n"
+"\tForrás: %u\n"
+"\tMintavételi leírás: %s\n"
+"\tCsatornaleképzés: %s\n"
+"\tPuffer késleltetés: %0.0f usec\n"
+"\tForrás késleltetés: %0.0f usec\n"
+"\tÚjramintavételezési eljárás: %s\n"
+"\tTulajdonságok:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:605
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get sample information: %s"
-msgstr "csomópont-információ lekérdezése nem sikerült"
+msgstr "Nem sikerült lekérdezni a mintavétel adatait: „%s”"
 
 #: ../src/utils/pactl.c:623
 #, c-format
@@ -1743,6 +1786,19 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Minta #%u\n"
+"\tNév: %s\n"
+"\tMintavételi leírás: %s\n"
+"\tCsatornaleképzés: %s\n"
+"\tHangerő: %s\n"
+"\t        %s\n"
+"\t        egyensúly %0.2f\n"
+"\tIdőtartam: %0.1fs\n"
+"\tMéret: %s\n"
+"\tLassú: %s\n"
+"\tFájlnév: %s\n"
+"\tTulajdonságok:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:653
 #: ../src/utils/pactl.c:663
@@ -1751,14 +1807,11 @@ msgid "Failure: %s"
 msgstr "Hiba: %s"
 
 #: ../src/utils/pactl.c:687
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to upload sample: %s"
-msgstr ""
-"A feltöltés a kiszolgálóra meghiúsult,\n"
-"később próbálja meg újra."
+msgstr "Nem sikerült feltölteni a mintát: %s"
 
 #: ../src/utils/pactl.c:704
-#, fuzzy
 msgid "Premature end of file"
 msgstr "Idő előtti fájlvége"
 
@@ -1807,14 +1860,12 @@ msgid ""
 msgstr "A program kapcsolói ütköznek"
 
 #: ../src/utils/pactl.c:979
-#, fuzzy
 msgid "Please specify a sample file to load"
-msgstr "A glade fájl betöltése meghiúsult, ellenőrizze a telepítését."
+msgstr "Adja meg a betöltendő mintafájlt"
 
 #: ../src/utils/pactl.c:992
-#, fuzzy
 msgid "Failed to open sound file."
-msgstr "Nem sikerült megnyitni az átmeneti fájlt"
+msgstr "Nem sikerült megnyitni az hangfájlt."
 
 #: ../src/utils/pactl.c:1004
 msgid "Warning: Failed to determine sample specification from file."
@@ -1854,7 +1905,7 @@ msgstr ""
 
 #: ../src/utils/pactl.c:1115
 msgid "You have to specify a card name/index and a profile name"
-msgstr ""
+msgstr "Meg kell adnia a kártya nevét vagy azonosítóját és a profil nevét"
 
 #: ../src/utils/pactl.c:1126
 msgid "You have to specify a sink name/index and a port name"
@@ -1862,7 +1913,7 @@ msgstr "Meg kell adnia a nyelő nevét vagy azonosítóját és a port nevét."
 
 #: ../src/utils/pactl.c:1137
 msgid "You have to specify a source name/index and a port name"
-msgstr ""
+msgstr "Meg kell adnia a forrás nevét vagy azonosítóját és a port nevét"
 
 #: ../src/utils/pactl.c:1149
 msgid "You have to specify a sink name/index and a volume"
@@ -1879,11 +1930,11 @@ msgstr "A hangerő megadása érvénytelen."
 
 #: ../src/utils/pactl.c:1166
 msgid "You have to specify a source name/index and a volume"
-msgstr ""
+msgstr "Meg kell adnia a forrás nevét vagy azonosítóját és a hangerejét"
 
 #: ../src/utils/pactl.c:1183
 msgid "You have to specify a sink input index and a volume"
-msgstr ""
+msgstr "Meg kell adnia a nyelő bemenet azonosítóját és a hangerejét"
 
 #: ../src/utils/pactl.c:1188
 msgid "Invalid sink input index"
@@ -1895,11 +1946,11 @@ msgstr "Meg kell adnia a nyelő nevét vagy azonosítóját és a némítás log
 
 #: ../src/utils/pactl.c:1221
 msgid "You have to specify a source name/index and a mute boolean"
-msgstr ""
+msgstr "Meg kell adnia a forrás nevét vagy azonosítóját és a némítás logikai változóját"
 
 #: ../src/utils/pactl.c:1238
 msgid "You have to specify a sink input index and a mute boolean"
-msgstr ""
+msgstr "Meg kell adnia a nyelő bemenet azonosítóját és a némítás logikai változóját"
 
 #: ../src/utils/pactl.c:1243
 msgid "Invalid sink input index specification"
@@ -1919,11 +1970,17 @@ msgid ""
 " -i    Import PulseAudio data from X11 display to local environment variables and cookie file.\n"
 " -r    Remove PulseAudio data from X11 display\n"
 msgstr ""
+"%s [-D megjelenítő] [-S kiszolgáló] [-O nyelő] [-I forrás] [-c fájl]  [-d|-e|-i|-r]\n"
+"\n"
+" -d    Megjeleníti az aktuális X11 megjelenítőhöz csatlakoztatott PulseAudio adatokat (alapértelmezés)\n"
+" -e    Helyi PulseAudio adatok exportálása az X11 megjelenítőre\n"
+" -i    Helyi PulseAudio adatok importálása az X11 megjelenítőről helyi környezeti változókba és süti fájlokba\n"
+" -r    Eltávolítja a PulseAudio adatokat z X11 megjelenítőről\n"
 
 #: ../src/utils/pax11publish.c:94
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to parse command line.\n"
-msgstr "Nem lehet feldolgozni a(z) „%s” parancssort: %s"
+msgstr "Nem sikerült feldolgozni a parancssort.\n"
 
 #: ../src/utils/pax11publish.c:108
 #, c-format
@@ -1946,34 +2003,34 @@ msgid "Cookie: %s\n"
 msgstr "Süti: %s\n"
 
 #: ../src/utils/pax11publish.c:132
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to parse cookie data\n"
-msgstr "sikertelen a szimbólum adatainak a betöltése"
+msgstr "Nem sikerült feldolgozni a süti adatokat.\n"
 
 #: ../src/utils/pax11publish.c:137
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to save cookie data\n"
-msgstr "sikertelen a szimbólum adatainak a betöltése"
+msgstr "Nem sikerült elmenteni a süti adatokat.\n"
 
 #: ../src/utils/pax11publish.c:152
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to load client configuration file.\n"
-msgstr "nem sikerült olvasásra megnyitni a beállítási fájlt"
+msgstr "Nem sikerült betölteni a kliens konfigurációs fájlt.\n"
 
 #: ../src/utils/pax11publish.c:157
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read environment configuration data.\n"
-msgstr "Az adatok olvasása meghiúsult az adatfolyamból"
+msgstr "Nem sikerült elolvasni a környezetváltozó konfigurációs adatokat.\n"
 
 #: ../src/utils/pax11publish.c:174
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get FQDN.\n"
-msgstr "nem sikerült a képességek lekérdezése"
+msgstr "Nem sikerült lekérdezni a teljes tartománynevet (FQDN).\n"
 
 #: ../src/utils/pax11publish.c:194
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to load cookie data\n"
-msgstr "sikertelen a szimbólum adatainak a betöltése"
+msgstr "Nem sikerült betölteni a süti adatokat.\n"
 
 #: ../src/utils/pax11publish.c:211
 #, c-format
@@ -1982,12 +2039,12 @@ msgstr "Még nincs elkészítve.\n"
 
 #: ../src/utils/pacmd.c:69
 msgid "No PulseAudio daemon running, or not running as session daemon."
-msgstr ""
+msgstr "Nem fut a PulseAudio démon vagy nem fut munkamenet démonként sem."
 
 #: ../src/utils/pacmd.c:74
-#, fuzzy, c-format
+#, c-format
 msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
-msgstr "svc_unix.c - AF_UNIX gond van illesztőpont létrehozásával"
+msgstr "socket(PF_UNIX, SOCK_STREAM, 0): %s"
 
 #: ../src/utils/pacmd.c:91
 #, c-format
