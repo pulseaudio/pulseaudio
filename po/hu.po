@@ -149,9 +149,9 @@ msgid "System wide mode unsupported on this platform."
 msgstr "A rendszerszintű üzemmód nem támogatott ezen az operációs rendszeren."
 
 #: ../src/daemon/main.c:297
-#, fuzzy, c-format
+#, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
-msgstr "<b>Sikertelen bejelentkezést</b>"
+msgstr "setrlimit(%s, (%u, %u)) meghiúsult: %s"
 
 #: ../src/daemon/main.c:474
 msgid "Failed to parse command line."
@@ -255,9 +255,9 @@ msgid "Found %u CPUs."
 msgstr "%u CPU található a rendszerben."
 
 #: ../src/daemon/main.c:741
-#, fuzzy, c-format
+#, c-format
 msgid "Page size is %lu bytes"
-msgstr "minimális szegmensméret = %lu\n"
+msgstr "Oldalméret: %lu bájt"
 
 #: ../src/daemon/main.c:744
 msgid "Compiled with Valgrind support: yes"
@@ -433,57 +433,48 @@ msgid ""
 msgstr ""
 
 #: ../src/daemon/cmdline.c:247
-#, fuzzy
 msgid "--daemonize expects boolean argument"
-msgstr "„%s” legalább egy paramétert vár"
+msgstr "--daemonize paraméter logikai értéket vár el"
 
 #: ../src/daemon/cmdline.c:254
-#, fuzzy
 msgid "--fail expects boolean argument"
-msgstr "„%s” legalább egy paramétert vár"
+msgstr "--fail paraméter logikai értéket vár el"
 
 #: ../src/daemon/cmdline.c:264
 msgid "--log-level expects log level argument (either numeric in range 0..4 or one of debug, info, notice, warn, error)."
 msgstr ""
 
 #: ../src/daemon/cmdline.c:276
-#, fuzzy
 msgid "--high-priority expects boolean argument"
-msgstr "„%s” legalább egy paramétert vár"
+msgstr "--high-priority paraméter logikai értéket vár el"
 
 #: ../src/daemon/cmdline.c:283
-#, fuzzy
 msgid "--realtime expects boolean argument"
-msgstr "„%s” legalább egy paramétert vár"
+msgstr "--realtime paraméter logikai értéket vár el"
 
 #: ../src/daemon/cmdline.c:290
-#, fuzzy
 msgid "--disallow-module-loading expects boolean argument"
-msgstr "a(z) „%s” első paraméterként karakterláncot vár"
+msgstr "--disallow-module-loading paraméter logikai értéket vár el"
 
 #: ../src/daemon/cmdline.c:297
-#, fuzzy
 msgid "--disallow-exit expects boolean argument"
-msgstr "„%s” legalább egy paramétert vár"
+msgstr "--disallow-exit paraméter logikai értéket vár el"
 
 #: ../src/daemon/cmdline.c:304
-#, fuzzy
 msgid "--use-pid-file expects boolean argument"
-msgstr "a(z) „%s” első paraméterként karakterláncot vár"
+msgstr "--use-pid-file paraméter logikai értéket vár el"
 
 #: ../src/daemon/cmdline.c:321
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
-msgstr ""
+msgstr "Érvénytelen naplózási cél: használja a „syslog”, a „stderr” vagy az „auto” értéket."
 
 #: ../src/daemon/cmdline.c:328
-#, fuzzy
 msgid "--log-time expects boolean argument"
-msgstr "„%s” első paraméterként time_t-t vár"
+msgstr "--log-time paraméter logikai értéket vár el"
 
 #: ../src/daemon/cmdline.c:335
-#, fuzzy
 msgid "--log-meta expects boolean argument"
-msgstr "„%s” legalább egy paramétert vár"
+msgstr "--log-meta paraméter logikai értéket vár el"
 
 #: ../src/daemon/cmdline.c:354
 #, c-format
@@ -491,19 +482,16 @@ msgid "Invalid resample method '%s'."
 msgstr "Érvénytelen újramintavételezési eljárás: „%s”."
 
 #: ../src/daemon/cmdline.c:361
-#, fuzzy
 msgid "--system expects boolean argument"
-msgstr "„%s” legalább egy paramétert vár"
+msgstr "--system paraméter logikai értéket vár el"
 
 #: ../src/daemon/cmdline.c:368
-#, fuzzy
 msgid "--no-cpu-limit expects boolean argument"
-msgstr "a(z) „%s” első paraméterként karakterláncot vár"
+msgstr "--no-cpu-limit paraméter logikai értéket vár el"
 
 #: ../src/daemon/cmdline.c:375
-#, fuzzy
 msgid "--disable-shm expects boolean argument"
-msgstr "„%s” legalább egy paramétert vár"
+msgstr "--disable-shm paraméter logikai értéket vár el"
 
 #: ../src/daemon/dumpmodules.c:60
 #, c-format
@@ -617,7 +605,7 @@ msgstr "Nem sikerült megnyitni a konfigurációs fájlt: %s"
 
 #: ../src/daemon/daemon-conf.c:562
 msgid "The specified default channel map has a different number of channels than the specified default number of channels."
-msgstr ""
+msgstr "Az alapértelmezetten megadott mintavételi leírás csatornáinak száma eltér az alapértelmezetten megadott csatornaszámtól."
 
 #: ../src/daemon/daemon-conf.c:638
 #, c-format
@@ -1050,9 +1038,8 @@ msgid "Playback stream drained."
 msgstr "A lejátszás adatfolyamához csatlakozva."
 
 #: ../src/utils/pacat.c:123
-#, fuzzy
 msgid "Draining connection to server."
-msgstr "Kapcsolat visszaállítása a kiszolgálóhoz"
+msgstr "Csatlakozás a kiszolgálóhoz kapcsolathoz."
 
 #: ../src/utils/pacat.c:136
 #, c-format
@@ -1087,22 +1074,22 @@ msgstr "A „pa_stream_get_buffer_attr()” függvényhívás meghiúsult: %s"
 #: ../src/utils/pacat.c:314
 #, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
-msgstr ""
+msgstr "Pufferméretek: maximális nagyság: %u, hossz: %u, előpufferelés: %u, minimum: %u"
 
 #: ../src/utils/pacat.c:317
-#, fuzzy, c-format
+#, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u"
-msgstr "--Nincsenek sorok a pufferben--"
+msgstr "Pufferméretek: maximális nagyság: %u, részek mérete: %u"
 
 #: ../src/utils/pacat.c:321
-#, fuzzy, c-format
+#, c-format
 msgid "Using sample spec '%s', channel map '%s'."
-msgstr "A csatornaleképzés nem feleltethető meg a mintavételi leírásnak."
+msgstr "Mintavételi leírás: „%s” és csatornaleképzés: „%s” használata."
 
 #: ../src/utils/pacat.c:325
-#, fuzzy, c-format
+#, c-format
 msgid "Connected to device %s (%u, %ssuspended)."
-msgstr "Kapcsolódva az eszközhöz a következőn: %s"
+msgstr "Csatlakozva a következő eszközhöz: „%s” (%u, %ssuspended)."
 
 #: ../src/utils/pacat.c:335
 #, c-format
@@ -1135,18 +1122,18 @@ msgid "Stream started.%s"
 msgstr "%s adatfolyam elindítva."
 
 #: ../src/utils/pacat.c:376
-#, fuzzy, c-format
+#, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s"
-msgstr "Nem sikerült megnyitni a kimeneti eszközt"
+msgstr "Az adatfolyam áthelyezve a következő eszközre: „%s” (%u, %ssuspended). %s"
 
 #: ../src/utils/pacat.c:376
 msgid "not "
 msgstr "nem"
 
 #: ../src/utils/pacat.c:383
-#, fuzzy, c-format
+#, c-format
 msgid "Stream buffer attributes changed.%s"
-msgstr "E787: A puffer váratlanul megváltozott"
+msgstr "Az adatfolyam-puffer beállításai megváltoztak: %s"
 
 #: ../src/utils/pacat.c:415
 #, c-format
@@ -1244,12 +1231,15 @@ msgid ""
 msgstr ""
 
 #: ../src/utils/pacat.c:731
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "pacat %s\n"
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
-msgstr "A program kapcsolói ütköznek"
+msgstr ""
+"pacat %s\n"
+"Összeépítve a libpulse %s programkönyvtárral\n"
+"Csatolva a libpulse %s programkönyvtárhoz\n"
 
 #: ../src/utils/pacat.c:764
 #: ../src/utils/pactl.c:953
@@ -1315,7 +1305,7 @@ msgstr "Nem sikerült megnyitni a hangfájlt."
 
 #: ../src/utils/pacat.c:959
 msgid "Warning: specified sample specification will be overwritten with specification from file."
-msgstr ""
+msgstr "Figyelmeztetés: a megadott mintavételi leírás felül lesz írva a fájlból származó mintavételi leírással."
 
 #: ../src/utils/pacat.c:962
 #: ../src/utils/pactl.c:997
@@ -1324,7 +1314,7 @@ msgstr "Nem sikerült meghatározni a mintavételi leírást a fájlból."
 
 #: ../src/utils/pacat.c:971
 msgid "Warning: Failed to determine channel map from file."
-msgstr ""
+msgstr "Figyelmeztetés: Nem sikerült meghatározni a csatornaleképzést a fájlból."
 
 #: ../src/utils/pacat.c:982
 msgid "Channel map doesn't match sample specification"
@@ -1337,7 +1327,7 @@ msgstr "Hiba történt a csatornaleképzés fájlba írása közben."
 #: ../src/utils/pacat.c:1008
 #, c-format
 msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
-msgstr ""
+msgstr "A(z) „%s” adatfolyam megnyitása a következő mintavételi leírás: „%s” és csatornaleképzés: „%s” használatával."
 
 #: ../src/utils/pacat.c:1009
 msgid "recording"
@@ -1428,12 +1418,15 @@ msgid ""
 msgstr ""
 
 #: ../src/utils/pasuspender.c:248
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "pasuspender %s\n"
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
-msgstr "A program kapcsolói ütköznek"
+msgstr ""
+"pasuspender %s\n"
+"Összeépítve a libpulse %s programkönyvtárral\n"
+"Csatolva a libpulse %s programkönyvtárhoz\n"
 
 #: ../src/utils/pasuspender.c:277
 #, c-format
@@ -1852,12 +1845,15 @@ msgid ""
 msgstr ""
 
 #: ../src/utils/pactl.c:933
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "pactl %s\n"
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
-msgstr "A program kapcsolói ütköznek"
+msgstr ""
+"pactl %s\n"
+"Összeépítve a libpulse %s programkönyvtárral\n"
+"Csatolva a libpulse %s programkönyvtárhoz\n"
 
 #: ../src/utils/pactl.c:979
 msgid "Please specify a sample file to load"
@@ -1869,7 +1865,7 @@ msgstr "Nem sikerült megnyitni az hangfájlt."
 
 #: ../src/utils/pactl.c:1004
 msgid "Warning: Failed to determine sample specification from file."
-msgstr "RGB-adat betöltése a TIFF fájlból sikertelen"
+msgstr "Figyelmeztetés: Nem sikerült meghatározni a mintavételi leírást a fájlból."
 
 #: ../src/utils/pactl.c:1014
 msgid "You have to specify a sample name to play"
@@ -1897,11 +1893,11 @@ msgstr "Meg kell adnia a modul azonosítóját."
 
 #: ../src/utils/pactl.c:1090
 msgid "You may not specify more than one sink. You have to specify a boolean value."
-msgstr ""
+msgstr "Nem adhat meg egynél több nyelőt. Egy logikai értéket kell megadnia."
 
 #: ../src/utils/pactl.c:1103
 msgid "You may not specify more than one source. You have to specify a boolean value."
-msgstr ""
+msgstr "Nem adhat meg egynél több forrást. Egy logikai értéket kell megadnia."
 
 #: ../src/utils/pactl.c:1115
 msgid "You have to specify a card name/index and a profile name"
@@ -2090,6 +2086,9 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.\n"
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail."
 msgstr ""
+"Az ALSA modul értesítése nyomán új adatokat kellett volna írni az eszközre, de jelenleg semmilyen írandó adat nincsen.\n"
+"Ez egy hiba lehet a(z) „%s” eszközmeghajtóban. Kérem jelentse ezt a problémát az ALSA fejlesztői felé.\n"
+"Az értesítés a POLLOUT jelzésen keresztül érkezett – viszont a „snd_pcm_avail()” függvény visszatérési értéke 0 volt vagy a második érték kisebb volt, mint a minimum."
 
 #: ../src/modules/alsa/alsa-source.c:506
 #: ../src/modules/alsa/alsa-source.c:656
@@ -2099,6 +2098,9 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers.\n"
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail."
 msgstr ""
+"Az ALSA modul értesítése nyomán új adatokat kellett volna olvasni az eszközről, de jelenleg semmilyen olvasandó adat nincsen.\n"
+"Ez egy hiba lehet a(z) „%s” eszközmeghajtóban. Kérem jelentse ezt a problémát az ALSA fejlesztői felé.\n"
+"Az értesítés a POLLIN jelzésen keresztül érkezett – viszont a „snd_pcm_avail()” függvény visszatérési értéke 0 volt vagy a második érték kisebb volt, mint a minimum."
 
 #: ../src/modules/alsa/module-alsa-card.c:152
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2228
