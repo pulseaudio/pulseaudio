@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-30 09:44+0000\n"
-"PO-Revision-Date: 2009-09-30 20:33+0200\n"
+"POT-Creation-Date: 2009-10-17 09:51+0000\n"
+"PO-Revision-Date: 2009-10-17 17:08+0200\n"
 "Last-Translator: Petr Kovar <pknbe@volny.cz>\n"
 "Language-Team: Czech <translation-team-cs@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -1308,7 +1308,8 @@ msgstr "Získán signál, ukončování."
 msgid "Failed to get latency: %s"
 msgstr "Nezdařilo se získat latenci: %s"
 
-#: ../src/utils/pacat.c:580, c-format
+#: ../src/utils/pacat.c:580
+#, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
 msgstr "Čas: %0.3f sekund; latence: %0.0f μs"
 
@@ -1732,7 +1733,7 @@ msgstr ""
 "\tHlasitost: %s%s%s\n"
 "\t        vyvážení %0.2f\n"
 "\tZákladní hlasitost %s%s%s\n"
-"\tZdroj monitoru: %s\n"
+"\tZdroj sledování: %s\n"
 "\tLatence: %0.0f μs, konfigurováno %0.0f μs\n"
 "\tPříznaky: %s%s%s%s%s%s\n"
 "\tVlastnosti:\n"
@@ -1786,7 +1787,7 @@ msgstr ""
 "\tHlasitost: %s%s%s\n"
 "\t        vyvážení %0.2f\n"
 "\tZákladní hlasitost %s%s%s\n"
-"\tMonitor zdroje: %s\n"
+"\tSledování zdroje: %s\n"
 "\tLatence: %0.0f μs, konfigurováno %0.0f μs\n"
 "\tPříznaky: %s%s%s%s%s%s\n"
 "\tVlastnosti:\n"
@@ -2464,11 +2465,13 @@ msgstr "Analogový výstup (LFE)"
 msgid "Analog Mono Output"
 msgstr "Analogový výstup mono"
 
-#: ../src/modules/alsa/alsa-mixer.c:1981, c-format
+#: ../src/modules/alsa/alsa-mixer.c:1981
+#, c-format
 msgid "%s+%s"
 msgstr "%s+%s"
 
-#: ../src/modules/alsa/alsa-mixer.c:1984 ../src/modules/alsa/alsa-mixer.c:3404, c-format
+#: ../src/modules/alsa/alsa-mixer.c:1984 ../src/modules/alsa/alsa-mixer.c:3404
+#, c-format
 msgid "%s / %s"
 msgstr "%s / %s"
 
