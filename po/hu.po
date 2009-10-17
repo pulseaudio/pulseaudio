@@ -169,7 +169,7 @@ msgstr "A démon a következő PID azonosítóval fut: %u"
 #: ../src/daemon/main.c:553
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr "A démon forszírozott leállítása nem sikerült: %s"
+msgstr "A démon kilövése nem sikerült: %s"
 
 #: ../src/daemon/main.c:571
 msgid "This program is not intended to be run as root (unless --system is specified)."
@@ -912,7 +912,7 @@ msgstr "A kapcsolat megszakadt."
 
 #: ../src/pulse/error.c:55
 msgid "Entity killed"
-msgstr "Egység forszírozottan leállítva"
+msgstr "Egység kilőve"
 
 #: ../src/pulse/error.c:56
 msgid "Invalid server"
@@ -2049,7 +2049,7 @@ msgstr "Kapcsolódás: %s"
 
 #: ../src/utils/pacmd.c:99
 msgid "Failed to kill PulseAudio daemon."
-msgstr "A PulseAudio démon leállítása nem sikerült."
+msgstr "A PulseAudio démon kilövése nem sikerült."
 
 #: ../src/utils/pacmd.c:107
 msgid "Daemon not responding."
