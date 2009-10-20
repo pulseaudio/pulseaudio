@@ -1513,6 +1513,11 @@ if test "x${HAVE_SIMPLEDB}" = "x1" ; then
     ENABLE_SIMPLEDB=yes
 fi
 
+ENABLE_FFTW=no
+if test "x${HAVE_FFTW}" = "x1" ; then
+   ENABLE_FFTW=yes
+fi
+
 ENABLE_OPENSSL=no
 if test "x${HAVE_OPENSSL}" = "x1" ; then
    ENABLE_OPENSSL=yes
@@ -1563,6 +1568,7 @@ echo "
     Enable tdb:                    ${ENABLE_TDB}
     Enable gdbm:                   ${ENABLE_GDBM}
     Enable simple database:        ${ENABLE_SIMPLEDB}
+    Enable fftw:                   ${ENABLE_FFTW}
 
     System User:                   ${PA_SYSTEM_USER}
     System Group:                  ${PA_SYSTEM_GROUP}
