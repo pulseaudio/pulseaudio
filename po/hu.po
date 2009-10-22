@@ -286,15 +286,15 @@ msgstr "Optimalizált összeépítés: Nem"
 
 #: ../src/daemon/main.c:758
 msgid "NDEBUG defined, all asserts disabled."
-msgstr "NDEBUG megadva, minden lehetőség letiltva."
+msgstr "NDEBUG megadva, minden érvényesítés letiltva."
 
 #: ../src/daemon/main.c:760
 msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr "FASTPATH megadva, így csak a gyors útvonalképzés lehetőségei lesznek letiltva."
+msgstr "FASTPATH megadva, így csak a gyors útvonal-érvényesítés lesz letiltva."
 
 #: ../src/daemon/main.c:762
 msgid "All asserts enabled."
-msgstr "Minden lehetőség engedélyezve."
+msgstr "Minden érvényesítés engedélyezve."
 
 #: ../src/daemon/main.c:766
 msgid "Failed to get machine ID"
