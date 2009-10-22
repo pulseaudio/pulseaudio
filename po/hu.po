@@ -26,6 +26,8 @@ msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."
 msgstr ""
+"A „snd_pcm_avail()” függvény visszatérési értéke váratlanul nagy értékű: %lu bájt (%lu ms).\n"
+"Ez egy hiba lehet az ALSA „%s” eszközmeghajtóban. Kérem jelentse ezt a problémát az ALSA fejlesztői felé."
 
 #: ../src/modules/alsa/alsa-util.c:1147
 #, c-format
@@ -33,6 +35,8 @@ msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."
 msgstr ""
+"A „snd_pcm_delay()” függvény visszatérési értéke váratlanul nagy értékű: %li bájt (%s%lu ms).\n"
+"Ez egy hiba lehet az ALSA „%s” eszközmeghajtóban. Kérem jelentse ezt a problémát az ALSA fejlesztői felé."
 
 #: ../src/modules/alsa/alsa-util.c:1194
 #, c-format
@@ -40,10 +44,12 @@ msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA developers."
 msgstr ""
+"A „snd_pcm_mmap_begin()” függvény visszatérési értéke váratlanul nagy értékű: %lu bájt (%lu ms).\n"
+"Ez egy hiba lehet az ALSA „%s” eszközmeghajtóban. Kérem jelentse ezt a problémát az ALSA fejlesztői felé."
 
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
-msgstr ""
+msgstr "Mindig maradjon meg legalább egy nyelőt, még ha az csak az üres nyelő."
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
@@ -55,7 +61,7 @@ msgstr "Látszólagos LADSPA nyelő"
 
 #: ../src/modules/module-ladspa-sink.c:53
 msgid "sink_name=<name for the sink> sink_properties=<properties for the sink> master=<name of sink to filter> format=<sample format> rate=<sample rate> channels=<number of channels> channel_map=<channel map> plugin=<ladspa plugin name> label=<ladspa plugin label> control=<comma seperated list of input control values>"
-msgstr ""
+msgstr "sink_name=<nyelő neve> sink_properties=<nyelő tulajdonságai> master=<szűrendő nyelő neve> format=<sample format> rate=<mintavételezési ráta> channels=<csatornák száma> channel_map=<csatornaleképzés> plugin=<ladspa bővítmény neve> label=<ladspa bővítmény címkéje> control=<bemenetszabályzó értékek vesszővel elválasztott listája>"
 
 #: ../src/modules/module-null-sink.c:55
 msgid "Clocked NULL sink"
@@ -146,7 +152,7 @@ msgstr "A rendszergazdai jogosultságok sikeresen visszaadva."
 
 #: ../src/daemon/main.c:279
 msgid "System wide mode unsupported on this platform."
-msgstr "A rendszerszintű üzemmód nem támogatott ezen az operációs rendszeren."
+msgstr "A rendszer üzemmód nem támogatott ezen az operációs rendszeren."
 
 #: ../src/daemon/main.c:297
 #, c-format
@@ -180,26 +186,24 @@ msgid "Root privileges required."
 msgstr "Rendszergazdai jogosultságok szükségesek."
 
 #: ../src/daemon/main.c:578
-#, fuzzy
 msgid "--start not supported for system instances."
-msgstr "A címcsalád a gépnévhez nem támogatott"
+msgstr "--start nem támogatott rendszer üzemmód használata esetén."
 
 #: ../src/daemon/main.c:583
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr ""
+msgstr "Futtatás rendszer üzemmódban, de a --disallow-exit paraméter nincs beállítva."
 
 #: ../src/daemon/main.c:586
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr ""
+msgstr "Futtatás rendszer üzemmódban, de a --disallow-module-loading paraméter nincs beállítva."
 
 #: ../src/daemon/main.c:589
-#, fuzzy
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr "A rendszeróra teszt módban nem kerül beállításra.\n"
+msgstr "Futtatás rendszer üzemmódban, az SHM üzemmód forszírozott letiltása."
 
 #: ../src/daemon/main.c:594
 msgid "Running in system mode, forcibly disabling exit idle time!"
-msgstr ""
+msgstr "Futtatás rendszer üzemmódban, kilépés üresjárati időtúllépés esetén beállítás forszírozott letiltása."
 
 #: ../src/daemon/main.c:621
 msgid "Failed to acquire stdio."
@@ -281,18 +285,16 @@ msgid "Optimized build: no"
 msgstr "Optimalizált összeépítés: Nem"
 
 #: ../src/daemon/main.c:758
-#, fuzzy
 msgid "NDEBUG defined, all asserts disabled."
-msgstr "Már minden elsődleges partíció megadásra került!\n"
+msgstr "NDEBUG megadva, minden lehetőség letiltva."
 
 #: ../src/daemon/main.c:760
 msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr ""
+msgstr "FASTPATH megadva, így csak a gyors útvonalképzés lehetőségei lesznek letiltva."
 
 #: ../src/daemon/main.c:762
-#, fuzzy
 msgid "All asserts enabled."
-msgstr "Adatok indexelése minden engedélyezett modulból"
+msgstr "Minden lehetőség engedélyezve."
 
 #: ../src/daemon/main.c:766
 msgid "Failed to get machine ID"
@@ -334,6 +336,9 @@ msgid ""
 "If you do it nonetheless then it's your own fault if things don't work as expected.\n"
 "Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an explanation why system mode is usually a bad idea."
 msgstr ""
+"A PulseAudio rendszer üzemmódban fut. Általánosságban ezen üzemmód használata nem ajánlott.\n"
+"Ha mindenképpen ilyen üzemmódban kívánja futtatni a PulseAudio rendszert, ne lepődjön meg, ha egyes funkciók esetleg nem az elvárások szerint működnek.\n"
+"További tájékoztatás: http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode amelyből megtudhatja miért nem tanácsos a rendszer üzemmód használata."
 
 #: ../src/daemon/main.c:809
 msgid "pa_pid_file_create() failed."
@@ -341,11 +346,11 @@ msgstr "A „pa_pid_file_create()” függvényhívás meghiúsult: %s"
 
 #: ../src/daemon/main.c:819
 msgid "Fresh high-resolution timers available! Bon appetit!"
-msgstr ""
+msgstr "A nagypontosságú időzítők elérhetőek."
 
 #: ../src/daemon/main.c:821
 msgid "Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!"
-msgstr ""
+msgstr "A nagypontosságú időzítők nem érhetőek el. Napjaink Linux rendszereiben érdemes engedélyezni a nagypontosságú időzítőket."
 
 #: ../src/daemon/main.c:844
 msgid "pa_core_new() failed."
@@ -357,7 +362,7 @@ msgstr "Nem sikerült előkészíteni a démont."
 
 #: ../src/daemon/main.c:909
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr ""
+msgstr "A démont noha elindult, de nem töltött be modulokat, így a hangrendszer nem üzemképes."
 
 #: ../src/daemon/main.c:926
 msgid "Daemon startup complete."
@@ -442,7 +447,7 @@ msgstr "--fail paraméter logikai értéket vár el"
 
 #: ../src/daemon/cmdline.c:264
 msgid "--log-level expects log level argument (either numeric in range 0..4 or one of debug, info, notice, warn, error)."
-msgstr ""
+msgstr "--log-level paraméter a naplózás szintjének értékét várja el (Ez lehet a 0..4 számtartomány, vagy a következők egyike: debug, info, notice, warn, error)."
 
 #: ../src/daemon/cmdline.c:276
 msgid "--high-priority expects boolean argument"
@@ -1011,7 +1016,7 @@ msgstr "Nem sikerült megnyitni a(z) „%s” konfigurációs fájlt: %s"
 
 #: ../src/pulse/context.c:550
 msgid "No cookie loaded. Attempting to connect without."
-msgstr ""
+msgstr "Nincs betölthető süti. Kísérlet a kapcsolat felvételére sütik használata nélkül."
 
 #: ../src/pulse/context.c:693
 #, c-format
@@ -1229,6 +1234,42 @@ msgid ""
 "      --file-format=FFORMAT             Record/play formatted PCM data.\n"
 "      --list-file-formats               List available file formats.\n"
 msgstr ""
+"%s [KAPCSOLÓ]\n"
+"\n"
+"  -h, --help                            Ezen súgó megjelenítése\n"
+"      --version                         Az alkalmazás verziószámának megjelenítése\n"
+"\n"
+"  -r, --record                          Kapcsolat létrehozása felvételhez\n"
+"  -p, --playback                        Kapcsolat létrehozása lejátszáshoz\n"
+"\n"
+"  -v, --verbose                         Történések részletezése\n"
+"\n"
+"  -s, --server=KISZOLGÁLÓ                   Kapcsolódás a megadott KISZOLGÁLÓ kiszolgálóhoz\n"
+"  -d, --device=ESZKÖZ                   Kapcsolódás az ESZKÖZ nevű nyelőhöz vagy forráshoz\n"
+"  -n, --client-name=NÉV                A kliens neve ezen a szerveren\n"
+"      --stream-name=NÉV                Adatfolyam neve a kiszolgálón\n"
+"      --volume=HANGERŐ                   Kezdeti (lineáris) hangerő megadása a következő tartományban: 0...65536\n"
+"      --rate=MINTAVÉTEL                 Mintavételezés érzéke Hz-ben (alapértelmezés: 44100)\n"
+"      --format=MINTAFORMÁTUM             A mintavétel típusa a következőkből: s16le, s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, s24le, s24be,\n"
+"                                        s24-32le, s24-32be (alapértelmezés: s16ne)\n"
+"      --channels=CSATORNÁK               Csatornák száma: 1 - mono, 2 - sztereó\n"
+"                                        (defaults to 2)\n"
+"      --channel-map=CSATORNALEKÉPZÉS          Az alapértelmezés helyett használandó csatornaleképzés\n"
+"      --fix-format                      Take the sample format from the sink the stream is\n"
+"                                        being connected to.\n"
+"      --fix-rate                        Take the sampling rate from the sink the stream is\n"
+"                                        being connected to.\n"
+"      --fix-channels                    Take the number of channels and the channel map\n"
+"                                        from the sink the stream is being connected to.\n"
+"      --no-remix                        Don't upmix or downmix channels.\n"
+"      --no-remap                        Map channels by index instead of name.\n"
+"      --latency=BYTES                   Request the specified latency in bytes.\n"
+"      --process-time=BYTES              Request the specified process time per request in bytes.\n"
+"      --property=PROPERTY=VALUE         Set the specified property to the specified value.\n"
+"      --raw                             Nyers PCM adatok felvétele vagy lejátszása.\n"
+"      --file-format=FORMÁTUM             FORMÁTUM alakú PCM adatok felvétele vagy lejátszása.\n"
+"      --list-file-formats               Elérhető fájlformátumok listája.\n"
 
 #: ../src/utils/pacat.c:731
 #, c-format
@@ -1416,6 +1457,11 @@ msgid ""
 "  -s, --server=SERVER                   The name of the server to connect to\n"
 "\n"
 msgstr ""
+"%s [KAPCSOLÓ] ... \n"
+"\n"
+"  -h, --help                            Megjeleníti ezt a súgót\n"
+"      --version                         Az alkalmazás verziószámának megjelenítése\n"
+"\n"
 
 #: ../src/utils/pasuspender.c:248
 #, c-format
@@ -1451,7 +1497,7 @@ msgstr "Nem sikerült a statisztika lekérdezése: %s"
 #: ../src/utils/pactl.c:141
 #, c-format
 msgid "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr ""
+msgstr "Jelenleg lefoglalt blokkok száma: %u, amely összesen %s bájtot jelent.\n"
 
 #: ../src/utils/pactl.c:144
 #, c-format
@@ -1843,6 +1889,33 @@ msgid ""
 "  -s, --server=SERVER                   The name of the server to connect to\n"
 "  -n, --client-name=NAME                How to call this client on the server\n"
 msgstr ""
+"%s [options] stat\n"
+"%s [options] list\n"
+"%s [options] exit\n"
+"%s [options] upload-sample FÁJLNÉV [NÉV]\n"
+"%s [options] play-sample NÉV [NYELŐ]\n"
+"%s [options] remove-sample NÉV\n"
+"%s [options] move-sink-input NYELŐBEMENET NYELŐ\n"
+"%s [options] move-source-output FORRÁSKIMENET FORRÁS\n"
+"%s [options] load-module NÉV [PARAMÉTEREK ...]\n"
+"%s [options] unload-module MODUL\n"
+"%s [options] suspend-sink NYELŐ 1|0\n"
+"%s [options] suspend-source FORRÁS 1|0\n"
+"%s [options] set-card-profile KÁRTYA PROFIL\n"
+"%s [options] set-sink-port NYELŐ PORT\n"
+"%s [options] set-source-port FORRÁS PORT\n"
+"%s [options] set-sink-volume NYELŐ HANGERŐ\n"
+"%s [options] set-source-volume FORRÁS HANGERŐ\n"
+"%s [options] set-sink-input-volume NYELŐBEMENET HANGERŐ\n"
+"%s [options] set-sink-mute NYELŐ 1|0\n"
+"%s [options] set-source-mute FORRÁS 1|0\n"
+"%s [options] set-sink-input-mute NYELŐBEMENET 1|0\n"
+"\n"
+"  -h, --help                            Megjeleníti ezt a súgót\n"
+"      --version                         Az alkalmazás verziószámának megjelenítése\n"
+"\n"
+"  -s, --server=KISZOLGÁLÓ                   Kapcsolódás a megadott KISZOLGÁLÓ kiszolgálóhoz\n"
+"  -n, --client-name=NÉV                A kliens neve ezen a szerveren\n"
 
 #: ../src/utils/pactl.c:933
 #, c-format
@@ -2074,9 +2147,8 @@ msgstr "Írás: %s"
 
 #: ../src/pulsecore/lock-autospawn.c:136
 #: ../src/pulsecore/lock-autospawn.c:219
-#, fuzzy
 msgid "Cannot access autospawn lock."
-msgstr "A modul nem képes megfelelően zárolni az adatokat"
+msgstr "Nem érhető zárolás az automatikus indításhoz."
 
 #: ../src/modules/alsa/alsa-sink.c:530
 #: ../src/modules/alsa/alsa-sink.c:689
@@ -2087,7 +2159,7 @@ msgid ""
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail."
 msgstr ""
 "Az ALSA modul értesítése nyomán új adatokat kellett volna írni az eszközre, de jelenleg semmilyen írandó adat nincsen.\n"
-"Ez egy hiba lehet a(z) „%s” eszközmeghajtóban. Kérem jelentse ezt a problémát az ALSA fejlesztői felé.\n"
+"Ez egy hiba lehet az ALSA „%s” eszközmeghajtóban. Kérem jelentse ezt a problémát az ALSA fejlesztői felé.\n"
 "Az értesítés a POLLOUT jelzésen keresztül érkezett – viszont a „snd_pcm_avail()” függvény visszatérési értéke 0 volt vagy a második érték kisebb volt, mint a minimum."
 
 #: ../src/modules/alsa/alsa-source.c:506
@@ -2099,7 +2171,7 @@ msgid ""
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail."
 msgstr ""
 "Az ALSA modul értesítése nyomán új adatokat kellett volna olvasni az eszközről, de jelenleg semmilyen olvasandó adat nincsen.\n"
-"Ez egy hiba lehet a(z) „%s” eszközmeghajtóban. Kérem jelentse ezt a problémát az ALSA fejlesztői felé.\n"
+"Ez egy hiba lehet az ALSA „%s” eszközmeghajtóban. Kérem jelentse ezt a problémát az ALSA fejlesztői felé.\n"
 "Az értesítés a POLLIN jelzésen keresztül érkezett – viszont a „snd_pcm_avail()” függvény visszatérési értéke 0 volt vagy a második érték kisebb volt, mint a minimum."
 
 #: ../src/modules/alsa/module-alsa-card.c:152
