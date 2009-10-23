@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-10-22 16:22+0000\n"
-"PO-Revision-Date: 2009-10-22 18:19-0300\n"
+"POT-Creation-Date: 2009-10-23 09:53+0000\n"
+"PO-Revision-Date: 2009-10-23 14:42-0300\n"
 "Last-Translator: Igor Pires Soares <igor@projetofedora.org>\n"
 "Language-Team: Brazilian-Portuguese <fedora-trans-pt_br@redhat.com>\n"
 "MIME-Version: 1.0\n"
@@ -697,7 +697,7 @@ msgstr "Mono"
 
 #: ../src/pulse/channelmap.c:107
 msgid "Front Center"
-msgstr "Fronto-cental"
+msgstr "Frontal central"
 
 #: ../src/pulse/channelmap.c:108
 msgid "Front Left"
@@ -869,31 +869,31 @@ msgstr "Auxiliar 31"
 
 #: ../src/pulse/channelmap.c:156
 msgid "Top Center"
-msgstr "Central Superior"
+msgstr "Central superior"
 
 #: ../src/pulse/channelmap.c:158
 msgid "Top Front Center"
-msgstr "Central Frontal Superior"
+msgstr "Central frontal superior"
 
 #: ../src/pulse/channelmap.c:159
 msgid "Top Front Left"
-msgstr "Frontal Superior Esquerdo"
+msgstr "Frontal superior esquerdo"
 
 #: ../src/pulse/channelmap.c:160
 msgid "Top Front Right"
-msgstr "Fontal Superior Direito"
+msgstr "Fontal superior direito"
 
 #: ../src/pulse/channelmap.c:162
 msgid "Top Rear Center"
-msgstr "Central Superior Posterior"
+msgstr "Central superior posterior"
 
 #: ../src/pulse/channelmap.c:163
 msgid "Top Rear Left"
-msgstr "Posterior Superior Esquerdo"
+msgstr "Posterior superior esquerdo"
 
 #: ../src/pulse/channelmap.c:164
 msgid "Top Rear Right"
-msgstr "Posterior Superior Direito"
+msgstr "Posterior superior direito"
 
 #: ../src/pulse/channelmap.c:484
 #: ../src/pulse/sample.c:170
@@ -934,7 +934,7 @@ msgstr "OK"
 
 #: ../src/pulse/error.c:44
 msgid "Access denied"
-msgstr "Acesso Negado"
+msgstr "Acesso negado"
 
 #: ../src/pulse/error.c:45
 msgid "Unknown command"
@@ -1246,9 +1246,9 @@ msgid "Failed to get latency: %s"
 msgstr "Falha ao obter a latência: %s"
 
 #: ../src/utils/pacat.c:580
-#, fuzzy, c-format
+#, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr "Tempo: %0.3f s; Latência: %0.0f us.  \r"
+msgstr "Tempo: %0.3f sec;; Latência: %0.0f usec."
 
 #: ../src/utils/pacat.c:599
 #, c-format
@@ -1552,9 +1552,9 @@ msgid "pa_mainloop_run() failed.\n"
 msgstr "pa_mainloop_run() falhou.\n"
 
 #: ../src/utils/pactl.c:135
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get statistics: %s"
-msgstr "Falha em obter as estatísticas: %s\n"
+msgstr "Falha ao obter estatísticas: %s"
 
 #: ../src/utils/pactl.c:141
 #, c-format
@@ -1572,9 +1572,9 @@ msgid "Sample cache size: %s\n"
 msgstr "Tamanho do cache para amostragem: %s\n"
 
 #: ../src/utils/pactl.c:156
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get server information: %s"
-msgstr "Falha em obter a informação do servidor: %s\n"
+msgstr "Falha ao obter informações do servidor: %s"
 
 #: ../src/utils/pactl.c:164
 #, c-format
@@ -1600,9 +1600,9 @@ msgstr ""
 "Cookie: %08x\n"
 
 #: ../src/utils/pactl.c:205
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get sink information: %s"
-msgstr "Falha em obter a informação do destino: %s\n"
+msgstr "Falha ao obter informações do destino: %s"
 
 #: ../src/utils/pactl.c:221
 #, c-format
@@ -1656,9 +1656,9 @@ msgid "\tActive Port: %s\n"
 msgstr "\tPorta ativa: %s\n"
 
 #: ../src/utils/pactl.c:297
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get source information: %s"
-msgstr "Falha em obter a informação da fonte: %s\n"
+msgstr "Falha ao obter informações da fonte: %s"
 
 #: ../src/utils/pactl.c:313
 #, c-format
@@ -1716,9 +1716,9 @@ msgid "n/a"
 msgstr "n/a"
 
 #: ../src/utils/pactl.c:375
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get module information: %s"
-msgstr "Falha em obter a informação do módulo: %s\n"
+msgstr "Falha ao obter informações do módulo: %s"
 
 #: ../src/utils/pactl.c:393
 #, c-format
@@ -1738,9 +1738,9 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:412
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get client information: %s"
-msgstr "Falhou ao obter a informação do cliente: %s\n"
+msgstr "Falha ao obter informações do cliente: %s"
 
 #: ../src/utils/pactl.c:430
 #, c-format
@@ -1758,9 +1758,9 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:447
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get card information: %s"
-msgstr "Falha ao obter as informações da placa: %s\n"
+msgstr "Falha ao obter informações da placa: %s"
 
 #: ../src/utils/pactl.c:465
 #, c-format
@@ -1790,9 +1790,9 @@ msgid "\tActive Profile: %s\n"
 msgstr "\tPerfil ativo: %s\n"
 
 #: ../src/utils/pactl.c:496
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get sink input information: %s"
-msgstr "Falha na obtenção da informação de entrada do destino: %s\n"
+msgstr "Falha ao obter informações da entrada do destino: %s"
 
 #: ../src/utils/pactl.c:515
 #, c-format
@@ -1832,9 +1832,9 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:554
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get source output information: %s"
-msgstr "Falha em obter informações sobre a saída da fonte: %s\n"
+msgstr "Falha ao obter informações da saída da fonte: %s"
 
 #: ../src/utils/pactl.c:574
 #, c-format
@@ -1866,9 +1866,9 @@ msgstr ""
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:605
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get sample information: %s"
-msgstr "Falha em obter informações sobre a amostragem: %s\n"
+msgstr "Falha ao obter informações sobre a amostragem: %s"
 
 #: ../src/utils/pactl.c:623
 #, c-format
@@ -1903,27 +1903,25 @@ msgstr ""
 
 #: ../src/utils/pactl.c:653
 #: ../src/utils/pactl.c:663
-#, fuzzy, c-format
+#, c-format
 msgid "Failure: %s"
-msgstr "Falha: %s\n"
+msgstr "Falha: %s"
 
 #: ../src/utils/pactl.c:687
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to upload sample: %s"
-msgstr "Falha em carregar a amostra: %s\n"
+msgstr "Falha ao enviar a amostra: %s"
 
 #: ../src/utils/pactl.c:704
-#, fuzzy
 msgid "Premature end of file"
-msgstr "Fim prematuro do arquivo\n"
+msgstr "Fim prematuro do arquivo"
 
 #: ../src/utils/pactl.c:863
-#, fuzzy
 msgid "Got SIGINT, exiting."
-msgstr "Recebido o SIGINT, saindo.\n"
+msgstr "SIGINT recebido, saindo."
 
 #: ../src/utils/pactl.c:869
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] stat\n"
 "%s [options] list\n"
@@ -1959,21 +1957,27 @@ msgstr ""
 "%s [opções] upload-sample NOME_DO_ARQUIVO [NOME]\n"
 "%s [opções] play-sample NOME [DESTINO]\n"
 "%s [opções] remove-sample NOME\n"
-"%s [opções] move-sink-input ID DESTINO\n"
-"%s [opções] move-source-output ID FONTE\n"
+"%s [opções] move-sink-input ENTRADA DESTINO\n"
+"%s [opções] move-source-output SAÍDA FONTE\n"
 "%s [opções] load-module NOME [ARGS ...]\n"
-"%s [opções] unload-module ID\n"
+"%s [opções] unload-module MÓDULO\n"
 "%s [opções] suspend-sink [DESTINO] 1|0\n"
 "%s [opções] suspend-source [FONTE] 1|0\n"
-"%s [opções] set-card-profile [PLACA] [PERFIL] \n"
-"%s [opções] set-sink-port [DESTINO] [PORTA] \n"
-"%s [opções] set-source-port [FONTE] [PORTA] \n"
+"%s [opções] set-card-profile [PLACA] [PERFIL]\n"
+"%s [opções] set-sink-port [DESTINO] [PORTA]\n"
+"%s [opções] set-source-port [FONTE] [PORTA]\n"
+"%s [opções] set-sink-volume DESTINO VOLUME\n"
+"%s [opções] set-source-volume FONTE VOLUME\n"
+"%s [opções] set-sink-input-volume ENTRADA VOLUME\n"
+"%s [opções] set-sink-mute DESTINO 1|0\n"
+"%s [opções] set-source-mute FONTE 1|0\n"
+"%s [opções] set-sink-input-mute ENTRADA 1|0\n"
 "\n"
 "  -h, --help                            Mostra essa ajuda\n"
 "      --version                        Mostra a versão\n"
 "\n"
-"  -s, --server=SERVER                   O nome do servidor a ser conectado\n"
-"  -n, --client-name=NAME                Como chamar este cliente no servidor \n"
+"  -s, --server=SERVIDOR                   O nome do servidor a ser conectado\n"
+"  -n, --client-name=NOME                Como chamar este cliente no servidor \n"
 
 #: ../src/utils/pactl.c:933
 #, c-format
@@ -1987,79 +1991,64 @@ msgstr ""
 "Linkado com libpulse %s\n"
 
 #: ../src/utils/pactl.c:979
-#, fuzzy
 msgid "Please specify a sample file to load"
-msgstr "Por favor, especifique o arquivo de amostra a ser carregado\n"
+msgstr "Por favor, especifique um arquivo de amostra a ser carregado"
 
 #: ../src/utils/pactl.c:992
-#, fuzzy
 msgid "Failed to open sound file."
-msgstr "Falha em abrir o arquivo de som.\n"
+msgstr "Falha ao abrir o arquivo de som."
 
 #: ../src/utils/pactl.c:1004
-#, fuzzy
 msgid "Warning: Failed to determine sample specification from file."
-msgstr "Aviso: falha ao determinar a especificação da amostragem a partir do arquivo.\n"
+msgstr "Aviso: falha ao determinar a especificação da amostragem a partir do arquivo."
 
 #: ../src/utils/pactl.c:1014
-#, fuzzy
 msgid "You have to specify a sample name to play"
-msgstr "Você deve especificar um nome da amostra para ser executada\n"
+msgstr "Você deve especificar um nome para amostra a ser reproduzida"
 
 #: ../src/utils/pactl.c:1026
-#, fuzzy
 msgid "You have to specify a sample name to remove"
-msgstr "Você deve especificar um nome da amostra para ser removida\n"
+msgstr "Você deve especificar um nome para a amostra a ser removida"
 
 #: ../src/utils/pactl.c:1035
-#, fuzzy
 msgid "You have to specify a sink input index and a sink"
-msgstr "Você tem que especificar a entrada para o destino e um destino\n"
+msgstr "Você deve especificar a entrada do destino e um destino"
 
 #: ../src/utils/pactl.c:1045
-#, fuzzy
 msgid "You have to specify a source output index and a source"
-msgstr "Você tem que especificar um índice de saída da fonte e uma fonte\n"
+msgstr "Você deve especificar um índice de saída da fonte e uma fonte"
 
 #: ../src/utils/pactl.c:1060
-#, fuzzy
 msgid "You have to specify a module name and arguments."
-msgstr "Você deve especificar um nome do módulo e seus argumentos\n"
+msgstr "Você deve especificar um nome para o módulo e seus argumentos."
 
 #: ../src/utils/pactl.c:1080
-#, fuzzy
 msgid "You have to specify a module index"
-msgstr "Você deve especificar um índice de um módulo\n"
+msgstr "Você deve especificar um índice do módulo"
 
 #: ../src/utils/pactl.c:1090
-#, fuzzy
 msgid "You may not specify more than one sink. You have to specify a boolean value."
-msgstr "Você não pode especificar mais de um destino. Você tem que especificar um valor booleano.\n"
+msgstr "Você não pode especificar mais de um destino. Você deve especificar um valor booleano."
 
 #: ../src/utils/pactl.c:1103
-#, fuzzy
 msgid "You may not specify more than one source. You have to specify a boolean value."
-msgstr "Você não pode especificar mais de uma fonte. Você tem que especificar um valor booleano.\n"
+msgstr "Você não pode especificar mais de uma fonte. Você deve especificar um valor booleano."
 
 #: ../src/utils/pactl.c:1115
-#, fuzzy
 msgid "You have to specify a card name/index and a profile name"
-msgstr "Você tem que especificar um nome/índice da placa e um nome de perfil\n"
+msgstr "Você deve especificar um nome/índice para a placa e um nome de perfil"
 
 #: ../src/utils/pactl.c:1126
-#, fuzzy
 msgid "You have to specify a sink name/index and a port name"
-msgstr "Você tem que especificar um nome/índice do destino e o nome da porta\n"
+msgstr "Você deve especificar um nome/índice do destino e o nome da porta"
 
 #: ../src/utils/pactl.c:1137
-#, fuzzy
 msgid "You have to specify a source name/index and a port name"
-msgstr "Você tem que especificar um nome/índice da fonte e o nome da porta\n"
+msgstr "Você deve especificar um nome/índice da fonte e o nome da porta"
 
 #: ../src/utils/pactl.c:1149
-#, fuzzy
 msgid "You have to specify a sink name/index and a volume"
-msgstr "Você tem que especificar um nome/índice do destino e o nome da porta\n"
+msgstr "Você deve especificar um nome/índice do destino e um volume"
 
 #: ../src/utils/pactl.c:1154
 #: ../src/utils/pactl.c:1171
@@ -2067,48 +2056,40 @@ msgstr "Você tem que especificar um nome/índice do destino e o nome da porta\n
 #: ../src/utils/pactl.c:1209
 #: ../src/utils/pactl.c:1226
 #: ../src/utils/pactl.c:1248
-#, fuzzy
 msgid "Invalid volume specification"
-msgstr "Especificação de amostragem inválida"
+msgstr "Especificação de volume inválida"
 
 #: ../src/utils/pactl.c:1166
-#, fuzzy
 msgid "You have to specify a source name/index and a volume"
-msgstr "Você tem que especificar um nome/índice da fonte e o nome da porta\n"
+msgstr "Você deve especificar um nome/índice da fonte e um volume"
 
 #: ../src/utils/pactl.c:1183
-#, fuzzy
 msgid "You have to specify a sink input index and a volume"
-msgstr "Você tem que especificar a entrada para o destino e um destino\n"
+msgstr "Você deve especificar um índice de entrada para o destino e um volume"
 
 #: ../src/utils/pactl.c:1188
 msgid "Invalid sink input index"
 msgstr "Índice de entrada de destino inválido"
 
 #: ../src/utils/pactl.c:1204
-#, fuzzy
 msgid "You have to specify a sink name/index and a mute boolean"
-msgstr "Você tem que especificar um nome/índice do destino e o nome da porta\n"
+msgstr "Você deve especificar um nome/índice do destino e um booleano do mudo"
 
 #: ../src/utils/pactl.c:1221
-#, fuzzy
 msgid "You have to specify a source name/index and a mute boolean"
-msgstr "Você tem que especificar um nome/índice da fonte e o nome da porta\n"
+msgstr "Você deve especificar um nome/índice da fonte e um booleano do mudo"
 
 #: ../src/utils/pactl.c:1238
-#, fuzzy
 msgid "You have to specify a sink input index and a mute boolean"
-msgstr "Você tem que especificar a entrada para o destino e um destino\n"
+msgstr "Você deve especificar um índice de entrada para o destino e um booleano do mudo"
 
 #: ../src/utils/pactl.c:1243
-#, fuzzy
 msgid "Invalid sink input index specification"
-msgstr "Especificação de amostragem inválida"
+msgstr "Especificação do índice de entrada de destino inválida"
 
 #: ../src/utils/pactl.c:1262
-#, fuzzy
 msgid "No valid command specified."
-msgstr "Nenhum comando válido especificado.\n"
+msgstr "Nenhum comando válido especificado."
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2266,9 +2247,8 @@ msgid "High Fidelity Playback (A2DP)"
 msgstr "Reprodução de alta fidelidade (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2198
-#, fuzzy
 msgid "High Fidelity Capture (A2DP)"
-msgstr "Reprodução de alta fidelidade (A2DP)"
+msgstr "Captura de alta fidelidade (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2213
 msgid "Telephony Duplex (HSP/HFP)"
@@ -2317,9 +2297,8 @@ msgid "External Microphone"
 msgstr "Microfone externo"
 
 #: ../src/modules/alsa/alsa-mixer.c:1707
-#, fuzzy
 msgid "Internal Microphone"
-msgstr "Áudio interno"
+msgstr "Microfone interno"
 
 #: ../src/modules/alsa/alsa-mixer.c:1708
 msgid "Radio"
@@ -2390,79 +2369,67 @@ msgid "Analog Mono Output"
 msgstr "Saída analógica monofônica"
 
 #: ../src/modules/alsa/alsa-mixer.c:1981
-#, fuzzy, c-format
+#, c-format
 msgid "%s+%s"
-msgstr "%s %s"
+msgstr "%s+%s"
 
 #: ../src/modules/alsa/alsa-mixer.c:1984
 #: ../src/modules/alsa/alsa-mixer.c:3404
-#, fuzzy, c-format
+#, c-format
 msgid "%s / %s"
-msgstr "%s %s"
+msgstr "%s / %s"
 
 #: ../src/modules/alsa/alsa-mixer.c:2790
 msgid "Analog Mono"
 msgstr "Monofônico analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:2791
-#, fuzzy
 msgid "Analog Stereo"
-msgstr "Stereo"
+msgstr "Estéreo analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:2792
-#, fuzzy
 msgid "Analog Surround 2.1"
-msgstr "Surround 4.1"
+msgstr "Surround analógico 2.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2793
-#, fuzzy
 msgid "Analog Surround 3.0"
-msgstr "Surround 4.0"
+msgstr "Surround analógico 3.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2794
-#, fuzzy
 msgid "Analog Surround 3.1"
-msgstr "Surround 4.1"
+msgstr "Surround analógico 3.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2795
-#, fuzzy
 msgid "Analog Surround 4.0"
-msgstr "Surround 4.0"
+msgstr "Surround analógico 4.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2796
-#, fuzzy
 msgid "Analog Surround 4.1"
-msgstr "Surround 4.1"
+msgstr "Surround analógico 4.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2797
-#, fuzzy
 msgid "Analog Surround 5.0"
-msgstr "Surround 5.0"
+msgstr "Surround analógico 5.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2798
-#, fuzzy
 msgid "Analog Surround 5.1"
-msgstr "Surround 5.1"
+msgstr "Surround analógico 5.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2799
-#, fuzzy
 msgid "Analog Surround 6.0"
-msgstr "Surround 4.0"
+msgstr "Surround analógico 6.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2800
-#, fuzzy
 msgid "Analog Surround 6.1"
-msgstr "Surround 4.1"
+msgstr "Surround analógico 6.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2801
-#, fuzzy
 msgid "Analog Surround 7.0"
-msgstr "Surround 4.0"
+msgstr "Surround analógico 7.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2802
-#, fuzzy
 msgid "Analog Surround 7.1"
-msgstr "Surround 7.1"
+msgstr "Surround analógico 7.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2803
 msgid "Digital Stereo (IEC958)"
