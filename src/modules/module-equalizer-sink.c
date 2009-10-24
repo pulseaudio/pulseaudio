@@ -571,7 +571,6 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     }else{
         //allocate request_size + overlap
         target_samples += u->overlap_size;
-        alloc_input_buffers(u, target_samples);
     }
     alloc_input_buffers(u, target_samples);
     chunk->memblock = NULL;
