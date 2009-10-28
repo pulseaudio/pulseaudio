@@ -401,7 +401,22 @@ int pa_stream_is_suspended(pa_stream *s);
  * not, and negative on error. \since 0.9.11 */
 int pa_stream_is_corked(pa_stream *s);
 
-/** Connect the stream to a sink */
+/** Connect the stream to a sink. It is strongly recommended to pass
+ * NULL in both dev and volume and not to set either
+ * PA_STREAM_START_MUTED nor PA_STREAM_START_UNMUTED -- unless these
+ * options are directly dependant on user input or configuration. If
+ * you follow this rule then the sound server will have the full
+ * flexibility to choose the device, volume and mute status
+ * automatically, based on server-side policies, heuristics and stored
+ * information from previous uses. Also the server may choose to
+ * reconfigure audio devices to make other sinks/sources or
+ * capabilities available to be able to accept the stream. Before
+ * 0.9.20 it was not defined whether the 'volume' parameter was
+ * interpreted relative to the sink's current volume or treated as
+ * absolute device volume. Since 0.9.20 it is an absolute volume when
+ * the sink is in flat volume mode, and relative otherwise, thus
+ * making sure the volume passed here has always the same semantics as
+ * the volume passed to pa_context_set_sink_input_volume(). */
 int pa_stream_connect_playback(
         pa_stream *s                  /**< The stream to connect to a sink */,
         const char *dev               /**< Name of the sink to connect to, or NULL for default */ ,
