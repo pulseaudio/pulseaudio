@@ -180,7 +180,7 @@ static void get_server_info_callback(pa_context *c, const pa_server_info *i, voi
              "Default Channel Map: %s\n"
              "Default Sink: %s\n"
              "Default Source: %s\n"
-             "Cookie: %08x\n"),
+             "Cookie: %04x:%04x\n"),
            i->user_name,
            i->host_name,
            i->server_name,
@@ -189,7 +189,8 @@ static void get_server_info_callback(pa_context *c, const pa_server_info *i, voi
            cm,
            i->default_sink_name,
            i->default_source_name,
-           i->cookie);
+           i->cookie >> 16,
+           i->cookie & 0xFFFFU);
 
     complete_action();
 }
