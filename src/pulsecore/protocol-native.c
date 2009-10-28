@@ -1044,15 +1044,21 @@ static playback_stream* playback_stream_new(
     data.driver = __FILE__;
     data.module = c->options->module;
     data.client = c->client;
-    data.sink = sink;
+    if (sink) {
+        data.sink = sink;
+        data.save_sink = TRUE;
+    }
     pa_sink_input_new_data_set_sample_spec(&data, ss);
     pa_sink_input_new_data_set_channel_map(&data, map);
     if (volume) {
         pa_sink_input_new_data_set_volume(&data, volume);
         data.volume_is_absolute = TRUE;
+        data.save_volume = TRUE;
     }
-    if (muted_set)
+    if (muted_set) {
         pa_sink_input_new_data_set_muted(&data, muted);
+        data.save_muted = TRUE;
+    }
     data.sync_base = ssync ? ssync->sink_input : NULL;
     data.flags = flags;
 
