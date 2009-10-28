@@ -1488,6 +1488,7 @@ pa_time_event* pa_context_rttime_new(pa_context *c, pa_usec_t usec, pa_time_even
     struct timeval tv;
 
     pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
     pa_assert(c->mainloop);
 
     if (usec == PA_USEC_INVALID)
@@ -1502,7 +1503,9 @@ void pa_context_rttime_restart(pa_context *c, pa_time_event *e, pa_usec_t usec) 
     struct timeval tv;
 
     pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
     pa_assert(c->mainloop);
+
 
     if (usec == PA_USEC_INVALID)
         c->mainloop->time_restart(e, NULL);
@@ -1510,4 +1513,18 @@ void pa_context_rttime_restart(pa_context *c, pa_time_event *e, pa_usec_t usec) 
         pa_timeval_rtstore(&tv, usec, c->use_rtclock);
         c->mainloop->time_restart(e, &tv);
     }
+}
+
+size_t pa_context_get_tile_size(pa_context *c, const pa_sample_spec *ss) {
+    size_t fs, mbs;
+
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_ANY(c, !pa_detect_fork(), PA_ERR_FORKED, (size_t) -1);
+    PA_CHECK_VALIDITY_RETURN_ANY(c, !ss || pa_sample_spec_valid(ss), PA_ERR_INVALID, (size_t) -1);
+
+    fs = ss ? pa_frame_size(ss) : 1;
+    mbs = PA_ROUND_DOWN(pa_mempool_block_size_max(c->mempool), fs);
+    return PA_MAX(mbs, fs);
 }

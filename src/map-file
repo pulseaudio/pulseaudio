@@ -66,6 +66,7 @@ pa_context_get_source_info_list;
 pa_context_get_source_output_info;
 pa_context_get_source_output_info_list;
 pa_context_get_state;
+pa_context_get_tile_size;
 pa_context_is_local;
 pa_context_is_pending;
 pa_context_kill_client;
