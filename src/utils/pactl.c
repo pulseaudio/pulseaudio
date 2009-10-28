@@ -44,8 +44,6 @@
 #include <pulsecore/log.h>
 #include <pulsecore/sndfile-util.h>
 
-#define BUFSIZE (16*1024)
-
 static pa_context *context = NULL;
 static pa_mainloop_api *mainloop_api = NULL;
 
