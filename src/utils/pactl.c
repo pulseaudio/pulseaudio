@@ -156,10 +156,23 @@ static void get_server_info_callback(pa_context *c, const pa_server_info *i, voi
         return;
     }
 
+    printf(_("Server String: %s\n"
+             "Library Protocol Version: %u\n"
+             "Server Protocol Version: %u\n"
+             "Is Local: %s\n"
+             "Client Index: %u\n"
+             "Tile Size: %zu\n"),
+             pa_context_get_server(c),
+             pa_context_get_protocol_version(c),
+             pa_context_get_server_protocol_version(c),
+             pa_yes_no(pa_context_is_local(c)),
+             pa_context_get_index(c),
+             pa_context_get_tile_size(c, NULL));
+
     pa_sample_spec_snprint(ss, sizeof(ss), &i->sample_spec);
     pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map);
 
-    printf(_("User name: %s\n"
+    printf(_("User Name: %s\n"
              "Host Name: %s\n"
              "Server Name: %s\n"
              "Server Version: %s\n"
