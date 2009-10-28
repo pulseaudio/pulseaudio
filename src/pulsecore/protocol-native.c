@@ -1047,8 +1047,10 @@ static playback_stream* playback_stream_new(
     data.sink = sink;
     pa_sink_input_new_data_set_sample_spec(&data, ss);
     pa_sink_input_new_data_set_channel_map(&data, map);
-    if (volume)
+    if (volume) {
         pa_sink_input_new_data_set_volume(&data, volume);
+        data.volume_is_absolute = TRUE;
+    }
     if (muted_set)
         pa_sink_input_new_data_set_muted(&data, muted);
     data.sync_base = ssync ? ssync->sink_input : NULL;
