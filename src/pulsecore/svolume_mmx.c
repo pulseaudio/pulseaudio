@@ -25,6 +25,8 @@
 #endif
 
 #include <pulse/timeval.h>
+#include <pulse/rtclock.h>
+
 #include <pulsecore/random.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/g711.h>
@@ -287,6 +289,8 @@ static void run_test (void) {
     }
     stop = pa_rtclock_now();
     pa_log_info("ref: %llu usec.", (long long unsigned int)(stop - start));
+
+    pa_assert_se(memcmp(samples_ref, samples, sizeof(samples)) == 0);
 }
 #endif
 

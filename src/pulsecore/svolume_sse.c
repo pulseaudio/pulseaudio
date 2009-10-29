@@ -25,6 +25,8 @@
 #endif
 
 #include <pulse/timeval.h>
+#include <pulse/rtclock.h>
+
 #include <pulsecore/random.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/g711.h>
@@ -261,7 +263,7 @@ static void run_test (void) {
 
     func = pa_get_volume_func (PA_SAMPLE_S16NE);
 
-    printf ("checking SSE %zd\n", sizeof (samples));
+    printf ("checking SSE2 %zd\n", sizeof (samples));
 
     pa_random (samples, sizeof (samples));
     memcpy (samples_ref, samples, sizeof (samples));
@@ -273,7 +275,7 @@ static void run_test (void) {
         volumes[i] = volumes[padding];
 
     func (samples_ref, volumes, CHANNELS, sizeof (samples));
-    pa_volume_s16ne_sse (samples, volumes, CHANNELS, sizeof (samples));
+    pa_volume_s16ne_sse2 (samples, volumes, CHANNELS, sizeof (samples));
     for (i = 0; i < SAMPLES; i++) {
         if (samples[i] != samples_ref[i]) {
             printf ("%d: %04x != %04x (%04x * %04x)\n", i, samples[i], samples_ref[i],
@@ -284,7 +286,7 @@ static void run_test (void) {
     start = pa_rtclock_now();
     for (j = 0; j < TIMES; j++) {
         memcpy (samples, samples_orig, sizeof (samples));
-        pa_volume_s16ne_sse (samples, volumes, CHANNELS, sizeof (samples));
+        pa_volume_s16ne_sse2 (samples, volumes, CHANNELS, sizeof (samples));
     }
     stop = pa_rtclock_now();
     pa_log_info("SSE: %llu usec.", (long long unsigned int)(stop - start));
@@ -296,6 +298,8 @@ static void run_test (void) {
     }
     stop = pa_rtclock_now();
     pa_log_info("ref: %llu usec.", (long long unsigned int)(stop - start));
+
+    pa_assert_se(memcmp(samples_ref, samples, sizeof(samples)) == 0);
 }
 #endif
 #endif /* defined (__i386__) || defined (__amd64__) */
