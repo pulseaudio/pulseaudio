@@ -196,6 +196,13 @@ static double avg_gradient(pa_smoother *s, pa_usec_t x) {
     int64_t ax = 0, ay = 0, k, t;
     double r;
 
+    /* FIXME: Optimization: Jason Newton suggested that instead of
+     * going through the history on each iteration we could calculated
+     * avg_gradient() as we go.
+     *
+     * Second idea: it might make sense to weight history entries:
+     * more recent entries should matter more than old ones. */
+
     /* Too few measurements, assume gradient of 1 */
     if (s->n_history < s->min_history)
         return 1;
