@@ -926,18 +926,16 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
 
         pa_sw_cvolume_multiply(&volume, &s->thread_info.soft_volume, &info[0].volume);
 
-        if (s->thread_info.soft_muted || !pa_cvolume_is_norm(&volume)) {
-            if (s->thread_info.soft_muted || pa_cvolume_is_muted(&volume)) {
-                pa_memblock_unref(result->memblock);
-                pa_silence_memchunk_get(&s->core->silence_cache,
-                                        s->core->mempool,
-                                        result,
-                                        &s->sample_spec,
-                                        result->length);
-            } else {
-                pa_memchunk_make_writable(result, 0);
-                pa_volume_memchunk(result, &s->sample_spec, &volume);
-            }
+        if (s->thread_info.soft_muted || pa_cvolume_is_muted(&volume)) {
+            pa_memblock_unref(result->memblock);
+            pa_silence_memchunk_get(&s->core->silence_cache,
+                                    s->core->mempool,
+                                    result,
+                                    &s->sample_spec,
+                                    result->length);
+        } else if (!pa_cvolume_is_norm(&volume)) {
+            pa_memchunk_make_writable(result, 0);
+            pa_volume_memchunk(result, &s->sample_spec, &volume);
         }
     } else {
         void *ptr;
