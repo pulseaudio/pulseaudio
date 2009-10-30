@@ -2896,7 +2896,7 @@ int pa_open_cloexec(const char *fn, int flags, mode_t mode) {
 
 #ifdef O_CLOEXEC
     if ((fd = open(fn, flags|O_CLOEXEC, mode)) >= 0)
-        return fd;
+        goto finish;
 
     if (errno != EINVAL)
         return fd;
@@ -2904,6 +2904,10 @@ int pa_open_cloexec(const char *fn, int flags, mode_t mode) {
 
     if ((fd = open(fn, flags, mode)) < 0)
         return fd;
+
+finish:
+    /* Some implementations might simply ignore O_CLOEXEC if it is not
+     * understood, make sure FD_CLOEXEC is enabled anyway */
 
     pa_make_fd_cloexec(fd);
     return fd;
@@ -2914,7 +2918,7 @@ int pa_socket_cloexec(int domain, int type, int protocol) {
 
 #ifdef SOCK_CLOEXEC
     if ((fd = socket(domain, type | SOCK_CLOEXEC, protocol)) >= 0)
-        return fd;
+        goto finish;
 
     if (errno != EINVAL)
         return fd;
@@ -2922,6 +2926,10 @@ int pa_socket_cloexec(int domain, int type, int protocol) {
 
     if ((fd = socket(domain, type, protocol)) < 0)
         return fd;
+
+finish:
+    /* Some implementations might simply ignore SOCK_CLOEXEC if it is
+     * not understood, make sure FD_CLOEXEC is enabled anyway */
 
     pa_make_fd_cloexec(fd);
     return fd;
@@ -2932,7 +2940,7 @@ int pa_pipe_cloexec(int pipefd[2]) {
 
 #ifdef HAVE_PIPE2
     if ((r = pipe2(pipefd, O_CLOEXEC)) >= 0)
-        return r;
+        goto finish;
 
     if (errno != EINVAL && errno != ENOSYS)
         return r;
@@ -2941,6 +2949,7 @@ int pa_pipe_cloexec(int pipefd[2]) {
     if ((r = pipe(pipefd)) < 0)
         return r;
 
+finish:
     pa_make_fd_cloexec(pipefd[0]);
     pa_make_fd_cloexec(pipefd[1]);
 
