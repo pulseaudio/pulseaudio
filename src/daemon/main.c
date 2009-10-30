@@ -425,21 +425,24 @@ int main(int argc, char *argv[]) {
 
         pa_set_env("LD_BIND_NOW", "1");
 
-        canonical_rp = pa_realpath(PA_BINARY);
+        if (!(canonical_rp = pa_realpath(PA_BINARY))) {
 
-        if ((rp = pa_readlink("/proc/self/exe"))) {
+            if ((rp = pa_readlink("/proc/self/exe"))) {
 
-            if (pa_streq(rp, canonical_rp))
-                pa_assert_se(execv(rp, argv) == 0);
-            else
-                pa_log_warn("/proc/self/exe does not point to %s, cannot self execute. Are you playing games?", canonical_rp);
+                if (pa_streq(rp, canonical_rp))
+                    pa_assert_se(execv(rp, argv) == 0);
+                else
+                    pa_log_warn("/proc/self/exe does not point to %s, cannot self execute. Are you playing games?", canonical_rp);
 
-            pa_xfree(rp);
+                pa_xfree(rp);
+
+            } else
+                pa_log_warn("Couldn't read /proc/self/exe, cannot self execute. Running in a chroot()?");
+
+            pa_xfree(canonical_rp);
 
         } else
-            pa_log_warn("Couldn't read /proc/self/exe, cannot self execute. Running in a chroot()?");
-
-        pa_xfree(canonical_rp);
+            pa_log_warn("Couldn't canonicalize binary path, cannot self execute.");
     }
 #endif
 
