@@ -425,7 +425,7 @@ int main(int argc, char *argv[]) {
 
         pa_set_env("LD_BIND_NOW", "1");
 
-        if (!(canonical_rp = pa_realpath(PA_BINARY))) {
+        if ((canonical_rp = pa_realpath(PA_BINARY))) {
 
             if ((rp = pa_readlink("/proc/self/exe"))) {
 
