@@ -1342,7 +1342,7 @@ static void propagate_reference_volume(pa_sink *s) {
 void pa_sink_set_volume(
         pa_sink *s,
         const pa_cvolume *volume,
-        pa_bool_t sendmsg,
+        pa_bool_t send_msg,
         pa_bool_t save) {
 
     pa_cvolume old_reference_volume;
@@ -1411,7 +1411,7 @@ void pa_sink_set_volume(
         s->soft_volume = s->real_volume;
 
     /* This tells the sink that soft and/or virtual volume changed */
-    if (sendmsg)
+    if (send_msg)
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_VOLUME, NULL, 0, NULL) == 0);
 
     if (reference_changed)

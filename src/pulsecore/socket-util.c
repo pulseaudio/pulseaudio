@@ -239,7 +239,7 @@ int pa_unix_socket_is_stale(const char *fn) {
 
     pa_assert(fn);
 
-    if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
+    if ((fd = pa_socket_cloexec(PF_UNIX, SOCK_STREAM, 0)) < 0) {
         pa_log("socket(): %s", pa_cstrerror(errno));
         goto finish;
     }

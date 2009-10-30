@@ -1200,10 +1200,7 @@ int pa_lock_lockfile(const char *fn) {
     for (;;) {
         struct stat st;
 
-        if ((fd = open(fn, O_CREAT|O_RDWR
-#ifdef O_NOCTTY
-                       |O_NOCTTY
-#endif
+        if ((fd = pa_open_cloexec(fn, O_CREAT|O_RDWR
 #ifdef O_NOFOLLOW
                        |O_NOFOLLOW
 #endif

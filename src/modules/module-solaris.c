@@ -327,7 +327,7 @@ static int open_audio_device(struct userdata *u, pa_sample_spec *ss) {
     pa_assert(u);
     pa_assert(ss);
 
-    if ((u->fd = open(u->device_name, u->mode | O_NONBLOCK)) < 0) {
+    if ((u->fd = pa_open_cloexec(u->device_name, u->mode | O_NONBLOCK)) < 0) {
         pa_log_warn("open %s failed (%s)", u->device_name, pa_cstrerror(errno));
         return -1;
     }

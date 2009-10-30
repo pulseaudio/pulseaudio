@@ -124,15 +124,13 @@ int pa_signal_init(pa_mainloop_api *a) {
     pa_assert(signal_pipe[1] == -1);
     pa_assert(!io_event);
 
-    if (pipe(signal_pipe) < 0) {
+    if (pa_pipe_cloexec(signal_pipe) < 0) {
         pa_log("pipe(): %s", pa_cstrerror(errno));
         return -1;
     }
 
     pa_make_fd_nonblock(signal_pipe[0]);
     pa_make_fd_nonblock(signal_pipe[1]);
-    pa_make_fd_cloexec(signal_pipe[0]);
-    pa_make_fd_cloexec(signal_pipe[1]);
 
     api = a;
 

@@ -62,7 +62,7 @@ static char *get_cpuinfo(void) {
 
     cpuinfo = pa_xmalloc(MAX_BUFFER);
 
-    if ((fd = open("/proc/cpuinfo", O_RDONLY)) < 0) {
+    if ((fd = pa_open_cloexec("/proc/cpuinfo", O_RDONLY, 0)) < 0) {
         pa_xfree(cpuinfo);
         return NULL;
     }

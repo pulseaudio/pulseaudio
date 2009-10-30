@@ -62,19 +62,15 @@ pa_fdsem *pa_fdsem_new(void) {
     f = pa_xmalloc(PA_ALIGN(sizeof(pa_fdsem)) + PA_ALIGN(sizeof(pa_fdsem_data)));
 
 #ifdef HAVE_SYS_EVENTFD_H
-    if ((f->efd = eventfd(0, 0)) >= 0) {
-        pa_make_fd_cloexec(f->efd);
+    if ((f->efd = eventfd(0, EFD_CLOEXEC)) >= 0)
         f->fds[0] = f->fds[1] = -1;
-    } else
+    else
 #endif
     {
-        if (pipe(f->fds) < 0) {
+        if (pa_pipe_cloexec(f->fds) < 0) {
             pa_xfree(f);
             return NULL;
         }
-
-        pa_make_fd_cloexec(f->fds[0]);
-        pa_make_fd_cloexec(f->fds[1]);
     }
 
     f->data = (pa_fdsem_data*) ((uint8_t*) f + PA_ALIGN(sizeof(pa_fdsem)));
@@ -114,12 +110,11 @@ pa_fdsem *pa_fdsem_new_shm(pa_fdsem_data *data, int* event_fd) {
 
     f = pa_xnew(pa_fdsem, 1);
 
-    if ((f->efd = eventfd(0, 0)) < 0) {
+    if ((f->efd = eventfd(0, EFD_CLOEXEC)) < 0) {
         pa_xfree(f);
         return NULL;
     }
 
-    pa_make_fd_cloexec(f->efd);
     f->fds[0] = f->fds[1] = -1;
     f->data = data;
 

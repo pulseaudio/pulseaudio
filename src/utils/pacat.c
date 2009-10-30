@@ -906,7 +906,7 @@ int main(int argc, char *argv[]) {
 
         filename = argv[optind];
 
-        if ((fd = open(argv[optind], mode == PLAYBACK ? O_RDONLY : O_WRONLY|O_TRUNC|O_CREAT, 0666)) < 0) {
+        if ((fd = pa_open_cloexec(argv[optind], mode == PLAYBACK ? O_RDONLY : O_WRONLY|O_TRUNC|O_CREAT, 0666)) < 0) {
             pa_log(_("open(): %s"), strerror(errno));
             goto quit;
         }

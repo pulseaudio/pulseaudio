@@ -62,11 +62,7 @@ static int random_proper(void *ret_data, size_t length) {
     while (*device) {
         ret = 0;
 
-        if ((fd = open(*device, O_RDONLY
-#ifdef O_NOCTTY
-                       | O_NOCTTY
-#endif
-             )) >= 0) {
+        if ((fd = pa_open_cloexec(*device, O_RDONLY, 0)) >= 0) {
 
             if ((r = pa_loop_read(fd, ret_data, length, NULL)) < 0 || (size_t) r != length)
                 ret = -1;
