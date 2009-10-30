@@ -143,7 +143,7 @@ static int proc_name_ours(pid_t pid, const char *procname) {
 
     pa_snprintf(bn, sizeof(bn), "/proc/%lu/stat", (unsigned long) pid);
 
-    if (!(f = fopen(bn, "r"))) {
+    if (!(f = pa_fopen_cloexec(bn, "r"))) {
         pa_log_info("Failed to open %s: %s", bn, pa_cstrerror(errno));
         return -1;
     } else {

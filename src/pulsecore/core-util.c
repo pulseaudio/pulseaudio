@@ -1600,7 +1600,7 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
         fn = buf;
 #endif
 
-        if ((f = fopen(fn, "r"))) {
+        if ((f = pa_fopen_cloexec(fn, "r"))) {
             if (result)
                 *result = pa_xstrdup(fn);
 
@@ -1634,7 +1634,7 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
         fn = buf;
 #endif
 
-        if ((f = fopen(fn, "r"))) {
+        if ((f = pa_fopen_cloexec(fn, "r"))) {
             if (result)
                 *result = pa_xstrdup(fn);
 
@@ -1661,7 +1661,7 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
         global = buf;
 #endif
 
-        if ((f = fopen(global, "r"))) {
+        if ((f = pa_fopen_cloexec(global, "r"))) {
 
             if (result)
                 *result = pa_xstrdup(global);
@@ -2560,7 +2560,7 @@ char *pa_machine_id(void) {
      * since it fits perfectly our needs and is not as volatile as the
      * hostname which might be set from dhcp. */
 
-    if ((f = fopen(PA_MACHINE_ID, "r"))) {
+    if ((f = pa_fopen_cloexec(PA_MACHINE_ID, "r"))) {
         char ln[34] = "", *r;
 
         r = fgets(ln, sizeof(ln)-1, f);

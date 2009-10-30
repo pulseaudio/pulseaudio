@@ -349,9 +349,9 @@ int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
     if ((n = get_device_number(dev)) < 0)
         return -1;
 
-    if (!(f = fopen("/dev/sndstat", "r")) &&
-        !(f = fopen("/proc/sndstat", "r")) &&
-        !(f = fopen("/proc/asound/oss/sndstat", "r"))) {
+    if (!(f = pa_fopen_cloexec("/dev/sndstat", "r")) &&
+        !(f = pa_fopen_cloexec("/proc/sndstat", "r")) &&
+        !(f = pa_fopen_cloexec("/proc/asound/oss/sndstat", "r"))) {
 
         if (errno != ENOENT)
             pa_log_warn("failed to open OSS sndstat device: %s", pa_cstrerror(errno));

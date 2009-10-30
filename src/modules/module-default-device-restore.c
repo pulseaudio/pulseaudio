@@ -60,7 +60,7 @@ static void load(struct userdata *u) {
 
     if (u->core->default_sink)
         pa_log_info("Manually configured default sink, not overwriting.");
-    else if ((f = fopen(u->sink_filename, "r"))) {
+    else if ((f = pa_fopen_cloexec(u->sink_filename, "r"))) {
         char ln[256] = "";
         pa_sink *s;
 
@@ -81,7 +81,7 @@ static void load(struct userdata *u) {
 
     if (u->core->default_source)
         pa_log_info("Manually configured default source, not overwriting.");
-    else if ((f = fopen(u->source_filename, "r"))) {
+    else if ((f = pa_fopen_cloexec(u->source_filename, "r"))) {
         char ln[256] = "";
         pa_source *s;
 
@@ -108,7 +108,7 @@ static void save(struct userdata *u) {
         return;
 
     if (u->sink_filename) {
-        if ((f = fopen(u->sink_filename, "w"))) {
+        if ((f = pa_fopen_cloexec(u->sink_filename, "w"))) {
             pa_sink *s = pa_namereg_get_default_sink(u->core);
             fprintf(f, "%s\n", s ? s->name : "");
             fclose(f);
@@ -117,7 +117,7 @@ static void save(struct userdata *u) {
     }
 
     if (u->source_filename) {
-        if ((f = fopen(u->source_filename, "w"))) {
+        if ((f = pa_fopen_cloexec(u->source_filename, "w"))) {
             pa_source *s = pa_namereg_get_default_source(u->core);
             fprintf(f, "%s\n", s ? s->name : "");
             fclose(f);

@@ -110,7 +110,7 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
 
     if (filename) {
 
-        if (!(f = fopen(filename, "r"))) {
+        if (!(f = pa_fopen_cloexec(filename, "r"))) {
             pa_log(_("Failed to open configuration file '%s': %s"), fn, pa_cstrerror(errno));
             goto finish;
         }

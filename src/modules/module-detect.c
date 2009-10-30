@@ -63,7 +63,7 @@ static int detect_alsa(pa_core *c, int just_one) {
     FILE *f;
     int n = 0, n_sink = 0, n_source = 0;
 
-    if (!(f = fopen("/proc/asound/devices", "r"))) {
+    if (!(f = pa_fopen_cloexec("/proc/asound/devices", "r"))) {
 
         if (errno != ENOENT)
             pa_log_error("open(\"/proc/asound/devices\") failed: %s", pa_cstrerror(errno));
@@ -124,9 +124,9 @@ static int detect_oss(pa_core *c, int just_one) {
     FILE *f;
     int n = 0, b = 0;
 
-    if (!(f = fopen("/dev/sndstat", "r")) &&
-        !(f = fopen("/proc/sndstat", "r")) &&
-        !(f = fopen("/proc/asound/oss/sndstat", "r"))) {
+    if (!(f = pa_fopen_cloexec("/dev/sndstat", "r")) &&
+        !(f = pa_fopen_cloexec("/proc/sndstat", "r")) &&
+        !(f = pa_fopen_cloexec("/proc/asound/oss/sndstat", "r"))) {
 
         if (errno != ENOENT)
             pa_log_error("failed to open OSS sndstat device: %s", pa_cstrerror(errno));

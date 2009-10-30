@@ -577,7 +577,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     c->config_file = NULL;
 
     f = filename ?
-        fopen(c->config_file = pa_xstrdup(filename), "r") :
+        pa_fopen_cloexec(c->config_file = pa_xstrdup(filename), "r") :
         pa_open_config_file(DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_USER, ENV_CONFIG_FILE, &c->config_file);
 
     if (!f && errno != ENOENT) {
@@ -652,7 +652,7 @@ FILE *pa_daemon_conf_open_default_script_file(pa_daemon_conf *c) {
         else
             f = pa_open_config_file(DEFAULT_SCRIPT_FILE, DEFAULT_SCRIPT_FILE_USER, ENV_SCRIPT_FILE, &c->default_script_file);
     } else
-        f = fopen(c->default_script_file, "r");
+        f = pa_fopen_cloexec(c->default_script_file, "r");
 
     return f;
 }
