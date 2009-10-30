@@ -2961,7 +2961,7 @@ int pa_accept_cloexec(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
 
 #ifdef HAVE_ACCEPT4
     if ((fd = accept4(sockfd, addr, addrlen, SOCK_CLOEXEC)) >= 0)
-        return fd;
+        goto finish;
 
     if (errno != EINVAL && errno != ENOSYS)
         return fd;
@@ -2970,7 +2970,32 @@ int pa_accept_cloexec(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
     if ((fd = accept(sockfd, addr, addrlen)) < 0)
         return fd;
 
+finish:
     pa_make_fd_cloexec(fd);
+    return fd;
+}
 
-    return 0;
+FILE* pa_fopen_cloexec(const char *path, const char *mode) {
+    FILE *f;
+    char *m;
+
+    m = pa_sprintf_malloc("%se", mode);
+
+    errno = 0;
+    if ((f = fopen(path, m))) {
+        pa_xfree(m);
+        goto finish;
+    }
+
+    pa_xfree(m);
+
+    if (errno != EINVAL)
+        return NULL;
+
+    if (!(f = fopen(path, mode)))
+        return NULL;
+
+finish:
+    pa_make_fd_cloexec(fileno(f));
+    return f;
 }

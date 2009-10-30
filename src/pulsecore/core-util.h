@@ -263,5 +263,6 @@ int pa_open_cloexec(const char *fn, int flags, mode_t mode);
 int pa_socket_cloexec(int domain, int type, int protocol);
 int pa_pipe_cloexec(int pipefd[2]);
 int pa_accept_cloexec(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+FILE* pa_fopen_cloexec(const char *path, const char *mode);
 
 #endif
