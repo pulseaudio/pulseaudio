@@ -2889,3 +2889,82 @@ const char *pa_get_temp_dir(void) {
 
     return "/tmp";
 }
+
+int pa_open_cloexec(const char *fn, int flags, mode_t mode) {
+    int fd;
+
+#ifdef O_NOCTTY
+    flags |= O_NOCTTY;
+#endif
+
+#ifdef O_CLOEXEC
+    if ((fd = open(fn, flags|O_CLOEXEC, mode)) >= 0)
+        return fd;
+
+    if (errno != EINVAL)
+        return fd;
+#endif
+
+    if ((fd = open(fn, flags, mode)) < 0)
+        return fd;
+
+    pa_make_fd_cloexec(fd);
+    return fd;
+}
+
+int pa_socket_cloexec(int domain, int type, int protocol) {
+    int fd;
+
+#ifdef SOCK_CLOEXEC
+    if ((fd = socket(domain, type | SOCK_CLOEXEC, protocol)) >= 0)
+        return fd;
+
+    if (errno != EINVAL)
+        return fd;
+#endif
+
+    if ((fd = socket(domain, type, protocol)) < 0)
+        return fd;
+
+    pa_make_fd_cloexec(fd);
+    return fd;
+}
+
+int pa_pipe_cloexec(int pipefd[2]) {
+    int r;
+
+#ifdef HAVE_PIPE2
+    if ((r = pipe2(pipefd, O_CLOEXEC)) >= 0)
+        return r;
+
+    if (errno != EINVAL && errno != ENOSYS)
+        return r;
+#endif
+
+    if ((r = pipe(pipefd)) < 0)
+        return r;
+
+    pa_make_fd_cloexec(pipefd[0]);
+    pa_make_fd_cloexec(pipefd[1]);
+
+    return 0;
+}
+
+int pa_accept_cloexec(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
+    int fd;
+
+#ifdef HAVE_ACCEPT4
+    if ((fd = accept4(sockfd, addr, addrlen, SOCK_CLOEXEC)) >= 0)
+        return fd;
+
+    if (errno != EINVAL && errno != ENOSYS)
+        return fd;
+#endif
+
+    if ((fd = accept(sockfd, addr, addrlen)) < 0)
+        return fd;
+
+    pa_make_fd_cloexec(fd);
+
+    return 0;
+}

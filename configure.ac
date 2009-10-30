@@ -445,7 +445,7 @@ AC_CHECK_FUNCS_ONCE([lstat])
 
 # Non-standard
 
-AC_CHECK_FUNCS_ONCE([setresuid setresgid setreuid setregid seteuid setegid ppoll strsignal sig2str strtof_l])
+AC_CHECK_FUNCS_ONCE([setresuid setresgid setreuid setregid seteuid setegid ppoll strsignal sig2str strtof_l pipe2 accept4])
 
 AC_FUNC_ALLOCA
 
