@@ -85,12 +85,11 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
 
 #ifndef OS_IS_WIN32
     pa_assert_se(fstat(fd, &st) == 0);
-#endif
 
-#ifndef OS_IS_WIN32
     if (S_ISSOCK(st.st_mode)) {
 #endif
         union {
+            struct sockaddr_storage storage;
             struct sockaddr sa;
             struct sockaddr_in in;
 #ifdef HAVE_IPV6
@@ -315,6 +314,7 @@ pa_bool_t pa_socket_address_is_local(const struct sockaddr *sa) {
 pa_bool_t pa_socket_is_local(int fd) {
 
     union {
+        struct sockaddr_storage storage;
         struct sockaddr sa;
         struct sockaddr_in in;
 #ifdef HAVE_IPV6
