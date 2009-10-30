@@ -412,7 +412,8 @@ static void dsp_logic(
     fftwf_complex * restrict output_window,//The transformed window'd src
     struct userdata *u){//Collection of constants
     const size_t overlap_size = PA_ROUND_UP(u->overlap_size, v_size);
-
+    float_vector_t x;
+    x.f[0] = x.f[1] = x.f[2] = x.f[3] = X;
 
     //assert(u->samples_gathered >= u->R);
     //use a linear-phase sliding STFT and overlap-add method
@@ -422,9 +423,8 @@ static void dsp_logic(
         float_vector_t *w = (float_vector_t*) (W + j);
         float_vector_t *s = (float_vector_t*) (src + j);
 //#if __SSE2__
-        d->m = _mm_mul_ps(w->m, s->m);
-//#else
-//        d->v = w->v * s->v;
+        d->m = _mm_mul_ps(x.m, _mm_mul_ps(w->m, s->m));
+//        d->v = x->v * w->v * s->v;
 //#endif
     }
     //zero padd the the remaining fft window
