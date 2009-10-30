@@ -113,8 +113,11 @@ struct userdata {
     float **Xs;
     float ***Hs;//thread updatable copies of the freq response filters (magintude based)
     pa_aupdate **a_H;
-    pa_memchunk conv_buffer;
     pa_memblockq *input_q;
+    char *output_buffer;
+    size_t output_buffer_length;
+    size_t output_buffer_max_length;
+    pa_memblockq *output_q;
     pa_bool_t first_iteration;
 
     pa_dbus_protocol *dbus_protocol;
@@ -489,18 +492,42 @@ static void dsp_logic(
 }
 #endif
 
-static void process_samples(struct userdata *u, pa_memchunk *tchunk){
+static void flatten_to_memblockq(struct userdata *u){
+    size_t mbs = pa_mempool_block_size_max(u->sink->core->mempool);
+    pa_memchunk tchunk;
+    char *dst;
+    size_t i = 0;
+    while(i < u->output_buffer_length){
+        tchunk.index = 0;
+        tchunk.length = PA_MIN((u->output_buffer_length - i), mbs);
+        tchunk.memblock = pa_memblock_new(u->sink->core->mempool, tchunk.length);
+        //pa_log_debug("pushing %ld into the q", tchunk.length);
+        dst = pa_memblock_acquire(tchunk.memblock);
+        memcpy(dst, u->output_buffer + i, tchunk.length);
+        pa_memblock_release(tchunk.memblock);
+        pa_memblockq_push(u->output_q, &tchunk);
+        pa_memblock_unref(tchunk.memblock);
+        i += tchunk.length;
+    }
+}
+
+static void process_samples(struct userdata *u){
     size_t fs = pa_frame_size(&(u->sink->sample_spec));
-    float *dst;
     unsigned a_i;
     float *H, X;
     size_t iterations, offset;
     pa_assert(u->samples_gathered >= u->window_size);
     iterations = (u->samples_gathered - u->overlap_size) / u->R;
-    tchunk->index = 0;
-    tchunk->length = iterations * u->R * fs;
-    tchunk->memblock = pa_memblock_new(u->sink->core->mempool, tchunk->length);
-    dst = ((float*) pa_memblock_acquire(tchunk->memblock));
+    //make sure there is enough buffer memory allocated
+    if(iterations * u->R * fs > u->output_buffer_max_length){
+        u->output_buffer_max_length = iterations * u->R * fs;
+        if(u->output_buffer){
+            pa_xfree(u->output_buffer);
+        }
+        u->output_buffer = pa_xmalloc(u->output_buffer_max_length);
+    }
+    u->output_buffer_length = iterations * u->R * fs;
+
     for(size_t iter = 0; iter < iterations; ++iter){
         offset = iter * u->R * fs;
         for(size_t c = 0;c < u->channels; c++) {
@@ -526,14 +553,14 @@ static void process_samples(struct userdata *u, pa_memchunk *tchunk){
                     u->work_buffer[i] = u->W[i] <= FLT_EPSILON ? u->work_buffer[i] : u->work_buffer[i] / u->W[i];
                 }
             }
-            pa_sample_clamp(PA_SAMPLE_FLOAT32NE, (uint8_t *) (dst + c) + offset, fs, u->work_buffer, sizeof(float), u->R);
+            pa_sample_clamp(PA_SAMPLE_FLOAT32NE, (uint8_t *) (((float *)u->output_buffer) + c) + offset, fs, u->work_buffer, sizeof(float), u->R);
         }
         if(u->first_iteration){
             u->first_iteration = FALSE;
         }
         u->samples_gathered -= u->R;
     }
-    pa_memblock_release(tchunk->memblock);
+    flatten_to_memblockq(u);
 }
 
 static void input_buffer(struct userdata *u, pa_memchunk *in){
@@ -556,7 +583,8 @@ static void input_buffer(struct userdata *u, pa_memchunk *in){
 /* Called from I/O thread context */
 static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk) {
     struct userdata *u;
-    size_t fs, target_samples, mbs;
+    size_t fs, target_samples;
+    size_t mbs;
     //struct timeval start, end;
     pa_memchunk tchunk;
     pa_sink_input_assert_ref(i);
@@ -564,13 +592,17 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     pa_assert(chunk);
     pa_assert(u->sink);
     fs = pa_frame_size(&(u->sink->sample_spec));
-    nbytes = PA_MIN(nbytes, pa_mempool_block_size_max(u->sink->core->mempool));
-    target_samples = PA_ROUND_UP(nbytes / fs, u->R);
     mbs = pa_mempool_block_size_max(u->sink->core->mempool);
-    //pa_log_debug("vanilla mbs = %ld",mbs);
-    mbs = PA_ROUND_DOWN(mbs / fs, u->R);
-    mbs = PA_MAX(mbs, u->R);
-    target_samples = PA_MAX(target_samples, mbs);
+    if(pa_memblockq_get_length(u->output_q) > 0){
+        //pa_log_debug("qsize is %ld", pa_memblockq_get_length(u->output_q));
+        goto END;
+    }
+    //nbytes = PA_MIN(nbytes, pa_mempool_block_size_max(u->sink->core->mempool));
+    target_samples = PA_ROUND_UP(nbytes / fs, u->R);
+    ////pa_log_debug("vanilla mbs = %ld",mbs);
+    //mbs = PA_ROUND_DOWN(mbs / fs, u->R);
+    //mbs = PA_MAX(mbs, u->R);
+    //target_samples = PA_MAX(target_samples, mbs);
     //pa_log_debug("target samples: %ld", target_samples);
     if(u->first_iteration){
         //allocate request_size
@@ -594,7 +626,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
         pa_assert(input_remaining > 0);
         while(pa_memblockq_peek(u->input_q, &tchunk) < 0){
             //pa_sink_render(u->sink, input_remaining * fs, &tchunk);
-            pa_sink_render_full(u->sink, input_remaining * fs, &tchunk);
+            pa_sink_render_full(u->sink, PA_MIN(input_remaining * fs, mbs), &tchunk);
             pa_assert(tchunk.memblock);
             pa_memblockq_push(u->input_q, &tchunk);
             pa_memblock_unref(tchunk.memblock);
@@ -619,11 +651,13 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
     pa_assert(u->R < u->window_size);
     //pa_rtclock_get(&start);
     /* process a block */
-    process_samples(u, chunk);
+    process_samples(u);
     //pa_rtclock_get(&end);
     //pa_log_debug("Took %0.6f seconds to process", (double) pa_timeval_diff(&end, &start) / PA_USEC_PER_SEC);
-
+END:
+    pa_assert_se(pa_memblockq_peek(u->output_q, chunk) >= 0);
     pa_assert(chunk->memblock);
+    pa_memblockq_drop(u->output_q, chunk->length);
     //pa_log_debug("gave %ld", chunk->length/fs);
     //pa_log_debug("end pop");
     return 0;
@@ -1143,6 +1177,10 @@ int pa__init(pa_module*m) {
     u->sink->set_mute = sink_set_mute_cb;
     u->sink->userdata = u;
     u->input_q = pa_memblockq_new(0,  MEMBLOCKQ_MAXLENGTH, 0, fs, 1, 1, 0, &u->sink->silence);
+    u->output_q = pa_memblockq_new(0,  MEMBLOCKQ_MAXLENGTH, 0, fs, 1, 1, 0, NULL);
+    u->output_buffer = NULL;
+    u->output_buffer_length = 0;
+    u->output_buffer_max_length = 0;
 
     pa_sink_set_asyncmsgq(u->sink, master->asyncmsgq);
     //pa_sink_set_fixed_latency(u->sink, pa_bytes_to_usec(u->R*fs, &ss));
@@ -1255,6 +1293,10 @@ void pa__done(pa_module*m) {
     if (u->sink)
         pa_sink_unref(u->sink);
 
+    if(u->output_buffer){
+        pa_xfree(u->output_buffer);
+    }
+    pa_memblockq_free(u->output_q);
     pa_memblockq_free(u->input_q);
 
     fftwf_destroy_plan(u->inverse_plan);
