@@ -63,4 +63,5 @@ thread-test
 utf8-test
 voltest
 start-pulseaudio-x11
+start-pulseaudio-kde
 vector-test
