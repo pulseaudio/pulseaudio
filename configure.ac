@@ -742,6 +742,28 @@ AC_SUBST(HAVE_OSS)
 AM_CONDITIONAL([HAVE_OSS_OUTPUT], [test "x$HAVE_OSS" = x1 && test "x${oss_output}" != "xno"])
 AM_CONDITIONAL([HAVE_OSS_WRAPPER], [test "x$HAVE_OSS" = x1 && test "x${oss_wrapper}" != "xno"])
 
+#### CoreAudio support (optional) ####
+
+AC_ARG_ENABLE([coreaudio-output],
+    AS_HELP_STRING([--disable-coreaudio-output],[Disable optional CoreAudio output support]),
+        [
+            case "${enableval}" in
+                yes) coreaudio_enabled=yes ;;
+                no) coreaudio_enabled=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-coreaudio-output) ;;
+            esac
+        ],
+        [coreaudio_enabled=auto])
+
+if test "x${coreaudio_enabled}" != xno ; then
+    AC_CHECK_HEADERS([CoreAudio/CoreAudio.h], HAVE_COREAUDIO=1)
+else
+    HAVE_COREAUDIO=0
+fi
+
+AC_SUBST(HAVE_COREAUDIO)
+AM_CONDITIONAL([HAVE_COREAUDIO], [test "x$HAVE_COREAUDIO" = x1 && test "x${coreaudio_enabled}" != "xno"])
+
 #### ALSA support (optional) ####
 
 AC_ARG_ENABLE([alsa],
@@ -1423,6 +1445,11 @@ if test "x$HAVE_OSS" = "x1" ; then
    fi
 fi
 
+ENABLE_COREAUDIO=no
+if test "x$HAVE_COREAUDIO" = "x1" ; then
+   ENABLE_COREAUDIO=yes
+fi
+
 ENABLE_ALSA=no
 if test "x$HAVE_ALSA" = "x1" ; then
    ENABLE_ALSA=yes
@@ -1548,6 +1575,7 @@ echo "
     Have X11:                      ${ENABLE_X11}
     Enable OSS Output:             ${ENABLE_OSS_OUTPUT}
     Enable OSS Wrapper:            ${ENABLE_OSS_WRAPPER}
+    Enable CoreAudio:              ${ENABLE_COREAUDIO}
     Enable Alsa:                   ${ENABLE_ALSA}
     Enable Solaris:                ${ENABLE_SOLARIS}
     Enable GLib 2.0:               ${ENABLE_GLIB20}
