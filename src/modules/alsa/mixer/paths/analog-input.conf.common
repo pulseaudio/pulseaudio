@@ -255,6 +255,20 @@ name = input-microphone
 [Option Mic Jack Mode:Line In]
 name = input-linein
 
+;;; 'Digital Input Source'
+
+[Element Digital Input Source]
+enumeration = select
+
+[Option Digital Input Source:Analog Inputs]
+name = input
+
+[Option Digital Input Source:Digital Mic 1]
+name = input-microphone
+
+[Option Digital Input Source:Digital Mic 2]
+name = input-microphone
+
 ;;; Various Boosts
 
 [Element Capture Boost]
