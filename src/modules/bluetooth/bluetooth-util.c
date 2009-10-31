@@ -723,12 +723,14 @@ const pa_bluetooth_device* pa_bluetooth_discovery_get_by_address(pa_bluetooth_di
 
     while ((d = pa_hashmap_iterate(y->devices, &state, NULL)))
         if (pa_streq(d->address, address))
-            return d;
+            return device_is_audio(d) ? d : NULL;
 
     return NULL;
 }
 
 const pa_bluetooth_device* pa_bluetooth_discovery_get_by_path(pa_bluetooth_discovery *y, const char* path) {
+    pa_bluetooth_device *d;
+
     pa_assert(y);
     pa_assert(PA_REFCNT_VALUE(y) > 0);
     pa_assert(path);
@@ -736,7 +738,11 @@ const pa_bluetooth_device* pa_bluetooth_discovery_get_by_path(pa_bluetooth_disco
     if (!pa_hook_is_firing(&y->hook))
         pa_bluetooth_discovery_sync(y);
 
-    return pa_hashmap_get(y->devices, path);
+    if ((d = pa_hashmap_get(y->devices, path)))
+        if (device_is_audio(d))
+            return d;
+
+    return NULL;
 }
 
 static int setup_dbus(pa_bluetooth_discovery *y) {
