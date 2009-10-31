@@ -98,6 +98,10 @@ priority = 18
 name = input-docking
 priority = 17
 
+[Option Input Source:AUX IN]
+name = input
+priority = 10
+
 ;;; 'Capture Source'
 
 [Element Capture Source]
