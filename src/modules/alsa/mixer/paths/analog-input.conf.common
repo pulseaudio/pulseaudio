@@ -98,7 +98,7 @@ priority = 18
 name = input-docking
 priority = 17
 
-;;; ' Capture Source'
+;;; 'Capture Source'
 
 [Element Capture Source]
 enumeration = select
@@ -243,6 +243,17 @@ name = input-docking
 
 [Option Capture Source:Dock Mic]
 name = input-docking-microphone
+
+;;; 'Mic Jack Mode'
+
+[Element Mic Jack Mode]
+enumeration = select
+
+[Option Mic Jack Mode:Mic In]
+name = input-microphone
+
+[Option Mic Jack Mode:Line In]
+name = input-linein
 
 ;;; Various Boosts
 
