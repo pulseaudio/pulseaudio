@@ -265,4 +265,6 @@ int pa_pipe_cloexec(int pipefd[2]);
 int pa_accept_cloexec(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 FILE* pa_fopen_cloexec(const char *path, const char *mode);
 
+void pa_nullify_stdfds(void);
+
 #endif
