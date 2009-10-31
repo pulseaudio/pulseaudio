@@ -45,8 +45,6 @@
 #include <pulse/pulseaudio.h>
 #include <pulsecore/macro.h>
 
-#define BUFSIZE 1024
-
 static pa_context *context = NULL;
 static pa_mainloop_api *mainloop_api = NULL;
 static char **child_argv = NULL;

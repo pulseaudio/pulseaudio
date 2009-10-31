@@ -32,12 +32,12 @@
 
 void pa_x11_set_prop(Display *d, const char *name, const char *data) {
     Atom a = XInternAtom(d, name, False);
-    XChangeProperty(d, RootWindow(d, 0), a, XA_STRING, 8, PropModeReplace, (const unsigned char*) data, (int) (strlen(data)+1));
+    XChangeProperty(d, DefaultRootWindow(d), a, XA_STRING, 8, PropModeReplace, (const unsigned char*) data, (int) (strlen(data)+1));
 }
 
 void pa_x11_del_prop(Display *d, const char *name) {
     Atom a = XInternAtom(d, name, False);
-    XDeleteProperty(d, RootWindow(d, 0), a);
+    XDeleteProperty(d, DefaultRootWindow(d), a);
 }
 
 char* pa_x11_get_prop(Display *d, const char *name, char *p, size_t l) {
@@ -47,13 +47,21 @@ char* pa_x11_get_prop(Display *d, const char *name, char *p, size_t l) {
     unsigned long nbytes_after;
     unsigned char *prop = NULL;
     char *ret = NULL;
+    int window_ret;
 
     Atom a = XInternAtom(d, name, False);
-    if (XGetWindowProperty(d, RootWindow(d, 0), a, 0, (long) ((l+2)/4), False, XA_STRING, &actual_type, &actual_format, &nitems, &nbytes_after, &prop) != Success)
-        goto finish;
 
-    if (actual_type != XA_STRING)
-        goto finish;
+    window_ret = XGetWindowProperty(d, DefaultRootWindow(d), a, 0, (long) ((l+2)/4), False, XA_STRING, &actual_type, &actual_format, &nitems, &nbytes_after, &prop);
+
+    if (window_ret != Success || actual_type != XA_STRING) {
+        if (DefaultScreen(d) != 0) {
+            window_ret = XGetWindowProperty(d, RootWindow(d, 0), a, 0, (long) ((l+2)/4), False, XA_STRING, &actual_type, &actual_format, &nitems, &nbytes_after, &prop);
+
+            if (window_ret != Success || actual_type != XA_STRING)
+                goto finish;
+        } else
+            goto finish;
+    }
 
     memcpy(p, prop, nitems);
     p[nitems] = 0;

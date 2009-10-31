@@ -237,7 +237,7 @@ pa_database* pa_database_open(const char *fn, pa_bool_t for_write) {
     path = pa_sprintf_malloc("%s."CANONICAL_HOST".simple", fn);
     errno = 0;
 
-    f = fopen(path, "r");
+    f = pa_fopen_cloexec(path, "r");
 
     if (f || errno == ENOENT) { /* file not found is ok */
         db = pa_xnew0(simple_data, 1);
@@ -480,7 +480,7 @@ int pa_database_sync(pa_database *database) {
 
     errno = 0;
 
-    f = fopen(db->tmp_filename, "w");
+    f = pa_fopen_cloexec(db->tmp_filename, "w");
 
     if (!f)
         goto fail;

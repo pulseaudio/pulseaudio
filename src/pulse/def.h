@@ -276,11 +276,18 @@ typedef enum pa_stream_flags {
      * whether to create the stream in muted or in unmuted
      * state. \since 0.9.15 */
 
-    PA_STREAM_FAIL_ON_SUSPEND = 0x20000U
+    PA_STREAM_FAIL_ON_SUSPEND = 0x20000U,
     /**< If the sink/source this stream is connected to is suspended
      * during the creation of this stream, cause it to fail. If the
      * sink/source is being suspended during creation of this stream,
      * make sure this stream is terminated. \since 0.9.15 */
+
+    PA_STREAM_RELATIVE_VOLUME = 0x40000U,
+    /**< If a volume is passed when this stream is created, consider
+     * it relative to the sink's current volume, never as absolute
+     * device volume. If this is not specified the volume will be
+     * consider absolute when the sink is in flat volume mode,
+     * relative otherwise. \since 0.9.20 */
 } pa_stream_flags_t;
 
 /** \cond fulldocs */
@@ -307,6 +314,7 @@ typedef enum pa_stream_flags {
 #define PA_STREAM_DONT_INHIBIT_AUTO_SUSPEND PA_STREAM_DONT_INHIBIT_AUTO_SUSPEND
 #define PA_STREAM_START_UNMUTED PA_STREAM_START_UNMUTED
 #define PA_STREAM_FAIL_ON_SUSPEND PA_STREAM_FAIL_ON_SUSPEND
+#define PA_STREAM_RELATIVE_VOLUME PA_STREAM_RELATIVE_VOLUME
 
 /** \endcond */
 

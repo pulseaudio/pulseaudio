@@ -88,10 +88,7 @@ static int open_pid_file(const char *fn, int mode) {
     for (;;) {
         struct stat st;
 
-        if ((fd = open(fn, mode
-#ifdef O_NOCTTY
-                       |O_NOCTTY
-#endif
+        if ((fd = pa_open_cloexec(fn, mode
 #ifdef O_NOFOLLOW
                        |O_NOFOLLOW
 #endif
@@ -146,7 +143,7 @@ static int proc_name_ours(pid_t pid, const char *procname) {
 
     pa_snprintf(bn, sizeof(bn), "/proc/%lu/stat", (unsigned long) pid);
 
-    if (!(f = fopen(bn, "r"))) {
+    if (!(f = pa_fopen_cloexec(bn, "r"))) {
         pa_log_info("Failed to open %s: %s", bn, pa_cstrerror(errno));
         return -1;
     } else {

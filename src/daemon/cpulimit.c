@@ -188,15 +188,13 @@ int pa_cpu_limit_init(pa_mainloop_api *m) {
     last_time = pa_rtclock_now();
 
     /* Prepare the main loop pipe */
-    if (pipe(the_pipe) < 0) {
+    if (pa_pipe_cloexec(the_pipe) < 0) {
         pa_log("pipe() failed: %s", pa_cstrerror(errno));
         return -1;
     }
 
     pa_make_fd_nonblock(the_pipe[0]);
     pa_make_fd_nonblock(the_pipe[1]);
-    pa_make_fd_cloexec(the_pipe[0]);
-    pa_make_fd_cloexec(the_pipe[1]);
 
     api = m;
     io_event = api->io_new(m, the_pipe[0], PA_IO_EVENT_INPUT, callback, NULL);

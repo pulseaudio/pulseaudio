@@ -1200,10 +1200,7 @@ int pa_lock_lockfile(const char *fn) {
     for (;;) {
         struct stat st;
 
-        if ((fd = open(fn, O_CREAT|O_RDWR
-#ifdef O_NOCTTY
-                       |O_NOCTTY
-#endif
+        if ((fd = pa_open_cloexec(fn, O_CREAT|O_RDWR
 #ifdef O_NOFOLLOW
                        |O_NOFOLLOW
 #endif
@@ -1603,7 +1600,7 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
         fn = buf;
 #endif
 
-        if ((f = fopen(fn, "r"))) {
+        if ((f = pa_fopen_cloexec(fn, "r"))) {
             if (result)
                 *result = pa_xstrdup(fn);
 
@@ -1637,7 +1634,7 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
         fn = buf;
 #endif
 
-        if ((f = fopen(fn, "r"))) {
+        if ((f = pa_fopen_cloexec(fn, "r"))) {
             if (result)
                 *result = pa_xstrdup(fn);
 
@@ -1664,7 +1661,7 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
         global = buf;
 #endif
 
-        if ((f = fopen(global, "r"))) {
+        if ((f = pa_fopen_cloexec(global, "r"))) {
 
             if (result)
                 *result = pa_xstrdup(global);
@@ -2563,7 +2560,7 @@ char *pa_machine_id(void) {
      * since it fits perfectly our needs and is not as volatile as the
      * hostname which might be set from dhcp. */
 
-    if ((f = fopen(PA_MACHINE_ID, "r"))) {
+    if ((f = pa_fopen_cloexec(PA_MACHINE_ID, "r"))) {
         char ln[34] = "", *r;
 
         r = fgets(ln, sizeof(ln)-1, f);
@@ -2888,4 +2885,117 @@ const char *pa_get_temp_dir(void) {
         return t;
 
     return "/tmp";
+}
+
+int pa_open_cloexec(const char *fn, int flags, mode_t mode) {
+    int fd;
+
+#ifdef O_NOCTTY
+    flags |= O_NOCTTY;
+#endif
+
+#ifdef O_CLOEXEC
+    if ((fd = open(fn, flags|O_CLOEXEC, mode)) >= 0)
+        goto finish;
+
+    if (errno != EINVAL)
+        return fd;
+#endif
+
+    if ((fd = open(fn, flags, mode)) < 0)
+        return fd;
+
+finish:
+    /* Some implementations might simply ignore O_CLOEXEC if it is not
+     * understood, make sure FD_CLOEXEC is enabled anyway */
+
+    pa_make_fd_cloexec(fd);
+    return fd;
+}
+
+int pa_socket_cloexec(int domain, int type, int protocol) {
+    int fd;
+
+#ifdef SOCK_CLOEXEC
+    if ((fd = socket(domain, type | SOCK_CLOEXEC, protocol)) >= 0)
+        goto finish;
+
+    if (errno != EINVAL)
+        return fd;
+#endif
+
+    if ((fd = socket(domain, type, protocol)) < 0)
+        return fd;
+
+finish:
+    /* Some implementations might simply ignore SOCK_CLOEXEC if it is
+     * not understood, make sure FD_CLOEXEC is enabled anyway */
+
+    pa_make_fd_cloexec(fd);
+    return fd;
+}
+
+int pa_pipe_cloexec(int pipefd[2]) {
+    int r;
+
+#ifdef HAVE_PIPE2
+    if ((r = pipe2(pipefd, O_CLOEXEC)) >= 0)
+        goto finish;
+
+    if (errno != EINVAL && errno != ENOSYS)
+        return r;
+#endif
+
+    if ((r = pipe(pipefd)) < 0)
+        return r;
+
+finish:
+    pa_make_fd_cloexec(pipefd[0]);
+    pa_make_fd_cloexec(pipefd[1]);
+
+    return 0;
+}
+
+int pa_accept_cloexec(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
+    int fd;
+
+#ifdef HAVE_ACCEPT4
+    if ((fd = accept4(sockfd, addr, addrlen, SOCK_CLOEXEC)) >= 0)
+        goto finish;
+
+    if (errno != EINVAL && errno != ENOSYS)
+        return fd;
+#endif
+
+    if ((fd = accept(sockfd, addr, addrlen)) < 0)
+        return fd;
+
+finish:
+    pa_make_fd_cloexec(fd);
+    return fd;
+}
+
+FILE* pa_fopen_cloexec(const char *path, const char *mode) {
+    FILE *f;
+    char *m;
+
+    m = pa_sprintf_malloc("%se", mode);
+
+    errno = 0;
+    if ((f = fopen(path, m))) {
+        pa_xfree(m);
+        goto finish;
+    }
+
+    pa_xfree(m);
+
+    if (errno != EINVAL)
+        return NULL;
+
+    if (!(f = fopen(path, mode)))
+        return NULL;
+
+finish:
+    pa_make_fd_cloexec(fileno(f));
+    return f;
 }

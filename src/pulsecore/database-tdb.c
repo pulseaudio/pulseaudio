@@ -66,6 +66,39 @@ void pa_datum_free(pa_datum *d) {
     pa_zero(d);
 }
 
+static struct tdb_context *tdb_open_cloexec(
+        const char *name,
+        int hash_size,
+        int tdb_flags,
+        int open_flags,
+        mode_t mode) {
+
+    /* Mimics pa_open_cloexec() */
+
+    struct tdb_context *c;
+
+#ifdef O_NOCTTY
+    open_flags |= O_NOCTTY;
+#endif
+
+#ifdef O_CLOEXEC
+    errno = 0;
+    if ((c = tdb_open(name, hash_size, tdb_flags, open_flags | O_CLOEXEC, mode)))
+        goto finish;
+
+    if (errno != EINVAL)
+        return NULL;
+#endif
+
+    errno = 0;
+    if (!(c = tdb_open(name, hash_size, tdb_flags, open_flags, mode)))
+        return NULL;
+
+finish:
+    pa_make_fd_cloexec(tdb_fd(c));
+    return c;
+}
+
 pa_database* pa_database_open(const char *fn, pa_bool_t for_write) {
     struct tdb_context *c;
     char *path;
@@ -73,15 +106,7 @@ pa_database* pa_database_open(const char *fn, pa_bool_t for_write) {
     pa_assert(fn);
 
     path = pa_sprintf_malloc("%s.tdb", fn);
-    errno = 0;
-    c = tdb_open(path, 0, TDB_NOSYNC|TDB_NOLOCK,
-                 (for_write ? O_RDWR|O_CREAT : O_RDONLY)|O_NOCTTY
-#ifdef O_CLOEXEC
-                 |O_CLOEXEC
-#endif
-                 , 0644);
-
-    if (c)
+    if ((c = tdb_open_cloexec(path, 0, TDB_NOSYNC|TDB_NOLOCK, (for_write ? O_RDWR|O_CREAT : O_RDONLY), 0644)))
         pa_log_debug("Opened TDB database '%s'", path);
 
     pa_xfree(path);

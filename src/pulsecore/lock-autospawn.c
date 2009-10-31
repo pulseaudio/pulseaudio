@@ -87,11 +87,8 @@ static int ref(void) {
     pa_assert(pipe_fd[0] < 0);
     pa_assert(pipe_fd[1] < 0);
 
-    if (pipe(pipe_fd) < 0)
+    if (pa_pipe_cloexec(pipe_fd) < 0)
         return -1;
-
-    pa_make_fd_cloexec(pipe_fd[0]);
-    pa_make_fd_cloexec(pipe_fd[1]);
 
     pa_make_fd_nonblock(pipe_fd[1]);
     pa_make_fd_nonblock(pipe_fd[0]);

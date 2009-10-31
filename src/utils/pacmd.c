@@ -70,7 +70,7 @@ int main(int argc, char*argv[]) {
         goto fail;
     }
 
-    if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
+    if ((fd = pa_socket_cloexec(PF_UNIX, SOCK_STREAM, 0)) < 0) {
         pa_log(_("socket(PF_UNIX, SOCK_STREAM, 0): %s"), strerror(errno));
         goto fail;
     }

@@ -85,12 +85,11 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
 
 #ifndef OS_IS_WIN32
     pa_assert_se(fstat(fd, &st) == 0);
-#endif
 
-#ifndef OS_IS_WIN32
     if (S_ISSOCK(st.st_mode)) {
 #endif
         union {
+            struct sockaddr_storage storage;
             struct sockaddr sa;
             struct sockaddr_in in;
 #ifdef HAVE_IPV6
@@ -152,7 +151,7 @@ void pa_make_socket_low_delay(int fd) {
     pa_assert(fd >= 0);
 
     priority = 6;
-    if (setsockopt(fd, SOL_SOCKET, SO_PRIORITY, (void*)&priority, sizeof(priority)) < 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_PRIORITY, &priority, sizeof(priority)) < 0)
         pa_log_warn("SO_PRIORITY failed: %s", pa_cstrerror(errno));
 #endif
 }
@@ -166,9 +165,9 @@ void pa_make_tcp_socket_low_delay(int fd) {
     {
         int on = 1;
 #if defined(SOL_TCP)
-        if (setsockopt(fd, SOL_TCP, TCP_NODELAY, (void*)&on, sizeof(on)) < 0)
+        if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
 #else
-        if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (void*)&on, sizeof(on)) < 0)
+        if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
 #endif
             pa_log_warn("TCP_NODELAY failed: %s", pa_cstrerror(errno));
     }
@@ -178,9 +177,9 @@ void pa_make_tcp_socket_low_delay(int fd) {
     {
         int tos = IPTOS_LOWDELAY;
 #ifdef SOL_IP
-        if (setsockopt(fd, SOL_IP, IP_TOS, (void*)&tos, sizeof(tos)) < 0)
+        if (setsockopt(fd, SOL_IP, IP_TOS, &tos, sizeof(tos)) < 0)
 #else
-        if (setsockopt(fd, IPPROTO_IP, IP_TOS, (void*)&tos, sizeof(tos)) < 0)
+        if (setsockopt(fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos)) < 0)
 #endif
             pa_log_warn("IP_TOS failed: %s", pa_cstrerror(errno));
     }
@@ -196,9 +195,9 @@ void pa_make_udp_socket_low_delay(int fd) {
     {
         int tos = IPTOS_LOWDELAY;
 #ifdef SOL_IP
-        if (setsockopt(fd, SOL_IP, IP_TOS, (void*)&tos, sizeof(tos)) < 0)
+        if (setsockopt(fd, SOL_IP, IP_TOS, &tos, sizeof(tos)) < 0)
 #else
-        if (setsockopt(fd, IPPROTO_IP, IP_TOS, (void*)&tos, sizeof(tos)) < 0)
+        if (setsockopt(fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos)) < 0)
 #endif
             pa_log_warn("IP_TOS failed: %s", pa_cstrerror(errno));
     }
@@ -206,11 +205,11 @@ void pa_make_udp_socket_low_delay(int fd) {
 }
 
 int pa_socket_set_rcvbuf(int fd, size_t l) {
-    int bufsz = (int)l;
+    int bufsz = (int) l;
 
     pa_assert(fd >= 0);
 
-    if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void*)&bufsz, sizeof(bufsz)) < 0) {
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &bufsz, sizeof(bufsz)) < 0) {
         pa_log_warn("SO_RCVBUF: %s", pa_cstrerror(errno));
         return -1;
     }
@@ -219,12 +218,12 @@ int pa_socket_set_rcvbuf(int fd, size_t l) {
 }
 
 int pa_socket_set_sndbuf(int fd, size_t l) {
-    int bufsz = (int)l;
+    int bufsz = (int) l;
 
     pa_assert(fd >= 0);
 
-    if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void*)&bufsz, sizeof(bufsz)) < 0) {
-        pa_log("SO_SNDBUF: %s", pa_cstrerror(errno));
+    if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &bufsz, sizeof(bufsz)) < 0) {
+        pa_log_warn("SO_SNDBUF: %s", pa_cstrerror(errno));
         return -1;
     }
 
@@ -239,7 +238,7 @@ int pa_unix_socket_is_stale(const char *fn) {
 
     pa_assert(fn);
 
-    if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
+    if ((fd = pa_socket_cloexec(PF_UNIX, SOCK_STREAM, 0)) < 0) {
         pa_log("socket(): %s", pa_cstrerror(errno));
         goto finish;
     }
@@ -315,6 +314,7 @@ pa_bool_t pa_socket_address_is_local(const struct sockaddr *sa) {
 pa_bool_t pa_socket_is_local(int fd) {
 
     union {
+        struct sockaddr_storage storage;
         struct sockaddr sa;
         struct sockaddr_in in;
 #ifdef HAVE_IPV6

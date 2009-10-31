@@ -168,7 +168,7 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
     pa_assert(filename);
     pa_assert(t);
 
-    if (!f && !(f = fopen(filename, "r"))) {
+    if (!f && !(f = pa_fopen_cloexec(filename, "r"))) {
         if (errno == ENOENT) {
             pa_log_debug("Failed to open configuration file '%s': %s", filename, pa_cstrerror(errno));
             r = 0;

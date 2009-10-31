@@ -85,7 +85,7 @@ static int load_rules(struct userdata *u, const char *filename) {
     pa_assert(u);
 
     if (filename)
-        f = fopen(fn = pa_xstrdup(filename), "r");
+        f = pa_fopen_cloexec(fn = pa_xstrdup(filename), "r");
     else
         f = pa_open_config_file(DEFAULT_MATCH_TABLE_FILE, DEFAULT_MATCH_TABLE_FILE_USER, NULL, &fn);
 

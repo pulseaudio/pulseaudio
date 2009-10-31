@@ -262,7 +262,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if ((fd = socket(af, SOCK_DGRAM, 0)) < 0) {
+    if ((fd = pa_socket_cloexec(af, SOCK_DGRAM, 0)) < 0) {
         pa_log("socket() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
@@ -277,7 +277,7 @@ int pa__init(pa_module*m) {
 #endif
     }
 
-    if ((sap_fd = socket(af, SOCK_DGRAM, 0)) < 0) {
+    if ((sap_fd = pa_socket_cloexec(af, SOCK_DGRAM, 0)) < 0) {
         pa_log("socket() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
@@ -316,8 +316,6 @@ int pa__init(pa_module*m) {
     /* If the socket queue is full, let's drop packets */
     pa_make_fd_nonblock(fd);
     pa_make_udp_socket_low_delay(fd);
-    pa_make_fd_cloexec(fd);
-    pa_make_fd_cloexec(sap_fd);
 
     pa_source_output_new_data_init(&data);
     pa_proplist_sets(data.proplist, PA_PROP_MEDIA_NAME, "RTP Monitor Stream");

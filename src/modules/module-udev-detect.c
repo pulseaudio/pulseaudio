@@ -172,7 +172,7 @@ static pa_bool_t is_card_busy(const char *id) {
             if (status_file)
                 fclose(status_file);
 
-            if (!(status_file = fopen(sub_status, "r"))) {
+            if (!(status_file = pa_fopen_cloexec(sub_status, "r"))) {
                 pa_log_warn("Failed to open %s: %s", sub_status, pa_cstrerror(errno));
                 continue;
             }

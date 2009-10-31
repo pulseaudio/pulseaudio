@@ -104,12 +104,10 @@ static void callback(pa_mainloop_api *mainloop, pa_io_event *e, int fd, pa_io_ev
 
     pa_socket_server_ref(s);
 
-    if ((nfd = accept(fd, NULL, NULL)) < 0) {
+    if ((nfd = pa_accept_cloexec(fd, NULL, NULL)) < 0) {
         pa_log("accept(): %s", pa_cstrerror(errno));
         goto finish;
     }
-
-    pa_make_fd_cloexec(nfd);
 
     if (!s->on_connection) {
         pa_close(nfd);
@@ -186,12 +184,10 @@ pa_socket_server* pa_socket_server_new_unix(pa_mainloop_api *m, const char *file
     pa_assert(m);
     pa_assert(filename);
 
-    if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
+    if ((fd = pa_socket_cloexec(PF_UNIX, SOCK_STREAM, 0)) < 0) {
         pa_log("socket(): %s", pa_cstrerror(errno));
         goto fail;
     }
-
-    pa_make_fd_cloexec(fd);
 
     memset(&sa, 0, sizeof(sa));
     sa.sun_family = AF_UNIX;
@@ -246,12 +242,10 @@ pa_socket_server* pa_socket_server_new_ipv4(pa_mainloop_api *m, uint32_t address
     pa_assert(m);
     pa_assert(port);
 
-    if ((fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((fd = pa_socket_cloexec(PF_INET, SOCK_STREAM, 0)) < 0) {
         pa_log("socket(PF_INET): %s", pa_cstrerror(errno));
         goto fail;
     }
-
-    pa_make_fd_cloexec(fd);
 
 #ifdef SO_REUSEADDR
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
@@ -299,12 +293,10 @@ pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t ad
     pa_assert(m);
     pa_assert(port > 0);
 
-    if ((fd = socket(PF_INET6, SOCK_STREAM, 0)) < 0) {
+    if ((fd = pa_socket_cloexec(PF_INET6, SOCK_STREAM, 0)) < 0) {
         pa_log("socket(PF_INET6): %s", pa_cstrerror(errno));
         goto fail;
     }
-
-    pa_make_fd_cloexec(fd);
 
 #ifdef IPV6_V6ONLY
     on = 1;

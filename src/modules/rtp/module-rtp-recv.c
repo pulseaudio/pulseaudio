@@ -390,7 +390,7 @@ static int mcast_socket(const struct sockaddr* sa, socklen_t salen) {
     pa_assert(salen > 0);
 
     af = sa->sa_family;
-    if ((fd = socket(af, SOCK_DGRAM, 0)) < 0) {
+    if ((fd = pa_socket_cloexec(af, SOCK_DGRAM, 0)) < 0) {
         pa_log("Failed to create socket: %s", pa_cstrerror(errno));
         goto fail;
     }

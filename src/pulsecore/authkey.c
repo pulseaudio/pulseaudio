@@ -70,10 +70,6 @@ static int generate(int fd, void *ret_data, size_t length) {
 #define O_BINARY 0
 #endif
 
-#ifndef O_NOCTTY
-#define O_NOCTTY 0
-#endif
-
 /* Load an euthorization cookie from file fn and store it in data. If
  * the cookie file doesn't exist, create it */
 static int load(const char *fn, void *data, size_t length) {
@@ -86,9 +82,9 @@ static int load(const char *fn, void *data, size_t length) {
     pa_assert(data);
     pa_assert(length > 0);
 
-    if ((fd = open(fn, O_RDWR|O_CREAT|O_BINARY|O_NOCTTY, S_IRUSR|S_IWUSR)) < 0) {
+    if ((fd = pa_open_cloexec(fn, O_RDWR|O_CREAT|O_BINARY, S_IRUSR|S_IWUSR)) < 0) {
 
-        if (errno != EACCES || (fd = open(fn, O_RDONLY|O_BINARY|O_NOCTTY)) < 0) {
+        if (errno != EACCES || (fd = open(fn, O_RDONLY|O_BINARY)) < 0) {
             pa_log_warn("Failed to open cookie file '%s': %s", fn, pa_cstrerror(errno));
             goto finish;
         } else
@@ -204,7 +200,7 @@ int pa_authkey_save(const char *fn, const void *data, size_t length) {
     if (!(p = normalize_path(fn)))
         return -2;
 
-    if ((fd = open(p, O_RDWR|O_CREAT|O_NOCTTY, S_IRUSR|S_IWUSR)) < 0) {
+    if ((fd = pa_open_cloexec(p, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR)) < 0) {
         pa_log_warn("Failed to open cookie file '%s': %s", fn, pa_cstrerror(errno));
         goto finish;
     }

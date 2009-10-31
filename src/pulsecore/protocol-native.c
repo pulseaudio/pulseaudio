@@ -1002,6 +1002,7 @@ static playback_stream* playback_stream_new(
         pa_proplist *p,
         pa_bool_t adjust_latency,
         pa_bool_t early_requests,
+        pa_bool_t relative_volume,
         int *ret) {
 
     playback_stream *s, *ssync;
@@ -1044,13 +1045,21 @@ static playback_stream* playback_stream_new(
     data.driver = __FILE__;
     data.module = c->options->module;
     data.client = c->client;
-    data.sink = sink;
+    if (sink) {
+        data.sink = sink;
+        data.save_sink = TRUE;
+    }
     pa_sink_input_new_data_set_sample_spec(&data, ss);
     pa_sink_input_new_data_set_channel_map(&data, map);
-    if (volume)
+    if (volume) {
         pa_sink_input_new_data_set_volume(&data, volume);
-    if (muted_set)
+        data.volume_is_absolute = !relative_volume;
+        data.save_volume = TRUE;
+    }
+    if (muted_set) {
         pa_sink_input_new_data_set_muted(&data, muted);
+        data.save_muted = TRUE;
+    }
     data.sync_base = ssync ? ssync->sink_input : NULL;
     data.flags = flags;
 
@@ -1838,7 +1847,8 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
         early_requests = FALSE,
         dont_inhibit_auto_suspend = FALSE,
         muted_set = FALSE,
-        fail_on_suspend = FALSE;
+        fail_on_suspend = FALSE,
+        relative_volume = FALSE;
     pa_sink_input_flags_t flags = 0;
     pa_proplist *p;
     pa_bool_t volume_set = TRUE;
@@ -1931,6 +1941,15 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
         }
     }
 
+    if (c->version >= 17) {
+
+        if (pa_tagstruct_get_boolean(t, &relative_volume) < 0) {
+            protocol_error(c);
+            pa_proplist_free(p);
+            return;
+        }
+    }
+
     if (!pa_tagstruct_eof(t)) {
         protocol_error(c);
         pa_proplist_free(p);
@@ -1970,7 +1989,7 @@ static void command_create_playback_stream(pa_pdispatch *pd, uint32_t command, u
      * flag. For older versions we synthesize it here */
     muted_set = muted_set || muted;
 
-    s = playback_stream_new(c, sink, &ss, &map, &attr, volume_set ? &volume : NULL, muted, muted_set, syncid, &missing, flags, p, adjust_latency, early_requests, &ret);
+    s = playback_stream_new(c, sink, &ss, &map, &attr, volume_set ? &volume : NULL, muted, muted_set, syncid, &missing, flags, p, adjust_latency, early_requests, relative_volume, &ret);
     pa_proplist_free(p);
 
     CHECK_VALIDITY(c->pstream, s, tag, ret);

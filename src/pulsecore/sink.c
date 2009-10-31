@@ -926,18 +926,16 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
 
         pa_sw_cvolume_multiply(&volume, &s->thread_info.soft_volume, &info[0].volume);
 
-        if (s->thread_info.soft_muted || !pa_cvolume_is_norm(&volume)) {
-            if (s->thread_info.soft_muted || pa_cvolume_is_muted(&volume)) {
-                pa_memblock_unref(result->memblock);
-                pa_silence_memchunk_get(&s->core->silence_cache,
-                                        s->core->mempool,
-                                        result,
-                                        &s->sample_spec,
-                                        result->length);
-            } else {
-                pa_memchunk_make_writable(result, 0);
-                pa_volume_memchunk(result, &s->sample_spec, &volume);
-            }
+        if (s->thread_info.soft_muted || pa_cvolume_is_muted(&volume)) {
+            pa_memblock_unref(result->memblock);
+            pa_silence_memchunk_get(&s->core->silence_cache,
+                                    s->core->mempool,
+                                    result,
+                                    &s->sample_spec,
+                                    result->length);
+        } else if (!pa_cvolume_is_norm(&volume)) {
+            pa_memchunk_make_writable(result, 0);
+            pa_volume_memchunk(result, &s->sample_spec, &volume);
         }
     } else {
         void *ptr;
@@ -1342,7 +1340,7 @@ static void propagate_reference_volume(pa_sink *s) {
 void pa_sink_set_volume(
         pa_sink *s,
         const pa_cvolume *volume,
-        pa_bool_t sendmsg,
+        pa_bool_t send_msg,
         pa_bool_t save) {
 
     pa_cvolume old_reference_volume;
@@ -1411,7 +1409,7 @@ void pa_sink_set_volume(
         s->soft_volume = s->real_volume;
 
     /* This tells the sink that soft and/or virtual volume changed */
-    if (sendmsg)
+    if (send_msg)
         pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_VOLUME, NULL, 0, NULL) == 0);
 
     if (reference_changed)

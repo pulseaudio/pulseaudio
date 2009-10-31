@@ -55,7 +55,7 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
         pcaps = &caps;
 
     if (*mode == O_RDWR) {
-        if ((fd = open(device, O_RDWR|O_NDELAY|O_NOCTTY)) >= 0) {
+        if ((fd = pa_open_cloexec(device, O_RDWR|O_NDELAY, 0)) >= 0) {
             ioctl(fd, SNDCTL_DSP_SETDUPLEX, 0);
 
             if (ioctl(fd, SNDCTL_DSP_GETCAPS, pcaps) < 0) {
@@ -71,14 +71,14 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
             pa_close(fd);
         }
 
-        if ((fd = open(device, (*mode = O_WRONLY)|O_NDELAY|O_NOCTTY)) < 0) {
-            if ((fd = open(device, (*mode = O_RDONLY)|O_NDELAY|O_NOCTTY)) < 0) {
+        if ((fd = pa_open_cloexec(device, (*mode = O_WRONLY)|O_NDELAY, 0)) < 0) {
+            if ((fd = pa_open_cloexec(device, (*mode = O_RDONLY)|O_NDELAY, 0)) < 0) {
                 pa_log("open('%s'): %s", device, pa_cstrerror(errno));
                 goto fail;
             }
         }
     } else {
-        if ((fd = open(device, *mode|O_NDELAY|O_NOCTTY)) < 0) {
+        if ((fd = pa_open_cloexec(device, *mode|O_NDELAY, 0)) < 0) {
             pa_log("open('%s'): %s", device, pa_cstrerror(errno));
             goto fail;
         }
@@ -144,8 +144,6 @@ success:
 
     pa_log_debug("capabilities:%s", t);
     pa_xfree(t);
-
-    pa_make_fd_cloexec(fd);
 
     return fd;
 
@@ -351,9 +349,9 @@ int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
     if ((n = get_device_number(dev)) < 0)
         return -1;
 
-    if (!(f = fopen("/dev/sndstat", "r")) &&
-        !(f = fopen("/proc/sndstat", "r")) &&
-        !(f = fopen("/proc/asound/oss/sndstat", "r"))) {
+    if (!(f = pa_fopen_cloexec("/dev/sndstat", "r")) &&
+        !(f = pa_fopen_cloexec("/proc/sndstat", "r")) &&
+        !(f = pa_fopen_cloexec("/proc/asound/oss/sndstat", "r"))) {
 
         if (errno != ENOENT)
             pa_log_warn("failed to open OSS sndstat device: %s", pa_cstrerror(errno));
@@ -403,7 +401,7 @@ int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
 static int open_mixer(const char *mixer) {
     int fd;
 
-    if ((fd = open(mixer, O_RDWR|O_NDELAY|O_NOCTTY)) >= 0)
+    if ((fd = pa_open_cloexec(mixer, O_RDWR|O_NDELAY, 0)) >= 0)
         return fd;
 
     return -1;

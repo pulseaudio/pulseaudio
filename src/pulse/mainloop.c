@@ -482,7 +482,7 @@ pa_mainloop *pa_mainloop_new(void) {
 
     m = pa_xnew0(pa_mainloop, 1);
 
-    if (pipe(m->wakeup_pipe) < 0) {
+    if (pa_pipe_cloexec(m->wakeup_pipe) < 0) {
         pa_log_error("ERROR: cannot create wakeup pipe");
         pa_xfree(m);
         return NULL;
@@ -490,8 +490,6 @@ pa_mainloop *pa_mainloop_new(void) {
 
     pa_make_fd_nonblock(m->wakeup_pipe[0]);
     pa_make_fd_nonblock(m->wakeup_pipe[1]);
-    pa_make_fd_cloexec(m->wakeup_pipe[0]);
-    pa_make_fd_cloexec(m->wakeup_pipe[1]);
 
     m->rebuild_pollfds = TRUE;
 

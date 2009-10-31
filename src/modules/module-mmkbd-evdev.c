@@ -175,7 +175,7 @@ int pa__init(pa_module*m) {
     u->fd = -1;
     u->fd_type = 0;
 
-    if ((u->fd = open(pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), O_RDONLY|O_NOCTTY)) < 0) {
+    if ((u->fd = pa_open_cloexec(pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), O_RDONLY, 0)) < 0) {
         pa_log("Failed to open evdev device: %s", pa_cstrerror(errno));
         goto fail;
     }

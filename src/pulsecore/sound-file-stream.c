@@ -252,11 +252,7 @@ int pa_play_file(
     u->readf_function = NULL;
     u->memblockq = NULL;
 
-    if ((fd = open(fname, O_RDONLY
-#ifdef O_NOCTTY
-                   |O_NOCTTY
-#endif
-                   )) < 0) {
+    if ((fd = pa_open_cloexec(fname, O_RDONLY, 0)) < 0) {
         pa_log("Failed to open file %s: %s", fname, pa_cstrerror(errno));
         goto fail;
     }

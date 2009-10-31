@@ -255,11 +255,27 @@ pa_operation *pa_context_proplist_remove(pa_context *c, const char *const keys[]
 uint32_t pa_context_get_index(pa_context *s);
 
 /** Create a new timer event source for the specified time (wrapper
-    for mainloop->time_new). \since 0.9.16 */
+ * for mainloop->time_new). \since 0.9.16 */
 pa_time_event* pa_context_rttime_new(pa_context *c, pa_usec_t usec, pa_time_event_cb_t cb, void *userdata);
-/** Restart a running or expired timer event source (wrapper
-    for mainloop->time_restart). \since 0.9.16 */
+
+/** Restart a running or expired timer event source (wrapper for
+ * mainloop->time_restart). \since 0.9.16 */
 void pa_context_rttime_restart(pa_context *c, pa_time_event *e, pa_usec_t usec);
+
+/* Return the optimal block size for passing around audio buffers. It
+ * is recommended to allocate buffers of the size returned here when
+ * writing audio data to playback streams, if the latency constraints
+ * permit this. It is not recommended writing larger blocks than this
+ * because usually they will then be split up internally into chunks
+ * of this size. It is not recommended writing smaller blocks than
+ * this (unless required due to latency demands) because this
+ * increases CPU usage. If ss is NULL you will be returned the
+ * byte-exact tile size. If you pass a valid ss, then the tile size
+ * will be rounded down to multiple of the frame size. This is
+ * supposed to be used in a construct such as
+ * pa_context_get_tile_size(pa_stream_get_context(s),
+ * pa_stream_get_sample_spec(ss)); \since 0.9.20 */
+size_t pa_context_get_tile_size(pa_context *c, const pa_sample_spec *ss);
 
 PA_C_DECL_END
 
