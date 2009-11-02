@@ -412,7 +412,8 @@ static void dsp_logic(
     fftwf_complex * restrict output_window,//The transformed window'd src
     struct userdata *u){//Collection of constants
     const size_t overlap_size = PA_ROUND_UP(u->overlap_size, v_size);
-
+    float_vector_t x;
+    x.f[0] = x.f[1] = x.f[2] = x.f[3] = X;
 
     //assert(u->samples_gathered >= u->R);
     //use a linear-phase sliding STFT and overlap-add method
@@ -422,9 +423,8 @@ static void dsp_logic(
         float_vector_t *w = (float_vector_t*) (W + j);
         float_vector_t *s = (float_vector_t*) (src + j);
 //#if __SSE2__
-        d->m = _mm_mul_ps(w->m, s->m);
-//#else
-//        d->v = w->v * s->v;
+        d->m = _mm_mul_ps(x.m, _mm_mul_ps(w->m, s->m));
+//        d->v = x->v * w->v * s->v;
 //#endif
     }
     //zero padd the the remaining fft window
@@ -556,33 +556,41 @@ static void input_buffer(struct userdata *u, pa_memchunk *in){
 /* Called from I/O thread context */
 static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk) {
     struct userdata *u;
-    size_t fs, target_samples;
-    struct timeval start, end;
+    size_t fs, target_samples, mbs;
+    //struct timeval start, end;
     pa_memchunk tchunk;
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
     pa_assert(chunk);
     pa_assert(u->sink);
     fs = pa_frame_size(&(u->sink->sample_spec));
+    nbytes = PA_MIN(nbytes, pa_mempool_block_size_max(u->sink->core->mempool));
     target_samples = PA_ROUND_UP(nbytes / fs, u->R);
+    mbs = pa_mempool_block_size_max(u->sink->core->mempool);
+    //pa_log_debug("vanilla mbs = %ld",mbs);
+    mbs = PA_ROUND_DOWN(mbs / fs, u->R);
+    mbs = PA_MAX(mbs, u->R);
+    target_samples = PA_MAX(target_samples, mbs);
+    //pa_log_debug("target samples: %ld", target_samples);
     if(u->first_iteration){
         //allocate request_size
         target_samples = PA_MAX(target_samples, u->window_size);
     }else{
         //allocate request_size + overlap
         target_samples += u->overlap_size;
-        alloc_input_buffers(u, target_samples);
     }
     alloc_input_buffers(u, target_samples);
+    //pa_log_debug("post target samples: %ld", target_samples);
     chunk->memblock = NULL;
 
     /* Hmm, process any rewind request that might be queued up */
     pa_sink_process_rewind(u->sink, 0);
 
     //pa_log_debug("start output-buffered %ld, input-buffered %ld, requested %ld",buffered_samples,u->samples_gathered,samples_requested);
-    pa_rtclock_get(&start);
+    //pa_rtclock_get(&start);
     do{
         size_t input_remaining = target_samples - u->samples_gathered;
+       // pa_log_debug("input remaining %ld samples", input_remaining);
         pa_assert(input_remaining > 0);
         while(pa_memblockq_peek(u->input_q, &tchunk) < 0){
             //pa_sink_render(u->sink, input_remaining * fs, &tchunk);
@@ -597,23 +605,23 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk
         //pa_log_debug("asked for %ld input samples, got %ld samples",input_remaining,buffer->length/fs);
         /* copy new input */
         //pa_rtclock_get(start);
+       // pa_log_debug("buffering %ld bytes", tchunk.length);
         input_buffer(u, &tchunk);
         //pa_rtclock_get(&end);
         //pa_log_debug("Took %0.5f seconds to setup", pa_timeval_diff(end, start) / (double) PA_USEC_PER_SEC);
         pa_memblock_unref(tchunk.memblock);
     }while(u->samples_gathered < target_samples);
 
-    pa_rtclock_get(&end);
-    pa_log_debug("Took %0.6f seconds to get data", (double) pa_timeval_diff(&end, &start) / PA_USEC_PER_SEC);
+    //pa_rtclock_get(&end);
+    //pa_log_debug("Took %0.6f seconds to get data", (double) pa_timeval_diff(&end, &start) / PA_USEC_PER_SEC);
 
     pa_assert(u->fft_size >= u->window_size);
     pa_assert(u->R < u->window_size);
-    /* set the H filter */
-    pa_rtclock_get(&start);
+    //pa_rtclock_get(&start);
     /* process a block */
     process_samples(u, chunk);
-    pa_rtclock_get(&end);
-    pa_log_debug("Took %0.6f seconds to process", (double) pa_timeval_diff(&end, &start) / PA_USEC_PER_SEC);
+    //pa_rtclock_get(&end);
+    //pa_log_debug("Took %0.6f seconds to process", (double) pa_timeval_diff(&end, &start) / PA_USEC_PER_SEC);
 
     pa_assert(chunk->memblock);
     //pa_log_debug("gave %ld", chunk->length/fs);

@@ -657,7 +657,7 @@ int main(int argc, char *argv[]) {
 
 #ifdef HAVE_FORK
         if (pipe(daemon_pipe) < 0) {
-            pa_log(_("pipe failed: %s"), pa_cstrerror(errno));
+            pa_log(_("pipe() failed: %s"), pa_cstrerror(errno));
             goto finish;
         }
 
@@ -708,22 +708,27 @@ int main(int argc, char *argv[]) {
             pa_log_set_target(PA_LOG_SYSLOG);
 
 #ifdef HAVE_SETSID
-        setsid();
-#endif
-#ifdef HAVE_SETPGID
-        setpgid(0,0);
+        if (setsid() < 0) {
+            pa_log(_("setsid() failed: %s"), pa_cstrerror(errno));
+            goto finish;
+        }
 #endif
 
-#ifndef OS_IS_WIN32
-        pa_close(0);
-        pa_close(1);
-        pa_close(2);
+        /* We now are a session and process group leader. Let's fork
+         * again and let the father die, so that we'll become a
+         * process that can never acquire a TTY again, in a session and
+         * process group without leader */
 
-        pa_assert_se(open("/dev/null", O_RDONLY) == 0);
-        pa_assert_se(open("/dev/null", O_WRONLY) == 1);
-        pa_assert_se(open("/dev/null", O_WRONLY) == 2);
-#else
-        FreeConsole();
+#ifdef HAVE_FORK
+        if ((child = fork()) < 0) {
+            pa_log(_("fork() failed: %s"), pa_cstrerror(errno));
+            goto finish;
+        }
+
+        if (child != 0) {
+            retval = 0;
+            goto finish;
+        }
 #endif
 
 #ifdef SIGTTOU
@@ -736,12 +741,7 @@ int main(int argc, char *argv[]) {
         signal(SIGTSTP, SIG_IGN);
 #endif
 
-#ifdef TIOCNOTTY
-        if ((tty_fd = open("/dev/tty", O_RDWR)) >= 0) {
-            ioctl(tty_fd, TIOCNOTTY, (char*) 0);
-            pa_assert_se(pa_close(tty_fd) == 0);
-        }
-#endif
+        pa_nullify_stdfds();
     }
 
     pa_set_env_and_record("PULSE_INTERNAL", "1");

@@ -98,7 +98,11 @@ priority = 18
 name = input-docking
 priority = 17
 
-;;; ' Capture Source'
+[Option Input Source:AUX IN]
+name = input
+priority = 10
+
+;;; 'Capture Source'
 
 [Element Capture Source]
 enumeration = select
@@ -243,6 +247,31 @@ name = input-docking
 
 [Option Capture Source:Dock Mic]
 name = input-docking-microphone
+
+;;; 'Mic Jack Mode'
+
+[Element Mic Jack Mode]
+enumeration = select
+
+[Option Mic Jack Mode:Mic In]
+name = input-microphone
+
+[Option Mic Jack Mode:Line In]
+name = input-linein
+
+;;; 'Digital Input Source'
+
+[Element Digital Input Source]
+enumeration = select
+
+[Option Digital Input Source:Analog Inputs]
+name = input
+
+[Option Digital Input Source:Digital Mic 1]
+name = input-microphone
+
+[Option Digital Input Source:Digital Mic 2]
+name = input-microphone
 
 ;;; Various Boosts
 

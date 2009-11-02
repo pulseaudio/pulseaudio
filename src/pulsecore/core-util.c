@@ -2999,3 +2999,19 @@ finish:
     pa_make_fd_cloexec(fileno(f));
     return f;
 }
+
+void pa_nullify_stdfds(void) {
+
+#ifndef OS_IS_WIN32
+        pa_close(STDIN_FILENO);
+        pa_close(STDOUT_FILENO);
+        pa_close(STDERR_FILENO);
+
+        pa_assert_se(open("/dev/null", O_RDONLY) == STDIN_FILENO);
+        pa_assert_se(open("/dev/null", O_WRONLY) == STDOUT_FILENO);
+        pa_assert_se(open("/dev/null", O_WRONLY) == STDERR_FILENO);
+#else
+        FreeConsole();
+#endif
+
+}
