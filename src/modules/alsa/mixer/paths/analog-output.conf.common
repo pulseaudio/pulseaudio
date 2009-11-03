@@ -109,3 +109,20 @@ priority = 10
 [Option External Amplifier:off]
 name = output-amplifier-off
 priority = 0
+
+;;; 'Analog Output'
+
+[Element Analog Output]
+enumeration = select
+
+[Option Analog Output:Speakers]
+name = output-speaker
+priority = 10
+
+[Option Analog Output:Headphones]
+name = output-headphones
+priority = 9
+
+[Option Analog Output:FP Headphones]
+name = output-headphones
+priority = 8
