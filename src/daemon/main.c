@@ -618,7 +618,6 @@ int main(int argc, char *argv[]) {
 
     if (conf->daemonize) {
         pid_t child;
-        int tty_fd;
 
         if (pa_stdio_acquire() < 0) {
             pa_log(_("Failed to acquire stdio."));
@@ -750,6 +749,8 @@ int main(int argc, char *argv[]) {
 #endif
 
     pa_log_debug(_("Running in valgrind mode: %s"), pa_yes_no(pa_in_valgrind()));
+
+    pa_log_debug(_("Running in VM: %s"), pa_yes_no(pa_running_in_vm()));
 
 #ifdef __OPTIMIZE__
     pa_log_debug(_("Optimized build: yes"));
