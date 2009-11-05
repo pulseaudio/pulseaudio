@@ -142,4 +142,6 @@ pa_bool_t pa_alsa_pcm_is_modem(snd_pcm_t *pcm);
 
 const char* pa_alsa_strerror(int errnum);
 
+pa_bool_t pa_alsa_may_tsched(pa_bool_t want);
+
 #endif
