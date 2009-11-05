@@ -1712,7 +1712,9 @@ static int option_verify(pa_alsa_option *o) {
         { "input-boost-on",            N_("Boost") },
         { "input-boost-off",           N_("No Boost") },
         { "output-amplifier-on",       N_("Amplifier") },
-        { "output-amplifier-off",      N_("No Amplifier") }
+        { "output-amplifier-off",      N_("No Amplifier") },
+        { "output-speaker",            N_("Speaker") },
+        { "output-headphones",         N_("Headphones") }
     };
 
     pa_assert(o);
@@ -1770,15 +1772,17 @@ static int element_verify(pa_alsa_element *e) {
 
 static int path_verify(pa_alsa_path *p) {
     static const struct description_map well_known_descriptions[] = {
-        { "analog-input",              N_("Analog Input") },
-        { "analog-input-microphone",   N_("Analog Microphone") },
-        { "analog-input-linein",       N_("Analog Line-In") },
-        { "analog-input-radio",        N_("Analog Radio") },
-        { "analog-input-video",        N_("Analog Video") },
-        { "analog-output",             N_("Analog Output") },
-        { "analog-output-headphones",  N_("Analog Headphones") },
-        { "analog-output-lfe-on-mono", N_("Analog Output (LFE)") },
-        { "analog-output-mono",        N_("Analog Mono Output") }
+        { "analog-input",               N_("Analog Input") },
+        { "analog-input-microphone",    N_("Analog Microphone") },
+        { "analog-input-linein",        N_("Analog Line-In") },
+        { "analog-input-radio",         N_("Analog Radio") },
+        { "analog-input-video",         N_("Analog Video") },
+        { "analog-output",              N_("Analog Output") },
+        { "analog-output-headphones",   N_("Analog Headphones") },
+        { "analog-output-lfe-on-mono",  N_("Analog Output (LFE)") },
+        { "analog-output-mono",         N_("Analog Mono Output") },
+        { "analog-output-headphones-2", N_("Analog Headphones 2") },
+        { "analog-output-speaker",      N_("Analog Speaker") }
     };
 
     pa_alsa_element *e;
