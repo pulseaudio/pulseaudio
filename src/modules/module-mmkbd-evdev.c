@@ -48,13 +48,15 @@ PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Multimedia keyboard support via Linux evdev");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(FALSE);
-PA_MODULE_USAGE("device=<evdev device> sink=<sink name>");
+PA_MODULE_USAGE("device=<evdev device> sink=<sink name> volume_limit=<volume limit> volume_step=<volume change step>");
 
 #define DEFAULT_DEVICE "/dev/input/event0"
 
 static const char* const valid_modargs[] = {
     "device",
     "sink",
+    "volume_limit",
+    "volume_step",
     NULL,
 };
 
@@ -63,9 +65,9 @@ struct userdata {
     pa_io_event *io;
     char *sink_name;
     pa_module *module;
+    pa_volume_t volume_limit;
+    pa_volume_t volume_step;
 };
-
-#define DELTA (PA_VOLUME_NORM/20)
 
 static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event_flags_t events, void*userdata) {
     struct userdata *u = userdata;
@@ -120,12 +122,12 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
 
                     switch (volchange) {
                         case UP:
-                            pa_cvolume_inc(&cv, DELTA);
+                            pa_cvolume_inc_clamp(&cv, u->volume_step, u->volume_limit);
                             pa_sink_set_volume(s, &cv, TRUE, TRUE);
                             break;
 
                         case DOWN:
-                            pa_cvolume_dec(&cv, DELTA);
+                            pa_cvolume_dec(&cv, u->volume_step);
                             pa_sink_set_volume(s, &cv, TRUE, TRUE);
                             break;
 
@@ -160,11 +162,23 @@ int pa__init(pa_module*m) {
     struct input_id input_id;
     char name[256];
     uint8_t evtype_bitmask[EV_MAX/8 + 1];
+    pa_volume_t volume_limit = PA_VOLUME_NORM*3/2;
+    pa_volume_t volume_step = PA_VOLUME_NORM/20;
 
     pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
+        goto fail;
+    }
+
+    if (pa_modargs_get_value_u32(ma, "volume_limit", &volume_limit) < 0) {
+        pa_log("Failed to parse volume limit");
+        goto fail;
+    }
+
+    if (pa_modargs_get_value_u32(ma, "volume_step", &volume_step) < 0) {
+        pa_log("Failed to parse volume step");
         goto fail;
     }
 
@@ -174,6 +188,8 @@ int pa__init(pa_module*m) {
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
     u->fd = -1;
     u->fd_type = 0;
+    u->volume_limit = volume_limit;
+    u->volume_step = volume_step;
 
     if ((u->fd = pa_open_cloexec(pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), O_RDONLY, 0)) < 0) {
         pa_log("Failed to open evdev device: %s", pa_cstrerror(errno));
