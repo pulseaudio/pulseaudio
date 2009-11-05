@@ -2944,6 +2944,7 @@ int pa_pipe_cloexec(int pipefd[2]) {
 
     if (errno != EINVAL && errno != ENOSYS)
         return r;
+
 #endif
 
     if ((r = pipe(pipefd)) < 0)
@@ -2965,6 +2966,7 @@ int pa_accept_cloexec(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
 
     if (errno != EINVAL && errno != ENOSYS)
         return fd;
+
 #endif
 
     if ((fd = accept(sockfd, addr, addrlen)) < 0)
@@ -3014,4 +3016,91 @@ void pa_nullify_stdfds(void) {
         FreeConsole();
 #endif
 
+}
+
+char *pa_read_line_from_file(const char *fn) {
+    FILE *f;
+    char ln[256] = "", *r;
+
+    if (!(f = pa_fopen_cloexec(fn, "r")))
+        return NULL;
+
+    r = fgets(ln, sizeof(ln)-1, f);
+    fclose(f);
+
+    if (!r) {
+        errno = EIO;
+        return NULL;
+    }
+
+    pa_strip_nl(ln);
+    return pa_xstrdup(ln);
+}
+
+pa_bool_t pa_running_in_vm(void) {
+
+#if defined(__i386__) || defined(__x86_64__)
+
+    /* Both CPUID and DMI are x86 specific interfaces... */
+
+    uint32_t eax = 0x40000000;
+    union {
+        uint32_t sig32[3];
+        char text[13];
+    } sig;
+
+#ifdef __linux__
+    const char *const dmi_vendors[] = {
+        "/sys/class/dmi/id/sys_vendor",
+        "/sys/class/dmi/id/board_vendor",
+        "/sys/class/dmi/id/bios_vendor"
+    };
+
+    unsigned i;
+
+    for (i = 0; i < PA_ELEMENTSOF(dmi_vendors); i++) {
+        char *s;
+
+        if ((s = pa_read_line_from_file(dmi_vendors[i]))) {
+
+            if (pa_startswith(s, "QEMU") ||
+                /* http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=1009458 */
+                pa_startswith(s, "VMware") ||
+                pa_startswith(s, "VMW") ||
+                pa_startswith(s, "Microsoft Corporation") ||
+                pa_startswith(s, "innotek GmbH") ||
+                pa_startswith(s, "Xen")) {
+
+                pa_xfree(s);
+                return TRUE;
+            }
+
+            pa_xfree(s);
+        }
+    }
+
+#endif
+
+    /* http://lwn.net/Articles/301888/ */
+    pa_zero(sig);
+
+    __asm__ __volatile__ (
+        "  xor %%ebx, %%ebx          \n\t"
+        "  cpuid                     \n\t"
+
+        : "=a" (eax), "=b" (sig.sig32[0]), "=c" (sig.sig32[1]), "=d" (sig.sig32[2])
+        : "0" (eax)
+    );
+
+    if (pa_streq(sig.text, "XenVMMXenVMM") ||
+        pa_streq(sig.text, "KVMKVMKVM") ||
+        /* http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=1009458 */
+        pa_streq(sig.text, "VMwareVMware") ||
+        /* http://msdn.microsoft.com/en-us/library/bb969719.aspx */
+        pa_streq(sig.text, "Microsoft Hv"))
+        return TRUE;
+
+#endif
+
+    return FALSE;
 }

@@ -267,4 +267,7 @@ FILE* pa_fopen_cloexec(const char *path, const char *mode);
 
 void pa_nullify_stdfds(void);
 
+char *pa_read_line_from_file(const char *fn);
+pa_bool_t pa_running_in_vm(void);
+
 #endif
