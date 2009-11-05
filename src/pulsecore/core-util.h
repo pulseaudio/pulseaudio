@@ -251,4 +251,7 @@ pa_bool_t pa_run_from_build_tree(void);
 
 const char *pa_get_temp_dir(void);
 
+char *pa_read_line_from_file(const char *fn);
+pa_bool_t pa_running_in_vm(void);
+
 #endif
