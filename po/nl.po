@@ -2,16 +2,17 @@
 # Copyright (C) 2009 THE pulseaudio.master-tx'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the pulseaudio.master-tx package.
 # Geert Warrink <geert.warrink@onsnet.nu>, 2009.
+# Reinout van Schouwen <reinout@gmail.com>, 2009
 #
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-29 23:47+0200\n"
-"PO-Revision-Date: 2009-09-11 19:58+0200\n"
-"Last-Translator: Geert Warrink <geert.warrink@onsnet.nu>\n"
-"Language-Team: nl <nl@li.org>\n"
+"POT-Creation-Date: 2009-10-14 04:44+0000\n"
+"PO-Revision-Date: 2009-10-14 11:00+0100\n"
+"Last-Translator: Reinout van Schouwen <reinout@gmail.com>\n"
+"Language-Team: Dutch <vertaling@vrijschrift.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding:  \n"
@@ -31,8 +32,8 @@ msgid ""
 msgstr ""
 "snd_pcm_avail() gaf een waarde terug die uitzonderlijk groot is: %lu bytes (%"
 "lu ms).\n"
-"Waarschijnlijk is dit een bug in de ALSA driver '%s'. Rapporteer dit "
-"probleem a.u.b. aan de ALSA ontwikkelaars."
+"Waarschijnlijk is dit een fout in het ALSA-stuurprogramma ‘%s’. Meld dit "
+"probleem alstublieft aan de ALSA-ontwikkelaars."
 
 #: ../src/modules/alsa/alsa-util.c:1147
 #, c-format
@@ -44,8 +45,8 @@ msgid ""
 msgstr ""
 "snd_pcm_delay() gaf een waarde terug die uitzonderlijk groot is: %li bytes (%"
 "s%lu ms).\n"
-"Waarschijnlijk is  dit een bug in de ALSA driver '%s'. Rapporteer dit "
-"probleem a.u.b. aan de ALSA ontwikkelaars."
+"Waarschijnlijk is dit een fout in het ALSA-stuurprogramma ‘%s’. Meld dit "
+"probleem alstublieft aan de ALSA-ontwikkelaars."
 
 #: ../src/modules/alsa/alsa-util.c:1194
 #, c-format
@@ -57,21 +58,21 @@ msgid ""
 msgstr ""
 "snd_pcm_mmap_begin() gaf een waarde terug die uitzonderlijk groot is: %lu "
 "bytes (%lu ms).\n"
-"Waarschijnlijk is dit een bug in de ALSA driver '%s'. Rapporteer dit "
-"probleem a.u.b aan de ALSA ontwikkelaars."
+"Waarschijnlijk is dit een fout in het ALSA-stuurprogramma ‘%s’. Meld dit "
+"probleem alstublieft aan de ALSA-ontwikkelaars."
 
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
 msgstr ""
-"Houdt altijd ten minste een afvoer ingeladen zelfs als het de null afvoer is."
+"Houdt altijd ten minste een afvoer ingeladen zelfs als het de null-afvoer is."
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
-msgstr "Dummy output"
+msgstr "Dummy-uitvoer"
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
-msgstr "Virtuele LADSPA afoer"
+msgstr "Virtuele LADSPA afvoer"
 
 #: ../src/modules/module-ladspa-sink.c:53
 msgid ""
@@ -81,19 +82,19 @@ msgid ""
 "plugin name> label=<ladspa plugin label> control=<comma seperated list of "
 "input control values>"
 msgstr ""
-"sink_name=<naam voor de afoer> sink_properties=<eigenschappen van de afoer> "
-"master=<naam van de te filteren afoer> format=<sample formaat> rate=<sample "
-"snelheid> channels=<aantal kanalen> channel_map=<kanaal map> plugin=<ladspa "
-"plugin naam> label=<ladspa plugin label> control=<met kommas gescheiden "
-"lijst van input controle waarden>"
+"sink_name=<naam voor de afvoer> sink_properties=<eigenschappen van de afvoer> "
+"master=<naam van de te filteren afvoer> format=<sampleformaat> rate=<sample "
+"snelheid> channels=<aantal kanalen> channel_map=<kanaalkaart> plugin=<ladspa "
+"pluginnaam> label=<ladspa pluginlabel> control=<kommagescheiden "
+"lijst van invoercontrolewaarden>"
 
 #: ../src/modules/module-null-sink.c:55
 msgid "Clocked NULL sink"
-msgstr "Geklokte MULL afvoer"
+msgstr "Geklokte NULL afvoer"
 
 #: ../src/modules/module-null-sink.c:291
 msgid "Null Output"
-msgstr "Null output"
+msgstr "Null-uitvoer"
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
@@ -118,7 +119,7 @@ msgstr "Kon bind-now-loader niet toevoegen."
 #: ../src/daemon/main.c:141
 #, c-format
 msgid "Got signal %s."
-msgstr "Ontving signaal %s."
+msgstr "Signaal %s ontvangen."
 
 #: ../src/daemon/main.c:168
 msgid "Exiting."
@@ -132,50 +133,50 @@ msgstr "Kon gebruiker '%s' niet vinden."
 #: ../src/daemon/main.c:191
 #, c-format
 msgid "Failed to find group '%s'."
-msgstr "Kon groep '%s' niet vinden."
+msgstr "Kon groep ‘%s’ niet vinden."
 
 #: ../src/daemon/main.c:195
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
-msgstr "Gebruiker '%s' (UID %lu) en groep '%s' (GID %lu) gevonden."
+msgstr "Gebruiker ‘%s’ (UID %lu) en groep ‘%s’ (GID %lu) gevonden."
 
 #: ../src/daemon/main.c:200
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
-msgstr "GID van gebruiker '%s' en van groep '%s' passen niet bij elkaar."
+msgstr "GID van gebruiker ‘%s’ en van groep ‘%s’ passen niet bij elkaar."
 
 #: ../src/daemon/main.c:205
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr "Persoonlijke map van gebruiker '%s' is niet '%s', negeer het."
+msgstr "Persoonlijke map van gebruiker ‘%s’ is niet ‘%s’, negeer het."
 
 #: ../src/daemon/main.c:208 ../src/daemon/main.c:213
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr "Aanmaken van '%s': %s mislukte"
+msgstr "Aanmaken van ‘%s’ mislukt: %s"
 
 #: ../src/daemon/main.c:220
 #, c-format
 msgid "Failed to change group list: %s"
-msgstr "Veranderen van groeps lijst: '%s' mislukte"
+msgstr "Veranderen van groepslijst mislukt: %s"
 
 #: ../src/daemon/main.c:236
 #, c-format
 msgid "Failed to change GID: %s"
-msgstr "Veranderen van GID: %s mislukte"
+msgstr "Veranderen van GID mislukt: %s"
 
 #: ../src/daemon/main.c:252
 #, c-format
 msgid "Failed to change UID: %s"
-msgstr "Veranderen van UID: %s mislukte"
+msgstr "Veranderen van UID mislukt: %s"
 
 #: ../src/daemon/main.c:271
 msgid "Successfully dropped root privileges."
-msgstr "Root rechten met succes laten vervallen."
+msgstr "Beheerdersrechten met succes laten vervallen."
 
 #: ../src/daemon/main.c:279
 msgid "System wide mode unsupported on this platform."
-msgstr "Systeem brede mode wordt op dit platform niet ondersteund."
+msgstr "Systeembrede modus wordt op dit platform niet ondersteund."
 
 #: ../src/daemon/main.c:297
 #, c-format
@@ -184,21 +185,21 @@ msgstr "setrlimit(%s, (%u, %u)) mislukte: %s"
 
 #: ../src/daemon/main.c:474
 msgid "Failed to parse command line."
-msgstr "Analyseren van de commandoregel mislukte."
+msgstr "Analyseren van de opdrachtregel mislukte."
 
 #: ../src/daemon/main.c:541
 msgid "Daemon not running"
-msgstr "Daemon draait niet"
+msgstr "Voorziening draait niet"
 
 #: ../src/daemon/main.c:543
 #, c-format
 msgid "Daemon running as PID %u"
-msgstr "Daemon draait met PID %u"
+msgstr "Voorziening draait met PID %u"
 
 #: ../src/daemon/main.c:553
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr "Afschieten mislukt van daemon: '%s'"
+msgstr "Elimineren van voorziening mislukt: ‘%s’"
 
 #: ../src/daemon/main.c:571
 msgid ""
@@ -210,28 +211,28 @@ msgstr ""
 
 #: ../src/daemon/main.c:573
 msgid "Root privileges required."
-msgstr "Root rechten vereisd"
+msgstr "Beheerdersrechten vereist."
 
 #: ../src/daemon/main.c:578
 msgid "--start not supported for system instances."
-msgstr "--start wordt niet ondersteund voor systeem instances"
+msgstr "--start wordt niet ondersteund voor systeeminstanties"
 
 #: ../src/daemon/main.c:583
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr "Draaiend in systeem mode, maar --disallow-exit is niet gezet!"
+msgstr "Draaiend in systeemmodus, maar --disallow-exit is niet ingesteld!"
 
 #: ../src/daemon/main.c:586
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
-"Draaiend in systeem mode, maar --disallow-module-loading is niet gezet!"
+"Draaiend in systeemmodus, maar --disallow-module-loading is niet gezet!"
 
 #: ../src/daemon/main.c:589
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr "Draaiend in systeem mode, geforceerd uitzetten van SHM mode!"
+msgstr "Draaiend in systeemmodus, geforceerd uitzetten van SHM-modus!"
 
 #: ../src/daemon/main.c:594
 msgid "Running in system mode, forcibly disabling exit idle time!"
-msgstr "Draaiend in systeem mode, geforceerd uitzetten van exit idle time!"
+msgstr "Draaiend in systeemmodus, geforceerd uitzetten van exit idle time!"
 
 #: ../src/daemon/main.c:621
 msgid "Failed to acquire stdio."
@@ -254,11 +255,11 @@ msgstr "read() mislukte: %s"
 
 #: ../src/daemon/main.c:652
 msgid "Daemon startup failed."
-msgstr "Daemon opstarten mislukte."
+msgstr "Voorziening opstarten mislukt."
 
 #: ../src/daemon/main.c:654
 msgid "Daemon startup successful."
-msgstr "Daemon met succes opgestart."
+msgstr "Voorziening met succes opgestart."
 
 #: ../src/daemon/main.c:731
 #, c-format
@@ -268,12 +269,12 @@ msgstr "Dit is PulseAudio %s"
 #: ../src/daemon/main.c:732
 #, c-format
 msgid "Compilation host: %s"
-msgstr "Compilatie host: %s"
+msgstr "Compilatiehost: %s"
 
 #: ../src/daemon/main.c:733
 #, c-format
 msgid "Compilation CFLAGS: %s"
-msgstr "Compilatie CFLAGS: %s"
+msgstr "Compilatie-CFLAGS: %s"
 
 #: ../src/daemon/main.c:736
 #, c-format
@@ -301,61 +302,61 @@ msgstr "Gecompileerd met Valgrind ondersteuning: nee"
 #: ../src/daemon/main.c:749
 #, c-format
 msgid "Running in valgrind mode: %s"
-msgstr "Draaiend in valgrind mode: %s"
+msgstr "Draaiend in valgrind-modus: %s"
 
 #: ../src/daemon/main.c:752
 msgid "Optimized build: yes"
-msgstr "Optimaal gebouwd: ja"
+msgstr "Geoptimaliseerd gebouwd: ja"
 
 #: ../src/daemon/main.c:754
 msgid "Optimized build: no"
-msgstr "Optimaak gebouwd: nee"
+msgstr "Geoptimaliseerd gebouwd: nee"
 
 #: ../src/daemon/main.c:758
 msgid "NDEBUG defined, all asserts disabled."
-msgstr "NDEBUG gedefinieerd, alle verklaringen uitgezet."
+msgstr "NDEBUG gedefinieerd, alle asserts uitgezet."
 
 #: ../src/daemon/main.c:760
 msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr "FASTPATH gedefinieerd, alleen snel pad verklaringen uitgezet."
+msgstr "FASTPATH gedefinieerd, alleen fast path-asserts uitgezet."
 
 #: ../src/daemon/main.c:762
 msgid "All asserts enabled."
-msgstr "Alle verklaringen aangezet."
+msgstr "Alle asserts aangezet."
 
 #: ../src/daemon/main.c:766
 msgid "Failed to get machine ID"
-msgstr "Machine ID verkrijgen mislukte"
+msgstr "Machine-ID verkrijgen mislukt"
 
 #: ../src/daemon/main.c:769
 #, c-format
 msgid "Machine ID is %s."
-msgstr "Machine ID is: %s."
+msgstr "Machine-ID is: %s."
 
 #: ../src/daemon/main.c:773
 #, c-format
 msgid "Session ID is %s."
-msgstr "Sessie ID is: %s."
+msgstr "Sessie-ID is: %s."
 
 #: ../src/daemon/main.c:779
 #, c-format
 msgid "Using runtime directory %s."
-msgstr "Gebruik van runtime map %s."
+msgstr "Gebruik van runtime-map %s."
 
 #: ../src/daemon/main.c:784
 #, c-format
 msgid "Using state directory %s."
-msgstr "Verbruik van state map %s."
+msgstr "Verbruik van state-map %s."
 
 #: ../src/daemon/main.c:787
 #, c-format
 msgid "Using modules directory %s."
-msgstr "Gebruik van module map %s."
+msgstr "Gebruik van module-map %s."
 
 #: ../src/daemon/main.c:789
 #, c-format
 msgid "Running in system mode: %s"
-msgstr "Draaiend in systeem mode: %s"
+msgstr "Draaiend in systeemmodus: %s"
 
 #: ../src/daemon/main.c:792
 msgid ""
@@ -366,12 +367,12 @@ msgid ""
 "Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an "
 "explanation why system mode is usually a bad idea."
 msgstr ""
-"OK, dus je draait PA in systeem mode. Merk a.u.b. op dat je dit "
-"waarschijnlijk niet moet doen.\n"
-"Als je het toch doet dan is het je eigen schuld als dingen niet werken zoals "
+"OK, dus u draait PA in systeemmodus. Merk op dat u dit "
+"waarschijnlijk beter niet kunt doen.\n"
+"Als u het toch doet dan is het uw eigen schuld als dingen niet werken zoals "
 "verwacht.\n"
-"Lees a.u.b.http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode voor een "
-"uitleg waarom systeem mode gewoonlijk een slecht idee is."
+"Lees http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode voor een "
+"uitleg waarom systeemmodus gewoonlijk een slecht idee is."
 
 #: ../src/daemon/main.c:809
 msgid "pa_pid_file_create() failed."
@@ -395,23 +396,23 @@ msgstr "pa_core_new() mislukte."
 
 #: ../src/daemon/main.c:904
 msgid "Failed to initialize daemon."
-msgstr "Initialiseren van de daemon mislukte."
+msgstr "Initialiseren van de voorziening mislukt."
 
 #: ../src/daemon/main.c:909
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr "Daemon opgestart zonder geladen modules, dat werkt niet."
+msgstr "Voorziening opgestart zonder geladen modules, dat werkt niet."
 
 #: ../src/daemon/main.c:926
 msgid "Daemon startup complete."
-msgstr "Daemon opstarten is klaar."
+msgstr "Voorziening opstarten is klaar."
 
 #: ../src/daemon/main.c:932
 msgid "Daemon shutdown initiated."
-msgstr "Daemon afsluiten is begonnen."
+msgstr "Voorziening afsluiten is begonnen."
 
 #: ../src/daemon/main.c:954
 msgid "Daemon terminated."
-msgstr "Daemon is afgesloten."
+msgstr "Voorziening is afgesloten."
 
 #: ../src/daemon/cmdline.c:115
 #, c-format
@@ -559,7 +560,7 @@ msgstr ""
 "met\n"
 "                                        de opgegeven argumenten\n"
 "  -F, --file=FILENAME                   Draai het opgegeven script\n"
-"  -C                                    Open een commandoregel op de "
+"  -C                                    Open een opdrachtregel op de "
 "draaiende TTY\n"
 "                                        na het opstarten\n"
 "\n"
@@ -669,7 +670,7 @@ msgstr "Laad eenmaal: %s\n"
 #: ../src/daemon/dumpmodules.c:75
 #, c-format
 msgid "DEPRECATION WARNING: %s\n"
-msgstr "OUDERE VERSIE WAARSCHUWING: %s\n"
+msgstr "ACHTERHAALDHEIDSWAARSCHUWING: %s\n"
 
 #: ../src/daemon/dumpmodules.c:79
 #, c-format
@@ -679,22 +680,22 @@ msgstr "Pad: %s\n"
 #: ../src/daemon/daemon-conf.c:232
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr "[%s:%u] Ongeldig log doel '%s'."
+msgstr "[%s:%u] Ongeldig logdoel '%s'."
 
 #: ../src/daemon/daemon-conf.c:248
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
-msgstr "[%s:%u] Ongeldig log niveau '%s'."
+msgstr "[%s:%u] Ongeldig logniveau '%s'."
 
 #: ../src/daemon/daemon-conf.c:264
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr "[%s:%u] Ongeldige her-bemonster methode '%s'."
+msgstr "[%s:%u] Ongeldige resample-methode ‘%s’."
 
 #: ../src/daemon/daemon-conf.c:287
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
-msgstr "[%s:%u] Ongeldige rlimit '%s'."
+msgstr "[%s:%u] Ongeldige rlimit ‘%s’."
 
 #: ../src/daemon/daemon-conf.c:294
 #, c-format
@@ -704,22 +705,22 @@ msgstr "[%s:%u] rlimit wordt niet ondersteund op dit platform."
 #: ../src/daemon/daemon-conf.c:310
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
-msgstr "[%s:%u] Ongeldig bemonster formaat '%s'."
+msgstr "[%s:%u] Ongeldig sampleformaat ‘%s’."
 
 #: ../src/daemon/daemon-conf.c:328
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr "[%s:%u] Ongeldige bemonster snelheid '%s'."
+msgstr "[%s:%u] Ongeldige samlperate ‘%s’."
 
 #: ../src/daemon/daemon-conf.c:352
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
-msgstr "[%s:%u] Ongeldige bemonster kanalen '%s'."
+msgstr "[%s:%u] Ongeldige sample-kanalen ‘%s’."
 
 #: ../src/daemon/daemon-conf.c:370
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr "[%s:%u] Ongeldige kanalen map '%s'."
+msgstr "[%s:%u] Ongeldige kanalenkaart ‘%s’."
 
 #: ../src/daemon/daemon-conf.c:388
 #, c-format
@@ -729,30 +730,30 @@ msgstr "[%s:%u] Ongeldig aantal fragmenten '%s'."
 #: ../src/daemon/daemon-conf.c:406
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr "[%s:%u] Ongeldige fragment grootte '%s'."
+msgstr "[%s:%u] Ongeldige fragmentgrootte ‘%s’."
 
 #: ../src/daemon/daemon-conf.c:424
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr "[%s:%u] Ongeldig nice niveau '%s'."
+msgstr "[%s:%u] Ongeldig nice niveau ‘%s’."
 
 #: ../src/daemon/daemon-conf.c:546
 #, c-format
 msgid "Failed to open configuration file: %s"
-msgstr "Openen van configuratie bestand %s mislukte."
+msgstr "Openen van configuratiebestand %s mislukt."
 
 #: ../src/daemon/daemon-conf.c:562
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
 msgstr ""
-"De opgegeven standaard kanalen map heeft een ander aantal kanalen dan de "
+"De opgegeven standaard kanalenkaart heeft een ander aantal kanalen dan de "
 "opgegeven standaard aantal kanalen."
 
 #: ../src/daemon/daemon-conf.c:638
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
-msgstr "### Lees in het configuratie bestand: %s ###\n"
+msgstr "### Lees uit het configuratiebestand: %s ###\n"
 
 #: ../src/daemon/caps.c:62
 msgid "Cleaning up privileges."
@@ -792,11 +793,11 @@ msgstr "Achter links"
 
 #: ../src/pulse/channelmap.c:113
 msgid "Rear Right"
-msgstr "Achter rechta"
+msgstr "Achter rechts"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Low Frequency Emmiter"
-msgstr "Lage frequentie zender"
+msgstr "Lage-frequentiezender"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -1022,15 +1023,15 @@ msgstr "Eenheid bestaat"
 
 #: ../src/pulse/error.c:48
 msgid "No such entity"
-msgstr "Eenheid onbekent"
+msgstr "Eenheid onbekend"
 
 #: ../src/pulse/error.c:49
 msgid "Connection refused"
-msgstr "Verbinding geweigert"
+msgstr "Verbinding geweigerd"
 
 #: ../src/pulse/error.c:50
 msgid "Protocol error"
-msgstr "Protocol fout"
+msgstr "Protocolfout"
 
 #: ../src/pulse/error.c:51
 msgid "Timeout"
@@ -1038,7 +1039,7 @@ msgstr "Tijd verstreken"
 
 #: ../src/pulse/error.c:52
 msgid "No authorization key"
-msgstr "Geen authorisatie sleutel"
+msgstr "Geen autorisatiesleutel"
 
 #: ../src/pulse/error.c:53
 msgid "Internal error"
@@ -1050,7 +1051,7 @@ msgstr "Verbinding verbroken"
 
 #: ../src/pulse/error.c:55
 msgid "Entity killed"
-msgstr "Eenheid afgeschoten"
+msgstr "Eenheid geëlimineerd"
 
 #: ../src/pulse/error.c:56
 msgid "Invalid server"
@@ -1058,7 +1059,7 @@ msgstr "Ongeldige server"
 
 #: ../src/pulse/error.c:57
 msgid "Module initalization failed"
-msgstr "Module initialisatie mislukte"
+msgstr "Module-initialisatie mislukt"
 
 #: ../src/pulse/error.c:58
 msgid "Bad state"
@@ -1139,12 +1140,12 @@ msgstr "XOpenDisplay() mislukte"
 
 #: ../src/pulse/client-conf-x11.c:93
 msgid "Failed to parse cookie data"
-msgstr "Analyseren van cookie data mislukte"
+msgstr "Analyseren van cookie-data mislukt"
 
 #: ../src/pulse/client-conf.c:111
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
-msgstr "Open van configuratie bestand '%s' mislukte: %s"
+msgstr "Open van configuratiebestand ‘%s’ mislukte: %s"
 
 #: ../src/pulse/context.c:550
 msgid "No cookie loaded. Attempting to connect without."
@@ -1163,7 +1164,7 @@ msgstr "waitpid(): %s"
 #: ../src/pulse/context.c:1438
 #, c-format
 msgid "Received message for unknown extension '%s'"
-msgstr "Ontving boodschap voor onbekende extensie '%s'"
+msgstr "Ontving boodschap voor onbekende extensie ‘%s’"
 
 #: ../src/utils/pacat.c:108
 #, c-format
@@ -1210,17 +1211,17 @@ msgstr "pa_stream_get_buffer_attr() mislukte: %s"
 #: ../src/utils/pacat.c:314
 #, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
-msgstr "Buffer metriek: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
+msgstr "Buffermetriek: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 
 #: ../src/utils/pacat.c:317
 #, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u"
-msgstr "Buffer metriek: maxlength=%u, fragsize=%u"
+msgstr "Buffermetriek: maxlength=%u, fragsize=%u"
 
 #: ../src/utils/pacat.c:321
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'."
-msgstr "Gebruik bemonster spec  '%s', kanaal map '%s'."
+msgstr "Gebruik sample-spec  '%s', kanaal map '%s'."
 
 #: ../src/utils/pacat.c:325
 #, c-format
@@ -1230,27 +1231,27 @@ msgstr "Verbonden met apparaat %s (%u, %sopgeschort)."
 #: ../src/utils/pacat.c:335
 #, c-format
 msgid "Stream error: %s"
-msgstr "Stroom fout: %s"
+msgstr "Stroomfout: %s"
 
 #: ../src/utils/pacat.c:345
 #, c-format
 msgid "Stream device suspended.%s"
-msgstr "Stroom apparaat opgeschort.%s"
+msgstr "Stroomapparaat opgeschort.%s"
 
 #: ../src/utils/pacat.c:347
 #, c-format
 msgid "Stream device resumed.%s"
-msgstr "Stroom apparaat hervat.%s"
+msgstr "Stroomapparaat hervat.%s"
 
 #: ../src/utils/pacat.c:355
 #, c-format
 msgid "Stream underrun.%s"
-msgstr "Stroom te weinig data.%s"
+msgstr "Te weinig data voor stroom.%s"
 
 #: ../src/utils/pacat.c:362
 #, c-format
 msgid "Stream overrun.%s"
-msgstr "Stroom data overschrijding.%s"
+msgstr "Data-overschrijding voor stroom.%s"
 
 #: ../src/utils/pacat.c:369
 #, c-format
@@ -1264,7 +1265,7 @@ msgstr "Stroom verplaatst naar apparaat %s (%u, %sopgeschort).%s"
 
 #: ../src/utils/pacat.c:376
 msgid "not "
-msgstr "niet"
+msgstr "niet "
 
 #: ../src/utils/pacat.c:383
 #, c-format
@@ -1395,7 +1396,7 @@ msgstr ""
 "\n"
 "  -s, --server=SERVER                   De naam van de server waarmee "
 "verbonden moet worden\n"
-"  -d, --device=DEVICE                   De naam van de afoer/bron waarmee "
+"  -d, --device=DEVICE                   De naam van de afvoer/bron waarmee "
 "verbonden moet worden\n"
 "  -n, --client-name=NAME                Hoe wordt deze cliënt op de server "
 "genoemd\n"
@@ -1403,9 +1404,9 @@ msgstr ""
 "genoemd\n"
 "      --volume=VOLUME                   Geef het begins (lineare) volume in "
 "reeks 0...65536\n"
-"      --rate=SAMPLERATE                 De bemonstersnelheid in Hz "
+"      --rate=SAMPLERATE                 De samplerate in Hz "
 "(standaard 44100)\n"
-"      --format=SAMPLEFORMAT             Het bemonster type, een van s16le, "
+"      --format=SAMPLEFORMAT             Het sampletype, een van s16le, "
 "s16be, u8, float32le,\n"
 "                                        float32be, ulaw, alaw, s32le, s32be, "
 "s24le, s24be,\n"
@@ -1414,12 +1415,12 @@ msgstr ""
 "      --channels=CHANNELS               Het aantal kanalen, 1 voor mono, 2 "
 "voor stereo\n"
 "                                        (standaard 2)\n"
-"      --channel-map=CHANNELMAP          Kanaal map te gebruiken in plaats "
+"      --channel-map=CHANNELMAP          Kanaalkaart te gebruiken in plaats "
 "van de standaard\n"
-"      --fix-format                      Neem het bemonsteringsformaat over "
-"van de afoer waar de stroom\n"
+"      --fix-format                      Neem het sampleformaat over "
+"van de afvoer waar de stroom\n"
 "                                        mee verbonden is.\n"
-"      --fix-rate                        Neem de bemonsteringssnelheid over "
+"      --fix-rate                        Neem de samplerate over "
 "van de afvoer waar de stroom\n"
 "                                        mee verbonden is.\n"
 "      --fix-channels                    Neem het aantal kanalen en de kanaal "
@@ -1456,32 +1457,32 @@ msgstr ""
 #: ../src/utils/pacat.c:764 ../src/utils/pactl.c:953
 #, c-format
 msgid "Invalid client name '%s'"
-msgstr "Ongeldige cliënt naam '%s'."
+msgstr "Ongeldige clientnaam ‘%s’."
 
 #: ../src/utils/pacat.c:779
 #, c-format
 msgid "Invalid stream name '%s'"
-msgstr "Ongeldige stroom naam '%s'."
+msgstr "Ongeldige stroomnaam ‘%s’."
 
 #: ../src/utils/pacat.c:816
 #, c-format
 msgid "Invalid channel map '%s'"
-msgstr "Ongeldige kanaal map '%s'."
+msgstr "Ongeldige kanaalkaart ‘%s’."
 
 #: ../src/utils/pacat.c:845
 #, c-format
 msgid "Invalid latency specification '%s'"
-msgstr "Ongeldige latentie specificatie '%s'."
+msgstr "Ongeldige latentie-specificatie ‘%s’."
 
 #: ../src/utils/pacat.c:852
 #, c-format
 msgid "Invalid process time specification '%s'"
-msgstr "Ongeldige proces tijd specificatie '%s'."
+msgstr "Ongeldige procestijdspecificatie ‘%s’."
 
 #: ../src/utils/pacat.c:864
 #, c-format
 msgid "Invalid property '%s'"
-msgstr "Ongeldige eigenschap '%s'."
+msgstr "Ongeldige eigenschap ‘%s’."
 
 #: ../src/utils/pacat.c:881
 #, c-format
@@ -1490,7 +1491,7 @@ msgstr "Ongeldig bestandsformaat %s"
 
 #: ../src/utils/pacat.c:900
 msgid "Invalid sample specification"
-msgstr "Ongeldige bemonster specificatie"
+msgstr "Ongeldige samplespecificatie"
 
 #: ../src/utils/pacat.c:910
 #, c-format
@@ -1508,7 +1509,7 @@ msgstr "Te veel argumenten."
 
 #: ../src/utils/pacat.c:933
 msgid "Failed to generate sample specification for file."
-msgstr "Bemonster specificatie voor bestand aanmaken mislukte."
+msgstr "Aanmaken van samplespecificatie voor bestand mislukt."
 
 #: ../src/utils/pacat.c:953
 msgid "Failed to open audio file."
@@ -1524,11 +1525,11 @@ msgstr ""
 
 #: ../src/utils/pacat.c:962 ../src/utils/pactl.c:997
 msgid "Failed to determine sample specification from file."
-msgstr "Bepalen van bemonster specificatie van het bestand mislukte."
+msgstr "Bepalen van samplespecificatie van het bestand mislukte."
 
 #: ../src/utils/pacat.c:971
 msgid "Warning: Failed to determine channel map from file."
-msgstr "Waarschuwing: Bepalen van kanaal map van bestand mislukte."
+msgstr "Waarschuwing: Bepalen van kanaalkaart van bestand mislukte."
 
 #: ../src/utils/pacat.c:982
 msgid "Channel map doesn't match sample specification"
@@ -1536,14 +1537,14 @@ msgstr "Kanaal map komt niet overeen met bemonster specificatie."
 
 #: ../src/utils/pacat.c:993
 msgid "Warning: failed to write channel map to file."
-msgstr "Waarschuwing: schrijven van kanaal map naar bestand mislukte."
+msgstr "Waarschuwing: schrijven van kanaalkaart naar bestand mislukte."
 
 #: ../src/utils/pacat.c:1008
 #, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
-"Openen van een %s stroom met bemonster specificatie '%s' en kanaal map '%s'."
+"Openen van een %s stroom met samplespecificatie ‘%s’ en kanaalkaart ‘%s’."
 
 #: ../src/utils/pacat.c:1009
 msgid "recording"
@@ -1601,7 +1602,7 @@ msgstr "Vervolgen mislukte: %s\n"
 #: ../src/utils/pasuspender.c:147
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
-msgstr "WAARSCHUWING: Geluidsserver is niet locaal, geen opschorten.\n"
+msgstr "WAARSCHUWING: Geluidsserver is niet lokaal, geen opschorten.\n"
 
 #: ../src/utils/pasuspender.c:159
 #, c-format
@@ -1683,7 +1684,7 @@ msgstr ""
 #: ../src/utils/pactl.c:147
 #, c-format
 msgid "Sample cache size: %s\n"
-msgstr "Bemonstering cache grootte: %s\n"
+msgstr "Sample-buffergrootte: %s\n"
 
 #: ../src/utils/pactl.c:156
 #, c-format
@@ -1706,8 +1707,8 @@ msgstr ""
 "Gebruikersnaam: %s\n"
 "Hostnaam: %s\n"
 "Servernaam: %s\n"
-"Server versie: %s\n"
-"Standaard bemonsterings specificatie: %s\n"
+"Serverversie: %s\n"
+"Standaard samplespecificatie: %s\n"
 "Standaard kanaal map: %s\n"
 "Standaard afvoer: %s\n"
 "Standaard bron: %s\n"
@@ -1716,7 +1717,7 @@ msgstr ""
 #: ../src/utils/pactl.c:205
 #, c-format
 msgid "Failed to get sink information: %s"
-msgstr "Verkrijgen afvoer informatie mislukte: %s"
+msgstr "Verkrijgen afvoerinformatie mislukte: %s"
 
 #: ../src/utils/pactl.c:221
 #, c-format
@@ -1770,7 +1771,7 @@ msgstr "\tActieve poort: %s\n"
 #: ../src/utils/pactl.c:297
 #, c-format
 msgid "Failed to get source information: %s"
-msgstr "Verkrijgen van bron informatie mislukte: %s"
+msgstr "Verkrijgen van broninformatie mislukt: %s"
 
 #: ../src/utils/pactl.c:313
 #, c-format
@@ -1798,14 +1799,14 @@ msgstr ""
 "\tNaam: %s\n"
 "\tBeschrijving: %s\n"
 "\tDriver: %s\n"
-"\tBemonsterings specificatie: %s\n"
+"\tSamplespecificatie: %s\n"
 "\tKanaal map: %s\n"
 "\tModule eigenaar: %u\n"
 "\tDemping: %s\n"
 "\tVolume: %s%s%s\n"
 "\t        balans %0.2f\n"
 "\tBasis volume: %s%s%s\n"
-"\tMonitor afvoer: %s\n"
+"\tMonitorafvoer: %s\n"
 "\tLatentie: %0.0f usec, ingesteld %0.0f usec\n"
 "\tVlaggen: %s%s%s%s%s%s\n"
 "\tEigenschappen:\n"
@@ -1837,14 +1838,14 @@ msgstr ""
 "Module #%u\n"
 "\tNaam: %s\n"
 "\tArgument: %s\n"
-"\tGebruiks teller: %s\n"
+"\tGebruiksteller: %s\n"
 "\tEigenschappen:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:412
 #, c-format
 msgid "Failed to get client information: %s"
-msgstr "Verkrijgen van cliënt informatie mislukte: %s"
+msgstr "Verkrijgen van clientinformatie mislukt: %s"
 
 #: ../src/utils/pactl.c:430
 #, c-format
@@ -1855,16 +1856,16 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Cliënt #%u\n"
-"\tDriver: %s\n"
-"\tModule eigenaar: %s\n"
+"Client #%u\n"
+"\tStuurprogramma: %s\n"
+"\tModule-eigenaar: %s\n"
 "\tEigenschappen:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:447
 #, c-format
 msgid "Failed to get card information: %s"
-msgstr "Verkrijgen van kaart informatie mislukte: %s"
+msgstr "Verkrijgen van kaartinformatie mislukt: %s"
 
 #: ../src/utils/pactl.c:465
 #, c-format
@@ -1878,8 +1879,8 @@ msgid ""
 msgstr ""
 "Kaart #%u\n"
 "\tNaam: %s\n"
-"\tDriver: %s\n"
-"\tModule eigenaar: %s\n"
+"\tStuurprogramma: %s\n"
+"\tModule-eigenaar: %s\n"
 "\tEigenschappen:\n"
 "\t\t%s\n"
 
@@ -1896,7 +1897,7 @@ msgstr "\tActieve profiel: %s\n"
 #: ../src/utils/pactl.c:496
 #, c-format
 msgid "Failed to get sink input information: %s"
-msgstr "Verkrijgen van afvoer input informatie mislukte: %s"
+msgstr "Verkrijgen van afvoer-invoerinformatie mislukt: %s"
 
 #: ../src/utils/pactl.c:515
 #, c-format
@@ -1919,26 +1920,26 @@ msgid ""
 "\t\t%s\n"
 msgstr ""
 "Afvoer input #%u\n"
-"\tDriver: %s\n"
-"\tModule eigenaar: %s\n"
-"\tCliënt: %s\n"
-"\tSink: %u\n"
-"\tBemonsterings specificatie: %s\n"
-"\tKanaal map: %s\n"
+"\tStuurprogramma: %s\n"
+"\tModule-eigenaar: %s\n"
+"\tClient: %s\n"
+"\tAfvoer: %u\n"
+"\tSamplespecificatie: %s\n"
+"\tKanaalkaart: %s\n"
 "\tDemping: %s\n"
 "\tVolume: %s\n"
 "\t        %s\n"
 "\t        balans %0.2f\n"
-"\tBuffer latentie: %0.0f usec\n"
-"\tAfvoer latentie: %0.0f usec\n"
-"\tHerbemonsterings methode: %s\n"
+"\tBufferlatentie: %0.0f usec\n"
+"\tAfvoerlatentie: %0.0f usec\n"
+"\tResample-methode: %s\n"
 "\tEigenschappen:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:554
 #, c-format
 msgid "Failed to get source output information: %s"
-msgstr "Verkrijgen van bron output informatie mislukte: %s"
+msgstr "Verkrijgen van bron-uitvoerinformatie mislukt: %s"
 
 #: ../src/utils/pactl.c:574
 #, c-format
@@ -1956,23 +1957,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Bron output #%u\n"
+"Bronuitvoer #%u\n"
 "\tDriver: %s\n"
-"\tModule eigenaaar: %s\n"
-"\tCliënt: %s\n"
+"\tModule-eigenaaar: %s\n"
+"\tClient: %s\n"
 "\tBron: %u\n"
-"\tBemonsterings specificatie: %s\n"
-"\tKanaal map: %s\n"
-"\tBuffer latentie: %0.0f usec\n"
-"\tBron latentie: %0.0f usec\n"
-"\tHerbemonsterings methode: %s\n"
+"\tSamplespecificatie: %s\n"
+"\tKanaalkaart: %s\n"
+"\tBufferlatentie: %0.0f usec\n"
+"\tBronlatentie: %0.0f usec\n"
+"\tResample-methode: %s\n"
 "\tEigenschappen:\n"
 "\t\t%s\n"
 
 #: ../src/utils/pactl.c:605
 #, c-format
 msgid "Failed to get sample information: %s"
-msgstr "Verkrijgen van bemonsterings informatie mislukte: %s"
+msgstr "Verkrijgen van sample-informatie mislukt: %s"
 
 #: ../src/utils/pactl.c:623
 #, c-format
@@ -1991,9 +1992,9 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Monster #%u\n"
+"Sample #%u\n"
 "\tNaam: %s\n"
-"\tBemonsterings specificatie: %s\n"
+"\tSamplespecificatie: %s\n"
 "\tKanaal map: %s\n"
 "\tVolume: %s\n"
 "\t        %s\n"
@@ -2095,111 +2096,111 @@ msgid ""
 msgstr ""
 "pactl %s\n"
 "Gecompileerd met libpulse %s\n"
-"Gelint met libpulse %s\n"
+"Gelinkt met libpulse %s\n"
 
 #: ../src/utils/pactl.c:979
 msgid "Please specify a sample file to load"
-msgstr "Geef a.u.b een bemonsterings bestand op om te laden"
+msgstr "Geef een te laden samplebestand op"
 
 #: ../src/utils/pactl.c:992
 msgid "Failed to open sound file."
-msgstr "Openen geluidsbestand  mislukte."
+msgstr "Openen geluidsbestand mislukt."
 
 #: ../src/utils/pactl.c:1004
 msgid "Warning: Failed to determine sample specification from file."
 msgstr ""
-"Waarschuwing: Bepalen van bemonsterings specificatie van bestand mislukte."
+"Waarschuwing: Bepalen van samplespecificatie van bestand mislukte."
 
 #: ../src/utils/pactl.c:1014
 msgid "You have to specify a sample name to play"
-msgstr "Je moet een monster naam opgeven om af te spelen"
+msgstr "U dient een samplenaam op te geven om af te spelen"
 
 #: ../src/utils/pactl.c:1026
 msgid "You have to specify a sample name to remove"
-msgstr "Je moet een monster naam opgeven om te verwijderen"
+msgstr "U dient een samplenaam op te geven om te verwijderen"
 
 #: ../src/utils/pactl.c:1035
 msgid "You have to specify a sink input index and a sink"
-msgstr "Je moet een afvoer input index en een afvoer opgeven"
+msgstr "U dient een afvoer-invoerindex en een afvoer op te geven"
 
 #: ../src/utils/pactl.c:1045
 msgid "You have to specify a source output index and a source"
-msgstr "Je moet een bron output index en een bron opgeven"
+msgstr "U dient een bron-uitvoerindex en een bron op te geven"
 
 #: ../src/utils/pactl.c:1060
 msgid "You have to specify a module name and arguments."
-msgstr "Je moet een module naam en argumenten opgeven."
+msgstr "U dient een modulenaam en argumenten op te geven."
 
 #: ../src/utils/pactl.c:1080
 msgid "You have to specify a module index"
-msgstr "Je moet een module index opgeven"
+msgstr "U dient een module index op te geven"
 
 #: ../src/utils/pactl.c:1090
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
-"Je kunt niet meer dan een afvoer opgeven. Je moet een boolean waarde opgeven"
+"U kunt niet meer dan een afvoer opgeven. U dient een boolean waarde op te geven."
 
 #: ../src/utils/pactl.c:1103
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
 msgstr ""
-"Je kunt niet meerd dan een bron opgeven. Je moet een boolean waarde opgeven."
+"U kunt niet meer dan één bron opgeven. u dient een boolean waarde op te geven."
 
 #: ../src/utils/pactl.c:1115
 msgid "You have to specify a card name/index and a profile name"
-msgstr "Je moet een kaart naam/index en een profiel naam opgeven"
+msgstr "U dient een kaartnaam/index en een profielnaam op te geven"
 
 #: ../src/utils/pactl.c:1126
 msgid "You have to specify a sink name/index and a port name"
-msgstr "Je moet een afvoer naam/index en een poort naam opgeven"
+msgstr "U dient een afvoernaam/index en een poortnaam op te geven"
 
 #: ../src/utils/pactl.c:1137
 msgid "You have to specify a source name/index and a port name"
-msgstr "Je moet een bron naam/index en een poort naam opgeven"
+msgstr "U dient een bronnaam/index en een poortnaam op te geven"
 
 #: ../src/utils/pactl.c:1149
 msgid "You have to specify a sink name/index and a volume"
-msgstr "Je moet een afvoer naam/index en een volume opgeven"
+msgstr "U dient een afvoernaam/index en een volume op te geven"
 
 #: ../src/utils/pactl.c:1154 ../src/utils/pactl.c:1171
 #: ../src/utils/pactl.c:1193 ../src/utils/pactl.c:1209
 #: ../src/utils/pactl.c:1226 ../src/utils/pactl.c:1248
 msgid "Invalid volume specification"
-msgstr "Ongeldige volume opgave"
+msgstr "Ongeldige volume-opgave"
 
 #: ../src/utils/pactl.c:1166
 msgid "You have to specify a source name/index and a volume"
-msgstr "Je moet een bron naam/index en een volume opgeven"
+msgstr "U dient een bronnaam/index en een volume op te geven"
 
 #: ../src/utils/pactl.c:1183
 msgid "You have to specify a sink input index and a volume"
-msgstr "Je moet een afvoer input index en een volume opgeven"
+msgstr "U dient een afvoer-invoerindex en een volume op te geven"
 
 #: ../src/utils/pactl.c:1188
 msgid "Invalid sink input index"
-msgstr "Ongeldige afvoer input index"
+msgstr "Ongeldige afvoer-invoerindex"
 
 #: ../src/utils/pactl.c:1204
 msgid "You have to specify a sink name/index and a mute boolean"
-msgstr "Je moet een afvoer naam/index en een dempings boolean opgeven"
+msgstr "U dient een afvoernaam/index en een dempingsboolean op te geven"
 
 #: ../src/utils/pactl.c:1221
 msgid "You have to specify a source name/index and a mute boolean"
-msgstr "Je moet een bron naam/index en een dempings boolean opgeven"
+msgstr "U dient een bronnaam/index en een dempingsboolean op te geven"
 
 #: ../src/utils/pactl.c:1238
 msgid "You have to specify a sink input index and a mute boolean"
-msgstr "Je moet een afvoer input index en een dempings boolean opgeven"
+msgstr "U dient een afvoer-invoerindex en een dempingsboolean op te geven"
 
 #: ../src/utils/pactl.c:1243
 msgid "Invalid sink input index specification"
-msgstr "Ongeldige afvoer input index opgave"
+msgstr "Ongeldige afvoer-invoerindex opgave"
 
 #: ../src/utils/pactl.c:1262
 msgid "No valid command specified."
-msgstr "Geen geldig commando opgegeven."
+msgstr "Geen geldige opdracht opgegeven."
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2224,7 +2225,7 @@ msgstr ""
 #: ../src/utils/pax11publish.c:94
 #, c-format
 msgid "Failed to parse command line.\n"
-msgstr "Commando regel ontleden mislukte.\n"
+msgstr "Opdrachtregel ontleden mislukt.\n"
 
 #: ../src/utils/pax11publish.c:108
 #, c-format
@@ -2249,22 +2250,22 @@ msgstr "Cookie: %s\n"
 #: ../src/utils/pax11publish.c:132
 #, c-format
 msgid "Failed to parse cookie data\n"
-msgstr "Cookie data ontleden mislukte\n"
+msgstr "Cookiedata ontleden mislukt\n"
 
 #: ../src/utils/pax11publish.c:137
 #, c-format
 msgid "Failed to save cookie data\n"
-msgstr "Cookie data opslaan mislukte\n"
+msgstr "Cookiedata opslaan mislukt\n"
 
 #: ../src/utils/pax11publish.c:152
 #, c-format
 msgid "Failed to load client configuration file.\n"
-msgstr "Cliënt configuratie bestand laden mislukte.\n"
+msgstr "Clientconfiguratiebestand laden mislukt.\n"
 
 #: ../src/utils/pax11publish.c:157
 #, c-format
 msgid "Failed to read environment configuration data.\n"
-msgstr "Omgevings configuratie bestand lezen mislukte.\n"
+msgstr "Omgevingsconfiguratiedata lezen mislukt.\n"
 
 #: ../src/utils/pax11publish.c:174
 #, c-format
@@ -2274,7 +2275,7 @@ msgstr "FQDN verkrijgen mislukte.\n"
 #: ../src/utils/pax11publish.c:194
 #, c-format
 msgid "Failed to load cookie data\n"
-msgstr "Cookie data laden mislukte\n"
+msgstr "Cookiedata laden mislukt\n"
 
 #: ../src/utils/pax11publish.c:211
 #, c-format
@@ -2284,7 +2285,7 @@ msgstr "Nog niet geïmplementeerd.\n"
 #: ../src/utils/pacmd.c:69
 msgid "No PulseAudio daemon running, or not running as session daemon."
 msgstr ""
-"Er draait geen PulseAudio daemon, of het draait niet als sessie daemon."
+"Er draait geen PulseAudio-voorziening, of het draait niet als sessievoorziening."
 
 #: ../src/utils/pacmd.c:74
 #, c-format
@@ -2298,11 +2299,11 @@ msgstr "connect(): %s"
 
 #: ../src/utils/pacmd.c:99
 msgid "Failed to kill PulseAudio daemon."
-msgstr "PulseAudio daemon uitzetten mislukte."
+msgstr "PulseAudio-voorziening uitzetten mislukt."
 
 #: ../src/utils/pacmd.c:107
 msgid "Daemon not responding."
-msgstr "Daemon reageert niet."
+msgstr "Voorziening reageert niet."
 
 #: ../src/utils/pacmd.c:161
 #, c-format
@@ -2335,8 +2336,8 @@ msgid ""
 msgstr ""
 "ALSA maakte ons wakker om nieuwe data naar het apparaat te schrijven, maar "
 "er was niets om weg te schrijven!\n"
-"Waarschijnlijk is dit een fout in de ALSA driver '%s\". Rapporteer dit "
-"probleem a.u.b. aan de ALSA ontwikkelaars.\n"
+"Waarschijnlijk is dit een fout in het ALSA-stuurprogramma ‘%s’. Meld dit "
+"probleem alstublieft aan de ALSA-ontwikkelaars.\n"
 "We werden gewekt met POLLOUT ingesteld -- echter een opvolgende snd_pcm_avail"
 "() gaf 0 terug of een andere waarde < min_avail."
 
@@ -2352,8 +2353,8 @@ msgid ""
 msgstr ""
 "ALSA maakte ons wakker om nieuwe data van het apparaat te lezen, maar er was "
 "niets om te lezen!\n"
-"Waarschijnlijk is dit een fout in de ALSA driver '%s\". Rapporteer dit "
-"probleem a.u.b. aan de ALSA ontwikkelaars.\n"
+"Waarschijnlijk is dit een fout in het ALSA-stuurprogramma ‘%s’. Meld dit "
+"probleem alstublieft aan de ALSA-ontwikkelaars.\n"
 "We werden gewekt met POLLIN ingesteld -- echter een opvolgende snd_pcm_avail"
 "() gaf 0 terug of een andere waarde < min_avail."
 
@@ -2361,7 +2362,7 @@ msgstr ""
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2228
 #: ../src/modules/alsa/alsa-mixer.c:2931
 msgid "Off"
-msgstr "Uiy"
+msgstr "Uit"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2184
 msgid "High Fidelity Playback (A2DP)"
@@ -2369,144 +2370,135 @@ msgstr "High Fidelity Playback (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2198
 msgid "High Fidelity Capture (A2DP)"
-msgstr "High Fidelity Afvangen (A2DP)"
+msgstr "High Fidelity afvangen (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2213
 msgid "Telephony Duplex (HSP/HFP)"
-msgstr "Telefonie Duplex (HSP/HFP)"
+msgstr "Telefonie duplex (HSP/HFP)"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
-msgstr "PulseAudio geluids server"
+msgstr "PulseAudio-geluidsserver"
 
 #: ../src/modules/module-rygel-media-server.c:569
 #: ../src/modules/module-rygel-media-server.c:583
 msgid "Output Devices"
-msgstr ""
+msgstr "Uitvoerapparaten"
 
 #: ../src/modules/module-rygel-media-server.c:570
 #: ../src/modules/module-rygel-media-server.c:584
 msgid "Input Devices"
-msgstr ""
+msgstr "Invoerapparaten"
 
 #: ../src/modules/module-rygel-media-server.c:774
 msgid "Audio on @HOSTNAME@"
-msgstr ""
+msgstr "Geluid op @HOSTNAME@"
 
 #: ../src/modules/alsa/alsa-mixer.c:1701
 msgid "Input"
-msgstr ""
+msgstr "Invoer"
 
 #: ../src/modules/alsa/alsa-mixer.c:1702
 msgid "Docking Station Input"
-msgstr ""
+msgstr "Docking station-invoer"
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
 msgid "Docking Station Microphone"
-msgstr ""
+msgstr "Docking station-microfoon"
 
 #: ../src/modules/alsa/alsa-mixer.c:1704
 msgid "Line-In"
-msgstr ""
+msgstr "Lijn-in"
 
 #: ../src/modules/alsa/alsa-mixer.c:1705
 msgid "Microphone"
-msgstr ""
+msgstr "Microfoon"
 
 #: ../src/modules/alsa/alsa-mixer.c:1706
 msgid "External Microphone"
-msgstr ""
+msgstr "Externe microfoon"
 
 #: ../src/modules/alsa/alsa-mixer.c:1707
-#, fuzzy
 msgid "Internal Microphone"
-msgstr "Intern geluid"
+msgstr "Interne microfoon"
 
 #: ../src/modules/alsa/alsa-mixer.c:1708
 msgid "Radio"
-msgstr ""
+msgstr "Radio"
 
 #: ../src/modules/alsa/alsa-mixer.c:1709
 msgid "Video"
-msgstr ""
+msgstr "Video"
 
 #: ../src/modules/alsa/alsa-mixer.c:1710
 msgid "Automatic Gain Control"
-msgstr ""
+msgstr "Automatische gain-controle"
 
 #: ../src/modules/alsa/alsa-mixer.c:1711
 msgid "No Automatic Gain Control"
-msgstr ""
+msgstr "Geen automatische gain-controle"
 
 #: ../src/modules/alsa/alsa-mixer.c:1712
 msgid "Boost"
-msgstr ""
+msgstr "Boostversterking"
 
 #: ../src/modules/alsa/alsa-mixer.c:1713
 msgid "No Boost"
-msgstr ""
+msgstr "Geen boostversterking"
 
 #: ../src/modules/alsa/alsa-mixer.c:1714
 msgid "Amplifier"
-msgstr ""
+msgstr "Versterker"
 
 #: ../src/modules/alsa/alsa-mixer.c:1715
 msgid "No Amplifier"
-msgstr ""
+msgstr "Geen versterker"
 
 #: ../src/modules/alsa/alsa-mixer.c:1773
-#, fuzzy
 msgid "Analog Input"
-msgstr "Analoog mono"
+msgstr "Analoge invoer"
 
 #: ../src/modules/alsa/alsa-mixer.c:1774
-#, fuzzy
 msgid "Analog Microphone"
-msgstr "Analoog mono"
+msgstr "Analoge microfoon"
 
 #: ../src/modules/alsa/alsa-mixer.c:1775
-#, fuzzy
 msgid "Analog Line-In"
-msgstr "Analoog mono"
+msgstr "Analoge lijn-in"
 
 #: ../src/modules/alsa/alsa-mixer.c:1776
-#, fuzzy
 msgid "Analog Radio"
-msgstr "Analoog mono"
+msgstr "Analoge radio"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
-#, fuzzy
 msgid "Analog Video"
-msgstr "Analoog stereo"
+msgstr "Analoge video"
 
 #: ../src/modules/alsa/alsa-mixer.c:1778
-#, fuzzy
 msgid "Analog Output"
-msgstr "Null output"
+msgstr "Analoge output"
 
 #: ../src/modules/alsa/alsa-mixer.c:1779
-#, fuzzy
 msgid "Analog Headphones"
-msgstr "Analoog mono"
+msgstr "Analoge koptelefoon"
 
 #: ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Analog Output (LFE)"
-msgstr ""
+msgstr "Analoge output (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1781
-#, fuzzy
 msgid "Analog Mono Output"
-msgstr "Analoog mono"
+msgstr "Analoge mono-uitvoer"
 
 #: ../src/modules/alsa/alsa-mixer.c:1981
-#, fuzzy, c-format
+#, c-format
 msgid "%s+%s"
-msgstr "%s %s"
+msgstr "%s+%s"
 
 #: ../src/modules/alsa/alsa-mixer.c:1984 ../src/modules/alsa/alsa-mixer.c:3404
-#, fuzzy, c-format
+#, c-format
 msgid "%s / %s"
-msgstr "%s %s"
+msgstr "%s/%s"
 
 #: ../src/modules/alsa/alsa-mixer.c:2790
 msgid "Analog Mono"
@@ -2517,19 +2509,16 @@ msgid "Analog Stereo"
 msgstr "Analoog stereo"
 
 #: ../src/modules/alsa/alsa-mixer.c:2792
-#, fuzzy
 msgid "Analog Surround 2.1"
-msgstr "Analoog surround 4.1"
+msgstr "Analoog surround 2.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2793
-#, fuzzy
 msgid "Analog Surround 3.0"
-msgstr "Analoog surround 4.0"
+msgstr "Analoog surround 3.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2794
-#, fuzzy
 msgid "Analog Surround 3.1"
-msgstr "Analoog surround 4.1"
+msgstr "Analoog surround 3.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2795
 msgid "Analog Surround 4.0"
@@ -2548,19 +2537,16 @@ msgid "Analog Surround 5.1"
 msgstr "Analoog surround 5.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2799
-#, fuzzy
 msgid "Analog Surround 6.0"
-msgstr "Analoog surround 4.0"
+msgstr "Analoog surround 6.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2800
-#, fuzzy
 msgid "Analog Surround 6.1"
-msgstr "Analoog surround 4.1"
+msgstr "Analoog surround 6.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2801
-#, fuzzy
 msgid "Analog Surround 7.0"
-msgstr "Analoog surround 4.0"
+msgstr "Analoog surround 7.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2802
 msgid "Analog Surround 7.1"
@@ -2571,9 +2557,8 @@ msgid "Digital Stereo (IEC958)"
 msgstr "Digitaal stereo (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2804
-#, fuzzy
 msgid "Digital Surround 4.0 (IEC958)"
-msgstr "Digitaal surround 4.0 (IEC958/AC3)"
+msgstr "Digitaal surround 4.0 (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2805
 msgid "Digital Surround 4.0 (IEC958/AC3)"
@@ -2588,19 +2573,16 @@ msgid "Digital Stereo (HDMI)"
 msgstr "Digitaal stereo (HDMI)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2928
-#, fuzzy
 msgid "Analog Mono Duplex"
-msgstr "Analoog mono"
+msgstr "Analoog mono duplex"
 
 #: ../src/modules/alsa/alsa-mixer.c:2929
-#, fuzzy
 msgid "Analog Stereo Duplex"
-msgstr "Analoog stereo"
+msgstr "Analoog stereo duplex"
 
 #: ../src/modules/alsa/alsa-mixer.c:2930
-#, fuzzy
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr "Digitaal stereo (IEC958)"
+msgstr "Digitaal stereo duplex (IEC958)"
 
 #, fuzzy
 #~ msgid "Invalid client name '%s'\n"
