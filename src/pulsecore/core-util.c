@@ -117,6 +117,7 @@
 #include <pulsecore/strbuf.h>
 #include <pulsecore/usergroup.h>
 #include <pulsecore/strlist.h>
+#include <pulsecore/cpu-x86.h>
 
 #include "core-util.h"
 
@@ -2935,10 +2936,13 @@ pa_bool_t pa_running_in_vm(void) {
     pa_zero(sig);
 
     __asm__ __volatile__ (
-        "  xor %%ebx, %%ebx          \n\t"
+        /* ebx/rbx is being used for PIC! */
+        "  push %%"PA_REG_b"         \n\t"
         "  cpuid                     \n\t"
+        "  mov %%ebx, %1             \n\t"
+        "  pop %%"PA_REG_b"          \n\t"
 
-        : "=a" (eax), "=b" (sig.sig32[0]), "=c" (sig.sig32[1]), "=d" (sig.sig32[2])
+        : "=a" (eax), "=r" (sig.sig32[0]), "=c" (sig.sig32[1]), "=d" (sig.sig32[2])
         : "0" (eax)
     );
 
