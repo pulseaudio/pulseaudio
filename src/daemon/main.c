@@ -618,6 +618,7 @@ int main(int argc, char *argv[]) {
 
     if (conf->daemonize) {
         pid_t child;
+        int tty_fd;
 
         if (pa_stdio_acquire() < 0) {
             pa_log(_("Failed to acquire stdio."));
