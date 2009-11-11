@@ -2631,7 +2631,7 @@ static void command_get_record_latency(pa_pdispatch *pd, uint32_t command, uint3
     pa_tagstruct_put_usec(reply, s->current_monitor_latency);
     pa_tagstruct_put_usec(reply,
                           s->current_source_latency +
-                          pa_bytes_to_usec(s->on_the_fly_snapshot, &s->source_output->sample_spec));
+                          pa_bytes_to_usec(s->on_the_fly_snapshot, &s->source_output->source->sample_spec));
     pa_tagstruct_put_boolean(reply,
                              pa_source_get_state(s->source_output->source) == PA_SOURCE_RUNNING &&
                              pa_source_output_get_state(s->source_output) == PA_SOURCE_OUTPUT_RUNNING);

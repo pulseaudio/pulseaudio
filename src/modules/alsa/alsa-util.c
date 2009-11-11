@@ -43,6 +43,7 @@
 #include <pulsecore/once.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/conf-parser.h>
+#include <pulsecore/core-rtclock.h>
 
 #include "alsa-util.h"
 #include "alsa-mixer.h"
@@ -1307,4 +1308,27 @@ const char* pa_alsa_strerror(int errnum) {
     PA_STATIC_TLS_SET(cstrerror, translated);
 
     return translated;
+}
+
+pa_bool_t pa_alsa_may_tsched(pa_bool_t want) {
+
+    if (!want)
+        return FALSE;
+
+    if (!pa_rtclock_hrtimer()) {
+        /* We cannot depend on being woken up in time when the timers
+        are inaccurate, so let's fallback to classic IO based playback
+        then. */
+        pa_log_notice("Disabling timer-based scheduling because high-resolution timers are not available from the kernel.");
+        return FALSE; }
+
+    if (pa_running_in_vm()) {
+        /* We cannot depend on being woken up when we ask for in a VM,
+         * so let's fallback to classic IO based playback then. */
+        pa_log_notice("Disabling timer-based scheduling because running inside a VM.");
+        return FALSE;
+    }
+
+
+    return TRUE;
 }

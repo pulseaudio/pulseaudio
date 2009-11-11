@@ -1698,10 +1698,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         goto fail;
     }
 
-    if (use_tsched && !pa_rtclock_hrtimer()) {
-        pa_log_notice("Disabling timer-based scheduling because high-resolution timers are not available from the kernel.");
-        use_tsched = FALSE;
-    }
+    use_tsched = pa_alsa_may_tsched(use_tsched);
 
     u = pa_xnew0(struct userdata, 1);
     u->core = m->core;

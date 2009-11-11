@@ -348,6 +348,10 @@ pa_volume_t pa_cvolume_get_position(pa_cvolume *cv, const pa_channel_map *map, p
  * and dest may point to the same structure. \since 0.9.16 */
 pa_cvolume* pa_cvolume_merge(pa_cvolume *dest, const pa_cvolume *a, const pa_cvolume *b);
 
+/** Increase the volume passed in by 'inc', but not exceeding 'limit'.
+ * The proportions between the channels are kept. \since 0.9.19 */
+pa_cvolume* pa_cvolume_inc_clamp(pa_cvolume *v, pa_volume_t inc, pa_volume_t limit);
+
 /** Increase the volume passed in by 'inc'. The proportions between
  * the channels are kept. \since 0.9.16 */
 pa_cvolume* pa_cvolume_inc(pa_cvolume *v, pa_volume_t inc);

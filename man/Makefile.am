@@ -20,21 +20,6 @@ pulseconfdir=$(sysconfdir)/pulse
 CLEANFILES = \
 	$(noinst_DATA)
 
-dist_man_MANS = \
-	pulseaudio.1 \
-	esdcompat.1 \
-	pax11publish.1 \
-	paplay.1 \
-	pacat.1 \
-	pacmd.1 \
-	pactl.1 \
-	pasuspender.1 \
-	padsp.1 \
-	pabrowse.1 \
-	pulse-daemon.conf.5 \
-	pulse-client.conf.5 \
-	default.pa.5
-
 noinst_DATA = \
 	pulseaudio.1.xml \
 	esdcompat.1.xml \
@@ -50,23 +35,38 @@ noinst_DATA = \
 	pulse-client.conf.5.xml \
 	default.pa.5.xml
 
-if BUILD_MANPAGES
-
-CLEANFILES += \
-	$(dist_man_MANS)
-
 %.xml: %.xml.in Makefile
 	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
 	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
             -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
 
-%: %.xml Makefile
-	perl $(srcdir)/xmltoman $< > $@ || rm -f $@
-
 xmllint: $(noinst_DATA)
 	for f in $(noinst_DATA) ; do \
 			xmllint --noout --valid "$$f" || exit 1 ; \
 	done
+
+if BUILD_MANPAGES
+
+dist_man_MANS = \
+	pulseaudio.1 \
+	esdcompat.1 \
+	pax11publish.1 \
+	paplay.1 \
+	pacat.1 \
+	pacmd.1 \
+	pactl.1 \
+	pasuspender.1 \
+	padsp.1 \
+	pabrowse.1 \
+	pulse-daemon.conf.5 \
+	pulse-client.conf.5 \
+	default.pa.5
+
+CLEANFILES += \
+	$(dist_man_MANS)
+
+%: %.xml Makefile
+	perl $(srcdir)/xmltoman $< > $@ || rm -f $@
 
 endif
 

@@ -286,7 +286,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    ports = jack_get_ports(u->client, NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
+    ports = jack_get_ports(u->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsPhysical|JackPortIsOutput);
 
     channels = 0;
     for (p = ports; *p; p++)

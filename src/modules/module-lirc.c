@@ -45,12 +45,14 @@ PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("LIRC volume control");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
-PA_MODULE_USAGE("config=<config file> sink=<sink name> appname=<lirc application name>");
+PA_MODULE_USAGE("config=<config file> sink=<sink name> appname=<lirc application name> volume_limit=<volume limit> volume_step=<volume change step>");
 
 static const char* const valid_modargs[] = {
     "config",
     "sink",
     "appname",
+    "volume_limit",
+    "volume_step",
     NULL,
 };
 
@@ -61,9 +63,9 @@ struct userdata {
     char *sink_name;
     pa_module *module;
     float mute_toggle_save;
+    pa_volume_t volume_limit;
+    pa_volume_t volume_step;
 };
-
-#define DELTA (PA_VOLUME_NORM/20)
 
 static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event_flags_t events, void*userdata) {
     struct userdata *u = userdata;
@@ -125,12 +127,12 @@ static void io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event
 
                     switch (volchange) {
                         case UP:
-                            pa_cvolume_inc(&cv, DELTA);
+                            pa_cvolume_inc_clamp(&cv, u->volume_step, u->volume_limit);
                             pa_sink_set_volume(s, &cv, TRUE, TRUE);
                             break;
 
                         case DOWN:
-                            pa_cvolume_dec(&cv, DELTA);
+                            pa_cvolume_dec(&cv, u->volume_step);
                             pa_sink_set_volume(s, &cv, TRUE, TRUE);
                             break;
 
@@ -170,11 +172,23 @@ fail:
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
+    pa_volume_t volume_limit = PA_VOLUME_NORM*3/2;
+    pa_volume_t volume_step = PA_VOLUME_NORM/20;
 
     pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
+        goto fail;
+    }
+
+    if (pa_modargs_get_value_u32(ma, "volume_limit", &volume_limit) < 0) {
+        pa_log("Failed to parse volume limit");
+        goto fail;
+    }
+
+    if (pa_modargs_get_value_u32(ma, "volume_step", &volume_step) < 0) {
+        pa_log("Failed to parse volume step");
         goto fail;
     }
 
@@ -185,6 +199,8 @@ int pa__init(pa_module*m) {
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
     u->lirc_fd = -1;
     u->mute_toggle_save = 0;
+    u->volume_limit = volume_limit;
+    u->volume_step = volume_step;
 
     if ((u->lirc_fd = lirc_init((char*) pa_modargs_get_value(ma, "appname", "pulseaudio"), 1)) < 0) {
         pa_log("lirc_init() failed.");
