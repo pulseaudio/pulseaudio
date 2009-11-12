@@ -253,10 +253,11 @@ static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t of
                 pa_sink_get_latency_within_thread(u->sink_input->sink) +
 
                 /* Add the latency internal to our sink input on top */
-                pa_bytes_to_usec(pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq), &u->sink_input->sink->sample_spec);
+                pa_bytes_to_usec(pa_memblockq_get_length(u->output_q), &u->sink_input->sink->sample_spec) +
+                pa_bytes_to_usec(pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq), &u->sink_input->sink->sample_spec) +
+                pa_bytes_to_usec(pa_memblockq_get_length(u->input_q), &u->sink_input->sink->sample_spec);
             //    pa_bytes_to_usec(u->samples_gathered * fs, &u->sink->sample_spec);
             //+ pa_bytes_to_usec(u->latency * fs, ss)
-            //+ pa_bytes_to_usec(pa_memblockq_get_length(u->input_q), ss);
             return 0;
         }
     }
