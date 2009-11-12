@@ -340,7 +340,7 @@ static void sink_set_mute_cb(pa_sink *s) {
     pa_sink_input_set_mute(u->sink_input, s->muted, s->save_muted);
 }
 
-#ifndef __SSE2__
+#if 1
 //reference implementation
 static void dsp_logic(
     float * restrict dst,//used as a temp array too, needs to be fft_length!
