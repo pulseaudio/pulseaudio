@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.or\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-29 23:47+0200\n"
-"PO-Revision-Date: 2009-09-11 12:56+0530\n"
+"POT-Creation-Date: 2009-11-14 08:57+0000\n"
+"PO-Revision-Date: 2009-11-14 15:33+0530\n"
 "Last-Translator: Manoj Kumar Giri <mgiri@redhat.com>\n"
 "Language-Team: Oriya <oriya-it@googlegroups.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
-"Plural-Forms:  nplurals=2; plural=(n!=1);\n"
+"Plural-Forms:  nplurals=2; plural=(n!=1);\n\n"
 "\n"
 "\n"
 "\n"
@@ -1530,8 +1530,7 @@ msgstr "ଚେତାବନୀ: ଚ୍ୟାନେଲ ମ୍ୟାପକୁ ଫ�
 
 #: ../src/utils/pacat.c:1008
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "ନମୁନା ବିଶେଷ ଲକ୍ଷଣ '%s' ଏବଂ ଚ୍ୟାନେଲ ମ୍ୟାପ '%s' ସହିତ ଗୋଟିଏ %s ଧାରାକୁ ଖୋଲୁଅଛି।"
 
 #: ../src/utils/pacat.c:1009
@@ -2118,17 +2117,14 @@ msgid "You have to specify a module index"
 msgstr "ଆପଣଙ୍କୁ ଗୋଟିଏ ଏକକାଂଶ ଅନୁକ୍ରମଣିକାକୁ ଉଲ୍ଲେଖ କରିବା ଉଚିତ ନୁହଁ"
 
 #: ../src/utils/pactl.c:1090
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
-msgstr ""
-"ଆପଣଙ୍କୁ ଗୋଟିଏରୁ ଅଧିକ ସିଙ୍କ ଉଲ୍ଲେଖ କରିବାକୁ ପଡ଼ିନପାରେ। ଆପଣଙ୍କୁ ଗୋଟିଏ ବୁଲିଆନ ମୂଲ୍ୟ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ।"
+msgid "You may not specify more than one sink. You have to specify a boolean value."
+msgstr "ଆପଣଙ୍କୁ ଗୋଟିଏରୁ ଅଧିକ ସିଙ୍କ ଉଲ୍ଲେଖ କରିବାକୁ ପଡ଼ିନପାରେ। ଆପଣଙ୍କୁ ଗୋଟିଏ ବୁଲିଆନ ମୂଲ୍ୟ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ।"
 
 #: ../src/utils/pactl.c:1103
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
-msgstr ""
-"ଆପଣଙ୍କୁ ଗୋଟିଏରୁ ଅଧିକ ଉତ୍ସ ଉଲ୍ଲେଖ କରିବାକୁ ପଡ଼ିନପାରେ। ଆପଣଙ୍କୁ ଗୋଟିଏ ବୁଲିଆନ ମୂଲ୍ୟ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ।"
+msgstr "ଆପଣଙ୍କୁ ଗୋଟିଏରୁ ଅଧିକ ଉତ୍ସ ଉଲ୍ଲେଖ କରିବାକୁ ପଡ଼ିନପାରେ। ଆପଣଙ୍କୁ ଗୋଟିଏ ବୁଲିଆନ ମୂଲ୍ୟ ଉଲ୍ଲେଖ କରିବାକୁ ହେବ।"
 
 #: ../src/utils/pactl.c:1115
 msgid "You have to specify a card name/index and a profile name"
@@ -2362,217 +2358,204 @@ msgstr "PulseAudio ଧ୍ୱନି ସର୍ଭର"
 #: ../src/modules/module-rygel-media-server.c:569
 #: ../src/modules/module-rygel-media-server.c:583
 msgid "Output Devices"
-msgstr ""
+msgstr "ଫଳାଫଳ ଉପକରଣ"
 
 #: ../src/modules/module-rygel-media-server.c:570
 #: ../src/modules/module-rygel-media-server.c:584
 msgid "Input Devices"
-msgstr ""
+msgstr "ନିବେଶ ଉପକରଣ"
 
 #: ../src/modules/module-rygel-media-server.c:774
 msgid "Audio on @HOSTNAME@"
-msgstr ""
+msgstr "@HOSTNAME@ ରେ ଧ୍ୱନି"
 
 #: ../src/modules/alsa/alsa-mixer.c:1701
 msgid "Input"
-msgstr ""
+msgstr "ନିବେଶ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1702
 msgid "Docking Station Input"
-msgstr ""
+msgstr "ଡକିଙ୍ଗ ଷ୍ଟେସନ ନିବେଶ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
 msgid "Docking Station Microphone"
-msgstr ""
+msgstr "ଡକିଙ୍ଗ ଷ୍ଟେସନ ମାଇକ୍ରୋଫୋନ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1704
 msgid "Line-In"
-msgstr ""
+msgstr "ଲାଇନ-ଇନ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1705
 msgid "Microphone"
-msgstr ""
+msgstr "ମାଇକ୍ରୋଫୋନ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1706
 msgid "External Microphone"
-msgstr ""
+msgstr "ବାହ୍ୟ ମାଇକ୍ରୋଫୋନ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1707
-#, fuzzy
 msgid "Internal Microphone"
-msgstr "ଆଭ୍ୟନ୍ତରୀଣ ଧ୍ୱନି"
+msgstr "ଆଭ୍ୟନ୍ତରୀଣ ମାଇକ୍ରୋଫୋନ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1708
 msgid "Radio"
-msgstr ""
+msgstr "ରେଡିଓ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1709
 msgid "Video"
-msgstr ""
+msgstr "ଭିଡ଼ିଓ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1710
 msgid "Automatic Gain Control"
-msgstr ""
+msgstr "ସ୍ୱୟଂଚାଳିତ ଲାଭ ନିୟନ୍ତ୍ରଣ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1711
 msgid "No Automatic Gain Control"
-msgstr ""
+msgstr "କୌଣସି ସ୍ୱୟଂଚାଳିତ ଲାଭ ନିୟନ୍ତ୍ରଣ ନାହିଁ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1712
 msgid "Boost"
-msgstr ""
+msgstr "ବୃଦ୍ଧି"
 
 #: ../src/modules/alsa/alsa-mixer.c:1713
 msgid "No Boost"
-msgstr ""
+msgstr "ବୃଦ୍ଧି ନାହିଁ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1714
 msgid "Amplifier"
-msgstr ""
+msgstr "ଏମ୍ପ୍ଲିଫାୟର"
 
 #: ../src/modules/alsa/alsa-mixer.c:1715
 msgid "No Amplifier"
-msgstr ""
+msgstr "ଏମ୍ପ୍ଲିଫାୟର ନାହିଁ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1773
 msgid "Analog Input"
-msgstr ""
+msgstr "ଏନାଲୋଗ ନିବେଶ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1774
 msgid "Analog Microphone"
-msgstr ""
+msgstr "ଏନାଲୋଗ ମାଇକ୍ରୋଫୋନ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1775
 msgid "Analog Line-In"
-msgstr ""
+msgstr "ଏନାଲୋଗ ଲାଇନ-ଇନ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1776
 msgid "Analog Radio"
-msgstr ""
+msgstr "ଏନାଲୋଗ ରେଡ଼ିଓ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Video"
-msgstr ""
+msgstr "ଏନାଲୋଗ ଭିଡ଼ିଓ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1778
-#, fuzzy
 msgid "Analog Output"
-msgstr "ଶୂନ୍ୟ ଫଳାଫଳ"
+msgstr "ଏନାଲୋଗ ଫଳାଫଳ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1779
 msgid "Analog Headphones"
-msgstr ""
+msgstr "ଏନାଲୋଗ ହେଡ଼ଫୋନଗୁଡ଼ିକ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Analog Output (LFE)"
-msgstr ""
+msgstr "ଏନାଲୋଗ ଫଳାଫଳ (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Analog Mono Output"
-msgstr ""
+msgstr "ଏନାଲୋଗ ମୋନୋ ଫଳାଫଳ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1981
-#, fuzzy, c-format
+#, c-format
 msgid "%s+%s"
-msgstr "%s %s"
+msgstr "%s+%s"
 
 #: ../src/modules/alsa/alsa-mixer.c:1984 ../src/modules/alsa/alsa-mixer.c:3404
-#, fuzzy, c-format
+#, c-format
 msgid "%s / %s"
-msgstr "%s %s"
+msgstr "%s / %s"
 
 #: ../src/modules/alsa/alsa-mixer.c:2790
 msgid "Analog Mono"
-msgstr ""
+msgstr "ଏନାଲୋଗ ମୋନୋ"
 
 #: ../src/modules/alsa/alsa-mixer.c:2791
-#, fuzzy
 msgid "Analog Stereo"
-msgstr "ଷ୍ଟେରିଓ"
+msgstr "ଏନାଲୋଗ ଷ୍ଟେରିଓ"
 
 #: ../src/modules/alsa/alsa-mixer.c:2792
-#, fuzzy
 msgid "Analog Surround 2.1"
-msgstr "ଚତୁଃ ପାର୍ଶ୍ୱ 4.1"
+msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 2.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2793
-#, fuzzy
 msgid "Analog Surround 3.0"
-msgstr "ଚତୁଃ ପାର୍ଶ୍ୱ 4.0"
+msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 3.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2794
-#, fuzzy
 msgid "Analog Surround 3.1"
-msgstr "ଚତୁଃ ପାର୍ଶ୍ୱ 4.1"
+msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 3.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2795
-#, fuzzy
 msgid "Analog Surround 4.0"
-msgstr "ଚତୁଃ ପାର୍ଶ୍ୱ 4.0"
+msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 4.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2796
-#, fuzzy
 msgid "Analog Surround 4.1"
-msgstr "ଚତୁଃ ପାର୍ଶ୍ୱ 4.1"
+msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 4.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2797
-#, fuzzy
 msgid "Analog Surround 5.0"
-msgstr "ଚତୁଃ ପାର୍ଶ୍ୱ 5.0"
+msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 5.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2798
-#, fuzzy
 msgid "Analog Surround 5.1"
-msgstr "ଚତୁଃ ପାର୍ଶ୍ୱ 5.1"
+msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 5.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2799
-#, fuzzy
 msgid "Analog Surround 6.0"
-msgstr "ଚତୁଃ ପାର୍ଶ୍ୱ 4.0"
+msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 6.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2800
-#, fuzzy
 msgid "Analog Surround 6.1"
-msgstr "ଚତୁଃ ପାର୍ଶ୍ୱ 4.1"
+msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 6.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2801
-#, fuzzy
 msgid "Analog Surround 7.0"
-msgstr "ଚତୁଃ ପାର୍ଶ୍ୱ 4.0"
+msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 7.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2802
-#, fuzzy
 msgid "Analog Surround 7.1"
-msgstr "ଚତୁଃ ପାର୍ଶ୍ୱ 7.1"
+msgstr "ଏନାଲୋଗ ଚତୁଃ ପାର୍ଶ୍ୱ 7.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2803
 msgid "Digital Stereo (IEC958)"
-msgstr ""
+msgstr "ଡିଜିଟାଲ ଷ୍ଟେରିଓ (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2804
 msgid "Digital Surround 4.0 (IEC958)"
-msgstr ""
+msgstr "ଡିଜିଟାଲ ଚତୁଃ ପାର୍ଶ୍ୱ 4.0 (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2805
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr ""
+msgstr "ଡିଜିଟାଲ ଚତୁଃ ପାର୍ଶ୍ୱ 4.0 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2806
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr ""
+msgstr "ଡିଜିଟାଲ ଚତୁଃ ପାର୍ଶ୍ୱ 5.1 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2807
 msgid "Digital Stereo (HDMI)"
-msgstr ""
+msgstr "ଡିଜିଟାଲ ଷ୍ଟେରିଓ (HDMI)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2928
 msgid "Analog Mono Duplex"
-msgstr ""
+msgstr "ଏନାଲୋଗ ମୋନୋ ଡ଼ୁପ୍ଲେକ୍ସ"
 
 #: ../src/modules/alsa/alsa-mixer.c:2929
 msgid "Analog Stereo Duplex"
-msgstr ""
+msgstr "ଏନାଲୋଗ ଷ୍ଟେରିଓ ଡ଼ୁପ୍ଲେକ୍ସ"
 
 #: ../src/modules/alsa/alsa-mixer.c:2930
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr ""
+msgstr "ଡିଜିଟାଲ ଷ୍ଟେରିଓ ଡ଼ୁପ୍ଲେକ୍ସ (IEC958)"
+
