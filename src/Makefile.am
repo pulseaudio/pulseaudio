@@ -150,7 +150,7 @@ EXTRA_DIST = \
 		daemon/pulseaudio-kde.desktop.in \
 		map-file \
 		daemon/pulseaudio-system.conf \
-		modules/alsa/mixer/profile-sets/90-pulseaudio.rules
+		modules/alsa/mixer/profile-sets/90-pulseaudio.rules \
 		${ALSA_PROFILES} \
 		${ALSA_PATHS}
 
