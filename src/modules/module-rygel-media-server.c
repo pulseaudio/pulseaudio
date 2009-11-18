@@ -464,8 +464,18 @@ static char **child_array(struct userdata *u, const char *path, unsigned *n) {
 
     if (pa_streq(path, OBJECT_SINKS))
         m = pa_idxset_size(u->core->sinks);
-    else
+    else {
+        unsigned k;
+
         m = pa_idxset_size(u->core->sources);
+        k = pa_idxset_size(u->core->sinks);
+
+        pa_assert(m >= k);
+
+        /* Subtract the monitor sources from the numbers of
+         * sources. There is one monitor source for each sink */
+        m -= k;
+    }
 
     array = pa_xnew(char*, m);
     *n = 0;
@@ -473,14 +483,20 @@ static char **child_array(struct userdata *u, const char *path, unsigned *n) {
     if (pa_streq(path, OBJECT_SINKS)) {
         pa_sink *sink;
 
-        PA_IDXSET_FOREACH(sink, u->core->sinks, idx)
+        PA_IDXSET_FOREACH(sink, u->core->sinks, idx) {
+            pa_assert((*n) < m);
             array[(*n)++] = pa_sprintf_malloc(OBJECT_SINKS "/%u", sink->index);
+        }
     } else {
         pa_source *source;
 
-        PA_IDXSET_FOREACH(source, u->core->sources, idx)
-            if (!source->monitor_of)
+        PA_IDXSET_FOREACH(source, u->core->sources, idx) {
+
+            if (!source->monitor_of) {
+                pa_assert((*n) < m);
                 array[(*n)++] = pa_sprintf_malloc(OBJECT_SOURCES "/%u", source->index);
+            }
+        }
     }
 
     pa_assert((*n) <= m);
@@ -529,16 +545,20 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
             free_child_array(array, n);
 
         } else if (message_is_property_get(m, "org.gnome.UPnP.MediaContainer1", "ItemCount")) {
+            unsigned n, k;
+
+            n = pa_idxset_size(u->core->sinks);
+            k = pa_idxset_size(u->core->sources);
+            pa_assert(k >= n);
+
             pa_assert_se(r = dbus_message_new_method_return(m));
             append_variant_unsigned(r, NULL,
-                                    pa_streq(path, OBJECT_SINKS) ?
-                                    pa_idxset_size(u->core->sinks) :
-                                    pa_idxset_size(u->core->sources));
+                                    pa_streq(path, OBJECT_SINKS) ? n : k - n);
 
         } else if (message_is_property_get_all(m, "org.gnome.UPnP.MediaContainer1")) {
             DBusMessageIter iter, sub;
             char **array;
-            unsigned n;
+            unsigned n, k;
 
             pa_assert_se(r = dbus_message_new_method_return(m));
             dbus_message_iter_init_append(r, &iter);
@@ -550,10 +570,13 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
             array = child_array(u, path, &n);
             append_property_dict_entry_object_array(r, &sub, "Items", (const char**) array, n);
             free_child_array(array, n);
+
+            n = pa_idxset_size(u->core->sinks);
+            k = pa_idxset_size(u->core->sources);
+            pa_assert(k >= n);
+
             append_property_dict_entry_unsigned(r, &sub, "ItemCount",
-                                                pa_streq(path, OBJECT_SINKS) ?
-                                                pa_idxset_size(u->core->sinks) :
-                                                pa_idxset_size(u->core->sources));
+                                                pa_streq(path, OBJECT_SINKS) ? n : k - n);
 
             pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
