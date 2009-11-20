@@ -1474,12 +1474,21 @@ pa_operation * pa_stream_drain(pa_stream *s, pa_stream_success_cb_t cb, void *us
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE);
 
+    /* Ask for a timing update before we cork/uncork to get the best
+     * accuracy for the transport latency suitable for the
+     * check_smoother_status() call in the started callback */
+    request_auto_timing_update(s, TRUE);
+
     o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
 
     t = pa_tagstruct_command(s->context, PA_COMMAND_DRAIN_PLAYBACK_STREAM, &tag);
     pa_tagstruct_putu32(t, s->channel);
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
+
+    /* This might cause the read index to conitnue again, hence
+     * let's request a timing update */
+    request_auto_timing_update(s, TRUE);
 
     return o;
 }
@@ -2029,6 +2038,11 @@ pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, voi
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
 
+    /* Ask for a timing update before we cork/uncork to get the best
+     * accuracy for the transport latency suitable for the
+     * check_smoother_status() call in the started callback */
+    request_auto_timing_update(s, TRUE);
+
     s->corked = b;
 
     o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
@@ -2044,8 +2058,8 @@ pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, voi
 
     check_smoother_status(s, FALSE, FALSE, FALSE);
 
-    /* This might cause the indexes to hang/start again, hence
-     * let's request a timing update */
+    /* This might cause the indexes to hang/start again, hence let's
+     * request a timing update, after the cork/uncork, too */
     request_auto_timing_update(s, TRUE);
 
     return o;
@@ -2082,6 +2096,11 @@ pa_operation* pa_stream_flush(pa_stream *s, pa_stream_success_cb_t cb, void *use
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
 
+    /* Ask for a timing update *before* the flush, so that the
+     * transport usec is as up to date as possible when we get the
+     * underflow message and update the smoother status*/
+    request_auto_timing_update(s, TRUE);
+
     if (!(o = stream_send_simple_command(s, (uint32_t) (s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_FLUSH_PLAYBACK_STREAM : PA_COMMAND_FLUSH_RECORD_STREAM), cb, userdata)))
         return NULL;
 
@@ -2116,6 +2135,11 @@ pa_operation* pa_stream_prebuf(pa_stream *s, pa_stream_success_cb_t cb, void *us
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->buffer_attr.prebuf > 0, PA_ERR_BADSTATE);
 
+    /* Ask for a timing update before we cork/uncork to get the best
+     * accuracy for the transport latency suitable for the
+     * check_smoother_status() call in the started callback */
+    request_auto_timing_update(s, TRUE);
+
     if (!(o = stream_send_simple_command(s, PA_COMMAND_PREBUF_PLAYBACK_STREAM, cb, userdata)))
         return NULL;
 
@@ -2136,6 +2160,11 @@ pa_operation* pa_stream_trigger(pa_stream *s, pa_stream_success_cb_t cb, void *u
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->buffer_attr.prebuf > 0, PA_ERR_BADSTATE);
+
+    /* Ask for a timing update before we cork/uncork to get the best
+     * accuracy for the transport latency suitable for the
+     * check_smoother_status() call in the started callback */
+    request_auto_timing_update(s, TRUE);
 
     if (!(o = stream_send_simple_command(s, PA_COMMAND_TRIGGER_PLAYBACK_STREAM, cb, userdata)))
         return NULL;
@@ -2387,6 +2416,11 @@ pa_operation* pa_stream_set_buffer_attr(pa_stream *s, const pa_buffer_attr *attr
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->context->version >= 12, PA_ERR_NOTSUPPORTED);
+
+    /* Ask for a timing update before we cork/uncork to get the best
+     * accuracy for the transport latency suitable for the
+     * check_smoother_status() call in the started callback */
+    request_auto_timing_update(s, TRUE);
 
     o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
 
