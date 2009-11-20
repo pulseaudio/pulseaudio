@@ -509,6 +509,12 @@ int main(int argc, char *argv[]) {
             goto finish;
 
         case PA_CMD_DUMP_CONF: {
+
+            if (d < argc) {
+                pa_log("Too many arguments.\n");
+                goto finish;
+            }
+
             s = pa_daemon_conf_dump(conf);
             fputs(s, stdout);
             pa_xfree(s);
@@ -518,6 +524,11 @@ int main(int argc, char *argv[]) {
 
         case PA_CMD_DUMP_RESAMPLE_METHODS: {
             int i;
+
+            if (d < argc) {
+                pa_log("Too many arguments.\n");
+                goto finish;
+            }
 
             for (i = 0; i < PA_RESAMPLER_MAX; i++)
                 if (pa_resample_method_supported(i))
@@ -533,12 +544,23 @@ int main(int argc, char *argv[]) {
             goto finish;
 
         case PA_CMD_VERSION :
+
+            if (d < argc) {
+                pa_log("Too many arguments.\n");
+                goto finish;
+            }
+
             printf(PACKAGE_NAME" "PACKAGE_VERSION"\n");
             retval = 0;
             goto finish;
 
         case PA_CMD_CHECK: {
             pid_t pid;
+
+            if (d < argc) {
+                pa_log("Too many arguments.\n");
+                goto finish;
+            }
 
             if (pa_pid_file_check_running(&pid, "pulseaudio") < 0)
                 pa_log_info(_("Daemon not running"));
@@ -552,6 +574,11 @@ int main(int argc, char *argv[]) {
         }
         case PA_CMD_KILL:
 
+            if (d < argc) {
+                pa_log("Too many arguments.\n");
+                goto finish;
+            }
+
             if (pa_pid_file_kill(SIGINT, NULL, "pulseaudio") < 0)
                 pa_log(_("Failed to kill daemon: %s"), pa_cstrerror(errno));
             else
@@ -561,6 +588,11 @@ int main(int argc, char *argv[]) {
 
         case PA_CMD_CLEANUP_SHM:
 
+            if (d < argc) {
+                pa_log("Too many arguments.\n");
+                goto finish;
+            }
+
             if (pa_shm_cleanup() >= 0)
                 retval = 0;
 
@@ -568,6 +600,11 @@ int main(int argc, char *argv[]) {
 
         default:
             pa_assert(conf->cmd == PA_CMD_DAEMON || conf->cmd == PA_CMD_START);
+    }
+
+    if (d < argc) {
+        pa_log("Too many arguments.\n");
+        goto finish;
     }
 
     if (getuid() == 0 && !conf->system_instance)
