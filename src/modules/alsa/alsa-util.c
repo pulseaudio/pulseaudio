@@ -259,6 +259,10 @@ int pa_alsa_set_hw_params(
         goto finish;
     }
 
+    /* We ignore very small sampling rate deviations */
+    if (_ss.rate >= ss->rate*.95 && _ss.rate <= ss->rate*1.05)
+        _ss.rate = ss->rate;
+
     if (require_exact_channel_number) {
         if ((ret = snd_pcm_hw_params_set_channels(pcm_handle, hwparams, _ss.channels)) < 0) {
             pa_log_debug("snd_pcm_hw_params_set_channels(%u) failed: %s", _ss.channels, pa_alsa_strerror(ret));
@@ -303,7 +307,7 @@ int pa_alsa_set_hw_params(
             if (set_buffer_size(pcm_handle, hwparams_copy, _buffer_size) >= 0 &&
                 set_period_size(pcm_handle, hwparams_copy, _period_size) >= 0 &&
                 snd_pcm_hw_params(pcm_handle, hwparams_copy) >= 0) {
-                pa_log_debug("Set buffer size first, period size second.");
+                pa_log_debug("Set buffer size first (to %lu samples), period size second (to %lu samples).", (unsigned long) _buffer_size, (unsigned long) _period_size);
                 goto success;
             }
 
@@ -311,7 +315,7 @@ int pa_alsa_set_hw_params(
             if (set_period_size(pcm_handle, hwparams_copy, _period_size) >= 0 &&
                 set_buffer_size(pcm_handle, hwparams_copy, _buffer_size) >= 0 &&
                 snd_pcm_hw_params(pcm_handle, hwparams_copy) >= 0) {
-                pa_log_debug("Set period size first, buffer size second.");
+                pa_log_debug("Set period size first (to %lu samples), buffer size second (to %lu samples).", (unsigned long) _period_size, (unsigned long) _buffer_size);
                 goto success;
             }
         }
@@ -322,7 +326,7 @@ int pa_alsa_set_hw_params(
             /* Third try: set only buffer size */
             if (set_buffer_size(pcm_handle, hwparams_copy, _buffer_size) >= 0 &&
                 snd_pcm_hw_params(pcm_handle, hwparams_copy) >= 0) {
-                pa_log_debug("Set only buffer size second.");
+                pa_log_debug("Set only buffer size (to %lu samples).", (unsigned long) _buffer_size);
                 goto success;
             }
         }
@@ -333,7 +337,7 @@ int pa_alsa_set_hw_params(
             /* Fourth try: set only period size */
             if (set_period_size(pcm_handle, hwparams_copy, _period_size) >= 0 &&
                 snd_pcm_hw_params(pcm_handle, hwparams_copy) >= 0) {
-                pa_log_debug("Set only period size second.");
+                pa_log_debug("Set only period size (to %lu samples).", (unsigned long) _period_size);
                 goto success;
             }
         }
@@ -374,9 +378,7 @@ success:
         goto finish;
     }
 
-    /* If the sample rate deviates too much, we need to resample */
-    if (_ss.rate < ss->rate*.95 || _ss.rate > ss->rate*1.05)
-        ss->rate = _ss.rate;
+    ss->rate = _ss.rate;
     ss->channels = _ss.channels;
     ss->format = _ss.format;
 
