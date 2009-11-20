@@ -126,7 +126,7 @@ static void client_kill_cb(pa_client *c) {
 /* Called from pa_client_send_event(). */
 static void client_send_event_cb(pa_client *c, const char *name, pa_proplist *data) {
     struct connection *conn = NULL;
-    DBusMessage *signal = NULL;
+    DBusMessage *signal_msg = NULL;
     DBusMessageIter msg_iter;
 
     pa_assert(c);
@@ -136,15 +136,15 @@ static void client_send_event_cb(pa_client *c, const char *name, pa_proplist *da
 
     conn = c->userdata;
 
-    pa_assert_se(signal = dbus_message_new_signal(pa_dbusiface_core_get_client_path(conn->server->userdata->core_iface, c),
-                                                  PA_DBUSIFACE_CLIENT_INTERFACE,
-                                                  "ClientEvent"));
-    dbus_message_iter_init_append(signal, &msg_iter);
+    pa_assert_se(signal_msg = dbus_message_new_signal(pa_dbusiface_core_get_client_path(conn->server->userdata->core_iface, c),
+						      PA_DBUSIFACE_CLIENT_INTERFACE,
+						      "ClientEvent"));
+    dbus_message_iter_init_append(signal_msg, &msg_iter);
     pa_assert_se(dbus_message_iter_append_basic(&msg_iter, DBUS_TYPE_STRING, &name));
     pa_dbus_append_proplist(&msg_iter, data);
 
-    pa_assert_se(dbus_connection_send(pa_dbus_wrap_connection_get(conn->wrap_conn), signal, NULL));
-    dbus_message_unref(signal);
+    pa_assert_se(dbus_connection_send(pa_dbus_wrap_connection_get(conn->wrap_conn), signal_msg, NULL));
+    dbus_message_unref(signal_msg);
 }
 
 /* Called by D-Bus at the authentication phase. */

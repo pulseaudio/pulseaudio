@@ -632,7 +632,7 @@ static void handle_kill(DBusConnection *conn, DBusMessage *msg, void *userdata) 
 
 static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     pa_dbusiface_stream *s = userdata;
-    DBusMessage *signal = NULL;
+    DBusMessage *signal_msg = NULL;
     const char *new_device_path = NULL;
     uint32_t new_sample_rate = 0;
     pa_proplist *new_proplist = NULL;
@@ -662,14 +662,14 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
 
             new_device_path = pa_dbusiface_core_get_sink_path(s->core, new_sink);
 
-            pa_assert_se(signal = dbus_message_new_signal(s->path,
-                                                          PA_DBUSIFACE_STREAM_INTERFACE,
-                                                          signals[SIGNAL_DEVICE_UPDATED].name));
-            pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &new_device_path, DBUS_TYPE_INVALID));
+            pa_assert_se(signal_msg = dbus_message_new_signal(s->path,
+							      PA_DBUSIFACE_STREAM_INTERFACE,
+							      signals[SIGNAL_DEVICE_UPDATED].name));
+            pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_OBJECT_PATH, &new_device_path, DBUS_TYPE_INVALID));
 
-            pa_dbus_protocol_send_signal(s->dbus_protocol, signal);
-            dbus_message_unref(signal);
-            signal = NULL;
+            pa_dbus_protocol_send_signal(s->dbus_protocol, signal_msg);
+            dbus_message_unref(signal_msg);
+            signal_msg = NULL;
         }
     } else {
         pa_source *new_source = s->source_output->source;
@@ -680,14 +680,14 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
 
             new_device_path = pa_dbusiface_core_get_source_path(s->core, new_source);
 
-            pa_assert_se(signal = dbus_message_new_signal(s->path,
-                                                          PA_DBUSIFACE_STREAM_INTERFACE,
-                                                          signals[SIGNAL_DEVICE_UPDATED].name));
-            pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &new_device_path, DBUS_TYPE_INVALID));
+            pa_assert_se(signal_msg = dbus_message_new_signal(s->path,
+							      PA_DBUSIFACE_STREAM_INTERFACE,
+							      signals[SIGNAL_DEVICE_UPDATED].name));
+            pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_OBJECT_PATH, &new_device_path, DBUS_TYPE_INVALID));
 
-            pa_dbus_protocol_send_signal(s->dbus_protocol, signal);
-            dbus_message_unref(signal);
-            signal = NULL;
+            pa_dbus_protocol_send_signal(s->dbus_protocol, signal_msg);
+            dbus_message_unref(signal_msg);
+            signal_msg = NULL;
         }
     }
 
@@ -696,14 +696,14 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
     if (s->sample_rate != new_sample_rate) {
         s->sample_rate = new_sample_rate;
 
-        pa_assert_se(signal = dbus_message_new_signal(s->path,
-                                                      PA_DBUSIFACE_STREAM_INTERFACE,
-                                                      signals[SIGNAL_SAMPLE_RATE_UPDATED].name));
-        pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_UINT32, &s->sample_rate, DBUS_TYPE_INVALID));
+        pa_assert_se(signal_msg = dbus_message_new_signal(s->path,
+							  PA_DBUSIFACE_STREAM_INTERFACE,
+							  signals[SIGNAL_SAMPLE_RATE_UPDATED].name));
+        pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_UINT32, &s->sample_rate, DBUS_TYPE_INVALID));
 
-        pa_dbus_protocol_send_signal(s->dbus_protocol, signal);
-        dbus_message_unref(signal);
-        signal = NULL;
+        pa_dbus_protocol_send_signal(s->dbus_protocol, signal_msg);
+        dbus_message_unref(signal_msg);
+        signal_msg = NULL;
     }
 
     if (s->type == STREAM_TYPE_PLAYBACK) {
@@ -721,16 +721,16 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
             for (i = 0; i < s->volume.channels; ++i)
                 volume[i] = s->volume.values[i];
 
-            pa_assert_se(signal = dbus_message_new_signal(s->path,
-                                                          PA_DBUSIFACE_STREAM_INTERFACE,
-                                                          signals[SIGNAL_VOLUME_UPDATED].name));
-            pa_assert_se(dbus_message_append_args(signal,
+            pa_assert_se(signal_msg = dbus_message_new_signal(s->path,
+							      PA_DBUSIFACE_STREAM_INTERFACE,
+							      signals[SIGNAL_VOLUME_UPDATED].name));
+            pa_assert_se(dbus_message_append_args(signal_msg,
                                                   DBUS_TYPE_ARRAY, DBUS_TYPE_UINT32, &volume_ptr, s->volume.channels,
                                                   DBUS_TYPE_INVALID));
 
-            pa_dbus_protocol_send_signal(s->dbus_protocol, signal);
-            dbus_message_unref(signal);
-            signal = NULL;
+            pa_dbus_protocol_send_signal(s->dbus_protocol, signal_msg);
+            dbus_message_unref(signal_msg);
+            signal_msg = NULL;
         }
 
         new_mute = pa_sink_input_get_mute(s->sink_input);
@@ -738,14 +738,14 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
         if (s->mute != new_mute) {
             s->mute = new_mute;
 
-            pa_assert_se(signal = dbus_message_new_signal(s->path,
-                                                          PA_DBUSIFACE_STREAM_INTERFACE,
-                                                          signals[SIGNAL_MUTE_UPDATED].name));
-            pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_BOOLEAN, &s->mute, DBUS_TYPE_INVALID));
+            pa_assert_se(signal_msg = dbus_message_new_signal(s->path,
+							      PA_DBUSIFACE_STREAM_INTERFACE,
+							      signals[SIGNAL_MUTE_UPDATED].name));
+            pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_BOOLEAN, &s->mute, DBUS_TYPE_INVALID));
 
-            pa_dbus_protocol_send_signal(s->dbus_protocol, signal);
-            dbus_message_unref(signal);
-            signal = NULL;
+            pa_dbus_protocol_send_signal(s->dbus_protocol, signal_msg);
+            dbus_message_unref(signal_msg);
+            signal_msg = NULL;
         }
     }
 
@@ -756,21 +756,21 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
 
         pa_proplist_update(s->proplist, PA_UPDATE_SET, new_proplist);
 
-        pa_assert_se(signal = dbus_message_new_signal(s->path,
-                                                      PA_DBUSIFACE_STREAM_INTERFACE,
-                                                      signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
-        dbus_message_iter_init_append(signal, &msg_iter);
+        pa_assert_se(signal_msg = dbus_message_new_signal(s->path,
+							  PA_DBUSIFACE_STREAM_INTERFACE,
+							  signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
+        dbus_message_iter_init_append(signal_msg, &msg_iter);
         pa_dbus_append_proplist(&msg_iter, s->proplist);
 
-        pa_dbus_protocol_send_signal(s->dbus_protocol, signal);
-        dbus_message_unref(signal);
-        signal = NULL;
+        pa_dbus_protocol_send_signal(s->dbus_protocol, signal_msg);
+        dbus_message_unref(signal_msg);
+        signal_msg = NULL;
     }
 }
 
 static pa_hook_result_t send_event_cb(void *hook_data, void *call_data, void *slot_data) {
     pa_dbusiface_stream *s = slot_data;
-    DBusMessage *signal = NULL;
+    DBusMessage *signal_msg = NULL;
     DBusMessageIter msg_iter;
     const char *name = NULL;
     pa_proplist *property_list = NULL;
@@ -796,15 +796,15 @@ static pa_hook_result_t send_event_cb(void *hook_data, void *call_data, void *sl
         property_list = data->data;
     }
 
-    pa_assert_se(signal = dbus_message_new_signal(s->path,
-                                                  PA_DBUSIFACE_STREAM_INTERFACE,
-                                                  signals[SIGNAL_STREAM_EVENT].name));
-    dbus_message_iter_init_append(signal, &msg_iter);
+    pa_assert_se(signal_msg = dbus_message_new_signal(s->path,
+						      PA_DBUSIFACE_STREAM_INTERFACE,
+						      signals[SIGNAL_STREAM_EVENT].name));
+    dbus_message_iter_init_append(signal_msg, &msg_iter);
     pa_assert_se(dbus_message_iter_append_basic(&msg_iter, DBUS_TYPE_STRING, &name));
     pa_dbus_append_proplist(&msg_iter, property_list);
 
-    pa_dbus_protocol_send_signal(s->dbus_protocol, signal);
-    dbus_message_unref(signal);
+    pa_dbus_protocol_send_signal(s->dbus_protocol, signal_msg);
+    dbus_message_unref(signal_msg);
 
     return PA_HOOK_OK;
 }
