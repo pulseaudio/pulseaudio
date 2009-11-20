@@ -166,26 +166,11 @@ AC_ARG_ENABLE([atomic-arm-memory-barrier],
             esac
         ],)
 
-AC_ARG_ENABLE([netbsd-atomic-ops],
-    AS_HELP_STRING([--enable-netbsd-atomic-ops],[Use the native NetBSD atomic_ops implementation]),
-        [
-            case "${enableval}" in
-                yes) atomic_netbsd_helpers=yes ;;
-                no) atomic_netbsd_helpers=no ;;
-                *) AC_MSG_ERROR(bad value ${enableval} for --enable-netbsd-atomic-ops) ;;
-            esac
-        ],
-        [atomic_netbsd_helpers=auto])
-
 AC_MSG_CHECKING([target operating system])
 case $host in
         *-*-linux*)
             AC_MSG_RESULT([linux])
             pulse_target_os=linux
-        ;;
-        *-*-netbsd*)
-            AC_MSG_RESULT([netbsd])
-            pulse_target_os=netbsd
         ;;
         *)
             AC_MSG_RESULT([unknown])
@@ -210,7 +195,7 @@ if test "$pulseaudio_cv_sync_bool_compare_and_swap" = "yes" ; then
 else
     # HW specific atomic ops stuff
     AC_MSG_CHECKING([architecture for native atomic operations])
-    case $host_cpu in
+    case $host in
         arm*)
             AC_MSG_RESULT([arm])
             AC_MSG_CHECKING([whether we can use Linux kernel helpers])
@@ -246,14 +231,12 @@ else
                  ])
            fi
         ;;
+	*-netbsdelf5*)
+            AC_MSG_RESULT([yes])
+            need_libatomic_ops=no
+	;;
         *)
-            if test "x$pulse_target_os" = "xnetbsd" && test "x$atomic_netbsd_helpers" = "xyes"; then
-                AC_MSG_RESULT([yes])
-                AC_DEFINE_UNQUOTED(NETBSD_ATOMIC_OPS, 1, [netbsd implementation])
-                need_libatomic_ops=no
-            else
-                AC_MSG_RESULT([unknown])
-            fi
+            AC_MSG_RESULT([unknown])
         ;;
     esac
 fi
