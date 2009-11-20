@@ -376,22 +376,6 @@ static void check_smoother_status(pa_stream *s, pa_bool_t aposteriori, pa_bool_t
     if (!s->smoother)
         return;
 
-    if (!s->timing_info_valid &&
-        !aposteriori &&
-        !force_start &&
-        !force_stop &&
-        s->context->version >= 13) {
-
-        /* If the server supports STARTED and UNDERFLOW events we take
-         * them as indications when audio really starts/stops playing,
-         * if we don't have any timing info yet -- instead of trying
-         * to be smart and guessing the server time. Otherwise the
-         * unknown transport delay we don't know might add too much
-         * noise to our time calculations. */
-
-        return;
-    }
-
     x = pa_rtclock_now();
 
     if (s->timing_info_valid) {
@@ -403,8 +387,26 @@ static void check_smoother_status(pa_stream *s, pa_bool_t aposteriori, pa_bool_t
 
     if (s->suspended || s->corked || force_stop)
         pa_smoother_pause(s->smoother, x);
-    else if (force_start || s->buffer_attr.prebuf == 0)
+    else if (force_start || s->buffer_attr.prebuf == 0) {
+
+        if (!s->timing_info_valid &&
+            !aposteriori &&
+            !force_start &&
+            !force_stop &&
+            s->context->version >= 13) {
+
+            /* If the server supports STARTED events we take them as
+             * indications when audio really starts/stops playing, if
+             * we don't have any timing info yet -- instead of trying
+             * to be smart and guessing the server time. Otherwise the
+             * unknown transport delay add too much noise to our time
+             * calculations. */
+
+            return;
+        }
+
         pa_smoother_resume(s->smoother, x, TRUE);
+    }
 
     /* Please note that we have no idea if playback actually started
      * if prebuf is non-zero! */
