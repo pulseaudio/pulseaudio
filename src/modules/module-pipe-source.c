@@ -105,9 +105,10 @@ static int source_process_msg(
 
         case PA_SOURCE_MESSAGE_GET_LATENCY: {
             size_t n = 0;
-            int l;
 
 #ifdef FIONREAD
+            int l;
+
             if (ioctl(u->fd, FIONREAD, &l) >= 0 && l > 0)
                 n = (size_t) l;
 #endif
