@@ -34,6 +34,10 @@
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 
+#ifdef HAVE_SYS_FILIO_H
+#include <sys/filio.h>
+#endif
+
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/core-error.h>
