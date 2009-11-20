@@ -235,6 +235,10 @@ else
             AC_MSG_RESULT([yes])
             need_libatomic_ops=no
 	;;
+	*-freebsd*)
+            AC_MSG_RESULT([yes])
+            need_libatomic_ops=no
+	;;
         *)
             AC_MSG_RESULT([unknown])
         ;;
