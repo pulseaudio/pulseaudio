@@ -740,14 +740,15 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
                 pa_memchunk rchunk;
                 pa_resampler_run(i->thread_info.resampler, &wchunk, &rchunk);
 
-                if (nvfs) {
-                    pa_memchunk_make_writable(&rchunk, 0);
-                    pa_volume_memchunk(&rchunk, &i->sink->sample_spec, &i->volume_factor_sink);
-                }
-
 /*                 pa_log_debug("pushing %lu", (unsigned long) rchunk.length); */
 
                 if (rchunk.memblock) {
+
+                    if (nvfs) {
+                        pa_memchunk_make_writable(&rchunk, 0);
+                        pa_volume_memchunk(&rchunk, &i->sink->sample_spec, &i->volume_factor_sink);
+                    }
+
                     pa_memblockq_push_align(i->thread_info.render_memblockq, &rchunk);
                     pa_memblock_unref(rchunk.memblock);
                 }
