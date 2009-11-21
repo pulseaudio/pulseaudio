@@ -189,7 +189,18 @@ char *pa_get_binary_name(char *s, size_t l) {
             return s;
         }
     }
+#endif
 
+#ifdef __FreeBSD__
+    {
+        char *rp;
+
+	if ((rp = pa_readlink("/proc/curproc/file"))) {
+	    pa_strlcpy(s, pa_path_get_filename(rp), l);
+	    pa_xfree(rp);
+	    return s;
+	}
+    }
 #endif
 
 #if defined(HAVE_SYS_PRCTL_H) && defined(PR_GET_NAME)
