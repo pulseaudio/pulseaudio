@@ -109,30 +109,6 @@ MODULE_LDFLAGS = -module -disable-static -avoid-version $(LDFLAGS_NOUNDEFINED)
 #          Extra files            #
 ###################################
 
-ALSA_PROFILES = \
-		modules/alsa/mixer/profile-sets/default.conf \
-		modules/alsa/mixer/profile-sets/native-instruments-audio4dj.conf \
-		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf
-
-ALSA_PATHS = \
-		modules/alsa/mixer/paths/analog-input-aux.conf \
-		modules/alsa/mixer/paths/analog-input.conf \
-		modules/alsa/mixer/paths/analog-input.conf.common \
-		modules/alsa/mixer/paths/analog-input-fm.conf \
-		modules/alsa/mixer/paths/analog-input-linein.conf \
-		modules/alsa/mixer/paths/analog-input-mic.conf \
-		modules/alsa/mixer/paths/analog-input-mic.conf.common \
-		modules/alsa/mixer/paths/analog-input-mic-line.conf \
-		modules/alsa/mixer/paths/analog-input-tvtuner.conf \
-		modules/alsa/mixer/paths/analog-input-video.conf \
-		modules/alsa/mixer/paths/analog-output.conf \
-		modules/alsa/mixer/paths/analog-output-speaker.conf \
-		modules/alsa/mixer/paths/analog-output.conf.common \
-		modules/alsa/mixer/paths/analog-output-headphones.conf \
-		modules/alsa/mixer/paths/analog-output-headphones-2.conf \
-		modules/alsa/mixer/paths/analog-output-lfe-on-mono.conf \
-		modules/alsa/mixer/paths/analog-output-mono.conf
-
 EXTRA_DIST = \
 		pulse/client.conf.in \
 		pulse/version.h.in \
@@ -149,10 +125,7 @@ EXTRA_DIST = \
 		daemon/pulseaudio.desktop.in \
 		daemon/pulseaudio-kde.desktop.in \
 		map-file \
-		daemon/pulseaudio-system.conf \
-		modules/alsa/mixer/profile-sets/90-pulseaudio.rules \
-		${ALSA_PROFILES} \
-		${ALSA_PATHS}
+		daemon/pulseaudio-system.conf
 
 pulseconf_DATA = \
 		default.pa \
@@ -1094,14 +1067,34 @@ modlibexec_LTLIBRARIES += \
 		module-alsa-source.la \
 		module-alsa-card.la
 
-alsaprofilesets_DATA = ${ALSA_PROFILES}
+dist_alsaprofilesets_DATA = \
+		modules/alsa/mixer/profile-sets/default.conf \
+		modules/alsa/mixer/profile-sets/native-instruments-audio4dj.conf \
+		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf
 
 if HAVE_UDEV
-udevrules_DATA = \
+dist_udevrules_DATA = \
 		modules/alsa/mixer/profile-sets/90-pulseaudio.rules
 endif
 
-alsapaths_DATA = ${ALSA_PATHS}
+dist_alsapaths_DATA = \
+		modules/alsa/mixer/paths/analog-input-aux.conf \
+		modules/alsa/mixer/paths/analog-input.conf \
+		modules/alsa/mixer/paths/analog-input.conf.common \
+		modules/alsa/mixer/paths/analog-input-fm.conf \
+		modules/alsa/mixer/paths/analog-input-linein.conf \
+		modules/alsa/mixer/paths/analog-input-mic.conf \
+		modules/alsa/mixer/paths/analog-input-mic.conf.common \
+		modules/alsa/mixer/paths/analog-input-mic-line.conf \
+		modules/alsa/mixer/paths/analog-input-tvtuner.conf \
+		modules/alsa/mixer/paths/analog-input-video.conf \
+		modules/alsa/mixer/paths/analog-output.conf \
+		modules/alsa/mixer/paths/analog-output-speaker.conf \
+		modules/alsa/mixer/paths/analog-output.conf.common \
+		modules/alsa/mixer/paths/analog-output-headphones.conf \
+		modules/alsa/mixer/paths/analog-output-headphones-2.conf \
+		modules/alsa/mixer/paths/analog-output-lfe-on-mono.conf \
+		modules/alsa/mixer/paths/analog-output-mono.conf
 
 endif
 

@@ -391,7 +391,7 @@ static void handle_remove_properties(DBusConnection *conn, DBusMessage *msg, voi
 
 static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     pa_dbusiface_client *c = userdata;
-    DBusMessage *signal = NULL;
+    DBusMessage *signal_msg = NULL;
 
     pa_assert(core);
     pa_assert((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_CLIENT);
@@ -410,15 +410,15 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t t, uint3
 
         pa_proplist_update(c->proplist, PA_UPDATE_SET, c->client->proplist);
 
-        pa_assert_se(signal = dbus_message_new_signal(c->path,
-                                                      PA_DBUSIFACE_CLIENT_INTERFACE,
-                                                      signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
-        dbus_message_iter_init_append(signal, &msg_iter);
+        pa_assert_se(signal_msg = dbus_message_new_signal(c->path,
+							  PA_DBUSIFACE_CLIENT_INTERFACE,
+							  signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
+        dbus_message_iter_init_append(signal_msg, &msg_iter);
         pa_dbus_append_proplist(&msg_iter, c->proplist);
 
-        pa_dbus_protocol_send_signal(c->dbus_protocol, signal);
-        dbus_message_unref(signal);
-        signal = NULL;
+        pa_dbus_protocol_send_signal(c->dbus_protocol, signal_msg);
+        dbus_message_unref(signal_msg);
+        signal_msg = NULL;
     }
 }
 

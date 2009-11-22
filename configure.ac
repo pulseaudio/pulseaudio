@@ -61,23 +61,12 @@ AC_SUBST(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO, [0:4:0])
 AC_CANONICAL_HOST
 AC_DEFINE_UNQUOTED([CANONICAL_HOST], "$host", [Canonical host string.])
 
-if type -p stow > /dev/null && test -d /usr/local/stow ; then
+AC_CHECK_PROG([STOW], [stow], [yes], [no])
+
+AS_IF([test "x$STOW" = "xyes" && test -d /usr/local/stow], [
    AC_MSG_NOTICE([*** Found /usr/local/stow: default install prefix set to /usr/local/stow/${PACKAGE_NAME}-${PACKAGE_VERSION} ***])
    ac_default_prefix="/usr/local/stow/${PACKAGE_NAME}-${PACKAGE_VERSION}"
-fi
-
-#### Platform hacks ####
-
-case $host in
-   *-*-solaris* )
-      AC_DEFINE(_XOPEN_SOURCE,        600, Needed to get declarations for msg_control and msg_controllen on Solaris)
-      AC_DEFINE(__EXTENSIONS__,         1, Needed to get declarations for msg_control and msg_controllen on Solaris)
-      ;;
-   *-*-darwin* )
-      AC_DEFINE([_POSIX_C_SOURCE], [200112L], [Needed to get clock_gettime on Mac OS X])
-      AC_DEFINE([_DARWIN_C_SOURCE], [200112L], [Needed to get NSIG on Mac OS X])
-      ;;
-esac
+])
 
 AM_SILENT_RULES([yes])
 
@@ -94,6 +83,19 @@ AC_PROG_CC_C99
 AM_PROG_CC_C_O
 AC_PROG_GCC_TRADITIONAL
 AC_USE_SYSTEM_EXTENSIONS
+
+#### Platform hacks ####
+
+case $host in
+   *-*-solaris* )
+      AC_DEFINE(_XOPEN_SOURCE,        600, Needed to get declarations for msg_control and msg_controllen on Solaris)
+      AC_DEFINE(__EXTENSIONS__,         1, Needed to get declarations for msg_control and msg_controllen on Solaris)
+      ;;
+   *-*-darwin* )
+      AC_DEFINE([_POSIX_C_SOURCE], [200112L], [Needed to get clock_gettime on Mac OS X])
+      AC_DEFINE([_DARWIN_C_SOURCE], [200112L], [Needed to get NSIG on Mac OS X])
+      ;;
+esac
 
 # M4
 
@@ -164,26 +166,11 @@ AC_ARG_ENABLE([atomic-arm-memory-barrier],
             esac
         ],)
 
-AC_ARG_ENABLE([netbsd-atomic-ops],
-    AS_HELP_STRING([--enable-netbsd-atomic-ops],[Use the native NetBSD atomic_ops implementation]),
-        [
-            case "${enableval}" in
-                yes) atomic_netbsd_helpers=yes ;;
-                no) atomic_netbsd_helpers=no ;;
-                *) AC_MSG_ERROR(bad value ${enableval} for --enable-netbsd-atomic-ops) ;;
-            esac
-        ],
-        [atomic_netbsd_helpers=auto])
-
 AC_MSG_CHECKING([target operating system])
 case $host in
         *-*-linux*)
             AC_MSG_RESULT([linux])
             pulse_target_os=linux
-        ;;
-        *-*-netbsd*)
-            AC_MSG_RESULT([netbsd])
-            pulse_target_os=netbsd
         ;;
         *)
             AC_MSG_RESULT([unknown])
@@ -208,7 +195,7 @@ if test "$pulseaudio_cv_sync_bool_compare_and_swap" = "yes" ; then
 else
     # HW specific atomic ops stuff
     AC_MSG_CHECKING([architecture for native atomic operations])
-    case $host_cpu in
+    case $host in
         arm*)
             AC_MSG_RESULT([arm])
             AC_MSG_CHECKING([whether we can use Linux kernel helpers])
@@ -244,14 +231,16 @@ else
                  ])
            fi
         ;;
+	*-netbsdelf5*)
+            AC_MSG_RESULT([yes])
+            need_libatomic_ops=no
+	;;
+	*-freebsd*)
+            AC_MSG_RESULT([yes])
+            need_libatomic_ops=no
+	;;
         *)
-            if test "x$pulse_target_os" = "xnetbsd" && test "x$atomic_netbsd_helpers" = "xyes"; then
-                AC_MSG_RESULT([yes])
-                AC_DEFINE_UNQUOTED(NETBSD_ATOMIC_OPS, 1, [netbsd implementation])
-                need_libatomic_ops=no
-            else
-                AC_MSG_RESULT([unknown])
-            fi
+            AC_MSG_RESULT([unknown])
         ;;
     esac
 fi
