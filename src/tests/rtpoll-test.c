@@ -22,8 +22,8 @@
 #endif
 
 #include <signal.h>
-#include <poll.h>
 
+#include <pulsecore/poll.h>
 #include <pulsecore/log.h>
 #include <pulsecore/rtpoll.h>
 

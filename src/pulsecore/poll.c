@@ -43,13 +43,18 @@
 
 #include "winsock.h"
 
-#ifndef HAVE_POLL_H
-
 #include <pulsecore/core-util.h>
+#include <pulse/util.h>
 
 #include "poll.h"
 
-int poll (struct pollfd *fds, unsigned long int nfds, int timeout) {
+/* Mac OSX fails to implement poll() in a working way since 10.4. IOW, for
+ * several years. We need to enable a dirty workaround and emulate that call
+ * with select(), just like for Windows. sic! */
+
+#if !defined(HAVE_POLL_H) || defined(OS_IS_DARWIN)
+
+int pa_poll (struct pollfd *fds, unsigned long int nfds, int timeout) {
     struct timeval tv;
     fd_set rset, wset, xset;
     struct pollfd *f;

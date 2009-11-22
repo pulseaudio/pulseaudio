@@ -25,7 +25,6 @@
 
 #include <assert.h>
 #include <signal.h>
-#include <sys/poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <errno.h>
@@ -38,6 +37,7 @@
 #include <pulse/xmalloc.h>
 #include <pulse/i18n.h>
 
+#include <pulsecore/poll.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
@@ -153,7 +153,7 @@ int main(int argc, char*argv[]) {
         else if (!ibuf_eof)
             pollfd[WATCH_STDIN].events |= POLLIN;
 
-        if (poll(pollfd, N_WATCH, -1) < 0) {
+        if (pa_poll(pollfd, N_WATCH, -1) < 0) {
 
             if (errno == EINTR)
                 continue;
