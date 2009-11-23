@@ -17,12 +17,20 @@
 
 
 import os,math,sys
-import PyQt4,sip
-from PyQt4 import QtGui,QtCore
-from functools import partial
+try:
+    import PyQt4,sip
+    from PyQt4 import QtGui,QtCore
+    import dbus.mainloop.qt
+    import dbus
+except ImportError,e:
+    print 'There was an error importing need libraries'
+    print 'Make sure you haveqt4 and dbus forthon installed'
+    print 'The error that occured was'
+    print '\t%s' %(str(e))
+    import sys
+    sys.exit(-1)
 
-import dbus.mainloop.qt
-import dbus
+from functools import partial
 
 import signal
 signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -31,13 +39,19 @@ SYNC_TIMEOUT = 4*1000
 CORE_PATH = "/org/pulseaudio/core1"
 CORE_IFACE = "org.PulseAudio.Core1"
 def connect():
-    if 'PULSE_DBUS_SERVER' in os.environ:
-        address = os.environ['PULSE_DBUS_SERVER']
-    else:
-        bus = dbus.SessionBus() # Should be UserBus, but D-Bus doesn't implement that yet.
-        server_lookup = bus.get_object('org.PulseAudio1', '/org/pulseaudio/server_lookup1')
-        address = server_lookup.Get('org.PulseAudio.ServerLookup1', 'Address', dbus_interface='org.freedesktop.DBus.Properties')
-    return dbus.connection.Connection(address)
+    try:
+        if 'PULSE_DBUS_SERVER' in os.environ:
+            address = os.environ['PULSE_DBUS_SERVER']
+        else:
+            bus = dbus.SessionBus() # Should be UserBus, but D-Bus doesn't implement that yet.
+            server_lookup = bus.get_object('org.PulseAudio1', '/org/pulseaudio/server_lookup1')
+            address = server_lookup.Get('org.PulseAudio.ServerLookup1', 'Address', dbus_interface='org.freedesktop.DBus.Properties')
+        return dbus.connection.Connection(address)
+    except Exception,e:
+        print 'There was an error connecting to pulseaudio, please make sure you have the pulseaudio dbus'
+        print 'and equalizer modules loaded, exiting...'
+        import sys
+        sys.exit(-1)
 
 
 #TODO: signals: sink Filter changed, sink reconfigured (window size) (sink iface)
