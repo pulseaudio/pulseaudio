@@ -34,6 +34,10 @@
 #include <sys/ioctl.h>
 #include <poll.h>
 
+#ifdef HAVE_SYS_FILIO_H
+#include <sys/filio.h>
+#endif
+
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/core-error.h>
@@ -101,9 +105,10 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
             size_t n = 0;
-            int l;
 
 #ifdef FIONREAD
+            int l;
+
             if (ioctl(u->fd, FIONREAD, &l) >= 0 && l > 0)
                 n = (size_t) l;
 #endif

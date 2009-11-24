@@ -930,7 +930,7 @@ static int unsuspend(struct userdata *u) {
         buffer_size*u->frame_size != u->hwbuf_size) {
         pa_log_warn("Resume failed, couldn't restore original fragment settings. (Old: %lu/%lu, New %lu/%lu)",
                     (unsigned long) u->hwbuf_size, (unsigned long) u->fragment_size,
-                    (unsigned long) (buffer_size*u->fragment_size), (unsigned long) (period_size*u->frame_size));
+                    (unsigned long) (buffer_size*u->frame_size), (unsigned long) (period_size*u->frame_size));
         goto fail;
     }
 

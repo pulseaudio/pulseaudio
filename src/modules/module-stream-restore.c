@@ -433,29 +433,29 @@ static void append_volume_variant(DBusMessageIter *iter, struct entry *e) {
 }
 
 static void send_new_entry_signal(struct dbus_entry *entry) {
-    DBusMessage *signal;
+    DBusMessage *signal_msg;
 
     pa_assert(entry);
 
-    pa_assert_se(signal = dbus_message_new_signal(OBJECT_PATH, INTERFACE_STREAM_RESTORE, signals[SIGNAL_NEW_ENTRY].name));
-    pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &entry->object_path, DBUS_TYPE_INVALID));
-    pa_dbus_protocol_send_signal(entry->userdata->dbus_protocol, signal);
-    dbus_message_unref(signal);
+    pa_assert_se(signal_msg = dbus_message_new_signal(OBJECT_PATH, INTERFACE_STREAM_RESTORE, signals[SIGNAL_NEW_ENTRY].name));
+    pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_OBJECT_PATH, &entry->object_path, DBUS_TYPE_INVALID));
+    pa_dbus_protocol_send_signal(entry->userdata->dbus_protocol, signal_msg);
+    dbus_message_unref(signal_msg);
 }
 
 static void send_entry_removed_signal(struct dbus_entry *entry) {
-    DBusMessage *signal;
+    DBusMessage *signal_msg;
 
     pa_assert(entry);
 
-    pa_assert_se(signal = dbus_message_new_signal(OBJECT_PATH, INTERFACE_STREAM_RESTORE, signals[SIGNAL_ENTRY_REMOVED].name));
-    pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &entry->object_path, DBUS_TYPE_INVALID));
-    pa_dbus_protocol_send_signal(entry->userdata->dbus_protocol, signal);
-    dbus_message_unref(signal);
+    pa_assert_se(signal_msg = dbus_message_new_signal(OBJECT_PATH, INTERFACE_STREAM_RESTORE, signals[SIGNAL_ENTRY_REMOVED].name));
+    pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_OBJECT_PATH, &entry->object_path, DBUS_TYPE_INVALID));
+    pa_dbus_protocol_send_signal(entry->userdata->dbus_protocol, signal_msg);
+    dbus_message_unref(signal_msg);
 }
 
 static void send_device_updated_signal(struct dbus_entry *de, struct entry *e) {
-    DBusMessage *signal;
+    DBusMessage *signal_msg;
     const char *device;
 
     pa_assert(de);
@@ -463,28 +463,28 @@ static void send_device_updated_signal(struct dbus_entry *de, struct entry *e) {
 
     device = e->device_valid ? e->device : "";
 
-    pa_assert_se(signal = dbus_message_new_signal(de->object_path, INTERFACE_ENTRY, entry_signals[ENTRY_SIGNAL_DEVICE_UPDATED].name));
-    pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_STRING, &device, DBUS_TYPE_INVALID));
-    pa_dbus_protocol_send_signal(de->userdata->dbus_protocol, signal);
-    dbus_message_unref(signal);
+    pa_assert_se(signal_msg = dbus_message_new_signal(de->object_path, INTERFACE_ENTRY, entry_signals[ENTRY_SIGNAL_DEVICE_UPDATED].name));
+    pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_STRING, &device, DBUS_TYPE_INVALID));
+    pa_dbus_protocol_send_signal(de->userdata->dbus_protocol, signal_msg);
+    dbus_message_unref(signal_msg);
 }
 
 static void send_volume_updated_signal(struct dbus_entry *de, struct entry *e) {
-    DBusMessage *signal;
+    DBusMessage *signal_msg;
     DBusMessageIter msg_iter;
 
     pa_assert(de);
     pa_assert(e);
 
-    pa_assert_se(signal = dbus_message_new_signal(de->object_path, INTERFACE_ENTRY, entry_signals[ENTRY_SIGNAL_VOLUME_UPDATED].name));
-    dbus_message_iter_init_append(signal, &msg_iter);
+    pa_assert_se(signal_msg = dbus_message_new_signal(de->object_path, INTERFACE_ENTRY, entry_signals[ENTRY_SIGNAL_VOLUME_UPDATED].name));
+    dbus_message_iter_init_append(signal_msg, &msg_iter);
     append_volume(&msg_iter, e);
-    pa_dbus_protocol_send_signal(de->userdata->dbus_protocol, signal);
-    dbus_message_unref(signal);
+    pa_dbus_protocol_send_signal(de->userdata->dbus_protocol, signal_msg);
+    dbus_message_unref(signal_msg);
 }
 
 static void send_mute_updated_signal(struct dbus_entry *de, struct entry *e) {
-    DBusMessage *signal;
+    DBusMessage *signal_msg;
     dbus_bool_t muted;
 
     pa_assert(de);
@@ -494,10 +494,10 @@ static void send_mute_updated_signal(struct dbus_entry *de, struct entry *e) {
 
     muted = e->muted;
 
-    pa_assert_se(signal = dbus_message_new_signal(de->object_path, INTERFACE_ENTRY, entry_signals[ENTRY_SIGNAL_MUTE_UPDATED].name));
-    pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_BOOLEAN, &muted, DBUS_TYPE_INVALID));
-    pa_dbus_protocol_send_signal(de->userdata->dbus_protocol, signal);
-    dbus_message_unref(signal);
+    pa_assert_se(signal_msg = dbus_message_new_signal(de->object_path, INTERFACE_ENTRY, entry_signals[ENTRY_SIGNAL_MUTE_UPDATED].name));
+    pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_BOOLEAN, &muted, DBUS_TYPE_INVALID));
+    pa_dbus_protocol_send_signal(de->userdata->dbus_protocol, signal_msg);
+    dbus_message_unref(signal_msg);
 }
 
 static void handle_get_interface_revision(DBusConnection *conn, DBusMessage *msg, void *userdata) {

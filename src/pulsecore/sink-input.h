@@ -35,6 +35,7 @@ typedef struct pa_sink_input pa_sink_input;
 #include <pulsecore/client.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/core.h>
+#include <pulsecore/envelope.h>
 
 typedef enum pa_sink_input_state {
     PA_SINK_INPUT_INIT,         /*< The stream is not active yet, because pa_sink_put() has not been called yet */
@@ -232,7 +233,22 @@ struct pa_sink_input {
         pa_usec_t requested_sink_latency;
 
         pa_hashmap *direct_outputs;
+
+        struct {
+            pa_bool_t is_ramping:1;
+            pa_bool_t envelope_dead:1;
+            int32_t envelope_dying; /* Increasing while envelop is not dead.  Reduce it while process_rewind. */
+            pa_envelope *envelope;
+            pa_envelope_item *item;
+        } ramp_info;
+        pa_cvolume future_soft_volume;
+        pa_bool_t future_muted;
+
     } thread_info;
+
+    pa_atomic_t before_ramping_v;  /* Indicates future volume */
+    pa_atomic_t before_ramping_m;  /* Indicates future mute */
+    pa_envelope_def using_def;
 
     void *userdata;
 };
@@ -248,6 +264,7 @@ enum {
     PA_SINK_INPUT_MESSAGE_SET_STATE,
     PA_SINK_INPUT_MESSAGE_SET_REQUESTED_LATENCY,
     PA_SINK_INPUT_MESSAGE_GET_REQUESTED_LATENCY,
+    PA_SINK_INPUT_MESSAGE_SET_ENVELOPE,
     PA_SINK_INPUT_MESSAGE_MAX
 };
 
@@ -383,5 +400,9 @@ pa_memchunk* pa_sink_input_get_silence(pa_sink_input *i, pa_memchunk *ret);
 
 #define pa_sink_input_assert_io_context(s) \
     pa_assert(pa_thread_mq_get() || !PA_SINK_INPUT_IS_LINKED((s)->state))
+
+/* Volume ramping*/
+void pa_sink_input_set_volume_with_ramping(pa_sink_input *i, const pa_cvolume *volume, pa_bool_t save, pa_bool_t absolute, pa_usec_t t);
+void pa_sink_input_set_mute_with_ramping(pa_sink_input *i, pa_bool_t mute, pa_bool_t save, pa_usec_t t);
 
 #endif

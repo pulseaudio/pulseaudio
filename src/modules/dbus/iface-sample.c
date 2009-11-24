@@ -450,7 +450,7 @@ static void handle_remove(DBusConnection *conn, DBusMessage *msg, void *userdata
 
 static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     pa_dbusiface_sample *s = userdata;
-    DBusMessage *signal = NULL;
+    DBusMessage *signal_msg = NULL;
 
     pa_assert(c);
     pa_assert(s);
@@ -468,15 +468,15 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
 
         pa_proplist_update(s->proplist, PA_UPDATE_SET, s->sample->proplist);
 
-        pa_assert_se(signal = dbus_message_new_signal(s->path,
-                                                      PA_DBUSIFACE_SAMPLE_INTERFACE,
-                                                      signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
-        dbus_message_iter_init_append(signal, &msg_iter);
+        pa_assert_se(signal_msg = dbus_message_new_signal(s->path,
+							  PA_DBUSIFACE_SAMPLE_INTERFACE,
+							  signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
+        dbus_message_iter_init_append(signal_msg, &msg_iter);
         pa_dbus_append_proplist(&msg_iter, s->proplist);
 
-        pa_dbus_protocol_send_signal(s->dbus_protocol, signal);
-        dbus_message_unref(signal);
-        signal = NULL;
+        pa_dbus_protocol_send_signal(s->dbus_protocol, signal_msg);
+        dbus_message_unref(signal_msg);
+        signal_msg = NULL;
     }
 }
 

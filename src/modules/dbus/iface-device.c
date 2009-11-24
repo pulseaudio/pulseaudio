@@ -1063,7 +1063,7 @@ static void handle_source_get_all(DBusConnection *conn, DBusMessage *msg, void *
 
 static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     pa_dbusiface_device *d = userdata;
-    DBusMessage *signal = NULL;
+    DBusMessage *signal_msg = NULL;
     const pa_cvolume *new_volume = NULL;
     pa_bool_t new_mute = FALSE;
     pa_sink_state_t new_sink_state = 0;
@@ -1099,16 +1099,16 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
         for (i = 0; i < d->volume.channels; ++i)
             volume[i] = d->volume.values[i];
 
-        pa_assert_se(signal = dbus_message_new_signal(d->path,
-                                                      PA_DBUSIFACE_DEVICE_INTERFACE,
-                                                      signals[SIGNAL_VOLUME_UPDATED].name));
-        pa_assert_se(dbus_message_append_args(signal,
+        pa_assert_se(signal_msg = dbus_message_new_signal(d->path,
+							  PA_DBUSIFACE_DEVICE_INTERFACE,
+							  signals[SIGNAL_VOLUME_UPDATED].name));
+        pa_assert_se(dbus_message_append_args(signal_msg,
                                               DBUS_TYPE_ARRAY, DBUS_TYPE_UINT32, &volume_ptr, d->volume.channels,
                                               DBUS_TYPE_INVALID));
 
-        pa_dbus_protocol_send_signal(d->dbus_protocol, signal);
-        dbus_message_unref(signal);
-        signal = NULL;
+        pa_dbus_protocol_send_signal(d->dbus_protocol, signal_msg);
+        dbus_message_unref(signal_msg);
+        signal_msg = NULL;
     }
 
     new_mute = (d->type == DEVICE_TYPE_SINK) ? pa_sink_get_mute(d->sink, FALSE) : pa_source_get_mute(d->source, FALSE);
@@ -1116,14 +1116,14 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
     if (d->mute != new_mute) {
         d->mute = new_mute;
 
-        pa_assert_se(signal = dbus_message_new_signal(d->path,
-                                                      PA_DBUSIFACE_DEVICE_INTERFACE,
-                                                      signals[SIGNAL_MUTE_UPDATED].name));
-        pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_BOOLEAN, &d->mute, DBUS_TYPE_INVALID));
+        pa_assert_se(signal_msg = dbus_message_new_signal(d->path,
+							  PA_DBUSIFACE_DEVICE_INTERFACE,
+							  signals[SIGNAL_MUTE_UPDATED].name));
+        pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_BOOLEAN, &d->mute, DBUS_TYPE_INVALID));
 
-        pa_dbus_protocol_send_signal(d->dbus_protocol, signal);
-        dbus_message_unref(signal);
-        signal = NULL;
+        pa_dbus_protocol_send_signal(d->dbus_protocol, signal_msg);
+        dbus_message_unref(signal_msg);
+        signal_msg = NULL;
     }
 
     if (d->type == DEVICE_TYPE_SINK)
@@ -1142,14 +1142,14 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
 
         state = (d->type == DEVICE_TYPE_SINK) ? d->sink_state : d->source_state;
 
-        pa_assert_se(signal = dbus_message_new_signal(d->path,
-                                                      PA_DBUSIFACE_DEVICE_INTERFACE,
-                                                      signals[SIGNAL_STATE_UPDATED].name));
-        pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_UINT32, &state, DBUS_TYPE_INVALID));
+        pa_assert_se(signal_msg = dbus_message_new_signal(d->path,
+							  PA_DBUSIFACE_DEVICE_INTERFACE,
+							  signals[SIGNAL_STATE_UPDATED].name));
+        pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_UINT32, &state, DBUS_TYPE_INVALID));
 
-        pa_dbus_protocol_send_signal(d->dbus_protocol, signal);
-        dbus_message_unref(signal);
-        signal = NULL;
+        pa_dbus_protocol_send_signal(d->dbus_protocol, signal_msg);
+        dbus_message_unref(signal_msg);
+        signal_msg = NULL;
     }
 
     new_active_port = (d->type == DEVICE_TYPE_SINK) ? d->sink->active_port : d->source->active_port;
@@ -1160,14 +1160,14 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
         d->active_port = new_active_port;
         object_path = pa_dbusiface_device_port_get_path(pa_hashmap_get(d->ports, d->active_port->name));
 
-        pa_assert_se(signal = dbus_message_new_signal(d->path,
-                                                      PA_DBUSIFACE_DEVICE_INTERFACE,
-                                                      signals[SIGNAL_ACTIVE_PORT_UPDATED].name));
-        pa_assert_se(dbus_message_append_args(signal, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
+        pa_assert_se(signal_msg = dbus_message_new_signal(d->path,
+							  PA_DBUSIFACE_DEVICE_INTERFACE,
+							  signals[SIGNAL_ACTIVE_PORT_UPDATED].name));
+        pa_assert_se(dbus_message_append_args(signal_msg, DBUS_TYPE_OBJECT_PATH, &object_path, DBUS_TYPE_INVALID));
 
-        pa_dbus_protocol_send_signal(d->dbus_protocol, signal);
-        dbus_message_unref(signal);
-        signal = NULL;
+        pa_dbus_protocol_send_signal(d->dbus_protocol, signal_msg);
+        dbus_message_unref(signal_msg);
+        signal_msg = NULL;
     }
 
     new_proplist = (d->type == DEVICE_TYPE_SINK) ? d->sink->proplist : d->source->proplist;
@@ -1177,15 +1177,15 @@ static void subscription_cb(pa_core *c, pa_subscription_event_type_t t, uint32_t
 
         pa_proplist_update(d->proplist, PA_UPDATE_SET, new_proplist);
 
-        pa_assert_se(signal = dbus_message_new_signal(d->path,
-                                                      PA_DBUSIFACE_DEVICE_INTERFACE,
-                                                      signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
-        dbus_message_iter_init_append(signal, &msg_iter);
+        pa_assert_se(signal_msg = dbus_message_new_signal(d->path,
+							  PA_DBUSIFACE_DEVICE_INTERFACE,
+							  signals[SIGNAL_PROPERTY_LIST_UPDATED].name));
+        dbus_message_iter_init_append(signal_msg, &msg_iter);
         pa_dbus_append_proplist(&msg_iter, d->proplist);
 
-        pa_dbus_protocol_send_signal(d->dbus_protocol, signal);
-        dbus_message_unref(signal);
-        signal = NULL;
+        pa_dbus_protocol_send_signal(d->dbus_protocol, signal_msg);
+        dbus_message_unref(signal_msg);
+        signal_msg = NULL;
     }
 }
 
