@@ -446,7 +446,9 @@ void pa_dbusiface_client_free(pa_dbusiface_client *c) {
 
     pa_assert_se(pa_dbus_protocol_remove_interface(c->dbus_protocol, c->path, client_interface_info.name) >= 0);
 
+    pa_proplist_free(c->proplist);
     pa_dbus_protocol_unref(c->dbus_protocol);
+    pa_subscription_free(c->subscription);
 
     pa_xfree(c->path);
     pa_xfree(c);
