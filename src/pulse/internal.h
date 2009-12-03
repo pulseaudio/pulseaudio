@@ -34,7 +34,6 @@
 #include <pulsecore/socket-client.h>
 #include <pulsecore/pstream.h>
 #include <pulsecore/pdispatch.h>
-#include <pulsecore/dynarray.h>
 #include <pulsecore/llist.h>
 #include <pulsecore/native-common.h>
 #include <pulsecore/strlist.h>
@@ -66,7 +65,7 @@ struct pa_context {
     pa_pstream *pstream;
     pa_pdispatch *pdispatch;
 
-    pa_dynarray *record_streams, *playback_streams;
+    pa_hashmap *record_streams, *playback_streams;
     PA_LLIST_HEAD(pa_stream, streams);
     PA_LLIST_HEAD(pa_operation, operations);
 
