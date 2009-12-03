@@ -35,6 +35,7 @@
 #define PA_DBUS_CORE_INTERFACE "org.PulseAudio.Core1"
 #define PA_DBUS_CORE_OBJECT_PATH "/org/pulseaudio/core1"
 
+#define PA_DBUS_ERROR_NO_SUCH_INTERFACE PA_DBUS_CORE_INTERFACE ".NoSuchInterfaceError"
 #define PA_DBUS_ERROR_NO_SUCH_PROPERTY PA_DBUS_CORE_INTERFACE ".NoSuchPropertyError"
 #define PA_DBUS_ERROR_NOT_FOUND PA_DBUS_CORE_INTERFACE ".NotFoundError"
 

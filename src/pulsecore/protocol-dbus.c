@@ -552,8 +552,16 @@ static DBusHandlerResult handle_message_cb(DBusConnection *connection, DBusMessa
             pa_dbus_send_error(connection, message, DBUS_ERROR_UNKNOWN_METHOD, "No such method: %s", call_info.method);
             break;
 
+        case NO_SUCH_INTERFACE:
+            pa_dbus_send_error(connection, message, PA_DBUS_ERROR_NO_SUCH_INTERFACE, "No such interface: %s", call_info.interface);
+            break;
+
         case NO_SUCH_PROPERTY:
             pa_dbus_send_error(connection, message, PA_DBUS_ERROR_NO_SUCH_PROPERTY, "No such property: %s", call_info.property);
+            break;
+
+        case NO_SUCH_PROPERTY_INTERFACE:
+            pa_dbus_send_error(connection, message, PA_DBUS_ERROR_NO_SUCH_INTERFACE, "No such property interface: %s", call_info.property_interface);
             break;
 
         case INVALID_METHOD_SIG:
