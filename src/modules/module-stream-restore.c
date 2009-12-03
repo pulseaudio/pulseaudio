@@ -649,6 +649,7 @@ static void handle_add_entry(DBusConnection *conn, DBusMessage *msg, void *userd
         dbus_entry = dbus_entry_new(u, name);
         pa_assert_se(pa_hashmap_put(u->dbus_entries, dbus_entry->entry_name, dbus_entry) == 0);
 
+        e = pa_xnew0(struct entry, 1);
         e->muted_valid = TRUE;
         e->volume_valid = !!map.channels;
         e->device_valid = !!device[0];
