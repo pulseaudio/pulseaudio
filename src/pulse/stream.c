@@ -201,7 +201,7 @@ static void stream_unlink(pa_stream *s) {
         pa_pdispatch_unregister_reply(s->context->pdispatch, s);
 
     if (s->channel_valid) {
-        pa_dynarray_put((s->direction == PA_STREAM_PLAYBACK) ? s->context->playback_streams : s->context->record_streams, s->channel, NULL);
+        pa_hashmap_remove((s->direction == PA_STREAM_PLAYBACK) ? s->context->playback_streams : s->context->record_streams, PA_UINT32_TO_PTR(s->channel));
         s->channel = 0;
         s->channel_valid = FALSE;
     }
@@ -356,7 +356,7 @@ void pa_command_stream_killed(pa_pdispatch *pd, uint32_t command, uint32_t tag, 
         goto finish;
     }
 
-    if (!(s = pa_dynarray_get(command == PA_COMMAND_PLAYBACK_STREAM_KILLED ? c->playback_streams : c->record_streams, channel)))
+    if (!(s = pa_hashmap_get(command == PA_COMMAND_PLAYBACK_STREAM_KILLED ? c->playback_streams : c->record_streams, PA_UINT32_TO_PTR(channel))))
         goto finish;
 
     if (s->state != PA_STREAM_READY)
@@ -476,7 +476,7 @@ void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
         goto finish;
     }
 
-    if (!(s = pa_dynarray_get(command == PA_COMMAND_PLAYBACK_STREAM_MOVED ? c->playback_streams : c->record_streams, channel)))
+    if (!(s = pa_hashmap_get(command == PA_COMMAND_PLAYBACK_STREAM_MOVED ? c->playback_streams : c->record_streams, PA_UINT32_TO_PTR(channel))))
         goto finish;
 
     if (s->state != PA_STREAM_READY)
@@ -559,7 +559,7 @@ void pa_command_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, uint32_t 
         goto finish;
     }
 
-    if (!(s = pa_dynarray_get(command == PA_COMMAND_PLAYBACK_BUFFER_ATTR_CHANGED ? c->playback_streams : c->record_streams, channel)))
+    if (!(s = pa_hashmap_get(command == PA_COMMAND_PLAYBACK_BUFFER_ATTR_CHANGED ? c->playback_streams : c->record_streams, PA_UINT32_TO_PTR(channel))))
         goto finish;
 
     if (s->state != PA_STREAM_READY)
@@ -611,7 +611,7 @@ void pa_command_stream_suspended(pa_pdispatch *pd, uint32_t command, uint32_t ta
         goto finish;
     }
 
-    if (!(s = pa_dynarray_get(command == PA_COMMAND_PLAYBACK_STREAM_SUSPENDED ? c->playback_streams : c->record_streams, channel)))
+    if (!(s = pa_hashmap_get(command == PA_COMMAND_PLAYBACK_STREAM_SUSPENDED ? c->playback_streams : c->record_streams, PA_UINT32_TO_PTR(channel))))
         goto finish;
 
     if (s->state != PA_STREAM_READY)
@@ -653,7 +653,7 @@ void pa_command_stream_started(pa_pdispatch *pd, uint32_t command, uint32_t tag,
         goto finish;
     }
 
-    if (!(s = pa_dynarray_get(c->playback_streams, channel)))
+    if (!(s = pa_hashmap_get(c->playback_streams, PA_UINT32_TO_PTR(channel))))
         goto finish;
 
     if (s->state != PA_STREAM_READY)
@@ -699,7 +699,7 @@ void pa_command_stream_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, p
         goto finish;
     }
 
-    if (!(s = pa_dynarray_get(command == PA_COMMAND_PLAYBACK_STREAM_EVENT ? c->playback_streams : c->record_streams, channel)))
+    if (!(s = pa_hashmap_get(command == PA_COMMAND_PLAYBACK_STREAM_EVENT ? c->playback_streams : c->record_streams, PA_UINT32_TO_PTR(channel))))
         goto finish;
 
     if (s->state != PA_STREAM_READY)
@@ -735,7 +735,7 @@ void pa_command_request(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tag
         goto finish;
     }
 
-    if (!(s = pa_dynarray_get(c->playback_streams, channel)))
+    if (!(s = pa_hashmap_get(c->playback_streams, PA_UINT32_TO_PTR(channel))))
         goto finish;
 
     if (s->state != PA_STREAM_READY)
@@ -771,7 +771,7 @@ void pa_command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, uint32
         goto finish;
     }
 
-    if (!(s = pa_dynarray_get(c->playback_streams, channel)))
+    if (!(s = pa_hashmap_get(c->playback_streams, PA_UINT32_TO_PTR(channel))))
         goto finish;
 
     if (s->state != PA_STREAM_READY)
@@ -1019,7 +1019,7 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag,
     }
 
     s->channel_valid = TRUE;
-    pa_dynarray_put((s->direction == PA_STREAM_RECORD) ? s->context->record_streams : s->context->playback_streams, s->channel, s);
+    pa_hashmap_put((s->direction == PA_STREAM_RECORD) ? s->context->record_streams : s->context->playback_streams, PA_UINT32_TO_PTR(s->channel), s);
 
     create_stream_complete(s);
 

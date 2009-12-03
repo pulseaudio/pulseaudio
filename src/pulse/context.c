@@ -63,7 +63,7 @@
 #include <pulsecore/native-common.h>
 #include <pulsecore/pdispatch.h>
 #include <pulsecore/pstream.h>
-#include <pulsecore/dynarray.h>
+#include <pulsecore/hashmap.h>
 #include <pulsecore/socket-client.h>
 #include <pulsecore/pstream-util.h>
 #include <pulsecore/core-rtclock.h>
@@ -157,8 +157,8 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
     c->system_bus = c->session_bus = NULL;
 #endif
     c->mainloop = mainloop;
-    c->playback_streams = pa_dynarray_new();
-    c->record_streams = pa_dynarray_new();
+    c->playback_streams = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    c->record_streams = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     c->client_index = PA_INVALID_INDEX;
     c->use_rtclock = pa_mainloop_is_our_api(mainloop);
 
@@ -252,9 +252,9 @@ static void context_free(pa_context *c) {
 #endif
 
     if (c->record_streams)
-        pa_dynarray_free(c->record_streams, NULL, NULL);
+        pa_hashmap_free(c->record_streams, NULL, NULL);
     if (c->playback_streams)
-        pa_dynarray_free(c->playback_streams, NULL, NULL);
+        pa_hashmap_free(c->playback_streams, NULL, NULL);
 
     if (c->mempool)
         pa_mempool_free(c->mempool);
@@ -361,7 +361,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
 
     pa_context_ref(c);
 
-    if ((s = pa_dynarray_get(c->record_streams, channel))) {
+    if ((s = pa_hashmap_get(c->record_streams, PA_UINT32_TO_PTR(channel)))) {
 
         if (chunk->memblock) {
             pa_memblockq_seek(s->record_memblockq, offset, seek, TRUE);
