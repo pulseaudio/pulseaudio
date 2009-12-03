@@ -647,7 +647,7 @@ static void handle_add_entry(DBusConnection *conn, DBusMessage *msg, void *userd
 
     } else {
         dbus_entry = dbus_entry_new(u, name);
-        pa_assert(pa_hashmap_put(u->dbus_entries, dbus_entry->entry_name, dbus_entry) >= 0);
+        pa_assert_se(pa_hashmap_put(u->dbus_entries, dbus_entry->entry_name, dbus_entry) == 0);
 
         e->muted_valid = TRUE;
         e->volume_valid = !!map.channels;
@@ -1245,10 +1245,10 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 #ifdef HAVE_DBUS
     if (created_new_entry) {
         de = dbus_entry_new(u, name);
-        pa_hashmap_put(u->dbus_entries, de->entry_name, de);
+        pa_assert_se(pa_hashmap_put(u->dbus_entries, de->entry_name, de) == 0);
         send_new_entry_signal(de);
     } else {
-        pa_assert((de = pa_hashmap_get(u->dbus_entries, name)));
+        pa_assert_se(de = pa_hashmap_get(u->dbus_entries, name));
 
         if (device_updated)
             send_device_updated_signal(de, &entry);
@@ -1859,7 +1859,7 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
 
                     } else {
                         de = dbus_entry_new(u, name);
-                        pa_assert_se(pa_hashmap_put(u->dbus_entries, de->entry_name, de));
+                        pa_assert_se(pa_hashmap_put(u->dbus_entries, de->entry_name, de) == 0);
                         send_new_entry_signal(de);
                     }
 #endif
@@ -2050,7 +2050,7 @@ int pa__init(pa_module*m) {
         pa_datum_free(&key);
 
         de = dbus_entry_new(u, name);
-        pa_assert_se(pa_hashmap_put(u->dbus_entries, de->entry_name, de) >= 0);
+        pa_assert_se(pa_hashmap_put(u->dbus_entries, de->entry_name, de) == 0);
 
         pa_xfree(name);
 
