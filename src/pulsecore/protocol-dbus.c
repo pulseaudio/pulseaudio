@@ -574,6 +574,7 @@ static DBusHandlerResult handle_message_cb(DBusConnection *connection, DBusMessa
             pa_dbus_send_error(connection, message, DBUS_ERROR_INVALID_ARGS,
                                "Invalid signature for property %s: '%s'. Expected '%s'.",
                                call_info.property, call_info.property_sig, call_info.expected_property_sig);
+            break;
 
         default:
             pa_assert_not_reached();
