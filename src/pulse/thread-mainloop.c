@@ -51,7 +51,7 @@
 
 struct pa_threaded_mainloop {
     pa_mainloop *real_mainloop;
-    int n_waiting, n_waiting_for_accept;
+    volatile int n_waiting, n_waiting_for_accept;
 
     pa_thread* thread;
     pa_mutex* mutex;
@@ -185,6 +185,7 @@ void pa_threaded_mainloop_unlock(pa_threaded_mainloop *m) {
     pa_mutex_unlock(m->mutex);
 }
 
+/* Called with the lock taken */
 void pa_threaded_mainloop_signal(pa_threaded_mainloop *m, int wait_for_accept) {
     pa_assert(m);
 
@@ -198,6 +199,7 @@ void pa_threaded_mainloop_signal(pa_threaded_mainloop *m, int wait_for_accept) {
     }
 }
 
+/* Called with the lock taken */
 void pa_threaded_mainloop_wait(pa_threaded_mainloop *m) {
     pa_assert(m);
 
@@ -212,6 +214,7 @@ void pa_threaded_mainloop_wait(pa_threaded_mainloop *m) {
     m->n_waiting --;
 }
 
+/* Called with the lock taken */
 void pa_threaded_mainloop_accept(pa_threaded_mainloop *m) {
     pa_assert(m);
 
