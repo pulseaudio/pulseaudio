@@ -1374,6 +1374,13 @@ AC_ARG_WITH(
 
 AC_SUBST(modlibexecdir)
 
+AC_ARG_WITH(
+        [udev-rules-dir],
+        AS_HELP_STRING([--with-udev-rules-dir],[Directory where to install udev rules to (defaults to /lib/udev/rules.d)]),
+        [udevrulesdir=$withval], [udevrulesdir="/lib/udev/rules.d"])
+
+AC_SUBST(udevrulesdir)
+
 AC_ARG_ENABLE(
         [force-preopen],
         AS_HELP_STRING([--enable-force-preopen],[Preopen modules, even when dlopen() is supported.]),
