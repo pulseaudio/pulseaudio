@@ -31,7 +31,6 @@ pulselibexecdir=$(libexecdir)/pulse
 xdgautostartdir=$(sysconfdir)/xdg/autostart
 alsaprofilesetsdir=$(datadir)/pulseaudio/alsa-mixer/profile-sets
 alsapathsdir=$(datadir)/pulseaudio/alsa-mixer/paths
-udevrulesdir=/lib/udev/rules.d
 dbuspolicydir=$(sysconfdir)/dbus-1/system.d
 
 ###################################
