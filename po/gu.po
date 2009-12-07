@@ -1,14 +1,14 @@
-# translation of PulseAudio-up.po to Gujarati
+# translation of PulseAudio.po to Gujarati
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Sweta Kothari <swkothar@redhat.com>, 2009.
 msgid ""
 msgstr ""
-"Project-Id-Version: PulseAudio-up\n"
+"Project-Id-Version: PulseAudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-29 23:47+0200\n"
-"PO-Revision-Date: 2009-09-11 13:02+0530\n"
+"POT-Creation-Date: 2009-12-07 08:36+0000\n"
+"PO-Revision-Date: 2009-12-07 17:22+0530\n"
 "Last-Translator: Sweta Kothari <swkothar@redhat.com>\n"
 "Language-Team: Gujarati\n"
 "MIME-Version: 1.0\n"
@@ -203,8 +203,7 @@ msgstr "ડિમનને મારવાનું નિષ્ફળ: %s"
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr ""
-"આ પ્રક્રિયાને રુટ તરીકે ચલાવવા માટે વિચાર થયેલ નથી (નહિં તો --system એ સ્પષ્ટ થયેલ છે)."
+msgstr "આ પ્રક્રિયાને રુટ તરીકે ચલાવવા માટે વિચાર થયેલ નથી (નહિં તો --system એ સ્પષ્ટ થયેલ છે)."
 
 #: ../src/daemon/main.c:573
 msgid "Root privileges required."
@@ -732,8 +731,7 @@ msgstr "રૂપરેખાંકન ફાઇલને ખોલવાનુ�
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
-msgstr ""
-"સ્પષ્ટ થયેલ મૂળભૂત ચેનલ મેપ પાસે સ્પષ્ટ થયેલ ચેનલોની મૂળભૂત સંખ્યા કરતા વિવિધ ચેનલોની સંખ્યા છે."
+msgstr "સ્પષ્ટ થયેલ મૂળભૂત ચેનલ મેપ પાસે સ્પષ્ટ થયેલ ચેનલોની મૂળભૂત સંખ્યા કરતા વિવિધ ચેનલોની સંખ્યા છે."
 
 #: ../src/daemon/daemon-conf.c:638
 #, c-format
@@ -1511,8 +1509,7 @@ msgstr "ચેતણી: ફાઇલમાં ચેનલ મેપને લ�
 
 #: ../src/utils/pacat.c:1008
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr "નમૂના સ્પષ્ટીકરણ '%s' અને ચેનલ નક્ષા '%s' સાથે %s સ્ટ્રીમને ખોલી રહ્યા છે."
 
 #: ../src/utils/pacat.c:1009
@@ -2101,17 +2098,14 @@ msgid "You have to specify a module index"
 msgstr "તમારે મોડ્યુલ અનુક્રમણિકાને સ્પષ્ટ કરવુ જ પડશે"
 
 #: ../src/utils/pactl.c:1090
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
-msgstr ""
-"તમે એક સિંક કરતા વધારે સ્પષ્ટ કરી શકશો નહિં. તમારે બુલિયન કિંમતને સ્પષ્ટ કરવુ જ પડશે."
+msgid "You may not specify more than one sink. You have to specify a boolean value."
+msgstr "તમે એક સિંક કરતા વધારે સ્પષ્ટ કરી શકશો નહિં. તમારે બુલિયન કિંમતને સ્પષ્ટ કરવુ જ પડશે."
 
 #: ../src/utils/pactl.c:1103
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
-msgstr ""
-"તમે એક સ્ત્રોત કરતા વધારે સ્પષ્ટ કરી શકશો નહિં. તમારે બુલિયન કિંમતને સ્પષ્ટ કરવુ જ પડશે."
+msgstr "તમે એક સ્ત્રોત કરતા વધારે સ્પષ્ટ કરી શકશો નહિં. તમારે બુલિયન કિંમતને સ્પષ્ટ કરવુ જ પડશે."
 
 #: ../src/utils/pactl.c:1115
 msgid "You have to specify a card name/index and a profile name"
@@ -2346,217 +2340,204 @@ msgstr "PulseAudio સાઉન્ડ સર્વર"
 #: ../src/modules/module-rygel-media-server.c:569
 #: ../src/modules/module-rygel-media-server.c:583
 msgid "Output Devices"
-msgstr ""
+msgstr "આઉટપુટ ઉપકરણો"
 
 #: ../src/modules/module-rygel-media-server.c:570
 #: ../src/modules/module-rygel-media-server.c:584
 msgid "Input Devices"
-msgstr ""
+msgstr "ઇનપુટ ઉપકરણો"
 
 #: ../src/modules/module-rygel-media-server.c:774
 msgid "Audio on @HOSTNAME@"
-msgstr ""
+msgstr "@HOSTNAME@ પર ઓડિયો"
 
 #: ../src/modules/alsa/alsa-mixer.c:1701
 msgid "Input"
-msgstr ""
+msgstr "ઇનપુટ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1702
 msgid "Docking Station Input"
-msgstr ""
+msgstr "ડોકિંગ સ્ટેશન ઇનપુટ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
 msgid "Docking Station Microphone"
-msgstr ""
+msgstr "ડોકિંગ સ્ટેશન માઇક્રોફોન"
 
 #: ../src/modules/alsa/alsa-mixer.c:1704
 msgid "Line-In"
-msgstr ""
+msgstr "લાઇન-ઇન"
 
 #: ../src/modules/alsa/alsa-mixer.c:1705
 msgid "Microphone"
-msgstr ""
+msgstr "માઇક્રોફોન"
 
 #: ../src/modules/alsa/alsa-mixer.c:1706
 msgid "External Microphone"
-msgstr ""
+msgstr "બહારનાં માઇક્રોફોન"
 
 #: ../src/modules/alsa/alsa-mixer.c:1707
-#, fuzzy
 msgid "Internal Microphone"
-msgstr "આંતરિક ઓડિયો"
+msgstr "આંતરિક માઇક્રોફોન"
 
 #: ../src/modules/alsa/alsa-mixer.c:1708
 msgid "Radio"
-msgstr ""
+msgstr "રેડિયો"
 
 #: ../src/modules/alsa/alsa-mixer.c:1709
 msgid "Video"
-msgstr ""
+msgstr "વિડિયો"
 
 #: ../src/modules/alsa/alsa-mixer.c:1710
 msgid "Automatic Gain Control"
-msgstr ""
+msgstr "Automatic Gain Control"
 
 #: ../src/modules/alsa/alsa-mixer.c:1711
 msgid "No Automatic Gain Control"
-msgstr ""
+msgstr "Automatic Gain Control નથી"
 
 #: ../src/modules/alsa/alsa-mixer.c:1712
 msgid "Boost"
-msgstr ""
+msgstr "બુસ્ટ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1713
 msgid "No Boost"
-msgstr ""
+msgstr "બુસ્ટ નથી"
 
 #: ../src/modules/alsa/alsa-mixer.c:1714
 msgid "Amplifier"
-msgstr ""
+msgstr "પરિવર્ધક"
 
 #: ../src/modules/alsa/alsa-mixer.c:1715
 msgid "No Amplifier"
-msgstr ""
+msgstr "પરિવર્ધક નથી"
 
 #: ../src/modules/alsa/alsa-mixer.c:1773
 msgid "Analog Input"
-msgstr ""
+msgstr "ઍનલૉગ ઇનપુટ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1774
 msgid "Analog Microphone"
-msgstr ""
+msgstr "ઍનલૉગ માઇક્રોફોન"
 
 #: ../src/modules/alsa/alsa-mixer.c:1775
 msgid "Analog Line-In"
-msgstr ""
+msgstr "ઍનલૉગ લાઇન-ઇન"
 
 #: ../src/modules/alsa/alsa-mixer.c:1776
 msgid "Analog Radio"
-msgstr ""
+msgstr "ઍનલૉગ રેડિયો"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Video"
-msgstr ""
+msgstr "ઍનલૉગ વિડિયો"
 
 #: ../src/modules/alsa/alsa-mixer.c:1778
-#, fuzzy
 msgid "Analog Output"
-msgstr "શૂન્ય આઉટપુટ"
+msgstr "ઍનલૉગ આઉટપુટ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1779
 msgid "Analog Headphones"
-msgstr ""
+msgstr "ઍનલૉગ હૅડફોનો"
 
 #: ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Analog Output (LFE)"
-msgstr ""
+msgstr "ઍનલૉગ આઉટપુટ (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Analog Mono Output"
-msgstr ""
+msgstr "ઍનલૉગ મોનો આઉટપુટ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1981
-#, fuzzy, c-format
+#, c-format
 msgid "%s+%s"
-msgstr "%s %s"
+msgstr "%s+%s"
 
 #: ../src/modules/alsa/alsa-mixer.c:1984 ../src/modules/alsa/alsa-mixer.c:3404
-#, fuzzy, c-format
+#, c-format
 msgid "%s / %s"
-msgstr "%s %s"
+msgstr "%s / %s"
 
 #: ../src/modules/alsa/alsa-mixer.c:2790
 msgid "Analog Mono"
-msgstr ""
+msgstr "ઍનલૉગ મોનો"
 
 #: ../src/modules/alsa/alsa-mixer.c:2791
-#, fuzzy
 msgid "Analog Stereo"
-msgstr "સ્ટેરિઓ"
+msgstr "ઍનલૉગ સ્ટેરિઓ"
 
 #: ../src/modules/alsa/alsa-mixer.c:2792
-#, fuzzy
 msgid "Analog Surround 2.1"
-msgstr "સરાઉન્ડ 4.1"
+msgstr "ઍનલૉગ સરાઉન્ડ 2.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2793
-#, fuzzy
 msgid "Analog Surround 3.0"
-msgstr "સરાઉન્ડ 4.0"
+msgstr "ઍનલૉગ સરાઉન્ડ 3.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2794
-#, fuzzy
 msgid "Analog Surround 3.1"
-msgstr "સરાઉન્ડ 4.1"
+msgstr "ઍનલૉગ સરાઉન્ડ 3.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2795
-#, fuzzy
 msgid "Analog Surround 4.0"
-msgstr "સરાઉન્ડ 4.0"
+msgstr "ઍનલૉગ સરાઉન્ડ 4.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2796
-#, fuzzy
 msgid "Analog Surround 4.1"
-msgstr "સરાઉન્ડ 4.1"
+msgstr "ઍનલૉગ સરાઉન્ડ 4.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2797
-#, fuzzy
 msgid "Analog Surround 5.0"
-msgstr "સરાઉન્ડ 5.0"
+msgstr "ઍનલૉગ સરાઉન્ડ 5.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2798
-#, fuzzy
 msgid "Analog Surround 5.1"
-msgstr "સરાઉન્ડ 5.1"
+msgstr "ઍનલૉગ સરાઉન્ડ 5.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2799
-#, fuzzy
 msgid "Analog Surround 6.0"
-msgstr "સરાઉન્ડ 4.0"
+msgstr "ઍનલૉગ સરાઉન્ડ 6.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2800
-#, fuzzy
 msgid "Analog Surround 6.1"
-msgstr "સરાઉન્ડ 4.1"
+msgstr "ઍનલૉગ સરાઉન્ડ 6.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2801
-#, fuzzy
 msgid "Analog Surround 7.0"
-msgstr "સરાઉન્ડ 4.0"
+msgstr "ઍનલૉગ સરાઉન્ડ 7.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2802
-#, fuzzy
 msgid "Analog Surround 7.1"
-msgstr "સરાઉન્ડ 7.1"
+msgstr "ઍનલૉગ સરાઉન્ડ 7.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2803
 msgid "Digital Stereo (IEC958)"
-msgstr ""
+msgstr "ડિજિટલ સ્ટેરિઓ (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2804
 msgid "Digital Surround 4.0 (IEC958)"
-msgstr ""
+msgstr "ડિજિટલ સરાઉન્ડ 4.0 (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2805
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr ""
+msgstr "ડિજિટલ સરાઉન્ડ 4.0 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2806
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr ""
+msgstr "ડિજિટલ સરાઉન્ડ 5.1 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2807
 msgid "Digital Stereo (HDMI)"
-msgstr ""
+msgstr "ડિજિટલ સ્ટેરિઓ (HDMI)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2928
 msgid "Analog Mono Duplex"
-msgstr ""
+msgstr "ઍનલૉગ મોનો ડુપ્લેક્ષ"
 
 #: ../src/modules/alsa/alsa-mixer.c:2929
 msgid "Analog Stereo Duplex"
-msgstr ""
+msgstr "ઍનલૉગ સ્ટેરિઓ ડુપ્લેક્ષ"
 
 #: ../src/modules/alsa/alsa-mixer.c:2930
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr ""
+msgstr "ડિજિટલ સ્ટેરિઓ ડુપ્લેક્ષ (IEC958)"
+
