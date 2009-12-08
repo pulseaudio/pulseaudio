@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.bn_IN\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-29 23:47+0200\n"
-"PO-Revision-Date: 2009-09-10 17:08+0530\n"
+"POT-Creation-Date: 2009-12-07 08:36+0000\n"
+"PO-Revision-Date: 2009-12-08 14:34+0530\n"
 "Last-Translator: Runa Bhattacharjee <runab@redhat.com>\n"
 "Language-Team: Bengali INDIA <anubad@lists.ankur.org.in>\n"
 "MIME-Version: 1.0\n"
@@ -61,8 +61,7 @@ msgstr ""
 
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
-msgstr ""
-"সর্বদা অন্তত একটি sink লোড করে রাখা হবে, প্রয়োজনে null sink ব্যবহার করা হবে"
+msgstr "সর্বদা অন্তত একটি sink লোড করে রাখা হবে, প্রয়োজনে null sink ব্যবহার করা হবে"
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
@@ -146,8 +145,7 @@ msgstr "'%s' ব্যবহারকারীর ও '%s' দলের GID-র 
 #: ../src/daemon/main.c:205
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr ""
-"'%s' ব্যবহারকারী ব্যক্তিগত ডিরেক্টরি রূপে '%s' ধার্য করা হয়নি, অগ্রাহ্য করা হবে।"
+msgstr "'%s' ব্যবহারকারী ব্যক্তিগত ডিরেক্টরি রূপে '%s' ধার্য করা হয়নি, অগ্রাহ্য করা হবে।"
 
 #: ../src/daemon/main.c:208 ../src/daemon/main.c:213
 #, c-format
@@ -204,8 +202,7 @@ msgstr "ডেমন kill করতে ব্যর্থ: %s"
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr ""
-"root পরিচয়ে এই প্রোগ্রামটি সঞ্চালিত হওয়া উচিত নয় (যদি না --system উল্লিখিত হয়)।"
+msgstr "root পরিচয়ে এই প্রোগ্রামটি সঞ্চালিত হওয়া উচিত নয় (যদি না --system উল্লিখিত হয়)।"
 
 #: ../src/daemon/main.c:573
 msgid "Root privileges required."
@@ -396,8 +393,7 @@ msgstr "ডেমন আরম্ভ করতে ব্যর্থ।"
 
 #: ../src/daemon/main.c:909
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr ""
-"লোড করা মডিউল বিনা ডেমন আরম্ভ করা হয়েছে এবং কোনো কর্ম সঞ্চালন করা সম্ভব নয়।"
+msgstr "লোড করা মডিউল বিনা ডেমন আরম্ভ করা হয়েছে এবং কোনো কর্ম সঞ্চালন করা সম্ভব নয়।"
 
 #: ../src/daemon/main.c:926
 msgid "Daemon startup complete."
@@ -1099,11 +1095,11 @@ msgstr "ক্লায়েন্ট ফর্ক করা হয়েছে"
 
 #: ../src/pulse/error.c:68
 msgid "Input/Output error"
-msgstr ""
+msgstr "ইনপুট/আউটপুট ত্রুটি"
 
 #: ../src/pulse/error.c:69
 msgid "Device or resource busy"
-msgstr ""
+msgstr "ডিভাইস অথবা রিসোর্সটি ব্যস্ত"
 
 #: ../src/pulse/sample.c:172
 #, c-format
@@ -1539,8 +1535,7 @@ msgstr "সতর্কবার্তা: ফাইলের মধ্যে �
 
 #: ../src/utils/pacat.c:1008
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
 "একটি %s স্ট্রিম খোলা হচ্ছে। এটির জন্য '%s'-র স্যাম্পেলের নির্ধারিত মান ও '%s' "
 "চ্যানেলের ম্যাপ প্রয়োগ করা হবে।"
@@ -1676,8 +1671,7 @@ msgstr "বর্তমানে ব্যবহৃত: %u ব্লকের �
 #: ../src/utils/pactl.c:144
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr ""
-"সম্পূর্ণ কর্মকালের জন্য বরাদ্দ করা হয়েছে: %u ব্লকের মধ্যে উপস্থিত সর্বমোট %s বাইট।\n"
+msgstr "সম্পূর্ণ কর্মকালের জন্য বরাদ্দ করা হয়েছে: %u ব্লকের মধ্যে উপস্থিত সর্বমোট %s বাইট।\n"
 
 #: ../src/utils/pactl.c:147
 #, c-format
@@ -2135,8 +2129,7 @@ msgid "You have to specify a module index"
 msgstr "মডিউল ইন্ডেক্স নির্ধারণ করা আবশ্যক"
 
 #: ../src/utils/pactl.c:1090
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
+msgid "You may not specify more than one sink. You have to specify a boolean value."
 msgstr "একাধিক সিংক নির্ধারণ করা যাবে না। বুলিয়েন মান নির্ধারণ করা আবশ্যক।"
 
 #: ../src/utils/pactl.c:1103
@@ -2378,217 +2371,204 @@ msgstr "PulseAudio শব্দের সার্ভার"
 #: ../src/modules/module-rygel-media-server.c:569
 #: ../src/modules/module-rygel-media-server.c:583
 msgid "Output Devices"
-msgstr ""
+msgstr "আউটপুট ডিভাইস"
 
 #: ../src/modules/module-rygel-media-server.c:570
 #: ../src/modules/module-rygel-media-server.c:584
 msgid "Input Devices"
-msgstr ""
+msgstr "ইনপুট ডিভাইস"
 
 #: ../src/modules/module-rygel-media-server.c:774
 msgid "Audio on @HOSTNAME@"
-msgstr ""
+msgstr "@HOSTNAME@-র মধ্যে অডিও"
 
 #: ../src/modules/alsa/alsa-mixer.c:1701
 msgid "Input"
-msgstr ""
+msgstr "ইনপুট"
 
 #: ../src/modules/alsa/alsa-mixer.c:1702
 msgid "Docking Station Input"
-msgstr ""
+msgstr "ডকিং স্টেশন থেকে ইনপুট"
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
 msgid "Docking Station Microphone"
-msgstr ""
+msgstr "ডকিং স্টেশনের মাইক্রোফোন"
 
 #: ../src/modules/alsa/alsa-mixer.c:1704
 msgid "Line-In"
-msgstr ""
+msgstr "লাইন-ইন"
 
 #: ../src/modules/alsa/alsa-mixer.c:1705
 msgid "Microphone"
-msgstr ""
+msgstr "মাইক্রোফোন"
 
 #: ../src/modules/alsa/alsa-mixer.c:1706
 msgid "External Microphone"
-msgstr ""
+msgstr "বহিস্থিত মাইক্রোফোন"
 
 #: ../src/modules/alsa/alsa-mixer.c:1707
-#, fuzzy
 msgid "Internal Microphone"
-msgstr "অভ্যন্তরীণ অডিও"
+msgstr "অভ্যন্তরীণ মাইক্রোফোন"
 
 #: ../src/modules/alsa/alsa-mixer.c:1708
 msgid "Radio"
-msgstr ""
+msgstr "রেডিও"
 
 #: ../src/modules/alsa/alsa-mixer.c:1709
 msgid "Video"
-msgstr ""
+msgstr "ভিডিও"
 
 #: ../src/modules/alsa/alsa-mixer.c:1710
 msgid "Automatic Gain Control"
-msgstr ""
+msgstr "স্বয়ংক্রিয় গেইন নিয়ন্ত্রণ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1711
 msgid "No Automatic Gain Control"
-msgstr ""
+msgstr "স্বয়ংক্রিয় গেইন নিয়ন্ত্রণ প্রয়োগ করা হবে না"
 
 #: ../src/modules/alsa/alsa-mixer.c:1712
 msgid "Boost"
-msgstr ""
+msgstr "বুস্ট"
 
 #: ../src/modules/alsa/alsa-mixer.c:1713
 msgid "No Boost"
-msgstr ""
+msgstr "বুস্ট প্রয়োগ করা হবে না"
 
 #: ../src/modules/alsa/alsa-mixer.c:1714
 msgid "Amplifier"
-msgstr ""
+msgstr "বিবর্ধক"
 
 #: ../src/modules/alsa/alsa-mixer.c:1715
 msgid "No Amplifier"
-msgstr ""
+msgstr "বিবর্ধন প্রয়োগ করা হবে না"
 
 #: ../src/modules/alsa/alsa-mixer.c:1773
 msgid "Analog Input"
-msgstr ""
+msgstr "অ্যানালগ ইনপুট"
 
 #: ../src/modules/alsa/alsa-mixer.c:1774
 msgid "Analog Microphone"
-msgstr ""
+msgstr "অ্যানালগ মাইক্রোফোন"
 
 #: ../src/modules/alsa/alsa-mixer.c:1775
 msgid "Analog Line-In"
-msgstr ""
+msgstr "অ্যানালগ লাইন-ইন"
 
 #: ../src/modules/alsa/alsa-mixer.c:1776
 msgid "Analog Radio"
-msgstr ""
+msgstr "অ্যানালগ রেডিও"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Video"
-msgstr ""
+msgstr "অ্যানালগ ভিডিও"
 
 #: ../src/modules/alsa/alsa-mixer.c:1778
-#, fuzzy
 msgid "Analog Output"
-msgstr "Null ফলাফল"
+msgstr "অ্যানালগ আউটপুট"
 
 #: ../src/modules/alsa/alsa-mixer.c:1779
 msgid "Analog Headphones"
-msgstr ""
+msgstr "অ্যানালগ হেড-ফোন"
 
 #: ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Analog Output (LFE)"
-msgstr ""
+msgstr "অ্যানালগ আউটপুট (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Analog Mono Output"
-msgstr ""
+msgstr "অ্যানালগ মোনো আউটপুট"
 
 #: ../src/modules/alsa/alsa-mixer.c:1981
-#, fuzzy, c-format
+#, c-format
 msgid "%s+%s"
-msgstr "%s %s"
+msgstr "%s+%s"
 
 #: ../src/modules/alsa/alsa-mixer.c:1984 ../src/modules/alsa/alsa-mixer.c:3404
-#, fuzzy, c-format
+#, c-format
 msgid "%s / %s"
-msgstr "%s %s"
+msgstr "%s / %s"
 
 #: ../src/modules/alsa/alsa-mixer.c:2790
 msgid "Analog Mono"
-msgstr ""
+msgstr "অ্যানালগ মোনো"
 
 #: ../src/modules/alsa/alsa-mixer.c:2791
-#, fuzzy
 msgid "Analog Stereo"
-msgstr "স্টিরিও"
+msgstr "অ্যানালগ স্টিরিও"
 
 #: ../src/modules/alsa/alsa-mixer.c:2792
-#, fuzzy
 msgid "Analog Surround 2.1"
-msgstr "সারাউন্ড ৪.১"
+msgstr "অ্যানালগ সারাউন্ড ২.১"
 
 #: ../src/modules/alsa/alsa-mixer.c:2793
-#, fuzzy
 msgid "Analog Surround 3.0"
-msgstr "সারাউন্ড ৪.০"
+msgstr "অ্যানালগ সারাউন্ড ৩.০"
 
 #: ../src/modules/alsa/alsa-mixer.c:2794
-#, fuzzy
 msgid "Analog Surround 3.1"
-msgstr "সারাউন্ড ৪.১"
+msgstr "অ্যানালগ সারাউন্ড ৩.১"
 
 #: ../src/modules/alsa/alsa-mixer.c:2795
-#, fuzzy
 msgid "Analog Surround 4.0"
-msgstr "সারাউন্ড ৪.০"
+msgstr "অ্যানালগ সারাউন্ড ৪.০"
 
 #: ../src/modules/alsa/alsa-mixer.c:2796
-#, fuzzy
 msgid "Analog Surround 4.1"
-msgstr "সারাউন্ড ৪.১"
+msgstr "অ্যানালগ সারাউন্ড ৪.১"
 
 #: ../src/modules/alsa/alsa-mixer.c:2797
-#, fuzzy
 msgid "Analog Surround 5.0"
-msgstr "সারাউন্ড ৫.০"
+msgstr "অ্যানালগ সারাউন্ড ৫.০"
 
 #: ../src/modules/alsa/alsa-mixer.c:2798
-#, fuzzy
 msgid "Analog Surround 5.1"
-msgstr "সারাউন্ড ৫.১"
+msgstr "অ্যানালগ সারাউন্ড ৫.১"
 
 #: ../src/modules/alsa/alsa-mixer.c:2799
-#, fuzzy
 msgid "Analog Surround 6.0"
-msgstr "সারাউন্ড ৪.০"
+msgstr "অ্যানালগ সারাউন্ড ৬.০"
 
 #: ../src/modules/alsa/alsa-mixer.c:2800
-#, fuzzy
 msgid "Analog Surround 6.1"
-msgstr "সারাউন্ড ৪.১"
+msgstr "অ্যানালগ সারাউন্ড ৬.১"
 
 #: ../src/modules/alsa/alsa-mixer.c:2801
-#, fuzzy
 msgid "Analog Surround 7.0"
-msgstr "সারাউন্ড ৪.০"
+msgstr "অ্যানালগ সারাউন্ড ৭.০"
 
 #: ../src/modules/alsa/alsa-mixer.c:2802
-#, fuzzy
 msgid "Analog Surround 7.1"
-msgstr "সারাউন্ড ৭.১"
+msgstr "অ্যানালগ সারাউন্ড ৭.১"
 
 #: ../src/modules/alsa/alsa-mixer.c:2803
 msgid "Digital Stereo (IEC958)"
-msgstr ""
+msgstr "ডিজিট্যাল স্টিরিও (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2804
 msgid "Digital Surround 4.0 (IEC958)"
-msgstr ""
+msgstr "ডিজিট্যাল সারাউন্ড ৪.০ (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2805
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr ""
+msgstr "ডিজিট্যাল সারাউন্ড ৪.০ (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2806
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr ""
+msgstr "ডিজিট্যাল সারাউন্ড ৫.১ (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2807
 msgid "Digital Stereo (HDMI)"
-msgstr ""
+msgstr "ডিজিট্যাল স্টিরিও (HDMI)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2928
 msgid "Analog Mono Duplex"
-msgstr ""
+msgstr "অ্যানালগ মোনো ডুপ্লে"
 
 #: ../src/modules/alsa/alsa-mixer.c:2929
 msgid "Analog Stereo Duplex"
-msgstr ""
+msgstr "অ্যানালগ স্টিরিও ডুপ্লে"
 
 #: ../src/modules/alsa/alsa-mixer.c:2930
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr ""
+msgstr "ডিজিট্যাল স্টিরিও ডুপ্লে (IEC958)"
+
