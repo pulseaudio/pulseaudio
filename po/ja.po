@@ -1,19 +1,23 @@
+# translation of ja.po to Japanese
 # PulseAudio
 # Copyright (C) 2009.
 # This file is distributed under the same license as the PACKAGE package.
-# Hyu_gabaru Ryu_ichi <hyu_gabaru@yahoo.co.jp>, 2009.
 #
+# Hyu_gabaru Ryu_ichi <hyu_gabaru@yahoo.co.jp>, 2009.
+# Kiyoto Hashida <khashida@redhat.com>, 2009.
 msgid ""
 msgstr ""
-"Project-Id-Version: 1.0\n"
+"Project-Id-Version: ja\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-29 23:47+0200\n"
-"PO-Revision-Date: 2009-09-10 21:05+0900\n"
-"Last-Translator: Hyu_gabaru Ryu_ichi <hyu_gabaru@yahoo.co.jp>\n"
-"Language-Team: Japanese <fedora-trans-ja@redhat.com>\n"
+"POT-Creation-Date: 2009-12-08 02:51+0000\n"
+"PO-Revision-Date: 2009-12-08 17:48+0900\n"
+"Last-Translator: Kiyoto Hashida <khashida@redhat.com>\n"
+"Language-Team: Japanese <jp@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
+"Plural-Forms: Plural-Forms: nplurals=1; plural=0;\n\n"
 
 #: ../src/modules/alsa/alsa-util.c:858 ../src/pulsecore/sink.c:2629
 #, c-format
@@ -28,6 +32,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_avail() は 例外的に大きな値を返しました: %lu バイト（%lu "
+"ms）。\n"
+"これは多分、ALSA ドライバー '%s' 内のバグです。この問題は ALSA 開発者宛に "
+"報告を提出して下さい。"
 
 #: ../src/modules/alsa/alsa-util.c:1147
 #, c-format
@@ -37,6 +45,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_delay() は 例外的に大きな値を返しました: %li バイト（%s%lu"
+" ms）。\n"
+"これは多分、ALSA ドライバー '%s' 内のバグです。この問題は ALSA 開発者宛に "
+"報告を提出して下さい。"
 
 #: ../src/modules/alsa/alsa-util.c:1194
 #, c-format
@@ -46,18 +58,22 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_mmap_begin() は 例外的に大きな値を返しました: %lu バイト（%lu "
+"ms）。\n"
+"これは多分、ALSA ドライバー '%s' 内のバグです。この問題は ALSA 開発者宛に "
+"報告を提出して下さい。"
 
 #: ../src/modules/module-always-sink.c:39
 msgid "Always keeps at least one sink loaded even if it's a null one"
-msgstr ""
+msgstr "null である場合でも、常に最低でもシンクが１つロードされるように維持します"
 
 #: ../src/modules/module-always-sink.c:83
 msgid "Dummy Output"
-msgstr ""
+msgstr "ダミー出力"
 
 #: ../src/modules/module-ladspa-sink.c:49
 msgid "Virtual LADSPA sink"
-msgstr ""
+msgstr "仮想 LADSPA シンク"
 
 #: ../src/modules/module-ladspa-sink.c:53
 msgid ""
@@ -67,153 +83,160 @@ msgid ""
 "plugin name> label=<ladspa plugin label> control=<comma seperated list of "
 "input control values>"
 msgstr ""
+"sink_name=<シンクの名前> sink_properties=<シンクのプロパティ> "
+"master=<フィルタするシンク名> format=<サンプル形式> rate=<サンプルレート> "
+"channels=<チャンネル数> channel_map=<チャンネルマップ> plugin=<ladspa "
+"plugin の名前> label=<ladspa plugin のラベル> control=<コンマで隔離した入力制御値の "
+"一覧>"
 
 #: ../src/modules/module-null-sink.c:55
 msgid "Clocked NULL sink"
-msgstr ""
+msgstr "クロック付き NULL シンク"
 
 #: ../src/modules/module-null-sink.c:291
 msgid "Null Output"
-msgstr ""
+msgstr "Null 出力"
 
 #: ../src/pulsecore/sink.c:2613
 msgid "Internal Audio"
-msgstr ""
+msgstr "内部オーディオ"
 
 #: ../src/pulsecore/sink.c:2618
 msgid "Modem"
-msgstr ""
+msgstr "モデム"
 
 #: ../src/daemon/ltdl-bind-now.c:124
 msgid "Failed to find original lt_dlopen loader."
-msgstr ""
+msgstr "オリジナルの lt_dlopen ローダーを見つけるのに失敗しました。"
 
 #: ../src/daemon/ltdl-bind-now.c:129
 msgid "Failed to allocate new dl loader."
-msgstr ""
+msgstr "新規の dl ローダーの割り当てに失敗しました。"
 
 #: ../src/daemon/ltdl-bind-now.c:142
 msgid "Failed to add bind-now-loader."
-msgstr ""
+msgstr "bind-now-loader の追加に失敗しました。"
 
 #: ../src/daemon/main.c:141
 #, c-format
 msgid "Got signal %s."
-msgstr ""
+msgstr "信号 %s を得ました。"
 
 #: ../src/daemon/main.c:168
 msgid "Exiting."
-msgstr ""
+msgstr "終了しています。"
 
 #: ../src/daemon/main.c:186
 #, c-format
 msgid "Failed to find user '%s'."
-msgstr ""
+msgstr "ユーザー '%s' が見付かりませんでした。"
 
 #: ../src/daemon/main.c:191
 #, c-format
 msgid "Failed to find group '%s'."
-msgstr ""
+msgstr "グループ '%s' が見付かりませんでした。"
 
 #: ../src/daemon/main.c:195
 #, c-format
 msgid "Found user '%s' (UID %lu) and group '%s' (GID %lu)."
-msgstr ""
+msgstr "ユーザー'%s' (UID %lu) とグループ  '%s' (GID %lu) を見つけました。"
 
 #: ../src/daemon/main.c:200
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
-msgstr ""
+msgstr "ユーザー'%s' と グループ '%s' の GID が一致しません。"
 
 #: ../src/daemon/main.c:205
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr ""
+msgstr "ユーザー '%s' のホームディレクトリは '%s' ではありません。無視します。"
 
 #: ../src/daemon/main.c:208 ../src/daemon/main.c:213
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr ""
+msgstr "'%s' の作成に失敗しました: %s"
 
 #: ../src/daemon/main.c:220
 #, c-format
 msgid "Failed to change group list: %s"
-msgstr ""
+msgstr "グループ一覧の変更に失敗しました: %s"
 
 #: ../src/daemon/main.c:236
 #, c-format
 msgid "Failed to change GID: %s"
-msgstr ""
+msgstr "GID の変更に失敗しました: %s"
 
 #: ../src/daemon/main.c:252
 #, c-format
 msgid "Failed to change UID: %s"
-msgstr ""
+msgstr "UID の変更に失敗しました: %s"
 
 #: ../src/daemon/main.c:271
 msgid "Successfully dropped root privileges."
-msgstr ""
+msgstr "root の権限を正しく破棄しました。"
 
 #: ../src/daemon/main.c:279
 msgid "System wide mode unsupported on this platform."
-msgstr ""
+msgstr "このプラットフォームではシステム全域のモードはサポートがありません。"
 
 #: ../src/daemon/main.c:297
 #, c-format
 msgid "setrlimit(%s, (%u, %u)) failed: %s"
-msgstr ""
+msgstr "setrlimit(%s, (%u, %u)) は失敗: %s "
 
 #: ../src/daemon/main.c:474
 msgid "Failed to parse command line."
-msgstr ""
+msgstr "コマンドラインの構文解析に失敗しました。"
 
 #: ../src/daemon/main.c:541
 msgid "Daemon not running"
-msgstr ""
+msgstr "デーモンは稼働していません"
 
 #: ../src/daemon/main.c:543
 #, c-format
 msgid "Daemon running as PID %u"
-msgstr ""
+msgstr "デーモンは PID %u として稼働していません"
 
 #: ../src/daemon/main.c:553
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr ""
+msgstr "デーモンのキルに失敗しました: %s"
 
 #: ../src/daemon/main.c:571
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
 msgstr ""
+"このプログラムは root として実行されるように意図されていません（--system を "
+"指定していない限り）。"
 
 #: ../src/daemon/main.c:573
 msgid "Root privileges required."
-msgstr ""
+msgstr "Root の権限が必要です。"
 
 #: ../src/daemon/main.c:578
 msgid "--start not supported for system instances."
-msgstr ""
+msgstr "--start はシステムインスタンスではサポートがありません。"
 
 #: ../src/daemon/main.c:583
 msgid "Running in system mode, but --disallow-exit not set!"
-msgstr ""
+msgstr "システムモードで実行中です、しかし --disallow-exit がセットされていません!"
 
 #: ../src/daemon/main.c:586
 msgid "Running in system mode, but --disallow-module-loading not set!"
-msgstr ""
+msgstr "システムモードで実行中です、しかし --disallow-module-loading がセットされていません!"
 
 #: ../src/daemon/main.c:589
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr ""
+msgstr "システムモードで実行中です、強制的に SHM モードを無効にしています!"
 
 #: ../src/daemon/main.c:594
 msgid "Running in system mode, forcibly disabling exit idle time!"
-msgstr ""
+msgstr "システムモードで実行中です、強制的に exit の遊び時間を無効にしています!"
 
 #: ../src/daemon/main.c:621
 msgid "Failed to acquire stdio."
-msgstr ""
+msgstr "stdio の取得に失敗しました。"
 
 #: ../src/daemon/main.c:627
 #, c-format
@@ -1364,8 +1387,7 @@ msgstr ""
 
 #: ../src/utils/pacat.c:1008
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
 
 #: ../src/utils/pacat.c:1009
@@ -1812,8 +1834,7 @@ msgid "You have to specify a module index"
 msgstr ""
 
 #: ../src/utils/pactl.c:1090
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
+msgid "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
 
 #: ../src/utils/pactl.c:1103
@@ -2144,14 +2165,14 @@ msgid "Analog Mono Output"
 msgstr ""
 
 #: ../src/modules/alsa/alsa-mixer.c:1981
-#, fuzzy, c-format
+#, c-format
 msgid "%s+%s"
-msgstr "%s %s"
+msgstr "%s+%s"
 
 #: ../src/modules/alsa/alsa-mixer.c:1984 ../src/modules/alsa/alsa-mixer.c:3404
-#, fuzzy, c-format
+#, c-format
 msgid "%s / %s"
-msgstr "%s %s"
+msgstr "%s / %s"
 
 #: ../src/modules/alsa/alsa-mixer.c:2790
 msgid "Analog Mono"
@@ -2236,3 +2257,4 @@ msgstr ""
 #: ../src/modules/alsa/alsa-mixer.c:2930
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr ""
+
