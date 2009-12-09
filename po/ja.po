@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: ja\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-12-08 02:51+0000\n"
-"PO-Revision-Date: 2009-12-08 17:48+0900\n"
+"PO-Revision-Date: 2009-12-09 18:20+0900\n"
 "Last-Translator: Kiyoto Hashida <khashida@redhat.com>\n"
 "Language-Team: Japanese <jp@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -241,122 +241,122 @@ msgstr "stdio の取得に失敗しました。"
 #: ../src/daemon/main.c:627
 #, c-format
 msgid "pipe failed: %s"
-msgstr ""
+msgstr "パイプは失敗: %s"
 
 #: ../src/daemon/main.c:632
 #, c-format
 msgid "fork() failed: %s"
-msgstr ""
+msgstr "fork() は失敗: %s"
 
 #: ../src/daemon/main.c:646 ../src/utils/pacat.c:508
 #, c-format
 msgid "read() failed: %s"
-msgstr ""
+msgstr "read() は失敗: %s"
 
 #: ../src/daemon/main.c:652
 msgid "Daemon startup failed."
-msgstr ""
+msgstr "デーモン開始に失敗しました。"
 
 #: ../src/daemon/main.c:654
 msgid "Daemon startup successful."
-msgstr ""
+msgstr "デーモンが正常に開始しました。"
 
 #: ../src/daemon/main.c:731
 #, c-format
 msgid "This is PulseAudio %s"
-msgstr ""
+msgstr "これは PulseAudio %s です。"
 
 #: ../src/daemon/main.c:732
 #, c-format
 msgid "Compilation host: %s"
-msgstr ""
+msgstr "コンパイルホスト: %s"
 
 #: ../src/daemon/main.c:733
 #, c-format
 msgid "Compilation CFLAGS: %s"
-msgstr ""
+msgstr "コンパイル CFLAGS: %s"
 
 #: ../src/daemon/main.c:736
 #, c-format
 msgid "Running on host: %s"
-msgstr ""
+msgstr "ホスト上で実行中: %s"
 
 #: ../src/daemon/main.c:739
 #, c-format
 msgid "Found %u CPUs."
-msgstr ""
+msgstr "%u CPU を見つけました。"
 
 #: ../src/daemon/main.c:741
 #, c-format
 msgid "Page size is %lu bytes"
-msgstr ""
+msgstr "ページサイズは %lu バイトです"
 
 #: ../src/daemon/main.c:744
 msgid "Compiled with Valgrind support: yes"
-msgstr ""
+msgstr "Valgrind サポートでのコンパイル: はい"
 
 #: ../src/daemon/main.c:746
 msgid "Compiled with Valgrind support: no"
-msgstr ""
+msgstr "Valgrind サポートでのコンパイル: いいえ"
 
 #: ../src/daemon/main.c:749
 #, c-format
 msgid "Running in valgrind mode: %s"
-msgstr ""
+msgstr "valgrind モードで実行中: %s"
 
 #: ../src/daemon/main.c:752
 msgid "Optimized build: yes"
-msgstr ""
+msgstr "最適化したビルド: はい"
 
 #: ../src/daemon/main.c:754
 msgid "Optimized build: no"
-msgstr ""
+msgstr "最適化したビルド: いいえ"
 
 #: ../src/daemon/main.c:758
 msgid "NDEBUG defined, all asserts disabled."
-msgstr ""
+msgstr "NDEBUG は定義済みです。アサーションは全て無効です。"
 
 #: ../src/daemon/main.c:760
 msgid "FASTPATH defined, only fast path asserts disabled."
-msgstr ""
+msgstr "FASTPATH は定義済みです。ファーストパスアサーションのみが無効です。"
 
 #: ../src/daemon/main.c:762
 msgid "All asserts enabled."
-msgstr ""
+msgstr "アサーションは全て有効です。"
 
 #: ../src/daemon/main.c:766
 msgid "Failed to get machine ID"
-msgstr ""
+msgstr "マシン ID の取得に失敗"
 
 #: ../src/daemon/main.c:769
 #, c-format
 msgid "Machine ID is %s."
-msgstr ""
+msgstr "マシン ID は %s"
 
 #: ../src/daemon/main.c:773
 #, c-format
 msgid "Session ID is %s."
-msgstr ""
+msgstr "セッション ID は %s"
 
 #: ../src/daemon/main.c:779
 #, c-format
 msgid "Using runtime directory %s."
-msgstr ""
+msgstr "ランタイムディレクトリ %s を使用 "
 
 #: ../src/daemon/main.c:784
 #, c-format
 msgid "Using state directory %s."
-msgstr ""
+msgstr "状態ディレクトリ %s を使用"
 
 #: ../src/daemon/main.c:787
 #, c-format
 msgid "Using modules directory %s."
-msgstr ""
+msgstr "モジュールディレクトリ %s を使用"
 
 #: ../src/daemon/main.c:789
 #, c-format
 msgid "Running in system mode: %s"
-msgstr ""
+msgstr "システムモードで実行中: %s"
 
 #: ../src/daemon/main.c:792
 msgid ""
@@ -367,44 +367,52 @@ msgid ""
 "Please read http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode for an "
 "explanation why system mode is usually a bad idea."
 msgstr ""
+"そうすると、ユーザーはシステムモードで PA を実行している訳です。その場合、 "
+"実際にはそうすべきでないことに注意して下さい。\n"
+"それでも実行するのでしたら、期待どおりに機能しなくても責任はユーザー自身に "
+"あります。\n"
+"システムモードの使用が通常は良くない方針であることの説明については、 "
+"http://pulseaudio.org/wiki/WhatIsWrongWithSystemMode をお読み下さい。"
 
 #: ../src/daemon/main.c:809
 msgid "pa_pid_file_create() failed."
-msgstr ""
+msgstr "pa_pid_file_create() は失敗"
 
 #: ../src/daemon/main.c:819
 msgid "Fresh high-resolution timers available! Bon appetit!"
-msgstr ""
+msgstr "最新の高解像度タイマーが使用できます! 楽しんで下さい!"
 
 #: ../src/daemon/main.c:821
 msgid ""
 "Dude, your kernel stinks! The chef's recommendation today is Linux with high-"
 "resolution timers enabled!"
 msgstr ""
+"あらあら、ユーザーのカーネルはダメですよ! 今日のシェフのお薦めは高解像度タイマーが "
+"有効になっている Linux です!"
 
 #: ../src/daemon/main.c:844
 msgid "pa_core_new() failed."
-msgstr ""
+msgstr "pa_core_new() は失敗"
 
 #: ../src/daemon/main.c:904
 msgid "Failed to initialize daemon."
-msgstr ""
+msgstr "デーモンの初期化に失敗しました。"
 
 #: ../src/daemon/main.c:909
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr ""
+msgstr "デーモンはモジュールの読み込みなしで開始しており、動作を拒否しています。"
 
 #: ../src/daemon/main.c:926
 msgid "Daemon startup complete."
-msgstr ""
+msgstr "デーモンの開始が完了です。"
 
 #: ../src/daemon/main.c:932
 msgid "Daemon shutdown initiated."
-msgstr ""
+msgstr "デーモンのシャットダウンが始まりました。"
 
 #: ../src/daemon/main.c:954
 msgid "Daemon terminated."
-msgstr ""
+msgstr "デーモンは取り消されました。"
 
 #: ../src/daemon/cmdline.c:115
 #, c-format
@@ -479,760 +487,825 @@ msgid ""
 "\n"
 "  -n                                    Don't load default script file\n"
 msgstr ""
+"%s [オプション]\n"
+"\n"
+"コマンド:\n"
+"  -h, --help                            このヘルプを表示\n"
+"      --version                         バージョンを表示\n"
+"      --dump-conf                       デフォルト設定をダンプ\n"
+"      --dump-modules                    使用可能なモジュール一覧をダンプ\n"
+"      --dump-resample-methods           使用可能な再サンプル方法をダンプ\n"
+"      --cleanup-shm                     古い共有メモリーセグメントをクリーンアップ \n"
+"      --start                           実行していない場合、デーモンを開始 \n"
+"  -k  --kill                            実行中のデーモンをキル\n"
+"      --check                           実行中のデーモンをチェック (退出コードを返すのみ)\n"
+"\n"
+"オプション:\n"
+"      --system[=BOOL]                   システム全域インスタンスとして実行\n"
+"  -D, --daemonize[=BOOL]                開始後デーモン化\n"
+"      --fail[=BOOL]                     開始失敗なら終了\n"
+"      --high-priority[=BOOL]            高度なナイスレベルの設定を試行\n"
+"                                        (root としてのみ可能, SUID の時、"
+"又は\n"
+"                                        昇格した RLIMIT_NICE で)\n"
+"      --realtime[=BOOL]                 リアルタイムスケジュールを有効にする試行\n"
+"                                        (root としてのみ可能, SUID の時、"
+"又は\n"
+"                                        昇格した RLIMIT_RTPRIO で)\n"
+"      --disallow-module-loading[=BOOL]  起動後のユーザー要求のモジュールの "
+"ロード/アンロードを 許可しない\n"
+"\n"
+"      --disallow-exit[=BOOL]            ユーザー要求の退出を許可しない\n"
+"      --exit-idle-time=SECS             遊休時と指定時間後にデーモンを終了 \n"
+"\n"
+"      --module-idle-time=SECS           遊休時と指定時間後に自動ロードモジュールをアンロード \n"
+"\n"
+"      --scache-idle-time=SECS           遊休時と指定時間後に自動ロードサンプルをアンロード \n"
+"\n"
+"      --log-level[=LEVEL]               詳細レベルを上げるか、又はセット\n"
+"  -v                                    詳細レベルを上げる \n"
+"--log-target={auto,syslog,stderr} ログターゲットを指定 \n"
+"--log-meta[=BOOL]                 ログメッセージ内にコードの場所を含む "
+"\n"
+"      --log-time[=BOOL]                 ログメッセージ内にタイムスタンプを含む\n "
+"     --log-backtrace=FRAMES            ログメッセージ内にバックトレースを含む\n"
+"  -p, --dl-search-path=PATH             動的共有オブジェクト(plugins)用に検索パスをセット\n"
+"\n"
+"      --resample-method=METHOD          指定した再サンプリング方法を使用\n"
+"                                        (使用可能な値は --dump-resample-methods で\n"
+"                                        参照)\n"
+"      --use-pid-file[=BOOL]             PID ファイルを作成\n"
+"      --no-cpu-limit[=BOOL]             サポート元のプラットフォームに CPU\n"
+"                                         ロードリミッターをインストールしない\n"
+"      --disable-shm[=BOOL]              共有メモリーサポートを無効にする\n"
+"\n"
+"スタートアップスクリプト:\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         指定した引数で指定したプラグインモジュールを "
+"ロード\n"
+"\n"
+"  -F, --file=FILENAME                   指定したスクリプトを実行\n"
+"  -C                                    スタートアップ後に実行中の TTY 上でコマンドラインを "
+"開く\n"
+"\n"
+"  -n                                    デフォルトのスクリプトファイルをロードしない\n"
 
 #: ../src/daemon/cmdline.c:247
 msgid "--daemonize expects boolean argument"
-msgstr ""
+msgstr "--daemonize はブーリアン引数を予期します"
 
 #: ../src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
-msgstr ""
+msgstr "--fail はブーリアン引数を予期します。"
 
 #: ../src/daemon/cmdline.c:264
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
 msgstr ""
+"--log-level はログレベル引数を予期します（数値幅０〜４、又はデバグ、情報、注記、警告、エラーの "
+"中の１つ）"
 
 #: ../src/daemon/cmdline.c:276
 msgid "--high-priority expects boolean argument"
-msgstr ""
+msgstr "--high-priority は ブーリアン引数を予期します"
 
 #: ../src/daemon/cmdline.c:283
 msgid "--realtime expects boolean argument"
-msgstr ""
+msgstr "--realtime はブーリアン引数を予期します "
 
 #: ../src/daemon/cmdline.c:290
 msgid "--disallow-module-loading expects boolean argument"
-msgstr ""
+msgstr "--disallow-module-loading はブーリアン引数を予期します "
 
 #: ../src/daemon/cmdline.c:297
 msgid "--disallow-exit expects boolean argument"
-msgstr ""
+msgstr "--disallow-exit はブーリアン引数を予期します "
 
 #: ../src/daemon/cmdline.c:304
 msgid "--use-pid-file expects boolean argument"
-msgstr ""
+msgstr "--use-pid-file はブーリアン引数を予期します "
 
 #: ../src/daemon/cmdline.c:321
 msgid "Invalid log target: use either 'syslog', 'stderr' or 'auto'."
-msgstr ""
+msgstr "無効なログターゲット: 'syslog' か、 'stderr' か、'auto' を使用して下さい。"
 
 #: ../src/daemon/cmdline.c:328
 msgid "--log-time expects boolean argument"
-msgstr ""
+msgstr "--log-time ブーリアン引数を予期します "
 
 #: ../src/daemon/cmdline.c:335
 msgid "--log-meta expects boolean argument"
-msgstr ""
+msgstr "--log-meta ブーリアン引数を予期します "
 
 #: ../src/daemon/cmdline.c:354
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr ""
+msgstr "無効な再サンプル方法 '%s'"
 
 #: ../src/daemon/cmdline.c:361
 msgid "--system expects boolean argument"
-msgstr ""
+msgstr "--system はブーリアン引数を予期します"
 
 #: ../src/daemon/cmdline.c:368
 msgid "--no-cpu-limit expects boolean argument"
-msgstr ""
+msgstr "--no-cpu-limit はブーリアン引数を予期します"
 
 #: ../src/daemon/cmdline.c:375
 msgid "--disable-shm expects boolean argument"
-msgstr ""
+msgstr "--disable-shm はブーリアン引数を予期します"
 
 #: ../src/daemon/dumpmodules.c:60
 #, c-format
 msgid "Name: %s\n"
-msgstr ""
+msgstr "名前: %s\n"
 
 #: ../src/daemon/dumpmodules.c:63
 #, c-format
 msgid "No module information available\n"
-msgstr ""
+msgstr "モジュール情報が使用できません\n"
 
 #: ../src/daemon/dumpmodules.c:66
 #, c-format
 msgid "Version: %s\n"
-msgstr ""
+msgstr "バージョン: %s\n"
 
 #: ../src/daemon/dumpmodules.c:68
 #, c-format
 msgid "Description: %s\n"
-msgstr ""
+msgstr "説明: %s\n"
 
 #: ../src/daemon/dumpmodules.c:70
 #, c-format
 msgid "Author: %s\n"
-msgstr ""
+msgstr "著者: %s\n"
 
 #: ../src/daemon/dumpmodules.c:72
 #, c-format
 msgid "Usage: %s\n"
-msgstr ""
+msgstr "使用法: %s\n"
 
 #: ../src/daemon/dumpmodules.c:73
 #, c-format
 msgid "Load Once: %s\n"
-msgstr ""
+msgstr "１度だけロード: %s\n"
 
 #: ../src/daemon/dumpmodules.c:75
 #, c-format
 msgid "DEPRECATION WARNING: %s\n"
-msgstr ""
+msgstr "破棄の警告: %s\n"
 
 #: ../src/daemon/dumpmodules.c:79
 #, c-format
 msgid "Path: %s\n"
-msgstr ""
+msgstr "パス: %s\n"
 
 #: ../src/daemon/daemon-conf.c:232
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr ""
+msgstr "[%s:%u] 無効なログターゲット '%s'"
 
 #: ../src/daemon/daemon-conf.c:248
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
-msgstr ""
+msgstr "[%s:%u] 無効なログレベル '%s'"
 
 #: ../src/daemon/daemon-conf.c:264
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr ""
+msgstr "[%s:%u] 無効な再サンプル方法 '%s'"
 
 #: ../src/daemon/daemon-conf.c:287
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
-msgstr ""
+msgstr "[%s:%u] 無効な rlimit '%s'"
 
 #: ../src/daemon/daemon-conf.c:294
 #, c-format
 msgid "[%s:%u] rlimit not supported on this platform."
-msgstr ""
+msgstr "[%s:%u] rlimit はこのプラットフォームではサポートがありません。"
 
 #: ../src/daemon/daemon-conf.c:310
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
-msgstr ""
+msgstr "[%s:%u] 無効なサンプル形式 '%s'"
 
 #: ../src/daemon/daemon-conf.c:328
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr ""
+msgstr "[%s:%u] 無効なサンプルレート '%s'"
 
 #: ../src/daemon/daemon-conf.c:352
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
-msgstr ""
+msgstr "[%s:%u] 無効なサンプルチャンネル '%s'"
 
 #: ../src/daemon/daemon-conf.c:370
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr ""
+msgstr "[%s:%u] 無効なチャンネルマップ '%s'"
 
 #: ../src/daemon/daemon-conf.c:388
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr ""
+msgstr "[%s:%u] 無効なフラグメントの数 '%s'"
 
 #: ../src/daemon/daemon-conf.c:406
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr ""
+msgstr "[%s:%u] 無効なフラグメントサイズ '%s'"
 
 #: ../src/daemon/daemon-conf.c:424
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr ""
+msgstr "[%s:%u] 無効なナイスレベル '%s'"
 
 #: ../src/daemon/daemon-conf.c:546
 #, c-format
 msgid "Failed to open configuration file: %s"
-msgstr ""
+msgstr "設定ファイルを開くのに失敗: %s"
 
 #: ../src/daemon/daemon-conf.c:562
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
 msgstr ""
+"指定されたデフォルトのチャンネルマップは、指定されたデフォルトの "
+"チャンネル数とは異なる チャンネル数を持っています。"
 
 #: ../src/daemon/daemon-conf.c:638
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
-msgstr ""
+msgstr "### 設定ファイルから読み込み: %s ###\n"
 
 #: ../src/daemon/caps.c:62
 msgid "Cleaning up privileges."
-msgstr ""
+msgstr "権限をクリーンアップ"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:1
 msgid "PulseAudio Sound System"
-msgstr ""
+msgstr "PulseAudio サウンドシステム"
 
 #: ../src/daemon/pulseaudio.desktop.in.h:2
 msgid "Start the PulseAudio Sound System"
-msgstr ""
+msgstr "PulseAudio サウンドシステムを開始"
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:757
 msgid "Mono"
-msgstr ""
+msgstr "モノ"
 
 #: ../src/pulse/channelmap.c:107
 msgid "Front Center"
-msgstr ""
+msgstr "中央前"
 
 #: ../src/pulse/channelmap.c:108
 msgid "Front Left"
-msgstr ""
+msgstr "左前"
 
 #: ../src/pulse/channelmap.c:109
 msgid "Front Right"
-msgstr ""
+msgstr "右前"
 
 #: ../src/pulse/channelmap.c:111
 msgid "Rear Center"
-msgstr ""
+msgstr "中央後ろ"
 
 #: ../src/pulse/channelmap.c:112
 msgid "Rear Left"
-msgstr ""
+msgstr "左後ろ"
 
 #: ../src/pulse/channelmap.c:113
 msgid "Rear Right"
-msgstr ""
+msgstr "右後ろ"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Low Frequency Emmiter"
-msgstr ""
+msgstr "低周波エミッタ"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
-msgstr ""
+msgstr "中央の左前"
 
 #: ../src/pulse/channelmap.c:118
 msgid "Front Right-of-center"
-msgstr ""
+msgstr "中央の右前"
 
 #: ../src/pulse/channelmap.c:120
 msgid "Side Left"
-msgstr ""
+msgstr "左側"
 
 #: ../src/pulse/channelmap.c:121
 msgid "Side Right"
-msgstr ""
+msgstr "右側"
 
 #: ../src/pulse/channelmap.c:123
 msgid "Auxiliary 0"
-msgstr ""
+msgstr "補助 0"
 
 #: ../src/pulse/channelmap.c:124
 msgid "Auxiliary 1"
-msgstr ""
+msgstr "補助 1"
 
 #: ../src/pulse/channelmap.c:125
 msgid "Auxiliary 2"
-msgstr ""
+msgstr "補助 2"
 
 #: ../src/pulse/channelmap.c:126
 msgid "Auxiliary 3"
-msgstr ""
+msgstr "補助 3"
 
 #: ../src/pulse/channelmap.c:127
 msgid "Auxiliary 4"
-msgstr ""
+msgstr "補助 4"
 
 #: ../src/pulse/channelmap.c:128
 msgid "Auxiliary 5"
-msgstr ""
+msgstr "補助 5"
 
 #: ../src/pulse/channelmap.c:129
 msgid "Auxiliary 6"
-msgstr ""
+msgstr "補助 6"
 
 #: ../src/pulse/channelmap.c:130
 msgid "Auxiliary 7"
-msgstr ""
+msgstr "補助 7"
 
 #: ../src/pulse/channelmap.c:131
 msgid "Auxiliary 8"
-msgstr ""
+msgstr "補助 8"
 
 #: ../src/pulse/channelmap.c:132
 msgid "Auxiliary 9"
-msgstr ""
+msgstr "補助 9"
 
 #: ../src/pulse/channelmap.c:133
 msgid "Auxiliary 10"
-msgstr ""
+msgstr "補助 10"
 
 #: ../src/pulse/channelmap.c:134
 msgid "Auxiliary 11"
-msgstr ""
+msgstr "補助 11"
 
 #: ../src/pulse/channelmap.c:135
 msgid "Auxiliary 12"
-msgstr ""
+msgstr "補助 12"
 
 #: ../src/pulse/channelmap.c:136
 msgid "Auxiliary 13"
-msgstr ""
+msgstr "補助 13"
 
 #: ../src/pulse/channelmap.c:137
 msgid "Auxiliary 14"
-msgstr ""
+msgstr "補助 14"
 
 #: ../src/pulse/channelmap.c:138
 msgid "Auxiliary 15"
-msgstr ""
+msgstr "補助 15"
 
 #: ../src/pulse/channelmap.c:139
 msgid "Auxiliary 16"
-msgstr ""
+msgstr "補助 16"
 
 #: ../src/pulse/channelmap.c:140
 msgid "Auxiliary 17"
-msgstr ""
+msgstr "補助 17"
 
 #: ../src/pulse/channelmap.c:141
 msgid "Auxiliary 18"
-msgstr ""
+msgstr "補助 18"
 
 #: ../src/pulse/channelmap.c:142
 msgid "Auxiliary 19"
-msgstr ""
+msgstr "補助 19"
 
 #: ../src/pulse/channelmap.c:143
 msgid "Auxiliary 20"
-msgstr ""
+msgstr "補助 20"
 
 #: ../src/pulse/channelmap.c:144
 msgid "Auxiliary 21"
-msgstr ""
+msgstr "補助 21"
 
 #: ../src/pulse/channelmap.c:145
 msgid "Auxiliary 22"
-msgstr ""
+msgstr "補助 22"
 
 #: ../src/pulse/channelmap.c:146
 msgid "Auxiliary 23"
-msgstr ""
+msgstr "補助 23"
 
 #: ../src/pulse/channelmap.c:147
 msgid "Auxiliary 24"
-msgstr ""
+msgstr "補助 24"
 
 #: ../src/pulse/channelmap.c:148
 msgid "Auxiliary 25"
-msgstr ""
+msgstr "補助 25"
 
 #: ../src/pulse/channelmap.c:149
 msgid "Auxiliary 26"
-msgstr ""
+msgstr "補助 26"
 
 #: ../src/pulse/channelmap.c:150
 msgid "Auxiliary 27"
-msgstr ""
+msgstr "補助 27"
 
 #: ../src/pulse/channelmap.c:151
 msgid "Auxiliary 28"
-msgstr ""
+msgstr "補助 28"
 
 #: ../src/pulse/channelmap.c:152
 msgid "Auxiliary 29"
-msgstr ""
+msgstr "補助 29"
 
 #: ../src/pulse/channelmap.c:153
 msgid "Auxiliary 30"
-msgstr ""
+msgstr "補助 30"
 
 #: ../src/pulse/channelmap.c:154
 msgid "Auxiliary 31"
-msgstr ""
+msgstr "補助 31"
 
 #: ../src/pulse/channelmap.c:156
 msgid "Top Center"
-msgstr ""
+msgstr "上部中央"
 
 #: ../src/pulse/channelmap.c:158
 msgid "Top Front Center"
-msgstr ""
+msgstr "上部中央前"
 
 #: ../src/pulse/channelmap.c:159
 msgid "Top Front Left"
-msgstr ""
+msgstr "上部左前"
 
 #: ../src/pulse/channelmap.c:160
 msgid "Top Front Right"
-msgstr ""
+msgstr "上部右前"
 
 #: ../src/pulse/channelmap.c:162
 msgid "Top Rear Center"
-msgstr ""
+msgstr "上部中央後ろ"
 
 #: ../src/pulse/channelmap.c:163
 msgid "Top Rear Left"
-msgstr ""
+msgstr "上部左後ろ"
 
 #: ../src/pulse/channelmap.c:164
 msgid "Top Rear Right"
-msgstr ""
+msgstr "上部右後ろ"
 
 #: ../src/pulse/channelmap.c:484 ../src/pulse/sample.c:170
 #: ../src/pulse/volume.c:295 ../src/pulse/volume.c:321
 #: ../src/pulse/volume.c:341 ../src/pulse/volume.c:371
 msgid "(invalid)"
-msgstr ""
+msgstr "無効)"
 
 #: ../src/pulse/channelmap.c:761
 msgid "Stereo"
-msgstr ""
+msgstr "ステレオ"
 
 #: ../src/pulse/channelmap.c:766
 msgid "Surround 4.0"
-msgstr ""
+msgstr "サラウンド 4.0"
 
 #: ../src/pulse/channelmap.c:772
 msgid "Surround 4.1"
-msgstr ""
+msgstr "サラウンド 4.1"
 
 #: ../src/pulse/channelmap.c:778
 msgid "Surround 5.0"
-msgstr ""
+msgstr "サラウンド 5.0"
 
 #: ../src/pulse/channelmap.c:784
 msgid "Surround 5.1"
-msgstr ""
+msgstr "サラウンド 5.1"
 
 #: ../src/pulse/channelmap.c:791
 msgid "Surround 7.1"
-msgstr ""
+msgstr "サラウンド 7.1"
 
 #: ../src/pulse/error.c:43
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: ../src/pulse/error.c:44
 msgid "Access denied"
-msgstr ""
+msgstr "アクセス拒否"
 
 #: ../src/pulse/error.c:45
 msgid "Unknown command"
-msgstr ""
+msgstr "不明なコマンド"
 
 #: ../src/pulse/error.c:46
 msgid "Invalid argument"
-msgstr ""
+msgstr "無効な引数"
 
 #: ../src/pulse/error.c:47
 msgid "Entity exists"
-msgstr ""
+msgstr "エンティティは存在します"
 
 #: ../src/pulse/error.c:48
 msgid "No such entity"
-msgstr ""
+msgstr "そのようなエンティティはありません"
 
 #: ../src/pulse/error.c:49
 msgid "Connection refused"
-msgstr ""
+msgstr "接続拒否"
 
 #: ../src/pulse/error.c:50
 msgid "Protocol error"
-msgstr ""
+msgstr "プロトコルエラー"
 
 #: ../src/pulse/error.c:51
 msgid "Timeout"
-msgstr ""
+msgstr "タイムアウト"
 
 #: ../src/pulse/error.c:52
 msgid "No authorization key"
-msgstr ""
+msgstr "認証キーがありません"
 
 #: ../src/pulse/error.c:53
 msgid "Internal error"
-msgstr ""
+msgstr "内部エラー"
 
 #: ../src/pulse/error.c:54
 msgid "Connection terminated"
-msgstr ""
+msgstr "接続切断"
 
 #: ../src/pulse/error.c:55
 msgid "Entity killed"
-msgstr ""
+msgstr "エンティティはキルされました"
 
 #: ../src/pulse/error.c:56
 msgid "Invalid server"
-msgstr ""
+msgstr "無効なサーバー"
 
 #: ../src/pulse/error.c:57
 msgid "Module initalization failed"
-msgstr ""
+msgstr "モジュール初期化失敗"
 
 #: ../src/pulse/error.c:58
 msgid "Bad state"
-msgstr ""
+msgstr "悪い状態"
 
 #: ../src/pulse/error.c:59
 msgid "No data"
-msgstr ""
+msgstr "データ無し"
 
 #: ../src/pulse/error.c:60
 msgid "Incompatible protocol version"
-msgstr ""
+msgstr "互換性のないプロトコルバージョン"
 
 #: ../src/pulse/error.c:61
 msgid "Too large"
-msgstr ""
+msgstr "大き過ぎます"
 
 #: ../src/pulse/error.c:62
 msgid "Not supported"
-msgstr ""
+msgstr "サポートがありません"
 
 #: ../src/pulse/error.c:63
 msgid "Unknown error code"
-msgstr ""
+msgstr "不明なエラーコード"
 
 #: ../src/pulse/error.c:64
 msgid "No such extension"
-msgstr ""
+msgstr "そのような拡張子はありません"
 
 #: ../src/pulse/error.c:65
 msgid "Obsolete functionality"
-msgstr ""
+msgstr "旧来の機能"
 
 #: ../src/pulse/error.c:66
 msgid "Missing implementation"
-msgstr ""
+msgstr "実装の欠如"
 
 #: ../src/pulse/error.c:67
 msgid "Client forked"
-msgstr ""
+msgstr "クライアントはフォークされています"
 
 #: ../src/pulse/error.c:68
 msgid "Input/Output error"
-msgstr ""
+msgstr "入力/出力 エラー"
 
 #: ../src/pulse/error.c:69
 msgid "Device or resource busy"
-msgstr ""
+msgstr "デバイスか、リソースがビジー"
 
 #: ../src/pulse/sample.c:172
 #, c-format
 msgid "%s %uch %uHz"
-msgstr ""
+msgstr "%s %uch %uHz"
 
 #: ../src/pulse/sample.c:184
 #, c-format
 msgid "%0.1f GiB"
-msgstr ""
+msgstr "%0.1f GiB"
 
 #: ../src/pulse/sample.c:186
 #, c-format
 msgid "%0.1f MiB"
-msgstr ""
+msgstr "%0.1f MiB"
 
 #: ../src/pulse/sample.c:188
 #, c-format
 msgid "%0.1f KiB"
-msgstr ""
+msgstr "%0.1f KiB"
 
 #: ../src/pulse/sample.c:190
 #, c-format
 msgid "%u B"
-msgstr ""
+msgstr "%u B"
 
 #: ../src/pulse/client-conf-x11.c:55 ../src/utils/pax11publish.c:100
 msgid "XOpenDisplay() failed"
-msgstr ""
+msgstr "XOpenDisplay() は失敗"
 
 #: ../src/pulse/client-conf-x11.c:93
 msgid "Failed to parse cookie data"
-msgstr ""
+msgstr "クッキーデータの構文解析に失敗"
 
 #: ../src/pulse/client-conf.c:111
 #, c-format
 msgid "Failed to open configuration file '%s': %s"
-msgstr ""
+msgstr "設定ファイル'%s' を開くのに失敗: %s"
 
 #: ../src/pulse/context.c:550
 msgid "No cookie loaded. Attempting to connect without."
-msgstr ""
+msgstr "クッキーがロードされていません。無い状態で接続を試行"
 
 #: ../src/pulse/context.c:693
 #, c-format
 msgid "fork(): %s"
-msgstr ""
+msgstr "fork(): %s"
 
 #: ../src/pulse/context.c:748
 #, c-format
 msgid "waitpid(): %s"
-msgstr ""
+msgstr "waitpid(): %s"
 
 #: ../src/pulse/context.c:1438
 #, c-format
 msgid "Received message for unknown extension '%s'"
-msgstr ""
+msgstr "不明な拡張子 '%s' のメッセージを受信"
 
 #: ../src/utils/pacat.c:108
 #, c-format
 msgid "Failed to drain stream: %s"
-msgstr ""
+msgstr "ストリームの排出に失敗: %s"
 
 #: ../src/utils/pacat.c:113
 msgid "Playback stream drained."
-msgstr ""
+msgstr "排出したストリームを再生"
 
 #: ../src/utils/pacat.c:123
 msgid "Draining connection to server."
-msgstr ""
+msgstr "サーバーへの排出接続"
 
 #: ../src/utils/pacat.c:136
 #, c-format
 msgid "pa_stream_drain(): %s"
-msgstr ""
+msgstr "pa_stream_drain(): %s"
 
 #: ../src/utils/pacat.c:159
 #, c-format
 msgid "pa_stream_write() failed: %s"
-msgstr ""
+msgstr "pa_stream_write() は失敗: %s"
 
 #: ../src/utils/pacat.c:197
 #, c-format
 msgid "pa_stream_begin_write() failed: %s"
-msgstr ""
+msgstr "pa_stream_begin_write() は失敗: %s"
 
 #: ../src/utils/pacat.c:237 ../src/utils/pacat.c:267
 #, c-format
 msgid "pa_stream_peek() failed: %s"
-msgstr ""
+msgstr "pa_stream_peek() は失敗: %s"
 
 #: ../src/utils/pacat.c:307
 msgid "Stream successfully created."
-msgstr ""
+msgstr "ストリームは正常に作成完了"
 
 #: ../src/utils/pacat.c:310
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s"
-msgstr ""
+msgstr "pa_stream_get_buffer_attr() は失敗: %s"
 
 #: ../src/utils/pacat.c:314
 #, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
-msgstr ""
+msgstr "バッファメトリックス: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 
 #: ../src/utils/pacat.c:317
 #, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u"
-msgstr ""
+msgstr "バッファメトリックス: maxlength=%u, fragsize=%u"
 
 #: ../src/utils/pacat.c:321
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'."
-msgstr ""
+msgstr "サンプル仕様 '%s' 、チャンネルマップ '%s' を使用。"
 
 #: ../src/utils/pacat.c:325
 #, c-format
 msgid "Connected to device %s (%u, %ssuspended)."
-msgstr ""
+msgstr "デバイス %s に接続 (%u, %ssuspended)"
 
 #: ../src/utils/pacat.c:335
 #, c-format
 msgid "Stream error: %s"
-msgstr ""
+msgstr "ストリームエラー: %s"
 
 #: ../src/utils/pacat.c:345
 #, c-format
 msgid "Stream device suspended.%s"
-msgstr ""
+msgstr "ストリームデバイス休止 %s"
 
 #: ../src/utils/pacat.c:347
 #, c-format
 msgid "Stream device resumed.%s"
-msgstr ""
+msgstr "ストリームデバイス復帰 %s"
 
 #: ../src/utils/pacat.c:355
 #, c-format
 msgid "Stream underrun.%s"
-msgstr ""
+msgstr "ストリームアンダーラン %s"
 
 #: ../src/utils/pacat.c:362
 #, c-format
 msgid "Stream overrun.%s"
-msgstr ""
+msgstr "ストリームオーバーラン %s"
 
 #: ../src/utils/pacat.c:369
 #, c-format
 msgid "Stream started.%s"
-msgstr ""
+msgstr "ストリーム開始 %s"
 
 #: ../src/utils/pacat.c:376
 #, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s"
-msgstr ""
+msgstr "ストリームはデバイス %s へ移動 (%u, %ssuspended).%s"
 
 #: ../src/utils/pacat.c:376
 msgid "not "
-msgstr ""
+msgstr "not "
 
 #: ../src/utils/pacat.c:383
 #, c-format
 msgid "Stream buffer attributes changed.%s"
-msgstr ""
+msgstr "ストリームバッファの属性変更 %s"
 
 #: ../src/utils/pacat.c:415
 #, c-format
 msgid "Connection established.%s"
-msgstr ""
+msgstr "接続が確立 %s"
 
 #: ../src/utils/pacat.c:418
 #, c-format
 msgid "pa_stream_new() failed: %s"
-msgstr ""
+msgstr "pa_stream_new() は失敗: %s"
 
 #: ../src/utils/pacat.c:450
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s"
-msgstr ""
+msgstr "pa_stream_connect_playback() は失敗: %s"
 
 #: ../src/utils/pacat.c:456
 #, c-format
 msgid "pa_stream_connect_record() failed: %s"
-msgstr ""
+msgstr "pa_stream_connect_record() は失敗: %s"
 
 #: ../src/utils/pacat.c:470 ../src/utils/pactl.c:857
 #, c-format
 msgid "Connection failure: %s"
-msgstr ""
+msgstr "接続失敗: %s"
 
 #: ../src/utils/pacat.c:503
 msgid "Got EOF."
-msgstr ""
+msgstr "EOF 取得"
 
 #: ../src/utils/pacat.c:540
 #, c-format
 msgid "write() failed: %s"
-msgstr ""
+msgstr "write() は失敗: %s"
 
 #: ../src/utils/pacat.c:561
 msgid "Got signal, exiting."
-msgstr ""
+msgstr "信号取得、退出中"
 
 #: ../src/utils/pacat.c:575
 #, c-format
 msgid "Failed to get latency: %s"
-msgstr ""
+msgstr "レイテンシー取得に失敗: %s"
 
 #: ../src/utils/pacat.c:580
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr ""
+msgstr "時間: %0.3f sec ; レイテンシー: %0.0f usec"
 
 #: ../src/utils/pacat.c:599
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
-msgstr ""
+msgstr "pa_stream_update_timing_info() は失敗: %s"
 
 #: ../src/utils/pacat.c:609
 #, c-format
@@ -1301,167 +1374,170 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pacat %s\n"
+"libpulse %s でコンパイル \n"
+"libpulse %s で接続\n"
 
 #: ../src/utils/pacat.c:764 ../src/utils/pactl.c:953
 #, c-format
 msgid "Invalid client name '%s'"
-msgstr ""
+msgstr "無効なクライアント名 '%s'"
 
 #: ../src/utils/pacat.c:779
 #, c-format
 msgid "Invalid stream name '%s'"
-msgstr ""
+msgstr "無効なストリーム名 '%s'"
 
 #: ../src/utils/pacat.c:816
 #, c-format
 msgid "Invalid channel map '%s'"
-msgstr ""
+msgstr "無効なチャンネルマップ '%s'"
 
 #: ../src/utils/pacat.c:845
 #, c-format
 msgid "Invalid latency specification '%s'"
-msgstr ""
+msgstr "無効なレイテンシー仕様 '%s'"
 
 #: ../src/utils/pacat.c:852
 #, c-format
 msgid "Invalid process time specification '%s'"
-msgstr ""
+msgstr "無効なプロセスタイム仕様 '%s'"
 
 #: ../src/utils/pacat.c:864
 #, c-format
 msgid "Invalid property '%s'"
-msgstr ""
+msgstr "無効なプロパティ '%s'"
 
 #: ../src/utils/pacat.c:881
 #, c-format
 msgid "Unknown file format %s."
-msgstr ""
+msgstr "不明なファイル形式 '%s'"
 
 #: ../src/utils/pacat.c:900
 msgid "Invalid sample specification"
-msgstr ""
+msgstr "無効なサンプル仕様"
 
 #: ../src/utils/pacat.c:910
 #, c-format
 msgid "open(): %s"
-msgstr ""
+msgstr "open(): %s"
 
 #: ../src/utils/pacat.c:915
 #, c-format
 msgid "dup2(): %s"
-msgstr ""
+msgstr "dup2(): %s"
 
 #: ../src/utils/pacat.c:922
 msgid "Too many arguments."
-msgstr ""
+msgstr "引数が多過ぎます。"
 
 #: ../src/utils/pacat.c:933
 msgid "Failed to generate sample specification for file."
-msgstr ""
+msgstr "ファイル用のサンプル仕様の生成に失敗しました。"
 
 #: ../src/utils/pacat.c:953
 msgid "Failed to open audio file."
-msgstr ""
+msgstr "オーディオファイルを開くのに失敗しました。"
 
 #: ../src/utils/pacat.c:959
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
-msgstr ""
+msgstr "警告: 指定されたサンプルの仕様はファイルからの仕様で上書きされます。"
 
 #: ../src/utils/pacat.c:962 ../src/utils/pactl.c:997
 msgid "Failed to determine sample specification from file."
-msgstr ""
+msgstr "ファイルからのサンプル仕様の決定に失敗しました。"
 
 #: ../src/utils/pacat.c:971
 msgid "Warning: Failed to determine channel map from file."
-msgstr ""
+msgstr "警告: ファイルからのチャンネルマップの決定に失敗しました。"
 
 #: ../src/utils/pacat.c:982
 msgid "Channel map doesn't match sample specification"
-msgstr ""
+msgstr "チャンネルマップはサンプル仕様に一致しません。"
 
 #: ../src/utils/pacat.c:993
 msgid "Warning: failed to write channel map to file."
-msgstr ""
+msgstr "警告: ファイルへのチャンネルマップ書き込みに失敗しました。"
 
 #: ../src/utils/pacat.c:1008
 #, c-format
 msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
-msgstr ""
+msgstr "サンプル仕様 '%s' と チャンネルマップ '%s' で  %s ストリームを開いています。"
 
 #: ../src/utils/pacat.c:1009
 msgid "recording"
-msgstr ""
+msgstr "録音"
 
 #: ../src/utils/pacat.c:1009
 msgid "playback"
-msgstr ""
+msgstr "再生"
 
 #: ../src/utils/pacat.c:1035 ../src/utils/pactl.c:1267
 msgid "pa_mainloop_new() failed."
-msgstr ""
+msgstr "pa_mainloop_new() は失敗"
 
 #: ../src/utils/pacat.c:1054
 msgid "io_new() failed."
-msgstr ""
+msgstr "io_new() は失敗"
 
 #: ../src/utils/pacat.c:1061 ../src/utils/pactl.c:1279
 msgid "pa_context_new() failed."
-msgstr ""
+msgstr "pa_context_new() は失敗"
 
 #: ../src/utils/pacat.c:1069 ../src/utils/pactl.c:1285
 #, c-format
 msgid "pa_context_connect() failed: %s"
-msgstr ""
+msgstr "pa_context_connect() は失敗: %s"
 
 #: ../src/utils/pacat.c:1075
 msgid "pa_context_rttime_new() failed."
-msgstr ""
+msgstr "pa_context_rttime_new() は失敗"
 
 #: ../src/utils/pacat.c:1082 ../src/utils/pactl.c:1290
 msgid "pa_mainloop_run() failed."
-msgstr ""
+msgstr "pa_mainloop_run() は失敗"
 
 #: ../src/utils/pasuspender.c:81
 #, c-format
 msgid "fork(): %s\n"
-msgstr ""
+msgstr "fork(): %s\n"
 
 #: ../src/utils/pasuspender.c:92
 #, c-format
 msgid "execvp(): %s\n"
-msgstr ""
+msgstr "execvp(): %s\n"
 
 #: ../src/utils/pasuspender.c:109
 #, c-format
 msgid "Failure to suspend: %s\n"
-msgstr ""
+msgstr "休止の失敗: %s\n"
 
 #: ../src/utils/pasuspender.c:124
 #, c-format
 msgid "Failure to resume: %s\n"
-msgstr ""
+msgstr "復帰の失敗: %s\n"
 
 #: ../src/utils/pasuspender.c:147
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
-msgstr ""
+msgstr "警告: サウンドサーバーはローカルではありません。休止しません。\n"
 
 #: ../src/utils/pasuspender.c:159
 #, c-format
 msgid "Connection failure: %s\n"
-msgstr ""
+msgstr "接続失敗 : %s\n"
 
 #: ../src/utils/pasuspender.c:176
 #, c-format
 msgid "Got SIGINT, exiting.\n"
-msgstr ""
+msgstr "SIGINT 取得、退出中 \n"
 
 #: ../src/utils/pasuspender.c:194
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr ""
+msgstr "警告: 子プロセスは信号 %u で終了しました\n"
 
 #: ../src/utils/pasuspender.c:212
 #, c-format
@@ -1474,6 +1550,13 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
+"%s [オプション] ... \n"
+"\n"
+"  -h, --help                            このヘルプを表示\n"
+"      --version                         バージョンを表示\n"
+"  -s, --server=SERVER                   接続先サーバーの名前 "
+"\n"
+"\n"
 
 #: ../src/utils/pasuspender.c:248
 #, c-format
@@ -1482,46 +1565,49 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pasuspender %s\n"
+"libpulse %s でコンパイル\n"
+"libpulse %s でリンク\n"
 
 #: ../src/utils/pasuspender.c:277
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
-msgstr ""
+msgstr "pa_mainloop_new() は失敗\n"
 
 #: ../src/utils/pasuspender.c:290
 #, c-format
 msgid "pa_context_new() failed.\n"
-msgstr ""
+msgstr "pa_context_new() は失敗\n"
 
 #: ../src/utils/pasuspender.c:298
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
-msgstr ""
+msgstr "pa_mainloop_run() は失敗\n"
 
 #: ../src/utils/pactl.c:135
 #, c-format
 msgid "Failed to get statistics: %s"
-msgstr ""
+msgstr "統計の取得に失敗しました: %s"
 
 #: ../src/utils/pactl.c:141
 #, c-format
 msgid "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr ""
+msgstr "現在使用中: %u ブロックは合計 %s バイトを含む \n"
 
 #: ../src/utils/pactl.c:144
 #, c-format
 msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr ""
+msgstr "総寿命の期間中に割り当て: %u ブロックは合計  %s バイトを含む\n"
 
 #: ../src/utils/pactl.c:147
 #, c-format
 msgid "Sample cache size: %s\n"
-msgstr ""
+msgstr "サンプルのキャッシュサイズ: %s\n"
 
 #: ../src/utils/pactl.c:156
 #, c-format
 msgid "Failed to get server information: %s"
-msgstr ""
+msgstr "サーバー情報の取得に失敗 : %s"
 
 #: ../src/utils/pactl.c:164
 #, c-format
@@ -1536,11 +1622,20 @@ msgid ""
 "Default Source: %s\n"
 "Cookie: %08x\n"
 msgstr ""
+"ユーザー名: %s\n"
+"ホスト名: %s\n"
+"サーバー名: %s\n"
+"サーバーバージョン: %s\n"
+"デフォルトサンプル仕様: %s\n"
+"デフォルトチャンネルマップ: %s\n"
+"デフォルトシンク: %s\n"
+"デフォルトソース: %s\n"
+"クッキー: %08x\n"
 
 #: ../src/utils/pactl.c:205
 #, c-format
 msgid "Failed to get sink information: %s"
-msgstr ""
+msgstr "シンク情報の取得に失敗しました: %s"
 
 #: ../src/utils/pactl.c:221
 #, c-format
@@ -1563,21 +1658,38 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"シンク #%u\n"
+"\t状態: %s\n"
+"\t名前: %s\n"
+"\t説明: %s\n"
+"\tドライバー: %s\n"
+"\tサンプル仕様: %s\n"
+"\tチャンネルマップ: %s\n"
+"\tオーナーモジュール: %u\n"
+"\tミュート: %s\n"
+"\tボリューム: %s%s%s\n"
+"\t        バランス %0.2f\n"
+"\tベースボリューム: %s%s%s\n"
+"\tモニターソース: %s\n"
+"\tレイテンシー: %0.0f usec, 設定 %0.0f usec\n"
+"\tフラグ: %s%s%s%s%s%s\n"
+"\tプロパティ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:268 ../src/utils/pactl.c:360
 #, c-format
 msgid "\tPorts:\n"
-msgstr ""
+msgstr "\tポート:\n"
 
 #: ../src/utils/pactl.c:274 ../src/utils/pactl.c:366
 #, c-format
 msgid "\tActive Port: %s\n"
-msgstr ""
+msgstr "\t活動中ポート: %s\n"
 
 #: ../src/utils/pactl.c:297
 #, c-format
 msgid "Failed to get source information: %s"
-msgstr ""
+msgstr "ソース情報の取得に失敗しました: %s"
 
 #: ../src/utils/pactl.c:313
 #, c-format
@@ -1600,6 +1712,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"ソース #%u\n"
+"\t状態: %s\n"
+"\t名前: %s\n"
+"\t説明: %s\n"
+"\tドライバー: %s\n"
+"\tサンプル仕様: %s\n"
+"\tチャンネルマップ: %s\n"
+"\tオーナーモジュール: %u\n"
+"\tミュート: %s\n"
+"\tボリューム: %s%s%s\n"
+"\t        バランス %0.2f\n"
+"\tベースボリューム: %s%s%s\n"
+"\tシンクのモニター: %s\n"
+"\tレイテンシー: %0.0f usec, 設定 %0.0f usec\n"
+"\tフラグ: %s%s%s%s%s%s\n"
+"\tプロパティ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:345 ../src/utils/pactl.c:401 ../src/utils/pactl.c:436
 #: ../src/utils/pactl.c:473 ../src/utils/pactl.c:532 ../src/utils/pactl.c:533
@@ -1607,12 +1736,12 @@ msgstr ""
 #: ../src/utils/pactl.c:594 ../src/utils/pactl.c:637 ../src/utils/pactl.c:638
 #: ../src/utils/pactl.c:645
 msgid "n/a"
-msgstr ""
+msgstr "n/a"
 
 #: ../src/utils/pactl.c:375
 #, c-format
 msgid "Failed to get module information: %s"
-msgstr ""
+msgstr "モジュール情報の取得に失敗しました: %s"
 
 #: ../src/utils/pactl.c:393
 #, c-format
@@ -1624,11 +1753,17 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"モジュール #%u\n"
+"\t名前: %s\n"
+"\t引数: %s\n"
+"\t使用度カウンター: %s\n"
+"\tプロパティ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:412
 #, c-format
 msgid "Failed to get client information: %s"
-msgstr ""
+msgstr "クライアント情報の取得に失敗しました: %s"
 
 #: ../src/utils/pactl.c:430
 #, c-format
@@ -1639,11 +1774,16 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"クライアント #%u\n"
+"\tドライバー: %s\n"
+"\tオーナーモジュール: %s\n"
+"\tプロパティ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:447
 #, c-format
 msgid "Failed to get card information: %s"
-msgstr ""
+msgstr "カード情報の取得に失敗しました: %s"
 
 #: ../src/utils/pactl.c:465
 #, c-format
@@ -1655,21 +1795,27 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"カード #%u\n"
+"\t名前: %s\n"
+"\tドライバー: %s\n"
+"\tモジュール: %s\n"
+"\tプロパティ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:479
 #, c-format
 msgid "\tProfiles:\n"
-msgstr ""
+msgstr "\tプロフィール:\n"
 
 #: ../src/utils/pactl.c:485
 #, c-format
 msgid "\tActive Profile: %s\n"
-msgstr ""
+msgstr "\t有効なプロフィール: %s\n"
 
 #: ../src/utils/pactl.c:496
 #, c-format
 msgid "Failed to get sink input information: %s"
-msgstr ""
+msgstr "シンク入力情報の取得に失敗しました: %s"
 
 #: ../src/utils/pactl.c:515
 #, c-format
@@ -1691,11 +1837,27 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"シンク入力 #%u\n"
+"\tドライバー: %s\n"
+"\tオーナーモジュール: %s\n"
+"\tクライアント: %s\n"
+"\tシンク: %u\n"
+"\tサンプル仕様: %s\n"
+"\tチャンネルマップ: %s\n"
+"\tミュート: %s\n"
+"\tボリューム: %s\n"
+"\t        %s\n"
+"\t        バランス %0.2f\n"
+"\tバッファレイテンシー: %0.0f usec\n"
+"\tシンクレイテンシー: %0.0f usec\n"
+"\t再サンプル方法: %s\n"
+"\tプロパティ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:554
 #, c-format
 msgid "Failed to get source output information: %s"
-msgstr ""
+msgstr "ソース出力情報の取得に失敗しました: %s"
 
 #: ../src/utils/pactl.c:574
 #, c-format
@@ -1713,11 +1875,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"ソース出力 #%u\n"
+"\tドライバー: %s\n"
+"\tオーナーモジュール: %s\n"
+"\tクライアント: %s\n"
+"\tソース: %u\n"
+"\tサンプル仕様: %s\n"
+"\tチャンネルマップ: %s\n"
+"\tバッファレイテンシー: %0.0f usec\n"
+"\tソースレイテンシー: %0.0f usec\n"
+"\t再サンプル方法: %s\n"
+"\tプロパティ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:605
 #, c-format
 msgid "Failed to get sample information: %s"
-msgstr ""
+msgstr "サンプル情報の取得に失敗しました: %s"
 
 #: ../src/utils/pactl.c:623
 #, c-format
@@ -1736,24 +1910,37 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"サンプル #%u\n"
+"\t名前: %s\n"
+"\tサンプル仕様: %s\n"
+"\tチャンネルマップ: %s\n"
+"\tボリューム: %s\n"
+"\t        %s\n"
+"\t        バランス %0.2f\n"
+"\t継続期間: %0.1fs\n"
+"\tサイズ: %s\n"
+"\tレイジー: %s\n"
+"\tファイル名e: %s\n"
+"\tプロパティ:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:653 ../src/utils/pactl.c:663
 #, c-format
 msgid "Failure: %s"
-msgstr ""
+msgstr "失敗: %s"
 
 #: ../src/utils/pactl.c:687
 #, c-format
 msgid "Failed to upload sample: %s"
-msgstr ""
+msgstr "サンプルのアップロードに失敗しました: %s"
 
 #: ../src/utils/pactl.c:704
 msgid "Premature end of file"
-msgstr ""
+msgstr "ファイルの早期終了"
 
 #: ../src/utils/pactl.c:863
 msgid "Got SIGINT, exiting."
-msgstr ""
+msgstr "SIGINT を取得、退出中"
 
 #: ../src/utils/pactl.c:869
 #, c-format
