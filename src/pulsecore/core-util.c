@@ -580,8 +580,8 @@ char *pa_strlcpy(char *b, const char *s, size_t l) {
 
 static int set_scheduler(int rtprio) {
     struct sched_param sp;
-    int r;
 #ifdef HAVE_DBUS
+    int r;
     DBusError error;
     DBusConnection *bus;
 
@@ -628,7 +628,7 @@ static int set_scheduler(int rtprio) {
 
     errno = -r;
 #else
-    errno = r;
+    errno = 0;
 #endif
 
     return -1;

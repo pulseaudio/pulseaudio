@@ -597,7 +597,7 @@ void pa_envelope_apply(pa_envelope *e, pa_memchunk *chunk) {
         fs = pa_frame_size(&e->sample_spec);
         n = chunk->length;
 
-        pa_log_debug("Envelop position %d applying factor %d=%f, sample spec is %d, chunk's length is %d, fs is %d\n", e->x, linear_get_int(e, v), ((float) linear_get_int(e,v))/0x10000, e->sample_spec.format, n, fs);
+        pa_log_debug("Envelop position %zu applying factor %d=%f, sample spec is %d, chunk's length is %zu, fs is %zu\n", e->x, linear_get_int(e, v), ((float) linear_get_int(e,v))/0x10000, e->sample_spec.format, n, fs);
 
         switch (e->sample_spec.format) {
 
@@ -965,11 +965,10 @@ void pa_envelope_restart(pa_envelope* e) {
 }
 
 pa_bool_t pa_envelope_is_finished(pa_envelope* e) {
-    pa_assert(e);
-
     int v;
     pa_bool_t finished;
 
+    pa_assert(e);
     envelope_begin_read(e, &v);
     finished = (e->x >=  e->points[v].x[e->points[v].n_points-1]);
     envelope_commit_read(e, v);
@@ -978,11 +977,10 @@ pa_bool_t pa_envelope_is_finished(pa_envelope* e) {
 }
 
 int32_t pa_envelope_length(pa_envelope *e) {
-    pa_assert(e);
-
     int v;
     size_t size;
 
+    pa_assert(e);
     envelope_begin_read(e, &v);
     size = e->points[v].x[e->points[v].n_points-1] - e->points[v].x[0];
     envelope_commit_read(e, v);

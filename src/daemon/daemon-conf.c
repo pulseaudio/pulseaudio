@@ -466,6 +466,7 @@ static int parse_rtprio(const char *filename, unsigned line, const char *section
     return 0;
 }
 
+#ifdef HAVE_DBUS
 static int parse_server_type(const char *filename, unsigned line, const char *section, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     pa_daemon_conf *c = data;
 
@@ -481,6 +482,7 @@ static int parse_server_type(const char *filename, unsigned line, const char *se
 
     return 0;
 }
+#endif
 
 int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     int r = -1;
@@ -666,12 +668,14 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
         [PA_LOG_ERROR] = "error"
     };
 
+#ifdef HAVE_DBUS
     static const char* const server_type_to_string[] = {
         [PA_SERVER_TYPE_UNSET] = "!!UNSET!!",
         [PA_SERVER_TYPE_USER] = "user",
         [PA_SERVER_TYPE_SYSTEM] = "system",
         [PA_SERVER_TYPE_NONE] = "none"
     };
+#endif
 
     pa_strbuf *s;
     char cm[PA_CHANNEL_MAP_SNPRINT_MAX];

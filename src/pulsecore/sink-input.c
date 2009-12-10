@@ -779,11 +779,11 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, p
 
     if (!i->thread_info.ramp_info.envelope_dead) {
         i->thread_info.ramp_info.envelope_dying += chunk->length;
-        pa_log_debug("Envelope dying is %d, chunk length is %d, dead thresholder is %d\n", i->thread_info.ramp_info.envelope_dying,
+        pa_log_debug("Envelope dying is %d, chunk length is %zu, dead thresholder is %lu\n", i->thread_info.ramp_info.envelope_dying,
                 chunk->length,
                 i->sink->thread_info.max_rewind + pa_envelope_length(i->thread_info.ramp_info.envelope));
 
-        if (i->thread_info.ramp_info.envelope_dying >= (i->sink->thread_info.max_rewind + pa_envelope_length(i->thread_info.ramp_info.envelope))) {
+        if (i->thread_info.ramp_info.envelope_dying >= (int32_t) (i->sink->thread_info.max_rewind + pa_envelope_length(i->thread_info.ramp_info.envelope))) {
             pa_log_debug("RELEASE Envelop");
             i->thread_info.ramp_info.envelope_dead = TRUE;
             sink_input_release_envelope(i);
@@ -1767,12 +1767,14 @@ static void sink_input_rewind_ramp_info(pa_sink_input *i, size_t nbytes) {
     pa_assert(i);
 
     if (!i->thread_info.ramp_info.envelope_dead) {
-        pa_assert(i->thread_info.ramp_info.envelope);
+        int32_t envelope_length;
 
-        int32_t envelope_length = pa_envelope_length(i->thread_info.ramp_info.envelope);
+	pa_assert(i->thread_info.ramp_info.envelope);
+
+        envelope_length = pa_envelope_length(i->thread_info.ramp_info.envelope);
 
         if (i->thread_info.ramp_info.envelope_dying > envelope_length) {
-            if ((i->thread_info.ramp_info.envelope_dying - nbytes) < envelope_length) {
+            if ((int32_t) (i->thread_info.ramp_info.envelope_dying - nbytes) < envelope_length) {
                 pa_log_debug("Envelope Become Alive");
                 pa_envelope_rewind(i->thread_info.ramp_info.envelope, envelope_length - (i->thread_info.ramp_info.envelope_dying - nbytes));
                 i->thread_info.ramp_info.is_ramping = TRUE;
