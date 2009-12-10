@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: ja\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-12-08 02:51+0000\n"
-"PO-Revision-Date: 2009-12-09 18:20+0900\n"
+"PO-Revision-Date: 2009-12-10 11:49+0900\n"
 "Last-Translator: Kiyoto Hashida <khashida@redhat.com>\n"
 "Language-Team: Japanese <jp@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -1366,6 +1366,60 @@ msgid ""
 "      --file-format=FFORMAT             Record/play formatted PCM data.\n"
 "      --list-file-formats               List available file formats.\n"
 msgstr ""
+"%s [options]\n"
+"\n"
+"  -h, --help                            このヘルプを表示\n"
+"      --version                         バージョンを表示\n"
+"\n"
+"  -r, --record                          録音用の接続を作成\n"
+"  -p, --playback                        再生用の接続を作成\n"
+"\n"
+"  -v, --verbose                         詳細操作を有効にする\n"
+"\n"
+"  -s, --server=SERVER                   接続先サーバーの名前 "
+"\n"
+"  -d, --device=DEVICE                   接続先シンク/ソースの名前 "
+"\n"
+"  -n, --client-name=NAME                サーバーでこのクライアントへのコール方法 "
+"\n"
+"      --stream-name=NAME                サーバー上でこのストリームへのコール方法"
+"\n"
+"      --volume=VOLUME                   初期 (リニア) ボリューム幅を指定 "
+" 0...65536\n"
+"      --rate=SAMPLERATE                 サンプルレートを Hz で表示 (デフォルトは "
+"44100)\n"
+"      --format=SAMPLEFORMAT             サンプルタイプ, 次の１つ s16le, "
+"s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, "
+"s24le, s24be,\n"
+"                                        s24-32le, s24-32be (デフォルトは "
+"s16ne)\n"
+"      --channels=CHANNELS               チャンネルの数, モノ用に１, "
+"ステレオ用に２\n"
+"                                        (デフォルトは 2)\n"
+"      --channel-map=CHANNELMAP          デフォルトの代わりに使用するチャンネルマップ "
+"\n"
+"      --fix-format                      ストリームの接続先であるシンクからサンプル形式を取る "
+"\n"
+"\n"
+"      --fix-rate                        ストリームの接続先であるシンクからサンプルレートを取る "
+"\n"
+"\n"
+"      --fix-channels                    ストリームの接続先であるシンクからチャンネル数と "
+"チャンネルマップを取る\n"
+"\n"
+"      --no-remix                         チャンネルのアップミックスやダウンミックスをしない\n"
+"      --no-remap                        名前の代わりにインデックスでチャンネルをマップする"
+"\n"
+"      --latency=BYTES                   指定レイテンシーをバイトで要求 "
+"\n"
+"      --process-time=BYTES              要求毎の指定プロセスタイムをバイトで要求 "
+"\n"
+"      --property=PROPERTY=VALUE         指定プロパティを指定値にセット"
+"\n"
+"      --raw                             録音/再生の生の PCM データ\n"
+"      --file-format=FFORMAT             録音/再生のフォーマットした PCM データ\n"
+"      --list-file-formats               利用可能なファイル形式を一覧表示\n"
 
 #: ../src/utils/pacat.c:731
 #, c-format
@@ -1975,6 +2029,35 @@ msgid ""
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 msgstr ""
+"%s [オプション] stat\n"
+"%s [オプション] list\n"
+"%s [オプション] exit\n"
+"%s [オプション] upload-sample FILENAME [NAME]\n"
+"%s [オプション] play-sample NAME [SINK]\n"
+"%s [オプション] remove-sample NAME\n"
+"%s [オプション] move-sink-input SINKINPUT SINK\n"
+"%s [オプション] move-source-output SOURCEOUTPUT SOURCE\n"
+"%s [オプション] load-module NAME [ARGS ...]\n"
+"%s [オプション] unload-module MODULE\n"
+"%s [オプション] suspend-sink SINK 1|0\n"
+"%s [オプション] suspend-source SOURCE 1|0\n"
+"%s [オプション] set-card-profile CARD PROFILE\n"
+"%s [オプション] set-sink-port SINK PORT\n"
+"%s [オプション] set-source-port SOURCE PORT\n"
+"%s [オプション] set-sink-volume SINK VOLUME\n"
+"%s [オプション] set-source-volume SOURCE VOLUME\n"
+"%s [オプション] set-sink-input-volume SINKINPUT VOLUME\n"
+"%s [オプション] set-sink-mute SINK 1|0\n"
+"%s [オプション] set-source-mute SOURCE 1|0\n"
+"%s [オプション] set-sink-input-mute SINKINPUT 1|0\n"
+"\n"
+"  -h, --help                            このヘルプを表示\n"
+"      --version                         バージョンを表示\n"
+"\n"
+"  -s, --server=SERVER                   接続先サーバーの名前 "
+"\n"
+"  -n, --client-name=NAME                サーバーでこのクライアントへのコール方法 "
+"\n"
 
 #: ../src/utils/pactl.c:933
 #, c-format
@@ -1983,106 +2066,109 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pactl %s\n"
+"libpulse %s でコンパイル\n"
+"libpulse %s でリンク\n"
 
 #: ../src/utils/pactl.c:979
 msgid "Please specify a sample file to load"
-msgstr ""
+msgstr "ロードするサンプルファイルを指定して下さい"
 
 #: ../src/utils/pactl.c:992
 msgid "Failed to open sound file."
-msgstr ""
+msgstr "サウンドファイルを開くのに失敗しました。"
 
 #: ../src/utils/pactl.c:1004
 msgid "Warning: Failed to determine sample specification from file."
-msgstr ""
+msgstr "警告: ファイルからサンプル仕様を決定するのに失敗しました。"
 
 #: ../src/utils/pactl.c:1014
 msgid "You have to specify a sample name to play"
-msgstr ""
+msgstr "再生するサンプル名を指定する必要があります"
 
 #: ../src/utils/pactl.c:1026
 msgid "You have to specify a sample name to remove"
-msgstr ""
+msgstr "削除するサンプル名を指定する必要があります。"
 
 #: ../src/utils/pactl.c:1035
 msgid "You have to specify a sink input index and a sink"
-msgstr ""
+msgstr "シンク入力インデックスとシンクを指定する必要があります"
 
 #: ../src/utils/pactl.c:1045
 msgid "You have to specify a source output index and a source"
-msgstr ""
+msgstr "ソース出力インデックスとソースを指定する必要があります"
 
 #: ../src/utils/pactl.c:1060
 msgid "You have to specify a module name and arguments."
-msgstr ""
+msgstr "モジュール名と引数を指定する必要があります"
 
 #: ../src/utils/pactl.c:1080
 msgid "You have to specify a module index"
-msgstr ""
+msgstr "モジュールインデックスを指定する必要があります"
 
 #: ../src/utils/pactl.c:1090
 msgid "You may not specify more than one sink. You have to specify a boolean value."
-msgstr ""
+msgstr "シンクは１つ以上は指定できません。ブーリアン値を１つ指定する必要があります。"
 
 #: ../src/utils/pactl.c:1103
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
-msgstr ""
+msgstr "ソースは１つ以上は指定できません。ブーリアン値を１つ指定する必要があります。"
 
 #: ../src/utils/pactl.c:1115
 msgid "You have to specify a card name/index and a profile name"
-msgstr ""
+msgstr "カードの名前/インデックスとプロフィール名を指定する必要があります"
 
 #: ../src/utils/pactl.c:1126
 msgid "You have to specify a sink name/index and a port name"
-msgstr ""
+msgstr "シンクの名前/インデックスとポート名を指定する必要があります"
 
 #: ../src/utils/pactl.c:1137
 msgid "You have to specify a source name/index and a port name"
-msgstr ""
+msgstr "ソースの名前/インデックスとポート名を指定する必要があります"
 
 #: ../src/utils/pactl.c:1149
 msgid "You have to specify a sink name/index and a volume"
-msgstr ""
+msgstr "シンクの名前/インデックスとボリュームを指定する必要があります"
 
 #: ../src/utils/pactl.c:1154 ../src/utils/pactl.c:1171
 #: ../src/utils/pactl.c:1193 ../src/utils/pactl.c:1209
 #: ../src/utils/pactl.c:1226 ../src/utils/pactl.c:1248
 msgid "Invalid volume specification"
-msgstr ""
+msgstr "無効なボリューム仕様"
 
 #: ../src/utils/pactl.c:1166
 msgid "You have to specify a source name/index and a volume"
-msgstr ""
+msgstr "ソースの名前/インデックスとボリュームを指定する必要があります"
 
 #: ../src/utils/pactl.c:1183
 msgid "You have to specify a sink input index and a volume"
-msgstr ""
+msgstr "シンク入力インデックスとボリュームを指定する必要があります"
 
 #: ../src/utils/pactl.c:1188
 msgid "Invalid sink input index"
-msgstr ""
+msgstr "無効なシンク入力インデックス"
 
 #: ../src/utils/pactl.c:1204
 msgid "You have to specify a sink name/index and a mute boolean"
-msgstr ""
+msgstr "シンクの名前/インデックスとミュートブーリアンを指定する必要があります"
 
 #: ../src/utils/pactl.c:1221
 msgid "You have to specify a source name/index and a mute boolean"
-msgstr ""
+msgstr "ソースの名前/インデックスとミュートブーリアンを指定する必要があります"
 
 #: ../src/utils/pactl.c:1238
 msgid "You have to specify a sink input index and a mute boolean"
-msgstr ""
+msgstr "シンク入力インデックスとミュートブーリアンを指定する必要があります"
 
 #: ../src/utils/pactl.c:1243
 msgid "Invalid sink input index specification"
-msgstr ""
+msgstr "無効なシンク入力インデックス仕様"
 
 #: ../src/utils/pactl.c:1262
 msgid "No valid command specified."
-msgstr ""
+msgstr "有効なコマンドが指定されていません"
 
 #: ../src/utils/pax11publish.c:61
 #, c-format
@@ -2095,75 +2181,82 @@ msgid ""
 "variables and cookie file.\n"
 " -r    Remove PulseAudio data from X11 display\n"
 msgstr ""
+"%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n"
+"\n"
+" -d    X11 ディスプレイに接続した現在の PulseAudio のデータを表示 (デフォルト)\n"
+" -e    X11 ディスプレイにローカル PulseAudio データをエキスポート\n"
+" -i    X11 ディスプレイからローカル環境変数とクッキーに PulseAudio データをインポート "
+"\n"
+" -r    X11 ディスプレイから PulseAudio データを削除\n"
 
 #: ../src/utils/pax11publish.c:94
 #, c-format
 msgid "Failed to parse command line.\n"
-msgstr ""
+msgstr "コマンドラインの構文解析に失敗\n"
 
 #: ../src/utils/pax11publish.c:108
 #, c-format
 msgid "Server: %s\n"
-msgstr ""
+msgstr "サーバー: %s\n"
 
 #: ../src/utils/pax11publish.c:110
 #, c-format
 msgid "Source: %s\n"
-msgstr ""
+msgstr "ソース: %s\n"
 
 #: ../src/utils/pax11publish.c:112
 #, c-format
 msgid "Sink: %s\n"
-msgstr ""
+msgstr "シンク: %s\n"
 
 #: ../src/utils/pax11publish.c:114
 #, c-format
 msgid "Cookie: %s\n"
-msgstr ""
+msgstr "クッキー: %s\n"
 
 #: ../src/utils/pax11publish.c:132
 #, c-format
 msgid "Failed to parse cookie data\n"
-msgstr ""
+msgstr "クッキーデータの構文解析に失敗\n"
 
 #: ../src/utils/pax11publish.c:137
 #, c-format
 msgid "Failed to save cookie data\n"
-msgstr ""
+msgstr "クッキーデータの保存に失敗\n"
 
 #: ../src/utils/pax11publish.c:152
 #, c-format
 msgid "Failed to load client configuration file.\n"
-msgstr ""
+msgstr "クライアント設定ファイルのロードに失敗\n"
 
 #: ../src/utils/pax11publish.c:157
 #, c-format
 msgid "Failed to read environment configuration data.\n"
-msgstr ""
+msgstr "環境設定データの読み込みに失敗 \n"
 
 #: ../src/utils/pax11publish.c:174
 #, c-format
 msgid "Failed to get FQDN.\n"
-msgstr ""
+msgstr "FQDN の取得に失敗 \n"
 
 #: ../src/utils/pax11publish.c:194
 #, c-format
 msgid "Failed to load cookie data\n"
-msgstr ""
+msgstr "クッキーデータのロードに失敗\n"
 
 #: ../src/utils/pax11publish.c:211
 #, c-format
 msgid "Not yet implemented.\n"
-msgstr ""
+msgstr "まだ実装されていません\n"
 
 #: ../src/utils/pacmd.c:69
 msgid "No PulseAudio daemon running, or not running as session daemon."
-msgstr ""
+msgstr "PulseAudio デーモン自身が稼働していないか、又はセッションデーモンとして稼働していません。"
 
 #: ../src/utils/pacmd.c:74
 #, c-format
 msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
-msgstr ""
+msgstr "ソケット (PF_UNIX, SOCK_STREAM, 0): %s"
 
 #: ../src/utils/pacmd.c:91
 #, c-format
@@ -2172,11 +2265,11 @@ msgstr "connect(): %s"
 
 #: ../src/utils/pacmd.c:99
 msgid "Failed to kill PulseAudio daemon."
-msgstr ""
+msgstr "PulseAudio のキルに失敗"
 
 #: ../src/utils/pacmd.c:107
 msgid "Daemon not responding."
-msgstr ""
+msgstr "デーモンが応答しません"
 
 #: ../src/utils/pacmd.c:161
 #, c-format
@@ -2195,7 +2288,7 @@ msgstr "write(): %s"
 
 #: ../src/pulsecore/lock-autospawn.c:136 ../src/pulsecore/lock-autospawn.c:219
 msgid "Cannot access autospawn lock."
-msgstr ""
+msgstr "autospawn ロックにアクセスできません"
 
 #: ../src/modules/alsa/alsa-sink.c:530 ../src/modules/alsa/alsa-sink.c:689
 #, c-format
@@ -2207,6 +2300,12 @@ msgid ""
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
+"ALSA が新規のデータをデバイスに書き込むように催促しましたが、書き込むことが "
+"ありません!\n"
+"これは多分、ALSA ドライバー '%s' 内のバグです。この問題を ALSA 開発者に "
+"報告して下さい。\n"
+"POLLOUT セットで呼び起こされましたが、その結果としての snd_pcm_avail() は "
+"0 又は 他の値 < min_avail を返しました。"
 
 #: ../src/modules/alsa/alsa-source.c:506 ../src/modules/alsa/alsa-source.c:656
 #, c-format
@@ -2218,6 +2317,12 @@ msgid ""
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
+"ALSA はデバイスから新規データを読み込むように催促しましたが、読み込むものが "
+"ありません!\n"
+"これは多分、ALSA ドライバー'%s' 内のバグです。この問題を ALSA 開発者に "
+"報告して下さい。\n"
+"POLLIN セットで呼び起こされましたが、その結果としての snd_pcm_avail() は "
+"0 又は 他の値 < min_avail を返しました。"
 
 #: ../src/modules/alsa/module-alsa-card.c:152
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2228
@@ -2227,129 +2332,129 @@ msgstr "オフ"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2184
 msgid "High Fidelity Playback (A2DP)"
-msgstr ""
+msgstr "ハイファイ再生 (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2198
 msgid "High Fidelity Capture (A2DP)"
-msgstr ""
+msgstr "ハイファイキャプチャ (A2DP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2213
 msgid "Telephony Duplex (HSP/HFP)"
-msgstr ""
+msgstr "テレフォニーデュプレックス (HSP/HFP)"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
-msgstr ""
+msgstr "PulseAudio サウンドサーバー"
 
 #: ../src/modules/module-rygel-media-server.c:569
 #: ../src/modules/module-rygel-media-server.c:583
 msgid "Output Devices"
-msgstr ""
+msgstr "出力デバイス"
 
 #: ../src/modules/module-rygel-media-server.c:570
 #: ../src/modules/module-rygel-media-server.c:584
 msgid "Input Devices"
-msgstr ""
+msgstr "入力デバイス"
 
 #: ../src/modules/module-rygel-media-server.c:774
 msgid "Audio on @HOSTNAME@"
-msgstr ""
+msgstr "@HOSTNAME@ 上のオーディオ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1701
 msgid "Input"
-msgstr ""
+msgstr "入力"
 
 #: ../src/modules/alsa/alsa-mixer.c:1702
 msgid "Docking Station Input"
-msgstr ""
+msgstr "ドッキングステーション入力"
 
 #: ../src/modules/alsa/alsa-mixer.c:1703
 msgid "Docking Station Microphone"
-msgstr ""
+msgstr "ドッキングステーションマイクロフォン"
 
 #: ../src/modules/alsa/alsa-mixer.c:1704
 msgid "Line-In"
-msgstr ""
+msgstr "ラインイン"
 
 #: ../src/modules/alsa/alsa-mixer.c:1705
 msgid "Microphone"
-msgstr ""
+msgstr "マイクロフォン"
 
 #: ../src/modules/alsa/alsa-mixer.c:1706
 msgid "External Microphone"
-msgstr ""
+msgstr "外部マイクロフォン"
 
 #: ../src/modules/alsa/alsa-mixer.c:1707
 msgid "Internal Microphone"
-msgstr ""
+msgstr "内部マイクロフォン"
 
 #: ../src/modules/alsa/alsa-mixer.c:1708
 msgid "Radio"
-msgstr ""
+msgstr "ラジオ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1709
 msgid "Video"
-msgstr ""
+msgstr "ビデオ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1710
 msgid "Automatic Gain Control"
-msgstr ""
+msgstr "自動ゲイン制御"
 
 #: ../src/modules/alsa/alsa-mixer.c:1711
 msgid "No Automatic Gain Control"
-msgstr ""
+msgstr "自動ゲイン制御なし"
 
 #: ../src/modules/alsa/alsa-mixer.c:1712
 msgid "Boost"
-msgstr ""
+msgstr "ブースト"
 
 #: ../src/modules/alsa/alsa-mixer.c:1713
 msgid "No Boost"
-msgstr ""
+msgstr "ブーストなし"
 
 #: ../src/modules/alsa/alsa-mixer.c:1714
 msgid "Amplifier"
-msgstr ""
+msgstr "アンプ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1715
 msgid "No Amplifier"
-msgstr ""
+msgstr "アンプなし"
 
 #: ../src/modules/alsa/alsa-mixer.c:1773
 msgid "Analog Input"
-msgstr ""
+msgstr "アナログ入力"
 
 #: ../src/modules/alsa/alsa-mixer.c:1774
 msgid "Analog Microphone"
-msgstr ""
+msgstr "アナログマイクロフォン"
 
 #: ../src/modules/alsa/alsa-mixer.c:1775
 msgid "Analog Line-In"
-msgstr ""
+msgstr "アナログラインイン"
 
 #: ../src/modules/alsa/alsa-mixer.c:1776
 msgid "Analog Radio"
-msgstr ""
+msgstr "アナログラジオ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1777
 msgid "Analog Video"
-msgstr ""
+msgstr "アナログビデオ"
 
 #: ../src/modules/alsa/alsa-mixer.c:1778
 msgid "Analog Output"
-msgstr ""
+msgstr "アナログ出力"
 
 #: ../src/modules/alsa/alsa-mixer.c:1779
 msgid "Analog Headphones"
-msgstr ""
+msgstr "アナログヘッドフォン"
 
 #: ../src/modules/alsa/alsa-mixer.c:1780
 msgid "Analog Output (LFE)"
-msgstr ""
+msgstr "アナログ出力 (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:1781
 msgid "Analog Mono Output"
-msgstr ""
+msgstr "アナログモノ出力"
 
 #: ../src/modules/alsa/alsa-mixer.c:1981
 #, c-format
@@ -2363,85 +2468,85 @@ msgstr "%s / %s"
 
 #: ../src/modules/alsa/alsa-mixer.c:2790
 msgid "Analog Mono"
-msgstr ""
+msgstr "アナログモノ"
 
 #: ../src/modules/alsa/alsa-mixer.c:2791
 msgid "Analog Stereo"
-msgstr ""
+msgstr "アナログステレオ"
 
 #: ../src/modules/alsa/alsa-mixer.c:2792
 msgid "Analog Surround 2.1"
-msgstr ""
+msgstr "アナログサラウンド 2.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2793
 msgid "Analog Surround 3.0"
-msgstr ""
+msgstr "アナログサラウンド 3.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2794
 msgid "Analog Surround 3.1"
-msgstr ""
+msgstr "アナログサラウンド 3.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2795
 msgid "Analog Surround 4.0"
-msgstr ""
+msgstr "アナログサラウンド 4.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2796
 msgid "Analog Surround 4.1"
-msgstr ""
+msgstr "アナログサラウンド 4.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2797
 msgid "Analog Surround 5.0"
-msgstr ""
+msgstr "アナログサラウンド 5.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2798
 msgid "Analog Surround 5.1"
-msgstr ""
+msgstr "アナログサラウンド 5.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2799
 msgid "Analog Surround 6.0"
-msgstr ""
+msgstr "アナログサラウンド 6.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2800
 msgid "Analog Surround 6.1"
-msgstr ""
+msgstr "アナログサラウンド 6.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2801
 msgid "Analog Surround 7.0"
-msgstr ""
+msgstr "アナログサラウンド 7.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:2802
 msgid "Analog Surround 7.1"
-msgstr ""
+msgstr "アナログサラウンド 7.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:2803
 msgid "Digital Stereo (IEC958)"
-msgstr ""
+msgstr "デジタルステレオ (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2804
 msgid "Digital Surround 4.0 (IEC958)"
-msgstr ""
+msgstr "デジタルサラウンド 4.0 (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2805
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr ""
+msgstr "デジタルサラウンド 4.0 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2806
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr ""
+msgstr "デジタルサラウンド 5.1 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2807
 msgid "Digital Stereo (HDMI)"
-msgstr ""
+msgstr "デジタルステレオ (HDMI)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2928
 msgid "Analog Mono Duplex"
-msgstr ""
+msgstr "アナログモノデュプレックス"
 
 #: ../src/modules/alsa/alsa-mixer.c:2929
 msgid "Analog Stereo Duplex"
-msgstr ""
+msgstr "アナログステレオデュプレックス"
 
 #: ../src/modules/alsa/alsa-mixer.c:2930
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr ""
+msgstr "デジタルステレオデュプレックス (IEC958)"
 
