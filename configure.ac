@@ -423,7 +423,11 @@ if test "x$os_is_darwin" = "x1" ; then
 
     AC_MSG_RESULT([ok])
     AC_DEFINE([HAVE_CLOCK_GETTIME], 1, [Using clock_gettime() replacement])
+    HAVE_BONJOUR=1
 fi
+
+AC_SUBST(HAVE_BONJOUR)
+AM_CONDITIONAL([HAVE_BONJOUR], [test "x$HAVE_BONJOUR" = x1])
 
 #### Check for functions ####
 

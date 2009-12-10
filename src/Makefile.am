@@ -1123,6 +1123,11 @@ modlibexec_LTLIBRARIES += \
 		module-zeroconf-discover.la
 endif
 
+if HAVE_BONJOUR
+modlibexec_LTLIBRARIES += \
+		module-bonjour-publish.la
+endif
+
 if HAVE_LIRC
 modlibexec_LTLIBRARIES += \
 		module-lirc.la
@@ -1231,6 +1236,7 @@ SYMDEF_FILES = \
 		modules/module-esound-sink-symdef.h \
 		modules/module-zeroconf-publish-symdef.h \
 		modules/module-zeroconf-discover-symdef.h \
+		modules/module-bonjour-publish-symdef.h \
 		modules/module-lirc-symdef.h \
 		modules/module-mmkbd-evdev-symdef.h \
 		modules/module-http-protocol-tcp-symdef.h \
@@ -1547,6 +1553,13 @@ module_zeroconf_discover_la_SOURCES = modules/module-zeroconf-discover.c
 module_zeroconf_discover_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_zeroconf_discover_la_LIBADD = $(AM_LIBADD) $(AVAHI_LIBS) libavahi-wrap.la libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 module_zeroconf_discover_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
+
+# Bonjour
+
+module_bonjour_publish_la_SOURCES = modules/module-bonjour-publish.c
+module_bonjour_publish_la_LDFLAGS = $(MODULE_LDFLAGS) \
+			-Wl,-framework -Wl,CoreFoundation -framework CoreFoundation
+module_bonjour_publish_la_LIBADD = libpulsecore-@PA_MAJORMINORMICRO@.la libpulsecommon-@PA_MAJORMINORMICRO@.la libpulse.la
 
 # LIRC
 
